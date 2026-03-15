@@ -18,7 +18,7 @@
 
 ### Latest
 
-- **[C89 Frontend vs SDCC](reports/2026-03-15-081-MinZ_C89_vs_SDCC_Codegen_Comparison.md)** — 6th frontend: C89/C99 via `modernc.org/cc/v4`. Identical C source, MinZ 68B vs SDCC 84B (−19%). PBQP 3-register ABI wins on `clamp8` (13B vs 30B). [Progress report](reports/2026-03-15-082-C89_Frontend_Progress.md): 9 corpus files, 51 functions, 68 MIR2 asserts pass.
+- **[C89 Frontend vs SDCC](reports/2026-03-15-081-MinZ_C89_vs_SDCC_Codegen_Comparison.md)** — 6th frontend: C89/C99 via `modernc.org/cc/v4`. Identical C source, **MinZ 81B vs SDCC 179B (−55%)**. Pair-return byte-identical to Nanz. See table below. [Progress report](reports/2026-03-15-082-C89_Frontend_Progress.md): 9 corpus files, 51 functions, 68 MIR2 asserts pass.
 - **[Six Frontends, Universal Assert](reports/2026-03-15-080-Five_Frontends_Universal_Assert.md)** — Nanz, Lanz, Lizp, PL/M-80, Pascal, C89 — all compile through one HIR → MIR2 → Z80 pipeline. Compile-time assert works in all 6. Pascal → CP/M hello world runs in MZE.
 - **[Nanz Language Book v5.3](docs/Nanz_Language_Book_v5.md)** — 21 chapters + 8 appendices. New: five-frontend architecture, universal assert syntax, Pascal/Lizp imports, transpilation via `--emit`.
 - **[ZX Spectrum Tetris](examples/zx/tetris.nanz)** — 853 LOC, 7 tetrominoes, SRS wall kicks, hold/next/ghost piece, T-spin scoring. Attribute-based rendering for fast frame updates.
@@ -28,6 +28,23 @@
 - **[MOS 6502 backend alive](reports/2026-03-13-067-6502_Backend_E2E_Harness.md)** — 35/35 tests, dual-VM oracle (MIR2 VM vs sim6502), console I/O for Apple II/C64/BBC Micro.
 
 [Full changelog →](CHANGELOG.md)
+
+### MinZ C89 vs SDCC 4.2.0 — Z80 Codegen Comparison
+
+Identical C source compiled through both toolchains. Binary sizes (code only):
+
+| Function | MinZ C89 | SDCC 4.2.0 | Delta | Notes |
+|----------|-------:|-------:|------:|-------|
+| `twice(i16)→i16` | 2B | 3B | −1B | SDCC: `EX DE,HL` return tax |
+| `add(i16,i16)→i16` | 2B | 3B | −1B | SDCC: `EX DE,HL` return tax |
+| `max(i16,i16)→i16` | 12B | 12B | TIE | Both clever compare tricks |
+| `abs_diff(u8,u8)→u8` | 9B | 11B | −2B | MinZ: `RET Z/RET C` conditional return |
+| `sum_to(i16)→i16` | 21B | 25B | −4B | MinZ: no trampoline |
+| `clamp8(u8,u8,u8)→u8` | 10B | 30B | −20B | MinZ: 3-reg ABI + `RET Z/C` |
+| `minmax(u16,u16)→(u16,u16)` | 19B | 61B | −42B | MinZ: tuple return + `RET C/Z` |
+| `smaller` (uses lo) | 0B | 34B | −34B | MinZ: `EQU minmax` (degenerate!) |
+| `larger` (uses hi) | 6B | — | — | |
+| **TOTAL** | **81B** | **179B** | **−55%** | [Full report →](reports/2026-03-15-081-MinZ_C89_vs_SDCC_Codegen_Comparison.md) |
 
 <div align="center">
 
@@ -593,7 +610,7 @@ Six source languages compile through the same HIR → MIR2 → Z80 backend:
 | **Lizp** | Working | Lisp dialect | Macros, threading (`->`, `->>`), `defmacro`/`cond`/`when`/`dotimes`. Desugars to Lanz |
 | **PL/M-80** | Working | Legacy Intel (1976) | 26/26 Intel 80 Tools corpus (100%); 1338 functions, 11661 statements |
 | **Pascal** | Working | Turbo Pascal | `WriteLn` → CP/M BDOS via inline asm. `mz hello.pas -t cpm -o hello.com` |
-| **C89** | WIP | C89/C99 | `modernc.org/cc/v4` parser. 9 corpus files, 68 asserts. [−19% vs SDCC](reports/2026-03-15-081-MinZ_C89_vs_SDCC_Codegen_Comparison.md) |
+| **C89** | WIP | C89/C99 | `modernc.org/cc/v4` parser. 9 corpus files, 68 asserts. [−55% vs SDCC](reports/2026-03-15-081-MinZ_C89_vs_SDCC_Codegen_Comparison.md) |
 | **MinZ** | Frozen on MIR1 | Legacy syntax | Old MIR1 path; will be rewired through HIR→MIR2 |
 
 **Six pipelines, one backend.** `.nanz`, `.lanz`, `.lizp`, `.plm`, `.pas`, and `.c` files all go through `compileViaHIR()` → HIR → MIR2 → Z80. A function `double(x) = x + x` written in any of the six languages produces the same Z80: `ADD A, A / RET`.

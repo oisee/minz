@@ -183,6 +183,7 @@ func asmPeepholePass(src string) string {
 	lines := strings.Split(src, "\n")
 	lines = elimDoubleExDeHl(lines)
 	lines = elimSingleJpEqu(lines)
+	lines = elimJrToRet(lines)
 	return strings.Join(lines, "\n")
 }
 
@@ -288,6 +289,115 @@ func elimSingleJpEqu(lines []string) []string {
 		i++
 	}
 	return out
+}
+
+// elimJrToRet replaces `JRS cc, label` with `RET cc` when the target label
+// is a bare RET instruction. Then removes the label+RET if no other references
+// remain. This saves 1B per replaced jump (JR cc = 2B → RET cc = 1B).
+//
+// Before:  JRS Z, .cret0 / JRS C, .cret0 / ... / .cret0: / RET
+// After:   RET Z / RET C / ...  (label+RET removed if dead)
+func elimJrToRet(lines []string) []string {
+	// Pass 1: find labels that point to bare RET.
+	retLabels := make(map[string]bool)
+	for i := 0; i < len(lines)-1; i++ {
+		t := strings.TrimSpace(lines[i])
+		if strings.HasPrefix(t, ".") && strings.HasSuffix(t, ":") {
+			label := strings.TrimSuffix(t, ":")
+			// Check next non-blank line is RET.
+			for j := i + 1; j < len(lines); j++ {
+				next := strings.TrimSpace(lines[j])
+				if next == "" || strings.HasPrefix(next, ";") {
+					continue
+				}
+				if next == "RET" {
+					retLabels[label] = true
+				}
+				break
+			}
+		}
+	}
+	if len(retLabels) == 0 {
+		return lines
+	}
+
+	// Pass 2: replace JRS cc, retLabel → RET cc.
+	// Track which labels are still referenced.
+	replaced := make(map[string]int) // label → count of replacements
+	out := make([]string, 0, len(lines))
+	for _, line := range lines {
+		t := strings.TrimSpace(line)
+		// Match: JRS cc, .label  or  JR cc, .label
+		if (strings.HasPrefix(t, "JRS ") || strings.HasPrefix(t, "JR ")) && strings.Contains(t, ", .") {
+			parts := strings.SplitN(t, ", ", 2)
+			if len(parts) == 2 {
+				label := strings.TrimSpace(parts[1])
+				if retLabels[label] {
+					// Extract condition code.
+					prefix := parts[0] // "JRS Z" or "JR C"
+					cc := strings.TrimSpace(strings.TrimPrefix(strings.TrimPrefix(prefix, "JRS"), "JR"))
+					if cc != "" {
+						out = append(out, "    RET "+cc)
+						replaced[label]++
+						continue
+					}
+				}
+			}
+		}
+		out = append(out, line)
+	}
+
+	if len(replaced) == 0 {
+		return lines // nothing changed
+	}
+
+	// Pass 3: count remaining references to each replaced label.
+	// If a label has zero remaining references, remove the label+RET.
+	labelRefs := make(map[string]int)
+	for _, line := range out {
+		t := strings.TrimSpace(line)
+		for label := range replaced {
+			if strings.Contains(t, label) && !strings.HasSuffix(t, ":") {
+				labelRefs[label]++
+			}
+		}
+	}
+
+	// Pass 4: remove dead label+RET pairs.
+	deadLabels := make(map[string]bool)
+	for label := range replaced {
+		if labelRefs[label] == 0 {
+			deadLabels[label] = true
+		}
+	}
+	if len(deadLabels) == 0 {
+		return out
+	}
+
+	var final []string
+	for i := 0; i < len(out); i++ {
+		t := strings.TrimSpace(out[i])
+		if strings.HasSuffix(t, ":") {
+			label := strings.TrimSuffix(t, ":")
+			if deadLabels[label] {
+				// Skip label line and the following RET.
+				for j := i + 1; j < len(out); j++ {
+					next := strings.TrimSpace(out[j])
+					if next == "" || strings.HasPrefix(next, ";") {
+						i = j
+						continue
+					}
+					if next == "RET" {
+						i = j // skip the RET too
+					}
+					break
+				}
+				continue
+			}
+		}
+		final = append(final, out[i])
+	}
+	return final
 }
 
 // ── Internal codegen state ────────────────────────────────────────────────────

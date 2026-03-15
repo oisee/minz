@@ -15,24 +15,24 @@ Assembled binary sizes (code only, no headers/vectors):
 | `twice(i16)→i16` | 2B | 3B | −1B | SDCC: `EX DE,HL` return tax |
 | `add(i16,i16)→i16` | 2B | 3B | −1B | SDCC: `EX DE,HL` return tax |
 | `max(i16,i16)→i16` | 12B | 12B | TIE | Both use clever compare tricks |
-| `abs_diff(u8,u8)→u8` | 12B | 11B | +1B | SDCC wins by 1B |
+| `abs_diff(u8,u8)→u8` | 9B | 11B | −2B | MinZ: `RET Z/RET C` conditional return |
 | `sum_to(i16)→i16` | 21B | 25B | −4B | MinZ: no trampoline, `ADD HL` restore |
-| `clamp8(u8,u8,u8)→u8` | 13B | 30B | −17B | MinZ: 3-reg ABI vs stack spill |
-| **Scalar total** | **62B** | **84B** | **−26%** | |
+| `clamp8(u8,u8,u8)→u8` | 10B | 30B | −20B | MinZ: 3-reg ABI + `RET Z/C` |
+| **Scalar total** | **56B** | **84B** | **−33%** | |
 | | | | | |
-| `minmax(u16,u16)→(u16,u16)` | 22B | 61B | −39B | MinZ: tuple return vs ptr out-params |
+| `minmax(u16,u16)→(u16,u16)` | 19B | 61B | −42B | MinZ: tuple return + `RET C/Z` |
 | `smaller` (uses lo) | 0B | 34B | −34B | MinZ: `EQU minmax` (degenerate!) |
 | `larger` (uses hi) | 6B | — | — | |
-| **Pair return total** | **28B** | **95B** | **−71%** | |
+| **Pair return total** | **25B** | **95B** | **−74%** | |
 | | | | | |
-| **GRAND TOTAL** | **90B** | **179B** | **−50%** | |
+| **GRAND TOTAL** | **81B** | **179B** | **−55%** | |
 
-**Verified**: Nanz native and C89/MinZ produce **byte-for-byte identical** Z80 binary code for pair-return functions. The struct→tuple promotion pass completely erases the C frontend overhead.
+**Verified**: Nanz native and C89/MinZ produce **byte-for-byte identical** Z80 binary code for **pair-return functions** (minmax, smaller, larger). Scalar functions use the same pipeline but may differ in HIR lowering between frontends.
 
 ```
-Binary verification (xxd, first 24 bytes = minmax code):
-Nanz: e5b7 ed52 e1d5 c1e5 dde1 380b 0028 0800 6069 dd54 dd5d c9c9
-C89:  e5b7 ed52 e1d5 c1e5 dde1 380b 0028 0800 6069 dd54 dd5d c9c9
+Binary verification (xxd, minmax code section):
+Nanz: e5b7 ed52 e1d5 c1e5 dde1 d8c8 6069 dd54 dd5d c9
+C89:  e5b7 ed52 e1d5 c1e5 dde1 d8c8 6069 dd54 dd5d c9
       ^^^^ identical ^^^^
 ```
 
@@ -153,17 +153,15 @@ _max::
 
 ### `abs_diff` — unsigned 8-bit absolute difference
 
-**MinZ (12B):**
+**MinZ (9B):**
 ```asm
 abs_diff:
     CP C                ; 1B
     NEG                 ; 2B
     ADD A, C            ; 1B
-    JR Z, .cret0        ; 2B
-    JR C, .cret0        ; 2B
+    RET Z               ; 1B  ← conditional return (was JR Z)
+    RET C               ; 1B  ← conditional return (was JR C)
     NEG                 ; 2B
-    RET                 ; 1B
-.cret0:
     RET                 ; 1B
 ```
 
@@ -183,7 +181,7 @@ _abs_diff::
     ret                 ; 1B
 ```
 
-**Verdict:** SDCC −1B. MinZ's `NEG / ADD A,C` pattern (12B) is 1B larger than SDCC's direct subtraction (11B). Optimal codegen would be `SUB C / JR NC,.done / NEG / RET` at 8B — room for improvement.
+**Verdict:** MinZ −2B. The `elimJrToRet` peephole replaces `JR Z/JR C` to bare `RET` with `RET Z/RET C` conditional returns, saving 3B (12B→9B). Optimal codegen would be `SUB C / RET NC / NEG / RET` at 6B — room for improvement.
 
 ---
 
@@ -239,7 +237,7 @@ _sum_to::
 
 ### `clamp8` — unsigned 8-bit clamp to range
 
-**MinZ (13B):**
+**MinZ (10B):**
 ```asm
 clamp8:
     CP B                ; 1B
@@ -248,11 +246,9 @@ clamp8:
     RET                 ; 1B
 .join:
     CP C                ; 1B
-    JR Z, .ret          ; 2B
-    JR C, .ret          ; 2B
+    RET Z               ; 1B  ← conditional return (was JR Z)
+    RET C               ; 1B  ← conditional return (was JR C)
     LD A, C             ; 1B
-    RET                 ; 1B
-.ret:
     RET                 ; 1B
 ```
 
@@ -282,7 +278,7 @@ _clamp8::
     jp   (hl)           ; 1B
 ```
 
-**Verdict:** MinZ −17B (57% smaller!). The killer advantage: MinZ's PBQP allocator passes all 3 u8 params in A, B, C registers. SDCC can only pass 2 params in registers — the 3rd goes to stack, requiring expensive `IY`-indexed loads (4B per access).
+**Verdict:** MinZ −20B (67% smaller!). The killer advantage: MinZ's PBQP allocator passes all 3 u8 params in A, B, C registers. SDCC can only pass 2 params in registers — the 3rd goes to stack, requiring expensive `IY`-indexed loads (4B per access). Plus `elimJrToRet` replaces `JR Z/JR C` → `RET Z/RET C`, saving 3B.
 
 ---
 
@@ -293,15 +289,17 @@ _clamp8::
 | `twice`    |   2B |   2B |   2B |   3B | MinZ −1B |
 | `add`      |   2B |   2B |   2B |   3B | MinZ −1B |
 | `max`      |  13B |  13B | **12B** |  12B | **TIE** (was SDCC) |
-| `abs_diff` |  10B |  10B |  12B |  11B | SDCC −1B |
+| `abs_diff` |  10B |  10B | **9B** |  11B | **MinZ −2B** (was SDCC) |
 | `sum_to`   |  28B |  22B | **21B** |  25B | **MinZ −4B** |
-| `clamp8`   |  13B |  13B |  13B |  30B | MinZ −17B |
-| **TOTAL**  |**68B**|**62B**|**62B**|**84B**| **MinZ −26%** |
+| `clamp8`   |  13B |  13B | **10B** |  30B | **MinZ −20B** |
+| **TOTAL**  |**68B**|**62B**|**56B**|**84B**| **MinZ −33%** |
 
 Key improvements since v0.19.5:
 - `max`: `PUSH/POP` → `ADD HL,DE` restore (−1B), now TIES SDCC
 - `sum_to`: dead trampoline eliminated (−7B), now BEATS SDCC by 4B
-- Score: MinZ wins 3 functions, SDCC wins 1, 1 tie, 1 near-tie
+- `abs_diff`: `elimJrToRet` peephole (−3B), now BEATS SDCC by 2B
+- `clamp8`: `elimJrToRet` peephole (−3B), 67% smaller than SDCC
+- Score: MinZ wins 4 functions, SDCC wins 0, 1 tie, 1 near-tie
 
 ---
 
@@ -365,7 +363,7 @@ uint16_t min_of(uint16_t a, uint16_t b) {
 
 #### `minmax` body
 
-**Nanz AND C89/MinZ — IDENTICAL output (22B):**
+**Nanz AND C89/MinZ — IDENTICAL output (19B):**
 ```asm
 ; fun minmax(a: u16 = HL, b: u16 = DE) -> (u16 = HL, u16 = DE)
 minmax:
@@ -377,18 +375,16 @@ minmax:
     POP BC              ; 1B  BC = b
     PUSH HL             ; 1B  save a
     POP IX              ; 2B  IX = a
-    JR C, .then         ; 2B  a <= b → then
-    JR Z, .then         ; 2B  a == b → then
+    RET C               ; 1B  a < b → return (a, b) ← was JR C
+    RET Z               ; 1B  a == b → return (a, b) ← was JR Z
     LD H, B             ; 1B  ┐ swap: HL = b
     LD L, C             ; 1B  ┘
     LD D, IXH           ; 2B  ┐ DE = a
     LD E, IXL           ; 2B  ┘
     RET                 ; 1B  return (b, a)
-.then:
-    RET                 ; 1B  return (a, b) — already in HL, DE
 ```
 
-**SDCC `_minmax` (50B):**
+**SDCC `_minmax` (61B):**
 ```asm
 _minmax::
     push ix             ; 2B  ┐
@@ -488,12 +484,12 @@ larger:
 
 | Function | Nanz | C89/MinZ | SDCC | MinZ/SDCC ratio |
 |----------|-----:|-----:|-----:|-----:|
-| `minmax` body | 22B | **22B** | 61B | **2.8× smaller** |
+| `minmax` body | 19B | **19B** | 61B | **3.2× smaller** |
 | `smaller`/`min_of` | 0B (EQU) | **0B** (EQU) | 34B | **∞× smaller** |
 | `larger` | 6B | **6B** | — | — |
-| **TOTAL** | **28B** | **28B** | **95B** | **3.4× smaller** |
+| **TOTAL** | **25B** | **25B** | **95B** | **3.8× smaller** |
 
-**Key finding: C89 through MinZ generates BYTE-FOR-BYTE IDENTICAL Z80 binary as native Nanz** (verified via `xxd` and `cmp`).
+**Key finding: C89 through MinZ generates BYTE-FOR-BYTE IDENTICAL Z80 binary as native Nanz for pair-return functions** (verified via `xxd` and `cmp`).
 
 The struct→tuple promotion pass (ADR-0025) completely erases the semantic gap between C's `typedef struct { ... } Pair` and Nanz's native `(u16, u16)` multi-return.
 
@@ -537,9 +533,9 @@ u16 smaller(u16 a, u16 b) {      fun smaller(a, b) -> u16 {
 
 | Category | MinZ | SDCC | MinZ advantage |
 |----------|-----:|-----:|-----:|
-| 6 scalar functions | 62B | 84B | **−26%** |
-| minmax pair return | 28B | 95B | **−71%** (3.4× smaller) |
-| **ALL 9 functions** | **90B** | **179B** | **−50%** |
+| 6 scalar functions | 56B | 84B | **−33%** |
+| minmax pair return | 25B | 95B | **−74%** (3.8× smaller) |
+| **ALL 9 functions** | **81B** | **179B** | **−55%** |
 
 ---
 
@@ -552,14 +548,14 @@ u16 smaller(u16 a, u16 b) {      fun smaller(a, b) -> u16 {
 4. **Degenerate function elimination** — `smaller EQU minmax` = 0 bytes when caller's return register matches callee's
 5. **Struct→tuple promotion** — C struct returns automatically promoted to register-based tuple returns
 6. **`ADD HL,rr` restore** — avoids `PUSH/POP` around `SBC HL,DE` compare (safe: `ADD HL,rr` doesn't touch S/Z/PV flags)
+7. **`elimJrToRet` peephole** — replaces `JR cc, .label` → bare `RET` with `RET cc` (1B vs 2B+1B), then removes dead label+RET pairs
 
 ### MinZ Weaknesses
-1. **`abs_diff` codegen** — `NEG / ADD A,C` pattern (12B) vs optimal `SUB C / JR NC / NEG` (8B)
+1. **`abs_diff` codegen** — `NEG / ADD A,C` pattern (9B) vs optimal `SUB C / RET NC / NEG / RET` (6B)
 2. **IX usage in `minmax`** — `PUSH HL / POP IX` for temporary storage costs 3B; optimal hand-written code could use register pairs more efficiently
 
 ### SDCC Strengths
 1. **Mature signed arithmetic** — decades of Z80-specific peephole patterns (`JP PO / XOR 0x80`)
-2. **Conditional RET** — uses `RET P` / `RET C` to save 1B vs branch-to-RET
 
 ### SDCC Weaknesses
 1. **No multi-return** — C language limitation forces pointer-based out-params (+50B for minmax!)
@@ -571,9 +567,9 @@ u16 smaller(u16 a, u16 b) {      fun smaller(a, b) -> u16 {
 
 ## Conclusion
 
-MinZ's C89 frontend produces Z80 code that is **byte-for-byte identical** to native Nanz for pair-return functions, and **26% smaller overall** for scalar functions. The struct→tuple promotion pass completely bridges the gap between C's lack of multi-return and Nanz's native tuple support.
+MinZ's C89 frontend produces Z80 code that is **byte-for-byte identical** to native Nanz for pair-return functions, and **33% smaller overall** for scalar functions. The struct→tuple promotion pass completely bridges the gap between C's lack of multi-return and Nanz's native tuple support.
 
-For the full minmax+caller benchmark, MinZ is **3× smaller** than SDCC — not because of better peephole optimization, but because of a fundamentally better ABI design: per-function register contracts and multi-return values eliminate the structural overhead that C compilers cannot avoid.
+For the full 9-function benchmark, MinZ is **55% smaller** than SDCC (81B vs 179B) — not because of better peephole optimization, but because of a fundamentally better ABI design: per-function register contracts, multi-return values, and conditional-return peepholes eliminate the structural overhead that C compilers cannot avoid.
 
 **The implication:** C code compiled through MinZ's frontend can achieve the same codegen quality as a purpose-built language — the ABI advantage is in the backend, not the frontend.
 
