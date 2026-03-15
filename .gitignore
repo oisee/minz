@@ -93,6 +93,7 @@ test-output/
 *.tmp
 *.temp
 *.log
+/tmp/
 
 # Coverage
 coverage/

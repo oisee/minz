@@ -8,7 +8,12 @@
 /mza
 /mzd
 /mze
+/mzlsp
+/mzn
 /mzrun
 /mztap
 /mzv
 /mzx
+
+# Build artifacts
+cmd/mzx/BUILD
