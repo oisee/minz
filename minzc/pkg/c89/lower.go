@@ -3,7 +3,7 @@ package c89
 import (
 	"fmt"
 
-	cc "modernc.org/cc/v4"
+	cc "github.com/minz/minzc/pkg/cparse"
 
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"

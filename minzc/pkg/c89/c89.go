@@ -2,7 +2,7 @@
 //
 // Architecture:
 //
-//	C source → modernc.org/cc/v4.Translate() → cc.AST → lower.go → *hir.Module
+//	C source → cparse.Translate() → cc.AST → lower.go → *hir.Module
 //
 // The heavy lifting (preprocessing, parsing, type checking, implicit conversions)
 // is handled by modernc.org/cc. This package only walks the typed AST and emits
@@ -20,7 +20,7 @@ import (
 	"strconv"
 	"strings"
 
-	cc "modernc.org/cc/v4"
+	cc "github.com/minz/minzc/pkg/cparse"
 
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/interop"
