@@ -8,7 +8,7 @@ For pre-MIR2 history (v0.1–v0.15, 2025), see git log.
 
 ## 2026-03-15
 
-**42 commits. 8 reports (#073–#080). [Full context →](reports/2026-03-15_u7_context.md)**
+**42 commits. 8 reports (#073–#080). [Full context →](contexts/2026-03-15_u7_context.md)**
 
 - **[Five Frontends, Universal Assert](reports/2026-03-15-080-Five_Frontends_Universal_Assert.md)** — Nanz, Lanz, Lizp, PL/M-80, Pascal all compile through one HIR → MIR2 → Z80 pipeline. Compile-time assert in all 5 frontends (45/45 verified). Pascal → CP/M hello world.
 - **[Nanz Language Book v5.3](docs/Nanz_Language_Book_v5.md)** — 21 chapters + 8 appendices (3195 lines). Five-frontend architecture, universal assert syntax, cross-language imports, transpilation. [PDF](releases/v0.21.4/Nanz_Language_Book_v5.pdf) / [EPUB](releases/v0.21.4/Nanz_Language_Book_v5.epub).
