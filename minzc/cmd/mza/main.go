@@ -251,7 +251,7 @@ func init() {
 	// Assembly options
 	rootCmd.Flags().BoolVarP(&allowUndoc, "undocumented", "u", true, "allow undocumented Z80 instructions")
 	rootCmd.Flags().BoolVar(&strict, "strict", false, "strict assembly mode")
-	rootCmd.Flags().BoolVarP(&caseSensitive, "case-sensitive", "c", false, "case-sensitive labels")
+	rootCmd.Flags().BoolVarP(&caseSensitive, "case-sensitive", "c", true, "case-sensitive labels")
 	
 	// General options
 	rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
