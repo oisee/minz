@@ -329,7 +329,7 @@ fun try_rotate() -> u8 {
         }
     }
     // I piece: try +/-2 horizontal
-    if cur_type == Piece::I {
+    if cur_type == Piece.I {
         if cur_x < 8 {
             if can_place(cur_type, nr, cur_x + 2, cur_y) {
                 cur_x = cur_x + 2
@@ -351,7 +351,7 @@ fun try_rotate() -> u8 {
 // ── T-spin detection ────────────────────────────────────────────────────────
 
 fun check_tspin() -> u8 {
-    if cur_type != Piece::T { return 0 }
+    if cur_type != Piece.T { return 0 }
 
     let cx: u8 = cur_x + 1
     let cy: u8 = cur_y
@@ -438,17 +438,17 @@ fun init_screen() -> void {
     // Border — left wall
     for cy in 2..22 {
         fill_cell(10, cy)
-        zx_poke(zx_attr_addr(10, cy), Attr::WHITE)
+        zx_poke(zx_attr_addr(10, cy), Attr.WHITE)
     }
     // Border — right wall
     for cy in 2..22 {
         fill_cell(21, cy)
-        zx_poke(zx_attr_addr(21, cy), Attr::WHITE)
+        zx_poke(zx_attr_addr(21, cy), Attr.WHITE)
     }
     // Border — bottom
     for bx in 10..22 {
         fill_cell(bx, 22)
-        zx_poke(zx_attr_addr(bx, 22), Attr::WHITE)
+        zx_poke(zx_attr_addr(bx, 22), Attr.WHITE)
     }
 
     zx_border(0)
@@ -458,7 +458,7 @@ fun render_preview(t: u8, sx: u8, sy: u8) -> void {
     // Clear 4x4 preview area
     for py in 0..4 {
         for px in 0..4 {
-            zx_poke(zx_attr_addr(sx + px, sy + py), Attr::BLACK)
+            zx_poke(zx_attr_addr(sx + px, sy + py), Attr.BLACK)
         }
     }
     // Draw piece cells

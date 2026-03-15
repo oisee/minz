@@ -78,7 +78,7 @@ if cur_type != 2 { return 0 } // 2 = T... or was it S?
 
 ### After (self-documenting)
 ```nanz
-enum Piece { I = 0, O, T, S, Z, L, J }
+enum Piece { I, O, T, S, Z, L, J }
 enum Attr {
     BLACK   = 0x00,
     BLUE    = 0x08,
@@ -91,7 +91,7 @@ enum Attr {
     BRIGHT_YELLOW = 0x70
 }
 
-if cur_type != Piece::T { return 0 }  // crystal clear
+if cur_type != Piece.T { return 0 }  // crystal clear
 ```
 
 ---
@@ -228,10 +228,13 @@ for c in 0..4 {
 |--------|------|-------|
 | while → for | Low | `for i in 0..n` is well-tested |
 | Enums | Low | Enum values are ✅ DONE |
-| Array LUTs | Medium | Array literal init codegen is 🚧 WIP — may not optimize well |
+| Array LUTs | Low | Verified: compiles to 2188 lines asm (vs 2205 original) |
 | `& 7` random | None | Bitwise AND is fully implemented |
 | Constants | None | Just globals with names |
 | u16 ranges | Medium | `for addr in 0x4000..0x5800` needs u16 range support |
+
+**Status:** ✅ Both compile. v2 produces 2188 lines asm (vs 2205 original).
+Enum access syntax is `Piece.I` (dot), not `Piece::I` (double-colon).
 
 **Recommendation:** Ship as `tetris_v2.nanz` alongside original. Original stays
 as the "known-working" reference; v2 demonstrates idiomatic Nanz style.
