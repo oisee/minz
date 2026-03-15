@@ -23,6 +23,7 @@ import (
 	cc "modernc.org/cc/v4"
 
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/interop"
 	"github.com/minz/minzc/pkg/mir2"
 )
 
@@ -93,8 +94,33 @@ func z80ABI() *cc.ABI {
 	}
 }
 
+// CompileOpts configures the C89 compiler.
+type CompileOpts struct {
+	// BaseDir is the source file directory for resolving #import paths.
+	BaseDir string
+	// Resolver handles cross-language #import directives.
+	// If nil, #import directives are ignored.
+	Resolver *interop.Resolver
+}
+
 // Compile parses C source code and produces an HIR module.
 func Compile(src, name string) (*hir.Module, error) {
+	return CompileWithOpts(src, name, CompileOpts{})
+}
+
+// CompileWithOpts parses C source code with options (including #import support).
+func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
+	// Process #import directives before cc/v4 sees the source.
+	var importedModules []*hir.Module
+	if opts.Resolver != nil {
+		cleaned, mods, err := opts.Resolver.Resolve(src)
+		if err != nil {
+			return nil, fmt.Errorf("c89 #import: %w", err)
+		}
+		src = cleaned
+		importedModules = mods
+	}
+
 	cfg := &cc.Config{
 		ABI: z80ABI(),
 	}
@@ -119,6 +145,11 @@ func Compile(src, name string) (*hir.Module, error) {
 
 	if err := l.lower(); err != nil {
 		return nil, fmt.Errorf("c89 lower: %w", err)
+	}
+
+	// Merge imported modules into this module.
+	if len(importedModules) > 0 {
+		interop.MergeInto(l.hm, importedModules)
 	}
 
 	// Parse comment-based asserts and sandboxes.

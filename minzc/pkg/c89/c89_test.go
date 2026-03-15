@@ -3,8 +3,11 @@ package c89
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
+	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/interop"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/pipeline"
 )
@@ -312,7 +315,21 @@ func TestCorpus_AllExamples(t *testing.T) {
 			if err != nil {
 				t.Fatalf("read: %v", err)
 			}
-			hm, err := Compile(string(src), e.Name())
+			var hm *hir.Module
+			if strings.Contains(string(src), "#import") {
+				absDir, _ := filepath.Abs(corpusDir)
+				hm, err = CompileWithOpts(string(src), e.Name(), CompileOpts{
+					BaseDir: absDir,
+					Resolver: &interop.Resolver{
+						BaseDir: absDir,
+						Compilers: map[string]interop.CompileFunc{
+							".c": Compile,
+						},
+					},
+				})
+			} else {
+				hm, err = Compile(string(src), e.Name())
+			}
 			if err != nil {
 				t.Fatalf("Compile: %v", err)
 			}
