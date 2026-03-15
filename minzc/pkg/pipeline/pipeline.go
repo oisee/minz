@@ -82,6 +82,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 			}
 		}
 		mir2.DeadStoreElim(f)
+		mir2.DeadBlockArgElim(f)
 		// VM-based branch equivalence: remove CmpEq guards whose then-path is
 		// provably equivalent to the else-path on the equality boundary.
 		if mir2.BranchEquiv(m, f) {
@@ -177,6 +178,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 			}
 		}
 		mir2.DeadStoreElim(f)
+		mir2.DeadBlockArgElim(f)
 		if mir2.BranchEquiv(m, f) {
 			mir2.EliminateDeadBlocks(f)
 			mir2.DeadStoreElim(f)

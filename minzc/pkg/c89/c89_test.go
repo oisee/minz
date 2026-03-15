@@ -1,6 +1,8 @@
 package c89
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/minz/minzc/pkg/mir2"
@@ -291,4 +293,50 @@ int add(int a, int b) { return a + b; }
 		t.Fatalf("pipeline (asserts should pass): %v", err)
 	}
 	t.Logf("C89 E2E: %d asserts passed via MIR2 VM", len(hm.Asserts))
+}
+
+func TestCorpus_AllExamples(t *testing.T) {
+	corpusDir := filepath.Join("..", "..", "..", "examples", "c89")
+	entries, err := os.ReadDir(corpusDir)
+	if err != nil {
+		t.Skipf("corpus dir not found: %v", err)
+	}
+	totalAsserts := 0
+	passedAsserts := 0
+	for _, e := range entries {
+		if e.IsDir() || filepath.Ext(e.Name()) != ".c" {
+			continue
+		}
+		t.Run(e.Name(), func(t *testing.T) {
+			src, err := os.ReadFile(filepath.Join(corpusDir, e.Name()))
+			if err != nil {
+				t.Fatalf("read: %v", err)
+			}
+			hm, err := Compile(string(src), e.Name())
+			if err != nil {
+				t.Fatalf("Compile: %v", err)
+			}
+			t.Logf("  %d funcs, %d asserts, %d sandboxes",
+				len(hm.Funcs), len(hm.Asserts), len(hm.Sandboxes))
+
+			mir2Asserts := 0
+			for _, a := range hm.Asserts {
+				if a.Via == "mir2" {
+					mir2Asserts++
+				}
+			}
+			totalAsserts += mir2Asserts
+			if mir2Asserts == 0 {
+				return
+			}
+			_, err = pipeline.CompileHIR(hm)
+			if err != nil {
+				t.Errorf("pipeline: %v", err)
+			} else {
+				passedAsserts += mir2Asserts
+				t.Logf("  %d/%d mir2 asserts passed", mir2Asserts, mir2Asserts)
+			}
+		})
+	}
+	t.Logf("TOTAL: %d/%d mir2 asserts passed across corpus", passedAsserts, totalAsserts)
 }

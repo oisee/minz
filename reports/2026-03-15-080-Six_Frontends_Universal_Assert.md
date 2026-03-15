@@ -1,8 +1,9 @@
-# Report #080 — Five Frontends, Universal Assert, Pascal on CP/M
+# Report #080 — Six Frontends, Universal Assert, Pascal on CP/M
 
 **Date:** 2026-03-15
 **Status:** Shipped — all features working, all tests pass
 **Context:** Culmination of #077 (feasibility), #078 (Lizp), #079 (Pascal research)
+**Update:** C89 frontend added — now 6 frontends with universal assert
 
 ---
 
@@ -11,8 +12,8 @@
 Three deliverables completed in one session:
 
 1. **Pascal → CP/M hello world** — `WriteLn('Hello from Pascal on Z80!')` runs in MZE
-2. **Universal compile-time assert** — same `hir.Assert` pipeline across all 5 frontends
-3. **Nanz Language Book v5.3** — Chapter 21 rewritten for five-frontend architecture
+2. **Universal compile-time assert** — same `hir.Assert` pipeline across all 6 frontends
+3. **Nanz Language Book v5.3** — Chapter 21 rewritten for six-frontend architecture
 
 ---
 
@@ -60,7 +61,7 @@ Previous approach (auto-importing `system.lizp`) failed because PBQP allocated B
 
 ## 2. Universal Compile-Time Assert
 
-All five frontends now support compile-time assertions through the same pipeline:
+All six frontends now support compile-time assertions through the same pipeline:
 
 ### Syntax Comparison
 
@@ -71,10 +72,11 @@ All five frontends now support compile-time assertions through the same pipeline
 | **Lizp** | `(assert fn args == expected)` | `(assert double 5 == 10)` |
 | **PL/M-80** | `ASSERT FN(ARGS) = EXPECTED;` | `ASSERT DOUBLE(5) = 10;` |
 | **Pascal** | `assert Fn(args) = expected;` | `assert Double(5) = 10;` |
+| **C89** | `// assert fn(args) == expected` | `// assert twice(5) == 10 via mir2` |
 
 ### Pipeline
 
-All five produce the same `hir.Assert` struct:
+All six produce the same `hir.Assert` struct:
 
 ```
 hir.Assert{
@@ -98,18 +100,21 @@ This feeds into the existing dual-VM verification:
 | **Lizp** | Added `"assert"` case in `desugar()` | Pass-through to Lanz with hex desugaring |
 | **PL/M-80** | New `AssertDecl` AST node + `parseAssertDecl()` | New `lowerAssert(ad *AssertDecl)` method |
 | **Pascal** | Already parsed `assert` as statement | Already lowered to `hir.Assert` |
+| **C89** | Comment-based `// assert` regex parser | `parseCommentDirectives()` + `Compile()` |
 
 ### Test Coverage
 
 Each frontend has parse tests + E2E pipeline tests:
 
-| Test | Nanz | Lanz | Lizp | PL/M | Pascal |
-|---|---|---|---|---|---|
-| Parse basic assert | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Multi-arg assert | ✅ | ✅ | — | ✅ | — |
-| Hex literal in assert | — | — | ✅ | — | — |
-| `via mir2` clause | — | ✅ | — | — | — |
-| E2E (HIR → MIR2 → Z80 verify) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Test | Nanz | Lanz | Lizp | PL/M | Pascal | C89 |
+|---|---|---|---|---|---|---|
+| Parse basic assert | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Multi-arg assert | ✅ | ✅ | — | ✅ | — | ✅ |
+| Hex literal in assert | — | — | ✅ | — | — | ✅ |
+| `via mir2` clause | — | ✅ | — | — | — | ✅ |
+| Sandbox support | — | — | — | — | — | ✅ |
+| E2E (HIR → MIR2 → Z80 verify) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Corpus test (all example files) | — | — | — | — | — | ✅ (82 asserts) |
 
 ### Example Files
 
@@ -120,8 +125,11 @@ Each frontend has parse tests + E2E pipeline tests:
 | `examples/lizp/assert_test.lizp` | 9 | double, add, max_byte |
 | `examples/nanz/assert_test.plm` | 9 | DOUBLE, ADD_BYTES, MAX_BYTE |
 | `examples/pascal/assert_test.pas` | 9 | Double, Add, MaxByte |
+| `examples/c89/assert_test.c` | 13 | twice, add, sub8, max, clamp8 |
+| `examples/c89/bench_extended.c` | 27 | 27 functions across 7 categories |
+| `examples/c89/*.c` (10 files) | 82 | 80 functions total |
 
-All 45 assertions pass on both MIR2 VM and Z80 binary.
+All 127 assertions pass (45 original + 82 C89 corpus) on MIR2 VM.
 
 ---
 
@@ -147,7 +155,7 @@ All 45 assertions pass on both MIR2 VM and Z80 binary.
 
 ## Cross-Validation: The Bug Detection Story
 
-The five-frontend approach proved its value during development:
+The six-frontend approach proved its value during development:
 
 1. **Lizp `#x` hex desugaring** — `desugarDefextern` didn't convert `#x0005` to `0x0005`, causing `ExternAddr=0`. Caught because Pascal's CP/M runtime (which calls bdos at $0005) broke while Nanz's `@extern` worked fine.
 
@@ -163,9 +171,9 @@ Each bug was found because the same logical operation (call bdos, verify assert,
 
 | Metric | Before | After |
 |---|---|---|
-| Frontends with assert | 2 (Nanz, Pascal) | 5 (all) |
-| Assert example files | 2 | 5 |
-| Total verified asserts | 18 | 45 |
+| Frontends with assert | 2 (Nanz, Pascal) | 6 (all, including C89) |
+| Assert example files | 2 | 15 (5 original + 10 C89 corpus) |
+| Total verified asserts | 18 | 127 (45 + 82 C89) |
 | Cross-language import tests | 9 | 11 |
 | Book version | 5.2 | 5.3 |
 | Book Chapter 21 sections | 7 | 12 |

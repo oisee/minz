@@ -2396,6 +2396,10 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 						g.emitMov("BC", adjustedRhs, w)
 						g.emit("    ADD HL, BC")
 						g.emit("    POP BC")
+					} else if isSimpleReg(adjustedRhs) && !isPairReg(adjustedRhs) {
+						pair := parentPair(adjustedRhs)
+						g.emitf("    LD %s, 0", highByte(pair))
+						g.emitf("    ADD HL, %s", pair)
 					} else {
 						g.emitf("    ADD HL, %s", adjustedRhs)
 					}
@@ -2415,6 +2419,10 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 					g.emitMov("DE", adjustedRhs, w)
 					g.emit("    ADD HL, DE")
 					g.emit("    POP DE")
+				} else if isSimpleReg(adjustedRhs) && !isPairReg(adjustedRhs) {
+					pair := parentPair(adjustedRhs)
+					g.emitf("    LD %s, 0", highByte(pair))
+					g.emitf("    ADD HL, %s", pair)
 				} else {
 					g.emitf("    ADD HL, %s", adjustedRhs)
 				}
@@ -2426,12 +2434,17 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			if lhs != dst {
 				g.emitMov(dst, lhs, w)
 			}
-			// ADD HL, rr only accepts BC/DE/HL/SP — not IX/IY.
+			// ADD HL, rr only accepts BC/DE/HL/SP — not IX/IY or 8-bit regs.
 			if rhs == "IX" || rhs == "IY" {
 				g.emit("    PUSH DE")
 				g.emitMov("DE", rhs, w)
 				g.emit("    ADD HL, DE")
 				g.emit("    POP DE")
+			} else if isSimpleReg(rhs) && !isPairReg(rhs) {
+				// 8-bit rhs: zero-extend to parent pair, then ADD HL, pair.
+				pair := parentPair(rhs)
+				g.emitf("    LD %s, 0", highByte(pair))
+				g.emitf("    ADD HL, %s", pair)
 			} else {
 				g.emitf("    ADD %s, %s", dst, rhs)
 			}
@@ -3840,9 +3853,16 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 			g.emitLDA(src)
 			g.emitf("    LD (%s), A", dst)
 		default:
-			// DD/FD prefix conflict: LD IXH,H encodes as LD IXH,IXH (NOP).
-			// Any move between IXH/IXL/IYH/IYL and H/L must route through A.
-			if (isIXYReg(dst) && (src == "H" || src == "L")) ||
+			// Width mismatch: 8-bit move but one operand is a register pair.
+			// pair→8bit: truncate (take low byte). 8bit→pair: zero-extend.
+			if isPairReg(src) && !isPairReg(dst) {
+				g.emitf("    LD %s, %s", dst, lowByte(src))
+			} else if !isPairReg(src) && isPairReg(dst) {
+				g.emitf("    LD %s, %s", lowByte(dst), src)
+				g.emitf("    LD %s, 0", highByte(dst))
+			} else if (isIXYReg(dst) && (src == "H" || src == "L")) ||
+				// DD/FD prefix conflict: LD IXH,H encodes as LD IXH,IXH (NOP).
+				// Any move between IXH/IXL/IYH/IYL and H/L must route through A.
 				(isIXYReg(src) && (dst == "H" || dst == "L")) {
 				g.emitf("    LD A, %s", src)
 				g.emitf("    LD %s, A", dst)
@@ -4773,14 +4793,25 @@ func (g *z80cg) genCmp16(inst *Inst) {
 	lhs := g.loc(inst.Src[0])
 	rhs := g.loc(inst.Src[1])
 
-	// Handle CmpGt/CmpLe by swapping operands:
-	//   CmpUgt(a,b): a>b ↔ b<a → swap → SBC HL(=b), rr(=a) → C means b<a ✓
-	//   CmpUle(a,b): a≤b ↔ b≥a → swap → SBC HL(=b), rr(=a) → NC means b≥a ✓
+	// CmpGt/CmpLe traditionally swap operands so SBC HL,rr gives the C flag
+	// directly.  However, when lhs=HL and rhs=DE (common case), the swap
+	// forces EX DE,HL before+after SBC — 2 extra bytes, 16 extra T-states.
+	//
+	// Optimisation: when lhs is already in HL, do NOT swap; compute lhs-rhs
+	// directly and use a two-jump pattern (CGT/CLE) at the branch site.
+	// Cost: same bytes in branch, but saves the two EX DE,HL around the SBC.
 	isGtOrLe := inst.Cond == CmpGt || inst.Cond == CmpUgt ||
 		inst.Cond == CmpLe || inst.Cond == CmpUle
 	if isGtOrLe {
-		lhs, rhs = rhs, lhs
-		g.cmpSwapped[inst.Dst] = true
+		if lhs == "HL" && isPairReg(rhs) {
+			// lhs already in HL — skip swap, use CGT/CLE two-jump pattern.
+			g.cmpNeedsTwo[inst.Dst] = true
+			// Do NOT set cmpSwapped — we keep original operand order.
+		} else {
+			// Fallback: swap operands as before.
+			lhs, rhs = rhs, lhs
+			g.cmpSwapped[inst.Dst] = true
+		}
 	}
 
 	// SBC HL, rr requires lhs in HL.  If lhs is already HL we proceed.
