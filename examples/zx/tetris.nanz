@@ -1,0 +1,611 @@
+// ============================================================================
+// zx/tetris.nanz — Tetris for ZX Spectrum
+// ============================================================================
+//
+// A playable Tetris implementation running on Z80 at 3.5 MHz.
+// Attribute-based rendering: each board cell = one 8×8 character cell.
+// All pixels are pre-filled with 0xFF; only attribute bytes change per frame.
+//
+// Controls:  O = left,  P = right,  Q = rotate,  A = soft drop,  SPACE = hard drop
+//
+// Build & run:
+//   cd minzc && ./mz ../examples/zx/tetris.nanz -o /tmp/tetris.a80
+//   ./mzx --run /tmp/tetris.bin@8000
+//
+// ============================================================================
+
+// ── ZX Spectrum primitives ──────────────────────────────────────────────────
+
+fun zx_poke(@z80_hl addr: u16, @z80_a val: u8) -> void {
+    asm z80 (in addr, val) { LD (HL), A }
+}
+
+fun zx_peek(@z80_hl addr: u16) -> u8 {
+    asm z80 (in addr) { LD A, (HL) }
+}
+
+fun zx_attr_addr(cx: u8, cy: u8) -> u16 {
+    return 0x5800 + u16(cy) * 32 + u16(cx)
+}
+
+fun zx_screen_addr(x_byte: u8, y: u8) -> u16 {
+    let h: u8 = 0x40 + (y >> 6) * 8 + (y & 7)
+    let l: u8 = ((y >> 3) & 7) * 32 + (x_byte & 31)
+    return u16(h) * 256 + u16(l)
+}
+
+fun zx_key_row(@z80_a high_byte: u8) -> u8 {
+    asm z80 (in high_byte) { IN A, (0xFE) }
+}
+
+fun zx_border(@z80_a color: u8) -> void {
+    asm z80 (in color) { OUT (0xFE), A }
+}
+
+fun zx_halt() -> void {
+    asm z80 { HALT }
+}
+
+// ── Game state ──────────────────────────────────────────────────────────────
+
+global board: [u8; 200]       // 10×20, row-major. 0=empty, 1-7=color
+
+global cur_type: u8 = 0       // 0-6: I, O, T, S, Z, L, J
+global cur_rot: u8 = 0        // 0-3
+global cur_x: u8 = 3          // column
+global cur_y: u8 = 0          // row (top=0)
+
+global drop_timer: u8 = 0
+global drop_speed: u8 = 30    // frames per gravity tick
+global frame_count: u16 = 0
+
+global score: u16 = 0
+global lines_cleared: u16 = 0
+global game_over: u8 = 0
+global prev_keys: u8 = 0
+global rng_state: u16 = 0xACE1
+
+// ── PRNG ────────────────────────────────────────────────────────────────────
+
+fun rng_next() -> u8 {
+    let bit: u16 = rng_state & 1
+    rng_state = rng_state >> 1
+    if bit == 1 {
+        rng_state = rng_state ^ 0xB400
+    }
+    return u8(rng_state & 0xFF)
+}
+
+// ── Piece data ──────────────────────────────────────────────────────────────
+//
+// 7 pieces × 4 rotations × 4 cells, encoded as function lookups.
+// Types: 0=I, 1=O, 2=T, 3=S, 4=Z, 5=L, 6=J
+//
+// ZX attribute colors (paper bits):
+//   I=0x28(cyan), O=0x30(yellow), T=0x18(magenta),
+//   S=0x20(green), Z=0x10(red), L=0x70(yellow+bright), J=0x08(blue)
+
+fun piece_color(t: u8) -> u8 {
+    if t == 0 { return 0x28 }
+    if t == 1 { return 0x30 }
+    if t == 2 { return 0x18 }
+    if t == 3 { return 0x20 }
+    if t == 4 { return 0x10 }
+    if t == 5 { return 0x70 }
+    return 0x08
+}
+
+fun piece_dx(t: u8, r: u8, c: u8) -> u8 {
+    // I piece
+    if t == 0 {
+        if (r == 0) | (r == 2) { return c }
+        return 0
+    }
+    // O piece
+    if t == 1 {
+        if c == 0 { return 0 }
+        if c == 1 { return 1 }
+        if c == 2 { return 0 }
+        return 1
+    }
+    // T piece
+    if t == 2 {
+        if r == 0 {
+            if c == 0 { return 1 }
+            if c == 1 { return 0 }
+            if c == 2 { return 1 }
+            return 2
+        }
+        if r == 1 {
+            if c == 0 { return 0 }
+            if c == 1 { return 0 }
+            if c == 2 { return 1 }
+            return 0
+        }
+        if r == 2 {
+            if c == 0 { return 0 }
+            if c == 1 { return 1 }
+            if c == 2 { return 2 }
+            return 1
+        }
+        if c == 0 { return 1 }
+        if c == 1 { return 0 }
+        if c == 2 { return 1 }
+        return 1
+    }
+    // S piece
+    if t == 3 {
+        if (r == 0) | (r == 2) {
+            if c == 0 { return 1 }
+            if c == 1 { return 2 }
+            if c == 2 { return 0 }
+            return 1
+        }
+        if c == 0 { return 0 }
+        if c == 1 { return 0 }
+        if c == 2 { return 1 }
+        return 1
+    }
+    // Z piece
+    if t == 4 {
+        if (r == 0) | (r == 2) {
+            if c == 0 { return 0 }
+            if c == 1 { return 1 }
+            if c == 2 { return 1 }
+            return 2
+        }
+        if c == 0 { return 1 }
+        if c == 1 { return 0 }
+        if c == 2 { return 1 }
+        return 0
+    }
+    // L piece
+    if t == 5 {
+        if r == 0 {
+            if c == 0 { return 2 }
+            if c == 1 { return 0 }
+            if c == 2 { return 1 }
+            return 2
+        }
+        if r == 1 {
+            if c == 0 { return 0 }
+            if c == 1 { return 0 }
+            if c == 2 { return 0 }
+            return 1
+        }
+        if r == 2 {
+            if c == 0 { return 0 }
+            if c == 1 { return 1 }
+            if c == 2 { return 2 }
+            return 0
+        }
+        if c == 0 { return 0 }
+        if c == 1 { return 1 }
+        if c == 2 { return 1 }
+        return 1
+    }
+    // J piece (t == 6)
+    if r == 0 {
+        if c == 0 { return 0 }
+        if c == 1 { return 0 }
+        if c == 2 { return 1 }
+        return 2
+    }
+    if r == 1 {
+        if c == 0 { return 0 }
+        if c == 1 { return 1 }
+        if c == 2 { return 0 }
+        return 0
+    }
+    if r == 2 {
+        if c == 0 { return 0 }
+        if c == 1 { return 1 }
+        if c == 2 { return 2 }
+        return 2
+    }
+    if c == 0 { return 1 }
+    if c == 1 { return 1 }
+    if c == 2 { return 0 }
+    return 1
+}
+
+fun piece_dy(t: u8, r: u8, c: u8) -> u8 {
+    // I piece
+    if t == 0 {
+        if (r == 0) | (r == 2) { return 0 }
+        return c
+    }
+    // O piece
+    if t == 1 {
+        if c == 0 { return 0 }
+        if c == 1 { return 0 }
+        if c == 2 { return 1 }
+        return 1
+    }
+    // T piece
+    if t == 2 {
+        if r == 0 {
+            if c == 0 { return 0 }
+            return 1
+        }
+        if r == 1 {
+            if c == 0 { return 0 }
+            if c == 1 { return 1 }
+            if c == 2 { return 1 }
+            return 2
+        }
+        if r == 2 {
+            if c == 3 { return 1 }
+            return 0
+        }
+        if c == 0 { return 0 }
+        if c == 1 { return 1 }
+        if c == 2 { return 1 }
+        return 2
+    }
+    // S piece
+    if t == 3 {
+        if (r == 0) | (r == 2) {
+            if c <= 1 { return 0 }
+            return 1
+        }
+        if c == 0 { return 0 }
+        if c == 1 { return 1 }
+        if c == 2 { return 1 }
+        return 2
+    }
+    // Z piece
+    if t == 4 {
+        if (r == 0) | (r == 2) {
+            if c <= 1 { return 0 }
+            return 1
+        }
+        if c == 0 { return 0 }
+        if c == 1 { return 1 }
+        if c == 2 { return 1 }
+        return 2
+    }
+    // L piece
+    if t == 5 {
+        if r == 0 {
+            if c == 0 { return 0 }
+            return 1
+        }
+        if r == 1 {
+            if c == 0 { return 0 }
+            if c == 1 { return 1 }
+            if c == 2 { return 2 }
+            return 2
+        }
+        if r == 2 {
+            if c == 3 { return 1 }
+            return 0
+        }
+        if c == 0 { return 0 }
+        if c == 1 { return 0 }
+        if c == 2 { return 1 }
+        return 2
+    }
+    // J piece (t == 6)
+    if r == 0 {
+        if c == 0 { return 0 }
+        return 1
+    }
+    if r == 1 {
+        if c == 0 { return 0 }
+        if c == 1 { return 0 }
+        if c == 2 { return 1 }
+        return 2
+    }
+    if r == 2 {
+        if c == 3 { return 1 }
+        return 0
+    }
+    if c == 0 { return 0 }
+    if c == 1 { return 1 }
+    if c == 2 { return 2 }
+    return 2
+}
+
+// ── Board operations ────────────────────────────────────────────────────────
+
+fun board_get(x: u8, y: u8) -> u8 {
+    return board[u16(y) * 10 + u16(x)]
+}
+
+fun board_set(x: u8, y: u8, val: u8) -> void {
+    board[u16(y) * 10 + u16(x)] = val
+}
+
+fun can_place(t: u8, r: u8, px: u8, py: u8) -> bool {
+    var c: u8 = 0
+    while c < 4 {
+        let cx: u8 = px + piece_dx(t, r, c)
+        let cy: u8 = py + piece_dy(t, r, c)
+        if cx >= 10 { return false }
+        if cy >= 20 { return false }
+        if board_get(cx, cy) != 0 { return false }
+        c = c + 1
+    }
+    return true
+}
+
+fun lock_piece() -> void {
+    let color_idx: u8 = cur_type + 1
+    var c: u8 = 0
+    while c < 4 {
+        let cx: u8 = cur_x + piece_dx(cur_type, cur_rot, c)
+        let cy: u8 = cur_y + piece_dy(cur_type, cur_rot, c)
+        if (cx < 10) & (cy < 20) {
+            board_set(cx, cy, color_idx)
+        }
+        c = c + 1
+    }
+}
+
+fun clear_lines() -> u8 {
+    var cleared: u8 = 0
+    var y: u8 = 19
+    while y < 20 {
+        var full: u8 = 1
+        var x: u8 = 0
+        while x < 10 {
+            if board_get(x, y) == 0 { full = 0 }
+            x = x + 1
+        }
+        if full == 1 {
+            var sy: u8 = y
+            while sy > 0 {
+                var sx: u8 = 0
+                while sx < 10 {
+                    board_set(sx, sy, board_get(sx, sy - 1))
+                    sx = sx + 1
+                }
+                sy = sy - 1
+            }
+            var sx2: u8 = 0
+            while sx2 < 10 {
+                board_set(sx2, 0, 0)
+                sx2 = sx2 + 1
+            }
+            cleared = cleared + 1
+        } else {
+            y = y - 1
+        }
+    }
+    return cleared
+}
+
+fun spawn_piece() -> void {
+    var rval: u8 = rng_next()
+    while rval >= 7 { rval = rval - 7 }
+    cur_type = rval
+    cur_rot = 0
+    cur_x = 3
+    cur_y = 0
+    if can_place(cur_type, cur_rot, cur_x, cur_y) == false {
+        game_over = 1
+    }
+}
+
+// ── Rendering ───────────────────────────────────────────────────────────────
+
+fun color_attr(idx: u8) -> u8 {
+    if idx == 1 { return 0x28 }   // I: cyan
+    if idx == 2 { return 0x30 }   // O: yellow
+    if idx == 3 { return 0x18 }   // T: magenta
+    if idx == 4 { return 0x20 }   // S: green
+    if idx == 5 { return 0x10 }   // Z: red
+    if idx == 6 { return 0x70 }   // L: yellow+bright
+    if idx == 7 { return 0x08 }   // J: blue
+    return 0x00                    // empty: black
+}
+
+fun fill_cell(cx: u8, cy: u8) -> void {
+    let py: u8 = cy * 8
+    var line: u8 = 0
+    while line < 8 {
+        zx_poke(zx_screen_addr(cx, py + line), 0xFF)
+        line = line + 1
+    }
+}
+
+// Playfield: columns 11-20, rows 2-21 on screen (character coords)
+
+fun init_screen() -> void {
+    // Clear entire screen
+    var addr: u16 = 0x4000
+    while addr < 0x5800 {
+        zx_poke(addr, 0x00)
+        addr = addr + 1
+    }
+    addr = 0x5800
+    while addr < 0x5B00 {
+        zx_poke(addr, 0x00)
+        addr = addr + 1
+    }
+
+    // Fill playfield with solid pixels (attribute colors will show)
+    var cy: u8 = 2
+    while cy < 22 {
+        var cx: u8 = 11
+        while cx < 21 {
+            fill_cell(cx, cy)
+            cx = cx + 1
+        }
+        cy = cy + 1
+    }
+
+    // Border — left wall
+    cy = 2
+    while cy < 22 {
+        fill_cell(10, cy)
+        zx_poke(zx_attr_addr(10, cy), 0x38)
+        cy = cy + 1
+    }
+    // Border — right wall
+    cy = 2
+    while cy < 22 {
+        fill_cell(21, cy)
+        zx_poke(zx_attr_addr(21, cy), 0x38)
+        cy = cy + 1
+    }
+    // Border — bottom
+    var bx: u8 = 10
+    while bx <= 21 {
+        fill_cell(bx, 22)
+        zx_poke(zx_attr_addr(bx, 22), 0x38)
+        bx = bx + 1
+    }
+
+    zx_border(0)
+}
+
+fun render() -> void {
+    // Render board
+    var y: u8 = 0
+    while y < 20 {
+        var x: u8 = 0
+        while x < 10 {
+            let cell: u8 = board_get(x, y)
+            let attr: u8 = color_attr(cell)
+            zx_poke(zx_attr_addr(11 + x, 2 + y), attr)
+            x = x + 1
+        }
+        y = y + 1
+    }
+    // Overlay current piece
+    let pc: u8 = piece_color(cur_type)
+    var c: u8 = 0
+    while c < 4 {
+        let cx: u8 = cur_x + piece_dx(cur_type, cur_rot, c)
+        let cy: u8 = cur_y + piece_dy(cur_type, cur_rot, c)
+        if (cx < 10) & (cy < 20) {
+            zx_poke(zx_attr_addr(11 + cx, 2 + cy), pc)
+        }
+        c = c + 1
+    }
+}
+
+// ── Input ───────────────────────────────────────────────────────────────────
+
+fun read_input() -> u8 {
+    var keys: u8 = 0
+    let row_df: u8 = zx_key_row(0xDF)
+    if (row_df & 2) == 0 { keys = keys | 1 }    // O = left
+    if (row_df & 1) == 0 { keys = keys | 2 }    // P = right
+    let row_fb: u8 = zx_key_row(0xFB)
+    if (row_fb & 1) == 0 { keys = keys | 4 }    // Q = rotate
+    let row_fd: u8 = zx_key_row(0xFD)
+    if (row_fd & 1) == 0 { keys = keys | 8 }    // A = soft drop
+    let row_7f: u8 = zx_key_row(0x7F)
+    if (row_7f & 1) == 0 { keys = keys | 16 }   // SPACE = hard drop
+    return keys
+}
+
+// ── Main ────────────────────────────────────────────────────────────────────
+
+fun main() -> void {
+    // Clear board
+    var i: u16 = 0
+    while i < 200 {
+        board[i] = 0
+        i = i + 1
+    }
+    init_screen()
+    spawn_piece()
+
+    // Game loop
+    while game_over == 0 {
+        zx_halt()
+        frame_count = frame_count + 1
+
+        // Input
+        let keys: u8 = read_input()
+        let changed: u8 = keys ^ prev_keys
+        let new_keys: u8 = keys & changed
+        prev_keys = keys
+
+        // Left
+        if (new_keys & 1) != 0 {
+            if cur_x > 0 {
+                if can_place(cur_type, cur_rot, cur_x - 1, cur_y) {
+                    cur_x = cur_x - 1
+                }
+            }
+        }
+        // Right
+        if (new_keys & 2) != 0 {
+            if can_place(cur_type, cur_rot, cur_x + 1, cur_y) {
+                cur_x = cur_x + 1
+            }
+        }
+        // Rotate
+        if (new_keys & 4) != 0 {
+            let nr: u8 = (cur_rot + 1) & 3
+            if can_place(cur_type, nr, cur_x, cur_y) {
+                cur_rot = nr
+            }
+        }
+        // Soft drop
+        if (keys & 8) != 0 {
+            drop_timer = drop_speed
+        }
+        // Hard drop
+        if (new_keys & 16) != 0 {
+            while can_place(cur_type, cur_rot, cur_x, cur_y + 1) {
+                cur_y = cur_y + 1
+                score = score + 2
+            }
+            lock_piece()
+            let cl: u8 = clear_lines()
+            if cl == 1 { score = score + 100 }
+            if cl == 2 { score = score + 300 }
+            if cl == 3 { score = score + 500 }
+            if cl == 4 { score = score + 800 }
+            lines_cleared = lines_cleared + u16(cl)
+            spawn_piece()
+            drop_timer = 0
+        }
+
+        // Gravity
+        drop_timer = drop_timer + 1
+        if drop_timer >= drop_speed {
+            drop_timer = 0
+            if can_place(cur_type, cur_rot, cur_x, cur_y + 1) {
+                cur_y = cur_y + 1
+            } else {
+                lock_piece()
+                let cl: u8 = clear_lines()
+                if cl == 1 { score = score + 100 }
+                if cl == 2 { score = score + 300 }
+                if cl == 3 { score = score + 500 }
+                if cl == 4 { score = score + 800 }
+                lines_cleared = lines_cleared + u16(cl)
+                if drop_speed > 5 {
+                    if (u8(lines_cleared) & 0x07) == 0 {
+                        drop_speed = drop_speed - 2
+                    }
+                }
+                spawn_piece()
+            }
+        }
+
+        // Render
+        render()
+    }
+
+    // Game over — flash border
+    var flash: u8 = 0
+    while flash < 20 {
+        zx_border(2)
+        zx_halt()
+        zx_halt()
+        zx_halt()
+        zx_border(0)
+        zx_halt()
+        zx_halt()
+        zx_halt()
+        flash = flash + 1
+    }
+}
