@@ -622,6 +622,7 @@ func (fl *funcLow) lowerExpr(e cc.ExpressionNode) (*exprResult, error) {
 
 	case *cc.LogicalAndExpression:
 		if x.LogicalAndExpression != nil && x.InclusiveOrExpression != nil {
+			// a && b → short-circuit: if a then (b != 0) else 0
 			l, err := fl.lowerExprAsExpr(x.LogicalAndExpression)
 			if err != nil {
 				return nil, err
@@ -630,12 +631,17 @@ func (fl *funcLow) lowerExpr(e cc.ExpressionNode) (*exprResult, error) {
 			if err != nil {
 				return nil, err
 			}
-			return wrapExpr(&hir.BinExpr{Op: "&&", L: l, R: r, Ty: mir2.TyBool}), nil
+			return wrapExpr(&hir.CondExpr{
+				Cond: l, Then: r,
+				Else: &hir.IntLitExpr{Val: 0, Ty: mir2.TyBool},
+				Ty:   mir2.TyBool,
+			}), nil
 		}
 		return fl.lowerExpr(x.InclusiveOrExpression)
 
 	case *cc.LogicalOrExpression:
 		if x.LogicalOrExpression != nil && x.LogicalAndExpression != nil {
+			// a || b → short-circuit: if a then 1 else (b != 0)
 			l, err := fl.lowerExprAsExpr(x.LogicalOrExpression)
 			if err != nil {
 				return nil, err
@@ -644,7 +650,11 @@ func (fl *funcLow) lowerExpr(e cc.ExpressionNode) (*exprResult, error) {
 			if err != nil {
 				return nil, err
 			}
-			return wrapExpr(&hir.BinExpr{Op: "||", L: l, R: r, Ty: mir2.TyBool}), nil
+			return wrapExpr(&hir.CondExpr{
+				Cond: l,
+				Then: &hir.IntLitExpr{Val: 1, Ty: mir2.TyBool},
+				Else: r, Ty: mir2.TyBool,
+			}), nil
 		}
 		return fl.lowerExpr(x.LogicalAndExpression)
 
@@ -1017,6 +1027,15 @@ func (fl *funcLow) lowerBinaryOp(left, right cc.ExpressionNode, caseVal interfac
 			mty = lty
 		// "+", "*", "<<" — do NOT narrow, overflow loses information
 		}
+	}
+
+	// Rewrite modulo: a % b → a - (a / b) * b
+	// HIR lowerer doesn't support "%" directly; this decomposition works
+	// for both signed and unsigned types on Z80.
+	if op == "%" {
+		div := &hir.BinExpr{Op: "/", L: l, R: r, Ty: mty}
+		mul := &hir.BinExpr{Op: "*", L: div, R: r, Ty: mty}
+		return wrapExpr(&hir.BinExpr{Op: "-", L: l, R: mul, Ty: mty}), nil
 	}
 
 	return wrapExpr(&hir.BinExpr{Op: op, L: l, R: r, Ty: mty}), nil
