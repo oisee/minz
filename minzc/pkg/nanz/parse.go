@@ -2701,12 +2701,25 @@ func (p *parser) parseAsm() (hir.Stmt, error) {
 		p.l.next()
 	}
 
-	// Optional operand list: (in x, y) before the asm body '{'.
+	// Optional clauses before the asm body '{':
+	//   (in x, y)                — input operands
+	//   (ret REG) or (out REG)   — return register
+	//   (clob A, F) or (clob auto) or (clob all) — clobber specification
+	// If no clob clause → auto (compiler infers from asm text).
 	var ins []hir.AsmOperand
-	if p.l.is(tokLParen) {
+	retReg := ""
+	var clobberRegs []string
+	clobberAll := false
+	clobberAuto := true // default: auto-detect from asm text
+	for p.l.is(tokLParen) {
 		p.l.next() // consume '('
-		if p.l.peek().kind == tokIdent && p.l.peek().val == "in" {
-			p.l.next() // consume 'in'
+		if p.l.peek().kind != tokIdent {
+			return nil, fmt.Errorf("line %d: asm clause: expected 'in', 'ret', 'out', or 'clob'", p.l.peek().line)
+		}
+		clause := p.l.peek().val
+		p.l.next() // consume clause keyword
+		switch clause {
+		case "in":
 			for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
 				name, err := p.l.eat(tokIdent)
 				if err != nil {
@@ -2717,6 +2730,35 @@ func (p *parser) parseAsm() (hir.Stmt, error) {
 					p.l.next()
 				}
 			}
+		case "ret", "out":
+			regTok, err := p.l.eat(tokIdent)
+			if err != nil {
+				return nil, fmt.Errorf("line %d: asm (%s): expected register name", regTok.line, clause)
+			}
+			retReg = strings.ToUpper(regTok.val)
+		case "clob":
+			clobberAuto = false
+			if p.l.peek().kind == tokIdent && p.l.peek().val == "auto" {
+				p.l.next()
+				clobberAuto = true
+			} else if p.l.peek().kind == tokIdent && p.l.peek().val == "all" {
+				p.l.next()
+				clobberAll = true
+			} else {
+				// Explicit register list: (clob A, F, HL)
+				for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
+					regTok, err := p.l.eat(tokIdent)
+					if err != nil {
+						return nil, fmt.Errorf("line %d: asm (clob): expected register name", regTok.line)
+					}
+					clobberRegs = append(clobberRegs, strings.ToUpper(regTok.val))
+					if p.l.is(tokComma) {
+						p.l.next()
+					}
+				}
+			}
+		default:
+			return nil, fmt.Errorf("line %d: asm: unknown clause %q (expected 'in', 'ret', 'out', or 'clob')", p.l.peek().line, clause)
 		}
 		if _, err := p.l.eat(tokRParen); err != nil {
 			return nil, err
@@ -2754,7 +2796,15 @@ func (p *parser) parseAsm() (hir.Stmt, error) {
 
 	// Extract raw source between the braces.
 	code := strings.TrimSpace(string(p.l.src[startPos:closeTok.pos]))
-	return &hir.AsmStmt{Target: target, Code: code, ClobberAll: true, Ins: ins}, nil
+	return &hir.AsmStmt{
+		Target:      target,
+		Code:        code,
+		ClobberAll:  clobberAll,
+		Ins:         ins,
+		RetReg:      retReg,
+		ClobberRegs: clobberRegs,
+		ClobberAuto: clobberAuto,
+	}, nil
 }
 
 func (p *parser) parseSwitch() (hir.Stmt, error) {
@@ -3337,6 +3387,20 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 				return nil, err
 			}
 			return &hir.CastExpr{X: x, Ty: ty}, nil
+		}
+		// ptr(expr) — cast u16 to pointer for direct memory access.
+		// ptr(0x5800)^ reads byte; ptr(0x5800)^ = val writes byte.
+		if t.val == "ptr" && p.l.peekN(1).kind == tokLParen {
+			p.l.next() // consume "ptr"
+			p.l.next() // consume "("
+			x, err := p.parseExpr()
+			if err != nil {
+				return nil, err
+			}
+			if _, err := p.l.eat(tokRParen); err != nil {
+				return nil, err
+			}
+			return &hir.CastExpr{X: x, Ty: mir2.TyPtr}, nil
 		}
 		// sizeof(TypeName) — compile-time constant, resolves to byte size of type.
 		if t.val == "sizeof" && p.l.peekN(1).kind == tokLParen {

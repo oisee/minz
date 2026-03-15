@@ -1,4 +1,4 @@
-# The Nanz Language Book — v5.1
+# The Nanz Language Book — v5.2
 
 > **Modern language. Vintage iron. Zero overhead.**
 >
@@ -9,9 +9,9 @@
 >
 > *Also targets native AMD64 via C99 and QBE, and MOS 6502.*
 
-**Version:** MinZ compiler v0.21.3+ (commit ad2737c)
+**Version:** MinZ compiler v0.21.x (2026-03-15)
 **Date:** 2026-03-15
-**Status:** Core features stable · 28/28 showcase · 20/20 test packages
+**Status:** Core features stable · 34/34 showcase · 26/26 test packages
 
 ---
 
@@ -45,6 +45,7 @@
 - [Appendix D: What's New in v4](#appendix-d-whats-new-in-v4)
 - [Appendix E: What's New in v4.1](#appendix-e-whats-new-in-v41)
 - [Appendix F: What's New in v5](#appendix-f-whats-new-in-v5)
+- [Appendix G: What's New in v5.2](#appendix-g-whats-new-in-v52)
 
 ---
 
@@ -428,7 +429,7 @@ fun fast_clear() {
 
 // Target-gated: only included for Z80 backend
 fun platform_init() {
-    asm(z80) {
+    asm z80 {
         DI
         LD SP, 0xFFFF
         EI
@@ -436,94 +437,167 @@ fun platform_init() {
 }
 ```
 
-Inline assembly blocks emit Z80 instructions verbatim. The `asm(z80)` variant is only included when compiling for Z80 — `asm(mir2)` runs on the MIR2 VM instead.
+Inline assembly blocks emit Z80 instructions verbatim. The `asm z80` variant is only included when compiling for Z80.
 
-#### Input Operands and Register Contracts
+#### Full Syntax
 
-Use `(in varname)` to declare which variables the asm block reads. Combine with `@z80_*` parameter annotations to pin inputs to specific registers:
+```
+asm TARGET? (in REG, ...)? (ret REG)? (clob REG,... | auto | all)? { ... }
+```
+
+| Clause | Takes | Default | Purpose |
+|--------|-------|---------|---------|
+| `(in REG,...)` | Physical registers | Auto-infer from `@z80_*` params | Liveness: keep these registers alive |
+| `(ret REG)` | Physical register | void | Return value register |
+| `(out REG)` | — | — | Alias for `ret` |
+| `(clob REG,...\|auto\|all)` | Physical registers or keyword | `auto` | Clobber specification |
+
+All three clauses use physical register names (A, B, C, HL, DE, etc.) for consistency.
+
+#### Returning Values: `(ret REG)`
+
+Use `(ret REG)` to declare which register holds the asm block's return value:
 
 ```nanz
+fun zx_peek(@z80_hl addr: u16) -> u8 {
+    asm z80 (ret A) { LD A, (HL) }
+}
+// Z80 output:  LD A, (HL) / RET  — 2 instructions
+
+fun double(@z80_a x: u8) -> u8 {
+    asm z80 (ret A) (clob A, F) { ADD A, A }
+}
+// Z80 output:  ADD A, A / RET  — 2 instructions
+```
+
+Without `(ret)`, the asm block is void. If a function ends with an asm block and has no explicit `return`, the compiler uses implicit return (the value already in the return register).
+
+#### Clobber Specification: `(clob ...)`
+
+The `clob` clause tells the register allocator which registers the asm block destroys:
+
+```nanz
+// Explicit clobber list:
+asm z80 (ret A) (clob A, F) { ADD A, A }
+
+// Auto-detect (default): compiler parses asm text
+asm z80 (ret A) { LD A, (HL) }
+// Compiler sees: LD writes A, flags always touched → clob {A, F}
+
+// Escape hatch for opaque code:
+asm z80 (clob all) { CALL unknown_routine }
+```
+
+When no `clob` clause is given, the compiler auto-analyzes the asm text:
+- Extracts destination registers from known instructions (LD, ADD, INC, etc.)
+- Always includes F (flags) — almost every Z80 instruction touches flags
+- `CALL`/`RST` or unknown mnemonics → falls back to `clob all`
+
+This is a major improvement over the old behavior (which always assumed all registers clobbered, causing excessive spills on Z80's limited register file).
+
+#### Input Operands: `(in REG)`
+
+Use `(in REG)` to declare which registers the asm block reads. This is an optimization hint — when omitted, the compiler auto-infers from `@z80_*` annotated parameters:
+
+```nanz
+// Without (in) — auto-inferred from @z80_hl and @z80_a:
 fun zx_poke(@z80_hl addr: u16, @z80_a val: u8) {
-    asm z80 (in addr, val) { LD (HL), A }
-}
-// Z80 output:
-//   zx_poke:
-//       LD (HL), A    ; addr already in HL, val already in A
-//       RET
-```
-
-The `@z80_hl` annotation tells PBQP to assign `addr` to HL. The `(in addr, val)` tells the IR that the asm block consumes these variables — the allocator will not reassign their registers before the block executes.
-
-#### Returning Values from asm
-
-If a function ends with an asm block and has no explicit `return`, the compiler assumes the return value is already in the correct register (A for u8, HL for u16):
-
-```nanz
-fun zx_peek(@z80_hl addr: u16) -> u8 {
-    asm z80 (in addr) { LD A, (HL) }
-}
-// Z80 output:
-//   zx_peek:
-//       LD A, (HL)    ; result in A
-//       RET           ; compiler adds RET automatically
-
-fun zx_key_row(@z80_a port: u8) -> u8 {
-    asm z80 (in port) { IN A, (0xFE) }
-}
-// Z80 output:
-//   zx_key_row:
-//       IN A, (0xFE)  ; result in A
-//       RET
-```
-
-**Common mistake:** Do not add `return 0` after an asm block that sets the return register — it compiles to `LD A, 0` which overwrites the result:
-
-```nanz
-// WRONG — return 0 overwrites A
-fun zx_peek(addr: u16) -> u8 {
-    asm { LD A, (HL) }
-    return 0           // → LD A, 0; RET — result destroyed!
+    asm z80 { LD (HL), A }
 }
 
-// CORRECT — implicit return, register annotations
-fun zx_peek(@z80_hl addr: u16) -> u8 {
-    asm z80 (in addr) { LD A, (HL) }
+// With (in) — explicit, only A is marked live:
+fun foo(@z80_a x: u8, @z80_hl y: u16) -> u8 {
+    asm z80 (in A) (ret A) { ADD A, 42 }
+    // HL is free for the allocator — not marked live through asm
 }
 ```
+
+For backward compatibility, variable names also work: `(in addr)` is resolved via the old path.
 
 #### Complete I/O Example
-
-Hardware I/O functions for ZX Spectrum using this pattern:
 
 ```nanz
 // Memory read/write
 fun zx_peek(@z80_hl addr: u16) -> u8 {
-    asm z80 (in addr) { LD A, (HL) }
+    asm z80 (ret A) { LD A, (HL) }
 }
 
 fun zx_poke(@z80_hl addr: u16, @z80_a val: u8) {
-    asm z80 (in addr, val) { LD (HL), A }
+    asm z80 { LD (HL), A }
 }
 
 // Keyboard: read row via port 0xFE
 fun zx_key_row(@z80_a port: u8) -> u8 {
-    asm z80 (in port) { IN A, (0xFE) }
+    asm z80 (ret A) { IN A, (0xFE) }
 }
 
 // Console output (emulator stdout port)
 fun console_log(@z80_a n: u8) {
-    asm z80 (in n) { OUT (0x23), A }
-}
-
-// Border color
-fun set_border(@z80_a col: u8) {
-    asm z80 (in col) { OUT (0xFE), A }
+    asm z80 { OUT (0x23), A }
 }
 ```
 
-Each function compiles to exactly 2 instructions (operation + RET). The annotations ensure zero register shuffling.
+Each function compiles to exactly 2 instructions (operation + RET).
 
-### 2.15 sizeof(Type)
+### 2.15 ptr() — Direct Memory Access
+
+The `ptr(expr)` cast converts a `u16` address to a pointer, enabling direct memory read/write without inline asm:
+
+```nanz
+// Read byte at address (peek):
+let val: u8 = ptr(0x5800)^
+
+// Write byte to address (poke):
+ptr(0x5800)^ = 0x38
+
+// As functions:
+fun peek(addr: u16) -> u8 { return ptr(addr)^ }
+fun poke(addr: u16, val: u8) { ptr(addr)^ = val }
+```
+
+Generated Z80:
+```asm
+peek:
+    LD A, (HL)      ; 2 instructions — zero overhead
+    RET
+poke:
+    LD (HL), C      ; 2 instructions
+    RET
+```
+
+`ptr()` is consistent with other cast constructors (`u8()`, `u16()`, `i8()`). The cast is a no-op at the machine level (u16 and ptr are both 16-bit), and the deref `^` produces a standard load or store.
+
+This eliminates the need for asm wrappers for memory-mapped I/O — pure language, zero overhead.
+
+### 2.16 `|>` Value Pipe Operator
+
+The `|>` operator chains function calls, inserting the left-hand expression as the first argument:
+
+```nanz
+expr |> f            // → f(expr)
+expr |> f(a, b)      // → f(expr, a, b)
+```
+
+Example:
+```nanz
+fun double(x: u8) -> u8 { return (x + x) }
+fun inc(x: u8) -> u8 { return (x + 1) }
+
+fun piped() -> u8 {
+    return 5 |> double |> inc     // = inc(double(5)) = 11
+}
+```
+
+Generated Z80:
+```asm
+piped:
+    LD A, 11    ; constant-folded at compile time!
+    RET
+```
+
+The entire chain is evaluated at compile time when inputs are constants. For runtime values, each `|>` compiles to a normal function call with no overhead.
+
+### 2.17 sizeof(Type)
 
 `sizeof(Type)` is a compile-time constant expression that evaluates to the size in bytes of a type. It is resolved at parse time via `resolveTypeSize()`.
 
@@ -2896,6 +2970,53 @@ Six of the eight features that were "only in MinZ" have been ported to Nanz:
 | `@error` propagation | MinZ only | MinZ only (next priority) |
 | `@define` macros | MinZ only | MinZ only |
 | `@if/@elif` conditionals | MinZ only | MinZ only |
+
+---
+
+## Appendix G: What's New in v5.2
+
+Features shipped since v5 (2026-03-15):
+
+| Feature | Chapter | Status |
+|---------|---------|--------|
+| `ptr(addr)` cast | 2.15 | Shipped — u16→ptr, language-level peek/poke |
+| `ptr(addr)^ = val` lvalue | 2.15 | Shipped — direct memory write without asm |
+| `\|>` value pipe operator | 2.16 | Shipped — F#/Elixir-style function chaining |
+| `(ret REG)` asm clause | 2.14 | Shipped — explicit return register |
+| `(out REG)` asm clause | 2.14 | Shipped — alias for `ret` |
+| `(clob REG,...\|auto\|all)` | 2.14 | Shipped — precise clobber specification |
+| `(in REG)` register-style | 2.14 | Shipped — register names, auto-infer default |
+| Auto-clobber analysis | 2.14 | Shipped — parse asm text, compute write-set |
+| Lambda type inference | 5 | Shipped — `\|x\| x + x` without `: u8` annotation |
+| ZX Spectrum Tetris | — | 853 LOC Nanz → 2176 lines Z80 asm |
+| Showcase count | 11 | 34/34 (was 28/28) |
+
+### New syntax summary (v5 → v5.2)
+
+| Syntax | Meaning | Resolved at |
+|--------|---------|------------|
+| `ptr(addr)^` | Read byte at address | Compile time (cast is no-op) |
+| `ptr(addr)^ = val` | Write byte to address | Compile time |
+| `expr \|> f` | `f(expr)` | Parse time (desugars to call) |
+| `expr \|> f(a)` | `f(expr, a)` | Parse time |
+| `asm z80 (ret A) { ... }` | Asm with return register | Compile time |
+| `asm z80 (clob A, F) { ... }` | Explicit clobber list | Compile time |
+| `asm z80 (clob auto) { ... }` | Auto-detect clobbers | Compile time |
+| `asm z80 (in HL) { ... }` | Register-style input | Compile time |
+
+### Tetris: Complete Game in Nanz
+
+853 lines of Nanz compile to a playable Tetris for ZX Spectrum 48K:
+- 7 tetrominoes with SRS-lite wall kicks
+- Hold piece, next piece preview, ghost piece
+- T-spin detection with bonus scoring
+- Attribute-based rendering (fast — only color bytes change per frame)
+- 48 Z80 functions, 2176 lines of assembly
+
+```bash
+cd minzc && ./mz ../examples/zx/tetris.nanz -o /tmp/tetris.a80
+./mza /tmp/tetris.a80 -o /tmp/tetris.bin && ./mzx --run /tmp/tetris.bin@8000
+```
 
 ---
 

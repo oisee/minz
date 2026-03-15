@@ -1,0 +1,11 @@
+fun double(x: u8) -> u8 { return (x + x) }
+fun inc(x: u8) -> u8 { return (x + 1) }
+fun add(a: u8, b: u8) -> u8 { return (a + b) }
+
+fun piped() -> u8 {
+    return 5 |> double |> inc
+}
+
+fun piped_args() -> u8 {
+    return 5 |> add(3) |> double
+}

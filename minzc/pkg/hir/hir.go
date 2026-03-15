@@ -281,9 +281,12 @@ type AsmOperand struct {
 type AsmStmt struct {
 	Target     string        // architecture tag, e.g. "z80"; "" = any
 	Code       string        // verbatim assembly text
-	ClobberAll bool          // true when no explicit clobber list
+	ClobberAll bool          // true when no explicit clobber list and no auto analysis
 	Ins        []AsmOperand  // explicit input operands  — (in x, y)
 	Outs       []AsmOperand  // explicit output operands — (out x)
+	RetReg     string        // physical register name from (ret REG), e.g. "A", "HL"
+	ClobberRegs []string     // explicit clobber list from (clob A, F); nil = auto
+	ClobberAuto bool         // true when clobbers should be auto-computed from asm text
 }
 
 func (*AsmStmt) hirStmt() {}

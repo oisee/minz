@@ -2313,6 +2313,33 @@ fun main() -> void {
 	}
 }
 
+// TestAsmBlock_InRegister verifies that (in A) (register-style) works the same
+// as (in varname) — reverse-maps to @z80_a parameter.
+func TestAsmBlock_InRegister(t *testing.T) {
+	src := `
+fun console_out(@z80_a n: u8) -> void {
+    asm z80 (in A) { OUT (0x23), A }
+    return
+}
+
+fun main() -> void {
+    console_out(65)
+    return
+}
+`
+	m, err := nanz.Parse(src, "test")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	asm, err := pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("compile: %v", err)
+	}
+	if !strings.Contains(asm, "OUT (0x23), A") {
+		t.Errorf("OUT (0x23), A missing from output\n%s", asm)
+	}
+}
+
 // ── range fold ────────────────────────────────────────────────────────────────
 
 // TestRangeFold_Compiles verifies that range(0..n).fold(init, cb) compiles
@@ -2831,5 +2858,154 @@ fun test() -> u8 {
 	}
 	if !found {
 		t.Error("expected a lambda function to be generated")
+	}
+}
+
+// ── asm clauses: (ret), (clob), ptr() ──────────────────────────────────────
+
+func TestAsmRetReg(t *testing.T) {
+	src := `
+fun peek(@z80_hl addr: u16) -> u8 {
+    asm z80 (in addr) (ret A) { LD A, (HL) }
+}
+`
+	m, err := nanz.Parse(src, "asm_ret")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	f := m.Funcs[0]
+	if len(f.Body.Body) == 0 {
+		t.Fatal("empty body")
+	}
+	as, ok := f.Body.Body[0].(*hir.AsmStmt)
+	if !ok {
+		t.Fatalf("expected AsmStmt, got %T", f.Body.Body[0])
+	}
+	if as.RetReg != "A" {
+		t.Errorf("RetReg = %q, want A", as.RetReg)
+	}
+}
+
+func TestAsmOutAlias(t *testing.T) {
+	src := `
+fun peek(@z80_hl addr: u16) -> u8 {
+    asm z80 (in addr) (out A) { LD A, (HL) }
+}
+`
+	m, err := nanz.Parse(src, "asm_out")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	as := m.Funcs[0].Body.Body[0].(*hir.AsmStmt)
+	if as.RetReg != "A" {
+		t.Errorf("RetReg = %q, want A (out is alias for ret)", as.RetReg)
+	}
+}
+
+func TestAsmClobExplicit(t *testing.T) {
+	src := `
+fun double(@z80_a x: u8) -> u8 {
+    asm z80 (in x) (ret A) (clob A, F) { ADD A, A }
+}
+`
+	m, err := nanz.Parse(src, "asm_clob")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	as := m.Funcs[0].Body.Body[0].(*hir.AsmStmt)
+	if as.ClobberAll {
+		t.Error("ClobberAll should be false with explicit clob")
+	}
+	if as.ClobberAuto {
+		t.Error("ClobberAuto should be false with explicit clob")
+	}
+	if len(as.ClobberRegs) != 2 {
+		t.Fatalf("ClobberRegs: want 2, got %d", len(as.ClobberRegs))
+	}
+	if as.ClobberRegs[0] != "A" || as.ClobberRegs[1] != "F" {
+		t.Errorf("ClobberRegs = %v, want [A F]", as.ClobberRegs)
+	}
+}
+
+func TestAsmClobAll(t *testing.T) {
+	src := `
+fun callext(@z80_a x: u8) -> void {
+    asm z80 (in x) (clob all) { CALL 0x1234 }
+}
+`
+	m, err := nanz.Parse(src, "asm_clob_all")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	as := m.Funcs[0].Body.Body[0].(*hir.AsmStmt)
+	if !as.ClobberAll {
+		t.Error("ClobberAll should be true with (clob all)")
+	}
+}
+
+func TestAsmClobAutoDefault(t *testing.T) {
+	// No clob clause → auto
+	src := `
+fun double(@z80_a x: u8) -> u8 {
+    asm z80 (in x) (ret A) { ADD A, A }
+}
+`
+	m, err := nanz.Parse(src, "asm_auto")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	as := m.Funcs[0].Body.Body[0].(*hir.AsmStmt)
+	if as.ClobberAll {
+		t.Error("ClobberAll should be false (default is auto)")
+	}
+	if !as.ClobberAuto {
+		t.Error("ClobberAuto should be true (default when no clob clause)")
+	}
+}
+
+func TestPtrCast(t *testing.T) {
+	src := `
+fun peek(addr: u16) -> u8 {
+    return ptr(addr)^
+}
+`
+	m, err := nanz.Parse(src, "ptr_cast")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	f := m.Funcs[0]
+	if len(f.Body.Body) == 0 {
+		t.Fatal("empty body")
+	}
+	ret, ok := f.Body.Body[0].(*hir.ReturnStmt)
+	if !ok {
+		t.Fatalf("expected ReturnStmt, got %T", f.Body.Body[0])
+	}
+	// ptr(addr)^ → LoadExpr{ Ptr: CastExpr{ X: VarRef(addr), Ty: TyPtr } }
+	load, ok := ret.Val.(*hir.LoadExpr)
+	if !ok {
+		t.Fatalf("expected LoadExpr, got %T", ret.Val)
+	}
+	cast, ok := load.Ptr.(*hir.CastExpr)
+	if !ok {
+		t.Fatalf("expected CastExpr inside LoadExpr, got %T", load.Ptr)
+	}
+	if cast.Ty != mir2.TyPtr {
+		t.Errorf("cast type = %v, want TyPtr", cast.Ty)
+	}
+}
+
+func TestPtrCastAsVariableName(t *testing.T) {
+	// "ptr" as a variable name should still work (no conflict with ptr() cast)
+	src := `
+fun sink(p: ^u8) -> void {}
+fun test() -> void {
+    var ptr: ^u8
+    sink(ptr)
+}
+`
+	_, err := nanz.Parse(src, "ptr_var")
+	if err != nil {
+		t.Fatalf("parse error (ptr as variable name): %v", err)
 	}
 }

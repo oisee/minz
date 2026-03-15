@@ -761,8 +761,22 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		if st.Target != "" && st.Target != "z80" {
 			return false // wrong target — silently skip
 		}
-		// Clobbers: if no explicit list, clobber everything (conservative).
-		clobbers := mir2.AllClasses
+		// Compute clobber set.
+		var clobbers mir2.ClassSet
+		switch {
+		case st.ClobberAll:
+			clobbers = mir2.AllClasses
+		case len(st.ClobberRegs) > 0:
+			// Explicit clobber list: (clob A, F, HL)
+			for _, reg := range st.ClobberRegs {
+				clobbers = clobbers.Union(z80RegToClassSet(reg))
+			}
+		case st.ClobberAuto:
+			// Auto-detect clobbers from asm text.
+			clobbers = z80AutoClobbers(st.Code)
+		default:
+			clobbers = mir2.AllClasses
+		}
 		// "/" is an inline instruction separator — expand to newline.
 		// Each line is stripped so the codegen's own "    " prefix applies cleanly.
 		var lines []string
@@ -773,9 +787,10 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			}
 		}
 		code := strings.Join(lines, "\n    ")
-		// Resolve named input operands to virtual registers.
-		// If no explicit (in ...) clause, auto-infer from @z80_X-annotated params:
-		// every param with a register annotation is implicitly consumed by the asm block.
+		// Resolve input operands to virtual registers.
+		// If no explicit (in ...) clause, auto-infer from @z80_X-annotated params.
+		// If explicit, (in REG, ...) names physical registers; we reverse-map
+		// each to the @z80_X parameter that occupies that register.
 		var ins []mir2.Reg
 		if len(st.Ins) == 0 {
 			for _, p := range l.hf.Params {
@@ -787,8 +802,22 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			}
 		} else {
 			for _, op := range st.Ins {
-				if r, ok := l.env[op.Name]; ok {
-					ins = append(ins, r)
+				wantCls := z80RegNameToClass(op.Name)
+				found := false
+				for _, p := range l.hf.Params {
+					if p.RegClass == wantCls {
+						if r, ok := l.env[p.Name]; ok {
+							ins = append(ins, r)
+							found = true
+							break
+						}
+					}
+				}
+				if !found {
+					// Fallback: try as variable name (backward compat)
+					if r, ok := l.env[op.Name]; ok {
+						ins = append(ins, r)
+					}
 				}
 			}
 		}
@@ -798,7 +827,13 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 				outs = append(outs, r)
 			}
 		}
-		l.bld.Asm(code, ins, outs, clobbers, mir2.TyVoid, mir2.ClassAcc)
+		// Determine return type and class from (ret REG).
+		var retTy mir2.Ty = mir2.TyVoid
+		retCls := mir2.ClassAcc
+		if st.RetReg != "" {
+			retTy, retCls = z80RetRegInfo(st.RetReg)
+		}
+		l.bld.Asm(code, ins, outs, clobbers, retTy, retCls)
 		return false
 
 	case *IfStmt:
@@ -2818,4 +2853,145 @@ func (l *lowerer) lowerStructLitAlloca(lit *StructLitExpr) mir2.Reg {
 	base := l.bld.Alloca(bytes)
 	l.emitStructLitFields(lit, func() mir2.Reg { return base })
 	return base
+}
+
+// ── Inline asm helpers ───────────────────────────────────────────────────────
+
+// z80RegNameToClass maps a physical Z80 register name to its primary RegClass,
+// matching the @z80_X annotation scheme used on function parameters.
+func z80RegNameToClass(reg string) mir2.RegClass {
+	switch strings.ToUpper(reg) {
+	case "A":
+		return mir2.ClassAcc
+	case "B":
+		return mir2.ClassCounter
+	case "C":
+		return mir2.ClassGeneral
+	case "HL":
+		return mir2.ClassPointer
+	case "DE":
+		return mir2.ClassIndex
+	default:
+		return mir2.ClassGeneral
+	}
+}
+
+// z80RegToClassSet maps a physical Z80 register name to the classes it occupies.
+func z80RegToClassSet(reg string) mir2.ClassSet {
+	var cs mir2.ClassSet
+	switch strings.ToUpper(reg) {
+	case "A":
+		cs.Add(mir2.ClassAcc)
+		cs.Add(mir2.ClassGeneral)
+	case "B":
+		cs.Add(mir2.ClassCounter)
+		cs.Add(mir2.ClassGeneral)
+	case "C", "D", "E", "H", "L":
+		cs.Add(mir2.ClassGeneral)
+	case "HL":
+		cs.Add(mir2.ClassPointer)
+		cs.Add(mir2.ClassPair)
+	case "DE":
+		cs.Add(mir2.ClassIndex)
+		cs.Add(mir2.ClassPair)
+	case "BC":
+		cs.Add(mir2.ClassPair)
+	case "IX":
+		cs.Add(mir2.ClassIX)
+	case "IY":
+		cs.Add(mir2.ClassIY)
+	case "F":
+		cs.Add(mir2.ClassFlag)
+	case "SP":
+		// stack pointer — not allocatable, but flags as clobbered
+	}
+	return cs
+}
+
+// z80RetRegInfo returns the MIR2 type and class for an asm (ret REG) clause.
+func z80RetRegInfo(reg string) (mir2.Ty, mir2.RegClass) {
+	switch strings.ToUpper(reg) {
+	case "A":
+		return mir2.TyU8, mir2.ClassAcc
+	case "B":
+		return mir2.TyU8, mir2.ClassCounter
+	case "C", "D", "E", "H", "L":
+		return mir2.TyU8, mir2.ClassGeneral
+	case "HL":
+		return mir2.TyU16, mir2.ClassPointer
+	case "DE":
+		return mir2.TyU16, mir2.ClassIndex
+	case "BC":
+		return mir2.TyU16, mir2.ClassPair
+	default:
+		return mir2.TyU8, mir2.ClassAcc
+	}
+}
+
+// z80AutoClobbers parses Z80 assembly text and returns the set of register
+// classes that are written by the instructions.  Conservative: unknown
+// instructions or CALL/RST clobber everything.  F (flags) is always included.
+func z80AutoClobbers(code string) mir2.ClassSet {
+	var cs mir2.ClassSet
+	cs.Add(mir2.ClassFlag) // almost every Z80 instruction touches F
+
+	for _, rawLine := range strings.Split(code, "\n") {
+		line := strings.TrimSpace(rawLine)
+		// Handle "/" as inline separator
+		for _, part := range strings.Split(line, "/") {
+			part = strings.TrimSpace(part)
+			if part == "" || strings.HasSuffix(part, ":") {
+				continue // empty or label
+			}
+			// Extract mnemonic (first word)
+			fields := strings.Fields(part)
+			if len(fields) == 0 {
+				continue
+			}
+			mnem := strings.ToUpper(fields[0])
+
+			// CALL/RST/DJNZ — conservative: clobber all
+			switch mnem {
+			case "CALL", "RST":
+				return mir2.AllClasses
+			}
+
+			// Parse destination (first operand) for instructions that write.
+			operands := ""
+			if len(fields) > 1 {
+				operands = strings.Join(fields[1:], " ")
+			}
+			parts := strings.SplitN(operands, ",", 2)
+			dst := strings.TrimSpace(parts[0])
+			dst = strings.Trim(dst, "()")
+
+			switch mnem {
+			case "LD", "ADD", "ADC", "SUB", "SBC", "AND", "OR", "XOR", "CP",
+				"INC", "DEC", "NEG", "CPL", "DAA", "RLA", "RRA", "RLCA", "RRCA",
+				"RL", "RR", "RLC", "RRC", "SLA", "SRA", "SRL", "BIT", "SET", "RES",
+				"POP", "IN":
+				cs = cs.Union(z80RegToClassSet(strings.ToUpper(dst)))
+			case "EX":
+				// EX DE,HL clobbers both
+				cs = cs.Union(z80RegToClassSet("DE"))
+				cs = cs.Union(z80RegToClassSet("HL"))
+			case "EXX":
+				cs.Add(mir2.ClassShadow)
+			case "PUSH", "NOP", "HALT", "DI", "EI", "RET", "JP", "JR",
+				"JRS", "OUT":
+				// These don't write to a general register
+			case "LDIR", "LDDR":
+				cs = cs.Union(z80RegToClassSet("HL"))
+				cs = cs.Union(z80RegToClassSet("DE"))
+				cs = cs.Union(z80RegToClassSet("BC"))
+			case "CPIR", "CPDR":
+				cs = cs.Union(z80RegToClassSet("HL"))
+				cs = cs.Union(z80RegToClassSet("BC"))
+			default:
+				// Unknown instruction → conservative
+				return mir2.AllClasses
+			}
+		}
+	}
+	return cs
 }

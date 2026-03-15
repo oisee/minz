@@ -1,0 +1,12 @@
+fun peek(addr: u16) -> u8 {
+    return ptr(addr)^
+}
+
+fun poke(addr: u16, val: u8) -> void {
+    ptr(addr)^ = val
+}
+
+fun main() -> u8 {
+    poke(0x8000, 42)
+    return peek(0x8000)
+}

@@ -1,0 +1,11 @@
+fun port_read(@z80_a port_hi: u8) -> u8 {
+    asm z80 (ret A) { IN A, (0xFE) }
+}
+
+fun double(@z80_a x: u8) -> u8 {
+    asm z80 (ret A) (clob A, F) { ADD A, A }
+}
+
+fun main() -> u8 {
+    return double(port_read(0xDF))
+}

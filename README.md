@@ -1,27 +1,27 @@
 # MinZ Programming Language
 
-### ★ [Nanz → Z80 Showcase: Definitive Edition](reports/2026-03-11-056-Nanz_Z80_Showcase_Definitive.md)
+### ★ [Tetris + Asm Phase 1 + ptr() + Value Pipe](reports/2026-03-15-074-Tetris_AsmPhase1_PtrCast_ValuePipe.md)
 
-**15 verified examples** — from `abs_diff` (4 instructions, optimal) to `@smc` compiled sprites (demoscene-quality output from high-level source). Every code block is actual compiler output, no hand-editing.
+**ZX Spectrum Tetris** in 853 lines of Nanz. Wall kicks, hold piece, ghost piece, T-spin scoring. Compiles to 2176 lines of Z80 assembly (48 functions). Plus three new language features:
 
-| Highlight | Output |
-|-----------|--------|
-| `abs_diff` u8 | `SUB C / RET NC / NEG / RET` — **4 instructions, identical to hand-ASM** |
-| `popcount` LUTGen | `LD H,lut^H / LD L,C / LD A,(HL)` — **3 instructions + 256B table** |
-| `min_of(a,b)` | `EQU minmax` — **0 bytes** (inliner + copy-prop alias) |
-| `@smc draw_row` | `LD HL,0 / LD(HL),195 / INC HL / LD(HL),60 / RET` — **compiled sprite from `Row2{b0:195,b1:60}`** |
-| multi-return annotation | `-> (u16=HL, u16=DE)` — correct, verified against allocator |
+| Feature | Output | Quality |
+|---------|--------|---------|
+| `ptr(addr)^` peek | `LD A, (HL) / RET` — **no asm needed** | Optimal |
+| `ptr(addr)^ = val` poke | `LD (HL), C / RET` — **language-level I/O** | Optimal |
+| `5 \|> double \|> inc` | `LD A, 11 / RET` — **constant-folded!** | Optimal |
+| `asm (ret A) (clob A, F)` | `ADD A, A / RET` — **precise clobbers** | Optimal |
+| `asm (clob auto)` | Parses asm text, computes write-set | Safe default |
 
-→ **[Full showcase with source, output, T-state analysis and quality table](reports/2026-03-11-056-Nanz_Z80_Showcase_Definitive.md)**
+→ **[Full report with Tetris architecture, asm design, and 5 showcase examples](reports/2026-03-15-074-Tetris_AsmPhase1_PtrCast_ValuePipe.md)**
 
 ---
 
 ### Latest
 
-- **[Nanz Language Book v5.1](docs/Nanz_Language_Book_v5.md)** — 21 chapters, 2903 lines. Asm register contracts, implicit return, ZX Spectrum I/O patterns. [PDF](releases/v0.21.4/Nanz_Language_Book_v5.pdf), [EPUB](releases/v0.21.4/Nanz_Language_Book_v5.epub), [LaTeX](releases/v0.21.4/Nanz_Language_Book_v5.tex).
-- **[@derive metaprogramming + cross-language imports](docs/Nanz_Language_Book_v5.md#chapter-20-metaprogramming-derive-and-introspection)** — `@derive_eq`, `@derive_debug`, `@derive_sizeof` generate struct-specific code at compile time. Import `.lanz` and `.plm` modules from Nanz — three languages, one pipeline.
-- **[Nanz Language Sprint: 6 features](reports/2026-03-15-073-Nanz_Language_Sprint_Six_Features.md)** — enums, type aliases, module imports, three string types (SString/LString/CString), pipe/trans named pipelines with DJNZ fusion. 9 showcase examples, all E2E verified.
-- **[Arena allocator + sandbox + sizeof](reports/2026-03-14-069-Arena_Allocator_Sandbox_Sizeof.md)** — struct-based bump allocator with `^Arena` pointer receiver, `arena_split` chaining, `sizeof(Type)` compile-time constant, `sandbox` blocks for shared VM state.
+- **[Nanz Language Book v5.2](docs/Nanz_Language_Book_v5.md)** — 21 chapters + 7 appendices. New: `ptr()` cast, `|>` pipe operator, asm `(ret)/(clob)/(in)` clauses, auto-clobber analysis.
+- **[ZX Spectrum Tetris](examples/zx/tetris.nanz)** — 853 LOC, 7 tetrominoes, SRS wall kicks, hold/next/ghost piece, T-spin scoring. Attribute-based rendering for fast frame updates.
+- **[Nanz Language Sprint: 6 features](reports/2026-03-15-073-Nanz_Language_Sprint_Six_Features.md)** — enums, type aliases, module imports, three string types, pipe/trans named pipelines with DJNZ fusion.
+- **[Arena allocator + sandbox + sizeof](reports/2026-03-14-069-Arena_Allocator_Sandbox_Sizeof.md)** — struct-based bump allocator with `^Arena` pointer receiver, `arena_split` chaining, `sizeof(Type)` compile-time constant.
 - **[PreallocCoalesce delivers](reports/2026-03-13-068-Showcase_ForEachEdge_SignedCmp_PreallocImpact.md)** — `mapInPlace` loop: 5 instructions → **1 DJNZ**. `factorial_fold`: entire mul16 routine eliminated.
 - **[MOS 6502 backend alive](reports/2026-03-13-067-6502_Backend_E2E_Harness.md)** — 35/35 tests, dual-VM oracle (MIR2 VM vs sim6502), console I/O for Apple II/C64/BBC Micro.
 
