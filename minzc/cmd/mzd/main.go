@@ -55,6 +55,11 @@ var (
 	exportABIFile string
 	showRegs      bool
 	verifyABI     string
+	dynamic       bool
+	dynTrials     int
+
+	// Package-level so renderAnalyzed can access it
+	dynResultsMap map[uint16]*analysis.DynResult
 )
 
 // parseAddress parses hex (0x, $, suffix h), or decimal addresses.
@@ -177,6 +182,8 @@ func init() {
 	rootCmd.Flags().StringVar(&exportABIFile, "export-abi", "", "Export platform ABI profile to .abi file")
 	rootCmd.Flags().BoolVar(&showRegs, "regs", false, "Show IN/OUT/CLOBBER register annotations per function")
 	rootCmd.Flags().StringVar(&verifyABI, "verify-abi", "", "Verify detected registers against compiler ABI from .a80 file")
+	rootCmd.Flags().BoolVar(&dynamic, "dynamic", false, "Run dynamic analysis via Z80 emulator (pure/stack/idempotent detection)")
+	rootCmd.Flags().IntVar(&dynTrials, "trials", 64, "Number of random trials for --dynamic")
 }
 
 func main() {
@@ -420,6 +427,11 @@ func runAnalyzed(inputFile string, data []byte, org uint16) error {
 		a.AnalyzeRegisters()
 	}
 
+	// Dynamic analysis via emulator
+	if dynamic {
+		dynResultsMap = a.DynamicAnalysis(dynTrials)
+	}
+
 	// ABI verification against compiler-declared annotations
 	if verifyABI != "" {
 		declared, err := analysis.ParseAsmABI(verifyABI)
@@ -526,6 +538,11 @@ func renderAnalyzed(a *analysis.Analysis) {
 			if showRegs {
 				if info, ok := a.FuncRegs[pc]; ok {
 					fmt.Printf("; %s\n", analysis.FormatFuncRegInfo(info))
+				}
+			}
+			if dynamic && dynResultsMap != nil {
+				if dr, ok := dynResultsMap[pc]; ok {
+					fmt.Printf("; DYNAMIC: %s\n", analysis.FormatDynResult(dr))
 				}
 			}
 		}
