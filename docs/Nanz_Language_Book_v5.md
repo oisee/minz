@@ -9,7 +9,7 @@
 >
 > *Also targets native AMD64 via C99 and QBE, and MOS 6502.*
 
-**Version:** MinZ compiler v0.21.3+ (commit d644c51)
+**Version:** MinZ compiler v0.21.3+ (commit ad2737c)
 **Date:** 2026-03-15
 **Status:** Core features stable · 28/28 showcase · 20/20 test packages
 
@@ -36,6 +36,8 @@
 17. [Module System](#chapter-17-module-system)
 18. [Strings and Text Output](#chapter-18-strings-and-text-output)
 19. [Pipe/Trans: Named Iterator Pipelines](#chapter-19-pipetrans-named-iterator-pipelines)
+20. [Metaprogramming: @derive and Introspection](#chapter-20-metaprogramming-derive-and-introspection)
+21. [Cross-Language Imports](#chapter-21-cross-language-imports)
 
 - [Appendix A: Grammar](#appendix-a-grammar)
 - [Appendix B: Register Classes](#appendix-b-register-classes)
@@ -2166,6 +2168,289 @@ Terminal operations (`.fold()`, `.forEach()`, `.reduce()`) are applied after `.a
 
 ---
 
+## Chapter 20: Metaprogramming — @derive and Introspection
+
+Nanz supports compile-time metaprogramming: functions that inspect types and generate code. No runtime reflection — everything resolves before the first instruction is emitted.
+
+### 20.1 The Problem
+
+On Z80 you cannot afford runtime reflection — no vtables, no RTTI, no type metadata in the binary. But you still want convenience functions like "compare two structs field-by-field" or "print all fields for debugging" without writing them by hand for every struct.
+
+### 20.2 Native @derive Metafunctions
+
+Built-in metafunctions generate struct-specific code from the type declaration:
+
+| Metafunction | Generates | Example output |
+|---|---|---|
+| `@derive_debug(Type)` | `fun Type_debug(self: ptr)` | Prints each field |
+| `@derive_eq(Type)` | `fun Type_eq(a: ptr, b: ptr) -> bool` | Field-by-field equality |
+| `@derive_sizeof(Type)` | `fun sizeof_Type() -> u8` + `fun offsetof_Type_field() -> u8` | Size + all offsets |
+| `@sizeof(Type)` | `fun sizeof_Type() -> u8` | Byte size only |
+| `@field_count(Type)` | `fun field_count_Type() -> u8` | Number of fields |
+
+#### @derive_eq — Field-by-Field Equality
+
+Given a struct:
+
+```nanz
+struct Color {
+    r: u8
+    g: u8
+    b: u8
+}
+```
+
+`@derive_eq(Color)` generates:
+
+```nanz
+fun Color_eq(a: ptr, b: ptr) -> bool {
+    return (a.r == b.r) & (a.g == b.g) & (a.b == b.b)
+}
+```
+
+The generated function compares each field at its byte offset — three comparisons ANDed together. On Z80 this compiles to a tight sequence of `LD A,(HL) / CP (DE) / RET NZ` chains.
+
+```nanz
+// Usage:
+global c1: Color
+global c2: Color
+
+fun colors_match() -> bool {
+    return Color_eq(&c1, &c2)
+}
+```
+
+#### @derive_debug — Print All Fields
+
+`@derive_debug(Color)` generates a function that prints each field's value using `print_u8` or `print_u16` depending on field type:
+
+```nanz
+// Generated:
+fun Color_debug(self: ptr) -> void {
+    print_u8(self[0])    // r at offset 0
+    print_u8(self[1])    // g at offset 1
+    print_u8(self[2])    // b at offset 2
+}
+```
+
+#### @derive_sizeof — Size + Offsets
+
+`@derive_sizeof(Color)` generates both the total size and per-field offset functions:
+
+```nanz
+// Generated:
+fun sizeof_Color() -> u8 { return 3 }
+fun offsetof_Color_r() -> u8 { return 0 }
+fun offsetof_Color_g() -> u8 { return 1 }
+fun offsetof_Color_b() -> u8 { return 2 }
+
+// Usage with arena:
+let c_ptr = arena.alloc(sizeof_Color())
+```
+
+### 20.3 How It Works: The MetaRuntime
+
+Metafunctions execute at compile time through a three-stage pipeline:
+
+```
+Struct declaration → MetaRuntime introspection → Lanz S-expression → HIR → merge into module
+```
+
+1. **Introspection:** The MetaRuntime reads the struct's field names, types, offsets, and byte widths from the HIR module.
+
+2. **Code generation:** The metafunction produces Lanz S-expressions — the compiler's internal representation:
+
+```lisp
+; @derive_eq(Point) produces:
+(fun Point_eq ((a ptr) (b ptr)) bool
+  (return (& (== (load (cast (+ (cast a u16) 0) ptr) u8)
+                 (load (cast (+ (cast b u16) 0) ptr) u8))
+             (== (load (cast (+ (cast a u16) 1) ptr) u8)
+                 (load (cast (+ (cast b u16) 1) ptr) u8)))))
+```
+
+3. **Splicing:** The Lanz text is compiled to HIR and merged into the calling module — indistinguishable from hand-written code. The optimizer sees it as a normal function and applies all MIR2 passes.
+
+### 20.4 VM-Hosted Metafunctions
+
+For more complex metaprogramming, you can write metafunctions in Nanz itself, compiled to MIR2 and executed on the VM:
+
+```nanz
+@extern fun emit(ptr: u16) -> void
+@extern fun struct_field_count(ty: u8) -> u8
+
+fun meta_sizeof(ty: u8) -> u8 {
+    let n = struct_field_count(ty)
+    emit("(fun Color_size () u8 (return 3))")
+    return n
+}
+```
+
+The VM provides host functions for introspection:
+
+| Host function | Returns |
+|---|---|
+| `@meta.type.width(ty_id)` | Byte width of type |
+| `@meta.type.name(ty_id)` | Pointer to type name string |
+| `@meta.type.is_struct(ty_id)` | 1 if struct, 0 otherwise |
+| `@meta.struct.field_count(ty_id)` | Number of fields |
+| `@meta.struct.field_name(ty_id, i)` | Pointer to field name |
+| `@meta.struct.field_type(ty_id, i)` | Type ID of field |
+| `@meta.struct.field_offset(ty_id, i)` | Byte offset of field |
+| `@meta.ast.func(name_ptr)` | Lanz S-expression of function AST |
+| `@meta.str.concat(a, b)` | Concatenated string |
+| `@meta.str.from_int(n)` | Integer as decimal string |
+| `@meta.emit(ptr)` | Append string to emit buffer |
+
+The metafunction calls `@meta.emit()` to produce Lanz code, which is then compiled and spliced into the module. This enables arbitrarily complex compile-time logic — loops, conditionals, string building — all running on the MIR2 VM before any Z80 code is generated.
+
+### 20.5 Testing @derive
+
+All derive metafunctions are verified with unit tests:
+
+```go
+// TestMetaFunc_Sizeof — @sizeof(Point) returns 2
+mr := makeTestRuntime()  // Point{x: u8, y: u8}
+m, _ := mr.RunMeta("sizeof", []MetaArg{{TypeID: 100, Name: "Point"}})
+// m.Funcs[0] = "sizeof_Point" returning 2
+
+// TestMetaE2E_NanzToVM — full pipeline test
+// Nanz source → compile → VM → emit Lanz → parse → verify HIR function
+```
+
+The E2E test compiles a Nanz metafunction, runs it on the MIR2 VM with a Color struct context, captures the emitted Lanz, and verifies the resulting HIR function is correct.
+
+### 20.6 Design Philosophy
+
+This is **Rust-style derive, not C++ templates:**
+
+- No Turing-complete type system. Code generation is explicit.
+- No implicit instantiation. You call `@derive_eq(Color)` and get `Color_eq`.
+- No monomorphization explosion. Each derive produces exactly one function.
+- Generated code is visible — emit Lanz, inspect, debug.
+- Zero runtime cost — all work happens at compile time.
+
+---
+
+## Chapter 21: Cross-Language Imports
+
+### 21.1 Three Languages, One Pipeline
+
+Nanz can import modules written in three different source languages:
+
+| Extension | Language | Parser |
+|---|---|---|
+| `.nanz` | Nanz | Native Participle parser |
+| `.lanz` | Lanz (S-expressions) | Lanz S-expression parser |
+| `.plm` | PL/M-80 | PL/M-80 parser |
+
+All three parse to the same HIR (High-level IR), which then flows through the shared MIR2 → Z80 pipeline. Cross-language imports are first-class — no FFI wrappers, no marshalling, no overhead.
+
+### 21.2 Importing Lanz Modules
+
+Lanz is the compiler's S-expression representation — compact, unambiguous, ideal for generated code:
+
+```lisp
+; mathlib.lanz
+(fun double ((x u8)) u8 (return (+ x x)))
+(fun inc ((x u8)) u8 (return (+ x 1)))
+```
+
+Import from Nanz:
+
+```nanz
+import mathlib { double, inc }
+
+fun use_double(x: u8) -> u8 {
+    return double(x)
+}
+
+assert use_double(5) == 10
+assert inc(3) == 4
+```
+
+The compiler detects `.lanz` extension, parses S-expressions into HIR, and merges the functions. At Z80 level, `double` compiles to `ADD A, A / RET` — identical to writing it in Nanz.
+
+### 21.3 Importing PL/M-80 Modules
+
+PL/M-80 is Intel's language from the 1970s — used to write CP/M and early microcomputer software. Nanz can import PL/M procedures directly:
+
+```plm
+/* legacy.plm */
+PLM_ADD: PROCEDURE(A, B) BYTE;
+    DECLARE (A, B) BYTE;
+    RETURN A + B;
+END PLM_ADD;
+```
+
+```nanz
+import legacy { PLM_ADD }
+
+fun use_plm(a: u8, b: u8) -> u8 {
+    return PLM_ADD(a, b)
+}
+
+assert use_plm(5, 1) == 6
+```
+
+PL/M names are uppercased by convention. The PL/M parser maps `BYTE` → `u8`, `ADDRESS` → `u16`, and PL/M control structures to HIR equivalents.
+
+### 21.4 Module Resolution by Extension
+
+The import system resolves modules by searching for files in order:
+
+```
+import mylib.math { add }
+```
+
+1. Look for `mylib/math.nanz` → parse as Nanz
+2. Look for `mylib/math.lanz` → parse as Lanz
+3. Look for `mylib/math.plm` → parse as PL/M-80
+4. Look for `mylib.nanz` (single file) → parse as Nanz
+5. Error: module not found
+
+### 21.5 Safety: Circular Import Detection
+
+The parser tracks the import stack and rejects circular dependencies:
+
+```nanz
+// a.nanz: import b      ← b imports a → ERROR: circular import
+// b.nanz: import a
+```
+
+```
+error: circular import detected: test.nanz → a.nanz → b.nanz → a.nanz
+```
+
+### 21.6 Why Cross-Language Matters
+
+**Legacy code reuse:** Import existing PL/M-80 CP/M utilities without rewriting them. The MinZ PL/M parser handles 26/26 Intel reference files (100%).
+
+**Metaprogramming output:** `@derive_*` metafunctions generate Lanz internally — the same format you can write by hand and import.
+
+**Testing:** Write test modules in Lanz for precise control over HIR, then import from Nanz to verify integration.
+
+**Gradual migration:** Port a PL/M codebase to Nanz one module at a time. Mixed `.plm` + `.nanz` programs compile through the same pipeline with the same optimizations.
+
+### 21.7 Full Test Coverage
+
+The import system is tested with 9 test cases:
+
+| Test | Covers |
+|---|---|
+| `TestImportUnqualified` | `import mod { sym1, sym2 }` |
+| `TestImportGlob` | `import mod { * }` |
+| `TestImportAlias` | `import mod { sym as alias }` |
+| `TestImportQualified` | `import mod` → `mod.sym()` |
+| `TestImportQualifiedNested` | Chained qualified calls |
+| `TestImportWithAssert` | Imported functions in assertions |
+| `TestImportCircularDetection` | Circular dependency error |
+| `TestImportNotFound` | Missing module error |
+| `TestImportLanzModule` | `.lanz` cross-language import |
+| `TestImportPLMModule` | `.plm` cross-language import |
+
+---
+
 ## Appendix A: Grammar
 
 ```ebnf
@@ -2481,6 +2766,13 @@ Features shipped since v4.1 (2026-03-14):
 | `.apply()` | 19.3 | Shipped — connect pipe to data source |
 | DJNZ pipe fusion | 19.4 | Shipped — all stages inline into loop body |
 | `\|>` prefix syntax | 19.5 | Shipped — optional visual prefix in pipe body |
+| `@derive_debug(Type)` | 20.2 | Shipped — print all struct fields |
+| `@derive_eq(Type)` | 20.2 | Shipped — field-by-field equality |
+| `@derive_sizeof(Type)` | 20.2 | Shipped — sizeof + per-field offsets |
+| MetaRuntime introspection | 20.4 | Shipped — VM host functions for type/struct/AST |
+| Cross-language `.lanz` import | 21.2 | Shipped — S-expression modules |
+| Cross-language `.plm` import | 21.3 | Shipped — PL/M-80 legacy modules |
+| Circular import detection | 21.5 | Shipped — stack-based cycle check |
 | Showcase count | 11 | 28/28 (was 24/24) |
 
 ### New syntax summary (v4.1 → v5)
@@ -2497,6 +2789,11 @@ Features shipped since v4.1 (2026-03-14):
 | `trans name { use other; ... }` | Pipeline composition | Compile time |
 | `source.apply(pipe)` | Apply pipe to data | Compile time (fused) |
 | `\|> stage(...)` | Optional pipe stage prefix | Parse time |
+| `@derive_eq(Type)` | Generate equality function | Compile time |
+| `@derive_debug(Type)` | Generate debug print function | Compile time |
+| `@derive_sizeof(Type)` | Generate sizeof + offsetof functions | Compile time |
+| `import mod { sym }` (`.lanz`) | Import Lanz S-expression module | Compile time |
+| `import mod { sym }` (`.plm`) | Import PL/M-80 module | Compile time |
 
 ### Feature gap closed
 
@@ -2509,6 +2806,8 @@ Six of the eight features that were "only in MinZ" have been ported to Nanz:
 | Import system | MinZ only | **Nanz** (Chapter 17) |
 | Type aliases | Not implemented | **Nanz** (Chapter 16) |
 | Pipe/trans pipelines | Not implemented | **Nanz** (Chapter 19) |
+| @derive metafunctions | Not implemented | **Nanz** (Chapter 20) |
+| Cross-language imports | Not implemented | **Nanz** (Chapter 21) |
 | `@error` propagation | MinZ only | MinZ only (next priority) |
 | `@define` macros | MinZ only | MinZ only |
 | `@if/@elif` conditionals | MinZ only | MinZ only |

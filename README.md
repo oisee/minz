@@ -18,7 +18,7 @@
 
 ### Latest
 
-- **[Nanz Language Book v5](docs/Nanz_Language_Book_v5.md)** — 19 chapters + 6 appendices. New: enums, type aliases, module imports, three string types, pipe/trans named pipelines. 2519 lines, 6/8 MinZ feature gaps closed.
+- **[Nanz Language Book v5](docs/Nanz_Language_Book_v5.md)** — 21 chapters + 6 appendices. New: enums, type aliases, modules, strings, pipe/trans, @derive metaprogramming, cross-language imports (Nanz/Lanz/PL/M-80). 2818 lines.
 - **[Nanz Language Sprint: 6 features](reports/2026-03-15-073-Nanz_Language_Sprint_Six_Features.md)** — enums, type aliases, module imports, three string types (SString/LString/CString), pipe/trans named pipelines with DJNZ fusion. 9 showcase examples, all E2E verified.
 - **[Arena allocator + sandbox + sizeof](reports/2026-03-14-069-Arena_Allocator_Sandbox_Sizeof.md)** — struct-based bump allocator with `^Arena` pointer receiver, `arena_split` chaining, `sizeof(Type)` compile-time constant, `sandbox` blocks for shared VM state. All E2E verified.
 - **[PreallocCoalesce delivers](reports/2026-03-13-068-Showcase_ForEachEdge_SignedCmp_PreallocImpact.md)** — `mapInPlace` loop: 5 instructions → **1 DJNZ**. `factorial_fold`: entire mul16 routine eliminated. 6/23 showcase files produce tighter Z80.
