@@ -5049,13 +5049,26 @@ func (g *z80cg) genCmp16(inst *Inst) {
 		rhs = pair
 	}
 
-	// lhs is now in HL.  SBC HL, rr clobbers HL; save and restore so the
-	// original lhs value survives for use in taken/not-taken branches.
-	// TODO: elide PUSH/POP when liveness shows HL is dead after this compare.
-	g.emit("    PUSH HL") // save lhs
-	g.emit("    OR A")    // clear carry; idempotent for A
+	// lhs is now in HL.  SBC HL, rr clobbers HL; we need to restore it
+	// for the taken/not-taken branches that use the original operands.
+	//
+	// Optimisation: for signed comparisons and eq/ne, ADD HL,rr restores
+	// HL without clobbering S, Z, or P/V flags (only CF and H are affected).
+	// This saves 1B + 10T vs PUSH/POP.  For unsigned comparisons that need
+	// CF, we must use the PUSH/POP approach.
+	needsCF := inst.Cond == CmpUlt || inst.Cond == CmpUge ||
+		inst.Cond == CmpUgt || inst.Cond == CmpUle
+
+	if needsCF {
+		g.emit("    PUSH HL") // save lhs (2B, 21T — need CF preserved)
+	}
+	g.emit("    OR A") // clear carry for SBC
 	g.emitf("    SBC HL, %s", rhs)
-	g.emit("    POP HL") // restore lhs
+	if needsCF {
+		g.emit("    POP HL") // restore lhs
+	} else {
+		g.emitf("    ADD HL, %s", rhs) // restore lhs (−1B, −10T; S/Z/PV safe)
+	}
 	if swappedDE {
 		// Restore physical registers to allocator-expected layout:
 		//   before compare: HL=orig_rhs, DE=orig_lhs
