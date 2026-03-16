@@ -58,10 +58,25 @@ fun main() -> void {
 
     var count: u8 = 0
     while sqlite_step(q1) == 1 {
+        // matnr(0), mtart(1), meins(2), brgew(3), ntgew(4), maktx(5)
+        var matnr: ^u8 = sqlite_column_text(q1, 0)
+        var mtart: ^u8 = sqlite_column_text(q1, 1)
+        var meins: ^u8 = sqlite_column_text(q1, 2)
         var brgew: u16 = sqlite_column_int(q1, 3)
         var ntgew: u16 = sqlite_column_int(q1, 4)
+        var maktx: ^u8 = sqlite_column_text(q1, 5)
+        @print(matnr)
+        @print("  ")
+        @print(mtart)
+        @print("  ")
+        @print(meins)
+        @print("  ")
         @print_u8(u8(brgew))
+        @print("  ")
         @print_u8(u8(ntgew))
+        @print("  ")
+        @print(maktx)
+        @print_nl()
         count = count + 1
     }
 
@@ -78,10 +93,15 @@ fun main() -> void {
 
     var q2: u16 = sqlite_query(db, c"SELECT mtart, COUNT(*), SUM(brgew) FROM mara GROUP BY mtart ORDER BY mtart")
     while sqlite_step(q2) == 1 {
+        var mtart2: ^u8 = sqlite_column_text(q2, 0)
         var cnt: u16 = sqlite_column_int(q2, 1)
         var total_wt: u16 = sqlite_column_int(q2, 2)
+        @print(mtart2)
+        @print(": ")
         @print_u8(u8(cnt))
+        @print(" materials, weight=")
         @print_u8(u8(total_wt))
+        @print_nl()
     }
 
     // ── Cleanup ──────────────────────────────────────────────────────
