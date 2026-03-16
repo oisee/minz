@@ -230,29 +230,39 @@ func (g *gen) emitInst(inst *mir2.Inst) {
 
 	// Memory
 	case mir2.OpLoad:
-		bits := typeBits(inst.Ty)
 		var loadOp string
-		switch {
-		case bits <= 8:
-			loadOp = "loadub"
-		case bits <= 16:
-			loadOp = "loaduh"
-		default:
-			loadOp = "loadw"
+		if g.regTy[dst] == "l" {
+			// Loading a pointer-width value — use loadl on 64-bit targets
+			loadOp = "loadl"
+		} else {
+			bits := typeBits(inst.Ty)
+			switch {
+			case bits <= 8:
+				loadOp = "loadub"
+			case bits <= 16:
+				loadOp = "loaduh"
+			default:
+				loadOp = "loadw"
+			}
 		}
 		g.printf("\t%%r%d =%s %s %s\n", dst, ty, loadOp, g.ptrReg(a, dst, "ld"))
 
 	case mir2.OpStore:
 		ptr, val := inst.Src[0], inst.Src[1]
-		bits := typeBits(inst.Ty)
 		var storeOp string
-		switch {
-		case bits <= 8:
-			storeOp = "storeb"
-		case bits <= 16:
-			storeOp = "storeh"
-		default:
-			storeOp = "storew"
+		if g.regTy[val] == "l" {
+			// Storing a pointer-width value — use storel on 64-bit targets
+			storeOp = "storel"
+		} else {
+			bits := typeBits(inst.Ty)
+			switch {
+			case bits <= 8:
+				storeOp = "storeb"
+			case bits <= 16:
+				storeOp = "storeh"
+			default:
+				storeOp = "storew"
+			}
 		}
 		g.printf("\t%s %s, %s\n", storeOp, reg(val), g.ptrReg(ptr, dst, "st"))
 

@@ -71,12 +71,32 @@ func (g *gen) emitModule() {
 
 	// Forward declarations so function order doesn't matter.
 	g.line("/* ── forward declarations ── */")
+	knownFuncs := make(map[string]bool)
 	for _, f := range g.mod.Funcs {
+		knownFuncs[f.Name] = true
 		if f.Attrs.IsExtern {
 			g.printf("extern %s;\n", g.funcSignature(f))
 		} else {
 			g.printf("%s;\n", g.funcSignature(f))
 		}
+	}
+
+	// Emit extern declarations for called functions not in the module
+	// (e.g. canvas_*, host functions provided by the runtime).
+	calledExtern := make(map[string]bool)
+	for _, f := range g.mod.Funcs {
+		for _, b := range f.Blocks {
+			for _, inst := range b.Insts {
+				if inst.Op == mir2.OpCall && !knownFuncs[inst.Sym] &&
+					!strings.HasPrefix(inst.Sym, "@") {
+					calledExtern[inst.Sym] = true
+				}
+			}
+		}
+	}
+	for name := range calledExtern {
+		// Generic variadic declaration — the runtime provides the real signature.
+		g.printf("extern int %s();\n", name)
 	}
 	g.line("")
 
@@ -197,7 +217,11 @@ func (g *gen) emitInstResultDecls(f *mir2.Func) {
 				continue
 			}
 			if inst.Op == mir2.OpAlloca {
-				continue // handled separately
+				// Alloca dst register still needs a declaration (receives pointer).
+				g.printf("\t%s r%d;\n", g.cTy(inst.Ty, inst.Dst), inst.Dst)
+				paramSet[inst.Dst] = true
+				any = true
+				continue
 			}
 			g.printf("\t%s r%d;\n", g.cTy(inst.Ty, inst.Dst), inst.Dst)
 			paramSet[inst.Dst] = true
