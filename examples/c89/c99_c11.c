@@ -76,3 +76,22 @@ int test_mixed_decls(void) {
 // This is a C99-style comment (already works)
 int test_comments(void) { return 1; }
 // assert test_comments() == 1 via mir2
+
+// --- _Generic (C11) ---
+int test_generic_int(void) {
+    int x = 42;
+    return _Generic(x, int: 1, long: 2, default: 0);
+}
+// assert test_generic_int() == 1 via mir2
+
+int test_generic_long(void) {
+    long x = 100;
+    return _Generic(x, int: 1, long: 2, default: 0);
+}
+// assert test_generic_long() == 2 via mir2
+
+int test_generic_default(void) {
+    char x = 'A';
+    return _Generic(x, int: 1, long: 2, default: 3);
+}
+// assert test_generic_default() == 3 via mir2
