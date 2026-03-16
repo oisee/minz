@@ -16,12 +16,36 @@
 
 ---
 
+### Visual Showcase — Cross-Language Canvas
+
+ObjC demoscene effects compiled through HIR → MIR2 → VM (and QBE native). All three use integer-only sine approximation — no floats needed.
+
+<div align="center">
+
+| Plasma (sine interference) | Diamond (Manhattan distance) | XOR Fractal (classic x^y) |
+|:-:|:-:|:-:|
+| ![Plasma](/media/plasma.png) | ![Diamond](/media/diamond.png) | ![XOR](/media/xor.png) |
+| `isin(x*scale + t*speed)` | `(abs(dx) + abs(dy)) & 255` | `(x+t) ^ (y+t/2) & 255` |
+
+</div>
+
+256x192, 256-color palette, rendered by ObjC `@protocol Effect` with dynamic dispatch via vtables. Source: [`examples/objc/plasma.m`](examples/objc/plasma.m). Also compiles to **native x86-64** via `mzn -o plasma examples/objc/plasma.m`.
+
+<div align="center">
+
+| Sphere Raymarcher (Nanz) |
+|:-:|
+| ![Sphere](/media/mzv_sphere_minz.png) |
+
+</div>
+
 ### Latest
 
+- **[ObjC Canvas + Demoscene + Multi-Frontend CLI](reports/2026-03-16-089-ObjC_Canvas_Demoscene_Multi_Frontend.md)** — Cross-language canvas library (VM + native), 3 demoscene effects in ObjC, all 8 frontends wired into mzv/mzn, CLI flags standardized to `--long`/`-s` convention.
 - **[ABAP Frontend + SQLite + Zork](reports/2026-03-16-088-ABAP_Frontend_SQLite_Zork.md)** — 7th frontend (ABAP via abaplint), SQLite host functions in MIR2 VM, CP/M file I/O fixed (ROM protection root cause), **Zork I (1983) runs in MZE**.
-- **[Nanz Z80 Showcase v2](reports/2026-03-15-084-Nanz_Z80_Showcase_Definitive_v2.md)** — 12 verified examples: `abs_diff` 6B (optimal), `swap` 1B (bare RET), `smaller` 0B (EQU), `popcount` 3-inst LUT, `@smc` compiled sprites, value pipes constant-folded, iterator DJNZ fusion. Plus `elimJrToRet` peephole: `JR cc → RET` → `RET cc`.
-- **[C89 Frontend vs SDCC](reports/2026-03-15-081-MinZ_C89_vs_SDCC_Codegen_Comparison.md)** — 6th frontend: C89/C99 via `modernc.org/cc/v4`. Identical C source, **MinZ 81B vs SDCC 179B (−55%)**. Pair-return byte-identical to Nanz. See table below. [Progress report](reports/2026-03-15-082-C89_Frontend_Progress.md): 9 corpus files, 51 functions, 68 MIR2 asserts pass.
-- **[Six Frontends, Universal Assert](reports/2026-03-15-080-Five_Frontends_Universal_Assert.md)** — Nanz, Lanz, Lizp, PL/M-80, Pascal, C89 — all compile through one HIR → MIR2 → Z80 pipeline. Compile-time assert works in all 6. Pascal → CP/M hello world runs in MZE.
+- **[Nanz Z80 Showcase v2](reports/2026-03-15-084-Nanz_Z80_Showcase_Definitive_v2.md)** — 12 verified examples: `abs_diff` 6B (optimal), `swap` 1B (bare RET), `smaller` 0B (EQU), `popcount` 3-inst LUT, `@smc` compiled sprites, value pipes constant-folded, iterator DJNZ fusion.
+- **[C89/ObjC Frontend vs SDCC](reports/2026-03-15-081-MinZ_C89_vs_SDCC_Codegen_Comparison.md)** — C89/C99/ObjC via `modernc.org/cc/v4`. Identical C source, **MinZ 81B vs SDCC 179B (−55%)**. ObjC adds `@protocol` vtable dispatch, `self->field` access. 14 corpus files, 191 asserts.
+- **[Eight Frontends, Universal Assert](reports/2026-03-15-080-Five_Frontends_Universal_Assert.md)** — Nanz, Lanz, Lizp, PL/M-80, Pascal, C89, ObjC, ABAP — all compile through one HIR → MIR2 → Z80 pipeline.
 - **[Nanz Language Book v5.3](docs/Nanz_Language_Book_v5.md)** — 21 chapters + 8 appendices. New: five-frontend architecture, universal assert syntax, Pascal/Lizp imports, transpilation via `--emit`.
 - **[ZX Spectrum Tetris](examples/zx/tetris.nanz)** — 853 LOC, 7 tetrominoes, SRS wall kicks, hold/next/ghost piece, T-spin scoring. Attribute-based rendering for fast frame updates.
 - **[Nanz Language Sprint: 6 features](reports/2026-03-15-073-Nanz_Language_Sprint_Six_Features.md)** — enums, type aliases, module imports, three string types, pipe/trans named pipelines with DJNZ fusion.
@@ -69,7 +93,7 @@ Identical C source compiled through both toolchains. Binary sizes (code only):
 
 MinZ is a compiler toolchain for retro hardware — primarily Z80 and eZ80, with an experimental MOS 6502 backend.
 
-The **primary frontend** is **Nanz** (`.nanz`) — a minimal, type-safe language that compiles through the HIR → MIR2 → Z80 pipeline with PBQP register allocation. Five additional frontends — **Lanz** (S-expressions), **Lizp** (Lisp dialect), **PL/M-80**, **Pascal**, and **C89** — compile through the same backend. Cross-language imports are first-class.
+The **primary frontend** is **Nanz** (`.nanz`) — a minimal, type-safe language that compiles through the HIR → MIR2 → Z80 pipeline with PBQP register allocation. Seven additional frontends — **Lanz** (S-expressions), **Lizp** (Lisp dialect), **PL/M-80**, **Pascal**, **C89**, **ObjC** (protocol vtables + dynamic dispatch), and **ABAP** — compile through the same backend. Cross-language imports are first-class.
 
 Self-contained toolchain: compiler, assembler, emulator, disassembler, and remote runner. No external dependencies — pure Go.
 
@@ -417,6 +441,55 @@ fun main() -> void {
 }
 ```
 
+### ObjC: Protocol Dispatch + Canvas Effects
+
+```objc
+// examples/objc/plasma.m — Integer sine, no floats needed on Z80!
+int isin(int x) {
+    int ix = x & 255;
+    int quarter = ix & 63;
+    int half_val = quarter * 2;
+    if (ix < 64)  return half_val;
+    if (ix < 128) return 127 - half_val;
+    if (ix < 192) return 0 - half_val;
+    return half_val - 127;
+}
+
+@protocol Effect
+-(int)render:(int)t;
+@end
+
+@implementation Plasma
+-(int)render:(int)t {
+    int w = canvas_width();
+    int h = canvas_height();
+    int y = 0;
+    while (y < h) {
+        int x = 0;
+        while (x < w) {
+            int v1 = isin(x * self->scale / 8 + t * self->speed);
+            int v2 = isin((x + y) * self->scale / 16 + t);
+            int color = (v1 + v2 + 256) / 2;
+            canvas_pixel(x, y, color);
+            x = x + 1;
+        }
+        y = y + 1;
+    }
+    return 0;
+}
+@end
+```
+
+Canvas API is cross-language — works from Nanz, C89, ObjC, Lizp, Lanz, Pascal, PL/M:
+
+```bash
+# VM (renders to PNG via Go host functions)
+go test ./pkg/c89/ -run TestPlasmaRender -v
+
+# Native binary (QBE → x86-64, renders to PPM)
+mzn -o plasma examples/objc/plasma.m && ./plasma
+```
+
 ### Agon Light 2 Program
 
 ```minz
@@ -594,7 +667,7 @@ the full feature matrix and Z80 vs 6502 comparison.
 
 ### Language Frontends
 
-Seven source languages compile through the same HIR → MIR2 → Z80 backend:
+Eight source languages compile through the same HIR → MIR2 → Z80 backend:
 
 ```
   .nanz ──→ nanz.Parse()     ──┐
@@ -603,7 +676,8 @@ Seven source languages compile through the same HIR → MIR2 → Z80 backend:
   .plm  ──→ plm.Compile()    ──┼──→ *hir.Module ──→ MIR2 ──→ Z80/6502/QBE
   .pas  ──→ pascal.Compile()  ──┤
   .c    ──→ c89.Compile()    ──┤
-  .abap ──→ abap.Compile()   ──┘  ← NEW: ABAP via abaplint!
+  .m    ──→ c89.Compile()    ──┤  ← ObjC: @protocol vtables, dynamic dispatch!
+  .abap ──→ abap.Compile()   ──┘  ← ABAP via abaplint!
 ```
 
 | Frontend | Status | Purpose | Notes |
@@ -613,11 +687,12 @@ Seven source languages compile through the same HIR → MIR2 → Z80 backend:
 | **Lizp** | Working | Lisp dialect | Macros, threading (`->`, `->>`), `defmacro`/`cond`/`when`/`dotimes`. Desugars to Lanz |
 | **PL/M-80** | Working | Legacy Intel (1976) | 26/26 Intel 80 Tools corpus (100%); 1338 functions, 11661 statements |
 | **Pascal** | Working | Turbo Pascal | `WriteLn` → CP/M BDOS via inline asm. `mz hello.pas -t cpm -o hello.com` |
-| **C89** | WIP | C89/C99 | `modernc.org/cc/v4` parser. 9 corpus files, 68 asserts. [−55% vs SDCC](reports/2026-03-15-081-MinZ_C89_vs_SDCC_Codegen_Comparison.md) |
+| **C89** | Working | C89/C99 | `modernc.org/cc/v4` parser. 14 corpus files, 191 asserts. [−55% vs SDCC](reports/2026-03-15-081-MinZ_C89_vs_SDCC_Codegen_Comparison.md) |
+| **ObjC** | Working | Objective-C subset | `@protocol`, `@interface`, `@implementation`, `self->field`, dynamic dispatch via vtables. [Demos →](examples/objc/) |
 | **ABAP** | NEW | SAP ABAP on Z80! | [abaplint](https://github.com/abaplint/abaplint) parser (TS). DATA, WRITE, IF, WHILE, DO, FORM, CLASS. [Examples →](examples/abap/) |
 | **MinZ** | Frozen on MIR1 | Legacy syntax | Old MIR1 path; will be rewired through HIR→MIR2 |
 
-**Seven pipelines, one backend.** `.nanz`, `.lanz`, `.lizp`, `.plm`, `.pas`, `.c`, and `.abap` files all go through `compileViaHIR()` → HIR → MIR2 → Z80. A function `double(x) = x + x` written in any of the seven languages produces the same Z80: `ADD A, A / RET`.
+**Eight pipelines, one backend.** `.nanz`, `.lanz`, `.lizp`, `.plm`, `.pas`, `.c`, `.m`, and `.abap` files all go through `compileViaHIR()` → HIR → MIR2 → Z80. A function `double(x) = x + x` written in any of the eight languages produces the same Z80: `ADD A, A / RET`.
 
 ### ABAP on Z80 — Yes, Really
 
@@ -710,7 +785,8 @@ Source Code                          Running Program
 | **mzx** | ZX Spectrum emulator (T-state accurate, AY, profiler, .sna/.tap/.trd/.scl, console I/O) | `mzx --snapshot game.sna` |
 | **mzd** | Z80 disassembler (IDA-like analysis, xrefs, ROM tables) | `mzd program.bin --org 0x8000` |
 | **mzrun** | Remote runner (DZRP protocol) | `mzrun program.minz --reset` |
-| **mzv** | MIR VM runner (breakpoints, tracing, PNG export) | `mzv program.mir` |
+| **mzv** | MIR2 VM runner (TUI display, canvas, all 8 frontends) | `mzv program.nanz` / `mzv demo.m` |
+| **mzn** | Native compiler (MIR2→QBE/C99→x86-64, all 8 frontends) | `mzn -o bin program.c` |
 | ~~**mzr**~~ | ~~Interactive REPL~~ | ❌ Broken — compilation pipeline not wired |
 | **mzlsp** | LSP server (diagnostics, hover, goto-def, completion) | auto-started by VSCode extension |
 
@@ -864,15 +940,15 @@ minz/
 
 ## Current Status (March 2026)
 
-**Active pipeline:** Nanz/Lanz/Lizp/PL/M-80/Pascal/ABAP → HIR → MIR2 → Z80 (production) / QBE (native) / 6502 (experimental).
+**Active pipeline:** Nanz/Lanz/Lizp/PL/M-80/Pascal/C89/ObjC/ABAP → HIR → MIR2 → Z80 (production) / QBE (native) / 6502 (experimental).
 
 **Metrics (verified 2026-03-15):**
 
 | | |
 |---|---|
-| **Language frontends** | 7 (Nanz, Lanz, Lizp, PL/M-80, Pascal, C89, **ABAP**) |
+| **Language frontends** | 8 (Nanz, Lanz, Lizp, PL/M-80, Pascal, C89, **ObjC**, **ABAP**) |
 | **Nanz showcase** | 34/34 compile + verify |
-| **Compile-time asserts** | 113 across all 6 frontends (45 original + 68 C89) |
+| **Compile-time asserts** | 191+ across all frontends (C89/ObjC: 14 files, 191 asserts) |
 | **Go test packages** | 26/26 pass |
 | **6502 backend** | 35/35 E2E tests |
 | **Z80 emulator** | 1335/1335 FUSE tests (100%) |
