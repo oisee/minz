@@ -53,10 +53,11 @@ func FuseAbsDiff(f *Func) bool {
 			// CmpSubCarry means "carry set by preceding SUB" — the codegen
 			// recognizes this and emits zero instructions for the cmp.
 			cmpInst.Cond = CmpSubCarry
-			// Point cmp sources at the sub's dst so that the original params
-			// (%r1, %r2) are no longer live across the sub → PBQP can assign
-			// sub result to the same register as param (A for ClassAcc).
-			cmpInst.Src = [2]Reg{subInst.Dst, NoReg}
+			// Src[0] = sub result (a-b), Src[1] = b (needed by VM for carry check).
+			// Using sub's dst for Src[0] removes the false live range on param `a`,
+			// letting PBQP assign sub result to A (same reg as consumed param).
+			cmpInst.Src = [2]Reg{subInst.Dst, bReg}
+			cmpInst.SrcTy = subInst.Ty
 
 			// Swap instruction order: sub first, then cmp.
 			b.Insts[i] = subInst
