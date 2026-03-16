@@ -25,28 +25,38 @@ func FuseAbsDiff(f *Func) bool {
 		if len(b.Insts) < 2 {
 			continue
 		}
-		// Look for pattern: cmp.ugt(a,b) followed by sub(b,a)
-		// where cond_ret uses the cmp result and sub result.
 		for i := 0; i < len(b.Insts)-1; i++ {
-			cmpInst := b.Insts[i]
-			subInst := b.Insts[i+1]
+			inst0 := b.Insts[i]
+			inst1 := b.Insts[i+1]
 
-			// Match: cmp.ugt(a, b) or cmp.uge(a, b)
-			if cmpInst.Op != OpCmp || (cmpInst.Cond != CmpUgt && cmpInst.Cond != CmpUge) {
-				continue
-			}
-			// Match: sub(b, a) — operands reversed from cmp
-			if subInst.Op != OpSub {
-				continue
-			}
-			a, bReg := cmpInst.Src[0], cmpInst.Src[1]
-			if subInst.Src[0] != bReg || subInst.Src[1] != a {
+			// Pattern A: cmp.ugt(a,b) followed by sub(b,a)
+			// Pattern B: sub(a,b) followed by cmp.ult(a,b)
+			var cmpInst, subInst *Inst
+			var a, bReg Reg
+			patternA := inst0.Op == OpCmp &&
+				(inst0.Cond == CmpUgt || inst0.Cond == CmpUge) &&
+				inst1.Op == OpSub &&
+				inst1.Src[0] == inst0.Src[1] && inst1.Src[1] == inst0.Src[0]
+			patternB := inst0.Op == OpSub &&
+				inst1.Op == OpCmp &&
+				(inst1.Cond == CmpUlt || inst1.Cond == CmpUle) &&
+				inst0.Src[0] == inst1.Src[0] && inst0.Src[1] == inst1.Src[1]
+
+			if patternA {
+				cmpInst, subInst = inst0, inst1
+				a, bReg = cmpInst.Src[0], cmpInst.Src[1]
+			} else if patternB {
+				subInst, cmpInst = inst0, inst1
+				a, bReg = subInst.Src[0], subInst.Src[1]
+			} else {
 				continue
 			}
 
-			// Rewrite: swap sub operands to sub(a, b)
-			subInst.Src[0] = a
-			subInst.Src[1] = bReg
+			// Pattern A: swap sub operands to sub(a, b)
+			if patternA {
+				subInst.Src[0] = a
+				subInst.Src[1] = bReg
+			}
 
 			// Rewrite cmp to use CmpSubCarry — the carry flag from the sub
 			// already encodes the comparison result. No separate CP needed.
@@ -62,6 +72,32 @@ func FuseAbsDiff(f *Func) bool {
 			// Swap instruction order: sub first, then cmp.
 			b.Insts[i] = subInst
 			b.Insts[i+1] = cmpInst
+
+			// Also check the cond_ret target block: if it contains sub(b, a)
+			// (the reverse subtraction), replace with neg(sub_dst). This turns
+			// the "compute b-a from scratch" path into "negate a-b" (2B NEG
+			// instead of 3B NEG+ADD or a full sub).
+			if cr, ok := b.Term.(*TermCondRet); ok {
+				targetLabel := cr.Then
+				for _, tb := range f.Blocks {
+					if tb.Label != targetLabel {
+						continue
+					}
+					for ti, tInst := range tb.Insts {
+						if tInst.Op == OpSub &&
+							tInst.Src[0] == bReg && tInst.Src[1] == a {
+							// sub(b, a) → neg(sub_result)
+							tb.Insts[ti] = &Inst{
+								Op:  OpNeg,
+								Dst: tInst.Dst,
+								Src: [2]Reg{subInst.Dst},
+								Ty:  tInst.Ty,
+								Cls: tInst.Cls,
+							}
+						}
+					}
+				}
+			}
 
 			changed = true
 		}
