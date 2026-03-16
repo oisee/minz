@@ -484,6 +484,9 @@ func CollectRegInfoForTest(f *Func) map[Reg]RegInfo { return collectRegInfo(f) }
 // IGAdjForTest exposes the adjacency map of the interference graph for tests.
 func IGAdjForTest(g *InterferenceGraph) map[Reg]*RegSet { return g.adj }
 
+// PhysicalAliasesForTest exports physicalAliases for test packages.
+func PhysicalAliasesForTest(loc PhysLoc) []PhysLoc { return physicalAliases(loc) }
+
 // locCompatible reports whether physical location loc can hold a value of type ty.
 //
 // Rules for Z80:

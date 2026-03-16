@@ -156,9 +156,12 @@ func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 	}
 
 	// Stack for R1 deferred assignments (processed in reverse after reduction).
+	// allNeighbors stores the full neighbor set at the time of removal, so
+	// back-assignment can check against ALL neighbors, not just the R1 one.
 	type r1Entry struct {
-		node     Reg
-		neighbor Reg
+		node         Reg
+		neighbor     Reg
+		allNeighbors []Reg // snapshot of ALL neighbors before removeNode
 	}
 	var r1Stack []r1Entry
 
@@ -221,8 +224,12 @@ func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 						nbCV[j] = InfCost
 					}
 				}
+				// Snapshot ALL neighbors (assigned + unassigned) before removal,
+				// so back-assignment checks against every interfering reg.
+				var allNb []Reg
+				ig.Neighbors(r).Each(func(n Reg) { allNb = append(allNb, n) })
 				// Remove r from graph temporarily.
-				r1Stack = append(r1Stack, r1Entry{node: r, neighbor: nb})
+				r1Stack = append(r1Stack, r1Entry{node: r, neighbor: nb, allNeighbors: allNb})
 				assigned[r] = -2 // sentinel: pending R1 back-assignment
 				ig.removeNode(r)
 				changed = true
@@ -313,9 +320,26 @@ func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 	for i := len(r1Stack) - 1; i >= 0; i-- {
 		e := r1Stack[i]
 		r := e.node
-		nbIdx := assigned[e.neighbor]
 
-		// Assign r to the minimum-cost location that doesn't conflict with nb.
+		// Build set of locs blocked by ALL neighbors (not just the R1 one).
+		// Before this fix, only the R1 neighbor was checked, allowing silent
+		// aliasing when other neighbors had already been assigned.
+		blockedR1 := make(map[int]bool)
+		for _, nb := range e.allNeighbors {
+			if idx := assigned[nb]; idx >= 0 {
+				blockedR1[idx] = true
+				for _, alias := range physicalAliases(allLocs[idx]) {
+					for j, l := range allLocs {
+						if l == alias {
+							blockedR1[j] = true
+							break
+						}
+					}
+				}
+			}
+		}
+
+		// Assign r to the minimum-cost location not blocked by any neighbor.
 		rCV := states[r].costs
 		best := -1
 		bestCost := InfCost + 1
@@ -323,8 +347,8 @@ func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 			if c >= InfCost {
 				continue
 			}
-			if nbIdx >= 0 && physicallyConflicts(allLocs[i], allLocs[nbIdx]) {
-				continue // conflict with neighbour
+			if blockedR1[i] {
+				continue // conflict with a neighbor
 			}
 			if c < bestCost {
 				bestCost = c

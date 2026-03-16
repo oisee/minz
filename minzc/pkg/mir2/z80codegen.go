@@ -1041,7 +1041,9 @@ func globalFieldLabel(sym string, offset int64, fieldName string) string {
 	if offset == 0 {
 		return base
 	}
-	return fmt.Sprintf("%s__off%d", base, offset)
+	// No named field at this offset (e.g. nested struct access with folded offsets).
+	// Use "sym + N" arithmetic expression — the assembler resolves it inline.
+	return fmt.Sprintf("%s + %d", base, offset)
 }
 
 // globalStructField looks up a global in the module by symbol name and returns its
@@ -2987,7 +2989,14 @@ func (g *z80cg) genShift(mnem string, inst *Inst) {
 			for i := int64(0); i < count; i++ {
 				switch mnem {
 				case "SLA":
-					g.emitf("    ADD %s, %s", dst, dst) // valid: ADD HL,HL etc.
+					if dst == "HL" {
+						g.emitf("    ADD HL, HL") // ADD HL,HL = SHL HL by 1 (11T)
+					} else {
+						// Z80 only has ADD HL,rr — no ADD DE,DE or ADD BC,BC.
+						// Use SLA lo / RL hi for non-HL pairs.
+						g.emitf("    SLA %s", lo)
+						g.emitf("    RL  %s", hi)
+					}
 				case "SRL":
 					g.emitf("    SRL %s", hi)
 					g.emitf("    RR  %s", lo)

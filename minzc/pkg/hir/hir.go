@@ -537,3 +537,83 @@ func Case(val int64, body *Block) *SwitchCase { return &SwitchCase{Val: val, Bod
 func Index(base, idx Expr, elemTy mir2.Ty) *IndexExpr {
 	return &IndexExpr{Base: base, Idx: idx, ElemTy: elemTy}
 }
+
+// IndexStride reads arr[i] with an explicit stride (bytes per element).
+func IndexStride(base, idx Expr, elemTy mir2.Ty, stride int) *IndexExpr {
+	return &IndexExpr{Base: base, Idx: idx, ElemTy: elemTy, ElemStride: stride}
+}
+
+// Field accesses struct field at byte offset from base pointer.
+func FieldAccess(base Expr, field string, offset int, ty mir2.Ty) *FieldExpr {
+	return &FieldExpr{X: base, Field: field, Offset: offset, Ty: ty}
+}
+
+// ── GEP-style convenience builders ─────────────────────────────────────────
+
+// GEPStep describes one step in a chained pointer access.
+type GEPStep struct {
+	Kind   GEPKind
+	Field  string  // for GEPField: field name
+	Offset int     // for GEPField: byte offset
+	Ty     mir2.Ty // result type after this step
+	Idx    Expr    // for GEPIndex: index expression
+	Stride int     // for GEPIndex: element stride in bytes (0 = derive from Ty)
+}
+
+// GEPKind distinguishes field access from array indexing.
+type GEPKind int
+
+const (
+	GEPField GEPKind = iota // constant-offset struct field
+	GEPIndex                // runtime-indexed array element
+)
+
+// GEP builds a chain of FieldExpr/IndexExpr for multi-level access like
+// a[i].inner.x[j]. Each step wraps the previous result. Consecutive
+// GEPField steps with constant offsets are folded into a single FieldExpr.
+//
+// Usage from any frontend:
+//
+//	hir.GEP(basePtr,
+//	    hir.GEPStep{Kind: hir.GEPIndex, Idx: iExpr, Stride: 4, Ty: pointTy},
+//	    hir.GEPStep{Kind: hir.GEPField, Field: "x", Offset: 2, Ty: mir2.TyU8},
+//	)
+//
+// → IndexExpr{base, i, stride=4} wrapping FieldExpr{_, "x", off=2}
+func GEP(base Expr, steps ...GEPStep) Expr {
+	cur := base
+	pendingFieldOff := 0
+	pendingFieldName := ""
+	pendingFieldTy := mir2.Ty(nil)
+
+	flush := func() {
+		if pendingFieldTy != nil && pendingFieldOff >= 0 {
+			cur = &FieldExpr{X: cur, Field: pendingFieldName, Offset: pendingFieldOff, Ty: pendingFieldTy}
+			pendingFieldOff = 0
+			pendingFieldName = ""
+			pendingFieldTy = nil
+		}
+	}
+
+	for _, s := range steps {
+		switch s.Kind {
+		case GEPField:
+			if pendingFieldTy == nil {
+				// Start accumulating field offsets.
+				pendingFieldOff = s.Offset
+				pendingFieldName = s.Field
+				pendingFieldTy = s.Ty
+			} else {
+				// Fold consecutive fields: a.inner.x → single Field(off1+off2).
+				pendingFieldOff += s.Offset
+				pendingFieldName = pendingFieldName + "." + s.Field
+				pendingFieldTy = s.Ty
+			}
+		case GEPIndex:
+			flush() // emit any pending field before index
+			cur = &IndexExpr{Base: cur, Idx: s.Idx, ElemTy: s.Ty, ElemStride: s.Stride}
+		}
+	}
+	flush() // emit trailing field
+	return cur
+}

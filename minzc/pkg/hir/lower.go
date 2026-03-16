@@ -285,6 +285,15 @@ type lowerer struct {
 
 	// gotoLabels maps C label names to MIR2 block labels.
 	gotoLabels map[string]string
+
+	// backwardGotoLabels is the set of labels that are targets of backward gotos
+	// (i.e., the goto appears after the label in source order). These labels need
+	// block parameters for all live variables so the back-edge carries updated values.
+	backwardGotoLabels map[string]bool
+
+	// backwardGotoVars records the sorted variable names threaded through each
+	// backward-goto label block. Set when the LabelStmt is first lowered.
+	backwardGotoVars map[string][]string
 }
 
 func (l *lowerer) pushLoop(ctx loopCtx) { l.loopStack = append(l.loopStack, ctx) }
@@ -431,6 +440,10 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 		bld.F.NewBlock(blkLabel)
 		l.gotoLabels[name] = blkLabel
 	})
+
+	// Detect backward gotos (loop-via-goto) — these need variable threading.
+	l.backwardGotoLabels = detectBackwardGotos(f.Body)
+	l.backwardGotoVars = make(map[string][]string)
 
 	// Lower body.
 	l.lowerBlock(f.Body)
@@ -926,23 +939,58 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		return false
 
 	case *LabelStmt:
-		// Jump from current block to the pre-created label block.
 		blkLabel := "label_" + st.Name
-		if !l.bld.Cur.IsSealed() {
-			l.bld.Jmp(blkLabel)
-		}
-		// Switch to the pre-created label block.
-		for _, blk := range l.bld.F.Blocks {
-			if blk.Label == blkLabel {
-				l.bld.SwitchTo(blk)
-				break
+
+		if l.backwardGotoLabels[st.Name] {
+			// Backward-goto target: thread all current env vars through block params.
+			// This is analogous to a loop_head block.
+			varNames := sortedKeys(mapToBool(l.env), l.env)
+			l.backwardGotoVars[st.Name] = varNames
+
+			// Jump to label block with current values.
+			args := l.collectArgs(varNames)
+			if !l.bld.Cur.IsSealed() {
+				l.bld.Jmp(blkLabel, args...)
+			}
+
+			// Switch to the pre-created label block and add block params.
+			for _, blk := range l.bld.F.Blocks {
+				if blk.Label == blkLabel {
+					l.bld.SwitchTo(blk)
+					break
+				}
+			}
+			newEnv := cloneMap(l.env)
+			for _, name := range varNames {
+				ty := l.envTy[name]
+				r := l.bld.BlockParam(l.bld.Cur, ty, classForExpr(ty))
+				newEnv[name] = r
+			}
+			l.env = newEnv
+		} else {
+			// Forward-goto target: no block params needed.
+			if !l.bld.Cur.IsSealed() {
+				l.bld.Jmp(blkLabel)
+			}
+			for _, blk := range l.bld.F.Blocks {
+				if blk.Label == blkLabel {
+					l.bld.SwitchTo(blk)
+					break
+				}
 			}
 		}
 		return false
 
 	case *GotoStmt:
 		target := "label_" + st.Label
-		l.bld.Jmp(target)
+		if l.backwardGotoLabels[st.Label] {
+			// Backward goto: pass current env values as block args.
+			varNames := l.backwardGotoVars[st.Label]
+			args := l.collectArgs(varNames)
+			l.bld.Jmp(target, args...)
+		} else {
+			l.bld.Jmp(target)
+		}
 		return true // goto is a terminator
 
 	default:
@@ -1555,9 +1603,14 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 
 	case *FieldExpr:
 		base := l.lowerExpr(ex.X)
-		// Advance pointer by field offset, then load.
+		// Advance pointer by field offset.
 		if ex.Offset > 0 {
 			base = l.bld.Field(base, int64(ex.Offset), mir2.ClassPointer)
+		}
+		// Embedded struct field: return address, don't load.
+		// The outer FieldExpr/IndexExpr will do the final scalar Load.
+		if _, isStruct := ex.Ty.(*mir2.StructTy); isStruct {
+			return base
 		}
 		return l.bld.Load(base, ex.Ty, classForExpr(ex.Ty))
 
@@ -1635,6 +1688,11 @@ func (l *lowerer) lowerIndex(ex *IndexExpr) mir2.Reg {
 	}
 
 	ptr := l.bld.PtrAdd(base, offset, mir2.ClassPointer)
+	// Struct element: return address, don't load.
+	// The outer FieldExpr will do the final scalar Load.
+	if _, isStruct := ex.ElemTy.(*mir2.StructTy); isStruct {
+		return ptr
+	}
 	return l.bld.Load(ptr, ex.ElemTy, classForExpr(ex.ElemTy))
 }
 
@@ -1869,6 +1927,15 @@ func scanStmt(s Stmt, env map[string]mir2.Reg, muts map[string]bool) {
 	}
 }
 
+// mapToBool converts a map[string]T to map[string]bool (keys only).
+func mapToBool[T any](m map[string]T) map[string]bool {
+	out := make(map[string]bool, len(m))
+	for k := range m {
+		out[k] = true
+	}
+	return out
+}
+
 // collectLabels scans a block for LabelStmt nodes and calls emit for each.
 func collectLabels(blk *Block, emit func(string)) {
 	if blk == nil {
@@ -1890,6 +1957,46 @@ func collectLabels(blk *Block, emit func(string)) {
 				collectLabels(c.Body, emit)
 			}
 			collectLabels(st.Default, emit)
+		}
+	}
+}
+
+// detectBackwardGotos finds labels that are targets of backward gotos.
+// A backward goto is one where the GotoStmt appears AFTER its target LabelStmt
+// in a linear walk of the AST (i.e., it jumps to an earlier point → loop).
+func detectBackwardGotos(blk *Block) map[string]bool {
+	seen := map[string]bool{}   // labels seen so far
+	result := map[string]bool{} // labels that are backward-goto targets
+	walkBackwardGotos(blk, seen, result)
+	return result
+}
+
+func walkBackwardGotos(blk *Block, seen, result map[string]bool) {
+	if blk == nil {
+		return
+	}
+	for _, s := range blk.Body {
+		switch st := s.(type) {
+		case *LabelStmt:
+			seen[st.Name] = true
+		case *GotoStmt:
+			if seen[st.Label] {
+				result[st.Label] = true // backward: label before goto
+			}
+		case *Block:
+			walkBackwardGotos(st, seen, result)
+		case *IfStmt:
+			walkBackwardGotos(st.Then, seen, result)
+			walkBackwardGotos(st.Else, seen, result)
+		case *WhileStmt:
+			walkBackwardGotos(st.Body, seen, result)
+		case *ForRangeStmt:
+			walkBackwardGotos(st.Body, seen, result)
+		case *SwitchStmt:
+			for _, c := range st.Cases {
+				walkBackwardGotos(c.Body, seen, result)
+			}
+			walkBackwardGotos(st.Default, seen, result)
 		}
 	}
 }

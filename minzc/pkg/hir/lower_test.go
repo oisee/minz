@@ -657,3 +657,206 @@ func TestFieldExprReturnUsesClassAcc(t *testing.T) {
 		t.Errorf("get_r() = %d, want 7 (palette.r)", a)
 	}
 }
+
+// TestNestedStructFieldAccess tests a.inner.x via chained FieldExpr.
+//
+//	struct Inner { x: u8, y: u8 }
+//	struct Outer { pad: u8, inner: Inner }
+//	global obj: Outer = {10, 20, 30}
+//	get_inner_y() -> u8 { return obj.inner.y }  // offset 1 + 1 = 2
+func TestNestedStructFieldAccess(t *testing.T) {
+	innerTy := &mir2.StructTy{
+		Name:   "Inner",
+		Fields: []mir2.StructField{{Name: "x", Ty: mir2.TyU8}, {Name: "y", Ty: mir2.TyU8}},
+	}
+	outerTy := &mir2.StructTy{
+		Name:   "Outer",
+		Fields: []mir2.StructField{{Name: "pad", Ty: mir2.TyU8}, {Name: "inner", Ty: innerTy}},
+	}
+
+	hm := &hir.Module{Name: "test_nested_struct"}
+	hm.Globals = []mir2.Global{{Name: "obj", Ty: outerTy, Init: []byte{10, 20, 30}}}
+
+	// Manual chain: FieldExpr(FieldExpr(Addr("obj"), "inner", off=1), "y", off=1)
+	// Inner FieldExpr Ty is innerTy (StructTy) → lowerer returns address, not load.
+	hm.Funcs = append(hm.Funcs, &hir.Func{
+		Name: "get_inner_y", RetTy: mir2.TyU8,
+		Body: hir.Blk(hir.Ret(&hir.FieldExpr{
+			X: &hir.FieldExpr{
+				X:      hir.Addr("obj"),
+				Field:  "inner",
+				Offset: 1, // pad is 1 byte
+				Ty:     innerTy, // embedded struct → address, not load
+			},
+			Field:  "y",
+			Offset: 1, // x is 1 byte
+			Ty:     mir2.TyU8,
+		})),
+	})
+
+	genAsm := compileHIR(t, hm)
+	t.Logf("get_inner_y generated:\n%s", genAsm)
+
+	boot := fmt.Sprintf("    ORG 0x%04X\n    LD SP, 0xFF00\n    CALL get_inner_y\n    DI\n    HALT\n", testLoadAddr)
+	a, _, err := runZ80(t, boot+genAsm)
+	if err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if a != 30 {
+		t.Errorf("get_inner_y() = %d, want 30 (obj.inner.y)", a)
+	}
+}
+
+// TestGEPConvenience tests the GEP builder with offset folding.
+// Same as TestNestedStructFieldAccess but using hir.GEP().
+func TestGEPConvenience(t *testing.T) {
+	innerTy := &mir2.StructTy{
+		Name:   "Inner",
+		Fields: []mir2.StructField{{Name: "x", Ty: mir2.TyU8}, {Name: "y", Ty: mir2.TyU8}},
+	}
+	outerTy := &mir2.StructTy{
+		Name:   "Outer",
+		Fields: []mir2.StructField{{Name: "pad", Ty: mir2.TyU8}, {Name: "inner", Ty: innerTy}},
+	}
+
+	hm := &hir.Module{Name: "test_gep"}
+	hm.Globals = []mir2.Global{{Name: "obj", Ty: outerTy, Init: []byte{10, 20, 30}}}
+
+	// GEP version: obj.inner.y with folded offsets
+	gepExpr := hir.GEP(hir.Addr("obj"),
+		hir.GEPStep{Kind: hir.GEPField, Field: "inner", Offset: 1, Ty: mir2.TyPtr},
+		hir.GEPStep{Kind: hir.GEPField, Field: "y", Offset: 1, Ty: mir2.TyU8},
+	)
+
+	// GEP should fold both fields into a single FieldExpr with Offset=2.
+	fe, ok := gepExpr.(*hir.FieldExpr)
+	if !ok {
+		t.Fatalf("GEP should produce FieldExpr, got %T", gepExpr)
+	}
+	if fe.Offset != 2 {
+		t.Errorf("GEP folded offset = %d, want 2 (1+1)", fe.Offset)
+	}
+	if fe.Field != "inner.y" {
+		t.Errorf("GEP folded field = %q, want %q", fe.Field, "inner.y")
+	}
+
+	hm.Funcs = append(hm.Funcs, &hir.Func{
+		Name: "get_inner_y_gep", RetTy: mir2.TyU8,
+		Body: hir.Blk(hir.Ret(gepExpr)),
+	})
+
+	genAsm := compileHIR(t, hm)
+	t.Logf("get_inner_y_gep generated:\n%s", genAsm)
+
+	boot := fmt.Sprintf("    ORG 0x%04X\n    LD SP, 0xFF00\n    CALL get_inner_y_gep\n    DI\n    HALT\n", testLoadAddr)
+	a, _, err := runZ80(t, boot+genAsm)
+	if err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if a != 30 {
+		t.Errorf("get_inner_y_gep() = %d, want 30", a)
+	}
+}
+
+// TestArrayOfStructs tests pts[i].x via IndexExpr + FieldExpr.
+//
+//	struct Point { x: u8, y: u8 }
+//	global pts: [Point; 3] = [{1,2}, {3,4}, {5,6}]
+//	get_pt_y(i: u8) -> u8 { return pts[i].y }
+func TestArrayOfStructs(t *testing.T) {
+	pointTy := &mir2.StructTy{
+		Name:   "Point",
+		Fields: []mir2.StructField{{Name: "x", Ty: mir2.TyU8}, {Name: "y", Ty: mir2.TyU8}},
+	}
+
+	hm := &hir.Module{Name: "test_aos"}
+	hm.Globals = []mir2.Global{{
+		Name: "pts", Ty: &mir2.ArrayTy{Elem: pointTy, Len: 3},
+		Init: []byte{1, 2, 3, 4, 5, 6},
+	}}
+
+	// pts[i].y using GEP:
+	//   step 1: index by i with stride=2 (sizeof Point) → returns address (struct element)
+	//   step 2: field "y" at offset 1 → loads scalar u8
+	iParam := hir.Var("i", mir2.TyU8)
+	gepExpr := hir.GEP(hir.Addr("pts"),
+		hir.GEPStep{Kind: hir.GEPIndex, Idx: iParam, Stride: 2, Ty: pointTy},
+		hir.GEPStep{Kind: hir.GEPField, Field: "y", Offset: 1, Ty: mir2.TyU8},
+	)
+
+	hm.Funcs = append(hm.Funcs, &hir.Func{
+		Name:   "get_pt_y",
+		Params: []hir.Param{{Name: "i", Ty: mir2.TyU8}},
+		RetTy:  mir2.TyU8,
+		Body:   hir.Blk(hir.Ret(gepExpr)),
+	})
+
+	genAsm := compileHIR(t, hm)
+	t.Logf("get_pt_y generated:\n%s", genAsm)
+
+	// get_pt_y(2) should return pts[2].y = 6
+	boot := fmt.Sprintf("    ORG 0x%04X\n    LD SP, 0xFF00\n    LD A, 2\n    CALL get_pt_y\n    DI\n    HALT\n", testLoadAddr)
+	a, _, err := runZ80(t, boot+genAsm)
+	if err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if a != 6 {
+		t.Errorf("get_pt_y(2) = %d, want 6 (pts[2].y)", a)
+	}
+}
+
+// TestBackwardGoto tests loop-via-goto (backward goto with variable threading).
+//
+// C equivalent:
+//
+//	int sum_to(int n) {
+//	    int x = 0;
+//	    loop:
+//	      x = x + 1;
+//	      if (x < n) goto loop;
+//	    return x;
+//	}
+//
+// sum_to(5) should return 5 (x increments 1,2,3,4,5 then exits).
+func TestBackwardGoto(t *testing.T) {
+	hm := &hir.Module{Name: "test_backward_goto"}
+
+	// fun sum_to(n: u8) -> u8
+	hm.Funcs = append(hm.Funcs, &hir.Func{
+		Name:   "sum_to",
+		Params: []hir.Param{{Name: "n", Ty: mir2.TyU8}},
+		RetTy:  mir2.TyU8,
+		Body: hir.Blk(
+			// let x = 0
+			hir.Decl("x", mir2.TyU8, hir.U8(0)),
+			// loop:
+			&hir.LabelStmt{Name: "loop"},
+			// x = x + 1
+			hir.Assign(
+				hir.Var("x", mir2.TyU8),
+				hir.Add(hir.Var("x", mir2.TyU8), hir.U8(1), mir2.TyU8),
+			),
+			// if (x < n) goto loop
+			hir.If(
+				hir.Lt(hir.Var("x", mir2.TyU8), hir.Var("n", mir2.TyU8)),
+				hir.Blk(&hir.GotoStmt{Label: "loop"}),
+				nil,
+			),
+			// return x
+			hir.Ret(hir.Var("x", mir2.TyU8)),
+		),
+	})
+
+	genAsm := compileHIR(t, hm)
+	t.Logf("sum_to generated:\n%s", genAsm)
+
+	// sum_to(5) should return 5.
+	boot := fmt.Sprintf("    ORG 0x%04X\n    LD SP, 0xFF00\n    LD A, 5\n    CALL sum_to\n    DI\n    HALT\n", testLoadAddr)
+	a, _, err := runZ80(t, boot+genAsm)
+	if err != nil {
+		t.Fatalf("run: %v", err)
+	}
+	if a != 5 {
+		t.Errorf("sum_to(5) = %d, want 5", a)
+	}
+}

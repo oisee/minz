@@ -299,3 +299,73 @@ func TestCoalesce_NoCoalesceIfInterfering(t *testing.T) {
 			ar.Locs[r1])
 	}
 }
+
+// TestPBQP_R1_AllNeighborsChecked verifies the R1 back-assignment checks ALL
+// neighbors, not just the single R1 neighbor. Without the fix, a degree-1 node
+// whose other neighbors were already assigned can be back-assigned to a location
+// that aliases an already-assigned neighbor — silent register clobbering.
+//
+// Topology: 9 ClassGeneral u8 regs all simultaneously live (pairwise interfering).
+// Z80 has 7 primary 8-bit regs (A,B,C,D,E,H,L) + 4 IXY8 (IXH,IXL,IYH,IYL) = 11.
+// With 9 live regs the allocator must use IXY8 slots; with only 7 primary regs,
+// some will be R1-reduced. The test checks that no two interfering regs share a
+// physical location (including aliases like H ↔ HL).
+func TestPBQP_R1_AllNeighborsChecked(t *testing.T) {
+	m := &mir2.Module{Name: "pbqp_r1_allnb"}
+	f := m.AddFunc("pressure")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+
+	bld := mir2.NewBuilder(f)
+	bld.SwitchToNewBlock("entry")
+
+	// Create 9 constants — all ClassGeneral so they can go to any 8-bit reg.
+	const N = 9
+	regs := make([]mir2.Reg, N)
+	for i := range N {
+		regs[i] = bld.Const(int64(i+1), mir2.TyU8, mir2.ClassGeneral)
+	}
+
+	// Chain adds so all are simultaneously live at the point of each add.
+	// acc = r0 + r1 + r2 + ... + r8
+	acc := regs[0]
+	for i := 1; i < N; i++ {
+		acc = bld.Add(acc, regs[i], mir2.TyU8, mir2.ClassAcc)
+	}
+	bld.Ret(acc)
+
+	lr := mir2.ComputeLiveness(f)
+	ar := mir2.PBQPAllocate(f, lr, mir2.Z80CostTable{})
+
+	// Log assignments.
+	for i, r := range regs {
+		t.Logf("r%d → %v", i, ar.Locs[r])
+	}
+
+	// Verify: no two interfering regs share a physical location or alias.
+	ig := mir2.BuildInterferenceGraph(f, lr)
+	for i, ri := range regs {
+		locI := ar.Locs[ri]
+		neighbors := mir2.IGAdjForTest(ig)[ri]
+		if neighbors == nil {
+			continue
+		}
+		for j, rj := range regs {
+			if i == j {
+				continue
+			}
+			locJ := ar.Locs[rj]
+			if !neighbors.Has(rj) {
+				continue
+			}
+			if locI == locJ {
+				t.Errorf("r%d and r%d both assigned to %v but interfere", i, j, locI)
+			}
+			// Check sub-register aliases (e.g. H vs HL).
+			for _, alias := range mir2.PhysicalAliasesForTest(locI) {
+				if alias == locJ {
+					t.Errorf("r%d=%v aliases r%d=%v (via %v)", i, locI, j, locJ, alias)
+				}
+			}
+		}
+	}
+}
