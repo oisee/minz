@@ -160,7 +160,94 @@ func GenerateRISCPatterns(m *MachineDesc) []Pattern {
 	}
 }
 
+// GenerateCISCPatterns creates Z80-like asymmetric patterns.
+// 8-bit ALU: A is destination, any 8-bit reg as source.
+// 16-bit ADD: HL is destination, BC/DE as source.
+// Moves: any reg→reg within same width.
+func GenerateCISCPatterns(m *MachineDesc) []Pattern {
+	a := m.LocSetByNames("A")
+	regs8 := m.LocSetByNames("A", "B", "C", "D", "E")
+	pairs := m.LocSetByNames("HL", "DE", "BC")
+	hl := m.LocSetByNames("HL")
+	bcde := m.LocSetByNames("BC", "DE")
+	flags := m.LocSetByNames("F")
+	mem := m.LocSetByNames("mem")
+	allRegs := regs8.Or(pairs)
+
+	return []Pattern{
+		// Constants
+		{Name: "ld_r_n", MIROp: OpConst, Width: 8, DstLocs: regs8, Template: "LD {dst}, {imm}", Cost: 7, Bytes: 2, Flags: PatImmediate},
+		{Name: "ld_rr_nn", MIROp: OpConst, Width: 16, DstLocs: pairs, Template: "LD {dst}, {imm}", Cost: 10, Bytes: 3, Flags: PatImmediate},
+
+		// 8-bit moves
+		{Name: "ld_r_r", MIROp: OpMove, Width: 8, DstLocs: regs8, SrcLocs: [2]LocSet{regs8}, Template: "LD {dst}, {src0}", Cost: 4, Bytes: 1},
+		// 16-bit moves (no LD rr,rr on Z80 — use PUSH/POP or byte copy)
+		{Name: "mov16_push_pop", MIROp: OpMove, Width: 16, DstLocs: pairs, SrcLocs: [2]LocSet{pairs}, Template: "PUSH {src0}\n    POP {dst}", Cost: 21, Bytes: 2},
+
+		// 8-bit ALU — A is implicit destination
+		{Name: "add_a_r", MIROp: OpAdd, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{a, regs8}, Template: "ADD A, {src1}", Cost: 4, Bytes: 1, Clobbers: flags, Flags: PatCommutative},
+		{Name: "sub_a_r", MIROp: OpSub, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{a, regs8}, Template: "SUB {src1}", Cost: 4, Bytes: 1, Clobbers: flags},
+		{Name: "and_a_r", MIROp: OpAnd, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{a, regs8}, Template: "AND {src1}", Cost: 4, Bytes: 1, Clobbers: flags, Flags: PatCommutative},
+		{Name: "or_a_r", MIROp: OpOr, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{a, regs8}, Template: "OR {src1}", Cost: 4, Bytes: 1, Clobbers: flags, Flags: PatCommutative},
+		{Name: "xor_a_r", MIROp: OpXor, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{a, regs8}, Template: "XOR {src1}", Cost: 4, Bytes: 1, Clobbers: flags, Flags: PatCommutative},
+		{Name: "cp_r", MIROp: OpCmp, Width: 8, DstLocs: flags, SrcLocs: [2]LocSet{a, regs8}, Template: "CP {src1}", Cost: 4, Bytes: 1, Clobbers: flags},
+
+		// 16-bit ALU — HL is implicit destination
+		{Name: "add_hl_rr", MIROp: OpAdd, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{hl, bcde.Or(hl)}, Template: "ADD HL, {src1}", Cost: 11, Bytes: 1, Clobbers: flags},
+		{Name: "sbc_hl_rr", MIROp: OpSub, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{hl, bcde.Or(hl)}, Template: "OR A\n    SBC HL, {src1}", Cost: 15, Bytes: 2, Clobbers: flags},
+
+		// Memory — 8-bit via HL pointer
+		{Name: "ld_a_hl", MIROp: OpLoad, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{hl}, Template: "LD A, (HL)", Cost: 7, Bytes: 1, Flags: PatMemRead},
+		{Name: "ld_hl_a", MIROp: OpStore, Width: 8, SrcLocs: [2]LocSet{hl, a}, Template: "LD (HL), A", Cost: 7, Bytes: 1, Flags: PatMemWrite},
+		// Memory — 8-bit via DE pointer
+		{Name: "ld_a_de", MIROp: OpLoad, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{m.LocSetByNames("DE")}, Template: "LD A, (DE)", Cost: 7, Bytes: 1, Flags: PatMemRead},
+
+		// Spill to memory (16-bit)
+		{Name: "ld_nn_rr", MIROp: OpMove, Width: 16, DstLocs: mem, SrcLocs: [2]LocSet{pairs}, Template: "LD ({dst}), {src0}", Cost: 20, Bytes: 4},
+		{Name: "ld_rr_nn_mem", MIROp: OpMove, Width: 16, DstLocs: pairs, SrcLocs: [2]LocSet{mem}, Template: "LD {dst}, ({src0})", Cost: 20, Bytes: 4},
+
+		// INC/DEC shortcuts
+		{Name: "inc_r", MIROp: OpAdd, Width: 8, DstLocs: regs8, SrcLocs: [2]LocSet{regs8, allRegs}, Template: "INC {dst}", Cost: 4, Bytes: 1},
+		{Name: "inc_rr", MIROp: OpAdd, Width: 16, DstLocs: pairs, SrcLocs: [2]LocSet{pairs, allRegs}, Template: "INC {dst}", Cost: 6, Bytes: 1},
+	}
+}
+
+// GenerateMICROPatterns creates 6502-like extremely constrained patterns.
+func GenerateMICROPatterns(m *MachineDesc) []Pattern {
+	a := m.LocSetByNames("A")
+	xy := m.LocSetByNames("X", "Y")
+	all := a.Or(xy)
+	flags := m.LocSetByNames("F")
+	zp := m.LocSetByNames("zp0", "zp1", "zp2", "zp3")
+
+	return []Pattern{
+		{Name: "lda_imm", MIROp: OpConst, Width: 8, DstLocs: a, Template: "LDA #{imm}", Cost: 2, Bytes: 2, Flags: PatImmediate},
+		{Name: "ldx_imm", MIROp: OpConst, Width: 8, DstLocs: m.LocSetByNames("X"), Template: "LDX #{imm}", Cost: 2, Bytes: 2, Flags: PatImmediate},
+		{Name: "ldy_imm", MIROp: OpConst, Width: 8, DstLocs: m.LocSetByNames("Y"), Template: "LDY #{imm}", Cost: 2, Bytes: 2, Flags: PatImmediate},
+
+		// Transfers
+		{Name: "tax", MIROp: OpMove, Width: 8, DstLocs: m.LocSetByNames("X"), SrcLocs: [2]LocSet{a}, Template: "TAX", Cost: 2, Bytes: 1},
+		{Name: "tay", MIROp: OpMove, Width: 8, DstLocs: m.LocSetByNames("Y"), SrcLocs: [2]LocSet{a}, Template: "TAY", Cost: 2, Bytes: 1},
+		{Name: "txa", MIROp: OpMove, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{m.LocSetByNames("X")}, Template: "TXA", Cost: 2, Bytes: 1},
+		{Name: "tya", MIROp: OpMove, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{m.LocSetByNames("Y")}, Template: "TYA", Cost: 2, Bytes: 1},
+
+		// ALU — A only
+		{Name: "adc", MIROp: OpAdd, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{a, all.Or(zp)}, Template: "CLC\n    ADC {src1}", Cost: 4, Bytes: 3, Clobbers: flags},
+		{Name: "sbc", MIROp: OpSub, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{a, all.Or(zp)}, Template: "SEC\n    SBC {src1}", Cost: 4, Bytes: 3, Clobbers: flags},
+		{Name: "and", MIROp: OpAnd, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{a, all.Or(zp)}, Template: "AND {src1}", Cost: 2, Bytes: 2, Clobbers: flags},
+		{Name: "ora", MIROp: OpOr, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{a, all.Or(zp)}, Template: "ORA {src1}", Cost: 2, Bytes: 2, Clobbers: flags},
+		{Name: "eor", MIROp: OpXor, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{a, all.Or(zp)}, Template: "EOR {src1}", Cost: 2, Bytes: 2, Clobbers: flags},
+		{Name: "cmp", MIROp: OpCmp, Width: 8, DstLocs: flags, SrcLocs: [2]LocSet{a, all.Or(zp)}, Template: "CMP {src1}", Cost: 2, Bytes: 2, Clobbers: flags},
+
+		// Memory — zero-page
+		{Name: "sta_zp", MIROp: OpStore, Width: 8, SrcLocs: [2]LocSet{zp, a}, Template: "STA {src0}", Cost: 3, Bytes: 2, Flags: PatMemWrite},
+		{Name: "lda_zp", MIROp: OpLoad, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{zp}, Template: "LDA {src0}", Cost: 3, Bytes: 2, Flags: PatMemRead},
+	}
+}
+
 func init() {
 	RISC32.Patterns = GenerateRISCPatterns(RISC32)
 	RISC8.Patterns = GenerateRISCPatterns(RISC8)
+	CISC.Patterns = GenerateCISCPatterns(CISC)
+	MICRO.Patterns = GenerateMICROPatterns(MICRO)
 }

@@ -116,6 +116,86 @@ func TestConvergence_LoadStore(t *testing.T) {
 	}
 }
 
+// TestConvergence_ISelAllMachines runs the same MIR program through isel+alloc+vm
+// on ALL machine descriptors and verifies identical results.
+func TestConvergence_ISelAllMachines(t *testing.T) {
+	machines := []*MachineDesc{RISC32, RISC8, CISC, MICRO}
+
+	// MIR program: r0 = 10; r1 = 32; r2 = r0 + r1 (result should be 42)
+	mirOps := []MIROp{
+		{Op: OpConst, Dst: 0, Src: [2]int{-1, -1}, Imm: 10, Width: 8},
+		{Op: OpConst, Dst: 1, Src: [2]int{-1, -1}, Imm: 32, Width: 8},
+		{Op: OpAdd, Dst: 2, Src: [2]int{0, 1}, Width: 8},
+	}
+
+	results := make(map[string]uint64)
+
+	for _, m := range machines {
+		sel, err := SelectInstructions(m, mirOps)
+		if err != nil {
+			t.Fatalf("%s isel: %v", m.Name, err)
+		}
+		if err := GreedyAlloc(sel, m); err != nil {
+			t.Fatalf("%s alloc: %v", m.Name, err)
+		}
+
+		vm := NewVM(m)
+		for i := range sel.Insts {
+			if err := vm.ExecInst(&sel.Insts[i]); err != nil {
+				t.Fatalf("%s exec inst %d: %v", m.Name, i, err)
+			}
+		}
+
+		// Find result: vreg 2's physical location
+		resultPhys := sel.Insts[2].Dst.Phys
+		val := vm.Get(resultPhys)
+		results[m.Name] = val
+		t.Logf("%s: r2@%s = %d", m.Name, m.Locs[resultPhys].Name, val)
+	}
+
+	// Check convergence: all must produce 42.
+	for name, val := range results {
+		if val != 42 {
+			t.Errorf("%s: result = %d, want 42", name, val)
+		}
+	}
+}
+
+// TestConvergence_SubAllMachines tests subtraction with borrow.
+func TestConvergence_SubAllMachines(t *testing.T) {
+	machines := []*MachineDesc{RISC32, RISC8, CISC, MICRO}
+
+	// r0 = 100; r1 = 37; r2 = r0 - r1 (should be 63)
+	mirOps := []MIROp{
+		{Op: OpConst, Dst: 0, Src: [2]int{-1, -1}, Imm: 100, Width: 8},
+		{Op: OpConst, Dst: 1, Src: [2]int{-1, -1}, Imm: 37, Width: 8},
+		{Op: OpSub, Dst: 2, Src: [2]int{0, 1}, Width: 8},
+	}
+
+	for _, m := range machines {
+		sel, err := SelectInstructions(m, mirOps)
+		if err != nil {
+			t.Fatalf("%s isel: %v", m.Name, err)
+		}
+		if err := GreedyAlloc(sel, m); err != nil {
+			t.Fatalf("%s alloc: %v", m.Name, err)
+		}
+
+		vm := NewVM(m)
+		for i := range sel.Insts {
+			vm.ExecInst(&sel.Insts[i])
+		}
+
+		resultPhys := sel.Insts[2].Dst.Phys
+		val := vm.Get(resultPhys)
+		if val != 63 {
+			t.Errorf("%s: 100-37 = %d, want 63", m.Name, val)
+		} else {
+			t.Logf("%s: 100-37 = %d ✓ (at %s)", m.Name, val, m.Locs[resultPhys].Name)
+		}
+	}
+}
+
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
 func findPat(m *MachineDesc, mirOp int) *Pattern {
