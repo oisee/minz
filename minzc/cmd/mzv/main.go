@@ -20,10 +20,13 @@ import (
 	"syscall"
 	"time"
 
+	"database/sql"
+
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
 
+	_ "modernc.org/sqlite"
 	"golang.org/x/term"
 )
 
@@ -173,6 +176,10 @@ func main() {
 
 	// zx_attr_addr is pure math — let the VM execute the Nanz body.
 	// zx_screen_addr likewise.
+
+	// ── SQLite host functions ────────────────────────────────────────────
+
+	registerSQLiteHosts(vm, traceEnabled)
 
 	// ── Terminal raw mode + input goroutine ──────────────────────────────
 
@@ -368,4 +375,222 @@ func findStdlib(srcPath string) string {
 		dir = parent
 	}
 	return ""
+}
+
+// ── SQLite host functions ────────────────────────────────────────────────────
+//
+// Provides database access to MIR2 VM programs via host function table.
+// Programs call @sqlite_open, @sqlite_exec, @sqlite_query, etc.
+// Later this can be decoupled into a client-server protocol where a Z80
+// program communicates with a SQLite server over I/O ports.
+
+func registerSQLiteHosts(vm *mir2.VM, trace bool) {
+	// Handle table: u16 handle → *sql.DB
+	dbs := make(map[int64]*sql.DB)
+	nextHandle := int64(1)
+
+	// Prepared statement handles + cached row values
+	type stmtState struct {
+		rows *sql.Rows
+		vals []interface{} // last scanned row values (cached per step)
+	}
+	stmts := make(map[int64]*stmtState)
+	nextStmt := int64(1)
+
+	// Helper: read null-terminated string from VM heap
+	readStr := func(ptr int64) string {
+		var buf []byte
+		for i := int64(0); i < 4096; i++ {
+			b := vm.ReadHeap(ptr+i, 1)
+			if b == nil || b[0] == 0 {
+				break
+			}
+			buf = append(buf, b[0])
+		}
+		return string(buf)
+	}
+
+	// Helper: write null-terminated string to VM heap, return pointer
+	writeStr := func(s string) mir2.Value {
+		data := append([]byte(s), 0)
+		return vm.AllocHeap(data)
+	}
+
+	// @sqlite_open(filename_ptr) -> handle (0 = error)
+	vm.Hosts["sqlite_open"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		name := ":memory:"
+		if len(args) > 0 && args[0].I != 0 {
+			name = readStr(args[0].I)
+		}
+		db, err := sql.Open("sqlite", name)
+		if err != nil {
+			if trace {
+				fmt.Fprintf(os.Stderr, "  sqlite_open(%q) → error: %v\n", name, err)
+			}
+			return []mir2.Value{{I: 0}}, nil
+		}
+		// Use SetMaxIdleConns to keep connection warm
+		db.SetMaxIdleConns(1)
+		h := nextHandle
+		dbs[h] = db
+		nextHandle++
+		if trace {
+			fmt.Fprintf(os.Stderr, "  sqlite_open(%q) → handle %d\n", name, h)
+		}
+		return []mir2.Value{{I: h}}, nil
+	}
+
+	// @sqlite_close(handle) -> rc (0=ok)
+	vm.Hosts["sqlite_close"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		h := args[0].I
+		db, ok := dbs[h]
+		if !ok {
+			return []mir2.Value{{I: 1}}, nil
+		}
+		err := db.Close()
+		delete(dbs, h)
+		rc := int64(0)
+		if err != nil {
+			rc = 1
+		}
+		if trace {
+			fmt.Fprintf(os.Stderr, "  sqlite_close(%d) → %d\n", h, rc)
+		}
+		return []mir2.Value{{I: rc}}, nil
+	}
+
+	// @sqlite_exec(handle, sql_ptr) -> rc (0=ok)
+	vm.Hosts["sqlite_exec"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		h := args[0].I
+		sqlStr := readStr(args[1].I)
+		db, ok := dbs[h]
+		if !ok {
+			return []mir2.Value{{I: 1}}, nil
+		}
+		_, err := db.Exec(sqlStr)
+		rc := int64(0)
+		if err != nil {
+			rc = 1
+			if trace {
+				fmt.Fprintf(os.Stderr, "  sqlite_exec(%d, %q) → error: %v\n", h, sqlStr, err)
+			}
+		} else if trace {
+			fmt.Fprintf(os.Stderr, "  sqlite_exec(%d, %q) → ok\n", h, sqlStr)
+		}
+		return []mir2.Value{{I: rc}}, nil
+	}
+
+	// @sqlite_query(handle, sql_ptr) -> stmt_handle (0 = error)
+	vm.Hosts["sqlite_query"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		h := args[0].I
+		sqlStr := readStr(args[1].I)
+		db, ok := dbs[h]
+		if !ok {
+			return []mir2.Value{{I: 0}}, nil
+		}
+		rows, err := db.Query(sqlStr)
+		if err != nil {
+			if trace {
+				fmt.Fprintf(os.Stderr, "  sqlite_query(%d, %q) → error: %v\n", h, sqlStr, err)
+			}
+			return []mir2.Value{{I: 0}}, nil
+		}
+		sh := nextStmt
+		stmts[sh] = &stmtState{rows: rows}
+		nextStmt++
+		if trace {
+			fmt.Fprintf(os.Stderr, "  sqlite_query(%d, %q) → stmt %d\n", h, sqlStr, sh)
+		}
+		return []mir2.Value{{I: sh}}, nil
+	}
+
+	// @sqlite_step(stmt_handle) -> has_row (1=yes, 0=done)
+	// Scans the row into cached values so column_int/column_text can read them.
+	vm.Hosts["sqlite_step"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		sh := args[0].I
+		st, ok := stmts[sh]
+		if !ok {
+			return []mir2.Value{{I: 0}}, nil
+		}
+		if st.rows.Next() {
+			// Scan row into cache
+			cols, _ := st.rows.Columns()
+			st.vals = make([]interface{}, len(cols))
+			ptrs := make([]interface{}, len(cols))
+			for i := range st.vals {
+				ptrs[i] = &st.vals[i]
+			}
+			st.rows.Scan(ptrs...)
+			return []mir2.Value{{I: 1}}, nil
+		}
+		// Done — close the rows immediately to release connection
+		if err := st.rows.Close(); err != nil && trace {
+			fmt.Fprintf(os.Stderr, "  sqlite_step(%d) close error: %v\n", sh, err)
+		}
+		delete(stmts, sh)
+		if trace {
+			fmt.Fprintf(os.Stderr, "  sqlite_step(%d) → done (rows closed)\n", sh)
+		}
+		return []mir2.Value{{I: 0}}, nil
+	}
+
+	// @sqlite_column_int(stmt_handle, col_index) -> value
+	// Reads from cached row values (populated by sqlite_step).
+	vm.Hosts["sqlite_column_int"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		sh := args[0].I
+		col := int(args[1].I)
+		st, ok := stmts[sh]
+		if !ok || col >= len(st.vals) {
+			return []mir2.Value{{I: 0}}, nil
+		}
+		var result int64
+		switch v := st.vals[col].(type) {
+		case int64:
+			result = v
+		case float64:
+			result = int64(v)
+		case []byte:
+			fmt.Sscanf(string(v), "%d", &result)
+		case string:
+			fmt.Sscanf(v, "%d", &result)
+		}
+		if trace {
+			fmt.Fprintf(os.Stderr, "  sqlite_column_int(%d, %d) → %d\n", sh, col, result)
+		}
+		return []mir2.Value{{I: result}}, nil
+	}
+
+	// @sqlite_column_text(stmt_handle, col_index) -> ptr (heap-allocated C string)
+	// Reads from cached row values (populated by sqlite_step).
+	vm.Hosts["sqlite_column_text"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		sh := args[0].I
+		col := int(args[1].I)
+		st, ok := stmts[sh]
+		if !ok || col >= len(st.vals) {
+			return []mir2.Value{writeStr("")}, nil
+		}
+		s := fmt.Sprintf("%v", st.vals[col])
+		if trace {
+			fmt.Fprintf(os.Stderr, "  sqlite_column_text(%d, %d) → %q\n", sh, col, s)
+		}
+		return []mir2.Value{writeStr(s)}, nil
+	}
+
+	// @sqlite_finalize(stmt_handle) -> rc (0=ok)
+	// Explicitly close a statement that wasn't fully iterated.
+	vm.Hosts["sqlite_finalize"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		sh := args[0].I
+		st, ok := stmts[sh]
+		if !ok {
+			return []mir2.Value{{I: 0}}, nil
+		}
+		st.rows.Close()
+		delete(stmts, sh)
+		if trace {
+			fmt.Fprintf(os.Stderr, "  sqlite_finalize(%d) → ok\n", sh)
+		}
+		return []mir2.Value{{I: 0}}, nil
+	}
+
+	fmt.Fprintf(os.Stderr, "mzv2: SQLite host functions registered\n")
 }
