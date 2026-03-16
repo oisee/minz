@@ -180,6 +180,17 @@ SUPPORTED PLATFORMS (-t/--target):
 		z80.LoadAt(loadAddress, binary)
 		z80.SetPC(startAddress)
 
+		// CP/M: simulate CCP's CALL to TPA by pushing return address 0x0000
+		// onto the stack. When the program does RET, it returns to 0x0000
+		// which triggers warm boot exit. Also set SP to standard CP/M value.
+		if target == "cpm" {
+			sp := uint16(0xFE00) // top of TPA (below BDOS)
+			sp -= 2
+			z80.WriteMemory(sp, 0x00) // return addr lo = 0x00
+			z80.WriteMemory(sp+1, 0x00) // return addr hi = 0x00
+			z80.SetSP(sp)
+		}
+
 		if verbose {
 			fmt.Printf("Starting execution at $%04X with 100%% coverage...\n", startAddress)
 			fmt.Println("----------------------------------------")

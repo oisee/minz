@@ -108,11 +108,62 @@ func (l *lowerer) lower() (*hir.Module, error) {
 		}
 	}
 
-	// Selection screen — show if PARAMETERS exist
+	// Selection screen — prompt for each PARAMETER via console I/O
 	if len(l.prog.Params) > 0 {
-		// Call sel_show() host function — displays TUI, waits for F8
+		for _, p := range l.prog.Params {
+			// Print prompt: "P_NAME [default]: "
+			promptStr := strings.ToUpper(p.Name)
+			defStr := ""
+			if p.Default != nil {
+				if sl, ok := (*p.Default).(*StringLit); ok {
+					defStr = sl.Val
+				} else if il, ok := (*p.Default).(*IntLit); ok {
+					defStr = fmt.Sprintf("%d", il.Val)
+				}
+			}
+			if defStr != "" {
+				promptStr += " [" + defStr + "]"
+			}
+			promptStr += ": "
+			// Intern prompt string
+			promptIdx := len(l.hm.Strings)
+			l.hm.Strings = append(l.hm.Strings, promptStr)
+			l.hm.StrKinds = append(l.hm.StrKinds, mir2.StrCString)
+
+			// Emit: abap_write_str(prompt)
+			mainStmts = append(mainStmts, &hir.ExprStmt{
+				Expr: &hir.CallExpr{
+					Fn:   "abap_write_str",
+					Args: []hir.Expr{&hir.AddrOfExpr{Sym: fmt.Sprintf("@mir2.str.%d", promptIdx)}},
+					Ty:   mir2.TyVoid,
+				},
+			})
+
+			// Emit: p_name = abap_read_line() — for string params
+			// Emit: p_name = abap_read_int() — for integer params
+			ty := l.varTypes[p.Name]
+			if ty == mir2.TyPtr {
+				mainStmts = append(mainStmts, &hir.AssignStmt{
+					Target: &hir.VarRefExpr{Name: p.Name, Ty: ty},
+					Val:    &hir.CallExpr{Fn: "abap_read_line", Ty: mir2.TyPtr},
+				})
+			} else {
+				mainStmts = append(mainStmts, &hir.AssignStmt{
+					Target: &hir.VarRefExpr{Name: p.Name, Ty: ty},
+					Val:    &hir.CallExpr{Fn: "abap_read_int", Ty: mir2.TyU16},
+				})
+			}
+		}
+		// Print newline after selection screen
+		nlIdx := len(l.hm.Strings)
+		l.hm.Strings = append(l.hm.Strings, "\r\n")
+		l.hm.StrKinds = append(l.hm.StrKinds, mir2.StrCString)
 		mainStmts = append(mainStmts, &hir.ExprStmt{
-			Expr: &hir.CallExpr{Fn: "sel_show", Ty: mir2.TyVoid},
+			Expr: &hir.CallExpr{
+				Fn:   "abap_write_str",
+				Args: []hir.Expr{&hir.AddrOfExpr{Sym: fmt.Sprintf("@mir2.str.%d", nlIdx)}},
+				Ty:   mir2.TyVoid,
+			},
 		})
 	}
 
@@ -729,6 +780,73 @@ func emitRuntimeFuncs(hm *hir.Module) {
 		names["sel_register"] = true
 	}
 
+	// abap_read_line — read a line from console, return ptr to heap string
+	// Uses BDOS 0x0A (Read Console Buffer) then copies to a heap buffer.
+	// For simplicity on Z80: read up to 20 chars, return ptr.
+	if !names["abap_read_line"] {
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name:  "abap_read_line",
+			RetTy: mir2.TyPtr,
+			Body: &hir.Block{
+				Body: []hir.Stmt{
+					&hir.AsmStmt{
+						Target: "z80",
+						// BDOS 0x0A: read buffered line into a 22-byte buffer on stack
+						// Buffer format: [max_len, actual_len, chars...]
+						// We allocate a static buffer in BSS
+						Code: "LD HL, _abap_inbuf / LD (HL), 20 / EX DE, HL / LD C, 10 / CALL 5 / " +
+							// Now convert: skip 2 header bytes, null-terminate
+							"LD HL, _abap_inbuf+1 / LD A, (HL) / INC HL / " +
+							// HL points to first char, A = length
+							// Add null terminator
+							"LD E, A / LD D, 0 / ADD HL, DE / LD (HL), 0 / " +
+							// Return pointer to start of text (inbuf+2)
+							"LD HL, _abap_inbuf+2 / " +
+							// Print newline
+							"LD E, 13 / LD C, 2 / CALL 5 / LD E, 10 / LD C, 2 / CALL 5",
+						RetReg:      "HL",
+						ClobberRegs: []string{"A", "C", "D", "E", "H", "L"},
+					},
+				},
+			},
+		})
+		names["abap_read_line"] = true
+	}
+
+	// abap_read_int — read integer from console (read line, parse decimal)
+	if !names["abap_read_int"] {
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name:  "abap_read_int",
+			RetTy: mir2.TyU16,
+			Body: &hir.Block{
+				Body: []hir.Stmt{
+					&hir.AsmStmt{
+						Target: "z80",
+						// Read line via BDOS 0x0A, then parse decimal
+						Code: "LD HL, _abap_inbuf / LD (HL), 20 / EX DE, HL / LD C, 10 / CALL 5 / " +
+							// Print newline
+							"LD E, 13 / LD C, 2 / CALL 5 / LD E, 10 / LD C, 2 / CALL 5 / " +
+							// Parse decimal: HL = _abap_inbuf+2, count = (inbuf+1)
+							"LD HL, _abap_inbuf+1 / LD B, (HL) / INC HL / " +
+							// Accumulate in DE
+							"LD DE, 0 / " +
+							".parse_loop: LD A, B / OR A / JR Z, .parse_done / " +
+							"LD A, (HL) / SUB 48 / JR C, .parse_done / CP 10 / JR NC, .parse_done / " +
+							// DE = DE * 10 + A
+							"PUSH HL / PUSH AF / " +
+							"LD H, D / LD L, E / ADD HL, HL / ADD HL, HL / ADD HL, DE / ADD HL, HL / " +
+							"POP AF / LD E, A / LD D, 0 / ADD HL, DE / EX DE, HL / POP HL / " +
+							"INC HL / DEC B / JR .parse_loop / " +
+							".parse_done: EX DE, HL",
+						RetReg:      "HL",
+						ClobberRegs: []string{"A", "B", "C", "D", "E", "H", "L"},
+					},
+				},
+			},
+		})
+		names["abap_read_int"] = true
+	}
+
 	if !names["abap_write"] {
 		// Print a u8 value as decimal via CP/M console
 		hm.Funcs = append(hm.Funcs, &hir.Func{
@@ -745,6 +863,21 @@ func emitRuntimeFuncs(hm *hir.Module) {
 					},
 				},
 			},
+		})
+	}
+
+	// Input buffer for BDOS 0x0A (22 bytes: 1 max + 1 actual + 20 chars)
+	hasInbuf := false
+	for _, g := range hm.Globals {
+		if g.Name == "_abap_inbuf" {
+			hasInbuf = true
+		}
+	}
+	if !hasInbuf && (names["abap_read_line"] || names["abap_read_int"]) {
+		hm.Globals = append(hm.Globals, mir2.Global{
+			Name: "_abap_inbuf",
+			Ty:   mir2.TyU8,
+			Init: make([]byte, 22), // 22 bytes zeroed
 		})
 	}
 

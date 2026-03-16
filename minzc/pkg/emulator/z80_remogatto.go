@@ -425,9 +425,9 @@ func (z *RemogattoZ80) Run() error {
 			return nil
 		}
 
-		// RET to 0x0000 exit (ZX Spectrum)
+		// RET to 0x0000 exit (ZX Spectrum / CP/M warm boot)
 		if z.exitOnRET0 && newPC == 0x0000 && pc != 0x0000 {
-			z.exitCode = uint16(z.cpu.HL())
+			z.exitCode = 0 // clean exit
 			return nil
 		}
 
