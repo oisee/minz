@@ -187,6 +187,16 @@ func (z *RemogattoZ80WithScreen) ReadMemory(addr uint16) byte {
 	return z.RemogattoZ80.memory.ReadByte(addr)
 }
 
+// WriteMemory writes a byte to memory
+func (z *RemogattoZ80WithScreen) WriteMemory(addr uint16, val byte) {
+	z.RemogattoZ80.memory.WriteByte(addr, val)
+}
+
+// SetROMEnd changes the ROM protection boundary. Set to 0 for all-RAM platforms.
+func (z *RemogattoZ80WithScreen) SetROMEnd(addr uint16) {
+	z.RemogattoZ80.memory.SetROMEnd(addr)
+}
+
 // GetExitCode returns the exit code for compatibility
 func (z *RemogattoZ80WithScreen) GetExitCode() uint16 {
 	if z.exitCode != 0 {

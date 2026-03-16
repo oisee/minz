@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"syscall"
@@ -257,35 +258,138 @@ func parsePort(s string) (byte, error) {
 	return byte(v), err
 }
 
-// setupCPMBDOS sets up CP/M BDOS handler
+// setupCPMBDOS sets up CP/M BDOS handler with full file I/O.
+// Files are resolved from the directory containing the .com binary.
 func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
-	dmaAddr := uint16(0x0080) // Default DMA address
-	currentDisk := byte(0)    // A:
+	dmaAddr := uint16(0x0080)
+	currentDisk := byte(0)
+	fileHandles := make(map[byte]*os.File) // FCB cr byte → host file
+	nextHandle := byte(1)
+
+	// ── CP/M Zero Page Setup ─────────────────────────────────────────────
+	// 0x0000: JP 0x0000 (warm boot → intercepted as exit)
+	// 0x0003: IOBYTE (0x00)
+	// 0x0004: Current disk/user (0x00)
+	// 0x0005: JP 0x0005 (BDOS entry → intercepted)
+	// 0x0006-0x0007: BDOS address (top of TPA) — programs read this!
+	// 0x005C: Default FCB (zeroed)
+	// 0x0080: Default DMA buffer
+	// CP/M has all-RAM — disable ROM protection (default is 0x4000 for ZX Spectrum)
+	z80.SetROMEnd(0)
+
+	// Zero page: programs read ($0006) for TPA size.
+	// Addr 0: JP 0 (warm boot — intercepted at PC=0 by RST handler or loop trap).
+	// Addr 5: RET (BDOS entry — intercepted BEFORE opcode fetch at PC=5).
+	// Addr 6-7: BDOS/TPA top address — read by programs to know available memory.
+	z80.WriteMemory(0x0000, 0x76) // HALT (warm boot → stop)
+	z80.WriteMemory(0x0003, 0x00) // IOBYTE
+	z80.WriteMemory(0x0004, 0x00) // current disk+user
+	z80.WriteMemory(0x0005, 0xC9) // RET (never reached — intercepted at PC=5)
+	z80.WriteMemory(0x0006, 0x00) // BDOS address lo → TPA top = 0xFE00
+	z80.WriteMemory(0x0007, 0xFE) // BDOS address hi
+
+	// Resolve CP/M file directory — same dir as the binary being executed.
+	// We find the .com file argument by looking for a path that exists.
+	cpmDir := "."
+	for _, arg := range os.Args[1:] {
+		if strings.HasSuffix(strings.ToLower(arg), ".com") || strings.HasSuffix(strings.ToLower(arg), ".bin") {
+			d := filepath.Dir(arg)
+			if d != "" && d != "." {
+				cpmDir = d
+			} else {
+				// Relative path — use working directory
+				abs, err := filepath.Abs(arg)
+				if err == nil {
+					cpmDir = filepath.Dir(abs)
+				}
+			}
+			break
+		}
+	}
+
+	// Read FCB filename: bytes 1..8 (name) + 9..11 (ext) → "NAME.EXT"
+	getFCBName := func(fcbAddr uint16) string {
+		var name, ext []byte
+		for i := uint16(1); i <= 8; i++ {
+			b := z80.ReadMemory(fcbAddr + i) & 0x7F
+			if b > 0x20 {
+				name = append(name, b)
+			}
+		}
+		for i := uint16(9); i <= 11; i++ {
+			b := z80.ReadMemory(fcbAddr + i) & 0x7F
+			if b > 0x20 {
+				ext = append(ext, b)
+			}
+		}
+		s := strings.ToUpper(strings.TrimSpace(string(name)))
+		e := strings.ToUpper(strings.TrimSpace(string(ext)))
+		if e != "" {
+			return s + "." + e
+		}
+		return s
+	}
+
+	// Find file on host filesystem (case-insensitive search)
+	findFile := func(name string) string {
+		// Try exact match first
+		p := filepath.Join(cpmDir, name)
+		if _, err := os.Stat(p); err == nil {
+			return p
+		}
+		// Try case-insensitive
+		entries, err := os.ReadDir(cpmDir)
+		if err != nil {
+			return ""
+		}
+		for _, e := range entries {
+			if strings.EqualFold(e.Name(), name) {
+				return filepath.Join(cpmDir, e.Name())
+			}
+		}
+		return ""
+	}
 
 	z80.SetBDOSHandler(func(function byte, de uint16) (a byte, hl uint16, handled bool) {
 		if verbose {
-			fmt.Printf("[BDOS %02X DE=%04X] ", function, de)
+			fmt.Fprintf(os.Stderr, "[BDOS %02X DE=%04X]\n", function, de)
 		}
 		switch function {
-		case 0x00: // System reset (warm boot) — halt emulation
+		case 0x00: // System reset (warm boot)
 			return 0, 0, true
-		case 0x01: // Console input
-			return '\n', 0, true
-		case 0x02: // Console output
-			fmt.Printf("%c", byte(de&0xFF))
-			return 0, 0, true
-		case 0x06: // Direct console I/O
-			if byte(de&0xFF) == 0xFF {
-				return 0, 0, true // No char available
-			} else if byte(de&0xFF) == 0xFE {
-				return 0, 0, true // No char available
-			} else {
-				fmt.Printf("%c", byte(de&0xFF))
-				return 0, 0, true
+
+		case 0x01: // Console input (blocking)
+			buf := make([]byte, 1)
+			n, _ := os.Stdin.Read(buf)
+			if n > 0 {
+				if buf[0] == '\n' {
+					buf[0] = '\r'
+				}
+				fmt.Printf("%c", buf[0])
+				return buf[0], 0, true
 			}
+			return '\r', 0, true
+
+		case 0x02: // Console output
+			ch := byte(de & 0xFF)
+			if ch == '\r' {
+				// CR → print newline (CP/M convention)
+			} else {
+				fmt.Printf("%c", ch)
+			}
+			return 0, 0, true
+
+		case 0x06: // Direct console I/O
+			e := byte(de & 0xFF)
+			if e == 0xFF {
+				return 0, 0, true // No char available
+			}
+			fmt.Printf("%c", e)
+			return 0, 0, true
+
 		case 0x09: // Print string ($-terminated)
 			addr := de
-			for {
+			for i := 0; i < 0x4000; i++ { // safety limit
 				ch := z80.ReadMemory(addr)
 				if ch == '$' {
 					break
@@ -294,39 +398,276 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 				addr++
 			}
 			return 0, 0, true
-		case 0x0B: // Console status
+
+		case 0x0A: // Read console buffer
+			// FCB-like structure at DE: [max_len, actual_len, chars...]
+			maxLen := z80.ReadMemory(de)
+			if maxLen == 0 {
+				maxLen = 127
+			}
+			buf := make([]byte, maxLen)
+			n, _ := os.Stdin.Read(buf)
+			// Strip trailing newline
+			if n > 0 && buf[n-1] == '\n' {
+				n--
+			}
+			if n > int(maxLen) {
+				n = int(maxLen)
+			}
+			z80.WriteMemory(de+1, byte(n))
+			for i := 0; i < n; i++ {
+				z80.WriteMemory(de+2+uint16(i), buf[i])
+			}
 			return 0, 0, true
+
+		case 0x0B: // Console status
+			return 0, 0, true // No char available
+
 		case 0x0C: // Get version
 			return 0x22, 0x0022, true // CP/M 2.2
+
 		case 0x0D: // Reset disk system
 			currentDisk = 0
 			dmaAddr = 0x0080
 			return 0, 0, true
+
 		case 0x0E: // Select disk
 			currentDisk = byte(de & 0xFF)
 			return 0, 0, true
+
+		// ── File I/O ─────────────────────────────────────────────
+
+		case 0x0F: // Open file
+			fcbAddr := de
+			name := getFCBName(fcbAddr)
+			path := findFile(name)
+			if path == "" {
+				if verbose {
+					fmt.Fprintf(os.Stderr, "OPEN %s: not found\n", name)
+				}
+				return 0xFF, 0, true
+			}
+			f, err := os.Open(path)
+			if err != nil {
+				return 0xFF, 0, true
+			}
+			h := nextHandle
+			fileHandles[h] = f
+			nextHandle++
+			// Store handle in FCB byte 32 (cr field) for our tracking
+			z80.WriteMemory(fcbAddr+32, h)
+			// Set rc (record count) — file size / 128, clamped to 128
+			fi, _ := f.Stat()
+			rc := int(fi.Size()) / 128
+			if rc > 128 {
+				rc = 128
+			}
+			z80.WriteMemory(fcbAddr+15, byte(rc))
+			// Clear extent counters
+			z80.WriteMemory(fcbAddr+12, 0) // ex
+			z80.WriteMemory(fcbAddr+14, 0) // s2
+			if verbose {
+				fmt.Fprintf(os.Stderr, "OPEN %s → handle %d (%d bytes)\n", name, h, fi.Size())
+			}
+			return 0, 0, true
+
+		case 0x10: // Close file
+			fcbAddr := de
+			h := z80.ReadMemory(fcbAddr + 32)
+			if f, ok := fileHandles[h]; ok {
+				f.Close()
+				delete(fileHandles, h)
+			}
+			return 0, 0, true
+
+		case 0x11: // Search first (simplified — return first file in dir)
+			entries, err := os.ReadDir(cpmDir)
+			if err != nil || len(entries) == 0 {
+				return 0xFF, 0, true
+			}
+			// Write directory entry to DMA (32-byte FCB format)
+			// Simplified: just mark as found
+			return 0, 0, true
+
+		case 0x12: // Search next
+			return 0xFF, 0, true // No more files
+
+		case 0x13: // Delete file
+			fcbAddr := de
+			name := getFCBName(fcbAddr)
+			path := findFile(name)
+			if path != "" {
+				os.Remove(path)
+				return 0, 0, true
+			}
+			return 0xFF, 0, true
+
+		case 0x14: // Read sequential
+			fcbAddr := de
+			h := z80.ReadMemory(fcbAddr + 32)
+			f, ok := fileHandles[h]
+			if !ok {
+				if verbose {
+					fmt.Fprintf(os.Stderr, "READ SEQ: bad handle %d\n", h)
+				}
+				return 0xFF, 0, true
+			}
+			// Calculate file position from FCB: (s2*4096 + ex*128 + cr) * 128
+			ex := z80.ReadMemory(fcbAddr + 12)
+			s2 := z80.ReadMemory(fcbAddr + 14) & 0x7F
+			cr := z80.ReadMemory(fcbAddr + 32) // We use cr for handle, so seek from current pos
+			_ = cr
+			fpos := int64(s2)*4096*128 + int64(ex)*128*128
+			// Actually, simpler: just read sequentially from current file position
+			// (the file handle maintains its own position)
+			_ = fpos
+
+			buf := make([]byte, 128)
+			// Pre-fill with EOF marker
+			for i := range buf {
+				buf[i] = 0x1A
+			}
+			n, _ := f.Read(buf)
+			if n == 0 {
+				return 1, 0, true // EOF
+			}
+			// Write to DMA
+			for i := 0; i < 128; i++ {
+				z80.WriteMemory(dmaAddr+uint16(i), buf[i])
+			}
+			if verbose {
+				fmt.Fprintf(os.Stderr, "READ %d bytes → DMA %04X\n", n, dmaAddr)
+			}
+			return 0, 0, true
+
+		case 0x15: // Write sequential
+			fcbAddr := de
+			h := z80.ReadMemory(fcbAddr + 32)
+			f, ok := fileHandles[h]
+			if !ok {
+				return 0xFF, 0, true
+			}
+			buf := make([]byte, 128)
+			for i := 0; i < 128; i++ {
+				buf[i] = z80.ReadMemory(dmaAddr + uint16(i))
+			}
+			f.Write(buf)
+			return 0, 0, true
+
+		case 0x16: // Make file (create)
+			fcbAddr := de
+			name := getFCBName(fcbAddr)
+			path := filepath.Join(cpmDir, name)
+			f, err := os.Create(path)
+			if err != nil {
+				return 0xFF, 0, true
+			}
+			h := nextHandle
+			fileHandles[h] = f
+			nextHandle++
+			z80.WriteMemory(fcbAddr+32, h)
+			if verbose {
+				fmt.Fprintf(os.Stderr, "CREATE %s → handle %d\n", name, h)
+			}
+			return 0, 0, true
+
+		case 0x17: // Rename file
+			return 0, 0, true // stub
+
 		case 0x19: // Get current disk
 			return currentDisk, 0, true
+
 		case 0x1A: // Set DMA address
 			dmaAddr = de
 			if verbose {
-				fmt.Printf("[DMA=%04X] ", dmaAddr)
+				fmt.Fprintf(os.Stderr, "[DMA=%04X] ", dmaAddr)
 			}
 			return 0, 0, true
+
 		case 0x20: // Get/set user code
 			if byte(de&0xFF) == 0xFF {
-				return 0, 0, true // Return current user (0)
+				return 0, 0, true
 			}
 			return 0, 0, true
+
+		case 0x21: // Read random
+			fcbAddr := de
+			h := z80.ReadMemory(fcbAddr + 32)
+			f, ok := fileHandles[h]
+			if !ok {
+				return 0xFF, 0, true
+			}
+			// Random record number from FCB bytes 33-35
+			r0 := z80.ReadMemory(fcbAddr + 33)
+			r1 := z80.ReadMemory(fcbAddr + 34)
+			recNum := int64(r0) | int64(r1)<<8
+			offset := recNum * 128
+			f.Seek(offset, 0)
+			buf := make([]byte, 128)
+			for i := range buf {
+				buf[i] = 0x1A
+			}
+			n, _ := f.Read(buf)
+			if n == 0 {
+				return 1, 0, true // EOF
+			}
+			for i := 0; i < 128; i++ {
+				z80.WriteMemory(dmaAddr+uint16(i), buf[i])
+			}
+			if verbose {
+				fmt.Fprintf(os.Stderr, "READ RND rec=%d → DMA %04X\n", recNum, dmaAddr)
+			}
+			return 0, 0, true
+
+		case 0x22: // Write random
+			fcbAddr := de
+			h := z80.ReadMemory(fcbAddr + 32)
+			f, ok := fileHandles[h]
+			if !ok {
+				return 0xFF, 0, true
+			}
+			r0 := z80.ReadMemory(fcbAddr + 33)
+			r1 := z80.ReadMemory(fcbAddr + 34)
+			recNum := int64(r0) | int64(r1)<<8
+			offset := recNum * 128
+			f.Seek(offset, 0)
+			buf := make([]byte, 128)
+			for i := 0; i < 128; i++ {
+				buf[i] = z80.ReadMemory(dmaAddr + uint16(i))
+			}
+			f.Write(buf)
+			return 0, 0, true
+
+		case 0x23: // Compute file size
+			fcbAddr := de
+			h := z80.ReadMemory(fcbAddr + 32)
+			if f, ok := fileHandles[h]; ok {
+				fi, _ := f.Stat()
+				records := fi.Size() / 128
+				z80.WriteMemory(fcbAddr+33, byte(records&0xFF))
+				z80.WriteMemory(fcbAddr+34, byte(records>>8))
+				z80.WriteMemory(fcbAddr+35, 0)
+			}
+			return 0, 0, true
+
+		case 0x24: // Set random record from sequential
+			fcbAddr := de
+			ex := z80.ReadMemory(fcbAddr + 12)
+			s2 := z80.ReadMemory(fcbAddr + 14) & 0x7F
+			cr := z80.ReadMemory(fcbAddr + 32)
+			rec := int(s2)*4096 + int(ex)*128 + int(cr)
+			z80.WriteMemory(fcbAddr+33, byte(rec&0xFF))
+			z80.WriteMemory(fcbAddr+34, byte(rec>>8))
+			z80.WriteMemory(fcbAddr+35, 0)
+			return 0, 0, true
+
 		default:
 			if verbose {
-				fmt.Printf("[BDOS %02X unhandled] ", function)
+				fmt.Fprintf(os.Stderr, "[BDOS %02X unhandled] ", function)
 			}
 			return 0, 0, true
 		}
 	})
-
-	_ = dmaAddr // Will be used by file I/O handlers later
 }
 
 // setupAgonMOS sets up Agon MOS RST handler

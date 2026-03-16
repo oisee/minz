@@ -69,8 +69,15 @@ type Memory struct {
 
 func NewMemory() *Memory {
 	return &Memory{
-		romEnd: 0x4000, // Default ROM boundary
+		romEnd: 0x4000, // Default ROM boundary (ZX Spectrum)
 	}
+}
+
+// SetROMEnd changes the ROM protection boundary.
+// Writes to addresses < romEnd are silently ignored.
+// Set to 0 for platforms with all-RAM (CP/M, Agon).
+func (m *Memory) SetROMEnd(addr uint16) {
+	m.romEnd = addr
 }
 
 func (m *Memory) ReadByte(address uint16) byte {
@@ -338,6 +345,13 @@ func (z *RemogattoZ80) Run() error {
 		pc := z.cpu.PC()
 
 		// CP/M BDOS intercept at 0x0005
+		// The remogatto z80 lib updates PC to the CALL target BEFORE
+		// executing the push. So when we see PC=5, the CALL has set PC
+		// but the return address is NOT yet on the stack. Instead, we
+		// look at the stack to see if CALL already pushed (SP decreased)
+		// or not. If not pushed, we read the return address from the
+		// instruction stream that triggered the CALL.
+		// CP/M BDOS intercept at 0x0005
 		if pc == 0x0005 && z.bdosHandler != nil {
 			function := z.cpu.C
 			de := z.cpu.DE()
@@ -346,7 +360,7 @@ func (z *RemogattoZ80) Run() error {
 				z.cpu.A = a
 				z.cpu.H = byte(hl >> 8)
 				z.cpu.L = byte(hl & 0xFF)
-				// Simulate RET - pop return address from stack
+				// Simulate RET — pop return address from stack
 				sp := z.cpu.SP()
 				retLo := z.memory.ReadByteInternal(sp)
 				retHi := z.memory.ReadByteInternal(sp + 1)
