@@ -86,6 +86,20 @@ func (l *lowerer) lower() (*hir.Module, error) {
 
 	var mainStmts []hir.Stmt
 
+	// PARAMETERS defaults — emit assignments for string/ptr defaults
+	for _, p := range l.prog.Params {
+		if p.Default != nil {
+			val, err := l.lowerExpr(*p.Default)
+			if err == nil {
+				ty := l.varTypes[p.Name]
+				mainStmts = append(mainStmts, &hir.AssignStmt{
+					Target: &hir.VarRefExpr{Name: p.Name, Ty: ty},
+					Val:    val,
+				})
+			}
+		}
+	}
+
 	// INITIALIZATION
 	if body, ok := l.prog.Events["INITIALIZATION"]; ok {
 		stmts, err := l.lowerStmts(body)
@@ -374,6 +388,8 @@ func (l *lowerer) lowerWrite(s *WriteStmt) (hir.Stmt, error) {
 
 	fnName := "abap_write"
 	if _, ok := e.(*StringLit); ok {
+		fnName = "abap_write_str"
+	} else if he.ExprTy() == mir2.TyPtr {
 		fnName = "abap_write_str"
 	}
 
@@ -670,31 +686,35 @@ func emitRuntimeFuncs(hm *hir.Module) {
 		names[f.Name] = true
 	}
 
-	// SY-* getter host functions (implemented in MZV or as stubs)
+	// SY-* getter stubs (return 0 on Z80, overridden by MZV host functions)
 	syFields := []string{"subrc", "index", "tabix", "ucomm", "datum", "uzeit"}
 	for _, field := range syFields {
 		fnName := "sy_get_" + field
 		if !names[fnName] {
 			hm.Funcs = append(hm.Funcs, &hir.Func{
-				Name:     fnName,
-				RetTy:    mir2.TyU16,
-				IsExtern: true, // resolved by host function table
+				Name:  fnName,
+				RetTy: mir2.TyU16,
+				Body: &hir.Block{
+					Body: []hir.Stmt{
+						&hir.ReturnStmt{Val: &hir.IntLitExpr{Val: 0, Ty: mir2.TyU16}},
+					},
+				},
 			})
 			names[fnName] = true
 		}
 	}
 
-	// sel_show — display selection screen (host function in MZV)
+	// sel_show — no-op on Z80 (overridden by MZV host function for TUI)
 	if !names["sel_show"] {
 		hm.Funcs = append(hm.Funcs, &hir.Func{
-			Name:     "sel_show",
-			RetTy:    mir2.TyVoid,
-			IsExtern: true,
+			Name:  "sel_show",
+			RetTy: mir2.TyVoid,
+			Body:  &hir.Block{},
 		})
 		names["sel_show"] = true
 	}
 
-	// sel_register — register a selection screen field
+	// sel_register — no-op on Z80
 	if !names["sel_register"] {
 		hm.Funcs = append(hm.Funcs, &hir.Func{
 			Name: "sel_register",
@@ -703,8 +723,8 @@ func emitRuntimeFuncs(hm *hir.Module) {
 				{Name: "ty", Ty: mir2.TyU8},
 				{Name: "length", Ty: mir2.TyU8},
 			},
-			RetTy:    mir2.TyVoid,
-			IsExtern: true,
+			RetTy: mir2.TyVoid,
+			Body:  &hir.Block{},
 		})
 		names["sel_register"] = true
 	}
@@ -729,7 +749,8 @@ func emitRuntimeFuncs(hm *hir.Module) {
 	}
 
 	if !names["abap_write_str"] {
-		// Print a null-terminated string via CP/M BDOS 9
+		// Print a null-terminated string by outputting char-by-char via BDOS 2
+		// (BDOS 9 requires $-terminated strings, but we use C-strings with NUL)
 		hm.Funcs = append(hm.Funcs, &hir.Func{
 			Name:   "abap_write_str",
 			Params: []hir.Param{{Name: "str", Ty: mir2.TyPtr}},
@@ -737,8 +758,8 @@ func emitRuntimeFuncs(hm *hir.Module) {
 			Body: &hir.Block{
 				Body: []hir.Stmt{
 					&hir.AsmStmt{
-						Target:      "z80",
-						Code:        "EX DE, HL / LD C, 9 / CALL 5",
+						Target: "z80",
+						Code: ".loop: LD A, (HL) / OR A / RET Z / LD E, A / LD C, 2 / PUSH HL / CALL 5 / POP HL / INC HL / JR .loop",
 						Ins:         []hir.AsmOperand{{Name: "str"}},
 						ClobberRegs: []string{"A", "C", "D", "E", "H", "L"},
 					},
