@@ -31,6 +31,23 @@ func (p *parser) objcInterface() *ObjCInterfaceDecl {
 		n.SuperName = &t
 	}
 
+	// Optional: <Protocol1, Protocol2, ...>
+	if p.rune(false) == '<' {
+		p.shift(false) // consume '<'
+		for p.rune(false) != '>' && p.rune(false) != eof {
+			if p.rune(false) == rune(IDENTIFIER) {
+				n.Protocols = append(n.Protocols, p.shift(false))
+			} else if p.rune(false) == ',' {
+				p.shift(false) // skip comma
+			} else {
+				break
+			}
+		}
+		if p.rune(false) == '>' {
+			p.shift(false) // consume '>'
+		}
+	}
+
 	// Optional: { ivars }
 	if p.rune(false) == '{' {
 		p.shift(false) // consume '{'

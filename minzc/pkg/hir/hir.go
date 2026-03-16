@@ -233,6 +233,16 @@ type ContinueStmt struct{}
 
 func (*ContinueStmt) hirStmt() {}
 
+// LabelStmt marks a named jump target.
+type LabelStmt struct{ Name string }
+
+func (*LabelStmt) hirStmt() {}
+
+// GotoStmt jumps to a named label.
+type GotoStmt struct{ Label string }
+
+func (*GotoStmt) hirStmt() {}
+
 // SwitchCase is one arm of a SwitchStmt.
 type SwitchCase struct {
 	Val  int64  // constant case value

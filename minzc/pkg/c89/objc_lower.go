@@ -28,14 +28,24 @@ import (
 type objcClassInfo struct {
 	name      string
 	superName string                 // "" if no superclass
-	ivars     []mir2.StructField     // instance variables
-	methods   map[string]*objcMethod // selector → method info
+	protocols []string               // protocol names from <Proto1, Proto2>
+	ivars     []mir2.StructField     // instance variables (own only, not inherited)
+	methods   map[string]*objcMethod // selector → method info (includes inherited)
+}
+
+// objcProtocolInfo stores parsed @protocol data for conformance checking.
+type objcProtocolInfo struct {
+	name    string
+	methods map[string]*objcMethod // required methods
 }
 
 type objcMethod struct {
 	mangledName string
 	retTy       mir2.Ty
+	retClass    string      // class name if return type is ClassName* (for method chaining)
 	params      []hir.Param // NOT including self
+	inherited   bool        // true if inherited from parent (not overridden)
+	parentClass string      // parent class name (for inherited methods / super calls)
 }
 
 // lowerObjCInterface processes @interface → struct declaration + class registration.
@@ -49,9 +59,32 @@ func (l *lowerer) lowerObjCInterface(iface *cc.ObjCInterfaceDecl) error {
 	if iface.SuperName != nil {
 		info.superName = iface.SuperName.SrcStr()
 	}
+	for _, p := range iface.Protocols {
+		info.protocols = append(info.protocols, p.SrcStr())
+	}
 
 	// Lower ivars → struct fields.
+	// Parent fields come FIRST (struct embedding for inheritance).
 	mst := &mir2.StructTy{Name: className}
+	if info.superName != "" {
+		if parentInfo := l.objcClasses[info.superName]; parentInfo != nil {
+			if parentSt := l.structs[info.superName]; parentSt != nil {
+				// Copy ALL parent fields (including grandparent fields).
+				mst.Fields = append(mst.Fields, parentSt.Fields...)
+			}
+			// Inherit parent method signatures (child can override later).
+			for sel, pm := range parentInfo.methods {
+				info.methods[sel] = &objcMethod{
+					mangledName: objcMangleName(className, sel),
+					retTy:       pm.retTy,
+					params:      pm.params,
+					inherited:   true,
+					parentClass: info.superName,
+				}
+			}
+		}
+	}
+	// Then own ivars.
 	for _, iv := range iface.Ivars {
 		ty := l.objcTypeFromTokens(iv.TypeTokens)
 		fname := iv.Name.SrcStr()
@@ -62,11 +95,12 @@ func (l *lowerer) lowerObjCInterface(iface *cc.ObjCInterfaceDecl) error {
 	l.structs[className] = mst
 	l.hm.Structs = append(l.hm.Structs, mst)
 
-	// Register method signatures from declarations.
+	// Register method signatures from declarations (overrides inherited).
 	for _, md := range iface.Methods {
 		sel := md.MethodName()
 		mangled := objcMangleName(className, sel)
 		retTy := l.objcTypeFromTokens(md.ReturnType)
+		retClass := l.objcReturnClass(md.ReturnType)
 		var params []hir.Param
 		for _, part := range md.Selector {
 			if part.Colon != nil && part.ParamName != nil {
@@ -79,7 +113,9 @@ func (l *lowerer) lowerObjCInterface(iface *cc.ObjCInterfaceDecl) error {
 		info.methods[sel] = &objcMethod{
 			mangledName: mangled,
 			retTy:       retTy,
+			retClass:    retClass,
 			params:      params,
+			inherited:   false,
 		}
 	}
 
@@ -98,6 +134,9 @@ func (l *lowerer) lowerObjCImplementation(impl *cc.ObjCImplementationDecl) error
 		l.objcClasses[className] = info
 	}
 
+	// Track which methods are defined in this @implementation.
+	definedMethods := make(map[string]bool)
+
 	for _, md := range impl.Methods {
 		f, err := l.lowerObjCMethod(className, info, md)
 		if err != nil {
@@ -105,9 +144,58 @@ func (l *lowerer) lowerObjCImplementation(impl *cc.ObjCImplementationDecl) error
 		}
 		if f != nil {
 			l.hm.Funcs = append(l.hm.Funcs, f)
+			definedMethods[md.MethodName()] = true
 		}
 	}
+
+	// Generate trampolines for inherited methods not overridden.
+	for sel, m := range info.methods {
+		if m.inherited && !definedMethods[sel] {
+			trampoline := l.generateInheritedTrampoline(className, info, sel, m)
+			if trampoline != nil {
+				l.hm.Funcs = append(l.hm.Funcs, trampoline)
+			}
+		}
+	}
+
+	// Check protocol conformance.
+	for _, protoName := range info.protocols {
+		if err := l.checkProtocolConformance(className, info, protoName); err != nil {
+			return err
+		}
+	}
+
 	return nil
+}
+
+// lowerObjCProtocol registers protocol method signatures for conformance checking.
+func (l *lowerer) lowerObjCProtocol(proto *cc.ObjCProtocolDecl) {
+	if proto == nil {
+		return
+	}
+	name := proto.Name.SrcStr()
+	pinfo := &objcProtocolInfo{
+		name:    name,
+		methods: make(map[string]*objcMethod),
+	}
+	for _, md := range proto.Methods {
+		sel := md.MethodName()
+		retTy := l.objcTypeFromTokens(md.ReturnType)
+		var params []hir.Param
+		for _, part := range md.Selector {
+			if part.Colon != nil && part.ParamName != nil {
+				params = append(params, hir.Param{
+					Name: part.ParamName.SrcStr(),
+					Ty:   l.objcTypeFromTokens(part.ParamType),
+				})
+			}
+		}
+		pinfo.methods[sel] = &objcMethod{
+			retTy:  retTy,
+			params: params,
+		}
+	}
+	l.objcProtocols[name] = pinfo
 }
 
 // lowerObjCMethod converts one ObjC method definition into an HIR function.
@@ -188,8 +276,24 @@ func (fl *funcLow) lowerObjCMessage(msg *cc.ObjCMessageExpr) (*exprResult, error
 	// Build selector string.
 	sel := objcMsgSelector(msg)
 
+	// Handle [super msg] — resolve to parent class, use self as receiver.
+	isSuper := false
+	if v, ok := receiver.(*hir.VarRefExpr); ok && v.Name == "super" {
+		isSuper = true
+		// Replace receiver with self (same object, parent method).
+		receiver = hir.Var("self", mir2.TyPtr)
+	}
+
 	// Resolve class name from receiver.
-	className := fl.resolveObjCReceiverClass(msg, receiver)
+	var className string
+	if isSuper {
+		// super → parent class of current ObjC class.
+		if fl.objcClass != nil && fl.objcClass.superName != "" {
+			className = fl.objcClass.superName
+		}
+	} else {
+		className = fl.resolveObjCReceiverClass(msg, receiver)
+	}
 	if className == "" {
 		return nil, fmt.Errorf("cannot resolve ObjC class for message [%s %s]",
 			receiverString(receiver), sel)
@@ -243,13 +347,75 @@ func (fl *funcLow) resolveObjCReceiverClass(msg *cc.ObjCMessageExpr, receiver hi
 		}
 	}
 
-	// Case 4: nested message — check if the lowerer has a single class.
-	// Fallback: use the first registered class (for simple single-class programs).
+	// Case 4: nested message / method chaining — receiver is a CallExpr.
+	// Look up the called function's return class via method registry.
+	if call, ok := receiver.(*hir.CallExpr); ok {
+		for _, info := range fl.low.objcClasses {
+			for _, m := range info.methods {
+				if m.mangledName == call.Fn && m.retClass != "" {
+					return m.retClass
+				}
+			}
+		}
+	}
+
+	// Case 5: fallback to current class context.
 	if fl.objcClass != nil {
 		return fl.objcClass.name
 	}
 
 	return ""
+}
+
+// ── Inheritance & Protocols ───────────────────────────────────────────────────
+
+// generateInheritedTrampoline creates a forwarding function for an inherited method.
+// Circle_moveTo(self, nx, ny) { Shape_moveTo(self, nx, ny) }
+func (l *lowerer) generateInheritedTrampoline(className string, info *objcClassInfo, sel string, m *objcMethod) *hir.Func {
+	parentMangled := objcMangleName(m.parentClass, sel)
+	childMangled := objcMangleName(className, sel)
+
+	// Build params: self + method params.
+	var params []hir.Param
+	params = append(params, hir.Param{Name: "self", Ty: mir2.TyPtr})
+	params = append(params, m.params...)
+
+	// Build call args — forward everything.
+	var args []hir.Expr
+	for _, p := range params {
+		args = append(args, hir.Var(p.Name, p.Ty))
+	}
+
+	var body []hir.Stmt
+	if m.retTy == mir2.TyVoid || m.retTy == nil {
+		body = append(body, &hir.ExprStmt{Expr: hir.Call(parentMangled, mir2.TyVoid, args...)})
+		body = append(body, hir.RetVoid())
+	} else {
+		body = append(body, &hir.ReturnStmt{Val: hir.Call(parentMangled, m.retTy, args...)})
+	}
+
+	return &hir.Func{
+		Name:   childMangled,
+		Params: params,
+		RetTy:  m.retTy,
+		Body:   hir.Blk(body...),
+	}
+}
+
+// checkProtocolConformance verifies that a class implements all required protocol methods.
+func (l *lowerer) checkProtocolConformance(className string, info *objcClassInfo, protoName string) error {
+	proto := l.objcProtocols[protoName]
+	if proto == nil {
+		// Unknown protocol — skip silently (may be forward-declared).
+		return nil
+	}
+	for sel := range proto.methods {
+		if info.methods[sel] == nil {
+			return fmt.Errorf("@implementation %s does not implement -%s required by protocol %s",
+				className, sel, protoName)
+		}
+	}
+	return nil
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -317,6 +483,26 @@ func (l *lowerer) objcTypeFromTokens(toks []cc.Token) mir2.Ty {
 	}
 }
 
+// objcReturnClass extracts the class name from return type tokens like "Shape *".
+// Returns "" if the return type is not a pointer to a known class.
+func (l *lowerer) objcReturnClass(toks []cc.Token) string {
+	if len(toks) == 0 {
+		return ""
+	}
+	var parts []string
+	for _, t := range toks {
+		s := t.SrcStr()
+		if s != "*" {
+			parts = append(parts, s)
+		}
+	}
+	name := strings.Join(parts, " ")
+	if _, ok := l.objcClasses[name]; ok {
+		return name
+	}
+	return ""
+}
+
 // receiverString returns a string representation of an expression for error messages.
 func receiverString(e hir.Expr) string {
 	if v, ok := e.(*hir.VarRefExpr); ok {
@@ -366,25 +552,40 @@ func (l *lowerer) generateObjCAssertWrappers(src string) {
 		wrapperName := fmt.Sprintf("__objc_test_%d", counter)
 		counter++
 
-		// Build struct literal with field initializers.
-		var fields []hir.FieldInit
-		for _, fi := range oa.fieldInits {
-			fields = append(fields, hir.FieldInit{
-				Name: fi.name,
-				Val:  &hir.IntLitExpr{Val: fi.val, Ty: mir2.TyI16},
-			})
-		}
-
 		// Build body:
-		//   var obj: ClassName = ClassName{field: val, ...}
+		//   var obj: ClassName  (zero-initialized)
+		//   obj.field1 = val1
+		//   obj.field2 = val2
 		//   return ClassName_method(&obj, args...)
 		var body []hir.Stmt
 
+		// Declare struct variable (zero-init).
 		body = append(body, &hir.VarDeclStmt{
 			Name: "__obj",
 			Ty:   mir2.TyPtr,
-			Init: &hir.StructLitExpr{St: st, Fields: fields},
+			Init: &hir.StructLitExpr{St: st, Fields: nil}, // allocate, zero fields
 		})
+
+		// Initialize fields explicitly via assignments.
+		for _, fi := range oa.fieldInits {
+			// Compute byte offset from struct definition.
+			fieldOff := 0
+			for i, sf := range st.Fields {
+				if sf.Name == fi.name {
+					fieldOff = st.ByteOffset(i)
+					break
+				}
+			}
+			body = append(body, hir.Assign(
+				&hir.FieldExpr{
+					X:      hir.Var("__obj", mir2.TyPtr),
+					Field:  fi.name,
+					Offset: fieldOff,
+					Ty:     mir2.TyI16,
+				},
+				&hir.IntLitExpr{Val: fi.val, Ty: mir2.TyI16},
+			))
+		}
 
 		// Build call args: &obj (self), then literal args.
 		callArgs := []hir.Expr{hir.Var("__obj", mir2.TyPtr)}

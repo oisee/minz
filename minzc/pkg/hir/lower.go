@@ -273,6 +273,9 @@ type lowerer struct {
 
 	// labelSeq generates unique block labels within this function.
 	labelSeq int
+
+	// gotoLabels maps C label names to MIR2 block labels.
+	gotoLabels map[string]string
 }
 
 func (l *lowerer) pushLoop(ctx loopCtx) { l.loopStack = append(l.loopStack, ctx) }
@@ -411,6 +414,14 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 		l.bind(p.Name, r, p.Ty)
 		nonSMCIdx++
 	}
+
+	// Pre-create blocks for all goto labels (forward references).
+	l.gotoLabels = make(map[string]string)
+	collectLabels(f.Body, func(name string) {
+		blkLabel := "label_" + name
+		bld.F.NewBlock(blkLabel)
+		l.gotoLabels[name] = blkLabel
+	})
 
 	// Lower body.
 	l.lowerBlock(f.Body)
@@ -580,12 +591,23 @@ func classForLoop(ty mir2.Ty, _ string) mir2.RegClass {
 // lowerBlock lowers a HIR block (list of statements).
 // Returns true if the block already ends with a terminator.
 func (l *lowerer) lowerBlock(blk *Block) bool {
+	terminated := false
 	for _, s := range blk.Body {
+		if terminated {
+			// After a terminator (goto/break/return), only labels are reachable.
+			if ls, ok := s.(*LabelStmt); ok {
+				l.lowerStmt(ls)
+				terminated = false
+				continue
+			}
+			// Skip dead code after terminator.
+			continue
+		}
 		if l.lowerStmt(s) {
-			return true
+			terminated = true
 		}
 	}
-	return false
+	return terminated
 }
 
 // lowerStmt lowers one statement.  Returns true if it emitted a terminator.
@@ -893,6 +915,26 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 	case *SwitchStmt:
 		l.lowerSwitch(st)
 		return false
+
+	case *LabelStmt:
+		// Jump from current block to the pre-created label block.
+		blkLabel := "label_" + st.Name
+		if !l.bld.Cur.IsSealed() {
+			l.bld.Jmp(blkLabel)
+		}
+		// Switch to the pre-created label block.
+		for _, blk := range l.bld.F.Blocks {
+			if blk.Label == blkLabel {
+				l.bld.SwitchTo(blk)
+				break
+			}
+		}
+		return false
+
+	case *GotoStmt:
+		target := "label_" + st.Label
+		l.bld.Jmp(target)
+		return true // goto is a terminator
 
 	default:
 		panic(fmt.Sprintf("hir/lower: unhandled statement type %T", s))
@@ -1800,7 +1842,32 @@ func scanStmt(s Stmt, env map[string]mir2.Reg, muts map[string]bool) {
 		if st.Default != nil {
 			scanBlock(st.Default, env, muts)
 		}
-	// BreakStmt, ContinueStmt: no mutations
+	// BreakStmt, ContinueStmt, LabelStmt, GotoStmt: no mutations
+	}
+}
+
+// collectLabels scans a block for LabelStmt nodes and calls emit for each.
+func collectLabels(blk *Block, emit func(string)) {
+	if blk == nil {
+		return
+	}
+	for _, s := range blk.Body {
+		switch st := s.(type) {
+		case *LabelStmt:
+			emit(st.Name)
+		case *Block:
+			collectLabels(st, emit)
+		case *IfStmt:
+			collectLabels(st.Then, emit)
+			collectLabels(st.Else, emit)
+		case *WhileStmt:
+			collectLabels(st.Body, emit)
+		case *SwitchStmt:
+			for _, c := range st.Cases {
+				collectLabels(c.Body, emit)
+			}
+			collectLabels(st.Default, emit)
+		}
 	}
 }
 
@@ -1939,7 +2006,7 @@ func scanUsedInStmt(s Stmt, env map[string]mir2.Reg, used map[string]bool) {
 		if st.Default != nil {
 			scanUsedInBlock(st.Default, env, used)
 		}
-	// BreakStmt, ContinueStmt: no expressions to scan
+	// BreakStmt, ContinueStmt, LabelStmt, GotoStmt: no expressions to scan
 	}
 }
 
@@ -2735,6 +2802,10 @@ func renameStmt(s Stmt, from, to string) Stmt {
 		return &BreakStmt{}
 	case *ContinueStmt:
 		return &ContinueStmt{}
+	case *LabelStmt:
+		return &LabelStmt{Name: st.Name}
+	case *GotoStmt:
+		return &GotoStmt{Label: st.Label}
 	case *StoreStmt:
 		return &StoreStmt{Ptr: renameExpr(st.Ptr, from, to), Val: renameExpr(st.Val, from, to)}
 	case *WhileStmt:

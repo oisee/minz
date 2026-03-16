@@ -18,7 +18,8 @@ type lowerer struct {
 	structs  map[string]*mir2.StructTy
 
 	// ObjC: class info from @interface declarations.
-	objcClasses map[string]*objcClassInfo
+	objcClasses   map[string]*objcClassInfo
+	objcProtocols map[string]*objcProtocolInfo
 }
 
 func (l *lowerer) lower() error {
@@ -46,7 +47,8 @@ func (l *lowerer) lower() error {
 				return err
 			}
 		case cc.ExternalDeclarationObjCProtocol:
-			// Protocols are compile-time constraints only — no codegen.
+			// Protocols are compile-time constraints — register for conformance checking.
+			l.lowerObjCProtocol(ed.ObjCProtocol)
 		}
 	}
 	return nil
@@ -81,8 +83,8 @@ func (l *lowerer) mapType(t cc.Type) mir2.Ty {
 		return mir2.TyPtr
 	case cc.Array:
 		return mir2.TyPtr // arrays decay to pointers
-	case cc.Struct:
-		return mir2.TyPtr // structs lowered to pointer (address) on Z80
+	case cc.Struct, cc.Union:
+		return mir2.TyPtr // structs/unions lowered to pointer (address) on Z80
 	default:
 		return mir2.TyU16 // conservative fallback
 	}
@@ -114,7 +116,7 @@ func (l *lowerer) lowerTopDecl(d *cc.Declaration) error {
 			continue
 		}
 
-		// Typedef declarations: register struct types, then skip.
+		// Typedef declarations: register struct/union types, then skip.
 		if decl.IsTypename() {
 			if ty.Kind() == cc.Struct {
 				st := ty.(*cc.StructType)
@@ -125,7 +127,18 @@ func (l *lowerer) lowerTopDecl(d *cc.Declaration) error {
 				if l.structs[tag] == nil {
 					l.lowerStructDecl(tag, st)
 				}
-				l.typedefs[name] = mir2.TyPtr // typedef maps to struct pointer
+				l.typedefs[name] = mir2.TyPtr
+			} else if ty.Kind() == cc.Union {
+				ut := ty.(*cc.UnionType)
+				utTag := ut.Tag()
+				tag := utTag.SrcStr()
+				if tag == "" {
+					tag = name
+				}
+				if l.structs[tag] == nil {
+					l.lowerUnionDecl(tag, ut)
+				}
+				l.typedefs[name] = mir2.TyPtr
 			}
 			continue
 		}
@@ -135,12 +148,19 @@ func (l *lowerer) lowerTopDecl(d *cc.Declaration) error {
 			continue
 		}
 
-		// Struct type declaration.
+		// Struct/union type declaration.
 		if ty.Kind() == cc.Struct {
 			st := ty.(*cc.StructType)
 			tag := l.structTag(st)
 			if tag != "" && l.structs[tag] == nil {
 				l.lowerStructDecl(tag, st)
+			}
+		} else if ty.Kind() == cc.Union {
+			ut := ty.(*cc.UnionType)
+			utTag := ut.Tag()
+			tag := utTag.SrcStr()
+			if tag != "" && l.structs[tag] == nil {
+				l.lowerUnionDecl(tag, ut)
 			}
 		}
 
@@ -178,6 +198,45 @@ func (l *lowerer) lowerStructDecl(tag string, st *cc.StructType) {
 			Ty:   l.mapType(f.Type()),
 		})
 	}
+	l.structs[tag] = mst
+	l.hm.Structs = append(l.hm.Structs, mst)
+}
+
+// lowerUnionDecl lowers a C union to a mir2 StructTy where all fields overlap at offset 0.
+// Each field gets the type of the largest union member so ByteOffset always returns 0.
+func (l *lowerer) lowerUnionDecl(tag string, ut *cc.UnionType) {
+	mst := &mir2.StructTy{Name: tag}
+	// Find max field size for the single storage slot.
+	maxWidth := 0
+	nf := ut.NumFields()
+	type fieldInfo struct {
+		name string
+		ty   mir2.Ty
+	}
+	var fields []fieldInfo
+	for i := 0; i < nf; i++ {
+		f := ut.FieldByIndex(i)
+		if f == nil {
+			continue
+		}
+		fname := f.Name()
+		if fname == "" {
+			fname = fmt.Sprintf("_f%d", i)
+		}
+		mty := l.mapType(f.Type())
+		w := mir2.ByteWidth(mty)
+		if w > maxWidth {
+			maxWidth = w
+		}
+		fields = append(fields, fieldInfo{name: fname, ty: mty})
+	}
+	// All fields share offset 0 — store as single-field struct with largest type,
+	// then register each field name mapping to offset 0.
+	// For simplicity, store ALL field names but use largest type for width.
+	for _, fi := range fields {
+		mst.Fields = append(mst.Fields, mir2.StructField{Name: fi.name, Ty: fi.ty})
+	}
+	mst.IsUnion = true // mark as union so ByteOffset returns 0 for all fields
 	l.structs[tag] = mst
 	l.hm.Structs = append(l.hm.Structs, mst)
 }
@@ -266,6 +325,9 @@ type funcLow struct {
 	retTy  mir2.Ty
 	locals map[string]mir2.Ty
 
+	// static locals: original name → mangled global name.
+	staticRenames map[string]string
+
 	// ObjC: set when lowering a method inside @implementation.
 	objcClass  *objcClassInfo
 	objcLocals map[string]string // varName → className (for typed receivers)
@@ -312,6 +374,32 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 			continue
 		}
 		ty := fl.low.mapType(decl.Type())
+
+		// static local → emit as mangled global, reference by mangled name.
+		// Skip __func__ (implicitly static, not a real user variable).
+		if decl.IsStatic() && name != "__func__" {
+			mangled := fl.name + "__" + name
+			fl.locals[name] = ty
+			g := mir2.Global{Name: mangled, Ty: ty}
+			if id.Initializer != nil {
+				if val, ok := fl.low.evalConstInit(id.Initializer); ok {
+					g.Init = []byte{byte(val)}
+				}
+			}
+			fl.low.hm.Globals = append(fl.low.hm.Globals, g)
+			fl.low.globals[mangled] = ty
+			// Alias: local name maps to global name for subsequent references.
+			fl.locals[name] = ty
+			// Emit nothing — the variable lives as a global.
+			// We need a way for VarRef to find it by the mangled name.
+			// Store the mapping in locals but redirect reads/writes via rename.
+			if fl.staticRenames == nil {
+				fl.staticRenames = make(map[string]string)
+			}
+			fl.staticRenames[name] = mangled
+			continue
+		}
+
 		fl.locals[name] = ty
 
 		var init hir.Expr
@@ -366,10 +454,25 @@ func (fl *funcLow) lowerStmt(s *cc.Statement) ([]hir.Stmt, error) {
 		return fl.lowerJump(s.JumpStatement)
 
 	case cc.StatementLabeled:
-		if s.LabeledStatement != nil && s.LabeledStatement.Statement != nil {
-			return fl.lowerStmt(s.LabeledStatement.Statement)
+		ls := s.LabeledStatement
+		if ls == nil {
+			return nil, nil
 		}
-		return nil, nil
+		var stmts []hir.Stmt
+		// Emit label for goto targets (not case/default labels).
+		if ls.Case == cc.LabeledStatementLabel {
+			name := ls.Token.SrcStr()
+			stmts = append(stmts, &hir.LabelStmt{Name: name})
+		}
+		// Lower the statement after the label.
+		if ls.Statement != nil {
+			inner, err := fl.lowerStmt(ls.Statement)
+			if err != nil {
+				return nil, err
+			}
+			stmts = append(stmts, inner...)
+		}
+		return stmts, nil
 
 	default:
 		return nil, nil
@@ -709,8 +812,12 @@ func (fl *funcLow) lowerJump(js *cc.JumpStatement) ([]hir.Stmt, error) {
 	case cc.JumpStatementContinue:
 		return []hir.Stmt{hir.Continue()}, nil
 
+	case cc.JumpStatementGoto:
+		label := js.Token2.SrcStr()
+		return []hir.Stmt{&hir.GotoStmt{Label: label}}, nil
+
 	default:
-		return nil, nil // goto — deferred
+		return nil, nil
 	}
 }
 
@@ -917,8 +1024,15 @@ func (fl *funcLow) lowerPrimary(pe *cc.PrimaryExpression) (*exprResult, error) {
 				}
 			}
 		}
+		// Apply static local rename if applicable.
+		resolvedName := name
+		if fl.staticRenames != nil {
+			if mangled, ok := fl.staticRenames[name]; ok {
+				resolvedName = mangled
+			}
+		}
 		ty := fl.typeOf(name)
-		return wrapExpr(hir.Var(name, ty)), nil
+		return wrapExpr(hir.Var(resolvedName, ty)), nil
 
 	case cc.PrimaryExpressionInt:
 		v := pe.Value()
@@ -997,7 +1111,8 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 		tok := pf.Token2
 		field := tok.SrcStr()
 		ty := fl.low.mapType(pf.Type())
-		return wrapExpr(&hir.FieldExpr{X: base, Field: field, Ty: ty}), nil
+		offset := fl.resolveFieldOffset(pf.PostfixExpression.Type(), field)
+		return wrapExpr(&hir.FieldExpr{X: base, Field: field, Offset: offset, Ty: ty}), nil
 
 	case cc.PostfixExpressionPSelect: // struct->field
 		base, err := fl.lowerExprAsExpr(pf.PostfixExpression)
@@ -1007,7 +1122,8 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 		tok := pf.Token2
 		field := tok.SrcStr()
 		ty := fl.low.mapType(pf.Type())
-		return wrapExpr(&hir.FieldExpr{X: base, Field: field, Ty: ty}), nil
+		offset := fl.resolveFieldOffset(pf.PostfixExpression.Type(), field)
+		return wrapExpr(&hir.FieldExpr{X: base, Field: field, Offset: offset, Ty: ty}), nil
 
 	case cc.PostfixExpressionInc: // x++
 		base, err := fl.lowerExprAsExpr(pf.PostfixExpression)
@@ -1024,6 +1140,24 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 		}
 		ty := base.ExprTy()
 		return wrapAssign(base, hir.Sub(base, &hir.IntLitExpr{Val: 1, Ty: ty}, ty)), nil
+
+	case cc.PostfixExpressionComplit: // (Type){init-list} — compound literal
+		ty := pf.Type()
+		if st := fl.low.resolveStructType(ty); st != nil {
+			lit, err := fl.lowerStructInit(st, pf.InitializerList)
+			if err != nil {
+				return nil, err
+			}
+			return wrapExpr(lit), nil
+		}
+		// Non-struct compound literal (scalar) — lower the first init value.
+		if pf.InitializerList != nil && pf.InitializerList.Initializer != nil {
+			init := pf.InitializerList.Initializer
+			if init.Case == cc.InitializerExpr && init.AssignmentExpression != nil {
+				return fl.lowerExpr(init.AssignmentExpression)
+			}
+		}
+		return wrapExpr(&hir.IntLitExpr{Val: 0, Ty: mir2.TyI16}), nil
 
 	default:
 		return fl.lowerExpr(pf.PrimaryExpression)
@@ -1293,27 +1427,85 @@ func (l *lowerer) evalConst(e cc.ExpressionNode) (int64, bool) {
 
 // resolveStructType returns the mir2.StructTy for a cc.Type if it's a known struct.
 func (l *lowerer) resolveStructType(t cc.Type) *mir2.StructTy {
-	if t == nil || t.Kind() != cc.Struct {
+	if t == nil {
 		return nil
 	}
-	st, ok := t.(*cc.StructType)
-	if !ok {
-		return nil
-	}
-	tag := l.structTag(st)
-	if tag != "" {
-		if mst := l.structs[tag]; mst != nil {
-			return mst
+	switch t.Kind() {
+	case cc.Struct:
+		st, ok := t.(*cc.StructType)
+		if !ok {
+			return nil
 		}
-	}
-	// Try all known structs by field count/layout match (anonymous typedef structs).
-	nf := st.NumFields()
-	for _, mst := range l.structs {
-		if len(mst.Fields) == nf {
-			return mst
+		tag := l.structTag(st)
+		if tag != "" {
+			if mst := l.structs[tag]; mst != nil {
+				return mst
+			}
+		}
+		// Try all known structs by field count/layout match (anonymous typedef structs).
+		nf := st.NumFields()
+		for _, mst := range l.structs {
+			if len(mst.Fields) == nf {
+				return mst
+			}
+		}
+	case cc.Union:
+		ut, ok := t.(*cc.UnionType)
+		if !ok {
+			return nil
+		}
+		utTag := ut.Tag()
+		tag := utTag.SrcStr()
+		if tag != "" {
+			if mst := l.structs[tag]; mst != nil {
+				return mst
+			}
+		}
+		nf := ut.NumFields()
+		for _, mst := range l.structs {
+			if mst.IsUnion && len(mst.Fields) == nf {
+				return mst
+			}
 		}
 	}
 	return nil
+}
+
+// resolveFieldOffset determines the byte offset of a named field within a struct.
+// cTy is the C type of the base expression (struct type for '.', pointer-to-struct for '->').
+func (fl *funcLow) resolveFieldOffset(cTy cc.Type, field string) int {
+	if cTy == nil {
+		return 0
+	}
+
+	// For pointer-to-struct (->), unwrap the pointer.
+	if cTy.Kind() == cc.Ptr {
+		if pt, ok := cTy.(*cc.PointerType); ok {
+			cTy = pt.Elem()
+		}
+	}
+
+	// Try resolving via C struct type → mir2 StructTy.
+	if mst := fl.low.resolveStructType(cTy); mst != nil {
+		for i, f := range mst.Fields {
+			if f.Name == field {
+				return mst.ByteOffset(i)
+			}
+		}
+	}
+
+	// Fallback: check ObjC class structs (for self->field access).
+	if fl.objcClass != nil {
+		if st := fl.low.structs[fl.objcClass.name]; st != nil {
+			for i, f := range st.Fields {
+				if f.Name == field {
+					return st.ByteOffset(i)
+				}
+			}
+		}
+	}
+
+	return 0
 }
 
 // lowerStructInit lowers a brace initializer list to a StructLitExpr.
@@ -1327,12 +1519,29 @@ func (fl *funcLow) lowerStructInit(st *mir2.StructTy, il *cc.InitializerList) (*
 			continue
 		}
 
-		// Determine field name.
+		// Determine field name: designated (.name = val) or positional.
 		fname := ""
-		if fieldIdx < len(st.Fields) {
+		if il.Designation != nil {
+			// Designated initializer: extract field name and update fieldIdx.
+			if dl := il.Designation.DesignatorList; dl != nil && dl.Designator != nil {
+				d := dl.Designator
+				switch d.Case {
+				case cc.DesignatorField: // .name = val
+					fname = d.Token2.SrcStr()
+				case cc.DesignatorField2: // name: val (GCC extension)
+					fname = d.Token.SrcStr()
+				}
+				// Update fieldIdx to match the designated field.
+				for i, f := range st.Fields {
+					if f.Name == fname {
+						fieldIdx = i
+						break
+					}
+				}
+			}
+		} else if fieldIdx < len(st.Fields) {
 			fname = st.Fields[fieldIdx].Name
 		}
-		// TODO: handle Designation for designated initializers (.q = val).
 
 		// Lower the initializer value.
 		var val hir.Expr

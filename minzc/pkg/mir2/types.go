@@ -258,11 +258,21 @@ type StructField struct {
 // Phase 3: AoS struct access via OpField(base, byte_offset).
 // Phase 3+: SoA lowering splits [N]StructTy into N separate column arrays.
 type StructTy struct {
-	Name   string
-	Fields []StructField
+	Name    string
+	Fields  []StructField
+	IsUnion bool // union: all fields at offset 0, width = max field
 }
 
 func (t *StructTy) Width() int {
+	if t.IsUnion {
+		max := 0
+		for _, f := range t.Fields {
+			if w := f.Ty.Width(); w > max {
+				max = w
+			}
+		}
+		return max
+	}
 	w := 0
 	for _, f := range t.Fields {
 		w += f.Ty.Width()
@@ -280,7 +290,11 @@ func (t *StructTy) String() string {
 func (t *StructTy) isTy() {}
 
 // ByteOffset returns the byte offset of field i in a packed AoS layout.
+// For unions, all fields are at offset 0.
 func (t *StructTy) ByteOffset(i int) int {
+	if t.IsUnion {
+		return 0
+	}
 	off := 0
 	for j := 0; j < i && j < len(t.Fields); j++ {
 		off += ByteWidth(t.Fields[j].Ty)

@@ -11,11 +11,13 @@ import "modernc.org/token"
 
 // ── ObjC Interface (@interface ... @end) ─────────────────────────────────
 
-// ObjCInterfaceDecl represents @interface ClassName : SuperClass { ivars } methods @end
+// ObjCInterfaceDecl represents @interface ClassName : SuperClass <Proto1, Proto2> { ivars } methods @end
 type ObjCInterfaceDecl struct {
 	Token     Token  // @interface
 	ClassName Token  // IDENTIFIER
 	SuperName *Token // IDENTIFIER after ':', or nil
+
+	Protocols []Token // protocol names from <Proto1, Proto2>
 
 	Ivars   []*ObjCIvar       // instance variables (between { })
 	Methods []*ObjCMethodDecl // method declarations

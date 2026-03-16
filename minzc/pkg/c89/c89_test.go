@@ -67,6 +67,9 @@ void inc(void) { counter = counter + 1; }
 		t.Fatalf("Compile: %v", err)
 	}
 	if len(m.Globals) != 1 {
+		for i, g := range m.Globals {
+			t.Logf("global[%d] = %q ty=%v", i, g.Name, g.Ty)
+		}
 		t.Fatalf("got %d globals, want 1", len(m.Globals))
 	}
 	if m.Globals[0].Name != "counter" {
@@ -341,6 +344,68 @@ int identity(int x) { return x; }
 		t.Fatalf("pipeline (ObjC asserts should pass): %v", err)
 	}
 	t.Logf("ObjC E2E: %d asserts passed (1 C + 3 ObjC)", len(hm.Asserts))
+}
+
+func TestObjCMethodChaining(t *testing.T) {
+	src := `
+@interface Counter {
+    int count;
+}
+-(Counter*)inc;
+-(Counter*)add:(int)n;
+-(int)value;
+-(int)incAndGet;
+-(int)addAndGet:(int)n;
+-(int)incTwiceAndGet;
+@end
+
+@implementation Counter
+-(Counter*)inc {
+    self->count = self->count + 1;
+    return self;
+}
+-(Counter*)add:(int)n {
+    self->count = self->count + n;
+    return self;
+}
+-(int)value { return self->count; }
+
+// Method chaining inside ObjC: [[self inc] value]
+-(int)incAndGet {
+    return [[self inc] value];
+}
+
+// [[self add:n] value]
+-(int)addAndGet:(int)n {
+    return [[self add:n] value];
+}
+
+// [[[self inc] inc] value]
+-(int)incTwiceAndGet {
+    return [[[self inc] inc] value];
+}
+
+@end
+
+int id(int x) { return x; }
+// assert id(1) == 1 via mir2
+
+// Method chaining via assert-objc:
+// assert-objc Counter{count:0}.incAndGet() == 1
+// assert-objc Counter{count:5}.addAndGet(10) == 15
+// assert-objc Counter{count:0}.incTwiceAndGet() == 2
+`
+	hm, err := Compile(src, "chain_test.m")
+	if err != nil {
+		t.Fatalf("Compile: %v", err)
+	}
+	t.Logf("funcs=%d asserts=%d", len(hm.Funcs), len(hm.Asserts))
+
+	_, err = pipeline.CompileHIR(hm)
+	if err != nil {
+		t.Fatalf("pipeline: %v", err)
+	}
+	t.Logf("method chaining: %d asserts passed", len(hm.Asserts))
 }
 
 func TestCorpus_AllExamples(t *testing.T) {
