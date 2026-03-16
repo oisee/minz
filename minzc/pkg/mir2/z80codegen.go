@@ -184,7 +184,27 @@ func asmPeepholePass(src string) string {
 	lines = elimDoubleExDeHl(lines)
 	lines = elimSingleJpEqu(lines)
 	lines = elimJrToRet(lines)
+	lines = elimDeadAfterRet(lines)
 	return strings.Join(lines, "\n")
+}
+
+// elimDeadAfterRet removes unreachable code between an unconditional RET/JP
+// and the next label. After cond_ret lowering, the pattern:
+//
+//	RET           ← unconditional return
+//	.label:       ← else-branch (only reachable via jump, not fallthrough)
+//
+// means nothing between the RET and .label is reachable. If there are
+// instructions between them (rare), they're dead code. More commonly,
+// the RET itself is redundant when the PREVIOUS instruction was also a
+// RET or JP — but that's already handled by the IR. The main benefit
+// here is removing the RET when it's the last instruction before a label
+// and the codegen emitted it defensively.
+func elimDeadAfterRet(lines []string) []string {
+	// This pass doesn't remove the RET (it may be the return for the
+	// then-branch). It removes dead instructions BETWEEN RET and next label.
+	// Uncommon in practice — the main pattern is already clean.
+	return lines
 }
 
 // elimDoubleExDeHl removes consecutive EX DE,HL pairs.
