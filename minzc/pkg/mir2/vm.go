@@ -574,10 +574,31 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		return nil
 
 	case OpCallIndirect:
-		// Indirect: Src[0] is a heap offset pointing to the function name
-		// (VM convention: function pointers are interned symbol offsets).
-		// For now, resolve via a synthetic symbol table.
-		return fmt.Errorf("mir2.VM: OpCallIndirect not yet implemented")
+		// Src[0] is a function pointer. In the VM, we resolve it by scanning
+		// module functions — the pointer value is the address assigned by
+		// OpAddrOf("funcName"), which is the heap offset of the function's
+		// name string. We look up the name and dispatch.
+		ptrVal := fr.get(inst.Src[0]).I
+		args := collectArgs(fr, inst.Args)
+		// Try to find a function whose global symbol address matches ptrVal.
+		var targetFn *Func
+		for _, fn := range vm.Module.Funcs {
+			if addr, ok := vm.globalSyms[fn.Name]; ok && addr == ptrVal {
+				targetFn = fn
+				break
+			}
+		}
+		if targetFn == nil {
+			return fmt.Errorf("mir2.VM: OpCallIndirect: no function at address %d", ptrVal)
+		}
+		rets, err := vm.callFunc(targetFn, args)
+		if err != nil {
+			return err
+		}
+		if inst.Dst != NoReg && len(rets) > 0 {
+			fr.set(inst.Dst, rets[0])
+		}
+		return nil
 
 	// ── Inline asm ────────────────────────────────────────────────────────────
 	case OpAsm:

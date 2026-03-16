@@ -172,6 +172,13 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) string {
 		}
 	}
 
+	// Emit runtime trampolines (indirect call support).
+	if cg.needsCallHL {
+		sb.WriteString("\n; runtime: indirect call trampoline\n")
+		sb.WriteString("__call_hl:\n")
+		sb.WriteString("    JP (HL)\n")
+	}
+
 	return asmPeepholePass(sb.String())
 }
 
@@ -436,6 +443,7 @@ type z80cg struct {
 	constVals      map[Reg]int64 // virtual reg → compile-time constant value (for peepholes)
 	blockParamRegs map[Reg]bool  // regs that are block parameters (loop-variant, not const)
 	deadConsts     map[Reg]bool  // OpConst dsts whose LD is suppressed by DSE
+	needsCallHL    bool          // emit __call_hl trampoline (JP (HL)) at end of module
 
 	// holdsPhys is a bidirectional alias map for local copy-propagation within a
 	// basic block.  holdsPhys[r] = s means physical register r currently holds the
@@ -3997,8 +4005,26 @@ func (g *z80cg) genCmp(inst *Inst) {
 func (g *z80cg) genCall(inst *Inst) {
 	clear(g.holdsPhys) // calls clobber all volatile registers
 	if inst.Op == OpCallIndirect {
+		// Z80 has no CALL (rr) instruction. Use trampoline: CALL __call_hl
+		// where __call_hl: JP (HL) — the callee's RET returns to our caller.
+		// Cost: 17T (CALL) + 4T (JP) = 21T vs 17T direct = +4T overhead.
 		ptr := g.loc(inst.Src[0])
-		g.emitf("    CALL (%s)          ; indirect", ptr)
+		if ptr != "HL" {
+			g.emitf("    LD H, %s", highByte(ptr))
+			g.emitf("    LD L, %s", lowByte(ptr))
+			g.invalidate("HL")
+		}
+		// Arg setup: move args to callee-expected registers.
+		// Without a known callee contract, use default ABI:
+		// arg0=A (u8) or HL (u16), arg1=C/DE, arg2=B/BC.
+		// For now, args are already in place from preceding moves.
+		g.emit("    CALL __call_hl")
+		g.needsCallHL = true // emit trampoline at end of module
+		if inst.Dst != NoReg {
+			// Return value in A (u8) or HL (u16) — standard ABI.
+		}
+		g.invalidate("A")
+		g.invalidate("F")
 		return
 	}
 
