@@ -207,11 +207,79 @@ fun main() -> u8 {
 	},
 }
 
-// runtimeC is a tiny C runtime providing print_num and print_char for standalone programs.
+// runtimeC is a tiny C runtime providing print_num, print_char, and canvas_*
+// stubs for standalone programs compiled to native.
 const runtimeC = `
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 void print_num(int n) { printf("%d", n); }
 void print_char(int c) { putchar(c); }
+
+/* ── Minimal canvas runtime (256-color indexed, PNG via ppm→convert) ── */
+static int    _cw, _ch;
+static unsigned char *_cpx;       /* w*h palette indices */
+static unsigned char _cpal[256][3]; /* RGB palette */
+
+void canvas_init(int w, int h, int mode) {
+    /* mode 0=256x192, 1=320x200, 2=320x240, 3=640x480, 4+=custom */
+    static const int presets[][3] = {{256,192},{320,200},{320,240},{640,480}};
+    if (mode >= 0 && mode <= 3) { w = presets[mode][0]; h = presets[mode][1]; }
+    _cw = w; _ch = h;
+    _cpx = calloc(w * h, 1);
+    /* default gray ramp */
+    for (int i = 0; i < 256; i++) { _cpal[i][0] = _cpal[i][1] = _cpal[i][2] = i; }
+}
+void canvas_clear(int c)             { if (_cpx) memset(_cpx, c, _cw*_ch); }
+void canvas_pixel(int x, int y, int c) { if (_cpx && x>=0 && x<_cw && y>=0 && y<_ch) _cpx[y*_cw+x]=(unsigned char)c; }
+int  canvas_width(void)              { return _cw; }
+int  canvas_height(void)             { return _ch; }
+void canvas_palette(int i, int r, int g, int b) { _cpal[i&255][0]=r; _cpal[i&255][1]=g; _cpal[i&255][2]=b; }
+int  canvas_get_pixel(int x, int y)  { return (_cpx && x>=0 && x<_cw && y>=0 && y<_ch) ? _cpx[y*_cw+x] : 0; }
+
+void canvas_line(int x0, int y0, int x1, int y1, int c) {
+    int dx = abs(x1-x0), dy = abs(y1-y0);
+    int sx = x0<x1?1:-1, sy = y0<y1?1:-1, err = dx-dy;
+    for (;;) {
+        canvas_pixel(x0, y0, c);
+        if (x0==x1 && y0==y1) break;
+        int e2 = err*2;
+        if (e2 > -dy) { err -= dy; x0 += sx; }
+        if (e2 <  dx) { err += dx; y0 += sy; }
+    }
+}
+void canvas_rect(int x, int y, int w, int h, int c) {
+    canvas_line(x,y,x+w-1,y,c); canvas_line(x+w-1,y,x+w-1,y+h-1,c);
+    canvas_line(x+w-1,y+h-1,x,y+h-1,c); canvas_line(x,y+h-1,x,y,c);
+}
+void canvas_fill_rect(int x, int y, int w, int h, int c) {
+    for (int r=y; r<y+h; r++) for (int col=x; col<x+w; col++) canvas_pixel(col,r,c);
+}
+void canvas_circle(int cx, int cy, int r, int c) {
+    int x=r, y=0, d=1-r;
+    while (x>=y) {
+        canvas_pixel(cx+x,cy+y,c); canvas_pixel(cx-x,cy+y,c);
+        canvas_pixel(cx+x,cy-y,c); canvas_pixel(cx-x,cy-y,c);
+        canvas_pixel(cx+y,cy+x,c); canvas_pixel(cx-y,cy+x,c);
+        canvas_pixel(cx+y,cy-x,c); canvas_pixel(cx-y,cy-x,c);
+        y++;
+        if (d<0) d+=2*y+1; else { x--; d+=2*(y-x)+1; }
+    }
+}
+
+/* Save as PPM (universal, no deps). Convert to PNG: ppmtopng out.ppm > out.png */
+int canvas_save_ppm(const char *path) {
+    if (!_cpx) return -1;
+    FILE *f = fopen(path, "wb");
+    if (!f) return -1;
+    fprintf(f, "P6\n%d %d\n255\n", _cw, _ch);
+    for (int i = 0; i < _cw*_ch; i++) {
+        unsigned char *p = _cpal[_cpx[i]];
+        fwrite(p, 1, 3, f);
+    }
+    fclose(f);
+    return 0;
+}
 `
 
 func hirToMIR2(hm *hir.Module) *mir2.Module {
@@ -316,9 +384,20 @@ func compileFile(filename string) {
 	}
 	defer os.RemoveAll(dir)
 
-	// Write tiny C runtime for @extern print_num / print_char
+	// Write C runtime (print_num, print_char, canvas_* stubs).
 	rtPath := filepath.Join(dir, "runtime.c")
 	os.WriteFile(rtPath, []byte(runtimeC), 0644)
+
+	// If no main(), generate a C harness that calls test wrappers and saves canvas.
+	var harnessPath string
+	if !moduleHasMain(m) {
+		harness := generateMainHarness(m, name)
+		if harness != "" {
+			harnessPath = filepath.Join(dir, "harness.c")
+			os.WriteFile(harnessPath, []byte(harness), 0644)
+			fmt.Fprintf(os.Stderr, "mzn: no main() found, generating test harness\n")
+		}
+	}
 
 	// Emit-only modes: print and exit immediately
 	if *flagEmitC {
@@ -361,7 +440,11 @@ func compileFile(filename string) {
 			}
 			os.WriteFile(cPath, []byte(cCode), 0644)
 
-			out, err := exec.Command("cc", "-O0", "-o", binPath, cPath, rtPath).CombinedOutput()
+			ccArgs := []string{"-O0", "-o", binPath, cPath, rtPath}
+			if harnessPath != "" {
+				ccArgs = append(ccArgs, harnessPath)
+			}
+			out, err := exec.Command("cc", ccArgs...).CombinedOutput()
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "cc: %v\n%s\n", err, out)
 			} else {
@@ -404,7 +487,11 @@ func compileFile(filename string) {
 				if quiet {
 					binPath = *flagOutput
 				}
-				out, err = exec.Command("cc", "-O0", "-o", binPath, asmPath, rtPath).CombinedOutput()
+				ccArgs := []string{"-O0", "-o", binPath, asmPath, rtPath}
+				if harnessPath != "" {
+					ccArgs = append(ccArgs, harnessPath)
+				}
+				out, err = exec.Command("cc", ccArgs...).CombinedOutput()
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "cc(qbe): %v\n%s\n", err, out)
 				} else {
@@ -611,6 +698,74 @@ func countParams(args string) int {
 		return 0
 	}
 	return strings.Count(args, ",") + 1
+}
+
+// moduleHasMain returns true if the MIR2 module contains a "main" function.
+func moduleHasMain(m *mir2.Module) bool {
+	for _, f := range m.Funcs {
+		if f.Name == "main" {
+			return true
+		}
+	}
+	return false
+}
+
+// generateMainHarness creates a C main() that calls test wrappers and saves canvas.
+// Returns empty string if no suitable entry points are found.
+func generateMainHarness(m *mir2.Module, name string) string {
+	var testFns []string
+	hasCanvas := false
+	for _, f := range m.Funcs {
+		// Only static tests — dynamic dispatch vtables aren't initialized for native.
+		if strings.HasPrefix(f.Name, "__objc_test_") {
+			testFns = append(testFns, f.Name)
+		}
+		if strings.HasPrefix(f.Name, "setup_plasma_palette") ||
+			strings.HasPrefix(f.Name, "Plasma_render") ||
+			strings.HasPrefix(f.Name, "Diamond_render") ||
+			strings.HasPrefix(f.Name, "XorPattern_render") {
+			hasCanvas = true
+		}
+	}
+	if len(testFns) == 0 && !hasCanvas {
+		return ""
+	}
+
+	var b strings.Builder
+	b.WriteString("#include <stdio.h>\n#include <stdint.h>\n\n")
+
+	// Declare all test functions
+	for _, fn := range testFns {
+		b.WriteString(fmt.Sprintf("int16_t %s(void);\n", fn))
+	}
+
+	// Declare canvas functions if needed
+	if hasCanvas {
+		b.WriteString("void canvas_init(int,int,int);\nvoid setup_plasma_palette(void);\n")
+		b.WriteString("int canvas_save_ppm(const char*);\n")
+	}
+
+	b.WriteString("\nint main(void) {\n")
+
+	// Init canvas if needed
+	if hasCanvas {
+		b.WriteString("    canvas_init(256, 192, 0);\n")
+		b.WriteString("    setup_plasma_palette();\n")
+	}
+
+	// Run test functions
+	for _, fn := range testFns {
+		b.WriteString(fmt.Sprintf("    printf(\"%s = %%d\\n\", (int)%s());\n", fn, fn))
+	}
+
+	if hasCanvas {
+		outFile := name + ".ppm"
+		b.WriteString(fmt.Sprintf("    canvas_save_ppm(\"%s\");\n", outFile))
+		b.WriteString(fmt.Sprintf("    printf(\"canvas saved to %s\\n\");\n", outFile))
+	}
+
+	b.WriteString("    return 0;\n}\n")
+	return b.String()
 }
 
 func filterDisasm(s string) string {
