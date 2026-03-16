@@ -542,10 +542,21 @@ func (l *lowerer) generateObjCAssertWrappers(src string) {
 			continue
 		}
 
-		// Look up method info.
+		// Look up method info — try exact selector first, then prefix match for multi-keyword selectors.
 		method := info.methods[oa.selector()]
 		if method == nil {
-			continue
+			// Multi-keyword selector: assert uses "containsX(50,50)" but method is "containsX:y:".
+			// Match by first keyword prefix + compatible arg count.
+			prefix := oa.methodName + ":"
+			for sel, m := range info.methods {
+				if strings.HasPrefix(sel, prefix) && len(m.params) == len(oa.args) {
+					method = m
+					break
+				}
+			}
+			if method == nil {
+				continue
+			}
 		}
 
 		// Generate wrapper function name.
