@@ -187,6 +187,7 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 
 	// Parse and generate ObjC assert wrappers.
 	l.generateObjCAssertWrappers(src)
+	l.generateObjCDynAssertWrappers(src)
 
 	return l.hm, nil
 }
@@ -200,6 +201,12 @@ var assertRe = regexp.MustCompile(
 // Groups: 1=ClassName, 2=field_inits (may be empty), 3=methodName, 4=args (may be empty), 5=expected, 6=via
 var objcAssertRe = regexp.MustCompile(
 	`//\s*assert-objc\s+(\w+)\{([^}]*)}\s*\.\s*(\w+)\s*\(([^)]*)\)\s*==\s*(-?(?:0[xX][0-9a-fA-F]+|\d+))(?:\s+via\s+(mir2|z80))?\s*$`,
+)
+
+// objcDynAssertRe matches: // assert-objc-dyn Drawable Circle{radius:5}.area() == 25
+// Groups: 1=Protocol, 2=ClassName, 3=field_inits, 4=methodName, 5=args, 6=expected, 7=via
+var objcDynAssertRe = regexp.MustCompile(
+	`//\s*assert-objc-dyn\s+(\w+)\s+(\w+)\{([^}]*)}\s*\.\s*(\w+)\s*\(([^)]*)\)\s*==\s*(-?(?:0[xX][0-9a-fA-F]+|\d+))(?:\s+via\s+(mir2|z80))?\s*$`,
 )
 
 // sandboxStartRe matches: // sandbox "name"

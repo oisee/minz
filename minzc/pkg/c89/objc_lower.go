@@ -1,11 +1,12 @@
 // ObjC → HIR lowering for MinZ C89 frontend.
 //
-// On Z80 there is no ObjC runtime — all dispatch is static:
+// Dispatch is static by default, dynamic when receiver is protocol-typed:
 //
-//	@interface Foo { int x; }    → struct Foo { x: i16 }
+//	@interface Foo { int x; }    → struct Foo { __vtable: ptr, x: i16 }
 //	-(int)add:(int)a             → fun Foo_add(self: ptr, a: i16) -> i16
-//	[foo add:5]                  → Foo_add(foo, 5)
-//	@protocol P                  → compile-time constraint (no codegen)
+//	[foo add:5]                  → Foo_add(foo, 5)            [static]
+//	id<P> p = foo; [p add:5]    → vtable_call(p, P.add, 5)   [dynamic]
+//	@protocol P                  → defines vtable layout + conformance check
 //
 // Method name mangling: ClassName_selectorFlattened
 //   -(int)value           → Foo_value
@@ -33,10 +34,12 @@ type objcClassInfo struct {
 	methods   map[string]*objcMethod // selector → method info (includes inherited)
 }
 
-// objcProtocolInfo stores parsed @protocol data for conformance checking.
+// objcProtocolInfo stores parsed @protocol data for conformance checking
+// and vtable layout. Method order in selectors defines the vtable slot order.
 type objcProtocolInfo struct {
-	name    string
-	methods map[string]*objcMethod // required methods
+	name      string
+	methods   map[string]*objcMethod // required methods
+	selectors []string               // ordered selector list (defines vtable layout)
 }
 
 type objcMethod struct {
@@ -84,6 +87,20 @@ func (l *lowerer) lowerObjCInterface(iface *cc.ObjCInterfaceDecl) error {
 			}
 		}
 	}
+	// If class conforms to any protocol, prepend __vtable pointer field.
+	if len(info.protocols) > 0 {
+		hasVtable := false
+		for _, f := range mst.Fields {
+			if f.Name == "__vtable" {
+				hasVtable = true
+				break
+			}
+		}
+		if !hasVtable {
+			mst.Fields = append([]mir2.StructField{{Name: "__vtable", Ty: mir2.TyPtr}}, mst.Fields...)
+		}
+	}
+
 	// Then own ivars.
 	for _, iv := range iface.Ivars {
 		ty := l.objcTypeFromTokens(iv.TypeTokens)
@@ -158,11 +175,12 @@ func (l *lowerer) lowerObjCImplementation(impl *cc.ObjCImplementationDecl) error
 		}
 	}
 
-	// Check protocol conformance.
+	// Check protocol conformance and generate vtables.
 	for _, protoName := range info.protocols {
 		if err := l.checkProtocolConformance(className, info, protoName); err != nil {
 			return err
 		}
+		l.generateVtable(className, info, protoName)
 	}
 
 	return nil
@@ -194,6 +212,7 @@ func (l *lowerer) lowerObjCProtocol(proto *cc.ObjCProtocolDecl) {
 			retTy:  retTy,
 			params: params,
 		}
+		pinfo.selectors = append(pinfo.selectors, sel)
 	}
 	l.objcProtocols[name] = pinfo
 }
@@ -266,6 +285,7 @@ func (l *lowerer) lowerObjCMethod(className string, info *objcClassInfo, md *cc.
 }
 
 // lowerObjCMessage converts [receiver sel:arg1 kw2:arg2] → ClassName_sel_kw2(receiver, arg1, arg2).
+// If the receiver is protocol-typed (id<Proto>), emits dynamic dispatch via vtable.
 func (fl *funcLow) lowerObjCMessage(msg *cc.ObjCMessageExpr) (*exprResult, error) {
 	// Lower receiver.
 	receiver, err := fl.lowerExprAsExpr(msg.Receiver)
@@ -282,6 +302,13 @@ func (fl *funcLow) lowerObjCMessage(msg *cc.ObjCMessageExpr) (*exprResult, error
 		isSuper = true
 		// Replace receiver with self (same object, parent method).
 		receiver = hir.Var("self", mir2.TyPtr)
+	}
+
+	// Check for protocol-typed receiver → dynamic dispatch.
+	if !isSuper {
+		if protoName := fl.resolveObjCReceiverProtocol(receiver); protoName != "" {
+			return fl.lowerObjCDynamicMessage(receiver, protoName, sel, msg)
+		}
 	}
 
 	// Resolve class name from receiver.
@@ -322,6 +349,81 @@ func (fl *funcLow) lowerObjCMessage(msg *cc.ObjCMessageExpr) (*exprResult, error
 	}
 
 	return wrapExpr(hir.Call(mangled, retTy, args...)), nil
+}
+
+// resolveObjCReceiverProtocol checks if a receiver is protocol-typed (id<Proto>).
+// Returns the protocol name or "" for concrete types.
+func (fl *funcLow) resolveObjCReceiverProtocol(receiver hir.Expr) string {
+	v, ok := receiver.(*hir.VarRefExpr)
+	if !ok {
+		return ""
+	}
+	if fl.objcProtoVars != nil {
+		if proto, ok := fl.objcProtoVars[v.Name]; ok {
+			return proto
+		}
+	}
+	return ""
+}
+
+// lowerObjCDynamicMessage emits a vtable-based indirect call for protocol-typed receivers.
+//
+//	id<Drawable> shape = circle;
+//	[shape draw]  →  call_indirect(load(load(shape) + slot*2), shape, ...)
+//
+// Layout: shape points to object, object.__vtable (offset 0) points to vtable array,
+// vtable[slot] holds the function address.
+func (fl *funcLow) lowerObjCDynamicMessage(receiver hir.Expr, protoName, sel string, msg *cc.ObjCMessageExpr) (*exprResult, error) {
+	proto := fl.low.objcProtocols[protoName]
+	if proto == nil {
+		return nil, fmt.Errorf("unknown protocol %s for dynamic dispatch", protoName)
+	}
+
+	slot := vtableSlot(proto, sel)
+	if slot < 0 {
+		return nil, fmt.Errorf("selector -%s not found in protocol %s", sel, protoName)
+	}
+
+	// Look up return type from protocol method info.
+	var retTy mir2.Ty = mir2.TyU16
+	if m := proto.methods[sel]; m != nil {
+		retTy = m.retTy
+	}
+
+	// Build: load vtable ptr from object (offset 0).
+	vtablePtr := hir.Load(receiver, mir2.TyPtr)
+
+	// Build: load function ptr from vtable[slot] = vtablePtr + slot*2.
+	var fnPtr hir.Expr
+	if slot == 0 {
+		fnPtr = hir.Load(vtablePtr, mir2.TyPtr)
+	} else {
+		slotAddr := &hir.BinExpr{
+			Op: "+",
+			L:  vtablePtr,
+			R:  &hir.IntLitExpr{Val: int64(slot * 2), Ty: mir2.TyPtr},
+			Ty: mir2.TyPtr,
+		}
+		fnPtr = hir.Load(slotAddr, mir2.TyPtr)
+	}
+
+	// Build args: receiver first, then message arguments.
+	args := []hir.Expr{receiver}
+	for _, a := range msg.Args {
+		if a.Value != nil {
+			argExpr, err := fl.lowerExprAsExpr(a.Value)
+			if err != nil {
+				return nil, err
+			}
+			args = append(args, argExpr)
+		}
+	}
+
+	return wrapExpr(&hir.CallIndirectExpr{
+		FnPtr: fnPtr,
+		Args:  args,
+		Ty:    retTy,
+	}), nil
 }
 
 // resolveObjCReceiverClass determines the class name for a message receiver.
@@ -416,6 +518,77 @@ func (l *lowerer) checkProtocolConformance(className string, info *objcClassInfo
 		}
 	}
 	return nil
+}
+
+// ── Dynamic Dispatch (Protocol-Based Vtables) ────────────────────────────────
+//
+// When a receiver is typed as id<Protocol>, dispatch goes through a vtable:
+//
+//   @protocol Drawable
+//   -(int)draw;         // slot 0
+//   -(int)area;         // slot 1
+//   @end
+//
+//   // Each conforming class gets a vtable global:
+//   global __vtable_Circle_Drawable = [&Circle_draw, &Circle_area]
+//   global __vtable_Rect_Drawable   = [&Rect_draw,   &Rect_area]
+//
+//   // Object struct has __vtable at offset 0:
+//   struct Circle { __vtable: ptr, x: i16, y: i16, r: i16 }
+//
+//   // Dynamic call: load vtable ptr, index, call indirect.
+//   id<Drawable> shape = circle;
+//   [shape draw]  →  call_indirect(load(shape + 0)[slot * 2], shape)
+//
+
+// vtableName returns the global name for a class's protocol vtable.
+func vtableName(className, protoName string) string {
+	return "__vtable_" + className + "_" + protoName
+}
+
+// vtableSlot returns the slot index for a selector within a protocol.
+// Returns -1 if not found.
+func vtableSlot(proto *objcProtocolInfo, sel string) int {
+	for i, s := range proto.selectors {
+		if s == sel {
+			return i
+		}
+	}
+	return -1
+}
+
+// generateVtable emits a global array of function pointers for a class's
+// protocol conformance. Each slot holds the address of the class's
+// implementation of that protocol method.
+func (l *lowerer) generateVtable(className string, info *objcClassInfo, protoName string) {
+	proto := l.objcProtocols[protoName]
+	if proto == nil {
+		return
+	}
+
+	// Build init data: array of function addresses (2 bytes each on Z80).
+	// Each entry is the address of ClassName_selector.
+	var syms []string
+	for _, sel := range proto.selectors {
+		m := info.methods[sel]
+		if m != nil {
+			syms = append(syms, m.mangledName)
+		} else {
+			syms = append(syms, "") // shouldn't happen if conformance passed
+		}
+	}
+
+	gname := vtableName(className, protoName)
+	// Each slot is 2 bytes (ptr width on Z80). Init is zeroed — VM patches at load time.
+	initBytes := make([]byte, len(syms)*2)
+	g := mir2.Global{
+		Name:       gname,
+		Ty:         mir2.TyPtr, // base type; actual size = len(VtableSyms)*2
+		Init:       initBytes,
+		VtableSyms: syms, // list of function names — resolved to addresses at link/VM time
+	}
+	l.hm.Globals = append(l.hm.Globals, g)
+	l.globals[gname] = mir2.TyPtr
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -706,4 +879,218 @@ func parseObjCAssert(line string, lineNo int) (objcAssertInfo, bool) {
 
 	oa.expected, _ = strconv.ParseInt(m[5], 0, 64)
 	return oa, true
+}
+
+// ── Dynamic Dispatch Assert Wrappers ──────────────────────────────────────────
+//
+// assert-objc-dyn Drawable Circle{radius:5}.area() == 25
+//
+// Generates a wrapper that:
+//   1. Allocates the object with vtable pointer at offset 0
+//   2. Stores address of __vtable_Circle_Drawable at offset 0
+//   3. Initializes fields
+//   4. Loads function pointer from vtable[slot]
+//   5. Calls indirectly with object as self
+
+func (l *lowerer) generateObjCDynAssertWrappers(src string) {
+	counter := 0
+	for i, line := range strings.Split(src, "\n") {
+		line = strings.TrimSpace(line)
+		lineNo := i + 1
+
+		da, ok := parseObjCDynAssert(line, lineNo)
+		if !ok {
+			continue
+		}
+
+		info := l.objcClasses[da.className]
+		if info == nil {
+			continue
+		}
+		st := l.structs[da.className]
+		if st == nil {
+			continue
+		}
+		proto := l.objcProtocols[da.protoName]
+		if proto == nil {
+			continue
+		}
+
+		sel := da.selector()
+		slot := vtableSlot(proto, sel)
+		if slot < 0 {
+			continue
+		}
+
+		// Look up return type from protocol method.
+		var retTy mir2.Ty = mir2.TyI16
+		if m := proto.methods[sel]; m != nil && m.retTy != nil && m.retTy != mir2.TyVoid {
+			retTy = m.retTy
+		}
+
+		wrapperName := fmt.Sprintf("__objc_dyn_test_%d", counter)
+		counter++
+
+		var body []hir.Stmt
+
+		// 1. Allocate object struct (zero-init).
+		body = append(body, &hir.VarDeclStmt{
+			Name: "__obj",
+			Ty:   mir2.TyPtr,
+			Init: &hir.StructLitExpr{St: st, Fields: nil},
+		})
+
+		// 2. Store vtable pointer at offset 0 (__vtable field).
+		vtName := vtableName(da.className, da.protoName)
+		body = append(body, hir.Assign(
+			&hir.FieldExpr{
+				X:      hir.Var("__obj", mir2.TyPtr),
+				Field:  "__vtable",
+				Offset: 0,
+				Ty:     mir2.TyPtr,
+			},
+			&hir.AddrOfExpr{Sym: vtName},
+		))
+
+		// 3. Initialize fields.
+		for _, fi := range da.fieldInits {
+			fieldOff := 0
+			for j, sf := range st.Fields {
+				if sf.Name == fi.name {
+					fieldOff = st.ByteOffset(j)
+					break
+				}
+			}
+			body = append(body, hir.Assign(
+				&hir.FieldExpr{
+					X:      hir.Var("__obj", mir2.TyPtr),
+					Field:  fi.name,
+					Offset: fieldOff,
+					Ty:     mir2.TyI16,
+				},
+				&hir.IntLitExpr{Val: fi.val, Ty: mir2.TyI16},
+			))
+		}
+
+		// 4. Load vtable ptr from obj (offset 0), then fn ptr from vtable[slot].
+		body = append(body, &hir.VarDeclStmt{
+			Name: "__vt",
+			Ty:   mir2.TyPtr,
+			Init: hir.Load(hir.Var("__obj", mir2.TyPtr), mir2.TyPtr),
+		})
+
+		var fnPtrExpr hir.Expr
+		if slot == 0 {
+			fnPtrExpr = hir.Load(hir.Var("__vt", mir2.TyPtr), mir2.TyPtr)
+		} else {
+			fnPtrExpr = hir.Load(&hir.BinExpr{
+				Op: "+",
+				L:  hir.Var("__vt", mir2.TyPtr),
+				R:  &hir.IntLitExpr{Val: int64(slot * 2), Ty: mir2.TyPtr},
+				Ty: mir2.TyPtr,
+			}, mir2.TyPtr)
+		}
+		body = append(body, &hir.VarDeclStmt{
+			Name: "__fn",
+			Ty:   mir2.TyPtr,
+			Init: fnPtrExpr,
+		})
+
+		// 5. Call indirect: __fn(__obj, args...)
+		callArgs := []hir.Expr{hir.Var("__obj", mir2.TyPtr)}
+		for _, a := range da.args {
+			callArgs = append(callArgs, &hir.IntLitExpr{Val: a, Ty: mir2.TyI16})
+		}
+
+		body = append(body, &hir.ReturnStmt{
+			Val: &hir.CallIndirectExpr{
+				FnPtr: hir.Var("__fn", mir2.TyPtr),
+				Args:  callArgs,
+				Ty:    retTy,
+			},
+		})
+
+		l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
+			Name:   wrapperName,
+			Params: nil,
+			RetTy:  retTy,
+			Body:   hir.Blk(body...),
+		})
+
+		via := da.via
+		if via == "" {
+			via = "mir2"
+		}
+		l.hm.Asserts = append(l.hm.Asserts, hir.Assert{
+			FuncName: wrapperName,
+			Args:     nil,
+			Expected: da.expected,
+			Source:   line,
+			Line:     lineNo,
+			Via:      via,
+		})
+	}
+}
+
+type objcDynAssertInfo struct {
+	protoName  string
+	className  string
+	fieldInits []objcFieldInit
+	methodName string
+	args       []int64
+	expected   int64
+	via        string
+}
+
+func (da *objcDynAssertInfo) selector() string {
+	if len(da.args) > 0 {
+		return da.methodName + ":"
+	}
+	return da.methodName
+}
+
+func parseObjCDynAssert(line string, lineNo int) (objcDynAssertInfo, bool) {
+	m := objcDynAssertRe.FindStringSubmatch(line)
+	if m == nil {
+		return objcDynAssertInfo{}, false
+	}
+
+	da := objcDynAssertInfo{
+		protoName:  m[1],
+		className:  m[2],
+		methodName: m[4],
+		via:        m[7],
+	}
+
+	fieldsStr := strings.TrimSpace(m[3])
+	if fieldsStr != "" {
+		for _, part := range strings.Split(fieldsStr, ",") {
+			part = strings.TrimSpace(part)
+			kv := strings.SplitN(part, ":", 2)
+			if len(kv) != 2 {
+				continue
+			}
+			name := strings.TrimSpace(kv[0])
+			val, err := strconv.ParseInt(strings.TrimSpace(kv[1]), 0, 64)
+			if err != nil {
+				continue
+			}
+			da.fieldInits = append(da.fieldInits, objcFieldInit{name: name, val: val})
+		}
+	}
+
+	argsStr := strings.TrimSpace(m[5])
+	if argsStr != "" {
+		for _, s := range strings.Split(argsStr, ",") {
+			s = strings.TrimSpace(s)
+			v, err := strconv.ParseInt(s, 0, 64)
+			if err != nil {
+				continue
+			}
+			da.args = append(da.args, v)
+		}
+	}
+
+	da.expected, _ = strconv.ParseInt(m[6], 0, 64)
+	return da, true
 }

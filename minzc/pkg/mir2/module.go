@@ -56,6 +56,11 @@ type Global struct {
 	IsConst bool         // true = read-only (placed in ROM on Z80)
 	At      *uint16      // if non-nil: variable is placed at this absolute address (EQU / AT)
 	Storage StorageClass // how the global's data is stored; default StorageNormal
+
+	// VtableSyms holds function names for vtable globals (ObjC dynamic dispatch).
+	// Each entry is a mangled function name whose address occupies one ptr-width slot.
+	// Empty string = nil slot (protocol method not implemented).
+	VtableSyms []string
 }
 
 // ── String pool ───────────────────────────────────────────────────────────────

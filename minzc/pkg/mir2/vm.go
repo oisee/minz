@@ -148,6 +148,30 @@ func NewVM(m *Module) *VM {
 			vm.heap = append(vm.heap, 0) // NUL terminator
 		}
 	}
+	// Resolve vtable globals: patch function addresses into vtable slots.
+	for _, g := range m.Globals {
+		if len(g.VtableSyms) == 0 {
+			continue
+		}
+		base, ok := vm.globalSyms[g.Name]
+		if !ok {
+			continue
+		}
+		for i, sym := range g.VtableSyms {
+			if sym == "" {
+				continue
+			}
+			addr, ok := vm.globalSyms[sym]
+			if !ok {
+				continue
+			}
+			off := base + int64(i*2)
+			if off+2 <= int64(len(vm.heap)) {
+				vm.heap[off] = byte(addr)
+				vm.heap[off+1] = byte(addr >> 8)
+			}
+		}
+	}
 	vm.registerBuiltinHosts()
 	return vm
 }

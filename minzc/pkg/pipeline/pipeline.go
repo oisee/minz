@@ -268,13 +268,16 @@ func RunAssertsMIR2(hm *hir.Module, m *mir2.Module) error {
 		if a.Via == "z80" {
 			continue
 		}
-		if err := runOneAssertMIR2(mir2.NewVM(m), a); err != nil {
+		vm := mir2.NewVM(m)
+		prepareVM(vm)
+		if err := runOneAssertMIR2(vm, a); err != nil {
 			return err
 		}
 	}
 	// Sandbox blocks: one shared VM per sandbox.
 	for _, sb := range hm.Sandboxes {
 		vm := mir2.NewVM(m)
+		prepareVM(vm)
 		for _, a := range sb.Asserts {
 			if a.Via == "z80" {
 				continue
@@ -285,6 +288,11 @@ func RunAssertsMIR2(hm *hir.Module, m *mir2.Module) error {
 		}
 	}
 	return nil
+}
+
+// prepareVM registers optional host functions (canvas, etc.) on a fresh VM.
+func prepareVM(vm *mir2.VM) {
+	mir2.RegisterCanvasHosts(vm)
 }
 
 // runOneAssertMIR2 evaluates a single compile-time assertion on the given VM.

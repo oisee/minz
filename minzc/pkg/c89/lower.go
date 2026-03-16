@@ -395,7 +395,8 @@ type funcLow struct {
 
 	// ObjC: set when lowering a method inside @implementation.
 	objcClass  *objcClassInfo
-	objcLocals map[string]string // varName → className (for typed receivers)
+	objcLocals    map[string]string // varName → className (for typed receivers)
+	objcProtoVars map[string]string // varName → protocolName (for id<Proto> dynamic dispatch)
 }
 
 func (fl *funcLow) tmpCounter() int {
