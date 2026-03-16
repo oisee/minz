@@ -3,6 +3,7 @@ package mir2
 import (
 	"fmt"
 	"math"
+	"os"
 )
 
 // VM is a simple interpreter for MIR2 functions.
@@ -740,6 +741,66 @@ func (vm *VM) registerBuiltinHosts() {
 		} else {
 			fmt.Print("false")
 		}
+		return nil, nil
+	}
+	vm.Hosts["@mir.io.print.nl"] = func(_ []Value) ([]Value, error) {
+		fmt.Println()
+		return nil, nil
+	}
+	vm.Hosts["@mir.io.print.str"] = func(args []Value) ([]Value, error) {
+		if len(args) < 1 {
+			return nil, nil
+		}
+		// arg is a pointer into the VM heap — read null-terminated string
+		ptr := args[0].I
+		var buf []byte
+		for i := int64(0); i < 4096; i++ {
+			b := vm.ReadHeap(ptr+i, 1)
+			if b == nil || b[0] == 0 {
+				break
+			}
+			buf = append(buf, b[0])
+		}
+		fmt.Print(string(buf))
+		return nil, nil
+	}
+	vm.Hosts["@mir.io.print.dec"] = func(args []Value) ([]Value, error) {
+		if len(args) < 1 {
+			return nil, nil
+		}
+		fmt.Printf("%d", uint8(args[0].I))
+		return nil, nil
+	}
+	vm.Hosts["@mir.io.console.log"] = func(args []Value) ([]Value, error) {
+		if len(args) < 1 {
+			return nil, nil
+		}
+		ptr := args[0].I
+		var buf []byte
+		for i := int64(0); i < 4096; i++ {
+			b := vm.ReadHeap(ptr+i, 1)
+			if b == nil || b[0] == 0 {
+				break
+			}
+			buf = append(buf, b[0])
+		}
+		fmt.Fprintf(os.Stderr, "%s\n", string(buf))
+		return nil, nil
+	}
+	vm.Hosts["@mir.io.console.err"] = func(args []Value) ([]Value, error) {
+		if len(args) < 1 {
+			return nil, nil
+		}
+		ptr := args[0].I
+		var buf []byte
+		for i := int64(0); i < 4096; i++ {
+			b := vm.ReadHeap(ptr+i, 1)
+			if b == nil || b[0] == 0 {
+				break
+			}
+			buf = append(buf, b[0])
+		}
+		fmt.Fprintf(os.Stderr, "%s\n", string(buf))
 		return nil, nil
 	}
 	vm.Hosts["@mir.io.halt"] = func(_ []Value) ([]Value, error) {

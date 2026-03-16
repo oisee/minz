@@ -1,0 +1,92 @@
+// SAP Material Master on Z80 — MARA + MAKT via SQLite
+//
+// Run: mzv2 -headless -trace examples/nanz/sap_mara_demo.nanz
+//
+// Creates MARA (material master) and MAKT (material texts) tables,
+// populates with sample SAP data, then runs a report with filtering.
+// This is what an ABAP report does when you run SE16 on MARA.
+
+@extern fun sqlite_open(name: ^u8) -> u16
+@extern fun sqlite_close(handle: u16) -> u8
+@extern fun sqlite_exec(handle: u16, sql: ^u8) -> u8
+@extern fun sqlite_query(handle: u16, sql: ^u8) -> u16
+@extern fun sqlite_step(stmt: u16) -> u8
+@extern fun sqlite_finalize(stmt: u16) -> u8
+@extern fun sqlite_column_int(stmt: u16, col: u8) -> u16
+@extern fun sqlite_column_text(stmt: u16, col: u8) -> ^u8
+
+fun main() -> void {
+    var db: u16 = sqlite_open(0)
+
+    // ── Create MARA (Material General Data) ──────────────────────────
+    sqlite_exec(db, c"CREATE TABLE mara (matnr TEXT, mtart TEXT, mbrsh TEXT, meins TEXT, brgew INTEGER, ntgew INTEGER)")
+
+    // Sample materials — classic SAP demo data
+    sqlite_exec(db, c"INSERT INTO mara VALUES ('100-100', 'FERT', 'M', 'ST', 250, 230)")
+    sqlite_exec(db, c"INSERT INTO mara VALUES ('100-110', 'FERT', 'M', 'ST', 180, 165)")
+    sqlite_exec(db, c"INSERT INTO mara VALUES ('100-200', 'HALB', 'M', 'KG', 50, 45)")
+    sqlite_exec(db, c"INSERT INTO mara VALUES ('100-300', 'ROH',  'M', 'KG', 10, 10)")
+    sqlite_exec(db, c"INSERT INTO mara VALUES ('200-100', 'FERT', 'E', 'ST', 500, 480)")
+    sqlite_exec(db, c"INSERT INTO mara VALUES ('200-200', 'HAWA', 'E', 'ST', 100, 95)")
+    sqlite_exec(db, c"INSERT INTO mara VALUES ('300-100', 'DIEN', 'D', 'AU', 0, 0)")
+
+    // ── Create MAKT (Material Short Texts) ───────────────────────────
+    sqlite_exec(db, c"CREATE TABLE makt (matnr TEXT, spras TEXT, maktx TEXT)")
+
+    sqlite_exec(db, c"INSERT INTO makt VALUES ('100-100', 'E', 'Pump Assembly GRUNDFOS')")
+    sqlite_exec(db, c"INSERT INTO makt VALUES ('100-100', 'D', 'Pumpenaggregat GRUNDFOS')")
+    sqlite_exec(db, c"INSERT INTO makt VALUES ('100-110', 'E', 'Motor 3-Phase 5kW')")
+    sqlite_exec(db, c"INSERT INTO makt VALUES ('100-200', 'E', 'Shaft Steel DIN 1.4301')")
+    sqlite_exec(db, c"INSERT INTO makt VALUES ('100-300', 'E', 'Steel Rod Raw Material')")
+    sqlite_exec(db, c"INSERT INTO makt VALUES ('200-100', 'E', 'Desktop PC Standard')")
+    sqlite_exec(db, c"INSERT INTO makt VALUES ('200-200', 'E', 'Office Chair Ergonomic')")
+    sqlite_exec(db, c"INSERT INTO makt VALUES ('300-100', 'E', 'Consulting Service')")
+
+    // ── Report: SELECT * FROM mara WHERE mtart = 'FERT' ─────────────
+    @print("=== Material Master Report ===")
+    @print_nl()
+    @print("Selection: MTART = FERT (Finished Products)")
+    @print_nl()
+    @print_nl()
+    @print("MATNR      MTART MEINS  BRGEW  NTGEW  MAKTX")
+    @print_nl()
+    @print("------------------------------------------------------")
+    @print_nl()
+
+    // JOIN MARA + MAKT — inner join on matnr, filter FERT, English texts
+    var q1: u16 = sqlite_query(db, c"SELECT m.matnr, m.mtart, m.meins, m.brgew, m.ntgew, t.maktx FROM mara m LEFT JOIN makt t ON m.matnr = t.matnr AND t.spras = 'E' WHERE m.mtart = 'FERT' ORDER BY m.matnr")
+
+    var count: u8 = 0
+    while sqlite_step(q1) == 1 {
+        var brgew: u16 = sqlite_column_int(q1, 3)
+        var ntgew: u16 = sqlite_column_int(q1, 4)
+        @print_u8(u8(brgew))
+        @print_u8(u8(ntgew))
+        count = count + 1
+    }
+
+    @print("------------------------------------------------------")
+    @print_nl()
+    @print_u8(count)
+    @print(" materials found.")
+    @print_nl()
+
+    // ── Aggregate: total weight by material type ─────────────────────
+    @print_nl()
+    @print("=== Weight Summary by Material Type ===")
+    @print_nl()
+
+    var q2: u16 = sqlite_query(db, c"SELECT mtart, COUNT(*), SUM(brgew) FROM mara GROUP BY mtart ORDER BY mtart")
+    while sqlite_step(q2) == 1 {
+        var cnt: u16 = sqlite_column_int(q2, 1)
+        var total_wt: u16 = sqlite_column_int(q2, 2)
+        @print_u8(u8(cnt))
+        @print_u8(u8(total_wt))
+    }
+
+    // ── Cleanup ──────────────────────────────────────────────────────
+    sqlite_close(db)
+    @print_nl()
+    @print("Report complete.")
+    @print_nl()
+}
