@@ -780,5 +780,42 @@ func registerABAPHosts(vm *mir2.VM, trace bool) {
 		return nil, nil
 	}
 
-	fmt.Fprintf(os.Stderr, "mzv: ABAP runtime registered (SY + selection screen)\n")
+	// ── ABAP write functions (override inline asm with host functions) ───
+	// The ABAP lowerer emits abap_write/abap_write_str with Z80 inline asm
+	// (BDOS calls). The VM can't execute asm, so we override them here.
+
+	vm.Hosts["abap_write"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		if len(args) > 0 {
+			fmt.Printf("%d", uint8(args[0].I))
+		}
+		return nil, nil
+	}
+
+	vm.Hosts["abap_write_str"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		if len(args) > 0 {
+			ptr := args[0].I
+			var buf []byte
+			for i := int64(0); i < 4096; i++ {
+				b := vm.ReadHeap(ptr+i, 1)
+				if b == nil || b[0] == 0 {
+					break
+				}
+				buf = append(buf, b[0])
+			}
+			fmt.Print(string(buf))
+		}
+		return nil, nil
+	}
+
+	// abap_read_int — stub for VM (return 0)
+	vm.Hosts["abap_read_int"] = func(_ []mir2.Value) ([]mir2.Value, error) {
+		return []mir2.Value{{I: 0}}, nil
+	}
+
+	// abap_sel_read — stub for VM (keep defaults)
+	vm.Hosts["abap_sel_read"] = func(_ []mir2.Value) ([]mir2.Value, error) {
+		return nil, nil
+	}
+
+	fmt.Fprintf(os.Stderr, "mzv: ABAP runtime registered (SY + selection screen + write)\n")
 }

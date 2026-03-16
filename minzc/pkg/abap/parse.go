@@ -196,12 +196,8 @@ func convertWhile(node *ASTChild) (Stmt_, error) {
 	for _, child := range node.Children {
 		switch child.Type {
 		case "While":
-			// The WHILE statement itself — extract condition from tokens
-			tokens := collectChildTokens(child.Children)
-			// tokens like: ["WHILE", "lv_i", "<=", "5", "."]
-			// Skip "WHILE" and ".", parse the rest as condition
-			condTokens := filterTokens(tokens, "WHILE", ".")
-			cond = parseCondition(condTokens)
+			// Extract condition from the Cond child (structured), not raw tokens
+			cond = extractCondFromStmt(child)
 		case "Body":
 			// Body contains the loop statements
 			sub := &StructNode{Type: "Body", Children: child.Children}
@@ -223,9 +219,7 @@ func convertIf(node *ASTChild) (Stmt_, error) {
 	for _, child := range node.Children {
 		switch child.Type {
 		case "If":
-			tokens := collectChildTokens(child.Children)
-			condTokens := filterTokens(tokens, "IF", ".")
-			cond = parseCondition(condTokens)
+			cond = extractCondFromStmt(child)
 		case "Body":
 			sub := &StructNode{Type: "Body", Children: child.Children}
 			decls, _ := walkStructure(sub)
@@ -266,6 +260,145 @@ func convertDo(node *ASTChild) (Stmt_, error) {
 	}
 
 	return &DoStmt{Times: times, Body: body}, nil
+}
+
+// extractCondFromStmt extracts a condition expression from a While/If statement node.
+// It looks for Compare/Cond children with structured Source + CompareOperator,
+// falling back to flat token parsing.
+func extractCondFromStmt(stmtNode *ASTChild) Expr_ {
+	// Look for a Cond or Compare child with structured operands
+	for _, child := range stmtNode.Children {
+		if child.Type == "Cond" || child.Type == "Compare" {
+			return extractCompare(child)
+		}
+	}
+	// Fallback: use top-level tokens, skip keyword and period
+	tokens := collectLeafTokens(stmtNode)
+	condTokens := filterTokens(tokens, "WHILE", "IF", "ELSEIF", ".")
+	return parseCondition(condTokens)
+}
+
+// extractCompare builds an Expr_ from a Compare node with Source + CompareOperator children.
+func extractCompare(node *ASTChild) Expr_ {
+	var sources []Expr_
+	var op string
+
+	for _, child := range node.Children {
+		switch child.Type {
+		case "Source":
+			sources = append(sources, extractSource(child))
+		case "CompareOperator":
+			// Get the operator token
+			for _, t := range child.Tokens {
+				op = t.Str
+			}
+			if op == "" {
+				toks := collectLeafTokens(child)
+				if len(toks) > 0 {
+					op = toks[0]
+				}
+			}
+		case "Compare":
+			// Nested compare (AND/OR chains)
+			return extractCompare(child)
+		}
+	}
+
+	if len(sources) >= 2 && op != "" {
+		return &BinOp{Op: op, LHS: sources[0], RHS: sources[1]}
+	}
+	if len(sources) == 1 {
+		return sources[0]
+	}
+	// Fallback
+	tokens := collectLeafTokens(node)
+	return parseCondition(tokens)
+}
+
+// extractSource extracts a value expression from a Source node.
+// Source nodes have nested structure: Source → FieldChain → SourceField → Field → Identifier
+// or: Source → Constant → Integer → Identifier
+// Tokens live on intermediate nodes (FieldChain, Constant, Integer), not on Identifier leaves.
+func extractSource(node *ASTChild) Expr_ {
+	var parts []interface{} // alternating: Expr_, string (operator)
+
+	for _, child := range node.Children {
+		switch child.Type {
+		case "FieldChain", "SourceField", "Field":
+			toks := getAllTokens(child)
+			if len(toks) > 0 {
+				parts = append(parts, parseTokenExpr(toks[0]))
+			}
+		case "Constant", "Integer", "ConstantString":
+			toks := getAllTokens(child)
+			if len(toks) > 0 {
+				parts = append(parts, parseTokenExpr(toks[0]))
+			}
+		case "ArithOperator":
+			toks := getAllTokens(child)
+			if len(toks) > 0 {
+				parts = append(parts, toks[0]) // operator string
+			}
+		case "Source":
+			parts = append(parts, extractSource(child))
+		}
+	}
+
+	if len(parts) == 1 {
+		if e, ok := parts[0].(Expr_); ok {
+			return e
+		}
+	}
+	if len(parts) >= 3 {
+		lhs, _ := parts[0].(Expr_)
+		op, _ := parts[1].(string)
+		rhs, _ := parts[2].(Expr_)
+		if lhs != nil && rhs != nil && op != "" {
+			return &BinOp{Op: op, LHS: lhs, RHS: rhs}
+		}
+	}
+
+	// Fallback: try Tokens on the node itself
+	toks := getAllTokens(node)
+	if len(toks) > 0 {
+		return parseTokenExpr(toks[0])
+	}
+	return &IntLit{Val: 0}
+}
+
+// getAllTokens collects all Token.Str from a node and ALL descendants (breadth-first).
+// Unlike collectLeafTokens, this includes tokens on intermediate nodes too.
+func getAllTokens(node *ASTChild) []string {
+	var result []string
+	for _, t := range node.Tokens {
+		result = append(result, t.Str)
+	}
+	for _, c := range node.Children {
+		result = append(result, getAllTokens(c)...)
+	}
+	return result
+}
+
+// collectLeafTokens collects only the deepest token strings from a node tree,
+// avoiding duplicates from intermediate nodes that also carry tokens.
+func collectLeafTokens(node *ASTChild) []string {
+	if len(node.Children) == 0 {
+		// Leaf node
+		var toks []string
+		if node.Str != "" {
+			toks = append(toks, node.Str)
+		}
+		for _, t := range node.Tokens {
+			toks = append(toks, t.Str)
+		}
+		return toks
+	}
+	// Has children — collect from children only
+	var toks []string
+	for _, c := range node.Children {
+		toks = append(toks, collectLeafTokens(c)...)
+	}
+	return toks
 }
 
 // parseCondition parses condition tokens into an Expr_.
