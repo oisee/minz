@@ -234,7 +234,7 @@ func compile(sourceFile string) error {
 	ext := filepath.Ext(sourceFile)
 
 	// PL/M-80, Nanz, and HIR text: routed through the new HIR→MIR2→Z80 pipeline.
-	if ext == ".plm" || ext == ".nanz" || ext == ".hir" || ext == ".lanz" || ext == ".lizp" || ext == ".pas" || ext == ".c" {
+	if ext == ".plm" || ext == ".nanz" || ext == ".hir" || ext == ".lanz" || ext == ".lizp" || ext == ".pas" || ext == ".c" || ext == ".m" {
 		if emitFormat == "nanz" && ext != ".hir" && ext != ".lanz" {
 			return compilePLMToNanz(sourceFile)
 		}
@@ -750,10 +750,10 @@ func compileViaHIR(sourceFile string) error {
 		if err != nil {
 			return fmt.Errorf("Pascal compile: %w", err)
 		}
-	case ".c":
+	case ".c", ".m":
 		hirMod, err = c89.Compile(string(src), filepath.Base(sourceFile))
 		if err != nil {
-			return fmt.Errorf("C89 compile: %w", err)
+			return fmt.Errorf("C89/ObjC compile: %w", err)
 		}
 	default:
 		return fmt.Errorf("unsupported extension for HIR pipeline: %s", ext)

@@ -2,6 +2,7 @@ package c89
 
 import (
 	"fmt"
+	"strings"
 
 	cc "github.com/minz/minzc/pkg/cparse"
 
@@ -15,6 +16,9 @@ type lowerer struct {
 	globals  map[string]mir2.Ty
 	typedefs map[string]mir2.Ty
 	structs  map[string]*mir2.StructTy
+
+	// ObjC: class info from @interface declarations.
+	objcClasses map[string]*objcClassInfo
 }
 
 func (l *lowerer) lower() error {
@@ -33,6 +37,16 @@ func (l *lowerer) lower() error {
 			if err := l.lowerTopDecl(ed.Declaration); err != nil {
 				return err
 			}
+		case cc.ExternalDeclarationObjCInterface:
+			if err := l.lowerObjCInterface(ed.ObjCInterface); err != nil {
+				return err
+			}
+		case cc.ExternalDeclarationObjCImplementation:
+			if err := l.lowerObjCImplementation(ed.ObjCImplementation); err != nil {
+				return err
+			}
+		case cc.ExternalDeclarationObjCProtocol:
+			// Protocols are compile-time constraints only — no codegen.
 		}
 	}
 	return nil
@@ -251,6 +265,10 @@ type funcLow struct {
 	name   string
 	retTy  mir2.Ty
 	locals map[string]mir2.Ty
+
+	// ObjC: set when lowering a method inside @implementation.
+	objcClass  *objcClassInfo
+	objcLocals map[string]string // varName → className (for typed receivers)
 }
 
 func (fl *funcLow) lowerCompound(cs *cc.CompoundStatement) ([]hir.Stmt, error) {
@@ -891,8 +909,10 @@ func (fl *funcLow) lowerPrimary(pe *cc.PrimaryExpression) (*exprResult, error) {
 				isFunc := t != nil && (t.Kind() == cc.Function || t.Kind() == cc.Ptr)
 				if !isFunc {
 					if v := pe.Value(); v != nil {
-						ty := fl.low.mapType(t)
-						return wrapExpr(&hir.IntLitExpr{Val: constToInt64(v), Ty: ty}), nil
+						if _, unknown := v.(*cc.UnknownValue); !unknown {
+							ty := fl.low.mapType(t)
+							return wrapExpr(&hir.IntLitExpr{Val: constToInt64(v), Ty: ty}), nil
+						}
 					}
 				}
 			}
@@ -902,11 +922,21 @@ func (fl *funcLow) lowerPrimary(pe *cc.PrimaryExpression) (*exprResult, error) {
 
 	case cc.PrimaryExpressionInt:
 		v := pe.Value()
-		if v == nil {
-			return wrapExpr(hir.U8(0)), nil
-		}
 		ty := fl.low.mapType(pe.Type())
-		return wrapExpr(&hir.IntLitExpr{Val: constToInt64(v), Ty: ty}), nil
+		if ty == nil {
+			ty = mir2.TyI16 // fallback for untyped contexts (e.g. ObjC)
+		}
+		switch vv := v.(type) {
+		case nil:
+			// No value at all — parse from token.
+			return wrapExpr(&hir.IntLitExpr{Val: parseIntToken(pe.Token.SrcStr()), Ty: ty}), nil
+		case *cc.UnknownValue:
+			// Semantic analysis didn't resolve (ObjC method bodies) — parse from token.
+			_ = vv
+			return wrapExpr(&hir.IntLitExpr{Val: parseIntToken(pe.Token.SrcStr()), Ty: ty}), nil
+		default:
+			return wrapExpr(&hir.IntLitExpr{Val: constToInt64(v), Ty: ty}), nil
+		}
 
 	case cc.PrimaryExpressionChar:
 		v := pe.Value()
@@ -927,6 +957,12 @@ func (fl *funcLow) lowerPrimary(pe *cc.PrimaryExpression) (*exprResult, error) {
 
 	case cc.PrimaryExpressionExpr:
 		return fl.lowerExpr(pe.ExpressionList)
+
+	case cc.PrimaryExpressionObjCMessage:
+		if pe.ObjCMessage != nil {
+			return fl.lowerObjCMessage(pe.ObjCMessage)
+		}
+		return wrapExpr(hir.U8(0)), nil
 
 	default:
 		return wrapExpr(hir.U8(0)), nil
@@ -1330,10 +1366,32 @@ func constToInt64(v cc.Value) int64 {
 		return int64(n)
 	case cc.UInt64Value:
 		return int64(n)
+	case *cc.UnknownValue:
+		return 0
 	default:
 		s := fmt.Sprintf("%v", n)
 		var i int64
 		fmt.Sscanf(s, "%d", &i)
 		return i
 	}
+}
+
+// parseIntToken parses a C integer literal token string to int64.
+// Handles decimal, hex (0x), octal (0), and optional suffixes (u, l, ul, etc.).
+func parseIntToken(s string) int64 {
+	// Strip type suffixes.
+	s = strings.TrimRight(s, "uUlL")
+	if s == "" {
+		return 0
+	}
+	var val int64
+	if strings.HasPrefix(s, "0x") || strings.HasPrefix(s, "0X") {
+		fmt.Sscanf(s, "%v", &val)
+	} else if len(s) > 1 && s[0] == '0' {
+		// Octal.
+		fmt.Sscanf(s, "%v", &val)
+	} else {
+		fmt.Sscanf(s, "%d", &val)
+	}
+	return val
 }

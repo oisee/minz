@@ -671,7 +671,13 @@ func findOutParamFunctions(m *hir.Module, idx structIndex) map[string]*outParamI
 		}
 		paramName := fn.Params[lastIdx].Name
 
-		// Analyze body: all uses of paramName must be `paramName.field = expr`.
+		// Skip ObjC "self" parameter — not an out-param.
+		if paramName == "self" {
+			continue
+		}
+
+		// Analyze body: all uses of paramName must be `paramName.field = expr`
+		// AND paramName must not appear in the assigned value (pure write-only).
 		fields := make(map[string]hir.Expr) // field name → last assigned value
 		allFieldWrites := true
 
@@ -680,6 +686,11 @@ func findOutParamFunctions(m *hir.Module, idx structIndex) map[string]*outParamI
 			if assign, ok := s.(*hir.AssignStmt); ok {
 				if fe, ok := assign.Target.(*hir.FieldExpr); ok {
 					if ref, ok := fe.X.(*hir.VarRefExpr); ok && ref.Name == paramName {
+						// Also check the value doesn't read from paramName.
+						if exprUsesVar(assign.Val, paramName) {
+							allFieldWrites = false
+							return false
+						}
 						fields[fe.Field] = assign.Val
 						return true
 					}

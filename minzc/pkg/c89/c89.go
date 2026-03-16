@@ -135,12 +135,15 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 		return nil, fmt.Errorf("c89 parse: %w", err)
 	}
 
+	modName := strings.TrimSuffix(name, ".c")
+	modName = strings.TrimSuffix(modName, ".m")
 	l := &lowerer{
-		ast:      ast,
-		hm:       &hir.Module{Name: strings.TrimSuffix(name, ".c")},
-		globals:  make(map[string]mir2.Ty),
-		typedefs: make(map[string]mir2.Ty),
-		structs:  make(map[string]*mir2.StructTy),
+		ast:         ast,
+		hm:          &hir.Module{Name: modName},
+		globals:     make(map[string]mir2.Ty),
+		typedefs:    make(map[string]mir2.Ty),
+		structs:     make(map[string]*mir2.StructTy),
+		objcClasses: make(map[string]*objcClassInfo),
 	}
 
 	if err := l.lower(); err != nil {
