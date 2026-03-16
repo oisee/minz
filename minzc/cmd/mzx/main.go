@@ -1,4 +1,7 @@
 // Command mzx is a T-state accurate ZX Spectrum emulator for the MinZ toolchain.
+//
+//go:build !mzx_headless
+
 package main
 
 import (

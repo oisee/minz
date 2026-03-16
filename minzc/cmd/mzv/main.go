@@ -35,6 +35,7 @@ func main() {
 	trace := flag.Bool("trace", false, "print each VM call")
 	headless := flag.Bool("headless", false, "run without terminal (testing)")
 	maxFrames := flag.Int("max-frames", 0, "stop after N frames (0=unlimited)")
+	dumpDir := flag.String("dump-frames", "", "dump each frame as .scr file to directory")
 	flag.Parse()
 	if flag.NArg() < 1 {
 		fmt.Fprintln(os.Stderr, "usage: mzv2 [-trace] program.nanz")
@@ -150,6 +151,11 @@ func main() {
 	frameCount := 0
 	maxF := *maxFrames
 
+	// Create frame dump directory if requested.
+	if *dumpDir != "" {
+		os.MkdirAll(*dumpDir, 0755)
+	}
+
 	vm.Hosts["zx_halt"] = func(_ []mir2.Value) ([]mir2.Value, error) {
 		// Clear key state FIRST (end of previous frame's input window),
 		// then wait for tick. Game reads keys AFTER halt returns, so new
@@ -164,6 +170,13 @@ func main() {
 			renderFrame(&zxMem)
 		}
 		frameCount++
+
+		// Dump frame as .scr file (6912 bytes: 6144 pixels + 768 attrs).
+		if *dumpDir != "" {
+			scrPath := fmt.Sprintf("%s/frame_%04d.scr", *dumpDir, frameCount)
+			os.WriteFile(scrPath, zxMem[0x4000:0x5B00], 0644)
+		}
+
 		if maxF > 0 && frameCount >= maxF {
 			return nil, fmt.Errorf("reached %d frames, stopping", maxF)
 		}
