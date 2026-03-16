@@ -16,6 +16,7 @@ type lowerer struct {
 	globals  map[string]mir2.Ty
 	typedefs map[string]mir2.Ty
 	structs  map[string]*mir2.StructTy
+	cStructs map[cc.Type]string // C struct type → MIR2 struct name
 
 	// ObjC: class info from @interface declarations.
 	objcClasses   map[string]*objcClassInfo
@@ -157,6 +158,7 @@ func (l *lowerer) lowerTopDecl(d *cc.Declaration) error {
 				if l.structs[tag] == nil {
 					l.lowerStructDecl(tag, st)
 				}
+				l.cStructs[ty] = tag // also register the typedef's cc.Type
 				l.typedefs[name] = mir2.TyPtr
 			} else if ty.Kind() == cc.Union {
 				ut := ty.(*cc.UnionType)
@@ -223,12 +225,39 @@ func (l *lowerer) lowerStructDecl(tag string, st *cc.StructType) {
 		if fname == "" {
 			fname = fmt.Sprintf("_f%d", i)
 		}
+		fty := f.Type()
+		// Flatten embedded struct fields: `Point origin` → `origin.x`, `origin.y`.
+		// This ensures correct byte layout and field offset computation.
+		if fty != nil && fty.Kind() == cc.Struct {
+			innerSt, ok := fty.(*cc.StructType)
+			if ok {
+				innerTag := l.structTag(innerSt)
+				if innerTag == "" {
+					innerTag = fname
+				}
+				// Ensure inner struct is lowered first.
+				if l.structs[innerTag] == nil {
+					l.lowerStructDecl(innerTag, innerSt)
+				}
+				// Flatten: add inner fields with prefixed names.
+				if inner := l.structs[innerTag]; inner != nil {
+					for _, sf := range inner.Fields {
+						mst.Fields = append(mst.Fields, mir2.StructField{
+							Name: fname + "." + sf.Name,
+							Ty:   sf.Ty,
+						})
+					}
+					continue
+				}
+			}
+		}
 		mst.Fields = append(mst.Fields, mir2.StructField{
 			Name: fname,
-			Ty:   l.mapType(f.Type()),
+			Ty:   l.mapType(fty),
 		})
 	}
 	l.structs[tag] = mst
+	l.cStructs[st] = tag
 	l.hm.Structs = append(l.hm.Structs, mst)
 }
 
@@ -1156,10 +1185,15 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 		if err != nil {
 			return nil, err
 		}
-		tok := pf.Token2
-		field := tok.SrcStr()
+		field := pf.Token2.SrcStr()
 		ty := fl.low.mapType(pf.Type())
 		offset := fl.resolveFieldOffset(pf.PostfixExpression.Type(), field)
+		// Flatten nested struct access: if base is a FieldExpr for an embedded struct,
+		// combine offsets instead of nesting (FieldExpr always does Load, which is wrong
+		// for embedded struct intermediate access).
+		if fe, ok := base.(*hir.FieldExpr); ok {
+			return wrapExpr(&hir.FieldExpr{X: fe.X, Field: field, Offset: fe.Offset + offset, Ty: ty}), nil
+		}
 		return wrapExpr(&hir.FieldExpr{X: base, Field: field, Offset: offset, Ty: ty}), nil
 
 	case cc.PostfixExpressionPSelect: // struct->field
@@ -1167,10 +1201,13 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 		if err != nil {
 			return nil, err
 		}
-		tok := pf.Token2
-		field := tok.SrcStr()
+		field := pf.Token2.SrcStr()
 		ty := fl.low.mapType(pf.Type())
 		offset := fl.resolveFieldOffset(pf.PostfixExpression.Type(), field)
+		// Flatten: ptr->inner.field where inner is embedded.
+		if fe, ok := base.(*hir.FieldExpr); ok {
+			return wrapExpr(&hir.FieldExpr{X: fe.X, Field: field, Offset: fe.Offset + offset, Ty: ty}), nil
+		}
 		return wrapExpr(&hir.FieldExpr{X: base, Field: field, Offset: offset, Ty: ty}), nil
 
 	case cc.PostfixExpressionInc: // x++
@@ -1531,7 +1568,13 @@ func (l *lowerer) resolveStructType(t cc.Type) *mir2.StructTy {
 				return mst
 			}
 		}
-		// Try all known structs by field count/layout match (anonymous typedef structs).
+		// Try C type identity mapping (handles typedef'd anonymous structs).
+		if name, ok := l.cStructs[t]; ok {
+			if mst := l.structs[name]; mst != nil {
+				return mst
+			}
+		}
+		// Last resort: try all known structs by field count/layout match.
 		nf := st.NumFields()
 		for _, mst := range l.structs {
 			if len(mst.Fields) == nf {
@@ -1578,6 +1621,13 @@ func (fl *funcLow) resolveFieldOffset(cTy cc.Type, field string) int {
 	if mst := fl.low.resolveStructType(cTy); mst != nil {
 		for i, f := range mst.Fields {
 			if f.Name == field {
+				return mst.ByteOffset(i)
+			}
+		}
+		// Flattened embedded struct: field "origin" → match "origin." prefix.
+		prefix := field + "."
+		for i, f := range mst.Fields {
+			if strings.HasPrefix(f.Name, prefix) {
 				return mst.ByteOffset(i)
 			}
 		}
@@ -1644,7 +1694,35 @@ func (fl *funcLow) lowerStructInit(st *mir2.StructTy, il *cc.InitializerList) (*
 				val = r.toExpr()
 			}
 		case cc.InitializerInitList:
-			// Nested brace init — skip for now.
+			// Nested brace init — flatten embedded struct fields into parent.
+			if fieldIdx < len(st.Fields) {
+				innerSt := fl.low.structs[st.Fields[fieldIdx].Name]
+				if innerSt == nil {
+					// Try finding by looking up the struct field type name from the C AST.
+					// For now, flatten: walk the inner init list and assign to parent fields sequentially.
+					innerIdx := fieldIdx
+					for innerIL := init.InitializerList; innerIL != nil; innerIL = innerIL.InitializerList {
+						innerInit := innerIL.Initializer
+						if innerInit == nil || innerInit.Case != cc.InitializerExpr {
+							continue
+						}
+						// This inner value maps to a flattened field in the parent struct.
+						// E.g. {{10, 20}, 100} → fields[0]=10, fields[1]=20, fields[2]=100
+						if innerIdx < len(st.Fields) {
+							r, err := fl.lowerExpr(innerInit.AssignmentExpression)
+							if err != nil {
+								return nil, err
+							}
+							lit.Fields = append(lit.Fields, hir.FieldInit{
+								Name: st.Fields[innerIdx].Name,
+								Val:  r.toExpr(),
+							})
+						}
+						innerIdx++
+					}
+					fieldIdx = innerIdx - 1 // will be incremented at end of loop
+				}
+			}
 		}
 
 		if val != nil && fname != "" {
