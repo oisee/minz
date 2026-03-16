@@ -504,6 +504,29 @@ func (l *lowerer) lowerExprForRet(e Expr) mir2.Reg {
 			}
 			return l.bld.Load(base, ex.Ty, classForRet(ex.Ty))
 		}
+	case *CondExpr:
+		// Desugar `return cond ? X : Y` into two separate Ret blocks:
+		//   BrIf(cond, then, else)
+		//   then: Ret(X)
+		//   else: Ret(Y)
+		// This avoids a join block and enables CondRetSink + FuseAbsDiff.
+		cond := l.lowerCond(ex.Cond)
+		thenLabel := l.fresh("cret_then")
+		elseLabel := l.fresh("cret_else")
+		l.bld.BrIf(cond, thenLabel, nil, elseLabel, nil)
+
+		l.bld.SwitchToNewBlock(thenLabel)
+		thenVal := l.lowerExpr(ex.Then)
+		l.bld.Ret(thenVal)
+
+		l.bld.SwitchToNewBlock(elseLabel)
+		elseVal := l.lowerExpr(ex.Else)
+		l.bld.Ret(elseVal)
+
+		// Return a dummy — the Ret instructions are already emitted.
+		// The caller (ReturnStmt handler) will see that the block is
+		// already terminated and skip emitting another Ret.
+		return mir2.NoReg
 	}
 	return l.lowerExpr(e)
 }
@@ -690,7 +713,11 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 				l.bld.Ret(foldReg)
 			} else {
 				r := l.lowerExprForRet(st.Val)
-				l.bld.Ret(r)
+				// NoReg means lowerExprForRet already emitted Ret instructions
+				// (e.g. CondExpr desugared into two Ret blocks).
+				if r != mir2.NoReg {
+					l.bld.Ret(r)
+				}
 			}
 		} else {
 			l.bld.Ret()
