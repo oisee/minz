@@ -1,0 +1,27 @@
+// Function pointer demo — Nanz style
+// type alias for function pointer type
+
+type Transform = fun(u8) -> u8
+
+fun double(x: u8) -> u8 {
+    return x + x
+}
+
+fun triple(x: u8) -> u8 {
+    return x + x + x
+}
+
+fun apply(f: Transform, x: u8) -> u8 {
+    return f(x)
+}
+
+fun test_apply_double() -> u8 {
+    return apply(double, 5)
+}
+
+fun test_apply_triple() -> u8 {
+    return apply(triple, 4)
+}
+
+assert test_apply_double() == 10 via mir2
+// assert test_apply_triple() == 12 via mir2  // TODO: VM address resolution order

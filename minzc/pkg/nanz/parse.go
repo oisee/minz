@@ -481,6 +481,17 @@ type pipeStep struct {
 	fn   string // lifted lambda/function name
 }
 
+// isKnownFunc reports whether name refers to a known function (not a local variable).
+func (p *parser) isKnownFunc(name string) bool {
+	if _, ok := p.funcSigs[name]; ok {
+		return true
+	}
+	if _, ok := p.funcAliases[name]; ok {
+		return true
+	}
+	return false
+}
+
 // exprTy returns the known type of an expression, consulting varTypes and
 // globalTypes for VarRefExpr (since VarRefExpr.Ty defaults to TyU8 at parse time).
 func (p *parser) exprTy(e hir.Expr) mir2.Ty {
@@ -1937,6 +1948,32 @@ func (p *parser) parseType() (mir2.Ty, error) {
 			return mir2.TyVoid, nil
 		case "ptr":
 			return mir2.TyPtr, nil
+		case "fun", "fn":
+			// Function type: fun(T1, T2) -> R
+			// On Z80, function pointers are just addresses (TyPtr).
+			// Parse and discard param/return types for now.
+			if p.l.is(tokLParen) {
+				p.l.next() // consume (
+				for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
+					if _, err := p.parseType(); err != nil {
+						return nil, fmt.Errorf("line %d: function type param: %v", t.line, err)
+					}
+					if p.l.is(tokComma) {
+						p.l.next()
+					}
+				}
+				if _, err := p.l.eat(tokRParen); err != nil {
+					return nil, fmt.Errorf("line %d: function type: expected ')'", t.line)
+				}
+				// Optional -> ReturnType
+				if p.l.is(tokArrow) {
+					p.l.next()
+					if _, err := p.parseType(); err != nil {
+						return nil, fmt.Errorf("line %d: function type return: %v", t.line, err)
+					}
+				}
+			}
+			return mir2.TyPtr, nil
 		case "String", "SString", "LString", "CString":
 			// All string types are pointers at the MIR2 level.
 			// The encoding difference is tracked in the string pool, not the type system.
@@ -2680,7 +2717,21 @@ func (p *parser) parsePostfixNoBrack(base hir.Expr) (hir.Expr, error) {
 					callTy = ty
 				}
 			}
-			base = &hir.CallExpr{Fn: name, Args: args, Ty: callTy}
+			// Indirect call: if name is a local variable (not a known function),
+			// emit CallIndirectExpr — the variable holds a function pointer.
+			if name != "" && callTy == mir2.TyVoid && !p.isKnownFunc(name) {
+				if _, isLocal := p.varTypes[name]; isLocal {
+					base = &hir.CallIndirectExpr{
+						FnPtr: &hir.VarRefExpr{Name: name, Ty: mir2.TyPtr},
+						Args:  args,
+						Ty:    mir2.TyU8,
+					}
+				} else {
+					base = &hir.CallExpr{Fn: name, Args: args, Ty: callTy}
+				}
+			} else {
+				base = &hir.CallExpr{Fn: name, Args: args, Ty: callTy}
+			}
 		default:
 			return base, nil
 		}
@@ -3415,7 +3466,20 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 					callTy = ty
 				}
 			}
-			base = &hir.CallExpr{Fn: name, Args: args, Ty: callTy}
+			// Indirect call: local variable → function pointer.
+			if name != "" && callTy == mir2.TyVoid && !p.isKnownFunc(name) {
+				if _, isLocal := p.varTypes[name]; isLocal {
+					base = &hir.CallIndirectExpr{
+						FnPtr: &hir.VarRefExpr{Name: name, Ty: mir2.TyPtr},
+						Args:  args,
+						Ty:    mir2.TyU8,
+					}
+				} else {
+					base = &hir.CallExpr{Fn: name, Args: args, Ty: callTy}
+				}
+			} else {
+				base = &hir.CallExpr{Fn: name, Args: args, Ty: callTy}
+			}
 		default:
 			return base, nil
 		}
