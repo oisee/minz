@@ -394,3 +394,29 @@ func (m *Machine) StopTape() {
 		m.Tape.Stop()
 	}
 }
+
+// RunRZXFrame executes one frame using RZX recorded input.
+// inValues are the port read values for this frame (from rzx.Frame.INValues).
+// For repeat frames (INCount == 0xFFFF), pass the previous frame's INValues.
+func (m *Machine) RunRZXFrame(inValues []byte) {
+	m.Ports.SetRZXFrame(inValues)
+	m.RunFrame()
+	m.Ports.SetRZXFrame(nil) // disable after frame
+}
+
+// RunRZXFrameFast is like RunRZXFrame but skips per-T-state ULA rendering.
+func (m *Machine) RunRZXFrameFast(inValues []byte) {
+	m.Ports.SetRZXFrame(inValues)
+	m.RunFrameFast()
+	m.Ports.SetRZXFrame(nil)
+}
+
+// ReadVRAM returns a copy of the current screen memory (6912 bytes:
+// 6144 bitmap + 768 attributes). Compatible with .scr file format.
+func (m *Machine) ReadVRAM() []byte {
+	scr := make([]byte, 6912)
+	for i := range scr {
+		scr[i] = m.Memory.ReadScreen(uint16(i))
+	}
+	return scr
+}

@@ -41,12 +41,20 @@ type SNASnapshot struct {
 }
 
 // LoadSNA loads a .sna snapshot file (auto-detects 48K vs 128K by size).
+// ParseSNA parses an SNA snapshot from raw bytes.
+func ParseSNA(data []byte) (*SNASnapshot, error) {
+	return parseSNAData(data)
+}
+
 func LoadSNA(path string) (*SNASnapshot, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("reading .sna file: %w", err)
 	}
+	return parseSNAData(data)
+}
 
+func parseSNAData(data []byte) (*SNASnapshot, error) {
 	if len(data) < 49179 { // 27 header + 49152 RAM
 		return nil, fmt.Errorf(".sna file too short: %d bytes (need >= 49179)", len(data))
 	}

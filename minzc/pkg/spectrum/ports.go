@@ -46,6 +46,12 @@ type Ports struct {
 
 	// Profiler (nil = disabled)
 	profiler *Profiler
+
+	// RZX replay: when set, ReadPort returns recorded values instead of
+	// querying devices. Set to nil to disable replay.
+	rzxINValues []byte // IN values for current frame
+	rzxINPos    int    // next byte to return
+	rzxActive   bool   // true during replay
 }
 
 // NewPorts creates the port dispatcher and registers default devices.
@@ -260,6 +266,23 @@ func (p *Ports) writeCovox(addr uint16, val byte) {
 
 // ---- z80.PortAccessor implementation ----
 
+// SetRZXFrame sets the recorded IN values for the current RZX replay frame.
+// Call before each frame's execution. Pass nil to disable replay.
+func (p *Ports) SetRZXFrame(inValues []byte) {
+	if inValues == nil {
+		p.rzxActive = false
+		p.rzxINValues = nil
+		p.rzxINPos = 0
+		return
+	}
+	p.rzxActive = true
+	p.rzxINValues = inValues
+	p.rzxINPos = 0
+}
+
+// RZXActive reports whether RZX replay is currently intercepting port reads.
+func (p *Ports) RZXActive() bool { return p.rzxActive }
+
 func (p *Ports) ReadPort(addr uint16) byte {
 	// Port timing: 1 T-state pre-io
 	if p.addTstates != nil {
@@ -271,11 +294,20 @@ func (p *Ports) ReadPort(addr uint16) byte {
 
 	result := byte(0xFF) // floating bus default
 
-	// Find matching device (first match wins)
-	for _, dev := range p.devices {
-		if dev.Read != nil && (addr&dev.Mask) == dev.Value {
-			result = dev.Read(addr)
-			break
+	// RZX replay: return recorded IN value instead of querying devices.
+	if p.rzxActive {
+		if p.rzxINPos < len(p.rzxINValues) {
+			result = p.rzxINValues[p.rzxINPos]
+			p.rzxINPos++
+		}
+		// Still do profiling/timing, skip device dispatch
+	} else {
+		// Find matching device (first match wins)
+		for _, dev := range p.devices {
+			if dev.Read != nil && (addr&dev.Mask) == dev.Value {
+				result = dev.Read(addr)
+				break
+			}
 		}
 	}
 

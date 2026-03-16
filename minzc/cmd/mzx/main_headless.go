@@ -22,6 +22,7 @@ import (
 
 	"github.com/minz/minzc/pkg/spectrum"
 	"github.com/minz/minzc/pkg/spectrum/formats"
+	"github.com/minz/minzc/pkg/spectrum/rzx"
 )
 
 //go:embed roms/48.rom
@@ -44,6 +45,7 @@ func main() {
 	flag.Var(&loadFlags, "load", "Load binary: FILE@ADDR (repeatable)")
 	setFlag := flag.String("set", "", "Set CPU registers: PC=8000,SP=FFFF,DI,IM=1")
 	runFlag := flag.String("run", "", "Load and run: FILE@ADDR (shortcut)")
+	rzxFlag := flag.String("rzx", "", "Replay RZX recording file (overrides --frames)")
 	flag.Parse()
 
 	// Build machine
@@ -162,6 +164,51 @@ func main() {
 	}
 	if *dumpSCR != "" {
 		os.MkdirAll(*dumpSCR, 0755)
+	}
+
+	// ── RZX replay mode ─────────────────────────────────────────────────
+	if *rzxFlag != "" {
+		rec, err := rzx.ReadFile(*rzxFlag)
+		if err != nil {
+			log.Fatalf("RZX: %v", err)
+		}
+		player, err := rzx.NewPlayer(rec, machine)
+		if err != nil {
+			log.Fatalf("RZX player: %v", err)
+		}
+		fmt.Fprintf(os.Stderr, "MZX RZX replay: %s (%d frames, creator: %s)\n",
+			*rzxFlag, player.TotalFrames(), rec.Creator)
+
+		saved := 0
+		for player.Next() {
+			i := player.Frame
+			if *dumpSCR != "" {
+				path := fmt.Sprintf("%s/frame_%04d.scr", *dumpSCR, i)
+				os.WriteFile(path, player.ScreenSCR(), 0644)
+			}
+			if *dumpFrames != "" {
+				path := fmt.Sprintf("%s/frame_%04d.png", *dumpFrames, i)
+				saveScreenPNG(machine, path, *noBorderFlag)
+				saved++
+			}
+			if i >= *maxFrames {
+				fmt.Fprintf(os.Stderr, "RZX: stopped at frame %d (max-frames)\n", i)
+				break
+			}
+		}
+		if *screenshotFlag != "" {
+			saveScreenPNG(machine, *screenshotFlag, *noBorderFlag)
+			fmt.Fprintf(os.Stderr, "Screenshot: %s\n", *screenshotFlag)
+		}
+		if *saveSnapshotFlag != "" {
+			formats.SaveSNA(*saveSnapshotFlag, machine)
+			fmt.Fprintf(os.Stderr, "Snapshot: %s\n", *saveSnapshotFlag)
+		}
+		if saved > 0 {
+			fmt.Fprintf(os.Stderr, "Saved %d frames\n", saved)
+		}
+		fmt.Fprintf(os.Stderr, "RZX replay done (%d/%d frames).\n", player.Frame, player.TotalFrames())
+		return
 	}
 
 	fmt.Fprintf(os.Stderr, "MZX headless: %s, running %d frames\n", *modelFlag, frames)
