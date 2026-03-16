@@ -37,9 +37,44 @@ int test_inc_for(void) {
 }
 // assert test_inc_for() == 10 via mir2
 
-// GAP: x++ / ++x used as sub-expression loses side-effect
-// e.g. int y = x++; → y gets old x but x doesn't increment
-// Affects ~30% of FatFS ++ usage (the rest are statements/for-loops)
+// --- Pre-increment as expression (side effect must propagate) ---
+int test_preinc_expr(void) {
+    int x = 10;
+    int y = ++x;
+    return y + x;  // 11 + 11 = 22
+}
+// assert test_preinc_expr() == 22 via mir2
+
+int test_predec_expr(void) {
+    int x = 10;
+    int y = --x;
+    return y + x;  // 9 + 9 = 18
+}
+// assert test_predec_expr() == 18 via mir2
+
+// --- Post-increment as expression (returns old value) ---
+int test_postinc_expr(void) {
+    int x = 10;
+    int y = x++;
+    return y + x;  // 10 + 11 = 21
+}
+// assert test_postinc_expr() == 21 via mir2
+
+int test_postdec_expr(void) {
+    int x = 10;
+    int y = x--;
+    return y + x;  // 10 + 9 = 19
+}
+// assert test_postdec_expr() == 19 via mir2
+
+// --- Chained assignment (side effect on intermediate vars) ---
+int test_chained_assign(void) {
+    int a = 0;
+    int b = 0;
+    a = b = 42;
+    return a + b;
+}
+// assert test_chained_assign() == 84 via mir2
 
 // --- Ternary in assignments (83 uses in ff.c) ---
 int test_ternary_assign(void) {

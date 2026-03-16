@@ -28,5 +28,10 @@ int test_comma_basic(void) {
 }
 // assert test_comma_basic() == 42 via mir2
 
-// Comma with side effects — deferred (assignment in comma expression
-// not yet propagated through MIR2 constant prop)
+// Comma with side effects
+int test_comma_side_effect(void) {
+    int x = 0;
+    int y = (x = 10, x + 5);
+    return y;
+}
+// assert test_comma_side_effect() == 15 via mir2

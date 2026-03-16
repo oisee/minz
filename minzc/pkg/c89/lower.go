@@ -387,9 +387,28 @@ type funcLow struct {
 	// static locals: original name → mangled global name.
 	staticRenames map[string]string
 
+	// pendingStmts collects side-effect statements from expressions
+	// (e.g., assignments embedded in ++x, x++, chained a=b=c).
+	// Drained before the next statement in compound/decl lowering.
+	pendingStmts []hir.Stmt
+	tmpCount     int // counter for temporary variable names
+
 	// ObjC: set when lowering a method inside @implementation.
 	objcClass  *objcClassInfo
 	objcLocals map[string]string // varName → className (for typed receivers)
+}
+
+func (fl *funcLow) tmpCounter() int {
+	fl.tmpCount++
+	return fl.tmpCount
+}
+
+// drainPending flushes any pending side-effect statements into the given slice.
+func (fl *funcLow) drainPending(stmts *[]hir.Stmt) {
+	if len(fl.pendingStmts) > 0 {
+		*stmts = append(*stmts, fl.pendingStmts...)
+		fl.pendingStmts = fl.pendingStmts[:0]
+	}
 }
 
 func (fl *funcLow) lowerCompound(cs *cc.CompoundStatement) ([]hir.Stmt, error) {
@@ -405,12 +424,14 @@ func (fl *funcLow) lowerCompound(cs *cc.CompoundStatement) ([]hir.Stmt, error) {
 			if err != nil {
 				return nil, err
 			}
+			fl.drainPending(&stmts)
 			stmts = append(stmts, s...)
 		case cc.BlockItemStmt:
 			s, err := fl.lowerStmt(bi.Statement)
 			if err != nil {
 				return nil, err
 			}
+			fl.drainPending(&stmts)
 			stmts = append(stmts, s...)
 		}
 	}
@@ -475,7 +496,28 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 					if err != nil {
 						return nil, err
 					}
-					init = r.toExpr()
+					// If the init has side effects (++x, a=b=c), drain them first.
+					if r.isAssign() {
+						fl.drainPending(&stmts)
+						stmts = append(stmts, r.toStmt())
+						if r.isPostfix {
+							// x++: init gets old value via temp
+							ty := r.target.ExprTy()
+							tmp := fmt.Sprintf("__post_%d", fl.tmpCounter())
+							fl.locals[tmp] = ty
+							// Insert temp decl BEFORE the assignment
+							last := stmts[len(stmts)-1]
+							stmts[len(stmts)-1] = &hir.VarDeclStmt{Name: tmp, Ty: ty, Init: r.target}
+							stmts = append(stmts, last)
+							init = &hir.VarRefExpr{Name: tmp, Ty: ty}
+						} else {
+							// ++x, a=b: init gets target (variable after assignment)
+							init = r.target
+						}
+					} else {
+						fl.drainPending(&stmts)
+						init = r.toExpr()
+					}
 					// _Bool normalization: any non-zero value becomes 1.
 					if decl.Type() != nil && decl.Type().Kind() == cc.Bool {
 						init = boolNormalize(init)
@@ -848,6 +890,8 @@ func (fl *funcLow) lowerForLoop(is *cc.IterationStatement, isForDecl bool) ([]hi
 		if err != nil {
 			return nil, err
 		}
+		// Drain any side-effects from expressions like i++.
+		fl.drainPending(&body)
 		if r != nil {
 			if s := r.toStmt(); s != nil {
 				body = append(body, s)
@@ -893,9 +937,10 @@ func (fl *funcLow) lowerJump(js *cc.JumpStatement) ([]hir.Stmt, error) {
 
 // exprResult wraps either a plain hir.Expr or an assignment (target + val).
 type exprResult struct {
-	expr   hir.Expr // non-nil for normal expressions
-	target hir.Expr // non-nil for assignments
-	val    hir.Expr // non-nil for assignments
+	expr      hir.Expr // non-nil for normal expressions
+	target    hir.Expr // non-nil for assignments
+	val       hir.Expr // non-nil for assignments
+	isPostfix bool     // true for x++/x-- (expression value is old target, not val)
 }
 
 func (r *exprResult) isAssign() bool { return r != nil && r.target != nil }
@@ -930,11 +975,29 @@ func (r *exprResult) toStmt() hir.Stmt {
 func wrapExpr(e hir.Expr) *exprResult       { return &exprResult{expr: e} }
 func wrapAssign(t, v hir.Expr) *exprResult   { return &exprResult{target: t, val: v} }
 
-// lowerExprAsExpr is a convenience that returns hir.Expr (discards assignment info).
+// lowerExprAsExpr is a convenience that returns hir.Expr.
+// If the expression has a side-effect (e.g. ++x, a=b=c), the side-effect
+// is emitted to fl.pendingStmts and the resulting value is returned.
 func (fl *funcLow) lowerExprAsExpr(e cc.ExpressionNode) (hir.Expr, error) {
 	r, err := fl.lowerExpr(e)
 	if err != nil {
 		return nil, err
+	}
+	if r != nil && r.isAssign() {
+		if r.isPostfix {
+			// x++/x--: save old value in temp, then assign new value.
+			ty := r.target.ExprTy()
+			tmp := fmt.Sprintf("__post_%d", fl.tmpCounter())
+			fl.locals[tmp] = ty
+			fl.pendingStmts = append(fl.pendingStmts,
+				&hir.VarDeclStmt{Name: tmp, Ty: ty, Init: r.target},
+				r.toStmt())
+			return &hir.VarRefExpr{Name: tmp, Ty: ty}, nil
+		}
+		// ++x, --x: emit assignment, return target (which now holds new value).
+		// a=b=c: emit assignment, return val (the assigned value).
+		fl.pendingStmts = append(fl.pendingStmts, r.toStmt())
+		return r.target, nil
 	}
 	return r.toExpr(), nil
 }
@@ -1054,9 +1117,13 @@ func (fl *funcLow) lowerExpr(e cc.ExpressionNode) (*exprResult, error) {
 		return fl.lowerAssignment(x)
 
 	case *cc.ExpressionList:
-		// Comma expression — evaluate all, return last.
+		// Comma expression — evaluate all (emit side-effects), return last.
 		var last *exprResult
 		for el := x; el != nil; el = el.ExpressionList {
+			// Emit side-effects from previous iteration.
+			if last != nil && last.isAssign() {
+				fl.pendingStmts = append(fl.pendingStmts, last.toStmt())
+			}
 			var err error
 			last, err = fl.lowerExpr(el.AssignmentExpression)
 			if err != nil {
@@ -1249,7 +1316,7 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 			return nil, err
 		}
 		ty := base.ExprTy()
-		return wrapAssign(base, hir.Add(base, &hir.IntLitExpr{Val: 1, Ty: ty}, ty)), nil
+		return &exprResult{target: base, val: hir.Add(base, &hir.IntLitExpr{Val: 1, Ty: ty}, ty), isPostfix: true}, nil
 
 	case cc.PostfixExpressionDec: // x--
 		base, err := fl.lowerExprAsExpr(pf.PostfixExpression)
@@ -1257,7 +1324,7 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 			return nil, err
 		}
 		ty := base.ExprTy()
-		return wrapAssign(base, hir.Sub(base, &hir.IntLitExpr{Val: 1, Ty: ty}, ty)), nil
+		return &exprResult{target: base, val: hir.Sub(base, &hir.IntLitExpr{Val: 1, Ty: ty}, ty), isPostfix: true}, nil
 
 	case cc.PostfixExpressionComplit: // (Type){init-list} — compound literal
 		ty := pf.Type()
