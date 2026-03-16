@@ -101,6 +101,12 @@ type CompileOpts struct {
 	// Resolver handles cross-language #import directives.
 	// If nil, #import directives are ignored.
 	Resolver *interop.Resolver
+	// IncludePaths are additional directories for #include "file.h" resolution.
+	IncludePaths []string
+	// SysIncludePaths are additional directories for #include <file.h> resolution.
+	SysIncludePaths []string
+	// NoLibc disables the built-in minimal libc headers.
+	NoLibc bool
 }
 
 // Compile parses C source code and produces an HIR module.
@@ -121,8 +127,23 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 		importedModules = mods
 	}
 
+	// Build include paths: "@" means "same dir as source file".
+	incPaths := []string{"@"}
+	incPaths = append(incPaths, opts.IncludePaths...)
+
+	// System include paths: always include our minimal libc unless disabled.
+	var sysIncPaths []string
+	if !opts.NoLibc {
+		if dir := libcSysIncludeDir(); dir != "" {
+			sysIncPaths = append(sysIncPaths, dir)
+		}
+	}
+	sysIncPaths = append(sysIncPaths, opts.SysIncludePaths...)
+
 	cfg := &cc.Config{
-		ABI: z80ABI(),
+		ABI:             z80ABI(),
+		IncludePaths:    incPaths,
+		SysIncludePaths: sysIncPaths,
 	}
 
 	sources := []cc.Source{

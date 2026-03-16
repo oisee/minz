@@ -426,20 +426,20 @@ func TestCorpus_AllExamples(t *testing.T) {
 				t.Fatalf("read: %v", err)
 			}
 			var hm *hir.Module
-			if strings.Contains(string(src), "#import") {
-				absDir, _ := filepath.Abs(corpusDir)
-				hm, err = CompileWithOpts(string(src), e.Name(), CompileOpts{
-					BaseDir: absDir,
-					Resolver: &interop.Resolver{
-						BaseDir: absDir,
-						Compilers: map[string]interop.CompileFunc{
-							".c": Compile,
-						},
-					},
-				})
-			} else {
-				hm, err = Compile(string(src), e.Name())
+			absDir, _ := filepath.Abs(corpusDir)
+			copts := CompileOpts{
+				BaseDir:      absDir,
+				IncludePaths: []string{absDir},
 			}
+			if strings.Contains(string(src), "#import") {
+				copts.Resolver = &interop.Resolver{
+					BaseDir: absDir,
+					Compilers: map[string]interop.CompileFunc{
+						".c": Compile,
+					},
+				}
+			}
+			hm, err = CompileWithOpts(string(src), e.Name(), copts)
 			if err != nil {
 				t.Fatalf("Compile: %v", err)
 			}
@@ -466,6 +466,30 @@ func TestCorpus_AllExamples(t *testing.T) {
 		})
 	}
 	t.Logf("TOTAL: %d/%d mir2 asserts passed across corpus", passedAsserts, totalAsserts)
+}
+
+func TestInclude_LocalAndSysHeaders(t *testing.T) {
+	testDir := filepath.Join("..", "..", "..", "examples", "c89", "include_test")
+	src, err := os.ReadFile(filepath.Join(testDir, "main.c"))
+	if err != nil {
+		t.Skipf("include_test not found: %v", err)
+	}
+	absDir, _ := filepath.Abs(testDir)
+	hm, err := CompileWithOpts(string(src), "main.c", CompileOpts{
+		IncludePaths: []string{absDir},
+	})
+	if err != nil {
+		t.Fatalf("Compile with includes: %v", err)
+	}
+	t.Logf("funcs=%d asserts=%d", len(hm.Funcs), len(hm.Asserts))
+	if len(hm.Asserts) == 0 {
+		t.Fatal("no asserts found")
+	}
+	_, err = pipeline.CompileHIR(hm)
+	if err != nil {
+		t.Fatalf("pipeline: %v", err)
+	}
+	t.Logf("include test: %d asserts passed", len(hm.Asserts))
 }
 
 func TestCorpus_ObjCExamples(t *testing.T) {

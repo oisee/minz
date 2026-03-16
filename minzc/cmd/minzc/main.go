@@ -752,7 +752,11 @@ func compileViaHIR(sourceFile string) error {
 			return fmt.Errorf("Pascal compile: %w", err)
 		}
 	case ".c", ".m":
-		hirMod, err = c89.Compile(string(src), filepath.Base(sourceFile))
+		absPath, _ := filepath.Abs(sourceFile)
+		hirMod, err = c89.CompileWithOpts(string(src), filepath.Base(sourceFile), c89.CompileOpts{
+			BaseDir:      filepath.Dir(absPath),
+			IncludePaths: []string{filepath.Dir(absPath)},
+		})
 		if err != nil {
 			return fmt.Errorf("C89/ObjC compile: %w", err)
 		}
