@@ -593,15 +593,16 @@ the full feature matrix and Z80 vs 6502 comparison.
 
 ### Language Frontends
 
-Six source languages compile through the same HIR → MIR2 → Z80 backend:
+Seven source languages compile through the same HIR → MIR2 → Z80 backend:
 
 ```
-  .nanz ──→ nanz.Parse()    ──┐
-  .lanz ──→ lanz.Compile()  ──┤
-  .lizp ──→ lizp.Compile()  ──┼──→ *hir.Module ──→ MIR2 ──→ Z80/6502/QBE
-  .plm  ──→ plm.Compile()   ──┤
-  .pas  ──→ pascal.Compile() ──┤
-  .c    ──→ c89.Compile()   ──┘
+  .nanz ──→ nanz.Parse()     ──┐
+  .lanz ──→ lanz.Compile()   ──┤
+  .lizp ──→ lizp.Compile()   ──┤
+  .plm  ──→ plm.Compile()    ──┼──→ *hir.Module ──→ MIR2 ──→ Z80/6502/QBE
+  .pas  ──→ pascal.Compile()  ──┤
+  .c    ──→ c89.Compile()    ──┤
+  .abap ──→ abap.Compile()   ──┘  ← NEW: ABAP via abaplint!
 ```
 
 | Frontend | Status | Purpose | Notes |
@@ -612,9 +613,31 @@ Six source languages compile through the same HIR → MIR2 → Z80 backend:
 | **PL/M-80** | Working | Legacy Intel (1976) | 26/26 Intel 80 Tools corpus (100%); 1338 functions, 11661 statements |
 | **Pascal** | Working | Turbo Pascal | `WriteLn` → CP/M BDOS via inline asm. `mz hello.pas -t cpm -o hello.com` |
 | **C89** | WIP | C89/C99 | `modernc.org/cc/v4` parser. 9 corpus files, 68 asserts. [−55% vs SDCC](reports/2026-03-15-081-MinZ_C89_vs_SDCC_Codegen_Comparison.md) |
+| **ABAP** | NEW | SAP ABAP on Z80! | [abaplint](https://github.com/abaplint/abaplint) parser (TS). DATA, WRITE, IF, WHILE, DO, FORM, CLASS. [Examples →](examples/abap/) |
 | **MinZ** | Frozen on MIR1 | Legacy syntax | Old MIR1 path; will be rewired through HIR→MIR2 |
 
-**Six pipelines, one backend.** `.nanz`, `.lanz`, `.lizp`, `.plm`, `.pas`, and `.c` files all go through `compileViaHIR()` → HIR → MIR2 → Z80. A function `double(x) = x + x` written in any of the six languages produces the same Z80: `ADD A, A / RET`.
+**Seven pipelines, one backend.** `.nanz`, `.lanz`, `.lizp`, `.plm`, `.pas`, `.c`, and `.abap` files all go through `compileViaHIR()` → HIR → MIR2 → Z80. A function `double(x) = x + x` written in any of the seven languages produces the same Z80: `ADD A, A / RET`.
+
+### ABAP on Z80 — Yes, Really
+
+```abap
+REPORT zfibonacci.
+
+DATA: lv_a TYPE i VALUE 0,
+      lv_b TYPE i VALUE 1,
+      lv_temp TYPE i,
+      lv_i TYPE i VALUE 0.
+
+WHILE lv_i < 10.
+  WRITE lv_a.
+  lv_temp = lv_a + lv_b.
+  lv_a = lv_b.
+  lv_b = lv_temp.
+  lv_i = lv_i + 1.
+ENDWHILE.
+```
+
+This compiles through: ABAP → [abaplint](https://github.com/abaplint/abaplint) (TypeScript parser by Lars Hvam Petersen) → JSON AST → Go lowerer → HIR → MIR2 → Z80 assembly. Your ZX Spectrum is now an enterprise-grade ABAP runtime. See [8 examples](examples/abap/) including FizzBuzz, bubble sort, OOP with interfaces, and a system info report.
 
 **Cross-language imports** — Nanz can import from any frontend:
 
@@ -840,13 +863,13 @@ minz/
 
 ## Current Status (March 2026)
 
-**Active pipeline:** Nanz/Lanz/Lizp/PL/M-80/Pascal → HIR → MIR2 → Z80 (production) / QBE (native) / 6502 (experimental).
+**Active pipeline:** Nanz/Lanz/Lizp/PL/M-80/Pascal/ABAP → HIR → MIR2 → Z80 (production) / QBE (native) / 6502 (experimental).
 
 **Metrics (verified 2026-03-15):**
 
 | | |
 |---|---|
-| **Language frontends** | 6 (Nanz, Lanz, Lizp, PL/M-80, Pascal, C89) |
+| **Language frontends** | 7 (Nanz, Lanz, Lizp, PL/M-80, Pascal, C89, **ABAP**) |
 | **Nanz showcase** | 34/34 compile + verify |
 | **Compile-time asserts** | 113 across all 6 frontends (45 original + 68 C89) |
 | **Go test packages** | 26/26 pass |

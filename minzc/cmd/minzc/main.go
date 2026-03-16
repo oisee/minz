@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/minz/minzc/pkg/abap"
 	"github.com/minz/minzc/pkg/ast"
 	"github.com/minz/minzc/pkg/codegen"
 	"github.com/minz/minzc/pkg/ctie"
@@ -234,7 +235,7 @@ func compile(sourceFile string) error {
 	ext := filepath.Ext(sourceFile)
 
 	// PL/M-80, Nanz, and HIR text: routed through the new HIR→MIR2→Z80 pipeline.
-	if ext == ".plm" || ext == ".nanz" || ext == ".hir" || ext == ".lanz" || ext == ".lizp" || ext == ".pas" || ext == ".c" || ext == ".m" {
+	if ext == ".plm" || ext == ".nanz" || ext == ".hir" || ext == ".lanz" || ext == ".lizp" || ext == ".pas" || ext == ".c" || ext == ".m" || ext == ".abap" {
 		if emitFormat == "nanz" && ext != ".hir" && ext != ".lanz" {
 			return compilePLMToNanz(sourceFile)
 		}
@@ -754,6 +755,11 @@ func compileViaHIR(sourceFile string) error {
 		hirMod, err = c89.Compile(string(src), filepath.Base(sourceFile))
 		if err != nil {
 			return fmt.Errorf("C89/ObjC compile: %w", err)
+		}
+	case ".abap":
+		hirMod, err = abap.Compile(string(src), filepath.Base(sourceFile))
+		if err != nil {
+			return fmt.Errorf("ABAP compile: %w", err)
 		}
 	default:
 		return fmt.Errorf("unsupported extension for HIR pipeline: %s", ext)

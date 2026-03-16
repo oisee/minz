@@ -1,0 +1,12 @@
+{
+  "name": "minz-abap-bridge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Bridge: parse ABAP via abaplint, emit JSON AST for Go consumption",
+  "scripts": {
+    "parse": "node parse.mjs"
+  },
+  "dependencies": {
+    "@abaplint/core": "^2"
+  }
+}
