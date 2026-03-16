@@ -402,3 +402,35 @@ func TestCorpus_AllExamples(t *testing.T) {
 	}
 	t.Logf("TOTAL: %d/%d mir2 asserts passed across corpus", passedAsserts, totalAsserts)
 }
+
+func TestCorpus_ObjCExamples(t *testing.T) {
+	corpusDir := filepath.Join("..", "..", "..", "examples", "objc")
+	entries, err := os.ReadDir(corpusDir)
+	if err != nil {
+		t.Skipf("objc corpus dir not found: %v", err)
+	}
+	for _, e := range entries {
+		if e.IsDir() || filepath.Ext(e.Name()) != ".m" {
+			continue
+		}
+		t.Run(e.Name(), func(t *testing.T) {
+			src, err := os.ReadFile(filepath.Join(corpusDir, e.Name()))
+			if err != nil {
+				t.Fatalf("read: %v", err)
+			}
+			hm, err := Compile(string(src), e.Name())
+			if err != nil {
+				t.Fatalf("Compile: %v", err)
+			}
+			t.Logf("  %d funcs, %d asserts", len(hm.Funcs), len(hm.Asserts))
+			if len(hm.Asserts) == 0 {
+				return
+			}
+			_, err = pipeline.CompileHIR(hm)
+			if err != nil {
+				t.Fatalf("pipeline: %v", err)
+			}
+			t.Logf("  all %d asserts passed", len(hm.Asserts))
+		})
+	}
+}

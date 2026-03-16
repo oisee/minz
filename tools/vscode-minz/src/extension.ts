@@ -62,11 +62,12 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     // Compile on save for diagnostics
+    const compilableLangs = new Set(['minz', 'nanz', 'mir', 'lanz', 'lizp', 'plm', 'minz-pascal', 'minz-c', 'minz-objc']);
+    const compilableExts = new Set(['.minz', '.mz', '.nanz', '.mir', '.lanz', '.lizp', '.plm', '.pas', '.c', '.m']);
     vscode.workspace.onDidSaveTextDocument((document) => {
         const lang = document.languageId;
-        const name = document.fileName;
-        if (lang === 'minz' || lang === 'nanz' || lang === 'mir' ||
-            name.endsWith('.minz') || name.endsWith('.mz') || name.endsWith('.nanz') || name.endsWith('.mir')) {
+        const ext = path.extname(document.fileName);
+        if (compilableLangs.has(lang) || compilableExts.has(ext)) {
             compileForDiagnostics(document);
         }
     });
@@ -224,10 +225,11 @@ function getMinZContext(): { filePath: string; config: vscode.WorkspaceConfigura
 
     const name = activeEditor.document.fileName;
     const lang = activeEditor.document.languageId;
-    const isMinzFile = name.endsWith('.minz') || name.endsWith('.mz') ||
-                       name.endsWith('.nanz') || name.endsWith('.mir');
-    if (!isMinzFile && lang !== 'minz' && lang !== 'nanz' && lang !== 'mir') {
-        vscode.window.showErrorMessage('No MinZ, Nanz, or MIR file is currently open.');
+    const ext = path.extname(name);
+    const supportedExts = new Set(['.minz', '.mz', '.nanz', '.mir', '.lanz', '.lizp', '.plm', '.pas', '.c', '.m']);
+    const supportedLangs = new Set(['minz', 'nanz', 'mir', 'lanz', 'lizp', 'plm', 'minz-pascal', 'minz-c', 'minz-objc']);
+    if (!supportedExts.has(ext) && !supportedLangs.has(lang)) {
+        vscode.window.showErrorMessage('No MinZ-compatible file is currently open. Supported: .minz, .nanz, .lanz, .lizp, .plm, .pas, .c, .m');
         return null;
     }
 
@@ -619,7 +621,8 @@ class MinZDebugConfigProvider implements vscode.DebugConfigurationProvider {
         // If no config, provide a default
         if (!config.type) {
             const activeEditor = vscode.window.activeTextEditor;
-            if (!activeEditor || (!activeEditor.document.fileName.endsWith('.minz') && !activeEditor.document.fileName.endsWith('.mz') && !activeEditor.document.fileName.endsWith('.mir'))) {
+            const supportedDebugExts = ['.minz', '.mz', '.mir', '.nanz', '.lanz', '.lizp', '.plm', '.pas', '.c', '.m'];
+            if (!activeEditor || !supportedDebugExts.some(ext => activeEditor.document.fileName.endsWith(ext))) {
                 return undefined;
             }
 

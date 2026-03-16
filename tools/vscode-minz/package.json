@@ -1,8 +1,8 @@
 {
   "name": "minz-language-support",
-  "displayName": "MinZ / Nanz Language Support",
-  "description": "Language support for MinZ and Nanz — systems programming languages for Z80",
-  "version": "0.7.0",
+  "displayName": "MinZ Multi-Frontend Language Support",
+  "description": "Language support for MinZ, Nanz, Lanz, Lizp, PL/M-80, Pascal, C89, and ObjC — all targeting Z80",
+  "version": "0.8.0",
   "publisher": "minz-lang",
   "repository": {
     "type": "git",
@@ -21,12 +21,17 @@
   "keywords": [
     "minz",
     "nanz",
+    "lanz",
+    "lizp",
     "z80",
     "assembly",
     "systems programming",
     "zx spectrum",
     "retro",
     "plm80",
+    "pascal",
+    "c89",
+    "objc",
     "dezog"
   ],
   "main": "./out/extension.js",
@@ -69,6 +74,72 @@
           ".mir"
         ],
         "configuration": "./mir-language-configuration.json"
+      },
+      {
+        "id": "lanz",
+        "aliases": [
+          "Lanz",
+          "lanz"
+        ],
+        "extensions": [
+          ".lanz"
+        ],
+        "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "lizp",
+        "aliases": [
+          "Lizp",
+          "lizp"
+        ],
+        "extensions": [
+          ".lizp"
+        ],
+        "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "plm",
+        "aliases": [
+          "PL/M-80",
+          "plm"
+        ],
+        "extensions": [
+          ".plm"
+        ],
+        "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "minz-pascal",
+        "aliases": [
+          "MinZ Pascal",
+          "pascal"
+        ],
+        "extensions": [
+          ".pas"
+        ],
+        "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "minz-c",
+        "aliases": [
+          "MinZ C89",
+          "c89"
+        ],
+        "extensions": [
+          ".c"
+        ],
+        "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "minz-objc",
+        "aliases": [
+          "MinZ ObjC",
+          "objc"
+        ],
+        "extensions": [
+          ".m"
+        ],
+        "configuration": "./language-configuration.json"
       }
     ],
     "grammars": [
@@ -101,7 +172,7 @@
     "commands": [
       {
         "command": "minz.compile",
-        "title": "MinZ/Nanz: Compile to Z80 Assembly",
+        "title": "MinZ: Compile to Z80 Assembly",
         "icon": "$(play)"
       },
       {
@@ -178,32 +249,32 @@
     "menus": {
       "editor/context": [
         {
-          "when": "editorLangId == minz || editorLangId == nanz",
+          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc",
           "command": "minz.compile",
           "group": "minz@1"
         },
         {
-          "when": "editorLangId == minz || editorLangId == nanz",
+          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc",
           "command": "minz.compileAndRun",
           "group": "minz@2"
         },
         {
-          "when": "editorLangId == minz || editorLangId == nanz",
+          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc",
           "command": "minz.compileToMIR",
           "group": "minz@3"
         },
         {
-          "when": "editorLangId == minz || editorLangId == nanz",
+          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc",
           "command": "minz.compileToASM",
           "group": "minz@3"
         },
         {
-          "when": "editorLangId == minz || editorLangId == nanz",
+          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc",
           "command": "minz.compileAll",
           "group": "minz@4"
         },
         {
-          "when": "editorLangId == minz || editorLangId == nanz",
+          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc",
           "command": "minz.compileOptimized",
           "group": "minz@5"
         },
@@ -235,12 +306,12 @@
       ],
       "editor/title": [
         {
-          "when": "editorLangId == minz || editorLangId == nanz",
+          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc",
           "command": "minz.compile",
           "group": "navigation@1"
         },
         {
-          "when": "editorLangId == minz || editorLangId == nanz",
+          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc",
           "command": "minz.compileOptimized",
           "group": "navigation@2"
         },
@@ -256,37 +327,37 @@
         "command": "minz.compile",
         "key": "ctrl+alt+b",
         "mac": "cmd+alt+b",
-        "when": "editorLangId == minz || editorLangId == nanz"
+        "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc"
       },
       {
         "command": "minz.compileAndRun",
         "key": "ctrl+alt+r",
         "mac": "cmd+alt+r",
-        "when": "editorLangId == minz || editorLangId == nanz"
+        "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc"
       },
       {
         "command": "minz.compileOptimized",
         "key": "ctrl+alt+o",
         "mac": "cmd+alt+o",
-        "when": "editorLangId == minz || editorLangId == nanz"
+        "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc"
       },
       {
         "command": "minz.compileToMIR",
         "key": "ctrl+alt+m",
         "mac": "cmd+alt+m",
-        "when": "editorLangId == minz || editorLangId == nanz"
+        "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc"
       },
       {
         "command": "minz.compileToASM",
         "key": "ctrl+alt+i",
         "mac": "cmd+alt+i",
-        "when": "editorLangId == minz || editorLangId == nanz"
+        "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc"
       },
       {
         "command": "minz.compileAll",
         "key": "ctrl+alt+shift+b",
         "mac": "cmd+alt+shift+b",
-        "when": "editorLangId == minz || editorLangId == nanz"
+        "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc"
       },
       {
         "command": "minz.showAST",
@@ -387,9 +458,20 @@
   "activationEvents": [
     "onLanguage:minz",
     "onLanguage:nanz",
+    "onLanguage:lanz",
+    "onLanguage:lizp",
+    "onLanguage:plm",
+    "onLanguage:minz-pascal",
+    "onLanguage:minz-c",
+    "onLanguage:minz-objc",
     "workspaceContains:**/*.minz",
     "workspaceContains:**/*.mz",
-    "workspaceContains:**/*.nanz"
+    "workspaceContains:**/*.nanz",
+    "workspaceContains:**/*.lanz",
+    "workspaceContains:**/*.lizp",
+    "workspaceContains:**/*.plm",
+    "workspaceContains:**/*.pas",
+    "workspaceContains:**/*.m"
   ],
   "scripts": {
     "vscode:prepublish": "npm run compile",
