@@ -25,18 +25,54 @@ That's right: your `REPORT` program goes through **7 compilation stages** to bec
 | [forms.abap](forms.abap) | Subroutines | `FORM`, `PERFORM`, `USING/CHANGING` |
 | [oop.abap](oop.abap) | OOP shapes | `CLASS`, `INTERFACE`, `METHOD`, inheritance |
 | [sysinfo.abap](sysinfo.abap) | System report | Multiple `WRITE`, string output |
+| [sqlite_demo.abap](sqlite_demo.abap) | Database ops | `FORM`, `PERFORM`, string params |
+
+## Setup
+
+### Prerequisites
+
+| Tool | Version | Why |
+|------|---------|-----|
+| **Go** | 1.24+ | Compiler is written in Go |
+| **Node.js** | 18+ | Runs [abaplint](https://github.com/abaplint/abaplint) parser (TypeScript) |
+| **npm** | 9+ | Installs `@abaplint/core` package |
+
+### Install (one time)
+
+```bash
+# 1. Build the MinZ compiler
+cd minzc
+make build          # produces ./mz binary
+
+# 2. Install the ABAP parser bridge
+cd pkg/abap/bridge
+npm install         # downloads @abaplint/core (~7 packages, MIT license)
+cd ../../..
+```
+
+That's it. The bridge is a single `parse.mjs` script that calls `@abaplint/core` and outputs JSON — no global installs, no build steps, no native modules.
+
+### Verify
+
+```bash
+# Should print "PASS" — parses ABAP and lowers to HIR
+go test ./pkg/abap/ -v -run TestCompileToHIR
+```
 
 ## Quick start
 
 ```bash
-# Prerequisites: Node.js, Go
-cd minzc/pkg/abap/bridge && npm install
-
 # Compile ABAP to Z80 assembly
-./minzc examples/abap/hello.abap -o hello.a80
+./mz ../examples/abap/hello.abap -o hello.a80
 
-# Or emit HIR to see the intermediate representation
-./minzc examples/abap/fibonacci.abap --emit=hir
+# Emit HIR to see the intermediate representation
+./mz ../examples/abap/fibonacci.abap --emit=hir
+
+# Emit MIR2 to see the optimized IR
+./mz ../examples/abap/fizzbuzz.abap --emit=mir2
+
+# Full pipeline to CP/M binary (if target supports it)
+./mz ../examples/abap/hello.abap -o hello.com -t cpm
 ```
 
 ## Supported ABAP constructs
@@ -63,11 +99,15 @@ cd minzc/pkg/abap/bridge && npm install
 - `CREATE OBJECT` — object instantiation
 - `INHERITING FROM` — single inheritance
 
+### Phase 3 (planned)
+- `SELECT` → SQLite via MZV host functions (prototype working! see `examples/nanz/sqlite_demo.nanz`)
+- Open SQL → SQLite transpilation (later: client-server protocol over Z80 I/O ports)
+
 ### Not planned (Z80 limitations)
-- `SELECT` — no database on Z80 (shocking, we know)
 - `CALL FUNCTION` — no RFC on a Spectrum
 - `ALV` — the CRT *is* the grid
 - `SAP GUI` — 256x192 pixels is all you get
+- `ABAP Debugger` — use `mzv -trace` instead
 
 ## Why?
 
@@ -89,6 +129,36 @@ The lowerer maps ABAP concepts to Z80-friendly HIR:
 - `FORM name USING p1` → `hir.Func{Name: "name", Params: [{Name: "p1", Ty: TyU16}]}`
 - `IF cond ... ENDIF` → `hir.IfStmt{Cond: ..., Then: ..., Else: ...}`
 - `CLASS lcl_foo` → `mir2.StructTy{Name: "lcl_foo"}` + method functions
+
+## Troubleshooting
+
+**`abaplint bridge: ... is Node.js installed?`**
+- Install Node.js 18+ (`brew install node` / `apt install nodejs`)
+- Run `cd minzc/pkg/abap/bridge && npm install`
+
+**`no ABAP file parsed`**
+- abaplint requires `REPORT zname.` as the first statement for programs
+- The bridge auto-detects file type from source: `REPORT` → `.prog.abap`, `CLASS` → `.clas.abap`
+
+**`unsupported: SomeStatement`**
+- Not all 392 ABAP statement types are lowered yet — the parser handles them fine (abaplint is complete), but the Go lowerer only maps Phase 1+2 constructs to HIR
+- Want to add one? Look at `minzc/pkg/abap/lower.go` — each statement type is a `case` in `lowerStmt()`
+
+**Slow first compile**
+- First run downloads/compiles `@abaplint/core` via npm — subsequent runs are fast (~400ms)
+- The bridge is a cold `node` process per compile; caching/daemon mode is planned
+
+## How abaplint works
+
+[abaplint](https://github.com/abaplint/abaplint) by [Lars Hvam Petersen](https://github.com/larshp) is a standalone ABAP linter and parser written in TypeScript. It:
+
+- Parses **all** ABAP syntax (7.02–7.57) into a 3-layer AST: Token → Statement → Structure
+- Supports 392 statement types, 100+ expression types
+- Runs without an SAP system — pure static analysis
+- MIT licensed, no external dependencies
+- Also powers [@abaplint/transpiler](https://github.com/abaplint/transpiler) (ABAP → JavaScript)
+
+We use `@abaplint/core` as an npm library. The bridge script (`parse.mjs`, ~80 lines) feeds source code to abaplint, walks the AST, and emits JSON that Go can deserialize. abaplint handles all the ABAP parsing complexity — we just consume structured nodes.
 
 ---
 
