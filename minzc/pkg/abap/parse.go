@@ -106,6 +106,18 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 			eventName := eventTypeName(child.Type)
 			currentEvent = &EventDecl{Event: eventName}
 
+		case isControlStructure(child.Type):
+			// While, If, Do, Case → convert to semantic statement
+			stmt, err := convertControlStructure(child)
+			if err == nil && stmt != nil {
+				d := &formBodyDecl{stmt: stmt}
+				if currentEvent != nil {
+					currentEvent.Body = append(currentEvent.Body, stmt)
+				} else {
+					decls = append(decls, d)
+				}
+			}
+
 		case isStructureType(child.Type):
 			sub := &StructNode{Type: child.Type, Children: child.Children}
 			subDecls, err := walkStructure(sub)
@@ -113,7 +125,6 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 				return nil, err
 			}
 			if currentEvent != nil {
-				// Statements inside event body
 				for _, d := range subDecls {
 					if fbd, ok := d.(*formBodyDecl); ok {
 						currentEvent.Body = append(currentEvent.Body, fbd.stmt)
@@ -158,6 +169,161 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 		decls = append(decls, currentEvent)
 	}
 	return decls, nil
+}
+
+func isControlStructure(t string) bool {
+	return t == "While" || t == "If" || t == "Do" || t == "Case"
+}
+
+// convertControlStructure converts a structured control flow node to a semantic Stmt_.
+func convertControlStructure(node *ASTChild) (Stmt_, error) {
+	switch node.Type {
+	case "While":
+		return convertWhile(node)
+	case "If":
+		return convertIf(node)
+	case "Do":
+		return convertDo(node)
+	default:
+		return nil, fmt.Errorf("unsupported control structure: %s", node.Type)
+	}
+}
+
+func convertWhile(node *ASTChild) (Stmt_, error) {
+	var cond Expr_
+	var body []Stmt_
+
+	for _, child := range node.Children {
+		switch child.Type {
+		case "While":
+			// The WHILE statement itself — extract condition from tokens
+			tokens := collectChildTokens(child.Children)
+			// tokens like: ["WHILE", "lv_i", "<=", "5", "."]
+			// Skip "WHILE" and ".", parse the rest as condition
+			condTokens := filterTokens(tokens, "WHILE", ".")
+			cond = parseCondition(condTokens)
+		case "Body":
+			// Body contains the loop statements
+			sub := &StructNode{Type: "Body", Children: child.Children}
+			decls, _ := walkStructure(sub)
+			body = collectStmtsFromDecls(decls)
+		}
+	}
+
+	if cond == nil {
+		cond = &IntLit{Val: 1} // fallback: infinite loop
+	}
+	return &WhileStmt{Cond: cond, Body: body}, nil
+}
+
+func convertIf(node *ASTChild) (Stmt_, error) {
+	var cond Expr_
+	var thenBody, elseBody []Stmt_
+
+	for _, child := range node.Children {
+		switch child.Type {
+		case "If":
+			tokens := collectChildTokens(child.Children)
+			condTokens := filterTokens(tokens, "IF", ".")
+			cond = parseCondition(condTokens)
+		case "Body":
+			sub := &StructNode{Type: "Body", Children: child.Children}
+			decls, _ := walkStructure(sub)
+			thenBody = collectStmtsFromDecls(decls)
+		case "Else":
+			sub := &StructNode{Type: "Else", Children: child.Children}
+			decls, _ := walkStructure(sub)
+			elseBody = collectStmtsFromDecls(decls)
+		}
+	}
+
+	if cond == nil {
+		cond = &IntLit{Val: 1}
+	}
+	return &IfStmt{Cond: cond, Then: thenBody, Else: elseBody}, nil
+}
+
+func convertDo(node *ASTChild) (Stmt_, error) {
+	var times *Expr_
+	var body []Stmt_
+
+	for _, child := range node.Children {
+		switch child.Type {
+		case "Do":
+			tokens := collectChildTokens(child.Children)
+			// Look for "TIMES" keyword
+			for i, t := range tokens {
+				if strings.ToUpper(t) == "TIMES" && i > 0 {
+					expr := parseTokenExpr(tokens[i-1])
+					times = &expr
+				}
+			}
+		case "Body":
+			sub := &StructNode{Type: "Body", Children: child.Children}
+			decls, _ := walkStructure(sub)
+			body = collectStmtsFromDecls(decls)
+		}
+	}
+
+	return &DoStmt{Times: times, Body: body}, nil
+}
+
+// parseCondition parses condition tokens into an Expr_.
+// e.g. ["lv_i", "<=", "5"] → BinOp{Op:"<=", LHS:VarRef, RHS:IntLit}
+func parseCondition(tokens []string) Expr_ {
+	if len(tokens) == 0 {
+		return &IntLit{Val: 1}
+	}
+	if len(tokens) == 1 {
+		return parseTokenExpr(tokens[0])
+	}
+	// Find operator
+	for i, t := range tokens {
+		upper := strings.ToUpper(t)
+		switch upper {
+		case "=", "<>", "<", ">", "<=", ">=",
+			"EQ", "NE", "LT", "GT", "LE", "GE",
+			"AND", "OR":
+			lhs := parseCondition(tokens[:i])
+			rhs := parseCondition(tokens[i+1:])
+			return &BinOp{Op: t, LHS: lhs, RHS: rhs}
+		}
+	}
+	// No operator found — might be arithmetic like "lv_i + 1"
+	for i, t := range tokens {
+		if t == "+" || t == "-" || t == "*" || t == "/" {
+			lhs := parseTokenExpr(tokens[0])
+			if i+1 < len(tokens) {
+				rhs := parseTokenExpr(tokens[i+1])
+				return &BinOp{Op: t, LHS: lhs, RHS: rhs}
+			}
+		}
+	}
+	return parseTokenExpr(tokens[0])
+}
+
+func filterTokens(tokens []string, skip ...string) []string {
+	skipSet := make(map[string]bool)
+	for _, s := range skip {
+		skipSet[strings.ToUpper(s)] = true
+	}
+	var out []string
+	for _, t := range tokens {
+		if !skipSet[strings.ToUpper(t)] {
+			out = append(out, t)
+		}
+	}
+	return out
+}
+
+func collectStmtsFromDecls(decls []Decl) []Stmt_ {
+	var stmts []Stmt_
+	for _, d := range decls {
+		if fbd, ok := d.(*formBodyDecl); ok {
+			stmts = append(stmts, fbd.stmt)
+		}
+	}
+	return stmts
 }
 
 func isEventType(t string) bool {
@@ -208,6 +374,8 @@ func convertStmt(s *StmtNode) (Decl, error) {
 		return parseWriteStmt(tokens)
 	case upper == "PARAMETER" || upper == "PARAMETERS" || s.Type == "Parameter":
 		return parseParamStmt(tokens)
+	case upper == "MOVE" || s.Type == "Move":
+		return parseMoveStmt(tokens)
 	default:
 		return nil, fmt.Errorf("unsupported: %s", s.Type)
 	}
@@ -333,6 +501,49 @@ func parseParamStmt(tokens []string) (Decl, error) {
 		}
 	}
 	return p, nil
+}
+
+// parseMoveStmt: target = source.  (abaplint type: "Move")
+// tokens: [target, "=", source, "."]
+func parseMoveStmt(tokens []string) (Decl, error) {
+	if len(tokens) < 3 {
+		return nil, fmt.Errorf("MOVE: too few tokens")
+	}
+	// Find "=" to split target and source
+	eqIdx := -1
+	for i, t := range tokens {
+		if t == "=" {
+			eqIdx = i
+			break
+		}
+	}
+	if eqIdx < 1 || eqIdx+1 >= len(tokens) {
+		return nil, fmt.Errorf("MOVE: missing = in %v", tokens)
+	}
+	target := tokens[eqIdx-1]
+	// Collect source tokens (skip "." at end)
+	var srcTokens []string
+	for i := eqIdx + 1; i < len(tokens); i++ {
+		if tokens[i] != "." {
+			srcTokens = append(srcTokens, tokens[i])
+		}
+	}
+	if len(srcTokens) == 0 {
+		return nil, fmt.Errorf("MOVE: no source value")
+	}
+
+	// Build expression: simple case = single token, complex = binary op
+	var val Expr_
+	if len(srcTokens) == 1 {
+		val = parseTokenExpr(srcTokens[0])
+	} else if len(srcTokens) == 3 {
+		// a OP b
+		val = &BinOp{Op: srcTokens[1], LHS: parseTokenExpr(srcTokens[0]), RHS: parseTokenExpr(srcTokens[2])}
+	} else {
+		val = parseTokenExpr(srcTokens[0]) // fallback: first token
+	}
+
+	return &formBodyDecl{stmt: &AssignStmt{Target: target, Val: val}}, nil
 }
 
 // parseTokenExpr converts a single token string to an Expr_.
