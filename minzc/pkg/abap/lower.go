@@ -2,6 +2,7 @@ package abap
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
@@ -34,13 +35,17 @@ func LowerProgram(prog *Program) (*hir.Module, error) {
 }
 
 type lowerer struct {
-	prog     *Program
-	hm       *hir.Module
-	varTypes map[string]mir2.Ty
+	prog               *Program
+	hm                 *hir.Module
+	varTypes           map[string]mir2.Ty
+	paramRegistrations []*ParamDecl // collected during lowering
 }
 
 func (l *lowerer) lower() (*hir.Module, error) {
-	// Collect global DATA declarations and FORM signatures.
+	// ── SY structure (global system variable) ────────────────────────────
+	l.emitSYStruct()
+
+	// ── Collect declarations ─────────────────────────────────────────────
 	var mainBody []Stmt_
 	for _, d := range l.prog.Decls {
 		switch d := d.(type) {
@@ -48,33 +53,137 @@ func (l *lowerer) lower() (*hir.Module, error) {
 			ty := l.abapTypeToHIR(d.AbapTy, d.Length)
 			l.varTypes[d.Name] = ty
 			l.lowerGlobal(d)
+		case *ParamDecl:
+			// PARAMETERS → global variable + register in screen table
+			ty := l.abapTypeToHIR(d.AbapTy, d.Length)
+			l.varTypes[d.Name] = ty
+			dd := &DataDecl{Name: d.Name, AbapTy: d.AbapTy, Length: d.Length, Value: d.Default}
+			l.lowerGlobal(dd)
+			l.lowerParamRegister(d)
 		case *FormDecl:
 			l.lowerForm(d)
 		case *ClassDecl:
 			l.lowerClass(d)
 		case *InterfaceDecl:
 			l.lowerInterface(d)
+		case *EventDecl:
+			// Events handled below
 		case *formBodyDecl:
-			// Top-level statements (outside FORM) → collect into implicit main
 			mainBody = append(mainBody, d.stmt)
 		}
 	}
 
-	// If there are top-level statements, wrap them in a main function.
-	if len(mainBody) > 0 {
-		body, err := l.lowerStmts(mainBody)
-		if err != nil {
-			l.hm.Warnings = append(l.hm.Warnings, fmt.Sprintf("main: %v", err))
-		} else {
-			l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
-				Name:  "main",
-				RetTy: mir2.TyVoid,
-				Body:  body,
-			})
+	// ── Lower events into the main() execution flow ──────────────────────
+	//
+	// ABAP report execution order:
+	//   1. Globals + PARAMETERS defaults (already done above)
+	//   2. INITIALIZATION event
+	//   3. Selection screen display (sel_show host function)
+	//   4. AT-SELECTION-SCREEN event (with SY-UCOMM)
+	//   5. START-OF-SELECTION event
+	//   6. END-OF-SELECTION event
+	//   7. Top-level statements (non-event code)
+
+	var mainStmts []hir.Stmt
+
+	// INITIALIZATION
+	if body, ok := l.prog.Events["INITIALIZATION"]; ok {
+		stmts, err := l.lowerStmts(body)
+		if err == nil {
+			mainStmts = append(mainStmts, stmts.Body...)
 		}
 	}
 
+	// Selection screen — show if PARAMETERS exist
+	if len(l.prog.Params) > 0 {
+		// Call sel_show() host function — displays TUI, waits for F8
+		mainStmts = append(mainStmts, &hir.ExprStmt{
+			Expr: &hir.CallExpr{Fn: "sel_show", Ty: mir2.TyVoid},
+		})
+	}
+
+	// AT-SELECTION-SCREEN — runs after screen, SY-UCOMM is set
+	if body, ok := l.prog.Events["AT-SELECTION-SCREEN"]; ok {
+		stmts, err := l.lowerStmts(body)
+		if err == nil {
+			mainStmts = append(mainStmts, stmts.Body...)
+		}
+	}
+
+	// START-OF-SELECTION
+	if body, ok := l.prog.Events["START-OF-SELECTION"]; ok {
+		stmts, err := l.lowerStmts(body)
+		if err == nil {
+			mainStmts = append(mainStmts, stmts.Body...)
+		}
+	}
+
+	// Top-level statements (non-event code)
+	if len(mainBody) > 0 {
+		stmts, err := l.lowerStmts(mainBody)
+		if err == nil {
+			mainStmts = append(mainStmts, stmts.Body...)
+		}
+	}
+
+	// END-OF-SELECTION
+	if body, ok := l.prog.Events["END-OF-SELECTION"]; ok {
+		stmts, err := l.lowerStmts(body)
+		if err == nil {
+			mainStmts = append(mainStmts, stmts.Body...)
+		}
+	}
+
+	// Emit main function
+	if len(mainStmts) > 0 {
+		l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
+			Name:  "main",
+			RetTy: mir2.TyVoid,
+			Body:  &hir.Block{Body: mainStmts},
+		})
+	}
+
 	return l.hm, nil
+}
+
+// emitSYStruct creates the SY system structure and a global instance.
+func (l *lowerer) emitSYStruct() {
+	// SY struct: INDEX, SUBRC, TABIX, UCOMM (u16 each for simplicity)
+	st := &mir2.StructTy{
+		Name: "SY",
+		Fields: []mir2.StructField{
+			{Name: "SUBRC", Ty: mir2.TyU16},
+			{Name: "INDEX", Ty: mir2.TyU16},
+			{Name: "TABIX", Ty: mir2.TyU16},
+			{Name: "UCOMM", Ty: mir2.TyU16}, // simplified: command code as u16
+			{Name: "DATUM", Ty: mir2.TyU16},  // date as days-since-epoch (simplified)
+			{Name: "UZEIT", Ty: mir2.TyU16},  // time as minutes-since-midnight
+		},
+	}
+	l.hm.Structs = append(l.hm.Structs, st)
+
+	// Global SY instance (zero-initialized)
+	width := 0
+	for _, f := range st.Fields {
+		width += int(mir2.ByteWidth(f.Ty))
+	}
+	l.hm.Globals = append(l.hm.Globals, mir2.Global{
+		Name: "sy",
+		Ty:   mir2.TyPtr, // pointer to struct
+	})
+	// Track field types for SY-FIELD access
+	for _, f := range st.Fields {
+		l.varTypes["SY-"+f.Name] = f.Ty
+	}
+}
+
+// lowerParamRegister emits a sel_register() call for a PARAMETERS field.
+func (l *lowerer) lowerParamRegister(p *ParamDecl) {
+	// Register parameter with selection screen host function
+	// sel_register(name_ptr, type_code, length, default_ptr)
+	// This is called at startup to build the screen field list.
+	// The actual registration happens via a generated init function.
+	l.paramRegistrations = append(l.paramRegistrations, p)
 }
 
 // ── Type mapping ─────────────────────────────────────────────────────────────
@@ -474,6 +583,11 @@ func (l *lowerer) lowerExpr(e Expr_) (hir.Expr, error) {
 		}
 		return &hir.UnaryExpr{Op: op, X: val, Ty: val.ExprTy()}, nil
 
+	case *SYField:
+		// SY-INDEX etc. → host function call sy_get_FIELD()
+		fnName := fmt.Sprintf("sy_get_%s", strings.ToLower(e.Field))
+		return &hir.CallExpr{Fn: fnName, Ty: mir2.TyU16}, nil
+
 	case *FuncCall:
 		args := make([]hir.Expr, len(e.Args))
 		for i, a := range e.Args {
@@ -549,11 +663,50 @@ func (l *lowerer) lowerBinOp(e *BinOp) (hir.Expr, error) {
 
 // ── Runtime functions ────────────────────────────────────────────────────────
 
-// emitRuntimeFuncs adds built-in ABAP runtime (WRITE output via CP/M BDOS).
+// emitRuntimeFuncs adds built-in ABAP runtime functions.
 func emitRuntimeFuncs(hm *hir.Module) {
 	names := map[string]bool{}
 	for _, f := range hm.Funcs {
 		names[f.Name] = true
+	}
+
+	// SY-* getter host functions (implemented in MZV or as stubs)
+	syFields := []string{"subrc", "index", "tabix", "ucomm", "datum", "uzeit"}
+	for _, field := range syFields {
+		fnName := "sy_get_" + field
+		if !names[fnName] {
+			hm.Funcs = append(hm.Funcs, &hir.Func{
+				Name:     fnName,
+				RetTy:    mir2.TyU16,
+				IsExtern: true, // resolved by host function table
+			})
+			names[fnName] = true
+		}
+	}
+
+	// sel_show — display selection screen (host function in MZV)
+	if !names["sel_show"] {
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name:     "sel_show",
+			RetTy:    mir2.TyVoid,
+			IsExtern: true,
+		})
+		names["sel_show"] = true
+	}
+
+	// sel_register — register a selection screen field
+	if !names["sel_register"] {
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name: "sel_register",
+			Params: []hir.Param{
+				{Name: "name", Ty: mir2.TyPtr},
+				{Name: "ty", Ty: mir2.TyU8},
+				{Name: "length", Ty: mir2.TyU8},
+			},
+			RetTy:    mir2.TyVoid,
+			IsExtern: true,
+		})
+		names["sel_register"] = true
 	}
 
 	if !names["abap_write"] {

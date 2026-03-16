@@ -44,7 +44,10 @@ func Parse(src, name string) (*Program, error) {
 
 // buildProgram converts the raw JSON AST into a semantic Program.
 func buildProgram(name string, r *ParseResult) (*Program, error) {
-	prog := &Program{Name: name}
+	prog := &Program{
+		Name:   name,
+		Events: make(map[string][]Stmt_),
+	}
 
 	if r.Structure != nil {
 		decls, err := walkStructure(r.Structure)
@@ -64,26 +67,63 @@ func buildProgram(name string, r *ParseResult) (*Program, error) {
 		}
 	}
 
+	// Post-process: extract PARAMETERS and events from Decls
+	var filtered []Decl
+	for _, d := range prog.Decls {
+		switch d := d.(type) {
+		case *ParamDecl:
+			prog.Params = append(prog.Params, d)
+			filtered = append(filtered, d) // keep as global DATA too
+		case *EventDecl:
+			prog.Events[d.Event] = d.Body
+		default:
+			filtered = append(filtered, d)
+		}
+	}
+	prog.Decls = filtered
+
 	return prog, nil
 }
 
 // walkStructure recursively walks a StructureNode tree.
+// It handles event blocks (INITIALIZATION, START-OF-SELECTION, etc.) by
+// collecting subsequent Normal blocks as the event body.
 func walkStructure(sn *StructNode) ([]Decl, error) {
 	var decls []Decl
+	var currentEvent *EventDecl // currently open event
+
 	for _, child := range sn.Children {
 		switch {
 		case child.Type == "Token":
 			continue
+
+		case isEventType(child.Type):
+			// Close previous event
+			if currentEvent != nil {
+				decls = append(decls, currentEvent)
+			}
+			// Start new event
+			eventName := eventTypeName(child.Type)
+			currentEvent = &EventDecl{Event: eventName}
+
 		case isStructureType(child.Type):
-			// Recurse into structure
 			sub := &StructNode{Type: child.Type, Children: child.Children}
 			subDecls, err := walkStructure(sub)
 			if err != nil {
 				return nil, err
 			}
-			decls = append(decls, subDecls...)
+			if currentEvent != nil {
+				// Statements inside event body
+				for _, d := range subDecls {
+					if fbd, ok := d.(*formBodyDecl); ok {
+						currentEvent.Body = append(currentEvent.Body, fbd.stmt)
+					}
+				}
+			} else {
+				decls = append(decls, subDecls...)
+			}
+
 		default:
-			// Statement node
 			stmt := &StmtNode{
 				Type:     child.Type,
 				Tokens:   child.Tokens,
@@ -91,14 +131,53 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 			}
 			d, err := convertStmt(stmt)
 			if err != nil {
+				// If inside an event, check if this is an event boundary
+				if ed, ok := d.(*EventDecl); ok {
+					if currentEvent != nil {
+						decls = append(decls, currentEvent)
+					}
+					currentEvent = ed
+				}
 				continue
 			}
 			if d != nil {
-				decls = append(decls, d)
+				if currentEvent != nil {
+					if fbd, ok := d.(*formBodyDecl); ok {
+						currentEvent.Body = append(currentEvent.Body, fbd.stmt)
+					} else {
+						decls = append(decls, d)
+					}
+				} else {
+					decls = append(decls, d)
+				}
 			}
 		}
 	}
+	// Close last event
+	if currentEvent != nil {
+		decls = append(decls, currentEvent)
+	}
 	return decls, nil
+}
+
+func isEventType(t string) bool {
+	return t == "Initialization" || t == "StartOfSelection" ||
+		t == "EndOfSelection" || t == "AtSelectionScreen"
+}
+
+func eventTypeName(t string) string {
+	switch t {
+	case "Initialization":
+		return "INITIALIZATION"
+	case "StartOfSelection":
+		return "START-OF-SELECTION"
+	case "EndOfSelection":
+		return "END-OF-SELECTION"
+	case "AtSelectionScreen":
+		return "AT-SELECTION-SCREEN"
+	default:
+		return t
+	}
 }
 
 func isStructureType(t string) bool {
@@ -127,6 +206,8 @@ func convertStmt(s *StmtNode) (Decl, error) {
 		return parseDataStmt(tokens)
 	case upper == "WRITE" || s.Type == "Write":
 		return parseWriteStmt(tokens)
+	case upper == "PARAMETER" || upper == "PARAMETERS" || s.Type == "Parameter":
+		return parseParamStmt(tokens)
 	default:
 		return nil, fmt.Errorf("unsupported: %s", s.Type)
 	}
@@ -221,8 +302,46 @@ type formBodyDecl struct {
 
 func (*formBodyDecl) abapDecl() {}
 
+// parseParamStmt: PARAMETERS p_name TYPE c LENGTH 20 DEFAULT 'Hello'.
+func parseParamStmt(tokens []string) (Decl, error) {
+	if len(tokens) < 2 {
+		return nil, fmt.Errorf("PARAMETERS: too few tokens")
+	}
+	p := &ParamDecl{Name: tokens[1], AbapTy: "c", Length: 1}
+
+	for i := 2; i < len(tokens); i++ {
+		upper := strings.ToUpper(tokens[i])
+		switch upper {
+		case "TYPE":
+			if i+1 < len(tokens) {
+				p.AbapTy = strings.ToLower(tokens[i+1])
+				i++
+			}
+		case "LENGTH":
+			if i+1 < len(tokens) {
+				if n, err := strconv.Atoi(tokens[i+1]); err == nil {
+					p.Length = n
+				}
+				i++
+			}
+		case "DEFAULT":
+			if i+1 < len(tokens) {
+				val := parseTokenExpr(tokens[i+1])
+				p.Default = &val
+				i++
+			}
+		}
+	}
+	return p, nil
+}
+
 // parseTokenExpr converts a single token string to an Expr_.
 func parseTokenExpr(s string) Expr_ {
+	// SY-FIELD references
+	upper := strings.ToUpper(s)
+	if strings.HasPrefix(upper, "SY-") {
+		return &SYField{Field: upper[3:]} // "SY-INDEX" → "INDEX"
+	}
 	// Remove surrounding quotes for strings
 	if len(s) >= 2 && s[0] == '\'' && s[len(s)-1] == '\'' {
 		return &StringLit{Val: s[1 : len(s)-1]}

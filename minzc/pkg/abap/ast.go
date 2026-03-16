@@ -57,8 +57,10 @@ type Token struct {
 
 // Program is the top-level semantic unit after AST simplification.
 type Program struct {
-	Name  string
-	Decls []Decl
+	Name   string
+	Decls  []Decl
+	Params []*ParamDecl  // PARAMETERS declarations (selection screen)
+	Events map[string][]Stmt_ // INITIALIZATION, START-OF-SELECTION, END-OF-SELECTION, etc.
 }
 
 // Decl is any top-level or local declaration.
@@ -73,6 +75,25 @@ type DataDecl struct {
 }
 
 func (*DataDecl) abapDecl() {}
+
+// ParamDecl is a PARAMETERS statement (selection screen input field).
+// PARAMETERS p_name TYPE c LENGTH 20 DEFAULT 'Hello'.
+type ParamDecl struct {
+	Name    string
+	AbapTy  string
+	Length  int
+	Default *Expr_ // DEFAULT value
+}
+
+func (*ParamDecl) abapDecl() {}
+
+// EventDecl wraps an ABAP event block (INITIALIZATION, START-OF-SELECTION, etc.)
+type EventDecl struct {
+	Event string  // "INITIALIZATION", "START-OF-SELECTION", "END-OF-SELECTION"
+	Body  []Stmt_
+}
+
+func (*EventDecl) abapDecl() {}
 
 // FormDecl is a FORM/ENDFORM subroutine.
 type FormDecl struct {
@@ -251,3 +272,9 @@ type FuncCall struct {
 	Args []Expr_
 }
 func (*FuncCall) abapExpr() {}
+
+// SYField is a reference to a SY-* system variable (SY-INDEX, SY-SUBRC, etc.)
+type SYField struct {
+	Field string // "INDEX", "SUBRC", "UCOMM", "DATUM", "UZEIT", "TABIX"
+}
+func (*SYField) abapExpr() {}

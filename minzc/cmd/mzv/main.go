@@ -16,6 +16,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -180,6 +181,10 @@ func main() {
 	// ── SQLite host functions ────────────────────────────────────────────
 
 	registerSQLiteHosts(vm, traceEnabled)
+
+	// ── ABAP runtime host functions (SY, selection screen) ───────────────
+
+	registerABAPHosts(vm, traceEnabled)
 
 	// ── Terminal raw mode + input goroutine ──────────────────────────────
 
@@ -593,4 +598,124 @@ func registerSQLiteHosts(vm *mir2.VM, trace bool) {
 	}
 
 	fmt.Fprintf(os.Stderr, "mzv2: SQLite host functions registered\n")
+}
+
+// ── ABAP runtime host functions ──────────────────────────────────────────────
+//
+// SY system variables + selection screen TUI.
+// These are called by the ABAP lowerer's emitted code.
+
+func registerABAPHosts(vm *mir2.VM, trace bool) {
+	// ── SY system fields ─────────────────────────────────────────────────
+	//
+	// SY-INDEX:  current DO loop iteration (1-based)
+	// SY-SUBRC:  return code from last operation (0=ok)
+	// SY-TABIX:  current LOOP AT iteration
+	// SY-UCOMM:  last user command (selection screen)
+	// SY-DATUM:  current date (simplified: 0)
+	// SY-UZEIT:  current time (simplified: 0)
+
+	var syIndex, sySubrc, syTabix, syUcomm int64
+
+	vm.Hosts["sy_get_index"] = func(_ []mir2.Value) ([]mir2.Value, error) {
+		return []mir2.Value{{I: syIndex}}, nil
+	}
+	vm.Hosts["sy_get_subrc"] = func(_ []mir2.Value) ([]mir2.Value, error) {
+		return []mir2.Value{{I: sySubrc}}, nil
+	}
+	vm.Hosts["sy_get_tabix"] = func(_ []mir2.Value) ([]mir2.Value, error) {
+		return []mir2.Value{{I: syTabix}}, nil
+	}
+	vm.Hosts["sy_get_ucomm"] = func(_ []mir2.Value) ([]mir2.Value, error) {
+		return []mir2.Value{{I: syUcomm}}, nil
+	}
+	vm.Hosts["sy_get_datum"] = func(_ []mir2.Value) ([]mir2.Value, error) {
+		return []mir2.Value{{I: 20260316}}, nil // today
+	}
+	vm.Hosts["sy_get_uzeit"] = func(_ []mir2.Value) ([]mir2.Value, error) {
+		return []mir2.Value{{I: 120000}}, nil // noon
+	}
+
+	// SY-INDEX setter (called internally by DO loop lowering)
+	vm.Hosts["sy_set_index"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		syIndex = args[0].I
+		return nil, nil
+	}
+	vm.Hosts["sy_set_subrc"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		sySubrc = args[0].I
+		return nil, nil
+	}
+	vm.Hosts["sy_set_ucomm"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		syUcomm = args[0].I
+		return nil, nil
+	}
+
+	// ── Selection screen ─────────────────────────────────────────────────
+
+	type selField struct {
+		name   string
+		ty     byte // 'i'=integer, 'c'=char, 's'=string
+		length int
+		value  string // current value (entered by user)
+	}
+
+	var fields []*selField
+	_ = syTabix // suppress unused
+
+	// Helper: read null-terminated string from VM heap
+	readStr := func(ptr int64) string {
+		var buf []byte
+		for i := int64(0); i < 256; i++ {
+			b := vm.ReadHeap(ptr+i, 1)
+			if b == nil || b[0] == 0 {
+				break
+			}
+			buf = append(buf, b[0])
+		}
+		return string(buf)
+	}
+
+	// sel_register(name_ptr, type_code, length) — register a screen field
+	vm.Hosts["sel_register"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		name := readStr(args[0].I)
+		ty := byte(args[1].I)
+		length := int(args[2].I)
+		fields = append(fields, &selField{name: name, ty: ty, length: length})
+		if trace {
+			fmt.Fprintf(os.Stderr, "  sel_register(%q, '%c', %d)\n", name, ty, length)
+		}
+		return nil, nil
+	}
+
+	// sel_show() — display selection screen, wait for user input
+	vm.Hosts["sel_show"] = func(_ []mir2.Value) ([]mir2.Value, error) {
+		if len(fields) == 0 {
+			// No fields registered — skip screen
+			syUcomm = 0x4F4E // "ON" for ONLI
+			return nil, nil
+		}
+
+		// Print selection screen to stderr (simple text mode)
+		fmt.Fprintf(os.Stderr, "\n┌─ Selection Screen ──────────────────┐\n")
+		fmt.Fprintf(os.Stderr, "│                                    │\n")
+		for _, f := range fields {
+			val := f.value
+			if val == "" {
+				val = strings.Repeat("_", f.length)
+			}
+			fmt.Fprintf(os.Stderr, "│  %-10s [%-20s]  │\n", f.name, val)
+		}
+		fmt.Fprintf(os.Stderr, "│                                    │\n")
+		fmt.Fprintf(os.Stderr, "│  [Enter=Execute]                   │\n")
+		fmt.Fprintf(os.Stderr, "└────────────────────────────────────┘\n\n")
+
+		// In headless/trace mode, auto-execute with defaults
+		syUcomm = 0x4F4E // "ON" for ONLI (F8 = Execute)
+		if trace {
+			fmt.Fprintf(os.Stderr, "  sel_show() → auto-execute (SY-UCOMM=ONLI)\n")
+		}
+		return nil, nil
+	}
+
+	fmt.Fprintf(os.Stderr, "mzv2: ABAP runtime registered (SY + selection screen)\n")
 }
