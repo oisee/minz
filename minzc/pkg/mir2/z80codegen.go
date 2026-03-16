@@ -4053,23 +4053,35 @@ func (g *z80cg) genCall(inst *Inst) {
 		// Z80 has no CALL (rr) instruction. Use trampoline: CALL __call_hl
 		// where __call_hl: JP (HL) — the callee's RET returns to our caller.
 		// Cost: 17T (CALL) + 4T (JP) = 21T vs 17T direct = +4T overhead.
+
+		// Build synthetic standard-ABI contract for the arguments.
+		// Standard ABI: param0=A(u8)/HL(u16), param1=C(u8)/DE(u16), param2=B(u8)/BC(u16).
+		// Infer arg type from allocator: 16-bit loc → u16, else u8.
+		syntheticParams := make([]Param, len(inst.Args))
+		for i, arg := range inst.Args {
+			ty := inferTyFromAlloc(g.ar, arg)
+			cls := standardParamClass(ty, i)
+			syntheticParams[i] = Param{Reg: arg, Ty: ty, Class: cls}
+		}
+
+		// Set up args via parallel copy to standard ABI locations.
+		if len(syntheticParams) > 0 {
+			g.emitCallArgs(inst.Args, syntheticParams)
+		}
+
+		// Load function pointer into HL (after args, in case an arg was in HL).
 		ptr := g.loc(inst.Src[0])
 		if ptr != "HL" {
-			g.emitf("    LD H, %s", highByte(ptr))
-			g.emitf("    LD L, %s", lowByte(ptr))
-			g.invalidate("HL")
+			g.emitMov("HL", ptr, 16)
 		}
-		// Arg setup: move args to callee-expected registers.
-		// Without a known callee contract, use default ABI:
-		// arg0=A (u8) or HL (u16), arg1=C/DE, arg2=B/BC.
-		// For now, args are already in place from preceding moves.
+
 		g.emit("    CALL __call_hl")
 		g.needsCallHL = true // emit trampoline at end of module
-		if inst.Dst != NoReg {
-			// Return value in A (u8) or HL (u16) — standard ABI.
-		}
+
+		// Return value in A (u8) or HL (u16) — standard ABI.
 		g.invalidate("A")
 		g.invalidate("F")
+		g.invalidate("HL")
 		return
 	}
 
@@ -5268,6 +5280,50 @@ func canonicalReturnLoc(cls RegClass, ty Ty) string {
 			return "A"
 		}
 		return "HL"
+	}
+}
+
+// standardParamClass returns the register class for position i in the
+// standard callable ABI (used by function pointers / indirect calls).
+// Matches classForParam in hir/lower.go.
+func standardParamClass(ty Ty, pos int) RegClass {
+	if ty == TyPtr {
+		return ClassPointer
+	}
+	if ty.Width() > 8 {
+		if pos == 0 {
+			return ClassPointer // HL
+		}
+		return ClassIndex // DE
+	}
+	switch pos {
+	case 0:
+		return ClassAcc // A
+	case 1:
+		return ClassGeneral // C
+	case 2:
+		return ClassCounter // B
+	default:
+		return ClassGeneral
+	}
+}
+
+// inferTyFromAlloc guesses the type of a virtual register from its allocated
+// physical location. 16-bit pair → TyU16; 8-bit reg → TyU8.
+func inferTyFromAlloc(ar *AllocResult, r Reg) Ty {
+	loc := ar.Loc(r)
+	switch loc.Kind {
+	case LocReg:
+		if isPairReg(loc.Name) {
+			return TyU16
+		}
+		return TyU8
+	case LocIXY:
+		return TyU16
+	case LocIXY8, LocShadow:
+		return TyU8
+	default:
+		return TyU8
 	}
 }
 
