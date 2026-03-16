@@ -34,11 +34,18 @@ func LowerProgram(prog *Program) (*hir.Module, error) {
 	return l.lower()
 }
 
+type stringInit struct {
+	varName string
+	strIdx  int
+	ty      mir2.Ty
+}
+
 type lowerer struct {
 	prog               *Program
 	hm                 *hir.Module
 	varTypes           map[string]mir2.Ty
 	paramRegistrations []*ParamDecl // collected during lowering
+	stringInits        []stringInit // DATA x TYPE string VALUE '...' → deferred init
 }
 
 func (l *lowerer) lower() (*hir.Module, error) {
@@ -86,6 +93,14 @@ func (l *lowerer) lower() (*hir.Module, error) {
 
 	var mainStmts []hir.Stmt
 
+	// String DATA globals — assign interned string addresses
+	for _, si := range l.stringInits {
+		mainStmts = append(mainStmts, &hir.AssignStmt{
+			Target: &hir.VarRefExpr{Name: si.varName, Ty: si.ty},
+			Val:    &hir.AddrOfExpr{Sym: fmt.Sprintf("@mir2.str.%d", si.strIdx)},
+		})
+	}
+
 	// ── PARAMETERS: allocate per-param buffers, set defaults, prompt ────
 	//
 	// Each string param gets a static buffer: _abap_buf_<name>
@@ -95,7 +110,6 @@ func (l *lowerer) lower() (*hir.Module, error) {
 	//
 	// p_name always points to _abap_buf_<name> + 2 (text area).
 	// Default value pre-filled. Empty input = keep default.
-
 	for _, p := range l.prog.Params {
 		ty := l.varTypes[p.Name]
 		if ty == mir2.TyPtr {
@@ -344,7 +358,8 @@ func (l *lowerer) lowerGlobal(d *DataDecl) {
 		Ty:   ty,
 	}
 	if d.Value != nil {
-		if lit, ok := (*d.Value).(*IntLit); ok {
+		switch lit := (*d.Value).(type) {
+		case *IntLit:
 			w := mir2.ByteWidth(ty)
 			g.Init = make([]byte, w)
 			if w >= 1 {
@@ -353,6 +368,16 @@ func (l *lowerer) lowerGlobal(d *DataDecl) {
 			if w >= 2 {
 				g.Init[1] = byte(lit.Val >> 8)
 			}
+		case *StringLit:
+			// String DATA → intern the string and record an init assignment
+			idx := len(l.hm.Strings)
+			l.hm.Strings = append(l.hm.Strings, lit.Val)
+			l.hm.StrKinds = append(l.hm.StrKinds, mir2.StrCString)
+			l.stringInits = append(l.stringInits, stringInit{
+				varName: d.Name,
+				strIdx:  idx,
+				ty:      ty,
+			})
 		}
 	}
 	l.hm.Globals = append(l.hm.Globals, g)

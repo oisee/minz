@@ -62,8 +62,8 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     // Compile on save for diagnostics
-    const compilableLangs = new Set(['minz', 'nanz', 'mir', 'lanz', 'lizp', 'plm', 'minz-pascal', 'minz-c', 'minz-objc']);
-    const compilableExts = new Set(['.minz', '.mz', '.nanz', '.mir', '.lanz', '.lizp', '.plm', '.pas', '.c', '.m']);
+    const compilableLangs = new Set(['minz', 'nanz', 'mir', 'lanz', 'lizp', 'plm', 'minz-pascal', 'minz-c', 'minz-objc', 'minz-abap']);
+    const compilableExts = new Set(['.minz', '.mz', '.nanz', '.mir', '.lanz', '.lizp', '.plm', '.pas', '.c', '.m', '.abap']);
     vscode.workspace.onDidSaveTextDocument((document) => {
         const lang = document.languageId;
         const ext = path.extname(document.fileName);
@@ -226,10 +226,10 @@ function getMinZContext(): { filePath: string; config: vscode.WorkspaceConfigura
     const name = activeEditor.document.fileName;
     const lang = activeEditor.document.languageId;
     const ext = path.extname(name);
-    const supportedExts = new Set(['.minz', '.mz', '.nanz', '.mir', '.lanz', '.lizp', '.plm', '.pas', '.c', '.m']);
-    const supportedLangs = new Set(['minz', 'nanz', 'mir', 'lanz', 'lizp', 'plm', 'minz-pascal', 'minz-c', 'minz-objc']);
+    const supportedExts = new Set(['.minz', '.mz', '.nanz', '.mir', '.lanz', '.lizp', '.plm', '.pas', '.c', '.m', '.abap']);
+    const supportedLangs = new Set(['minz', 'nanz', 'mir', 'lanz', 'lizp', 'plm', 'minz-pascal', 'minz-c', 'minz-objc', 'minz-abap']);
     if (!supportedExts.has(ext) && !supportedLangs.has(lang)) {
-        vscode.window.showErrorMessage('No MinZ-compatible file is currently open. Supported: .minz, .nanz, .lanz, .lizp, .plm, .pas, .c, .m');
+        vscode.window.showErrorMessage('No MinZ-compatible file is currently open. Supported: .minz, .nanz, .lanz, .lizp, .plm, .pas, .c, .m, .abap');
         return null;
     }
 
@@ -466,8 +466,7 @@ async function compileOptimized() {
     const enableSMC = ctx.config.get<boolean>('enableSMC', false);
     const enableTrueSMC = ctx.config.get<boolean>('enableTrueSMC', false);
 
-    const args = [`"${ctx.filePath}"`, '-o', `"${outputFile}"`];
-    if (enableSMC) { args.push('--enable-smc'); }
+    const args = [`"${ctx.filePath}"`, '-o', `"${outputFile}"`, '--enable-smc'];
     if (enableTrueSMC) { args.push('--enable-true-smc'); }
 
     const result = await runCompiler(ctx, args, 'Compiling with full optimizations');
@@ -621,7 +620,7 @@ class MinZDebugConfigProvider implements vscode.DebugConfigurationProvider {
         // If no config, provide a default
         if (!config.type) {
             const activeEditor = vscode.window.activeTextEditor;
-            const supportedDebugExts = ['.minz', '.mz', '.mir', '.nanz', '.lanz', '.lizp', '.plm', '.pas', '.c', '.m'];
+            const supportedDebugExts = ['.minz', '.mz', '.mir', '.nanz', '.lanz', '.lizp', '.plm', '.pas', '.c', '.m', '.abap'];
             if (!activeEditor || !supportedDebugExts.some(ext => activeEditor.document.fileName.endsWith(ext))) {
                 return undefined;
             }

@@ -15,6 +15,7 @@ MZX_LDFLAGS = -X 'main.version=$(MZX_VERSION)' -X 'main.buildNum=$(MZX_BUILD_NUM
 # Build all tools
 .PHONY: all
 all: mz mza mze mzv mzn mzr mzrun mztap mzd mzx mzlsp
+all-but: mz mza mze mzn mzr mzrun mztap mzd mzlsp #skip mzv mzx
 
 # Build the main compiler
 mz:
@@ -80,6 +81,12 @@ install-user: all
 	@mkdir -p ~/.local/bin
 	@for f in mz mza mze mzv mzn mzr mzrun mztap mzd mzx mzlsp; do [ -f $$f ] && cp -f $$f ~/.local/bin/ && (codesign -s - ~/.local/bin/$$f 2>/dev/null || true); done
 	@echo "MinZ tools installed to ~/.local/bin/"
+
+install-user-but: all-but
+	@mkdir -p ~/.local/bin
+	@for f in mz mza mze mzn mzr mzrun mztap mzd mzlsp; do [ -f $$f ] && cp -f $$f ~/.local/bin/ && (codesign -s - ~/.local/bin/$$f 2>/dev/null || true); done
+	@echo "MinZ tools installed to ~/.local/bin/"
+
 
 # Clean build artifacts
 .PHONY: clean
