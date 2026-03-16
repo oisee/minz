@@ -556,6 +556,21 @@ func (pl *procLowerer) lowerExpr(e Expr) (hir.Expr, error) {
 			base := &hir.AddrOfExpr{Sym: e.Fn}
 			return &hir.IndexExpr{Base: base, Idx: idx, ElemTy: elemTy}, nil
 		}
+		// Indirect call: if name is a local ADDRESS variable (not a procedure),
+		// emit CallIndirectExpr — the variable holds a function pointer.
+		if _, isProc := pl.ml.fnRetTy[e.Fn]; !isProc {
+			if pl.typeOf(e.Fn) == PLMAddress {
+				args, err := pl.lowerExprs(e.Args)
+				if err != nil {
+					return nil, err
+				}
+				return &hir.CallIndirectExpr{
+					FnPtr: &hir.VarRefExpr{Name: e.Fn, Ty: mir2.TyPtr},
+					Args:  args,
+					Ty:    mir2.TyU8, // default return; PL/M doesn't annotate fn ptr returns
+				}, nil
+			}
+		}
 		var retTy mir2.Ty = mir2.TyVoid
 		if rt, ok := pl.ml.fnRetTy[e.Fn]; ok {
 			retTy = plmToMIR2(rt)

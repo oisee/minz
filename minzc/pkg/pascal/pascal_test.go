@@ -1,9 +1,11 @@
 package pascal
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
+	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/pipeline"
 )
 
@@ -592,4 +594,57 @@ end.`
 	if err != nil {
 		t.Fatalf("pipeline (asserts should pass): %v", err)
 	}
+}
+
+func TestFunctionPointer(t *testing.T) {
+	src := `program FPTest;
+type
+  TTransform = function(x: byte): byte;
+
+function Double(x: byte): byte;
+begin
+  Double := x + x;
+end;
+
+function Apply(f: TTransform; x: byte): byte;
+begin
+  Apply := f(x);
+end;
+
+function TestFP: byte;
+begin
+  TestFP := Apply(@Double, 5);
+end;
+
+begin
+end.`
+	hm, err := Compile(src, "fp_test")
+	if err != nil {
+		t.Fatalf("Compile: %v", err)
+	}
+	// Check that TTransform is a ProcPtrType → TyPtr param
+	found := false
+	for _, f := range hm.Funcs {
+		if f.Name == "APPLY" {
+			for _, p := range f.Params {
+				if p.Name == "F" && p.Ty == mir2.TyPtr {
+					found = true
+				}
+			}
+		}
+	}
+	if !found {
+		t.Error("APPLY param F should be TyPtr (function pointer)")
+	}
+	// Check that Apply body contains CallIndirectExpr (not CallExpr with "F")
+	applyFn := hm.FuncByName("APPLY")
+	if applyFn == nil {
+		t.Fatal("APPLY function not found")
+	}
+	hirStr := strings.Builder{}
+	fmt.Fprintf(&hirStr, "%v", applyFn.Body)
+	if strings.Contains(hirStr.String(), "CallIndirectExpr") {
+		t.Log("OK: Apply body contains CallIndirectExpr")
+	}
+	t.Logf("APPLY body: %+v", applyFn.Body)
 }

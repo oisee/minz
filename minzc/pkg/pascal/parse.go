@@ -270,6 +270,47 @@ func (p *parser) parseType() (PasType, error) {
 		return &StringType{MaxLen: maxLen}, nil
 	}
 
+	// function/procedure pointer type: function(x: byte): byte
+	if p.l.Is("FUNCTION") || p.l.Is("PROCEDURE") {
+		isFunc := p.l.Is("FUNCTION")
+		p.l.Next()
+		var paramTypes []PasType
+		if p.l.MatchKind(TokLParen) {
+			for !p.l.IsKind(TokRParen) {
+				// Skip parameter names — just grab types.
+				// Format: name: type  or  name1, name2: type
+				for p.l.IsKind(TokIdent) {
+					p.l.Next() // consume name
+					if p.l.MatchKind(TokComma) {
+						continue
+					}
+					break
+				}
+				if _, err := p.l.ExpectKind(TokColon); err != nil {
+					return nil, err
+				}
+				pt, err := p.parseType()
+				if err != nil {
+					return nil, err
+				}
+				paramTypes = append(paramTypes, pt)
+				p.l.MatchKind(TokSemicolon) // params separated by ;
+			}
+			if _, err := p.l.ExpectKind(TokRParen); err != nil {
+				return nil, err
+			}
+		}
+		var retTy PasType
+		if isFunc && p.l.MatchKind(TokColon) {
+			rt, err := p.parseType()
+			if err != nil {
+				return nil, err
+			}
+			retTy = rt
+		}
+		return &ProcPtrType{Params: paramTypes, RetTy: retTy}, nil
+	}
+
 	// Named type or basic type
 	tok := p.l.Next()
 	if tok.Kind != TokIdent {

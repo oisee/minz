@@ -47,6 +47,15 @@ type StringType struct{ MaxLen int }
 
 func (*StringType) pasType() {}
 
+// ProcPtrType is a function/procedure pointer type.
+// In Turbo Pascal: type TFunc = function(x: byte): byte;
+type ProcPtrType struct {
+	Params []PasType // parameter types
+	RetTy  PasType   // nil for procedure pointer
+}
+
+func (*ProcPtrType) pasType() {}
+
 // TypeRef is a reference to a named type (resolved later).
 type TypeRef struct{ Name string }
 
@@ -315,6 +324,8 @@ func PasTypeToMIR2(t PasType) mir2.Ty {
 		return &mir2.ArrayTy{Elem: elem, Len: t.Hi - t.Lo + 1}
 	case *PointerType:
 		return mir2.TyPtr
+	case *ProcPtrType:
+		return mir2.TyPtr // function pointers are addresses on Z80
 	case *StringType:
 		return &mir2.ArrayTy{Elem: mir2.TyU8, Len: t.MaxLen + 1}
 	case *TypeRef:

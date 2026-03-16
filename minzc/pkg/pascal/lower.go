@@ -815,6 +815,31 @@ func (pl *procLow) lowerCallExpr(e *CallExpr) (hir.Expr, error) {
 		}
 	}
 
+	// Check if this is an indirect call through a function pointer variable.
+	// Check both local (params + local vars) and global var types.
+	vt, ok := pl.localTypes[e.Name]
+	if !ok {
+		vt, ok = pl.low.varTypes[e.Name]
+	}
+	if ok {
+		resolved := pl.low.resolveType(vt)
+		if _, isProcPtr := resolved.(*ProcPtrType); isProcPtr {
+			args, err := pl.lowerExprs(e.Args)
+			if err != nil {
+				return nil, err
+			}
+			retTy := mir2.Ty(mir2.TyVoid)
+			if ppt := resolved.(*ProcPtrType); ppt.RetTy != nil {
+				retTy = PasTypeToMIR2(ppt.RetTy)
+			}
+			return &hir.CallIndirectExpr{
+				FnPtr: &hir.VarRefExpr{Name: e.Name, Ty: mir2.TyPtr},
+				Args:  args,
+				Ty:    retTy,
+			}, nil
+		}
+	}
+
 	var retTy mir2.Ty = mir2.TyVoid
 	if rt, ok := pl.low.fnRetTy[e.Name]; ok {
 		retTy = PasTypeToMIR2(pl.low.resolveType(rt))
