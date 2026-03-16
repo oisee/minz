@@ -81,6 +81,11 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) string {
 		sb.WriteString("; globals\n")
 		for _, g := range m.Globals {
 			w := ByteWidth(g.Ty)
+			// If Init data is longer than type width, use the actual data length.
+			// This supports variable-length buffers (e.g. ABAP PARAMETERS buffers).
+			if len(g.Init) > w {
+				w = len(g.Init)
+			}
 			if w == 0 {
 				// Zero-size struct: emit the label so address-of references resolve,
 				// but no data bytes — the struct occupies no memory at runtime.

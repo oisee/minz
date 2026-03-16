@@ -410,16 +410,16 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 			}
 			return 0, 0, true
 
-		case 0x0A: // Read console buffer
-			// FCB-like structure at DE: [max_len, actual_len, chars...]
+		case 0x0A: // Read console buffer (BDOS buffered line input)
+			// Buffer at DE: [max_len, actual_len, chars...]
 			maxLen := z80.ReadMemory(de)
 			if maxLen == 0 {
 				maxLen = 127
 			}
-			buf := make([]byte, maxLen)
+			buf := make([]byte, maxLen+2) // extra for CR/LF
 			n, _ := os.Stdin.Read(buf)
-			// Strip trailing newline
-			if n > 0 && buf[n-1] == '\n' {
+			// Strip trailing CR, LF, CR+LF
+			for n > 0 && (buf[n-1] == '\n' || buf[n-1] == '\r') {
 				n--
 			}
 			if n > int(maxLen) {

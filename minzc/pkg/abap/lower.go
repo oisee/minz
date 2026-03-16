@@ -86,12 +86,65 @@ func (l *lowerer) lower() (*hir.Module, error) {
 
 	var mainStmts []hir.Stmt
 
-	// PARAMETERS defaults — emit assignments for string/ptr defaults
+	// ── PARAMETERS: allocate per-param buffers, set defaults, prompt ────
+	//
+	// Each string param gets a static buffer: _abap_buf_<name>
+	//   [0]: max length (for BDOS 0x0A)
+	//   [1]: actual length (filled by BDOS)
+	//   [2..]: text data (null-terminated)
+	//
+	// p_name always points to _abap_buf_<name> + 2 (text area).
+	// Default value pre-filled. Empty input = keep default.
+
 	for _, p := range l.prog.Params {
-		if p.Default != nil {
+		ty := l.varTypes[p.Name]
+		if ty == mir2.TyPtr {
+			// String param: allocate TWO adjacent globals:
+			//   _abap_hdr_<name>: [max_len, actual_len] (2 bytes, BDOS 0x0A header)
+			//   _abap_txt_<name>: [text..., NUL]         (text data area)
+			//
+			// BDOS 0x0A writes starting at the header, text lands in txt.
+			// p_name points to _abap_txt_<name> (the text part).
+			// If user enters empty line, txt keeps the pre-filled default.
+
+			bufLen := p.Length
+			if bufLen < 20 {
+				bufLen = 20
+			}
+			defStr := ""
+			if p.Default != nil {
+				if sl, ok := (*p.Default).(*StringLit); ok {
+					defStr = sl.Val
+				}
+			}
+
+			hdrName := "_abap_hdr_" + p.Name
+			txtName := "_abap_txt_" + p.Name
+
+			// Header: [max_len, pre-filled actual_len]
+			l.hm.Globals = append(l.hm.Globals, mir2.Global{
+				Name: hdrName,
+				Ty:   mir2.TyU8,
+				Init: []byte{byte(bufLen), byte(len(defStr))},
+			})
+			// Text area: default value + padding + NUL
+			txtData := make([]byte, bufLen+1) // +1 for NUL
+			copy(txtData, []byte(defStr))
+			l.hm.Globals = append(l.hm.Globals, mir2.Global{
+				Name: txtName,
+				Ty:   mir2.TyU8,
+				Init: txtData,
+			})
+
+			// p_name = &_abap_txt_<name>
+			mainStmts = append(mainStmts, &hir.AssignStmt{
+				Target: &hir.VarRefExpr{Name: p.Name, Ty: ty},
+				Val:    &hir.AddrOfExpr{Sym: txtName},
+			})
+		} else if p.Default != nil {
+			// Integer param: just set the default value
 			val, err := l.lowerExpr(*p.Default)
 			if err == nil {
-				ty := l.varTypes[p.Name]
 				mainStmts = append(mainStmts, &hir.AssignStmt{
 					Target: &hir.VarRefExpr{Name: p.Name, Ty: ty},
 					Val:    val,
@@ -108,10 +161,10 @@ func (l *lowerer) lower() (*hir.Module, error) {
 		}
 	}
 
-	// Selection screen — prompt for each PARAMETER via console I/O
+	// Selection screen — prompt for each PARAMETER, read via BDOS 0x0A
 	if len(l.prog.Params) > 0 {
 		for _, p := range l.prog.Params {
-			// Print prompt: "P_NAME [default]: "
+			// Build prompt string: "P_NAME [default]: "
 			promptStr := strings.ToUpper(p.Name)
 			defStr := ""
 			if p.Default != nil {
@@ -125,12 +178,12 @@ func (l *lowerer) lower() (*hir.Module, error) {
 				promptStr += " [" + defStr + "]"
 			}
 			promptStr += ": "
-			// Intern prompt string
+
 			promptIdx := len(l.hm.Strings)
 			l.hm.Strings = append(l.hm.Strings, promptStr)
 			l.hm.StrKinds = append(l.hm.StrKinds, mir2.StrCString)
 
-			// Emit: abap_write_str(prompt)
+			// Print prompt
 			mainStmts = append(mainStmts, &hir.ExprStmt{
 				Expr: &hir.CallExpr{
 					Fn:   "abap_write_str",
@@ -139,22 +192,27 @@ func (l *lowerer) lower() (*hir.Module, error) {
 				},
 			})
 
-			// Emit: p_name = abap_read_line() — for string params
-			// Emit: p_name = abap_read_int() — for integer params
 			ty := l.varTypes[p.Name]
 			if ty == mir2.TyPtr {
-				mainStmts = append(mainStmts, &hir.AssignStmt{
-					Target: &hir.VarRefExpr{Name: p.Name, Ty: ty},
-					Val:    &hir.CallExpr{Fn: "abap_read_line", Ty: mir2.TyPtr},
+				// Read into the param's TEXT area via abap_sel_read(txt_ptr)
+				txtName := "_abap_txt_" + p.Name
+				mainStmts = append(mainStmts, &hir.ExprStmt{
+					Expr: &hir.CallExpr{
+						Fn:   "abap_sel_read",
+						Args: []hir.Expr{&hir.AddrOfExpr{Sym: txtName}},
+						Ty:   mir2.TyVoid,
+					},
 				})
 			} else {
+				// Integer: read line into shared buffer, parse, assign
 				mainStmts = append(mainStmts, &hir.AssignStmt{
 					Target: &hir.VarRefExpr{Name: p.Name, Ty: ty},
 					Val:    &hir.CallExpr{Fn: "abap_read_int", Ty: mir2.TyU16},
 				})
 			}
 		}
-		// Print newline after selection screen
+
+		// Newline after selection screen
 		nlIdx := len(l.hm.Strings)
 		l.hm.Strings = append(l.hm.Strings, "\r\n")
 		l.hm.StrKinds = append(l.hm.StrKinds, mir2.StrCString)
@@ -780,37 +838,43 @@ func emitRuntimeFuncs(hm *hir.Module) {
 		names["sel_register"] = true
 	}
 
-	// abap_read_line — read a line from console, return ptr to heap string
-	// Uses BDOS 0x0A (Read Console Buffer) then copies to a heap buffer.
-	// For simplicity on Z80: read up to 20 chars, return ptr.
-	if !names["abap_read_line"] {
+	// abap_sel_read(buf: ^u8) — read line into buffer via BDOS 0x0A.
+	// Buffer format: [max_len, actual_len, text...].
+	// If user enters empty line (len=0), keeps pre-filled default.
+	// Null-terminates the text after actual_len bytes.
+	if !names["abap_sel_read"] {
 		hm.Funcs = append(hm.Funcs, &hir.Func{
-			Name:  "abap_read_line",
-			RetTy: mir2.TyPtr,
+			Name:   "abap_sel_read",
+			Params: []hir.Param{{Name: "buf", Ty: mir2.TyPtr}},
+			RetTy:  mir2.TyVoid,
 			Body: &hir.Block{
 				Body: []hir.Stmt{
 					&hir.AsmStmt{
 						Target: "z80",
-						// BDOS 0x0A: read buffered line into a 22-byte buffer on stack
-						// Buffer format: [max_len, actual_len, chars...]
-						// We allocate a static buffer in BSS
-						Code: "LD HL, _abap_inbuf / LD (HL), 20 / EX DE, HL / LD C, 10 / CALL 5 / " +
-							// Now convert: skip 2 header bytes, null-terminate
-							"LD HL, _abap_inbuf+1 / LD A, (HL) / INC HL / " +
-							// HL points to first char, A = length
-							// Add null terminator
-							"LD E, A / LD D, 0 / ADD HL, DE / LD (HL), 0 / " +
-							// Return pointer to start of text (inbuf+2)
-							"LD HL, _abap_inbuf+2 / " +
-							// Print newline
-							"LD E, 13 / LD C, 2 / CALL 5 / LD E, 10 / LD C, 2 / CALL 5",
-						RetReg:      "HL",
+						// HL = buf pointer (ClassPointer)
+						// Save old actual_len (for empty-input check)
+						// HL = destination text pointer (param's text area).
+						// We read into _abap_inbuf (shared), then copy to dest if non-empty.
+						Code: "PUSH HL / " + // save dest ptr
+							// Read into shared inbuf via BDOS 0x0A
+							"LD DE, _abap_inbuf / LD A, 20 / LD (_abap_inbuf), A / LD C, 10 / CALL 5 / " +
+							// Print CR/LF
+							"LD E, 13 / LD C, 2 / CALL 5 / LD E, 10 / LD C, 2 / CALL 5 / " +
+							// Check actual_len at inbuf+1
+							"LD A, (_abap_inbuf+1) / OR A / POP HL / JR Z, .keep / " +
+							// Non-empty: copy inbuf+2..inbuf+2+len to dest, then NUL
+							"LD B, A / LD DE, _abap_inbuf+2 / " +
+							".copy: LD A, (DE) / LD (HL), A / INC HL / INC DE / DJNZ .copy / " +
+							"LD (HL), 0 / JR .done / " + // null-terminate
+							".keep: / " + // empty input: dest unchanged (keeps default)
+							".done:",
+						Ins:         []hir.AsmOperand{{Name: "buf"}},
 						ClobberRegs: []string{"A", "C", "D", "E", "H", "L"},
 					},
 				},
 			},
 		})
-		names["abap_read_line"] = true
+		names["abap_sel_read"] = true
 	}
 
 	// abap_read_int — read integer from console (read line, parse decimal)

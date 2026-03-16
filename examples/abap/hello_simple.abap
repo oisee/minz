@@ -1,0 +1,4 @@
+REPORT zhello.
+PARAMETERS p_name TYPE c LENGTH 10 DEFAULT 'World'.
+START-OF-SELECTION.
+  WRITE p_name.
