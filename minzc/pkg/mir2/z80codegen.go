@@ -5470,6 +5470,25 @@ func (g *z80cg) genCmp16(inst *Inst) {
 		}
 	}
 
+	// Guard: materialise F or 8-bit operands to proper 16-bit regs.
+	if lhs == "F" {
+		g.emit("    SBC A, A") // materialise flag to A
+		g.emit("    LD L, A")
+		g.emit("    LD H, 0")
+		g.invalidate("A")
+		g.invalidate("HL")
+		lhs = "HL"
+	} else if isSimpleReg(lhs) && !isPairReg(lhs) && !isIXYReg(lhs) {
+		// 8-bit reg → zero-extend to HL
+		g.emitf("    LD L, %s", lhs)
+		g.emit("    LD H, 0")
+		g.invalidate("HL")
+		lhs = "HL"
+	}
+	if rhs == "F" || (isSimpleReg(rhs) && !isPairReg(rhs) && !isIXYReg(rhs)) {
+		// Already handled below in the SBC guard, but mark for safety.
+	}
+
 	// SBC HL, rr requires lhs in HL.  If lhs is already HL we proceed.
 	// If rhs is HL and lhs is DE, EX DE,HL is the cheapest fix.
 	// Otherwise move lhs byte-by-byte into HL.
@@ -5520,12 +5539,31 @@ func (g *z80cg) genCmp16(inst *Inst) {
 	swappedDE := origRhs == "HL" && origLhs != "HL"
 
 	// SBC HL, rr requires rhs to be a 16-bit register pair (BC/DE/HL/SP).
-	// If rhs is an 8-bit register (e.g. "C" from a u8 value), promote to
-	// its parent pair with high byte zeroed.
-	if isSimpleReg(rhs) && !isPairReg(rhs) {
+	// Guard against invalid operands: F, single 8-bit regs, IXY halves.
+	if rhs == "F" {
+		// Flag result used as 16-bit comparison operand — materialise to BC.
+		g.emit("    SBC A, A") // A = 0xFF if carry, 0x00 if not
+		g.emit("    LD C, A")
+		g.emit("    LD B, 0")
+		g.invalidate("A")
+		rhs = "BC"
+	} else if isIXYReg(rhs) {
+		// IXH/IXL/IYH/IYL: load into BC via A.
+		g.emitf("    LD A, %s", rhs)
+		g.emit("    LD C, A")
+		g.emit("    LD B, 0")
+		g.invalidate("A")
+		rhs = "BC"
+	} else if isSimpleReg(rhs) && !isPairReg(rhs) {
+		// 8-bit register: promote to parent pair with high byte zeroed.
 		pair := parentPair(rhs)
 		g.emitf("    LD %s, 0", highByte(pair))
 		rhs = pair
+	} else if isIXY(rhs) {
+		// IX/IY: push to HL would conflict. Push rhs → stack, pop to BC.
+		g.emitf("    PUSH %s", rhs)
+		g.emit("    POP BC")
+		rhs = "BC"
 	}
 
 	// lhs is now in HL.  SBC HL, rr clobbers HL; we need to restore it
