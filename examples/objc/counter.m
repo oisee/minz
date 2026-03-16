@@ -37,3 +37,8 @@ int add_and_return(int count, int n) {
 
 // assert get_value(42) == 42
 // assert add_and_return(10, 5) == 15
+
+// ObjC method assertions — auto-generates wrapper functions
+// assert-objc Counter{count:0}.value() == 0
+// assert-objc Counter{count:42}.value() == 42
+// assert-objc Counter{count:10}.addAndReturn(5) == 15

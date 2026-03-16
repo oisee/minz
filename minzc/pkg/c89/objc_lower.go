@@ -15,6 +15,7 @@ package c89
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	cc "github.com/minz/minzc/pkg/cparse"
@@ -322,4 +323,175 @@ func receiverString(e hir.Expr) string {
 		return v.Name
 	}
 	return "<expr>"
+}
+
+// ── ObjC Assert Wrappers ─────────────────────────────────────────────────────
+//
+// assert-objc Counter{count:42}.value() == 42
+//
+// Generates a wrapper function that allocates the struct, initializes fields,
+// calls the method, and returns the result. The existing assert system then
+// calls this wrapper.
+
+// generateObjCAssertWrappers scans source for assert-objc directives and
+// generates HIR wrapper functions + standard asserts.
+func (l *lowerer) generateObjCAssertWrappers(src string) {
+	counter := 0
+	for i, line := range strings.Split(src, "\n") {
+		line = strings.TrimSpace(line)
+		lineNo := i + 1
+
+		oa, ok := parseObjCAssert(line, lineNo)
+		if !ok {
+			continue
+		}
+
+		// Look up class info.
+		info := l.objcClasses[oa.className]
+		if info == nil {
+			continue // unknown class — skip silently
+		}
+		st := l.structs[oa.className]
+		if st == nil {
+			continue
+		}
+
+		// Look up method info.
+		method := info.methods[oa.selector()]
+		if method == nil {
+			continue
+		}
+
+		// Generate wrapper function name.
+		wrapperName := fmt.Sprintf("__objc_test_%d", counter)
+		counter++
+
+		// Build struct literal with field initializers.
+		var fields []hir.FieldInit
+		for _, fi := range oa.fieldInits {
+			fields = append(fields, hir.FieldInit{
+				Name: fi.name,
+				Val:  &hir.IntLitExpr{Val: fi.val, Ty: mir2.TyI16},
+			})
+		}
+
+		// Build body:
+		//   var obj: ClassName = ClassName{field: val, ...}
+		//   return ClassName_method(&obj, args...)
+		var body []hir.Stmt
+
+		body = append(body, &hir.VarDeclStmt{
+			Name: "__obj",
+			Ty:   mir2.TyPtr,
+			Init: &hir.StructLitExpr{St: st, Fields: fields},
+		})
+
+		// Build call args: &obj (self), then literal args.
+		callArgs := []hir.Expr{hir.Var("__obj", mir2.TyPtr)}
+		for _, a := range oa.args {
+			callArgs = append(callArgs, &hir.IntLitExpr{Val: a, Ty: mir2.TyI16})
+		}
+
+		retTy := method.retTy
+		if retTy == nil || retTy == mir2.TyVoid {
+			retTy = mir2.TyI16 // fallback for testability
+		}
+
+		body = append(body, &hir.ReturnStmt{
+			Val: hir.Call(method.mangledName, retTy, callArgs...),
+		})
+
+		// Add wrapper function to the module.
+		l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
+			Name:   wrapperName,
+			Params: nil,
+			RetTy:  retTy,
+			Body:   hir.Blk(body...),
+		})
+
+		// Add standard assert.
+		// Default to MIR2 VM — Z80 struct alloca in wrappers is not yet supported.
+		via := oa.via
+		if via == "" {
+			via = "mir2"
+		}
+		l.hm.Asserts = append(l.hm.Asserts, hir.Assert{
+			FuncName: wrapperName,
+			Args:     nil,
+			Expected: oa.expected,
+			Source:   line,
+			Line:     lineNo,
+			Via:      via,
+		})
+	}
+}
+
+type objcAssertInfo struct {
+	className  string
+	fieldInits []objcFieldInit
+	methodName string
+	args       []int64
+	expected   int64
+	via        string
+}
+
+type objcFieldInit struct {
+	name string
+	val  int64
+}
+
+// selector returns the ObjC selector string for the method.
+// Unary: "value" → "value". Keyword with args: "addN" + 1 arg → "addN:".
+func (oa *objcAssertInfo) selector() string {
+	if len(oa.args) > 0 {
+		return oa.methodName + ":"
+	}
+	return oa.methodName
+}
+
+func parseObjCAssert(line string, lineNo int) (objcAssertInfo, bool) {
+	m := objcAssertRe.FindStringSubmatch(line)
+	if m == nil {
+		return objcAssertInfo{}, false
+	}
+
+	oa := objcAssertInfo{
+		className:  m[1],
+		methodName: m[3],
+		via:        m[6],
+	}
+
+	// Parse field initializers: "count:42, x:10"
+	fieldsStr := strings.TrimSpace(m[2])
+	if fieldsStr != "" {
+		for _, part := range strings.Split(fieldsStr, ",") {
+			part = strings.TrimSpace(part)
+			kv := strings.SplitN(part, ":", 2)
+			if len(kv) != 2 {
+				continue
+			}
+			name := strings.TrimSpace(kv[0])
+			val, err := strconv.ParseInt(strings.TrimSpace(kv[1]), 0, 64)
+			if err != nil {
+				continue
+			}
+			oa.fieldInits = append(oa.fieldInits, objcFieldInit{name: name, val: val})
+		}
+	}
+
+	// Parse method args.
+	argsStr := strings.TrimSpace(m[4])
+	if argsStr != "" {
+		for _, s := range strings.Split(argsStr, ",") {
+			s = strings.TrimSpace(s)
+			v, err := strconv.ParseInt(s, 0, 64)
+			if err != nil {
+				continue
+			}
+			oa.args = append(oa.args, v)
+		}
+	}
+
+	oa.expected, _ = strconv.ParseInt(m[5], 0, 64)
+	return oa, true
 }

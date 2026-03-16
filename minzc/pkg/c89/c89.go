@@ -162,12 +162,21 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 	// Parse comment-based asserts and sandboxes.
 	l.hm.Asserts, l.hm.Sandboxes = parseCommentDirectives(src)
 
+	// Parse and generate ObjC assert wrappers.
+	l.generateObjCAssertWrappers(src)
+
 	return l.hm, nil
 }
 
 // assertRe matches: // assert fn(1, 2, 0xAB) == 42 [via mir2|z80]
 var assertRe = regexp.MustCompile(
 	`//\s*assert\s+(\w+)\s*\(([^)]*)\)\s*==\s*(-?(?:0[xX][0-9a-fA-F]+|\d+))(?:\s+via\s+(mir2|z80))?\s*$`,
+)
+
+// objcAssertRe matches: // assert-objc Counter{count:42}.value(5) == 42
+// Groups: 1=ClassName, 2=field_inits (may be empty), 3=methodName, 4=args (may be empty), 5=expected, 6=via
+var objcAssertRe = regexp.MustCompile(
+	`//\s*assert-objc\s+(\w+)\{([^}]*)}\s*\.\s*(\w+)\s*\(([^)]*)\)\s*==\s*(-?(?:0[xX][0-9a-fA-F]+|\d+))(?:\s+via\s+(mir2|z80))?\s*$`,
 )
 
 // sandboxStartRe matches: // sandbox "name"

@@ -298,6 +298,51 @@ int add(int a, int b) { return a + b; }
 	t.Logf("C89 E2E: %d asserts passed via MIR2 VM", len(hm.Asserts))
 }
 
+func TestObjCAssert_E2E(t *testing.T) {
+	src := `
+@interface Box { int value; }
+-(int)get;
+-(int)addN:(int)n;
+@end
+
+@implementation Box
+-(int)get { return self->value; }
+-(int)addN:(int)n { return self->value + n; }
+@end
+
+int identity(int x) { return x; }
+// assert identity(7) == 7
+
+// assert-objc Box{value:0}.get() == 0
+// assert-objc Box{value:42}.get() == 42
+// assert-objc Box{value:10}.addN(5) == 15
+`
+	hm, err := Compile(src, "objc_test.m")
+	if err != nil {
+		t.Fatalf("Compile: %v", err)
+	}
+	// 1 plain C assert + 3 ObjC asserts = 4 total
+	if len(hm.Asserts) != 4 {
+		t.Fatalf("expected 4 asserts, got %d", len(hm.Asserts))
+	}
+	// Check wrapper functions were generated.
+	wrapperCount := 0
+	for _, f := range hm.Funcs {
+		if strings.HasPrefix(f.Name, "__objc_test_") {
+			wrapperCount++
+		}
+	}
+	if wrapperCount != 3 {
+		t.Fatalf("expected 3 ObjC wrapper functions, got %d", wrapperCount)
+	}
+	// Run through pipeline (asserts execute on MIR2 VM).
+	_, err = pipeline.CompileHIR(hm)
+	if err != nil {
+		t.Fatalf("pipeline (ObjC asserts should pass): %v", err)
+	}
+	t.Logf("ObjC E2E: %d asserts passed (1 C + 3 ObjC)", len(hm.Asserts))
+}
+
 func TestCorpus_AllExamples(t *testing.T) {
 	corpusDir := filepath.Join("..", "..", "..", "examples", "c89")
 	entries, err := os.ReadDir(corpusDir)

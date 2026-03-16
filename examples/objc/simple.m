@@ -19,3 +19,7 @@
 int identity(int x) { return x; }
 
 // assert identity(7) == 7
+
+// assert-objc Box{value:0}.get() == 0
+// assert-objc Box{value:99}.get() == 99
+// assert-objc Box{value:10}.addN(5) == 15
