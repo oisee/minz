@@ -1871,14 +1871,33 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.emitf("    LD A, (HL)")
 				g.invalidate("A")
 				g.emitf("    LD %s, A", dst)
+			} else if isIXYReg(dst) && isIXY(ptr) {
+				// BUG-008: LD IXL,(IX+d) impossible — DD prefix can't remap both.
+				// Also self-clobber: writing IXL changes IX base for next read.
+				// Route through A.
+				g.emitf("    LD A, %s", ptrIndirect(ptr, 0))
+				g.invalidate("A")
+				g.emitf("    LD %s, A", dst)
 			} else {
 				g.emitf("    LD %s, %s", dst, ptrIndirect(ptr, 0))
 			}
 		} else if isIXY(ptr) {
-			// 16-bit load via IX/IY: use displacement addressing — avoids INC/DEC IX.
-			// LD lo, (IX+0) ; LD hi, (IX+1)  — 2×19T = 38T
-			g.emitf("    LD %s, %s     ; lo", lowByte(dst), ptrIndirect(ptr, 0))
-			g.emitf("    LD %s, %s     ; hi", highByte(dst), ptrIndirect(ptr, 1))
+			// 16-bit load via IX/IY: use displacement addressing.
+			lo := lowByte(dst)
+			hi := highByte(dst)
+			if isIXYReg(lo) || isIXYReg(hi) || lo == "H" || lo == "L" || hi == "H" || hi == "L" {
+				// BUG-008: dest overlaps IX prefix domain — route through A.
+				// IXH/IXL: LD IXL,(IX+d) impossible (DD prefix conflict).
+				// H/L: LD H,(IX+d) encodes as LD IXH,(IX+d) (prefix substitution).
+				g.emitf("    LD A, %s     ; lo", ptrIndirect(ptr, 0))
+				g.emitf("    LD %s, A", lo)
+				g.emitf("    LD A, %s     ; hi", ptrIndirect(ptr, 1))
+				g.emitf("    LD %s, A", hi)
+				g.invalidate("A")
+			} else {
+				g.emitf("    LD %s, %s     ; lo", lo, ptrIndirect(ptr, 0))
+				g.emitf("    LD %s, %s     ; hi", hi, ptrIndirect(ptr, 1))
+			}
 		} else if strings.HasPrefix(dst, "$") {
 			// 16-bit load into LocMem spill slot: load through HL, then
 			// use LD (nn), HL to store both bytes atomically.
@@ -2087,18 +2106,35 @@ func (g *z80cg) genInst(inst *Inst) {
 					g.emitf("    LD A, %s", val)
 					g.invalidate("A")
 					g.emitf("    LD (HL), A")
+				} else if isIXY(ptr) && (val == "H" || val == "L" || isIXYReg(val)) {
+					// BUG-008: LD (IX+d),H encodes as LD (IX+d),IXH (prefix substitution).
+					// LD (IX+d),IXL impossible. Route through A.
+					g.emitf("    LD A, %s", val)
+					g.invalidate("A")
+					g.emitf("    LD %s, A", ptrIndirect(ptr, 0))
 				} else {
 					g.emitf("    LD %s, %s", ptrIndirect(ptr, 0), val)
 				}
 			}
 		} else if isIXY(ptr) {
-			// 16-bit store via IX/IY: use displacement addressing — avoids INC/DEC IX.
-			// LD (IX+0), lo ; LD (IX+1), hi  — 2×19T = 38T
-			g.emitf("    LD %s, %s     ; lo", ptrIndirect(ptr, 0), lowByte(val))
-			if !isPairReg(val) {
-				g.emitf("    LD %s, 0     ; hi (zero-extend u8→u16)", ptrIndirect(ptr, 1))
+			// 16-bit store via IX/IY: use displacement addressing.
+			lo := lowByte(val)
+			hi := highByte(val)
+			needA := lo == "H" || lo == "L" || isIXYReg(lo)
+			if needA {
+				g.emitf("    LD A, %s", lo)
+				g.emitf("    LD %s, A     ; lo", ptrIndirect(ptr, 0))
 			} else {
-				g.emitf("    LD %s, %s     ; hi", ptrIndirect(ptr, 1), highByte(val))
+				g.emitf("    LD %s, %s     ; lo", ptrIndirect(ptr, 0), lo)
+			}
+			if !isPairReg(val) {
+				g.emitf("    LD %s, 0     ; hi (zero-extend)", ptrIndirect(ptr, 1))
+			} else if hi == "H" || hi == "L" || isIXYReg(hi) {
+				g.emitf("    LD A, %s", hi)
+				g.emitf("    LD %s, A     ; hi", ptrIndirect(ptr, 1))
+				g.invalidate("A")
+			} else {
+				g.emitf("    LD %s, %s     ; hi", ptrIndirect(ptr, 1), hi)
 			}
 		} else if ptr == "HL" {
 			// LD (HL), r is valid for any r — use INC/DEC trick.
@@ -5063,6 +5099,12 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 		case strings.HasPrefix(dst, "$"):
 			g.emitLDA(src)
 			g.emitf("    LD (%s), A", dst)
+		case (isIXYReg(src) && (dst == "H" || dst == "L")) ||
+			(isIXYReg(dst) && (src == "H" || src == "L")):
+			// DD/FD prefix conflict: LD H,IXH encodes as LD IXH,IXH (NOP).
+			g.emitf("    LD A, %s", src)
+			g.emitf("    LD %s, A", dst)
+			g.invalidate("A")
 		default:
 			g.emitf("    LD %s, %s", dst, src)
 		}
@@ -5074,8 +5116,28 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 		g.emitf("    LD (%s), %s", dst, src)
 	} else {
 		// 16-bit non-destructive copy: two 8-bit LDs.
-		g.emitf("    LD %s, %s", highByte(dst), highByte(src))
-		g.emitf("    LD %s, %s", lowByte(dst), lowByte(src))
+		hi := highByte(dst)
+		lo := lowByte(dst)
+		hiS := highByte(src)
+		loS := lowByte(src)
+		// DD/FD prefix conflict: LD H,IXH / LD L,IXL encode as NOPs.
+		// IX↔HL copies must use PUSH/POP or route through A.
+		if (isIXY(src) && dst == "HL") || (isIXY(dst) && src == "HL") {
+			g.emitf("    PUSH %s", src)
+			g.emitf("    POP %s", dst)
+		} else if (isIXYReg(hiS) && (hi == "H" || hi == "L")) ||
+			(isIXYReg(loS) && (lo == "H" || lo == "L")) ||
+			((hiS == "H" || hiS == "L") && isIXYReg(hi)) ||
+			((loS == "H" || loS == "L") && isIXYReg(lo)) {
+			g.emitf("    LD A, %s", hiS)
+			g.emitf("    LD %s, A", hi)
+			g.emitf("    LD A, %s", loS)
+			g.emitf("    LD %s, A", lo)
+			g.invalidate("A")
+		} else {
+			g.emitf("    LD %s, %s", hi, hiS)
+			g.emitf("    LD %s, %s", lo, loS)
+		}
 	}
 }
 
@@ -5359,16 +5421,26 @@ func (g *z80cg) genCmp16(inst *Inst) {
 			g.invalidate("DE")
 			lhs, rhs = "HL", "DE"
 		} else if rhs == "HL" {
-			// rhs is HL, lhs is BC or IX/IY.  Byte-copy lhs into a temp.
-			// Swap via move: save HL in rhs pair, load lhs to HL.
-			// NOTE: this clobbers any live value in DE — use only when DE is free.
-			g.emitf("    LD D, %s", highByte(rhs)) // save rhs high into D
-			g.emitf("    LD E, %s", lowByte(rhs))  // save rhs low  into E
-			g.emitf("    LD H, %s", highByte(lhs))
-			g.emitf("    LD L, %s", lowByte(lhs))
+			// rhs is HL, lhs is BC or IX/IY.  Swap: save rhs(HL)→DE, load lhs→HL.
+			g.emitf("    LD D, H") // save rhs high into D
+			g.emitf("    LD E, L") // save rhs low  into E
+			if isIXY(lhs) {
+				// IX→HL: byte-copy invalid. Use PUSH/POP.
+				g.emitf("    PUSH %s", lhs)
+				g.emit("    POP HL")
+			} else {
+				g.emitf("    LD H, %s", highByte(lhs))
+				g.emitf("    LD L, %s", lowByte(lhs))
+			}
 			g.invalidate("HL")
 			g.invalidate("DE")
 			lhs, rhs = "HL", "DE"
+		} else if isIXY(lhs) {
+			// IX/IY → HL: byte-copy invalid (DD prefix conflict). Use PUSH/POP.
+			g.emitf("    PUSH %s", lhs)
+			g.emit("    POP HL")
+			g.invalidate("HL")
+			lhs = "HL"
 		} else {
 			// Neither operand is HL; move lhs into HL byte-by-byte.
 			g.emitf("    LD H, %s", highByte(lhs))
