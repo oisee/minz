@@ -295,3 +295,27 @@ func TestAssert_E2E(t *testing.T) {
 		t.Fatalf("pipeline (asserts should pass): %v", err)
 	}
 }
+
+func TestFuncall(t *testing.T) {
+	// Lizp funcall + #'function-reference (Common Lisp style)
+	src := `
+(defun double ((x u8)) -> u8
+  (return (+ x x)))
+
+(defun apply ((f ptr) (x u8)) -> u8
+  (return (funcall f x)))
+
+(defun test-fp () -> u8
+  (return (apply #'double 5)))
+
+(assert test-fp == 10 via mir2)
+`
+	mod, err := Compile(src, "test_funcall")
+	if err != nil {
+		t.Fatalf("Compile: %v", err)
+	}
+	_, err = pipeline.CompileHIR(mod)
+	if err != nil {
+		t.Fatalf("funcall pipeline: %v", err)
+	}
+}

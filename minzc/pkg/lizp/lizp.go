@@ -209,6 +209,11 @@ func desugarExpr(n lanz.Node) lanz.Node {
 		if strings.HasPrefix(n.Atom, "#b") || strings.HasPrefix(n.Atom, "#B") {
 			return lanz.Node{Atom: "0b" + n.Atom[2:], Line: n.Line}
 		}
+		// Transform #'name → (addr name) — function reference (Common Lisp style)
+		if strings.HasPrefix(n.Atom, "#'") {
+			fname := n.Atom[2:]
+			return list(n.Line, atom("addr", n.Line), atom(fname, n.Line))
+		}
 		// Transform t → true (Lisp convention)
 		if n.Atom == "t" {
 			return lanz.Node{Atom: "true", Line: n.Line}

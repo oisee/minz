@@ -376,3 +376,25 @@ func TestAssert_E2E(t *testing.T) {
 		t.Fatalf("pipeline (asserts should pass): %v", err)
 	}
 }
+
+func TestFuncall(t *testing.T) {
+	// (funcall fn-expr args...) → indirect call through function pointer
+	src := `
+(fun double ((x u8)) u8 (return (+ x x)))
+(fun apply ((f ptr) (x u8)) u8 (return (funcall f x)))
+(fun test_fp () u8
+  (return (apply (addr double) 5)))
+(assert test_fp == 10 via mir2)
+`
+	m, err := Compile(src, "test_funcall")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(m.Funcs) != 3 {
+		t.Fatalf("expected 3 functions, got %d", len(m.Funcs))
+	}
+	_, err = pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("funcall pipeline: %v", err)
+	}
+}

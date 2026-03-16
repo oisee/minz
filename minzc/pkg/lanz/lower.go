@@ -26,11 +26,13 @@ func CompileNodes(nodes []Node, name string) (*hir.Module, error) {
 }
 
 type compiler struct {
-	name string
+	name  string
+	funcs map[string]*hir.Func // compiled functions, for return type lookup
 }
 
 func (c *compiler) compileModule(nodes []Node) (*hir.Module, error) {
 	m := &hir.Module{Name: c.name}
+	c.funcs = make(map[string]*hir.Func)
 	for _, n := range nodes {
 		if !n.IsList() || len(n.List) == 0 {
 			return nil, fmt.Errorf("line %d: expected top-level form, got atom %q", n.Line, n.Atom)
@@ -46,6 +48,7 @@ func (c *compiler) compileModule(nodes []Node) (*hir.Module, error) {
 				return nil, err
 			}
 			m.Funcs = append(m.Funcs, f)
+			c.funcs[f.Name] = f
 		case "extern":
 			f, err := c.compileExtern(n)
 			if err != nil {
@@ -574,6 +577,9 @@ func (c *compiler) compileExpr(n Node) (hir.Expr, error) {
 		return &hir.UnaryExpr{Op: "~", X: x, Ty: x.ExprTy()}, nil
 	case "call":
 		return c.compileCall(n)
+	case "funcall":
+		// (funcall fn-expr args...) → indirect call through function pointer
+		return c.compileFuncall(n)
 	case "load":
 		if len(n.List) < 2 {
 			return nil, fmt.Errorf("line %d: load: expected (load ptr [ty])", n.Line)
@@ -696,6 +702,33 @@ func (c *compiler) compileBinExpr(n Node) (hir.Expr, error) {
 	return &hir.BinExpr{Op: op, L: l, R: r, Ty: ty}, nil
 }
 
+// (funcall fn-expr args...) → indirect call through function pointer.
+// fn-expr is any expression that evaluates to a function address (TyPtr).
+// Return type is TyU8 by default; use (funcall:u16 ...) for u16 returns.
+//
+//	(funcall (addr double) 5)          → double(5) via pointer
+//	(funcall my-fn-var 10 20)          → my-fn-var(10, 20) via pointer
+func (c *compiler) compileFuncall(n Node) (hir.Expr, error) {
+	if len(n.List) < 2 {
+		return nil, fmt.Errorf("line %d: funcall: expected (funcall fn-expr args...)", n.Line)
+	}
+	fnExpr, err := c.compileExpr(n.List[1])
+	if err != nil {
+		return nil, err
+	}
+	var args []hir.Expr
+	for _, a := range n.List[2:] {
+		arg, err := c.compileExpr(a)
+		if err != nil {
+			return nil, err
+		}
+		args = append(args, arg)
+	}
+	// Default return type u8; callers can cast if needed.
+	retTy := mir2.Ty(mir2.TyU8)
+	return &hir.CallIndirectExpr{FnPtr: fnExpr, Args: args, Ty: retTy}, nil
+}
+
 // (call fn args...) or (fn args...) — bare call
 func (c *compiler) compileCall(n Node) (hir.Expr, error) {
 	start := 0
@@ -714,7 +747,12 @@ func (c *compiler) compileCall(n Node) (hir.Expr, error) {
 		}
 		args = append(args, expr)
 	}
-	return &hir.CallExpr{Fn: fn, Args: args, Ty: mir2.TyVoid}, nil
+	// Look up return type from compiled functions.
+	retTy := mir2.Ty(mir2.TyVoid)
+	if f, ok := c.funcs[fn]; ok {
+		retTy = f.RetTy
+	}
+	return &hir.CallExpr{Fn: fn, Args: args, Ty: retTy}, nil
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
