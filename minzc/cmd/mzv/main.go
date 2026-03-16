@@ -1,17 +1,22 @@
-// mzv2 — MIR2 VM runner with TUI display for ZX Spectrum programs.
+// mzv — MIR2 VM runner with TUI display.
 //
-// Compiles Nanz source through HIR→MIR2 (stopping before Z80 codegen),
+// Compiles source through HIR→MIR2 (stopping before Z80 codegen),
 // then executes on the MIR2 VM with host-function overrides for ZX Spectrum
 // primitives. Renders the attribute screen as a 32×24 ANSI color grid.
 //
+// Supported frontends (by file extension):
+//   .nanz  Nanz        .c/.m  C89/ObjC     .lanz  Lanz
+//   .lizp  Lizp        .plm   PL/M         .pas   Pascal
+//   .abap  ABAP        .hir   HIR (raw)
+//
 // Usage:
 //
-//	mzv2 program.nanz
-//	mzv2 -trace program.nanz
+//	mzv program.nanz
+//	mzv --trace program.c
+//	mzv -t -H --max-frames 100 program.m
 package main
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"os/signal"
@@ -23,43 +28,45 @@ import (
 
 	"database/sql"
 
+	"github.com/minz/minzc/pkg/abap"
+	"github.com/minz/minzc/pkg/c89"
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/lanz"
+	"github.com/minz/minzc/pkg/lizp"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
+	"github.com/minz/minzc/pkg/pascal"
+	"github.com/minz/minzc/pkg/plm"
 
+	flag "github.com/spf13/pflag"
 	_ "modernc.org/sqlite"
 	"golang.org/x/term"
 )
 
 func main() {
-	trace := flag.Bool("trace", false, "print each VM call")
-	headless := flag.Bool("headless", false, "run without terminal (testing)")
+	trace := flag.BoolP("trace", "t", false, "print each VM call")
+	headless := flag.BoolP("headless", "H", false, "run without terminal (testing)")
 	maxFrames := flag.Int("max-frames", 0, "stop after N frames (0=unlimited)")
 	dumpDir := flag.String("dump-frames", "", "dump each frame as .scr file to directory")
 	flag.Parse()
 	if flag.NArg() < 1 {
-		fmt.Fprintln(os.Stderr, "usage: mzv2 [-trace] program.nanz")
+		fmt.Fprintln(os.Stderr, "usage: mzv [--trace] [--headless] [--max-frames N] <file>")
+		fmt.Fprintln(os.Stderr, "  supported: .nanz .c .m .lanz .lizp .plm .pas .abap .hir")
 		os.Exit(1)
 	}
 	srcPath := flag.Arg(0)
 
 	src, err := os.ReadFile(srcPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "mzv2: %v\n", err)
+		fmt.Fprintf(os.Stderr, "mzv: %v\n", err)
 		os.Exit(1)
 	}
 
-	// ── Compile: Nanz → HIR → MIR2 (optimised, no regalloc) ──────────────
+	// ── Compile: source → HIR → MIR2 (optimised, no regalloc) ──────────
 
-	baseDir := filepath.Dir(srcPath)
-	stdlibDir := findStdlib(srcPath)
-
-	hm, err := nanz.ParseWithOpts(string(src), filepath.Base(srcPath), nanz.ParseOpts{
-		BaseDir:   baseDir,
-		StdlibDir: stdlibDir,
-	})
+	hm, err := parseSource(string(src), srcPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "mzv2: parse error: %v\n", err)
+		fmt.Fprintf(os.Stderr, "mzv: parse error: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -89,7 +96,7 @@ func main() {
 	}
 
 	if err := mir2.Verify(m); err != nil {
-		fmt.Fprintf(os.Stderr, "mzv2: MIR2 verify: %v\n", err)
+		fmt.Fprintf(os.Stderr, "mzv: MIR2 verify: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -101,13 +108,16 @@ func main() {
 		}
 	}
 
-	fmt.Fprintf(os.Stderr, "mzv2: compiled %d functions, %d globals\n", len(m.Funcs), len(m.Globals))
+	fmt.Fprintf(os.Stderr, "mzv: compiled %d functions, %d globals\n", len(m.Funcs), len(m.Globals))
 
 	// ── VM setup ─────────────────────────────────────────────────────────
 
 	vm := mir2.NewVM(m)
 	vm.MaxSteps = 0 // unlimited — game loop runs forever
 	vm.MaxMemory = 1 << 20
+
+	// Canvas host functions (for any frontend using canvas_* or @canvas.*).
+	mir2.RegisterCanvasHosts(vm)
 
 	// ZX Spectrum 64K address space (separate from VM heap).
 	var zxMem [65536]byte
@@ -205,7 +215,7 @@ func main() {
 	if !*headless {
 		oldState, err = term.MakeRaw(int(os.Stdin.Fd()))
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "mzv2: failed to set raw terminal: %v\n", err)
+			fmt.Fprintf(os.Stderr, "mzv: failed to set raw terminal: %v\n", err)
 			os.Exit(1)
 		}
 		defer term.Restore(int(os.Stdin.Fd()), oldState)
@@ -230,7 +240,7 @@ func main() {
 	// ── Run ──────────────────────────────────────────────────────────────
 
 	_, err = vm.Call("main", nil)
-	fmt.Fprintf(os.Stderr, "mzv2: exited after %d frames\n", frameCount)
+	fmt.Fprintf(os.Stderr, "mzv: exited after %d frames\n", frameCount)
 
 	// In headless mode, render final frame to stdout + dump summary to stderr.
 	if *headless {
@@ -242,7 +252,7 @@ func main() {
 				nonZero++
 			}
 		}
-		fmt.Fprintf(os.Stderr, "mzv2: attr cells with color: %d/768\n", nonZero)
+		fmt.Fprintf(os.Stderr, "mzv: attr cells with color: %d/768\n", nonZero)
 	}
 	if oldState != nil {
 		term.Restore(int(os.Stdin.Fd()), oldState)
@@ -251,9 +261,9 @@ func main() {
 	if err != nil {
 		// max-frames exit is not an error
 		if maxF > 0 && frameCount >= maxF {
-			fmt.Fprintf(os.Stderr, "mzv2: stopped after %d frames\n", frameCount)
+			fmt.Fprintf(os.Stderr, "mzv: stopped after %d frames\n", frameCount)
 		} else {
-			fmt.Fprintf(os.Stderr, "\nmzv2: VM error: %v\n", err)
+			fmt.Fprintf(os.Stderr, "\nmzv: VM error: %v\n", err)
 			os.Exit(1)
 		}
 	}
@@ -372,6 +382,46 @@ func readInput(mu *sync.Mutex, keyState map[byte]byte, oldState *term.State) {
 			}
 		}
 		mu.Unlock()
+	}
+}
+
+// ── Frontend dispatch ────────────────────────────────────────────────────────
+
+// parseSource compiles source code to an HIR module based on file extension.
+func parseSource(src, srcPath string) (*hir.Module, error) {
+	ext := strings.ToLower(filepath.Ext(srcPath))
+	name := filepath.Base(srcPath)
+	baseDir := filepath.Dir(srcPath)
+	stdlibDir := findStdlib(srcPath)
+
+	switch ext {
+	case ".nanz":
+		return nanz.ParseWithOpts(src, name, nanz.ParseOpts{
+			BaseDir:   baseDir,
+			StdlibDir: stdlibDir,
+		})
+	case ".c", ".m":
+		absPath, _ := filepath.Abs(srcPath)
+		return c89.CompileWithOpts(src, name, c89.CompileOpts{
+			BaseDir:      filepath.Dir(absPath),
+			IncludePaths: []string{filepath.Dir(absPath)},
+		})
+	case ".lanz":
+		return lanz.Compile(src, name)
+	case ".lizp":
+		return lizp.Compile(src, name)
+	case ".plm":
+		return plm.Compile(src)
+	case ".pas":
+		return pascal.Compile(src, name, pascal.CompileOpts{
+			StdlibDir: stdlibDir,
+		})
+	case ".abap":
+		return abap.Compile(src, name)
+	case ".hir":
+		return hir.ParseHIR(src, name)
+	default:
+		return nil, fmt.Errorf("unsupported file extension: %s (supported: .nanz .c .m .lanz .lizp .plm .pas .abap .hir)", ext)
 	}
 }
 
@@ -610,7 +660,7 @@ func registerSQLiteHosts(vm *mir2.VM, trace bool) {
 		return []mir2.Value{{I: 0}}, nil
 	}
 
-	fmt.Fprintf(os.Stderr, "mzv2: SQLite host functions registered\n")
+	fmt.Fprintf(os.Stderr, "mzv: SQLite host functions registered\n")
 }
 
 // ── ABAP runtime host functions ──────────────────────────────────────────────
@@ -730,5 +780,5 @@ func registerABAPHosts(vm *mir2.VM, trace bool) {
 		return nil, nil
 	}
 
-	fmt.Fprintf(os.Stderr, "mzv2: ABAP runtime registered (SY + selection screen)\n")
+	fmt.Fprintf(os.Stderr, "mzv: ABAP runtime registered (SY + selection screen)\n")
 }

@@ -1,40 +1,52 @@
-// mzn: compile Nanz source to native binary via MIR2→C99 and MIR2→QBE.
+// mzn: compile source to native binary via MIR2→C99 and MIR2→QBE.
 // Targets the host platform (whatever qbe + cc produce).
+//
+// Supported frontends (by file extension):
+//   .nanz  Nanz        .c/.m  C89/ObjC     .lanz  Lanz
+//   .lizp  Lizp        .plm   PL/M         .pas   Pascal
+//   .abap  ABAP        .hir   HIR (raw)
 //
 // Usage:
 //
-//	mzn file.nanz               # compile via QBE, run, show IL + asm
-//	mzn -o hello file.nanz      # compile via QBE → ./hello binary
-//	mzn -c file.nanz            # C99 backend only
-//	mzn -c -q file.nanz         # both backends
-//	mzn -emit-c file.nanz       # print generated C99, don't compile
-//	mzn -emit-qbe file.nanz     # print generated QBE IL, don't compile
-//	mzn                         # run built-in demos
+//	mzn file.nanz                    # compile via QBE, run, show IL + asm
+//	mzn -o hello file.nanz           # compile via QBE → ./hello binary
+//	mzn --c99 file.c                 # C99 backend only
+//	mzn --c99 --qbe file.m           # both backends
+//	mzn --emit-c file.lizp           # print generated C99, don't compile
+//	mzn --emit-qbe file.lanz         # print generated QBE IL, don't compile
+//	mzn                              # run built-in demos
 package main
 
 import (
-	"flag"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 
+	"github.com/minz/minzc/pkg/abap"
+	"github.com/minz/minzc/pkg/c89"
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/lanz"
+	"github.com/minz/minzc/pkg/lizp"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/mir2c"
 	"github.com/minz/minzc/pkg/mir2qbe"
 	"github.com/minz/minzc/pkg/nanz"
+	"github.com/minz/minzc/pkg/pascal"
+	"github.com/minz/minzc/pkg/plm"
+
+	flag "github.com/spf13/pflag"
 )
 
 var (
-	flagC       = flag.Bool("c", false, "C99 backend only")
-	flagQ       = flag.Bool("q", false, "QBE backend only")
+	flagC       = flag.Bool("c99", false, "C99 backend only")
+	flagQ       = flag.Bool("qbe", false, "QBE backend only")
 	flagEmitC   = flag.Bool("emit-c", false, "print generated C99 and exit")
 	flagEmitQBE = flag.Bool("emit-qbe", false, "print generated QBE IL and exit")
-	flagOutput  = flag.String("o", "", "output binary path (keep binary instead of temp)")
+	flagOutput  = flag.StringP("output", "o", "", "output binary path")
 	flagRun     = flag.Bool("run", true, "compile and run (default true)")
-	flagDisasm  = flag.Bool("disasm", false, "show disassembly")
+	flagDisasm  = flag.BoolP("disasm", "d", false, "show disassembly")
 )
 
 // Library examples — pure functions, called from a generated main wrapper.
@@ -221,6 +233,46 @@ func hirToMIR2(hm *hir.Module) *mir2.Module {
 	return m
 }
 
+// parseSource compiles source code to an HIR module based on file extension.
+func parseSource(src, srcPath string) (*hir.Module, error) {
+	ext := strings.ToLower(filepath.Ext(srcPath))
+	name := filepath.Base(srcPath)
+
+	switch ext {
+	case ".nanz":
+		return nanz.Parse(src, name)
+	case ".c", ".m":
+		absPath, _ := filepath.Abs(srcPath)
+		return c89.CompileWithOpts(src, name, c89.CompileOpts{
+			BaseDir:      filepath.Dir(absPath),
+			IncludePaths: []string{filepath.Dir(absPath)},
+		})
+	case ".lanz":
+		return lanz.Compile(src, name)
+	case ".lizp":
+		return lizp.Compile(src, name)
+	case ".plm":
+		return plm.Compile(src)
+	case ".pas":
+		return pascal.Compile(src, name, pascal.CompileOpts{})
+	case ".abap":
+		return abap.Compile(src, name)
+	case ".hir":
+		return hir.ParseHIR(src, name)
+	default:
+		return nil, fmt.Errorf("unsupported file extension: %s (supported: .nanz .c .m .lanz .lizp .plm .pas .abap .hir)", ext)
+	}
+}
+
+func compileSource(src, srcPath string) (*mir2.Module, error) {
+	hm, err := parseSource(src, srcPath)
+	if err != nil {
+		return nil, err
+	}
+	return hirToMIR2(hm), nil
+}
+
+// compileNanz kept for built-in demos (inline source, no file extension).
 func compileNanz(src, name string) (*mir2.Module, error) {
 	hm, err := nanz.Parse(src, name)
 	if err != nil {
@@ -230,36 +282,18 @@ func compileNanz(src, name string) (*mir2.Module, error) {
 }
 
 func main() {
-	// Allow flags in any position (Go's flag package stops at first non-flag arg).
-	// Reorder os.Args so all flags come before positional args.
-	var flags, args []string
-	for i := 1; i < len(os.Args); i++ {
-		a := os.Args[i]
-		if strings.HasPrefix(a, "-") {
-			flags = append(flags, a)
-			// If flag takes a value (e.g. -o path), grab next arg too
-			if (a == "-o") && i+1 < len(os.Args) {
-				i++
-				flags = append(flags, os.Args[i])
-			}
-		} else {
-			args = append(args, a)
-		}
-	}
-	os.Args = append([]string{os.Args[0]}, append(flags, args...)...)
 	flag.Parse()
 
-	// If a file argument is given, compile that file
 	if flag.NArg() > 0 {
 		compileFile(flag.Arg(0))
 		return
 	}
 
-	// Otherwise, run built-in demos
+	// No file argument — run built-in demos
 	runDemos()
 }
 
-// compileFile compiles a .nanz file to native via C99 and/or QBE backends.
+// compileFile compiles a source file to native via C99 and/or QBE backends.
 func compileFile(filename string) {
 	srcBytes, err := os.ReadFile(filename)
 	if err != nil {
@@ -269,7 +303,7 @@ func compileFile(filename string) {
 	src := string(srcBytes)
 	name := strings.TrimSuffix(filepath.Base(filename), filepath.Ext(filename))
 
-	m, err := compileNanz(src, name)
+	m, err := compileSource(src, filename)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "compile: %v\n", err)
 		os.Exit(1)
