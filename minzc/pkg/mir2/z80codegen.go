@@ -1460,7 +1460,14 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	if peep.skipLast {
 		limit-- // skip final DEC B; DJNZ handles it
 	}
-	for _, inst := range b.Insts[:limit] {
+
+	// Pre-pass: reorder to avoid A-clobber between call arg setup instructions.
+	// Pattern: OpMove → A (ClassAcc) followed by an 8-bit ALU → nonA that uses
+	// A as scratch.  Swapping them lets the ALU use A freely, then the move
+	// loads A last (right before the call).  Safe when neither depends on the other.
+	reordered := reorderAccMoves(b.Insts[:limit], g.ar)
+
+	for _, inst := range reordered {
 		g.genInst(inst)
 	}
 
@@ -2487,6 +2494,17 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			}
 			return
 		}
+		// If A holds a live value from a different virtual reg (e.g. a function
+		// param allocated to A), and this ALU op will clobber A as scratch,
+		// we need to save it first. The pendingAccReg mechanism handles the
+		// common case, but there's also the case where a param (ClassAcc) lives
+		// in A and is used AFTER this instruction. In that case, relocate it
+		// to a scratch register before clobbering A.
+		if dst != "A" && lhs != "A" {
+			// A will be clobbered (LD A,lhs then ALU). If A holds a value
+			// that's used later, save it.
+			g.saveAccIfLive(inst)
+		}
 		if lhs != "A" {
 			g.emitLDA(lhs)
 		}
@@ -2784,6 +2802,102 @@ func (g *z80cg) genBinOp32(mnem, dst, lhs, rhs string) {
 	default:
 		g.comment(fmt.Sprintf("TODO: 32-bit %s %s, %s → %s", mnem, lhs, rhs, dst))
 	}
+}
+
+// saveAccIfLive checks whether A contains a live value from a virtual register
+// that will be needed AFTER the current instruction.  If so, it relocates
+// A's value to a scratch register (via physOverride) so the ALU can use A freely.
+func (g *z80cg) saveAccIfLive(inst *Inst) {
+	// Find which virtual reg currently lives in A.
+	var accReg Reg
+	for r, loc := range g.ar.Locs {
+		if loc.Kind == LocReg && loc.Name == "A" {
+			accReg = r
+			break
+		}
+	}
+	if accReg == NoReg {
+		return
+	}
+	// Check if physOverride already moved it away.
+	if p, ok := g.physOverride[accReg]; ok && p != "A" {
+		return
+	}
+	// Skip if this instruction defines or uses accReg (it'll be handled normally).
+	if accReg == inst.Dst || accReg == inst.Src[0] || accReg == inst.Src[1] {
+		return
+	}
+	// Check if accReg is used after this instruction in the block.
+	live := g.regsLiveAfterInst(inst)
+	if !live[accReg] {
+		return
+	}
+	// accReg is live in A and will be clobbered — save to scratch.
+	// Pick a scratch register that isn't used by this instruction.
+	scratch := ""
+	for _, s := range []string{"E", "C", "D", "B", "H", "L"} {
+		used := false
+		for _, src := range inst.Src {
+			if src != NoReg && g.loc(src) == s {
+				used = true
+			}
+		}
+		if g.loc(inst.Dst) == s {
+			used = true
+		}
+		if !used {
+			scratch = s
+			break
+		}
+	}
+	if scratch == "" {
+		return // no free scratch — give up
+	}
+	g.emitf("    LD %s, A", scratch)
+	g.physOverride[accReg] = scratch
+}
+
+// reorderAccMoves swaps consecutive instruction pairs where a move→A is followed
+// by an 8-bit ALU→nonA that will use A as scratch. By putting the ALU first,
+// A is free for scratch use and the move loads A last (preserving it for the call).
+func reorderAccMoves(insts []*Inst, ar *AllocResult) []*Inst {
+	result := make([]*Inst, len(insts))
+	copy(result, insts)
+
+	for i := 0; i < len(result)-1; i++ {
+		a, b := result[i], result[i+1]
+
+		// Pattern: a = OpMove, dst in A; b = 8-bit ALU, dst NOT in A.
+		if a.Op != OpMove {
+			continue
+		}
+		aLoc := ar.Locs[a.Dst]
+		if aLoc.Name != "A" {
+			continue
+		}
+
+		// b must be an 8-bit ALU op that needs A as scratch.
+		is8bitALU := (b.Op == OpAdd || b.Op == OpSub || b.Op == OpAnd ||
+			b.Op == OpOr || b.Op == OpXor) && b.Ty != nil && b.Ty.Width() <= 8
+		if !is8bitALU {
+			continue
+		}
+		bLoc := ar.Locs[b.Dst]
+		if bLoc.Name == "A" {
+			continue // b also targets A — no help from swapping
+		}
+
+		// Safety: b must not READ a.Dst, and a must not READ b.Dst.
+		bReadsA := b.Src[0] == a.Dst || b.Src[1] == a.Dst
+		aReadsB := a.Src[0] == b.Dst
+		if bReadsA || aReadsB {
+			continue // data dependency — cannot swap
+		}
+
+		// Swap.
+		result[i], result[i+1] = b, a
+	}
+	return result
 }
 
 // emit8ALU emits an 8-bit ALU instruction with A as the implicit destination.
@@ -4087,7 +4201,15 @@ func (g *z80cg) emitCallArgs(args []Reg, params []Param) {
 			break
 		}
 		srcPhys := g.loc(arg)
-		dstPhys := canonicalReturnLoc(params[i].Class, params[i].Ty)
+		// Use the callee's actual allocated register for the param if available
+		// (from PBQP). Fall back to canonical class-based location otherwise.
+		dstPhys := ""
+		if loc, ok := g.ar.Locs[params[i].Reg]; ok && loc.Name != "" {
+			dstPhys = loc.Name
+		}
+		if dstPhys == "" {
+			dstPhys = canonicalReturnLoc(params[i].Class, params[i].Ty)
+		}
 		if srcPhys != dstPhys {
 			copies = append(copies, parallelCopy{srcName: srcPhys, dstName: dstPhys, ty: params[i].Ty})
 		}

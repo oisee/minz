@@ -169,6 +169,48 @@ func BuildInterferenceGraph(f *Func, lr *LivenessResult) *InterferenceGraph {
 				live.Remove(inst.Dst)
 			}
 
+			// Z80-specific: 8-bit ALU ops (ADD/SUB/AND/OR/XOR/CMP) use A as
+			// implicit scratch even when their result goes elsewhere. Any
+			// ClassAcc reg live across such an instruction must interfere with
+			// the dst to prevent PBQP from assigning both to A.
+			if inst.Dst != NoReg && inst.Ty != nil && inst.Ty.Width() <= 8 &&
+				inst.Cls != ClassAcc {
+				switch inst.Op {
+				case OpAdd, OpSub, OpAnd, OpOr, OpXor, OpMul, OpDiv, OpMod:
+					// Every live ClassAcc reg must not share A with this inst's dst.
+					// We model this by ensuring they interfere with dst
+					// (already done above). But we also need to prevent any
+					// ClassAcc reg from being in A while this op runs.
+					// Add interference between all live regs and a synthetic
+					// "A-clobber" — but simpler: mark that everything alive
+					// right now interferes with inst.Dst (already done).
+					// The MISSING piece: regs alive ACROSS this inst that are
+					// in ClassAcc should interfere with inst's Src too, because
+					// LD A,src clobbers A before the ALU op.
+					// Simplest correct model: all live regs interfere with ALL
+					// sources of this instruction (sources become live, dst
+					// interferes with live — but A-clobber is implicit).
+					// Actually: the fix is to add inst.Dst ↔ every live
+					// ClassAcc. But we don't know classes here — just regs.
+					// Use info map if available, or add edges unconditionally.
+					// Since we already added edges inst.Dst ↔ all live, the
+					// real missing edge is: every live reg (that might be in A)
+					// must also interfere with inst.Src[0] and inst.Src[1],
+					// because the codegen will LD A, src (clobbering A) before
+					// the ALU op.
+					// Simplified: for each Src of this ALU, add edge to all live.
+					for _, src := range inst.Src {
+						if src != NoReg && src != inst.Dst {
+							live.Each(func(r Reg) {
+								if r != src {
+									g.addEdge(src, r)
+								}
+							})
+						}
+					}
+				}
+			}
+
 			// Sources are now needed (become live going backward).
 			for _, src := range inst.Src {
 				if src != NoReg {
