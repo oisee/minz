@@ -93,6 +93,9 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		if mir2.CondRetSink(f) {
 			mir2.EliminateDeadBlocks(f)
 		}
+		// Fuse abs_diff pattern: cmp.ugt(a,b)+sub(b,a) → sub(a,b)+cmp.ult
+		// Enables Sub+Cmp flag fusion on Z80 (6B vs 9B).
+		mir2.FuseAbsDiff(f)
 	}
 	s.MIR2Opt = m.Dump()
 
@@ -186,6 +189,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 		if mir2.CondRetSink(f) {
 			mir2.EliminateDeadBlocks(f)
 		}
+		mir2.FuseAbsDiff(f)
 	}
 
 	// Structural verification.
