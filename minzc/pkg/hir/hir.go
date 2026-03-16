@@ -365,6 +365,16 @@ type CallExpr struct {
 func (*CallExpr) hirExpr()          {}
 func (e *CallExpr) ExprTy() mir2.Ty { return e.Ty }
 
+// CallIndirectExpr is an indirect function call through a pointer.
+type CallIndirectExpr struct {
+	FnPtr Expr    // expression yielding the function pointer
+	Args  []Expr
+	Ty    mir2.Ty // return type
+}
+
+func (*CallIndirectExpr) hirExpr()          {}
+func (e *CallIndirectExpr) ExprTy() mir2.Ty { return e.Ty }
+
 // FieldExpr accesses a struct field.  Offset is the byte offset from the base.
 type FieldExpr struct {
 	X      Expr

@@ -130,6 +130,18 @@ func NewVM(m *Module) *VM {
 			vm.heap = append(vm.heap, make([]byte, ByteWidth(g.Ty))...)
 		}
 	}
+	// Register function names as symbols so OpAddrOf("funcName") can resolve them.
+	// Each function gets a unique heap address (store its name as a tag).
+	for _, fn := range m.Funcs {
+		if _, exists := vm.globalSyms[fn.Name]; !exists {
+			offset := int64(len(vm.heap))
+			vm.globalSyms[fn.Name] = offset
+			// Write a small tag so the address is unique and non-zero.
+			tag := []byte(fn.Name)
+			vm.heap = append(vm.heap, tag...)
+			vm.heap = append(vm.heap, 0) // NUL terminator
+		}
+	}
 	vm.registerBuiltinHosts()
 	return vm
 }

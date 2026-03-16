@@ -95,6 +95,16 @@ func (l *lowerer) structTag(st *cc.StructType) string {
 	return t.SrcStr()
 }
 
+// isFunction checks if name is a known function in the module.
+func (l *lowerer) isFunction(name string) bool {
+	for _, f := range l.hm.Funcs {
+		if f.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
 // ── Top-level declarations ──────────────────────────────────────────────────
 
 func (l *lowerer) lowerTopDecl(d *cc.Declaration) error {
@@ -1031,6 +1041,15 @@ func (fl *funcLow) lowerPrimary(pe *cc.PrimaryExpression) (*exprResult, error) {
 				resolvedName = mangled
 			}
 		}
+		// Function name used as value → take address (function-to-pointer decay).
+		// In C, `fp = add` is equivalent to `fp = &add`.
+		if _, isLocal := fl.locals[resolvedName]; !isLocal {
+			if _, isGlobal := fl.low.globals[resolvedName]; !isGlobal {
+				if fl.low.isFunction(resolvedName) {
+					return wrapExpr(hir.Addr(resolvedName)), nil
+				}
+			}
+		}
 		ty := fl.typeOf(name)
 		return wrapExpr(hir.Var(resolvedName, ty)), nil
 
@@ -1164,17 +1183,40 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 	}
 }
 
+// extractCalleeName tries to extract a simple identifier from a C expression node.
+// Returns "" if the callee is a complex expression.
+func (fl *funcLow) extractCalleeName(expr cc.ExpressionNode) string {
+	switch e := expr.(type) {
+	case *cc.PostfixExpression:
+		if e.Case == cc.PostfixExpressionPrimary {
+			return fl.extractCalleeName(e.PrimaryExpression)
+		}
+	case *cc.PrimaryExpression:
+		if e.Case == cc.PrimaryExpressionIdent {
+			name := e.Token.SrcStr()
+			// Apply static rename if applicable.
+			if fl.staticRenames != nil {
+				if mangled, ok := fl.staticRenames[name]; ok {
+					return mangled
+				}
+			}
+			return name
+		}
+	case *cc.UnaryExpression:
+		// Handle `(*fp)(args)` → deref of a function pointer.
+		if e.Case == cc.UnaryExpressionPostfix {
+			return fl.extractCalleeName(e.PostfixExpression)
+		}
+	case *cc.CastExpression:
+		if e.Case == cc.CastExpressionUnary {
+			return fl.extractCalleeName(e.UnaryExpression)
+		}
+	}
+	return ""
+}
+
 func (fl *funcLow) lowerCall(pf *cc.PostfixExpression) (*exprResult, error) {
-	fnExpr, err := fl.lowerExprAsExpr(pf.PostfixExpression)
-	if err != nil {
-		return nil, err
-	}
-
-	fnName := ""
-	if v, ok := fnExpr.(*hir.VarRefExpr); ok {
-		fnName = v.Name
-	}
-
+	// Lower arguments.
 	var args []hir.Expr
 	for al := pf.ArgumentExpressionList; al != nil; al = al.ArgumentExpressionList {
 		arg, err := fl.lowerExprAsExpr(al.AssignmentExpression)
@@ -1185,7 +1227,25 @@ func (fl *funcLow) lowerCall(pf *cc.PostfixExpression) (*exprResult, error) {
 	}
 
 	retTy := fl.low.mapType(pf.Type())
-	return wrapExpr(hir.Call(fnName, retTy, args...)), nil
+
+	// Try to extract a direct function name from the callee AST node.
+	// This avoids going through lowerExpr which may convert function names to AddrOfExpr.
+	if name := fl.extractCalleeName(pf.PostfixExpression); name != "" {
+		if _, isLocal := fl.locals[name]; isLocal {
+			// Local variable or parameter holding a function pointer → indirect call.
+			fnPtr := &hir.VarRefExpr{Name: name, Ty: mir2.TyPtr}
+			return wrapExpr(&hir.CallIndirectExpr{FnPtr: fnPtr, Args: args, Ty: retTy}), nil
+		}
+		// Function name → direct call.
+		return wrapExpr(hir.Call(name, retTy, args...)), nil
+	}
+
+	// Callee is a complex expression → lower it and do indirect call.
+	fnExpr, err := fl.lowerExprAsExpr(pf.PostfixExpression)
+	if err != nil {
+		return nil, err
+	}
+	return wrapExpr(&hir.CallIndirectExpr{FnPtr: fnExpr, Args: args, Ty: retTy}), nil
 }
 
 func (fl *funcLow) lowerUnary(ue *cc.UnaryExpression) (*exprResult, error) {

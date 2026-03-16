@@ -208,6 +208,15 @@ func exprHasFreeRef(e Expr, bound, globals, funcs map[string]bool) bool {
 				return true
 			}
 		}
+	case *CallIndirectExpr:
+		if exprHasFreeRef(ex.FnPtr, bound, globals, funcs) {
+			return true
+		}
+		for _, a := range ex.Args {
+			if exprHasFreeRef(a, bound, globals, funcs) {
+				return true
+			}
+		}
 	case *FieldExpr:
 		return exprHasFreeRef(ex.X, bound, globals, funcs)
 	case *LoadExpr:
@@ -1519,6 +1528,20 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 		cls := classForRet(ex.Ty)
 		return l.bld.Call(fnName, args, ex.Ty, cls, mir2.CallAttrs{})
 
+	case *CallIndirectExpr:
+		fnPtrReg := l.lowerExpr(ex.FnPtr)
+		args := make([]mir2.Reg, len(ex.Args))
+		for i, a := range ex.Args {
+			r := l.lowerExpr(a)
+			tgtCls := classForParam(a.ExprTy(), i)
+			if tgtCls != classForExpr(a.ExprTy()) {
+				r = l.bld.Move(r, a.ExprTy(), tgtCls)
+			}
+			args[i] = r
+		}
+		cls := classForRet(ex.Ty)
+		return l.bld.CallIndirect(fnPtrReg, args, ex.Ty, cls)
+
 	case *AddrOfExpr:
 		return l.bld.AddrOf(ex.Sym, mir2.ClassPointer)
 
@@ -1920,6 +1943,11 @@ func scanUsedExpr(e Expr, env map[string]mir2.Reg, used map[string]bool) {
 	case *UnaryExpr:
 		scanUsedExpr(ex.X, env, used)
 	case *CallExpr:
+		for _, a := range ex.Args {
+			scanUsedExpr(a, env, used)
+		}
+	case *CallIndirectExpr:
+		scanUsedExpr(ex.FnPtr, env, used)
 		for _, a := range ex.Args {
 			scanUsedExpr(a, env, used)
 		}
@@ -2754,6 +2782,12 @@ func renameExpr(e Expr, from, to string) Expr {
 			args[i] = renameExpr(a, from, to)
 		}
 		return &CallExpr{Fn: ex.Fn, Args: args, Ty: ex.Ty}
+	case *CallIndirectExpr:
+		args := make([]Expr, len(ex.Args))
+		for i, a := range ex.Args {
+			args[i] = renameExpr(a, from, to)
+		}
+		return &CallIndirectExpr{FnPtr: renameExpr(ex.FnPtr, from, to), Args: args, Ty: ex.Ty}
 	case *LoadExpr:
 		return &LoadExpr{Ptr: renameExpr(ex.Ptr, from, to), Ty: ex.Ty}
 	case *IndexExpr:
