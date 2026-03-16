@@ -124,10 +124,15 @@ func NewVM(m *Module) *VM {
 	for _, g := range m.Globals {
 		offset := int64(len(vm.heap))
 		vm.globalSyms[g.Name] = offset
+		w := ByteWidth(g.Ty)
 		if len(g.Init) > 0 {
 			vm.heap = append(vm.heap, g.Init...)
+			// Pad if Init is shorter than type width.
+			if len(g.Init) < w {
+				vm.heap = append(vm.heap, make([]byte, w-len(g.Init))...)
+			}
 		} else {
-			vm.heap = append(vm.heap, make([]byte, ByteWidth(g.Ty))...)
+			vm.heap = append(vm.heap, make([]byte, w)...)
 		}
 	}
 	// Register function names as symbols so OpAddrOf("funcName") can resolve them.

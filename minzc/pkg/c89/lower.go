@@ -95,6 +95,12 @@ func (l *lowerer) structTag(st *cc.StructType) string {
 	return t.SrcStr()
 }
 
+// boolNormalize wraps an expression so that any non-zero value becomes 1.
+// Implements C99 _Bool semantics: `_Bool b = 42` → `b = 1`.
+func boolNormalize(e hir.Expr) hir.Expr {
+	return &hir.BinExpr{Op: "!=", L: e, R: &hir.IntLitExpr{Val: 0, Ty: e.ExprTy()}, Ty: mir2.TyU8}
+}
+
 // isFunction checks if name is a known function in the module.
 func (l *lowerer) isFunction(name string) bool {
 	for _, f := range l.hm.Funcs {
@@ -109,6 +115,20 @@ func (l *lowerer) isFunction(name string) bool {
 
 func (l *lowerer) lowerTopDecl(d *cc.Declaration) error {
 	if d == nil {
+		return nil
+	}
+	// _Static_assert — evaluate at compile time, emit error if false.
+	if d.Case == cc.DeclarationAssert {
+		if sa := d.StaticAssertDeclaration; sa != nil {
+			if sa.ConstantExpression != nil {
+				if v := sa.ConstantExpression.Value(); v != nil {
+					if constToInt64(v) == 0 {
+						msg := sa.Token4.SrcStr() // string literal message
+						return fmt.Errorf("static assertion failed: %s", msg)
+					}
+				}
+			}
+		}
 		return nil
 	}
 	for idl := d.InitDeclaratorList; idl != nil; idl = idl.InitDeclaratorList {
@@ -393,7 +413,12 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 			g := mir2.Global{Name: mangled, Ty: ty}
 			if id.Initializer != nil {
 				if val, ok := fl.low.evalConstInit(id.Initializer); ok {
-					g.Init = []byte{byte(val)}
+					w := mir2.ByteWidth(ty)
+					if w <= 1 {
+						g.Init = []byte{byte(val)}
+					} else {
+						g.Init = []byte{byte(val), byte(val >> 8)}
+					}
 				}
 			}
 			fl.low.hm.Globals = append(fl.low.hm.Globals, g)
@@ -422,6 +447,10 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 						return nil, err
 					}
 					init = r.toExpr()
+					// _Bool normalization: any non-zero value becomes 1.
+					if decl.Type() != nil && decl.Type().Kind() == cc.Bool {
+						init = boolNormalize(init)
+					}
 				}
 			case cc.InitializerInitList:
 				// Brace initializer: { val1, val2, ... }
