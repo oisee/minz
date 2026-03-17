@@ -91,9 +91,9 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc) (*MIROp, error) {
 			width = w
 		}
 	}
-	// CMP produces a boolean (width=1) but the actual comparison operates
-	// on the operand width, not the result width. Promote to 8.
-	if inst.Op == mir2.OpCmp && width < 8 {
+	// Several ops produce or consume booleans (width=1) but the actual
+	// operation uses 8-bit registers. Promote narrow widths to 8.
+	if width < 8 {
 		width = 8
 	}
 
