@@ -403,6 +403,42 @@ func registerDiskHostsRO(vm *mir2.VM, img *os.File) {
 	}
 }
 
+func registerDiskHostsRW(vm *mir2.VM, img *os.File) {
+	vm.Hosts["@disk_initialize"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		return []mir2.Value{{I: 0}}, nil
+	}
+	vm.Hosts["@disk_status"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		return []mir2.Value{{I: 0}}, nil
+	}
+	vm.Hosts["@disk_read"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		buf, sector, count := args[1].I, args[2].I, args[3].I
+		for i := int64(0); i < count; i++ {
+			data := make([]byte, 512)
+			if _, err := img.ReadAt(data, (sector+i)*512); err != nil {
+				return []mir2.Value{{I: 1}}, nil
+			}
+			vm.WriteHeapSlice(buf+i*512, data)
+		}
+		return []mir2.Value{{I: 0}}, nil
+	}
+	vm.Hosts["@disk_write"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		buf, sector, count := args[1].I, args[2].I, args[3].I
+		for i := int64(0); i < count; i++ {
+			data := vm.ReadHeap(buf+i*512, 512)
+			if _, err := img.WriteAt(data, (sector+i)*512); err != nil {
+				return []mir2.Value{{I: 1}}, nil
+			}
+		}
+		return []mir2.Value{{I: 0}}, nil
+	}
+	vm.Hosts["@disk_ioctl"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		return []mir2.Value{{I: 0}}, nil
+	}
+	vm.Hosts["@get_fattime"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		return []mir2.Value{{I: int64(((2026 - 1980) << 25) | (3 << 21) | (17 << 16))}}, nil
+	}
+}
+
 func vmWriteStr(vm *mir2.VM, addr int64, s string) {
 	for i, b := range []byte(s) {
 		vm.WriteHeap(addr+int64(i), b)
@@ -477,16 +513,16 @@ func TestNanzFAT12_API(t *testing.T) {
 	defer diskImg.Close()
 	registerDiskHostsRO(vm, diskImg)
 
-	// ── Step 3: Test fat12_mount ─────────────────────────────────────────
+	// ── Step 3: Test fat_mount ─────────────────────────────────────────
 	t.Run("mount", func(t *testing.T) {
-		res, err := vm.Call("fat12_mount", []mir2.Value{{I: 0}})
+		res, err := vm.Call("fat_mount", []mir2.Value{{I: 0}})
 		if err != nil {
-			t.Fatalf("fat12_mount: %v", err)
+			t.Fatalf("fat_mount: %v", err)
 		}
 		if res[0].I != 0 {
-			t.Fatalf("fat12_mount returned %d, want 0 (success)", res[0].I)
+			t.Fatalf("fat_mount returned %d, want 0 (success)", res[0].I)
 		}
-		t.Logf("fat12_mount: OK")
+		t.Logf("fat_mount: OK")
 
 		// Verify globals were set correctly
 		// Read the raw BPB to check
@@ -651,6 +687,339 @@ func TestNanzFAT12_API(t *testing.T) {
 		}
 	})
 }
+
+// TestNanzFAT12_Write tests the Nanz FAT library write operations:
+// create_file, delete_file, overwrite_file on a real FAT12 image,
+// then verifies with gcc-compiled FatFS reading the result.
+func TestNanzFAT12_Write(t *testing.T) {
+	nanzPath := filepath.Join("..", "..", "..", "stdlib", "fs", "fat12.minz")
+	nanzSrc, err := os.ReadFile(nanzPath)
+	if err != nil {
+		t.Skipf("fat12.minz not found: %v", err)
+	}
+
+	// Create and seed a FAT12 image via gcc+FatFS
+	fatfsDir := filepath.Join("..", "..", "..", "examples", "c89", "fatfs")
+	seedSrc := filepath.Join(t.TempDir(), "seed.c")
+	seedBin := filepath.Join(t.TempDir(), "seed")
+	imgPath := filepath.Join(t.TempDir(), "test.img")
+
+	if err := os.WriteFile(seedSrc, []byte(seedSourceC), 0644); err != nil {
+		t.Fatalf("write seeder: %v", err)
+	}
+	out, err := exec.Command("gcc", "-o", seedBin, "-w",
+		"-I", fatfsDir, seedSrc,
+		filepath.Join(fatfsDir, "ff.c")).CombinedOutput()
+	if err != nil {
+		t.Skipf("gcc: %v\n%s", err, out)
+	}
+	if err := os.WriteFile(imgPath, make([]byte, 1024*1024), 0644); err != nil {
+		t.Fatalf("create image: %v", err)
+	}
+	if out, err := exec.Command("mkfs.fat", "-F", "12", imgPath).CombinedOutput(); err != nil {
+		t.Skipf("mkfs.fat: %v\n%s", err, out)
+	}
+	if out, err := exec.Command(seedBin, imgPath).CombinedOutput(); err != nil {
+		t.Fatalf("seeder: %v\n%s", err, out)
+	} else {
+		t.Logf("Seeder: %s", strings.TrimSpace(string(out)))
+	}
+
+	// Compile Nanz → MIR2 VM
+	hirMod, err := nanz.Parse(string(nanzSrc), "fat12.minz")
+	if err != nil {
+		t.Fatalf("nanz parse: %v", err)
+	}
+	mir2Mod := hir.LowerModule(hirMod)
+	vm := mir2.NewVM(mir2Mod)
+
+	// Register read-write disk I/O
+	diskImg, err := os.OpenFile(imgPath, os.O_RDWR, 0)
+	if err != nil {
+		t.Fatalf("open image: %v", err)
+	}
+	defer diskImg.Close()
+	registerDiskHostsRW(vm, diskImg)
+
+	// Mount
+	t.Run("mount", func(t *testing.T) {
+		res, err := vm.Call("fat_mount", []mir2.Value{{I: 0}})
+		if err != nil {
+			t.Fatalf("fat_mount: %v", err)
+		}
+		if res[0].I != 0 {
+			t.Fatalf("fat_mount returned %d", res[0].I)
+		}
+		t.Logf("fat_mount: OK")
+	})
+
+	// Verify initial state: 3 files (HELLO.TXT, DATA.BIN, SUBDIR)
+	t.Run("initial_count", func(t *testing.T) {
+		res, _ := vm.Call("count_dir_entries", []mir2.Value{{I: 0}})
+		count := res[0].I & 0xFF
+		if count != 3 {
+			t.Fatalf("initial count = %d, want 3", count)
+		}
+		t.Logf("initial entries: %d ✓", count)
+	})
+
+	// Create a new file: TEST.TXT with "Nanz writes!"
+	t.Run("create_file", func(t *testing.T) {
+		sfn := []byte("TEST    TXT")
+		nameAddr := vm.AllocHeap(sfn)
+
+		content := []byte("Nanz writes!")
+		dataAddr := vm.AllocHeap(content)
+
+		res, err := vm.Call("create_file", []mir2.Value{
+			{I: 0},
+			{I: nameAddr.I},
+			{I: dataAddr.I},
+			{I: int64(len(content))},
+		})
+		if err != nil {
+			t.Fatalf("create_file: %v", err)
+		}
+		if res[0].I != 0 {
+			t.Fatalf("create_file returned %d", res[0].I)
+		}
+		t.Logf("create_file('TEST.TXT', 'Nanz writes!'): OK ✓")
+	})
+
+	// Verify count increased
+	t.Run("count_after_create", func(t *testing.T) {
+		res, _ := vm.Call("count_dir_entries", []mir2.Value{{I: 0}})
+		count := res[0].I & 0xFF
+		if count != 4 {
+			t.Fatalf("count = %d, want 4", count)
+		}
+		t.Logf("entries after create: %d ✓", count)
+	})
+
+	// Read back the file we just wrote
+	t.Run("read_back_created", func(t *testing.T) {
+		sfn := []byte("TEST    TXT")
+		nameAddr := vm.AllocHeap(sfn)
+		bufAddr := vm.AllocHeap(make([]byte, 512))
+
+		res, err := vm.Call("read_named_file", []mir2.Value{
+			{I: 0}, {I: nameAddr.I}, {I: bufAddr.I}, {I: 512},
+		})
+		if err != nil {
+			t.Fatalf("read_named_file: %v", err)
+		}
+		bytesRead := res[0].I & 0xFFFF
+		if bytesRead != 12 {
+			t.Fatalf("read_named_file returned %d bytes, want 12", bytesRead)
+		}
+		content := vm.ReadHeap(bufAddr.I, int(bytesRead))
+		if string(content) != "Nanz writes!" {
+			t.Errorf("content = %q, want %q", string(content), "Nanz writes!")
+		} else {
+			t.Logf("read_back: %q ✓", string(content))
+		}
+	})
+
+	// Verify HELLO.TXT still readable
+	t.Run("hello_still_works", func(t *testing.T) {
+		sfn := []byte("HELLO   TXT")
+		nameAddr := vm.AllocHeap(sfn)
+		bufAddr := vm.AllocHeap(make([]byte, 512))
+		res, _ := vm.Call("read_named_file", []mir2.Value{
+			{I: 0}, {I: nameAddr.I}, {I: bufAddr.I}, {I: 512},
+		})
+		bytesRead := res[0].I & 0xFFFF
+		content := vm.ReadHeap(bufAddr.I, int(bytesRead))
+		if string(content) != "Hello World!" {
+			t.Errorf("HELLO.TXT = %q, want %q", string(content), "Hello World!")
+		} else {
+			t.Logf("HELLO.TXT still intact: %q ✓", string(content))
+		}
+	})
+
+	// Delete HELLO.TXT
+	t.Run("delete_file", func(t *testing.T) {
+		sfn := []byte("HELLO   TXT")
+		nameAddr := vm.AllocHeap(sfn)
+		res, err := vm.Call("delete_file", []mir2.Value{
+			{I: 0}, {I: nameAddr.I},
+		})
+		if err != nil {
+			t.Fatalf("delete_file: %v", err)
+		}
+		if res[0].I != 0 {
+			t.Fatalf("delete_file returned %d", res[0].I)
+		}
+		t.Logf("delete_file('HELLO.TXT'): OK ✓")
+	})
+
+	// Verify count decreased
+	t.Run("count_after_delete", func(t *testing.T) {
+		res, _ := vm.Call("count_dir_entries", []mir2.Value{{I: 0}})
+		count := res[0].I & 0xFF
+		if count != 3 {
+			t.Fatalf("count = %d, want 3", count)
+		}
+		t.Logf("entries after delete: %d ✓", count)
+	})
+
+	// Verify HELLO.TXT is gone
+	t.Run("hello_gone", func(t *testing.T) {
+		sfn := []byte("HELLO   TXT")
+		nameAddr := vm.AllocHeap(sfn)
+		res, _ := vm.Call("find_file", []mir2.Value{{I: 0}, {I: nameAddr.I}})
+		if res[0].I != 0 {
+			t.Errorf("HELLO.TXT still found (clst=%d)", res[0].I)
+		} else {
+			t.Logf("HELLO.TXT correctly not found ✓")
+		}
+	})
+
+	// Overwrite DATA.BIN with new content
+	t.Run("overwrite_file", func(t *testing.T) {
+		sfn := []byte("DATA    BIN")
+		nameAddr := vm.AllocHeap(sfn)
+
+		newData := []byte("Overwritten by Nanz FAT lib!")
+		dataAddr := vm.AllocHeap(newData)
+
+		res, err := vm.Call("overwrite_file", []mir2.Value{
+			{I: 0},
+			{I: nameAddr.I},
+			{I: dataAddr.I},
+			{I: int64(len(newData))},
+		})
+		if err != nil {
+			t.Fatalf("overwrite_file: %v", err)
+		}
+		if res[0].I != 0 {
+			t.Fatalf("overwrite_file returned %d", res[0].I)
+		}
+		t.Logf("overwrite_file('DATA.BIN'): OK ✓")
+	})
+
+	// Read back overwritten file
+	t.Run("read_back_overwritten", func(t *testing.T) {
+		sfn := []byte("DATA    BIN")
+		nameAddr := vm.AllocHeap(sfn)
+		bufAddr := vm.AllocHeap(make([]byte, 512))
+		res, _ := vm.Call("read_named_file", []mir2.Value{
+			{I: 0}, {I: nameAddr.I}, {I: bufAddr.I}, {I: 512},
+		})
+		bytesRead := res[0].I & 0xFFFF
+		want := "Overwritten by Nanz FAT lib!"
+		if bytesRead != int64(len(want)) {
+			t.Fatalf("read %d bytes, want %d", bytesRead, len(want))
+		}
+		content := vm.ReadHeap(bufAddr.I, int(bytesRead))
+		if string(content) != want {
+			t.Errorf("content = %q, want %q", string(content), want)
+		} else {
+			t.Logf("read_back: %q ✓", string(content))
+		}
+	})
+
+	// Sync and close
+	t.Run("sync", func(t *testing.T) {
+		res, _ := vm.Call("fat_sync", []mir2.Value{{I: 0}})
+		if res[0].I != 0 {
+			t.Errorf("fat_sync returned %d", res[0].I)
+		} else {
+			t.Logf("fat_sync: OK ✓")
+		}
+	})
+
+	// Verify with gcc-compiled FatFS that our writes are correct
+	t.Run("gcc_verification", func(t *testing.T) {
+		diskImg.Sync()
+		verifySrc := filepath.Join(t.TempDir(), "verify_write.c")
+		verifyBin := filepath.Join(t.TempDir(), "verify_write")
+		if err := os.WriteFile(verifySrc, []byte(nanzWriteVerifierC), 0644); err != nil {
+			t.Fatalf("write verifier: %v", err)
+		}
+		out, err := exec.Command("gcc", "-o", verifyBin, "-w",
+			"-I", fatfsDir, verifySrc,
+			filepath.Join(fatfsDir, "ff.c")).CombinedOutput()
+		if err != nil {
+			t.Skipf("gcc: %v\n%s", err, out)
+		}
+		out, err = exec.Command(verifyBin, imgPath).CombinedOutput()
+		t.Logf("gcc verifier:\n%s", out)
+		if err != nil {
+			t.Errorf("verifier failed: %v", err)
+		}
+		if !strings.Contains(string(out), "ALL OK") {
+			t.Errorf("verifier did not report ALL OK")
+		}
+	})
+}
+
+const nanzWriteVerifierC = `
+#include <stdio.h>
+#include <string.h>
+#include "ff.h"
+#include "diskio.h"
+
+static FILE *df;
+DSTATUS disk_initialize(BYTE p) { return 0; }
+DSTATUS disk_status(BYTE p) { return 0; }
+DRESULT disk_read(BYTE p, BYTE *b, LBA_t s, UINT c) {
+    fseek(df, s*512, SEEK_SET);
+    fread(b, 512, c, df);
+    return RES_OK;
+}
+DRESULT disk_write(BYTE p, const BYTE *b, LBA_t s, UINT c) { return RES_OK; }
+DRESULT disk_ioctl(BYTE p, BYTE cmd, void *buf) { return RES_OK; }
+DWORD get_fattime(void) { return 0; }
+
+int pass = 0, fail = 0;
+#define CHECK(cond, msg) do { \
+    if (cond) { printf("ok: %s\n", msg); pass++; } \
+    else { printf("FAIL: %s\n", msg); fail++; } \
+} while(0)
+
+int main(int argc, char **argv) {
+    df = fopen(argv[1], "rb");
+    FATFS fs;
+    FIL fp;
+    UINT br;
+
+    f_mount(&fs, "", 1);
+    CHECK(fs.fs_type != 0, "mounted");
+
+    /* HELLO.TXT should be deleted */
+    FRESULT r = f_open(&fp, "HELLO.TXT", FA_READ);
+    CHECK(r == FR_NO_FILE, "HELLO.TXT deleted");
+
+    /* TEST.TXT should exist with "Nanz writes!" */
+    r = f_open(&fp, "TEST.TXT", FA_READ);
+    CHECK(r == FR_OK, "open TEST.TXT");
+    if (r == FR_OK) {
+        char buf[64] = {0};
+        f_read(&fp, buf, 64, &br);
+        CHECK(br == 12, "TEST.TXT size 12");
+        CHECK(memcmp(buf, "Nanz writes!", 12) == 0, "TEST.TXT content");
+        f_close(&fp);
+    }
+
+    /* DATA.BIN should be overwritten */
+    r = f_open(&fp, "DATA.BIN", FA_READ);
+    CHECK(r == FR_OK, "open DATA.BIN");
+    if (r == FR_OK) {
+        char buf[64] = {0};
+        f_read(&fp, buf, 64, &br);
+        const char *want = "Overwritten by Nanz FAT lib!";
+        CHECK(br == (UINT)strlen(want), "DATA.BIN size");
+        CHECK(memcmp(buf, want, strlen(want)) == 0, "DATA.BIN content");
+        f_close(&fp);
+    }
+
+    f_mount(NULL, "", 0);
+    fclose(df);
+    printf("%s: %d/%d\n", fail ? "FAIL" : "ALL OK", pass, pass+fail);
+    return fail ? 1 : 0;
+}
+`
 
 // TestFatFS_VM_Write is the reverse of TestFatFS_VM_Verify:
 // MIR2 VM constructs a FAT12 image → gcc-compiled FatFS reads and verifies.
