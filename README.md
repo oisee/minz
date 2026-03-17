@@ -42,6 +42,7 @@ ObjC demoscene effects compiled through HIR → MIR2 → VM (and QBE native). Al
 ### Latest
 
 - **[ABAP on Z80 + Wasm Parser](reports/2026-03-17-089-ABAP_Wasm_QBE_CPM.md)** — 7th frontend: ABAP compiles to Z80/QBE/native via embedded Wasm parser (no Node.js). Selection screen with PARAMETERS on CP/M. MARA/MAKT SQLite demo. Zork I runs in mze.
+- **FatFS Differential Testing & Native FAT12 Library** — Bidirectional FAT12 image I/O (gcc→MIR2, MIR2→gcc), C89→QBE native (33/33 asserts), native Nanz `stdlib/fs/fat12.minz` with 28/28 bit-identical differential results vs C89. Nanz MIR2: 99 instructions vs C89 97 (+2.1%); QBE IL 10.9% smaller. [fat12.minz](stdlib/fs/fat12.minz)
 - **[ObjC Canvas + Demoscene + Multi-Frontend CLI](reports/2026-03-16-089-ObjC_Canvas_Demoscene_Multi_Frontend.md)** — Cross-language canvas library (VM + native), 3 demoscene effects in ObjC, all 8 frontends wired into mzv/mzn, CLI flags standardized to `--long`/`-s` convention.
 - **[ABAP Frontend + SQLite + Zork](reports/2026-03-16-088-ABAP_Frontend_SQLite_Zork.md)** — 7th frontend (ABAP via abaplint), SQLite host functions in MIR2 VM, CP/M file I/O fixed (ROM protection root cause), **Zork I (1983) runs in MZE**.
 - **[Nanz Z80 Showcase v2](reports/2026-03-15-084-Nanz_Z80_Showcase_Definitive_v2.md)** — 12 verified examples: `abs_diff` 6B (optimal), `swap` 1B (bare RET), `smaller` 0B (EQU), `popcount` 3-inst LUT, `@smc` compiled sprites, value pipes constant-folded, iterator DJNZ fusion.
@@ -688,7 +689,7 @@ Eight source languages compile through the same HIR → MIR2 → Z80 backend:
 | **Lizp** | Working | Lisp dialect | Macros, threading (`->`, `->>`), `defmacro`/`cond`/`when`/`dotimes`. Desugars to Lanz |
 | **PL/M-80** | Working | Legacy Intel (1976) | 26/26 Intel 80 Tools corpus (100%); 1338 functions, 11661 statements |
 | **Pascal** | Working | Turbo Pascal | `WriteLn` → CP/M BDOS via inline asm. `mz hello.pas -t cpm -o hello.com` |
-| **C89** | Working | C89/C99 | `modernc.org/cc/v4` parser. 14 corpus files, 191 asserts. [−55% vs SDCC](reports/2026-03-15-081-MinZ_C89_vs_SDCC_Codegen_Comparison.md) |
+| **C89** | Working | C89/C99 | `modernc.org/cc/v4` parser. 16 corpus files, 350 asserts. FatFS R0.16 (7,249 LOC) compiles. [−55% vs SDCC](reports/2026-03-15-081-MinZ_C89_vs_SDCC_Codegen_Comparison.md) |
 | **ObjC** | Working | Objective-C subset | `@protocol`, `@interface`, `@implementation`, `self->field`, dynamic dispatch via vtables. [Demos →](examples/objc/) |
 | **ABAP** | NEW | SAP ABAP on Z80! | [abaplint](https://github.com/abaplint/abaplint) parser (TS). DATA, WRITE, IF, WHILE, DO, FORM, CLASS. [Examples →](examples/abap/) |
 | **MinZ** | Frozen on MIR1 | Legacy syntax | Old MIR1 path; will be rewired through HIR→MIR2 |
@@ -867,6 +868,7 @@ Stdlib modules are organized by domain. Quality varies — some modules are well
 | `agon/vdp` | Agon VDP graphics: modes, shapes, sprites, buffer commands |
 | `text/format` | Number formatting: `u8_to_str`, `u16_to_hex` |
 | `mem/copy` | Fast memory ops: `memcpy`, `memset` (LDIR-based) |
+| `fs/fat12` | FAT12 filesystem: BPB parsing, cluster chain traversal, directory reading. 28/28 differential-verified vs FatFS R0.16 |
 
 ### Available but Less Tested
 

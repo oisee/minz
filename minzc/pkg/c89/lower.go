@@ -197,7 +197,20 @@ func (l *lowerer) lowerTopDecl(d *cc.Declaration) error {
 		}
 
 		// Global variable.
-		mty := l.mapType(ty)
+		// For arrays, preserve ArrayTy so HIR lowerer returns address
+		// (array decay) instead of loading the value as a pointer.
+		var mty mir2.Ty
+		if ty.Kind() == cc.Array {
+			at := ty.(*cc.ArrayType)
+			elemTy := l.mapType(at.Elem())
+			length := int(at.Len())
+			if length < 1 {
+				length = 1
+			}
+			mty = mir2.NewArray(elemTy, length)
+		} else {
+			mty = l.mapType(ty)
+		}
 		g := mir2.Global{Name: name, Ty: mty}
 
 		// Initial value.
@@ -397,6 +410,8 @@ type funcLow struct {
 	objcClass  *objcClassInfo
 	objcLocals    map[string]string // varName → className (for typed receivers)
 	objcProtoVars map[string]string // varName → protocolName (for id<Proto> dynamic dispatch)
+
+	inSwitch bool // true while lowering a switch body (C89 switch→if/else chain)
 }
 
 func (fl *funcLow) tmpCounter() int {
@@ -700,7 +715,13 @@ func (fl *funcLow) lowerSwitch(ss *cc.SelectionStatement) ([]hir.Stmt, error) {
 		inCase = false
 	}
 
-	// Walk block items.
+	// Walk block items.  Mark that we're inside a switch so that nested
+	// break statements (inside if blocks etc.) are treated as switch-break
+	// rather than loop-break.
+	prevInSwitch := fl.inSwitch
+	fl.inSwitch = true
+	defer func() { fl.inSwitch = prevInSwitch }()
+
 	for bi := cs.BlockItemList; bi != nil; bi = bi.BlockItemList {
 		item := bi.BlockItem
 		if item == nil {
@@ -809,6 +830,8 @@ func (fl *funcLow) lowerIteration(is *cc.IterationStatement) ([]hir.Stmt, error)
 		return []hir.Stmt{hir.While(cond, hir.Blk(body...))}, nil
 
 	case cc.IterationStatementDo:
+		// do { body } while(cond)  →  while(true) { body; if(!cond) break; }
+		// This preserves break/continue semantics correctly.
 		body, err := fl.lowerStmt(is.Statement)
 		if err != nil {
 			return nil, err
@@ -817,10 +840,12 @@ func (fl *funcLow) lowerIteration(is *cc.IterationStatement) ([]hir.Stmt, error)
 		if err != nil {
 			return nil, err
 		}
-		var stmts []hir.Stmt
-		stmts = append(stmts, body...)
-		stmts = append(stmts, hir.While(cond, hir.Blk(body...)))
-		return stmts, nil
+		negCond := &hir.UnaryExpr{Op: "!", X: cond, Ty: mir2.TyBool}
+		exitIf := hir.If(negCond, hir.Blk(hir.Break()), nil)
+		loopBody := make([]hir.Stmt, 0, len(body)+1)
+		loopBody = append(loopBody, body...)
+		loopBody = append(loopBody, exitIf)
+		return []hir.Stmt{hir.While(hir.Bool(true), hir.Blk(loopBody...))}, nil
 
 	case cc.IterationStatementFor:
 		return fl.lowerForLoop(is, false)
@@ -920,6 +945,11 @@ func (fl *funcLow) lowerJump(js *cc.JumpStatement) ([]hir.Stmt, error) {
 		return []hir.Stmt{hir.RetVoid()}, nil
 
 	case cc.JumpStatementBreak:
+		if fl.inSwitch {
+			// Inside a switch lowered to if/else chain, break is implicit
+			// (the if/else structure already provides case separation).
+			return nil, nil
+		}
 		return []hir.Stmt{hir.Break()}, nil
 
 	case cc.JumpStatementContinue:

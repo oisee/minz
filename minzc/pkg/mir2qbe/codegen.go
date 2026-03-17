@@ -179,7 +179,14 @@ func (g *gen) emitInst(inst *mir2.Inst) {
 	switch inst.Op {
 	// Binary arithmetic
 	case mir2.OpAdd:
-		def("add", reg(a), reg(b2))
+		if ty == "l" {
+			// Pointer-width add: promote both operands to l if they are w.
+			aL := g.ptrReg(a, dst, "addl")
+			bL := g.ptrReg(b2, dst, "addr")
+			g.printf("\t%%r%d =l add %s, %s\n", dst, aL, bL)
+		} else {
+			def("add", reg(a), reg(b2))
+		}
 	case mir2.OpSub:
 		def("sub", reg(a), reg(b2))
 	case mir2.OpMul:

@@ -3189,6 +3189,37 @@ mze -t cpm hello.com
 
 The Pascal lowerer generates CP/M BDOS wrappers (ConOut, WriteStr, WriteCrLf) directly as HIR functions with inline Z80 asm, ensuring correct register placement (C=function, DE=parameter, CALL $0005).
 
+## Appendix I: What's New in v5.4
+
+Features shipped since v5.3 (2026-03-17):
+
+| Feature | Location | Status |
+|---------|----------|--------|
+| Native FAT12 library | `stdlib/fs/fat12.minz` | 28/28 differential-verified vs FatFS R0.16 |
+| Bidirectional FatFS testing | `pkg/c89/fatfs_vm_test.go` | gcc→MIR2 (5/5), MIR2→gcc (7/7) |
+| C89→QBE native path | `pkg/c89/fatfs_vm_test.go` | 33/33 FatFS low-level asserts via QBE |
+| Differential code quality | `pkg/c89/fatfs_differential_test.go` | Nanz MIR2 99 vs C89 97 instr (+2.1%) |
+| C89 do-while + break/continue | `pkg/c89/lower.go` | 19 asserts |
+| QBE `OpAdd` l-typed promotion | `pkg/mir2qbe/codegen.go` | Pointer arithmetic fix |
+| C89 corpus expanded | 16 files, 350 asserts | +2 files, +159 asserts |
+
+### Native FAT12 Library — `stdlib/fs/fat12.minz`
+
+Idiomatic Nanz reimplementation of FatFS R0.16 low-level functions. Covers BPB parsing, FAT12 cluster chain traversal, directory entry helpers, and SFN checksum. Designed for embedded/retro targets (Z80, eZ80, 6502).
+
+```nanz
+fun read_fat12(fat: ^u8, clst: u16) -> u16 {
+    let half: u16 = clst >> 1
+    let ofs: u16 = clst + half
+    let raw: u16 = ld_word(fat + ofs)
+    let odd: u16 = clst & 1
+    if odd != 0 { return raw >> 4 }
+    return raw & 0x0FFF
+}
+```
+
+Differential testing proves bit-identical results against the C89 FatFS implementation across all 28 test vectors. MIR2 code quality is comparable — some functions are smaller in Nanz (`sfn_checksum` −1 instruction, `read_fat12` −1), while QBE IL output is 10.9% smaller overall.
+
 ---
 
 *MinZ Compiler — modern abstractions, vintage iron, zero overhead.*

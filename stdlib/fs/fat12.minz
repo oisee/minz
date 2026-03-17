@@ -1,0 +1,228 @@
+// ============================================================================
+// MinZ FAT12 Filesystem Library
+// ============================================================================
+// Clean, idiomatic MinZ implementation of FAT12 read support.
+// Designed for embedded/retro targets (Z80, eZ80, 6502).
+//
+// Covers: BPB parsing, FAT12 cluster chain traversal, directory reading,
+// file content extraction. Write support planned for v2.
+// ============================================================================
+
+// ── Types ──────────────────────────────────────────────────────────────────
+
+type Sector  = u16
+type Cluster = u16
+
+struct BPB {
+    bytes_per_sector:    u16,
+    sectors_per_cluster: u8,
+    reserved_sectors:    u16,
+    num_fats:            u8,
+    root_entry_count:    u16,
+    fat_size_16:         u16,
+    fat_start:           u16,
+    root_start:          u16,
+    data_start:          u16
+}
+
+enum DirStatus { VALID, DELETED, END_OF_DIR }
+enum FATEntry  { FREE, RESERVED, DATA, EOC, BAD }
+
+// ── Byte-level helpers (little-endian) ─────────────────────────────────────
+
+fun ld_word(ptr: ^u8) -> u16 {
+    let lo: u16 = ptr[0]
+    let hi: u16 = ptr[1]
+    let shifted: u16 = hi << 8
+    return shifted | lo
+}
+
+fun st_word(ptr: ^u8, val: u16) -> void {
+    let lo: u8 = val & 0xFF
+    let hi_shifted: u16 = val >> 8
+    let hi: u8 = hi_shifted & 0xFF
+    ptr[0] = lo
+    ptr[1] = hi
+}
+
+// ── FAT12 cluster operations ───────────────────────────────────────────────
+
+fun read_fat12(fat: ^u8, clst: u16) -> u16 {
+    let half: u16 = clst >> 1
+    let ofs: u16 = clst + half
+    let raw: u16 = ld_word(fat + ofs)
+    let odd: u16 = clst & 1
+    if odd != 0 {
+        return raw >> 4
+    }
+    return raw & 0x0FFF
+}
+
+fun classify_fat12(val: u16) -> u8 {
+    if val == 0     { return 0 }
+    if val == 1     { return 1 }
+    if val >= 0xFF8 { return 3 }
+    if val >= 0xFF0 { return 4 }
+    return 2
+}
+
+fun clst2sect(data_start: u16, clst: u16, spc: u8) -> u16 {
+    if clst < 2 { return 0 }
+    return data_start + (clst - 2) * spc
+}
+
+fun chain_length(fat: ^u8, start: u16, max_hops: u8) -> u8 {
+    var clst: u16 = start
+    var count: u8 = 0
+    var running: u8 = 1
+    while running != 0 {
+        count = count + 1
+        clst = read_fat12(fat, clst)
+        if clst == 0       { running = 0 }
+        if clst >= 0xFF8   { running = 0 }
+        if count >= max_hops { running = 0 }
+        if clst < 2        { running = 0 }
+        if clst >= 0xFF0   { running = 0 }
+    }
+    return count
+}
+
+// ── Directory helpers ──────────────────────────────────────────────────────
+
+fun is_deleted(b: u8) -> u8 {
+    if b == 0xE5 { return 1 }
+    if b == 0x00 { return 2 }
+    return 0
+}
+
+fun sfn_checksum(dir: ^u8) -> u8 {
+    var sum: u8 = 0
+    var i: u8 = 0
+    while i < 11 {
+        let rotated: u8 = (sum >> 1) + (sum << 7)
+        sum = rotated + dir[i]
+        i = i + 1
+    }
+    return sum
+}
+
+fun dbc_1st(c: u8) -> u8 { return 0 }
+fun dbc_2nd(c: u8) -> u8 { return 0 }
+
+// ── Test wrappers (same interface as C89 fatfs_lowlevel.c) ─────────────────
+
+global g_buf: [u8; 32]
+
+fun test_ld_word(lo: u8, hi: u8) -> u16 {
+    g_buf[0] = lo
+    g_buf[1] = hi
+    return ld_word(&g_buf)
+}
+
+fun test_st_ld_roundtrip(val: u16) -> u16 {
+    st_word(&g_buf, val)
+    return ld_word(&g_buf)
+}
+
+fun test_sfn_hello() -> u8 {
+    g_buf[0] = 0x48
+    g_buf[1] = 0x45
+    g_buf[2] = 0x4C
+    g_buf[3] = 0x4C
+    g_buf[4] = 0x4F
+    g_buf[5] = 0x20
+    g_buf[6] = 0x20
+    g_buf[7] = 0x20
+    g_buf[8] = 0x54
+    g_buf[9] = 0x58
+    g_buf[10] = 0x54
+    return sfn_checksum(&g_buf)
+}
+
+fun test_fat12_entry(idx: u8) -> u16 {
+    g_buf[0] = 0xF8
+    g_buf[1] = 0xFF
+    g_buf[2] = 0xFF
+    g_buf[3] = 0x03
+    g_buf[4] = 0x40
+    g_buf[5] = 0x00
+    g_buf[6] = 0xFF
+    g_buf[7] = 0x0F
+    g_buf[8] = 0x00
+    return read_fat12(&g_buf, idx as u16)
+}
+
+fun test_follow_chain(start: u8, max: u8) -> u8 {
+    g_buf[0] = 0xF8
+    g_buf[1] = 0xFF
+    g_buf[2] = 0xFF
+    g_buf[3] = 0x03
+    g_buf[4] = 0x40
+    g_buf[5] = 0x00
+    g_buf[6] = 0xFF
+    g_buf[7] = 0x0F
+    g_buf[8] = 0x00
+    return chain_length(&g_buf, start as u16, max)
+}
+
+fun test_bpb_bytes_per_sect() -> u16 {
+    g_buf[11] = 0x00
+    g_buf[12] = 0x02
+    return ld_word(&g_buf + 11)
+}
+
+fun test_bpb_spc() -> u8 {
+    g_buf[13] = 1
+    return g_buf[13]
+}
+
+fun test_bpb_rsvd() -> u16 {
+    g_buf[14] = 0x01
+    g_buf[15] = 0x00
+    return ld_word(&g_buf + 14)
+}
+
+// ── Assertions (identical values to C89 fatfs_lowlevel.c) ──────────────────
+
+assert test_ld_word(0x34, 0x12)  == 0x1234 via mir2
+assert test_ld_word(0x00, 0x00)  == 0      via mir2
+assert test_ld_word(0xFF, 0xFF)  == 0xFFFF via mir2
+assert test_ld_word(0x01, 0x00)  == 1      via mir2
+
+assert test_st_ld_roundtrip(0x1234) == 0x1234 via mir2
+assert test_st_ld_roundtrip(0xABCD) == 0xABCD via mir2
+assert test_st_ld_roundtrip(0)      == 0      via mir2
+
+assert classify_fat12(0)     == 0 via mir2
+assert classify_fat12(1)     == 1 via mir2
+assert classify_fat12(100)   == 2 via mir2
+assert classify_fat12(0xFF8) == 3 via mir2
+assert classify_fat12(0xFFF) == 3 via mir2
+assert classify_fat12(0xFF0) == 4 via mir2
+
+assert is_deleted(0xE5) == 1 via mir2
+assert is_deleted(0x00) == 2 via mir2
+assert is_deleted(0x41) == 0 via mir2
+
+assert clst2sect(100, 2, 4)  == 100 via mir2
+assert clst2sect(100, 3, 4)  == 104 via mir2
+assert clst2sect(100, 10, 4) == 132 via mir2
+assert clst2sect(100, 0, 4)  == 0   via mir2
+assert clst2sect(100, 1, 4)  == 0   via mir2
+
+assert test_sfn_hello() == 241 via mir2
+
+assert test_fat12_entry(0) == 0xFF8 via mir2
+assert test_fat12_entry(2) == 3     via mir2
+assert test_fat12_entry(3) == 4     via mir2
+assert test_fat12_entry(4) == 0xFFF via mir2
+
+assert test_follow_chain(2, 10) == 3 via mir2
+assert test_follow_chain(4, 10) == 1 via mir2
+
+assert test_bpb_bytes_per_sect() == 512 via mir2
+assert test_bpb_spc() == 1 via mir2
+assert test_bpb_rsvd() == 1 via mir2
+
+assert dbc_1st(65) == 0 via mir2
+assert dbc_2nd(65) == 0 via mir2

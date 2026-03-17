@@ -1441,6 +1441,10 @@ func (l *lowerer) lowerSwitch(st *SwitchStmt) {
 		}
 	}
 
+	// Push switch as a "loop" context so that break inside case bodies
+	// jumps to joinLabel (C semantics: break exits the switch).
+	l.pushLoop(loopCtx{headLabel: "", exitLabel: joinLabel, mutated: mutated})
+
 	// Emit case bodies.
 	var envsFinal []map[string]mir2.Reg
 	for i, c := range st.Cases {
@@ -1463,6 +1467,8 @@ func (l *lowerer) lowerSwitch(st *SwitchStmt) {
 			l.bld.Jmp(joinLabel, l.collectArgs(mutated)...)
 		}
 	}
+
+	l.popLoop()
 
 	// Join block: only reachable if at least one case (or default) fell through.
 	joinReachable := len(envsFinal) > 0

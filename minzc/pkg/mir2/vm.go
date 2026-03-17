@@ -199,6 +199,23 @@ func (vm *VM) AllocHeap(data []byte) Value {
 	return Value{I: offset}
 }
 
+// WriteHeap writes a single byte to the VM heap at addr.
+func (vm *VM) WriteHeap(addr int64, b byte) {
+	if addr >= 0 && int(addr) < len(vm.heap) {
+		vm.heap[int(addr)] = b
+	}
+}
+
+// WriteHeapSlice writes a byte slice to the VM heap starting at addr.
+func (vm *VM) WriteHeapSlice(addr int64, data []byte) {
+	for i, b := range data {
+		off := int(addr) + i
+		if off >= 0 && off < len(vm.heap) {
+			vm.heap[off] = b
+		}
+	}
+}
+
 // ReadHeap reads n bytes from the VM heap at pointer address addr.
 func (vm *VM) ReadHeap(addr int64, n int) []byte {
 	end := int(addr) + n
