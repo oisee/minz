@@ -213,15 +213,19 @@ type Operand struct {
 // Term is a block terminator.
 type Term struct {
 	Kind    TermKind
-	Cond    Operand  // condition operand (for TermBranch)
-	Targets []string // target block labels
+	Cond    Operand     // condition operand (for TermBranch)
+	Counter Operand     // counter operand (for TermDJNZ)
+	Targets []string    // target block labels
 	Args    [][]Operand // arguments per target (for block params)
+	RetVals []Operand   // return values (for TermReturn)
 }
 
 type TermKind int
 
 const (
-	TermJump   TermKind = iota // unconditional jump
-	TermBranch                 // conditional branch (2 targets)
-	TermReturn                 // function return
+	TermNone   TermKind = iota // no terminator (straight-line block)
+	TermJump                    // unconditional jump
+	TermBranch                  // conditional branch (2 targets: [0]=then, [1]=else)
+	TermDJNZ                    // decrement counter, jump if non-zero ([0]=body, [1]=exit)
+	TermReturn                  // function return
 )

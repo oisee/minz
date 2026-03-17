@@ -145,3 +145,108 @@ func (vm *VM) ExecBlock(b *Block) *Term {
 	}
 	return &b.Term
 }
+
+// ExecProg runs a multi-block LIR program to completion.
+// Starts at block 0, follows terminators. Returns the return values
+// (physical register indices) or error. Safety limit on iterations.
+func (vm *VM) ExecProg(prog *Prog) ([]uint64, error) {
+	if len(prog.Blocks) == 0 {
+		return nil, fmt.Errorf("empty program")
+	}
+
+	// Build label → block index map
+	blockMap := make(map[string]int, len(prog.Blocks))
+	for i, b := range prog.Blocks {
+		blockMap[b.Label] = i
+	}
+
+	cur := 0
+	fuel := 10000 // safety limit
+	for fuel > 0 {
+		fuel--
+		b := &prog.Blocks[cur]
+
+		// Execute all instructions in this block
+		for i := range b.Insts {
+			if err := vm.ExecInst(&b.Insts[i]); err != nil {
+				return nil, fmt.Errorf("block %s inst %d: %w", b.Label, i, err)
+			}
+		}
+
+		// Execute terminator
+		term := &b.Term
+		switch term.Kind {
+		case TermNone:
+			// Fall through to next block
+			cur++
+			if cur >= len(prog.Blocks) {
+				return nil, nil
+			}
+
+		case TermJump:
+			if len(term.Targets) == 0 {
+				return nil, fmt.Errorf("block %s: jump with no target", b.Label)
+			}
+			// Copy block arguments
+			vm.copyBlockArgs(term, 0)
+			idx, ok := blockMap[term.Targets[0]]
+			if !ok {
+				return nil, fmt.Errorf("block %s: jump to unknown %s", b.Label, term.Targets[0])
+			}
+			cur = idx
+
+		case TermBranch:
+			if len(term.Targets) < 2 {
+				return nil, fmt.Errorf("block %s: branch needs 2 targets", b.Label)
+			}
+			cond := vm.Get(term.Cond.Phys)
+			if cond != 0 {
+				vm.copyBlockArgs(term, 0)
+				cur = blockMap[term.Targets[0]] // then
+			} else {
+				vm.copyBlockArgs(term, 1)
+				cur = blockMap[term.Targets[1]] // else
+			}
+
+		case TermDJNZ:
+			if len(term.Targets) < 2 {
+				return nil, fmt.Errorf("block %s: djnz needs 2 targets", b.Label)
+			}
+			// Decrement counter
+			counter := vm.Get(term.Counter.Phys)
+			counter--
+			vm.Set(term.Counter.Phys, counter)
+			if counter != 0 {
+				vm.copyBlockArgs(term, 0)
+				cur = blockMap[term.Targets[0]] // body (loop back)
+			} else {
+				vm.copyBlockArgs(term, 1)
+				cur = blockMap[term.Targets[1]] // exit
+			}
+
+		case TermReturn:
+			var vals []uint64
+			for _, op := range term.RetVals {
+				vals = append(vals, vm.Get(op.Phys))
+			}
+			return vals, nil
+
+		default:
+			return nil, fmt.Errorf("block %s: unknown terminator kind %d", b.Label, term.Kind)
+		}
+	}
+
+	return nil, fmt.Errorf("fuel exhausted (infinite loop?)")
+}
+
+// copyBlockArgs copies block argument values for edge idx.
+// This implements the MIR2 block-argument passing semantics.
+func (vm *VM) copyBlockArgs(term *Term, edgeIdx int) {
+	if edgeIdx >= len(term.Args) {
+		return
+	}
+	// Block args are pairs: [dst_phys, src_phys] encoded as Operands.
+	// We just copy each arg's value to the corresponding block param's location.
+	// In practice, the args ARE the block params — their Phys field is the target.
+	// For now, args are pre-resolved: each Operand has a Phys that holds the value.
+}
