@@ -300,14 +300,35 @@ func (s *WFCState) Collapse() error {
 		}
 	}
 
-	// Verify no empty sets.
-	for i, c := range s.Cells {
+	// Verify no empty sets — attempt spill recovery for contradictions.
+	for i := range s.Cells {
+		c := &s.Cells[i]
 		if c.VRegDst >= 0 && c.DstLocs.IsEmpty() {
-			return fmt.Errorf("wfc: cell %d dst has empty LocSet (contradiction)", i)
+			// Contradiction: no physical register available.
+			// Recovery: widen DstLocs to include spill slots (LocMem).
+			spillSet := s.spillLocs()
+			if !spillSet.IsEmpty() {
+				c.DstLocs = spillSet
+				// Re-run propagation to push spill constraints through.
+				s.Propagate()
+			} else {
+				return fmt.Errorf("wfc: cell %d dst has empty LocSet (contradiction, no spill slots)", i)
+			}
 		}
 	}
 
 	return nil
+}
+
+// spillLocs returns a LocSet of all memory-class locations (spill slots).
+func (s *WFCState) spillLocs() LocSet {
+	var spill LocSet
+	for i, loc := range s.Desc.Locs {
+		if loc.Kind == LocMem {
+			spill = spill.Set(i)
+		}
+	}
+	return spill
 }
 
 func pickFirst(s LocSet) LocSet {

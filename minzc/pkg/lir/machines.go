@@ -1,5 +1,7 @@
 package lir
 
+import "fmt"
+
 // ── Predefined Machine Descriptors ──────────────────────────────────────────
 //
 // These form a spectrum from "ideal" to "extremely constrained":
@@ -18,16 +20,19 @@ var RISC32 = &MachineDesc{
 	Name:     "risc32",
 	WordSize: 16,
 	Locs: func() []Loc {
-		locs := make([]Loc, 32)
-		for i := range locs {
+		locs := make([]Loc, 36) // 32 regs + 4 spill slots
+		for i := 0; i < 32; i++ {
 			locs[i] = Loc{
 				Name:  riscRegName(i),
 				Width: 16,
 				Kind:  LocReg,
 			}
 		}
-		// r0 is also the accumulator (but any reg works for ALU)
 		locs[0].Kind = LocAcc
+		// Spill slots for register pressure relief
+		for i := 32; i < 36; i++ {
+			locs[i] = Loc{Name: fmt.Sprintf("spill%d", i-32), Width: 16, Kind: LocMem}
+		}
 		return locs
 	}(),
 	// Patterns: every op works on any register
@@ -210,6 +215,10 @@ func GenerateCISCPatterns(m *MachineDesc) []Pattern {
 		// Memory — 8-bit via DE pointer
 		{Name: "ld_a_de", MIROp: OpLoad, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{m.LocSetByNames("DE")}, Template: "LD A, (DE)", Cost: 7, Bytes: 1, Flags: PatMemRead},
 
+		// Memory — 16-bit load via HL pointer (composite: lo + hi bytes)
+		{Name: "ld16_hl_ind", MIROp: OpLoad, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{hl},
+			Template: "LD A, (HL)\n    INC HL\n    LD H, (HL)\n    LD L, A", Cost: 22, Bytes: 4, Flags: PatMemRead},
+
 		// Memory — 16-bit store via absolute address
 		{Name: "ld_nn_hl", MIROp: OpStore, Width: 16, SrcLocs: [2]LocSet{mem, hl}, Template: "LD ({src0}), HL", Cost: 16, Bytes: 3, Flags: PatMemWrite},
 
@@ -221,9 +230,19 @@ func GenerateCISCPatterns(m *MachineDesc) []Pattern {
 		{Name: "inc_r", MIROp: OpAdd, Width: 8, DstLocs: regs8, SrcLocs: [2]LocSet{regs8, allRegs}, Template: "INC {dst}", Cost: 4, Bytes: 1},
 		{Name: "inc_rr", MIROp: OpAdd, Width: 16, DstLocs: pairs, SrcLocs: [2]LocSet{pairs, allRegs}, Template: "INC {dst}", Cost: 6, Bytes: 1},
 
-		// Shifts (8-bit: SLA/SRL via A)
+		// Shifts — 8-bit (SLA/SRL via A)
 		{Name: "sla_a", MIROp: OpShl, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{a, regs8}, Template: "SLA A", Cost: 8, Bytes: 2, Clobbers: flags},
 		{Name: "srl_a", MIROp: OpShr, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{a, regs8}, Template: "SRL A", Cost: 8, Bytes: 2, Clobbers: flags},
+
+		// Shifts — 16-bit (ADD HL,HL for SHL by 1; SRL H; RR L for SHR by 1)
+		{Name: "shl16_hl", MIROp: OpShl, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{hl, allRegs}, Template: "ADD HL, HL", Cost: 11, Bytes: 1, Clobbers: flags},
+		{Name: "shr16_hl", MIROp: OpShr, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{hl, allRegs}, Template: "SRL H\n    RR L", Cost: 16, Bytes: 4, Clobbers: flags},
+
+		// Bitwise — 16-bit (operate on H and L separately)
+		// AND HL, DE → LD A,H; AND D; LD H,A; LD A,L; AND E; LD L,A
+		{Name: "and16_hl", MIROp: OpAnd, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{hl, bcde}, Template: "LD A, H\n    AND {src1}H\n    LD H, A\n    LD A, L\n    AND {src1}L\n    LD L, A", Cost: 28, Bytes: 6, Clobbers: flags.Or(a)},
+		{Name: "or16_hl", MIROp: OpOr, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{hl, bcde}, Template: "LD A, H\n    OR {src1}H\n    LD H, A\n    LD A, L\n    OR {src1}L\n    LD L, A", Cost: 28, Bytes: 6, Clobbers: flags.Or(a)},
+		{Name: "xor16_hl", MIROp: OpXor, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{hl, bcde}, Template: "LD A, H\n    XOR {src1}H\n    LD H, A\n    LD A, L\n    XOR {src1}L\n    LD L, A", Cost: 28, Bytes: 6, Clobbers: flags.Or(a)},
 
 		// Combined 16-bit little-endian load via HL pointer
 		// LD L,(HL); INC HL; LD H,(HL) — 3 insts but 1 combined op

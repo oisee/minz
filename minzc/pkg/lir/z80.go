@@ -108,11 +108,30 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			SrcLocs: [2]LocSet{pairs, pairs},
 			Template: "INC {dst}", Cost: 6, Bytes: 1},
 
-		// ── Shifts ───────────────────────────────────────────────────
+		// ── Shifts — 8-bit ───────────────────────────────────────────
 		{Name: "sla_a", MIROp: OpShl, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{a, gpr8},
 			Template: "SLA A", Cost: 8, Bytes: 2, Clobbers: flags},
 		{Name: "srl_a", MIROp: OpShr, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{a, gpr8},
 			Template: "SRL A", Cost: 8, Bytes: 2, Clobbers: flags},
+
+		// ── Shifts — 16-bit (composite) ──────────────────────────────
+		// SHL HL,1 = ADD HL,HL (most common, from x*2)
+		{Name: "shl16_hl", MIROp: OpShl, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{hl, gpr8},
+			Template: "ADD HL, HL", Cost: 11, Bytes: 1, Clobbers: flags},
+		// SHR HL,1 = SRL H; RR L
+		{Name: "shr16_hl", MIROp: OpShr, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{hl, gpr8},
+			Template: "SRL H\n    RR L", Cost: 16, Bytes: 4, Clobbers: flags},
+
+		// ── Bitwise — 16-bit (composite, via H/L halves) ─────────────
+		{Name: "and16_hl_de", MIROp: OpAnd, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{hl, de},
+			Template: "LD A, H\n    AND D\n    LD H, A\n    LD A, L\n    AND E\n    LD L, A",
+			Cost: 28, Bytes: 6, Clobbers: flags.Or(a)},
+		{Name: "or16_hl_de", MIROp: OpOr, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{hl, de},
+			Template: "LD A, H\n    OR D\n    LD H, A\n    LD A, L\n    OR E\n    LD L, A",
+			Cost: 28, Bytes: 6, Clobbers: flags.Or(a)},
+		{Name: "xor16_hl_de", MIROp: OpXor, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{hl, de},
+			Template: "LD A, H\n    XOR D\n    LD H, A\n    LD A, L\n    XOR E\n    LD L, A",
+			Cost: 28, Bytes: 6, Clobbers: flags.Or(a)},
 
 		// ── Memory loads ─────────────────────────────────────────────
 		{Name: "ld_a_hl", MIROp: OpLoad, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{hl},
@@ -123,12 +142,20 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			Template: "LD A, (DE)", Cost: 7, Bytes: 1, Flags: PatMemRead},
 		{Name: "ld_a_bc", MIROp: OpLoad, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{bc},
 			Template: "LD A, (BC)", Cost: 7, Bytes: 1, Flags: PatMemRead},
+		// 16-bit load via HL pointer
+		{Name: "ld16_hl_ind", MIROp: OpLoad, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{hl},
+			Template: "LD A, (HL)\n    INC HL\n    LD H, (HL)\n    LD L, A",
+			Cost: 22, Bytes: 4, Flags: PatMemRead},
 
 		// ── Memory stores ────────────────────────────────────────────
 		{Name: "ld_hl_a", MIROp: OpStore, Width: 8, SrcLocs: [2]LocSet{hl, a},
 			Template: "LD (HL), A", Cost: 7, Bytes: 1, Flags: PatMemWrite},
 		{Name: "ld_hl_r", MIROp: OpStore, Width: 8, SrcLocs: [2]LocSet{hl, gpr8},
 			Template: "LD (HL), {src1}", Cost: 7, Bytes: 1, Flags: PatMemWrite},
+
+		// ── Memory stores — 16-bit ───────────────────────────────────
+		{Name: "ld_nn_hl_store", MIROp: OpStore, Width: 16, SrcLocs: [2]LocSet{spill, hl},
+			Template: "LD ({src0}), HL", Cost: 16, Bytes: 3, Flags: PatMemWrite},
 
 		// ── Combined 16-bit LE load (ISLE combining target) ──────────
 		{Name: "ld16_le_hl", MIROp: OpLoad16LE, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{hl},

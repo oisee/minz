@@ -38,6 +38,22 @@ var CombineRules = `
              (shl (load8 (add ?base (const 1))) (const 8)))
          (load16_le ?base))
 
+;; ── Multiply strength reduction ──────────────────────────────────────────
+;;
+;; Z80 has no MUL instruction. Reduce to shifts+adds.
+;; These fire during the combining pass BEFORE isel.
+
+(rule 15 (mul ?x (const 2))   (add ?x ?x))
+(rule 15 (mul (const 2) ?x)   (add ?x ?x))
+(rule 15 (mul ?x (const 4))   (shl ?x (const 2)))
+(rule 15 (mul (const 4) ?x)   (shl ?x (const 2)))
+(rule 15 (mul ?x (const 8))   (shl ?x (const 3)))
+(rule 15 (mul (const 8) ?x)   (shl ?x (const 3)))
+(rule 10 (mul ?x (const 1))   ?x)
+(rule 10 (mul (const 1) ?x)   ?x)
+(rule 10 (mul ?x (const 0))   (const 0))
+(rule 10 (mul (const 0) ?x)   (const 0))
+
 ;; ── Identity / strength reduction ───────────────────────────────────────
 
 (rule (add ?x (const 0))  ?x)
