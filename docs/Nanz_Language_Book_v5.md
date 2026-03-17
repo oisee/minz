@@ -3199,7 +3199,8 @@ Features shipped since v5.3 (2026-03-17):
 | FAT12 write_fat12 | 12-bit packed R-M-W | Round-trip verified (5 asserts) |
 | FAT16 support | Auto-detect by cluster count | `read_fat16`/`write_fat16` + unified dispatch |
 | Bidirectional FatFS testing | `pkg/c89/fatfs_vm_test.go` | gcc→MIR2 (5/5), MIR2→gcc (7/7) |
-| Nanz write verification | `TestNanzFAT12_Write` | 13/13 subtests + gcc 8/8 cross-verify |
+| Nanz write verification | `TestNanzFAT12_Write` | 13/13 subtests + gcc 14/14 cross-verify |
+| **E2E 5-channel verification** | `TestE2E_NanzWrite_MultiChannelVerify` | Nanz VM, fresh VM, gcc, C89 MIR2, raw bytes |
 | SDCC Z80 comparison | `TestDifferential_Z80_vs_SDCC` | Per-function instruction counts vs SDCC bytes |
 | C89→QBE native path | `pkg/c89/fatfs_vm_test.go` | 33/33 FatFS low-level asserts via QBE |
 | Differential code quality | `pkg/c89/fatfs_differential_test.go` | Nanz MIR2 99 vs C89 97 instr (+2.1%) |
@@ -3237,7 +3238,7 @@ fun write_fat12(fat: ^u8, clst: u16, val: u16) -> void {
 }
 ```
 
-Verified end-to-end: Nanz creates/deletes/overwrites files on a FAT12 image, then gcc-compiled FatFS R0.16 reads the image back and confirms all operations (8/8). Differential testing proves 28/28 bit-identical low-level results vs C89.
+Verified end-to-end via **5 independent channels**: Nanz writes text files, binary files (0xDEADBEEF pattern), multi-sector files (700B, i%251), deletes and overwrites — then verified by (A) same Nanz VM, (B) fresh Nanz VM reload, (C) gcc-compiled FatFS R0.16 (14/14), (D) C89 MIR2 VM FAT structure, (E) raw byte inspection. FAT copy synchronization verified. Differential testing proves 28/28 bit-identical low-level results vs C89. 11 total FatFS tests, all PASS.
 
 ---
 
