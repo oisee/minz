@@ -1,0 +1,52 @@
+// stdlib/tui/screen — Universal Screen/TUI Framework
+//
+// Declarative screen API that works across all backends:
+//   CP/M (mze)  — BDOS line-by-line prompts
+//   MZV (VM)    — Go host function, stdin reader
+//   QBE/native  — printf/getline
+//   Web (future) — HTML form
+//
+// Usage:
+//   import stdlib.tui.screen
+//
+//   fun main() -> void {
+//       sel_register_str(c"MATNR", 18, c"*", @matnr_buf)
+//       sel_register_int(c"COUNT", 10)
+//
+//       var rc: u8 = sel_show()
+//       // rc=1: host handled (MZV), rc=0: fallback (Z80 BDOS)
+//
+//       var count: u16 = sel_get_int(1)
+//   }
+//
+// The screen is DATA, not code. Any frontend (ABAP, Nanz, Lanz, Pascal)
+// can emit the same sel_register/sel_show calls. The renderer is a host
+// function that reads the field table and does the platform-appropriate thing.
+
+// ── Field registration ──────────────────────────────────────────────
+
+// Register a text (string) field on the selection screen.
+//   name:   null-terminated label string
+//   length: max display width
+//   defval: null-terminated default value string
+//   bufptr: pointer to value buffer (filled by sel_show)
+@extern fun sel_register_str(name: ^u8, length: u8, defval: ^u8, bufptr: ^u8) -> void
+
+// Register an integer field on the selection screen.
+//   name:   null-terminated label string
+//   defval: default integer value
+@extern fun sel_register_int(name: ^u8, defval: u16) -> void
+
+// ── Screen display ──────────────────────────────────────────────────
+
+// Display the selection screen and block until the user submits.
+// Returns: 1 if handled by host (MZV), 0 if fallback needed (Z80/CP/M).
+// On MZV: reads stdin, writes values to registered buffers.
+// On Z80: returns 0 (caller does BDOS prompts).
+@extern fun sel_show() -> u8
+
+// ── Value retrieval ─────────────────────────────────────────────────
+
+// Get the integer value of field at index idx (0-based).
+// Call after sel_show() returns 1 (host handled).
+@extern fun sel_get_int(idx: u8) -> u16
