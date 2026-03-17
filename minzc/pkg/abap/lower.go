@@ -9,12 +9,16 @@ import (
 )
 
 // Compile is the top-level entry point: ABAP source → HIR module.
-// It shells out to the abaplint bridge (Node.js) for parsing, then lowers
-// the JSON AST to HIR.
+// Tries embedded Wasm parser first (no Node.js needed), falls back to Node.js bridge.
 func Compile(src, name string) (*hir.Module, error) {
-	prog, err := Parse(src, name)
+	// Try embedded Wasm parser (self-contained, no Node.js)
+	prog, err := ParseWasm(src, name)
 	if err != nil {
-		return nil, fmt.Errorf("abap parse: %w", err)
+		// Fall back to Node.js bridge
+		prog, err = Parse(src, name)
+		if err != nil {
+			return nil, fmt.Errorf("abap parse: %w", err)
+		}
 	}
 	hm, err := LowerProgram(prog)
 	if err != nil {
