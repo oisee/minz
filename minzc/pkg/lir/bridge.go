@@ -91,6 +91,11 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc) (*MIROp, error) {
 			width = w
 		}
 	}
+	// CMP produces a boolean (width=1) but the actual comparison operates
+	// on the operand width, not the result width. Promote to 8.
+	if inst.Op == mir2.OpCmp && width < 8 {
+		width = 8
+	}
 
 	op := &MIROp{
 		Dst:   int(inst.Dst),
@@ -127,6 +132,10 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc) (*MIROp, error) {
 		op.Op = OpOr
 	case mir2.OpXor:
 		op.Op = OpXor
+	case mir2.OpShl:
+		op.Op = OpShl
+	case mir2.OpShr, mir2.OpSar:
+		op.Op = OpShr
 	case mir2.OpCmp:
 		op.Op = OpCmp
 	case mir2.OpLoad:
@@ -134,8 +143,44 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc) (*MIROp, error) {
 	case mir2.OpStore:
 		op.Op = OpStore
 		op.Dst = -1
+	case mir2.OpNeg:
+		// neg(x) → sub(0, x): emit const 0 + sub
+		// For now, skip — isel doesn't have a neg pattern yet
+		return nil, nil
+	case mir2.OpNot:
+		// bitwise complement — skip for now
+		return nil, nil
+	case mir2.OpExt, mir2.OpSext, mir2.OpTrunc:
+		// Type conversions — treat as move for now
+		op.Op = OpMove
+		op.Src[1] = -1
+	case mir2.OpField, mir2.OpPtrBump:
+		// Pointer offset — treat as add with immediate
+		op.Op = OpAdd
+		// Imm is the byte offset; src[1] is unused, use const
+		op.Src[1] = -1
+	case mir2.OpPtrAdd:
+		op.Op = OpAdd
+	case mir2.OpAddrOf:
+		// Address of global — treat as const with symbol address
+		op.Op = OpConst
+		op.Src = [2]int{-1, -1}
+	case mir2.OpCall, mir2.OpCallIndirect:
+		// Calls: skip for now (need calling convention support)
+		return nil, nil
+	case mir2.OpPush, mir2.OpPop:
+		// Stack ops: skip (handled by regalloc)
+		return nil, nil
+	case mir2.OpPatchSlot, mir2.OpLoadPatched, mir2.OpPatch:
+		// SMC: skip (target-specific)
+		return nil, nil
+	case mir2.OpAsm:
+		// Inline assembly: skip
+		return nil, nil
+	case mir2.OpAlloca:
+		// Stack alloc: skip
+		return nil, nil
 	default:
-		// Skip unsupported ops (calls, branches, etc.) for now
 		return nil, nil
 	}
 

@@ -156,7 +156,7 @@ func LIRCodegenFunc(f *mir2.Func) (string, error) {
 		if inst.Pat == nil {
 			continue
 		}
-		line := expandTemplate(inst)
+		line := ExpandTemplateNamed(inst, desc)
 		fmt.Fprintf(&sb, "    %s\n", line)
 	}
 	sb.WriteString("    RET\n")

@@ -21,6 +21,7 @@ import (
 
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/lir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/z80asm"
 )
@@ -34,10 +35,11 @@ type Result struct {
 
 // Steps holds the intermediate outputs of each pipeline stage.
 type Steps struct {
-	HIR      string // HIR structural dump (hir.Module.Dump())
-	MIR2Raw  string // MIR2 module dump before optimisation passes
-	MIR2Opt  string // MIR2 module dump after DSE + ReorderBlocks
-	Assembly string // Final .a80 text
+	HIR        string                   // HIR structural dump (hir.Module.Dump())
+	MIR2Raw    string                   // MIR2 module dump before optimisation passes
+	MIR2Opt    string                   // MIR2 module dump after DSE + ReorderBlocks
+	Assembly   string                   // Final .a80 text
+	LIRResults []lir.ConvergenceResult  // LIR convergence check results (if LIRCheck enabled)
 }
 
 // Options configures optional pipeline passes.
@@ -47,6 +49,10 @@ type Options struct {
 	ContractOpt bool
 	// AnnotateTStates adds T-state cost comments to every Z80 instruction line.
 	AnnotateTStates bool
+	// LIRCheck runs the LIR pipeline in parallel with Z80Codegen and reports
+	// which functions successfully lower through ISLE+WFC.
+	// Non-destructive — does not affect assembly output.
+	LIRCheck bool
 }
 
 // DefaultOptions returns options with all recommended passes enabled.
@@ -106,6 +112,17 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	// Structural verification.
 	if err := mir2.Verify(m); err != nil {
 		return s, fmt.Errorf("MIR2 verify: %w", err)
+	}
+
+	// LIR convergence check (non-destructive, parallel to existing codegen).
+	if opt.LIRCheck {
+		lirResults := lir.CheckModuleConvergence(m)
+		for _, r := range lirResults {
+			if r.Match {
+				_ = r // silent success — logged by caller if needed
+			}
+		}
+		s.LIRResults = lirResults
 	}
 
 	// Phase 6f: inline trivial functions (≤4 instructions, single block, leaf).
