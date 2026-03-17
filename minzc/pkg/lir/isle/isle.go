@@ -332,7 +332,7 @@ func (rs *RuleSet) Rewrite(input Term) (Term, bool) {
 	return input, false
 }
 
-// RewriteAll recursively rewrites all sub-terms bottom-up.
+// RewriteAll recursively rewrites all sub-terms bottom-up (single pass).
 func (rs *RuleSet) RewriteAll(input Term) Term {
 	// First rewrite children
 	if input.Kind == TermCall {
@@ -345,6 +345,21 @@ func (rs *RuleSet) RewriteAll(input Term) Term {
 		return result
 	}
 	return input
+}
+
+// RewriteFixpoint applies RewriteAll repeatedly until no changes occur
+// or fuel is exhausted. Returns the final term and number of iterations used.
+// This is safer than a single pass when rules can produce terms that
+// trigger other rules (e.g. cascading simplifications).
+func (rs *RuleSet) RewriteFixpoint(input Term, fuel int) (Term, int) {
+	for i := 0; i < fuel; i++ {
+		result := rs.RewriteAll(input)
+		if result.String() == input.String() {
+			return result, i + 1
+		}
+		input = result
+	}
+	return input, fuel
 }
 
 // ── String representation ───────────────────────────────────────────────────

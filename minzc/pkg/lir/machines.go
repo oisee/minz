@@ -133,8 +133,11 @@ const (
 	OpCmp   = 9
 	OpLoad  = 10
 	OpStore = 11
-	OpCall  = 12
-	OpRet   = 13
+	OpCall     = 12
+	OpRet      = 13
+	OpShl      = 14 // shift left
+	OpShr      = 15 // shift right (logical)
+	OpLoad16LE = 16 // combined: load 16-bit little-endian from memory address
 )
 
 // GenerateRISCPatterns creates fully orthogonal patterns for a RISC machine.
@@ -151,12 +154,16 @@ func GenerateRISCPatterns(m *MachineDesc) []Pattern {
 		{Name: "move", MIROp: OpMove, DstLocs: allRegs, SrcLocs: [2]LocSet{allRegs}, Template: "mov {dst}, {src0}", Cost: 1, Bytes: 2},
 		{Name: "add", MIROp: OpAdd, DstLocs: allRegs, SrcLocs: [2]LocSet{allRegs, allRegs}, Template: "add {dst}, {src0}, {src1}", Cost: 1, Bytes: 4, Flags: PatCommutative},
 		{Name: "sub", MIROp: OpSub, DstLocs: allRegs, SrcLocs: [2]LocSet{allRegs, allRegs}, Template: "sub {dst}, {src0}, {src1}", Cost: 1, Bytes: 4},
+		{Name: "shl", MIROp: OpShl, DstLocs: allRegs, SrcLocs: [2]LocSet{allRegs, allRegs}, Template: "sll {dst}, {src0}, {src1}", Cost: 1, Bytes: 4},
+		{Name: "shr", MIROp: OpShr, DstLocs: allRegs, SrcLocs: [2]LocSet{allRegs, allRegs}, Template: "srl {dst}, {src0}, {src1}", Cost: 1, Bytes: 4},
 		{Name: "and", MIROp: OpAnd, DstLocs: allRegs, SrcLocs: [2]LocSet{allRegs, allRegs}, Template: "and {dst}, {src0}, {src1}", Cost: 1, Bytes: 4, Flags: PatCommutative},
 		{Name: "or", MIROp: OpOr, DstLocs: allRegs, SrcLocs: [2]LocSet{allRegs, allRegs}, Template: "or {dst}, {src0}, {src1}", Cost: 1, Bytes: 4, Flags: PatCommutative},
 		{Name: "xor", MIROp: OpXor, DstLocs: allRegs, SrcLocs: [2]LocSet{allRegs, allRegs}, Template: "xor {dst}, {src0}, {src1}", Cost: 1, Bytes: 4, Flags: PatCommutative},
 		{Name: "cmp", MIROp: OpCmp, DstLocs: allRegs, SrcLocs: [2]LocSet{allRegs, allRegs}, Template: "cmp {dst}, {src0}, {src1}", Cost: 1, Bytes: 4},
 		{Name: "load", MIROp: OpLoad, DstLocs: allRegs, SrcLocs: [2]LocSet{allRegs}, Template: "ld {dst}, [{src0}]", Cost: 2, Bytes: 4, Flags: PatMemRead},
 		{Name: "store", MIROp: OpStore, SrcLocs: [2]LocSet{allRegs, allRegs}, Template: "st [{src0}], {src1}", Cost: 2, Bytes: 4, Flags: PatMemWrite},
+		// Combined 16-bit little-endian load: loads 2 bytes from [src0] into dst
+		{Name: "load16_le", MIROp: OpLoad16LE, Width: 16, DstLocs: allRegs, SrcLocs: [2]LocSet{allRegs}, Template: "ld16 {dst}, [{src0}]", Cost: 3, Bytes: 4, Flags: PatMemRead},
 	}
 }
 
@@ -209,6 +216,15 @@ func GenerateCISCPatterns(m *MachineDesc) []Pattern {
 		// INC/DEC shortcuts
 		{Name: "inc_r", MIROp: OpAdd, Width: 8, DstLocs: regs8, SrcLocs: [2]LocSet{regs8, allRegs}, Template: "INC {dst}", Cost: 4, Bytes: 1},
 		{Name: "inc_rr", MIROp: OpAdd, Width: 16, DstLocs: pairs, SrcLocs: [2]LocSet{pairs, allRegs}, Template: "INC {dst}", Cost: 6, Bytes: 1},
+
+		// Shifts (8-bit: SLA/SRL via A)
+		{Name: "sla_a", MIROp: OpShl, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{a, regs8}, Template: "SLA A", Cost: 8, Bytes: 2, Clobbers: flags},
+		{Name: "srl_a", MIROp: OpShr, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{a, regs8}, Template: "SRL A", Cost: 8, Bytes: 2, Clobbers: flags},
+
+		// Combined 16-bit little-endian load via HL pointer
+		// LD L,(HL); INC HL; LD H,(HL) — 3 insts but 1 combined op
+		{Name: "ld16_le_hl", MIROp: OpLoad16LE, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{hl},
+			Template: "LD L, (HL)\n    INC HL\n    LD H, (HL)", Cost: 18, Bytes: 3, Flags: PatMemRead},
 	}
 }
 
@@ -242,6 +258,13 @@ func GenerateMICROPatterns(m *MachineDesc) []Pattern {
 		// Memory — zero-page
 		{Name: "sta_zp", MIROp: OpStore, Width: 8, SrcLocs: [2]LocSet{zp, a}, Template: "STA {src0}", Cost: 3, Bytes: 2, Flags: PatMemWrite},
 		{Name: "lda_zp", MIROp: OpLoad, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{zp}, Template: "LDA {src0}", Cost: 3, Bytes: 2, Flags: PatMemRead},
+
+		// Shifts
+		{Name: "asl", MIROp: OpShl, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{a, all.Or(zp)}, Template: "ASL A", Cost: 2, Bytes: 1, Clobbers: flags},
+
+		// 16-bit load via zero-page pointer (indirect)
+		{Name: "lda16_zp", MIROp: OpLoad16LE, Width: 16, DstLocs: a.Or(xy), SrcLocs: [2]LocSet{zp},
+			Template: "LDY #0\n    LDA ({src0}),Y\n    TAX\n    INY\n    LDA ({src0}),Y", Cost: 10, Bytes: 8, Flags: PatMemRead},
 	}
 }
 

@@ -116,6 +116,19 @@ func (vm *VM) ExecInst(inst *Inst) error {
 			vm.Memory[(addr+uint64(i))&0xFFFF] = byte(val >> (i * 8))
 		}
 
+	case OpShl:
+		vm.Set(dst, vm.Get(src0)<<vm.Get(src1))
+
+	case OpShr:
+		vm.Set(dst, vm.Get(src0)>>vm.Get(src1))
+
+	case OpLoad16LE:
+		// Load 16-bit little-endian: lo byte at [addr], hi byte at [addr+1]
+		addr := vm.Get(src0)
+		lo := uint64(vm.Memory[addr&0xFFFF])
+		hi := uint64(vm.Memory[(addr+1)&0xFFFF])
+		vm.Set(dst, lo|(hi<<8))
+
 	default:
 		return fmt.Errorf("lir.VM: unhandled op %d", inst.Pat.MIROp)
 	}
