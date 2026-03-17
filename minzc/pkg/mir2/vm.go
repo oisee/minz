@@ -227,9 +227,9 @@ func (vm *VM) ReadHeap(addr int64, n int) []byte {
 	return out
 }
 
-// WriteHeap writes data to the VM heap at pointer address addr.
+// WriteHeapBytes writes data to the VM heap at pointer address addr.
 // The destination must already be allocated (within heap bounds).
-func (vm *VM) WriteHeap(addr int64, data []byte) {
+func (vm *VM) WriteHeapBytes(addr int64, data []byte) {
 	end := int(addr) + len(data)
 	if int(addr) < 0 || end > len(vm.heap) {
 		return

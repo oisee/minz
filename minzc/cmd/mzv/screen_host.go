@@ -155,7 +155,7 @@ func registerScreenHosts(vm *mir2.VM, headless bool, trace bool) {
 			if f.ty == 'c' && f.bufPtr != 0 {
 				// Write null-terminated string to the text buffer
 				data := append([]byte(f.value), 0)
-				vm.WriteHeap(f.bufPtr, data)
+				vm.WriteHeapBytes(f.bufPtr, data)
 			}
 			if f.ty == 'i' {
 				if v, err := strconv.ParseInt(f.value, 10, 64); err == nil {
