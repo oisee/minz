@@ -363,6 +363,8 @@ func (l *lexer) next() token {
 }
 func (l *lexer) is(k tokKind) bool         { return l.peek().kind == k }
 func (l *lexer) isIdent(v string) bool      { return l.peek().kind == tokIdent && l.peek().val == v }
+func (l *lexer) save() int                  { return l.cur }
+func (l *lexer) restore(pos int)            { l.cur = pos }
 // peekN returns the n-th token ahead without consuming any (0 == peek()).
 func (l *lexer) peekN(n int) token {
 	idx := l.cur + n
@@ -473,6 +475,7 @@ type parser struct {
 	funcAliases     map[string]string               // local name → mangled name (for unqualified imports)
 	pipes           map[string][]pipeStep           // pipe/trans name → stages
 	lambdaHintTy    mir2.Ty                         // type hint for untyped lambda params (set by chain context)
+	metaFuncs       map[string]string               // @name → full Nanz source of metafunction
 }
 
 // pipeStep is one stage in a named pipe/trans declaration.
@@ -603,6 +606,7 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	p.enumBaseTy = make(map[string]mir2.Ty)
 	p.funcAliases = make(map[string]string)
 	p.pipes = make(map[string][]pipeStep)
+	p.metaFuncs = make(map[string]string)
 
 	for !p.l.is(tokEOF) {
 		t := p.l.peek()
@@ -631,11 +635,31 @@ func (p *parser) parseModule() (*hir.Module, error) {
 			m.Globals = append(m.Globals, g)
 
 		case t.kind == tokIdent && t.val == "fun":
-			f, err := p.parseFunDecl(false)
-			if err != nil {
-				return nil, err
+			// Check for metafunction: fun @name(...)
+			// Peek past "fun" to see if next is "@"
+			saved := p.l.save()
+			p.l.next() // consume "fun"
+			if p.l.is(tokAt) {
+				p.l.next() // consume "@"
+				nameTok, err := p.l.eat(tokIdent)
+				if err != nil {
+					return nil, fmt.Errorf("line %d: expected metafunction name after fun @", t.line)
+				}
+				// Capture the entire function source from "fun @name" to closing "}"
+				// We need to re-parse it later, so store the raw text
+				src, err := p.captureMetaFuncSource(nameTok.val)
+				if err != nil {
+					return nil, err
+				}
+				p.metaFuncs[nameTok.val] = src
+			} else {
+				p.l.restore(saved)
+				f, err := p.parseFunDecl(false)
+				if err != nil {
+					return nil, err
+				}
+				m.Funcs = append(m.Funcs, f)
 			}
-			m.Funcs = append(m.Funcs, f)
 
 		case t.kind == tokAt:
 			// @extern fun ...  or  @extern(0xNNNN) fun ...
@@ -669,6 +693,63 @@ func (p *parser) parseModule() (*hir.Module, error) {
 				}
 				f.ExternAddr = externAddr
 				m.Funcs = append(m.Funcs, f)
+			} else if metaSrc, ok := p.metaFuncs[attr.val]; ok {
+				// Metafunction invocation: @name("args") { block }
+				metaName := attr.val
+				p.l.next() // consume name
+
+				// Parse scalar arguments: @name("title", 42)
+				var scalarArgs []string
+				if p.l.is(tokLParen) {
+					p.l.next()
+					for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
+						argTok := p.l.next()
+						val := argTok.val
+						// Extract string content from prefixed format (c\x00content or \x00content)
+						if argTok.kind == tokString {
+							if idx := strings.IndexByte(val, 0); idx >= 0 {
+								val = val[idx+1:]
+							}
+						}
+						scalarArgs = append(scalarArgs, val)
+						if p.l.is(tokComma) {
+							p.l.next()
+						}
+					}
+					if _, err := p.l.eat(tokRParen); err != nil {
+						return nil, err
+					}
+				}
+
+				// Parse block: { field "X" length 10, ... }
+				var block []metaBlockNode
+				if p.l.is(tokLBrace) {
+					var err error
+					block, err = parseMetaBlock(p.l)
+					if err != nil {
+						return nil, fmt.Errorf("line %d: @%s block: %w", attr.line, metaName, err)
+					}
+				}
+
+				// Execute metafunction on MIR2 VM
+				emitted, err := p.executeMetaInvocation(metaSrc, metaName, scalarArgs, block)
+				if err != nil {
+					return nil, fmt.Errorf("line %d: @%s: %w", attr.line, metaName, err)
+				}
+
+				// Parse emitted Nanz text and merge into current module
+				if emitted != "" {
+					generated, err := ParseWithOpts(emitted, p.name+"@"+metaName, p.opts)
+					if err != nil {
+						return nil, fmt.Errorf("line %d: @%s: emitted code error: %w", attr.line, metaName, err)
+					}
+					m.Funcs = append(m.Funcs, generated.Funcs...)
+					m.Globals = append(m.Globals, generated.Globals...)
+					m.Structs = append(m.Structs, generated.Structs...)
+					for _, s := range generated.Structs {
+						p.structs[s.Name] = s
+					}
+				}
 			} else {
 				return nil, fmt.Errorf("line %d: unexpected @%s", attr.line, attr.val)
 			}
@@ -3953,4 +4034,122 @@ func resultTy(l, r mir2.Ty, op string) mir2.Ty {
 		return mir2.TyPtr
 	}
 	return l
+}
+
+// ── Metafunction support ─────────────────────────────────────────────────────
+
+// captureMetaFuncSource captures the full source text of a metafunction body.
+// The caller has already consumed "fun", "@", and the name token.
+// We extract the raw source text from the original source bytes using token positions.
+func (p *parser) captureMetaFuncSource(name string) (string, error) {
+	var sb strings.Builder
+
+	// Build extern declarations for host functions the metafunction can call
+	sb.WriteString("@extern fun emit(s: ^u8) -> void\n")
+	sb.WriteString("@extern fun block_len() -> u8\n")
+	sb.WriteString("@extern fun node_keyword(i: u8) -> ^u8\n")
+	sb.WriteString("@extern fun node_arg_count(i: u8) -> u8\n")
+	sb.WriteString("@extern fun node_arg_str(i: u8, j: u8) -> ^u8\n")
+	sb.WriteString("@extern fun node_kwarg(i: u8, key: ^u8) -> ^u8\n")
+	sb.WriteString("@extern fun node_has_kwarg(i: u8, key: ^u8) -> u8\n")
+	sb.WriteString("@extern fun str_concat(a: ^u8, b: ^u8) -> ^u8\n")
+	sb.WriteString("@extern fun str_from_int(n: u16) -> ^u8\n")
+	sb.WriteString("@extern fun str_eq(a: ^u8, b: ^u8) -> u8\n")
+	sb.WriteString("@extern fun str_chr(code: u8) -> ^u8\n")
+	sb.WriteString("\n")
+
+	// Record the start position (current token) in the raw source.
+	// We scan forward to find the balanced closing brace, then extract
+	// the raw source text between start and end.
+	startTok := p.l.peek()
+	startPos := startTok.pos
+
+	// Skip forward through tokens to find balanced closing brace
+	depth := 0
+	started := false
+	endPos := startPos
+	for !p.l.is(tokEOF) {
+		t := p.l.next()
+		if t.kind == tokLBrace {
+			depth++
+			started = true
+		}
+		if t.kind == tokRBrace {
+			depth--
+			if started && depth == 0 {
+				endPos = t.pos + 1
+				break
+			}
+		}
+	}
+
+	// Extract raw source text
+	src := p.l.src
+	if endPos > len(src) {
+		endPos = len(src)
+	}
+	rawBody := string(src[startPos:endPos])
+
+	sb.WriteString("fun ")
+	sb.WriteString(name)
+	sb.WriteString(rawBody)
+	sb.WriteString("\n")
+	return sb.String(), nil
+}
+
+// executeMetaInvocation compiles and executes a metafunction, returning emitted Nanz source.
+func (p *parser) executeMetaInvocation(metaSrc, funcName string, scalarArgs []string, block []metaBlockNode) (string, error) {
+	return executeMetaFuncWithStringArgs(metaSrc, funcName, scalarArgs, block, p.module)
+}
+
+// executeMetaFuncWithStringArgs is like executeMetaFunc but pre-allocates
+// string arguments on the VM heap before calling the function.
+func executeMetaFuncWithStringArgs(
+	metaSrc string,
+	funcName string,
+	stringArgs []string,
+	block []metaBlockNode,
+	callerMod *hir.Module,
+) (string, error) {
+	// 1. Parse metafunction source → HIR
+	metaHIR, err := Parse(metaSrc, "meta_"+funcName+".nanz")
+	if err != nil {
+		return "", fmt.Errorf("metafunc @%s: parse error: %w", funcName, err)
+	}
+
+	// 2. HIR → MIR2
+	mirMod := hir.LowerModule(metaHIR)
+	for _, f := range mirMod.Funcs {
+		mir2.EliminateDeadBlocks(f)
+		for {
+			p := mir2.PropagateConstants(f)
+			c := mir2.FoldConstants(f)
+			if !p && !c {
+				break
+			}
+		}
+	}
+
+	// 3. Create VM
+	vm := mir2.NewVM(mirMod)
+	vm.MaxSteps = 1_000_000
+	vm.MaxMemory = 1 << 20
+
+	// 4. Register host functions
+	mr := newMetaRuntime(callerMod)
+	mr.registerHosts(vm, block)
+
+	// 5. Allocate string args on heap
+	var vmArgs []mir2.Value
+	for _, s := range stringArgs {
+		vmArgs = append(vmArgs, mr.allocString(s))
+	}
+
+	// 6. Call metafunction
+	_, err = vm.Call(funcName, vmArgs)
+	if err != nil {
+		return "", fmt.Errorf("metafunc @%s: VM error: %w", funcName, err)
+	}
+
+	return mr.emitted.String(), nil
 }
