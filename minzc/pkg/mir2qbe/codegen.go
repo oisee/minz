@@ -28,6 +28,13 @@ import (
 	"github.com/minz/minzc/pkg/mir2"
 )
 
+// qbeSym sanitizes a symbol name for QBE IL.
+// QBE identifiers: [a-zA-Z_.$][a-zA-Z0-9_.$]*
+// MIR2 uses '@' prefix for intrinsics — replace with '_'.
+func qbeSym(name string) string {
+	return strings.ReplaceAll(name, "@", "_")
+}
+
 // Compile translates a MIR2 module to QBE IL source text.
 func Compile(m *mir2.Module) (string, error) {
 	g := &gen{sb: &strings.Builder{}, mod: m}
@@ -58,11 +65,23 @@ type predEdge struct {
 // ── module ────────────────────────────────────────────────────────────────────
 
 func (g *gen) emitModule() {
+	// String pool (data section)
+	for i := 0; i < g.mod.Strings.Len(); i++ {
+		s := g.mod.Strings.At(i)
+		sym := g.mod.Strings.Symbol(i)
+		var parts []string
+		for j := 0; j < len(s); j++ {
+			parts = append(parts, fmt.Sprintf("%d", s[j]))
+		}
+		parts = append(parts, "0") // NUL terminator
+		g.printf("data $%s = { b %s }\n", qbeSym(sym), strings.Join(parts, ", b "))
+	}
+
 	// Globals (data section)
 	for _, gl := range g.mod.Globals {
 		g.emitGlobal(gl)
 	}
-	if len(g.mod.Globals) > 0 {
+	if len(g.mod.Globals) > 0 || g.mod.Strings.Len() > 0 {
 		g.line("")
 	}
 	// Functions
@@ -77,14 +96,14 @@ func (g *gen) emitGlobal(gl mir2.Global) {
 	if len(gl.Init) == 0 {
 		// zeroed — determine size from type
 		sz := byteWidth(gl.Ty)
-		g.printf("data $%s = { z %d }\n", gl.Name, sz)
+		g.printf("data $%s = { z %d }\n", qbeSym(gl.Name), sz)
 		return
 	}
 	parts := make([]string, len(gl.Init))
 	for i, b := range gl.Init {
 		parts[i] = fmt.Sprintf("b %d", b)
 	}
-	g.printf("data $%s = { %s }\n", gl.Name, strings.Join(parts, ", "))
+	g.printf("data $%s = { %s }\n", qbeSym(gl.Name), strings.Join(parts, ", "))
 }
 
 // ── function ──────────────────────────────────────────────────────────────────
@@ -109,7 +128,7 @@ func (g *gen) emitFunc(f *mir2.Func) {
 	for i, p := range f.Contract.Params {
 		params[i] = fmt.Sprintf("%s %%r%d", g.regTy[p.Reg], p.Reg)
 	}
-	g.printf("export function %s$%s(%s) {\n", retTy, f.Name, strings.Join(params, ", "))
+	g.printf("export function %s$%s(%s) {\n", retTy, qbeSym(f.Name), strings.Join(params, ", "))
 
 	for _, b := range f.Blocks {
 		g.emitBlock(f, b)
@@ -267,7 +286,7 @@ func (g *gen) emitInst(inst *mir2.Inst) {
 		g.printf("\t%s %s, %s\n", storeOp, reg(val), g.ptrReg(ptr, dst, "st"))
 
 	case mir2.OpAddrOf:
-		g.printf("\t%%r%d =l copy $%s\n", dst, inst.Sym)
+		g.printf("\t%%r%d =l copy $%s\n", dst, qbeSym(inst.Sym))
 
 	case mir2.OpAlloca:
 		// alloc4 = 4-byte aligned; alloc8 = 8-byte aligned
@@ -310,7 +329,7 @@ func (g *gen) emitInst(inst *mir2.Inst) {
 }
 
 func (g *gen) emitCall(inst *mir2.Inst) {
-	callExpr := g.buildCallExpr("$"+inst.Sym, inst.Args, inst.Ty)
+	callExpr := g.buildCallExpr("$"+qbeSym(inst.Sym), inst.Args, inst.Ty)
 	if inst.Dst != mir2.NoReg {
 		g.printf("\t%%r%d =%s %s\n", inst.Dst, qbeTy(inst.Ty), callExpr)
 	} else {
