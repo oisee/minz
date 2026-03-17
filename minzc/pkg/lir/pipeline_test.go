@@ -1,0 +1,134 @@
+package lir
+
+import (
+	"testing"
+
+	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/mir2"
+)
+
+// TestPipeline_SimpleFunction tests the full LIR pipeline on a hand-built
+// MIR2 function: add(a, b) -> a + b
+func TestPipeline_SimpleFunction(t *testing.T) {
+	m := &mir2.Module{Name: "test"}
+	f := m.AddFunc("add")
+	b := mir2.NewBuilder(f)
+	b.SwitchToNewBlock("entry")
+
+	aReg := b.Param("a", mir2.TyU8, mir2.ClassAcc)
+	bReg := b.Param("b", mir2.TyU8, mir2.ClassGeneral)
+	sum := b.Add(aReg, bReg, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(sum)
+
+	// Run convergence on all machines
+	results := CheckModuleConvergence(m)
+	for _, r := range results {
+		if r.Error != "" {
+			t.Logf("%s/%s: %s (ops=%d)", r.FuncName, r.Machine, r.Error, r.OpCount)
+		} else {
+			t.Logf("%s/%s: ✓ ops=%d combined=%d insts=%d",
+				r.FuncName, r.Machine, r.OpCount, r.Combined, r.InstCount)
+		}
+	}
+
+	// At least RISC32 should succeed
+	for _, r := range results {
+		if r.Machine == "risc32" && !r.Match {
+			t.Errorf("risc32 should pass for simple add: %s", r.Error)
+		}
+	}
+}
+
+// TestPipeline_HIRToLIR tests the full path: HIR → MIR2 → LIR convergence.
+func TestPipeline_HIRToLIR(t *testing.T) {
+	hm := &hir.Module{
+		Name: "test_hir",
+		Funcs: []*hir.Func{
+			{
+				Name:   "add_pair",
+				Params: []hir.Param{{Name: "a", Ty: mir2.TyU8}, {Name: "b", Ty: mir2.TyU8}},
+				RetTy:  mir2.TyU8,
+				Body: &hir.Block{Body: []hir.Stmt{
+					&hir.ReturnStmt{
+						Val: &hir.BinExpr{
+							Op:  "+",
+							L:   &hir.VarRefExpr{Name: "a", Ty: mir2.TyU8},
+							R:   &hir.VarRefExpr{Name: "b", Ty: mir2.TyU8},
+							Ty:  mir2.TyU8,
+						},
+					},
+				}},
+			},
+		},
+	}
+
+	// Lower HIR → MIR2
+	m := hir.LowerModule(hm)
+
+	t.Logf("MIR2 module: %d funcs", len(m.Funcs))
+	for _, f := range m.Funcs {
+		t.Logf("  %s: %d blocks", f.Name, len(f.Blocks))
+	}
+
+	// Run LIR convergence
+	results := CheckModuleConvergence(m)
+	passed, failed := 0, 0
+	for _, r := range results {
+		if r.Error != "" {
+			t.Logf("%s/%s: %s", r.FuncName, r.Machine, r.Error)
+			failed++
+		} else if r.Match {
+			t.Logf("%s/%s: ✓ ops=%d→%d insts=%d",
+				r.FuncName, r.Machine, r.OpCount, r.Combined, r.InstCount)
+			passed++
+		}
+	}
+	t.Logf("total: %d passed, %d failed", passed, failed)
+}
+
+// TestPipeline_LIRCodegen tests assembly text generation from LIR.
+func TestPipeline_LIRCodegen(t *testing.T) {
+	m := &mir2.Module{Name: "codegen_test"}
+	f := m.AddFunc("double")
+	b := mir2.NewBuilder(f)
+	b.SwitchToNewBlock("entry")
+
+	x := b.Param("x", mir2.TyU8, mir2.ClassAcc)
+	result := b.Add(x, x, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(result)
+
+	asm, err := LIRCodegenFunc(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Logf("generated assembly:\n%s", asm)
+
+	if asm == "" {
+		t.Error("empty assembly")
+	}
+}
+
+// TestPipeline_Z80Patterns verifies the Z80 machine descriptor.
+func TestPipeline_Z80Patterns(t *testing.T) {
+	t.Logf("Z80: %d locs, %d patterns, %d rules",
+		len(Z80.Locs), len(Z80.Patterns), len(Z80.Rules))
+
+	for _, name := range []string{"A", "B", "C", "D", "E", "H", "L", "HL", "DE", "BC", "IX", "F"} {
+		if Z80.LocByName(name) < 0 {
+			t.Errorf("missing register: %s", name)
+		}
+	}
+
+	patNames := make(map[string]bool)
+	for _, p := range Z80.Patterns {
+		patNames[p.Name] = true
+	}
+	for _, name := range []string{"ld_r_n", "add_a_r", "sub_a_r", "ld_a_hl", "add_hl_rr", "ld16_le_hl", "djnz"} {
+		if !patNames[name] {
+			t.Errorf("missing pattern: %s", name)
+		} else {
+			t.Logf("  ✓ %s", name)
+		}
+	}
+}
