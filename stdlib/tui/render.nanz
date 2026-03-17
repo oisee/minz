@@ -1,0 +1,123 @@
+// stdlib/tui/render — Low-level TUI rendering primitives
+//
+// All rendering goes through @extern host functions. On MZV these are
+// implemented in Go (tui_host.go). On CP/M they emit VT100 escape sequences
+// via BDOS. On Agon they use VDP commands.
+//
+// The host abstraction means: one Nanz program, all platforms.
+
+// =============================================================================
+// Host functions — implemented per-backend
+// =============================================================================
+
+// Position cursor at (x, y) — 0-based
+@extern fun tui_goto(x: u8, y: u8) -> void
+
+// Set text color: fg (0-7), bg (0-7), bright (0 or 1)
+@extern fun tui_color(fg: u8, bg: u8, bright: u8) -> void
+
+// Reset colors to default
+@extern fun tui_reset() -> void
+
+// Clear the entire screen
+@extern fun tui_clear() -> void
+
+// Print a single character at current cursor position
+@extern fun tui_putch(ch: u8) -> void
+
+// Print a null-terminated string at current cursor position
+@extern fun tui_puts(str: ^u8) -> void
+
+// Read one key (blocking). Returns KEY_* constant.
+@extern fun tui_read_key() -> u8
+
+// Read a line of text into buffer. Returns actual length.
+@extern fun tui_read_line(buf: ^u8, maxlen: u8) -> u8
+
+// Get terminal dimensions
+@extern fun tui_width() -> u8
+@extern fun tui_height() -> u8
+
+// =============================================================================
+// Box drawing (uses host putch for portability)
+// =============================================================================
+
+// Box-drawing character codes (Unicode → sent as multi-byte by host)
+const BOX_TL: u8 = 1;   // ┌
+const BOX_TR: u8 = 2;   // ┐
+const BOX_BL: u8 = 3;   // └
+const BOX_BR: u8 = 4;   // ┘
+const BOX_H:  u8 = 5;   // ─
+const BOX_V:  u8 = 6;   // │
+
+// Draw a box outline at (x, y) with size (w, h)
+fun draw_box(x: u8, y: u8, w: u8, h: u8) -> void {
+    // Top edge
+    tui_goto(x, y)
+    tui_putch(BOX_TL)
+    var i: u8 = 0
+    while i < w - 2 {
+        tui_putch(BOX_H)
+        i = i + 1
+    }
+    tui_putch(BOX_TR)
+
+    // Sides
+    var row: u8 = 1
+    while row < h - 1 {
+        tui_goto(x, y + row)
+        tui_putch(BOX_V)
+        tui_goto(x + w - 1, y + row)
+        tui_putch(BOX_V)
+        row = row + 1
+    }
+
+    // Bottom edge
+    tui_goto(x, y + h - 1)
+    tui_putch(BOX_BL)
+    i = 0
+    while i < w - 2 {
+        tui_putch(BOX_H)
+        i = i + 1
+    }
+    tui_putch(BOX_BR)
+}
+
+// Fill a rectangle with spaces (clear region)
+fun clear_rect(x: u8, y: u8, w: u8, h: u8) -> void {
+    var row: u8 = 0
+    while row < h {
+        tui_goto(x, y + row)
+        var col: u8 = 0
+        while col < w {
+            tui_putch(32)
+            col = col + 1
+        }
+        row = row + 1
+    }
+}
+
+// Draw a horizontal line of repeated character
+fun draw_hline(x: u8, y: u8, w: u8, ch: u8) -> void {
+    tui_goto(x, y)
+    var i: u8 = 0
+    while i < w {
+        tui_putch(ch)
+        i = i + 1
+    }
+}
+
+// Print a string padded/truncated to exactly `width` chars
+fun puts_padded(str: ^u8, width: u8) -> void {
+    var i: u8 = 0
+    var ptr: ^u8 = str
+    while i < width {
+        if ptr^ != 0 {
+            tui_putch(ptr^)
+            ptr = ptr + 1
+        } else {
+            tui_putch(32)
+        }
+        i = i + 1
+    }
+}

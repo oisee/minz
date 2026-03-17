@@ -1,0 +1,87 @@
+// stdlib/tui/widget — Base types for the TUI framework
+//
+// Provides: Rect, Color constants, Key constants, FieldKind enum,
+// ScreenField struct, and the Screen descriptor struct.
+//
+// All types are Z80-friendly (small, fixed-size, no heap).
+
+// =============================================================================
+// Screen geometry
+// =============================================================================
+
+struct Rect {
+    x: u8
+    y: u8
+    w: u8
+    h: u8
+}
+
+// =============================================================================
+// Colors (ANSI 3-bit)
+// =============================================================================
+
+const COLOR_BLACK:   u8 = 0;
+const COLOR_RED:     u8 = 1;
+const COLOR_GREEN:   u8 = 2;
+const COLOR_YELLOW:  u8 = 3;
+const COLOR_BLUE:    u8 = 4;
+const COLOR_MAGENTA: u8 = 5;
+const COLOR_CYAN:    u8 = 6;
+const COLOR_WHITE:   u8 = 7;
+
+// =============================================================================
+// Key codes
+// =============================================================================
+
+const KEY_ENTER:  u8 = 13;
+const KEY_ESC:    u8 = 27;
+const KEY_TAB:    u8 = 9;
+const KEY_BS:     u8 = 8;
+const KEY_UP:     u8 = 128;
+const KEY_DOWN:   u8 = 129;
+const KEY_LEFT:   u8 = 130;
+const KEY_RIGHT:  u8 = 131;
+const KEY_F1:     u8 = 140;
+const KEY_F2:     u8 = 141;
+const KEY_F3:     u8 = 142;
+const KEY_F4:     u8 = 143;
+const KEY_F5:     u8 = 144;
+const KEY_F6:     u8 = 145;
+const KEY_F7:     u8 = 146;
+const KEY_F8:     u8 = 147;
+
+// =============================================================================
+// Field kinds
+// =============================================================================
+
+const FIELD_TEXT:    u8 = 1;
+const FIELD_INT:     u8 = 2;
+const FIELD_BUTTON:  u8 = 3;
+const FIELD_LABEL:   u8 = 4;
+
+// =============================================================================
+// ScreenField — one input field or button on the screen (16 bytes)
+// =============================================================================
+
+struct ScreenField {
+    kind:    u8       // FIELD_TEXT, FIELD_INT, FIELD_BUTTON, FIELD_LABEL
+    length:  u8       // display width (text fields)
+    flags:   u8       // bit 0=required, bit 1=readonly
+    fkey:    u8       // function key for buttons (KEY_F5, etc.)
+    label:   ^u8      // pointer to label string (null-terminated)
+    value:   ^u8      // pointer to value buffer (text fields)
+    def_int: u16      // default integer value (int fields)
+}
+
+// =============================================================================
+// Screen — collection of fields with a title (the descriptor table)
+// =============================================================================
+
+const MAX_FIELDS: u8 = 16;
+
+struct Screen {
+    title:   ^u8      // screen title string
+    nfields: u8       // number of registered fields
+    focus:   u8       // currently focused field index
+    result:  u8       // 0=pending, 1=execute, 2=back
+}

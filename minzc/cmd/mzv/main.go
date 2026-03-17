@@ -209,6 +209,10 @@ func main() {
 
 	registerABAPHosts(vm, *headless, traceEnabled)
 
+	// ── TUI host functions (stdlib/tui/render.nanz @extern calls) ────────
+
+	registerTUIHosts(vm, *headless, traceEnabled)
+
 	// ── Terminal raw mode + input goroutine ──────────────────────────────
 
 	var oldState *term.State
