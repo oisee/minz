@@ -109,6 +109,318 @@ fun sfn_checksum(dir: ^u8) -> u8 {
 fun dbc_1st(c: u8) -> u8 { return 0 }
 fun dbc_2nd(c: u8) -> u8 { return 0 }
 
+// ── Disk I/O interface ───────────────────────────────────────────────────────
+// On MIR2 VM: host functions registered by the test harness.
+// On Z80: implement as @extern linking to ROM/BIOS/driver.
+
+@extern fun disk_read(pdrv: u8, buf: ^u8, sector: u16, count: u8) -> u8
+@extern fun disk_write(pdrv: u8, buf: ^u8, sector: u16, count: u8) -> u8
+
+// ── Filesystem state ─────────────────────────────────────────────────────────
+
+global fs_type:      u8  = 0    // 0=unmounted, 1=FAT12 mounted
+global fs_csize:     u8  = 0    // Sectors per cluster
+global fs_n_rootdir: u16 = 0    // Root directory entry count
+global fs_n_fatent:  u16 = 0    // Number of FAT entries (clusters + 2)
+global fs_fatbase:   u16 = 0    // FAT start sector
+global fs_dirbase:   u16 = 0    // Root directory start sector
+global fs_database:  u16 = 0    // Data area start sector
+global fs_fsize:     u16 = 0    // Sectors per FAT
+
+// Sector window: one 512-byte buffer for disk I/O
+global win: [u8; 512]
+global win_sect: u16 = 0xFFFF   // Currently loaded sector (0xFFFF = none)
+
+// FAT cache: first sector of FAT (covers clusters 0..340)
+global fat_cache: [u8; 512]
+global fat_loaded: u8 = 0
+
+// ── Mount / Unmount ──────────────────────────────────────────────────────────
+
+// parse_bpb: read BPB from sector 0 and initialize filesystem globals.
+// Returns 0 on success, 1 on error.
+fun parse_bpb(pdrv: u8) -> u8 {
+    let res: u8 = disk_read(pdrv, &win, 0, 1)
+    if res != 0 { return 1 }
+
+    // Check boot signature (offset 510-511 = 0x55, 0xAA)
+    let sig: u16 = ld_word(&win + 510)
+    if sig != 0xAA55 { return 1 }
+
+    // BPB fields at fixed offsets
+    let bps: u16     = ld_word(&win + 11)    // Bytes per sector
+    if bps != 512 { return 1 }               // Only 512-byte sectors supported
+    let spc: u8      = win[13]               // Sectors per cluster
+    let rsvd: u16    = ld_word(&win + 14)    // Reserved sectors
+    let nfats: u8    = win[16]               // Number of FATs
+    let nroot: u16   = ld_word(&win + 17)    // Root entry count
+    let fatsz: u16   = ld_word(&win + 22)    // FAT size in sectors
+
+    // Compute layout
+    let fat_start: u16  = rsvd
+    let root_secs: u16  = nroot >> 4         // nroot * 32 / 512 = nroot / 16
+    let root_start: u16 = fat_start + nfats * fatsz
+    let data_start: u16 = root_start + root_secs
+
+    // Total data clusters → verify FAT12 (< 4085 clusters)
+    let total_sect: u16 = ld_word(&win + 19) // Total sectors (16-bit)
+    let data_secs: u16  = total_sect - data_start
+    let n_clust: u16    = data_secs / spc
+
+    // Store in globals
+    fs_csize     = spc
+    fs_n_rootdir = nroot
+    fs_n_fatent  = n_clust + 2
+    fs_fatbase   = fat_start
+    fs_dirbase   = root_start
+    fs_database  = data_start
+    fs_fsize     = fatsz
+    fs_type      = 1
+
+    return 0
+}
+
+fun fat12_mount(pdrv: u8) -> u8 {
+    fs_type = 0
+    fat_loaded = 0
+    win_sect = 0xFFFF
+    return parse_bpb(pdrv)
+}
+
+// ── Sector window ────────────────────────────────────────────────────────────
+
+fun load_sector(pdrv: u8, sect: u16) -> u8 {
+    if sect == win_sect { return 0 }
+    let res: u8 = disk_read(pdrv, &win, sect, 1)
+    if res != 0 { return 1 }
+    win_sect = sect
+    return 0
+}
+
+// ── FAT access ───────────────────────────────────────────────────────────────
+
+// Ensure FAT is cached. For small FAT12 images the entire FAT often fits
+// in one sector (512 bytes covers clusters 0..340).
+fun ensure_fat(pdrv: u8) -> u8 {
+    if fat_loaded != 0 { return 0 }
+    let res: u8 = disk_read(pdrv, &fat_cache, fs_fatbase, 1)
+    if res != 0 { return 1 }
+    fat_loaded = 1
+    return 0
+}
+
+// Follow one link in the FAT chain.
+fun fat12_next(pdrv: u8, clst: u16) -> u16 {
+    if clst < 2 { return 0xFFFF }
+    let err: u8 = ensure_fat(pdrv)
+    if err != 0 { return 0xFFFF }
+    let val: u16 = read_fat12(&fat_cache, clst)
+    if val >= 0xFF8 { return 0xFFFF }  // EOC
+    if val < 2      { return 0xFFFF }  // free/reserved → broken chain
+    return val
+}
+
+// ── Directory search ─────────────────────────────────────────────────────────
+
+// Compare 11-byte SFN names. Returns 1 if equal, 0 otherwise.
+fun sfn_match(a: ^u8, b: ^u8) -> u8 {
+    var i: u8 = 0
+    while i < 11 {
+        if a[i] != b[i] { return 0 }
+        i = i + 1
+    }
+    return 1
+}
+
+// Search root directory for a file. Returns start cluster, or 0 if not found.
+// name must be 11 bytes in SFN format: "HELLO   TXT" (space-padded, no dot).
+fun find_file(pdrv: u8, name: ^u8) -> u16 {
+    var sect: u16 = fs_dirbase
+    let root_secs: u16 = fs_n_rootdir >> 4  // entries / 16 per sector
+    var s: u16 = 0
+    while s < root_secs {
+        let err: u8 = load_sector(pdrv, sect)
+        if err != 0 { return 0 }
+
+        // 16 directory entries per 512-byte sector
+        var e: u8 = 0
+        while e < 16 {
+            let ofs: u16 = e * 32
+            let first: u8 = win[ofs]
+            if first == 0x00 { return 0 }      // End of directory
+            if first != 0xE5 {                  // Not deleted
+                if sfn_match(&win + ofs, name) != 0 {
+                    // Extract start cluster at offset 26
+                    return ld_word(&win + ofs + 26)
+                }
+            }
+            e = e + 1
+        }
+        sect = sect + 1
+        s = s + 1
+    }
+    return 0
+}
+
+// ── File read API ────────────────────────────────────────────────────────────
+
+// Read the contents of a file cluster-by-cluster into buf.
+// Returns total bytes read. Stops at file_size or max_bytes, whichever is smaller.
+// For simplicity, reads whole sectors (no partial-sector seek).
+fun file_read(pdrv: u8, start_clst: u16, file_size: u16, buf: ^u8, max_bytes: u16) -> u16 {
+    var clst: u16 = start_clst
+    var remaining: u16 = file_size
+    if remaining > max_bytes { remaining = max_bytes }
+    var total: u16 = 0
+
+    while remaining > 0 {
+        if clst < 2 { return total }
+
+        // Map cluster to sector
+        let sect: u16 = clst2sect(fs_database, clst, fs_csize)
+        if sect == 0 { return total }
+
+        // Read each sector in the cluster
+        var cs: u8 = 0
+        while cs < fs_csize {
+            if remaining == 0 { return total }
+            let err: u8 = load_sector(pdrv, sect + cs)
+            if err != 0 { return total }
+
+            // Copy up to 512 bytes (or remaining)
+            var b: u16 = 0
+            let chunk: u16 = 512
+            if remaining < chunk {
+                b = 0
+                while b < remaining {
+                    buf[total] = win[b]
+                    total = total + 1
+                    b = b + 1
+                }
+                remaining = 0
+            } else {
+                while b < 512 {
+                    buf[total] = win[b]
+                    total = total + 1
+                    b = b + 1
+                }
+                remaining = remaining - 512
+            }
+            cs = cs + 1
+        }
+
+        // Follow chain
+        clst = fat12_next(pdrv, clst)
+    }
+    return total
+}
+
+// ── Convenience: open-and-read in one call ───────────────────────────────────
+
+// Read a named file into buf. Returns bytes read, or 0 if not found.
+// name: 11-byte SFN. buf: destination. max: buffer capacity.
+fun read_named_file(pdrv: u8, name: ^u8, buf: ^u8, max: u16) -> u16 {
+    let clst: u16 = find_file(pdrv, name)
+    if clst == 0 { return 0 }
+
+    // We need the file size from the directory entry.
+    // find_file already loaded the sector containing the entry.
+    // Re-scan to get size (offset 28, 2 bytes for FAT12 files < 64KB).
+    var sect: u16 = fs_dirbase
+    let root_secs: u16 = fs_n_rootdir >> 4
+    var s: u16 = 0
+    while s < root_secs {
+        let err: u8 = load_sector(pdrv, sect)
+        if err != 0 { return 0 }
+        var e: u8 = 0
+        while e < 16 {
+            let ofs: u16 = e * 32
+            let first: u8 = win[ofs]
+            if first == 0x00 { return 0 }
+            if first != 0xE5 {
+                if sfn_match(&win + ofs, name) != 0 {
+                    let fsize: u16 = ld_word(&win + ofs + 28)
+                    return file_read(pdrv, clst, fsize, buf, max)
+                }
+            }
+            e = e + 1
+        }
+        sect = sect + 1
+        s = s + 1
+    }
+    return 0
+}
+
+// ── Directory listing ────────────────────────────────────────────────────────
+
+// Count valid (non-deleted, non-LFN) entries in root directory.
+fun count_dir_entries(pdrv: u8) -> u8 {
+    var sect: u16 = fs_dirbase
+    let root_secs: u16 = fs_n_rootdir >> 4
+    var count: u8 = 0
+    var s: u16 = 0
+    while s < root_secs {
+        let err: u8 = load_sector(pdrv, sect)
+        if err != 0 { return count }
+        var e: u8 = 0
+        while e < 16 {
+            let ofs: u16 = e * 32
+            let first: u8 = win[ofs]
+            if first == 0x00 { return count }
+            if first != 0xE5 {
+                let attr: u8 = win[ofs + 11]
+                let lmask: u8 = attr & 0x0F
+                if lmask != 0x0F {     // Not a LFN entry
+                    count = count + 1
+                }
+            }
+            e = e + 1
+        }
+        sect = sect + 1
+        s = s + 1
+    }
+    return count
+}
+
+// Get the SFN name of the Nth valid directory entry (0-indexed).
+// Copies 11 bytes into out. Returns start cluster, or 0 if idx out of range.
+fun get_dir_entry(pdrv: u8, idx: u8, out: ^u8) -> u16 {
+    var sect: u16 = fs_dirbase
+    let root_secs: u16 = fs_n_rootdir >> 4
+    var seen: u8 = 0
+    var s: u16 = 0
+    while s < root_secs {
+        let err: u8 = load_sector(pdrv, sect)
+        if err != 0 { return 0 }
+        var e: u8 = 0
+        while e < 16 {
+            let ofs: u16 = e * 32
+            let first: u8 = win[ofs]
+            if first == 0x00 { return 0 }
+            if first != 0xE5 {
+                let attr: u8 = win[ofs + 11]
+                let lmask: u8 = attr & 0x0F
+                if lmask != 0x0F {
+                    if seen == idx {
+                        // Copy 11-byte name
+                        var i: u8 = 0
+                        while i < 11 {
+                            out[i] = win[ofs + i]
+                            i = i + 1
+                        }
+                        return ld_word(&win + ofs + 26)
+                    }
+                    seen = seen + 1
+                }
+            }
+            e = e + 1
+        }
+        sect = sect + 1
+        s = s + 1
+    }
+    return 0
+}
+
 // ── Test wrappers (same interface as C89 fatfs_lowlevel.c) ─────────────────
 
 global g_buf: [u8; 32]

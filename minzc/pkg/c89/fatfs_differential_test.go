@@ -480,4 +480,128 @@ func TestDifferential_Z80_CodeSize(t *testing.T) {
 		strings.Join(lines[:preview], "\n"))
 }
 
+// TestDifferential_Z80_vs_SDCC compares MinZ Z80 binary sizes per function
+// against SDCC 4.2.0 compiled output for the same FatFS low-level functions.
+//
+// SDCC sizes extracted from examples/c89/fatfs/ff.asm (compiled from ff.c).
+// MinZ sizes from Nanz fat12.minz → HIR → MIR2 → Z80 → MZA binary.
+func TestDifferential_Z80_vs_SDCC(t *testing.T) {
+	nanzPath := filepath.Join("..", "..", "..", "stdlib", "fs", "fat12.minz")
+	src, err := os.ReadFile(nanzPath)
+	if err != nil {
+		t.Skipf("fat12.minz not found: %v", err)
+	}
+
+	hirMod, err := nanz.Parse(string(src), "fat12.minz")
+	if err != nil {
+		t.Fatalf("nanz parse: %v", err)
+	}
+
+	genAsm, err := pipeline.CompileHIR(hirMod)
+	if err != nil {
+		t.Skipf("Z80 codegen: %v", err)
+	}
+
+	// Try to assemble to binary for real byte sizes.
+	// May fail due to known register allocator bugs (LD HL, D etc).
+	bin, errs := pipeline.Assemble(genAsm, "generic")
+	minzTotal := len(bin)
+	if len(errs) > 0 {
+		t.Logf("MZA assembly failed (known Z80 codegen bugs): %v", errs[0])
+		t.Logf("Falling back to instruction-count comparison only")
+		minzTotal = -1
+	}
+
+	// Extract per-function instruction counts from asm
+	// (byte-precise sizes require symbol table; use instruction count as proxy)
+	funcInstCounts := extractFuncInstCounts(genAsm)
+
+	// SDCC 4.2.0 sizes (bytes) from examples/c89/fatfs/ff.asm symbol table.
+	// Extracted from ff.lst address ranges between consecutive function labels.
+	sdccSizes := map[string]int{
+		"ld_word":   29,  // _ld_16: 0x0000-0x001D
+		"st_word":   4,   // _st_16: 0x00A9-0x00AD
+		"clst2sect": 172, // _clst2sect: 0x0502-0x05AE (includes 32-bit multiply call)
+		"dbc_1st":   41,  // _dbc_1st: 0x010A-0x0133 (table lookup)
+		"dbc_2nd":   59,  // _dbc_2nd: 0x0133-0x016E (table lookup)
+	}
+	// Note: SDCC doesn't have standalone read_fat12/classify_fat12/is_deleted/
+	// sfn_checksum/chain_length — these are inlined into _get_fat (717 bytes),
+	// _dir_read, etc. Not directly comparable per-function.
+
+	if minzTotal >= 0 {
+		t.Logf("MinZ Z80 total binary: %d bytes (all functions + test wrappers)", minzTotal)
+	} else {
+		t.Logf("MinZ Z80 total binary: N/A (assembly failed, using instruction counts)")
+	}
+	t.Logf("")
+	t.Logf("%-18s │ %6s │ %6s │ %s",
+		"Function", "SDCC", "MinZ", "Notes")
+	t.Logf("%-18s─┼─%6s─┼─%6s─┼─%s",
+		strings.Repeat("─", 18), "──────", "──────", strings.Repeat("─", 40))
+
+	// For directly comparable functions
+	comparable := []string{"ld_word", "st_word", "clst2sect", "dbc_1st", "dbc_2nd"}
+	var sdccSum, minzInstSum int
+	for _, fn := range comparable {
+		sdccB := sdccSizes[fn]
+		sdccSum += sdccB
+		minzInsts, ok := funcInstCounts[fn]
+		if !ok {
+			t.Logf("%-18s │ %5dB │ %6s │ not found in MinZ output", fn, sdccB, "?")
+			continue
+		}
+		minzInstSum += minzInsts
+		t.Logf("%-18s │ %5dB │ %4d i │ (instruction count — binary needs symbol table)",
+			fn, sdccB, minzInsts)
+	}
+
+	// Functions only in MinZ (no SDCC standalone equivalent)
+	minzOnly := []string{"read_fat12", "classify_fat12", "is_deleted", "sfn_checksum", "chain_length"}
+	for _, fn := range minzOnly {
+		minzInsts, ok := funcInstCounts[fn]
+		if ok {
+			t.Logf("%-18s │ %6s │ %4d i │ SDCC: inlined into _get_fat (717B) / _dir_read",
+				fn, "n/a", minzInsts)
+		}
+	}
+
+	t.Logf("")
+	t.Logf("SDCC _get_fat (all FAT logic): 717 bytes")
+	t.Logf("SDCC _clst2sect:               172 bytes (includes __mullong CALL)")
+	t.Logf("SDCC total (5 comparable):     %d bytes", sdccSum)
+	if minzTotal >= 0 {
+		t.Logf("MinZ total binary:             %d bytes (includes test wrappers)", minzTotal)
+	} else {
+		t.Logf("MinZ total binary:             N/A (assembly failed)")
+	}
+}
+
+// extractFuncInstCounts parses Z80 assembly and returns instruction count per function.
+func extractFuncInstCounts(asm string) map[string]int {
+	result := make(map[string]int)
+	lines := strings.Split(asm, "\n")
+	var curFunc string
+	for _, l := range lines {
+		trimmed := strings.TrimSpace(l)
+		// Detect function headers: "; fun name(...)"
+		if strings.HasPrefix(trimmed, "; fun ") {
+			// Extract function name
+			rest := trimmed[6:] // after "; fun "
+			if idx := strings.IndexByte(rest, '('); idx > 0 {
+				curFunc = rest[:idx]
+			}
+			continue
+		}
+		// Count instructions (not labels, not comments, not blank)
+		if curFunc != "" && trimmed != "" &&
+			!strings.HasPrefix(trimmed, ";") &&
+			!strings.HasSuffix(trimmed, ":") &&
+			!strings.HasPrefix(trimmed, ".") {
+			result[curFunc]++
+		}
+	}
+	return result
+}
+
 var _ = pipeline.CompileHIR // ensure import

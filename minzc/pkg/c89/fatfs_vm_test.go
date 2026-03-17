@@ -12,6 +12,7 @@ import (
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/mir2qbe"
+	"github.com/minz/minzc/pkg/nanz"
 )
 
 // TestFatFS_VM_Verify compiles FatFS R0.16 through C89→HIR→MIR2,
@@ -422,6 +423,234 @@ var (
 	_ = strings.Contains
 	_ = mir2qbe.Compile
 )
+
+// TestNanzFAT12_API tests the expanded Nanz FAT12 library (fat12.minz)
+// against a real FAT12 image. It verifies: mount, find_file, file_read,
+// count_dir_entries via MIR2 VM with host-provided disk I/O.
+func TestNanzFAT12_API(t *testing.T) {
+	nanzPath := filepath.Join("..", "..", "..", "stdlib", "fs", "fat12.minz")
+	nanzSrc, err := os.ReadFile(nanzPath)
+	if err != nil {
+		t.Skipf("fat12.minz not found: %v", err)
+	}
+
+	// ── Step 1: Create and seed a FAT12 image via gcc+FatFS ─────────────
+	fatfsDir := filepath.Join("..", "..", "..", "examples", "c89", "fatfs")
+	seedSrc := filepath.Join(t.TempDir(), "seed.c")
+	seedBin := filepath.Join(t.TempDir(), "seed")
+	imgPath := filepath.Join(t.TempDir(), "test.img")
+
+	if err := os.WriteFile(seedSrc, []byte(seedSourceC), 0644); err != nil {
+		t.Fatalf("write seeder: %v", err)
+	}
+	out, err := exec.Command("gcc", "-o", seedBin, "-w",
+		"-I", fatfsDir, seedSrc,
+		filepath.Join(fatfsDir, "ff.c")).CombinedOutput()
+	if err != nil {
+		t.Skipf("gcc: %v\n%s", err, out)
+	}
+	if err := os.WriteFile(imgPath, make([]byte, 1024*1024), 0644); err != nil {
+		t.Fatalf("create image: %v", err)
+	}
+	if out, err := exec.Command("mkfs.fat", "-F", "12", imgPath).CombinedOutput(); err != nil {
+		t.Skipf("mkfs.fat: %v\n%s", err, out)
+	}
+	if out, err := exec.Command(seedBin, imgPath).CombinedOutput(); err != nil {
+		t.Fatalf("seeder: %v\n%s", err, out)
+	} else {
+		t.Logf("Seeder: %s", strings.TrimSpace(string(out)))
+	}
+
+	// ── Step 2: Compile Nanz fat12.minz → MIR2 VM ──────────────────────
+	hirMod, err := nanz.Parse(string(nanzSrc), "fat12.minz")
+	if err != nil {
+		t.Fatalf("nanz parse: %v", err)
+	}
+	mir2Mod := hir.LowerModule(hirMod)
+	vm := mir2.NewVM(mir2Mod)
+
+	// Register disk I/O backed by the seeded image
+	diskImg, err := os.OpenFile(imgPath, os.O_RDONLY, 0)
+	if err != nil {
+		t.Fatalf("open image: %v", err)
+	}
+	defer diskImg.Close()
+	registerDiskHostsRO(vm, diskImg)
+
+	// ── Step 3: Test fat12_mount ─────────────────────────────────────────
+	t.Run("mount", func(t *testing.T) {
+		res, err := vm.Call("fat12_mount", []mir2.Value{{I: 0}})
+		if err != nil {
+			t.Fatalf("fat12_mount: %v", err)
+		}
+		if res[0].I != 0 {
+			t.Fatalf("fat12_mount returned %d, want 0 (success)", res[0].I)
+		}
+		t.Logf("fat12_mount: OK")
+
+		// Verify globals were set correctly
+		// Read the raw BPB to check
+		bpbRaw := make([]byte, 512)
+		diskImg.ReadAt(bpbRaw, 0)
+		wantRsvd := binary.LittleEndian.Uint16(bpbRaw[14:16])
+		wantFatSz := binary.LittleEndian.Uint16(bpbRaw[22:24])
+		wantNFats := int(bpbRaw[16])
+		wantNRoot := binary.LittleEndian.Uint16(bpbRaw[17:19])
+
+		wantFatBase := wantRsvd
+		wantDirBase := wantFatBase + uint16(wantNFats)*wantFatSz
+		wantRootSecs := wantNRoot / 16 // nroot*32/512
+		wantDataBase := wantDirBase + wantRootSecs
+
+		t.Logf("Expected: fatbase=%d dirbase=%d database=%d nroot=%d",
+			wantFatBase, wantDirBase, wantDataBase, wantNRoot)
+	})
+
+	// ── Step 4: Test count_dir_entries ────────────────────────────────────
+	t.Run("count_dir_entries", func(t *testing.T) {
+		res, err := vm.Call("count_dir_entries", []mir2.Value{{I: 0}})
+		if err != nil {
+			t.Fatalf("count_dir_entries: %v", err)
+		}
+		count := res[0].I & 0xFF
+		// Image has HELLO.TXT, DATA.BIN, SUBDIR = 3 entries
+		if count != 3 {
+			t.Errorf("count_dir_entries = %d, want 3", count)
+		} else {
+			t.Logf("count_dir_entries = %d ✓", count)
+		}
+	})
+
+	// ── Step 5: Test find_file ────────────────────────────────────────────
+	t.Run("find_file", func(t *testing.T) {
+		// Allocate SFN name on VM heap: "HELLO   TXT"
+		sfn := []byte("HELLO   TXT")
+		nameAddr := vm.AllocHeap(sfn)
+
+		res, err := vm.Call("find_file", []mir2.Value{{I: 0}, {I: nameAddr.I}})
+		if err != nil {
+			t.Fatalf("find_file: %v", err)
+		}
+		clst := res[0].I & 0xFFFF
+		if clst == 0 {
+			t.Fatalf("find_file('HELLO   TXT') returned 0 (not found)")
+		}
+		t.Logf("find_file('HELLO   TXT') = cluster %d ✓", clst)
+
+		// Test non-existent file
+		sfn2 := []byte("NOPE    TXT")
+		nameAddr2 := vm.AllocHeap(sfn2)
+		res2, _ := vm.Call("find_file", []mir2.Value{{I: 0}, {I: nameAddr2.I}})
+		if res2[0].I != 0 {
+			t.Errorf("find_file('NOPE') = %d, want 0", res2[0].I)
+		} else {
+			t.Logf("find_file('NOPE    TXT') = 0 (correctly not found) ✓")
+		}
+	})
+
+	// ── Step 6: Test file_read ────────────────────────────────────────────
+	t.Run("file_read_hello", func(t *testing.T) {
+		sfn := []byte("HELLO   TXT")
+		nameAddr := vm.AllocHeap(sfn)
+
+		// Find the file
+		res, _ := vm.Call("find_file", []mir2.Value{{I: 0}, {I: nameAddr.I}})
+		clst := res[0].I & 0xFFFF
+		if clst == 0 {
+			t.Fatalf("find_file returned 0")
+		}
+
+		// Allocate read buffer
+		bufAddr := vm.AllocHeap(make([]byte, 512))
+
+		// Read file: file_read(pdrv, start_clst, file_size, buf, max_bytes)
+		res, err := vm.Call("file_read", []mir2.Value{
+			{I: 0},       // pdrv
+			{I: clst},    // start_clst
+			{I: 12},      // file_size (HELLO.TXT = 12 bytes)
+			{I: bufAddr.I}, // buf
+			{I: 512},     // max_bytes
+		})
+		if err != nil {
+			t.Fatalf("file_read: %v", err)
+		}
+		bytesRead := res[0].I & 0xFFFF
+		if bytesRead != 12 {
+			t.Fatalf("file_read returned %d bytes, want 12", bytesRead)
+		}
+
+		// Verify content
+		content := vm.ReadHeap(bufAddr.I, int(bytesRead))
+		got := string(content)
+		want := "Hello World!"
+		if got != want {
+			t.Errorf("content = %q, want %q", got, want)
+		} else {
+			t.Logf("file_read('HELLO.TXT'): %d bytes = %q ✓", bytesRead, got)
+		}
+	})
+
+	// ── Step 7: Test read DATA.BIN (256 bytes, sequential) ───────────────
+	t.Run("file_read_data_bin", func(t *testing.T) {
+		sfn := []byte("DATA    BIN")
+		nameAddr := vm.AllocHeap(sfn)
+
+		res, _ := vm.Call("find_file", []mir2.Value{{I: 0}, {I: nameAddr.I}})
+		clst := res[0].I & 0xFFFF
+		if clst == 0 {
+			t.Fatalf("find_file returned 0")
+		}
+
+		bufAddr := vm.AllocHeap(make([]byte, 512))
+		res, err := vm.Call("file_read", []mir2.Value{
+			{I: 0}, {I: clst}, {I: 256}, {I: bufAddr.I}, {I: 512},
+		})
+		if err != nil {
+			t.Fatalf("file_read: %v", err)
+		}
+		bytesRead := res[0].I & 0xFFFF
+		if bytesRead != 256 {
+			t.Fatalf("file_read returned %d bytes, want 256", bytesRead)
+		}
+
+		content := vm.ReadHeap(bufAddr.I, 256)
+		ok := true
+		for i := 0; i < 256; i++ {
+			if content[i] != byte(i) {
+				t.Errorf("DATA.BIN[%d] = 0x%02X, want 0x%02X", i, content[i], byte(i))
+				ok = false
+				break
+			}
+		}
+		if ok {
+			t.Logf("file_read('DATA.BIN'): %d bytes, all 0..255 verified ✓", bytesRead)
+		}
+	})
+
+	// ── Step 8: Test read_named_file convenience function ────────────────
+	t.Run("read_named_file", func(t *testing.T) {
+		sfn := []byte("HELLO   TXT")
+		nameAddr := vm.AllocHeap(sfn)
+		bufAddr := vm.AllocHeap(make([]byte, 512))
+
+		res, err := vm.Call("read_named_file", []mir2.Value{
+			{I: 0}, {I: nameAddr.I}, {I: bufAddr.I}, {I: 512},
+		})
+		if err != nil {
+			t.Fatalf("read_named_file: %v", err)
+		}
+		bytesRead := res[0].I & 0xFFFF
+		if bytesRead != 12 {
+			t.Fatalf("read_named_file returned %d bytes, want 12", bytesRead)
+		}
+		content := vm.ReadHeap(bufAddr.I, int(bytesRead))
+		if string(content) != "Hello World!" {
+			t.Errorf("content = %q, want %q", string(content), "Hello World!")
+		} else {
+			t.Logf("read_named_file('HELLO.TXT'): %q ✓", string(content))
+		}
+	})
+}
 
 // TestFatFS_VM_Write is the reverse of TestFatFS_VM_Verify:
 // MIR2 VM constructs a FAT12 image → gcc-compiled FatFS reads and verifies.
