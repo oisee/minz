@@ -27,6 +27,39 @@ That's right: your `REPORT` program goes through **7 compilation stages** to bec
 | [sysinfo.abap](sysinfo.abap) | System report | Multiple `WRITE`, string output |
 | [sqlite_demo.abap](sqlite_demo.abap) | Database ops | `FORM`, `PERFORM`, string params |
 
+## Self-Contained Build (No Node.js)
+
+The ABAP parser is now embedded as a **Wasm module** (14MB). A standard `go build` produces a single binary (~36MB) that can parse and compile ABAP without Node.js or any external tooling.
+
+**Architecture:** `@abaplint/core` (TypeScript) → esbuild (bundle) → Javy/QuickJS → `.wasm` → `go:embed` → wazero (pure-Go Wasm runtime)
+
+The compiler detects the embedded Wasm blob at startup. If present, it uses wazero to execute the parser in-process. No network, no npm, no Node.js needed.
+
+**QBE native compilation** also works — ABAP programs compile through the full pipeline to native AMD64 binaries: ABAP → HIR → MIR2 → QBE IL → `qbe` → `cc` → executable.
+
+### Rebuilding the Wasm blob (optional)
+
+Only needed if you want to update `@abaplint/core` or modify the parser bridge:
+
+```bash
+cd minzc/pkg/abap/bridge
+npm install                    # downloads @abaplint/core
+npx esbuild parse.mjs --bundle --outfile=parse.bundle.js --platform=neutral
+javy compile parse.bundle.js -o parse.wasm
+cp parse.wasm ../parse.wasm   # go:embed picks this up on next build
+```
+
+### Node.js fallback (optional)
+
+If you prefer the Node.js path or want faster iteration on the bridge script:
+
+```bash
+cd minzc/pkg/abap/bridge
+npm install
+```
+
+The compiler falls back to Node.js (`parse.mjs`) when the Wasm blob is not embedded.
+
 ## Setup
 
 ### Prerequisites
@@ -34,23 +67,16 @@ That's right: your `REPORT` program goes through **7 compilation stages** to bec
 | Tool | Version | Why |
 |------|---------|-----|
 | **Go** | 1.24+ | Compiler is written in Go |
-| **Node.js** | 18+ | Runs [abaplint](https://github.com/abaplint/abaplint) parser (TypeScript) |
-| **npm** | 9+ | Installs `@abaplint/core` package |
+| **Node.js** | 18+ | *Optional* — only for rebuilding the Wasm blob or using the Node.js fallback |
+| **npm** | 9+ | *Optional* — same as above |
 
 ### Install (one time)
 
 ```bash
-# 1. Build the MinZ compiler
+# Build the MinZ compiler (Wasm parser is embedded — no npm needed)
 cd minzc
-make build          # produces ./mz binary
-
-# 2. Install the ABAP parser bridge
-cd pkg/abap/bridge
-npm install         # downloads @abaplint/core (~7 packages, MIT license)
-cd ../../..
+make build          # produces ./mz binary with embedded ABAP parser
 ```
-
-That's it. The bridge is a single `parse.mjs` script that calls `@abaplint/core` and outputs JSON — no global installs, no build steps, no native modules.
 
 ### Verify
 

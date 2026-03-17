@@ -380,9 +380,9 @@ fun main() {
 | Peephole patterns | 67 (asm) + MIR passes |
 | Production backends | 1 (Z80) + 1 partial (C) + 1 QBE (correctness oracle) + 8 experimental |
 | MIR backend tests | 9/11 pass, 2 known bugs (ADR-0006) |
-| Frontends | 7 (Nanz, C89, PL/M, Lanz, Lizp, Pascal, **ABAP**) — all route through HIR→MIR2→Z80 |
+| Frontends | 7 (Nanz, C89, PL/M, Lanz, Lizp, Pascal, **ABAP**) — all route through HIR→MIR2→Z80; ABAP has Wasm-embedded parser (no Node.js) |
 | C89 corpus | 191/191 asserts, 14 files |
-| ABAP examples | 8 programs (hello, fibonacci, fizzbuzz, guessing, bubblesort, forms, oop, sysinfo) |
+| ABAP examples | 13 programs, 9/13 CP/M .com, 13/13 MZV; Wasm-embedded parser (14MB, no Node.js) |
 | E2E Z80 tests | 24 (fibonacci, flag-return, div8, div16, mod8, divmod-combined + 6502) |
 | Parser | Participle (native Go, zero deps) |
 | Toolchain binaries | 9 working (mz, mza, mze, mzx, mzd, mzlsp, mzrun, mztap, mzv) + mzv1 (MIR1) + mzr (broken) |

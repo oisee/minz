@@ -41,6 +41,7 @@ ObjC demoscene effects compiled through HIR → MIR2 → VM (and QBE native). Al
 
 ### Latest
 
+- **[ABAP on Z80 + Wasm Parser](reports/2026-03-17-089-ABAP_Wasm_QBE_CPM.md)** — 7th frontend: ABAP compiles to Z80/QBE/native via embedded Wasm parser (no Node.js). Selection screen with PARAMETERS on CP/M. MARA/MAKT SQLite demo. Zork I runs in mze.
 - **[ObjC Canvas + Demoscene + Multi-Frontend CLI](reports/2026-03-16-089-ObjC_Canvas_Demoscene_Multi_Frontend.md)** — Cross-language canvas library (VM + native), 3 demoscene effects in ObjC, all 8 frontends wired into mzv/mzn, CLI flags standardized to `--long`/`-s` convention.
 - **[ABAP Frontend + SQLite + Zork](reports/2026-03-16-088-ABAP_Frontend_SQLite_Zork.md)** — 7th frontend (ABAP via abaplint), SQLite host functions in MIR2 VM, CP/M file I/O fixed (ROM protection root cause), **Zork I (1983) runs in MZE**.
 - **[Nanz Z80 Showcase v2](reports/2026-03-15-084-Nanz_Z80_Showcase_Definitive_v2.md)** — 12 verified examples: `abs_diff` 6B (optimal), `swap` 1B (bare RET), `smaller` 0B (EQU), `popcount` 3-inst LUT, `@smc` compiled sprites, value pipes constant-folded, iterator DJNZ fusion.
