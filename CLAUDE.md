@@ -132,6 +132,16 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 
 ## 🚧 WIP (In Development)
 
+- **Universal TUI Framework** (NEW!): Three-level screen abstraction
+  - L1 ✅: `sel_register_str/sel_show` — procedural, works on CP/M + MZV
+  - L2 ✅: `Screen.add_field/Screen.show` — OOP UFCS, stdlib/tui/ modules
+  - L3 🚧: `@screen("title") { field "X" }` — metafunction DSL (pipeline works, string wiring WIP)
+  - tui_* host functions: goto, color, putch, puts, read_key, draw_box
+  - Same ABAP program runs on CP/M (BDOS prompts) and MZV (ANSI TUI)
+- **Nanz compile-time metafunctions** (NEW!): `fun @name(...)` → runs on MIR2 VM at compile time
+  - Host functions: emit, block_len, node_keyword, str_concat, str_eq
+  - Emits Nanz source → parsed → spliced into caller module
+  - Based on Lanz MetaRuntime pattern (pkg/lanz/meta.go)
 - **Iterator chain fusion**: 11/11 E2E correct, fusion optimizer live, ~5x perf overhead (register allocator bottleneck)
 - **Pattern matching**: Syntax parses, codegen partial
 - **@minz[[[...]]]**: Limited compile-time execution
@@ -186,6 +196,14 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
   - Full Lua scripting for complex metaprogramming
   - Has emit() function for code generation
 
+- **fun @name(args) { ... }** - Nanz compile-time metafunctions (NEW!)
+  - Regular Nanz function with @ prefix → runs on MIR2 VM at compile time
+  - Receives structured block data via host functions (block_len, node_keyword, etc.)
+  - Emits Nanz source via emit() → parsed → spliced into caller module
+  - Example: `fun @screen(title: ^u8) -> void { emit(c"fun _gen()...") }`
+  - Invocation: `@screen("title") { field "X" \n button "Y" }`
+  - Status: 🚧 PIPELINE WORKS, runtime string wiring WIP
+
 See `docs/Metafunction_Design_Decisions.md` for complete details.
 
 ## 🚀 TSMC: Revolutionary Paradigm
@@ -234,6 +252,9 @@ MinZ includes a comprehensive stdlib optimized for Z80/retro systems:
 | `time/delay` | Frame timing, delays, animation helpers |
 | `mem/copy` | Fast memcpy/memset/memcmp using LDIR |
 | `cpm/bdos` | CP/M BDOS system calls |
+| `tui/widget` | TUI base types: Rect, ScreenField, Screen, Key/Color constants |
+| `tui/render` | TUI rendering primitives: goto, color, putch, draw_box (via @extern) |
+| `tui/screen` | OOP Screen API: init, add_field, add_button, show, get_str/int |
 
 ### Usage Example
 ```minz
