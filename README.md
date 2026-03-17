@@ -42,7 +42,7 @@ ObjC demoscene effects compiled through HIR → MIR2 → VM (and QBE native). Al
 ### Latest
 
 - **[ABAP on Z80 + Wasm Parser](reports/2026-03-17-089-ABAP_Wasm_QBE_CPM.md)** — 7th frontend: ABAP compiles to Z80/QBE/native via embedded Wasm parser (no Node.js). Selection screen with PARAMETERS on CP/M. MARA/MAKT SQLite demo. Zork I runs in mze.
-- **FatFS Differential Testing & Native FAT12 Library** — Bidirectional FAT12 image I/O (gcc→MIR2, MIR2→gcc), C89→QBE native (33/33 asserts), native Nanz `stdlib/fs/fat12.minz` with 28/28 bit-identical differential results vs C89. Nanz MIR2: 99 instructions vs C89 97 (+2.1%); QBE IL 10.9% smaller. [fat12.minz](stdlib/fs/fat12.minz)
+- **Nanz FAT12/16 Read-Write Library** — Native `stdlib/fs/fat12.minz`: mount, find, read, create, delete, overwrite files on FAT12 and FAT16 volumes. `write_fat12` implements 12-bit packed read-modify-write. Full CRUD verified: Nanz writes image → gcc-compiled FatFS reads back (8/8). SDCC Z80 comparison test. 28/28 differential vs C89. [fat12.minz](stdlib/fs/fat12.minz)
 - **[ObjC Canvas + Demoscene + Multi-Frontend CLI](reports/2026-03-16-089-ObjC_Canvas_Demoscene_Multi_Frontend.md)** — Cross-language canvas library (VM + native), 3 demoscene effects in ObjC, all 8 frontends wired into mzv/mzn, CLI flags standardized to `--long`/`-s` convention.
 - **[ABAP Frontend + SQLite + Zork](reports/2026-03-16-088-ABAP_Frontend_SQLite_Zork.md)** — 7th frontend (ABAP via abaplint), SQLite host functions in MIR2 VM, CP/M file I/O fixed (ROM protection root cause), **Zork I (1983) runs in MZE**.
 - **[Nanz Z80 Showcase v2](reports/2026-03-15-084-Nanz_Z80_Showcase_Definitive_v2.md)** — 12 verified examples: `abs_diff` 6B (optimal), `swap` 1B (bare RET), `smaller` 0B (EQU), `popcount` 3-inst LUT, `@smc` compiled sprites, value pipes constant-folded, iterator DJNZ fusion.
@@ -868,7 +868,7 @@ Stdlib modules are organized by domain. Quality varies — some modules are well
 | `agon/vdp` | Agon VDP graphics: modes, shapes, sprites, buffer commands |
 | `text/format` | Number formatting: `u8_to_str`, `u16_to_hex` |
 | `mem/copy` | Fast memory ops: `memcpy`, `memset` (LDIR-based) |
-| `fs/fat12` | FAT12 filesystem: BPB parsing, cluster chain traversal, directory reading. 28/28 differential-verified vs FatFS R0.16 |
+| `fs/fat12` | FAT12/16 filesystem: mount, find, read, create, delete, overwrite. Full R/W with gcc cross-verification |
 
 ### Available but Less Tested
 

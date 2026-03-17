@@ -3195,30 +3195,49 @@ Features shipped since v5.3 (2026-03-17):
 
 | Feature | Location | Status |
 |---------|----------|--------|
-| Native FAT12 library | `stdlib/fs/fat12.minz` | 28/28 differential-verified vs FatFS R0.16 |
+| FAT12/16 R/W library | `stdlib/fs/fat12.minz` | mount, find, read, create, delete, overwrite |
+| FAT12 write_fat12 | 12-bit packed R-M-W | Round-trip verified (5 asserts) |
+| FAT16 support | Auto-detect by cluster count | `read_fat16`/`write_fat16` + unified dispatch |
 | Bidirectional FatFS testing | `pkg/c89/fatfs_vm_test.go` | gcc→MIR2 (5/5), MIR2→gcc (7/7) |
+| Nanz write verification | `TestNanzFAT12_Write` | 13/13 subtests + gcc 8/8 cross-verify |
+| SDCC Z80 comparison | `TestDifferential_Z80_vs_SDCC` | Per-function instruction counts vs SDCC bytes |
 | C89→QBE native path | `pkg/c89/fatfs_vm_test.go` | 33/33 FatFS low-level asserts via QBE |
 | Differential code quality | `pkg/c89/fatfs_differential_test.go` | Nanz MIR2 99 vs C89 97 instr (+2.1%) |
 | C89 do-while + break/continue | `pkg/c89/lower.go` | 19 asserts |
 | QBE `OpAdd` l-typed promotion | `pkg/mir2qbe/codegen.go` | Pointer arithmetic fix |
 | C89 corpus expanded | 16 files, 350 asserts | +2 files, +159 asserts |
 
-### Native FAT12 Library — `stdlib/fs/fat12.minz`
+### FAT12/16 Filesystem Library — `stdlib/fs/fat12.minz`
 
-Idiomatic Nanz reimplementation of FatFS R0.16 low-level functions. Covers BPB parsing, FAT12 cluster chain traversal, directory entry helpers, and SFN checksum. Designed for embedded/retro targets (Z80, eZ80, 6502).
+Full read-write FAT filesystem library in idiomatic Nanz. Supports FAT12 and FAT16 volumes with automatic type detection at mount time. Designed for embedded/retro targets (Z80, eZ80, 6502).
+
+**Read API:** `fat_mount`, `find_file`, `file_read`, `read_named_file`, `count_dir_entries`, `get_dir_entry`
+
+**Write API:** `create_file`, `delete_file`, `overwrite_file`, `fat_sync`
+
+**Internal:** `write_fat12` (12-bit packed read-modify-write), `write_fat16`, `alloc_cluster`, `free_chain`, dirty-tracking sector window + FAT cache with write-back to all FAT copies.
 
 ```nanz
-fun read_fat12(fat: ^u8, clst: u16) -> u16 {
+fun write_fat12(fat: ^u8, clst: u16, val: u16) -> void {
     let half: u16 = clst >> 1
     let ofs: u16 = clst + half
     let raw: u16 = ld_word(fat + ofs)
     let odd: u16 = clst & 1
-    if odd != 0 { return raw >> 4 }
-    return raw & 0x0FFF
+    var new_raw: u16 = 0
+    if odd != 0 {
+        let keep: u16 = raw & 0x000F
+        let shifted: u16 = val << 4
+        new_raw = keep | shifted
+    } else {
+        let keep: u16 = raw & 0xF000
+        let masked: u16 = val & 0x0FFF
+        new_raw = keep | masked
+    }
+    st_word(fat + ofs, new_raw)
 }
 ```
 
-Differential testing proves bit-identical results against the C89 FatFS implementation across all 28 test vectors. MIR2 code quality is comparable — some functions are smaller in Nanz (`sfn_checksum` −1 instruction, `read_fat12` −1), while QBE IL output is 10.9% smaller overall.
+Verified end-to-end: Nanz creates/deletes/overwrites files on a FAT12 image, then gcc-compiled FatFS R0.16 reads the image back and confirms all operations (8/8). Differential testing proves 28/28 bit-identical low-level results vs C89.
 
 ---
 
