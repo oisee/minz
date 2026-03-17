@@ -98,6 +98,87 @@ func SelectInstructions(desc *MachineDesc, ops []MIROp) (*ISelResult, error) {
 	return result, nil
 }
 
+// SelectBlockInstructions performs isel for one block, pre-seeding vreg
+// constraints from block params. Params define vregs that aren't produced
+// by any instruction in the block — they arrive from predecessor edges.
+func SelectBlockInstructions(desc *MachineDesc, ops []MIROp, params []BlockParam) (*ISelResult, error) {
+	result := &ISelResult{
+		VRegAllowed: make(map[int]LocSet),
+	}
+
+	// Track where each vreg currently lives.
+	vregLoc := make(map[int]LocSet)
+
+	// Pre-seed from block params: these vregs are defined on block entry.
+	for _, p := range params {
+		allowed := p.Allowed
+		if allowed.IsEmpty() {
+			allowed = desc.LocsOfWidth(desc.WordSize)
+		}
+		result.VRegAllowed[p.VReg] = allowed
+		vregLoc[p.VReg] = allowed
+	}
+
+	movePat := findMovePat(desc, 8)
+
+	for i, op := range ops {
+		pat, err := findBestPattern(desc, op)
+		if err != nil {
+			return nil, fmt.Errorf("isel: op %d (%d): %w", i, op.Op, err)
+		}
+
+		// Insert setup moves if needed.
+		for s := 0; s < 2; s++ {
+			if op.Src[s] < 0 {
+				continue
+			}
+			srcAllowed := pat.SrcLocs[s]
+			if srcAllowed.IsEmpty() {
+				continue
+			}
+			curLoc := vregLoc[op.Src[s]]
+			if !curLoc.IsEmpty() && curLoc.And(srcAllowed).IsEmpty() && movePat != nil {
+				newVReg := 1000 + len(result.Insts)
+				moveInst := Inst{
+					Pat:  movePat,
+					Dst:  Operand{VReg: newVReg, Allowed: srcAllowed, Phys: -1},
+					Srcs: [2]Operand{{VReg: op.Src[s], Allowed: curLoc, Phys: -1}},
+				}
+				result.Insts = append(result.Insts, moveInst)
+				result.VRegAllowed[newVReg] = srcAllowed
+				vregLoc[newVReg] = srcAllowed
+				op.Src[s] = newVReg
+			}
+		}
+
+		inst := Inst{
+			Pat: pat,
+			Imm: op.Imm,
+		}
+
+		if op.Dst >= 0 {
+			allowed := pat.DstLocs
+			inst.Dst = Operand{VReg: op.Dst, Allowed: allowed, Phys: -1}
+			result.VRegAllowed[op.Dst] = allowed
+			vregLoc[op.Dst] = allowed
+		}
+
+		for s := 0; s < 2; s++ {
+			if op.Src[s] >= 0 {
+				allowed := pat.SrcLocs[s]
+				inst.Srcs[s] = Operand{VReg: op.Src[s], Allowed: allowed, Phys: -1}
+				if _, ok := result.VRegAllowed[op.Src[s]]; !ok {
+					result.VRegAllowed[op.Src[s]] = allowed
+				}
+			}
+		}
+
+		result.Insts = append(result.Insts, inst)
+	}
+
+	return result, nil
+}
+
 func findMovePat(desc *MachineDesc, width int) *Pattern {
 	for i := range desc.Patterns {
 		p := &desc.Patterns[i]

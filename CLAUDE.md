@@ -35,16 +35,18 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 
 ### 4. LIR Backend (Constraint-Based Codegen)
 **Status:** 🚧 94.6% corpus pass rate, running in parallel with production Z80Codegen.
-- **Branch:** `feat/lir-backend` (14 commits, ~6100 LOC)
+- **Branch:** `feat/lir-backend` (15+ commits, ~6500 LOC)
 - **Pipeline:** MIR2 → Bridge → Combine(ISLE) → isel(PatternTable) → WFC(regalloc) → emit
 - **ISLE combining:** load16_le fusion (FatFS ld_word: 8→2 ops), MUL strength reduction
-- **WFC:** Forward+backward+vreg-consistency propagation, spill recovery via dimension expansion
+- **WFC Dimension 1:** Forward+backward+vreg-consistency propagation, spill recovery via dimension expansion
+- **WFC Dimension 2 (NEW):** Inter-block constraint propagation across CFG edges — `ProgWFC` with RPO collapse, back-edge fixpoint, zero parallel copies on GCD
 - **Loop rotation:** while→DJNZ (sub absorbed into terminator)
 - **Z80 descriptor:** 18 locs, 29+ patterns, DD/FD prefix rules, composite 16-bit ops
 - **4-way convergence:** RISC32 = RISC8 = CISC = Z80 for correctness verification
 - **Corpus:** C89 97.2%, Nanz 86.4%, Lizp 86.0%, Lanz 100%
-- **Remaining:** non-constant MUL (needs runtime CALL), inter-block WFC, CLI flag
-- See [ADR-0033](docs/adr/0033-lir-pipeline-integration.md)
+- **Multi-block:** `LowerMIR2Prog` preserves block structure, `SelectBlockInstructions` with param pre-seeding, `ProgWFC` inter-block alloc, multi-block asm emission with JP/JP NZ/DJNZ/RET
+- **Remaining:** non-constant MUL (needs runtime CALL), CLI flag, CISC/Z80 multi-block testing
+- See [ADR-0033](docs/adr/0033-lir-pipeline-integration.md), [Report 091](reports/2026-03-17-091-Inter-Block-WFC.md)
 
 ### 5. LSP / DAP / Developer Tooling
 **Status:** Not started. Planned after core language stability.

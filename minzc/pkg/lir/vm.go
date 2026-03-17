@@ -168,6 +168,9 @@ func (vm *VM) ExecProg(prog *Prog) ([]uint64, error) {
 
 		// Execute all instructions in this block
 		for i := range b.Insts {
+			if b.Insts[i].Pat == nil {
+				continue // skip synthetic param-def cells
+			}
 			if err := vm.ExecInst(&b.Insts[i]); err != nil {
 				return nil, fmt.Errorf("block %s inst %d: %w", b.Label, i, err)
 			}
@@ -187,8 +190,7 @@ func (vm *VM) ExecProg(prog *Prog) ([]uint64, error) {
 			if len(term.Targets) == 0 {
 				return nil, fmt.Errorf("block %s: jump with no target", b.Label)
 			}
-			// Copy block arguments
-			vm.copyBlockArgs(term, 0)
+			vm.copyBlockArgs(prog, term, 0, blockMap)
 			idx, ok := blockMap[term.Targets[0]]
 			if !ok {
 				return nil, fmt.Errorf("block %s: jump to unknown %s", b.Label, term.Targets[0])
@@ -201,10 +203,10 @@ func (vm *VM) ExecProg(prog *Prog) ([]uint64, error) {
 			}
 			cond := vm.Get(term.Cond.Phys)
 			if cond != 0 {
-				vm.copyBlockArgs(term, 0)
+				vm.copyBlockArgs(prog, term, 0, blockMap)
 				cur = blockMap[term.Targets[0]] // then
 			} else {
-				vm.copyBlockArgs(term, 1)
+				vm.copyBlockArgs(prog, term, 1, blockMap)
 				cur = blockMap[term.Targets[1]] // else
 			}
 
@@ -217,10 +219,10 @@ func (vm *VM) ExecProg(prog *Prog) ([]uint64, error) {
 			counter--
 			vm.Set(term.Counter.Phys, counter)
 			if counter != 0 {
-				vm.copyBlockArgs(term, 0)
+				vm.copyBlockArgs(prog, term, 0, blockMap)
 				cur = blockMap[term.Targets[0]] // body (loop back)
 			} else {
-				vm.copyBlockArgs(term, 1)
+				vm.copyBlockArgs(prog, term, 1, blockMap)
 				cur = blockMap[term.Targets[1]] // exit
 			}
 
@@ -239,14 +241,36 @@ func (vm *VM) ExecProg(prog *Prog) ([]uint64, error) {
 	return nil, fmt.Errorf("fuel exhausted (infinite loop?)")
 }
 
-// copyBlockArgs copies block argument values for edge idx.
-// This implements the MIR2 block-argument passing semantics.
-func (vm *VM) copyBlockArgs(term *Term, edgeIdx int) {
-	if edgeIdx >= len(term.Args) {
+// copyBlockArgs implements parallel-copy semantics for block argument passing.
+// It reads ALL source values first, then writes ALL destinations, so that
+// overlapping src/dst registers (e.g. swap) work correctly.
+func (vm *VM) copyBlockArgs(prog *Prog, term *Term, edgeIdx int, blockMap map[string]int) {
+	if edgeIdx >= len(term.Args) || edgeIdx >= len(term.Targets) {
 		return
 	}
-	// Block args are pairs: [dst_phys, src_phys] encoded as Operands.
-	// We just copy each arg's value to the corresponding block param's location.
-	// In practice, the args ARE the block params — their Phys field is the target.
-	// For now, args are pre-resolved: each Operand has a Phys that holds the value.
+	args := term.Args[edgeIdx]
+	targetLabel := term.Targets[edgeIdx]
+	targetIdx, ok := blockMap[targetLabel]
+	if !ok {
+		return
+	}
+	targetBlock := &prog.Blocks[targetIdx]
+	if len(args) == 0 || len(targetBlock.Params) == 0 {
+		return
+	}
+
+	// Phase 1: read all source values
+	n := len(args)
+	if n > len(targetBlock.Params) {
+		n = len(targetBlock.Params)
+	}
+	vals := make([]uint64, n)
+	for i := 0; i < n; i++ {
+		vals[i] = vm.Get(args[i].Phys)
+	}
+
+	// Phase 2: write all destination values
+	for i := 0; i < n; i++ {
+		vm.Set(targetBlock.Params[i].Phys, vals[i])
+	}
 }

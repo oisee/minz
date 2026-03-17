@@ -190,9 +190,20 @@ type Prog struct {
 
 // Block is a basic block of LIR instructions.
 type Block struct {
-	Label string
-	Insts []Inst
-	Term  Term // terminator (jump, branch, return)
+	Label  string
+	Params []BlockParam // formal block parameters (define vregs on entry)
+	Insts  []Inst
+	Term   Term // terminator (jump, branch, return)
+}
+
+// BlockParam is a formal parameter of a basic block.
+// When control flows into this block, the caller passes a value via the
+// corresponding Term.Args edge. The WFC allocator propagates LocSet
+// constraints across edges so that caller and callee agree on registers.
+type BlockParam struct {
+	VReg    int    // virtual register defined by this param
+	Allowed LocSet // allowed physical locations (narrowed by WFC)
+	Phys    int    // assigned physical location (-1 = unassigned)
 }
 
 // Inst is one LIR instruction — a pattern instantiation with concrete operands.
