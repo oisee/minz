@@ -33,7 +33,20 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - ✅ **BUG-004** Non-zero-lo LUT pipeline ordering — fixed 2026-03-12
 - ✅ **BUG-005** `applySubSwapNeg` u16 guard — fixed 2026-03-12
 
-### 4. LSP / DAP / Developer Tooling
+### 4. LIR Backend (Constraint-Based Codegen)
+**Status:** 🚧 94.6% corpus pass rate, running in parallel with production Z80Codegen.
+- **Branch:** `feat/lir-backend` (14 commits, ~6100 LOC)
+- **Pipeline:** MIR2 → Bridge → Combine(ISLE) → isel(PatternTable) → WFC(regalloc) → emit
+- **ISLE combining:** load16_le fusion (FatFS ld_word: 8→2 ops), MUL strength reduction
+- **WFC:** Forward+backward+vreg-consistency propagation, spill recovery via dimension expansion
+- **Loop rotation:** while→DJNZ (sub absorbed into terminator)
+- **Z80 descriptor:** 18 locs, 29+ patterns, DD/FD prefix rules, composite 16-bit ops
+- **4-way convergence:** RISC32 = RISC8 = CISC = Z80 for correctness verification
+- **Corpus:** C89 97.2%, Nanz 86.4%, Lizp 86.0%, Lanz 100%
+- **Remaining:** non-constant MUL (needs runtime CALL), inter-block WFC, CLI flag
+- See [ADR-0033](docs/adr/0033-lir-pipeline-integration.md)
+
+### 5. LSP / DAP / Developer Tooling
 **Status:** Not started. Planned after core language stability.
 
 ---
@@ -132,6 +145,7 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 
 ## 🚧 WIP (In Development)
 
+- **LIR backend**: ISLE combining + WFC regalloc, 94.6% corpus (see §4 above, `feat/lir-backend`)
 - **Iterator chain fusion**: 11/11 E2E correct, fusion optimizer live, ~5x perf overhead (register allocator bottleneck)
 - **Pattern matching**: Syntax parses, codegen partial
 - **@minz[[[...]]]**: Limited compile-time execution
@@ -379,9 +393,10 @@ fun main() {
 | Z80 emulator coverage | 100% (1335/1335 FUSE) |
 | Peephole patterns | 67 (asm) + MIR passes |
 | Production backends | 1 (Z80) + 1 partial (C) + 1 QBE (correctness oracle) + 8 experimental |
+| LIR backend | 94.6% corpus (898/948) — ISLE combining + WFC regalloc, 5 machine descriptors |
 | MIR backend tests | 9/11 pass, 2 known bugs (ADR-0006) |
 | Frontends | 7 (Nanz, C89, PL/M, Lanz, Lizp, Pascal, **ABAP**) — all route through HIR→MIR2→Z80 |
-| C89 corpus | 191/191 asserts, 14 files |
+| C89 corpus | 333/333 asserts, 36 files (MIR2) / 700/720 LIR convergence (97.2%) |
 | ABAP examples | 8 programs (hello, fibonacci, fizzbuzz, guessing, bubblesort, forms, oop, sysinfo) |
 | E2E Z80 tests | 24 (fibonacci, flag-return, div8, div16, mod8, divmod-combined + 6502) |
 | Parser | Participle (native Go, zero deps) |
