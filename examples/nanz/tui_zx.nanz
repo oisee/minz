@@ -1,168 +1,44 @@
-// tui_zx.nanz — TUI demo using native ZX Spectrum ROM print (RST $10)
-//
-// ZX Spectrum control codes via RST 16:
-//   CHR$ 22, y, x  → AT (cursor position)
-//   CHR$ 16, ink    → INK color (0-7)
-//   CHR$ 17, paper  → PAPER color (0-7)
-//   CHR$ 19, 0/1    → BRIGHT off/on
-//   CHR$ 13         → newline
-//
-// Compile: minzc tui_zx.nanz -o tui_zx.a80 && mza tui_zx.a80 -o tui_zx.bin
-// Run:     mze tui_zx.bin (ZX Spectrum mode, default)
-// MZV:     mzv --zx examples/nanz/tui_zx.nanz
-
-// ── ZX ROM print: RST $10 ────────────────────────────────────
-
-fun _zx_print(ch: u8) -> void {
-    asm z80 (in ch) {
-        RST 0x10
-    }
+fun _p(ch: u8) -> void {
+    asm z80 (in ch) { RST 0x10 }
 }
-
-// ── TUI primitives via ZX ROM codes ──────────────────────────
-
-// AT y, x — cursor position (0-based)
-fun tui_goto(x: u8, y: u8) -> void {
-    _zx_print(22)    // AT control code
-    _zx_print(y)
-    _zx_print(x)
-}
-
-// INK + PAPER + BRIGHT
-fun tui_color(fg: u8, bg: u8, bright: u8) -> void {
-    _zx_print(16)    // INK
-    _zx_print(fg)
-    _zx_print(17)    // PAPER
-    _zx_print(bg)
-    _zx_print(19)    // BRIGHT
-    _zx_print(bright)
-}
-
-// Reset to default: white ink, black paper, bright off
-fun tui_reset() -> void {
-    _zx_print(16)    // INK
-    _zx_print(7)     // white
-    _zx_print(17)    // PAPER
-    _zx_print(0)     // black
-    _zx_print(19)    // BRIGHT
-    _zx_print(0)     // off
-}
-
-// Clear screen: fill with spaces (ZX ROM CLS equivalent)
-fun tui_clear() -> void {
-    asm z80 {
-        ; Clear attribute area: 768 bytes at 0x5800
-        LD HL, 0x5800
-        LD DE, 0x5801
-        LD BC, 767
-        LD (HL), 0x38    ; white ink, black paper (default)
-        LDIR
-        ; Clear pixel area: 6144 bytes at 0x4000
-        LD HL, 0x4000
-        LD DE, 0x4001
-        LD BC, 6143
-        LD (HL), 0
-        LDIR
-    }
-    tui_goto(0, 0)
-}
-
-// Print character (box-drawing → ASCII fallback)
-fun tui_putch(ch: u8) -> void {
-    if ch == 1 { _zx_print(43) }  // ┌ → +
-    if ch == 2 { _zx_print(43) }  // ┐ → +
-    if ch == 3 { _zx_print(43) }  // └ → +
-    if ch == 4 { _zx_print(43) }  // ┘ → +
-    if ch == 5 { _zx_print(45) }  // ─ → -
-    if ch == 6 { _zx_print(124) } // │ → |
-    if ch > 6 {
-        _zx_print(ch)
-    }
-}
-
-// Print null-terminated string
 fun tui_puts(str: ^u8) -> void {
     asm z80 (in str) {
         .lp: LD A, (HL) / OR A / RET Z
-        RST 0x10
-        INC HL / JR .lp
+        RST 0x10 / INC HL / JR .lp
     }
 }
-
-// Read key (ZX Spectrum: wait for keypress)
-fun tui_read_key() -> u8 {
-    asm z80 (ret A) {
-        ; Wait for key using ROM routine at 0x15D4 (WAIT-KEY)
-        ; Or simple loop: read keyboard port until key pressed
-        .wait: XOR A
-        IN A, (0xFE)   ; read keyboard half-rows
-        CPL             ; invert (0=pressed → 1=pressed)
-        AND 0x1F        ; mask 5 bits
-        JR Z, .wait     ; no key → loop
-        ; Simple: return raw scan code (not ASCII)
-        ; For real use, would need ROM decode routine
-        LD A, 13        ; just return ENTER for demo
-    }
-}
-
-fun tui_width() -> u8 {
-    asm z80 (ret A) { LD A, 32 }
-}
-
-fun tui_height() -> u8 {
-    asm z80 (ret A) { LD A, 24 }
-}
-
-// ── The screen ────────────────────────────────────────────────
-
 fun main() -> void {
-    tui_clear()
-
-    // Title bar: white on blue
-    tui_color(7, 1, 1)
-    tui_goto(0, 0)
+    asm z80 { LD A, 2 / CALL 0x1601 }
+    _p(22) _p(0) _p(0)
+    _p(16) _p(7) _p(17) _p(1) _p(19) _p(1)
     tui_puts(c"  Material Report       ")
-    tui_reset()
-
-    // Fields
-    tui_goto(2, 2)
-    tui_color(5, 0, 0)
+    _p(16) _p(7) _p(17) _p(0) _p(19) _p(0)
+    _p(22) _p(2) _p(1)
+    _p(16) _p(5)
     tui_puts(c"Material  ")
-    tui_color(7, 0, 0)
+    _p(16) _p(7)
     tui_puts(c"[*         ]")
-    tui_reset()
-
-    tui_goto(2, 3)
-    tui_color(5, 0, 0)
+    _p(22) _p(3) _p(1)
+    _p(16) _p(5)
     tui_puts(c"Plant     ")
-    tui_color(7, 0, 0)
+    _p(16) _p(7)
     tui_puts(c"[    ]")
-    tui_reset()
-
-    tui_goto(2, 4)
-    tui_color(5, 0, 0)
+    _p(22) _p(4) _p(1)
+    _p(16) _p(5)
     tui_puts(c"Count     ")
-    tui_color(7, 0, 0)
+    _p(16) _p(7)
     tui_puts(c"[10]")
-    tui_reset()
-
-    // Buttons
-    tui_goto(2, 6)
-    tui_color(0, 7, 1)
+    _p(22) _p(6) _p(1)
+    _p(16) _p(0) _p(17) _p(7) _p(19) _p(1)
     tui_puts(c" Execute ")
-    tui_reset()
-    tui_puts(c"  ")
-    tui_color(7, 0, 1)
+    _p(16) _p(7) _p(17) _p(0) _p(19) _p(0)
+    tui_puts(c" ")
+    _p(16) _p(7) _p(17) _p(0) _p(19) _p(1)
     tui_puts(c" Back ")
-    tui_reset()
-
-    // Status bar
-    tui_color(7, 1, 0)
-    tui_goto(0, 23)
-    tui_puts(c" 5=Exec  3=Back  Enter=Ed")
-    tui_reset()
-
-    // Wait
-    var key: u8 = tui_read_key()
-    tui_clear()
+    _p(16) _p(7) _p(17) _p(0) _p(19) _p(0)
+    _p(22) _p(21) _p(0)
+    _p(16) _p(7) _p(17) _p(1) _p(19) _p(0)
+    tui_puts(c" 5=Exec 3=Back Enter=Ed ")
+    _p(16) _p(7) _p(17) _p(0) _p(19) _p(0)
+    asm z80 { DI / HALT }
 }
