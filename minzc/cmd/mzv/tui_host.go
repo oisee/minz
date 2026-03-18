@@ -3,8 +3,12 @@ package main
 // TUI host functions for MZV — universal terminal rendering.
 //
 // Implements the tui_* @extern functions declared in stdlib/tui/render.nanz.
-// Renders to stderr using ANSI escape sequences so stdout stays clean
-// for program output.
+// Renders to stdout using ANSI escape sequences.
+//
+// Display mode is auto-detected: if any tui_* function is called, MZV enters
+// TUI mode and suppresses the ZX Spectrum frame renderer at exit. Programs
+// use either ZX mode (zx_poke/zx_halt) or TUI mode (tui_goto/tui_putch),
+// never both.
 
 import (
 	"bufio"
@@ -25,10 +29,19 @@ var boxChars = map[byte]string{
 	6: "│", // BOX_V
 }
 
+// tuiActive is set to true when any tui_* host function is called.
+// When true, the ZX Spectrum frame renderer is suppressed at exit.
+var tuiActive bool
+
+// IsTUIActive reports whether the program used TUI mode.
+func IsTUIActive() bool { return tuiActive }
+
 // registerTUIHosts installs tui_* host functions on the VM.
+// Output goes to stdout (the TUI IS the program output).
 func registerTUIHosts(vm *mir2.VM, headless bool, trace bool) {
 	termW := 80
 	termH := 24
+	out := os.Stdout
 
 	// Helper: read null-terminated string from VM heap.
 	readStr := func(ptr int64) string {
@@ -43,52 +56,62 @@ func registerTUIHosts(vm *mir2.VM, headless bool, trace bool) {
 		return string(buf)
 	}
 
+	// mark TUI active on first call
+	activate := func() {
+		tuiActive = true
+	}
+
 	// ── Cursor positioning ──────────────────────────────────────────
 	vm.Hosts["tui_goto"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		activate()
 		x, y := int(args[0].I), int(args[1].I)
-		fmt.Fprintf(os.Stderr, "\033[%d;%dH", y+1, x+1) // ANSI is 1-based
+		fmt.Fprintf(out, "\033[%d;%dH", y+1, x+1) // ANSI is 1-based
 		return nil, nil
 	}
 
 	// ── Color ───────────────────────────────────────────────────────
 	vm.Hosts["tui_color"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		activate()
 		fg, bg, bright := int(args[0].I), int(args[1].I), int(args[2].I)
-		// ANSI: 30-37 fg, 40-47 bg, bright adds 60
 		fgCode := 30 + fg
 		bgCode := 40 + bg
 		if bright != 0 {
 			fgCode += 60
 			bgCode += 60
 		}
-		fmt.Fprintf(os.Stderr, "\033[%d;%dm", fgCode, bgCode)
+		fmt.Fprintf(out, "\033[%d;%dm", fgCode, bgCode)
 		return nil, nil
 	}
 
 	vm.Hosts["tui_reset"] = func(_ []mir2.Value) ([]mir2.Value, error) {
-		fmt.Fprintf(os.Stderr, "\033[0m")
+		activate()
+		fmt.Fprintf(out, "\033[0m")
 		return nil, nil
 	}
 
 	// ── Screen operations ───────────────────────────────────────────
 	vm.Hosts["tui_clear"] = func(_ []mir2.Value) ([]mir2.Value, error) {
-		fmt.Fprintf(os.Stderr, "\033[2J\033[H")
+		activate()
+		fmt.Fprintf(out, "\033[2J\033[H")
 		return nil, nil
 	}
 
 	vm.Hosts["tui_putch"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		activate()
 		ch := byte(args[0].I)
 		if s, ok := boxChars[ch]; ok {
-			fmt.Fprint(os.Stderr, s)
+			fmt.Fprint(out, s)
 		} else {
-			fmt.Fprintf(os.Stderr, "%c", ch)
+			fmt.Fprintf(out, "%c", ch)
 		}
 		return nil, nil
 	}
 
 	vm.Hosts["tui_puts"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		activate()
 		if len(args) > 0 {
 			s := readStr(args[0].I)
-			fmt.Fprint(os.Stderr, s)
+			fmt.Fprint(out, s)
 		}
 		return nil, nil
 	}
@@ -104,12 +127,11 @@ func registerTUIHosts(vm *mir2.VM, headless bool, trace bool) {
 
 	// ── Input ───────────────────────────────────────────────────────
 	vm.Hosts["tui_read_key"] = func(_ []mir2.Value) ([]mir2.Value, error) {
+		activate()
 		if headless {
-			// Headless: auto-execute (F8)
 			return []mir2.Value{{I: 147}}, nil // KEY_F8
 		}
 
-		// Read from stdin
 		buf := make([]byte, 8)
 		n, err := os.Stdin.Read(buf)
 		if err != nil || n == 0 {
@@ -117,7 +139,6 @@ func registerTUIHosts(vm *mir2.VM, headless bool, trace bool) {
 		}
 
 		b := buf[0]
-		// Escape sequence detection
 		if b == 0x1B && n >= 3 && buf[1] == '[' {
 			switch buf[2] {
 			case 'A':
@@ -129,7 +150,6 @@ func registerTUIHosts(vm *mir2.VM, headless bool, trace bool) {
 			case 'D':
 				return []mir2.Value{{I: 130}}, nil // KEY_LEFT
 			}
-			// Function keys: ESC[15~ = F5, ESC[19~ = F8, etc.
 			if n >= 4 && buf[n-1] == '~' {
 				code := string(buf[2 : n-1])
 				switch code {
@@ -152,27 +172,26 @@ func registerTUIHosts(vm *mir2.VM, headless bool, trace bool) {
 			return []mir2.Value{{I: int64(KEY_ESC)}}, nil
 		}
 
-		// Simple key mapping
 		switch b {
 		case 0x1B:
-			return []mir2.Value{{I: 27}}, nil // ESC
+			return []mir2.Value{{I: 27}}, nil
 		case '\r', '\n':
-			return []mir2.Value{{I: 13}}, nil // ENTER
+			return []mir2.Value{{I: 13}}, nil
 		case '\t':
-			return []mir2.Value{{I: 9}}, nil // TAB
+			return []mir2.Value{{I: 9}}, nil
 		case 0x7F, 0x08:
-			return []mir2.Value{{I: 8}}, nil // BACKSPACE
+			return []mir2.Value{{I: 8}}, nil
 		default:
 			return []mir2.Value{{I: int64(b)}}, nil
 		}
 	}
 
 	vm.Hosts["tui_read_line"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		activate()
 		bufPtr := args[0].I
 		maxLen := int(args[1].I)
 
 		if headless {
-			// Headless: try reading from stdin pipe
 			reader := bufio.NewReader(os.Stdin)
 			line, err := reader.ReadString('\n')
 			if err != nil && len(line) == 0 {
@@ -187,12 +206,11 @@ func registerTUIHosts(vm *mir2.VM, headless bool, trace bool) {
 			return []mir2.Value{{I: int64(len(line))}}, nil
 		}
 
-		// Interactive: simple line read
-		fmt.Fprint(os.Stderr, "\033[?25h") // show cursor
+		fmt.Fprint(out, "\033[?25h") // show cursor
 		reader := bufio.NewReader(os.Stdin)
 		line, _ := reader.ReadString('\n')
 		line = strings.TrimRight(line, "\r\n")
-		fmt.Fprint(os.Stderr, "\033[?25l") // hide cursor
+		fmt.Fprint(out, "\033[?25l") // hide cursor
 
 		if len(line) > maxLen {
 			line = line[:maxLen]

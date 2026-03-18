@@ -246,8 +246,10 @@ func main() {
 	_, err = vm.Call("main", nil)
 	fmt.Fprintf(os.Stderr, "mzv: exited after %d frames\n", frameCount)
 
-	// In headless mode, render final frame to stdout + dump summary to stderr.
-	if *headless {
+	// In headless mode, render final ZX Spectrum frame — but only if the program
+	// actually used ZX mode (wrote to zx_poke / called zx_halt). TUI programs and
+	// ABAP console programs don't need the pixel frame dump.
+	if *headless && !IsTUIActive() && frameCount > 0 {
 		renderFrame(&zxMem)
 
 		nonZero := 0
