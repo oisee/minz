@@ -1,89 +1,201 @@
-// stdlib/tui/render — Low-level TUI rendering primitives
+// stdlib/tui/render — TUI rendering primitives (multi-backend)
 //
-// All rendering goes through @extern host functions. On MZV these are
-// implemented in Go (tui_host.go). On CP/M they emit VT100 escape sequences
-// via BDOS. On Agon they use VDP commands.
+// Each function has a Z80 body (CP/M BDOS + VT100 escape sequences).
+// On MZV, host functions intercept the calls before the Z80 body runs.
+// On CP/M, the asm bodies execute directly — VT100 is standard.
+// On ZX Spectrum, these would be replaced with attribute-based rendering.
 //
-// The host abstraction means: one Nanz program, all platforms.
+// The asm bodies also serve as anti-inlining barriers (OpAsm prevents
+// InlineTrivial from eliminating host-overridable calls).
 
 // =============================================================================
-// Host functions — implemented per-backend
+// Internal: BDOS helpers
 // =============================================================================
 
-// Position cursor at (x, y) — 0-based
-@extern fun tui_goto(x: u8, y: u8) -> void
+// BDOS putchar (function 2, char in E)
+fun _tui_bdos_putchar(ch: u8) -> void {
+    asm z80 (in ch) {
+        LD E, A
+        LD C, 2
+        CALL 5
+    }
+}
 
-// Set text color: fg (0-7), bg (0-7), bright (0 or 1)
-@extern fun tui_color(fg: u8, bg: u8, bright: u8) -> void
+// Print ESC (0x1B)
+fun _tui_esc() -> void {
+    asm z80 {
+        LD E, 0x1B
+        LD C, 2
+        CALL 5
+    }
+}
 
-// Reset colors to default
-@extern fun tui_reset() -> void
-
-// Clear the entire screen
-@extern fun tui_clear() -> void
-
-// Print a single character at current cursor position
-@extern fun tui_putch(ch: u8) -> void
-
-// Print a null-terminated string at current cursor position
-@extern fun tui_puts(str: ^u8) -> void
-
-// Read one key (blocking). Returns KEY_* constant.
-@extern fun tui_read_key() -> u8
-
-// Read a line of text into buffer. Returns actual length.
-@extern fun tui_read_line(buf: ^u8, maxlen: u8) -> u8
-
-// Get terminal dimensions
-@extern fun tui_width() -> u8
-@extern fun tui_height() -> u8
+// Print u8 as decimal (for ANSI escape sequences: row/col numbers)
+fun _tui_print_dec(val: u8) -> void {
+    asm z80 (in val) {
+        ; A = val (0-255)
+        LD B, A
+        ; Hundreds digit
+        LD C, 0
+        .hloop: CP 100 / JR C, .hdone / SUB 100 / INC C / JR .hloop
+        .hdone:
+        LD B, A
+        LD A, C / OR A / JR Z, .skip_h
+        ADD A, 48 / LD E, A / PUSH BC / LD C, 2 / CALL 5 / POP BC
+        .skip_h:
+        ; Tens digit
+        LD A, B / LD C, 0
+        .tloop: CP 10 / JR C, .tdone / SUB 10 / INC C / JR .tloop
+        .tdone:
+        LD B, A
+        LD A, C / ADD A, 48 / LD E, A / PUSH BC / LD C, 2 / CALL 5 / POP BC
+        ; Units digit
+        LD A, B / ADD A, 48 / LD E, A / LD C, 2 / CALL 5
+    }
+}
 
 // =============================================================================
-// Box drawing (uses host putch for portability)
+// TUI primitives — Z80 body (CP/M) + MZV host override
 // =============================================================================
 
-// Box-drawing character codes (Unicode → sent as multi-byte by host)
-const BOX_TL: u8 = 1;   // ┌
-const BOX_TR: u8 = 2;   // ┐
-const BOX_BL: u8 = 3;   // └
-const BOX_BR: u8 = 4;   // ┘
-const BOX_H:  u8 = 5;   // ─
-const BOX_V:  u8 = 6;   // │
+// Position cursor at (x, y) — 0-based.
+// Emits: ESC [ (y+1) ; (x+1) H
+fun tui_goto(x: u8, y: u8) -> void {
+    _tui_esc()
+    _tui_bdos_putchar(91)    // [
+    _tui_print_dec(y + 1)
+    _tui_bdos_putchar(59)    // ;
+    _tui_print_dec(x + 1)
+    _tui_bdos_putchar(72)    // H
+}
+
+// Set text color: fg (0-7), bg (0-7), bright (0 or 1).
+// Emits: ESC [ (30+fg) ; (40+bg) m   (bright adds 60)
+fun tui_color(fg: u8, bg: u8, bright: u8) -> void {
+    var fg_code: u8 = 30 + fg
+    var bg_code: u8 = 40 + bg
+    if bright != 0 {
+        fg_code = fg_code + 60
+        bg_code = bg_code + 60
+    }
+    _tui_esc()
+    _tui_bdos_putchar(91)    // [
+    _tui_print_dec(fg_code)
+    _tui_bdos_putchar(59)    // ;
+    _tui_print_dec(bg_code)
+    _tui_bdos_putchar(109)   // m
+}
+
+// Reset colors to default. Emits: ESC [ 0 m
+fun tui_reset() -> void {
+    _tui_esc()
+    _tui_bdos_putchar(91)    // [
+    _tui_bdos_putchar(48)    // 0
+    _tui_bdos_putchar(109)   // m
+}
+
+// Clear the entire screen. Emits: ESC [ 2 J  ESC [ H
+fun tui_clear() -> void {
+    _tui_esc()
+    _tui_bdos_putchar(91)    // [
+    _tui_bdos_putchar(50)    // 2
+    _tui_bdos_putchar(74)    // J
+    _tui_esc()
+    _tui_bdos_putchar(91)    // [
+    _tui_bdos_putchar(72)    // H
+}
+
+// Print a single character. Codes 1-6 → box-drawing (ASCII fallback on CP/M).
+fun tui_putch(ch: u8) -> void {
+    if ch == 1 { _tui_bdos_putchar(43) }  // ┌ → +
+    if ch == 2 { _tui_bdos_putchar(43) }  // ┐ → +
+    if ch == 3 { _tui_bdos_putchar(43) }  // └ → +
+    if ch == 4 { _tui_bdos_putchar(43) }  // ┘ → +
+    if ch == 5 { _tui_bdos_putchar(45) }  // ─ → -
+    if ch == 6 { _tui_bdos_putchar(124) } // │ → |
+    if ch > 6 {
+        _tui_bdos_putchar(ch)
+    }
+}
+
+// Print a null-terminated string.
+fun tui_puts(str: ^u8) -> void {
+    asm z80 (in str) {
+        .loop: LD A, (HL) / OR A / RET Z
+        LD E, A / PUSH HL / LD C, 2 / CALL 5 / POP HL / INC HL
+        JR .loop
+    }
+}
+
+// Read one key (blocking). BDOS function 1.
+fun tui_read_key() -> u8 {
+    asm z80 (ret A) {
+        LD C, 1
+        CALL 5
+    }
+}
+
+// Read a line into buffer. BDOS function 0x0A. Returns actual length.
+fun tui_read_line(buf: ^u8, maxlen: u8) -> u8 {
+    asm z80 (in buf, maxlen) (ret A) {
+        ; buf in HL, maxlen routed via calling convention
+        ; BDOS 0x0A: DE→[maxlen, actual, chars...]
+        ; We put maxlen at (HL), then call BDOS with DE=HL
+        PUSH HL
+        LD (HL), A    ; maxlen at buf[0] (A = maxlen from 2nd param)
+        EX DE, HL
+        LD C, 10
+        CALL 5
+        POP HL
+        INC HL
+        LD A, (HL)    ; actual length at buf[1]
+    }
+}
+
+// Terminal dimensions (CP/M standard: 80x24).
+fun tui_width() -> u8 {
+    asm z80 (ret A) { LD A, 80 }
+}
+
+fun tui_height() -> u8 {
+    asm z80 (ret A) { LD A, 24 }
+}
+
+// =============================================================================
+// Box drawing helpers
+// =============================================================================
 
 // Draw a box outline at (x, y) with size (w, h)
 fun draw_box(x: u8, y: u8, w: u8, h: u8) -> void {
-    // Top edge
     tui_goto(x, y)
-    tui_putch(BOX_TL)
+    tui_putch(1)
     var i: u8 = 0
     while i < w - 2 {
-        tui_putch(BOX_H)
+        tui_putch(5)
         i = i + 1
     }
-    tui_putch(BOX_TR)
+    tui_putch(2)
 
-    // Sides
     var row: u8 = 1
     while row < h - 1 {
         tui_goto(x, y + row)
-        tui_putch(BOX_V)
+        tui_putch(6)
         tui_goto(x + w - 1, y + row)
-        tui_putch(BOX_V)
+        tui_putch(6)
         row = row + 1
     }
 
-    // Bottom edge
     tui_goto(x, y + h - 1)
-    tui_putch(BOX_BL)
+    tui_putch(3)
     i = 0
     while i < w - 2 {
-        tui_putch(BOX_H)
+        tui_putch(5)
         i = i + 1
     }
-    tui_putch(BOX_BR)
+    tui_putch(4)
 }
 
-// Fill a rectangle with spaces (clear region)
+// Fill rectangle with spaces
 fun clear_rect(x: u8, y: u8, w: u8, h: u8) -> void {
     var row: u8 = 0
     while row < h {
@@ -97,17 +209,7 @@ fun clear_rect(x: u8, y: u8, w: u8, h: u8) -> void {
     }
 }
 
-// Draw a horizontal line of repeated character
-fun draw_hline(x: u8, y: u8, w: u8, ch: u8) -> void {
-    tui_goto(x, y)
-    var i: u8 = 0
-    while i < w {
-        tui_putch(ch)
-        i = i + 1
-    }
-}
-
-// Print a string padded/truncated to exactly `width` chars
+// Print string padded to width
 fun puts_padded(str: ^u8, width: u8) -> void {
     var i: u8 = 0
     var ptr: ^u8 = str
