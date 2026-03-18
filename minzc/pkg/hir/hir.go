@@ -214,6 +214,8 @@ func (*ExprStmt) hirStmt() {}
 type ForEachStmt struct {
 	Var           string  // element variable name (bound in body)
 	ElemTy        mir2.Ty // type of each element
+	ElemStride    int     // override stride in bytes (0 = use ByteWidth(ElemTy))
+	PtrIter       bool    // if true: bind Var to pointer (not loaded value) — for struct iteration
 	Ptr           Expr    // base pointer (TyPtr)
 	Start         Expr    // start index (often IntLitExpr{0})
 	Len           Expr    // element count (= end - start when start=0)

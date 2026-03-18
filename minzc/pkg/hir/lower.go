@@ -1260,6 +1260,9 @@ func (l *lowerer) lowerForRange(st *ForRangeStmt) {
 func (l *lowerer) lowerForEach(st *ForEachStmt) {
 	envBefore := cloneMap(l.env)
 	stride := int64(mir2.ByteWidth(st.ElemTy))
+	if st.ElemStride > 0 {
+		stride = int64(st.ElemStride)
+	}
 	if stride < 1 {
 		stride = 1
 	}
@@ -1319,9 +1322,14 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 	l.bld.SwitchToNewBlock(bodyLabel)
 	l.env = cloneMap(headEnv)
 
-	// Load element: x = *ptr
-	xReg := l.bld.Load(headPtr, st.ElemTy, classForExpr(st.ElemTy))
-	l.bind(st.Var, xReg, st.ElemTy)
+	// Load element: x = *ptr (or x = ptr for struct pointer iteration)
+	if st.PtrIter {
+		// Pointer iteration: x IS the pointer, not a loaded value
+		l.bind(st.Var, headPtr, mir2.TyPtr)
+	} else {
+		xReg := l.bld.Load(headPtr, st.ElemTy, classForExpr(st.ElemTy))
+		l.bind(st.Var, xReg, st.ElemTy)
+	}
 
 	// ContinueStmt jumps to fe_cont (not fe_head) so ptr/cnt are advanced first.
 	prevInLoopCtx2 := l.inLoopContext

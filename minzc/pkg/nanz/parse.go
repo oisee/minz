@@ -2650,12 +2650,53 @@ func (p *parser) parseFor() (hir.Stmt, error) {
 	}
 
 	// Optional explicit element type: for x: T in ...
+	// If T is ^StructName, we set elemStride = sizeof(StructName) for
+	// pointer-to-struct iteration (e.g. for node: ^BlockNode in nodes[0..n]).
 	var elemTy mir2.Ty = mir2.TyU8
+	var elemStride int
+	var ptrStructName string // for tracking struct pointer receiver
 	if p.l.is(tokColon) {
 		p.l.next()
-		elemTy, err = p.parseType()
-		if err != nil {
-			return nil, err
+		// Check for ^StructName specifically
+		if p.l.is(tokCaret) {
+			saved := p.l.save()
+			p.l.next() // consume ^
+			if p.l.peek().kind == tokIdent {
+				name := p.l.peek().val
+				if st, ok := p.structs[name]; ok {
+					// Pointer to known struct — compute stride
+					p.l.next() // consume struct name
+					elemTy = mir2.TyPtr
+					ptrStructName = name
+					// sizeof(struct) = sum of field widths
+					stride := 0
+					for _, f := range st.Fields {
+						w := mir2.ByteWidth(f.Ty)
+						if w < 1 {
+							w = 1
+						}
+						stride += w
+					}
+					elemStride = stride
+				} else {
+					p.l.restore(saved)
+					elemTy, err = p.parseType()
+					if err != nil {
+						return nil, err
+					}
+				}
+			} else {
+				p.l.restore(saved)
+				elemTy, err = p.parseType()
+				if err != nil {
+					return nil, err
+				}
+			}
+		} else {
+			elemTy, err = p.parseType()
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -2706,12 +2747,20 @@ func (p *parser) parseFor() (hir.Stmt, error) {
 		} else {
 			lenExpr = &hir.BinExpr{Op: "-", L: endExpr, R: startExpr, Ty: endExpr.ExprTy()}
 		}
+		// Register the loop variable BEFORE parsing the body so field access works
+		if ptrStructName != "" {
+			p.varTypes[varTok.val] = mir2.TyPtr
+			p.varPtrElem[varTok.val] = p.structs[ptrStructName]
+		} else {
+			p.varTypes[varTok.val] = elemTy
+		}
 		body, err := p.parseBlock()
 		if err != nil {
 			return nil, err
 		}
 		return &hir.ForEachStmt{
-			Var: varTok.val, ElemTy: elemTy,
+			Var: varTok.val, ElemTy: elemTy, ElemStride: elemStride,
+			PtrIter: ptrStructName != "",
 			Ptr: base, Start: startExpr, Len: lenExpr,
 			Body: body,
 		}, nil
@@ -4141,6 +4190,29 @@ func (p *parser) captureMetaFuncSource(name string) (string, error) {
 	sb.WriteString("@extern fun emit_tui_goto(x: u8, y: u8) -> void\n")
 	sb.WriteString("@extern fun emit_tui_color(fg: u8, bg: u8, bright: u8) -> void\n")
 	sb.WriteString("\n")
+
+	// Include any structs already declared in the module so the metafunction
+	// can reference them (e.g. for node: ^BlockNode in nodes[0..n]).
+	for _, st := range p.module.Structs {
+		sb.WriteString(fmt.Sprintf("struct %s {\n", st.Name))
+		for _, f := range st.Fields {
+			tyName := "u8"
+			switch f.Ty {
+			case mir2.TyU16:
+				tyName = "u16"
+			case mir2.TyI8:
+				tyName = "i8"
+			case mir2.TyI16:
+				tyName = "i16"
+			case mir2.TyBool:
+				tyName = "bool"
+			case mir2.TyPtr:
+				tyName = "^u8"
+			}
+			sb.WriteString(fmt.Sprintf("    %s: %s\n", f.Name, tyName))
+		}
+		sb.WriteString("}\n\n")
+	}
 
 	// Record the start position (current token) in the raw source.
 	// We scan forward to find the balanced closing brace, then extract

@@ -1,8 +1,8 @@
 // meta_screen.nanz — Level 3 declarative TUI via compile-time metafunction
 //
 // The @screen metafunction runs on the MIR2 VM at compile time.
-// It receives a DSL block { field "X", button "Y" } as structured data,
-// iterates the nodes with for..in range, and emits idiomatic Nanz TUI code.
+// Block nodes are a BlockNode struct array on the VM heap — iterated
+// with native Nanz pointer-to-struct `for node: ^BlockNode in nodes[0..n]`.
 //
 // Run: echo "" | mzv -H examples/nanz/meta_screen.nanz
 
@@ -13,10 +13,20 @@
 @extern fun tui_reset() -> void
 @extern fun tui_read_key() -> u8
 
+// ── BlockNode struct: matches 8-byte layout on VM heap ───────
+struct BlockNode {
+    keyword: ^u8
+    label:   ^u8
+    value:   ^u8
+    length:  u8
+    fkey:    u8
+}
+
 // ── @screen metafunction ─────────────────────────────────────
 //
-// Runs at compile time. Uses high-level emit helpers (emit_tui_*)
-// and for..in range iteration over block nodes.
+// Iterates block as ^BlockNode array using native struct pointer
+// iteration. No host function calls for field access — just
+// node.keyword, node.label, etc.
 
 fun @screen(title: ^u8) -> void {
     emit(c"fun _generated_screen() -> void {")
@@ -28,26 +38,29 @@ fun @screen(title: ^u8) -> void {
     emit_tui_puts(str_concat(c"  ", title))
     emit(c"    tui_reset()")
 
-    // Each block node → field or button
-    for i in 0..block_len() {
-        var kw: ^u8 = node_keyword(i)
-        var label: ^u8 = node_arg_str(i, 0)
+    // Iterate block nodes as typed struct pointers
+    var nodes: ^BlockNode = block_nodes()
+    var n: u8 = block_len()
+    var row: u8 = 2
 
-        if str_eq(kw, c"field") == 1 {
-            emit_tui_goto(2, i + 2)
+    for node: ^BlockNode in nodes[0..n] {
+        if str_eq(node.keyword, c"field") == 1 {
+            emit_tui_goto(2, row)
             emit_tui_color(6, 0, 0)
-            emit_tui_puts(str_concat(label, c"    "))
+            emit_tui_puts(str_concat(node.label, c"    "))
             emit_tui_color(7, 0, 0)
             emit_tui_puts(c"[__________]")
             emit(c"    tui_reset()")
         }
 
-        if str_eq(kw, c"button") == 1 {
-            emit_tui_goto(2, i + 2)
+        if str_eq(node.keyword, c"button") == 1 {
+            emit_tui_goto(2, row)
             emit_tui_color(0, 7, 1)
-            emit_tui_puts(str_concat(c"[", str_concat(label, c"]")))
+            emit_tui_puts(str_concat(c"[", str_concat(node.label, c"]")))
             emit(c"    tui_reset()")
         }
+
+        row = row + 1
     }
 
     emit(c"    var key: u8 = tui_read_key()")
@@ -57,8 +70,6 @@ fun @screen(title: ^u8) -> void {
 }
 
 // ── Declarative usage ─────────────────────────────────────────
-// This block is parsed as DATA. The compiler passes it to fun @screen
-// which generates _generated_screen() at compile time.
 
 @screen("Material Report") {
     field "Material"
