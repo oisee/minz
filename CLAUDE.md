@@ -46,8 +46,9 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - **ISLE combining:** load16_le fusion (FatFS ld_word: 8→2 ops), MUL strength reduction
 - **WFC Dimension 2:** Inter-block constraint propagation across CFG edges — `ProgWFC` with RPO collapse, back-edge fixpoint
 - **Z80 descriptor:** 22 locs (GPR + IX/IY halves + spill), 41+ patterns, DD/FD prefix rules
-- **Corpus:** C89 94.6%, Nanz 84.6%, Lizp 86.0%, Lanz 100%
-- **Remaining:** EXX shadow regs (L3), 16-bit move patterns, iterative WFC for >4 live-across-call vregs
+- **Corpus:** C89 **100%** (720/720), Lizp **100%**, Lanz **100%**, Nanz **90.1%** (only 32-bit arena)
+- **Runtime:** `__mul8` (A×B→A, ~80T), `__mul16` (HL×DE→HL, ~200T) — shared routines, emitted once per module
+- **Remaining:** EXX shadow regs (L3, Nanz 32-bit LocDWord), ISLE const-MUL reduction, production switch
 - See [Report 093](reports/2026-03-18-093-LIR-PBQP-WFC-Guided-Regalloc.md), [ADR-0033](docs/adr/0033-lir-pipeline-integration.md)
 
 ### 5. LSP / DAP / Developer Tooling
@@ -397,7 +398,7 @@ fun main() {
 | Z80 emulator coverage | 100% (1335/1335 FUSE) |
 | Peephole patterns | 67 (asm) + MIR passes |
 | Production backends | 1 (Z80) + 1 partial (C) + 1 QBE (correctness oracle) + 8 experimental |
-| LIR backend | 94.6% C89 corpus (681/720) — PBQP→WFC guided regalloc, IXH/IXL spill, tail call opt, 5 machine descriptors |
+| LIR backend | **100% C89** (720/720), 100% Lizp, 100% Lanz, 90.1% Nanz — PBQP→WFC guided regalloc, IXH/IXL spill, __mul8/__mul16 runtime |
 | MIR backend tests | 9/11 pass, 2 known bugs (ADR-0006) |
 | Frontends | 7 (Nanz, C89, PL/M, Lanz, Lizp, Pascal, **ABAP**) — all route through HIR→MIR2→Z80 |
 | C89 corpus | 333/333 asserts, 36 files (MIR2) / 700/720 LIR convergence (97.2%) |

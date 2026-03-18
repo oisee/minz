@@ -16,21 +16,23 @@
 
 ---
 
-### ★ [LIR Backend: PBQP + WFC Guided Register Allocation](reports/2026-03-18-093-LIR-PBQP-WFC-Guided-Regalloc.md)
+### ★ [LIR Backend Hits 100% C89 Corpus](reports/2026-03-18-094-LIR-100-Percent-C89-Corpus.md)
 
-**9 commits, from wrong code to production-matching output.** The LIR backend now synthesizes two register allocators: PBQP (global strategist) provides allocation hints, WFC (local tactician) enforces Z80-specific constraints.
+**12 commits, from wrong code to 100% corpus.** The LIR backend synthesizes PBQP (global strategist) + WFC (local tactician) for register allocation, producing **production-matching output**.
 
-| Feature | Before | After |
-|---------|--------|-------|
-| `add(a, b)` | `ADD A, A` (wrong) | `ADD A, C` (= production) |
-| `compute(a,b) = (a+b)+(a&b)` | wrong result | 9 insts, **correct** |
-| Tail call `main() { putchar(65) }` | `CALL; RET` (27T) | `JP putchar` (10T, **-63%**) |
-| Values across CALL | clobbered | **survive in IXH/IXL** (8T) |
-| Corpus (C89, 720 funcs) | 0% codegen | **94.6%** convergence |
+| Metric | Start of session | End of session |
+|--------|-----------------|----------------|
+| C89 corpus (720 funcs ×3 machines) | 0% codegen | **100.0%** |
+| Lizp corpus | 86.0% | **100.0%** |
+| Nanz corpus | 86.4% | **90.1%** (only 32-bit arena) |
+| Leaf function quality | wrong (`ADD A,A`) | **= production** (`ADD A,C`) |
+| Tail calls | `CALL; RET` (27T) | `JP sym` (10T, **-63%**) |
+| Cross-call values | clobbered | **survive in IXH/IXL** (8T) |
+| Runtime multiply | missing | `__mul8`/`__mul16` shared routines |
 
-Key innovation: **IXH/IXL as call-safe spill registers** (L2 resource layer). Z80's undocumented index register halves survive function calls — 4 bytes of fast storage without touching the stack. No existing Z80 compiler exploits this for register allocation.
+Key innovations: **IXH/IXL call-safe spill** (no existing Z80 compiler does this), **PBQP→WFC hint bridge**, **tail call optimization**, **save-before-overwrite** for Z80 destructive ALU ops.
 
-→ **[Full report: 9 commits, architecture, roadmap](reports/2026-03-18-093-LIR-PBQP-WFC-Guided-Regalloc.md)**
+→ **[Full report: 12 commits, architecture, Nanz RCA](reports/2026-03-18-094-LIR-100-Percent-C89-Corpus.md)** | [PBQP+WFC architecture](reports/2026-03-18-093-LIR-PBQP-WFC-Guided-Regalloc.md)
 
 ---
 
