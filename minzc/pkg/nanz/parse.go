@@ -743,6 +743,19 @@ func (p *parser) parseModule() (*hir.Module, error) {
 					if err != nil {
 						return nil, fmt.Errorf("line %d: @%s: emitted code error: %w", attr.line, metaName, err)
 					}
+					// Merge strings: remap @mir2.str.N references in generated code
+					// to account for strings already in the parent module.
+					strOffset := len(m.Strings)
+					if len(generated.Strings) > 0 {
+						m.Strings = append(m.Strings, generated.Strings...)
+						m.StrKinds = append(m.StrKinds, generated.StrKinds...)
+						// Remap string references in generated functions
+						if strOffset > 0 {
+							for _, f := range generated.Funcs {
+								remapStringRefs(f.Body, strOffset)
+							}
+						}
+					}
 					m.Funcs = append(m.Funcs, generated.Funcs...)
 					m.Globals = append(m.Globals, generated.Globals...)
 					m.Structs = append(m.Structs, generated.Structs...)
@@ -4034,6 +4047,73 @@ func resultTy(l, r mir2.Ty, op string) mir2.Ty {
 		return mir2.TyPtr
 	}
 	return l
+}
+
+// ── String reference remapping ────────────────────────────────────────────────
+
+// remapStringRefs adjusts @mir2.str.N references in a block by adding offset
+// to each string index. This is needed when merging generated code (from
+// metafunctions) into a parent module that already has strings.
+func remapStringRefs(block *hir.Block, offset int) {
+	if block == nil {
+		return
+	}
+	for _, s := range block.Body {
+		remapStmtStringRefs(s, offset)
+	}
+}
+
+func remapStmtStringRefs(s hir.Stmt, offset int) {
+	switch s := s.(type) {
+	case *hir.ExprStmt:
+		remapExprStringRefs(s.Expr, offset)
+	case *hir.VarDeclStmt:
+		remapExprStringRefs(s.Init, offset)
+	case *hir.AssignStmt:
+		remapExprStringRefs(s.Val, offset)
+	case *hir.ReturnStmt:
+		remapExprStringRefs(s.Val, offset)
+	case *hir.IfStmt:
+		remapExprStringRefs(s.Cond, offset)
+		remapStringRefs(s.Then, offset)
+		remapStringRefs(s.Else, offset)
+	case *hir.WhileStmt:
+		remapExprStringRefs(s.Cond, offset)
+		remapStringRefs(s.Body, offset)
+	case *hir.ForRangeStmt:
+		remapExprStringRefs(s.Start, offset)
+		remapExprStringRefs(s.End, offset)
+		remapStringRefs(s.Body, offset)
+	}
+}
+
+func remapExprStringRefs(e hir.Expr, offset int) {
+	if e == nil {
+		return
+	}
+	switch e := e.(type) {
+	case *hir.AddrOfExpr:
+		// @mir2.str.N → @mir2.str.(N+offset)
+		var idx int
+		if n, _ := fmt.Sscanf(e.Sym, "@mir2.str.%d", &idx); n == 1 {
+			e.Sym = fmt.Sprintf("@mir2.str.%d", idx+offset)
+		}
+	case *hir.CallExpr:
+		for _, a := range e.Args {
+			remapExprStringRefs(a, offset)
+		}
+	case *hir.BinExpr:
+		remapExprStringRefs(e.L, offset)
+		remapExprStringRefs(e.R, offset)
+	case *hir.UnaryExpr:
+		remapExprStringRefs(e.X, offset)
+	case *hir.CastExpr:
+		remapExprStringRefs(e.X, offset)
+	case *hir.CondExpr:
+		remapExprStringRefs(e.Cond, offset)
+		remapExprStringRefs(e.Then, offset)
+		remapExprStringRefs(e.Else, offset)
+	}
 }
 
 // ── Metafunction support ─────────────────────────────────────────────────────

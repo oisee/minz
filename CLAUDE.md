@@ -135,7 +135,7 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - **Universal TUI Framework** (NEW!): Three-level screen abstraction
   - L1 ✅: `sel_register_str/sel_show` — procedural, works on CP/M + MZV
   - L2 ✅: `Screen.add_field/Screen.show` — OOP UFCS, stdlib/tui/ modules
-  - L3 🚧: `@screen("title") { field "X" }` — metafunction DSL (pipeline works, string wiring WIP)
+  - L3 ✅: `@screen("title") { field "X" }` — metafunction DSL, compile-time code generation
   - tui_* host functions: goto, color, putch, puts, read_key, draw_box
   - Same ABAP program runs on CP/M (BDOS prompts) and MZV (ANSI TUI)
 - **Nanz compile-time metafunctions** (NEW!): `fun @name(...)` → runs on MIR2 VM at compile time
@@ -202,7 +202,7 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
   - Emits Nanz source via emit() → parsed → spliced into caller module
   - Example: `fun @screen(title: ^u8) -> void { emit(c"fun _gen()...") }`
   - Invocation: `@screen("title") { field "X" \n button "Y" }`
-  - Status: 🚧 PIPELINE WORKS, runtime string wiring WIP
+  - Status: ✅ WORKING — block parse → VM execute → emit → parse → merge
 
 See `docs/Metafunction_Design_Decisions.md` for complete details.
 
