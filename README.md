@@ -710,6 +710,14 @@ Count       [__________]
 
 The metafunction pipeline: parse block → compile `fun @screen` to MIR2 → execute on VM → collect `emit()` output → parse as Nanz → merge into program. Lisp-style macros with normal syntax, written in the language itself.
 
+**Native ZX Spectrum TUI (603 bytes Z80 binary):**
+
+| ZX Spectrum TUI via ROM RST $10 |
+|:-:|
+| ![ZX TUI](/media/tui_zx_spectrum.png) |
+
+Same screen on three backends — CP/M (VT100), MZV (ANSI), ZX Spectrum (ROM CHR$ codes). See [`examples/nanz/tui_cpm.nanz`](examples/nanz/tui_cpm.nanz), [`examples/nanz/tui_zx.nanz`](examples/nanz/tui_zx.nanz), [`stdlib/tui/README.md`](stdlib/tui/README.md).
+
 See [`stdlib/tui/README.md`](stdlib/tui/README.md) for full documentation.
 
 ---
