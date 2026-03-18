@@ -36,7 +36,7 @@
 | `__mul8`/`__mul16` runtime | Shared multiply routines | code size vs inline |
 | Save-before-overwrite | Destructive Z80 ALU handling | correctness |
 
-→ **[Full report](reports/2026-03-18-094-LIR-100-Percent-C89-Corpus.md)** | **[Architecture](reports/2026-03-18-093-LIR-PBQP-WFC-Guided-Regalloc.md)**
+→ **[Architecture & Innovations](docs/LIR_Backend_Architecture.md)** | **[Quick Reference](docs/LIR_Backend_Reference.md)** | **[Journey Report](reports/2026-03-18-094-LIR-100-Percent-C89-Corpus.md)**
 
 ---
 

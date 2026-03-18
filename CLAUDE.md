@@ -49,7 +49,7 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - **Corpus:** **ALL 100%** — C89 720/720, Nanz 162/162, Lizp 57/57, Lanz 9/9 = **948/948**
 - **Runtime:** `__mul8` (A×B→A, ~80T), `__mul16` (HL×DE→HL, ~200T) — shared routines, emitted once per module
 - **Remaining:** EXX shadow regs (L3), ISLE const-MUL reduction, production switch as default `--lir`
-- See [Report 093](reports/2026-03-18-093-LIR-PBQP-WFC-Guided-Regalloc.md), [ADR-0033](docs/adr/0033-lir-pipeline-integration.md)
+- See [Architecture](docs/LIR_Backend_Architecture.md), [Reference](docs/LIR_Backend_Reference.md), [Report 094](reports/2026-03-18-094-LIR-100-Percent-C89-Corpus.md), [ADR-0033](docs/adr/0033-lir-pipeline-integration.md)
 
 ### 5. LSP / DAP / Developer Tooling
 **Status:** Not started. Planned after core language stability.
@@ -64,6 +64,8 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 
 ## 🏗️ Architecture References
 
+- **[LIR_Backend_Architecture.md](docs/LIR_Backend_Architecture.md)** - PBQP+WFC+ISLE: how three solvers cooperate
+- **[LIR_Backend_Reference.md](docs/LIR_Backend_Reference.md)** - Quick reference: pipeline, DSLs, data structures
 - **[INTERNAL_ARCHITECTURE.md](minzc/docs/INTERNAL_ARCHITECTURE.md)** - Complete compiler internals
 - **[COMPILER_SNAPSHOT.md](COMPILER_SNAPSHOT.md)** - Current state tracking
 - **[149_World_Class_Multi_Level_Optimization_Guide.md](docs/149_World_Class_Multi_Level_Optimization_Guide.md)** - Revolutionary optimization strategy
