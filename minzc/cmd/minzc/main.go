@@ -758,6 +758,9 @@ func compileViaHIR(sourceFile string) error {
 		return fmt.Errorf("unsupported extension for HIR pipeline: %s", ext)
 	}
 
+	// Set target platform so @target() intrinsic resolves correctly.
+	hirMod.Target = hir.TargetFromString(target)
+
 	// Run all pipeline stages (always, cheaply; we may want any step).
 	steps, err := pipeline.CompileHIRSteps(hirMod, pipeline.Options{
 		ContractOpt:     true,

@@ -3993,8 +3993,18 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 			}
 			return &hir.CallExpr{Fn: "@mir.io.console.err", Args: []hir.Expr{arg}, Ty: mir2.TyVoid}, nil
 		}
+		if p.l.isIdent("target") {
+			p.l.next()
+			if _, err := p.l.eat(tokLParen); err != nil {
+				return nil, err
+			}
+			if _, err := p.l.eat(tokRParen); err != nil {
+				return nil, err
+			}
+			return &hir.CallExpr{Fn: "@target", Args: nil, Ty: mir2.TyU8}, nil
+		}
 		if !p.l.isIdent("ptr") {
-			return nil, fmt.Errorf("line %d: expected @ptr(...), got @%s", t.line, p.l.peek().val)
+			return nil, fmt.Errorf("line %d: expected @ptr/@target(...), got @%s", t.line, p.l.peek().val)
 		}
 		p.l.next()
 		if _, err := p.l.eat(tokLParen); err != nil {

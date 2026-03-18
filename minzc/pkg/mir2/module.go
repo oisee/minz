@@ -12,6 +12,7 @@ import "fmt"
 // single AllocResult to cover all functions without key collisions.
 type Module struct {
 	Name    string
+	Target  uint8 // platform target (propagated from hir.Module.Target)
 	Funcs   []*Func
 	Globals []Global
 	Strings StringPool
