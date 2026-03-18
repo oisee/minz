@@ -86,6 +86,8 @@ func (s *WFCState) Propagate() int {
 		if s.clobberPass() {
 			changed = true
 		}
+		// Note: destructive writes are handled at MIROp level by
+		// insertSaveBeforeOverwrite in bridge.go, not in WFC.
 		iters++
 		if !changed {
 			break
@@ -290,6 +292,106 @@ func (s *WFCState) clobberPass() bool {
 	}
 
 	return changed
+}
+
+// destructiveWritePass handles the case where an instruction's dst physically
+// overlaps with its src0 (e.g. ADD A, r: dst=A, src0=A). If another vreg
+// is live at this point and currently constrained to the same location,
+// it must be moved to a non-conflicting location.
+//
+// Example: %r3 = add %r1, %r2 (dst=A, src0=A, src1=gpr8)
+// If %r1 is still used after this instruction, %r1 and %r3 can't both be in A.
+// We narrow %r1's def-site to exclude A → it goes to IXH or another safe loc.
+func (s *WFCState) destructiveWritePass() bool {
+	changed := false
+
+	for ci := range s.Cells {
+		c := &s.Cells[ci]
+		if c.Pat == nil || c.VRegDst < 0 {
+			continue
+		}
+
+		// This instruction writes to DstLocs. Any vreg that's:
+		// - defined BEFORE this cell
+		// - used AFTER this cell
+		// - AND its current allowed set is a SUBSET of DstLocs
+		// needs to be widened to include alternative locations.
+		dstSet := c.DstLocs
+		if dstSet.IsEmpty() || dstSet.Count() > 4 {
+			continue // too broad to cause conflicts
+		}
+
+		// Find vregs used after this cell (post-uses).
+		usesAfter := make(map[int]bool)
+		for j := ci + 1; j < len(s.Cells); j++ {
+			for src := 0; src < 2; src++ {
+				if s.Cells[j].VRegSrc[src] >= 0 {
+					usesAfter[s.Cells[j].VRegSrc[src]] = true
+				}
+			}
+		}
+
+		// Find vregs defined before that are still used after AND overlap with dstSet.
+		for j := 0; j < ci; j++ {
+			defCell := &s.Cells[j]
+			vreg := defCell.VRegDst
+			if vreg < 0 || vreg == c.VRegDst {
+				continue
+			}
+			if !usesAfter[vreg] {
+				continue
+			}
+			// Check if this vreg's def is constrained to the same loc as our dst.
+			if defCell.DstLocs.IsEmpty() {
+				continue
+			}
+			overlap := defCell.DstLocs.And(dstSet)
+			if overlap.IsEmpty() {
+				continue // no conflict
+			}
+			// Conflict: this vreg would be overwritten by our dst.
+			// Remove the conflicting locs and add alternatives.
+			safe := s.alternativeLocs(defCell.DstLocs, dstSet)
+			if safe != defCell.DstLocs {
+				defCell.DstLocs = safe
+				changed = true
+			}
+			// Also update source appearances of this vreg.
+			for k := range s.Cells {
+				for src := 0; src < 2; src++ {
+					if s.Cells[k].VRegSrc[src] == vreg {
+						srcSafe := s.alternativeLocs(s.Cells[k].SrcLocs[src], dstSet)
+						if srcSafe != s.Cells[k].SrcLocs[src] {
+							s.Cells[k].SrcLocs[src] = srcSafe
+							changed = true
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return changed
+}
+
+// alternativeLocs removes conflicting locs from current and adds IX halves
+// as alternatives. Returns the widened set.
+func (s *WFCState) alternativeLocs(current, conflict LocSet) LocSet {
+	// Remove conflicting locations.
+	safe := current.And(^conflict)
+	if !safe.IsEmpty() {
+		return safe
+	}
+	// All current locs conflict — widen to IX halves + spill.
+	for i, loc := range s.Desc.Locs {
+		if loc.Kind == LocIndex && loc.Width == 8 {
+			safe = safe.Set(i)
+		}
+		if loc.Kind == LocMem {
+			safe = safe.Set(i)
+		}
+	}
+	return safe
 }
 
 // callSafeLocs returns locations that survive across function calls.

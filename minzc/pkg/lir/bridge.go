@@ -48,10 +48,207 @@ func LowerMIR2Block(b *mir2.Block, desc *MachineDesc, mod *mir2.Module, funcPara
 		}
 	}
 
-	// Note: caller-save spilling around calls is handled at assembly emission
-	// time (emitCallWithSpills in pipeline.go), not at the MIROp level.
+	// Insert save-before-overwrite moves: when a destructive instruction
+	// (dst overlaps src0, e.g. ADD A,r) would overwrite a vreg that's still
+	// needed later, insert a copy to a fresh vreg before the instruction.
+	ops = insertSaveBeforeOverwrite(ops, desc)
 
 	return ops, nil
+}
+
+// insertSaveBeforeOverwrite detects vregs that would be killed by a later
+// instruction's destination and are still needed afterwards. For each such vreg,
+// inserts a save move (OpMove) to a fresh vreg before the killing instruction,
+// and rewrites subsequent uses to reference the saved vreg.
+//
+// Example: %r3 = add %r1, %r2; %r4 = sub %r1, %r2; %r5 = add %r3, %r4
+// %r1 is used by both add and sub, but add's result overwrites %r1's location.
+// → Insert: %r_save = move %r1 (before the add)
+// → Rewrite: sub uses %r_save instead of %r1
+// → Result: %r_save = move %r1; %r3 = add %r1, %r2; %r4 = sub %r_save, %r2; ...
+func insertSaveBeforeOverwrite(ops []MIROp, desc *MachineDesc) []MIROp {
+	nextVReg := 8000
+
+	// For each ALU op, find src vregs that are used AFTER this op by a DIFFERENT op.
+	// Those need to be saved before this op and renamed in subsequent uses.
+	type saveInfo struct {
+		beforeIdx int // insert save before this op index
+		vreg      int // vreg to save
+		saveVReg  int // fresh vreg to save into
+	}
+	var saves []saveInfo
+
+	// Collect all vregs defined as dst of ALU ops (potential A-writes).
+	aluDsts := make(map[int]int) // vreg → defining op index
+	for i, op := range ops {
+		if op.Dst >= 0 && op.Op != OpMove && op.Op != OpConst && op.Op != OpCall {
+			aluDsts[op.Dst] = i
+		}
+	}
+
+	for i, op := range ops {
+		if op.Dst < 0 || op.Op == OpMove || op.Op == OpConst || op.Op == OpCall {
+			continue
+		}
+		// This ALU op writes to its dst (likely A on Z80).
+		// Find ALL vregs that:
+		// 1. Are defined BEFORE this op (as src or dst of earlier ops)
+		// 2. Are used AFTER this op
+		// 3. Haven't already been saved for this insertion point
+		savedHere := make(map[int]bool)
+
+		// Check: any vreg defined before i and used after i.
+		// This includes both params and results of earlier ALU ops.
+		for j := 0; j < i; j++ {
+			dstVReg := ops[j].Dst
+			if dstVReg < 0 || savedHere[dstVReg] || dstVReg == op.Dst {
+				continue
+			}
+			// Is dstVReg used after i?
+			usedLater := false
+			for k := i + 1; k < len(ops); k++ {
+				for ss := 0; ss < 2; ss++ {
+					if ops[k].Src[ss] == dstVReg {
+						usedLater = true
+						break
+					}
+				}
+				if usedLater {
+					break
+				}
+			}
+			if !usedLater {
+				continue
+			}
+			// Is dstVReg at risk of being overwritten?
+			// Conservative: any previous ALU result or param could be in A.
+			// On Z80, ALU ops write to A, so any previous vreg that
+			// WFC might place in A would be overwritten.
+			// We can't know at MIROp level, so save conservatively.
+			_, isALU := aluDsts[dstVReg]
+			isSrc := false
+			for s := 0; s < 2; s++ {
+				if op.Src[s] == dstVReg {
+					isSrc = true
+				}
+			}
+			if isALU || isSrc {
+				sv := nextVReg
+				nextVReg++
+				saves = append(saves, saveInfo{beforeIdx: i, vreg: dstVReg, saveVReg: sv})
+				savedHere[dstVReg] = true
+			}
+		}
+
+		// Also save src vregs of THIS op that are used later (original logic).
+		for s := 0; s < 2; s++ {
+			srcVReg := op.Src[s]
+			if srcVReg < 0 || savedHere[srcVReg] {
+				continue
+			}
+			for j := i + 1; j < len(ops); j++ {
+				for ss := 0; ss < 2; ss++ {
+					if ops[j].Src[ss] == srcVReg {
+						sv := nextVReg
+						nextVReg++
+						saves = append(saves, saveInfo{beforeIdx: i, vreg: srcVReg, saveVReg: sv})
+						savedHere[srcVReg] = true
+						goto nextSrc
+					}
+				}
+			}
+		nextSrc:
+		}
+	}
+
+	if len(saves) == 0 {
+		return ops
+	}
+
+	// Build rename map: for each save, rename vreg → saveVReg in ops AFTER beforeIdx.
+	// Process saves in order (they may chain).
+	// Insert save moves and build the renamed output.
+	// Group saves by insertion point.
+	type insertionGroup struct {
+		saves []saveInfo
+	}
+	groups := make(map[int][]saveInfo)
+	for _, s := range saves {
+		groups[s.beforeIdx] = append(groups[s.beforeIdx], s)
+	}
+
+	// Build rename map: active renames at each point.
+	// A rename is active starting from the instruction AFTER the destructive op.
+	activeRenames := make(map[int]int)
+	var result []MIROp
+
+	for i, op := range ops {
+		// Insert saves before this op.
+		if svs, ok := groups[i]; ok {
+			for _, sv := range svs {
+				// The save uses the ORIGINAL vreg (before any rename from earlier saves)
+				srcVReg := sv.vreg
+				if renamed, ok2 := activeRenames[srcVReg]; ok2 {
+					srcVReg = renamed
+				}
+				// DstAllowed excludes the accumulator (A) — the save must go
+			// to a different register so it survives the destructive ALU op.
+			saveDst := desc.LocsOfWidth(8)
+			if aIdx := desc.LocByName("A"); aIdx >= 0 {
+				saveDst = saveDst.Clear(aIdx)
+			}
+				result = append(result, MIROp{
+					Op:         OpMove,
+					Dst:        sv.saveVReg,
+					Src:        [2]int{srcVReg, -1},
+					Width:      op.Width,
+					DstAllowed: saveDst,
+				})
+			}
+		}
+
+		// Apply renames to this op's sources.
+		// BUT: the destructive op itself should use the ORIGINAL vregs,
+		// not the saves. Renames apply starting from the NEXT op.
+		result = append(result, op)
+
+		// Activate renames for saves at this index.
+		if svs, ok := groups[i]; ok {
+			for _, sv := range svs {
+				activeRenames[sv.vreg] = sv.saveVReg
+			}
+		}
+	}
+
+	// Apply renames: for each save, rename usages of the original vreg
+	// in ops that correspond to original indices AFTER beforeIdx.
+	// We need to map result positions to original op indices.
+	origIdx := make([]int, len(result))
+	oi := 0
+	for ri, op := range result {
+		if op.Op == OpMove && op.Dst >= 8000 && op.Dst < 9000 {
+			origIdx[ri] = -1 // inserted save, not an original op
+		} else {
+			origIdx[ri] = oi
+			oi++
+		}
+	}
+
+	for _, sv := range saves {
+		for ri := range result {
+			if origIdx[ri] <= sv.beforeIdx {
+				continue // skip ops at or before the destructive instruction
+			}
+			op := &result[ri]
+			for s := 0; s < 2; s++ {
+				if op.Src[s] == sv.vreg {
+					op.Src[s] = sv.saveVReg
+				}
+			}
+		}
+	}
+
+	return result
 }
 
 // FuncContractVRegs extracts virtual register IDs from a function's contract params.
