@@ -48,10 +48,11 @@ func LowerMIR2Block(b *mir2.Block, desc *MachineDesc, mod *mir2.Module, funcPara
 		}
 	}
 
-	// Insert save-before-overwrite moves: when a destructive instruction
-	// (dst overlaps src0, e.g. ADD A,r) would overwrite a vreg that's still
-	// needed later, insert a copy to a fresh vreg before the instruction.
-	ops = insertSaveBeforeOverwrite(ops, desc)
+	// Insert save-before-overwrite moves for Z80 (destructive accumulator ops).
+	// Only for Z80 — other descriptors have orthogonal register files.
+	if desc.Name == "z80" {
+		ops = insertSaveBeforeOverwrite(ops, desc)
+	}
 
 	return ops, nil
 }
@@ -137,6 +138,20 @@ func insertSaveBeforeOverwrite(ops []MIROp, desc *MachineDesc) []MIROp {
 				nextVReg++
 				saves = append(saves, saveInfo{beforeIdx: i, vreg: dstVReg, saveVReg: sv})
 				savedHere[dstVReg] = true
+			}
+		}
+
+		// Intra-instruction conflict: if this ALU op has 2 different source vregs
+		// that could both be in A (both are ALU results), save src1 so the setup
+		// move for src0 doesn't overwrite it.
+		if op.Src[0] >= 0 && op.Src[1] >= 0 && op.Src[0] != op.Src[1] {
+			_, src0IsALU := aluDsts[op.Src[0]]
+			_, src1IsALU := aluDsts[op.Src[1]]
+			if (src0IsALU || savedHere[op.Src[0]]) && src1IsALU && !savedHere[op.Src[1]] {
+				sv := nextVReg
+				nextVReg++
+				saves = append(saves, saveInfo{beforeIdx: i, vreg: op.Src[1], saveVReg: sv})
+				savedHere[op.Src[1]] = true
 			}
 		}
 
@@ -236,13 +251,27 @@ func insertSaveBeforeOverwrite(ops []MIROp, desc *MachineDesc) []MIROp {
 
 	for _, sv := range saves {
 		for ri := range result {
-			if origIdx[ri] <= sv.beforeIdx {
-				continue // skip ops at or before the destructive instruction
+			oi := origIdx[ri]
+			if oi < 0 {
+				continue // skip inserted save moves
 			}
+			if oi < sv.beforeIdx {
+				continue // skip ops before the destructive instruction
+			}
+			// For the instruction AT beforeIdx: only rename src1 (not src0).
+			// src0 is the "primary" operand that stays in the original register.
+			// For instructions AFTER: rename all sources.
 			op := &result[ri]
-			for s := 0; s < 2; s++ {
-				if op.Src[s] == sv.vreg {
-					op.Src[s] = sv.saveVReg
+			if oi == sv.beforeIdx {
+				// Only rename src1 (the non-setup operand)
+				if op.Src[1] == sv.vreg {
+					op.Src[1] = sv.saveVReg
+				}
+			} else {
+				for s := 0; s < 2; s++ {
+					if op.Src[s] == sv.vreg {
+						op.Src[s] = sv.saveVReg
+					}
 				}
 			}
 		}
