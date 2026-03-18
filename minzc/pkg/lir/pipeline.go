@@ -48,7 +48,7 @@ func CheckModuleConvergence(m *mir2.Module) []ConvergenceResult {
 
 	for _, f := range m.Funcs {
 		for _, desc := range descs {
-			cr := checkFuncConvergence(f, desc)
+			cr := checkFuncConvergence(f, desc, m)
 			cr.FuncName = f.Name
 			cr.Machine = desc.Name
 			results = append(results, cr)
@@ -58,10 +58,10 @@ func CheckModuleConvergence(m *mir2.Module) []ConvergenceResult {
 	return results
 }
 
-func checkFuncConvergence(f *mir2.Func, desc *MachineDesc) ConvergenceResult {
+func checkFuncConvergence(f *mir2.Func, desc *MachineDesc, m *mir2.Module) ConvergenceResult {
 	// Try multi-block path for functions with >1 block and block params.
 	if len(f.Blocks) > 1 && hasBlockParams(f) {
-		mbCR := checkFuncConvergenceMultiBlock(f, desc)
+		mbCR := checkFuncConvergenceMultiBlock(f, desc, m)
 		if mbCR.Error == "" {
 			return mbCR
 		}
@@ -69,7 +69,7 @@ func checkFuncConvergence(f *mir2.Func, desc *MachineDesc) ConvergenceResult {
 	}
 
 	// Flat path: flatten all blocks into one sequence (existing behavior).
-	return checkFuncConvergenceFlat(f, desc)
+	return checkFuncConvergenceFlat(f, desc, m)
 }
 
 // hasBlockParams reports whether any block in f has params.
@@ -83,10 +83,10 @@ func hasBlockParams(f *mir2.Func) bool {
 }
 
 // checkFuncConvergenceMultiBlock uses the structured LowerMIR2Prog path.
-func checkFuncConvergenceMultiBlock(f *mir2.Func, desc *MachineDesc) ConvergenceResult {
+func checkFuncConvergenceMultiBlock(f *mir2.Func, desc *MachineDesc, m *mir2.Module) ConvergenceResult {
 	cr := ConvergenceResult{}
 
-	prog, blockOps, err := LowerMIR2ProgWithOps(f, desc)
+	prog, blockOps, err := LowerMIR2ProgWithOps(f, desc, m)
 	if err != nil {
 		cr.Error = fmt.Sprintf("lower-prog: %s", err)
 		return cr
@@ -143,13 +143,13 @@ func checkFuncConvergenceMultiBlock(f *mir2.Func, desc *MachineDesc) Convergence
 }
 
 // checkFuncConvergenceFlat is the original flat lowering path.
-func checkFuncConvergenceFlat(f *mir2.Func, desc *MachineDesc) ConvergenceResult {
+func checkFuncConvergenceFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module) ConvergenceResult {
 	cr := ConvergenceResult{}
 
 	// Step 1: Lower MIR2 blocks to MIROps
 	var allOps []MIROp
 	for _, b := range f.Blocks {
-		ops, err := LowerMIR2Block(b, desc)
+		ops, err := LowerMIR2Block(b, desc, m)
 		if err != nil {
 			cr.Error = fmt.Sprintf("lower: %s", err)
 			return cr
@@ -198,24 +198,24 @@ func checkFuncConvergenceFlat(f *mir2.Func, desc *MachineDesc) ConvergenceResult
 // LIRCodegenFunc runs the full LIR pipeline on a single MIR2 function
 // and returns Z80 assembly text. This is the future replacement for
 // mir2.Z80Codegen (per-function).
-func LIRCodegenFunc(f *mir2.Func) (string, error) {
+func LIRCodegenFunc(f *mir2.Func, m *mir2.Module) (string, error) {
 	desc := Z80
 
 	// Try multi-block path for functions with block params.
 	if len(f.Blocks) > 1 && hasBlockParams(f) {
-		asm, err := lirCodegenMultiBlock(f, desc)
+		asm, err := lirCodegenMultiBlock(f, desc, m)
 		if err == nil {
 			return asm, nil
 		}
 		// Fallback to flat on failure.
 	}
 
-	return lirCodegenFlat(f, desc)
+	return lirCodegenFlat(f, desc, m)
 }
 
 // lirCodegenMultiBlock emits per-block labels, instructions, and terminators.
-func lirCodegenMultiBlock(f *mir2.Func, desc *MachineDesc) (string, error) {
-	prog, blockOps, err := LowerMIR2ProgWithOps(f, desc)
+func lirCodegenMultiBlock(f *mir2.Func, desc *MachineDesc, m *mir2.Module) (string, error) {
+	prog, blockOps, err := LowerMIR2ProgWithOps(f, desc, m)
 	if err != nil {
 		return "", fmt.Errorf("lower %s: %w", f.Name, err)
 	}
@@ -360,11 +360,11 @@ func emitTerminator(sb *strings.Builder, term *Term, blockIdx, numBlocks int) {
 }
 
 // lirCodegenFlat is the original flat single-block codegen path.
-func lirCodegenFlat(f *mir2.Func, desc *MachineDesc) (string, error) {
+func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module) (string, error) {
 	// Lower MIR2 → MIROps
 	var allOps []MIROp
 	for _, b := range f.Blocks {
-		ops, err := LowerMIR2Block(b, desc)
+		ops, err := LowerMIR2Block(b, desc, m)
 		if err != nil {
 			return "", fmt.Errorf("lower %s: %w", f.Name, err)
 		}
@@ -443,7 +443,7 @@ func LIRCodegenModule(m *mir2.Module) (string, []LIRFuncResult) {
 	}
 
 	for _, f := range funcs {
-		asm, err := LIRCodegenFunc(f)
+		asm, err := LIRCodegenFunc(f, m)
 		r := LIRFuncResult{Name: f.Name}
 		if err != nil {
 			r.Error = err.Error()
@@ -495,5 +495,6 @@ func ExpandTemplateNamed(inst Inst, desc *MachineDesc) string {
 	tmpl = strings.ReplaceAll(tmpl, "{src0}", getName(inst.Srcs[0].Phys))
 	tmpl = strings.ReplaceAll(tmpl, "{src1}", getName(inst.Srcs[1].Phys))
 	tmpl = strings.ReplaceAll(tmpl, "{imm}", fmt.Sprintf("%d", inst.Imm))
+	tmpl = strings.ReplaceAll(tmpl, "{sym}", inst.Sym)
 	return tmpl
 }

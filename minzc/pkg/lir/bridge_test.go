@@ -78,7 +78,7 @@ func TestBridge_LowerBlock(t *testing.T) {
 	machines := []*MachineDesc{RISC32, RISC8, CISC, MICRO}
 
 	for _, desc := range machines {
-		ops, err := LowerMIR2Block(f.Blocks[0], desc)
+		ops, err := LowerMIR2Block(f.Blocks[0], desc, nil)
 		if err != nil {
 			t.Fatalf("%s: %v", desc.Name, err)
 		}

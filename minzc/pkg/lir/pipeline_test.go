@@ -98,7 +98,7 @@ func TestPipeline_LIRCodegen(t *testing.T) {
 	result := b.Add(x, x, mir2.TyU8, mir2.ClassAcc)
 	b.Ret(result)
 
-	asm, err := LIRCodegenFunc(f)
+	asm, err := LIRCodegenFunc(f, m)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -123,7 +123,7 @@ func TestLIRCodegen_TwoParams(t *testing.T) {
 	sum := b.Add(aReg, bReg, mir2.TyU8, mir2.ClassAcc)
 	b.Ret(sum)
 
-	asm, err := LIRCodegenFunc(f)
+	asm, err := LIRCodegenFunc(f, m)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -146,6 +146,39 @@ func TestLIRCodegen_TwoParams(t *testing.T) {
 	}
 	if !found {
 		t.Error("no ADD A, <gpr> found in output")
+	}
+}
+
+// TestLIRCodegen_OpCall verifies that function calls emit CALL instructions.
+func TestLIRCodegen_OpCall(t *testing.T) {
+	m := &mir2.Module{Name: "call_test"}
+
+	// callee: double(x: u8) -> u8 = x + x
+	callee := m.AddFunc("double")
+	cb := mir2.NewBuilder(callee)
+	cb.SwitchToNewBlock("entry")
+	cx := cb.Param("x", mir2.TyU8, mir2.ClassAcc)
+	cresult := cb.Add(cx, cx, mir2.TyU8, mir2.ClassAcc)
+	cb.Ret(cresult)
+
+	// caller: main() calls double(5) and uses the result
+	caller := m.AddFunc("caller")
+	mb := mir2.NewBuilder(caller)
+	mb.SwitchToNewBlock("entry")
+	five := mb.Const(5, mir2.TyU8, mir2.ClassAcc)
+	result := mb.Call("double", []mir2.Reg{five}, mir2.TyU8, mir2.ClassAcc, mir2.CallAttrs{})
+	// Use result to prevent DCE
+	mb.Ret(result)
+
+	asm, err := LIRCodegenFunc(caller, m)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Logf("generated assembly:\n%s", asm)
+
+	if !strings.Contains(asm, "CALL double") {
+		t.Errorf("expected CALL double in output, got:\n%s", asm)
 	}
 }
 

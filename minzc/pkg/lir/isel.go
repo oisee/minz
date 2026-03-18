@@ -16,6 +16,9 @@ type MIROp struct {
 	Src  [2]int // virtual register sources (-1 = unused)
 	Imm  int64 // immediate value (for OpConst)
 	Width int  // operand width in bits
+	Sym  string // symbol name (OpCall target)
+	Clobbers LocSet // registers clobbered (OpCall)
+	DstAllowed LocSet // override dst allowed set (for call arg setup moves)
 }
 
 // ISelResult is the output of instruction selection.
@@ -154,10 +157,21 @@ func SelectBlockInstructions(desc *MachineDesc, ops []MIROp, params []BlockParam
 		inst := Inst{
 			Pat: pat,
 			Imm: op.Imm,
+			Sym: op.Sym,
 		}
 
 		if op.Dst >= 0 {
 			allowed := pat.DstLocs
+			// DstAllowed override: narrow destination to a specific set
+			// (used for call arg setup moves to target the callee's param class).
+			if !op.DstAllowed.IsEmpty() {
+				narrowed := allowed.And(op.DstAllowed)
+				if !narrowed.IsEmpty() {
+					allowed = narrowed
+				} else {
+					allowed = op.DstAllowed
+				}
+			}
 			inst.Dst = Operand{VReg: op.Dst, Allowed: allowed, Phys: -1}
 			result.VRegAllowed[op.Dst] = allowed
 			vregLoc[op.Dst] = allowed

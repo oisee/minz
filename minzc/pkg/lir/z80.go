@@ -172,6 +172,19 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 		{Name: "ld_hl_nn", MIROp: OpMove, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{spill},
 			Template: "LD HL, ({src0})", Cost: 16, Bytes: 3},
 
+		// ── Function calls ──────────────────────────────────────────
+		// CALL sym — return value in A (u8) or HL (u16).
+		// Clobbers all volatile registers (caller-save).
+		{Name: "call_u8", MIROp: OpCall, Width: 8, DstLocs: a,
+			Template: "CALL {sym}", Cost: 17, Bytes: 3,
+			Clobbers: gpr8.Or(flags), Flags: PatCall},
+		{Name: "call_u16", MIROp: OpCall, Width: 16, DstLocs: hl,
+			Template: "CALL {sym}", Cost: 17, Bytes: 3,
+			Clobbers: gpr8.Or(flags).Or(de).Or(bc), Flags: PatCall},
+		{Name: "call_void", MIROp: OpCall, Width: 0,
+			Template: "CALL {sym}", Cost: 17, Bytes: 3,
+			Clobbers: gpr8.Or(flags), Flags: PatCall},
+
 		// ── DJNZ (loop) — not used by isel but by LoopRotateDJNZ ────
 		// DJNZ is a terminator pattern, not a regular instruction.
 		// Counter must be in B. The pattern is used for cost estimation.

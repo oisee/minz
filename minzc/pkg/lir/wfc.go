@@ -28,6 +28,7 @@ type WFCCell struct {
 	VRegDst int      // virtual register for dst (-1 = none)
 	VRegSrc [2]int   // virtual registers for sources
 	Imm     int64    // immediate value (preserved from isel)
+	Sym     string   // symbol name (preserved for call templates)
 }
 
 // Entropy returns the number of possible states for this cell.
@@ -61,6 +62,7 @@ func NewWFCState(desc *MachineDesc, insts []Inst) *WFCState {
 			VRegDst: inst.Dst.VReg,
 			VRegSrc: [2]int{inst.Srcs[0].VReg, inst.Srcs[1].VReg},
 			Imm:     inst.Imm,
+			Sym:     inst.Sym,
 		}
 	}
 	return &WFCState{Desc: desc, Cells: cells}
@@ -365,6 +367,7 @@ func (s *WFCState) ToInsts() []Inst {
 		insts = append(insts, Inst{
 			Pat: c.Pat,
 			Imm: c.Imm,
+			Sym: c.Sym,
 			Dst: Operand{VReg: c.VRegDst, Allowed: c.DstLocs, Phys: PhysOf(c.DstLocs)},
 			Srcs: [2]Operand{
 				{VReg: c.VRegSrc[0], Allowed: c.SrcLocs[0], Phys: PhysOf(c.SrcLocs[0])},

@@ -502,6 +502,7 @@ func (pw *ProgWFC) Collapse() error {
 				realInsts = append(realInsts, Inst{
 					Pat: c.Pat,
 					Imm: c.Imm,
+					Sym: c.Sym,
 					Dst: Operand{VReg: c.VRegDst, Allowed: c.DstLocs, Phys: PhysOf(c.DstLocs)},
 					Srcs: [2]Operand{
 						{VReg: c.VRegSrc[0], Allowed: c.SrcLocs[0], Phys: PhysOf(c.SrcLocs[0])},

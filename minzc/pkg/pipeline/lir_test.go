@@ -149,7 +149,7 @@ func TestLIR_CodegenOutput(t *testing.T) {
 		t.Fatal("no functions")
 	}
 
-	asm, err := lir.LIRCodegenFunc(m.Funcs[0])
+	asm, err := lir.LIRCodegenFunc(m.Funcs[0], m)
 	if err != nil {
 		t.Fatal(err)
 	}

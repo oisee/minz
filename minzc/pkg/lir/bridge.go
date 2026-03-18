@@ -26,10 +26,19 @@ type LowerResult struct {
 
 // LowerMIR2Block converts one MIR2 basic block into LIR MIROps.
 // This is a straightforward 1:1 translation — isel handles the rest.
-func LowerMIR2Block(b *mir2.Block, desc *MachineDesc) ([]MIROp, error) {
+// The module parameter is needed for callee contract lookup (OpCall).
+func LowerMIR2Block(b *mir2.Block, desc *MachineDesc, mod *mir2.Module) ([]MIROp, error) {
 	var ops []MIROp
 
 	for _, inst := range b.Insts {
+		if inst.Op == mir2.OpCall || inst.Op == mir2.OpCallIndirect {
+			callOps, err := translateCall(inst, desc, mod)
+			if err != nil {
+				return nil, fmt.Errorf("block %s: %w", b.Label, err)
+			}
+			ops = append(ops, callOps...)
+			continue
+		}
 		op, err := translateInst(inst, desc)
 		if err != nil {
 			return nil, fmt.Errorf("block %s: %w", b.Label, err)
@@ -48,7 +57,7 @@ func LowerMIR2Func(f *mir2.Func, desc *MachineDesc) (*LowerResult, error) {
 	var allOps []MIROp
 
 	for _, b := range f.Blocks {
-		ops, err := LowerMIR2Block(b, desc)
+		ops, err := LowerMIR2Block(b, desc, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -84,7 +93,7 @@ func LowerMIR2Func(f *mir2.Func, desc *MachineDesc) (*LowerResult, error) {
 // LowerMIR2Prog converts a full MIR2 function into a multi-block LIR Prog,
 // preserving block structure, params, terminators, and edge arguments.
 // This is the structured alternative to LowerMIR2Func (which flattens).
-func LowerMIR2Prog(f *mir2.Func, desc *MachineDesc) (*Prog, error) {
+func LowerMIR2Prog(f *mir2.Func, desc *MachineDesc, mod *mir2.Module) (*Prog, error) {
 	prog := &Prog{
 		Name:   f.Name,
 		Blocks: make([]Block, 0, len(f.Blocks)),
@@ -113,7 +122,7 @@ func LowerMIR2Prog(f *mir2.Func, desc *MachineDesc) (*Prog, error) {
 		}
 
 		// Translate instructions
-		ops, err := LowerMIR2Block(mb, desc)
+		ops, err := LowerMIR2Block(mb, desc, mod)
 		if err != nil {
 			return nil, err
 		}
@@ -141,7 +150,7 @@ func LowerMIR2Prog(f *mir2.Func, desc *MachineDesc) (*Prog, error) {
 
 // LowerMIR2ProgWithOps converts a MIR2 function into a Prog and also returns
 // per-block MIROps for later isel. The Prog.Blocks[i].Insts are initially empty.
-func LowerMIR2ProgWithOps(f *mir2.Func, desc *MachineDesc) (*Prog, [][]MIROp, error) {
+func LowerMIR2ProgWithOps(f *mir2.Func, desc *MachineDesc, mod *mir2.Module) (*Prog, [][]MIROp, error) {
 	prog := &Prog{
 		Name:   f.Name,
 		Blocks: make([]Block, 0, len(f.Blocks)),
@@ -172,7 +181,7 @@ func LowerMIR2ProgWithOps(f *mir2.Func, desc *MachineDesc) (*Prog, [][]MIROp, er
 		}
 
 		// Translate instructions to MIROps
-		ops, err := LowerMIR2Block(mb, desc)
+		ops, err := LowerMIR2Block(mb, desc, mod)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -375,6 +384,80 @@ func translateTerm(t mir2.Term, desc *MachineDesc) (Term, error) {
 	default:
 		return Term{Kind: TermNone}, nil
 	}
+}
+
+// translateCall converts an OpCall/OpCallIndirect into a sequence of LIR MIROps:
+// argument setup moves (one per arg) + the call itself.
+// Returns nil, nil if the call can't be lowered (e.g. indirect call, missing module).
+func translateCall(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]MIROp, error) {
+	if inst.Op == mir2.OpCallIndirect {
+		return nil, nil // indirect calls not yet supported
+	}
+	if mod == nil {
+		return nil, nil // can't look up callee without module
+	}
+
+	callee := mod.FuncByName(inst.Sym)
+	if callee == nil {
+		return nil, nil // extern/unknown callee — skip
+	}
+
+	var ops []MIROp
+
+	// Emit argument setup: move each arg vreg into its param-class-constrained vreg.
+	// The isel will pick the right move pattern, and WFC will collapse to the
+	// physical register matching the param class.
+	for i, argReg := range inst.Args {
+		if i >= len(callee.Contract.Params) {
+			break
+		}
+		cp := callee.Contract.Params[i]
+		width := 8
+		if cp.Ty != nil {
+			if w := cp.Ty.Width(); w > 0 {
+				width = w
+			}
+		}
+		if width < 8 {
+			width = 8
+		}
+		// Emit: move argReg → constrained vreg matching callee param class.
+		// DstAllowed tells isel to narrow the move destination to the
+		// callee's expected register class.
+		ops = append(ops, MIROp{
+			Op:         OpMove,
+			Dst:        int(cp.Reg),
+			Src:        [2]int{int(argReg), -1},
+			Width:      width,
+			DstAllowed: regClassToLocSet(desc, cp.Class, width),
+		})
+	}
+
+	// Emit the call itself.
+	width := 0 // void
+	if inst.Ty != nil {
+		w := inst.Ty.Width()
+		if w > 0 {
+			width = w
+		}
+	}
+	if width < 8 && width > 0 {
+		width = 8
+	}
+
+	callOp := MIROp{
+		Op:    OpCall,
+		Dst:   int(inst.Dst),
+		Src:   [2]int{-1, -1},
+		Width: width,
+		Sym:   inst.Sym,
+	}
+	if inst.Dst == mir2.NoReg {
+		callOp.Dst = -1
+	}
+
+	ops = append(ops, callOp)
+	return ops, nil
 }
 
 // translateInst converts one MIR2 instruction to a LIR MIROp.

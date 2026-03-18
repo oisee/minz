@@ -212,6 +212,7 @@ type Inst struct {
 	Dst     Operand    // destination operand
 	Srcs    [2]Operand // source operands
 	Imm     int64      // immediate value (for PatImmediate)
+	Sym     string     // symbol name (for OpCall target)
 }
 
 // Operand is a virtual register with location constraints.
