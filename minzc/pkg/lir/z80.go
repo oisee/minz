@@ -92,6 +92,19 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 		{Name: "ld_r_ixh", MIROp: OpMove, Width: 8, DstLocs: gprNoHL, SrcLocs: [2]LocSet{ixHalves},
 			Template: "LD {dst}, {src0}", Cost: 8, Bytes: 2},
 
+		// ── 8-bit → 16-bit widening (zero-extend) ───────────────────
+		// LD L, r; LD H, 0 — zero-extend 8-bit to HL
+		{Name: "zext_hl_a", MIROp: OpMove, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{a},
+			Template: "LD L, A\n    LD H, 0", Cost: 11, Bytes: 3},
+		{Name: "zext_hl_r", MIROp: OpMove, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{gprNoHL},
+			Template: "LD L, {src0}\n    LD H, 0", Cost: 11, Bytes: 3},
+		// LD C, r; LD B, 0 — zero-extend to BC
+		{Name: "zext_bc_r", MIROp: OpMove, Width: 16, DstLocs: bc, SrcLocs: [2]LocSet{gpr8},
+			Template: "LD C, {src0}\n    LD B, 0", Cost: 11, Bytes: 3},
+		// LD E, r; LD D, 0 — zero-extend to DE
+		{Name: "zext_de_r", MIROp: OpMove, Width: 16, DstLocs: de, SrcLocs: [2]LocSet{gpr8},
+			Template: "LD E, {src0}\n    LD D, 0", Cost: 11, Bytes: 3},
+
 		// ── 16-bit moves ─────────────────────────────────────────────
 		{Name: "push_pop", MIROp: OpMove, Width: 16, DstLocs: pairs, SrcLocs: [2]LocSet{pairs},
 			Template: "PUSH {src0}\n    POP {dst}", Cost: 21, Bytes: 2},
