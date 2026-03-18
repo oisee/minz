@@ -951,6 +951,16 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc) (*MIROp, error) {
 	if width < 8 {
 		width = 8
 	}
+	// Cap width to max register width. Struct types may report their full
+	// byte size (e.g. Arena = 32 bits) but the register holds a pointer (16 bits).
+	// On Z80/CISC, max register width is 16.
+	maxWidth := desc.WordSize
+	if maxWidth < 16 {
+		maxWidth = 16
+	}
+	if width > maxWidth {
+		width = maxWidth
+	}
 
 	op := &MIROp{
 		Dst:   int(inst.Dst),
