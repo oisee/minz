@@ -206,11 +206,22 @@ func insertSaveBeforeOverwrite(ops []MIROp, desc *MachineDesc) []MIROp {
 				if renamed, ok2 := activeRenames[srcVReg]; ok2 {
 					srcVReg = renamed
 				}
-				// DstAllowed excludes the accumulator (A) — the save must go
+				// DstAllowed excludes the accumulator — the save must go
 			// to a different register so it survives the destructive ALU op.
-			saveDst := desc.LocsOfWidth(8)
-			if aIdx := desc.LocByName("A"); aIdx >= 0 {
-				saveDst = saveDst.Clear(aIdx)
+			saveDst := desc.LocsOfWidth(op.Width)
+			if saveDst.IsEmpty() {
+				saveDst = desc.LocsOfWidth(8)
+			}
+			// For 8-bit ops, exclude A (accumulator, ALU destination).
+			// For 16-bit ops, exclude HL (16-bit ALU destination).
+			if op.Width <= 8 {
+				if aIdx := desc.LocByName("A"); aIdx >= 0 {
+					saveDst = saveDst.Clear(aIdx)
+				}
+			} else {
+				if hlIdx := desc.LocByName("HL"); hlIdx >= 0 {
+					saveDst = saveDst.Clear(hlIdx)
+				}
 			}
 				result = append(result, MIROp{
 					Op:         OpMove,
