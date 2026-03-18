@@ -115,6 +115,12 @@ func TestDifferential_C89_vs_Nanz_VM(t *testing.T) {
 	c89VM := mir2.NewVM(c89Mod)
 	nanzVM := mir2.NewVM(nanzMod)
 
+	// chain_length uses read_fat() which dispatches on fs_type;
+	// set fs_type=1 (FAT12) so it matches the C89 hardcoded FAT12 path.
+	if off, err := nanzVM.ResolveSymbol("fs_type"); err == nil {
+		nanzVM.WriteHeap(off, 1)
+	}
+
 	// Test vectors: function name → list of (args, expected)
 	type testCase struct {
 		name string

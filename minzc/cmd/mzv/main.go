@@ -49,9 +49,10 @@ func main() {
 	zxScreen := flag.Bool("zx", false, "ZX Spectrum screen mode (32x24 attribute grid to stdout)")
 	maxFrames := flag.Int("max-frames", 0, "stop after N frames (0=unlimited)")
 	dumpDir := flag.String("dump-frames", "", "dump each frame as .scr file to directory")
+	diskImage := flag.String("disk", "", "FAT disk image file (enables @disk_read/@disk_write hosts)")
 	flag.Parse()
 	if flag.NArg() < 1 {
-		fmt.Fprintln(os.Stderr, "usage: mzv [--trace] [--headless] [--zx] [--max-frames N] <file>")
+		fmt.Fprintln(os.Stderr, "usage: mzv [--trace] [--headless] [--zx] [--disk img] <file>")
 		fmt.Fprintln(os.Stderr, "  supported: .nanz .c .m .lanz .lizp .plm .pas .abap .hir")
 		os.Exit(1)
 	}
@@ -213,6 +214,12 @@ func main() {
 	// ── TUI host functions (stdlib/tui/render.nanz @extern calls) ────────
 
 	registerTUIHosts(vm, *headless, traceEnabled)
+
+	// ── Disk host functions (--disk flag) ────────────────────────────────
+
+	if *diskImage != "" {
+		registerDiskHosts(vm, *diskImage, traceEnabled)
+	}
 
 	// ── Terminal raw mode + input goroutine ──────────────────────────────
 

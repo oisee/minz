@@ -101,7 +101,11 @@ func (p *printer) interfaceDecl(iface *hir.InterfaceDecl) {
 }
 
 func (p *printer) global(g mir2.Global) {
-	p.write("global ")
+	if g.IsConst {
+		p.write("const ")
+	} else {
+		p.write("global ")
+	}
 	p.write(g.Name)
 	p.write(": ")
 	p.write(tyStr(g.Ty))

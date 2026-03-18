@@ -729,8 +729,12 @@ func (vm *VM) maxMem() int {
 	return 65536
 }
 
-// resolveSymbol returns the heap offset of a named symbol,
+// ResolveSymbol returns the heap offset of a named symbol,
 // allocating string literals into heap on first reference.
+func (vm *VM) ResolveSymbol(sym string) (int64, error) {
+	return vm.resolveSymbol(sym)
+}
+
 func (vm *VM) resolveSymbol(sym string) (int64, error) {
 	// Module globals (pre-allocated in NewVM).
 	if off, ok := vm.globalSyms[sym]; ok {

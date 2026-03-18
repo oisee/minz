@@ -460,6 +460,360 @@ var (
 	_ = mir2qbe.Compile
 )
 
+// TestNanzFAT16_E2E tests the full FAT16 path: mount, create, read, delete,
+// overwrite, multi-cluster write, and gcc cross-verification.
+// Uses a 4MB image so cluster count >= 4085 → FAT16 auto-detection.
+func TestNanzFAT16_E2E(t *testing.T) {
+	nanzPath := filepath.Join("..", "..", "..", "stdlib", "fs", "fat12.minz")
+	nanzSrc, err := os.ReadFile(nanzPath)
+	if err != nil {
+		t.Skipf("fat12.minz not found: %v", err)
+	}
+	fatfsDir := filepath.Join("..", "..", "..", "examples", "c89", "fatfs")
+	if _, err := os.Stat(fatfsDir); err != nil {
+		t.Skipf("fatfs dir not found: %v", err)
+	}
+
+	// ── Create 16MB FAT16 image (FAT16 needs >= ~4085 clusters) ─────────
+	imgPath := filepath.Join(t.TempDir(), "fat16.img")
+	if out, err := exec.Command("mkfs.fat", "-F", "16", "-C", imgPath, "16384").CombinedOutput(); err != nil {
+		t.Skipf("mkfs.fat -F 16: %v\n%s", err, out)
+	}
+
+	// Verify BPB shows FAT16
+	imgCheck, _ := os.ReadFile(imgPath)
+	bps := int(binary.LittleEndian.Uint16(imgCheck[11:13]))
+	spc := int(imgCheck[13])
+	t.Logf("FAT16 image: bps=%d spc=%d clusterSize=%d", bps, spc, bps*spc)
+
+	// Seed with gcc (same seeder works for FAT12 and FAT16)
+	seedSrc := filepath.Join(t.TempDir(), "seed.c")
+	seedBin := filepath.Join(t.TempDir(), "seed")
+	if err := os.WriteFile(seedSrc, []byte(seedSourceC), 0644); err != nil {
+		t.Fatalf("write seeder: %v", err)
+	}
+	out, err2 := exec.Command("gcc", "-o", seedBin, "-w",
+		"-I", fatfsDir, seedSrc,
+		filepath.Join(fatfsDir, "ff.c")).CombinedOutput()
+	if err2 != nil {
+		t.Skipf("gcc seeder: %v\n%s", err2, out)
+	}
+	if out, err := exec.Command(seedBin, imgPath).CombinedOutput(); err != nil {
+		t.Fatalf("seeder: %v\n%s", err, out)
+	} else {
+		t.Logf("Seeder: %s", strings.TrimSpace(string(out)))
+	}
+
+	// ── Compile Nanz → MIR2 VM ──────────────────────────────────────────
+	hirMod, err := nanz.Parse(string(nanzSrc), "fat12.minz")
+	if err != nil {
+		t.Fatalf("nanz parse: %v", err)
+	}
+	mir2Mod := hir.LowerModule(hirMod)
+	vm := mir2.NewVM(mir2Mod)
+	vm.MaxSteps = 1_000_000 // FAT16 on 16MB image needs more gas
+
+	diskImg, err := os.OpenFile(imgPath, os.O_RDWR, 0)
+	if err != nil {
+		t.Fatalf("open image: %v", err)
+	}
+	defer diskImg.Close()
+	registerDiskHostsRW(vm, diskImg)
+
+	// ── Mount and verify FAT16 detection ────────────────────────────────
+	t.Run("mount_fat16", func(t *testing.T) {
+		res, err := vm.Call("fat_mount", []mir2.Value{{I: 0}})
+		if err != nil || res[0].I != 0 {
+			t.Fatalf("fat_mount: err=%v res=%v", err, res)
+		}
+		// Check fs_type == 2 (FAT16) via eoc_marker (returns 0xFFF8 for FAT16)
+		res, _ = vm.Call("eoc_marker", nil)
+		eoc := res[0].I & 0xFFFF
+		if eoc != 0xFFF8 {
+			t.Fatalf("eoc_marker() = 0x%04X, want 0xFFF8 (FAT16)", eoc)
+		}
+		t.Logf("FAT16 detected: eoc_marker=0x%04X ✓", eoc)
+	})
+
+	// ── Verify seeded files readable ────────────────────────────────────
+	t.Run("read_seeded", func(t *testing.T) {
+		res, _ := vm.Call("count_dir_entries", []mir2.Value{{I: 0}})
+		count := res[0].I & 0xFF
+		if count != 3 {
+			t.Fatalf("dir entries = %d, want 3", count)
+		}
+
+		sfn := []byte("HELLO   TXT")
+		nameAddr := vm.AllocHeap(sfn)
+		bufAddr := vm.AllocHeap(make([]byte, 512))
+		res, _ = vm.Call("read_named_file", []mir2.Value{
+			{I: 0}, {I: nameAddr.I}, {I: bufAddr.I}, {I: 512},
+		})
+		bytesRead := res[0].I & 0xFFFF
+		if bytesRead != 12 {
+			t.Fatalf("HELLO.TXT: read %d bytes, want 12", bytesRead)
+		}
+		content := vm.ReadHeap(bufAddr.I, int(bytesRead))
+		if string(content) != "Hello World!" {
+			t.Fatalf("HELLO.TXT = %q", string(content))
+		}
+		t.Logf("HELLO.TXT: %q ✓", string(content))
+	})
+
+	// ── Create new file ─────────────────────────────────────────────────
+	t.Run("create_file", func(t *testing.T) {
+		sfn := []byte("FAT16   TXT")
+		nameAddr := vm.AllocHeap(sfn)
+		content := []byte("Written on FAT16 volume!")
+		dataAddr := vm.AllocHeap(content)
+		res, err := vm.Call("create_file", []mir2.Value{
+			{I: 0}, {I: nameAddr.I}, {I: dataAddr.I}, {I: int64(len(content))},
+		})
+		if err != nil {
+			t.Fatalf("create_file: %v", err)
+		}
+		if res[0].I != 0 {
+			t.Fatalf("create_file returned %d", res[0].I)
+		}
+		t.Logf("create_file('FAT16.TXT'): OK ✓")
+	})
+
+	// ── Read back created file ──────────────────────────────────────────
+	t.Run("read_back", func(t *testing.T) {
+		sfn := []byte("FAT16   TXT")
+		nameAddr := vm.AllocHeap(sfn)
+		bufAddr := vm.AllocHeap(make([]byte, 512))
+		res, _ := vm.Call("read_named_file", []mir2.Value{
+			{I: 0}, {I: nameAddr.I}, {I: bufAddr.I}, {I: 512},
+		})
+		bytesRead := res[0].I & 0xFFFF
+		want := "Written on FAT16 volume!"
+		if bytesRead != int64(len(want)) {
+			t.Fatalf("read %d bytes, want %d", bytesRead, len(want))
+		}
+		content := vm.ReadHeap(bufAddr.I, int(bytesRead))
+		if string(content) != want {
+			t.Errorf("content = %q", string(content))
+		} else {
+			t.Logf("FAT16.TXT: %q ✓", string(content))
+		}
+	})
+
+	// ── Multi-cluster file on FAT16 ─────────────────────────────────────
+	t.Run("multi_cluster", func(t *testing.T) {
+		// Need file > clusterSize. spc varies, so use 5000 bytes (safe for most spc)
+		mcSize := 5000
+		mcData := make([]byte, mcSize)
+		for i := range mcData {
+			mcData[i] = byte(i % 199) // different prime from FAT12 test
+		}
+		sfn := []byte("MULTI   DAT")
+		nameAddr := vm.AllocHeap(sfn)
+		dataAddr := vm.AllocHeap(mcData)
+		res, err := vm.Call("create_file", []mir2.Value{
+			{I: 0}, {I: nameAddr.I}, {I: dataAddr.I}, {I: int64(mcSize)},
+		})
+		if err != nil {
+			t.Fatalf("create_file: %v", err)
+		}
+		if res[0].I != 0 {
+			t.Fatalf("create_file returned %d", res[0].I)
+		}
+
+		// Verify FAT chain
+		nameAddr2 := vm.AllocHeap(sfn)
+		res, _ = vm.Call("find_file", []mir2.Value{{I: 0}, {I: nameAddr2.I}})
+		startClst := res[0].I & 0xFFFF
+		res, _ = vm.Call("fat_next", []mir2.Value{{I: 0}, {I: startClst}})
+		nextClst := res[0].I & 0xFFFF
+		t.Logf("MULTI.DAT: clst=%d → fat_next=%d (0x%04X)", startClst, nextClst, nextClst)
+
+		if nextClst == 0xFFFF || nextClst < 2 {
+			clusterBytes := bps * spc
+			if mcSize > clusterBytes {
+				t.Errorf("FAT chain broken: %d → 0x%04X (file %dB > cluster %dB)", startClst, nextClst, mcSize, clusterBytes)
+			}
+		}
+
+		// Read back
+		nameAddr3 := vm.AllocHeap(sfn)
+		bufAddr := vm.AllocHeap(make([]byte, mcSize+64))
+		res, err = vm.Call("read_named_file", []mir2.Value{
+			{I: 0}, {I: nameAddr3.I}, {I: bufAddr.I}, {I: int64(mcSize + 64)},
+		})
+		if err != nil {
+			t.Fatalf("read: %v", err)
+		}
+		bytesRead := int(res[0].I & 0xFFFF)
+		if bytesRead != mcSize {
+			t.Errorf("read %d bytes, want %d", bytesRead, mcSize)
+		}
+		got := vm.ReadHeap(bufAddr.I, bytesRead)
+		for i := 0; i < bytesRead; i++ {
+			if got[i] != byte(i%199) {
+				t.Errorf("MULTI.DAT[%d] = 0x%02X, want 0x%02X", i, got[i], byte(i%199))
+				break
+			}
+		}
+		t.Logf("MULTI.DAT: %d bytes verified ✓", bytesRead)
+	})
+
+	// ── Delete file ─────────────────────────────────────────────────────
+	t.Run("delete", func(t *testing.T) {
+		sfn := []byte("HELLO   TXT")
+		nameAddr := vm.AllocHeap(sfn)
+		res, err := vm.Call("delete_file", []mir2.Value{{I: 0}, {I: nameAddr.I}})
+		if err != nil {
+			t.Fatalf("delete_file: %v", err)
+		}
+		if res[0].I != 0 {
+			t.Fatalf("delete_file: %d", res[0].I)
+		}
+		// Verify gone
+		nameAddr2 := vm.AllocHeap(sfn)
+		res, _ = vm.Call("find_file", []mir2.Value{{I: 0}, {I: nameAddr2.I}})
+		if res[0].I != 0 {
+			t.Errorf("HELLO.TXT still found")
+		}
+		t.Logf("delete HELLO.TXT ✓")
+	})
+
+	// ── Overwrite file ──────────────────────────────────────────────────
+	t.Run("overwrite", func(t *testing.T) {
+		sfn := []byte("DATA    BIN")
+		nameAddr := vm.AllocHeap(sfn)
+		newContent := []byte("FAT16 overwrite test data!")
+		dataAddr := vm.AllocHeap(newContent)
+		res, _ := vm.Call("overwrite_file", []mir2.Value{
+			{I: 0}, {I: nameAddr.I}, {I: dataAddr.I}, {I: int64(len(newContent))},
+		})
+		if res[0].I != 0 {
+			t.Fatalf("overwrite_file: %d", res[0].I)
+		}
+		// Read back
+		nameAddr2 := vm.AllocHeap(sfn)
+		bufAddr := vm.AllocHeap(make([]byte, 512))
+		res, _ = vm.Call("read_named_file", []mir2.Value{
+			{I: 0}, {I: nameAddr2.I}, {I: bufAddr.I}, {I: 512},
+		})
+		bytesRead := int(res[0].I & 0xFFFF)
+		got := vm.ReadHeap(bufAddr.I, bytesRead)
+		if string(got) != string(newContent) {
+			t.Errorf("overwrite: got %q", string(got))
+		} else {
+			t.Logf("overwrite DATA.BIN: %q ✓", string(got))
+		}
+	})
+
+	// ── Sync and gcc cross-verification ─────────────────────────────────
+	t.Run("gcc_verify", func(t *testing.T) {
+		// Sync
+		res, _ := vm.Call("fat_sync", []mir2.Value{{I: 0}})
+		if res[0].I != 0 {
+			t.Fatalf("fat_sync: %d", res[0].I)
+		}
+		diskImg.Sync()
+
+		verifySrc := filepath.Join(t.TempDir(), "fat16_verify.c")
+		verifyBin := filepath.Join(t.TempDir(), "fat16_verify")
+		if err := os.WriteFile(verifySrc, []byte(fat16GccVerifierC), 0644); err != nil {
+			t.Fatalf("write: %v", err)
+		}
+		out, err := exec.Command("gcc", "-o", verifyBin, "-w",
+			"-I", fatfsDir, verifySrc,
+			filepath.Join(fatfsDir, "ff.c")).CombinedOutput()
+		if err != nil {
+			t.Skipf("gcc: %v\n%s", err, out)
+		}
+		out, err = exec.Command(verifyBin, imgPath).CombinedOutput()
+		t.Logf("gcc:\n%s", out)
+		if err != nil {
+			t.Errorf("gcc failed: %v", err)
+		}
+		if !strings.Contains(string(out), "ALL OK") {
+			t.Errorf("gcc did not report ALL OK")
+		}
+	})
+}
+
+const fat16GccVerifierC = `#include <stdio.h>
+#include <string.h>
+#include "ff.h"
+#include "diskio.h"
+
+static FILE *df;
+DSTATUS disk_initialize(BYTE p) { return 0; }
+DSTATUS disk_status(BYTE p) { return 0; }
+DRESULT disk_read(BYTE p, BYTE *b, LBA_t s, UINT c) {
+    fseek(df, s*512, SEEK_SET); fread(b, 512, c, df); return RES_OK;
+}
+DRESULT disk_write(BYTE p, const BYTE *b, LBA_t s, UINT c) { return RES_OK; }
+DRESULT disk_ioctl(BYTE p, BYTE cmd, void *buf) { return RES_OK; }
+DWORD get_fattime(void) { return 0; }
+
+static int pass = 0, fail = 0;
+#define CHECK(cond, msg) do { \
+    if (cond) { printf("ok: %s\n", msg); pass++; } \
+    else { printf("FAIL: %s\n", msg); fail++; } \
+} while(0)
+
+int main(int argc, char **argv) {
+    df = fopen(argv[1], "rb");
+    FATFS fs; FIL fp; UINT br;
+
+    f_mount(&fs, "", 1);
+    CHECK(fs.fs_type == FS_FAT16, "FAT16 detected");
+
+    /* HELLO.TXT deleted */
+    CHECK(f_open(&fp, "HELLO.TXT", FA_READ) == FR_NO_FILE, "HELLO.TXT deleted");
+
+    /* FAT16.TXT created */
+    FRESULT r = f_open(&fp, "FAT16.TXT", FA_READ);
+    CHECK(r == FR_OK, "open FAT16.TXT");
+    if (r == FR_OK) {
+        char buf[64] = {0};
+        f_read(&fp, buf, 64, &br);
+        CHECK(br == 24, "FAT16.TXT size");
+        CHECK(memcmp(buf, "Written on FAT16 volume!", 24) == 0, "FAT16.TXT content");
+        f_close(&fp);
+    }
+
+    /* DATA.BIN overwritten */
+    r = f_open(&fp, "DATA.BIN", FA_READ);
+    CHECK(r == FR_OK, "open DATA.BIN");
+    if (r == FR_OK) {
+        char buf[64] = {0};
+        f_read(&fp, buf, 64, &br);
+        CHECK(br == 26, "DATA.BIN size");
+        CHECK(memcmp(buf, "FAT16 overwrite test data!", 26) == 0, "DATA.BIN content");
+        f_close(&fp);
+    }
+
+    /* MULTI.DAT multi-cluster */
+    r = f_open(&fp, "MULTI.DAT", FA_READ);
+    CHECK(r == FR_OK, "open MULTI.DAT");
+    if (r == FR_OK) {
+        unsigned char buf[5000];
+        f_read(&fp, buf, 5000, &br);
+        CHECK(br == 5000, "MULTI.DAT size 5000");
+        int ok = 1;
+        for (int i = 0; i < 5000; i++) {
+            if (buf[i] != (unsigned char)(i % 199)) {
+                printf("  MULTI.DAT[%d] = 0x%02X, want 0x%02X\n", i, buf[i], (unsigned char)(i%199));
+                ok = 0; break;
+            }
+        }
+        CHECK(ok, "MULTI.DAT i%%199 pattern (5000B)");
+        f_close(&fp);
+    }
+
+    f_mount(NULL, "", 0);
+    fclose(df);
+    printf("%s: %d/%d\n", fail ? "FAIL" : "ALL OK", pass, pass+fail);
+    return fail ? 1 : 0;
+}
+`
+
 // TestNanzFAT12_MultiCluster verifies multi-cluster file write and read.
 // Creates a file >512 bytes on a blank FAT12 image and checks:
 // 1. FAT chain is properly allocated (start→next→EOC)

@@ -395,6 +395,29 @@ func elimJrToRet(lines []string) []string {
 		}
 	}
 
+	// Pass 3b: check for DJNZ fall-through — if a DJNZ instruction immediately
+	// precedes a label+RET (ignoring blanks/comments), the label is an implicit
+	// fall-through target and must not be removed.
+	for i := 0; i < len(out); i++ {
+		t := strings.TrimSpace(out[i])
+		if strings.HasSuffix(t, ":") {
+			label := strings.TrimSuffix(t, ":")
+			if _, ok := replaced[label]; ok {
+				// Walk backward to find the preceding instruction.
+				for j := i - 1; j >= 0; j-- {
+					prev := strings.TrimSpace(out[j])
+					if prev == "" || strings.HasPrefix(prev, ";") {
+						continue
+					}
+					if strings.HasPrefix(prev, "DJNZ ") {
+						labelRefs[label]++ // implicit fall-through reference
+					}
+					break
+				}
+			}
+		}
+	}
+
 	// Pass 4: remove dead label+RET pairs.
 	deadLabels := make(map[string]bool)
 	for label := range replaced {

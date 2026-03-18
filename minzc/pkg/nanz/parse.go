@@ -634,6 +634,13 @@ func (p *parser) parseModule() (*hir.Module, error) {
 			}
 			m.Globals = append(m.Globals, g)
 
+		case t.kind == tokIdent && t.val == "const":
+			g, err := p.parseConstDecl()
+			if err != nil {
+				return nil, err
+			}
+			m.Globals = append(m.Globals, g)
+
 		case t.kind == tokIdent && t.val == "fun":
 			// Check for metafunction: fun @name(...)
 			// Peek past "fun" to see if next is "@"
@@ -1186,10 +1193,20 @@ func (p *parser) parseImport() error {
 	// Module prefix for name mangling: "math.gcd" → "math$gcd$"
 	modPrefix := strings.ReplaceAll(modPath, ".", "$") + "$"
 
+	// Build name mapping: original → mangled (for all symbols in imported module)
+	nameMap := make(map[string]string)
+
 	// Merge functions
 	for _, f := range imported.Funcs {
-		mangledName := modPrefix + f.Name
 		origName := f.Name
+		// Do not mangle @extern functions — they map to host functions by name
+		if f.IsExtern {
+			p.funcSigs[origName] = f.RetTy
+			p.module.Funcs = append(p.module.Funcs, f)
+			continue
+		}
+		mangledName := modPrefix + f.Name
+		nameMap[origName] = mangledName
 		f.Name = mangledName
 
 		// Register mangled function signature
@@ -1218,6 +1235,7 @@ func (p *parser) parseImport() error {
 	for _, st := range imported.Structs {
 		mangledName := modPrefix + st.Name
 		origName := st.Name
+		nameMap[origName] = mangledName
 		st.Name = mangledName
 		p.structs[mangledName] = st
 
@@ -1241,6 +1259,7 @@ func (p *parser) parseImport() error {
 	for _, g := range imported.Globals {
 		mangledName := modPrefix + g.Name
 		origName := g.Name
+		nameMap[origName] = mangledName
 		g.Name = mangledName
 		p.globalTypes[mangledName] = g.Ty
 
@@ -1258,6 +1277,16 @@ func (p *parser) parseImport() error {
 		}
 
 		p.module.Globals = append(p.module.Globals, g)
+	}
+
+	// Rewrite internal references in imported functions:
+	// CallExpr.Fn and VarRefExpr.Name (for globals) must use mangled names.
+	for _, f := range imported.Funcs {
+		if f.Body != nil {
+			for _, stmt := range f.Body.Body {
+				rewriteImportedSymbols(stmt, nameMap)
+			}
+		}
 	}
 
 	// Merge string literals
@@ -1333,7 +1362,7 @@ func (p *parser) childTypeAliases(_ *hir.Module) map[string]mir2.Ty {
 // Tries extensions in priority order: .nanz, .lanz, .plm.
 func (p *parser) resolveModulePath(modPath string, line int) (string, error) {
 	basePath := strings.ReplaceAll(modPath, ".", string(filepath.Separator))
-	exts := []string{".nanz", ".lanz", ".lizp", ".plm", ".pas"}
+	exts := []string{".nanz", ".minz", ".lanz", ".lizp", ".plm", ".pas"}
 	dirs := []string{}
 	if p.opts.BaseDir != "" {
 		dirs = append(dirs, p.opts.BaseDir)
@@ -1726,6 +1755,35 @@ func (p *parser) parseGlobalDecl() (mir2.Global, error) {
 		g.Init = init
 	}
 
+	return g, nil
+}
+
+func (p *parser) parseConstDecl() (mir2.Global, error) {
+	if err := p.l.eatIdent("const"); err != nil {
+		return mir2.Global{}, err
+	}
+	nameTok, err := p.l.eat(tokIdent)
+	if err != nil {
+		return mir2.Global{}, err
+	}
+	if _, err := p.l.eat(tokColon); err != nil {
+		return mir2.Global{}, err
+	}
+	ty, _, err := p.parseTypeWithIface()
+	if err != nil {
+		return mir2.Global{}, err
+	}
+	g := mir2.Global{Name: nameTok.val, Ty: ty, IsConst: true}
+	p.globalTypes[nameTok.val] = ty
+
+	if _, err := p.l.eat(tokEq); err != nil {
+		return g, fmt.Errorf("line %d: const %s requires an initializer", nameTok.line, nameTok.val)
+	}
+	init, err := p.parseInitializer(ty)
+	if err != nil {
+		return g, err
+	}
+	g.Init = init
 	return g, nil
 }
 
@@ -4308,4 +4366,135 @@ func executeMetaFuncWithStringArgs(
 	}
 
 	return mr.emitted.String(), nil
+}
+
+// rewriteImportedSymbols walks an HIR statement tree and rewrites function
+// calls and global variable references to use mangled names from nameMap.
+func rewriteImportedSymbols(stmt hir.Stmt, nameMap map[string]string) {
+	if stmt == nil {
+		return
+	}
+	switch s := stmt.(type) {
+	case *hir.VarDeclStmt:
+		rewriteExpr(s.Init, nameMap)
+		for _, e := range s.Initial {
+			rewriteExpr(e, nameMap)
+		}
+	case *hir.AssignStmt:
+		rewriteExpr(s.Target, nameMap)
+		rewriteExpr(s.Val, nameMap)
+	case *hir.ReturnStmt:
+		rewriteExpr(s.Val, nameMap)
+		for _, e := range s.Vals {
+			rewriteExpr(e, nameMap)
+		}
+	case *hir.ExprStmt:
+		rewriteExpr(s.Expr, nameMap)
+	case *hir.Block:
+		for _, st := range s.Body {
+			rewriteImportedSymbols(st, nameMap)
+		}
+	case *hir.IfStmt:
+		rewriteExpr(s.Cond, nameMap)
+		if s.Then != nil {
+			for _, st := range s.Then.Body {
+				rewriteImportedSymbols(st, nameMap)
+			}
+		}
+		if s.Else != nil {
+			for _, st := range s.Else.Body {
+				rewriteImportedSymbols(st, nameMap)
+			}
+		}
+	case *hir.WhileStmt:
+		rewriteExpr(s.Cond, nameMap)
+		if s.Body != nil {
+			for _, st := range s.Body.Body {
+				rewriteImportedSymbols(st, nameMap)
+			}
+		}
+	case *hir.ForRangeStmt:
+		rewriteExpr(s.Start, nameMap)
+		rewriteExpr(s.End, nameMap)
+		if s.Body != nil {
+			for _, st := range s.Body.Body {
+				rewriteImportedSymbols(st, nameMap)
+			}
+		}
+	case *hir.ForEachStmt:
+		rewriteExpr(s.Ptr, nameMap)
+		rewriteExpr(s.Start, nameMap)
+		rewriteExpr(s.Len, nameMap)
+		if s.Body != nil {
+			for _, st := range s.Body.Body {
+				rewriteImportedSymbols(st, nameMap)
+			}
+		}
+	case *hir.TupleLetStmt:
+		rewriteExpr(s.Call, nameMap)
+	case *hir.StoreStmt:
+		rewriteExpr(s.Ptr, nameMap)
+		rewriteExpr(s.Val, nameMap)
+	case *hir.SwitchStmt:
+		rewriteExpr(s.Val, nameMap)
+		for _, c := range s.Cases {
+			if c.Body != nil {
+				for _, st := range c.Body.Body {
+					rewriteImportedSymbols(st, nameMap)
+				}
+			}
+		}
+	}
+}
+
+func rewriteExpr(expr hir.Expr, nameMap map[string]string) {
+	if expr == nil {
+		return
+	}
+	switch e := expr.(type) {
+	case *hir.CallExpr:
+		if mangled, ok := nameMap[e.Fn]; ok {
+			e.Fn = mangled
+		}
+		for _, a := range e.Args {
+			rewriteExpr(a, nameMap)
+		}
+	case *hir.CallIndirectExpr:
+		rewriteExpr(e.FnPtr, nameMap)
+		for _, a := range e.Args {
+			rewriteExpr(a, nameMap)
+		}
+	case *hir.VarRefExpr:
+		if mangled, ok := nameMap[e.Name]; ok {
+			e.Name = mangled
+		}
+	case *hir.BinExpr:
+		rewriteExpr(e.L, nameMap)
+		rewriteExpr(e.R, nameMap)
+	case *hir.UnaryExpr:
+		rewriteExpr(e.X, nameMap)
+	case *hir.FieldExpr:
+		rewriteExpr(e.X, nameMap)
+	case *hir.AddrOfExpr:
+		if mangled, ok := nameMap[e.Sym]; ok {
+			e.Sym = mangled
+		}
+	case *hir.LoadExpr:
+		rewriteExpr(e.Ptr, nameMap)
+	case *hir.DerefExpr:
+		rewriteExpr(e.Ptr, nameMap)
+	case *hir.CastExpr:
+		rewriteExpr(e.X, nameMap)
+	case *hir.IndexExpr:
+		rewriteExpr(e.Base, nameMap)
+		rewriteExpr(e.Idx, nameMap)
+	case *hir.StructLitExpr:
+		for _, f := range e.Fields {
+			rewriteExpr(f.Val, nameMap)
+		}
+	case *hir.CondExpr:
+		rewriteExpr(e.Cond, nameMap)
+		rewriteExpr(e.Then, nameMap)
+		rewriteExpr(e.Else, nameMap)
+	}
 }
