@@ -494,6 +494,12 @@ func emitInstsWithCallSpills(sb *strings.Builder, insts []Inst, desc *MachineDes
 			}
 		}
 
+		// Peephole: skip no-op moves (LD A, A etc.)
+		if inst.Pat.MIROp == OpMove && inst.Dst.Phys >= 0 && inst.Srcs[0].Phys >= 0 &&
+			inst.Dst.Phys == inst.Srcs[0].Phys {
+			continue
+		}
+
 		line := ExpandTemplateNamed(inst, desc)
 		fmt.Fprintf(sb, "    %s\n", line)
 	}

@@ -170,6 +170,9 @@ func GenerateRISCPatterns(m *MachineDesc) []Pattern {
 		{Name: "store", MIROp: OpStore, SrcLocs: [2]LocSet{allRegs, allRegs}, Template: "st [{src0}], {src1}", Cost: 2, Bytes: 4, Flags: PatMemWrite},
 		// Combined 16-bit little-endian load: loads 2 bytes from [src0] into dst
 		{Name: "load16_le", MIROp: OpLoad16LE, Width: 16, DstLocs: allRegs, SrcLocs: [2]LocSet{allRegs}, Template: "ld16 {dst}, [{src0}]", Cost: 3, Bytes: 4, Flags: PatMemRead},
+		// Function calls
+		{Name: "call", MIROp: OpCall, DstLocs: allRegs, Template: "call {sym}", Cost: 4, Bytes: 4, Flags: PatCall},
+		{Name: "call_void", MIROp: OpCall, Width: 0, Template: "call {sym}", Cost: 4, Bytes: 4, Flags: PatCall},
 	}
 }
 
@@ -248,6 +251,14 @@ func GenerateCISCPatterns(m *MachineDesc) []Pattern {
 		// LD L,(HL); INC HL; LD H,(HL) — 3 insts but 1 combined op
 		{Name: "ld16_le_hl", MIROp: OpLoad16LE, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{hl},
 			Template: "LD L, (HL)\n    INC HL\n    LD H, (HL)", Cost: 18, Bytes: 3, Flags: PatMemRead},
+
+		// Function calls
+		{Name: "call_u8", MIROp: OpCall, Width: 8, DstLocs: a,
+			Template: "CALL {sym}", Cost: 17, Bytes: 3, Clobbers: regs8.Or(flags), Flags: PatCall},
+		{Name: "call_u16", MIROp: OpCall, Width: 16, DstLocs: hl,
+			Template: "CALL {sym}", Cost: 17, Bytes: 3, Clobbers: regs8.Or(flags), Flags: PatCall},
+		{Name: "call_void", MIROp: OpCall, Width: 0,
+			Template: "CALL {sym}", Cost: 17, Bytes: 3, Clobbers: regs8.Or(flags), Flags: PatCall},
 	}
 }
 
