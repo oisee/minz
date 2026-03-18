@@ -27,7 +27,7 @@ type LowerResult struct {
 // LowerMIR2Block converts one MIR2 basic block into LIR MIROps.
 // This is a straightforward 1:1 translation — isel handles the rest.
 // The module parameter is needed for callee contract lookup (OpCall).
-func LowerMIR2Block(b *mir2.Block, desc *MachineDesc, mod *mir2.Module) ([]MIROp, error) {
+func LowerMIR2Block(b *mir2.Block, desc *MachineDesc, mod *mir2.Module, funcParamVRegs ...[]int) ([]MIROp, error) {
 	var ops []MIROp
 
 	for _, inst := range b.Insts {
@@ -48,7 +48,127 @@ func LowerMIR2Block(b *mir2.Block, desc *MachineDesc, mod *mir2.Module) ([]MIROp
 		}
 	}
 
+	// Note: caller-save spilling around calls is handled at assembly emission
+	// time (emitCallWithSpills in pipeline.go), not at the MIROp level.
+
 	return ops, nil
+}
+
+// FuncContractVRegs extracts virtual register IDs from a function's contract params.
+func FuncContractVRegs(f *mir2.Func) []int {
+	var vregs []int
+	for _, cp := range f.Contract.Params {
+		vregs = append(vregs, int(cp.Reg))
+	}
+	return vregs
+}
+
+// insertCallSpills scans MIROps for OpCall and inserts save/restore moves
+// for any vreg that is defined before the call and used after it.
+// This ensures values survive across calls that clobber all registers.
+func insertCallSpills(ops []MIROp, desc *MachineDesc, paramVRegs []int) []MIROp {
+	// Find call positions.
+	hasCall := false
+	for _, op := range ops {
+		if op.Op == OpCall {
+			hasCall = true
+			break
+		}
+	}
+	if !hasCall {
+		return ops
+	}
+
+	// For each call, find vregs that are:
+	// - defined (as Dst) before the call OR are function params
+	// - used (as Src) after the call
+	// These need to be spilled/restored.
+	nextSpillVReg := 9000 // synthetic vreg IDs for spill temporaries
+
+	var result []MIROp
+	spillMap := make(map[int]int) // original vreg → restored vreg (for renaming)
+
+	for i, op := range ops {
+		if op.Op == OpCall {
+			// Find vregs live across this call.
+			defsBefore := make(map[int]bool)
+			// Include function params as pre-defined.
+			for _, pv := range paramVRegs {
+				defsBefore[pv] = true
+			}
+			for j := 0; j < i; j++ {
+				if ops[j].Dst >= 0 {
+					defsBefore[ops[j].Dst] = true
+				}
+			}
+
+			usesAfter := make(map[int]bool)
+			for j := i + 1; j < len(ops); j++ {
+				for s := 0; s < 2; s++ {
+					if ops[j].Src[s] >= 0 {
+						usesAfter[ops[j].Src[s]] = true
+					}
+				}
+			}
+
+			// Vregs that need saving: defined before AND used after.
+			// Exclude the call's own dst (it's defined BY the call).
+			var toSave []int
+			for vreg := range defsBefore {
+				if usesAfter[vreg] && vreg != op.Dst {
+					toSave = append(toSave, vreg)
+				}
+			}
+
+			// Emit save moves: vreg → spill (before call)
+			for _, vreg := range toSave {
+				spillVReg := nextSpillVReg
+				nextSpillVReg++
+				result = append(result, MIROp{
+					Op:    OpMove,
+					Dst:   spillVReg,
+					Src:   [2]int{vreg, -1},
+					Width: 8,
+					DstAllowed: desc.SpillLocs(),
+				})
+				spillMap[vreg] = spillVReg
+			}
+
+			// Emit the call itself
+			result = append(result, applySpillRenames(op, spillMap))
+
+			// Emit restore moves: spill → new vreg (after call)
+			for _, vreg := range toSave {
+				spillVReg := spillMap[vreg]
+				restoredVReg := nextSpillVReg
+				nextSpillVReg++
+				result = append(result, MIROp{
+					Op:    OpMove,
+					Dst:   restoredVReg,
+					Src:   [2]int{spillVReg, -1},
+					Width: 8,
+				})
+				// Update spillMap: subsequent uses of `vreg` should use `restoredVReg`
+				spillMap[vreg] = restoredVReg
+			}
+		} else {
+			result = append(result, applySpillRenames(op, spillMap))
+		}
+	}
+
+	return result
+}
+
+// applySpillRenames replaces src vreg references using the spillMap.
+// After a save/restore pair, subsequent uses of the original vreg
+// should reference the restored vreg instead.
+func applySpillRenames(op MIROp, spillMap map[int]int) MIROp {
+	for s := 0; s < 2; s++ {
+		if restored, ok := spillMap[op.Src[s]]; ok {
+			op.Src[s] = restored
+		}
+	}
+	return op
 }
 
 // LowerMIR2Func converts a full MIR2 function (all blocks, straight-line)
@@ -56,8 +176,9 @@ func LowerMIR2Block(b *mir2.Block, desc *MachineDesc, mod *mir2.Module) ([]MIROp
 func LowerMIR2Func(f *mir2.Func, desc *MachineDesc) (*LowerResult, error) {
 	var allOps []MIROp
 
+	fpv := FuncContractVRegs(f)
 	for _, b := range f.Blocks {
-		ops, err := LowerMIR2Block(b, desc, nil)
+		ops, err := LowerMIR2Block(b, desc, nil, fpv)
 		if err != nil {
 			return nil, err
 		}
@@ -122,7 +243,7 @@ func LowerMIR2Prog(f *mir2.Func, desc *MachineDesc, mod *mir2.Module) (*Prog, er
 		}
 
 		// Translate instructions
-		ops, err := LowerMIR2Block(mb, desc, mod)
+		ops, err := LowerMIR2Block(mb, desc, mod, FuncContractVRegs(f))
 		if err != nil {
 			return nil, err
 		}
@@ -181,7 +302,7 @@ func LowerMIR2ProgWithOps(f *mir2.Func, desc *MachineDesc, mod *mir2.Module) (*P
 		}
 
 		// Translate instructions to MIROps
-		ops, err := LowerMIR2Block(mb, desc, mod)
+		ops, err := LowerMIR2Block(mb, desc, mod, FuncContractVRegs(f))
 		if err != nil {
 			return nil, nil, err
 		}

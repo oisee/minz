@@ -172,6 +172,14 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 		{Name: "ld_hl_nn", MIROp: OpMove, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{spill},
 			Template: "LD HL, ({src0})", Cost: 16, Bytes: 3},
 
+		// ── Spill (8-bit via A to absolute address) ──────────────────
+		// LD (nn), A — store accumulator to memory spill slot
+		{Name: "ld_nn_a", MIROp: OpMove, Width: 8, DstLocs: spill, SrcLocs: [2]LocSet{a},
+			Template: "LD ({dst}), A", Cost: 13, Bytes: 3},
+		// LD A, (nn) — load accumulator from memory spill slot
+		{Name: "ld_a_nn", MIROp: OpMove, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{spill},
+			Template: "LD A, ({src0})", Cost: 13, Bytes: 3},
+
 		// ── Function calls ──────────────────────────────────────────
 		// CALL sym — return value in A (u8) or HL (u16).
 		// Clobbers all volatile registers (caller-save).

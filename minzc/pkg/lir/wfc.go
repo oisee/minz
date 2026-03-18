@@ -83,6 +83,9 @@ func (s *WFCState) Propagate() int {
 		if s.vregConsistency() {
 			changed = true
 		}
+		if s.clobberPass() {
+			changed = true
+		}
 		iters++
 		if !changed {
 			break
@@ -212,6 +215,63 @@ func (s *WFCState) vregConsistency() bool {
 			}
 		}
 	}
+	return changed
+}
+
+// clobberPass: for each call instruction with Clobbers, find vregs that are
+// defined before the call and used after it. Remove clobbered locations from
+// those vregs' allowed sets, forcing WFC to place them in non-clobbered locs.
+// If no non-clobbered location exists, the vreg must be spilled.
+func (s *WFCState) clobberPass() bool {
+	changed := false
+
+	for ci := range s.Cells {
+		c := &s.Cells[ci]
+		if c.Pat == nil || c.Pat.Clobbers.IsEmpty() {
+			continue
+		}
+		clobbers := c.Pat.Clobbers
+
+		// Find vregs defined before this cell.
+		defsBefore := make(map[int]bool) // vreg → true
+		for j := 0; j < ci; j++ {
+			if s.Cells[j].VRegDst >= 0 {
+				defsBefore[s.Cells[j].VRegDst] = true
+			}
+		}
+
+		// Find vregs used after this cell.
+		usesAfter := make(map[int]bool)
+		for j := ci + 1; j < len(s.Cells); j++ {
+			for src := 0; src < 2; src++ {
+				if s.Cells[j].VRegSrc[src] >= 0 {
+					usesAfter[s.Cells[j].VRegSrc[src]] = true
+				}
+			}
+		}
+
+		// For vregs live across this call, remove clobbered locs from
+		// the DEFINITION site. This forces the vreg to be defined in a
+		// non-clobbered location (e.g. spill slot). If no such location
+		// exists, the DstLocs becomes empty → spill recovery will widen it.
+		for vreg := range defsBefore {
+			if !usesAfter[vreg] {
+				continue
+			}
+			// Find the definition cell for this vreg.
+			for j := 0; j < ci; j++ {
+				cell := &s.Cells[j]
+				if cell.VRegDst == vreg && !cell.DstLocs.IsEmpty() {
+					narrowed := cell.DstLocs.And(^clobbers)
+					if narrowed != cell.DstLocs {
+						cell.DstLocs = narrowed // may be empty → triggers spill recovery
+						changed = true
+					}
+				}
+			}
+		}
+	}
+
 	return changed
 }
 

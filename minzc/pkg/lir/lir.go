@@ -110,6 +110,17 @@ func (m *MachineDesc) LocSetByNames(names ...string) LocSet {
 	return s
 }
 
+// SpillLocs returns a LocSet of all memory spill slots.
+func (m *MachineDesc) SpillLocs() LocSet {
+	var s LocSet
+	for i, l := range m.Locs {
+		if l.Kind == LocMem {
+			s = s.Set(i)
+		}
+	}
+	return s
+}
+
 // LocsOfWidth returns a LocSet of all locations with the given bit width.
 func (m *MachineDesc) LocsOfWidth(w int) LocSet {
 	var s LocSet

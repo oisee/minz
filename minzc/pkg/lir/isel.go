@@ -220,6 +220,12 @@ func findBestPattern(desc *MachineDesc, op MIROp) (*Pattern, error) {
 		if op.Dst >= 0 && p.DstLocs.IsEmpty() {
 			continue
 		}
+		// If DstAllowed is set, only consider patterns whose DstLocs intersects it.
+		if !op.DstAllowed.IsEmpty() && !p.DstLocs.IsEmpty() {
+			if p.DstLocs.And(op.DstAllowed).IsEmpty() {
+				continue
+			}
+		}
 		candidates = append(candidates, p)
 	}
 

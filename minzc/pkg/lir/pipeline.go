@@ -148,8 +148,9 @@ func checkFuncConvergenceFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module) C
 
 	// Step 1: Lower MIR2 blocks to MIROps
 	var allOps []MIROp
+	fpv := FuncContractVRegs(f)
 	for _, b := range f.Blocks {
-		ops, err := LowerMIR2Block(b, desc, m)
+		ops, err := LowerMIR2Block(b, desc, m, fpv)
 		if err != nil {
 			cr.Error = fmt.Sprintf("lower: %s", err)
 			return cr
@@ -363,8 +364,9 @@ func emitTerminator(sb *strings.Builder, term *Term, blockIdx, numBlocks int) {
 func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module) (string, error) {
 	// Lower MIR2 → MIROps
 	var allOps []MIROp
+	fpv := FuncContractVRegs(f)
 	for _, b := range f.Blocks {
-		ops, err := LowerMIR2Block(b, desc, m)
+		ops, err := LowerMIR2Block(b, desc, m, fpv)
 		if err != nil {
 			return "", fmt.Errorf("lower %s: %w", f.Name, err)
 		}
@@ -399,20 +401,126 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module) (string, er
 
 	insts := wfc.ToInsts()
 
-	// Emit assembly from templates
+	// Emit assembly from templates, with caller-save spills around CALLs.
 	var sb strings.Builder
 	fmt.Fprintf(&sb, "; %s — LIR codegen (%d insts)\n", f.Name, len(insts))
 	fmt.Fprintf(&sb, "%s:\n", f.Name)
-	for _, inst := range insts {
-		if inst.Pat == nil {
-			continue
+	// Build param phys map from WFC param cells.
+	paramPhys := make(map[int]int) // vreg → phys
+	for _, c := range wfc.Cells {
+		if c.Pat == nil && c.VRegDst >= 0 {
+			if p := PhysOf(c.DstLocs); p >= 0 {
+				paramPhys[c.VRegDst] = p
+			}
 		}
-		line := ExpandTemplateNamed(inst, desc)
-		fmt.Fprintf(&sb, "    %s\n", line)
 	}
+	emitInstsWithCallSpills(&sb, insts, desc, paramPhys)
 	sb.WriteString("    RET\n")
 
 	return sb.String(), nil
+}
+
+// emitInstsWithCallSpills emits assembly with PUSH/POP pairs around CALL
+// instructions for any physical register that is live across the call.
+func emitInstsWithCallSpills(sb *strings.Builder, insts []Inst, desc *MachineDesc, paramPhys map[int]int) {
+	for i, inst := range insts {
+		if inst.Pat == nil {
+			continue
+		}
+
+		// Check if this is a CALL instruction.
+		if inst.Pat.Flags&PatCall != 0 {
+			// Find physical registers that are:
+			// - assigned to some vreg BEFORE this call (as dst or param)
+			// - used by some vreg AFTER this call (as src)
+			defsBefore := make(map[int]int) // phys → vreg
+			// Include function params as pre-defined.
+			for vreg, phys := range paramPhys {
+				defsBefore[phys] = vreg
+			}
+			for j := 0; j < i; j++ {
+				if insts[j].Dst.Phys >= 0 && insts[j].Dst.VReg >= 0 {
+					defsBefore[insts[j].Dst.Phys] = insts[j].Dst.VReg
+				}
+			}
+
+			usesAfter := make(map[int]bool) // vreg → true
+			for j := i + 1; j < len(insts); j++ {
+				if insts[j].Pat == nil {
+					continue
+				}
+				for s := 0; s < 2; s++ {
+					if insts[j].Srcs[s].VReg > 0 {
+						usesAfter[insts[j].Srcs[s].VReg] = true
+					}
+				}
+			}
+
+			// Find registers to save: defined before, used after, and clobbered by call.
+			var toSave []int // physical register indices to PUSH/POP
+			for phys, vreg := range defsBefore {
+				if usesAfter[vreg] && inst.Pat.Clobbers.Has(phys) {
+					toSave = append(toSave, phys)
+				}
+			}
+
+			// Also check param vregs (from synthetic param cells, already collapsed).
+			// Param cells have Pat==nil so they're excluded from defsBefore.
+			// But params are in the WFC cells — check if any param phys is used after.
+			// This is already covered if the param appears as a src somewhere before.
+
+			if len(toSave) > 0 {
+				// Emit PUSH for each register pair containing a saved register.
+				// Z80 PUSH only works on 16-bit pairs: AF, BC, DE, HL.
+				pairs := callerSavePairs(toSave, desc)
+				for _, pair := range pairs {
+					fmt.Fprintf(sb, "    PUSH %s\n", pair)
+				}
+				// Emit the CALL
+				line := ExpandTemplateNamed(inst, desc)
+				fmt.Fprintf(sb, "    %s\n", line)
+				// Emit POP in reverse order
+				for j := len(pairs) - 1; j >= 0; j-- {
+					fmt.Fprintf(sb, "    POP %s\n", pairs[j])
+				}
+				continue
+			}
+		}
+
+		line := ExpandTemplateNamed(inst, desc)
+		fmt.Fprintf(sb, "    %s\n", line)
+	}
+}
+
+// callerSavePairs maps individual physical register indices to Z80 register pair
+// names for PUSH/POP. Multiple registers in the same pair are deduplicated.
+func callerSavePairs(physRegs []int, desc *MachineDesc) []string {
+	pairSet := make(map[string]bool)
+	for _, phys := range physRegs {
+		if phys >= len(desc.Locs) {
+			continue
+		}
+		name := desc.Locs[phys].Name
+		switch name {
+		case "A":
+			pairSet["AF"] = true
+		case "B", "C":
+			pairSet["BC"] = true
+		case "D", "E":
+			pairSet["DE"] = true
+		case "H", "L":
+			pairSet["HL"] = true
+		}
+	}
+
+	// Order: AF, BC, DE, HL (conventional)
+	var result []string
+	for _, p := range []string{"AF", "BC", "DE", "HL"} {
+		if pairSet[p] {
+			result = append(result, p)
+		}
+	}
+	return result
 }
 
 // LIRCodegenModule runs the LIR pipeline on every function in the module
