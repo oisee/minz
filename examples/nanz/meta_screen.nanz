@@ -1,9 +1,10 @@
-// meta_screen.nanz — Level 3 metafunction demo
+// meta_screen.nanz — Level 3 declarative TUI via compile-time metafunction
 //
-// fun @screen is a compile-time metafunction that runs on MIR2 VM.
-// It receives a block { field "X", ... } and emits Nanz source code.
+// The @screen metafunction runs on the MIR2 VM at compile time.
+// It receives a DSL block { field "X", button "Y" } as structured data,
+// iterates the nodes, and emits idiomatic Nanz TUI code.
 //
-// Run: mzv -H examples/nanz/meta_screen.nanz
+// Run: echo "" | mzv -H examples/nanz/meta_screen.nanz
 
 @extern fun tui_clear() -> void
 @extern fun tui_puts(str: ^u8) -> void
@@ -12,65 +13,42 @@
 @extern fun tui_reset() -> void
 @extern fun tui_read_key() -> u8
 
-// ── Metafunction: runs at compile time on MIR2 VM ────────────
-// Receives block { field "X", button "Y" } and emits a Nanz function.
-// Uses str_chr(34) to produce quote characters without escaping.
+// ── @screen: compile-time metafunction ───────────────────────
+//
+// Uses high-level emit helpers (emit_tui_puts, emit_tui_goto,
+// emit_tui_color) — no manual str_concat/str_chr string building.
+// Iterates block with for..in range.
 
 fun @screen(title: ^u8) -> void {
-    var q: ^u8 = str_chr(34)
-
     emit(c"fun _generated_screen() -> void {")
     emit(c"    tui_clear()")
-    emit(c"    tui_color(7, 4, 1)")
-    emit(c"    tui_goto(0, 0)")
 
-    // tui_puts(c"  <title>")
-    var line: ^u8 = str_concat(c"    tui_puts(c", q)
-    line = str_concat(line, c"  ")
-    line = str_concat(line, title)
-    line = str_concat(line, q)
-    emit(str_concat(line, c")"))
-
+    // Title bar: white on blue
+    emit_tui_color(7, 4, 1)
+    emit_tui_goto(0, 0)
+    emit_tui_puts(str_concat(c"  ", title))
     emit(c"    tui_reset()")
 
-    // Emit each field/button from the block
-    var n: u8 = block_len()
-    var i: u8 = 0
-    while i < n {
+    // Each block node → field or button
+    for i in 0..block_len() {
         var kw: ^u8 = node_keyword(i)
         var label: ^u8 = node_arg_str(i, 0)
-        var row_num: u16 = u16(i) + 2
-        var row: ^u8 = str_from_int(row_num)
 
         if str_eq(kw, c"field") == 1 {
-            emit(str_concat(c"    tui_goto(2, ", str_concat(row, c")")))
-            emit(c"    tui_color(6, 0, 0)")
-            // tui_puts(c"LABEL    ")
-            var s: ^u8 = str_concat(c"    tui_puts(c", q)
-            s = str_concat(s, label)
-            s = str_concat(s, c"    ")
-            s = str_concat(s, q)
-            emit(str_concat(s, c")"))
-            emit(c"    tui_color(7, 0, 0)")
-            // tui_puts(c"[__________]")
-            s = str_concat(c"    tui_puts(c", q)
-            s = str_concat(s, c"[__________]")
-            s = str_concat(s, q)
-            emit(str_concat(s, c")"))
+            emit_tui_goto(2, i + 2)
+            emit_tui_color(6, 0, 0)
+            emit_tui_puts(str_concat(label, c"    "))
+            emit_tui_color(7, 0, 0)
+            emit_tui_puts(c"[__________]")
             emit(c"    tui_reset()")
         }
+
         if str_eq(kw, c"button") == 1 {
-            emit(str_concat(c"    tui_goto(2, ", str_concat(row, c")")))
-            emit(c"    tui_color(0, 7, 1)")
-            var s: ^u8 = str_concat(c"    tui_puts(c", q)
-            s = str_concat(s, c"[")
-            s = str_concat(s, label)
-            s = str_concat(s, c"]")
-            s = str_concat(s, q)
-            emit(str_concat(s, c")"))
+            emit_tui_goto(2, i + 2)
+            emit_tui_color(0, 7, 1)
+            emit_tui_puts(str_concat(c"[", str_concat(label, c"]")))
             emit(c"    tui_reset()")
         }
-        i = i + 1
     }
 
     emit(c"    var key: u8 = tui_read_key()")

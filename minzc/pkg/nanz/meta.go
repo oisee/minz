@@ -133,6 +133,49 @@ func (mr *metaRuntime) registerHosts(vm *mir2.VM, block []metaBlockNode) {
 		return []mir2.Value{{I: 0}}, nil
 	}
 
+	// ── High-level emit helpers ───────────────────────────────────
+
+	// emit_call(fn_name, arg1, arg2, ...) — emit "    fn_name(arg1, arg2, ...)"
+	// All args are string pointers. Strings get c"..." wrapped, integers stay bare.
+	vm.Hosts["emit_call"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		fn := mr.readCString(args[0].I)
+		var sb strings.Builder
+		sb.WriteString("    ")
+		sb.WriteString(fn)
+		sb.WriteByte('(')
+		for i := 1; i < len(args); i++ {
+			if i > 1 {
+				sb.WriteString(", ")
+			}
+			sb.WriteString(mr.readCString(args[i].I))
+		}
+		sb.WriteByte(')')
+		mr.emitted.WriteString(sb.String())
+		mr.emitted.WriteByte('\n')
+		return nil, nil
+	}
+
+	// emit_tui_puts(str) — emit '    tui_puts(c"str")'
+	vm.Hosts["emit_tui_puts"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		s := mr.readCString(args[0].I)
+		fmt.Fprintf(&mr.emitted, "    tui_puts(c\"%s\")\n", s)
+		return nil, nil
+	}
+
+	// emit_tui_goto(x, y) — emit '    tui_goto(x, y)'
+	vm.Hosts["emit_tui_goto"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		x, y := args[0].I, args[1].I
+		fmt.Fprintf(&mr.emitted, "    tui_goto(%d, %d)\n", x, y)
+		return nil, nil
+	}
+
+	// emit_tui_color(fg, bg, bright) — emit '    tui_color(fg, bg, bright)'
+	vm.Hosts["emit_tui_color"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		fg, bg, br := args[0].I, args[1].I, args[2].I
+		fmt.Fprintf(&mr.emitted, "    tui_color(%d, %d, %d)\n", fg, bg, br)
+		return nil, nil
+	}
+
 	// ── String helpers ────────────────────────────────────────────
 	vm.Hosts["str_concat"] = func(args []mir2.Value) ([]mir2.Value, error) {
 		a := mr.readCString(args[0].I)

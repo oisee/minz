@@ -650,22 +650,38 @@ emits Level 2 Nanz code — which the compiler then parses and compiles normally
 ```nanz
 // Define the metafunction (compile-time, written in Nanz)
 fun @screen(title: ^u8) -> void {
-    var q: ^u8 = str_chr(34)
     emit(c"fun _show() -> void {")
     emit(c"    tui_clear()")
-    var n: u8 = block_len()
-    var i: u8 = 0
-    while i < n {
+
+    // Title bar
+    emit_tui_color(7, 4, 1)
+    emit_tui_goto(0, 0)
+    emit_tui_puts(str_concat(c"  ", title))
+    emit(c"    tui_reset()")
+
+    // Each block node → field or button
+    for i in 0..block_len() {
         var kw: ^u8 = node_keyword(i)
         var label: ^u8 = node_arg_str(i, 0)
+
         if str_eq(kw, c"field") == 1 {
-            var s: ^u8 = str_concat(c"    tui_puts(c", q)
-            s = str_concat(s, label)
-            s = str_concat(s, q)
-            emit(str_concat(s, c")"))
+            emit_tui_goto(2, i + 2)
+            emit_tui_color(6, 0, 0)
+            emit_tui_puts(str_concat(label, c"    "))
+            emit_tui_color(7, 0, 0)
+            emit_tui_puts(c"[__________]")
+            emit(c"    tui_reset()")
         }
-        i = i + 1
+
+        if str_eq(kw, c"button") == 1 {
+            emit_tui_goto(2, i + 2)
+            emit_tui_color(0, 7, 1)
+            emit_tui_puts(str_concat(c"[", str_concat(label, c"]")))
+            emit(c"    tui_reset()")
+        }
     }
+
+    emit(c"    var key: u8 = tui_read_key()")
     emit(c"}")
 }
 

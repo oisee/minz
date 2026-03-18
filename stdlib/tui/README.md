@@ -53,61 +53,38 @@ receives the block as data, and emits Level 2 Nanz code:
 ```nanz
 // Step 1: Define the metafunction (runs at compile time)
 fun @screen(title: ^u8) -> void {
-    var q: ^u8 = str_chr(34)  // quote character
-
     emit(c"fun _generated_screen() -> void {")
     emit(c"    tui_clear()")
-    emit(c"    tui_color(7, 4, 1)")
-    emit(c"    tui_goto(0, 0)")
 
-    // Emit title: tui_puts(c"  Material Report")
-    var line: ^u8 = str_concat(c"    tui_puts(c", q)
-    line = str_concat(line, c"  ")
-    line = str_concat(line, title)
-    line = str_concat(line, q)
-    emit(str_concat(line, c")"))
+    // Title bar: white on blue
+    emit_tui_color(7, 4, 1)
+    emit_tui_goto(0, 0)
+    emit_tui_puts(str_concat(c"  ", title))
     emit(c"    tui_reset()")
 
-    // Iterate block nodes
-    var n: u8 = block_len()
-    var i: u8 = 0
-    while i < n {
+    // Each block node → field or button
+    for i in 0..block_len() {
         var kw: ^u8 = node_keyword(i)
         var label: ^u8 = node_arg_str(i, 0)
-        var row: ^u8 = str_from_int(u16(i) + 2)
 
         if str_eq(kw, c"field") == 1 {
-            emit(str_concat(c"    tui_goto(2, ", str_concat(row, c")")))
-            emit(c"    tui_color(6, 0, 0)")
-            var s: ^u8 = str_concat(c"    tui_puts(c", q)
-            s = str_concat(s, label)
-            s = str_concat(s, c"    ")
-            s = str_concat(s, q)
-            emit(str_concat(s, c")"))
-            emit(c"    tui_color(7, 0, 0)")
-            s = str_concat(c"    tui_puts(c", q)
-            s = str_concat(s, c"[__________]")
-            s = str_concat(s, q)
-            emit(str_concat(s, c")"))
+            emit_tui_goto(2, i + 2)
+            emit_tui_color(6, 0, 0)
+            emit_tui_puts(str_concat(label, c"    "))
+            emit_tui_color(7, 0, 0)
+            emit_tui_puts(c"[__________]")
             emit(c"    tui_reset()")
         }
+
         if str_eq(kw, c"button") == 1 {
-            emit(str_concat(c"    tui_goto(2, ", str_concat(row, c")")))
-            emit(c"    tui_color(0, 7, 1)")
-            var s: ^u8 = str_concat(c"    tui_puts(c", q)
-            s = str_concat(s, c"[")
-            s = str_concat(s, label)
-            s = str_concat(s, c"]")
-            s = str_concat(s, q)
-            emit(str_concat(s, c")"))
+            emit_tui_goto(2, i + 2)
+            emit_tui_color(0, 7, 1)
+            emit_tui_puts(str_concat(c"[", str_concat(label, c"]")))
             emit(c"    tui_reset()")
         }
-        i = i + 1
     }
 
     emit(c"    var key: u8 = tui_read_key()")
-    emit(c"    tui_clear()")
-    emit(c"    tui_reset()")
     emit(c"}")
 }
 
@@ -296,3 +273,6 @@ Available inside `fun @name(...)` compile-time functions:
 | `str_from_int(n)` | Integer to decimal string |
 | `str_chr(code)` | ASCII code to single-char string |
 | `str_eq(a, b)` | String equality (returns 0 or 1) |
+| `emit_tui_puts(str)` | Emit `tui_puts(c"str")` call |
+| `emit_tui_goto(x, y)` | Emit `tui_goto(x, y)` call |
+| `emit_tui_color(fg, bg, br)` | Emit `tui_color(fg, bg, br)` call |
