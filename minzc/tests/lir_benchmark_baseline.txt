@@ -1,0 +1,23 @@
+# LIR vs PBQP Benchmark Baseline — 2026-03-18
+# Run: bash /tmp/lir_benchmark.sh (from minzc/)
+# Metric: instruction count (grep -c "^    " asm output)
+#
+# BASELINE — before P0-P4 optimizations
+#
+| Example              | PBQP | LIR | Delta |
+|----------------------|------|-----|-------|
+| 01_sum_array         |   16 |  13 | -18%  |
+| 02_sum_array_idiom   |   24 |  29 | +20%  |
+| 03_filter_map_chain  |   37 |  57 | +54%  |
+| 04_lut_popcount      |    6 |   7 | +16%  |
+| 05_four_pointers     |   13 |  27 | +107% |
+| 06_pbqp_weighted     |   19 |  20 | +5%   |
+| 07_ix_load_store     |   18 |  33 | +83%  |
+| 08_arena_allocator   |  723 | 456 | -36%  |
+| 09_function_pointers |   21 |  19 | -9%   |
+|----------------------|------|-----|-------|
+| TOTAL                |  877 | 661 | -24%  |
+#
+# LIR wins 3/9 examples, PBQP wins 6/9
+# LIR wins TOTAL by -24% (arena allocator dominates)
+# Target: LIR wins 9/9 (or ≤5% delta on each)
