@@ -4136,6 +4136,7 @@ func (p *parser) captureMetaFuncSource(name string) (string, error) {
 	sb.WriteString("@extern fun str_from_int(n: u16) -> ^u8\n")
 	sb.WriteString("@extern fun str_eq(a: ^u8, b: ^u8) -> u8\n")
 	sb.WriteString("@extern fun str_chr(code: u8) -> ^u8\n")
+	sb.WriteString("@extern fun block_nodes() -> ^u8\n")
 	sb.WriteString("@extern fun emit_tui_puts(s: ^u8) -> void\n")
 	sb.WriteString("@extern fun emit_tui_goto(x: u8, y: u8) -> void\n")
 	sb.WriteString("@extern fun emit_tui_color(fg: u8, bg: u8, bright: u8) -> void\n")

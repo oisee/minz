@@ -2,7 +2,7 @@
 //
 // The @screen metafunction runs on the MIR2 VM at compile time.
 // It receives a DSL block { field "X", button "Y" } as structured data,
-// iterates the nodes, and emits idiomatic Nanz TUI code.
+// iterates the nodes with for..in range, and emits idiomatic Nanz TUI code.
 //
 // Run: echo "" | mzv -H examples/nanz/meta_screen.nanz
 
@@ -13,11 +13,10 @@
 @extern fun tui_reset() -> void
 @extern fun tui_read_key() -> u8
 
-// ── @screen: compile-time metafunction ───────────────────────
+// ── @screen metafunction ─────────────────────────────────────
 //
-// Uses high-level emit helpers (emit_tui_puts, emit_tui_goto,
-// emit_tui_color) — no manual str_concat/str_chr string building.
-// Iterates block with for..in range.
+// Runs at compile time. Uses high-level emit helpers (emit_tui_*)
+// and for..in range iteration over block nodes.
 
 fun @screen(title: ^u8) -> void {
     emit(c"fun _generated_screen() -> void {")
@@ -57,7 +56,9 @@ fun @screen(title: ^u8) -> void {
     emit(c"}")
 }
 
-// ── Use the metafunction ──────────────────────────────────────
+// ── Declarative usage ─────────────────────────────────────────
+// This block is parsed as DATA. The compiler passes it to fun @screen
+// which generates _generated_screen() at compile time.
 
 @screen("Material Report") {
     field "Material"

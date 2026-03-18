@@ -72,7 +72,77 @@ func (mr *metaRuntime) registerHosts(vm *mir2.VM, block []metaBlockNode) {
 		return nil, nil
 	}
 
-	// ── Block introspection ───────────────────────────────────────
+	// ── Block as struct array on VM heap ──────────────────────────
+	//
+	// Serialize block nodes as a flat array of 8-byte structs:
+	//   [0-1] keyword ^u8  [2-3] label ^u8  [4-5] value ^u8  [6] length u8  [7] key u8
+	// This lets Nanz iterate with native pointer arithmetic:
+	//   for i in 0..block_len() { var node: ^BlockNode = block_ptr() + i * 8 }
+	//
+	// Also expose block_nodes() which returns a pointer to the array start.
+
+	var blockArrayPtr int64
+	if len(block) > 0 {
+		// Allocate all strings first, collect pointers
+		type nodeAddrs struct {
+			kw, label, value int64
+			length, key      byte
+		}
+		addrs := make([]nodeAddrs, len(block))
+		for i, n := range block {
+			addrs[i].kw = mr.allocString(n.keyword).I
+			if len(n.args) > 0 {
+				addrs[i].label = mr.allocString(n.args[0]).I
+			} else {
+				addrs[i].label = mr.allocString("").I
+			}
+			if v, ok := n.kwargs["default"]; ok {
+				addrs[i].value = mr.allocString(v).I
+			} else {
+				addrs[i].value = mr.allocString("").I
+			}
+			if v, ok := n.kwargs["length"]; ok {
+				if n, err := fmt.Sscanf(v, "%d", new(int)); n == 1 && err == nil {
+					fmt.Sscanf(v, "%d", &addrs[i].length)
+				}
+			}
+			// key kwarg: map F1-F8 names to codes
+			if v, ok := n.kwargs["key"]; ok {
+				switch v {
+				case "F1":
+					addrs[i].key = 140
+				case "F3":
+					addrs[i].key = 142
+				case "F5":
+					addrs[i].key = 144
+				case "F8":
+					addrs[i].key = 147
+				}
+			}
+		}
+
+		// Allocate the struct array (8 bytes per node)
+		arr := make([]byte, len(block)*8)
+		for i, a := range addrs {
+			off := i * 8
+			arr[off+0] = byte(a.kw)
+			arr[off+1] = byte(a.kw >> 8)
+			arr[off+2] = byte(a.label)
+			arr[off+3] = byte(a.label >> 8)
+			arr[off+4] = byte(a.value)
+			arr[off+5] = byte(a.value >> 8)
+			arr[off+6] = a.length
+			arr[off+7] = a.key
+		}
+		blockArrayPtr = vm.AllocHeap(arr).I
+	}
+
+	// block_nodes() → pointer to BlockNode array
+	vm.Hosts["block_nodes"] = func(_ []mir2.Value) ([]mir2.Value, error) {
+		return []mir2.Value{{I: blockArrayPtr}}, nil
+	}
+
+	// ── Block introspection (kept for backward compat) ────────────
 	vm.Hosts["block_len"] = func(_ []mir2.Value) ([]mir2.Value, error) {
 		return []mir2.Value{{I: int64(len(block))}}, nil
 	}
