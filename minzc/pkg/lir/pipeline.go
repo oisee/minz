@@ -221,9 +221,18 @@ func verifyViaVM(f *mir2.Func, m *mir2.Module, desc *MachineDesc, insts []Inst) 
 		return nil, nil
 	}
 
-	// Skip functions with calls (VM can't execute CALL).
+	// Skip functions with calls (VM can't execute CALL) or stores
+	// (depends on memory layout which LIR-VM doesn't initialize).
 	for _, inst := range insts {
-		if inst.Pat != nil && inst.Pat.Flags&PatCall != 0 {
+		if inst.Pat == nil {
+			continue
+		}
+		if inst.Pat.Flags&PatCall != 0 {
+			return nil, nil
+		}
+		// Skip if function reads memory — LIR-VM doesn't initialize global/static
+		// memory, so designated initializers and global arrays would diverge.
+		if inst.Pat.MIROp == OpLoad || inst.Pat.MIROp == OpLoad16LE {
 			return nil, nil
 		}
 	}
