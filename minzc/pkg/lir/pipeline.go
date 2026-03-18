@@ -602,7 +602,67 @@ func LIRCodegenModule(m *mir2.Module, hints ...AllocHints) (string, []LIRFuncRes
 		results = append(results, r)
 	}
 
+	// Emit runtime routines if referenced.
+	asmText := sb.String()
+	if strings.Contains(asmText, "__mul8") || strings.Contains(asmText, "__mul16") {
+		sb.WriteString(emitMulRuntime(asmText))
+	}
+
 	return sb.String(), results
+}
+
+// emitMulRuntime emits Z80 runtime multiply routines referenced by LIR codegen.
+func emitMulRuntime(asm string) string {
+	var sb strings.Builder
+
+	if strings.Contains(asm, "__mul8") {
+		// __mul8: 8-bit multiply. A × B → A (low byte of result)
+		// Uses shift-and-add. ~80T average, 8 iterations.
+		sb.WriteString(`; __mul8: A = A * B (8-bit multiply, ~80T)
+__mul8:
+    LD C, A
+    XOR A
+    LD D, 8
+.__mul8_lp:
+    SRL C
+    JR NC, .__mul8_sk
+    ADD A, B
+.__mul8_sk:
+    SLA B
+    DEC D
+    JR NZ, .__mul8_lp
+    RET
+
+`)
+	}
+
+	if strings.Contains(asm, "__mul16") {
+		// __mul16: 16-bit multiply. HL × DE → HL (low 16 bits of result)
+		// Uses shift-and-add. ~200T average, 16 iterations.
+		sb.WriteString(`; __mul16: HL = HL * DE (16-bit multiply, ~200T)
+__mul16:
+    PUSH BC
+    LD B, H
+    LD C, L
+    LD HL, 0
+    LD A, 16
+.__mul16_lp:
+    SRL D
+    RR E
+    JR NC, .__mul16_sk
+    ADD HL, BC
+.__mul16_sk:
+    SLA C
+    RL B
+    DEC A
+    JR NZ, .__mul16_lp
+    POP BC
+    RET
+
+`)
+	}
+
+	return sb.String()
 }
 
 // LIRFuncResult reports the outcome of LIR codegen for one function.

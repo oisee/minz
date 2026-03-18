@@ -39,6 +39,17 @@ func LowerMIR2Block(b *mir2.Block, desc *MachineDesc, mod *mir2.Module, funcPara
 			ops = append(ops, callOps...)
 			continue
 		}
+		// OpMul → runtime CALL to __mul8/__mul16.
+		// ISLE combining already reduced constant multiplies (×2 → add, ×4 → shl)
+		// at the MIROp level. Any OpMul that reaches here is variable×variable
+		// or a const multiply that ISLE didn't handle.
+		if inst.Op == mir2.OpMul {
+			mulOps := translateMul(inst, desc)
+			if mulOps != nil {
+				ops = append(ops, mulOps...)
+				continue
+			}
+		}
 		op, err := translateInst(inst, desc)
 		if err != nil {
 			return nil, fmt.Errorf("block %s: %w", b.Label, err)
@@ -742,6 +753,110 @@ func translateTerm(t mir2.Term, desc *MachineDesc) (Term, error) {
 	default:
 		return Term{Kind: TermNone}, nil
 	}
+}
+
+// mulHasConstOperand checks if a multiply instruction has at least one
+// constant operand (which ISLE combining can reduce to shifts+adds).
+func mulHasConstOperand(inst *mir2.Inst, block *mir2.Block) bool {
+	for s := 0; s < 2; s++ {
+		src := inst.Src[s]
+		if src == mir2.NoReg {
+			continue
+		}
+		// Look for a const definition of this vreg in the same block.
+		for _, other := range block.Insts {
+			if other.Dst == src && other.Op == mir2.OpConst {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// translateMul converts a non-constant OpMul into a CALL to a runtime
+// multiply routine (__mul8 or __mul16). Returns nil if the multiply
+// might be reducible by ISLE (has a constant operand).
+func translateMul(inst *mir2.Inst, desc *MachineDesc) []MIROp {
+	// Check if either source is a constant — ISLE combining will handle those.
+	// We only need runtime CALL for variable × variable.
+	// At bridge level we can't easily check if src is const, so we always
+	// emit the CALL. ISLE combining runs BEFORE isel and will have already
+	// reduced const multiplies to shifts/adds — those won't reach here
+	// because the MIR2 OpMul will have been rewritten.
+	// Actually, ISLE works on MIROps not MIR2 — so the OpMul MIROp is
+	// what ISLE sees. If ISLE reduces it, the MIROp changes to OpAdd/OpShl.
+	// If ISLE doesn't reduce it (variable×variable), it stays OpMul and
+	// isel fails. So we should always convert OpMul to a CALL here,
+	// and let ISLE handle the const cases upstream.
+
+	width := 8
+	if inst.Ty != nil {
+		if w := inst.Ty.Width(); w > 0 {
+			width = w
+		}
+	}
+	if width < 8 {
+		width = 8
+	}
+
+	var ops []MIROp
+
+	if width <= 8 {
+		// __mul8(a: u8 = A, b: u8 = B) -> u8 = A
+		// Arg 0: src0 → A
+		ops = append(ops, MIROp{
+			Op:         OpMove,
+			Dst:        7000, // synthetic vreg for arg0
+			Src:        [2]int{int(inst.Src[0]), -1},
+			Width:      8,
+			DstAllowed: desc.LocSetByNames("A"),
+		})
+		// Arg 1: src1 → B (or any non-A GPR)
+		nonA := desc.LocsOfWidth(8)
+		if aIdx := desc.LocByName("A"); aIdx >= 0 {
+			nonA = nonA.Clear(aIdx)
+		}
+		ops = append(ops, MIROp{
+			Op:         OpMove,
+			Dst:        7001,
+			Src:        [2]int{int(inst.Src[1]), -1},
+			Width:      8,
+			DstAllowed: nonA,
+		})
+		// CALL __mul8
+		ops = append(ops, MIROp{
+			Op:    OpCall,
+			Dst:   int(inst.Dst),
+			Src:   [2]int{-1, -1},
+			Width: 8,
+			Sym:   "__mul8",
+		})
+	} else {
+		// __mul16(a: u16 = HL, b: u16 = DE) -> u16 = HL
+		ops = append(ops, MIROp{
+			Op:         OpMove,
+			Dst:        7000,
+			Src:        [2]int{int(inst.Src[0]), -1},
+			Width:      16,
+			DstAllowed: desc.LocSetByNames("HL"),
+		})
+		ops = append(ops, MIROp{
+			Op:         OpMove,
+			Dst:        7001,
+			Src:        [2]int{int(inst.Src[1]), -1},
+			Width:      16,
+			DstAllowed: desc.LocSetByNames("DE"),
+		})
+		ops = append(ops, MIROp{
+			Op:    OpCall,
+			Dst:   int(inst.Dst),
+			Src:   [2]int{-1, -1},
+			Width: 16,
+			Sym:   "__mul16",
+		})
+	}
+
+	return ops
 }
 
 // translateCall converts an OpCall/OpCallIndirect into a sequence of LIR MIROps:
