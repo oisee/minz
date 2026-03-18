@@ -212,7 +212,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&ctieDebug, "ctie-debug", false, "show CTIE optimization decisions and statistics")
 	rootCmd.Flags().BoolVar(&compileTrace, "compile-trace", false, "show all optimization decisions and transformations")
 	rootCmd.Flags().StringVar(&superoptRules, "superopt-rules", "", "path to z80-optimizer rules.json[.gz] for superoptimizer peephole pass")
-	rootCmd.Flags().BoolVar(&useLIR, "lir", false, "use experimental LIR backend (ISLE+WFC) for code generation")
+	rootCmd.Flags().BoolVar(&useLIR, "lir", true, "use LIR backend (ISLE+WFC+PBQP) for code generation (default: on)")
 	rootCmd.Flags().BoolVar(&emitSLD, "emit-sld", false, "emit SLD file for DeZog source-level debugging")
 	rootCmd.Flags().BoolVar(&annotateTStates, "annotate-tstates", false, "annotate each Z80 instruction with its T-state cost")
 	rootCmd.Flags().StringVar(&emitFormat, "emit", "", "emit format: nanz (HIR as Nanz syntax), hir (HIR typed tree), lanz (HIR as S-expr), mir2-raw, mir2 (works with .plm/.nanz/.lanz input)")

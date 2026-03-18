@@ -39,8 +39,6 @@ import (
 	"fmt"
 	"sort"
 	"strings"
-
-	"github.com/minz/minzc/pkg/lanz"
 )
 
 // ── AST ─────────────────────────────────────────────────────────────────────
@@ -94,7 +92,7 @@ const (
 
 // Parse parses ISLE rules from source text.
 func Parse(src string) (*RuleSet, error) {
-	nodes, err := lanz.ParseSExpr(src)
+	nodes, err := ParseSExpr(src)
 	if err != nil {
 		return nil, fmt.Errorf("isle parse: %w", err)
 	}
@@ -137,7 +135,7 @@ func Parse(src string) (*RuleSet, error) {
 	return rs, nil
 }
 
-func parseDecl(n lanz.Node) (TermDecl, error) {
+func parseDecl(n Node) (TermDecl, error) {
 	// (decl name (arg-types...) ret-type)
 	if len(n.List) < 4 {
 		return TermDecl{}, fmt.Errorf("line %d: decl needs (decl name (args) ret)", n.Line)
@@ -153,7 +151,7 @@ func parseDecl(n lanz.Node) (TermDecl, error) {
 	return TermDecl{Name: name, Args: args, RetType: ret}, nil
 }
 
-func parseRule(n lanz.Node) (Rule, error) {
+func parseRule(n Node) (Rule, error) {
 	// (rule [priority] lhs rhs)
 	// (rule lhs rhs) — priority 0
 	// (rule 10 lhs rhs) — priority 10
@@ -175,7 +173,7 @@ func parseRule(n lanz.Node) (Rule, error) {
 	return r, nil
 }
 
-func parseTerm(n lanz.Node) Term {
+func parseTerm(n Node) Term {
 	if n.IsAtom() {
 		s := n.Atom
 		if s == "_" {
