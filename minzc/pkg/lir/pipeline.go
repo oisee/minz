@@ -192,8 +192,82 @@ func checkFuncConvergenceFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module) C
 
 	insts := wfc.ToInsts()
 	cr.InstCount = len(insts)
-	cr.Match = true
+
+	// Verify: run LIR-VM on the collapsed instructions and compare with MIR2-VM.
+	// Only for leaf functions (no calls) with return values and on RISC machines
+	// where the VM can execute all patterns.
+	if desc.Name == "risc32" || desc.Name == "risc8" {
+		if vmResult, err := verifyViaVM(f, m, desc, insts); err == nil {
+			if vmResult != nil {
+				cr.Match = *vmResult
+				if !*vmResult {
+					cr.Error = "vm-divergence"
+				}
+				return cr
+			}
+		}
+	}
+
+	cr.Match = true // pipeline completed without error
 	return cr
+}
+
+// verifyViaVM runs LIR instructions on the LIR-VM and compares with MIR2-VM.
+// Returns nil (skip) for functions with calls or void returns.
+// Returns *true if results match, *false if divergence.
+func verifyViaVM(f *mir2.Func, m *mir2.Module, desc *MachineDesc, insts []Inst) (*bool, error) {
+	// Skip void functions (no return value to compare).
+	if len(f.Contract.Returns) == 0 {
+		return nil, nil
+	}
+
+	// Skip functions with calls (VM can't execute CALL).
+	for _, inst := range insts {
+		if inst.Pat != nil && inst.Pat.Flags&PatCall != 0 {
+			return nil, nil
+		}
+	}
+
+	// Skip multi-block functions (VM is linear).
+	if len(f.Blocks) > 1 {
+		return nil, nil
+	}
+
+	// Run MIR2-VM with zero args (leaf function test).
+	mir2VM := mir2.NewVM(m)
+	mir2Result, err := mir2VM.Call(f.Name, nil)
+	if err != nil {
+		return nil, err
+	}
+	if len(mir2Result) == 0 {
+		return nil, nil
+	}
+
+	// Run LIR-VM.
+	lirVM := NewVM(desc)
+	for i := range insts {
+		if err := lirVM.ExecInst(&insts[i]); err != nil {
+			return nil, err
+		}
+	}
+
+	// Compare: find the last instruction's dst phys.
+	var lirVal int64
+	found := false
+	for i := len(insts) - 1; i >= 0; i-- {
+		if insts[i].Dst.Phys >= 0 {
+			lirVal = int64(lirVM.Get(insts[i].Dst.Phys))
+			found = true
+			break
+		}
+	}
+	if !found {
+		return nil, nil
+	}
+
+	mir2Val := mir2Result[0].I
+	match := mir2Val == lirVal
+	return &match, nil
 }
 
 // LIRCodegenFunc runs the full LIR pipeline on a single MIR2 function

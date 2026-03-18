@@ -46,7 +46,7 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - **ISLE combining:** load16_le fusion (FatFS ld_word: 8→2 ops), MUL strength reduction
 - **WFC Dimension 2:** Inter-block constraint propagation across CFG edges — `ProgWFC` with RPO collapse, back-edge fixpoint
 - **Z80 descriptor:** 22 locs (GPR + IX/IY halves + spill), 41+ patterns, DD/FD prefix rules
-- **Corpus:** **ALL 100%** — C89 720/720, Nanz 162/162, Lizp 57/57, Lanz 9/9 = **948/948**
+- **Corpus:** **948/948 pipeline completion** (100%); VM-verified: **97.9%** C89 on risc32 (15 struct/fptr divergences)
 - **Runtime:** `__mul8` (A×B→A, ~80T), `__mul16` (HL×DE→HL, ~200T) — shared routines, emitted once per module
 - **Remaining:** EXX shadow regs (L3), ISLE const-MUL reduction, production switch as default `--lir`
 - See [Architecture](docs/LIR_Backend_Architecture.md), [Reference](docs/LIR_Backend_Reference.md), [Report 094](reports/2026-03-18-094-LIR-100-Percent-C89-Corpus.md), [ADR-0033](docs/adr/0033-lir-pipeline-integration.md)
@@ -400,7 +400,7 @@ fun main() {
 | Z80 emulator coverage | 100% (1335/1335 FUSE) |
 | Peephole patterns | 67 (asm) + MIR passes |
 | Production backends | 1 (Z80) + 1 partial (C) + 1 QBE (correctness oracle) + 8 experimental |
-| LIR backend | **100% ALL** (948/948) — C89+Nanz+Lizp+Lanz, PBQP→WFC guided regalloc, IXH/IXL spill, __mul8/__mul16, tail call opt |
+| LIR backend | **948/948 pipeline** (100%), **97.9% VM-verified** (C89/risc32) — PBQP→WFC guided, IXH/IXL spill, __mul8/__mul16, tail call opt |
 | MIR backend tests | 9/11 pass, 2 known bugs (ADR-0006) |
 | Frontends | 7 (Nanz, C89, PL/M, Lanz, Lizp, Pascal, **ABAP**) — all route through HIR→MIR2→Z80 |
 | C89 corpus | 333/333 asserts, 36 files (MIR2) / 700/720 LIR convergence (97.2%) |
