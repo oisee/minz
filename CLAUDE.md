@@ -33,20 +33,22 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - ✅ **BUG-004** Non-zero-lo LUT pipeline ordering — fixed 2026-03-12
 - ✅ **BUG-005** `applySubSwapNeg` u16 guard — fixed 2026-03-12
 
-### 4. LIR Backend (Constraint-Based Codegen)
-**Status:** 🚧 94.6% corpus pass rate, running in parallel with production Z80Codegen.
-- **Branch:** `feat/lir-backend` (15+ commits, ~6500 LOC)
-- **Pipeline:** MIR2 → Bridge → Combine(ISLE) → isel(PatternTable) → WFC(regalloc) → emit
+### 4. LIR Backend (Guided PBQP+WFC Register Allocation)
+**Status:** 🚧 Production-matching codegen for leaf functions, 94.6% C89 corpus convergence.
+- **Branch:** `feat/lir-backend` (24+ commits, ~7500 LOC)
+- **Pipeline:** MIR2 → Bridge → Combine(ISLE) → isel(PatternTable) → WFC(PBQP-guided) → peephole → emit
+- **PBQP→WFC synthesis:** PBQP provides global allocation hints, WFC enforces Z80-specific constraints. Output matches production codegen for leaf functions.
+- **Call support:** OpCall lowering with arg setup moves, `DstAllowed` class constraints, tail call opt (CALL+RET → JP, saves 17T)
+- **IXH/IXL L2 spill:** Undocumented IX/IY half-registers as call-safe storage (8T). 4 bytes of fast spill without touching stack. No existing Z80 compiler uses this.
+- **WFC passes:** forward, backward, vregConsistency, clobberPass (call-safe narrowing), Collapse with `pickPreferred(hints)`
+- **Save-before-overwrite:** Bridge-level insertion of save moves for vregs at risk from destructive ALU ops (Z80 accumulator architecture)
+- **Peephole:** LD r,r no-op elimination, tail call CALL+RET→JP
 - **ISLE combining:** load16_le fusion (FatFS ld_word: 8→2 ops), MUL strength reduction
-- **WFC Dimension 1:** Forward+backward+vreg-consistency propagation, spill recovery via dimension expansion
-- **WFC Dimension 2 (NEW):** Inter-block constraint propagation across CFG edges — `ProgWFC` with RPO collapse, back-edge fixpoint, zero parallel copies on GCD
-- **Loop rotation:** while→DJNZ (sub absorbed into terminator)
-- **Z80 descriptor:** 18 locs, 29+ patterns, DD/FD prefix rules, composite 16-bit ops
-- **4-way convergence:** RISC32 = RISC8 = CISC = Z80 for correctness verification
-- **Corpus:** C89 97.2%, Nanz 86.4%, Lizp 86.0%, Lanz 100%
-- **Multi-block:** `LowerMIR2Prog` preserves block structure, `SelectBlockInstructions` with param pre-seeding, `ProgWFC` inter-block alloc, multi-block asm emission with JP/JP NZ/DJNZ/RET
-- **Remaining:** non-constant MUL (needs runtime CALL), CLI flag, CISC/Z80 multi-block testing
-- See [ADR-0033](docs/adr/0033-lir-pipeline-integration.md), [Report 091](reports/2026-03-17-091-Inter-Block-WFC.md)
+- **WFC Dimension 2:** Inter-block constraint propagation across CFG edges — `ProgWFC` with RPO collapse, back-edge fixpoint
+- **Z80 descriptor:** 22 locs (GPR + IX/IY halves + spill), 41+ patterns, DD/FD prefix rules
+- **Corpus:** C89 94.6%, Nanz 84.6%, Lizp 86.0%, Lanz 100%
+- **Remaining:** EXX shadow regs (L3), 16-bit move patterns, iterative WFC for >4 live-across-call vregs
+- See [Report 093](reports/2026-03-18-093-LIR-PBQP-WFC-Guided-Regalloc.md), [ADR-0033](docs/adr/0033-lir-pipeline-integration.md)
 
 ### 5. LSP / DAP / Developer Tooling
 **Status:** Not started. Planned after core language stability.
@@ -147,7 +149,7 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 
 ## 🚧 WIP (In Development)
 
-- **LIR backend**: ISLE combining + WFC regalloc, 94.6% corpus (see §4 above, `feat/lir-backend`)
+- **LIR backend**: PBQP→WFC guided regalloc, production-matching leaf codegen, IXH/IXL spill, tail call opt (see §4 above, `feat/lir-backend`)
 - **Iterator chain fusion**: 11/11 E2E correct, fusion optimizer live, ~5x perf overhead (register allocator bottleneck)
 - **Pattern matching**: Syntax parses, codegen partial
 - **@minz[[[...]]]**: Limited compile-time execution
@@ -395,7 +397,7 @@ fun main() {
 | Z80 emulator coverage | 100% (1335/1335 FUSE) |
 | Peephole patterns | 67 (asm) + MIR passes |
 | Production backends | 1 (Z80) + 1 partial (C) + 1 QBE (correctness oracle) + 8 experimental |
-| LIR backend | 94.6% corpus (898/948) — ISLE combining + WFC regalloc, 5 machine descriptors |
+| LIR backend | 94.6% C89 corpus (681/720) — PBQP→WFC guided regalloc, IXH/IXL spill, tail call opt, 5 machine descriptors |
 | MIR backend tests | 9/11 pass, 2 known bugs (ADR-0006) |
 | Frontends | 7 (Nanz, C89, PL/M, Lanz, Lizp, Pascal, **ABAP**) — all route through HIR→MIR2→Z80 |
 | C89 corpus | 333/333 asserts, 36 files (MIR2) / 700/720 LIR convergence (97.2%) |

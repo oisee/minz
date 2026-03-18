@@ -16,6 +16,24 @@
 
 ---
 
+### ★ [LIR Backend: PBQP + WFC Guided Register Allocation](reports/2026-03-18-093-LIR-PBQP-WFC-Guided-Regalloc.md)
+
+**9 commits, from wrong code to production-matching output.** The LIR backend now synthesizes two register allocators: PBQP (global strategist) provides allocation hints, WFC (local tactician) enforces Z80-specific constraints.
+
+| Feature | Before | After |
+|---------|--------|-------|
+| `add(a, b)` | `ADD A, A` (wrong) | `ADD A, C` (= production) |
+| `compute(a,b) = (a+b)+(a&b)` | wrong result | 9 insts, **correct** |
+| Tail call `main() { putchar(65) }` | `CALL; RET` (27T) | `JP putchar` (10T, **-63%**) |
+| Values across CALL | clobbered | **survive in IXH/IXL** (8T) |
+| Corpus (C89, 720 funcs) | 0% codegen | **94.6%** convergence |
+
+Key innovation: **IXH/IXL as call-safe spill registers** (L2 resource layer). Z80's undocumented index register halves survive function calls — 4 bytes of fast storage without touching the stack. No existing Z80 compiler exploits this for register allocation.
+
+→ **[Full report: 9 commits, architecture, roadmap](reports/2026-03-18-093-LIR-PBQP-WFC-Guided-Regalloc.md)**
+
+---
+
 ### Latest
 
 - **[ABAP Frontend + SQLite + Zork](reports/2026-03-16-088-ABAP_Frontend_SQLite_Zork.md)** — 7th frontend (ABAP via abaplint), SQLite host functions in MIR2 VM, CP/M file I/O fixed (ROM protection root cause), **Zork I (1983) runs in MZE**.
