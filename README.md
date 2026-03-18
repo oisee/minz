@@ -1,6 +1,6 @@
 # MinZ Programming Language
 
-### ★ [Week In Review: The Everything Sprint](reports/2026-03-18-094-Week_In_Review_Sprint_0311_0318.md) | [Nanz Language Book v5](docs/Nanz_Language_Book_v5.md)
+### ★ [Week In Review: The Everything Sprint](reports/2026-03-18-094-Week_In_Review_Sprint_0311_0318.md) | [Report Guide](docs/Report_Guide.md) | [Nanz Language Book v5](docs/Nanz_Language_Book_v5.md)
 
 253 commits, 8 frontends, 3 backends, FAT12/16 filesystem, TUI framework with compile-time metafunctions, Mini Norton Commander, `@target()` platform detection — in one week.
 
