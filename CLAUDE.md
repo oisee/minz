@@ -49,6 +49,8 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - **[INTERNAL_ARCHITECTURE.md](minzc/docs/INTERNAL_ARCHITECTURE.md)** - Complete compiler internals
 - **[COMPILER_SNAPSHOT.md](COMPILER_SNAPSHOT.md)** - Current state tracking
 - **[149_World_Class_Multi_Level_Optimization_Guide.md](docs/149_World_Class_Multi_Level_Optimization_Guide.md)** - Revolutionary optimization strategy
+- **[TUI Framework Guide](docs/TUI_Framework_Guide.md)** - Universal screen framework (L1/L2/L3), metafunctions, struct pointer iteration
+- **[stdlib/tui/README.md](stdlib/tui/README.md)** - TUI module quick reference
 
 ## 🎯 Custom Commands
 
