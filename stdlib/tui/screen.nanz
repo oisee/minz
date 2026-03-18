@@ -1,0 +1,278 @@
+// stdlib/tui/screen — OOP Screen API (Level 2)
+//
+// UFCS methods on the Screen struct for building interactive forms.
+// Works across all backends via tui_* host functions (render.nanz).
+//
+// Usage:
+//   import stdlib.tui.screen
+//
+//   global scr: Screen
+//   global name_buf: [22]u8
+//
+//   fun main() -> void {
+//       scr.init(c"Customer Master")
+//       scr.add_field(c"KUNNR", c"Customer", 10, &name_buf)
+//       scr.add_int(c"COUNT", c"Count", 5)
+//       scr.add_button(c"Execute", KEY_F8)
+//       scr.show()
+//       var count: u16 = scr.get_int(1)
+//   }
+
+import stdlib.tui.widget
+import stdlib.tui.render
+
+// =============================================================================
+// Field storage — static array (no heap needed)
+// =============================================================================
+
+global _scr_fields: [ScreenField; 16]
+
+// =============================================================================
+// Screen methods (UFCS)
+// =============================================================================
+
+// Initialize a screen with a title. Resets all fields.
+fun Screen.init(self: ^Screen, title: ^u8) -> void {
+    self.title = title
+    self.nfields = 0
+    self.focus = 0
+    self.result = 0
+}
+
+// Add a text input field.
+//   name:   internal field name
+//   label:  display label (shown to user)
+//   length: max input width
+//   buf:    pointer to value buffer (caller-allocated)
+fun Screen.add_field(self: ^Screen, label: ^u8, length: u8, buf: ^u8) -> void {
+    var idx: u8 = self.nfields
+    if idx >= MAX_FIELDS { return }
+    _scr_fields[idx].kind = FIELD_TEXT
+    _scr_fields[idx].length = length
+    _scr_fields[idx].flags = 0
+    _scr_fields[idx].fkey = 0
+    _scr_fields[idx].label = label
+    _scr_fields[idx].value = buf
+    _scr_fields[idx].def_int = 0
+    self.nfields = idx + 1
+}
+
+// Add an integer input field.
+//   label:    display label
+//   default:  default integer value
+fun Screen.add_int(self: ^Screen, label: ^u8, default: u16) -> void {
+    var idx: u8 = self.nfields
+    if idx >= MAX_FIELDS { return }
+    _scr_fields[idx].kind = FIELD_INT
+    _scr_fields[idx].length = 6
+    _scr_fields[idx].flags = 0
+    _scr_fields[idx].fkey = 0
+    _scr_fields[idx].label = label
+    _scr_fields[idx].value = @ptr(u8, 0)
+    _scr_fields[idx].def_int = default
+    self.nfields = idx + 1
+}
+
+// Add a button with a function key binding.
+//   label: button text
+//   key:   KEY_F5, KEY_F8, etc.
+fun Screen.add_button(self: ^Screen, label: ^u8, key: u8) -> void {
+    var idx: u8 = self.nfields
+    if idx >= MAX_FIELDS { return }
+    _scr_fields[idx].kind = FIELD_BUTTON
+    _scr_fields[idx].length = 0
+    _scr_fields[idx].flags = 0
+    _scr_fields[idx].fkey = key
+    _scr_fields[idx].label = label
+    _scr_fields[idx].value = @ptr(u8, 0)
+    _scr_fields[idx].def_int = 0
+    self.nfields = idx + 1
+}
+
+// Add a static label (non-editable text).
+fun Screen.add_label(self: ^Screen, label: ^u8) -> void {
+    var idx: u8 = self.nfields
+    if idx >= MAX_FIELDS { return }
+    _scr_fields[idx].kind = FIELD_LABEL
+    _scr_fields[idx].length = 0
+    _scr_fields[idx].flags = 0
+    _scr_fields[idx].fkey = 0
+    _scr_fields[idx].label = label
+    _scr_fields[idx].value = @ptr(u8, 0)
+    _scr_fields[idx].def_int = 0
+    self.nfields = idx + 1
+}
+
+// =============================================================================
+// Rendering — draws the screen using tui_* primitives
+// =============================================================================
+
+// Render the full screen (PBO equivalent).
+fun Screen.render(self: ^Screen) -> void {
+    tui_clear()
+
+    // Title bar
+    tui_color(COLOR_WHITE, COLOR_BLUE, 1)
+    tui_goto(0, 0)
+    var tw: u8 = tui_width()
+    puts_padded(self.title, tw)
+    tui_reset()
+
+    // Fields
+    var i: u8 = 0
+    var row: u8 = 2
+    while i < self.nfields {
+        Screen.render_field(self, i, row)
+        row = row + 1
+        i = i + 1
+    }
+
+    // Status bar
+    var th: u8 = tui_height()
+    tui_color(COLOR_WHITE, COLOR_BLUE, 0)
+    tui_goto(0, th - 1)
+    tui_puts(c"F8=Execute  F3=Back  TAB=Next field")
+    tui_reset()
+}
+
+// Render a single field at the given row.
+fun Screen.render_field(self: ^Screen, idx: u8, row: u8) -> void {
+    var focused: u8 = 0
+    if idx == self.focus { focused = 1 }
+
+    tui_goto(2, row)
+
+    if _scr_fields[idx].kind == FIELD_TEXT {
+        // Label
+        tui_color(COLOR_CYAN, COLOR_BLACK, 0)
+        puts_padded(_scr_fields[idx].label, 12)
+
+        // Input box
+        if focused == 1 {
+            tui_color(COLOR_WHITE, COLOR_BLUE, 1)
+        } else {
+            tui_color(COLOR_WHITE, COLOR_BLACK, 0)
+        }
+        tui_putch(91)  // [
+        if _scr_fields[idx].value != @ptr(u8, 0) {
+            puts_padded(_scr_fields[idx].value, _scr_fields[idx].length)
+        } else {
+            var j: u8 = 0
+            while j < _scr_fields[idx].length {
+                tui_putch(95)  // _
+                j = j + 1
+            }
+        }
+        tui_putch(93)  // ]
+        tui_reset()
+    }
+
+    if _scr_fields[idx].kind == FIELD_INT {
+        tui_color(COLOR_CYAN, COLOR_BLACK, 0)
+        puts_padded(_scr_fields[idx].label, 12)
+
+        if focused == 1 {
+            tui_color(COLOR_WHITE, COLOR_BLUE, 1)
+        } else {
+            tui_color(COLOR_WHITE, COLOR_BLACK, 0)
+        }
+        tui_putch(91)  // [
+        @print_u16(_scr_fields[idx].def_int)
+        tui_putch(93)  // ]
+        tui_reset()
+    }
+
+    if _scr_fields[idx].kind == FIELD_BUTTON {
+        if focused == 1 {
+            tui_color(COLOR_BLACK, COLOR_WHITE, 1)
+        } else {
+            tui_color(COLOR_WHITE, COLOR_BLACK, 1)
+        }
+        tui_putch(91)  // [
+        tui_puts(_scr_fields[idx].label)
+        tui_putch(93)  // ]
+        tui_reset()
+    }
+
+    if _scr_fields[idx].kind == FIELD_LABEL {
+        tui_color(COLOR_WHITE, COLOR_BLACK, 0)
+        tui_puts(_scr_fields[idx].label)
+        tui_reset()
+    }
+}
+
+// =============================================================================
+// Input handling — the event loop (PAI equivalent)
+// =============================================================================
+
+// Show the screen and block until the user presses F8 (execute) or F3 (back).
+// Returns: 1 = execute, 2 = back, 0 = error
+fun Screen.show(self: ^Screen) -> u8 {
+    self.result = 0
+
+    while self.result == 0 {
+        Screen.render(self)
+
+        var key: u8 = tui_read_key()
+
+        if key == KEY_F8 {
+            self.result = 1
+        }
+        if key == KEY_F3 {
+            self.result = 2
+        }
+        if key == KEY_ESC {
+            self.result = 2
+        }
+        if key == KEY_TAB {
+            // Move focus to next editable field
+            var next: u8 = self.focus + 1
+            if next >= self.nfields { next = 0 }
+            self.focus = next
+        }
+        if key == KEY_ENTER {
+            // If focused on a button, activate it
+            if _scr_fields[self.focus].kind == FIELD_BUTTON {
+                self.result = 1
+            }
+            // If focused on text field, read input
+            if _scr_fields[self.focus].kind == FIELD_TEXT {
+                var fld_row: u8 = 2 + self.focus
+                tui_goto(15, fld_row)
+                tui_color(COLOR_WHITE, COLOR_BLUE, 1)
+                var len: u8 = tui_read_line(
+                    _scr_fields[self.focus].value,
+                    _scr_fields[self.focus].length)
+                tui_reset()
+            }
+        }
+    }
+
+    tui_clear()
+    return self.result
+}
+
+// =============================================================================
+// Value retrieval — read field values after show() returns
+// =============================================================================
+
+// Get the string value buffer for field at index idx.
+fun Screen.get_str(self: ^Screen, idx: u8) -> ^u8 {
+    if idx >= self.nfields { return @ptr(u8, 0) }
+    return _scr_fields[idx].value
+}
+
+// Get the integer value for field at index idx.
+fun Screen.get_int(self: ^Screen, idx: u8) -> u16 {
+    if idx >= self.nfields { return 0 }
+    return _scr_fields[idx].def_int
+}
+
+// =============================================================================
+// Phase 1 backward compatibility — sel_register/sel_show wrappers
+// =============================================================================
+
+@extern fun sel_register_str(name: ^u8, length: u8, defval: ^u8, bufptr: ^u8) -> void
+@extern fun sel_register_int(name: ^u8, defval: u16) -> void
+@extern fun sel_show() -> u8
+@extern fun sel_get_int(idx: u8) -> u16

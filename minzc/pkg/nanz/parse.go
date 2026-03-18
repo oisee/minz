@@ -363,6 +363,8 @@ func (l *lexer) next() token {
 }
 func (l *lexer) is(k tokKind) bool         { return l.peek().kind == k }
 func (l *lexer) isIdent(v string) bool      { return l.peek().kind == tokIdent && l.peek().val == v }
+func (l *lexer) save() int                  { return l.cur }
+func (l *lexer) restore(pos int)            { l.cur = pos }
 // peekN returns the n-th token ahead without consuming any (0 == peek()).
 func (l *lexer) peekN(n int) token {
 	idx := l.cur + n
@@ -473,6 +475,7 @@ type parser struct {
 	funcAliases     map[string]string               // local name → mangled name (for unqualified imports)
 	pipes           map[string][]pipeStep           // pipe/trans name → stages
 	lambdaHintTy    mir2.Ty                         // type hint for untyped lambda params (set by chain context)
+	metaFuncs       map[string]string               // @name → full Nanz source of metafunction
 }
 
 // pipeStep is one stage in a named pipe/trans declaration.
@@ -603,6 +606,7 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	p.enumBaseTy = make(map[string]mir2.Ty)
 	p.funcAliases = make(map[string]string)
 	p.pipes = make(map[string][]pipeStep)
+	p.metaFuncs = make(map[string]string)
 
 	for !p.l.is(tokEOF) {
 		t := p.l.peek()
@@ -630,12 +634,39 @@ func (p *parser) parseModule() (*hir.Module, error) {
 			}
 			m.Globals = append(m.Globals, g)
 
-		case t.kind == tokIdent && t.val == "fun":
-			f, err := p.parseFunDecl(false)
+		case t.kind == tokIdent && t.val == "const":
+			g, err := p.parseConstDecl()
 			if err != nil {
 				return nil, err
 			}
-			m.Funcs = append(m.Funcs, f)
+			m.Globals = append(m.Globals, g)
+
+		case t.kind == tokIdent && t.val == "fun":
+			// Check for metafunction: fun @name(...)
+			// Peek past "fun" to see if next is "@"
+			saved := p.l.save()
+			p.l.next() // consume "fun"
+			if p.l.is(tokAt) {
+				p.l.next() // consume "@"
+				nameTok, err := p.l.eat(tokIdent)
+				if err != nil {
+					return nil, fmt.Errorf("line %d: expected metafunction name after fun @", t.line)
+				}
+				// Capture the entire function source from "fun @name" to closing "}"
+				// We need to re-parse it later, so store the raw text
+				src, err := p.captureMetaFuncSource(nameTok.val)
+				if err != nil {
+					return nil, err
+				}
+				p.metaFuncs[nameTok.val] = src
+			} else {
+				p.l.restore(saved)
+				f, err := p.parseFunDecl(false)
+				if err != nil {
+					return nil, err
+				}
+				m.Funcs = append(m.Funcs, f)
+			}
 
 		case t.kind == tokAt:
 			// @extern fun ...  or  @extern(0xNNNN) fun ...
@@ -669,6 +700,76 @@ func (p *parser) parseModule() (*hir.Module, error) {
 				}
 				f.ExternAddr = externAddr
 				m.Funcs = append(m.Funcs, f)
+			} else if metaSrc, ok := p.metaFuncs[attr.val]; ok {
+				// Metafunction invocation: @name("args") { block }
+				metaName := attr.val
+				p.l.next() // consume name
+
+				// Parse scalar arguments: @name("title", 42)
+				var scalarArgs []string
+				if p.l.is(tokLParen) {
+					p.l.next()
+					for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
+						argTok := p.l.next()
+						val := argTok.val
+						// Extract string content from prefixed format (c\x00content or \x00content)
+						if argTok.kind == tokString {
+							if idx := strings.IndexByte(val, 0); idx >= 0 {
+								val = val[idx+1:]
+							}
+						}
+						scalarArgs = append(scalarArgs, val)
+						if p.l.is(tokComma) {
+							p.l.next()
+						}
+					}
+					if _, err := p.l.eat(tokRParen); err != nil {
+						return nil, err
+					}
+				}
+
+				// Parse block: { field "X" length 10, ... }
+				var block []metaBlockNode
+				if p.l.is(tokLBrace) {
+					var err error
+					block, err = parseMetaBlock(p.l)
+					if err != nil {
+						return nil, fmt.Errorf("line %d: @%s block: %w", attr.line, metaName, err)
+					}
+				}
+
+				// Execute metafunction on MIR2 VM
+				emitted, err := p.executeMetaInvocation(metaSrc, metaName, scalarArgs, block)
+				if err != nil {
+					return nil, fmt.Errorf("line %d: @%s: %w", attr.line, metaName, err)
+				}
+
+				// Parse emitted Nanz text and merge into current module
+				if emitted != "" {
+					generated, err := ParseWithOpts(emitted, p.name+"@"+metaName, p.opts)
+					if err != nil {
+						return nil, fmt.Errorf("line %d: @%s: emitted code error: %w", attr.line, metaName, err)
+					}
+					// Merge strings: remap @mir2.str.N references in generated code
+					// to account for strings already in the parent module.
+					strOffset := len(m.Strings)
+					if len(generated.Strings) > 0 {
+						m.Strings = append(m.Strings, generated.Strings...)
+						m.StrKinds = append(m.StrKinds, generated.StrKinds...)
+						// Remap string references in generated functions
+						if strOffset > 0 {
+							for _, f := range generated.Funcs {
+								remapStringRefs(f.Body, strOffset)
+							}
+						}
+					}
+					m.Funcs = append(m.Funcs, generated.Funcs...)
+					m.Globals = append(m.Globals, generated.Globals...)
+					m.Structs = append(m.Structs, generated.Structs...)
+					for _, s := range generated.Structs {
+						p.structs[s.Name] = s
+					}
+				}
 			} else {
 				return nil, fmt.Errorf("line %d: unexpected @%s", attr.line, attr.val)
 			}
@@ -1092,10 +1193,20 @@ func (p *parser) parseImport() error {
 	// Module prefix for name mangling: "math.gcd" → "math$gcd$"
 	modPrefix := strings.ReplaceAll(modPath, ".", "$") + "$"
 
+	// Build name mapping: original → mangled (for all symbols in imported module)
+	nameMap := make(map[string]string)
+
 	// Merge functions
 	for _, f := range imported.Funcs {
-		mangledName := modPrefix + f.Name
 		origName := f.Name
+		// Do not mangle @extern functions — they map to host functions by name
+		if f.IsExtern {
+			p.funcSigs[origName] = f.RetTy
+			p.module.Funcs = append(p.module.Funcs, f)
+			continue
+		}
+		mangledName := modPrefix + f.Name
+		nameMap[origName] = mangledName
 		f.Name = mangledName
 
 		// Register mangled function signature
@@ -1124,6 +1235,7 @@ func (p *parser) parseImport() error {
 	for _, st := range imported.Structs {
 		mangledName := modPrefix + st.Name
 		origName := st.Name
+		nameMap[origName] = mangledName
 		st.Name = mangledName
 		p.structs[mangledName] = st
 
@@ -1147,6 +1259,7 @@ func (p *parser) parseImport() error {
 	for _, g := range imported.Globals {
 		mangledName := modPrefix + g.Name
 		origName := g.Name
+		nameMap[origName] = mangledName
 		g.Name = mangledName
 		p.globalTypes[mangledName] = g.Ty
 
@@ -1164,6 +1277,16 @@ func (p *parser) parseImport() error {
 		}
 
 		p.module.Globals = append(p.module.Globals, g)
+	}
+
+	// Rewrite internal references in imported functions:
+	// CallExpr.Fn and VarRefExpr.Name (for globals) must use mangled names.
+	for _, f := range imported.Funcs {
+		if f.Body != nil {
+			for _, stmt := range f.Body.Body {
+				rewriteImportedSymbols(stmt, nameMap)
+			}
+		}
 	}
 
 	// Merge string literals
@@ -1239,7 +1362,7 @@ func (p *parser) childTypeAliases(_ *hir.Module) map[string]mir2.Ty {
 // Tries extensions in priority order: .nanz, .lanz, .plm.
 func (p *parser) resolveModulePath(modPath string, line int) (string, error) {
 	basePath := strings.ReplaceAll(modPath, ".", string(filepath.Separator))
-	exts := []string{".nanz", ".lanz", ".lizp", ".plm", ".pas"}
+	exts := []string{".nanz", ".minz", ".lanz", ".lizp", ".plm", ".pas"}
 	dirs := []string{}
 	if p.opts.BaseDir != "" {
 		dirs = append(dirs, p.opts.BaseDir)
@@ -1632,6 +1755,35 @@ func (p *parser) parseGlobalDecl() (mir2.Global, error) {
 		g.Init = init
 	}
 
+	return g, nil
+}
+
+func (p *parser) parseConstDecl() (mir2.Global, error) {
+	if err := p.l.eatIdent("const"); err != nil {
+		return mir2.Global{}, err
+	}
+	nameTok, err := p.l.eat(tokIdent)
+	if err != nil {
+		return mir2.Global{}, err
+	}
+	if _, err := p.l.eat(tokColon); err != nil {
+		return mir2.Global{}, err
+	}
+	ty, _, err := p.parseTypeWithIface()
+	if err != nil {
+		return mir2.Global{}, err
+	}
+	g := mir2.Global{Name: nameTok.val, Ty: ty, IsConst: true}
+	p.globalTypes[nameTok.val] = ty
+
+	if _, err := p.l.eat(tokEq); err != nil {
+		return g, fmt.Errorf("line %d: const %s requires an initializer", nameTok.line, nameTok.val)
+	}
+	init, err := p.parseInitializer(ty)
+	if err != nil {
+		return g, err
+	}
+	g.Init = init
 	return g, nil
 }
 
@@ -2556,12 +2708,53 @@ func (p *parser) parseFor() (hir.Stmt, error) {
 	}
 
 	// Optional explicit element type: for x: T in ...
+	// If T is ^StructName, we set elemStride = sizeof(StructName) for
+	// pointer-to-struct iteration (e.g. for node: ^BlockNode in nodes[0..n]).
 	var elemTy mir2.Ty = mir2.TyU8
+	var elemStride int
+	var ptrStructName string // for tracking struct pointer receiver
 	if p.l.is(tokColon) {
 		p.l.next()
-		elemTy, err = p.parseType()
-		if err != nil {
-			return nil, err
+		// Check for ^StructName specifically
+		if p.l.is(tokCaret) {
+			saved := p.l.save()
+			p.l.next() // consume ^
+			if p.l.peek().kind == tokIdent {
+				name := p.l.peek().val
+				if st, ok := p.structs[name]; ok {
+					// Pointer to known struct — compute stride
+					p.l.next() // consume struct name
+					elemTy = mir2.TyPtr
+					ptrStructName = name
+					// sizeof(struct) = sum of field widths
+					stride := 0
+					for _, f := range st.Fields {
+						w := mir2.ByteWidth(f.Ty)
+						if w < 1 {
+							w = 1
+						}
+						stride += w
+					}
+					elemStride = stride
+				} else {
+					p.l.restore(saved)
+					elemTy, err = p.parseType()
+					if err != nil {
+						return nil, err
+					}
+				}
+			} else {
+				p.l.restore(saved)
+				elemTy, err = p.parseType()
+				if err != nil {
+					return nil, err
+				}
+			}
+		} else {
+			elemTy, err = p.parseType()
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 
@@ -2612,12 +2805,20 @@ func (p *parser) parseFor() (hir.Stmt, error) {
 		} else {
 			lenExpr = &hir.BinExpr{Op: "-", L: endExpr, R: startExpr, Ty: endExpr.ExprTy()}
 		}
+		// Register the loop variable BEFORE parsing the body so field access works
+		if ptrStructName != "" {
+			p.varTypes[varTok.val] = mir2.TyPtr
+			p.varPtrElem[varTok.val] = p.structs[ptrStructName]
+		} else {
+			p.varTypes[varTok.val] = elemTy
+		}
 		body, err := p.parseBlock()
 		if err != nil {
 			return nil, err
 		}
 		return &hir.ForEachStmt{
-			Var: varTok.val, ElemTy: elemTy,
+			Var: varTok.val, ElemTy: elemTy, ElemStride: elemStride,
+			PtrIter: ptrStructName != "",
 			Ptr: base, Start: startExpr, Len: lenExpr,
 			Body: body,
 		}, nil
@@ -3792,8 +3993,18 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 			}
 			return &hir.CallExpr{Fn: "@mir.io.console.err", Args: []hir.Expr{arg}, Ty: mir2.TyVoid}, nil
 		}
+		if p.l.isIdent("target") {
+			p.l.next()
+			if _, err := p.l.eat(tokLParen); err != nil {
+				return nil, err
+			}
+			if _, err := p.l.eat(tokRParen); err != nil {
+				return nil, err
+			}
+			return &hir.CallExpr{Fn: "@target", Args: nil, Ty: mir2.TyU8}, nil
+		}
 		if !p.l.isIdent("ptr") {
-			return nil, fmt.Errorf("line %d: expected @ptr(...), got @%s", t.line, p.l.peek().val)
+			return nil, fmt.Errorf("line %d: expected @ptr/@target(...), got @%s", t.line, p.l.peek().val)
 		}
 		p.l.next()
 		if _, err := p.l.eat(tokLParen); err != nil {
@@ -3953,4 +4164,347 @@ func resultTy(l, r mir2.Ty, op string) mir2.Ty {
 		return mir2.TyPtr
 	}
 	return l
+}
+
+// ── String reference remapping ────────────────────────────────────────────────
+
+// remapStringRefs adjusts @mir2.str.N references in a block by adding offset
+// to each string index. This is needed when merging generated code (from
+// metafunctions) into a parent module that already has strings.
+func remapStringRefs(block *hir.Block, offset int) {
+	if block == nil {
+		return
+	}
+	for _, s := range block.Body {
+		remapStmtStringRefs(s, offset)
+	}
+}
+
+func remapStmtStringRefs(s hir.Stmt, offset int) {
+	switch s := s.(type) {
+	case *hir.ExprStmt:
+		remapExprStringRefs(s.Expr, offset)
+	case *hir.VarDeclStmt:
+		remapExprStringRefs(s.Init, offset)
+	case *hir.AssignStmt:
+		remapExprStringRefs(s.Val, offset)
+	case *hir.ReturnStmt:
+		remapExprStringRefs(s.Val, offset)
+	case *hir.IfStmt:
+		remapExprStringRefs(s.Cond, offset)
+		remapStringRefs(s.Then, offset)
+		remapStringRefs(s.Else, offset)
+	case *hir.WhileStmt:
+		remapExprStringRefs(s.Cond, offset)
+		remapStringRefs(s.Body, offset)
+	case *hir.ForRangeStmt:
+		remapExprStringRefs(s.Start, offset)
+		remapExprStringRefs(s.End, offset)
+		remapStringRefs(s.Body, offset)
+	}
+}
+
+func remapExprStringRefs(e hir.Expr, offset int) {
+	if e == nil {
+		return
+	}
+	switch e := e.(type) {
+	case *hir.AddrOfExpr:
+		// @mir2.str.N → @mir2.str.(N+offset)
+		var idx int
+		if n, _ := fmt.Sscanf(e.Sym, "@mir2.str.%d", &idx); n == 1 {
+			e.Sym = fmt.Sprintf("@mir2.str.%d", idx+offset)
+		}
+	case *hir.CallExpr:
+		for _, a := range e.Args {
+			remapExprStringRefs(a, offset)
+		}
+	case *hir.BinExpr:
+		remapExprStringRefs(e.L, offset)
+		remapExprStringRefs(e.R, offset)
+	case *hir.UnaryExpr:
+		remapExprStringRefs(e.X, offset)
+	case *hir.CastExpr:
+		remapExprStringRefs(e.X, offset)
+	case *hir.CondExpr:
+		remapExprStringRefs(e.Cond, offset)
+		remapExprStringRefs(e.Then, offset)
+		remapExprStringRefs(e.Else, offset)
+	}
+}
+
+// ── Metafunction support ─────────────────────────────────────────────────────
+
+// captureMetaFuncSource captures the full source text of a metafunction body.
+// The caller has already consumed "fun", "@", and the name token.
+// We extract the raw source text from the original source bytes using token positions.
+func (p *parser) captureMetaFuncSource(name string) (string, error) {
+	var sb strings.Builder
+
+	// Build extern declarations for host functions the metafunction can call
+	sb.WriteString("@extern fun emit(s: ^u8) -> void\n")
+	sb.WriteString("@extern fun block_len() -> u8\n")
+	sb.WriteString("@extern fun node_keyword(i: u8) -> ^u8\n")
+	sb.WriteString("@extern fun node_arg_count(i: u8) -> u8\n")
+	sb.WriteString("@extern fun node_arg_str(i: u8, j: u8) -> ^u8\n")
+	sb.WriteString("@extern fun node_kwarg(i: u8, key: ^u8) -> ^u8\n")
+	sb.WriteString("@extern fun node_has_kwarg(i: u8, key: ^u8) -> u8\n")
+	sb.WriteString("@extern fun str_concat(a: ^u8, b: ^u8) -> ^u8\n")
+	sb.WriteString("@extern fun str_from_int(n: u16) -> ^u8\n")
+	sb.WriteString("@extern fun str_eq(a: ^u8, b: ^u8) -> u8\n")
+	sb.WriteString("@extern fun str_chr(code: u8) -> ^u8\n")
+	sb.WriteString("@extern fun block_nodes() -> ^u8\n")
+	sb.WriteString("@extern fun emit_tui_puts(s: ^u8) -> void\n")
+	sb.WriteString("@extern fun emit_tui_goto(x: u8, y: u8) -> void\n")
+	sb.WriteString("@extern fun emit_tui_color(fg: u8, bg: u8, bright: u8) -> void\n")
+	sb.WriteString("\n")
+
+	// Include any structs already declared in the module so the metafunction
+	// can reference them (e.g. for node: ^BlockNode in nodes[0..n]).
+	for _, st := range p.module.Structs {
+		sb.WriteString(fmt.Sprintf("struct %s {\n", st.Name))
+		for _, f := range st.Fields {
+			tyName := "u8"
+			switch f.Ty {
+			case mir2.TyU16:
+				tyName = "u16"
+			case mir2.TyI8:
+				tyName = "i8"
+			case mir2.TyI16:
+				tyName = "i16"
+			case mir2.TyBool:
+				tyName = "bool"
+			case mir2.TyPtr:
+				tyName = "^u8"
+			}
+			sb.WriteString(fmt.Sprintf("    %s: %s\n", f.Name, tyName))
+		}
+		sb.WriteString("}\n\n")
+	}
+
+	// Record the start position (current token) in the raw source.
+	// We scan forward to find the balanced closing brace, then extract
+	// the raw source text between start and end.
+	startTok := p.l.peek()
+	startPos := startTok.pos
+
+	// Skip forward through tokens to find balanced closing brace
+	depth := 0
+	started := false
+	endPos := startPos
+	for !p.l.is(tokEOF) {
+		t := p.l.next()
+		if t.kind == tokLBrace {
+			depth++
+			started = true
+		}
+		if t.kind == tokRBrace {
+			depth--
+			if started && depth == 0 {
+				endPos = t.pos + 1
+				break
+			}
+		}
+	}
+
+	// Extract raw source text
+	src := p.l.src
+	if endPos > len(src) {
+		endPos = len(src)
+	}
+	rawBody := string(src[startPos:endPos])
+
+	sb.WriteString("fun ")
+	sb.WriteString(name)
+	sb.WriteString(rawBody)
+	sb.WriteString("\n")
+	return sb.String(), nil
+}
+
+// executeMetaInvocation compiles and executes a metafunction, returning emitted Nanz source.
+func (p *parser) executeMetaInvocation(metaSrc, funcName string, scalarArgs []string, block []metaBlockNode) (string, error) {
+	return executeMetaFuncWithStringArgs(metaSrc, funcName, scalarArgs, block, p.module)
+}
+
+// executeMetaFuncWithStringArgs is like executeMetaFunc but pre-allocates
+// string arguments on the VM heap before calling the function.
+func executeMetaFuncWithStringArgs(
+	metaSrc string,
+	funcName string,
+	stringArgs []string,
+	block []metaBlockNode,
+	callerMod *hir.Module,
+) (string, error) {
+	// 1. Parse metafunction source → HIR
+	metaHIR, err := Parse(metaSrc, "meta_"+funcName+".nanz")
+	if err != nil {
+		return "", fmt.Errorf("metafunc @%s: parse error: %w", funcName, err)
+	}
+
+	// 2. HIR → MIR2
+	mirMod := hir.LowerModule(metaHIR)
+	for _, f := range mirMod.Funcs {
+		mir2.EliminateDeadBlocks(f)
+		for {
+			p := mir2.PropagateConstants(f)
+			c := mir2.FoldConstants(f)
+			if !p && !c {
+				break
+			}
+		}
+	}
+
+	// 3. Create VM
+	vm := mir2.NewVM(mirMod)
+	vm.MaxSteps = 1_000_000
+	vm.MaxMemory = 1 << 20
+
+	// 4. Register host functions
+	mr := newMetaRuntime(callerMod)
+	mr.registerHosts(vm, block)
+
+	// 5. Allocate string args on heap
+	var vmArgs []mir2.Value
+	for _, s := range stringArgs {
+		vmArgs = append(vmArgs, mr.allocString(s))
+	}
+
+	// 6. Call metafunction
+	_, err = vm.Call(funcName, vmArgs)
+	if err != nil {
+		return "", fmt.Errorf("metafunc @%s: VM error: %w", funcName, err)
+	}
+
+	return mr.emitted.String(), nil
+}
+
+// rewriteImportedSymbols walks an HIR statement tree and rewrites function
+// calls and global variable references to use mangled names from nameMap.
+func rewriteImportedSymbols(stmt hir.Stmt, nameMap map[string]string) {
+	if stmt == nil {
+		return
+	}
+	switch s := stmt.(type) {
+	case *hir.VarDeclStmt:
+		rewriteExpr(s.Init, nameMap)
+		for _, e := range s.Initial {
+			rewriteExpr(e, nameMap)
+		}
+	case *hir.AssignStmt:
+		rewriteExpr(s.Target, nameMap)
+		rewriteExpr(s.Val, nameMap)
+	case *hir.ReturnStmt:
+		rewriteExpr(s.Val, nameMap)
+		for _, e := range s.Vals {
+			rewriteExpr(e, nameMap)
+		}
+	case *hir.ExprStmt:
+		rewriteExpr(s.Expr, nameMap)
+	case *hir.Block:
+		for _, st := range s.Body {
+			rewriteImportedSymbols(st, nameMap)
+		}
+	case *hir.IfStmt:
+		rewriteExpr(s.Cond, nameMap)
+		if s.Then != nil {
+			for _, st := range s.Then.Body {
+				rewriteImportedSymbols(st, nameMap)
+			}
+		}
+		if s.Else != nil {
+			for _, st := range s.Else.Body {
+				rewriteImportedSymbols(st, nameMap)
+			}
+		}
+	case *hir.WhileStmt:
+		rewriteExpr(s.Cond, nameMap)
+		if s.Body != nil {
+			for _, st := range s.Body.Body {
+				rewriteImportedSymbols(st, nameMap)
+			}
+		}
+	case *hir.ForRangeStmt:
+		rewriteExpr(s.Start, nameMap)
+		rewriteExpr(s.End, nameMap)
+		if s.Body != nil {
+			for _, st := range s.Body.Body {
+				rewriteImportedSymbols(st, nameMap)
+			}
+		}
+	case *hir.ForEachStmt:
+		rewriteExpr(s.Ptr, nameMap)
+		rewriteExpr(s.Start, nameMap)
+		rewriteExpr(s.Len, nameMap)
+		if s.Body != nil {
+			for _, st := range s.Body.Body {
+				rewriteImportedSymbols(st, nameMap)
+			}
+		}
+	case *hir.TupleLetStmt:
+		rewriteExpr(s.Call, nameMap)
+	case *hir.StoreStmt:
+		rewriteExpr(s.Ptr, nameMap)
+		rewriteExpr(s.Val, nameMap)
+	case *hir.SwitchStmt:
+		rewriteExpr(s.Val, nameMap)
+		for _, c := range s.Cases {
+			if c.Body != nil {
+				for _, st := range c.Body.Body {
+					rewriteImportedSymbols(st, nameMap)
+				}
+			}
+		}
+	}
+}
+
+func rewriteExpr(expr hir.Expr, nameMap map[string]string) {
+	if expr == nil {
+		return
+	}
+	switch e := expr.(type) {
+	case *hir.CallExpr:
+		if mangled, ok := nameMap[e.Fn]; ok {
+			e.Fn = mangled
+		}
+		for _, a := range e.Args {
+			rewriteExpr(a, nameMap)
+		}
+	case *hir.CallIndirectExpr:
+		rewriteExpr(e.FnPtr, nameMap)
+		for _, a := range e.Args {
+			rewriteExpr(a, nameMap)
+		}
+	case *hir.VarRefExpr:
+		if mangled, ok := nameMap[e.Name]; ok {
+			e.Name = mangled
+		}
+	case *hir.BinExpr:
+		rewriteExpr(e.L, nameMap)
+		rewriteExpr(e.R, nameMap)
+	case *hir.UnaryExpr:
+		rewriteExpr(e.X, nameMap)
+	case *hir.FieldExpr:
+		rewriteExpr(e.X, nameMap)
+	case *hir.AddrOfExpr:
+		if mangled, ok := nameMap[e.Sym]; ok {
+			e.Sym = mangled
+		}
+	case *hir.LoadExpr:
+		rewriteExpr(e.Ptr, nameMap)
+	case *hir.DerefExpr:
+		rewriteExpr(e.Ptr, nameMap)
+	case *hir.CastExpr:
+		rewriteExpr(e.X, nameMap)
+	case *hir.IndexExpr:
+		rewriteExpr(e.Base, nameMap)
+		rewriteExpr(e.Idx, nameMap)
+	case *hir.StructLitExpr:
+		for _, f := range e.Fields {
+			rewriteExpr(f.Val, nameMap)
+		}
+	case *hir.CondExpr:
+		rewriteExpr(e.Cond, nameMap)
+		rewriteExpr(e.Then, nameMap)
+		rewriteExpr(e.Else, nameMap)
+	}
 }

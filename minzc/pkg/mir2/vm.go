@@ -199,6 +199,23 @@ func (vm *VM) AllocHeap(data []byte) Value {
 	return Value{I: offset}
 }
 
+// WriteHeap writes a single byte to the VM heap at addr.
+func (vm *VM) WriteHeap(addr int64, b byte) {
+	if addr >= 0 && int(addr) < len(vm.heap) {
+		vm.heap[int(addr)] = b
+	}
+}
+
+// WriteHeapSlice writes a byte slice to the VM heap starting at addr.
+func (vm *VM) WriteHeapSlice(addr int64, data []byte) {
+	for i, b := range data {
+		off := int(addr) + i
+		if off >= 0 && off < len(vm.heap) {
+			vm.heap[off] = b
+		}
+	}
+}
+
 // ReadHeap reads n bytes from the VM heap at pointer address addr.
 func (vm *VM) ReadHeap(addr int64, n int) []byte {
 	end := int(addr) + n
@@ -208,6 +225,16 @@ func (vm *VM) ReadHeap(addr int64, n int) []byte {
 	out := make([]byte, n)
 	copy(out, vm.heap[addr:end])
 	return out
+}
+
+// WriteHeapBytes writes data to the VM heap at pointer address addr.
+// The destination must already be allocated (within heap bounds).
+func (vm *VM) WriteHeapBytes(addr int64, data []byte) {
+	end := int(addr) + len(data)
+	if int(addr) < 0 || end > len(vm.heap) {
+		return
+	}
+	copy(vm.heap[addr:end], data)
 }
 
 // ── Execution engine ──────────────────────────────────────────────────────────
@@ -702,8 +729,12 @@ func (vm *VM) maxMem() int {
 	return 65536
 }
 
-// resolveSymbol returns the heap offset of a named symbol,
+// ResolveSymbol returns the heap offset of a named symbol,
 // allocating string literals into heap on first reference.
+func (vm *VM) ResolveSymbol(sym string) (int64, error) {
+	return vm.resolveSymbol(sym)
+}
+
 func (vm *VM) resolveSymbol(sym string) (int64, error) {
 	// Module globals (pre-allocated in NewVM).
 	if off, ok := vm.globalSyms[sym]; ok {

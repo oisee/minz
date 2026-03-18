@@ -46,11 +46,13 @@ import (
 func main() {
 	trace := flag.BoolP("trace", "t", false, "print each VM call")
 	headless := flag.BoolP("headless", "H", false, "run without terminal (testing)")
+	zxScreen := flag.Bool("zx", false, "ZX Spectrum screen mode (32x24 attribute grid to stdout)")
 	maxFrames := flag.Int("max-frames", 0, "stop after N frames (0=unlimited)")
 	dumpDir := flag.String("dump-frames", "", "dump each frame as .scr file to directory")
+	diskImage := flag.String("disk", "", "FAT disk image file (enables @disk_read/@disk_write hosts)")
 	flag.Parse()
 	if flag.NArg() < 1 {
-		fmt.Fprintln(os.Stderr, "usage: mzv [--trace] [--headless] [--max-frames N] <file>")
+		fmt.Fprintln(os.Stderr, "usage: mzv [--trace] [--headless] [--zx] [--disk img] <file>")
 		fmt.Fprintln(os.Stderr, "  supported: .nanz .c .m .lanz .lizp .plm .pas .abap .hir")
 		os.Exit(1)
 	}
@@ -207,7 +209,17 @@ func main() {
 
 	// ── ABAP runtime host functions (SY, selection screen) ───────────────
 
-	registerABAPHosts(vm, traceEnabled)
+	registerABAPHosts(vm, *headless, traceEnabled)
+
+	// ── TUI host functions (stdlib/tui/render.nanz @extern calls) ────────
+
+	registerTUIHosts(vm, *headless, traceEnabled)
+
+	// ── Disk host functions (--disk flag) ────────────────────────────────
+
+	if *diskImage != "" {
+		registerDiskHosts(vm, *diskImage, traceEnabled)
+	}
 
 	// ── Terminal raw mode + input goroutine ──────────────────────────────
 
@@ -242,8 +254,8 @@ func main() {
 	_, err = vm.Call("main", nil)
 	fmt.Fprintf(os.Stderr, "mzv: exited after %d frames\n", frameCount)
 
-	// In headless mode, render final frame to stdout + dump summary to stderr.
-	if *headless {
+	// Render final ZX Spectrum frame only in explicit --zx mode.
+	if *zxScreen {
 		renderFrame(&zxMem)
 
 		nonZero := 0
@@ -668,7 +680,7 @@ func registerSQLiteHosts(vm *mir2.VM, trace bool) {
 // SY system variables + selection screen TUI.
 // These are called by the ABAP lowerer's emitted code.
 
-func registerABAPHosts(vm *mir2.VM, trace bool) {
+func registerABAPHosts(vm *mir2.VM, headless bool, trace bool) {
 	// ── SY system fields ─────────────────────────────────────────────────
 	//
 	// SY-INDEX:  current DO loop iteration (1-based)
@@ -713,72 +725,47 @@ func registerABAPHosts(vm *mir2.VM, trace bool) {
 		return nil, nil
 	}
 
-	// ── Selection screen ─────────────────────────────────────────────────
-
-	type selField struct {
-		name   string
-		ty     byte // 'i'=integer, 'c'=char, 's'=string
-		length int
-		value  string // current value (entered by user)
-	}
-
-	var fields []*selField
+	// ── Selection screen (universal TUI framework) ──────────────────────
 	_ = syTabix // suppress unused
 
-	// Helper: read null-terminated string from VM heap
-	readStr := func(ptr int64) string {
-		var buf []byte
-		for i := int64(0); i < 256; i++ {
-			b := vm.ReadHeap(ptr+i, 1)
-			if b == nil || b[0] == 0 {
-				break
-			}
-			buf = append(buf, b[0])
-		}
-		return string(buf)
-	}
+	registerScreenHostsWithSY(vm, headless, trace, &syUcomm)
 
-	// sel_register(name_ptr, type_code, length) — register a screen field
-	vm.Hosts["sel_register"] = func(args []mir2.Value) ([]mir2.Value, error) {
-		name := readStr(args[0].I)
-		ty := byte(args[1].I)
-		length := int(args[2].I)
-		fields = append(fields, &selField{name: name, ty: ty, length: length})
-		if trace {
-			fmt.Fprintf(os.Stderr, "  sel_register(%q, '%c', %d)\n", name, ty, length)
+	// ── ABAP write functions (override inline asm with host functions) ───
+	// The ABAP lowerer emits abap_write/abap_write_str with Z80 inline asm
+	// (BDOS calls). The VM can't execute asm, so we override them here.
+
+	vm.Hosts["abap_write"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		if len(args) > 0 {
+			fmt.Printf("%d", uint8(args[0].I))
 		}
 		return nil, nil
 	}
 
-	// sel_show() — display selection screen, wait for user input
-	vm.Hosts["sel_show"] = func(_ []mir2.Value) ([]mir2.Value, error) {
-		if len(fields) == 0 {
-			// No fields registered — skip screen
-			syUcomm = 0x4F4E // "ON" for ONLI
-			return nil, nil
-		}
-
-		// Print selection screen to stderr (simple text mode)
-		fmt.Fprintf(os.Stderr, "\n┌─ Selection Screen ──────────────────┐\n")
-		fmt.Fprintf(os.Stderr, "│                                    │\n")
-		for _, f := range fields {
-			val := f.value
-			if val == "" {
-				val = strings.Repeat("_", f.length)
+	vm.Hosts["abap_write_str"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		if len(args) > 0 {
+			ptr := args[0].I
+			var buf []byte
+			for i := int64(0); i < 4096; i++ {
+				b := vm.ReadHeap(ptr+i, 1)
+				if b == nil || b[0] == 0 {
+					break
+				}
+				buf = append(buf, b[0])
 			}
-			fmt.Fprintf(os.Stderr, "│  %-10s [%-20s]  │\n", f.name, val)
-		}
-		fmt.Fprintf(os.Stderr, "│                                    │\n")
-		fmt.Fprintf(os.Stderr, "│  [Enter=Execute]                   │\n")
-		fmt.Fprintf(os.Stderr, "└────────────────────────────────────┘\n\n")
-
-		// In headless/trace mode, auto-execute with defaults
-		syUcomm = 0x4F4E // "ON" for ONLI (F8 = Execute)
-		if trace {
-			fmt.Fprintf(os.Stderr, "  sel_show() → auto-execute (SY-UCOMM=ONLI)\n")
+			fmt.Print(string(buf))
 		}
 		return nil, nil
 	}
 
-	fmt.Fprintf(os.Stderr, "mzv: ABAP runtime registered (SY + selection screen)\n")
+	// abap_read_int — stub for VM (return 0)
+	vm.Hosts["abap_read_int"] = func(_ []mir2.Value) ([]mir2.Value, error) {
+		return []mir2.Value{{I: 0}}, nil
+	}
+
+	// abap_sel_read — stub for VM (keep defaults)
+	vm.Hosts["abap_sel_read"] = func(_ []mir2.Value) ([]mir2.Value, error) {
+		return nil, nil
+	}
+
+	fmt.Fprintf(os.Stderr, "mzv: ABAP runtime registered (SY + selection screen + write)\n")
 }

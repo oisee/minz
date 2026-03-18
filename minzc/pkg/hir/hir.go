@@ -68,9 +68,35 @@ type Sandbox struct {
 	Line    int      // source line of the sandbox keyword
 }
 
+// Target platform constants for @target() intrinsic.
+const (
+	TargetCPM        uint8 = 0
+	TargetZXSpectrum uint8 = 1
+	TargetAgon       uint8 = 2
+	TargetMZV        uint8 = 3
+	TargetGeneric    uint8 = 255
+)
+
+// TargetFromString converts a CLI target name to a Target constant.
+func TargetFromString(s string) uint8 {
+	switch s {
+	case "cpm":
+		return TargetCPM
+	case "zxspectrum", "spectrum":
+		return TargetZXSpectrum
+	case "agon":
+		return TargetAgon
+	case "mzv":
+		return TargetMZV
+	default:
+		return TargetGeneric
+	}
+}
+
 // Module is the top-level HIR unit.
 type Module struct {
 	Name       string
+	Target     uint8              // platform target (TargetCPM, TargetZXSpectrum, etc.)
 	Funcs      []*Func
 	Globals    []mir2.Global      // reuse mir2.Global directly
 	Structs    []*mir2.StructTy   // named struct type declarations
@@ -214,6 +240,8 @@ func (*ExprStmt) hirStmt() {}
 type ForEachStmt struct {
 	Var           string  // element variable name (bound in body)
 	ElemTy        mir2.Ty // type of each element
+	ElemStride    int     // override stride in bytes (0 = use ByteWidth(ElemTy))
+	PtrIter       bool    // if true: bind Var to pointer (not loaded value) — for struct iteration
 	Ptr           Expr    // base pointer (TyPtr)
 	Start         Expr    // start index (often IntLitExpr{0})
 	Len           Expr    // element count (= end - start when start=0)

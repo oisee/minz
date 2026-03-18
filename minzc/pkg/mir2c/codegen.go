@@ -33,6 +33,14 @@ import (
 	"github.com/minz/minzc/pkg/mir2"
 )
 
+// cSym sanitizes a MIR2 symbol name for C99.
+// Replaces @, . with _ to produce valid C identifiers.
+func cSym(name string) string {
+	s := strings.ReplaceAll(name, "@", "_")
+	s = strings.ReplaceAll(s, ".", "_")
+	return s
+}
+
 // Compile translates a MIR2 module to a C99 translation unit.
 func Compile(m *mir2.Module) (string, error) {
 	g := &gen{sb: &strings.Builder{}, mod: m}
@@ -47,9 +55,10 @@ type gen struct {
 	mod *mir2.Module
 
 	// per-function
-	ptrRegs  map[mir2.Reg]bool   // registers that are memory addresses
-	slotVars map[mir2.Reg]string // OpPatchSlot: reg → "_slot<N>" name
-	tmpCount int
+	ptrRegs      map[mir2.Reg]bool   // registers that are memory addresses
+	slotVars     map[mir2.Reg]string // OpPatchSlot: reg → "_slot<N>" name
+	tmpCount     int
+	voidToIntRet bool // true if void return was promoted to int (e.g. main)
 }
 
 // ── module ────────────────────────────────────────────────────────────────────
@@ -61,6 +70,22 @@ func (g *gen) emitModule() {
 	g.line("#include <string.h>")
 	g.line("")
 
+	// String pool
+	if g.mod.Strings.Len() > 0 {
+		g.line("/* ── string pool ── */")
+		for i := 0; i < g.mod.Strings.Len(); i++ {
+			s := g.mod.Strings.At(i)
+			sym := cSym(g.mod.Strings.Symbol(i))
+			parts := make([]string, len(s)+1)
+			for j := 0; j < len(s); j++ {
+				parts[j] = fmt.Sprintf("0x%02x", s[j])
+			}
+			parts[len(s)] = "0x00" // NUL terminator
+			g.printf("static uint8_t %s[] = { %s };\n", sym, strings.Join(parts, ", "))
+		}
+		g.line("")
+	}
+
 	if len(g.mod.Globals) > 0 {
 		g.line("/* ── globals ── */")
 		for _, gl := range g.mod.Globals {
@@ -71,12 +96,32 @@ func (g *gen) emitModule() {
 
 	// Forward declarations so function order doesn't matter.
 	g.line("/* ── forward declarations ── */")
+	knownFuncs := make(map[string]bool)
 	for _, f := range g.mod.Funcs {
+		knownFuncs[f.Name] = true
 		if f.Attrs.IsExtern {
 			g.printf("extern %s;\n", g.funcSignature(f))
 		} else {
 			g.printf("%s;\n", g.funcSignature(f))
 		}
+	}
+
+	// Emit extern declarations for called functions not in the module
+	// (e.g. canvas_*, host functions provided by the runtime).
+	calledExtern := make(map[string]bool)
+	for _, f := range g.mod.Funcs {
+		for _, b := range f.Blocks {
+			for _, inst := range b.Insts {
+				if inst.Op == mir2.OpCall && !knownFuncs[inst.Sym] &&
+					!strings.HasPrefix(inst.Sym, "@") {
+					calledExtern[inst.Sym] = true
+				}
+			}
+		}
+	}
+	for name := range calledExtern {
+		// Generic variadic declaration — the runtime provides the real signature.
+		g.printf("extern int %s();\n", cSym(name))
 	}
 	g.line("")
 
@@ -105,7 +150,7 @@ func (g *gen) emitGlobal(gl mir2.Global) {
 
 	if len(gl.Init) == 0 {
 		// zero-initialised
-		g.printf("%sstatic %suint8_t %s[%d];\n", align, const_, gl.Name, byteLen)
+		g.printf("%sstatic %suint8_t %s[%d];\n", align, const_, cSym(gl.Name), byteLen)
 		return
 	}
 
@@ -114,7 +159,7 @@ func (g *gen) emitGlobal(gl mir2.Global) {
 		parts[i] = fmt.Sprintf("0x%02x", b)
 	}
 	g.printf("%sstatic %suint8_t %s[%d] = { %s };\n",
-		align, const_, gl.Name, len(gl.Init), strings.Join(parts, ", "))
+		align, const_, cSym(gl.Name), len(gl.Init), strings.Join(parts, ", "))
 }
 
 // ── function ──────────────────────────────────────────────────────────────────
@@ -124,7 +169,12 @@ func (g *gen) emitFunc(f *mir2.Func) {
 	g.slotVars = make(map[mir2.Reg]string)
 	g.tmpCount = 0
 
-	g.printf("%s {\n", g.funcSignature(f))
+	// Detect when bare "return;" needs a value: void→int promotion (main)
+	// or non-void function with void return paths (asm-based funcs).
+	sig := g.funcSignature(f)
+	g.voidToIntRet = !strings.HasPrefix(sig, "void ")
+
+	g.printf("%s {\n", sig)
 
 	// 1. Declare all block-param registers as mutable locals.
 	g.emitBlockParamDecls(f)
@@ -148,11 +198,16 @@ func (g *gen) funcSignature(f *mir2.Func) string {
 	if len(f.Contract.Returns) > 0 && f.Contract.Returns[0].Ty != mir2.TyVoid {
 		retC = cBaseTy(f.Contract.Returns[0].Ty)
 	}
+	// C requires int main(), not void main()
+	name := cSym(f.Name)
+	if name == "main" && retC == "void" {
+		retC = "int"
+	}
 	params := make([]string, len(f.Contract.Params))
 	for i, p := range f.Contract.Params {
 		params[i] = fmt.Sprintf("%s r%d", g.cTy(p.Ty, p.Reg), p.Reg)
 	}
-	return fmt.Sprintf("%s %s(%s)", retC, f.Name, strings.Join(params, ", "))
+	return fmt.Sprintf("%s %s(%s)", retC, name, strings.Join(params, ", "))
 }
 
 // emitBlockParamDecls declares all block params as function-scope locals.
@@ -197,7 +252,11 @@ func (g *gen) emitInstResultDecls(f *mir2.Func) {
 				continue
 			}
 			if inst.Op == mir2.OpAlloca {
-				continue // handled separately
+				// Alloca dst register still needs a declaration (receives pointer).
+				g.printf("\t%s r%d;\n", g.cTy(inst.Ty, inst.Dst), inst.Dst)
+				paramSet[inst.Dst] = true
+				any = true
+				continue
 			}
 			g.printf("\t%s r%d;\n", g.cTy(inst.Ty, inst.Dst), inst.Dst)
 			paramSet[inst.Dst] = true
@@ -321,7 +380,7 @@ func (g *gen) emitInst(f *mir2.Func, inst *mir2.Inst) {
 		g.printf("\t*(%s*)(uintptr_t)r%d = (%s)r%d;\n", storeTy, ptr, storeTy, val)
 
 	case mir2.OpAddrOf:
-		g.printf("\tr%d = (uintptr_t)(%s);\n", dst, inst.Sym)
+		g.printf("\tr%d = (uintptr_t)(%s);\n", dst, cSym(inst.Sym))
 
 	case mir2.OpAlloca:
 		// Array was declared at function top; just assign pointer.
@@ -424,7 +483,7 @@ func (g *gen) emitCall(inst *mir2.Inst) {
 	for i, arg := range inst.Args {
 		argParts[i] = fmt.Sprintf("r%d", arg)
 	}
-	call := fmt.Sprintf("%s(%s)", inst.Sym, strings.Join(argParts, ", "))
+	call := fmt.Sprintf("%s(%s)", cSym(inst.Sym), strings.Join(argParts, ", "))
 	if inst.Dst != mir2.NoReg {
 		g.printf("\tr%d = (%s)%s;\n", inst.Dst, g.cTy(inst.Ty, inst.Dst), call)
 	} else {
@@ -506,7 +565,11 @@ func (g *gen) emitTerm(f *mir2.Func, t mir2.Term) {
 		// Cond == 0 → return Vals; Cond != 0 → jump to Then.
 		g.printf("\tif (!r%d) {\n", t.Cond)
 		if len(t.Vals) == 0 {
-			g.line("\t\treturn;")
+			if g.voidToIntRet {
+				g.line("\t\treturn 0;")
+			} else {
+				g.line("\t\treturn;")
+			}
 		} else {
 			g.printf("\t\treturn r%d;\n", t.Vals[0])
 		}
@@ -516,7 +579,11 @@ func (g *gen) emitTerm(f *mir2.Func, t mir2.Term) {
 
 	case *mir2.TermRet:
 		if len(t.Vals) == 0 {
-			g.line("\treturn;")
+			if g.voidToIntRet {
+				g.line("\treturn 0;")
+			} else {
+				g.line("\treturn;")
+			}
 		} else {
 			g.printf("\treturn r%d;\n", t.Vals[0])
 		}

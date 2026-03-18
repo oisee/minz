@@ -33,6 +33,7 @@ var knownFailures = map[string]string{
 	"ex23_import_unqualified": "compile: import needs module search path",
 	"ex24_import_qualified":   "compile: import needs module search path",
 	"ex25_import_alias_glob":  "compile: import needs module search path",
+	"nc":                      "compile: import needs module search path (fs.fat12)",
 	// Lizp asm failures (MZA encoding gaps)
 	"cond_test":        "asm: lizp codegen produces instructions MZA can't encode yet",
 	"factorial":        "asm: lizp codegen produces instructions MZA can't encode yet",

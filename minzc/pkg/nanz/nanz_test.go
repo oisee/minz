@@ -117,6 +117,40 @@ func TestParseRoundtrip(t *testing.T) {
 	}
 }
 
+func TestConstDecl(t *testing.T) {
+	src := `const MAX_SIZE: u8 = 42
+const TABLE: [u8; 3] = [1, 2, 3]
+
+fun main() -> void {
+    var x: u8 = MAX_SIZE
+}
+`
+	m, err := nanz.Parse(src, "const_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	if len(m.Globals) != 2 {
+		t.Fatalf("globals: want 2, got %d", len(m.Globals))
+	}
+	g0 := m.Globals[0]
+	if g0.Name != "MAX_SIZE" {
+		t.Errorf("name: want MAX_SIZE, got %s", g0.Name)
+	}
+	if !g0.IsConst {
+		t.Error("MAX_SIZE should be IsConst=true")
+	}
+	if len(g0.Init) != 1 || g0.Init[0] != 42 {
+		t.Errorf("MAX_SIZE init: want [42], got %v", g0.Init)
+	}
+	g1 := m.Globals[1]
+	if !g1.IsConst {
+		t.Error("TABLE should be IsConst=true")
+	}
+	if len(g1.Init) != 3 {
+		t.Errorf("TABLE init len: want 3, got %d", len(g1.Init))
+	}
+}
+
 func TestForEach(t *testing.T) {
 	src := `fun sum_bytes(buf: ^u8, len: u8) -> u16 {
     var total: u16 = 0

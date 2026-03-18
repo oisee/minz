@@ -42,7 +42,7 @@ import (
 
 // LowerModule converts a HIR module to a MIR2 module.
 func LowerModule(hm *Module) *mir2.Module {
-	m := &mir2.Module{Name: hm.Name}
+	m := &mir2.Module{Name: hm.Name, Target: hm.Target}
 	for _, g := range hm.Globals {
 		m.AddGlobal(g)
 	}
@@ -246,10 +246,11 @@ type loopCtx struct {
 }
 
 type lowerer struct {
-	hf  *Func
-	m   *mir2.Module
-	mf  *mir2.Func
-	bld *mir2.Builder
+	hf     *Func
+	m      *mir2.Module
+	mf     *mir2.Func
+	bld    *mir2.Builder
+	target uint8 // platform target from hir.Module.Target
 
 	// env maps variable names to their current virtual register.
 	// envTy maps variable names to their type (stable: set once, never changed).
@@ -404,6 +405,7 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 		m:            m,
 		mf:           mf,
 		bld:          bld,
+		target:       m.Target,
 		env:          make(map[string]mir2.Reg),
 		envTy:        make(map[string]mir2.Ty),
 		hirFuncNames: funcNames,
@@ -1260,6 +1262,9 @@ func (l *lowerer) lowerForRange(st *ForRangeStmt) {
 func (l *lowerer) lowerForEach(st *ForEachStmt) {
 	envBefore := cloneMap(l.env)
 	stride := int64(mir2.ByteWidth(st.ElemTy))
+	if st.ElemStride > 0 {
+		stride = int64(st.ElemStride)
+	}
 	if stride < 1 {
 		stride = 1
 	}
@@ -1319,9 +1324,14 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 	l.bld.SwitchToNewBlock(bodyLabel)
 	l.env = cloneMap(headEnv)
 
-	// Load element: x = *ptr
-	xReg := l.bld.Load(headPtr, st.ElemTy, classForExpr(st.ElemTy))
-	l.bind(st.Var, xReg, st.ElemTy)
+	// Load element: x = *ptr (or x = ptr for struct pointer iteration)
+	if st.PtrIter {
+		// Pointer iteration: x IS the pointer, not a loaded value
+		l.bind(st.Var, headPtr, mir2.TyPtr)
+	} else {
+		xReg := l.bld.Load(headPtr, st.ElemTy, classForExpr(st.ElemTy))
+		l.bind(st.Var, xReg, st.ElemTy)
+	}
 
 	// ContinueStmt jumps to fe_cont (not fe_head) so ptr/cnt are advanced first.
 	prevInLoopCtx2 := l.inLoopContext
@@ -1441,6 +1451,10 @@ func (l *lowerer) lowerSwitch(st *SwitchStmt) {
 		}
 	}
 
+	// Push switch as a "loop" context so that break inside case bodies
+	// jumps to joinLabel (C semantics: break exits the switch).
+	l.pushLoop(loopCtx{headLabel: "", exitLabel: joinLabel, mutated: mutated})
+
 	// Emit case bodies.
 	var envsFinal []map[string]mir2.Reg
 	for i, c := range st.Cases {
@@ -1463,6 +1477,8 @@ func (l *lowerer) lowerSwitch(st *SwitchStmt) {
 			l.bld.Jmp(joinLabel, l.collectArgs(mutated)...)
 		}
 	}
+
+	l.popLoop()
 
 	// Join block: only reachable if at least one case (or default) fell through.
 	joinReachable := len(envsFinal) > 0
@@ -1549,6 +1565,11 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 		return l.lowerUnaryExpr(ex)
 
 	case *CallExpr:
+		// @target() intrinsic — returns compile-time platform constant
+		if ex.Fn == "@target" {
+			return l.bld.Const(int64(l.target), mir2.TyU8, mir2.ClassGeneral)
+		}
+
 		// Resolve function name: may be a direct name, a local alias (let f = |x| ...), or
 		// a module-level function reference.
 		fnName := ex.Fn

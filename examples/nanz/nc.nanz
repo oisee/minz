@@ -1,0 +1,476 @@
+// nc.nanz — Mini Norton Commander (single-panel file browser)
+//
+// Mounts a FAT12/16 disk image and displays root directory contents
+// in a classic blue Norton Commander panel with cursor navigation.
+//
+// Run:
+//   mzv --disk image.img examples/nanz/nc.nanz
+//   echo "" | mzv -H --disk image.img examples/nanz/nc.nanz   (headless)
+
+import fs.fat12 { * }
+
+// TUI host functions
+@extern fun tui_goto(x: u8, y: u8) -> void
+@extern fun tui_color(fg: u8, bg: u8, bright: u8) -> void
+@extern fun tui_reset() -> void
+@extern fun tui_clear() -> void
+@extern fun tui_putch(ch: u8) -> void
+@extern fun tui_puts(str: ^u8) -> void
+@extern fun tui_read_key() -> u8
+@extern fun tui_width() -> u8
+@extern fun tui_height() -> u8
+
+// ── Constants ────────────────────────────────────────────────────────────────
+
+// Key codes
+const KEY_UP: u8 = 128
+const KEY_DOWN: u8 = 129
+const KEY_ESC: u8 = 27
+const KEY_F3: u8 = 142
+const KEY_F10: u8 = 149
+
+// Box-drawing characters (mapped by tui_putch host)
+const BOX_TL: u8 = 1
+const BOX_TR: u8 = 2
+const BOX_BL: u8 = 3
+const BOX_BR: u8 = 4
+const BOX_H: u8 = 5
+const BOX_V: u8 = 6
+
+// ASCII
+const CH_SPACE: u8 = 32
+const CH_DOT: u8 = 46
+const CH_ZERO: u8 = 48
+
+// Colors
+const FG_CYAN: u8 = 6
+const FG_WHITE: u8 = 7
+const FG_YELLOW: u8 = 3
+const FG_BLACK: u8 = 0
+const BG_BLUE: u8 = 4
+const BG_CYAN: u8 = 6
+const BG_BLACK: u8 = 0
+
+// Panel
+const PANEL_W: u8 = 40
+
+// ── Globals ─────────────────────────────────────────────────────────────────
+
+global cursor: u8 = 0
+global n_entries: u8 = 0
+global top: u8 = 0
+global panel_h: u8 = 20
+
+global dirent: [u8; 32]
+global namebuf: [u8; 14]
+global sizebuf: [u8; 8]
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
+
+fun format_sfn(raw: ^u8, out: ^u8) -> void {
+    var i: u8 = 0
+    var len: u8 = 0
+    while i < 8 {
+        if raw[i] != CH_SPACE {
+            out[len] = raw[i]
+            len = len + 1
+        }
+        i = i + 1
+    }
+    let has_ext: u8 = raw[8] != CH_SPACE
+    if has_ext != 0 {
+        out[len] = CH_DOT
+        len = len + 1
+        i = 8
+        while i < 11 {
+            if raw[i] != CH_SPACE {
+                out[len] = raw[i]
+                len = len + 1
+            }
+            i = i + 1
+        }
+    }
+    out[len] = 0
+}
+
+fun format_size(size_lo: u16, out: ^u8) -> void {
+    if size_lo == 0 {
+        out[0] = CH_ZERO
+        out[1] = 0
+        return
+    }
+    var tmp: [u8; 6]
+    var n: u8 = 0
+    var val: u16 = size_lo
+    while val > 0 {
+        let digit: u16 = val - (val / 10) * 10
+        tmp[n] = digit + CH_ZERO
+        n = n + 1
+        val = val / 10
+    }
+    var j: u8 = 0
+    while j < n {
+        out[j] = tmp[n - 1 - j]
+        j = j + 1
+    }
+    out[n] = 0
+}
+
+fun puts_pad(str: ^u8, width: u8) -> void {
+    var i: u8 = 0
+    var ptr: ^u8 = str
+    while i < width {
+        if ptr^ != 0 {
+            tui_putch(ptr^)
+            ptr = ptr + 1
+        } else {
+            tui_putch(CH_SPACE)
+        }
+        i = i + 1
+    }
+}
+
+fun puts_right(str: ^u8, width: u8) -> void {
+    var len: u8 = 0
+    var p: ^u8 = str
+    while p^ != 0 {
+        len = len + 1
+        p = p + 1
+    }
+    var pad: u8 = 0
+    if width > len { pad = width - len }
+    var i: u8 = 0
+    while i < pad {
+        tui_putch(CH_SPACE)
+        i = i + 1
+    }
+    p = str
+    while p^ != 0 {
+        tui_putch(p^)
+        p = p + 1
+    }
+}
+
+// ── Panel drawing ───────────────────────────────────────────────────────────
+
+fun draw_panel() -> void {
+    let w: u8 = PANEL_W
+    let x: u8 = 0
+    let y: u8 = 1
+
+    tui_color(FG_CYAN, BG_BLUE, 1)
+
+    // Top border: ┌──...──┐
+    tui_goto(x, y)
+    tui_putch(BOX_TL)
+    var i: u8 = 0
+    while i < w - 2 {
+        tui_putch(BOX_H)
+        i = i + 1
+    }
+    tui_putch(BOX_TR)
+
+    // Column header
+    tui_goto(x, y + 1)
+    tui_putch(BOX_V)
+    tui_color(FG_YELLOW, BG_BLUE, 1)
+    tui_putch(CH_SPACE)
+    puts_pad(c"Name", 13)
+    tui_putch(CH_SPACE)
+    puts_pad(c"Size", 8)
+    tui_putch(CH_SPACE)
+    puts_pad(c"Type", 13)
+    tui_color(FG_CYAN, BG_BLUE, 1)
+    tui_putch(BOX_V)
+
+    // Separator
+    tui_goto(x, y + 2)
+    tui_putch(BOX_V)
+    i = 0
+    while i < w - 2 {
+        tui_putch(BOX_H)
+        i = i + 1
+    }
+    tui_putch(BOX_V)
+
+    // File entries
+    var row: u8 = 0
+    while row < panel_h {
+        let entry_idx: u8 = top + row
+        tui_goto(x, y + 3 + row)
+
+        if entry_idx < n_entries {
+            let clst: u16 = get_dir_entry_full(0, entry_idx, &dirent)
+            let attr: u8 = dirent[11]
+            let is_dir: u8 = (attr >> 4) & 1
+            let size_lo: u16 = ld_word(&dirent + 28)
+
+            format_sfn(&dirent, &namebuf)
+            format_size(size_lo, &sizebuf)
+
+            if entry_idx == cursor {
+                tui_color(FG_BLACK, BG_CYAN, 1)    // selected
+            } else {
+                if is_dir != 0 {
+                    tui_color(FG_WHITE, BG_BLUE, 1) // directory
+                } else {
+                    tui_color(FG_CYAN, BG_BLUE, 1)  // file
+                }
+            }
+
+            tui_putch(BOX_V)
+            tui_putch(CH_SPACE)
+            puts_pad(&namebuf, 13)
+            tui_putch(CH_SPACE)
+
+            if is_dir != 0 {
+                puts_pad(c"  <DIR>", 8)
+                tui_putch(CH_SPACE)
+                puts_pad(c"Directory", 13)
+            } else {
+                puts_right(&sizebuf, 8)
+                tui_putch(CH_SPACE)
+                let ext0: u8 = dirent[8]
+                if ext0 == 84 {
+                    puts_pad(c"Text file", 13)
+                } else {
+                    if ext0 == 66 {
+                        puts_pad(c"Binary file", 13)
+                    } else {
+                        if ext0 == 68 {
+                            puts_pad(c"Data file", 13)
+                        } else {
+                            puts_pad(c"File", 13)
+                        }
+                    }
+                }
+            }
+
+            tui_color(FG_CYAN, BG_BLUE, 1)
+            tui_putch(BOX_V)
+        } else {
+            tui_color(FG_CYAN, BG_BLUE, 1)
+            tui_putch(BOX_V)
+            i = 0
+            while i < w - 2 {
+                tui_putch(CH_SPACE)
+                i = i + 1
+            }
+            tui_putch(BOX_V)
+        }
+
+        row = row + 1
+    }
+
+    // Bottom border: └──...──┘
+    tui_color(FG_CYAN, BG_BLUE, 1)
+    tui_goto(x, y + 3 + panel_h)
+    tui_putch(BOX_BL)
+    i = 0
+    while i < w - 2 {
+        tui_putch(BOX_H)
+        i = i + 1
+    }
+    tui_putch(BOX_BR)
+
+    // File count in bottom border
+    format_size(n_entries, &sizebuf)
+    tui_goto(x + 2, y + 3 + panel_h)
+    tui_color(FG_YELLOW, BG_BLUE, 1)
+    tui_putch(CH_SPACE)
+    tui_puts(&sizebuf)
+    tui_puts(c" file(s) ")
+}
+
+fun draw_title_bar() -> void {
+    let w: u8 = tui_width()
+    tui_color(FG_BLACK, BG_CYAN, 1)
+    tui_goto(0, 0)
+    tui_puts(c"  Mini NC ")
+    var i: u8 = 10
+    while i < w {
+        tui_putch(CH_SPACE)
+        i = i + 1
+    }
+}
+
+fun draw_status_bar() -> void {
+    let w: u8 = tui_width()
+    let h: u8 = tui_height()
+    tui_color(FG_BLACK, BG_CYAN, 1)
+    tui_goto(0, h - 1)
+    tui_puts(c" F3 View  F5 Copy  F7 Mkdir  F8 Delete  F10 Quit ")
+    var i: u8 = 50
+    while i < w {
+        tui_putch(CH_SPACE)
+        i = i + 1
+    }
+}
+
+fun draw_info_panel() -> void {
+    if n_entries == 0 { return }
+
+    let clst: u16 = get_dir_entry_full(0, cursor, &dirent)
+    let attr: u8 = dirent[11]
+    let size_lo: u16 = ld_word(&dirent + 28)
+    format_sfn(&dirent, &namebuf)
+    format_size(size_lo, &sizebuf)
+
+    let ix: u8 = 42
+    let iy: u8 = 2
+    tui_color(FG_WHITE, BG_BLUE, 0)
+
+    tui_goto(ix, iy)
+    tui_puts(c"Selected:")
+    tui_goto(ix, iy + 1)
+    tui_color(FG_WHITE, BG_BLUE, 1)
+    puts_pad(&namebuf, 14)
+
+    tui_goto(ix, iy + 3)
+    tui_color(FG_WHITE, BG_BLUE, 0)
+    tui_puts(c"Size: ")
+    tui_puts(&sizebuf)
+    tui_puts(c"     ")
+
+    tui_goto(ix, iy + 4)
+    tui_puts(c"Clst: ")
+    format_size(clst, &sizebuf)
+    tui_puts(&sizebuf)
+    tui_puts(c"     ")
+
+    tui_goto(ix, iy + 5)
+    tui_puts(c"Attr: ")
+    if (attr & 0x10) != 0 { tui_puts(c"D") } else { tui_puts(c"-") }
+    if (attr & 0x20) != 0 { tui_puts(c"A") } else { tui_puts(c"-") }
+    if (attr & 0x01) != 0 { tui_puts(c"R") } else { tui_puts(c"-") }
+    if (attr & 0x02) != 0 { tui_puts(c"H") } else { tui_puts(c"-") }
+    if (attr & 0x04) != 0 { tui_puts(c"S") } else { tui_puts(c"-") }
+    tui_puts(c"     ")
+}
+
+// ── File viewer (F3) ────────────────────────────────────────────────────────
+
+global viewbuf: [u8; 512]
+
+fun view_file() -> void {
+    if n_entries == 0 { return }
+
+    let clst: u16 = get_dir_entry_full(0, cursor, &dirent)
+    let attr: u8 = dirent[11]
+    if (attr & 0x10) != 0 { return }
+
+    let size_lo: u16 = ld_word(&dirent + 28)
+    format_sfn(&dirent, &namebuf)
+
+    let bytes_read: u16 = file_read(0, clst, size_lo, &viewbuf, 512)
+
+    tui_clear()
+    tui_color(FG_BLACK, BG_CYAN, 1)
+    let w: u8 = tui_width()
+    tui_goto(0, 0)
+    tui_puts(c"  View: ")
+    tui_puts(&namebuf)
+    var pad: u8 = 20
+    while pad < w {
+        tui_putch(CH_SPACE)
+        pad = pad + 1
+    }
+
+    tui_color(FG_WHITE, BG_BLACK, 0)
+    var row: u8 = 0
+    var pos: u16 = 0
+    let h: u8 = tui_height()
+    while row < h - 3 {
+        tui_goto(0, row + 2)
+        var col: u8 = 0
+        while col < w {
+            if pos < bytes_read {
+                let ch: u8 = viewbuf[pos]
+                if ch == 13 {
+                    // skip CR
+                } else {
+                    if ch == 10 {
+                        while col < w {
+                            tui_putch(CH_SPACE)
+                            col = col + 1
+                        }
+                    } else {
+                        if ch >= CH_SPACE {
+                            tui_putch(ch)
+                        } else {
+                            tui_putch(CH_DOT)
+                        }
+                    }
+                }
+                pos = pos + 1
+            } else {
+                tui_putch(CH_SPACE)
+            }
+            col = col + 1
+        }
+        row = row + 1
+    }
+
+    tui_color(FG_BLACK, BG_CYAN, 1)
+    tui_goto(0, h - 1)
+    tui_puts(c" Press any key to return ")
+    pad = 25
+    while pad < w {
+        tui_putch(CH_SPACE)
+        pad = pad + 1
+    }
+
+    tui_read_key()
+}
+
+// ── Main ────────────────────────────────────────────────────────────────────
+
+fun main() -> void {
+    let mr: u8 = fat_mount(0)
+    if mr != 0 {
+        tui_clear()
+        tui_goto(0, 0)
+        tui_puts(c"Error: cannot mount disk image")
+        tui_read_key()
+        return
+    }
+
+    n_entries = count_dir_entries(0)
+
+    let h: u8 = tui_height()
+    panel_h = h - 6
+    if panel_h > 20 { panel_h = 20 }
+
+    var running: u8 = 1
+    while running != 0 {
+        tui_color(FG_WHITE, BG_BLUE, 0)
+        tui_clear()
+        draw_title_bar()
+        draw_panel()
+        draw_info_panel()
+        draw_status_bar()
+        tui_reset()
+
+        let key: u8 = tui_read_key()
+
+        if key == KEY_UP {
+            if cursor > 0 {
+                cursor = cursor - 1
+                if cursor < top { top = cursor }
+            }
+        }
+        if key == KEY_DOWN {
+            if cursor + 1 < n_entries {
+                cursor = cursor + 1
+                if cursor >= top + panel_h { top = top + 1 }
+            }
+        }
+        if key == KEY_F3  { view_file() }
+        if key == KEY_ESC { running = 0 }
+        if key == KEY_F10 { running = 0 }
+    }
+
+    tui_clear()
+    tui_goto(0, 0)
+    tui_reset()
+}

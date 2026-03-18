@@ -9,12 +9,16 @@ import (
 )
 
 // Compile is the top-level entry point: ABAP source → HIR module.
-// It shells out to the abaplint bridge (Node.js) for parsing, then lowers
-// the JSON AST to HIR.
+// Tries embedded Wasm parser first (no Node.js needed), falls back to Node.js bridge.
 func Compile(src, name string) (*hir.Module, error) {
-	prog, err := Parse(src, name)
+	// Try embedded Wasm parser (self-contained, no Node.js)
+	prog, err := ParseWasm(src, name)
 	if err != nil {
-		return nil, fmt.Errorf("abap parse: %w", err)
+		// Fall back to Node.js bridge
+		prog, err = Parse(src, name)
+		if err != nil {
+			return nil, fmt.Errorf("abap parse: %w", err)
+		}
 	}
 	hm, err := LowerProgram(prog)
 	if err != nil {
@@ -29,6 +33,7 @@ func LowerProgram(prog *Program) (*hir.Module, error) {
 	l := &lowerer{
 		prog:     prog,
 		varTypes: make(map[string]mir2.Ty),
+		strCache: make(map[string]int),
 	}
 	l.hm = &hir.Module{Name: prog.Name}
 	return l.lower()
@@ -46,6 +51,20 @@ type lowerer struct {
 	varTypes           map[string]mir2.Ty
 	paramRegistrations []*ParamDecl // collected during lowering
 	stringInits        []stringInit // DATA x TYPE string VALUE '...' → deferred init
+	strCache           map[string]int // dedup cache: content → index in hm.Strings
+}
+
+// internStr interns a C-string into the HIR module, deduplicating by content.
+// Returns the @mir2.str.N symbol for use in AddrOfExpr.
+func (l *lowerer) internStr(s string) string {
+	if idx, ok := l.strCache[s]; ok {
+		return fmt.Sprintf("@mir2.str.%d", idx)
+	}
+	idx := len(l.hm.Strings)
+	l.hm.Strings = append(l.hm.Strings, s)
+	l.hm.StrKinds = append(l.hm.StrKinds, mir2.StrCString)
+	l.strCache[s] = idx
+	return fmt.Sprintf("@mir2.str.%d", idx)
 }
 
 func (l *lowerer) lower() (*hir.Module, error) {
@@ -175,10 +194,77 @@ func (l *lowerer) lower() (*hir.Module, error) {
 		}
 	}
 
-	// Selection screen — prompt for each PARAMETER, read via BDOS 0x0A
+	// Selection screen — register fields, then sel_show for input.
+	//
+	// Architecture: sel_register_str/sel_register_int tell the host about each
+	// field (name, type, length, buffer address, default). sel_show() blocks
+	// for user input and returns u8: 1 = host handled (MZV), 0 = fallback.
+	// On Z80/CP/M the fallback path does inline BDOS prompts.
+	// On MZV the host function reads stdin and writes values to VM heap.
 	if len(l.prog.Params) > 0 {
+		// ── Register each parameter with the screen host ────────────
+		fieldIdx := 0
 		for _, p := range l.prog.Params {
-			// Build prompt string: "P_NAME [default]: "
+			ty := l.varTypes[p.Name]
+
+			// Intern field label (= uppercase param name)
+			labelSym := l.internStr(strings.ToUpper(p.Name))
+
+			if ty == mir2.TyPtr {
+				// String field → sel_register_str(name, length, default, buf)
+				defStr := ""
+				if p.Default != nil {
+					if sl, ok := (*p.Default).(*StringLit); ok {
+						defStr = sl.Val
+					}
+				}
+				defSym := l.internStr(defStr)
+				txtName := "_abap_txt_" + p.Name
+
+				mainStmts = append(mainStmts, &hir.ExprStmt{
+					Expr: &hir.CallExpr{
+						Fn: "sel_register_str",
+						Args: []hir.Expr{
+							&hir.AddrOfExpr{Sym: labelSym},
+							&hir.IntLitExpr{Val: int64(p.Length), Ty: mir2.TyU8},
+							&hir.AddrOfExpr{Sym: defSym},
+							&hir.AddrOfExpr{Sym: txtName},
+						},
+						Ty: mir2.TyVoid,
+					},
+				})
+			} else {
+				// Integer field → sel_register_int(name, default_val)
+				defVal := int64(0)
+				if p.Default != nil {
+					if il, ok := (*p.Default).(*IntLit); ok {
+						defVal = il.Val
+					}
+				}
+				mainStmts = append(mainStmts, &hir.ExprStmt{
+					Expr: &hir.CallExpr{
+						Fn: "sel_register_int",
+						Args: []hir.Expr{
+							&hir.AddrOfExpr{Sym: labelSym},
+							&hir.IntLitExpr{Val: defVal, Ty: mir2.TyU16},
+						},
+						Ty: mir2.TyVoid,
+					},
+				})
+			}
+			fieldIdx++
+		}
+
+		// ── sel_show() — returns 1 if host handled, 0 for Z80 fallback ──
+		mainStmts = append(mainStmts, &hir.VarDeclStmt{
+			Name: "_sel_rc",
+			Ty:   mir2.TyU8,
+			Init: &hir.CallExpr{Fn: "sel_show", Ty: mir2.TyU8},
+		})
+
+		// ── Z80/CP/M fallback: inline BDOS prompts (when sel_show→0) ──
+		var promptStmts []hir.Stmt
+		for _, p := range l.prog.Params {
 			promptStr := strings.ToUpper(p.Name)
 			defStr := ""
 			if p.Default != nil {
@@ -193,24 +279,20 @@ func (l *lowerer) lower() (*hir.Module, error) {
 			}
 			promptStr += ": "
 
-			promptIdx := len(l.hm.Strings)
-			l.hm.Strings = append(l.hm.Strings, promptStr)
-			l.hm.StrKinds = append(l.hm.StrKinds, mir2.StrCString)
+			promptSym := l.internStr(promptStr)
 
-			// Print prompt
-			mainStmts = append(mainStmts, &hir.ExprStmt{
+			promptStmts = append(promptStmts, &hir.ExprStmt{
 				Expr: &hir.CallExpr{
 					Fn:   "abap_write_str",
-					Args: []hir.Expr{&hir.AddrOfExpr{Sym: fmt.Sprintf("@mir2.str.%d", promptIdx)}},
+					Args: []hir.Expr{&hir.AddrOfExpr{Sym: promptSym}},
 					Ty:   mir2.TyVoid,
 				},
 			})
 
 			ty := l.varTypes[p.Name]
 			if ty == mir2.TyPtr {
-				// Read into the param's TEXT area via abap_sel_read(txt_ptr)
 				txtName := "_abap_txt_" + p.Name
-				mainStmts = append(mainStmts, &hir.ExprStmt{
+				promptStmts = append(promptStmts, &hir.ExprStmt{
 					Expr: &hir.CallExpr{
 						Fn:   "abap_sel_read",
 						Args: []hir.Expr{&hir.AddrOfExpr{Sym: txtName}},
@@ -218,25 +300,62 @@ func (l *lowerer) lower() (*hir.Module, error) {
 					},
 				})
 			} else {
-				// Integer: read line into shared buffer, parse, assign
-				mainStmts = append(mainStmts, &hir.AssignStmt{
+				promptStmts = append(promptStmts, &hir.AssignStmt{
 					Target: &hir.VarRefExpr{Name: p.Name, Ty: ty},
 					Val:    &hir.CallExpr{Fn: "abap_read_int", Ty: mir2.TyU16},
 				})
 			}
 		}
 
-		// Newline after selection screen
-		nlIdx := len(l.hm.Strings)
-		l.hm.Strings = append(l.hm.Strings, "\r\n")
-		l.hm.StrKinds = append(l.hm.StrKinds, mir2.StrCString)
-		mainStmts = append(mainStmts, &hir.ExprStmt{
+		// Newline after prompts
+		nlSym := l.internStr("\r\n")
+		promptStmts = append(promptStmts, &hir.ExprStmt{
 			Expr: &hir.CallExpr{
 				Fn:   "abap_write_str",
-				Args: []hir.Expr{&hir.AddrOfExpr{Sym: fmt.Sprintf("@mir2.str.%d", nlIdx)}},
+				Args: []hir.Expr{&hir.AddrOfExpr{Sym: nlSym}},
 				Ty:   mir2.TyVoid,
 			},
 		})
+
+		// if _sel_rc == 0 { ... BDOS prompts ... }
+		mainStmts = append(mainStmts, &hir.IfStmt{
+			Cond: &hir.BinExpr{
+				Op: "==",
+				L:  &hir.VarRefExpr{Name: "_sel_rc", Ty: mir2.TyU8},
+				R:  &hir.IntLitExpr{Val: 0, Ty: mir2.TyU8},
+				Ty: mir2.TyBool,
+			},
+			Then: &hir.Block{Body: promptStmts},
+		})
+
+		// ── MZV path: read integer values from host (when sel_show→1) ──
+		var intReadStmts []hir.Stmt
+		fieldIdx = 0
+		for _, p := range l.prog.Params {
+			ty := l.varTypes[p.Name]
+			if ty != mir2.TyPtr {
+				intReadStmts = append(intReadStmts, &hir.AssignStmt{
+					Target: &hir.VarRefExpr{Name: p.Name, Ty: ty},
+					Val: &hir.CallExpr{
+						Fn:   "sel_get_int",
+						Args: []hir.Expr{&hir.IntLitExpr{Val: int64(fieldIdx), Ty: mir2.TyU8}},
+						Ty:   mir2.TyU16,
+					},
+				})
+			}
+			fieldIdx++
+		}
+		if len(intReadStmts) > 0 {
+			mainStmts = append(mainStmts, &hir.IfStmt{
+				Cond: &hir.BinExpr{
+					Op: "!=",
+					L:  &hir.VarRefExpr{Name: "_sel_rc", Ty: mir2.TyU8},
+					R:  &hir.IntLitExpr{Val: 0, Ty: mir2.TyU8},
+					Ty: mir2.TyBool,
+				},
+				Then: &hir.Block{Body: intReadStmts},
+			})
+		}
 	}
 
 	// AT-SELECTION-SCREEN — runs after screen, SY-UCOMM is set
@@ -370,9 +489,10 @@ func (l *lowerer) lowerGlobal(d *DataDecl) {
 			}
 		case *StringLit:
 			// String DATA → intern the string and record an init assignment
-			idx := len(l.hm.Strings)
-			l.hm.Strings = append(l.hm.Strings, lit.Val)
-			l.hm.StrKinds = append(l.hm.StrKinds, mir2.StrCString)
+			sym := l.internStr(lit.Val)
+			// Extract index from sym ("@mir2.str.N" → N)
+			var idx int
+			fmt.Sscanf(sym, "@mir2.str.%d", &idx)
 			l.stringInits = append(l.stringInits, stringInit{
 				varName: d.Name,
 				strIdx:  idx,
@@ -707,10 +827,8 @@ func (l *lowerer) lowerExpr(e Expr_) (hir.Expr, error) {
 
 	case *StringLit:
 		// Intern string into module pool, return AddrOfExpr
-		idx := len(l.hm.Strings)
-		l.hm.Strings = append(l.hm.Strings, e.Val)
-		l.hm.StrKinds = append(l.hm.StrKinds, mir2.StrCString) // null-terminated
-		return &hir.AddrOfExpr{Sym: fmt.Sprintf("@mir2.str.%d", idx)}, nil
+		sym := l.internStr(e.Val)
+		return &hir.AddrOfExpr{Sym: sym}, nil
 
 	case *VarRef:
 		ty, ok := l.varTypes[e.Name]
@@ -838,17 +956,26 @@ func emitRuntimeFuncs(hm *hir.Module) {
 		}
 	}
 
-	// sel_show — no-op on Z80 (overridden by MZV host function for TUI)
+	// sel_show — returns 0 on Z80 (fallback to BDOS), 1 on MZV (host handled).
+	// Uses inline asm to prevent trivial inlining (MZV overrides via host table).
 	if !names["sel_show"] {
 		hm.Funcs = append(hm.Funcs, &hir.Func{
 			Name:  "sel_show",
-			RetTy: mir2.TyVoid,
-			Body:  &hir.Block{},
+			RetTy: mir2.TyU8,
+			Body: &hir.Block{
+				Body: []hir.Stmt{
+					&hir.AsmStmt{
+						Target: "z80",
+						Code:   "XOR A", // A = 0
+						RetReg: "A",
+					},
+				},
+			},
 		})
 		names["sel_show"] = true
 	}
 
-	// sel_register — no-op on Z80
+	// sel_register — no-op on Z80 (backward compat)
 	if !names["sel_register"] {
 		hm.Funcs = append(hm.Funcs, &hir.Func{
 			Name: "sel_register",
@@ -861,6 +988,64 @@ func emitRuntimeFuncs(hm *hir.Module) {
 			Body:  &hir.Block{},
 		})
 		names["sel_register"] = true
+	}
+
+	// sel_register_str(name, length, default, buf) — no-op on Z80.
+	// Asm prevents inlining so MZV can override via host table.
+	if !names["sel_register_str"] {
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name: "sel_register_str",
+			Params: []hir.Param{
+				{Name: "name", Ty: mir2.TyPtr},
+				{Name: "length", Ty: mir2.TyU8},
+				{Name: "defval", Ty: mir2.TyPtr},
+				{Name: "bufptr", Ty: mir2.TyPtr},
+			},
+			RetTy: mir2.TyVoid,
+			Body: &hir.Block{
+				Body: []hir.Stmt{
+					&hir.AsmStmt{Target: "z80", Code: "NOP"},
+				},
+			},
+		})
+		names["sel_register_str"] = true
+	}
+
+	// sel_register_int(name, default_val) — no-op on Z80.
+	if !names["sel_register_int"] {
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name: "sel_register_int",
+			Params: []hir.Param{
+				{Name: "name", Ty: mir2.TyPtr},
+				{Name: "defval", Ty: mir2.TyU16},
+			},
+			RetTy: mir2.TyVoid,
+			Body: &hir.Block{
+				Body: []hir.Stmt{
+					&hir.AsmStmt{Target: "z80", Code: "NOP"},
+				},
+			},
+		})
+		names["sel_register_int"] = true
+	}
+
+	// sel_get_int(idx) — returns 0 on Z80.
+	if !names["sel_get_int"] {
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name:   "sel_get_int",
+			Params: []hir.Param{{Name: "idx", Ty: mir2.TyU8}},
+			RetTy:  mir2.TyU16,
+			Body: &hir.Block{
+				Body: []hir.Stmt{
+					&hir.AsmStmt{
+						Target: "z80",
+						Code:   "LD HL, 0",
+						RetReg: "HL",
+					},
+				},
+			},
+		})
+		names["sel_get_int"] = true
 	}
 
 	// abap_sel_read(buf: ^u8) — read line into buffer via BDOS 0x0A.

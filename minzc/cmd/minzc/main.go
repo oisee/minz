@@ -79,41 +79,30 @@ var rootCmd = &cobra.Command{
 	Short: "MinZ Multi-Platform Compiler " + version.GetVersion(),
 	Long:  `MinZ - Modern Programming Language for Retro Platforms
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Write once, run on any Z80, 6502, or modern platform!
+Write once, run on Z80 retro platforms!
 
-BACKENDS:
-  z80     - Z80 assembly (default)
-  6502    - 6502 assembly  
-  68000   - Motorola 68000 assembly
-  i8080   - Intel 8080 assembly
-  gb      - Game Boy (SM83/LR35902)
-  wasm    - WebAssembly
-  c       - C99 source code
-  crystal - Crystal source code (Ruby-style dev workflow!)
-  llvm    - LLVM IR
+BACKEND:
+  z80     - Z80 assembly (default, production)
 
-TARGET PLATFORMS (for Z80):
+TARGET PLATFORMS:
   zxspectrum - ZX Spectrum (default)
   cpm        - CP/M systems
   msx        - MSX computers
   cpc        - Amstrad CPC
   amstrad    - Amstrad PCW
+  agon       - Agon Light 2
 
 LANGUAGE FEATURES:
-  ✅ Zero-cost abstractions      ✅ Function overloading
-  ✅ Lambda expressions          ✅ Pattern matching
-  ✅ Error propagation (?)       ✅ Interfaces & traits
-  ✅ Metaprogramming (@minz)     ✅ Self-modifying code
-  ✅ Inline assembly             ✅ Iterator chains
+  Zero-cost abstractions, function overloading, lambda expressions,
+  pattern matching, error propagation, interfaces & traits,
+  metaprogramming (@minz), self-modifying code, inline assembly,
+  iterator chains
 
 EXAMPLES:
-  mz hello.minz                      # Compile for ZX Spectrum
-  mz hello.minz -t cpm               # Target CP/M systems
-  mz hello.minz -t msx               # MSX build (optimized by default)
-  mz game.minz -b gb                 # Compile for Game Boy
-  mz app.minz -b c -o app.c          # Generate C code
-  mz app.minz -b crystal -o app.cr   # Generate Crystal code (Ruby-style!)
-  mz demo.minz --disable-smc         # Disable self-modifying code
+  mz hello.nanz                      # Compile for ZX Spectrum
+  mz hello.nanz -t cpm               # Target CP/M systems
+  mz hello.nanz -t msx               # MSX build
+  mz demo.nanz --disable-smc         # Disable self-modifying code
   mz --list-backends                 # List all backends
 
 OPTIMIZATION FLAGS:
@@ -201,7 +190,7 @@ func init() {
 	// PGO flags (Quick Win integration)
 	rootCmd.Flags().StringVar(&pgoProfile, "pgo", "", "use profile-guided optimization with .tas profile file")
 	rootCmd.Flags().BoolVar(&pgoDebug, "pgo-debug", false, "show PGO optimization decisions and hot/cold analysis")
-	rootCmd.Flags().StringVarP(&backend, "backend", "b", defaultBackend, "target backend (z80, 6502, wasm, c, crystal, llvm)")
+	rootCmd.Flags().StringVarP(&backend, "backend", "b", defaultBackend, "target backend (z80)")
 	rootCmd.Flags().StringVarP(&target, "target", "t", "zxspectrum", "target platform (zxspectrum, cpm, msx, cpc, amstrad)")
 	rootCmd.Flags().StringVarP(&outputFormat, "format", "f", "", "output format: code (raw binary, default), sna, tap")
 	rootCmd.Flags().BoolVar(&listBackends, "list-backends", false, "list available backends")
@@ -239,7 +228,7 @@ func compile(sourceFile string) error {
 	ext := filepath.Ext(sourceFile)
 
 	// PL/M-80, Nanz, and HIR text: routed through the new HIR→MIR2→Z80 pipeline.
-	if ext == ".plm" || ext == ".nanz" || ext == ".hir" || ext == ".lanz" || ext == ".lizp" || ext == ".pas" || ext == ".c" || ext == ".m" || ext == ".abap" {
+	if ext == ".plm" || ext == ".nanz" || ext == ".minz" || ext == ".hir" || ext == ".lanz" || ext == ".lizp" || ext == ".pas" || ext == ".c" || ext == ".m" || ext == ".abap" {
 		if emitFormat == "nanz" && ext != ".hir" && ext != ".lanz" {
 			return compilePLMToNanz(sourceFile)
 		}
@@ -725,7 +714,7 @@ func compileViaHIR(sourceFile string) error {
 		if err != nil {
 			return fmt.Errorf("PL/M compile: %w", err)
 		}
-	case ".nanz":
+	case ".nanz", ".minz":
 		hirMod, err = nanz.ParseWithOpts(string(src), sourceFile, nanz.ParseOpts{
 			BaseDir:   baseDir,
 			StdlibDir: stdlibDir,
@@ -772,6 +761,9 @@ func compileViaHIR(sourceFile string) error {
 	default:
 		return fmt.Errorf("unsupported extension for HIR pipeline: %s", ext)
 	}
+
+	// Set target platform so @target() intrinsic resolves correctly.
+	hirMod.Target = hir.TargetFromString(target)
 
 	// Run all pipeline stages (always, cheaply; we may want any step).
 	steps, err := pipeline.CompileHIRSteps(hirMod, pipeline.Options{

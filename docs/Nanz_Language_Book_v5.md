@@ -3189,6 +3189,57 @@ mze -t cpm hello.com
 
 The Pascal lowerer generates CP/M BDOS wrappers (ConOut, WriteStr, WriteCrLf) directly as HIR functions with inline Z80 asm, ensuring correct register placement (C=function, DE=parameter, CALL $0005).
 
+## Appendix I: What's New in v5.4
+
+Features shipped since v5.3 (2026-03-17):
+
+| Feature | Location | Status |
+|---------|----------|--------|
+| FAT12/16 R/W library | `stdlib/fs/fat12.minz` | mount, find, read, create, delete, overwrite |
+| FAT12 write_fat12 | 12-bit packed R-M-W | Round-trip verified (5 asserts) |
+| FAT16 support | Auto-detect by cluster count | `read_fat16`/`write_fat16` + unified dispatch |
+| Bidirectional FatFS testing | `pkg/c89/fatfs_vm_test.go` | gcc→MIR2 (5/5), MIR2→gcc (7/7) |
+| Nanz write verification | `TestNanzFAT12_Write` | 13/13 subtests + gcc 14/14 cross-verify |
+| **E2E 5-channel verification** | `TestE2E_NanzWrite_MultiChannelVerify` | Nanz VM, fresh VM, gcc, C89 MIR2, raw bytes |
+| SDCC Z80 comparison | `TestDifferential_Z80_vs_SDCC` | Per-function instruction counts vs SDCC bytes |
+| C89→QBE native path | `pkg/c89/fatfs_vm_test.go` | 33/33 FatFS low-level asserts via QBE |
+| Differential code quality | `pkg/c89/fatfs_differential_test.go` | Nanz MIR2 99 vs C89 97 instr (+2.1%) |
+| C89 do-while + break/continue | `pkg/c89/lower.go` | 19 asserts |
+| QBE `OpAdd` l-typed promotion | `pkg/mir2qbe/codegen.go` | Pointer arithmetic fix |
+| C89 corpus expanded | 16 files, 350 asserts | +2 files, +159 asserts |
+
+### FAT12/16 Filesystem Library — `stdlib/fs/fat12.minz`
+
+Full read-write FAT filesystem library in idiomatic Nanz. Supports FAT12 and FAT16 volumes with automatic type detection at mount time. Designed for embedded/retro targets (Z80, eZ80, 6502).
+
+**Read API:** `fat_mount`, `find_file`, `file_read`, `read_named_file`, `count_dir_entries`, `get_dir_entry`
+
+**Write API:** `create_file`, `delete_file`, `overwrite_file`, `fat_sync`
+
+**Internal:** `write_fat12` (12-bit packed read-modify-write), `write_fat16`, `alloc_cluster`, `free_chain`, dirty-tracking sector window + FAT cache with write-back to all FAT copies.
+
+```nanz
+fun write_fat12(fat: ^u8, clst: u16, val: u16) -> void {
+    let half: u16 = clst >> 1
+    let ofs: u16 = clst + half
+    let raw: u16 = ld_word(fat + ofs)
+    let odd: u16 = clst & 1
+    var new_raw: u16 = 0
+    if odd != 0 {
+        let keep: u16 = raw & 0x000F
+        let shifted: u16 = val << 4
+        new_raw = keep | shifted
+    } else {
+        let keep: u16 = raw & 0xF000
+        let masked: u16 = val & 0x0FFF
+        new_raw = keep | masked
+    }
+    st_word(fat + ofs, new_raw)
+}
+```
+
+Verified end-to-end via **5 independent channels**: Nanz writes text files, binary files (0xDEADBEEF pattern), multi-sector files (700B, i%251), deletes and overwrites — then verified by (A) same Nanz VM, (B) fresh Nanz VM reload, (C) gcc-compiled FatFS R0.16 (14/14), (D) C89 MIR2 VM FAT structure, (E) raw byte inspection. FAT copy synchronization verified. Differential testing proves 28/28 bit-identical low-level results vs C89. 11 total FatFS tests, all PASS.
+
 ---
 
 *MinZ Compiler — modern abstractions, vintage iron, zero overhead.*
