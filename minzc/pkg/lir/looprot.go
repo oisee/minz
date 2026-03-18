@@ -21,6 +21,8 @@
 // - FatFS get_chain_length: SDCC generates JR NZ, MinZ does while(true)+break
 //
 // The pass works on LIR Prog (multi-block representation).
+//
+// Implementation: thin wrappers over ApplyBlockRules (Layer 4 CFG DSL).
 package lir
 
 // LoopRotateResult holds statistics from loop rotation.
@@ -29,59 +31,11 @@ type LoopRotateResult struct {
 }
 
 // LoopRotate transforms header-tested loops into bottom-tested loops.
-// Modifies prog in place.
+// Modifies prog in place. Delegates to ApplyBlockRules with the loop_rotate rule.
 func LoopRotate(prog *Prog) *LoopRotateResult {
-	result := &LoopRotateResult{}
-
-	// Build label → index map
-	blockIdx := make(map[string]int, len(prog.Blocks))
-	for i, b := range prog.Blocks {
-		blockIdx[b.Label] = i
-	}
-
-	// Find rotatable loops: head block with branch + body block with jump to head
-	for hi := range prog.Blocks {
-		head := &prog.Blocks[hi]
-		if head.Term.Kind != TermBranch || len(head.Term.Targets) < 2 {
-			continue
-		}
-
-		bodyLabel := head.Term.Targets[0] // then-target (cond!=0 → body)
-		exitLabel := head.Term.Targets[1] // else-target (cond==0 → exit)
-
-		bi, ok := blockIdx[bodyLabel]
-		if !ok {
-			continue
-		}
-		body := &prog.Blocks[bi]
-
-		// Body must jump back to head (back-edge)
-		if body.Term.Kind != TermJump || len(body.Term.Targets) == 0 {
-			continue
-		}
-		if body.Term.Targets[0] != head.Label {
-			continue
-		}
-
-		// Only rotate if head has no instructions (pure branch header).
-		// Headers with instructions need the instructions duplicated into the
-		// body, which we'll support later.
-		if len(head.Insts) > 0 {
-			continue
-		}
-
-		// Rotate: head becomes guard (one-time pre-check),
-		// body gets the branch as its terminator instead of jump-to-head.
-		body.Term = Term{
-			Kind:    TermBranch,
-			Cond:    head.Term.Cond,
-			Targets: []string{bodyLabel, exitLabel},
-		}
-
-		result.Rotated++
-	}
-
-	return result
+	rules := []BlockRewriteRule{loopRotateRule()}
+	r := ApplyBlockRules(prog, rules, 5)
+	return &LoopRotateResult{Rotated: r.Applied}
 }
 
 // LoopRotateDJNZ is a specialized rotation for counted loops.
@@ -99,73 +53,9 @@ func LoopRotate(prog *Prog) *LoopRotateResult {
 //	body:  ...work...; djnz cnt, @body, @exit
 //
 // The sub(cnt, 1) instruction is absorbed into the DJNZ terminator.
+// Delegates to ApplyBlockRules with DJNZ (priority 35) + fallback rotate (priority 30).
 func LoopRotateDJNZ(prog *Prog) *LoopRotateResult {
-	result := &LoopRotateResult{}
-
-	blockIdx := make(map[string]int, len(prog.Blocks))
-	for i, b := range prog.Blocks {
-		blockIdx[b.Label] = i
-	}
-
-	for hi := range prog.Blocks {
-		head := &prog.Blocks[hi]
-		if head.Term.Kind != TermBranch || len(head.Term.Targets) < 2 {
-			continue
-		}
-
-		bodyLabel := head.Term.Targets[0]
-		exitLabel := head.Term.Targets[1]
-		cntPhys := head.Term.Cond.Phys
-
-		bi, ok := blockIdx[bodyLabel]
-		if !ok {
-			continue
-		}
-		body := &prog.Blocks[bi]
-
-		if body.Term.Kind != TermJump || len(body.Term.Targets) == 0 {
-			continue
-		}
-		if body.Term.Targets[0] != head.Label {
-			continue
-		}
-
-		// Only rotate pure-branch headers
-		if len(head.Insts) > 0 {
-			continue
-		}
-
-		// Find the sub(cnt, 1) instruction in body that decrements the counter.
-		// It must write to the same phys as the branch condition.
-		subIdx := -1
-		for i, inst := range body.Insts {
-			if inst.Pat != nil && inst.Pat.MIROp == OpSub &&
-				inst.Dst.Phys == cntPhys {
-				subIdx = i
-			}
-		}
-
-		if subIdx >= 0 {
-			// Remove the sub instruction — DJNZ absorbs it
-			body.Insts = append(body.Insts[:subIdx], body.Insts[subIdx+1:]...)
-
-			// Replace body terminator with DJNZ
-			body.Term = Term{
-				Kind:    TermDJNZ,
-				Counter: Operand{Phys: cntPhys},
-				Targets: []string{bodyLabel, exitLabel},
-			}
-		} else {
-			// No decrement found — fall back to regular branch rotation
-			body.Term = Term{
-				Kind:    TermBranch,
-				Cond:    head.Term.Cond,
-				Targets: []string{bodyLabel, exitLabel},
-			}
-		}
-
-		result.Rotated++
-	}
-
-	return result
+	rules := []BlockRewriteRule{loopRotateDJNZRule(), loopRotateRule()}
+	r := ApplyBlockRules(prog, rules, 5)
+	return &LoopRotateResult{Rotated: r.Applied}
 }

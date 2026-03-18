@@ -137,7 +137,7 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 		{Name: "ld_a_hl", MIROp: OpLoad, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{hl},
 			Template: "LD A, (HL)", Cost: 7, Bytes: 1, Flags: PatMemRead},
 		{Name: "ld_r_hl", MIROp: OpLoad, Width: 8, DstLocs: gpr8, SrcLocs: [2]LocSet{hl},
-			Template: "LD {dst}, (HL)", Cost: 7, Bytes: 1, Flags: PatMemRead},
+			Template: "LD {dst}, (HL)", Cost: 9, Bytes: 1, Flags: PatMemRead},
 		{Name: "ld_a_de", MIROp: OpLoad, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{de},
 			Template: "LD A, (DE)", Cost: 7, Bytes: 1, Flags: PatMemRead},
 		{Name: "ld_a_bc", MIROp: OpLoad, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{bc},

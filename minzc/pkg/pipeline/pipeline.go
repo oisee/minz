@@ -17,6 +17,7 @@ package pipeline
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/minz/minzc/pkg/emulator"
@@ -53,6 +54,10 @@ type Options struct {
 	// which functions successfully lower through ISLE+WFC.
 	// Non-destructive — does not affect assembly output.
 	LIRCheck bool
+	// UseLIR replaces PBQP+Z80Codegen with the experimental LIR backend
+	// (ISLE combining + WFC regalloc + Layer 4 CFG rules).
+	// Functions that fail LIR fall back to the PBQP path automatically.
+	UseLIR bool
 }
 
 // DefaultOptions returns options with all recommended passes enabled.
@@ -166,9 +171,52 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		return s, err
 	}
 
-	s.Assembly = mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{
-		AnnotateTStates: opt.AnnotateTStates,
-	})
+	if opt.UseLIR {
+		// Experimental LIR backend: ISLE combining + WFC regalloc + Layer 4 CFG rules.
+		lirAsm, lirResults := lir.LIRCodegenModule(m)
+
+		// Report per-function results.
+		ok, fail := 0, 0
+		var failNames []string
+		for _, r := range lirResults {
+			if r.OK {
+				ok++
+			} else {
+				fail++
+				failNames = append(failNames, r.Name+"("+r.Error+")")
+			}
+		}
+
+		if fail > 0 {
+			// Fall back to PBQP entirely, but report what LIR could handle.
+			fmt.Fprintf(os.Stderr, "lir: %d/%d functions succeeded, falling back to PBQP for: %s\n",
+				ok, ok+fail, strings.Join(failNames, ", "))
+			s.Assembly = mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{
+				AnnotateTStates: opt.AnnotateTStates,
+			})
+		} else {
+			// All functions succeeded through LIR — use LIR assembly.
+			s.Assembly = lirAsm
+			// Append globals (LIR doesn't handle these yet).
+			s.Assembly += emitGlobals(m)
+			fmt.Fprintf(os.Stderr, "lir: all %d functions compiled via ISLE+WFC+Layer4\n", ok)
+		}
+
+		// Store convergence info.
+		for _, r := range lirResults {
+			cr := lir.ConvergenceResult{
+				FuncName: r.Name,
+				Machine:  "z80",
+				Match:    r.OK,
+				Error:    r.Error,
+			}
+			s.LIRResults = append(s.LIRResults, cr)
+		}
+	} else {
+		s.Assembly = mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{
+			AnnotateTStates: opt.AnnotateTStates,
+		})
+	}
 
 	// Z80 binary assertion checks (skip "mir2"-only asserts).
 	if err := RunAssertsZ80(hm, m, combined, s.Assembly); err != nil {
@@ -627,4 +675,40 @@ func Assemble(asmSrc string, target string) ([]byte, []error) {
 		return nil, errs
 	}
 	return res.Binary, nil
+}
+
+// emitGlobals generates Z80 assembly for global variables in a MIR2 module.
+// This is a simplified version of the globals portion of mir2.Z80Codegen,
+// used when the LIR backend handles function codegen.
+func emitGlobals(m *mir2.Module) string {
+	if len(m.Globals) == 0 {
+		return ""
+	}
+	var sb strings.Builder
+	sb.WriteString("; globals\n")
+	for _, g := range m.Globals {
+		w := mir2.ByteWidth(g.Ty)
+		if len(g.Init) > w {
+			w = len(g.Init)
+		}
+		name := g.Name
+		if w == 0 {
+			sb.WriteString(name + ":\n")
+			continue
+		}
+		sb.WriteString(name + ":\n")
+		sb.WriteString("    DB ")
+		for i := 0; i < w; i++ {
+			if i > 0 {
+				sb.WriteString(", ")
+			}
+			b := byte(0)
+			if i < len(g.Init) {
+				b = g.Init[i]
+			}
+			fmt.Fprintf(&sb, "%d", b)
+		}
+		sb.WriteByte('\n')
+	}
+	return sb.String()
 }

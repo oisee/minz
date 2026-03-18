@@ -59,14 +59,17 @@ func LowerMIR2Func(f *mir2.Func, desc *MachineDesc) (*LowerResult, error) {
 		return &LowerResult{}, nil
 	}
 
-	// Instruction selection
-	sel, err := SelectInstructions(desc, allOps)
+	// Extract function params for isel+WFC.
+	params := ContractParamsToBlockParams(f, desc)
+
+	// Instruction selection with param pre-seeding
+	sel, err := SelectBlockInstructions(desc, allOps, params)
 	if err != nil {
 		return nil, fmt.Errorf("isel: %w", err)
 	}
 
-	// WFC constraint propagation + collapse
-	wfc := NewWFCState(desc, sel.Insts)
+	// WFC constraint propagation + collapse with param cells
+	wfc := NewWFCStateWithParams(desc, sel.Insts, params)
 	wfc.Propagate()
 	if err := wfc.Collapse(); err != nil {
 		return nil, fmt.Errorf("wfc: %w", err)
@@ -186,6 +189,30 @@ func LowerMIR2ProgWithOps(f *mir2.Func, desc *MachineDesc) (*Prog, [][]MIROp, er
 	}
 
 	return prog, blockOps, nil
+}
+
+// ContractParamsToBlockParams converts a MIR2 function's Contract.Params
+// into LIR BlockParam entries. This allows the flat codegen path to seed
+// WFC with the same param constraints that the multi-block path uses.
+func ContractParamsToBlockParams(f *mir2.Func, desc *MachineDesc) []BlockParam {
+	var params []BlockParam
+	for _, cp := range f.Contract.Params {
+		width := 8
+		if cp.Ty != nil {
+			if w := cp.Ty.Width(); w > 0 {
+				width = w
+			}
+		}
+		if width < 8 {
+			width = 8
+		}
+		params = append(params, BlockParam{
+			VReg:    int(cp.Reg),
+			Allowed: regClassToLocSet(desc, cp.Class, width),
+			Phys:    -1,
+		})
+	}
+	return params
 }
 
 // regClassToLocSet maps a MIR2 register class + width to a LIR LocSet.

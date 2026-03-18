@@ -1,6 +1,7 @@
 package lir
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/minz/minzc/pkg/hir"
@@ -106,6 +107,45 @@ func TestPipeline_LIRCodegen(t *testing.T) {
 
 	if asm == "" {
 		t.Error("empty assembly")
+	}
+}
+
+// TestLIRCodegen_TwoParams verifies that add(a: u8 = ClassAcc, b: u8 = ClassGeneral)
+// produces ADD A, C (or ADD A, B) — NOT ADD A, A (the bug before param seeding).
+func TestLIRCodegen_TwoParams(t *testing.T) {
+	m := &mir2.Module{Name: "two_params_test"}
+	f := m.AddFunc("add")
+	b := mir2.NewBuilder(f)
+	b.SwitchToNewBlock("entry")
+
+	aReg := b.Param("a", mir2.TyU8, mir2.ClassAcc)
+	bReg := b.Param("b", mir2.TyU8, mir2.ClassGeneral)
+	sum := b.Add(aReg, bReg, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(sum)
+
+	asm, err := LIRCodegenFunc(f)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Logf("generated assembly:\n%s", asm)
+
+	// Must NOT contain "ADD A, A" — that means both params collapsed to A.
+	if strings.Contains(asm, "ADD A, A") {
+		t.Errorf("both params collapsed to A (ADD A, A); expected ADD A, <other reg>")
+	}
+
+	// Must contain ADD A, <something> where something is B, C, D, E, H, or L.
+	found := false
+	for _, r := range []string{"B", "C", "D", "E", "H", "L"} {
+		if strings.Contains(asm, "ADD A, "+r) {
+			found = true
+			t.Logf("correctly assigned second param to %s", r)
+			break
+		}
+	}
+	if !found {
+		t.Error("no ADD A, <gpr> found in output")
 	}
 }
 

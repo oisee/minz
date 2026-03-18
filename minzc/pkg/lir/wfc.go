@@ -355,10 +355,14 @@ func PhysOf(s LocSet) int {
 }
 
 // ToInsts converts WFC state back to LIR instructions with physical assignments.
+// Synthetic cells (param defs, term uses) with nil Pat are excluded.
 func (s *WFCState) ToInsts() []Inst {
-	insts := make([]Inst, len(s.Cells))
-	for i, c := range s.Cells {
-		insts[i] = Inst{
+	insts := make([]Inst, 0, len(s.Cells))
+	for _, c := range s.Cells {
+		if c.Pat == nil {
+			continue // skip synthetic param/use cells
+		}
+		insts = append(insts, Inst{
 			Pat: c.Pat,
 			Imm: c.Imm,
 			Dst: Operand{VReg: c.VRegDst, Allowed: c.DstLocs, Phys: PhysOf(c.DstLocs)},
@@ -366,7 +370,7 @@ func (s *WFCState) ToInsts() []Inst {
 				{VReg: c.VRegSrc[0], Allowed: c.SrcLocs[0], Phys: PhysOf(c.SrcLocs[0])},
 				{VReg: c.VRegSrc[1], Allowed: c.SrcLocs[1], Phys: PhysOf(c.SrcLocs[1])},
 			},
-		}
+		})
 	}
 	return insts
 }
