@@ -301,18 +301,59 @@ fun fat_mount(pdrv: u8) -> u8 {
 
 // ── FAT access (through cache) ──────────────────────────────────────────────
 
-// Compute which FAT sector contains cluster clst.
+// Compute absolute byte offset of a cluster's FAT entry.
 // FAT12: 1.5 bytes per entry. FAT16: 2 bytes per entry.
-fun fat_sect_for_clst(clst: u16) -> u16 {
-    var byte_ofs: u16 = 0
+fun fat_byte_ofs(clst: u16) -> u16 {
     if fs_type == 1 {
         let half: u16 = clst >> 1
-        byte_ofs = clst + half
-    } else {
-        byte_ofs = clst << 1
+        return clst + half
     }
+    return clst << 1
+}
+
+// Compute which FAT sector contains cluster clst.
+fun fat_sect_for_clst(clst: u16) -> u16 {
+    let byte_ofs: u16 = fat_byte_ofs(clst)
     let sect_ofs: u16 = byte_ofs >> 9   // / 512
     return fs_fatbase + sect_ofs
+}
+
+// Read a FAT entry from the cache using sector-relative offset.
+fun fat_cache_get(clst: u16) -> u16 {
+    let abs_ofs: u16 = fat_byte_ofs(clst)
+    let local: u16 = abs_ofs & 0x01FF  // abs_ofs % 512
+
+    if fs_type == 1 {
+        let raw: u16 = ld_word(&fat_cache + local)
+        let odd: u16 = clst & 1
+        if odd != 0 { return raw >> 4 }
+        return raw & 0x0FFF
+    }
+    return ld_word(&fat_cache + local)
+}
+
+// Write a FAT entry to the cache using sector-relative offset.
+fun fat_cache_put(clst: u16, val: u16) -> void {
+    let abs_ofs: u16 = fat_byte_ofs(clst)
+    let local: u16 = abs_ofs & 0x01FF  // abs_ofs % 512
+
+    if fs_type == 1 {
+        let raw: u16 = ld_word(&fat_cache + local)
+        let odd: u16 = clst & 1
+        var new_raw: u16 = 0
+        if odd != 0 {
+            let keep: u16 = raw & 0x000F
+            let shifted: u16 = val << 4
+            new_raw = keep | shifted
+        } else {
+            let keep: u16 = raw & 0xF000
+            let masked: u16 = val & 0x0FFF
+            new_raw = keep | masked
+        }
+        st_word(&fat_cache + local, new_raw)
+        return
+    }
+    st_word(&fat_cache + local, val)
 }
 
 fun fat_next(pdrv: u8, clst: u16) -> u16 {
@@ -320,7 +361,7 @@ fun fat_next(pdrv: u8, clst: u16) -> u16 {
     let sect: u16 = fat_sect_for_clst(clst)
     let err: u8 = load_fat_sector(pdrv, sect)
     if err != 0 { return 0xFFFF }
-    let val: u16 = read_fat(&fat_cache, clst)
+    let val: u16 = fat_cache_get(clst)
     if is_eoc(val) != 0 { return 0xFFFF }
     if val < 2 { return 0xFFFF }
     return val
@@ -331,7 +372,7 @@ fun fat_set(pdrv: u8, clst: u16, val: u16) -> u8 {
     let sect: u16 = fat_sect_for_clst(clst)
     let err: u8 = load_fat_sector(pdrv, sect)
     if err != 0 { return 1 }
-    write_fat(&fat_cache, clst, val)
+    fat_cache_put(clst, val)
     fat_dirty = 1
     return 0
 }
@@ -345,7 +386,7 @@ fun find_free_cluster(pdrv: u8) -> u16 {
         let sect: u16 = fat_sect_for_clst(clst)
         let err: u8 = load_fat_sector(pdrv, sect)
         if err != 0 { return 0 }
-        let val: u16 = read_fat(&fat_cache, clst)
+        let val: u16 = fat_cache_get(clst)
         if val == 0 { return clst }
         clst = clst + 1
     }

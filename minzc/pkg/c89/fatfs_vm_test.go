@@ -460,6 +460,200 @@ var (
 	_ = mir2qbe.Compile
 )
 
+// TestNanzFAT12_MultiCluster verifies multi-cluster file write and read.
+// Creates a file >512 bytes on a blank FAT12 image and checks:
+// 1. FAT chain is properly allocated (start→next→EOC)
+// 2. All bytes can be read back via fat_next chain traversal
+// 3. gcc FatFS can read the full file
+func TestNanzFAT12_MultiCluster(t *testing.T) {
+	nanzPath := filepath.Join("..", "..", "..", "stdlib", "fs", "fat12.minz")
+	nanzSrc, err := os.ReadFile(nanzPath)
+	if err != nil {
+		t.Skipf("fat12.minz not found: %v", err)
+	}
+	fatfsDir := filepath.Join("..", "..", "..", "examples", "c89", "fatfs")
+
+	// Create blank FAT12 image
+	imgPath := filepath.Join(t.TempDir(), "mc.img")
+	if err := os.WriteFile(imgPath, make([]byte, 1024*1024), 0644); err != nil {
+		t.Fatalf("create image: %v", err)
+	}
+	if out, err := exec.Command("mkfs.fat", "-F", "12", imgPath).CombinedOutput(); err != nil {
+		t.Skipf("mkfs.fat: %v\n%s", err, out)
+	}
+
+	// Compile Nanz → MIR2 VM
+	hirMod, err := nanz.Parse(string(nanzSrc), "fat12.minz")
+	if err != nil {
+		t.Fatalf("nanz parse: %v", err)
+	}
+	mir2Mod := hir.LowerModule(hirMod)
+	vm := mir2.NewVM(mir2Mod)
+
+	diskImg, err := os.OpenFile(imgPath, os.O_RDWR, 0)
+	if err != nil {
+		t.Fatalf("open image: %v", err)
+	}
+	defer diskImg.Close()
+	registerDiskHostsRW(vm, diskImg)
+
+	// Mount
+	res, err := vm.Call("fat_mount", []mir2.Value{{I: 0}})
+	if err != nil || res[0].I != 0 {
+		t.Fatalf("fat_mount: err=%v res=%v", err, res)
+	}
+
+	t.Logf("mount OK")
+
+	// Create a 3000-byte file (needs 2 clusters on spc=4 × 512B = 2048B/cluster)
+	data := make([]byte, 3000)
+	for i := range data {
+		data[i] = byte(i % 251)
+	}
+	sfn := []byte("BIGFILE DAT")
+	nameAddr := vm.AllocHeap(sfn)
+	dataAddr := vm.AllocHeap(data)
+	res, err = vm.Call("create_file", []mir2.Value{
+		{I: 0}, {I: nameAddr.I}, {I: dataAddr.I}, {I: 3000},
+	})
+	if err != nil {
+		t.Fatalf("create_file: %v", err)
+	}
+	if res[0].I != 0 {
+		t.Fatalf("create_file returned %d", res[0].I)
+	}
+	t.Logf("create_file: OK")
+
+	// Sync to disk
+	res, _ = vm.Call("fat_sync", []mir2.Value{{I: 0}})
+	if res[0].I != 0 {
+		t.Fatalf("fat_sync: %d", res[0].I)
+	}
+	diskImg.Sync()
+
+	// Find the file's start cluster
+	nameAddr2 := vm.AllocHeap(sfn)
+	res, _ = vm.Call("find_file", []mir2.Value{{I: 0}, {I: nameAddr2.I}})
+	startClst := res[0].I & 0xFFFF
+	t.Logf("start cluster: %d", startClst)
+
+	// Check FAT chain via fat_next
+	res, _ = vm.Call("fat_next", []mir2.Value{{I: 0}, {I: startClst}})
+	nextClst := res[0].I & 0xFFFF
+	t.Logf("fat_next(%d) = %d (0x%04X)", startClst, nextClst, nextClst)
+
+	if nextClst == 0xFFFF || nextClst < 2 {
+		t.Errorf("FAT chain broken: cluster %d → 0x%04X (expected next cluster for 700B file)", startClst, nextClst)
+	} else {
+		// Check that next cluster is EOC
+		res, _ = vm.Call("fat_next", []mir2.Value{{I: 0}, {I: int64(nextClst)}})
+		afterNext := res[0].I & 0xFFFF
+		t.Logf("fat_next(%d) = 0x%04X (should be 0xFFFF = EOC)", nextClst, afterNext)
+		if afterNext != 0xFFFF {
+			t.Errorf("expected EOC after second cluster, got 0x%04X", afterNext)
+		}
+	}
+
+	// Read back via Nanz
+	nameAddr3 := vm.AllocHeap(sfn)
+	bufAddr := vm.AllocHeap(make([]byte, 4096))
+	res, err = vm.Call("read_named_file", []mir2.Value{
+		{I: 0}, {I: nameAddr3.I}, {I: bufAddr.I}, {I: 4096},
+	})
+	if err != nil {
+		t.Fatalf("read_named_file: %v", err)
+	}
+	bytesRead := int(res[0].I & 0xFFFF)
+	t.Logf("Nanz read: %d bytes", bytesRead)
+	if bytesRead != 3000 {
+		t.Errorf("read %d bytes, want 3000", bytesRead)
+	}
+
+	got := vm.ReadHeap(bufAddr.I, bytesRead)
+	for i := 0; i < bytesRead && i < 3000; i++ {
+		if got[i] != byte(i%251) {
+			t.Errorf("byte[%d] = 0x%02X, want 0x%02X", i, got[i], byte(i%251))
+			break
+		}
+	}
+
+	// Check raw image bytes
+	diskImg.Sync()
+	imgData, err := os.ReadFile(imgPath)
+	if err != nil {
+		t.Fatalf("read image: %v", err)
+	}
+	bps := int(binary.LittleEndian.Uint16(imgData[11:13]))
+	rsvd := int(binary.LittleEndian.Uint16(imgData[14:16]))
+
+	// Read FAT entry for start cluster
+	fatOff := rsvd*bps + int(startClst) + int(startClst)/2
+	pair := binary.LittleEndian.Uint16(imgData[fatOff : fatOff+2])
+	var rawFat uint16
+	if int(startClst)%2 == 1 {
+		rawFat = pair >> 4
+	} else {
+		rawFat = pair & 0x0FFF
+	}
+	t.Logf("Raw image FAT[%d] = 0x%03X", startClst, rawFat)
+
+	if rawFat < 2 || rawFat >= 0xFF0 {
+		t.Errorf("raw FAT[%d] = 0x%03X — no chain! Expected next cluster", startClst, rawFat)
+	}
+
+	// gcc verification
+	if _, err := os.Stat(fatfsDir); err == nil {
+		verifySrc := filepath.Join(t.TempDir(), "mc_verify.c")
+		verifyBin := filepath.Join(t.TempDir(), "mc_verify")
+		cCode := fmt.Sprintf(`#include <stdio.h>
+#include <string.h>
+#include "ff.h"
+#include "diskio.h"
+static FILE *df;
+DSTATUS disk_initialize(BYTE p) { return 0; }
+DSTATUS disk_status(BYTE p) { return 0; }
+DRESULT disk_read(BYTE p, BYTE *b, LBA_t s, UINT c) {
+    fseek(df, s*512, SEEK_SET); fread(b, 512, c, df); return RES_OK;
+}
+DRESULT disk_write(BYTE p, const BYTE *b, LBA_t s, UINT c) { return RES_OK; }
+DRESULT disk_ioctl(BYTE p, BYTE cmd, void *buf) { return RES_OK; }
+DWORD get_fattime(void) { return 0; }
+int main(int argc, char **argv) {
+    df = fopen(argv[1], "rb");
+    FATFS fs; FIL fp; UINT br;
+    f_mount(&fs, "", 1);
+    FRESULT r = f_open(&fp, "BIGFILE.DAT", FA_READ);
+    if (r != FR_OK) { printf("FAIL: cannot open BIGFILE.DAT (%%d)\n", r); return 1; }
+    unsigned char buf[3000];
+    f_read(&fp, buf, 3000, &br);
+    printf("gcc read: %%u bytes\n", br);
+    if (br != 3000) { printf("FAIL: expected 3000, got %%u\n", br); return 1; }
+    int ok = 1;
+    for (int i = 0; i < 3000; i++) {
+        if (buf[i] != (unsigned char)(i %% 251)) {
+            printf("FAIL: byte[%%d]=0x%%02X want 0x%%02X\n", i, buf[i], (unsigned char)(i %% 251));
+            ok = 0; break;
+        }
+    }
+    f_close(&fp); f_mount(NULL, "", 0); fclose(df);
+    printf(ok ? "ALL OK\n" : "FAIL\n");
+    return ok ? 0 : 1;
+}`)
+		os.WriteFile(verifySrc, []byte(cCode), 0644)
+		out, err := exec.Command("gcc", "-o", verifyBin, "-w",
+			"-I", fatfsDir, verifySrc,
+			filepath.Join(fatfsDir, "ff.c")).CombinedOutput()
+		if err != nil {
+			t.Skipf("gcc: %v\n%s", err, out)
+		}
+		out, err = exec.Command(verifyBin, imgPath).CombinedOutput()
+		t.Logf("gcc: %s", strings.TrimSpace(string(out)))
+		if err != nil {
+			t.Errorf("gcc verifier failed: %v", err)
+		}
+	}
+}
+
 // TestNanzFAT12_API tests the expanded Nanz FAT12 library (fat12.minz)
 // against a real FAT12 image. It verifies: mount, find_file, file_read,
 // count_dir_entries via MIR2 VM with host-provided disk I/O.
@@ -1502,8 +1696,8 @@ func TestE2E_NanzWrite_MultiChannelVerify(t *testing.T) {
 	}
 	e2eCreateFileBytes(t, vm, "MAGIC   BIN", magicBytes)
 
-	// Create BIG.DAT — 700 bytes (spans multiple clusters on 512-byte clusters)
-	bigData := make([]byte, 700)
+	// Create BIG.DAT — 3000 bytes (spans 2 clusters on spc=4 × 512B = 2048B/cluster)
+	bigData := make([]byte, 3000)
 	for i := range bigData {
 		bigData[i] = byte(i % 251) // prime modulus avoids alignment patterns
 	}
@@ -1542,7 +1736,7 @@ func TestE2E_NanzWrite_MultiChannelVerify(t *testing.T) {
 	//   DELETED:  HELLO.TXT
 	//   MODIFIED: DATA.BIN → "DATA.BIN v2 — rewritten by Nanz E2E test" (40 bytes)
 	//   KEPT:     SUBDIR/
-	//   NEW:      REPORT.TXT (52 bytes), MAGIC.BIN (64 bytes), BIG.DAT (700 bytes)
+	//   NEW:      REPORT.TXT (55 bytes), MAGIC.BIN (64 bytes), BIG.DAT (3000 bytes)
 	// Total dir entries visible: 5 (DATA.BIN, SUBDIR, REPORT.TXT, MAGIC.BIN, BIG.DAT)
 
 	type fileExpect struct {
@@ -1721,20 +1915,19 @@ func TestE2E_NanzWrite_MultiChannelVerify(t *testing.T) {
 
 			// For single-cluster files, should be EOC (0xFF8..0xFFF)
 			// For multi-cluster, should point to next cluster
-			// NOTE: Nanz lib currently writes sequentially without multi-cluster
-			// allocation, so >512B files have EOC on first cluster (known gap)
-			if size <= bps {
+			clusterBytes := bps * int(imgData[13]) // bps * spc
+			if size <= clusterBytes {
 				if fatVal < 0xFF8 {
 					t.Errorf("%s (size=%d): FAT[%d] = 0x%03X, expected EOC", name, size, clst, fatVal)
 				}
 			} else {
 				if fatVal < 2 || fatVal >= 0xFF0 {
-					t.Logf("  NOTE: %s (size=%d): FAT[%d] = 0x%03X — single-cluster allocation for multi-cluster file (known gap)", name, size, clst, fatVal)
+					t.Errorf("%s (size=%d): FAT[%d] = 0x%03X, expected next cluster (multi-cluster)", name, size, clst, fatVal)
 				}
 			}
 
 			// Verify data sector is readable
-			dataSect := dataStart + (clst-2)*1
+			dataSect := dataStart + (clst-2)*int(imgData[13])
 			dataOff := dataSect * bps
 			if dataOff >= len(imgData) {
 				t.Errorf("%s: data sector %d out of bounds", name, dataSect)
@@ -1865,51 +2058,44 @@ func TestE2E_NanzWrite_MultiChannelVerify(t *testing.T) {
 			}
 		}
 
-		// Verify BIG.DAT first cluster content (multi-cluster)
+		// Verify BIG.DAT content across multiple clusters via FAT chain
+		clusterBytes := spc * bps
 		for _, e := range entries {
 			if e.name == "BIG     DAT" && !e.deleted {
-				dataSect := dataStart + (e.cluster-2)*spc
-				off := dataSect * bps
-				// Check first 512 bytes (first cluster)
-				ok := true
-				for i := 0; i < 512 && i < e.size; i++ {
-					if imgData[off+i] != byte(i%251) {
-						t.Errorf("BIG.DAT[%d] = 0x%02X, want 0x%02X", i, imgData[off+i], byte(i%251))
-						ok = false
-						break
-					}
-				}
-				if ok {
-					t.Logf("BIG.DAT first cluster content verified ✓ (size=%d, multi-cluster)", e.size)
-				}
-
-				// Verify FAT chain has at least 2 clusters
-				fatOff := rsvd*bps + e.cluster + e.cluster/2
-				pair := binary.LittleEndian.Uint16(imgData[fatOff : fatOff+2])
-				var nextClst uint16
-				if e.cluster%2 == 1 {
-					nextClst = pair >> 4
-				} else {
-					nextClst = pair & 0x0FFF
-				}
-				if nextClst < 2 || nextClst >= 0xFF0 {
-					// Known gap: Nanz lib writes sequentially without multi-cluster FAT allocation
-					t.Logf("BIG.DAT FAT chain: cluster %d → 0x%03X (single-cluster alloc, known gap)", e.cluster, nextClst)
-				} else {
-					// Verify second cluster data
-					dataSect2 := dataStart + (int(nextClst)-2)*spc
-					off2 := dataSect2 * bps
-					ok2 := true
-					for i := 0; i < e.size-512; i++ {
-						if imgData[off2+i] != byte((512+i)%251) {
-							t.Errorf("BIG.DAT[%d] = 0x%02X, want 0x%02X", 512+i, imgData[off2+i], byte((512+i)%251))
-							ok2 = false
-							break
+				// Follow FAT chain and verify all data bytes
+				clst := e.cluster
+				verified := 0
+				chainLen := 0
+				for clst >= 2 && clst < 0xFF0 && verified < e.size {
+					chainLen++
+					dataSect := dataStart + (clst-2)*spc
+					for s := 0; s < spc && verified < e.size; s++ {
+						off := (dataSect + s) * bps
+						for b := 0; b < bps && verified < e.size; b++ {
+							if imgData[off+b] != byte(verified%251) {
+								t.Errorf("BIG.DAT[%d] = 0x%02X, want 0x%02X", verified, imgData[off+b], byte(verified%251))
+								goto bigDatDone
+							}
+							verified++
 						}
 					}
-					if ok2 {
-						t.Logf("BIG.DAT second cluster verified ✓ (cluster %d → %d)", e.cluster, nextClst)
+					// Follow FAT chain
+					fatOff := rsvd*bps + clst + clst/2
+					pair := binary.LittleEndian.Uint16(imgData[fatOff : fatOff+2])
+					if clst%2 == 1 {
+						clst = int(pair >> 4)
+					} else {
+						clst = int(pair & 0x0FFF)
 					}
+				}
+			bigDatDone:
+				if verified == e.size {
+					t.Logf("BIG.DAT: all %d bytes verified across %d cluster(s) ✓ (clusterSize=%d)", e.size, chainLen, clusterBytes)
+				} else {
+					t.Errorf("BIG.DAT: verified only %d/%d bytes, chain=%d clusters", verified, e.size, chainLen)
+				}
+				if e.size > clusterBytes && chainLen < 2 {
+					t.Errorf("BIG.DAT: size=%d > clusterSize=%d but only %d cluster in chain", e.size, clusterBytes, chainLen)
 				}
 			}
 		}
@@ -2064,19 +2250,14 @@ int main(int argc, char **argv) {
         f_close(&fp);
     }
 
-    /* BIG.DAT — 700 bytes, i%251 pattern
-     * NOTE: Nanz lib currently uses single-cluster allocation, so gcc FatFS
-     * (which follows FAT chains) may only read 512 bytes from one cluster.
-     * We verify what we can read and note the gap. */
+    /* BIG.DAT — 3000 bytes, i%251 pattern, multi-cluster */
     r = f_open(&fp, "BIG.DAT", FA_READ);
     CHECK(r == FR_OK, "open BIG.DAT");
     if (r == FR_OK) {
-        unsigned char buf[700];
+        unsigned char buf[3000];
         memset(buf, 0, sizeof(buf));
-        f_read(&fp, buf, 700, &br);
-        /* Accept either full 700 or single-cluster 512 */
-        int full_read = (br == 700);
-        CHECK(br == 700 || br == 512, "BIG.DAT readable (got bytes)");
+        f_read(&fp, buf, 3000, &br);
+        CHECK(br == 3000, "BIG.DAT size 3000 (multi-cluster)");
         int ok = 1;
         for (unsigned int i = 0; i < br; i++) {
             if (buf[i] != (unsigned char)(i % 251)) {
@@ -2084,10 +2265,7 @@ int main(int argc, char **argv) {
                 ok = 0; break;
             }
         }
-        CHECK(ok, "BIG.DAT i%%251 pattern (verified bytes)");
-        if (!full_read) {
-            printf("  NOTE: BIG.DAT read %u/700 bytes (single-cluster alloc, known gap)\n", br);
-        }
+        CHECK(ok, "BIG.DAT i%%251 pattern (3000 bytes, multi-cluster)");
         f_close(&fp);
     }
 
