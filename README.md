@@ -194,6 +194,8 @@ mz program.minz -b crystal -o prog.cr                  # Crystal (stub — not f
 | **Flag-return ABI** | Functions returning `bool` from a comparison pass the result via carry flag — no `LD A, 0/1` materialization |
 | **Interprocedural CC opt** | Register class chosen per call-site: params coerced to A/B/C/HL/DE based on callee contract |
 | **JRS pseudo-instruction** | Codegen emits `JRS` for all branches; MZA picks `JR` (2B) or `JP` (3B) based on offset and condition |
+| **TUI framework** | Universal screen/form framework — same code runs on CP/M (BDOS), MZV (ANSI), ZX Spectrum (`--zx`). Three API levels: procedural, OOP UFCS, declarative DSL |
+| **Compile-time metafunctions** | `fun @name(...)` runs on MIR2 VM at compile time. Receives DSL blocks as data, emits Nanz source. Lisp-style macros with normal syntax |
 
 ### Partial / In Progress
 
@@ -607,6 +609,91 @@ Compare: a naive indexed loop with separate map/filter passes would cost 60-150+
 - [Iterator Implementation Status](docs/Iterator_Implementation_Status.md) — actual compiler output, known bugs, performance reality
 - [Iterator Reality Check (Report #017)](reports/2026-03-02-017-Iterator_Reality_Check.md) — grounded analysis of T-state costs
 - [ADR-0008: Flag-Based Boolean ABI](docs/adr/0008-flag-based-boolean-abi-for-iterators.md) — `CP` + flag returns for iterator predicates
+
+### Universal TUI Framework & Compile-Time Metafunctions
+
+Three levels of screen abstraction — same code runs on CP/M, MZV, and ZX Spectrum:
+
+**Level 1 — Procedural (sel_register / sel_show):**
+
+```nanz
+sel_register_str(c"NAME", 20, c"World", @buf)
+sel_register_int(c"COUNT", 3)
+sel_show()
+```
+
+```
+$ printf 'Z80\n\n' | mze hello_input.com -t cpm
+P_NAME [World]:
+P_COUNT [3]:
+
+Hello, Z80!
+```
+
+**Level 2 — OOP UFCS (Screen.add_field / Screen.show):**
+
+```nanz
+scr.init(c"Customer Master")
+scr.add_field(c"Customer", 10, &buf)
+scr.add_int(c"Count", 5)
+scr.add_button(c"Execute", KEY_F8)
+scr.show()
+```
+
+**Level 3 — Declarative DSL (`@screen` metafunction):**
+
+`fun @screen` is a **Nanz function that runs at compile time** on the MIR2 VM.
+It receives the block `{ field ... }` as structured data, iterates it, and
+emits Level 2 Nanz code — which the compiler then parses and compiles normally.
+
+```nanz
+// Define the metafunction (compile-time, written in Nanz)
+fun @screen(title: ^u8) -> void {
+    var q: ^u8 = str_chr(34)
+    emit(c"fun _show() -> void {")
+    emit(c"    tui_clear()")
+    var n: u8 = block_len()
+    var i: u8 = 0
+    while i < n {
+        var kw: ^u8 = node_keyword(i)
+        var label: ^u8 = node_arg_str(i, 0)
+        if str_eq(kw, c"field") == 1 {
+            var s: ^u8 = str_concat(c"    tui_puts(c", q)
+            s = str_concat(s, label)
+            s = str_concat(s, q)
+            emit(str_concat(s, c")"))
+        }
+        i = i + 1
+    }
+    emit(c"}")
+}
+
+// Use it — zero runtime overhead, all code generated at compile time
+@screen("Material Report") {
+    field "Material"
+    field "Plant"
+    field "Count"
+    button "Execute"
+}
+
+fun main() -> void {
+    _show()
+}
+```
+
+```
+$ echo "" | mzv -H examples/nanz/meta_screen.nanz
+
+  Material Report
+Material    [__________]
+Plant       [__________]
+Count       [__________]
+[Execute]
+```
+
+The metafunction pipeline: parse block → compile `fun @screen` to MIR2 → execute on VM → collect `emit()` output → parse as Nanz → merge into program. Lisp-style macros with normal syntax, written in the language itself.
+
+See [`stdlib/tui/README.md`](stdlib/tui/README.md) for full documentation.
 
 ---
 
