@@ -34,11 +34,16 @@ var Z80 = &MachineDesc{
 		{Name: "IY", Width: 16, Kind: LocIndex}, // 12
 		// Flags
 		{Name: "F", Width: 1, Kind: LocFlag},    // 13
+		// Index register halves (undocumented, DD/FD prefix, survive calls)
+		{Name: "IXH", Width: 8, Kind: LocIndex}, // 14
+		{Name: "IXL", Width: 8, Kind: LocIndex}, // 15
+		{Name: "IYH", Width: 8, Kind: LocIndex}, // 16
+		{Name: "IYL", Width: 8, Kind: LocIndex}, // 17
 		// Spill slots (memory-backed)
-		{Name: "spill0", Width: 16, Kind: LocMem}, // 14
-		{Name: "spill1", Width: 16, Kind: LocMem}, // 15
-		{Name: "spill2", Width: 16, Kind: LocMem}, // 16
-		{Name: "spill3", Width: 16, Kind: LocMem}, // 17
+		{Name: "spill0", Width: 16, Kind: LocMem}, // 18
+		{Name: "spill1", Width: 16, Kind: LocMem}, // 19
+		{Name: "spill2", Width: 16, Kind: LocMem}, // 20
+		{Name: "spill3", Width: 16, Kind: LocMem}, // 21
 	},
 }
 
@@ -58,6 +63,14 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 	ix := m.LocSetByNames("IX")
 	iy := m.LocSetByNames("IY")
 	flags := m.LocSetByNames("F")
+	// Index register halves — survive calls, DD/FD prefix
+	ixh := m.LocSetByNames("IXH")
+	ixl := m.LocSetByNames("IXL")
+	iyh := m.LocSetByNames("IYH")
+	iyl := m.LocSetByNames("IYL")
+	ixHalves := ixh.Or(ixl).Or(iyh).Or(iyl)
+	// GPR without H/L (compatible with DD/FD prefix operations)
+	gprNoHL := m.LocSetByNames("A", "B", "C", "D", "E")
 	spill := m.LocSetByNames("spill0", "spill1", "spill2", "spill3")
 
 	return []Pattern{
@@ -70,6 +83,14 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 		// ── 8-bit moves ──────────────────────────────────────────────
 		{Name: "ld_r_r", MIROp: OpMove, Width: 8, DstLocs: gpr8, SrcLocs: [2]LocSet{gpr8},
 			Template: "LD {dst}, {src0}", Cost: 4, Bytes: 1},
+
+		// ── 8-bit IX/IY half moves (DD/FD prefixed, call-safe) ──────
+		// LD IXH, r — save GPR to IX half (r cannot be H or L: DD prefix conflict)
+		{Name: "ld_ixh_r", MIROp: OpMove, Width: 8, DstLocs: ixHalves, SrcLocs: [2]LocSet{gprNoHL},
+			Template: "LD {dst}, {src0}", Cost: 8, Bytes: 2},
+		// LD r, IXH — restore GPR from IX half (r cannot be H or L)
+		{Name: "ld_r_ixh", MIROp: OpMove, Width: 8, DstLocs: gprNoHL, SrcLocs: [2]LocSet{ixHalves},
+			Template: "LD {dst}, {src0}", Cost: 8, Bytes: 2},
 
 		// ── 16-bit moves ─────────────────────────────────────────────
 		{Name: "push_pop", MIROp: OpMove, Width: 16, DstLocs: pairs, SrcLocs: [2]LocSet{pairs},

@@ -250,22 +250,39 @@ func (s *WFCState) clobberPass() bool {
 			}
 		}
 
-		// For vregs live across this call, remove clobbered locs from
-		// the DEFINITION site. This forces the vreg to be defined in a
-		// non-clobbered location (e.g. spill slot). If no such location
-		// exists, the DstLocs becomes empty → spill recovery will widen it.
+		// For vregs live across this call, restrict to non-clobbered locs.
+		// Non-clobbered 8-bit locs include IX/IY halves (survive calls).
+		// We expand the allowed set to include call-safe alternatives.
+		callSafe := s.callSafeLocs()
 		for vreg := range defsBefore {
 			if !usesAfter[vreg] {
 				continue
 			}
-			// Find the definition cell for this vreg.
-			for j := 0; j < ci; j++ {
+			// Narrow all appearances of this vreg to non-clobbered + call-safe.
+			safeSet := (^clobbers).Or(callSafe)
+			for j := range s.Cells {
 				cell := &s.Cells[j]
 				if cell.VRegDst == vreg && !cell.DstLocs.IsEmpty() {
-					narrowed := cell.DstLocs.And(^clobbers)
+					narrowed := cell.DstLocs.And(safeSet)
+					if narrowed.IsEmpty() {
+						// No safe location in current set — widen to include call-safe.
+						narrowed = callSafe
+					}
 					if narrowed != cell.DstLocs {
-						cell.DstLocs = narrowed // may be empty → triggers spill recovery
+						cell.DstLocs = narrowed
 						changed = true
+					}
+				}
+				for src := 0; src < 2; src++ {
+					if cell.VRegSrc[src] == vreg && !cell.SrcLocs[src].IsEmpty() {
+						narrowed := cell.SrcLocs[src].And(safeSet)
+						if narrowed.IsEmpty() {
+							narrowed = callSafe
+						}
+						if narrowed != cell.SrcLocs[src] {
+							cell.SrcLocs[src] = narrowed
+							changed = true
+						}
 					}
 				}
 			}
@@ -273,6 +290,23 @@ func (s *WFCState) clobberPass() bool {
 	}
 
 	return changed
+}
+
+// callSafeLocs returns locations that survive across function calls.
+// On Z80: IX/IY halves (IXH, IXL, IYH, IYL) and spill slots.
+func (s *WFCState) callSafeLocs() LocSet {
+	var safe LocSet
+	for i, loc := range s.Desc.Locs {
+		// IX/IY halves survive calls (not part of standard ABI clobbers)
+		if loc.Kind == LocIndex && loc.Width == 8 {
+			safe = safe.Set(i)
+		}
+		// Memory spill slots survive calls
+		if loc.Kind == LocMem {
+			safe = safe.Set(i)
+		}
+	}
+	return safe
 }
 
 // Collapse assigns physical locations to all operands.
