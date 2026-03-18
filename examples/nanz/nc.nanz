@@ -174,7 +174,8 @@ fun draw_panel() -> void {
     tui_goto(x, y + 1)
     tui_putch(BOX_V)
     tui_color(FG_YELLOW, BG_BLUE, 1)
-    puts_pad(c"Name", 14)
+    tui_putch(CH_SPACE)
+    puts_pad(c"Name", 13)
     tui_putch(CH_SPACE)
     puts_pad(c"Size", 8)
     tui_putch(CH_SPACE)
@@ -218,7 +219,8 @@ fun draw_panel() -> void {
             }
 
             tui_putch(BOX_V)
-            puts_pad(&namebuf, 14)
+            tui_putch(CH_SPACE)
+            puts_pad(&namebuf, 13)
             tui_putch(CH_SPACE)
 
             if is_dir != 0 {
