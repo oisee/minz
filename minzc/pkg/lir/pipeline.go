@@ -216,8 +216,8 @@ func checkFuncConvergenceFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module) C
 // Returns nil (skip) for functions with calls or void returns.
 // Returns *true if results match, *false if divergence.
 func verifyViaVM(f *mir2.Func, m *mir2.Module, desc *MachineDesc, insts []Inst) (*bool, error) {
-	// Skip void functions (no return value to compare).
-	if len(f.Contract.Returns) == 0 {
+	// Skip void functions and multi-return (no single value to compare).
+	if len(f.Contract.Returns) != 1 {
 		return nil, nil
 	}
 
@@ -230,10 +230,13 @@ func verifyViaVM(f *mir2.Func, m *mir2.Module, desc *MachineDesc, insts []Inst) 
 		if inst.Pat.Flags&PatCall != 0 {
 			return nil, nil
 		}
-		// Skip if function reads memory — LIR-VM doesn't initialize global/static
-		// memory, so designated initializers and global arrays would diverge.
+		// Skip if function reads memory or uses indirect calls — LIR-VM
+		// can't resolve symbol addresses or pre-initialized memory.
 		if inst.Pat.MIROp == OpLoad || inst.Pat.MIROp == OpLoad16LE {
 			return nil, nil
+		}
+		if inst.Sym == "__call_hl" {
+			return nil, nil // indirect call — VM can't resolve function addresses
 		}
 	}
 
@@ -689,6 +692,9 @@ func LIRCodegenModule(m *mir2.Module, hints ...AllocHints) (string, []LIRFuncRes
 	asmText := sb.String()
 	if strings.Contains(asmText, "__mul8") || strings.Contains(asmText, "__mul16") {
 		sb.WriteString(emitMulRuntime(asmText))
+	}
+	if strings.Contains(asmText, "__call_hl") {
+		sb.WriteString("; __call_hl: indirect call via HL (1 byte)\n__call_hl:\n    JP (HL)\n\n")
 	}
 
 	return sb.String(), results

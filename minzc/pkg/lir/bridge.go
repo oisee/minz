@@ -864,7 +864,7 @@ func translateMul(inst *mir2.Inst, desc *MachineDesc) []MIROp {
 // Returns nil, nil if the call can't be lowered (e.g. indirect call, missing module).
 func translateCall(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]MIROp, error) {
 	if inst.Op == mir2.OpCallIndirect {
-		return nil, nil // indirect calls not yet supported
+		return translateCallIndirect(inst, desc)
 	}
 	if mod == nil {
 		return nil, nil // can't look up callee without module
@@ -930,6 +930,76 @@ func translateCall(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]MIRO
 	}
 
 	ops = append(ops, callOp)
+	return ops, nil
+}
+
+// translateCallIndirect converts OpCallIndirect to a CALL via trampoline.
+// On Z80: move function pointer to HL, move args to standard ABI regs,
+// then CALL __call_hl (which does JP (HL)).
+func translateCallIndirect(inst *mir2.Inst, desc *MachineDesc) ([]MIROp, error) {
+	var ops []MIROp
+
+	// Move function pointer (Src[0]) to HL for indirect call.
+	if inst.Src[0] != mir2.NoReg {
+		ops = append(ops, MIROp{
+			Op:         OpMove,
+			Dst:        7010, // synthetic vreg for fn ptr
+			Src:        [2]int{int(inst.Src[0]), -1},
+			Width:      16,
+			DstAllowed: desc.LocSetByNames("HL"),
+		})
+	}
+
+	// Move args to standard ABI positions.
+	// Standard Z80 indirect call ABI: arg0=A (u8) or HL (u16), arg1=C/DE, arg2=B.
+	abiRegs8 := []string{"A", "C", "B"}
+	abiRegs16 := []string{"HL", "DE", "BC"}
+	for i, argReg := range inst.Args {
+		width := 8
+		if inst.Ty != nil && inst.Ty.Width() > 8 {
+			width = 16
+		}
+		var dstAllowed LocSet
+		if width <= 8 && i < len(abiRegs8) {
+			dstAllowed = desc.LocSetByNames(abiRegs8[i])
+		} else if i < len(abiRegs16) {
+			dstAllowed = desc.LocSetByNames(abiRegs16[i])
+		}
+		if dstAllowed.IsEmpty() {
+			continue
+		}
+		ops = append(ops, MIROp{
+			Op:         OpMove,
+			Dst:        7020 + i,
+			Src:        [2]int{int(argReg), -1},
+			Width:      width,
+			DstAllowed: dstAllowed,
+		})
+	}
+
+	// Emit CALL __call_hl
+	width := 8
+	if inst.Ty != nil {
+		if w := inst.Ty.Width(); w > 0 {
+			width = w
+		}
+	}
+	if width < 8 {
+		width = 8
+	}
+
+	callOp := MIROp{
+		Op:    OpCall,
+		Dst:   int(inst.Dst),
+		Src:   [2]int{-1, -1},
+		Width: width,
+		Sym:   "__call_hl",
+	}
+	if inst.Dst == mir2.NoReg {
+		callOp.Dst = -1
+	}
+	ops = append(ops, callOp)
+
 	return ops, nil
 }
 
