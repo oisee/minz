@@ -47,25 +47,106 @@ fun main() -> void {
 
 ### Level 3: Declarative DSL (compile-time metafunction)
 
+Define a `fun @screen` metafunction — it runs at compile time on the MIR2 VM,
+receives the block as data, and emits Level 2 Nanz code:
+
 ```nanz
+// Step 1: Define the metafunction (runs at compile time)
 fun @screen(title: ^u8) -> void {
-    emit(c"fun _show() -> void {")
+    var q: ^u8 = str_chr(34)  // quote character
+
+    emit(c"fun _generated_screen() -> void {")
+    emit(c"    tui_clear()")
+    emit(c"    tui_color(7, 4, 1)")
+    emit(c"    tui_goto(0, 0)")
+
+    // Emit title: tui_puts(c"  Material Report")
+    var line: ^u8 = str_concat(c"    tui_puts(c", q)
+    line = str_concat(line, c"  ")
+    line = str_concat(line, title)
+    line = str_concat(line, q)
+    emit(str_concat(line, c")"))
+    emit(c"    tui_reset()")
+
+    // Iterate block nodes
     var n: u8 = block_len()
     var i: u8 = 0
     while i < n {
         var kw: ^u8 = node_keyword(i)
-        // ... emit TUI code based on field type
+        var label: ^u8 = node_arg_str(i, 0)
+        var row: ^u8 = str_from_int(u16(i) + 2)
+
+        if str_eq(kw, c"field") == 1 {
+            emit(str_concat(c"    tui_goto(2, ", str_concat(row, c")")))
+            emit(c"    tui_color(6, 0, 0)")
+            var s: ^u8 = str_concat(c"    tui_puts(c", q)
+            s = str_concat(s, label)
+            s = str_concat(s, c"    ")
+            s = str_concat(s, q)
+            emit(str_concat(s, c")"))
+            emit(c"    tui_color(7, 0, 0)")
+            s = str_concat(c"    tui_puts(c", q)
+            s = str_concat(s, c"[__________]")
+            s = str_concat(s, q)
+            emit(str_concat(s, c")"))
+            emit(c"    tui_reset()")
+        }
+        if str_eq(kw, c"button") == 1 {
+            emit(str_concat(c"    tui_goto(2, ", str_concat(row, c")")))
+            emit(c"    tui_color(0, 7, 1)")
+            var s: ^u8 = str_concat(c"    tui_puts(c", q)
+            s = str_concat(s, c"[")
+            s = str_concat(s, label)
+            s = str_concat(s, c"]")
+            s = str_concat(s, q)
+            emit(str_concat(s, c")"))
+            emit(c"    tui_reset()")
+        }
         i = i + 1
     }
+
+    emit(c"    var key: u8 = tui_read_key()")
+    emit(c"    tui_clear()")
+    emit(c"    tui_reset()")
     emit(c"}")
 }
 
+// Step 2: Use it — the compiler generates _generated_screen() for you
 @screen("Material Report") {
     field "Material"
     field "Plant"
     field "Count"
     button "Execute"
 }
+
+fun main() -> void {
+    _generated_screen()
+}
+```
+
+Run it:
+
+```bash
+$ echo "" | mzv -H examples/nanz/meta_screen.nanz
+```
+
+Output (with ANSI colors — white-on-blue title, cyan labels, inverted button):
+
+```
+  Material Report
+Material    [__________]
+Plant       [__________]
+Count       [__________]
+[Execute]
+```
+
+**How it works:** The compiler sees `@screen("Material Report") { ... }`,
+finds `fun @screen`, compiles it to MIR2, executes it on the VM. The
+metafunction calls `block_len()` (returns 4), iterates each node with
+`node_keyword(i)` and `node_arg_str(i, 0)`, builds `tui_*` call strings
+via `str_concat`/`str_chr`, and `emit()`s them. The emitted Nanz source
+is parsed and merged into the program. Zero runtime overhead — all code
+generation happens at compile time.
 ```
 
 ## Running on Different Backends
