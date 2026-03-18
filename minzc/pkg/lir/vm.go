@@ -64,7 +64,14 @@ func (vm *VM) ExecInst(inst *Inst) error {
 		vm.Set(dst, vm.Get(src0))
 
 	case OpAdd:
-		vm.Set(dst, vm.Get(src0)+vm.Get(src1))
+		// If src1 is unused (-1), use Imm as the second operand (field offset, etc.)
+		var b uint64
+		if src1 >= 0 {
+			b = vm.Get(src1)
+		} else {
+			b = uint64(inst.Imm)
+		}
+		vm.Set(dst, vm.Get(src0)+b)
 
 	case OpSub:
 		a, b := vm.Get(src0), vm.Get(src1)
@@ -101,7 +108,12 @@ func (vm *VM) ExecInst(inst *Inst) error {
 
 	case OpLoad:
 		addr := vm.Get(src0)
-		w := vm.Desc.Locs[dst].Width
+		// Use pattern width if specified, else min(register width, 8).
+		// Pattern width=0 means "any width" — default to 8 for byte loads.
+		w := 8
+		if inst.Pat != nil && inst.Pat.Width > 0 {
+			w = inst.Pat.Width
+		}
 		var val uint64
 		for i := 0; i < w/8; i++ {
 			val |= uint64(vm.Memory[(addr+uint64(i))&0xFFFF]) << (i * 8)
@@ -111,7 +123,10 @@ func (vm *VM) ExecInst(inst *Inst) error {
 	case OpStore:
 		addr := vm.Get(src0)
 		val := vm.Get(src1)
-		w := vm.Desc.Locs[src1].Width
+		w := 8
+		if inst.Pat != nil && inst.Pat.Width > 0 {
+			w = inst.Pat.Width
+		}
 		for i := 0; i < w/8; i++ {
 			vm.Memory[(addr+uint64(i))&0xFFFF] = byte(val >> (i * 8))
 		}
