@@ -172,8 +172,11 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	}
 
 	if opt.UseLIR {
+		// Convert PBQP allocation to LIR hints for guided WFC.
+		hints := pbqpToLIRHints(combined, lir.Z80)
+
 		// Experimental LIR backend: ISLE combining + WFC regalloc + Layer 4 CFG rules.
-		lirAsm, lirResults := lir.LIRCodegenModule(m)
+		lirAsm, lirResults := lir.LIRCodegenModule(m, hints)
 
 		// Report per-function results.
 		ok, fail := 0, 0
@@ -675,6 +678,24 @@ func Assemble(asmSrc string, target string) ([]byte, []error) {
 		return nil, errs
 	}
 	return res.Binary, nil
+}
+
+// pbqpToLIRHints converts a PBQP allocation result to LIR AllocHints.
+// Maps each vreg's assigned physical register name to the corresponding
+// LIR loc index in the machine descriptor.
+func pbqpToLIRHints(ar *mir2.AllocResult, desc *lir.MachineDesc) lir.AllocHints {
+	if ar == nil || len(ar.Locs) == 0 {
+		return nil
+	}
+	hints := make(lir.AllocHints, len(ar.Locs))
+	for reg, loc := range ar.Locs {
+		// Map by name — only include if the LIR descriptor knows this location.
+		lirIdx := desc.LocByName(loc.Name)
+		if lirIdx >= 0 {
+			hints[int(reg)] = lirIdx
+		}
+	}
+	return hints
 }
 
 // emitGlobals generates Z80 assembly for global variables in a MIR2 module.

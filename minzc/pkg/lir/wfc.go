@@ -18,6 +18,7 @@ import "fmt"
 type WFCState struct {
 	Desc  *MachineDesc
 	Cells []WFCCell // one per LIR instruction
+	Hints map[int]int // vreg → preferred phys loc (from PBQP)
 }
 
 // WFCCell is the superposition for one instruction position.
@@ -449,9 +450,9 @@ func (s *WFCState) Collapse() error {
 				}
 			}
 			if !free.IsEmpty() {
-				c.DstLocs = pickFirst(free)
+				c.DstLocs = s.pickPreferred(free, c.VRegDst)
 			} else {
-				c.DstLocs = pickFirst(c.DstLocs) // fallback
+				c.DstLocs = s.pickPreferred(c.DstLocs, c.VRegDst) // fallback
 			}
 			_ = available
 		}
@@ -536,6 +537,17 @@ func pickFirst(s LocSet) LocSet {
 		}
 	}
 	return s
+}
+
+// pickPreferred returns a singleton LocSet. If a PBQP hint exists for this vreg
+// and the hinted loc is in the available set, prefer it. Otherwise pickFirst.
+func (st *WFCState) pickPreferred(available LocSet, vreg int) LocSet {
+	if st.Hints != nil && vreg >= 0 {
+		if hinted, ok := st.Hints[vreg]; ok && available.Has(hinted) {
+			return Singleton(hinted)
+		}
+	}
+	return pickFirst(available)
 }
 
 // PhysLoc returns the collapsed physical location index for a LocSet.

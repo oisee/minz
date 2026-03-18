@@ -199,8 +199,12 @@ func checkFuncConvergenceFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module) C
 // LIRCodegenFunc runs the full LIR pipeline on a single MIR2 function
 // and returns Z80 assembly text. This is the future replacement for
 // mir2.Z80Codegen (per-function).
-func LIRCodegenFunc(f *mir2.Func, m *mir2.Module) (string, error) {
+func LIRCodegenFunc(f *mir2.Func, m *mir2.Module, hints ...AllocHints) (string, error) {
 	desc := Z80
+	var h AllocHints
+	if len(hints) > 0 {
+		h = hints[0]
+	}
 
 	// Try multi-block path for functions with block params.
 	if len(f.Blocks) > 1 && hasBlockParams(f) {
@@ -211,7 +215,7 @@ func LIRCodegenFunc(f *mir2.Func, m *mir2.Module) (string, error) {
 		// Fallback to flat on failure.
 	}
 
-	return lirCodegenFlat(f, desc, m)
+	return lirCodegenFlat(f, desc, m, h)
 }
 
 // lirCodegenMultiBlock emits per-block labels, instructions, and terminators.
@@ -361,7 +365,7 @@ func emitTerminator(sb *strings.Builder, term *Term, blockIdx, numBlocks int) {
 }
 
 // lirCodegenFlat is the original flat single-block codegen path.
-func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module) (string, error) {
+func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...AllocHints) (string, error) {
 	// Lower MIR2 → MIROps
 	var allOps []MIROp
 	fpv := FuncContractVRegs(f)
@@ -392,8 +396,11 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module) (string, er
 		return "", fmt.Errorf("isel %s: %w", f.Name, err)
 	}
 
-	// WFC with param cells
+	// WFC with param cells + PBQP hints
 	wfc := NewWFCStateWithParams(desc, sel.Insts, params)
+	if len(hints) > 0 && hints[0] != nil {
+		wfc.Hints = hints[0]
+	}
 	wfc.Propagate()
 	if err := wfc.Collapse(); err != nil {
 		return "", fmt.Errorf("wfc %s: %w", f.Name, err)
@@ -531,7 +538,15 @@ func callerSavePairs(physRegs []int, desc *MachineDesc) []string {
 // This is the --lir entry point: it replaces mir2.Z80Codegen for the
 // function codegen portion. Globals are NOT emitted here — the caller
 // must append them separately.
-func LIRCodegenModule(m *mir2.Module) (string, []LIRFuncResult) {
+// AllocHints maps virtual register → preferred LIR physical location index.
+// Sourced from PBQP allocation to guide WFC collapse decisions.
+type AllocHints map[int]int
+
+func LIRCodegenModule(m *mir2.Module, hints ...AllocHints) (string, []LIRFuncResult) {
+	var h AllocHints
+	if len(hints) > 0 {
+		h = hints[0]
+	}
 	var sb strings.Builder
 	var results []LIRFuncResult
 
@@ -551,7 +566,7 @@ func LIRCodegenModule(m *mir2.Module) (string, []LIRFuncResult) {
 	}
 
 	for _, f := range funcs {
-		asm, err := LIRCodegenFunc(f, m)
+		asm, err := LIRCodegenFunc(f, m, h)
 		r := LIRFuncResult{Name: f.Name}
 		if err != nil {
 			r.Error = err.Error()
