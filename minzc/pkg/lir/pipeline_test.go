@@ -177,8 +177,9 @@ func TestLIRCodegen_OpCall(t *testing.T) {
 
 	t.Logf("generated assembly:\n%s", asm)
 
-	if !strings.Contains(asm, "CALL double") {
-		t.Errorf("expected CALL double in output, got:\n%s", asm)
+	// Tail call: last call before RET becomes JP.
+	if !strings.Contains(asm, "CALL double") && !strings.Contains(asm, "JP double") {
+		t.Errorf("expected CALL/JP double in output, got:\n%s", asm)
 	}
 }
 

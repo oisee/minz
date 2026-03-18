@@ -422,6 +422,24 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 		}
 	}
 	emitInstsWithCallSpills(&sb, insts, desc, paramPhys)
+
+	// Tail call optimization: if last emitted instruction is CALL, replace with JP.
+	asmSoFar := sb.String()
+	if idx := strings.LastIndex(asmSoFar, "    CALL "); idx >= 0 {
+		// Check nothing follows the CALL line (it's the last instruction).
+		callLine := asmSoFar[idx:]
+		if nlIdx := strings.IndexByte(callLine, '\n'); nlIdx >= 0 {
+			after := strings.TrimSpace(callLine[nlIdx+1:])
+			if after == "" {
+				// Replace CALL with JP — skip the RET entirely.
+				sb.Reset()
+				sb.WriteString(asmSoFar[:idx])
+				sb.WriteString("    JP")
+				sb.WriteString(callLine[8:nlIdx+1]) // " sym\n"
+				return sb.String(), nil
+			}
+		}
+	}
 	sb.WriteString("    RET\n")
 
 	return sb.String(), nil
