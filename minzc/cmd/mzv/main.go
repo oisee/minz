@@ -46,11 +46,12 @@ import (
 func main() {
 	trace := flag.BoolP("trace", "t", false, "print each VM call")
 	headless := flag.BoolP("headless", "H", false, "run without terminal (testing)")
+	zxScreen := flag.Bool("zx", false, "ZX Spectrum screen mode (32x24 attribute grid to stdout)")
 	maxFrames := flag.Int("max-frames", 0, "stop after N frames (0=unlimited)")
 	dumpDir := flag.String("dump-frames", "", "dump each frame as .scr file to directory")
 	flag.Parse()
 	if flag.NArg() < 1 {
-		fmt.Fprintln(os.Stderr, "usage: mzv [--trace] [--headless] [--max-frames N] <file>")
+		fmt.Fprintln(os.Stderr, "usage: mzv [--trace] [--headless] [--zx] [--max-frames N] <file>")
 		fmt.Fprintln(os.Stderr, "  supported: .nanz .c .m .lanz .lizp .plm .pas .abap .hir")
 		os.Exit(1)
 	}
@@ -246,10 +247,8 @@ func main() {
 	_, err = vm.Call("main", nil)
 	fmt.Fprintf(os.Stderr, "mzv: exited after %d frames\n", frameCount)
 
-	// In headless mode, render final ZX Spectrum frame — but only if the program
-	// actually used ZX mode (wrote to zx_poke / called zx_halt). TUI programs and
-	// ABAP console programs don't need the pixel frame dump.
-	if *headless && !IsTUIActive() && frameCount > 0 {
+	// Render final ZX Spectrum frame only in explicit --zx mode.
+	if *zxScreen {
 		renderFrame(&zxMem)
 
 		nonZero := 0

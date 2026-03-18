@@ -29,13 +29,6 @@ var boxChars = map[byte]string{
 	6: "│", // BOX_V
 }
 
-// tuiActive is set to true when any tui_* host function is called.
-// When true, the ZX Spectrum frame renderer is suppressed at exit.
-var tuiActive bool
-
-// IsTUIActive reports whether the program used TUI mode.
-func IsTUIActive() bool { return tuiActive }
-
 // registerTUIHosts installs tui_* host functions on the VM.
 // Output goes to stdout (the TUI IS the program output).
 func registerTUIHosts(vm *mir2.VM, headless bool, trace bool) {
@@ -56,23 +49,16 @@ func registerTUIHosts(vm *mir2.VM, headless bool, trace bool) {
 		return string(buf)
 	}
 
-	// mark TUI active on first call
-	activate := func() {
-		tuiActive = true
-	}
-
 	// ── Cursor positioning ──────────────────────────────────────────
 	vm.Hosts["tui_goto"] = func(args []mir2.Value) ([]mir2.Value, error) {
-		activate()
-		x, y := int(args[0].I), int(args[1].I)
+x, y := int(args[0].I), int(args[1].I)
 		fmt.Fprintf(out, "\033[%d;%dH", y+1, x+1) // ANSI is 1-based
 		return nil, nil
 	}
 
 	// ── Color ───────────────────────────────────────────────────────
 	vm.Hosts["tui_color"] = func(args []mir2.Value) ([]mir2.Value, error) {
-		activate()
-		fg, bg, bright := int(args[0].I), int(args[1].I), int(args[2].I)
+fg, bg, bright := int(args[0].I), int(args[1].I), int(args[2].I)
 		fgCode := 30 + fg
 		bgCode := 40 + bg
 		if bright != 0 {
@@ -84,21 +70,18 @@ func registerTUIHosts(vm *mir2.VM, headless bool, trace bool) {
 	}
 
 	vm.Hosts["tui_reset"] = func(_ []mir2.Value) ([]mir2.Value, error) {
-		activate()
-		fmt.Fprintf(out, "\033[0m")
+fmt.Fprintf(out, "\033[0m")
 		return nil, nil
 	}
 
 	// ── Screen operations ───────────────────────────────────────────
 	vm.Hosts["tui_clear"] = func(_ []mir2.Value) ([]mir2.Value, error) {
-		activate()
-		fmt.Fprintf(out, "\033[2J\033[H")
+fmt.Fprintf(out, "\033[2J\033[H")
 		return nil, nil
 	}
 
 	vm.Hosts["tui_putch"] = func(args []mir2.Value) ([]mir2.Value, error) {
-		activate()
-		ch := byte(args[0].I)
+ch := byte(args[0].I)
 		if s, ok := boxChars[ch]; ok {
 			fmt.Fprint(out, s)
 		} else {
@@ -108,8 +91,7 @@ func registerTUIHosts(vm *mir2.VM, headless bool, trace bool) {
 	}
 
 	vm.Hosts["tui_puts"] = func(args []mir2.Value) ([]mir2.Value, error) {
-		activate()
-		if len(args) > 0 {
+if len(args) > 0 {
 			s := readStr(args[0].I)
 			fmt.Fprint(out, s)
 		}
@@ -127,8 +109,7 @@ func registerTUIHosts(vm *mir2.VM, headless bool, trace bool) {
 
 	// ── Input ───────────────────────────────────────────────────────
 	vm.Hosts["tui_read_key"] = func(_ []mir2.Value) ([]mir2.Value, error) {
-		activate()
-		if headless {
+if headless {
 			return []mir2.Value{{I: 147}}, nil // KEY_F8
 		}
 
@@ -187,8 +168,7 @@ func registerTUIHosts(vm *mir2.VM, headless bool, trace bool) {
 	}
 
 	vm.Hosts["tui_read_line"] = func(args []mir2.Value) ([]mir2.Value, error) {
-		activate()
-		bufPtr := args[0].I
+bufPtr := args[0].I
 		maxLen := int(args[1].I)
 
 		if headless {
