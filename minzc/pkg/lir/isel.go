@@ -41,7 +41,7 @@ func SelectInstructions(desc *MachineDesc, ops []MIROp) (*ISelResult, error) {
 	movePat := findMovePat(desc, 8)
 
 	for i, op := range ops {
-		pat, err := findBestPattern(desc, op, vregLoc)
+		pat, err := findBestPattern(desc, op)
 		if err != nil {
 			return nil, fmt.Errorf("isel: op %d (%d): %w", i, op.Op, err)
 		}
@@ -125,7 +125,7 @@ func SelectBlockInstructions(desc *MachineDesc, ops []MIROp, params []BlockParam
 	movePat := findMovePat(desc, 8)
 
 	for i, op := range ops {
-		pat, err := findBestPattern(desc, op, vregLoc)
+		pat, err := findBestPattern(desc, op)
 		if err != nil {
 			return nil, fmt.Errorf("isel: op %d (%d): %w", i, op.Op, err)
 		}
@@ -206,12 +206,7 @@ func findMovePat(desc *MachineDesc, width int) *Pattern {
 // findBestPattern selects the lowest-cost pattern that matches the MIR op.
 // For ops like OpConst that have multiple patterns with different DstLocs,
 // it creates a synthetic "union" pattern combining all alternatives.
-func findBestPattern(desc *MachineDesc, op MIROp, vregLocs ...map[int]LocSet) (*Pattern, error) {
-	// Optional: known source vreg locations for pattern compatibility filtering.
-	var knownLocs map[int]LocSet
-	if len(vregLocs) > 0 {
-		knownLocs = vregLocs[0]
-	}
+func findBestPattern(desc *MachineDesc, op MIROp) (*Pattern, error) {
 	var candidates []*Pattern
 
 	for i := range desc.Patterns {
@@ -232,30 +227,11 @@ func findBestPattern(desc *MachineDesc, op MIROp, vregLocs ...map[int]LocSet) (*
 			}
 		}
 		// INC/DEC patterns require dst == src0 == src1 (same vreg).
+		// Only skip for Z80 where this matters — other descs use inc_r differently.
 		if desc.Name == "z80" &&
 			(p.Name == "inc_r" || p.Name == "dec_r" || p.Name == "inc_rr") &&
 			op.Src[0] >= 0 && op.Src[1] >= 0 && op.Src[0] != op.Src[1] {
 			continue
-		}
-		// For OpMove only: if we know source vreg locations, skip patterns
-		// whose SrcLocs don't intersect. This prevents selecting push_pop
-		// (src=pairs) when the source is an 8-bit GPR (needs zext instead).
-		if op.Op == OpMove && knownLocs != nil {
-			compatible := true
-			for s := 0; s < 2; s++ {
-				if op.Src[s] < 0 || p.SrcLocs[s].IsEmpty() {
-					continue
-				}
-				if srcSet, ok := knownLocs[op.Src[s]]; ok && !srcSet.IsEmpty() {
-					if srcSet.And(p.SrcLocs[s]).IsEmpty() {
-						compatible = false
-						break
-					}
-				}
-			}
-			if !compatible {
-				continue
-			}
 		}
 		candidates = append(candidates, p)
 	}
