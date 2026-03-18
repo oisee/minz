@@ -16,23 +16,27 @@
 
 ---
 
-### ★ [LIR Backend Hits 100% C89 Corpus](reports/2026-03-18-094-LIR-100-Percent-C89-Corpus.md)
+### ★ [LIR Backend: 948/948 = 100% All Corpora](reports/2026-03-18-094-LIR-100-Percent-C89-Corpus.md)
 
-**12 commits, from wrong code to 100% corpus.** The LIR backend synthesizes PBQP (global strategist) + WFC (local tactician) for register allocation, producing **production-matching output**.
+**14 commits in one session: from wrong code to 100% across all 4 frontends.** PBQP (global strategist) + WFC (local tactician) register allocation, with Z80-specific innovations no existing compiler has.
 
-| Metric | Start of session | End of session |
-|--------|-----------------|----------------|
-| C89 corpus (720 funcs ×3 machines) | 0% codegen | **100.0%** |
-| Lizp corpus | 86.0% | **100.0%** |
-| Nanz corpus | 86.4% | **90.1%** (only 32-bit arena) |
-| Leaf function quality | wrong (`ADD A,A`) | **= production** (`ADD A,C`) |
-| Tail calls | `CALL; RET` (27T) | `JP sym` (10T, **-63%**) |
-| Cross-call values | clobbered | **survive in IXH/IXL** (8T) |
-| Runtime multiply | missing | `__mul8`/`__mul16` shared routines |
+| Corpus | Functions (×3 machines) | Pass Rate |
+|--------|------------------------|-----------|
+| C89 | 720 | **100.0%** |
+| Nanz | 162 | **100.0%** |
+| Lizp | 57 | **100.0%** |
+| Lanz | 9 | **100.0%** |
+| **Total** | **948** | **100.0%** |
 
-Key innovations: **IXH/IXL call-safe spill** (no existing Z80 compiler does this), **PBQP→WFC hint bridge**, **tail call optimization**, **save-before-overwrite** for Z80 destructive ALU ops.
+| Innovation | What | Savings |
+|------------|------|---------|
+| IXH/IXL call-safe spill | Undocumented IX halves survive CALL | 8T vs 11T PUSH/POP |
+| PBQP→WFC hint bridge | Global + local allocators cooperate | = production output |
+| Tail call optimization | CALL+RET → JP | -17T per tail call |
+| `__mul8`/`__mul16` runtime | Shared multiply routines | code size vs inline |
+| Save-before-overwrite | Destructive Z80 ALU handling | correctness |
 
-→ **[Full report: 12 commits, architecture, Nanz RCA](reports/2026-03-18-094-LIR-100-Percent-C89-Corpus.md)** | [PBQP+WFC architecture](reports/2026-03-18-093-LIR-PBQP-WFC-Guided-Regalloc.md)
+→ **[Full report](reports/2026-03-18-094-LIR-100-Percent-C89-Corpus.md)** | **[Architecture](reports/2026-03-18-093-LIR-PBQP-WFC-Guided-Regalloc.md)**
 
 ---
 
