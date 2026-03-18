@@ -1,18 +1,8 @@
 # MinZ Programming Language
 
-### ★ [Tetris + Asm Phase 1 + ptr() + Value Pipe](reports/2026-03-15-074-Tetris_AsmPhase1_PtrCast_ValuePipe.md)
+### ★ [Week In Review: The Everything Sprint](reports/2026-03-18-094-Week_In_Review_Sprint_0311_0318.md) | [Report Guide](docs/Report_Guide.md) | [Nanz Language Book v5](docs/Nanz_Language_Book_v5.md)
 
-**ZX Spectrum Tetris** in 853 lines of Nanz. Wall kicks, hold piece, ghost piece, T-spin scoring. Compiles to 2176 lines of Z80 assembly (48 functions). Plus three new language features:
-
-| Feature | Output | Quality |
-|---------|--------|---------|
-| `ptr(addr)^` peek | `LD A, (HL) / RET` — **no asm needed** | Optimal |
-| `ptr(addr)^ = val` poke | `LD (HL), C / RET` — **language-level I/O** | Optimal |
-| `5 \|> double \|> inc` | `LD A, 11 / RET` — **constant-folded!** | Optimal |
-| `asm (ret A) (clob A, F)` | `ADD A, A / RET` — **precise clobbers** | Optimal |
-| `asm (clob auto)` | Parses asm text, computes write-set | Safe default |
-
-→ **[Full report with Tetris architecture, asm design, and 5 showcase examples](reports/2026-03-15-074-Tetris_AsmPhase1_PtrCast_ValuePipe.md)**
+253 commits, 8 frontends, 3 backends, FAT12/16 filesystem, TUI framework with compile-time metafunctions, Mini Norton Commander, `@target()` platform detection — in one week.
 
 ---
 
