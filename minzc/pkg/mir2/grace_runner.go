@@ -106,6 +106,21 @@ const graceTrivialBranchRule = `
     (custom "branchToJump" ?b)))
 `
 
+// Fuse cond_ret(cmp.ne x,y)+br_if(cmp.ugt x,y) into br_if2.
+// This is the GCD pattern: one CP instruction tests equality AND ordering.
+const graceFuseCmpBrIf2Rule = `
+(grace fuse-cmp-brif2 42
+  (match
+    (block ?head)
+    (block ?body)
+    (edge ?head ?body "succ"))
+  (where
+    (is-cond-ret-ne ?head)
+    (is-brif-ugt-same-ops ?head ?body))
+  (action
+    (custom "fuseToBrIf2" ?head ?body)))
+`
+
 const graceParamForwardRule = `
 (grace param-forward-elim 38
   (match
@@ -182,7 +197,7 @@ var (
 func loadAllRules() ([]grace.GraceRule, error) {
 	cachedRulesOnce.Do(func() {
 		allSrc := graceCondRetSinkRule + graceSplitJoinRetRule + graceDeadBlockArgRule + graceDSERule + graceFuseAbsDiffRule +
-			graceEmptyBlockElimRule + graceBlockMergeRule + graceTrivialBranchRule + graceParamForwardRule
+			graceEmptyBlockElimRule + graceBlockMergeRule + graceTrivialBranchRule + graceParamForwardRule + graceFuseCmpBrIf2Rule
 		cachedRules, cachedRulesErr = grace.ParseRules(allSrc)
 	})
 	return cachedRules, cachedRulesErr
@@ -522,6 +537,67 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		return brif.Then == brif.Else
 	})
 
+	// is-cond-ret-ne: block ends with cond_ret whose condition is cmp.ne
+	reg.RegisterPredicate("is-cond-ret-ne", func(graph rewrite.IRGraph, bindings grace.BlockBindings, args []string) bool {
+		label := bindings[args[0]]
+		blk := f.BlockByLabel(label)
+		if blk == nil {
+			return false
+		}
+		cr, ok := blk.Term.(*TermCondRet)
+		if !ok {
+			return false
+		}
+		// Find the cmp instruction producing the condition
+		for _, inst := range blk.Insts {
+			if inst.Dst == cr.Cond && inst.Op == OpCmp && inst.Cond == CmpNe {
+				return true
+			}
+		}
+		return false
+	})
+
+	// is-brif-ugt-same-ops: body starts with cmp.ugt of same operands as head's cmp.ne
+	reg.RegisterPredicate("is-brif-ugt-same-ops", func(graph rewrite.IRGraph, bindings grace.BlockBindings, args []string) bool {
+		headLabel := bindings[args[0]]
+		bodyLabel := bindings[args[1]]
+		head := f.BlockByLabel(headLabel)
+		body := f.BlockByLabel(bodyLabel)
+		if head == nil || body == nil {
+			return false
+		}
+		cr, ok := head.Term.(*TermCondRet)
+		if !ok {
+			return false
+		}
+		// Find cmp.ne operands in head
+		var cmpLhs, cmpRhs Reg
+		found := false
+		for _, inst := range head.Insts {
+			if inst.Dst == cr.Cond && inst.Op == OpCmp && inst.Cond == CmpNe {
+				cmpLhs, cmpRhs = inst.Src[0], inst.Src[1]
+				found = true
+				break
+			}
+		}
+		if !found {
+			return false
+		}
+		// Check body has br_if with cmp.ugt of same operands
+		brif, ok := body.Term.(*TermBrIf)
+		if !ok {
+			return false
+		}
+		for _, inst := range body.Insts {
+			if inst.Dst == brif.Cond && inst.Op == OpCmp &&
+				(inst.Cond == CmpUgt || inst.Cond == CmpGt) &&
+				inst.Src[0] == cmpLhs && inst.Src[1] == cmpRhs {
+				return true
+			}
+		}
+		return false
+	})
+
 	// is-param-forwarding: block is a pure trampoline — jmp target(params[0], params[1], ...)
 	// where each arg is the corresponding block param, possibly reordered.
 	reg.RegisterPredicate("is-param-forwarding", func(graph rewrite.IRGraph, bindings grace.BlockBindings, args []string) bool {
@@ -631,6 +707,102 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 				break
 			}
 		}
+		return true
+	})
+
+	// fuseToBrIf2: fuse cond_ret(cmp.ne)+br_if(cmp.ugt) into TermBrIf2
+	reg.RegisterAction("fuseToBrIf2", func(graph rewrite.IRGraphMut, bindings grace.BlockBindings) bool {
+		headLabel := bindings["head"]
+		bodyLabel := bindings["body"]
+		head := f.BlockByLabel(headLabel)
+		body := f.BlockByLabel(bodyLabel)
+		if head == nil || body == nil {
+			return false
+		}
+		cr, ok := head.Term.(*TermCondRet)
+		if !ok {
+			return false
+		}
+		brif, ok := body.Term.(*TermBrIf)
+		if !ok {
+			return false
+		}
+
+		// Find cmp.ne in head
+		var cmpLhs, cmpRhs Reg
+		cmpIdx := -1
+		for i, inst := range head.Insts {
+			if inst.Dst == cr.Cond && inst.Op == OpCmp && inst.Cond == CmpNe {
+				cmpLhs, cmpRhs = inst.Src[0], inst.Src[1]
+				cmpIdx = i
+				break
+			}
+		}
+		if cmpIdx < 0 {
+			return false
+		}
+
+		// Find cmp.ugt in body
+		bodyCmpIdx := -1
+		for i, inst := range body.Insts {
+			if inst.Dst == brif.Cond && inst.Op == OpCmp &&
+				(inst.Cond == CmpUgt || inst.Cond == CmpGt) &&
+				inst.Src[0] == cmpLhs && inst.Src[1] == cmpRhs {
+				bodyCmpIdx = i
+				break
+			}
+		}
+		if bodyCmpIdx < 0 {
+			return false
+		}
+
+		// Body must have no other instructions between start and the cmp
+		// (otherwise hoisting the cmp would reorder side effects)
+		for i := 0; i < bodyCmpIdx; i++ {
+			if !isDSEPure(body.Insts[i].Op) {
+				return false
+			}
+		}
+
+		// Build TermBrIf2:
+		// cmp.ne(%r3,%r4): Z=eq → return %r3
+		// cmp.ugt(%r3,%r4): !C && !Z → then (a>b), else (a<=b but a!=b → a<b)
+		//
+		// br_if2 %r3, %r4:
+		//   eq → create ret block with cr.Vals
+		//   lt → brif.Else (a < b)
+		//   gt → brif.Then (a > b)
+
+		// Create a new return block for the eq case
+		retLabel := headLabel + "_ret_eq"
+		retBlk := &Block{Label: retLabel, Term: &TermRet{Vals: cr.Vals}}
+		f.Blocks = append(f.Blocks, retBlk)
+
+		// Remove the cmp instruction from head (br_if2 does the comparison)
+		head.Insts = append(head.Insts[:cmpIdx], head.Insts[cmpIdx+1:]...)
+
+		// Remove the cmp instruction from body
+		body.Insts = append(body.Insts[:bodyCmpIdx], body.Insts[bodyCmpIdx+1:]...)
+
+		// Hoist any remaining body instructions into head
+		head.Insts = append(head.Insts, body.Insts...)
+		body.Insts = nil
+
+		// Set head's terminator to br_if2
+		head.Term = &TermBrIf2{
+			Lhs:    cmpLhs,
+			Rhs:    cmpRhs,
+			Eq:     retLabel,
+			EqArgs: nil,
+			Lt:     brif.Else,
+			LtArgs: brif.ElseArgs,
+			Gt:     brif.Then,
+			GtArgs: brif.ThenArgs,
+		}
+
+		// body is now empty → will be cleaned by EliminateDeadBlocks
+		body.Term = &TermRet{}
+
 		return true
 	})
 
