@@ -5592,21 +5592,32 @@ func (g *z80cg) genCmp16(inst *Inst) {
 	// lhs is now in HL.  SBC HL, rr clobbers HL; we need to restore it
 	// for the taken/not-taken branches that use the original operands.
 	//
-	// Optimisation: for signed comparisons and eq/ne, ADD HL,rr restores
-	// HL without clobbering S, Z, or P/V flags (only CF and H are affected).
-	// This saves 1B + 10T vs PUSH/POP.  For unsigned comparisons that need
-	// CF, we must use the PUSH/POP approach.
+	// Optimisation 1 (flags-only): if lhs is NOT used after this comparison
+	// (only the flags matter), skip the restore entirely.  This saves:
+	//   −1 instruction (ADD HL,rr) for eq/ne/signed comparisons
+	//   −2 instructions (PUSH HL + POP HL) for unsigned comparisons
+	//
+	// Optimisation 2: for signed/eq/ne, ADD HL,rr restores HL without
+	// clobbering S, Z, or P/V flags (only CF and H are affected).
+	// This saves 1B + 10T vs PUSH/POP.
 	needsCF := inst.Cond == CmpUlt || inst.Cond == CmpUge ||
 		inst.Cond == CmpUgt || inst.Cond == CmpUle
 
-	if needsCF {
+	// Check if lhs is dead after this comparison (flags-only mode).
+	lhsDead := g.isRegDeadAfter(inst.Src[0], inst)
+
+	if lhsDead {
+		// Flags-only: no restore needed — lhs not used after cmp.
+		g.emit("    OR A")
+		g.emitf("    SBC HL, %s", rhs)
+	} else if needsCF {
 		g.emit("    PUSH HL") // save lhs (2B, 21T — need CF preserved)
-	}
-	g.emit("    OR A") // clear carry for SBC
-	g.emitf("    SBC HL, %s", rhs)
-	if needsCF {
+		g.emit("    OR A")
+		g.emitf("    SBC HL, %s", rhs)
 		g.emit("    POP HL") // restore lhs
 	} else {
+		g.emit("    OR A")
+		g.emitf("    SBC HL, %s", rhs)
 		g.emitf("    ADD HL, %s", rhs) // restore lhs (−1B, −10T; S/Z/PV safe)
 	}
 	if swappedDE {
@@ -6087,6 +6098,16 @@ func (g *z80cg) regsLiveAfterInst(target *Inst) map[Reg]bool {
 		}
 	}
 	return live
+}
+
+// isRegDeadAfter checks if a virtual register has no uses after the given instruction
+// in the current block (including the terminator).
+func (g *z80cg) isRegDeadAfter(r Reg, inst *Inst) bool {
+	if r == NoReg {
+		return true
+	}
+	live := g.regsLiveAfterInst(inst)
+	return !live[r]
 }
 
 // classPhysRegs returns physical register names associated with a register class.
