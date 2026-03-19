@@ -1080,44 +1080,40 @@ func (l *lowerer) lowerIf(st *IfStmt) bool {
 		return true
 	}
 
-	// Only then returned → join continues with else's env.
-	if thenReturns {
-		l.env = cloneMap(envAfterElse)
-		l.bld.SwitchToNewBlock(joinLabel)
-		return false
-	}
-
 	// ── join block ──
 	join := l.bld.SwitchToNewBlock(joinLabel)
 
 	// Determine the post-join environment.
-	// If both paths are live, create block params for mutated vars.
-	// If no-else (false edge goes straight to join with no args), we can't
-	// use block params — just use envBefore values on the false path.
-	var joinEnv map[string]mir2.Reg
-	if !elseReturns && hasElse {
-		// Both paths live, both supplied Jmp args → create block params.
-		joinEnv = cloneMap(envBefore)
+	//
+	// Any live branch that reaches the join has emitted a Jmp (or BrIf
+	// false-edge) with len(mutated) args.  The join block must therefore
+	// have a BlockParam for every mutated variable whenever at least one
+	// incoming edge carries args.
+	//
+	// Cases:
+	//   (a) Both paths live (hasElse, !thenReturns, !elseReturns)
+	//       → both supplied Jmp args, create params.
+	//   (b) No else (!hasElse, !thenReturns)
+	//       → then-Jmp + BrIf false-edge both supply args, create params.
+	//   (c) Only then returned (thenReturns, hasElse, !elseReturns)
+	//       → else-Jmp supplies args, create params.  Env = else's env
+	//         projected through the params.
+	//   (d) Only else returned (!thenReturns, elseReturns, hasElse)
+	//       → then-Jmp supplies args, create params.  Env = then's env
+	//         projected through the params.
+	//   (e) Only then returned, no else (thenReturns, !hasElse)
+	//       → BrIf false-edge supplies args, create params.
+	joinEnv := cloneMap(envBefore)
+	if len(mutated) > 0 {
 		for _, name := range mutated {
 			ty := l.envTy[name]
 			r := l.bld.BlockParam(join, ty, classForExpr(ty))
 			joinEnv[name] = r
 		}
-	} else if !hasElse {
-		// No else: both paths now supply args (true=then-branch values,
-		// false=envBefore values via falseEdgeArgs).  Create block params so
-		// the join receives the correct value from whichever path executed.
-		joinEnv = cloneMap(envBefore)
-		for _, name := range mutated {
-			ty := l.envTy[name]
-			r := l.bld.BlockParam(join, ty, classForExpr(ty))
-			joinEnv[name] = r
-		}
-	} else {
-		joinEnv = cloneMap(envAfterElse)
 	}
 
 	_ = envAfterThen
+	_ = envAfterElse
 	l.env = joinEnv
 	return false
 }

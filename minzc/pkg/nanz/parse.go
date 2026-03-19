@@ -29,6 +29,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -467,7 +468,9 @@ type parser struct {
 	warnings    []string        // accumulated diagnostic warnings
 	// function return type table — populated as functions are parsed so that
 	// call expressions can get the correct Ty instead of TyVoid.
-	funcSigs    map[string]mir2.Ty
+	funcSigs      map[string]mir2.Ty
+	funcParamTys  map[string][]mir2.Ty // function name → param types (for partial application)
+	varEnumType   map[string]string   // variable name → enum name (for exhaustive switch check)
 	typeAliases     map[string]mir2.Ty              // type X = Y — structural alias
 	enums           map[string]map[string]int64     // enumName → {variantName → value}
 	enumBaseTy      map[string]mir2.Ty              // enumName → base type (default TyU8)
@@ -595,6 +598,8 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	p.methodTable = make(map[string]map[string]methodInfo)
 	p.opTable = make(map[string]opOverload)
 	p.funcSigs = make(map[string]mir2.Ty)
+	p.funcParamTys = make(map[string][]mir2.Ty)
+	p.varEnumType = make(map[string]string)
 	p.globalTypes = make(map[string]mir2.Ty)
 	p.globalInterfaceTypes = make(map[string]string)
 	p.varTypes = make(map[string]mir2.Ty)
@@ -1202,6 +1207,7 @@ func (p *parser) parseImport() error {
 		// Do not mangle @extern functions — they map to host functions by name
 		if f.IsExtern {
 			p.funcSigs[origName] = f.RetTy
+			p.funcParamTys[origName] = paramTysFromFunc(f)
 			p.module.Funcs = append(p.module.Funcs, f)
 			continue
 		}
@@ -1210,11 +1216,14 @@ func (p *parser) parseImport() error {
 		f.Name = mangledName
 
 		// Register mangled function signature
+		pty := paramTysFromFunc(f)
 		p.funcSigs[mangledName] = f.RetTy
+		p.funcParamTys[mangledName] = pty
 
 		if globImport {
 			// Glob: also register under original name → mangled name
 			p.funcSigs[origName] = f.RetTy
+			p.funcParamTys[origName] = pty
 			p.funcAliases[origName] = mangledName
 		}
 		for _, sym := range selected {
@@ -1224,6 +1233,7 @@ func (p *parser) parseImport() error {
 					localName = sym.alias
 				}
 				p.funcSigs[localName] = f.RetTy
+				p.funcParamTys[localName] = pty
 				p.funcAliases[localName] = mangledName
 			}
 		}
@@ -1931,6 +1941,12 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 		if _, err := p.l.eat(tokColon); err != nil {
 			return nil, err
 		}
+		// Track enum type name for exhaustive switch check
+		if tname := p.l.peek(); tname.kind == tokIdent {
+			if _, isEnum := p.enums[tname.val]; isEnum {
+				p.varEnumType[pname.val] = tname.val
+			}
+		}
 		pty, ifaceName, ptrElem, err := p.parseParamType()
 		if err != nil {
 			return nil, err
@@ -1980,6 +1996,13 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 
 	// Register function signature for call-site typing.
 	p.funcSigs[funcName] = retTy
+	{
+		tys := make([]mir2.Ty, len(params))
+		for i, pm := range params {
+			tys[i] = pm.Ty
+		}
+		p.funcParamTys[funcName] = tys
+	}
 
 	// Update method/op tables now that we know the return type
 	if opSym != "" {
@@ -1995,11 +2018,21 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 		}
 	}
 
-	// Reset var scope and populate from params for the function body
+	// Reset var scope and populate from params for the function body.
+	// Note: varEnumType is populated during param parsing (above), so we
+	// save and restore only the param entries.
+	savedEnumTypes := p.varEnumType
 	p.varTypes = make(map[string]mir2.Ty)
 	p.varInterfaceTypes = make(map[string]string)
 	p.varPtrElem = make(map[string]*mir2.StructTy)
+	p.varEnumType = make(map[string]string)
 	p.uninitVars = make(map[string]int) // fresh tracking per function
+	// Re-populate param enum types from the saved map
+	for _, param := range params {
+		if eName, ok := savedEnumTypes[param.Name]; ok {
+			p.varEnumType[param.Name] = eName
+		}
+	}
 	for i, param := range params {
 		p.varTypes[param.Name] = param.Ty
 		if i < len(paramIfaceNames) && paramIfaceNames[i] != "" {
@@ -2394,6 +2427,12 @@ func (p *parser) parseLetDecl() (hir.Stmt, error) {
 	// Optional explicit type: let x: T = ...
 	if p.l.is(tokColon) {
 		p.l.next()
+		// Track enum type name for exhaustive switch check
+		if tname := p.l.peek(); tname.kind == tokIdent {
+			if _, isEnum := p.enums[tname.val]; isEnum {
+				p.varEnumType[nameTok.val] = tname.val
+			}
+		}
 		ty, err = p.parseType()
 		if err != nil {
 			return nil, err
@@ -2517,6 +2556,12 @@ func (p *parser) parseVarDecl() (hir.Stmt, error) {
 	}
 	if _, err := p.l.eat(tokColon); err != nil {
 		return nil, err
+	}
+	// Track enum type name for exhaustive switch check
+	if tname := p.l.peek(); tname.kind == tokIdent {
+		if _, isEnum := p.enums[tname.val]; isEnum {
+			p.varEnumType[nameTok.val] = tname.val
+		}
 	}
 	ty, err := p.parseType()
 	if err != nil {
@@ -2904,34 +2949,10 @@ func (p *parser) parsePostfixNoBrack(base hir.Expr) (hir.Expr, error) {
 			if _, err := p.l.eat(tokRParen); err != nil {
 				return nil, err
 			}
-			name := ""
-			if vr, ok := base.(*hir.VarRefExpr); ok {
-				name = vr.Name
-			}
-			// Resolve import alias: "add" → "mylib$math$add"
-			if resolved, ok := p.funcAliases[name]; ok {
-				name = resolved
-			}
-			callTy := mir2.Ty(mir2.TyVoid)
-			if name != "" {
-				if ty, ok := p.funcSigs[name]; ok {
-					callTy = ty
-				}
-			}
-			// Indirect call: if name is a local variable (not a known function),
-			// emit CallIndirectExpr — the variable holds a function pointer.
-			if name != "" && callTy == mir2.TyVoid && !p.isKnownFunc(name) {
-				if _, isLocal := p.varTypes[name]; isLocal {
-					base = &hir.CallIndirectExpr{
-						FnPtr: &hir.VarRefExpr{Name: name, Ty: mir2.TyPtr},
-						Args:  args,
-						Ty:    mir2.TyU8,
-					}
-				} else {
-					base = &hir.CallExpr{Fn: name, Args: args, Ty: callTy}
-				}
-			} else {
-				base = &hir.CallExpr{Fn: name, Args: args, Ty: callTy}
+			var err error
+			base, err = p.resolveCall(base, args)
+			if err != nil {
+				return nil, err
 			}
 		default:
 			return base, nil
@@ -3163,6 +3184,7 @@ func (p *parser) parseAsm() (hir.Stmt, error) {
 }
 
 func (p *parser) parseSwitch() (hir.Stmt, error) {
+	switchLine := p.l.line
 	if err := p.l.eatIdent("switch"); err != nil {
 		return nil, err
 	}
@@ -3172,6 +3194,17 @@ func (p *parser) parseSwitch() (hir.Stmt, error) {
 	}
 	p.warnUninitInExpr(val)
 	p.uninitVars = nil // stop tracking inside switch (conservative)
+
+	// Determine if val is an enum-typed variable (for exhaustive check + variant names in case)
+	var switchEnumName string
+	var switchEnumVariants map[string]int64
+	if vr, ok := val.(*hir.VarRefExpr); ok {
+		if eName, ok := p.varEnumType[vr.Name]; ok {
+			switchEnumName = eName
+			switchEnumVariants = p.enums[eName]
+		}
+	}
+
 	if _, err := p.l.eat(tokLBrace); err != nil {
 		return nil, err
 	}
@@ -3179,11 +3212,45 @@ func (p *parser) parseSwitch() (hir.Stmt, error) {
 	for !p.l.is(tokRBrace) && !p.l.is(tokEOF) {
 		if p.l.isIdent("case") {
 			p.l.next()
-			intTok, err := p.l.eat(tokInt)
-			if err != nil {
-				return nil, err
+			var v int64
+			tok := p.l.peek()
+			if tok.kind == tokInt {
+				// Integer literal case
+				p.l.next()
+				v, _ = strconv.ParseInt(tok.val, 0, 64)
+			} else if tok.kind == tokIdent {
+				// Try enum variant name: case IDLE: or case EnumName.VARIANT:
+				p.l.next()
+				resolved := false
+				// Direct variant name (when switching on an enum-typed var)
+				if switchEnumVariants != nil {
+					if val, ok := switchEnumVariants[tok.val]; ok {
+						v = val
+						resolved = true
+					}
+				}
+				// Qualified: EnumName.VARIANT
+				if !resolved && p.l.is(tokDot) {
+					if variants, ok := p.enums[tok.val]; ok {
+						p.l.next() // consume '.'
+						vTok, err := p.l.eat(tokIdent)
+						if err != nil {
+							return nil, fmt.Errorf("line %d: case %s. expected variant name", tok.line, tok.val)
+						}
+						val, ok := variants[vTok.val]
+						if !ok {
+							return nil, fmt.Errorf("line %d: case %s.%s: unknown variant", vTok.line, tok.val, vTok.val)
+						}
+						v = val
+						resolved = true
+					}
+				}
+				if !resolved {
+					return nil, fmt.Errorf("line %d: case: expected integer or enum variant, got %q", tok.line, tok.val)
+				}
+			} else {
+				return nil, fmt.Errorf("line %d: case: expected integer or enum variant", tok.line)
 			}
-			v, _ := strconv.ParseInt(intTok.val, 0, 64)
 			if _, err := p.l.eat(tokColon); err != nil {
 				return nil, err
 			}
@@ -3217,6 +3284,27 @@ func (p *parser) parseSwitch() (hir.Stmt, error) {
 	if _, err := p.l.eat(tokRBrace); err != nil {
 		return nil, err
 	}
+
+	// Exhaustive check: if switching on an enum-typed variable without default,
+	// verify all variants are covered.
+	if switchEnumName != "" && s.Default == nil {
+		covered := make(map[int64]bool)
+		for _, c := range s.Cases {
+			covered[c.Val] = true
+		}
+		var missing []string
+		for vName, vVal := range switchEnumVariants {
+			if !covered[vVal] {
+				missing = append(missing, vName)
+			}
+		}
+		if len(missing) > 0 {
+			sort.Strings(missing)
+			return nil, fmt.Errorf("line %d: switch on %s is not exhaustive, missing variants: %s",
+				switchLine, switchEnumName, strings.Join(missing, ", "))
+		}
+	}
+
 	return s, nil
 }
 
@@ -3653,33 +3741,10 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 			if _, err := p.l.eat(tokRParen); err != nil {
 				return nil, err
 			}
-			name := ""
-			if vr, ok := base.(*hir.VarRefExpr); ok {
-				name = vr.Name
-			}
-			// Resolve import alias: "add" → "mylib$math$add"
-			if resolved, ok := p.funcAliases[name]; ok {
-				name = resolved
-			}
-			callTy := mir2.Ty(mir2.TyVoid)
-			if name != "" {
-				if ty, ok := p.funcSigs[name]; ok {
-					callTy = ty
-				}
-			}
-			// Indirect call: local variable → function pointer.
-			if name != "" && callTy == mir2.TyVoid && !p.isKnownFunc(name) {
-				if _, isLocal := p.varTypes[name]; isLocal {
-					base = &hir.CallIndirectExpr{
-						FnPtr: &hir.VarRefExpr{Name: name, Ty: mir2.TyPtr},
-						Args:  args,
-						Ty:    mir2.TyU8,
-					}
-				} else {
-					base = &hir.CallExpr{Fn: name, Args: args, Ty: callTy}
-				}
-			} else {
-				base = &hir.CallExpr{Fn: name, Args: args, Ty: callTy}
+			var err error
+			base, err = p.resolveCall(base, args)
+			if err != nil {
+				return nil, err
 			}
 		default:
 			return base, nil
@@ -4038,6 +4103,86 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 
 // parseLambda parses a non-capturing lambda expression: |params| expr or |params| { stmts }.
 //
+// resolveCall resolves a function call expression, including partial application.
+// If args contain _ placeholders, it desugars into a synthetic lambda.
+func (p *parser) resolveCall(base hir.Expr, args []hir.Expr) (hir.Expr, error) {
+	name := ""
+	if vr, ok := base.(*hir.VarRefExpr); ok {
+		name = vr.Name
+	}
+	// Resolve import alias: "add" → "mylib$math$add"
+	if resolved, ok := p.funcAliases[name]; ok {
+		name = resolved
+	}
+
+	// Partial application: detect _ placeholders
+	// add(5, _) desugars to: fun lambda_N(p0: u8) -> retTy { return add(5, p0) }
+	if name != "" {
+		var placeholders []int
+		for i, arg := range args {
+			if vr, ok := arg.(*hir.VarRefExpr); ok && vr.Name == "_" {
+				placeholders = append(placeholders, i)
+			}
+		}
+		if len(placeholders) > 0 {
+			paramTys := p.funcParamTys[name]
+			var lambdaParams []hir.Param
+			for j, pos := range placeholders {
+				paramName := fmt.Sprintf("_p%d", j)
+				pty := mir2.Ty(mir2.TyU8) // default
+				if paramTys != nil && pos < len(paramTys) {
+					pty = paramTys[pos]
+				}
+				lambdaParams = append(lambdaParams, hir.Param{Name: paramName, Ty: pty})
+				args[pos] = &hir.VarRefExpr{Name: paramName, Ty: pty}
+			}
+			retTy := mir2.Ty(mir2.TyU8)
+			if ty, ok := p.funcSigs[name]; ok {
+				retTy = ty
+			}
+			lambdaName := fmt.Sprintf("lambda_%d", p.lambdaCount)
+			p.lambdaCount++
+			p.lambdas = append(p.lambdas, &hir.Func{
+				Name:   lambdaName,
+				Params: lambdaParams,
+				RetTy:  retTy,
+				Body: &hir.Block{Body: []hir.Stmt{
+					&hir.ReturnStmt{Val: &hir.CallExpr{Fn: name, Args: args, Ty: retTy}},
+				}},
+			})
+			return &hir.VarRefExpr{Name: lambdaName, Ty: retTy}, nil
+		}
+	}
+
+	callTy := mir2.Ty(mir2.TyVoid)
+	if name != "" {
+		if ty, ok := p.funcSigs[name]; ok {
+			callTy = ty
+		}
+	}
+	// Indirect call: local variable → function pointer.
+	if name != "" && callTy == mir2.TyVoid && !p.isKnownFunc(name) {
+		if _, isLocal := p.varTypes[name]; isLocal {
+			return &hir.CallIndirectExpr{
+				FnPtr: &hir.VarRefExpr{Name: name, Ty: mir2.TyPtr},
+				Args:  args,
+				Ty:    mir2.TyU8,
+			}, nil
+		}
+		return &hir.CallExpr{Fn: name, Args: args, Ty: callTy}, nil
+	}
+	return &hir.CallExpr{Fn: name, Args: args, Ty: callTy}, nil
+}
+
+// paramTysFromFunc extracts parameter types from an HIR function.
+func paramTysFromFunc(f *hir.Func) []mir2.Ty {
+	tys := make([]mir2.Ty, len(f.Params))
+	for i, pm := range f.Params {
+		tys[i] = pm.Ty
+	}
+	return tys
+}
+
 // The lambda is desugared into an anonymous top-level function "lambda_N" and the
 // expression returns a VarRefExpr naming that function. Zero-cost: no closure, no
 // heap allocation. Params default to u8 if the type annotation is omitted.

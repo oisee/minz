@@ -262,6 +262,209 @@ fun no_type(arr: ^u8, n: u8) -> void {
 	}
 }
 
+func TestPartialApplication(t *testing.T) {
+	src := `fun add(a: u8, b: u8) -> u8 {
+    return (a + b)
+}
+
+fun multiply(a: u16, b: u16) -> u16 {
+    return (a * b)
+}
+
+fun use_partial() -> void {
+    let add5 = add(5, _)
+    let from_ten = add(_, 10)
+    let scale = multiply(42, _)
+}
+`
+	m, err := nanz.Parse(src, "partial_test")
+	if err != nil {
+		t.Fatalf("Parse failed: %v", err)
+	}
+
+	// 3 explicit funs + 3 generated lambdas = 6
+	if len(m.Funcs) != 6 {
+		var names []string
+		for _, f := range m.Funcs {
+			names = append(names, f.Name)
+		}
+		t.Fatalf("funcs: want 6 (3 explicit + 3 lambdas), got %d: %v", len(m.Funcs), names)
+	}
+
+	// Check generated lambdas
+	for _, f := range m.Funcs {
+		switch f.Name {
+		case "lambda_0": // add(5, _) → 1 param (b: u8)
+			if len(f.Params) != 1 {
+				t.Errorf("lambda_0 (add5): want 1 param, got %d", len(f.Params))
+			} else if f.Params[0].Ty != mir2.TyU8 {
+				t.Errorf("lambda_0 param type: want u8, got %v", f.Params[0].Ty)
+			}
+			if f.RetTy != mir2.TyU8 {
+				t.Errorf("lambda_0 retTy: want u8, got %v", f.RetTy)
+			}
+		case "lambda_1": // add(_, 10) → 1 param (a: u8)
+			if len(f.Params) != 1 {
+				t.Errorf("lambda_1 (from_ten): want 1 param, got %d", len(f.Params))
+			}
+		case "lambda_2": // multiply(42, _) → 1 param (b: u16)
+			if len(f.Params) != 1 {
+				t.Errorf("lambda_2 (scale): want 1 param, got %d", len(f.Params))
+			} else if f.Params[0].Ty != mir2.TyU16 {
+				t.Errorf("lambda_2 param type: want u16, got %v", f.Params[0].Ty)
+			}
+			if f.RetTy != mir2.TyU16 {
+				t.Errorf("lambda_2 retTy: want u16, got %v", f.RetTy)
+			}
+		}
+	}
+
+	// Verify the call inside lambda_0 is add(5, _p0)
+	var lambda0 *hir.Func
+	for _, f := range m.Funcs {
+		if f.Name == "lambda_0" {
+			lambda0 = f
+		}
+	}
+	if lambda0 == nil {
+		t.Fatal("lambda_0 not found")
+	}
+	if len(lambda0.Body.Body) != 1 {
+		t.Fatalf("lambda_0 body: want 1 stmt, got %d", len(lambda0.Body.Body))
+	}
+	ret, ok := lambda0.Body.Body[0].(*hir.ReturnStmt)
+	if !ok {
+		t.Fatal("lambda_0 body[0]: want ReturnStmt")
+	}
+	call, ok := ret.Val.(*hir.CallExpr)
+	if !ok {
+		t.Fatal("lambda_0 return val: want CallExpr")
+	}
+	if call.Fn != "add" {
+		t.Errorf("lambda_0 call.Fn: want add, got %s", call.Fn)
+	}
+	if len(call.Args) != 2 {
+		t.Errorf("lambda_0 call.Args: want 2, got %d", len(call.Args))
+	}
+}
+
+func TestPartialApplication_MultiPlaceholder(t *testing.T) {
+	src := `fun sub(a: u8, b: u8) -> u8 {
+    return (a - b)
+}
+
+fun test() -> void {
+    let swap_sub = sub(_, _)
+}
+`
+	m, err := nanz.Parse(src, "partial_multi_test")
+	if err != nil {
+		t.Fatalf("Parse failed: %v", err)
+	}
+
+	// sub + test + 1 lambda = 3
+	if len(m.Funcs) != 3 {
+		var names []string
+		for _, f := range m.Funcs {
+			names = append(names, f.Name)
+		}
+		t.Fatalf("funcs: want 3, got %d: %v", len(m.Funcs), names)
+	}
+
+	// lambda should have 2 params
+	for _, f := range m.Funcs {
+		if f.Name == "lambda_0" {
+			if len(f.Params) != 2 {
+				t.Errorf("swap_sub lambda: want 2 params, got %d", len(f.Params))
+			}
+		}
+	}
+}
+
+func TestExhaustiveSwitch_Pass(t *testing.T) {
+	// All variants covered → should parse OK
+	src := `enum State { IDLE, RUNNING, DONE }
+
+fun test(s: State) -> u8 {
+    switch s {
+        case IDLE:
+            return 0
+        case RUNNING:
+            return 1
+        case DONE:
+            return 2
+    }
+}
+`
+	_, err := nanz.Parse(src, "exhaustive_pass")
+	if err != nil {
+		t.Fatalf("Parse failed: %v", err)
+	}
+}
+
+func TestExhaustiveSwitch_Fail(t *testing.T) {
+	// Missing DONE variant → should error
+	src := `enum State { IDLE, RUNNING, DONE }
+
+fun test(s: State) -> u8 {
+    switch s {
+        case IDLE:
+            return 0
+        case RUNNING:
+            return 1
+    }
+}
+`
+	_, err := nanz.Parse(src, "exhaustive_fail")
+	if err == nil {
+		t.Fatal("expected exhaustiveness error, got nil")
+	}
+	if !strings.Contains(err.Error(), "not exhaustive") {
+		t.Fatalf("expected 'not exhaustive' error, got: %v", err)
+	}
+	if !strings.Contains(err.Error(), "DONE") {
+		t.Fatalf("expected 'DONE' in error, got: %v", err)
+	}
+}
+
+func TestExhaustiveSwitch_WithDefault(t *testing.T) {
+	// Missing variants but has default → should pass
+	src := `enum State { IDLE, RUNNING, DONE }
+
+fun test(s: State) -> u8 {
+    switch s {
+        case IDLE:
+            return 0
+        default:
+            return 99
+    }
+}
+`
+	_, err := nanz.Parse(src, "exhaustive_default")
+	if err != nil {
+		t.Fatalf("Parse failed: %v", err)
+	}
+}
+
+func TestExhaustiveSwitch_QualifiedVariant(t *testing.T) {
+	// case State.IDLE: syntax
+	src := `enum State { IDLE, RUNNING }
+
+fun test(s: State) -> u8 {
+    switch s {
+        case State.IDLE:
+            return 0
+        case State.RUNNING:
+            return 1
+    }
+}
+`
+	_, err := nanz.Parse(src, "exhaustive_qualified")
+	if err != nil {
+		t.Fatalf("Parse failed: %v", err)
+	}
+}
+
 func TestIterChain(t *testing.T) {
 	// Test 1: simple forEach — arr.forEach(|x: u8| { cb(x) }, n)
 	src1 := `@extern fun cb(v: u8)
