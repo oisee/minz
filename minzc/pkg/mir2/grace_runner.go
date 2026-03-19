@@ -106,6 +106,19 @@ const graceTrivialBranchRule = `
     (custom "branchToJump" ?b)))
 `
 
+const graceParamForwardRule = `
+(grace param-forward-elim 38
+  (match
+    (block ?tramp (term-kind "jump")))
+  (where
+    (inst-count ?tramp == 0)
+    (param-count ?tramp > 0)
+    (is-param-forwarding ?tramp)
+    (is-not-entry ?tramp))
+  (action
+    (custom "elimParamForward" ?tramp)))
+`
+
 const graceFuseAbsDiffRule = `
 (grace fuse-abs-diff 10
   (match
@@ -169,7 +182,7 @@ var (
 func loadAllRules() ([]grace.GraceRule, error) {
 	cachedRulesOnce.Do(func() {
 		allSrc := graceCondRetSinkRule + graceSplitJoinRetRule + graceDeadBlockArgRule + graceDSERule + graceFuseAbsDiffRule +
-			graceEmptyBlockElimRule + graceBlockMergeRule + graceTrivialBranchRule
+			graceEmptyBlockElimRule + graceBlockMergeRule + graceTrivialBranchRule + graceParamForwardRule
 		cachedRules, cachedRulesErr = grace.ParseRules(allSrc)
 	})
 	return cachedRules, cachedRulesErr
@@ -509,6 +522,34 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		return brif.Then == brif.Else
 	})
 
+	// is-param-forwarding: block is a pure trampoline — jmp target(params[0], params[1], ...)
+	// where each arg is the corresponding block param, possibly reordered.
+	reg.RegisterPredicate("is-param-forwarding", func(graph rewrite.IRGraph, bindings grace.BlockBindings, args []string) bool {
+		label := bindings[args[0]]
+		blk := f.BlockByLabel(label)
+		if blk == nil || len(blk.Params) == 0 {
+			return false
+		}
+		jmp, ok := blk.Term.(*TermJmp)
+		if !ok {
+			return false
+		}
+		if len(jmp.Args) != len(blk.Params) {
+			return false
+		}
+		// Check that each arg is one of the block params (identity forwarding)
+		paramSet := make(map[Reg]bool)
+		for _, p := range blk.Params {
+			paramSet[p.Dst] = true
+		}
+		for _, a := range jmp.Args {
+			if !paramSet[a] {
+				return false
+			}
+		}
+		return true
+	})
+
 	// ── New Block-Level Actions ─────────────────────────────────────────
 
 	// redirectAndDelete: redirect all predecessors of block to its target, then delete.
@@ -591,6 +632,91 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 			}
 		}
 		return true
+	})
+
+	// elimParamForward: eliminate a block that just forwards params to its jmp target.
+	// For each predecessor edge to tramp, redirect to tramp's jmp target with
+	// args remapped through the param→arg forwarding.
+	reg.RegisterAction("elimParamForward", func(graph rewrite.IRGraphMut, bindings grace.BlockBindings) bool {
+		label := bindings["tramp"]
+		blk := f.BlockByLabel(label)
+		if blk == nil {
+			return false
+		}
+		jmp, ok := blk.Term.(*TermJmp)
+		if !ok {
+			return false
+		}
+
+		// Build param index → jmp arg mapping
+		// blk.Params[i].Dst → jmp.Args[j] where jmp.Args[j] == blk.Params[i].Dst
+		// But args may be reordered, so build: paramReg → position in params
+		paramIdx := make(map[Reg]int)
+		for i, p := range blk.Params {
+			paramIdx[p.Dst] = i
+		}
+		// argMap[i] = which param index feeds jmp.Args[i]
+		// Since is-param-forwarding verified all args are params, we can build this
+		argSourceParamIdx := make([]int, len(jmp.Args))
+		for i, a := range jmp.Args {
+			argSourceParamIdx[i] = paramIdx[a]
+		}
+
+		newTarget := jmp.Target
+		changed := false
+
+		for _, b := range f.Blocks {
+			if b.Term == nil || b == blk {
+				continue
+			}
+			// Remap edge args through the forwarding
+			remap := func(edgeArgs []Reg) []Reg {
+				if len(edgeArgs) != len(blk.Params) {
+					return edgeArgs // arity mismatch, don't touch
+				}
+				newArgs := make([]Reg, len(jmp.Args))
+				for i, srcIdx := range argSourceParamIdx {
+					newArgs[i] = edgeArgs[srcIdx]
+				}
+				return newArgs
+			}
+
+			switch t := b.Term.(type) {
+			case *TermJmp:
+				if t.Target == label {
+					t.Args = remap(t.Args)
+					t.Target = newTarget
+					changed = true
+				}
+			case *TermBrIf:
+				if t.Then == label {
+					t.ThenArgs = remap(t.ThenArgs)
+					t.Then = newTarget
+					changed = true
+				}
+				if t.Else == label {
+					t.ElseArgs = remap(t.ElseArgs)
+					t.Else = newTarget
+					changed = true
+				}
+			case *TermCondRet:
+				if t.Then == label {
+					t.ThenArgs = remap(t.ThenArgs)
+					t.Then = newTarget
+					changed = true
+				}
+			}
+		}
+
+		if changed {
+			for i, b := range f.Blocks {
+				if b.Label == label {
+					f.Blocks = append(f.Blocks[:i], f.Blocks[i+1:]...)
+					break
+				}
+			}
+		}
+		return changed
 	})
 
 	// branchToJump: convert trivial br_if (same targets) to jump

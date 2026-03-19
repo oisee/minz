@@ -100,7 +100,7 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - `/cuteify` - Add emojis and fun
 - `/celebrate` - Achievement recognition
 
-## 🛠️ Development Tools & Status (v0.19.1)
+## 🛠️ Development Tools & Status (v0.22.0)
 
 ### Self-Contained Toolchain
 - **MZC** - MinZ Compiler (Go, ~90K LOC)
@@ -289,6 +289,13 @@ fun main() -> void {
 
 ## 📋 Development Commands
 
+### Releasing
+**IMPORTANT:** Before creating a release, ALWAYS check the latest version on GitHub:
+```bash
+gh release list --repo oisee/minz --limit 3
+```
+Bump from the latest GitHub version, not from what CLAUDE.md says (it may be stale).
+
 ### Build & Test
 ```bash
 # Build compiler
@@ -403,7 +410,7 @@ fun main() {
 }
 ```
 
-## 📊 Current Metrics (v0.19.6, verified 2026-03-15)
+## 📊 Current Metrics (v0.22.0, verified 2026-03-19)
 
 | Metric | Value |
 |--------|-------|
