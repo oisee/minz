@@ -236,10 +236,7 @@ func loadAllRules() ([]grace.GraceRule, error) {
 	cachedRulesOnce.Do(func() {
 		allSrc := graceCondRetSinkRule + graceSplitJoinRetRule + graceDeadBlockArgRule + graceDSERule + graceFuseAbsDiffRule +
 			graceEmptyBlockElimRule + graceBlockMergeRule + graceTrivialBranchRule + graceParamForwardRule + graceFuseCmpBrIf2Rule +
-			graceTailCallRule + graceNarrowArithRule
-		// NOTE: graceTailRecursionRule disabled — entry block param handling
-		// needs more work. Tail recursion → loop requires creating a new
-		// loop-head block with params matching the function signature.
+			graceTailCallRule + graceNarrowArithRule + graceTailRecursionRule
 		cachedRules, cachedRulesErr = grace.ParseRules(allSrc)
 	})
 	return cachedRules, cachedRulesErr
@@ -821,7 +818,23 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		return true
 	})
 
-	// elimTailRecursion: replace CALL self + RET with JMP to entry block
+	// elimTailRecursion: replace CALL self + RET with JMP to a loop head block.
+	//
+	// Before:
+	//   block @entry:        (function params %r1, %r2, ...)
+	//     ... body ...
+	//   block @recurse:
+	//     %result = call @self(%args...)
+	//     ret %result
+	//
+	// After:
+	//   block @entry:
+	//     jmp @_tail_loop(%r1, %r2, ...)     ← forward params to loop head
+	//   block @_tail_loop(%p1, %p2, ...):    ← NEW: loop head with block params
+	//     ... body (with params remapped) ...
+	//   block @recurse:
+	//     jmp @_tail_loop(%args...)           ← loop back instead of call
+	//
 	reg.RegisterAction("elimTailRecursion", func(graph rewrite.IRGraphMut, bindings grace.BlockBindings) bool {
 		label := bindings["b"]
 		blk := f.BlockByLabel(label)
@@ -832,18 +845,76 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		if lastInst.Op != OpCall || lastInst.Sym != f.Name {
 			return false
 		}
-		entryLabel := f.Blocks[0].Label
 
-		// Remove the call instruction
+		entry := f.Blocks[0]
+
+		// Check if loop head already exists (don't transform twice)
+		loopLabel := f.Name + "_tail_loop"
+		if f.BlockByLabel(loopLabel) != nil {
+			return false
+		}
+
+		// Create loop head block with params matching function params
+		loopParams := make([]BlockParam, len(f.Contract.Params))
+		loopParamRegs := make([]Reg, len(f.Contract.Params))
+		paramRemap := make(map[Reg]Reg) // old param reg → new loop param reg
+
+		for i, p := range f.Contract.Params {
+			newReg := f.AllocReg()
+			loopParams[i] = BlockParam{Dst: newReg, Ty: p.Ty, Class: p.Class}
+			loopParamRegs[i] = newReg
+			paramRemap[p.Reg] = newReg
+		}
+
+		// Create the loop head block
+		loopBlock := &Block{
+			Label:  loopLabel,
+			Params: loopParams,
+			Insts:  entry.Insts,  // move entry's body to loop head
+			Term:   entry.Term,   // move entry's terminator to loop head
+		}
+
+		// Remap param references in loop block's instructions
+		for _, inst := range loopBlock.Insts {
+			for si := range inst.Src {
+				if newR, ok := paramRemap[inst.Src[si]]; ok {
+					inst.Src[si] = newR
+				}
+			}
+			for ai := range inst.Args {
+				if newR, ok := paramRemap[inst.Args[ai]]; ok {
+					inst.Args[ai] = newR
+				}
+			}
+		}
+
+		// Remap param references in loop block's terminator
+		if loopBlock.Term != nil {
+			remapTermRegs(loopBlock.Term, paramRemap)
+		}
+
+		// Entry block now just jumps to loop head with original params
+		funcParamRegs := make([]Reg, len(f.Contract.Params))
+		for i, p := range f.Contract.Params {
+			funcParamRegs[i] = p.Reg
+		}
+		entry.Insts = nil
+		entry.Term = &TermJmp{Target: loopLabel, Args: funcParamRegs}
+
+		// Insert loop block after entry
+		newBlocks := make([]*Block, 0, len(f.Blocks)+1)
+		newBlocks = append(newBlocks, entry)
+		newBlocks = append(newBlocks, loopBlock)
+		newBlocks = append(newBlocks, f.Blocks[1:]...)
+		f.Blocks = newBlocks
+
+		// Replace the tail call with JMP to loop head
 		blk.Insts = blk.Insts[:len(blk.Insts)-1]
-
-		// Replace ret with jmp to entry block, passing call args as block args
 		blk.Term = &TermJmp{
-			Target: entryLabel,
+			Target: loopLabel,
 			Args:   lastInst.Args,
 		}
 
-		// Mark function as no longer recursive (since we removed the self-call)
 		f.Attrs.IsRecursive = false
 		return true
 	})
@@ -1163,6 +1234,40 @@ func RunGraceDSE(f *Func) {
 	graph := FuncAsMutGraph(f)
 	// Run to fixpoint — removing one dead inst may expose another
 	grace.ApplyRules(graph, rules, reg, 100)
+}
+
+// remapTermRegs replaces register references in a terminator using remap.
+func remapTermRegs(t Term, remap map[Reg]Reg) {
+	repl := func(r *Reg) {
+		if newR, ok := remap[*r]; ok {
+			*r = newR
+		}
+	}
+	replSlice := func(rs []Reg) {
+		for i := range rs {
+			repl(&rs[i])
+		}
+	}
+	switch t := t.(type) {
+	case *TermJmp:
+		replSlice(t.Args)
+	case *TermBrIf:
+		repl(&t.Cond)
+		replSlice(t.ThenArgs)
+		replSlice(t.ElseArgs)
+	case *TermBrIf2:
+		repl(&t.Lhs)
+		repl(&t.Rhs)
+		replSlice(t.EqArgs)
+		replSlice(t.LtArgs)
+		replSlice(t.GtArgs)
+	case *TermRet:
+		replSlice(t.Vals)
+	case *TermCondRet:
+		repl(&t.Cond)
+		replSlice(t.Vals)
+		replSlice(t.ThenArgs)
+	}
 }
 
 // isNarrowable checks if an instruction is a widened arithmetic that can be
