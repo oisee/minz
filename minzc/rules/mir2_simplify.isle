@@ -1,0 +1,45 @@
+;; SimplifyIdentities — ISLE rules for MIR2 algebraic simplification
+;;
+;; These rules eliminate identity operations that don't change values.
+;; Applied as a pre-pass before more complex optimizations.
+
+;; Additive identity
+(rule (add ?x (const 0)) ?x)
+(rule (add (const 0) ?x) ?x)
+
+;; Multiplicative identity
+(rule (mul ?x (const 1)) ?x)
+(rule (mul (const 1) ?x) ?x)
+
+;; Multiplicative zero
+(rule (mul ?x (const 0)) (const 0))
+(rule (mul (const 0) ?x) (const 0))
+
+;; Subtractive identity
+(rule (sub ?x (const 0)) ?x)
+
+;; Double negation
+(rule (neg (neg ?x)) ?x)
+
+;; Double complement
+(rule (not (not ?x)) ?x)
+
+;; AND identity / zero
+(rule (and ?x (const 255)) ?x)     ;; u8: x & 0xFF = x
+(rule (and ?x (const 0)) (const 0))
+
+;; OR identity / zero
+(rule (or ?x (const 0)) ?x)
+(rule (or (const 0) ?x) ?x)
+
+;; XOR self = 0
+(rule (xor ?x ?x) (const 0))
+
+;; Shift by zero
+(rule (shl ?x (const 0)) ?x)
+(rule (shr ?x (const 0)) ?x)
+(rule (sar ?x (const 0)) ?x)
+
+;; INC/DEC peephole
+(rule 10 (add ?x (const 1)) (inc ?x))
+(rule 10 (sub ?x (const 1)) (dec ?x))

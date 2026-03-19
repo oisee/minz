@@ -181,6 +181,12 @@ func hoistReorderSubBeforeCmp(blk *Block) {
 // This removes `a` from the Cmp's use set, which eliminates the live-range
 // interference between `a` (original param, was in A) and `r` (sub result,
 // also wants A) — allowing the allocator to put `r` in A without spilling `a`.
+// FusionSubCmpInBlock fuses sub+cmp with same operands into CmpSubCarry.
+// Exported for use by the Grace pipeline path.
+func FusionSubCmpInBlock(blk *Block) {
+	fusionSubCmpInBlock(blk)
+}
+
 func fusionSubCmpInBlock(blk *Block) {
 	insts := blk.Insts
 	for i := 0; i+1 < len(insts); i++ {

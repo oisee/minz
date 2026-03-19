@@ -51,7 +51,18 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - **Remaining:** EXX shadow regs (L3), ISLE const-MUL reduction, production switch as default `--lir`
 - See [Architecture](docs/LIR_Backend_Architecture.md), [Reference](docs/LIR_Backend_Reference.md), [Report 094](reports/2026-03-18-094-LIR-100-Percent-C89-Corpus.md), [ADR-0033](docs/adr/0033-lir-pipeline-integration.md)
 
-### 5. LSP / DAP / Developer Tooling
+### 5. Rewrite Triad (ISLE + Grace + Datalog)
+**Status:** ✅ Wired into pipeline, 94.1% convergence. See [Report 097](reports/2026-03-19-097-Rewrite-Triad-Infrastructure.md).
+- **Package:** `pkg/rewrite/` — zero imports from hir/mir2/lir, operates on abstract `IRGraph`/`IRGraphMut` interfaces
+- **ISLE:** Term rewriting with guards `(if (< ?n 256))` + extern Go callbacks. 542 LOC.
+- **Grace:** Graph pattern matching on CFG (Cypher-equivalent). 1255 LOC, 13 tests across 7 Cypher categories.
+- **Datalog:** Fact database with wildcard queries. 101 LOC.
+- **Pipeline integration:** `Options{UseGrace: true}` enables Grace path. 5 rules (DSE, CondRetSink, SplitJoinRet, DeadBlockArgElim, FuseAbsDiff) with custom Go actions. 370 LOC runner.
+- **Convergence:** 17/17 pass verification (100%), 16/17 byte-identical assembly (94.1%). 89 funcs processed, 63 rewrites applied.
+- **Stats:** `GraceStats` tracks per-rule fire counts across module compilation.
+- **NOT a Z80 constraint solver:** Grace handles CFG patterns. Z80 register constraints / reject+backtrack is done by WFC in LIR (§4 above).
+
+### 6. LSP / DAP / Developer Tooling
 **Status:** Not started. Planned after core language stability.
 
 ---
@@ -69,6 +80,7 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - **[INTERNAL_ARCHITECTURE.md](minzc/docs/INTERNAL_ARCHITECTURE.md)** - Complete compiler internals
 - **[COMPILER_SNAPSHOT.md](COMPILER_SNAPSHOT.md)** - Current state tracking
 - **[149_World_Class_Multi_Level_Optimization_Guide.md](docs/149_World_Class_Multi_Level_Optimization_Guide.md)** - Revolutionary optimization strategy
+- **[Report 097: Rewrite Triad](reports/2026-03-19-097-Rewrite-Triad-Infrastructure.md)** - ISLE+Grace+Datalog declarative optimization engines (infrastructure, not yet in pipeline)
 
 ## 🎯 Custom Commands
 
@@ -158,6 +170,7 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - **@minz[[[...]]]**: Limited compile-time execution
 - **MIR VM**: Arrays/structs working (mirvm package, MZV runner works)
 - **Array literal optimization**: IR skeleton exists, codegen not yet
+- **Rewrite Triad**: ISLE+Grace+Datalog in `pkg/rewrite/` — wired into pipeline (`UseGrace: true`), 94.1% convergence with Go originals on Nanz corpus. 63 rewrites across 89 functions. See §5, [Report 097](reports/2026-03-19-097-Rewrite-Triad-Infrastructure.md)
 - **MZR REPL**: ❌ Broken — `compileModule()` returns empty module, `:run` unimplemented
 
 ---

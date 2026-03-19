@@ -58,6 +58,12 @@ type Options struct {
 	// (ISLE combining + WFC regalloc + Layer 4 CFG rules).
 	// Functions that fail LIR fall back to the PBQP path automatically.
 	UseLIR bool
+	// UseGrace replaces hand-coded Go optimization passes (DSE, CondRetSink,
+	// SplitJoinRet, DeadBlockArgElim, FuseAbsDiff) with declarative Grace
+	// rules. When enabled, Grace runs instead of Go originals.
+	// GraceStats (if non-nil) collects per-rule application counts.
+	UseGrace   bool
+	GraceStats *mir2.GraceStats
 }
 
 // DefaultOptions returns options with all recommended passes enabled.
@@ -92,25 +98,38 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 				break
 			}
 		}
-		mir2.DeadStoreElim(f)
-		mir2.DeadBlockArgElim(f)
-		// VM-based branch equivalence: remove CmpEq guards whose then-path is
-		// provably equivalent to the else-path on the equality boundary.
-		if mir2.BranchEquiv(m, f) {
+		if opt.UseGrace {
+			// ── Grace declarative path ──────────────────────────────
+			// All 5 passes (DSE, DeadBlockArg, SplitJoinRet, CondRetSink,
+			// FuseAbsDiff) run as Grace rules with custom Go actions.
+			// BranchEquiv stays pure Go (needs VM/solver).
+			mir2.RunGracePasses(f, opt.GraceStats)
 			mir2.EliminateDeadBlocks(f)
-			mir2.DeadStoreElim(f) // clean up now-unused cmp instruction
+			if mir2.BranchEquiv(m, f) {
+				mir2.EliminateDeadBlocks(f)
+				mir2.RunGracePasses(f, opt.GraceStats)
+				mir2.EliminateDeadBlocks(f)
+			}
+			// Sub+Cmp fusion runs on all blocks (unconditional, same as Go path)
+			for _, blk := range f.Blocks {
+				mir2.FusionSubCmpInBlock(blk)
+			}
+		} else {
+			// ── Go original path ────────────────────────────────────
+			mir2.DeadStoreElim(f)
+			mir2.DeadBlockArgElim(f)
+			if mir2.BranchEquiv(m, f) {
+				mir2.EliminateDeadBlocks(f)
+				mir2.DeadStoreElim(f)
+			}
+			if mir2.SplitJoinRet(f) {
+				mir2.EliminateDeadBlocks(f)
+			}
+			if mir2.CondRetSink(f) {
+				mir2.EliminateDeadBlocks(f)
+			}
+			mir2.FuseAbsDiff(f)
 		}
-		// Split trivial join-ret blocks into separate Ret blocks.
-		// Enables CondRetSink on patterns like: var d=X; if(c) d=Y; return d
-		if mir2.SplitJoinRet(f) {
-			mir2.EliminateDeadBlocks(f)
-		}
-		// Conditional-return sink: convert BrIf-with-trivial-else into TermCondRet.
-		if mir2.CondRetSink(f) {
-			mir2.EliminateDeadBlocks(f)
-		}
-		// Fuse abs_diff pattern: cmp.ugt(a,b)+sub(b,a) → sub(a,b)+cmp.ult
-		mir2.FuseAbsDiff(f)
 	}
 	s.MIR2Opt = m.Dump()
 
