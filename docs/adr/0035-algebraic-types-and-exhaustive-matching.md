@@ -215,6 +215,94 @@ On Z80, this becomes:
 
 For small enums (2-4 variants), this is ~20 bytes. Same as hand-written code.
 
+## Phase 3 Bonus: Zero-Cost Currying via Trampolines
+
+**Key insight:** On Z80, partial application doesn't need closures or heap
+allocation. It's just a tiny trampoline that loads the fixed argument and
+jumps to the original function.
+
+### Trampoline currying (reentrant, safe)
+
+```nanz
+fun add(a: u8, b: u8) -> u8 { return a + b }
+
+let add5 = add(5, _)   // partial application: fix first arg
+add5(3)                 // → 8
+```
+
+Generated Z80:
+
+```z80
+; Original function
+add:                    ; a=A, b=C -> A
+    ADD A, C
+    RET
+
+; Curried version: add(5, _) — compiler-generated trampoline
+add$curry_5:
+    LD A, 5             ; load fixed arg into A (2 bytes)
+    JP add              ; jump to original       (3 bytes)
+```
+
+**5 bytes total.** Fully reentrant, supports recursion. No heap, no GC.
+
+For u16 arguments: `LD HL, imm16` (3B) + `JP func` (3B) = **6 bytes**.
+
+### SMC currying (zero bytes, non-reentrant)
+
+When TSMC is enabled and reentrancy is not needed (e.g., iterator callbacks):
+
+```z80
+add:
+    LD A, 0             ; ← immediate patched by caller
+    ADD A, C
+    RET
+
+; "Currying" = one store to patch the immediate
+    LD A, 5
+    LD (add+1), A       ; patch: add now always uses a=5
+    ; ... call add with just b in C ...
+```
+
+**0 bytes overhead** for the curried version — the original function IS the
+curried function. Already implemented via `@smc` infrastructure.
+
+### Comparison
+
+| Method | Size | Reentrant | Recursive | Already exists |
+|--------|------|-----------|-----------|----------------|
+| Trampoline | 5B (u8) / 6B (u16) | Yes | Yes | No (proposed) |
+| SMC patch | 0B | No | No | Yes (@smc) |
+| Heap closure | ~8-12B + GC | Yes | Yes | No (rejected) |
+
+### Why this matters
+
+This means Elm-style partial application is viable on Z80:
+
+```nanz
+fun multiply(a: u8, b: u8) -> u8 { return a * b }
+
+let double = multiply(2, _)    // trampoline: LD A,2 / JP multiply
+let triple = multiply(3, _)    // trampoline: LD A,3 / JP multiply
+
+data |> map(double) |> filter(|x| x > 10)
+```
+
+Each curried function is 5 bytes. The iterator chain fusion can inline the
+trampoline entirely (LD A,2 before the DJNZ loop body), reaching **zero
+overhead** in the hot path.
+
+### Syntax proposal
+
+```nanz
+let add5 = add(5, _)           // positional placeholder
+let add5 = add(5, ..)          // alternative: rest-args
+let add5 = |b| add(5, b)       // already works today (lambda)
+```
+
+The `_` placeholder is the most Elm-like. The lambda form already works but
+generates a separate named function — the trampoline approach is tighter.
+
 ## Implementation Plan
 
 | Phase | What | Estimated LOC | Dependencies |
@@ -227,10 +315,13 @@ For small enums (2-4 variants), this is ~20 bytes. Same as hand-written code.
 | **2b** | HIR `MatchStmt` + lowering to tag comparisons | ~150 | 2a, 1d |
 | **2c** | Exhaustiveness checker | ~100 | 1b, 2a |
 | **2d** | Exhaustiveness for existing simple enums | ~50 | 2c |
-| **3** | Extensions (guards, literals, nested) | ~300 | 2b |
+| **3a** | Trampoline currying (`add(5, _)` → codegen) | ~200 | None |
+| **3b** | SMC currying (reuse @smc patcher infra) | ~100 | 3a |
+| **3c** | Pattern extensions (guards, literals, nested) | ~300 | 2b |
 | | **Total (Phases 1+2)** | **~900** | |
+| | **Total (+ Phase 3a/b currying)** | **~1200** | |
 
-Total estimated effort: **~900 LOC for Phase 1+2**. Phase 3 is optional.
+Total estimated effort: **~900 LOC for Phase 1+2**, **~1200 with currying**. Phase 3c is optional.
 
 ## Consequences
 
@@ -258,11 +349,12 @@ Total estimated effort: **~900 LOC for Phase 1+2**. Phase 3 is optional.
 
 ### 1. Full Elm Frontend
 
-~15K LOC. Requires indentation parser, H-M inference, immutability lowering,
-currying elimination. 10x the effort for marginal benefit over absorbing the
-best ideas into Nanz.
+~15K LOC. Requires indentation parser, H-M inference, immutability lowering.
+10x the effort for marginal benefit over absorbing the best ideas into Nanz.
 
-**Rejected**: paradigm gap too large for Z80 target.
+**Rejected**: paradigm gap too large for Z80 target. However, the currying
+insight (trampolines + SMC) means **partial application is viable** — we take
+that idea and implement it natively in Nanz without the Elm baggage.
 
 ### 2. Haskell-style typeclasses
 
