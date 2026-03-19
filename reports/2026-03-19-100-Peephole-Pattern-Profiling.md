@@ -50,26 +50,41 @@ to DE directly, both ADD and EX would be unnecessary.
 **Fix:** PBQP cost model adjustment — prefer DE for results that flow
 into DE-consuming operations. Not an ISLE rule.
 
-## SDCC Peephole Analysis
+## Z80 Superoptimizer (~/dev/z80-optimizer)
 
-SDCC's `peeph-z80.def` contains 217 rules (2448 lines), GPL-v2 licensed.
-**We cannot copy their rules.** But the Z80 instruction set semantics
-are mathematical facts, not copyrightable.
+Our own CUDA-accelerated brute-force superoptimizer has already proven
+**602,008 instruction equivalences** for length-2 Z80 sequences.
 
-Our approach: profile our own output, identify patterns from Z80 ISA
-knowledge, write independent ISLE/Grace rules.
+Architecture:
+- 455 opcodes enumerated (all Z80 instructions including undocumented)
+- 3-level verification: QuickCheck (8 vectors) → MidCheck (32) → Exhaustive (2^24)
+- 2.7ns/op Go executor, CUDA GPU search for bulk enumeration
+- Full state equivalence (registers + flags + memory byte)
 
-### SDCC Rule Categories (for reference, not copying)
+### Results Database
 
-| Category | ~Rules | Our coverage | Gap |
-|----------|--------|-------------|-----|
-| Dead load elimination | ~50 | DSE at MIR2 level | Post-regalloc text peephole |
-| EX DE,HL optimization | ~20 | Double-EX cancel | EX avoidance |
-| Flag optimization | ~15 | CP 0→OR A, XOR flag | Flag propagation |
-| PUSH/POP optimization | ~15 | Same-reg removal | Cross-reg transfer |
-| Jump optimization | ~10 | Trivial branch, chain | Jump redirect |
-| INC/DEC patterns | ~5 | ISLE inc/dec | Pair increment |
-| Specialized patterns | ~30 | Partial | LDIR, carry tricks |
+```
+Rules by bytes saved:
+  −3 bytes:    1,212 rules (e.g. SLA A; RR A → OR A)
+  −2 bytes:  580,937 rules
+  −1 byte:   19,859 rules
+  Total:    602,008 proven rules
+```
+
+### Cross-Reference with Our Hot Patterns
+
+| Our pattern | Superoptimizer match | Saving |
+|-------------|---------------------|--------|
+| `LD A, 0; *` | 2,252 rules (→ XOR A family) | −1-3B |
+| `SBC A, *` | 19,934 rules | varies |
+| `CP 0; *` | 206,289 rules (most are trivial) | −1-3B |
+
+### Next: Length-3 Search
+
+Length-2 is complete. Length-3 (74.8B targets) requires GPU:
+- CUDA v2 batched pipeline ready (`z80_search_v2.cu`)
+- Expected: 10-100× more optimizations in non-obvious 3-instruction patterns
+- Will find patterns like our SBC+ADD+branch fusion automatically
 
 ## Methodology
 
@@ -77,9 +92,26 @@ Patterns identified by profiling **our own generated assembly** across
 57 Nanz + C89 files (~7000 instructions). This avoids GPL contamination
 while targeting the patterns that actually matter for our compiler.
 
+## Superoptimizer Validation
+
+Ran `z80opt target "OR A : SBC HL, DE : ADD HL, DE"` — no shorter
+equivalent exists at instruction level (69M checks/s, CPU). This confirms
+that the SBC+ADD optimization must be done at **MIR2 level** (omit the
+ADD when only flags are needed), not as a peephole rewrite.
+
+Key insight: **most of our hot patterns are already optimal at instruction
+level** (length-2 superoptimizer confirms). The wins are at higher levels:
+- MIR2: flags-only comparison (skip ADD restore)
+- MIR2: CSE / value numbering (already done with redundant-load)
+- Regalloc: better register targeting (DE vs HL choice)
+
 ## Next Steps
 
 1. **SBC+ADD flags-only** — Grace rule at MIR2 level (~20 LOC)
+   - Detect `cmp u16` where result is only used as branch condition
+   - Mark as flags-only so codegen skips ADD HL,rr restore
+   - Expected: −115 instructions across corpus
 2. **DEC SP pair** — ISLE rule at LIR/peephole level (~5 LOC)
-3. **Copy propagation** — bypass intermediate loads (~Grace rule)
-4. **PUSH HL; POP DE** → `LD E,L; LD D,H` — ISLE peephole (~5 LOC)
+3. **Length-3 GPU search** — run CUDA v2 on targeted 3-instruction sequences
+   from our compiler output (not full enumeration)
+4. **STOKE** — for length-4+ optimization of hot functions
