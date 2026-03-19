@@ -292,16 +292,68 @@ Each curried function is 5 bytes. The iterator chain fusion can inline the
 trampoline entirely (LD A,2 before the DJNZ loop body), reaching **zero
 overhead** in the hot path.
 
-### Syntax proposal
+### Nanz Integration: `_` Placeholder Desugaring
+
+The `_` placeholder in call arguments triggers partial application at parse time.
+No new keywords, no new AST nodes — pure desugaring into existing lambda infra.
+
+**Syntax:**
 
 ```nanz
-let add5 = add(5, _)           // positional placeholder
-let add5 = add(5, ..)          // alternative: rest-args
-let add5 = |b| add(5, b)       // already works today (lambda)
+let add5 = add(5, _)                  // fix first arg, free second
+let from_port = read(_, 0xFE)         // fix second arg, free first
+data |> map(multiply(2, _))           // inline partial in pipe chain
+data |> filter(greater_than(_, 10))   // placeholder in any position
 ```
 
-The `_` placeholder is the most Elm-like. The lambda form already works but
-generates a separate named function — the trampoline approach is tighter.
+**Parser transformation** (~30 lines in parse.go, at call-arg collection):
+
+```
+// Source:
+add(5, _)
+
+// Parser sees args = [IntLit(5), VarRef("_")]
+// Detects "_" at position 1 → generates synthetic lambda:
+
+fun lambda_7(p1: u8) -> u8 { return add(5, p1) }
+
+// Returns &VarRefExpr{Name: "lambda_7"}
+```
+
+Multiple placeholders generate multi-param lambdas:
+
+```nanz
+let swap_sub = subtract(_, _)   // identity wrapper (both free)
+// → fun lambda_8(p0: u8, p1: u8) -> u8 { return subtract(p0, p1) }
+```
+
+**Codegen pipeline** — three levels of optimization:
+
+```
+Nanz source:    data |> map(multiply(2, _))
+
+                        ↓ parser desugar
+
+HIR:            fun lambda_7(x: u8) -> u8 { return multiply(2, x) }
+                map(data, lambda_7)
+
+                        ↓ MIR2 codegen (no fusion)
+
+Z80:            lambda_7:
+                    LD A, 2         ; fixed arg
+                    JP multiply     ; 5 bytes total — trampoline
+
+                        ↓ MIR2 codegen (with iterator fusion)
+
+Z80:            ; trampoline inlined into DJNZ loop body:
+                .loop_body:
+                    LD C, (HL)      ; load element
+                    LD A, 2         ; fixed arg (was trampoline, now inlined)
+                    CALL multiply
+                    INC HL
+                    DJNZ .loop_body
+                ; 0 bytes trampoline overhead
+```
 
 ## Implementation Plan
 
