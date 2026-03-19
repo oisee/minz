@@ -1,0 +1,195 @@
+// tui_commander.nanz — Mini Norton Commander (two-screen TUI demo)
+//
+// Screen 1: File list with selection
+// Screen 2: File details (F5 to view, F3 to go back)
+//
+// Demonstrates: screen_push/screen_pop, app_run event loop,
+// multi-screen navigation on both MZV and CP/M.
+//
+// Run:  echo "" | mzv -H examples/nanz/tui_commander.nanz
+// CP/M: minzc tui_commander.nanz -o mc.a80 && mza mc.a80 -o mc.com && mze mc.com -t cpm
+
+@extern fun tui_goto(x: u8, y: u8) -> void
+@extern fun tui_color(fg: u8, bg: u8, bright: u8) -> void
+@extern fun tui_reset() -> void
+@extern fun tui_clear() -> void
+@extern fun tui_putch(ch: u8) -> void
+@extern fun tui_puts(str: ^u8) -> void
+@extern fun tui_read_key() -> u8
+@extern fun tui_width() -> u8
+@extern fun tui_height() -> u8
+
+// ── Screen stack (inline, no import needed for demo) ──────────
+
+global _stack: [^u8; 8]
+global _depth: u8
+global _running: u8
+global _current_screen: u8   // 0=file list, 1=file detail
+
+// ── File list data ────────────────────────────────────────────
+
+global cursor: u8
+
+// ── Render: File List Screen ──────────────────────────────────
+
+fun render_file_list() -> void {
+    tui_clear()
+
+    // Title bar
+    tui_color(7, 4, 1)
+    tui_goto(0, 0)
+    tui_puts(c"  Mini Commander v0.1                                                           ")
+    tui_reset()
+
+    // Column header
+    tui_goto(1, 1)
+    tui_color(3, 0, 0)
+    tui_puts(c"Name          Size   Date")
+    tui_reset()
+
+    // File entries
+    var i: u8 = 0
+    while i < 6 {
+        tui_goto(1, i + 2)
+        if i == cursor {
+            tui_color(0, 6, 1)
+        } else {
+            tui_color(7, 0, 0)
+        }
+
+        if i == 0 { tui_puts(c"README.MD     1024   2026-03-18") }
+        if i == 1 { tui_puts(c"MAIN.NZ        947   2026-03-17") }
+        if i == 2 { tui_puts(c"FAT12.NZ       603   2026-03-16") }
+        if i == 3 { tui_puts(c"TETRIS.NZ      853   2026-03-15") }
+        if i == 4 { tui_puts(c"HELLO.COM      128   2026-03-14") }
+        if i == 5 { tui_puts(c"SCREEN.NZ      492   2026-03-13") }
+
+        tui_reset()
+        i = i + 1
+    }
+
+    // Status bar
+    tui_color(0, 6, 0)
+    tui_goto(0, 23)
+    tui_puts(c" F5=View  F3=Quit  UP/DOWN=Navigate                                            ")
+    tui_reset()
+
+    // File count
+    tui_goto(1, 20)
+    tui_color(7, 0, 0)
+    tui_puts(c"6 files, 4047 bytes")
+    tui_reset()
+}
+
+// ── Render: File Detail Screen ────────────────────────────────
+
+fun render_file_detail() -> void {
+    tui_clear()
+
+    // Title bar
+    tui_color(7, 2, 1)
+    tui_goto(0, 0)
+    tui_puts(c"  File Details                                                                  ")
+    tui_reset()
+
+    // File info based on cursor position
+    tui_goto(2, 2)
+    tui_color(6, 0, 1)
+    tui_puts(c"Filename: ")
+    tui_color(7, 0, 1)
+    if cursor == 0 { tui_puts(c"README.MD") }
+    if cursor == 1 { tui_puts(c"MAIN.NZ") }
+    if cursor == 2 { tui_puts(c"FAT12.NZ") }
+    if cursor == 3 { tui_puts(c"TETRIS.NZ") }
+    if cursor == 4 { tui_puts(c"HELLO.COM") }
+    if cursor == 5 { tui_puts(c"SCREEN.NZ") }
+    tui_reset()
+
+    tui_goto(2, 4)
+    tui_color(6, 0, 0)
+    tui_puts(c"Type:     ")
+    tui_color(7, 0, 0)
+    if cursor == 4 { tui_puts(c"CP/M executable") }
+    if cursor != 4 { tui_puts(c"Nanz source") }
+    tui_reset()
+
+    tui_goto(2, 5)
+    tui_color(6, 0, 0)
+    tui_puts(c"Target:   ")
+    tui_color(7, 0, 0)
+    if cursor == 3 { tui_puts(c"ZX Spectrum") }
+    if cursor == 4 { tui_puts(c"CP/M 2.2") }
+    if cursor != 3 {
+        if cursor != 4 { tui_puts(c"Universal (MZV + CP/M + ZX)") }
+    }
+    tui_reset()
+
+    tui_goto(2, 7)
+    tui_color(6, 0, 0)
+    tui_puts(c"Status:   ")
+    tui_color(2, 0, 1)
+    tui_puts(c"OK")
+    tui_reset()
+
+    // Status bar
+    tui_color(0, 2, 0)
+    tui_goto(0, 23)
+    tui_puts(c" F3=Back to file list                                                          ")
+    tui_reset()
+}
+
+// ── Main: event loop ──────────────────────────────────────────
+
+fun main() -> void {
+    cursor = 0
+    _current_screen = 0
+    _running = 1
+
+    while _running == 1 {
+        // Render current screen
+        if _current_screen == 0 {
+            render_file_list()
+        }
+        if _current_screen == 1 {
+            render_file_detail()
+        }
+
+        // Read key
+        var key: u8 = tui_read_key()
+
+        // Navigation
+        if _current_screen == 0 {
+            // File list screen
+            if key == 128 {  // UP
+                if cursor > 0 { cursor = cursor - 1 }
+            }
+            if key == 129 {  // DOWN
+                if cursor < 5 { cursor = cursor + 1 }
+            }
+            if key == 144 {  // F5 = View
+                _current_screen = 1
+            }
+            if key == 13 {   // ENTER = View
+                _current_screen = 1
+            }
+            if key == 142 {  // F3 = Quit
+                _running = 0
+            }
+            if key == 27 {   // ESC = Quit
+                _running = 0
+            }
+        }
+        if _current_screen == 1 {
+            // Detail screen
+            if key == 142 {  // F3 = Back
+                _current_screen = 0
+            }
+            if key == 27 {   // ESC = Back
+                _current_screen = 0
+            }
+        }
+    }
+
+    tui_clear()
+    tui_reset()
+}

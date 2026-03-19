@@ -1,0 +1,116 @@
+// stdlib/tui/app — Screen stack and application event loop
+//
+// Elm-style Model-View-Update for Nanz TUI:
+//   State → View(State) → Event → Update(State, Event) → new State
+//
+// Usage:
+//   global main_scr: Screen
+//   global detail_scr: Screen
+//
+//   fun main() -> void {
+//       main_scr.init(c"Main")
+//       main_scr.add_field(c"Name", 20, &buf)
+//       app_run(&main_scr)
+//   }
+//
+// Navigation:
+//   screen_push(&detail_scr)   — open new screen (stack)
+//   screen_pop()               — return to previous (F3/ESC)
+//   screen_replace(&other_scr) — replace current (no stack)
+
+import stdlib.tui.widget
+import stdlib.tui.render
+
+// =============================================================================
+// Screen stack (max 8 deep)
+// =============================================================================
+
+global _app_stack: [^u8; 8]    // ^Screen pointers (stored as ^u8 for compat)
+global _app_depth: u8
+global _app_running: u8
+
+// Push a new screen onto the stack (opens it).
+fun screen_push(scr: ^Screen) -> void {
+    if _app_depth >= 8 { return }
+    _app_stack[_app_depth] = scr
+    _app_depth = _app_depth + 1
+}
+
+// Pop the current screen (returns to previous).
+fun screen_pop() -> void {
+    if _app_depth > 0 {
+        _app_depth = _app_depth - 1
+    }
+    if _app_depth == 0 {
+        _app_running = 0
+    }
+}
+
+// Replace the current screen (no stack change).
+fun screen_replace(scr: ^Screen) -> void {
+    if _app_depth > 0 {
+        _app_stack[_app_depth - 1] = scr
+    }
+}
+
+// Get current stack depth.
+fun screen_depth() -> u8 {
+    return _app_depth
+}
+
+// Get the active (top-of-stack) screen.
+fun screen_current() -> ^Screen {
+    if _app_depth == 0 { return @ptr(Screen, 0) }
+    return _app_stack[_app_depth - 1]
+}
+
+// =============================================================================
+// Application event loop
+// =============================================================================
+
+// Run the application starting with the given screen.
+// Loops: render → read key → dispatch. Returns when stack is empty.
+fun app_run(initial: ^Screen) -> void {
+    _app_depth = 0
+    _app_running = 1
+    screen_push(initial)
+
+    while _app_running == 1 {
+        if _app_depth == 0 { _app_running = 0 }
+        if _app_running == 0 { return }
+
+        var scr: ^Screen = screen_current()
+
+        // PBO: render the current screen
+        Screen.render(scr)
+
+        // Wait for user input
+        var key: u8 = tui_read_key()
+
+        // Global keys (always handled)
+        if key == KEY_F3 {
+            screen_pop()
+        }
+        if key == KEY_ESC {
+            screen_pop()
+        }
+        if key == KEY_F8 {
+            scr.result = 1   // execute
+        }
+
+        // TAB: move focus
+        if key == KEY_TAB {
+            var next: u8 = scr.focus + 1
+            if next >= scr.nfields { next = 0 }
+            scr.focus = next
+        }
+    }
+
+    tui_clear()
+    tui_reset()
+}
+
+// Stop the application (exit event loop).
+fun app_quit() -> void {
+    _app_running = 0
+}
