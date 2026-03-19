@@ -107,6 +107,11 @@ type CallAttrs struct {
 	// Used for @emit and similar compile-time side-effects.
 	// Only valid inside [comptime] functions; error at runtime.
 	IsHost bool
+
+	// IsTailCall: this call is immediately followed by a return of the call's
+	// result. Z80 codegen can emit JP instead of CALL+RET (saves 1 byte, 17T).
+	// Set by Grace tail-call-opt rule.
+	IsTailCall bool
 }
 
 // ── Inline assembly ───────────────────────────────────────────────────────────

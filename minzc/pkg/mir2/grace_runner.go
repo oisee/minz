@@ -121,6 +121,31 @@ const graceFuseCmpBrIf2Rule = `
     (custom "fuseToBrIf2" ?head ?body)))
 `
 
+// Tail call optimization: a block that ends with CALL f; RET can use JP f.
+// This saves 1 byte and 7 T-states per tail call (CALL=17T+RET=10T → JP=10T).
+// Narrow i16 arithmetic back to u8 when both operands are u8 and result is
+// consumed as u8 (truncated or returned as u8). C89 integer promotion widens
+// u8+u8 to i16, but on Z80 this forces HL instead of A. Narrowing saves ~4 insts.
+const graceNarrowArithRule = `
+(grace narrow-arith 48
+  (match
+    (block ?b))
+  (where
+    (has-narrowable-arith ?b))
+  (action
+    (custom "narrowArith" ?b)))
+`
+
+const graceTailCallRule = `
+(grace tail-call-opt 25
+  (match
+    (block ?b (term-kind "ret")))
+  (where
+    (has-tail-call ?b))
+  (action
+    (custom "tailCallOpt" ?b)))
+`
+
 const graceParamForwardRule = `
 (grace param-forward-elim 38
   (match
@@ -197,7 +222,8 @@ var (
 func loadAllRules() ([]grace.GraceRule, error) {
 	cachedRulesOnce.Do(func() {
 		allSrc := graceCondRetSinkRule + graceSplitJoinRetRule + graceDeadBlockArgRule + graceDSERule + graceFuseAbsDiffRule +
-			graceEmptyBlockElimRule + graceBlockMergeRule + graceTrivialBranchRule + graceParamForwardRule + graceFuseCmpBrIf2Rule
+			graceEmptyBlockElimRule + graceBlockMergeRule + graceTrivialBranchRule + graceParamForwardRule + graceFuseCmpBrIf2Rule +
+			graceTailCallRule + graceNarrowArithRule
 		cachedRules, cachedRulesErr = grace.ParseRules(allSrc)
 	})
 	return cachedRules, cachedRulesErr
@@ -598,6 +624,49 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		return false
 	})
 
+	// has-narrowable-arith: block has i16 add/sub/and/or/xor where both sources
+	// are u8 (from ext or direct) and result is only used as u8 (truncated or
+	// returned as u8). Narrowing to u8 saves HL→A register switch.
+	reg.RegisterPredicate("has-narrowable-arith", func(graph rewrite.IRGraph, bindings grace.BlockBindings, args []string) bool {
+		label := bindings[args[0]]
+		blk := f.BlockByLabel(label)
+		if blk == nil {
+			return false
+		}
+		for _, inst := range blk.Insts {
+			if isNarrowable(inst, f) {
+				return true
+			}
+		}
+		return false
+	})
+
+	// has-tail-call: block's last instruction is a call, and the terminator is
+	// ret whose value is the call's result. CALL f; RET → can use JP f.
+	reg.RegisterPredicate("has-tail-call", func(graph rewrite.IRGraph, bindings grace.BlockBindings, args []string) bool {
+		label := bindings[args[0]]
+		blk := f.BlockByLabel(label)
+		if blk == nil || len(blk.Insts) == 0 {
+			return false
+		}
+		ret, ok := blk.Term.(*TermRet)
+		if !ok {
+			return false
+		}
+		lastInst := blk.Insts[len(blk.Insts)-1]
+		if lastInst.Op != OpCall {
+			return false
+		}
+		// ret must return the call's result (or be void)
+		if len(ret.Vals) == 0 {
+			return true // void function → tail call always safe
+		}
+		if len(ret.Vals) == 1 && ret.Vals[0] == lastInst.Dst {
+			return true // return value is the call result
+		}
+		return false
+	})
+
 	// is-param-forwarding: block is a pure trampoline — jmp target(params[0], params[1], ...)
 	// where each arg is the corresponding block param, possibly reordered.
 	reg.RegisterPredicate("is-param-forwarding", func(graph rewrite.IRGraph, bindings grace.BlockBindings, args []string) bool {
@@ -707,6 +776,39 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 				break
 			}
 		}
+		return true
+	})
+
+	// narrowArith: narrow i16 arithmetic to u8 when safe
+	reg.RegisterAction("narrowArith", func(graph rewrite.IRGraphMut, bindings grace.BlockBindings) bool {
+		label := bindings["b"]
+		blk := f.BlockByLabel(label)
+		if blk == nil {
+			return false
+		}
+		changed := false
+		for _, inst := range blk.Insts {
+			if isNarrowable(inst, f) {
+				inst.Ty = TyU8
+				inst.Cls = ClassAcc
+				changed = true
+			}
+		}
+		return changed
+	})
+
+	// tailCallOpt: mark the last CALL in a block as tail call when followed by RET
+	reg.RegisterAction("tailCallOpt", func(graph rewrite.IRGraphMut, bindings grace.BlockBindings) bool {
+		label := bindings["b"]
+		blk := f.BlockByLabel(label)
+		if blk == nil || len(blk.Insts) == 0 {
+			return false
+		}
+		lastInst := blk.Insts[len(blk.Insts)-1]
+		if lastInst.Op != OpCall || lastInst.CallAttr.IsTailCall {
+			return false
+		}
+		lastInst.CallAttr.IsTailCall = true
 		return true
 	})
 
@@ -992,6 +1094,104 @@ func RunGraceDSE(f *Func) {
 	graph := FuncAsMutGraph(f)
 	// Run to fixpoint — removing one dead inst may expose another
 	grace.ApplyRules(graph, rules, reg, 100)
+}
+
+// isNarrowable checks if an instruction is a widened arithmetic that can be
+// safely narrowed from i16/u16 to u8. This catches C89 integer promotion:
+// uint8_t + uint8_t → i16 in C, but we can keep it as u8 on Z80.
+func isNarrowable(inst *Inst, f *Func) bool {
+	// Only narrow bitwise ops and self-adds (x+x → ADD A,A).
+	// Do NOT narrow add/sub of different values — overflow detection may be needed
+	// (e.g. saturating add needs i16 to detect > 255).
+	switch inst.Op {
+	case OpAnd, OpOr, OpXor:
+		// Bitwise ops never overflow — safe to narrow
+	case OpAdd:
+		// Only narrow x+x (same source, ADD A,A pattern)
+		if inst.Src[0] != inst.Src[1] {
+			return false
+		}
+	default:
+		return false
+	}
+
+	// Must be i16/u16 result
+	if inst.Ty != TyI16 && inst.Ty != TyU16 {
+		return false
+	}
+	// Both sources must be u8/i8 (possibly extended)
+	src0Ty := srcOrigType(inst.Src[0], f)
+	src1Ty := srcOrigType(inst.Src[1], f)
+	if src0Ty.Width() > 8 || src1Ty.Width() > 8 {
+		return false
+	}
+	// Result must only be used as u8
+	return allUsesNarrow(inst.Dst, f)
+}
+
+// srcOrigType traces back to find the original type of a register before extension.
+func srcOrigType(r Reg, f *Func) Ty {
+	for _, b := range f.Blocks {
+		for _, inst := range b.Insts {
+			if inst.Dst == r {
+				if inst.Op == OpExt || inst.Op == OpSext {
+					return inst.SrcTy // original type before extension
+				}
+				return inst.Ty
+			}
+		}
+		for _, p := range b.Params {
+			if p.Dst == r {
+				return p.Ty
+			}
+		}
+	}
+	// Check function params
+	if len(f.Blocks) > 0 {
+		for _, p := range f.Contract.Params {
+			if p.Reg == r {
+				return p.Ty
+			}
+		}
+	}
+	return TyU16 // unknown → don't narrow
+}
+
+// allUsesNarrow checks that all uses of reg are in u8 context.
+func allUsesNarrow(r Reg, f *Func) bool {
+	for _, b := range f.Blocks {
+		for _, inst := range b.Insts {
+			for _, use := range inst.Uses() {
+				if use == r {
+					// Trunc is always safe (intentional narrowing)
+					if inst.Op == OpTrunc {
+						continue
+					}
+					// u8 consumer is safe
+					if inst.Ty.Width() <= 8 {
+						continue
+					}
+					return false
+				}
+			}
+		}
+		if b.Term != nil {
+			for _, use := range b.Term.termUses() {
+				if use == r {
+					// Check return type
+					if ret, ok := b.Term.(*TermRet); ok {
+						_ = ret
+						// Return as u8 — check function return type
+						if len(f.Contract.Returns) > 0 && f.Contract.Returns[0].Ty.Width() <= 8 {
+							continue
+						}
+					}
+					return false
+				}
+			}
+		}
+	}
+	return true
 }
 
 // RunGraceFuseAbsDiff runs abs-diff fusion via Grace.
