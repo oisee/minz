@@ -19,22 +19,64 @@ The headline result: **GCD went from 14 to 9 instructions** (−36%) via the
 
 ---
 
-## 1. MinZ vs SDCC — Head-to-Head (5 Programs)
+## 1. MinZ vs SDCC — Complete Comparison (8 Programs)
+
+### Apples-to-Apples: Same C89 Source, Both Compilers
 
 ```
-Program       SDCC   MinZ(Go)  MinZ(Grace)   Δ vs SDCC   Winner
-─────────── ────── ────────── ──────────── ─────────── ────────
-abs_diff        12         4            4       −67%    MinZ ✓
-gcd             17        14            9       −47%    MinZ ✓
-minmax          60        10           10       −83%    MinZ ✓
-fib             22        17           17       −23%    MinZ ✓
-swap            20         1            1       −95%    MinZ ✓
-─────────── ────── ────────── ──────────── ─────────── ────────
-TOTAL          131        46           41       −69%    MinZ 5/5
+Program          SDCC   MinZ(C89)    Δ      Winner
+──────────────── ────── ─────────── ────── ────────
+abs_diff            12        4     −66%   MinZ ✓
+abs_diff_u16        13       10     −23%   MinZ ✓
+chain                8       13     +62%   SDCC ✓    ← call chain inlining
+fib                 22       27     +22%   SDCC ✓    ← recursive, no TCO
+foreach             44       49     +11%   SDCC ✓    ← pointer iteration
+gcd                 17        9     −47%   MinZ ✓    ← br_if2 fusion!
+minmax              60       27     −55%   MinZ ✓
+swap                20       11     −45%   MinZ ✓
+──────────────── ────── ─────────── ────── ────────
+C89 same-source: MinZ wins 5/8, SDCC wins 3/8
 ```
 
-**MinZ wins every program.** Grace adds another −5 instructions over the Go path
-(GCD: 14→9 via `fuse-cmp-brif2`).
+### With Nanz (Idiomatic MinZ Syntax)
+
+```
+Program          SDCC   MinZ(Nanz)    Δ      Winner
+──────────────── ────── ─────────── ─────── ────────
+abs_diff            12        4      −66%   MinZ ✓
+abs_diff_u16        13       10      −23%   MinZ ✓
+chain                8        5      −37%   MinZ ✓    ← tail call opt
+fib                 22       18      −18%   MinZ ✓    ← iterative version
+gcd                 17        9      −47%   MinZ ✓
+minmax              60       10      −83%   MinZ ✓    ← register ABI
+swap                20        1      −95%   MinZ ✓    ← contract opt
+──────────────── ────── ─────────── ─────── ────────
+Nanz idiomatic: MinZ wins 7/7 (foreach not comparable — different idiom)
+```
+
+### Analysis: Where SDCC Wins (and Why)
+
+SDCC beats MinZ C89 on three programs, all sharing one trait — **call overhead**:
+
+| Program | Why SDCC wins | Root cause |
+|---------|---------------|------------|
+| chain | 8 vs 13 | SDCC inlines trivial call chains; MinZ C89 generates separate CALL/RET |
+| fib | 22 vs 27 | Recursive fib — SDCC has better stack frame management for recursion |
+| foreach | 44 vs 49 | SDCC's pointer arithmetic is tighter for `buf[i]` patterns |
+
+All three cases involve **function call mechanics**. MinZ's advantage (register
+ABI, contract optimization) doesn't help when the bottleneck is call/return
+overhead. Nanz solves this with tail call optimization and iterative rewriting.
+
+### Analysis: Where MinZ Wins (and Why)
+
+| Program | Why MinZ wins | Key technique |
+|---------|---------------|---------------|
+| abs_diff | 4 vs 12 (−66%) | `SUB; RET NC; NEG; RET` — carry = free comparison |
+| gcd | 9 vs 17 (−47%) | Grace `fuse-cmp-brif2` — one CP, three-way branch |
+| minmax | 27 vs 60 (−55%) | Register ABI vs IX stack frame (no PUSH IX / POP IX) |
+| swap | 11 vs 20 (−45%) | No stack frame — direct register operations |
+| abs_diff_u16 | 10 vs 13 (−23%) | `SBC HL` carry reuse, no branch needed |
 
 ### Why MinZ Wins
 
