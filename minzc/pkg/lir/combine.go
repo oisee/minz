@@ -57,9 +57,22 @@ var CombineRules = `
 ;; ── Identity / strength reduction ───────────────────────────────────────
 
 (rule (add ?x (const 0))  ?x)
+(rule (add (const 0) ?x)  ?x)
 (rule (or  ?x (const 0))  ?x)
+(rule (or  (const 0) ?x)  ?x)
 (rule (shl ?x (const 0))  ?x)
 (rule (and ?x (const 0))  (const 0))
+(rule (and (const 0) ?x)  (const 0))
+(rule (sub ?x (const 0))  ?x)
+(rule (xor ?x (const 0))  ?x)
+(rule (xor (const 0) ?x)  ?x)
+
+;; ── Immediate ALU folding ────────────────────────────────────────────────
+;;
+;; NOT done here — handled in isel.go (foldConstIntoALU) to avoid
+;; breaking load16_le patterns. ISLE rewrites bottom-up, so
+;; add(base,const(1)) inside load8() would get rewritten to addi()
+;; before load16_le sees the full tree.
 `
 
 // CombineResult holds the output of instruction combining.
@@ -214,6 +227,7 @@ func termToOp(t isle.Term, ops []MIROp, origIdx int, defMap map[int]int) (MIROp,
 				Imm: t.Args[0].IntVal,
 			}, nil, nil
 		}
+
 	}
 
 	return orig, nil, fmt.Errorf("cannot convert term %s to MIROp", t)
@@ -290,6 +304,20 @@ func opName(op int) string {
 		return "load16_le"
 	case OpCmp:
 		return "cmp"
+	case OpNeg:
+		return "neg"
+	case OpAddImm:
+		return "addi"
+	case OpSubImm:
+		return "subi"
+	case OpAndImm:
+		return "andi"
+	case OpOrImm:
+		return "ori"
+	case OpXorImm:
+		return "xori"
+	case OpCmpImm:
+		return "cmpi"
 	default:
 		return fmt.Sprintf("op%d", op)
 	}

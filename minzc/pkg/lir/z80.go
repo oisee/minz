@@ -227,6 +227,50 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			Template: "CALL {sym}", Cost: 17, Bytes: 3,
 			Clobbers: gpr8.Or(flags), Flags: PatCall},
 
+		// ── IX-indexed stores (DD prefix) ────────────────────────────
+		{Name: "ld_ix_d_r", MIROp: OpStore, Width: 8, SrcLocs: [2]LocSet{ix, gprNoHL},
+			Template: "LD (IX+{imm}), {src1}", Cost: 19, Bytes: 3, Flags: PatMemWrite | PatImmediate},
+
+		// ── IY-indexed loads/stores (FD prefix) ──────────────────────
+		{Name: "ld_r_iy_d", MIROp: OpLoad, Width: 8, DstLocs: gprNoHL, SrcLocs: [2]LocSet{iy},
+			Template: "LD {dst}, (IY+{imm})", Cost: 19, Bytes: 3, Flags: PatMemRead | PatImmediate},
+		{Name: "ld_iy_d_r", MIROp: OpStore, Width: 8, SrcLocs: [2]LocSet{iy, gprNoHL},
+			Template: "LD (IY+{imm}), {src1}", Cost: 19, Bytes: 3, Flags: PatMemWrite | PatImmediate},
+
+		// ── Store via DE/BC pointer ──────────────────────────────────
+		{Name: "ld_de_a", MIROp: OpStore, Width: 8, SrcLocs: [2]LocSet{de, a},
+			Template: "LD (DE), A", Cost: 7, Bytes: 1, Flags: PatMemWrite},
+		{Name: "ld_bc_a", MIROp: OpStore, Width: 8, SrcLocs: [2]LocSet{bc, a},
+			Template: "LD (BC), A", Cost: 7, Bytes: 1, Flags: PatMemWrite},
+
+		// ── 16-bit DEC ───────────────────────────────────────────────
+		{Name: "dec_rr", MIROp: OpSub, Width: 16, DstLocs: pairs,
+			SrcLocs: [2]LocSet{pairs, pairs},
+			Template: "DEC {dst}", Cost: 6, Bytes: 1},
+
+		// ── EX DE,HL reverse (HL ← DE) ──────────────────────────────
+		{Name: "ex_hl_de", MIROp: OpMove, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{de},
+			Template: "EX DE, HL", Cost: 4, Bytes: 1},
+
+		// ── NEG A (two's complement negate) ──────────────────────────
+		{Name: "neg_a", MIROp: OpNeg, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{a},
+			Template: "NEG", Cost: 8, Bytes: 2, Clobbers: flags},
+
+		// ── Immediate ALU (fold const into instruction) ──────────────
+		// These match OpAddImm etc. produced by ISLE const-folding rules.
+		{Name: "add_a_n", MIROp: OpAddImm, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{a},
+			Template: "ADD A, {imm}", Cost: 7, Bytes: 2, Clobbers: flags, Flags: PatImmediate},
+		{Name: "sub_a_n", MIROp: OpSubImm, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{a},
+			Template: "SUB {imm}", Cost: 7, Bytes: 2, Clobbers: flags, Flags: PatImmediate},
+		{Name: "and_a_n", MIROp: OpAndImm, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{a},
+			Template: "AND {imm}", Cost: 7, Bytes: 2, Clobbers: flags, Flags: PatImmediate},
+		{Name: "or_a_n", MIROp: OpOrImm, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{a},
+			Template: "OR {imm}", Cost: 7, Bytes: 2, Clobbers: flags, Flags: PatImmediate},
+		{Name: "xor_a_n", MIROp: OpXorImm, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{a},
+			Template: "XOR {imm}", Cost: 7, Bytes: 2, Clobbers: flags, Flags: PatImmediate},
+		{Name: "cp_n", MIROp: OpCmpImm, Width: 8, DstLocs: flags, SrcLocs: [2]LocSet{a},
+			Template: "CP {imm}", Cost: 7, Bytes: 2, Clobbers: flags, Flags: PatImmediate},
+
 		// ── DJNZ (loop) — not used by isel but by LoopRotateDJNZ ────
 		// DJNZ is a terminator pattern, not a regular instruction.
 		// Counter must be in B. The pattern is used for cost estimation.

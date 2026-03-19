@@ -143,6 +143,13 @@ const (
 	OpShl      = 14 // shift left
 	OpShr      = 15 // shift right (logical)
 	OpLoad16LE = 16 // combined: load 16-bit little-endian from memory address
+	OpNeg      = 17 // negate (two's complement)
+	OpAddImm   = 18 // add immediate (no src vreg for the constant)
+	OpSubImm   = 19 // subtract immediate
+	OpAndImm   = 20 // bitwise AND immediate
+	OpOrImm    = 21 // bitwise OR immediate
+	OpXorImm   = 22 // bitwise XOR immediate
+	OpCmpImm   = 23 // compare immediate
 )
 
 // GenerateRISCPatterns creates fully orthogonal patterns for a RISC machine.

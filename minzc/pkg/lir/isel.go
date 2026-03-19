@@ -39,11 +39,22 @@ func SelectInstructions(desc *MachineDesc, ops []MIROp) (*ISelResult, error) {
 	vregLoc := make(map[int]LocSet)
 
 	movePat := findMovePat(desc, 8)
+	defMap := buildDefMap(ops)
 
 	for i, op := range ops {
+		// Immediate ALU folding
+		op = foldConstIntoALU(op, ops, defMap)
+
 		pat, err := findBestPattern(desc, op)
 		if err != nil {
-			return nil, fmt.Errorf("isel: op %d (%d): %w", i, op.Op, err)
+			// Fallback for machines without immediate ALU patterns
+			if op.Op >= OpAddImm && op.Op <= OpCmpImm {
+				op = ops[i]
+				pat, err = findBestPattern(desc, op)
+			}
+			if err != nil {
+				return nil, fmt.Errorf("isel: op %d (%d): %w", i, op.Op, err)
+			}
 		}
 
 		// Insert setup moves: if pattern requires src in a specific set
@@ -123,11 +134,23 @@ func SelectBlockInstructions(desc *MachineDesc, ops []MIROp, params []BlockParam
 	}
 
 	movePat := findMovePat(desc, 8)
+	defMap := buildDefMap(ops)
 
 	for i, op := range ops {
+		// Immediate ALU folding: if src1 is a const, fold into immediate op.
+		// This replaces LD r,n + OP A,r with a single OP A,n instruction.
+		op = foldConstIntoALU(op, ops, defMap)
+
 		pat, err := findBestPattern(desc, op)
 		if err != nil {
-			return nil, fmt.Errorf("isel: op %d (%d): %w", i, op.Op, err)
+			// If immediate op has no pattern (e.g. RISC), fall back to original op.
+			if op.Op >= OpAddImm && op.Op <= OpCmpImm {
+				op = ops[i] // restore original
+				pat, err = findBestPattern(desc, op)
+			}
+			if err != nil {
+				return nil, fmt.Errorf("isel: op %d (%d): %w", i, op.Op, err)
+			}
 		}
 
 		// Insert setup moves if needed.
@@ -191,6 +214,52 @@ func SelectBlockInstructions(desc *MachineDesc, ops []MIROp, params []BlockParam
 	}
 
 	return result, nil
+}
+
+// defMap builds a vreg→index mapping for constant definitions.
+// Used by foldConstIntoALU to look up const values.
+func buildDefMap(ops []MIROp) map[int]int {
+	m := make(map[int]int)
+	for i, op := range ops {
+		if op.Dst >= 0 {
+			m[op.Dst] = i
+		}
+	}
+	return m
+}
+
+// foldConstIntoALU checks if an ALU op's src1 is a const and converts
+// to an immediate op (OpAddImm etc.) to emit ADD A,n instead of LD+ADD.
+func foldConstIntoALU(op MIROp, ops []MIROp, defMap map[int]int) MIROp {
+	// Only fold 8-bit ALU ops (Z80 immediate ALU is 8-bit only)
+	if op.Width != 8 {
+		return op
+	}
+
+	// Map ALU ops to their immediate variants
+	immOp := map[int]int{
+		OpAdd: OpAddImm, OpSub: OpSubImm,
+		OpAnd: OpAndImm, OpOr: OpOrImm,
+		OpXor: OpXorImm, OpCmp: OpCmpImm,
+	}
+
+	newOp, ok := immOp[op.Op]
+	if !ok {
+		return op
+	}
+
+	// Check if src1 is a const (for binary ALU: src0=acc, src1=operand)
+	if op.Src[1] >= 0 {
+		if idx, exists := defMap[op.Src[1]]; exists && ops[idx].Op == OpConst {
+			result := op
+			result.Op = newOp
+			result.Imm = ops[idx].Imm
+			result.Src[1] = -1 // no longer need the const vreg
+			return result
+		}
+	}
+
+	return op
 }
 
 func findMovePat(desc *MachineDesc, width int) *Pattern {

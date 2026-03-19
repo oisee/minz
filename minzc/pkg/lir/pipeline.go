@@ -373,7 +373,18 @@ func lirCodegenMultiBlock(f *mir2.Func, desc *MachineDesc, m *mir2.Module) (stri
 		emitTerminator(&sb, &b.Term, bi, len(prog.Blocks))
 	}
 
-	return sb.String(), nil
+	asm := sb.String()
+
+	// Post-emit peephole optimization
+	asm = Z80Peephole(asm)
+
+	// Z80 validation — catch invalid instructions before they leave the compiler.
+	// Currently logs warnings; will hard-fail after WFC constraint bugs are fixed.
+	if errs := ValidateZ80Asm(asm); len(errs) > 0 {
+		LogValidationErrors(f.Name, asm, errs)
+	}
+
+	return asm, nil
 }
 
 // emitParallelCopyMoves inserts LD instructions for edge args that don't
@@ -509,6 +520,11 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 	}
 	emitInstsWithCallSpills(&sb, insts, desc, paramPhys)
 
+	// Post-emit peephole optimization
+	asmPeepholed := Z80Peephole(sb.String())
+	sb.Reset()
+	sb.WriteString(asmPeepholed)
+
 	// Tail call optimization: if last emitted instruction is CALL, replace with JP.
 	asmSoFar := sb.String()
 	if idx := strings.LastIndex(asmSoFar, "    CALL "); idx >= 0 {
@@ -528,7 +544,15 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 	}
 	sb.WriteString("    RET\n")
 
-	return sb.String(), nil
+	asm := sb.String()
+
+	// Z80 validation — catch invalid instructions before they leave the compiler.
+	// Currently logs warnings; will hard-fail after WFC constraint bugs are fixed.
+	if errs := ValidateZ80Asm(asm); len(errs) > 0 {
+		LogValidationErrors(f.Name, asm, errs)
+	}
+
+	return asm, nil
 }
 
 // emitInstsWithCallSpills emits assembly with PUSH/POP pairs around CALL
