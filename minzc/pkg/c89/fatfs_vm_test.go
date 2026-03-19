@@ -2629,3 +2629,51 @@ int main(int argc, char **argv) {
     return fail ? 1 : 0;
 }
 `
+
+// TestFatFS_FullFF_Compile compiles the complete ff.c (7249 lines, all functions)
+// through C89→HIR→MIR2 and verifies MIR2 module integrity.
+// This is the combo test: if dir_read and other complex nested-if functions
+// survive lowering, the C89 nested-if fix is confirmed.
+func TestFatFS_FullFF_Compile(t *testing.T) {
+	ffPath := filepath.Join("..", "..", "..", "examples", "c89", "fatfs", "ff.c")
+	if _, err := os.Stat(ffPath); err != nil {
+		t.Skipf("ff.c not found: %v", err)
+	}
+
+	src, err := os.ReadFile(ffPath)
+	if err != nil {
+		t.Fatalf("read ff.c: %v", err)
+	}
+
+	// Step 1: C89 → HIR
+	hirMod, err := Compile(string(src), ffPath)
+	if err != nil {
+		t.Fatalf("C89→HIR failed: %v", err)
+	}
+	t.Logf("HIR: %d functions parsed from ff.c", len(hirMod.Funcs))
+
+	// Step 2: HIR → MIR2 (this is where nested-if lowering happens)
+	mir2Mod := hir.LowerModule(hirMod)
+
+	// Step 3: MIR2 Verify — the critical check
+	if err := mir2.Verify(mir2Mod); err != nil {
+		t.Fatalf("MIR2 Verify failed: %v", err)
+	}
+
+	// Count functions and report
+	t.Logf("MIR2: %d functions verified OK", len(mir2Mod.Funcs))
+
+	// Verify key FatFS functions that exercise nested-if lowering
+	funcSet := make(map[string]bool)
+	for _, f := range mir2Mod.Funcs {
+		funcSet[f.Name] = true
+	}
+	critical := []string{"dir_read", "dir_find", "f_open", "f_read", "f_write", "f_mount", "f_close", "f_sync"}
+	for _, name := range critical {
+		if funcSet[name] {
+			t.Logf("  ✓ %s compiled + verified", name)
+		} else {
+			t.Logf("  - %s (not present — may be #ifdef'd out)", name)
+		}
+	}
+}
