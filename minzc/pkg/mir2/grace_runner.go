@@ -159,6 +159,22 @@ const graceTailRecursionRule = `
     (custom "elimTailRecursion" ?b)))
 `
 
+// Redundant load elimination: when a block loads from the same address
+// that a dominating block already loaded, replace with the previous result.
+// This catches the max_array pattern: load buf[i] for compare, then load
+// buf[i] again in the then-branch for assignment.
+const graceRedundantLoadRule = `
+(grace redundant-load 43
+  (match
+    (block ?pred)
+    (block ?succ)
+    (edge ?pred ?succ "succ"))
+  (where
+    (has-redundant-load ?pred ?succ))
+  (action
+    (custom "elimRedundantLoad" ?pred ?succ)))
+`
+
 const graceParamForwardRule = `
 (grace param-forward-elim 38
   (match
@@ -236,7 +252,8 @@ func loadAllRules() ([]grace.GraceRule, error) {
 	cachedRulesOnce.Do(func() {
 		allSrc := graceCondRetSinkRule + graceSplitJoinRetRule + graceDeadBlockArgRule + graceDSERule + graceFuseAbsDiffRule +
 			graceEmptyBlockElimRule + graceBlockMergeRule + graceTrivialBranchRule + graceParamForwardRule + graceFuseCmpBrIf2Rule +
-			graceTailCallRule + graceNarrowArithRule + graceTailRecursionRule
+			graceTailCallRule + graceNarrowArithRule + graceTailRecursionRule +
+			graceRedundantLoadRule
 		cachedRules, cachedRulesErr = grace.ParseRules(allSrc)
 	})
 	return cachedRules, cachedRulesErr
@@ -637,6 +654,45 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		return false
 	})
 
+	// has-redundant-load: successor block has a load whose address is computed
+	// from the SAME values as a load in the predecessor block.
+	// Uses value numbering: traces ptr_add(base, ext(i)) back to the underlying
+	// block params / function params to check equivalence.
+	reg.RegisterPredicate("has-redundant-load", func(graph rewrite.IRGraph, bindings grace.BlockBindings, args []string) bool {
+		predLabel := bindings[args[0]]
+		succLabel := bindings[args[1]]
+		pred := f.BlockByLabel(predLabel)
+		succ := f.BlockByLabel(succLabel)
+		if pred == nil || succ == nil {
+			return false
+		}
+		// Value-number each load address in pred
+		predLoadKeys := map[string]*Inst{}
+		for _, inst := range pred.Insts {
+			if inst.Op == OpLoad {
+				key := valueKey(inst.Src[0], f)
+				if key != "" {
+					predLoadKeys[key] = inst
+				}
+			}
+		}
+		if len(predLoadKeys) == 0 {
+			return false
+		}
+		// Check successor loads
+		for _, inst := range succ.Insts {
+			if inst.Op == OpLoad {
+				key := valueKey(inst.Src[0], f)
+				if key != "" {
+					if _, ok := predLoadKeys[key]; ok {
+						return true
+					}
+				}
+			}
+		}
+		return false
+	})
+
 	// has-self-tail-call: block ends with ret(call_to_self). The call is to the
 	// same function we're in, and the return value is the call's result.
 	reg.RegisterPredicate("has-self-tail-call", func(graph rewrite.IRGraph, bindings grace.BlockBindings, args []string) bool {
@@ -816,6 +872,77 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 			}
 		}
 		return true
+	})
+
+	// elimRedundantLoad: when successor recomputes a load that predecessor
+	// already did (same address by value numbering), pass the loaded value
+	// as a block arg and remove the redundant load.
+	reg.RegisterAction("elimRedundantLoad", func(graph rewrite.IRGraphMut, bindings grace.BlockBindings) bool {
+		predLabel := bindings["pred"]
+		succLabel := bindings["succ"]
+		pred := f.BlockByLabel(predLabel)
+		succ := f.BlockByLabel(succLabel)
+		if pred == nil || succ == nil {
+			return false
+		}
+
+		// Value-number pred loads
+		type loadInfo struct {
+			inst *Inst
+			key  string
+		}
+		var predLoads []loadInfo
+		for _, inst := range pred.Insts {
+			if inst.Op == OpLoad {
+				key := valueKey(inst.Src[0], f)
+				if key != "" {
+					predLoads = append(predLoads, loadInfo{inst, key})
+				}
+			}
+		}
+
+		changed := false
+		for _, pl := range predLoads {
+			for si, succInst := range succ.Insts {
+				if succInst.Op != OpLoad {
+					continue
+				}
+				succKey := valueKey(succInst.Src[0], f)
+				if succKey != pl.key {
+					continue
+				}
+
+				// Found redundant load!
+				newParam := f.AllocReg()
+				succ.Params = append(succ.Params, BlockParam{
+					Dst:   newParam,
+					Ty:    succInst.Ty,
+					Class: succInst.Cls,
+				})
+
+				addEdgeArg(pred, succLabel, pl.inst.Dst)
+
+				oldDst := succInst.Dst
+				for _, inst := range succ.Insts {
+					for si := range inst.Src {
+						if inst.Src[si] == oldDst {
+							inst.Src[si] = newParam
+						}
+					}
+				}
+				if succ.Term != nil {
+					remapTermRegs(succ.Term, map[Reg]Reg{oldDst: newParam})
+				}
+
+				succ.Insts = append(succ.Insts[:si], succ.Insts[si+1:]...)
+				changed = true
+				break
+			}
+			if changed {
+				break
+			}
+		}
+		return changed
 	})
 
 	// elimTailRecursion: replace CALL self + RET with JMP to a loop head block.
@@ -1234,6 +1361,86 @@ func RunGraceDSE(f *Func) {
 	graph := FuncAsMutGraph(f)
 	// Run to fixpoint — removing one dead inst may expose another
 	grace.ApplyRules(graph, rules, reg, 100)
+}
+
+// valueKey computes a string key representing the "value" of a register,
+// tracing through extensions and ptr_add to the underlying block params.
+// E.g. ptr_add(%r26, ext(%r27)) → "ptr_add(bp:r26,ext(bp:r27))"
+// Returns "" if the value cannot be determined.
+func valueKey(r Reg, f *Func) string {
+	return valueKeyDepth(r, f, 5) // max depth to prevent infinite loops
+}
+
+func valueKeyDepth(r Reg, f *Func, depth int) string {
+	if depth <= 0 {
+		return ""
+	}
+	// Check if r is a block param — use the param's position as identity
+	for _, b := range f.Blocks {
+		for pi, p := range b.Params {
+			if p.Dst == r {
+				return fmt.Sprintf("bp:%s:%d", b.Label, pi)
+			}
+		}
+	}
+	// Check function params
+	for pi, p := range f.Contract.Params {
+		if p.Reg == r {
+			return fmt.Sprintf("fp:%d", pi)
+		}
+	}
+	// Find the defining instruction
+	for _, b := range f.Blocks {
+		for _, inst := range b.Insts {
+			if inst.Dst != r {
+				continue
+			}
+			switch inst.Op {
+			case OpExt, OpSext:
+				inner := valueKeyDepth(inst.Src[0], f, depth-1)
+				if inner == "" {
+					return ""
+				}
+				return fmt.Sprintf("ext(%s)", inner)
+			case OpPtrAdd:
+				k0 := valueKeyDepth(inst.Src[0], f, depth-1)
+				k1 := valueKeyDepth(inst.Src[1], f, depth-1)
+				if k0 == "" || k1 == "" {
+					return ""
+				}
+				return fmt.Sprintf("ptr_add(%s,%s)", k0, k1)
+			case OpConst:
+				return fmt.Sprintf("const(%d)", inst.Imm)
+			default:
+				return fmt.Sprintf("r%d", r)
+			}
+		}
+	}
+	return fmt.Sprintf("r%d", r)
+}
+
+// addEdgeArg adds a register to all outgoing edges from block to target.
+func addEdgeArg(block *Block, target string, reg Reg) {
+	if block.Term == nil {
+		return
+	}
+	switch t := block.Term.(type) {
+	case *TermJmp:
+		if t.Target == target {
+			t.Args = append(t.Args, reg)
+		}
+	case *TermBrIf:
+		if t.Then == target {
+			t.ThenArgs = append(t.ThenArgs, reg)
+		}
+		if t.Else == target {
+			t.ElseArgs = append(t.ElseArgs, reg)
+		}
+	case *TermCondRet:
+		if t.Then == target {
+			t.ThenArgs = append(t.ThenArgs, reg)
+		}
+	}
 }
 
 // remapTermRegs replaces register references in a terminator using remap.
