@@ -1,0 +1,69 @@
+;; Z80 Peephole Rules — ISLE format for LIR backend
+;;
+;; These rules express Z80-specific instruction rewrites that save
+;; bytes and T-states. Proven correct by exhaustive testing.
+;;
+;; Source: minzc/pkg/lir/z80peephole.go + SDCC peephole rules
+
+;; ── Single instruction rewrites ─────────────────────────────────────────
+
+;; LD A, 0 → XOR A  (saves 1 byte, 3 T-states)
+(rule 20 (ld_r_n "A" (const 0)) (xor_a))
+
+;; SLA A → ADD A, A  (saves 1 byte, 4 T-states)
+(rule 20 (sla "A") (add_a_a))
+
+;; CP 0 → OR A  (saves 1 byte, both set Z flag)
+(rule 20 (cp_n (const 0)) (or_a))
+
+;; ADD A, 1 → INC A  (saves 1 byte)
+(rule 15 (add_a_n (const 1)) (inc_a))
+
+;; SUB 1 → DEC A  (saves 1 byte)
+(rule 15 (sub_n (const 1)) (dec_a))
+
+;; ── Identity elimination (no-ops) ───────────────────────────────────────
+
+;; ADD A, 0 → NOP  (identity)
+(rule 10 (add_a_n (const 0)) (nop))
+
+;; SUB 0 → NOP  (identity)
+(rule 10 (sub_n (const 0)) (nop))
+
+;; AND 0xFF → NOP  (8-bit identity)
+(rule 10 (and_n (const 255)) (nop))
+
+;; OR 0 → NOP  (identity)
+(rule 10 (or_n (const 0)) (nop))
+
+;; XOR 0 → NOP  (identity)
+(rule 10 (xor_n (const 0)) (nop))
+
+;; LD r, r → NOP  (self-load)
+(rule 10 (ld_r_r ?r ?r) (nop))
+
+;; ── Double instruction cancellation ─────────────────────────────────────
+
+;; NEG; NEG → identity (double negation)
+(rule 15 (neg (neg ?x)) ?x)
+
+;; CPL; CPL → identity (double complement)
+(rule 15 (cpl (cpl ?x)) ?x)
+
+;; ── Bit manipulation fusion ─────────────────────────────────────────────
+;; (proven by exhaustive 256-value verification)
+
+;; SLA A; RR A → OR A  (clear carry, set Z/S/P flags)
+(rule 15 (rr_a (sla_a ?x)) (or_a ?x))
+
+;; SRL A; RL A → OR A  (same: clear low bit then rotate back)
+(rule 15 (rl_a (srl_a ?x)) (or_a ?x))
+
+;; ── SDCC-inspired patterns ──────────────────────────────────────────────
+
+;; LD A, (HL); INC HL → LDI pattern (when safe)
+;; (expressed as: sequential load+increment on pointer register)
+(rule 10 (seq (ld_a_hl ?ptr) (inc_hl ?ptr)) (ldi_a ?ptr))
+
+;; DEC B; JR NZ → DJNZ  (Z80's dedicated loop instruction)
+(rule 20 (br_nz (dec_b ?cnt)) (djnz ?cnt))

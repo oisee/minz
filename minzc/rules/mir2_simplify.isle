@@ -43,3 +43,52 @@
 ;; INC/DEC peephole
 (rule 10 (add ?x (const 1)) (inc ?x))
 (rule 10 (sub ?x (const 1)) (dec ?x))
+
+;; ── From SimplifyIdentities (constprop.go) ──────────────────────────────
+
+;; Sub(0, x) → Neg(x) — zero minus x is negation
+(rule (sub (const 0) ?x) (neg ?x))
+
+;; PtrAdd(x, 0) → x — null offset is identity
+(rule (ptr_add ?x (const 0)) ?x)
+
+;; ── Multiply strength reduction (from SDCC + combine.go) ────────────────
+
+;; x*2 → x+x (ADD is 1 byte, MUL would be a call)
+(rule 15 (mul ?x (const 2)) (add ?x ?x))
+(rule 15 (mul (const 2) ?x) (add ?x ?x))
+
+;; x*4 → shl(x, 2)
+(rule 15 (mul ?x (const 4)) (shl ?x (const 2)))
+(rule 15 (mul (const 4) ?x) (shl ?x (const 2)))
+
+;; x*8 → shl(x, 3)
+(rule 15 (mul ?x (const 8)) (shl ?x (const 3)))
+(rule 15 (mul (const 8) ?x) (shl ?x (const 3)))
+
+;; ── Bitwise identities ──────────────────────────────────────────────────
+
+;; AND with self = self
+(rule (and ?x ?x) ?x)
+
+;; OR with self = self
+(rule (or ?x ?x) ?x)
+
+;; XOR with zero = identity (both operand positions)
+(rule (xor ?x (const 0)) ?x)
+(rule (xor (const 0) ?x) ?x)
+
+;; ── Comparison simplification ───────────────────────────────────────────
+
+;; cmp(x, x) — comparing equal values
+;; (always true for eq/le/ge, always false for ne/lt/gt)
+;; Expressed as: cmp(x, x) → const_true for eq
+(rule (cmp_eq ?x ?x) (const 1))
+(rule (cmp_ne ?x ?x) (const 0))
+
+;; ── Extension/truncation identities ─────────────────────────────────────
+
+;; Truncate(Extend(x)) when widths cancel → identity
+;; (expressed via nested call patterns)
+(rule (trunc (ext ?x)) ?x)
+(rule (trunc (sext ?x)) ?x)

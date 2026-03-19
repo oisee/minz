@@ -71,6 +71,41 @@ const graceDSERule = `
     (custom "elimDeadInsts" ?b)))
 `
 
+const graceEmptyBlockElimRule = `
+(grace empty-block-elim 40
+  (match
+    (block ?e (term-kind "jump")))
+  (where
+    (inst-count ?e == 0)
+    (param-count ?e == 0)
+    (is-not-entry ?e))
+  (action
+    (custom "redirectAndDelete" ?e)))
+`
+
+const graceBlockMergeRule = `
+(grace block-merge 35
+  (match
+    (block ?p (term-kind "jump"))
+    (block ?s)
+    (edge ?p ?s "succ"))
+  (where
+    (pred-count ?s == 1)
+    (param-count ?s == 0))
+  (action
+    (custom "mergeBlocks" ?p ?s)))
+`
+
+const graceTrivialBranchRule = `
+(grace trivial-branch 30
+  (match
+    (block ?b (term-kind "br_if")))
+  (where
+    (same-targets ?b))
+  (action
+    (custom "branchToJump" ?b)))
+`
+
 const graceFuseAbsDiffRule = `
 (grace fuse-abs-diff 10
   (match
@@ -133,7 +168,8 @@ var (
 
 func loadAllRules() ([]grace.GraceRule, error) {
 	cachedRulesOnce.Do(func() {
-		allSrc := graceCondRetSinkRule + graceSplitJoinRetRule + graceDeadBlockArgRule + graceDSERule + graceFuseAbsDiffRule
+		allSrc := graceCondRetSinkRule + graceSplitJoinRetRule + graceDeadBlockArgRule + graceDSERule + graceFuseAbsDiffRule +
+			graceEmptyBlockElimRule + graceBlockMergeRule + graceTrivialBranchRule
 		cachedRules, cachedRulesErr = grace.ParseRules(allSrc)
 	})
 	return cachedRules, cachedRulesErr
@@ -449,6 +485,127 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		}
 		_ = origLen
 		return changed
+	})
+
+	// ── New Block-Level Predicates ──────────────────────────────────────
+
+	// is-not-entry: block is not the function entry
+	reg.RegisterPredicate("is-not-entry", func(graph rewrite.IRGraph, bindings grace.BlockBindings, args []string) bool {
+		label := bindings[args[0]]
+		return len(f.Blocks) > 0 && f.Blocks[0].Label != label
+	})
+
+	// same-targets: br_if where both targets are the same block
+	reg.RegisterPredicate("same-targets", func(graph rewrite.IRGraph, bindings grace.BlockBindings, args []string) bool {
+		label := bindings[args[0]]
+		blk := f.BlockByLabel(label)
+		if blk == nil {
+			return false
+		}
+		brif, ok := blk.Term.(*TermBrIf)
+		if !ok {
+			return false
+		}
+		return brif.Then == brif.Else
+	})
+
+	// ── New Block-Level Actions ─────────────────────────────────────────
+
+	// redirectAndDelete: redirect all predecessors of block to its target, then delete.
+	// Safety: only redirect if the target block has no params (otherwise arg counts mismatch).
+	reg.RegisterAction("redirectAndDelete", func(graph rewrite.IRGraphMut, bindings grace.BlockBindings) bool {
+		label := bindings["e"]
+		blk := f.BlockByLabel(label)
+		if blk == nil {
+			return false
+		}
+		jmp, ok := blk.Term.(*TermJmp)
+		if !ok || jmp.Target == "" {
+			return false
+		}
+		// Safety: target block must have 0 params, or jmp must carry matching args
+		targetBlk := f.BlockByLabel(jmp.Target)
+		if targetBlk != nil && len(targetBlk.Params) > 0 && len(jmp.Args) != len(targetBlk.Params) {
+			return false
+		}
+		newTarget := jmp.Target
+		newArgs := jmp.Args
+		changed := false
+		for _, b := range f.Blocks {
+			if b.Term == nil {
+				continue
+			}
+			switch t := b.Term.(type) {
+			case *TermJmp:
+				if t.Target == label {
+					t.Target = newTarget
+					t.Args = newArgs
+					changed = true
+				}
+			case *TermBrIf:
+				if t.Then == label {
+					t.Then = newTarget
+					t.ThenArgs = newArgs
+					changed = true
+				}
+				if t.Else == label {
+					t.Else = newTarget
+					t.ElseArgs = newArgs
+					changed = true
+				}
+			case *TermCondRet:
+				if t.Then == label {
+					t.Then = newTarget
+					t.ThenArgs = newArgs
+					changed = true
+				}
+			}
+		}
+		if changed {
+			for i, b := range f.Blocks {
+				if b.Label == label {
+					f.Blocks = append(f.Blocks[:i], f.Blocks[i+1:]...)
+					break
+				}
+			}
+		}
+		return changed
+	})
+
+	// mergeBlocks: merge successor into predecessor
+	reg.RegisterAction("mergeBlocks", func(graph rewrite.IRGraphMut, bindings grace.BlockBindings) bool {
+		pLabel := bindings["p"]
+		sLabel := bindings["s"]
+		pred := f.BlockByLabel(pLabel)
+		succ := f.BlockByLabel(sLabel)
+		if pred == nil || succ == nil {
+			return false
+		}
+		pred.Insts = append(pred.Insts, succ.Insts...)
+		pred.Term = succ.Term
+		// Remove successor block
+		for i, b := range f.Blocks {
+			if b.Label == sLabel {
+				f.Blocks = append(f.Blocks[:i], f.Blocks[i+1:]...)
+				break
+			}
+		}
+		return true
+	})
+
+	// branchToJump: convert trivial br_if (same targets) to jump
+	reg.RegisterAction("branchToJump", func(graph rewrite.IRGraphMut, bindings grace.BlockBindings) bool {
+		label := bindings["b"]
+		blk := f.BlockByLabel(label)
+		if blk == nil {
+			return false
+		}
+		brif, ok := blk.Term.(*TermBrIf)
+		if !ok || brif.Then != brif.Else {
+			return false
+		}
+		blk.Term = &TermJmp{Target: brif.Then, Args: brif.ThenArgs}
+		return true
 	})
 
 	return reg
