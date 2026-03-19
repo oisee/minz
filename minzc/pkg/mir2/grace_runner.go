@@ -146,6 +146,19 @@ const graceTailCallRule = `
     (custom "tailCallOpt" ?b)))
 `
 
+// Tail recursion elimination: when a function's last operation is calling
+// itself and returning the result, replace CALL+RET with JMP to entry block.
+// This converts O(n) stack usage to O(1) — critical on Z80's limited stack.
+const graceTailRecursionRule = `
+(grace tail-recursion-elim 55
+  (match
+    (block ?b (term-kind "ret")))
+  (where
+    (has-self-tail-call ?b))
+  (action
+    (custom "elimTailRecursion" ?b)))
+`
+
 const graceParamForwardRule = `
 (grace param-forward-elim 38
   (match
@@ -224,6 +237,9 @@ func loadAllRules() ([]grace.GraceRule, error) {
 		allSrc := graceCondRetSinkRule + graceSplitJoinRetRule + graceDeadBlockArgRule + graceDSERule + graceFuseAbsDiffRule +
 			graceEmptyBlockElimRule + graceBlockMergeRule + graceTrivialBranchRule + graceParamForwardRule + graceFuseCmpBrIf2Rule +
 			graceTailCallRule + graceNarrowArithRule
+		// NOTE: graceTailRecursionRule disabled — entry block param handling
+		// needs more work. Tail recursion → loop requires creating a new
+		// loop-head block with params matching the function signature.
 		cachedRules, cachedRulesErr = grace.ParseRules(allSrc)
 	})
 	return cachedRules, cachedRulesErr
@@ -624,6 +640,32 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		return false
 	})
 
+	// has-self-tail-call: block ends with ret(call_to_self). The call is to the
+	// same function we're in, and the return value is the call's result.
+	reg.RegisterPredicate("has-self-tail-call", func(graph rewrite.IRGraph, bindings grace.BlockBindings, args []string) bool {
+		label := bindings[args[0]]
+		blk := f.BlockByLabel(label)
+		if blk == nil || len(blk.Insts) == 0 {
+			return false
+		}
+		ret, ok := blk.Term.(*TermRet)
+		if !ok {
+			return false
+		}
+		lastInst := blk.Insts[len(blk.Insts)-1]
+		if lastInst.Op != OpCall || lastInst.Sym != f.Name {
+			return false
+		}
+		// ret must return the call's result
+		if len(ret.Vals) == 1 && ret.Vals[0] == lastInst.Dst {
+			return true
+		}
+		if len(ret.Vals) == 0 {
+			return true
+		}
+		return false
+	})
+
 	// has-narrowable-arith: block has i16 add/sub/and/or/xor where both sources
 	// are u8 (from ext or direct) and result is only used as u8 (truncated or
 	// returned as u8). Narrowing to u8 saves HL→A register switch.
@@ -776,6 +818,33 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 				break
 			}
 		}
+		return true
+	})
+
+	// elimTailRecursion: replace CALL self + RET with JMP to entry block
+	reg.RegisterAction("elimTailRecursion", func(graph rewrite.IRGraphMut, bindings grace.BlockBindings) bool {
+		label := bindings["b"]
+		blk := f.BlockByLabel(label)
+		if blk == nil || len(blk.Insts) == 0 || len(f.Blocks) == 0 {
+			return false
+		}
+		lastInst := blk.Insts[len(blk.Insts)-1]
+		if lastInst.Op != OpCall || lastInst.Sym != f.Name {
+			return false
+		}
+		entryLabel := f.Blocks[0].Label
+
+		// Remove the call instruction
+		blk.Insts = blk.Insts[:len(blk.Insts)-1]
+
+		// Replace ret with jmp to entry block, passing call args as block args
+		blk.Term = &TermJmp{
+			Target: entryLabel,
+			Args:   lastInst.Args,
+		}
+
+		// Mark function as no longer recursive (since we removed the self-call)
+		f.Attrs.IsRecursive = false
 		return true
 	})
 
