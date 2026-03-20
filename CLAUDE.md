@@ -423,6 +423,11 @@ fun main() {
 | LIR backend | **948/948 pipeline** (100%), **97.9% VM-verified** (C89/risc32) — PBQP→WFC guided, IXH/IXL spill, __mul8/__mul16, tail call opt |
 | MIR backend tests | 9/11 pass, 2 known bugs (ADR-0006) |
 | Frontends | 7 (Nanz, C89, PL/M, Lanz, Lizp, Pascal, **ABAP**) — all route through HIR→MIR2→Z80 |
+
+> **Note on C89 frontend:** C language support exists to demonstrate compiler maturity and
+> enable benchmarking against SDCC — it is not a priority. We recommend **Nanz** as the
+> primary language: it has zero-cost lambdas, pipe operators, iterator fusion, pattern
+> matching, and compile-time evaluation that C simply cannot express. Use Nanz. Have fun.
 | C89 corpus | 333/333 asserts, 36 files (MIR2) / 700/720 LIR convergence (97.2%) |
 | ABAP examples | 8 programs (hello, fibonacci, fizzbuzz, guessing, bubblesort, forms, oop, sysinfo) |
 | E2E Z80 tests | 24 (fibonacci, flag-return, div8, div16, mod8, divmod-combined + 6502) |
