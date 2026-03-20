@@ -504,6 +504,8 @@ type z80cg struct {
 	deadConsts     map[Reg]bool  // OpConst dsts whose LD is suppressed by DSE
 	needsCallHL    bool          // emit __call_hl trampoline (JP (HL)) at end of module
 	needsMul8      bool          // emit __mul8 runtime (A*B→A) at end of module
+	tsmcPairs      []tsmcSpillPair // TSMC spill-reload pairs for current function
+	curInstIdx     int             // current instruction index within block (for TSMC matching)
 
 	// holdsPhys is a bidirectional alias map for local copy-propagation within a
 	// basic block.  holdsPhys[r] = s means physical register r currently holds the
@@ -962,6 +964,11 @@ func (g *z80cg) genFunc(f *Func) {
 		}
 	}
 	g.deadConsts = computeDeadConsts(f, g.ar)
+	// TSMC spill: scan for spill-reload pairs in non-recursive functions.
+	g.tsmcPairs = nil
+	if !isRecursive(f) {
+		g.tsmcPairs = scanTSMCSpillPairs(f, g.ar)
+	}
 	g.holdsPhys = make(map[string]string)
 	g.physOverride = make(map[Reg]string)
 	g.trampolines = g.trampolines[:0]
@@ -1572,7 +1579,8 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	// loads A last (right before the call).  Safe when neither depends on the other.
 	reordered := reorderAccMoves(b.Insts[:limit], g.ar)
 
-	for _, inst := range reordered {
+	for instIdx, inst := range reordered {
+		g.curInstIdx = instIdx
 		g.genInst(inst)
 	}
 
@@ -1656,15 +1664,29 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.emitf("    LD %s, %d", dst, hi)
 				g.emit("    EXX")
 			} else if strings.HasPrefix(dst, "$") {
-				// LocMem spill: only LD (nn),A / LD (nn),HL are valid.
-				if w <= 8 {
-					g.emitf("    LD A, %d", inst.Imm&0xFF)
-					g.emitf("    LD (%s), A", dst)
-					g.invalidate("A")
+				// LocMem spill destination.
+				// TSMC: if eligible, patch reload sites instead of memory store.
+				if pair := g.tsmcSpillPairFor(inst.Dst); pair != nil {
+					if w <= 8 {
+						g.emitf("    LD A, %d", inst.Imm&0xFF)
+						g.emitTSMCSpill(pair, "A")
+						g.invalidate("A")
+					} else {
+						g.emitf("    LD HL, %d", inst.Imm&0xFFFF)
+						g.emitTSMCSpill(pair, "HL")
+						g.invalidate("HL")
+					}
 				} else {
-					g.emitf("    LD HL, %d", inst.Imm&0xFFFF)
-					g.emitf("    LD (%s), HL", dst)
-					g.invalidate("HL")
+					// Traditional spill
+					if w <= 8 {
+						g.emitf("    LD A, %d", inst.Imm&0xFF)
+						g.emitf("    LD (%s), A", dst)
+						g.invalidate("A")
+					} else {
+						g.emitf("    LD HL, %d", inst.Imm&0xFFFF)
+						g.emitf("    LD (%s), HL", dst)
+						g.invalidate("HL")
+					}
 				}
 			} else {
 				g.emitf("    LD %s, %d", dst, inst.Imm)
@@ -4651,19 +4673,36 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 	if widthBits <= 8 {
 		// LocMem spill slot: "LD r, $Fxxx" and "LD $Fxxx, r" are not valid Z80.
 		// Only "LD A, (nn)" and "LD (nn), A" work for absolute 8-bit memory I/O.
-		// Route all other combinations through A.
+		// TSMC spill: use self-modifying code when eligible.
 		switch {
 		case strings.HasPrefix(src, "$") && dst == "A":
-			g.emitf("    LD A, (%s)", src)
+			if pair := g.tsmcPairByAddr(src); pair != nil {
+				g.emitTSMCReload(g.tsmcReloadLabel(pair.reg, g.blockIdx, g.curInstIdx, 0), "A", 8)
+			} else {
+				g.emitf("    LD A, (%s)", src)
+			}
 		case strings.HasPrefix(src, "$"):
-			g.emitf("    LD A, (%s)", src)
-			g.emitf("    LD %s, A", dst)
-			g.invalidate("A")
+			if pair := g.tsmcPairByAddr(src); pair != nil {
+				g.emitTSMCReload(g.tsmcReloadLabel(pair.reg, g.blockIdx, g.curInstIdx, 0), dst, 8)
+			} else {
+				g.emitf("    LD A, (%s)", src)
+				g.emitf("    LD %s, A", dst)
+				g.invalidate("A")
+			}
 		case strings.HasPrefix(dst, "$") && src == "A":
-			g.emitf("    LD (%s), A", dst)
+			if pair := g.tsmcPairByAddr(dst); pair != nil {
+				g.emitTSMCSpill(pair, "A")
+			} else {
+				g.emitf("    LD (%s), A", dst)
+			}
 		case strings.HasPrefix(dst, "$"):
-			g.emitLDA(src)
-			g.emitf("    LD (%s), A", dst)
+			if pair := g.tsmcPairByAddr(dst); pair != nil {
+				g.emitLDA(src)
+				g.emitTSMCSpill(pair, "A")
+			} else {
+				g.emitLDA(src)
+				g.emitf("    LD (%s), A", dst)
+			}
 		default:
 			// Width mismatch: 8-bit move but one operand is a register pair.
 			// pair→8bit: truncate (take low byte). 8bit→pair: zero-extend.
