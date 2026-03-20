@@ -5387,6 +5387,11 @@ func canonicalReturnLoc(cls RegClass, ty Ty) string {
 		return "DE"
 	case ClassCounter:
 		return "B"
+	case ClassGeneral:
+		if w <= 8 {
+			return "C"
+		}
+		return "HL"
 	default:
 		if w <= 8 {
 			return "A"
