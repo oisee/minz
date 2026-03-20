@@ -1,0 +1,93 @@
+; Source: https://github.com/jacobly0/fasmg-ez80/blob/main/tests/ez80insts.src
+; License: Unlicense (https://github.com/jacobly0/fasmg-ez80/blob/main/README.md)
+; Description: eZ80 .SIS suffix instructions with hex encodings.
+;              .SIS = Short Index, Short (16-bit operands, 16-bit index)
+;              Prefix byte: 40h
+;
+; Format: MNEMONIC ; expected_hex_encoding
+
+	NOP.SIS  ; 4000
+	LD.SIS BC,$0000 ; 4001 $0000
+	LD.SIS (BC),A ; 4002
+	INC.SIS BC ; 4003
+	INC.SIS B ; 4004
+	DEC.SIS B ; 4005
+	LD.SIS B,$00 ; 4006 $00
+	RLCA.SIS  ; 4007
+	EX.SIS AF,AF' ; 4008
+	ADD.SIS HL,BC ; 4009
+	LD.SIS A,(BC) ; 400A
+	DEC.SIS BC ; 400B
+	INC.SIS C ; 400C
+	DEC.SIS C ; 400D
+	LD.SIS C,$00 ; 400E $00
+	RRCA.SIS  ; 400F
+	DJNZ.SIS $+$00 ; 4010 $00
+	LD.SIS DE,$0000 ; 4011 $0000
+	LD.SIS (DE),A ; 4012
+	INC.SIS DE ; 4013
+	INC.SIS D ; 4014
+	DEC.SIS D ; 4015
+	LD.SIS D,$00 ; 4016 $00
+	RLA.SIS  ; 4017
+	JR.SIS $+$00 ; 4018 $00
+	ADD.SIS HL,DE ; 4019
+	LD.SIS A,(DE) ; 401A
+	DEC.SIS DE ; 401B
+	INC.SIS E ; 401C
+	DEC.SIS E ; 401D
+	LD.SIS E,$00 ; 401E $00
+	RRA.SIS  ; 401F
+	JR.SIS NZ,$+$00 ; 4020 $00
+	LD.SIS HL,$0000 ; 4021 $0000
+	LD.SIS ($0000),HL ; 4022 $0000
+	INC.SIS HL ; 4023
+	INC.SIS H ; 4024
+	DEC.SIS H ; 4025
+	LD.SIS H,$00 ; 4026 $00
+	DAA.SIS  ; 4027
+	JR.SIS Z,$+$00 ; 4028 $00
+	ADD.SIS HL,HL ; 4029
+	LD.SIS HL,($0000) ; 402A $0000
+	DEC.SIS HL ; 402B
+	INC.SIS L ; 402C
+	DEC.SIS L ; 402D
+	LD.SIS L,$00 ; 402E $00
+	CPL.SIS  ; 402F
+	JR.SIS NC,$+$00 ; 4030 $00
+	LD.SIS SP,$0000 ; 4031 $0000
+	LD.SIS ($0000),A ; 4032 $0000
+	INC.SIS SP ; 4033
+	INC.SIS (HL) ; 4034
+	DEC.SIS (HL) ; 4035
+	LD.SIS (HL),$00 ; 4036 $00
+	SCF.SIS  ; 4037
+	JR.SIS C,$+$00 ; 4038 $00
+	ADD.SIS HL,SP ; 4039
+	LD.SIS A,($0000) ; 403A $0000
+	DEC.SIS SP ; 403B
+	INC.SIS A ; 403C
+	DEC.SIS A ; 403D
+	LD.SIS A,$00 ; 403E $00
+	CCF.SIS  ; 403F
+	LD.SIS B,C ; 4041
+	LD.SIS B,D ; 4042
+	LD.SIS B,E ; 4043
+	LD.SIS B,H ; 4044
+	LD.SIS B,L ; 4045
+	LD.SIS B,(HL) ; 4046
+	LD.SIS B,A ; 4047
+	LD.SIS C,B ; 4048
+	LD.SIS C,D ; 404A
+	LD.SIS C,E ; 404B
+	LD.SIS C,H ; 404C
+	LD.SIS C,L ; 404D
+	LD.SIS C,(HL) ; 404E
+	LD.SIS C,A ; 404F
+	LD.SIS D,B ; 4050
+	LD.SIS D,C ; 4051
+	LD.SIS D,E ; 4053
+	LD.SIS D,H ; 4054
+	LD.SIS D,L ; 4055
+	LD.SIS D,(HL) ; 4056
+	LD.SIS D,A ; 4057
