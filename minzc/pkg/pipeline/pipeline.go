@@ -168,7 +168,12 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	// Run BEFORE LUTGen so that synthetic LUT functions (which have hardcoded
 	// class requirements in their Sub instructions) are not re-optimised and
 	// given a conflicting class (BUG-004).
-	ct := mir2.Z80CostTable{}
+	var ct mir2.CostTable
+	if opt.Backend == "ez80" {
+		ct = ez80.EZ80CostTable{}
+	} else {
+		ct = mir2.Z80CostTable{}
+	}
 	cs := mir2.OptimizeContracts(m, ct)
 	mir2.ApplyContracts(m, cs)
 
