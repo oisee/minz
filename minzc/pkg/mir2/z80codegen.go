@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/minz/minzc/pkg/z80validate"
 )
 
 // Z80Codegen lowers allocated MIR2 to Z80 assembly text (.a80 format).
@@ -72,8 +74,14 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) string {
 	}
 
 	for _, f := range funcs {
+		startLen := sb.Len()
 		cg.genFunc(f)
 		sb.WriteByte('\n')
+		// Z80 validation: catch invalid instructions at compile time.
+		funcAsm := sb.String()[startLen:]
+		if errs := z80validate.Validate(funcAsm); len(errs) > 0 {
+			z80validate.LogErrors(f.Name, errs)
+		}
 	}
 
 	// Emit global variable data sections.
@@ -184,6 +192,29 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) string {
 		sb.WriteString("    JP (HL)\n")
 	}
 
+	// Emit __mul8 runtime: A = A * B (unsigned 8-bit multiply).
+	// Algorithm: add-and-shift, 8 iterations. Clobbers A, B, C, F.
+	if cg.needsMul8 {
+		sb.WriteString("\n; runtime: 8-bit multiply A*B → A (~80T)\n")
+		sb.WriteString("__mul8:\n")
+		sb.WriteString("    LD C, 0\n")       // C = result accumulator
+		sb.WriteString("    LD D, 8\n")       // D = bit counter
+		sb.WriteString(".__mul8_loop:\n")
+		sb.WriteString("    SRL B\n")         // shift multiplier right, LSB → CF
+		sb.WriteString("    JR NC, .__mul8_noadd\n")
+		sb.WriteString("    LD E, A\n")       // save A
+		sb.WriteString("    LD A, C\n")
+		sb.WriteString("    ADD A, E\n")      // C += multiplicand
+		sb.WriteString("    LD C, A\n")
+		sb.WriteString("    LD A, E\n")       // restore A
+		sb.WriteString(".__mul8_noadd:\n")
+		sb.WriteString("    ADD A, A\n")      // shift multiplicand left
+		sb.WriteString("    DEC D\n")
+		sb.WriteString("    JR NZ, .__mul8_loop\n")
+		sb.WriteString("    LD A, C\n")       // result in A
+		sb.WriteString("    RET\n")
+	}
+
 	return asmPeepholePass(sb.String())
 }
 
@@ -286,8 +317,8 @@ func elimSingleJpEqu(lines []string) []string {
 				}
 				if j < len(lines) {
 					instr := strings.TrimSpace(lines[j])
-					// Must be exactly "JP target" (not DJNZ, not JP cc).
-					if strings.HasPrefix(instr, "JP ") && !strings.Contains(instr, ",") {
+					// Must be exactly "JP target" (not DJNZ, not JP cc, not JP (HL)/(IX)/(IY)).
+					if strings.HasPrefix(instr, "JP ") && !strings.Contains(instr, ",") && !strings.Contains(instr, "(") {
 						target := strings.TrimSpace(strings.TrimPrefix(instr, "JP "))
 						// Check that the next non-blank/comment line after JP is
 						// a top-level label or end-of-section (not another instruction
@@ -472,6 +503,7 @@ type z80cg struct {
 	blockParamRegs map[Reg]bool  // regs that are block parameters (loop-variant, not const)
 	deadConsts     map[Reg]bool  // OpConst dsts whose LD is suppressed by DSE
 	needsCallHL    bool          // emit __call_hl trampoline (JP (HL)) at end of module
+	needsMul8      bool          // emit __mul8 runtime (A*B→A) at end of module
 
 	// holdsPhys is a bidirectional alias map for local copy-propagation within a
 	// basic block.  holdsPhys[r] = s means physical register r currently holds the
@@ -3205,19 +3237,39 @@ func (g *z80cg) genMul(inst *Inst) {
 			}
 			return
 		}
-		// x*3 = x + x*2: LD tmp,A; ADD A,A; ADD A,tmp
-		// x*5 = x + x*4: LD tmp,A; ADD A,A; ADD A,A; ADD A,tmp
-		// x*6 = x*2 + x*4: LD tmp,A; ADD A,A (tmp=x*2 in tmp); ADD A,A (A=x*4); ADD A,tmp
-		// x*9 = x + x*8:   LD tmp,A; 3×ADD A,A; ADD A,tmp
-		if cv == 3 || cv == 5 || cv == 6 || cv == 9 {
+		// x*3  = x + x*2;  x*5  = x + x*4;   x*6 = x*2 + x*4
+		// x*7  = x*8 - x;  x*9  = x + x*8;   x*10 = x*2 + x*8
+		// x*12 = x*4 + x*8; x*15 = x*16 - x
+		if cv == 3 || cv == 5 || cv == 6 || cv == 7 || cv == 9 || cv == 10 || cv == 12 || cv == 15 {
 			if !g.holdsValue("A", lhs) {
 				g.emitLDA(lhs)
 			}
-			// Pick a temp register that isn't A or dst.
+			// Pick a temp register that isn't A, dst, or any live 8-bit reg.
+			rhs := g.loc(inst.Src[1])
+			live := g.regsLiveAfterInst(inst)
 			tmp := "C"
-			if dst == "C" {
-				tmp = "D"
+			avoid := func(r string) bool {
+				return r == "A" || r == dst || r == rhs || live[inst.Src[0]] && r == g.loc(inst.Src[0])
 			}
+			// Also avoid any reg that holds a value used later in the block.
+			for _, cand := range []string{"C", "D", "E", "B"} {
+				conflict := false
+				if cand == "A" || cand == dst {
+					conflict = true
+				}
+				// Check if any live virtual is allocated to this candidate.
+				for vreg, isLive := range live {
+					if isLive && g.loc(vreg) == cand {
+						conflict = true
+						break
+					}
+				}
+				if !conflict {
+					tmp = cand
+					break
+				}
+			}
+			_ = avoid // suppress unused
 			switch cv {
 			case 3: // x + x*2
 				g.emitf("    LD %s, A", tmp) // tmp = x
@@ -3233,12 +3285,37 @@ func (g *z80cg) genMul(inst *Inst) {
 				g.emitf("    LD %s, A", tmp)  // tmp= x*2
 				g.emit("    ADD A, A")         // A  = x*4
 				g.emitf("    ADD A, %s", tmp) // A  = x*6
+			case 7: // x*8 - x
+				g.emitf("    LD %s, A", tmp) // tmp = x
+				g.emit("    ADD A, A")
+				g.emit("    ADD A, A")
+				g.emit("    ADD A, A")         // A  = x*8
+				g.emitf("    SUB %s", tmp)    // A  = x*7
 			case 9: // x + x*8
 				g.emitf("    LD %s, A", tmp)
 				g.emit("    ADD A, A")
 				g.emit("    ADD A, A")
 				g.emit("    ADD A, A")         // A  = x*8
 				g.emitf("    ADD A, %s", tmp) // A  = x*9
+			case 10: // x*2 + x*8
+				g.emit("    ADD A, A")         // A  = x*2
+				g.emitf("    LD %s, A", tmp)  // tmp= x*2
+				g.emit("    ADD A, A")
+				g.emit("    ADD A, A")         // A  = x*8
+				g.emitf("    ADD A, %s", tmp) // A  = x*10
+			case 12: // x*4 + x*8
+				g.emit("    ADD A, A")
+				g.emit("    ADD A, A")         // A  = x*4
+				g.emitf("    LD %s, A", tmp)  // tmp= x*4
+				g.emit("    ADD A, A")         // A  = x*8
+				g.emitf("    ADD A, %s", tmp) // A  = x*12
+			case 15: // x*16 - x
+				g.emitf("    LD %s, A", tmp) // tmp = x
+				g.emit("    ADD A, A")
+				g.emit("    ADD A, A")
+				g.emit("    ADD A, A")
+				g.emit("    ADD A, A")         // A  = x*16
+				g.emitf("    SUB %s", tmp)    // A  = x*15
 			}
 			g.invalidate("A")
 			if dst != "A" {
@@ -3249,9 +3326,24 @@ func (g *z80cg) genMul(inst *Inst) {
 		}
 	}
 
-	// Variable or unsupported constant: emit software-loop comment.
+	// General constant or variable multiply: use runtime __mul8 routine.
+	// __mul8(A=multiplicand, B=multiplier) → A=product (~80T).
+	if !g.holdsValue("A", lhs) {
+		g.emitLDA(lhs)
+	}
 	rhs := g.loc(inst.Src[1])
-	g.comment(fmt.Sprintf("TODO: general mul %s * %s → %s", lhs, rhs, dst))
+	if rhs != "B" {
+		g.emitf("    LD B, %s", rhs)
+	}
+	g.emit("    CALL __mul8")
+	g.needsMul8 = true
+	g.invalidate("A")
+	g.invalidate("B")
+	g.invalidate("F")
+	if dst != "A" {
+		g.emitf("    LD %s, A", dst)
+		g.setCopy(dst, "A")
+	}
 }
 
 // genMul16 emits 16-bit multiply.
@@ -5145,6 +5237,13 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 			g.emitf("    LD A, %s", src)
 			g.emitf("    LD %s, A", dst)
 			g.invalidate("A")
+		case isPairReg(src) && !isPairReg(dst):
+			// Width mismatch: 16-bit source → 8-bit dest. Truncate (take low byte).
+			g.emitf("    LD %s, %s", dst, lowByte(src))
+		case !isPairReg(src) && isPairReg(dst):
+			// Width mismatch: 8-bit source → 16-bit dest. Zero-extend.
+			g.emitf("    LD %s, %s", lowByte(dst), src)
+			g.emitf("    LD %s, 0", highByte(dst))
 		default:
 			g.emitf("    LD %s, %s", dst, src)
 		}
@@ -5154,6 +5253,13 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 	} else if strings.HasPrefix(dst, "$") {
 		// register pair → LocMem spill slot: LD (nn), rr.
 		g.emitf("    LD (%s), %s", dst, src)
+	} else if isPairReg(src) && !isPairReg(dst) {
+		// Width mismatch in 16-bit context: pair→8bit truncation.
+		g.emitf("    LD %s, %s", dst, lowByte(src))
+	} else if !isPairReg(src) && isPairReg(dst) {
+		// Width mismatch in 16-bit context: 8bit→pair zero-extension.
+		g.emitf("    LD %s, %s", lowByte(dst), src)
+		g.emitf("    LD %s, 0", highByte(dst))
 	} else {
 		// 16-bit non-destructive copy: two 8-bit LDs.
 		hi := highByte(dst)
@@ -5303,6 +5409,11 @@ func canonicalReturnLoc(cls RegClass, ty Ty) string {
 		return "DE"
 	case ClassCounter:
 		return "B"
+	case ClassGeneral:
+		if w <= 8 {
+			return "C"
+		}
+		return "HL"
 	default:
 		if w <= 8 {
 			return "A"
@@ -5603,11 +5714,9 @@ func (g *z80cg) genCmp16(inst *Inst) {
 	needsCF := inst.Cond == CmpUlt || inst.Cond == CmpUge ||
 		inst.Cond == CmpUgt || inst.Cond == CmpUle
 
-	// Check if lhs is dead after this comparison (flags-only mode).
-	lhsDead := g.isRegDeadAfter(inst.Src[0], inst)
-
-	if lhsDead {
-		// Flags-only: no restore needed — lhs not used after cmp.
+	// Flags-only: Grace rule marks CMP as FlagsOnly when LHS is provably dead
+	// (using global liveness analysis at MIR2 level). Skip HL restore.
+	if inst.FlagsOnly {
 		g.emit("    OR A")
 		g.emitf("    SBC HL, %s", rhs)
 	} else if needsCF {
@@ -6098,16 +6207,6 @@ func (g *z80cg) regsLiveAfterInst(target *Inst) map[Reg]bool {
 		}
 	}
 	return live
-}
-
-// isRegDeadAfter checks if a virtual register has no uses after the given instruction
-// in the current block (including the terminator).
-func (g *z80cg) isRegDeadAfter(r Reg, inst *Inst) bool {
-	if r == NoReg {
-		return true
-	}
-	live := g.regsLiveAfterInst(inst)
-	return !live[r]
 }
 
 // classPhysRegs returns physical register names associated with a register class.

@@ -2458,6 +2458,23 @@ func (p *parser) parseLetDecl() (hir.Stmt, error) {
 	if ty == nil {
 		ty = init.ExprTy()
 	}
+	// fold/reduce returns the accumulator type (inferred from callback return).
+	if ty == nil || ty == mir2.TyVoid {
+		if call, ok := init.(*hir.CallExpr); ok && (call.Fn == "fold" || call.Fn == "reduce") && len(call.Args) >= 3 {
+			if cbRef, ok2 := call.Args[2].(*hir.AddrOfExpr); ok2 {
+				if cbSig, hasSig := p.funcSigs[cbRef.Sym]; hasSig {
+					ty = cbSig
+				}
+			} else if cbRef, ok2 := call.Args[2].(*hir.VarRefExpr); ok2 {
+				if cbSig, hasSig := p.funcSigs[cbRef.Name]; hasSig {
+					ty = cbSig
+				}
+			}
+			if ty == nil || ty == mir2.TyVoid {
+				ty = mir2.TyU8 // default fold accumulator type
+			}
+		}
+	}
 	// If the explicit type is non-void and the init is a call with unknown (void) return type,
 	// patch the call's type so the lowerer emits a value call (not CallVoid).
 	if ty != nil && ty != mir2.TyVoid {
@@ -3420,6 +3437,13 @@ func (p *parser) parseBinary(minPrec int) (hir.Expr, error) {
 					retTy = sig
 				}
 				lhs = &hir.CallExpr{Fn: ref.Name, Args: []hir.Expr{lhs}, Ty: retTy}
+			} else if addr, ok := rhs.(*hir.AddrOfExpr); ok {
+				// Function-as-value via AddrOfExpr: f → f(lhs)
+				retTy := mir2.Ty(mir2.TyU8)
+				if sig, hasSig := p.funcSigs[addr.Sym]; hasSig {
+					retTy = sig
+				}
+				lhs = &hir.CallExpr{Fn: addr.Sym, Args: []hir.Expr{lhs}, Ty: retTy}
 			} else {
 				return nil, fmt.Errorf("line %d: |> pipe: right side must be a function name or call", t.line)
 			}
@@ -3915,6 +3939,11 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 			return lit, nil
 		}
 		p.l.next()
+		// Bare function name used as a value (not followed by '(' call) →
+		// function pointer.  Emit AddrOfExpr so MIR2 generates LD HL, label.
+		if p.isKnownFunc(t.val) && !p.l.is(tokLParen) {
+			return &hir.AddrOfExpr{Sym: t.val}, nil
+		}
 		ty := mir2.Ty(mir2.TyU8)
 		if t2, ok := p.varTypes[t.val]; ok {
 			ty = t2

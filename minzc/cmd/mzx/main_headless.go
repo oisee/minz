@@ -125,9 +125,15 @@ func main() {
 	if *setFlag != "" {
 		for _, kv := range strings.Split(*setFlag, ",") {
 			kv = strings.TrimSpace(kv)
-			if kv == "DI" {
+			upper := strings.ToUpper(kv)
+			if upper == "DI" {
 				machine.CPU.SetIFF1(false)
 				machine.CPU.SetIFF2(false)
+				continue
+			}
+			if upper == "EI" {
+				machine.CPU.SetIFF1(true)
+				machine.CPU.SetIFF2(true)
 				continue
 			}
 			parts := strings.SplitN(kv, "=", 2)

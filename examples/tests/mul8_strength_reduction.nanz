@@ -1,0 +1,47 @@
+// mul8 strength reduction — verify all constant multiplies
+
+fun mul0(x: u8) -> u8 { return x * 0 }
+fun mul1(x: u8) -> u8 { return x * 1 }
+fun mul2(x: u8) -> u8 { return x * 2 }
+fun mul3(x: u8) -> u8 { return x * 3 }
+fun mul4(x: u8) -> u8 { return x * 4 }
+fun mul5(x: u8) -> u8 { return x * 5 }
+fun mul6(x: u8) -> u8 { return x * 6 }
+fun mul7(x: u8) -> u8 { return x * 7 }
+fun mul8(x: u8) -> u8 { return x * 8 }
+fun mul9(x: u8) -> u8 { return x * 9 }
+fun mul10(x: u8) -> u8 { return x * 10 }
+fun mul12(x: u8) -> u8 { return x * 12 }
+fun mul15(x: u8) -> u8 { return x * 15 }
+fun mul16(x: u8) -> u8 { return x * 16 }
+
+// board index pattern
+fun board_idx(x: u8, y: u8) -> u8 { return y * 10 + x }
+
+// Edge cases
+assert mul0(42) == 0 via mir2
+assert mul1(7) == 7 via mir2
+assert mul2(5) == 10 via mir2
+assert mul3(5) == 15 via mir2
+assert mul4(5) == 20 via mir2
+assert mul5(5) == 25 via mir2
+assert mul6(5) == 30 via mir2
+assert mul7(5) == 35 via mir2
+assert mul8(5) == 40 via mir2
+assert mul9(5) == 45 via mir2
+assert mul10(5) == 50 via mir2
+assert mul12(5) == 60 via mir2
+assert mul15(5) == 75 via mir2
+assert mul16(5) == 80 via mir2
+
+// Board index
+assert board_idx(0, 0) == 0 via mir2
+assert board_idx(9, 0) == 9 via mir2
+assert board_idx(0, 1) == 10 via mir2
+assert board_idx(5, 3) == 35 via mir2
+assert board_idx(9, 19) == 199 via mir2
+
+// Overflow wrapping (u8)
+assert mul10(26) == 4 via mir2
+
+fun main() -> void {}

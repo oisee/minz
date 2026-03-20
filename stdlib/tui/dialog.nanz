@@ -1,0 +1,154 @@
+// stdlib/tui/dialog — Modal dialogs and text input
+//
+// Reactive approach: no background save. After dialog closes,
+// caller re-renders the screen from state.
+//
+// Usage:
+//   var result: u8 = dialog_confirm(c"Delete file?")
+//   if result == 1 { ... }
+//
+//   var name: [u8; 14]
+//   var ok: u8 = dialog_input(c"New folder name:", &name, 12)
+
+import stdlib.tui.render
+
+// =============================================================================
+// Confirm dialog — Yes/No
+// =============================================================================
+
+// Show a centered confirm dialog. Returns 1=Yes, 0=No.
+fun dialog_confirm(title: ^u8, msg: ^u8) -> u8 {
+    var w: u8 = tui_width()
+    var h: u8 = tui_height()
+    var dw: u8 = 44
+    var dh: u8 = 7
+    var dx: u8 = (w - dw) / 2
+    var dy: u8 = (h - dh) / 2
+
+    // Draw dialog box
+    tui_color(7, 1, 1)
+    draw_box(dx, dy, dw, dh)
+
+    // Title
+    tui_goto(dx + 2, dy)
+    tui_putch(32)
+    tui_puts(title)
+    tui_putch(32)
+
+    // Message
+    tui_color(7, 1, 0)
+    tui_goto(dx + 3, dy + 2)
+    tui_puts(msg)
+
+    // Buttons
+    tui_goto(dx + 10, dy + 4)
+    tui_color(0, 7, 1)
+    tui_puts(c" Yes ")
+    tui_color(7, 1, 0)
+    tui_puts(c"   ")
+    tui_color(7, 0, 1)
+    tui_puts(c" No ")
+    tui_reset()
+
+    // Wait for Y/N/Enter/Esc
+    var result: u8 = 0
+    var done: u8 = 0
+    while done == 0 {
+        var key: u8 = tui_read_key()
+        if key == 89 { result = 1 }   // Y
+        if key == 121 { result = 1 }   // y
+        if key == 78 { result = 0 }    // N
+        if key == 110 { result = 0 }   // n
+        if key == 13 { result = 1 }    // Enter = Yes
+        if key == 27 { result = 0 }    // Esc = No
+        if key == 89 { done = 1 }
+        if key == 121 { done = 1 }
+        if key == 78 { done = 1 }
+        if key == 110 { done = 1 }
+        if key == 13 { done = 1 }
+        if key == 27 { done = 1 }
+    }
+
+    return result
+}
+
+// =============================================================================
+// Input dialog — text entry
+// =============================================================================
+
+// Show a centered input dialog with a text field.
+// Writes user input into buf (null-terminated).
+// Returns 1=OK (Enter), 0=Cancel (Esc).
+fun dialog_input(title: ^u8, prompt: ^u8, buf: ^u8, maxlen: u8) -> u8 {
+    var w: u8 = tui_width()
+    var h: u8 = tui_height()
+    var dw: u8 = 48
+    var dh: u8 = 7
+    var dx: u8 = (w - dw) / 2
+    var dy: u8 = (h - dh) / 2
+
+    // Draw dialog box
+    tui_color(7, 1, 1)
+    draw_box(dx, dy, dw, dh)
+
+    // Title
+    tui_goto(dx + 2, dy)
+    tui_putch(32)
+    tui_puts(title)
+    tui_putch(32)
+
+    // Prompt
+    tui_color(7, 1, 0)
+    tui_goto(dx + 3, dy + 2)
+    tui_puts(prompt)
+
+    // Input field
+    tui_goto(dx + 3, dy + 3)
+    tui_color(7, 0, 1)
+    var i: u8 = 0
+    while i < maxlen + 2 {
+        tui_putch(95)    // _
+        i = i + 1
+    }
+
+    // Read line
+    tui_goto(dx + 3, dy + 3)
+    var len: u8 = tui_read_line(buf, maxlen)
+
+    tui_reset()
+
+    if len > 0 { return 1 }
+    return 0
+}
+
+// =============================================================================
+// Message dialog — OK only
+// =============================================================================
+
+// Show a message dialog. Waits for any key.
+fun dialog_message(title: ^u8, msg: ^u8) -> void {
+    var w: u8 = tui_width()
+    var h: u8 = tui_height()
+    var dw: u8 = 44
+    var dh: u8 = 6
+    var dx: u8 = (w - dw) / 2
+    var dy: u8 = (h - dh) / 2
+
+    tui_color(7, 1, 1)
+    draw_box(dx, dy, dw, dh)
+    tui_goto(dx + 2, dy)
+    tui_putch(32)
+    tui_puts(title)
+    tui_putch(32)
+
+    tui_color(7, 1, 0)
+    tui_goto(dx + 3, dy + 2)
+    tui_puts(msg)
+
+    tui_goto(dx + 16, dy + 4)
+    tui_color(0, 7, 1)
+    tui_puts(c" OK ")
+    tui_reset()
+
+    tui_read_key()
+}

@@ -195,14 +195,14 @@ func (c *REPLCompiler) compile(source string, ctx *Context) (*CompileResult, err
 	machineCode := asmResult.Binary
 	
 	result.MachineCode = machineCode
-	result.EntryPoint = asmResult.Origin
+	result.EntryPoint = uint16(asmResult.Origin)
 	
 	// Update next code position
 	c.nextCode += uint16(len(machineCode))
 	
 	// Extract function addresses from assembly symbols
 	for name, addr := range asmResult.Symbols {
-		result.Functions[name] = addr
+		result.Functions[name] = uint16(addr)
 	}
 	
 	// Extract function addresses from IR as fallback

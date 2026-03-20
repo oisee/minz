@@ -49,6 +49,21 @@ var CombineRules = `
 (rule 15 (mul (const 4) ?x)   (shl ?x (const 2)))
 (rule 15 (mul ?x (const 8))   (shl ?x (const 3)))
 (rule 15 (mul (const 8) ?x)   (shl ?x (const 3)))
+
+;; Non-power-of-2: decompose to shifts+adds
+;; x*3 = x + x*2;  x*5 = x + x*4;  x*6 = x*2 + x*4
+;; x*10 = x*2 + x*8;  x*12 = x*4 + x*8
+(rule 14 (mul ?x (const 3))   (add ?x (add ?x ?x)))
+(rule 14 (mul (const 3) ?x)   (add ?x (add ?x ?x)))
+(rule 14 (mul ?x (const 5))   (add ?x (shl ?x (const 2))))
+(rule 14 (mul (const 5) ?x)   (add ?x (shl ?x (const 2))))
+(rule 14 (mul ?x (const 6))   (add (add ?x ?x) (shl ?x (const 2))))
+(rule 14 (mul (const 6) ?x)   (add (add ?x ?x) (shl ?x (const 2))))
+(rule 14 (mul ?x (const 10))  (add (add ?x ?x) (shl ?x (const 3))))
+(rule 14 (mul (const 10) ?x)  (add (add ?x ?x) (shl ?x (const 3))))
+(rule 14 (mul ?x (const 12))  (add (shl ?x (const 2)) (shl ?x (const 3))))
+(rule 14 (mul (const 12) ?x)  (add (shl ?x (const 2)) (shl ?x (const 3))))
+
 (rule 10 (mul ?x (const 1))   ?x)
 (rule 10 (mul (const 1) ?x)   ?x)
 (rule 10 (mul ?x (const 0))   (const 0))

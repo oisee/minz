@@ -23,10 +23,15 @@ import fs.fat12 { * }
 // ── Constants ────────────────────────────────────────────────────────────────
 
 // Key codes
+const KEY_ENTER: u8 = 13
 const KEY_UP: u8 = 128
 const KEY_DOWN: u8 = 129
 const KEY_ESC: u8 = 27
 const KEY_F3: u8 = 142
+const KEY_F5: u8 = 144
+const KEY_F7: u8 = 146
+const KEY_F8: u8 = 147
+const KEY_F9: u8 = 148
 const KEY_F10: u8 = 149
 
 // Box-drawing characters (mapped by tui_putch host)
@@ -283,15 +288,17 @@ fun draw_panel() -> void {
 }
 
 fun draw_title_bar() -> void {
-    let w: u8 = tui_width()
+    var w: u8 = tui_width()
     tui_color(FG_BLACK, BG_CYAN, 1)
     tui_goto(0, 0)
-    tui_puts(c"  Mini NC ")
-    var i: u8 = 10
-    while i < w {
+    tui_puts(c" File  View  Help")
+    var i: u8 = 17
+    while i < w - 10 {
         tui_putch(CH_SPACE)
         i = i + 1
     }
+    tui_puts(c" Mini NC ")
+    tui_putch(CH_SPACE)
 }
 
 fun draw_status_bar() -> void {
@@ -299,8 +306,8 @@ fun draw_status_bar() -> void {
     let h: u8 = tui_height()
     tui_color(FG_BLACK, BG_CYAN, 1)
     tui_goto(0, h - 1)
-    tui_puts(c" F3 View  F5 Copy  F7 Mkdir  F8 Delete  F10 Quit ")
-    var i: u8 = 50
+    tui_puts(c" F3 View  F8 Delete  F9 Menu  F10 Quit ")
+    var i: u8 = 41
     while i < w {
         tui_putch(CH_SPACE)
         i = i + 1
@@ -423,6 +430,283 @@ fun view_file() -> void {
     tui_read_key()
 }
 
+// ── Dialogs ─────────────────────────────────────────────────────────────────
+
+fun dialog_confirm(msg: ^u8) -> u8 {
+    var w: u8 = tui_width()
+    var h: u8 = tui_height()
+    var dx: u8 = (w - 44) / 2
+    var dy: u8 = (h - 7) / 2
+
+    tui_color(FG_WHITE, BG_BLUE, 1)
+    // Box
+    tui_goto(dx, dy)
+    tui_putch(BOX_TL)
+    var i: u8 = 0
+    while i < 42 {
+        tui_putch(BOX_H)
+        i = i + 1
+    }
+    tui_putch(BOX_TR)
+    var row: u8 = 1
+    while row < 6 {
+        tui_goto(dx, dy + row)
+        tui_putch(BOX_V)
+        i = 0
+        while i < 42 {
+            tui_putch(CH_SPACE)
+            i = i + 1
+        }
+        tui_putch(BOX_V)
+        row = row + 1
+    }
+    tui_goto(dx, dy + 6)
+    tui_putch(BOX_BL)
+    i = 0
+    while i < 42 {
+        tui_putch(BOX_H)
+        i = i + 1
+    }
+    tui_putch(BOX_BR)
+
+    // Title
+    tui_goto(dx + 2, dy)
+    tui_puts(c" Confirm ")
+
+    // Message
+    tui_color(FG_WHITE, BG_BLUE, 0)
+    tui_goto(dx + 3, dy + 2)
+    tui_puts(msg)
+
+    // Buttons
+    tui_goto(dx + 12, dy + 4)
+    tui_color(FG_BLACK, BG_CYAN, 1)
+    tui_puts(c" Yes ")
+    tui_color(FG_WHITE, BG_BLUE, 0)
+    tui_puts(c"   ")
+    tui_color(FG_WHITE, BG_BLACK, 1)
+    tui_puts(c" No ")
+    tui_reset()
+
+    var done: u8 = 0
+    var result: u8 = 0
+    while done == 0 {
+        var key: u8 = tui_read_key()
+        if key == 89 {
+            result = 1
+            done = 1
+        }
+        if key == 121 {
+            result = 1
+            done = 1
+        }
+        if key == 78 { done = 1 }
+        if key == 110 { done = 1 }
+        if key == KEY_ENTER {
+            result = 1
+            done = 1
+        }
+        if key == KEY_ESC { done = 1 }
+    }
+    return result
+}
+
+fun dialog_message(msg: ^u8) -> void {
+    var w: u8 = tui_width()
+    var h: u8 = tui_height()
+    var dx: u8 = (w - 40) / 2
+    var dy: u8 = (h - 5) / 2
+
+    tui_color(FG_WHITE, BG_BLUE, 1)
+    tui_goto(dx, dy)
+    tui_putch(BOX_TL)
+    var i: u8 = 0
+    while i < 38 {
+        tui_putch(BOX_H)
+        i = i + 1
+    }
+    tui_putch(BOX_TR)
+    var row: u8 = 1
+    while row < 4 {
+        tui_goto(dx, dy + row)
+        tui_putch(BOX_V)
+        i = 0
+        while i < 38 {
+            tui_putch(CH_SPACE)
+            i = i + 1
+        }
+        tui_putch(BOX_V)
+        row = row + 1
+    }
+    tui_goto(dx, dy + 4)
+    tui_putch(BOX_BL)
+    i = 0
+    while i < 38 {
+        tui_putch(BOX_H)
+        i = i + 1
+    }
+    tui_putch(BOX_BR)
+
+    tui_color(FG_WHITE, BG_BLUE, 0)
+    tui_goto(dx + 3, dy + 2)
+    tui_puts(msg)
+    tui_reset()
+    tui_read_key()
+}
+
+// ── File operations ──────────────────────────────────────────────────────────
+
+fun do_delete() -> void {
+    if n_entries == 0 { return }
+    get_dir_entry_full(0, cursor, &dirent)
+    format_sfn(&dirent, &namebuf)
+
+    var msg: [u8; 40]
+    // Build "Delete FILE.EXT?"
+    msg[0] = 68
+    msg[1] = 101
+    msg[2] = 108
+    msg[3] = 101
+    msg[4] = 116
+    msg[5] = 101
+    msg[6] = 32  // "Delete "
+    var j: u8 = 0
+    var k: u8 = 7
+    while namebuf[j] != 0 {
+        msg[k] = namebuf[j]
+        j = j + 1
+        k = k + 1
+    }
+    msg[k] = 63 // ?
+    msg[k + 1] = 0
+
+    var confirm: u8 = dialog_confirm(&msg)
+    if confirm == 1 {
+        // Convert formatted name back to 8.3 SFN for delete_file
+        var rc: u8 = delete_file(0, &dirent)
+        if rc == 0 {
+            n_entries = count_dir_entries(0)
+            if cursor >= n_entries {
+                if n_entries > 0 { cursor = n_entries - 1 }
+                else { cursor = 0 }
+            }
+        } else {
+            dialog_message(c"Delete failed!")
+        }
+    }
+}
+
+// ── Menu bar ─────────────────────────────────────────────────────────────────
+
+fun draw_menu_bar() -> void {
+    var w: u8 = tui_width()
+    tui_color(FG_BLACK, FG_WHITE, 0)
+    tui_goto(0, 0)
+    tui_puts(c" File  View  Help")
+    var i: u8 = 17
+    while i < w {
+        tui_putch(CH_SPACE)
+        i = i + 1
+    }
+    tui_reset()
+}
+
+fun menu_activate() -> u8 {
+    // Simple inline menu — File dropdown
+    var w: u8 = 18
+    tui_color(FG_BLACK, FG_WHITE, 0)
+
+    // Draw dropdown
+    tui_goto(0, 1)
+    tui_putch(BOX_TL)
+    var i: u8 = 0
+    while i < w - 2 {
+        tui_putch(BOX_H)
+        i = i + 1
+    }
+    tui_putch(BOX_TR)
+
+    tui_goto(0, 2)
+    tui_putch(BOX_V)
+    tui_color(FG_BLACK, FG_WHITE, 1)
+    tui_puts(c" View        F3 ")
+    tui_color(FG_BLACK, FG_WHITE, 0)
+    tui_putch(BOX_V)
+
+    tui_goto(0, 3)
+    tui_putch(BOX_V)
+    tui_color(FG_BLACK, FG_WHITE, 1)
+    tui_puts(c" Delete      F8 ")
+    tui_color(FG_BLACK, FG_WHITE, 0)
+    tui_putch(BOX_V)
+
+    tui_goto(0, 4)
+    tui_putch(BOX_V)
+    i = 0
+    while i < w - 2 {
+        tui_putch(BOX_H)
+        i = i + 1
+    }
+    tui_putch(BOX_V)
+
+    tui_goto(0, 5)
+    tui_putch(BOX_V)
+    tui_color(FG_BLACK, FG_WHITE, 1)
+    tui_puts(c" Quit       F10 ")
+    tui_color(FG_BLACK, FG_WHITE, 0)
+    tui_putch(BOX_V)
+
+    tui_goto(0, 6)
+    tui_putch(BOX_BL)
+    i = 0
+    while i < w - 2 {
+        tui_putch(BOX_H)
+        i = i + 1
+    }
+    tui_putch(BOX_BR)
+    tui_reset()
+
+    // Wait for selection
+    var sel: u8 = 0
+    var done: u8 = 0
+    while done == 0 {
+        // Highlight current selection
+        tui_goto(1, 2 + sel)
+        if sel == 0 {
+            tui_color(FG_WHITE, FG_BLACK, 1)
+            tui_puts(c" View        F3 ")
+        }
+        if sel == 1 {
+            tui_color(FG_WHITE, FG_BLACK, 1)
+            tui_puts(c" Delete      F8 ")
+        }
+        if sel == 2 {
+            tui_color(FG_WHITE, FG_BLACK, 1)
+            tui_puts(c" Quit       F10 ")
+        }
+        tui_reset()
+
+        var key: u8 = tui_read_key()
+        // Unhighlight
+        tui_goto(1, 2 + sel)
+        tui_color(FG_BLACK, FG_WHITE, 1)
+        if sel == 0 { tui_puts(c" View        F3 ") }
+        if sel == 1 { tui_puts(c" Delete      F8 ") }
+        if sel == 2 { tui_puts(c" Quit       F10 ") }
+        tui_reset()
+
+        if key == KEY_UP { if sel > 0 { sel = sel - 1 } }
+        if key == KEY_DOWN { if sel < 2 { sel = sel + 1 } }
+        if key == KEY_ENTER {
+            if sel == 0 { return 3 }    // View
+            if sel == 1 { return 8 }    // Delete
+            if sel == 2 { return 10 }   // Quit
+        }
+        if key == KEY_ESC { done = 1 }
+    }
+    return 0
+}
+
 // ── Main ────────────────────────────────────────────────────────────────────
 
 fun main() -> void {
@@ -465,7 +749,15 @@ fun main() -> void {
                 if cursor >= top + panel_h { top = top + 1 }
             }
         }
+        if key == KEY_ENTER { view_file() }
         if key == KEY_F3  { view_file() }
+        if key == KEY_F8  { do_delete() }
+        if key == KEY_F9  {
+            var cmd: u8 = menu_activate()
+            if cmd == 3 { view_file() }
+            if cmd == 8 { do_delete() }
+            if cmd == 10 { running = 0 }
+        }
         if key == KEY_ESC { running = 0 }
         if key == KEY_F10 { running = 0 }
     }

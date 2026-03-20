@@ -1,0 +1,43 @@
+// console_demo.nanz — Demo of standalone ZX console (no ROM calls)
+//
+// Run:
+//   mz examples/zx/console_demo.nanz -o /tmp/console_demo.a80
+//   mza /tmp/console_demo.a80 -o /tmp/console_demo.bin
+//   mzx --run /tmp/console_demo.bin@8000
+
+import zx.console { * }
+
+fun main() -> void {
+    con_init(7, 1)          // white ink on blue paper
+    con_clear()
+
+    con_print("Hello from MinZ!")
+    con_newline()
+    con_newline()
+    con_print("Standalone ZX console")
+    con_newline()
+    con_print("No ROM calls, no IM1")
+    con_newline()
+    con_print("Just font data at $3D00")
+    con_newline()
+    con_newline()
+
+    con_set_attr(6, 0)      // cyan on black
+    con_print("Score: ")
+    con_print_u16(12345)
+    con_newline()
+
+    con_set_attr(3, 0)      // yellow on black
+    con_print("Lives: ")
+    con_print_u8(3)
+    con_newline()
+    con_newline()
+
+    con_set_attr(7, 1)      // white on blue
+    con_print("Press any key...")
+    let ch: u8 = con_getchar()
+    con_newline()
+    con_print("You pressed: ")
+    con_putchar(ch)
+    con_newline()
+}

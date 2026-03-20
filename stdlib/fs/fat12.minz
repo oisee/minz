@@ -989,6 +989,7 @@ fun test_fat12_entry(idx: u8) -> u16 {
 }
 
 fun test_follow_chain(start: u8, max: u8) -> u8 {
+    fs_type = 1
     g_buf[0] = 0xF8
     g_buf[1] = 0xFF
     g_buf[2] = 0xFF

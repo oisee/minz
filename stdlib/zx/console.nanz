@@ -1,0 +1,404 @@
+// ============================================================================
+// stdlib/zx/console.nanz — ZX Spectrum standalone console (no ROM dependency)
+// ============================================================================
+//
+// Text output using ROM font bitmap data at $3D00 (read-only).
+// Direct screen memory writes — no RST, no CALL into ROM, no IM1.
+// Keyboard input via port $FE matrix scanning.
+//
+// Usage:
+//   import zx.console { * }
+//
+//   fun main() -> void {
+//       con_init(7, 0)           // white ink on black paper
+//       con_clear()
+//       con_print("Hello ZX!")
+//       let ch: u8 = con_getchar()
+//   }
+// ============================================================================
+
+// ── ZX Spectrum hardware constants ──────────────────────────────────────────
+
+const FONT_ADDR: u16 = 0x3D00    // ROM font: 96 chars (ASCII 32-127), 8 bytes each
+const SCREEN_BASE: u16 = 0x4000
+const ATTR_BASE: u16 = 0x5800
+const SCREEN_COLS: u8 = 32
+const SCREEN_ROWS: u8 = 24
+
+// ── Console state ───────────────────────────────────────────────────────────
+
+global con_col: u8 = 0           // cursor column (0-31)
+global con_row: u8 = 0           // cursor row (0-23)
+global con_attr: u8 = 0x07       // attribute byte (default: white ink, black paper)
+
+// ── Low-level hardware access ───────────────────────────────────────────────
+
+fun zx_poke(@z80_hl addr: u16, @z80_a val: u8) -> void {
+    asm z80 (in addr, val) { LD (HL), A }
+}
+
+fun zx_peek(@z80_hl addr: u16) -> u8 {
+    asm z80 (in addr) { LD A, (HL) }
+}
+
+fun zx_in_fe(@z80_a high_byte: u8) -> u8 {
+    asm z80 (in high_byte) { IN A, (0xFE) }
+}
+
+fun zx_border(@z80_a color: u8) -> void {
+    asm z80 (in color) { OUT (0xFE), A }
+}
+
+// ── Screen address calculation ──────────────────────────────────────────────
+//
+// ZX Spectrum screen layout (non-linear):
+//   addr = $4000 + (row/8)*$800 + line*$100 + (row%8)*32 + col
+//
+// where row = character row (0-23), line = pixel line within char (0-7)
+
+fun screen_addr(col: u8, row: u8, line: u8) -> u16 {
+    let third: u16 = u16(row >> 3) * 0x0800
+    let pline: u16 = u16(line) * 0x0100
+    let rowoff: u16 = u16(row & 7) * 32
+    return SCREEN_BASE + third + pline + rowoff + u16(col)
+}
+
+fun attr_addr(col: u8, row: u8) -> u16 {
+    return ATTR_BASE + u16(row) * 32 + u16(col)
+}
+
+// ── Initialization ──────────────────────────────────────────────────────────
+
+fun con_init(ink: u8, paper: u8) -> void {
+    con_attr = (paper << 3) | ink
+    con_col = 0
+    con_row = 0
+}
+
+fun con_clear() -> void {
+    // Clear pixel RAM
+    var addr: u16 = SCREEN_BASE
+    while addr < ATTR_BASE {
+        zx_poke(addr, 0)
+        addr = addr + 1
+    }
+    // Set all attributes
+    var aaddr: u16 = ATTR_BASE
+    while aaddr < 0x5B00 {
+        zx_poke(aaddr, con_attr)
+        aaddr = aaddr + 1
+    }
+    con_col = 0
+    con_row = 0
+}
+
+// ── Character output ────────────────────────────────────────────────────────
+
+fun con_putchar(ch: u8) -> void {
+    if ch == 13 {
+        // Carriage return
+        con_col = 0
+        con_row = con_row + 1
+        if con_row >= SCREEN_ROWS {
+            con_scroll()
+            con_row = SCREEN_ROWS - 1
+        }
+        return
+    }
+    if ch == 10 {
+        // Newline (same as CR for simplicity)
+        con_col = 0
+        con_row = con_row + 1
+        if con_row >= SCREEN_ROWS {
+            con_scroll()
+            con_row = SCREEN_ROWS - 1
+        }
+        return
+    }
+    if ch == 8 {
+        // Backspace
+        if con_col > 0 {
+            con_col = con_col - 1
+            con_draw_char(con_col, con_row, 32)
+        }
+        return
+    }
+
+    con_draw_char(con_col, con_row, ch)
+    con_col = con_col + 1
+    if con_col >= SCREEN_COLS {
+        con_col = 0
+        con_row = con_row + 1
+        if con_row >= SCREEN_ROWS {
+            con_scroll()
+            con_row = SCREEN_ROWS - 1
+        }
+    }
+}
+
+fun con_draw_char(col: u8, row: u8, ch: u8) -> void {
+    // Font data address: $3D00 + (ch - 32) * 8
+    var font_ptr: u16 = FONT_ADDR + u16(ch - 32) * 8
+    for line in 0..8 {
+        let addr: u16 = screen_addr(col, row, line)
+        let pixels: u8 = zx_peek(font_ptr)
+        zx_poke(addr, pixels)
+        font_ptr = font_ptr + 1
+    }
+    // Set attribute
+    zx_poke(attr_addr(col, row), con_attr)
+}
+
+fun con_print(str: ^u8) -> void {
+    var i: u16 = 0
+    while str[i] != 0 {
+        con_putchar(str[i])
+        i = i + 1
+    }
+}
+
+fun con_goto(col: u8, row: u8) -> void {
+    con_col = col
+    con_row = row
+}
+
+fun con_set_attr(ink: u8, paper: u8) -> void {
+    con_attr = (paper << 3) | ink
+}
+
+fun con_set_bright(on: u8) -> void {
+    if on != 0 {
+        con_attr = con_attr | 0x40
+    } else {
+        con_attr = con_attr & 0xBF
+    }
+}
+
+// ── Scrolling ───────────────────────────────────────────────────────────────
+
+fun scroll_line(row: u8, line: u8) -> void {
+    let dst: u16 = screen_addr(0, row, line)
+    let src: u16 = screen_addr(0, row + 1, line)
+    for col in 0..32 {
+        zx_poke(dst + u16(col), zx_peek(src + u16(col)))
+    }
+}
+
+fun scroll_row(row: u8) -> void {
+    for line in 0..8 {
+        scroll_line(row, line)
+    }
+}
+
+fun scroll_attrs(row: u8) -> void {
+    let dst: u16 = attr_addr(0, row)
+    let src: u16 = attr_addr(0, row + 1)
+    for col in 0..32 {
+        zx_poke(dst + u16(col), zx_peek(src + u16(col)))
+    }
+}
+
+fun con_scroll() -> void {
+    for row in 0..23 {
+        scroll_row(row)
+    }
+    // Clear bottom row pixels
+    for line in 0..8 {
+        let dst: u16 = screen_addr(0, 23, line)
+        for col in 0..32 {
+            zx_poke(dst + u16(col), 0)
+        }
+    }
+    // Scroll attributes
+    for row in 0..23 {
+        scroll_attrs(row)
+    }
+    // Clear bottom row attributes
+    let dst: u16 = attr_addr(0, 23)
+    for col in 0..32 {
+        zx_poke(dst + u16(col), con_attr)
+    }
+}
+
+// ── Print helpers ───────────────────────────────────────────────────────────
+
+fun con_newline() -> void {
+    con_putchar(10)
+}
+
+fun con_print_u8(val: u8) -> void {
+    var n: u8 = val
+    var d2: u8 = 0
+    while n >= 100 {
+        d2 = d2 + 1
+        n = n - 100
+    }
+    var d1: u8 = 0
+    while n >= 10 {
+        d1 = d1 + 1
+        n = n - 10
+    }
+    if d2 > 0 { con_putchar(48 + d2) }
+    if d2 > 0 | d1 > 0 { con_putchar(48 + d1) }
+    con_putchar(48 + n)
+}
+
+fun con_print_u16(val: u16) -> void {
+    var n: u16 = val
+    var d4: u8 = 0
+    while n >= 10000 {
+        d4 = d4 + 1
+        n = n - 10000
+    }
+    var d3: u8 = 0
+    while n >= 1000 {
+        d3 = d3 + 1
+        n = n - 1000
+    }
+    var d2: u8 = 0
+    while n >= 100 {
+        d2 = d2 + 1
+        n = n - 100
+    }
+    var d1: u8 = 0
+    while n >= 10 {
+        d1 = d1 + 1
+        n = n - 10
+    }
+    let d0: u8 = u8(n)
+    var started: u8 = 0
+    if d4 > 0 {
+        con_putchar(48 + d4)
+        started = 1
+    }
+    if started == 1 | d3 > 0 {
+        con_putchar(48 + d3)
+        started = 1
+    }
+    if started == 1 | d2 > 0 {
+        con_putchar(48 + d2)
+        started = 1
+    }
+    if started == 1 | d1 > 0 {
+        con_putchar(48 + d1)
+    }
+    con_putchar(48 + d0)
+}
+
+// ── Keyboard input ──────────────────────────────────────────────────────────
+//
+// ZX Spectrum keyboard matrix (active low, bit 0-4):
+//   $FE: CS  Z  X  C  V         $EF: 0  9  8  7  6
+//   $FD: A   S  D  F  G         $DF: P  O  I  U  Y
+//   $FB: Q   W  E  R  T         $BF: EN L  K  J  H
+//   $F7: 1   2  3  4  5         $7F: SP SS M  N  B
+//
+// We scan all half-rows. If exactly one key is pressed, return its ASCII code.
+// CAPS SHIFT ($FE bit0) modifies the key.
+
+// Key lookup tables: half-row address, then 5 keys per row (bit0..bit4)
+global KBD_ROWS: [u8; 8] = [ 0xFE, 0xFD, 0xFB, 0xF7, 0xEF, 0xDF, 0xBF, 0x7F ]
+global KBD_KEYS: [u8; 40] = [
+    0,    122, 120, 99,  118,     // CS, z, x, c, v
+    97,   115, 100, 102, 103,     // a, s, d, f, g
+    113,  119, 101, 114, 116,     // q, w, e, r, t
+    49,   50,  51,  52,  53,      // 1, 2, 3, 4, 5
+    48,   57,  56,  55,  54,      // 0, 9, 8, 7, 6
+    112,  111, 105, 117, 121,     // p, o, i, u, y
+    13,   108, 107, 106, 104,     // ENTER, l, k, j, h
+    32,   0,   109, 110, 98       // SPACE, SS, m, n, b
+]
+
+fun scan_row_key(row_addr: u8, base_idx: u8) -> u8 {
+    let row_val: u8 = zx_in_fe(row_addr)
+    if (row_val & 1) == 0 { return KBD_KEYS[base_idx] }
+    if (row_val & 2) == 0 { return KBD_KEYS[base_idx + 1] }
+    if (row_val & 4) == 0 { return KBD_KEYS[base_idx + 2] }
+    if (row_val & 8) == 0 { return KBD_KEYS[base_idx + 3] }
+    if (row_val & 16) == 0 { return KBD_KEYS[base_idx + 4] }
+    return 0
+}
+
+fun any_key_pressed() -> u8 {
+    for r in 0..8 {
+        let row_val: u8 = zx_in_fe(KBD_ROWS[r])
+        if (row_val & 0x1F) != 0x1F {
+            return 1
+        }
+    }
+    return 0
+}
+
+fun con_getchar() -> u8 {
+    // Wait until no key pressed (clean state)
+    while any_key_pressed() != 0 { }
+
+    // Wait for a key press
+    var result: u8 = 0
+    while result == 0 {
+        for r in 0..8 {
+            let key: u8 = scan_row_key(KBD_ROWS[r], r * 5)
+            if key != 0 {
+                result = key
+            }
+        }
+    }
+
+    // Check CAPS SHIFT for uppercase
+    let cs_row: u8 = zx_in_fe(0xFE)
+    if (cs_row & 1) == 0 {
+        if result >= 97 {
+            if result <= 122 {
+                result = result - 32
+            }
+        }
+    }
+
+    return result
+}
+
+fun con_input(buf: ^u8, maxlen: u8) -> u8 {
+    var pos: u8 = 0
+    var done: u8 = 0
+    // Show cursor
+    con_draw_char(con_col, con_row, 95)    // underscore cursor
+
+    while done == 0 {
+        let ch: u8 = con_getchar()
+
+        if ch == 13 {
+            // Enter — finish
+            con_draw_char(con_col, con_row, 32)    // clear cursor
+            done = 1
+        } else {
+            if ch == 8 {
+                // Backspace
+                if pos > 0 {
+                    pos = pos - 1
+                    con_putchar(8)
+                    con_draw_char(con_col, con_row, 95)    // cursor
+                }
+            } else {
+                if pos < maxlen {
+                    buf[pos] = ch
+                    pos = pos + 1
+                    con_putchar(ch)
+                    con_draw_char(con_col, con_row, 95)    // cursor
+                }
+            }
+        }
+    }
+
+    buf[pos] = 0    // NUL-terminate
+    return pos
+}
+
+// ── Cursor display ──────────────────────────────────────────────────────────
+
+fun con_show_cursor() -> void {
+    con_draw_char(con_col, con_row, 95)
+}
+
+fun con_hide_cursor() -> void {
+    con_draw_char(con_col, con_row, 32)
+}

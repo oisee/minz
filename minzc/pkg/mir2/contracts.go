@@ -64,6 +64,10 @@ func OptimizeContracts(m *Module, ct CostTable) ContractSet {
 	cg := BuildCallGraph(m)
 	cs := make(ContractSet, len(m.Funcs))
 
+	// Functions whose address is taken (OpAddrOf) must keep standard ABI
+	// because indirect calls use a synthetic standard-ABI contract.
+	addrTaken := addrTakenFuncs(m)
+
 	const maxPasses = 4
 	for pass := 0; pass < maxPasses; pass++ {
 		changed := false
@@ -72,8 +76,8 @@ func OptimizeContracts(m *Module, ct CostTable) ContractSet {
 			if f == nil {
 				continue
 			}
-			// Skip extern/no-body functions — their contract is fixed by the ABI.
-			if f.Attrs.IsExtern || len(f.Blocks) == 0 {
+			// Skip extern/no-body/address-taken functions — their contract is fixed by the ABI.
+			if f.Attrs.IsExtern || len(f.Blocks) == 0 || addrTaken[name] {
 				if cs[name] == nil {
 					cs[name] = currentChoice(f)
 					changed = true
@@ -113,6 +117,27 @@ func OptimizeContracts(m *Module, ct CostTable) ContractSet {
 		}
 	}
 	return cs
+}
+
+// addrTakenFuncs returns the set of function names whose address is taken
+// via OpAddrOf anywhere in the module.  These functions must keep standard ABI
+// because indirect calls (OpCallIndirect) use a synthetic standard-ABI contract.
+func addrTakenFuncs(m *Module) map[string]bool {
+	funcNames := make(map[string]bool, len(m.Funcs))
+	for _, f := range m.Funcs {
+		funcNames[f.Name] = true
+	}
+	taken := make(map[string]bool)
+	for _, f := range m.Funcs {
+		for _, b := range f.Blocks {
+			for _, inst := range b.Insts {
+				if inst.Op == OpAddrOf && funcNames[inst.Sym] {
+					taken[inst.Sym] = true
+				}
+			}
+		}
+	}
+	return taken
 }
 
 // ApplyContracts updates every function's Contract in place with the
