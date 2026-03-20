@@ -1655,6 +1655,17 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.emit("    EXX")
 				g.emitf("    LD %s, %d", dst, hi)
 				g.emit("    EXX")
+			} else if strings.HasPrefix(dst, "$") {
+				// LocMem spill: only LD (nn),A / LD (nn),HL are valid.
+				if w <= 8 {
+					g.emitf("    LD A, %d", inst.Imm&0xFF)
+					g.emitf("    LD (%s), A", dst)
+					g.invalidate("A")
+				} else {
+					g.emitf("    LD HL, %d", inst.Imm&0xFFFF)
+					g.emitf("    LD (%s), HL", dst)
+					g.invalidate("HL")
+				}
 			} else {
 				g.emitf("    LD %s, %d", dst, inst.Imm)
 			}
@@ -2576,7 +2587,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		// Peephole: ADD/SUB dst, N where dst == lhs and N ≤ 3 → INC/DEC dst × N.
 		// N=1: 1B/4T vs 4B/15T; N=2: 2B/8T vs 4B/15T; N=3: 3B/12T vs 4B/15T.
 		// N=4 would be 16T vs 15T — worse in T-states, skip and fall through to ALU.
-		if mnem == "ADD" && lhs == dst {
+		if mnem == "ADD" && lhs == dst && !strings.HasPrefix(dst, "$") {
 			if cv, ok := g.constVals[inst.Src[1]]; ok && cv >= 1 && cv <= 3 {
 				for range cv {
 					g.emitf("    INC %s", dst)
@@ -2585,7 +2596,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				return
 			}
 		}
-		if mnem == "SUB" && lhs == dst {
+		if mnem == "SUB" && lhs == dst && !strings.HasPrefix(dst, "$") {
 			if cv, ok := g.constVals[inst.Src[1]]; ok && cv >= 1 && cv <= 3 {
 				for range cv {
 					g.emitf("    DEC %s", dst)
@@ -2704,7 +2715,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		}
 	} else {
 		// 16-bit peephole: INC/DEC rr when adding/subtracting 1 in-place.
-		if lhs == dst {
+		if lhs == dst && !strings.HasPrefix(dst, "$") {
 			if cv, ok := g.constVals[inst.Src[1]]; ok {
 				if mnem == "ADD" && cv == 1 {
 					g.emitf("    INC %s", dst)
@@ -3087,6 +3098,27 @@ func reorderAccMoves(insts []*Inst, ar *AllocResult) []*Inst {
 // emit8ALU emits an 8-bit ALU instruction with A as the implicit destination.
 // MZA requires "ADD A, src" (two operands) but "SUB/AND/OR/XOR src" (one operand).
 func (g *z80cg) emit8ALU(mnem, src string) {
+	// LocMem spill: Z80 ALU ops can't use absolute addresses directly.
+	// Load spill value into a scratch register first.
+	if strings.HasPrefix(src, "$") {
+		// Load from memory into A first, but A is the implicit LHS for 8-bit ALU.
+		// Must save A, load spill into scratch, restore A, then ALU.
+		// Simpler: use (HL) indirect — save HL, point to spill, ALU (HL), restore.
+		// Simplest: load spill into a scratch 8-bit reg.
+		// For now, load into A via memory, which works if LHS is already in A.
+		g.emit("    PUSH HL")
+		g.emitf("    LD HL, %s", src)
+		g.emitf("    LD H, (HL)") // H = value at spill address
+		switch mnem {
+		case "ADD", "ADC":
+			g.emitf("    %s A, H", mnem)
+		default:
+			g.emitf("    %s H", mnem)
+		}
+		g.emit("    POP HL")
+		g.invalidate("H")
+		return
+	}
 	switch mnem {
 	case "ADD", "ADC":
 		g.emitf("    %s A, %s", mnem, src)
