@@ -126,7 +126,7 @@ func prepareForValidation(asm string) string {
 	return sb.String()
 }
 
-// collectBranchTargets extracts label names from JP/CALL/JR/DJNZ instructions.
+// collectBranchTargets extracts label names from JP/CALL/JR/DJNZ/LD instructions.
 func collectBranchTargets(line string, refs map[string]bool) {
 	upper := strings.ToUpper(strings.TrimSpace(line))
 	// Strip inline comments
@@ -149,6 +149,22 @@ func collectBranchTargets(line string, refs map[string]bool) {
 			}
 			// Only track label references, not immediates or (HL)
 			rest = strings.TrimSpace(rest)
+			if rest != "" && !strings.HasPrefix(rest, "(") &&
+				!strings.HasPrefix(rest, "$") && !strings.HasPrefix(rest, "0") &&
+				(rest[0] < '0' || rest[0] > '9') {
+				refs[rest] = true
+			}
+			return
+		}
+	}
+
+	// LD rr, label (data references to globals/strings)
+	trimmed := strings.TrimSpace(line)
+	trimmedUpper := strings.ToUpper(trimmed)
+	ldPrefixes := []string{"LD HL,", "LD DE,", "LD BC,", "LD IX,", "LD IY,", "LD SP,"}
+	for _, prefix := range ldPrefixes {
+		if strings.HasPrefix(trimmedUpper, prefix) {
+			rest := strings.TrimSpace(trimmed[len(prefix):])
 			if rest != "" && !strings.HasPrefix(rest, "(") &&
 				!strings.HasPrefix(rest, "$") && !strings.HasPrefix(rest, "0") &&
 				(rest[0] < '0' || rest[0] > '9') {
