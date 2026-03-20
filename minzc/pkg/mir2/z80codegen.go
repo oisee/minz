@@ -1775,9 +1775,17 @@ func (g *z80cg) genInst(inst *Inst) {
 	case OpTrunc:
 		src := g.loc(inst.Src[0])
 		// Truncate 16-bit → 8-bit: take low byte.
-		// If dst is L and src is HL, or dst is E and src is DE — no-op.
-		if dst != src {
-			g.emitf("    LD %s, %s", dst, lowByte(src))
+		lo := lowByte(src)
+		if dst == lo {
+			// Already in place (e.g. dst=L, src=HL → L already has the value).
+		} else if (isIXYReg(lo) && (dst == "H" || dst == "L")) ||
+			((lo == "H" || lo == "L") && isIXYReg(dst)) {
+			// DD/FD prefix conflict: route through A.
+			g.emitf("    LD A, %s", lo)
+			g.emitf("    LD %s, A", dst)
+			g.invalidate("A")
+		} else {
+			g.emitf("    LD %s, %s", dst, lo)
 		}
 
 	case OpCmp:
