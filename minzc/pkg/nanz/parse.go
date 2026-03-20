@@ -3420,6 +3420,13 @@ func (p *parser) parseBinary(minPrec int) (hir.Expr, error) {
 					retTy = sig
 				}
 				lhs = &hir.CallExpr{Fn: ref.Name, Args: []hir.Expr{lhs}, Ty: retTy}
+			} else if addr, ok := rhs.(*hir.AddrOfExpr); ok {
+				// Function-as-value via AddrOfExpr: f → f(lhs)
+				retTy := mir2.Ty(mir2.TyU8)
+				if sig, hasSig := p.funcSigs[addr.Sym]; hasSig {
+					retTy = sig
+				}
+				lhs = &hir.CallExpr{Fn: addr.Sym, Args: []hir.Expr{lhs}, Ty: retTy}
 			} else {
 				return nil, fmt.Errorf("line %d: |> pipe: right side must be a function name or call", t.line)
 			}

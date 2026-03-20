@@ -2407,17 +2407,23 @@ func (l *lowerer) recognizeIterChain(expr Expr) (iterChain, bool) {
 	return chain, true
 }
 
-// resolveFunc resolves a callback VarRefExpr to a function name.
+// resolveFunc resolves a callback expression to a function name.
+// Accepts VarRefExpr (legacy) and AddrOfExpr (function-as-value).
 func (l *lowerer) resolveFunc(arg Expr) string {
-	vr, ok := arg.(*VarRefExpr)
-	if !ok {
+	var name string
+	switch a := arg.(type) {
+	case *VarRefExpr:
+		name = a.Name
+	case *AddrOfExpr:
+		name = a.Sym
+	default:
 		return ""
 	}
-	if alias, ok2 := l.fnAliases[vr.Name]; ok2 {
+	if alias, ok := l.fnAliases[name]; ok {
 		return alias
 	}
-	if l.hirFuncNames[vr.Name] {
-		return vr.Name
+	if l.hirFuncNames[name] {
+		return name
 	}
 	return ""
 }

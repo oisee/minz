@@ -197,22 +197,9 @@ func getBackend(name string) codegen.Backend {
 	switch name {
 	case "z80":
 		return codegen.NewZ80Backend(options)
-	case "6502":
-		return codegen.NewM6502Backend(options)
-	case "68000", "68k":
-		return codegen.NewM68kBackend(options)
-	case "i8080":
-		return codegen.NewI8080Backend(options)
-	case "gb":
-		return codegen.NewGBBackend(options)
-	case "c":
-		return codegen.NewCBackend(options)
-	case "wasm":
-		return codegen.NewWASMBackend(options)
-	case "llvm":
-		// LLVM backend uses init() registration
-		return &codegen.LLVMBackend{}
 	default:
+		// Non-Z80 backends (6502, 68k, i8080, GB, C, WASM, LLVM) have been
+		// deprecated and moved to _deprecated/. Only Z80 is production.
 		return nil
 	}
 }
