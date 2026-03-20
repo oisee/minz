@@ -2021,6 +2021,16 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.emitf("    LD %s, (%s)     ; hi", highByte(dst), ptr)
 				g.emitf("    LD %s, A       ; lo", lowByte(dst))
 				g.invalidate("A")
+			} else if isIXYReg(lowByte(dst)) || isIXYReg(highByte(dst)) {
+				// DD/FD prefix conflict: LD IXL,(HL) impossible.
+				// Route through A.
+				g.emitf("    LD A, (%s)     ; lo", ptr)
+				g.emitf("    LD %s, A", lowByte(dst))
+				g.emitf("    INC %s", ptr)
+				g.emitf("    LD A, (%s)     ; hi", ptr)
+				g.emitf("    LD %s, A", highByte(dst))
+				g.emitf("    DEC %s", ptr)
+				g.invalidate("A")
 			} else {
 				g.emitf("    LD %s, (%s)     ; lo", lowByte(dst), ptr)
 				g.emitf("    INC %s", ptr)
@@ -2203,13 +2213,26 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.emitf("    LD %s, %s     ; hi", ptrIndirect(ptr, 1), hi)
 			}
 		} else if ptr == "HL" {
-			// LD (HL), r is valid for any r — use INC/DEC trick.
-			g.emitf("    LD (%s), %s     ; lo", ptr, lowByte(val))
+			// LD (HL), r — valid for A,B,C,D,E,H,L but NOT IXH/IXL/IYH/IYL
+			// (DD prefix substitutes (HL)→(IX+d), corrupting the encoding).
+			lo := lowByte(val)
+			hi := highByte(val)
+			if isIXYReg(lo) {
+				g.emitf("    LD A, %s", lo)
+				g.emit("    LD (HL), A     ; lo")
+				g.invalidate("A")
+			} else {
+				g.emitf("    LD (HL), %s     ; lo", lo)
+			}
 			g.emitf("    INC %s", ptr)
 			if !isPairReg(val) {
 				g.emitf("    LD (%s), 0     ; hi (zero-extend u8→u16)", ptr)
+			} else if isIXYReg(hi) {
+				g.emitf("    LD A, %s", hi)
+				g.emit("    LD (HL), A     ; hi")
+				g.invalidate("A")
 			} else {
-				g.emitf("    LD (%s), %s     ; hi", ptr, highByte(val))
+				g.emitf("    LD (HL), %s     ; hi", hi)
 			}
 			g.emitf("    DEC %s", ptr)
 		} else {
@@ -3086,27 +3109,26 @@ func (g *z80cg) genShift(mnem string, inst *Inst) {
 	}
 	if w == 16 {
 		// Z80 has no SLA/SRL/SRA on register pairs.
-		// SHL u16: use ADD dst,dst (doubles the value = shift left by 1). 11T each.
-		//   Special case: SHL by 8 on a zero-extended u8 → LD H,L / LD L,0. 11T total.
-		// SHR u16: SRL H / RR L (logical right shift with carry). 8T+8T=16T each.
-		// SAR u16: SRA H / RR L (arithmetic right shift). 8T+8T=16T each.
-		hi := highByte(dst)
-		lo := lowByte(dst)
+		// SHL/SHR/SAR on IX/IY halves are also invalid (DD CB prefix
+		// always addresses (IX+d), never IXH/IXL directly).
+		// Route IX/IY shifts through HL.
+		shiftDst := dst
+		if isIXY(dst) {
+			g.emitMov("HL", dst, 16)
+			shiftDst = "HL"
+		}
+		hi := highByte(shiftDst)
+		lo := lowByte(shiftDst)
 		if mnem == "SLA" && count == 8 {
-			// Byte-swap optimisation: u8 zero-extended to u16, shift left 8 bits.
-			// After ext u8→u16, the u8 value is in the low byte (L/E/C).
-			// Result = {value, 0}: move low byte to high, zero low byte.
 			g.emitf("    LD %s, %s", hi, lo)
 			g.emitf("    LD %s, 0", lo)
 		} else {
 			for i := int64(0); i < count; i++ {
 				switch mnem {
 				case "SLA":
-					if dst == "HL" {
-						g.emitf("    ADD HL, HL") // ADD HL,HL = SHL HL by 1 (11T)
+					if shiftDst == "HL" {
+						g.emitf("    ADD HL, HL")
 					} else {
-						// Z80 only has ADD HL,rr — no ADD DE,DE or ADD BC,BC.
-						// Use SLA lo / RL hi for non-HL pairs.
 						g.emitf("    SLA %s", lo)
 						g.emitf("    RL  %s", hi)
 					}
@@ -3119,7 +3141,13 @@ func (g *z80cg) genShift(mnem string, inst *Inst) {
 				}
 			}
 		}
+		if isIXY(dst) {
+			g.emitMov(dst, "HL", 16)
+		}
 		g.invalidate(dst)
+		if isIXY(dst) {
+			g.invalidate("HL")
+		}
 		return
 	}
 	for i := int64(0); i < count; i++ {

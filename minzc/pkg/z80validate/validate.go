@@ -207,16 +207,57 @@ func CollectBranchTargets(line string, refs map[string]bool) {
 
 	trimmed := strings.TrimSpace(line)
 	trimmedUpper := strings.ToUpper(trimmed)
+
+	// LD rr, label  OR  LD rr, (label) — immediate 16-bit address or indirect
 	ldPrefixes := []string{"LD HL,", "LD DE,", "LD BC,", "LD IX,", "LD IY,", "LD SP,"}
 	for _, prefix := range ldPrefixes {
 		if strings.HasPrefix(trimmedUpper, prefix) {
 			rest := strings.TrimSpace(trimmed[len(prefix):])
-			if rest != "" && !strings.HasPrefix(rest, "(") &&
-				!strings.HasPrefix(rest, "$") && !strings.HasPrefix(rest, "0") &&
+			if rest == "" {
+				return
+			}
+			if strings.HasPrefix(rest, "(") {
+				// LD rr, (label) — extract label from parentheses
+				inner := rest[1:]
+				if idx := strings.IndexByte(inner, ')'); idx >= 0 {
+					label := strings.TrimSpace(inner[:idx])
+					if label != "" && !strings.HasPrefix(label, "$") && !strings.HasPrefix(label, "0") &&
+						(label[0] < '0' || label[0] > '9') &&
+						!strings.ContainsAny(label, " \t+") {
+						refs[label] = true
+					}
+				}
+			} else if !strings.HasPrefix(rest, "$") && !strings.HasPrefix(rest, "0") &&
 				(rest[0] < '0' || rest[0] > '9') {
 				refs[rest] = true
 			}
 			return
+		}
+	}
+
+	// LD A, (label) — 8-bit direct memory access with symbolic address
+	if strings.HasPrefix(trimmedUpper, "LD A, (") {
+		rest := strings.TrimSpace(trimmed[7:])
+		if idx := strings.IndexByte(rest, ')'); idx >= 0 {
+			label := strings.TrimSpace(rest[:idx])
+			if label != "" && !strings.HasPrefix(label, "$") && !strings.HasPrefix(label, "0") &&
+				(label[0] < '0' || label[0] > '9') && !strings.ContainsAny(label, " \t+") {
+				refs[label] = true
+			}
+		}
+		return
+	}
+
+	// LD (label), A / LD (label), HL etc.
+	if strings.HasPrefix(trimmedUpper, "LD (") {
+		rest := strings.TrimSpace(trimmed[4:]) // skip "LD ("
+		if idx := strings.IndexByte(rest, ')'); idx >= 0 {
+			label := strings.TrimSpace(rest[:idx])
+			if label != "" && !strings.HasPrefix(label, "$") && !strings.HasPrefix(label, "0") &&
+				(label[0] < '0' || label[0] > '9') &&
+				!strings.ContainsAny(label, " \t+") { // not (IX+d) etc.
+				refs[label] = true
+			}
 		}
 	}
 }
