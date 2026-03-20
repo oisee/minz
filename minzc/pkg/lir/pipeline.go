@@ -493,66 +493,115 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 		return "", fmt.Errorf("isel %s: %w", f.Name, err)
 	}
 
-	// WFC with param cells + PBQP hints
-	wfc := NewWFCStateWithParams(desc, sel.Insts, params)
-	if len(hints) > 0 && hints[0] != nil {
-		wfc.Hints = hints[0]
-	}
-	wfc.Propagate()
-	if err := wfc.Collapse(); err != nil {
-		return "", fmt.Errorf("wfc %s: %w", f.Name, err)
-	}
+	// Validate-reject-retry loop: WFC → emit → validate → retry with rejected
+	// assignments if validation finds invalid instructions. Max 3 attempts.
+	const maxRetries = 3
+	var rejected map[int]LocSet // vreg → banned phys locations (accumulated across retries)
 
-	insts := wfc.ToInsts()
-
-	// Emit assembly from templates, with caller-save spills around CALLs.
-	var sb strings.Builder
-	fmt.Fprintf(&sb, "; %s — LIR codegen (%d insts)\n", f.Name, len(insts))
-	fmt.Fprintf(&sb, "%s:\n", f.Name)
-	// Build param phys map from WFC param cells.
-	paramPhys := make(map[int]int) // vreg → phys
-	for _, c := range wfc.Cells {
-		if c.Pat == nil && c.VRegDst >= 0 {
-			if p := PhysOf(c.DstLocs); p >= 0 {
-				paramPhys[c.VRegDst] = p
+	for attempt := 0; attempt <= maxRetries; attempt++ {
+		// WFC with param cells + PBQP hints
+		wfc := NewWFCStateWithParams(desc, sel.Insts, params)
+		if len(hints) > 0 && hints[0] != nil {
+			wfc.Hints = hints[0]
+		}
+		// Apply rejected assignments from previous attempts
+		if rejected != nil {
+			for vreg, banned := range rejected {
+				for ci := range wfc.Cells {
+					c := &wfc.Cells[ci]
+					if c.VRegDst == vreg {
+						c.DstLocs = c.DstLocs.Subtract(banned)
+					}
+					if c.VRegSrc[0] == vreg {
+						c.SrcLocs[0] = c.SrcLocs[0].Subtract(banned)
+					}
+					if c.VRegSrc[1] == vreg {
+						c.SrcLocs[1] = c.SrcLocs[1].Subtract(banned)
+					}
+				}
 			}
 		}
-	}
-	emitInstsWithCallSpills(&sb, insts, desc, paramPhys)
+		wfc.Propagate()
+		if err := wfc.Collapse(); err != nil {
+			if attempt < maxRetries {
+				continue // retry with different state
+			}
+			return "", fmt.Errorf("wfc %s: %w", f.Name, err)
+		}
 
-	// Post-emit peephole optimization
-	asmPeepholed := Z80Peephole(sb.String())
-	sb.Reset()
-	sb.WriteString(asmPeepholed)
+		insts := wfc.ToInsts()
 
-	// Tail call optimization: if last emitted instruction is CALL, replace with JP.
-	asmSoFar := sb.String()
-	if idx := strings.LastIndex(asmSoFar, "    CALL "); idx >= 0 {
-		// Check nothing follows the CALL line (it's the last instruction).
-		callLine := asmSoFar[idx:]
-		if nlIdx := strings.IndexByte(callLine, '\n'); nlIdx >= 0 {
-			after := strings.TrimSpace(callLine[nlIdx+1:])
-			if after == "" {
-				// Replace CALL with JP — skip the RET entirely.
-				sb.Reset()
-				sb.WriteString(asmSoFar[:idx])
-				sb.WriteString("    JP")
-				sb.WriteString(callLine[8:nlIdx+1]) // " sym\n"
-				return sb.String(), nil
+		// Emit assembly from templates, with caller-save spills around CALLs.
+		var sb strings.Builder
+		fmt.Fprintf(&sb, "; %s — LIR codegen (%d insts, attempt %d)\n", f.Name, len(insts), attempt)
+		fmt.Fprintf(&sb, "%s:\n", f.Name)
+		paramPhys := make(map[int]int) // vreg → phys
+		for _, c := range wfc.Cells {
+			if c.Pat == nil && c.VRegDst >= 0 {
+				if p := PhysOf(c.DstLocs); p >= 0 {
+					paramPhys[c.VRegDst] = p
+				}
 			}
 		}
+		emitInstsWithCallSpills(&sb, insts, desc, paramPhys)
+
+		// Post-emit peephole optimization
+		asmPeepholed := Z80Peephole(sb.String())
+		sb.Reset()
+		sb.WriteString(asmPeepholed)
+
+		// Tail call optimization
+		asmSoFar := sb.String()
+		if idx := strings.LastIndex(asmSoFar, "    CALL "); idx >= 0 {
+			callLine := asmSoFar[idx:]
+			if nlIdx := strings.IndexByte(callLine, '\n'); nlIdx >= 0 {
+				after := strings.TrimSpace(callLine[nlIdx+1:])
+				if after == "" {
+					sb.Reset()
+					sb.WriteString(asmSoFar[:idx])
+					sb.WriteString("    JP")
+					sb.WriteString(callLine[8:nlIdx+1])
+					return sb.String(), nil
+				}
+			}
+		}
+		sb.WriteString("    RET\n")
+
+		asm := sb.String()
+
+		// Z80 validation
+		errs := ValidateZ80Asm(asm)
+		if len(errs) == 0 {
+			return asm, nil // clean — no invalid instructions
+		}
+
+		if attempt < maxRetries {
+			// Build rejected assignments from invalid instructions.
+			// For each invalid inst, find the WFC cell that emitted it and
+			// reject its current phys assignment.
+			if rejected == nil {
+				rejected = make(map[int]LocSet)
+			}
+			for _, c := range wfc.Cells {
+				if c.Pat == nil {
+					continue
+				}
+				if c.VRegDst >= 0 {
+					if p := PhysOf(c.DstLocs); p >= 0 {
+						rejected[c.VRegDst] = rejected[c.VRegDst].Add(p)
+					}
+				}
+			}
+			fmt.Printf("[Z80-VALIDATE] %s: %d errors, retrying (attempt %d/%d)\n",
+				f.Name, len(errs), attempt+1, maxRetries)
+		} else {
+			// Final attempt failed — log and emit anyway (warn-only).
+			LogValidationErrors(f.Name, asm, errs)
+			return asm, nil
+		}
 	}
-	sb.WriteString("    RET\n")
 
-	asm := sb.String()
-
-	// Z80 validation — catch invalid instructions before they leave the compiler.
-	// Currently logs warnings; will hard-fail after WFC constraint bugs are fixed.
-	if errs := ValidateZ80Asm(asm); len(errs) > 0 {
-		LogValidationErrors(f.Name, asm, errs)
-	}
-
-	return asm, nil
+	return "", fmt.Errorf("lir %s: exhausted retries", f.Name)
 }
 
 // emitInstsWithCallSpills emits assembly with PUSH/POP pairs around CALL

@@ -31,8 +31,10 @@ const MaxLocs = 64
 func (s LocSet) Has(i int) bool    { return s&(1<<i) != 0 }
 func (s LocSet) Set(i int) LocSet  { return s | (1 << i) }
 func (s LocSet) Clear(i int) LocSet { return s &^ (1 << i) }
-func (s LocSet) And(o LocSet) LocSet { return s & o }
-func (s LocSet) Or(o LocSet) LocSet  { return s | o }
+func (s LocSet) And(o LocSet) LocSet      { return s & o }
+func (s LocSet) Or(o LocSet) LocSet       { return s | o }
+func (s LocSet) Subtract(o LocSet) LocSet { return s &^ o }
+func (s LocSet) Add(i int) LocSet         { return s | (1 << i) }
 func (s LocSet) IsEmpty() bool     { return s == 0 }
 func (s LocSet) Count() int {
 	n := 0

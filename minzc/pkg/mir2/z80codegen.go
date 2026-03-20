@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/minz/minzc/pkg/z80validate"
 )
 
 // Z80Codegen lowers allocated MIR2 to Z80 assembly text (.a80 format).
@@ -72,8 +74,14 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) string {
 	}
 
 	for _, f := range funcs {
+		startLen := sb.Len()
 		cg.genFunc(f)
 		sb.WriteByte('\n')
+		// Z80 validation: catch invalid instructions at compile time.
+		funcAsm := sb.String()[startLen:]
+		if errs := z80validate.Validate(funcAsm); len(errs) > 0 {
+			z80validate.LogErrors(f.Name, errs)
+		}
 	}
 
 	// Emit global variable data sections.
