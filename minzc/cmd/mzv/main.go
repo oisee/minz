@@ -78,7 +78,7 @@ func main() {
 	for _, f := range m.Funcs {
 		mir2.EliminateDeadBlocks(f)
 		mir2.ReorderBlocks(f)
-		for {
+		for iter := 0; iter < 100; iter++ {
 			p := mir2.PropagateConstants(f)
 			c := mir2.FoldConstants(f)
 			s := mir2.SimplifyIdentities(f)
