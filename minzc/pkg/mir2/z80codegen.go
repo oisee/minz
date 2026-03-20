@@ -816,6 +816,15 @@ func (g *z80cg) loc(r Reg) string {
 	return pl.Name
 }
 
+// physName returns the assembly-level name for a PhysLoc.
+// For LocMem, returns "$F0xx" format; for everything else, returns pl.Name.
+func physName(pl PhysLoc) string {
+	if pl.Kind == LocMem {
+		return fmt.Sprintf("$%04X", pl.Offset)
+	}
+	return pl.Name
+}
+
 // ── Function ──────────────────────────────────────────────────────────────────
 
 // computeDeadConsts returns the set of OpConst dsts whose LD can be suppressed
@@ -4498,7 +4507,7 @@ func (g *z80cg) emitCallArgs(args []Reg, params []Param) {
 		// (from PBQP). Fall back to canonical class-based location otherwise.
 		dstPhys := ""
 		if loc, ok := g.ar.Locs[params[i].Reg]; ok && loc.Name != "" {
-			dstPhys = loc.Name
+			dstPhys = physName(loc)
 		}
 		if dstPhys == "" {
 			dstPhys = canonicalReturnLoc(params[i].Class, params[i].Ty)
@@ -4519,7 +4528,7 @@ func (g *z80cg) emitCallArgs(args []Reg, params []Param) {
 		if i >= len(params) {
 			break
 		}
-		srcPhys := g.ar.Loc(arg).Name
+		srcPhys := physName(g.ar.Loc(arg))
 		if p, ok := g.physOverride[arg]; ok {
 			srcPhys = p
 		}
@@ -4762,7 +4771,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 			continue
 		}
 		if scratch, ok := g.physOverride[bp.Dst]; ok {
-			canon := g.ar.Loc(bp.Dst).Name
+			canon := physName(g.ar.Loc(bp.Dst))
 			if canon != "" && canon != scratch {
 				g.emitf("    LD %s, %s    ; restore block param from scratch", canon, scratch)
 			}
@@ -4912,7 +4921,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 				}
 				param := bodyBlock.Params[i+1] // skip counter param[0]
 				src := g.loc(arg)
-				dst := g.ar.Loc(param.Dst).Name
+				dst := physName(g.ar.Loc(param.Dst))
 				if src != dst {
 					bodyCopies = append(bodyCopies, parallelCopy{srcName: src, dstName: dst, ty: param.Ty})
 				}
@@ -5060,7 +5069,7 @@ func (g *z80cg) buildBlockCopies(f *Func, targetName string, args []Reg) []paral
 		if i >= len(target.Params) {
 			break
 		}
-		dst := g.ar.Loc(target.Params[i].Dst).Name
+		dst := physName(g.ar.Loc(target.Params[i].Dst))
 		ty := target.Params[i].Ty
 		// Use g.loc (which respects physOverride) so that values saved to scratch
 		// registers by materializePendingAcc/materializePendingFlag are correctly
@@ -6010,8 +6019,8 @@ func (g *z80cg) detectDJNZPeephole(f *Func, b *Block) djnzPeepholeResult {
 		if i >= len(check.Params) {
 			break
 		}
-		srcLoc := g.ar.Loc(arg).Name
-		dstLoc := g.ar.Loc(check.Params[i].Dst).Name
+		srcLoc := physName(g.ar.Loc(arg))
+		dstLoc := physName(g.ar.Loc(check.Params[i].Dst))
 		if srcLoc == "B" && dstLoc == "B" {
 			continue // counter handled by DJNZ
 		}
