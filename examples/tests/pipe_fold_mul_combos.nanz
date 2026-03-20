@@ -1,0 +1,38 @@
+fun double(x: u8) -> u8 { return x + x }
+fun triple(x: u8) -> u8 { return x + x + x }
+fun inc(x: u8) -> u8 { return x + 1 }
+fun add_acc(acc: u8, x: u8) -> u8 { return acc + x }
+
+// Pipe operators
+fun pipe1() -> u8 { return 5 |> double |> inc }
+fun pipe2() -> u8 { return 4 |> triple |> double }
+fun pipe3() -> u8 { return 1 |> inc |> inc |> inc }
+
+assert pipe1() == 11 via mir2
+assert pipe2() == 24 via mir2
+assert pipe3() == 4 via mir2
+
+// Fold
+global data: [u8; 4] = [1, 2, 3, 4]
+fun sum_data() -> u8 { return fold(&data, 0, add_acc, 4) }
+fun sum_from_100() -> u8 { return fold(&data, 100, add_acc, 4) }
+
+assert sum_data() == 10 via mir2
+assert sum_from_100() == 110 via mir2
+
+// Fold with let (no arithmetic after)
+fun sum_let() -> u8 {
+    let s = fold(&data, 0, add_acc, 4)
+    return s
+}
+assert sum_let() == 10 via mir2
+
+// Multiply patterns (board index)
+fun board_idx(x: u8, y: u8) -> u8 { return y * 10 + x }
+assert board_idx(0, 0) == 0 via mir2
+assert board_idx(9, 0) == 9 via mir2
+assert board_idx(0, 1) == 10 via mir2
+assert board_idx(5, 3) == 35 via mir2
+assert board_idx(9, 19) == 199 via mir2
+
+fun main() -> void {}
