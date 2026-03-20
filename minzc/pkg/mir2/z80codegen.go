@@ -5237,6 +5237,13 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 			g.emitf("    LD A, %s", src)
 			g.emitf("    LD %s, A", dst)
 			g.invalidate("A")
+		case isPairReg(src) && !isPairReg(dst):
+			// Width mismatch: 16-bit source → 8-bit dest. Truncate (take low byte).
+			g.emitf("    LD %s, %s", dst, lowByte(src))
+		case !isPairReg(src) && isPairReg(dst):
+			// Width mismatch: 8-bit source → 16-bit dest. Zero-extend.
+			g.emitf("    LD %s, %s", lowByte(dst), src)
+			g.emitf("    LD %s, 0", highByte(dst))
 		default:
 			g.emitf("    LD %s, %s", dst, src)
 		}
@@ -5246,6 +5253,13 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 	} else if strings.HasPrefix(dst, "$") {
 		// register pair → LocMem spill slot: LD (nn), rr.
 		g.emitf("    LD (%s), %s", dst, src)
+	} else if isPairReg(src) && !isPairReg(dst) {
+		// Width mismatch in 16-bit context: pair→8bit truncation.
+		g.emitf("    LD %s, %s", dst, lowByte(src))
+	} else if !isPairReg(src) && isPairReg(dst) {
+		// Width mismatch in 16-bit context: 8bit→pair zero-extension.
+		g.emitf("    LD %s, %s", lowByte(dst), src)
+		g.emitf("    LD %s, 0", highByte(dst))
 	} else {
 		// 16-bit non-destructive copy: two 8-bit LDs.
 		hi := highByte(dst)
