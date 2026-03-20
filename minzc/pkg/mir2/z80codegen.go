@@ -184,6 +184,29 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) string {
 		sb.WriteString("    JP (HL)\n")
 	}
 
+	// Emit __mul8 runtime: A = A * B (unsigned 8-bit multiply).
+	// Algorithm: add-and-shift, 8 iterations. Clobbers A, B, C, F.
+	if cg.needsMul8 {
+		sb.WriteString("\n; runtime: 8-bit multiply A*B → A (~80T)\n")
+		sb.WriteString("__mul8:\n")
+		sb.WriteString("    LD C, 0\n")       // C = result accumulator
+		sb.WriteString("    LD D, 8\n")       // D = bit counter
+		sb.WriteString(".__mul8_loop:\n")
+		sb.WriteString("    SRL B\n")         // shift multiplier right, LSB → CF
+		sb.WriteString("    JR NC, .__mul8_noadd\n")
+		sb.WriteString("    LD E, A\n")       // save A
+		sb.WriteString("    LD A, C\n")
+		sb.WriteString("    ADD A, E\n")      // C += multiplicand
+		sb.WriteString("    LD C, A\n")
+		sb.WriteString("    LD A, E\n")       // restore A
+		sb.WriteString(".__mul8_noadd:\n")
+		sb.WriteString("    ADD A, A\n")      // shift multiplicand left
+		sb.WriteString("    DEC D\n")
+		sb.WriteString("    JR NZ, .__mul8_loop\n")
+		sb.WriteString("    LD A, C\n")       // result in A
+		sb.WriteString("    RET\n")
+	}
+
 	return asmPeepholePass(sb.String())
 }
 
@@ -472,6 +495,7 @@ type z80cg struct {
 	blockParamRegs map[Reg]bool  // regs that are block parameters (loop-variant, not const)
 	deadConsts     map[Reg]bool  // OpConst dsts whose LD is suppressed by DSE
 	needsCallHL    bool          // emit __call_hl trampoline (JP (HL)) at end of module
+	needsMul8      bool          // emit __mul8 runtime (A*B→A) at end of module
 
 	// holdsPhys is a bidirectional alias map for local copy-propagation within a
 	// basic block.  holdsPhys[r] = s means physical register r currently holds the
@@ -3205,11 +3229,10 @@ func (g *z80cg) genMul(inst *Inst) {
 			}
 			return
 		}
-		// x*3 = x + x*2: LD tmp,A; ADD A,A; ADD A,tmp
-		// x*5 = x + x*4: LD tmp,A; ADD A,A; ADD A,A; ADD A,tmp
-		// x*6 = x*2 + x*4: LD tmp,A; ADD A,A (tmp=x*2 in tmp); ADD A,A (A=x*4); ADD A,tmp
-		// x*9 = x + x*8:   LD tmp,A; 3×ADD A,A; ADD A,tmp
-		if cv == 3 || cv == 5 || cv == 6 || cv == 9 {
+		// x*3  = x + x*2;  x*5  = x + x*4;   x*6 = x*2 + x*4
+		// x*7  = x*8 - x;  x*9  = x + x*8;   x*10 = x*2 + x*8
+		// x*12 = x*4 + x*8; x*15 = x*16 - x
+		if cv == 3 || cv == 5 || cv == 6 || cv == 7 || cv == 9 || cv == 10 || cv == 12 || cv == 15 {
 			if !g.holdsValue("A", lhs) {
 				g.emitLDA(lhs)
 			}
@@ -3233,12 +3256,37 @@ func (g *z80cg) genMul(inst *Inst) {
 				g.emitf("    LD %s, A", tmp)  // tmp= x*2
 				g.emit("    ADD A, A")         // A  = x*4
 				g.emitf("    ADD A, %s", tmp) // A  = x*6
+			case 7: // x*8 - x
+				g.emitf("    LD %s, A", tmp) // tmp = x
+				g.emit("    ADD A, A")
+				g.emit("    ADD A, A")
+				g.emit("    ADD A, A")         // A  = x*8
+				g.emitf("    SUB %s", tmp)    // A  = x*7
 			case 9: // x + x*8
 				g.emitf("    LD %s, A", tmp)
 				g.emit("    ADD A, A")
 				g.emit("    ADD A, A")
 				g.emit("    ADD A, A")         // A  = x*8
 				g.emitf("    ADD A, %s", tmp) // A  = x*9
+			case 10: // x*2 + x*8
+				g.emit("    ADD A, A")         // A  = x*2
+				g.emitf("    LD %s, A", tmp)  // tmp= x*2
+				g.emit("    ADD A, A")
+				g.emit("    ADD A, A")         // A  = x*8
+				g.emitf("    ADD A, %s", tmp) // A  = x*10
+			case 12: // x*4 + x*8
+				g.emit("    ADD A, A")
+				g.emit("    ADD A, A")         // A  = x*4
+				g.emitf("    LD %s, A", tmp)  // tmp= x*4
+				g.emit("    ADD A, A")         // A  = x*8
+				g.emitf("    ADD A, %s", tmp) // A  = x*12
+			case 15: // x*16 - x
+				g.emitf("    LD %s, A", tmp) // tmp = x
+				g.emit("    ADD A, A")
+				g.emit("    ADD A, A")
+				g.emit("    ADD A, A")
+				g.emit("    ADD A, A")         // A  = x*16
+				g.emitf("    SUB %s", tmp)    // A  = x*15
 			}
 			g.invalidate("A")
 			if dst != "A" {
@@ -3249,9 +3297,24 @@ func (g *z80cg) genMul(inst *Inst) {
 		}
 	}
 
-	// Variable or unsupported constant: emit software-loop comment.
+	// General constant or variable multiply: use runtime __mul8 routine.
+	// __mul8(A=multiplicand, B=multiplier) → A=product (~80T).
+	if !g.holdsValue("A", lhs) {
+		g.emitLDA(lhs)
+	}
 	rhs := g.loc(inst.Src[1])
-	g.comment(fmt.Sprintf("TODO: general mul %s * %s → %s", lhs, rhs, dst))
+	if rhs != "B" {
+		g.emitf("    LD B, %s", rhs)
+	}
+	g.emit("    CALL __mul8")
+	g.needsMul8 = true
+	g.invalidate("A")
+	g.invalidate("B")
+	g.invalidate("F")
+	if dst != "A" {
+		g.emitf("    LD %s, A", dst)
+		g.setCopy(dst, "A")
+	}
 }
 
 // genMul16 emits 16-bit multiply.
