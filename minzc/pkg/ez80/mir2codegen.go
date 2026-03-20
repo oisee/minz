@@ -423,50 +423,103 @@ func (g *ez80cg) genBinOp(mnem string, inst *mir2.Inst) {
 	rhs := g.loc(inst.Src[1])
 	w := inst.Ty.Width()
 
+	// Resolve any width mismatches between operands and dst.
+	// e.g. lhs=HL (pair) but w=8: take low byte. lhs=A but w=16: extend.
+	lhsR := g.resolveWidth(lhs, w)
+	rhsR := g.resolveWidth(rhs, w)
+
 	if w <= 8 {
-		// 8-bit: op goes through A
-		if lhs != "A" {
-			g.emitf("    LD A, %s", lhs)
+		// 8-bit: op goes through A. Z80/eZ80 ALU syntax: SUB r (not SUB A,r)
+		if lhsR != "A" {
+			// Safety: if lhsR is still a pair after resolveWidth, take low byte
+			if isPair(lhsR) {
+				_, lhsR = pairHiLo(lhsR)
+			}
+			g.emitf("    LD A, %s", lhsR)
 		}
-		// Check for constant RHS
-		if cv, ok := g.constVals[inst.Src[1]]; ok && mnem != "SUB" {
-			g.emitf("    %s A, %d", mnem, cv)
-		} else if mnem == "SUB" {
-			if cv, ok := g.constVals[inst.Src[1]]; ok {
+		if cv, ok := g.constVals[inst.Src[1]]; ok {
+			if mnem == "SUB" {
 				g.emitf("    SUB %d", cv)
+			} else if mnem == "ADD" || mnem == "ADC" {
+				g.emitf("    ADD A, %d", cv)
 			} else {
-				g.emitf("    SUB %s", rhs)
+				// AND/OR/XOR: Z80 syntax is "AND r" not "AND A, r"
+				g.emitf("    %s %d", mnem, cv)
 			}
 		} else {
-			g.emitf("    %s A, %s", mnem, rhs)
+			if mnem == "SUB" {
+				g.emitf("    SUB %s", rhsR)
+			} else if mnem == "ADD" || mnem == "ADC" {
+				g.emitf("    ADD A, %s", rhsR)
+			} else {
+				g.emitf("    %s %s", mnem, rhsR)
+			}
 		}
 		if dst != "A" {
 			g.emitf("    LD %s, A", dst)
 		}
 	} else {
-		// 16/24-bit pair operation
+		dstR := dst
+		// Ensure dst is a pair for 16/24-bit ops
+		if !isPair(dstR) {
+			dstR = "HL" // fallback
+		}
+
 		switch mnem {
 		case "ADD":
-			if lhs != dst {
-				g.emitMov(dst, lhs, w)
+			// ADD only works with HL as dst on Z80/eZ80: ADD HL, rr
+			needRestore := false
+			if lhsR != "HL" {
+				// If HL is rhs, swap via EX DE,HL
+				if rhsR == "HL" && lhsR == "DE" {
+					g.emit("    EX DE, HL")
+					lhsR, rhsR = "HL", "DE"
+				} else {
+					g.emitMov("HL", lhsR, w)
+					// If lhsR was the same as rhsR's pair, adjust
+				}
 			}
-			g.emitf("    ADD %s, %s", dst, rhs)
+			if rhsR == "HL" {
+				// ADD HL, HL
+				g.emit("    PUSH HL")
+				g.emit("    POP DE")
+				rhsR = "DE"
+				needRestore = false
+			}
+			if !isPair(rhsR) {
+				g.emitf("    LD E, %s", rhsR)
+				g.emit("    LD D, 0")
+				rhsR = "DE"
+			}
+			g.emitf("    ADD HL, %s", rhsR)
+			if dstR != "HL" {
+				g.emitMov(dstR, "HL", w)
+			}
+			_ = needRestore
 		case "SUB":
-			if lhs != dst {
-				g.emitMov(dst, lhs, w)
+			if lhsR != "HL" {
+				g.emitMov("HL", lhsR, w)
 			}
-			g.emit("    OR A") // clear carry
-			g.emitf("    SBC %s, %s", dst, rhs)
+			if !isPair(rhsR) {
+				g.emitf("    LD E, %s", rhsR)
+				g.emit("    LD D, 0")
+				rhsR = "DE"
+			}
+			g.emit("    OR A")
+			g.emitf("    SBC HL, %s", rhsR)
+			if dstR != "HL" {
+				g.emitMov(dstR, "HL", w)
+			}
 		default:
 			// AND/OR/XOR on pairs: byte-by-byte through A
-			lo1, hi1 := pairHiLo(lhs)
-			lo2, hi2 := pairHiLo(rhs)
-			dlo, dhi := pairHiLo(dst)
+			lo1, hi1 := pairHiLo(lhsR)
+			lo2, hi2 := pairHiLo(rhsR)
+			dlo, dhi := pairHiLo(dstR)
 			g.emitf("    LD A, %s", lo1)
-			g.emitf("    %s A, %s", mnem, lo2)
+			g.emitf("    %s %s", mnem, lo2)
 			g.emitf("    LD %s, A", dlo)
 			g.emitf("    LD A, %s", hi1)
-			g.emitf("    %s A, %s", mnem, hi2)
+			g.emitf("    %s %s", mnem, hi2)
 			g.emitf("    LD %s, A", dhi)
 		}
 	}
@@ -509,15 +562,24 @@ func (g *ez80cg) genCmp(inst *mir2.Inst) {
 	lhs := g.loc(inst.Src[0])
 	rhs := g.loc(inst.Src[1])
 
-	if lhs != "A" {
-		g.emitf("    LD A, %s", lhs)
+	// Resolve: if lhs is a pair but compare is 8-bit, take low byte
+	lhsR := lhs
+	if isPair(lhs) {
+		_, lhsR = pairHiLo(lhs)
+	}
+	rhsR := rhs
+	if isPair(rhs) {
+		_, rhsR = pairHiLo(rhs)
+	}
+
+	if lhsR != "A" {
+		g.emitf("    LD A, %s", lhsR)
 	}
 	if cv, ok := g.constVals[inst.Src[1]]; ok {
 		g.emitf("    CP %d", cv)
 	} else {
-		g.emitf("    CP %s", rhs)
+		g.emitf("    CP %s", rhsR)
 	}
-	// Result is in flags — ClassFlag dst handled by TermBrIf
 }
 
 // ---------------------------------------------------------------------------
@@ -654,25 +716,45 @@ func (g *ez80cg) emitMov(dst, src string, widthBits int) {
 	}
 	// Flag materialization
 	if src == "F" {
-		// Can't LD from F directly — use SBC A,A for carry flag
 		g.emit("    SBC A, A") // A = 0xFF if carry, 0x00 if not
 		if dst != "A" {
-			g.emitf("    LD %s, A", dst)
+			if isPair(dst) {
+				lo, _ := pairHiLo(dst)
+				g.emitf("    LD %s, A", lo)
+			} else {
+				g.emitf("    LD %s, A", dst)
+			}
 		}
 		return
 	}
-	// Pair-to-pair: try EX DE,HL first, else use LD
+	// 8-bit → pair (zero-extend)
+	if is8bit(src) && isPair(dst) {
+		lo, hi := pairHiLo(dst)
+		g.emitf("    LD %s, 0", hi)
+		if src != lo {
+			g.emitf("    LD %s, %s", lo, src)
+		}
+		return
+	}
+	// Pair → 8-bit (truncate: take low byte)
+	if isPair(src) && is8bit(dst) {
+		_, lo := pairHiLo(src)
+		if dst != lo {
+			g.emitf("    LD %s, %s", dst, lo)
+		}
+		return
+	}
+	// Pair-to-pair
 	if isPair(dst) && isPair(src) {
 		if (dst == "HL" && src == "DE") || (dst == "DE" && src == "HL") {
 			g.emit("    EX DE, HL")
 			return
 		}
-		// eZ80: PUSH src / POP dst (3 bytes each in ADL)
 		g.emitf("    PUSH %s", src)
 		g.emitf("    POP %s", dst)
 		return
 	}
-	// 8-bit or mixed: direct LD
+	// 8-bit to 8-bit
 	g.emitf("    LD %s, %s", dst, src)
 }
 
@@ -691,6 +773,20 @@ func sanitize(s string) string {
 		}
 	}
 	return b.String()
+}
+
+// resolveWidth adjusts a physical register name to match the target width.
+// E.g. if reg=HL but width=8, returns L. If reg=A but width=16, returns the pair name.
+func (g *ez80cg) resolveWidth(reg string, widthBits int) string {
+	if widthBits <= 8 && isPair(reg) {
+		_, lo := pairHiLo(reg)
+		return lo
+	}
+	if widthBits > 8 && is8bit(reg) {
+		// 8-bit in 16-bit context: caller should zero-extend, but for safety return as-is
+		return reg
+	}
+	return reg
 }
 
 func isIXY(reg string) bool   { return reg == "IX" || reg == "IY" }

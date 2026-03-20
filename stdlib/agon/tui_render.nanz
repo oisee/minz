@@ -1,0 +1,223 @@
+// stdlib/agon/tui_render — TUI rendering primitives for Agon Light 2
+//
+// Agon MOS API:
+//   RST.LIL $10  — output character (A = char)
+//   RST.LIL $18  — print string (HL = pointer to null-terminated string)
+//   RST.LIL $08  — MOS API call (A = function number)
+//
+// Agon VDP understands VT100 escape sequences, so tui_goto / tui_color / etc.
+// use the same ANSI codes as the CP/M version. Only the low-level I/O differs.
+//
+// Usage:
+//   import stdlib.agon.tui_render
+//   (replaces stdlib.tui.render for Agon target)
+
+// =============================================================================
+// Internal: MOS output helpers
+// =============================================================================
+
+// MOS putchar: RST $10 with char in A
+fun _tui_mos_putchar(ch: u8) -> void {
+    asm z80 (in ch) {
+        RST.LIL $10
+    }
+}
+
+// Print ESC (0x1B)
+fun _tui_esc() -> void {
+    asm z80 {
+        LD A, $1B
+        RST.LIL $10
+    }
+}
+
+// Print null-terminated string via RST $18
+fun _tui_mos_puts(str: ^u8) -> void {
+    asm z80 (in str) {
+        RST.LIL $18
+    }
+}
+
+// Print u8 as decimal (for ANSI escape sequences: row/col numbers)
+fun _tui_print_dec(val: u8) -> void {
+    asm z80 (in val) {
+        ; A = val (0-255)
+        LD B, A
+        ; Hundreds digit
+        LD C, 0
+        .hloop: CP 100 / JR C, .hdone / SUB 100 / INC C / JR .hloop
+        .hdone:
+        LD B, A
+        LD A, C / OR A / JR Z, .skip_h
+        ADD A, 48 / RST.LIL $10
+        .skip_h:
+        ; Tens digit
+        LD A, B / LD C, 0
+        .tloop: CP 10 / JR C, .tdone / SUB 10 / INC C / JR .tloop
+        .tdone:
+        LD B, A
+        LD A, C / ADD A, 48 / RST.LIL $10
+        ; Units digit
+        LD A, B / ADD A, 48 / RST.LIL $10
+    }
+}
+
+// =============================================================================
+// TUI primitives — Agon MOS + VT100 (same escape sequences as CP/M)
+// =============================================================================
+
+// Position cursor at (x, y) — 0-based.
+// Emits: ESC [ (y+1) ; (x+1) H
+fun tui_goto(x: u8, y: u8) -> void {
+    _tui_esc()
+    _tui_mos_putchar(91)    // [
+    _tui_print_dec(y + 1)
+    _tui_mos_putchar(59)    // ;
+    _tui_print_dec(x + 1)
+    _tui_mos_putchar(72)    // H
+}
+
+// Set text color: fg (0-7), bg (0-7), bright (0 or 1).
+// Emits: ESC [ (30+fg) ; (40+bg) m   (bright adds 60)
+fun tui_color(fg: u8, bg: u8, bright: u8) -> void {
+    var fg_code: u8 = 30 + fg
+    var bg_code: u8 = 40 + bg
+    if bright != 0 {
+        fg_code = fg_code + 60
+        bg_code = bg_code + 60
+    }
+    _tui_esc()
+    _tui_mos_putchar(91)    // [
+    _tui_print_dec(fg_code)
+    _tui_mos_putchar(59)    // ;
+    _tui_print_dec(bg_code)
+    _tui_mos_putchar(109)   // m
+}
+
+// Reset colors to default. Emits: ESC [ 0 m
+fun tui_reset() -> void {
+    _tui_esc()
+    _tui_mos_putchar(91)    // [
+    _tui_mos_putchar(48)    // 0
+    _tui_mos_putchar(109)   // m
+}
+
+// Clear the entire screen. Emits: ESC [ 2 J  ESC [ H
+fun tui_clear() -> void {
+    _tui_esc()
+    _tui_mos_putchar(91)    // [
+    _tui_mos_putchar(50)    // 2
+    _tui_mos_putchar(74)    // J
+    _tui_esc()
+    _tui_mos_putchar(91)    // [
+    _tui_mos_putchar(72)    // H
+}
+
+// Print a single character. Codes 1-6 → box-drawing (ASCII fallback).
+// TODO: Agon VDP supports UTF-8 box-drawing characters natively.
+fun tui_putch(ch: u8) -> void {
+    if ch == 1 { _tui_mos_putchar(43) }  // top-left corner → +
+    if ch == 2 { _tui_mos_putchar(43) }  // top-right corner → +
+    if ch == 3 { _tui_mos_putchar(43) }  // bottom-left corner → +
+    if ch == 4 { _tui_mos_putchar(43) }  // bottom-right corner → +
+    if ch == 5 { _tui_mos_putchar(45) }  // horizontal → -
+    if ch == 6 { _tui_mos_putchar(124) } // vertical → |
+    if ch > 6 {
+        _tui_mos_putchar(ch)
+    }
+}
+
+// Print a null-terminated string.
+fun tui_puts(str: ^u8) -> void {
+    _tui_mos_puts(str)
+}
+
+// Read one key (blocking). MOS function 0x00 via RST $08.
+fun tui_read_key() -> u8 {
+    asm z80 (ret A) {
+        LD A, $00     ; MOS_GETKEY
+        RST.LIL $08
+    }
+}
+
+// Read a line into buffer. MOS function 0x09 (editline).
+// HL = buffer, B = max length. Returns actual length in A.
+fun tui_read_line(buf: ^u8, maxlen: u8) -> u8 {
+    asm z80 (in buf, maxlen) (ret A) {
+        ; HL = buf (from param 0), A = maxlen (from param 1)
+        LD B, A        ; B = maxlen
+        LD C, 1        ; C = 1 (clear buffer before use)
+        LD A, $09      ; MOS_EDITLINE
+        RST.LIL $08
+        ; On return: A = length of string entered
+    }
+}
+
+// Terminal dimensions — Agon default: 80x30 (mode 0) or 40x25 (mode 1)
+fun tui_width() -> u8 {
+    asm z80 (ret A) { LD A, 80 }
+}
+
+fun tui_height() -> u8 {
+    asm z80 (ret A) { LD A, 30 }
+}
+
+// =============================================================================
+// Box drawing helpers (identical to CP/M version — uses tui_* primitives)
+// =============================================================================
+
+fun draw_box(x: u8, y: u8, w: u8, h: u8) -> void {
+    tui_goto(x, y)
+    tui_putch(1)
+    var i: u8 = 0
+    while i < w - 2 {
+        tui_putch(5)
+        i = i + 1
+    }
+    tui_putch(2)
+
+    var row: u8 = 1
+    while row < h - 1 {
+        tui_goto(x, y + row)
+        tui_putch(6)
+        tui_goto(x + w - 1, y + row)
+        tui_putch(6)
+        row = row + 1
+    }
+
+    tui_goto(x, y + h - 1)
+    tui_putch(3)
+    i = 0
+    while i < w - 2 {
+        tui_putch(5)
+        i = i + 1
+    }
+    tui_putch(4)
+}
+
+fun clear_rect(x: u8, y: u8, w: u8, h: u8) -> void {
+    var row: u8 = 0
+    while row < h {
+        tui_goto(x, y + row)
+        var col: u8 = 0
+        while col < w {
+            tui_putch(32)
+            col = col + 1
+        }
+        row = row + 1
+    }
+}
+
+fun puts_padded(str: ^u8, width: u8) -> void {
+    var i: u8 = 0
+    var ptr: ^u8 = str
+    while i < width {
+        if ptr^ != 0 {
+            tui_putch(ptr^)
+            ptr = ptr + 1
+        } else {
+            tui_putch(32)
+        }
+        i = i + 1
+    }
+}
