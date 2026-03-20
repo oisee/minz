@@ -13,6 +13,18 @@ import (
 	"testing"
 )
 
+// assembleOneEZ80QuietOrg0 assembles at ORG 0 for differential comparison.
+func assembleOneEZ80QuietOrg0(source string) []byte {
+	full := fmt.Sprintf("    ORG 0\n    %s\n", source)
+	a := NewAssembler()
+	a.SetCPUMode(CPUModeEZ80ADL)
+	result, err := a.AssembleString(full)
+	if err != nil {
+		return nil
+	}
+	return result.Binary
+}
+
 // TestEZ80_Differential runs each eZ80 instruction through both MZA and an
 // external reference assembler, then compares binary output byte-for-byte.
 //
@@ -97,7 +109,7 @@ func TestEZ80_Differential(t *testing.T) {
 	for _, tc := range corpus {
 		t.Run(tc.desc, func(t *testing.T) {
 			// Assemble with MZA
-			mzaBytes := assembleOneEZ80Quiet(tc.asm)
+			mzaBytes := assembleOneEZ80QuietOrg0(tc.asm)
 			if mzaBytes == nil {
 				t.Logf("MZA failed to assemble: %s", tc.asm)
 				skip++
@@ -164,14 +176,12 @@ func assembleWithReference(asmPath, instruction string) ([]byte, error) {
 	switch {
 	case strings.Contains(baseName, "spasm"):
 		// spasm-ng syntax
-		source = fmt.Sprintf(".ASSUME ADL=1\n.org $040000\n    %s\n", instruction)
-		// spasm outputs to .bin by default
+		source = fmt.Sprintf(".ASSUME ADL=1\n.org 0\n    %s\n", instruction)
 	case strings.Contains(baseName, "ez80asm"):
-		// agon-ez80asm syntax
-		source = fmt.Sprintf("    .ASSUME ADL=1\n    ORG $040000\n    %s\n", instruction)
+		// agon-ez80asm defaults to ADL=1, EZ80 CPU
+		source = fmt.Sprintf("    ORG 0\n    %s\n", instruction)
 	default:
-		// Generic — try agon-ez80asm style
-		source = fmt.Sprintf("    .ASSUME ADL=1\n    ORG $040000\n    %s\n", instruction)
+		source = fmt.Sprintf("    ORG 0\n    %s\n", instruction)
 	}
 
 	if err := os.WriteFile(srcPath, []byte(source), 0644); err != nil {
@@ -184,9 +194,10 @@ func assembleWithReference(asmPath, instruction string) ([]byte, error) {
 	case strings.Contains(baseName, "spasm"):
 		cmd = exec.Command(asmPath, srcPath, binPath)
 	case strings.Contains(baseName, "ez80asm"):
-		cmd = exec.Command(asmPath, srcPath, "-o", binPath)
+		// agon-ez80asm: positional args, no -o flag
+		cmd = exec.Command(asmPath, srcPath, binPath)
 	default:
-		cmd = exec.Command(asmPath, srcPath, "-o", binPath)
+		cmd = exec.Command(asmPath, srcPath, binPath)
 	}
 
 	output, err := cmd.CombinedOutput()
