@@ -1,0 +1,64 @@
+// MinZ Nanz — things C and SDCC cannot express
+
+// 1. Pipe operator — functional composition, zero overhead
+fun double(x: u8) -> u8 { return x + x }
+fun inc(x: u8) -> u8 { return x + 1 }
+fun square(x: u8) -> u8 { return x * x }
+
+fun pipeline_demo() -> u8 {
+    return 3 |> double |> inc |> square
+}
+assert pipeline_demo() == 49 via mir2
+
+// 2. Fold with accumulator
+fun add_acc(acc: u8, x: u8) -> u8 { return acc + x }
+global vals: [u8; 5] = [10, 20, 30, 40, 50]
+
+fun sum_all() -> u8 { return fold(&vals, 0, add_acc, 5) }
+assert sum_all() == 150 via mir2
+
+// 3. Fold result in expressions
+fun sum_plus_offset() -> u8 {
+    let s = fold(&vals, 0, add_acc, 5)
+    return s + 5
+}
+assert sum_plus_offset() == 155 via mir2
+
+// 4. Compile-time evaluation — entire loops evaluated at compile time
+fun fib(n: u8) -> u8 {
+    if n < 2 { return n }
+    var a: u8 = 0
+    var b: u8 = 1
+    var i: u8 = 2
+    while i <= n {
+        var t: u8 = a + b
+        a = b
+        b = t
+        i = i + 1
+    }
+    return b
+}
+
+fun fib8() -> u8 { return fib(8) }
+fun fib12() -> u8 { return fib(12) }
+assert fib8() == 21 via mir2
+assert fib12() == 144 via mir2
+
+// 5. Zero-cost enum with dot syntax
+enum Direction { UP, DOWN, LEFT, RIGHT }
+
+fun opposite(d: Direction) -> Direction {
+    if d == Direction.UP { return Direction.DOWN }
+    if d == Direction.DOWN { return Direction.UP }
+    if d == Direction.LEFT { return Direction.RIGHT }
+    return Direction.LEFT
+}
+assert opposite(Direction.UP) == 1 via mir2
+assert opposite(Direction.LEFT) == 3 via mir2
+
+// 6. Board index with strength-reduced multiply
+fun board_idx(x: u8, y: u8) -> u8 { return y * 10 + x }
+assert board_idx(5, 3) == 35 via mir2
+assert board_idx(9, 19) == 199 via mir2
+
+fun main() -> void {}
