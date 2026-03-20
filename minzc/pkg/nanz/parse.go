@@ -2458,6 +2458,23 @@ func (p *parser) parseLetDecl() (hir.Stmt, error) {
 	if ty == nil {
 		ty = init.ExprTy()
 	}
+	// fold/reduce returns the accumulator type (inferred from callback return).
+	if ty == nil || ty == mir2.TyVoid {
+		if call, ok := init.(*hir.CallExpr); ok && (call.Fn == "fold" || call.Fn == "reduce") && len(call.Args) >= 3 {
+			if cbRef, ok2 := call.Args[2].(*hir.AddrOfExpr); ok2 {
+				if cbSig, hasSig := p.funcSigs[cbRef.Sym]; hasSig {
+					ty = cbSig
+				}
+			} else if cbRef, ok2 := call.Args[2].(*hir.VarRefExpr); ok2 {
+				if cbSig, hasSig := p.funcSigs[cbRef.Name]; hasSig {
+					ty = cbSig
+				}
+			}
+			if ty == nil || ty == mir2.TyVoid {
+				ty = mir2.TyU8 // default fold accumulator type
+			}
+		}
+	}
 	// If the explicit type is non-void and the init is a call with unknown (void) return type,
 	// patch the call's type so the lowerer emits a value call (not CallVoid).
 	if ty != nil && ty != mir2.TyVoid {
