@@ -3236,11 +3236,32 @@ func (g *z80cg) genMul(inst *Inst) {
 			if !g.holdsValue("A", lhs) {
 				g.emitLDA(lhs)
 			}
-			// Pick a temp register that isn't A or dst.
+			// Pick a temp register that isn't A, dst, or any live 8-bit reg.
+			rhs := g.loc(inst.Src[1])
+			live := g.regsLiveAfterInst(inst)
 			tmp := "C"
-			if dst == "C" {
-				tmp = "D"
+			avoid := func(r string) bool {
+				return r == "A" || r == dst || r == rhs || live[inst.Src[0]] && r == g.loc(inst.Src[0])
 			}
+			// Also avoid any reg that holds a value used later in the block.
+			for _, cand := range []string{"C", "D", "E", "B"} {
+				conflict := false
+				if cand == "A" || cand == dst {
+					conflict = true
+				}
+				// Check if any live virtual is allocated to this candidate.
+				for vreg, isLive := range live {
+					if isLive && g.loc(vreg) == cand {
+						conflict = true
+						break
+					}
+				}
+				if !conflict {
+					tmp = cand
+					break
+				}
+			}
+			_ = avoid // suppress unused
 			switch cv {
 			case 3: // x + x*2
 				g.emitf("    LD %s, A", tmp) // tmp = x
