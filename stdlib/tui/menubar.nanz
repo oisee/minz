@@ -1,0 +1,286 @@
+// stdlib/tui/menubar — Mac/Turbo Vision style menu bar with dropdowns
+//
+// Top-line menu bar with keyboard-activated dropdown menus.
+// LEFT/RIGHT to switch menus, UP/DOWN to navigate items,
+// ENTER to select, ESC to close.
+//
+// Usage:
+//   global mb: MenuBar
+//   mb.init()
+//   mb.add_menu(c"File", 0)
+//   mb.add_item(0, c"New", 1)
+//   mb.add_item(0, c"Open", 2)
+//   mb.add_sep(0)
+//   mb.add_item(0, c"Quit", 99)
+//   mb.add_menu(c"Edit", 1)
+//   mb.add_item(1, c"Cut", 10)
+//   var cmd: u8 = mb.activate()  // returns item ID or 0
+
+import stdlib.tui.render
+import stdlib.tui.widget
+
+// =============================================================================
+// Menu data structures
+// =============================================================================
+
+struct MenuItem {
+    label:  ^u8     // display text (0 = separator)
+    id:     u8      // command ID returned on selection
+    flags:  u8      // bit 0=disabled, bit 1=separator
+}
+
+struct Menu {
+    title:   ^u8        // menu title shown in bar
+    x:       u8         // bar position (computed)
+    nitems:  u8         // number of items
+    width:   u8         // dropdown width (auto-computed)
+}
+
+struct MenuBar {
+    nmenus:    u8       // number of menus
+    active:    u8       // currently highlighted menu (-1 = none)
+    sel:       u8       // selected item within active menu
+    open:      u8       // 1 = dropdown is visible
+}
+
+// Storage for menu data (flat arrays, max 8 menus × 12 items each)
+global _mb_menus: [Menu; 8]
+global _mb_items: [MenuItem; 96]   // 8 menus × 12 items max
+global _mb_item_base: [u8; 8]      // start index in _mb_items for each menu
+
+// =============================================================================
+// MenuBar methods
+// =============================================================================
+
+fun MenuBar.init(self: ^MenuBar) -> void {
+    self.nmenus = 0
+    self.active = 0
+    self.sel = 0
+    self.open = 0
+}
+
+// Add a menu to the bar. Returns menu index.
+fun MenuBar.add_menu(self: ^MenuBar, title: ^u8) -> u8 {
+    var idx: u8 = self.nmenus
+    if idx >= 8 { return 0 }
+
+    _mb_menus[idx].title = title
+    _mb_menus[idx].nitems = 0
+    _mb_menus[idx].width = 16   // default dropdown width
+
+    // Compute X position: sum of previous menu title widths + gaps
+    var x: u8 = 1
+    var i: u8 = 0
+    while i < idx {
+        // Count title length
+        var p: ^u8 = _mb_menus[i].title
+        var len: u8 = 0
+        while p^ != 0 { len = len + 1 / p = p + 1 }
+        x = x + len + 2   // title + padding
+        i = i + 1
+    }
+    _mb_menus[idx].x = x
+
+    // Set item base index
+    if idx == 0 {
+        _mb_item_base[0] = 0
+    } else {
+        _mb_item_base[idx] = _mb_item_base[idx - 1] + _mb_menus[idx - 1].nitems
+    }
+
+    self.nmenus = idx + 1
+    return idx
+}
+
+// Add an item to a menu.
+fun MenuBar.add_item(self: ^MenuBar, menu: u8, label: ^u8, id: u8) -> void {
+    if menu >= self.nmenus { return }
+    var base: u8 = _mb_item_base[menu]
+    var n: u8 = _mb_menus[menu].nitems
+    if base + n >= 96 { return }
+
+    _mb_items[base + n].label = label
+    _mb_items[base + n].id = id
+    _mb_items[base + n].flags = 0
+    _mb_menus[menu].nitems = n + 1
+
+    // Auto-compute dropdown width from longest item
+    var p: ^u8 = label
+    var len: u8 = 0
+    while p^ != 0 { len = len + 1 / p = p + 1 }
+    if len + 4 > _mb_menus[menu].width {
+        _mb_menus[menu].width = len + 4
+    }
+}
+
+// Add a separator line to a menu.
+fun MenuBar.add_sep(self: ^MenuBar, menu: u8) -> void {
+    if menu >= self.nmenus { return }
+    var base: u8 = _mb_item_base[menu]
+    var n: u8 = _mb_menus[menu].nitems
+    if base + n >= 96 { return }
+
+    _mb_items[base + n].label = @ptr(u8, 0)
+    _mb_items[base + n].id = 0
+    _mb_items[base + n].flags = 2   // separator flag
+    _mb_menus[menu].nitems = n + 1
+}
+
+// =============================================================================
+// Rendering
+// =============================================================================
+
+// Render the menu bar (top line).
+fun MenuBar.render_bar(self: ^MenuBar) -> void {
+    var w: u8 = tui_width()
+    tui_color(0, 7, 0)
+    tui_goto(0, 0)
+
+    // Fill bar with spaces
+    var i: u8 = 0
+    while i < w { tui_putch(32) / i = i + 1 }
+
+    // Draw each menu title
+    i = 0
+    while i < self.nmenus {
+        tui_goto(_mb_menus[i].x, 0)
+        if i == self.active {
+            tui_color(7, 0, 1)    // highlighted: white on black
+        } else {
+            tui_color(0, 7, 0)    // normal: black on white
+        }
+        tui_putch(32)
+        tui_puts(_mb_menus[i].title)
+        tui_putch(32)
+        i = i + 1
+    }
+    tui_reset()
+}
+
+// Render the dropdown for the active menu.
+fun MenuBar.render_dropdown(self: ^MenuBar) -> void {
+    if self.open == 0 { return }
+    if self.active >= self.nmenus { return }
+
+    var menu: ^Menu = &_mb_menus + self.active * 8   // sizeof(Menu) = 8? approximate
+    // Safer: use indexed access
+    var mx: u8 = _mb_menus[self.active].x
+    var mw: u8 = _mb_menus[self.active].width
+    var mn: u8 = _mb_menus[self.active].nitems
+    var base: u8 = _mb_item_base[self.active]
+
+    // Draw dropdown box
+    tui_color(0, 7, 0)
+    draw_box(mx - 1, 1, mw, mn + 2)
+
+    // Draw items
+    var i: u8 = 0
+    while i < mn {
+        tui_goto(mx, 2 + i)
+
+        var item_flags: u8 = _mb_items[base + i].flags
+        if item_flags == 2 {
+            // Separator
+            tui_color(0, 7, 0)
+            var j: u8 = 0
+            while j < mw - 2 {
+                tui_putch(45)   // -
+                j = j + 1
+            }
+        } else {
+            if i == self.sel {
+                tui_color(7, 0, 1)    // selected
+            } else {
+                tui_color(0, 7, 0)    // normal
+            }
+            tui_putch(32)
+            var label: ^u8 = _mb_items[base + i].label
+            if label != @ptr(u8, 0) {
+                tui_puts(label)
+            }
+            // Pad to width
+            var p: ^u8 = label
+            var len: u8 = 0
+            if p != @ptr(u8, 0) {
+                while p^ != 0 { len = len + 1 / p = p + 1 }
+            }
+            var pad: u8 = len + 1
+            while pad < mw - 2 {
+                tui_putch(32)
+                pad = pad + 1
+            }
+        }
+        i = i + 1
+    }
+    tui_reset()
+}
+
+// =============================================================================
+// Interaction
+// =============================================================================
+
+// Activate the menu bar. Returns selected item ID, or 0 if cancelled.
+fun MenuBar.activate(self: ^MenuBar) -> u8 {
+    self.open = 1
+    self.sel = 0
+
+    var result: u8 = 0
+    var running: u8 = 1
+
+    while running == 1 {
+        MenuBar.render_bar(self)
+        MenuBar.render_dropdown(self)
+
+        var key: u8 = tui_read_key()
+
+        if key == KEY_LEFT {
+            if self.active > 0 {
+                self.active = self.active - 1
+            } else {
+                self.active = self.nmenus - 1
+            }
+            self.sel = 0
+        }
+        if key == KEY_RIGHT {
+            self.active = self.active + 1
+            if self.active >= self.nmenus { self.active = 0 }
+            self.sel = 0
+        }
+        if key == KEY_UP {
+            if self.sel > 0 { self.sel = self.sel - 1 }
+            // Skip separators
+            var base: u8 = _mb_item_base[self.active]
+            if _mb_items[base + self.sel].flags == 2 {
+                if self.sel > 0 { self.sel = self.sel - 1 }
+            }
+        }
+        if key == KEY_DOWN {
+            var mn: u8 = _mb_menus[self.active].nitems
+            if self.sel + 1 < mn { self.sel = self.sel + 1 }
+            // Skip separators
+            var base: u8 = _mb_item_base[self.active]
+            if _mb_items[base + self.sel].flags == 2 {
+                if self.sel + 1 < mn { self.sel = self.sel + 1 }
+            }
+        }
+        if key == KEY_ENTER {
+            var base: u8 = _mb_item_base[self.active]
+            if _mb_items[base + self.sel].flags != 2 {
+                result = _mb_items[base + self.sel].id
+                running = 0
+            }
+        }
+        if key == KEY_ESC {
+            result = 0
+            running = 0
+        }
+        if key == KEY_F10 {
+            // F10 toggles menu bar (classic convention)
+            result = 0
+            running = 0
+        }
+    }
+
+    self.open = 0
+    return result
+}
