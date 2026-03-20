@@ -51,6 +51,11 @@ type Inst struct {
 	// Comparison predicate (OpCmp)
 	Cond CmpCond
 
+	// FlagsOnly: for OpCmp — only the CPU flags matter, not the subtraction
+	// result value. Z80 codegen can skip ADD HL,rr restore after SBC HL,rr.
+	// Set by Grace flags-only-cmp rule using global liveness analysis.
+	FlagsOnly bool
+
 	// Source type for conversion ops (OpExt, OpSext, OpTrunc).
 	// Ty holds the *destination* type.
 	SrcTy Ty

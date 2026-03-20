@@ -286,8 +286,8 @@ func elimSingleJpEqu(lines []string) []string {
 				}
 				if j < len(lines) {
 					instr := strings.TrimSpace(lines[j])
-					// Must be exactly "JP target" (not DJNZ, not JP cc).
-					if strings.HasPrefix(instr, "JP ") && !strings.Contains(instr, ",") {
+					// Must be exactly "JP target" (not DJNZ, not JP cc, not JP (HL)/(IX)/(IY)).
+					if strings.HasPrefix(instr, "JP ") && !strings.Contains(instr, ",") && !strings.Contains(instr, "(") {
 						target := strings.TrimSpace(strings.TrimPrefix(instr, "JP "))
 						// Check that the next non-blank/comment line after JP is
 						// a top-level label or end-of-section (not another instruction
@@ -5603,11 +5603,9 @@ func (g *z80cg) genCmp16(inst *Inst) {
 	needsCF := inst.Cond == CmpUlt || inst.Cond == CmpUge ||
 		inst.Cond == CmpUgt || inst.Cond == CmpUle
 
-	// Check if lhs is dead after this comparison (flags-only mode).
-	lhsDead := g.isRegDeadAfter(inst.Src[0], inst)
-
-	if lhsDead {
-		// Flags-only: no restore needed — lhs not used after cmp.
+	// Flags-only: Grace rule marks CMP as FlagsOnly when LHS is provably dead
+	// (using global liveness analysis at MIR2 level). Skip HL restore.
+	if inst.FlagsOnly {
 		g.emit("    OR A")
 		g.emitf("    SBC HL, %s", rhs)
 	} else if needsCF {
@@ -6098,16 +6096,6 @@ func (g *z80cg) regsLiveAfterInst(target *Inst) map[Reg]bool {
 		}
 	}
 	return live
-}
-
-// isRegDeadAfter checks if a virtual register has no uses after the given instruction
-// in the current block (including the terminator).
-func (g *z80cg) isRegDeadAfter(r Reg, inst *Inst) bool {
-	if r == NoReg {
-		return true
-	}
-	live := g.regsLiveAfterInst(inst)
-	return !live[r]
 }
 
 // classPhysRegs returns physical register names associated with a register class.

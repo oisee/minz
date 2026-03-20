@@ -126,6 +126,19 @@ const graceFuseCmpBrIf2Rule = `
 // Narrow i16 arithmetic back to u8 when both operands are u8 and result is
 // consumed as u8 (truncated or returned as u8). C89 integer promotion widens
 // u8+u8 to i16, but on Z80 this forces HL instead of A. Narrowing saves ~4 insts.
+// Mark 16-bit comparisons as flags-only when the LHS value is dead after
+// the comparison. Uses liveness analysis to check all successors.
+// Z80 codegen then skips ADD HL,rr restore after SBC HL,rr (−1 inst each).
+const graceFlagsOnlyCmpRule = `
+(grace flags-only-cmp 47
+  (match
+    (block ?b))
+  (where
+    (has-flags-only-cmp ?b))
+  (action
+    (custom "markFlagsOnly" ?b)))
+`
+
 const graceNarrowArithRule = `
 (grace narrow-arith 48
   (match
@@ -253,7 +266,7 @@ func loadAllRules() ([]grace.GraceRule, error) {
 		allSrc := graceCondRetSinkRule + graceSplitJoinRetRule + graceDeadBlockArgRule + graceDSERule + graceFuseAbsDiffRule +
 			graceEmptyBlockElimRule + graceBlockMergeRule + graceTrivialBranchRule + graceParamForwardRule + graceFuseCmpBrIf2Rule +
 			graceTailCallRule + graceNarrowArithRule + graceTailRecursionRule +
-			graceRedundantLoadRule
+			graceRedundantLoadRule + graceFlagsOnlyCmpRule
 		cachedRules, cachedRulesErr = grace.ParseRules(allSrc)
 	})
 	return cachedRules, cachedRulesErr
@@ -693,6 +706,27 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		return false
 	})
 
+	// has-flags-only-cmp: block has a u16 OpCmp where LHS is dead after.
+	// Uses global liveness: the LHS vreg has no uses anywhere except as
+	// Src[0] of this comparison.
+	reg.RegisterPredicate("has-flags-only-cmp", func(graph rewrite.IRGraph, bindings grace.BlockBindings, args []string) bool {
+		label := bindings[args[0]]
+		blk := f.BlockByLabel(label)
+		if blk == nil {
+			return false
+		}
+		uses := countRegUses(f)
+		for _, inst := range blk.Insts {
+			if inst.Op == OpCmp && !inst.FlagsOnly {
+				// LHS is Src[0]. If it has only 1 use (this CMP), it's dead after.
+				if uses[inst.Src[0]] <= 1 {
+					return true
+				}
+			}
+		}
+		return false
+	})
+
 	// has-self-tail-call: block ends with ret(call_to_self). The call is to the
 	// same function we're in, and the return value is the call's result.
 	reg.RegisterPredicate("has-self-tail-call", func(graph rewrite.IRGraph, bindings grace.BlockBindings, args []string) bool {
@@ -1044,6 +1078,26 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 
 		f.Attrs.IsRecursive = false
 		return true
+	})
+
+	// markFlagsOnly: mark u16 CMP instructions as flags-only when LHS is dead
+	reg.RegisterAction("markFlagsOnly", func(graph rewrite.IRGraphMut, bindings grace.BlockBindings) bool {
+		label := bindings["b"]
+		blk := f.BlockByLabel(label)
+		if blk == nil {
+			return false
+		}
+		uses := countRegUses(f)
+		changed := false
+		for _, inst := range blk.Insts {
+			if inst.Op == OpCmp && !inst.FlagsOnly {
+				if uses[inst.Src[0]] <= 1 {
+					inst.FlagsOnly = true
+					changed = true
+				}
+			}
+		}
+		return changed
 	})
 
 	// narrowArith: narrow i16 arithmetic to u8 when safe
