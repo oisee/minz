@@ -2341,13 +2341,27 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.emitf("    INC %s", dst)
 			}
 		default:
-			// LD BC, offset; ADD HL, BC  (or equivalent pair for dst)
-			tmp := "BC"
-			if dst == "BC" {
-				tmp = "DE"
+			// ADD HL, rr is the only 16-bit add on Z80.
+			// Route through HL if dst is not HL.
+			if dst == "HL" {
+				tmp := "BC"
+				if dst == "BC" {
+					tmp = "DE"
+				}
+				g.emitf("    LD %s, %d", tmp, offset)
+				g.emitf("    ADD HL, %s", tmp)
+			} else {
+				// dst is DE/BC/IX: move to HL, add, move back.
+				g.emitMov("HL", dst, 16)
+				tmp := "BC"
+				if dst == "BC" {
+					tmp = "DE"
+				}
+				g.emitf("    LD %s, %d", tmp, offset)
+				g.emitf("    ADD HL, %s", tmp)
+				g.emitMov(dst, "HL", 16)
+				g.invalidate("HL")
 			}
-			g.emitf("    LD %s, %d", tmp, offset)
-			g.emitf("    ADD %s, %s", dst, tmp)
 		}
 		g.invalidate(dst)
 
@@ -2683,8 +2697,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 						g.emit("    ADD HL, BC")
 						g.emit("    POP BC")
 					} else if isSimpleReg(adjustedRhs) && !isPairReg(adjustedRhs) {
-						pair := parentPair(adjustedRhs)
-						g.emitf("    LD %s, 0", highByte(pair))
+						pair := g.promote8toPair(adjustedRhs)
 						g.emitf("    ADD HL, %s", pair)
 					} else {
 						g.emitf("    ADD HL, %s", adjustedRhs)
@@ -2706,8 +2719,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 					g.emit("    ADD HL, DE")
 					g.emit("    POP DE")
 				} else if isSimpleReg(adjustedRhs) && !isPairReg(adjustedRhs) {
-					pair := parentPair(adjustedRhs)
-					g.emitf("    LD %s, 0", highByte(pair))
+					pair := g.promote8toPair(adjustedRhs)
 					g.emitf("    ADD HL, %s", pair)
 				} else {
 					g.emitf("    ADD HL, %s", adjustedRhs)
@@ -2728,11 +2740,11 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				g.emit("    POP DE")
 			} else if isSimpleReg(rhs) && !isPairReg(rhs) {
 				// 8-bit rhs: zero-extend to parent pair, then ADD HL, pair.
-				pair := parentPair(rhs)
-				g.emitf("    LD %s, 0", highByte(pair))
+				pair := g.promote8toPair(rhs)
 				g.emitf("    ADD HL, %s", pair)
 			} else {
-				g.emitf("    ADD %s, %s", dst, rhs)
+				// dst must be HL here; ADD HL, rr is the only valid 16-bit ADD.
+				g.emitf("    ADD HL, %s", rhs)
 			}
 			g.invalidate(dst)
 		case "SUB":
@@ -3150,11 +3162,20 @@ func (g *z80cg) genShift32(mnem string, inst *Inst) {
 	switch mnem {
 	case "SHL":
 		// Left shift: ADD HL,HL / EXX / ADC HL,HL / EXX  (× count)
+		// Z80 only supports ADD HL,HL — not ADD DE,DE or ADD BC,BC.
+		// Route through HL if needed.
+		if dst != "HL" {
+			g.emitMov("HL", dst, 16)
+		}
 		for i := int64(0); i < count; i++ {
-			g.emitf("    ADD %s, %s", dst, dst)
+			g.emit("    ADD HL, HL")
 			g.emit("    EXX")
-			g.emitf("    ADC %s, %s", dst, dst)
+			g.emit("    ADC HL, HL")
 			g.emit("    EXX")
+		}
+		if dst != "HL" {
+			g.emitMov(dst, "HL", 16)
+			g.invalidate("HL")
 		}
 	case "SHR":
 		// Logical right shift: EXX / SRL H / RR L / EXX / RR H / RR L  (× count)
@@ -3528,11 +3549,19 @@ func (g *z80cg) genMul32(inst *Inst) {
 	lhs := g.loc(inst.Src[0])
 
 	// Emit one 32-bit left-shift-by-1 on the register pair p.
+	// Z80 only has ADD HL,HL — route through HL if p != HL.
 	shl1 := func(p string) {
-		g.emitf("    ADD %s, %s", p, p)
+		if p != "HL" {
+			g.emitMov("HL", p, 16)
+		}
+		g.emit("    ADD HL, HL")
 		g.emit("    EXX")
-		g.emitf("    ADC %s, %s", p, p)
+		g.emit("    ADC HL, HL")
 		g.emit("    EXX")
+		if p != "HL" {
+			g.emitMov(p, "HL", 16)
+			g.invalidate("HL")
+		}
 	}
 
 	cv, isConst := g.constVals[inst.Src[1]]
@@ -5560,6 +5589,21 @@ func parentPair(r string) string {
 	return r // already a pair or unknown
 }
 
+// promote8toPair zero-extends an 8-bit register into a 16-bit pair suitable
+// for ADD HL,rr or SBC HL,rr. For A, routes through BC (since AF is not a
+// valid arithmetic pair). For others, uses parentPair with high byte zeroed.
+// Returns the pair name to use.
+func (g *z80cg) promote8toPair(r string) string {
+	if r == "A" {
+		g.emit("    LD C, A")
+		g.emit("    LD B, 0")
+		return "BC"
+	}
+	pair := parentPair(r)
+	g.emitf("    LD %s, 0", highByte(pair))
+	return pair
+}
+
 // genCmp16 emits a 16-bit comparison using SBC HL, rr.
 //
 // Z80 only provides SBC HL, rr for 16-bit arithmetic that sets flags.
@@ -5689,10 +5733,8 @@ func (g *z80cg) genCmp16(inst *Inst) {
 		g.invalidate("A")
 		rhs = "BC"
 	} else if isSimpleReg(rhs) && !isPairReg(rhs) {
-		// 8-bit register: promote to parent pair with high byte zeroed.
-		pair := parentPair(rhs)
-		g.emitf("    LD %s, 0", highByte(pair))
-		rhs = pair
+		// 8-bit register: promote to pair (handles A→BC, others→parentPair).
+		rhs = g.promote8toPair(rhs)
 	} else if isIXY(rhs) {
 		// IX/IY: push to HL would conflict. Push rhs → stack, pop to BC.
 		g.emitf("    PUSH %s", rhs)
