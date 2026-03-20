@@ -784,6 +784,12 @@ func (g *z80cg) holdsValue(a, b string) bool {
 // When src is a LocMem address ($Fxxx), emits "LD A, ($Fxxx)" — the only
 // valid Z80 form for loading an 8-bit value from an absolute 16-bit address.
 func (g *z80cg) emitLDA(src string) {
+	if src == "F" {
+		// F register cannot be loaded directly. Materialise carry flag.
+		g.emit("    SBC A, A") // A=0xFF if C=1, A=0x00 if C=0
+		g.invalidate("A")
+		return
+	}
 	if strings.HasPrefix(src, "$") {
 		g.emitf("    LD A, (%s)", src)
 	} else {
@@ -5245,6 +5251,28 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 // For 16-bit, this emits two LD instructions (not EX DE,HL which is a swap).
 func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 	if src == dst {
+		return
+	}
+	// F register: cannot be accessed directly. Materialise flag→register or
+	// register→flag via the same logic as emitMov.
+	if src == "F" {
+		// Flag → register: SBC A,A materialises carry into A (0xFF/0x00).
+		if dst == "A" {
+			g.emit("    SBC A, A")
+		} else {
+			g.emit("    SBC A, A")
+			g.emitf("    LD %s, A", dst)
+		}
+		g.invalidate("A")
+		return
+	}
+	if dst == "F" {
+		// Register → flag: set Z/NZ from value via AND A.
+		if src != "A" {
+			g.emitf("    LD A, %s", src)
+		}
+		g.emit("    AND A")
+		g.invalidate("A")
 		return
 	}
 	if ty.Width() <= 8 {
