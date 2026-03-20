@@ -3076,8 +3076,7 @@ func (g *z80cg) genShift(mnem string, inst *Inst) {
 	dst := g.loc(inst.Dst)
 	src := g.loc(inst.Src[0])
 	if dst != src {
-		g.emitf("    LD %s, %s", dst, src)
-		g.setCopy(dst, src)
+		g.emitMov(dst, src, w)
 	}
 	// Shift count in Src[1] — Z80 shifts are always by 1 per instruction.
 	// For constant counts, emit N copies.  Variable shifts → TODO.
