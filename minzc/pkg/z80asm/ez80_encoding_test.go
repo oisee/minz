@@ -480,3 +480,75 @@ func bytesEqual(a, b []byte) bool {
 func TestEZ80_Differential_Placeholder(t *testing.T) {
 	t.Skip("Differential testing requires external assembler. Set EZ80ASM_PATH and use -tags ez80diff")
 }
+
+// TestEZ80_DW24_DL tests DW24/DL directives (24-bit data, 3 bytes per value).
+// Compatible with agon-ez80asm: DW24 and DL are synonyms.
+func TestEZ80_DW24_DL(t *testing.T) {
+	tests := []struct {
+		source   string
+		expected []byte
+		desc     string
+	}{
+		{"DW24 $123456", []byte{0x56, 0x34, 0x12}, "DW24 single value"},
+		{"DL $123456", []byte{0x56, 0x34, 0x12}, "DL single value (alias)"},
+		{"DW24 $0042", []byte{0x42, 0x00, 0x00}, "DW24 small value zero-extended"},
+		{"DW24 $FFFFFF", []byte{0xFF, 0xFF, 0xFF}, "DW24 max 24-bit"},
+		{"DW24 $1234, $5678", []byte{0x34, 0x12, 0x00, 0x78, 0x56, 0x00}, "DW24 two values"},
+		{"DL $040000", []byte{0x00, 0x00, 0x04}, "DL Agon ORG address"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			full := fmt.Sprintf("    ORG 0\n    %s\n", tt.source)
+			a := NewAssembler()
+			a.SetCPUMode(CPUModeEZ80ADL)
+			result, err := a.AssembleString(full)
+			if err != nil {
+				t.Fatalf("assembly failed: %v", err)
+			}
+			got := result.Binary
+			if len(got) != len(tt.expected) {
+				t.Fatalf("length mismatch: got %d bytes %X, want %d bytes %X",
+					len(got), got, len(tt.expected), tt.expected)
+			}
+			for i := range got {
+				if got[i] != tt.expected[i] {
+					t.Errorf("byte %d: got $%02X, want $%02X (full: %X vs %X)",
+						i, got[i], tt.expected[i], got, tt.expected)
+				}
+			}
+		})
+	}
+}
+
+// TestDW_Always2Bytes verifies DW always emits 2 bytes, even in ADL mode.
+func TestDW_Always2Bytes(t *testing.T) {
+	tests := []struct {
+		mode CPUMode
+		desc string
+	}{
+		{CPUModeZ80, "Z80 mode"},
+		{CPUModeEZ80ADL, "eZ80 ADL mode"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.desc, func(t *testing.T) {
+			full := "    ORG 0\n    DW $1234\n"
+			a := NewAssembler()
+			a.SetCPUMode(tt.mode)
+			result, err := a.AssembleString(full)
+			if err != nil {
+				t.Fatalf("assembly failed: %v", err)
+			}
+			got := result.Binary
+			expected := []byte{0x34, 0x12}
+			if len(got) != len(expected) {
+				t.Fatalf("DW should always emit 2 bytes, got %d: %X", len(got), got)
+			}
+			for i := range got {
+				if got[i] != expected[i] {
+					t.Errorf("byte %d: got $%02X, want $%02X", i, got[i], expected[i])
+				}
+			}
+		})
+	}
+}

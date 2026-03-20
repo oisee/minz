@@ -16,6 +16,8 @@ func (a *Assembler) processDirective(line *Line) error {
 		return a.handleDB(line)
 	case "DW", "DEFW":
 		return a.handleDW(line)
+	case "DW24", "DL":
+		return a.handleDW24(line)
 	case "DS", "DEFS":
 		return a.handleDS(line)
 	case "EQU":
@@ -206,7 +208,7 @@ func (a *Assembler) handleDW(line *Line) error {
 			if err != nil {
 				return fmt.Errorf("invalid DW operand '%s': %w", operand, err)
 			}
-			// Little-endian encoding
+			// Little-endian encoding (always 2 bytes — DW is Define Word)
 			bytes = append(bytes, byte(val), byte(val>>8))
 		}
 	}
@@ -221,6 +223,37 @@ func (a *Assembler) handleDW(line *Line) error {
 		a.output = append(a.output, bytes...)
 	}
 	
+	a.currentAddr += len(bytes)
+	return nil
+}
+
+// handleDW24 handles DW24/DL — 24-bit (3 byte) data definitions.
+// Compatible with agon-ez80asm syntax.
+func (a *Assembler) handleDW24(line *Line) error {
+	if len(line.Operands) == 0 {
+		return fmt.Errorf("DW24 requires at least one operand")
+	}
+
+	var bytes []byte
+	for _, operand := range line.Operands {
+		val, err := a.resolveValue(operand)
+		if err != nil {
+			return fmt.Errorf("invalid DW24 operand '%s': %w", operand, err)
+		}
+		// 24-bit little-endian encoding
+		bytes = append(bytes, byte(val), byte(val>>8), byte(val>>16))
+	}
+
+	if a.pass == 2 {
+		inst := &AssembledInstruction{
+			Address: a.currentAddr,
+			Line:    line,
+			Bytes:   bytes,
+		}
+		a.instructions = append(a.instructions, inst)
+		a.output = append(a.output, bytes...)
+	}
+
 	a.currentAddr += len(bytes)
 	return nil
 }
