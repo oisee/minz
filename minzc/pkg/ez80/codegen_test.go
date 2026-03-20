@@ -7,6 +7,8 @@ import (
 
 	"github.com/minz/minzc/pkg/codegen"
 	"github.com/minz/minzc/pkg/ir"
+	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/z80asm"
 )
 
 func TestEZ80BackendRegistered(t *testing.T) {
@@ -221,4 +223,205 @@ func TestEZ80FunctionCall(t *testing.T) {
 	}
 
 	t.Logf("Generated assembly:\n%s", out)
+}
+
+// TestEZ80_E2E_AssembleToBytes tests the full pipeline:
+// IR module → eZ80 assembly → MZA (ADL mode) → binary bytes.
+func TestEZ80_E2E_AssembleToBytes(t *testing.T) {
+	var buf bytes.Buffer
+	gen := NewEZ80Generator(&buf, codegen.TargetEZ80ADL)
+
+	u8Type := &ir.BasicType{Kind: ir.TypeU8}
+
+	// fun add(a: u8, b: u8) -> u8 { return a + b }
+	module := &ir.Module{
+		Name: "test",
+		Functions: []*ir.Function{
+			{
+				Name: "add",
+				Params: []ir.Parameter{
+					{Name: "a", Reg: 1, Type: u8Type},
+					{Name: "b", Reg: 2, Type: u8Type},
+				},
+				ReturnType: u8Type,
+				Instructions: []ir.Instruction{
+					{Op: ir.OpAdd, Dest: 3, Src1: 1, Src2: 2},
+					{Op: ir.OpReturn, Src1: 3},
+				},
+			},
+		},
+	}
+
+	if err := gen.Generate(module); err != nil {
+		t.Fatalf("Generate failed: %v", err)
+	}
+
+	asm := buf.String()
+	t.Logf("Generated assembly:\n%s", asm)
+
+	// Assemble with MZA in eZ80 ADL mode
+	a := z80asm.NewAssembler()
+	a.SetCPUMode(z80asm.CPUModeEZ80ADL)
+	result, err := a.AssembleString(asm)
+	if err != nil {
+		t.Fatalf("MZA assembly failed: %v\nSource:\n%s", err, asm)
+	}
+
+	if len(result.Binary) == 0 {
+		t.Fatal("MZA produced empty binary")
+	}
+
+	t.Logf("Binary: %d bytes", len(result.Binary))
+
+	// Verify the binary contains expected patterns:
+	// PUSH IX = DD E5
+	if !containsBytes(result.Binary, []byte{0xDD, 0xE5}) {
+		t.Error("binary missing PUSH IX (DD E5)")
+	}
+	// POP IX = DD E1
+	if !containsBytes(result.Binary, []byte{0xDD, 0xE1}) {
+		t.Error("binary missing POP IX (DD E1)")
+	}
+	// ADD HL, DE = 19
+	if !containsByte(result.Binary, 0x19) {
+		t.Error("binary missing ADD HL, DE (19)")
+	}
+	// RET = C9
+	if !containsByte(result.Binary, 0xC9) {
+		t.Error("binary missing RET (C9)")
+	}
+
+	// Verify symbol table has 'add' label
+	if _, ok := result.Symbols["add"]; !ok {
+		t.Error("symbol table missing 'add' label")
+	}
+}
+
+// TestEZ80_E2E_MLT_Binary tests MLT BC assembles correctly.
+func TestEZ80_E2E_MLT_Binary(t *testing.T) {
+	var buf bytes.Buffer
+	gen := NewEZ80Generator(&buf, codegen.TargetEZ80ADL)
+
+	u8Type := &ir.BasicType{Kind: ir.TypeU8}
+
+	module := &ir.Module{
+		Name: "test",
+		Functions: []*ir.Function{
+			{
+				Name: "mul8",
+				Params: []ir.Parameter{
+					{Name: "a", Reg: 1, Type: u8Type},
+					{Name: "b", Reg: 2, Type: u8Type},
+				},
+				ReturnType: u8Type,
+				Instructions: []ir.Instruction{
+					{Op: ir.OpMul, Dest: 3, Src1: 1, Src2: 2},
+					{Op: ir.OpReturn, Src1: 3},
+				},
+			},
+		},
+	}
+
+	if err := gen.Generate(module); err != nil {
+		t.Fatalf("Generate failed: %v", err)
+	}
+
+	asm := buf.String()
+
+	a := z80asm.NewAssembler()
+	a.SetCPUMode(z80asm.CPUModeEZ80ADL)
+	result, err := a.AssembleString(asm)
+	if err != nil {
+		t.Fatalf("MZA assembly failed: %v\nSource:\n%s", err, asm)
+	}
+
+	// MLT BC = ED 4C
+	if !containsBytes(result.Binary, []byte{0xED, 0x4C}) {
+		t.Errorf("binary missing MLT BC (ED 4C), got: %X", result.Binary)
+	}
+
+	t.Logf("Binary: %d bytes, hex: %X", len(result.Binary), result.Binary)
+}
+
+func containsBytes(haystack, needle []byte) bool {
+	for i := 0; i <= len(haystack)-len(needle); i++ {
+		match := true
+		for j := range needle {
+			if haystack[i+j] != needle[j] {
+				match = false
+				break
+			}
+		}
+		if match {
+			return true
+		}
+	}
+	return false
+}
+
+func containsByte(haystack []byte, b byte) bool {
+	for _, v := range haystack {
+		if v == b {
+			return true
+		}
+	}
+	return false
+}
+
+// TestEZ80_MIR2Pipeline tests the MIR2→eZ80 assembly pipeline integration.
+func TestEZ80_MIR2Pipeline(t *testing.T) {
+	// Build a MIR2 module with one function: add(a: u8, b: u8) -> u8
+	m := &mir2.Module{Name: "test_ez80"}
+	addFn := m.AddFunc("add")
+	addFn.Contract.Params = []mir2.Param{
+		{Name: "a", Ty: mir2.TyU8, Class: mir2.ClassAcc},
+		{Name: "b", Ty: mir2.TyU8, Class: mir2.ClassCounter},
+	}
+	addFn.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+
+	entry := addFn.NewBlock("entry")
+	rA := addFn.AllocReg()
+	rB := addFn.AllocReg()
+	entry.Params = []mir2.BlockParam{
+		{Dst: rA, Ty: mir2.TyU8, Class: mir2.ClassAcc},
+		{Dst: rB, Ty: mir2.TyU8, Class: mir2.ClassCounter},
+	}
+	rSum := addFn.AllocReg()
+	entry.Insts = append(entry.Insts, &mir2.Inst{
+		Op: mir2.OpAdd, Dst: rSum, Ty: mir2.TyU8,
+		Src: [2]mir2.Reg{rA, rB},
+	})
+	entry.Seal(&mir2.TermRet{Vals: []mir2.Reg{rSum}})
+
+	// Allocate registers
+	ct := mir2.Z80CostTable{}
+	lr := mir2.ComputeLiveness(addFn)
+	ar := mir2.PBQPAllocate(addFn, lr, ct)
+
+	// Generate eZ80 assembly
+	asm := MIR2Codegen(m, ar)
+
+	if !strings.Contains(asm, ".ASSUME ADL=1") {
+		t.Error("missing .ASSUME ADL=1")
+	}
+	if !strings.Contains(asm, "ORG $040000") {
+		t.Error("missing ORG $040000")
+	}
+	if !strings.Contains(asm, "add:") {
+		t.Error("missing function label 'add:'")
+	}
+
+	// Assemble the output with MZA in ADL mode
+	a := z80asm.NewAssembler()
+	a.SetCPUMode(z80asm.CPUModeEZ80ADL)
+	result, err := a.AssembleString(asm)
+	if err != nil {
+		t.Fatalf("MZA assembly failed: %v\nSource:\n%s", err, asm)
+	}
+
+	if len(result.Binary) == 0 {
+		t.Fatal("empty binary")
+	}
+
+	t.Logf("eZ80 assembly (%d bytes binary):\n%s", len(result.Binary), asm)
 }

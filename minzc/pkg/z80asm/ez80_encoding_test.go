@@ -521,6 +521,40 @@ func TestEZ80_DW24_DL(t *testing.T) {
 	}
 }
 
+// TestASSUME_ADL tests that .ASSUME ADL=1 switches MZA to ADL mode.
+func TestASSUME_ADL(t *testing.T) {
+	// Without .ASSUME: LD HL, $123456 → 3 bytes (16-bit truncated)
+	src16 := "    ORG 0\n    LD HL, $123456\n"
+	a16 := NewAssembler()
+	res16, err := a16.AssembleString(src16)
+	if err != nil {
+		t.Fatalf("Z80 mode assembly failed: %v", err)
+	}
+	if len(res16.Binary) != 3 {
+		t.Errorf("Z80 mode: expected 3 bytes, got %d: %X", len(res16.Binary), res16.Binary)
+	}
+
+	// With .ASSUME ADL=1: LD HL, $123456 → 4 bytes (24-bit)
+	src24 := "    .ASSUME ADL=1\n    ORG 0\n    LD HL, $123456\n"
+	a24 := NewAssembler()
+	res24, err := a24.AssembleString(src24)
+	if err != nil {
+		t.Fatalf("ADL mode assembly failed: %v", err)
+	}
+	if len(res24.Binary) != 4 {
+		t.Errorf("ADL mode: expected 4 bytes, got %d: %X", len(res24.Binary), res24.Binary)
+	}
+	expected := []byte{0x21, 0x56, 0x34, 0x12}
+	for i, b := range expected {
+		if i < len(res24.Binary) && res24.Binary[i] != b {
+			t.Errorf("ADL byte %d: got $%02X, want $%02X", i, res24.Binary[i], b)
+		}
+	}
+	if !a24.IsADLMode() {
+		t.Error("assembler should be in ADL mode after .ASSUME ADL=1")
+	}
+}
+
 // TestDW_Always2Bytes verifies DW always emits 2 bytes, even in ADL mode.
 func TestDW_Always2Bytes(t *testing.T) {
 	tests := []struct {

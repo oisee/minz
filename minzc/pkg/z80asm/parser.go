@@ -112,7 +112,8 @@ func isDirective(token string) bool {
 	directives := []string{
 		"ORG", "END", "DB", "DEFB", "DW", "DEFW", "DW24", "DL", "DS", "DEFS", "EQU",
 		"ALIGN", "INCLUDE", "MACRO", "ENDM",
-		"TARGET", "MODEL", // Platform-specific directives
+		".ASSUME", "ASSUME", // eZ80 ADL mode control
+		"TARGET", "MODEL",  // Platform-specific directives
 	}
 	for _, d := range directives {
 		if upper == d {

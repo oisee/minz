@@ -32,6 +32,8 @@ func (a *Assembler) processDirective(line *Line) error {
 		return a.handleMACRO(line)
 	case "ENDM":
 		return a.handleENDM(line)
+	case ".ASSUME", "ASSUME":
+		return a.handleASSUME(line)
 	case "TARGET":
 		return a.handleTARGET(line)
 	case "MODEL":
@@ -224,6 +226,26 @@ func (a *Assembler) handleDW(line *Line) error {
 	}
 	
 	a.currentAddr += len(bytes)
+	return nil
+}
+
+// handleASSUME handles .ASSUME directive (eZ80 mode control).
+// Syntax: .ASSUME ADL=1 (enable ADL mode) or .ASSUME ADL=0 (Z80 mode)
+// Compatible with agon-ez80asm and fasmg.
+func (a *Assembler) handleASSUME(line *Line) error {
+	if len(line.Operands) == 0 {
+		return fmt.Errorf(".ASSUME requires operand (e.g. ADL=1)")
+	}
+	operand := strings.ToUpper(strings.Join(line.Operands, ""))
+	operand = strings.ReplaceAll(operand, " ", "")
+	switch operand {
+	case "ADL=1":
+		a.SetCPUMode(CPUModeEZ80ADL)
+	case "ADL=0":
+		a.SetCPUMode(CPUModeEZ80Z80)
+	default:
+		return fmt.Errorf("unknown .ASSUME operand: %s (expected ADL=0 or ADL=1)", operand)
+	}
 	return nil
 }
 

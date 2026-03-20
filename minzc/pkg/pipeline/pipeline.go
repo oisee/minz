@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"github.com/minz/minzc/pkg/emulator"
+	"github.com/minz/minzc/pkg/ez80"
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/lir"
 	"github.com/minz/minzc/pkg/mir2"
@@ -64,6 +65,9 @@ type Options struct {
 	// GraceStats (if non-nil) collects per-rule application counts.
 	UseGrace   bool
 	GraceStats *mir2.GraceStats
+	// Backend selects the codegen backend: "z80" (default), "ez80".
+	// When "ez80", the pipeline generates eZ80 ADL assembly instead of Z80.
+	Backend string
 }
 
 // DefaultOptions returns options with all recommended passes enabled.
@@ -190,7 +194,11 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		return s, err
 	}
 
-	if opt.UseLIR {
+	if opt.Backend == "ez80" {
+		// eZ80 ADL backend: wraps Z80 codegen with ADL directives.
+		// MZA in ADL mode handles 24-bit encoding.
+		s.Assembly = ez80.MIR2Codegen(m, combined)
+	} else if opt.UseLIR {
 		// Convert PBQP allocation to LIR hints for guided WFC.
 		hints := pbqpToLIRHints(combined, lir.Z80)
 
@@ -240,9 +248,11 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		})
 	}
 
-	// Z80 binary assertion checks (skip "mir2"-only asserts).
-	if err := RunAssertsZ80(hm, m, combined, s.Assembly); err != nil {
-		return s, err
+	// Z80/eZ80 binary assertion checks (skip "mir2"-only asserts).
+	if opt.Backend != "ez80" {
+		if err := RunAssertsZ80(hm, m, combined, s.Assembly); err != nil {
+			return s, err
+		}
 	}
 	return s, nil
 }
