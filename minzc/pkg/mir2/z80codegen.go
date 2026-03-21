@@ -3962,12 +3962,21 @@ func (g *z80cg) genMul16(inst *Inst) {
 	// Load multiplier into DE BEFORE overwriting BC with the multiplicand.
 	// (rhs may be in C/B/BC which gets clobbered by LD B,H; LD C,L below.)
 	if rhs != "DE" {
-		if isPairReg(rhs) {
+		if isSpill(rhs) {
+			g.loadSpill16("DE", rhs)
+		} else if isIXY(rhs) {
+			// IX/IY → DE: safe byte-copy (D/E not substituted by DD/FD).
 			g.emitf("    LD D, %s", highByte(rhs))
 			g.emitf("    LD E, %s", lowByte(rhs))
+		} else if isPairReg(rhs) {
+			g.emitf("    LD D, %s", highByte(rhs))
+			g.emitf("    LD E, %s", lowByte(rhs))
+		} else if isIXYReg(rhs) {
+			// IXH/IXL half-reg: zero-extend to DE.
+			g.emitMovViaAltA("E", rhs)
+			g.emit("    LD D, 0")
 		} else {
 			// 8-bit rhs: zero-extend into DE.
-			// Load E first so that rhs="D" reads the old D before it is zeroed.
 			g.emitf("    LD E, %s", rhs)
 			g.emit("    LD D, 0")
 		}
@@ -4304,13 +4313,23 @@ func (g *z80cg) genDivMod16(inst *Inst) {
 		if dst == "HL" {
 			g.emit("    LD H, B")
 			g.emit("    LD L, C")
-		} else if dst != "BC" {
-			g.emitf("    LD %s, B", highByte(dst))
-			g.emitf("    LD %s, C", lowByte(dst))
+		} else if dst == "BC" {
+			// already there
+		} else if isSpill(dst) {
+			g.emit("    LD H, B")
+			g.emit("    LD L, C")
+			g.storeSpill16(dst, "HL")
+		} else {
+			g.emitLD8(highByte(dst), "B")
+			g.emitLD8(lowByte(dst), "C")
 		}
 	} else {
 		// Want quotient (HL) → move to dst if needed.
-		if dst != "HL" {
+		if dst == "HL" {
+			// already there
+		} else if isSpill(dst) {
+			g.storeSpill16(dst, "HL")
+		} else if dst != "HL" {
 			g.emitf("    LD %s, H", highByte(dst))
 			g.emitf("    LD %s, L", lowByte(dst))
 		}
