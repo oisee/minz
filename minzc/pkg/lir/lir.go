@@ -77,6 +77,9 @@ const (
 	LocFlag                  // CPU flags (boolean results)
 	LocMem                   // memory spill slot
 	LocImm                   // immediate value (pseudo-location for constants)
+	LocShadow                // shadow register (Z80 B',C',D',E',H',L' via EXX)
+	LocShadowAcc             // shadow accumulator (Z80 A' via EX AF,AF')
+	LocTSMC                  // TSMC self-modifying code spill slot
 )
 
 // ── Machine Descriptor ──────────────────────────────────────────────────────
