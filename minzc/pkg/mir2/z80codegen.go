@@ -4733,6 +4733,12 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 		// functions to carry-based comparisons where possible.
 		if dst == "A" {
 			g.emit("    SBC A, A") // A=0xFF if C=1 (true), A=0x00 if C=0 (false)
+		} else if isPairReg(dst) {
+			// Flag → 16-bit pair: materialise to A, then zero-extend.
+			// SBC A,A gives 0xFF (true) or 0x00 (false).
+			g.emit("    SBC A, A")
+			g.emitf("    LD %s, A", lowByte(dst))
+			g.emitf("    LD %s, 0", highByte(dst))
 		} else {
 			g.emit("    SBC A, A")
 			g.emitf("    LD %s, A", dst)
@@ -5447,6 +5453,11 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 		// Flag → register: SBC A,A materialises carry into A (0xFF/0x00).
 		if dst == "A" {
 			g.emit("    SBC A, A")
+		} else if isPairReg(dst) {
+			// Flag → 16-bit pair: materialise + zero-extend.
+			g.emit("    SBC A, A")
+			g.emitf("    LD %s, A", lowByte(dst))
+			g.emitf("    LD %s, 0", highByte(dst))
 		} else {
 			g.emit("    SBC A, A")
 			g.emitf("    LD %s, A", dst)
