@@ -2279,10 +2279,21 @@ func (g *z80cg) genInst(inst *Inst) {
 					g.emitf("    LD (HL), %d", cv)
 				} else {
 					val := g.loc(inst.Src[1])
-					if isIXYReg(val) {
-						g.emitf("    LD A, %s", val)
-						g.invalidate("A")
+					if isPairReg(val) {
+						// 16-bit value → store byte-by-byte: LD (HL),lo; INC HL; LD (HL),hi; DEC HL
+						g.emitf("    LD (HL), %s", lowByte(val))
+						g.emit("    INC HL")
+						g.emitf("    LD (HL), %s", highByte(val))
+						g.emit("    DEC HL")
+					} else if isIXYReg(val) || isSpill(val) {
+						g.emit("    EX AF, AF'")
+						if isSpill(val) {
+							g.emitf("    LD A, (%s)", val)
+						} else {
+							g.emitf("    LD A, %s", val)
+						}
 						g.emitf("    LD (HL), A")
+						g.emit("    EX AF, AF'")
 					} else {
 						g.emitf("    LD (HL), %s", val)
 					}
@@ -2393,10 +2404,18 @@ func (g *z80cg) genInst(inst *Inst) {
 				if (ptr == "BC" || ptr == "DE") && val != "A" {
 					g.emitLDA(val)
 					g.emitf("    LD (%s), A", ptr)
-				} else if ptr == "HL" && isIXYReg(val) {
-					g.emitf("    LD A, %s", val)
-					g.invalidate("A")
+				} else if ptr == "HL" && isPairReg(val) {
+					// Width mismatch: 8-bit store but val is pair. Use low byte.
+					g.emitf("    LD (HL), %s", lowByte(val))
+				} else if ptr == "HL" && (isIXYReg(val) || isSpill(val)) {
+					g.emit("    EX AF, AF'")
+					if isSpill(val) {
+						g.emitf("    LD A, (%s)", val)
+					} else {
+						g.emitf("    LD A, %s", val)
+					}
 					g.emitf("    LD (HL), A")
+					g.emit("    EX AF, AF'")
 				} else if isIXY(ptr) && (val == "H" || val == "L" || isIXYReg(val)) {
 					// BUG-008: LD (IX+d),H encodes as LD (IX+d),IXH (prefix substitution).
 					// LD (IX+d),IXL impossible. Route through A.
