@@ -1927,7 +1927,7 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 					regClass = mir2.ClassCounter
 					p.l.next()
 				case "z80_c":
-					regClass = mir2.ClassGeneral
+					regClass = mir2.ClassRegC
 					p.l.next()
 				default:
 					return nil, fmt.Errorf("line %d: unknown register annotation @%s", annot.line, annot.val)
