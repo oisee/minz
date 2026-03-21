@@ -3146,10 +3146,26 @@ func z80RegNameToClass(reg string) mir2.RegClass {
 		return mir2.ClassCounter
 	case "C":
 		return mir2.ClassRegC
+	case "D":
+		return mir2.ClassRegD
+	case "E":
+		return mir2.ClassRegE
+	case "H":
+		return mir2.ClassRegH
+	case "L":
+		return mir2.ClassRegL
 	case "HL":
 		return mir2.ClassPointer
 	case "DE":
 		return mir2.ClassIndex
+	case "BC":
+		return mir2.ClassPair
+	case "IX":
+		return mir2.ClassIX
+	case "IY":
+		return mir2.ClassIY
+	case "IXH", "IXL", "IYH", "IYL":
+		return mir2.ClassIXY8
 	default:
 		return mir2.ClassGeneral
 	}

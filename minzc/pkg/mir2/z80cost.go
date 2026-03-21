@@ -85,6 +85,14 @@ func (Z80CostTable) Cost(cls RegClass, loc PhysLoc) int {
 		return costCounter(loc)
 	case ClassRegC:
 		return costRegC(loc)
+	case ClassRegD:
+		return costHardPin(loc, "D")
+	case ClassRegE:
+		return costHardPin(loc, "E")
+	case ClassRegH:
+		return costHardPin(loc, "H")
+	case ClassRegL:
+		return costHardPin(loc, "L")
 	case ClassGeneral:
 		return costGeneral(loc)
 	case ClassPointer:
@@ -189,14 +197,17 @@ func costCounter(loc PhysLoc) int {
 	return InfCost
 }
 
-// costRegC: ClassRegC → hard pin to C register (for @z80_c inline asm).
-// Returns InfCost for everything except C — the coalescer cannot override this.
-func costRegC(loc PhysLoc) int {
-	if loc.Kind == LocReg && loc.Name == "C" {
+// costHardPin returns 0 for exactly one named register, InfCost for everything else.
+// Used by @z80_X annotations to hard-pin a parameter to a specific physical register.
+func costHardPin(loc PhysLoc, name string) int {
+	if loc.Kind == LocReg && loc.Name == name {
 		return 0
 	}
 	return InfCost
 }
+
+// costRegC: ClassRegC → hard pin to C register (for @z80_c inline asm).
+func costRegC(loc PhysLoc) int { return costHardPin(loc, "C") }
 
 // costGeneral: ClassGeneral → any register works.
 //

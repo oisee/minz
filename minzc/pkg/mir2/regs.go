@@ -59,7 +59,11 @@ const (
 	ClassGeneral RegClass = iota // any general-purpose register (8-bit on Z80)
 	ClassAcc                     // accumulator: Z80=A, x86=EAX, ARM=R0
 	ClassCounter                 // loop counter: Z80=B (DJNZ), x86=ECX
-	ClassRegC                    // Z80=C register (for @z80_c inline asm pinning)
+	ClassRegC                    // Z80=C register (hard pin for @z80_c)
+	ClassRegD                    // Z80=D register (hard pin for @z80_d)
+	ClassRegE                    // Z80=E register (hard pin for @z80_e)
+	ClassRegH                    // Z80=H register (hard pin for @z80_h)
+	ClassRegL                    // Z80=L register (hard pin for @z80_l)
 	ClassPointer                 // memory pointer: Z80=HL, x86/ARM=any GPR
 	ClassIndex                   // secondary pointer: Z80=DE, x86/ARM=any GPR
 	ClassPair                    // any 16-bit pair: Z80=HL/DE/BC
@@ -98,6 +102,10 @@ var classNames = [classCount]string{
 	ClassAcc:       "acc",
 	ClassCounter:   "counter",
 	ClassRegC:      "regC",
+	ClassRegD:      "regD",
+	ClassRegE:      "regE",
+	ClassRegH:      "regH",
+	ClassRegL:      "regL",
 	ClassPointer:   "pointer",
 	ClassIndex:     "index",
 	ClassPair:      "pair",
@@ -115,7 +123,7 @@ var classNames = [classCount]string{
 // Tier reports the spill cost tier of the class (0=cheapest, 4=most expensive).
 func (c RegClass) Tier() int {
 	switch c {
-	case ClassGeneral, ClassAcc, ClassCounter, ClassRegC, ClassPointer, ClassIndex, ClassPair, ClassDWord:
+	case ClassGeneral, ClassAcc, ClassCounter, ClassRegC, ClassRegD, ClassRegE, ClassRegH, ClassRegL, ClassPointer, ClassIndex, ClassPair, ClassDWord:
 		return 0
 	case ClassIX, ClassIY, ClassIXY8:
 		return 1

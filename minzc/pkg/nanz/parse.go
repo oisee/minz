@@ -1929,6 +1929,27 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 				case "z80_c":
 					regClass = mir2.ClassRegC
 					p.l.next()
+				case "z80_d":
+					regClass = mir2.ClassRegD
+					p.l.next()
+				case "z80_e":
+					regClass = mir2.ClassRegE
+					p.l.next()
+				case "z80_h":
+					regClass = mir2.ClassRegH
+					p.l.next()
+				case "z80_l":
+					regClass = mir2.ClassRegL
+					p.l.next()
+				case "z80_ix":
+					regClass = mir2.ClassIX
+					p.l.next()
+				case "z80_iy":
+					regClass = mir2.ClassIY
+					p.l.next()
+				case "z80_ixh", "z80_ixl", "z80_iyh", "z80_iyl":
+					regClass = mir2.ClassIXY8
+					p.l.next()
 				default:
 					return nil, fmt.Errorf("line %d: unknown register annotation @%s", annot.line, annot.val)
 				}
