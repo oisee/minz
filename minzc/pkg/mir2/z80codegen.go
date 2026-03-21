@@ -2006,7 +2006,7 @@ func (g *z80cg) genInst(inst *Inst) {
 			// Z80 NEG always operates on A; ensure source is in A first.
 			srcLoc := g.loc(inst.Src[0])
 			if srcLoc != "A" && !g.holdsValue("A", srcLoc) {
-				g.emitf("    LD A, %s", srcLoc)
+				g.emitLDA(srcLoc)
 			}
 			g.emit("    NEG")
 			g.invalidate("A")
@@ -2058,7 +2058,7 @@ func (g *z80cg) genInst(inst *Inst) {
 		} else if (isIXYReg(lo) && (dst == "H" || dst == "L")) ||
 			((lo == "H" || lo == "L") && isIXYReg(dst)) {
 			// DD/FD prefix conflict: route through A.
-			g.emitf("    LD A, %s", lo)
+			g.emitLDA(lo)
 			g.emitLD8(dst, "A")
 			g.invalidate("A")
 		} else {
@@ -2365,7 +2365,7 @@ func (g *z80cg) genInst(inst *Inst) {
 						if isSpill(val) {
 							g.emitf("    LD A, (%s)", val)
 						} else {
-							g.emitf("    LD A, %s", val)
+							g.emitLDA(val)
 						}
 						g.emitf("    LD (HL), A")
 						g.emit("    EX AF, AF'")
@@ -2487,14 +2487,14 @@ func (g *z80cg) genInst(inst *Inst) {
 					if isSpill(val) {
 						g.emitf("    LD A, (%s)", val)
 					} else {
-						g.emitf("    LD A, %s", val)
+						g.emitLDA(val)
 					}
 					g.emitf("    LD (HL), A")
 					g.emit("    EX AF, AF'")
 				} else if isIXY(ptr) && (val == "H" || val == "L" || isIXYReg(val)) {
 					// BUG-008: LD (IX+d),H encodes as LD (IX+d),IXH (prefix substitution).
 					// LD (IX+d),IXL impossible. Route through A.
-					g.emitf("    LD A, %s", val)
+					g.emitLDA(val)
 					g.invalidate("A")
 					g.emitf("    LD %s, A", ptrIndirect(ptr, 0))
 				} else if isPairReg(val) {
@@ -2515,7 +2515,7 @@ func (g *z80cg) genInst(inst *Inst) {
 			hi := highByte(val)
 			needA := lo == "H" || lo == "L" || isIXYReg(lo)
 			if needA {
-				g.emitf("    LD A, %s", lo)
+				g.emitLDA(lo)
 				g.emitf("    LD %s, A     ; lo", ptrIndirect(ptr, 0))
 			} else {
 				g.emitf("    LD %s, %s     ; lo", ptrIndirect(ptr, 0), lo)
@@ -3213,12 +3213,12 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			hi_rhs := highByte(rhs)
 			lo_rhs := lowByte(rhs)
 			// High byte: A = dst_hi OP rhs_hi → dst_hi
-			g.emitf("    LD A, %s", hi)
-			g.emitf("    %s %s", mnem, hi_rhs)
+			g.emitLDA(hi)
+			g.emit8ALU(mnem, hi_rhs)
 			g.emitLD8(hi, "A")
 			// Low byte: A = dst_lo OP rhs_lo → dst_lo
-			g.emitf("    LD A, %s", lo)
-			g.emitf("    %s %s", mnem, lo_rhs)
+			g.emitLDA(lo)
+			g.emit8ALU(mnem, lo_rhs)
 			g.emitLD8(lo, "A")
 			g.invalidate("A")
 			g.invalidate(dst)
