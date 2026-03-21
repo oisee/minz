@@ -830,6 +830,17 @@ func physName(pl PhysLoc) string {
 	return pl.Name
 }
 
+// emitMovViaAltA routes a single 8-bit LD through shadow A (EX AF,AF')
+// to avoid clobbering the main A register. Used for DD/FD prefix conflicts
+// where LD H,IXH would encode as NOP.
+// Cost: 20T (EX 4T + LD A,src 4-8T + LD dst,A 4T + EX 4T).
+func (g *z80cg) emitMovViaAltA(dst, src string) {
+	g.emit("    EX AF, AF'")
+	g.emitf("    LD A, %s", src)
+	g.emitf("    LD %s, A", dst)
+	g.emit("    EX AF, AF'")
+}
+
 // isSpill returns true if the operand is a LocMem spill address ($F0xx).
 func isSpill(s string) bool { return strings.HasPrefix(s, "$") }
 
@@ -4849,11 +4860,9 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 				g.emitf("    LD %s, 0", highByte(dst))
 			} else if (isIXYReg(dst) && (src == "H" || src == "L")) ||
 				// DD/FD prefix conflict: LD IXH,H encodes as LD IXH,IXH (NOP).
-				// Any move between IXH/IXL/IYH/IYL and H/L must route through A.
+				// Route through shadow A (EX AF,AF') to preserve main A.
 				(isIXYReg(src) && (dst == "H" || dst == "L")) {
-				g.emitf("    LD A, %s", src)
-				g.emitf("    LD %s, A", dst)
-				g.invalidate("A")
+				g.emitMovViaAltA(dst, src)
 			} else {
 				g.emitf("    LD %s, %s", dst, src)
 				if isSimpleReg(dst) && isSimpleReg(src) {
@@ -5547,9 +5556,8 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 		case (isIXYReg(src) && (dst == "H" || dst == "L")) ||
 			(isIXYReg(dst) && (src == "H" || src == "L")):
 			// DD/FD prefix conflict: LD H,IXH encodes as LD IXH,IXH (NOP).
-			g.emitf("    LD A, %s", src)
-			g.emitf("    LD %s, A", dst)
-			g.invalidate("A")
+			// Route through shadow A to preserve main A.
+			g.emitMovViaAltA(dst, src)
 		case isPairReg(src) && !isPairReg(dst):
 			// Width mismatch: 16-bit source → 8-bit dest. Truncate (take low byte).
 			g.emitf("    LD %s, %s", dst, lowByte(src))
@@ -5603,11 +5611,13 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 			(isIXYReg(loS) && (lo == "H" || lo == "L")) ||
 			((hiS == "H" || hiS == "L") && isIXYReg(hi)) ||
 			((loS == "H" || loS == "L") && isIXYReg(lo)) {
+			// Route through shadow A to avoid clobbering main A.
+			g.emit("    EX AF, AF'")
 			g.emitf("    LD A, %s", hiS)
 			g.emitf("    LD %s, A", hi)
 			g.emitf("    LD A, %s", loS)
 			g.emitf("    LD %s, A", lo)
-			g.invalidate("A")
+			g.emit("    EX AF, AF'")
 		} else {
 			g.emitf("    LD %s, %s", hi, hiS)
 			g.emitf("    LD %s, %s", lo, loS)

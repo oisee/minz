@@ -73,6 +73,30 @@ func Validate(asm string) []Error {
 		if text == "" {
 			text = ae.Context
 		}
+		// Skip false positives: empty lines, comment fragments, line mapping noise.
+		if text == "" || origLine < 1 {
+			continue
+		}
+		// Skip lines that look like comment fragments (not starting with valid Z80 mnemonic or label).
+		if !strings.HasPrefix(text, "LD ") && !strings.HasPrefix(text, "ADD ") &&
+			!strings.HasPrefix(text, "SUB ") && !strings.HasPrefix(text, "SBC ") &&
+			!strings.HasPrefix(text, "AND ") && !strings.HasPrefix(text, "OR ") &&
+			!strings.HasPrefix(text, "XOR ") && !strings.HasPrefix(text, "CP ") &&
+			!strings.HasPrefix(text, "INC ") && !strings.HasPrefix(text, "DEC ") &&
+			!strings.HasPrefix(text, "PUSH ") && !strings.HasPrefix(text, "POP ") &&
+			!strings.HasPrefix(text, "JP ") && !strings.HasPrefix(text, "JR ") &&
+			!strings.HasPrefix(text, "CALL ") && !strings.HasPrefix(text, "RET") &&
+			!strings.HasPrefix(text, "SRL ") && !strings.HasPrefix(text, "SLA ") &&
+			!strings.HasPrefix(text, "RL ") && !strings.HasPrefix(text, "RR ") &&
+			!strings.HasPrefix(text, "BIT ") && !strings.HasPrefix(text, "SET ") &&
+			!strings.HasPrefix(text, "RES ") && !strings.HasPrefix(text, "SRA ") &&
+			!strings.HasPrefix(text, "DJNZ ") && !strings.HasPrefix(text, "EX ") &&
+			!strings.HasPrefix(text, "OUT ") && !strings.HasPrefix(text, "IN ") &&
+			!strings.HasPrefix(text, "RST ") && !strings.HasPrefix(text, "HALT") &&
+			!strings.HasPrefix(text, "NOP") && !strings.HasPrefix(text, "DI") &&
+			!strings.HasPrefix(text, "EI") && !strings.HasPrefix(text, "IM ") {
+			continue // not a Z80 instruction — skip comment fragment
+		}
 		errs = append(errs, Error{
 			Line:   origLine,
 			Text:   text,
