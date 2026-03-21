@@ -80,6 +80,15 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	// Capture HIR before lowering.
 	s.HIR = hm.Dump()
 
+	// Great Autorefactor: split high-pressure functions before lowering.
+	// Each sub-function gets independent PBQP allocation → fewer spills.
+	if splits := hir.SplitHighPressure(hm); len(splits) > 0 {
+		for _, sp := range splits {
+			fmt.Fprintf(os.Stderr, "[HIR-SPLIT] %s → %s (%d inputs, pressure %d)\n",
+				sp.OrigFunc, sp.SubFunc, sp.Inputs, sp.Pressure)
+		}
+	}
+
 	// Lower HIR → MIR2 (raw, before optimisation).
 	m := hir.LowerModule(hm)
 	s.MIR2Raw = m.Dump()
@@ -256,6 +265,9 @@ func CompileHIR(hm *hir.Module) (string, error) {
 // CompileHIRWithOptions runs the HIR→MIR2→Z80 pipeline with explicit options.
 // Use this to compare output with/without specific optimisation passes.
 func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
+	// Great Autorefactor: split high-pressure functions.
+	hir.SplitHighPressure(hm)
+
 	// Lower HIR → MIR2.
 	m := hir.LowerModule(hm)
 
