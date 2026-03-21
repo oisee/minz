@@ -862,9 +862,11 @@ func (g *z80cg) emitLD8(dst, src string) {
 	if dst == src {
 		return
 	}
+	// Width mismatch: pair→8bit truncation.
+	if isPairReg(src) && !isPairReg(dst) {
+		src = lowByte(src)
+	}
 	// DD/FD prefix conflicts — route through shadow A:
-	// 1. IXY↔H/L: LD H,IXH = NOP (DD substitutes H→IXH)
-	// 2. IX↔IY cross: LD IYH,IXH can't mix DD+FD prefixes
 	if (isIXYReg(src) && (dst == "H" || dst == "L")) ||
 		(isIXYReg(dst) && (src == "H" || src == "L")) ||
 		(isIXYReg(src) && isIXYReg(dst) && src[:2] != dst[:2]) {
@@ -5817,7 +5819,14 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 	// After all register-to-register moves are resolved, emit constant assignments.
 	// Done last so they cannot clobber live source registers.
 	for _, c := range immCopies {
-		if isSpill(c.dstName) {
+		if c.dstName == "F" {
+			// F register: use AND A (clear=0) or SCF (set=1).
+			if c.immVal == 0 {
+				g.emit("    AND A") // clears C, sets Z
+			} else {
+				g.emit("    SCF") // sets C
+			}
+		} else if isSpill(c.dstName) {
 			g.emit("    EX AF, AF'")
 			g.emitf("    LD A, %d", c.immVal&0xFF)
 			g.emitf("    LD (%s), A", c.dstName)
