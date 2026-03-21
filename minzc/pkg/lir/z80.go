@@ -39,11 +39,32 @@ var Z80 = &MachineDesc{
 		{Name: "IXL", Width: 8, Kind: LocIndex}, // 15
 		{Name: "IYH", Width: 8, Kind: LocIndex}, // 16
 		{Name: "IYL", Width: 8, Kind: LocIndex}, // 17
-		// Spill slots (memory-backed)
-		{Name: "spill0", Width: 16, Kind: LocMem}, // 18
-		{Name: "spill1", Width: 16, Kind: LocMem}, // 19
-		{Name: "spill2", Width: 16, Kind: LocMem}, // 20
-		{Name: "spill3", Width: 16, Kind: LocMem}, // 21
+		// L3: Shadow registers (EXX swaps BC↔BC', DE↔DE', HL↔HL')
+		// EXX = 4T, toggles all 3 pairs. Call-safe: ISR saves/restores.
+		{Name: "B'", Width: 8, Kind: LocShadow},  // 18
+		{Name: "C'", Width: 8, Kind: LocShadow},  // 19
+		{Name: "D'", Width: 8, Kind: LocShadow},  // 20
+		{Name: "E'", Width: 8, Kind: LocShadow},  // 21
+		{Name: "H'", Width: 8, Kind: LocShadow},  // 22
+		{Name: "L'", Width: 8, Kind: LocShadow},  // 23
+		// Shadow A via EX AF,AF' (4T, independent of EXX)
+		{Name: "A'", Width: 8, Kind: LocShadowAcc}, // 24
+		// L4: TSMC spill slots (self-modifying code: LD r, imm8 patched at runtime)
+		// Cost: 13T store (LD (label+1), A) + 7T reload (LD A, imm8 patched)
+		{Name: "tsmc0", Width: 8, Kind: LocTSMC},   // 25
+		{Name: "tsmc1", Width: 8, Kind: LocTSMC},   // 26
+		{Name: "tsmc2", Width: 8, Kind: LocTSMC},   // 27
+		{Name: "tsmc3", Width: 8, Kind: LocTSMC},   // 28
+		{Name: "tsmc4", Width: 8, Kind: LocTSMC},   // 29
+		{Name: "tsmc5", Width: 8, Kind: LocTSMC},   // 30
+		{Name: "tsmc6", Width: 8, Kind: LocTSMC},   // 31
+		{Name: "tsmc7", Width: 8, Kind: LocTSMC},   // 32
+		// L5: Memory spill slots (absolute address LD A,(nn) / LD (nn),A)
+		// Cost: 26T round-trip (13T load + 13T store)
+		{Name: "mem0", Width: 16, Kind: LocMem},     // 33
+		{Name: "mem1", Width: 16, Kind: LocMem},     // 34
+		{Name: "mem2", Width: 16, Kind: LocMem},     // 35
+		{Name: "mem3", Width: 16, Kind: LocMem},     // 36
 	},
 }
 
@@ -71,7 +92,17 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 	ixHalves := ixh.Or(ixl).Or(iyh).Or(iyl)
 	// GPR without H/L (compatible with DD/FD prefix operations)
 	gprNoHL := m.LocSetByNames("A", "B", "C", "D", "E")
-	spill := m.LocSetByNames("spill0", "spill1", "spill2", "spill3")
+	// L3: Shadow registers (EXX batch swap, 4T per region entry/exit)
+	shadow8 := m.LocSetByNames("B'", "C'", "D'", "E'", "H'", "L'")
+	shadowA := m.LocSetByNames("A'")
+	// L4: TSMC spill slots (self-modifying code, 13T store / 7T reload)
+	tsmc := m.LocSetByNames("tsmc0", "tsmc1", "tsmc2", "tsmc3",
+		"tsmc4", "tsmc5", "tsmc6", "tsmc7")
+	// L5: Memory spill slots (absolute address, 26T round-trip)
+	spill := m.LocSetByNames("mem0", "mem1", "mem2", "mem3")
+	// All 8-bit storage: GPR + IXY halves + shadow + shadow A + TSMC
+	all8 := gpr8.Or(ixHalves).Or(shadow8).Or(shadowA).Or(tsmc)
+	_ = all8 // available for future patterns
 
 	return []Pattern{
 		// ── Constants ─────────────────────────────────────────────────
