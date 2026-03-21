@@ -902,6 +902,22 @@ func (g *z80cg) emitMovViaAltA(dst, src string) {
 	g.emit("    EX AF, AF'")
 }
 
+// emitADDHL emits ADD HL, rr with IX/IY guard.
+// Z80 ADD HL only accepts BC/DE/HL/SP — NOT IX/IY.
+func (g *z80cg) emitADDHL(rhs string) {
+	if rhs == "IX" || rhs == "IY" {
+		g.emit("    PUSH DE")
+		if rhs == "IX" { g.emit("    LD D, IXH"); g.emit("    LD E, IXL") } else { g.emit("    LD D, IYH"); g.emit("    LD E, IYL") }
+		g.emit("    ADD HL, DE")
+		g.emit("    POP DE")
+	} else if isSpill(rhs) {
+		g.emitf("    LD BC, (%s)", rhs)
+		g.emit("    ADD HL, BC")
+	} else {
+		g.emitf("    ADD HL, %s", rhs)
+	}
+}
+
 // isSpill returns true if the operand is a LocMem spill (named _spill_ label or legacy $F0xx).
 func isSpill(s string) bool {
 	return strings.HasPrefix(s, "$") || strings.HasPrefix(s, "_spill_")
@@ -2587,8 +2603,15 @@ func (g *z80cg) genInst(inst *Inst) {
 			g.emitMov("HL", base, 16)
 		}
 
-		// ADD HL, offPair — the only valid 16-bit add on Z80.
-		g.emitf("    ADD HL, %s", offPair)
+		// ADD HL, offPair — only BC/DE/HL/SP valid.
+		if offPair == "IX" || offPair == "IY" {
+			g.emit("    PUSH DE")
+			g.emitMov("DE", offPair, 16)
+			g.emit("    ADD HL, DE")
+			g.emit("    POP DE")
+		} else {
+			g.emitADDHL(offPair)
+		}
 
 		// When the base was PUSHed to save it, keep the result in HL and
 		// override the dst's physical location so the subsequent load uses
@@ -2641,7 +2664,7 @@ func (g *z80cg) genInst(inst *Inst) {
 					tmp = "DE"
 				}
 				g.emitf("    LD %s, %d", tmp, offset)
-				g.emitf("    ADD HL, %s", tmp)
+				g.emitADDHL(tmp)
 			} else {
 				// dst is DE/BC/IX: move to HL, add, move back.
 				g.emitMov("HL", dst, 16)
@@ -2650,7 +2673,7 @@ func (g *z80cg) genInst(inst *Inst) {
 					tmp = "DE"
 				}
 				g.emitf("    LD %s, %d", tmp, offset)
-				g.emitf("    ADD HL, %s", tmp)
+				g.emitADDHL(tmp)
 				g.emitMov(dst, "HL", 16)
 				g.invalidate("HL")
 			}
@@ -2990,12 +3013,17 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 						g.emit("    POP BC")
 					} else if isSimpleReg(adjustedRhs) && !isPairReg(adjustedRhs) {
 						pair := g.promote8toPair(adjustedRhs)
-						g.emitf("    ADD HL, %s", pair)
+						g.emitADDHL(pair)
 					} else if isSpill(adjustedRhs) {
 						g.loadSpill16("BC", adjustedRhs)
 						g.emit("    ADD HL, BC")
+					} else if adjustedRhs == "IX" || adjustedRhs == "IY" {
+						g.emit("    PUSH DE")
+						g.emitMov("DE", adjustedRhs, 16)
+						g.emit("    ADD HL, DE")
+						g.emit("    POP DE")
 					} else {
-						g.emitf("    ADD HL, %s", adjustedRhs)
+						g.emitADDHL(adjustedRhs)
 					}
 					g.emit("    EX DE, HL")
 					g.invalidate("HL")
@@ -3015,12 +3043,12 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 					g.emit("    POP DE")
 				} else if isSimpleReg(adjustedRhs) && !isPairReg(adjustedRhs) {
 					pair := g.promote8toPair(adjustedRhs)
-					g.emitf("    ADD HL, %s", pair)
+					g.emitADDHL(pair)
 				} else if isSpill(adjustedRhs) {
 					g.loadSpill16("BC", adjustedRhs)
 					g.emit("    ADD HL, BC")
 				} else {
-					g.emitf("    ADD HL, %s", adjustedRhs)
+					g.emitADDHL(adjustedRhs)
 				}
 				g.emitMov(dst, "HL", w)
 				g.invalidate(dst)
@@ -3039,14 +3067,14 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			} else if isSimpleReg(rhs) && !isPairReg(rhs) {
 				// 8-bit rhs: zero-extend to parent pair, then ADD HL, pair.
 				pair := g.promote8toPair(rhs)
-				g.emitf("    ADD HL, %s", pair)
+				g.emitADDHL(pair)
 			} else if isSpill(rhs) {
 				// LocMem spill: load to BC, then ADD HL, BC.
 				g.loadSpill16("BC", rhs)
 				g.emit("    ADD HL, BC")
 			} else {
 				// dst must be HL here; ADD HL, rr is the only valid 16-bit ADD.
-				g.emitf("    ADD HL, %s", rhs)
+				g.emitADDHL(rhs)
 			}
 			g.invalidate(dst)
 		case "SUB":
@@ -3221,7 +3249,7 @@ func (g *z80cg) genBinOp32(mnem, dst, lhs, rhs string) {
 	case "ADD":
 		if dst == "HL" {
 			// Native 32-bit add: ADD HL,rr / EXX / ADC HL,rr / EXX
-			g.emitf("    ADD HL, %s", rhs)
+			g.emitADDHL(rhs)
 			g.emit("    EXX")
 			g.emitf("    ADC HL, %s", rhs)
 			g.emit("    EXX")
@@ -3236,7 +3264,7 @@ func (g *z80cg) genBinOp32(mnem, dst, lhs, rhs string) {
 			g.emitMov32("HL", dst)
 			// Now add rhs (rhs was LocDWord; after emitMov32 we haven't clobbered it
 			// because emitMov32 uses PUSH/POP+EXX which preserves all non-HL regs).
-			g.emitf("    ADD HL, %s", rhs)
+			g.emitADDHL(rhs)
 			g.emit("    EXX")
 			g.emitf("    ADC HL, %s", rhs)
 			g.emit("    EXX")
@@ -6267,7 +6295,15 @@ func (g *z80cg) genCmp16(inst *Inst) {
 	} else {
 		g.emit("    OR A")
 		g.emitf("    SBC HL, %s", rhs)
-		g.emitf("    ADD HL, %s", rhs) // restore lhs (−1B, −10T; S/Z/PV safe)
+		// Restore lhs via ADD HL, rhs (−1B, −10T; S/Z/PV safe).
+		if rhs == "IX" || rhs == "IY" {
+			g.emit("    PUSH DE")
+			g.emitMov("DE", rhs, 16)
+			g.emit("    ADD HL, DE")
+			g.emit("    POP DE")
+		} else {
+			g.emitADDHL(rhs)
+		}
 	}
 	if swappedDE {
 		// Restore physical registers to allocator-expected layout:
