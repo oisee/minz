@@ -2841,6 +2841,9 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 					} else if isSimpleReg(adjustedRhs) && !isPairReg(adjustedRhs) {
 						pair := g.promote8toPair(adjustedRhs)
 						g.emitf("    ADD HL, %s", pair)
+					} else if isSpill(adjustedRhs) {
+						g.loadSpill16("BC", adjustedRhs)
+						g.emit("    ADD HL, BC")
 					} else {
 						g.emitf("    ADD HL, %s", adjustedRhs)
 					}
@@ -2863,6 +2866,9 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				} else if isSimpleReg(adjustedRhs) && !isPairReg(adjustedRhs) {
 					pair := g.promote8toPair(adjustedRhs)
 					g.emitf("    ADD HL, %s", pair)
+				} else if isSpill(adjustedRhs) {
+					g.loadSpill16("BC", adjustedRhs)
+					g.emit("    ADD HL, BC")
 				} else {
 					g.emitf("    ADD HL, %s", adjustedRhs)
 				}
@@ -5359,7 +5365,7 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 
 			firstDst := m.dst
 			if m.src != scratch {
-				g.emitf("    LD %s, %s", scratch, m.src)
+				g.emitSingleCopy(m.src, scratch, m.ty)
 			}
 			m.done = true
 			cur := m.src // start at the freed slot (m.src saved to scratch)
@@ -5367,7 +5373,7 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 				found := false
 				for i := range moves {
 					if !moves[i].done && moves[i].dst == cur {
-						g.emitf("    LD %s, %s", moves[i].dst, moves[i].src)
+						g.emitSingleCopy(moves[i].src, moves[i].dst, moves[i].ty)
 						cur = moves[i].src // the source is the new freed slot
 						moves[i].done = true
 						found = true
@@ -5379,16 +5385,16 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 				}
 			}
 			if firstDst != scratch {
-				g.emitf("    LD %s, %s", firstDst, scratch)
+				g.emitSingleCopy(scratch, firstDst, m.ty)
 			}
 		} else {
 			// u16 cycle: use stack.
 			// If m.src is a LocMem spill slot ($Fxxx), PUSH is invalid.
 			// Save the LocMem value into the destination first (it will be
 			// overwritten by the cycle walk anyway), then push that pair.
-			if strings.HasPrefix(m.src, "$") {
-				g.emitf("    LD %s, (%s)", m.dst, m.src) // load LocMem into dest pair
-				g.emitf("    PUSH %s", m.dst)             // save that value on stack
+			if isSpill(m.src) {
+				g.loadSpill16(m.dst, m.src) // load LocMem into dest pair
+				g.emitf("    PUSH %s", m.dst) // save that value on stack
 			} else {
 				g.emitf("    PUSH %s", m.src)
 			}
@@ -5409,10 +5415,10 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 					break
 				}
 			}
-			if strings.HasPrefix(cur, "$") {
+			if isSpill(cur) {
 				// POP into LocMem: pop to HL then store.
 				g.emit("    POP HL")
-				g.emitf("    LD (%s), HL", cur)
+				g.storeSpill16(cur, "HL")
 			} else {
 				g.emitf("    POP %s", cur)
 			}
