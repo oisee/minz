@@ -3492,11 +3492,12 @@ func (g *z80cg) emit8ALU(mnem, src string) {
 
 // emit8ALUImm emits an 8-bit ALU instruction with an immediate constant operand.
 func (g *z80cg) emit8ALUImm(mnem string, imm int64) {
+	imm8 := imm & 0xFF // Z80 8-bit ALU: truncate to byte
 	switch mnem {
 	case "ADD", "ADC":
-		g.emitf("    %s A, %d", mnem, imm)
+		g.emitf("    %s A, %d", mnem, imm8)
 	default:
-		g.emitf("    %s %d", mnem, imm)
+		g.emitf("    %s %d", mnem, imm8)
 	}
 }
 
@@ -4666,7 +4667,7 @@ func (g *z80cg) genCmp(inst *Inst) {
 			g.emit("    AND A") // AND A ≡ CP 0 for all flags; 1B/4T vs 2B/7T
 			g.cmpAndZero[inst.Dst] = true
 		} else {
-			g.emitf("    CP %d", cv)
+			g.emitf("    CP %d", cv & 0xFF)
 		}
 		// CP/AND A does not modify A; aliases remain valid.
 		g.pendingFlagReg = inst.Dst
@@ -5401,7 +5402,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 			if !g.holdsValue("A", lhs) {
 				g.emitLDA(lhs)
 			}
-			g.emitf("    CP %d", cv)
+			g.emitf("    CP %d", cv & 0xFF)
 		} else if rhs == "A" && lhs != "A" {
 			// A already holds rhs; swap: CP lhs computes rhs-lhs.
 			// Eq is still Z (rhs-lhs==0 ↔ rhs==lhs), but C now means rhs<lhs.
