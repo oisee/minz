@@ -3538,7 +3538,13 @@ func (g *z80cg) genMul(inst *Inst) {
 	}
 	rhs := g.loc(inst.Src[1])
 	if rhs != "B" {
-		g.emitf("    LD B, %s", rhs)
+		if isPairReg(rhs) {
+			g.emitf("    LD B, %s", lowByte(rhs))
+		} else if isSpill(rhs) {
+			g.loadSpill8("B", rhs)
+		} else {
+			g.emitf("    LD B, %s", rhs)
+		}
 	}
 	g.emit("    CALL __mul8")
 	g.needsMul8 = true
