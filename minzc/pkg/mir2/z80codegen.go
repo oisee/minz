@@ -862,11 +862,12 @@ func (g *z80cg) emitLD8(dst, src string) {
 	if dst == src {
 		return
 	}
-	// DD/FD prefix conflict: LD H,IXH / LD L,IXL encode as NOP.
-	// LD L,IXH / LD H,IXL are cross-byte (wrong result).
-	// Route through shadow A for any IXY↔H/L combination.
+	// DD/FD prefix conflicts — route through shadow A:
+	// 1. IXY↔H/L: LD H,IXH = NOP (DD substitutes H→IXH)
+	// 2. IX↔IY cross: LD IYH,IXH can't mix DD+FD prefixes
 	if (isIXYReg(src) && (dst == "H" || dst == "L")) ||
-		(isIXYReg(dst) && (src == "H" || src == "L")) {
+		(isIXYReg(dst) && (src == "H" || src == "L")) ||
+		(isIXYReg(src) && isIXYReg(dst) && src[:2] != dst[:2]) {
 		g.emitMovViaAltA(dst, src)
 		return
 	}
