@@ -3214,6 +3214,10 @@ func (g *z80cg) emit8ALU(mnem, src string) {
 		g.invalidate("H")
 		return
 	}
+	// Width mismatch: pair reg as 8-bit ALU operand — use low byte.
+	if isPairReg(src) {
+		src = lowByte(src)
+	}
 	switch mnem {
 	case "ADD", "ADC":
 		g.emitf("    %s A, %s", mnem, src)
@@ -3881,14 +3885,25 @@ func (g *z80cg) genDivMod8(inst *Inst) {
 	}
 
 	// Setup: B = dividend, C = divisor.
+	// Width guard: lhs/rhs might be a 16-bit pair (const allocated to HL/DE).
 	if lhs == "B" {
 		// already there
+	} else if isPairReg(lhs) {
+		g.emitf("    LD B, %s", lowByte(lhs))
+	} else if isSpill(lhs) {
+		g.loadSpill8("B", lhs)
 	} else if lhs == "A" {
 		g.emit("    LD B, A")
 	} else {
 		g.emitf("    LD B, %s", lhs)
 	}
-	if rhs != "C" {
+	if rhs == "C" {
+		// already there
+	} else if isPairReg(rhs) {
+		g.emitf("    LD C, %s", lowByte(rhs))
+	} else if isSpill(rhs) {
+		g.loadSpill8("C", rhs)
+	} else {
 		g.emitf("    LD C, %s", rhs)
 	}
 
