@@ -319,6 +319,75 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 		// Counter must be in B. The pattern is used for cost estimation.
 		{Name: "djnz", MIROp: OpSub, Width: 8, DstLocs: b, SrcLocs: [2]LocSet{b, gpr8},
 			Template: "DJNZ {target}", Cost: 13, Bytes: 2},
+
+		// ══════════════════════════════════════════════════════════════
+		// L3: Shadow register moves via EXX / EX AF,AF'
+		// ══════════════════════════════════════════════════════════════
+		//
+		// EXX swaps BC↔BC', DE↔DE', HL↔HL' simultaneously (4T, 1 byte).
+		// To use shadow as spill: EXX, LD r',val, EXX (save), or
+		// EXX, LD r,r', EXX (restore). Cost = 4T + 4T + 4T = 12T.
+		//
+		// GPR → shadow: save to shadow register via EXX bracket.
+		// Template uses {dst} which resolves to "B'" etc. The emitter's
+		// shadowMainName() strips the prime: B' → B (accessed as B inside EXX).
+		{Name: "save_shadow", MIROp: OpMove, Width: 8, DstLocs: shadow8, SrcLocs: [2]LocSet{gpr8},
+			Template: "EXX\n    LD {dst}, {src0}\n    EXX", Cost: 12, Bytes: 3},
+		// shadow → GPR: restore from shadow register via EXX bracket.
+		{Name: "load_shadow", MIROp: OpMove, Width: 8, DstLocs: gpr8, SrcLocs: [2]LocSet{shadow8},
+			Template: "EXX\n    LD {dst}, {src0}\n    EXX", Cost: 12, Bytes: 3},
+
+		// A ↔ A' via EX AF,AF' (4T each way, independent of EXX)
+		{Name: "save_shadow_a", MIROp: OpMove, Width: 8, DstLocs: shadowA, SrcLocs: [2]LocSet{a},
+			Template: "EX AF, AF'", Cost: 4, Bytes: 1},
+		{Name: "load_shadow_a", MIROp: OpMove, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{shadowA},
+			Template: "EX AF, AF'", Cost: 4, Bytes: 1},
+
+		// ══════════════════════════════════════════════════════════════
+		// L4: TSMC spill — Self-Modifying Code
+		// ══════════════════════════════════════════════════════════════
+		//
+		// Store: patch the immediate byte of a LD A,imm8 instruction.
+		//   LD A, val
+		//   LD ({tsmc_label}+1), A    ; patch imm8 of reload instruction
+		// Reload: execute the patched LD A,imm8.
+		//   {tsmc_label}: LD A, 0     ; imm8 was patched to actual value
+		//
+		// Cost: store=13T (LD A,r 4T + LD (nn),A 13T but often A already has val)
+		//        reload=7T (LD A,imm8 — the imm8 IS the stored value)
+		//
+		// GPR → TSMC: store (patch the reload instruction's immediate)
+		{Name: "tsmc_store", MIROp: OpMove, Width: 8, DstLocs: tsmc, SrcLocs: [2]LocSet{a},
+			Template: "LD ({dst}+1), A", Cost: 13, Bytes: 3},
+		// TSMC → A: reload (execute the patched LD A,imm8)
+		{Name: "tsmc_reload", MIROp: OpMove, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{tsmc},
+			Template: "{src0}: LD A, 0", Cost: 7, Bytes: 2},
+
+		// ══════════════════════════════════════════════════════════════
+		// L5: Memory spill — absolute address LD A,(nn) / LD (nn),A
+		// ══════════════════════════════════════════════════════════════
+		//
+		// Only A can do direct memory access on Z80.
+		// For non-A GPR → memory: route through A (extra 4T each way).
+		//
+		// GPR → mem: store via A
+		{Name: "spill_r_mem", MIROp: OpMove, Width: 8, DstLocs: spill, SrcLocs: [2]LocSet{gpr8},
+			Template: "LD A, {src0}\n    LD ({dst}), A", Cost: 17, Bytes: 4},
+		// A → mem: direct store
+		{Name: "spill_a_mem", MIROp: OpMove, Width: 8, DstLocs: spill, SrcLocs: [2]LocSet{a},
+			Template: "LD ({dst}), A", Cost: 13, Bytes: 3},
+		// mem → A: direct load
+		{Name: "unspill_mem_a", MIROp: OpMove, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{spill},
+			Template: "LD A, ({src0})", Cost: 13, Bytes: 3},
+		// mem → GPR: load via A
+		{Name: "unspill_mem_r", MIROp: OpMove, Width: 8, DstLocs: gpr8, SrcLocs: [2]LocSet{spill},
+			Template: "LD A, ({src0})\n    LD {dst}, A", Cost: 17, Bytes: 4},
+
+		// Constants directly to spill tiers (avoid GPR round-trip)
+		{Name: "const_shadow_a", MIROp: OpConst, Width: 8, DstLocs: shadowA,
+			Template: "EX AF, AF'\n    LD A, {imm}\n    EX AF, AF'", Cost: 15, Bytes: 4, Flags: PatImmediate},
+		{Name: "const_tsmc", MIROp: OpConst, Width: 8, DstLocs: tsmc,
+			Template: "LD A, {imm}\n    LD ({dst}+1), A", Cost: 20, Bytes: 5, Flags: PatImmediate},
 	}
 }
 

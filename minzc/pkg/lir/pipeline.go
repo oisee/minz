@@ -852,11 +852,20 @@ func expandTemplate(inst Inst) string {
 }
 
 // ExpandTemplateNamed fills template using the machine descriptor's location names.
+// For shadow registers (B', C', etc.) inside EXX brackets, the template gets
+// the prime name; patterns that wrap with EXX handle the naming themselves.
+// For TSMC spill slots, the name is used as a label (tsmc0, tsmc1, etc.).
 func ExpandTemplateNamed(inst Inst, desc *MachineDesc) string {
 	tmpl := inst.Pat.Template
 	getName := func(phys int) string {
 		if phys >= 0 && phys < len(desc.Locs) {
-			return desc.Locs[phys].Name
+			name := desc.Locs[phys].Name
+			// Inside EXX brackets (shadow patterns), strip the prime:
+			// B' → B, C' → C, etc. because EXX swaps them into main position.
+			if desc.Locs[phys].Kind == LocShadow && strings.Contains(tmpl, "EXX") {
+				name = strings.TrimSuffix(name, "'")
+			}
+			return name
 		}
 		return fmt.Sprintf("?%d", phys)
 	}
