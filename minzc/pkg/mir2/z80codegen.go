@@ -1923,6 +1923,11 @@ func (g *z80cg) genInst(inst *Inst) {
 						g.invalidate("HL")
 					}
 				}
+			} else if isSpill(dst) {
+				g.emit("    EX AF, AF'")
+				g.emitf("    LD A, %d", inst.Imm&0xFF)
+				g.emitf("    LD (%s), A", dst)
+				g.emit("    EX AF, AF'")
 			} else {
 				g.emitf("    LD %s, %d", dst, inst.Imm)
 			}
@@ -2539,7 +2544,7 @@ func (g *z80cg) genInst(inst *Inst) {
 				if isSpill(lo) {
 					g.emitf("    LD A, (%s)", lo)
 				} else {
-					g.emitf("    LD A, %s", lo)
+					g.emitLDA(lo)
 				}
 				g.emit("    LD (HL), A     ; lo")
 				g.emit("    EX AF, AF'")
@@ -2554,7 +2559,7 @@ func (g *z80cg) genInst(inst *Inst) {
 				if isSpill(hi) {
 					g.emitf("    LD A, (%s)", hi)
 				} else {
-					g.emitf("    LD A, %s", hi)
+					g.emitLDA(hi)
 				}
 				g.emit("    LD (HL), A     ; hi")
 				g.emit("    EX AF, AF'")
@@ -2566,7 +2571,7 @@ func (g *z80cg) genInst(inst *Inst) {
 			// DE/BC: only LD (DE),A / LD (BC),A are valid — route both bytes through A.
 			lo := lowByte(val)
 			if lo != "A" {
-				g.emitf("    LD A, %s", lo)
+				g.emitLDA(lo)
 				g.invalidate("A")
 			}
 			g.emitf("    LD (%s), A     ; lo", ptr)
@@ -2577,7 +2582,7 @@ func (g *z80cg) genInst(inst *Inst) {
 			} else {
 				hi := highByte(val)
 				if hi != "A" {
-					g.emitf("    LD A, %s", hi)
+					g.emitLDA(hi)
 					g.invalidate("A")
 				}
 			}
@@ -2699,7 +2704,7 @@ func (g *z80cg) genInst(inst *Inst) {
 		case offset == 256:
 			// SoA256: INC H — switch to next field column (H=column, L=index)
 			g.emitf("    INC %s", highByte(dst))
-		case offset <= 3:
+		case offset <= 3 && !isSpill(dst):
 			for range offset {
 				g.emitf("    INC %s", dst)
 			}
@@ -2927,7 +2932,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				g.emitf("    ADD A, %s", lhs)
 			default:
 				g.comment(fmt.Sprintf("TODO: 8-bit %s %s, A → %s with A as rhs", mnem, lhs, dst))
-				g.emitf("    LD A, %s", lhs)
+				g.emitLDA(lhs)
 				g.emit8ALU(mnem, rhs)
 			}
 			if dst != "A" {
@@ -3875,9 +3880,17 @@ func (g *z80cg) genMul16(inst *Inst) {
 
 	// mul16Epilogue moves the result from HL to dst and restores saved HL.
 	mul16Epilogue := func() {
-		if dst != "HL" {
-			g.emitf("    LD %s, H", highByte(dst))
-			g.emitf("    LD %s, L", lowByte(dst))
+		if dst == "HL" {
+			// already there
+		} else if isIXY(dst) {
+			g.emit("    PUSH HL")
+			g.emitf("    POP %s", dst)
+		} else if isSpill(dst) {
+			g.storeSpill16(dst, "HL")
+			g.invalidate("HL")
+		} else {
+			g.emitLD8(highByte(dst), "H")
+			g.emitLD8(lowByte(dst), "L")
 		}
 		if savedHL {
 			g.emit("    POP HL") // restore pre-mul HL
@@ -4047,10 +4060,16 @@ func (g *z80cg) genMul32(inst *Inst) {
 	switch cv {
 	case 0:
 		// dst = 0: load zero constant.
-		g.emitf("    LD %s, 0", dst)
-		g.emit("    EXX")
-		g.emitf("    LD %s, 0", dst)
-		g.emit("    EXX")
+		if isSpill(dst) {
+			g.emit("    LD HL, 0")
+			g.storeSpill16(dst, "HL")
+			g.invalidate("HL")
+		} else {
+			g.emitf("    LD %s, 0", dst)
+			g.emit("    EXX")
+			g.emitf("    LD %s, 0", dst)
+			g.emit("    EXX")
+		}
 		g.invalidate(dst)
 		return
 	case 1:
@@ -4403,7 +4422,7 @@ func (g *z80cg) genSext(inst *Inst) {
 		lo := lowByte(dst)
 		hi := highByte(dst)
 		if src != "A" {
-			g.emitf("    LD A, %s", src)
+			g.emitLDA(src)
 		}
 		if lo != "A" {
 			g.emitLD8(lo, "A")
@@ -5797,7 +5816,12 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 	// After all register-to-register moves are resolved, emit constant assignments.
 	// Done last so they cannot clobber live source registers.
 	for _, c := range immCopies {
-		if c.ty.Width() <= 8 {
+		if isSpill(c.dstName) {
+			g.emit("    EX AF, AF'")
+			g.emitf("    LD A, %d", c.immVal&0xFF)
+			g.emitf("    LD (%s), A", c.dstName)
+			g.emit("    EX AF, AF'")
+		} else if c.ty.Width() <= 8 {
 			g.emitf("    LD %s, %d", c.dstName, c.immVal&0xFF)
 		} else {
 			g.emitf("    LD %s, %d", c.dstName, c.immVal&0xFFFF)
