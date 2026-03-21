@@ -4264,7 +4264,12 @@ func (g *z80cg) genExt(inst *Inst) {
 		lo := lowByte(dst)
 		hi := highByte(dst)
 		if src != lo {
-			g.emitf("    LD %s, %s", lo, src)
+			if (isIXYReg(src) && (lo == "H" || lo == "L")) ||
+				((src == "H" || src == "L") && isIXYReg(lo)) {
+				g.emitMovViaAltA(lo, src)
+			} else {
+				g.emitLD8(lo, src)
+			}
 		}
 		g.emitf("    LD %s, 0", hi)
 		return
