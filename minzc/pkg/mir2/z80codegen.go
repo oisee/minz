@@ -4273,8 +4273,21 @@ func (g *z80cg) genDivMod16(inst *Inst) {
 		g.emitLD8("L", lowByte(lhs))
 	}
 	if rhs != "DE" {
-		g.emitf("    LD D, %s", highByte(rhs))
-		g.emitf("    LD E, %s", lowByte(rhs))
+		if isSpill(rhs) {
+			g.loadSpill16("DE", rhs)
+		} else if isIXY(rhs) {
+			g.emitf("    LD D, %s", highByte(rhs))
+			g.emitf("    LD E, %s", lowByte(rhs))
+		} else if isIXYReg(rhs) {
+			g.emitMovViaAltA("E", rhs)
+			g.emit("    LD D, 0")
+		} else if isPairReg(rhs) {
+			g.emitf("    LD D, %s", highByte(rhs))
+			g.emitf("    LD E, %s", lowByte(rhs))
+		} else {
+			g.emitLD8("E", rhs)
+			g.emit("    LD D, 0")
+		}
 	}
 
 	// BC = 0 (remainder accumulator), A = 16 (iteration counter).
@@ -4319,6 +4332,11 @@ func (g *z80cg) genDivMod16(inst *Inst) {
 			g.emit("    LD H, B")
 			g.emit("    LD L, C")
 			g.storeSpill16(dst, "HL")
+		} else if isIXY(dst) {
+			g.emit("    LD H, B")
+			g.emit("    LD L, C")
+			g.emit("    PUSH HL")
+			g.emitf("    POP %s", dst)
 		} else {
 			g.emitLD8(highByte(dst), "B")
 			g.emitLD8(lowByte(dst), "C")
@@ -4329,9 +4347,13 @@ func (g *z80cg) genDivMod16(inst *Inst) {
 			// already there
 		} else if isSpill(dst) {
 			g.storeSpill16(dst, "HL")
-		} else if dst != "HL" {
-			g.emitf("    LD %s, H", highByte(dst))
-			g.emitf("    LD %s, L", lowByte(dst))
+		} else if isIXY(dst) {
+			// HL→IX/IY: byte-copy invalid (DD NOP). Use PUSH/POP.
+			g.emit("    PUSH HL")
+			g.emitf("    POP %s", dst)
+		} else {
+			g.emitLD8(highByte(dst), "H")
+			g.emitLD8(lowByte(dst), "L")
 		}
 	}
 	g.invalidate("A")
