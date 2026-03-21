@@ -83,6 +83,8 @@ func (Z80CostTable) Cost(cls RegClass, loc PhysLoc) int {
 		return costAcc(loc)
 	case ClassCounter:
 		return costCounter(loc)
+	case ClassRegC:
+		return costRegC(loc)
 	case ClassGeneral:
 		return costGeneral(loc)
 	case ClassPointer:
@@ -178,6 +180,31 @@ func costCounter(loc PhysLoc) int {
 	case LocStack:
 		// Stack spills (PUSH/POP) are not implemented in codegen — would emit
 		// "AND stack" etc.  Use InfCost until codegen supports SP-relative access.
+		return InfCost
+	case LocMem:
+		return z80timing.MemRoundTrip8 + 2
+	case LocFlag:
+		return InfCost
+	}
+	return InfCost
+}
+
+// costRegC: ClassRegC → pins to C register (for @z80_c inline asm).
+// Mirrors costCounter but for the C register.
+func costRegC(loc PhysLoc) int {
+	switch loc.Kind {
+	case LocReg:
+		switch loc.Name {
+		case "C":
+			return 0
+		case "A", "B", "D", "E", "H", "L":
+			return z80timing.RegRegMove
+		case "HL", "DE", "BC":
+			return InfCost
+		}
+	case LocIXY8:
+		return z80timing.RegRegMove + z80timing.IXY_OVERHEAD
+	case LocShadow, LocStack:
 		return InfCost
 	case LocMem:
 		return z80timing.MemRoundTrip8 + 2

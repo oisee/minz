@@ -76,8 +76,9 @@ func OptimizeContracts(m *Module, ct CostTable) ContractSet {
 			if f == nil {
 				continue
 			}
-			// Skip extern/no-body/address-taken functions — their contract is fixed by the ABI.
-			if f.Attrs.IsExtern || len(f.Blocks) == 0 || addrTaken[name] {
+			// Skip extern/no-body/address-taken/asm functions — their contract is fixed by the ABI.
+			// Functions with inline asm have hard register constraints that must not be changed.
+			if f.Attrs.IsExtern || len(f.Blocks) == 0 || addrTaken[name] || funcHasAsm(f) {
 				if cs[name] == nil {
 					cs[name] = currentChoice(f)
 					changed = true
@@ -138,6 +139,20 @@ func addrTakenFuncs(m *Module) map[string]bool {
 		}
 	}
 	return taken
+}
+
+// funcHasAsm reports whether f contains any OpAsm instruction.
+// Functions with inline asm have hard-coded register expectations that
+// OptimizeContracts must not change.
+func funcHasAsm(f *Func) bool {
+	for _, b := range f.Blocks {
+		for _, inst := range b.Insts {
+			if inst.Op == OpAsm {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // ApplyContracts updates every function's Contract in place with the
