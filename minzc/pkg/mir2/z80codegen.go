@@ -827,6 +827,69 @@ func physName(pl PhysLoc) string {
 	return pl.Name
 }
 
+// isSpill returns true if the operand is a LocMem spill address ($F0xx).
+func isSpill(s string) bool { return strings.HasPrefix(s, "$") }
+
+// loadSpill8 loads an 8-bit spill value into the target register.
+// Uses A as intermediary (LD A,(nn) is the only valid 8-bit absolute load).
+func (g *z80cg) loadSpill8(dst, src string) {
+	if dst == "A" {
+		if pair := g.tsmcPairByAddr(src); pair != nil {
+			label := g.tsmcReloadLabel(pair.reg, g.blockIdx, g.curInstIdx, 0)
+			if label != "" {
+				g.emitTSMCReload(label, "A", 8)
+				return
+			}
+		}
+		g.emitf("    LD A, (%s)", src)
+	} else {
+		if pair := g.tsmcPairByAddr(src); pair != nil {
+			label := g.tsmcReloadLabel(pair.reg, g.blockIdx, g.curInstIdx, 0)
+			if label != "" {
+				g.emitTSMCReload(label, dst, 8)
+				return
+			}
+		}
+		g.emitf("    LD A, (%s)", src)
+		g.emitf("    LD %s, A", dst)
+		g.invalidate("A")
+	}
+}
+
+// storeSpill8 stores an 8-bit register value to a spill address.
+func (g *z80cg) storeSpill8(dst, src string) {
+	if src != "A" {
+		g.emitLDA(src)
+	}
+	if pair := g.tsmcPairByAddr(dst); pair != nil {
+		g.emitTSMCSpill(pair, "A")
+	} else {
+		g.emitf("    LD (%s), A", dst)
+	}
+}
+
+// loadSpill16 loads a 16-bit spill value into a register pair.
+func (g *z80cg) loadSpill16(dst, src string) {
+	if pair := g.tsmcPairByAddr(src); pair != nil {
+		label := g.tsmcReloadLabel(pair.reg, g.blockIdx, g.curInstIdx, 0)
+		if label != "" {
+			g.emitTSMCReload(label, dst, 16)
+			return
+		}
+	}
+	g.emitf("    LD %s, (%s)", dst, src)
+}
+
+// storeSpill16 stores a 16-bit pair to a spill address.
+func (g *z80cg) storeSpill16(dst, src string) {
+	if pair := g.tsmcPairByAddr(dst); pair != nil {
+		g.emitTSMCSpill(pair, src)
+	} else {
+		// Z80: only LD (nn),HL is native. DE/BC/SP need ED prefix (supported).
+		g.emitf("    LD (%s), %s", dst, src)
+	}
+}
+
 // ── Function ──────────────────────────────────────────────────────────────────
 
 // computeDeadConsts returns the set of OpConst dsts whose LD can be suppressed
@@ -2821,6 +2884,10 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				// 8-bit rhs: zero-extend to parent pair, then ADD HL, pair.
 				pair := g.promote8toPair(rhs)
 				g.emitf("    ADD HL, %s", pair)
+			} else if isSpill(rhs) {
+				// LocMem spill: load to BC, then ADD HL, BC.
+				g.loadSpill16("BC", rhs)
+				g.emit("    ADD HL, BC")
 			} else {
 				// dst must be HL here; ADD HL, rr is the only valid 16-bit ADD.
 				g.emitf("    ADD HL, %s", rhs)
@@ -5419,12 +5486,27 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 		default:
 			g.emitf("    LD %s, %s", dst, src)
 		}
-	} else if strings.HasPrefix(src, "$") {
-		// LocMem spill slot → register pair: LD rr, (nn).
-		g.emitf("    LD %s, (%s)", dst, src)
-	} else if strings.HasPrefix(dst, "$") {
-		// register pair → LocMem spill slot: LD (nn), rr.
-		g.emitf("    LD (%s), %s", dst, src)
+	} else if isSpill(src) && isSpill(dst) {
+		// Spill-to-spill: route through HL.
+		g.loadSpill16("HL", src)
+		g.storeSpill16(dst, "HL")
+		g.invalidate("HL")
+	} else if isSpill(src) {
+		// LocMem spill → register: use loadSpill16 (handles TSMC).
+		if isPairReg(dst) {
+			g.loadSpill16(dst, src)
+		} else {
+			// Spill → 8-bit: load low byte only
+			g.loadSpill8(dst, src)
+		}
+	} else if isSpill(dst) {
+		// Register → LocMem spill: use storeSpill16 (handles TSMC).
+		if isPairReg(src) {
+			g.storeSpill16(dst, src)
+		} else {
+			// 8-bit → spill
+			g.storeSpill8(dst, src)
+		}
 	} else if isPairReg(src) && !isPairReg(dst) {
 		// Width mismatch in 16-bit context: pair→8bit truncation.
 		g.emitf("    LD %s, %s", dst, lowByte(src))
@@ -5882,6 +5964,10 @@ func (g *z80cg) genCmp16(inst *Inst) {
 		// IX/IY: push to HL would conflict. Push rhs → stack, pop to BC.
 		g.emitf("    PUSH %s", rhs)
 		g.emit("    POP BC")
+		rhs = "BC"
+	} else if isSpill(rhs) {
+		// LocMem spill: SBC HL,$F0xx is not valid. Load to BC first.
+		g.loadSpill16("BC", rhs)
 		rhs = "BC"
 	}
 
