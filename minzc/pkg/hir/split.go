@@ -19,6 +19,7 @@ package hir
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/minz/minzc/pkg/mir2"
 )
@@ -73,6 +74,17 @@ func splitRecursive(m *Module, f *Func, results *[]SplitResult, depth int) []*Fu
 	if f.Body == nil || f.IsExtern || len(f.Body.Body) < 4 || depth > maxSplitDepth {
 		return nil
 	}
+	// Guard: don't re-split if last stmt is already a split call.
+	if len(f.Body.Body) > 0 {
+		if es, ok := f.Body.Body[len(f.Body.Body)-1].(*ExprStmt); ok {
+			if ce, ok := es.Expr.(*CallExpr); ok {
+				if strings.Contains(ce.Fn, "$split_") {
+					// Already split — skip top half re-analysis.
+					return nil
+				}
+			}
+		}
+	}
 
 	pressure := EstimatePressure(f)
 	maxP := maxInt(pressure)
@@ -101,9 +113,12 @@ func splitRecursive(m *Module, f *Func, results *[]SplitResult, depth int) []*Fu
 	var allSubs []*Func
 	allSubs = append(allSubs, sub)
 
-	// Recursively split sub-function (bottom half) if still hot.
-	// Don't re-split the original (top half) — it's already truncated
-	// and the call stmt doesn't add pressure.
+	// Recursively split both halves if still hot.
+	// Top half is now truncated (top stmts + call) — re-check pressure.
+	topSubs := splitRecursive(m, f, results, depth+1)
+	allSubs = append(allSubs, topSubs...)
+
+	// Bottom half (sub-function) may still have high pressure.
 	botSubs := splitRecursive(m, sub, results, depth+1)
 	allSubs = append(allSubs, botSubs...)
 
