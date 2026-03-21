@@ -107,15 +107,31 @@ fun tui_clear() -> void {
 
 // Print a single character. Codes 1-6 → box-drawing (ASCII fallback on CP/M).
 fun tui_putch(ch: u8) -> void {
-    if ch == 1 { _tui_bdos_putchar(43) }  // ┌ → +
-    if ch == 2 { _tui_bdos_putchar(43) }  // ┐ → +
-    if ch == 3 { _tui_bdos_putchar(43) }  // └ → +
-    if ch == 4 { _tui_bdos_putchar(43) }  // ┘ → +
-    if ch == 5 { _tui_bdos_putchar(45) }  // ─ → -
-    if ch == 6 { _tui_bdos_putchar(124) } // │ → |
-    if ch > 6 {
-        _tui_bdos_putchar(ch)
+    if ch == 1 {
+        _tui_bdos_putchar(43)
+        return
     }
+    if ch == 2 {
+        _tui_bdos_putchar(43)
+        return
+    }
+    if ch == 3 {
+        _tui_bdos_putchar(43)
+        return
+    }
+    if ch == 4 {
+        _tui_bdos_putchar(43)
+        return
+    }
+    if ch == 5 {
+        _tui_bdos_putchar(45)
+        return
+    }
+    if ch == 6 {
+        _tui_bdos_putchar(124)
+        return
+    }
+    _tui_bdos_putchar(ch)
 }
 
 // Print a null-terminated string.

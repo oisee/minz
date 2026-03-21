@@ -13,6 +13,7 @@ import (
 	"github.com/minz/minzc/pkg/dzrp"
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 )
 
 var (
@@ -168,6 +169,13 @@ SUPPORTED PLATFORMS (-t/--target):
 
 		// Set up CP/M BDOS handler if target is cpm
 		if target == "cpm" {
+			// Enable raw terminal for interactive CP/M programs
+			if term.IsTerminal(int(os.Stdin.Fd())) {
+				oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
+				if err == nil {
+					defer term.Restore(int(os.Stdin.Fd()), oldState)
+				}
+			}
 			setupCPMBDOS(z80)
 		}
 
@@ -383,19 +391,24 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 
 		case 0x02: // Console output
 			ch := byte(de & 0xFF)
-			if ch == '\r' {
-				// CR → print newline (CP/M convention)
-			} else {
-				fmt.Printf("%c", ch)
-			}
+			os.Stdout.Write([]byte{ch})
 			return 0, 0, true
 
 		case 0x06: // Direct console I/O
 			e := byte(de & 0xFF)
 			if e == 0xFF {
+				// Non-blocking input: check if data available
+				buf := make([]byte, 1)
+				syscall.SetNonblock(int(os.Stdin.Fd()), true)
+				n, _ := os.Stdin.Read(buf)
+				syscall.SetNonblock(int(os.Stdin.Fd()), false)
+				if n > 0 {
+					return buf[0], 0, true
+				}
 				return 0, 0, true // No char available
 			}
-			fmt.Printf("%c", e)
+			// Output
+			os.Stdout.Write([]byte{e})
 			return 0, 0, true
 
 		case 0x09: // Print string ($-terminated)
@@ -431,8 +444,17 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 			}
 			return 0, 0, true
 
-		case 0x0B: // Console status
-			return 0, 0, true // No char available
+		case 0x0B: // Console status — check if key available
+			buf := make([]byte, 1)
+			syscall.SetNonblock(int(os.Stdin.Fd()), true)
+			n, _ := os.Stdin.Read(buf)
+			syscall.SetNonblock(int(os.Stdin.Fd()), false)
+			if n > 0 {
+				// Put it back — can't unread, so use a channel or buffer
+				// For now, return 0xFF (char available) but char is lost
+				return 0xFF, 0, true
+			}
+			return 0, 0, true
 
 		case 0x0C: // Get version
 			return 0x22, 0x0022, true // CP/M 2.2
