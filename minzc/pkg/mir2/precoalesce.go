@@ -313,9 +313,24 @@ func PreallocCoalesce(f *Func) PreallocCoalesceMap {
 	}
 	mergeEdge := func(target string, args []Reg) { mergeEdgeAt(target, args, 0) }
 
-	for _, b := range f.Blocks {
+	// Build block-index map for back-edge detection.
+	// In the block list (RPO), a back-edge targets a block with a lower index.
+	blockIdx := make(map[string]int, len(f.Blocks))
+	for i, b := range f.Blocks {
+		blockIdx[b.Label] = i
+	}
+
+	for bi, b := range f.Blocks {
 		switch t := b.Term.(type) {
 		case *TermJmp:
+			// Skip back-edges entirely: merging across a loop back-edge can
+			// union swap-pattern variables (a←b, b←a+b) into the same vreg,
+			// preventing the allocator from assigning them to different
+			// physical registers.  The post-allocation coalescer handles
+			// these safely.
+			if targetIdx, ok := blockIdx[t.Target]; ok && targetIdx <= bi {
+				break // back-edge — skip
+			}
 			mergeEdge(t.Target, t.Args)
 		case *TermBrIf:
 			// Only merge unconditional-like paths (Else when ThenArgs empty,

@@ -5319,11 +5319,17 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 			continue
 		}
 		if scratch, ok := g.physOverride[bp.Dst]; ok {
-			canon := g.loc(bp.Dst)
-			if canon != "" && canon != scratch {
-				g.emitf("    LD %s, %s    ; restore block param from scratch", canon, scratch)
-			}
+			// Use ar.Loc (static allocation) not g.loc (which returns the override).
+			canonLoc := g.ar.Loc(bp.Dst)
 			delete(g.physOverride, bp.Dst)
+			// Only restore GPR/IXY block params — spilled params (LocMem) are
+			// already in memory and weren't saved to a scratch GPR.
+			if canonLoc.Kind == LocReg || canonLoc.Kind == LocIXY8 {
+				canon := canonLoc.Name
+				if canon != "" && canon != scratch {
+					g.emitf("    LD %s, %s    ; restore block param from scratch", canon, scratch)
+				}
+			}
 		}
 	}
 
