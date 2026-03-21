@@ -926,6 +926,32 @@ func (g *z80cg) emitADDHL(rhs string) {
 	}
 }
 
+// emitSBCHL emits SBC HL, rr with IX/IY/spill/8-bit guard.
+// Z80 SBC HL only accepts BC/DE/HL/SP — NOT IX/IY or 8-bit.
+func (g *z80cg) emitSBCHL(rhs string) {
+	if rhs == "IX" || rhs == "IY" {
+		g.emit("    PUSH DE")
+		if rhs == "IX" {
+			g.emit("    LD D, IXH")
+			g.emit("    LD E, IXL")
+		} else {
+			g.emit("    LD D, IYH")
+			g.emit("    LD E, IYL")
+		}
+		g.emit("    SBC HL, DE")
+		g.emit("    POP DE")
+	} else if isSpill(rhs) {
+		g.emitf("    LD BC, (%s)", rhs)
+		g.emit("    SBC HL, BC")
+	} else if isSimpleReg(rhs) && !isPairReg(rhs) {
+		// 8-bit operand: promote to pair via promote8toPair.
+		pair := g.promote8toPair(rhs)
+		g.emitf("    SBC HL, %s", pair)
+	} else {
+		g.emitf("    SBC HL, %s", rhs)
+	}
+}
+
 // isSpill returns true if the operand is a LocMem spill (named _spill_ label or legacy $F0xx).
 func isSpill(s string) bool {
 	return strings.HasPrefix(s, "$") || strings.HasPrefix(s, "_spill_")
@@ -2202,6 +2228,11 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.emitf("    LD A, %s", ptrIndirect(ptr, 0))
 				g.invalidate("A")
 				g.emitf("    LD %s, A", dst)
+			} else if isSpill(dst) {
+				g.emit("    EX AF, AF'")
+				g.emitf("    LD A, %s", ptrIndirect(ptr, 0))
+				g.emitf("    LD (%s), A", dst)
+				g.emit("    EX AF, AF'")
 			} else {
 				g.emitf("    LD %s, %s", dst, ptrIndirect(ptr, 0))
 			}
@@ -3136,7 +3167,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 					adjustedRhs = "DE" // SBC HL,DE = lhs-lhs = 0 (self-sub)
 				}
 				g.emit("    EX DE, HL")
-				g.emitf("    SBC HL, %s", adjustedRhs)
+				g.emitSBCHL(adjustedRhs)
 				g.emit("    EX DE, HL") // result back to DE, HL restored
 				g.invalidate("HL")
 				g.invalidate("DE")
@@ -3150,7 +3181,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 					g.loadSpill16("BC", rhs)
 					rhs = "BC"
 				}
-				g.emitf("    SBC HL, %s", rhs)
+				g.emitSBCHL(rhs)
 				g.emitMov(dst, "HL", w)
 				g.invalidate("HL")
 			} else {
@@ -3158,7 +3189,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 					g.loadSpill16("BC", rhs)
 					rhs = "BC"
 				}
-				g.emitf("    SBC HL, %s", rhs)
+				g.emitSBCHL(rhs)
 			}
 			g.invalidate(dst)
 		case "OR", "AND", "XOR":
@@ -3286,9 +3317,9 @@ func (g *z80cg) genBinOp32(mnem, dst, lhs, rhs string) {
 	case "SUB":
 		if dst == "HL" {
 			g.emit("    AND A")       // clear carry
-			g.emitf("    SBC HL, %s", rhs)
+			g.emitSBCHL(rhs)
 			g.emit("    EXX")
-			g.emitf("    SBC HL, %s", rhs)
+			g.emitSBCHL(rhs)
 			g.emit("    EXX")
 		} else {
 			g.comment(fmt.Sprintf("32-bit SUB via HL scratch: %s -= %s", dst, rhs))
@@ -3298,9 +3329,9 @@ func (g *z80cg) genBinOp32(mnem, dst, lhs, rhs string) {
 			g.emit("    EXX")
 			g.emitMov32("HL", dst)
 			g.emit("    AND A")
-			g.emitf("    SBC HL, %s", rhs)
+			g.emitSBCHL(rhs)
 			g.emit("    EXX")
-			g.emitf("    SBC HL, %s", rhs)
+			g.emitSBCHL(rhs)
 			g.emit("    EXX")
 			g.emitMov32(dst, "HL")
 			g.emit("    EXX")
@@ -6299,15 +6330,15 @@ func (g *z80cg) genCmp16(inst *Inst) {
 	// (using global liveness analysis at MIR2 level). Skip HL restore.
 	if inst.FlagsOnly {
 		g.emit("    OR A")
-		g.emitf("    SBC HL, %s", rhs)
+		g.emitSBCHL(rhs)
 	} else if needsCF {
 		g.emit("    PUSH HL") // save lhs (2B, 21T — need CF preserved)
 		g.emit("    OR A")
-		g.emitf("    SBC HL, %s", rhs)
+		g.emitSBCHL(rhs)
 		g.emit("    POP HL") // restore lhs
 	} else {
 		g.emit("    OR A")
-		g.emitf("    SBC HL, %s", rhs)
+		g.emitSBCHL(rhs)
 		// Restore lhs via ADD HL, rhs (−1B, −10T; S/Z/PV safe).
 		if rhs == "IX" || rhs == "IY" {
 			g.emit("    PUSH DE")
@@ -6379,9 +6410,9 @@ func (g *z80cg) genCmp32(inst *Inst) {
 	g.emit("    PUSH HL")         // save a_hi (shadow HL = H'L')
 	g.emit("    EXX")
 	g.emit("    AND A")           // clear carry
-	g.emitf("    SBC HL, %s", rhs) // a_lo - b_lo; carry = lo borrow
+	g.emitSBCHL(rhs) // a_lo - b_lo; carry = lo borrow
 	g.emit("    EXX")
-	g.emitf("    SBC HL, %s", rhs) // a_hi - b_hi - lo_carry; carry = 32-bit borrow
+	g.emitSBCHL(rhs) // a_hi - b_hi - lo_carry; carry = 32-bit borrow
 	g.emit("    EXX")
 	// Restore a (carry preserved by POP rr — POP does not affect flags):
 	g.emit("    EXX")
