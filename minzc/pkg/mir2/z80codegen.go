@@ -2035,7 +2035,7 @@ func (g *z80cg) genInst(inst *Inst) {
 			g.emitf("    LD %s, A", dst)
 			g.invalidate("A")
 		} else {
-			g.emitf("    LD %s, %s", dst, lo)
+			g.emitLD8(dst, lo)
 		}
 
 	case OpCmp:
@@ -5038,7 +5038,7 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 					((lo == "H" || lo == "L") && isIXYReg(dst)) {
 					g.emitMovViaAltA(dst, lo)
 				} else {
-					g.emitf("    LD %s, %s", dst, lo)
+					g.emitLD8(dst, lo)
 				}
 			} else if !isPairReg(src) && isPairReg(dst) {
 				// 8bit→pair: zero-extend.
@@ -5047,7 +5047,7 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 					((src == "H" || src == "L") && isIXYReg(lo)) {
 					g.emitMovViaAltA(lo, src)
 				} else {
-					g.emitf("    LD %s, %s", lo, src)
+					g.emitLD8(lo, src)
 				}
 				g.emitf("    LD %s, 0", highByte(dst))
 			} else {
@@ -5107,7 +5107,7 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 			lo := lowByte(dst)
 			hi := highByte(dst)
 			if lo != src {
-				g.emitf("    LD %s, %s", lo, src)
+				g.emitLD8(lo, src)
 			}
 			g.emitf("    LD %s, 0", hi)
 			break
@@ -5752,7 +5752,7 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 				((lo == "H" || lo == "L") && isIXYReg(dst)) {
 				g.emitMovViaAltA(dst, lo)
 			} else {
-				g.emitf("    LD %s, %s", dst, lo)
+				g.emitLD8(dst, lo)
 			}
 		case !isPairReg(src) && isPairReg(dst):
 			// Width mismatch: 8-bit source → 16-bit dest. Zero-extend.
@@ -5761,7 +5761,7 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 				((src == "H" || src == "L") && isIXYReg(lo)) {
 				g.emitMovViaAltA(lo, src)
 			} else {
-				g.emitf("    LD %s, %s", lo, src)
+				g.emitLD8(lo, src)
 			}
 			g.emitf("    LD %s, 0", highByte(dst))
 		default:
