@@ -794,6 +794,9 @@ func (g *z80cg) emitLDA(src string) {
 	}
 	if strings.HasPrefix(src, "$") {
 		g.emitf("    LD A, (%s)", src)
+	} else if isPairReg(src) {
+		// Width mismatch: pair→8bit. Take low byte.
+		g.emitf("    LD A, %s", lowByte(src))
 	} else {
 		g.emitf("    LD A, %s", src)
 	}
