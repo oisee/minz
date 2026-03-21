@@ -89,6 +89,7 @@ const (
 type MachineDesc struct {
 	Name     string           // "z80", "6502", "risc32", "cisc", "micro"
 	Locs     []Loc            // physical locations (index = bit in LocSet)
+	LocCost  []int            // per-loc cost in T-states (index = bit in LocSet)
 	Patterns []Pattern        // instruction patterns
 	Rules    []ConstraintRule // encoding constraints
 	WordSize int              // default operand width in bits (8 for Z80/6502)
@@ -121,6 +122,41 @@ func (m *MachineDesc) SpillLocs() LocSet {
 	for i, l := range m.Locs {
 		if l.Kind == LocMem {
 			s = s.Set(i)
+		}
+	}
+	return s
+}
+
+// PickCheapest returns a singleton LocSet with the lowest-cost loc from s.
+// Falls back to the lowest-numbered bit if LocCost is nil or empty.
+func (m *MachineDesc) PickCheapest(s LocSet) LocSet {
+	if s.IsEmpty() {
+		return s
+	}
+	if len(m.LocCost) == 0 {
+		// No cost table — pick first (lowest bit).
+		for i := 0; i < MaxLocs; i++ {
+			if s.Has(i) {
+				return Singleton(i)
+			}
+		}
+		return s
+	}
+	best := -1
+	bestCost := 1<<30
+	for i := 0; i < len(m.LocCost) && i < MaxLocs; i++ {
+		if s.Has(i) && m.LocCost[i] < bestCost {
+			bestCost = m.LocCost[i]
+			best = i
+		}
+	}
+	if best >= 0 {
+		return Singleton(best)
+	}
+	// Fallback for bits beyond LocCost range.
+	for i := 0; i < MaxLocs; i++ {
+		if s.Has(i) {
+			return Singleton(i)
 		}
 	}
 	return s

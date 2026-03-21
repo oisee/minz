@@ -69,6 +69,18 @@ var Z80 = &MachineDesc{
 }
 
 func init() {
+	// Per-location cost in T-states. WFC uses this to prefer cheaper locs.
+	Z80.LocCost = []int{
+		0, 0, 0, 0, 0, 0, 0, // L1: A,B,C,D,E,H,L — free
+		0, 0, 0, 0,           // BC,DE,HL,SP — free (16-bit)
+		4, 4,                 // IX,IY — DD/FD prefix
+		0,                    // F — flags (free for booleans)
+		4, 4, 4, 4,          // IXH,IXL,IYH,IYL — DD/FD prefix
+		8, 8, 8, 8, 8, 8,    // L3: B',C',D',E',H',L' — EXX bracket (4T in + 4T out)
+		8,                    // A' — EX AF,AF' bracket
+		20, 20, 20, 20, 20, 20, 20, 20, // L4: tsmc0-7 — 13T store + 7T reload
+		26, 26, 26, 26,       // L5: mem0-3 — 13T LD A,(nn) + 13T LD (nn),A
+	}
 	Z80.Patterns = generateZ80Patterns(Z80)
 	Z80.Rules = generateZ80Rules(Z80)
 }
