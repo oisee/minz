@@ -168,6 +168,9 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 			mir2.DeadStoreElim(f)
 		}
 	}
+	// Renumber regs to guarantee uniqueness after inlining may have
+	// allocated regs in earlier functions that overlap later functions.
+	m.RenumberRegs()
 
 	// Phase 5b: interprocedural contract optimisation (greedy DP on call graph).
 	// Run BEFORE LUTGen so that synthetic LUT functions (which have hardcoded
@@ -313,6 +316,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 			mir2.DeadStoreElim(f)
 		}
 	}
+	m.RenumberRegs()
 
 	// Phase 5b: interprocedural contract optimisation (greedy DP on call graph).
 	// Run BEFORE LUTGen so synthetic LUT functions keep their original param class
