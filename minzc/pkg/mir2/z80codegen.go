@@ -2118,7 +2118,7 @@ func (g *z80cg) genInst(inst *Inst) {
 			default: // HL path (18T)
 				g.emitf("    LD H, %s^H", sym)
 				g.invalidate("H")
-				g.emitf("    LD L, %s", src8)
+				g.emitLD8("L", src8)
 				g.invalidate("L")
 				if dst != "A" {
 					g.emitf("    LD A, (HL)")
@@ -3868,7 +3868,7 @@ func (g *z80cg) genMul16(inst *Inst) {
 			g.loadSpill16("HL", lhs)
 		} else {
 			g.emitf("    LD H, %s", highByte(lhs))
-			g.emitf("    LD L, %s", lowByte(lhs))
+			g.emitLD8("L", lowByte(lhs))
 		}
 		g.invalidate("HL")
 	}
@@ -4270,7 +4270,7 @@ func (g *z80cg) genDivMod16(inst *Inst) {
 		g.invalidate("HL")
 	} else {
 		g.emitf("    LD H, %s", highByte(lhs))
-		g.emitf("    LD L, %s", lowByte(lhs))
+		g.emitLD8("L", lowByte(lhs))
 	}
 	if rhs != "DE" {
 		g.emitf("    LD D, %s", highByte(rhs))
@@ -6261,14 +6261,20 @@ func (g *z80cg) genCmp16(inst *Inst) {
 		g.invalidate("A")
 		g.invalidate("HL")
 		lhs = "HL"
-	} else if isSimpleReg(lhs) && !isPairReg(lhs) && !isIXYReg(lhs) {
+	} else if isIXYReg(lhs) {
+		// IXH/IXL/IYH/IYL → zero-extend to HL via shadow A.
+		g.emitMovViaAltA("L", lhs)
+		g.emit("    LD H, 0")
+		g.invalidate("HL")
+		lhs = "HL"
+	} else if isSimpleReg(lhs) && !isPairReg(lhs) {
 		// 8-bit reg → zero-extend to HL
-		g.emitf("    LD L, %s", lhs)
+		g.emitLD8("L", lhs)
 		g.emit("    LD H, 0")
 		g.invalidate("HL")
 		lhs = "HL"
 	}
-	if rhs == "F" || (isSimpleReg(rhs) && !isPairReg(rhs) && !isIXYReg(rhs)) {
+	if rhs == "F" || isIXYReg(rhs) || (isSimpleReg(rhs) && !isPairReg(rhs)) {
 		// Already handled below in the SBC guard, but mark for safety.
 	}
 
@@ -6299,7 +6305,7 @@ func (g *z80cg) genCmp16(inst *Inst) {
 				g.loadSpill16("HL", lhs)
 			} else {
 				g.emitf("    LD H, %s", highByte(lhs))
-				g.emitf("    LD L, %s", lowByte(lhs))
+				g.emitLD8("L", lowByte(lhs))
 			}
 			g.invalidate("HL")
 			g.invalidate("DE")
@@ -6321,7 +6327,7 @@ func (g *z80cg) genCmp16(inst *Inst) {
 		} else {
 			// Neither operand is HL; move lhs into HL byte-by-byte.
 			g.emitf("    LD H, %s", highByte(lhs))
-			g.emitf("    LD L, %s", lowByte(lhs))
+			g.emitLD8("L", lowByte(lhs))
 			g.invalidate("HL")
 			lhs = "HL"
 		}
