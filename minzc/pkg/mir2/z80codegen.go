@@ -2784,7 +2784,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		// Peephole: ADD/SUB dst, N where dst == lhs and N ≤ 3 → INC/DEC dst × N.
 		// N=1: 1B/4T vs 4B/15T; N=2: 2B/8T vs 4B/15T; N=3: 3B/12T vs 4B/15T.
 		// N=4 would be 16T vs 15T — worse in T-states, skip and fall through to ALU.
-		if mnem == "ADD" && lhs == dst && !isSpill(dst) {
+		if mnem == "ADD" && lhs == dst && !isSpill(dst) && dst != "F" {
 			if cv, ok := g.constVals[inst.Src[1]]; ok && cv >= 1 && cv <= 3 {
 				for range cv {
 					g.emitf("    INC %s", dst)
@@ -2793,7 +2793,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				return
 			}
 		}
-		if mnem == "SUB" && lhs == dst && !isSpill(dst) {
+		if mnem == "SUB" && lhs == dst && !isSpill(dst) && dst != "F" {
 			if cv, ok := g.constVals[inst.Src[1]]; ok && cv >= 1 && cv <= 3 {
 				for range cv {
 					g.emitf("    DEC %s", dst)
@@ -5941,6 +5941,14 @@ func isIntrinsic(sym string) bool {
 	return strings.HasPrefix(sym, "@mir.")
 }
 
+// z80ReservedNames are Z80 register names that cannot be used as labels.
+var z80ReservedNames = map[string]bool{
+	"A": true, "B": true, "C": true, "D": true, "E": true, "F": true,
+	"H": true, "L": true, "I": true, "R": true,
+	"AF": true, "BC": true, "DE": true, "HL": true, "SP": true,
+	"IX": true, "IY": true, "IXH": true, "IXL": true, "IYH": true, "IYL": true,
+}
+
 func sanitizeIdent(s string) string {
 	var b strings.Builder
 	for _, c := range s {
@@ -5951,7 +5959,12 @@ func sanitizeIdent(s string) string {
 			b.WriteByte('_')
 		}
 	}
-	return b.String()
+	result := b.String()
+	// Avoid Z80 register name collisions (e.g. Pascal variable "I").
+	if z80ReservedNames[strings.ToUpper(result)] {
+		return "v_" + result
+	}
+	return result
 }
 
 // ── 16-bit register half helpers ──────────────────────────────────────────────
