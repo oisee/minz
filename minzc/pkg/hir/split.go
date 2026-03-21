@@ -374,11 +374,11 @@ func ApplySplit(m *Module, f *Func, c splitCandidate) *Func {
 	sub := &Func{
 		Name:   subName,
 		Params: params,
-		RetTy:  mir2.TyVoid, // V1: void sub-functions (no outputs)
+		RetTy:  mir2.TyVoid,
 		Body:   subBody,
 	}
 
-	// Replace original function's body: keep top half + add call to sub.
+	// Replace original function's body: keep top half + call to sub.
 	args := make([]Expr, len(c.inputs))
 	for i, v := range c.inputs {
 		ty := varTypes[v]
