@@ -884,7 +884,7 @@ func (g *z80cg) emitLD8(dst, src string) {
 		// Load spill to non-A register via shadow A.
 		g.emit("    EX AF, AF'")
 		g.emitf("    LD A, (%s)", src)
-		g.emitf("    LD %s, A", dst)
+		g.emitLD8(dst, "A")
 		g.emit("    EX AF, AF'")
 	} else if dstSpill && src == "A" {
 		g.emitf("    LD (%s), A", dst)
@@ -906,7 +906,7 @@ func (g *z80cg) emitLD8(dst, src string) {
 func (g *z80cg) emitMovViaAltA(dst, src string) {
 	g.emit("    EX AF, AF'")
 	g.emitf("    LD A, %s", src)
-	g.emitf("    LD %s, A", dst)
+	g.emitLD8(dst, "A")
 	g.emit("    EX AF, AF'")
 }
 
@@ -978,7 +978,7 @@ func (g *z80cg) loadSpill8(dst, src string) {
 			}
 		}
 		g.emitf("    LD A, (%s)", src)
-		g.emitf("    LD %s, A", dst)
+		g.emitLD8(dst, "A")
 		g.invalidate("A")
 	}
 }
@@ -2058,7 +2058,7 @@ func (g *z80cg) genInst(inst *Inst) {
 			((lo == "H" || lo == "L") && isIXYReg(dst)) {
 			// DD/FD prefix conflict: route through A.
 			g.emitf("    LD A, %s", lo)
-			g.emitf("    LD %s, A", dst)
+			g.emitLD8(dst, "A")
 			g.invalidate("A")
 		} else {
 			g.emitLD8(dst, lo)
@@ -2220,14 +2220,14 @@ func (g *z80cg) genInst(inst *Inst) {
 				// Route through A.
 				g.emitf("    LD A, (HL)")
 				g.invalidate("A")
-				g.emitf("    LD %s, A", dst)
+				g.emitLD8(dst, "A")
 			} else if isIXYReg(dst) && isIXY(ptr) {
 				// BUG-008: LD IXL,(IX+d) impossible — DD prefix can't remap both.
 				// Also self-clobber: writing IXL changes IX base for next read.
 				// Route through A.
 				g.emitf("    LD A, %s", ptrIndirect(ptr, 0))
 				g.invalidate("A")
-				g.emitf("    LD %s, A", dst)
+				g.emitLD8(dst, "A")
 			} else if isSpill(dst) {
 				g.emit("    EX AF, AF'")
 				g.emitf("    LD A, %s", ptrIndirect(ptr, 0))
@@ -2245,9 +2245,9 @@ func (g *z80cg) genInst(inst *Inst) {
 				// IXH/IXL: LD IXL,(IX+d) impossible (DD prefix conflict).
 				// H/L: LD H,(IX+d) encodes as LD IXH,(IX+d) (prefix substitution).
 				g.emitf("    LD A, %s     ; lo", ptrIndirect(ptr, 0))
-				g.emitf("    LD %s, A", lo)
+				g.emitLD8(lo, "A")
 				g.emitf("    LD A, %s     ; hi", ptrIndirect(ptr, 1))
-				g.emitf("    LD %s, A", hi)
+				g.emitLD8(hi, "A")
 				g.invalidate("A")
 			} else {
 				g.emitf("    LD %s, %s     ; lo", lo, ptrIndirect(ptr, 0))
@@ -2496,6 +2496,14 @@ func (g *z80cg) genInst(inst *Inst) {
 					g.emitf("    LD A, %s", val)
 					g.invalidate("A")
 					g.emitf("    LD %s, A", ptrIndirect(ptr, 0))
+				} else if isPairReg(val) {
+					// Width mismatch: 8-bit store but val is pair. Use low byte.
+					g.emitf("    LD %s, %s", ptrIndirect(ptr, 0), lowByte(val))
+				} else if isSpill(val) {
+					g.emit("    EX AF, AF'")
+					g.emitf("    LD A, (%s)", val)
+					g.emitf("    LD %s, A", ptrIndirect(ptr, 0))
+					g.emit("    EX AF, AF'")
 				} else {
 					g.emitf("    LD %s, %s", ptrIndirect(ptr, 0), val)
 				}
@@ -2593,7 +2601,7 @@ func (g *z80cg) genInst(inst *Inst) {
 			// This is lossy but at least doesn't produce invalid asm.
 			// TODO: proper fix is to ensure addr_of always gets a pair.
 			g.emitf("    LD HL, %s", sym)
-			g.emitf("    LD %s, L", dst)
+			g.emitLD8(dst, "L")
 			g.invalidate("H")
 			g.invalidate("L")
 		}
@@ -2860,7 +2868,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			g.emit("    OR 1")
 			g.emitf("%s:", skipLbl)
 			if dst != "A" {
-				g.emitf("    LD %s, A", dst)
+				g.emitLD8(dst, "A")
 				g.setCopy(dst, "A")
 			}
 			// Result is in A (or dst). Track it as a pending acc value in case
@@ -2922,7 +2930,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				g.emit8ALU(mnem, rhs)
 			}
 			if dst != "A" {
-				g.emitf("    LD %s, A", dst)
+				g.emitLD8(dst, "A")
 				g.setCopy(dst, "A")
 			} else {
 				g.pendingAccReg = inst.Dst
@@ -2941,7 +2949,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				g.emit8ALU(mnem, rhs)
 			}
 			if dst != "A" {
-				g.emitf("    LD %s, A", dst)
+				g.emitLD8(dst, "A")
 				g.setCopy(dst, "A")
 			} else {
 				g.pendingAccReg = inst.Dst
@@ -2958,7 +2966,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				g.emit8ALU(mnem, lhs)
 			}
 			if dst != "A" {
-				g.emitf("    LD %s, A", dst)
+				g.emitLD8(dst, "A")
 				g.setCopy(dst, "A")
 			} else {
 				g.pendingAccReg = inst.Dst
@@ -2981,7 +2989,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			}
 			g.invalidate("A") // ALU result is a new value — break old lhs alias
 			if dst != "A" {
-				g.emitf("    LD %s, A", dst)
+				g.emitLD8(dst, "A")
 				g.setCopy(dst, "A")
 			} else {
 				g.pendingAccReg = inst.Dst
@@ -3005,7 +3013,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		g.emit8ALU(mnem, rhs)
 		g.invalidate("A") // ALU result is a new value — break old lhs alias
 		if dst != "A" {
-			g.emitf("    LD %s, A", dst)
+			g.emitLD8(dst, "A")
 			g.setCopy(dst, "A")
 		} else {
 			g.pendingAccReg = inst.Dst
@@ -3206,11 +3214,11 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			// High byte: A = dst_hi OP rhs_hi → dst_hi
 			g.emitf("    LD A, %s", hi)
 			g.emitf("    %s %s", mnem, hi_rhs)
-			g.emitf("    LD %s, A", hi)
+			g.emitLD8(hi, "A")
 			// Low byte: A = dst_lo OP rhs_lo → dst_lo
 			g.emitf("    LD A, %s", lo)
 			g.emitf("    %s %s", mnem, lo_rhs)
-			g.emitf("    LD %s, A", lo)
+			g.emitLD8(lo, "A")
 			g.invalidate("A")
 			g.invalidate(dst)
 		default:
@@ -3660,7 +3668,7 @@ func (g *z80cg) genMul(inst *Inst) {
 			g.emit("    XOR A")
 			g.invalidate("A")
 			if dst != "A" {
-				g.emitf("    LD %s, A", dst)
+				g.emitLD8(dst, "A")
 				g.setCopy(dst, "A")
 			}
 			return
@@ -3684,7 +3692,7 @@ func (g *z80cg) genMul(inst *Inst) {
 			}
 			g.invalidate("A")
 			if dst != "A" {
-				g.emitf("    LD %s, A", dst)
+				g.emitLD8(dst, "A")
 				g.setCopy(dst, "A")
 			}
 			return
@@ -3771,7 +3779,7 @@ func (g *z80cg) genMul(inst *Inst) {
 			}
 			g.invalidate("A")
 			if dst != "A" {
-				g.emitf("    LD %s, A", dst)
+				g.emitLD8(dst, "A")
 				g.setCopy(dst, "A")
 			}
 			return
@@ -3799,7 +3807,7 @@ func (g *z80cg) genMul(inst *Inst) {
 	g.invalidate("B")
 	g.invalidate("F")
 	if dst != "A" {
-		g.emitf("    LD %s, A", dst)
+		g.emitLD8(dst, "A")
 		g.setCopy(dst, "A")
 	}
 }
@@ -4179,7 +4187,7 @@ func (g *z80cg) genDivMod8(inst *Inst) {
 
 	if wantMod {
 		if dst != "A" {
-			g.emitf("    LD %s, A", dst)
+			g.emitLD8(dst, "A")
 			g.setCopy(dst, "A")
 		}
 	} else {
@@ -4331,13 +4339,13 @@ func (g *z80cg) genSext(inst *Inst) {
 			g.emitf("    LD A, %s", src)
 		}
 		if lo != "A" {
-			g.emitf("    LD %s, A", lo)
+			g.emitLD8(lo, "A")
 		}
 		// Propagate sign bit into high byte: RLCA; SBC A,A gives 0x00 or 0xFF.
 		g.emit("    RLCA")
 		g.emit("    SBC A, A")
 		if hi != "A" {
-			g.emitf("    LD %s, A", hi)
+			g.emitLD8(hi, "A")
 		}
 		return
 	}
@@ -5014,7 +5022,7 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 			g.emitf("    LD %s, 0", highByte(dst))
 		} else {
 			g.emit("    SBC A, A")
-			g.emitf("    LD %s, A", dst)
+			g.emitLD8(dst, "A")
 		}
 		g.invalidate("A")
 		return
@@ -5038,7 +5046,7 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 				g.emitTSMCReload(g.tsmcReloadLabel(pair.reg, g.blockIdx, g.curInstIdx, 0), dst, 8)
 			} else {
 				g.emitf("    LD A, (%s)", src)
-				g.emitf("    LD %s, A", dst)
+				g.emitLD8(dst, "A")
 				g.invalidate("A")
 			}
 		case isSpill(dst) && src == "A":
@@ -5744,7 +5752,7 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 			g.emitf("    LD %s, 0", highByte(dst))
 		} else {
 			g.emit("    SBC A, A")
-			g.emitf("    LD %s, A", dst)
+			g.emitLD8(dst, "A")
 		}
 		g.invalidate("A")
 		return
@@ -5764,7 +5772,7 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 			g.emitf("    LD A, (%s)", src)
 		case isSpill(src):
 			g.emitf("    LD A, (%s)", src)
-			g.emitf("    LD %s, A", dst)
+			g.emitLD8(dst, "A")
 			g.invalidate("A")
 		case isSpill(dst) && src == "A":
 			g.emitf("    LD (%s), A", dst)
@@ -5844,9 +5852,9 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 			// Route through shadow A to avoid clobbering main A.
 			g.emit("    EX AF, AF'")
 			g.emitf("    LD A, %s", hiS)
-			g.emitf("    LD %s, A", hi)
+			g.emitLD8(hi, "A")
 			g.emitf("    LD A, %s", loS)
-			g.emitf("    LD %s, A", lo)
+			g.emitLD8(lo, "A")
 			g.emit("    EX AF, AF'")
 		} else {
 			g.emitLD8(hi, hiS)
