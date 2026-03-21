@@ -5218,9 +5218,14 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 			g.emitf("    LD %s, 0", hi)
 			break
 		}
+		// Spill-to-spill: route through HL.
+		if isSpill(src) && isSpill(dst) {
+			g.emitf("    LD HL, (%s)", src)
+			g.emitf("    LD (%s), HL", dst)
+			g.invalidate("HL")
+			break
+		}
 		// LocMem spill slot → register pair: use LD rr, (nn).
-		// Z80 supports: LD HL,(nn) [native], LD DE/BC/SP,(nn) [ED-prefix].
-		// Cannot use PUSH/POP since PUSH nn is not a valid Z80 instruction.
 		if isSpill(src) {
 			g.emitf("    LD %s, (%s)", dst, src)
 			break
