@@ -44,50 +44,117 @@ type SplitResult struct {
 
 // SplitHighPressure analyzes all functions in the module and splits
 // those with register pressure exceeding PressureThreshold.
+// Uses optimal split point selection (minimizes max pressure across halves)
+// and recursive multi-split (splits again if halves still exceed threshold).
 // Returns the list of splits applied (for diagnostics).
 func SplitHighPressure(m *Module) []SplitResult {
 	var results []SplitResult
 	var newFuncs []*Func
 
-	for _, f := range m.Funcs {
-		if f.Body == nil || f.IsExtern || len(f.Body.Body) < 4 {
-			continue
-		}
+	// Process functions — iterate over snapshot since we may add sub-funcs.
+	origFuncs := make([]*Func, len(m.Funcs))
+	copy(origFuncs, m.Funcs)
 
-		pressure := EstimatePressure(f)
-		maxP := maxInt(pressure)
-		if maxP <= PressureThreshold {
-			continue
-		}
-
-		splits := FindSplitPoints(f, pressure)
-		if len(splits) == 0 {
-			continue
-		}
-
-		// Apply the best split (lowest interface width).
-		best := splits[0]
-		for _, s := range splits[1:] {
-			if s.interfaceWidth() < best.interfaceWidth() {
-				best = s
-			}
-		}
-
-		sub := ApplySplit(m, f, best)
-		if sub != nil {
-			newFuncs = append(newFuncs, sub)
-			results = append(results, SplitResult{
-				OrigFunc: f.Name,
-				SubFunc:  sub.Name,
-				Inputs:   len(sub.Params),
-				Outputs:  countReturns(sub),
-				Pressure: maxP,
-			})
-		}
+	for _, f := range origFuncs {
+		subs := splitRecursive(m, f, &results, 0)
+		newFuncs = append(newFuncs, subs...)
 	}
 
 	m.Funcs = append(m.Funcs, newFuncs...)
 	return results
+}
+
+// maxSplitDepth limits recursive splitting to prevent explosion.
+const maxSplitDepth = 3
+
+// splitRecursive splits a function if needed, then recursively splits
+// the resulting sub-functions if they still exceed the threshold.
+func splitRecursive(m *Module, f *Func, results *[]SplitResult, depth int) []*Func {
+	if f.Body == nil || f.IsExtern || len(f.Body.Body) < 4 || depth > maxSplitDepth {
+		return nil
+	}
+
+	pressure := EstimatePressure(f)
+	maxP := maxInt(pressure)
+	if maxP <= PressureThreshold {
+		return nil
+	}
+
+	best := findOptimalSplit(f, pressure)
+	if best == nil {
+		return nil
+	}
+
+	sub := ApplySplit(m, f, *best)
+	if sub == nil {
+		return nil
+	}
+
+	*results = append(*results, SplitResult{
+		OrigFunc: f.Name,
+		SubFunc:  sub.Name,
+		Inputs:   len(sub.Params),
+		Outputs:  countReturns(sub),
+		Pressure: maxP,
+	})
+
+	var allSubs []*Func
+	allSubs = append(allSubs, sub)
+
+	// Recursively split sub-function (bottom half) if still hot.
+	// Don't re-split the original (top half) — it's already truncated
+	// and the call stmt doesn't add pressure.
+	botSubs := splitRecursive(m, sub, results, depth+1)
+	allSubs = append(allSubs, botSubs...)
+
+	return allSubs
+}
+
+// findOptimalSplit finds the split point that minimizes the maximum
+// pressure across both halves, subject to interface width constraint.
+// Returns nil if no valid split point exists.
+func findOptimalSplit(f *Func, pressure []int) *splitCandidate {
+	candidates := FindSplitPoints(f, pressure)
+	if len(candidates) == 0 {
+		return nil
+	}
+
+	stmts := f.Body.Body
+
+	var best *splitCandidate
+	bestCost := 999
+
+	for i := range candidates {
+		c := &candidates[i]
+
+		// Compute max pressure in each half.
+		topMax := 0
+		for j := 0; j <= c.splitAt; j++ {
+			if j < len(pressure) && pressure[j] > topMax {
+				topMax = pressure[j]
+			}
+		}
+		botMax := 0
+		for j := c.splitAt + 1; j < len(stmts); j++ {
+			if j < len(pressure) && pressure[j] > botMax {
+				botMax = pressure[j]
+			}
+		}
+
+		// Cost = max of both halves + interface penalty.
+		cost := topMax
+		if botMax > cost {
+			cost = botMax
+		}
+		cost += c.interfaceWidth() // penalize wide interfaces
+
+		if cost < bestCost {
+			bestCost = cost
+			best = c
+		}
+	}
+
+	return best
 }
 
 // ── Pressure estimation ──────────────────────────────────────────────────────
