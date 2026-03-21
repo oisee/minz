@@ -217,13 +217,17 @@ func CollectBranchTargets(line string, refs map[string]bool) {
 				return
 			}
 			if strings.HasPrefix(rest, "(") {
-				// LD rr, (label) — extract label from parentheses
+				// LD rr, (label) or LD (label+N), r — extract base label
 				inner := rest[1:]
 				if idx := strings.IndexByte(inner, ')'); idx >= 0 {
 					label := strings.TrimSpace(inner[:idx])
+					// Strip +N offset (e.g. "_tsmc_r5_0+1" → "_tsmc_r5_0")
+					if plusIdx := strings.IndexByte(label, '+'); plusIdx >= 0 {
+						label = strings.TrimSpace(label[:plusIdx])
+					}
 					if label != "" && !strings.HasPrefix(label, "$") && !strings.HasPrefix(label, "0") &&
 						(label[0] < '0' || label[0] > '9') &&
-						!strings.ContainsAny(label, " \t+") {
+						!strings.ContainsAny(label, " \t") {
 						refs[label] = true
 					}
 				}
@@ -253,9 +257,13 @@ func CollectBranchTargets(line string, refs map[string]bool) {
 		rest := strings.TrimSpace(trimmed[4:]) // skip "LD ("
 		if idx := strings.IndexByte(rest, ')'); idx >= 0 {
 			label := strings.TrimSpace(rest[:idx])
+			// Strip +N offset (e.g. "_tsmc_r5_0+1" → "_tsmc_r5_0")
+			if plusIdx := strings.IndexByte(label, '+'); plusIdx >= 0 {
+				label = strings.TrimSpace(label[:plusIdx])
+			}
 			if label != "" && !strings.HasPrefix(label, "$") && !strings.HasPrefix(label, "0") &&
 				(label[0] < '0' || label[0] > '9') &&
-				!strings.ContainsAny(label, " \t+") { // not (IX+d) etc.
+				!strings.ContainsAny(label, " \t") {
 				refs[label] = true
 			}
 		}
