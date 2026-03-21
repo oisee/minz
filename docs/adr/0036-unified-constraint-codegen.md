@@ -362,6 +362,133 @@ RETE overhead not justified yet.
 
 ---
 
+## Phase 5b: HIR Function Splitting — Predictive + Reactive (1-2 weeks)
+
+### What exists
+
+`pkg/hir/split.go` — ~320 LOC, already working. Features:
+- `EstimatePressure()` — per-statement liveness count on HIR
+- `FindSplitPoints()` — enumerate candidates with interface width
+- `findOptimalSplit()` — minimize max(pressure_top, pressure_bot) + interface penalty
+- `splitRecursive()` — recursive to depth=3, auto-generates sub-functions
+- `MaxInterfaceWidth = 6` — fits PFCCO calling convention
+- Already runs in production: 21 splits across corpus (6 in ff.c, 13 in nc.nanz)
+
+### Two modes: Predictive + Reactive
+
+**Mode 1: Predictive (current) — before regalloc.**
+Uses HIR-level liveness to estimate pressure. Cheap (~O(n²) per function)
+but approximate — doesn't know actual register constraints.
+
+```
+HIR → EstimatePressure → pressure > 8? → findOptimalSplit → ApplySplit
+                                           ↓
+                                   sub-function with derived interface
+                                           ↓
+                                   independent PBQP/WFC allocation
+```
+
+Works today. Threshold=8 is conservative (Z80 has 7 GPR).
+With WFC seeing 18 slots (L1+L2+L3), threshold should rise to ~14.
+
+**Mode 2: Reactive (new) — after regalloc fails.**
+WFC/PBQP says "can't allocate, N spills needed" → feedback to splitter
+→ split at the highest-pressure point → retry regalloc on both halves.
+
+```
+MIR2 → PBQP/WFC → spill count > 0?
+                       ↓ yes
+              feedback: {func, pressure_per_block, spill_regs}
+                       ↓
+              HIR split at max-pressure block boundary
+                       ↓
+              re-lower → re-allocate (each half independently)
+                       ↓
+              spill count == 0? → done
+              spill count > 0?  → split again (depth limit)
+```
+
+### What to build for reactive mode (~150 LOC)
+
+```go
+// In pipeline.go — after PBQP/WFC allocation
+func reactiveSplit(m *hir.Module, mirFunc *mir2.Func, allocResult *mir2.AllocResult) bool {
+    spillCount := countSpills(allocResult)
+    if spillCount == 0 {
+        return false // no splits needed
+    }
+
+    // Get actual pressure from MIR2 liveness (not HIR estimate)
+    pressure := mir2.LivenessPerBlock(mirFunc)
+    maxBlock, maxP := findMaxPressure(pressure)
+
+    if maxP <= hir.PressureThreshold {
+        return false // pressure is within bounds, spills are from constraints not pressure
+    }
+
+    // Find the HIR function and split it
+    hirFunc := m.FindFunc(mirFunc.Name)
+    if hirFunc == nil {
+        return false
+    }
+
+    // Split using actual pressure data
+    result := hir.SplitAtPressure(m, hirFunc, pressure)
+    return result != nil
+}
+```
+
+### Interface derivation at split boundary
+
+The existing `FindSplitPoints` already computes the interface:
+
+```
+inputs  = vars defined before split, used after  → sub-function parameters
+outputs = vars defined after split, used later    → sub-function return values
+```
+
+PFCCO automatically optimizes the calling convention for each sub-function:
+- 1-2 params → registers (A, BC, DE)
+- 3-4 params → registers (A, BC, DE, HL)
+- 5-6 params → registers + IX/IY
+- 7+ params → split again (recursive, depth=3 max)
+
+### Integration with WFC spill dimension
+
+With WFC seeing 18+ slots (Phase 3), the pressure threshold rises:
+
+| WFC awareness | Effective GPR | Split threshold |
+|---------------|---------------|-----------------|
+| L1 only (current) | 7 | 8 |
+| L1 + L2 (IXY halves) | 11 | 12 |
+| L1 + L2 + L3 (shadow) | 18 | 14 (conservative) |
+| L1 + L2 + L3 + L4 (TSMC) | 38 | 20 (aggressive) |
+
+As WFC gets smarter, splitting becomes rarer. At L1+L2+L3+L4,
+only FatFS `f_write` (30 live vars) still needs splitting.
+
+### Split quality metrics
+
+Track per-split: pressure reduction, interface width, CALL/RET overhead.
+
+```go
+type SplitMetrics struct {
+    OrigPressure  int // max live vars before split
+    SplitPressure int // max live vars after split (across both halves)
+    InterfaceWidth int // params + returns crossing boundary
+    CallOverhead  int // 27T for CALL+RET
+    SpillsSaved   int // spills eliminated by splitting
+    NetBenefit    int // SpillsSaved * 20T - CallOverhead
+}
+```
+
+Split is beneficial when `NetBenefit > 0`:
+- Each saved spill = ~20T per access in loop body
+- CALL/RET = 27T fixed cost
+- In a loop with 10 iterations: saving 2 spills = 2×20T×10 = 400T vs 27T CALL = net +373T
+
+---
+
 ## Phase 6: Bidirectional Grace↔WFC (future, 2-3 months)
 
 Currently Grace and WFC run sequentially. For joint optimization:
@@ -420,15 +547,20 @@ Week 3:  Phase 3 (WFC u32 LocSet + shadow/spill slots)
          FatFS compiles to valid .com binary
          ══════════════════════════════════════════════
 Week 4:  Phase 4 (Grace LIR rules) — declarative peephole
+         Phase 5b-predictive (raise split threshold to match WFC awareness)
 Week 5:  Phase 3 cont. (EXX region analysis)
-Week 6+: Phase 5 (e-graph light) — optimality
+         Phase 5b-reactive (WFC feedback → split → retry)
+Week 6+: Phase 5a (e-graph light) — optimality
 Month 3+: Phase 6 (bidirectional) — joint isel+RA
-
 ```
 
 Phases 1-3 = correctness (FatFS compiles).
-Phases 4-5 = quality (better code).
-Phase 6 = optimality (best possible code).
+Phase 4 + 5b = quality (better code, fewer splits, no unnecessary spills).
+Phases 5a + 6 = optimality (best possible code).
+
+**Feedback loop:** as WFC gets smarter (Phase 3), predictive splits become
+rarer (higher threshold). Reactive splits catch what predictive misses.
+Eventually most functions need zero splits — only FatFS monsters remain.
 
 ---
 
@@ -442,9 +574,10 @@ Phase 6 = optimality (best possible code).
 | WFC | 1239 | +150 (u32 LocSet + shadow) | 88% |
 | Datalog | 101 | +200 (z80_model.dl + bridge) | 34% |
 | PBQP | 493 | +10 (constraint fixes) | 98% |
+| HIR split | 320 | +150 (reactive mode) | 68% |
 | S-expr | 157 | 0 | 100% |
 | **z80codegen.go** | **6000** | **−2000 (replace if-chains)** | **—** |
-| **Total** | **6936** | **~710 new** | **91%** |
+| **Total** | **7256** | **~860 new** | **89%** |
 
 We're adding ~710 LOC and removing ~2000 LOC from z80codegen.go.
 Net change: **−1300 LOC** while fixing all assembly errors.
