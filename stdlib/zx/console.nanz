@@ -52,19 +52,66 @@ fun zx_border(@z80_a color: u8) -> void {
 // ── Screen address calculation ──────────────────────────────────────────────
 //
 // ZX Spectrum screen layout (non-linear):
-//   addr = $4000 + (row/8)*$800 + line*$100 + (row%8)*32 + col
+//   H = 010 TT SSS   (TT = row/8 = third, SSS = line within char)
+//   L = RRR CCCCC    (RRR = row%8 shifted to bits 7-5, CCCCC = col)
 //
-// where row = character row (0-23), line = pixel line within char (0-7)
+// Optimal bit-shift version: ~27 T-states, no multiplication.
+// Based on antique-toy/ch16-sprites pixel_addr_byte.
+//
+// Input: col (0-31), row (0-23 char row), line (0-7 pixel line within char)
+// Output: HL = screen address
+//
+// Char row y maps to pixel row y*8+line. The full pixel y = row*8 + line.
+//   pixel_y bits: TT LLL SSS  where TT=third (0-2), LLL=line (0-7), SSS=row%8
 
 fun screen_addr(col: u8, row: u8, line: u8) -> u16 {
-    let third: u16 = u16(row >> 3) * 0x0800
-    let pline: u16 = u16(line) * 0x0100
-    let rowoff: u16 = u16(row & 7) * 32
-    return SCREEN_BASE + third + pline + rowoff + u16(col)
+    asm z80 (in col, row, line) (ret HL) {
+        ; A = col (param 0), B = row (param 1), C = line (param 2)
+        ; We need to build pixel_y = row*8 + line, then compute address.
+        ; But row is in A (calling convention: param0=A).
+        ; Rearrange: save col, work with row.
+        LD D, A         ; D = col (save)
+
+        ; Build H = 010 TT SSS
+        ; TT = row >> 3 (which third: 0,1,2)
+        ; SSS = line (pixel row within char: 0-7)
+        LD A, B         ; A = row
+        AND 0x18        ; isolate bits 4-3 (TT << 3) — row & $18
+        OR C            ; combine with line (SSS) — now A = 000 TT SSS
+        OR 0x40         ; add screen base $4000 — A = 010 TT SSS
+        LD H, A
+
+        ; Build L = RRR CCCCC
+        ; RRR = (row & 7) << 5 = sub-row within third
+        LD A, B         ; A = row
+        AND 0x07        ; isolate sub-row (row % 8)
+        RRCA
+        RRCA
+        RRCA            ; rotate right 3 = shift left 5
+        OR D            ; combine with col
+        LD L, A
+    }
 }
 
 fun attr_addr(col: u8, row: u8) -> u16 {
-    return ATTR_BASE + u16(row) * 32 + u16(col)
+    asm z80 (in col, row) (ret HL) {
+        LD D, A         ; D = col (save)
+        LD A, B         ; A = row
+        RRCA
+        RRCA
+        RRCA            ; row * 32 via rotate
+        LD L, A
+        AND 0xE0        ; high 3 bits
+        OR D            ; combine with col
+        LD L, A
+        LD A, B         ; A = row again
+        RRCA
+        RRCA
+        RRCA
+        AND 0x03        ; overflow into H
+        OR 0x58         ; attr base $5800
+        LD H, A
+    }
 }
 
 // ── Initialization ──────────────────────────────────────────────────────────
