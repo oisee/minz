@@ -64,18 +64,17 @@ fun zx_border(@z80_a color: u8) -> void {
 // Char row y maps to pixel row y*8+line. The full pixel y = row*8 + line.
 //   pixel_y bits: TT LLL SSS  where TT=third (0-2), LLL=line (0-7), SSS=row%8
 
-fun screen_addr(col: u8, row: u8, line: u8) -> u16 {
-    // Convention: col=A, row=C, line=B (PBQP default for 3 u8 params)
+fun screen_addr(@z80_a col: u8, @z80_b row: u8, @z80_c line: u8) -> u16 {
     // H = 010 TT SSS  (TT=row>>3, SSS=line)
     // L = RRR CCCCC   (RRR=row%8<<5, CCCCC=col)
     asm z80 (in col, row, line) (ret HL) {
         LD D, A         ; D = col
-        LD A, C         ; A = row
+        LD A, B         ; A = row
         AND 0x18        ; TT bits
-        OR B            ; combine with line
+        OR C            ; combine with line
         OR 0x40         ; screen base
         LD H, A
-        LD A, C         ; A = row
+        LD A, B         ; A = row
         AND 0x07        ; sub-row
         RRCA
         RRCA
@@ -85,12 +84,11 @@ fun screen_addr(col: u8, row: u8, line: u8) -> u16 {
     }
 }
 
-fun attr_addr(col: u8, row: u8) -> u16 {
-    // Convention: col=A, row=C (PBQP default for 2 u8 params)
+fun attr_addr(@z80_a col: u8, @z80_b row: u8) -> u16 {
     // Attr = $5800 + row*32 + col
     asm z80 (in col, row) (ret HL) {
         LD D, A         ; D = col
-        LD A, C         ; A = row
+        LD A, B         ; A = row
         RRCA
         RRCA
         RRCA            ; row * 32
@@ -98,7 +96,7 @@ fun attr_addr(col: u8, row: u8) -> u16 {
         AND 0xE0
         OR D
         LD L, A
-        LD A, C         ; A = row again
+        LD A, B         ; A = row again
         RRCA
         RRCA
         RRCA
