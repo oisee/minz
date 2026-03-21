@@ -540,12 +540,16 @@ func pickFirst(s LocSet) LocSet {
 }
 
 // pickPreferred returns a singleton LocSet. If a PBQP hint exists for this vreg
-// and the hinted loc is in the available set, prefer it. Otherwise pickFirst.
+// and the hinted loc is in the available set, prefer it. Otherwise pick the
+// cheapest available loc using the machine descriptor's cost table.
 func (st *WFCState) pickPreferred(available LocSet, vreg int) LocSet {
 	if st.Hints != nil && vreg >= 0 {
 		if hinted, ok := st.Hints[vreg]; ok && available.Has(hinted) {
 			return Singleton(hinted)
 		}
+	}
+	if st.Desc != nil {
+		return st.Desc.PickCheapest(available)
 	}
 	return pickFirst(available)
 }
