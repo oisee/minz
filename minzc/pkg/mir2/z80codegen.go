@@ -1171,10 +1171,29 @@ func (g *z80cg) genFunc(f *Func) {
 	// Emit named spill data section — one label per spilled register.
 	// DB for 8-bit, DW for 16-bit. Labels resolve forward references
 	// from LD (label),A / LD A,(label) throughout the function.
-	if len(g.ar.Spilled) > 0 {
-		regInfo := collectRegInfo(f)
-		g.emitf("; — spill slots for %s (%d spills)", label, len(g.ar.Spilled))
+	// Emit spill data slots — only for vregs belonging to THIS function
+	// (ar.Spilled is combined across all functions).
+	// Skip TSMC-eligible spills — their storage is inline (patched immediates).
+	regInfo := collectRegInfo(f)
+	var spillCount int
+	for _, r := range g.ar.Spilled {
+		if _, ok := regInfo[r]; !ok {
+			continue // vreg belongs to a different function
+		}
+		if g.isTSMCSpill(r) {
+			continue // TSMC spill uses inline immediate, not data section
+		}
+		spillCount++
+	}
+	if spillCount > 0 {
+		g.emitf("; — spill slots for %s (%d spills)", label, spillCount)
 		for _, r := range g.ar.Spilled {
+			if _, ok := regInfo[r]; !ok {
+				continue
+			}
+			if g.isTSMCSpill(r) {
+				continue
+			}
 			w := 1
 			if info, ok := regInfo[r]; ok {
 				w = (info.Ty.Width() + 7) / 8

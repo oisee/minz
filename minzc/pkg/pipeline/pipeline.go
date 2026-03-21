@@ -192,6 +192,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		for r, loc := range ar.Locs {
 			combined.Locs[r] = loc
 		}
+		combined.Spilled = append(combined.Spilled, ar.Spilled...)
 	}
 
 	// MIR2 VM assertion checks (skip "z80"-only asserts).
@@ -334,6 +335,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 		for r, loc := range ar.Locs {
 			combined.Locs[r] = loc
 		}
+		combined.Spilled = append(combined.Spilled, ar.Spilled...)
 	}
 
 	// MIR2 VM assertion checks (skip "z80"-only asserts).
