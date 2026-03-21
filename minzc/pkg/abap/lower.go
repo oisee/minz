@@ -633,27 +633,31 @@ func (l *lowerer) lowerWrite(s *WriteStmt) (hir.Stmt, error) {
 	if len(s.Exprs) == 0 {
 		return nil, nil
 	}
-	// For simplicity: emit call for last expression (TODO: emit block for multiple)
-	e := s.Exprs[len(s.Exprs)-1]
-	he, err := l.lowerExpr(e)
-	if err != nil {
-		return nil, err
+	// Emit a call for EACH expression (not just the last one)
+	var stmts []hir.Stmt
+	for _, e := range s.Exprs {
+		he, err := l.lowerExpr(e)
+		if err != nil {
+			return nil, err
+		}
+		fnName := "abap_write"
+		if _, ok := e.(*StringLit); ok {
+			fnName = "abap_write_str"
+		} else if he.ExprTy() == mir2.TyPtr {
+			fnName = "abap_write_str"
+		}
+		stmts = append(stmts, &hir.ExprStmt{
+			Expr: &hir.CallExpr{
+				Fn:   fnName,
+				Args: []hir.Expr{he},
+				Ty:   mir2.TyVoid,
+			},
+		})
 	}
-
-	fnName := "abap_write"
-	if _, ok := e.(*StringLit); ok {
-		fnName = "abap_write_str"
-	} else if he.ExprTy() == mir2.TyPtr {
-		fnName = "abap_write_str"
+	if len(stmts) == 1 {
+		return stmts[0], nil
 	}
-
-	return &hir.ExprStmt{
-		Expr: &hir.CallExpr{
-			Fn:   fnName,
-			Args: []hir.Expr{he},
-			Ty:   mir2.TyVoid,
-		},
-	}, nil
+	return &hir.Block{Body: stmts}, nil
 }
 
 func (l *lowerer) lowerAssign(s *AssignStmt) (hir.Stmt, error) {
@@ -687,40 +691,36 @@ func (l *lowerer) lowerIf(s *IfStmt) (hir.Stmt, error) {
 	}
 
 	var elseBranch *hir.Block
-	// Handle ELSEIF chains by nesting: elseif C { B } → else { if C { B } }
+	// Handle ELSEIF chains by nesting from the end:
+	// IF a. ELSEIF b. ELSEIF c. ELSE d. ENDIF.
+	// → if a { ... } else { if b { ... } else { if c { ... } else { d } } }
 	if len(s.ElseIf) > 0 {
-		// Build nested if chain from the end
-		var nested hir.Stmt
+		// Start from the innermost else (the final ELSE block, if any)
+		var innerElse *hir.Block
 		if len(s.Else) > 0 {
-			nested2, err := l.lowerStmts(s.Else)
-			if err != nil {
-				return nil, err
-			}
-			nested = nested2.Body[0] // wrap
-			_ = nested
-		}
-		// Simplified: just handle first elseif + else for now
-		ei := s.ElseIf[0]
-		eiCond, err := l.lowerExpr(ei.Cond)
-		if err != nil {
-			return nil, err
-		}
-		eiThen, err := l.lowerStmts(ei.Body)
-		if err != nil {
-			return nil, err
-		}
-		var eiElse *hir.Block
-		if len(s.Else) > 0 {
-			eiElse, err = l.lowerStmts(s.Else)
+			innerElse, err = l.lowerStmts(s.Else)
 			if err != nil {
 				return nil, err
 			}
 		}
-		elseBranch = &hir.Block{
-			Body: []hir.Stmt{
-				&hir.IfStmt{Cond: eiCond, Then: eiThen, Else: eiElse},
-			},
+		// Build nested if-else chain from last ELSEIF backwards
+		for i := len(s.ElseIf) - 1; i >= 0; i-- {
+			ei := s.ElseIf[i]
+			eiCond, err := l.lowerExpr(ei.Cond)
+			if err != nil {
+				return nil, err
+			}
+			eiThen, err := l.lowerStmts(ei.Body)
+			if err != nil {
+				return nil, err
+			}
+			innerElse = &hir.Block{
+				Body: []hir.Stmt{
+					&hir.IfStmt{Cond: eiCond, Then: eiThen, Else: innerElse},
+				},
+			}
 		}
+		elseBranch = innerElse
 	} else if len(s.Else) > 0 {
 		elseBranch, err = l.lowerStmts(s.Else)
 		if err != nil {
@@ -741,10 +741,11 @@ func (l *lowerer) lowerDo(s *DoStmt) (hir.Stmt, error) {
 		if err != nil {
 			return nil, err
 		}
+		// ABAP DO N TIMES: SY-INDEX counts 1..N (1-based)
 		return &hir.ForRangeStmt{
 			Var:   "_abap_sy_index",
-			Start: &hir.IntLitExpr{Val: 0, Ty: mir2.TyU16},
-			End:   timesExpr,
+			Start: &hir.IntLitExpr{Val: 1, Ty: mir2.TyU16},
+			End:   &hir.BinExpr{Op: "+", L: timesExpr, R: &hir.IntLitExpr{Val: 1, Ty: mir2.TyU16}, Ty: mir2.TyU16},
 			Body:  body,
 		}, nil
 	}
