@@ -3855,8 +3855,20 @@ func (g *z80cg) genMul16(inst *Inst) {
 
 	// Move lhs into HL for the multiply.
 	if lhs != "HL" {
-		g.emitf("    LD H, %s", highByte(lhs))
-		g.emitf("    LD L, %s", lowByte(lhs))
+		if isIXY(lhs) {
+			// IX/IY → HL: PUSH/POP (byte-copy invalid due to DD prefix).
+			g.emitf("    PUSH %s", lhs)
+			g.emit("    POP HL")
+		} else if isIXYReg(lhs) {
+			// IXH/IXL/IYH/IYL: 8-bit half-reg, zero-extend to HL.
+			g.emitMovViaAltA("L", lhs)
+			g.emit("    LD H, 0")
+		} else if isSpill(lhs) {
+			g.loadSpill16("HL", lhs)
+		} else {
+			g.emitf("    LD H, %s", highByte(lhs))
+			g.emitf("    LD L, %s", lowByte(lhs))
+		}
 		g.invalidate("HL")
 	}
 
@@ -4233,7 +4245,20 @@ func (g *z80cg) genDivMod16(inst *Inst) {
 	}
 
 	// Setup: HL = dividend, DE = divisor.
-	if lhs != "HL" {
+	if lhs == "HL" {
+		// already in HL
+	} else if isIXY(lhs) {
+		g.emitf("    PUSH %s", lhs)
+		g.emit("    POP HL")
+		g.invalidate("HL")
+	} else if isIXYReg(lhs) {
+		g.emitMovViaAltA("L", lhs)
+		g.emit("    LD H, 0")
+		g.invalidate("HL")
+	} else if isSpill(lhs) {
+		g.loadSpill16("HL", lhs)
+		g.invalidate("HL")
+	} else {
 		g.emitf("    LD H, %s", highByte(lhs))
 		g.emitf("    LD L, %s", lowByte(lhs))
 	}
