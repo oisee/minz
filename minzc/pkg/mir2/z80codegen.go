@@ -5995,6 +5995,12 @@ func (g *z80cg) genCmp16(inst *Inst) {
 				// IX→HL: byte-copy invalid. Use PUSH/POP.
 				g.emitf("    PUSH %s", lhs)
 				g.emit("    POP HL")
+			} else if isIXYReg(lhs) || (isSimpleReg(lhs) && !isPairReg(lhs)) {
+				// 8-bit register: zero-extend to HL.
+				g.emitMovViaAltA("L", lhs)
+				g.emit("    LD H, 0")
+			} else if isSpill(lhs) {
+				g.loadSpill16("HL", lhs)
 			} else {
 				g.emitf("    LD H, %s", highByte(lhs))
 				g.emitf("    LD L, %s", lowByte(lhs))
@@ -6008,6 +6014,14 @@ func (g *z80cg) genCmp16(inst *Inst) {
 			g.emit("    POP HL")
 			g.invalidate("HL")
 			lhs = "HL"
+		} else if isIXYReg(lhs) || (isSimpleReg(lhs) && !isPairReg(lhs)) {
+			// 8-bit register (including IXH/IXL): zero-extend into HL.
+			g.emitMovViaAltA("L", lhs)
+			g.emit("    LD H, 0")
+			g.invalidate("HL")
+		} else if isSpill(lhs) {
+			g.loadSpill16("HL", lhs)
+			g.invalidate("HL")
 		} else {
 			// Neither operand is HL; move lhs into HL byte-by-byte.
 			g.emitf("    LD H, %s", highByte(lhs))
