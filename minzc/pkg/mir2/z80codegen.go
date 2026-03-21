@@ -2241,7 +2241,7 @@ func (g *z80cg) genInst(inst *Inst) {
 			// 16-bit load via IX/IY: use displacement addressing.
 			lo := lowByte(dst)
 			hi := highByte(dst)
-			if isIXYReg(lo) || isIXYReg(hi) || lo == "H" || lo == "L" || hi == "H" || hi == "L" {
+			if isIXYReg(lo) || isIXYReg(hi) || lo == "H" || lo == "L" || hi == "H" || hi == "L" || isSpill(dst) {
 				// BUG-008: dest overlaps IX prefix domain — route through A.
 				// IXH/IXL: LD IXL,(IX+d) impossible (DD prefix conflict).
 				// H/L: LD H,(IX+d) encodes as LD IXH,(IX+d) (prefix substitution).
@@ -2513,7 +2513,7 @@ func (g *z80cg) genInst(inst *Inst) {
 			// 16-bit store via IX/IY: use displacement addressing.
 			lo := lowByte(val)
 			hi := highByte(val)
-			needA := lo == "H" || lo == "L" || isIXYReg(lo)
+			needA := lo == "H" || lo == "L" || isIXYReg(lo) || isSpill(lo)
 			if needA {
 				g.emitLDA(lo)
 				g.emitf("    LD %s, A     ; lo", ptrIndirect(ptr, 0))
@@ -2522,8 +2522,8 @@ func (g *z80cg) genInst(inst *Inst) {
 			}
 			if !isPairReg(val) {
 				g.emitf("    LD %s, 0     ; hi (zero-extend)", ptrIndirect(ptr, 1))
-			} else if hi == "H" || hi == "L" || isIXYReg(hi) {
-				g.emitf("    LD A, %s", hi)
+			} else if hi == "H" || hi == "L" || isIXYReg(hi) || isSpill(hi) {
+				g.emitLDA(hi)
 				g.emitf("    LD %s, A     ; hi", ptrIndirect(ptr, 1))
 				g.invalidate("A")
 			} else {
@@ -4617,7 +4617,7 @@ func (g *z80cg) genCmp(inst *Inst) {
 				} else if !g.holdsValue("A", rhs) {
 					g.emitLDA(rhs)
 				}
-				g.emitf("    CP %s", lhs)
+				g.emit8ALU("CP", lhs)
 				g.cmpSwapped[inst.Dst] = true
 				g.pendingFlagReg = inst.Dst
 				return
@@ -4666,7 +4666,7 @@ func (g *z80cg) genCmp(inst *Inst) {
 		// two jumps (CGT/CLE) in TermBrIf.
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
-		g.emitf("    CP %s", lhs)
+		g.emit8ALU("CP", lhs)
 		g.cmpSwapped[inst.Dst] = true
 		swappedCond := inst.Cond.Swap()
 		if swappedCond == CmpGt || swappedCond == CmpUgt ||
@@ -4700,7 +4700,7 @@ func (g *z80cg) genCmp(inst *Inst) {
 	// Record the swap so condCode inverts the condition.  The swapped condition
 	// may require two jumps (CmpGt/CmpLe) to handle the equality case.
 	if rhs == "A" && !g.holdsValue("A", lhs) {
-		g.emitf("    CP %s", lhs)
+		g.emit8ALU("CP", lhs)
 		g.cmpSwapped[inst.Dst] = true
 		swappedCond := inst.Cond.Swap()
 		if swappedCond == CmpGt || swappedCond == CmpUgt ||
@@ -4717,7 +4717,7 @@ func (g *z80cg) genCmp(inst *Inst) {
 	}
 	g.lastFlagsLhs = ""
 	g.lastFlagsRhs = ""
-	g.emitf("    CP %s", rhs)
+	g.emit8ALU("CP", rhs)
 	// CP does not modify A; aliases remain valid.
 	g.pendingFlagReg = inst.Dst
 }
@@ -5382,7 +5382,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 			// A already holds rhs; swap: CP lhs computes rhs-lhs.
 			// Eq is still Z (rhs-lhs==0 ↔ rhs==lhs), but C now means rhs<lhs.
 			// So we swap Lt↔Gt below.
-			g.emitf("    CP %s", lhs)
+			g.emit8ALU("CP", lhs)
 			// Build copies for eq, swapped lt/gt.
 			eqCopies := g.buildBlockCopies(f, t.Eq, t.EqArgs)
 			ltCopies := g.buildBlockCopies(f, t.Gt, t.GtArgs) // swapped: C→gt
@@ -5400,7 +5400,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 			if !g.holdsValue("A", lhs) {
 				g.emitLDA(lhs)
 			}
-			g.emitf("    CP %s", rhs)
+			g.emit8ALU("CP", rhs)
 		}
 
 		// Build copies for each of the three edges.
