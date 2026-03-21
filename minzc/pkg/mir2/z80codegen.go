@@ -4852,17 +4852,30 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 			}
 		default:
 			// Width mismatch: 8-bit move but one operand is a register pair.
-			// pair→8bit: truncate (take low byte). 8bit→pair: zero-extend.
-			if isPairReg(src) && !isPairReg(dst) {
-				g.emitf("    LD %s, %s", dst, lowByte(src))
-			} else if !isPairReg(src) && isPairReg(dst) {
-				g.emitf("    LD %s, %s", lowByte(dst), src)
-				g.emitf("    LD %s, 0", highByte(dst))
-			} else if (isIXYReg(dst) && (src == "H" || src == "L")) ||
-				// DD/FD prefix conflict: LD IXH,H encodes as LD IXH,IXH (NOP).
-				// Route through shadow A (EX AF,AF') to preserve main A.
+			// DD/FD prefix conflict must be checked BEFORE width mismatch,
+			// because lowByte(HL)="L" + IXL src = DD NOP.
+			if (isIXYReg(dst) && (src == "H" || src == "L")) ||
 				(isIXYReg(src) && (dst == "H" || dst == "L")) {
 				g.emitMovViaAltA(dst, src)
+			} else if isPairReg(src) && !isPairReg(dst) {
+				// pair→8bit: truncate (take low byte).
+				lo := lowByte(src)
+				if (isIXYReg(lo) && (dst == "H" || dst == "L")) ||
+					((lo == "H" || lo == "L") && isIXYReg(dst)) {
+					g.emitMovViaAltA(dst, lo)
+				} else {
+					g.emitf("    LD %s, %s", dst, lo)
+				}
+			} else if !isPairReg(src) && isPairReg(dst) {
+				// 8bit→pair: zero-extend.
+				lo := lowByte(dst)
+				if (isIXYReg(src) && (lo == "H" || lo == "L")) ||
+					((src == "H" || src == "L") && isIXYReg(lo)) {
+					g.emitMovViaAltA(lo, src)
+				} else {
+					g.emitf("    LD %s, %s", lo, src)
+				}
+				g.emitf("    LD %s, 0", highByte(dst))
 			} else {
 				g.emitf("    LD %s, %s", dst, src)
 				if isSimpleReg(dst) && isSimpleReg(src) {
@@ -5560,10 +5573,22 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 			g.emitMovViaAltA(dst, src)
 		case isPairReg(src) && !isPairReg(dst):
 			// Width mismatch: 16-bit source → 8-bit dest. Truncate (take low byte).
-			g.emitf("    LD %s, %s", dst, lowByte(src))
+			lo := lowByte(src)
+			if (isIXYReg(lo) && (dst == "H" || dst == "L")) ||
+				((lo == "H" || lo == "L") && isIXYReg(dst)) {
+				g.emitMovViaAltA(dst, lo)
+			} else {
+				g.emitf("    LD %s, %s", dst, lo)
+			}
 		case !isPairReg(src) && isPairReg(dst):
 			// Width mismatch: 8-bit source → 16-bit dest. Zero-extend.
-			g.emitf("    LD %s, %s", lowByte(dst), src)
+			lo := lowByte(dst)
+			if (isIXYReg(src) && (lo == "H" || lo == "L")) ||
+				((src == "H" || src == "L") && isIXYReg(lo)) {
+				g.emitMovViaAltA(lo, src)
+			} else {
+				g.emitf("    LD %s, %s", lo, src)
+			}
 			g.emitf("    LD %s, 0", highByte(dst))
 		default:
 			g.emitf("    LD %s, %s", dst, src)
