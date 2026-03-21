@@ -862,6 +862,14 @@ func (g *z80cg) emitLD8(dst, src string) {
 	if dst == src {
 		return
 	}
+	// DD/FD prefix conflict: LD H,IXH / LD L,IXL encode as NOP.
+	// LD L,IXH / LD H,IXL are cross-byte (wrong result).
+	// Route through shadow A for any IXY↔H/L combination.
+	if (isIXYReg(src) && (dst == "H" || dst == "L")) ||
+		(isIXYReg(dst) && (src == "H" || src == "L")) {
+		g.emitMovViaAltA(dst, src)
+		return
+	}
 	dstSpill := isSpill(dst)
 	srcSpill := isSpill(src)
 	if srcSpill && dstSpill {
