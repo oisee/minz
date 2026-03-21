@@ -1,0 +1,27 @@
+// Hello World for Agon Light 2
+// Demonstrates basic MOS API usage
+//
+// Compile: minzc hello_world.minz -t agon -o hello.bin
+// Run: Load hello.bin on Agon and execute
+
+import stdlib.agon.mos;
+
+fun main() {
+    // Print greeting using MOS RST 0x18
+    mos_puts("Hello, Agon Light 2!\r\n");
+    mos_puts("MinZ running on eZ80 at 18.432 MHz\r\n");
+
+    // Print some formatted output
+    mos_puts("Press any key to continue...\r\n");
+
+    // Wait for keypress
+    let key = getkey();
+
+    // Echo the key pressed
+    mos_puts("You pressed: ");
+    mos_putchar(key);
+    newline();
+
+    // Return to MOS
+    mos_puts("Goodbye!\r\n");
+}

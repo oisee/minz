@@ -1122,22 +1122,53 @@ func emitRuntimeFuncs(hm *hir.Module) {
 	}
 
 	if !names["abap_write"] {
-		// Print a u8 value as decimal via CP/M console
+		// Print u16 as decimal + space. Uses _abap_wr_dig helper (subtract-and-count).
 		hm.Funcs = append(hm.Funcs, &hir.Func{
 			Name:   "abap_write",
-			Params: []hir.Param{{Name: "val", Ty: mir2.TyU8}},
+			Params: []hir.Param{{Name: "val", Ty: mir2.TyU16}},
 			RetTy:  mir2.TyVoid,
 			Body: &hir.Block{
 				Body: []hir.Stmt{
 					&hir.AsmStmt{
-						Target:      "z80",
-						Code:        "LD E, A / LD C, 2 / CALL 5",
+						Target: "z80",
+						Code: "LD D, 0" + // D = leading-zero flag
+							"/ LD BC, 10000 / CALL _abap_wr_dig" +
+							"/ LD BC, 1000 / CALL _abap_wr_dig" +
+							"/ LD BC, 100 / CALL _abap_wr_dig" +
+							"/ LD BC, 10 / CALL _abap_wr_dig" +
+							"/ LD A, L / ADD A, 48 / LD E, A / PUSH HL / PUSH DE / LD C, 2 / CALL 5 / POP DE / POP HL" +
+							"/ LD E, 32 / LD C, 2 / PUSH HL / CALL 5 / POP HL",
 						Ins:         []hir.AsmOperand{{Name: "val"}},
-						ClobberRegs: []string{"A", "C", "D", "E"},
+						ClobberRegs: []string{"A", "B", "C", "D", "E", "H", "L"},
 					},
 				},
 			},
 		})
+		// Helper: _abap_wr_dig — subtract BC from HL, count iterations, print digit.
+		// D = 0 means suppress leading zeros, D = 1 means print.
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name:  "_abap_wr_dig",
+			RetTy: mir2.TyVoid,
+			Body: &hir.Block{
+				Body: []hir.Stmt{
+					&hir.AsmStmt{
+						Target: "z80",
+						Code: "LD A, 48" +
+							"/ _awd_sub: OR A / SBC HL, BC / JR NC, _awd_cont" +
+							// carry set → overshot, restore and fall through
+							"/ ADD HL, BC" +
+							"/ CP 48 / JR NZ, _awd_pr" +
+							"/ LD A, D / OR A / RET Z" +
+							"/ LD A, 48" +
+							"/ _awd_pr: LD D, 1 / LD E, A / PUSH HL / PUSH DE / PUSH BC / LD C, 2 / CALL 5 / POP BC / POP DE / POP HL / RET" +
+							// no carry → keep subtracting
+							"/ _awd_cont: INC A / JR _awd_sub",
+						ClobberRegs: []string{"A", "E"},
+					},
+				},
+			},
+		})
+		names["_abap_wr_dig"] = true
 	}
 
 	// Input buffer for BDOS 0x0A (22 bytes: 1 max + 1 actual + 20 chars)
