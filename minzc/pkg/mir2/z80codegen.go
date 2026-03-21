@@ -792,7 +792,7 @@ func (g *z80cg) emitLDA(src string) {
 		g.invalidate("A")
 		return
 	}
-	if strings.HasPrefix(src, "$") {
+	if isSpill(src) {
 		g.emitf("    LD A, (%s)", src)
 	} else if isPairReg(src) {
 		// Width mismatch: pair→8bit. Take low byte.
@@ -816,16 +816,41 @@ func (g *z80cg) loc(r Reg) string {
 	}
 	pl := g.ar.Loc(r)
 	if pl.Kind == LocMem {
+		return g.spillLabel(r)
+	}
+	return pl.Name
+}
+
+// spillLabel returns a named label for a spilled virtual register.
+// Format: _spill_{funcName}_r{regNum}
+// The label is emitted in the data section at end of function.
+func (g *z80cg) spillLabel(r Reg) string {
+	return fmt.Sprintf("_spill_%s_r%d", sanitizeIdent(g.fn.Name), int(r))
+}
+
+// spillWidth returns the byte width of a spilled register (1, 2, or 3 for eZ80).
+func (g *z80cg) spillWidth(r Reg) int {
+	if info, ok := collectRegInfo(g.fn)[r]; ok {
+		return (info.Ty.Width() + 7) / 8
+	}
+	return 1
+}
+
+// physName returns the assembly-level name for a PhysLoc.
+// For LocMem, returns the named spill label; for everything else, returns pl.Name.
+func physName(pl PhysLoc) string {
+	// Note: physName is used outside genFunc context (e.g. buildBlockCopies)
+	// where we don't have access to g.fn. Fall back to $F0xx for those cases.
+	if pl.Kind == LocMem {
 		return fmt.Sprintf("$%04X", pl.Offset)
 	}
 	return pl.Name
 }
 
-// physName returns the assembly-level name for a PhysLoc.
-// For LocMem, returns "$F0xx" format; for everything else, returns pl.Name.
-func physName(pl PhysLoc) string {
+// physNameFor returns the assembly-level name for a PhysLoc within function context.
+func (g *z80cg) physNameFor(pl PhysLoc, r Reg) string {
 	if pl.Kind == LocMem {
-		return fmt.Sprintf("$%04X", pl.Offset)
+		return g.spillLabel(r)
 	}
 	return pl.Name
 }
@@ -841,8 +866,10 @@ func (g *z80cg) emitMovViaAltA(dst, src string) {
 	g.emit("    EX AF, AF'")
 }
 
-// isSpill returns true if the operand is a LocMem spill address ($F0xx).
-func isSpill(s string) bool { return strings.HasPrefix(s, "$") }
+// isSpill returns true if the operand is a LocMem spill (named _spill_ label or legacy $F0xx).
+func isSpill(s string) bool {
+	return strings.HasPrefix(s, "$") || strings.HasPrefix(s, "_spill_")
+}
 
 // loadSpill8 loads an 8-bit spill value into the target register.
 // Uses A as intermediary (LD A,(nn) is the only valid 8-bit absolute load).
@@ -1103,6 +1130,31 @@ func (g *z80cg) genFunc(f *Func) {
 		g.emitf("    LD A, H")
 		g.emitf("    LD (%s+1), A", p.eqLabel)
 		g.emitf("    RET")
+	}
+
+	// Emit named spill data section — one label per spilled register.
+	// DB for 8-bit, DW for 16-bit. Labels resolve forward references
+	// from LD (label),A / LD A,(label) throughout the function.
+	if len(g.ar.Spilled) > 0 {
+		regInfo := collectRegInfo(f)
+		g.emitf("; — spill slots for %s (%d spills)", label, len(g.ar.Spilled))
+		for _, r := range g.ar.Spilled {
+			w := 1
+			if info, ok := regInfo[r]; ok {
+				w = (info.Ty.Width() + 7) / 8
+			}
+			slabel := g.spillLabel(r)
+			switch w {
+			case 1:
+				g.emitf("%s: DB 0", slabel)
+			case 2:
+				g.emitf("%s: DW 0", slabel)
+			case 3:
+				g.emitf("%s: DB 0, 0, 0", slabel) // eZ80 24-bit
+			default:
+				g.emitf("%s: DB 0", slabel)
+			}
+		}
 	}
 }
 
@@ -1740,7 +1792,7 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.emit("    EXX")
 				g.emitf("    LD %s, %d", dst, hi)
 				g.emit("    EXX")
-			} else if strings.HasPrefix(dst, "$") {
+			} else if isSpill(dst) {
 				// LocMem spill destination.
 				// TSMC: if eligible, patch reload sites instead of memory store.
 				if pair := g.tsmcSpillPairFor(inst.Dst); pair != nil {
@@ -2001,7 +2053,7 @@ func (g *z80cg) genInst(inst *Inst) {
 		// If the POINTER value itself is spilled to a memory slot ($Fxxx), reload it
 		// into HL first. Z80 supports LD HL,(nn) for this (3 bytes, 16T).
 		// After this, ptr=="HL" and the rest of the OpLoad path works unchanged.
-		if strings.HasPrefix(ptr, "$") {
+		if isSpill(ptr) {
 			g.emitf("    LD HL, (%s)   ; reload spilled ptr", ptr)
 			g.invalidate("HL")
 			ptr = "HL"
@@ -2091,7 +2143,7 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.emitf("    LD %s, %s     ; lo", lo, ptrIndirect(ptr, 0))
 				g.emitf("    LD %s, %s     ; hi", hi, ptrIndirect(ptr, 1))
 			}
-		} else if strings.HasPrefix(dst, "$") {
+		} else if isSpill(dst) {
 			// 16-bit load into LocMem spill slot: load through HL, then
 			// use LD (nn), HL to store both bytes atomically.
 			if ptr == "HL" {
@@ -2238,7 +2290,7 @@ func (g *z80cg) genInst(inst *Inst) {
 		val := g.loc(inst.Src[1])
 		w := inst.Ty.Width()
 		// If ptr is spilled to a memory slot ($Fxxx), reload it into HL first.
-		if strings.HasPrefix(ptr, "$") {
+		if isSpill(ptr) {
 			g.emitf("    LD HL, (%s)   ; reload spilled ptr", ptr)
 			g.invalidate("HL")
 			ptr = "HL"
@@ -2686,7 +2738,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		// Peephole: ADD/SUB dst, N where dst == lhs and N ≤ 3 → INC/DEC dst × N.
 		// N=1: 1B/4T vs 4B/15T; N=2: 2B/8T vs 4B/15T; N=3: 3B/12T vs 4B/15T.
 		// N=4 would be 16T vs 15T — worse in T-states, skip and fall through to ALU.
-		if mnem == "ADD" && lhs == dst && !strings.HasPrefix(dst, "$") {
+		if mnem == "ADD" && lhs == dst && !isSpill(dst) {
 			if cv, ok := g.constVals[inst.Src[1]]; ok && cv >= 1 && cv <= 3 {
 				for range cv {
 					g.emitf("    INC %s", dst)
@@ -2695,7 +2747,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				return
 			}
 		}
-		if mnem == "SUB" && lhs == dst && !strings.HasPrefix(dst, "$") {
+		if mnem == "SUB" && lhs == dst && !isSpill(dst) {
 			if cv, ok := g.constVals[inst.Src[1]]; ok && cv >= 1 && cv <= 3 {
 				for range cv {
 					g.emitf("    DEC %s", dst)
@@ -2814,7 +2866,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		}
 	} else {
 		// 16-bit peephole: INC/DEC rr when adding/subtracting 1 in-place.
-		if lhs == dst && !strings.HasPrefix(dst, "$") {
+		if lhs == dst && !isSpill(dst) {
 			if cv, ok := g.constVals[inst.Src[1]]; ok {
 				if mnem == "ADD" && cv == 1 {
 					g.emitf("    INC %s", dst)
@@ -3242,7 +3294,7 @@ func reorderAccMoves(insts []*Inst, ar *AllocResult) []*Inst {
 func (g *z80cg) emit8ALU(mnem, src string) {
 	// LocMem spill: Z80 ALU ops can't use absolute addresses directly.
 	// Load spill value into a scratch register first.
-	if strings.HasPrefix(src, "$") {
+	if isSpill(src) {
 		// Load from memory into A first, but A is the implicit LHS for 8-bit ALU.
 		// Must save A, load spill into scratch, restore A, then ALU.
 		// Simpler: use (HL) indirect — save HL, point to spill, ALU (HL), restore.
@@ -4723,10 +4775,7 @@ func (g *z80cg) emitCallArgs(args []Reg, params []Param) {
 		if i >= len(params) {
 			break
 		}
-		srcPhys := physName(g.ar.Loc(arg))
-		if p, ok := g.physOverride[arg]; ok {
-			srcPhys = p
-		}
+		srcPhys := g.loc(arg)
 		dstPhys := canonicalReturnLoc(params[i].Class, params[i].Ty)
 		if srcPhys != dstPhys {
 			g.physOverride[arg] = dstPhys
@@ -4822,13 +4871,13 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 		// Only "LD A, (nn)" and "LD (nn), A" work for absolute 8-bit memory I/O.
 		// TSMC spill: use self-modifying code when eligible.
 		switch {
-		case strings.HasPrefix(src, "$") && dst == "A":
+		case isSpill(src) && dst == "A":
 			if pair := g.tsmcPairByAddr(src); pair != nil {
 				g.emitTSMCReload(g.tsmcReloadLabel(pair.reg, g.blockIdx, g.curInstIdx, 0), "A", 8)
 			} else {
 				g.emitf("    LD A, (%s)", src)
 			}
-		case strings.HasPrefix(src, "$"):
+		case isSpill(src):
 			if pair := g.tsmcPairByAddr(src); pair != nil {
 				g.emitTSMCReload(g.tsmcReloadLabel(pair.reg, g.blockIdx, g.curInstIdx, 0), dst, 8)
 			} else {
@@ -4836,13 +4885,13 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 				g.emitf("    LD %s, A", dst)
 				g.invalidate("A")
 			}
-		case strings.HasPrefix(dst, "$") && src == "A":
+		case isSpill(dst) && src == "A":
 			if pair := g.tsmcPairByAddr(dst); pair != nil {
 				g.emitTSMCSpill(pair, "A")
 			} else {
 				g.emitf("    LD (%s), A", dst)
 			}
-		case strings.HasPrefix(dst, "$"):
+		case isSpill(dst):
 			if pair := g.tsmcPairByAddr(dst); pair != nil {
 				g.emitLDA(src)
 				g.emitTSMCSpill(pair, "A")
@@ -4941,12 +4990,12 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 		// LocMem spill slot → register pair: use LD rr, (nn).
 		// Z80 supports: LD HL,(nn) [native], LD DE/BC/SP,(nn) [ED-prefix].
 		// Cannot use PUSH/POP since PUSH nn is not a valid Z80 instruction.
-		if strings.HasPrefix(src, "$") {
+		if isSpill(src) {
 			g.emitf("    LD %s, (%s)", dst, src)
 			break
 		}
 		// register pair → LocMem spill slot: use LD (nn), rr.
-		if strings.HasPrefix(dst, "$") {
+		if isSpill(dst) {
 			g.emitf("    LD (%s), %s", dst, src)
 			break
 		}
@@ -5000,7 +5049,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 			continue
 		}
 		if scratch, ok := g.physOverride[bp.Dst]; ok {
-			canon := physName(g.ar.Loc(bp.Dst))
+			canon := g.loc(bp.Dst)
 			if canon != "" && canon != scratch {
 				g.emitf("    LD %s, %s    ; restore block param from scratch", canon, scratch)
 			}
@@ -5150,7 +5199,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 				}
 				param := bodyBlock.Params[i+1] // skip counter param[0]
 				src := g.loc(arg)
-				dst := physName(g.ar.Loc(param.Dst))
+				dst := g.loc(param.Dst)
 				if src != dst {
 					bodyCopies = append(bodyCopies, parallelCopy{srcName: src, dstName: dst, ty: param.Ty})
 				}
@@ -5298,7 +5347,7 @@ func (g *z80cg) buildBlockCopies(f *Func, targetName string, args []Reg) []paral
 		if i >= len(target.Params) {
 			break
 		}
-		dst := physName(g.ar.Loc(target.Params[i].Dst))
+		dst := g.loc(target.Params[i].Dst)
 		ty := target.Params[i].Ty
 		// Use g.loc (which respects physOverride) so that values saved to scratch
 		// registers by materializePendingAcc/materializePendingFlag are correctly
@@ -5555,15 +5604,15 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 	}
 	if ty.Width() <= 8 {
 		switch {
-		case strings.HasPrefix(src, "$") && dst == "A":
+		case isSpill(src) && dst == "A":
 			g.emitf("    LD A, (%s)", src)
-		case strings.HasPrefix(src, "$"):
+		case isSpill(src):
 			g.emitf("    LD A, (%s)", src)
 			g.emitf("    LD %s, A", dst)
 			g.invalidate("A")
-		case strings.HasPrefix(dst, "$") && src == "A":
+		case isSpill(dst) && src == "A":
 			g.emitf("    LD (%s), A", dst)
-		case strings.HasPrefix(dst, "$"):
+		case isSpill(dst):
 			g.emitLDA(src)
 			g.emitf("    LD (%s), A", dst)
 		case (isIXYReg(src) && (dst == "H" || dst == "L")) ||
@@ -6299,8 +6348,8 @@ func (g *z80cg) detectDJNZPeephole(f *Func, b *Block) djnzPeepholeResult {
 		if i >= len(check.Params) {
 			break
 		}
-		srcLoc := physName(g.ar.Loc(arg))
-		dstLoc := physName(g.ar.Loc(check.Params[i].Dst))
+		srcLoc := g.loc(arg)
+		dstLoc := g.loc(check.Params[i].Dst)
 		if srcLoc == "B" && dstLoc == "B" {
 			continue // counter handled by DJNZ
 		}
