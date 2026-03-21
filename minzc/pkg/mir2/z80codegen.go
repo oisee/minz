@@ -2432,20 +2432,30 @@ func (g *z80cg) genInst(inst *Inst) {
 			// (DD prefix substitutes (HL)→(IX+d), corrupting the encoding).
 			lo := lowByte(val)
 			hi := highByte(val)
-			if isIXYReg(lo) {
-				g.emitf("    LD A, %s", lo)
+			if isIXYReg(lo) || isSpill(lo) {
+				g.emit("    EX AF, AF'")
+				if isSpill(lo) {
+					g.emitf("    LD A, (%s)", lo)
+				} else {
+					g.emitf("    LD A, %s", lo)
+				}
 				g.emit("    LD (HL), A     ; lo")
-				g.invalidate("A")
+				g.emit("    EX AF, AF'")
 			} else {
 				g.emitf("    LD (HL), %s     ; lo", lo)
 			}
 			g.emitf("    INC %s", ptr)
 			if !isPairReg(val) {
 				g.emitf("    LD (%s), 0     ; hi (zero-extend u8→u16)", ptr)
-			} else if isIXYReg(hi) {
-				g.emitf("    LD A, %s", hi)
+			} else if isIXYReg(hi) || isSpill(hi) {
+				g.emit("    EX AF, AF'")
+				if isSpill(hi) {
+					g.emitf("    LD A, (%s)", hi)
+				} else {
+					g.emitf("    LD A, %s", hi)
+				}
 				g.emit("    LD (HL), A     ; hi")
-				g.invalidate("A")
+				g.emit("    EX AF, AF'")
 			} else {
 				g.emitf("    LD (HL), %s     ; hi", hi)
 			}
@@ -5729,8 +5739,8 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 			g.emitf("    LD %s, A", lo)
 			g.emit("    EX AF, AF'")
 		} else {
-			g.emitf("    LD %s, %s", hi, hiS)
-			g.emitf("    LD %s, %s", lo, loS)
+			g.emitLD8(hi, hiS)
+			g.emitLD8(lo, loS)
 		}
 	}
 }
