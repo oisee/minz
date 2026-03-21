@@ -152,6 +152,19 @@ func LogErrorsWithContext(funcName, asm string, errs []Error) {
 	}
 }
 
+// stripLabelModifiers removes ^H, ^L, +N suffixes from a label reference.
+func stripLabelModifiers(label string) string {
+	// Strip ^H / ^L (high/low byte of address)
+	if idx := strings.IndexByte(label, '^'); idx >= 0 {
+		label = label[:idx]
+	}
+	// Strip +N (offset)
+	if idx := strings.IndexByte(label, '+'); idx >= 0 {
+		label = label[:idx]
+	}
+	return strings.TrimSpace(label)
+}
+
 // PrepareForValidation wraps assembly output for MZA validation.
 // Adds ORG, defines dummy labels for branch targets so we only get
 // errors from actual invalid instructions, not undefined symbols.
@@ -288,6 +301,22 @@ func CollectBranchTargets(line string, refs map[string]bool) {
 			if label != "" && !strings.HasPrefix(label, "$") && !strings.HasPrefix(label, "0") &&
 				(label[0] < '0' || label[0] > '9') &&
 				!strings.ContainsAny(label, " \t") {
+				refs[label] = true
+			}
+		}
+	}
+
+	// Catch-all: LD r, label^H / LD r, label^L — extract label with ^H/^L stripped.
+	if strings.HasPrefix(trimmedUpper, "LD ") {
+		parts := strings.SplitN(trimmed[3:], ",", 2)
+		if len(parts) == 2 {
+			operand := strings.TrimSpace(parts[1])
+			label := stripLabelModifiers(operand)
+			if label != "" && !strings.HasPrefix(label, "(") &&
+				!strings.HasPrefix(label, "$") && !strings.HasPrefix(label, "0") &&
+				len(label) > 1 && // skip single-char register names
+				(label[0] < '0' || label[0] > '9') &&
+				!strings.ContainsAny(label, " \t()") {
 				refs[label] = true
 			}
 		}
