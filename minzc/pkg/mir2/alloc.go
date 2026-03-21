@@ -509,6 +509,9 @@ func locCompatible(ty Ty, loc PhysLoc) bool {
 		return w <= 16
 	case LocReg:
 		if len(loc.Name) == 1 {
+			if ty == TyPtr {
+				return false // pointers need register pairs (HL/DE/BC/IX/IY)
+			}
 			return w <= 8
 		}
 		return w == 16
