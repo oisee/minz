@@ -2943,7 +2943,26 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				}
 			}
 			g.emit("    OR A") // clear carry (1b/4T; SCF+CCF would be 2b/8T)
-			g.emitf("    SBC %s, %s", dst, rhs)
+			if dst != "HL" {
+				// Z80 only has SBC HL,rr. Route through HL.
+				g.emitMov("HL", dst, w)
+				if rhs == "HL" {
+					rhs = dst // HL now holds lhs, old HL value is in dst
+				}
+				if isSpill(rhs) {
+					g.loadSpill16("BC", rhs)
+					rhs = "BC"
+				}
+				g.emitf("    SBC HL, %s", rhs)
+				g.emitMov(dst, "HL", w)
+				g.invalidate("HL")
+			} else {
+				if isSpill(rhs) {
+					g.loadSpill16("BC", rhs)
+					rhs = "BC"
+				}
+				g.emitf("    SBC HL, %s", rhs)
+			}
 			g.invalidate(dst)
 		case "OR", "AND", "XOR":
 			// Z80 has no 16-bit OR/AND/XOR directly; operate byte-by-byte.
