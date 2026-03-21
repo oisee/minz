@@ -65,51 +65,45 @@ fun zx_border(@z80_a color: u8) -> void {
 //   pixel_y bits: TT LLL SSS  where TT=third (0-2), LLL=line (0-7), SSS=row%8
 
 fun screen_addr(col: u8, row: u8, line: u8) -> u16 {
+    // Convention: col=A, row=C, line=B (PBQP default for 3 u8 params)
+    // H = 010 TT SSS  (TT=row>>3, SSS=line)
+    // L = RRR CCCCC   (RRR=row%8<<5, CCCCC=col)
     asm z80 (in col, row, line) (ret HL) {
-        ; A = col (param 0), B = row (param 1), C = line (param 2)
-        ; We need to build pixel_y = row*8 + line, then compute address.
-        ; But row is in A (calling convention: param0=A).
-        ; Rearrange: save col, work with row.
-        LD D, A         ; D = col (save)
-
-        ; Build H = 010 TT SSS
-        ; TT = row >> 3 (which third: 0,1,2)
-        ; SSS = line (pixel row within char: 0-7)
-        LD A, B         ; A = row
-        AND 0x18        ; isolate bits 4-3 (TT << 3) — row & $18
-        OR C            ; combine with line (SSS) — now A = 000 TT SSS
-        OR 0x40         ; add screen base $4000 — A = 010 TT SSS
+        LD D, A         ; D = col
+        LD A, C         ; A = row
+        AND 0x18        ; TT bits
+        OR B            ; combine with line
+        OR 0x40         ; screen base
         LD H, A
-
-        ; Build L = RRR CCCCC
-        ; RRR = (row & 7) << 5 = sub-row within third
-        LD A, B         ; A = row
-        AND 0x07        ; isolate sub-row (row % 8)
+        LD A, C         ; A = row
+        AND 0x07        ; sub-row
         RRCA
         RRCA
-        RRCA            ; rotate right 3 = shift left 5
+        RRCA            ; shift left 5
         OR D            ; combine with col
         LD L, A
     }
 }
 
 fun attr_addr(col: u8, row: u8) -> u16 {
+    // Convention: col=A, row=C (PBQP default for 2 u8 params)
+    // Attr = $5800 + row*32 + col
     asm z80 (in col, row) (ret HL) {
-        LD D, A         ; D = col (save)
-        LD A, B         ; A = row
+        LD D, A         ; D = col
+        LD A, C         ; A = row
         RRCA
         RRCA
-        RRCA            ; row * 32 via rotate
+        RRCA            ; row * 32
         LD L, A
-        AND 0xE0        ; high 3 bits
-        OR D            ; combine with col
+        AND 0xE0
+        OR D
         LD L, A
-        LD A, B         ; A = row again
+        LD A, C         ; A = row again
         RRCA
         RRCA
         RRCA
-        AND 0x03        ; overflow into H
-        OR 0x58         ; attr base $5800
+        AND 0x03
+        OR 0x58         ; attr base
         LD H, A
     }
 }
@@ -449,3 +443,35 @@ fun con_show_cursor() -> void {
 fun con_hide_cursor() -> void {
     con_draw_char(con_col, con_row, 32)
 }
+
+// ── Compile-time verification ───────────────────────────────────────────────
+//
+// ZX Spectrum screen address truth table:
+//   (col=0,  row=0,  line=0) → $4000  (top-left, first pixel line)
+//   (col=31, row=0,  line=0) → $401F  (top-right)
+//   (col=0,  row=0,  line=7) → $4700  (bottom of first char row)
+//   (col=0,  row=1,  line=0) → $4020  (second char row, first pixel line)
+//   (col=0,  row=8,  line=0) → $4800  (second third, first row)
+//   (col=0,  row=16, line=0) → $5000  (third third, first row)
+//   (col=15, row=12, line=3) → $4C8F  (middle of screen)
+//
+// Attribute address truth table:
+//   (col=0,  row=0)  → $5800
+//   (col=31, row=0)  → $581F
+//   (col=0,  row=1)  → $5820
+//   (col=0,  row=23) → $5AE0
+//   (col=31, row=23) → $5AFF  (last attribute cell)
+
+assert screen_addr(0, 0, 0) == 0x4000 via z80
+assert screen_addr(31, 0, 0) == 0x401F via z80
+assert screen_addr(0, 0, 7) == 0x4700 via z80
+assert screen_addr(0, 1, 0) == 0x4020 via z80
+assert screen_addr(0, 8, 0) == 0x4800 via z80
+assert screen_addr(0, 16, 0) == 0x5000 via z80
+assert screen_addr(15, 12, 3) == 0x4B8F via z80
+
+assert attr_addr(0, 0) == 0x5800 via z80
+assert attr_addr(31, 0) == 0x581F via z80
+assert attr_addr(0, 1) == 0x5820 via z80
+assert attr_addr(0, 23) == 0x5AE0 via z80
+assert attr_addr(31, 23) == 0x5AFF via z80
