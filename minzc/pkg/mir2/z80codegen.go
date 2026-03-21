@@ -504,6 +504,8 @@ type z80cg struct {
 	deadConsts     map[Reg]bool  // OpConst dsts whose LD is suppressed by DSE
 	needsCallHL    bool          // emit __call_hl trampoline (JP (HL)) at end of module
 	needsMul8      bool          // emit __mul8 runtime (A*B→A) at end of module
+	tsmcPairs      []tsmcSpillPair // TSMC spill-reload pairs for current function
+	curInstIdx     int             // current instruction index within block (for TSMC matching)
 
 	// holdsPhys is a bidirectional alias map for local copy-propagation within a
 	// basic block.  holdsPhys[r] = s means physical register r currently holds the
@@ -784,6 +786,12 @@ func (g *z80cg) holdsValue(a, b string) bool {
 // When src is a LocMem address ($Fxxx), emits "LD A, ($Fxxx)" — the only
 // valid Z80 form for loading an 8-bit value from an absolute 16-bit address.
 func (g *z80cg) emitLDA(src string) {
+	if src == "F" {
+		// F register cannot be loaded directly. Materialise carry flag.
+		g.emit("    SBC A, A") // A=0xFF if C=1, A=0x00 if C=0
+		g.invalidate("A")
+		return
+	}
 	if strings.HasPrefix(src, "$") {
 		g.emitf("    LD A, (%s)", src)
 	} else {
@@ -808,6 +816,78 @@ func (g *z80cg) loc(r Reg) string {
 		return fmt.Sprintf("$%04X", pl.Offset)
 	}
 	return pl.Name
+}
+
+// physName returns the assembly-level name for a PhysLoc.
+// For LocMem, returns "$F0xx" format; for everything else, returns pl.Name.
+func physName(pl PhysLoc) string {
+	if pl.Kind == LocMem {
+		return fmt.Sprintf("$%04X", pl.Offset)
+	}
+	return pl.Name
+}
+
+// isSpill returns true if the operand is a LocMem spill address ($F0xx).
+func isSpill(s string) bool { return strings.HasPrefix(s, "$") }
+
+// loadSpill8 loads an 8-bit spill value into the target register.
+// Uses A as intermediary (LD A,(nn) is the only valid 8-bit absolute load).
+func (g *z80cg) loadSpill8(dst, src string) {
+	if dst == "A" {
+		if pair := g.tsmcPairByAddr(src); pair != nil {
+			label := g.tsmcReloadLabel(pair.reg, g.blockIdx, g.curInstIdx, 0)
+			if label != "" {
+				g.emitTSMCReload(label, "A", 8)
+				return
+			}
+		}
+		g.emitf("    LD A, (%s)", src)
+	} else {
+		if pair := g.tsmcPairByAddr(src); pair != nil {
+			label := g.tsmcReloadLabel(pair.reg, g.blockIdx, g.curInstIdx, 0)
+			if label != "" {
+				g.emitTSMCReload(label, dst, 8)
+				return
+			}
+		}
+		g.emitf("    LD A, (%s)", src)
+		g.emitf("    LD %s, A", dst)
+		g.invalidate("A")
+	}
+}
+
+// storeSpill8 stores an 8-bit register value to a spill address.
+func (g *z80cg) storeSpill8(dst, src string) {
+	if src != "A" {
+		g.emitLDA(src)
+	}
+	if pair := g.tsmcPairByAddr(dst); pair != nil {
+		g.emitTSMCSpill(pair, "A")
+	} else {
+		g.emitf("    LD (%s), A", dst)
+	}
+}
+
+// loadSpill16 loads a 16-bit spill value into a register pair.
+func (g *z80cg) loadSpill16(dst, src string) {
+	if pair := g.tsmcPairByAddr(src); pair != nil {
+		label := g.tsmcReloadLabel(pair.reg, g.blockIdx, g.curInstIdx, 0)
+		if label != "" {
+			g.emitTSMCReload(label, dst, 16)
+			return
+		}
+	}
+	g.emitf("    LD %s, (%s)", dst, src)
+}
+
+// storeSpill16 stores a 16-bit pair to a spill address.
+func (g *z80cg) storeSpill16(dst, src string) {
+	if pair := g.tsmcPairByAddr(dst); pair != nil {
+		g.emitTSMCSpill(pair, src)
+	} else {
+		// Z80: only LD (nn),HL is native. DE/BC/SP need ED prefix (supported).
+		g.emitf("    LD (%s), %s", dst, src)
+	}
 }
 
 // ── Function ──────────────────────────────────────────────────────────────────
@@ -947,6 +1027,11 @@ func (g *z80cg) genFunc(f *Func) {
 		}
 	}
 	g.deadConsts = computeDeadConsts(f, g.ar)
+	// TSMC spill: scan for spill-reload pairs in non-recursive functions.
+	g.tsmcPairs = nil
+	if !isRecursive(f) {
+		g.tsmcPairs = scanTSMCSpillPairs(f, g.ar)
+	}
 	g.holdsPhys = make(map[string]string)
 	g.physOverride = make(map[Reg]string)
 	g.trampolines = g.trampolines[:0]
@@ -1557,7 +1642,8 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	// loads A last (right before the call).  Safe when neither depends on the other.
 	reordered := reorderAccMoves(b.Insts[:limit], g.ar)
 
-	for _, inst := range reordered {
+	for instIdx, inst := range reordered {
+		g.curInstIdx = instIdx
 		g.genInst(inst)
 	}
 
@@ -1640,6 +1726,31 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.emit("    EXX")
 				g.emitf("    LD %s, %d", dst, hi)
 				g.emit("    EXX")
+			} else if strings.HasPrefix(dst, "$") {
+				// LocMem spill destination.
+				// TSMC: if eligible, patch reload sites instead of memory store.
+				if pair := g.tsmcSpillPairFor(inst.Dst); pair != nil {
+					if w <= 8 {
+						g.emitf("    LD A, %d", inst.Imm&0xFF)
+						g.emitTSMCSpill(pair, "A")
+						g.invalidate("A")
+					} else {
+						g.emitf("    LD HL, %d", inst.Imm&0xFFFF)
+						g.emitTSMCSpill(pair, "HL")
+						g.invalidate("HL")
+					}
+				} else {
+					// Traditional spill
+					if w <= 8 {
+						g.emitf("    LD A, %d", inst.Imm&0xFF)
+						g.emitf("    LD (%s), A", dst)
+						g.invalidate("A")
+					} else {
+						g.emitf("    LD HL, %d", inst.Imm&0xFFFF)
+						g.emitf("    LD (%s), HL", dst)
+						g.invalidate("HL")
+					}
+				}
 			} else {
 				g.emitf("    LD %s, %d", dst, inst.Imm)
 			}
@@ -1769,9 +1880,17 @@ func (g *z80cg) genInst(inst *Inst) {
 	case OpTrunc:
 		src := g.loc(inst.Src[0])
 		// Truncate 16-bit → 8-bit: take low byte.
-		// If dst is L and src is HL, or dst is E and src is DE — no-op.
-		if dst != src {
-			g.emitf("    LD %s, %s", dst, lowByte(src))
+		lo := lowByte(src)
+		if dst == lo {
+			// Already in place (e.g. dst=L, src=HL → L already has the value).
+		} else if (isIXYReg(lo) && (dst == "H" || dst == "L")) ||
+			((lo == "H" || lo == "L") && isIXYReg(dst)) {
+			// DD/FD prefix conflict: route through A.
+			g.emitf("    LD A, %s", lo)
+			g.emitf("    LD %s, A", dst)
+			g.invalidate("A")
+		} else {
+			g.emitf("    LD %s, %s", dst, lo)
 		}
 
 	case OpCmp:
@@ -2015,6 +2134,16 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.emitf("    LD %s, (%s)     ; hi", highByte(dst), ptr)
 				g.emitf("    LD %s, A       ; lo", lowByte(dst))
 				g.invalidate("A")
+			} else if isIXYReg(lowByte(dst)) || isIXYReg(highByte(dst)) {
+				// DD/FD prefix conflict: LD IXL,(HL) impossible.
+				// Route through A.
+				g.emitf("    LD A, (%s)     ; lo", ptr)
+				g.emitf("    LD %s, A", lowByte(dst))
+				g.emitf("    INC %s", ptr)
+				g.emitf("    LD A, (%s)     ; hi", ptr)
+				g.emitf("    LD %s, A", highByte(dst))
+				g.emitf("    DEC %s", ptr)
+				g.invalidate("A")
 			} else {
 				g.emitf("    LD %s, (%s)     ; lo", lowByte(dst), ptr)
 				g.emitf("    INC %s", ptr)
@@ -2197,13 +2326,26 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.emitf("    LD %s, %s     ; hi", ptrIndirect(ptr, 1), hi)
 			}
 		} else if ptr == "HL" {
-			// LD (HL), r is valid for any r — use INC/DEC trick.
-			g.emitf("    LD (%s), %s     ; lo", ptr, lowByte(val))
+			// LD (HL), r — valid for A,B,C,D,E,H,L but NOT IXH/IXL/IYH/IYL
+			// (DD prefix substitutes (HL)→(IX+d), corrupting the encoding).
+			lo := lowByte(val)
+			hi := highByte(val)
+			if isIXYReg(lo) {
+				g.emitf("    LD A, %s", lo)
+				g.emit("    LD (HL), A     ; lo")
+				g.invalidate("A")
+			} else {
+				g.emitf("    LD (HL), %s     ; lo", lo)
+			}
 			g.emitf("    INC %s", ptr)
 			if !isPairReg(val) {
 				g.emitf("    LD (%s), 0     ; hi (zero-extend u8→u16)", ptr)
+			} else if isIXYReg(hi) {
+				g.emitf("    LD A, %s", hi)
+				g.emit("    LD (HL), A     ; hi")
+				g.invalidate("A")
 			} else {
-				g.emitf("    LD (%s), %s     ; hi", ptr, highByte(val))
+				g.emitf("    LD (HL), %s     ; hi", hi)
 			}
 			g.emitf("    DEC %s", ptr)
 		} else {
@@ -2341,13 +2483,27 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.emitf("    INC %s", dst)
 			}
 		default:
-			// LD BC, offset; ADD HL, BC  (or equivalent pair for dst)
-			tmp := "BC"
-			if dst == "BC" {
-				tmp = "DE"
+			// ADD HL, rr is the only 16-bit add on Z80.
+			// Route through HL if dst is not HL.
+			if dst == "HL" {
+				tmp := "BC"
+				if dst == "BC" {
+					tmp = "DE"
+				}
+				g.emitf("    LD %s, %d", tmp, offset)
+				g.emitf("    ADD HL, %s", tmp)
+			} else {
+				// dst is DE/BC/IX: move to HL, add, move back.
+				g.emitMov("HL", dst, 16)
+				tmp := "BC"
+				if dst == "BC" {
+					tmp = "DE"
+				}
+				g.emitf("    LD %s, %d", tmp, offset)
+				g.emitf("    ADD HL, %s", tmp)
+				g.emitMov(dst, "HL", 16)
+				g.invalidate("HL")
 			}
-			g.emitf("    LD %s, %d", tmp, offset)
-			g.emitf("    ADD %s, %s", dst, tmp)
 		}
 		g.invalidate(dst)
 
@@ -2516,7 +2672,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		// Peephole: ADD/SUB dst, N where dst == lhs and N ≤ 3 → INC/DEC dst × N.
 		// N=1: 1B/4T vs 4B/15T; N=2: 2B/8T vs 4B/15T; N=3: 3B/12T vs 4B/15T.
 		// N=4 would be 16T vs 15T — worse in T-states, skip and fall through to ALU.
-		if mnem == "ADD" && lhs == dst {
+		if mnem == "ADD" && lhs == dst && !strings.HasPrefix(dst, "$") {
 			if cv, ok := g.constVals[inst.Src[1]]; ok && cv >= 1 && cv <= 3 {
 				for range cv {
 					g.emitf("    INC %s", dst)
@@ -2525,7 +2681,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				return
 			}
 		}
-		if mnem == "SUB" && lhs == dst {
+		if mnem == "SUB" && lhs == dst && !strings.HasPrefix(dst, "$") {
 			if cv, ok := g.constVals[inst.Src[1]]; ok && cv >= 1 && cv <= 3 {
 				for range cv {
 					g.emitf("    DEC %s", dst)
@@ -2644,7 +2800,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		}
 	} else {
 		// 16-bit peephole: INC/DEC rr when adding/subtracting 1 in-place.
-		if lhs == dst {
+		if lhs == dst && !strings.HasPrefix(dst, "$") {
 			if cv, ok := g.constVals[inst.Src[1]]; ok {
 				if mnem == "ADD" && cv == 1 {
 					g.emitf("    INC %s", dst)
@@ -2683,8 +2839,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 						g.emit("    ADD HL, BC")
 						g.emit("    POP BC")
 					} else if isSimpleReg(adjustedRhs) && !isPairReg(adjustedRhs) {
-						pair := parentPair(adjustedRhs)
-						g.emitf("    LD %s, 0", highByte(pair))
+						pair := g.promote8toPair(adjustedRhs)
 						g.emitf("    ADD HL, %s", pair)
 					} else {
 						g.emitf("    ADD HL, %s", adjustedRhs)
@@ -2706,8 +2861,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 					g.emit("    ADD HL, DE")
 					g.emit("    POP DE")
 				} else if isSimpleReg(adjustedRhs) && !isPairReg(adjustedRhs) {
-					pair := parentPair(adjustedRhs)
-					g.emitf("    LD %s, 0", highByte(pair))
+					pair := g.promote8toPair(adjustedRhs)
 					g.emitf("    ADD HL, %s", pair)
 				} else {
 					g.emitf("    ADD HL, %s", adjustedRhs)
@@ -2728,11 +2882,15 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				g.emit("    POP DE")
 			} else if isSimpleReg(rhs) && !isPairReg(rhs) {
 				// 8-bit rhs: zero-extend to parent pair, then ADD HL, pair.
-				pair := parentPair(rhs)
-				g.emitf("    LD %s, 0", highByte(pair))
+				pair := g.promote8toPair(rhs)
 				g.emitf("    ADD HL, %s", pair)
+			} else if isSpill(rhs) {
+				// LocMem spill: load to BC, then ADD HL, BC.
+				g.loadSpill16("BC", rhs)
+				g.emit("    ADD HL, BC")
 			} else {
-				g.emitf("    ADD %s, %s", dst, rhs)
+				// dst must be HL here; ADD HL, rr is the only valid 16-bit ADD.
+				g.emitf("    ADD HL, %s", rhs)
 			}
 			g.invalidate(dst)
 		case "SUB":
@@ -3029,6 +3187,27 @@ func reorderAccMoves(insts []*Inst, ar *AllocResult) []*Inst {
 // emit8ALU emits an 8-bit ALU instruction with A as the implicit destination.
 // MZA requires "ADD A, src" (two operands) but "SUB/AND/OR/XOR src" (one operand).
 func (g *z80cg) emit8ALU(mnem, src string) {
+	// LocMem spill: Z80 ALU ops can't use absolute addresses directly.
+	// Load spill value into a scratch register first.
+	if strings.HasPrefix(src, "$") {
+		// Load from memory into A first, but A is the implicit LHS for 8-bit ALU.
+		// Must save A, load spill into scratch, restore A, then ALU.
+		// Simpler: use (HL) indirect — save HL, point to spill, ALU (HL), restore.
+		// Simplest: load spill into a scratch 8-bit reg.
+		// For now, load into A via memory, which works if LHS is already in A.
+		g.emit("    PUSH HL")
+		g.emitf("    LD HL, %s", src)
+		g.emitf("    LD H, (HL)") // H = value at spill address
+		switch mnem {
+		case "ADD", "ADC":
+			g.emitf("    %s A, H", mnem)
+		default:
+			g.emitf("    %s H", mnem)
+		}
+		g.emit("    POP HL")
+		g.invalidate("H")
+		return
+	}
 	switch mnem {
 	case "ADD", "ADC":
 		g.emitf("    %s A, %s", mnem, src)
@@ -3058,8 +3237,7 @@ func (g *z80cg) genShift(mnem string, inst *Inst) {
 	dst := g.loc(inst.Dst)
 	src := g.loc(inst.Src[0])
 	if dst != src {
-		g.emitf("    LD %s, %s", dst, src)
-		g.setCopy(dst, src)
+		g.emitMov(dst, src, w)
 	}
 	// Shift count in Src[1] — Z80 shifts are always by 1 per instruction.
 	// For constant counts, emit N copies.  Variable shifts → TODO.
@@ -3069,27 +3247,26 @@ func (g *z80cg) genShift(mnem string, inst *Inst) {
 	}
 	if w == 16 {
 		// Z80 has no SLA/SRL/SRA on register pairs.
-		// SHL u16: use ADD dst,dst (doubles the value = shift left by 1). 11T each.
-		//   Special case: SHL by 8 on a zero-extended u8 → LD H,L / LD L,0. 11T total.
-		// SHR u16: SRL H / RR L (logical right shift with carry). 8T+8T=16T each.
-		// SAR u16: SRA H / RR L (arithmetic right shift). 8T+8T=16T each.
-		hi := highByte(dst)
-		lo := lowByte(dst)
+		// SHL/SHR/SAR on IX/IY halves are also invalid (DD CB prefix
+		// always addresses (IX+d), never IXH/IXL directly).
+		// Route IX/IY shifts through HL.
+		shiftDst := dst
+		if isIXY(dst) {
+			g.emitMov("HL", dst, 16)
+			shiftDst = "HL"
+		}
+		hi := highByte(shiftDst)
+		lo := lowByte(shiftDst)
 		if mnem == "SLA" && count == 8 {
-			// Byte-swap optimisation: u8 zero-extended to u16, shift left 8 bits.
-			// After ext u8→u16, the u8 value is in the low byte (L/E/C).
-			// Result = {value, 0}: move low byte to high, zero low byte.
 			g.emitf("    LD %s, %s", hi, lo)
 			g.emitf("    LD %s, 0", lo)
 		} else {
 			for i := int64(0); i < count; i++ {
 				switch mnem {
 				case "SLA":
-					if dst == "HL" {
-						g.emitf("    ADD HL, HL") // ADD HL,HL = SHL HL by 1 (11T)
+					if shiftDst == "HL" {
+						g.emitf("    ADD HL, HL")
 					} else {
-						// Z80 only has ADD HL,rr — no ADD DE,DE or ADD BC,BC.
-						// Use SLA lo / RL hi for non-HL pairs.
 						g.emitf("    SLA %s", lo)
 						g.emitf("    RL  %s", hi)
 					}
@@ -3102,7 +3279,13 @@ func (g *z80cg) genShift(mnem string, inst *Inst) {
 				}
 			}
 		}
+		if isIXY(dst) {
+			g.emitMov(dst, "HL", 16)
+		}
 		g.invalidate(dst)
+		if isIXY(dst) {
+			g.invalidate("HL")
+		}
 		return
 	}
 	for i := int64(0); i < count; i++ {
@@ -3150,11 +3333,20 @@ func (g *z80cg) genShift32(mnem string, inst *Inst) {
 	switch mnem {
 	case "SHL":
 		// Left shift: ADD HL,HL / EXX / ADC HL,HL / EXX  (× count)
+		// Z80 only supports ADD HL,HL — not ADD DE,DE or ADD BC,BC.
+		// Route through HL if needed.
+		if dst != "HL" {
+			g.emitMov("HL", dst, 16)
+		}
 		for i := int64(0); i < count; i++ {
-			g.emitf("    ADD %s, %s", dst, dst)
+			g.emit("    ADD HL, HL")
 			g.emit("    EXX")
-			g.emitf("    ADC %s, %s", dst, dst)
+			g.emit("    ADC HL, HL")
 			g.emit("    EXX")
+		}
+		if dst != "HL" {
+			g.emitMov(dst, "HL", 16)
+			g.invalidate("HL")
 		}
 	case "SHR":
 		// Logical right shift: EXX / SRL H / RR L / EXX / RR H / RR L  (× count)
@@ -3528,11 +3720,19 @@ func (g *z80cg) genMul32(inst *Inst) {
 	lhs := g.loc(inst.Src[0])
 
 	// Emit one 32-bit left-shift-by-1 on the register pair p.
+	// Z80 only has ADD HL,HL — route through HL if p != HL.
 	shl1 := func(p string) {
-		g.emitf("    ADD %s, %s", p, p)
+		if p != "HL" {
+			g.emitMov("HL", p, 16)
+		}
+		g.emit("    ADD HL, HL")
 		g.emit("    EXX")
-		g.emitf("    ADC %s, %s", p, p)
+		g.emit("    ADC HL, HL")
 		g.emit("    EXX")
+		if p != "HL" {
+			g.emitMov(p, "HL", 16)
+			g.invalidate("HL")
+		}
 	}
 
 	cv, isConst := g.constVals[inst.Src[1]]
@@ -4428,7 +4628,7 @@ func (g *z80cg) emitCallArgs(args []Reg, params []Param) {
 		// (from PBQP). Fall back to canonical class-based location otherwise.
 		dstPhys := ""
 		if loc, ok := g.ar.Locs[params[i].Reg]; ok && loc.Name != "" {
-			dstPhys = loc.Name
+			dstPhys = physName(loc)
 		}
 		if dstPhys == "" {
 			dstPhys = canonicalReturnLoc(params[i].Class, params[i].Ty)
@@ -4449,7 +4649,7 @@ func (g *z80cg) emitCallArgs(args []Reg, params []Param) {
 		if i >= len(params) {
 			break
 		}
-		srcPhys := g.ar.Loc(arg).Name
+		srcPhys := physName(g.ar.Loc(arg))
 		if p, ok := g.physOverride[arg]; ok {
 			srcPhys = p
 		}
@@ -4540,19 +4740,36 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 	if widthBits <= 8 {
 		// LocMem spill slot: "LD r, $Fxxx" and "LD $Fxxx, r" are not valid Z80.
 		// Only "LD A, (nn)" and "LD (nn), A" work for absolute 8-bit memory I/O.
-		// Route all other combinations through A.
+		// TSMC spill: use self-modifying code when eligible.
 		switch {
 		case strings.HasPrefix(src, "$") && dst == "A":
-			g.emitf("    LD A, (%s)", src)
+			if pair := g.tsmcPairByAddr(src); pair != nil {
+				g.emitTSMCReload(g.tsmcReloadLabel(pair.reg, g.blockIdx, g.curInstIdx, 0), "A", 8)
+			} else {
+				g.emitf("    LD A, (%s)", src)
+			}
 		case strings.HasPrefix(src, "$"):
-			g.emitf("    LD A, (%s)", src)
-			g.emitf("    LD %s, A", dst)
-			g.invalidate("A")
+			if pair := g.tsmcPairByAddr(src); pair != nil {
+				g.emitTSMCReload(g.tsmcReloadLabel(pair.reg, g.blockIdx, g.curInstIdx, 0), dst, 8)
+			} else {
+				g.emitf("    LD A, (%s)", src)
+				g.emitf("    LD %s, A", dst)
+				g.invalidate("A")
+			}
 		case strings.HasPrefix(dst, "$") && src == "A":
-			g.emitf("    LD (%s), A", dst)
+			if pair := g.tsmcPairByAddr(dst); pair != nil {
+				g.emitTSMCSpill(pair, "A")
+			} else {
+				g.emitf("    LD (%s), A", dst)
+			}
 		case strings.HasPrefix(dst, "$"):
-			g.emitLDA(src)
-			g.emitf("    LD (%s), A", dst)
+			if pair := g.tsmcPairByAddr(dst); pair != nil {
+				g.emitLDA(src)
+				g.emitTSMCSpill(pair, "A")
+			} else {
+				g.emitLDA(src)
+				g.emitf("    LD (%s), A", dst)
+			}
 		default:
 			// Width mismatch: 8-bit move but one operand is a register pair.
 			// pair→8bit: truncate (take low byte). 8bit→pair: zero-extend.
@@ -4692,7 +4909,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 			continue
 		}
 		if scratch, ok := g.physOverride[bp.Dst]; ok {
-			canon := g.ar.Loc(bp.Dst).Name
+			canon := physName(g.ar.Loc(bp.Dst))
 			if canon != "" && canon != scratch {
 				g.emitf("    LD %s, %s    ; restore block param from scratch", canon, scratch)
 			}
@@ -4842,7 +5059,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 				}
 				param := bodyBlock.Params[i+1] // skip counter param[0]
 				src := g.loc(arg)
-				dst := g.ar.Loc(param.Dst).Name
+				dst := physName(g.ar.Loc(param.Dst))
 				if src != dst {
 					bodyCopies = append(bodyCopies, parallelCopy{srcName: src, dstName: dst, ty: param.Ty})
 				}
@@ -4990,7 +5207,7 @@ func (g *z80cg) buildBlockCopies(f *Func, targetName string, args []Reg) []paral
 		if i >= len(target.Params) {
 			break
 		}
-		dst := g.ar.Loc(target.Params[i].Dst).Name
+		dst := physName(g.ar.Loc(target.Params[i].Dst))
 		ty := target.Params[i].Ty
 		// Use g.loc (which respects physOverride) so that values saved to scratch
 		// registers by materializePendingAcc/materializePendingFlag are correctly
@@ -5218,6 +5435,28 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 	if src == dst {
 		return
 	}
+	// F register: cannot be accessed directly. Materialise flag→register or
+	// register→flag via the same logic as emitMov.
+	if src == "F" {
+		// Flag → register: SBC A,A materialises carry into A (0xFF/0x00).
+		if dst == "A" {
+			g.emit("    SBC A, A")
+		} else {
+			g.emit("    SBC A, A")
+			g.emitf("    LD %s, A", dst)
+		}
+		g.invalidate("A")
+		return
+	}
+	if dst == "F" {
+		// Register → flag: set Z/NZ from value via AND A.
+		if src != "A" {
+			g.emitf("    LD A, %s", src)
+		}
+		g.emit("    AND A")
+		g.invalidate("A")
+		return
+	}
 	if ty.Width() <= 8 {
 		switch {
 		case strings.HasPrefix(src, "$") && dst == "A":
@@ -5247,12 +5486,27 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 		default:
 			g.emitf("    LD %s, %s", dst, src)
 		}
-	} else if strings.HasPrefix(src, "$") {
-		// LocMem spill slot → register pair: LD rr, (nn).
-		g.emitf("    LD %s, (%s)", dst, src)
-	} else if strings.HasPrefix(dst, "$") {
-		// register pair → LocMem spill slot: LD (nn), rr.
-		g.emitf("    LD (%s), %s", dst, src)
+	} else if isSpill(src) && isSpill(dst) {
+		// Spill-to-spill: route through HL.
+		g.loadSpill16("HL", src)
+		g.storeSpill16(dst, "HL")
+		g.invalidate("HL")
+	} else if isSpill(src) {
+		// LocMem spill → register: use loadSpill16 (handles TSMC).
+		if isPairReg(dst) {
+			g.loadSpill16(dst, src)
+		} else {
+			// Spill → 8-bit: load low byte only
+			g.loadSpill8(dst, src)
+		}
+	} else if isSpill(dst) {
+		// Register → LocMem spill: use storeSpill16 (handles TSMC).
+		if isPairReg(src) {
+			g.storeSpill16(dst, src)
+		} else {
+			// 8-bit → spill
+			g.storeSpill8(dst, src)
+		}
 	} else if isPairReg(src) && !isPairReg(dst) {
 		// Width mismatch in 16-bit context: pair→8bit truncation.
 		g.emitf("    LD %s, %s", dst, lowByte(src))
@@ -5560,6 +5814,21 @@ func parentPair(r string) string {
 	return r // already a pair or unknown
 }
 
+// promote8toPair zero-extends an 8-bit register into a 16-bit pair suitable
+// for ADD HL,rr or SBC HL,rr. For A, routes through BC (since AF is not a
+// valid arithmetic pair). For others, uses parentPair with high byte zeroed.
+// Returns the pair name to use.
+func (g *z80cg) promote8toPair(r string) string {
+	if r == "A" {
+		g.emit("    LD C, A")
+		g.emit("    LD B, 0")
+		return "BC"
+	}
+	pair := parentPair(r)
+	g.emitf("    LD %s, 0", highByte(pair))
+	return pair
+}
+
 // genCmp16 emits a 16-bit comparison using SBC HL, rr.
 //
 // Z80 only provides SBC HL, rr for 16-bit arithmetic that sets flags.
@@ -5689,14 +5958,16 @@ func (g *z80cg) genCmp16(inst *Inst) {
 		g.invalidate("A")
 		rhs = "BC"
 	} else if isSimpleReg(rhs) && !isPairReg(rhs) {
-		// 8-bit register: promote to parent pair with high byte zeroed.
-		pair := parentPair(rhs)
-		g.emitf("    LD %s, 0", highByte(pair))
-		rhs = pair
+		// 8-bit register: promote to pair (handles A→BC, others→parentPair).
+		rhs = g.promote8toPair(rhs)
 	} else if isIXY(rhs) {
 		// IX/IY: push to HL would conflict. Push rhs → stack, pop to BC.
 		g.emitf("    PUSH %s", rhs)
 		g.emit("    POP BC")
+		rhs = "BC"
+	} else if isSpill(rhs) {
+		// LocMem spill: SBC HL,$F0xx is not valid. Load to BC first.
+		g.loadSpill16("BC", rhs)
 		rhs = "BC"
 	}
 
@@ -5905,8 +6176,8 @@ func (g *z80cg) detectDJNZPeephole(f *Func, b *Block) djnzPeepholeResult {
 		if i >= len(check.Params) {
 			break
 		}
-		srcLoc := g.ar.Loc(arg).Name
-		dstLoc := g.ar.Loc(check.Params[i].Dst).Name
+		srcLoc := physName(g.ar.Loc(arg))
+		dstLoc := physName(g.ar.Loc(check.Params[i].Dst))
 		if srcLoc == "B" && dstLoc == "B" {
 			continue // counter handled by DJNZ
 		}
