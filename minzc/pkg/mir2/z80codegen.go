@@ -5259,12 +5259,24 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 		}
 		// 16-bit pair → 8-bit: truncate (take low byte).
 		if isPairReg(src) && !isPairReg(dst) {
-			g.emitf("    LD %s, %s", dst, lowByte(src))
+			lo := lowByte(src)
+			if (isIXYReg(lo) && (dst == "H" || dst == "L")) ||
+				((lo == "H" || lo == "L") && isIXYReg(dst)) {
+				g.emitMovViaAltA(dst, lo)
+			} else {
+				g.emitLD8(dst, lo)
+			}
 			break
 		}
 		// 8-bit → 16-bit pair: zero-extend.
 		if !isPairReg(src) && isPairReg(dst) {
-			g.emitf("    LD %s, %s", lowByte(dst), src)
+			lo := lowByte(dst)
+			if (isIXYReg(src) && (lo == "H" || lo == "L")) ||
+				((src == "H" || src == "L") && isIXYReg(lo)) {
+				g.emitMovViaAltA(lo, src)
+			} else {
+				g.emitLD8(lo, src)
+			}
 			g.emitf("    LD %s, 0", highByte(dst))
 			break
 		}
@@ -5935,10 +5947,22 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 		}
 	} else if isPairReg(src) && !isPairReg(dst) {
 		// Width mismatch in 16-bit context: pair→8bit truncation.
-		g.emitf("    LD %s, %s", dst, lowByte(src))
+		lo := lowByte(src)
+		if (isIXYReg(lo) && (dst == "H" || dst == "L")) ||
+			((lo == "H" || lo == "L") && isIXYReg(dst)) {
+			g.emitMovViaAltA(dst, lo)
+		} else {
+			g.emitLD8(dst, lo)
+		}
 	} else if !isPairReg(src) && isPairReg(dst) {
 		// Width mismatch in 16-bit context: 8bit→pair zero-extension.
-		g.emitf("    LD %s, %s", lowByte(dst), src)
+		lo := lowByte(dst)
+		if (isIXYReg(src) && (lo == "H" || lo == "L")) ||
+			((src == "H" || src == "L") && isIXYReg(lo)) {
+			g.emitMovViaAltA(lo, src)
+		} else {
+			g.emitLD8(lo, src)
+		}
 		g.emitf("    LD %s, 0", highByte(dst))
 	} else {
 		// 16-bit non-destructive copy: two 8-bit LDs.
