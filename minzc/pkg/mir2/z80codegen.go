@@ -855,6 +855,42 @@ func (g *z80cg) physNameFor(pl PhysLoc, r Reg) string {
 	return pl.Name
 }
 
+// emitLD8 emits a safe 8-bit LD, handling spill labels.
+// Z80 only supports LD A,(nn) and LD (nn),A for absolute memory.
+// Routes through shadow A (EX AF,AF') to preserve main A register.
+func (g *z80cg) emitLD8(dst, src string) {
+	if dst == src {
+		return
+	}
+	dstSpill := isSpill(dst)
+	srcSpill := isSpill(src)
+	if srcSpill && dstSpill {
+		// Spill-to-spill: route through shadow A.
+		g.emit("    EX AF, AF'")
+		g.emitf("    LD A, (%s)", src)
+		g.emitf("    LD (%s), A", dst)
+		g.emit("    EX AF, AF'")
+	} else if srcSpill && dst == "A" {
+		g.emitf("    LD A, (%s)", src)
+	} else if srcSpill {
+		// Load spill to non-A register via shadow A.
+		g.emit("    EX AF, AF'")
+		g.emitf("    LD A, (%s)", src)
+		g.emitf("    LD %s, A", dst)
+		g.emit("    EX AF, AF'")
+	} else if dstSpill && src == "A" {
+		g.emitf("    LD (%s), A", dst)
+	} else if dstSpill {
+		// Store non-A register to spill via shadow A.
+		g.emit("    EX AF, AF'")
+		g.emitf("    LD A, %s", src)
+		g.emitf("    LD (%s), A", dst)
+		g.emit("    EX AF, AF'")
+	} else {
+		g.emitf("    LD %s, %s", dst, src)
+	}
+}
+
 // emitMovViaAltA routes a single 8-bit LD through shadow A (EX AF,AF')
 // to avoid clobbering the main A register. Used for DD/FD prefix conflicts
 // where LD H,IXH would encode as NOP.
@@ -4926,7 +4962,7 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 				}
 				g.emitf("    LD %s, 0", highByte(dst))
 			} else {
-				g.emitf("    LD %s, %s", dst, src)
+				g.emitLD8(dst, src)
 				if isSimpleReg(dst) && isSimpleReg(src) {
 					g.setCopy(dst, src)
 				}
@@ -5640,7 +5676,7 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 			}
 			g.emitf("    LD %s, 0", highByte(dst))
 		default:
-			g.emitf("    LD %s, %s", dst, src)
+			g.emitLD8(dst, src)
 		}
 	} else if isSpill(src) && isSpill(dst) {
 		// Spill-to-spill: route through HL.
