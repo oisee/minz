@@ -3028,7 +3028,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		}
 	} else {
 		// 16-bit peephole: INC/DEC rr when adding/subtracting 1 in-place.
-		if lhs == dst && !isSpill(dst) {
+		if lhs == dst && !isSpill(dst) && dst != "F" {
 			if cv, ok := g.constVals[inst.Src[1]]; ok {
 				if mnem == "ADD" && cv == 1 {
 					g.emitf("    INC %s", dst)
