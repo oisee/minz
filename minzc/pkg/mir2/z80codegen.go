@@ -2943,11 +2943,25 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				}
 			}
 			g.emit("    OR A") // clear carry (1b/4T; SCF+CCF would be 2b/8T)
-			if dst != "HL" {
-				// Z80 only has SBC HL,rr. Route through HL.
+			if dst == "DE" && (rhs == "HL" || rhs == "BC" || rhs == "DE") {
+				// Optimal path: EX DE,HL; SBC HL,rhs'; EX DE,HL (23T)
+				// After EX: HL=old_DE(lhs), DE=old_HL
+				adjustedRhs := rhs
+				if rhs == "HL" {
+					adjustedRhs = "DE" // old HL is now in DE
+				} else if rhs == "DE" {
+					adjustedRhs = "DE" // SBC HL,DE = lhs-lhs = 0 (self-sub)
+				}
+				g.emit("    EX DE, HL")
+				g.emitf("    SBC HL, %s", adjustedRhs)
+				g.emit("    EX DE, HL") // result back to DE, HL restored
+				g.invalidate("HL")
+				g.invalidate("DE")
+			} else if dst != "HL" {
+				// General non-HL: route through HL via emitMov.
 				g.emitMov("HL", dst, w)
 				if rhs == "HL" {
-					rhs = dst // HL now holds lhs, old HL value is in dst
+					rhs = dst
 				}
 				if isSpill(rhs) {
 					g.loadSpill16("BC", rhs)
