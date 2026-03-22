@@ -903,6 +903,25 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		return e, nil
 	}
 
+	// Inline asm: asm "instructions" → returns 0, side effect is the asm
+	if t.kind == tokIdent && t.text == "asm" {
+		p.next()
+		asmTok := p.next()
+		if asmTok.kind != tokString {
+			return nil, fmt.Errorf("line %d: asm requires string", asmTok.line)
+		}
+		// Wrap as function with asm body, call it immediately
+		asmName := fmt.Sprintf("__asm_%d", p.lambdaCount)
+		p.lambdaCount++
+		p.autoFuncs = append(p.autoFuncs, &hir.Func{
+			Name: asmName, RetTy: mir2.TyVoid,
+			Body: &hir.Block{Body: []hir.Stmt{
+				&hir.AsmStmt{Code: asmTok.text},
+			}},
+		})
+		return &hir.CallExpr{Fn: asmName, Ty: mir2.TyU8}, nil
+	}
+
 	// Bool literals
 	if t.kind == tokIdent && t.text == "true" {
 		p.next()
@@ -1381,7 +1400,7 @@ func (p *parser) parseType() mir2.Ty {
 
 func isKeyword(s string) bool {
 	switch s {
-	case "let", "in", "if", "then", "else", "type", "assert", "match", "with", "fun", "end", "where", "when", "prop", "extern", "do", "import":
+	case "let", "in", "if", "then", "else", "type", "assert", "match", "with", "fun", "end", "where", "when", "prop", "extern", "do", "import", "asm":
 		return true
 	}
 	return false

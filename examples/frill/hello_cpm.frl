@@ -1,0 +1,27 @@
+(* Frill hello world for CP/M — functional language on 8-bit *)
+(* Compile: minzc hello_cpm.frl -t cpm -o hello.com *)
+
+import "../../stdlib/frill/math.frl"
+
+extern putchar (ch : u8) : void
+extern newline (x : u8) : void
+
+let print_digit (n : u8) = putchar (n + 48)
+let print_u8 (n : u8) =
+  do if n > 99 then print_digit (n / 100) else 0
+  do if n > 9 then print_digit (n / 10 % 10) else 0
+  do print_digit (n % 10)
+  0
+
+let main (x : u8) =
+  do putchar 72  do putchar 101 do putchar 108 do putchar 108 do putchar 111
+  do putchar 32  do putchar 70  do putchar 114 do putchar 105
+  do putchar 108 do putchar 108 do putchar 33  do newline 0
+  do putchar 102 do putchar 105 do putchar 98  do putchar 40
+  do putchar 55  do putchar 41  do putchar 61
+  do print_u8 (fib 7) do newline 0
+  do putchar 103 do putchar 99  do putchar 100 do putchar 40
+  do putchar 49  do putchar 50  do putchar 44  do putchar 56
+  do putchar 41  do putchar 61
+  do print_u8 (gcd 12 8) do newline 0
+  0

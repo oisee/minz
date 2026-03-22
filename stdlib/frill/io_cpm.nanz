@@ -1,0 +1,17 @@
+// CP/M I/O primitives for Frill programs
+// Compile with: minzc program.frl (auto-linked when extern matches)
+
+fun putchar(ch: u8) -> void {
+    asm z80 (in ch) {
+        LD E, A
+        LD C, 2
+        CALL 5
+    }
+}
+
+fun newline(x: u8) -> void {
+    asm z80 {
+        LD E, 13 / LD C, 2 / CALL 5
+        LD E, 10 / LD C, 2 / CALL 5
+    }
+}
