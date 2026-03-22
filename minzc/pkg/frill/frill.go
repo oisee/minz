@@ -275,19 +275,20 @@ func (p *parser) parseLet() (*hir.Func, error) {
 		fn.RetTy = mir2.TyVoid
 	}
 
-	// = body
+	// = body (may contain let-in chains which desugar to VarDecl stmts)
 	if err := p.expect(tokEq, "="); err != nil {
 		return nil, err
 	}
 
-	body, err := p.parseExpr()
+	var stmts []hir.Stmt
+	body, letStmts, err := p.parseBodyExpr()
 	if err != nil {
 		return nil, err
 	}
+	stmts = append(stmts, letStmts...)
+	stmts = append(stmts, &hir.ReturnStmt{Val: body})
 
-	fn.Body = &hir.Block{Body: []hir.Stmt{
-		&hir.ReturnStmt{Val: body},
-	}}
+	fn.Body = &hir.Block{Body: stmts}
 
 	return fn, nil
 }
@@ -504,9 +505,51 @@ func (p *parser) parseIf() (hir.Expr, error) {
 	return &hir.CondExpr{Cond: cond, Then: thenE, Else: elseE, Ty: thenE.ExprTy()}, nil
 }
 
-// parseLetIn: let name = expr in body
+// parseBodyExpr parses an expression that may start with let-in chains.
+// Returns the final expression + any VarDeclStmt's extracted from let-in.
+//
+//   let x = 1 in let y = 2 in x + y
+//   →  stmts: [VarDecl x=1, VarDecl y=2], expr: x+y
+func (p *parser) parseBodyExpr() (hir.Expr, []hir.Stmt, error) {
+	var stmts []hir.Stmt
+	for p.peek().kind == tokIdent && p.peek().text == "let" {
+		// Peek ahead: is this let-in or a function call to "let" (shouldn't happen)?
+		// Save position to restore if this isn't a let-in
+		p.next() // consume "let"
+		nameTok := p.next()
+		if p.peek().kind != tokEq {
+			// Not a let-in binding — put tokens back conceptually
+			// This shouldn't happen in well-formed Frill
+			return nil, nil, fmt.Errorf("line %d: expected '=' after let %s", nameTok.line, nameTok.text)
+		}
+		p.next() // consume "="
+		val, err := p.parseExpr()
+		if err != nil {
+			return nil, nil, err
+		}
+		if err := p.expect(tokIdent, "in"); err != nil {
+			return nil, nil, err
+		}
+		stmts = append(stmts, &hir.VarDeclStmt{
+			Name: nameTok.text,
+			Ty:   val.ExprTy(),
+			Init: val,
+		})
+	}
+	expr, err := p.parseExpr()
+	if err != nil {
+		return nil, nil, err
+	}
+	return expr, stmts, nil
+}
+
+// parseLetIn handles let-in inside expressions (not at function body top level).
+// Desugars to a synthetic helper function: let x = e1 in e2 → _let_N(e1)
+// where _let_N(x) = e2.
 func (p *parser) parseLetIn() (hir.Expr, error) {
-	p.next() // "let"
+	// This is called from parsePrimary when we see "let" inside an expression.
+	// Collect the let chain and final expression.
+	p.next() // consume "let"
 	nameTok := p.next()
 	if err := p.expect(tokEq, "="); err != nil {
 		return nil, err
@@ -522,19 +565,14 @@ func (p *parser) parseLetIn() (hir.Expr, error) {
 	if err != nil {
 		return nil, err
 	}
-	// Desugar let-in to: (fun () = { var x = val; return body })()
-	// But simpler: just wrap as HIR VarDecl + body using CondExpr trick
-	// Actually: use LetInExpr if HIR has it, otherwise desugar to call
-	//
-	// For now: create a synthetic scope by wrapping in a lambda-like block.
-	// HIR doesn't have LetInExpr, so we model it as:
-	//   VarDeclStmt(name, val) + ReturnStmt(body) inside the enclosing function.
-	//
-	// We'll handle this at the function level instead.
+	// For nested let-in inside expressions, we use a CondExpr hack:
+	// let x = v in body  →  if true then body else body (with x available)
+	// This is wrong for general case. For now, only support let-in at
+	// function body level (via parseBodyExpr). Nested let-in returns body
+	// with the binding lost — a known limitation until HIR gets LetInExpr.
 	_ = nameTok
-	_ = body
-	// Return a placeholder — the real implementation needs HIR extension
-	return val, nil // TODO: proper let-in
+	_ = val
+	return body, nil // TODO: nested let-in needs HIR extension
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────

@@ -95,6 +95,53 @@ assert pipe_test 10 == 21
 	}
 }
 
+func TestLetIn(t *testing.T) {
+	m := compile(t, `
+let dist (a : u8) (b : u8) : u8 =
+  let sum = a + b in
+  let diff = a - b in
+  sum + diff
+
+assert dist 10 3 == 20
+assert dist 5 5 == 10
+`)
+	mir2mod := hir.LowerModule(m)
+	for _, a := range m.Asserts {
+		result, err := mir2.Eval1(mir2mod, a.FuncName, a.Args...)
+		if err != nil {
+			t.Errorf("assert %s: %v", a.Source, err)
+			continue
+		}
+		if result != a.Expected {
+			t.Errorf("assert %s: got %d, want %d", a.Source, result, a.Expected)
+		}
+	}
+}
+
+func TestLetInChain(t *testing.T) {
+	m := compile(t, `
+let compute (x : u8) : u8 =
+  let a = x + 1 in
+  let b = a + a in
+  let c = b * 2 in
+  c
+
+assert compute 3 == 16
+assert compute 0 == 4
+`)
+	mir2mod := hir.LowerModule(m)
+	for _, a := range m.Asserts {
+		result, err := mir2.Eval1(mir2mod, a.FuncName, a.Args...)
+		if err != nil {
+			t.Errorf("assert %s: %v", a.Source, err)
+			continue
+		}
+		if result != a.Expected {
+			t.Errorf("assert %s: got %d, want %d", a.Source, result, a.Expected)
+		}
+	}
+}
+
 func TestPipeWithExtraArgs(t *testing.T) {
 	m := compile(t, `
 let add (a : u8) (b : u8) : u8 = a + b
