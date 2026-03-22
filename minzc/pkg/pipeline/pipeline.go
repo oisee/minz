@@ -230,12 +230,9 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 				AnnotateTStates: opt.AnnotateTStates,
 			})
 			// Extract per-function asm from PBQP output for failed functions,
-			// then splice into the LIR output.
+			// then splice into the LIR output. PBQP output already contains
+			// globals, strings, and spill data — don't emit separately.
 			s.Assembly = splicePerFunctionFallback(lirAsm, pbqpAsm, lirResults, failSet, m)
-			// Append LIR-sanitized string pool (PBQP uses different sanitization).
-			var strBuf strings.Builder
-			lir.EmitStringPool(&strBuf, m)
-			s.Assembly += strBuf.String()
 			fmt.Fprintf(os.Stderr, "lir: %d/%d via ISLE+WFC, %d via PBQP fallback: %s\n",
 				ok, ok+fail, fail, strings.Join(failNames, ", "))
 		} else {
@@ -821,12 +818,9 @@ func splicePerFunctionFallback(lirAsm, pbqpAsm string, results []lir.LIRFuncResu
 		}
 	}
 
-	// Append globals and any trailing content from PBQP (spill data, strings).
+	// Emit globals once — use our emitGlobals (consistent with LIR sanitization).
+	// PBQP globals section is NOT appended to avoid duplicates.
 	sb.WriteString(emitGlobals(m))
-	// Also append spill/data sections from PBQP output (they follow the last function).
-	if idx := strings.Index(pbqpAsm, "\n; spill"); idx >= 0 {
-		sb.WriteString(pbqpAsm[idx:])
-	}
 
 	return sb.String()
 }
