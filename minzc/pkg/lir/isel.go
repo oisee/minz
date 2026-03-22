@@ -376,12 +376,21 @@ func findBestPattern(desc *MachineDesc, op MIROp) (*Pattern, error) {
 				continue
 			}
 		}
-		// INC/DEC patterns require dst == src0 == src1 (same vreg).
-		// Only skip for Z80 where this matters — other descs use inc_r differently.
+		// INC/DEC patterns: dst = src + 1 (implicit constant).
+		// Match ONLY when dst == src0 == src1 (same vreg) AND the operation
+		// is really increment (not double). If src0 == src1 but they're both
+		// real vregs, it's x+x = 2*x (double), not x+1 (increment).
 		if desc.Name == "z80" &&
-			(p.Name == "inc_r" || p.Name == "dec_r" || p.Name == "inc_rr") &&
-			op.Src[0] >= 0 && op.Src[1] >= 0 && op.Src[0] != op.Src[1] {
-			continue
+			(p.Name == "inc_r" || p.Name == "dec_r" || p.Name == "inc_rr" || p.Name == "dec_rr") {
+			if op.Src[0] >= 0 && op.Src[1] >= 0 {
+				if op.Src[0] != op.Src[1] {
+					continue // different srcs → not increment
+				}
+				// Same src for both → this is x+x (double), skip INC.
+				if op.Op == OpAdd || op.Op == OpSub {
+					continue
+				}
+			}
 		}
 		candidates = append(candidates, p)
 	}
