@@ -181,77 +181,59 @@ fun con_putchar(ch: u8) -> void {
 }
 
 fun con_draw_char(col: u8, row: u8, ch: u8) -> void {
-    // Full asm: avoids regalloc issues with font_ptr vs screen_addr
-    // PBQP default convention: col=A, row=C, ch=B
+    // PBQP assigns: col=B, row=D, ch=C for this 3-param function
+    // (verified from generated signature)
     asm z80 (in col, row, ch) {
-        ; Convention varies — use @z80_ annotations for stability.
-        ; Without annotations, PBQP picks based on context.
-        ; We use (in col, row, ch) which maps to physical regs
-        ; via the contract. Read from whatever PBQP assigned.
-        ;
-        ; Strategy: use asm (in) names — the compiler routes
-        ; col/row/ch to whichever regs it chose, and we read them
-        ; through the (in) mechanism. But we can't reference
-        ; param names in asm... so we hardcode.
-        ;
-        ; FALLBACK: put @z80_ back but accept the caller mismatch.
-        ; REAL FIX: rewrite con_putchar to pass args correctly.
-        ;
-        ; col=A, row=B, ch=C (via @z80_a/b/c annotations)
-        LD IYL, A       ; IYL = col
-        LD IYH, B       ; IYH = row
+        ; Entry: B=col, D=row, C=ch
+        LD IYL, B           ; IYL = col
+        LD IYH, D           ; IYH = row
 
         ; Compute font_ptr = $3D00 + (ch - 32) * 8
-        LD A, C         ; A = ch
-        SUB 32          ; A = ch - 32
+        LD A, C             ; A = ch
+        SUB 32
         LD L, A
-        LD H, 0         ; HL = ch - 32
+        LD H, 0
         ADD HL, HL
         ADD HL, HL
-        ADD HL, HL      ; HL = (ch-32) * 8
+        ADD HL, HL
         LD DE, 0x3D00
-        ADD HL, DE      ; HL = font_ptr
-        EX DE, HL       ; DE = font_ptr
+        ADD HL, DE
+        EX DE, HL           ; DE = font_ptr
 
         ; Draw 8 pixel lines
-        LD B, 8         ; B = line counter (8 down to 1)
-        LD C, 0         ; C = current line (0-7)
+        LD B, 8
+        LD C, 0
     .line_loop:
-        PUSH DE         ; save font_ptr
-        PUSH BC         ; save counters
-
-        ; Inline screen_addr(col=IYL, row=IYH, line=C)
-        LD A, IYH       ; A = row
+        PUSH DE
+        PUSH BC
+        LD A, IYH
         AND 0x18
-        OR C            ; combine with line
+        OR C
         OR 0x40
         LD H, A
-        LD A, IYH       ; A = row
+        LD A, IYH
         AND 0x07
         RRCA
         RRCA
         RRCA
-        OR IYL          ; combine with col
-        LD L, A         ; HL = screen address
+        OR IYL
+        LD L, A
+        POP BC
+        POP DE
+        LD A, (DE)
+        LD (HL), A
+        INC DE
+        INC C
+        DJNZ .line_loop
 
-        POP BC          ; restore counters
-        POP DE          ; restore font_ptr
-
-        ; Copy font byte to screen
-        LD A, (DE)      ; A = font pixel data
-        LD (HL), A      ; write to screen
-        INC DE          ; next font byte
-        INC C           ; next line
-        DJNZ .line_loop ; B-- and loop
-
-        ; Set attribute: inline attr_addr(col=IYL, row=IYH)
-        LD A, IYH       ; A = row
+        ; Set attribute
+        LD A, IYH
         RRCA
         RRCA
         RRCA
         LD L, A
         AND 0xE0
-        OR IYL          ; combine with col
+        OR IYL
         LD L, A
         LD A, IYH
         RRCA
@@ -259,7 +241,7 @@ fun con_draw_char(col: u8, row: u8, ch: u8) -> void {
         RRCA
         AND 0x03
         OR 0x58
-        LD H, A         ; HL = attr address
+        LD H, A
         LD A, (zx_console_con_attr)
         LD (HL), A
     }
