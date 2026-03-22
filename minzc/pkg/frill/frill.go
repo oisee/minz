@@ -805,16 +805,19 @@ func (p *parser) parseMatch() (hir.Expr, error) {
 	type arm struct {
 		isDefault bool
 		val       int64
+		guard     hir.Expr // nil = no guard; non-nil = extra condition
 		body      hir.Expr
+		bindName  string // variable name bound to scrutinee (for guards)
 	}
 	var arms []arm
 
-	// Parse arms: | pattern -> body
+	// Parse arms: | pattern [when guard] -> body
 	for p.peek().kind == tokOp && p.peek().text == "|" {
-		p.next() // consume |  (lexed as single-char operator)
+		p.next() // consume |
 		tok := p.peek()
 		isDefault := false
 		var val int64
+		var bindName string
 		if tok.kind == tokIdent && tok.text == "_" {
 			p.next()
 			isDefault = true
@@ -822,15 +825,27 @@ func (p *parser) parseMatch() (hir.Expr, error) {
 			p.next()
 			val, _ = strconv.ParseInt(tok.text, 10, 64)
 		} else if tok.kind == tokIdent {
-			// Named constructor — look up tag from ADT registry
 			p.next()
 			if ctor, ok := p.ctors[tok.text]; ok {
+				// Named constructor
 				val = ctor.tag
 			} else {
-				return nil, fmt.Errorf("line %d: unknown constructor %q", tok.line, tok.text)
+				// Variable binding: | n when n > 10 -> ...
+				bindName = tok.text
+				isDefault = true
 			}
 		} else {
 			return nil, fmt.Errorf("line %d: expected pattern, got %q", tok.line, tok.text)
+		}
+
+		// Optional guard: when <expr>
+		var guard hir.Expr
+		if p.peek().kind == tokIdent && p.peek().text == "when" {
+			p.next() // consume "when"
+			guard, err = p.parseComparison()
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		if err := p.expect(tokArrow, "->"); err != nil {
@@ -841,7 +856,7 @@ func (p *parser) parseMatch() (hir.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
-		arms = append(arms, arm{isDefault: isDefault, val: val, body: body})
+		arms = append(arms, arm{isDefault: isDefault, val: val, guard: guard, body: body, bindName: bindName})
 	}
 
 	// Optional "end" keyword
@@ -898,17 +913,30 @@ func (p *parser) parseMatch() (hir.Expr, error) {
 
 	// Build nested CondExpr from bottom up.
 	// Default arm (if any) becomes the innermost else.
+	// Guards add an extra condition: (val == pat) && guard
 	var result hir.Expr
 	for i := len(arms) - 1; i >= 0; i-- {
 		a := arms[i]
-		if a.isDefault {
+		if a.isDefault && a.guard == nil {
 			result = a.body
+		} else if a.isDefault && a.guard != nil {
+			// Variable binding with guard: | n when n > 10 -> body
+			// Condition is just the guard (pattern matches everything)
+			elseE := result
+			if elseE == nil {
+				elseE = &hir.IntLitExpr{Val: 0, Ty: scrutinee.ExprTy()}
+			}
+			result = &hir.CondExpr{Cond: a.guard, Then: a.body, Else: elseE, Ty: a.body.ExprTy()}
 		} else {
 			cond := &hir.BinExpr{
 				Op: "==",
 				L:  scrutinee,
 				R:  &hir.IntLitExpr{Val: a.val, Ty: scrutinee.ExprTy()},
 				Ty: mir2.TyBool,
+			}
+			if a.guard != nil {
+				// Combine: (scrutinee == val) && guard
+				cond = &hir.BinExpr{Op: "&&", L: cond, R: a.guard, Ty: mir2.TyBool}
 			}
 			elseE := result
 			if elseE == nil {
@@ -979,7 +1007,7 @@ func (p *parser) parseType() mir2.Ty {
 
 func isKeyword(s string) bool {
 	switch s {
-	case "let", "in", "if", "then", "else", "type", "assert", "match", "with", "fun", "end", "where":
+	case "let", "in", "if", "then", "else", "type", "assert", "match", "with", "fun", "end", "where", "when":
 		return true
 	}
 	return false
