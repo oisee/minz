@@ -249,8 +249,17 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			Template: "LD (HL), {src1}", Cost: 7, Bytes: 1, Flags: PatMemWrite},
 
 		// ── Memory stores — 16-bit ───────────────────────────────────
+		// LD (nn), HL — store 16-bit pair to absolute address
 		{Name: "ld_nn_hl_store", MIROp: OpStore, Width: 16, SrcLocs: [2]LocSet{spill, hl},
 			Template: "LD ({src0}), HL", Cost: 16, Bytes: 3, Flags: PatMemWrite},
+		// 16-bit store via HL pointer: LD (HL),E; INC HL; LD (HL),D; DEC HL
+		{Name: "st16_hl_de", MIROp: OpStore, Width: 16, SrcLocs: [2]LocSet{hl, de},
+			Template: "LD (HL), E\n    INC HL\n    LD (HL), D\n    DEC HL",
+			Cost: 22, Bytes: 4, Flags: PatMemWrite},
+		// 16-bit store via HL pointer from BC: LD (HL),C; INC HL; LD (HL),B; DEC HL
+		{Name: "st16_hl_bc", MIROp: OpStore, Width: 16, SrcLocs: [2]LocSet{hl, bc},
+			Template: "LD (HL), C\n    INC HL\n    LD (HL), B\n    DEC HL",
+			Cost: 22, Bytes: 4, Flags: PatMemWrite},
 
 		// ── Combined 16-bit LE load (ISLE combining target) ──────────
 		{Name: "ld16_le_hl", MIROp: OpLoad16LE, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{hl},
