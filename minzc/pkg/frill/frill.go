@@ -288,6 +288,12 @@ func (p *parser) parseModule() (*hir.Module, error) {
 				return nil, err
 			}
 			mod.Asserts = append(mod.Asserts, a)
+		case "extern":
+			fn, err := p.parseExtern()
+			if err != nil {
+				return nil, err
+			}
+			mod.Funcs = append(mod.Funcs, fn)
 		case "prop":
 			fn, asserts, err := p.parseProp()
 			if err != nil {
@@ -429,6 +435,46 @@ func (p *parser) parseRecordFields(name string) error {
 	st := &mir2.StructTy{Name: name, Fields: fields}
 	p.records = append(p.records, st)
 	return nil
+}
+
+// parseExtern: extern name (p1 : t1) (p2 : t2) : retty
+// or: extern name (p1 : t1) : retty = 0x0010  (fixed address)
+func (p *parser) parseExtern() (*hir.Func, error) {
+	p.next() // consume "extern"
+	nameTok := p.next()
+
+	fn := &hir.Func{Name: nameTok.text, IsExtern: true}
+
+	for p.peek().kind == tokLParen {
+		p.next()
+		pname := p.next()
+		if err := p.expect(tokColon, ":"); err != nil {
+			return nil, err
+		}
+		pty := p.parseType()
+		if err := p.expect(tokRParen, ")"); err != nil {
+			return nil, err
+		}
+		fn.Params = append(fn.Params, hir.Param{Name: pname.text, Ty: pty})
+	}
+	p.arities[fn.Name] = len(fn.Params)
+
+	if p.peek().kind == tokColon {
+		p.next()
+		fn.RetTy = p.parseType()
+	} else {
+		fn.RetTy = mir2.TyVoid
+	}
+
+	// Optional: = address (for ROM/BIOS calls)
+	if p.peek().kind == tokEq {
+		p.next()
+		addrTok := p.next()
+		addr, _ := strconv.ParseInt(addrTok.text, 0, 64)
+		fn.ExternAddr = uint16(addr)
+	}
+
+	return fn, nil
 }
 
 // parseProp: prop |x| lhs == rhs
@@ -1234,7 +1280,7 @@ func (p *parser) parseType() mir2.Ty {
 
 func isKeyword(s string) bool {
 	switch s {
-	case "let", "in", "if", "then", "else", "type", "assert", "match", "with", "fun", "end", "where", "when", "prop":
+	case "let", "in", "if", "then", "else", "type", "assert", "match", "with", "fun", "end", "where", "when", "prop", "extern":
 		return true
 	}
 	return false
