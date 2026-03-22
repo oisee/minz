@@ -927,6 +927,66 @@ func ExpandTemplateNamed(inst Inst, desc *MachineDesc) string {
 	tmpl = strings.ReplaceAll(tmpl, "{imm}", fmt.Sprintf("%d", inst.Imm))
 	sym := strings.ReplaceAll(inst.Sym, "-", "_")
 	tmpl = strings.ReplaceAll(tmpl, "{sym}", sym)
+
+	// Last-resort fixup: if the expanded template is an invalid Z80 instruction
+	// (e.g. LD (BC), HL — no such instruction), replace with a valid sequence.
+	if desc != nil && desc.Name == "z80" {
+		tmpl = fixInvalidZ80Template(tmpl, inst, desc, getName)
+	}
+
+	return tmpl
+}
+
+// fixInvalidZ80Template replaces known-invalid Z80 instruction patterns with
+// valid multi-instruction sequences. This is the last line of defense after
+// validate-reject, pattern-retry, and selectTemplateForPhys all failed.
+func fixInvalidZ80Template(tmpl string, inst Inst, desc *MachineDesc, getName func(int) string) string {
+	// LD (rr), HL/DE/BC — 16-bit store via non-HL pointer.
+	// Z80 only supports LD (BC),A and LD (DE),A (8-bit, A only).
+	// Decompose to byte-by-byte via A.
+	src1Name := getName(inst.Srcs[1].Phys)
+	src0Name := getName(inst.Srcs[0].Phys)
+
+	// Check: is this a store of a 16-bit pair via another pair pointer?
+	pairs16 := map[string][2]string{
+		"HL": {"L", "H"}, "DE": {"E", "D"}, "BC": {"C", "B"},
+	}
+	if lo1hi1, valIsPair := pairs16[src1Name]; valIsPair {
+		if _, ptrIsPair := pairs16[src0Name]; ptrIsPair && src0Name != "HL" {
+			// LD (BC/DE), HL/DE/BC → byte-by-byte via A
+			return fmt.Sprintf("LD A, %s\n    LD (%s), A\n    INC %s\n    LD A, %s\n    LD (%s), A\n    DEC %s",
+				lo1hi1[0], src0Name, src0Name, lo1hi1[1], src0Name, src0Name)
+		}
+		// LD (HL), HL → self-store: evacuate to DE first
+		if src0Name == "HL" && src1Name == "HL" {
+			return "LD D, H\n    LD E, L\n    LD (HL), E\n    INC HL\n    LD (HL), D\n    DEC HL"
+		}
+		// LD (HL), DE/BC → byte-by-byte
+		if src0Name == "HL" {
+			return fmt.Sprintf("LD (HL), %s\n    INC HL\n    LD (HL), %s\n    DEC HL",
+				lo1hi1[0], lo1hi1[1])
+		}
+	}
+
+	// LD (IX/IY), pair → byte-by-byte via A with (IX+d)
+	if (src0Name == "IX" || src0Name == "IY") {
+		if lo1hi1, ok := pairs16[src1Name]; ok {
+			return fmt.Sprintf("LD A, %s\n    LD (%s+0), A\n    LD A, %s\n    LD (%s+1), A",
+				lo1hi1[0], src0Name, lo1hi1[1], src0Name)
+		}
+	}
+
+	// ADD HL, IX/IY → route through DE
+	if strings.HasPrefix(tmpl, "ADD HL, IX") || strings.HasPrefix(tmpl, "ADD HL, IY") {
+		ixName := src1Name // "IX" or "IY"
+		return fmt.Sprintf("PUSH %s\n    POP DE\n    ADD HL, DE", ixName)
+	}
+
+	// ADD HL, mem → load to DE first
+	if strings.HasPrefix(tmpl, "ADD HL, mem") || strings.HasPrefix(tmpl, "ADD HL, spill") {
+		return fmt.Sprintf("LD DE, (%s)\n    ADD HL, DE", src1Name)
+	}
+
 	return tmpl
 }
 
