@@ -175,17 +175,93 @@ fun con_putchar(ch: u8) -> void {
     }
 }
 
-fun con_draw_char(col: u8, row: u8, ch: u8) -> void {
-    // Font data address: $3D00 + (ch - 32) * 8
-    var font_ptr: u16 = FONT_ADDR + u16(ch - 32) * 8
-    for line in 0..8 {
-        let addr: u16 = screen_addr(col, row, line)
-        let pixels: u8 = zx_peek(font_ptr)
-        zx_poke(addr, pixels)
-        font_ptr = font_ptr + 1
+fun con_draw_char(@z80_a col: u8, @z80_b row: u8, @z80_c ch: u8) -> void {
+    // Full asm: avoids regalloc issues with font_ptr vs screen_addr
+    // col=A, row=B, ch=C
+    asm z80 (in col, row, ch) {
+        ; Save col, row for later (attr_addr)
+        PUSH BC         ; B=row, save
+        PUSH AF         ; A=col, save
+
+        ; Compute font_ptr = $3D00 + (ch - 32) * 8
+        LD A, C         ; A = ch
+        SUB 32          ; A = ch - 32
+        LD L, A
+        LD H, 0         ; HL = ch - 32
+        ADD HL, HL
+        ADD HL, HL
+        ADD HL, HL      ; HL = (ch-32) * 8
+        LD DE, 0x3D00
+        ADD HL, DE      ; HL = font_ptr
+        EX DE, HL       ; DE = font_ptr
+
+        ; Restore col, row
+        POP AF          ; A = col
+        POP BC          ; B = row
+
+        ; Draw 8 pixel lines
+        ; For each line 0-7: compute screen addr, copy font byte
+        LD C, 0         ; C = line counter (0-7)
+    .line_loop:
+        PUSH DE         ; save font_ptr
+        PUSH BC         ; save row + line counter
+
+        ; screen_addr(col=A, row=B, line=C)
+        ; H = 010 TT SSS, L = RRR CCCCC
+        LD D, A         ; D = col
+        LD A, B         ; A = row
+        AND 0x18
+        OR C            ; combine with line
+        OR 0x40
+        LD H, A
+        LD A, B         ; A = row
+        AND 0x07
+        RRCA
+        RRCA
+        RRCA
+        OR D            ; combine with col
+        LD L, A         ; HL = screen address
+
+        POP BC          ; restore row + line counter
+        POP DE          ; restore font_ptr
+
+        ; Copy font byte to screen
+        LD A, (DE)      ; A = font pixel data
+        LD (HL), A      ; write to screen
+        INC DE          ; next font byte
+
+        ; Restore col for next iteration
+        LD A, L
+        AND 0x1F        ; extract col from L (CCCCC bits)
+
+        INC C           ; line++
+        LD A, C
+        CP 8
+        LD A, L
+        AND 0x1F        ; re-extract col (A was clobbered by CP)
+        JR NZ, .line_loop
+
+        ; Set attribute: attr_addr(col, row)
+        ; A = col (from loop), B = row (preserved)
+        LD D, A         ; D = col
+        LD A, B
+        RRCA
+        RRCA
+        RRCA
+        LD L, A
+        AND 0xE0
+        OR D
+        LD L, A
+        LD A, B
+        RRCA
+        RRCA
+        RRCA
+        AND 0x03
+        OR 0x58
+        LD H, A         ; HL = attr address
+        LD A, (zx_console_con_attr)
+        LD (HL), A
     }
-    // Set attribute
-    zx_poke(attr_addr(col, row), con_attr)
 }
 
 fun con_print(str: ^u8) -> void {
