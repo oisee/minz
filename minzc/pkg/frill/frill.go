@@ -174,11 +174,20 @@ func (p *parser) lex() token {
 	line := p.line
 	ch := p.src[p.pos]
 
-	// Number
+	// Number: decimal or 0x hex
 	if ch >= '0' && ch <= '9' {
 		start := p.pos
-		for p.pos < len(p.src) && (p.src[p.pos] >= '0' && p.src[p.pos] <= '9') {
-			p.pos++
+		if ch == '0' && p.pos+1 < len(p.src) && (p.src[p.pos+1] == 'x' || p.src[p.pos+1] == 'X') {
+			p.pos += 2 // skip 0x
+			for p.pos < len(p.src) && ((p.src[p.pos] >= '0' && p.src[p.pos] <= '9') ||
+				(p.src[p.pos] >= 'a' && p.src[p.pos] <= 'f') ||
+				(p.src[p.pos] >= 'A' && p.src[p.pos] <= 'F')) {
+				p.pos++
+			}
+		} else {
+			for p.pos < len(p.src) && (p.src[p.pos] >= '0' && p.src[p.pos] <= '9') {
+				p.pos++
+			}
 		}
 		return token{tokInt, p.src[start:p.pos], line}
 	}
@@ -590,6 +599,14 @@ func (p *parser) parseMul() (hir.Expr, error) {
 }
 
 func (p *parser) parseUnary() (hir.Expr, error) {
+	if p.peek().kind == tokOp && p.peek().text == "-" {
+		p.next()
+		x, err := p.parsePrimary()
+		if err != nil {
+			return nil, err
+		}
+		return &hir.BinExpr{Op: "-", L: &hir.IntLitExpr{Val: 0, Ty: x.ExprTy()}, R: x, Ty: x.ExprTy()}, nil
+	}
 	return p.parsePrimary()
 }
 
@@ -609,6 +626,16 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		return e, nil
 	}
 
+	// Bool literals
+	if t.kind == tokIdent && t.text == "true" {
+		p.next()
+		return &hir.BoolLitExpr{Val: true}, nil
+	}
+	if t.kind == tokIdent && t.text == "false" {
+		p.next()
+		return &hir.BoolLitExpr{Val: false}, nil
+	}
+
 	// String literal — intern and return pointer
 	if t.kind == tokString {
 		p.next()
@@ -624,7 +651,7 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 	// Integer literal
 	if t.kind == tokInt {
 		p.next()
-		val, _ := strconv.ParseInt(t.text, 10, 64)
+		val, _ := strconv.ParseInt(t.text, 0, 64)
 		ty := mir2.TyU8
 		if val > 255 {
 			ty = mir2.TyU16
