@@ -6,140 +6,210 @@
 
 ; fun main()
 main:
-    CALL tui_clear
-    CALL tui_hide_cursor
-    CALL draw_title
-    CALL draw_panel
-    CALL draw_status_bar
-    LD C, 1
+    CALL agon_tui_render_tui_clear
+    CALL agon_tui_render_tui_hide_cursor
+    LD A, 0
+    LD C, 0
+    LD A, C
+    CALL agon_tui_render_tui_goto
+    LD A, 0
+    LD C, 6
+    LD B, 0
+    LD A, C
+    LD A, B
+    CALL agon_tui_render_tui_color
+    LD HL, _mir2.str.17
+    CALL agon_tui_render_tui_puts
+    LD A, 7
+    LD C, 4
+    LD B, 1
+    LD A, C
+    LD A, B
+    CALL agon_tui_render_tui_color
+    LD A, 1
+    LD C, 2
+    LD B, 40
+    LD D, 12
+    LD A, C
+    LD A, B
+    LD A, D
+    CALL agon_tui_render_draw_box
+    LD A, 3
+    LD C, 2
+    LD A, C
+    CALL agon_tui_render_tui_goto
+    LD A, 0
+    LD C, 6
+    LD B, 0
+    LD A, C
+    LD A, B
+    CALL agon_tui_render_tui_color
+    LD HL, _mir2.str.18
+    CALL agon_tui_render_tui_puts
+    LD A, 3
+    LD C, 3
+    LD A, C
+    CALL agon_tui_render_tui_goto
+    LD A, 3
+    LD C, 4
+    LD B, 1
+    LD A, C
+    LD A, B
+    CALL agon_tui_render_tui_color
+    LD HL, _mir2.str.19
+    CALL agon_tui_render_tui_puts
+    LD A, 0
+    LD C, 24
+    LD A, C
+    CALL agon_tui_render_tui_goto
+    LD A, 0
+    LD C, 6
+    LD B, 0
+    LD A, C
+    LD A, B
+    CALL agon_tui_render_tui_color
+    LD HL, _mir2.str.20
+    CALL agon_tui_render_tui_puts
+    LD A, 7
+    LD C, 0
+    LD B, 0
+    LD A, C
+    LD A, B
+    CALL agon_tui_render_tui_color
+    LD HL, _mir2.str.21
+    CALL agon_tui_render_tui_puts
+    LD A, 0
+    LD C, 6
+    LD B, 0
+    LD A, C
+    LD A, B
+    CALL agon_tui_render_tui_color
+    LD HL, _mir2.str.22
+    CALL agon_tui_render_tui_puts
+    LD A, 7
+    LD C, 0
+    LD B, 0
+    LD A, C
+    LD A, B
+    CALL agon_tui_render_tui_color
+    LD HL, _mir2.str.23
+    CALL agon_tui_render_tui_puts
+    LD A, 0
+    LD C, 6
+    LD B, 0
+    LD A, C
+    LD A, B
+    CALL agon_tui_render_tui_color
+    LD HL, _mir2.str.24
+    CALL agon_tui_render_tui_puts
+    LD A, 7
+    LD C, 0
+    LD B, 0
+    LD A, C
+    LD A, B
+    CALL agon_tui_render_tui_color
+    LD HL, _mir2.str.25
+    CALL agon_tui_render_tui_puts
+    LD C, 0
+    LD A, 0
+    CALL draw_all
     LD D, 0
+    LD E, 0
     JP .main_loop_head1
 .main_loop_head1:
-    LD D, 0
-    LD A, C
-    CP 0
-    JP NZ, .main_loop_body2
-    JP .main_loop_exit3
-.main_loop_body2:
-    CALL tui_read_key
-    LD HL, KEY_UP
-    LD D, (HL)
-    LD A, ?
-    CP D
-    JP Z, .main_if_then4
-    JP .main_if_join5
-.main_if_then4:
-    LD HL, cursor
-    LD D, (HL)
     LD E, 0
     LD A, D
     CP 0
+    JP Z, .main_loop_body2
+    JP .main_loop_exit3
+.main_loop_body2:
+    CALL agon_tui_render_tui_read_key
+    LD E, 10
+    LD A, ?
+    CP 10
+    JP Z, .main_if_then4
+    JP .main_if_join5
+.main_if_then4:
+    LD E, 7
+    LD A, C
+    CP 7
     JP NZ, .main_if_then6
     JP .main_if_join7
 .main_if_then6:
-    LD HL, cursor
-    LD D, (HL)
-    LD HL, cursor
-    LD E, (HL)
-    LD H, 1
-    LD A, E
-    SUB 1
-    LD HL, cursor
-    LD (HL), A
-    LD A, D
-    CALL draw_file_entry
-    LD HL, cursor
-    LD D, (HL)
-    LD A, D
-    CALL draw_file_entry
+    LD E, 1
+    LD A, C
+    ADD A, 1
+    LD C, A
+    LD A, C
+    CALL draw_all
     JP .main_if_join7
 .main_if_join7:
     JP .main_if_join5
 .main_if_join5:
-    LD HL, KEY_DOWN
-    LD D, (HL)
+    LD E, 11
     LD A, ?
-    CP D
+    CP 11
     JP Z, .main_if_then8
     JP .main_if_join9
 .main_if_then8:
-    LD HL, cursor
-    LD D, (HL)
-    LD HL, FILE_COUNT
-    LD E, (HL)
-    LD H, 1
-    LD A, E
-    SUB 1
-    LD A, D
-    CP A
+    LD E, 0
+    LD A, C
+    CP 0
     JP NZ, .main_if_then10
     JP .main_if_join11
 .main_if_then10:
-    LD HL, cursor
-    LD D, (HL)
-    LD HL, cursor
-    LD E, (HL)
-    LD H, 1
-    LD A, E
-    ADD A, 1
-    LD HL, cursor
-    LD (HL), A
-    LD A, D
-    CALL draw_file_entry
-    LD HL, cursor
-    LD D, (HL)
-    LD A, D
-    CALL draw_file_entry
+    LD E, 1
+    LD A, C
+    SUB 1
+    LD C, A
+    LD A, C
+    CALL draw_all
     JP .main_if_join11
 .main_if_join11:
     JP .main_if_join9
 .main_if_join9:
-    LD HL, KEY_ESC
-    LD D, (HL)
+    LD E, 13
     LD A, ?
-    CP D
+    CP 13
     JP Z, .main_if_then12
     JP .main_if_join13
 .main_if_then12:
-    LD C, 0
-    JP .main_if_join13
-.main_if_join13:
-    LD HL, KEY_ENTER
-    LD D, (HL)
-    LD A, ?
-    CP D
-    JP Z, .main_if_then14
-    JP .main_if_join15
-.main_if_then14:
     LD A, 0
-    LD D, 22
-    CALL tui_goto
-    LD HL, COLOR_GREEN
-    LD D, (HL)
-    LD A, D
-    LD HL, COLOR_BLACK
-    LD D, (HL)
+    LD E, 22
+    LD A, E
+    CALL agon_tui_render_tui_goto
+    LD A, 2
+    LD E, 0
     LD B, 1
-    CALL tui_color
-    LD HL, _mir2.str.30
-    CALL tui_puts
-    LD HL, cursor
-    LD D, (HL)
-    LD A, D
+    LD A, E
+    LD A, B
+    CALL agon_tui_render_tui_color
+    LD HL, _mir2.str.26
+    CALL agon_tui_render_tui_puts
+    LD A, C
     CALL file_name
     LD L, 0
     LD H, A
-    CALL tui_puts
-    LD HL, _mir2.str.31
-    CALL tui_puts
+    CALL agon_tui_render_tui_puts
+    LD HL, _mir2.str.27
+    CALL agon_tui_render_tui_puts
+    JP .main_if_join13
+.main_if_join13:
+    LD E, 27
+    LD A, ?
+    CP 27
+    JP Z, .main_if_then14
+    JP .main_if_join15
+.main_if_then14:
+    LD D, 1
     JP .main_if_join15
 .main_if_join15:
-    LD D, ?
+    LD E, ?
     JP .main_loop_head1
 .main_loop_exit3:
-    CALL tui_show_cursor
-    CALL tui_reset
-    CALL tui_clear
+    CALL agon_tui_render_tui_show_cursor
+    CALL agon_tui_render_tui_reset
+    CALL agon_tui_render_tui_clear
     RET
 
 ; fun agon$tui_render$_tui_mos_putchar(ch: u8 = A)
@@ -345,11 +415,11 @@ agon_tui_render_tui_height:
     LD A, 30
     RET
 
-; fun agon$tui_render$tui_set_mode(mode: u8 = B)
+; fun agon$tui_render$tui_set_mode(mode: u8 = A)
 agon_tui_render_tui_set_mode:
-    LD A, 22
-    CALL agon_tui_render__tui_vdu
+    LD B, 22
     LD A, B
+    CALL agon_tui_render__tui_vdu
     CALL agon_tui_render__tui_vdu
     RET
 
@@ -742,301 +812,72 @@ file_size:
     LD A, L
     RET
 
-; fun draw_panel()
-draw_panel:
-    LD HL, COLOR_WHITE
-    LD C, (HL)
-    LD A, C
-    LD HL, COLOR_BLUE
-    LD C, (HL)
-    LD B, 1
-    CALL tui_color
-    LD HL, PANEL_X
-    LD C, (HL)
-    LD A, C
-    LD HL, PANEL_Y
-    LD C, (HL)
-    LD HL, PANEL_W
-    LD D, (HL)
-    LD B, D
-    LD HL, PANEL_H
-    LD D, (HL)
-    CALL draw_box
-    LD HL, PANEL_X
-    LD D, (HL)
-    LD C, 2
-    LD A, D
-    ADD A, 2
-    LD HL, PANEL_Y
-    LD C, (HL)
-    CALL tui_goto
-    LD HL, COLOR_BLACK
-    LD C, (HL)
-    LD A, C
-    LD HL, COLOR_CYAN
-    LD C, (HL)
-    LD B, 0
-    CALL tui_color
-    LD HL, _mir2.str.16
-    CALL tui_puts
-    LD HL, PANEL_X
-    LD C, (HL)
-    LD D, 2
-    LD A, C
-    ADD A, 2
-    LD HL, PANEL_Y
-    LD C, (HL)
-    LD D, 1
-    LD A, C
-    ADD A, 1
-    LD B, A
-    CALL tui_goto
-    LD HL, COLOR_YELLOW
-    LD C, (HL)
-    LD A, C
-    LD HL, COLOR_BLUE
-    LD C, (HL)
-    LD B, 1
-    CALL tui_color
-    LD HL, _mir2.str.17
-    CALL tui_puts
-    LD C, 0
-    JP .draw_panel_loop_head1
-.draw_panel_loop_head1:
-    LD HL, FILE_COUNT
-    LD D, (HL)
-    LD A, C
-    CP D
-    ; TODO: terminator *mir2.TermCondRet
-.draw_panel_loop_body2:
-    LD A, C
-    CALL draw_file_entry
-    LD D, 1
-    LD A, C
-    ADD A, 1
-    LD C, A
-    JP .draw_panel_loop_head1
-
-; fun draw_file_entry(idx: u8 = C)
-draw_file_entry:
-    LD HL, PANEL_X
-    LD D, (HL)
-    LD E, 1
-    LD A, D
-    ADD A, 1
-    LD HL, PANEL_Y
-    LD D, (HL)
-    LD E, 2
-    LD A, D
-    ADD A, 2
-    LD B, A
-    LD A, B
+; fun draw_entry(idx: u8 = C, selected: u8 = D)
+draw_entry:
+    LD A, 2
+    LD E, 4
+    LD A, E
     ADD A, C
     LD B, A
-    CALL tui_goto
-    LD HL, cursor
-    LD D, (HL)
+    LD A, B
+    CALL agon_tui_render_tui_goto
     LD A, C
     CP D
-    JP Z, .draw_file_entry_if_then1
-    JP .draw_file_entry_if_else3
-.draw_file_entry_if_then1:
-    LD HL, COLOR_BLACK
-    LD D, (HL)
-    LD A, D
-    LD HL, COLOR_CYAN
-    LD D, (HL)
+    JP Z, .draw_entry_if_then1
+    JP .draw_entry_if_else3
+.draw_entry_if_then1:
+    LD A, 0
+    LD D, 6
     LD B, 0
-    CALL tui_color
-    JP .draw_file_entry_if_join2
-.draw_file_entry_if_join2:
+    LD A, D
+    LD A, B
+    CALL agon_tui_render_tui_color
+    JP .draw_entry_if_join2
+.draw_entry_if_join2:
     LD A, 32
-    CALL tui_putch
+    CALL agon_tui_render_tui_putch
     LD A, C
     CALL file_name
     LD L, 0
     LD H, A
-    CALL tui_puts
-    LD A, 32
-    CALL tui_putch
+    CALL agon_tui_render_tui_puts
     LD A, C
     CALL file_size
     LD L, 0
     LD H, A
-    CALL tui_puts
+    CALL agon_tui_render_tui_puts
+    LD HL, _mir2.str.16
+    CALL agon_tui_render_tui_puts
+    RET
+.draw_entry_if_else3:
+    LD A, 7
+    LD D, 4
+    LD B, 1
+    LD A, D
+    LD A, B
+    CALL agon_tui_render_tui_color
+    JP .draw_entry_if_join2
+
+; fun draw_all(sel: u8 = A)
+draw_all:
     LD C, 0
-    JP .draw_file_entry_loop_head4
-.draw_file_entry_loop_head4:
-    LD D, 12
+    LD D, A
+    JP .draw_all_loop_head1
+.draw_all_loop_head1:
+    LD E, 8
     LD A, C
-    CP 12
+    CP 8
     ; TODO: terminator *mir2.TermCondRet
-.draw_file_entry_loop_body5:
-    LD A, 32
-    CALL tui_putch
-    LD D, 1
+.draw_all_loop_body2:
+    LD A, C
+    LD A, D
+    CALL draw_entry
+    LD E, 1
     LD A, C
     ADD A, 1
     LD C, A
-    JP .draw_file_entry_loop_head4
-.draw_file_entry_if_else3:
-    LD HL, COLOR_WHITE
-    LD D, (HL)
-    LD A, D
-    LD HL, COLOR_BLUE
-    LD D, (HL)
-    LD B, 1
-    CALL tui_color
-    JP .draw_file_entry_if_join2
+    JP .draw_all_loop_head1
 
-; fun draw_status_bar()
-draw_status_bar:
-    LD A, 0
-    LD C, 23
-    CALL tui_goto
-    LD HL, COLOR_BLACK
-    LD C, (HL)
-    LD A, C
-    LD HL, COLOR_CYAN
-    LD C, (HL)
-    LD B, 0
-    CALL tui_color
-    LD HL, _mir2.str.18
-    CALL tui_puts
-    LD HL, COLOR_WHITE
-    LD C, (HL)
-    LD A, C
-    LD HL, COLOR_BLACK
-    LD C, (HL)
-    LD B, 0
-    CALL tui_color
-    LD HL, _mir2.str.19
-    CALL tui_puts
-    LD HL, COLOR_BLACK
-    LD C, (HL)
-    LD A, C
-    LD HL, COLOR_CYAN
-    LD C, (HL)
-    LD B, 0
-    CALL tui_color
-    LD HL, _mir2.str.20
-    CALL tui_puts
-    LD HL, COLOR_WHITE
-    LD C, (HL)
-    LD A, C
-    LD HL, COLOR_BLACK
-    LD C, (HL)
-    LD B, 0
-    CALL tui_color
-    LD HL, _mir2.str.21
-    CALL tui_puts
-    LD HL, COLOR_BLACK
-    LD C, (HL)
-    LD A, C
-    LD HL, COLOR_CYAN
-    LD C, (HL)
-    LD B, 0
-    CALL tui_color
-    LD HL, _mir2.str.22
-    CALL tui_puts
-    LD HL, COLOR_WHITE
-    LD C, (HL)
-    LD A, C
-    LD HL, COLOR_BLACK
-    LD C, (HL)
-    LD B, 0
-    CALL tui_color
-    LD HL, _mir2.str.23
-    CALL tui_puts
-    LD HL, COLOR_BLACK
-    LD C, (HL)
-    LD A, C
-    LD HL, COLOR_CYAN
-    LD C, (HL)
-    LD B, 0
-    CALL tui_color
-    LD HL, _mir2.str.24
-    CALL tui_puts
-    LD HL, COLOR_WHITE
-    LD C, (HL)
-    LD A, C
-    LD HL, COLOR_BLACK
-    LD C, (HL)
-    LD B, 0
-    CALL tui_color
-    LD HL, _mir2.str.25
-    CALL tui_puts
-    LD HL, COLOR_BLACK
-    LD C, (HL)
-    LD A, C
-    LD HL, COLOR_CYAN
-    LD C, (HL)
-    LD B, 0
-    CALL tui_color
-    LD HL, _mir2.str.26
-    CALL tui_puts
-    LD HL, COLOR_WHITE
-    LD C, (HL)
-    LD A, C
-    LD HL, COLOR_BLACK
-    LD C, (HL)
-    LD B, 0
-    CALL tui_color
-    LD HL, _mir2.str.27
-    CALL tui_puts
-    RET
-
-; fun draw_title()
-draw_title:
-    LD A, 0
-    LD C, 0
-    CALL tui_goto
-    LD HL, COLOR_BLACK
-    LD C, (HL)
-    LD A, C
-    LD HL, COLOR_CYAN
-    LD C, (HL)
-    LD B, 0
-    CALL tui_color
-    LD HL, _mir2.str.28
-    CALL tui_puts
-    LD HL, _mir2.str.29
-    CALL tui_puts
-    RET
-
-; globals
-KEY_ENTER:
-    DB 13
-KEY_ESC:
-    DB 27
-KEY_UP:
-    DB 11
-KEY_DOWN:
-    DB 10
-COLOR_WHITE:
-    DB 7
-COLOR_BLUE:
-    DB 4
-COLOR_CYAN:
-    DB 6
-COLOR_YELLOW:
-    DB 3
-COLOR_BLACK:
-    DB 0
-COLOR_GREEN:
-    DB 2
-PANEL_X:
-    DB 1
-PANEL_Y:
-    DB 1
-PANEL_W:
-    DB 40
-PANEL_H:
-    DB 20
-FILE_COUNT:
-    DB 8
-cursor:
-    DB 0
 ; strings
 _mir2.str.0:
     DB 72, 69, 76, 76, 79, 32, 32, 32, 32, 46, 66, 73, 78, 0
@@ -1055,7 +896,7 @@ _mir2.str.6:
 _mir2.str.7:
     DB 80, 76, 65, 83, 77, 65, 32, 32, 32, 46, 66, 73, 78, 0
 _mir2.str.8:
-    DB 63, 63, 63, 0
+    DB 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 0
 _mir2.str.9:
     DB 32, 32, 32, 49, 54, 54, 0
 _mir2.str.10:
@@ -1065,40 +906,32 @@ _mir2.str.11:
 _mir2.str.12:
     DB 32, 32, 32, 53, 49, 50, 0
 _mir2.str.13:
-    DB 32, 32, 60, 68, 73, 82, 62, 0
+    DB 32, 60, 68, 73, 82, 62, 0
 _mir2.str.14:
     DB 32, 32, 32, 55, 56, 57, 0
 _mir2.str.15:
-    DB 32, 32, 32, 32, 32, 48, 0
+    DB 32, 32, 32, 32, 32, 32, 0
 _mir2.str.16:
-    DB 32, 47, 115, 100, 99, 97, 114, 100, 32, 0
+    DB 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 0
 _mir2.str.17:
-    DB 78, 97, 109, 101, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 83, 105, 122, 101, 0
+    DB 32, 77, 105, 110, 90, 32, 78, 67, 32, 102, 111, 114, 32, 65, 103, 111, 110, 32, 76, 105, 103, 104, 116, 32, 50, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 0
 _mir2.str.18:
-    DB 32, 70, 49, 0
+    DB 32, 47, 115, 100, 99, 97, 114, 100, 32, 0
 _mir2.str.19:
-    DB 72, 101, 108, 112, 32, 0
+    DB 78, 97, 109, 101, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 83, 105, 122, 101, 0
 _mir2.str.20:
-    DB 32, 70, 51, 0
+    DB 32, 85, 112, 47, 68, 110, 0
 _mir2.str.21:
-    DB 86, 105, 101, 119, 32, 0
+    DB 78, 97, 118, 32, 0
 _mir2.str.22:
-    DB 32, 70, 53, 0
+    DB 32, 69, 110, 116, 101, 114, 0
 _mir2.str.23:
-    DB 67, 111, 112, 121, 32, 0
+    DB 79, 112, 101, 110, 32, 0
 _mir2.str.24:
-    DB 32, 70, 56, 0
+    DB 32, 69, 115, 99, 0
 _mir2.str.25:
-    DB 68, 101, 108, 32, 32, 0
+    DB 81, 117, 105, 116, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 0
 _mir2.str.26:
-    DB 32, 70, 49, 48, 0
-_mir2.str.27:
-    DB 81, 117, 105, 116, 0
-_mir2.str.28:
-    DB 32, 77, 105, 110, 90, 32, 78, 67, 32, 102, 111, 114, 32, 65, 103, 111, 110, 32, 76, 105, 103, 104, 116, 32, 50, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 0
-_mir2.str.29:
-    DB 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 32, 0
-_mir2.str.30:
     DB 83, 101, 108, 101, 99, 116, 101, 100, 58, 32, 0
-_mir2.str.31:
-    DB 32, 32, 0
+_mir2.str.27:
+    DB 32, 32, 32, 32, 32, 32, 32, 32, 0
