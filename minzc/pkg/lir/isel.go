@@ -19,6 +19,7 @@ type MIROp struct {
 	Sym  string // symbol name (OpCall target)
 	Clobbers LocSet // registers clobbered (OpCall)
 	DstAllowed LocSet // override dst allowed set (for call arg setup moves)
+	SrcAllowed [2]LocSet // override src allowed sets (for e-graph variants)
 }
 
 // ISelResult is the output of instruction selection.
