@@ -14,7 +14,6 @@ import (
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/ide"
 	"github.com/spf13/cobra"
-	"golang.org/x/term"
 )
 
 var (
@@ -209,13 +208,9 @@ SUPPORTED PLATFORMS (-t/--target):
 
 		// Set up CP/M BDOS handler if target is cpm
 		if target == "cpm" {
-			// Enable raw terminal for interactive CP/M programs
-			if term.IsTerminal(int(os.Stdin.Fd())) {
-				oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
-				if err == nil {
-					defer term.Restore(int(os.Stdin.Fd()), oldState)
-				}
-			}
+			// Note: raw terminal mode disabled — BDOS 0x0A (buffered line input)
+			// needs cooked mode with Enter to submit. Raw mode only for BDOS 6
+			// (direct console I/O) which is handled inside the BDOS handler.
 			setupCPMBDOS(z80)
 		}
 
