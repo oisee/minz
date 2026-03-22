@@ -882,6 +882,7 @@ func ExpandTemplateNamed(inst Inst, desc *MachineDesc) string {
 	tmpl = strings.ReplaceAll(tmpl, "{src0}", getName(inst.Srcs[0].Phys))
 	tmpl = strings.ReplaceAll(tmpl, "{src1}", getName(inst.Srcs[1].Phys))
 	tmpl = strings.ReplaceAll(tmpl, "{imm}", fmt.Sprintf("%d", inst.Imm))
-	tmpl = strings.ReplaceAll(tmpl, "{sym}", inst.Sym)
+	sym := strings.ReplaceAll(inst.Sym, "-", "_")
+	tmpl = strings.ReplaceAll(tmpl, "{sym}", sym)
 	return tmpl
 }
