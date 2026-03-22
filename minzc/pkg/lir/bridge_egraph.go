@@ -76,11 +76,8 @@ func LowerMIR2BlockEGraph(b *mir2.Block, desc *MachineDesc, mod *mir2.Module) (*
 // width-mismatches and flag materialization have 2-3.
 func TranslateInstEGraph(inst *mir2.Inst, desc *MachineDesc) []EVariant {
 	switch {
-	// ── Width narrowing: u16 → u8 (truncation) ────────────────────────
-	case inst.Op == mir2.OpMove && inst.Ty != nil && inst.Ty.Width() <= 8 &&
-		inst.Src[0] != mir2.NoReg:
-		// Source might be 16-bit (pair), dest is 8-bit.
-		// Variants: take low byte of each possible pair.
+	// ── Truncation: u16 → u8 ────────────────────────────────────────
+	case inst.Op == mir2.OpTrunc:
 		return truncVariants(inst, desc)
 
 	// ── Width widening: u8 → u16 (zero-extend) ───────────────────────
@@ -89,14 +86,12 @@ func TranslateInstEGraph(inst *mir2.Inst, desc *MachineDesc) []EVariant {
 
 	// ── Flag → register materialization ──────────────────────────────
 	case inst.Op == mir2.OpMove && inst.Src[0] != mir2.NoReg:
-		// Check if source was a flag result (bool type).
 		if inst.SrcTy != nil && inst.SrcTy.Width() == 1 {
 			return flagMaterializeVariants(inst, desc)
 		}
 
 	// ── Comparison with constant overflow ────────────────────────────
 	case inst.Op == mir2.OpCmp && inst.Imm != 0:
-		// Mask immediate to 8 or 16 bits to prevent CP 4294967295.
 		return cmpVariants(inst, desc)
 	}
 
@@ -105,7 +100,7 @@ func TranslateInstEGraph(inst *mir2.Inst, desc *MachineDesc) []EVariant {
 	if err != nil || op == nil {
 		return nil
 	}
-	cost := 4 // default cost
+	cost := 4
 	for _, p := range desc.Patterns {
 		if p.MIROp == op.Op && (p.Width == 0 || p.Width == op.Width) {
 			cost = p.Cost
@@ -115,39 +110,47 @@ func TranslateInstEGraph(inst *mir2.Inst, desc *MachineDesc) []EVariant {
 	return []EVariant{{Ops: []MIROp{*op}, Cost: cost, Tag: "default"}}
 }
 
+// truncSynthBase is a counter for synthetic vreg IDs used in truncation.
+var truncSynthBase = 9000
+
 // truncVariants generates lowering variants for 16-bit → 8-bit truncation.
-// Z80 doesn't have a trunc instruction — must extract the low byte of a pair.
+//
+// The source vreg is 16-bit (allocated to HL/DE/BC). We can't emit LD A, HL.
+// Instead: emit OpMove(width=8) with SrcAllowed constrained to gpr8.
+// WFC sees that the 16-bit vreg is in HL but the use needs gpr8 →
+// it inserts a setup move (LD L→A) or picks a pattern that reads L directly.
 func truncVariants(inst *mir2.Inst, desc *MachineDesc) []EVariant {
 	src := int(inst.Src[0])
 	dst := int(inst.Dst)
-	if dst == 0 || src == 0 {
+	if inst.Dst == mir2.NoReg || inst.Src[0] == mir2.NoReg {
 		return nil
 	}
 
 	gpr8 := desc.LocsOfWidth(8)
+
 	pairs := desc.LocsOfWidth(16)
 
-	var variants []EVariant
-
-	// Variant: direct move (if src is 8-bit, just move)
-	variants = append(variants, EVariant{
-		Ops: []MIROp{{
-			Op:    OpMove,
-			Dst:   dst,
-			Src:   [2]int{src, -1},
-			Width: 8,
-		}},
-		Cost: 4,
-		Tag:  "trunc_move8",
-	})
-
-	// Variant: if src is a pair, take low byte
-	// This is expressed as a move with width=8, src constrained to pair
-	// The emitter should emit "LD A, L" (low byte of HL) etc.
-	_ = gpr8
-	_ = pairs
-
-	return variants
+	return []EVariant{
+		// Variant A: src is already 8-bit (no actual truncation needed)
+		{
+			Ops: []MIROp{{
+				Op: OpMove, Dst: dst, Src: [2]int{src, -1}, Width: 8,
+				DstAllowed: gpr8, SrcAllowed: [2]LocSet{gpr8},
+			}},
+			Cost: 4,
+			Tag: "trunc_nop",
+		},
+		// Variant B: src is 16-bit pair → use trunc patterns (LD A, L etc.)
+		// Leave SrcAllowed open to pairs so isel picks trunc_hl_a / trunc_de_a etc.
+		{
+			Ops: []MIROp{{
+				Op: OpMove, Dst: dst, Src: [2]int{src, -1}, Width: 8,
+				DstAllowed: gpr8, SrcAllowed: [2]LocSet{pairs},
+			}},
+			Cost: 4,
+			Tag: "trunc_pair",
+		},
+	}
 }
 
 // extendVariants generates lowering variants for 8-bit → 16-bit zero-extend.
