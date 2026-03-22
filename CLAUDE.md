@@ -422,7 +422,8 @@ fun main() {
 | Production backends | 1 (Z80) + 1 partial (C) + 1 QBE (correctness oracle) + 8 experimental |
 | LIR backend | **948/948 pipeline** (100%), **97.9% VM-verified** (C89/risc32) — PBQP→WFC guided, IXH/IXL spill, __mul8/__mul16, tail call opt |
 | MIR backend tests | 9/11 pass, 2 known bugs (ADR-0006) |
-| Frontends | 7 (Nanz, C89, PL/M, Lanz, Lizp, Pascal, **ABAP**) — all route through HIR→MIR2→Z80 |
+| Frontends | 8 (Nanz, C89, PL/M, Lanz, Lizp, Pascal, ABAP, **Frill**) — all route through HIR→MIR2→Z80 |
+| Frill (.frl) | ML-style functional: let, if/then/else, pipe \|>, match, ADT, lambda, where, recursion. 52+ compile-time asserts. See [Frill Guide](docs/Frill_Language_Guide.md) |
 
 > **Note on C89 frontend:** C language support exists to demonstrate compiler maturity and
 > enable benchmarking against SDCC — it is not a priority. We recommend **Nanz** as the
