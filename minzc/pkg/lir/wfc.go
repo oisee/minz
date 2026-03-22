@@ -494,9 +494,6 @@ func (s *WFCState) Collapse() error {
 				},
 			}
 			if !ValidateExpandedTemplate(tmpInst, s.Desc) {
-				// Current assignment produces invalid Z80. Try alternatives.
-				// Strategy: for each src that's a singleton, try other locs
-				// from the original domain. Pick cheapest valid combo.
 				fixed := false
 				for src := 0; src < 2 && !fixed; src++ {
 					vreg := c.VRegSrc[src]
@@ -581,6 +578,17 @@ func (s *WFCState) Collapse() error {
 									c.SrcLocs[s2] = Singleton(phys)
 								} else {
 									c.SrcLocs[s2] = s.Desc.PickCheapest(altPat.SrcLocs[s2])
+								}
+							}
+						}
+						// Self-conflict: if src0 and src1 ended up in the same loc,
+						// force src1 to a different one (e.g. HL ptr + HL val → use DE val).
+						if c.VRegSrc[0] >= 0 && c.VRegSrc[1] >= 0 {
+							p0, p1 := PhysOf(c.SrcLocs[0]), PhysOf(c.SrcLocs[1])
+							if p0 >= 0 && p0 == p1 && !altPat.SrcLocs[1].IsEmpty() {
+								alt1 := altPat.SrcLocs[1].Clear(p0) // exclude conflicting loc
+								if !alt1.IsEmpty() {
+									c.SrcLocs[1] = s.Desc.PickCheapest(alt1)
 								}
 							}
 						}

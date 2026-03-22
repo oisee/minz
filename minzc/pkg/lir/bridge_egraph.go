@@ -63,8 +63,11 @@ func LowerMIR2BlockEGraph(b *mir2.Block, desc *MachineDesc, mod *mir2.Module) (*
 	eg.SelectCheapest()
 	ops := eg.Extract()
 
-	// Insert save-before-overwrite moves for Z80.
+	// Split self-stores: when OpStore has src0==src1 (same vreg used as
+	// both pointer and value), insert a move to evacuate the value to a
+	// different pair. Without this, WFC assigns both to HL → LD (HL), HL.
 	if desc.Name == "z80" {
+		ops = splitSelfStores(ops, desc)
 		ops = insertSaveBeforeOverwrite(ops, desc)
 	}
 
@@ -231,6 +234,37 @@ func flagMaterializeVariants(inst *mir2.Inst, desc *MachineDesc) []EVariant {
 	}
 }
 
+// splitSelfStores detects OpStore where src0 (ptr) and src1 (val) are the
+// same vreg, and inserts an OpMove to evacuate the value to a fresh vreg.
+// Without this, WFC assigns both to the same physical register (HL),
+// producing invalid self-stores like LD (HL), HL.
+func splitSelfStores(ops []MIROp, desc *MachineDesc) []MIROp {
+	var result []MIROp
+	for _, op := range ops {
+		if op.Op == OpStore && op.Src[0] >= 0 && op.Src[1] >= 0 && op.Src[0] == op.Src[1] {
+			// Self-store: ptr==val. Insert move: val → fresh vreg in DE.
+			freshVReg := truncSynthBase
+			truncSynthBase++
+			de := desc.LocSetByNames("DE")
+			// EX DE, HL to evacuate value.
+			result = append(result, MIROp{
+				Op:         OpMove,
+				Dst:        freshVReg,
+				Src:        [2]int{op.Src[1], -1},
+				Width:      16,
+				DstAllowed: de,
+			})
+			// Patched store: ptr=original, val=fresh(DE).
+			patched := op
+			patched.Src[1] = freshVReg
+			result = append(result, patched)
+			continue
+		}
+		result = append(result, op)
+	}
+	return result
+}
+
 // store16Variants generates variants for 16-bit indirect store.
 // When ptr and value might be in the same pair (HL), offers safe+fast variants.
 func store16Variants(inst *mir2.Inst, desc *MachineDesc) []EVariant {
@@ -264,14 +298,23 @@ func store16Variants(inst *mir2.Inst, desc *MachineDesc) []EVariant {
 		Cost: 22, Tag: "st16_hl_bc",
 	})
 
-	// Variant: ptr=HL, val=HL (self-store, safe via DE evacuation)
-	variants = append(variants, EVariant{
-		Ops: []MIROp{{
-			Op: OpStore, Dst: -1, Src: [2]int{ptr, val}, Width: 16,
-			SrcAllowed: [2]LocSet{hl, hl},
-		}},
-		Cost: 30, Tag: "st16_hl_hl_safe",
-	})
+	// Variant: self-store (ptr==val, both in HL). Evacuate to DE first.
+	// This fires when the same vreg is used as both pointer and value.
+	if ptr == val {
+		evacuateVReg := truncSynthBase
+		truncSynthBase++
+		variants = append(variants, EVariant{
+			Ops: []MIROp{
+				// Step 1: copy HL to DE (EX DE,HL)
+				{Op: OpMove, Dst: evacuateVReg, Src: [2]int{val, -1}, Width: 16,
+					DstAllowed: de, SrcAllowed: [2]LocSet{hl}},
+				// Step 2: store DE via HL pointer
+				{Op: OpStore, Dst: -1, Src: [2]int{ptr, evacuateVReg}, Width: 16,
+					SrcAllowed: [2]LocSet{hl, de}},
+			},
+			Cost: 26, Tag: "st16_self_evacuate",
+		})
+	}
 
 	return variants
 }
