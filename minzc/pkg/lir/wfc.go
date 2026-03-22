@@ -88,6 +88,9 @@ func (s *WFCState) Propagate() int {
 		if s.clobberPass() {
 			changed = true
 		}
+		if s.operandInterference() {
+			changed = true
+		}
 		// Note: destructive writes are handled at MIROp level by
 		// insertSaveBeforeOverwrite in bridge.go, not in WFC.
 		iters++
@@ -376,6 +379,99 @@ func (s *WFCState) destructiveWritePass() bool {
 	return changed
 }
 
+// operandInterference ensures that different vregs used as operands of the
+// same instruction don't get the same physical register. For stores, this
+// prevents ptr and val from collapsing to the same pair (LD (HL), HL).
+// Also handles dst vs src interference for accumulator-destination ops.
+func (s *WFCState) operandInterference() bool {
+	changed := false
+	for i := range s.Cells {
+		c := &s.Cells[i]
+
+		// src0 vs src1: if different vregs, must not overlap.
+		if c.VRegSrc[0] >= 0 && c.VRegSrc[1] >= 0 && c.VRegSrc[0] != c.VRegSrc[1] {
+			// If src0 is collapsed to singleton, remove from src1's domain.
+			if c.SrcLocs[0].Count() == 1 {
+				narrowed := c.SrcLocs[1].Subtract(c.SrcLocs[0])
+				if !narrowed.IsEmpty() && narrowed != c.SrcLocs[1] {
+					c.SrcLocs[1] = narrowed
+					changed = true
+				}
+			}
+			// Symmetric: if src1 collapsed, remove from src0.
+			if c.SrcLocs[1].Count() == 1 {
+				narrowed := c.SrcLocs[0].Subtract(c.SrcLocs[1])
+				if !narrowed.IsEmpty() && narrowed != c.SrcLocs[0] {
+					c.SrcLocs[0] = narrowed
+					changed = true
+				}
+			}
+		}
+
+		// dst vs src: dst must not overlap with src (except for in-place ops
+		// like INC/DEC where dst==src by design).
+		if c.VRegDst >= 0 && c.DstLocs.Count() == 1 {
+			for src := 0; src < 2; src++ {
+				if c.VRegSrc[src] >= 0 && c.VRegSrc[src] != c.VRegDst {
+					narrowed := c.SrcLocs[src].Subtract(c.DstLocs)
+					if !narrowed.IsEmpty() && narrowed != c.SrcLocs[src] {
+						c.SrcLocs[src] = narrowed
+						changed = true
+					}
+				}
+			}
+		}
+	}
+
+	// Also propagate: if a vreg appears as src in one cell with a narrowed
+	// domain, update all other cells that use the same vreg.
+	vregNarrow := make(map[int]LocSet)
+	for i := range s.Cells {
+		c := &s.Cells[i]
+		for src := 0; src < 2; src++ {
+			vreg := c.VRegSrc[src]
+			if vreg < 0 || c.SrcLocs[src].IsEmpty() {
+				continue
+			}
+			if prev, ok := vregNarrow[vreg]; ok {
+				inter := prev.And(c.SrcLocs[src])
+				if !inter.IsEmpty() {
+					vregNarrow[vreg] = inter
+				}
+			} else {
+				vregNarrow[vreg] = c.SrcLocs[src]
+			}
+		}
+	}
+	for i := range s.Cells {
+		c := &s.Cells[i]
+		for src := 0; src < 2; src++ {
+			vreg := c.VRegSrc[src]
+			if vreg < 0 {
+				continue
+			}
+			if narrow, ok := vregNarrow[vreg]; ok {
+				inter := c.SrcLocs[src].And(narrow)
+				if !inter.IsEmpty() && inter != c.SrcLocs[src] {
+					c.SrcLocs[src] = inter
+					changed = true
+				}
+			}
+		}
+		if c.VRegDst >= 0 {
+			if narrow, ok := vregNarrow[c.VRegDst]; ok {
+				inter := c.DstLocs.And(narrow)
+				if !inter.IsEmpty() && inter != c.DstLocs {
+					c.DstLocs = inter
+					changed = true
+				}
+			}
+		}
+	}
+
+	return changed
+}
+
 // alternativeLocs removes conflicting locs from current and adds IX halves
 // as alternatives. Returns the widened set.
 func (s *WFCState) alternativeLocs(current, conflict LocSet) LocSet {
@@ -466,16 +562,33 @@ func (s *WFCState) Collapse() error {
 			}
 		}
 
-		// Collapse sources: use already-assigned phys for their vreg.
+		// Collapse sources: use already-assigned phys for their vreg,
+		// BUT respect the propagated domain (operandInterference etc.).
 		for src := 0; src < 2; src++ {
 			vreg := c.VRegSrc[src]
 			if vreg < 0 {
 				continue
 			}
 			if phys, ok := vregPhys[vreg]; ok {
-				c.SrcLocs[src] = Singleton(phys)
+				if c.SrcLocs[src].Has(phys) {
+					// Assigned phys is in the narrowed domain — use it.
+					c.SrcLocs[src] = Singleton(phys)
+				} else if !c.SrcLocs[src].IsEmpty() {
+					// Assigned phys was excluded by interference — pick from domain.
+					if s.Desc != nil {
+						c.SrcLocs[src] = s.Desc.PickCheapest(c.SrcLocs[src])
+					} else {
+						c.SrcLocs[src] = pickFirst(c.SrcLocs[src])
+					}
+				} else {
+					c.SrcLocs[src] = Singleton(phys) // fallback
+				}
 			} else if c.SrcLocs[src].Count() > 1 {
-				c.SrcLocs[src] = pickFirst(c.SrcLocs[src])
+				if s.Desc != nil {
+					c.SrcLocs[src] = s.Desc.PickCheapest(c.SrcLocs[src])
+				} else {
+					c.SrcLocs[src] = pickFirst(c.SrcLocs[src])
+				}
 			}
 		}
 
@@ -749,7 +862,8 @@ func (s *WFCState) ToInsts() []Inst {
 }
 
 // fixSelfStores detects store instructions where src0 (ptr) and src1 (val)
-// ended up in the same physical register, and inserts EX DE,HL to evacuate.
+// ended up in the same physical register or where a width-8 store has src1
+// in a 16-bit pair, and inserts fixup moves (EX DE,HL or LD A, low_byte).
 func fixSelfStores(insts []Inst, desc *MachineDesc) []Inst {
 	exPat := findExDEHLPat(desc)
 	if exPat == nil {
@@ -772,12 +886,68 @@ func fixSelfStores(insts []Inst, desc *MachineDesc) []Inst {
 		}
 	}
 
+	// Find trunc patterns for 8-bit fixups.
+	aIdx := desc.LocByName("A")
+	var truncHL, truncDE, truncBC *Pattern
+	for i := range desc.Patterns {
+		p := &desc.Patterns[i]
+		switch p.Name {
+		case "trunc_hl_a":
+			truncHL = p
+		case "trunc_de_a":
+			truncDE = p
+		case "trunc_bc_a":
+			truncBC = p
+		}
+	}
+	// Also find ld_hl_a for the fixed 8-bit store.
+	var stHLA *Pattern
+	for i := range desc.Patterns {
+		p := &desc.Patterns[i]
+		if p.Name == "ld_hl_a" {
+			stHLA = p
+			break
+		}
+	}
+
 	var result []Inst
 	for _, inst := range insts {
-		if inst.Pat != nil && inst.Pat.MIROp == OpStore &&
-			inst.Srcs[0].Phys >= 0 && inst.Srcs[1].Phys >= 0 &&
-			inst.Srcs[0].Phys == inst.Srcs[1].Phys {
-			// Self-store! Insert EX DE,HL before, change store pattern.
+		if inst.Pat == nil || inst.Pat.MIROp != OpStore {
+			result = append(result, inst)
+			continue
+		}
+		s0, s1 := inst.Srcs[0].Phys, inst.Srcs[1].Phys
+		if s0 < 0 || s1 < 0 {
+			result = append(result, inst)
+			continue
+		}
+
+		// Case 2 FIRST: 8-bit store where src1 (value) is a 16-bit pair.
+		// Must come before Case 1 because 8-bit self-stores need trunc, not EX.
+		is8bitOrSelf := inst.Pat.Width == 8 || inst.Pat.Width == 0 || s0 == s1
+		var truncPat *Pattern
+		if is8bitOrSelf && s1 == hlIdx && truncHL != nil {
+			truncPat = truncHL
+		} else if is8bitOrSelf && s1 == deIdx && truncDE != nil {
+			truncPat = truncDE
+		} else if is8bitOrSelf && s1 == desc.LocByName("BC") && truncBC != nil {
+			truncPat = truncBC
+		}
+		if truncPat != nil && stHLA != nil && aIdx >= 0 {
+			result = append(result, Inst{
+				Pat: truncPat,
+				Dst: Operand{Phys: aIdx, Allowed: Singleton(aIdx)},
+				Srcs: [2]Operand{{Phys: s1, Allowed: Singleton(s1)}},
+			})
+			fixed := inst
+			fixed.Srcs[1] = Operand{VReg: inst.Srcs[1].VReg, Phys: aIdx, Allowed: Singleton(aIdx)}
+			fixed.Pat = stHLA
+			result = append(result, fixed)
+			continue
+		}
+
+		// Case 1: self-store (same phys, 16-bit, no trunc pattern matched). EX DE,HL.
+		if s0 == s1 && s0 == hlIdx && stPat != nil {
 			result = append(result, Inst{
 				Pat: exPat,
 				Dst: Operand{Phys: deIdx, Allowed: Singleton(deIdx)},
@@ -785,12 +955,11 @@ func fixSelfStores(insts []Inst, desc *MachineDesc) []Inst {
 			})
 			fixed := inst
 			fixed.Srcs[1] = Operand{VReg: inst.Srcs[1].VReg, Phys: deIdx, Allowed: Singleton(deIdx)}
-			if stPat != nil {
-				fixed.Pat = stPat
-			}
+			fixed.Pat = stPat
 			result = append(result, fixed)
 			continue
 		}
+
 		result = append(result, inst)
 	}
 	return result
