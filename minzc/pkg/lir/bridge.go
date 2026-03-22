@@ -1084,10 +1084,18 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc) (*MIROp, error) {
 		width = maxWidth
 	}
 
+	// Mask immediate to width to prevent overflow (CP 4294967295 → CP 255).
+	imm := inst.Imm
+	if width <= 8 {
+		imm &= 0xFF
+	} else if width <= 16 {
+		imm &= 0xFFFF
+	}
+
 	op := &MIROp{
 		Dst:   int(inst.Dst),
 		Src:   [2]int{int(inst.Src[0]), int(inst.Src[1])},
-		Imm:   inst.Imm,
+		Imm:   imm,
 		Width: width,
 	}
 
