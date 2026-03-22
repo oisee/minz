@@ -14,7 +14,6 @@ package lir
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/minz/minzc/pkg/mir2"
 )
@@ -1249,11 +1248,7 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc) (*MIROp, error) {
 		// so isel emits "LD rr, symbol" instead of "LD rr, 0".
 		op.Op = OpConst
 		op.Src = [2]int{-1, -1}
-		// Sanitize symbol: @mir2.str.0 → _mir2_str_0
-		sym := inst.Sym
-		sym = strings.ReplaceAll(sym, "@", "_")
-		sym = strings.ReplaceAll(sym, ".", "_")
-		op.Sym = sym
+		op.Sym = SanitizeAsmLabel(inst.Sym)
 		op.Width = 16 // addresses are always 16-bit on Z80
 	case mir2.OpCall, mir2.OpCallIndirect:
 		// Calls: skip for now (need calling convention support)

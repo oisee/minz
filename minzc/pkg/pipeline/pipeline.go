@@ -850,7 +850,7 @@ func emitGlobals(m *mir2.Module) string {
 		if len(g.Init) > w {
 			w = len(g.Init)
 		}
-		name := g.Name
+		name := lir.SanitizeAsmLabel(g.Name)
 		if w == 0 {
 			sb.WriteString(name + ":\n")
 			continue
