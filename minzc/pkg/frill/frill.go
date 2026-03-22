@@ -104,6 +104,7 @@ type parser struct {
 	ctors       map[string]*adtCtor // constructor name → ctor (for match + expr)
 	autoFuncs   []*hir.Func         // auto-generated helpers (__tag, __payload, lambdas)
 	lambdaCount int                  // counter for unique lambda names
+	strings     []string             // interned string literals
 }
 
 func (p *parser) peek() token {
@@ -180,6 +181,26 @@ func (p *parser) lex() token {
 			p.pos++
 		}
 		return token{tokInt, p.src[start:p.pos], line}
+	}
+
+	// String literal
+	if ch == '"' {
+		p.pos++ // skip opening "
+		start := p.pos
+		for p.pos < len(p.src) && p.src[p.pos] != '"' {
+			if p.src[p.pos] == '\\' {
+				p.pos++ // skip escape
+			}
+			if p.pos < len(p.src) && p.src[p.pos] == '\n' {
+				p.line++
+			}
+			p.pos++
+		}
+		text := p.src[start:p.pos]
+		if p.pos < len(p.src) {
+			p.pos++ // skip closing "
+		}
+		return token{tokString, text, line}
 	}
 
 	// Identifier or keyword
@@ -260,6 +281,13 @@ func (p *parser) parseModule() (*hir.Module, error) {
 
 	// Append auto-generated helper functions (__tag, __payload)
 	mod.Funcs = append(mod.Funcs, p.autoFuncs...)
+
+	// Intern string literals as CStrings (null-terminated)
+	for i, s := range p.strings {
+		mod.Strings = append(mod.Strings, s)
+		mod.StrKinds = append(mod.StrKinds, mir2.StrCString)
+		_ = i // sym __str_N used by AddrOfExpr
+	}
 
 	return mod, nil
 }
@@ -581,6 +609,18 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		return e, nil
 	}
 
+	// String literal — intern and return pointer
+	if t.kind == tokString {
+		p.next()
+		// Process escape sequences
+		s := unescapeString(t.text)
+		// Store string index for later — module will be populated in parseModule
+		idx := len(p.strings)
+		p.strings = append(p.strings, s)
+		sym := fmt.Sprintf("__str_%d", idx)
+		return &hir.AddrOfExpr{Sym: sym}, nil
+	}
+
 	// Integer literal
 	if t.kind == tokInt {
 		p.next()
@@ -642,6 +682,13 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 				ty := mir2.TyU8
 				if val > 255 { ty = mir2.TyU16 }
 				args = append(args, &hir.IntLitExpr{Val: val, Ty: ty})
+			} else if pk.kind == tokString {
+				p.next()
+				s := unescapeString(pk.text)
+				idx := len(p.strings)
+				p.strings = append(p.strings, s)
+				sym := fmt.Sprintf("__str_%d", idx)
+				args = append(args, &hir.AddrOfExpr{Sym: sym})
 			} else if pk.kind == tokLParen {
 				p.next()
 				e, err := p.parseExpr()
@@ -944,4 +991,32 @@ func fmtArgs(args []int64) string {
 		parts[i] = strconv.FormatInt(a, 10)
 	}
 	return strings.Join(parts, " ")
+}
+
+func unescapeString(s string) string {
+	var b strings.Builder
+	for i := 0; i < len(s); i++ {
+		if s[i] == '\\' && i+1 < len(s) {
+			i++
+			switch s[i] {
+			case 'n':
+				b.WriteByte('\n')
+			case 'r':
+				b.WriteByte('\r')
+			case 't':
+				b.WriteByte('\t')
+			case '\\':
+				b.WriteByte('\\')
+			case '"':
+				b.WriteByte('"')
+			case '0':
+				b.WriteByte(0)
+			default:
+				b.WriteByte(s[i])
+			}
+		} else {
+			b.WriteByte(s[i])
+		}
+	}
+	return b.String()
 }
