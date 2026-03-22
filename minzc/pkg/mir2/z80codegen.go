@@ -5023,9 +5023,11 @@ func (g *z80cg) emitCallArgs(args []Reg, params []Param) {
 		if dstPhys == "" {
 			dstPhys = canonicalReturnLoc(params[i].Class, params[i].Ty)
 		}
-		if srcPhys != dstPhys {
-			copies = append(copies, parallelCopy{srcName: srcPhys, dstName: dstPhys, ty: params[i].Ty})
-		}
+		// Always include in copies — even no-ops (src==dst). This ensures the
+		// parallel copy scratch picker knows ALL live arg registers and won't
+		// clobber them when resolving cycles (e.g. B↔C using A as scratch
+		// when A holds arg0).
+		copies = append(copies, parallelCopy{srcName: srcPhys, dstName: dstPhys, ty: params[i].Ty})
 	}
 	if len(copies) == 0 {
 		return
@@ -5773,6 +5775,10 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 					cycleRegs[moves[i].src] = true
 					cycleRegs[moves[i].dst] = true
 				}
+				// Also mark done-move destinations as live (they hold values).
+				if moves[i].done {
+					cycleRegs[moves[i].dst] = true
+				}
 			}
 			scratch := "A"
 			if cycleRegs["A"] {
@@ -6132,6 +6138,20 @@ func canonicalReturnLoc(cls RegClass, ty Ty) string {
 		return "DE"
 	case ClassCounter:
 		return "B"
+	case ClassRegC:
+		return "C"
+	case ClassRegD:
+		return "D"
+	case ClassRegE:
+		return "E"
+	case ClassRegH:
+		return "H"
+	case ClassRegL:
+		return "L"
+	case ClassIX:
+		return "IX"
+	case ClassIY:
+		return "IY"
 	case ClassGeneral:
 		if w <= 8 {
 			return "C"
