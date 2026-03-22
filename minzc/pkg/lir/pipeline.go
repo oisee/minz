@@ -387,11 +387,14 @@ func lirCodegenMultiBlock(f *mir2.Func, desc *MachineDesc, m *mir2.Module) (stri
 	}
 	fmt.Fprintf(&sb, "; %s — LIR codegen (%d insts, %d blocks)\n", f.Name, totalInsts, len(prog.Blocks))
 
+	// Label prefix for non-entry blocks: .funcname_label (unique across module).
+	labelPrefix := "." + strings.ReplaceAll(f.Name, "$", "_")
+
 	for bi, b := range prog.Blocks {
 		if bi == 0 {
 			fmt.Fprintf(&sb, "%s:\n", f.Name)
 		} else {
-			fmt.Fprintf(&sb, "%s:\n", b.Label)
+			fmt.Fprintf(&sb, "%s_%s:\n", labelPrefix, b.Label)
 		}
 
 		// Post-WFC fixup: fix stores with pair values via non-HL pointers.
@@ -409,10 +412,15 @@ func lirCodegenMultiBlock(f *mir2.Func, desc *MachineDesc, m *mir2.Module) (stri
 		emitParallelCopyMoves(&sb, &b, prog, desc)
 
 		// Emit terminator
-		emitTerminator(&sb, &b.Term, bi, len(prog.Blocks))
+		emitTerminatorPrefixed(&sb, &b.Term, bi, len(prog.Blocks), labelPrefix)
 	}
 
+	// Spill labels emitted at module level by LIRCodegenModule.
 	asm := sb.String()
+
+	// Final text-level fixup for any remaining invalid Z80.
+	asm = strings.ReplaceAll(asm, "    LD (HL), HL\n",
+		"    LD D, H\n    LD E, L\n    LD (HL), E\n    INC HL\n    LD (HL), D\n    DEC HL\n")
 
 	// Post-emit peephole optimization
 	asm = Z80Peephole(asm)
@@ -424,6 +432,33 @@ func lirCodegenMultiBlock(f *mir2.Func, desc *MachineDesc, m *mir2.Module) (stri
 	}
 
 	return asm, nil
+}
+
+// emitSpillLabels emits data section labels for memory spill slots and TSMC
+// slots referenced by LIR codegen. Each slot is 1-2 bytes of scratch memory.
+func emitSpillLabels(sb *strings.Builder, desc *MachineDesc, funcName string) {
+	// Collect all LocMem and LocTSMC names from the descriptor.
+	var memLocs, tsmcLocs []string
+	for _, loc := range desc.Locs {
+		if loc.Kind == LocMem {
+			memLocs = append(memLocs, loc.Name)
+		}
+		if loc.Kind == LocTSMC {
+			tsmcLocs = append(tsmcLocs, loc.Name)
+		}
+	}
+	if len(memLocs)+len(tsmcLocs) == 0 {
+		return
+	}
+	// Spill labels are shared across functions (like PBQP's $F0xx page).
+	// Emit once — caller should deduplicate.
+	sb.WriteString("; spill data\n")
+	for _, name := range memLocs {
+		fmt.Fprintf(sb, "%s: DW 0\n", name)
+	}
+	for _, name := range tsmcLocs {
+		fmt.Fprintf(sb, "%s: DB 0\n", name)
+	}
 }
 
 // emitParallelCopyMoves inserts LD instructions for edge args that don't
@@ -467,7 +502,46 @@ func emitParallelCopyMoves(sb *strings.Builder, b *Block, prog *Prog, desc *Mach
 	}
 }
 
-// emitTerminator emits the assembly for a block terminator.
+// emitTerminatorPrefixed emits the assembly for a block terminator with label prefix.
+func emitTerminatorPrefixed(sb *strings.Builder, term *Term, blockIdx, numBlocks int, prefix string) {
+	// Wrap targets with prefix for non-entry labels.
+	pfx := func(target string) string {
+		if target == "" {
+			return ""
+		}
+		return prefix + "_" + target
+	}
+
+	switch term.Kind {
+	case TermNone:
+	case TermJump:
+		if len(term.Targets) > 0 {
+			fmt.Fprintf(sb, "    JP %s\n", pfx(term.Targets[0]))
+		}
+	case TermBranch:
+		if len(term.Targets) >= 2 {
+			if term.Targets[0] != "" {
+				fmt.Fprintf(sb, "    JP NZ, %s\n", pfx(term.Targets[0]))
+			}
+			if term.Targets[1] != "" {
+				fmt.Fprintf(sb, "    JP %s\n", pfx(term.Targets[1]))
+			}
+		}
+	case TermDJNZ:
+		if len(term.Targets) >= 2 {
+			fmt.Fprintf(sb, "    DJNZ %s\n", pfx(term.Targets[0]))
+			if blockIdx+1 < numBlocks {
+				// Fall through to exit
+			} else {
+				fmt.Fprintf(sb, "    JP %s\n", pfx(term.Targets[1]))
+			}
+		}
+	case TermReturn:
+		fmt.Fprintf(sb, "    RET\n")
+	}
+}
+
+// emitTerminator emits the assembly for a block terminator (legacy, no prefix).
 func emitTerminator(sb *strings.Builder, term *Term, blockIdx, numBlocks int) {
 	switch term.Kind {
 	case TermNone:
@@ -589,8 +663,12 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 		}
 		emitInstsWithCallSpills(&sb, insts, desc, paramPhys)
 
+		// Final text-level fixup for remaining invalid Z80.
+		asmText := sb.String()
+		asmText = strings.ReplaceAll(asmText, "    LD (HL), HL\n",
+			"    LD D, H\n    LD E, L\n    LD (HL), E\n    INC HL\n    LD (HL), D\n    DEC HL\n")
 		// Post-emit peephole optimization
-		asmPeepholed := Z80Peephole(sb.String())
+		asmPeepholed := Z80Peephole(asmText)
 		sb.Reset()
 		sb.WriteString(asmPeepholed)
 
@@ -610,6 +688,7 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 			}
 		}
 		sb.WriteString("    RET\n")
+		// Spill labels emitted at module level.
 
 		asm := sb.String()
 
@@ -814,6 +893,9 @@ func LIRCodegenModule(m *mir2.Module, hints ...AllocHints) (string, []LIRFuncRes
 		sb.WriteString("; __call_hl: indirect call via HL (1 byte)\n__call_hl:\n    JP (HL)\n\n")
 	}
 
+	// Emit spill slot labels ONCE for the whole module.
+	emitSpillLabels(&sb, Z80, "module")
+
 	return sb.String(), results
 }
 
@@ -951,18 +1033,37 @@ func fixInvalidZ80Template(tmpl string, inst Inst, desc *MachineDesc, getName fu
 	pairs16 := map[string][2]string{
 		"HL": {"L", "H"}, "DE": {"E", "D"}, "BC": {"C", "B"},
 	}
-	if lo1hi1, valIsPair := pairs16[src1Name]; valIsPair {
-		if _, ptrIsPair := pairs16[src0Name]; ptrIsPair && src0Name != "HL" {
+	// Detect pair names from template text when Phys is unset (-1).
+	effectiveSrc0 := src0Name
+	effectiveSrc1 := src1Name
+	if effectiveSrc1 == "" || strings.HasPrefix(effectiveSrc1, "?") {
+		for pair := range pairs16 {
+			if strings.Contains(tmpl, ", "+pair) {
+				effectiveSrc1 = pair
+				break
+			}
+		}
+	}
+	if effectiveSrc0 == "" || strings.HasPrefix(effectiveSrc0, "?") {
+		for pair := range pairs16 {
+			if strings.Contains(tmpl, "("+pair+")") {
+				effectiveSrc0 = pair
+				break
+			}
+		}
+	}
+	if lo1hi1, valIsPair := pairs16[effectiveSrc1]; valIsPair {
+		if _, ptrIsPair := pairs16[effectiveSrc0]; ptrIsPair && effectiveSrc0 != "HL" {
 			// LD (BC/DE), HL/DE/BC → byte-by-byte via A
 			return fmt.Sprintf("LD A, %s\n    LD (%s), A\n    INC %s\n    LD A, %s\n    LD (%s), A\n    DEC %s",
 				lo1hi1[0], src0Name, src0Name, lo1hi1[1], src0Name, src0Name)
 		}
 		// LD (HL), HL → self-store: evacuate to DE first
-		if src0Name == "HL" && src1Name == "HL" {
+		if effectiveSrc0 == "HL" && (effectiveSrc1 == "HL" || strings.Contains(tmpl, "(HL), HL")) {
 			return "LD D, H\n    LD E, L\n    LD (HL), E\n    INC HL\n    LD (HL), D\n    DEC HL"
 		}
 		// LD (HL), DE/BC → byte-by-byte
-		if src0Name == "HL" {
+		if effectiveSrc0 == "HL" {
 			return fmt.Sprintf("LD (HL), %s\n    INC HL\n    LD (HL), %s\n    DEC HL",
 				lo1hi1[0], lo1hi1[1])
 		}
