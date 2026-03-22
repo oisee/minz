@@ -329,7 +329,34 @@ func (p *parser) parseAssert() (hir.Assert, error) {
 // ── Expression parser ───────────────────────────────────────────────────────
 
 func (p *parser) parseExpr() (hir.Expr, error) {
-	return p.parseComparison()
+	return p.parsePipe()
+}
+
+// parsePipe: expr |> fn |> fn2  →  fn2(fn(expr))
+func (p *parser) parsePipe() (hir.Expr, error) {
+	left, err := p.parseComparison()
+	if err != nil {
+		return nil, err
+	}
+	for p.peek().kind == tokOp && p.peek().text == "|>" {
+		p.next() // consume |>
+		// Right side: function name, optionally with extra args
+		fnTok := p.next()
+		if fnTok.kind != tokIdent {
+			return nil, fmt.Errorf("line %d: expected function name after |>, got %q", fnTok.line, fnTok.text)
+		}
+		// Collect extra args (int literals or parens before next |> or operator)
+		args := []hir.Expr{left}
+		for p.peek().kind == tokInt || p.peek().kind == tokLParen {
+			arg, err := p.parsePrimary()
+			if err != nil {
+				return nil, err
+			}
+			args = append(args, arg)
+		}
+		left = &hir.CallExpr{Fn: fnTok.text, Args: args, Ty: left.ExprTy()}
+	}
+	return left, nil
 }
 
 func (p *parser) parseComparison() (hir.Expr, error) {

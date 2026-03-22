@@ -74,6 +74,47 @@ assert double 7 == 14
 	}
 }
 
+func TestPipe(t *testing.T) {
+	m := compile(t, `
+let double (x : u8) : u8 = x + x
+let inc (x : u8) : u8 = x + 1
+let pipe_test (x : u8) : u8 = x |> double |> inc
+assert pipe_test 3 == 7
+assert pipe_test 10 == 21
+`)
+	mir2mod := hir.LowerModule(m)
+	for _, a := range m.Asserts {
+		result, err := mir2.Eval1(mir2mod, a.FuncName, a.Args...)
+		if err != nil {
+			t.Errorf("assert %s: %v", a.Source, err)
+			continue
+		}
+		if result != a.Expected {
+			t.Errorf("assert %s: got %d, want %d", a.Source, result, a.Expected)
+		}
+	}
+}
+
+func TestPipeWithExtraArgs(t *testing.T) {
+	m := compile(t, `
+let add (a : u8) (b : u8) : u8 = a + b
+let test (x : u8) : u8 = x |> add 10
+assert test 3 == 13
+assert test 0 == 10
+`)
+	mir2mod := hir.LowerModule(m)
+	for _, a := range m.Asserts {
+		result, err := mir2.Eval1(mir2mod, a.FuncName, a.Args...)
+		if err != nil {
+			t.Errorf("assert %s: %v", a.Source, err)
+			continue
+		}
+		if result != a.Expected {
+			t.Errorf("assert %s: got %d, want %d", a.Source, result, a.Expected)
+		}
+	}
+}
+
 func TestE2E_MIR2(t *testing.T) {
 	m := compile(t, `
 let add (a : u8) (b : u8) : u8 = a + b
