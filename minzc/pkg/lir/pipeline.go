@@ -900,12 +900,20 @@ func expandTemplate(inst Inst) string {
 // the prime name; patterns that wrap with EXX handle the naming themselves.
 // For TSMC spill slots, the name is used as a label (tsmc0, tsmc1, etc.).
 func ExpandTemplateNamed(inst Inst, desc *MachineDesc) string {
-	tmpl := inst.Pat.Template
+	// Template selection: if the current pattern's template hardcodes a
+	// register that doesn't match the actual Phys assignment, find a
+	// pattern whose SrcLocs/DstLocs actually contain the assigned Phys.
+	// This fixes union-pattern mismatches where isel picks cheapest template
+	// but WFC assigns to a different loc (e.g. LD ({src0}), HL with src1=BC).
+	pat := inst.Pat
+	if pat != nil && desc != nil {
+		pat = selectTemplateForPhys(inst, desc)
+	}
+
+	tmpl := pat.Template
 	getName := func(phys int) string {
 		if phys >= 0 && phys < len(desc.Locs) {
 			name := desc.Locs[phys].Name
-			// Inside EXX brackets (shadow patterns), strip the prime:
-			// B' → B, C' → C, etc. because EXX swaps them into main position.
 			if desc.Locs[phys].Kind == LocShadow && strings.Contains(tmpl, "EXX") {
 				name = strings.TrimSuffix(name, "'")
 			}
@@ -920,4 +928,62 @@ func ExpandTemplateNamed(inst Inst, desc *MachineDesc) string {
 	sym := strings.ReplaceAll(inst.Sym, "-", "_")
 	tmpl = strings.ReplaceAll(tmpl, "{sym}", sym)
 	return tmpl
+}
+
+// selectTemplateForPhys finds the best pattern whose SrcLocs/DstLocs
+// actually contain the assigned Phys values. Falls back to inst.Pat.
+func selectTemplateForPhys(inst Inst, desc *MachineDesc) *Pattern {
+	if inst.Pat == nil {
+		return inst.Pat
+	}
+
+	// Check if current pattern's SrcLocs contain the assigned Phys.
+	ok := true
+	for s := 0; s < 2; s++ {
+		phys := inst.Srcs[s].Phys
+		if phys < 0 {
+			continue
+		}
+		srcLocs := inst.Pat.SrcLocs[s]
+		if !srcLocs.IsEmpty() && !srcLocs.Has(phys) {
+			ok = false
+			break
+		}
+	}
+	if inst.Dst.Phys >= 0 && !inst.Pat.DstLocs.IsEmpty() && !inst.Pat.DstLocs.Has(inst.Dst.Phys) {
+		ok = false
+	}
+	if ok {
+		return inst.Pat // current pattern matches
+	}
+
+	// Find a better pattern whose locs actually match.
+	for i := range desc.Patterns {
+		p := &desc.Patterns[i]
+		if p.MIROp != inst.Pat.MIROp {
+			continue
+		}
+		if p.Width != 0 && inst.Pat.Width != 0 && p.Width != inst.Pat.Width {
+			continue
+		}
+		match := true
+		for s := 0; s < 2; s++ {
+			phys := inst.Srcs[s].Phys
+			if phys < 0 {
+				continue
+			}
+			if !p.SrcLocs[s].IsEmpty() && !p.SrcLocs[s].Has(phys) {
+				match = false
+				break
+			}
+		}
+		if inst.Dst.Phys >= 0 && !p.DstLocs.IsEmpty() && !p.DstLocs.Has(inst.Dst.Phys) {
+			match = false
+		}
+		if match {
+			return p
+		}
+	}
+
+	return inst.Pat // fallback
 }
