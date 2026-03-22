@@ -739,5 +739,70 @@ func (s *WFCState) ToInsts() []Inst {
 			},
 		})
 	}
+
+	// Post-WFC fixup: fix self-stores where ptr and val collapsed to same phys.
+	if s.Desc != nil && s.Desc.Name == "z80" {
+		insts = fixSelfStores(insts, s.Desc)
+	}
+
 	return insts
+}
+
+// fixSelfStores detects store instructions where src0 (ptr) and src1 (val)
+// ended up in the same physical register, and inserts EX DE,HL to evacuate.
+func fixSelfStores(insts []Inst, desc *MachineDesc) []Inst {
+	exPat := findExDEHLPat(desc)
+	if exPat == nil {
+		return insts
+	}
+
+	deIdx := desc.LocByName("DE")
+	hlIdx := desc.LocByName("HL")
+	if deIdx < 0 || hlIdx < 0 {
+		return insts
+	}
+
+	// Also need the st16_hl_de pattern for the fixed store.
+	var stPat *Pattern
+	for i := range desc.Patterns {
+		p := &desc.Patterns[i]
+		if p.Name == "st16_hl_de" {
+			stPat = p
+			break
+		}
+	}
+
+	var result []Inst
+	for _, inst := range insts {
+		if inst.Pat != nil && inst.Pat.MIROp == OpStore &&
+			inst.Srcs[0].Phys >= 0 && inst.Srcs[1].Phys >= 0 &&
+			inst.Srcs[0].Phys == inst.Srcs[1].Phys {
+			// Self-store! Insert EX DE,HL before, change store pattern.
+			result = append(result, Inst{
+				Pat: exPat,
+				Dst: Operand{Phys: deIdx, Allowed: Singleton(deIdx)},
+				Srcs: [2]Operand{{Phys: hlIdx, Allowed: Singleton(hlIdx)}},
+			})
+			fixed := inst
+			fixed.Srcs[1] = Operand{VReg: inst.Srcs[1].VReg, Phys: deIdx, Allowed: Singleton(deIdx)}
+			if stPat != nil {
+				fixed.Pat = stPat
+			}
+			result = append(result, fixed)
+			continue
+		}
+		result = append(result, inst)
+	}
+	return result
+}
+
+// findExDEHLPat finds the EX DE,HL pattern (OpMove, HL→DE or DE→HL).
+func findExDEHLPat(desc *MachineDesc) *Pattern {
+	for i := range desc.Patterns {
+		p := &desc.Patterns[i]
+		if p.Name == "ex_de_hl" || p.Name == "ex_hl_de" {
+			return p
+		}
+	}
+	return nil
 }
