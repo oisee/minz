@@ -445,8 +445,13 @@ func emitTerminator(sb *strings.Builder, term *Term, blockIdx, numBlocks int) {
 
 	case TermBranch:
 		if len(term.Targets) >= 2 {
-			fmt.Fprintf(sb, "    JP NZ, %s\n", term.Targets[0])
-			fmt.Fprintf(sb, "    JP %s\n", term.Targets[1])
+			// Skip empty branch targets (block was eliminated by CFG rules).
+			if term.Targets[0] != "" {
+				fmt.Fprintf(sb, "    JP NZ, %s\n", term.Targets[0])
+			}
+			if term.Targets[1] != "" {
+				fmt.Fprintf(sb, "    JP %s\n", term.Targets[1])
+			}
 		}
 
 	case TermDJNZ:
