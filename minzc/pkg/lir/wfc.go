@@ -922,28 +922,46 @@ func fixSelfStores(insts []Inst, desc *MachineDesc) []Inst {
 			continue
 		}
 
-		// Case 2 FIRST: 8-bit store where src1 (value) is a 16-bit pair.
-		// Must come before Case 1 because 8-bit self-stores need trunc, not EX.
-		is8bitOrSelf := inst.Pat.Width == 8 || inst.Pat.Width == 0 || s0 == s1
+		// Case 2 FIRST: store where src1 (value) is a 16-bit pair.
+		// This catches width mismatches (8-bit store with 16-bit value) AND
+		// invalid templates like LD ({src0}), HL where src0=BC → LD (BC), HL.
+		// Fix: trunc pair to low byte via A, then store A.
+		bcIdx := desc.LocByName("BC")
 		var truncPat *Pattern
-		if is8bitOrSelf && s1 == hlIdx && truncHL != nil {
+		if s1 == hlIdx && truncHL != nil {
 			truncPat = truncHL
-		} else if is8bitOrSelf && s1 == deIdx && truncDE != nil {
+		} else if s1 == deIdx && truncDE != nil {
 			truncPat = truncDE
-		} else if is8bitOrSelf && s1 == desc.LocByName("BC") && truncBC != nil {
+		} else if s1 == bcIdx && truncBC != nil {
 			truncPat = truncBC
 		}
-		if truncPat != nil && stHLA != nil && aIdx >= 0 {
-			result = append(result, Inst{
-				Pat: truncPat,
-				Dst: Operand{Phys: aIdx, Allowed: Singleton(aIdx)},
-				Srcs: [2]Operand{{Phys: s1, Allowed: Singleton(s1)}},
-			})
-			fixed := inst
-			fixed.Srcs[1] = Operand{VReg: inst.Srcs[1].VReg, Phys: aIdx, Allowed: Singleton(aIdx)}
-			fixed.Pat = stHLA
-			result = append(result, fixed)
-			continue
+		if truncPat != nil && aIdx >= 0 {
+			// Find the right store-via-A pattern based on pointer register.
+			var storePat *Pattern
+			for pi := range desc.Patterns {
+				p := &desc.Patterns[pi]
+				if p.MIROp == OpStore && p.Width == 8 &&
+					!p.SrcLocs[0].IsEmpty() && p.SrcLocs[0].Has(s0) &&
+					!p.SrcLocs[1].IsEmpty() && p.SrcLocs[1].Has(aIdx) {
+					storePat = p
+					break
+				}
+			}
+			if storePat == nil {
+				storePat = stHLA // fallback
+			}
+			if storePat != nil {
+				result = append(result, Inst{
+					Pat: truncPat,
+					Dst: Operand{Phys: aIdx, Allowed: Singleton(aIdx)},
+					Srcs: [2]Operand{{Phys: s1, Allowed: Singleton(s1)}},
+				})
+				fixed := inst
+				fixed.Srcs[1] = Operand{VReg: inst.Srcs[1].VReg, Phys: aIdx, Allowed: Singleton(aIdx)}
+				fixed.Pat = storePat
+				result = append(result, fixed)
+				continue
+			}
 		}
 
 		// Case 1: self-store (same phys, 16-bit, no trunc pattern matched). EX DE,HL.
