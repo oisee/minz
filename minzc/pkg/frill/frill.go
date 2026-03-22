@@ -100,8 +100,9 @@ type parser struct {
 	line   int
 	name   string
 	peeked *token
-	adts   map[string]*adtDef  // type name → definition
-	ctors  map[string]*adtCtor // constructor name → ctor (for match + expr)
+	adts      map[string]*adtDef  // type name → definition
+	ctors     map[string]*adtCtor // constructor name → ctor (for match + expr)
+	autoFuncs []*hir.Func         // auto-generated helpers (__tag, __payload)
 }
 
 func (p *parser) peek() token {
@@ -256,6 +257,9 @@ func (p *parser) parseModule() (*hir.Module, error) {
 		}
 	}
 
+	// Append auto-generated helper functions (__tag, __payload)
+	mod.Funcs = append(mod.Funcs, p.autoFuncs...)
+
 	return mod, nil
 }
 
@@ -301,6 +305,44 @@ func (p *parser) parseTypeDecl() error {
 	}
 
 	p.adts[def.name] = def
+
+	// If any constructor has payload, generate __tag and __payload helpers.
+	hasPayload := false
+	for _, c := range def.constructors {
+		if c.payload != nil {
+			hasPayload = true
+			break
+		}
+	}
+	if hasPayload {
+		p.autoFuncs = append(p.autoFuncs,
+			// __tag(x : u16) : u8 = x / 256
+			&hir.Func{
+				Name:   "__tag",
+				Params: []hir.Param{{Name: "x", Ty: mir2.TyU16}},
+				RetTy:  mir2.TyU8,
+				Body: &hir.Block{Body: []hir.Stmt{
+					&hir.ReturnStmt{Val: &hir.CastExpr{
+						X:  &hir.BinExpr{Op: "/", L: &hir.VarRefExpr{Name: "x", Ty: mir2.TyU16}, R: &hir.IntLitExpr{Val: 256, Ty: mir2.TyU16}, Ty: mir2.TyU16},
+						Ty: mir2.TyU8,
+					}},
+				}},
+			},
+			// __payload(x : u16) : u8 = x % 256
+			&hir.Func{
+				Name:   "__payload",
+				Params: []hir.Param{{Name: "x", Ty: mir2.TyU16}},
+				RetTy:  mir2.TyU8,
+				Body: &hir.Block{Body: []hir.Stmt{
+					&hir.ReturnStmt{Val: &hir.CastExpr{
+						X:  &hir.BinExpr{Op: "%", L: &hir.VarRefExpr{Name: "x", Ty: mir2.TyU16}, R: &hir.IntLitExpr{Val: 256, Ty: mir2.TyU16}, Ty: mir2.TyU16},
+						Ty: mir2.TyU8,
+					}},
+				}},
+			},
+		)
+	}
+
 	return nil
 }
 
@@ -520,13 +562,21 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		return p.parseLetIn()
 	}
 
-	// ADT constructor (e.g. None, Some)
+	// ADT constructor (e.g. None, Some 42)
 	if t.kind == tokIdent {
 		if ctor, ok := p.ctors[t.text]; ok {
 			p.next()
-			// Constructor without payload: just the tag value
-			// Constructor with payload: tag is returned, payload ignored for now
-			// TODO: tagged union encoding (tag + payload bytes)
+			if ctor.payload != nil {
+				// Constructor with payload: encode as u16 = (tag << 8) | payload
+				// e.g. Some 42 → 0x012A = 298
+				arg, err := p.parsePrimary()
+				if err != nil {
+					return nil, err
+				}
+				tagExpr := &hir.IntLitExpr{Val: ctor.tag * 256, Ty: mir2.TyU16}
+				return &hir.BinExpr{Op: "+", L: tagExpr, R: &hir.CastExpr{X: arg, Ty: mir2.TyU16}, Ty: mir2.TyU16}, nil
+			}
+			// No payload: just the tag
 			return &hir.IntLitExpr{Val: ctor.tag, Ty: mir2.TyU8}, nil
 		}
 	}
