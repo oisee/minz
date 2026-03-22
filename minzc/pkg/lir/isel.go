@@ -69,19 +69,25 @@ func SelectInstructions(desc *MachineDesc, ops []MIROp) (*ISelResult, error) {
 				continue
 			}
 			curLoc := vregLoc[op.Src[s]]
-			if !curLoc.IsEmpty() && curLoc.And(srcAllowed).IsEmpty() && movePat != nil {
+			if !curLoc.IsEmpty() && curLoc.And(srcAllowed).IsEmpty() {
 				// Value not in allowed set → insert move to bring it there.
-				// Create a new vreg for the moved value.
-				newVReg := 1000 + len(result.Insts) // synthetic vreg
-				moveInst := Inst{
-					Pat:  movePat,
-					Dst:  Operand{VReg: newVReg, Allowed: srcAllowed, Phys: -1},
-					Srcs: [2]Operand{{VReg: op.Src[s], Allowed: curLoc, Phys: -1}},
+				// Find the best move/trunc pattern that bridges curLoc → srcAllowed.
+				bridgePat := findBridgePattern(desc, curLoc, srcAllowed)
+				if bridgePat == nil {
+					bridgePat = movePat // fallback
 				}
-				result.Insts = append(result.Insts, moveInst)
-				result.VRegAllowed[newVReg] = srcAllowed
-				vregLoc[newVReg] = srcAllowed
-				op.Src[s] = newVReg // patch source to use moved value
+				if bridgePat != nil {
+					newVReg := 1000 + len(result.Insts)
+					moveInst := Inst{
+						Pat:  bridgePat,
+						Dst:  Operand{VReg: newVReg, Allowed: srcAllowed, Phys: -1},
+						Srcs: [2]Operand{{VReg: op.Src[s], Allowed: curLoc, Phys: -1}},
+					}
+					result.Insts = append(result.Insts, moveInst)
+					result.VRegAllowed[newVReg] = srcAllowed
+					vregLoc[newVReg] = srcAllowed
+					op.Src[s] = newVReg
+				}
 			}
 		}
 
@@ -293,6 +299,35 @@ func findAllPatterns(desc *MachineDesc, op MIROp) []*Pattern {
 		}
 	}
 	return candidates
+}
+
+// findBridgePattern finds an OpMove pattern whose SrcLocs overlaps curLoc
+// and DstLocs overlaps dstAllowed. Handles width-bridging (pair→gpr via trunc).
+func findBridgePattern(desc *MachineDesc, curLoc, dstAllowed LocSet) *Pattern {
+	var best *Pattern
+	bestCost := 1 << 30
+	for i := range desc.Patterns {
+		p := &desc.Patterns[i]
+		if p.MIROp != OpMove {
+			continue
+		}
+		if p.SrcLocs[0].IsEmpty() || p.DstLocs.IsEmpty() {
+			continue
+		}
+		// Pattern's src must overlap where value currently is.
+		if p.SrcLocs[0].And(curLoc).IsEmpty() {
+			continue
+		}
+		// Pattern's dst must overlap where we need it.
+		if p.DstLocs.And(dstAllowed).IsEmpty() {
+			continue
+		}
+		if p.Cost < bestCost {
+			bestCost = p.Cost
+			best = p
+		}
+	}
+	return best
 }
 
 func findMovePat(desc *MachineDesc, width int) *Pattern {
