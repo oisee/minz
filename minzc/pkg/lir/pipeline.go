@@ -951,18 +951,35 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 			// So: if C → return vals. If Z → return vals. Otherwise skip.
 			skipLabel := cr.label
 			noRetLabel := cr.label + "_no"
-			fmt.Fprintf(&sb, "    JR NC, %s\n", noRetLabel)
-			// Carry set → A < B → return val.
-			if valName != "A" {
-				fmt.Fprintf(&sb, "    LD A, %s\n", valName)
+
+			// Determine if return value is 8-bit (A) or 16-bit (HL).
+			is16bit := valName == "DE" || valName == "BC" ||
+				valName == "HL" || valName == "IX" || valName == "IY"
+
+			// emitLoadRetVal moves value into return register (A for u8, HL for u16).
+			emitLoadRetVal := func() {
+				if is16bit {
+					switch valName {
+					case "HL":
+						// Already in return register.
+					case "DE":
+						fmt.Fprintf(&sb, "    EX DE, HL\n")
+					case "BC":
+						fmt.Fprintf(&sb, "    LD H, B\n    LD L, C\n")
+					default:
+						fmt.Fprintf(&sb, "    PUSH %s\n    POP HL\n", valName)
+					}
+				} else if valName != "A" {
+					fmt.Fprintf(&sb, "    LD A, %s\n", valName)
+				}
 			}
+
+			fmt.Fprintf(&sb, "    JR NC, %s\n", noRetLabel)
+			emitLoadRetVal()
 			fmt.Fprintf(&sb, "    RET\n")
 			fmt.Fprintf(&sb, "%s:\n", noRetLabel)
 			fmt.Fprintf(&sb, "    JR NZ, %s\n", skipLabel)
-			// Zero set → A == B → return val.
-			if valName != "A" {
-				fmt.Fprintf(&sb, "    LD A, %s\n", valName)
-			}
+			emitLoadRetVal()
 			fmt.Fprintf(&sb, "    RET\n")
 			fmt.Fprintf(&sb, "%s:\n", skipLabel)
 		}
