@@ -590,6 +590,7 @@ func SanitizeAsmLabel(s string) string {
 	s = strings.ReplaceAll(s, "@", "_")
 	s = strings.ReplaceAll(s, ".", "_")
 	s = strings.ReplaceAll(s, "-", "_")
+	s = strings.ReplaceAll(s, "$", "_")
 	if z80Reserved[strings.ToUpper(s)] {
 		return "v_" + s
 	}
@@ -1344,7 +1345,7 @@ func ExpandTemplateNamed(inst Inst, desc *MachineDesc) string {
 		immStr = strings.ReplaceAll(inst.Sym, "-", "_")
 	}
 	tmpl = strings.ReplaceAll(tmpl, "{imm}", immStr)
-	sym := strings.ReplaceAll(inst.Sym, "-", "_")
+	sym := SanitizeAsmLabel(inst.Sym)
 	tmpl = strings.ReplaceAll(tmpl, "{sym}", sym)
 
 	// Last-resort fixup: if the expanded template is an invalid Z80 instruction

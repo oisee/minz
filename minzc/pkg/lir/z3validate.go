@@ -10,10 +10,7 @@
 // with a provably correct constraint solver.
 package lir
 
-import (
-	"fmt"
-	"os/exec"
-)
+import "os/exec"
 
 // hasZ3 checks if Z3 binary is available.
 func hasZ3() bool {
@@ -75,7 +72,8 @@ func Z3ValidateAndRepair(wfc *WFCState, desc *MachineDesc, hints map[int]int) bo
 	z3Result, err := SolveOptimalWithHints(prog, hints)
 	if err != nil {
 		// Z3 failed — can't repair, WFC result stands.
-		fmt.Printf("[z3-validate] repair failed: %v\n", err)
+		// Z3 repair silently fails — WFC result used as-is.
+		_ = err
 		return false
 	}
 
