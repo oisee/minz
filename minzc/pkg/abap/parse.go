@@ -537,6 +537,14 @@ func convertStmt(s *StmtNode) (Decl, error) {
 		return parseParamStmt(tokens)
 	case upper == "MOVE" || s.Type == "Move":
 		return parseMoveStmt(tokens)
+	case upper == "ULINE":
+		// ULINE → WRITE line of dashes
+		w := &WriteStmt{Exprs: []Expr_{&StringLit{Val: "----------------------------------------------------------------------\r\n"}}}
+		return &formBodyDecl{stmt: w}, nil
+	case upper == "SKIP" || upper == "NEW-LINE":
+		// SKIP / NEW-LINE → WRITE newline
+		w := &WriteStmt{Exprs: []Expr_{&StringLit{Val: "\r\n"}}}
+		return &formBodyDecl{stmt: w}, nil
 	default:
 		return nil, fmt.Errorf("unsupported: %s", s.Type)
 	}
@@ -606,21 +614,24 @@ func parseDataStmt(tokens []string) (Decl, error) {
 	return d, nil
 }
 
-// parseWriteStmt: WRITE expr | WRITE: expr1, expr2, ...
+// parseWriteStmt: WRITE expr | WRITE: expr1, expr2, ... | WRITE / 'text'
 func parseWriteStmt(tokens []string) (Decl, error) {
 	if len(tokens) < 2 {
 		return nil, fmt.Errorf("WRITE: too few tokens")
 	}
 	w := &WriteStmt{}
-	// Skip "WRITE" and optional "/" (new-line) and "."
 	for i := 1; i < len(tokens); i++ {
 		t := tokens[i]
-		if t == "/" || t == ":" || t == "," || t == "." {
+		if t == ":" || t == "," || t == "." {
+			continue
+		}
+		if t == "/" {
+			// Newline before next expression
+			w.Exprs = append(w.Exprs, &StringLit{Val: "\r\n"})
 			continue
 		}
 		w.Exprs = append(w.Exprs, parseTokenExpr(t))
 	}
-	// Wrap in a trivial decl that holds a statement
 	return &formBodyDecl{stmt: w}, nil
 }
 
