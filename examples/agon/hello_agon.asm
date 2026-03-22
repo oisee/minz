@@ -14,12 +14,12 @@ main:
 
 ; fun mos_putchar(ch: u8 = A)
 mos_putchar:
-    ; TODO: asm
+    RST.LIL $10
     RET
 
 ; fun mos_puts(str: ptr = HL)
 mos_puts:
-    ; TODO: asm
+    RST.LIL $18
     RET
 
 ; strings
