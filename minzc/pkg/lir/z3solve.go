@@ -54,7 +54,17 @@ type Z3Stats struct {
 
 // SolveOptimal runs Z3 to find the optimal register assignment for a LIR program.
 // Returns the assignment or an error if unsatisfiable.
+// SolveOptimalWithHints runs Z3 with PBQP hints as soft preferences.
+// Vregs with hints get a cost bonus when assigned to the hinted location.
+func SolveOptimalWithHints(prog *Prog, hints map[int]int) (*Z3Result, error) {
+	return solveOptimalImpl(prog, hints)
+}
+
 func SolveOptimal(prog *Prog) (*Z3Result, error) {
+	return solveOptimalImpl(prog, nil)
+}
+
+func solveOptimalImpl(prog *Prog, hints map[int]int) (*Z3Result, error) {
 	if len(prog.Blocks) == 0 {
 		return &Z3Result{VRegPhys: map[int]int{}}, nil
 	}
@@ -63,7 +73,7 @@ func SolveOptimal(prog *Prog) (*Z3Result, error) {
 	live := computeLiveness(prog)
 
 	// Encode as SMT-LIB2.
-	smt, enc := encodeSMT(prog, live)
+	smt, enc := encodeSMT(prog, live, hints)
 
 	// Call Z3.
 	cmd := exec.Command(Z3Path, "-in", "-smt2")
@@ -208,7 +218,7 @@ type smtEncoding struct {
 	locCount int
 }
 
-func encodeSMT(prog *Prog, live *liveInfo) (string, *smtEncoding) {
+func encodeSMT(prog *Prog, live *liveInfo, hints map[int]int) (string, *smtEncoding) {
 	desc := prog.Desc
 	enc := &smtEncoding{
 		vregVar:  make(map[int]string),
@@ -360,15 +370,39 @@ func encodeSMT(prog *Prog, live *liveInfo) (string, *smtEncoding) {
 		}
 	}
 
-	// Total cost = sum of all vreg costs.
-	if len(enc.vregs) > 1 {
-		var costTerms []string
+	// Hint bonus: if PBQP hints suggest a register, add cost for NOT using it.
+	// This makes Z3 prefer the hinted register while still allowing alternatives.
+	if hints != nil {
+		b.WriteString("; --- PBQP hint preferences ---\n")
 		for _, v := range enc.vregs {
-			costTerms = append(costTerms, fmt.Sprintf("cost_%s", enc.vregVar[v]))
+			if hinted, ok := hints[v]; ok {
+				name := enc.vregVar[v]
+				// Add cost 10 if NOT matching hint. This biases Z3 toward PBQP's choice
+				// without making it mandatory (hard constraint would be too strict).
+				b.WriteString(fmt.Sprintf("(declare-const hint_%s Int)\n", name))
+				b.WriteString(fmt.Sprintf("(assert (= hint_%s (ite (= %s %d) 0 10)))\n",
+					name, name, hinted))
+			}
 		}
+		b.WriteString("\n")
+	}
+
+	// Total cost = sum of all vreg costs + hint penalties.
+	var costTerms []string
+	for _, v := range enc.vregs {
+		costTerms = append(costTerms, fmt.Sprintf("cost_%s", enc.vregVar[v]))
+	}
+	if hints != nil {
+		for _, v := range enc.vregs {
+			if _, ok := hints[v]; ok {
+				costTerms = append(costTerms, fmt.Sprintf("hint_%s", enc.vregVar[v]))
+			}
+		}
+	}
+	if len(costTerms) > 1 {
 		b.WriteString(fmt.Sprintf("(assert (= total_cost (+ %s)))\n", strings.Join(costTerms, " ")))
-	} else if len(enc.vregs) == 1 {
-		b.WriteString(fmt.Sprintf("(assert (= total_cost cost_%s))\n", enc.vregVar[enc.vregs[0]]))
+	} else if len(costTerms) == 1 {
+		b.WriteString(fmt.Sprintf("(assert (= total_cost %s))\n", costTerms[0]))
 	} else {
 		b.WriteString("(assert (= total_cost 0))\n")
 	}

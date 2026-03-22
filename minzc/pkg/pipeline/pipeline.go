@@ -204,8 +204,6 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	}
 
 	if opt.UseLIR {
-		// Tell assert bootstrap to use contract classes, not PBQP alloc.
-		lir.UseLIRContracts = true
 		// Convert PBQP allocation to LIR hints for guided WFC.
 		hints := pbqpToLIRHints(combined, lir.Z80)
 
@@ -625,11 +623,11 @@ func buildAssertBootstrap(org int, a hir.Assert, mf *mir2.Func, ar *mir2.AllocRe
 			break
 		}
 		param := mf.Contract.Params[i]
-		// When LIR is active, use PFCCO contract class directly — LIR's WFC
-		// assigns registers from contract classes, not PBQP allocation.
-		// PBQP may assign different registers than LIR (e.g. C vs B for ClassGeneral).
+		// Try PBQP alloc first (matches PBQP codegen and LIR with hints).
+		// If PBQP doesn't have this param, fall back to contract class
+		// (matches LIR WFC which assigns from contract classes).
 		locName := ""
-		if ar != nil && !lir.UseLIRContracts {
+		if ar != nil {
 			if loc, ok := ar.Locs[param.Reg]; ok {
 				locName = loc.Name
 			}

@@ -309,7 +309,7 @@ func TestZ3_SMTDump(t *testing.T) {
 	}
 
 	live := computeLiveness(prog)
-	smt, _ := encodeSMT(prog, live)
+	smt, _ := encodeSMT(prog, live, nil)
 
 	// Check structural elements.
 	if !strings.Contains(smt, "declare-const v1 Int") {

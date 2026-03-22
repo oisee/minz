@@ -197,7 +197,7 @@ func TestZ3_vs_WFC_WithSpill(t *testing.T) {
 
 	// Print Z3 SMT for manual inspection.
 	live := computeLiveness(prog)
-	smt, _ := encodeSMT(prog, live)
+	smt, _ := encodeSMT(prog, live, nil)
 	_ = smt // available for debugging: t.Logf("SMT:\n%s", smt)
 	_ = fmt.Sprintf("") // satisfy import
 }

@@ -852,7 +852,7 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 					Insts: wfc.ToInsts(),
 				}},
 			}
-			z3Result, z3Err := SolveOptimal(prog)
+			z3Result, z3Err := SolveOptimalWithHints(prog, wfc.Hints)
 			if z3Err != nil {
 				// Z3 failed (unsat or timeout) — fall back to WFC.
 				if err := wfc.Collapse(); err != nil {
