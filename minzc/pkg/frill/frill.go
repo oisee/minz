@@ -408,12 +408,14 @@ func (p *parser) parseLet() (*hir.Func, error) {
 		fn.Params = append(fn.Params, hir.Param{Name: pname.text, Ty: pty})
 	}
 
-	// Return type: : type
+	// Return type: : type (optional — inferred from body if omitted)
+	inferRetTy := false
 	if p.peek().kind == tokColon {
 		p.next() // :
 		fn.RetTy = p.parseType()
 	} else {
-		fn.RetTy = mir2.TyVoid
+		inferRetTy = true
+		fn.RetTy = mir2.TyU8 // placeholder, updated after parsing body
 	}
 
 	// = body (may contain let-in chains which desugar to VarDecl stmts)
@@ -442,6 +444,11 @@ func (p *parser) parseLet() (*hir.Func, error) {
 		whereStmts = append(whereStmts, &hir.VarDeclStmt{
 			Name: wname.text, Ty: wval.ExprTy(), Init: wval,
 		})
+	}
+
+	// Infer return type from body expression
+	if inferRetTy && body != nil {
+		fn.RetTy = body.ExprTy()
 	}
 
 	// where-bindings come BEFORE the let-in bindings and body
