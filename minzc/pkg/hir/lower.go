@@ -818,7 +818,16 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		return false
 
 	case *StoreStmt:
-		ptr := l.lowerExpr(st.Ptr)
+		// When the target is an IndexExpr we need the *address* (TyPtr),
+		// not the loaded value.  lowerExpr(IndexExpr) would emit a Load
+		// and return the element value (TyU8/etc), causing PBQP to
+		// allocate an 8-bit register for the store pointer → invalid codegen.
+		var ptr mir2.Reg
+		if ie, ok := st.Ptr.(*IndexExpr); ok {
+			ptr = l.lowerIndexAddr(ie)
+		} else {
+			ptr = l.lowerExpr(st.Ptr)
+		}
 		// ptr^ = Struct{...}: use chained stores instead of alloca round-trip.
 		if lit, ok := st.Val.(*StructLitExpr); ok {
 			l.emitStructLitFieldsChained(lit, ptr)
@@ -1659,13 +1668,12 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 	}
 }
 
-// lowerIndex lowers arr[i] → ptr_add(base, i * stride) → load.
+// lowerIndexAddr lowers arr[i] → ptr_add(base, i * stride), returning the
+// pointer register (TyPtr).  Used by StoreStmt which needs the address, not
+// the loaded value.
 //
 // stride = ElemStride if set; otherwise ElemTy.Width()/8 (rounded up to 1).
-// For stride=1 (byte arrays): ptr_add base, i   → ADD HL, DE  (efficient)
-// For stride=2 (word arrays): ptr_add base, i*2 → scale then ADD HL, DE
-// For stride>2:               ptr_add base, i*N via OpMul (slow; use SoA instead)
-func (l *lowerer) lowerIndex(ex *IndexExpr) mir2.Reg {
+func (l *lowerer) lowerIndexAddr(ex *IndexExpr) mir2.Reg {
 	base := l.lowerExpr(ex.Base)
 	idx := l.lowerExpr(ex.Idx)
 
@@ -1682,21 +1690,18 @@ func (l *lowerer) lowerIndex(ex *IndexExpr) mir2.Reg {
 	idxTy := ex.Idx.ExprTy()
 	switch stride {
 	case 1:
-		// offset = zero-extend idx to u16
 		if idxTy.Width() <= 8 {
 			offset = l.bld.Ext(idx, idxTy, mir2.TyU16, mir2.ClassIndex)
 		} else {
 			offset = idx
 		}
 	case 2:
-		// offset = idx * 2 = SHL(ext(idx,u16), 1)
 		if idxTy.Width() <= 8 {
 			idx = l.bld.Ext(idx, idxTy, mir2.TyU16, mir2.ClassIndex)
 		}
 		one := l.bld.Const(1, mir2.TyU16, mir2.ClassGeneral)
 		offset = l.bld.Shl(idx, one, mir2.TyU16, mir2.ClassIndex)
 	default:
-		// General: offset = idx * stride (software mul — slow, avoid with SoA)
 		if idxTy.Width() <= 8 {
 			idx = l.bld.Ext(idx, idxTy, mir2.TyU16, mir2.ClassIndex)
 		}
@@ -1704,7 +1709,12 @@ func (l *lowerer) lowerIndex(ex *IndexExpr) mir2.Reg {
 		offset = l.bld.Mul(idx, strideReg, mir2.TyU16, mir2.ClassIndex)
 	}
 
-	ptr := l.bld.PtrAdd(base, offset, mir2.ClassPointer)
+	return l.bld.PtrAdd(base, offset, mir2.ClassPointer)
+}
+
+// lowerIndex lowers arr[i] → ptr_add(base, i * stride) → load.
+func (l *lowerer) lowerIndex(ex *IndexExpr) mir2.Reg {
+	ptr := l.lowerIndexAddr(ex)
 	// Struct element: return address, don't load.
 	// The outer FieldExpr will do the final scalar Load.
 	if _, isStruct := ex.ElemTy.(*mir2.StructTy); isStruct {
@@ -3135,11 +3145,27 @@ func z80RegNameToClass(reg string) mir2.RegClass {
 	case "B":
 		return mir2.ClassCounter
 	case "C":
-		return mir2.ClassGeneral
+		return mir2.ClassRegC
+	case "D":
+		return mir2.ClassRegD
+	case "E":
+		return mir2.ClassRegE
+	case "H":
+		return mir2.ClassRegH
+	case "L":
+		return mir2.ClassRegL
 	case "HL":
 		return mir2.ClassPointer
 	case "DE":
 		return mir2.ClassIndex
+	case "BC":
+		return mir2.ClassPair
+	case "IX":
+		return mir2.ClassIX
+	case "IY":
+		return mir2.ClassIY
+	case "IXH", "IXL", "IYH", "IYL":
+		return mir2.ClassIXY8
 	default:
 		return mir2.ClassGeneral
 	}

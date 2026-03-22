@@ -1,8 +1,8 @@
 {
-  "duration": "1.164670785s",
+  "duration": "820.794123ms",
   "failed": 0,
-  "passed": 29,
+  "passed": 2,
   "skipped": 0,
-  "timestamp": "2026-03-18T23:05:02Z",
-  "total": 29
+  "timestamp": "2026-03-21T22:06:10Z",
+  "total": 2
 }

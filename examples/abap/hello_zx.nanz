@@ -1,0 +1,87 @@
+// hello_zx.nanz — ABAP hello world on ZX Spectrum
+//
+// Demonstrates: ABAP-style program running on ZX Spectrum
+// using stdlib/zx/console for ROM-free text I/O.
+//
+// Compile:
+//   mz examples/abap/hello_zx.nanz --lir=false -t zxspectrum -o hello_zx.a80
+//   mza hello_zx.a80 -o hello_zx.bin
+//   mzx --run hello_zx.bin@8000
+//
+// This is a Nanz program that mimics what the ABAP frontend generates,
+// but uses ZX console instead of CP/M BDOS.
+
+import zx.console { * }
+
+fun abap_write_str(str: ^u8) -> void {
+    con_print(str)
+}
+
+fun abap_write(val: u16) -> void {
+    con_print_u16(val)
+    con_putchar(32)  // trailing space
+}
+
+fun main() -> void {
+    con_init(7, 1)          // white ink on blue paper
+    con_clear()
+
+    // === Z80 System Report ===
+    con_set_attr(6, 1)      // cyan on blue
+    con_print("=== Z80 System Report ===")
+    con_newline()
+    con_newline()
+
+    con_set_attr(7, 1)      // white on blue
+    con_print("CPU:      ")
+    con_set_attr(3, 1)      // yellow
+    con_print("Z80A")
+    con_newline()
+
+    con_set_attr(7, 1)
+    con_print("Clock:    ")
+    con_set_attr(3, 1)
+    con_print("3.5 MHz")
+    con_newline()
+
+    con_set_attr(7, 1)
+    con_print("RAM:      ")
+    con_set_attr(3, 1)
+    con_print("48 KB")
+    con_newline()
+
+    con_set_attr(7, 1)
+    con_print("ROM:      ")
+    con_set_attr(3, 1)
+    con_print("16 KB")
+    con_newline()
+
+    con_set_attr(7, 1)
+    con_print("Kernel:   ")
+    con_set_attr(3, 1)
+    con_print("MinZ v0.21")
+    con_newline()
+
+    con_set_attr(7, 1)
+    con_print("Runtime:  ")
+    con_set_attr(3, 1)
+    con_print("ABAP on Z80")
+    con_newline()
+    con_newline()
+
+    con_set_attr(6, 1)
+    con_print("=========================")
+    con_newline()
+
+    con_set_attr(2, 1)      // green on blue
+    con_print("STATUS: ALL SYSTEMS GO")
+    con_newline()
+    con_newline()
+
+    con_set_attr(7, 0)      // white on black
+    con_print("Press any key...")
+    let ch: u8 = con_getchar()
+    con_newline()
+    con_print("Hello from ABAP on ZX!")
+    con_newline()
+}

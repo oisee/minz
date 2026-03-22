@@ -19,6 +19,36 @@ func PropagateClassHintsForTest(f *Func, info map[Reg]RegInfo) {
 // block arguments to a return, PBQP sees ClassAcc on every node in the chain
 // and assigns them all to A — avoiding LD C,A / LD A,C round-trips.
 func propagateClassHints(f *Func, info map[Reg]RegInfo) {
+	// ── Pass 0: demote ClassFlag vregs used in ALU ops to ClassAcc ────────────
+	// F register cannot be INC'd/DEC'd/ADD'd. If a vreg is ClassFlag but also
+	// used as src/dst in arithmetic, it must live in a GPR, not F.
+	aluRegs := make(map[Reg]bool)
+	for _, b := range f.Blocks {
+		for _, inst := range b.Insts {
+			switch inst.Op {
+			case OpAdd, OpSub, OpMul, OpDiv, OpMod, OpShl, OpShr, OpSar,
+				OpExt, OpSext, OpTrunc:
+				if inst.Dst != NoReg {
+					aluRegs[inst.Dst] = true
+				}
+				for _, s := range inst.Src {
+					if s != NoReg {
+						aluRegs[s] = true
+					}
+				}
+			}
+		}
+		for _, p := range b.Params {
+			aluRegs[p.Dst] = true // block params = loop counters
+		}
+	}
+	for r, ri := range info {
+		if ri.Cls == ClassFlag && aluRegs[r] {
+			ri.Cls = ClassAcc // demote: F can't do ALU, A can do both CMP and ALU
+			info[r] = ri
+		}
+	}
+
 	// ── Pass 1: mark return values as ClassAcc ────────────────────────────────
 	for _, b := range f.Blocks {
 		promoteRetVals := func(vals []Reg) {
@@ -283,9 +313,24 @@ func PreallocCoalesce(f *Func) PreallocCoalesceMap {
 	}
 	mergeEdge := func(target string, args []Reg) { mergeEdgeAt(target, args, 0) }
 
-	for _, b := range f.Blocks {
+	// Build block-index map for back-edge detection.
+	// In the block list (RPO), a back-edge targets a block with a lower index.
+	blockIdx := make(map[string]int, len(f.Blocks))
+	for i, b := range f.Blocks {
+		blockIdx[b.Label] = i
+	}
+
+	for bi, b := range f.Blocks {
 		switch t := b.Term.(type) {
 		case *TermJmp:
+			// Skip back-edges entirely: merging across a loop back-edge can
+			// union swap-pattern variables (a←b, b←a+b) into the same vreg,
+			// preventing the allocator from assigning them to different
+			// physical registers.  The post-allocation coalescer handles
+			// these safely.
+			if targetIdx, ok := blockIdx[t.Target]; ok && targetIdx <= bi {
+				break // back-edge — skip
+			}
 			mergeEdge(t.Target, t.Args)
 		case *TermBrIf:
 			// Only merge unconditional-like paths (Else when ThenArgs empty,

@@ -1,0 +1,196 @@
+// asm_register_permutations.nanz — exhaustive register pin + shuffle tests
+//
+// Each function takes params in pinned registers, shuffles them in asm,
+// and returns a result. If ANY register pin is wrong, the shuffle produces
+// a wrong value and the assert catches it.
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PART 1: Individual 8-bit register identity (all 7 GPRs)
+// ═══════════════════════════════════════════════════════════════════════════
+
+fun pin_a(@z80_a x: u8) -> u8 { asm z80 (in x) { NOP } }
+fun pin_b(@z80_b x: u8) -> u8 { asm z80 (in x) { LD A, B } }
+fun pin_c(@z80_c x: u8) -> u8 { asm z80 (in x) { LD A, C } }
+fun pin_d(@z80_d x: u8) -> u8 { asm z80 (in x) { LD A, D } }
+fun pin_e(@z80_e x: u8) -> u8 { asm z80 (in x) { LD A, E } }
+fun pin_h(@z80_h x: u8) -> u8 { asm z80 (in x) { LD A, H } }
+fun pin_l(@z80_l x: u8) -> u8 { asm z80 (in x) { LD A, L } }
+
+assert pin_a(0x11) == 0x11 via z80
+assert pin_b(0x22) == 0x22 via z80
+assert pin_c(0x33) == 0x33 via z80
+assert pin_d(0x44) == 0x44 via z80
+assert pin_e(0x55) == 0x55 via z80
+assert pin_h(0x66) == 0x66 via z80
+assert pin_l(0x77) == 0x77 via z80
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PART 2: 16-bit register identity
+// ═══════════════════════════════════════════════════════════════════════════
+
+fun pin_hl(@z80_hl x: u16) -> u16 { asm z80 (in x) { NOP } }
+fun pin_de(@z80_de x: u16) -> u16 { asm z80 (in x) { EX DE, HL } }
+
+assert pin_hl(0xBEEF) == 0xBEEF via z80
+assert pin_de(0xCAFE) == 0xCAFE via z80
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PART 3: Two-register swaps (detect if PBQP swaps any pair)
+// ═══════════════════════════════════════════════════════════════════════════
+
+// A,B → return A-B (asymmetric: swap gives different result)
+fun sub_ab(@z80_a a: u8, @z80_b b: u8) -> u8 {
+    asm z80 (in a, b) { SUB B }
+}
+assert sub_ab(100, 30) == 70 via z80
+
+// B,C → return B-C
+fun sub_bc(@z80_b b: u8, @z80_c c: u8) -> u8 {
+    asm z80 (in b, c) { LD A, B / SUB C }
+}
+assert sub_bc(100, 30) == 70 via z80
+
+// D,E → return D-E
+fun sub_de(@z80_d d: u8, @z80_e e: u8) -> u8 {
+    asm z80 (in d, e) { LD A, D / SUB E }
+}
+assert sub_de(100, 30) == 70 via z80
+
+// H,L → return H-L
+fun sub_hl(@z80_h h: u8, @z80_l l: u8) -> u8 {
+    asm z80 (in h, l) { LD A, H / SUB L }
+}
+assert sub_hl(100, 30) == 70 via z80
+
+// Cross pairs: B,E → return B*2+E (asymmetric)
+fun mix_be(@z80_b b: u8, @z80_e e: u8) -> u8 {
+    asm z80 (in b, e) { LD A, B / ADD A, A / ADD A, E }
+}
+assert mix_be(10, 5) == 25 via z80
+
+// A,L → A XOR L
+fun xor_al(@z80_a a: u8, @z80_l l: u8) -> u8 {
+    asm z80 (in a, l) { XOR L }
+}
+assert xor_al(0xFF, 0x0F) == 0xF0 via z80
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PART 4: Three-register shuffle — the real stress test
+// ═══════════════════════════════════════════════════════════════════════════
+
+// A,B,C → return (A + B) XOR C
+fun abc_mix(@z80_a a: u8, @z80_b b: u8, @z80_c c: u8) -> u8 {
+    asm z80 (in a, b, c) { ADD A, B / XOR C }
+}
+assert abc_mix(0x10, 0x20, 0xFF) == 0xCF via z80
+
+// D,E,L → return D + E + L (all different register groups!)
+fun del_sum(@z80_d d: u8, @z80_e e: u8, @z80_l l: u8) -> u8 {
+    asm z80 (in d, e, l) { LD A, D / ADD A, E / ADD A, L }
+}
+assert del_sum(10, 20, 30) == 60 via z80
+
+// B,D,H → return B + D + H (one from each pair: BC, DE, HL)
+fun bdh_sum(@z80_b b: u8, @z80_d d: u8, @z80_h h: u8) -> u8 {
+    asm z80 (in b, d, h) { LD A, B / ADD A, D / ADD A, H }
+}
+assert bdh_sum(11, 22, 33) == 66 via z80
+
+// C,E,L → return C + E + L (the "other half" of each pair)
+fun cel_sum(@z80_c c: u8, @z80_e e: u8, @z80_l l: u8) -> u8 {
+    asm z80 (in c, e, l) { LD A, C / ADD A, E / ADD A, L }
+}
+assert cel_sum(11, 22, 33) == 66 via z80
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PART 5: Four-register — maximum register pressure on Z80
+// ═══════════════════════════════════════════════════════════════════════════
+
+// A,B,C,D → weighted sum: A*8 + B*4 + C*2 + D*1
+// Each coefficient is a power of 2 so any register swap changes the result
+fun abcd_weighted(@z80_a a: u8, @z80_b b: u8, @z80_c c: u8, @z80_d d: u8) -> u8 {
+    asm z80 (in a, b, c, d) {
+        ADD A, A / ADD A, A / ADD A, A /
+        LD E, A /
+        LD A, B / ADD A, A / ADD A, A /
+        ADD A, E /
+        LD E, A /
+        LD A, C / ADD A, A /
+        ADD A, E /
+        ADD A, D
+    }
+}
+// A=1, B=2, C=3, D=4 → 1*8 + 2*4 + 3*2 + 4*1 = 8+8+6+4 = 26
+assert abcd_weighted(1, 2, 3, 4) == 26 via z80
+
+// B,C,D,E → sum all four
+fun bcde_sum(@z80_b b: u8, @z80_c c: u8, @z80_d d: u8, @z80_e e: u8) -> u8 {
+    asm z80 (in b, c, d, e) { LD A, B / ADD A, C / ADD A, D / ADD A, E }
+}
+assert bcde_sum(10, 20, 30, 40) == 100 via z80
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PART 6: Mixed 8-bit + 16-bit — realistic use cases
+// ═══════════════════════════════════════════════════════════════════════════
+
+// HL base, A value → store and return the address
+fun store_at(@z80_hl addr: u16, @z80_a val: u8) -> u16 {
+    asm z80 (in addr, val) { LD (HL), A }
+}
+
+// HL base, B count → add count to base
+fun advance(@z80_hl base: u16, @z80_b count: u8) -> u16 {
+    asm z80 (in base, count) { LD D, 0 / LD E, B / ADD HL, DE }
+}
+assert advance(0x4000, 32) == 0x4020 via z80
+assert advance(0xC000, 0xFF) == 0xC0FF via z80
+
+// DE source, HL dest, B count → LDIR wrapper
+fun copy_n(@z80_hl dest: u16, @z80_de src: u16, @z80_b count: u8) -> u16 {
+    asm z80 (in dest, src, count) { LD C, B / LD B, 0 / LDIR }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PART 7: Register rotation — the ultimate contract test
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Input: A=x, B=y, C=z → rotate: return x in lo, y in hi (build HL)
+fun rotate_abc(@z80_a x: u8, @z80_b y: u8, @z80_c z: u8) -> u16 {
+    asm z80 (in x, y, z) { LD L, A / LD H, B }
+}
+// x=0x11, y=0x22 → HL = 0x2211
+assert rotate_abc(0x11, 0x22, 0x33) == 0x2211 via z80
+
+// Input: D=hi, E=lo → build HL from D:E (test DE→HL routing)
+fun build_hl(@z80_d hi: u8, @z80_e lo: u8) -> u16 {
+    asm z80 (in hi, lo) { LD H, D / LD L, E }
+}
+assert build_hl(0xAB, 0xCD) == 0xABCD via z80
+assert build_hl(0x00, 0xFF) == 0x00FF via z80
+
+// Input: H=hi, L=lo → already in HL, just return
+fun passthru_hl(@z80_h hi: u8, @z80_l lo: u8) -> u16 {
+    asm z80 (in hi, lo) { NOP }
+}
+assert passthru_hl(0xDE, 0xAD) == 0xDEAD via z80
+assert passthru_hl(0xBE, 0xEF) == 0xBEEF via z80
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PART 8: screen_addr — the original motivating example
+// ═══════════════════════════════════════════════════════════════════════════
+
+fun screen_addr(@z80_a col: u8, @z80_b row: u8, @z80_c line: u8) -> u16 {
+    asm z80 (in col, row, line) {
+        LD L, A /
+        LD A, B / AND 0x18 / OR C / OR 0x40 / LD H, A /
+        LD A, B / AND 0x07 / RRCA / RRCA / RRCA / OR L / LD L, A
+    }
+}
+
+assert screen_addr(0, 0, 0) == 0x4000 via z80
+assert screen_addr(1, 0, 0) == 0x4001 via z80
+assert screen_addr(0, 0, 1) == 0x4100 via z80
+assert screen_addr(0, 1, 0) == 0x4020 via z80
+assert screen_addr(0, 8, 0) == 0x4800 via z80
+assert screen_addr(15, 12, 3) == 0x4B8F via z80
+assert screen_addr(31, 23, 7) == 0x57FF via z80

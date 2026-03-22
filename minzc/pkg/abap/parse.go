@@ -272,6 +272,14 @@ func extractCondFromStmt(stmtNode *ASTChild) Expr_ {
 			return extractCompare(child)
 		}
 	}
+	// Recurse into children — Wasm parser may nest deeper
+	for _, child := range stmtNode.Children {
+		for _, grandchild := range child.Children {
+			if grandchild.Type == "Cond" || grandchild.Type == "Compare" {
+				return extractCompare(grandchild)
+			}
+		}
+	}
 	// Fallback: use top-level tokens, skip keyword and period
 	tokens := collectLeafTokens(stmtNode)
 	condTokens := filterTokens(tokens, "WHILE", "IF", "ELSEIF", ".")
@@ -310,7 +318,18 @@ func extractCompare(node *ASTChild) Expr_ {
 	if len(sources) == 1 {
 		return sources[0]
 	}
-	// Fallback
+	// Fallback: try node's own tokens first (Wasm parser puts tokens on Cond/Compare)
+	if len(node.Tokens) >= 3 {
+		var toks []string
+		for _, t := range node.Tokens {
+			toks = append(toks, t.Str)
+		}
+		cond := parseCondition(toks)
+		if _, isInt := cond.(*IntLit); !isInt {
+			return cond
+		}
+	}
+	// Last resort: collect all leaf tokens
 	tokens := collectLeafTokens(node)
 	return parseCondition(tokens)
 }

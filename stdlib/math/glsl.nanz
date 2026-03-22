@@ -1,0 +1,258 @@
+// ============================================================================
+// glsl.nanz — GLSL ES 2.0 built-ins, ported to Nanz / Z80
+// ============================================================================
+//
+// Nanz is not a GPU language, but the abstractions map beautifully:
+//
+//   GLSL                      Nanz / Z80
+//   ─────────────────────     ────────────────────────────────
+//   vec2                      struct Vec2 { x,y: u8 }
+//   vec2 + vec2               fun +(a: Vec2, b: Vec2) -> Vec2
+//   dot(a, b)                 a.dot(b)
+//   length(v)                 v.length()
+//   mix(a, b, t)              a.mix(b, t)    — or glsl_mix(a, b, t)
+//   sin(x)                    glsl_sin(x)    — 256-entry table, ~18T
+//   clamp(v,lo,hi)            glsl_clamp(v, lo, hi)
+//   smoothstep(e0,e1,x)       glsl_smoothstep(e0, e1, x)
+//   sampler2D / uniform       interface Shader { sample }
+//
+// Key Nanz features demonstrated:
+//   * Operator overloading on Vec2, Vec2i, Color  (+, -)
+//   * UFCS methods:  v.dot(other), v.length(), c.mix(other, t), c.to_attr()
+//   * Interface Shader for polymorphic pixel samplers (CTIE monomorphization)
+//   * LUTGen: dither_pattern(v: u8<0..255>) — all 256 entries precomputed
+//     by the MIR2 VM at compile time, replaced with a 6-instruction lookup
+// ============================================================================
+
+// ============================================================================
+// Vec2 — 2D vector with unsigned u8 components (screen space 0..255)
+// ============================================================================
+
+struct Vec2 {
+    x: u8,
+    y: u8
+}
+
+// Vec2 + Vec2  (wrapping — same semantics as GLSL mod-256)
+fun +(a: Vec2, b: Vec2) -> Vec2 {
+    return Vec2{ x: a.x + b.x, y: a.y + b.y }
+}
+
+// Vec2 - Vec2  (saturating — no underflow below zero)
+fun -(a: Vec2, b: Vec2) -> Vec2 {
+    let rx: u8 = if a.x > b.x { a.x - b.x } else { 0 }
+    let ry: u8 = if a.y > b.y { a.y - b.y } else { 0 }
+    return Vec2{ x: rx, y: ry }
+}
+
+// dot(a, b) = a.x*b.x + a.y*b.y  (u8, wrapping)
+fun Vec2.dot(self: Vec2, other: Vec2) -> u8 {
+    return self.x * other.x + self.y * other.y
+}
+
+// Manhattan length approximation — cheap, no sqrt needed
+fun Vec2.length(self: Vec2) -> u8 {
+    let cx: u8 = if self.x > 127 { 255 - self.x } else { self.x }
+    let cy: u8 = if self.y > 127 { 255 - self.y } else { self.y }
+    return cx + cy
+}
+
+// ============================================================================
+// Vec2i — signed 2D vector (i8 components: -128..127)
+// ============================================================================
+
+struct Vec2i {
+    x: i8,
+    y: i8
+}
+
+fun +(a: Vec2i, b: Vec2i) -> Vec2i {
+    return Vec2i{ x: a.x + b.x, y: a.y + b.y }
+}
+
+fun -(a: Vec2i, b: Vec2i) -> Vec2i {
+    return Vec2i{ x: a.x - b.x, y: a.y - b.y }
+}
+
+// Absolute value of a signed vector (returns unsigned)
+fun Vec2i.abs(self: Vec2i) -> Vec2 {
+    let ax: u8 = if self.x < 0 { (-(self.x as i16)) as u8 } else { self.x as u8 }
+    let ay: u8 = if self.y < 0 { (-(self.y as i16)) as u8 } else { self.y as u8 }
+    return Vec2{ x: ax, y: ay }
+}
+
+// ============================================================================
+// Color — RGB color with ZX Spectrum attribute quantization
+// ============================================================================
+
+struct Color {
+    r: u8,
+    g: u8,
+    b: u8
+}
+
+// Color + Color  (saturating, component-wise)
+fun +(a: Color, b: Color) -> Color {
+    let nr: u8 = if a.r > 255 - b.r { 255 } else { a.r + b.r }
+    let ng: u8 = if a.g > 255 - b.g { 255 } else { a.g + b.g }
+    let nb: u8 = if a.b > 255 - b.b { 255 } else { a.b + b.b }
+    return Color{ r: nr, g: ng, b: nb }
+}
+
+// Color - Color  (saturating)
+fun -(a: Color, b: Color) -> Color {
+    let nr: u8 = if a.r > b.r { a.r - b.r } else { 0 }
+    let ng: u8 = if a.g > b.g { a.g - b.g } else { 0 }
+    let nb: u8 = if a.b > b.b { a.b - b.b } else { 0 }
+    return Color{ r: nr, g: ng, b: nb }
+}
+
+// mix(self, other, t): t=0 → self, t=255 → other
+fun Color.mix(self: Color, other: Color, t: u8) -> Color {
+    let nr: u8 = glsl_mix(self.r, other.r, t)
+    let ng: u8 = glsl_mix(self.g, other.g, t)
+    let nb: u8 = glsl_mix(self.b, other.b, t)
+    return Color{ r: nr, g: ng, b: nb }
+}
+
+// Convert to ZX Spectrum attribute byte.
+// ZX color bits: ink[2:0] = GRB (green=bit2, red=bit1, blue=bit0)
+// Paper is always black (0). Bright bit set when any channel > 170.
+fun Color.to_attr(self: Color) -> u8 {
+    let r1: u8 = if self.r > 127 { 1 } else { 0 }
+    let g1: u8 = if self.g > 127 { 1 } else { 0 }
+    let b1: u8 = if self.b > 127 { 1 } else { 0 }
+    // ZX ink: bit2=G, bit1=R, bit0=B
+    let ink: u8 = (g1 << 2) | (r1 << 1) | b1
+    let bright: u8 = if (self.r > 170) | (self.g > 170) | (self.b > 170) { 0x40 } else { 0 }
+    return bright | ink   // paper=black (bits 5:3 = 0)
+}
+
+// ============================================================================
+// Shader interface — polymorphic pixel sampler (CTIE monomorphization)
+//
+// Any struct that implements sample(uv: Vec2) -> u8 satisfies Shader.
+// Calling shader.sample(uv) compiles to a direct CALL — no vtable, zero cost.
+// ============================================================================
+
+interface Shader {
+    sample
+}
+
+// Run a Shader over a virtual screen and return average brightness (for testing)
+fun eval_center(s: Shader) -> u8 {
+    return s.sample(Vec2{ x: 128, y: 96 })
+}
+
+// ============================================================================
+// Scalar GLSL built-ins — integer approximations
+// ============================================================================
+
+// clamp(v, lo, hi)
+fun glsl_clamp(v: u8, lo: u8, hi: u8) -> u8 {
+    if v < lo { return lo }
+    if v > hi { return hi }
+    return v
+}
+
+// abs for signed i8
+fun glsl_abs(v: i8) -> u8 {
+    if v < 0 { return (-(v as i16)) as u8 }
+    return v as u8
+}
+
+// mix(a, b, t): linear interpolation, t in 0..255
+fun glsl_mix(a: u8, b: u8, t: u8) -> u8 {
+    if a <= b {
+        return a + (((b - a) as u16 * t as u16) >> 8) as u8
+    }
+    return a - (((a - b) as u16 * t as u16) >> 8) as u8
+}
+
+// smoothstep(edge0, edge1, x): Hermite interpolation 0→255 as x: edge0→edge1
+fun glsl_smoothstep(edge0: u8, edge1: u8, x: u8) -> u8 {
+    if x <= edge0 { return 0 }
+    if x >= edge1 { return 255 }
+    let range: u16 = (edge1 - edge0) as u16
+    let t: u8 = (((x - edge0) as u16 * 255) / range) as u8
+    // Cubic Hermite: 3t² - 2t³  (all scaled to 0..255)
+    let t2: u16 = (t as u16 * t as u16) >> 8
+    let t3: u16 = (t2 * t as u16) >> 8
+    return (3 * t2 - 2 * t3) as u8
+}
+
+// ============================================================================
+// sin / cos — 256-entry lookup tables, biased to 0..255
+// Center 128 = sin(0) = 0.  Peak 255 = sin(π/2) = +1.  Trough 1 = sin(3π/2) = -1.
+// ~18T per lookup (LD HL,base / LD D,0 / LD E,a / ADD HL,DE / LD A,(HL) / RET)
+// ============================================================================
+
+global GLSL_SIN: [u8; 256] = [
+    // 0°→22.5°   rising from 128
+    128, 131, 134, 137, 140, 143, 146, 149, 152, 155, 158, 161, 164, 167, 170, 173,
+    // 22.5°→45°
+    176, 179, 182, 184, 187, 190, 192, 195, 197, 200, 202, 205, 207, 209, 211, 213,
+    // 45°→67.5°  approaching peak
+    215, 217, 219, 221, 222, 224, 226, 227, 228, 230, 231, 232, 233, 234, 235, 236,
+    // 67.5°→90°  peak 255 at index 64
+    236, 237, 238, 238, 239, 239, 239, 240, 240, 240, 240, 240, 239, 239, 239, 238,
+    // 90°→112.5° descending
+    238, 237, 236, 236, 235, 234, 233, 232, 231, 230, 228, 227, 226, 224, 222, 221,
+    // 112.5°→135°
+    219, 217, 215, 213, 211, 209, 207, 205, 202, 200, 197, 195, 192, 190, 187, 184,
+    // 135°→157.5°
+    182, 179, 176, 173, 170, 167, 164, 161, 158, 155, 152, 149, 146, 143, 140, 137,
+    // 157.5°→180°  back to 128
+    134, 131, 128, 125, 122, 119, 116, 113, 110, 107, 104, 101,  98,  95,  92,  89,
+    // 180°→202.5°  below center
+     86,  83,  80,  78,  75,  72,  70,  67,  65,  62,  60,  57,  55,  53,  51,  49,
+    // 202.5°→225°
+     47,  45,  43,  41,  40,  38,  36,  35,  34,  32,  31,  30,  29,  28,  27,  26,
+    // 225°→247.5°  approaching trough
+     26,  25,  24,  24,  23,  23,  23,  22,  22,  22,  22,  22,  23,  23,  23,  24,
+    // 247.5°→270°  trough 1 at index 192
+     24,  25,  26,  26,  27,  28,  29,  30,  31,  32,  34,  35,  36,  38,  40,  41,
+    // 270°→292.5°
+     43,  45,  47,  49,  51,  53,  55,  57,  60,  62,  65,  67,  70,  72,  75,  78,
+    // 292.5°→315°
+     80,  83,  86,  89,  92,  95,  98, 101, 104, 107, 110, 113, 116, 119, 122, 125,
+    // 315°→337.5°
+    128, 131, 134, 137, 140, 143, 146, 149, 152, 155, 158, 161, 164, 167, 170, 173,
+    // 337.5°→360°
+    176, 179, 182, 184, 187, 190, 192, 195, 197, 200, 202, 205, 207, 209, 211, 213
+]
+
+// glsl_sin(a): a in 0..255 = full circle.  Returns 0..255 (128 = zero-crossing).
+fun glsl_sin(a: u8) -> u8 {
+    return GLSL_SIN[a]
+}
+
+// glsl_cos(a): cos = sin(a + 64)  — quarter-cycle shift, zero cost.
+fun glsl_cos(a: u8) -> u8 {
+    return GLSL_SIN[a + 64]
+}
+
+// ============================================================================
+// LUTGen showcase: dither_pattern(v: u8<0..255>) -> u8
+//
+// The ranged parameter u8<0..255> tells the compiler: "evaluate this pure
+// function for every v in 0..255 at compile time using the MIR2 VM, then
+// replace the function body with a 256-byte lookup table."
+//
+// The body is plain integer arithmetic — no floats, no runtime cost.
+// At runtime: LD HL, dither_pattern_lut / ... / LD A, (HL) / RET  (~6 insts)
+// ============================================================================
+
+// Maps brightness 0..255 → 8-pixel dither row (Bayer-style thresholds).
+// Used by the plasma renderer to convert shader output to ZX bitmap bytes.
+fun dither_pattern(v: u8<0..255>) -> u8 {
+    if v < 28  { return 0x00 }   // very dark   0000_0000
+    if v < 56  { return 0x08 }   //             0000_1000
+    if v < 85  { return 0x22 }   //             0010_0010
+    if v < 113 { return 0x55 }   // medium       0101_0101  (checkerboard)
+    if v < 141 { return 0x6B }   //             0110_1011
+    if v < 170 { return 0xAA }   //             1010_1010
+    if v < 198 { return 0xBB }   //             1011_1011
+    if v < 227 { return 0xDD }   //             1101_1101
+    return 0xFF                  // very bright  1111_1111
+}

@@ -57,6 +57,30 @@ type regState struct {
 // indexed by position in locs.  Cost = useCount[r] × ct.Cost(r.Cls, locs[i]).
 // Locations that are incompatible or have InfCost get cost InfCost.
 func nodeCosts(f *Func, info map[Reg]RegInfo, ct CostTable, locs []PhysLoc) map[Reg][]int {
+	// Collect regs that are used in ALU ops (ADD/SUB/AND/OR/INC/DEC/MUL/SHL/SHR).
+	// These CANNOT live in LocFlag (INC F is not valid Z80).
+	aluUsed := make(map[Reg]bool)
+	for _, b := range f.Blocks {
+		for _, inst := range b.Insts {
+			switch inst.Op {
+			case OpAdd, OpSub, OpMul, OpDiv, OpMod,
+				OpShl, OpShr, OpSar, OpExt, OpSext, OpTrunc:
+				if inst.Dst != NoReg {
+					aluUsed[inst.Dst] = true
+				}
+				for _, s := range inst.Src {
+					if s != NoReg {
+						aluUsed[s] = true
+					}
+				}
+			}
+		}
+		// Block params used as loop counters
+		for _, p := range b.Params {
+			aluUsed[p.Dst] = true
+		}
+	}
+
 	// Count how many times each reg is used (defs + uses in instructions + terms).
 	useCount := make(map[Reg]int)
 
@@ -100,6 +124,11 @@ func nodeCosts(f *Func, info map[Reg]RegInfo, ct CostTable, locs []PhysLoc) map[
 		cv := make([]int, len(locs))
 		for i, loc := range locs {
 			if !locCompatible(ri.Ty, loc) {
+				cv[i] = InfCost
+				continue
+			}
+			// ALU-used regs cannot live in LocFlag (INC F / DEC F invalid).
+			if loc.Kind == LocFlag && aluUsed[r] {
 				cv[i] = InfCost
 				continue
 			}

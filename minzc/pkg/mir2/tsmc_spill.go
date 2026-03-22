@@ -121,7 +121,7 @@ func scanTSMCSpillPairs(f *Func, ar *AllocResult) []tsmcSpillPair {
 		if !ok {
 			continue
 		}
-		label := fmt.Sprintf("._tsmc_%s_r%d_%d", fnLabel, int(u.reg), len(pair.reloads))
+		label := fmt.Sprintf("_tsmc_%s_r%d_%d", fnLabel, int(u.reg), len(pair.reloads))
 		pair.reloads = append(pair.reloads, tsmcReloadSite{
 			blockIdx: u.bi,
 			instIdx:  u.ii,

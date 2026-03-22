@@ -792,8 +792,11 @@ func (g *z80cg) emitLDA(src string) {
 		g.invalidate("A")
 		return
 	}
-	if strings.HasPrefix(src, "$") {
+	if isSpill(src) {
 		g.emitf("    LD A, (%s)", src)
+	} else if isPairReg(src) {
+		// Width mismatch: pair→8bit. Take low byte.
+		g.emitf("    LD A, %s", lowByte(src))
 	} else {
 		g.emitf("    LD A, %s", src)
 	}
@@ -813,22 +816,149 @@ func (g *z80cg) loc(r Reg) string {
 	}
 	pl := g.ar.Loc(r)
 	if pl.Kind == LocMem {
-		return fmt.Sprintf("$%04X", pl.Offset)
+		return g.spillLabel(r)
 	}
 	return pl.Name
 }
 
+// spillLabel returns a named label for a spilled virtual register.
+// Format: _spill_{funcName}_r{regNum}
+// The label is emitted in the data section at end of function.
+func (g *z80cg) spillLabel(r Reg) string {
+	return fmt.Sprintf("_spill_%s_r%d", sanitizeIdent(g.fn.Name), int(r))
+}
+
+// spillWidth returns the byte width of a spilled register (1, 2, or 3 for eZ80).
+func (g *z80cg) spillWidth(r Reg) int {
+	if info, ok := collectRegInfo(g.fn)[r]; ok {
+		return (info.Ty.Width() + 7) / 8
+	}
+	return 1
+}
+
 // physName returns the assembly-level name for a PhysLoc.
-// For LocMem, returns "$F0xx" format; for everything else, returns pl.Name.
+// For LocMem, returns the named spill label; for everything else, returns pl.Name.
 func physName(pl PhysLoc) string {
+	// Note: physName is used outside genFunc context (e.g. buildBlockCopies)
+	// where we don't have access to g.fn. Fall back to $F0xx for those cases.
 	if pl.Kind == LocMem {
 		return fmt.Sprintf("$%04X", pl.Offset)
 	}
 	return pl.Name
 }
 
-// isSpill returns true if the operand is a LocMem spill address ($F0xx).
-func isSpill(s string) bool { return strings.HasPrefix(s, "$") }
+// physNameFor returns the assembly-level name for a PhysLoc within function context.
+func (g *z80cg) physNameFor(pl PhysLoc, r Reg) string {
+	if pl.Kind == LocMem {
+		return g.spillLabel(r)
+	}
+	return pl.Name
+}
+
+// emitLD8 emits a safe 8-bit LD, handling spill labels.
+// Z80 only supports LD A,(nn) and LD (nn),A for absolute memory.
+// Routes through shadow A (EX AF,AF') to preserve main A register.
+func (g *z80cg) emitLD8(dst, src string) {
+	if dst == src {
+		return
+	}
+	// Width mismatch: pair→8bit truncation.
+	if isPairReg(src) && !isPairReg(dst) {
+		src = lowByte(src)
+	}
+	// DD/FD prefix conflicts — route through shadow A:
+	if (isIXYReg(src) && (dst == "H" || dst == "L")) ||
+		(isIXYReg(dst) && (src == "H" || src == "L")) ||
+		(isIXYReg(src) && isIXYReg(dst) && src[:2] != dst[:2]) {
+		g.emitMovViaAltA(dst, src)
+		return
+	}
+	dstSpill := isSpill(dst)
+	srcSpill := isSpill(src)
+	if srcSpill && dstSpill {
+		// Spill-to-spill: route through shadow A.
+		g.emit("    EX AF, AF'")
+		g.emitf("    LD A, (%s)", src)
+		g.emitf("    LD (%s), A", dst)
+		g.emit("    EX AF, AF'")
+	} else if srcSpill && dst == "A" {
+		g.emitf("    LD A, (%s)", src)
+	} else if srcSpill {
+		// Load spill to non-A register via shadow A.
+		g.emit("    EX AF, AF'")
+		g.emitf("    LD A, (%s)", src)
+		g.emitLD8(dst, "A")
+		g.emit("    EX AF, AF'")
+	} else if dstSpill && src == "A" {
+		g.emitf("    LD (%s), A", dst)
+	} else if dstSpill {
+		// Store non-A register to spill via shadow A.
+		g.emit("    EX AF, AF'")
+		g.emitf("    LD A, %s", src)
+		g.emitf("    LD (%s), A", dst)
+		g.emit("    EX AF, AF'")
+	} else {
+		g.emitf("    LD %s, %s", dst, src)
+	}
+}
+
+// emitMovViaAltA routes a single 8-bit LD through shadow A (EX AF,AF')
+// to avoid clobbering the main A register. Used for DD/FD prefix conflicts
+// where LD H,IXH would encode as NOP.
+// Cost: 20T (EX 4T + LD A,src 4-8T + LD dst,A 4T + EX 4T).
+func (g *z80cg) emitMovViaAltA(dst, src string) {
+	g.emit("    EX AF, AF'")
+	g.emitf("    LD A, %s", src)
+	g.emitLD8(dst, "A")
+	g.emit("    EX AF, AF'")
+}
+
+// emitADDHL emits ADD HL, rr with IX/IY guard.
+// Z80 ADD HL only accepts BC/DE/HL/SP — NOT IX/IY.
+func (g *z80cg) emitADDHL(rhs string) {
+	if rhs == "IX" || rhs == "IY" {
+		g.emit("    PUSH DE")
+		if rhs == "IX" { g.emit("    LD D, IXH"); g.emit("    LD E, IXL") } else { g.emit("    LD D, IYH"); g.emit("    LD E, IYL") }
+		g.emit("    ADD HL, DE")
+		g.emit("    POP DE")
+	} else if isSpill(rhs) {
+		g.emitf("    LD BC, (%s)", rhs)
+		g.emit("    ADD HL, BC")
+	} else {
+		g.emitf("    ADD HL, %s", rhs)
+	}
+}
+
+// emitSBCHL emits SBC HL, rr with IX/IY/spill/8-bit guard.
+// Z80 SBC HL only accepts BC/DE/HL/SP — NOT IX/IY or 8-bit.
+func (g *z80cg) emitSBCHL(rhs string) {
+	if rhs == "IX" || rhs == "IY" {
+		g.emit("    PUSH DE")
+		if rhs == "IX" {
+			g.emit("    LD D, IXH")
+			g.emit("    LD E, IXL")
+		} else {
+			g.emit("    LD D, IYH")
+			g.emit("    LD E, IYL")
+		}
+		g.emit("    SBC HL, DE")
+		g.emit("    POP DE")
+	} else if isSpill(rhs) {
+		g.emitf("    LD BC, (%s)", rhs)
+		g.emit("    SBC HL, BC")
+	} else if isSimpleReg(rhs) && !isPairReg(rhs) {
+		// 8-bit operand: promote to pair via promote8toPair.
+		pair := g.promote8toPair(rhs)
+		g.emitf("    SBC HL, %s", pair)
+	} else {
+		g.emitf("    SBC HL, %s", rhs)
+	}
+}
+
+// isSpill returns true if the operand is a LocMem spill (named _spill_ label or legacy $F0xx).
+func isSpill(s string) bool {
+	return strings.HasPrefix(s, "$") || strings.HasPrefix(s, "_spill_")
+}
 
 // loadSpill8 loads an 8-bit spill value into the target register.
 // Uses A as intermediary (LD A,(nn) is the only valid 8-bit absolute load).
@@ -851,7 +981,7 @@ func (g *z80cg) loadSpill8(dst, src string) {
 			}
 		}
 		g.emitf("    LD A, (%s)", src)
-		g.emitf("    LD %s, A", dst)
+		g.emitLD8(dst, "A")
 		g.invalidate("A")
 	}
 }
@@ -1089,6 +1219,50 @@ func (g *z80cg) genFunc(f *Func) {
 		g.emitf("    LD A, H")
 		g.emitf("    LD (%s+1), A", p.eqLabel)
 		g.emitf("    RET")
+	}
+
+	// Emit named spill data section — one label per spilled register.
+	// DB for 8-bit, DW for 16-bit. Labels resolve forward references
+	// from LD (label),A / LD A,(label) throughout the function.
+	// Emit spill data slots — only for vregs belonging to THIS function
+	// (ar.Spilled is combined across all functions).
+	// Skip TSMC-eligible spills — their storage is inline (patched immediates).
+	regInfo := collectRegInfo(f)
+	var spillCount int
+	for _, r := range g.ar.Spilled {
+		if _, ok := regInfo[r]; !ok {
+			continue // vreg belongs to a different function
+		}
+		if g.isTSMCSpill(r) {
+			continue // TSMC spill uses inline immediate, not data section
+		}
+		spillCount++
+	}
+	if spillCount > 0 {
+		g.emitf("; — spill slots for %s (%d spills)", label, spillCount)
+		for _, r := range g.ar.Spilled {
+			if _, ok := regInfo[r]; !ok {
+				continue
+			}
+			if g.isTSMCSpill(r) {
+				continue
+			}
+			w := 1
+			if info, ok := regInfo[r]; ok {
+				w = (info.Ty.Width() + 7) / 8
+			}
+			slabel := g.spillLabel(r)
+			switch w {
+			case 1:
+				g.emitf("%s: DB 0", slabel)
+			case 2:
+				g.emitf("%s: DW 0", slabel)
+			case 3:
+				g.emitf("%s: DB 0, 0, 0", slabel) // eZ80 24-bit
+			default:
+				g.emitf("%s: DB 0", slabel)
+			}
+		}
 	}
 }
 
@@ -1726,7 +1900,7 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.emit("    EXX")
 				g.emitf("    LD %s, %d", dst, hi)
 				g.emit("    EXX")
-			} else if strings.HasPrefix(dst, "$") {
+			} else if isSpill(dst) {
 				// LocMem spill destination.
 				// TSMC: if eligible, patch reload sites instead of memory store.
 				if pair := g.tsmcSpillPairFor(inst.Dst); pair != nil {
@@ -1751,6 +1925,11 @@ func (g *z80cg) genInst(inst *Inst) {
 						g.invalidate("HL")
 					}
 				}
+			} else if isSpill(dst) {
+				g.emit("    EX AF, AF'")
+				g.emitf("    LD A, %d", inst.Imm&0xFF)
+				g.emitf("    LD (%s), A", dst)
+				g.emit("    EX AF, AF'")
 			} else {
 				g.emitf("    LD %s, %d", dst, inst.Imm)
 			}
@@ -1834,7 +2013,7 @@ func (g *z80cg) genInst(inst *Inst) {
 			// Z80 NEG always operates on A; ensure source is in A first.
 			srcLoc := g.loc(inst.Src[0])
 			if srcLoc != "A" && !g.holdsValue("A", srcLoc) {
-				g.emitf("    LD A, %s", srcLoc)
+				g.emitLDA(srcLoc)
 			}
 			g.emit("    NEG")
 			g.invalidate("A")
@@ -1886,11 +2065,11 @@ func (g *z80cg) genInst(inst *Inst) {
 		} else if (isIXYReg(lo) && (dst == "H" || dst == "L")) ||
 			((lo == "H" || lo == "L") && isIXYReg(dst)) {
 			// DD/FD prefix conflict: route through A.
-			g.emitf("    LD A, %s", lo)
-			g.emitf("    LD %s, A", dst)
+			g.emitLDA(lo)
+			g.emitLD8(dst, "A")
 			g.invalidate("A")
 		} else {
-			g.emitf("    LD %s, %s", dst, lo)
+			g.emitLD8(dst, lo)
 		}
 
 	case OpCmp:
@@ -1946,7 +2125,7 @@ func (g *z80cg) genInst(inst *Inst) {
 			default: // HL path (18T)
 				g.emitf("    LD H, %s^H", sym)
 				g.invalidate("H")
-				g.emitf("    LD L, %s", src8)
+				g.emitLD8("L", src8)
 				g.invalidate("L")
 				if dst != "A" {
 					g.emitf("    LD A, (HL)")
@@ -1987,7 +2166,7 @@ func (g *z80cg) genInst(inst *Inst) {
 		// If the POINTER value itself is spilled to a memory slot ($Fxxx), reload it
 		// into HL first. Z80 supports LD HL,(nn) for this (3 bytes, 16T).
 		// After this, ptr=="HL" and the rest of the OpLoad path works unchanged.
-		if strings.HasPrefix(ptr, "$") {
+		if isSpill(ptr) {
 			g.emitf("    LD HL, (%s)   ; reload spilled ptr", ptr)
 			g.invalidate("HL")
 			ptr = "HL"
@@ -2049,14 +2228,19 @@ func (g *z80cg) genInst(inst *Inst) {
 				// Route through A.
 				g.emitf("    LD A, (HL)")
 				g.invalidate("A")
-				g.emitf("    LD %s, A", dst)
+				g.emitLD8(dst, "A")
 			} else if isIXYReg(dst) && isIXY(ptr) {
 				// BUG-008: LD IXL,(IX+d) impossible — DD prefix can't remap both.
 				// Also self-clobber: writing IXL changes IX base for next read.
 				// Route through A.
 				g.emitf("    LD A, %s", ptrIndirect(ptr, 0))
 				g.invalidate("A")
-				g.emitf("    LD %s, A", dst)
+				g.emitLD8(dst, "A")
+			} else if isSpill(dst) {
+				g.emit("    EX AF, AF'")
+				g.emitf("    LD A, %s", ptrIndirect(ptr, 0))
+				g.emitf("    LD (%s), A", dst)
+				g.emit("    EX AF, AF'")
 			} else {
 				g.emitf("    LD %s, %s", dst, ptrIndirect(ptr, 0))
 			}
@@ -2064,20 +2248,20 @@ func (g *z80cg) genInst(inst *Inst) {
 			// 16-bit load via IX/IY: use displacement addressing.
 			lo := lowByte(dst)
 			hi := highByte(dst)
-			if isIXYReg(lo) || isIXYReg(hi) || lo == "H" || lo == "L" || hi == "H" || hi == "L" {
+			if isIXYReg(lo) || isIXYReg(hi) || lo == "H" || lo == "L" || hi == "H" || hi == "L" || isSpill(dst) {
 				// BUG-008: dest overlaps IX prefix domain — route through A.
 				// IXH/IXL: LD IXL,(IX+d) impossible (DD prefix conflict).
 				// H/L: LD H,(IX+d) encodes as LD IXH,(IX+d) (prefix substitution).
 				g.emitf("    LD A, %s     ; lo", ptrIndirect(ptr, 0))
-				g.emitf("    LD %s, A", lo)
+				g.emitLD8(lo, "A")
 				g.emitf("    LD A, %s     ; hi", ptrIndirect(ptr, 1))
-				g.emitf("    LD %s, A", hi)
+				g.emitLD8(hi, "A")
 				g.invalidate("A")
 			} else {
 				g.emitf("    LD %s, %s     ; lo", lo, ptrIndirect(ptr, 0))
 				g.emitf("    LD %s, %s     ; hi", hi, ptrIndirect(ptr, 1))
 			}
-		} else if strings.HasPrefix(dst, "$") {
+		} else if isSpill(dst) {
 			// 16-bit load into LocMem spill slot: load through HL, then
 			// use LD (nn), HL to store both bytes atomically.
 			if ptr == "HL" {
@@ -2177,10 +2361,21 @@ func (g *z80cg) genInst(inst *Inst) {
 					g.emitf("    LD (HL), %d", cv)
 				} else {
 					val := g.loc(inst.Src[1])
-					if isIXYReg(val) {
-						g.emitf("    LD A, %s", val)
-						g.invalidate("A")
+					if isPairReg(val) {
+						// 16-bit value → store byte-by-byte: LD (HL),lo; INC HL; LD (HL),hi; DEC HL
+						g.emitf("    LD (HL), %s", lowByte(val))
+						g.emit("    INC HL")
+						g.emitf("    LD (HL), %s", highByte(val))
+						g.emit("    DEC HL")
+					} else if isIXYReg(val) || isSpill(val) {
+						g.emit("    EX AF, AF'")
+						if isSpill(val) {
+							g.emitf("    LD A, (%s)", val)
+						} else {
+							g.emitLDA(val)
+						}
 						g.emitf("    LD (HL), A")
+						g.emit("    EX AF, AF'")
 					} else {
 						g.emitf("    LD (HL), %s", val)
 					}
@@ -2224,7 +2419,7 @@ func (g *z80cg) genInst(inst *Inst) {
 		val := g.loc(inst.Src[1])
 		w := inst.Ty.Width()
 		// If ptr is spilled to a memory slot ($Fxxx), reload it into HL first.
-		if strings.HasPrefix(ptr, "$") {
+		if isSpill(ptr) {
 			g.emitf("    LD HL, (%s)   ; reload spilled ptr", ptr)
 			g.invalidate("HL")
 			ptr = "HL"
@@ -2291,16 +2486,32 @@ func (g *z80cg) genInst(inst *Inst) {
 				if (ptr == "BC" || ptr == "DE") && val != "A" {
 					g.emitLDA(val)
 					g.emitf("    LD (%s), A", ptr)
-				} else if ptr == "HL" && isIXYReg(val) {
-					g.emitf("    LD A, %s", val)
-					g.invalidate("A")
+				} else if ptr == "HL" && isPairReg(val) {
+					// Width mismatch: 8-bit store but val is pair. Use low byte.
+					g.emitf("    LD (HL), %s", lowByte(val))
+				} else if ptr == "HL" && (isIXYReg(val) || isSpill(val)) {
+					g.emit("    EX AF, AF'")
+					if isSpill(val) {
+						g.emitf("    LD A, (%s)", val)
+					} else {
+						g.emitLDA(val)
+					}
 					g.emitf("    LD (HL), A")
+					g.emit("    EX AF, AF'")
 				} else if isIXY(ptr) && (val == "H" || val == "L" || isIXYReg(val)) {
 					// BUG-008: LD (IX+d),H encodes as LD (IX+d),IXH (prefix substitution).
 					// LD (IX+d),IXL impossible. Route through A.
-					g.emitf("    LD A, %s", val)
+					g.emitLDA(val)
 					g.invalidate("A")
 					g.emitf("    LD %s, A", ptrIndirect(ptr, 0))
+				} else if isPairReg(val) {
+					// Width mismatch: 8-bit store but val is pair. Use low byte.
+					g.emitf("    LD %s, %s", ptrIndirect(ptr, 0), lowByte(val))
+				} else if isSpill(val) {
+					g.emit("    EX AF, AF'")
+					g.emitf("    LD A, (%s)", val)
+					g.emitf("    LD %s, A", ptrIndirect(ptr, 0))
+					g.emit("    EX AF, AF'")
 				} else {
 					g.emitf("    LD %s, %s", ptrIndirect(ptr, 0), val)
 				}
@@ -2309,17 +2520,17 @@ func (g *z80cg) genInst(inst *Inst) {
 			// 16-bit store via IX/IY: use displacement addressing.
 			lo := lowByte(val)
 			hi := highByte(val)
-			needA := lo == "H" || lo == "L" || isIXYReg(lo)
+			needA := lo == "H" || lo == "L" || isIXYReg(lo) || isSpill(lo)
 			if needA {
-				g.emitf("    LD A, %s", lo)
+				g.emitLDA(lo)
 				g.emitf("    LD %s, A     ; lo", ptrIndirect(ptr, 0))
 			} else {
 				g.emitf("    LD %s, %s     ; lo", ptrIndirect(ptr, 0), lo)
 			}
 			if !isPairReg(val) {
 				g.emitf("    LD %s, 0     ; hi (zero-extend)", ptrIndirect(ptr, 1))
-			} else if hi == "H" || hi == "L" || isIXYReg(hi) {
-				g.emitf("    LD A, %s", hi)
+			} else if hi == "H" || hi == "L" || isIXYReg(hi) || isSpill(hi) {
+				g.emitLDA(hi)
 				g.emitf("    LD %s, A     ; hi", ptrIndirect(ptr, 1))
 				g.invalidate("A")
 			} else {
@@ -2330,20 +2541,30 @@ func (g *z80cg) genInst(inst *Inst) {
 			// (DD prefix substitutes (HL)→(IX+d), corrupting the encoding).
 			lo := lowByte(val)
 			hi := highByte(val)
-			if isIXYReg(lo) {
-				g.emitf("    LD A, %s", lo)
+			if isIXYReg(lo) || isSpill(lo) {
+				g.emit("    EX AF, AF'")
+				if isSpill(lo) {
+					g.emitf("    LD A, (%s)", lo)
+				} else {
+					g.emitLDA(lo)
+				}
 				g.emit("    LD (HL), A     ; lo")
-				g.invalidate("A")
+				g.emit("    EX AF, AF'")
 			} else {
 				g.emitf("    LD (HL), %s     ; lo", lo)
 			}
 			g.emitf("    INC %s", ptr)
 			if !isPairReg(val) {
 				g.emitf("    LD (%s), 0     ; hi (zero-extend u8→u16)", ptr)
-			} else if isIXYReg(hi) {
-				g.emitf("    LD A, %s", hi)
+			} else if isIXYReg(hi) || isSpill(hi) {
+				g.emit("    EX AF, AF'")
+				if isSpill(hi) {
+					g.emitf("    LD A, (%s)", hi)
+				} else {
+					g.emitLDA(hi)
+				}
 				g.emit("    LD (HL), A     ; hi")
-				g.invalidate("A")
+				g.emit("    EX AF, AF'")
 			} else {
 				g.emitf("    LD (HL), %s     ; hi", hi)
 			}
@@ -2352,7 +2573,7 @@ func (g *z80cg) genInst(inst *Inst) {
 			// DE/BC: only LD (DE),A / LD (BC),A are valid — route both bytes through A.
 			lo := lowByte(val)
 			if lo != "A" {
-				g.emitf("    LD A, %s", lo)
+				g.emitLDA(lo)
 				g.invalidate("A")
 			}
 			g.emitf("    LD (%s), A     ; lo", ptr)
@@ -2363,7 +2584,7 @@ func (g *z80cg) genInst(inst *Inst) {
 			} else {
 				hi := highByte(val)
 				if hi != "A" {
-					g.emitf("    LD A, %s", hi)
+					g.emitLDA(hi)
 					g.invalidate("A")
 				}
 			}
@@ -2388,7 +2609,7 @@ func (g *z80cg) genInst(inst *Inst) {
 			// This is lossy but at least doesn't produce invalid asm.
 			// TODO: proper fix is to ensure addr_of always gets a pair.
 			g.emitf("    LD HL, %s", sym)
-			g.emitf("    LD %s, L", dst)
+			g.emitLD8(dst, "L")
 			g.invalidate("H")
 			g.invalidate("L")
 		}
@@ -2437,8 +2658,15 @@ func (g *z80cg) genInst(inst *Inst) {
 			g.emitMov("HL", base, 16)
 		}
 
-		// ADD HL, offPair — the only valid 16-bit add on Z80.
-		g.emitf("    ADD HL, %s", offPair)
+		// ADD HL, offPair — only BC/DE/HL/SP valid.
+		if offPair == "IX" || offPair == "IY" {
+			g.emit("    PUSH DE")
+			g.emitMov("DE", offPair, 16)
+			g.emit("    ADD HL, DE")
+			g.emit("    POP DE")
+		} else {
+			g.emitADDHL(offPair)
+		}
 
 		// When the base was PUSHed to save it, keep the result in HL and
 		// override the dst's physical location so the subsequent load uses
@@ -2478,7 +2706,7 @@ func (g *z80cg) genInst(inst *Inst) {
 		case offset == 256:
 			// SoA256: INC H — switch to next field column (H=column, L=index)
 			g.emitf("    INC %s", highByte(dst))
-		case offset <= 3:
+		case offset <= 3 && !isSpill(dst):
 			for range offset {
 				g.emitf("    INC %s", dst)
 			}
@@ -2491,7 +2719,7 @@ func (g *z80cg) genInst(inst *Inst) {
 					tmp = "DE"
 				}
 				g.emitf("    LD %s, %d", tmp, offset)
-				g.emitf("    ADD HL, %s", tmp)
+				g.emitADDHL(tmp)
 			} else {
 				// dst is DE/BC/IX: move to HL, add, move back.
 				g.emitMov("HL", dst, 16)
@@ -2500,7 +2728,7 @@ func (g *z80cg) genInst(inst *Inst) {
 					tmp = "DE"
 				}
 				g.emitf("    LD %s, %d", tmp, offset)
-				g.emitf("    ADD HL, %s", tmp)
+				g.emitADDHL(tmp)
 				g.emitMov(dst, "HL", 16)
 				g.invalidate("HL")
 			}
@@ -2648,7 +2876,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			g.emit("    OR 1")
 			g.emitf("%s:", skipLbl)
 			if dst != "A" {
-				g.emitf("    LD %s, A", dst)
+				g.emitLD8(dst, "A")
 				g.setCopy(dst, "A")
 			}
 			// Result is in A (or dst). Track it as a pending acc value in case
@@ -2672,7 +2900,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		// Peephole: ADD/SUB dst, N where dst == lhs and N ≤ 3 → INC/DEC dst × N.
 		// N=1: 1B/4T vs 4B/15T; N=2: 2B/8T vs 4B/15T; N=3: 3B/12T vs 4B/15T.
 		// N=4 would be 16T vs 15T — worse in T-states, skip and fall through to ALU.
-		if mnem == "ADD" && lhs == dst && !strings.HasPrefix(dst, "$") {
+		if mnem == "ADD" && lhs == dst && !isSpill(dst) && dst != "F" {
 			if cv, ok := g.constVals[inst.Src[1]]; ok && cv >= 1 && cv <= 3 {
 				for range cv {
 					g.emitf("    INC %s", dst)
@@ -2681,7 +2909,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				return
 			}
 		}
-		if mnem == "SUB" && lhs == dst && !strings.HasPrefix(dst, "$") {
+		if mnem == "SUB" && lhs == dst && !isSpill(dst) && dst != "F" {
 			if cv, ok := g.constVals[inst.Src[1]]; ok && cv >= 1 && cv <= 3 {
 				for range cv {
 					g.emitf("    DEC %s", dst)
@@ -2706,11 +2934,11 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				g.emitf("    ADD A, %s", lhs)
 			default:
 				g.comment(fmt.Sprintf("TODO: 8-bit %s %s, A → %s with A as rhs", mnem, lhs, dst))
-				g.emitf("    LD A, %s", lhs)
+				g.emitLDA(lhs)
 				g.emit8ALU(mnem, rhs)
 			}
 			if dst != "A" {
-				g.emitf("    LD %s, A", dst)
+				g.emitLD8(dst, "A")
 				g.setCopy(dst, "A")
 			} else {
 				g.pendingAccReg = inst.Dst
@@ -2729,7 +2957,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				g.emit8ALU(mnem, rhs)
 			}
 			if dst != "A" {
-				g.emitf("    LD %s, A", dst)
+				g.emitLD8(dst, "A")
 				g.setCopy(dst, "A")
 			} else {
 				g.pendingAccReg = inst.Dst
@@ -2746,7 +2974,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				g.emit8ALU(mnem, lhs)
 			}
 			if dst != "A" {
-				g.emitf("    LD %s, A", dst)
+				g.emitLD8(dst, "A")
 				g.setCopy(dst, "A")
 			} else {
 				g.pendingAccReg = inst.Dst
@@ -2769,7 +2997,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			}
 			g.invalidate("A") // ALU result is a new value — break old lhs alias
 			if dst != "A" {
-				g.emitf("    LD %s, A", dst)
+				g.emitLD8(dst, "A")
 				g.setCopy(dst, "A")
 			} else {
 				g.pendingAccReg = inst.Dst
@@ -2793,14 +3021,14 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		g.emit8ALU(mnem, rhs)
 		g.invalidate("A") // ALU result is a new value — break old lhs alias
 		if dst != "A" {
-			g.emitf("    LD %s, A", dst)
+			g.emitLD8(dst, "A")
 			g.setCopy(dst, "A")
 		} else {
 			g.pendingAccReg = inst.Dst
 		}
 	} else {
 		// 16-bit peephole: INC/DEC rr when adding/subtracting 1 in-place.
-		if lhs == dst && !strings.HasPrefix(dst, "$") {
+		if lhs == dst && !isSpill(dst) && dst != "F" {
 			if cv, ok := g.constVals[inst.Src[1]]; ok {
 				if mnem == "ADD" && cv == 1 {
 					g.emitf("    INC %s", dst)
@@ -2840,9 +3068,17 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 						g.emit("    POP BC")
 					} else if isSimpleReg(adjustedRhs) && !isPairReg(adjustedRhs) {
 						pair := g.promote8toPair(adjustedRhs)
-						g.emitf("    ADD HL, %s", pair)
+						g.emitADDHL(pair)
+					} else if isSpill(adjustedRhs) {
+						g.loadSpill16("BC", adjustedRhs)
+						g.emit("    ADD HL, BC")
+					} else if adjustedRhs == "IX" || adjustedRhs == "IY" {
+						g.emit("    PUSH DE")
+						g.emitMov("DE", adjustedRhs, 16)
+						g.emit("    ADD HL, DE")
+						g.emit("    POP DE")
 					} else {
-						g.emitf("    ADD HL, %s", adjustedRhs)
+						g.emitADDHL(adjustedRhs)
 					}
 					g.emit("    EX DE, HL")
 					g.invalidate("HL")
@@ -2862,9 +3098,12 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 					g.emit("    POP DE")
 				} else if isSimpleReg(adjustedRhs) && !isPairReg(adjustedRhs) {
 					pair := g.promote8toPair(adjustedRhs)
-					g.emitf("    ADD HL, %s", pair)
+					g.emitADDHL(pair)
+				} else if isSpill(adjustedRhs) {
+					g.loadSpill16("BC", adjustedRhs)
+					g.emit("    ADD HL, BC")
 				} else {
-					g.emitf("    ADD HL, %s", adjustedRhs)
+					g.emitADDHL(adjustedRhs)
 				}
 				g.emitMov(dst, "HL", w)
 				g.invalidate(dst)
@@ -2883,14 +3122,14 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			} else if isSimpleReg(rhs) && !isPairReg(rhs) {
 				// 8-bit rhs: zero-extend to parent pair, then ADD HL, pair.
 				pair := g.promote8toPair(rhs)
-				g.emitf("    ADD HL, %s", pair)
+				g.emitADDHL(pair)
 			} else if isSpill(rhs) {
 				// LocMem spill: load to BC, then ADD HL, BC.
 				g.loadSpill16("BC", rhs)
 				g.emit("    ADD HL, BC")
 			} else {
 				// dst must be HL here; ADD HL, rr is the only valid 16-bit ADD.
-				g.emitf("    ADD HL, %s", rhs)
+				g.emitADDHL(rhs)
 			}
 			g.invalidate(dst)
 		case "SUB":
@@ -2934,7 +3173,40 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				}
 			}
 			g.emit("    OR A") // clear carry (1b/4T; SCF+CCF would be 2b/8T)
-			g.emitf("    SBC %s, %s", dst, rhs)
+			if dst == "DE" && (rhs == "HL" || rhs == "BC" || rhs == "DE") {
+				// Optimal path: EX DE,HL; SBC HL,rhs'; EX DE,HL (23T)
+				// After EX: HL=old_DE(lhs), DE=old_HL
+				adjustedRhs := rhs
+				if rhs == "HL" {
+					adjustedRhs = "DE" // old HL is now in DE
+				} else if rhs == "DE" {
+					adjustedRhs = "DE" // SBC HL,DE = lhs-lhs = 0 (self-sub)
+				}
+				g.emit("    EX DE, HL")
+				g.emitSBCHL(adjustedRhs)
+				g.emit("    EX DE, HL") // result back to DE, HL restored
+				g.invalidate("HL")
+				g.invalidate("DE")
+			} else if dst != "HL" {
+				// General non-HL: route through HL via emitMov.
+				g.emitMov("HL", dst, w)
+				if rhs == "HL" {
+					rhs = dst
+				}
+				if isSpill(rhs) {
+					g.loadSpill16("BC", rhs)
+					rhs = "BC"
+				}
+				g.emitSBCHL(rhs)
+				g.emitMov(dst, "HL", w)
+				g.invalidate("HL")
+			} else {
+				if isSpill(rhs) {
+					g.loadSpill16("BC", rhs)
+					rhs = "BC"
+				}
+				g.emitSBCHL(rhs)
+			}
 			g.invalidate(dst)
 		case "OR", "AND", "XOR":
 			// Z80 has no 16-bit OR/AND/XOR directly; operate byte-by-byte.
@@ -2948,13 +3220,13 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			hi_rhs := highByte(rhs)
 			lo_rhs := lowByte(rhs)
 			// High byte: A = dst_hi OP rhs_hi → dst_hi
-			g.emitf("    LD A, %s", hi)
-			g.emitf("    %s %s", mnem, hi_rhs)
-			g.emitf("    LD %s, A", hi)
+			g.emitLDA(hi)
+			g.emit8ALU(mnem, hi_rhs)
+			g.emitLD8(hi, "A")
 			// Low byte: A = dst_lo OP rhs_lo → dst_lo
-			g.emitf("    LD A, %s", lo)
-			g.emitf("    %s %s", mnem, lo_rhs)
-			g.emitf("    LD %s, A", lo)
+			g.emitLDA(lo)
+			g.emit8ALU(mnem, lo_rhs)
+			g.emitLD8(lo, "A")
 			g.invalidate("A")
 			g.invalidate(dst)
 		default:
@@ -3032,7 +3304,7 @@ func (g *z80cg) genBinOp32(mnem, dst, lhs, rhs string) {
 	case "ADD":
 		if dst == "HL" {
 			// Native 32-bit add: ADD HL,rr / EXX / ADC HL,rr / EXX
-			g.emitf("    ADD HL, %s", rhs)
+			g.emitADDHL(rhs)
 			g.emit("    EXX")
 			g.emitf("    ADC HL, %s", rhs)
 			g.emit("    EXX")
@@ -3047,7 +3319,7 @@ func (g *z80cg) genBinOp32(mnem, dst, lhs, rhs string) {
 			g.emitMov32("HL", dst)
 			// Now add rhs (rhs was LocDWord; after emitMov32 we haven't clobbered it
 			// because emitMov32 uses PUSH/POP+EXX which preserves all non-HL regs).
-			g.emitf("    ADD HL, %s", rhs)
+			g.emitADDHL(rhs)
 			g.emit("    EXX")
 			g.emitf("    ADC HL, %s", rhs)
 			g.emit("    EXX")
@@ -3061,9 +3333,9 @@ func (g *z80cg) genBinOp32(mnem, dst, lhs, rhs string) {
 	case "SUB":
 		if dst == "HL" {
 			g.emit("    AND A")       // clear carry
-			g.emitf("    SBC HL, %s", rhs)
+			g.emitSBCHL(rhs)
 			g.emit("    EXX")
-			g.emitf("    SBC HL, %s", rhs)
+			g.emitSBCHL(rhs)
 			g.emit("    EXX")
 		} else {
 			g.comment(fmt.Sprintf("32-bit SUB via HL scratch: %s -= %s", dst, rhs))
@@ -3073,9 +3345,9 @@ func (g *z80cg) genBinOp32(mnem, dst, lhs, rhs string) {
 			g.emit("    EXX")
 			g.emitMov32("HL", dst)
 			g.emit("    AND A")
-			g.emitf("    SBC HL, %s", rhs)
+			g.emitSBCHL(rhs)
 			g.emit("    EXX")
-			g.emitf("    SBC HL, %s", rhs)
+			g.emitSBCHL(rhs)
 			g.emit("    EXX")
 			g.emitMov32(dst, "HL")
 			g.emit("    EXX")
@@ -3189,7 +3461,7 @@ func reorderAccMoves(insts []*Inst, ar *AllocResult) []*Inst {
 func (g *z80cg) emit8ALU(mnem, src string) {
 	// LocMem spill: Z80 ALU ops can't use absolute addresses directly.
 	// Load spill value into a scratch register first.
-	if strings.HasPrefix(src, "$") {
+	if isSpill(src) {
 		// Load from memory into A first, but A is the implicit LHS for 8-bit ALU.
 		// Must save A, load spill into scratch, restore A, then ALU.
 		// Simpler: use (HL) indirect — save HL, point to spill, ALU (HL), restore.
@@ -3208,6 +3480,10 @@ func (g *z80cg) emit8ALU(mnem, src string) {
 		g.invalidate("H")
 		return
 	}
+	// Width mismatch: pair reg as 8-bit ALU operand — use low byte.
+	if isPairReg(src) {
+		src = lowByte(src)
+	}
 	switch mnem {
 	case "ADD", "ADC":
 		g.emitf("    %s A, %s", mnem, src)
@@ -3218,11 +3494,12 @@ func (g *z80cg) emit8ALU(mnem, src string) {
 
 // emit8ALUImm emits an 8-bit ALU instruction with an immediate constant operand.
 func (g *z80cg) emit8ALUImm(mnem string, imm int64) {
+	imm8 := imm & 0xFF // Z80 8-bit ALU: truncate to byte
 	switch mnem {
 	case "ADD", "ADC":
-		g.emitf("    %s A, %d", mnem, imm)
+		g.emitf("    %s A, %d", mnem, imm8)
 	default:
-		g.emitf("    %s %d", mnem, imm)
+		g.emitf("    %s %d", mnem, imm8)
 	}
 }
 
@@ -3400,7 +3677,7 @@ func (g *z80cg) genMul(inst *Inst) {
 			g.emit("    XOR A")
 			g.invalidate("A")
 			if dst != "A" {
-				g.emitf("    LD %s, A", dst)
+				g.emitLD8(dst, "A")
 				g.setCopy(dst, "A")
 			}
 			return
@@ -3424,7 +3701,7 @@ func (g *z80cg) genMul(inst *Inst) {
 			}
 			g.invalidate("A")
 			if dst != "A" {
-				g.emitf("    LD %s, A", dst)
+				g.emitLD8(dst, "A")
 				g.setCopy(dst, "A")
 			}
 			return
@@ -3511,7 +3788,7 @@ func (g *z80cg) genMul(inst *Inst) {
 			}
 			g.invalidate("A")
 			if dst != "A" {
-				g.emitf("    LD %s, A", dst)
+				g.emitLD8(dst, "A")
 				g.setCopy(dst, "A")
 			}
 			return
@@ -3525,7 +3802,13 @@ func (g *z80cg) genMul(inst *Inst) {
 	}
 	rhs := g.loc(inst.Src[1])
 	if rhs != "B" {
-		g.emitf("    LD B, %s", rhs)
+		if isPairReg(rhs) {
+			g.emitf("    LD B, %s", lowByte(rhs))
+		} else if isSpill(rhs) {
+			g.loadSpill8("B", rhs)
+		} else {
+			g.emitf("    LD B, %s", rhs)
+		}
 	}
 	g.emit("    CALL __mul8")
 	g.needsMul8 = true
@@ -3533,7 +3816,7 @@ func (g *z80cg) genMul(inst *Inst) {
 	g.invalidate("B")
 	g.invalidate("F")
 	if dst != "A" {
-		g.emitf("    LD %s, A", dst)
+		g.emitLD8(dst, "A")
 		g.setCopy(dst, "A")
 	}
 }
@@ -3581,16 +3864,36 @@ func (g *z80cg) genMul16(inst *Inst) {
 
 	// Move lhs into HL for the multiply.
 	if lhs != "HL" {
-		g.emitf("    LD H, %s", highByte(lhs))
-		g.emitf("    LD L, %s", lowByte(lhs))
+		if isIXY(lhs) {
+			// IX/IY → HL: PUSH/POP (byte-copy invalid due to DD prefix).
+			g.emitf("    PUSH %s", lhs)
+			g.emit("    POP HL")
+		} else if isIXYReg(lhs) {
+			// IXH/IXL/IYH/IYL: 8-bit half-reg, zero-extend to HL.
+			g.emitMovViaAltA("L", lhs)
+			g.emit("    LD H, 0")
+		} else if isSpill(lhs) {
+			g.loadSpill16("HL", lhs)
+		} else {
+			g.emitf("    LD H, %s", highByte(lhs))
+			g.emitLD8("L", lowByte(lhs))
+		}
 		g.invalidate("HL")
 	}
 
 	// mul16Epilogue moves the result from HL to dst and restores saved HL.
 	mul16Epilogue := func() {
-		if dst != "HL" {
-			g.emitf("    LD %s, H", highByte(dst))
-			g.emitf("    LD %s, L", lowByte(dst))
+		if dst == "HL" {
+			// already there
+		} else if isIXY(dst) {
+			g.emit("    PUSH HL")
+			g.emitf("    POP %s", dst)
+		} else if isSpill(dst) {
+			g.storeSpill16(dst, "HL")
+			g.invalidate("HL")
+		} else {
+			g.emitLD8(highByte(dst), "H")
+			g.emitLD8(lowByte(dst), "L")
 		}
 		if savedHL {
 			g.emit("    POP HL") // restore pre-mul HL
@@ -3675,12 +3978,21 @@ func (g *z80cg) genMul16(inst *Inst) {
 	// Load multiplier into DE BEFORE overwriting BC with the multiplicand.
 	// (rhs may be in C/B/BC which gets clobbered by LD B,H; LD C,L below.)
 	if rhs != "DE" {
-		if isPairReg(rhs) {
+		if isSpill(rhs) {
+			g.loadSpill16("DE", rhs)
+		} else if isIXY(rhs) {
+			// IX/IY → DE: safe byte-copy (D/E not substituted by DD/FD).
 			g.emitf("    LD D, %s", highByte(rhs))
 			g.emitf("    LD E, %s", lowByte(rhs))
+		} else if isPairReg(rhs) {
+			g.emitf("    LD D, %s", highByte(rhs))
+			g.emitf("    LD E, %s", lowByte(rhs))
+		} else if isIXYReg(rhs) {
+			// IXH/IXL half-reg: zero-extend to DE.
+			g.emitMovViaAltA("E", rhs)
+			g.emit("    LD D, 0")
 		} else {
 			// 8-bit rhs: zero-extend into DE.
-			// Load E first so that rhs="D" reads the old D before it is zeroed.
 			g.emitf("    LD E, %s", rhs)
 			g.emit("    LD D, 0")
 		}
@@ -3751,10 +4063,16 @@ func (g *z80cg) genMul32(inst *Inst) {
 	switch cv {
 	case 0:
 		// dst = 0: load zero constant.
-		g.emitf("    LD %s, 0", dst)
-		g.emit("    EXX")
-		g.emitf("    LD %s, 0", dst)
-		g.emit("    EXX")
+		if isSpill(dst) {
+			g.emit("    LD HL, 0")
+			g.storeSpill16(dst, "HL")
+			g.invalidate("HL")
+		} else {
+			g.emitf("    LD %s, 0", dst)
+			g.emit("    EXX")
+			g.emitf("    LD %s, 0", dst)
+			g.emit("    EXX")
+		}
 		g.invalidate(dst)
 		return
 	case 1:
@@ -3875,14 +4193,25 @@ func (g *z80cg) genDivMod8(inst *Inst) {
 	}
 
 	// Setup: B = dividend, C = divisor.
+	// Width guard: lhs/rhs might be a 16-bit pair (const allocated to HL/DE).
 	if lhs == "B" {
 		// already there
+	} else if isPairReg(lhs) {
+		g.emitf("    LD B, %s", lowByte(lhs))
+	} else if isSpill(lhs) {
+		g.loadSpill8("B", lhs)
 	} else if lhs == "A" {
 		g.emit("    LD B, A")
 	} else {
 		g.emitf("    LD B, %s", lhs)
 	}
-	if rhs != "C" {
+	if rhs == "C" {
+		// already there
+	} else if isPairReg(rhs) {
+		g.emitf("    LD C, %s", lowByte(rhs))
+	} else if isSpill(rhs) {
+		g.loadSpill8("C", rhs)
+	} else {
 		g.emitf("    LD C, %s", rhs)
 	}
 
@@ -3902,7 +4231,7 @@ func (g *z80cg) genDivMod8(inst *Inst) {
 
 	if wantMod {
 		if dst != "A" {
-			g.emitf("    LD %s, A", dst)
+			g.emitLD8(dst, "A")
 			g.setCopy(dst, "A")
 		}
 	} else {
@@ -3948,13 +4277,39 @@ func (g *z80cg) genDivMod16(inst *Inst) {
 	}
 
 	// Setup: HL = dividend, DE = divisor.
-	if lhs != "HL" {
+	if lhs == "HL" {
+		// already in HL
+	} else if isIXY(lhs) {
+		g.emitf("    PUSH %s", lhs)
+		g.emit("    POP HL")
+		g.invalidate("HL")
+	} else if isIXYReg(lhs) {
+		g.emitMovViaAltA("L", lhs)
+		g.emit("    LD H, 0")
+		g.invalidate("HL")
+	} else if isSpill(lhs) {
+		g.loadSpill16("HL", lhs)
+		g.invalidate("HL")
+	} else {
 		g.emitf("    LD H, %s", highByte(lhs))
-		g.emitf("    LD L, %s", lowByte(lhs))
+		g.emitLD8("L", lowByte(lhs))
 	}
 	if rhs != "DE" {
-		g.emitf("    LD D, %s", highByte(rhs))
-		g.emitf("    LD E, %s", lowByte(rhs))
+		if isSpill(rhs) {
+			g.loadSpill16("DE", rhs)
+		} else if isIXY(rhs) {
+			g.emitf("    LD D, %s", highByte(rhs))
+			g.emitf("    LD E, %s", lowByte(rhs))
+		} else if isIXYReg(rhs) {
+			g.emitMovViaAltA("E", rhs)
+			g.emit("    LD D, 0")
+		} else if isPairReg(rhs) {
+			g.emitf("    LD D, %s", highByte(rhs))
+			g.emitf("    LD E, %s", lowByte(rhs))
+		} else {
+			g.emitLD8("E", rhs)
+			g.emit("    LD D, 0")
+		}
 	}
 
 	// BC = 0 (remainder accumulator), A = 16 (iteration counter).
@@ -3993,15 +4348,34 @@ func (g *z80cg) genDivMod16(inst *Inst) {
 		if dst == "HL" {
 			g.emit("    LD H, B")
 			g.emit("    LD L, C")
-		} else if dst != "BC" {
-			g.emitf("    LD %s, B", highByte(dst))
-			g.emitf("    LD %s, C", lowByte(dst))
+		} else if dst == "BC" {
+			// already there
+		} else if isSpill(dst) {
+			g.emit("    LD H, B")
+			g.emit("    LD L, C")
+			g.storeSpill16(dst, "HL")
+		} else if isIXY(dst) {
+			g.emit("    LD H, B")
+			g.emit("    LD L, C")
+			g.emit("    PUSH HL")
+			g.emitf("    POP %s", dst)
+		} else {
+			g.emitLD8(highByte(dst), "B")
+			g.emitLD8(lowByte(dst), "C")
 		}
 	} else {
 		// Want quotient (HL) → move to dst if needed.
-		if dst != "HL" {
-			g.emitf("    LD %s, H", highByte(dst))
-			g.emitf("    LD %s, L", lowByte(dst))
+		if dst == "HL" {
+			// already there
+		} else if isSpill(dst) {
+			g.storeSpill16(dst, "HL")
+		} else if isIXY(dst) {
+			// HL→IX/IY: byte-copy invalid (DD NOP). Use PUSH/POP.
+			g.emit("    PUSH HL")
+			g.emitf("    POP %s", dst)
+		} else {
+			g.emitLD8(highByte(dst), "H")
+			g.emitLD8(lowByte(dst), "L")
 		}
 	}
 	g.invalidate("A")
@@ -4026,7 +4400,12 @@ func (g *z80cg) genExt(inst *Inst) {
 		lo := lowByte(dst)
 		hi := highByte(dst)
 		if src != lo {
-			g.emitf("    LD %s, %s", lo, src)
+			if (isIXYReg(src) && (lo == "H" || lo == "L")) ||
+				((src == "H" || src == "L") && isIXYReg(lo)) {
+				g.emitMovViaAltA(lo, src)
+			} else {
+				g.emitLD8(lo, src)
+			}
 		}
 		g.emitf("    LD %s, 0", hi)
 		return
@@ -4046,16 +4425,16 @@ func (g *z80cg) genSext(inst *Inst) {
 		lo := lowByte(dst)
 		hi := highByte(dst)
 		if src != "A" {
-			g.emitf("    LD A, %s", src)
+			g.emitLDA(src)
 		}
 		if lo != "A" {
-			g.emitf("    LD %s, A", lo)
+			g.emitLD8(lo, "A")
 		}
 		// Propagate sign bit into high byte: RLCA; SBC A,A gives 0x00 or 0xFF.
 		g.emit("    RLCA")
 		g.emit("    SBC A, A")
 		if hi != "A" {
-			g.emitf("    LD %s, A", hi)
+			g.emitLD8(hi, "A")
 		}
 		return
 	}
@@ -4260,7 +4639,7 @@ func (g *z80cg) genCmp(inst *Inst) {
 				} else if !g.holdsValue("A", rhs) {
 					g.emitLDA(rhs)
 				}
-				g.emitf("    CP %s", lhs)
+				g.emit8ALU("CP", lhs)
 				g.cmpSwapped[inst.Dst] = true
 				g.pendingFlagReg = inst.Dst
 				return
@@ -4290,7 +4669,7 @@ func (g *z80cg) genCmp(inst *Inst) {
 			g.emit("    AND A") // AND A ≡ CP 0 for all flags; 1B/4T vs 2B/7T
 			g.cmpAndZero[inst.Dst] = true
 		} else {
-			g.emitf("    CP %d", cv)
+			g.emitf("    CP %d", cv & 0xFF)
 		}
 		// CP/AND A does not modify A; aliases remain valid.
 		g.pendingFlagReg = inst.Dst
@@ -4309,7 +4688,7 @@ func (g *z80cg) genCmp(inst *Inst) {
 		// two jumps (CGT/CLE) in TermBrIf.
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
-		g.emitf("    CP %s", lhs)
+		g.emit8ALU("CP", lhs)
 		g.cmpSwapped[inst.Dst] = true
 		swappedCond := inst.Cond.Swap()
 		if swappedCond == CmpGt || swappedCond == CmpUgt ||
@@ -4343,7 +4722,7 @@ func (g *z80cg) genCmp(inst *Inst) {
 	// Record the swap so condCode inverts the condition.  The swapped condition
 	// may require two jumps (CmpGt/CmpLe) to handle the equality case.
 	if rhs == "A" && !g.holdsValue("A", lhs) {
-		g.emitf("    CP %s", lhs)
+		g.emit8ALU("CP", lhs)
 		g.cmpSwapped[inst.Dst] = true
 		swappedCond := inst.Cond.Swap()
 		if swappedCond == CmpGt || swappedCond == CmpUgt ||
@@ -4360,7 +4739,7 @@ func (g *z80cg) genCmp(inst *Inst) {
 	}
 	g.lastFlagsLhs = ""
 	g.lastFlagsRhs = ""
-	g.emitf("    CP %s", rhs)
+	g.emit8ALU("CP", rhs)
 	// CP does not modify A; aliases remain valid.
 	g.pendingFlagReg = inst.Dst
 }
@@ -4649,10 +5028,7 @@ func (g *z80cg) emitCallArgs(args []Reg, params []Param) {
 		if i >= len(params) {
 			break
 		}
-		srcPhys := physName(g.ar.Loc(arg))
-		if p, ok := g.physOverride[arg]; ok {
-			srcPhys = p
-		}
+		srcPhys := g.loc(arg)
 		dstPhys := canonicalReturnLoc(params[i].Class, params[i].Ty)
 		if srcPhys != dstPhys {
 			g.physOverride[arg] = dstPhys
@@ -4727,9 +5103,15 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 		// functions to carry-based comparisons where possible.
 		if dst == "A" {
 			g.emit("    SBC A, A") // A=0xFF if C=1 (true), A=0x00 if C=0 (false)
+		} else if isPairReg(dst) {
+			// Flag → 16-bit pair: materialise to A, then zero-extend.
+			// SBC A,A gives 0xFF (true) or 0x00 (false).
+			g.emit("    SBC A, A")
+			g.emitf("    LD %s, A", lowByte(dst))
+			g.emitf("    LD %s, 0", highByte(dst))
 		} else {
 			g.emit("    SBC A, A")
-			g.emitf("    LD %s, A", dst)
+			g.emitLD8(dst, "A")
 		}
 		g.invalidate("A")
 		return
@@ -4742,27 +5124,27 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 		// Only "LD A, (nn)" and "LD (nn), A" work for absolute 8-bit memory I/O.
 		// TSMC spill: use self-modifying code when eligible.
 		switch {
-		case strings.HasPrefix(src, "$") && dst == "A":
+		case isSpill(src) && dst == "A":
 			if pair := g.tsmcPairByAddr(src); pair != nil {
 				g.emitTSMCReload(g.tsmcReloadLabel(pair.reg, g.blockIdx, g.curInstIdx, 0), "A", 8)
 			} else {
 				g.emitf("    LD A, (%s)", src)
 			}
-		case strings.HasPrefix(src, "$"):
+		case isSpill(src):
 			if pair := g.tsmcPairByAddr(src); pair != nil {
 				g.emitTSMCReload(g.tsmcReloadLabel(pair.reg, g.blockIdx, g.curInstIdx, 0), dst, 8)
 			} else {
 				g.emitf("    LD A, (%s)", src)
-				g.emitf("    LD %s, A", dst)
+				g.emitLD8(dst, "A")
 				g.invalidate("A")
 			}
-		case strings.HasPrefix(dst, "$") && src == "A":
+		case isSpill(dst) && src == "A":
 			if pair := g.tsmcPairByAddr(dst); pair != nil {
 				g.emitTSMCSpill(pair, "A")
 			} else {
 				g.emitf("    LD (%s), A", dst)
 			}
-		case strings.HasPrefix(dst, "$"):
+		case isSpill(dst):
 			if pair := g.tsmcPairByAddr(dst); pair != nil {
 				g.emitLDA(src)
 				g.emitTSMCSpill(pair, "A")
@@ -4772,21 +5154,32 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 			}
 		default:
 			// Width mismatch: 8-bit move but one operand is a register pair.
-			// pair→8bit: truncate (take low byte). 8bit→pair: zero-extend.
-			if isPairReg(src) && !isPairReg(dst) {
-				g.emitf("    LD %s, %s", dst, lowByte(src))
-			} else if !isPairReg(src) && isPairReg(dst) {
-				g.emitf("    LD %s, %s", lowByte(dst), src)
-				g.emitf("    LD %s, 0", highByte(dst))
-			} else if (isIXYReg(dst) && (src == "H" || src == "L")) ||
-				// DD/FD prefix conflict: LD IXH,H encodes as LD IXH,IXH (NOP).
-				// Any move between IXH/IXL/IYH/IYL and H/L must route through A.
+			// DD/FD prefix conflict must be checked BEFORE width mismatch,
+			// because lowByte(HL)="L" + IXL src = DD NOP.
+			if (isIXYReg(dst) && (src == "H" || src == "L")) ||
 				(isIXYReg(src) && (dst == "H" || dst == "L")) {
-				g.emitf("    LD A, %s", src)
-				g.emitf("    LD %s, A", dst)
-				g.invalidate("A")
+				g.emitMovViaAltA(dst, src)
+			} else if isPairReg(src) && !isPairReg(dst) {
+				// pair→8bit: truncate (take low byte).
+				lo := lowByte(src)
+				if (isIXYReg(lo) && (dst == "H" || dst == "L")) ||
+					((lo == "H" || lo == "L") && isIXYReg(dst)) {
+					g.emitMovViaAltA(dst, lo)
+				} else {
+					g.emitLD8(dst, lo)
+				}
+			} else if !isPairReg(src) && isPairReg(dst) {
+				// 8bit→pair: zero-extend.
+				lo := lowByte(dst)
+				if (isIXYReg(src) && (lo == "H" || lo == "L")) ||
+					((src == "H" || src == "L") && isIXYReg(lo)) {
+					g.emitMovViaAltA(lo, src)
+				} else {
+					g.emitLD8(lo, src)
+				}
+				g.emitf("    LD %s, 0", highByte(dst))
 			} else {
-				g.emitf("    LD %s, %s", dst, src)
+				g.emitLD8(dst, src)
 				if isSimpleReg(dst) && isSimpleReg(src) {
 					g.setCopy(dst, src)
 				}
@@ -4842,31 +5235,48 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 			lo := lowByte(dst)
 			hi := highByte(dst)
 			if lo != src {
-				g.emitf("    LD %s, %s", lo, src)
+				g.emitLD8(lo, src)
 			}
 			g.emitf("    LD %s, 0", hi)
 			break
 		}
+		// Spill-to-spill: route through HL.
+		if isSpill(src) && isSpill(dst) {
+			g.emitf("    LD HL, (%s)", src)
+			g.emitf("    LD (%s), HL", dst)
+			g.invalidate("HL")
+			break
+		}
 		// LocMem spill slot → register pair: use LD rr, (nn).
-		// Z80 supports: LD HL,(nn) [native], LD DE/BC/SP,(nn) [ED-prefix].
-		// Cannot use PUSH/POP since PUSH nn is not a valid Z80 instruction.
-		if strings.HasPrefix(src, "$") {
+		if isSpill(src) {
 			g.emitf("    LD %s, (%s)", dst, src)
 			break
 		}
 		// register pair → LocMem spill slot: use LD (nn), rr.
-		if strings.HasPrefix(dst, "$") {
+		if isSpill(dst) {
 			g.emitf("    LD (%s), %s", dst, src)
 			break
 		}
 		// 16-bit pair → 8-bit: truncate (take low byte).
 		if isPairReg(src) && !isPairReg(dst) {
-			g.emitf("    LD %s, %s", dst, lowByte(src))
+			lo := lowByte(src)
+			if (isIXYReg(lo) && (dst == "H" || dst == "L")) ||
+				((lo == "H" || lo == "L") && isIXYReg(dst)) {
+				g.emitMovViaAltA(dst, lo)
+			} else {
+				g.emitLD8(dst, lo)
+			}
 			break
 		}
 		// 8-bit → 16-bit pair: zero-extend.
 		if !isPairReg(src) && isPairReg(dst) {
-			g.emitf("    LD %s, %s", lowByte(dst), src)
+			lo := lowByte(dst)
+			if (isIXYReg(src) && (lo == "H" || lo == "L")) ||
+				((src == "H" || src == "L") && isIXYReg(lo)) {
+				g.emitMovViaAltA(lo, src)
+			} else {
+				g.emitLD8(lo, src)
+			}
 			g.emitf("    LD %s, 0", highByte(dst))
 			break
 		}
@@ -4909,11 +5319,17 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 			continue
 		}
 		if scratch, ok := g.physOverride[bp.Dst]; ok {
-			canon := physName(g.ar.Loc(bp.Dst))
-			if canon != "" && canon != scratch {
-				g.emitf("    LD %s, %s    ; restore block param from scratch", canon, scratch)
-			}
+			// Use ar.Loc (static allocation) not g.loc (which returns the override).
+			canonLoc := g.ar.Loc(bp.Dst)
 			delete(g.physOverride, bp.Dst)
+			// Only restore GPR/IXY block params — spilled params (LocMem) are
+			// already in memory and weren't saved to a scratch GPR.
+			if canonLoc.Kind == LocReg || canonLoc.Kind == LocIXY8 {
+				canon := canonLoc.Name
+				if canon != "" && canon != scratch {
+					g.emitf("    LD %s, %s    ; restore block param from scratch", canon, scratch)
+				}
+			}
 		}
 	}
 
@@ -5006,12 +5422,12 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 			if !g.holdsValue("A", lhs) {
 				g.emitLDA(lhs)
 			}
-			g.emitf("    CP %d", cv)
+			g.emitf("    CP %d", cv & 0xFF)
 		} else if rhs == "A" && lhs != "A" {
 			// A already holds rhs; swap: CP lhs computes rhs-lhs.
 			// Eq is still Z (rhs-lhs==0 ↔ rhs==lhs), but C now means rhs<lhs.
 			// So we swap Lt↔Gt below.
-			g.emitf("    CP %s", lhs)
+			g.emit8ALU("CP", lhs)
 			// Build copies for eq, swapped lt/gt.
 			eqCopies := g.buildBlockCopies(f, t.Eq, t.EqArgs)
 			ltCopies := g.buildBlockCopies(f, t.Gt, t.GtArgs) // swapped: C→gt
@@ -5029,7 +5445,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 			if !g.holdsValue("A", lhs) {
 				g.emitLDA(lhs)
 			}
-			g.emitf("    CP %s", rhs)
+			g.emit8ALU("CP", rhs)
 		}
 
 		// Build copies for each of the three edges.
@@ -5059,7 +5475,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 				}
 				param := bodyBlock.Params[i+1] // skip counter param[0]
 				src := g.loc(arg)
-				dst := physName(g.ar.Loc(param.Dst))
+				dst := g.loc(param.Dst)
 				if src != dst {
 					bodyCopies = append(bodyCopies, parallelCopy{srcName: src, dstName: dst, ty: param.Ty})
 				}
@@ -5207,7 +5623,7 @@ func (g *z80cg) buildBlockCopies(f *Func, targetName string, args []Reg) []paral
 		if i >= len(target.Params) {
 			break
 		}
-		dst := physName(g.ar.Loc(target.Params[i].Dst))
+		dst := g.loc(target.Params[i].Dst)
 		ty := target.Params[i].Ty
 		// Use g.loc (which respects physOverride) so that values saved to scratch
 		// registers by materializePendingAcc/materializePendingFlag are correctly
@@ -5359,7 +5775,7 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 
 			firstDst := m.dst
 			if m.src != scratch {
-				g.emitf("    LD %s, %s", scratch, m.src)
+				g.emitSingleCopy(m.src, scratch, m.ty)
 			}
 			m.done = true
 			cur := m.src // start at the freed slot (m.src saved to scratch)
@@ -5367,7 +5783,7 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 				found := false
 				for i := range moves {
 					if !moves[i].done && moves[i].dst == cur {
-						g.emitf("    LD %s, %s", moves[i].dst, moves[i].src)
+						g.emitSingleCopy(moves[i].src, moves[i].dst, moves[i].ty)
 						cur = moves[i].src // the source is the new freed slot
 						moves[i].done = true
 						found = true
@@ -5379,16 +5795,16 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 				}
 			}
 			if firstDst != scratch {
-				g.emitf("    LD %s, %s", firstDst, scratch)
+				g.emitSingleCopy(scratch, firstDst, m.ty)
 			}
 		} else {
 			// u16 cycle: use stack.
 			// If m.src is a LocMem spill slot ($Fxxx), PUSH is invalid.
 			// Save the LocMem value into the destination first (it will be
 			// overwritten by the cycle walk anyway), then push that pair.
-			if strings.HasPrefix(m.src, "$") {
-				g.emitf("    LD %s, (%s)", m.dst, m.src) // load LocMem into dest pair
-				g.emitf("    PUSH %s", m.dst)             // save that value on stack
+			if isSpill(m.src) {
+				g.loadSpill16(m.dst, m.src) // load LocMem into dest pair
+				g.emitf("    PUSH %s", m.dst) // save that value on stack
 			} else {
 				g.emitf("    PUSH %s", m.src)
 			}
@@ -5409,10 +5825,10 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 					break
 				}
 			}
-			if strings.HasPrefix(cur, "$") {
+			if isSpill(cur) {
 				// POP into LocMem: pop to HL then store.
 				g.emit("    POP HL")
-				g.emitf("    LD (%s), HL", cur)
+				g.storeSpill16(cur, "HL")
 			} else {
 				g.emitf("    POP %s", cur)
 			}
@@ -5421,7 +5837,19 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 	// After all register-to-register moves are resolved, emit constant assignments.
 	// Done last so they cannot clobber live source registers.
 	for _, c := range immCopies {
-		if c.ty.Width() <= 8 {
+		if c.dstName == "F" {
+			// F register: use AND A (clear=0) or SCF (set=1).
+			if c.immVal == 0 {
+				g.emit("    AND A") // clears C, sets Z
+			} else {
+				g.emit("    SCF") // sets C
+			}
+		} else if isSpill(c.dstName) {
+			g.emit("    EX AF, AF'")
+			g.emitf("    LD A, %d", c.immVal&0xFF)
+			g.emitf("    LD (%s), A", c.dstName)
+			g.emit("    EX AF, AF'")
+		} else if c.ty.Width() <= 8 {
 			g.emitf("    LD %s, %d", c.dstName, c.immVal&0xFF)
 		} else {
 			g.emitf("    LD %s, %d", c.dstName, c.immVal&0xFFFF)
@@ -5441,9 +5869,14 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 		// Flag → register: SBC A,A materialises carry into A (0xFF/0x00).
 		if dst == "A" {
 			g.emit("    SBC A, A")
+		} else if isPairReg(dst) {
+			// Flag → 16-bit pair: materialise + zero-extend.
+			g.emit("    SBC A, A")
+			g.emitf("    LD %s, A", lowByte(dst))
+			g.emitf("    LD %s, 0", highByte(dst))
 		} else {
 			g.emit("    SBC A, A")
-			g.emitf("    LD %s, A", dst)
+			g.emitLD8(dst, "A")
 		}
 		g.invalidate("A")
 		return
@@ -5459,32 +5892,43 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 	}
 	if ty.Width() <= 8 {
 		switch {
-		case strings.HasPrefix(src, "$") && dst == "A":
+		case isSpill(src) && dst == "A":
 			g.emitf("    LD A, (%s)", src)
-		case strings.HasPrefix(src, "$"):
+		case isSpill(src):
 			g.emitf("    LD A, (%s)", src)
-			g.emitf("    LD %s, A", dst)
+			g.emitLD8(dst, "A")
 			g.invalidate("A")
-		case strings.HasPrefix(dst, "$") && src == "A":
+		case isSpill(dst) && src == "A":
 			g.emitf("    LD (%s), A", dst)
-		case strings.HasPrefix(dst, "$"):
+		case isSpill(dst):
 			g.emitLDA(src)
 			g.emitf("    LD (%s), A", dst)
 		case (isIXYReg(src) && (dst == "H" || dst == "L")) ||
 			(isIXYReg(dst) && (src == "H" || src == "L")):
 			// DD/FD prefix conflict: LD H,IXH encodes as LD IXH,IXH (NOP).
-			g.emitf("    LD A, %s", src)
-			g.emitf("    LD %s, A", dst)
-			g.invalidate("A")
+			// Route through shadow A to preserve main A.
+			g.emitMovViaAltA(dst, src)
 		case isPairReg(src) && !isPairReg(dst):
 			// Width mismatch: 16-bit source → 8-bit dest. Truncate (take low byte).
-			g.emitf("    LD %s, %s", dst, lowByte(src))
+			lo := lowByte(src)
+			if (isIXYReg(lo) && (dst == "H" || dst == "L")) ||
+				((lo == "H" || lo == "L") && isIXYReg(dst)) {
+				g.emitMovViaAltA(dst, lo)
+			} else {
+				g.emitLD8(dst, lo)
+			}
 		case !isPairReg(src) && isPairReg(dst):
 			// Width mismatch: 8-bit source → 16-bit dest. Zero-extend.
-			g.emitf("    LD %s, %s", lowByte(dst), src)
+			lo := lowByte(dst)
+			if (isIXYReg(src) && (lo == "H" || lo == "L")) ||
+				((src == "H" || src == "L") && isIXYReg(lo)) {
+				g.emitMovViaAltA(lo, src)
+			} else {
+				g.emitLD8(lo, src)
+			}
 			g.emitf("    LD %s, 0", highByte(dst))
 		default:
-			g.emitf("    LD %s, %s", dst, src)
+			g.emitLD8(dst, src)
 		}
 	} else if isSpill(src) && isSpill(dst) {
 		// Spill-to-spill: route through HL.
@@ -5509,10 +5953,22 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 		}
 	} else if isPairReg(src) && !isPairReg(dst) {
 		// Width mismatch in 16-bit context: pair→8bit truncation.
-		g.emitf("    LD %s, %s", dst, lowByte(src))
+		lo := lowByte(src)
+		if (isIXYReg(lo) && (dst == "H" || dst == "L")) ||
+			((lo == "H" || lo == "L") && isIXYReg(dst)) {
+			g.emitMovViaAltA(dst, lo)
+		} else {
+			g.emitLD8(dst, lo)
+		}
 	} else if !isPairReg(src) && isPairReg(dst) {
 		// Width mismatch in 16-bit context: 8bit→pair zero-extension.
-		g.emitf("    LD %s, %s", lowByte(dst), src)
+		lo := lowByte(dst)
+		if (isIXYReg(src) && (lo == "H" || lo == "L")) ||
+			((src == "H" || src == "L") && isIXYReg(lo)) {
+			g.emitMovViaAltA(lo, src)
+		} else {
+			g.emitLD8(lo, src)
+		}
 		g.emitf("    LD %s, 0", highByte(dst))
 	} else {
 		// 16-bit non-destructive copy: two 8-bit LDs.
@@ -5529,14 +5985,16 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 			(isIXYReg(loS) && (lo == "H" || lo == "L")) ||
 			((hiS == "H" || hiS == "L") && isIXYReg(hi)) ||
 			((loS == "H" || loS == "L") && isIXYReg(lo)) {
+			// Route through shadow A to avoid clobbering main A.
+			g.emit("    EX AF, AF'")
 			g.emitf("    LD A, %s", hiS)
-			g.emitf("    LD %s, A", hi)
+			g.emitLD8(hi, "A")
 			g.emitf("    LD A, %s", loS)
-			g.emitf("    LD %s, A", lo)
-			g.invalidate("A")
+			g.emitLD8(lo, "A")
+			g.emit("    EX AF, AF'")
 		} else {
-			g.emitf("    LD %s, %s", hi, hiS)
-			g.emitf("    LD %s, %s", lo, loS)
+			g.emitLD8(hi, hiS)
+			g.emitLD8(lo, loS)
 		}
 	}
 }
@@ -5737,6 +6195,14 @@ func isIntrinsic(sym string) bool {
 	return strings.HasPrefix(sym, "@mir.")
 }
 
+// z80ReservedNames are Z80 register names that cannot be used as labels.
+var z80ReservedNames = map[string]bool{
+	"A": true, "B": true, "C": true, "D": true, "E": true, "F": true,
+	"H": true, "L": true, "I": true, "R": true,
+	"AF": true, "BC": true, "DE": true, "HL": true, "SP": true,
+	"IX": true, "IY": true, "IXH": true, "IXL": true, "IYH": true, "IYL": true,
+}
+
 func sanitizeIdent(s string) string {
 	var b strings.Builder
 	for _, c := range s {
@@ -5747,7 +6213,12 @@ func sanitizeIdent(s string) string {
 			b.WriteByte('_')
 		}
 	}
-	return b.String()
+	result := b.String()
+	// Avoid Z80 register name collisions (e.g. Pascal variable "I").
+	if z80ReservedNames[strings.ToUpper(result)] {
+		return "v_" + result
+	}
+	return result
 }
 
 // ── 16-bit register half helpers ──────────────────────────────────────────────
@@ -5881,14 +6352,20 @@ func (g *z80cg) genCmp16(inst *Inst) {
 		g.invalidate("A")
 		g.invalidate("HL")
 		lhs = "HL"
-	} else if isSimpleReg(lhs) && !isPairReg(lhs) && !isIXYReg(lhs) {
+	} else if isIXYReg(lhs) {
+		// IXH/IXL/IYH/IYL → zero-extend to HL via shadow A.
+		g.emitMovViaAltA("L", lhs)
+		g.emit("    LD H, 0")
+		g.invalidate("HL")
+		lhs = "HL"
+	} else if isSimpleReg(lhs) && !isPairReg(lhs) {
 		// 8-bit reg → zero-extend to HL
-		g.emitf("    LD L, %s", lhs)
+		g.emitLD8("L", lhs)
 		g.emit("    LD H, 0")
 		g.invalidate("HL")
 		lhs = "HL"
 	}
-	if rhs == "F" || (isSimpleReg(rhs) && !isPairReg(rhs) && !isIXYReg(rhs)) {
+	if rhs == "F" || isIXYReg(rhs) || (isSimpleReg(rhs) && !isPairReg(rhs)) {
 		// Already handled below in the SBC guard, but mark for safety.
 	}
 
@@ -5911,9 +6388,15 @@ func (g *z80cg) genCmp16(inst *Inst) {
 				// IX→HL: byte-copy invalid. Use PUSH/POP.
 				g.emitf("    PUSH %s", lhs)
 				g.emit("    POP HL")
+			} else if isIXYReg(lhs) || (isSimpleReg(lhs) && !isPairReg(lhs)) {
+				// 8-bit register: zero-extend to HL.
+				g.emitMovViaAltA("L", lhs)
+				g.emit("    LD H, 0")
+			} else if isSpill(lhs) {
+				g.loadSpill16("HL", lhs)
 			} else {
 				g.emitf("    LD H, %s", highByte(lhs))
-				g.emitf("    LD L, %s", lowByte(lhs))
+				g.emitLD8("L", lowByte(lhs))
 			}
 			g.invalidate("HL")
 			g.invalidate("DE")
@@ -5924,10 +6407,18 @@ func (g *z80cg) genCmp16(inst *Inst) {
 			g.emit("    POP HL")
 			g.invalidate("HL")
 			lhs = "HL"
+		} else if isIXYReg(lhs) || (isSimpleReg(lhs) && !isPairReg(lhs)) {
+			// 8-bit register (including IXH/IXL): zero-extend into HL.
+			g.emitMovViaAltA("L", lhs)
+			g.emit("    LD H, 0")
+			g.invalidate("HL")
+		} else if isSpill(lhs) {
+			g.loadSpill16("HL", lhs)
+			g.invalidate("HL")
 		} else {
 			// Neither operand is HL; move lhs into HL byte-by-byte.
 			g.emitf("    LD H, %s", highByte(lhs))
-			g.emitf("    LD L, %s", lowByte(lhs))
+			g.emitLD8("L", lowByte(lhs))
 			g.invalidate("HL")
 			lhs = "HL"
 		}
@@ -5989,16 +6480,24 @@ func (g *z80cg) genCmp16(inst *Inst) {
 	// (using global liveness analysis at MIR2 level). Skip HL restore.
 	if inst.FlagsOnly {
 		g.emit("    OR A")
-		g.emitf("    SBC HL, %s", rhs)
+		g.emitSBCHL(rhs)
 	} else if needsCF {
 		g.emit("    PUSH HL") // save lhs (2B, 21T — need CF preserved)
 		g.emit("    OR A")
-		g.emitf("    SBC HL, %s", rhs)
+		g.emitSBCHL(rhs)
 		g.emit("    POP HL") // restore lhs
 	} else {
 		g.emit("    OR A")
-		g.emitf("    SBC HL, %s", rhs)
-		g.emitf("    ADD HL, %s", rhs) // restore lhs (−1B, −10T; S/Z/PV safe)
+		g.emitSBCHL(rhs)
+		// Restore lhs via ADD HL, rhs (−1B, −10T; S/Z/PV safe).
+		if rhs == "IX" || rhs == "IY" {
+			g.emit("    PUSH DE")
+			g.emitMov("DE", rhs, 16)
+			g.emit("    ADD HL, DE")
+			g.emit("    POP DE")
+		} else {
+			g.emitADDHL(rhs)
+		}
 	}
 	if swappedDE {
 		// Restore physical registers to allocator-expected layout:
@@ -6061,9 +6560,9 @@ func (g *z80cg) genCmp32(inst *Inst) {
 	g.emit("    PUSH HL")         // save a_hi (shadow HL = H'L')
 	g.emit("    EXX")
 	g.emit("    AND A")           // clear carry
-	g.emitf("    SBC HL, %s", rhs) // a_lo - b_lo; carry = lo borrow
+	g.emitSBCHL(rhs) // a_lo - b_lo; carry = lo borrow
 	g.emit("    EXX")
-	g.emitf("    SBC HL, %s", rhs) // a_hi - b_hi - lo_carry; carry = 32-bit borrow
+	g.emitSBCHL(rhs) // a_hi - b_hi - lo_carry; carry = 32-bit borrow
 	g.emit("    EXX")
 	// Restore a (carry preserved by POP rr — POP does not affect flags):
 	g.emit("    EXX")
@@ -6176,8 +6675,8 @@ func (g *z80cg) detectDJNZPeephole(f *Func, b *Block) djnzPeepholeResult {
 		if i >= len(check.Params) {
 			break
 		}
-		srcLoc := physName(g.ar.Loc(arg))
-		dstLoc := physName(g.ar.Loc(check.Params[i].Dst))
+		srcLoc := g.loc(arg)
+		dstLoc := g.loc(check.Params[i].Dst)
 		if srcLoc == "B" && dstLoc == "B" {
 			continue // counter handled by DJNZ
 		}
