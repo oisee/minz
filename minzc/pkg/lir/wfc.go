@@ -478,6 +478,83 @@ func (s *WFCState) Collapse() error {
 			}
 		}
 
+		// ── Z80 validate-reject: check if collapsed instruction is valid ──
+		// Build a temporary Inst from the cell, expand template, validate.
+		// If invalid (e.g. LD A, HL), try alternative dst/src assignments.
+		if s.Desc != nil && s.Desc.Name == "z80" && c.Pat != nil {
+			tmpInst := Inst{
+				Pat: c.Pat,
+				Imm: c.Imm,
+				Sym: c.Sym,
+				Dst: Operand{VReg: c.VRegDst, Allowed: c.DstLocs, Phys: PhysOf(c.DstLocs)},
+				Srcs: [2]Operand{
+					{VReg: c.VRegSrc[0], Allowed: c.SrcLocs[0], Phys: PhysOf(c.SrcLocs[0])},
+					{VReg: c.VRegSrc[1], Allowed: c.SrcLocs[1], Phys: PhysOf(c.SrcLocs[1])},
+				},
+			}
+			if !ValidateExpandedTemplate(tmpInst, s.Desc) {
+				// Current assignment produces invalid Z80. Try alternatives.
+				// Strategy: for each src that's a singleton, try other locs
+				// from the original domain. Pick cheapest valid combo.
+				fixed := false
+				for src := 0; src < 2 && !fixed; src++ {
+					vreg := c.VRegSrc[src]
+					if vreg < 0 {
+						continue
+					}
+					origDomain := c.SrcLocs[src]
+					if origDomain.Count() <= 1 {
+						// Already singleton from constraint — try widening
+						// to the pattern's SrcLocs for alternatives.
+						if c.Pat != nil {
+							origDomain = c.Pat.SrcLocs[src]
+						}
+					}
+					for bit := 0; bit < MaxLocs; bit++ {
+						if !origDomain.Has(bit) {
+							continue
+						}
+						if Singleton(bit) == c.SrcLocs[src] {
+							continue // already tried
+						}
+						// Try this alternative src assignment.
+						c.SrcLocs[src] = Singleton(bit)
+						alt := tmpInst
+						alt.Srcs[src] = Operand{VReg: vreg, Allowed: c.SrcLocs[src], Phys: bit}
+						if ValidateExpandedTemplate(alt, s.Desc) {
+							// Valid! Update vreg tracking.
+							if vreg >= 0 {
+								vregPhys[vreg] = bit
+							}
+							fixed = true
+							break
+						}
+					}
+				}
+				// If still not fixed, try alternative dst.
+				if !fixed && c.VRegDst >= 0 {
+					origDst := c.DstLocs
+					if c.Pat != nil && !c.Pat.DstLocs.IsEmpty() {
+						origDst = c.Pat.DstLocs
+					}
+					for bit := 0; bit < MaxLocs; bit++ {
+						if !origDst.Has(bit) || Singleton(bit) == c.DstLocs {
+							continue
+						}
+						c.DstLocs = Singleton(bit)
+						alt := tmpInst
+						alt.Dst = Operand{VReg: c.VRegDst, Allowed: c.DstLocs, Phys: bit}
+						if ValidateExpandedTemplate(alt, s.Desc) {
+							vregPhys[c.VRegDst] = bit
+							fixed = true
+							break
+						}
+					}
+				}
+				// If nothing worked, leave as-is (error will show in final validate).
+			}
+		}
+
 		// Mark consumed vregs as dead after this instruction.
 		// (Simple: vreg dies at its last use.)
 		for src := 0; src < 2; src++ {
