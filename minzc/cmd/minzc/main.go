@@ -761,7 +761,10 @@ func compileViaHIR(sourceFile string) error {
 			return fmt.Errorf("ABAP compile: %w", err)
 		}
 	case ".frl":
-		hirMod, err = frill.Compile(string(src), filepath.Base(sourceFile))
+		absPath, _ := filepath.Abs(sourceFile)
+		hirMod, err = frill.CompileWithOpts(string(src), filepath.Base(sourceFile), frill.CompileOpts{
+			BaseDir: filepath.Dir(absPath),
+		})
 		if err != nil {
 			return fmt.Errorf("Frill compile: %w", err)
 		}

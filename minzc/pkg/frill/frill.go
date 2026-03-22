@@ -39,6 +39,8 @@ package frill
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"unicode"
@@ -47,12 +49,23 @@ import (
 	"github.com/minz/minzc/pkg/mir2"
 )
 
-// Compile parses Hrill source and returns an HIR module.
+// CompileOpts controls import resolution.
+type CompileOpts struct {
+	BaseDir string // directory of source file (for relative imports)
+}
+
+// Compile parses Frill source and returns an HIR module.
 func Compile(src, name string) (*hir.Module, error) {
+	return CompileWithOpts(src, name, CompileOpts{})
+}
+
+// CompileWithOpts parses with import resolution options.
+func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 	p := &parser{
 		src: src, pos: 0, line: 1, name: name,
 		adts: make(map[string]*adtDef), ctors: make(map[string]*adtCtor),
 		arities: make(map[string]int),
+		baseDir: opts.BaseDir,
 	}
 	return p.parseModule()
 }
@@ -110,6 +123,7 @@ type parser struct {
 	strings     []string             // interned string literals
 	records     []*mir2.StructTy     // record type declarations
 	arities     map[string]int       // function name → param count (for partial application)
+	baseDir     string               // for import resolution
 }
 
 func (p *parser) peek() token {
@@ -288,6 +302,17 @@ func (p *parser) parseModule() (*hir.Module, error) {
 				return nil, err
 			}
 			mod.Asserts = append(mod.Asserts, a)
+		case "import":
+			imported, err := p.parseImport()
+			if err != nil {
+				return nil, err
+			}
+			if imported != nil {
+				mod.Funcs = append(mod.Funcs, imported.Funcs...)
+				mod.Structs = append(mod.Structs, imported.Structs...)
+				mod.Strings = append(mod.Strings, imported.Strings...)
+				mod.StrKinds = append(mod.StrKinds, imported.StrKinds...)
+			}
 		case "extern":
 			fn, err := p.parseExtern()
 			if err != nil {
@@ -435,6 +460,34 @@ func (p *parser) parseRecordFields(name string) error {
 	st := &mir2.StructTy{Name: name, Fields: fields}
 	p.records = append(p.records, st)
 	return nil
+}
+
+// parseImport: import "path/to/module.frl"
+func (p *parser) parseImport() (*hir.Module, error) {
+	p.next() // consume "import"
+	pathTok := p.next()
+	if pathTok.kind != tokString {
+		return nil, fmt.Errorf("line %d: import: expected string path", pathTok.line)
+	}
+	filePath := pathTok.text
+	if !filepath.IsAbs(filePath) && p.baseDir != "" {
+		filePath = filepath.Join(p.baseDir, filePath)
+	}
+	src, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("line %d: import %q: %w", pathTok.line, pathTok.text, err)
+	}
+	child, err := CompileWithOpts(string(src), filepath.Base(filePath), CompileOpts{
+		BaseDir: filepath.Dir(filePath),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("import %q: %w", pathTok.text, err)
+	}
+	// Register imported function arities
+	for _, f := range child.Funcs {
+		p.arities[f.Name] = len(f.Params)
+	}
+	return child, nil
 }
 
 // parseExtern: extern name (p1 : t1) (p2 : t2) : retty
@@ -1328,7 +1381,7 @@ func (p *parser) parseType() mir2.Ty {
 
 func isKeyword(s string) bool {
 	switch s {
-	case "let", "in", "if", "then", "else", "type", "assert", "match", "with", "fun", "end", "where", "when", "prop", "extern", "do":
+	case "let", "in", "if", "then", "else", "type", "assert", "match", "with", "fun", "end", "where", "when", "prop", "extern", "do", "import":
 		return true
 	}
 	return false
