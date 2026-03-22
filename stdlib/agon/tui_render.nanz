@@ -31,10 +31,20 @@ fun _tui_esc() -> void {
     }
 }
 
-// Print null-terminated string via RST $18
+// Print null-terminated string via loop + RST $10 (more reliable than RST $18)
 fun _tui_mos_puts(str: ^u8) -> void {
     asm z80 (in str) {
-        RST.LIL $18
+        .loop: LD A, (HL) / OR A / RET Z
+        RST.LIL $10
+        INC HL
+        JR .loop
+    }
+}
+
+// Send raw VDU byte (for VDP commands)
+fun _tui_vdu(byte: u8) -> void {
+    asm z80 (in byte) {
+        RST.LIL $10
     }
 }
 
@@ -160,6 +170,58 @@ fun tui_width() -> u8 {
 
 fun tui_height() -> u8 {
     asm z80 (ret A) { LD A, 30 }
+}
+
+// =============================================================================
+// VDP control — Agon-specific (no CP/M equivalent)
+// =============================================================================
+
+// Set screen mode: VDU 22, mode
+//   Mode 0: 80x30, 16 colors (default)
+//   Mode 1: 40x25, 16 colors
+//   Mode 3: 80x25, 64 colors (double height)
+//   Mode 8: 40x25, 64 colors
+fun tui_set_mode(mode: u8) -> void {
+    _tui_vdu(22)
+    _tui_vdu(mode)
+}
+
+// Hide cursor: ESC [ ? 25 l
+fun tui_hide_cursor() -> void {
+    _tui_esc()
+    _tui_mos_putchar(91)    // [
+    _tui_mos_putchar(63)    // ?
+    _tui_mos_putchar(50)    // 2
+    _tui_mos_putchar(53)    // 5
+    _tui_mos_putchar(108)   // l
+}
+
+// Show cursor: ESC [ ? 25 h
+fun tui_show_cursor() -> void {
+    _tui_esc()
+    _tui_mos_putchar(91)    // [
+    _tui_mos_putchar(63)    // ?
+    _tui_mos_putchar(50)    // 2
+    _tui_mos_putchar(53)    // 5
+    _tui_mos_putchar(104)   // h
+}
+
+// Scroll region: ESC [ top ; bottom r
+fun tui_scroll_region(top: u8, bottom: u8) -> void {
+    _tui_esc()
+    _tui_mos_putchar(91)    // [
+    _tui_print_dec(top + 1)
+    _tui_mos_putchar(59)    // ;
+    _tui_print_dec(bottom + 1)
+    _tui_mos_putchar(114)   // r
+}
+
+// Reverse video on: ESC [ 7 m
+fun tui_reverse() -> void {
+    _tui_esc()
+    _tui_mos_putchar(91)    // [
+    _tui_mos_putchar(55)    // 7
+    _tui_mos_putchar(109)   // m
 }
 
 // =============================================================================

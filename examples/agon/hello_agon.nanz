@@ -11,11 +11,23 @@ fun mos_putchar(ch: u8) -> void {
 
 fun mos_puts(str: ^u8) -> void {
     asm z80 (in str) {
-        RST.LIL $18
+        .loop: LD A, (HL) / OR A / RET Z
+        RST.LIL $10
+        INC HL
+        JR .loop
+    }
+}
+
+fun mos_getkey() -> u8 {
+    asm z80 (ret A) {
+        LD A, $00
+        RST.LIL $08
     }
 }
 
 fun main() -> void {
     mos_puts(c"Hello from MinZ on Agon Light 2!\r\n")
-    mos_puts(c"eZ80 ADL mode, compiled with -b ez80\r\n")
+    mos_puts(c"Press any key: ")
+    mos_getkey()
+    mos_puts(c"\r\nYou pressed a key!\r\n")
 }

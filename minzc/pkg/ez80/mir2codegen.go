@@ -594,7 +594,7 @@ func (g *ez80cg) genCmp(inst *mir2.Inst) {
 // ---------------------------------------------------------------------------
 
 func (g *ez80cg) genCall(inst *mir2.Inst) {
-	callee := g.mod.FuncByName(inst.Sym)
+	callee := g.findFunc(inst.Sym)
 
 	// Set up arguments per callee contract
 	if callee != nil && len(callee.Contract.Params) > 0 {
@@ -619,7 +619,14 @@ func (g *ez80cg) genCall(inst *mir2.Inst) {
 			g.emitf("    CALL $%06X", addr)
 		}
 	} else {
-		g.emitf("    CALL %s", sanitize(inst.Sym))
+		// Use callee's full name (includes module prefix) for cross-module calls.
+		// inst.Sym may be the short name ("tui_clear") but the label is the
+		// full MIR2 name ("agon$tui_render$tui_clear" → "agon_tui_render_tui_clear").
+		callLabel := inst.Sym
+		if callee != nil {
+			callLabel = callee.Name
+		}
+		g.emitf("    CALL %s", sanitize(callLabel))
 	}
 
 	// Return value: nothing to do if already in correct location
@@ -684,6 +691,23 @@ func (g *ez80cg) genTerm(f *mir2.Func, b *mir2.Block) {
 	default:
 		g.emitf("    ; TODO: terminator %T", b.Term)
 	}
+}
+
+// findFunc looks up a function by name. Tries exact match first,
+// then suffix match for cross-module calls where inst.Sym is the
+// short name but f.Name has the module prefix.
+func (g *ez80cg) findFunc(sym string) *mir2.Func {
+	// Exact match
+	if f := g.mod.FuncByName(sym); f != nil {
+		return f
+	}
+	// Suffix match: sym="tui_clear" matches f.Name="agon$tui_render$tui_clear"
+	for _, f := range g.mod.Funcs {
+		if strings.HasSuffix(f.Name, "$"+sym) || strings.HasSuffix(f.Name, "$"+strings.ReplaceAll(sym, "_", "$")) {
+			return f
+		}
+	}
+	return nil
 }
 
 func (g *ez80cg) emitBlockArgCopies(f *mir2.Func, targetLabel string, args []mir2.Reg) {

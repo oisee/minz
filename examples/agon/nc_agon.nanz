@@ -1,0 +1,188 @@
+// nc_agon.nanz — Mini Norton Commander for Agon Light 2
+//
+// Blue panel with file listing, cursor navigation, status bar.
+// Demonstrates TUI library on real eZ80 hardware.
+//
+// Compile: minzc nc_agon.nanz -b ez80 -o nc_agon.bin
+// Run:     copy nc_agon.bin to Agon sdcard, type "nc_agon"
+
+import agon.tui_render
+
+// ── Constants ────────────────────────────────────────────────────────────────
+
+const KEY_ENTER: u8 = 13
+const KEY_ESC: u8 = 27
+const KEY_UP: u8 = 11     // VT100 cursor up mapped by MOS
+const KEY_DOWN: u8 = 10   // VT100 cursor down mapped by MOS
+
+const COLOR_WHITE: u8 = 7
+const COLOR_BLUE: u8 = 4
+const COLOR_CYAN: u8 = 6
+const COLOR_YELLOW: u8 = 3
+const COLOR_BLACK: u8 = 0
+const COLOR_GREEN: u8 = 2
+
+const PANEL_X: u8 = 1
+const PANEL_Y: u8 = 1
+const PANEL_W: u8 = 40
+const PANEL_H: u8 = 20
+
+const FILE_COUNT: u8 = 8
+
+// ── State ────────────────────────────────────────────────────────────────────
+
+global cursor: u8 = 0
+
+// ── File data (hardcoded demo) ──────────────────────────────────────────────
+
+fun file_name(idx: u8) -> ^u8 {
+    if idx == 0 { return c"HELLO    .BIN" }
+    if idx == 1 { return c"NC_AGON  .BIN" }
+    if idx == 2 { return c"TETRIS   .BIN" }
+    if idx == 3 { return c"README   .TXT" }
+    if idx == 4 { return c"STDLIB   .   " }
+    if idx == 5 { return c"DOCS     .   " }
+    if idx == 6 { return c"EXAMPLES .   " }
+    if idx == 7 { return c"PLASMA   .BIN" }
+    return c"???"
+}
+
+fun file_size(idx: u8) -> ^u8 {
+    if idx == 0 { return c"   166" }
+    if idx == 1 { return c"  1024" }
+    if idx == 2 { return c"  2048" }
+    if idx == 3 { return c"   512" }
+    if idx == 4 { return c"  <DIR>" }
+    if idx == 5 { return c"  <DIR>" }
+    if idx == 6 { return c"  <DIR>" }
+    if idx == 7 { return c"   789" }
+    return c"     0"
+}
+
+// ── Drawing ─────────────────────────────────────────────────────────────────
+
+fun draw_panel() -> void {
+    // Panel background
+    tui_color(COLOR_WHITE, COLOR_BLUE, 1)
+    draw_box(PANEL_X, PANEL_Y, PANEL_W, PANEL_H)
+
+    // Title bar
+    tui_goto(PANEL_X + 2, PANEL_Y)
+    tui_color(COLOR_BLACK, COLOR_CYAN, 0)
+    tui_puts(c" /sdcard ")
+
+    // Column headers
+    tui_goto(PANEL_X + 2, PANEL_Y + 1)
+    tui_color(COLOR_YELLOW, COLOR_BLUE, 1)
+    tui_puts(c"Name          Size")
+
+    // File list
+    var i: u8 = 0
+    while i < FILE_COUNT {
+        draw_file_entry(i)
+        i = i + 1
+    }
+}
+
+fun draw_file_entry(idx: u8) -> void {
+    tui_goto(PANEL_X + 1, PANEL_Y + 2 + idx)
+    if idx == cursor {
+        tui_color(COLOR_BLACK, COLOR_CYAN, 0)
+    } else {
+        tui_color(COLOR_WHITE, COLOR_BLUE, 1)
+    }
+
+    // Pad to panel width
+    tui_putch(32)
+    tui_puts(file_name(idx))
+    tui_putch(32)
+    tui_puts(file_size(idx))
+    // Fill remaining width with spaces
+    var pad: u8 = 0
+    while pad < 12 {
+        tui_putch(32)
+        pad = pad + 1
+    }
+}
+
+fun draw_status_bar() -> void {
+    tui_goto(0, 23)
+    tui_color(COLOR_BLACK, COLOR_CYAN, 0)
+    tui_puts(c" F1")
+    tui_color(COLOR_WHITE, COLOR_BLACK, 0)
+    tui_puts(c"Help ")
+    tui_color(COLOR_BLACK, COLOR_CYAN, 0)
+    tui_puts(c" F3")
+    tui_color(COLOR_WHITE, COLOR_BLACK, 0)
+    tui_puts(c"View ")
+    tui_color(COLOR_BLACK, COLOR_CYAN, 0)
+    tui_puts(c" F5")
+    tui_color(COLOR_WHITE, COLOR_BLACK, 0)
+    tui_puts(c"Copy ")
+    tui_color(COLOR_BLACK, COLOR_CYAN, 0)
+    tui_puts(c" F8")
+    tui_color(COLOR_WHITE, COLOR_BLACK, 0)
+    tui_puts(c"Del  ")
+    tui_color(COLOR_BLACK, COLOR_CYAN, 0)
+    tui_puts(c" F10")
+    tui_color(COLOR_WHITE, COLOR_BLACK, 0)
+    tui_puts(c"Quit")
+}
+
+fun draw_title() -> void {
+    tui_goto(0, 0)
+    tui_color(COLOR_BLACK, COLOR_CYAN, 0)
+    tui_puts(c" MinZ NC for Agon Light 2              ")
+    tui_puts(c"                                        ")
+}
+
+// ── Main ────────────────────────────────────────────────────────────────────
+
+fun main() -> void {
+    tui_clear()
+    tui_hide_cursor()
+
+    draw_title()
+    draw_panel()
+    draw_status_bar()
+
+    // Event loop
+    var running: u8 = 1
+    var key: u8 = 0
+    while running != 0 {
+        key = tui_read_key()
+
+        if key == KEY_UP {
+            if cursor > 0 {
+                var old: u8 = cursor
+                cursor = cursor - 1
+                draw_file_entry(old)
+                draw_file_entry(cursor)
+            }
+        }
+        if key == KEY_DOWN {
+            if cursor < FILE_COUNT - 1 {
+                var old: u8 = cursor
+                cursor = cursor + 1
+                draw_file_entry(old)
+                draw_file_entry(cursor)
+            }
+        }
+        if key == KEY_ESC {
+            running = 0
+        }
+        if key == KEY_ENTER {
+            // Show selected file name
+            tui_goto(0, 22)
+            tui_color(COLOR_GREEN, COLOR_BLACK, 1)
+            tui_puts(c"Selected: ")
+            tui_puts(file_name(cursor))
+            tui_puts(c"  ")
+        }
+    }
+
+    // Cleanup
+    tui_show_cursor()
+    tui_reset()
+    tui_clear()
+}
