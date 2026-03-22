@@ -179,9 +179,10 @@ fun con_draw_char(@z80_a col: u8, @z80_b row: u8, @z80_c ch: u8) -> void {
     // Full asm: avoids regalloc issues with font_ptr vs screen_addr
     // col=A, row=B, ch=C
     asm z80 (in col, row, ch) {
-        ; Save col, row for later (attr_addr)
-        PUSH BC         ; B=row, save
-        PUSH AF         ; A=col, save
+        ; col=A, row=B, ch=C
+        ; Save col and row in IY (call-safe)
+        LD IYL, A       ; IYL = col
+        LD IYH, B       ; IYH = row
 
         ; Compute font_ptr = $3D00 + (ch - 32) * 8
         LD A, C         ; A = ch
@@ -195,64 +196,47 @@ fun con_draw_char(@z80_a col: u8, @z80_b row: u8, @z80_c ch: u8) -> void {
         ADD HL, DE      ; HL = font_ptr
         EX DE, HL       ; DE = font_ptr
 
-        ; Restore col, row
-        POP AF          ; A = col
-        POP BC          ; B = row
-
         ; Draw 8 pixel lines
-        ; For each line 0-7: compute screen addr, copy font byte
-        LD C, 0         ; C = line counter (0-7)
+        LD B, 8         ; B = line counter (8 down to 1)
+        LD C, 0         ; C = current line (0-7)
     .line_loop:
         PUSH DE         ; save font_ptr
-        PUSH BC         ; save row + line counter
+        PUSH BC         ; save counters
 
-        ; screen_addr(col=A, row=B, line=C)
-        ; H = 010 TT SSS, L = RRR CCCCC
-        LD D, A         ; D = col
-        LD A, B         ; A = row
+        ; Inline screen_addr(col=IYL, row=IYH, line=C)
+        LD A, IYH       ; A = row
         AND 0x18
         OR C            ; combine with line
         OR 0x40
         LD H, A
-        LD A, B         ; A = row
+        LD A, IYH       ; A = row
         AND 0x07
         RRCA
         RRCA
         RRCA
-        OR D            ; combine with col
+        OR IYL          ; combine with col
         LD L, A         ; HL = screen address
 
-        POP BC          ; restore row + line counter
+        POP BC          ; restore counters
         POP DE          ; restore font_ptr
 
         ; Copy font byte to screen
         LD A, (DE)      ; A = font pixel data
         LD (HL), A      ; write to screen
         INC DE          ; next font byte
+        INC C           ; next line
+        DJNZ .line_loop ; B-- and loop
 
-        ; Restore col for next iteration
-        LD A, L
-        AND 0x1F        ; extract col from L (CCCCC bits)
-
-        INC C           ; line++
-        LD A, C
-        CP 8
-        LD A, L
-        AND 0x1F        ; re-extract col (A was clobbered by CP)
-        JR NZ, .line_loop
-
-        ; Set attribute: attr_addr(col, row)
-        ; A = col (from loop), B = row (preserved)
-        LD D, A         ; D = col
-        LD A, B
+        ; Set attribute: inline attr_addr(col=IYL, row=IYH)
+        LD A, IYH       ; A = row
         RRCA
         RRCA
         RRCA
         LD L, A
         AND 0xE0
-        OR D
+        OR IYL          ; combine with col
         LD L, A
-        LD A, B
+        LD A, IYH
         RRCA
         RRCA
         RRCA
