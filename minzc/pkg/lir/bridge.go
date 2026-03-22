@@ -569,6 +569,58 @@ func LowerMIR2ProgWithOps(f *mir2.Func, desc *MachineDesc, mod *mir2.Module) (*P
 	return prog, blockOps, nil
 }
 
+// LowerMIR2ProgWithEGraph is like LowerMIR2ProgWithOps but uses the e-graph
+// bridge for multi-variant lowering. Each block gets an EGraph alongside
+// the flattened (cheapest) MIROps.
+func LowerMIR2ProgWithEGraph(f *mir2.Func, desc *MachineDesc, mod *mir2.Module) (*Prog, [][]MIROp, []*EGraph, error) {
+	prog := &Prog{
+		Name:   f.Name,
+		Blocks: make([]Block, 0, len(f.Blocks)),
+		Desc:   desc,
+	}
+
+	blockOps := make([][]MIROp, 0, len(f.Blocks))
+	blockGraphs := make([]*EGraph, 0, len(f.Blocks))
+
+	for _, mb := range f.Blocks {
+		b := Block{Label: mb.Label}
+
+		for _, mp := range mb.Params {
+			width := 8
+			if mp.Ty != nil {
+				if w := mp.Ty.Width(); w > 0 {
+					width = w
+				}
+			}
+			if width < 8 {
+				width = 8
+			}
+			b.Params = append(b.Params, BlockParam{
+				VReg:    int(mp.Dst),
+				Allowed: regClassToLocSet(desc, mp.Class, width),
+				Phys:    -1,
+			})
+		}
+
+		eg, ops, err := LowerMIR2BlockEGraph(mb, desc, mod)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		blockOps = append(blockOps, ops)
+		blockGraphs = append(blockGraphs, eg)
+
+		var termErr error
+		b.Term, termErr = translateTerm(mb.Term, desc)
+		if termErr != nil {
+			return nil, nil, nil, fmt.Errorf("block %s term: %w", mb.Label, termErr)
+		}
+
+		prog.Blocks = append(prog.Blocks, b)
+	}
+
+	return prog, blockOps, blockGraphs, nil
+}
+
 // ContractParamsToBlockParams converts a MIR2 function's Contract.Params
 // into LIR BlockParam entries. This allows the flat codegen path to seed
 // WFC with the same param constraints that the multi-block path uses.

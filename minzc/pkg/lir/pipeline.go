@@ -306,7 +306,8 @@ func LIRCodegenFunc(f *mir2.Func, m *mir2.Module, hints ...AllocHints) (string, 
 
 // lirCodegenMultiBlock emits per-block labels, instructions, and terminators.
 func lirCodegenMultiBlock(f *mir2.Func, desc *MachineDesc, m *mir2.Module) (string, error) {
-	prog, blockOps, err := LowerMIR2ProgWithOps(f, desc, m)
+	// Use e-graph bridge for multi-variant lowering.
+	prog, blockOps, _, err := LowerMIR2ProgWithEGraph(f, desc, m)
 	if err != nil {
 		return "", fmt.Errorf("lower %s: %w", f.Name, err)
 	}
