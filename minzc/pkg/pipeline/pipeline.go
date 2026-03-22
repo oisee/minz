@@ -232,11 +232,14 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 			// Extract per-function asm from PBQP output for failed functions,
 			// then splice into the LIR output.
 			s.Assembly = splicePerFunctionFallback(lirAsm, pbqpAsm, lirResults, failSet, m)
+			// Append LIR-sanitized string pool (PBQP uses different sanitization).
+			var strBuf strings.Builder
+			lir.EmitStringPool(&strBuf, m)
+			s.Assembly += strBuf.String()
 			fmt.Fprintf(os.Stderr, "lir: %d/%d via ISLE+WFC, %d via PBQP fallback: %s\n",
 				ok, ok+fail, fail, strings.Join(failNames, ", "))
 		} else {
 			s.Assembly = lirAsm
-			// Emit string pool (only when no PBQP fallback, which emits its own).
 			var strBuf strings.Builder
 			lir.EmitStringPool(&strBuf, m)
 			s.Assembly += strBuf.String()
