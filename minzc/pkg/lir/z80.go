@@ -127,6 +127,24 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 		{Name: "ld_r_r", MIROp: OpMove, Width: 8, DstLocs: gpr8, SrcLocs: [2]LocSet{gpr8},
 			Template: "LD {dst}, {src0}", Cost: 4, Bytes: 1},
 
+		// ── Truncation: pair → low byte (zero-cost alias) ───────────
+		// The low byte of HL is L, of DE is E, of BC is C.
+		// These are "free" — no instruction needed, just register aliasing.
+		// WFC constrains dst to the low-byte register of the source pair.
+		{Name: "trunc_hl_l", MIROp: OpMove, Width: 8, DstLocs: m.LocSetByNames("L"), SrcLocs: [2]LocSet{hl},
+			Template: "; trunc HL→L (alias)", Cost: 0, Bytes: 0},
+		{Name: "trunc_de_e", MIROp: OpMove, Width: 8, DstLocs: m.LocSetByNames("E"), SrcLocs: [2]LocSet{de},
+			Template: "; trunc DE→E (alias)", Cost: 0, Bytes: 0},
+		{Name: "trunc_bc_c", MIROp: OpMove, Width: 8, DstLocs: m.LocSetByNames("C"), SrcLocs: [2]LocSet{bc},
+			Template: "; trunc BC→C (alias)", Cost: 0, Bytes: 0},
+		// When dst must be A (e.g. for ALU), route: LD A, L (low byte of HL)
+		{Name: "trunc_hl_a", MIROp: OpMove, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{hl},
+			Template: "LD A, L", Cost: 4, Bytes: 1},
+		{Name: "trunc_de_a", MIROp: OpMove, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{de},
+			Template: "LD A, E", Cost: 4, Bytes: 1},
+		{Name: "trunc_bc_a", MIROp: OpMove, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{bc},
+			Template: "LD A, C", Cost: 4, Bytes: 1},
+
 		// ── 8-bit IX/IY half moves (DD/FD prefixed, call-safe) ──────
 		// LD IXH, r — save GPR to IX half (r cannot be H or L: DD prefix conflict)
 		{Name: "ld_ixh_r", MIROp: OpMove, Width: 8, DstLocs: ixHalves, SrcLocs: [2]LocSet{gprNoHL},

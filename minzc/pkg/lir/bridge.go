@@ -1137,8 +1137,18 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc) (*MIROp, error) {
 	case mir2.OpNot:
 		// bitwise complement — skip for now
 		return nil, nil
-	case mir2.OpExt, mir2.OpSext, mir2.OpTrunc:
-		// Type conversions — treat as move for now
+	case mir2.OpTrunc:
+		// Truncation u16→u8: extract low byte. On Z80 this means the src
+		// must be in a pair (HL/DE/BC) and the result takes the low byte (L/E/C).
+		// We model this as OpMove with width=8 and SrcAllowed constrained
+		// to 8-bit regs (the low byte will be selected by the pattern).
+		op.Op = OpMove
+		op.Width = 8
+		op.Src[1] = -1
+		// Constrain: dst must be in 8-bit GPR
+		op.DstAllowed = desc.LocsOfWidth(8)
+	case mir2.OpExt, mir2.OpSext:
+		// Widening: 8→16 bit. Keep width from the dest type (16).
 		op.Op = OpMove
 		op.Src[1] = -1
 	case mir2.OpField, mir2.OpPtrBump:
