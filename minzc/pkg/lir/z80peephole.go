@@ -196,6 +196,14 @@ func rewritePair(line1, line2 string) (string, string, bool) {
 		return line1, deadLine, true
 	}
 
+	// Identical consecutive instructions → remove second.
+	// Catches: LD IY, label / LD IY, label (duplicate addr load)
+	//          LD H, 0 / LD H, 0 (duplicate zero extend)
+	// Source: common subexpression at asm level
+	if t1 == t2 && strings.HasPrefix(t1, "LD ") {
+		return line1, deadLine, true
+	}
+
 	// OR A followed by OR A → remove second (idempotent flag setter)
 	// Source: MIR2 peephole pattern #42
 	if t1 == "OR A" && t2 == "OR A" {
