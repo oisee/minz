@@ -388,13 +388,22 @@ func lirCodegenMultiBlock(f *mir2.Func, desc *MachineDesc, m *mir2.Module) (stri
 	fmt.Fprintf(&sb, "; %s — LIR codegen (%d insts, %d blocks)\n", f.Name, totalInsts, len(prog.Blocks))
 
 	// Label prefix for non-entry blocks: .funcname_label (unique across module).
-	labelPrefix := "." + strings.ReplaceAll(f.Name, "$", "_")
+	labelPrefix := "." + strings.ReplaceAll(strings.ReplaceAll(f.Name, "$", "_"), "-", "_")
+
+	// Collect all defined block labels so we can emit stubs for removed targets.
+	definedLabels := make(map[string]bool)
+	for _, b := range prog.Blocks {
+		definedLabels[b.Label] = true
+	}
+
+	sanitizedFuncName := strings.ReplaceAll(strings.ReplaceAll(f.Name, "$", "_"), "-", "_")
 
 	for bi, b := range prog.Blocks {
 		if bi == 0 {
-			fmt.Fprintf(&sb, "%s:\n", f.Name)
+			fmt.Fprintf(&sb, "%s:\n", sanitizedFuncName)
 		} else {
-			fmt.Fprintf(&sb, "%s_%s:\n", labelPrefix, b.Label)
+			sanitizedLabel := strings.ReplaceAll(b.Label, "-", "_")
+			fmt.Fprintf(&sb, "%s_%s:\n", labelPrefix, sanitizedLabel)
 		}
 
 		// Post-WFC fixup: fix stores with pair values via non-HL pointers.
@@ -415,12 +424,28 @@ func lirCodegenMultiBlock(f *mir2.Func, desc *MachineDesc, m *mir2.Module) (stri
 		emitTerminatorPrefixed(&sb, &b.Term, bi, len(prog.Blocks), labelPrefix)
 	}
 
+	// Emit stub labels for any block targets removed by ApplyBlockRules.
+	// Without these, JP to a removed block produces an undefined label error.
+	for _, b := range prog.Blocks {
+		for _, target := range b.Term.Targets {
+			if target != "" && !definedLabels[target] {
+				sanitized := strings.ReplaceAll(target, "-", "_")
+				fullLabel := labelPrefix + "_" + sanitized
+				fmt.Fprintf(&sb, "%s: ; stub (block eliminated)\n", fullLabel)
+				definedLabels[target] = true // only once
+			}
+		}
+	}
+
 	// Spill labels emitted at module level by LIRCodegenModule.
 	asm := sb.String()
 
 	// Final text-level fixup for any remaining invalid Z80.
 	asm = strings.ReplaceAll(asm, "    LD (HL), HL\n",
 		"    LD D, H\n    LD E, L\n    LD (HL), E\n    INC HL\n    LD (HL), D\n    DEC HL\n")
+
+	// Emit stub labels for JP targets that have no definition in the asm.
+	asm = emitMissingLabels(asm)
 
 	// Post-emit peephole optimization
 	asm = Z80Peephole(asm)
@@ -432,6 +457,47 @@ func lirCodegenMultiBlock(f *mir2.Func, desc *MachineDesc, m *mir2.Module) (stri
 	}
 
 	return asm, nil
+}
+
+// emitMissingLabels scans asm text for JP/JR targets and emits stub
+// label definitions for any targets not defined in the asm.
+func emitMissingLabels(asm string) string {
+	// Collect all defined labels.
+	defined := make(map[string]bool)
+	for _, line := range strings.Split(asm, "\n") {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasSuffix(trimmed, ":") || strings.Contains(trimmed, ": ;") {
+			label := strings.SplitN(trimmed, ":", 2)[0]
+			defined[label] = true
+		}
+	}
+
+	// Find all JP/JR targets.
+	var missing []string
+	seen := make(map[string]bool)
+	for _, line := range strings.Split(asm, "\n") {
+		trimmed := strings.TrimSpace(line)
+		for _, prefix := range []string{"JP ", "JP NZ, ", "JP Z, ", "JP C, ", "JP NC, ", "JR ", "JR NZ, ", "JR Z, ", "JR C, ", "JR NC, ", "DJNZ "} {
+			if strings.HasPrefix(trimmed, prefix) {
+				target := strings.TrimSpace(trimmed[len(prefix):])
+				if target != "" && strings.HasPrefix(target, ".") && !defined[target] && !seen[target] {
+					missing = append(missing, target)
+					seen[target] = true
+				}
+			}
+		}
+	}
+
+	if len(missing) == 0 {
+		return asm
+	}
+
+	var sb strings.Builder
+	sb.WriteString(asm)
+	for _, label := range missing {
+		fmt.Fprintf(&sb, "%s: ; stub (target block eliminated)\n", label)
+	}
+	return sb.String()
 }
 
 // emitSpillLabels emits data section labels for memory spill slots and TSMC
@@ -509,7 +575,7 @@ func emitTerminatorPrefixed(sb *strings.Builder, term *Term, blockIdx, numBlocks
 		if target == "" {
 			return ""
 		}
-		return prefix + "_" + target
+		return prefix + "_" + strings.ReplaceAll(target, "-", "_")
 	}
 
 	switch term.Kind {
@@ -652,7 +718,8 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 		// Emit assembly from templates, with caller-save spills around CALLs.
 		var sb strings.Builder
 		fmt.Fprintf(&sb, "; %s — LIR codegen (%d insts, attempt %d)\n", f.Name, len(insts), attempt)
-		fmt.Fprintf(&sb, "%s:\n", f.Name)
+		sanitizedName := strings.ReplaceAll(strings.ReplaceAll(f.Name, "$", "_"), "-", "_")
+		fmt.Fprintf(&sb, "%s:\n", sanitizedName)
 		paramPhys := make(map[int]int) // vreg → phys
 		for _, c := range wfc.Cells {
 			if c.Pat == nil && c.VRegDst >= 0 {
@@ -667,6 +734,7 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 		asmText := sb.String()
 		asmText = strings.ReplaceAll(asmText, "    LD (HL), HL\n",
 			"    LD D, H\n    LD E, L\n    LD (HL), E\n    INC HL\n    LD (HL), D\n    DEC HL\n")
+		asmText = emitMissingLabels(asmText)
 		// Post-emit peephole optimization
 		asmPeepholed := Z80Peephole(asmText)
 		sb.Reset()
