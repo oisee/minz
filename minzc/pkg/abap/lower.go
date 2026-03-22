@@ -742,6 +742,10 @@ func (l *lowerer) lowerDo(s *DoStmt) (hir.Stmt, error) {
 			return nil, err
 		}
 		// ABAP DO N TIMES: SY-INDEX counts 1..N (1-based)
+		// Ensure timesExpr is u16 (parseTokenExpr may give u8 for small literals)
+		if timesExpr.ExprTy() == mir2.TyU8 {
+			timesExpr = &hir.CastExpr{X: timesExpr, Ty: mir2.TyU16}
+		}
 		return &hir.ForRangeStmt{
 			Var:   "_abap_sy_index",
 			Start: &hir.IntLitExpr{Val: 1, Ty: mir2.TyU16},
@@ -1132,15 +1136,18 @@ func emitRuntimeFuncs(hm *hir.Module) {
 				Body: []hir.Stmt{
 					&hir.AsmStmt{
 						Target: "z80",
-						Code: "LD D, 0" + // D = leading-zero flag
-							"/ LD BC, 10000 / CALL _abap_wr_dig" +
-							"/ LD BC, 1000 / CALL _abap_wr_dig" +
-							"/ LD BC, 100 / CALL _abap_wr_dig" +
-							"/ LD BC, 10 / CALL _abap_wr_dig" +
-							"/ LD A, L / ADD A, 48 / LD E, A / PUSH HL / PUSH DE / LD C, 2 / CALL 5 / POP DE / POP HL" +
-							"/ LD E, 32 / LD C, 2 / PUSH HL / CALL 5 / POP HL",
+						Code: "PUSH IX" + // save caller's IX
+							"/ PUSH HL / POP IX" + // IX = val (save across digit calls)
+							"/ LD D, 0" +
+							"/ PUSH IX / POP HL / LD BC, 10000 / CALL _abap_wr_dig / PUSH HL / POP IX" +
+							"/ PUSH IX / POP HL / LD BC, 1000 / CALL _abap_wr_dig / PUSH HL / POP IX" +
+							"/ PUSH IX / POP HL / LD BC, 100 / CALL _abap_wr_dig / PUSH HL / POP IX" +
+							"/ PUSH IX / POP HL / LD BC, 10 / CALL _abap_wr_dig / PUSH HL / POP IX" +
+							"/ LD A, IXL / ADD A, 48 / LD E, A / LD C, 2 / CALL 5" +
+							"/ LD E, 32 / LD C, 2 / CALL 5" +
+							"/ POP IX", // restore caller's IX
 						Ins:         []hir.AsmOperand{{Name: "val"}},
-						ClobberRegs: []string{"A", "B", "C", "D", "E", "H", "L"},
+						ClobberRegs: []string{"A"},
 					},
 				},
 			},
@@ -1188,8 +1195,8 @@ func emitRuntimeFuncs(hm *hir.Module) {
 	}
 
 	if !names["abap_write_str"] {
-		// Print a null-terminated string by outputting char-by-char via BDOS 2
-		// (BDOS 9 requires $-terminated strings, but we use C-strings with NUL)
+		// Print a null-terminated string by outputting char-by-char via BDOS 2.
+		// PUSH/POP DE+BC to preserve caller's loop variables.
 		hm.Funcs = append(hm.Funcs, &hir.Func{
 			Name:   "abap_write_str",
 			Params: []hir.Param{{Name: "str", Ty: mir2.TyPtr}},
@@ -1198,9 +1205,11 @@ func emitRuntimeFuncs(hm *hir.Module) {
 				Body: []hir.Stmt{
 					&hir.AsmStmt{
 						Target: "z80",
-						Code: ".loop: LD A, (HL) / OR A / RET Z / LD E, A / LD C, 2 / PUSH HL / CALL 5 / POP HL / INC HL / JR .loop",
+						Code: "PUSH DE / PUSH BC" +
+							"/ .loop: LD A, (HL) / OR A / JR NZ, .print / POP BC / POP DE / RET" +
+							"/ .print: LD E, A / LD C, 2 / PUSH HL / CALL 5 / POP HL / INC HL / JR .loop",
 						Ins:         []hir.AsmOperand{{Name: "str"}},
-						ClobberRegs: []string{"A", "C", "D", "E", "H", "L"},
+						ClobberRegs: []string{"A"},
 					},
 				},
 			},
