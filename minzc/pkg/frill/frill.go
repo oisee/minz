@@ -203,7 +203,7 @@ func (p *parser) lex() token {
 		return token{tokEq, "=", line}
 	case ',':
 		return token{tokComma, ",", line}
-	case '+', '-', '*', '/', '%', '<', '>':
+	case '+', '-', '*', '/', '%', '<', '>', '|':
 		return token{tokOp, string(ch), line}
 	}
 
@@ -449,6 +449,11 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		return p.parseIf()
 	}
 
+	// match expression
+	if t.kind == tokIdent && t.text == "match" {
+		return p.parseMatch()
+	}
+
 	// let-in expression
 	if t.kind == tokIdent && t.text == "let" {
 		return p.parseLetIn()
@@ -543,6 +548,98 @@ func (p *parser) parseBodyExpr() (hir.Expr, []hir.Stmt, error) {
 	return expr, stmts, nil
 }
 
+// parseMatch: match expr with | pat -> expr | pat -> expr | _ -> expr end
+// Desugars to nested CondExpr (if-then-else chain).
+//
+// Syntax:
+//   match x with
+//   | 0 -> expr0
+//   | 1 -> expr1
+//   | _ -> default
+//   end
+func (p *parser) parseMatch() (hir.Expr, error) {
+	p.next() // consume "match"
+	scrutinee, err := p.parseExpr()
+	if err != nil {
+		return nil, err
+	}
+	if err := p.expect(tokIdent, "with"); err != nil {
+		return nil, err
+	}
+
+	type arm struct {
+		isDefault bool
+		val       int64
+		body      hir.Expr
+	}
+	var arms []arm
+
+	// Parse arms: | pattern -> body
+	for p.peek().kind == tokOp && p.peek().text == "|" {
+		p.next() // consume |  (lexed as single-char operator)
+		tok := p.peek()
+		isDefault := false
+		var val int64
+		if tok.kind == tokIdent && tok.text == "_" {
+			p.next()
+			isDefault = true
+		} else if tok.kind == tokInt {
+			p.next()
+			val, _ = strconv.ParseInt(tok.text, 10, 64)
+		} else if tok.kind == tokIdent {
+			// Named constructor — look up in ADT registry (future)
+			// For now treat as integer 0
+			p.next()
+			val = 0 // TODO: ADT constructor tag lookup
+		} else {
+			return nil, fmt.Errorf("line %d: expected pattern, got %q", tok.line, tok.text)
+		}
+
+		if err := p.expect(tokArrow, "->"); err != nil {
+			return nil, err
+		}
+
+		body, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		arms = append(arms, arm{isDefault: isDefault, val: val, body: body})
+	}
+
+	// Optional "end" keyword
+	if p.peek().kind == tokIdent && p.peek().text == "end" {
+		p.next()
+	}
+
+	if len(arms) == 0 {
+		return nil, fmt.Errorf("match with no arms")
+	}
+
+	// Build nested CondExpr from bottom up.
+	// Default arm (if any) becomes the innermost else.
+	var result hir.Expr
+	for i := len(arms) - 1; i >= 0; i-- {
+		a := arms[i]
+		if a.isDefault {
+			result = a.body
+		} else {
+			cond := &hir.BinExpr{
+				Op: "==",
+				L:  scrutinee,
+				R:  &hir.IntLitExpr{Val: a.val, Ty: scrutinee.ExprTy()},
+				Ty: mir2.TyBool,
+			}
+			elseE := result
+			if elseE == nil {
+				elseE = &hir.IntLitExpr{Val: 0, Ty: scrutinee.ExprTy()}
+			}
+			result = &hir.CondExpr{Cond: cond, Then: a.body, Else: elseE, Ty: a.body.ExprTy()}
+		}
+	}
+
+	return result, nil
+}
+
 // parseLetIn handles let-in inside expressions (not at function body top level).
 // Desugars to a synthetic helper function: let x = e1 in e2 → _let_N(e1)
 // where _let_N(x) = e2.
@@ -601,7 +698,7 @@ func (p *parser) parseType() mir2.Ty {
 
 func isKeyword(s string) bool {
 	switch s {
-	case "let", "in", "if", "then", "else", "type", "assert", "match", "with", "fun":
+	case "let", "in", "if", "then", "else", "type", "assert", "match", "with", "fun", "end":
 		return true
 	}
 	return false

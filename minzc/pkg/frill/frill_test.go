@@ -142,6 +142,62 @@ assert compute 0 == 4
 	}
 }
 
+func TestMatch(t *testing.T) {
+	m := compile(t, `
+let describe (x : u8) : u8 =
+  match x with
+  | 0 -> 10
+  | 1 -> 20
+  | 2 -> 30
+  | _ -> 99
+  end
+
+assert describe 0 == 10
+assert describe 1 == 20
+assert describe 2 == 30
+assert describe 5 == 99
+assert describe 255 == 99
+`)
+	mir2mod := hir.LowerModule(m)
+	for _, a := range m.Asserts {
+		result, err := mir2.Eval1(mir2mod, a.FuncName, a.Args...)
+		if err != nil {
+			t.Errorf("assert %s: %v", a.Source, err)
+			continue
+		}
+		if result != a.Expected {
+			t.Errorf("assert %s: got %d, want %d", a.Source, result, a.Expected)
+		}
+	}
+}
+
+func TestMatchExhaustive(t *testing.T) {
+	m := compile(t, `
+let day_type (d : u8) : u8 =
+  match d with
+  | 0 -> 0
+  | 6 -> 0
+  | _ -> 1
+  end
+
+assert day_type 0 == 0
+assert day_type 6 == 0
+assert day_type 1 == 1
+assert day_type 3 == 1
+`)
+	mir2mod := hir.LowerModule(m)
+	for _, a := range m.Asserts {
+		result, err := mir2.Eval1(mir2mod, a.FuncName, a.Args...)
+		if err != nil {
+			t.Errorf("assert %s: %v", a.Source, err)
+			continue
+		}
+		if result != a.Expected {
+			t.Errorf("assert %s: got %d, want %d", a.Source, result, a.Expected)
+		}
+	}
+}
+
 func TestPipeWithExtraArgs(t *testing.T) {
 	m := compile(t, `
 let add (a : u8) (b : u8) : u8 = a + b
