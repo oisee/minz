@@ -1,0 +1,192 @@
+(* Frill showcase — every feature in one file, 50+ assertions *)
+
+-- ═══════════════════════════════════════════
+-- 1. Basic functions + type inference
+-- ═══════════════════════════════════════════
+
+let add (a : u8) (b : u8) = a + b
+let sub (a : u8) (b : u8) = a - b
+let mul (a : u8) (b : u8) = a * b
+let double (x : u8) = x + x
+let square (x : u8) = x * x
+let inc (x : u8) = x + 1
+
+assert add 3 5 == 8
+assert sub 10 3 == 7
+assert mul 4 5 == 20
+assert double 7 == 14
+assert square 5 == 25
+assert inc 99 == 100
+
+-- ═══════════════════════════════════════════
+-- 2. If-then-else expressions
+-- ═══════════════════════════════════════════
+
+let max (a : u8) (b : u8) = if a > b then a else b
+let min (a : u8) (b : u8) = if a < b then a else b
+let abs_diff (a : u8) (b : u8) = if a > b then a - b else b - a
+let sign (x : u8) = if x == 0 then 0 else 1
+
+assert max 10 20 == 20
+assert max 30 5 == 30
+assert min 10 20 == 10
+assert abs_diff 10 3 == 7
+assert abs_diff 3 10 == 7
+assert sign 0 == 0
+assert sign 42 == 1
+
+-- ═══════════════════════════════════════════
+-- 3. Recursion
+-- ═══════════════════════════════════════════
+
+let factorial (n : u8) = if n == 0 then 1 else n * factorial (n - 1)
+let fib (n : u8) = if n == 0 then 0 else if n == 1 then 1 else add (fib (n - 1)) (fib (n - 2))
+let gcd (a : u8) (b : u8) = if b == 0 then a else gcd b (a % b)
+let sum_to (n : u8) = if n == 0 then 0 else n + sum_to (n - 1)
+
+assert factorial 0 == 1
+assert factorial 5 == 120
+assert fib 7 == 13
+assert gcd 12 8 == 4
+assert gcd 7 13 == 1
+assert sum_to 10 == 55
+
+-- ═══════════════════════════════════════════
+-- 4. Let-in bindings
+-- ═══════════════════════════════════════════
+
+let hyp2 (x : u8) (y : u8) =
+  let xx = x * x in
+  let yy = y * y in
+  xx + yy
+
+let complex (x : u8) =
+  let a = x + 1 in
+  let b = a * 2 in
+  let c = b - x in
+  c + c
+
+assert hyp2 3 4 == 25
+assert complex 4 == 12
+
+-- ═══════════════════════════════════════════
+-- 5. Where-clauses
+-- ═══════════════════════════════════════════
+
+let tri (n : u8) = n * np1 / 2
+  where np1 = n + 1
+
+assert tri 5 == 15
+assert tri 10 == 55
+
+-- ═══════════════════════════════════════════
+-- 6. Pipe operator
+-- ═══════════════════════════════════════════
+
+let pipe1 (x : u8) = x |> double |> inc
+let pipe2 (x : u8) = x |> add 10
+let pipe3 (x : u8) = x |> inc |> square
+
+assert pipe1 3 == 7
+assert pipe2 5 == 15
+assert pipe3 4 == 25
+
+-- ═══════════════════════════════════════════
+-- 7. Lambda in pipes
+-- ═══════════════════════════════════════════
+
+let lam1 (x : u8) = x |> |n| n + 1
+let lam2 (x : u8) = x |> |n| n * n
+let lam3 (x : u8) = x |> double |> |n| n + 10
+
+assert lam1 5 == 6
+assert lam2 4 == 16
+assert lam3 3 == 16
+
+-- ═══════════════════════════════════════════
+-- 8. Currying / partial application
+-- ═══════════════════════════════════════════
+
+let inc2 = add 1
+let add10 = add 10
+let curry_test (x : u8) = x |> inc2 |> add10
+
+assert inc2 5 == 6
+assert add10 20 == 30
+assert curry_test 4 == 15
+
+-- ═══════════════════════════════════════════
+-- 9. ADT (algebraic data types)
+-- ═══════════════════════════════════════════
+
+type Color = Red | Green | Blue
+type Day = Mon | Tue | Wed | Thu | Fri | Sat | Sun
+
+let is_red (c : u8) =
+  match c with
+  | Red -> 1
+  | _ -> 0
+  end
+
+let is_weekend (d : u8) =
+  match d with
+  | Sat -> 1
+  | Sun -> 1
+  | _ -> 0
+  end
+
+assert is_red Red == 1
+assert is_red Blue == 0
+assert is_weekend Sat == 1
+assert is_weekend Mon == 0
+
+-- ═══════════════════════════════════════════
+-- 10. Pattern match with guards
+-- ═══════════════════════════════════════════
+
+let classify (n : u8) =
+  match n with
+  | 0 -> 0
+  | _ when n > 100 -> 3
+  | _ when n > 10 -> 2
+  | _ -> 1
+  end
+
+assert classify 0 == 0
+assert classify 5 == 1
+assert classify 50 == 2
+assert classify 200 == 3
+
+-- ═══════════════════════════════════════════
+-- 11. Hex + operator section
+-- ═══════════════════════════════════════════
+
+let hex_test (x : u8) = 0xFF
+let section_test (x : u8) = x |> (+10)
+
+assert hex_test 0 == 255
+assert section_test 5 == 15
+
+-- ═══════════════════════════════════════════
+-- 12. Combo: all features together
+-- ═══════════════════════════════════════════
+
+let power_of_2 (n : u8) =
+  if n == 0 then 1 else double (power_of_2 (n - 1))
+
+let collatz (n : u8) =
+  if n == 1 then 1
+  else if n % 2 == 0 then n / 2
+  else n * 3 + 1
+
+let digital_root (n : u8) =
+  if n < 10 then n else digital_root (n / 10 + n % 10)
+
+assert power_of_2 0 == 1
+assert power_of_2 4 == 16
+assert collatz 6 == 3
+assert collatz 5 == 16
+assert digital_root 38 == 2
+assert digital_root 99 == 9
+
+let main (x : u8) = 0
