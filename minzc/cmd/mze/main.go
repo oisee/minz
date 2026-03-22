@@ -12,6 +12,7 @@ import (
 	"github.com/minz/minzc/pkg/dap"
 	"github.com/minz/minzc/pkg/dzrp"
 	"github.com/minz/minzc/pkg/emulator"
+	"github.com/minz/minzc/pkg/ide"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 )
@@ -33,6 +34,11 @@ var (
 	warnOnHalt     bool
 	breakAtTstate  int64
 	diag           bool
+
+	// IDE disk
+	ideNemo   string
+	ideDivide string
+	ideSMUC   string
 )
 
 var rootCmd = &cobra.Command{
@@ -155,6 +161,40 @@ SUPPORTED PLATFORMS (-t/--target):
 			z80.RemogattoZ80.SetStderrPort(0x25, os.Stderr)
 			if verbose {
 				fmt.Printf("Console I/O on port $%02X (stderr on $25)\n", port)
+			}
+		}
+
+		// --- IDE disk ---
+		if ideNemo != "" || ideDivide != "" || ideSMUC != "" {
+			var iface ide.Interface
+			var imgPath string
+			switch {
+			case ideNemo != "":
+				iface, imgPath = ide.Nemo, ideNemo
+			case ideDivide != "":
+				iface, imgPath = ide.DivIDE, ideDivide
+			case ideSMUC != "":
+				iface, imgPath = ide.SMUC, ideSMUC
+			}
+			ideDev, err := ide.New(iface, imgPath, verbose)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "IDE: %v\n", err)
+				os.Exit(1)
+			}
+			defer ideDev.Close()
+			z80.RemogattoZ80.SetIOHandlers(
+				func(port uint16) byte {
+					if v, ok := ideDev.ReadPort(port); ok {
+						return v
+					}
+					return 0xFF
+				},
+				func(port uint16, v byte) {
+					ideDev.WritePort(port, v)
+				},
+			)
+			if verbose {
+				fmt.Fprintf(os.Stderr, "IDE: %s attached (%s)\n", imgPath, []string{"Nemo", "divIDE", "SMUC"}[iface])
 			}
 		}
 
@@ -774,6 +814,11 @@ func init() {
 	rootCmd.Flags().BoolVar(&warnOnHalt, "warn-on-halt", false, "warn when HALT with interrupts disabled (stuck CPU)")
 	rootCmd.Flags().Int64Var(&breakAtTstate, "break-at-tstate", 0, "break and dump registers at T-state count")
 	rootCmd.Flags().BoolVar(&diag, "diag", false, "print CPU diagnostics after execution")
+
+	// IDE disk image
+	rootCmd.Flags().StringVar(&ideNemo, "ide-nemo", "", "attach Nemo IDE disk image (KAY/Scorpion ports)")
+	rootCmd.Flags().StringVar(&ideDivide, "ide-divide", "", "attach divIDE disk image (universal ports)")
+	rootCmd.Flags().StringVar(&ideSMUC, "ide-smuc", "", "attach SMUC IDE disk image (Scorpion ZS-256 ports)")
 }
 
 // debugCmd starts the DAP server for VS Code integration
