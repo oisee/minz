@@ -1,15 +1,11 @@
 package lir
 
 import (
-	"os/exec"
 	"strings"
 	"testing"
 )
 
-func hasZ3() bool {
-	_, err := exec.LookPath(Z3Path)
-	return err == nil
-}
+// hasZ3 is defined in z3validate.go (shared between test and production).
 
 // TestZ3_SimpleAdd: compute a + b where a must be in A, b in any GPR.
 // Z3 should find optimal: b in B (cost 0), not in IXH (cost 4).

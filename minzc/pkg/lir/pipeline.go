@@ -892,6 +892,11 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 			}
 		}
 
+		// Z3 validation: check WFC allocation for consistency and repair if needed.
+		if hasZ3() {
+			Z3ValidateAndRepair(wfc, desc, wfc.Hints)
+		}
+
 		insts := wfc.ToInsts()
 
 		// Emit assembly from templates, with caller-save spills around CALLs.
@@ -1384,6 +1389,9 @@ func fixInvalidZ80Template(tmpl string, inst Inst, desc *MachineDesc, getName fu
 			}
 		}
 	}
+	// Only apply store fixups to LD instructions, not ALU (ADD HL, HL is valid!).
+	isLD := strings.HasPrefix(strings.TrimSpace(tmpl), "LD ")
+	if isLD {
 	if lo1hi1, valIsPair := pairs16[effectiveSrc1]; valIsPair {
 		if _, ptrIsPair := pairs16[effectiveSrc0]; ptrIsPair && effectiveSrc0 != "HL" {
 			// LD (BC/DE), HL/DE/BC → byte-by-byte via A
@@ -1400,6 +1408,7 @@ func fixInvalidZ80Template(tmpl string, inst Inst, desc *MachineDesc, getName fu
 				lo1hi1[0], lo1hi1[1])
 		}
 	}
+	} // end isLD guard
 
 	// LD (IX/IY), pair → byte-by-byte via A with (IX+d)
 	if src0Name == "IX" || src0Name == "IY" || strings.Contains(tmpl, "(IX)") || strings.Contains(tmpl, "(IY)") {
