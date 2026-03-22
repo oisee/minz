@@ -55,4 +55,25 @@ assert is_weekend 0 == 0
 assert pipeline_demo 3 == 49
 assert complex 4 == 12
 
+(* recursion *)
+let factorial (n : u8) : u8 =
+  if n == 0 then 1
+  else n * factorial (n - 1)
+
+let fibonacci (n : u8) : u8 =
+  if n == 0 then 0
+  else if n == 1 then 1
+  else add (fibonacci (n - 1)) (fibonacci (n - 2))
+
+let gcd (a : u8) (b : u8) : u8 =
+  if b == 0 then a
+  else gcd b (a % b)
+
+assert factorial 0 == 1
+assert factorial 5 == 120
+assert fibonacci 0 == 0
+assert fibonacci 7 == 13
+assert gcd 12 8 == 4
+assert gcd 15 10 == 5
+
 let main (x : u8) : u8 = 0
