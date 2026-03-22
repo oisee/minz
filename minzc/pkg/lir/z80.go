@@ -252,14 +252,24 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 		// LD (nn), HL — store 16-bit pair to absolute address
 		{Name: "ld_nn_hl_store", MIROp: OpStore, Width: 16, SrcLocs: [2]LocSet{spill, hl},
 			Template: "LD ({src0}), HL", Cost: 16, Bytes: 3, Flags: PatMemWrite},
-		// 16-bit store via HL pointer: LD (HL),E; INC HL; LD (HL),D; DEC HL
+		// 16-bit store via HL pointer: value in DE or BC (no self-conflict)
 		{Name: "st16_hl_de", MIROp: OpStore, Width: 16, SrcLocs: [2]LocSet{hl, de},
 			Template: "LD (HL), E\n    INC HL\n    LD (HL), D\n    DEC HL",
 			Cost: 22, Bytes: 4, Flags: PatMemWrite},
-		// 16-bit store via HL pointer from BC: LD (HL),C; INC HL; LD (HL),B; DEC HL
 		{Name: "st16_hl_bc", MIROp: OpStore, Width: 16, SrcLocs: [2]LocSet{hl, bc},
 			Template: "LD (HL), C\n    INC HL\n    LD (HL), B\n    DEC HL",
 			Cost: 22, Bytes: 4, Flags: PatMemWrite},
+		// 16-bit self-store: ptr=HL, val=HL (same register).
+		// CHEAP variant (22T): LD (HL),L / INC HL / LD (HL),H / DEC HL
+		//   ⚠ EDGE CASE: if L=0xFF, INC HL carries into H, so LD (HL+1),H
+		//   writes the incremented H. Safe when L≠0xFF (vast majority of ptrs).
+		{Name: "st16_hl_hl_fast", MIROp: OpStore, Width: 16, SrcLocs: [2]LocSet{hl, hl},
+			Template: "LD (HL), L\n    INC HL\n    LD (HL), H\n    DEC HL",
+			Cost: 22, Bytes: 4, Flags: PatMemWrite},
+		// SAFE variant (30T): evacuate to DE first, always correct.
+		{Name: "st16_hl_hl_safe", MIROp: OpStore, Width: 16, SrcLocs: [2]LocSet{hl, hl},
+			Template: "LD D, H\n    LD E, L\n    LD (HL), E\n    INC HL\n    LD (HL), D\n    DEC HL",
+			Cost: 30, Bytes: 6, Flags: PatMemWrite},
 
 		// ── Combined 16-bit LE load (ISLE combining target) ──────────
 		{Name: "ld16_le_hl", MIROp: OpLoad16LE, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{hl},
