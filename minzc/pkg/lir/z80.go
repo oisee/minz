@@ -332,6 +332,11 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 		{Name: "ex_hl_de", MIROp: OpMove, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{de},
 			Template: "EX DE, HL", Cost: 4, Bytes: 1},
 
+		// ── Flag → register materialization ──────────────────────────
+		// SBC A,A: A = 0xFF if carry set (true), 0x00 if clear (false). 4T.
+		{Name: "flag_to_a", MIROp: OpMove, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{flags},
+			Template: "SBC A, A", Cost: 4, Bytes: 1, Clobbers: flags},
+
 		// ── NEG A (two's complement negate) ──────────────────────────
 		{Name: "neg_a", MIROp: OpNeg, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{a},
 			Template: "NEG", Cost: 8, Bytes: 2, Clobbers: flags},
