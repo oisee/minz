@@ -1074,7 +1074,13 @@ func ExpandTemplateNamed(inst Inst, desc *MachineDesc) string {
 	tmpl = strings.ReplaceAll(tmpl, "{dst}", getName(inst.Dst.Phys))
 	tmpl = strings.ReplaceAll(tmpl, "{src0}", getName(inst.Srcs[0].Phys))
 	tmpl = strings.ReplaceAll(tmpl, "{src1}", getName(inst.Srcs[1].Phys))
-	tmpl = strings.ReplaceAll(tmpl, "{imm}", fmt.Sprintf("%d", inst.Imm))
+	// If instruction has a symbol (OpAddrOf, OpCall), use symbol name
+	// instead of numeric immediate. LD HL, p_name instead of LD HL, 0.
+	immStr := fmt.Sprintf("%d", inst.Imm)
+	if inst.Sym != "" {
+		immStr = strings.ReplaceAll(inst.Sym, "-", "_")
+	}
+	tmpl = strings.ReplaceAll(tmpl, "{imm}", immStr)
 	sym := strings.ReplaceAll(inst.Sym, "-", "_")
 	tmpl = strings.ReplaceAll(tmpl, "{sym}", sym)
 
