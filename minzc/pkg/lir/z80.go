@@ -185,6 +185,22 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			Template: "XOR {src1}", Cost: 4, Bytes: 1, Clobbers: flags, Flags: PatCommutative},
 		{Name: "cp_r", MIROp: OpCmp, Width: 8, DstLocs: flags, SrcLocs: [2]LocSet{a, gpr8},
 			Template: "CP {src1}", Cost: 4, Bytes: 1, Clobbers: flags},
+		// 16-bit compare: OR A; SBC HL, rr (sets flags without modifying HL).
+		// Actually SBC DOES modify HL. For CMP we need to preserve HL.
+		// Use: OR A; SBC HL,rr; ADD HL,rr to restore. Or PUSH HL; SBC; POP HL.
+		// Simplest: PUSH HL; OR A; SBC HL,rr; POP HL (flags survive POP).
+		// Wait — POP clobbers flags! Use: PUSH HL; OR A; SBC HL,DE; flags set; discard HL.
+		// The CMP result vreg is a flag, not HL. So we can trash HL if it's saved.
+		// For cond_ret, HL is needed after (it's the return value).
+		// Safe approach: use SBC into a scratch, restore HL after.
+		// 16-bit compare: OR A; SBC HL,rr; ADD HL,rr — sets flags, restores HL.
+		// src1 must NOT be HL (SBC HL,HL + ADD HL,HL would double instead of restore).
+		{Name: "cmp16_hl_de", MIROp: OpCmp, Width: 16, DstLocs: flags,
+			SrcLocs: [2]LocSet{hl, de},
+			Template: "OR A\n    SBC HL, DE\n    ADD HL, DE", Cost: 26, Bytes: 4, Clobbers: flags},
+		{Name: "cmp16_hl_bc", MIROp: OpCmp, Width: 16, DstLocs: flags,
+			SrcLocs: [2]LocSet{hl, bc},
+			Template: "OR A\n    SBC HL, BC\n    ADD HL, BC", Cost: 26, Bytes: 4, Clobbers: flags},
 
 		// ── 8-bit INC/DEC (any GPR, no carry) ────────────────────────
 		{Name: "inc_r", MIROp: OpAdd, Width: 8, DstLocs: gpr8, SrcLocs: [2]LocSet{gpr8, gpr8},

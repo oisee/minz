@@ -1209,6 +1209,14 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc) (*MIROp, error) {
 		op.Op = OpShr
 	case mir2.OpCmp:
 		op.Op = OpCmp
+		// CMP result is bool (width=1 → 8), but operands may be 16-bit.
+		// Use SrcTy (operand type) if available, else check register class.
+		if inst.SrcTy != nil {
+			w := inst.SrcTy.Width()
+			if w > op.Width {
+				op.Width = w
+			}
+		}
 	case mir2.OpLoad:
 		op.Op = OpLoad
 	case mir2.OpStore:
