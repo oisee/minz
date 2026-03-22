@@ -1,0 +1,58 @@
+(* Frill basics — arithmetic, if, let-in, pipe, match, ADT *)
+
+let add (a : u8) (b : u8) : u8 = a + b
+let sub (a : u8) (b : u8) : u8 = a - b
+let double (x : u8) : u8 = x + x
+let square (x : u8) : u8 = x * x
+let inc (x : u8) : u8 = x + 1
+
+let max (a : u8) (b : u8) : u8 = if a > b then a else b
+let min (a : u8) (b : u8) : u8 = if a < b then a else b
+let abs_diff (a : u8) (b : u8) : u8 = if a > b then a - b else b - a
+let clamp (x : u8) (lo : u8) (hi : u8) : u8 =
+  let top = max x lo in
+  min top hi
+
+let collatz_step (n : u8) : u8 =
+  if n == 1 then 1
+  else if n % 2 == 0 then n / 2
+  else n * 3 + 1
+
+type Day = Mon | Tue | Wed | Thu | Fri | Sat | Sun
+
+let is_weekend (d : u8) : u8 =
+  match d with
+  | Sat -> 1
+  | Sun -> 1
+  | _ -> 0
+  end
+
+let pipeline_demo (x : u8) : u8 = x |> double |> inc |> square
+
+let complex (x : u8) : u8 =
+  let a = x + 1 in
+  let b = a * 2 in
+  let c = b - x in
+  c |> double
+
+(* assertions — verified via MIR2 VM *)
+assert add 3 5 == 8
+assert sub 10 3 == 7
+assert double 6 == 12
+assert square 5 == 25
+assert max 10 20 == 20
+assert min 10 20 == 10
+assert abs_diff 10 3 == 7
+assert abs_diff 3 10 == 7
+assert clamp 5 0 10 == 5
+assert clamp 15 0 10 == 10
+assert collatz_step 6 == 3
+assert collatz_step 5 == 16
+assert collatz_step 1 == 1
+assert is_weekend 5 == 1
+assert is_weekend 6 == 1
+assert is_weekend 0 == 0
+assert pipeline_demo 3 == 49
+assert complex 4 == 12
+
+let main (x : u8) : u8 = 0

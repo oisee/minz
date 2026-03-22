@@ -536,15 +536,36 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		p.next()
 		name := t.text
 
-		// Check if followed by arguments (another primary expr that isn't an operator)
-		// For now: only call if next token is int or ident (simple heuristic)
+		// Collect call arguments: atoms only (int literals, plain idents, parens).
+		// Idents are treated as variable refs, NOT nested function calls.
 		var args []hir.Expr
-		for p.peek().kind == tokInt || (p.peek().kind == tokIdent && !isKeyword(p.peek().text)) || p.peek().kind == tokLParen {
-			arg, err := p.parsePrimary()
-			if err != nil {
-				return nil, err
+		for {
+			pk := p.peek()
+			if pk.kind == tokInt {
+				p.next()
+				val, _ := strconv.ParseInt(pk.text, 10, 64)
+				ty := mir2.TyU8
+				if val > 255 { ty = mir2.TyU16 }
+				args = append(args, &hir.IntLitExpr{Val: val, Ty: ty})
+			} else if pk.kind == tokLParen {
+				p.next()
+				e, err := p.parseExpr()
+				if err != nil { return nil, err }
+				if err := p.expect(tokRParen, ")"); err != nil { return nil, err }
+				args = append(args, e)
+			} else if pk.kind == tokIdent && !isKeyword(pk.text) {
+				// Check if it's a constructor
+				if ctor, ok := p.ctors[pk.text]; ok {
+					p.next()
+					args = append(args, &hir.IntLitExpr{Val: ctor.tag, Ty: mir2.TyU8})
+				} else {
+					// Plain variable ref — don't recurse into function call
+					p.next()
+					args = append(args, &hir.VarRefExpr{Name: pk.text, Ty: mir2.TyU8})
+				}
+			} else {
+				break
 			}
-			args = append(args, arg)
 		}
 
 		if len(args) > 0 {
