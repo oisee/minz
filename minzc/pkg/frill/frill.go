@@ -924,8 +924,12 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 
 		// Collect call arguments: atoms only (int literals, plain idents, parens).
 		// Idents are treated as variable refs, NOT nested function calls.
+		arity := p.arities[name] // 0 if unknown
 		var args []hir.Expr
 		for {
+			if arity > 0 && len(args) >= arity {
+				break
+			}
 			pk := p.peek()
 			if pk.kind == tokInt {
 				p.next()
@@ -1054,6 +1058,21 @@ func (p *parser) parseIf() (hir.Expr, error) {
 //   →  stmts: [VarDecl x=1, VarDecl y=2], expr: x+y
 func (p *parser) parseBodyExpr() (hir.Expr, []hir.Stmt, error) {
 	var stmts []hir.Stmt
+
+	// do-statements: do expr (discard result, sequence side effects)
+	for p.peek().kind == tokIdent && p.peek().text == "do" {
+		p.next() // consume "do"
+		doExpr, err := p.parseExpr()
+		if err != nil {
+			return nil, nil, err
+		}
+		// Desugar: do expr → var __discard_N = expr (call for side effect)
+		discardName := fmt.Sprintf("__do_%d", p.lambdaCount)
+		p.lambdaCount++
+		stmts = append(stmts, &hir.VarDeclStmt{Name: discardName, Ty: doExpr.ExprTy(), Init: doExpr})
+	}
+
+	// let-in chains
 	for p.peek().kind == tokIdent && p.peek().text == "let" {
 		// Peek ahead: is this let-in or a function call to "let" (shouldn't happen)?
 		// Save position to restore if this isn't a let-in
@@ -1309,7 +1328,7 @@ func (p *parser) parseType() mir2.Ty {
 
 func isKeyword(s string) bool {
 	switch s {
-	case "let", "in", "if", "then", "else", "type", "assert", "match", "with", "fun", "end", "where", "when", "prop", "extern":
+	case "let", "in", "if", "then", "else", "type", "assert", "match", "with", "fun", "end", "where", "when", "prop", "extern", "do":
 		return true
 	}
 	return false
