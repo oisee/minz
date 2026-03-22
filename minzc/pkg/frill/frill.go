@@ -49,7 +49,10 @@ import (
 
 // Compile parses Hrill source and returns an HIR module.
 func Compile(src, name string) (*hir.Module, error) {
-	p := &parser{src: src, pos: 0, line: 1, name: name}
+	p := &parser{
+		src: src, pos: 0, line: 1, name: name,
+		adts: make(map[string]*adtDef), ctors: make(map[string]*adtCtor),
+	}
 	return p.parseModule()
 }
 
@@ -79,12 +82,26 @@ type token struct {
 
 // ── Lexer ───────────────────────────────────────────────────────────────────
 
+// adtDef tracks an algebraic data type: constructors with optional payload type.
+type adtDef struct {
+	name         string
+	constructors []adtCtor
+}
+
+type adtCtor struct {
+	name    string
+	tag     int64
+	payload mir2.Ty // nil = no payload (like None)
+}
+
 type parser struct {
 	src    string
 	pos    int
 	line   int
 	name   string
 	peeked *token
+	adts   map[string]*adtDef  // type name → definition
+	ctors  map[string]*adtCtor // constructor name → ctor (for match + expr)
 }
 
 func (p *parser) peek() token {
@@ -231,9 +248,8 @@ func (p *parser) parseModule() (*hir.Module, error) {
 			}
 			mod.Asserts = append(mod.Asserts, a)
 		case "type":
-			p.next() // skip "type" — TODO: type aliases/ADTs
-			for p.peek().kind != tokEOF && p.peek().text != "let" && p.peek().text != "assert" && p.peek().text != "type" {
-				p.next()
+			if err := p.parseTypeDecl(); err != nil {
+				return nil, err
 			}
 		default:
 			return nil, fmt.Errorf("line %d: unexpected %q at module level", t.line, t.text)
@@ -241,6 +257,51 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	}
 
 	return mod, nil
+}
+
+// parseTypeDecl: type Name = Ctor1 | Ctor2 of ty | Ctor3
+// Registers constructors in p.ctors for use in match arms and expressions.
+func (p *parser) parseTypeDecl() error {
+	p.next() // consume "type"
+	nameTok := p.next()
+	if nameTok.kind != tokIdent {
+		return fmt.Errorf("line %d: expected type name", nameTok.line)
+	}
+	if err := p.expect(tokEq, "="); err != nil {
+		return err
+	}
+
+	def := &adtDef{name: nameTok.text}
+	var tag int64
+
+	for {
+		ctorTok := p.next()
+		if ctorTok.kind != tokIdent {
+			return fmt.Errorf("line %d: expected constructor name, got %q", ctorTok.line, ctorTok.text)
+		}
+
+		ctor := adtCtor{name: ctorTok.text, tag: tag}
+
+		// Optional "of type"
+		if p.peek().kind == tokIdent && p.peek().text == "of" {
+			p.next() // consume "of"
+			ctor.payload = p.parseType()
+		}
+
+		def.constructors = append(def.constructors, ctor)
+		p.ctors[ctor.name] = &def.constructors[len(def.constructors)-1]
+		tag++
+
+		// | separates constructors
+		if p.peek().kind == tokOp && p.peek().text == "|" {
+			p.next()
+			continue
+		}
+		break
+	}
+
+	p.adts[def.name] = def
+	return nil
 }
 
 // parseLet parses:  let name (p1 : t1) (p2 : t2) : retty = body
@@ -459,6 +520,17 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		return p.parseLetIn()
 	}
 
+	// ADT constructor (e.g. None, Some)
+	if t.kind == tokIdent {
+		if ctor, ok := p.ctors[t.text]; ok {
+			p.next()
+			// Constructor without payload: just the tag value
+			// Constructor with payload: tag is returned, payload ignored for now
+			// TODO: tagged union encoding (tag + payload bytes)
+			return &hir.IntLitExpr{Val: ctor.tag, Ty: mir2.TyU8}, nil
+		}
+	}
+
 	// Identifier (variable ref or function call)
 	if t.kind == tokIdent {
 		p.next()
@@ -587,10 +659,13 @@ func (p *parser) parseMatch() (hir.Expr, error) {
 			p.next()
 			val, _ = strconv.ParseInt(tok.text, 10, 64)
 		} else if tok.kind == tokIdent {
-			// Named constructor — look up in ADT registry (future)
-			// For now treat as integer 0
+			// Named constructor — look up tag from ADT registry
 			p.next()
-			val = 0 // TODO: ADT constructor tag lookup
+			if ctor, ok := p.ctors[tok.text]; ok {
+				val = ctor.tag
+			} else {
+				return nil, fmt.Errorf("line %d: unknown constructor %q", tok.line, tok.text)
+			}
 		} else {
 			return nil, fmt.Errorf("line %d: expected pattern, got %q", tok.line, tok.text)
 		}

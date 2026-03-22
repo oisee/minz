@@ -198,6 +198,66 @@ assert day_type 3 == 1
 	}
 }
 
+func TestADT(t *testing.T) {
+	m := compile(t, `
+type Color = Red | Green | Blue
+
+let is_warm (c : u8) : u8 =
+  match c with
+  | Red -> 1
+  | _ -> 0
+  end
+
+assert is_warm 0 == 1
+assert is_warm 1 == 0
+assert is_warm 2 == 0
+`)
+	mir2mod := hir.LowerModule(m)
+	for _, a := range m.Asserts {
+		result, err := mir2.Eval1(mir2mod, a.FuncName, a.Args...)
+		if err != nil {
+			t.Errorf("assert %s: %v", a.Source, err)
+			continue
+		}
+		if result != a.Expected {
+			t.Errorf("assert %s: got %d, want %d", a.Source, result, a.Expected)
+		}
+	}
+}
+
+func TestADTConstructorExpr(t *testing.T) {
+	m := compile(t, `
+type Direction = North | South | East | West
+
+let go_north (x : u8) : u8 = North
+let go_south (x : u8) : u8 = South
+let is_vertical (d : u8) : u8 =
+  match d with
+  | North -> 1
+  | South -> 1
+  | _ -> 0
+  end
+
+assert go_north 0 == 0
+assert go_south 0 == 1
+assert is_vertical 0 == 1
+assert is_vertical 1 == 1
+assert is_vertical 2 == 0
+assert is_vertical 3 == 0
+`)
+	mir2mod := hir.LowerModule(m)
+	for _, a := range m.Asserts {
+		result, err := mir2.Eval1(mir2mod, a.FuncName, a.Args...)
+		if err != nil {
+			t.Errorf("assert %s: %v", a.Source, err)
+			continue
+		}
+		if result != a.Expected {
+			t.Errorf("assert %s: got %d, want %d", a.Source, result, a.Expected)
+		}
+	}
+}
+
 func TestPipeWithExtraArgs(t *testing.T) {
 	m := compile(t, `
 let add (a : u8) (b : u8) : u8 = a + b
