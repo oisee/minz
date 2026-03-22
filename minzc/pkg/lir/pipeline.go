@@ -796,6 +796,37 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 	}
 	_ = condRets // used after WFC collapse in emit phase
 
+	// Emit explicit move for return value vregs that aren't produced by any
+	// instruction. E.g. ret %r2 where %r2 is a function parameter —
+	// without an explicit move, WFC never sees %r2 and can't save it across CALLs.
+	for _, b := range f.Blocks {
+		if ret, ok := b.Term.(*mir2.TermRet); ok {
+			for _, v := range ret.Vals {
+				if v == mir2.NoReg {
+					continue
+				}
+				// Check if this vreg is already produced by some op.
+				produced := false
+				for _, op := range allOps {
+					if op.Dst == int(v) {
+						produced = true
+						break
+					}
+				}
+				if !produced {
+					// Emit a move to self — this materializes the vreg in the LIR stream
+					// so WFC tracks it and emitInstsWithCallSpills can save it.
+					allOps = append(allOps, MIROp{
+						Op:    OpMove,
+						Dst:   int(v),
+						Src:   [2]int{int(v), -1},
+						Width: 8, // TODO: infer from contract
+					})
+				}
+			}
+		}
+	}
+
 	if len(allOps) == 0 {
 		return fmt.Sprintf("; %s — empty\n%s:\n    RET\n", f.Name, f.Name), nil
 	}
@@ -913,7 +944,27 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 				}
 			}
 		}
-		emitInstsWithCallSpills(&sb, insts, desc, paramPhys)
+		// Collect return value vregs from block terminators.
+		// These are "always live" and must survive CALLs.
+		retVRegs := make(map[int]bool)
+		for _, b := range f.Blocks {
+			if ret, ok := b.Term.(*mir2.TermRet); ok {
+				for _, v := range ret.Vals {
+					if v != mir2.NoReg {
+						retVRegs[int(v)] = true
+					}
+				}
+			}
+			if cr, ok := b.Term.(*mir2.TermCondRet); ok {
+				for _, v := range cr.Vals {
+					if v != mir2.NoReg {
+						retVRegs[int(v)] = true
+					}
+				}
+			}
+		}
+
+		emitInstsWithCallSpills(&sb, insts, desc, paramPhys, retVRegs)
 
 		// Emit cond_ret sequences: conditional return for flat multi-block functions.
 		// cond_ret: if cond==0 return val, else continue to next block.
@@ -1000,22 +1051,25 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 		sb.Reset()
 		sb.WriteString(asmPeepholed)
 
-		// Tail call optimization
+		sb.WriteString("    RET\n")
+
+		// Tail call optimization: CALL f / RET → JP f
+		// ONLY safe when the CALL result IS the return value (no other vregs live).
 		asmSoFar := sb.String()
-		if idx := strings.LastIndex(asmSoFar, "    CALL "); idx >= 0 {
-			callLine := asmSoFar[idx:]
-			if nlIdx := strings.IndexByte(callLine, '\n'); nlIdx >= 0 {
-				after := strings.TrimSpace(callLine[nlIdx+1:])
-				if after == "" {
-					sb.Reset()
-					sb.WriteString(asmSoFar[:idx])
-					sb.WriteString("    JP")
-					sb.WriteString(callLine[8:nlIdx+1])
-					return sb.String(), nil
+		if len(retVRegs) == 0 || onlyCallResult(retVRegs, insts) {
+			if idx := strings.LastIndex(asmSoFar, "    CALL "); idx >= 0 {
+				callLine := asmSoFar[idx:]
+				if nlIdx := strings.IndexByte(callLine, '\n'); nlIdx >= 0 {
+					after := strings.TrimSpace(callLine[nlIdx+1:])
+					if after == "RET" || after == "" {
+						sb.Reset()
+						sb.WriteString(asmSoFar[:idx])
+						sb.WriteString("    JP")
+						sb.WriteString(callLine[8:nlIdx+1])
+					}
 				}
 			}
 		}
-		sb.WriteString("    RET\n")
 		// Spill labels emitted at module level.
 
 		asm := sb.String()
@@ -1055,9 +1109,33 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 	return "", fmt.Errorf("lir %s: exhausted retries", f.Name)
 }
 
+// onlyCallResult returns true if all return vregs are results of the last CALL.
+// In that case, tail-call optimization (CALL→JP) is safe.
+func onlyCallResult(retVRegs map[int]bool, insts []Inst) bool {
+	// Find the last CALL instruction.
+	lastCallDst := -1
+	for i := len(insts) - 1; i >= 0; i-- {
+		if insts[i].Pat != nil && insts[i].Pat.Flags&PatCall != 0 {
+			lastCallDst = insts[i].Dst.VReg
+			break
+		}
+	}
+	if lastCallDst < 0 {
+		return false
+	}
+	// Check: every retVReg must be the call result.
+	for vreg := range retVRegs {
+		if vreg != lastCallDst {
+			return false
+		}
+	}
+	return true
+}
+
 // emitInstsWithCallSpills emits assembly with PUSH/POP pairs around CALL
 // instructions for any physical register that is live across the call.
-func emitInstsWithCallSpills(sb *strings.Builder, insts []Inst, desc *MachineDesc, paramPhys map[int]int) {
+// retVRegs: vregs used by return terminators (always "live after" any CALL).
+func emitInstsWithCallSpills(sb *strings.Builder, insts []Inst, desc *MachineDesc, paramPhys map[int]int, retVRegs ...map[int]bool) {
 	for i, inst := range insts {
 		if inst.Pat == nil {
 			continue
@@ -1088,6 +1166,12 @@ func emitInstsWithCallSpills(sb *strings.Builder, insts []Inst, desc *MachineDes
 					if insts[j].Srcs[s].VReg > 0 {
 						usesAfter[insts[j].Srcs[s].VReg] = true
 					}
+				}
+			}
+			// Return value vregs are always "used after" any CALL.
+			if len(retVRegs) > 0 && retVRegs[0] != nil {
+				for vreg := range retVRegs[0] {
+					usesAfter[vreg] = true
 				}
 			}
 
