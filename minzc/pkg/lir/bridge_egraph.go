@@ -10,7 +10,66 @@
 //   OpCmp flag→A:  {SBC A,A, JR+SCF+SBC}
 package lir
 
-import "github.com/minz/minzc/pkg/mir2"
+import (
+	"fmt"
+
+	"github.com/minz/minzc/pkg/mir2"
+)
+
+// LowerMIR2BlockEGraph lowers a MIR2 block into an EGraph of MIROp variants.
+// Each MIR2 instruction becomes an EClass with 1+ variants.
+// Returns both the EGraph and the flattened ops (cheapest per class).
+func LowerMIR2BlockEGraph(b *mir2.Block, desc *MachineDesc, mod *mir2.Module) (*EGraph, []MIROp, error) {
+	eg := NewEGraph()
+
+	for _, inst := range b.Insts {
+		// Calls and muls use existing multi-op lowering (not e-graphable yet).
+		if inst.Op == mir2.OpCall || inst.Op == mir2.OpCallIndirect {
+			callOps, err := translateCall(inst, desc, mod)
+			if err != nil {
+				return nil, nil, fmt.Errorf("block %s: %w", b.Label, err)
+			}
+			for _, op := range callOps {
+				eg.SingleClass([]MIROp{op}, 17, "call")
+			}
+			continue
+		}
+		if inst.Op == mir2.OpMul {
+			mulOps := translateMul(inst, desc)
+			if mulOps != nil {
+				eg.SingleClass(mulOps, 80, "mul_runtime")
+				continue
+			}
+		}
+
+		// Try e-graph multi-variant lowering.
+		variants := TranslateInstEGraph(inst, desc)
+		if len(variants) > 0 {
+			eg.AddClass(variants...)
+			continue
+		}
+
+		// Fallback: single variant from standard bridge.
+		op, err := translateInst(inst, desc)
+		if err != nil {
+			return nil, nil, fmt.Errorf("block %s: %w", b.Label, err)
+		}
+		if op != nil {
+			eg.SingleClass([]MIROp{*op}, 4, "standard")
+		}
+	}
+
+	// Select cheapest for now (WFC integration will override later).
+	eg.SelectCheapest()
+	ops := eg.Extract()
+
+	// Insert save-before-overwrite moves for Z80.
+	if desc.Name == "z80" {
+		ops = insertSaveBeforeOverwrite(ops, desc)
+	}
+
+	return eg, ops, nil
+}
 
 // TranslateInstEGraph converts a MIR2 instruction into EGraph variants.
 // Returns the variants for this instruction. Most instructions have 1 variant;

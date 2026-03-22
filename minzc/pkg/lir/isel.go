@@ -101,7 +101,15 @@ func SelectInstructions(desc *MachineDesc, ops []MIROp) (*ISelResult, error) {
 			if op.Src[s] >= 0 {
 				allowed := pat.SrcLocs[s]
 				inst.Srcs[s] = Operand{VReg: op.Src[s], Allowed: allowed, Phys: -1}
-				if _, ok := result.VRegAllowed[op.Src[s]]; !ok {
+				if prev, ok := result.VRegAllowed[op.Src[s]]; ok {
+					// Narrow: AND with existing constraint so the vreg
+					// satisfies ALL uses (prevents 16-bit loc for 8-bit use).
+					if !allowed.IsEmpty() {
+						if narrowed := prev.And(allowed); !narrowed.IsEmpty() {
+							result.VRegAllowed[op.Src[s]] = narrowed
+						}
+					}
+				} else {
 					result.VRegAllowed[op.Src[s]] = allowed
 				}
 			}
@@ -205,7 +213,15 @@ func SelectBlockInstructions(desc *MachineDesc, ops []MIROp, params []BlockParam
 			if op.Src[s] >= 0 {
 				allowed := pat.SrcLocs[s]
 				inst.Srcs[s] = Operand{VReg: op.Src[s], Allowed: allowed, Phys: -1}
-				if _, ok := result.VRegAllowed[op.Src[s]]; !ok {
+				if prev, ok := result.VRegAllowed[op.Src[s]]; ok {
+					// Narrow: AND with existing constraint so the vreg
+					// satisfies ALL uses (prevents 16-bit loc for 8-bit use).
+					if !allowed.IsEmpty() {
+						if narrowed := prev.And(allowed); !narrowed.IsEmpty() {
+							result.VRegAllowed[op.Src[s]] = narrowed
+						}
+					}
+				} else {
 					result.VRegAllowed[op.Src[s]] = allowed
 				}
 			}
