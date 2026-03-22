@@ -340,6 +340,41 @@ func lirCodegenMultiBlock(f *mir2.Func, desc *MachineDesc, m *mir2.Module) (stri
 		return "", fmt.Errorf("wfc %s: %w", f.Name, err)
 	}
 
+	// Copy Phys assignments from WFC cells back to block instructions.
+	// ProgWFC.Collapse modifies cells but doesn't update prog.Blocks[].Insts.
+	for _, label := range pw.BlockOrder() {
+		wfc := pw.States[label]
+		if wfc == nil {
+			continue
+		}
+		bi := pw.BlockIndex(label)
+		if bi < 0 {
+			continue
+		}
+		b := &prog.Blocks[bi]
+		cellIdx := 0
+		// Skip param cells (Pat == nil).
+		for cellIdx < len(wfc.Cells) && wfc.Cells[cellIdx].Pat == nil {
+			cellIdx++
+		}
+		for ii := range b.Insts {
+			if cellIdx >= len(wfc.Cells) {
+				break
+			}
+			c := &wfc.Cells[cellIdx]
+			b.Insts[ii].Dst.Phys = PhysOf(c.DstLocs)
+			b.Insts[ii].Dst.Allowed = c.DstLocs
+			for s := 0; s < 2; s++ {
+				b.Insts[ii].Srcs[s].Phys = PhysOf(c.SrcLocs[s])
+				b.Insts[ii].Srcs[s].Allowed = c.SrcLocs[s]
+			}
+			if c.Pat != nil {
+				b.Insts[ii].Pat = c.Pat
+			}
+			cellIdx++
+		}
+	}
+
 	// Apply CFG block rules (branch elimination, empty block removal, etc.)
 	blockRules := DefaultBlockRules()
 	ApplyBlockRules(prog, blockRules, 10)
