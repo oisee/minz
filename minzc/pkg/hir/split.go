@@ -24,10 +24,30 @@ import (
 	"github.com/minz/minzc/pkg/mir2"
 )
 
-// PressureThreshold is the maximum number of simultaneously live variables
-// before splitting is attempted. Z80 has 7 GPRs + 3 pairs = ~10 slots,
-// but pairs count as 1 slot for u16. Threshold of 8 is conservative.
+// PressureThreshold is the default maximum number of simultaneously live
+// variables before splitting is attempted. Z80 has 7 GPRs + 3 pairs = ~10
+// slots, but pairs count as 1 slot for u16. Threshold of 8 is conservative.
+// Use PressureThresholdForSlots for target-aware thresholds.
 const PressureThreshold = 8
+
+// PressureThresholdForSlots returns a target-appropriate threshold based on
+// how many register slots the allocator can use.
+//   7 GPR only:      threshold = 8  (L1, conservative)
+//   11 (+ IXY):      threshold = 12 (L1+L2)
+//   18 (+ shadow):   threshold = 14 (L1+L2+L3)
+//   38 (+ TSMC/mem): threshold = 20 (L1+L2+L3+L4)
+func PressureThresholdForSlots(nSlots int) int {
+	switch {
+	case nSlots >= 30:
+		return 20
+	case nSlots >= 18:
+		return 14
+	case nSlots >= 11:
+		return 12
+	default:
+		return 8
+	}
+}
 
 // MaxInterfaceWidth is the maximum number of inputs+outputs at a split boundary.
 // Must fit in Z80 registers for the sub-function's calling convention.
