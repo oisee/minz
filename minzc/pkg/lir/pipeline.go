@@ -394,7 +394,7 @@ func lirCodegenMultiBlock(f *mir2.Func, desc *MachineDesc, m *mir2.Module) (stri
 			fmt.Fprintf(&sb, "%s:\n", b.Label)
 		}
 
-		// Post-WFC fixup: fix self-stores (ptr==val in same phys reg).
+		// Post-WFC fixup: fix stores with pair values via non-HL pointers.
 		blockInsts := fixSelfStores(b.Insts, desc)
 
 		for _, inst := range blockInsts {

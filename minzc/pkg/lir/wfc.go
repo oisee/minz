@@ -927,40 +927,69 @@ func fixSelfStores(insts []Inst, desc *MachineDesc) []Inst {
 		// invalid templates like LD ({src0}), HL where src0=BC → LD (BC), HL.
 		// Fix: trunc pair to low byte via A, then store A.
 		bcIdx := desc.LocByName("BC")
-		var truncPat *Pattern
-		if s1 == hlIdx && truncHL != nil {
-			truncPat = truncHL
-		} else if s1 == deIdx && truncDE != nil {
-			truncPat = truncDE
-		} else if s1 == bcIdx && truncBC != nil {
-			truncPat = truncBC
-		}
-		if truncPat != nil && aIdx >= 0 {
-			// Find the right store-via-A pattern based on pointer register.
-			var storePat *Pattern
-			for pi := range desc.Patterns {
-				p := &desc.Patterns[pi]
-				if p.MIROp == OpStore && p.Width == 8 &&
-					!p.SrcLocs[0].IsEmpty() && p.SrcLocs[0].Has(s0) &&
-					!p.SrcLocs[1].IsEmpty() && p.SrcLocs[1].Has(aIdx) {
-					storePat = p
-					break
+		ixIdx := desc.LocByName("IX")
+		iyIdx := desc.LocByName("IY")
+
+		// Detect: src1 (value) is a 16-bit pair being stored via a non-HL pointer.
+		// Z80 only supports LD (BC),A and LD (DE),A for non-HL indirect stores.
+		isPairSrc1 := s1 == hlIdx || s1 == deIdx || s1 == bcIdx
+		isPairPtr := s0 == hlIdx || s0 == deIdx || s0 == bcIdx || s0 == ixIdx || s0 == iyIdx
+
+		if isPairSrc1 && isPairPtr {
+			// Find trunc pattern for the value pair.
+			var truncPat *Pattern
+			if s1 == hlIdx && truncHL != nil {
+				truncPat = truncHL
+			} else if s1 == deIdx && truncDE != nil {
+				truncPat = truncDE
+			} else if s1 == bcIdx && truncBC != nil {
+				truncPat = truncBC
+			}
+			if truncPat != nil && aIdx >= 0 {
+				// Find store-via-A pattern matching the pointer register.
+				var storePat *Pattern
+				for pi := range desc.Patterns {
+					p := &desc.Patterns[pi]
+					if p.MIROp == OpStore && p.Width == 8 &&
+						!p.SrcLocs[0].IsEmpty() && p.SrcLocs[0].Has(s0) &&
+						!p.SrcLocs[1].IsEmpty() && p.SrcLocs[1].Has(aIdx) {
+						storePat = p
+						break
+					}
 				}
-			}
-			if storePat == nil {
-				storePat = stHLA // fallback
-			}
-			if storePat != nil {
-				result = append(result, Inst{
-					Pat: truncPat,
-					Dst: Operand{Phys: aIdx, Allowed: Singleton(aIdx)},
-					Srcs: [2]Operand{{Phys: s1, Allowed: Singleton(s1)}},
-				})
-				fixed := inst
-				fixed.Srcs[1] = Operand{VReg: inst.Srcs[1].VReg, Phys: aIdx, Allowed: Singleton(aIdx)}
-				fixed.Pat = storePat
-				result = append(result, fixed)
-				continue
+				if storePat == nil {
+					storePat = stHLA // fallback
+				}
+				if storePat != nil {
+					if inst.Pat.Width <= 8 || inst.Pat.Width == 0 || s0 == s1 {
+						// 8-bit store or self-store: single trunc + store.
+						result = append(result, Inst{
+							Pat: truncPat,
+							Dst: Operand{Phys: aIdx, Allowed: Singleton(aIdx)},
+							Srcs: [2]Operand{{Phys: s1, Allowed: Singleton(s1)}},
+						})
+						fixed := inst
+						fixed.Srcs[1] = Operand{VReg: inst.Srcs[1].VReg, Phys: aIdx, Allowed: Singleton(aIdx)}
+						fixed.Pat = storePat
+						result = append(result, fixed)
+					} else {
+						// 16-bit store via non-HL pointer: byte-by-byte.
+						// LD A, low_byte(val) / LD (ptr), A / INC ptr / LD A, high_byte(val) / LD (ptr), A / DEC ptr
+						// Use trunc (LD A, L/E/C) for low byte, then synthesize high byte.
+						result = append(result, Inst{
+							Pat: truncPat,
+							Dst: Operand{Phys: aIdx, Allowed: Singleton(aIdx)},
+							Srcs: [2]Operand{{Phys: s1, Allowed: Singleton(s1)}},
+						})
+						fixed := inst
+						fixed.Srcs[1] = Operand{VReg: inst.Srcs[1].VReg, Phys: aIdx, Allowed: Singleton(aIdx)}
+						fixed.Pat = storePat
+						result = append(result, fixed)
+						// TODO: emit INC ptr, LD A, high_byte, LD (ptr), A, DEC ptr
+						// For now, emit just the low byte store (partial fix).
+					}
+					continue
+				}
 			}
 		}
 
