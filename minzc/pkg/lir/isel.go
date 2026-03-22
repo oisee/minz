@@ -101,15 +101,7 @@ func SelectInstructions(desc *MachineDesc, ops []MIROp) (*ISelResult, error) {
 			if op.Src[s] >= 0 {
 				allowed := pat.SrcLocs[s]
 				inst.Srcs[s] = Operand{VReg: op.Src[s], Allowed: allowed, Phys: -1}
-				if prev, ok := result.VRegAllowed[op.Src[s]]; ok {
-					// Narrow: AND with existing constraint so the vreg
-					// satisfies ALL uses (prevents 16-bit loc for 8-bit use).
-					if !allowed.IsEmpty() {
-						if narrowed := prev.And(allowed); !narrowed.IsEmpty() {
-							result.VRegAllowed[op.Src[s]] = narrowed
-						}
-					}
-				} else {
+				if _, ok := result.VRegAllowed[op.Src[s]]; !ok {
 					result.VRegAllowed[op.Src[s]] = allowed
 				}
 			}
@@ -213,15 +205,7 @@ func SelectBlockInstructions(desc *MachineDesc, ops []MIROp, params []BlockParam
 			if op.Src[s] >= 0 {
 				allowed := pat.SrcLocs[s]
 				inst.Srcs[s] = Operand{VReg: op.Src[s], Allowed: allowed, Phys: -1}
-				if prev, ok := result.VRegAllowed[op.Src[s]]; ok {
-					// Narrow: AND with existing constraint so the vreg
-					// satisfies ALL uses (prevents 16-bit loc for 8-bit use).
-					if !allowed.IsEmpty() {
-						if narrowed := prev.And(allowed); !narrowed.IsEmpty() {
-							result.VRegAllowed[op.Src[s]] = narrowed
-						}
-					}
-				} else {
+				if _, ok := result.VRegAllowed[op.Src[s]]; !ok {
 					result.VRegAllowed[op.Src[s]] = allowed
 				}
 			}
@@ -277,6 +261,38 @@ func foldConstIntoALU(op MIROp, ops []MIROp, defMap map[int]int) MIROp {
 	}
 
 	return op
+}
+
+// findAllPatterns returns ALL matching patterns for a MIR op, sorted by cost.
+// Used by WFC validate-reject to try alternative patterns when the best one
+// produces invalid Z80 assembly for all loc assignments.
+func findAllPatterns(desc *MachineDesc, op MIROp) []*Pattern {
+	var candidates []*Pattern
+	for i := range desc.Patterns {
+		p := &desc.Patterns[i]
+		if p.MIROp != op.Op {
+			continue
+		}
+		if p.Width != 0 && p.Width != op.Width {
+			continue
+		}
+		if op.Dst >= 0 && p.DstLocs.IsEmpty() {
+			continue
+		}
+		if !op.DstAllowed.IsEmpty() && !p.DstLocs.IsEmpty() {
+			if p.DstLocs.And(op.DstAllowed).IsEmpty() {
+				continue
+			}
+		}
+		candidates = append(candidates, p)
+	}
+	// Sort by cost ascending.
+	for i := 1; i < len(candidates); i++ {
+		for j := i; j > 0 && candidates[j].Cost < candidates[j-1].Cost; j-- {
+			candidates[j], candidates[j-1] = candidates[j-1], candidates[j]
+		}
+	}
+	return candidates
 }
 
 func findMovePat(desc *MachineDesc, width int) *Pattern {

@@ -30,6 +30,7 @@ type WFCCell struct {
 	VRegSrc [2]int   // virtual registers for sources
 	Imm     int64    // immediate value (preserved from isel)
 	Sym     string   // symbol name (preserved for call templates)
+	MIROp   *MIROp   // original MIR op (for pattern-level retry in validate-reject)
 }
 
 // Entropy returns the number of possible states for this cell.
@@ -549,6 +550,64 @@ func (s *WFCState) Collapse() error {
 							fixed = true
 							break
 						}
+					}
+				}
+				// Pattern-level retry: if all locs of current pattern are invalid,
+				// try alternative patterns that match the same (Op, Width).
+				if !fixed && c.Pat != nil {
+					altPats := findAllPatterns(s.Desc, MIROp{
+						Op:    c.Pat.MIROp,
+						Dst:   c.VRegDst,
+						Src:   [2]int{c.VRegSrc[0], c.VRegSrc[1]},
+						Width: c.Pat.Width,
+					})
+					for _, altPat := range altPats {
+						if altPat == c.Pat {
+							continue // already tried
+						}
+						// Try this pattern with its own DstLocs/SrcLocs.
+						savedPat := c.Pat
+						savedDst := c.DstLocs
+						savedSrc := c.SrcLocs
+
+						c.Pat = altPat
+						if !altPat.DstLocs.IsEmpty() && c.VRegDst >= 0 {
+							c.DstLocs = s.pickPreferred(altPat.DstLocs, c.VRegDst)
+						}
+						for s2 := 0; s2 < 2; s2++ {
+							if c.VRegSrc[s2] >= 0 && !altPat.SrcLocs[s2].IsEmpty() {
+								if phys, ok := vregPhys[c.VRegSrc[s2]]; ok {
+									c.SrcLocs[s2] = Singleton(phys)
+								} else {
+									c.SrcLocs[s2] = pickFirst(altPat.SrcLocs[s2])
+								}
+							}
+						}
+
+						alt := Inst{
+							Pat: c.Pat,
+							Imm: c.Imm,
+							Sym: c.Sym,
+							Dst: Operand{VReg: c.VRegDst, Allowed: c.DstLocs, Phys: PhysOf(c.DstLocs)},
+							Srcs: [2]Operand{
+								{VReg: c.VRegSrc[0], Allowed: c.SrcLocs[0], Phys: PhysOf(c.SrcLocs[0])},
+								{VReg: c.VRegSrc[1], Allowed: c.SrcLocs[1], Phys: PhysOf(c.SrcLocs[1])},
+							},
+						}
+						if ValidateExpandedTemplate(alt, s.Desc) {
+							// Update vreg tracking for new pattern.
+							if c.VRegDst >= 0 {
+								if p := PhysOf(c.DstLocs); p >= 0 {
+									vregPhys[c.VRegDst] = p
+								}
+							}
+							fixed = true
+							break
+						}
+						// Revert to original pattern.
+						c.Pat = savedPat
+						c.DstLocs = savedDst
+						c.SrcLocs = savedSrc
 					}
 				}
 				// If nothing worked, leave as-is (error will show in final validate).
