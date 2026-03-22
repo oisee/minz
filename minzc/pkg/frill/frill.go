@@ -68,6 +68,8 @@ const (
 	tokOp     // + - * / % == != < <= > >= && || |>
 	tokLParen // (
 	tokRParen // )
+	tokLBrace // {
+	tokRBrace // }
 	tokColon  // :
 	tokEq     // =
 	tokArrow  // ->
@@ -105,6 +107,7 @@ type parser struct {
 	autoFuncs   []*hir.Func         // auto-generated helpers (__tag, __payload, lambdas)
 	lambdaCount int                  // counter for unique lambda names
 	strings     []string             // interned string literals
+	records     []*mir2.StructTy     // record type declarations
 }
 
 func (p *parser) peek() token {
@@ -246,6 +249,10 @@ func (p *parser) lex() token {
 		return token{tokLParen, "(", line}
 	case ')':
 		return token{tokRParen, ")", line}
+	case '{':
+		return token{tokLBrace, "{", line}
+	case '}':
+		return token{tokRBrace, "}", line}
 	case ':':
 		return token{tokColon, ":", line}
 	case '=':
@@ -288,6 +295,9 @@ func (p *parser) parseModule() (*hir.Module, error) {
 		}
 	}
 
+	// Append record types as structs
+	mod.Structs = append(mod.Structs, p.records...)
+
 	// Append auto-generated helper functions (__tag, __payload)
 	mod.Funcs = append(mod.Funcs, p.autoFuncs...)
 
@@ -311,6 +321,11 @@ func (p *parser) parseTypeDecl() error {
 	}
 	if err := p.expect(tokEq, "="); err != nil {
 		return err
+	}
+
+	// Record type: type Point = { x : u8, y : u8 }
+	if p.peek().kind == tokLBrace {
+		return p.parseRecordFields(nameTok.text)
 	}
 
 	def := &adtDef{name: nameTok.text}
@@ -381,6 +396,29 @@ func (p *parser) parseTypeDecl() error {
 		)
 	}
 
+	return nil
+}
+
+// parseRecordFields: { field1 : type1, field2 : type2 }
+func (p *parser) parseRecordFields(name string) error {
+	p.next() // consume {
+	var fields []mir2.StructField
+	for p.peek().kind != tokRBrace && p.peek().kind != tokEOF {
+		fname := p.next()
+		if err := p.expect(tokColon, ":"); err != nil {
+			return err
+		}
+		fty := p.parseType()
+		fields = append(fields, mir2.StructField{Name: fname.text, Ty: fty})
+		if p.peek().kind == tokComma {
+			p.next()
+		}
+	}
+	if err := p.expect(tokRBrace, "}"); err != nil {
+		return err
+	}
+	st := &mir2.StructTy{Name: name, Fields: fields}
+	p.records = append(p.records, st)
 	return nil
 }
 
