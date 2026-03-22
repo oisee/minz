@@ -52,6 +52,7 @@ func Compile(src, name string) (*hir.Module, error) {
 	p := &parser{
 		src: src, pos: 0, line: 1, name: name,
 		adts: make(map[string]*adtDef), ctors: make(map[string]*adtCtor),
+		arities: make(map[string]int),
 	}
 	return p.parseModule()
 }
@@ -108,6 +109,7 @@ type parser struct {
 	lambdaCount int                  // counter for unique lambda names
 	strings     []string             // interned string literals
 	records     []*mir2.StructTy     // record type declarations
+	arities     map[string]int       // function name → param count (for partial application)
 }
 
 func (p *parser) peek() token {
@@ -445,6 +447,7 @@ func (p *parser) parseLet() (*hir.Func, error) {
 		}
 		fn.Params = append(fn.Params, hir.Param{Name: pname.text, Ty: pty})
 	}
+	p.arities[fn.Name] = len(fn.Params)
 
 	// Return type: : type (optional — inferred from body if omitted)
 	inferRetTy := false
@@ -495,6 +498,22 @@ func (p *parser) parseLet() (*hir.Func, error) {
 	stmts = append(stmts, &hir.ReturnStmt{Val: body})
 
 	fn.Body = &hir.Block{Body: stmts}
+
+	// If body is a partial application ref and fn has no params,
+	// adopt the partial's definition (currying sugar).
+	// let inc = add 1  →  inc becomes __partial_N with its params
+	if len(fn.Params) == 0 && len(letStmts) == 0 && len(whereStmts) == 0 {
+		if vr, ok := body.(*hir.VarRefExpr); ok {
+			for _, af := range p.autoFuncs {
+				if af.Name == vr.Name {
+					// Adopt: rename partial to fn.Name
+					af.Name = fn.Name
+					p.arities[fn.Name] = len(af.Params)
+					return af, nil
+				}
+			}
+		}
+	}
 
 	return fn, nil
 }
@@ -826,6 +845,28 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		}
 
 		if len(args) > 0 {
+			// Partial application: if fewer args than function arity, generate wrapper
+			if arity, ok := p.arities[name]; ok && len(args) < arity {
+				missing := arity - len(args)
+				partialName := fmt.Sprintf("__partial_%d", p.lambdaCount)
+				p.lambdaCount++
+				// Generate: __partial_N(p1, p2, ...) = name(captured_args..., p1, p2, ...)
+				var params []hir.Param
+				var callArgs []hir.Expr
+				callArgs = append(callArgs, args...)
+				for i := 0; i < missing; i++ {
+					pn := fmt.Sprintf("__p%d", i)
+					params = append(params, hir.Param{Name: pn, Ty: mir2.TyU8})
+					callArgs = append(callArgs, &hir.VarRefExpr{Name: pn, Ty: mir2.TyU8})
+				}
+				body := &hir.CallExpr{Fn: name, Args: callArgs, Ty: mir2.TyU8}
+				p.autoFuncs = append(p.autoFuncs, &hir.Func{
+					Name: partialName, Params: params, RetTy: body.Ty,
+					Body: &hir.Block{Body: []hir.Stmt{&hir.ReturnStmt{Val: body}}},
+				})
+				p.arities[partialName] = missing
+				return &hir.VarRefExpr{Name: partialName, Ty: mir2.TyU8}, nil
+			}
 			return &hir.CallExpr{Fn: name, Args: args, Ty: mir2.TyU8}, nil
 		}
 
