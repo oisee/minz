@@ -1,0 +1,68 @@
+// asm_caller_callee.nanz — Verify caller correctly sets up callee's @z80_ pins
+//
+// Each test: wrapper calls asm function with constants → verifies result.
+// Asymmetric formula detects any register swap.
+
+// ── 2-arg: A + B ───────────────────────────────────────────────────────────
+
+fun add_ab(@z80_a x: u8, @z80_b y: u8) -> u8 {
+    asm z80 (in x, y) { ADD A, B }
+}
+fun test_ab() -> u8 { return add_ab(10, 20) }
+assert test_ab() == 30 via z80
+
+// ── 2-arg: A + C ───────────────────────────────────────────────────────────
+
+fun add_ac(@z80_a x: u8, @z80_c z: u8) -> u8 {
+    asm z80 (in x, z) { ADD A, C }
+}
+fun test_ac() -> u8 { return add_ac(10, 30) }
+assert test_ac() == 40 via z80
+
+// ── 3-arg: A + B + C (detects B↔C swap) ─────────────────────────────────────
+
+fun sum_abc(@z80_a a: u8, @z80_b b: u8, @z80_c c: u8) -> u8 {
+    asm z80 (in a, b, c) { ADD A, B / ADD A, C }
+}
+fun test_abc() -> u8 { return sum_abc(10, 20, 30) }
+assert test_abc() == 60 via z80
+
+// ── B - C: asymmetric (swap gives 256-70=186 instead of 70) ─────────────────
+
+fun diff_bc(@z80_b b: u8, @z80_c c: u8) -> u8 {
+    asm z80 (in b, c) { LD A, B / SUB C }
+}
+fun test_diff() -> u8 { return diff_bc(100, 30) }
+assert test_diff() == 70 via z80
+
+// ── 16-bit: HL + DE ─────────────────────────────────────────────────────────
+
+fun add16(@z80_hl a: u16, @z80_de b: u16) -> u16 {
+    asm z80 (in a, b) { ADD HL, DE }
+}
+fun test_add16() -> u16 { return add16(1000, 2000) }
+assert test_add16() == 3000 via z80
+
+// ── Mixed: HL + A ───────────────────────────────────────────────────────────
+
+fun hl_plus_a(@z80_hl base: u16, @z80_a off: u8) -> u16 {
+    asm z80 (in base, off) { LD D, 0 / LD E, A / ADD HL, DE }
+}
+fun test_mixed() -> u16 { return hl_plus_a(0x4000, 0x20) }
+assert test_mixed() == 0x4020 via z80
+
+// ── Chain: outer → middle → inner ───────────────────────────────────────────
+
+fun inner(@z80_a x: u8, @z80_b y: u8) -> u8 {
+    asm z80 (in x, y) { ADD A, B }
+}
+fun middle(a: u8, b: u8) -> u8 { return inner(a, b) }
+fun test_chain() -> u8 { return middle(15, 25) }
+assert test_chain() == 40 via z80
+
+// ── Multiple callers same callee ────────────────────────────────────────────
+
+fun test_multi1() -> u8 { return sum_abc(1, 2, 3) }
+fun test_multi2() -> u8 { return sum_abc(0, 0, 0) }
+assert test_multi1() == 6 via z80
+assert test_multi2() == 0 via z80

@@ -145,11 +145,22 @@ func addrTakenFuncs(m *Module) map[string]bool {
 // Functions with inline asm have hard-coded register expectations that
 // OptimizeContracts must not change.
 func funcHasAsm(f *Func) bool {
+	if f.Attrs.HasAsm {
+		return true
+	}
 	for _, b := range f.Blocks {
 		for _, inst := range b.Insts {
 			if inst.Op == OpAsm {
+				f.Attrs.HasAsm = true // cache for next check
 				return true
 			}
+		}
+	}
+	// Also check: any param with hard-pin class (@z80_c, @z80_d, etc.)
+	for _, p := range f.Contract.Params {
+		switch p.Class {
+		case ClassRegC, ClassRegD, ClassRegE, ClassRegH, ClassRegL:
+			return true
 		}
 	}
 	return false
