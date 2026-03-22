@@ -1,0 +1,21 @@
+// Minimal Agon Light 2 hello — no imports, self-contained
+//
+// MOS API: RST $10 = putchar (A = char)
+// Compile: minzc hello_agon.nanz -b ez80 -o hello_agon.bin
+
+fun mos_putchar(ch: u8) -> void {
+    asm z80 (in ch) {
+        RST.LIL $10
+    }
+}
+
+fun mos_puts(str: ^u8) -> void {
+    asm z80 (in str) {
+        RST.LIL $18
+    }
+}
+
+fun main() -> void {
+    mos_puts(c"Hello from MinZ on Agon Light 2!\r\n")
+    mos_puts(c"eZ80 ADL mode, compiled with -b ez80\r\n")
+}

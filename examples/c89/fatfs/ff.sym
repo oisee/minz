@@ -1,0 +1,92 @@
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 1.
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+    .__.$$$.                                                    =  002710 L
+    .__.ABS.                                                    =  000000 G
+    .__.CPU.                                                    =  000000 L
+    .__.H$L.                                                    =  000000 L
+  0 _DbcTbl                                                        000013 R
+  1 _FatFs                                                         000000 R
+  1 _Fsid                                                          000002 R
+  0 ___str_0                                                       002120 R
+  0 ___str_1                                                       002501 R
+    __divulong                                                     ****** GX
+    __mullong                                                      ****** GX
+  0 _check_fs                                                      0023A1 R
+  0 _clst2sect                                                     000502 R
+  0 _create_chain                                                  000DAC R
+  0 _create_name                                                   001F26 R
+  0 _dbc_1st                                                       00010A R
+  0 _dbc_2nd                                                       000133 R
+  0 _dir_alloc                                                     0019A8 R
+  0 _dir_clear                                                     00121B R
+  0 _dir_find                                                      001C23 R
+  0 _dir_next                                                      001694 R
+  0 _dir_read                                                      001B13 R
+  0 _dir_register                                                  001D07 R
+  0 _dir_remove                                                    001D8D R
+  0 _dir_sdi                                                       001379 R
+    _disk_initialize                                               ****** GX
+    _disk_ioctl                                                    ****** GX
+    _disk_read                                                     ****** GX
+    _disk_status                                                   ****** GX
+    _disk_write                                                    ****** GX
+  0 _f_close                                                       004343 GR
+  0 _f_closedir                                                    004AC0 GR
+  0 _f_getfree                                                     004BE8 GR
+  0 _f_lseek                                                       004373 GR
+  0 _f_mkdir                                                       00523B GR
+  0 _f_mount                                                       002F13 GR
+  0 _f_open                                                        002FAF GR
+  0 _f_opendir                                                     0049C5 GR
+  0 _f_read                                                        00361C GR
+  0 _f_readdir                                                     004AE4 GR
+  0 _f_rename                                                      0054E2 GR
+  0 _f_stat                                                        004B73 GR
+  0 _f_sync                                                        0041EF GR
+  0 _f_truncate                                                    004EA0 GR
+  0 _f_unlink                                                      0050FD GR
+  0 _f_write                                                       003B6F GR
+  0 _find_volume                                                   00250A R
+  0 _follow_path                                                   00212F R
+  0 _get_fat                                                       0005AE R
+    _get_fattime                                                   ****** GX
+  0 _get_fileinfo                                                  001DD9 R
+  0 _get_ldnumber                                                  0022E3 R
+  0 _ld_16                                                         000000 R
+  0 _ld_32                                                         00001D R
+  0 _ld_clust                                                      001A83 R
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 2.
+Hexadecimal [24-Bits]
+
+Symbol Table
+
+    _memcmp                                                        ****** GX
+  0 _mount_volume                                                  002640 R
+  0 _move_window                                                   0002DF R
+  0 _put_fat                                                       00087B R
+  0 _remove_chain                                                  000BE3 R
+  0 _st_16                                                         0000A9 R
+  0 _st_32                                                         0000AD R
+  0 _st_clust                                                      001ADB R
+  0 _sync_fs                                                       000376 R
+  0 _sync_window                                                   00016E R
+  0 _validate                                                      002E97 R
+
+ASxxxx Assembler V02.00 + NoICE + SDCC mods  (Zilog Z80 / Hitachi HD64180 / ZX-Next / eZ80), page 3.
+Hexadecimal [24-Bits]
+
+Area Table
+
+   0 _CODE                                      size   5713   flags    0
+   1 _DATA                                      size      4   flags    0
+   2 _INITIALIZED                               size      0   flags    0
+   3 _DABS                                      size      0   flags    8
+   4 _HOME                                      size      0   flags    0
+   5 _GSINIT                                    size      0   flags    0
+   6 _GSFINAL                                   size      0   flags    0
+   7 _INITIALIZER                               size      0   flags    0
+   8 _CABS                                      size      0   flags    8
+

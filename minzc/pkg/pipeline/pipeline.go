@@ -732,6 +732,18 @@ func Assemble(asmSrc string, target string) ([]byte, []error) {
 		}
 		return nil, errs
 	}
+	// Apply target-specific output format (e.g. Agon MOS header).
+	if target != "" {
+		t2, _ := z80asm.ParseTarget(target)
+		cfg := z80asm.GetTargetConfig(t2)
+		if cfg != nil && cfg.OutputFormat.Generator != nil {
+			formatted, fmtErr := cfg.OutputFormat.Generator(res)
+			if fmtErr != nil {
+				return nil, []error{fmtErr}
+			}
+			return formatted, nil
+		}
+	}
 	return res.Binary, nil
 }
 

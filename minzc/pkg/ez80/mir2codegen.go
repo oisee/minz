@@ -29,7 +29,9 @@ func MIR2Codegen(m *mir2.Module, ar *mir2.AllocResult) string {
 	cg.emitf("; Target: Agon Light 2 (eZ80 @ 18.432 MHz)")
 	cg.emit("")
 	cg.emit("    .ASSUME ADL=1")
-	cg.emitf("    ORG $%06X", 0x040000)
+	// MOS header ($45 bytes) is prepended by generateAgonBin.
+	// Code starts at $040045. Assembler resolves labels relative to this ORG.
+	cg.emitf("    ORG $%06X", 0x040045)
 	cg.emit("")
 
 	// Emit main first so binary entry point is at ORG.
@@ -406,6 +408,11 @@ func (g *ez80cg) genInst(inst *mir2.Inst) {
 		// Result = SP (stack pointer after allocation)
 		if dst != "HL" {
 			g.emitMov(dst, "HL", 24)
+		}
+
+	case mir2.OpAsm:
+		if inst.Asm != nil && inst.Asm.Template != "" {
+			g.emitf("    %s", inst.Asm.Template)
 		}
 
 	default:
