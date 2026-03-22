@@ -230,9 +230,13 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 				AnnotateTStates: opt.AnnotateTStates,
 			})
 			// Extract per-function asm from PBQP output for failed functions,
-			// then splice into the LIR output. PBQP output already contains
-			// globals, strings, and spill data — don't emit separately.
+			// then splice into the LIR output.
 			s.Assembly = splicePerFunctionFallback(lirAsm, pbqpAsm, lirResults, failSet, m)
+			// Append LIR-sanitized string pool for LIR functions that reference
+			// _mir2_str_N labels. PBQP strings use different sanitization.
+			var strBuf strings.Builder
+			lir.EmitStringPool(&strBuf, m)
+			s.Assembly += strBuf.String()
 			fmt.Fprintf(os.Stderr, "lir: %d/%d via ISLE+WFC, %d via PBQP fallback: %s\n",
 				ok, ok+fail, fail, strings.Join(failNames, ", "))
 		} else {
@@ -259,6 +263,9 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 			AnnotateTStates: opt.AnnotateTStates,
 		})
 	}
+
+	// Deduplicate labels in assembly (hybrid LIR+PBQP may produce duplicates).
+	s.Assembly = dedupAsmLabels(s.Assembly)
 
 	// Z80 binary assertion checks (skip "mir2"-only asserts).
 	if err := RunAssertsZ80(hm, m, combined, s.Assembly); err != nil {
@@ -818,11 +825,85 @@ func splicePerFunctionFallback(lirAsm, pbqpAsm string, results []lir.LIRFuncResu
 		}
 	}
 
-	// Emit globals once — use our emitGlobals (consistent with LIR sanitization).
-	// PBQP globals section is NOT appended to avoid duplicates.
+	// Append globals.
 	sb.WriteString(emitGlobals(m))
 
+	// Append ALL content from PBQP output after the last function.
+	// This includes spill labels (_spill_*, $F0xx), strings, and any
+	// trailing data that PBQP functions reference.
+	// dedupAsmLabels() will remove duplicates before assembly.
+	if idx := strings.LastIndex(pbqpAsm, "\n; spill"); idx >= 0 {
+		sb.WriteString(pbqpAsm[idx:])
+	} else if idx := strings.LastIndex(pbqpAsm, "\n; strings"); idx >= 0 {
+		sb.WriteString(pbqpAsm[idx:])
+	}
+
 	return sb.String()
+}
+
+// dedupAsmLabels removes duplicate label definitions from assembly text.
+// When hybrid LIR+PBQP output contains the same label twice (e.g. globals
+// emitted by both paths), keep only the first definition.
+func dedupAsmLabels(asm string) string {
+	lines := strings.Split(asm, "\n")
+	seen := make(map[string]bool)
+	var result []string
+	skipUntilNext := false
+
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+
+		// Detect label definition: "name:" at start of line (not indented instruction)
+		if !strings.HasPrefix(line, " ") && !strings.HasPrefix(line, "\t") &&
+			strings.HasSuffix(trimmed, ":") && !strings.HasPrefix(trimmed, ";") &&
+			!strings.HasPrefix(trimmed, ".") { // skip local labels
+			label := strings.TrimSuffix(trimmed, ":")
+			if seen[label] {
+				// Skip this duplicate label and its data (DB/DW lines following it)
+				skipUntilNext = true
+				continue
+			}
+			seen[label] = true
+			skipUntilNext = false
+		} else if skipUntilNext {
+			// Skip data lines (DB, DW) belonging to duplicate label
+			if strings.HasPrefix(trimmed, "DB ") || strings.HasPrefix(trimmed, "DW ") ||
+				trimmed == "" {
+				continue
+			}
+			skipUntilNext = false
+		}
+
+		result = append(result, line)
+	}
+
+	return strings.Join(result, "\n")
+}
+
+// extractPBQPTrailingData extracts spill page and other non-function/non-global
+// data from PBQP output. This includes $F0xx spill labels and _spill_ vars.
+// Skips globals ("; globals" section) and strings ("; strings" section) to
+// avoid duplicates with LIR-emitted versions.
+func extractPBQPTrailingData(pbqpAsm string) string {
+	var result strings.Builder
+	lines := strings.Split(pbqpAsm, "\n")
+	inSpill := false
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		// Detect spill page markers
+		if strings.HasPrefix(trimmed, "$F0") || strings.HasPrefix(trimmed, "_spill_") {
+			inSpill = true
+		}
+		if inSpill {
+			// Stop at globals/strings sections
+			if trimmed == "; globals" || trimmed == "; strings" {
+				inSpill = false
+				continue
+			}
+			result.WriteString(line + "\n")
+		}
+	}
+	return result.String()
 }
 
 // splitAsmByFunction splits Z80 assembly text into per-function blocks.
