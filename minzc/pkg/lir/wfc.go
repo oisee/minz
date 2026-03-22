@@ -574,12 +574,13 @@ func (s *WFCState) Collapse() error {
 						if !altPat.DstLocs.IsEmpty() && c.VRegDst >= 0 {
 							c.DstLocs = s.pickPreferred(altPat.DstLocs, c.VRegDst)
 						}
+						// Assign srcs: reuse vregPhys only if compatible with alt pattern.
 						for s2 := 0; s2 < 2; s2++ {
 							if c.VRegSrc[s2] >= 0 && !altPat.SrcLocs[s2].IsEmpty() {
-								if phys, ok := vregPhys[c.VRegSrc[s2]]; ok {
+								if phys, ok := vregPhys[c.VRegSrc[s2]]; ok && altPat.SrcLocs[s2].Has(phys) {
 									c.SrcLocs[s2] = Singleton(phys)
 								} else {
-									c.SrcLocs[s2] = pickFirst(altPat.SrcLocs[s2])
+									c.SrcLocs[s2] = s.Desc.PickCheapest(altPat.SrcLocs[s2])
 								}
 							}
 						}
@@ -595,10 +596,17 @@ func (s *WFCState) Collapse() error {
 							},
 						}
 						if ValidateExpandedTemplate(alt, s.Desc) {
-							// Update vreg tracking for new pattern.
+							// Update vreg tracking for new assignments.
 							if c.VRegDst >= 0 {
 								if p := PhysOf(c.DstLocs); p >= 0 {
 									vregPhys[c.VRegDst] = p
+								}
+							}
+							for s2 := 0; s2 < 2; s2++ {
+								if c.VRegSrc[s2] >= 0 {
+									if p := PhysOf(c.SrcLocs[s2]); p >= 0 {
+										vregPhys[c.VRegSrc[s2]] = p
+									}
 								}
 							}
 							fixed = true

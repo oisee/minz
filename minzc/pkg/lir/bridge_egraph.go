@@ -90,6 +90,10 @@ func TranslateInstEGraph(inst *mir2.Inst, desc *MachineDesc) []EVariant {
 			return flagMaterializeVariants(inst, desc)
 		}
 
+	// ── 16-bit store via pointer ─────────────────────────────────────
+	case inst.Op == mir2.OpStore && inst.Ty != nil && inst.Ty.Width() > 8:
+		return store16Variants(inst, desc)
+
 	// ── Comparison with constant overflow ────────────────────────────
 	case inst.Op == mir2.OpCmp && inst.Imm != 0:
 		return cmpVariants(inst, desc)
@@ -225,6 +229,51 @@ func flagMaterializeVariants(inst *mir2.Inst, desc *MachineDesc) []EVariant {
 			Tag:  "flag_sbc_a_a",
 		},
 	}
+}
+
+// store16Variants generates variants for 16-bit indirect store.
+// When ptr and value might be in the same pair (HL), offers safe+fast variants.
+func store16Variants(inst *mir2.Inst, desc *MachineDesc) []EVariant {
+	ptr := int(inst.Src[0])
+	val := int(inst.Src[1])
+	if inst.Src[0] == mir2.NoReg || inst.Src[1] == mir2.NoReg {
+		return nil
+	}
+
+	hl := desc.LocSetByNames("HL")
+	de := desc.LocSetByNames("DE")
+	bc := desc.LocSetByNames("BC")
+
+	var variants []EVariant
+
+	// Variant: ptr=HL, val=DE (no conflict, cheapest)
+	variants = append(variants, EVariant{
+		Ops: []MIROp{{
+			Op: OpStore, Dst: -1, Src: [2]int{ptr, val}, Width: 16,
+			SrcAllowed: [2]LocSet{hl, de},
+		}},
+		Cost: 22, Tag: "st16_hl_de",
+	})
+
+	// Variant: ptr=HL, val=BC
+	variants = append(variants, EVariant{
+		Ops: []MIROp{{
+			Op: OpStore, Dst: -1, Src: [2]int{ptr, val}, Width: 16,
+			SrcAllowed: [2]LocSet{hl, bc},
+		}},
+		Cost: 22, Tag: "st16_hl_bc",
+	})
+
+	// Variant: ptr=HL, val=HL (self-store, safe via DE evacuation)
+	variants = append(variants, EVariant{
+		Ops: []MIROp{{
+			Op: OpStore, Dst: -1, Src: [2]int{ptr, val}, Width: 16,
+			SrcAllowed: [2]LocSet{hl, hl},
+		}},
+		Cost: 30, Tag: "st16_hl_hl_safe",
+	})
+
+	return variants
 }
 
 // cmpVariants generates comparison variants with masked immediates.
