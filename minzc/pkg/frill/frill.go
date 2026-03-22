@@ -786,6 +786,49 @@ func (p *parser) parseMatch() (hir.Expr, error) {
 		return nil, fmt.Errorf("match with no arms")
 	}
 
+	// Exhaustiveness check: if arms reference ADT constructors, verify all covered.
+	hasDefault := false
+	ctorNames := map[string]bool{}
+	for _, a := range arms {
+		if a.isDefault {
+			hasDefault = true
+		}
+	}
+	if !hasDefault {
+		// Collect referenced constructor names from arms
+		for _, a := range arms {
+			if !a.isDefault {
+				for name, ctor := range p.ctors {
+					if ctor.tag == a.val {
+						ctorNames[name] = true
+					}
+				}
+			}
+		}
+		// Find which ADT these belong to
+		for _, def := range p.adts {
+			matchesThisADT := false
+			for _, c := range def.constructors {
+				if ctorNames[c.name] {
+					matchesThisADT = true
+					break
+				}
+			}
+			if matchesThisADT {
+				var missing []string
+				for _, c := range def.constructors {
+					if !ctorNames[c.name] {
+						missing = append(missing, c.name)
+					}
+				}
+				if len(missing) > 0 {
+					return nil, fmt.Errorf("line %d: non-exhaustive match on %s: missing %s",
+						p.line, def.name, strings.Join(missing, ", "))
+				}
+			}
+		}
+	}
+
 	// Build nested CondExpr from bottom up.
 	// Default arm (if any) becomes the innermost else.
 	var result hir.Expr
