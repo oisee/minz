@@ -235,7 +235,7 @@ func (p *parser) lex() token {
 	if p.pos+1 < len(p.src) {
 		two := p.src[p.pos : p.pos+2]
 		switch two {
-		case "==", "!=", "<=", ">=", "&&", "||", "|>", "->":
+		case "==", "!=", "<=", ">=", "&&", "||", "|>", "->", ">>":
 			p.pos += 2
 			if two == "->" {
 				return token{tokArrow, two, line}
@@ -987,7 +987,36 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 			return &hir.CallExpr{Fn: name, Args: args, Ty: mir2.TyU8}, nil
 		}
 
-		// Variable reference — infer type from context
+		// Composition: f >> g >> h → generate __compose_N(x) = h(g(f(x)))
+		if p.peek().kind == tokOp && p.peek().text == ">>" {
+			chain := []string{name}
+			for p.peek().kind == tokOp && p.peek().text == ">>" {
+				p.next() // consume >>
+				next := p.next()
+				if next.kind != tokIdent {
+					return nil, fmt.Errorf("line %d: expected function name after >>", next.line)
+				}
+				chain = append(chain, next.text)
+			}
+			// Generate: __compose_N(x) = chain[last](chain[...](chain[0](x)))
+			composeName := fmt.Sprintf("__compose_%d", p.lambdaCount)
+			p.lambdaCount++
+			paramName := "__cx"
+			var body hir.Expr = &hir.VarRefExpr{Name: paramName, Ty: mir2.TyU8}
+			for _, fn := range chain {
+				body = &hir.CallExpr{Fn: fn, Args: []hir.Expr{body}, Ty: mir2.TyU8}
+			}
+			p.autoFuncs = append(p.autoFuncs, &hir.Func{
+				Name:   composeName,
+				Params: []hir.Param{{Name: paramName, Ty: mir2.TyU8}},
+				RetTy:  mir2.TyU8,
+				Body:   &hir.Block{Body: []hir.Stmt{&hir.ReturnStmt{Val: body}}},
+			})
+			p.arities[composeName] = 1
+			return &hir.VarRefExpr{Name: composeName, Ty: mir2.TyU8}, nil
+		}
+
+		// Variable reference
 		return &hir.VarRefExpr{Name: name, Ty: mir2.TyU8}, nil
 	}
 
