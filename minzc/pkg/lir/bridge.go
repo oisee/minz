@@ -60,6 +60,10 @@ func LowerMIR2Block(b *mir2.Block, desc *MachineDesc, mod *mir2.Module, funcPara
 		}
 	}
 
+	// Fuse addr_of + store → store_global, addr_of + load → load_global.
+	// LD (sym), HL is 16T vs addr_of→register (10T) + byte-store (22T) = 32T.
+	ops = fuseGlobalAccess(ops)
+
 	// Insert save-before-overwrite moves for Z80 (destructive accumulator ops).
 	// Only for Z80 — other descriptors have orthogonal register files.
 	if desc.Name == "z80" {
@@ -67,6 +71,78 @@ func LowerMIR2Block(b *mir2.Block, desc *MachineDesc, mod *mir2.Module, funcPara
 	}
 
 	return ops, nil
+}
+
+// fuseGlobalAccess fuses addr_of + store/load sequences into direct global access.
+// Before: OpConst{Sym:"p_name", dst=v1}; OpStore{src0=v1, src1=v2}
+// After:  OpStoreGlobal{Sym:"p_name", src0=v2, src1=v2}
+//
+// LD (sym), HL is 16T vs addr_of→register (10T) + byte-store (22T) = 32T.
+func fuseGlobalAccess(ops []MIROp) []MIROp {
+	// Build map: vreg → op index for const with symbol (addr_of results).
+	addrOfs := make(map[int]int) // vreg → index in ops
+	for i, op := range ops {
+		if op.Op == OpConst && op.Sym != "" {
+			addrOfs[op.Dst] = i
+		}
+	}
+	if len(addrOfs) == 0 {
+		return ops
+	}
+
+	// Count uses for each vreg to detect single-use addr_of.
+	useCount := make(map[int]int)
+	for _, op := range ops {
+		for _, s := range op.Src {
+			if s > 0 {
+				useCount[s]++
+			}
+		}
+	}
+
+	fused := make(map[int]bool) // indices to skip (eliminated addr_of)
+	var result []MIROp
+	for i, op := range ops {
+		if fused[i] {
+			continue
+		}
+
+		if op.Op == OpStore && op.Src[0] > 0 {
+			if constIdx, ok := addrOfs[op.Src[0]]; ok && useCount[op.Src[0]] == 1 {
+				constOp := ops[constIdx]
+				fused[constIdx] = true
+				result = append(result, MIROp{
+					Op:    OpStoreGlobal,
+					Dst:   -1,
+					Src:   [2]int{op.Src[1], op.Src[1]},
+					Imm:   constOp.Imm,
+					Width: op.Width,
+					Sym:   constOp.Sym,
+				})
+				continue
+			}
+		}
+
+		if op.Op == OpLoad && op.Src[0] > 0 {
+			if constIdx, ok := addrOfs[op.Src[0]]; ok && useCount[op.Src[0]] == 1 {
+				constOp := ops[constIdx]
+				fused[constIdx] = true
+				result = append(result, MIROp{
+					Op:    OpLoadGlobal,
+					Dst:   op.Dst,
+					Src:   [2]int{-1, -1},
+					Imm:   constOp.Imm,
+					Width: op.Width,
+					Sym:   constOp.Sym,
+				})
+				continue
+			}
+		}
+
+		result = append(result, op)
+	}
+
+	return result
 }
 
 // insertSaveBeforeOverwrite detects vregs that would be killed by a later

@@ -63,6 +63,10 @@ func LowerMIR2BlockEGraph(b *mir2.Block, desc *MachineDesc, mod *mir2.Module) (*
 	eg.SelectCheapest()
 	ops := eg.Extract()
 
+	// Fuse addr_of + store/load → store_global/load_global.
+	// LD (sym), HL (16T) vs LD rr,sym (10T) + store via ptr (22T) = 32T.
+	ops = fuseGlobalAccess(ops)
+
 	// Split self-stores: when OpStore has src0==src1 (same vreg used as
 	// both pointer and value), insert a move to evacuate the value to a
 	// different pair. Without this, WFC assigns both to HL → LD (HL), HL.

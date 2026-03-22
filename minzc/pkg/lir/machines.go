@@ -149,7 +149,9 @@ const (
 	OpAndImm   = 20 // bitwise AND immediate
 	OpOrImm    = 21 // bitwise OR immediate
 	OpXorImm   = 22 // bitwise XOR immediate
-	OpCmpImm   = 23 // compare immediate
+	OpCmpImm      = 23 // compare immediate
+	OpStoreGlobal = 24 // store to global symbol address (LD (sym), val)
+	OpLoadGlobal  = 25 // load from global symbol address (LD val, (sym))
 )
 
 // GenerateRISCPatterns creates fully orthogonal patterns for a RISC machine.

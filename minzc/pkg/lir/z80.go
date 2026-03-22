@@ -271,6 +271,22 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			Template: "LD D, H\n    LD E, L\n    LD (HL), E\n    INC HL\n    LD (HL), D\n    DEC HL",
 			Cost: 30, Bytes: 6, Flags: PatMemWrite},
 
+		// ── Global store/load (LD (nn), HL / LD HL, (nn)) ──────────
+		// Direct 16-bit store to absolute address (global variable).
+		// Z80: LD (nn), HL = 16T, 3 bytes. Much better than loading addr into
+		// register + byte-by-byte store (10T + 22T = 32T).
+		{Name: "st_global_hl", MIROp: OpStoreGlobal, Width: 16, SrcLocs: [2]LocSet{hl, hl},
+			Template: "LD ({imm}), HL", Cost: 16, Bytes: 3, Flags: PatMemWrite | PatImmediate},
+		// LD (nn), A — 8-bit store to absolute address (global u8 variable).
+		{Name: "st_global_a", MIROp: OpStoreGlobal, Width: 8, SrcLocs: [2]LocSet{a, a},
+			Template: "LD ({imm}), A", Cost: 13, Bytes: 3, Flags: PatMemWrite | PatImmediate},
+		// LD HL, (nn) — load 16-bit from absolute address.
+		{Name: "ld_global_hl", MIROp: OpLoadGlobal, Width: 16, DstLocs: hl,
+			Template: "LD HL, ({imm})", Cost: 16, Bytes: 3, Flags: PatMemRead | PatImmediate},
+		// LD A, (nn) — load 8-bit from absolute address.
+		{Name: "ld_global_a", MIROp: OpLoadGlobal, Width: 8, DstLocs: a,
+			Template: "LD A, ({imm})", Cost: 13, Bytes: 3, Flags: PatMemRead | PatImmediate},
+
 		// ── Combined 16-bit LE load (ISLE combining target) ──────────
 		{Name: "ld16_le_hl", MIROp: OpLoad16LE, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{hl},
 			Template: "LD A, (HL)\n    INC HL\n    LD H, (HL)\n    LD L, A",
