@@ -1,0 +1,26 @@
+(* Frill standard math library *)
+
+let add (a : u8) (b : u8) = a + b
+let sub (a : u8) (b : u8) = a - b
+let mul (a : u8) (b : u8) = a * b
+let double (x : u8) = x + x
+let square (x : u8) = x * x
+let inc (x : u8) = x + 1
+let dec (x : u8) = x - 1
+let max (a : u8) (b : u8) = if a > b then a else b
+let min (a : u8) (b : u8) = if a < b then a else b
+let abs_diff (a : u8) (b : u8) = if a > b then a - b else b - a
+let clamp (x : u8) (lo : u8) (hi : u8) = max (min x hi) lo
+let sign (x : u8) = if x == 0 then 0 else 1
+let gcd (a : u8) (b : u8) = if b == 0 then a else gcd b (a % b)
+let lcm (a : u8) (b : u8) = a * b / gcd a b
+let pow (base : u8) (exp : u8) = if exp == 0 then 1 else base * pow base (exp - 1)
+let factorial (n : u8) = if n == 0 then 1 else n * factorial (n - 1)
+let fib (n : u8) = if n == 0 then 0 else if n == 1 then 1 else add (fib (n - 1)) (fib (n - 2))
+let sum_to (n : u8) = n * (n + 1) / 2
+let is_even (n : u8) = if n % 2 == 0 then 1 else 0
+let is_odd (n : u8) = if n % 2 == 1 then 1 else 0
+let is_prime_h (n : u8) (d : u8) = if d * d > n then 1 else if n % d == 0 then 0 else is_prime_h n (d + 1)
+let is_prime (n : u8) = if n < 2 then 0 else is_prime_h n 2
+let digital_root (n : u8) = if n < 10 then n else digital_root (n / 10 + n % 10)
+let manhattan (x1 : u8) (y1 : u8) (x2 : u8) (y2 : u8) = abs_diff x1 x2 + abs_diff y1 y2

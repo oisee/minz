@@ -1,0 +1,27 @@
+(* Demo: importing Frill stdlib math *)
+
+import "../../stdlib/frill/math.frl"
+
+-- Compose stdlib functions
+let transform = double >> inc >> square
+let process (x : u8) = x |> inc |> double |> square
+
+-- Properties verified for all 256 values
+prop |x| double x == x + x
+prop |x| inc (dec x) == x
+
+-- Assertions
+assert factorial 5 == 120
+assert gcd 12 8 == 4
+assert lcm 4 6 == 12
+assert is_prime 7 == 1
+assert is_prime 9 == 0
+assert fib 7 == 13
+assert pow 2 4 == 16
+assert sum_to 10 == 55
+assert transform 3 == 49
+assert process 2 == 36
+assert manhattan 0 0 3 4 == 7
+assert digital_root 99 == 9
+
+let main (x : u8) = 0
