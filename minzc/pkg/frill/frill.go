@@ -389,6 +389,26 @@ func (p *parser) parseLet() (*hir.Func, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// where-clauses: where name = expr (Haskell-style, definitions after body)
+	var whereStmts []hir.Stmt
+	for p.peek().kind == tokIdent && p.peek().text == "where" {
+		p.next() // consume "where"
+		wname := p.next()
+		if err := p.expect(tokEq, "="); err != nil {
+			return nil, err
+		}
+		wval, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+		whereStmts = append(whereStmts, &hir.VarDeclStmt{
+			Name: wname.text, Ty: wval.ExprTy(), Init: wval,
+		})
+	}
+
+	// where-bindings come BEFORE the let-in bindings and body
+	stmts = append(stmts, whereStmts...)
 	stmts = append(stmts, letStmts...)
 	stmts = append(stmts, &hir.ReturnStmt{Val: body})
 
@@ -912,7 +932,7 @@ func (p *parser) parseType() mir2.Ty {
 
 func isKeyword(s string) bool {
 	switch s {
-	case "let", "in", "if", "then", "else", "type", "assert", "match", "with", "fun", "end":
+	case "let", "in", "if", "then", "else", "type", "assert", "match", "with", "fun", "end", "where":
 		return true
 	}
 	return false
