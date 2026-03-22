@@ -916,6 +916,7 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			retTy, retCls = z80RetRegInfo(st.RetReg)
 		}
 		l.bld.Asm(code, ins, outs, clobbers, retTy, retCls)
+		l.bld.F.Attrs.HasAsm = true
 		return false
 
 	case *IfStmt:

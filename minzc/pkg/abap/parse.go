@@ -244,7 +244,16 @@ func convertDo(node *ASTChild) (Stmt_, error) {
 	for _, child := range node.Children {
 		switch child.Type {
 		case "Do":
-			tokens := collectChildTokens(child.Children)
+			// Merge node's own tokens with child tokens (Wasm parser
+			// puts keywords like TIMES on the node, values in children)
+			var tokens []string
+			for _, t := range child.Tokens {
+				tokens = append(tokens, t.Str)
+			}
+			childToks := collectChildTokens(child.Children)
+			tokens = append(tokens, childToks...)
+			// Filter out DO keyword and period
+			tokens = filterTokens(tokens, "DO", ".")
 			// Look for "TIMES" keyword
 			for i, t := range tokens {
 				if strings.ToUpper(t) == "TIMES" && i > 0 {

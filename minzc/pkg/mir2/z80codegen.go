@@ -1772,6 +1772,15 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 			break
 		}
 	}
+	// Also check function contract params (entry block has no block params).
+	if g.pendingAccReg == NoReg && b == g.fn.Entry() {
+		for _, cp := range g.fn.Contract.Params {
+			if cp.Reg != NoReg && g.ar.Loc(cp.Reg).Name == "A" {
+				g.pendingAccReg = cp.Reg
+				break
+			}
+		}
+	}
 
 	// Pre-scan: identify page-aligned LUT access patterns so we can merge
 	// Ext + AddrOf + PtrAdd + Load into: LD HL,sym; LD L,src8; LD A,(HL).
@@ -2892,7 +2901,9 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		// This fires when two successive 8-bit ALU ops both need A: the first
 		// result (r33=acc) must survive while the second (r35=i+1) runs.
 		// Skip when the peephole below will use INC/DEC (does not touch A).
-		willUseINCDEC := (mnem == "ADD" || mnem == "SUB") && lhs == dst
+		// INC/DEC doesn't clobber A — only fires when rhs is a small constant.
+		_, rhsIsConst := g.constVals[inst.Src[1]]
+		willUseINCDEC := (mnem == "ADD" || mnem == "SUB") && lhs == dst && rhsIsConst
 		if !willUseINCDEC {
 			g.materializePendingAcc(inst)
 		}
@@ -5012,9 +5023,11 @@ func (g *z80cg) emitCallArgs(args []Reg, params []Param) {
 		if dstPhys == "" {
 			dstPhys = canonicalReturnLoc(params[i].Class, params[i].Ty)
 		}
-		if srcPhys != dstPhys {
-			copies = append(copies, parallelCopy{srcName: srcPhys, dstName: dstPhys, ty: params[i].Ty})
-		}
+		// Always include in copies — even no-ops (src==dst). This ensures the
+		// parallel copy scratch picker knows ALL live arg registers and won't
+		// clobber them when resolving cycles (e.g. B↔C using A as scratch
+		// when A holds arg0).
+		copies = append(copies, parallelCopy{srcName: srcPhys, dstName: dstPhys, ty: params[i].Ty})
 	}
 	if len(copies) == 0 {
 		return
@@ -5762,6 +5775,10 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 					cycleRegs[moves[i].src] = true
 					cycleRegs[moves[i].dst] = true
 				}
+				// Also mark done-move destinations as live (they hold values).
+				if moves[i].done {
+					cycleRegs[moves[i].dst] = true
+				}
 			}
 			scratch := "A"
 			if cycleRegs["A"] {
@@ -6121,6 +6138,20 @@ func canonicalReturnLoc(cls RegClass, ty Ty) string {
 		return "DE"
 	case ClassCounter:
 		return "B"
+	case ClassRegC:
+		return "C"
+	case ClassRegD:
+		return "D"
+	case ClassRegE:
+		return "E"
+	case ClassRegH:
+		return "H"
+	case ClassRegL:
+		return "L"
+	case ClassIX:
+		return "IX"
+	case ClassIY:
+		return "IY"
 	case ClassGeneral:
 		if w <= 8 {
 			return "C"

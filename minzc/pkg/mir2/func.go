@@ -74,6 +74,11 @@ type FuncAttrs struct {
 	// the call to a constant.
 	IsComptime bool
 
+	// HasAsm: set by the lowerer when the function contains inline asm.
+	// Functions with asm have hard register expectations that OptimizeContracts
+	// must not change.
+	HasAsm bool
+
 	// IsLeaf: computed — no OpCall instructions appear in the body.
 	// Leaf functions have precise clobber sets without conservative widening.
 	IsLeaf bool

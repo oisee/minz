@@ -566,6 +566,12 @@ func (pw *ProgWFC) pinVRegInWFC(wfc *WFCState, vreg int, phys int) {
 }
 
 // blockIndex returns the index of a block by label.
+// BlockIndex returns the index of the named block, or -1.
+func (pw *ProgWFC) BlockIndex(label string) int { return pw.blockIndex(label) }
+
+// BlockOrder returns the RPO traversal order of block labels.
+func (pw *ProgWFC) BlockOrder() []string { return pw.rpo() }
+
 func (pw *ProgWFC) blockIndex(label string) int {
 	for i, b := range pw.Prog.Blocks {
 		if b.Label == label {

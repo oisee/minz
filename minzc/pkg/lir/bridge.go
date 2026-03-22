@@ -569,6 +569,58 @@ func LowerMIR2ProgWithOps(f *mir2.Func, desc *MachineDesc, mod *mir2.Module) (*P
 	return prog, blockOps, nil
 }
 
+// LowerMIR2ProgWithEGraph is like LowerMIR2ProgWithOps but uses the e-graph
+// bridge for multi-variant lowering. Each block gets an EGraph alongside
+// the flattened (cheapest) MIROps.
+func LowerMIR2ProgWithEGraph(f *mir2.Func, desc *MachineDesc, mod *mir2.Module) (*Prog, [][]MIROp, []*EGraph, error) {
+	prog := &Prog{
+		Name:   f.Name,
+		Blocks: make([]Block, 0, len(f.Blocks)),
+		Desc:   desc,
+	}
+
+	blockOps := make([][]MIROp, 0, len(f.Blocks))
+	blockGraphs := make([]*EGraph, 0, len(f.Blocks))
+
+	for _, mb := range f.Blocks {
+		b := Block{Label: mb.Label}
+
+		for _, mp := range mb.Params {
+			width := 8
+			if mp.Ty != nil {
+				if w := mp.Ty.Width(); w > 0 {
+					width = w
+				}
+			}
+			if width < 8 {
+				width = 8
+			}
+			b.Params = append(b.Params, BlockParam{
+				VReg:    int(mp.Dst),
+				Allowed: regClassToLocSet(desc, mp.Class, width),
+				Phys:    -1,
+			})
+		}
+
+		eg, ops, err := LowerMIR2BlockEGraph(mb, desc, mod)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		blockOps = append(blockOps, ops)
+		blockGraphs = append(blockGraphs, eg)
+
+		var termErr error
+		b.Term, termErr = translateTerm(mb.Term, desc)
+		if termErr != nil {
+			return nil, nil, nil, fmt.Errorf("block %s term: %w", mb.Label, termErr)
+		}
+
+		prog.Blocks = append(prog.Blocks, b)
+	}
+
+	return prog, blockOps, blockGraphs, nil
+}
+
 // ContractParamsToBlockParams converts a MIR2 function's Contract.Params
 // into LIR BlockParam entries. This allows the flat codegen path to seed
 // WFC with the same param constraints that the multi-block path uses.
@@ -1032,10 +1084,18 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc) (*MIROp, error) {
 		width = maxWidth
 	}
 
+	// Mask immediate to width to prevent overflow (CP 4294967295 → CP 255).
+	imm := inst.Imm
+	if width <= 8 {
+		imm &= 0xFF
+	} else if width <= 16 {
+		imm &= 0xFFFF
+	}
+
 	op := &MIROp{
 		Dst:   int(inst.Dst),
 		Src:   [2]int{int(inst.Src[0]), int(inst.Src[1])},
-		Imm:   inst.Imm,
+		Imm:   imm,
 		Width: width,
 	}
 
@@ -1085,8 +1145,18 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc) (*MIROp, error) {
 	case mir2.OpNot:
 		// bitwise complement — skip for now
 		return nil, nil
-	case mir2.OpExt, mir2.OpSext, mir2.OpTrunc:
-		// Type conversions — treat as move for now
+	case mir2.OpTrunc:
+		// Truncation u16→u8: extract low byte. On Z80 this means the src
+		// must be in a pair (HL/DE/BC) and the result takes the low byte (L/E/C).
+		// We model this as OpMove with width=8 and SrcAllowed constrained
+		// to 8-bit regs (the low byte will be selected by the pattern).
+		op.Op = OpMove
+		op.Width = 8
+		op.Src[1] = -1
+		// Constrain: dst must be in 8-bit GPR
+		op.DstAllowed = desc.LocsOfWidth(8)
+	case mir2.OpExt, mir2.OpSext:
+		// Widening: 8→16 bit. Keep width from the dest type (16).
 		op.Op = OpMove
 		op.Src[1] = -1
 	case mir2.OpField, mir2.OpPtrBump:

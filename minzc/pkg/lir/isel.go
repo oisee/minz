@@ -19,6 +19,7 @@ type MIROp struct {
 	Sym  string // symbol name (OpCall target)
 	Clobbers LocSet // registers clobbered (OpCall)
 	DstAllowed LocSet // override dst allowed set (for call arg setup moves)
+	SrcAllowed [2]LocSet // override src allowed sets (for e-graph variants)
 }
 
 // ISelResult is the output of instruction selection.
@@ -68,19 +69,25 @@ func SelectInstructions(desc *MachineDesc, ops []MIROp) (*ISelResult, error) {
 				continue
 			}
 			curLoc := vregLoc[op.Src[s]]
-			if !curLoc.IsEmpty() && curLoc.And(srcAllowed).IsEmpty() && movePat != nil {
+			if !curLoc.IsEmpty() && curLoc.And(srcAllowed).IsEmpty() {
 				// Value not in allowed set → insert move to bring it there.
-				// Create a new vreg for the moved value.
-				newVReg := 1000 + len(result.Insts) // synthetic vreg
-				moveInst := Inst{
-					Pat:  movePat,
-					Dst:  Operand{VReg: newVReg, Allowed: srcAllowed, Phys: -1},
-					Srcs: [2]Operand{{VReg: op.Src[s], Allowed: curLoc, Phys: -1}},
+				// Find the best move/trunc pattern that bridges curLoc → srcAllowed.
+				bridgePat := findBridgePattern(desc, curLoc, srcAllowed)
+				if bridgePat == nil {
+					bridgePat = movePat // fallback
 				}
-				result.Insts = append(result.Insts, moveInst)
-				result.VRegAllowed[newVReg] = srcAllowed
-				vregLoc[newVReg] = srcAllowed
-				op.Src[s] = newVReg // patch source to use moved value
+				if bridgePat != nil {
+					newVReg := 1000 + len(result.Insts)
+					moveInst := Inst{
+						Pat:  bridgePat,
+						Dst:  Operand{VReg: newVReg, Allowed: srcAllowed, Phys: -1},
+						Srcs: [2]Operand{{VReg: op.Src[s], Allowed: curLoc, Phys: -1}},
+					}
+					result.Insts = append(result.Insts, moveInst)
+					result.VRegAllowed[newVReg] = srcAllowed
+					vregLoc[newVReg] = srcAllowed
+					op.Src[s] = newVReg
+				}
 			}
 		}
 
@@ -153,7 +160,7 @@ func SelectBlockInstructions(desc *MachineDesc, ops []MIROp, params []BlockParam
 			}
 		}
 
-		// Insert setup moves if needed.
+		// Insert setup moves if needed (with width-bridging via findBridgePattern).
 		for s := 0; s < 2; s++ {
 			if op.Src[s] < 0 {
 				continue
@@ -163,17 +170,23 @@ func SelectBlockInstructions(desc *MachineDesc, ops []MIROp, params []BlockParam
 				continue
 			}
 			curLoc := vregLoc[op.Src[s]]
-			if !curLoc.IsEmpty() && curLoc.And(srcAllowed).IsEmpty() && movePat != nil {
-				newVReg := 1000 + len(result.Insts)
-				moveInst := Inst{
-					Pat:  movePat,
-					Dst:  Operand{VReg: newVReg, Allowed: srcAllowed, Phys: -1},
-					Srcs: [2]Operand{{VReg: op.Src[s], Allowed: curLoc, Phys: -1}},
+			if !curLoc.IsEmpty() && curLoc.And(srcAllowed).IsEmpty() {
+				bridgePat := findBridgePattern(desc, curLoc, srcAllowed)
+				if bridgePat == nil {
+					bridgePat = movePat
 				}
-				result.Insts = append(result.Insts, moveInst)
-				result.VRegAllowed[newVReg] = srcAllowed
-				vregLoc[newVReg] = srcAllowed
-				op.Src[s] = newVReg
+				if bridgePat != nil {
+					newVReg := 1000 + len(result.Insts)
+					moveInst := Inst{
+						Pat:  bridgePat,
+						Dst:  Operand{VReg: newVReg, Allowed: srcAllowed, Phys: -1},
+						Srcs: [2]Operand{{VReg: op.Src[s], Allowed: curLoc, Phys: -1}},
+					}
+					result.Insts = append(result.Insts, moveInst)
+					result.VRegAllowed[newVReg] = srcAllowed
+					vregLoc[newVReg] = srcAllowed
+					op.Src[s] = newVReg
+				}
 			}
 		}
 
@@ -253,13 +266,81 @@ func foldConstIntoALU(op MIROp, ops []MIROp, defMap map[int]int) MIROp {
 		if idx, exists := defMap[op.Src[1]]; exists && ops[idx].Op == OpConst {
 			result := op
 			result.Op = newOp
-			result.Imm = ops[idx].Imm
+			imm := ops[idx].Imm
+			// Mask to operand width to prevent overflow (CP 4294967295 → CP 255).
+			if op.Width <= 8 {
+				imm &= 0xFF
+			} else if op.Width <= 16 {
+				imm &= 0xFFFF
+			}
+			result.Imm = imm
 			result.Src[1] = -1 // no longer need the const vreg
 			return result
 		}
 	}
 
 	return op
+}
+
+// findAllPatterns returns ALL matching patterns for a MIR op, sorted by cost.
+// Used by WFC validate-reject to try alternative patterns when the best one
+// produces invalid Z80 assembly for all loc assignments.
+func findAllPatterns(desc *MachineDesc, op MIROp) []*Pattern {
+	var candidates []*Pattern
+	for i := range desc.Patterns {
+		p := &desc.Patterns[i]
+		if p.MIROp != op.Op {
+			continue
+		}
+		if p.Width != 0 && p.Width != op.Width {
+			continue
+		}
+		if op.Dst >= 0 && p.DstLocs.IsEmpty() {
+			continue
+		}
+		if !op.DstAllowed.IsEmpty() && !p.DstLocs.IsEmpty() {
+			if p.DstLocs.And(op.DstAllowed).IsEmpty() {
+				continue
+			}
+		}
+		candidates = append(candidates, p)
+	}
+	// Sort by cost ascending.
+	for i := 1; i < len(candidates); i++ {
+		for j := i; j > 0 && candidates[j].Cost < candidates[j-1].Cost; j-- {
+			candidates[j], candidates[j-1] = candidates[j-1], candidates[j]
+		}
+	}
+	return candidates
+}
+
+// findBridgePattern finds an OpMove pattern whose SrcLocs overlaps curLoc
+// and DstLocs overlaps dstAllowed. Handles width-bridging (pair→gpr via trunc).
+func findBridgePattern(desc *MachineDesc, curLoc, dstAllowed LocSet) *Pattern {
+	var best *Pattern
+	bestCost := 1 << 30
+	for i := range desc.Patterns {
+		p := &desc.Patterns[i]
+		if p.MIROp != OpMove {
+			continue
+		}
+		if p.SrcLocs[0].IsEmpty() || p.DstLocs.IsEmpty() {
+			continue
+		}
+		// Pattern's src must overlap where value currently is.
+		if p.SrcLocs[0].And(curLoc).IsEmpty() {
+			continue
+		}
+		// Pattern's dst must overlap where we need it.
+		if p.DstLocs.And(dstAllowed).IsEmpty() {
+			continue
+		}
+		if p.Cost < bestCost {
+			bestCost = p.Cost
+			best = p
+		}
+	}
+	return best
 }
 
 func findMovePat(desc *MachineDesc, width int) *Pattern {

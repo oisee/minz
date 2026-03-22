@@ -837,12 +837,20 @@ func splitAsmByFunction(asm string) map[string]string {
 	for i, line := range lines {
 		if strings.HasPrefix(line, "; fun ") {
 			flush(i)
-			// Extract function name: "; fun name(...)"
+			// PBQP format: "; fun name(...)"
 			rest := line[6:] // skip "; fun "
 			if paren := strings.IndexByte(rest, '('); paren >= 0 {
 				curName = rest[:paren]
 			} else {
 				curName = rest
+			}
+			curStart = i
+		} else if strings.HasPrefix(line, "; ") && strings.Contains(line, " — LIR codegen") {
+			flush(i)
+			// LIR format: "; name — LIR codegen (N insts, ...)"
+			rest := line[2:] // skip "; "
+			if dash := strings.Index(rest, " —"); dash >= 0 {
+				curName = rest[:dash]
 			}
 			curStart = i
 		}

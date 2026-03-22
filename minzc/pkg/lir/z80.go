@@ -39,15 +39,48 @@ var Z80 = &MachineDesc{
 		{Name: "IXL", Width: 8, Kind: LocIndex}, // 15
 		{Name: "IYH", Width: 8, Kind: LocIndex}, // 16
 		{Name: "IYL", Width: 8, Kind: LocIndex}, // 17
-		// Spill slots (memory-backed)
-		{Name: "spill0", Width: 16, Kind: LocMem}, // 18
-		{Name: "spill1", Width: 16, Kind: LocMem}, // 19
-		{Name: "spill2", Width: 16, Kind: LocMem}, // 20
-		{Name: "spill3", Width: 16, Kind: LocMem}, // 21
+		// L3: Shadow registers (EXX swaps BC↔BC', DE↔DE', HL↔HL')
+		// EXX = 4T, toggles all 3 pairs. Call-safe: ISR saves/restores.
+		{Name: "B'", Width: 8, Kind: LocShadow},  // 18
+		{Name: "C'", Width: 8, Kind: LocShadow},  // 19
+		{Name: "D'", Width: 8, Kind: LocShadow},  // 20
+		{Name: "E'", Width: 8, Kind: LocShadow},  // 21
+		{Name: "H'", Width: 8, Kind: LocShadow},  // 22
+		{Name: "L'", Width: 8, Kind: LocShadow},  // 23
+		// Shadow A via EX AF,AF' (4T, independent of EXX)
+		{Name: "A'", Width: 8, Kind: LocShadowAcc}, // 24
+		// L4: TSMC spill slots (self-modifying code: LD r, imm8 patched at runtime)
+		// Cost: 13T store (LD (label+1), A) + 7T reload (LD A, imm8 patched)
+		{Name: "tsmc0", Width: 8, Kind: LocTSMC},   // 25
+		{Name: "tsmc1", Width: 8, Kind: LocTSMC},   // 26
+		{Name: "tsmc2", Width: 8, Kind: LocTSMC},   // 27
+		{Name: "tsmc3", Width: 8, Kind: LocTSMC},   // 28
+		{Name: "tsmc4", Width: 8, Kind: LocTSMC},   // 29
+		{Name: "tsmc5", Width: 8, Kind: LocTSMC},   // 30
+		{Name: "tsmc6", Width: 8, Kind: LocTSMC},   // 31
+		{Name: "tsmc7", Width: 8, Kind: LocTSMC},   // 32
+		// L5: Memory spill slots (absolute address LD A,(nn) / LD (nn),A)
+		// Cost: 26T round-trip (13T load + 13T store)
+		{Name: "mem0", Width: 16, Kind: LocMem},     // 33
+		{Name: "mem1", Width: 16, Kind: LocMem},     // 34
+		{Name: "mem2", Width: 16, Kind: LocMem},     // 35
+		{Name: "mem3", Width: 16, Kind: LocMem},     // 36
 	},
 }
 
 func init() {
+	// Per-location cost in T-states. WFC uses this to prefer cheaper locs.
+	Z80.LocCost = []int{
+		0, 0, 0, 0, 0, 0, 0, // L1: A,B,C,D,E,H,L — free
+		0, 0, 0, 0,           // BC,DE,HL,SP — free (16-bit)
+		4, 4,                 // IX,IY — DD/FD prefix
+		0,                    // F — flags (free for booleans)
+		4, 4, 4, 4,          // IXH,IXL,IYH,IYL — DD/FD prefix
+		8, 8, 8, 8, 8, 8,    // L3: B',C',D',E',H',L' — EXX bracket (4T in + 4T out)
+		8,                    // A' — EX AF,AF' bracket
+		20, 20, 20, 20, 20, 20, 20, 20, // L4: tsmc0-7 — 13T store + 7T reload
+		26, 26, 26, 26,       // L5: mem0-3 — 13T LD A,(nn) + 13T LD (nn),A
+	}
 	Z80.Patterns = generateZ80Patterns(Z80)
 	Z80.Rules = generateZ80Rules(Z80)
 }
@@ -71,7 +104,17 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 	ixHalves := ixh.Or(ixl).Or(iyh).Or(iyl)
 	// GPR without H/L (compatible with DD/FD prefix operations)
 	gprNoHL := m.LocSetByNames("A", "B", "C", "D", "E")
-	spill := m.LocSetByNames("spill0", "spill1", "spill2", "spill3")
+	// L3: Shadow registers (EXX batch swap, 4T per region entry/exit)
+	shadow8 := m.LocSetByNames("B'", "C'", "D'", "E'", "H'", "L'")
+	shadowA := m.LocSetByNames("A'")
+	// L4: TSMC spill slots (self-modifying code, 13T store / 7T reload)
+	tsmc := m.LocSetByNames("tsmc0", "tsmc1", "tsmc2", "tsmc3",
+		"tsmc4", "tsmc5", "tsmc6", "tsmc7")
+	// L5: Memory spill slots (absolute address, 26T round-trip)
+	spill := m.LocSetByNames("mem0", "mem1", "mem2", "mem3")
+	// All 8-bit storage: GPR + IXY halves + shadow + shadow A + TSMC
+	all8 := gpr8.Or(ixHalves).Or(shadow8).Or(shadowA).Or(tsmc)
+	_ = all8 // available for future patterns
 
 	return []Pattern{
 		// ── Constants ─────────────────────────────────────────────────
@@ -83,6 +126,24 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 		// ── 8-bit moves ──────────────────────────────────────────────
 		{Name: "ld_r_r", MIROp: OpMove, Width: 8, DstLocs: gpr8, SrcLocs: [2]LocSet{gpr8},
 			Template: "LD {dst}, {src0}", Cost: 4, Bytes: 1},
+
+		// ── Truncation: pair → low byte (zero-cost alias) ───────────
+		// The low byte of HL is L, of DE is E, of BC is C.
+		// These are "free" — no instruction needed, just register aliasing.
+		// WFC constrains dst to the low-byte register of the source pair.
+		{Name: "trunc_hl_l", MIROp: OpMove, Width: 8, DstLocs: m.LocSetByNames("L"), SrcLocs: [2]LocSet{hl},
+			Template: "; trunc HL→L (alias)", Cost: 0, Bytes: 0},
+		{Name: "trunc_de_e", MIROp: OpMove, Width: 8, DstLocs: m.LocSetByNames("E"), SrcLocs: [2]LocSet{de},
+			Template: "; trunc DE→E (alias)", Cost: 0, Bytes: 0},
+		{Name: "trunc_bc_c", MIROp: OpMove, Width: 8, DstLocs: m.LocSetByNames("C"), SrcLocs: [2]LocSet{bc},
+			Template: "; trunc BC→C (alias)", Cost: 0, Bytes: 0},
+		// When dst must be A (e.g. for ALU), route: LD A, L (low byte of HL)
+		{Name: "trunc_hl_a", MIROp: OpMove, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{hl},
+			Template: "LD A, L", Cost: 4, Bytes: 1},
+		{Name: "trunc_de_a", MIROp: OpMove, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{de},
+			Template: "LD A, E", Cost: 4, Bytes: 1},
+		{Name: "trunc_bc_a", MIROp: OpMove, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{bc},
+			Template: "LD A, C", Cost: 4, Bytes: 1},
 
 		// ── 8-bit IX/IY half moves (DD/FD prefixed, call-safe) ──────
 		// LD IXH, r — save GPR to IX half (r cannot be H or L: DD prefix conflict)
@@ -188,8 +249,27 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			Template: "LD (HL), {src1}", Cost: 7, Bytes: 1, Flags: PatMemWrite},
 
 		// ── Memory stores — 16-bit ───────────────────────────────────
+		// LD (nn), HL — store 16-bit pair to absolute address
 		{Name: "ld_nn_hl_store", MIROp: OpStore, Width: 16, SrcLocs: [2]LocSet{spill, hl},
 			Template: "LD ({src0}), HL", Cost: 16, Bytes: 3, Flags: PatMemWrite},
+		// 16-bit store via HL pointer: value in DE or BC (no self-conflict)
+		{Name: "st16_hl_de", MIROp: OpStore, Width: 16, SrcLocs: [2]LocSet{hl, de},
+			Template: "LD (HL), E\n    INC HL\n    LD (HL), D\n    DEC HL",
+			Cost: 22, Bytes: 4, Flags: PatMemWrite},
+		{Name: "st16_hl_bc", MIROp: OpStore, Width: 16, SrcLocs: [2]LocSet{hl, bc},
+			Template: "LD (HL), C\n    INC HL\n    LD (HL), B\n    DEC HL",
+			Cost: 22, Bytes: 4, Flags: PatMemWrite},
+		// 16-bit self-store: ptr=HL, val=HL (same register).
+		// CHEAP variant (22T): LD (HL),L / INC HL / LD (HL),H / DEC HL
+		//   ⚠ EDGE CASE: if L=0xFF, INC HL carries into H, so LD (HL+1),H
+		//   writes the incremented H. Safe when L≠0xFF (vast majority of ptrs).
+		{Name: "st16_hl_hl_fast", MIROp: OpStore, Width: 16, SrcLocs: [2]LocSet{hl, hl},
+			Template: "LD (HL), L\n    INC HL\n    LD (HL), H\n    DEC HL",
+			Cost: 22, Bytes: 4, Flags: PatMemWrite},
+		// SAFE variant (30T): evacuate to DE first, always correct.
+		{Name: "st16_hl_hl_safe", MIROp: OpStore, Width: 16, SrcLocs: [2]LocSet{hl, hl},
+			Template: "LD D, H\n    LD E, L\n    LD (HL), E\n    INC HL\n    LD (HL), D\n    DEC HL",
+			Cost: 30, Bytes: 6, Flags: PatMemWrite},
 
 		// ── Combined 16-bit LE load (ISLE combining target) ──────────
 		{Name: "ld16_le_hl", MIROp: OpLoad16LE, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{hl},
@@ -252,6 +332,11 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 		{Name: "ex_hl_de", MIROp: OpMove, Width: 16, DstLocs: hl, SrcLocs: [2]LocSet{de},
 			Template: "EX DE, HL", Cost: 4, Bytes: 1},
 
+		// ── Flag → register materialization ──────────────────────────
+		// SBC A,A: A = 0xFF if carry set (true), 0x00 if clear (false). 4T.
+		{Name: "flag_to_a", MIROp: OpMove, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{flags},
+			Template: "SBC A, A", Cost: 4, Bytes: 1, Clobbers: flags},
+
 		// ── NEG A (two's complement negate) ──────────────────────────
 		{Name: "neg_a", MIROp: OpNeg, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{a},
 			Template: "NEG", Cost: 8, Bytes: 2, Clobbers: flags},
@@ -276,6 +361,75 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 		// Counter must be in B. The pattern is used for cost estimation.
 		{Name: "djnz", MIROp: OpSub, Width: 8, DstLocs: b, SrcLocs: [2]LocSet{b, gpr8},
 			Template: "DJNZ {target}", Cost: 13, Bytes: 2},
+
+		// ══════════════════════════════════════════════════════════════
+		// L3: Shadow register moves via EXX / EX AF,AF'
+		// ══════════════════════════════════════════════════════════════
+		//
+		// EXX swaps BC↔BC', DE↔DE', HL↔HL' simultaneously (4T, 1 byte).
+		// To use shadow as spill: EXX, LD r',val, EXX (save), or
+		// EXX, LD r,r', EXX (restore). Cost = 4T + 4T + 4T = 12T.
+		//
+		// GPR → shadow: save to shadow register via EXX bracket.
+		// Template uses {dst} which resolves to "B'" etc. The emitter's
+		// shadowMainName() strips the prime: B' → B (accessed as B inside EXX).
+		{Name: "save_shadow", MIROp: OpMove, Width: 8, DstLocs: shadow8, SrcLocs: [2]LocSet{gpr8},
+			Template: "EXX\n    LD {dst}, {src0}\n    EXX", Cost: 12, Bytes: 3},
+		// shadow → GPR: restore from shadow register via EXX bracket.
+		{Name: "load_shadow", MIROp: OpMove, Width: 8, DstLocs: gpr8, SrcLocs: [2]LocSet{shadow8},
+			Template: "EXX\n    LD {dst}, {src0}\n    EXX", Cost: 12, Bytes: 3},
+
+		// A ↔ A' via EX AF,AF' (4T each way, independent of EXX)
+		{Name: "save_shadow_a", MIROp: OpMove, Width: 8, DstLocs: shadowA, SrcLocs: [2]LocSet{a},
+			Template: "EX AF, AF'", Cost: 4, Bytes: 1},
+		{Name: "load_shadow_a", MIROp: OpMove, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{shadowA},
+			Template: "EX AF, AF'", Cost: 4, Bytes: 1},
+
+		// ══════════════════════════════════════════════════════════════
+		// L4: TSMC spill — Self-Modifying Code
+		// ══════════════════════════════════════════════════════════════
+		//
+		// Store: patch the immediate byte of a LD A,imm8 instruction.
+		//   LD A, val
+		//   LD ({tsmc_label}+1), A    ; patch imm8 of reload instruction
+		// Reload: execute the patched LD A,imm8.
+		//   {tsmc_label}: LD A, 0     ; imm8 was patched to actual value
+		//
+		// Cost: store=13T (LD A,r 4T + LD (nn),A 13T but often A already has val)
+		//        reload=7T (LD A,imm8 — the imm8 IS the stored value)
+		//
+		// GPR → TSMC: store (patch the reload instruction's immediate)
+		{Name: "tsmc_store", MIROp: OpMove, Width: 8, DstLocs: tsmc, SrcLocs: [2]LocSet{a},
+			Template: "LD ({dst}+1), A", Cost: 13, Bytes: 3},
+		// TSMC → A: reload (execute the patched LD A,imm8)
+		{Name: "tsmc_reload", MIROp: OpMove, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{tsmc},
+			Template: "{src0}: LD A, 0", Cost: 7, Bytes: 2},
+
+		// ══════════════════════════════════════════════════════════════
+		// L5: Memory spill — absolute address LD A,(nn) / LD (nn),A
+		// ══════════════════════════════════════════════════════════════
+		//
+		// Only A can do direct memory access on Z80.
+		// For non-A GPR → memory: route through A (extra 4T each way).
+		//
+		// GPR → mem: store via A
+		{Name: "spill_r_mem", MIROp: OpMove, Width: 8, DstLocs: spill, SrcLocs: [2]LocSet{gpr8},
+			Template: "LD A, {src0}\n    LD ({dst}), A", Cost: 17, Bytes: 4},
+		// A → mem: direct store
+		{Name: "spill_a_mem", MIROp: OpMove, Width: 8, DstLocs: spill, SrcLocs: [2]LocSet{a},
+			Template: "LD ({dst}), A", Cost: 13, Bytes: 3},
+		// mem → A: direct load
+		{Name: "unspill_mem_a", MIROp: OpMove, Width: 8, DstLocs: a, SrcLocs: [2]LocSet{spill},
+			Template: "LD A, ({src0})", Cost: 13, Bytes: 3},
+		// mem → GPR: load via A
+		{Name: "unspill_mem_r", MIROp: OpMove, Width: 8, DstLocs: gpr8, SrcLocs: [2]LocSet{spill},
+			Template: "LD A, ({src0})\n    LD {dst}, A", Cost: 17, Bytes: 4},
+
+		// Constants directly to spill tiers (avoid GPR round-trip)
+		{Name: "const_shadow_a", MIROp: OpConst, Width: 8, DstLocs: shadowA,
+			Template: "EX AF, AF'\n    LD A, {imm}\n    EX AF, AF'", Cost: 15, Bytes: 4, Flags: PatImmediate},
+		{Name: "const_tsmc", MIROp: OpConst, Width: 8, DstLocs: tsmc,
+			Template: "LD A, {imm}\n    LD ({dst}+1), A", Cost: 20, Bytes: 5, Flags: PatImmediate},
 	}
 }
 

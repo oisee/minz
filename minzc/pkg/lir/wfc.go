@@ -30,6 +30,7 @@ type WFCCell struct {
 	VRegSrc [2]int   // virtual registers for sources
 	Imm     int64    // immediate value (preserved from isel)
 	Sym     string   // symbol name (preserved for call templates)
+	MIROp   *MIROp   // original MIR op (for pattern-level retry in validate-reject)
 }
 
 // Entropy returns the number of possible states for this cell.
@@ -85,6 +86,9 @@ func (s *WFCState) Propagate() int {
 			changed = true
 		}
 		if s.clobberPass() {
+			changed = true
+		}
+		if s.operandInterference() {
 			changed = true
 		}
 		// Note: destructive writes are handled at MIROp level by
@@ -375,6 +379,99 @@ func (s *WFCState) destructiveWritePass() bool {
 	return changed
 }
 
+// operandInterference ensures that different vregs used as operands of the
+// same instruction don't get the same physical register. For stores, this
+// prevents ptr and val from collapsing to the same pair (LD (HL), HL).
+// Also handles dst vs src interference for accumulator-destination ops.
+func (s *WFCState) operandInterference() bool {
+	changed := false
+	for i := range s.Cells {
+		c := &s.Cells[i]
+
+		// src0 vs src1: if different vregs, must not overlap.
+		if c.VRegSrc[0] >= 0 && c.VRegSrc[1] >= 0 && c.VRegSrc[0] != c.VRegSrc[1] {
+			// If src0 is collapsed to singleton, remove from src1's domain.
+			if c.SrcLocs[0].Count() == 1 {
+				narrowed := c.SrcLocs[1].Subtract(c.SrcLocs[0])
+				if !narrowed.IsEmpty() && narrowed != c.SrcLocs[1] {
+					c.SrcLocs[1] = narrowed
+					changed = true
+				}
+			}
+			// Symmetric: if src1 collapsed, remove from src0.
+			if c.SrcLocs[1].Count() == 1 {
+				narrowed := c.SrcLocs[0].Subtract(c.SrcLocs[1])
+				if !narrowed.IsEmpty() && narrowed != c.SrcLocs[0] {
+					c.SrcLocs[0] = narrowed
+					changed = true
+				}
+			}
+		}
+
+		// dst vs src: dst must not overlap with src (except for in-place ops
+		// like INC/DEC where dst==src by design).
+		if c.VRegDst >= 0 && c.DstLocs.Count() == 1 {
+			for src := 0; src < 2; src++ {
+				if c.VRegSrc[src] >= 0 && c.VRegSrc[src] != c.VRegDst {
+					narrowed := c.SrcLocs[src].Subtract(c.DstLocs)
+					if !narrowed.IsEmpty() && narrowed != c.SrcLocs[src] {
+						c.SrcLocs[src] = narrowed
+						changed = true
+					}
+				}
+			}
+		}
+	}
+
+	// Also propagate: if a vreg appears as src in one cell with a narrowed
+	// domain, update all other cells that use the same vreg.
+	vregNarrow := make(map[int]LocSet)
+	for i := range s.Cells {
+		c := &s.Cells[i]
+		for src := 0; src < 2; src++ {
+			vreg := c.VRegSrc[src]
+			if vreg < 0 || c.SrcLocs[src].IsEmpty() {
+				continue
+			}
+			if prev, ok := vregNarrow[vreg]; ok {
+				inter := prev.And(c.SrcLocs[src])
+				if !inter.IsEmpty() {
+					vregNarrow[vreg] = inter
+				}
+			} else {
+				vregNarrow[vreg] = c.SrcLocs[src]
+			}
+		}
+	}
+	for i := range s.Cells {
+		c := &s.Cells[i]
+		for src := 0; src < 2; src++ {
+			vreg := c.VRegSrc[src]
+			if vreg < 0 {
+				continue
+			}
+			if narrow, ok := vregNarrow[vreg]; ok {
+				inter := c.SrcLocs[src].And(narrow)
+				if !inter.IsEmpty() && inter != c.SrcLocs[src] {
+					c.SrcLocs[src] = inter
+					changed = true
+				}
+			}
+		}
+		if c.VRegDst >= 0 {
+			if narrow, ok := vregNarrow[c.VRegDst]; ok {
+				inter := c.DstLocs.And(narrow)
+				if !inter.IsEmpty() && inter != c.DstLocs {
+					c.DstLocs = inter
+					changed = true
+				}
+			}
+		}
+	}
+
+	return changed
+}
+
 // alternativeLocs removes conflicting locs from current and adds IX halves
 // as alternatives. Returns the widened set.
 func (s *WFCState) alternativeLocs(current, conflict LocSet) LocSet {
@@ -465,16 +562,184 @@ func (s *WFCState) Collapse() error {
 			}
 		}
 
-		// Collapse sources: use already-assigned phys for their vreg.
+		// Collapse sources: use already-assigned phys for their vreg,
+		// BUT respect the propagated domain (operandInterference etc.).
 		for src := 0; src < 2; src++ {
 			vreg := c.VRegSrc[src]
 			if vreg < 0 {
 				continue
 			}
 			if phys, ok := vregPhys[vreg]; ok {
-				c.SrcLocs[src] = Singleton(phys)
+				if c.SrcLocs[src].Has(phys) {
+					// Assigned phys is in the narrowed domain — use it.
+					c.SrcLocs[src] = Singleton(phys)
+				} else if !c.SrcLocs[src].IsEmpty() {
+					// Assigned phys was excluded by interference — pick from domain.
+					if s.Desc != nil {
+						c.SrcLocs[src] = s.Desc.PickCheapest(c.SrcLocs[src])
+					} else {
+						c.SrcLocs[src] = pickFirst(c.SrcLocs[src])
+					}
+				} else {
+					c.SrcLocs[src] = Singleton(phys) // fallback
+				}
 			} else if c.SrcLocs[src].Count() > 1 {
-				c.SrcLocs[src] = pickFirst(c.SrcLocs[src])
+				if s.Desc != nil {
+					c.SrcLocs[src] = s.Desc.PickCheapest(c.SrcLocs[src])
+				} else {
+					c.SrcLocs[src] = pickFirst(c.SrcLocs[src])
+				}
+			}
+		}
+
+		// ── Z80 validate-reject: check if collapsed instruction is valid ──
+		// Build a temporary Inst from the cell, expand template, validate.
+		// If invalid (e.g. LD A, HL), try alternative dst/src assignments.
+		if s.Desc != nil && s.Desc.Name == "z80" && c.Pat != nil {
+			tmpInst := Inst{
+				Pat: c.Pat,
+				Imm: c.Imm,
+				Sym: c.Sym,
+				Dst: Operand{VReg: c.VRegDst, Allowed: c.DstLocs, Phys: PhysOf(c.DstLocs)},
+				Srcs: [2]Operand{
+					{VReg: c.VRegSrc[0], Allowed: c.SrcLocs[0], Phys: PhysOf(c.SrcLocs[0])},
+					{VReg: c.VRegSrc[1], Allowed: c.SrcLocs[1], Phys: PhysOf(c.SrcLocs[1])},
+				},
+			}
+			if !ValidateExpandedTemplate(tmpInst, s.Desc) {
+				fixed := false
+				for src := 0; src < 2 && !fixed; src++ {
+					vreg := c.VRegSrc[src]
+					if vreg < 0 {
+						continue
+					}
+					origDomain := c.SrcLocs[src]
+					if origDomain.Count() <= 1 {
+						// Already singleton from constraint — try widening
+						// to the pattern's SrcLocs for alternatives.
+						if c.Pat != nil {
+							origDomain = c.Pat.SrcLocs[src]
+						}
+					}
+					for bit := 0; bit < MaxLocs; bit++ {
+						if !origDomain.Has(bit) {
+							continue
+						}
+						if Singleton(bit) == c.SrcLocs[src] {
+							continue // already tried
+						}
+						// Try this alternative src assignment.
+						c.SrcLocs[src] = Singleton(bit)
+						alt := tmpInst
+						alt.Srcs[src] = Operand{VReg: vreg, Allowed: c.SrcLocs[src], Phys: bit}
+						if ValidateExpandedTemplate(alt, s.Desc) {
+							// Valid! Update vreg tracking.
+							if vreg >= 0 {
+								vregPhys[vreg] = bit
+							}
+							fixed = true
+							break
+						}
+					}
+				}
+				// If still not fixed, try alternative dst.
+				if !fixed && c.VRegDst >= 0 {
+					origDst := c.DstLocs
+					if c.Pat != nil && !c.Pat.DstLocs.IsEmpty() {
+						origDst = c.Pat.DstLocs
+					}
+					for bit := 0; bit < MaxLocs; bit++ {
+						if !origDst.Has(bit) || Singleton(bit) == c.DstLocs {
+							continue
+						}
+						c.DstLocs = Singleton(bit)
+						alt := tmpInst
+						alt.Dst = Operand{VReg: c.VRegDst, Allowed: c.DstLocs, Phys: bit}
+						if ValidateExpandedTemplate(alt, s.Desc) {
+							vregPhys[c.VRegDst] = bit
+							fixed = true
+							break
+						}
+					}
+				}
+				// Pattern-level retry: if all locs of current pattern are invalid,
+				// try alternative patterns that match the same (Op, Width).
+				if !fixed && c.Pat != nil {
+					altPats := findAllPatterns(s.Desc, MIROp{
+						Op:    c.Pat.MIROp,
+						Dst:   c.VRegDst,
+						Src:   [2]int{c.VRegSrc[0], c.VRegSrc[1]},
+						Width: c.Pat.Width,
+					})
+					for _, altPat := range altPats {
+						if altPat == c.Pat {
+							continue // already tried
+						}
+						// Try this pattern with its own DstLocs/SrcLocs.
+						savedPat := c.Pat
+						savedDst := c.DstLocs
+						savedSrc := c.SrcLocs
+
+						c.Pat = altPat
+						if !altPat.DstLocs.IsEmpty() && c.VRegDst >= 0 {
+							c.DstLocs = s.pickPreferred(altPat.DstLocs, c.VRegDst)
+						}
+						// Assign srcs: reuse vregPhys only if compatible with alt pattern.
+						for s2 := 0; s2 < 2; s2++ {
+							if c.VRegSrc[s2] >= 0 && !altPat.SrcLocs[s2].IsEmpty() {
+								if phys, ok := vregPhys[c.VRegSrc[s2]]; ok && altPat.SrcLocs[s2].Has(phys) {
+									c.SrcLocs[s2] = Singleton(phys)
+								} else {
+									c.SrcLocs[s2] = s.Desc.PickCheapest(altPat.SrcLocs[s2])
+								}
+							}
+						}
+						// Self-conflict: if src0 and src1 ended up in the same loc,
+						// force src1 to a different one (e.g. HL ptr + HL val → use DE val).
+						if c.VRegSrc[0] >= 0 && c.VRegSrc[1] >= 0 {
+							p0, p1 := PhysOf(c.SrcLocs[0]), PhysOf(c.SrcLocs[1])
+							if p0 >= 0 && p0 == p1 && !altPat.SrcLocs[1].IsEmpty() {
+								alt1 := altPat.SrcLocs[1].Clear(p0) // exclude conflicting loc
+								if !alt1.IsEmpty() {
+									c.SrcLocs[1] = s.Desc.PickCheapest(alt1)
+								}
+							}
+						}
+
+						alt := Inst{
+							Pat: c.Pat,
+							Imm: c.Imm,
+							Sym: c.Sym,
+							Dst: Operand{VReg: c.VRegDst, Allowed: c.DstLocs, Phys: PhysOf(c.DstLocs)},
+							Srcs: [2]Operand{
+								{VReg: c.VRegSrc[0], Allowed: c.SrcLocs[0], Phys: PhysOf(c.SrcLocs[0])},
+								{VReg: c.VRegSrc[1], Allowed: c.SrcLocs[1], Phys: PhysOf(c.SrcLocs[1])},
+							},
+						}
+						if ValidateExpandedTemplate(alt, s.Desc) {
+							// Update vreg tracking for new assignments.
+							if c.VRegDst >= 0 {
+								if p := PhysOf(c.DstLocs); p >= 0 {
+									vregPhys[c.VRegDst] = p
+								}
+							}
+							for s2 := 0; s2 < 2; s2++ {
+								if c.VRegSrc[s2] >= 0 {
+									if p := PhysOf(c.SrcLocs[s2]); p >= 0 {
+										vregPhys[c.VRegSrc[s2]] = p
+									}
+								}
+							}
+							fixed = true
+							break
+						}
+						// Revert to original pattern.
+						c.Pat = savedPat
+						c.DstLocs = savedDst
+						c.SrcLocs = savedSrc
+					}
+				}
+				// If nothing worked, leave as-is (error will show in final validate).
 			}
 		}
 
@@ -540,12 +805,16 @@ func pickFirst(s LocSet) LocSet {
 }
 
 // pickPreferred returns a singleton LocSet. If a PBQP hint exists for this vreg
-// and the hinted loc is in the available set, prefer it. Otherwise pickFirst.
+// and the hinted loc is in the available set, prefer it. Otherwise pick the
+// cheapest available loc using the machine descriptor's cost table.
 func (st *WFCState) pickPreferred(available LocSet, vreg int) LocSet {
 	if st.Hints != nil && vreg >= 0 {
 		if hinted, ok := st.Hints[vreg]; ok && available.Has(hinted) {
 			return Singleton(hinted)
 		}
+	}
+	if st.Desc != nil {
+		return st.Desc.PickCheapest(available)
 	}
 	return pickFirst(available)
 }
@@ -583,5 +852,173 @@ func (s *WFCState) ToInsts() []Inst {
 			},
 		})
 	}
+
+	// Post-WFC fixup: fix self-stores where ptr and val collapsed to same phys.
+	if s.Desc != nil && s.Desc.Name == "z80" {
+		insts = fixSelfStores(insts, s.Desc)
+	}
+
 	return insts
+}
+
+// fixSelfStores detects store instructions where src0 (ptr) and src1 (val)
+// ended up in the same physical register or where a width-8 store has src1
+// in a 16-bit pair, and inserts fixup moves (EX DE,HL or LD A, low_byte).
+func fixSelfStores(insts []Inst, desc *MachineDesc) []Inst {
+	exPat := findExDEHLPat(desc)
+	if exPat == nil {
+		return insts
+	}
+
+	deIdx := desc.LocByName("DE")
+	hlIdx := desc.LocByName("HL")
+	if deIdx < 0 || hlIdx < 0 {
+		return insts
+	}
+
+	// Also need the st16_hl_de pattern for the fixed store.
+	var stPat *Pattern
+	for i := range desc.Patterns {
+		p := &desc.Patterns[i]
+		if p.Name == "st16_hl_de" {
+			stPat = p
+			break
+		}
+	}
+
+	// Find trunc patterns for 8-bit fixups.
+	aIdx := desc.LocByName("A")
+	var truncHL, truncDE, truncBC *Pattern
+	for i := range desc.Patterns {
+		p := &desc.Patterns[i]
+		switch p.Name {
+		case "trunc_hl_a":
+			truncHL = p
+		case "trunc_de_a":
+			truncDE = p
+		case "trunc_bc_a":
+			truncBC = p
+		}
+	}
+	// Also find ld_hl_a for the fixed 8-bit store.
+	var stHLA *Pattern
+	for i := range desc.Patterns {
+		p := &desc.Patterns[i]
+		if p.Name == "ld_hl_a" {
+			stHLA = p
+			break
+		}
+	}
+
+	var result []Inst
+	for _, inst := range insts {
+		if inst.Pat == nil || inst.Pat.MIROp != OpStore {
+			result = append(result, inst)
+			continue
+		}
+		s0, s1 := inst.Srcs[0].Phys, inst.Srcs[1].Phys
+		if s0 < 0 || s1 < 0 {
+			result = append(result, inst)
+			continue
+		}
+
+		// Case 2 FIRST: store where src1 (value) is a 16-bit pair.
+		// This catches width mismatches (8-bit store with 16-bit value) AND
+		// invalid templates like LD ({src0}), HL where src0=BC → LD (BC), HL.
+		// Fix: trunc pair to low byte via A, then store A.
+		bcIdx := desc.LocByName("BC")
+		ixIdx := desc.LocByName("IX")
+		iyIdx := desc.LocByName("IY")
+
+		// Detect: src1 (value) is a 16-bit pair being stored via a non-HL pointer.
+		// Z80 only supports LD (BC),A and LD (DE),A for non-HL indirect stores.
+		isPairSrc1 := s1 == hlIdx || s1 == deIdx || s1 == bcIdx
+		isPairPtr := s0 == hlIdx || s0 == deIdx || s0 == bcIdx || s0 == ixIdx || s0 == iyIdx
+
+		if isPairSrc1 && isPairPtr {
+			// Find trunc pattern for the value pair.
+			var truncPat *Pattern
+			if s1 == hlIdx && truncHL != nil {
+				truncPat = truncHL
+			} else if s1 == deIdx && truncDE != nil {
+				truncPat = truncDE
+			} else if s1 == bcIdx && truncBC != nil {
+				truncPat = truncBC
+			}
+			if truncPat != nil && aIdx >= 0 {
+				// Find store-via-A pattern matching the pointer register.
+				var storePat *Pattern
+				for pi := range desc.Patterns {
+					p := &desc.Patterns[pi]
+					if p.MIROp == OpStore && p.Width == 8 &&
+						!p.SrcLocs[0].IsEmpty() && p.SrcLocs[0].Has(s0) &&
+						!p.SrcLocs[1].IsEmpty() && p.SrcLocs[1].Has(aIdx) {
+						storePat = p
+						break
+					}
+				}
+				if storePat == nil {
+					storePat = stHLA // fallback
+				}
+				if storePat != nil {
+					if inst.Pat.Width <= 8 || inst.Pat.Width == 0 || s0 == s1 {
+						// 8-bit store or self-store: single trunc + store.
+						result = append(result, Inst{
+							Pat: truncPat,
+							Dst: Operand{Phys: aIdx, Allowed: Singleton(aIdx)},
+							Srcs: [2]Operand{{Phys: s1, Allowed: Singleton(s1)}},
+						})
+						fixed := inst
+						fixed.Srcs[1] = Operand{VReg: inst.Srcs[1].VReg, Phys: aIdx, Allowed: Singleton(aIdx)}
+						fixed.Pat = storePat
+						result = append(result, fixed)
+					} else {
+						// 16-bit store via non-HL pointer: byte-by-byte.
+						// LD A, low_byte(val) / LD (ptr), A / INC ptr / LD A, high_byte(val) / LD (ptr), A / DEC ptr
+						// Use trunc (LD A, L/E/C) for low byte, then synthesize high byte.
+						result = append(result, Inst{
+							Pat: truncPat,
+							Dst: Operand{Phys: aIdx, Allowed: Singleton(aIdx)},
+							Srcs: [2]Operand{{Phys: s1, Allowed: Singleton(s1)}},
+						})
+						fixed := inst
+						fixed.Srcs[1] = Operand{VReg: inst.Srcs[1].VReg, Phys: aIdx, Allowed: Singleton(aIdx)}
+						fixed.Pat = storePat
+						result = append(result, fixed)
+						// TODO: emit INC ptr, LD A, high_byte, LD (ptr), A, DEC ptr
+						// For now, emit just the low byte store (partial fix).
+					}
+					continue
+				}
+			}
+		}
+
+		// Case 1: self-store (same phys, 16-bit, no trunc pattern matched). EX DE,HL.
+		if s0 == s1 && s0 == hlIdx && stPat != nil {
+			result = append(result, Inst{
+				Pat: exPat,
+				Dst: Operand{Phys: deIdx, Allowed: Singleton(deIdx)},
+				Srcs: [2]Operand{{Phys: hlIdx, Allowed: Singleton(hlIdx)}},
+			})
+			fixed := inst
+			fixed.Srcs[1] = Operand{VReg: inst.Srcs[1].VReg, Phys: deIdx, Allowed: Singleton(deIdx)}
+			fixed.Pat = stPat
+			result = append(result, fixed)
+			continue
+		}
+
+		result = append(result, inst)
+	}
+	return result
+}
+
+// findExDEHLPat finds the EX DE,HL pattern (OpMove, HL→DE or DE→HL).
+func findExDEHLPat(desc *MachineDesc) *Pattern {
+	for i := range desc.Patterns {
+		p := &desc.Patterns[i]
+		if p.Name == "ex_de_hl" || p.Name == "ex_hl_de" {
+			return p
+		}
+	}
+	return nil
 }

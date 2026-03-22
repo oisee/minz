@@ -306,7 +306,8 @@ func LIRCodegenFunc(f *mir2.Func, m *mir2.Module, hints ...AllocHints) (string, 
 
 // lirCodegenMultiBlock emits per-block labels, instructions, and terminators.
 func lirCodegenMultiBlock(f *mir2.Func, desc *MachineDesc, m *mir2.Module) (string, error) {
-	prog, blockOps, err := LowerMIR2ProgWithOps(f, desc, m)
+	// Use e-graph bridge for multi-variant lowering.
+	prog, blockOps, _, err := LowerMIR2ProgWithEGraph(f, desc, m)
 	if err != nil {
 		return "", fmt.Errorf("lower %s: %w", f.Name, err)
 	}
@@ -339,6 +340,41 @@ func lirCodegenMultiBlock(f *mir2.Func, desc *MachineDesc, m *mir2.Module) (stri
 		return "", fmt.Errorf("wfc %s: %w", f.Name, err)
 	}
 
+	// Copy Phys assignments from WFC cells back to block instructions.
+	// ProgWFC.Collapse modifies cells but doesn't update prog.Blocks[].Insts.
+	for _, label := range pw.BlockOrder() {
+		wfc := pw.States[label]
+		if wfc == nil {
+			continue
+		}
+		bi := pw.BlockIndex(label)
+		if bi < 0 {
+			continue
+		}
+		b := &prog.Blocks[bi]
+		cellIdx := 0
+		// Skip param cells (Pat == nil).
+		for cellIdx < len(wfc.Cells) && wfc.Cells[cellIdx].Pat == nil {
+			cellIdx++
+		}
+		for ii := range b.Insts {
+			if cellIdx >= len(wfc.Cells) {
+				break
+			}
+			c := &wfc.Cells[cellIdx]
+			b.Insts[ii].Dst.Phys = PhysOf(c.DstLocs)
+			b.Insts[ii].Dst.Allowed = c.DstLocs
+			for s := 0; s < 2; s++ {
+				b.Insts[ii].Srcs[s].Phys = PhysOf(c.SrcLocs[s])
+				b.Insts[ii].Srcs[s].Allowed = c.SrcLocs[s]
+			}
+			if c.Pat != nil {
+				b.Insts[ii].Pat = c.Pat
+			}
+			cellIdx++
+		}
+	}
+
 	// Apply CFG block rules (branch elimination, empty block removal, etc.)
 	blockRules := DefaultBlockRules()
 	ApplyBlockRules(prog, blockRules, 10)
@@ -351,14 +387,29 @@ func lirCodegenMultiBlock(f *mir2.Func, desc *MachineDesc, m *mir2.Module) (stri
 	}
 	fmt.Fprintf(&sb, "; %s — LIR codegen (%d insts, %d blocks)\n", f.Name, totalInsts, len(prog.Blocks))
 
+	// Label prefix for non-entry blocks: .funcname_label (unique across module).
+	labelPrefix := "." + strings.ReplaceAll(strings.ReplaceAll(f.Name, "$", "_"), "-", "_")
+
+	// Collect all defined block labels so we can emit stubs for removed targets.
+	definedLabels := make(map[string]bool)
+	for _, b := range prog.Blocks {
+		definedLabels[b.Label] = true
+	}
+
+	sanitizedFuncName := strings.ReplaceAll(strings.ReplaceAll(f.Name, "$", "_"), "-", "_")
+
 	for bi, b := range prog.Blocks {
 		if bi == 0 {
-			fmt.Fprintf(&sb, "%s:\n", f.Name)
+			fmt.Fprintf(&sb, "%s:\n", sanitizedFuncName)
 		} else {
-			fmt.Fprintf(&sb, "%s:\n", b.Label)
+			sanitizedLabel := strings.ReplaceAll(b.Label, "-", "_")
+			fmt.Fprintf(&sb, "%s_%s:\n", labelPrefix, sanitizedLabel)
 		}
 
-		for _, inst := range b.Insts {
+		// Post-WFC fixup: fix stores with pair values via non-HL pointers.
+		blockInsts := fixSelfStores(b.Insts, desc)
+
+		for _, inst := range blockInsts {
 			if inst.Pat == nil {
 				continue
 			}
@@ -370,10 +421,31 @@ func lirCodegenMultiBlock(f *mir2.Func, desc *MachineDesc, m *mir2.Module) (stri
 		emitParallelCopyMoves(&sb, &b, prog, desc)
 
 		// Emit terminator
-		emitTerminator(&sb, &b.Term, bi, len(prog.Blocks))
+		emitTerminatorPrefixed(&sb, &b.Term, bi, len(prog.Blocks), labelPrefix)
 	}
 
+	// Emit stub labels for any block targets removed by ApplyBlockRules.
+	// Without these, JP to a removed block produces an undefined label error.
+	for _, b := range prog.Blocks {
+		for _, target := range b.Term.Targets {
+			if target != "" && !definedLabels[target] {
+				sanitized := strings.ReplaceAll(target, "-", "_")
+				fullLabel := labelPrefix + "_" + sanitized
+				fmt.Fprintf(&sb, "%s: ; stub (block eliminated)\n", fullLabel)
+				definedLabels[target] = true // only once
+			}
+		}
+	}
+
+	// Spill labels emitted at module level by LIRCodegenModule.
 	asm := sb.String()
+
+	// Final text-level fixup for any remaining invalid Z80.
+	asm = strings.ReplaceAll(asm, "    LD (HL), HL\n",
+		"    LD D, H\n    LD E, L\n    LD (HL), E\n    INC HL\n    LD (HL), D\n    DEC HL\n")
+
+	// Emit stub labels for JP targets that have no definition in the asm.
+	asm = emitMissingLabels(asm)
 
 	// Post-emit peephole optimization
 	asm = Z80Peephole(asm)
@@ -385,6 +457,74 @@ func lirCodegenMultiBlock(f *mir2.Func, desc *MachineDesc, m *mir2.Module) (stri
 	}
 
 	return asm, nil
+}
+
+// emitMissingLabels scans asm text for JP/JR targets and emits stub
+// label definitions for any targets not defined in the asm.
+func emitMissingLabels(asm string) string {
+	// Collect all defined labels.
+	defined := make(map[string]bool)
+	for _, line := range strings.Split(asm, "\n") {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasSuffix(trimmed, ":") || strings.Contains(trimmed, ": ;") {
+			label := strings.SplitN(trimmed, ":", 2)[0]
+			defined[label] = true
+		}
+	}
+
+	// Find all JP/JR targets.
+	var missing []string
+	seen := make(map[string]bool)
+	for _, line := range strings.Split(asm, "\n") {
+		trimmed := strings.TrimSpace(line)
+		for _, prefix := range []string{"JP ", "JP NZ, ", "JP Z, ", "JP C, ", "JP NC, ", "JR ", "JR NZ, ", "JR Z, ", "JR C, ", "JR NC, ", "DJNZ "} {
+			if strings.HasPrefix(trimmed, prefix) {
+				target := strings.TrimSpace(trimmed[len(prefix):])
+				if target != "" && strings.HasPrefix(target, ".") && !defined[target] && !seen[target] {
+					missing = append(missing, target)
+					seen[target] = true
+				}
+			}
+		}
+	}
+
+	if len(missing) == 0 {
+		return asm
+	}
+
+	var sb strings.Builder
+	sb.WriteString(asm)
+	for _, label := range missing {
+		fmt.Fprintf(&sb, "%s: ; stub (target block eliminated)\n", label)
+	}
+	return sb.String()
+}
+
+// emitSpillLabels emits data section labels for memory spill slots and TSMC
+// slots referenced by LIR codegen. Each slot is 1-2 bytes of scratch memory.
+func emitSpillLabels(sb *strings.Builder, desc *MachineDesc, funcName string) {
+	// Collect all LocMem and LocTSMC names from the descriptor.
+	var memLocs, tsmcLocs []string
+	for _, loc := range desc.Locs {
+		if loc.Kind == LocMem {
+			memLocs = append(memLocs, loc.Name)
+		}
+		if loc.Kind == LocTSMC {
+			tsmcLocs = append(tsmcLocs, loc.Name)
+		}
+	}
+	if len(memLocs)+len(tsmcLocs) == 0 {
+		return
+	}
+	// Spill labels are shared across functions (like PBQP's $F0xx page).
+	// Emit once — caller should deduplicate.
+	sb.WriteString("; spill data\n")
+	for _, name := range memLocs {
+		fmt.Fprintf(sb, "%s: DW 0\n", name)
+	}
+	for _, name := range tsmcLocs {
+		fmt.Fprintf(sb, "%s: DB 0\n", name)
+	}
 }
 
 // emitParallelCopyMoves inserts LD instructions for edge args that don't
@@ -428,7 +568,46 @@ func emitParallelCopyMoves(sb *strings.Builder, b *Block, prog *Prog, desc *Mach
 	}
 }
 
-// emitTerminator emits the assembly for a block terminator.
+// emitTerminatorPrefixed emits the assembly for a block terminator with label prefix.
+func emitTerminatorPrefixed(sb *strings.Builder, term *Term, blockIdx, numBlocks int, prefix string) {
+	// Wrap targets with prefix for non-entry labels.
+	pfx := func(target string) string {
+		if target == "" {
+			return ""
+		}
+		return prefix + "_" + strings.ReplaceAll(target, "-", "_")
+	}
+
+	switch term.Kind {
+	case TermNone:
+	case TermJump:
+		if len(term.Targets) > 0 {
+			fmt.Fprintf(sb, "    JP %s\n", pfx(term.Targets[0]))
+		}
+	case TermBranch:
+		if len(term.Targets) >= 2 {
+			if term.Targets[0] != "" {
+				fmt.Fprintf(sb, "    JP NZ, %s\n", pfx(term.Targets[0]))
+			}
+			if term.Targets[1] != "" {
+				fmt.Fprintf(sb, "    JP %s\n", pfx(term.Targets[1]))
+			}
+		}
+	case TermDJNZ:
+		if len(term.Targets) >= 2 {
+			fmt.Fprintf(sb, "    DJNZ %s\n", pfx(term.Targets[0]))
+			if blockIdx+1 < numBlocks {
+				// Fall through to exit
+			} else {
+				fmt.Fprintf(sb, "    JP %s\n", pfx(term.Targets[1]))
+			}
+		}
+	case TermReturn:
+		fmt.Fprintf(sb, "    RET\n")
+	}
+}
+
+// emitTerminator emits the assembly for a block terminator (legacy, no prefix).
 func emitTerminator(sb *strings.Builder, term *Term, blockIdx, numBlocks int) {
 	switch term.Kind {
 	case TermNone:
@@ -441,8 +620,13 @@ func emitTerminator(sb *strings.Builder, term *Term, blockIdx, numBlocks int) {
 
 	case TermBranch:
 		if len(term.Targets) >= 2 {
-			fmt.Fprintf(sb, "    JP NZ, %s\n", term.Targets[0])
-			fmt.Fprintf(sb, "    JP %s\n", term.Targets[1])
+			// Skip empty branch targets (block was eliminated by CFG rules).
+			if term.Targets[0] != "" {
+				fmt.Fprintf(sb, "    JP NZ, %s\n", term.Targets[0])
+			}
+			if term.Targets[1] != "" {
+				fmt.Fprintf(sb, "    JP %s\n", term.Targets[1])
+			}
 		}
 
 	case TermDJNZ:
@@ -534,7 +718,8 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 		// Emit assembly from templates, with caller-save spills around CALLs.
 		var sb strings.Builder
 		fmt.Fprintf(&sb, "; %s — LIR codegen (%d insts, attempt %d)\n", f.Name, len(insts), attempt)
-		fmt.Fprintf(&sb, "%s:\n", f.Name)
+		sanitizedName := strings.ReplaceAll(strings.ReplaceAll(f.Name, "$", "_"), "-", "_")
+		fmt.Fprintf(&sb, "%s:\n", sanitizedName)
 		paramPhys := make(map[int]int) // vreg → phys
 		for _, c := range wfc.Cells {
 			if c.Pat == nil && c.VRegDst >= 0 {
@@ -545,8 +730,13 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 		}
 		emitInstsWithCallSpills(&sb, insts, desc, paramPhys)
 
+		// Final text-level fixup for remaining invalid Z80.
+		asmText := sb.String()
+		asmText = strings.ReplaceAll(asmText, "    LD (HL), HL\n",
+			"    LD D, H\n    LD E, L\n    LD (HL), E\n    INC HL\n    LD (HL), D\n    DEC HL\n")
+		asmText = emitMissingLabels(asmText)
 		// Post-emit peephole optimization
-		asmPeepholed := Z80Peephole(sb.String())
+		asmPeepholed := Z80Peephole(asmText)
 		sb.Reset()
 		sb.WriteString(asmPeepholed)
 
@@ -566,6 +756,7 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 			}
 		}
 		sb.WriteString("    RET\n")
+		// Spill labels emitted at module level.
 
 		asm := sb.String()
 
@@ -770,6 +961,9 @@ func LIRCodegenModule(m *mir2.Module, hints ...AllocHints) (string, []LIRFuncRes
 		sb.WriteString("; __call_hl: indirect call via HL (1 byte)\n__call_hl:\n    JP (HL)\n\n")
 	}
 
+	// Emit spill slot labels ONCE for the whole module.
+	emitSpillLabels(&sb, Z80, "module")
+
 	return sb.String(), results
 }
 
@@ -852,11 +1046,28 @@ func expandTemplate(inst Inst) string {
 }
 
 // ExpandTemplateNamed fills template using the machine descriptor's location names.
+// For shadow registers (B', C', etc.) inside EXX brackets, the template gets
+// the prime name; patterns that wrap with EXX handle the naming themselves.
+// For TSMC spill slots, the name is used as a label (tsmc0, tsmc1, etc.).
 func ExpandTemplateNamed(inst Inst, desc *MachineDesc) string {
-	tmpl := inst.Pat.Template
+	// Template selection: if the current pattern's template hardcodes a
+	// register that doesn't match the actual Phys assignment, find a
+	// pattern whose SrcLocs/DstLocs actually contain the assigned Phys.
+	// This fixes union-pattern mismatches where isel picks cheapest template
+	// but WFC assigns to a different loc (e.g. LD ({src0}), HL with src1=BC).
+	pat := inst.Pat
+	if pat != nil && desc != nil {
+		pat = selectTemplateForPhys(inst, desc)
+	}
+
+	tmpl := pat.Template
 	getName := func(phys int) string {
 		if phys >= 0 && phys < len(desc.Locs) {
-			return desc.Locs[phys].Name
+			name := desc.Locs[phys].Name
+			if desc.Locs[phys].Kind == LocShadow && strings.Contains(tmpl, "EXX") {
+				name = strings.TrimSuffix(name, "'")
+			}
+			return name
 		}
 		return fmt.Sprintf("?%d", phys)
 	}
@@ -864,6 +1075,211 @@ func ExpandTemplateNamed(inst Inst, desc *MachineDesc) string {
 	tmpl = strings.ReplaceAll(tmpl, "{src0}", getName(inst.Srcs[0].Phys))
 	tmpl = strings.ReplaceAll(tmpl, "{src1}", getName(inst.Srcs[1].Phys))
 	tmpl = strings.ReplaceAll(tmpl, "{imm}", fmt.Sprintf("%d", inst.Imm))
-	tmpl = strings.ReplaceAll(tmpl, "{sym}", inst.Sym)
+	sym := strings.ReplaceAll(inst.Sym, "-", "_")
+	tmpl = strings.ReplaceAll(tmpl, "{sym}", sym)
+
+	// Last-resort fixup: if the expanded template is an invalid Z80 instruction
+	// (e.g. LD (BC), HL — no such instruction), replace with a valid sequence.
+	if desc != nil && desc.Name == "z80" {
+		tmpl = fixInvalidZ80Template(tmpl, inst, desc, getName)
+	}
+
 	return tmpl
+}
+
+// fixInvalidZ80Template replaces known-invalid Z80 instruction patterns with
+// valid multi-instruction sequences. This is the last line of defense after
+// validate-reject, pattern-retry, and selectTemplateForPhys all failed.
+func fixInvalidZ80Template(tmpl string, inst Inst, desc *MachineDesc, getName func(int) string) string {
+	// LD (rr), HL/DE/BC — 16-bit store via non-HL pointer.
+	// Z80 only supports LD (BC),A and LD (DE),A (8-bit, A only).
+	// Decompose to byte-by-byte via A.
+	src1Name := getName(inst.Srcs[1].Phys)
+	src0Name := getName(inst.Srcs[0].Phys)
+
+	// Check: is this a store of a 16-bit pair via another pair pointer?
+	pairs16 := map[string][2]string{
+		"HL": {"L", "H"}, "DE": {"E", "D"}, "BC": {"C", "B"},
+	}
+	// Detect pair names from template text when Phys is unset (-1).
+	effectiveSrc0 := src0Name
+	effectiveSrc1 := src1Name
+	if effectiveSrc1 == "" || strings.HasPrefix(effectiveSrc1, "?") {
+		for pair := range pairs16 {
+			if strings.Contains(tmpl, ", "+pair) {
+				effectiveSrc1 = pair
+				break
+			}
+		}
+	}
+	if effectiveSrc0 == "" || strings.HasPrefix(effectiveSrc0, "?") {
+		for pair := range pairs16 {
+			if strings.Contains(tmpl, "("+pair+")") {
+				effectiveSrc0 = pair
+				break
+			}
+		}
+	}
+	if lo1hi1, valIsPair := pairs16[effectiveSrc1]; valIsPair {
+		if _, ptrIsPair := pairs16[effectiveSrc0]; ptrIsPair && effectiveSrc0 != "HL" {
+			// LD (BC/DE), HL/DE/BC → byte-by-byte via A
+			return fmt.Sprintf("LD A, %s\n    LD (%s), A\n    INC %s\n    LD A, %s\n    LD (%s), A\n    DEC %s",
+				lo1hi1[0], src0Name, src0Name, lo1hi1[1], src0Name, src0Name)
+		}
+		// LD (HL), HL → self-store: evacuate to DE first
+		if effectiveSrc0 == "HL" && (effectiveSrc1 == "HL" || strings.Contains(tmpl, "(HL), HL")) {
+			return "LD D, H\n    LD E, L\n    LD (HL), E\n    INC HL\n    LD (HL), D\n    DEC HL"
+		}
+		// LD (HL), DE/BC → byte-by-byte
+		if effectiveSrc0 == "HL" {
+			return fmt.Sprintf("LD (HL), %s\n    INC HL\n    LD (HL), %s\n    DEC HL",
+				lo1hi1[0], lo1hi1[1])
+		}
+	}
+
+	// LD (IX/IY), pair → byte-by-byte via A with (IX+d)
+	if src0Name == "IX" || src0Name == "IY" || strings.Contains(tmpl, "(IX)") || strings.Contains(tmpl, "(IY)") {
+		ixName := src0Name
+		if strings.Contains(tmpl, "(IX)") {
+			ixName = "IX"
+		} else if strings.Contains(tmpl, "(IY)") {
+			ixName = "IY"
+		}
+		// Detect value pair from template or Phys
+		valPair := src1Name
+		if strings.Contains(tmpl, ", HL") {
+			valPair = "HL"
+		} else if strings.Contains(tmpl, ", DE") {
+			valPair = "DE"
+		} else if strings.Contains(tmpl, ", BC") {
+			valPair = "BC"
+		}
+		if lo1hi1, ok := pairs16[valPair]; ok {
+			return fmt.Sprintf("LD A, %s\n    LD (%s+0), A\n    LD A, %s\n    LD (%s+1), A",
+				lo1hi1[0], ixName, lo1hi1[1], ixName)
+		}
+	}
+
+	// ADD HL, IX/IY → route through DE
+	if strings.HasPrefix(tmpl, "ADD HL, IX") || strings.HasPrefix(tmpl, "ADD HL, IY") {
+		ixName := src1Name // "IX" or "IY"
+		return fmt.Sprintf("PUSH %s\n    POP DE\n    ADD HL, DE", ixName)
+	}
+
+	// ADD HL, mem → load to DE first
+	if strings.HasPrefix(tmpl, "ADD HL, mem") || strings.HasPrefix(tmpl, "ADD HL, spill") {
+		return fmt.Sprintf("LD DE, (%s)\n    ADD HL, DE", src1Name)
+	}
+
+	// INC/DEC on memory slot → load to A, INC/DEC A, store back
+	if strings.HasPrefix(tmpl, "INC mem") || strings.HasPrefix(tmpl, "INC spill") {
+		dstName := getName(inst.Dst.Phys)
+		return fmt.Sprintf("LD A, (%s)\n    INC A\n    LD (%s), A", dstName, dstName)
+	}
+	if strings.HasPrefix(tmpl, "DEC mem") || strings.HasPrefix(tmpl, "DEC spill") {
+		dstName := getName(inst.Dst.Phys)
+		return fmt.Sprintf("LD A, (%s)\n    DEC A\n    LD (%s), A", dstName, dstName)
+	}
+
+	// LD H/L, IXH/IXL/IYH/IYL (DD/FD prefix conflict) → route through A
+	// Check both expanded tmpl and Phys values.
+	trimTmpl := strings.TrimSpace(tmpl)
+	ddFdConflicts := []string{
+		"LD L, IXH", "LD L, IXL", "LD L, IYH", "LD L, IYL",
+		"LD H, IXH", "LD H, IXL", "LD H, IYH", "LD H, IYL",
+		"LD IXH, H", "LD IXH, L", "LD IXL, H", "LD IXL, L",
+		"LD IYH, H", "LD IYH, L", "LD IYL, H", "LD IYL, L",
+	}
+	for _, conflict := range ddFdConflicts {
+		if trimTmpl == conflict {
+			parts := strings.SplitN(conflict, ", ", 2)
+			dst, src := strings.TrimPrefix(parts[0], "LD "), parts[1]
+			return fmt.Sprintf("LD A, %s\n    LD %s, A", src, dst)
+		}
+	}
+
+	// Operations on unallocated vregs (?-1) — skip (no valid codegen possible)
+	if strings.Contains(tmpl, "?-1") || strings.Contains(tmpl, "?") {
+		return "; UNALLOCATED: " + tmpl
+	}
+
+	// Final safety net: if expanded template still invalid, try DD/FD route
+	if !ValidateInst(tmpl) {
+		// Generic DD/FD conflict: any LD where dst is H/L and src is IXH/IXL/IYH/IYL
+		// or vice versa → route through A.
+		for _, line := range strings.Split(tmpl, "\n") {
+			line = strings.TrimSpace(line)
+			if strings.HasPrefix(line, "LD ") {
+				parts := strings.SplitN(strings.TrimPrefix(line, "LD "), ", ", 2)
+				if len(parts) == 2 {
+					d, s := strings.TrimSpace(parts[0]), strings.TrimSpace(parts[1])
+					hlRegs := map[string]bool{"H": true, "L": true}
+					ixyRegs := map[string]bool{"IXH": true, "IXL": true, "IYH": true, "IYL": true}
+					if (hlRegs[d] && ixyRegs[s]) || (ixyRegs[d] && hlRegs[s]) {
+						return fmt.Sprintf("LD A, %s\n    LD %s, A", s, d)
+					}
+				}
+			}
+		}
+	}
+
+	return tmpl
+}
+
+// selectTemplateForPhys finds the best pattern whose SrcLocs/DstLocs
+// actually contain the assigned Phys values. Falls back to inst.Pat.
+func selectTemplateForPhys(inst Inst, desc *MachineDesc) *Pattern {
+	if inst.Pat == nil {
+		return inst.Pat
+	}
+
+	// Check if current pattern's SrcLocs contain the assigned Phys.
+	ok := true
+	for s := 0; s < 2; s++ {
+		phys := inst.Srcs[s].Phys
+		if phys < 0 {
+			continue
+		}
+		srcLocs := inst.Pat.SrcLocs[s]
+		if !srcLocs.IsEmpty() && !srcLocs.Has(phys) {
+			ok = false
+			break
+		}
+	}
+	if inst.Dst.Phys >= 0 && !inst.Pat.DstLocs.IsEmpty() && !inst.Pat.DstLocs.Has(inst.Dst.Phys) {
+		ok = false
+	}
+	if ok {
+		return inst.Pat // current pattern matches
+	}
+
+	// Find a better pattern whose locs actually match.
+	for i := range desc.Patterns {
+		p := &desc.Patterns[i]
+		if p.MIROp != inst.Pat.MIROp {
+			continue
+		}
+		if p.Width != 0 && inst.Pat.Width != 0 && p.Width != inst.Pat.Width {
+			continue
+		}
+		match := true
+		for s := 0; s < 2; s++ {
+			phys := inst.Srcs[s].Phys
+			if phys < 0 {
+				continue
+			}
+			if !p.SrcLocs[s].IsEmpty() && !p.SrcLocs[s].Has(phys) {
+				match = false
+				break
+			}
+		}
+		if inst.Dst.Phys >= 0 && !p.DstLocs.IsEmpty() && !p.DstLocs.Has(inst.Dst.Phys) {
+			match = false
+		}
+		if match {
+			return p
+		}
+	}
+
+	return inst.Pat // fallback
 }

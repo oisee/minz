@@ -1,0 +1,79 @@
+; IDE Nemo test — IDENTIFY + READ sector 0 + print first 16 bytes
+; Run: mze --ide-nemo disk.img -t cpm ide_test.com
+    ORG $0100
+
+; === IDENTIFY ===
+ide_test:
+    LD A, $E0           ; drive 0, LBA mode
+    OUT ($D0), A        ; drive/head register
+    LD A, $EC           ; IDENTIFY command
+    OUT ($F0), A        ; command register
+
+; Wait for DRQ
+wait_id:
+    IN A, ($F0)         ; status register
+    BIT 3, A            ; DRQ?
+    JR Z, wait_id
+
+; Read 256 words (512 bytes) — skip to model string
+    LD B, 27            ; skip first 27 words
+skip_words:
+    IN A, ($10)
+    IN A, ($11)
+    DJNZ skip_words
+
+; Print model string (words 27-46 = 20 words = 40 chars)
+    LD B, 20
+print_model:
+    IN A, ($10)         ; low byte
+    LD C, A
+    IN A, ($11)         ; high byte
+    OUT ($23), A        ; print high byte first (ATA byte swap)
+    LD A, C
+    OUT ($23), A        ; then low byte
+    DJNZ print_model
+
+; Drain remaining words
+    LD B, 209
+drain_id:
+    IN A, ($10)
+    IN A, ($11)
+    DJNZ drain_id
+
+; Print newline
+    LD A, 10
+    OUT ($23), A
+
+; === READ sector 0 ===
+    LD A, 0
+    OUT ($70), A        ; sector number = 0
+    OUT ($90), A        ; cylinder lo = 0
+    OUT ($B0), A        ; cylinder hi = 0
+    LD A, 1
+    OUT ($50), A        ; sector count = 1
+    LD A, $E0
+    OUT ($D0), A        ; drive 0, LBA
+
+    LD A, $20           ; READ SECTORS command
+    OUT ($F0), A
+
+; Wait for DRQ
+wait_rd:
+    IN A, ($F0)
+    BIT 3, A
+    JR Z, wait_rd
+
+; Read first 16 bytes and print as chars
+    LD B, 8             ; 8 words = 16 bytes
+read_sector:
+    IN A, ($10)         ; low byte
+    OUT ($23), A        ; print it
+    IN A, ($11)         ; high byte
+    OUT ($23), A        ; print it
+    DJNZ read_sector
+
+; Print newline and exit
+    LD A, 10
+    OUT ($23), A
+    DI
+    HALT

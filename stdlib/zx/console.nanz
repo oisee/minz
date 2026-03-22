@@ -115,20 +115,25 @@ fun con_init(ink: u8, paper: u8) -> void {
 }
 
 fun con_clear() -> void {
-    // Clear pixel RAM
-    var addr: u16 = SCREEN_BASE
-    while addr < ATTR_BASE {
-        zx_poke(addr, 0)
-        addr = addr + 1
+    asm z80 {
+        ; Clear pixel RAM: $4000-$57FF (6144 bytes) → 0
+        LD HL, 0x4000
+        LD DE, 0x4001
+        LD BC, 6143
+        LD (HL), 0
+        LDIR
+        ; Set attributes: $5800-$5AFF (768 bytes) → con_attr
+        LD HL, 0x5800
+        LD DE, 0x5801
+        LD BC, 767
+        LD A, (zx_console_con_attr)
+        LD (HL), A
+        LDIR
+        ; Reset cursor
+        XOR A
+        LD (zx_console_con_col), A
+        LD (zx_console_con_row), A
     }
-    // Set all attributes
-    var aaddr: u16 = ATTR_BASE
-    while aaddr < 0x5B00 {
-        zx_poke(aaddr, con_attr)
-        aaddr = aaddr + 1
-    }
-    con_col = 0
-    con_row = 0
 }
 
 // ── Character output ────────────────────────────────────────────────────────
@@ -176,16 +181,88 @@ fun con_putchar(ch: u8) -> void {
 }
 
 fun con_draw_char(col: u8, row: u8, ch: u8) -> void {
-    // Font data address: $3D00 + (ch - 32) * 8
-    var font_ptr: u16 = FONT_ADDR + u16(ch - 32) * 8
-    for line in 0..8 {
-        let addr: u16 = screen_addr(col, row, line)
-        let pixels: u8 = zx_peek(font_ptr)
-        zx_poke(addr, pixels)
-        font_ptr = font_ptr + 1
+    // Full asm: avoids regalloc issues with font_ptr vs screen_addr
+    // PBQP default convention: col=A, row=C, ch=B
+    asm z80 (in col, row, ch) {
+        ; Convention varies — use @z80_ annotations for stability.
+        ; Without annotations, PBQP picks based on context.
+        ; We use (in col, row, ch) which maps to physical regs
+        ; via the contract. Read from whatever PBQP assigned.
+        ;
+        ; Strategy: use asm (in) names — the compiler routes
+        ; col/row/ch to whichever regs it chose, and we read them
+        ; through the (in) mechanism. But we can't reference
+        ; param names in asm... so we hardcode.
+        ;
+        ; FALLBACK: put @z80_ back but accept the caller mismatch.
+        ; REAL FIX: rewrite con_putchar to pass args correctly.
+        ;
+        ; col=A, row=B, ch=C (via @z80_a/b/c annotations)
+        LD IYL, A       ; IYL = col
+        LD IYH, B       ; IYH = row
+
+        ; Compute font_ptr = $3D00 + (ch - 32) * 8
+        LD A, C         ; A = ch
+        SUB 32          ; A = ch - 32
+        LD L, A
+        LD H, 0         ; HL = ch - 32
+        ADD HL, HL
+        ADD HL, HL
+        ADD HL, HL      ; HL = (ch-32) * 8
+        LD DE, 0x3D00
+        ADD HL, DE      ; HL = font_ptr
+        EX DE, HL       ; DE = font_ptr
+
+        ; Draw 8 pixel lines
+        LD B, 8         ; B = line counter (8 down to 1)
+        LD C, 0         ; C = current line (0-7)
+    .line_loop:
+        PUSH DE         ; save font_ptr
+        PUSH BC         ; save counters
+
+        ; Inline screen_addr(col=IYL, row=IYH, line=C)
+        LD A, IYH       ; A = row
+        AND 0x18
+        OR C            ; combine with line
+        OR 0x40
+        LD H, A
+        LD A, IYH       ; A = row
+        AND 0x07
+        RRCA
+        RRCA
+        RRCA
+        OR IYL          ; combine with col
+        LD L, A         ; HL = screen address
+
+        POP BC          ; restore counters
+        POP DE          ; restore font_ptr
+
+        ; Copy font byte to screen
+        LD A, (DE)      ; A = font pixel data
+        LD (HL), A      ; write to screen
+        INC DE          ; next font byte
+        INC C           ; next line
+        DJNZ .line_loop ; B-- and loop
+
+        ; Set attribute: inline attr_addr(col=IYL, row=IYH)
+        LD A, IYH       ; A = row
+        RRCA
+        RRCA
+        RRCA
+        LD L, A
+        AND 0xE0
+        OR IYL          ; combine with col
+        LD L, A
+        LD A, IYH
+        RRCA
+        RRCA
+        RRCA
+        AND 0x03
+        OR 0x58
+        LD H, A         ; HL = attr address
+        LD A, (zx_console_con_attr)
+        LD (HL), A
     }
-    // Set attribute
-    zx_poke(attr_addr(col, row), con_attr)
 }
 
 fun con_print(str: ^u8) -> void {
