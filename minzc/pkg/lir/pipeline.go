@@ -969,10 +969,25 @@ func fixInvalidZ80Template(tmpl string, inst Inst, desc *MachineDesc, getName fu
 	}
 
 	// LD (IX/IY), pair → byte-by-byte via A with (IX+d)
-	if (src0Name == "IX" || src0Name == "IY") {
-		if lo1hi1, ok := pairs16[src1Name]; ok {
+	if src0Name == "IX" || src0Name == "IY" || strings.Contains(tmpl, "(IX)") || strings.Contains(tmpl, "(IY)") {
+		ixName := src0Name
+		if strings.Contains(tmpl, "(IX)") {
+			ixName = "IX"
+		} else if strings.Contains(tmpl, "(IY)") {
+			ixName = "IY"
+		}
+		// Detect value pair from template or Phys
+		valPair := src1Name
+		if strings.Contains(tmpl, ", HL") {
+			valPair = "HL"
+		} else if strings.Contains(tmpl, ", DE") {
+			valPair = "DE"
+		} else if strings.Contains(tmpl, ", BC") {
+			valPair = "BC"
+		}
+		if lo1hi1, ok := pairs16[valPair]; ok {
 			return fmt.Sprintf("LD A, %s\n    LD (%s+0), A\n    LD A, %s\n    LD (%s+1), A",
-				lo1hi1[0], src0Name, lo1hi1[1], src0Name)
+				lo1hi1[0], ixName, lo1hi1[1], ixName)
 		}
 	}
 
@@ -985,6 +1000,58 @@ func fixInvalidZ80Template(tmpl string, inst Inst, desc *MachineDesc, getName fu
 	// ADD HL, mem → load to DE first
 	if strings.HasPrefix(tmpl, "ADD HL, mem") || strings.HasPrefix(tmpl, "ADD HL, spill") {
 		return fmt.Sprintf("LD DE, (%s)\n    ADD HL, DE", src1Name)
+	}
+
+	// INC/DEC on memory slot → load to A, INC/DEC A, store back
+	if strings.HasPrefix(tmpl, "INC mem") || strings.HasPrefix(tmpl, "INC spill") {
+		dstName := getName(inst.Dst.Phys)
+		return fmt.Sprintf("LD A, (%s)\n    INC A\n    LD (%s), A", dstName, dstName)
+	}
+	if strings.HasPrefix(tmpl, "DEC mem") || strings.HasPrefix(tmpl, "DEC spill") {
+		dstName := getName(inst.Dst.Phys)
+		return fmt.Sprintf("LD A, (%s)\n    DEC A\n    LD (%s), A", dstName, dstName)
+	}
+
+	// LD H/L, IXH/IXL/IYH/IYL (DD/FD prefix conflict) → route through A
+	// Check both expanded tmpl and Phys values.
+	trimTmpl := strings.TrimSpace(tmpl)
+	ddFdConflicts := []string{
+		"LD L, IXH", "LD L, IXL", "LD L, IYH", "LD L, IYL",
+		"LD H, IXH", "LD H, IXL", "LD H, IYH", "LD H, IYL",
+		"LD IXH, H", "LD IXH, L", "LD IXL, H", "LD IXL, L",
+		"LD IYH, H", "LD IYH, L", "LD IYL, H", "LD IYL, L",
+	}
+	for _, conflict := range ddFdConflicts {
+		if trimTmpl == conflict {
+			parts := strings.SplitN(conflict, ", ", 2)
+			dst, src := strings.TrimPrefix(parts[0], "LD "), parts[1]
+			return fmt.Sprintf("LD A, %s\n    LD %s, A", src, dst)
+		}
+	}
+
+	// Operations on unallocated vregs (?-1) — skip (no valid codegen possible)
+	if strings.Contains(tmpl, "?-1") || strings.Contains(tmpl, "?") {
+		return "; UNALLOCATED: " + tmpl
+	}
+
+	// Final safety net: if expanded template still invalid, try DD/FD route
+	if !ValidateInst(tmpl) {
+		// Generic DD/FD conflict: any LD where dst is H/L and src is IXH/IXL/IYH/IYL
+		// or vice versa → route through A.
+		for _, line := range strings.Split(tmpl, "\n") {
+			line = strings.TrimSpace(line)
+			if strings.HasPrefix(line, "LD ") {
+				parts := strings.SplitN(strings.TrimPrefix(line, "LD "), ", ", 2)
+				if len(parts) == 2 {
+					d, s := strings.TrimSpace(parts[0]), strings.TrimSpace(parts[1])
+					hlRegs := map[string]bool{"H": true, "L": true}
+					ixyRegs := map[string]bool{"IXH": true, "IXL": true, "IYH": true, "IYL": true}
+					if (hlRegs[d] && ixyRegs[s]) || (ixyRegs[d] && hlRegs[s]) {
+						return fmt.Sprintf("LD A, %s\n    LD %s, A", s, d)
+					}
+				}
+			}
+		}
 	}
 
 	return tmpl
