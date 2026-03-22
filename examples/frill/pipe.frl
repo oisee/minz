@@ -1,0 +1,6 @@
+-- Pipe operator test
+let double (x : u8) : u8 = x + x
+let inc (x : u8) : u8 = x + 1
+
+-- 5 |> double |> inc = inc(double(5)) = inc(10) = 11
+let main () : u8 = 5 |> double |> inc

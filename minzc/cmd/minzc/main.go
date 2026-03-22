@@ -20,6 +20,7 @@ import (
 	"github.com/minz/minzc/pkg/optimizer"
 	"github.com/minz/minzc/pkg/parser"
 	"github.com/minz/minzc/pkg/c89"
+	"github.com/minz/minzc/pkg/frill"
 	"github.com/minz/minzc/pkg/lir"
 	"github.com/minz/minzc/pkg/pascal"
 	"github.com/minz/minzc/pkg/pipeline"
@@ -231,7 +232,7 @@ func compile(sourceFile string) error {
 	ext := filepath.Ext(sourceFile)
 
 	// PL/M-80, Nanz, and HIR text: routed through the new HIR→MIR2→Z80 pipeline.
-	if ext == ".plm" || ext == ".nanz" || ext == ".minz" || ext == ".hir" || ext == ".lanz" || ext == ".lizp" || ext == ".pas" || ext == ".c" || ext == ".m" || ext == ".abap" {
+	if ext == ".plm" || ext == ".nanz" || ext == ".minz" || ext == ".hir" || ext == ".lanz" || ext == ".lizp" || ext == ".pas" || ext == ".c" || ext == ".m" || ext == ".abap" || ext == ".frl" {
 		if emitFormat == "nanz" && ext != ".hir" && ext != ".lanz" {
 			return compilePLMToNanz(sourceFile)
 		}
@@ -760,6 +761,11 @@ func compileViaHIR(sourceFile string) error {
 		hirMod, err = abap.Compile(string(src), filepath.Base(sourceFile))
 		if err != nil {
 			return fmt.Errorf("ABAP compile: %w", err)
+		}
+	case ".frl":
+		hirMod, err = frill.Compile(string(src), filepath.Base(sourceFile))
+		if err != nil {
+			return fmt.Errorf("Frill compile: %w", err)
 		}
 	default:
 		return fmt.Errorf("unsupported extension for HIR pipeline: %s", ext)
