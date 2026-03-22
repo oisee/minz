@@ -20,6 +20,7 @@ import (
 	"github.com/minz/minzc/pkg/optimizer"
 	"github.com/minz/minzc/pkg/parser"
 	"github.com/minz/minzc/pkg/c89"
+	"github.com/minz/minzc/pkg/lir"
 	"github.com/minz/minzc/pkg/pascal"
 	"github.com/minz/minzc/pkg/pipeline"
 	"github.com/minz/minzc/pkg/plm"
@@ -65,6 +66,7 @@ var (
 
 	// LIR backend
 	useLIR       bool    // Use experimental LIR backend (ISLE+WFC) instead of PBQP
+	useZ3        bool    // Use Z3 SMT solver for optimal regalloc
 
 	// Debug info
 	emitSLD      bool    // Emit SLD file for DeZog source-level debugging
@@ -202,6 +204,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&compileTrace, "compile-trace", false, "show all optimization decisions and transformations")
 	rootCmd.Flags().StringVar(&superoptRules, "superopt-rules", "", "path to z80-optimizer rules.json[.gz] for superoptimizer peephole pass")
 	rootCmd.Flags().BoolVar(&useLIR, "lir", true, "use LIR backend (ISLE+WFC+PBQP) for code generation (default: on)")
+	rootCmd.Flags().BoolVar(&useZ3, "z3", false, "use Z3 SMT solver for optimal register allocation (slower, provably optimal)")
 	rootCmd.Flags().BoolVar(&emitSLD, "emit-sld", false, "emit SLD file for DeZog source-level debugging")
 	rootCmd.Flags().BoolVar(&annotateTStates, "annotate-tstates", false, "annotate each Z80 instruction with its T-state cost")
 	rootCmd.Flags().StringVar(&emitFormat, "emit", "", "emit format: nanz (HIR as Nanz syntax), hir (HIR typed tree), lanz (HIR as S-expr), mir2-raw, mir2 (works with .plm/.nanz/.lanz input)")
@@ -766,6 +769,11 @@ func compileViaHIR(sourceFile string) error {
 	hirMod.Target = hir.TargetFromString(target)
 
 	// Run all pipeline stages (always, cheaply; we may want any step).
+	// Wire Z3 flag to LIR package.
+	if useZ3 {
+		lir.UseZ3 = true
+	}
+
 	steps, err := pipeline.CompileHIRSteps(hirMod, pipeline.Options{
 		ContractOpt:     true,
 		AnnotateTStates: annotateTStates,

@@ -27,6 +27,11 @@ import (
 	"github.com/minz/minzc/pkg/mir2"
 )
 
+// UseZ3 enables Z3 SMT-based optimal register allocation instead of WFC.
+// Set via --z3 flag. Z3 finds provably optimal assignments but takes ~100ms
+// per function vs ~1ms for WFC.
+var UseZ3 bool
+
 // ConvergenceResult holds results from checking one function.
 type ConvergenceResult struct {
 	FuncName string
@@ -333,9 +338,49 @@ func lirCodegenMultiBlock(f *mir2.Func, desc *MachineDesc, m *mir2.Module) (stri
 		b.Insts = sel.Insts
 	}
 
-	// Multi-block WFC
+	// Multi-block register allocation: WFC or Z3.
 	pw := NewProgWFC(prog)
 	pw.Propagate()
+
+	if UseZ3 {
+		// Z3 on multi-block: solve per-block and apply.
+		for label, wfc := range pw.States {
+			if wfc == nil || len(wfc.Cells) == 0 {
+				continue
+			}
+			bi := pw.BlockIndex(label)
+			if bi < 0 {
+				continue
+			}
+			blockProg := &Prog{
+				Name: f.Name + "/" + label,
+				Desc: desc,
+				Blocks: []Block{{Label: label, Insts: wfc.ToInsts()}},
+			}
+			z3Result, z3Err := SolveOptimal(blockProg)
+			if z3Err == nil {
+				// Apply Z3 result to WFC cells.
+				for ci := range wfc.Cells {
+					c := &wfc.Cells[ci]
+					if c.VRegDst >= 0 {
+						if phys, ok := z3Result.VRegPhys[c.VRegDst]; ok {
+							c.DstLocs = Singleton(phys)
+						}
+					}
+					for s := 0; s < 2; s++ {
+						v := c.VRegSrc[s]
+						if v >= 0 {
+							if phys, ok := z3Result.VRegPhys[v]; ok {
+								c.SrcLocs[s] = Singleton(phys)
+							}
+						}
+					}
+				}
+			}
+			// Fallback: if Z3 fails, WFC collapse below will handle it.
+		}
+	}
+
 	if err := pw.Collapse(); err != nil {
 		return "", fmt.Errorf("wfc %s: %w", f.Name, err)
 	}
@@ -527,13 +572,16 @@ func emitSpillLabels(sb *strings.Builder, desc *MachineDesc, funcName string) {
 	}
 }
 
-// emitStringPool emits string constant labels from the MIR2 module.
+// EmitStringPool emits string constant labels from the MIR2 module.
 // Sanitizes symbol names: @mir2.str.0 → _mir2_str_0 (matching bridge.go).
-func emitStringPool(sb *strings.Builder, m *mir2.Module) {
+// Called by the pipeline caller, not by LIRCodegenModule (to avoid duplicates
+// when PBQP fallback also emits strings).
+func EmitStringPool(sb *strings.Builder, m *mir2.Module) {
 	if m.Strings.Len() == 0 {
 		return
 	}
 	sb.WriteString("; strings\n")
+	emitted := make(map[string]bool)
 	for i := 0; i < m.Strings.Len(); i++ {
 		sym := m.Strings.Symbol(i)
 		// Sanitize same way as bridge.go: @ → _, . → _
@@ -541,6 +589,10 @@ func emitStringPool(sb *strings.Builder, m *mir2.Module) {
 		sym = strings.ReplaceAll(sym, ".", "_")
 		s := m.Strings.At(i)
 		kind := m.Strings.Kind(i)
+		if emitted[sym] {
+			continue // skip duplicate string labels
+		}
+		emitted[sym] = true
 		sb.WriteString(sym + ":\n")
 
 		switch kind {
@@ -721,18 +773,16 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 		return "", fmt.Errorf("isel %s: %w", f.Name, err)
 	}
 
-	// Validate-reject-retry loop: WFC → emit → validate → retry with rejected
-	// assignments if validation finds invalid instructions. Max 3 attempts.
+	// Register allocation: WFC (fast, greedy) or Z3 (slow, optimal).
 	const maxRetries = 3
-	var rejected map[int]LocSet // vreg → banned phys locations (accumulated across retries)
+	var rejected map[int]LocSet
 
 	for attempt := 0; attempt <= maxRetries; attempt++ {
-		// WFC with param cells + PBQP hints
+		// Build LIR Prog for Z3 (needs structured Prog, not flat Insts).
 		wfc := NewWFCStateWithParams(desc, sel.Insts, params)
 		if len(hints) > 0 && hints[0] != nil {
 			wfc.Hints = hints[0]
 		}
-		// Apply rejected assignments from previous attempts
 		if rejected != nil {
 			for vreg, banned := range rejected {
 				for ci := range wfc.Cells {
@@ -750,11 +800,55 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 			}
 		}
 		wfc.Propagate()
-		if err := wfc.Collapse(); err != nil {
-			if attempt < maxRetries {
-				continue // retry with different state
+
+		if UseZ3 {
+			// Z3 path: build Prog from WFC-propagated insts, solve optimally.
+			prog := &Prog{
+				Name: f.Name,
+				Desc: desc,
+				Blocks: []Block{{
+					Label: "entry",
+					Insts: wfc.ToInsts(),
+				}},
 			}
-			return "", fmt.Errorf("wfc %s: %w", f.Name, err)
+			z3Result, z3Err := SolveOptimal(prog)
+			if z3Err != nil {
+				// Z3 failed (unsat or timeout) — fall back to WFC.
+				if err := wfc.Collapse(); err != nil {
+					if attempt < maxRetries {
+						continue
+					}
+					return "", fmt.Errorf("wfc+z3 %s: z3=%v wfc=%w", f.Name, z3Err, err)
+				}
+			} else {
+				// Apply Z3 optimal assignment.
+				ApplyZ3Result(prog, z3Result)
+				// Also update WFC cells so ToInsts() picks up Z3 assignments.
+				for ci := range wfc.Cells {
+					c := &wfc.Cells[ci]
+					if c.VRegDst >= 0 {
+						if phys, ok := z3Result.VRegPhys[c.VRegDst]; ok {
+							c.DstLocs = Singleton(phys)
+						}
+					}
+					for s := 0; s < 2; s++ {
+						v := c.VRegSrc[s]
+						if v >= 0 {
+							if phys, ok := z3Result.VRegPhys[v]; ok {
+								c.SrcLocs[s] = Singleton(phys)
+							}
+						}
+					}
+				}
+			}
+		} else {
+			// WFC path: greedy collapse.
+			if err := wfc.Collapse(); err != nil {
+				if attempt < maxRetries {
+					continue
+				}
+				return "", fmt.Errorf("wfc %s: %w", f.Name, err)
+			}
 		}
 
 		insts := wfc.ToInsts()
@@ -1008,8 +1102,9 @@ func LIRCodegenModule(m *mir2.Module, hints ...AllocHints) (string, []LIRFuncRes
 	// Emit spill slot labels ONCE for the whole module.
 	emitSpillLabels(&sb, Z80, "module")
 
-	// Emit string pool from MIR2 module (string constants used by addr_of).
-	emitStringPool(&sb, m)
+	// NOTE: String pool is emitted by the caller (pipeline.go) via
+	// EmitStringPool(), not here. This avoids duplicates when PBQP
+	// fallback also emits strings.
 
 	return sb.String(), results
 }

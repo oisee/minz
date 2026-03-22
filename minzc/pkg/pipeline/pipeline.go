@@ -236,6 +236,10 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 				ok, ok+fail, fail, strings.Join(failNames, ", "))
 		} else {
 			s.Assembly = lirAsm
+			// Emit string pool (only when no PBQP fallback, which emits its own).
+			var strBuf strings.Builder
+			lir.EmitStringPool(&strBuf, m)
+			s.Assembly += strBuf.String()
 			s.Assembly += emitGlobals(m)
 			fmt.Fprintf(os.Stderr, "lir: all %d functions compiled via ISLE+WFC+Layer4\n", ok)
 		}
