@@ -115,20 +115,25 @@ fun con_init(ink: u8, paper: u8) -> void {
 }
 
 fun con_clear() -> void {
-    // Clear pixel RAM
-    var addr: u16 = SCREEN_BASE
-    while addr < ATTR_BASE {
-        zx_poke(addr, 0)
-        addr = addr + 1
+    asm z80 {
+        ; Clear pixel RAM: $4000-$57FF (6144 bytes) → 0
+        LD HL, 0x4000
+        LD DE, 0x4001
+        LD BC, 6143
+        LD (HL), 0
+        LDIR
+        ; Set attributes: $5800-$5AFF (768 bytes) → con_attr
+        LD HL, 0x5800
+        LD DE, 0x5801
+        LD BC, 767
+        LD A, (zx_console_con_attr)
+        LD (HL), A
+        LDIR
+        ; Reset cursor
+        XOR A
+        LD (zx_console_con_col), A
+        LD (zx_console_con_row), A
     }
-    // Set all attributes
-    var aaddr: u16 = ATTR_BASE
-    while aaddr < 0x5B00 {
-        zx_poke(aaddr, con_attr)
-        aaddr = aaddr + 1
-    }
-    con_col = 0
-    con_row = 0
 }
 
 // ── Character output ────────────────────────────────────────────────────────
