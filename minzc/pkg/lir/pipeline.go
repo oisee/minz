@@ -527,6 +527,50 @@ func emitSpillLabels(sb *strings.Builder, desc *MachineDesc, funcName string) {
 	}
 }
 
+// emitStringPool emits string constant labels from the MIR2 module.
+// Sanitizes symbol names: @mir2.str.0 → _mir2_str_0 (matching bridge.go).
+func emitStringPool(sb *strings.Builder, m *mir2.Module) {
+	if m.Strings.Len() == 0 {
+		return
+	}
+	sb.WriteString("; strings\n")
+	for i := 0; i < m.Strings.Len(); i++ {
+		sym := m.Strings.Symbol(i)
+		// Sanitize same way as bridge.go: @ → _, . → _
+		sym = strings.ReplaceAll(sym, "@", "_")
+		sym = strings.ReplaceAll(sym, ".", "_")
+		s := m.Strings.At(i)
+		kind := m.Strings.Kind(i)
+		sb.WriteString(sym + ":\n")
+
+		switch kind {
+		case mir2.StrSString:
+			fmt.Fprintf(sb, "    DB %d", len(s))
+			for _, c := range []byte(s) {
+				fmt.Fprintf(sb, ", %d", c)
+			}
+			sb.WriteByte('\n')
+		case mir2.StrLString:
+			lo := len(s) & 0xFF
+			hi := (len(s) >> 8) & 0xFF
+			fmt.Fprintf(sb, "    DB %d, %d", lo, hi)
+			for _, c := range []byte(s) {
+				fmt.Fprintf(sb, ", %d", c)
+			}
+			sb.WriteByte('\n')
+		default: // StrCString and unknown
+			sb.WriteString("    DB ")
+			for j, c := range []byte(s) {
+				if j > 0 {
+					sb.WriteString(", ")
+				}
+				fmt.Fprintf(sb, "%d", c)
+			}
+			sb.WriteString(", 0\n")
+		}
+	}
+}
+
 // emitParallelCopyMoves inserts LD instructions for edge args that don't
 // match their target params (the rare case when inter-block WFC doesn't converge).
 func emitParallelCopyMoves(sb *strings.Builder, b *Block, prog *Prog, desc *MachineDesc) {
@@ -963,6 +1007,9 @@ func LIRCodegenModule(m *mir2.Module, hints ...AllocHints) (string, []LIRFuncRes
 
 	// Emit spill slot labels ONCE for the whole module.
 	emitSpillLabels(&sb, Z80, "module")
+
+	// Emit string pool from MIR2 module (string constants used by addr_of).
+	emitStringPool(&sb, m)
 
 	return sb.String(), results
 }
