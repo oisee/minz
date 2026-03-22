@@ -160,7 +160,7 @@ func SelectBlockInstructions(desc *MachineDesc, ops []MIROp, params []BlockParam
 			}
 		}
 
-		// Insert setup moves if needed.
+		// Insert setup moves if needed (with width-bridging via findBridgePattern).
 		for s := 0; s < 2; s++ {
 			if op.Src[s] < 0 {
 				continue
@@ -170,17 +170,23 @@ func SelectBlockInstructions(desc *MachineDesc, ops []MIROp, params []BlockParam
 				continue
 			}
 			curLoc := vregLoc[op.Src[s]]
-			if !curLoc.IsEmpty() && curLoc.And(srcAllowed).IsEmpty() && movePat != nil {
-				newVReg := 1000 + len(result.Insts)
-				moveInst := Inst{
-					Pat:  movePat,
-					Dst:  Operand{VReg: newVReg, Allowed: srcAllowed, Phys: -1},
-					Srcs: [2]Operand{{VReg: op.Src[s], Allowed: curLoc, Phys: -1}},
+			if !curLoc.IsEmpty() && curLoc.And(srcAllowed).IsEmpty() {
+				bridgePat := findBridgePattern(desc, curLoc, srcAllowed)
+				if bridgePat == nil {
+					bridgePat = movePat
 				}
-				result.Insts = append(result.Insts, moveInst)
-				result.VRegAllowed[newVReg] = srcAllowed
-				vregLoc[newVReg] = srcAllowed
-				op.Src[s] = newVReg
+				if bridgePat != nil {
+					newVReg := 1000 + len(result.Insts)
+					moveInst := Inst{
+						Pat:  bridgePat,
+						Dst:  Operand{VReg: newVReg, Allowed: srcAllowed, Phys: -1},
+						Srcs: [2]Operand{{VReg: op.Src[s], Allowed: curLoc, Phys: -1}},
+					}
+					result.Insts = append(result.Insts, moveInst)
+					result.VRegAllowed[newVReg] = srcAllowed
+					vregLoc[newVReg] = srcAllowed
+					op.Src[s] = newVReg
+				}
 			}
 		}
 
@@ -260,7 +266,14 @@ func foldConstIntoALU(op MIROp, ops []MIROp, defMap map[int]int) MIROp {
 		if idx, exists := defMap[op.Src[1]]; exists && ops[idx].Op == OpConst {
 			result := op
 			result.Op = newOp
-			result.Imm = ops[idx].Imm
+			imm := ops[idx].Imm
+			// Mask to operand width to prevent overflow (CP 4294967295 → CP 255).
+			if op.Width <= 8 {
+				imm &= 0xFF
+			} else if op.Width <= 16 {
+				imm &= 0xFFFF
+			}
+			result.Imm = imm
 			result.Src[1] = -1 // no longer need the const vreg
 			return result
 		}
