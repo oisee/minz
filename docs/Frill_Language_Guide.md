@@ -241,9 +241,13 @@ Each Frill construct maps to HIR nodes:
 | `x + y` | `BinExpr{"+", VarRef{x}, VarRef{y}}` |
 | `if c then a else b` | `CondExpr{c, a, b}` |
 | `let x = e in body` | `VarDeclStmt{x, e}` + body |
+| `= body where x = e` | `VarDeclStmt{x, e}` before body |
 | `x \|> f` | `CallExpr{f, [x]}` |
+| `x \|> \|n\| n + 1` | Lambda → auto-generated `__lambda_N` function |
 | `match x with \| P -> e end` | Nested `CondExpr` chain |
 | `type T = A \| B` | Constructor registry (tag integers) |
+| `type T = A \| B of u8` | Tag + payload encoded as u16 |
+| `"hello\n"` | CString interned in module, `AddrOfExpr` |
 | `assert f x == n` | `Assert{f, [x], n, via:"mir2"}` |
 
 ## What's Implemented (Frill-0)
@@ -251,32 +255,34 @@ Each Frill construct maps to HIR nodes:
 - [x] Function definitions with typed parameters
 - [x] Arithmetic: `+ - * / %`
 - [x] Comparisons: `== != < <= > >=`
-- [x] If-then-else expressions
+- [x] If-then-else expressions (nested: `if/else if/else`)
 - [x] Let-in bindings with chaining
-- [x] Pipe operator `|>`
+- [x] Where-clauses (Haskell-style: `= body where x = e`)
+- [x] Pipe operator `|>` with extra args (`x |> add 10`)
+- [x] Lambda in pipes (`x |> |n| n + 1`)
 - [x] Algebraic data types (tagged constructors)
+- [x] ADT with payload (`type Option = None | Some of u8`)
 - [x] Pattern matching with `match/with/end`
+- [x] Exhaustive match checking (error: `missing Blue`)
 - [x] Wildcard `_` default pattern
+- [x] Recursion (factorial, fibonacci, GCD)
+- [x] String literals with escapes (`"hello\n"`)
 - [x] Compile-time assertions via MIR2 VM
 - [x] OCaml-style block comments `(* ... *)`
 - [x] Haskell-style line comments `-- ...`
 - [x] CLI: `minzc program.frl`
 - [x] MZV: `mzv program.frl`
-- [x] 14 unit tests, 18 E2E assertions
+- [x] 13 unit tests, 24+ E2E assertions
 
 ## What's Missing (Roadmap)
 
 ### Frill-1: Full ML
 
-- [ ] **Nested function calls** — `f (g x)` currently needs let-in workaround
-- [ ] **Recursion** — works at MIR2 level, parser needs to allow self-reference
-- [ ] **Multi-line function bodies** — `where` clause (Haskell style)
 - [ ] **Type inference** — omit `: u8` when obvious from context
 - [ ] **Tuples** — `let (a, b) = divmod x y`
-- [ ] **Strings** — `"hello"` as `^u8` (null-terminated pointer)
-- [ ] **ADT with payload** — `type Option = None | Some of u8` (tagged union, 2 bytes)
-- [ ] **Exhaustiveness checking** — warn if match doesn't cover all constructors
+- [ ] **Guards in match** — `| n when n > 10 -> "big"`
 - [ ] **Imports** — `import math` for stdlib modules
+- [ ] **Operator sections** — `(+1)` as shorthand for `|x| x + 1`
 
 ### Frill-2: Advanced Types
 
@@ -351,16 +357,75 @@ let process (x : u8) : u8 = x |> double |> inc |> square
 assert process 3 == 49    (* 3 -> 6 -> 7 -> 49 *)
 ```
 
-### Complex with Let-In
+### Recursion
+
+```
+let factorial (n : u8) : u8 =
+  if n == 0 then 1
+  else n * factorial (n - 1)
+
+let gcd (a : u8) (b : u8) : u8 =
+  if b == 0 then a
+  else gcd b (a % b)
+
+assert factorial 5 == 120
+assert gcd 12 8 == 4
+```
+
+### Lambda in Pipes
+
+```
+let process (x : u8) : u8 =
+  x |> |n| n + 1 |> |n| n * 2 |> |n| n - 3
+
+assert process 5 == 9  (* 5 -> 6 -> 12 -> 9 *)
+```
+
+### Where-Clause
+
+```
+let hyp2 (x : u8) (y : u8) : u8 = xx + yy
+  where xx = x * x
+  where yy = y * y
+
+assert hyp2 3 4 == 25
+```
+
+### Let-In + Pipe
 
 ```
 let compute (x : u8) : u8 =
   let a = x + 1 in
   let b = a * 2 in
   let c = b - x in
-  c |> double
+  c |> |n| n + n
 
 assert compute 4 == 12   (* a=5, b=10, c=6, double=12 *)
+```
+
+### ADT with Payload
+
+```
+type Option = None | Some of u8
+
+let is_some (x : u8) : u8 = __tag (Some x)
+let value (x : u8) : u8 = __payload (Some x)
+
+assert is_some 42 == 1
+assert value 42 == 42
+```
+
+### Exhaustive Match
+
+```
+type Color = Red | Green | Blue
+
+(* This compiles: *)
+let name (c : u8) : u8 =
+  match c with | Red -> 0 | Green -> 1 | Blue -> 2 end
+
+(* This is a compile error: "non-exhaustive match on Color: missing Blue" *)
+(* let bad (c : u8) : u8 = match c with | Red -> 0 | Green -> 1 end *)
 ```
 
 ## Design Decisions
