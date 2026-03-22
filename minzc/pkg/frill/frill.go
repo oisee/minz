@@ -100,9 +100,10 @@ type parser struct {
 	line   int
 	name   string
 	peeked *token
-	adts      map[string]*adtDef  // type name → definition
-	ctors     map[string]*adtCtor // constructor name → ctor (for match + expr)
-	autoFuncs []*hir.Func         // auto-generated helpers (__tag, __payload)
+	adts        map[string]*adtDef  // type name → definition
+	ctors       map[string]*adtCtor // constructor name → ctor (for match + expr)
+	autoFuncs   []*hir.Func         // auto-generated helpers (__tag, __payload, lambdas)
+	lambdaCount int                  // counter for unique lambda names
 }
 
 func (p *parser) peek() token {
@@ -444,12 +445,36 @@ func (p *parser) parsePipe() (hir.Expr, error) {
 	}
 	for p.peek().kind == tokOp && p.peek().text == "|>" {
 		p.next() // consume |>
-		// Right side: function name, optionally with extra args
+
+		// Lambda: |param| body
+		if p.peek().kind == tokOp && p.peek().text == "|" {
+			p.next() // consume |
+			paramTok := p.next()
+			if err := p.expect(tokOp, "|"); err != nil {
+				return nil, fmt.Errorf("line %d: expected | after lambda param", paramTok.line)
+			}
+			body, err := p.parseExpr()
+			if err != nil {
+				return nil, err
+			}
+			// Desugar: generate anonymous function, call it with left
+			lambdaName := fmt.Sprintf("__lambda_%d", p.lambdaCount)
+			p.lambdaCount++
+			p.autoFuncs = append(p.autoFuncs, &hir.Func{
+				Name:   lambdaName,
+				Params: []hir.Param{{Name: paramTok.text, Ty: left.ExprTy()}},
+				RetTy:  body.ExprTy(),
+				Body:   &hir.Block{Body: []hir.Stmt{&hir.ReturnStmt{Val: body}}},
+			})
+			left = &hir.CallExpr{Fn: lambdaName, Args: []hir.Expr{left}, Ty: body.ExprTy()}
+			continue
+		}
+
+		// Named function: fn arg1 arg2 ...
 		fnTok := p.next()
 		if fnTok.kind != tokIdent {
 			return nil, fmt.Errorf("line %d: expected function name after |>, got %q", fnTok.line, fnTok.text)
 		}
-		// Collect extra args (int literals or parens before next |> or operator)
 		args := []hir.Expr{left}
 		for p.peek().kind == tokInt || p.peek().kind == tokLParen {
 			arg, err := p.parsePrimary()
