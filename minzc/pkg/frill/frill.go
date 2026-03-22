@@ -464,11 +464,18 @@ func (p *parser) parseAssert() (hir.Assert, error) {
 		return hir.Assert{}, fmt.Errorf("line %d: assert: expected function name", line)
 	}
 
-	// Parse args (int literals) until ==
+	// Parse args (int literals or constructor names) until ==
 	var args []int64
-	for p.peek().kind == tokInt {
-		val, _ := strconv.ParseInt(p.next().text, 10, 64)
-		args = append(args, val)
+	for p.peek().kind == tokInt || (p.peek().kind == tokIdent && !isKeyword(p.peek().text)) {
+		tok := p.next()
+		if tok.kind == tokInt {
+			val, _ := strconv.ParseInt(tok.text, 0, 64)
+			args = append(args, val)
+		} else if ctor, ok := p.ctors[tok.text]; ok {
+			args = append(args, ctor.tag)
+		} else {
+			return hir.Assert{}, fmt.Errorf("line %d: assert: unknown arg %q", line, tok.text)
+		}
 	}
 
 	if err := p.expect(tokOp, "=="); err != nil {
