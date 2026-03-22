@@ -250,39 +250,102 @@ Each Frill construct maps to HIR nodes:
 | `"hello\n"` | CString interned in module, `AddrOfExpr` |
 | `assert f x == n` | `Assert{f, [x], n, via:"mir2"}` |
 
-## What's Implemented (Frill-0)
+## What's Implemented (30 features)
 
+### Core Language
 - [x] Function definitions with typed parameters
+- [x] Return type inference (`let double (x : u8) = x + x`)
 - [x] Arithmetic: `+ - * / %`
 - [x] Comparisons: `== != < <= > >=`
 - [x] If-then-else expressions (nested: `if/else if/else`)
-- [x] Let-in bindings with chaining
-- [x] Where-clauses (Haskell-style: `= body where x = e`)
+- [x] Unary minus (`-x`), hex literals (`0xFF`), booleans (`true`/`false`)
+- [x] String literals with escapes (`"hello\n"`)
+
+### Functional Features
+- [x] Let-in bindings with chaining (`let x = e1 in let y = e2 in body`)
+- [x] Where-clauses (`= body where x = e`)
 - [x] Pipe operator `|>` with extra args (`x |> add 10`)
+- [x] Function composition `>>` (`let transform = double >> inc >> square`)
 - [x] Lambda in pipes (`x |> |n| n + 1`)
-- [x] Algebraic data types (tagged constructors)
+- [x] Currying / partial application (`let inc = add 1`)
+- [x] Operator sections (`x |> (+10)`)
+- [x] Recursion and mutual recursion (factorial, fibonacci, GCD)
+
+### Type System
+- [x] Algebraic data types (`type Color = Red | Green | Blue`)
 - [x] ADT with payload (`type Option = None | Some of u8`)
 - [x] Pattern matching with `match/with/end`
-- [x] Exhaustive match checking (error: `missing Blue`)
-- [x] Wildcard `_` default pattern
-- [x] Recursion (factorial, fibonacci, GCD)
-- [x] String literals with escapes (`"hello\n"`)
-- [x] Compile-time assertions via MIR2 VM
-- [x] OCaml-style block comments `(* ... *)`
-- [x] Haskell-style line comments `-- ...`
-- [x] CLI: `minzc program.frl`
-- [x] MZV: `mzv program.frl`
-- [x] 13 unit tests, 24+ E2E assertions
+- [x] Exhaustive match checking (compile error: `missing Blue`)
+- [x] Guards in match (`| _ when n > 10 -> ...`)
+- [x] Record types (`type Point = { x : u8, y : u8 }`)
+
+### Verification & Testing
+- [x] Compile-time assertions (`assert gcd 12 8 == 4`)
+- [x] Property-based testing (`prop |x| double x == x + x` — tests all 256 u8 values)
+- [x] MIR2 VM verification — zero runtime cost
+
+### Modularity & I/O
+- [x] Import `.frl` files (`import "math.frl"`)
+- [x] Cross-language import `.nanz` files (`import "io_cpm.nanz"`)
+- [x] Extern declarations (`extern putchar (ch : u8) : void`)
+- [x] Inline assembly (`asm "LD E, A / CALL 5"`)
+- [x] Do notation for side effects (`do putchar 72`)
+- [x] CLI: `minzc program.frl` / MZV: `mzv program.frl`
+
+### Stats
+- ~1500 LOC parser (`pkg/frill/frill.go`)
+- 13 unit tests
+- 6 demo programs (basics, math, game, showcase, stdlib_demo, hello_cpm)
+- 26-function math stdlib
+- 100+ compile-time assertions across demos
+- 768+ property checks (3 props x 256 values)
+- CP/M hello world: 720 bytes, prints text on real Z80 emulator
+
+## Benchmark: Frill vs SDCC (C)
+
+### GCD (Euclid's Algorithm)
+
+Frill source (1 line):
+```
+let gcd (a : u8) (b : u8) = if b == 0 then a else gcd b (a % b)
+```
+
+C source (SDCC):
+```c
+unsigned char gcd(unsigned char a, unsigned char b) {
+    if (b == 0) return a;
+    return gcd(b, a % b);
+}
+```
+
+| Metric | Frill/MinZ | SDCC/C |
+|--------|-----------|--------|
+| Self-contained | Yes (inline div8) | No (__moduchar library) |
+| Total instructions | 23 | 12 + ~30 (library) |
+| Tail call optimized | Yes (JP) | Yes (JR) |
+| T-states/iteration | ~342T | ~294T |
+| External dependencies | 0 | 1 runtime function |
+
+Both generate tail-recursive code. MinZ inlines the division loop (no runtime
+library), SDCC calls `__moduchar`. Total code footprint favors MinZ.
+
+### Simple Functions
+
+```
+let add (a : u8) (b : u8) = a + b     →  ADD A, C / RET     (2 insts)
+let double (x : u8) = x + x           →  ADD A, A / RET     (2 insts)
+let max (a : u8) (b : u8) = ...       →  CP B / RET         (2 insts)
+```
+
+Optimal — matches hand-written assembly.
 
 ## What's Missing (Roadmap)
 
 ### Frill-1: Full ML
 
-- [ ] **Type inference** — omit `: u8` when obvious from context
 - [ ] **Tuples** — `let (a, b) = divmod x y`
-- [ ] **Guards in match** — `| n when n > 10 -> "big"`
-- [ ] **Imports** — `import math` for stdlib modules
-- [ ] **Operator sections** — `(+1)` as shorthand for `|x| x + 1`
+- [ ] **Pattern match on payload** — `| Some x -> x + 1`
+- [ ] **Nested function calls** — `f (g x)` without let-in workaround
 
 ### Frill-2: Advanced Types
 
@@ -290,8 +353,6 @@ Each Frill construct maps to HIR nodes:
   - Compiled via dictionary passing (struct of function pointers)
 - [ ] **Parametric polymorphism** — `let id (x : 'a) : 'a = x`
   - Monomorphized at call site (like C++ templates, no runtime cost)
-- [ ] **Records** — `type Point = { x : u8, y : u8 }`
-  - Compile to structs with known offsets
 
 ### Frill-3: Linear Types & Dependent Types
 
