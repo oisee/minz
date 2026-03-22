@@ -615,6 +615,7 @@ func parseDataStmt(tokens []string) (Decl, error) {
 }
 
 // parseWriteStmt: WRITE expr | WRITE: expr1, expr2, ... | WRITE / 'text'
+// Also handles string templates: WRITE |Hi { name }!|
 func parseWriteStmt(tokens []string) (Decl, error) {
 	if len(tokens) < 2 {
 		return nil, fmt.Errorf("WRITE: too few tokens")
@@ -626,13 +627,78 @@ func parseWriteStmt(tokens []string) (Decl, error) {
 			continue
 		}
 		if t == "/" {
-			// Newline before next expression
 			w.Exprs = append(w.Exprs, &StringLit{Val: "\r\n"})
+			continue
+		}
+		// String template: |text { expr } text| — abaplint splits into
+		// multiple tokens: "|Hello {", "lv_name", "}!|"
+		if strings.HasPrefix(t, "|") {
+			// Collect all tokens until we find one ending with |
+			var tmplTokens []string
+			tmplTokens = append(tmplTokens, t)
+			for i+1 < len(tokens) && !strings.HasSuffix(t, "|") {
+				i++
+				t = tokens[i]
+				tmplTokens = append(tmplTokens, t)
+			}
+			parts := expandStringTemplateTokens(tmplTokens)
+			w.Exprs = append(w.Exprs, parts...)
 			continue
 		}
 		w.Exprs = append(w.Exprs, parseTokenExpr(t))
 	}
 	return &formBodyDecl{stmt: w}, nil
+}
+
+// expandStringTemplateTokens handles abaplint-tokenized string templates.
+// Input: ["|Hello {", "lv_name", "}!|"] or ["|plain text|"]
+// Output: [StringLit("Hello "), VarRef("lv_name"), StringLit("!")]
+func expandStringTemplateTokens(tokens []string) []Expr_ {
+	// Rejoin tokens into one string, then parse
+	joined := strings.Join(tokens, " ")
+	// Strip outer pipes
+	if strings.HasPrefix(joined, "|") {
+		joined = joined[1:]
+	}
+	if strings.HasSuffix(joined, "|") {
+		joined = joined[:len(joined)-1]
+	}
+	return expandStringTemplate("|" + joined + "|")
+}
+
+// expandStringTemplate splits |Hello { name }!| into ["Hello ", VarRef(name), "!"]
+func expandStringTemplate(tmpl string) []Expr_ {
+	// Strip leading/trailing |
+	inner := tmpl[1 : len(tmpl)-1]
+	var result []Expr_
+	for len(inner) > 0 {
+		braceStart := strings.Index(inner, "{")
+		if braceStart < 0 {
+			// No more expressions — rest is literal text
+			if inner != "" {
+				result = append(result, &StringLit{Val: inner})
+			}
+			break
+		}
+		braceEnd := strings.Index(inner[braceStart:], "}")
+		if braceEnd < 0 {
+			// Malformed — treat rest as literal
+			result = append(result, &StringLit{Val: inner})
+			break
+		}
+		braceEnd += braceStart
+		// Text before {
+		if braceStart > 0 {
+			result = append(result, &StringLit{Val: inner[:braceStart]})
+		}
+		// Expression inside { }
+		exprStr := strings.TrimSpace(inner[braceStart+1 : braceEnd])
+		if exprStr != "" {
+			result = append(result, &VarRef{Name: exprStr})
+		}
+		inner = inner[braceEnd+1:]
+	}
+	return result
 }
 
 // formBodyDecl wraps a statement as a top-level decl (for flat programs without FORM).
