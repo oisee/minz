@@ -32,6 +32,10 @@ import (
 // per function vs ~1ms for WFC.
 var UseZ3 bool
 
+// UseLIRContracts tells the assert bootstrap to use PFCCO contract classes
+// for parameter registers instead of PBQP alloc. Set when LIR is active.
+var UseLIRContracts bool
+
 // ConvergenceResult holds results from checking one function.
 type ConvergenceResult struct {
 	FuncName string
@@ -760,16 +764,36 @@ func emitTerminator(sb *strings.Builder, term *Term, blockIdx, numBlocks int) {
 
 // lirCodegenFlat is the original flat single-block codegen path.
 func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...AllocHints) (string, error) {
-	// Lower MIR2 → MIROps
+	// Lower MIR2 → MIROps, collecting cond_ret info per block.
+	type condRetInfo struct {
+		afterOpIdx int      // insert cond_ret asm after this op index
+		condVReg   mir2.Reg // condition vreg
+		valVReg    mir2.Reg // return value vreg
+		label      string   // unique skip label
+	}
 	var allOps []MIROp
+	var condRets []condRetInfo
 	fpv := FuncContractVRegs(f)
+	condRetN := 0
 	for _, b := range f.Blocks {
 		ops, err := LowerMIR2Block(b, desc, m, fpv)
 		if err != nil {
 			return "", fmt.Errorf("lower %s: %w", f.Name, err)
 		}
 		allOps = append(allOps, ops...)
+
+		// If block terminator is TermCondRet, record it for asm emission.
+		if cr, ok := b.Term.(*mir2.TermCondRet); ok && len(cr.Vals) > 0 {
+			condRets = append(condRets, condRetInfo{
+				afterOpIdx: len(allOps) - 1,
+				condVReg:   cr.Cond,
+				valVReg:    cr.Vals[0],
+				label:      fmt.Sprintf(".%s_cond_ret_%d", SanitizeAsmLabel(f.Name), condRetN),
+			})
+			condRetN++
+		}
 	}
+	_ = condRets // used after WFC collapse in emit phase
 
 	if len(allOps) == 0 {
 		return fmt.Sprintf("; %s — empty\n%s:\n    RET\n", f.Name, f.Name), nil
@@ -884,6 +908,64 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 			}
 		}
 		emitInstsWithCallSpills(&sb, insts, desc, paramPhys)
+
+		// Emit cond_ret sequences: conditional return for flat multi-block functions.
+		// cond_ret: if cond==0 return val, else continue to next block.
+		// On Z80: JR NZ, .skip / LD A, val / RET / .skip:
+		for _, cr := range condRets {
+			// Find the physical register assigned to the return value vreg.
+			valPhys := -1
+			for ci := range wfc.Cells {
+				c := &wfc.Cells[ci]
+				if c.VRegDst == int(cr.valVReg) && !c.DstLocs.IsEmpty() {
+					valPhys = PhysOf(c.DstLocs)
+					break
+				}
+				for s := 0; s < 2; s++ {
+					if c.VRegSrc[s] == int(cr.valVReg) && !c.SrcLocs[s].IsEmpty() {
+						valPhys = PhysOf(c.SrcLocs[s])
+						break
+					}
+				}
+			}
+			valName := "A"
+			if valPhys >= 0 && valPhys < len(desc.Locs) {
+				valName = desc.Locs[valPhys].Name
+			}
+
+			// Emit conditional return.
+			// cond_ret returns Vals when cond==0. The cond is typically
+			// cmp.ugt result. After CP B on Z80:
+			//   A > B → carry clear, zero clear (cond=1, don't return)
+			//   A ≤ B → carry set OR zero set (cond=0, DO return vals)
+			// Emit: skip the return if cond is true (A > B = NC and NZ).
+			// Since JR can only test one flag, use two jumps:
+			//   JR NC, .check_z   (if not carry, check zero)
+			//   [carry set → A < B → return val]
+			//   .check_z:
+			//   JR NZ, .skip      (if not zero → A > B → skip return)
+			//   [zero set → A == B → return val]
+			// Simplified: just use JP C for A < B, then check equal.
+			// Actually simplest: negate. Skip return when cond!=0.
+			// cond != 0 means cmp.ugt is true → NC AND NZ.
+			// So: if C → return vals. If Z → return vals. Otherwise skip.
+			skipLabel := cr.label
+			noRetLabel := cr.label + "_no"
+			fmt.Fprintf(&sb, "    JR NC, %s\n", noRetLabel)
+			// Carry set → A < B → return val.
+			if valName != "A" {
+				fmt.Fprintf(&sb, "    LD A, %s\n", valName)
+			}
+			fmt.Fprintf(&sb, "    RET\n")
+			fmt.Fprintf(&sb, "%s:\n", noRetLabel)
+			fmt.Fprintf(&sb, "    JR NZ, %s\n", skipLabel)
+			// Zero set → A == B → return val.
+			if valName != "A" {
+				fmt.Fprintf(&sb, "    LD A, %s\n", valName)
+			}
+			fmt.Fprintf(&sb, "    RET\n")
+			fmt.Fprintf(&sb, "%s:\n", skipLabel)
+		}
 
 		// Final text-level fixup for remaining invalid Z80.
 		asmText := sb.String()

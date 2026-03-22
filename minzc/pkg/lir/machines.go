@@ -152,6 +152,7 @@ const (
 	OpCmpImm      = 23 // compare immediate
 	OpStoreGlobal = 24 // store to global symbol address (LD (sym), val)
 	OpLoadGlobal  = 25 // load from global symbol address (LD val, (sym))
+	OpCondRet     = 26 // conditional return: if cond==0, return val
 )
 
 // GenerateRISCPatterns creates fully orthogonal patterns for a RISC machine.

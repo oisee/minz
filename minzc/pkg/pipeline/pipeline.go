@@ -204,6 +204,8 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	}
 
 	if opt.UseLIR {
+		// Tell assert bootstrap to use contract classes, not PBQP alloc.
+		lir.UseLIRContracts = true
 		// Convert PBQP allocation to LIR hints for guided WFC.
 		hints := pbqpToLIRHints(combined, lir.Z80)
 
@@ -623,11 +625,44 @@ func buildAssertBootstrap(org int, a hir.Assert, mf *mir2.Func, ar *mir2.AllocRe
 			break
 		}
 		param := mf.Contract.Params[i]
-		loc, ok := ar.Locs[param.Reg]
-		if !ok {
+		// When LIR is active, use PFCCO contract class directly — LIR's WFC
+		// assigns registers from contract classes, not PBQP allocation.
+		// PBQP may assign different registers than LIR (e.g. C vs B for ClassGeneral).
+		locName := ""
+		if ar != nil && !lir.UseLIRContracts {
+			if loc, ok := ar.Locs[param.Reg]; ok {
+				locName = loc.Name
+			}
+		}
+		if locName == "" {
+			// Use PFCCO contract class as register name.
+			switch param.Class {
+			case mir2.ClassAcc:
+				locName = "A"
+			case mir2.ClassGeneral, mir2.ClassCounter:
+				locName = "B" // default general = B on Z80
+			case mir2.ClassRegC:
+				locName = "C"
+			case mir2.ClassRegD:
+				locName = "D"
+			case mir2.ClassRegE:
+				locName = "E"
+			case mir2.ClassRegH:
+				locName = "H"
+			case mir2.ClassRegL:
+				locName = "L"
+			case mir2.ClassPointer:
+				locName = "HL"
+			case mir2.ClassIndex:
+				locName = "DE"
+			case mir2.ClassPair:
+				locName = "BC"
+			}
+		}
+		if locName == "" {
 			continue
 		}
-		fmt.Fprintf(&boot, "    LD %s, %d\n", loc.Name, arg)
+		fmt.Fprintf(&boot, "    LD %s, %d\n", locName, arg)
 	}
 	fmt.Fprintf(&boot, "    CALL %s\n", a.FuncName)
 	boot.WriteString("    DI\n    HALT\n")
