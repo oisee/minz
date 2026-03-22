@@ -288,6 +288,13 @@ func (p *parser) parseModule() (*hir.Module, error) {
 				return nil, err
 			}
 			mod.Asserts = append(mod.Asserts, a)
+		case "prop":
+			fn, asserts, err := p.parseProp()
+			if err != nil {
+				return nil, err
+			}
+			mod.Funcs = append(mod.Funcs, fn)
+			mod.Asserts = append(mod.Asserts, asserts...)
 		case "type":
 			if err := p.parseTypeDecl(); err != nil {
 				return nil, err
@@ -422,6 +429,70 @@ func (p *parser) parseRecordFields(name string) error {
 	st := &mir2.StructTy{Name: name, Fields: fields}
 	p.records = append(p.records, st)
 	return nil
+}
+
+// parseProp: prop |x| lhs == rhs
+// Generates: __prop_N(x : u8) : u8 = if lhs == rhs then 1 else 0
+// + 256 asserts: assert __prop_N 0 == 1, assert __prop_N 1 == 1, ...
+func (p *parser) parseProp() (*hir.Func, []hir.Assert, error) {
+	p.next() // consume "prop"
+	line := p.line
+
+	// Parse lambda: |param| body
+	if err := p.expect(tokOp, "|"); err != nil {
+		return nil, nil, fmt.Errorf("line %d: prop: expected |param| expr == expr", line)
+	}
+	paramTok := p.next()
+	if err := p.expect(tokOp, "|"); err != nil {
+		return nil, nil, err
+	}
+
+	// Parse: lhs == rhs
+	lhs, err := p.parseAdd()
+	if err != nil {
+		return nil, nil, err
+	}
+	if err := p.expect(tokOp, "=="); err != nil {
+		return nil, nil, fmt.Errorf("line %d: prop: expected '==' in property", line)
+	}
+	rhs, err := p.parseAdd()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Generate test function: __prop_N(x) = if lhs == rhs then 1 else 0
+	propName := fmt.Sprintf("__prop_%d", p.lambdaCount)
+	p.lambdaCount++
+
+	cond := &hir.BinExpr{Op: "==", L: lhs, R: rhs, Ty: mir2.TyBool}
+	body := &hir.CondExpr{
+		Cond: cond,
+		Then: &hir.IntLitExpr{Val: 1, Ty: mir2.TyU8},
+		Else: &hir.IntLitExpr{Val: 0, Ty: mir2.TyU8},
+		Ty:   mir2.TyU8,
+	}
+
+	fn := &hir.Func{
+		Name:   propName,
+		Params: []hir.Param{{Name: paramTok.text, Ty: mir2.TyU8}},
+		RetTy:  mir2.TyU8,
+		Body:   &hir.Block{Body: []hir.Stmt{&hir.ReturnStmt{Val: body}}},
+	}
+
+	// Generate 256 asserts (one per u8 value)
+	var asserts []hir.Assert
+	for i := int64(0); i < 256; i++ {
+		asserts = append(asserts, hir.Assert{
+			FuncName: propName,
+			Args:     []int64{i},
+			Expected: 1,
+			Source:   fmt.Sprintf("prop |%s| ... (x=%d)", paramTok.text, i),
+			Line:     line,
+			Via:      "mir2",
+		})
+	}
+
+	return fn, asserts, nil
 }
 
 // parseLet parses:  let name (p1 : t1) (p2 : t2) : retty = body
@@ -1163,7 +1234,7 @@ func (p *parser) parseType() mir2.Ty {
 
 func isKeyword(s string) bool {
 	switch s {
-	case "let", "in", "if", "then", "else", "type", "assert", "match", "with", "fun", "end", "where", "when":
+	case "let", "in", "if", "then", "else", "type", "assert", "match", "with", "fun", "end", "where", "when", "prop":
 		return true
 	}
 	return false
