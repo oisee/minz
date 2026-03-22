@@ -60,7 +60,7 @@ func (g *gen) emitModule() {
 	g.line("")
 
 	// Globals as heap offsets
-	if len(g.mod.Globals) > 0 {
+	{
 		g.line("// globals (heap offsets)")
 		offset := 0
 		for _, gl := range g.mod.Globals {
@@ -79,8 +79,7 @@ func (g *gen) emitModule() {
 	if g.mod.Strings.Len() > 0 {
 		g.line("// string pool (heap offsets)")
 		for i := 0; i < g.mod.Strings.Len(); i++ {
-			sym := goSym(g.mod.Strings.Symbol(i))
-			g.printf("var %s int64\n", sym)
+			g.printf("var str_%d int64\n", i)
 		}
 		g.line("")
 	}
@@ -172,8 +171,7 @@ func (g *gen) emitMain() {
 		g.printf("\tstrOff := int64(heapGlobalsEnd)\n")
 		for i := 0; i < g.mod.Strings.Len(); i++ {
 			s := g.mod.Strings.At(i)
-			sym := goSym(g.mod.Strings.Symbol(i))
-			g.printf("\t%s = strOff\n", sym)
+			g.printf("\tstr_%d = strOff\n", i)
 			for _, b := range []byte(s) {
 				g.printf("\theap[strOff] = %d; strOff++\n", b)
 			}
@@ -366,7 +364,12 @@ func (g *gen) emitInst(inst *mir2.Inst) {
 		}
 
 	case mir2.OpAddrOf:
-		g.printf("\t%s = gl_%s\n", r(dst), goSym(inst.Sym))
+		sym := goSym(inst.Sym)
+		// String pool references: @mir2.str.N → str_N
+		if strings.HasPrefix(inst.Sym, "@mir2.str.") {
+			sym = "str_" + strings.TrimPrefix(inst.Sym, "@mir2.str.")
+		}
+		g.printf("\t%s = %s\n", r(dst), sym)
 	case mir2.OpField, mir2.OpPtrBump:
 		g.printf("\t%s = %s + %d\n", r(dst), r(a), inst.Imm)
 	case mir2.OpPtrAdd:
