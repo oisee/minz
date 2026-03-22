@@ -405,13 +405,13 @@ func (g *gen) emitCmp(inst *mir2.Inst) {
 		op = "="
 	case mir2.CmpNe:
 		op = "<>"
-	case mir2.CmpLt, mir2.CmpSubCarry:
+	case mir2.CmpLt, mir2.CmpUlt, mir2.CmpSubCarry:
 		op = "<"
-	case mir2.CmpLe:
+	case mir2.CmpLe, mir2.CmpUle:
 		op = "<="
-	case mir2.CmpGt, mir2.CmpSubCarryNot:
+	case mir2.CmpGt, mir2.CmpUgt, mir2.CmpSubCarryNot:
 		op = ">"
-	case mir2.CmpGe:
+	case mir2.CmpGe, mir2.CmpUge:
 		op = ">="
 	default:
 		op = "="
