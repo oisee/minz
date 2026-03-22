@@ -1772,6 +1772,15 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 			break
 		}
 	}
+	// Also check function contract params (entry block has no block params).
+	if g.pendingAccReg == NoReg && b == g.fn.Entry() {
+		for _, cp := range g.fn.Contract.Params {
+			if cp.Reg != NoReg && g.ar.Loc(cp.Reg).Name == "A" {
+				g.pendingAccReg = cp.Reg
+				break
+			}
+		}
+	}
 
 	// Pre-scan: identify page-aligned LUT access patterns so we can merge
 	// Ext + AddrOf + PtrAdd + Load into: LD HL,sym; LD L,src8; LD A,(HL).
@@ -2892,7 +2901,9 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		// This fires when two successive 8-bit ALU ops both need A: the first
 		// result (r33=acc) must survive while the second (r35=i+1) runs.
 		// Skip when the peephole below will use INC/DEC (does not touch A).
-		willUseINCDEC := (mnem == "ADD" || mnem == "SUB") && lhs == dst
+		// INC/DEC doesn't clobber A — only fires when rhs is a small constant.
+		_, rhsIsConst := g.constVals[inst.Src[1]]
+		willUseINCDEC := (mnem == "ADD" || mnem == "SUB") && lhs == dst && rhsIsConst
 		if !willUseINCDEC {
 			g.materializePendingAcc(inst)
 		}
