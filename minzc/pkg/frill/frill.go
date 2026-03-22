@@ -527,6 +527,19 @@ func (p *parser) parsePipe() (hir.Expr, error) {
 			continue
 		}
 
+		// Operator section in pipe: |> (+1) or |> (*2)
+		if p.peek().kind == tokLParen {
+			section, err := p.parsePrimary() // parsePrimary handles (op arg) → __section_N
+			if err != nil {
+				return nil, err
+			}
+			// section is VarRefExpr pointing to __section_N
+			if vr, ok := section.(*hir.VarRefExpr); ok {
+				left = &hir.CallExpr{Fn: vr.Name, Args: []hir.Expr{left}, Ty: left.ExprTy()}
+			}
+			continue
+		}
+
 		// Named function: fn arg1 arg2 ...
 		fnTok := p.next()
 		if fnTok.kind != tokIdent {
@@ -613,9 +626,32 @@ func (p *parser) parseUnary() (hir.Expr, error) {
 func (p *parser) parsePrimary() (hir.Expr, error) {
 	t := p.peek()
 
-	// Parenthesized expression
+	// Parenthesized expression or operator section
 	if t.kind == tokLParen {
 		p.next()
+		// Operator section: (+1) → lambda |__x| __x + 1
+		if p.peek().kind == tokOp {
+			op := p.next().text
+			arg, err := p.parseExpr()
+			if err != nil {
+				return nil, err
+			}
+			if err := p.expect(tokRParen, ")"); err != nil {
+				return nil, err
+			}
+			// Generate lambda: __section_N(x) = x op arg
+			paramName := fmt.Sprintf("__s%d", p.lambdaCount)
+			lambdaName := fmt.Sprintf("__section_%d", p.lambdaCount)
+			p.lambdaCount++
+			body := &hir.BinExpr{Op: op, L: &hir.VarRefExpr{Name: paramName, Ty: arg.ExprTy()}, R: arg, Ty: arg.ExprTy()}
+			p.autoFuncs = append(p.autoFuncs, &hir.Func{
+				Name:   lambdaName,
+				Params: []hir.Param{{Name: paramName, Ty: arg.ExprTy()}},
+				RetTy:  arg.ExprTy(),
+				Body:   &hir.Block{Body: []hir.Stmt{&hir.ReturnStmt{Val: body}}},
+			})
+			return &hir.VarRefExpr{Name: lambdaName, Ty: mir2.TyU8}, nil
+		}
 		e, err := p.parseExpr()
 		if err != nil {
 			return nil, err
