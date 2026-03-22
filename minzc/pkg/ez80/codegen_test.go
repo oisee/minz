@@ -404,8 +404,8 @@ func TestEZ80_MIR2Pipeline(t *testing.T) {
 	if !strings.Contains(asm, ".ASSUME ADL=1") {
 		t.Error("missing .ASSUME ADL=1")
 	}
-	if !strings.Contains(asm, "ORG $040000") {
-		t.Error("missing ORG $040000")
+	if !strings.Contains(asm, "ORG $040045") {
+		t.Error("missing ORG $040045")
 	}
 	if !strings.Contains(asm, "add:") {
 		t.Error("missing function label 'add:'")
