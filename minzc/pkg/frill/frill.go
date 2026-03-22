@@ -46,6 +46,7 @@ import (
 	"unicode"
 
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/mir2"
 )
 
@@ -477,9 +478,20 @@ func (p *parser) parseImport() (*hir.Module, error) {
 	if err != nil {
 		return nil, fmt.Errorf("line %d: import %q: %w", pathTok.line, pathTok.text, err)
 	}
-	child, err := CompileWithOpts(string(src), filepath.Base(filePath), CompileOpts{
-		BaseDir: filepath.Dir(filePath),
-	})
+	ext := filepath.Ext(filePath)
+	var child *hir.Module
+	switch ext {
+	case ".frl":
+		child, err = CompileWithOpts(string(src), filepath.Base(filePath), CompileOpts{
+			BaseDir: filepath.Dir(filePath),
+		})
+	case ".nanz":
+		child, err = nanz.ParseWithOpts(string(src), filePath, nanz.ParseOpts{
+			BaseDir: filepath.Dir(filePath),
+		})
+	default:
+		return nil, fmt.Errorf("line %d: import: unsupported extension %s", pathTok.line, ext)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("import %q: %w", pathTok.text, err)
 	}

@@ -2,9 +2,7 @@
 (* Compile: minzc hello_cpm.frl -t cpm -o hello.com *)
 
 import "../../stdlib/frill/math.frl"
-
-extern putchar (ch : u8) : void
-extern newline (x : u8) : void
+import "../../stdlib/frill/io_cpm.nanz"
 
 let print_digit (n : u8) = putchar (n + 48)
 let print_u8 (n : u8) =
