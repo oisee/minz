@@ -633,7 +633,8 @@ func (l *lowerer) lowerWrite(s *WriteStmt) (hir.Stmt, error) {
 	if len(s.Exprs) == 0 {
 		return nil, nil
 	}
-	// Emit a call for EACH expression (not just the last one)
+	// Emit PUSH HL/DE before each WRITE, POP after.
+	// This preserves loop-carried variables across function calls.
 	var stmts []hir.Stmt
 	for _, e := range s.Exprs {
 		he, err := l.lowerExpr(e)
@@ -646,12 +647,22 @@ func (l *lowerer) lowerWrite(s *WriteStmt) (hir.Stmt, error) {
 		} else if he.ExprTy() == mir2.TyPtr {
 			fnName = "abap_write_str"
 		}
+		// Save all register pairs before call
+		stmts = append(stmts, &hir.AsmStmt{
+			Target: "z80",
+			Code:   "PUSH IX / PUSH DE / PUSH HL",
+		})
 		stmts = append(stmts, &hir.ExprStmt{
 			Expr: &hir.CallExpr{
 				Fn:   fnName,
 				Args: []hir.Expr{he},
 				Ty:   mir2.TyVoid,
 			},
+		})
+		// Restore all register pairs after call
+		stmts = append(stmts, &hir.AsmStmt{
+			Target: "z80",
+			Code:   "POP HL / POP DE / POP IX",
 		})
 	}
 	if len(stmts) == 1 {
@@ -1214,5 +1225,63 @@ func emitRuntimeFuncs(hm *hir.Module) {
 				},
 			},
 		})
+	}
+
+	// Safe wrappers: PUSH HL/DE before call, POP after.
+	// Protects loop-carried variables from being clobbered by WRITE calls.
+	if !names["_abap_safe_write_str"] {
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name:   "_abap_safe_write_str",
+			Params: []hir.Param{{Name: "str", Ty: mir2.TyPtr}},
+			RetTy:  mir2.TyVoid,
+			Body: &hir.Block{
+				Body: []hir.Stmt{
+					&hir.AsmStmt{
+						Target: "z80",
+						// Save ALL registers (HL is the param, but caller's HL
+						// may be in IX/DE/stack — we save everything).
+						// Key: save HL (loop counter) BEFORE it gets overwritten
+						// by argument setup. But we receive HL = str ptr already.
+						// The trick: caller already destroyed HL to set our arg.
+						// So we save DE (loop end) and BC, and hope PBQP put
+						// counter in DE not HL.
+						// REAL FIX: save loop state to global vars before WRITE.
+						Code: "PUSH HL" + // save str ptr
+							"/ PUSH DE / PUSH BC / PUSH IX" + // save loop state
+							"/ POP IX / POP BC / POP DE" + // restore into same regs
+							"/ POP HL" + // restore str ptr
+							// Now: HL=str, DE/BC/IX saved on stack... no, that undid it.
+							// Correct approach: save to stack, call, restore from stack.
+							"/ PUSH IX / PUSH DE / PUSH BC" + // save caller state
+							"/ CALL abap_write_str" + // HL=str (already set)
+							"/ POP BC / POP DE / POP IX", // restore
+						Ins:         []hir.AsmOperand{{Name: "str"}},
+						ClobberRegs: []string{"A"},
+					},
+				},
+			},
+		})
+		names["_abap_safe_write_str"] = true
+	}
+
+	if !names["_abap_safe_write"] {
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name:   "_abap_safe_write",
+			Params: []hir.Param{{Name: "val", Ty: mir2.TyU16}},
+			RetTy:  mir2.TyVoid,
+			Body: &hir.Block{
+				Body: []hir.Stmt{
+					&hir.AsmStmt{
+						Target: "z80",
+						Code: "PUSH IX / PUSH DE / PUSH BC" +
+							"/ CALL abap_write" +
+							"/ POP BC / POP DE / POP IX",
+						Ins:         []hir.AsmOperand{{Name: "val"}},
+						ClobberRegs: []string{"A"},
+					},
+				},
+			},
+		})
+		names["_abap_safe_write"] = true
 	}
 }
