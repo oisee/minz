@@ -1143,21 +1143,18 @@ func (p *parser) parseIf() (hir.Expr, error) {
 func (p *parser) parseBodyExpr() (hir.Expr, []hir.Stmt, error) {
 	var stmts []hir.Stmt
 
-	// do-statements: do expr (discard result, sequence side effects)
-	for p.peek().kind == tokIdent && p.peek().text == "do" {
-		p.next() // consume "do"
-		doExpr, err := p.parseExpr()
-		if err != nil {
-			return nil, nil, err
-		}
-		// Desugar: do expr → var __discard_N = expr (call for side effect)
-		discardName := fmt.Sprintf("__do_%d", p.lambdaCount)
-		p.lambdaCount++
-		stmts = append(stmts, &hir.VarDeclStmt{Name: discardName, Ty: doExpr.ExprTy(), Init: doExpr})
-	}
-
-	// let-in chains
-	for p.peek().kind == tokIdent && p.peek().text == "let" {
+	// Interleaved do-statements and let-in bindings
+	for {
+		if p.peek().kind == tokIdent && p.peek().text == "do" {
+			p.next()
+			doExpr, err := p.parseExpr()
+			if err != nil {
+				return nil, nil, err
+			}
+			discardName := fmt.Sprintf("__do_%d", p.lambdaCount)
+			p.lambdaCount++
+			stmts = append(stmts, &hir.VarDeclStmt{Name: discardName, Ty: doExpr.ExprTy(), Init: doExpr})
+		} else if p.peek().kind == tokIdent && p.peek().text == "let" {
 		// Peek ahead: is this let-in or a function call to "let" (shouldn't happen)?
 		// Save position to restore if this isn't a let-in
 		p.next() // consume "let"
@@ -1180,6 +1177,9 @@ func (p *parser) parseBodyExpr() (hir.Expr, []hir.Stmt, error) {
 			Ty:   val.ExprTy(),
 			Init: val,
 		})
+		} else {
+			break
+		}
 	}
 	expr, err := p.parseExpr()
 	if err != nil {
