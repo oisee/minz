@@ -1,0 +1,81 @@
+(* Frill math library — pure functional, all verified *)
+
+let add (a : u8) (b : u8) : u8 = a + b
+let sub (a : u8) (b : u8) : u8 = a - b
+let mul (a : u8) (b : u8) : u8 = a * b
+let max (a : u8) (b : u8) : u8 = if a > b then a else b
+let min (a : u8) (b : u8) : u8 = if a < b then a else b
+let abs_diff (a : u8) (b : u8) : u8 = if a > b then a - b else b - a
+
+(* Euclid's GCD *)
+let gcd (a : u8) (b : u8) : u8 =
+  if b == 0 then a else gcd b (a % b)
+
+(* LCM via GCD *)
+let lcm (a : u8) (b : u8) : u8 = a * b / gcd a b
+
+(* Power — simple recursive *)
+let pow (base : u8) (exp : u8) : u8 =
+  if exp == 0 then 1
+  else base * pow base (exp - 1)
+
+(* Primality test *)
+let is_prime_helper (n : u8) (d : u8) : u8 =
+  if d * d > n then 1
+  else if n % d == 0 then 0
+  else is_prime_helper n (d + 1)
+
+let is_prime (n : u8) : u8 =
+  if n < 2 then 0
+  else is_prime_helper n 2
+
+(* Fibonacci *)
+let fib (n : u8) : u8 =
+  if n == 0 then 0
+  else if n == 1 then 1
+  else add (fib (n - 1)) (fib (n - 2))
+
+(* Factorial *)
+let fact (n : u8) : u8 =
+  if n == 0 then 1 else n * fact (n - 1)
+
+(* Sum 1..n *)
+let sum_to (n : u8) : u8 = n * (n + 1) / 2
+
+(* Collatz step *)
+let collatz (n : u8) : u8 =
+  if n == 1 then 1
+  else if n % 2 == 0 then n / 2
+  else n * 3 + 1
+
+(* Digital root: repeatedly sum digits until single digit *)
+let digital_root (n : u8) : u8 =
+  if n < 10 then n
+  else digital_root (n / 10 + n % 10)
+
+(* Pipeline demo: transform chain *)
+let transform (x : u8) : u8 =
+  x |> (+1) |> |n| n * n
+
+(* ── Assertions ── *)
+assert gcd 12 8 == 4
+assert gcd 15 10 == 5
+assert gcd 7 13 == 1
+assert lcm 4 6 == 12
+assert pow 2 0 == 1
+assert pow 2 4 == 16
+assert pow 3 3 == 27
+assert is_prime 2 == 1
+assert is_prime 7 == 1
+assert is_prime 9 == 0
+assert is_prime 13 == 1
+assert fib 7 == 13
+assert fact 5 == 120
+assert sum_to 10 == 55
+assert collatz 6 == 3
+assert collatz 5 == 16
+assert digital_root 38 == 2
+assert digital_root 99 == 9
+assert transform 4 == 25
+
+let main (x : u8) : u8 = 0
