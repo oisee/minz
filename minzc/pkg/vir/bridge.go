@@ -157,6 +157,38 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 			Src: [2]int{int(inst.Src[0]), -1}, Width: w,
 		}}, nil
 
+	case mir2.OpNot:
+		// Bitwise NOT: XOR A, 0xFF (complement)
+		// Implemented as XOR with immediate 0xFF
+		return []VIROp{{
+			Op: OpXorImm, Dst: int(inst.Dst), Src: [2]int{int(inst.Src[0]), -1},
+			Imm: 0xFF, Width: w,
+		}}, nil
+
+	case mir2.OpDiv, mir2.OpSDiv:
+		// Division → runtime call __div8 or __div16
+		sym := "__div8"
+		if w == 16 {
+			sym = "__div16"
+		}
+		return []VIROp{{
+			Op: OpCall, Dst: int(inst.Dst),
+			Src: [2]int{int(inst.Src[0]), int(inst.Src[1])},
+			Sym: sym, Width: w,
+		}}, nil
+
+	case mir2.OpMod:
+		// Modulo → runtime call __mod8 or __mod16
+		sym := "__mod8"
+		if w == 16 {
+			sym = "__mod16"
+		}
+		return []VIROp{{
+			Op: OpCall, Dst: int(inst.Dst),
+			Src: [2]int{int(inst.Src[0]), int(inst.Src[1])},
+			Sym: sym, Width: w,
+		}}, nil
+
 	case mir2.OpAddrOf:
 		return []VIROp{{
 			Op: OpConst, Dst: int(inst.Dst), Sym: inst.Sym, Width: 16,

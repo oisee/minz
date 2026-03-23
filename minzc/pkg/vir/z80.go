@@ -254,6 +254,18 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			SrcLocs: [2]LocSet{Z80_A},
 			Template: "CP {imm}", Cost: 7, Bytes: 2,
 			Clobbers: Z80_Flags, Flags: PatImmediate},
+		{Name: "and_a_n", Op: OpAndImm, Width: 8, DstLocs: Z80_A,
+			SrcLocs: [2]LocSet{Z80_A},
+			Template: "AND {imm}", Cost: 7, Bytes: 2,
+			Clobbers: Z80_Flags, Flags: PatImmediate, TiedDstSrc: true},
+		{Name: "or_a_n", Op: OpOrImm, Width: 8, DstLocs: Z80_A,
+			SrcLocs: [2]LocSet{Z80_A},
+			Template: "OR {imm}", Cost: 7, Bytes: 2,
+			Clobbers: Z80_Flags, Flags: PatImmediate, TiedDstSrc: true},
+		{Name: "xor_a_n", Op: OpXorImm, Width: 8, DstLocs: Z80_A,
+			SrcLocs: [2]LocSet{Z80_A},
+			Template: "XOR {imm}", Cost: 7, Bytes: 2,
+			Clobbers: Z80_Flags, Flags: PatImmediate, TiedDstSrc: true},
 
 		// INC/DEC (any GPR, in-place, immediate +1/-1 only, dst tied to src0)
 		{Name: "inc_r", Op: OpAddImm, Width: 8, DstLocs: Z80_GPR8,
