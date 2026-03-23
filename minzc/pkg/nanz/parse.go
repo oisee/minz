@@ -851,16 +851,8 @@ func (p *parser) parseModule() (*hir.Module, error) {
 			}
 			m.Sandboxes = append(m.Sandboxes, sb)
 
-		case t.kind == tokSemi:
-			// Skip optional semicolons (MinZ compatibility)
-			p.l.next()
-
-		default:
+			default:
 			return nil, fmt.Errorf("line %d: unexpected token %q at module level", t.line, t.val)
-		}
-		// Skip trailing semicolons after any declaration (MinZ compatibility)
-		for p.l.is(tokSemi) {
-			p.l.next()
 		}
 	}
 	// Append lambdas generated during parsing (non-capturing anonymous functions).
@@ -2499,23 +2491,12 @@ func (p *parser) parseBlock() (*hir.Block, error) {
 	}
 	var stmts []hir.Stmt
 	for !p.l.is(tokRBrace) && !p.l.is(tokEOF) {
-		// Skip optional semicolons (MinZ compatibility)
-		for p.l.is(tokSemi) {
-			p.l.next()
-		}
-		if p.l.is(tokRBrace) || p.l.is(tokEOF) {
-			break
-		}
 		s, err := p.parseStmt()
 		if err != nil {
 			return nil, err
 		}
 		if s != nil {
 			stmts = append(stmts, s)
-		}
-		// Skip trailing semicolons after statements
-		for p.l.is(tokSemi) {
-			p.l.next()
 		}
 	}
 	if _, err := p.l.eat(tokRBrace); err != nil {
