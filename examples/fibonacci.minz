@@ -1,24 +1,24 @@
 // Fibonacci sequence calculator
 fun fibonacci(n: u8) -> u16 {
     if n <= 1 {
-        return n;
+        return n
     }
     
-    let mut a: u16 = 0;
-    let mut b: u16 = 1;
-    let mut i: u8 = 2;
+    var a: u16 = 0
+    var b: u16 = 1
+    var i: u8 = 2
     
     while i <= n {
-        let temp: u16 = a + b;
-        a = b;
-        b = temp;
-        i = i + 1;
+        let temp: u16 = a + b
+        a = b
+        b = temp
+        i = i + 1
     }
     
-    return b;
+    return b
 }
 
 fun main() -> void {
     // Calculate 10th Fibonacci number
-    let result = fibonacci(10);
+    let result = fibonacci(10)
 }

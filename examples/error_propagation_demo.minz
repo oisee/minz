@@ -10,32 +10,32 @@ enum MathError {
 // Function that can fail - uses @error with enum value
 fun safe_divide?(a: u8, b: u8) -> u8 ! MathError {
     if b == 0 {
-        @error(MathError.DivByZero);
+        @error(MathError.DivByZero)
     }
     // Simple division for demo (real div would be more complex)
-    return a;
+    return a
 }
 
 // Function using manual asm for error (alternative approach)
 fun checked_add?(a: u8, b: u8) -> u8 ! MathError {
-    let result = a + b;
+    let result = a + b
     // Check for overflow (if result < a, overflow occurred)
     if result < a {
-        @error(MathError.Overflow);
+        @error(MathError.Overflow)
     }
-    return result;
+    return result
 }
 
 fun main() -> void {
     // Test safe_divide - should succeed
-    let r1: u8 = safe_divide?(10, 2);
+    let r1: u8 = safe_divide?(10, 2)
 
     // Test safe_divide with zero - should error
-    let r2: u8 = safe_divide?(10, 0);
+    let r2: u8 = safe_divide?(10, 0)
 
     // Test checked_add - should succeed
-    let r3: u8 = checked_add?(100, 50);
+    let r3: u8 = checked_add?(100, 50)
 
     // Test checked_add with overflow
-    let r4: u8 = checked_add?(200, 100);
+    let r4: u8 = checked_add?(200, 100)
 }

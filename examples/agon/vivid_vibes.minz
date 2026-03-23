@@ -11,31 +11,31 @@
 //   3. For each frame: build VDU sequence in scratch buffer, upload via vdu_buffer_write
 //   4. Playback loop: vdu_buffer_call(id) + vdu_swap() + wait_vblank() = 9 bytes/frame
 
-import stdlib.agon.mos;
-import stdlib.agon.vdp;
+import stdlib.agon.mos
+import stdlib.agon.vdp
 
 // =============================================================================
 // Constants
 // =============================================================================
 
-const LZSS_WINDOW_SIZE: u16 = 4096;
-const LZSS_MIN_MATCH: u8 = 3;
+const LZSS_WINDOW_SIZE: u16 = 4096
+const LZSS_MIN_MATCH: u8 = 3
 
 // VDU command bytes for building frame buffers
-const VDU_CLG_BYTE: u8 = 16;
-const VDU_GCOL_CMD: u8 = 18;
-const VDU_PLOT_CMD: u8 = 25;
+const VDU_CLG_BYTE: u8 = 16
+const VDU_GCOL_CMD: u8 = 18
+const VDU_PLOT_CMD: u8 = 25
 const PLOT_MOVE_ABS: u8 = 4;      // MOVE absolute
 const PLOT_TRI_FILL: u8 = 85;     // Fill triangle to last two moves
 
 // Buffer IDs
-const CUBE_BASE_ID: u16 = 1;
+const CUBE_BASE_ID: u16 = 1
 
 // Max triangles per frame (cube has ~12)
-const MAX_TRIS: u8 = 24;
+const MAX_TRIS: u8 = 24
 
 // Max VDU bytes per frame: CLG(1) + MAX_TRIS * (GCOL(3) + MOVE(6) + MOVE(6) + PLOT(6))
-const MAX_FRAME_BYTES: u16 = 505;
+const MAX_FRAME_BYTES: u16 = 505
 
 // =============================================================================
 // Memory Layout
@@ -43,10 +43,10 @@ const MAX_FRAME_BYTES: u16 = 505;
 
 // Decompression buffer — holds decompressed columnar data
 // Cube: ~27KB decompressed, fits in u16 addressing
-global decomp_buf: [u8; 28000];
+global decomp_buf: [u8; 28000]
 
 // Scratch buffer for building VDU commands per frame
-global scratch_buf: [u8; 512];
+global scratch_buf: [u8; 512]
 
 // =============================================================================
 // LZSS Decompressor
@@ -58,59 +58,59 @@ global scratch_buf: [u8; 512];
 //   bit=0: literal (1 byte)
 //   bit=1: match (2 bytes: 12-bit offset + 4-bit length)
 fun lzss_decompress(src: ^u8, src_len: u16, dst: ^u8, dst_size: u16) -> u16 {
-    let mut si: u16 = 0;
-    let mut di: u16 = 0;
+    var si: u16 = 0
+    var di: u16 = 0
 
     while si < src_len {
         if di >= dst_size {
-            return di;
+            return di
         }
 
-        let flags: u8 = src[si];
-        si = si + 1;
+        let flags: u8 = src[si]
+        si = si + 1
 
-        let mut bit: u8 = 0;
+        var bit: u8 = 0
         while bit < 8 {
             if si >= src_len {
-                return di;
+                return di
             }
             if di >= dst_size {
-                return di;
+                return di
             }
 
             if (flags >> bit) & 1 == 1 {
                 // Match: decode 12-bit offset + 4-bit length
-                let b0: u8 = src[si];
-                si = si + 1;
-                let b1: u8 = src[si];
-                si = si + 1;
+                let b0: u8 = src[si]
+                si = si + 1
+                let b1: u8 = src[si]
+                si = si + 1
 
-                let offset: u16 = (((b1 as u16) & 0xF0) << 4) | (b0 as u16);
-                let match_offset: u16 = offset + 1;
-                let length: u8 = (b1 & 0x0F) + LZSS_MIN_MATCH;
+                let offset: u16 = (((b1 as u16) & 0xF0) << 4) | (b0 as u16)
+                let match_offset: u16 = offset + 1
+                let length: u8 = (b1 & 0x0F) + LZSS_MIN_MATCH
 
-                let copy_from: u16 = di - match_offset;
-                let mut j: u8 = 0;
+                let copy_from: u16 = di - match_offset
+                var j: u8 = 0
                 while j < length {
                     if di >= dst_size {
-                        return di;
+                        return di
                     }
-                    dst[di] = dst[copy_from + (j as u16)];
-                    di = di + 1;
-                    j = j + 1;
+                    dst[di] = dst[copy_from + (j as u16)]
+                    di = di + 1
+                    j = j + 1
                 }
             } else {
                 // Literal: copy one byte
-                dst[di] = src[si];
-                si = si + 1;
-                di = di + 1;
+                dst[di] = src[si]
+                si = si + 1
+                di = di + 1
             }
 
-            bit = bit + 1;
+            bit = bit + 1
         }
     }
 
-    return di;
+    return di
 }
 
 // =============================================================================
@@ -138,44 +138,44 @@ struct EffectData {
 }
 
 // Global effect data (avoid returning struct)
-global effect_num_frames: u16 = 0;
-global effect_max_tris: u8 = 0;
-global effect_col_size: u16 = 0;
+global effect_num_frames: u16 = 0
+global effect_max_tris: u8 = 0
+global effect_col_size: u16 = 0
 
 // Column base offsets from start of decomp_buf (after 3-byte header)
-global col_tri_counts: u16 = 0;
-global col_colors: u16 = 0;
-global col_x1_lo: u16 = 0;
-global col_x1_hi: u16 = 0;
-global col_y1: u16 = 0;
-global col_x2_lo: u16 = 0;
-global col_x2_hi: u16 = 0;
-global col_y2: u16 = 0;
-global col_x3_lo: u16 = 0;
-global col_x3_hi: u16 = 0;
-global col_y3: u16 = 0;
+global col_tri_counts: u16 = 0
+global col_colors: u16 = 0
+global col_x1_lo: u16 = 0
+global col_x1_hi: u16 = 0
+global col_y1: u16 = 0
+global col_x2_lo: u16 = 0
+global col_x2_hi: u16 = 0
+global col_y2: u16 = 0
+global col_x3_lo: u16 = 0
+global col_x3_hi: u16 = 0
+global col_y3: u16 = 0
 
 // Parse effect header from decompressed data and set up column pointers
 fun parse_effect(data: ^u8) {
     // Header: num_frames (u16-LE), max_tris (u8)
-    effect_num_frames = (data[0] as u16) | ((data[1] as u16) << 8);
-    effect_max_tris = data[2];
-    effect_col_size = (effect_max_tris as u16) * effect_num_frames;
+    effect_num_frames = (data[0] as u16) | ((data[1] as u16) << 8)
+    effect_max_tris = data[2]
+    effect_col_size = (effect_max_tris as u16) * effect_num_frames
 
     // Column offsets (header is 3 bytes)
-    let base: u16 = 3;
-    col_tri_counts = base;
+    let base: u16 = 3
+    col_tri_counts = base
     // tri_counts column is num_frames bytes (one per frame, not max_tris * num_frames)
-    col_colors = base + effect_num_frames;
-    col_x1_lo  = col_colors + effect_col_size;
-    col_x1_hi  = col_x1_lo + effect_col_size;
-    col_y1     = col_x1_hi + effect_col_size;
-    col_x2_lo  = col_y1 + effect_col_size;
-    col_x2_hi  = col_x2_lo + effect_col_size;
-    col_y2     = col_x2_hi + effect_col_size;
-    col_x3_lo  = col_y2 + effect_col_size;
-    col_x3_hi  = col_x3_lo + effect_col_size;
-    col_y3     = col_x3_hi + effect_col_size;
+    col_colors = base + effect_num_frames
+    col_x1_lo  = col_colors + effect_col_size
+    col_x1_hi  = col_x1_lo + effect_col_size
+    col_y1     = col_x1_hi + effect_col_size
+    col_x2_lo  = col_y1 + effect_col_size
+    col_x2_hi  = col_x2_lo + effect_col_size
+    col_y2     = col_x2_hi + effect_col_size
+    col_x3_lo  = col_y2 + effect_col_size
+    col_x3_hi  = col_x3_lo + effect_col_size
+    col_y3     = col_x3_hi + effect_col_size
 }
 
 // =============================================================================
@@ -185,86 +185,86 @@ fun parse_effect(data: ^u8) {
 // Build VDU command sequence for a single frame into scratch_buf.
 // Returns the number of bytes written.
 fun build_frame_vdu(data: ^u8, frame: u16) -> u16 {
-    let mut pos: u16 = 0;
-    let ntris: u8 = data[col_tri_counts + frame];
+    var pos: u16 = 0
+    let ntris: u8 = data[col_tri_counts + frame]
 
     // CLG — clear graphics
-    scratch_buf[pos] = VDU_CLG_BYTE;
-    pos = pos + 1;
+    scratch_buf[pos] = VDU_CLG_BYTE
+    pos = pos + 1
 
-    let mut s: u8 = 0;
+    var s: u8 = 0
     while s < ntris {
         // Slot-major index: slot * num_frames + frame
-        let idx: u16 = (s as u16) * effect_num_frames + frame;
+        let idx: u16 = (s as u16) * effect_num_frames + frame
 
         // GCOL 0, color — set fill colour (3 bytes)
-        scratch_buf[pos] = VDU_GCOL_CMD;
-        pos = pos + 1;
-        scratch_buf[pos] = 0;
-        pos = pos + 1;
-        scratch_buf[pos] = data[col_colors + idx];
-        pos = pos + 1;
+        scratch_buf[pos] = VDU_GCOL_CMD
+        pos = pos + 1
+        scratch_buf[pos] = 0
+        pos = pos + 1
+        scratch_buf[pos] = data[col_colors + idx]
+        pos = pos + 1
 
         // MOVE to vertex 1: VDU 25, 4, x_lo, x_hi, y, 0 (6 bytes)
-        scratch_buf[pos] = VDU_PLOT_CMD;
-        pos = pos + 1;
-        scratch_buf[pos] = PLOT_MOVE_ABS;
-        pos = pos + 1;
-        scratch_buf[pos] = data[col_x1_lo + idx];
-        pos = pos + 1;
-        scratch_buf[pos] = data[col_x1_hi + idx];
-        pos = pos + 1;
-        scratch_buf[pos] = data[col_y1 + idx];
-        pos = pos + 1;
-        scratch_buf[pos] = 0;
-        pos = pos + 1;
+        scratch_buf[pos] = VDU_PLOT_CMD
+        pos = pos + 1
+        scratch_buf[pos] = PLOT_MOVE_ABS
+        pos = pos + 1
+        scratch_buf[pos] = data[col_x1_lo + idx]
+        pos = pos + 1
+        scratch_buf[pos] = data[col_x1_hi + idx]
+        pos = pos + 1
+        scratch_buf[pos] = data[col_y1 + idx]
+        pos = pos + 1
+        scratch_buf[pos] = 0
+        pos = pos + 1
 
         // MOVE to vertex 2: VDU 25, 4, x_lo, x_hi, y, 0 (6 bytes)
-        scratch_buf[pos] = VDU_PLOT_CMD;
-        pos = pos + 1;
-        scratch_buf[pos] = PLOT_MOVE_ABS;
-        pos = pos + 1;
-        scratch_buf[pos] = data[col_x2_lo + idx];
-        pos = pos + 1;
-        scratch_buf[pos] = data[col_x2_hi + idx];
-        pos = pos + 1;
-        scratch_buf[pos] = data[col_y2 + idx];
-        pos = pos + 1;
-        scratch_buf[pos] = 0;
-        pos = pos + 1;
+        scratch_buf[pos] = VDU_PLOT_CMD
+        pos = pos + 1
+        scratch_buf[pos] = PLOT_MOVE_ABS
+        pos = pos + 1
+        scratch_buf[pos] = data[col_x2_lo + idx]
+        pos = pos + 1
+        scratch_buf[pos] = data[col_x2_hi + idx]
+        pos = pos + 1
+        scratch_buf[pos] = data[col_y2 + idx]
+        pos = pos + 1
+        scratch_buf[pos] = 0
+        pos = pos + 1
 
         // PLOT 85 (filled triangle): VDU 25, 85, x_lo, x_hi, y, 0 (6 bytes)
-        scratch_buf[pos] = VDU_PLOT_CMD;
-        pos = pos + 1;
-        scratch_buf[pos] = PLOT_TRI_FILL;
-        pos = pos + 1;
-        scratch_buf[pos] = data[col_x3_lo + idx];
-        pos = pos + 1;
-        scratch_buf[pos] = data[col_x3_hi + idx];
-        pos = pos + 1;
-        scratch_buf[pos] = data[col_y3 + idx];
-        pos = pos + 1;
-        scratch_buf[pos] = 0;
-        pos = pos + 1;
+        scratch_buf[pos] = VDU_PLOT_CMD
+        pos = pos + 1
+        scratch_buf[pos] = PLOT_TRI_FILL
+        pos = pos + 1
+        scratch_buf[pos] = data[col_x3_lo + idx]
+        pos = pos + 1
+        scratch_buf[pos] = data[col_x3_hi + idx]
+        pos = pos + 1
+        scratch_buf[pos] = data[col_y3 + idx]
+        pos = pos + 1
+        scratch_buf[pos] = 0
+        pos = pos + 1
 
-        s = s + 1;
+        s = s + 1
     }
 
-    return pos;
+    return pos
 }
 
 // Upload all frames of the effect to VDP buffers
 fun upload_all_frames(data: ^u8, base_id: u16) {
-    let mut frame: u16 = 0;
+    var frame: u16 = 0
     while frame < effect_num_frames {
-        let vdu_len: u16 = build_frame_vdu(data, frame);
-        let buffer_id: u16 = base_id + frame;
+        let vdu_len: u16 = build_frame_vdu(data, frame)
+        let buffer_id: u16 = base_id + frame
 
         // Upload to VDP buffer
         // We access scratch_buf as a pointer for vdu_buffer_write
-        vdu_buffer_write(buffer_id, &scratch_buf[0], vdu_len);
+        vdu_buffer_write(buffer_id, &scratch_buf[0], vdu_len)
 
-        frame = frame + 1;
+        frame = frame + 1
     }
 }
 
@@ -278,31 +278,31 @@ fun upload_all_frames(data: ^u8, base_id: u16) {
 // cycles: how many times to loop the animation
 // Returns true if user pressed Space to exit
 fun play_effect(base_id: u16, num_frames: u16, cycles: u8) -> bool {
-    let mut cycle: u8 = 0;
+    var cycle: u8 = 0
     while cycle < cycles {
-        let mut frame: u16 = 0;
+        var frame: u16 = 0
         while frame < num_frames {
             // Execute the buffered VDU commands for this frame
-            vdu_buffer_call(base_id + frame);
+            vdu_buffer_call(base_id + frame)
 
             // Swap double buffers
-            vdu_swap();
+            vdu_swap()
 
             // Wait for vertical blank
-            wait_vblank();
+            wait_vblank()
 
             // Check for Space key to exit
-            let key: u8 = get_last_key();
+            let key: u8 = get_last_key()
             if key == 32 {
-                return true;
+                return true
             }
 
-            frame = frame + 1;
+            frame = frame + 1
         }
-        cycle = cycle + 1;
+        cycle = cycle + 1
     }
 
-    return false;
+    return false
 }
 
 // =============================================================================
@@ -318,35 +318,35 @@ fun play_effect(base_id: u16, num_frames: u16, cycles: u8) -> bool {
 //       @incbin("data/cube_compressed.bin")
 //       @emit("_cube_compressed_end:")
 //   ]]]
-//   @extern global cube_compressed: ^u8;
-//   @extern global cube_compressed_end: ^u8;
+//   @extern global cube_compressed: ^u8
+//   @extern global cube_compressed_end: ^u8
 
 // File loading buffer for compressed data
-global compressed_buf: [u8; 8192];
+global compressed_buf: [u8; 8192]
 
 // Load compressed data from SD card
 // Returns number of bytes loaded, or 0 on error
 fun load_compressed(filename: ^u8) -> u16 {
     let handle: u8 = fopen(filename, 0x01);  // FA_READ
     if handle == 0 {
-        return 0;
+        return 0
     }
 
     // Read the 3-byte decompressed size header first
-    let mut total: u16 = 0;
-    let mut byte_val: u8 = fgetc(handle);
+    var total: u16 = 0
+    var byte_val: u8 = fgetc(handle)
     while byte_val != 255 {
         if total >= 8192 {
-            fclose(handle);
-            return total;
+            fclose(handle)
+            return total
         }
-        compressed_buf[total] = byte_val;
-        total = total + 1;
-        byte_val = fgetc(handle);
+        compressed_buf[total] = byte_val
+        total = total + 1
+        byte_val = fgetc(handle)
     }
 
-    fclose(handle);
-    return total;
+    fclose(handle)
+    return total
 }
 
 // =============================================================================
@@ -355,26 +355,26 @@ fun load_compressed(filename: ^u8) -> u16 {
 
 fun main() {
     // Setup: double-buffered 320x240x64 mode
-    set_mode_buffered(MODE_320x240x64);
-    vdu_pixel_mode();
-    cursor_off();
-    clg();
+    set_mode_buffered(MODE_320x240x64)
+    vdu_pixel_mode()
+    cursor_off()
+    clg()
 
     // Print loading message (will be on back buffer)
-    mos_puts("Vivid Vibes - Loading...\r\n");
+    mos_puts("Vivid Vibes - Loading...\r\n")
 
     // Load compressed cube data from SD card
-    let cube_size: u16 = load_compressed("cube_compressed.bin");
+    let cube_size: u16 = load_compressed("cube_compressed.bin")
     if cube_size == 0 {
-        mos_puts("Error: Cannot load cube_compressed.bin\r\n");
-        mos_puts("Press any key to exit.\r\n");
-        getkey();
-        set_mode(0);
-        return;
+        mos_puts("Error: Cannot load cube_compressed.bin\r\n")
+        mos_puts("Press any key to exit.\r\n")
+        getkey()
+        set_mode(0)
+        return
     }
 
     // Read decompressed size from first 3 bytes (u24-LE)
-    let decomp_size: u16 = (compressed_buf[0] as u16) | ((compressed_buf[1] as u16) << 8);
+    let decomp_size: u16 = (compressed_buf[0] as u16) | ((compressed_buf[1] as u16) << 8)
     // Note: byte [2] is high byte of u24 — ignored for u16 addressing
 
     // Decompress cube data (skip 3-byte size header)
@@ -383,40 +383,40 @@ fun main() {
         cube_size - 3,
         &decomp_buf[0],
         decomp_size
-    );
+    )
 
     if actual_size == 0 {
-        mos_puts("Error: Decompression failed\r\n");
-        getkey();
-        set_mode(0);
-        return;
+        mos_puts("Error: Decompression failed\r\n")
+        getkey()
+        set_mode(0)
+        return
     }
 
     // Parse columnar frame data
-    parse_effect(&decomp_buf[0]);
+    parse_effect(&decomp_buf[0])
 
-    mos_puts("Uploading frames...\r\n");
+    mos_puts("Uploading frames...\r\n")
 
     // Upload all frames to VDP buffers
-    upload_all_frames(&decomp_buf[0], CUBE_BASE_ID);
+    upload_all_frames(&decomp_buf[0], CUBE_BASE_ID)
 
     // Clear the loading screen
-    clg();
+    clg()
 
-    mos_puts("Playing! Press SPACE to exit.\r\n");
+    mos_puts("Playing! Press SPACE to exit.\r\n")
 
     // Main playback loop — play cube animation forever
-    let mut running: bool = true;
+    var running: bool = true
     while running {
-        let exit: bool = play_effect(CUBE_BASE_ID, effect_num_frames, 4);
+        let exit: bool = play_effect(CUBE_BASE_ID, effect_num_frames, 4)
         if exit {
-            running = false;
+            running = false
         }
     }
 
     // Cleanup: clear buffers, reset mode
-    vdu_buffer_clear_all();
-    set_mode(0);
-    cls();
-    mos_puts("Thanks for watching!\r\n");
+    vdu_buffer_clear_all()
+    set_mode(0)
+    cls()
+    mos_puts("Thanks for watching!\r\n")
 }

@@ -18,16 +18,16 @@ global phase2: u8 = 0;     // Second wave phase
 global current_screen: u8 = 0;  // 0 = main, 1 = shadow
 
 // Precomputed sine table (256 entries, values 0-7)
-global sin_table: [u8; 256];
+global sin_table: [u8; 256]
 
 // Initialize sine lookup table using triangle wave approximation
 // Output range: 0-7 for direct use as color values
 fun init_sine() -> void {
     for i in 0..256 {
         // Quadrant detection
-        let quadrant: u8 = (i >> 6) & 3;
+        let quadrant: u8 = (i >> 6) & 3
         let pos: u8 = i & 0x3F;  // Position within quadrant (0-63)
-        let mut val: u8 = 0;
+        var val: u8 = 0
 
         // Triangle wave approximation of sine
         // Q0: rising 0->7,  Q1: falling 7->0
@@ -45,7 +45,7 @@ fun init_sine() -> void {
             val = (63 - pos) >> 3;  // 7-0 falling
         }
 
-        sin_table[i] = val;
+        sin_table[i] = val
     }
 }
 
@@ -119,7 +119,7 @@ fun flip_display() -> void {
             LD BC, 0x7FFD
             OUT (C), A
         }
-        current_screen = 1;
+        current_screen = 1
     } else {
         // Show main screen
         asm {
@@ -127,7 +127,7 @@ fun flip_display() -> void {
             LD BC, 0x7FFD
             OUT (C), A
         }
-        current_screen = 0;
+        current_screen = 0
     }
 }
 
@@ -147,37 +147,37 @@ fun poke(addr: u16, val: u8) -> void {
 fun render_plasma() -> void {
     // Select back buffer based on current display
     if current_screen == 0 {
-        select_shadow_screen();
+        select_shadow_screen()
     } else {
-        select_main_screen();
+        select_main_screen()
     }
 
     let base: u16 = SCREEN1_ATTR;  // Always write to $5800 area
                                     // (banking handles which physical RAM)
 
-    let mut y_angle: u8 = phase1;
-    let mut ptr: u16 = base;
+    var y_angle: u8 = phase1
+    var ptr: u16 = base
 
     // Render 24 rows x 32 columns = 768 attribute cells
     for row in 0..24 {
-        let mut x_angle: u8 = phase2;
+        var x_angle: u8 = phase2
 
         for col in 0..32 {
             // Two-wave interference
-            let wave1: u8 = sin_table[x_angle];
-            let wave2: u8 = sin_table[y_angle];
+            let wave1: u8 = sin_table[x_angle]
+            let wave2: u8 = sin_table[y_angle]
             let wave3: u8 = sin_table[x_angle + y_angle];  // Diagonal wave
 
             // Combine waves for color (0-7 range)
-            let color: u8 = (wave1 + wave2 + wave3) & 7;
+            let color: u8 = (wave1 + wave2 + wave3) & 7
 
             // Create attribute: BRIGHT + color as PAPER
             // Format: FLASH BRIGHT PAPER INK
             // We use: 0 1 color 000 = 0x40 | (color << 3)
-            let attr: u8 = 0x40 | (color << 3);
+            let attr: u8 = 0x40 | (color << 3)
 
-            poke(ptr, attr);
-            ptr = ptr + 1;
+            poke(ptr, attr)
+            ptr = ptr + 1
             x_angle = x_angle + 8;  // X frequency
         }
 
@@ -189,8 +189,8 @@ fun render_plasma() -> void {
 fun main() -> void {
     asm { DI }
 
-    init_sine();
-    cls_all();
+    init_sine()
+    cls_all()
 
     asm { EI }
 
@@ -203,9 +203,9 @@ fun main() -> void {
         phase2 = phase2 + 5;   // Faster horizontal movement
 
         // Render to back buffer
-        render_plasma();
+        render_plasma()
 
         // Swap buffers (instant, no tearing!)
-        flip_display();
+        flip_display()
     }
 }

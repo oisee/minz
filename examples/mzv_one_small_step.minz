@@ -9,58 +9,58 @@
 // =============================================================================
 
 fun fp_mul(a: i16, b: i16) -> i16 {
-    let a32: i32 = a as i32;
-    let b32: i32 = b as i32;
-    let result: i32 = (a32 * b32) >> 8;
-    return result as i16;
+    let a32: i32 = a as i32
+    let b32: i32 = b as i32
+    let result: i32 = (a32 * b32) >> 8
+    return result as i16
 }
 
 fun fp_div(a: i16, b: i16) -> i16 {
     if b == 0 { return 32767; }
-    let a32: i32 = a as i32;
-    let b32: i32 = b as i32;
-    let result: i32 = (a32 << 8) / b32;
-    return result as i16;
+    let a32: i32 = a as i32
+    let b32: i32 = b as i32
+    let result: i32 = (a32 << 8) / b32
+    return result as i16
 }
 
 fun abs16(x: i16) -> i16 {
     if x < 0 { return 0 - x; }
-    return x;
+    return x
 }
 
 fun min16(a: i16, b: i16) -> i16 {
     if a < b { return a; }
-    return b;
+    return b
 }
 
 fun max16(a: i16, b: i16) -> i16 {
     if a > b { return a; }
-    return b;
+    return b
 }
 
 // Integer square root
 fun isqrt(n: i16) -> i16 {
     if n <= 0 { return 0; }
     if n < 2 { return n; }
-    let guess: i16 = n >> 1;
+    let guess: i16 = n >> 1
     if guess > 180 { guess = 180; }
-    let i: u8 = 0;
+    let i: u8 = 0
     while i < 5 {
-        let div: i16 = n / guess;
-        guess = (guess + div) >> 1;
+        let div: i16 = n / guess
+        guess = (guess + div) >> 1
         if guess < 1 { guess = 1; }
-        i = i + 1;
+        i = i + 1
     }
-    return guess;
+    return guess
 }
 
 // 3D vector length (scale down inputs to prevent overflow)
 fun length3(x: i16, y: i16, z: i16) -> i16 {
-    let xs: i16 = x >> 4;
-    let ys: i16 = y >> 4;
-    let zs: i16 = z >> 4;
-    let sum: i16 = xs * xs + ys * ys + zs * zs;
-    return isqrt(sum) << 4;
+    let xs: i16 = x >> 4
+    let ys: i16 = y >> 4
+    let zs: i16 = z >> 4
+    let sum: i16 = xs * xs + ys * ys + zs * zs
+    return isqrt(sum) << 4
 }
 
 // =============================================================================
@@ -68,8 +68,8 @@ fun length3(x: i16, y: i16, z: i16) -> i16 {
 // =============================================================================
 
 fun hash16(x: i16, z: i16) -> i16 {
-    let h: i16 = ((abs16(x) * 127 + abs16(z) * 311) >> 4) & 63;
-    return h - 32;
+    let h: i16 = ((abs16(x) * 127 + abs16(z) * 311) >> 4) & 63
+    return h - 32
 }
 
 // =============================================================================
@@ -78,29 +78,29 @@ fun hash16(x: i16, z: i16) -> i16 {
 
 // Ground plane at y = 0 with bumps
 fun sdf_ground(py: i16, px: i16, pz: i16) -> i16 {
-    let bump: i16 = hash16(px >> 4, pz >> 4) >> 1;
-    return py + bump;
+    let bump: i16 = hash16(px >> 4, pz >> 4) >> 1
+    return py + bump
 }
 
 // Sphere SDF
 fun sdf_sphere(px: i16, py: i16, pz: i16, cx: i16, cy: i16, cz: i16, r: i16) -> i16 {
-    let dx: i16 = px - cx;
-    let dy: i16 = py - cy;
-    let dz: i16 = pz - cz;
-    return length3(dx, dy, dz) - r;
+    let dx: i16 = px - cx
+    let dy: i16 = py - cy
+    let dz: i16 = pz - cz
+    return length3(dx, dy, dz) - r
 }
 
 // Box SDF (simplified)
 fun sdf_box(px: i16, py: i16, pz: i16, bx: i16, by: i16, bz: i16) -> i16 {
-    let dx: i16 = abs16(px) - bx;
-    let dy: i16 = abs16(py) - by;
-    let dz: i16 = abs16(pz) - bz;
-    let ox: i16 = max16(dx, 0);
-    let oy: i16 = max16(dy, 0);
-    let oz: i16 = max16(dz, 0);
-    let outside: i16 = length3(ox, oy, oz);
-    let inside: i16 = min16(max16(dx, max16(dy, dz)), 0);
-    return outside + inside;
+    let dx: i16 = abs16(px) - bx
+    let dy: i16 = abs16(py) - by
+    let dz: i16 = abs16(pz) - bz
+    let ox: i16 = max16(dx, 0)
+    let oy: i16 = max16(dy, 0)
+    let oz: i16 = max16(dz, 0)
+    let outside: i16 = length3(ox, oy, oz)
+    let inside: i16 = min16(max16(dx, max16(dy, dz)), 0)
+    return outside + inside
 }
 
 // =============================================================================
@@ -114,42 +114,42 @@ fun sdf_box(px: i16, py: i16, pz: i16, bx: i16, by: i16, bz: i16) -> i16 {
 
 fun sdf_lander(px: i16, py: i16, pz: i16) -> i16 {
     // Main body - sphere
-    let body: i16 = sdf_sphere(px, py, pz, 0, 80, 0, 40);
+    let body: i16 = sdf_sphere(px, py, pz, 0, 80, 0, 40)
 
     // Descent stage - box
-    let stage: i16 = sdf_box(px, py - 40, pz, 32, 16, 32);
+    let stage: i16 = sdf_box(px, py - 40, pz, 32, 16, 32)
 
-    let lander: i16 = min16(body, stage);
+    let lander: i16 = min16(body, stage)
 
     // Four legs (simplified as thin boxes)
-    let leg_x: i16 = 40;
-    let leg_z: i16 = 40;
+    let leg_x: i16 = 40
+    let leg_z: i16 = 40
 
     // Leg 1 (+x, +z)
-    let l1: i16 = sdf_box(px - leg_x, py - 20, pz - leg_z, 4, 20, 4);
+    let l1: i16 = sdf_box(px - leg_x, py - 20, pz - leg_z, 4, 20, 4)
     // Leg 2 (+x, -z)
-    let l2: i16 = sdf_box(px - leg_x, py - 20, pz + leg_z, 4, 20, 4);
+    let l2: i16 = sdf_box(px - leg_x, py - 20, pz + leg_z, 4, 20, 4)
     // Leg 3 (-x, +z)
-    let l3: i16 = sdf_box(px + leg_x, py - 20, pz - leg_z, 4, 20, 4);
+    let l3: i16 = sdf_box(px + leg_x, py - 20, pz - leg_z, 4, 20, 4)
     // Leg 4 (-x, -z)
-    let l4: i16 = sdf_box(px + leg_x, py - 20, pz + leg_z, 4, 20, 4);
+    let l4: i16 = sdf_box(px + leg_x, py - 20, pz + leg_z, 4, 20, 4)
 
-    lander = min16(lander, min16(l1, l2));
-    lander = min16(lander, min16(l3, l4));
+    lander = min16(lander, min16(l1, l2))
+    lander = min16(lander, min16(l3, l4))
 
-    return lander;
+    return lander
 }
 
 fun map(px: i16, py: i16, pz: i16) -> i16 {
     // Body + stage (no legs for now)
-    let body: i16 = sdf_sphere(px, py, pz, 0, 50, 0, 35);
-    let stage: i16 = sdf_box(px, py - 20, pz, 25, 8, 25);
-    let lander: i16 = min16(body, stage);
+    let body: i16 = sdf_sphere(px, py, pz, 0, 50, 0, 35)
+    let stage: i16 = sdf_box(px, py - 20, pz, 25, 8, 25)
+    let lander: i16 = min16(body, stage)
 
     // Ground at y = -25
-    let ground: i16 = py + 25;
+    let ground: i16 = py + 25
 
-    return min16(ground, lander);
+    return min16(ground, lander)
 }
 
 // =============================================================================
@@ -157,48 +157,48 @@ fun map(px: i16, py: i16, pz: i16) -> i16 {
 // =============================================================================
 
 fun calc_normal_component(px: i16, py: i16, pz: i16, axis: u8) -> i16 {
-    let eps: i16 = 4;
-    let d1: i16 = 0;
-    let d2: i16 = 0;
+    let eps: i16 = 4
+    let d1: i16 = 0
+    let d2: i16 = 0
     if axis == 0 {
-        d1 = map(px + eps, py, pz);
-        d2 = map(px - eps, py, pz);
+        d1 = map(px + eps, py, pz)
+        d2 = map(px - eps, py, pz)
     } else if axis == 1 {
-        d1 = map(px, py + eps, pz);
-        d2 = map(px, py - eps, pz);
+        d1 = map(px, py + eps, pz)
+        d2 = map(px, py - eps, pz)
     } else {
-        d1 = map(px, py, pz + eps);
-        d2 = map(px, py, pz - eps);
+        d1 = map(px, py, pz + eps)
+        d2 = map(px, py, pz - eps)
     }
-    return d1 - d2;
+    return d1 - d2
 }
 
 fun calc_lighting(px: i16, py: i16, pz: i16) -> i16 {
-    let nx: i16 = calc_normal_component(px, py, pz, 0);
-    let ny: i16 = calc_normal_component(px, py, pz, 1);
-    let nz: i16 = calc_normal_component(px, py, pz, 2);
+    let nx: i16 = calc_normal_component(px, py, pz, 0)
+    let ny: i16 = calc_normal_component(px, py, pz, 1)
+    let nz: i16 = calc_normal_component(px, py, pz, 2)
 
     // Normalize
-    let len: i16 = length3(nx, ny, nz);
+    let len: i16 = length3(nx, ny, nz)
     if len < 8 { len = 8; }
 
-    nx = fp_div(nx, len);
-    ny = fp_div(ny, len);
-    nz = fp_div(nz, len);
+    nx = fp_div(nx, len)
+    ny = fp_div(ny, len)
+    nz = fp_div(nz, len)
 
     // Light from upper-left-front: (150, 200, -100) normalized approx (108, 144, -72)
-    let lx: i16 = 108;
-    let ly: i16 = 144;
-    let lz: i16 = -72;
+    let lx: i16 = 108
+    let ly: i16 = 144
+    let lz: i16 = -72
 
-    let dot: i16 = fp_mul(nx, lx) + fp_mul(ny, ly) + fp_mul(nz, lz);
+    let dot: i16 = fp_mul(nx, lx) + fp_mul(ny, ly) + fp_mul(nz, lz)
     if dot < 0 { dot = 0; }
 
     // Ambient + diffuse
-    let ambient: i16 = 50;
+    let ambient: i16 = 50
     let diffuse: i16 = (dot * 3) >> 2;  // dot * 0.75
 
-    return ambient + diffuse;
+    return ambient + diffuse
 }
 
 // =============================================================================
@@ -206,36 +206,36 @@ fun calc_lighting(px: i16, py: i16, pz: i16) -> i16 {
 // =============================================================================
 
 fun march(rox: i16, roy: i16, roz: i16, rdx: i16, rdy: i16, rdz: i16) -> i16 {
-    let px: i16 = rox;
-    let py: i16 = roy;
-    let pz: i16 = roz;
+    let px: i16 = rox
+    let py: i16 = roy
+    let pz: i16 = roz
     let t: i16 = 0;  // Total distance
 
-    let i: u8 = 0;
+    let i: u8 = 0
     while i < 40 {
-        let d: i16 = map(px, py, pz);
+        let d: i16 = map(px, py, pz)
 
         if d < 4 {
             // Hit - simple shading based on height (py)
-            let light: i16 = 100 + py;
+            let light: i16 = 100 + py
             if light < 60 { light = 60; }
             if light > 255 { light = 255; }
-            return light;
+            return light
         }
 
         // Accumulate distance and recompute position
-        t = t + d;
-        px = rox + fp_mul(rdx, t);
-        py = roy + fp_mul(rdy, t);
-        pz = roz + fp_mul(rdz, t);
+        t = t + d
+        px = rox + fp_mul(rdx, t)
+        py = roy + fp_mul(rdy, t)
+        pz = roz + fp_mul(rdz, t)
 
         // Too far
         if t > 400 { return 0; }
 
-        i = i + 1;
+        i = i + 1
     }
 
-    return 0;
+    return 0
 }
 
 // =============================================================================
@@ -244,35 +244,35 @@ fun march(rox: i16, roy: i16, roz: i16, rdx: i16, rdy: i16, rdz: i16) -> i16 {
 
 fun main() -> void {
     // Render at 80x60 for faster testing
-    let width: i16 = 80;
-    let height: i16 = 60;
+    let width: i16 = 80
+    let height: i16 = 60
 
-    clear();
+    clear()
 
     // Camera like simple test - at z=-200, looking forward
-    let cam_x: i16 = 0;
+    let cam_x: i16 = 0
     let cam_y: i16 = 50;    // At lander center height
     let cam_z: i16 = -200;  // In front
 
-    let y: i16 = 0;
+    let y: i16 = 0
     while y < height {
-        let x: i16 = 0;
+        let x: i16 = 0
         while x < width {
             // UV coordinates centered
-            let uvx: i16 = (x - 40) * 4;
-            let uvy: i16 = (30 - y) * 4;
+            let uvx: i16 = (x - 40) * 4
+            let uvy: i16 = (30 - y) * 4
 
             // Ray direction (simple perspective, looking forward)
-            let rdx: i16 = uvx;
-            let rdy: i16 = uvy;
-            let rdz: i16 = 256;
+            let rdx: i16 = uvx
+            let rdy: i16 = uvy
+            let rdz: i16 = 256
 
             // March the ray
-            let brightness: i16 = march(cam_x, cam_y, cam_z, rdx, rdy, rdz);
+            let brightness: i16 = march(cam_x, cam_y, cam_z, rdx, rdy, rdz)
 
             if brightness >= 50 {
                 // Map to palette
-                let color: u8 = 0;
+                let color: u8 = 0
                 if brightness > 200 {
                     color = 15;  // White
                 } else if brightness > 160 {
@@ -286,16 +286,16 @@ fun main() -> void {
                 }
 
                 // Draw 2x2 pixel (centered on 320x240)
-                let sx: u8 = (x * 2 + 80) as u8;
-                let sy: u8 = (y * 2 + 60) as u8;
-                set_pixel(sx, sy, color);
-                set_pixel(sx + 1, sy, color);
-                set_pixel(sx, sy + 1, color);
-                set_pixel(sx + 1, sy + 1, color);
+                let sx: u8 = (x * 2 + 80) as u8
+                let sy: u8 = (y * 2 + 60) as u8
+                set_pixel(sx, sy, color)
+                set_pixel(sx + 1, sy, color)
+                set_pixel(sx, sy + 1, color)
+                set_pixel(sx + 1, sy + 1, color)
             }
 
-            x = x + 1;
+            x = x + 1
         }
-        y = y + 1;
+        y = y + 1
     }
 }

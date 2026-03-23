@@ -1,41 +1,41 @@
 // CP/M Fibonacci Sequence
 // Demonstrates: module imports, function calls, BDOS I/O,
 //               and loop rerolling optimization
-import stdlib.cpm.bdos;
+import stdlib.cpm.bdos
 
 fun print_header() -> void {
-    putchar('F'); putchar('i'); putchar('b'); putchar('o');
-    putchar('n'); putchar('a'); putchar('c'); putchar('c');
-    putchar('i'); putchar(':');
+    putchar('F'); putchar('i'); putchar('b'); putchar('o')
+    putchar('n'); putchar('a'); putchar('c'); putchar('c')
+    putchar('i'); putchar(':')
 }
 
 fun print_sequence() -> void {
-    putchar('0'); putchar(','); putchar(' ');
-    putchar('1'); putchar(','); putchar(' ');
-    putchar('1'); putchar(','); putchar(' ');
-    putchar('2'); putchar(','); putchar(' ');
-    putchar('3'); putchar(','); putchar(' ');
-    putchar('5'); putchar(','); putchar(' ');
-    putchar('8'); putchar(','); putchar(' ');
-    putchar('1'); putchar('3'); putchar(','); putchar(' ');
-    putchar('2'); putchar('1'); putchar(','); putchar(' ');
-    putchar('3'); putchar('4'); putchar(','); putchar(' ');
-    putchar('5'); putchar('5');
+    putchar('0'); putchar(','); putchar(' ')
+    putchar('1'); putchar(','); putchar(' ')
+    putchar('1'); putchar(','); putchar(' ')
+    putchar('2'); putchar(','); putchar(' ')
+    putchar('3'); putchar(','); putchar(' ')
+    putchar('5'); putchar(','); putchar(' ')
+    putchar('8'); putchar(','); putchar(' ')
+    putchar('1'); putchar('3'); putchar(','); putchar(' ')
+    putchar('2'); putchar('1'); putchar(','); putchar(' ')
+    putchar('3'); putchar('4'); putchar(','); putchar(' ')
+    putchar('5'); putchar('5')
 }
 
 fun print_signoff() -> void {
-    putchar('M'); putchar('i'); putchar('n'); putchar('Z');
-    putchar(' '); putchar('o'); putchar('n'); putchar(' ');
-    putchar('C'); putchar('P'); putchar('/'); putchar('M');
-    putchar('!');
+    putchar('M'); putchar('i'); putchar('n'); putchar('Z')
+    putchar(' '); putchar('o'); putchar('n'); putchar(' ')
+    putchar('C'); putchar('P'); putchar('/'); putchar('M')
+    putchar('!')
 }
 
 fun main() -> void {
-    print_header();
-    newline();
-    print_sequence();
-    newline();
-    newline();
-    print_signoff();
-    newline();
+    print_header()
+    newline()
+    print_sequence()
+    newline()
+    newline()
+    print_signoff()
+    newline()
 }

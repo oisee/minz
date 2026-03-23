@@ -1,19 +1,19 @@
 // Test global variable initializers
-module test_global_init;
+module test_global_init
 
 // Basic type initializers
-global g_byte: u8 = 42;
-global g_word: u16 = 0x1234;
-global g_flag: bool = true;
+global g_byte: u8 = 42
+global g_word: u16 = 0x1234
+global g_flag: bool = true
 
 // Constant expression initializers
-global g_calc: u8 = 10 + 5;
-global g_shift: u16 = 1 << 8;
-global g_masked: u8 = 0xFF & 0x0F;
+global g_calc: u8 = 10 + 5
+global g_shift: u16 = 1 << 8
+global g_masked: u8 = 0xFF & 0x0F
 
 // Uninitialized globals (should default to 0)
-global g_uninit_byte: u8;
-global g_uninit_word: u16;
+global g_uninit_byte: u8
+global g_uninit_word: u16
 
 // Entry point
 fun main() -> void {

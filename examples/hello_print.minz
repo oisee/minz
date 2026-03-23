@@ -11,17 +11,17 @@ fun open_screen() -> void {
 }
 
 fun main() -> void {
-    open_screen();
+    open_screen()
 
     // Pure MinZ string printing!
-    @print("HELLO WORLD!\n");
-    @print("This is MinZ!\n");
-    @print("Greetings from the future!\n");
+    @print("HELLO WORLD!\n")
+    @print("This is MinZ!\n")
+    @print("Greetings from the future!\n")
 
     // Print some numbers too
-    @print("Answer: ");
-    @print(42);
-    @print("\n");
+    @print("Answer: ")
+    @print(42)
+    @print("\n")
 
     // Halt with explicit intent
     loop {

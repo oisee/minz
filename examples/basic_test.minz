@@ -5,5 +5,5 @@ fun add_five(x: u8) -> u8 {
 }
 
 fun main() -> void {
-    let result = add_five(10);
+    let result = add_five(10)
 }

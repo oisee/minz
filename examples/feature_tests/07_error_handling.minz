@@ -12,24 +12,24 @@ enum FileError {
 fun open_file(name: ^u8) -> u8? {
     // Simulate different failures based on name
     if name[0] == 'x' {
-        @err(FileError.NotFound);
+        @err(FileError.NotFound)
     }
     if name[0] == 'p' {
-        @err(FileError.PermissionDenied);
+        @err(FileError.PermissionDenied)
     }
     return 42;  // File handle
 }
 
 fun read_byte(handle: u8) -> u8? {
     if handle == 0 {
-        @err(FileError.DiskFull);
+        @err(FileError.DiskFull)
     }
     return 65;  // 'A'
 }
 
 fun close_file(handle: u8) -> void? {
     if handle == 99 {
-        @err(FileError.NotFound);
+        @err(FileError.NotFound)
     }
     // Success - no error
 }
@@ -40,11 +40,11 @@ fun test_error_propagation() -> bool {
         let handle = open_file(filename)?;  // Propagate error if open fails
         let byte = read_byte(handle)?;       // Propagate error if read fails
         close_file(handle)?;                 // Propagate error if close fails
-        return byte;
+        return byte
     }
     
     // Test success case
-    let result = read_first_byte("good.txt");
+    let result = read_first_byte("good.txt")
     // Check carry flag is clear (no error)
     @asm {
         JR C, .had_error
@@ -69,51 +69,51 @@ fun test_error_propagation() -> bool {
     }
     // A register should be 1 (error occurred)
     
-    return true;
+    return true
 }
 
 // Test error handling in loops
 fun test_error_in_loop() -> bool {
     fun process_files(names: ^[^u8; 3]) -> u8? {
-        let mut total: u8 = 0;
+        var total: u8 = 0
         
         for i in 0..3 {
             let handle = open_file((*names)[i])?;  // Error breaks loop
-            total = total + handle;
-            close_file(handle)?;
+            total = total + handle
+            close_file(handle)?
         }
         
-        return total;
+        return total
     }
     
     // All good files
-    let good_names: [^u8; 3] = ["a.txt", "b.txt", "c.txt"];
-    let result = process_files(&good_names);
+    let good_names: [^u8; 3] = ["a.txt", "b.txt", "c.txt"]
+    let result = process_files(&good_names)
     // Should succeed
     
     // One bad file
-    let bad_names: [^u8; 3] = ["a.txt", "xbad.txt", "c.txt"];
-    let result2 = process_files(&bad_names);
+    let bad_names: [^u8; 3] = ["a.txt", "xbad.txt", "c.txt"]
+    let result2 = process_files(&bad_names)
     // Should fail on second file
     
-    return true;
+    return true
 }
 
 // Test manual error checking
 fun test_manual_error_check() -> bool {
-    let handle_result = open_file("test.txt");
+    let handle_result = open_file("test.txt")
     
     // Manual error check using @check_error
     if @check_error() {
         // Error occurred
         let error_code = @get_error();  // Get error code from A register
-        return false;
+        return false
     }
     
     // Success - use the value
-    let handle = handle_result;
+    let handle = handle_result
     
-    return true;
+    return true
 }
 
 // Test error enum values
@@ -129,25 +129,25 @@ fun test_error_values() -> bool {
     
     // Test each error type
     for i in 0..3 {
-        let result = failing_function(i);
+        let result = failing_function(i)
         if !@check_error() { return false; }
         
         // Error code should match enum value
-        let error_code = @get_error();
+        let error_code = @get_error()
         if error_code != i { return false; }
     }
     
     // Test success
-    let result = failing_function(99);
+    let result = failing_function(99)
     if @check_error() { return false; }
     
-    return true;
+    return true
 }
 
 // Test nested error handling
 fun test_nested_errors() -> bool {
     fun inner() -> u8? {
-        @err(FileError.NotFound);
+        @err(FileError.NotFound)
     }
     
     fun middle() -> u8? {
@@ -160,30 +160,30 @@ fun test_nested_errors() -> bool {
         return val + 20;      // Never reached
     }
     
-    let result = outer();
+    let result = outer()
     if !@check_error() { return false; }
     if @get_error() != FileError.NotFound { return false; }
     
-    return true;
+    return true
 }
 
 // Test @ok macro for explicit success
 fun test_explicit_ok() -> bool {
     fun maybe_fail(fail: bool) -> u8? {
         if fail {
-            @err(FileError.NotFound);
+            @err(FileError.NotFound)
         }
         @ok(42);  // Explicit success with value
     }
     
-    let result1 = maybe_fail(false);
+    let result1 = maybe_fail(false)
     if @check_error() { return false; }
     if result1 != 42 { return false; }
     
-    let result2 = maybe_fail(true);
+    let result2 = maybe_fail(true)
     if !@check_error() { return false; }
     
-    return true;
+    return true
 }
 
 fun main() -> u8 {

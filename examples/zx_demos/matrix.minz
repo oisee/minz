@@ -1,64 +1,64 @@
 // Matrix Rain - MinZ with DJNZ scroll optimization
 
-const ATTR_MEM: u16 = 22528;
-const SCREEN_MEM: u16 = 16384;
-const INK_GREEN: u8 = 4;
-const INK_WHITE: u8 = 7;
-const BRIGHT: u8 = 64;
+const ATTR_MEM: u16 = 22528
+const SCREEN_MEM: u16 = 16384
+const INK_GREEN: u8 = 4
+const INK_WHITE: u8 = 7
+const BRIGHT: u8 = 64
 
-global colLUT: [u8; 768];
-global scroll_offset: u16 = 0;
-global seed: u16 = 0xBEEF;
+global colLUT: [u8; 768]
+global scroll_offset: u16 = 0
+global seed: u16 = 0xBEEF
 
 @inline
 fun rand() -> u8 {
-    let bit: u8 = ((seed >> 0) ^ (seed >> 2) ^ (seed >> 3) ^ (seed >> 5)) & 1;
-    seed = (seed >> 1) | (bit << 15);
-    return seed & 0xFF;
+    let bit: u8 = ((seed >> 0) ^ (seed >> 2) ^ (seed >> 3) ^ (seed >> 5)) & 1
+    seed = (seed >> 1) | (bit << 15)
+    return seed & 0xFF
 }
 
 fun init_colors() -> void {
-    let i: u16 = 0;
+    let i: u16 = 0
     while i < 762 {
         // Gradient: dark green -> bright white
-        colLUT[i] = INK_GREEN; i = i + 1;
-        colLUT[i] = INK_GREEN; i = i + 1;
-        colLUT[i] = INK_GREEN + BRIGHT; i = i + 1;
-        colLUT[i] = INK_WHITE; i = i + 1;
-        colLUT[i] = INK_WHITE + BRIGHT; i = i + 1;
-        colLUT[i] = 0; i = i + 1;
+        colLUT[i] = INK_GREEN; i = i + 1
+        colLUT[i] = INK_GREEN; i = i + 1
+        colLUT[i] = INK_GREEN + BRIGHT; i = i + 1
+        colLUT[i] = INK_WHITE; i = i + 1
+        colLUT[i] = INK_WHITE + BRIGHT; i = i + 1
+        colLUT[i] = 0; i = i + 1
         // Random gap
-        let gap: u8 = rand() % 15;
+        let gap: u8 = rand() % 15
         while gap > 0 && i < 768 {
-            colLUT[i] = 0;
-            i = i + 1;
-            gap = gap - 1;
+            colLUT[i] = 0
+            i = i + 1
+            gap = gap - 1
         }
     }
 }
 
 fun init_chars() -> void {
-    let ptr: ^u8 = SCREEN_MEM;
+    let ptr: ^u8 = SCREEN_MEM
     for cell in 0..736 {
-        *ptr = 0x3A + (rand() % 33);
-        ptr = ptr + 1;
+        *ptr = 0x3A + (rand() % 33)
+        ptr = ptr + 1
     }
 }
 
 fun update_rain() -> void {
-    let ptr: ^u8 = ATTR_MEM;
+    let ptr: ^u8 = ATTR_MEM
     for col in 0..32 {
         for row in 0..23 {
-            let idx: u16 = (scroll_offset + col * 23 + row) % 768;
-            *ptr = colLUT[idx];
-            ptr = ptr + 1;
+            let idx: u16 = (scroll_offset + col * 23 + row) % 768
+            *ptr = colLUT[idx]
+            ptr = ptr + 1
         }
     }
-    scroll_offset = (scroll_offset + 1) % 768;
+    scroll_offset = (scroll_offset + 1) % 768
 }
 
 fun main() -> void {
-    init_colors();
-    init_chars();
+    init_colors()
+    init_chars()
     loop { update_rain(); }
 }

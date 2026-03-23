@@ -15,7 +15,7 @@ import (
 func TestMinZCompat_BasicSyntax(t *testing.T) {
 	src := `
 fun add(a: u8, b: u8) -> u8 {
-    return a + b;
+    return a + b
 }
 
 assert add(3, 5) == 8 via mir2
@@ -30,19 +30,20 @@ assert add(3, 5) == 8 via mir2
 	}
 }
 
-func TestMinZCompat_LetMut(t *testing.T) {
+func TestMinZCompat_LetVar(t *testing.T) {
+	// let mut replaced with var across corpus — let is immutable binding, var is mutable
 	src := `
 fun fib(n: u8) -> u8 {
-    let mut a: u8 = 0;
-    let mut b: u8 = 1;
-    let mut i: u8 = 0;
+    var a: u8 = 0
+    var b: u8 = 1
+    var i: u8 = 0
     while i < n {
-        let temp: u8 = a + b;
-        a = b;
-        b = temp;
-        i = i + 1;
+        let temp: u8 = a + b
+        a = b
+        b = temp
+        i = i + 1
     }
-    return a;
+    return a
 }
 
 assert fib(0) == 0 via mir2
@@ -99,8 +100,8 @@ assert opposite(3) == 2 via mir2
 
 func TestMinZCompat_Const(t *testing.T) {
 	src := `
-const SCREEN_MEM: u16 = 16384;
-const ATTR_MEM: u16 = 22528;
+const SCREEN_MEM: u16 = 16384
+const ATTR_MEM: u16 = 22528
 
 fun get_screen() -> u16 {
     return SCREEN_MEM
@@ -130,12 +131,12 @@ fun sum5(arr: ^u8) -> u8 {
 }
 
 fun test_local_arr() -> u8 {
-    let data: [u8; 5] = [10, 20, 30, 40, 50];
+    let data: [u8; 5] = [10, 20, 30, 40, 50]
     return data[0]
 }
 
 fun test_let_arr_sum() -> u8 {
-    let data: [u8; 3] = [1, 2, 3];
+    let data: [u8; 3] = [1, 2, 3]
     return data[0] + data[1] + data[2]
 }
 

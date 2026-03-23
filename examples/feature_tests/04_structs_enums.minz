@@ -43,20 +43,20 @@ enum Result<T, E> {
 
 fun test_basic_struct() -> bool {
     // Struct literal
-    let p = Point { x: 10, y: 20 };
+    let p = Point { x: 10, y: 20 }
     
     // Field access
     if p.x != 10 { return false; }
     if p.y != 20 { return false; }
     
     // Field modification
-    let mut p2 = Point { x: 0, y: 0 };
-    p2.x = 5;
-    p2.y = 15;
+    var p2 = Point { x: 0, y: 0 }
+    p2.x = 5
+    p2.y = 15
     if p2.x != 5 { return false; }
     if p2.y != 15 { return false; }
     
-    return true;
+    return true
 }
 
 fun test_complex_struct() -> bool {
@@ -65,34 +65,34 @@ fun test_complex_struct() -> bool {
         y: 200,
         health: 100,
         alive: true,
-    };
+    }
     
     if player.x != 100 { return false; }
     if player.health != 100 { return false; }
     if !player.alive { return false; }
     
-    return true;
+    return true
 }
 
 fun test_nested_struct() -> bool {
     let rect = Rectangle {
         top_left: Point { x: 0, y: 0 },
         bottom_right: Point { x: 10, y: 10 },
-    };
+    }
     
     if rect.top_left.x != 0 { return false; }
     if rect.bottom_right.y != 10 { return false; }
     
     // Modify nested field
-    let mut rect2 = rect;
-    rect2.top_left.x = 5;
+    var rect2 = rect
+    rect2.top_left.x = 5
     if rect2.top_left.x != 5 { return false; }
     
-    return true;
+    return true
 }
 
 fun test_enum_without_data() -> bool {
-    let dir = Direction.North;
+    let dir = Direction.North
     
     // Pattern matching (when implemented)
     match dir {
@@ -102,8 +102,8 @@ fun test_enum_without_data() -> bool {
 }
 
 fun test_enum_with_data() -> bool {
-    let some_value: Option<u8> = Option.Some(42);
-    let no_value: Option<u8> = Option.None;
+    let some_value: Option<u8> = Option.Some(42)
+    let no_value: Option<u8> = Option.None
     
     // Pattern matching (when implemented)
     match some_value {
@@ -120,35 +120,35 @@ fun test_enum_with_data() -> bool {
 }
 
 fun test_struct_pointers() -> bool {
-    let p = Point { x: 10, y: 20 };
-    let ptr: *Point = &p;
+    let p = Point { x: 10, y: 20 }
+    let ptr: *Point = &p
     
     // Access through pointer
     if (*ptr).x != 10 { return false; }
     if (*ptr).y != 20 { return false; }
     
     // Modify through pointer
-    (*ptr).x = 15;
+    (*ptr).x = 15
     if p.x != 15 { return false; }
     
-    return true;
+    return true
 }
 
 // Test struct as function parameter
 fun distance_squared(p1: Point, p2: Point) -> u16 {
-    let dx = (p2.x as i16) - (p1.x as i16);
-    let dy = (p2.y as i16) - (p1.y as i16);
-    return (dx * dx + dy * dy) as u16;
+    let dx = (p2.x as i16) - (p1.x as i16)
+    let dy = (p2.y as i16) - (p1.y as i16)
+    return (dx * dx + dy * dy) as u16
 }
 
 fun test_struct_parameters() -> bool {
-    let p1 = Point { x: 0, y: 0 };
-    let p2 = Point { x: 3, y: 4 };
+    let p1 = Point { x: 0, y: 0 }
+    let p2 = Point { x: 3, y: 4 }
     
     // 3² + 4² = 9 + 16 = 25
     if distance_squared(p1, p2) != 25 { return false; }
     
-    return true;
+    return true
 }
 
 fun main() -> u8 {

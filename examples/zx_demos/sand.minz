@@ -9,9 +9,9 @@ import common.zx_graphics as gfx
 import common.zx_random as rnd
 
 // Configuration
-const MAX_GRAINS: u16 = 128;
-const COLS: u8 = 32;
-const ROWS: u8 = 24;
+const MAX_GRAINS: u16 = 128
+const COLS: u8 = 32
+const ROWS: u8 = 24
 
 // Grain structure
 struct Grain {
@@ -21,66 +21,66 @@ struct Grain {
 }
 
 // Global state
-global grains: [Grain; 128];
+global grains: [Grain; 128]
 global grid: [bool; 768];  // Collision grid
-global spawn_timer: u8 = 0;
+global spawn_timer: u8 = 0
 
 // Main entry point
 fun main() -> void {
-    gfx.border(gfx.YELLOW);
-    gfx.cls();
-    gfx.cls_attr(gfx.attr(gfx.BLUE, gfx.YELLOW));
+    gfx.border(gfx.YELLOW)
+    gfx.cls()
+    gfx.cls_attr(gfx.attr(gfx.BLUE, gfx.YELLOW))
 
     // Initialize
-    init_grains();
-    clear_grid();
+    init_grains()
+    clear_grid()
 
     // Main loop
     while true {
-        spawn_grain();
-        update_grains();
-        render_grains();
-        wait_vsync();
+        spawn_grain()
+        update_grains()
+        render_grains()
+        wait_vsync()
     }
 }
 
 // Initialize all grains as inactive
 fun init_grains() -> void {
     for i in 0..MAX_GRAINS {
-        grains[i].active = false;
+        grains[i].active = false
     }
 }
 
 // Clear collision grid
 fun clear_grid() -> void {
     for i in 0..768 {
-        grid[i] = false;
+        grid[i] = false
     }
 }
 
 // Spawn a new grain at the top
 fun spawn_grain() -> void {
-    spawn_timer = spawn_timer + 1;
+    spawn_timer = spawn_timer + 1
 
     // Spawn every 3 frames
     if spawn_timer < 3 {
-        return;
+        return
     }
-    spawn_timer = 0;
+    spawn_timer = 0
 
     // Find inactive grain slot
     for i in 0..MAX_GRAINS {
         if !grains[i].active {
             // Random x position (avoid edges)
-            grains[i].x = rnd.range(4, 28);
-            grains[i].y = 0;
-            grains[i].active = true;
+            grains[i].x = rnd.range(4, 28)
+            grains[i].y = 0
+            grains[i].active = true
 
             // Mark grid cell
-            let idx = grains[i].x as u16;
-            grid[idx] = true;
+            let idx = grains[i].x as u16
+            grid[idx] = true
 
-            break;
+            break
         }
     }
 }
@@ -89,57 +89,57 @@ fun spawn_grain() -> void {
 fun update_grains() -> void {
     for i in 0..MAX_GRAINS {
         if !grains[i].active {
-            continue;
+            continue
         }
 
-        let grain = &grains[i];
-        let x = grain.x;
-        let y = grain.y;
+        let grain = &grains[i]
+        let x = grain.x
+        let y = grain.y
 
         // Already at bottom?
         if y >= 23 {
             continue;  // Grain is at rest
         }
 
-        let curr_idx: u16 = y as u16 * 32 + x as u16;
-        let below_idx: u16 = curr_idx + 32;
+        let curr_idx: u16 = y as u16 * 32 + x as u16
+        let below_idx: u16 = curr_idx + 32
 
         // Check directly below
         if !grid[below_idx] {
             // Move down
-            grid[curr_idx] = false;
-            grain.y = y + 1;
-            grid[below_idx] = true;
-            continue;
+            grid[curr_idx] = false
+            grain.y = y + 1
+            grid[below_idx] = true
+            continue
         }
 
         // Check diagonal left
-        let left_free = x > 0 && !grid[below_idx - 1];
-        let right_free = x < 31 && !grid[below_idx + 1];
+        let left_free = x > 0 && !grid[below_idx - 1]
+        let right_free = x < 31 && !grid[below_idx + 1]
 
         if left_free && right_free {
             // Random choice
-            grid[curr_idx] = false;
+            grid[curr_idx] = false
             if rnd.next_bit() == 0 {
-                grain.x = x - 1;
-                grid[below_idx - 1] = true;
+                grain.x = x - 1
+                grid[below_idx - 1] = true
             } else {
-                grain.x = x + 1;
-                grid[below_idx + 1] = true;
+                grain.x = x + 1
+                grid[below_idx + 1] = true
             }
-            grain.y = y + 1;
+            grain.y = y + 1
         } else if left_free {
             // Move diagonal left
-            grid[curr_idx] = false;
-            grain.x = x - 1;
-            grain.y = y + 1;
-            grid[below_idx - 1] = true;
+            grid[curr_idx] = false
+            grain.x = x - 1
+            grain.y = y + 1
+            grid[below_idx - 1] = true
         } else if right_free {
             // Move diagonal right
-            grid[curr_idx] = false;
-            grain.x = x + 1;
-            grain.y = y + 1;
-            grid[below_idx + 1] = true;
+            grid[curr_idx] = false
+            grain.x = x + 1
+            grain.y = y + 1
+            grid[below_idx + 1] = true
         }
         // else: grain is stuck
     }
@@ -147,18 +147,18 @@ fun update_grains() -> void {
 
 // Render grains to attribute memory
 fun render_grains() -> void {
-    let attr: ^u8 = 0x5800 as ^u8;
+    let attr: ^u8 = 0x5800 as ^u8
 
     // Clear all to blue
     for i in 0..768 {
-        attr[i] = gfx.attr(gfx.BLUE, gfx.BLUE);
+        attr[i] = gfx.attr(gfx.BLUE, gfx.BLUE)
     }
 
     // Draw grains as yellow
     for i in 0..MAX_GRAINS {
         if grains[i].active {
-            let idx: u16 = grains[i].y as u16 * 32 + grains[i].x as u16;
-            attr[idx] = gfx.attr(gfx.YELLOW, gfx.YELLOW);
+            let idx: u16 = grains[i].y as u16 * 32 + grains[i].x as u16
+            attr[idx] = gfx.attr(gfx.YELLOW, gfx.YELLOW)
         }
     }
 }

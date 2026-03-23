@@ -11,9 +11,9 @@ fun plot(x: u8, y: u8) -> void {
 
 fun main() -> void {
     // These should be detected as repeated 2-param calls
-    plot(10, 20);
-    plot(15, 25);
-    plot(20, 30);
-    plot(25, 35);
-    plot(30, 40);
+    plot(10, 20)
+    plot(15, 25)
+    plot(20, 30)
+    plot(25, 35)
+    plot(30, 40)
 }

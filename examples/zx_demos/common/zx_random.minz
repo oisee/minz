@@ -2,7 +2,7 @@
 // Uses LFSR (Linear Feedback Shift Register) for speed
 
 // LFSR state - seeded with non-zero value
-global seed: u16 = 0xACE1;
+global seed: u16 = 0xACE1
 
 // Fast 16-bit LFSR random
 // Taps: 16, 15, 13, 4 (maximal period: 65535)
@@ -53,8 +53,8 @@ fun next() -> u16 {
 // Random in range [0, max)
 // Uses AND mask when max is power of 2
 fun range(min: u8, max: u8) -> u8 {
-    let span = max - min;
-    let r = next_u8();
+    let span = max - min
+    let r = next_u8()
 
     // Fast path for powers of 2
     if (span & (span - 1)) == 0 {
@@ -69,7 +69,7 @@ fun range(min: u8, max: u8) -> u8 {
 // Seed the random generator
 fun set_seed(new_seed: u16) -> void {
     // Ensure non-zero (LFSR requirement)
-    seed = if new_seed == 0 { 0xACE1 } else { new_seed };
+    seed = if new_seed == 0 { 0xACE1 } else { new_seed }
 }
 
 // Seed from R register (good for game start randomness)

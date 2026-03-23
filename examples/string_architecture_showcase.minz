@@ -9,19 +9,19 @@
 
 fun main() -> void {
     // Test 1: Short strings (2-4 chars) - optimal for direct RST 16
-    test_short_strings();
+    test_short_strings()
     
     // Test 2: Medium strings (5-8 chars) - context-dependent optimization
-    test_medium_strings();
+    test_medium_strings()
     
     // Test 3: Long strings (9+ chars) - optimal for DJNZ loops
-    test_long_strings();
+    test_long_strings()
     
     // Test 4: Boolean values - length-prefixed constants
-    test_boolean_strings();
+    test_boolean_strings()
     
     // Test 5: String operations with O(1) length access
-    test_string_operations();
+    test_string_operations()
 }
 
 // Short strings: optimal for direct RST 16 calls
@@ -49,8 +49,8 @@ fun test_long_strings() -> void {
 
 // Boolean constants with length-prefixed storage
 fun test_boolean_strings() -> void {
-    let flag1: bool = true;
-    let flag2: bool = false;
+    let flag1: bool = true
+    let flag2: bool = false
     
     // These use the optimized bool_true_str and bool_false_str
     // bool_true_str:  DB 4, "true"   (5 bytes total)
@@ -64,13 +64,13 @@ fun test_string_operations() -> void {
     let message: ^u8 = "Hello, MinZ!";  // Length-prefixed: DB 12, "Hello, MinZ!"
     
     // O(1) string length - just read first byte!
-    let len: u8 = string_length(message);
+    let len: u8 = string_length(message)
     
     // Print the string and its length
-    print_string(message);
-    print_string(" has ");
-    print_u8(len);
-    print_string(" characters");
+    print_string(message)
+    print_string(" has ")
+    print_u8(len)
+    print_string(" characters")
 }
 
 // O(1) string length function - reads first byte
@@ -87,7 +87,7 @@ fun memory_efficiency_demo() -> void {
     // "Hello" -> 5,'H','e','l','l','o' = 6 bytes (same!)
     // But operations are faster and safer!
     
-    print_string("Memory efficient!");
+    print_string("Memory efficient!")
 }
 
 // Performance characteristics demo
@@ -106,5 +106,5 @@ fun performance_demo() -> void {
     // Storage: DB 13, "Hello, World!" (14 bytes total)
     // Print: DJNZ loop with exact count (efficient)
     
-    print_string("Performance optimized!");
+    print_string("Performance optimized!")
 }

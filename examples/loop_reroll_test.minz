@@ -21,21 +21,21 @@ fun beep(freq: u8) -> void {
 
 fun main() -> void {
     // Pattern 1: Repeated process() calls - should be detected
-    process(1);
-    process(2);
-    process(3);
-    process(4);
-    process(5);
+    process(1)
+    process(2)
+    process(3)
+    process(4)
+    process(5)
 
     // Pattern 2: Repeated beep() calls - should be detected
-    beep(100);
-    beep(80);
-    beep(60);
-    beep(40);
+    beep(100)
+    beep(80)
+    beep(60)
+    beep(40)
 
     // Pattern 3: Mixed calls - should NOT be rolled together
-    process(10);
-    beep(50);
-    process(20);
-    beep(60);
+    process(10)
+    beep(50)
+    process(20)
+    beep(60)
 }

@@ -14,9 +14,9 @@ fun main() -> void {
         LD HL, _data
         LD ($F002), HL
     }
-    let arr: [u8; 5] = [65, 66, 67, 68, 69];
-    arr.iter().take(3).forEach(console_log);
-    console_log(10);
+    let arr: [u8; 5] = [65, 66, 67, 68, 69]
+    arr.iter().take(3).forEach(console_log)
+    console_log(10)
     asm {
         DI
         HALT

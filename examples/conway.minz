@@ -7,11 +7,11 @@ const CELL_SET: u8 = 0;      // Black (INK 0)
 const CELL_UNSET: u8 = 56;   // White paper (PAPER 7)
 const ATTR_MEM: u16 = 22528; // ZX Spectrum attribute memory
 
-global grid: [u8; 768];
-global backup: [u8; 768];
+global grid: [u8; 768]
+global backup: [u8; 768]
 
 // Random seed for LFSR
-global seed: u8 = 0x42;
+global seed: u8 = 0x42
 
 // Simple LFSR random number generator
 fun rand() -> u8 {
@@ -26,7 +26,7 @@ fun rand() -> u8 {
         xor b
         ld (seed), a
     }
-    return seed;
+    return seed
 }
 
 // Advance one generation
@@ -42,32 +42,32 @@ fun advance() -> void {
     // Process cells (skip edges: 33 to 735)
     for i in 33..735 {
         // Count neighbors (broken into steps for MinZ)
-        let sum: u8 = 0;
-        sum = sum + backup[i - 33];
-        sum = sum + backup[i - 32];
-        sum = sum + backup[i - 31];
-        sum = sum + backup[i - 1];
-        sum = sum + backup[i + 1];
-        sum = sum + backup[i + 31];
-        sum = sum + backup[i + 32];
-        sum = sum + backup[i + 33];
+        let sum: u8 = 0
+        sum = sum + backup[i - 33]
+        sum = sum + backup[i - 32]
+        sum = sum + backup[i - 31]
+        sum = sum + backup[i - 1]
+        sum = sum + backup[i + 1]
+        sum = sum + backup[i + 31]
+        sum = sum + backup[i + 32]
+        sum = sum + backup[i + 33]
 
         // Apply Conway's rules
         if backup[i] == 0 {
             // Dead cell: birth if exactly 3 neighbors
             if sum == 3 {
-                grid[i] = 1;
+                grid[i] = 1
             } else {
-                grid[i] = 0;
+                grid[i] = 0
             }
         } else {
             // Alive cell: survive if 2 or 3 neighbors
             if sum == 2 {
-                grid[i] = 1;
+                grid[i] = 1
             } else if sum == 3 {
-                grid[i] = 1;
+                grid[i] = 1
             } else {
-                grid[i] = 0;
+                grid[i] = 0
             }
         }
     }
@@ -106,20 +106,20 @@ fun key_pressed() -> bool {
 
 fun main() -> void {
     set_border(6);  // Yellow border
-    clear_screen();
+    clear_screen()
 
     // Initialize grid to zero
     for i in 0..768 {
-        grid[i] = 0;
+        grid[i] = 0
     }
 
     // Seed grid randomly (skip edges)
     for i in 33..735 {
-        let r: u8 = rand();
+        let r: u8 = rand()
         if r < 128 {
-            grid[i] = 1;
+            grid[i] = 1
         } else {
-            grid[i] = 0;
+            grid[i] = 0
         }
     }
 
@@ -127,12 +127,12 @@ fun main() -> void {
     while true {
         // Display grid to attribute memory
         for i in 33..736 {
-            let attr_addr: u16 = ATTR_MEM + i;
-            let value: u8 = 0;
+            let attr_addr: u16 = ATTR_MEM + i
+            let value: u8 = 0
             if grid[i] != 0 {
-                value = CELL_SET;
+                value = CELL_SET
             } else {
-                value = CELL_UNSET;
+                value = CELL_UNSET
             }
             asm {
                 ld hl, (attr_addr)
@@ -142,7 +142,7 @@ fun main() -> void {
         }
 
         // Advance generation
-        advance();
+        advance()
 
         // Small delay
         asm {

@@ -37,7 +37,7 @@ fun timer_interrupt() -> void {
     }
 }
 
-let timer_ticks: u16 = 0;
+let timer_ticks: u16 = 0
 
 fun setup_interrupts() -> void {
     asm {
@@ -50,5 +50,5 @@ fun setup_interrupts() -> void {
 }
 
 fun main() {
-    setup_interrupts();
+    setup_interrupts()
 }

@@ -1,35 +1,35 @@
 // Game of Life Simple - Standalone Compilable Version
 // Conway's Game of Life cellular automaton
 
-const COLS: u8 = 32;
-const ROWS: u8 = 24;
-const CELLS: u16 = 768;
+const COLS: u8 = 32
+const ROWS: u8 = 24
+const CELLS: u16 = 768
 
 // Double buffer
-global current: [bool; 768];
-global next_state: [bool; 768];
-global seed: u16 = 0xACE1;
+global current: [bool; 768]
+global next_state: [bool; 768]
+global seed: u16 = 0xACE1
 
 // Simple random
 fun random_u8() -> u8 {
-    let bit: u8 = ((seed >> 0) ^ (seed >> 2) ^ (seed >> 3) ^ (seed >> 5)) as u8 & 1;
-    seed = (seed >> 1) | ((bit as u16) << 15);
+    let bit: u8 = ((seed >> 0) ^ (seed >> 2) ^ (seed >> 3) ^ (seed >> 5)) as u8 & 1
+    seed = (seed >> 1) | ((bit as u16) << 15)
     (seed >> 8) as u8
 }
 
 // Initialize with random pattern
 fun init_random() -> void {
     for i in 0..CELLS {
-        current[i] = (random_u8() % 10) < 3;
-        next_state[i] = false;
+        current[i] = (random_u8() % 10) < 3
+        next_state[i] = false
     }
 }
 
 // Count neighbors with wrapping
 fun count_neighbors(idx: u16) -> u8 {
-    let count: u8 = 0;
-    let row: u8 = (idx / 32) as u8;
-    let col: u8 = (idx % 32) as u8;
+    let count: u8 = 0
+    let row: u8 = (idx / 32) as u8
+    let col: u8 = (idx % 32) as u8
 
     // Check all 8 neighbors
     for dy in 0..3 {
@@ -39,13 +39,13 @@ fun count_neighbors(idx: u16) -> u8 {
             }
 
             // Wrap coordinates
-            let ny: u8 = ((row as i16 + dy as i16 - 1 + 24) % 24) as u8;
-            let nx: u8 = ((col as i16 + dx as i16 - 1 + 32) % 32) as u8;
+            let ny: u8 = ((row as i16 + dy as i16 - 1 + 24) % 24) as u8
+            let nx: u8 = ((col as i16 + dx as i16 - 1 + 32) % 32) as u8
 
-            let neighbor_idx: u16 = ny as u16 * 32 + nx as u16;
+            let neighbor_idx: u16 = ny as u16 * 32 + nx as u16
 
             if current[neighbor_idx] {
-                count = count + 1;
+                count = count + 1
             }
         }
     }
@@ -56,14 +56,14 @@ fun count_neighbors(idx: u16) -> u8 {
 // Compute next generation
 fun compute_next() -> void {
     for i in 0..CELLS {
-        let neighbors = count_neighbors(i);
-        let alive = current[i];
+        let neighbors = count_neighbors(i)
+        let alive = current[i]
 
         // Game of Life rules
         if alive {
-            next_state[i] = neighbors == 2 || neighbors == 3;
+            next_state[i] = neighbors == 2 || neighbors == 3
         } else {
-            next_state[i] = neighbors == 3;
+            next_state[i] = neighbors == 3
         }
     }
 }
@@ -71,17 +71,17 @@ fun compute_next() -> void {
 // Swap buffers
 fun swap_buffers() -> void {
     for i in 0..CELLS {
-        current[i] = next_state[i];
+        current[i] = next_state[i]
     }
 }
 
 // Main entry point
 fun main() -> void {
-    init_random();
+    init_random()
 
     // Run for 50 generations
     for gen in 0..50 {
-        compute_next();
-        swap_buffers();
+        compute_next()
+        swap_buffers()
     }
 }

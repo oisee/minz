@@ -3,46 +3,46 @@
 //
 // Compile: minzc graphics_demo.minz -t agon -o graphics.bin
 
-import stdlib.agon.mos;
-import stdlib.agon.vdp;
+import stdlib.agon.mos
+import stdlib.agon.vdp
 
 fun main() {
     // Set 320x240 64-color mode for easier coordinates
-    set_mode(MODE_320x240x64);
+    set_mode(MODE_320x240x64)
 
     // Clear screen
-    cls();
+    cls()
 
     // Draw some colorful shapes
-    mos_puts("MinZ Graphics Demo\r\n");
+    mos_puts("MinZ Graphics Demo\r\n")
 
     // Draw a red rectangle
     set_graphics_color(0, 9);  // Red
-    fill_rect(50, 50, 150, 100);
+    fill_rect(50, 50, 150, 100)
 
     // Draw a green circle
     set_graphics_color(0, 10); // Green
-    fill_circle(200, 100, 40);
+    fill_circle(200, 100, 40)
 
     // Draw a blue triangle
     set_graphics_color(0, 12); // Blue
-    fill_triangle(100, 180, 150, 120, 200, 180);
+    fill_triangle(100, 180, 150, 120, 200, 180)
 
     // Draw some lines
     set_graphics_color(0, 14); // Yellow
-    draw_line(0, 200, 319, 200);
-    draw_line(0, 220, 319, 220);
+    draw_line(0, 200, 319, 200)
+    draw_line(0, 220, 319, 220)
 
     // Draw a white outline
     set_graphics_color(0, 15); // White
-    draw_rect(10, 10, 310, 230);
+    draw_rect(10, 10, 310, 230)
 
     // Wait for keypress
-    set_cursor(0, 28);
-    mos_puts("Press any key to exit...");
-    getkey();
+    set_cursor(0, 28)
+    mos_puts("Press any key to exit...")
+    getkey()
 
     // Reset to text mode
-    set_mode(0);
-    cls();
+    set_mode(0)
+    cls()
 }

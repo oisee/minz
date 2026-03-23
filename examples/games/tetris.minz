@@ -2,14 +2,14 @@
 // Modern Tetris with classic gameplay and ZX Spectrum rendering
 
 // Game constants
-global BOARD_WIDTH: u8 = 10;
-global BOARD_HEIGHT: u8 = 20;
-global PREVIEW_SIZE: u8 = 4;
+global BOARD_WIDTH: u8 = 10
+global BOARD_HEIGHT: u8 = 20
+global PREVIEW_SIZE: u8 = 4
 
 // ZX Spectrum screen constants (reuse from Snake)
-global SCREEN_MEM: u16 = 16384;
-global ATTR_MEM: u16 = 22528;
-global BORDER_REG: u16 = 254;
+global SCREEN_MEM: u16 = 16384
+global ATTR_MEM: u16 = 22528
+global BORDER_REG: u16 = 254
 
 // Tetromino types
 enum PieceType {
@@ -111,105 +111,105 @@ fun get_piece_blocks(piece_type: PieceType, rotation: Rotation, blocks: ^[Point;
         // I-piece (line)
         if (rotation == Rotation.R0 || rotation == Rotation.R180) {
             // Horizontal
-            blocks[0].x = 0; blocks[0].y = 1;
-            blocks[1].x = 1; blocks[1].y = 1;
-            blocks[2].x = 2; blocks[2].y = 1;
-            blocks[3].x = 3; blocks[3].y = 1;
+            blocks[0].x = 0; blocks[0].y = 1
+            blocks[1].x = 1; blocks[1].y = 1
+            blocks[2].x = 2; blocks[2].y = 1
+            blocks[3].x = 3; blocks[3].y = 1
         } else {
             // Vertical
-            blocks[0].x = 1; blocks[0].y = 0;
-            blocks[1].x = 1; blocks[1].y = 1;
-            blocks[2].x = 1; blocks[2].y = 2;
-            blocks[3].x = 1; blocks[3].y = 3;
+            blocks[0].x = 1; blocks[0].y = 0
+            blocks[1].x = 1; blocks[1].y = 1
+            blocks[2].x = 1; blocks[2].y = 2
+            blocks[3].x = 1; blocks[3].y = 3
         }
     } else if (piece_type == PieceType.O) {
         // O-piece (square) - no rotation
-        blocks[0].x = 0; blocks[0].y = 0;
-        blocks[1].x = 1; blocks[1].y = 0;
-        blocks[2].x = 0; blocks[2].y = 1;
-        blocks[3].x = 1; blocks[3].y = 1;
+        blocks[0].x = 0; blocks[0].y = 0
+        blocks[1].x = 1; blocks[1].y = 0
+        blocks[2].x = 0; blocks[2].y = 1
+        blocks[3].x = 1; blocks[3].y = 1
     } else if (piece_type == PieceType.T) {
         // T-piece
         if (rotation == Rotation.R0) {
-            blocks[0].x = 1; blocks[0].y = 0;
-            blocks[1].x = 0; blocks[1].y = 1;
-            blocks[2].x = 1; blocks[2].y = 1;
-            blocks[3].x = 2; blocks[3].y = 1;
+            blocks[0].x = 1; blocks[0].y = 0
+            blocks[1].x = 0; blocks[1].y = 1
+            blocks[2].x = 1; blocks[2].y = 1
+            blocks[3].x = 2; blocks[3].y = 1
         } else if (rotation == Rotation.R90) {
-            blocks[0].x = 1; blocks[0].y = 0;
-            blocks[1].x = 1; blocks[1].y = 1;
-            blocks[2].x = 2; blocks[2].y = 1;
-            blocks[3].x = 1; blocks[3].y = 2;
+            blocks[0].x = 1; blocks[0].y = 0
+            blocks[1].x = 1; blocks[1].y = 1
+            blocks[2].x = 2; blocks[2].y = 1
+            blocks[3].x = 1; blocks[3].y = 2
         } else if (rotation == Rotation.R180) {
-            blocks[0].x = 0; blocks[0].y = 1;
-            blocks[1].x = 1; blocks[1].y = 1;
-            blocks[2].x = 2; blocks[2].y = 1;
-            blocks[3].x = 1; blocks[3].y = 2;
+            blocks[0].x = 0; blocks[0].y = 1
+            blocks[1].x = 1; blocks[1].y = 1
+            blocks[2].x = 2; blocks[2].y = 1
+            blocks[3].x = 1; blocks[3].y = 2
         } else {
-            blocks[0].x = 1; blocks[0].y = 0;
-            blocks[1].x = 0; blocks[1].y = 1;
-            blocks[2].x = 1; blocks[2].y = 1;
-            blocks[3].x = 1; blocks[3].y = 2;
+            blocks[0].x = 1; blocks[0].y = 0
+            blocks[1].x = 0; blocks[1].y = 1
+            blocks[2].x = 1; blocks[2].y = 1
+            blocks[3].x = 1; blocks[3].y = 2
         }
     } else {
         // Default to I-piece if unknown
-        blocks[0].x = 0; blocks[0].y = 1;
-        blocks[1].x = 1; blocks[1].y = 1;
-        blocks[2].x = 2; blocks[2].y = 1;
-        blocks[3].x = 3; blocks[3].y = 1;
+        blocks[0].x = 0; blocks[0].y = 1
+        blocks[1].x = 1; blocks[1].y = 1
+        blocks[2].x = 2; blocks[2].y = 1
+        blocks[3].x = 3; blocks[3].y = 1
     }
 }
 
 // Initialize a new piece
 fun create_piece(piece_type: PieceType) -> Piece {
-    let mut piece: Piece;
-    piece.piece_type = piece_type;
-    piece.rotation = Rotation.R0;
+    var piece: Piece
+    piece.piece_type = piece_type
+    piece.rotation = Rotation.R0
     piece.position.x = 4;  // Center of board
     piece.position.y = 0;  // Top of board
-    get_piece_blocks(piece_type, Rotation.R0, &piece.blocks);
-    return piece;
+    get_piece_blocks(piece_type, Rotation.R0, &piece.blocks)
+    return piece
 }
 
 // Initialize game board
 fun init_board() -> Board {
-    let mut board: Board;
-    board.lines_cleared = 0;
-    board.level = 1;
-    board.score = 0;
+    var board: Board
+    board.lines_cleared = 0
+    board.level = 1
+    board.score = 0
     
     // Clear the grid
-    let mut y: u8 = 0;
+    var y: u8 = 0
     while (y < BOARD_HEIGHT) {
-        let mut x: u8 = 0;
+        var x: u8 = 0
         while (x < BOARD_WIDTH) {
             board.grid[y][x] = 0;  // Empty
-            x = x + 1;
+            x = x + 1
         }
-        y = y + 1;
+        y = y + 1
     }
     
-    return board;
+    return board
 }
 
 // Initialize game
 fun init_game() -> TetrisGame {
-    let mut game: TetrisGame;
-    game.board = init_board();
-    game.current_piece = create_piece(PieceType.T);
-    game.next_piece = PieceType.I;
-    game.state = GameState.PLAYING;
-    game.drop_timer = 0;
+    var game: TetrisGame
+    game.board = init_board()
+    game.current_piece = create_piece(PieceType.T)
+    game.next_piece = PieceType.I
+    game.state = GameState.PLAYING
+    game.drop_timer = 0
     game.drop_speed = 60;  // 60 frames = 1 second at 50Hz
-    return game;
+    return game
 }
 
 // Check if piece position is valid
 fun is_valid_position(board: *Board, piece: *Piece) -> u8 {
-    let mut i: u8 = 0;
+    var i: u8 = 0
     while (i < 4) {
-        let block_x = piece.position.x + piece.blocks[i].x;
-        let block_y = piece.position.y + piece.blocks[i].y;
+        let block_x = piece.position.x + piece.blocks[i].x
+        let block_y = piece.position.y + piece.blocks[i].y
         
         // Check bounds
         if (block_x >= BOARD_WIDTH || block_y >= BOARD_HEIGHT) {
@@ -221,74 +221,74 @@ fun is_valid_position(board: *Board, piece: *Piece) -> u8 {
             return 0;  // Collision
         }
         
-        i = i + 1;
+        i = i + 1
     }
     return 1;  // Valid
 }
 
 // Place piece on board
 fun place_piece(board: *Board, piece: *Piece) -> void {
-    let mut i: u8 = 0;
+    var i: u8 = 0
     while (i < 4) {
-        let block_x = piece.position.x + piece.blocks[i].x;
-        let block_y = piece.position.y + piece.blocks[i].y;
+        let block_x = piece.position.x + piece.blocks[i].x
+        let block_y = piece.position.y + piece.blocks[i].y
         
         if (block_x < BOARD_WIDTH && block_y < BOARD_HEIGHT) {
             let piece_value: u8 = 1;  // Default value
-            if (piece.piece_type == PieceType.I) piece_value = 1;
-            if (piece.piece_type == PieceType.O) piece_value = 2;
-            if (piece.piece_type == PieceType.T) piece_value = 3;
-            board.grid[block_y][block_x] = piece_value;
+            if (piece.piece_type == PieceType.I) piece_value = 1
+            if (piece.piece_type == PieceType.O) piece_value = 2
+            if (piece.piece_type == PieceType.T) piece_value = 3
+            board.grid[block_y][block_x] = piece_value
         }
-        i = i + 1;
+        i = i + 1
     }
 }
 
 // Move piece down
 fun move_piece_down(game: *TetrisGame) -> u8 {
-    game.current_piece.position.y = game.current_piece.position.y + 1;
+    game.current_piece.position.y = game.current_piece.position.y + 1
     
     if (is_valid_position(&game.board, &game.current_piece) == 1) {
         return 1;  // Successful move
     } else {
         // Can't move down, revert and place piece
-        game.current_piece.position.y = game.current_piece.position.y - 1;
-        place_piece(&game.board, &game.current_piece);
+        game.current_piece.position.y = game.current_piece.position.y - 1
+        place_piece(&game.board, &game.current_piece)
         return 0;  // Piece placed
     }
 }
 
 // Move piece horizontally
 fun move_piece_horizontal(game: *TetrisGame, direction: u8) -> void {
-    let old_x = game.current_piece.position.x;
+    let old_x = game.current_piece.position.x
     
     if (direction == 1) {  // Move right
-        game.current_piece.position.x = game.current_piece.position.x + 1;
+        game.current_piece.position.x = game.current_piece.position.x + 1
     } else {  // Move left
         if (game.current_piece.position.x > 0) {
-            game.current_piece.position.x = game.current_piece.position.x - 1;
+            game.current_piece.position.x = game.current_piece.position.x - 1
         }
     }
     
     if (is_valid_position(&game.board, &game.current_piece) == 0) {
         // Invalid move, revert
-        game.current_piece.position.x = old_x;
+        game.current_piece.position.x = old_x
     }
 }
 
 // Rotate piece
 fun rotate_piece(game: *TetrisGame) -> void {
-    let old_rotation = game.current_piece.rotation;
+    let old_rotation = game.current_piece.rotation
     
     // Cycle through rotations
     if (game.current_piece.rotation == Rotation.R0) {
-        game.current_piece.rotation = Rotation.R90;
+        game.current_piece.rotation = Rotation.R90
     } else if (game.current_piece.rotation == Rotation.R90) {
-        game.current_piece.rotation = Rotation.R180;
+        game.current_piece.rotation = Rotation.R180
     } else if (game.current_piece.rotation == Rotation.R180) {
-        game.current_piece.rotation = Rotation.R270;
+        game.current_piece.rotation = Rotation.R270
     } else {
-        game.current_piece.rotation = Rotation.R0;
+        game.current_piece.rotation = Rotation.R0
     }
     
     // Update blocks
@@ -296,86 +296,86 @@ fun rotate_piece(game: *TetrisGame) -> void {
         game.current_piece.piece_type, 
         game.current_piece.rotation,
         &game.current_piece.blocks
-    );
+    )
     
     // Check if rotation is valid
     if (is_valid_position(&game.board, &game.current_piece) == 0) {
         // Invalid rotation, revert
-        game.current_piece.rotation = old_rotation;
+        game.current_piece.rotation = old_rotation
         get_piece_blocks(
             game.current_piece.piece_type, 
             old_rotation,
             &game.current_piece.blocks
-        );
+        )
     }
 }
 
 // Check and clear completed lines
 fun clear_lines(board: *Board) -> u8 {
-    let mut lines_cleared: u8 = 0;
-    let mut y: u8 = BOARD_HEIGHT - 1;
+    var lines_cleared: u8 = 0
+    var y: u8 = BOARD_HEIGHT - 1
     
     while (y < BOARD_HEIGHT) {  // Using underflow for loop
-        let mut line_full: u8 = 1;
-        let mut x: u8 = 0;
+        var line_full: u8 = 1
+        var x: u8 = 0
         
         // Check if line is complete
         while (x < BOARD_WIDTH) {
             if (board.grid[y][x] == 0) {
-                line_full = 0;
-                break;
+                line_full = 0
+                break
             }
-            x = x + 1;
+            x = x + 1
         }
         
         if (line_full == 1) {
             // Clear this line and move everything down
-            let mut clear_y: u8 = y;
+            var clear_y: u8 = y
             while (clear_y > 0) {
-                x = 0;
+                x = 0
                 while (x < BOARD_WIDTH) {
-                    board.grid[clear_y][x] = board.grid[clear_y - 1][x];
-                    x = x + 1;
+                    board.grid[clear_y][x] = board.grid[clear_y - 1][x]
+                    x = x + 1
                 }
-                clear_y = clear_y - 1;
+                clear_y = clear_y - 1
             }
             
             // Clear top line
-            x = 0;
+            x = 0
             while (x < BOARD_WIDTH) {
-                board.grid[0][x] = 0;
-                x = x + 1;
+                board.grid[0][x] = 0
+                x = x + 1
             }
             
-            lines_cleared = lines_cleared + 1;
+            lines_cleared = lines_cleared + 1
             // Don't decrement y since we moved everything down
         } else {
-            y = y - 1;
+            y = y - 1
         }
     }
     
-    return lines_cleared;
+    return lines_cleared
 }
 
 // Generate next piece (simple rotation for now)
 fun get_next_piece_type(current: PieceType) -> PieceType {
-    if (current == PieceType.I) return PieceType.O;
-    if (current == PieceType.O) return PieceType.T;
-    if (current == PieceType.T) return PieceType.S;
-    if (current == PieceType.S) return PieceType.Z;
-    if (current == PieceType.Z) return PieceType.J;
-    if (current == PieceType.J) return PieceType.L;
-    return PieceType.I;
+    if (current == PieceType.I) return PieceType.O
+    if (current == PieceType.O) return PieceType.T
+    if (current == PieceType.T) return PieceType.S
+    if (current == PieceType.S) return PieceType.Z
+    if (current == PieceType.Z) return PieceType.J
+    if (current == PieceType.J) return PieceType.L
+    return PieceType.I
 }
 
 // Spawn new piece
 fun spawn_new_piece(game: *TetrisGame) -> void {
-    game.current_piece = create_piece(game.next_piece);
-    game.next_piece = get_next_piece_type(game.next_piece);
+    game.current_piece = create_piece(game.next_piece)
+    game.next_piece = get_next_piece_type(game.next_piece)
     
     // Check if game over (can't place new piece)
     if (is_valid_position(&game.board, &game.current_piece) == 0) {
-        game.state = GameState.GAME_OVER;
+        game.state = GameState.GAME_OVER
     }
 }
 
@@ -390,103 +390,103 @@ fun handle_input(game: *TetrisGame) -> void {
         LD (key_state), A
     }
     
-    let key_state: u8 = 0;
+    let key_state: u8 = 0
     
     if ((key_state & 0x01) != 0) {  // A - Move left
-        move_piece_horizontal(game, 0);
+        move_piece_horizontal(game, 0)
     }
     if ((key_state & 0x04) != 0) {  // D - Move right  
-        move_piece_horizontal(game, 1);
+        move_piece_horizontal(game, 1)
     }
     if ((key_state & 0x02) != 0) {  // S - Soft drop
-        move_piece_down(game);
+        move_piece_down(game)
     }
     if ((key_state & 0x08) != 0) {  // F - Rotate
-        rotate_piece(game);
+        rotate_piece(game)
     }
 }
 
 // Render the game
 fun render_game(game: *TetrisGame) -> void {
-    clear_screen();
+    clear_screen()
     set_border(1);  // Blue border
     
     // Render placed blocks
-    let mut y: u8 = 0;
+    var y: u8 = 0
     while (y < BOARD_HEIGHT) {
-        let mut x: u8 = 0;
+        var x: u8 = 0
         while (x < BOARD_WIDTH) {
             if (game.board.grid[y][x] != 0) {
-                plot_block(x * 2, y, game.board.grid[y][x]);
+                plot_block(x * 2, y, game.board.grid[y][x])
             }
-            x = x + 1;
+            x = x + 1
         }
-        y = y + 1;
+        y = y + 1
     }
     
     // Render current piece
-    let mut i: u8 = 0;
+    var i: u8 = 0
     while (i < 4) {
-        let block_x = game.current_piece.position.x + game.current_piece.blocks[i].x;
-        let block_y = game.current_piece.position.y + game.current_piece.blocks[i].y;
+        let block_x = game.current_piece.position.x + game.current_piece.blocks[i].x
+        let block_y = game.current_piece.position.y + game.current_piece.blocks[i].y
         
         if (block_x < BOARD_WIDTH && block_y < BOARD_HEIGHT) {
             plot_block(block_x * 2, block_y, 7);  // White for current piece
         }
-        i = i + 1;
+        i = i + 1
     }
 }
 
 // Game timing
 fun delay_frames(frames: u8) -> void {
-    let mut count: u8 = 0;
+    var count: u8 = 0
     while (count < frames) {
         @asm {
             HALT
         }
-        count = count + 1;
+        count = count + 1
     }
 }
 
 // Main game loop
 fun game_loop() -> void {
-    let mut game = init_game();
+    var game = init_game()
     
     while (game.state == GameState.PLAYING) {
-        handle_input(&game);
+        handle_input(&game)
         
         // Update drop timer
-        game.drop_timer = game.drop_timer + 1;
+        game.drop_timer = game.drop_timer + 1
         if (game.drop_timer >= game.drop_speed) {
-            game.drop_timer = 0;
+            game.drop_timer = 0
             
             if (move_piece_down(&game) == 0) {
                 // Piece was placed, check for line clears
-                let lines = clear_lines(&game.board);
+                let lines = clear_lines(&game.board)
                 if (lines > 0) {
-                    game.board.lines_cleared = game.board.lines_cleared + lines;
+                    game.board.lines_cleared = game.board.lines_cleared + lines
                     // Flash border for line clear
-                    set_border(2);
-                    delay_frames(10);
-                    set_border(1);
+                    set_border(2)
+                    delay_frames(10)
+                    set_border(1)
                 }
                 
                 // Spawn next piece
-                spawn_new_piece(&game);
+                spawn_new_piece(&game)
             }
         }
         
-        render_game(&game);
+        render_game(&game)
         delay_frames(1);  // ~50 FPS
     }
     
     // Game over
     set_border(2);  // Red border
-    delay_frames(100);
-    set_border(0);
+    delay_frames(100)
+    set_border(0)
 }
 
 // Entry point
 fun main() -> void {
-    game_loop();
+    game_loop()
 }

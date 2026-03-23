@@ -4,12 +4,12 @@
 // Renders a sphere with lighting and Floyd-Steinberg dithering
 // Inspired by ZXSpeculator's OneSmallStep
 
-import glsl.fp;
-import glsl.trig;
-import glsl.vec;
-import glsl.sdf;
-import glsl.raymarch;
-import glsl.dither;
+import glsl.fp
+import glsl.trig
+import glsl.vec
+import glsl.sdf
+import glsl.raymarch
+import glsl.dither
 
 // ============================================
 // Scene Definition
@@ -25,13 +25,13 @@ fun calcNormal(p: vec3) -> vec3 {
     let eps: i16 = 2;  // Small epsilon
 
     let dx = map(vec3 { x: p.x + eps, y: p.y, z: p.z }) -
-             map(vec3 { x: p.x - eps, y: p.y, z: p.z });
+             map(vec3 { x: p.x - eps, y: p.y, z: p.z })
     let dy = map(vec3 { x: p.x, y: p.y + eps, z: p.z }) -
-             map(vec3 { x: p.x, y: p.y - eps, z: p.z });
+             map(vec3 { x: p.x, y: p.y - eps, z: p.z })
     let dz = map(vec3 { x: p.x, y: p.y, z: p.z + eps }) -
-             map(vec3 { x: p.x, y: p.y, z: p.z - eps });
+             map(vec3 { x: p.x, y: p.y, z: p.z - eps })
 
-    return v3_normalize(vec3 { x: dx, y: dy, z: dz });
+    return v3_normalize(vec3 { x: dx, y: dy, z: dz })
 }
 
 // ============================================
@@ -39,23 +39,23 @@ fun calcNormal(p: vec3) -> vec3 {
 // ============================================
 
 fun raymarch(ro: vec3, rd: vec3) -> HitResult {
-    let d: i16 = 0;
+    let d: i16 = 0
 
     for step in 0..15 {
-        let p = v3_add(ro, v3_mulf(rd, d));
-        let ds = map(p);
+        let p = v3_add(ro, v3_mulf(rd, d))
+        let ds = map(p)
 
         if ds < SURF_DIST {
-            return HitResult { distance: d, hit: true, steps: step as u8 };
+            return HitResult { distance: d, hit: true, steps: step as u8 }
         }
         if d > MAX_DIST {
-            break;
+            break
         }
 
-        d = d + ds;
+        d = d + ds
     }
 
-    return HitResult { distance: d, hit: false, steps: 15 };
+    return HitResult { distance: d, hit: false, steps: 15 }
 }
 
 // ============================================
@@ -67,7 +67,7 @@ const LIGHT_DIR: vec3 = vec3 {
     x: 147,   // 0.574
     y: 147,   // 0.574
     z: -147   // -0.574
-};
+}
 
 // Camera position
 const CAM_POS: vec3 = vec3 { x: 0, y: 0, z: -768 };  // z = -3.0
@@ -75,39 +75,39 @@ const CAM_POS: vec3 = vec3 { x: 0, y: 0, z: -768 };  // z = -3.0
 // Render single pixel, returns brightness 0-255
 fun renderPixel(x: u8, y: u8) -> u8 {
     // Create ray for this pixel
-    let ray = makeSimpleRay(x, y);
+    let ray = makeSimpleRay(x, y)
 
     // Override camera position for our scene
-    let ro = CAM_POS;
-    let rd = ray.direction;
+    let ro = CAM_POS
+    let rd = ray.direction
 
     // Raymarch
-    let result = raymarch(ro, rd);
+    let result = raymarch(ro, rd)
 
     if !result.hit {
         // Background: slight gradient
-        return 32 + (y >> 2);
+        return 32 + (y >> 2)
     }
 
     // Calculate hit point
-    let hit_point = v3_add(ro, v3_mulf(rd, result.distance));
+    let hit_point = v3_add(ro, v3_mulf(rd, result.distance))
 
     // Calculate normal
-    let normal = calcNormal(hit_point);
+    let normal = calcNormal(hit_point)
 
     // Diffuse lighting
-    let diffuse = calcDiffuse(normal, LIGHT_DIR);
+    let diffuse = calcDiffuse(normal, LIGHT_DIR)
 
     // Add ambient light
     let ambient: i16 = 64;  // 0.25
-    let brightness = ambient + fp_mul(FP_ONE - ambient, diffuse);
+    let brightness = ambient + fp_mul(FP_ONE - ambient, diffuse)
 
     // Apply distance fog
     let fog_density: i16 = 26;  // 0.1
-    brightness = applyFog(brightness, result.distance, fog_density);
+    brightness = applyFog(brightness, result.distance, fog_density)
 
     // Convert to 0-255 range
-    let result_byte = fp_clamp(brightness, 0, FP_ONE);
+    let result_byte = fp_clamp(brightness, 0, FP_ONE)
     return (result_byte >> 0) as u8;  // Already 0-255 in high byte position
 }
 
@@ -116,23 +116,23 @@ fun renderPixel(x: u8, y: u8) -> u8 {
 // ============================================
 
 // Screen memory base addresses
-const SCREEN_BASE: u16 = 0x4000;
-const ATTR_BASE: u16 = 0x5800;
+const SCREEN_BASE: u16 = 0x4000
+const ATTR_BASE: u16 = 0x5800
 
 // Plot a pixel (set bit in screen memory)
 fun plot(x: u8, y: u8) -> void {
     // Calculate screen address
     // ZX Spectrum screen layout is complex...
     // Simplified: assume linear for now
-    let byte_x = x >> 3;
-    let bit = 7 - (x & 7);
+    let byte_x = x >> 3
+    let bit = 7 - (x & 7)
 
     // Calculate Y address (Spectrum's weird layout)
-    let y_high = (y & 0xC0) >> 6;
-    let y_mid = (y & 0x38) << 2;
-    let y_low = (y & 0x07) << 8;
+    let y_high = (y & 0xC0) >> 6
+    let y_mid = (y & 0x38) << 2
+    let y_low = (y & 0x07) << 8
 
-    let addr = SCREEN_BASE + y_low + y_mid + (y_high << 11) + (byte_x as u16);
+    let addr = SCREEN_BASE + y_low + y_mid + (y_high << 11) + (byte_x as u16)
 
     // Read, modify, write
     asm {
@@ -148,34 +148,34 @@ fun plot(x: u8, y: u8) -> void {
 // ============================================
 
 // Error buffers for Floyd-Steinberg dithering
-global error_current: ErrorBuffer;
-global error_next: ErrorBuffer;
+global error_current: ErrorBuffer
+global error_next: ErrorBuffer
 
 fun main() -> void {
     // Clear error buffers
-    fs_clear_buffer(&error_current);
-    fs_clear_buffer(&error_next);
+    fs_clear_buffer(&error_current)
+    fs_clear_buffer(&error_next)
 
     // Render each scanline
     for y in 0..192 {
         // Swap error buffers
-        let temp = error_current;
-        error_current = error_next;
-        error_next = temp;
-        fs_clear_buffer(&error_next);
+        let temp = error_current
+        error_current = error_next
+        error_next = temp
+        fs_clear_buffer(&error_next)
 
         // Render each pixel
         for x in 0..256 {
             // Get grayscale brightness
-            let brightness = renderPixel(x as u8, y as u8);
+            let brightness = renderPixel(x as u8, y as u8)
 
             // Apply Floyd-Steinberg dithering
             let pixel_on = fs_dither_pixel(brightness, x as u8,
-                                           &error_current, &error_next);
+                                           &error_current, &error_next)
 
             // Plot if pixel should be on
             if pixel_on {
-                plot(x as u8, y as u8);
+                plot(x as u8, y as u8)
             }
         }
     }

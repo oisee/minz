@@ -12,20 +12,20 @@ fun putchar(ch: u8) -> void {
 
 fun main() -> void {
     // These repeated calls should be detected by LoopRerollPass
-    putchar('H');
-    putchar('e');
-    putchar('l');
-    putchar('l');
-    putchar('o');
-    putchar('!');
+    putchar('H')
+    putchar('e')
+    putchar('l')
+    putchar('l')
+    putchar('o')
+    putchar('!')
 
     // Newline
-    putchar(13);
-    putchar(10);
+    putchar(13)
+    putchar(10)
 
     // More text
-    putchar('C');
-    putchar('P');
-    putchar('/');
-    putchar('M');
+    putchar('C')
+    putchar('P')
+    putchar('/')
+    putchar('M')
 }
