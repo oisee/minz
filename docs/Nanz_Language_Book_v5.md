@@ -1,17 +1,17 @@
-# The Nanz Language Book — v6.0
+# The Nanz Language Book — v7.0
 
 > **Modern language. Vintage iron. Zero overhead.**
 >
 > Nanz is a statically typed systems language that compiles to Z80 assembly
 > with no runtime, no garbage collector, and no performance tax.
-> Every abstraction — iterators, lambdas, interfaces, ADTs, pattern matching —
-> disappears at compile time and leaves only tight machine code.
+> Every abstraction — iterators, lambdas, interfaces, ADTs, pattern matching,
+> impl blocks — disappears at compile time and leaves only tight machine code.
 >
-> *Also targets native AMD64 via C99 and QBE, and MOS 6502.*
+> *Also targets native AMD64 via C99 and QBE, MOS 6502, and eZ80 (Agon Light 2).*
 
-**Version:** MinZ compiler v0.23.0 (2026-03-23)
+**Version:** MinZ compiler v0.24.0 (2026-03-23)
 **Date:** 2026-03-23
-**Status:** Core features stable · ADT + match · 8 frontends · 26/26 test packages
+**Status:** VIR default backend · impl blocks · u24/i24 for eZ80 · 9 frontends · Stream stdlib
 
 ---
 
@@ -48,6 +48,7 @@
 - [Appendix F: What's New in v5](#appendix-f-whats-new-in-v5)
 - [Appendix G: What's New in v5.2](#appendix-g-whats-new-in-v52)
 - [Appendix H: What's New in v5.3](#appendix-h-whats-new-in-v53)
+- [Appendix J: What's New in v7.0](#appendix-j-whats-new-in-v70)
 
 ---
 
@@ -55,8 +56,9 @@
 
 Nanz (`.nanz`) is the active frontend language of the **MinZ compiler system**. It targets the MIR2 backend — a modern, SSA-like intermediate representation with:
 
-- Interprocedural calling convention optimization (PFCCO)
-- PBQP register allocator (cost-weighted physical register assignment)
+- **VIR backend (default):** Z3 SMT solver for joint instruction selection + register allocation — provably optimal code
+- **PBQP fallback:** cost-weighted register allocation for asm-heavy functions
+- Interprocedural calling convention optimization (PFCCO / Z3-PFCCO)
 - Pre-allocation coalescing (block-parameter register unification)
 - LUT synthesis (pure functions with bounded inputs → lookup tables)
 - Compile-time assertion evaluation on both the MIR2 VM *and* the Z80 binary
@@ -83,11 +85,13 @@ source.nanz
     │                   ← Interprocedural calling convention selection
     ▼  PreallocCoalesce
     │                   ← Block-param → block-arg register unification
-    ▼  PBQP register allocation
-    │                   ← Virtual regs → physical Z80 regs (cost-weighted)
-    ▼  Post-allocation coalescing
-    │                   ← Eliminate redundant moves across block boundaries
-    ▼  Z80Codegen
+    ▼  VIR: Z3 joint isel+regalloc (default)
+    │                   ← SMT solver: instruction selection + register allocation
+    │                      in one pass. Provably optimal for leaf functions.
+    │                      PBQP fallback for HasAsm / complex functions.
+    ▼  Peephole optimization (16 rules)
+    │                   ← LD r,r elimination, tail call CALL+RET→JP, etc.
+    ▼  Z80Codegen / VIR emit
 source.a80              ← MZA-compatible Z80 assembly text
     │
     ▼  Compile-time assertions (Z80 binary)
@@ -667,8 +671,9 @@ Because it resolves at parse time, `sizeof` has zero runtime cost. The compiler 
 | `i8` | 8-bit | Signed byte (same registers, signed arithmetic) |
 | `i16` | 16-bit | Signed word |
 | `u24` | 24-bit | 24-bit unsigned (eZ80 / Agon Light 2 native) |
+| `i24` | 24-bit | 24-bit signed (eZ80 native, MZV) |
 | `u32` | 32-bit | 32-bit via Z80 EXX shadow pair (`HL'/DE'/BC'`) |
-| `i32` | 32-bit | Signed 32-bit via shadow pair |
+| `i32` | 32-bit | Signed 32-bit (MZV VM, shadow pair on Z80) |
 | `f8.8` | 16-bit | Fixed-point: 8 integer bits + 8 fractional bits |
 | `f16.8` | 24-bit | Fixed-point: 16 integer + 8 fractional |
 | `f8.16` | 24-bit | Fixed-point: 8 integer + 16 fractional |
@@ -814,7 +819,49 @@ fun render_all(shape: Drawable) {
 
 When multiple implementors exist, the compiler requires a statically known concrete type at the call site. When a function parameter is typed as an interface and only one implementor exists in the module, the call is **monomorphized automatically** — no code change required.
 
-### 4.4 Operator Overloading
+### 4.4 impl Blocks (v7.0)
+
+Group methods by trait and type — desugars to UFCS functions:
+
+```nanz
+struct Circle { x: u8, y: u8, radius: u8 }
+struct Rect { x: u8, y: u8, w: u8, h: u8 }
+
+interface Shape { area, perimeter }
+
+impl Shape for Circle {
+    fun area(self) -> u8 {
+        return 3 * self.radius * self.radius
+    }
+    fun perimeter(self) -> u8 {
+        return 6 * self.radius
+    }
+}
+
+impl Shape for Rect {
+    fun area(self) -> u8 { return self.w * self.h }
+    fun perimeter(self) -> u8 { return 2 * self.w + 2 * self.h }
+}
+
+// Usage — UFCS dispatch:
+var c: Circle
+c.radius = 5
+c.area()       // calls Circle_area(&c) → 75
+c.perimeter()  // calls Circle_perimeter(&c) → 30
+```
+
+**Desugaring:** `impl Shape for Circle { fun area(self) -> u8 { ... } }` becomes `fun Circle_area(self: ^Circle) -> u8 { ... }`. The `self` parameter is automatically typed as `^TypeName`. Methods with extra parameters work naturally:
+
+```nanz
+impl Ops for Counter {
+    fun add(self, n: u8) -> u8 { return self.val + n }
+}
+c.add(5)  // calls Counter_add(&c, 5)
+```
+
+Zero runtime overhead. The impl block is pure syntax sugar — no vtables, no indirection. Everything resolves at compile time to direct `CALL` instructions.
+
+### 4.5 Operator Overloading
 
 ```nanz
 struct Vec2 { x: u8, y: u8 }
@@ -3578,6 +3625,123 @@ On Spectrum 128K, the multi-tool architecture maps naturally to bank switching: 
 On Agon Light 2 with 512KB flat RAM and 18MHz eZ80, the entire compiler fits comfortably with room for 300KB+ of source code and working memory. This is the most natural native self-hosting target.
 
 MZV remains the lowest-friction path — no hardware constraints, easy debugging, extensible host functions — but native Z80/eZ80 self-hosting is not a dream, it's an engineering exercise on the right hardware.
+
+---
+
+## Appendix J: What's New in v7.0
+
+### VIR: Z3 SMT Backend (Default)
+
+The compiler now uses a **Z3 SMT solver** for joint instruction selection and register allocation. Instead of heuristic graph coloring (PBQP), VIR encodes the entire allocation problem as a satisfiability formula and solves it optimally.
+
+```
+Pipeline: HIR → MIR2 → VIR (Z3 solver) → Z80 assembly
+                         │
+                         ├── Z3-PFCCO: optimal calling conventions
+                         ├── ISLE combining: load fusion, MUL strength reduction
+                         ├── CFG-aware: cross-block register correctness
+                         └── 16 peephole rules
+```
+
+- **55 Z80-verified asserts**, 496/496 pipeline coverage
+- **5/5 SDCC wins** on benchmark functions
+- PBQP fallback for functions with inline assembly
+- Inline `div8`/`mod8`/`mul8` runtime routines per call site
+
+### impl Blocks
+
+See [Chapter 4.4](#44-impl-blocks-v70). Group interface implementations:
+
+```nanz
+impl Shape for Circle {
+    fun area(self) -> u8 { return 3 * self.radius * self.radius }
+}
+```
+
+### Wider Integer Types
+
+| Type | Width | Target |
+|------|-------|--------|
+| `u24` / `i24` | 24-bit | eZ80 / Agon Light 2 (native) |
+| `u32` / `i32` | 32-bit | MZV VM, Z80 shadow registers |
+
+Supported in declarations, casts (`x as i32`), and function-style casts (`i32(x)`).
+
+### Local Array Literals
+
+```nanz
+let data: [u8; 5] = [10, 20, 30, 40, 50]
+```
+
+Generates a mangled global (`__arr_N`) with the literal data. The local variable binds to its address. On Z80 there are no stack-allocated arrays — this is the natural encoding.
+
+### else-if Chains
+
+```nanz
+if x == 0 {
+    ...
+} else if x == 1 {
+    ...
+} else {
+    ...
+}
+```
+
+### Stream Abstraction (`stdlib/core/stream.nanz`)
+
+Unified write interface:
+
+```nanz
+global buf: [u8; 128]
+var s: BufStream
+bufstream_init(&s, &buf, 128)
+bufstream_write_u8(&s, 72)    // 'H'
+bufstream_write_u8(&s, 105)   // 'i'
+// buf = "Hi", bufstream_pos(&s) = 2
+```
+
+Three backends: BufStream (memory), NullStream (discard/count), Stdout (platform I/O — planned).
+
+### S-Expression Frontends: Lambda, Match, Let-in
+
+Lanz and Lizp gained functional programming primitives:
+
+```lizp
+;; Lambda
+(defun test () -> u8
+  (return (apply (fn ((x u8)) u8 (return (+ x x))) 5)))
+
+;; Scoped let-in
+(defun f ((x u8)) -> u8
+  (return (let* ((a u8 (+ x 1)) (b u8 (* a 2))) b)))
+
+;; Pattern match
+(defun classify ((x u8)) -> u8
+  (return (case x (0 10) (1 20) (_ 99))))
+```
+
+### MinZ Corpus Convergence
+
+58/119 legacy MinZ files (49%) now parse through the Nanz pipeline. Changes:
+- `let mut` replaced with `var` across corpus
+- Trailing semicolons removed (Nanz has no semicolons)
+- `*u8` pointer syntax replaced with `^u8`
+
+### 9 Frontends, One Pipeline
+
+| Frontend | Extension | Style |
+|----------|-----------|-------|
+| **Nanz** | `.nanz` | Rust-like, primary |
+| **Frill** | `.frl` | ML/Haskell functional |
+| **Lizp** | `.lizp` | Scheme/Lisp with macros |
+| **Lanz** | `.lanz` | S-expression HIR |
+| **C89** | `.c` | C89 subset |
+| **PL/M-80** | `.plm` | Intel PL/M-80 |
+| **Pascal** | `.pas` | Pascal subset |
+| **ABAP** | `.abap` | SAP ABAP subset |
+| **MinZ** | `.minz` | Legacy (49% compat) |
+
+All route through: Frontend → HIR → MIR2 → VIR/PBQP → Z80 assembly.
 
 ---
 
