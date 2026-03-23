@@ -30,6 +30,9 @@ func LowerBlock(b *mir2.Block, desc *MachineDesc, mod *mir2.Module, fn ...*mir2.
 	// Fold const + ALU → immediate ALU (enables INC/DEC patterns)
 	ops = foldConstIntoALU(ops)
 
+	// ISLE combining: identity elimination, dead const removal
+	ops = ISLECombine(ops)
+
 	// NOTE: Parameter register pinning (injectParamPins) is available but disabled.
 	// It breaks more cases than it fixes because DstHint creates hard Z3 constraints
 	// that conflict with tied ALU patterns. Needs softer approach (cost penalty, not hard).
