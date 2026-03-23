@@ -14,7 +14,7 @@ import (
 	"github.com/minz/minzc/pkg/ir"
 	"github.com/minz/minzc/pkg/lanz"
 	"github.com/minz/minzc/pkg/lizp"
-	"github.com/minz/minzc/pkg/mir"
+	// "github.com/minz/minzc/pkg/mir" — MIR1 deprecated, archived to pkg/_archive/mir1_deprecated
 	"github.com/minz/minzc/pkg/module"
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/optimizer"
@@ -539,8 +539,17 @@ func compile(sourceFile string) error {
 	return nil
 }
 
-// compileFromMIR compiles a .mir file directly to the target backend
+// compileFromMIR compiles a .mir file directly to the target backend.
+// DEPRECATED: MIR1 is archived. Use HIR→MIR2 pipeline instead.
 func compileFromMIR(mirFile string) error {
+	return fmt.Errorf("MIR1 format deprecated — use .nanz/.c/.pas source files instead (MIR1 archived to pkg/_archive/mir1_deprecated)")
+}
+
+/*
+// compileFromMIR_deprecated — MIR1 pipeline removed.
+// MIR1 archived to pkg/_archive/mir1_deprecated.
+// All compilation now goes through HIR → MIR (was MIR2) → LIR → Z80.
+func compileFromMIR_deprecated(mirFile string) error {
 	fmt.Printf("Compiling from MIR: %s...\n", mirFile)
 	
 	// Import the MIR parser
@@ -678,6 +687,7 @@ func compileFromMIR(mirFile string) error {
 	}
 	return nil
 }
+*/ // end compileFromMIR_deprecated
 
 // assembleFile assembles a .a80/.asm/.z80 file using the built-in z80asm assembler.
 // This enables a one-tool workflow: mz source.minz -> mz output.a80 -> binary
@@ -994,16 +1004,10 @@ func addTASSupport(asmFile string) error {
 	return nil
 }
 
-// generateVisualization generates a DOT file for MIR visualization
+// generateVisualization generates a DOT file for MIR visualization.
+// DEPRECATED: MIR1 visualizer archived. Use --emit mir2 instead.
 func generateVisualization(module *ir.Module, filename string) error {
-	file, err := os.Create(filename)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	visualizer := mir.NewVisualizer(file)
-	return visualizer.Visualize(module)
+	return fmt.Errorf("MIR1 visualizer deprecated — use --emit mir2 for MIR2 dump")
 }
 
 // saveIRModule saves the IR module to a .mir file
