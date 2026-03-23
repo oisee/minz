@@ -199,6 +199,22 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 		{Name: "ex_de_hl", Op: OpMove, Width: 16, DstLocs: Z80_DE,
 			SrcLocs: [2]LocSet{Z80_HL},
 			Template: "EX DE, HL", Cost: 4, Bytes: 1},
+		{Name: "ex_hl_de", Op: OpMove, Width: 16, DstLocs: Z80_HL,
+			SrcLocs: [2]LocSet{Z80_DE},
+			Template: "EX DE, HL", Cost: 4, Bytes: 1},
+		// LD HL, BC via LD H,B / LD L,C (8T, 2 bytes — cheaper than PUSH/POP)
+		{Name: "ld_hl_bc", Op: OpMove, Width: 16, DstLocs: Z80_HL,
+			SrcLocs: [2]LocSet{Z80_BC},
+			Template: "LD H, B\n    LD L, C", Cost: 8, Bytes: 2},
+		{Name: "ld_bc_hl", Op: OpMove, Width: 16, DstLocs: Z80_BC,
+			SrcLocs: [2]LocSet{Z80_HL},
+			Template: "LD B, H\n    LD C, L", Cost: 8, Bytes: 2},
+		{Name: "ld_de_bc", Op: OpMove, Width: 16, DstLocs: Z80_DE,
+			SrcLocs: [2]LocSet{Z80_BC},
+			Template: "LD D, B\n    LD E, C", Cost: 8, Bytes: 2},
+		{Name: "ld_bc_de", Op: OpMove, Width: 16, DstLocs: Z80_BC,
+			SrcLocs: [2]LocSet{Z80_DE},
+			Template: "LD B, D\n    LD C, E", Cost: 8, Bytes: 2},
 
 		// ── 8-bit ALU (A = accumulator, dst tied to src0) ───────────
 		{Name: "add_a_r", Op: OpAdd, Width: 8, DstLocs: Z80_A,
@@ -273,6 +289,47 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			SrcLocs:  [2]LocSet{Z80_HL},
 			Template: "LD BC, {imm}\n    ADD HL, BC", Cost: 21, Bytes: 4,
 			Clobbers: Z80_Flags.Or(Z80_BC), Flags: PatImmediate, TiedDstSrc: true},
+
+		// ── 16-bit ALU via EX DE,HL (value in DE, avoids HL contention) ─
+		// add16_de: EX DE,HL / ADD HL,BC / EX DE,HL — DE = DE + BC
+		{Name: "add16_de_bc", Op: OpAdd, Width: 16, DstLocs: Z80_DE,
+			SrcLocs: [2]LocSet{Z80_DE, Z80_BC},
+			Template: "EX DE, HL\n    ADD HL, BC\n    EX DE, HL",
+			Cost: 19, Bytes: 3, Clobbers: Z80_Flags, TiedDstSrc: true},
+		// add16_de_hl: EX DE,HL / ADD HL,DE / EX DE,HL — DE = DE + HL
+		// After first EX: old_DE→HL, old_HL→DE. ADD HL, DE = old_DE + old_HL. EX: result→DE.
+		{Name: "add16_de_hl", Op: OpAdd, Width: 16, DstLocs: Z80_DE,
+			SrcLocs: [2]LocSet{Z80_DE, Z80_HL},
+			Template: "EX DE, HL\n    ADD HL, DE\n    EX DE, HL",
+			Cost: 19, Bytes: 3, Clobbers: Z80_Flags, TiedDstSrc: true},
+		// sub16_de: EX DE,HL / OR A / SBC HL,BC / EX DE,HL
+		{Name: "sub16_de_bc", Op: OpSub, Width: 16, DstLocs: Z80_DE,
+			SrcLocs: [2]LocSet{Z80_DE, Z80_BC},
+			Template: "EX DE, HL\n    OR A\n    SBC HL, BC\n    EX DE, HL",
+			Cost: 27, Bytes: 5, Clobbers: Z80_Flags, TiedDstSrc: true},
+		// addImm via DE: EX DE,HL / LD BC,N / ADD HL,BC / EX DE,HL
+		{Name: "add_de_nn", Op: OpAddImm, Width: 16, DstLocs: Z80_DE,
+			SrcLocs:  [2]LocSet{Z80_DE},
+			Template: "EX DE, HL\n    LD BC, {imm}\n    ADD HL, BC\n    EX DE, HL",
+			Cost: 29, Bytes: 6, Clobbers: Z80_Flags.Or(Z80_BC),
+			Flags: PatImmediate, TiedDstSrc: true},
+
+		// ── 16-bit load/store via DE (EX DE,HL bracket) ──────────────
+		// Load 16-bit via DE pointer
+		{Name: "ld16_de_ind", Op: OpLoad, Width: 16, DstLocs: Z80_DE,
+			SrcLocs: [2]LocSet{Z80_DE},
+			Template: "EX DE, HL\n    LD A, (HL)\n    INC HL\n    LD H, (HL)\n    LD L, A\n    EX DE, HL",
+			Cost: 30, Bytes: 6, Flags: PatMemRead, TiedDstSrc: true},
+		// Store 16-bit: ptr in DE, value in HL
+		{Name: "st16_de_hl", Op: OpStore, Width: 16,
+			SrcLocs: [2]LocSet{Z80_DE, Z80_HL},
+			Template: "EX DE, HL\n    LD (HL), E\n    INC HL\n    LD (HL), D\n    DEC HL\n    EX DE, HL",
+			Cost: 26, Bytes: 6, Flags: PatMemWrite},
+		// Store 16-bit: ptr in DE, value in BC
+		{Name: "st16_de_bc", Op: OpStore, Width: 16,
+			SrcLocs: [2]LocSet{Z80_DE, Z80_BC},
+			Template: "EX DE, HL\n    LD (HL), C\n    INC HL\n    LD (HL), B\n    DEC HL\n    EX DE, HL",
+			Cost: 26, Bytes: 6, Flags: PatMemWrite},
 
 		// 16-bit compare
 		{Name: "cmp16_hl_de", Op: OpCmp, Width: 16, DstLocs: Z80_Flags,
