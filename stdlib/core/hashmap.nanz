@@ -51,12 +51,12 @@ fun wr16(arr: ^u8, idx: u16, val: u16) {
 
 // Simple hash for u16 keys (multiplicative hash).
 fun hash16(key: u16) -> u16 {
-    // Knuth multiplicative: key * 0x9E37 (truncated golden ratio)
-    // Approximate with shifts: key*32768 + key*8192 + key*512 + key*32 + key*4 + key*2 + key
+    // XOR-shift hash for u16 keys.
+    // Note: Nanz uses `xor` keyword, not `^` (which is pointer deref).
     var h: u16 = key
-    h = h ^ (h << 7)
-    h = h ^ (h >> 4)
-    h = h ^ (h << 3)
+    h = h xor (h << 7)
+    h = h xor (h >> 4)
+    h = h xor (h << 3)
     return h
 }
 

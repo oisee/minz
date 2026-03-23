@@ -40,7 +40,7 @@ fun fnv1a(buf: ^u8, off: u16, len: u16) -> u16 {
     var i: u16 = 0
     while (i < len) {
         var b: u8 = buf[off + i]
-        h = h ^ u16(b)
+        h = h xor u16(b)
         // FNV multiply: h * 0x0193 — approximate with shifts
         // h * 403 = h * 256 + h * 128 + h * 16 + h * 2 + h
         var h2: u16 = h << 8
