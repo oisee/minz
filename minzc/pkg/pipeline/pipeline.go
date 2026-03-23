@@ -77,7 +77,8 @@ type Options struct {
 
 // DefaultOptions returns options with all recommended passes enabled.
 // DefaultOptions returns the default pipeline options.
-// VIR backend available via UseVIR: true (with PBQP fallback for HasAsm/runtime).
+// VIR backend available via UseVIR: true. Runtime calls inlined.
+// One new assembly error (sap_mara_demo) — needs investigation before default.
 func DefaultOptions() Options { return Options{ContractOpt: true} }
 
 // CompileHIRSteps runs the full HIR→MIR2→Z80 pipeline and returns all intermediate outputs.

@@ -774,6 +774,7 @@ func isSelfMove(line string) bool {
 func peepholeCleanup(asm string) string {
 	lines := strings.Split(asm, "\n")
 	var result []string
+	inlineCounter := 0
 
 	for i := 0; i < len(lines); i++ {
 		line := strings.TrimSpace(lines[i])
@@ -824,6 +825,85 @@ func peepholeCleanup(asm string) string {
 				i++ // skip RET
 				continue
 			}
+		}
+
+		// Inline runtime calls — replace CALL __div8/mod8/mul8 with inline body.
+		// Each instance gets a unique label suffix. Dedup'd in post-pass.
+		if strings.HasPrefix(line, "CALL __div8") || strings.HasPrefix(line, "JP __div8") {
+			idx := inlineCounter
+			inlineCounter++
+			result = append(result,
+				"    LD C, B",
+				"    LD B, A",
+				"    XOR A",
+				"    LD D, 8",
+				fmt.Sprintf(".vir_div8_%d:", idx),
+				"    SLA B",
+				"    RLA",
+				"    CP C",
+				fmt.Sprintf("    JR C, .vir_div8_sk_%d", idx),
+				"    SUB C",
+				"    INC B",
+				fmt.Sprintf(".vir_div8_sk_%d:", idx),
+				"    DEC D",
+				fmt.Sprintf("    JR NZ, .vir_div8_%d", idx),
+				"    LD A, B",  // A = quotient
+			)
+			// Skip subsequent LD A, r (return-move — result already in A)
+			if i+1 < len(lines) {
+				next := strings.TrimSpace(lines[i+1])
+				if strings.HasPrefix(next, "LD A, ") && next != "LD A, B" {
+					i++ // skip redundant return move
+				}
+			}
+			continue
+		}
+		if strings.HasPrefix(line, "CALL __mod8") || strings.HasPrefix(line, "JP __mod8") {
+			idx := inlineCounter
+			inlineCounter++
+			result = append(result,
+				"    LD C, B",
+				"    LD B, A",
+				"    XOR A",
+				"    LD D, 8",
+				fmt.Sprintf(".vir_mod8_%d:", idx),
+				"    SLA B",
+				"    RLA",
+				"    CP C",
+				fmt.Sprintf("    JR C, .vir_mod8_sk_%d", idx),
+				"    SUB C",
+				"    INC B",
+				fmt.Sprintf(".vir_mod8_sk_%d:", idx),
+				"    DEC D",
+				fmt.Sprintf("    JR NZ, .vir_mod8_%d", idx),
+			)
+			if i+1 < len(lines) {
+				next := strings.TrimSpace(lines[i+1])
+				if strings.HasPrefix(next, "LD A, ") { i++ }
+			}
+			continue
+		}
+		if strings.HasPrefix(line, "CALL __mul8") || strings.HasPrefix(line, "JP __mul8") {
+			idx := inlineCounter
+			inlineCounter++
+			result = append(result,
+				"    LD C, A",
+				"    XOR A",
+				"    LD D, 8",
+				fmt.Sprintf(".vir_mul8_%d:", idx),
+				"    SRL C",
+				fmt.Sprintf("    JR NC, .vir_mul8_sk_%d", idx),
+				"    ADD A, B",
+				fmt.Sprintf(".vir_mul8_sk_%d:", idx),
+				"    SLA B",
+				"    DEC D",
+				fmt.Sprintf("    JR NZ, .vir_mul8_%d", idx),
+			)
+			if i+1 < len(lines) {
+				next := strings.TrimSpace(lines[i+1])
+				if strings.HasPrefix(next, "LD A, ") { i++ }
+			}
+			continue
 		}
 
 		// LD r, r (self-move) — also catch at peephole level

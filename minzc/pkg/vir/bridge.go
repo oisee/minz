@@ -328,6 +328,9 @@ func translateRuntimeCall(inst *mir2.Inst, desc *MachineDesc, w int, isMul bool)
 // translateDivMod emits arg setup + CALL for __div8/__mod8 runtime.
 // ABI: A=dividend, B=divisor → A=quotient (div) or A=remainder (mod).
 func translateDivMod(inst *mir2.Inst, desc *MachineDesc, w int, isMod bool) ([]VIROp, error) {
+	if w > 8 {
+		return nil, fmt.Errorf("16-bit div/mod: use PBQP fallback")
+	}
 	sym := "__div8"
 	if isMod { sym = "__mod8" }
 	if w == 16 {
