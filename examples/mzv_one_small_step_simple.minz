@@ -12,15 +12,15 @@ fun fp_mul(a: i16, b: i16) -> i16 {
 
 // Integer square root
 fun isqrt(n: i16) -> i16 {
-    if n <= 0 { return 0; }
-    if n < 2 { return n; }
+    if n <= 0 { return 0 }
+    if n < 2 { return n }
     let guess: i16 = n >> 1
-    if guess > 180 { guess = 180; }
+    if guess > 180 { guess = 180 }
     let i: u8 = 0
     while i < 5 {
         let div: i16 = n / guess
         guess = (guess + div) >> 1
-        if guess < 1 { guess = 1; }
+        if guess < 1 { guess = 1 }
         i = i + 1
     }
     return guess
@@ -36,17 +36,17 @@ fun length3(x: i16, y: i16, z: i16) -> i16 {
 }
 
 fun abs16(x: i16) -> i16 {
-    if x < 0 { return 0 - x; }
+    if x < 0 { return 0 - x }
     return x
 }
 
 fun min16(a: i16, b: i16) -> i16 {
-    if a < b { return a; }
+    if a < b { return a }
     return b
 }
 
 fun max16(a: i16, b: i16) -> i16 {
-    if a > b { return a; }
+    if a > b { return a }
     return b
 }
 
@@ -102,8 +102,8 @@ fun march(rox: i16, roy: i16, roz: i16, rdx: i16, rdy: i16, rdz: i16) -> i16 {
         if d < 4 {
             // Hit - brightness based on height
             let light: i16 = 100 + py
-            if light < 60 { light = 60; }
-            if light > 255 { light = 255; }
+            if light < 60 { light = 60 }
+            if light > 255 { light = 255 }
             return light
         }
 
@@ -112,7 +112,7 @@ fun march(rox: i16, roy: i16, roz: i16, rdx: i16, rdy: i16, rdz: i16) -> i16 {
         py = roy + fp_mul(rdy, t)
         pz = roz + fp_mul(rdz, t)
 
-        if t > 400 { return 0; }
+        if t > 400 { return 0 }
 
         i = i + 1
     }

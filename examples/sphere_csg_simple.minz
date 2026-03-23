@@ -10,19 +10,19 @@ fun fp_mul(a: i16, b: i16) -> i16 {
 }
 
 fun fp_max(a: i16, b: i16) -> i16 {
-    if a > b { return a; } return b
+    if a > b { return a } return b
 }
 
 fun fp_min(a: i16, b: i16) -> i16 {
-    if a < b { return a; } return b
+    if a < b { return a } return b
 }
 
 fun fp_abs(x: i16) -> i16 {
-    if x < 0 { return -x; } return x
+    if x < 0 { return -x } return x
 }
 
 fun isqrt(x: i16) -> i16 {
-    if x <= 0 { return 0; }
+    if x <= 0 { return 0 }
     let g: i16 = 64
     g = (g + x / g) >> 1
     g = (g + x / g) >> 1
@@ -76,7 +76,7 @@ fun box3(p: vec3, b: vec3) -> Dist {
 fun map(p: vec3) -> i16 {
     let s = sphere(p, 180)
     let b = box3(p, vec3 { x: 120, y: 120, z: 120 })
-    return (s - b).v;  // CSG subtraction!
+    return (s - b).v  // CSG subtraction!
 }
 
 // Simple plot
@@ -129,7 +129,7 @@ fun main() -> void {
                     hit = true
                 }
                 t = t + d + 8
-                if t > 1500 { break; }
+                if t > 1500 { break }
             }
 
             if hit {

@@ -132,7 +132,7 @@ fun main() -> void {
     render_snake(step2)
     
     // Test direction change
-    let turned = update_direction(step2, 87); // Press 'W'
+    let turned = update_direction(step2, 87) // Press 'W'
     let step3 = run_game_step(turned, food_x, food_y)
     render_snake(step3)
 }

@@ -7,7 +7,7 @@
 
 // =================================================================
 // CONCEPT: Interface Drawable 
-// In future MinZ: interface Drawable { fun draw(self) -> void; }
+// In future MinZ: interface Drawable { fun draw(self) -> void }
 // =================================================================
 
 // Sprite "implementing" Drawable
@@ -56,17 +56,17 @@ fun circle_draw(c: *Circle) -> void {
 
 fun render_sprite(s: *Sprite) -> void {
     @print("Rendering: ")
-    sprite_draw(s);  // Direct call - no vtable!
+    sprite_draw(s)  // Direct call - no vtable!
 }
 
 fun render_text(t: *Text) -> void {
     @print("Rendering: ")
-    text_draw(t);    // Direct call - no vtable!
+    text_draw(t)    // Direct call - no vtable!
 }
 
 fun render_circle(c: *Circle) -> void {
     @print("Rendering: ")
-    circle_draw(c);   // Direct call - no vtable!
+    circle_draw(c)   // Direct call - no vtable!
 }
 
 // =================================================================
@@ -123,9 +123,9 @@ fun game_object_update(obj: *GameObject) -> void {
     // In future MinZ with interfaces, this would be generic
     // For now, we show the specialized code that would be generated
     
-    sprite_draw(&obj.sprite);  // Drawable interface
+    sprite_draw(&obj.sprite)  // Drawable interface
     
-    // check_collision(&obj.sprite, mouse_x, mouse_y);  // Collidable interface
+    // check_collision(&obj.sprite, mouse_x, mouse_y)  // Collidable interface
     @print("  (Would check collision here)\n")
 }
 

@@ -4,9 +4,9 @@ fun main() -> void {
     let cy: u8 = 96
     let radius: u8 = 40
     
-    let y: u8 = 56;  // cy - radius
+    let y: u8 = 56  // cy - radius
     while y < 136 {  // cy + radius
-        let x: u8 = 120;  // cx - radius
+        let x: u8 = 120  // cx - radius
         while x < 200 {  // cx + radius
             let dx: i16 = x as i16 - cx as i16
             let dy: i16 = y as i16 - cy as i16
@@ -14,7 +14,7 @@ fun main() -> void {
             let radius_sq: i16 = radius as i16 * radius as i16
             
             if dist_sq < radius_sq {
-                set_pixel(x, y, 15);  // White pixel inside sphere
+                set_pixel(x, y, 15)  // White pixel inside sphere
             }
             x = x + 1
         }

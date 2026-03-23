@@ -9,8 +9,8 @@
 // ============================================
 
 // Constants
-fun fp_one() -> i16 { return 1 << 8; }     // 256 = 1.0
-fun fp_half() -> i16 { return 1 << 7; }    // 128 = 0.5
+fun fp_one() -> i16 { return 1 << 8 }     // 256 = 1.0
+fun fp_half() -> i16 { return 1 << 7 }    // 128 = 0.5
 
 // Fixed-point multiply using Z80 assembly
 fun fp_mul(a: i16, b: i16) -> i16 {
@@ -72,7 +72,7 @@ fun fp_mul(a: i16, b: i16) -> i16 {
 
 // Fixed-point divide
 fun fp_div(a: i16, b: i16) -> i16 {
-    if b == 0 { return 32767; }
+    if b == 0 { return 32767 }
     asm {
         PUSH BC
         LD A, H
@@ -141,34 +141,34 @@ fun fp_div(a: i16, b: i16) -> i16 {
 
 // Absolute value
 fun fp_abs(x: i16) -> i16 {
-    if x < 0 { return 0 - x; }
+    if x < 0 { return 0 - x }
     return x
 }
 
 // Minimum
 fun fp_min(a: i16, b: i16) -> i16 {
-    if a < b { return a; }
+    if a < b { return a }
     return b
 }
 
 // Maximum
 fun fp_max(a: i16, b: i16) -> i16 {
-    if a > b { return a; }
+    if a > b { return a }
     return b
 }
 
 // Clamp
 fun fp_clamp(x: i16, lo: i16, hi: i16) -> i16 {
-    if x < lo { return lo; }
-    if x > hi { return hi; }
+    if x < lo { return lo }
+    if x > hi { return hi }
     return x
 }
 
 // Square root (Newton-Raphson, 4 iterations)
 fun fp_sqrt(x: i16) -> i16 {
-    if x <= 0 { return 0; }
+    if x <= 0 { return 0 }
     let guess: i16 = x >> 1
-    if guess == 0 { guess = 1; }
+    if guess == 0 { guess = 1 }
 
     for i in 0..4 {
         let div_result = fp_div(x, guess)
@@ -215,7 +215,7 @@ fun v3_length(v: vec3) -> i16 {
 
 fun v3_normalize(v: vec3) -> vec3 {
     let len = v3_length(v)
-    if len == 0 { return vec3 { x: 0, y: 0, z: 0 }; }
+    if len == 0 { return vec3 { x: 0, y: 0, z: 0 } }
     return vec3 {
         x: fp_div(v.x, len),
         y: fp_div(v.y, len),
@@ -233,7 +233,7 @@ fun sdSphere(p: vec3, r: i16) -> i16 {
 
 // Scene: sphere at origin with radius 1.0
 fun map(p: vec3) -> i16 {
-    return sdSphere(p, 1 << 8);  // radius = 1.0
+    return sdSphere(p, 1 << 8)  // radius = 1.0
 }
 
 // Calculate normal using gradient
@@ -261,20 +261,20 @@ fun calcNormal(p: vec3) -> vec3 {
 
 fun raymarch(ro: vec3, rd: vec3) -> i16 {
     let d: i16 = 0
-    let max_dist: i16 = 10 << 8;  // 10.0
-    let surf_dist: i16 = 2;       // ~0.008
+    let max_dist: i16 = 10 << 8  // 10.0
+    let surf_dist: i16 = 2       // ~0.008
 
     for step in 0..15 {
         let p = v3_add(ro, v3_mulf(rd, d))
         let ds = map(p)
 
-        if ds < surf_dist { return d; }
-        if d > max_dist { return 0 - 1; }  // Miss
+        if ds < surf_dist { return d }
+        if d > max_dist { return 0 - 1 }  // Miss
 
         d = d + ds
     }
 
-    return 0 - 1;  // Miss
+    return 0 - 1  // Miss
 }
 
 // ============================================
@@ -283,7 +283,7 @@ fun raymarch(ro: vec3, rd: vec3) -> i16 {
 
 // Light direction (normalized)
 fun light_dir() -> vec3 {
-    return vec3 { x: 147, y: 147, z: 0 - 147 };  // ~0.57 each
+    return vec3 { x: 147, y: 147, z: 0 - 147 }  // ~0.57 each
 }
 
 // Render single pixel, returns brightness 0-127
@@ -323,7 +323,7 @@ fun renderPixel(x: u8, y: u8) -> u8 {
     diffuse = fp_max(diffuse, 0)
 
     // Add ambient
-    let ambient: i16 = 64;  // 0.25
+    let ambient: i16 = 64  // 0.25
     let one: i16 = 1 << 8
     let brightness = ambient + fp_mul(one - ambient, diffuse)
 
@@ -349,7 +349,7 @@ global BAYER_4X4: [u8; 16] = [
 
 fun bayer_dither(value: u8, x: u8, y: u8) -> bool {
     let idx = ((y & 3) << 2) | (x & 3)
-    let threshold = BAYER_4X4[idx] << 3;  // Scale to 0-120
+    let threshold = BAYER_4X4[idx] << 3  // Scale to 0-120
     return value > threshold
 }
 

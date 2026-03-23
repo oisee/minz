@@ -21,6 +21,6 @@ fun sum_tail(n: u16, acc: u16) -> u16 {
 }
 
 fun main() -> void {
-    let result = factorial(5);  // Should be 120
-    let sum = sum_tail(100, 0);  // Should be 5050
+    let result = factorial(5)  // Should be 120
+    let sum = sum_tail(100, 0)  // Should be 5050
 }

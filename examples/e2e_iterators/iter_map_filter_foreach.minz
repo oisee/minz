@@ -5,7 +5,7 @@
 // filter(> 5) = [6, 8, 10]
 // Expected output: 06 08 0a 0a (hex: 6, 8, 10, newline)
 
-fun double(x: u8) -> u8 { return x * 2; }
+fun double(x: u8) -> u8 { return x * 2 }
 
 fun console_log(c: u8) -> void {
     asm {

@@ -60,7 +60,7 @@ fun main() -> void {
     // Simple input loop
     while true {
         // Simulate key press
-        let key = 32;  // SPACE key
+        let key = 32  // SPACE key
         if key == 32 {
             // Toggle center pixel
             // Toggle center pixel - would use XOR in assembly

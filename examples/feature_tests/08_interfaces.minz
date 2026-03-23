@@ -70,17 +70,17 @@ impl Drawable for Square {
 impl Collidable for Rectangle {
     fun collides_with(self, other: Rectangle) -> bool {
         // Simple AABB collision
-        if self.x + self.width < other.x { return false; }
-        if other.x + other.width < self.x { return false; }
-        if self.y + self.height < other.y { return false; }
-        if other.y + other.height < self.y { return false; }
+        if self.x + self.width < other.x { return false }
+        if other.x + other.width < self.x { return false }
+        if self.y + self.height < other.y { return false }
+        if other.y + other.height < self.y { return false }
         return true
     }
 }
 
 // Generic function with interface bound (monomorphized)
 fun render<T: Drawable>(shape: T) -> u8 {
-    return shape.draw();  // Direct call after monomorphization!
+    return shape.draw()  // Direct call after monomorphization!
 }
 
 // Multiple bounds
@@ -98,8 +98,8 @@ fun test_interface_calls() -> bool {
     let square = Square { x: 30, y: 40, size: 10 }
     
     // Direct method calls (resolved at compile time)
-    if circle.draw() != 35 { return false; }  // 10 + 20 + 5
-    if square.draw() != 80 { return false; }  // 30 + 40 + 10
+    if circle.draw() != 35 { return false }  // 10 + 20 + 5
+    if square.draw() != 80 { return false }  // 30 + 40 + 10
     
     return true
 }
@@ -113,8 +113,8 @@ fun test_monomorphization() -> bool {
     // render(circle) → render_Circle(circle) → Circle_draw(circle)
     // render(square) → render_Square(square) → Square_draw(square)
     
-    if render(circle) != 13 { return false; }  // 5 + 5 + 3
-    if render(square) != 25 { return false; }  // 10 + 10 + 5
+    if render(circle) != 13 { return false }  // 5 + 5 + 3
+    if render(square) != 25 { return false }  // 10 + 10 + 5
     
     return true
 }
@@ -130,11 +130,11 @@ fun test_interface_array() -> bool {
     
     var total: u8 = 0
     for shape in shapes {
-        total = total + shape.draw();  // Tag-based dispatch
+        total = total + shape.draw()  // Tag-based dispatch
     }
     
     // (1+1+1) + (2+2+2) + (3+3+3) = 3 + 6 + 9 = 18
-    if total != 18 { return false; }
+    if total != 18 { return false }
     
     return true
 }
@@ -155,7 +155,7 @@ fun test_interface_parameter() -> bool {
     ]
     
     // (5+5+5) + (10+10+10) = 15 + 30 = 45
-    if calculate_total_draw_value(&shapes) != 45 { return false; }
+    if calculate_total_draw_value(&shapes) != 45 { return false }
     
     return true
 }
@@ -164,7 +164,7 @@ fun test_interface_parameter() -> bool {
 fun test_zero_cost() -> bool {
     // This function should compile to direct calls
     fun draw_both(c: Circle, s: Square) -> u8 {
-        return c.draw() + s.draw();  // Direct Circle_draw + Square_draw
+        return c.draw() + s.draw()  // Direct Circle_draw + Square_draw
     }
     
     // Generic version should produce identical code after monomorphization
@@ -175,17 +175,17 @@ fun test_zero_cost() -> bool {
     let c = Circle { x: 1, y: 2, radius: 3 }
     let s = Square { x: 4, y: 5, size: 6 }
     
-    if draw_both(c, s) != draw_both_generic(c, s) { return false; }
+    if draw_both(c, s) != draw_both_generic(c, s) { return false }
     
     return true
 }
 
 fun main() -> u8 {
-    if !test_interface_calls() { return 1; }
-    if !test_monomorphization() { return 2; }
-    if !test_interface_array() { return 3; }
-    if !test_interface_parameter() { return 4; }
-    if !test_zero_cost() { return 5; }
+    if !test_interface_calls() { return 1 }
+    if !test_monomorphization() { return 2 }
+    if !test_interface_array() { return 3 }
+    if !test_interface_parameter() { return 4 }
+    if !test_zero_cost() { return 5 }
     
-    return 0;  // All tests passed
+    return 0  // All tests passed
 }

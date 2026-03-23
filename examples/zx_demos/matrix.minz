@@ -60,5 +60,5 @@ fun update_rain() -> void {
 fun main() -> void {
     init_colors()
     init_chars()
-    loop { update_rain(); }
+    loop { update_rain() }
 }

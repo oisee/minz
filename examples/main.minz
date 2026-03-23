@@ -11,7 +11,7 @@ const ATTR_START: u16 = 0x5800
 fun main() -> void {
     // Simple initialization
     clear_screen()
-    set_border(1);  // Blue border
+    set_border(1)  // Blue border
     
     // Draw some output to show the program works
     var x: u8 = 10

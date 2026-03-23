@@ -17,12 +17,12 @@ import glsl.dither
 
 // Scene: single sphere at origin
 fun map(p: vec3) -> i16 {
-    return sdSphere(p, FP_ONE);  // Radius 1.0
+    return sdSphere(p, FP_ONE)  // Radius 1.0
 }
 
 // Calculate normal using central differences
 fun calcNormal(p: vec3) -> vec3 {
-    let eps: i16 = 2;  // Small epsilon
+    let eps: i16 = 2  // Small epsilon
 
     let dx = map(vec3 { x: p.x + eps, y: p.y, z: p.z }) -
              map(vec3 { x: p.x - eps, y: p.y, z: p.z })
@@ -70,7 +70,7 @@ const LIGHT_DIR: vec3 = vec3 {
 }
 
 // Camera position
-const CAM_POS: vec3 = vec3 { x: 0, y: 0, z: -768 };  // z = -3.0
+const CAM_POS: vec3 = vec3 { x: 0, y: 0, z: -768 }  // z = -3.0
 
 // Render single pixel, returns brightness 0-255
 fun renderPixel(x: u8, y: u8) -> u8 {
@@ -99,16 +99,16 @@ fun renderPixel(x: u8, y: u8) -> u8 {
     let diffuse = calcDiffuse(normal, LIGHT_DIR)
 
     // Add ambient light
-    let ambient: i16 = 64;  // 0.25
+    let ambient: i16 = 64  // 0.25
     let brightness = ambient + fp_mul(FP_ONE - ambient, diffuse)
 
     // Apply distance fog
-    let fog_density: i16 = 26;  // 0.1
+    let fog_density: i16 = 26  // 0.1
     brightness = applyFog(brightness, result.distance, fog_density)
 
     // Convert to 0-255 range
     let result_byte = fp_clamp(brightness, 0, FP_ONE)
-    return (result_byte >> 0) as u8;  // Already 0-255 in high byte position
+    return (result_byte >> 0) as u8  // Already 0-255 in high byte position
 }
 
 // ============================================

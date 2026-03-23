@@ -16,7 +16,7 @@ fun fp_mul(a: i16, b: i16) -> i16 {
 
 fun fp_div(a: i16, b: i16) -> i16 {
     if b == 0 {
-        if a >= 0 { return 32767; }
+        if a >= 0 { return 32767 }
         return -32768
     }
     let a32: i32 = a as i32
@@ -27,19 +27,19 @@ fun fp_div(a: i16, b: i16) -> i16 {
 
 // Fast integer square root (no fixed-point needed for distance)
 fun isqrt(n: i16) -> i16 {
-    if n <= 0 { return 0; }
-    if n < 2 { return n; }
+    if n <= 0 { return 0 }
+    if n < 2 { return n }
 
     // Initial guess using bit shift approximation
     let guess: i16 = n >> 1
-    if guess > 127 { guess = 127; }
+    if guess > 127 { guess = 127 }
 
     // 3 Newton-Raphson iterations (reduced from 6)
     let i: u8 = 0
     while i < 3 {
         let div_result: i16 = n / guess
         guess = (guess + div_result) >> 1
-        if guess == 0 { guess = 1; }
+        if guess == 0 { guess = 1 }
         i = i + 1
     }
 
@@ -52,9 +52,9 @@ fun isqrt(n: i16) -> i16 {
 
 fun main() -> void {
     // Sphere parameters
-    let cx: i16 = 160;      // center x
-    let cy: i16 = 120;      // center y
-    let radius: i16 = 50;   // radius (smaller for faster rendering)
+    let cx: i16 = 160      // center x
+    let cy: i16 = 120      // center y
+    let radius: i16 = 50   // radius (smaller for faster rendering)
     let radius_sq: i16 = radius * radius
 
     // Light direction (not normalized, but consistent)
@@ -92,32 +92,32 @@ fun main() -> void {
                 let dot: i16 = dx * lx + dy * ly + z * lz
 
                 // Clamp negative dot product (facing away from light)
-                if dot < 0 { dot = 0; }
+                if dot < 0 { dot = 0 }
 
                 // Scale brightness directly from dot product
                 // dot ranges from 0 to ~sqrt(3)*radius ≈ 86 for radius=50
                 // Scale to range 64-255: brightness = 64 + (dot * 191 / max_dot)
                 // Use dot * 3 to scale appropriately (191/86 ≈ 2.2, rounded to 3)
                 let brightness: i16 = 64 + (dot * 3)
-                if brightness > 255 { brightness = 255; }
+                if brightness > 255 { brightness = 255 }
 
                 // Map brightness to 8-bit palette colors
                 // Using a warm orange/yellow gradient
                 let color: u8 = 0
                 if brightness > 230 {
-                    color = 15;  // White (specular highlight)
+                    color = 15  // White (specular highlight)
                 } else if brightness > 200 {
-                    color = 14;  // Yellow
+                    color = 14  // Yellow
                 } else if brightness > 170 {
-                    color = 10;  // Bright yellow
+                    color = 10  // Bright yellow
                 } else if brightness > 140 {
-                    color = 2;   // Red
+                    color = 2   // Red
                 } else if brightness > 110 {
-                    color = 6;   // Brown/orange
+                    color = 6   // Brown/orange
                 } else if brightness > 80 {
-                    color = 1;   // Dark red
+                    color = 1   // Dark red
                 } else {
-                    color = 0;   // Black (shadow)
+                    color = 0   // Black (shadow)
                 }
 
                 set_pixel(x as u8, y as u8, color)

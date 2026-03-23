@@ -2,10 +2,10 @@
 // Demonstrates TRUE SMC optimization while avoiding unsupported operators
 
 // Work area for 16x16 pixel canvas
-var canvas: [32]u8;      // SMC-optimized work area
-var cursor_x: u8;        // Current cursor position
+var canvas: [32]u8      // SMC-optimized work area
+var cursor_x: u8        // Current cursor position
 var cursor_y: u8
-var flash_counter: u8;   // For cursor flashing
+var flash_counter: u8   // For cursor flashing
 
 // Initialize the work area and editor state
 fun init_editor() -> void {
@@ -16,7 +16,7 @@ fun init_editor() -> void {
     // Clear canvas using SMC-optimized array access
     var i: u8 = 0
     while i < 32 {
-        canvas[i] = 0;  // SMC patches each access for direct memory store
+        canvas[i] = 0  // SMC patches each access for direct memory store
         i = i + 1
     }
 }
@@ -39,7 +39,7 @@ fun clear_pixel(x: u8, y: u8) -> void {
     
     // Clear bit by: if set, XOR to clear; if clear, do nothing
     if (canvas[byte_idx] & mask) != 0 {
-        canvas[byte_idx] = canvas[byte_idx] ^ mask;  // SMC optimized
+        canvas[byte_idx] = canvas[byte_idx] ^ mask  // SMC optimized
     }
 }
 
@@ -98,31 +98,31 @@ fun clear_canvas() -> void {
     
     // Each array access will be SMC-patched for direct memory clear
     while i < 32 {
-        canvas[i] = 0;  // SMC: direct memory store instruction
+        canvas[i] = 0  // SMC: direct memory store instruction
         i = i + 1
     }
 }
 
 // ZX Spectrum screen address calculation
 fun calc_screen_addr(x: u8, y: u8) -> u16 {
-    let screen_base: u16 = 16384;  // 0x4000
+    let screen_base: u16 = 16384  // 0x4000
     
-    let y_low: u8 = y & 7;        // Bottom 3 bits
-    let y_mid: u8 = (y >> 3) & 7; // Middle 3 bits  
-    let y_high: u8 = y >> 6;      // Top 2 bits
+    let y_low: u8 = y & 7        // Bottom 3 bits
+    let y_mid: u8 = (y >> 3) & 7 // Middle 3 bits  
+    let y_high: u8 = y >> 6      // Top 2 bits
     
     let addr: u16 = screen_base
-    addr = addr + (y_high * 2048);  // Third selection
-    addr = addr + (y_mid * 32);     // Character row
-    addr = addr + (y_low * 256);    // Pixel row
-    addr = addr + (x / 8);          // Byte within row
+    addr = addr + (y_high * 2048)  // Third selection
+    addr = addr + (y_mid * 32)     // Character row
+    addr = addr + (y_low * 256)    // Pixel row
+    addr = addr + (x / 8)          // Byte within row
     
     return addr
 }
 
 // Render work area to ZX Spectrum screen
 fun render_to_screen() -> void {
-    let grid_x: u8 = 64;  // Center on screen
+    let grid_x: u8 = 64  // Center on screen
     let grid_y: u8 = 48
     
     // Scan work area using SMC-optimized access
@@ -175,13 +175,13 @@ fun simulate_input() -> u8 {
     let sim_input: u8 = flash_counter & 15
     
     if sim_input < 4 {
-        return 1;  // Move commands
+        return 1  // Move commands
     } else if sim_input < 8 {
-        return 2;  // Toggle pixel
+        return 2  // Toggle pixel
     } else if sim_input < 12 {
-        return 3;  // Clear command
+        return 3  // Clear command
     } else {
-        return 0;  // No input
+        return 0  // No input
     }
 }
 
@@ -223,7 +223,7 @@ fun count_set_pixels() -> u16 {
     // Scan work area with SMC optimization
     var i: u8 = 0
     while i < 32 {
-        let byte_val: u8 = canvas[i];  // SMC-optimized read
+        let byte_val: u8 = canvas[i]  // SMC-optimized read
         
         // Count set bits without using ~ operator
         var bit_pos: u8 = 0
@@ -246,10 +246,10 @@ fun draw_welcome_pattern() -> void {
     // Draw border
     var edge: u8 = 0
     while edge < 16 {
-        set_pixel(edge, 0);      // Top edge
-        set_pixel(edge, 15);     // Bottom edge
-        set_pixel(0, edge);      // Left edge  
-        set_pixel(15, edge);     // Right edge
+        set_pixel(edge, 0)      // Top edge
+        set_pixel(edge, 15)     // Bottom edge
+        set_pixel(0, edge)      // Left edge  
+        set_pixel(15, edge)     // Right edge
         edge = edge + 1
     }
     
@@ -272,14 +272,14 @@ fun draw_welcome_pattern() -> void {
 fun test_modern_loops() -> void {
     // Future: Use loop at syntax for canvas operations
     // loop at canvas -> !byte {
-    //     byte = byte & 0xF0;  // Clear lower nibble
+    //     byte = byte & 0xF0  // Clear lower nibble
     // }
     
     // For now, traditional approach with SMC optimization
     var i: u8 = 0
     while i < 32 {
         let current: u8 = canvas[i]
-        canvas[i] = current & 240;  // SMC optimizes this
+        canvas[i] = current & 240  // SMC optimizes this
         i = i + 1
     }
 }
@@ -321,7 +321,7 @@ fun main() -> void {
             
             // If too many pixels, thin them out
             if pixel_count > 80 {
-                test_modern_loops();  // SMC-optimized filtering
+                test_modern_loops()  // SMC-optimized filtering
             }
         }
         

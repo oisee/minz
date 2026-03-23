@@ -68,9 +68,9 @@ fun unrolled_copy(dest: ^u8, src: ^u8) -> void {
 
 fun lookup_mul_by_10(x: u8) -> u16 {
     // Fast multiplication by 10 using shifts and adds
-    let x2 = (x << 1) as u16;  // x * 2
-    let x8 = (x << 3) as u16;  // x * 8
-    return x2 + x8;             // x * 2 + x * 8 = x * 10
+    let x2 = (x << 1) as u16  // x * 2
+    let x8 = (x << 3) as u16  // x * 8
+    return x2 + x8             // x * 2 + x * 8 = x * 10
 }
 
 fun main() -> void {
@@ -84,5 +84,5 @@ fun main() -> void {
     ldir_wrapper(&src[0], &buffer[0], 256)
     
     // Fast multiplication
-    let result = lookup_mul_by_10(25);  // 250
+    let result = lookup_mul_by_10(25)  // 250
 }

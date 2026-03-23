@@ -28,33 +28,33 @@ fun fp_mul(a: i16, b: i16) -> i16 {
         LD E, L
         ; Simplified: just return a for now
     }
-    return (a >> 4) * (b >> 4);  // Approximate
+    return (a >> 4) * (b >> 4)  // Approximate
 }
 
 fun fp_div(a: i16, b: i16) -> i16 {
-    if b == 0 { return 32767; }
-    return (a << 4) / (b >> 4);  // Approximate
+    if b == 0 { return 32767 }
+    return (a << 4) / (b >> 4)  // Approximate
 }
 
 fun fp_max(a: i16, b: i16) -> i16 {
-    if a > b { return a; }
+    if a > b { return a }
     return b
 }
 
 fun fp_min(a: i16, b: i16) -> i16 {
-    if a < b { return a; }
+    if a < b { return a }
     return b
 }
 
 fun fp_abs(x: i16) -> i16 {
-    if x < 0 { return -x; }
+    if x < 0 { return -x }
     return x
 }
 
 fun fp_sqrt(x: i16) -> i16 {
-    if x <= 0 { return 0; }
+    if x <= 0 { return 0 }
     let guess: i16 = x >> 1
-    if guess == 0 { guess = 1; }
+    if guess == 0 { guess = 1 }
     for i in 0..4 {
         guess = (guess + fp_div(x, guess)) >> 1
     }
@@ -100,7 +100,7 @@ impl vec3 {
     // v.normalize()
     fun normalize(self) -> vec3 {
         let len = self.length()
-        if len == 0 { return vec3 { x: 0, y: 0, z: 0 }; }
+        if len == 0 { return vec3 { x: 0, y: 0, z: 0 } }
         return vec3 {
             x: fp_div(self.x, len),
             y: fp_div(self.y, len),
@@ -244,8 +244,8 @@ fun raymarch(ro: vec3, rd: vec3) -> i16 {
         let p = ro + rd * t
         let d = map(p)
 
-        if d.value < 2 { return t; }
-        if t > 5120 { return -1; }  // 20.0 max
+        if d.value < 2 { return t }
+        if t > 5120 { return -1 }  // 20.0 max
 
         t = t + d.value
     }
@@ -271,7 +271,7 @@ fun shade(normal: vec3, light: vec3) -> u8 {
 
 fun main() -> void {
     // Camera
-    let ro = vec3 { x: 0, y: 0, z: -768 };  // -3.0
+    let ro = vec3 { x: 0, y: 0, z: -768 }  // -3.0
 
     // Ray direction (center pixel)
     let rd = vec3 { x: 0, y: 0, z: FP_ONE }.normalize()

@@ -22,7 +22,7 @@ struct Grain {
 
 // Global state
 global grains: [Grain; 128]
-global grid: [bool; 768];  // Collision grid
+global grid: [bool; 768]  // Collision grid
 global spawn_timer: u8 = 0
 
 // Main entry point
@@ -98,7 +98,7 @@ fun update_grains() -> void {
 
         // Already at bottom?
         if y >= 23 {
-            continue;  // Grain is at rest
+            continue  // Grain is at rest
         }
 
         let curr_idx: u16 = y as u16 * 32 + x as u16

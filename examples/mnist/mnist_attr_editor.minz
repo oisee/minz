@@ -13,10 +13,10 @@ const ATTR_SIZE: u16 = 768
 const BORDER_PORT: u8 = 0xFE
 
 // Keyboard ports
-const KB_PORT_QAOP: u8 = 0xDF;  // O, P keys
-const KB_PORT_ASDF: u8 = 0xFD;  // A key
-const KB_PORT_QWER: u8 = 0xFB;  // Q key
-const KB_PORT_SPACE: u8 = 0x7F; // SPACE, SYM SHIFT, M
+const KB_PORT_QAOP: u8 = 0xDF  // O, P keys
+const KB_PORT_ASDF: u8 = 0xFD  // A key
+const KB_PORT_QWER: u8 = 0xFB  // Q key
+const KB_PORT_SPACE: u8 = 0x7F // SPACE, SYM SHIFT, M
 
 // Editor state
 struct Editor {
@@ -99,8 +99,8 @@ fun is_key_pressed(port: u8, bit: u8) -> bool {
 // Toggle pixel in 16x16 representation (top-left corner)
 fun toggle_pixel(editor: *Editor) -> void {
     // Map cursor position to 16x16 grid
-    let bit_x = editor.cursor_x & 0x0F;  // 0-15
-    let bit_y = editor.cursor_y & 0x0F;  // 0-15
+    let bit_x = editor.cursor_x & 0x0F  // 0-15
+    let bit_y = editor.cursor_y & 0x0F  // 0-15
     
     // Calculate screen address for this pixel
     // Simplified for first 16 lines
@@ -128,9 +128,9 @@ fun handle_input(editor: *Editor) -> bool {
     // Q - up (port 0xFB, bit 0)
     if is_key_pressed(KB_PORT_QWER, 0) {
         if editor.cursor_y > 0 {
-            update_cursor(editor);  // Remove cursor
+            update_cursor(editor)  // Remove cursor
             editor.cursor_y = editor.cursor_y - 1
-            update_cursor(editor);  // Draw cursor
+            update_cursor(editor)  // Draw cursor
             delay()
         }
     }
@@ -138,9 +138,9 @@ fun handle_input(editor: *Editor) -> bool {
     // A - down (port 0xFD, bit 0)
     if is_key_pressed(KB_PORT_ASDF, 0) {
         if editor.cursor_y < 23 {
-            update_cursor(editor);  // Remove cursor
+            update_cursor(editor)  // Remove cursor
             editor.cursor_y = editor.cursor_y + 1
-            update_cursor(editor);  // Draw cursor
+            update_cursor(editor)  // Draw cursor
             delay()
         }
     }
@@ -148,9 +148,9 @@ fun handle_input(editor: *Editor) -> bool {
     // O - left (port 0xDF, bit 1)
     if is_key_pressed(KB_PORT_QAOP, 1) {
         if editor.cursor_x > 0 {
-            update_cursor(editor);  // Remove cursor
+            update_cursor(editor)  // Remove cursor
             editor.cursor_x = editor.cursor_x - 1
-            update_cursor(editor);  // Draw cursor
+            update_cursor(editor)  // Draw cursor
             delay()
         }
     }
@@ -158,9 +158,9 @@ fun handle_input(editor: *Editor) -> bool {
     // P - right (port 0xDF, bit 0)
     if is_key_pressed(KB_PORT_QAOP, 0) {
         if editor.cursor_x < 31 {
-            update_cursor(editor);  // Remove cursor
+            update_cursor(editor)  // Remove cursor
             editor.cursor_x = editor.cursor_x + 1
-            update_cursor(editor);  // Draw cursor
+            update_cursor(editor)  // Draw cursor
             delay()
         }
     }
@@ -169,37 +169,37 @@ fun handle_input(editor: *Editor) -> bool {
     if is_key_pressed(KB_PORT_SPACE, 0) {
         toggle_pixel(editor)
         delay()
-        delay();  // Extra delay for toggle
+        delay()  // Extra delay for toggle
     }
     
     // M - toggle pixel (port 0x7F, bit 2)
     if is_key_pressed(KB_PORT_SPACE, 2) {
         toggle_pixel(editor)
         delay()
-        delay();  // Extra delay for toggle
+        delay()  // Extra delay for toggle
     }
     
     // CTRL+SPACE (Symbol Shift + Space) - exit
     if is_key_pressed(KB_PORT_SPACE, 1) {  // Symbol Shift
         if is_key_pressed(KB_PORT_SPACE, 0) {  // Space
-            return true;  // Exit
+            return true  // Exit
         }
     }
     
-    return false;  // Continue
+    return false  // Continue
 }
 
 // Main program
 fun main() -> void {
     // Initialize
-    set_border(0);      // Black border
-    fill_screen();      // Fill with 0xFF
-    fill_attributes();  // Fill with 0x00
+    set_border(0)      // Black border
+    fill_screen()      // Fill with 0xFF
+    fill_attributes()  // Fill with 0x00
     
     // Initialize editor
     var editor: Editor
-    editor.cursor_x = 16;  // Center
-    editor.cursor_y = 12;  // Center
+    editor.cursor_x = 16  // Center
+    editor.cursor_y = 12  // Center
     
     // Show initial cursor
     update_cursor(&editor)
@@ -207,7 +207,7 @@ fun main() -> void {
     // Main loop
     while true {
         if handle_input(&editor) {
-            break;  // Exit requested
+            break  // Exit requested
         }
         
         // Small delay for main loop

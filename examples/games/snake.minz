@@ -7,9 +7,9 @@ global SCREEN_HEIGHT: u8 = 24
 global MAX_SNAKE_LENGTH: u8 = 100
 
 // ZX Spectrum memory addresses
-global SCREEN_MEM: u16 = 16384;     // Screen bitmap start
-global ATTR_MEM: u16 = 22528;       // Attributes start
-global BORDER_REG: u16 = 254;       // Border color port
+global SCREEN_MEM: u16 = 16384     // Screen bitmap start
+global ATTR_MEM: u16 = 22528       // Attributes start
+global BORDER_REG: u16 = 254       // Border color port
 
 // ZX Spectrum screen routines
 fun clear_screen() -> void {
@@ -70,13 +70,13 @@ fun read_keyboard() -> u8 {
         AND 0x1F         // Mask to 5 bits
     }
     
-    let keys_qwert: u8 = 0;  // Will be set by inline asm
+    let keys_qwert: u8 = 0  // Will be set by inline asm
     @asm {
         LD (keys_qwert), A
     }
     
-    if ((keys_qwert & 0x01) != 0) return 81;  // Q
-    if ((keys_qwert & 0x02) != 0) return 87;  // W
+    if ((keys_qwert & 0x01) != 0) return 81  // Q
+    if ((keys_qwert & 0x02) != 0) return 87  // W
     
     @asm {
         LD BC, 0xFDFE    // Port for A,S,D,F,G row  
@@ -90,11 +90,11 @@ fun read_keyboard() -> u8 {
         LD (keys_asdfg), A
     }
     
-    if ((keys_asdfg & 0x01) != 0) return 65;  // A
-    if ((keys_asdfg & 0x02) != 0) return 83;  // S
-    if ((keys_asdfg & 0x04) != 0) return 68;  // D
+    if ((keys_asdfg & 0x01) != 0) return 65  // A
+    if ((keys_asdfg & 0x02) != 0) return 83  // S
+    if ((keys_asdfg & 0x04) != 0) return 68  // D
     
-    return 0;  // No key pressed
+    return 0  // No key pressed
 }
 
 // Simple delay function
@@ -144,7 +144,7 @@ fun init_snake() -> Snake {
     var snake: Snake
     snake.length = 1
     snake.direction = Direction.RIGHT
-    snake.alive = 1;  // true
+    snake.alive = 1  // true
     
     // Set the head position
     let head: Point
@@ -163,7 +163,7 @@ fun init_game() -> GameState {
     food.y = 10
     game.food = food
     game.score = 0
-    game.game_over = 0;  // false
+    game.game_over = 0  // false
     return game
 }
 
@@ -194,28 +194,28 @@ fun check_collision(snake: *Snake) -> u8 {
     
     // Wall collision
     if (head.x >= SCREEN_WIDTH || head.y >= SCREEN_HEIGHT) {
-        return 1;  // true
+        return 1  // true
     }
     
     // Self collision
     let i: u8 = 1
     while (i < snake.length) {
         if (head.x == snake.body[i].x && head.y == snake.body[i].y) {
-            return 1;  // true
+            return 1  // true
         }
         i = i + 1
     }
     
-    return 0;  // false
+    return 0  // false
 }
 
 // Check if snake ate food
 fun check_food_collision(snake: *Snake, food: *Point) -> u8 {
     let head = snake.body[0]
     if (head.x == food.x && head.y == food.y) {
-        return 1;  // true
+        return 1  // true
     }
-    return 0;  // false
+    return 0  // false
 }
 
 // Grow snake by one segment
@@ -255,7 +255,7 @@ fun handle_input(snake: *Snake) -> void {
             snake.direction = Direction.RIGHT
         }
     } else if (key == 81) { // 'Q' key - QUIT
-        snake.alive = 0;  // false
+        snake.alive = 0  // false
     }
 }
 
@@ -293,13 +293,13 @@ fun game_loop() -> void {
         handle_input(&game.snake)
         
         if (game.snake.alive == 0) {
-            break;  // Player quit with Q key
+            break  // Player quit with Q key
         }
         
         move_snake(&game.snake)
         
         if (check_collision(&game.snake) == 1) {
-            game.game_over = 1;  // true
+            game.game_over = 1  // true
             break
         }
         

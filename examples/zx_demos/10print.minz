@@ -34,18 +34,18 @@ fun plot(x: u8, y: u8) -> void {
 // Draw diagonals - DJNZ loops for 8 pixels each
 @inline
 fun draw_slash(x: u8, y: u8) -> void {
-    for i in 0..8 { plot(x + i, y + i); }
+    for i in 0..8 { plot(x + i, y + i) }
 }
 
 @inline
 fun draw_backslash(x: u8, y: u8) -> void {
-    for i in 0..8 { plot(x + 7 - i, y + i); }
+    for i in 0..8 { plot(x + 7 - i, y + i) }
 }
 
 fun clear_screen() -> void {
     let ptr: ^u8 = SCREEN_MEM
     for block in 0..24 {
-        for i in 0..255 { *ptr = 0; ptr = ptr + 1; }
+        for i in 0..255 { *ptr = 0; ptr = ptr + 1 }
     }
 }
 
@@ -58,8 +58,8 @@ fun main() -> void {
             let y: u8 = row << 3
             for col in 0..32 {
                 let x: u8 = col << 3
-                if rand_bit() == 0 { draw_slash(x, y); }
-                else { draw_backslash(x, y); }
+                if rand_bit() == 0 { draw_slash(x, y) }
+                else { draw_backslash(x, y) }
             }
         }
     }
