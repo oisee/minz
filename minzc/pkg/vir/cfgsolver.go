@@ -13,13 +13,25 @@ package vir
 
 import (
 	"fmt"
+	"os/exec"
 	"strings"
+	"time"
 
 	"github.com/minz/minzc/pkg/mir2"
 )
 
 // SolveCFG solves ALL blocks of a function simultaneously with CFG edge constraints.
 func SolveCFG(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions) (map[string][]PIROp, error) {
+	if opts.Z3Path == "" {
+		opts.Z3Path = "z3"
+	}
+	if opts.Timeout == 0 {
+		opts.Timeout = 30 * time.Second
+	}
+	if _, err := exec.LookPath(opts.Z3Path); err != nil {
+		return nil, fmt.Errorf("z3 not found: %w", err)
+	}
+
 	// Build per-block problems
 	type blockProblem struct {
 		label string
@@ -29,11 +41,28 @@ func SolveCFG(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions) (ma
 	var blocks []blockProblem
 	blockIdx := make(map[string]int) // label → index
 
+	// Build param hints early (before pre-solver rewrites)
+	paramHintsEarly := make(map[int]int)
+	if opts.FuncParamLocs != nil {
+		if pl, ok := opts.FuncParamLocs[f.Name]; ok {
+			for v, p := range pl { paramHintsEarly[v] = p }
+		}
+	}
+	for v, p := range opts.ParamLocs {
+		if _, ok := paramHintsEarly[v]; !ok { paramHintsEarly[v] = p }
+	}
+
 	for bi, block := range vf.Blocks {
 		ops := block.Ops
 		// Apply pre-solver passes per block
 		ops = insertPreTieMoves(ops, desc)
 		ops = insertSaveMoves(ops, desc)
+
+		// Note: we do NOT propagate param constraints to copy vregs from
+		// pre-tie. The copy and original would both be constrained to the
+		// same register, creating an interference conflict (both live at
+		// the move instruction). Instead, param constraints apply only to
+		// original vregs. The move pattern naturally copies the value.
 
 		prob := buildProblem(ops, desc)
 		label := block.Label
@@ -218,26 +247,16 @@ func SolveCFG(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions) (ma
 	}
 
 	// Param location constraints: entry block (b0) params must be in PBQP registers.
-	// Applied as hard constraints on the FIRST instruction of block 0.
-	paramHints := make(map[int]int)
-	if opts.FuncParamLocs != nil {
-		if pl, ok := opts.FuncParamLocs[f.Name]; ok {
-			for v, p := range pl {
-				paramHints[v] = p
-			}
-		}
-	}
-	for v, p := range opts.ParamLocs {
-		if _, ok := paramHints[v]; !ok {
-			paramHints[v] = p
-		}
-	}
-	if len(paramHints) > 0 && len(blocks) > 0 {
+	// Includes copy vregs from pre-tie passes (tracked in paramHintsEarly).
+	if len(paramHintsEarly) > 0 && len(blocks) > 0 {
 		bp := blocks[0]
-		for vreg, phys := range paramHints {
-			// Find the first instruction in block 0 that uses this vreg
+		for vreg, phys := range paramHintsEarly {
+			// Find the first instruction in block 0 that references this vreg
 			for i, op := range bp.ops {
 				usesVreg := false
+				if op.Dst == vreg {
+					usesVreg = true
+				}
 				for _, s := range op.Src {
 					if s == vreg {
 						usesVreg = true
@@ -245,8 +264,12 @@ func SolveCFG(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions) (ma
 				}
 				if usesVreg {
 					v := ensureVar(vreg, 0, i)
-					b.WriteString(fmt.Sprintf("(assert (= %s %d)) ; param %d in %s\n",
-						v, phys, vreg, desc.Locs[phys].Name))
+					locName := "?"
+					if phys < len(desc.Locs) {
+						locName = desc.Locs[phys].Name
+					}
+					b.WriteString(fmt.Sprintf("(assert (= %s %d)) ; param vreg %d in %s\n",
+						v, phys, vreg, locName))
 					break
 				}
 			}

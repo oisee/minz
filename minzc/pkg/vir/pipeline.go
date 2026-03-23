@@ -101,9 +101,8 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 		return cfgResult, nil
 	}
 
-	if opts.Verbose {
-		fmt.Fprintf(os.Stderr, "[vir] CFG solver failed for %s: %v, falling back to per-block\n", f.Name, cfgErr)
-	}
+	// Always log CFG failure for debugging
+	fmt.Fprintf(os.Stderr, "[vir] CFG solver failed for %s: %v, falling back to per-block\n", f.Name, cfgErr)
 
 	// Fallback to per-block approach (with fresh copy)
 	vfCopy2 := deepCopyFunc(vf)
