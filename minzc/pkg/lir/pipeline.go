@@ -499,8 +499,10 @@ func lirCodegenMultiBlock(f *mir2.Func, desc *MachineDesc, m *mir2.Module) (stri
 	// Post-emit peephole optimization
 	asm = Z80Peephole(asm)
 
+	// Spill reload: insert LD from memory before instructions that can't use spill locs.
+	asm = InsertSpillReloads(asm, desc)
+
 	// Z80 validation — catch invalid instructions before they leave the compiler.
-	// Currently logs warnings; will hard-fail after WFC constraint bugs are fixed.
 	if errs := ValidateZ80Asm(asm); len(errs) > 0 {
 		LogValidationErrors(f.Name, asm, errs)
 	}
@@ -1046,8 +1048,9 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 		asmText = strings.ReplaceAll(asmText, "    LD (HL), HL\n",
 			"    LD D, H\n    LD E, L\n    LD (HL), E\n    INC HL\n    LD (HL), D\n    DEC HL\n")
 		asmText = emitMissingLabels(asmText)
-		// Post-emit peephole optimization
+		// Post-emit peephole optimization + spill reload
 		asmPeepholed := Z80Peephole(asmText)
+		asmPeepholed = InsertSpillReloads(asmPeepholed, desc)
 		sb.Reset()
 		sb.WriteString(asmPeepholed)
 
