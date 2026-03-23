@@ -250,7 +250,7 @@ Each Frill construct maps to HIR nodes:
 | `"hello\n"` | CString interned in module, `AddrOfExpr` |
 | `assert f x == n` | `Assert{f, [x], n, via:"mir2"}` |
 
-## What's Implemented (30 features)
+## What's Implemented (36 features)
 
 ### Core Language
 - [x] Function definitions with typed parameters
@@ -260,6 +260,10 @@ Each Frill construct maps to HIR nodes:
 - [x] If-then-else expressions (nested: `if/else if/else`)
 - [x] Unary minus (`-x`), hex literals (`0xFF`), booleans (`true`/`false`)
 - [x] String literals with escapes (`"hello\n"`)
+- [x] Mutable variables (`do x <- x + 1`)
+- [x] While loops (`while cond do ... end`)
+- [x] Pointer read (`peek ptr` — load u8 from address)
+- [x] String length via `str_len` (while + peek)
 
 ### Functional Features
 - [x] Let-in bindings with chaining (`let x = e1 in let y = e2 in body`)
@@ -279,6 +283,9 @@ Each Frill construct maps to HIR nodes:
 - [x] Guards in match (`| _ when n > 10 -> ...`)
 - [x] Record types (`type Point = { x : u8, y : u8 }`)
 - [x] Tuples — multi-return `(u8, u8)` + destructuring `let (q, r) = divmod x y in`
+- [x] Type classes via monomorphization (`class Show where show` + `instance Show Color`)
+- [x] QTT linear annotations: `!` (linear, use once), `~` (erased, don't use)
+- [x] Linearity analysis — 0/1/ω classification per parameter
 
 ### Verification & Testing
 - [x] Compile-time assertions (`assert gcd 12 8 == 4`)
@@ -294,13 +301,14 @@ Each Frill construct maps to HIR nodes:
 - [x] CLI: `minzc program.frl` / MZV: `mzv program.frl`
 
 ### Stats
-- ~1500 LOC parser (`pkg/frill/frill.go`)
+- ~1700 LOC parser (`pkg/frill/frill.go`)
 - 13 unit tests
-- 6 demo programs (basics, math, game, showcase, stdlib_demo, hello_cpm)
-- 26-function math stdlib
+- 7 demo programs (basics, math, game, showcase, stdlib_demo, hello_cpm, functional_demo)
+- 26-function math stdlib + functional stdlib (bool, predicates, fold)
 - 100+ compile-time assertions across demos
-- 768+ property checks (3 props x 256 values)
+- 1000+ property checks (props x 256 values each)
 - CP/M hello world: 720 bytes, prints text on real Z80 emulator
+- QTT linearity enforced: `!` (use once) and `~` (never use) annotations
 
 ## Benchmark: Frill vs SDCC (C)
 
@@ -359,11 +367,8 @@ Optimal — matches hand-written assembly.
 ### Frill-3: Linear Types & TSMC Spill (in progress)
 
 - [x] **Linearity analysis** — compiler classifies each param as 0/1/ω uses
-  - 0 (erased): param unused → dead param elimination
-  - 1 (linear): used once → register freed after use, no save needed
-  - ω (shared): used 2+ times → needs preservation
-- [ ] **Linear type annotations** — `let consume (! buf : u8) = ...` (must use once)
-- [ ] **Erased types** — `let size (~ T : Type) : u16` — type-level only, zero runtime
+- [x] **Linear type annotations** — `let consume (! x : u8) = x + 1` (must use exactly once)
+- [x] **Erased annotations** — `let phantom (~ x : u8) = 42` (must NOT use — compile error if used)
 - [ ] **TSMC spill slots** — self-modifying code for register preservation (see below)
 - [ ] **Dependent types** — `Vec (n : u8) (a : Type)` — length-indexed vectors
 
