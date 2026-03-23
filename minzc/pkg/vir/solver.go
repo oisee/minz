@@ -43,7 +43,7 @@ func Solve(ops []VIROp, desc *MachineDesc, opts SolverOptions) ([]PIROp, error) 
 		opts.Z3Path = "z3"
 	}
 	if opts.Timeout == 0 {
-		opts.Timeout = 5 * time.Second
+		opts.Timeout = 30 * time.Second
 	}
 
 	// Check z3 exists
@@ -1444,21 +1444,38 @@ func generateSMTPerInst(p *problem) string {
 	}
 
 	// Per-instruction location variables: loc_v{vreg}_i{inst}
-	// Only for vregs live at each instruction
+	// Declare for: vregs live at each instruction + vregs referenced by each instruction
 	type vregAtInst struct {
 		vreg int
 		inst int
 	}
 	vars := make(map[vregAtInst]bool)
 
+	ensureVar := func(v, i int) {
+		key := vregAtInst{v, i}
+		if !vars[key] {
+			vars[key] = true
+			b.WriteString(fmt.Sprintf("(declare-const lv%d_i%d Int)\n", v, i))
+			b.WriteString(fmt.Sprintf("(assert (and (>= lv%d_i%d 0) (< lv%d_i%d %d)))\n",
+				v, i, v, i, nLocs))
+		}
+	}
+
+	// From liveness
 	for i, l := range p.liveness {
 		for v := range l.live {
-			key := vregAtInst{v, i}
-			if !vars[key] {
-				vars[key] = true
-				b.WriteString(fmt.Sprintf("(declare-const lv%d_i%d Int)\n", v, i))
-				b.WriteString(fmt.Sprintf("(assert (and (>= lv%d_i%d 0) (< lv%d_i%d %d)))\n",
-					v, i, v, i, nLocs))
+			ensureVar(v, i)
+		}
+	}
+
+	// From instruction operands (dst/src may not be in liveness if short-lived)
+	for i, op := range p.ops {
+		if op.Dst > 0 {
+			ensureVar(op.Dst, i)
+		}
+		for _, s := range op.Src {
+			if s > 0 {
+				ensureVar(s, i)
 			}
 		}
 	}
@@ -1597,8 +1614,16 @@ func generateSMTPerInst(p *problem) string {
 	}
 
 	b.WriteString(")))\n")
-	b.WriteString("(minimize total_cost)\n")
-	b.WriteString("(check-sat)\n")
+	// For large per-instruction problems, skip minimize.
+	// Z3's opt module returns "unknown" quickly on complex ITE chains.
+	// Satisfiability alone gives correct code (not provably optimal).
+	totalVars := len(vars)
+	if totalVars > 100 {
+		b.WriteString("(check-sat)\n")
+	} else {
+		b.WriteString("(minimize total_cost)\n")
+		b.WriteString("(check-sat)\n")
+	}
 	b.WriteString("(get-model)\n")
 
 	return b.String()
@@ -1676,7 +1701,9 @@ func runZ3(smt string, opts SolverOptions) (string, error) {
 	f.Close()
 
 	// Run z3
-	cmd := exec.Command(opts.Z3Path, "-T:"+strconv.Itoa(int(opts.Timeout.Seconds())), f.Name())
+	cmd := exec.Command(opts.Z3Path,
+		"-T:"+strconv.Itoa(int(opts.Timeout.Seconds())),
+		f.Name())
 	out, err := cmd.CombinedOutput()
 	output := string(out)
 
@@ -1691,7 +1718,16 @@ func runZ3(smt string, opts SolverOptions) (string, error) {
 		return "", fmt.Errorf("unsatisfiable: no valid pattern+register assignment exists")
 	}
 	if strings.Contains(output, "unknown") {
-		return "", fmt.Errorf("z3 timeout after %v", opts.Timeout)
+		// Check if it's a real timeout or just Z3 giving up
+		reason := ""
+		for _, line := range strings.Split(output, "\n") {
+			line = strings.TrimSpace(line)
+			if strings.HasPrefix(line, "(error") || strings.HasPrefix(line, "(:reason") {
+				reason = line
+				break
+			}
+		}
+		return "", fmt.Errorf("z3 timeout after %v (reason: %s)", opts.Timeout, reason)
 	}
 	if !strings.Contains(output, "sat") {
 		return "", fmt.Errorf("unexpected z3 output: %s", output)
