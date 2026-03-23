@@ -1226,9 +1226,8 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc) (*MIROp, error) {
 		op.Op = OpStore
 		op.Dst = -1
 	case mir2.OpNeg:
-		// neg(x) → sub(0, x): emit const 0 + sub
-		// For now, skip — isel doesn't have a neg pattern yet
-		return nil, nil
+		// Z80 has NEG instruction (A = 0 - A, two's complement)
+		op.Op = OpNeg
 	case mir2.OpNot:
 		// bitwise complement — skip for now
 		return nil, nil
