@@ -20,6 +20,7 @@ const (
 	OpTypeRelative         // e (relative jump)
 	OpTypeCondition        // NZ, Z, NC, C, PO, PE, P, M
 	OpTypeBit              // 0-7 (bit number)
+	OpTypeIdxDisp          // IX+d, IY+d (bare, without parentheses — LEA, PEA)
 )
 
 // InstructionPattern defines a pattern for matching and encoding instructions

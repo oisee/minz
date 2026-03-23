@@ -1,0 +1,39 @@
+(* Frill calculator — expression evaluation, all MIR2-verified *)
+
+import "../../stdlib/frill/math.frl"
+
+(* Chain operations via mutation *)
+let chain_add (acc : u8) (b : u8) = add acc b
+let chain_sub (acc : u8) (b : u8) = sub acc b
+let chain_mul (acc : u8) (b : u8) = mul acc b
+
+(* Power via repeated multiplication *)
+let calc_pow (base : u8) (exp : u8) = pow base exp
+
+(* Factorial via recursion *)
+let calc_fact (n : u8) = factorial n
+
+(* GCD *)
+let calc_gcd (a : u8) (b : u8) = gcd a b
+
+(* Fibonacci pipeline *)
+let fib_sq (n : u8) = n |> fib |> |x| x * x
+
+(* Tests — all verified at compile time *)
+assert chain_add 3 5 == 8
+assert chain_sub 10 3 == 7
+assert chain_mul 4 5 == 20
+assert calc_pow 2 8 == 0
+assert calc_pow 2 4 == 16
+assert calc_pow 3 3 == 27
+assert calc_fact 5 == 120
+assert calc_gcd 12 8 == 4
+assert fib_sq 5 == 25
+assert fib_sq 7 == 169
+
+(* Properties *)
+prop |x| chain_add x 0 == x
+prop |x| chain_mul x 1 == x
+prop |x| chain_sub (chain_add x 7) 7 == x
+
+let main (x : u8) = 0

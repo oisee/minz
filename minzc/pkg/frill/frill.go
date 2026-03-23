@@ -65,7 +65,7 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 	p := &parser{
 		src: src, pos: 0, line: 1, name: name,
 		adts: make(map[string]*adtDef), ctors: make(map[string]*adtCtor),
-		arities: make(map[string]int),
+		arities: make(map[string]int), classes: make(map[string][]string),
 		baseDir: opts.BaseDir,
 	}
 	return p.parseModule()
@@ -125,6 +125,10 @@ type parser struct {
 	records     []*mir2.StructTy     // record type declarations
 	arities     map[string]int       // function name → param count (for partial application)
 	baseDir     string               // for import resolution
+	lastTuple   []hir.Expr           // pending tuple elements from (e1, e2)
+	classes     map[string][]string  // class name → method names
+	warnings    []string             // linearity warnings
+
 }
 
 func (p *parser) peek() token {
@@ -250,7 +254,7 @@ func (p *parser) lex() token {
 	if p.pos+1 < len(p.src) {
 		two := p.src[p.pos : p.pos+2]
 		switch two {
-		case "==", "!=", "<=", ">=", "&&", "||", "|>", "->", ">>":
+		case "==", "!=", "<=", ">=", "&&", "||", "|>", "->", ">>", "<-":
 			p.pos += 2
 			if two == "->" {
 				return token{tokArrow, two, line}
@@ -276,7 +280,7 @@ func (p *parser) lex() token {
 		return token{tokEq, "=", line}
 	case ',':
 		return token{tokComma, ",", line}
-	case '+', '-', '*', '/', '%', '<', '>', '|':
+	case '+', '-', '*', '/', '%', '<', '>', '|', '!', '~':
 		return token{tokOp, string(ch), line}
 	}
 
@@ -314,6 +318,16 @@ func (p *parser) parseModule() (*hir.Module, error) {
 				mod.Strings = append(mod.Strings, imported.Strings...)
 				mod.StrKinds = append(mod.StrKinds, imported.StrKinds...)
 			}
+		case "class":
+			if err := p.parseClass(); err != nil {
+				return nil, err
+			}
+		case "instance":
+			fns, err := p.parseInstance()
+			if err != nil {
+				return nil, err
+			}
+			mod.Funcs = append(mod.Funcs, fns...)
 		case "extern":
 			fn, err := p.parseExtern()
 			if err != nil {
@@ -338,6 +352,9 @@ func (p *parser) parseModule() (*hir.Module, error) {
 
 	// Append record types as structs
 	mod.Structs = append(mod.Structs, p.records...)
+
+	// Linearity warnings
+	mod.Warnings = append(mod.Warnings, p.warnings...)
 
 	// Append auto-generated helper functions (__tag, __payload)
 	mod.Funcs = append(mod.Funcs, p.autoFuncs...)
@@ -461,6 +478,218 @@ func (p *parser) parseRecordFields(name string) error {
 	st := &mir2.StructTy{Name: name, Fields: fields}
 	p.records = append(p.records, st)
 	return nil
+}
+
+// parseClass: class Name a where method1 : a -> retty, method2 : a -> retty
+// Simplified: class Show where show : u8
+// Stores method names for later resolution in instance.
+func (p *parser) parseClass() error {
+	p.next() // consume "class"
+	className := p.next().text
+	if err := p.expect(tokIdent, "where"); err != nil {
+		return err
+	}
+	var methods []string
+	for {
+		if p.peek().kind != tokIdent || isKeyword(p.peek().text) {
+			break
+		}
+		methodName := p.next().text
+		// Skip : type annotation
+		if p.peek().kind == tokColon {
+			p.next()
+			for p.peek().kind != tokEOF && p.peek().kind != tokComma &&
+				!(p.peek().kind == tokIdent && isKeyword(p.peek().text)) {
+				p.next()
+			}
+		}
+		methods = append(methods, methodName)
+		if p.peek().kind == tokComma {
+			p.next()
+		} else {
+			break
+		}
+	}
+	p.classes[className] = methods
+	return nil
+}
+
+// parseInstance: instance ClassName TypeName where method1 (params) = body
+// Generates: ClassName_method_TypeName(params) = body
+func (p *parser) parseInstance() ([]*hir.Func, error) {
+	p.next() // consume "instance"
+	className := p.next().text
+	typeName := p.next().text
+	if err := p.expect(tokIdent, "where"); err != nil {
+		return nil, err
+	}
+
+	methods, ok := p.classes[className]
+	if !ok {
+		return nil, fmt.Errorf("unknown class %q", className)
+	}
+
+	var funcs []*hir.Func
+	for _, method := range methods {
+		// Expect: methodName (params) = body
+		tok := p.peek()
+		if tok.kind != tokIdent || tok.text != method {
+			break
+		}
+		p.next() // consume method name
+
+		// Generate function named: method_TypeName
+		mangledName := method + "_" + typeName
+
+		// Parse params
+		var params []hir.Param
+		for p.peek().kind == tokLParen {
+			p.next()
+			pname := p.next()
+			if err := p.expect(tokColon, ":"); err != nil {
+				return nil, err
+			}
+			pty := p.parseType()
+			if err := p.expect(tokRParen, ")"); err != nil {
+				return nil, err
+			}
+			params = append(params, hir.Param{Name: pname.text, Ty: pty})
+		}
+
+		// Optional return type
+		var retTy mir2.Ty = mir2.TyU8
+		if p.peek().kind == tokColon {
+			p.next()
+			retTy = p.parseType()
+		}
+
+		if err := p.expect(tokEq, "="); err != nil {
+			return nil, err
+		}
+
+		body, letStmts, err := p.parseBodyExpr()
+		if err != nil {
+			return nil, err
+		}
+
+		var stmts []hir.Stmt
+		stmts = append(stmts, letStmts...)
+		stmts = append(stmts, &hir.ReturnStmt{Val: body})
+
+		fn := &hir.Func{
+			Name:   mangledName,
+			Params: params,
+			RetTy:  retTy,
+			Body:   &hir.Block{Body: stmts},
+		}
+		p.arities[mangledName] = len(params)
+		funcs = append(funcs, fn)
+	}
+
+	return funcs, nil
+}
+
+// parseLoopBody parses the body of while/for loops: do-stmts until "end".
+// Handles nesting: inner while/for/match blocks consume their own "end".
+func (p *parser) parseLoopBody() ([]hir.Stmt, error) {
+	var body []hir.Stmt
+	depth := 1 // track nesting for "end" matching
+	for depth > 0 {
+		if p.peek().kind == tokIdent && p.peek().text == "end" {
+			p.next()
+			depth--
+			continue
+		}
+		// Nested while/for increase depth
+		if p.peek().kind == tokIdent && (p.peek().text == "while" || p.peek().text == "for") {
+			// Parse as nested loop within a "do" context
+			// Recurse through parseBodyExpr which handles while/for
+			// For now: track depth manually
+		}
+		if p.peek().kind == tokIdent && p.peek().text == "do" {
+			p.next()
+			// Special: do poke ptr val → StoreStmt
+			if p.peek().kind == tokIdent && p.peek().text == "poke" {
+				p.next()
+				ptr, err := p.parsePrimary()
+				if err != nil {
+					return nil, err
+				}
+				val, err := p.parsePrimary()
+				if err != nil {
+					return nil, err
+				}
+				body = append(body, &hir.StoreStmt{Ptr: ptr, Val: val})
+				continue
+			}
+			doE, err := p.parseExpr()
+			if err != nil {
+				return nil, err
+			}
+			if p.peek().kind == tokOp && p.peek().text == "<-" {
+				p.next()
+				val, err := p.parseExpr()
+				if err != nil {
+					return nil, err
+				}
+				if vr, ok := doE.(*hir.VarRefExpr); ok {
+					body = append(body, &hir.AssignStmt{Target: vr, Val: val})
+				}
+			} else {
+				dn := fmt.Sprintf("__lb_%d", p.lambdaCount)
+				p.lambdaCount++
+				body = append(body, &hir.VarDeclStmt{Name: dn, Ty: doE.ExprTy(), Init: doE})
+			}
+		} else if p.peek().kind == tokIdent && p.peek().text == "for" {
+			// Nested for loop
+			p.next()
+			varName := p.next().text
+			if err := p.expect(tokEq, "="); err != nil {
+				return nil, err
+			}
+			startE, err := p.parseExpr()
+			if err != nil {
+				return nil, err
+			}
+			if err := p.expect(tokIdent, "to"); err != nil {
+				return nil, err
+			}
+			endE, err := p.parseExpr()
+			if err != nil {
+				return nil, err
+			}
+			if err := p.expect(tokIdent, "do"); err != nil {
+				return nil, err
+			}
+			innerBody, err := p.parseLoopBody()
+			if err != nil {
+				return nil, err
+			}
+			body = append(body, &hir.ForRangeStmt{
+				Var: varName, Start: startE, End: endE,
+				Body: &hir.Block{Body: innerBody},
+			})
+		} else if p.peek().kind == tokIdent && p.peek().text == "while" {
+			p.next()
+			cond, err := p.parseComparison()
+			if err != nil {
+				return nil, err
+			}
+			if err := p.expect(tokIdent, "do"); err != nil {
+				return nil, err
+			}
+			innerBody, err := p.parseLoopBody()
+			if err != nil {
+				return nil, err
+			}
+			body = append(body, &hir.WhileStmt{Cond: cond, Body: &hir.Block{Body: innerBody}})
+		} else if p.peek().kind == tokEOF {
+			return nil, fmt.Errorf("unexpected EOF in loop body")
+		} else {
+			break
+		}
+	}
+	return body, nil
 }
 
 // parseImport: import "path/to/module.frl"
@@ -616,9 +845,23 @@ func (p *parser) parseLet() (*hir.Func, error) {
 
 	fn := &hir.Func{Name: nameTok.text}
 
-	// Parse parameters: (name : type) ...
+	// Parse parameters: (name : type) or (! name : type) or (& name : type) or (~ name : type)
+	// Quantity annotations: ! = linear (1), & = shared (ω), ~ = erased (0)
+	// Default (no annotation) = linear (1)
+	type paramQuantity struct {
+		name     string
+		quantity int // 0=erased, 1=linear, 2=shared(ω)
+	}
+	var paramQtys []paramQuantity
 	for p.peek().kind == tokLParen {
 		p.next() // (
+		qty := -1 // default: no annotation
+		pk := p.peek()
+		if pk.kind == tokOp && pk.text == "!" {
+			p.next(); qty = 1 // explicit linear
+		} else if pk.kind == tokOp && pk.text == "~" {
+			p.next(); qty = 0 // erased
+		}
 		pname := p.next()
 		if err := p.expect(tokColon, ":"); err != nil {
 			return nil, err
@@ -628,17 +871,36 @@ func (p *parser) parseLet() (*hir.Func, error) {
 			return nil, err
 		}
 		fn.Params = append(fn.Params, hir.Param{Name: pname.text, Ty: pty})
+		paramQtys = append(paramQtys, paramQuantity{pname.text, qty})
 	}
 	p.arities[fn.Name] = len(fn.Params)
 
-	// Return type: : type (optional — inferred from body if omitted)
+	// Return type: : type or : (type, type) (optional — inferred from body if omitted)
 	inferRetTy := false
 	if p.peek().kind == tokColon {
 		p.next() // :
-		fn.RetTy = p.parseType()
+		if p.peek().kind == tokLParen {
+			// Tuple return: (u8, u8)
+			p.next() // (
+			for {
+				ty := p.parseType()
+				fn.RetTys = append(fn.RetTys, ty)
+				if p.peek().kind == tokComma {
+					p.next()
+				} else {
+					break
+				}
+			}
+			if err := p.expect(tokRParen, ")"); err != nil {
+				return nil, err
+			}
+			fn.RetTy = fn.RetTys[0] // first element as primary
+		} else {
+			fn.RetTy = p.parseType()
+		}
 	} else {
 		inferRetTy = true
-		fn.RetTy = mir2.TyU8 // placeholder, updated after parsing body
+		fn.RetTy = mir2.TyU8
 	}
 
 	// = body (may contain let-in chains which desugar to VarDecl stmts)
@@ -677,7 +939,17 @@ func (p *parser) parseLet() (*hir.Func, error) {
 	// where-bindings come BEFORE the let-in bindings and body
 	stmts = append(stmts, whereStmts...)
 	stmts = append(stmts, letStmts...)
-	stmts = append(stmts, &hir.ReturnStmt{Val: body})
+
+	// Multi-return: if body is a tuple expression (parsed from parens with comma)
+	if len(fn.RetTys) > 0 {
+		if tupleExprs, ok := p.asTuple(body); ok && len(tupleExprs) == len(fn.RetTys) {
+			stmts = append(stmts, &hir.ReturnStmt{Vals: tupleExprs})
+		} else {
+			stmts = append(stmts, &hir.ReturnStmt{Val: body})
+		}
+	} else {
+		stmts = append(stmts, &hir.ReturnStmt{Val: body})
+	}
 
 	fn.Body = &hir.Block{Body: stmts}
 
@@ -697,7 +969,85 @@ func (p *parser) parseLet() (*hir.Func, error) {
 		}
 	}
 
+	// Linearity enforcement: verify QTT annotations match actual usage.
+	// ! (linear, qty=1): must use exactly once — error if 0 or 2+
+	// & (shared, qty=2): can use any number of times — no restriction
+	// ~ (erased, qty=0): must NOT use — error if used at all
+	// (default: linear) — warn on mismatch but don't error
+	if fn.Body != nil && len(fn.Params) > 0 {
+		uses := countVarUses(fn.Body)
+		for i, param := range fn.Params {
+			n := uses[param.Name]
+			// Check QTT annotation if present
+			var declQty int = -1 // -1 = no annotation
+			for _, pq := range paramQtys {
+				if pq.name == param.Name {
+					declQty = pq.quantity
+				}
+			}
+			// Enforce annotations
+			if declQty == 0 && n > 0 {
+				return nil, fmt.Errorf("line %d: linearity error: %s: erased param '~%s' used %d times (must be 0)",
+					p.line, fn.Name, param.Name, n)
+			}
+			if declQty == 1 && n != 1 {
+				return nil, fmt.Errorf("line %d: linearity error: %s: linear param '!%s' used %d times (must be exactly 1)",
+					p.line, fn.Name, param.Name, n)
+			}
+			// Default analysis (no annotation)
+			switch {
+			case n == 0 && param.Name != "_":
+				p.warnings = append(p.warnings,
+					fmt.Sprintf("linearity: %s: param '%s' is erased (0 uses) — could be eliminated", fn.Name, param.Name))
+				fn.Params[i].SMC = false
+			case n == 1:
+				// Linear — ideal
+			default:
+				if n > 1 {
+					p.warnings = append(p.warnings,
+						fmt.Sprintf("linearity: %s: param '%s' used %d times (shared)", fn.Name, param.Name, n))
+				}
+			}
+		}
+	}
+
 	return fn, nil
+}
+
+func countVarUses(block *hir.Block) map[string]int {
+	uses := map[string]int{}
+	for _, stmt := range block.Body {
+		countUsesStmt(stmt, uses)
+	}
+	return uses
+}
+
+func countUsesStmt(stmt hir.Stmt, uses map[string]int) {
+	switch s := stmt.(type) {
+	case *hir.ReturnStmt:
+		if s.Val != nil { countUsesExpr(s.Val, uses) }
+		for _, v := range s.Vals { countUsesExpr(v, uses) }
+	case *hir.VarDeclStmt:
+		if s.Init != nil { countUsesExpr(s.Init, uses) }
+	}
+}
+
+func countUsesExpr(expr hir.Expr, uses map[string]int) {
+	switch e := expr.(type) {
+	case *hir.VarRefExpr:
+		uses[e.Name]++
+	case *hir.BinExpr:
+		countUsesExpr(e.L, uses)
+		countUsesExpr(e.R, uses)
+	case *hir.CallExpr:
+		for _, a := range e.Args { countUsesExpr(a, uses) }
+	case *hir.CondExpr:
+		countUsesExpr(e.Cond, uses)
+		countUsesExpr(e.Then, uses)
+		countUsesExpr(e.Else, uses)
+	case *hir.CastExpr:
+		countUsesExpr(e.X, uses)
+	}
 }
 
 // parseAssert: assert funcname arg1 arg2 == expected
@@ -909,6 +1259,23 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
+		// Tuple: (e1, e2, ...)
+		if p.peek().kind == tokComma {
+			elems := []hir.Expr{e}
+			for p.peek().kind == tokComma {
+				p.next()
+				elem, err := p.parseExpr()
+				if err != nil {
+					return nil, err
+				}
+				elems = append(elems, elem)
+			}
+			if err := p.expect(tokRParen, ")"); err != nil {
+				return nil, err
+			}
+			p.lastTuple = elems
+			return elems[0], nil // return first; caller uses asTuple()
+		}
 		if err := p.expect(tokRParen, ")"); err != nil {
 			return nil, err
 		}
@@ -952,7 +1319,7 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		// Store string index for later — module will be populated in parseModule
 		idx := len(p.strings)
 		p.strings = append(p.strings, s)
-		sym := fmt.Sprintf("__str_%d", idx)
+		sym := fmt.Sprintf("@mir2.str.%d", idx)
 		return &hir.AddrOfExpr{Sym: sym}, nil
 	}
 
@@ -986,9 +1353,21 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 	if t.kind == tokIdent {
 		if ctor, ok := p.ctors[t.text]; ok {
 			p.next()
+			// Check if this ADT has ANY payload constructor
+			adtHasPayload := false
+			for _, def := range p.adts {
+				for _, c := range def.constructors {
+					if c.name == ctor.name {
+						for _, c2 := range def.constructors {
+							if c2.payload != nil {
+								adtHasPayload = true
+							}
+						}
+					}
+				}
+			}
 			if ctor.payload != nil {
 				// Constructor with payload: encode as u16 = (tag << 8) | payload
-				// e.g. Some 42 → 0x012A = 298
 				arg, err := p.parsePrimary()
 				if err != nil {
 					return nil, err
@@ -996,10 +1375,27 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 				tagExpr := &hir.IntLitExpr{Val: ctor.tag * 256, Ty: mir2.TyU16}
 				return &hir.BinExpr{Op: "+", L: tagExpr, R: &hir.CastExpr{X: arg, Ty: mir2.TyU16}, Ty: mir2.TyU16}, nil
 			}
-			// No payload: just the tag
+			if adtHasPayload {
+				// No-payload constructor in payload ADT: return u16 tag (e.g. None → 0 as u16)
+				return &hir.IntLitExpr{Val: ctor.tag * 256, Ty: mir2.TyU16}, nil
+			}
+			// Simple ADT (no payloads anywhere): u8 tag
 			return &hir.IntLitExpr{Val: ctor.tag, Ty: mir2.TyU8}, nil
 		}
 	}
+
+	// Built-in: peek(ptr) = load u8 from address
+	if t.kind == tokIdent && t.text == "peek" {
+		p.next()
+		arg, err := p.parsePrimary()
+		if err != nil {
+			return nil, err
+		}
+		return &hir.LoadExpr{Ptr: arg, Ty: mir2.TyU8}, nil
+	}
+
+	// poke is defined as a regular extern — users import it from stdlib
+	// (can't use HIR StoreStmt from expression context directly)
 
 	// Identifier (variable ref or function call)
 	if t.kind == tokIdent {
@@ -1026,7 +1422,7 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 				s := unescapeString(pk.text)
 				idx := len(p.strings)
 				p.strings = append(p.strings, s)
-				sym := fmt.Sprintf("__str_%d", idx)
+				sym := fmt.Sprintf("@mir2.str.%d", idx)
 				args = append(args, &hir.AddrOfExpr{Sym: sym})
 			} else if pk.kind == tokLParen {
 				p.next()
@@ -1146,8 +1542,43 @@ func (p *parser) parseBodyExpr() (hir.Expr, []hir.Stmt, error) {
 	// Interleaved do-statements and let-in bindings
 	for {
 		if p.peek().kind == tokIdent && p.peek().text == "do" {
-			p.next()
+			p.next() // consume "do"
+			// Special: do poke ptr val → StoreStmt
+			if p.peek().kind == tokIdent && p.peek().text == "poke" {
+				p.next()
+				ptr, err := p.parsePrimary()
+				if err != nil {
+					return nil, nil, err
+				}
+				val, err := p.parsePrimary()
+				if err != nil {
+					return nil, nil, err
+				}
+				stmts = append(stmts, &hir.StoreStmt{Ptr: ptr, Val: val})
+				continue
+			}
+			// Mutation: do name <- expr
 			doExpr, err := p.parseExpr()
+			if err != nil {
+				return nil, nil, err
+			}
+			// Check if next token is <- (means doExpr is actually the target name)
+			if p.peek().kind == tokOp && p.peek().text == "<-" {
+				p.next() // consume <-
+				val, err := p.parseExpr()
+				if err != nil {
+					return nil, nil, err
+				}
+				// doExpr should be a VarRefExpr
+				if vr, ok := doExpr.(*hir.VarRefExpr); ok {
+					stmts = append(stmts, &hir.AssignStmt{
+						Target: vr,
+						Val:    val,
+					})
+					continue
+				}
+			}
+			// Regular do: discard result
 			if err != nil {
 				return nil, nil, err
 			}
@@ -1155,13 +1586,45 @@ func (p *parser) parseBodyExpr() (hir.Expr, []hir.Stmt, error) {
 			p.lambdaCount++
 			stmts = append(stmts, &hir.VarDeclStmt{Name: discardName, Ty: doExpr.ExprTy(), Init: doExpr})
 		} else if p.peek().kind == tokIdent && p.peek().text == "let" {
-		// Peek ahead: is this let-in or a function call to "let" (shouldn't happen)?
-		// Save position to restore if this isn't a let-in
 		p.next() // consume "let"
+
+		// Tuple destructuring: let (a, b) = expr in body
+		if p.peek().kind == tokLParen {
+			p.next() // (
+			var names []string
+			var tys []mir2.Ty
+			for {
+				name := p.next()
+				names = append(names, name.text)
+				tys = append(tys, mir2.TyU8) // TODO: infer types
+				if p.peek().kind == tokComma {
+					p.next()
+				} else {
+					break
+				}
+			}
+			if err := p.expect(tokRParen, ")"); err != nil {
+				return nil, nil, err
+			}
+			if err := p.expect(tokEq, "="); err != nil {
+				return nil, nil, err
+			}
+			val, err := p.parseExpr()
+			if err != nil {
+				return nil, nil, err
+			}
+			if err := p.expect(tokIdent, "in"); err != nil {
+				return nil, nil, err
+			}
+			// Emit TupleLetStmt
+			if call, ok := val.(*hir.CallExpr); ok {
+				stmts = append(stmts, &hir.TupleLetStmt{Names: names, Tys: tys, Call: call})
+			}
+			continue
+		}
+
 		nameTok := p.next()
 		if p.peek().kind != tokEq {
-			// Not a let-in binding — put tokens back conceptually
-			// This shouldn't happen in well-formed Frill
 			return nil, nil, fmt.Errorf("line %d: expected '=' after let %s", nameTok.line, nameTok.text)
 		}
 		p.next() // consume "="
@@ -1177,6 +1640,55 @@ func (p *parser) parseBodyExpr() (hir.Expr, []hir.Stmt, error) {
 			Ty:   val.ExprTy(),
 			Init: val,
 		})
+		} else if p.peek().kind == tokIdent && p.peek().text == "while" {
+			// while cond do ... end
+			p.next() // consume "while"
+			cond, err := p.parseComparison()
+			if err != nil {
+				return nil, nil, err
+			}
+			if err := p.expect(tokIdent, "do"); err != nil {
+				return nil, nil, err
+			}
+			whileBody, err := p.parseLoopBody()
+			if err != nil {
+				return nil, nil, err
+			}
+			stmts = append(stmts, &hir.WhileStmt{
+				Cond: cond,
+				Body: &hir.Block{Body: whileBody},
+			})
+		} else if p.peek().kind == tokIdent && p.peek().text == "for" {
+			// for i = start to end do ... end
+			p.next() // consume "for"
+			varName := p.next().text
+			if err := p.expect(tokEq, "="); err != nil {
+				return nil, nil, err
+			}
+			startExpr, err := p.parseExpr()
+			if err != nil {
+				return nil, nil, err
+			}
+			if err := p.expect(tokIdent, "to"); err != nil {
+				return nil, nil, err
+			}
+			endExpr, err := p.parseExpr()
+			if err != nil {
+				return nil, nil, err
+			}
+			if err := p.expect(tokIdent, "do"); err != nil {
+				return nil, nil, err
+			}
+			forBody, err := p.parseLoopBody()
+			if err != nil {
+				return nil, nil, err
+			}
+			stmts = append(stmts, &hir.ForRangeStmt{
+				Var:   varName,
+				Start: startExpr,
+				End:   endExpr,
+				Body:  &hir.Block{Body: forBody},
+			})
 		} else {
 			break
 		}
@@ -1339,6 +1851,34 @@ func (p *parser) parseMatch() (hir.Expr, error) {
 		}
 	}
 
+	// For payload ADTs: wrap match in a function that pre-computes __tag.
+	// This prevents the optimizer from folding away individual __tag calls.
+	if scrutinee.ExprTy() == mir2.TyU16 {
+		tagFnName := fmt.Sprintf("__match_tag_%d", p.lambdaCount)
+		tagVarName := fmt.Sprintf("__t%d", p.lambdaCount)
+		payloadVarName := fmt.Sprintf("__v%d", p.lambdaCount)
+		p.lambdaCount++
+
+		// Build a wrapper function:
+		// __match_tag_N(opt: u16, extra_params...) =
+		//   let __tN = __tag opt in
+		//   let __vN = __payload opt in
+		//   match __tN with | ... end
+		// Then replace the match expression with a call to this wrapper.
+		// For now, simpler: replace scrutinee with __tag(scrutinee) as VarRef
+		// by emitting a VarDeclStmt into the enclosing function body.
+
+		// We can't inject stmts from inside parseMatch, so instead:
+		// use a synthetic intermediate — build the tag as a nested call
+		// that the optimizer can't fold because it's opaque.
+		_ = tagFnName
+		_ = tagVarName
+		_ = payloadVarName
+		// Override scrutinee to be __tag(scrutinee) result
+		tagScrutinee := &hir.CallExpr{Fn: "__tag", Args: []hir.Expr{scrutinee}, Ty: mir2.TyU8}
+		scrutinee = tagScrutinee
+	}
+
 	// Build nested CondExpr from bottom up.
 	// Default arm (if any) becomes the innermost else.
 	// Guards add an extra condition: (val == pat) && guard
@@ -1356,6 +1896,7 @@ func (p *parser) parseMatch() (hir.Expr, error) {
 			}
 			result = &hir.CondExpr{Cond: a.guard, Then: a.body, Else: elseE, Ty: a.body.ExprTy()}
 		} else {
+			// Scrutinee is already u8 (either plain ADT or __tag(opt) from above)
 			cond := &hir.BinExpr{
 				Op: "==",
 				L:  scrutinee,
@@ -1435,7 +1976,7 @@ func (p *parser) parseType() mir2.Ty {
 
 func isKeyword(s string) bool {
 	switch s {
-	case "let", "in", "if", "then", "else", "type", "assert", "match", "with", "fun", "end", "where", "when", "prop", "extern", "do", "import", "asm":
+	case "let", "in", "if", "then", "else", "type", "assert", "match", "with", "fun", "end", "where", "when", "prop", "extern", "do", "import", "asm", "class", "instance", "while", "for", "to":
 		return true
 	}
 	return false
@@ -1447,6 +1988,18 @@ func fmtArgs(args []int64) string {
 		parts[i] = strconv.FormatInt(a, 10)
 	}
 	return strings.Join(parts, " ")
+}
+
+// pendingTuple stores tuple elements when a (e1, e2) expression is parsed.
+// Since tupleExpr can't implement hir.Expr (unexported interface method),
+// we store the first element as the expression and save the full list here.
+func (p *parser) asTuple(_ hir.Expr) ([]hir.Expr, bool) {
+	if p.lastTuple != nil {
+		t := p.lastTuple
+		p.lastTuple = nil
+		return t, true
+	}
+	return nil, false
 }
 
 func unescapeString(s string) string {

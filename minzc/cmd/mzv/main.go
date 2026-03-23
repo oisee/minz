@@ -29,6 +29,7 @@ import (
 	"database/sql"
 
 	"github.com/minz/minzc/pkg/abap"
+	"github.com/minz/minzc/pkg/frill"
 	"github.com/minz/minzc/pkg/c89"
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/lanz"
@@ -430,6 +431,8 @@ func parseSource(src, srcPath string) (*hir.Module, error) {
 		})
 	case ".abap":
 		return abap.Compile(src, name)
+	case ".frl":
+		return frill.Compile(src, name)
 	case ".hir":
 		return hir.ParseHIR(src, name)
 	default:

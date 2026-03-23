@@ -10,6 +10,8 @@ import (
 	"github.com/minz/minzc/pkg/ast"
 	"github.com/minz/minzc/pkg/codegen"
 	"github.com/minz/minzc/pkg/ctie"
+	_ "github.com/minz/minzc/pkg/ez80" // register eZ80 backend
+	"github.com/minz/minzc/pkg/frill"
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/ir"
 	"github.com/minz/minzc/pkg/lanz"
@@ -193,7 +195,7 @@ func init() {
 	// PGO flags (Quick Win integration)
 	rootCmd.Flags().StringVar(&pgoProfile, "pgo", "", "use profile-guided optimization with .tas profile file")
 	rootCmd.Flags().BoolVar(&pgoDebug, "pgo-debug", false, "show PGO optimization decisions and hot/cold analysis")
-	rootCmd.Flags().StringVarP(&backend, "backend", "b", defaultBackend, "target backend (z80)")
+	rootCmd.Flags().StringVarP(&backend, "backend", "b", defaultBackend, "target backend (z80, ez80)")
 	rootCmd.Flags().StringVarP(&target, "target", "t", "zxspectrum", "target platform (zxspectrum, cpm, msx, cpc, amstrad)")
 	rootCmd.Flags().StringVarP(&outputFormat, "format", "f", "", "output format: code (raw binary, default), sna, tap")
 	rootCmd.Flags().BoolVar(&listBackends, "list-backends", false, "list available backends")
@@ -773,7 +775,14 @@ func compileViaHIR(sourceFile string) error {
 			return fmt.Errorf("ABAP compile: %w", err)
 		}
 	case ".frl":
+<<<<<<< HEAD
 		hirMod, err = frill.Compile(string(src), filepath.Base(sourceFile))
+=======
+		absPath, _ := filepath.Abs(sourceFile)
+		hirMod, err = frill.CompileWithOpts(string(src), filepath.Base(sourceFile), frill.CompileOpts{
+			BaseDir: filepath.Dir(absPath),
+		})
+>>>>>>> origin/master
 		if err != nil {
 			return fmt.Errorf("Frill compile: %w", err)
 		}
@@ -794,6 +803,7 @@ func compileViaHIR(sourceFile string) error {
 		ContractOpt:     true,
 		AnnotateTStates: annotateTStates,
 		UseLIR:          useLIR,
+		Backend:         backend,
 	})
 	if err != nil {
 		return fmt.Errorf("HIR compile: %w", err)
@@ -855,10 +865,14 @@ func compileViaHIR(sourceFile string) error {
 	base := sourceFile[:len(sourceFile)-len(ext)]
 	out := outputFile
 
-	// Emit assembly if output is .a80 or no output flag given
-	if out == "" || filepath.Ext(out) == ".a80" {
+	// Emit assembly if output is .a80/.asm or no output flag given
+	asmExt := ".a80"
+	if backend == "ez80" {
+		asmExt = ".asm"
+	}
+	if out == "" || filepath.Ext(out) == ".a80" || filepath.Ext(out) == ".asm" {
 		if out == "" {
-			out = base + ".a80"
+			out = base + asmExt
 		}
 		if err := os.WriteFile(out, []byte(asmSrc), 0644); err != nil {
 			return fmt.Errorf("write %s: %w", out, err)
@@ -870,7 +884,11 @@ func compileViaHIR(sourceFile string) error {
 	}
 
 	// Otherwise assemble to binary
-	bin, errs := pipeline.Assemble(asmSrc, target)
+	asmTarget := target
+	if backend == "ez80" {
+		asmTarget = "agon" // eZ80 backend always targets Agon Light 2
+	}
+	bin, errs := pipeline.Assemble(asmSrc, asmTarget)
 	if len(errs) > 0 {
 		return fmt.Errorf("assemble: %v", errs[0])
 	}

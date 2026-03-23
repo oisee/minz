@@ -1,0 +1,63 @@
+// tui_demo.nanz — TUI demo for Agon Light 2
+//
+// Shows: clear screen, colors, box drawing, cursor positioning, input
+// Compile: minzc tui_demo.nanz -b ez80 -o tui_demo.bin
+
+import agon.tui_render
+
+fun main() -> void {
+    tui_clear()
+    tui_hide_cursor()
+
+    // Title bar
+    tui_goto(0, 0)
+    tui_color(0, 6, 0)
+    tui_puts(c" MinZ TUI Demo for Agon Light 2                                                ")
+
+    // Blue panel with box
+    tui_color(7, 4, 1)
+    draw_box(2, 2, 36, 12)
+
+    // Panel title
+    tui_goto(4, 2)
+    tui_color(0, 6, 0)
+    tui_puts(c" Panel ")
+
+    // Content lines
+    tui_goto(4, 4)
+    tui_color(7, 4, 1)
+    tui_puts(c"White on blue")
+
+    tui_goto(4, 5)
+    tui_color(3, 4, 1)
+    tui_puts(c"Yellow on blue")
+
+    tui_goto(4, 6)
+    tui_color(2, 4, 1)
+    tui_puts(c"Green on blue")
+
+    tui_goto(4, 7)
+    tui_color(1, 4, 0)
+    tui_puts(c"Red on blue")
+
+    tui_goto(4, 9)
+    tui_color(6, 4, 1)
+    tui_puts(c"eZ80 @ 18.432 MHz")
+
+    tui_goto(4, 10)
+    tui_color(7, 4, 0)
+    tui_puts(c"Compiled with MinZ")
+
+    // Status bar
+    tui_goto(0, 24)
+    tui_color(0, 6, 0)
+    tui_puts(c" Press any key to exit                                                          ")
+
+    // Wait for keypress
+    tui_read_key()
+
+    // Cleanup
+    tui_show_cursor()
+    tui_reset()
+    tui_clear()
+}

@@ -1,0 +1,47 @@
+(* Frill functional programming patterns — verified via MIR2 VM *)
+
+import "../../stdlib/frill/functional.frl"
+import "../../stdlib/frill/math.frl"
+
+-- Boolean logic
+assert bool_not 0 == 1
+assert bool_not 1 == 0
+assert bool_and 1 1 == 1
+assert bool_and 1 0 == 0
+assert bool_and 0 1 == 0
+assert bool_or 0 0 == 0
+assert bool_or 1 0 == 1
+assert bool_or 0 1 == 1
+
+-- Predicates
+assert is_zero 0 == 1
+assert is_zero 5 == 0
+assert is_even 4 == 1
+assert is_odd 3 == 1
+
+-- Properties: predicates
+prop |x| is_even x + is_odd x == 1
+
+-- Properties: predicates are total
+prop |x| is_even x + is_odd x == 1
+
+-- Fold sum: 0+1+2+...+n
+assert fold_sum 0 == 0
+assert fold_sum 5 == 15
+assert fold_sum 10 == 55
+
+-- Count even numbers in 0..n-1
+assert count_even 1 == 1
+assert count_even 4 == 2
+assert count_even 6 == 3
+
+-- Compose math + functional
+let transform = double >> inc >> square
+assert transform 3 == 49
+
+-- Pipeline with predicates
+let classify (x : u8) = x |> is_even
+assert classify 4 == 1
+assert classify 5 == 0
+
+let main (x : u8) = 0

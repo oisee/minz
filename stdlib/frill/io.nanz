@@ -1,0 +1,55 @@
+// Frill I/O primitives — CP/M BDOS interface
+// Import from Frill: import "../../stdlib/frill/io.nanz"
+
+// Output character (BDOS function 2)
+fun putchar(ch: u8) -> void {
+    asm z80 (in ch) {
+        LD E, A
+        LD C, 2
+        CALL 5
+    }
+}
+
+// Output newline (CR+LF)
+fun newline(x: u8) -> void {
+    asm z80 {
+        LD E, 13 / LD C, 2 / CALL 5
+        LD E, 10 / LD C, 2 / CALL 5
+    }
+}
+
+// Read character (BDOS function 1)
+fun getchar(x: u8) -> u8 {
+    asm z80 (ret A) {
+        LD C, 1
+        CALL 5
+    }
+}
+
+// Print null-terminated string
+fun puts(str: ^u8) -> void {
+    asm z80 (in str) {
+        .loop: LD A, (HL) / OR A / RET Z
+        LD E, A / PUSH HL / LD C, 2 / CALL 5 / POP HL / INC HL
+        JR .loop
+    }
+}
+
+// Print u8 as decimal
+fun print_u8(n: u8) -> void {
+    asm z80 (in n) {
+        LD B, A
+        ; Hundreds
+        LD C, 0
+        .h: CP 100 / JR C, .hd / SUB 100 / INC C / JR .h
+        .hd: PUSH BC / LD A, C / OR A / JR Z, .sh
+        ADD A, 48 / LD E, A / LD C, 2 / CALL 5
+        .sh: POP BC
+        ; Tens
+        LD A, B / LD C, 0
+        .t: CP 10 / JR C, .td / SUB 10 / INC C / JR .t
+        .td: PUSH AF / LD A, C / ADD A, 48 / LD E, A / LD C, 2 / CALL 5 / POP AF
+        ; Units
+        ADD A, 48 / LD E, A / LD C, 2 / CALL 5
+    }
+}

@@ -6,6 +6,12 @@ import (
 	"strings"
 )
 
+// idxDisp holds an index register name and displacement for OpTypeIdxDisp (LEA, PEA).
+type idxDisp struct {
+	Reg  string // "IX" or "IY"
+	Disp int8   // -128..+127
+}
+
 // processInstruction handles instruction encoding using the table-driven approach
 func (a *Assembler) processInstruction(line *Line) error {
 	// Try table-driven encoding first
@@ -302,6 +308,46 @@ func (a *Assembler) parseOperandAs(operand string, pattern OperandPattern) (inte
 			return nil, false
 		}
 		return int8(val), true
+
+	case OpTypeIdxDisp:
+		// Bare IX+d or IY+d without parentheses (used by LEA, PEA)
+		upper := strings.ToUpper(strings.TrimSpace(operand))
+
+		// Determine IX or IY
+		var prefix string
+		if strings.HasPrefix(upper, "IX") {
+			prefix = "IX"
+		} else if strings.HasPrefix(upper, "IY") {
+			prefix = "IY"
+		} else {
+			return nil, false
+		}
+
+		rest := strings.TrimSpace(operand[len(prefix):])
+		disp := int8(0)
+		if rest == "" {
+			// IX alone = IX+0
+		} else if rest[0] == '+' || rest[0] == '-' {
+			var offsetStr string
+			if rest[0] == '+' {
+				offsetStr = strings.TrimSpace(rest[1:])
+			} else {
+				offsetStr = strings.TrimSpace(rest) // keep minus
+			}
+			val, err := parseNumber(offsetStr)
+			if err != nil {
+				return nil, false
+			}
+			if val > 127 && val < 0xFF80 {
+				return nil, false
+			}
+			disp = int8(val)
+		} else {
+			return nil, false
+		}
+
+		// Return both the index register and displacement as an idxDisp struct
+		return &idxDisp{Reg: prefix, Disp: disp}, true
 
 	case OpTypeBit:
 		// Parse bit number (0-7) — try literal first, then resolve EQU constants

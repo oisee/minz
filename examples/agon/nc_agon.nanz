@@ -1,0 +1,135 @@
+// nc_agon.nanz — Mini Norton Commander for Agon Light 2
+//
+// Blue panel with file listing and status bar.
+// Compile: minzc nc_agon.nanz -b ez80 -o nc_agon.bin
+
+import agon.tui_render
+
+// ── File data ───────────────────────────────────────────────────────────────
+
+fun file_name(idx: u8) -> ^u8 {
+    if idx == 0 { return c"HELLO    .BIN" }
+    if idx == 1 { return c"NC_AGON  .BIN" }
+    if idx == 2 { return c"TETRIS   .BIN" }
+    if idx == 3 { return c"README   .TXT" }
+    if idx == 4 { return c"STDLIB   .   " }
+    if idx == 5 { return c"DOCS     .   " }
+    if idx == 6 { return c"EXAMPLES .   " }
+    if idx == 7 { return c"PLASMA   .BIN" }
+    return c"             "
+}
+
+fun file_size(idx: u8) -> ^u8 {
+    if idx == 0 { return c"   166" }
+    if idx == 1 { return c"  1024" }
+    if idx == 2 { return c"  2048" }
+    if idx == 3 { return c"   512" }
+    if idx == 4 { return c" <DIR>" }
+    if idx == 5 { return c" <DIR>" }
+    if idx == 6 { return c" <DIR>" }
+    if idx == 7 { return c"   789" }
+    return c"      "
+}
+
+// ── Drawing ─────────────────────────────────────────────────────────────────
+
+fun draw_entry(idx: u8, selected: u8) -> void {
+    tui_goto(2, 4 + idx)
+    if idx == selected {
+        tui_color(0, 6, 0)
+    } else {
+        tui_color(7, 4, 1)
+    }
+    tui_putch(32)
+    tui_puts(file_name(idx))
+    tui_puts(file_size(idx))
+    tui_puts(c"          ")
+}
+
+fun draw_all(sel: u8) -> void {
+    var i: u8 = 0
+    while i < 8 {
+        draw_entry(i, sel)
+        i = i + 1
+    }
+}
+
+fun main() -> void {
+    tui_clear()
+    tui_hide_cursor()
+
+    // Title
+    tui_goto(0, 0)
+    tui_color(0, 6, 0)
+    tui_puts(c" MinZ NC for Agon Light 2                                                       ")
+
+    // Panel
+    tui_color(7, 4, 1)
+    draw_box(1, 2, 40, 12)
+
+    // Panel header
+    tui_goto(3, 2)
+    tui_color(0, 6, 0)
+    tui_puts(c" /sdcard ")
+
+    // Column header
+    tui_goto(3, 3)
+    tui_color(3, 4, 1)
+    tui_puts(c"Name           Size")
+
+    // Status bar
+    tui_goto(0, 24)
+    tui_color(0, 6, 0)
+    tui_puts(c" Up/Dn")
+    tui_color(7, 0, 0)
+    tui_puts(c"Nav ")
+    tui_color(0, 6, 0)
+    tui_puts(c" Enter")
+    tui_color(7, 0, 0)
+    tui_puts(c"Open ")
+    tui_color(0, 6, 0)
+    tui_puts(c" Esc")
+    tui_color(7, 0, 0)
+    tui_puts(c"Quit                                            ")
+
+    // File list
+    var sel: u8 = 0
+    draw_all(sel)
+
+    // Event loop
+    var done: u8 = 0
+    var k: u8 = 0
+    while done == 0 {
+        k = tui_read_key()
+        // Down arrow = 10 (LF on VT100/Agon)
+        if k == 10 {
+            if sel < 7 {
+                sel = sel + 1
+                draw_all(sel)
+            }
+        }
+        // Up arrow = 11 (VT on VT100/Agon)
+        if k == 11 {
+            if sel > 0 {
+                sel = sel - 1
+                draw_all(sel)
+            }
+        }
+        // Enter = show selection
+        if k == 13 {
+            tui_goto(0, 22)
+            tui_color(2, 0, 1)
+            tui_puts(c"Selected: ")
+            tui_puts(file_name(sel))
+            tui_puts(c"        ")
+        }
+        // ESC = quit
+        if k == 27 {
+            done = 1
+        }
+    }
+
+    tui_show_cursor()
+    tui_reset()
+    tui_clear()
+}

@@ -1,5 +1,10 @@
 package z80asm
 
+import (
+	"fmt"
+	"strings"
+)
+
 // eZ80-specific instructions
 // Reference: agon-ez80asm (MIT License)
 // https://github.com/AgonPlatform/agon-ez80asm
@@ -7,26 +12,26 @@ package z80asm
 // ez80Instructions contains eZ80-only instruction patterns
 var ez80Instructions = []InstructionPattern{
 	// ========== LEA - Load Effective Address ==========
-	// LEA rr, IX+d
+	// LEA rr, IX+d / LEA rr, IY+d
 	{Mnemonic: "LEA", Operands: []OperandPattern{
-		{OpTypeReg16, "BC"}, {OpTypeIndIdx, ""}},
-		EncodingFunc: encodeLEA_IX, Encoding: []byte{0xED, 0x02}},
+		{OpTypeReg16, "BC"}, {OpTypeIdxDisp, ""}},
+		EncodingFunc: encodeLEA, Encoding: []byte{0xED, 0x02}},
 	{Mnemonic: "LEA", Operands: []OperandPattern{
-		{OpTypeReg16, "DE"}, {OpTypeIndIdx, ""}},
-		EncodingFunc: encodeLEA_IX, Encoding: []byte{0xED, 0x12}},
+		{OpTypeReg16, "DE"}, {OpTypeIdxDisp, ""}},
+		EncodingFunc: encodeLEA, Encoding: []byte{0xED, 0x12}},
 	{Mnemonic: "LEA", Operands: []OperandPattern{
-		{OpTypeReg16, "HL"}, {OpTypeIndIdx, ""}},
-		EncodingFunc: encodeLEA_IX, Encoding: []byte{0xED, 0x22}},
+		{OpTypeReg16, "HL"}, {OpTypeIdxDisp, ""}},
+		EncodingFunc: encodeLEA, Encoding: []byte{0xED, 0x22}},
 	{Mnemonic: "LEA", Operands: []OperandPattern{
-		{OpTypeReg16, "IX"}, {OpTypeIndIdx, ""}},
-		EncodingFunc: encodeLEA_IX, Encoding: []byte{0xED, 0x32}},
+		{OpTypeReg16, "IX"}, {OpTypeIdxDisp, ""}},
+		EncodingFunc: encodeLEA, Encoding: []byte{0xED, 0x32}},
 	{Mnemonic: "LEA", Operands: []OperandPattern{
-		{OpTypeReg16, "IY"}, {OpTypeIndIdx, ""}},
-		EncodingFunc: encodeLEA_IY_from_IX, Encoding: []byte{0xED, 0x55}},
+		{OpTypeReg16, "IY"}, {OpTypeIdxDisp, ""}},
+		EncodingFunc: encodeLEA, Encoding: []byte{0xED, 0x33}},
 
 	// ========== PEA - Push Effective Address ==========
 	{Mnemonic: "PEA", Operands: []OperandPattern{
-		{OpTypeIndIdx, ""}},
+		{OpTypeIdxDisp, ""}},
 		EncodingFunc: encodePEA, Encoding: []byte{0xED, 0x65}},
 
 	// ========== MLT - 8x8 Multiply ==========
@@ -154,77 +159,73 @@ var ez80Instructions = []InstructionPattern{
 
 // Encoding functions for eZ80 instructions
 
-// encodeLEA_IX encodes LEA rr, IX+d
-func encodeLEA_IX(a *Assembler, p *InstructionPattern, operands []interface{}) ([]byte, error) {
-	// Operand 1 is destination register (determines opcode via pattern)
-	// Operand 2 is (IX+d) - we need to extract displacement
-
-	disp := int8(0)
-	if len(operands) > 1 {
-		if d, ok := operands[1].(int); ok {
-			if d < -128 || d > 127 {
-				return nil, &AssemblerError{Message: "displacement out of range (-128 to 127)"}
-			}
-			disp = int8(d)
-		}
+// encodeLEA encodes LEA rr, IX+d or LEA rr, IY+d
+// The base encoding in p.Encoding is for IX variants.
+// IY variants use +1 on the second opcode byte (BC: 02→03, DE: 12→13, etc.)
+// Special cases: LEA IY,IX+d = ED 55, LEA IX,IY+d = ED 54, LEA IY,IY+d = ED 33
+func encodeLEA(a *Assembler, p *InstructionPattern, operands []interface{}) ([]byte, error) {
+	if len(operands) < 2 {
+		return nil, &AssemblerError{Message: "LEA requires two operands"}
 	}
 
-	// Check if it's IX or IY based on the operand string
-	// For now, assume IX (0xDD prefix would be needed for IY)
-	result := make([]byte, len(p.Encoding)+1)
-	copy(result, p.Encoding)
-	result[len(p.Encoding)] = byte(disp)
-
-	return result, nil
-}
-
-// encodeLEA_IY_from_IX encodes LEA IY, IX+d (special case)
-func encodeLEA_IY_from_IX(a *Assembler, p *InstructionPattern, operands []interface{}) ([]byte, error) {
-	disp := int8(0)
-	if len(operands) > 1 {
-		if d, ok := operands[1].(int); ok {
-			if d < -128 || d > 127 {
-				return nil, &AssemblerError{Message: "displacement out of range (-128 to 127)"}
-			}
-			disp = int8(d)
-		}
+	idx, ok := operands[1].(*idxDisp)
+	if !ok {
+		return nil, &AssemblerError{Message: "LEA second operand must be IX+d or IY+d"}
 	}
 
-	result := make([]byte, len(p.Encoding)+1)
-	copy(result, p.Encoding)
-	result[len(p.Encoding)] = byte(disp)
+	dstReg := ""
+	if s, ok := operands[0].(string); ok {
+		dstReg = strings.ToUpper(s)
+	}
 
-	return result, nil
+	// Determine opcode byte based on destination register and source index register
+	var opcode byte
+	switch {
+	case dstReg == "BC" && idx.Reg == "IX":
+		opcode = 0x02
+	case dstReg == "BC" && idx.Reg == "IY":
+		opcode = 0x03
+	case dstReg == "DE" && idx.Reg == "IX":
+		opcode = 0x12
+	case dstReg == "DE" && idx.Reg == "IY":
+		opcode = 0x13
+	case dstReg == "HL" && idx.Reg == "IX":
+		opcode = 0x22
+	case dstReg == "HL" && idx.Reg == "IY":
+		opcode = 0x23
+	case dstReg == "IX" && idx.Reg == "IX":
+		opcode = 0x32
+	case dstReg == "IX" && idx.Reg == "IY":
+		opcode = 0x54
+	case dstReg == "IY" && idx.Reg == "IX":
+		opcode = 0x55
+	case dstReg == "IY" && idx.Reg == "IY":
+		opcode = 0x33
+	default:
+		return nil, &AssemblerError{Message: fmt.Sprintf("invalid LEA combination: %s, %s+d", dstReg, idx.Reg)}
+	}
+
+	return []byte{0xED, opcode, byte(idx.Disp)}, nil
 }
 
 // encodePEA encodes PEA IX+d or PEA IY+d
+// PEA IX+d = ED 65 dd, PEA IY+d = ED 66 dd
 func encodePEA(a *Assembler, p *InstructionPattern, operands []interface{}) ([]byte, error) {
-	disp := int8(0)
-	isIY := false
-
-	if len(operands) > 0 {
-		// Check if it's IY (would need different opcode)
-		if str, ok := operands[0].(string); ok {
-			if len(str) > 0 && (str[0] == 'Y' || str[0] == 'y') {
-				isIY = true
-			}
-		}
-		if d, ok := operands[0].(int); ok {
-			if d < -128 || d > 127 {
-				return nil, &AssemblerError{Message: "displacement out of range (-128 to 127)"}
-			}
-			disp = int8(d)
-		}
+	if len(operands) < 1 {
+		return nil, &AssemblerError{Message: "PEA requires an operand"}
 	}
 
-	result := make([]byte, len(p.Encoding)+1)
-	copy(result, p.Encoding)
-	if isIY {
-		result[1] = 0x66 // PEA IY+d
+	idx, ok := operands[0].(*idxDisp)
+	if !ok {
+		return nil, &AssemblerError{Message: "PEA operand must be IX+d or IY+d"}
 	}
-	result[len(p.Encoding)] = byte(disp)
 
-	return result, nil
+	opcode := byte(0x65) // IX
+	if idx.Reg == "IY" {
+		opcode = 0x66
+	}
+
+	return []byte{0xED, opcode, byte(idx.Disp)}, nil
 }
 
 // encodeIN0 encodes IN0 r, (n)
@@ -266,20 +267,43 @@ func encodeOUT0(a *Assembler, p *InstructionPattern, operands []interface{}) ([]
 }
 
 // encodeTST encodes TST A, r
+// Encoding: ED (04 + r*8) where r = B:0 C:1 D:2 E:3 H:4 L:5 (HL):6 A:7
 func encodeTST(a *Assembler, p *InstructionPattern, operands []interface{}) ([]byte, error) {
-	// Get register index for operand 2
 	regIndex := byte(0)
 	if len(operands) > 1 {
-		if idx, ok := operands[1].(int); ok {
-			regIndex = byte(idx)
+		if name, ok := operands[1].(string); ok {
+			regIndex = reg8Index(name)
 		}
 	}
 
 	result := make([]byte, len(p.Encoding))
 	copy(result, p.Encoding)
-	result[1] |= (regIndex << 3) // TST A, r: opcode has register in bits 5-3
+	result[1] |= (regIndex << 3)
 
 	return result, nil
+}
+
+// reg8Index returns the Z80 3-bit register index: B=0 C=1 D=2 E=3 H=4 L=5 (HL)=6 A=7
+func reg8Index(name string) byte {
+	switch strings.ToUpper(name) {
+	case "B":
+		return 0
+	case "C":
+		return 1
+	case "D":
+		return 2
+	case "E":
+		return 3
+	case "H":
+		return 4
+	case "L":
+		return 5
+	case "(HL)":
+		return 6
+	case "A":
+		return 7
+	}
+	return 0
 }
 
 // encodeTSTImm encodes TST A, n
