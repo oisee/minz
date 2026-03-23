@@ -210,6 +210,10 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 			Op: OpConst, Dst: int(inst.Dst), Imm: inst.Imm, Width: 16,
 		}}, nil
 
+	case mir2.OpAsm:
+		// Inline assembly — skip (not expressible in VIR)
+		return nil, nil
+
 	default:
 		// Skip side-effect-free ops with no result
 		if inst.Dst == mir2.NoReg {

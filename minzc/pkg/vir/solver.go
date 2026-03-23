@@ -51,8 +51,7 @@ func Solve(ops []VIROp, desc *MachineDesc, opts SolverOptions) ([]PIROp, error) 
 		return nil, fmt.Errorf("z3 not found: %w", err)
 	}
 
-	// Phase 1: try without call splitting (handles most functions)
-	// Make a copy so phase 2 gets clean input
+	// Phase 1: global locations (fast, handles ~75% of functions)
 	opsCopy := make([]VIROp, len(ops))
 	copy(opsCopy, ops)
 
@@ -61,14 +60,9 @@ func Solve(ops []VIROp, desc *MachineDesc, opts SolverOptions) ([]PIROp, error) 
 		return result, nil
 	}
 
-	// Phase 2: if unsat and block has calls, retry with call vreg splitting
-	for _, op := range opsCopy {
-		if op.Op == OpCall {
-			return solveWithPasses(opsCopy, desc, opts, true)
-		}
-	}
-
-	return nil, err
+	// Phase 2: per-instruction locations (thorough, handles register
+	// pressure and call clobber by letting vregs move between locations)
+	return solvePerInstruction(opsCopy, desc, opts)
 }
 
 // solveWithPasses runs pre-solver passes and Z3.
@@ -1372,6 +1366,281 @@ func (p *problem) parseSolution(model string, desc *MachineDesc) ([]PIROp, error
 		for j, s := range op.Src {
 			if s >= 0 {
 				key := fmt.Sprintf("loc_v%d", s)
+				if v, ok := vals[key]; ok {
+					srcPhys[j] = v
+				}
+			}
+		}
+
+		result = append(result, PIROp{
+			Pat:     pat,
+			DstPhys: dstPhys,
+			SrcPhys: srcPhys,
+			Imm:     op.Imm,
+			Sym:     op.Sym,
+		})
+	}
+
+	return result, nil
+}
+
+// ── Per-instruction location solver ──────────────────────────────────────────
+
+// solvePerInstruction uses per-instruction location variables:
+// loc_v{vreg}_i{inst} — each vreg can be in a different location at each
+// instruction point. When locations differ between consecutive instructions,
+// a move cost is added to the objective.
+//
+// This handles:
+// - Call clobber: vreg in GPR before call, IXH across call, GPR after
+// - Register pressure: vreg can spill to IXH temporarily
+// - HL contention: vreg moves between HL and DE as needed
+func solvePerInstruction(ops []VIROp, desc *MachineDesc, opts SolverOptions) ([]PIROp, error) {
+	// Apply standard pre-solver passes (except coalescing — per-inst handles it natively)
+	ops = insertPreTieMoves(ops, desc)
+	ops = insertSaveMoves(ops, desc)
+
+	prob := buildProblem(ops, desc)
+	smt := generateSMTPerInst(prob)
+
+	if opts.Verbose {
+		fmt.Fprintf(os.Stderr, "[vir/solver] Per-inst SMT (%d ops, %d vregs):\n%s\n",
+			len(ops), len(prob.vregs), smt)
+	}
+
+	model, err := runZ3(smt, opts)
+	if err != nil {
+		return nil, fmt.Errorf("z3 per-inst solve: %w", err)
+	}
+
+	if opts.Verbose {
+		fmt.Fprintf(os.Stderr, "[vir/solver] per-inst model:\n%s\n", model)
+	}
+
+	return parsePerInstSolution(prob, model, desc)
+}
+
+// generateSMTPerInst creates SMT-LIB2 with per-instruction location variables.
+func generateSMTPerInst(p *problem) string {
+	var b strings.Builder
+	b.WriteString("(set-logic QF_LIA)\n")
+	nLocs := len(p.desc.Locs)
+
+	// For each instruction: which pattern?
+	for i, pats := range p.patterns {
+		if len(pats) == 0 {
+			continue
+		}
+		b.WriteString(fmt.Sprintf("(declare-const pat%d Int)\n", i))
+		if len(pats) == 1 {
+			b.WriteString(fmt.Sprintf("(assert (= pat%d %d))\n", i, pats[0]))
+		} else {
+			b.WriteString("(assert (or")
+			for _, pi := range pats {
+				b.WriteString(fmt.Sprintf(" (= pat%d %d)", i, pi))
+			}
+			b.WriteString("))\n")
+		}
+	}
+
+	// Per-instruction location variables: loc_v{vreg}_i{inst}
+	// Only for vregs live at each instruction
+	type vregAtInst struct {
+		vreg int
+		inst int
+	}
+	vars := make(map[vregAtInst]bool)
+
+	for i, l := range p.liveness {
+		for v := range l.live {
+			key := vregAtInst{v, i}
+			if !vars[key] {
+				vars[key] = true
+				b.WriteString(fmt.Sprintf("(declare-const lv%d_i%d Int)\n", v, i))
+				b.WriteString(fmt.Sprintf("(assert (and (>= lv%d_i%d 0) (< lv%d_i%d %d)))\n",
+					v, i, v, i, nLocs))
+			}
+		}
+	}
+
+	// Pattern → location constraints (use instruction-local variables)
+	type vregPair struct{ a, b int }
+	tied := make(map[vregPair]bool)
+
+	for i, op := range p.ops {
+		pats := p.patterns[i]
+		if len(pats) == 0 {
+			continue
+		}
+
+		for _, pi := range pats {
+			pat := &p.desc.Patterns[pi]
+			cond := fmt.Sprintf("(= pat%d %d)", i, pi)
+
+			if op.Dst > 0 && !pat.DstLocs.IsEmpty() {
+				c := locSetToSMT(fmt.Sprintf("lv%d_i%d", op.Dst, i), pat.DstLocs)
+				b.WriteString(fmt.Sprintf("(assert (=> %s %s))\n", cond, c))
+			}
+
+			if op.Src[0] > 0 && !pat.SrcLocs[0].IsEmpty() {
+				c := locSetToSMT(fmt.Sprintf("lv%d_i%d", op.Src[0], i), pat.SrcLocs[0])
+				b.WriteString(fmt.Sprintf("(assert (=> %s %s))\n", cond, c))
+			}
+
+			if op.Src[1] > 0 && !pat.SrcLocs[1].IsEmpty() {
+				c := locSetToSMT(fmt.Sprintf("lv%d_i%d", op.Src[1], i), pat.SrcLocs[1])
+				b.WriteString(fmt.Sprintf("(assert (=> %s %s))\n", cond, c))
+			}
+
+			// Tied: dst = src0 at this instruction
+			if pat.TiedDstSrc && op.Dst > 0 && op.Src[0] > 0 {
+				b.WriteString(fmt.Sprintf("(assert (=> %s (= lv%d_i%d lv%d_i%d)))\n",
+					cond, op.Dst, i, op.Src[0], i))
+				tied[vregPair{op.Dst, op.Src[0]}] = true
+				tied[vregPair{op.Src[0], op.Dst}] = true
+			}
+		}
+	}
+
+	// Interference: at each instruction, live vregs must be in different locations
+	emitted := make(map[[3]int]bool) // dedup: [inst, va, vb]
+	for i := range p.ops {
+		live := p.liveness[i].live
+		vregs := make([]int, 0, len(live))
+		for v := range live {
+			vregs = append(vregs, v)
+		}
+		for a := 0; a < len(vregs); a++ {
+			for c := a + 1; c < len(vregs); c++ {
+				va, vc := vregs[a], vregs[c]
+				if tied[vregPair{va, vc}] {
+					continue
+				}
+				key := [3]int{i, va, vc}
+				if va > vc {
+					key = [3]int{i, vc, va}
+				}
+				if emitted[key] {
+					continue
+				}
+				emitted[key] = true
+				b.WriteString(fmt.Sprintf("(assert (not (= lv%d_i%d lv%d_i%d)))\n",
+					va, i, vc, i))
+			}
+		}
+	}
+
+	// Clobber constraints: at clobbering instructions, live-through vregs
+	// must NOT be in clobbered locations
+	for i, op := range p.ops {
+		if op.Clobbers.IsEmpty() {
+			continue
+		}
+		for vreg := range p.liveness[i].live {
+			if vreg == op.Dst {
+				continue
+			}
+			op.Clobbers.ForEach(func(loc int) bool {
+				b.WriteString(fmt.Sprintf("(assert (not (= lv%d_i%d %d)))\n", vreg, i, loc))
+				return true
+			})
+		}
+	}
+
+	// DstHint hard constraints
+	for i, op := range p.ops {
+		if op.Dst > 0 && !op.DstHint.IsEmpty() {
+			c := locSetToSMT(fmt.Sprintf("lv%d_i%d", op.Dst, i), op.DstHint)
+			b.WriteString(fmt.Sprintf("(assert %s) ; DstHint\n", c))
+		}
+	}
+
+	// Cost objective
+	b.WriteString("(declare-const total_cost Int)\n")
+	b.WriteString("(assert (= total_cost (+\n  0\n") // start with 0 for valid syntax
+
+	// Pattern cost
+	for i, pats := range p.patterns {
+		if len(pats) == 0 {
+			continue
+		}
+		if len(pats) == 1 {
+			b.WriteString(fmt.Sprintf("  %d\n", p.desc.Patterns[pats[0]].Cost))
+		} else {
+			b.WriteString("  ")
+			for j, pi := range pats {
+				if j < len(pats)-1 {
+					b.WriteString(fmt.Sprintf("(ite (= pat%d %d) %d ", i, pi, p.desc.Patterns[pi].Cost))
+				} else {
+					b.WriteString(fmt.Sprintf("%d", p.desc.Patterns[pi].Cost))
+				}
+			}
+			for j := 0; j < len(pats)-1; j++ {
+				b.WriteString(")")
+			}
+			b.WriteString("\n")
+		}
+	}
+
+	// Move cost: for each vreg, for each consecutive instruction pair where
+	// it's live at both, add penalty if location changes (cost = 4T per move)
+	moveCost := 4
+	for vreg := range p.vregs {
+		for i := 0; i < len(p.ops)-1; i++ {
+			if !p.liveness[i].live[vreg] || !p.liveness[i+1].live[vreg] {
+				continue
+			}
+			// (ite (= lv_i lv_i+1) 0 moveCost)
+			b.WriteString(fmt.Sprintf("  (ite (= lv%d_i%d lv%d_i%d) 0 %d)\n",
+				vreg, i, vreg, i+1, moveCost))
+		}
+	}
+
+	b.WriteString(")))\n")
+	b.WriteString("(minimize total_cost)\n")
+	b.WriteString("(check-sat)\n")
+	b.WriteString("(get-model)\n")
+
+	return b.String()
+}
+
+// parsePerInstSolution extracts pattern and register assignments from Z3 model
+// for the per-instruction encoding. Uses the location at the instruction
+// where the vreg is defined/used for the PIROp.
+func parsePerInstSolution(p *problem, model string, desc *MachineDesc) ([]PIROp, error) {
+	vals := parseZ3Model(model)
+
+	var result []PIROp
+	for i, op := range p.ops {
+		pats := p.patterns[i]
+		if len(pats) == 0 {
+			result = append(result, PIROp{
+				Comment: fmt.Sprintf("no pattern for op %d (Op=%d)", i, op.Op),
+			})
+			continue
+		}
+
+		patKey := fmt.Sprintf("pat%d", i)
+		patIdx, ok := vals[patKey]
+		if !ok {
+			patIdx = pats[0]
+		}
+		pat := &desc.Patterns[patIdx]
+
+		dstPhys := -1
+		if op.Dst > 0 {
+			key := fmt.Sprintf("lv%d_i%d", op.Dst, i)
+			if v, ok := vals[key]; ok {
+				dstPhys = v
+			}
+		}
+
+		var srcPhys [2]int
+		srcPhys[0] = -1
+		srcPhys[1] = -1
+		for j, s := range op.Src {
+			if s > 0 {
+				key := fmt.Sprintf("lv%d_i%d", s, i)
 				if v, ok := vals[key]; ok {
 					srcPhys[j] = v
 				}
