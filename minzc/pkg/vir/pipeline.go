@@ -1025,5 +1025,95 @@ func peepholeCleanup(asm string) string {
 		pass2 = append(pass2, line)
 	}
 
-	return strings.Join(pass2, "\n")
+	// Grace pass: multi-instruction CFG-aware optimizations
+	pass3 := gracePass(pass2)
+
+	return strings.Join(pass3, "\n")
+}
+
+// gracePass applies Grace-like CFG pattern rules on Z80 assembly.
+// These are multi-instruction patterns that the simple peephole can't catch.
+func gracePass(lines []string) []string {
+	var result []string
+
+	for i := 0; i < len(lines); i++ {
+		line := strings.TrimSpace(lines[i])
+
+		// ── Dead instruction before RET ─────────────────────────────
+		// Any instruction that writes to a register right before RET is dead
+		// if it doesn't write to A (return value) or affect flags for conditional return.
+		// Example: DEC HL / RET → RET (HL not used after return)
+		if i+1 < len(lines) {
+			next := strings.TrimSpace(lines[i+1])
+			if next == "RET" {
+				// DEC rr / RET → RET (pair decrements are dead before unconditional return)
+				if line == "DEC HL" || line == "DEC DE" || line == "DEC BC" {
+					continue // skip dead decrement
+				}
+				// EX DE, HL / RET → RET (register swap is dead before return)
+				if line == "EX DE, HL" {
+					continue
+				}
+				// LD r, N / RET where r != A → skip (dead const load before return)
+				if strings.HasPrefix(line, "LD ") && !strings.HasPrefix(line, "LD A") {
+					parts := strings.SplitN(line[3:], ", ", 2)
+					if len(parts) == 2 {
+						reg := strings.TrimSpace(parts[0])
+						if reg != "A" && reg != "(HL)" && !strings.HasPrefix(reg, "(") {
+							continue // dead load before RET
+						}
+					}
+				}
+			}
+		}
+
+		// ── EX DE,HL / LD A,(HL) → LD A,(DE) ────────────────────────
+		// When EX is only used to access memory through HL, use direct (DE) access
+		if i+1 < len(lines) && line == "EX DE, HL" {
+			next := strings.TrimSpace(lines[i+1])
+			if next == "LD A, (HL)" {
+				result = append(result, "    LD A, (DE)")
+				i++ // skip LD A, (HL)
+				// Check if next is EX DE, HL (restore) — skip it too
+				if i+1 < len(lines) && strings.TrimSpace(lines[i+1]) == "EX DE, HL" {
+					i++
+				}
+				continue
+			}
+		}
+
+		// ── LD BC, 0 / ADD HL, BC → nothing (add 0 = nop) ──────────
+		if i+1 < len(lines) && (line == "LD BC, 0" || line == "LD DE, 0") {
+			next := strings.TrimSpace(lines[i+1])
+			pair := "BC"
+			if strings.HasPrefix(line, "LD DE") { pair = "DE" }
+			if next == "ADD HL, "+pair {
+				i++ // skip both
+				continue
+			}
+		}
+
+		// ── Redundant EX DE, HL pairs ────────────────────────────────
+		// EX DE, HL / EX DE, HL → remove both (self-canceling)
+		if i+1 < len(lines) && line == "EX DE, HL" {
+			next := strings.TrimSpace(lines[i+1])
+			if next == "EX DE, HL" {
+				i++ // skip both
+				continue
+			}
+		}
+
+		// ── Empty label blocks ───────────────────────────────────────
+		// .label: / .next_label: → merge (empty block)
+		if strings.HasSuffix(line, ":") && i+1 < len(lines) {
+			next := strings.TrimSpace(lines[i+1])
+			if strings.HasSuffix(next, ":") && !strings.HasPrefix(line, ";") {
+				// Keep both labels — they may be branch targets
+			}
+		}
+
+		result = append(result, lines[i])
+	}
+
+	return result
 }
