@@ -1208,9 +1208,12 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc) (*MIROp, error) {
 	case mir2.OpShr, mir2.OpSar:
 		op.Op = OpShr
 	case mir2.OpCmp:
+		// CmpSubCarry: carry flag already set by preceding SUB — no instruction needed.
+		if inst.Cond == mir2.CmpSubCarry || inst.Cond == mir2.CmpSubCarryNot {
+			return nil, nil // flag already in F register
+		}
 		op.Op = OpCmp
 		// CMP result is bool (width=1 → 8), but operands may be 16-bit.
-		// Use SrcTy (operand type) if available, else check register class.
 		if inst.SrcTy != nil {
 			w := inst.SrcTy.Width()
 			if w > op.Width {
