@@ -136,15 +136,39 @@ func emitTerminator(sb *strings.Builder, b *mir2.Block, funcName string) {
 		sb.WriteString(fmt.Sprintf("    JP %s%s\n", prefix, t.Target))
 
 	case *mir2.TermBrIf:
-		// Conditional branch: cond already set by CP/compare instruction
-		// If cond is true (non-zero) → Then, else → Else
-		// Z80: JR NZ for "if true", JR Z for "if false"
-		// The CMP sets flags: Z=equal, C=less-than (unsigned)
-		// TermBrIf.Cond is the bool vreg from OpCmp
-		sb.WriteString(fmt.Sprintf("    JR NZ, %s%s\n", prefix, t.Then))
-		if t.Else != "" {
-			sb.WriteString(fmt.Sprintf("    JP %s%s\n", prefix, t.Else))
+		// Find the CMP that defined the condition vreg to determine flag semantics
+		cmpCond := findCmpCond(b, t.Cond)
+		elseLabel := prefix + t.Else
+
+		// Emit branch based on comparison kind:
+		// CP sets Z (equal) and C (a < b unsigned)
+		switch cmpCond {
+		case mir2.CmpUgt: // a > b: skip to else if Z or C
+			sb.WriteString(fmt.Sprintf("    JR Z, %s\n", elseLabel))
+			sb.WriteString(fmt.Sprintf("    JR C, %s\n", elseLabel))
+			// fall through = then (a > b)
+		case mir2.CmpUlt: // a < b: skip to else if NC (a >= b)
+			sb.WriteString(fmt.Sprintf("    JR NC, %s\n", elseLabel))
+			// fall through = then (a < b, C set)
+		case mir2.CmpUge: // a >= b: skip to else if C (a < b)
+			sb.WriteString(fmt.Sprintf("    JR C, %s\n", elseLabel))
+		case mir2.CmpUle: // a <= b: skip to else if not Z and NC
+			sb.WriteString(fmt.Sprintf("    JR Z, %s%s\n", prefix, t.Then))
+			sb.WriteString(fmt.Sprintf("    JR NC, %s\n", elseLabel))
+		case mir2.CmpEq: // a == b
+			sb.WriteString(fmt.Sprintf("    JR NZ, %s\n", elseLabel))
+		case mir2.CmpNe: // a != b
+			sb.WriteString(fmt.Sprintf("    JR Z, %s\n", elseLabel))
+		default:
+			// Generic: treat as NZ (bool condition)
+			sb.WriteString(fmt.Sprintf("    JR NZ, %s%s\n", prefix, t.Then))
+			if t.Else != "" {
+				sb.WriteString(fmt.Sprintf("    JP %s\n", elseLabel))
+			}
+			return
 		}
+		// Fall-through to Then block (or explicit jump if blocks aren't adjacent)
+		sb.WriteString(fmt.Sprintf("    JP %s%s\n", prefix, t.Then))
 
 	case *mir2.TermBrIf2:
 		// Two-way branch based on comparison result
@@ -182,4 +206,16 @@ func emitTerminator(sb *strings.Builder, b *mir2.Block, funcName string) {
 	case *mir2.TermUnreachable:
 		sb.WriteString("    ; unreachable\n")
 	}
+}
+
+// findCmpCond looks up the CmpCond of the OpCmp instruction that defines
+// the given condition vreg. Returns -1 if not found.
+func findCmpCond(b *mir2.Block, condReg mir2.Reg) mir2.CmpCond {
+	for i := len(b.Insts) - 1; i >= 0; i-- {
+		inst := b.Insts[i]
+		if inst.Op == mir2.OpCmp && inst.Dst == condReg {
+			return inst.Cond
+		}
+	}
+	return mir2.CmpCond(255) // not found
 }
