@@ -776,6 +776,14 @@ func resolveType(s string) mir2.Ty {
 		return mir2.TyI8
 	case "i16":
 		return mir2.TyI16
+	case "u24":
+		return mir2.TyU24
+	case "i24":
+		return mir2.TyI24
+	case "u32":
+		return mir2.TyU32
+	case "i32":
+		return mir2.TyI32
 	case "bool":
 		return mir2.TyBool
 	case "void":
