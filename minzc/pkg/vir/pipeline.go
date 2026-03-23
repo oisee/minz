@@ -96,8 +96,13 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 	vfCopy := deepCopyFunc(vf)
 
 	// Try CFG-aware whole-function solver first
-	if result, err := codegenFuncCFG(f, vfCopy, desc, opts); err == nil {
-		return result, nil
+	cfgResult, cfgErr := codegenFuncCFG(f, vfCopy, desc, opts)
+	if cfgErr == nil {
+		return cfgResult, nil
+	}
+
+	if opts.Verbose {
+		fmt.Fprintf(os.Stderr, "[vir] CFG solver failed for %s: %v, falling back to per-block\n", f.Name, cfgErr)
 	}
 
 	// Fallback to per-block approach (with fresh copy)
@@ -118,34 +123,8 @@ func deepCopyFunc(vf *Func) *Func {
 
 // codegenFuncCFG uses the CFG-aware solver: per-block variables with edge constraints.
 func codegenFuncCFG(f *mir2.Func, vf *Func, desc *MachineDesc, opts SolverOptions) (string, error) {
-	// Apply param SrcHints to entry block
-	if opts.FuncParamLocs != nil || opts.ParamLocs != nil {
-		paramHints := make(map[int]int)
-		if opts.FuncParamLocs != nil {
-			if pl, ok := opts.FuncParamLocs[f.Name]; ok {
-				for v, p := range pl {
-					paramHints[v] = p
-				}
-			}
-		}
-		for v, p := range opts.ParamLocs {
-			if _, ok := paramHints[v]; !ok {
-				paramHints[v] = p
-			}
-		}
-		if len(vf.Blocks) > 0 && len(paramHints) > 0 {
-			for i := range vf.Blocks[0].Ops {
-				for j, s := range vf.Blocks[0].Ops[i].Src {
-					if s > 0 {
-						if phys, ok := paramHints[s]; ok {
-							vf.Blocks[0].Ops[i].SrcHint[j] = Singleton(phys)
-						}
-					}
-				}
-			}
-		}
-	}
-
+	// Param hints are passed via opts and applied inside SolveCFG
+	// AFTER pre-solver passes (which may rewrite vreg references).
 	blockPIR, err := SolveCFG(vf, f, desc, opts)
 	if err != nil {
 		return "", err

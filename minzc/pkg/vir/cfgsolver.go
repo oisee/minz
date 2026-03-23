@@ -217,6 +217,42 @@ func SolveCFG(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions) (ma
 		}
 	}
 
+	// Param location constraints: entry block (b0) params must be in PBQP registers.
+	// Applied as hard constraints on the FIRST instruction of block 0.
+	paramHints := make(map[int]int)
+	if opts.FuncParamLocs != nil {
+		if pl, ok := opts.FuncParamLocs[f.Name]; ok {
+			for v, p := range pl {
+				paramHints[v] = p
+			}
+		}
+	}
+	for v, p := range opts.ParamLocs {
+		if _, ok := paramHints[v]; !ok {
+			paramHints[v] = p
+		}
+	}
+	if len(paramHints) > 0 && len(blocks) > 0 {
+		bp := blocks[0]
+		for vreg, phys := range paramHints {
+			// Find the first instruction in block 0 that uses this vreg
+			for i, op := range bp.ops {
+				usesVreg := false
+				for _, s := range op.Src {
+					if s == vreg {
+						usesVreg = true
+					}
+				}
+				if usesVreg {
+					v := ensureVar(vreg, 0, i)
+					b.WriteString(fmt.Sprintf("(assert (= %s %d)) ; param %d in %s\n",
+						v, phys, vreg, desc.Locs[phys].Name))
+					break
+				}
+			}
+		}
+	}
+
 	// CFG edge constraints: vreg locations must match across block boundaries
 	for _, edge := range edges {
 		fromBP := blocks[edge.fromBlock]
