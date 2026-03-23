@@ -11,44 +11,44 @@ const PALETTE_5: u8 = 0x07;  // White
 const PALETTE_6: u8 = 0x47;  // Bright white
 
 // Heat buffer
-global heat: [u8; 768];
-global seed: u16 = 0xACE1;
+global heat: [u8; 768]
+global seed: u16 = 0xACE1
 
 // Simple LFSR random
 fun random_u8() -> u8 {
-    let bit: u8 = ((seed >> 0) ^ (seed >> 2) ^ (seed >> 3) ^ (seed >> 5)) as u8 & 1;
-    seed = (seed >> 1) | ((bit as u16) << 15);
+    let bit: u8 = ((seed >> 0) ^ (seed >> 2) ^ (seed >> 3) ^ (seed >> 5)) as u8 & 1
+    seed = (seed >> 1) | ((bit as u16) << 15)
     (seed >> 8) as u8
 }
 
 // Seed bottom row
 fun seed_bottom() -> void {
     for col in 0..32 {
-        heat[736 + col] = (random_u8() & 7);
+        heat[736 + col] = (random_u8() & 7)
     }
 }
 
 // Propagate heat upward
 fun propagate() -> void {
     for row in 0..23 {
-        let row_offset: u16 = row as u16 * 32;
-        let below_offset: u16 = row_offset + 32;
+        let row_offset: u16 = row as u16 * 32
+        let below_offset: u16 = row_offset + 32
 
         for col in 1..31 {
-            let idx = row_offset + col as u16;
-            let below_idx = below_offset + col as u16;
+            let idx = row_offset + col as u16
+            let below_idx = below_offset + col as u16
 
-            let h1 = heat[below_idx - 1];
-            let h2 = heat[below_idx];
-            let h3 = heat[below_idx + 1];
+            let h1 = heat[below_idx - 1]
+            let h2 = heat[below_idx]
+            let h3 = heat[below_idx + 1]
 
-            let avg: u16 = (h1 as u16 + h2 as u16 + h3 as u16) / 3;
-            let cooling: u8 = random_u8() & 1;
+            let avg: u16 = (h1 as u16 + h2 as u16 + h3 as u16) / 3
+            let cooling: u8 = random_u8() & 1
 
             if avg > cooling as u16 {
-                heat[idx] = (avg - cooling as u16) as u8;
+                heat[idx] = (avg - cooling as u16) as u8
             } else {
-                heat[idx] = 0;
+                heat[idx] = 0
             }
         }
     }
@@ -69,13 +69,13 @@ fun palette(h: u8) -> u8 {
 fun main() -> void {
     // Initialize heat to zero
     for i in 0..768 {
-        heat[i] = 0;
+        heat[i] = 0
     }
 
     // Main loop (simplified - no actual screen output)
     for frame in 0..100 {
-        seed_bottom();
-        propagate();
+        seed_bottom()
+        propagate()
         // render() would write to 0x5800 here
     }
 }

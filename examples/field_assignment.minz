@@ -6,10 +6,10 @@ struct Point {
 }
 
 fun main() -> void {
-    let mut p: Point;
-    p.x = 10;
-    p.y = 20;
+    var p: Point
+    p.x = 10
+    p.y = 20
     
-    let val = p.x + p.y;
-    return;
+    let val = p.x + p.y
+    return
 }

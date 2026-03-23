@@ -3,39 +3,39 @@
 
 fun test_unsigned_types() -> bool {
     // u8 tests
-    let a: u8 = 255;
-    let b: u8 = 1;
+    let a: u8 = 255
+    let b: u8 = 1
     let c = a + b;  // Should wrap to 0
     if c != 0 { return false; }
     
     // u16 tests
-    let x: u16 = 65535;
-    let y: u16 = 1;
+    let x: u16 = 65535
+    let y: u16 = 1
     let z = x + y;  // Should wrap to 0
     if z != 0 { return false; }
     
-    return true;
+    return true
 }
 
 fun test_signed_types() -> bool {
     // i8 tests
-    let a: i8 = 127;
-    let b: i8 = 1;
+    let a: i8 = 127
+    let b: i8 = 1
     let c = a + b;  // Should wrap to -128
     if c != -128 { return false; }
     
     // i16 tests
-    let x: i16 = 32767;
-    let y: i16 = 1;
+    let x: i16 = 32767
+    let y: i16 = 1
     let z = x + y;  // Should wrap to -32768
     if z != -32768 { return false; }
     
-    return true;
+    return true
 }
 
 fun test_boolean_ops() -> bool {
-    let t: bool = true;
-    let f: bool = false;
+    let t: bool = true
+    let f: bool = false
     
     // Logical operations
     if !(t && t) { return false; }
@@ -45,12 +45,12 @@ fun test_boolean_ops() -> bool {
     if !t { return false; }
     if !!f { return false; }
     
-    return true;
+    return true
 }
 
 fun test_comparisons() -> bool {
-    let a: u8 = 10;
-    let b: u8 = 20;
+    let a: u8 = 10
+    let b: u8 = 20
     
     if !(a < b) { return false; }
     if !(b > a) { return false; }
@@ -59,24 +59,24 @@ fun test_comparisons() -> bool {
     if a == b { return false; }
     if !(a != b) { return false; }
     
-    return true;
+    return true
 }
 
 fun test_type_casting() -> bool {
-    let a: u8 = 100;
-    let b: u16 = a as u16;
+    let a: u8 = 100
+    let b: u16 = a as u16
     if b != 100 { return false; }
     
-    let c: i8 = -50;
-    let d: i16 = c as i16;
+    let c: i8 = -50
+    let d: i16 = c as i16
     if d != -50 { return false; }
     
     // Truncation
-    let e: u16 = 300;
+    let e: u16 = 300
     let f: u8 = e as u8;  // Should truncate to 44
     if f != 44 { return false; }
     
-    return true;
+    return true
 }
 
 fun main() -> u8 {

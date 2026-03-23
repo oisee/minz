@@ -1,10 +1,10 @@
 // Tail recursive sum example - simpler test
 fun sum_tail(n: u16, acc: u16) -> u16 {
     if n == 0 {
-        return acc;
+        return acc
     }
     // This is tail recursive - the recursive call is the last operation
-    return sum_tail(n - 1, acc + n);
+    return sum_tail(n - 1, acc + n)
 }
 
 fun main() -> void {

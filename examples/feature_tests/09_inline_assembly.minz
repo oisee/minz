@@ -3,7 +3,7 @@
 
 // Test basic inline assembly
 fun test_inline_asm() -> bool {
-    let mut result: u8 = 0;
+    var result: u8 = 0
     
     @asm {
         LD A, 42
@@ -13,8 +13,8 @@ fun test_inline_asm() -> bool {
     if result != 42 { return false; }
     
     // Assembly with local variable access
-    let x: u8 = 10;
-    let y: u8 = 20;
+    let x: u8 = 10
+    let y: u8 = 20
     
     @asm {
         LD A, (x)
@@ -25,18 +25,18 @@ fun test_inline_asm() -> bool {
     
     if result != 30 { return false; }
     
-    return true;
+    return true
 }
 
 // Test @abi function declaration
 @abi("register: A=char")
-extern fun rom_print_char(char: u8) -> void;
+extern fun rom_print_char(char: u8) -> void
 
 @abi("register: HL=addr, A=value, BC=count")
-extern fun rom_fill_memory(addr: u16, value: u8, count: u16) -> void;
+extern fun rom_fill_memory(addr: u16, value: u8, count: u16) -> void
 
 @abi("register: HL=return")
-extern fun rom_get_random() -> u16;
+extern fun rom_get_random() -> u16
 
 // Test calling @abi functions
 fun test_abi_calls() -> bool {
@@ -44,20 +44,20 @@ fun test_abi_calls() -> bool {
     rom_print_char(65);  // Print 'A'
     
     // Call ROM routine with multiple parameters
-    let buffer: [u8; 10];
-    rom_fill_memory(&buffer as u16, 0, 10);
+    let buffer: [u8; 10]
+    rom_fill_memory(&buffer as u16, 0, 10)
     
     // Call ROM routine with return value
-    let random = rom_get_random();
+    let random = rom_get_random()
     
-    return true;
+    return true
 }
 
 // Test inline assembly with constraints
 fun test_asm_constraints() -> bool {
-    let a: u8 = 5;
-    let b: u8 = 3;
-    let result: u8;
+    let a: u8 = 5
+    let b: u8 = 3
+    let result: u8
     
     @asm {
         LD A, (a)       ; Load first operand
@@ -68,13 +68,13 @@ fun test_asm_constraints() -> bool {
     
     if result != 8 { return false; }
     
-    return true;
+    return true
 }
 
 // Test preserving registers in assembly
 fun test_register_preservation() -> bool {
-    let saved_hl: u16;
-    let saved_de: u16;
+    let saved_hl: u16
+    let saved_de: u16
     
     @asm {
         ; Save current register values
@@ -97,13 +97,13 @@ fun test_register_preservation() -> bool {
     if saved_hl != 0x1234 { return false; }
     if saved_de != 0x5678 { return false; }
     
-    return true;
+    return true
 }
 
 // Test shadow registers
 fun test_shadow_registers() -> bool {
-    let primary_a: u8;
-    let shadow_a: u8;
+    let primary_a: u8
+    let shadow_a: u8
     
     @asm {
         ; Work with primary registers
@@ -124,7 +124,7 @@ fun test_shadow_registers() -> bool {
     if primary_a != 10 { return false; }
     if shadow_a != 20 { return false; }
     
-    return true;
+    return true
 }
 
 // Test interrupt handler with shadow registers
@@ -157,25 +157,25 @@ fun test_io_ports() -> bool {
     }
     
     // Read keyboard
-    let key_state: u8;
+    let key_state: u8
     @asm {
         LD BC, 0xFEFE   ; Keyboard port
         IN A, (C)       ; Read keyboard
         LD (key_state), A
     }
     
-    return true;
+    return true
 }
 
 // Test complex @abi with stack parameters
 @abi("stack: 2=x, 4=y, 6=color")
-extern fun rom_plot_pixel(x: u16, y: u8, color: u8) -> void;
+extern fun rom_plot_pixel(x: u16, y: u8, color: u8) -> void
 
 fun test_stack_abi() -> bool {
     // This tests stack-based parameter passing
     rom_plot_pixel(100, 50, 7);  // White pixel at (100, 50)
     
-    return true;
+    return true
 }
 
 fun main() -> u8 {

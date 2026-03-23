@@ -2568,11 +2568,6 @@ func (p *parser) parseLetDecl() (hir.Stmt, error) {
 		return nil, err
 	}
 
-	// Skip optional `mut` qualifier (MinZ compatibility — Nanz vars are mutable by default)
-	if t := p.l.peek(); t.kind == tokIdent && t.val == "mut" {
-		p.l.next()
-	}
-
 	// Tuple destructuring: let (a, b) = fn(...)
 	if p.l.is(tokLParen) {
 		return p.parseTupleLet()

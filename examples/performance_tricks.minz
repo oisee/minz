@@ -17,7 +17,7 @@ fun fast_fill(dest: ^u8, value: u8, count: u16) -> void {
 }
 
 @abi("register: HL=src, DE=dest, BC=count")
-extern fun ldir_wrapper(src: ^u8, dest: ^u8, count: u16) -> void;
+extern fun ldir_wrapper(src: ^u8, dest: ^u8, count: u16) -> void
 
 fun unrolled_copy(dest: ^u8, src: ^u8) -> void {
     // Unrolled loop for 8-byte copy
@@ -74,14 +74,14 @@ fun lookup_mul_by_10(x: u8) -> u16 {
 }
 
 fun main() -> void {
-    let buffer: [u8; 256];
+    let buffer: [u8; 256]
     
     // Fast fill using SMC
-    fast_fill(&buffer[0], 0xAA, 256);
+    fast_fill(&buffer[0], 0xAA, 256)
     
     // Fast copy using LDIR
-    let src: [u8; 256];
-    ldir_wrapper(&src[0], &buffer[0], 256);
+    let src: [u8; 256]
+    ldir_wrapper(&src[0], &buffer[0], 256)
     
     // Fast multiplication
     let result = lookup_mul_by_10(25);  // 250

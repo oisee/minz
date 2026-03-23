@@ -18,9 +18,9 @@ fun main() -> void {
         LD HL, _data
         LD ($F002), HL
     }
-    let arr: [u8; 5] = [1, 2, 3, 4, 5];
-    arr.map(double).filter(|x| x > 5).forEach(console_log);
-    console_log(10);
+    let arr: [u8; 5] = [1, 2, 3, 4, 5]
+    arr.map(double).filter(|x| x > 5).forEach(console_log)
+    console_log(10)
     asm {
         DI
         HALT

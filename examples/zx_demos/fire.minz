@@ -1,28 +1,28 @@
 // Fire Effect - MinZ Idiomatic Version
 // Cellular automaton with DJNZ-optimized propagation
 
-const ATTR_MEM: u16 = 22528;
+const ATTR_MEM: u16 = 22528
 
-global grid: [u8; 384];
-global colLUT: [u8; 256];
-global seed: u16 = 0xDEAD;
+global grid: [u8; 384]
+global colLUT: [u8; 256]
+global seed: u16 = 0xDEAD
 
 @inline
 fun rand() -> u8 {
-    let bit: u8 = ((seed >> 0) ^ (seed >> 2) ^ (seed >> 3) ^ (seed >> 5)) & 1;
-    seed = (seed >> 1) | (bit << 15);
-    return seed & 0xFF;
+    let bit: u8 = ((seed >> 0) ^ (seed >> 2) ^ (seed >> 3) ^ (seed >> 5)) & 1
+    seed = (seed >> 1) | (bit << 15)
+    return seed & 0xFF
 }
 
 fun init_colors() -> void {
     for b in 0..256 {
-        let color: u8 = 0;
+        let color: u8 = 0
         if b > 90 { color = 0x3F; }
         else if b > 70 { color = 0x36; }
         else if b > 50 { color = 0x32; }
         else if b > 30 { color = 0x12; }
         else if b > 20 { color = 0x02; }
-        colLUT[b] = color;
+        colLUT[b] = color
     }
 }
 
@@ -35,27 +35,27 @@ fun seed_base() -> void {
 // Fire propagation - hot path, DJNZ critical
 fun propagate() -> void {
     for i in 0..320 {
-        let sum: u16 = grid[i + 31] + grid[i + 32] + grid[i + 33] + grid[i + 64];
-        grid[i] = (sum * 3) >> 4;
+        let sum: u16 = grid[i + 31] + grid[i + 32] + grid[i + 33] + grid[i + 64]
+        grid[i] = (sum * 3) >> 4
     }
 }
 
 // Update attributes from heat grid
 fun update_screen() -> void {
-    let ptr: ^u8 = ATTR_MEM + 416;
+    let ptr: ^u8 = ATTR_MEM + 416
     for i in 0..320 {
-        *ptr = colLUT[grid[i]];
-        ptr = ptr + 1;
+        *ptr = colLUT[grid[i]]
+        ptr = ptr + 1
     }
 }
 
 fun main() -> void {
-    init_colors();
+    init_colors()
     for i in 0..384 { grid[i] = 0; }
     
     loop {
-        seed_base();
-        propagate();
-        update_screen();
+        seed_base()
+        propagate()
+        update_screen()
     }
 }

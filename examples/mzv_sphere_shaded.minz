@@ -8,21 +8,21 @@
 // =============================================================================
 
 fun fp_mul(a: i16, b: i16) -> i16 {
-    let a32: i32 = a as i32;
-    let b32: i32 = b as i32;
-    let result: i32 = (a32 * b32) >> 8;
-    return result as i16;
+    let a32: i32 = a as i32
+    let b32: i32 = b as i32
+    let result: i32 = (a32 * b32) >> 8
+    return result as i16
 }
 
 fun fp_div(a: i16, b: i16) -> i16 {
     if b == 0 {
         if a >= 0 { return 32767; }
-        return -32768;
+        return -32768
     }
-    let a32: i32 = a as i32;
-    let b32: i32 = b as i32;
-    let result: i32 = (a32 << 8) / b32;
-    return result as i16;
+    let a32: i32 = a as i32
+    let b32: i32 = b as i32
+    let result: i32 = (a32 << 8) / b32
+    return result as i16
 }
 
 // Fast integer square root (no fixed-point needed for distance)
@@ -31,19 +31,19 @@ fun isqrt(n: i16) -> i16 {
     if n < 2 { return n; }
 
     // Initial guess using bit shift approximation
-    let guess: i16 = n >> 1;
+    let guess: i16 = n >> 1
     if guess > 127 { guess = 127; }
 
     // 3 Newton-Raphson iterations (reduced from 6)
-    let i: u8 = 0;
+    let i: u8 = 0
     while i < 3 {
-        let div_result: i16 = n / guess;
-        guess = (guess + div_result) >> 1;
+        let div_result: i16 = n / guess
+        guess = (guess + div_result) >> 1
         if guess == 0 { guess = 1; }
-        i = i + 1;
+        i = i + 1
     }
 
-    return guess;
+    return guess
 }
 
 // =============================================================================
@@ -55,41 +55,41 @@ fun main() -> void {
     let cx: i16 = 160;      // center x
     let cy: i16 = 120;      // center y
     let radius: i16 = 50;   // radius (smaller for faster rendering)
-    let radius_sq: i16 = radius * radius;
+    let radius_sq: i16 = radius * radius
 
     // Light direction (not normalized, but consistent)
     // Upper-left-towards: (1, -1, 1)
-    let lx: i16 = 1;
-    let ly: i16 = -1;
-    let lz: i16 = 1;
+    let lx: i16 = 1
+    let ly: i16 = -1
+    let lz: i16 = 1
 
     // Clear screen
-    clear();
+    clear()
 
     // Only iterate over the bounding box
-    let y_start: i16 = cy - radius;
-    let y_end: i16 = cy + radius;
-    let x_start: i16 = cx - radius;
-    let x_end: i16 = cx + radius;
+    let y_start: i16 = cy - radius
+    let y_end: i16 = cy + radius
+    let x_start: i16 = cx - radius
+    let x_end: i16 = cx + radius
 
-    let y: i16 = y_start;
+    let y: i16 = y_start
     while y < y_end {
-        let x: i16 = x_start;
+        let x: i16 = x_start
         while x < x_end {
             // Distance squared from center
-            let dx: i16 = x - cx;
-            let dy: i16 = y - cy;
-            let dist_sq: i16 = dx * dx + dy * dy;
+            let dx: i16 = x - cx
+            let dy: i16 = y - cy
+            let dist_sq: i16 = dx * dx + dy * dy
 
             if dist_sq < radius_sq {
                 // Calculate z from sphere equation: z = sqrt(r^2 - dist^2)
-                let z_sq: i16 = radius_sq - dist_sq;
-                let z: i16 = isqrt(z_sq);
+                let z_sq: i16 = radius_sq - dist_sq
+                let z: i16 = isqrt(z_sq)
 
                 // Normal at this point: n = (dx, dy, z) / r
                 // For dot product, we can skip division and scale later
                 // N dot L = dx*lx + dy*ly + z*lz
-                let dot: i16 = dx * lx + dy * ly + z * lz;
+                let dot: i16 = dx * lx + dy * ly + z * lz
 
                 // Clamp negative dot product (facing away from light)
                 if dot < 0 { dot = 0; }
@@ -98,12 +98,12 @@ fun main() -> void {
                 // dot ranges from 0 to ~sqrt(3)*radius ≈ 86 for radius=50
                 // Scale to range 64-255: brightness = 64 + (dot * 191 / max_dot)
                 // Use dot * 3 to scale appropriately (191/86 ≈ 2.2, rounded to 3)
-                let brightness: i16 = 64 + (dot * 3);
+                let brightness: i16 = 64 + (dot * 3)
                 if brightness > 255 { brightness = 255; }
 
                 // Map brightness to 8-bit palette colors
                 // Using a warm orange/yellow gradient
-                let color: u8 = 0;
+                let color: u8 = 0
                 if brightness > 230 {
                     color = 15;  // White (specular highlight)
                 } else if brightness > 200 {
@@ -120,10 +120,10 @@ fun main() -> void {
                     color = 0;   // Black (shadow)
                 }
 
-                set_pixel(x as u8, y as u8, color);
+                set_pixel(x as u8, y as u8, color)
             }
-            x = x + 1;
+            x = x + 1
         }
-        y = y + 1;
+        y = y + 1
     }
 }

@@ -28,13 +28,13 @@ enum Key {
 // Function to get opposite direction
 fun opposite(dir: Direction) -> Direction {
     if dir == Direction.Up {
-        return Direction.Down;
+        return Direction.Down
     } else if dir == Direction.Down {
-        return Direction.Up;
+        return Direction.Up
     } else if dir == Direction.Left {
-        return Direction.Right;
+        return Direction.Right
     } else {
-        return Direction.Left;
+        return Direction.Left
     }
 }
 
@@ -42,35 +42,35 @@ fun opposite(dir: Direction) -> Direction {
 fun next_state(current: GameState, input: Key) -> GameState {
     if current == GameState.Menu {
         if input == Key.KeySpace {
-            return GameState.Playing;
+            return GameState.Playing
         }
     } else if current == GameState.Playing {
         if input == Key.KeyP {
-            return GameState.Paused;
+            return GameState.Paused
         } else if input == Key.KeyQ {
-            return GameState.GameOver;
+            return GameState.GameOver
         }
     } else if current == GameState.Paused {
         if input == Key.KeyP {
-            return GameState.Playing;
+            return GameState.Playing
         }
     }
     
-    return current;
+    return current
 }
 
 fun main() -> void {
     // Initialize game state
-    let mut state = GameState.Menu;
-    let mut player_dir = Direction.Right;
+    var state = GameState.Menu
+    var player_dir = Direction.Right
     
     // Simulate game loop
     state = next_state(state, Key.KeySpace);  // Start game
     
     // Move player
-    player_dir = Direction.Up;
-    let opposite_dir = opposite(player_dir);
+    player_dir = Direction.Up
+    let opposite_dir = opposite(player_dir)
     
     // Pause game
-    state = next_state(state, Key.KeyP);
+    state = next_state(state, Key.KeyP)
 }

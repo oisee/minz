@@ -9,10 +9,10 @@ struct Editor {
 
 // Draw a pixel on the 16x16 grid
 fun draw_pixel(x: u8, y: u8, set: bool) -> void {
-    let grid_x: u8 = 64;
-    let grid_y: u8 = 48;
-    let px = grid_x + x;
-    let py = grid_y + y;
+    let grid_x: u8 = 64
+    let grid_y: u8 = 48
+    let px = grid_x + x
+    let py = grid_y + y
     
     if set {
         // Set pixel at px, py
@@ -23,15 +23,15 @@ fun draw_pixel(x: u8, y: u8, set: bool) -> void {
 
 // Draw the entire canvas
 fun draw_canvas(canvas: ^[256]bool) -> void {
-    let mut y: u8 = 0;
+    var y: u8 = 0
     while y < 16 {
-        let mut x: u8 = 0;
+        var x: u8 = 0
         while x < 16 {
-            let idx: u16 = (y as u16) * 16 + (x as u16);
-            draw_pixel(x, y, canvas[idx]);
-            x = x + 1;
+            let idx: u16 = (y as u16) * 16 + (x as u16)
+            draw_pixel(x, y, canvas[idx])
+            x = x + 1
         }
-        y = y + 1;
+        y = y + 1
     }
 }
 
@@ -41,21 +41,21 @@ fun main() -> void {
     // Set border color to blue
     
     // Initialize canvas
-    let mut canvas: [256]bool;
-    let mut i: u16 = 0;
+    var canvas: [256]bool
+    var i: u16 = 0
     while i < 256 {
-        canvas[i] = false;
-        i = i + 1;
+        canvas[i] = false
+        i = i + 1
     }
     
     // Draw a simple pattern
-    canvas[0] = true;
-    canvas[17] = true;
-    canvas[34] = true;
-    canvas[51] = true;
+    canvas[0] = true
+    canvas[17] = true
+    canvas[34] = true
+    canvas[51] = true
     
     // Draw the canvas
-    draw_canvas(&canvas);
+    draw_canvas(&canvas)
     
     // Simple input loop
     while true {
@@ -65,11 +65,11 @@ fun main() -> void {
             // Toggle center pixel
             // Toggle center pixel - would use XOR in assembly
             if canvas[136] {
-                canvas[136] = false;
+                canvas[136] = false
             } else {
-                canvas[136] = true;
+                canvas[136] = true
             }
-            draw_canvas(&canvas);
+            draw_canvas(&canvas)
         }
     }
 }

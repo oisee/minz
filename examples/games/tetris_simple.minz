@@ -1,8 +1,8 @@
 // Simple Tetris for MinZ - avoiding complex functions
 
 // Game constants  
-global BOARD_WIDTH: u8 = 10;
-global BOARD_HEIGHT: u8 = 20;
+global BOARD_WIDTH: u8 = 10
+global BOARD_HEIGHT: u8 = 20
 
 // Piece types
 enum PieceType {
@@ -54,53 +54,53 @@ fun clear_screen() -> void {
 
 // Initialize game
 fun init_game() -> TetrisGame {
-    let mut game: TetrisGame;
+    var game: TetrisGame
     
     // Clear board
-    let mut y: u8 = 0;
+    var y: u8 = 0
     while (y < BOARD_HEIGHT) {
-        let mut x: u8 = 0;
+        var x: u8 = 0
         while (x < BOARD_WIDTH) {
-            game.board.grid[y][x] = 0;
-            x = x + 1;
+            game.board.grid[y][x] = 0
+            x = x + 1
         }
-        y = y + 1;
+        y = y + 1
     }
     
     // Set initial piece
-    game.current_piece.piece_type = PieceType.T;
-    game.current_piece.position.x = 5;
-    game.current_piece.position.y = 0;
-    game.board.score = 0;
+    game.current_piece.piece_type = PieceType.T
+    game.current_piece.position.x = 5
+    game.current_piece.position.y = 0
+    game.board.score = 0
     
-    return game;
+    return game
 }
 
 // Simple render
 fun render_game(game: *TetrisGame) -> void {
-    clear_screen();
+    clear_screen()
     // Would plot game state here
-    print_u16(game.board.score);
+    print_u16(game.board.score)
 }
 
 // Main game loop
 fun game_loop() -> void {
-    let mut game = init_game();
+    var game = init_game()
     
-    let mut frames: u8 = 0;
+    var frames: u8 = 0
     while (frames < 100) {  // Simple time limit
-        render_game(&game);
+        render_game(&game)
         
         // Simple delay
         @asm {
             HALT
         }
         
-        frames = frames + 1;
+        frames = frames + 1
     }
 }
 
 // Entry point
 fun main() -> void {
-    game_loop();
+    game_loop()
 }

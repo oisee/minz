@@ -1,2 +1,2 @@
 // Just a const, no code
-const X: u8 = 42;
+const X: u8 = 42

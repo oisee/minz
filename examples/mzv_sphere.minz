@@ -9,39 +9,39 @@
 // =============================================================================
 
 fun fp_mul(a: i16, b: i16) -> i16 {
-    let a32: i32 = a as i32;
-    let b32: i32 = b as i32;
-    let result: i32 = (a32 * b32) >> 8;
-    return result as i16;
+    let a32: i32 = a as i32
+    let b32: i32 = b as i32
+    let result: i32 = (a32 * b32) >> 8
+    return result as i16
 }
 
 fun fp_div(a: i16, b: i16) -> i16 {
     if b == 0 {
         if a >= 0 { return 32767; }
-        return -32768;
+        return -32768
     }
-    let a32: i32 = a as i32;
-    let b32: i32 = b as i32;
-    let result: i32 = (a32 << 8) / b32;
-    return result as i16;
+    let a32: i32 = a as i32
+    let b32: i32 = b as i32
+    let result: i32 = (a32 << 8) / b32
+    return result as i16
 }
 
 fun fp_sqrt(x: i16) -> i16 {
     if x <= 0 { return 0; }
 
-    let guess: i16 = x >> 1;
+    let guess: i16 = x >> 1
     if guess == 0 { guess = 1; }
     if guess > 256 { guess = 256; }
 
-    let i: u8 = 0;
+    let i: u8 = 0
     while i < 6 {
-        let div_result: i16 = fp_div(x, guess);
-        guess = (guess + div_result) >> 1;
+        let div_result: i16 = fp_div(x, guess)
+        guess = (guess + div_result) >> 1
         if guess == 0 { guess = 1; }
-        i = i + 1;
+        i = i + 1
     }
 
-    return guess;
+    return guess
 }
 
 // =============================================================================
@@ -56,13 +56,13 @@ fun fp_sqrt(x: i16) -> i16 {
 
 fun main() -> void {
     // Screen dimensions (Agon: 320x240)
-    let width: i16 = 320;
-    let height: i16 = 240;
+    let width: i16 = 320
+    let height: i16 = 240
 
     // Sphere parameters
     let cx: i16 = 160;  // center x
     let cy: i16 = 120;  // center y
-    let radius: i16 = 80;
+    let radius: i16 = 80
     let radius_fp: i16 = radius << 8;  // 80 in 8.8 = 20480
 
     // Light direction (normalized, in 8.8)
@@ -72,33 +72,33 @@ fun main() -> void {
     let lz: i16 = 179;   // 0.7
 
     // Clear screen to dark blue
-    clear();
+    clear()
 
     // Render the sphere
-    let y: i16 = 0;
+    let y: i16 = 0
     while y < height {
-        let x: i16 = 0;
+        let x: i16 = 0
         while x < width {
             // Distance from center
-            let dx: i16 = x - cx;
-            let dy: i16 = y - cy;
+            let dx: i16 = x - cx
+            let dy: i16 = y - cy
 
             // Check if inside sphere (dx*dx + dy*dy < radius*radius)
-            let dist_sq: i32 = (dx as i32) * (dx as i32) + (dy as i32) * (dy as i32);
-            let radius_sq: i32 = (radius as i32) * (radius as i32);
+            let dist_sq: i32 = (dx as i32) * (dx as i32) + (dy as i32) * (dy as i32)
+            let radius_sq: i32 = (radius as i32) * (radius as i32)
 
             if dist_sq < radius_sq {
                 // Calculate z from sphere equation: z = sqrt(r^2 - x^2 - y^2)
-                let z_sq: i16 = radius_sq as i16 - dist_sq as i16;
+                let z_sq: i16 = radius_sq as i16 - dist_sq as i16
                 let z: i16 = fp_sqrt(z_sq << 8) >> 4;  // Scale for better precision
 
                 // Normal at this point (in 8.8): n = (dx/r, dy/r, z/r)
-                let nx: i16 = fp_div(dx << 8, radius_fp);
-                let ny: i16 = fp_div(dy << 8, radius_fp);
-                let nz: i16 = fp_div(z << 8, radius_fp >> 4);
+                let nx: i16 = fp_div(dx << 8, radius_fp)
+                let ny: i16 = fp_div(dy << 8, radius_fp)
+                let nz: i16 = fp_div(z << 8, radius_fp >> 4)
 
                 // Diffuse lighting: N dot L
-                let diffuse: i32 = (nx as i32) * (lx as i32) + (ny as i32) * (ly as i32) + (nz as i32) * (lz as i32);
+                let diffuse: i32 = (nx as i32) * (lx as i32) + (ny as i32) * (ly as i32) + (nz as i32) * (lz as i32)
                 diffuse = diffuse >> 8;  // Back to 8.8
 
                 if diffuse < 0 { diffuse = 0; }
@@ -108,17 +108,17 @@ fun main() -> void {
                 if brightness > 256 { brightness = 256; }
 
                 // Color: orange/red sphere
-                let r: i16 = (255 * brightness) >> 8;
-                let g: i16 = ((100 + (y * 155 / height)) * brightness) >> 8;
-                let b: i16 = (50 * brightness) >> 8;
+                let r: i16 = (255 * brightness) >> 8
+                let g: i16 = ((100 + (y * 155 / height)) * brightness) >> 8
+                let b: i16 = (50 * brightness) >> 8
 
                 // Pack as 0xAARRGGBB
-                let color: u32 = 0xFF000000 | ((r as u32) << 16) | ((g as u32) << 8) | (b as u32);
-                set_pixel(x as u8, y as u8, color as u8);
+                let color: u32 = 0xFF000000 | ((r as u32) << 16) | ((g as u32) << 8) | (b as u32)
+                set_pixel(x as u8, y as u8, color as u8)
             }
 
-            x = x + 1;
+            x = x + 1
         }
-        y = y + 1;
+        y = y + 1
     }
 }

@@ -1,32 +1,32 @@
 // sphere_csg_simple.minz - Minimal CSG Raymarcher
 // Shows: sphere - box using operator overloading
 
-const FP_ONE: i16 = 256;
-const SCREEN: u16 = 0x4000;
+const FP_ONE: i16 = 256
+const SCREEN: u16 = 0x4000
 
 // Minimal fixed-point
 fun fp_mul(a: i16, b: i16) -> i16 {
-    return ((a >> 4) * (b >> 4));
+    return ((a >> 4) * (b >> 4))
 }
 
 fun fp_max(a: i16, b: i16) -> i16 {
-    if a > b { return a; } return b;
+    if a > b { return a; } return b
 }
 
 fun fp_min(a: i16, b: i16) -> i16 {
-    if a < b { return a; } return b;
+    if a < b { return a; } return b
 }
 
 fun fp_abs(x: i16) -> i16 {
-    if x < 0 { return -x; } return x;
+    if x < 0 { return -x; } return x
 }
 
 fun isqrt(x: i16) -> i16 {
     if x <= 0 { return 0; }
-    let g: i16 = 64;
-    g = (g + x / g) >> 1;
-    g = (g + x / g) >> 1;
-    return g;
+    let g: i16 = 64
+    g = (g + x / g) >> 1
+    g = (g + x / g) >> 1
+    return g
 }
 
 // vec3
@@ -34,19 +34,19 @@ struct vec3 { x: i16, y: i16, z: i16 }
 
 impl vec3 {
     fun add(self, o: vec3) -> vec3 {
-        return vec3 { x: self.x + o.x, y: self.y + o.y, z: self.z + o.z };
+        return vec3 { x: self.x + o.x, y: self.y + o.y, z: self.z + o.z }
     }
     fun mul(self, s: i16) -> vec3 {
-        return vec3 { x: fp_mul(self.x, s), y: fp_mul(self.y, s), z: fp_mul(self.z, s) };
+        return vec3 { x: fp_mul(self.x, s), y: fp_mul(self.y, s), z: fp_mul(self.z, s) }
     }
     fun len(self) -> i16 {
-        return isqrt(fp_mul(self.x, self.x) + fp_mul(self.y, self.y) + fp_mul(self.z, self.z));
+        return isqrt(fp_mul(self.x, self.x) + fp_mul(self.y, self.y) + fp_mul(self.z, self.z))
     }
     fun abs(self) -> vec3 {
-        return vec3 { x: fp_abs(self.x), y: fp_abs(self.y), z: fp_abs(self.z) };
+        return vec3 { x: fp_abs(self.x), y: fp_abs(self.y), z: fp_abs(self.z) }
     }
     fun max(self, s: i16) -> vec3 {
-        return vec3 { x: fp_max(self.x, s), y: fp_max(self.y, s), z: fp_max(self.z, s) };
+        return vec3 { x: fp_max(self.x, s), y: fp_max(self.y, s), z: fp_max(self.z, s) }
     }
 }
 
@@ -55,37 +55,37 @@ struct Dist { v: i16 }
 
 impl Dist {
     fun sub(self, o: Dist) -> Dist {
-        return Dist { v: fp_max(self.v, -o.v) };
+        return Dist { v: fp_max(self.v, -o.v) }
     }
     fun bitor(self, o: Dist) -> Dist {
-        return Dist { v: fp_min(self.v, o.v) };
+        return Dist { v: fp_min(self.v, o.v) }
     }
 }
 
 // SDFs
 fun sphere(p: vec3, r: i16) -> Dist {
-    return Dist { v: p.len() - r };
+    return Dist { v: p.len() - r }
 }
 
 fun box3(p: vec3, b: vec3) -> Dist {
-    let q = p.abs() - b;
-    return Dist { v: q.max(0).len() + fp_min(fp_max(q.x, fp_max(q.y, q.z)), 0) };
+    let q = p.abs() - b
+    return Dist { v: q.max(0).len() + fp_min(fp_max(q.x, fp_max(q.y, q.z)), 0) }
 }
 
 // Scene: sphere - box (THE CSG MAGIC!)
 fun map(p: vec3) -> i16 {
-    let s = sphere(p, 180);
-    let b = box3(p, vec3 { x: 120, y: 120, z: 120 });
+    let s = sphere(p, 180)
+    let b = box3(p, vec3 { x: 120, y: 120, z: 120 })
     return (s - b).v;  // CSG subtraction!
 }
 
 // Simple plot
 fun plot(x: u8, y: u8) -> void {
-    let yh = (y >> 6) & 3;
-    let ym = (y >> 3) & 7;
-    let yl = y & 7;
-    let addr: u16 = SCREEN + ((yh as u16) << 11) + ((yl as u16) << 8) + ((ym as u16) << 5) + ((x >> 3) as u16);
-    let bit: u8 = 128 >> (x & 7);
+    let yh = (y >> 6) & 3
+    let ym = (y >> 3) & 7
+    let yl = y & 7
+    let addr: u16 = SCREEN + ((yh as u16) << 11) + ((yl as u16) << 8) + ((ym as u16) << 5) + ((x >> 3) as u16)
+    let bit: u8 = 128 >> (x & 7)
     asm {
         LD HL, (addr)
         LD A, (HL)
@@ -96,39 +96,39 @@ fun plot(x: u8, y: u8) -> void {
 
 fun main() -> void {
     // Clear screen
-    let a: u16 = SCREEN;
+    let a: u16 = SCREEN
     for i in 0..6144 {
         asm { LD HL, (a); LD (HL), 0 }
-        a = a + 1;
+        a = a + 1
     }
 
     // Render 32x24 blocks
     for py in 0..24 {
         for px in 0..32 {
-            let x: u8 = (px * 8) as u8;
-            let y: u8 = (py * 8) as u8;
+            let x: u8 = (px * 8) as u8
+            let y: u8 = (py * 8) as u8
 
             // Ray: origin at z=-3, direction toward pixel
-            let rx: i16 = (px as i16) * 16 - 256;
-            let ry: i16 = (py as i16) * 16 - 192;
-            let rz: i16 = 256;
+            let rx: i16 = (px as i16) * 16 - 256
+            let ry: i16 = (py as i16) * 16 - 192
+            let rz: i16 = 256
 
             // March
-            let t: i16 = 0;
-            let hit: bool = false;
+            let t: i16 = 0
+            let hit: bool = false
 
             for step in 0..16 {
-                let px2: i16 = fp_mul(rx, t);
-                let py2: i16 = fp_mul(ry, t);
-                let pz2: i16 = -768 + fp_mul(rz, t);
+                let px2: i16 = fp_mul(rx, t)
+                let py2: i16 = fp_mul(ry, t)
+                let pz2: i16 = -768 + fp_mul(rz, t)
 
-                let p = vec3 { x: px2, y: py2, z: pz2 };
-                let d = map(p);
+                let p = vec3 { x: px2, y: py2, z: pz2 }
+                let d = map(p)
 
                 if d < 8 {
-                    hit = true;
+                    hit = true
                 }
-                t = t + d + 8;
+                t = t + d + 8
                 if t > 1500 { break; }
             }
 
@@ -136,7 +136,7 @@ fun main() -> void {
                 // Draw 4x4 block
                 for dy in 0..4 {
                     for dx in 0..4 {
-                        plot(x + (dx as u8), y + (dy as u8));
+                        plot(x + (dx as u8), y + (dy as u8))
                     }
                 }
             }

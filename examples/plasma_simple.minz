@@ -1,24 +1,24 @@
 // Plasma Demo - Simple Working Version
 // Beautiful interference patterns on ZX Spectrum
 
-const ATTR_BASE: u16 = 0x5800;
+const ATTR_BASE: u16 = 0x5800
 
-global phase: u8 = 0;
-global sin_table: [u8; 256];
-global attr_ptr: u16 = 0x5800;
+global phase: u8 = 0
+global sin_table: [u8; 256]
+global attr_ptr: u16 = 0x5800
 
 // Triangle wave sine (0-7 range for colors)
 fun init_sine() -> void {
     for i in 0..256 {
-        let q: u8 = i & 0xC0;
-        let v: u8 = 0;
+        let q: u8 = i & 0xC0
+        let v: u8 = 0
 
         if q == 0    { v = (i >> 3) & 7; }
         if q == 0x40 { v = ((127 - i) >> 3) & 7; }
         if q == 0x80 { v = ((i - 128) >> 3) & 7; }
         if q == 0xC0 { v = ((255 - i) >> 3) & 7; }
 
-        sin_table[i] = v;
+        sin_table[i] = v
     }
 }
 
@@ -51,38 +51,38 @@ fun poke(addr: u16, val: u8) -> void {
 
 // Direct plasma rendering
 fun render_plasma() -> void {
-    let mut yval: u8 = phase;
-    let mut col: u8 = 0;
-    let mut ptr: u16 = ATTR_BASE;
+    var yval: u8 = phase
+    var col: u8 = 0
+    var ptr: u16 = ATTR_BASE
 
     for idx in 0..768 {
-        let xval: u8 = (col * 8) + phase;
-        let s1: u8 = sin_table[xval];
-        let s2: u8 = sin_table[yval];
-        let s3: u8 = sin_table[xval + yval];
+        let xval: u8 = (col * 8) + phase
+        let s1: u8 = sin_table[xval]
+        let s2: u8 = sin_table[yval]
+        let s3: u8 = sin_table[xval + yval]
 
-        let color: u8 = ((s1 + s2 + s3) & 7) | 0x40;
+        let color: u8 = ((s1 + s2 + s3) & 7) | 0x40
 
-        poke(ptr, color);
-        ptr = ptr + 1;
+        poke(ptr, color)
+        ptr = ptr + 1
 
-        col = col + 1;
+        col = col + 1
         if col == 32 {
-            col = 0;
-            yval = yval + 11;
+            col = 0
+            yval = yval + 11
         }
     }
 }
 
 fun main() -> void {
     asm { DI }
-    cls();
-    init_sine();
+    cls()
+    init_sine()
     asm { EI }
 
     while true {
         asm { HALT }
-        phase = phase + 3;
-        render_plasma();
+        phase = phase + 3
+        render_plasma()
     }
 }

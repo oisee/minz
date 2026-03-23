@@ -20,7 +20,7 @@ struct Sprite {
 
 fun sprite_draw(s: *Sprite) -> void {
     @print("Drawing sprite at ({}, {}) size {}x{}\n", 
-           s.x, s.y, s.width, s.height);
+           s.x, s.y, s.width, s.height)
 }
 
 // Text "implementing" Drawable  
@@ -32,7 +32,7 @@ struct Text {
 
 fun text_draw(t: *Text) -> void {
     @print("Drawing text at ({}, {}) length {}\n",
-           t.x, t.y, t.len);
+           t.x, t.y, t.len)
 }
 
 // Circle "implementing" Drawable
@@ -44,7 +44,7 @@ struct Circle {
 
 fun circle_draw(c: *Circle) -> void {
     @print("Drawing circle at ({}, {}) radius {}\n",
-           c.cx, c.cy, c.r);
+           c.cx, c.cy, c.r)
 }
 
 // =================================================================
@@ -55,17 +55,17 @@ fun circle_draw(c: *Circle) -> void {
 // Compiler generates SPECIALIZED versions for each type:
 
 fun render_sprite(s: *Sprite) -> void {
-    @print("Rendering: ");
+    @print("Rendering: ")
     sprite_draw(s);  // Direct call - no vtable!
 }
 
 fun render_text(t: *Text) -> void {
-    @print("Rendering: ");
+    @print("Rendering: ")
     text_draw(t);    // Direct call - no vtable!
 }
 
 fun render_circle(c: *Circle) -> void {
-    @print("Rendering: ");
+    @print("Rendering: ")
     circle_draw(c);   // Direct call - no vtable!
 }
 
@@ -87,13 +87,13 @@ fun vtable_dispatch(vtable: *VTableDrawable) -> void {
     // 4. Indirect call (17 cycles)
     // Total: 38 T-states overhead!
     
-    @print("Traditional vtable dispatch:\n");
-    @print("  LD HL, (vtable)     ; 16 T-states\n");
-    @print("  LD E, (HL)          ; 7 T-states\n");
-    @print("  INC HL              ; 6 T-states\n");
-    @print("  LD D, (HL)          ; 7 T-states\n");
-    @print("  CALL (DE)           ; 17 T-states\n");
-    @print("  Total: 53 T-states!\n");
+    @print("Traditional vtable dispatch:\n")
+    @print("  LD HL, (vtable)     ; 16 T-states\n")
+    @print("  LD E, (HL)          ; 7 T-states\n")
+    @print("  INC HL              ; 6 T-states\n")
+    @print("  LD D, (HL)          ; 7 T-states\n")
+    @print("  CALL (DE)           ; 17 T-states\n")
+    @print("  Total: 53 T-states!\n")
 }
 
 fun zero_cost_dispatch() -> void {
@@ -101,10 +101,10 @@ fun zero_cost_dispatch() -> void {
     // Direct call to specialized function
     // Total: 17 T-states only!
     
-    @print("\nMinZ zero-cost dispatch:\n");
-    @print("  CALL sprite_draw    ; 17 T-states\n");
-    @print("  Total: 17 T-states!\n");
-    @print("  Savings: 36 T-states (68% faster!)\n");
+    @print("\nMinZ zero-cost dispatch:\n")
+    @print("  CALL sprite_draw    ; 17 T-states\n")
+    @print("  Total: 17 T-states!\n")
+    @print("  Savings: 36 T-states (68% faster!)\n")
 }
 
 // =================================================================
@@ -126,7 +126,7 @@ fun game_object_update(obj: *GameObject) -> void {
     sprite_draw(&obj.sprite);  // Drawable interface
     
     // check_collision(&obj.sprite, mouse_x, mouse_y);  // Collidable interface
-    @print("  (Would check collision here)\n");
+    @print("  (Would check collision here)\n")
 }
 
 // =================================================================
@@ -134,19 +134,19 @@ fun game_object_update(obj: *GameObject) -> void {
 // =================================================================
 
 fun demonstrate_monomorphization() -> void {
-    @print("\n=== Monomorphization ===\n");
-    @print("Generic function calls create specialized versions:\n\n");
+    @print("\n=== Monomorphization ===\n")
+    @print("Generic function calls create specialized versions:\n\n")
     
-    @print("render<Sprite>(s) generates:\n");
-    @print("  render_sprite: CALL sprite_draw\n\n");
+    @print("render<Sprite>(s) generates:\n")
+    @print("  render_sprite: CALL sprite_draw\n\n")
     
-    @print("render<Text>(t) generates:\n");
-    @print("  render_text: CALL text_draw\n\n");
+    @print("render<Text>(t) generates:\n")
+    @print("  render_text: CALL text_draw\n\n")
     
-    @print("render<Circle>(c) generates:\n");
-    @print("  render_circle: CALL circle_draw\n\n");
+    @print("render<Circle>(c) generates:\n")
+    @print("  render_circle: CALL circle_draw\n\n")
     
-    @print("No runtime type checking needed!\n");
+    @print("No runtime type checking needed!\n")
 }
 
 // =================================================================
@@ -154,49 +154,49 @@ fun demonstrate_monomorphization() -> void {
 // =================================================================
 
 fun main() -> void {
-    @print("=====================================\n");
-    @print("Zero-Cost Interfaces Concept Demo\n");
-    @print("=====================================\n\n");
+    @print("=====================================\n")
+    @print("Zero-Cost Interfaces Concept Demo\n")
+    @print("=====================================\n\n")
     
     // Create some shapes
-    let s: Sprite;
-    s.x = 10;
-    s.y = 20;
-    s.width = 32;
-    s.height = 24;
+    let s: Sprite
+    s.x = 10
+    s.y = 20
+    s.width = 32
+    s.height = 24
     
-    let t: Text;
-    t.x = 50;
-    t.y = 10;
-    t.len = 12;
+    let t: Text
+    t.x = 50
+    t.y = 10
+    t.len = 12
     
-    let c: Circle;
-    c.cx = 128;
-    c.cy = 96;
-    c.r = 25;
+    let c: Circle
+    c.cx = 128
+    c.cy = 96
+    c.r = 25
     
-    @print("=== Direct Specialized Calls ===\n");
-    render_sprite(&s);
-    render_text(&t);
-    render_circle(&c);
+    @print("=== Direct Specialized Calls ===\n")
+    render_sprite(&s)
+    render_text(&t)
+    render_circle(&c)
     
-    @print("\n=== Performance Analysis ===\n");
-    let vtable: VTableDrawable;
-    vtable.draw_fn = 0x8000;
-    vtable.data = 0x9000;
-    vtable_dispatch(&vtable);
-    zero_cost_dispatch();
+    @print("\n=== Performance Analysis ===\n")
+    let vtable: VTableDrawable
+    vtable.draw_fn = 0x8000
+    vtable.data = 0x9000
+    vtable_dispatch(&vtable)
+    zero_cost_dispatch()
     
-    demonstrate_monomorphization();
+    demonstrate_monomorphization()
     
-    @print("\n=== Benefits ===\n");
-    @print("✓ No vtables in memory\n");
-    @print("✓ No indirect calls\n");
-    @print("✓ Compile-time type checking\n");
-    @print("✓ Can inline interface methods\n");
-    @print("✓ 68% faster than vtable dispatch\n");
+    @print("\n=== Benefits ===\n")
+    @print("✓ No vtables in memory\n")
+    @print("✓ No indirect calls\n")
+    @print("✓ Compile-time type checking\n")
+    @print("✓ Can inline interface methods\n")
+    @print("✓ 68% faster than vtable dispatch\n")
     
-    @print("\n=====================================\n");
-    @print("Future MinZ: Interfaces with ZERO cost!\n");
-    @print("=====================================\n");
+    @print("\n=====================================\n")
+    @print("Future MinZ: Interfaces with ZERO cost!\n")
+    @print("=====================================\n")
 }

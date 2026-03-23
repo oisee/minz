@@ -30,12 +30,13 @@ assert add(3, 5) == 8 via mir2
 	}
 }
 
-func TestMinZCompat_LetMut(t *testing.T) {
+func TestMinZCompat_LetVar(t *testing.T) {
+	// let mut replaced with var across corpus — let is immutable binding, var is mutable
 	src := `
 fun fib(n: u8) -> u8 {
-    let mut a: u8 = 0;
-    let mut b: u8 = 1;
-    let mut i: u8 = 0;
+    var a: u8 = 0;
+    var b: u8 = 1;
+    var i: u8 = 0;
     while i < n {
         let temp: u8 = a + b;
         a = b;
