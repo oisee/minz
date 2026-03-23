@@ -986,9 +986,21 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 	if t.kind == tokIdent {
 		if ctor, ok := p.ctors[t.text]; ok {
 			p.next()
+			// Check if this ADT has ANY payload constructor
+			adtHasPayload := false
+			for _, def := range p.adts {
+				for _, c := range def.constructors {
+					if c.name == ctor.name {
+						for _, c2 := range def.constructors {
+							if c2.payload != nil {
+								adtHasPayload = true
+							}
+						}
+					}
+				}
+			}
 			if ctor.payload != nil {
 				// Constructor with payload: encode as u16 = (tag << 8) | payload
-				// e.g. Some 42 → 0x012A = 298
 				arg, err := p.parsePrimary()
 				if err != nil {
 					return nil, err
@@ -996,7 +1008,11 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 				tagExpr := &hir.IntLitExpr{Val: ctor.tag * 256, Ty: mir2.TyU16}
 				return &hir.BinExpr{Op: "+", L: tagExpr, R: &hir.CastExpr{X: arg, Ty: mir2.TyU16}, Ty: mir2.TyU16}, nil
 			}
-			// No payload: just the tag
+			if adtHasPayload {
+				// No-payload constructor in payload ADT: return u16 tag (e.g. None → 0 as u16)
+				return &hir.IntLitExpr{Val: ctor.tag * 256, Ty: mir2.TyU16}, nil
+			}
+			// Simple ADT (no payloads anywhere): u8 tag
 			return &hir.IntLitExpr{Val: ctor.tag, Ty: mir2.TyU8}, nil
 		}
 	}
@@ -1356,10 +1372,18 @@ func (p *parser) parseMatch() (hir.Expr, error) {
 			}
 			result = &hir.CondExpr{Cond: a.guard, Then: a.body, Else: elseE, Ty: a.body.ExprTy()}
 		} else {
+			// For payload ADTs (u16 scrutinee), compare tag byte: __tag(scrutinee) == val
+			// For simple ADTs (u8 scrutinee), compare directly: scrutinee == val
+			var lhs hir.Expr = scrutinee
+			var rTy = scrutinee.ExprTy()
+			if scrutinee.ExprTy() == mir2.TyU16 {
+				lhs = &hir.CallExpr{Fn: "__tag", Args: []hir.Expr{scrutinee}, Ty: mir2.TyU8}
+				rTy = mir2.TyU8
+			}
 			cond := &hir.BinExpr{
 				Op: "==",
-				L:  scrutinee,
-				R:  &hir.IntLitExpr{Val: a.val, Ty: scrutinee.ExprTy()},
+				L:  lhs,
+				R:  &hir.IntLitExpr{Val: a.val, Ty: rTy},
 				Ty: mir2.TyBool,
 			}
 			if a.guard != nil {
