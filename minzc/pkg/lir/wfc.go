@@ -31,6 +31,7 @@ type WFCCell struct {
 	Imm     int64    // immediate value (preserved from isel)
 	Sym     string   // symbol name (preserved for call templates)
 	MIROp   *MIROp   // original MIR op (for pattern-level retry in validate-reject)
+	IsMeta  bool     // true for meta-instructions (skip in emit/propagate)
 }
 
 // Entropy returns the number of possible states for this cell.
@@ -55,8 +56,22 @@ func (c *WFCCell) IsCollapsed() bool {
 
 // NewWFCState creates initial superposition from isel results.
 func NewWFCState(desc *MachineDesc, insts []Inst) *WFCState {
+	// Collect meta-pin constraints: vreg → forced physical location.
+	pins := map[int]int{} // vreg → loc index
+	for _, inst := range insts {
+		if inst.Meta != nil && inst.Meta.Kind == MetaPin {
+			pins[inst.Meta.PinVReg] = inst.Meta.PinLoc
+		}
+	}
+
 	cells := make([]WFCCell, len(insts))
 	for i, inst := range insts {
+		// Skip meta instructions — they don't become real cells.
+		// But we still create a placeholder cell to keep indices aligned.
+		if inst.Meta != nil {
+			cells[i] = WFCCell{IsMeta: true}
+			continue
+		}
 		cells[i] = WFCCell{
 			Pat:     inst.Pat,
 			DstLocs: inst.Dst.Allowed,
@@ -65,6 +80,15 @@ func NewWFCState(desc *MachineDesc, insts []Inst) *WFCState {
 			VRegSrc: [2]int{inst.Srcs[0].VReg, inst.Srcs[1].VReg},
 			Imm:     inst.Imm,
 			Sym:     inst.Sym,
+		}
+		// Apply pin constraints: narrow Allowed to single location.
+		if loc, ok := pins[cells[i].VRegDst]; ok {
+			cells[i].DstLocs = 1 << uint(loc)
+		}
+		for s := 0; s < 2; s++ {
+			if loc, ok := pins[cells[i].VRegSrc[s]]; ok {
+				cells[i].SrcLocs[s] = 1 << uint(loc)
+			}
 		}
 	}
 	return &WFCState{Desc: desc, Cells: cells}
