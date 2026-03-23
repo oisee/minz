@@ -113,8 +113,10 @@ fun tree_0(len: u8) -> void {
     turtle_forward(len)
 }
 
-// Branch: draw trunk, then split left and right with shorter branches
-fun branch(len: u8, depth: u8) -> void {
+// ── Tree variants ────────────────────────────────────────────────
+
+// Binary symmetric tree
+fun tree_sym(len: u8, depth: u8, angle: u8) -> void {
     if depth == 0 {
         turtle_forward(len)
         return
@@ -125,52 +127,214 @@ fun branch(len: u8, depth: u8) -> void {
     var d1: u8 = depth - 1
 
     turtle_push()
-    turtle_left(30)
-    branch(next, d1)
+    turtle_left(angle)
+    tree_sym(next, d1, angle)
     turtle_pop()
 
     turtle_push()
-    turtle_right(30)
-    branch(next, d1)
+    turtle_right(angle)
+    tree_sym(next, d1, angle)
     turtle_pop()
 }
 
-// ── Draw scene ───────────────────────────────────────────────────
+// Ternary tree: center + left + right
+fun tree_tri(len: u8, depth: u8, angle: u8) -> void {
+    if depth == 0 {
+        turtle_forward(len)
+        return
+    }
+    turtle_forward(len)
+    var next: u8 = len / 2
+    if next < 2 { next = 2 }
+    var d1: u8 = depth - 1
 
-fun draw_lsystem() -> u16 {
+    turtle_push()
+    tree_tri(next, d1, angle)
+    turtle_pop()
+
+    turtle_push()
+    turtle_left(angle)
+    tree_tri(next, d1, angle)
+    turtle_pop()
+
+    turtle_push()
+    turtle_right(angle)
+    tree_tri(next, d1, angle)
+    turtle_pop()
+}
+
+// Asymmetric tree: left branch longer than right
+fun tree_asym(len: u8, depth: u8) -> void {
+    if depth == 0 {
+        turtle_forward(len)
+        return
+    }
+    turtle_forward(len)
+    var d1: u8 = depth - 1
+    var long: u8 = len * 3 / 4
+    var short: u8 = len / 2
+    if long < 2 { long = 2 }
+    if short < 2 { short = 2 }
+
+    turtle_push()
+    turtle_left(25)
+    tree_asym(long, d1)
+    turtle_pop()
+
+    turtle_push()
+    turtle_right(35)
+    tree_asym(short, d1)
+    turtle_pop()
+}
+
+// Fern: one main stem with alternating side branches
+fun fern(len: u8, depth: u8) -> void {
+    if depth == 0 {
+        turtle_forward(len)
+        return
+    }
+    turtle_forward(len)
+    var d1: u8 = depth - 1
+    var side: u8 = len * 2 / 3
+    if side < 2 { side = 2 }
+
+    // Right branch
+    turtle_push()
+    turtle_right(40)
+    fern(side, d1)
+    turtle_pop()
+
+    turtle_forward(len)
+
+    // Left branch
+    turtle_push()
+    turtle_left(40)
+    fern(side, d1)
+    turtle_pop()
+
+    turtle_forward(len)
+
+    // Top
+    fern(side, d1)
+}
+
+// ── Scene 1: Forest of symmetric trees ───────────────────────────
+
+fun scene_forest() -> u16 {
     canvas_init(256, 192, 0)
     canvas_clear(0)
 
-    // Draw tree from bottom center
+    // Ground
+    canvas_fill_rect(0, 185, 256, 7, 4)
+
+    // Five trees with varying angles
+    tx = 25
+    ty = 184
+    tangle = 192
+    tcolor = 4
+    tree_sym(10, 6, 25)
+
+    tx = 70
+    ty = 184
+    tangle = 192
+    tcolor = 12
+    tree_sym(12, 6, 30)
+
     tx = 128
-    ty = 180
-    tangle = 192    // pointing up
-
-    tcolor = 4      // green
-    branch(12, 7)
-
-    // Second tree
-    tx = 55
-    ty = 186
+    ty = 184
     tangle = 192
-    tcolor = 12     // bright green
-    branch(10, 6)
+    tcolor = 4
+    tree_sym(14, 7, 28)
 
-    // Third tree
-    tx = 200
-    ty = 183
+    tx = 185
+    ty = 184
     tangle = 192
-    tcolor = 6      // yellow
-    branch(9, 6)
+    tcolor = 12
+    tree_sym(11, 6, 35)
 
-    // Ground line
-    canvas_line(0, 190, 255, 190, 4)
+    tx = 235
+    ty = 184
+    tangle = 192
+    tcolor = 4
+    tree_sym(9, 6, 22)
+
+    return 0
+}
+
+// ── Scene 2: Ternary tree (bushy) ────────────────────────────────
+
+fun scene_ternary() -> u16 {
+    canvas_init(256, 192, 0)
+    canvas_clear(0)
+
+    canvas_fill_rect(0, 185, 256, 7, 6)
+
+    tx = 128
+    ty = 184
+    tangle = 192
+    tcolor = 12
+    tree_tri(16, 5, 28)
+
+    return 0
+}
+
+// ── Scene 3: Asymmetric windblown trees ──────────────────────────
+
+fun scene_windblown() -> u16 {
+    canvas_init(256, 192, 0)
+    canvas_clear(0)
+
+    canvas_fill_rect(0, 185, 256, 7, 4)
+
+    tx = 60
+    ty = 184
+    tangle = 192
+    tcolor = 4
+    tree_asym(14, 7)
+
+    tx = 150
+    ty = 184
+    tangle = 192
+    tcolor = 14
+    tree_asym(12, 7)
+
+    tx = 220
+    ty = 184
+    tangle = 192
+    tcolor = 6
+    tree_asym(10, 6)
+
+    return 0
+}
+
+// ── Scene 4: Fern ────────────────────────────────────────────────
+
+fun scene_fern() -> u16 {
+    canvas_init(256, 192, 0)
+    canvas_clear(0)
+
+    canvas_fill_rect(0, 185, 256, 7, 4)
+
+    tx = 80
+    ty = 184
+    tangle = 192
+    tcolor = 4
+    fern(8, 5)
+
+    tx = 180
+    ty = 184
+    tangle = 192
+    tcolor = 12
+    fern(7, 5)
 
     return 0
 }
 
 sandbox "lsystem" {
-    assert draw_lsystem() == 0 via mir2
+    assert scene_forest() == 0 via mir2
+    assert scene_ternary() == 0 via mir2
+    assert scene_windblown() == 0 via mir2
+    assert scene_fern() == 0 via mir2
 }
 `
 	hirMod, err := nanz.Parse(src, "lsystem.nanz")
@@ -178,21 +342,31 @@ sandbox "lsystem" {
 		t.Fatalf("parse: %v", err)
 	}
 	mir2mod := hir.LowerModule(hirMod)
-	vm := mir2.NewVM(mir2mod)
-	canvasRef := mir2.RegisterCanvasHosts(vm)
-	_, err = vm.Call("draw_lsystem", nil)
-	if err != nil {
-		t.Fatalf("draw_lsystem: %v", err)
+
+	scenes := []struct {
+		name string
+		fn   string
+	}{
+		{"forest", "scene_forest"},
+		{"ternary", "scene_ternary"},
+		{"windblown", "scene_windblown"},
+		{"fern", "scene_fern"},
 	}
 
-	outPath := "/tmp/nanz_lsystem.png"
-	if canvasRef.C != nil {
-		if err := canvasRef.C.SavePNG(outPath); err != nil {
-			t.Fatalf("save PNG: %v", err)
+	for _, sc := range scenes {
+		vm := mir2.NewVM(mir2mod)
+		canvasRef := mir2.RegisterCanvasHosts(vm)
+		_, err = vm.Call(sc.fn, nil)
+		if err != nil {
+			t.Fatalf("%s: %v", sc.name, err)
 		}
-		info, _ := os.Stat(outPath)
-		t.Logf("PNG saved: %s (%d bytes)", outPath, info.Size())
-	} else {
-		t.Fatal("No canvas")
+		outPath := "/tmp/nanz_lsystem_" + sc.name + ".png"
+		if canvasRef.C != nil {
+			if err := canvasRef.C.SavePNG(outPath); err != nil {
+				t.Fatalf("save %s: %v", sc.name, err)
+			}
+			info, _ := os.Stat(outPath)
+			t.Logf("%s: %s (%d bytes)", sc.name, outPath, info.Size())
+		}
 	}
 }
