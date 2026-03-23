@@ -51,7 +51,7 @@ Exhaustive check, payload binding, `_` wildcard. [Showcases: Option](examples/na
 | swap | 20 | 2 | −90% |
 | **TOTAL** | **131** | **51** | **−61%** |
 
-FatFS `ld_word`: **5 instructions** (SDCC: 29 bytes). 504/520 corpus coverage (97%). 10/10 leaf functions provably optimal (identical to hand-written Z80). 55 Z80-verified asserts.
+FatFS `ld_word`: **5 instructions** (SDCC: 29 bytes). **520/520 corpus coverage (100%)** — zero PBQP fallback. 10/10 leaf functions provably optimal (identical to hand-written Z80). 55 Z80-verified asserts.
 
 → **[Full E2E Report](research/abi-paper/vir-e2e-report.md)** | **[ADR-0039: Unified VIR Solver](docs/adr/0039-unified-vir-solver.md)**
 

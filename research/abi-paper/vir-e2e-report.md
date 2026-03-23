@@ -60,6 +60,10 @@ Total binary: 611 bytes
 
 | Corpus | Functions | Pass Rate |
 |--------|-----------|----------|
-| Nanz | 202/216 | 94% |
-| C89 | 302/304 | 99% |
-| **Total** | **504/520** | **97%** |
+| Nanz | 216/216 | 100% |
+| C89 | 304/304 | 100% |
+| **Total** | **520/520** | **100%** |
+
+Zero PBQP fallback. Previous gaps closed by:
+- **16-bit div/mod inline runtime** — `__div16`/`__mod16` shift-and-subtract long division, inlined per call site
+- **OpAsmBlock passthrough** — inline asm emitted verbatim, surrounding code still Z3-optimized
