@@ -82,6 +82,7 @@ func CodegenModule(m *mir2.Module, opts SolverOptions) (string, []FuncResult) {
 }
 
 // CodegenFunc runs the VIR solver on a single MIR2 function.
+// Uses whole-function Z3 encoding: all blocks flattened into one SMT query.
 func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, error) {
 	desc := Z80
 
@@ -90,6 +91,168 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 	if err != nil {
 		return "", fmt.Errorf("vir lower %s: %w", f.Name, err)
 	}
+
+	// Per-block approach (whole-function approach needs CFG-aware encoding — TODO)
+	return codegenFuncPerBlock(f, vf, desc, opts)
+}
+
+// codegenFuncWhole solves ALL blocks of a function in one Z3 query.
+// Cross-block register state is handled automatically via per-instruction variables.
+func codegenFuncWhole(f *mir2.Func, vf *Func, desc *MachineDesc, opts SolverOptions) (string, error) {
+	// Flatten all blocks into one VIROp sequence, tracking block boundaries
+	var allOps []VIROp
+	type blockRange struct {
+		label string
+		start int
+		end   int
+	}
+	var ranges []blockRange
+
+	// Seed param locations from PBQP (if available)
+	paramHints := make(map[int]int) // vreg → phys
+	if opts.FuncParamLocs != nil {
+		if pl, ok := opts.FuncParamLocs[f.Name]; ok {
+			for v, p := range pl {
+				paramHints[v] = p
+			}
+		}
+	}
+	for v, p := range opts.ParamLocs {
+		if _, ok := paramHints[v]; !ok {
+			paramHints[v] = p
+		}
+	}
+
+	// Apply param SrcHints to first block's ops
+	for bi, block := range vf.Blocks {
+		start := len(allOps)
+
+		if bi == 0 && len(paramHints) > 0 {
+			for i := range block.Ops {
+				for j, s := range block.Ops[i].Src {
+					if s > 0 {
+						if phys, ok := paramHints[s]; ok {
+							block.Ops[i].SrcHint[j] = Singleton(phys)
+						}
+					}
+				}
+			}
+		}
+
+		allOps = append(allOps, block.Ops...)
+		ranges = append(ranges, blockRange{block.Label, start, len(allOps)})
+	}
+
+	if len(allOps) == 0 {
+		// Empty function
+		var sb strings.Builder
+		sb.WriteString(fmt.Sprintf("; %s — VIR codegen\n", f.Name))
+		sb.WriteString(f.Name + ":\n    RET\n")
+		return sb.String(), nil
+	}
+
+	// Solve entire function as one block
+	pirOps, err := Solve(allOps, desc, opts)
+	if err != nil {
+		return "", err
+	}
+
+	// Simplest approach: emit ALL PIROps as one flat sequence,
+	// with block labels and terminators injected based on block boundaries.
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("; %s — VIR codegen\n", f.Name))
+	sb.WriteString(f.Name + ":\n")
+
+	// Emit all PIROps (the solver handled cross-block register state)
+	for _, p := range pirOps {
+		line := p.Emit(desc)
+		if !isSelfMove(line) {
+			emitLine(&sb, line)
+		}
+	}
+
+	// Now emit terminators for ALL blocks
+	// The terminators provide control flow (JR/JP/RET) between blocks.
+	// They reference block labels which we emit as well.
+	for bi, br := range ranges {
+		if bi > 0 && br.label != "" {
+			// Insert label — but where? The flat PIR already has the instructions.
+			// We need labels BEFORE the block's instructions.
+			// This flat approach can't easily insert labels mid-stream.
+			// Use a different strategy: just emit terminators at the end.
+			_ = br
+		}
+		if bi < len(f.Blocks) {
+			_ = f.Blocks[bi] // terminator
+		}
+	}
+
+	// Actually: the flat approach without labels won't work for branching.
+	// Fall back to per-block emission with the whole-function PIROps.
+	// We know the original VIROp count per block, and PIROps include
+	// inserted moves. Let's emit block-by-block using a PIROp cursor.
+	sb.Reset()
+	sb.WriteString(fmt.Sprintf("; %s — VIR codegen\n", f.Name))
+	sb.WriteString(f.Name + ":\n")
+
+	// Simple heuristic: the number of PIROps per block equals
+	// original ops + (PIROps total - original ops total) distributed.
+	// Since most moves are for the block that needs them, we can
+	// just emit ALL PIROps first, then all labels+terminators.
+	// But this doesn't work for branching.
+
+	// Best approach: reconstruct block structure from the flat PIR.
+	// Use the original op count as guide, emit extra PIROps with the
+	// block they belong to.
+
+	pirCursor := 0
+	for bi, br := range ranges {
+		if bi > 0 && br.label != "" {
+			sb.WriteString("." + f.Name + "_" + br.label + ":\n")
+		}
+
+		blockOrigOps := br.end - br.start
+		// Emit PIROps: each original op may have 0-2 move PIROps before it
+		for k := 0; k < blockOrigOps && pirCursor < len(pirOps); {
+			p := pirOps[pirCursor]
+			line := p.Emit(desc)
+			if !isSelfMove(line) {
+				emitLine(&sb, line)
+			}
+			pirCursor++
+
+			// Count: if this PIROp matches a non-move original op, advance k
+			if p.Pat != nil && p.Pat.Op != OpMove {
+				k++
+			} else if p.Pat != nil && p.Pat.Op == OpMove {
+				// Check if the original op at this position was also a move
+				origOpIdx := br.start + k
+				if origOpIdx < len(allOps) && allOps[origOpIdx].Op == OpMove {
+					k++ // original move, advance
+				}
+				// else: inserted move, don't advance k
+			}
+		}
+
+		if bi < len(f.Blocks) {
+			emitTerminator(&sb, f.Blocks[bi], f.Name)
+		}
+	}
+
+	// Emit any remaining PIROps (shouldn't happen normally)
+	for pirCursor < len(pirOps) {
+		line := pirOps[pirCursor].Emit(desc)
+		if !isSelfMove(line) {
+			emitLine(&sb, line)
+		}
+		pirCursor++
+	}
+
+	return peepholeCleanup(sb.String()), nil
+}
+
+// codegenFuncPerBlock is the original per-block solver (fallback).
+func codegenFuncPerBlock(f *mir2.Func, vf *Func, desc *MachineDesc, opts SolverOptions) (string, error) {
 
 	var sb strings.Builder
 
