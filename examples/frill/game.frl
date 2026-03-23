@@ -1,0 +1,44 @@
+(* Frill game logic — ADT state machines, items, scoring *)
+
+type GameState = Menu | Playing | Paused | GameOver | Victory
+type Item = Potion | Sword | Shield | Ring | Key
+
+let is_alive (hp : u8) : u8 = if hp > 0 then 1 else 0
+
+let add_score (score : u8) (pts : u8) : u8 =
+  if score + pts > 255 then 255 else score + pts
+
+let combo_bonus (combo : u8) : u8 =
+  match combo with
+  | 0 -> 0
+  | 1 -> 10
+  | 2 -> 25
+  | 3 -> 50
+  | _ -> 100
+  end
+
+let abs_diff (a : u8) (b : u8) : u8 = if a > b then a - b else b - a
+
+let manhattan (x1 : u8) (y1 : u8) (x2 : u8) (y2 : u8) : u8 =
+  abs_diff x1 x2 + abs_diff y1 y2
+
+let item_value (item : u8) : u8 =
+  match item with
+  | Potion -> 10
+  | Sword -> 50
+  | Shield -> 40
+  | Ring -> 100
+  | Key -> 0
+  end
+
+assert is_alive 50 == 1
+assert is_alive 0 == 0
+assert add_score 100 50 == 150
+assert combo_bonus 0 == 0
+assert combo_bonus 3 == 50
+assert combo_bonus 5 == 100
+assert manhattan 0 0 3 4 == 7
+assert item_value Sword == 50
+assert item_value Key == 0
+
+let main (x : u8) : u8 = 0
