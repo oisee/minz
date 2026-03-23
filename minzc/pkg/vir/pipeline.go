@@ -109,6 +109,47 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 	return codegenFuncPerBlock(f, vfCopy2, desc, opts)
 }
 
+// emitFuncHeader writes the ABI annotation comment for a function.
+// Format: ; fun name(p1: type = REG, ...) -> type = REG ; clobbers: REG, ...
+func emitFuncHeader(sb *strings.Builder, f *mir2.Func, opts SolverOptions) {
+	sb.WriteString("; fun " + f.Name + "(")
+	for i, p := range f.Contract.Params {
+		if i > 0 {
+			sb.WriteString(", ")
+		}
+		tyName := "u8"
+		if p.Ty != nil {
+			if p.Ty.Width() > 8 {
+				tyName = "u16"
+			}
+		}
+		regName := p.Class.String()
+		// Use PBQP allocation if available
+		if opts.FuncParamLocs != nil {
+			if pl, ok := opts.FuncParamLocs[f.Name]; ok {
+				if phys, ok2 := pl[int(p.Reg)]; ok2 && phys < len(Z80.Locs) {
+					regName = Z80.Locs[phys].Name
+				}
+			}
+		}
+		sb.WriteString(fmt.Sprintf("%s: %s = %s", p.Name, tyName, regName))
+	}
+	sb.WriteString(")")
+	if len(f.Contract.Returns) > 0 {
+		r := f.Contract.Returns[0]
+		retReg := "A"
+		if r.Ty != nil && r.Ty.Width() > 8 {
+			retReg = "HL"
+		}
+		tyName := "u8"
+		if r.Ty != nil && r.Ty.Width() > 8 {
+			tyName = "u16"
+		}
+		sb.WriteString(fmt.Sprintf(" -> %s = %s", tyName, retReg))
+	}
+	sb.WriteString(" ; clobbers: F\n")
+}
+
 // deepCopyFunc creates a deep copy of a VIR Func to avoid stale mutations.
 func deepCopyFunc(vf *Func) *Func {
 	cp := &Func{Name: vf.Name}
@@ -131,7 +172,7 @@ func codegenFuncCFG(f *mir2.Func, vf *Func, desc *MachineDesc, opts SolverOption
 
 	// Emit assembly
 	var sb strings.Builder
-	sb.WriteString(fmt.Sprintf("; %s — VIR codegen (CFG-aware)\n", f.Name))
+	emitFuncHeader(&sb, f, opts)
 	sb.WriteString(f.Name + ":\n")
 
 	for bi, block := range vf.Blocks {
@@ -316,8 +357,8 @@ func codegenFuncPerBlock(f *mir2.Func, vf *Func, desc *MachineDesc, opts SolverO
 
 	var sb strings.Builder
 
-	// Function header
-	sb.WriteString(fmt.Sprintf("; %s — VIR codegen\n", f.Name))
+	// Function header with ABI annotation
+	emitFuncHeader(&sb, f, opts)
 	sb.WriteString(f.Name + ":\n")
 
 	// Track vreg → physical register across blocks.
