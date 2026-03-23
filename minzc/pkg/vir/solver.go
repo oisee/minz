@@ -51,22 +51,14 @@ func Solve(ops []VIROp, desc *MachineDesc, opts SolverOptions) ([]PIROp, error) 
 		return nil, fmt.Errorf("z3 not found: %w", err)
 	}
 
-	// Pre-solver pass 1: insert pre-tie moves
+	// Pre-solver passes
 	ops = insertPreTieMoves(ops, desc)
-
-	// Pre-solver pass 2: insert save moves for destructive (tied) ops
 	ops = insertSaveMoves(ops, desc)
-
-	// Pre-solver pass 3: insert spill/reload for register pressure relief
 	ops = insertSpillReloads(ops, desc)
-
-	// Pre-solver pass 4: coalesce non-interfering vregs to reduce unique count
 	ops = coalesceVRegs(ops)
 
 	// Build the problem encoding
 	prob := buildProblem(ops, desc)
-
-	// Generate SMT-LIB2
 	smt := prob.generateSMT()
 
 	if opts.Verbose {
@@ -86,6 +78,336 @@ func Solve(ops []VIROp, desc *MachineDesc, opts SolverOptions) ([]PIROp, error) 
 
 	// Parse model → PIROps
 	return prob.parseSolution(model, desc)
+}
+
+// ── Call vreg splitting ──────────────────────────────────────────────────────
+
+// splitVRegsAtCalls handles the call clobber problem by splitting vregs that
+// are live across CALL instructions. For each such vreg, it inserts:
+//   v_save = move(v)     ; before call — save to IXH
+//   v      = move(v_save) ; after call  — restore from IXH
+//
+// This splits the vreg's live range so the "before" identity can be in GPR
+// and the "save" identity survives the call in IXH.
+//
+// Only triggers for vregs that are actually used after the call.
+func splitVRegsAtCalls(ops []VIROp, desc *MachineDesc) []VIROp {
+	// Find calls
+	var callIdxs []int
+	for i, op := range ops {
+		if op.Op == OpCall && !op.Clobbers.IsEmpty() {
+			callIdxs = append(callIdxs, i)
+		}
+	}
+	if len(callIdxs) == 0 {
+		return ops
+	}
+
+	// Only split if the block has enough vregs to cause pressure issues.
+	// Low-vreg blocks solve fine without splitting.
+	uniqueVRegs := make(map[int]bool)
+	for _, op := range ops {
+		if op.Dst > 0 { uniqueVRegs[op.Dst] = true }
+		for _, s := range op.Src {
+			if s > 0 { uniqueVRegs[s] = true }
+		}
+	}
+	if len(uniqueVRegs) <= maxGPRPressure+2 {
+		return ops // low pressure, clobber constraints alone should suffice
+	}
+
+	nextVReg := 0
+	for _, op := range ops {
+		if op.Dst > nextVReg { nextVReg = op.Dst }
+		for _, s := range op.Src {
+			if s > nextVReg { nextVReg = s }
+		}
+	}
+	nextVReg++
+
+	ixhHint := desc.LocsOfKind(LocIXHalf)
+
+	// Process calls back-to-front
+	for ci := len(callIdxs) - 1; ci >= 0; ci-- {
+		callIdx := callIdxs[ci]
+		callOp := ops[callIdx]
+
+		// Find vregs used AFTER this call that were defined BEFORE
+		usedAfter := make(map[int]bool)
+		for j := callIdx + 1; j < len(ops); j++ {
+			for _, s := range ops[j].Src {
+				if s > 0 { usedAfter[s] = true }
+			}
+		}
+
+		defBefore := make(map[int]bool)
+		for j := 0; j < callIdx; j++ {
+			if ops[j].Dst > 0 { defBefore[ops[j].Dst] = true }
+		}
+		// Cross-block params: used but not defined in this block
+		for v := range usedAfter {
+			if !defBefore[v] {
+				defBefore[v] = true // treat as defined before
+			}
+		}
+
+		// Identify live-across vregs (not the call's own result)
+		var liveAcross []int
+		for v := range usedAfter {
+			if defBefore[v] && v != callOp.Dst {
+				liveAcross = append(liveAcross, v)
+			}
+		}
+
+		if len(liveAcross) == 0 {
+			continue
+		}
+
+		// Limit to 4 (IXH capacity for 8-bit)
+		if len(liveAcross) > 4 {
+			liveAcross = liveAcross[:4]
+		}
+
+		// Build: [before...] [saves] [call] [restores] [after...]
+		var newOps []VIROp
+		newOps = append(newOps, ops[:callIdx]...)
+
+		// Save each live-across vreg to IXH-hinted vreg
+		saveMap := make(map[int]int) // original → save vreg
+		for _, v := range liveAcross {
+			sv := nextVReg
+			nextVReg++
+			saveMap[v] = sv
+
+			w := 8 // default
+			for _, op := range ops {
+				if op.Dst == v && op.Width > 0 { w = op.Width; break }
+			}
+
+			newOps = append(newOps, VIROp{
+				Op: OpMove, Dst: sv, Src: [2]int{v, -1},
+				Width: w, DstHint: ixhHint,
+			})
+		}
+
+		// The call
+		newOps = append(newOps, ops[callIdx])
+
+		// Restore: reload from save vreg back to original
+		for _, v := range liveAcross {
+			sv := saveMap[v]
+			w := 8
+			for _, op := range ops {
+				if op.Dst == v && op.Width > 0 { w = op.Width; break }
+			}
+			newOps = append(newOps, VIROp{
+				Op: OpMove, Dst: v, Src: [2]int{sv, -1}, Width: w,
+			})
+		}
+
+		newOps = append(newOps, ops[callIdx+1:]...)
+		ops = newOps
+	}
+
+	return ops
+}
+
+// ── Call save/restore insertion (legacy, disabled) ──────────────────────────
+
+// insertCallSaveRestore detects vregs that are live across a CALL instruction
+// and inserts save (before call) + restore (after call) moves.
+//
+// CALLs clobber A,B,C,D,E,H,L,F — any vreg in GPR will be destroyed.
+// Strategy: for each live-across vreg, insert:
+//   v_saved = OpMove(vreg)     ; before call — constrained to IXH (call-safe)
+//   vreg    = OpMove(v_saved)  ; after call  — reload from IXH
+//
+// IXH/IXL/IYH/IYL survive calls (Z80 convention: IX/IY are callee-saved).
+// If we run out of IXH slots (4), fall back to PUSH/POP via stack.
+func insertCallSaveRestore(ops []VIROp, desc *MachineDesc) []VIROp {
+	// Find call positions
+	var callIdxs []int
+	for i, op := range ops {
+		if op.Op == OpCall {
+			callIdxs = append(callIdxs, i)
+		}
+	}
+	if len(callIdxs) == 0 {
+		return ops
+	}
+
+	// Only insert saves if the block has enough vregs to warrant it.
+	// Blocks with few vregs solve fine without saves — adding them just
+	// creates unnecessary pressure.
+	uniqueVRegs := make(map[int]bool)
+	for _, op := range ops {
+		if op.Dst > 0 { uniqueVRegs[op.Dst] = true }
+		for _, s := range op.Src {
+			if s > 0 { uniqueVRegs[s] = true }
+		}
+	}
+	if len(uniqueVRegs) <= maxGPRPressure+2 {
+		return ops // low vreg count, no need for call saves
+	}
+
+	// Compute liveness
+	live := computeLiveness(ops)
+
+	// Find def and last-use per vreg
+	defAt := make(map[int]int)
+	lastUse := make(map[int]int)
+	for i, op := range ops {
+		if op.Dst > 0 {
+			if _, ok := defAt[op.Dst]; !ok {
+				defAt[op.Dst] = i
+			}
+		}
+		for _, s := range op.Src {
+			if s > 0 {
+				lastUse[s] = i
+			}
+		}
+	}
+
+	// Next vreg number
+	nextVReg := 0
+	for _, op := range ops {
+		if op.Dst > nextVReg {
+			nextVReg = op.Dst
+		}
+		for _, s := range op.Src {
+			if s > nextVReg {
+				nextVReg = s
+			}
+		}
+	}
+	nextVReg++
+
+	// IXH hint for 8-bit, stack for 16-bit
+	ixhHint := desc.LocsOfKind(LocIXHalf)
+	stackHint := desc.LocsOfKind(LocStack)
+	if stackHint.IsEmpty() {
+		stackHint = desc.LocsOfKind(LocMem)
+	}
+
+	// Process each call: find live-across vregs and insert save/restore
+	// Work backwards to avoid index invalidation
+	type saveInfo struct {
+		vreg    int
+		saveReg int
+		width   int
+		hint    LocSet
+	}
+
+	for ci := len(callIdxs) - 1; ci >= 0; ci-- {
+		callIdx := callIdxs[ci]
+		callOp := ops[callIdx]
+
+		// Find vregs live across this call:
+		// - defined before callIdx (or cross-block param)
+		// - used after callIdx
+		// - not the call's own dst
+		type candidate struct {
+			vreg  int
+			width int
+			uses  int // uses after call
+		}
+		var candidates []candidate
+
+		for vreg := range live[callIdx].live {
+			if vreg == callOp.Dst {
+				continue
+			}
+			// Count uses after the call
+			usesAfter := 0
+			for j := callIdx + 1; j < len(ops); j++ {
+				for _, s := range ops[j].Src {
+					if s == vreg {
+						usesAfter++
+					}
+				}
+			}
+			if usesAfter == 0 {
+				continue
+			}
+
+			w := 8
+			for _, op := range ops {
+				if op.Dst == vreg && op.Width > 0 {
+					w = op.Width
+					break
+				}
+			}
+			candidates = append(candidates, candidate{vreg, w, usesAfter})
+		}
+
+		// Sort by uses descending (save most-used first), limit to IXH capacity
+		for i := 0; i < len(candidates); i++ {
+			for j := i + 1; j < len(candidates); j++ {
+				if candidates[j].uses > candidates[i].uses {
+					candidates[i], candidates[j] = candidates[j], candidates[i]
+				}
+			}
+		}
+
+		// Limit saves: at most 4 for 8-bit (IXH slots), 2 for 16-bit (memory)
+		maxSaves := 4
+		if len(candidates) > maxSaves {
+			candidates = candidates[:maxSaves]
+		}
+
+		var toSave []saveInfo
+		ixhUsed := 0
+		for _, c := range candidates {
+			hint := stackHint
+			if c.width <= 8 && ixhUsed < 4 {
+				hint = ixhHint
+				ixhUsed++
+			}
+			saveReg := nextVReg
+			nextVReg++
+			toSave = append(toSave, saveInfo{
+				vreg: c.vreg, saveReg: saveReg, width: c.width, hint: hint,
+			})
+		}
+
+		if len(toSave) == 0 {
+			continue
+		}
+
+		// Build new ops: [...before...] [saves] [call] [restores] [...after...]
+		var newOps []VIROp
+		newOps = append(newOps, ops[:callIdx]...)
+
+		// Insert saves before call
+		for _, s := range toSave {
+			newOps = append(newOps, VIROp{
+				Op: OpMove, Dst: s.saveReg, Src: [2]int{s.vreg, -1},
+				Width: s.width, DstHint: s.hint,
+			})
+		}
+
+		// The call itself
+		newOps = append(newOps, ops[callIdx])
+
+		// Insert restores after call
+		for _, s := range toSave {
+			newOps = append(newOps, VIROp{
+				Op: OpMove, Dst: s.vreg, Src: [2]int{s.saveReg, -1},
+				Width: s.width,
+			})
+		}
+
+		// Rest of ops
+		newOps = append(newOps, ops[callIdx+1:]...)
+
+		ops = newOps
+
+		// Recompute liveness for the updated ops
+		live = computeLiveness(ops)
+	}
+
+	return ops
 }
 
 // ── Pre-tie move insertion ───────────────────────────────────────────────────
