@@ -333,13 +333,15 @@ loop runs on real Z80 hardware.
 Frill compiles through the full MinZ pipeline:
 
 ```
-Frill (.frl) → HIR → MIR2 → Z80 Assembly → Binary
+Frill (.frl) → HIR → MIR2 → VIR (Z3 solver) → Z80 Assembly → Binary
 ```
 
 Each step is a standard compiler transformation:
 - **Frill → HIR**: Desugar ML syntax into a typed intermediate representation
 - **HIR → MIR2**: Lower to SSA form with block arguments
-- **MIR2 → Z80**: Register allocation (PBQP + WFC), instruction selection, peephole optimization
+- **MIR2 → VIR**: Z3 SMT solver for joint instruction selection + register allocation (provably optimal)
+- **VIR → Z80**: Peephole optimization (16 rules), assembly emission
+- **Fallback**: PBQP register allocator for functions with inline assembly
 
 A simple function like `let add (a : u8) (b : u8) = a + b` compiles to:
 
@@ -363,15 +365,121 @@ virtual machine. This means:
 
 Current stats: **13 example files, 3351 compile-time checks, 0 failures**.
 
+## Turtle Graphics and L-Systems
+
+Frill's pure functions and recursion make it natural for generative art.
+Here's a turtle graphics system with L-system fractal trees:
+
+```frill
+(* Turtle state — global for Z80 simplicity *)
+let tx = 128
+let ty = 160
+let tangle = 192   (* pointing up in 256-step circle *)
+
+(* Quarter-sine table: 64 entries, scale 112 *)
+let fsin (a : u8) : i16 =
+  let q = a / 64 in
+  let idx = a & 63 in
+  match q with
+  | 0 -> qsin idx
+  | 1 -> qsin (63 - idx)
+  | 2 -> 0 - qsin idx
+  | _ -> 0 - qsin (63 - idx)
+
+let fcos (a : u8) : i16 = fsin (a + 64)
+
+(* Move forward, drawing a line *)
+let forward (dist : u8) =
+  let nx = tx + fcos tangle * dist / 112 in
+  let ny = ty + fsin tangle * dist / 112 in
+  canvas_line tx ty nx ny color
+  do tx <- nx
+  do ty <- ny
+```
+
+### Recursive Fractal Tree
+
+```frill
+(* Binary tree: trunk + two shorter branches at an angle *)
+let branch (len : u8) (depth : u8) (angle : u8) =
+  if depth == 0 then forward len
+  else
+    forward len
+    let next = len * 2 / 3 in
+    push ()
+    left angle
+    branch next (depth - 1) angle
+    pop ()
+    push ()
+    right angle
+    branch next (depth - 1) angle
+    pop ()
+
+(* Render: green tree, depth 7, 30-degree branching *)
+let draw () =
+  canvas_init 256 192 0
+  canvas_clear 0
+  do color <- 4
+  branch 12 7 30
+```
+
+This generates fractal trees on a 256x192 ZX Spectrum canvas.
+The same code compiles to Z80 assembly and runs on real hardware.
+
+![L-System Forest](../reports/nanz_lsystem_forest.png)
+
+*Five fractal trees rendered on MIR2 VM. Each tree uses different
+branching angles and depths. 256x192, ZX Spectrum palette.*
+
+### Variations
+
+Different parameters produce radically different trees:
+
+| Style | Parameters | Result |
+|-------|-----------|--------|
+| **Symmetric** | angle=28, depth=7 | Classic binary tree |
+| **Ternary** | 3-way branch, depth=5 | Bushy, dense canopy |
+| **Windblown** | left=25, right=35 | Asymmetric, natural look |
+| **Fern** | alternating sides, depth=5 | Barnsley fern pattern |
+
+![Windblown Trees](../reports/nanz_lsystem_windblown.png)
+
+*Asymmetric trees — left branches longer than right, like wind-shaped growth.*
+
+## Canvas and impl Blocks
+
+Shapes can be drawn using `impl` blocks (OOP-style method dispatch):
+
+```frill
+(* In Nanz syntax — Frill uses the same HIR backend *)
+struct Circle { cx : u16, cy : u16, r : u16, color : u16 }
+struct Box { x : u16, y : u16, w : u16, h : u16, color : u16 }
+
+impl Renderable for Circle {
+    fun draw (self) -> u16 { canvas_circle self.cx self.cy self.r self.color }
+}
+
+impl Renderable for Box {
+    fun draw (self) -> u16 { canvas_fill_rect self.x self.y self.w self.h self.color }
+}
+```
+
+![Impl Showcase](../reports/nanz_impl_showcase.png)
+
+*House scene rendered through impl dispatch: Circle (sun, tree crown),
+Box (sky, ground, house, door, window). All method calls resolve to
+direct CALL instructions at compile time — zero overhead.*
+
 ## Metrics
 
 | Metric | Value |
 |--------|-------|
 | Language features | 41 |
-| Example programs | 13 |
-| Compile-time checks | 3,351 |
+| Example programs | 13+ |
+| Compile-time checks | 3,351+ |
 | Parser LOC (frill.go) | 2,436 |
 | Stdlib modules | 5 (math, tokenizer, I/O, functional, canvas) |
+| Canvas output | 6 PNG renders (L-system trees, impl shapes) |
 | Compilation target | Z80 (ZX Spectrum, CP/M, Agon Light 2) |
 
 ## Getting Started
