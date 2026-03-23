@@ -51,9 +51,16 @@ func Solve(ops []VIROp, desc *MachineDesc, opts SolverOptions) ([]PIROp, error) 
 		return nil, fmt.Errorf("z3 not found: %w", err)
 	}
 
-	// Pre-solver: insert save moves for vregs consumed by destructive ops
-	// but needed again later. This expands the VIROp list.
+	// Pre-solver pass 1: insert pre-tie moves — when a tied-dst-src op needs
+	// src0 in a specific register but src0 is also live elsewhere, insert a
+	// short-lived copy to avoid global location conflicts.
+	ops = insertPreTieMoves(ops, desc)
+
+	// Pre-solver pass 2: insert save moves for destructive (tied) ops
 	ops = insertSaveMoves(ops, desc)
+
+	// Pre-solver pass 3: insert spill/reload for register pressure relief
+	ops = insertSpillReloads(ops, desc)
 
 	// Build the problem encoding
 	prob := buildProblem(ops, desc)
@@ -78,6 +85,93 @@ func Solve(ops []VIROp, desc *MachineDesc, opts SolverOptions) ([]PIROp, error) 
 
 	// Parse model → PIROps
 	return prob.parseSolution(model, desc)
+}
+
+// ── Pre-tie move insertion ───────────────────────────────────────────────────
+
+// insertPreTieMoves handles the case where a vreg is used as src0 of a tied
+// pattern, but the vreg is also live at other instructions where it CAN'T be
+// in the tied register (because another tied op uses that register).
+//
+// Example: v1=const, v3=const, v5=add(v1,v2), v6=add(v3,v4)
+//   Both ADDs tie src0 to A. v1 and v3 can't both be A simultaneously.
+//   Fix: insert v3_copy=move(v3) before the second ADD, use v3_copy as src0.
+//   v3_copy is short-lived (only at the ADD instruction) so no conflict.
+func insertPreTieMoves(ops []VIROp, desc *MachineDesc) []VIROp {
+	// Find which ops have tied patterns
+	hasTied := make([]bool, len(ops))
+	for i, op := range ops {
+		for _, pat := range desc.Patterns {
+			if pat.Matches(op) && pat.TiedDstSrc {
+				hasTied[i] = true
+				break
+			}
+		}
+	}
+
+	// For each tied op: if src0 is also used as src0 in another tied op,
+	// OR if src0 is live at another tied op's position, insert a copy.
+	// Simple heuristic: for ALL tied ops, if src0 was not just defined
+	// (i.e., src0's def is not the immediately preceding instruction),
+	// insert a move to create a short-lived copy.
+
+	nextVReg := 0
+	for _, op := range ops {
+		if op.Dst > nextVReg {
+			nextVReg = op.Dst
+		}
+		for _, s := range op.Src {
+			if s > nextVReg {
+				nextVReg = s
+			}
+		}
+	}
+	nextVReg++
+
+	// Find def positions
+	defAt := make(map[int]int)
+	for i, op := range ops {
+		if op.Dst > 0 {
+			defAt[op.Dst] = i
+		}
+	}
+
+	// Count tied ops — only insert copies if there are multiple tied ops
+	// (single tied op can't conflict with itself)
+	tiedCount := 0
+	for _, t := range hasTied {
+		if t {
+			tiedCount++
+		}
+	}
+	if tiedCount <= 1 {
+		return ops
+	}
+
+	var result []VIROp
+	for i, op := range ops {
+		if hasTied[i] && op.Src[0] > 0 {
+			src0 := op.Src[0]
+			def := defAt[src0]
+			// If src0 was defined more than 1 instruction ago AND there are
+			// other tied ops → src0 might be live at a conflicting tied point.
+			if i-def > 1 {
+				copyReg := nextVReg
+				nextVReg++
+				result = append(result, VIROp{
+					Op: OpMove, Dst: copyReg, Src: [2]int{src0, -1},
+					Width: op.Width,
+				})
+				newOp := op
+				newOp.Src[0] = copyReg
+				result = append(result, newOp)
+				continue
+			}
+		}
+		result = append(result, op)
+	}
+
+	return result
 }
 
 // ── Save-before-overwrite pass ───────────────────────────────────────────────
@@ -160,6 +254,233 @@ func insertSaveMoves(ops []VIROp, desc *MachineDesc) []VIROp {
 			}
 		}
 		result = append(result, op)
+	}
+
+	return result
+}
+
+// ── Pressure-driven spill insertion ──────────────────────────────────────────
+
+// maxGPRPressure is the number of GPR8 registers available for allocation.
+// Z80 has A,B,C,D,E,H,L = 7, but A is often tied to ALU ops,
+// so effective pressure limit is ~6 for general vregs.
+const maxGPRPressure = 6
+
+// insertSpillReloads reduces register pressure by spilling long-lived vregs
+// to L2+ tiers (IXH, memory) when more than maxGPRPressure vregs are
+// simultaneously live.
+//
+// Algorithm:
+//  1. Compute liveness and find max pressure point
+//  2. If pressure <= threshold, return unchanged
+//  3. Pick spill candidate: vreg with longest live range and fewest uses
+//  4. Insert spill (move to spill vreg) after def, reload before each use
+//  5. Constrain spill vreg to L2+ via DstHint
+//  6. Repeat until pressure <= threshold
+func insertSpillReloads(ops []VIROp, desc *MachineDesc) []VIROp {
+	for iteration := 0; iteration < 10; iteration++ {
+		pressure, _ := maxPressure(ops)
+		if pressure <= maxGPRPressure {
+			return ops
+		}
+
+		// Find spill candidate at the max-pressure point
+		candidate := pickSpillCandidate(ops)
+		if candidate <= 0 {
+			return ops // no candidate found
+		}
+
+		ops = spillVReg(ops, candidate, desc)
+	}
+	return ops
+}
+
+// maxPressure returns the maximum number of simultaneously live GPR-class
+// vregs (those without a spill DstHint) and the instruction index.
+func maxPressure(ops []VIROp) (int, int) {
+	live := computeLiveness(ops)
+
+	// Collect vregs that are spill-hinted (don't count toward GPR pressure)
+	spillVRegs := make(map[int]bool)
+	for _, op := range ops {
+		if op.Dst > 0 && !op.DstHint.IsEmpty() {
+			spillVRegs[op.Dst] = true
+		}
+	}
+
+	maxP, maxI := 0, 0
+	for i, l := range live {
+		p := 0
+		for v := range l.live {
+			if !spillVRegs[v] {
+				p++
+			}
+		}
+		if p > maxP {
+			maxP = p
+			maxI = i
+		}
+	}
+	return maxP, maxI
+}
+
+// pickSpillCandidate selects the best vreg to spill: longest live range,
+// fewest uses, not involved in the current max-pressure instruction's
+// direct operands, not already spilled.
+func pickSpillCandidate(ops []VIROp) int {
+	_, maxI := maxPressure(ops)
+
+	// Collect already-spilled vregs
+	spillVRegs := make(map[int]bool)
+	for _, op := range ops {
+		if op.Dst > 0 && !op.DstHint.IsEmpty() {
+			spillVRegs[op.Dst] = true
+		}
+	}
+
+	live := computeLiveness(ops)
+
+	// Candidate = vreg live at maxI, not src/dst of ops[maxI], not spilled
+	directVRegs := make(map[int]bool)
+	op := ops[maxI]
+	if op.Dst > 0 {
+		directVRegs[op.Dst] = true
+	}
+	for _, s := range op.Src {
+		if s > 0 {
+			directVRegs[s] = true
+		}
+	}
+
+	// Count uses per vreg
+	useCount := make(map[int]int)
+	defAt := make(map[int]int)
+	lastUse := make(map[int]int)
+	for i, o := range ops {
+		if o.Dst > 0 {
+			defAt[o.Dst] = i
+		}
+		for _, s := range o.Src {
+			if s > 0 {
+				useCount[s]++
+				lastUse[s] = i
+			}
+		}
+	}
+
+	// Pick: live at maxI, not direct operand, not already spilled, longest range
+	bestVReg := -1
+	bestScore := -1
+	for vreg := range live[maxI].live {
+		if directVRegs[vreg] || spillVRegs[vreg] {
+			continue
+		}
+		def := defAt[vreg]
+		lu := lastUse[vreg]
+		liveRange := lu - def
+		uses := useCount[vreg]
+		if uses == 0 {
+			uses = 1
+		}
+		// Score: prefer long ranges with few uses (cheapest to spill)
+		score := liveRange * 100 / uses
+		if score > bestScore {
+			bestScore = score
+			bestVReg = vreg
+		}
+	}
+
+	return bestVReg
+}
+
+// spillVReg inserts a spill after the def of `vreg` and a reload before
+// each use. The spill vreg is constrained to L2+ tiers.
+func spillVReg(ops []VIROp, vreg int, desc *MachineDesc) []VIROp {
+	// Find def and uses
+	defIdx := -1
+	var useIdxs []int
+	for i, op := range ops {
+		if op.Dst == vreg {
+			defIdx = i
+		}
+		for _, s := range op.Src {
+			if s == vreg {
+				useIdxs = append(useIdxs, i)
+				break
+			}
+		}
+	}
+	if defIdx < 0 || len(useIdxs) == 0 {
+		return ops
+	}
+
+	// Allocate spill vreg
+	nextVReg := 0
+	for _, op := range ops {
+		if op.Dst > nextVReg {
+			nextVReg = op.Dst
+		}
+		for _, s := range op.Src {
+			if s > nextVReg {
+				nextVReg = s
+			}
+		}
+	}
+	spillReg := nextVReg + 1
+
+	// Determine width from def
+	w := ops[defIdx].Width
+	if w == 0 {
+		w = 8
+	}
+
+	// Spill tier hint: prefer IXH (8T) for 8-bit, memory for 16-bit
+	var spillHint LocSet
+	if w <= 8 {
+		spillHint = desc.LocsOfKind(LocIXHalf)
+		if spillHint.IsEmpty() {
+			spillHint = desc.LocsOfKind(LocMem)
+		}
+	} else {
+		spillHint = desc.LocsOfKind(LocMem)
+	}
+
+	// Build new op list with spill after def and reload before each use
+	var result []VIROp
+	useSet := make(map[int]bool)
+	for _, ui := range useIdxs {
+		useSet[ui] = true
+	}
+
+	for i, op := range ops {
+		// Insert reload before use
+		if useSet[i] {
+			reloadReg := nextVReg + 2
+			nextVReg += 2
+			result = append(result, VIROp{
+				Op: OpMove, Dst: reloadReg, Src: [2]int{spillReg, -1},
+				Width: w,
+			})
+			// Rewrite this op's uses of vreg → reloadReg
+			newOp := op
+			for j, s := range newOp.Src {
+				if s == vreg {
+					newOp.Src[j] = reloadReg
+				}
+			}
+			result = append(result, newOp)
+			continue
+		}
+
+		result = append(result, op)
+
+		// Insert spill after def
+		if i == defIdx {
+			result = append(result, VIROp{
+				Op: OpMove, Dst: spillReg, Src: [2]int{vreg, -1},
+				Width: w, DstHint: spillHint,
+			})
+		}
 	}
 
 	return result
@@ -287,9 +608,16 @@ func (p *problem) generateSMT() string {
 	// Variable: which physical location for each virtual register
 	for vreg := range p.vregs {
 		b.WriteString(fmt.Sprintf("(declare-const loc_v%d Int)\n", vreg))
-		// loc_v ∈ [0, len(desc.Locs))
 		b.WriteString(fmt.Sprintf("(assert (and (>= loc_v%d 0) (< loc_v%d %d)))\n",
 			vreg, vreg, len(p.desc.Locs)))
+	}
+
+	// DstHint constraints: spill vregs are constrained to specific tiers
+	for _, op := range p.ops {
+		if op.Dst > 0 && !op.DstHint.IsEmpty() {
+			constraint := locSetToSMT(fmt.Sprintf("loc_v%d", op.Dst), op.DstHint)
+			b.WriteString(fmt.Sprintf("(assert %s) ; DstHint\n", constraint))
+		}
 	}
 
 	// Pattern → location constraints + tied operands
