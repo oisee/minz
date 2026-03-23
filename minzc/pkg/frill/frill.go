@@ -65,7 +65,7 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 	p := &parser{
 		src: src, pos: 0, line: 1, name: name,
 		adts: make(map[string]*adtDef), ctors: make(map[string]*adtCtor),
-		arities: make(map[string]int),
+		arities: make(map[string]int), classes: make(map[string][]string),
 		baseDir: opts.BaseDir,
 	}
 	return p.parseModule()
@@ -126,6 +126,8 @@ type parser struct {
 	arities     map[string]int       // function name → param count (for partial application)
 	baseDir     string               // for import resolution
 	lastTuple   []hir.Expr           // pending tuple elements from (e1, e2)
+	classes     map[string][]string  // class name → method names
+
 }
 
 func (p *parser) peek() token {
@@ -315,6 +317,16 @@ func (p *parser) parseModule() (*hir.Module, error) {
 				mod.Strings = append(mod.Strings, imported.Strings...)
 				mod.StrKinds = append(mod.StrKinds, imported.StrKinds...)
 			}
+		case "class":
+			if err := p.parseClass(); err != nil {
+				return nil, err
+			}
+		case "instance":
+			fns, err := p.parseInstance()
+			if err != nil {
+				return nil, err
+			}
+			mod.Funcs = append(mod.Funcs, fns...)
 		case "extern":
 			fn, err := p.parseExtern()
 			if err != nil {
@@ -462,6 +474,115 @@ func (p *parser) parseRecordFields(name string) error {
 	st := &mir2.StructTy{Name: name, Fields: fields}
 	p.records = append(p.records, st)
 	return nil
+}
+
+// parseClass: class Name a where method1 : a -> retty, method2 : a -> retty
+// Simplified: class Show where show : u8
+// Stores method names for later resolution in instance.
+func (p *parser) parseClass() error {
+	p.next() // consume "class"
+	className := p.next().text
+	if err := p.expect(tokIdent, "where"); err != nil {
+		return err
+	}
+	var methods []string
+	for {
+		if p.peek().kind != tokIdent || isKeyword(p.peek().text) {
+			break
+		}
+		methodName := p.next().text
+		// Skip : type annotation
+		if p.peek().kind == tokColon {
+			p.next()
+			for p.peek().kind != tokEOF && p.peek().kind != tokComma &&
+				!(p.peek().kind == tokIdent && isKeyword(p.peek().text)) {
+				p.next()
+			}
+		}
+		methods = append(methods, methodName)
+		if p.peek().kind == tokComma {
+			p.next()
+		} else {
+			break
+		}
+	}
+	p.classes[className] = methods
+	return nil
+}
+
+// parseInstance: instance ClassName TypeName where method1 (params) = body
+// Generates: ClassName_method_TypeName(params) = body
+func (p *parser) parseInstance() ([]*hir.Func, error) {
+	p.next() // consume "instance"
+	className := p.next().text
+	typeName := p.next().text
+	if err := p.expect(tokIdent, "where"); err != nil {
+		return nil, err
+	}
+
+	methods, ok := p.classes[className]
+	if !ok {
+		return nil, fmt.Errorf("unknown class %q", className)
+	}
+
+	var funcs []*hir.Func
+	for _, method := range methods {
+		// Expect: methodName (params) = body
+		tok := p.peek()
+		if tok.kind != tokIdent || tok.text != method {
+			break
+		}
+		p.next() // consume method name
+
+		// Generate function named: method_TypeName
+		mangledName := method + "_" + typeName
+
+		// Parse params
+		var params []hir.Param
+		for p.peek().kind == tokLParen {
+			p.next()
+			pname := p.next()
+			if err := p.expect(tokColon, ":"); err != nil {
+				return nil, err
+			}
+			pty := p.parseType()
+			if err := p.expect(tokRParen, ")"); err != nil {
+				return nil, err
+			}
+			params = append(params, hir.Param{Name: pname.text, Ty: pty})
+		}
+
+		// Optional return type
+		var retTy mir2.Ty = mir2.TyU8
+		if p.peek().kind == tokColon {
+			p.next()
+			retTy = p.parseType()
+		}
+
+		if err := p.expect(tokEq, "="); err != nil {
+			return nil, err
+		}
+
+		body, letStmts, err := p.parseBodyExpr()
+		if err != nil {
+			return nil, err
+		}
+
+		var stmts []hir.Stmt
+		stmts = append(stmts, letStmts...)
+		stmts = append(stmts, &hir.ReturnStmt{Val: body})
+
+		fn := &hir.Func{
+			Name:   mangledName,
+			Params: params,
+			RetTy:  retTy,
+			Body:   &hir.Block{Body: stmts},
+		}
+		p.arities[mangledName] = len(params)
+		funcs = append(funcs, fn)
+	}
+
+	return funcs, nil
 }
 
 // parseImport: import "path/to/module.frl"
@@ -1537,7 +1658,7 @@ func (p *parser) parseType() mir2.Ty {
 
 func isKeyword(s string) bool {
 	switch s {
-	case "let", "in", "if", "then", "else", "type", "assert", "match", "with", "fun", "end", "where", "when", "prop", "extern", "do", "import", "asm":
+	case "let", "in", "if", "then", "else", "type", "assert", "match", "with", "fun", "end", "where", "when", "prop", "extern", "do", "import", "asm", "class", "instance":
 		return true
 	}
 	return false
