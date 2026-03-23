@@ -140,35 +140,47 @@ __mul16:
 	}
 
 	if strings.Contains(asm, "__div8") {
-		sb.WriteString(`; __div8: A = A / B, remainder in C
+		// DIVU111 algorithm (Dark / X-Trade, 1997)
+		// Input: A=dividend, B=divisor. Output: A=quotient, C=remainder.
+		sb.WriteString(`; __div8: A = A / B (quotient), C = remainder
 __div8:
-    LD C, 0
+    LD C, B
+    LD B, A
+    XOR A
     LD D, 8
 .__div8_lp:
-    SLA A
-    RL C
-    LD E, A
-    LD A, C
-    SUB B
+    SLA B
+    RLA
+    CP C
     JR C, .__div8_sk
-    LD C, A
-    LD A, E
-    OR 1
-    JR .__div8_nx
+    SUB C
+    INC B
 .__div8_sk:
-    LD A, E
-.__div8_nx:
     DEC D
     JR NZ, .__div8_lp
+    LD A, B
     RET
 `)
 	}
 
 	if strings.Contains(asm, "__mod8") {
+		// Uses __div8 internally, returns remainder (A after div loop, before LD A,B)
 		sb.WriteString(`; __mod8: A = A mod B
 __mod8:
-    CALL __div8
-    LD A, C
+    LD C, B
+    LD B, A
+    XOR A
+    LD D, 8
+.__mod8_lp:
+    SLA B
+    RLA
+    CP C
+    JR C, .__mod8_sk
+    SUB C
+    INC B
+.__mod8_sk:
+    DEC D
+    JR NZ, .__mod8_lp
     RET
 `)
 	}

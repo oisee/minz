@@ -188,28 +188,10 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 		}}, nil
 
 	case mir2.OpDiv, mir2.OpSDiv:
-		// Division → runtime call __div8 or __div16
-		sym := "__div8"
-		if w == 16 {
-			sym = "__div16"
-		}
-		return []VIROp{{
-			Op: OpCall, Dst: int(inst.Dst),
-			Src: [2]int{int(inst.Src[0]), int(inst.Src[1])},
-			Sym: sym, Width: w,
-		}}, nil
+		return translateDivMod(inst, desc, w, false)
 
 	case mir2.OpMod:
-		// Modulo → runtime call __mod8 or __mod16
-		sym := "__mod8"
-		if w == 16 {
-			sym = "__mod16"
-		}
-		return []VIROp{{
-			Op: OpCall, Dst: int(inst.Dst),
-			Src: [2]int{int(inst.Src[0]), int(inst.Src[1])},
-			Sym: sym, Width: w,
-		}}, nil
+		return translateDivMod(inst, desc, w, true)
 
 	case mir2.OpAddrOf:
 		return []VIROp{{
@@ -277,19 +259,109 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 	}
 }
 
-// translateMul converts OpMul to runtime call (__mul8 or __mul16).
+// translateMul converts OpMul to runtime call with proper arg setup.
+// __mul8: A × B → A.  __mul16: HL × DE → HL.
 func translateMul(inst *mir2.Inst, desc *MachineDesc) ([]VIROp, error) {
 	w := mirWidth(inst, desc)
-	sym := "__mul8"
-	if w == 16 {
-		sym = "__mul16"
+	return translateRuntimeCall(inst, desc, w, true)
+}
+
+// translateRuntimeCall emits arg setup moves + CALL for runtime routines.
+// Runtime ABI:  8-bit: arg0→A, arg1→B, result→A
+//              16-bit: arg0→HL, arg1→DE, result→HL
+func translateRuntimeCall(inst *mir2.Inst, desc *MachineDesc, w int, isMul bool) ([]VIROp, error) {
+	var ops []VIROp
+	var sym string
+
+	if isMul {
+		if w <= 8 { sym = "__mul8" } else { sym = "__mul16" }
+	} else {
+		// div/mod determined by caller
+		return nil, fmt.Errorf("use translateDiv/translateMod")
 	}
-	return []VIROp{{
-		Op:  OpCall,
-		Dst: int(inst.Dst),
-		Src: [2]int{int(inst.Src[0]), int(inst.Src[1])},
-		Sym: sym, Width: w,
-	}}, nil
+
+	if w <= 8 {
+		// 8-bit: arg0 → A, arg1 → B
+		ops = append(ops, VIROp{
+			Op: OpMove, Dst: int(inst.Src[0]) + 7000,
+			Src: [2]int{int(inst.Src[0]), -1}, Width: 8,
+			DstHint: desc.LocSetByNames("A"),
+		})
+		ops = append(ops, VIROp{
+			Op: OpMove, Dst: int(inst.Src[1]) + 7100,
+			Src: [2]int{int(inst.Src[1]), -1}, Width: 8,
+			DstHint: desc.LocSetByNames("B"),
+		})
+	} else {
+		// 16-bit: arg0 → HL, arg1 → DE
+		ops = append(ops, VIROp{
+			Op: OpMove, Dst: int(inst.Src[0]) + 7000,
+			Src: [2]int{int(inst.Src[0]), -1}, Width: 16,
+			DstHint: desc.LocSetByNames("HL"),
+		})
+		ops = append(ops, VIROp{
+			Op: OpMove, Dst: int(inst.Src[1]) + 7100,
+			Src: [2]int{int(inst.Src[1]), -1}, Width: 16,
+			DstHint: desc.LocSetByNames("DE"),
+		})
+	}
+
+	// Clobbers: all GPR + flags
+	clobbers := desc.LocSetByNames("A", "B", "C", "D", "E", "H", "L", "F")
+	if desc.Name == "z80" {
+		clobbers = clobbers.Or(desc.LocSetByNames("BC", "DE", "HL"))
+	}
+
+	// Return value hint
+	var retHint LocSet
+	if w <= 8 { retHint = desc.LocSetByNames("A") } else { retHint = desc.LocSetByNames("HL") }
+
+	ops = append(ops, VIROp{
+		Op: OpCall, Dst: int(inst.Dst),
+		Src: [2]int{-1, -1}, Sym: sym, Width: w,
+		Clobbers: clobbers, DstHint: retHint,
+	})
+
+	return ops, nil
+}
+
+// translateDivMod emits arg setup + CALL for __div8/__mod8 runtime.
+// ABI: A=dividend, B=divisor → A=quotient (div) or A=remainder (mod).
+func translateDivMod(inst *mir2.Inst, desc *MachineDesc, w int, isMod bool) ([]VIROp, error) {
+	sym := "__div8"
+	if isMod { sym = "__mod8" }
+	if w == 16 {
+		sym = "__div16"
+		if isMod { sym = "__mod16" }
+	}
+
+	var ops []VIROp
+
+	if w <= 8 {
+		ops = append(ops, VIROp{
+			Op: OpMove, Dst: int(inst.Src[0]) + 7000,
+			Src: [2]int{int(inst.Src[0]), -1}, Width: 8,
+			DstHint: desc.LocSetByNames("A"),
+		})
+		ops = append(ops, VIROp{
+			Op: OpMove, Dst: int(inst.Src[1]) + 7100,
+			Src: [2]int{int(inst.Src[1]), -1}, Width: 8,
+			DstHint: desc.LocSetByNames("B"),
+		})
+	}
+
+	clobbers := desc.LocSetByNames("A", "B", "C", "D", "E", "H", "L", "F")
+	if desc.Name == "z80" {
+		clobbers = clobbers.Or(desc.LocSetByNames("BC", "DE", "HL"))
+	}
+
+	ops = append(ops, VIROp{
+		Op: OpCall, Dst: int(inst.Dst),
+		Src: [2]int{-1, -1}, Sym: sym, Width: w,
+		Clobbers: clobbers, DstHint: desc.LocSetByNames("A"),
+	})
+
+	return ops, nil
 }
 
 // translateCall converts OpCall to VIROps: arg setup moves + CALL + result move.

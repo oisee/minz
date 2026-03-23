@@ -77,9 +77,7 @@ type Options struct {
 
 // DefaultOptions returns options with all recommended passes enabled.
 // DefaultOptions returns the default pipeline options.
-// VIR backend (Z3 joint isel+regalloc) is available via UseVIR: true.
-// Currently PBQP is default; VIR becomes default after runtime routine
-// arg setup is verified (div/mod/mul calling conventions).
+// VIR backend available via UseVIR: true (with PBQP fallback for HasAsm/runtime).
 func DefaultOptions() Options { return Options{ContractOpt: true} }
 
 // CompileHIRSteps runs the full HIR→MIR2→Z80 pipeline and returns all intermediate outputs.
