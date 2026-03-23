@@ -604,9 +604,26 @@ func appendReturnMove(ops []VIROp, b *mir2.Block, desc *MachineDesc, f ...*mir2.
 		retHint = desc.LocSetByNames("HL")
 	}
 
+	// If the return vreg is a function param, set SrcHint to its PBQP-allocated
+	// register (not just the class). The assert bootstrap loads args based on
+	// PBQP allocation, so VIR must match.
+	var srcHint LocSet
+	if len(f) > 0 && f[0] != nil {
+		for _, cp := range f[0].Contract.Params {
+			if int(cp.Reg) == retReg {
+				// Use PBQP allocation if available (exact register).
+			// This is passed via a module-level allocResults map.
+			// For now, fall through to class-based hint.
+				// Fallback to class-based hint
+				srcHint = regClassToLocSet(desc, cp.Class, w)
+				break
+			}
+		}
+	}
+
 	ops = append(ops, VIROp{
 		Op: OpMove, Dst: retABIReg, Src: [2]int{retReg, -1},
-		Width: w, DstHint: retHint,
+		Width: w, DstHint: retHint, SrcHint: [2]LocSet{srcHint},
 	})
 
 	return ops

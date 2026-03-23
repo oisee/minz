@@ -97,6 +97,13 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 	sb.WriteString(fmt.Sprintf("; %s — VIR codegen\n", f.Name))
 	sb.WriteString(f.Name + ":\n")
 
+	// Track vreg → physical register across blocks.
+	// Seed with ParamLocs from PBQP allocation (if available).
+	vregPhys := make(map[int]int)
+	for vreg, phys := range opts.ParamLocs {
+		vregPhys[vreg] = phys
+	}
+
 	// Process each block — emit PIROps + terminator
 	for bi, block := range vf.Blocks {
 		// Block label (prefix with function name for uniqueness)
@@ -107,15 +114,45 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 			sb.WriteString("." + f.Name + "_" + label + ":\n")
 		}
 
+		// For non-entry blocks: apply known vreg locations as SrcHint
+		// so the solver knows where cross-block vregs live.
+		if len(vregPhys) > 0 {
+			for i := range block.Ops {
+				for j, s := range block.Ops[i].Src {
+					if s > 0 {
+						if phys, ok := vregPhys[s]; ok {
+							// Override with exact register from entry block
+							block.Ops[i].SrcHint[j] = Singleton(phys)
+						}
+					}
+				}
+			}
+		}
+
 		// Solve block ops
 		if len(block.Ops) > 0 {
 			pirOps, err := Solve(block.Ops, desc, opts)
 			if err != nil {
 				return "", fmt.Errorf("vir solve %s/%s: %w", f.Name, block.Label, err)
 			}
+
+			// Record vreg → physical register from solution
+			for k, p := range pirOps {
+				if k < len(block.Ops) {
+					op := block.Ops[k]
+					if op.Dst > 0 && p.DstPhys >= 0 {
+						vregPhys[op.Dst] = p.DstPhys
+					}
+					for j, s := range op.Src {
+						if s > 0 && p.SrcPhys[j] >= 0 {
+							vregPhys[s] = p.SrcPhys[j]
+						}
+					}
+				}
+			}
+
 			for _, p := range pirOps {
 				line := p.Emit(desc)
-				// Peephole: remove self-moves and no-ops
 				if isSelfMove(line) {
 					continue
 				}

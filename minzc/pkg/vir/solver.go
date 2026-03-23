@@ -31,6 +31,11 @@ type SolverOptions struct {
 	Timeout time.Duration // Z3 timeout (default 5s)
 	Z3Path  string        // path to z3 binary (default: "z3")
 	Verbose bool          // print SMT-LIB2 and model
+
+	// ParamLocs maps vreg → physical register index for function parameters.
+	// When set, the solver constrains param vregs to these locations to
+	// match the bootstrap ABI (from PBQP allocation).
+	ParamLocs map[int]int
 }
 
 // Solve converts a basic block of VIROps into PIROps using Z3 SMT solver.
@@ -1158,6 +1163,13 @@ func (p *problem) generateSMT() string {
 			constraint := locSetToSMT(fmt.Sprintf("loc_v%d", op.Dst), op.DstHint)
 			b.WriteString(fmt.Sprintf("(assert %s) ; DstHint\n", constraint))
 		}
+		// SrcHint: constrain source vreg to its known register
+		for j, s := range op.Src {
+			if s > 0 && !op.SrcHint[j].IsEmpty() {
+				constraint := locSetToSMT(fmt.Sprintf("loc_v%d", s), op.SrcHint[j])
+				b.WriteString(fmt.Sprintf("(assert %s) ; SrcHint\n", constraint))
+			}
+		}
 	}
 
 	// Pattern → location constraints + tied operands
@@ -1564,11 +1576,19 @@ func generateSMTPerInst(p *problem) string {
 		}
 	}
 
-	// DstHint hard constraints
+	// DstHint and SrcHint hard constraints
 	for i, op := range p.ops {
 		if op.Dst > 0 && !op.DstHint.IsEmpty() {
 			c := locSetToSMT(fmt.Sprintf("lv%d_i%d", op.Dst, i), op.DstHint)
 			b.WriteString(fmt.Sprintf("(assert %s) ; DstHint\n", c))
+		}
+		for j, s := range op.Src {
+			if s > 0 && !op.SrcHint[j].IsEmpty() {
+				if _, ok := vars[vregAtInst{s, i}]; ok {
+					c := locSetToSMT(fmt.Sprintf("lv%d_i%d", s, i), op.SrcHint[j])
+					b.WriteString(fmt.Sprintf("(assert %s) ; SrcHint\n", c))
+				}
+			}
 		}
 	}
 

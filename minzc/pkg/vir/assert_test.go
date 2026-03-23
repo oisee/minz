@@ -56,8 +56,26 @@ func TestVIR_Assert_Pipeline(t *testing.T) {
 		t.Logf("MIR2-VM: all %d asserts passed ✓", len(hm.Asserts))
 	}
 
-	// Generate VIR assembly
-	virAsm, results := vir.CodegenModule(m, vir.SolverOptions{Timeout: 30 * time.Second})
+	// Build param location map from PBQP allocation
+	paramLocs := make(map[int]int)
+	for _, f := range m.Funcs {
+		for _, cp := range f.Contract.Params {
+			if combined != nil {
+				if loc, ok := combined.Locs[cp.Reg]; ok {
+					idx := vir.Z80.LocByName(loc.Name)
+					if idx >= 0 {
+						paramLocs[int(cp.Reg)] = idx
+					}
+				}
+			}
+		}
+	}
+
+	// Generate VIR assembly with PBQP param locations
+	virAsm, results := vir.CodegenModule(m, vir.SolverOptions{
+		Timeout:   30 * time.Second,
+		ParamLocs: paramLocs,
+	})
 	ok, fail := 0, 0
 	for _, r := range results {
 		if r.OK {
