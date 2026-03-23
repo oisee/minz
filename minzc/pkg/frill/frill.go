@@ -1554,6 +1554,34 @@ func (p *parser) parseMatch() (hir.Expr, error) {
 		}
 	}
 
+	// For payload ADTs: wrap match in a function that pre-computes __tag.
+	// This prevents the optimizer from folding away individual __tag calls.
+	if scrutinee.ExprTy() == mir2.TyU16 {
+		tagFnName := fmt.Sprintf("__match_tag_%d", p.lambdaCount)
+		tagVarName := fmt.Sprintf("__t%d", p.lambdaCount)
+		payloadVarName := fmt.Sprintf("__v%d", p.lambdaCount)
+		p.lambdaCount++
+
+		// Build a wrapper function:
+		// __match_tag_N(opt: u16, extra_params...) =
+		//   let __tN = __tag opt in
+		//   let __vN = __payload opt in
+		//   match __tN with | ... end
+		// Then replace the match expression with a call to this wrapper.
+		// For now, simpler: replace scrutinee with __tag(scrutinee) as VarRef
+		// by emitting a VarDeclStmt into the enclosing function body.
+
+		// We can't inject stmts from inside parseMatch, so instead:
+		// use a synthetic intermediate — build the tag as a nested call
+		// that the optimizer can't fold because it's opaque.
+		_ = tagFnName
+		_ = tagVarName
+		_ = payloadVarName
+		// Override scrutinee to be __tag(scrutinee) result
+		tagScrutinee := &hir.CallExpr{Fn: "__tag", Args: []hir.Expr{scrutinee}, Ty: mir2.TyU8}
+		scrutinee = tagScrutinee
+	}
+
 	// Build nested CondExpr from bottom up.
 	// Default arm (if any) becomes the innermost else.
 	// Guards add an extra condition: (val == pat) && guard
@@ -1571,18 +1599,11 @@ func (p *parser) parseMatch() (hir.Expr, error) {
 			}
 			result = &hir.CondExpr{Cond: a.guard, Then: a.body, Else: elseE, Ty: a.body.ExprTy()}
 		} else {
-			// For payload ADTs (u16 scrutinee), compare tag byte: __tag(scrutinee) == val
-			// For simple ADTs (u8 scrutinee), compare directly: scrutinee == val
-			var lhs hir.Expr = scrutinee
-			var rTy = scrutinee.ExprTy()
-			if scrutinee.ExprTy() == mir2.TyU16 {
-				lhs = &hir.CallExpr{Fn: "__tag", Args: []hir.Expr{scrutinee}, Ty: mir2.TyU8}
-				rTy = mir2.TyU8
-			}
+			// Scrutinee is already u8 (either plain ADT or __tag(opt) from above)
 			cond := &hir.BinExpr{
 				Op: "==",
-				L:  lhs,
-				R:  &hir.IntLitExpr{Val: a.val, Ty: rTy},
+				L:  scrutinee,
+				R:  &hir.IntLitExpr{Val: a.val, Ty: scrutinee.ExprTy()},
 				Ty: mir2.TyBool,
 			}
 			if a.guard != nil {
