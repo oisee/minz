@@ -52,6 +52,7 @@ type Assert struct {
 	Source         string   // original source text (for error messages)
 	Line           int      // source line number
 	Via            string   // "" = both MIR2+Z80; "mir2" = MIR2 VM only; "z80" = Z80 only
+	StringArgs     map[int]string // arg index → string symbol (e.g. "@mir2.str.0"); resolved to heap addr at VM time
 }
 
 // Sandbox groups compile-time assertions that share a single VM instance.

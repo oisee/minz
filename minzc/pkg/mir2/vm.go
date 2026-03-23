@@ -750,6 +750,8 @@ func (vm *VM) resolveSymbol(sym string) (int64, error) {
 		offset := int64(len(vm.heap))
 		vm.heap = append(vm.heap, []byte(s)...)
 		vm.heap = append(vm.heap, 0) // NUL terminator
+		// Cache so repeated references get the same address.
+		vm.globalSyms[sym] = offset
 		return offset, nil
 	}
 	return 0, fmt.Errorf("mir2.VM: cannot resolve symbol %q", sym)

@@ -66,6 +66,7 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 		src: src, pos: 0, line: 1, name: name,
 		adts: make(map[string]*adtDef), ctors: make(map[string]*adtCtor),
 		arities: make(map[string]int), classes: make(map[string][]string),
+		stringIdx: make(map[string]int),
 		baseDir: opts.BaseDir,
 	}
 	return p.parseModule()
@@ -121,7 +122,8 @@ type parser struct {
 	ctors       map[string]*adtCtor // constructor name → ctor (for match + expr)
 	autoFuncs   []*hir.Func         // auto-generated helpers (__tag, __payload, lambdas)
 	lambdaCount int                  // counter for unique lambda names
-	strings     []string             // interned string literals
+	strings    []string             // interned string literals
+	stringIdx  map[string]int      // dedup: content → index in strings[]
 	records     []*mir2.StructTy     // record type declarations
 	arities     map[string]int       // function name → param count (for partial application)
 	baseDir     string               // for import resolution
@@ -129,6 +131,17 @@ type parser struct {
 	classes     map[string][]string  // class name → method names
 	warnings    []string             // linearity warnings
 
+}
+
+// internString deduplicates a string literal and returns its symbol.
+func (p *parser) internString(s string) string {
+	if idx, ok := p.stringIdx[s]; ok {
+		return fmt.Sprintf("@mir2.str.%d", idx)
+	}
+	idx := len(p.strings)
+	p.strings = append(p.strings, s)
+	p.stringIdx[s] = idx
+	return fmt.Sprintf("@mir2.str.%d", idx)
 }
 
 func (p *parser) peek() token {
@@ -1060,13 +1073,23 @@ func (p *parser) parseAssert() (hir.Assert, error) {
 		return hir.Assert{}, fmt.Errorf("line %d: assert: expected function name", line)
 	}
 
-	// Parse args (int literals or constructor names) until ==
+	// Parse args (int literals, constructor names, or string literals) until ==
 	var args []int64
-	for p.peek().kind == tokInt || (p.peek().kind == tokIdent && !isKeyword(p.peek().text)) {
+	var strArgs map[int]string
+	for p.peek().kind == tokInt || (p.peek().kind == tokIdent && !isKeyword(p.peek().text)) || p.peek().kind == tokString {
 		tok := p.next()
 		if tok.kind == tokInt {
 			val, _ := strconv.ParseInt(tok.text, 0, 64)
 			args = append(args, val)
+		} else if tok.kind == tokString {
+			// String literal: intern and record as a string arg
+			s := unescapeString(tok.text)
+			sym := p.internString(s)
+			if strArgs == nil {
+				strArgs = make(map[int]string)
+			}
+			strArgs[len(args)] = sym
+			args = append(args, 0) // placeholder; resolved to heap addr at VM time
 		} else if ctor, ok := p.ctors[tok.text]; ok {
 			args = append(args, ctor.tag)
 		} else {
@@ -1082,12 +1105,13 @@ func (p *parser) parseAssert() (hir.Assert, error) {
 	expected, _ := strconv.ParseInt(expTok.text, 10, 64)
 
 	return hir.Assert{
-		FuncName: funcName.text,
-		Args:     args,
-		Expected: expected,
-		Source:   fmt.Sprintf("assert %s %s == %s", funcName.text, fmtArgs(args), expTok.text),
-		Line:     line,
-		Via:      "mir2",
+		FuncName:   funcName.text,
+		Args:       args,
+		Expected:   expected,
+		StringArgs: strArgs,
+		Source:     fmt.Sprintf("assert %s %s == %s", funcName.text, fmtArgs(args), expTok.text),
+		Line:       line,
+		Via:        "mir2",
 	}, nil
 }
 
@@ -1316,10 +1340,7 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		p.next()
 		// Process escape sequences
 		s := unescapeString(t.text)
-		// Store string index for later — module will be populated in parseModule
-		idx := len(p.strings)
-		p.strings = append(p.strings, s)
-		sym := fmt.Sprintf("@mir2.str.%d", idx)
+		sym := p.internString(s)
 		return &hir.AddrOfExpr{Sym: sym}, nil
 	}
 
@@ -1420,9 +1441,7 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 			} else if pk.kind == tokString {
 				p.next()
 				s := unescapeString(pk.text)
-				idx := len(p.strings)
-				p.strings = append(p.strings, s)
-				sym := fmt.Sprintf("@mir2.str.%d", idx)
+				sym := p.internString(s)
 				args = append(args, &hir.AddrOfExpr{Sym: sym})
 			} else if pk.kind == tokLParen {
 				p.next()
@@ -2020,6 +2039,20 @@ func unescapeString(s string) string {
 				b.WriteByte('"')
 			case '0':
 				b.WriteByte(0)
+			case 'x':
+				// \xNN hex escape
+				if i+2 < len(s) {
+					hi := unhex(s[i+1])
+					lo := unhex(s[i+2])
+					if hi >= 0 && lo >= 0 {
+						b.WriteByte(byte(hi<<4 | lo))
+						i += 2
+					} else {
+						b.WriteByte('x')
+					}
+				} else {
+					b.WriteByte('x')
+				}
 			default:
 				b.WriteByte(s[i])
 			}
@@ -2028,4 +2061,17 @@ func unescapeString(s string) string {
 		}
 	}
 	return b.String()
+}
+
+func unhex(c byte) int {
+	switch {
+	case c >= '0' && c <= '9':
+		return int(c - '0')
+	case c >= 'a' && c <= 'f':
+		return int(c-'a') + 10
+	case c >= 'A' && c <= 'F':
+		return int(c-'A') + 10
+	default:
+		return -1
+	}
 }

@@ -430,6 +430,14 @@ func runOneAssertMIR2(vm *mir2.VM, a hir.Assert) error {
 	for i, v := range a.Args {
 		args[i] = mir2.Value{I: v}
 	}
+	// Resolve string args: replace placeholder 0 with actual heap address.
+	for idx, sym := range a.StringArgs {
+		addr, err := vm.ResolveSymbol(sym)
+		if err != nil {
+			return fmt.Errorf("line %d: assert %q: string arg %q: %w", a.Line, a.Source, sym, err)
+		}
+		args[idx] = mir2.Value{I: addr}
+	}
 	rets, err := vm.Call(a.FuncName, args)
 	if err != nil {
 		return fmt.Errorf("line %d: assert %q [mir2]: VM error: %w", a.Line, a.Source, err)
