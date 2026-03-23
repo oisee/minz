@@ -66,7 +66,7 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 		src: src, pos: 0, line: 1, name: name,
 		adts: make(map[string]*adtDef), ctors: make(map[string]*adtCtor),
 		arities: make(map[string]int), classes: make(map[string][]string),
-		stringIdx: make(map[string]int),
+		stringIdx: make(map[string]int), varTypes: make(map[string]mir2.Ty),
 		baseDir: opts.BaseDir,
 	}
 	return p.parseModule()
@@ -126,6 +126,7 @@ type parser struct {
 	stringIdx  map[string]int      // dedup: content → index in strings[]
 	records     []*mir2.StructTy     // record type declarations
 	arities     map[string]int       // function name → param count (for partial application)
+	varTypes    map[string]mir2.Ty   // variable/param name → declared type (for VarRefExpr)
 	baseDir     string               // for import resolution
 	lastTuple   []hir.Expr           // pending tuple elements from (e1, e2)
 	classes     map[string][]string  // class name → method names
@@ -763,6 +764,7 @@ func (p *parser) parseExtern() (*hir.Func, error) {
 			return nil, err
 		}
 		fn.Params = append(fn.Params, hir.Param{Name: pname.text, Ty: pty})
+		p.varTypes[pname.text] = pty
 	}
 	p.arities[fn.Name] = len(fn.Params)
 
@@ -884,6 +886,7 @@ func (p *parser) parseLet() (*hir.Func, error) {
 			return nil, err
 		}
 		fn.Params = append(fn.Params, hir.Param{Name: pname.text, Ty: pty})
+		p.varTypes[pname.text] = pty
 		paramQtys = append(paramQtys, paramQuantity{pname.text, qty})
 	}
 	p.arities[fn.Name] = len(fn.Params)
@@ -1519,8 +1522,12 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 			return &hir.VarRefExpr{Name: composeName, Ty: mir2.TyU8}, nil
 		}
 
-		// Variable reference
-		return &hir.VarRefExpr{Name: name, Ty: mir2.TyU8}, nil
+		// Variable reference — use declared type if known.
+		ty := mir2.Ty(mir2.TyU8)
+		if t, ok := p.varTypes[name]; ok {
+			ty = t
+		}
+		return &hir.VarRefExpr{Name: name, Ty: ty}, nil
 	}
 
 	return nil, fmt.Errorf("line %d: unexpected token %q", t.line, t.text)
@@ -1659,6 +1666,7 @@ func (p *parser) parseBodyExpr() (hir.Expr, []hir.Stmt, error) {
 			Ty:   val.ExprTy(),
 			Init: val,
 		})
+		p.varTypes[nameTok.text] = val.ExprTy()
 		} else if p.peek().kind == tokIdent && p.peek().text == "while" {
 			// while cond do ... end
 			p.next() // consume "while"

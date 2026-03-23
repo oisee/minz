@@ -21,7 +21,7 @@ let TOK_EQ (x : u8) = 9
 let TOK_OTHER (x : u8) = 10
 
 (* Skip whitespace *)
-let skip_spaces (src : u8) (pos : u8) =
+let skip_spaces (src : u16) (pos : u8) =
   let p = pos in
   while is_space (peek (src + p)) > 0 do
     do p <- p + 1
@@ -29,7 +29,7 @@ let skip_spaces (src : u8) (pos : u8) =
   p
 
 (* Read integer value from position *)
-let read_int (src : u8) (pos : u8) =
+let read_int (src : u16) (pos : u8) =
   let val = 0 in
   let p = pos in
   while is_digit (peek (src + p)) > 0 do
@@ -39,7 +39,7 @@ let read_int (src : u8) (pos : u8) =
   val
 
 (* Read integer length (how many digits) *)
-let read_int_len (src : u8) (pos : u8) =
+let read_int_len (src : u16) (pos : u8) =
   let p = pos in
   while is_digit (peek (src + p)) > 0 do
     do p <- p + 1
@@ -47,7 +47,7 @@ let read_int_len (src : u8) (pos : u8) =
   p - pos
 
 (* Read identifier length *)
-let read_ident_len (src : u8) (pos : u8) =
+let read_ident_len (src : u16) (pos : u8) =
   let p = pos in
   while is_alnum (peek (src + p)) > 0 do
     do p <- p + 1
@@ -66,7 +66,7 @@ let char_to_tok (ch : u8) =
   else 10
 
 (* Get next token type from src at pos *)
-let next_token (src : u8) (pos : u8) =
+let next_token (src : u16) (pos : u8) =
   let p = skip_spaces src pos in
   let ch = peek (src + p) in
   if is_eof ch > 0 then 0
@@ -75,7 +75,7 @@ let next_token (src : u8) (pos : u8) =
   else char_to_tok ch
 
 (* Advance past current token, return new position *)
-let skip_token (src : u8) (pos : u8) =
+let skip_token (src : u16) (pos : u8) =
   let p = skip_spaces src pos in
   let ch = peek (src + p) in
   if is_eof ch > 0 then p
