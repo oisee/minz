@@ -292,14 +292,15 @@ func fuseLoad16LE(ops []VIROp) []VIROp {
 
 	var result []VIROp
 	for i, op := range ops {
-		if skip[i] {
-			continue
-		}
+		// Check fusion FIRST (fused ops are in skip set but get replaced)
 		if f, isFusion := fusionAt[i]; isFusion {
 			result = append(result, VIROp{
 				Op: OpLoad16LE, Dst: f.dstVreg,
 				Src: [2]int{f.baseVreg, -1}, Width: 16,
 			})
+			continue
+		}
+		if skip[i] {
 			continue
 		}
 		result = append(result, op)
