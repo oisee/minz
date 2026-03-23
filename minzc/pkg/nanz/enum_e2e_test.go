@@ -158,6 +158,142 @@ fun double_score(s: Score) -> Score {
 	}
 }
 
+// ── ADT (enum with payload) tests ──────────────────────────────────────────
+
+func TestADT_E2E_SimpleMatch(t *testing.T) {
+	src := `enum Color { Red, Green, Blue }
+
+fun describe(c: Color) -> u8 {
+    return match c {
+        Red   => 1,
+        Green => 2,
+        Blue  => 3,
+    }
+}
+
+fun test_match() -> u8 {
+    var c: Color = Color.Green
+    return describe(c)
+}
+`
+	got, err := compileAndRunEnum(t, src, "test_match")
+	if err != nil {
+		t.Fatalf("compile/run: %v", err)
+	}
+	if got != 2 {
+		t.Errorf("match Green: want 2, got %d", got)
+	}
+}
+
+func TestADT_E2E_PayloadConstructor(t *testing.T) {
+	src := `enum Option { None, Some(u8) }
+
+fun get_some_val() -> u8 {
+    var x: u16 = 0
+    x = Some(42)
+    return u8((x % 256))
+}
+`
+	got, err := compileAndRunEnum(t, src, "get_some_val")
+	if err != nil {
+		t.Fatalf("compile/run: %v", err)
+	}
+	if got != 42 {
+		t.Errorf("Some(42) payload: want 42, got %d", got)
+	}
+}
+
+func TestADT_E2E_PayloadTag(t *testing.T) {
+	src := `enum Option { None, Some(u8) }
+
+fun get_some_tag() -> u8 {
+    var x: u16 = 0
+    x = Some(42)
+    return u8((x / 256))
+}
+`
+	got, err := compileAndRunEnum(t, src, "get_some_tag")
+	if err != nil {
+		t.Fatalf("compile/run: %v", err)
+	}
+	if got != 1 {
+		t.Errorf("Some tag: want 1, got %d", got)
+	}
+}
+
+func TestADT_E2E_NoneTag(t *testing.T) {
+	src := `enum Option { None, Some(u8) }
+
+fun get_none_tag() -> u8 {
+    var x: u16 = 0
+    x = None
+    return u8((x / 256))
+}
+`
+	got, err := compileAndRunEnum(t, src, "get_none_tag")
+	if err != nil {
+		t.Fatalf("compile/run: %v", err)
+	}
+	if got != 0 {
+		t.Errorf("None tag: want 0, got %d", got)
+	}
+}
+
+func TestADT_E2E_TagHelper(t *testing.T) {
+	src := `enum Option { None, Some(u8) }
+
+fun test_tag() -> u8 {
+    var x: u16 = Some(99)
+    return __tag(x)
+}
+`
+	got, err := compileAndRunEnum(t, src, "test_tag")
+	if err != nil {
+		t.Fatalf("compile/run: %v", err)
+	}
+	if got != 1 {
+		t.Errorf("__tag(Some(99)): want 1, got %d", got)
+	}
+}
+
+func TestADT_E2E_PayloadHelper(t *testing.T) {
+	src := `enum Option { None, Some(u8) }
+
+fun test_payload() -> u8 {
+    var x: u16 = Some(99)
+    return __payload(x)
+}
+`
+	got, err := compileAndRunEnum(t, src, "test_payload")
+	if err != nil {
+		t.Fatalf("compile/run: %v", err)
+	}
+	if got != 99 {
+		t.Errorf("__payload(Some(99)): want 99, got %d", got)
+	}
+}
+
+func TestADT_E2E_NoneVsPayload(t *testing.T) {
+	src := `enum Option { None, Some(u8) }
+
+fun is_some(opt: u16) -> u8 {
+    return __tag(opt)
+}
+
+fun test_none_check() -> u8 {
+    var x: u16 = None
+    return is_some(x)
+}
+`
+	got, err := compileAndRunEnum(t, src, "test_none_check")
+	if err != nil {
+		t.Fatalf("compile/run: %v", err)
+	}
+	if got != 0 {
+		t.Errorf("is_some(None): want 0, got %d", got)
+	}
+}
+
 func TestEnum_E2E_InExpression(t *testing.T) {
 	src := `enum Base {
     ZERO = 0,

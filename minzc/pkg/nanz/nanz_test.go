@@ -2917,6 +2917,89 @@ fun test() -> u8 { return State.INVALID }
 	}
 }
 
+func TestADT_Parse_Payload(t *testing.T) {
+	src := `enum Option { None, Some(u8) }
+
+fun unwrap(x: u16) -> u8 {
+    return u8((x % 256))
+}
+`
+	m, err := nanz.Parse(src, "adt_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	// Should have unwrap + __tag + __payload = 3 funcs
+	if len(m.Funcs) < 1 {
+		t.Errorf("expected at least 1 func, got %d", len(m.Funcs))
+	}
+	// Verify __tag and __payload are generated
+	names := map[string]bool{}
+	for _, f := range m.Funcs {
+		names[f.Name] = true
+	}
+	if !names["__tag"] {
+		t.Error("missing __tag helper")
+	}
+	if !names["__payload"] {
+		t.Error("missing __payload helper")
+	}
+}
+
+func TestADT_Parse_SimpleMatch(t *testing.T) {
+	src := `enum Color { Red, Green, Blue }
+
+fun describe(c: Color) -> u8 {
+    return match c {
+        Red   => 1,
+        Green => 2,
+        Blue  => 3,
+    }
+}
+`
+	m, err := nanz.Parse(src, "match_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	if len(m.Funcs) != 1 {
+		t.Errorf("funcs: want 1, got %d", len(m.Funcs))
+	}
+}
+
+func TestADT_Parse_MatchExhaustive(t *testing.T) {
+	src := `enum Color { Red, Green, Blue }
+
+fun describe(c: Color) -> u8 {
+    return match c {
+        Red   => 1,
+        Green => 2,
+    }
+}
+`
+	_, err := nanz.Parse(src, "exhaustive_test")
+	if err == nil {
+		t.Fatal("expected exhaustiveness error")
+	}
+	if !strings.Contains(err.Error(), "not exhaustive") {
+		t.Errorf("expected 'not exhaustive' error, got: %v", err)
+	}
+}
+
+func TestADT_Parse_MatchWildcard(t *testing.T) {
+	src := `enum Color { Red, Green, Blue }
+
+fun describe(c: Color) -> u8 {
+    return match c {
+        Red => 1,
+        _   => 0,
+    }
+}
+`
+	_, err := nanz.Parse(src, "wildcard_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+}
+
 func TestPipeDecl(t *testing.T) {
 	src := `
 fun is_alive(x: u8) -> bool { return (x > 0) }
