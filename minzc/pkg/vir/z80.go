@@ -384,6 +384,11 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			SrcLocs: [2]LocSet{Z80_HL},
 			Template: "LD A, (HL)\n    INC HL\n    LD H, (HL)\n    LD L, A",
 			Cost: 22, Bytes: 4, Flags: PatMemRead, TiedDstSrc: true},
+		// Load16LE: fused FatFS ld_word — same Z80 code
+		{Name: "load16_le_hl", Op: OpLoad16LE, DstLocs: Z80_HL,
+			SrcLocs: [2]LocSet{Z80_HL},
+			Template: "LD A, (HL)\n    INC HL\n    LD H, (HL)\n    LD L, A",
+			Cost: 22, Bytes: 4, Flags: PatMemRead, TiedDstSrc: true},
 
 		// ── Memory stores — 8-bit ────────────────────────────────────
 		{Name: "ld_hl_a", Op: OpStore, Width: 8,
