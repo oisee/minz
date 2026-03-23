@@ -514,6 +514,7 @@ type parser struct {
 	adts            map[string]*nanzADT             // type name → ADT definition
 	adtCtors        map[string]*nanzADTCtor         // constructor name → ctor (for match + expr)
 	autoFuncs       []*hir.Func                     // auto-generated helpers (__tag, __payload, lambdas)
+	localArrayID    int                              // counter for mangled local array globals
 }
 
 // pipeStep is one stage in a named pipe/trans declaration.
@@ -2601,6 +2602,36 @@ func (p *parser) parseLetDecl() (hir.Stmt, error) {
 
 	if _, err := p.l.eat(tokEq); err != nil {
 		return nil, err
+	}
+
+	// Array literal initializer: let arr: [u8; 5] = [1, 2, 3, 4, 5]
+	// → generate mangled global, return VarDeclStmt pointing to it.
+	if p.l.is(tokLBrack) && ty != nil {
+		if at, isArr := ty.(*mir2.ArrayTy); isArr {
+			initData, err := p.parseInitializer(ty)
+			if err != nil {
+				return nil, err
+			}
+			mangledName := fmt.Sprintf("__arr_%d", p.localArrayID)
+			p.localArrayID++
+			p.module.Globals = append(p.module.Globals, mir2.Global{
+				Name: mangledName,
+				Ty:   ty,
+				Init: initData,
+			})
+			// Return var decl as array with pointer to the mangled global.
+			d := &hir.VarDeclStmt{
+				Name:     nameTok.val,
+				Ty:       at.Elem,
+				ArrayLen: at.Len,
+				Init:     &hir.AddrOfExpr{Sym: mangledName},
+			}
+			p.varTypes[nameTok.val] = at.Elem
+			if p.uninitVars != nil {
+				delete(p.uninitVars, nameTok.val)
+			}
+			return d, nil
+		}
 	}
 
 	init, err := p.parseExpr()
