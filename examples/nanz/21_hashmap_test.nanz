@@ -1,0 +1,162 @@
+// HashMap E2E test — full put/get/overwrite/multi using global array storage
+//
+// Uses global byte arrays as backing store (works on both MIR2 VM and Z80).
+// 16-slot map: keys[32B] + vals[32B] + used[16B] = 80 bytes
+
+global map_keys: [u8; 32]
+global map_vals: [u8; 32]
+global map_used: [u8; 16]
+global map_count: u16
+
+fun rd16(arr: ^u8, idx: u16) -> u16 {
+    var base: u16 = idx * 2
+    return u16(arr[base]) + u16(arr[base + 1]) * 256
+}
+
+fun wr16(arr: ^u8, idx: u16, val: u16) {
+    var base: u16 = idx * 2
+    arr[base] = u8(val)
+    arr[base + 1] = u8(val / 256)
+}
+
+fun hash16(key: u16) -> u16 {
+    var shifted: u16 = key + 37
+    return key xor shifted
+}
+
+fun map_clear() {
+    map_count = 0
+    var i: u8 = 0
+    while (i < 16) {
+        map_used[i] = 0
+        i = i + 1
+    }
+}
+
+fun map_put(key: u16, val: u16) -> u8 {
+    var slot: u16 = hash16(key) & 15
+    var probes: u8 = 0
+    while (probes < 16) {
+        if (map_used[slot] == 0) {
+            map_used[slot] = 1
+            wr16(map_keys, slot, key)
+            wr16(map_vals, slot, val)
+            map_count = map_count + 1
+            return 1
+        }
+        if (rd16(map_keys, slot) == key) {
+            wr16(map_vals, slot, val)
+            return 1
+        }
+        slot = (slot + 1) & 15
+        probes = probes + 1
+    }
+    return 0
+}
+
+fun map_get(key: u16) -> u16 {
+    var slot: u16 = hash16(key) & 15
+    var probes: u8 = 0
+    while (probes < 16) {
+        if (map_used[slot] == 0) { return 0xFFFF }
+        if (rd16(map_keys, slot) == key) {
+            return rd16(map_vals, slot)
+        }
+        slot = (slot + 1) & 15
+        probes = probes + 1
+    }
+    return 0xFFFF
+}
+
+fun map_has(key: u16) -> u8 {
+    if (map_get(key) == 0xFFFF) { return 0 }
+    return 1
+}
+
+// --- Tests ---
+
+fun test_put_get() -> u8 {
+    map_clear()
+    map_put(42, 100)
+    if (map_get(42) == 100) { return 1 }
+    return 0
+}
+
+fun test_missing() -> u8 {
+    map_clear()
+    if (map_get(99) == 0xFFFF) { return 1 }
+    return 0
+}
+
+fun test_overwrite() -> u8 {
+    map_clear()
+    map_put(10, 200)
+    map_put(10, 300)
+    if (map_get(10) == 300) { return 1 }
+    return 0
+}
+
+fun test_two_keys() -> u8 {
+    map_clear()
+    map_put(1, 10)
+    map_put(2, 20)
+    var v1: u16 = map_get(1)
+    var v2: u16 = map_get(2)
+    if (v1 == 10) {
+        if (v2 == 20) { return 1 }
+    }
+    return 0
+}
+
+fun test_has() -> u8 {
+    map_clear()
+    map_put(7, 77)
+    var h1: u8 = map_has(7)
+    var h2: u8 = map_has(8)
+    if (h1 == 1) {
+        if (h2 == 0) { return 1 }
+    }
+    return 0
+}
+
+fun test_count() -> u8 {
+    map_clear()
+    map_put(1, 10)
+    map_put(2, 20)
+    map_put(3, 30)
+    if (map_count == 3) { return 1 }
+    return 0
+}
+
+fun test_zero_key() -> u8 {
+    map_clear()
+    map_put(0, 999)
+    if (map_get(0) == 999) { return 1 }
+    return 0
+}
+
+fun test_many() -> u8 {
+    map_clear()
+    map_put(10, 100)
+    map_put(20, 200)
+    map_put(30, 300)
+    map_put(40, 400)
+    map_put(50, 500)
+    var sum: u16 = 0
+    sum = sum + map_get(10)
+    sum = sum + map_get(20)
+    sum = sum + map_get(30)
+    sum = sum + map_get(40)
+    sum = sum + map_get(50)
+    if (sum == 1500) { return 1 }
+    return 0
+}
+
+assert test_put_get() == 1 via mir2
+assert test_missing() == 1 via mir2
+assert test_overwrite() == 1 via mir2
+assert test_two_keys() == 1 via mir2
+assert test_has() == 1 via mir2
+assert test_count() == 1 via mir2
+assert test_zero_key() == 1 via mir2
+assert test_many() == 1 via mir2

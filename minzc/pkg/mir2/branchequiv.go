@@ -28,6 +28,11 @@ package mir2
 // For all u8 values v (0..255), run original(v, v) and patched(v, v) through
 // the VM.  If results always match, the branch is provably redundant.
 func BranchEquiv(m *Module, f *Func) bool {
+	// Skip functions that contain calls — they may have side effects or be
+	// too expensive to test-execute (e.g. canvas rendering loops).
+	if funcHasCalls(f) {
+		return false
+	}
 	vm := NewVM(m)
 	changed := false
 
@@ -189,31 +194,92 @@ func beqTestEquivalent(
 // beqBoundaryInputs returns argument vectors that satisfy the equality condition.
 //
 // For param-vs-param (rhsIdx >= 0): iterate v over 0..255 (u8 exhaustive),
-// setting args[lhsIdx] = args[rhsIdx] = v, all other params = 0.
+// setting args[lhsIdx] = args[rhsIdx] = v, other params get a representative
+// spread of values.
 //
-// For param-vs-const: test only v == rhsConst (the single boundary point).
+// For param-vs-const: fix lhs param = rhsConst, sweep all other params over
+// 256 values so the proof covers non-zero secondary arguments.
 func beqBoundaryInputs(gen *beqBoundaryGen) [][]Value {
 	n := gen.nParams
-	base := make([]Value, n) // all zeros
 
 	if gen.rhsIdx < 0 {
-		// One boundary point: lhs param == rhsConst.
-		args := make([]Value, n)
-		copy(args, base)
-		args[gen.lhsIdx] = Value{I: gen.rhsConst}
-		return [][]Value{args}
+		// Param-vs-const: fix the equality-constrained param, sweep others.
+		// For each other param, test 256 values (u8 exhaustive).
+		// If no other params, test the single boundary point.
+		var otherIdxs []int
+		for i := 0; i < n; i++ {
+			if i != gen.lhsIdx {
+				otherIdxs = append(otherIdxs, i)
+			}
+		}
+		if len(otherIdxs) == 0 {
+			args := make([]Value, n)
+			args[gen.lhsIdx] = Value{I: gen.rhsConst}
+			return [][]Value{args}
+		}
+		// Sweep each other param over 256 values individually, PLUS a cross
+		// product of representative values for all other params to catch
+		// interactions (e.g., a*b where one-at-a-time with 0 is always 0).
+		var inputs [][]Value
+		reps := []int64{0, 1, 2, 127, 255} // representative values
+		// Individual sweeps.
+		for _, oi := range otherIdxs {
+			for v := 0; v < 256; v++ {
+				args := make([]Value, n)
+				args[gen.lhsIdx] = Value{I: gen.rhsConst}
+				args[oi] = Value{I: int64(v)}
+				inputs = append(inputs, args)
+			}
+		}
+		// Cross-product of representatives for all other params.
+		if len(otherIdxs) >= 2 {
+			for _, v0 := range reps {
+				for _, v1 := range reps {
+					args := make([]Value, n)
+					args[gen.lhsIdx] = Value{I: gen.rhsConst}
+					args[otherIdxs[0]] = Value{I: v0}
+					args[otherIdxs[1]] = Value{I: v1}
+					inputs = append(inputs, args)
+				}
+			}
+		}
+		return inputs
 	}
 
-	// Param-vs-param: test all 256 u8 values.
-	inputs := make([][]Value, 256)
+	// Param-vs-param: test all 256 u8 values, sweep other params similarly.
+	var inputs [][]Value
 	for v := 0; v < 256; v++ {
 		args := make([]Value, n)
-		copy(args, base)
 		args[gen.lhsIdx] = Value{I: int64(v)}
 		args[gen.rhsIdx] = Value{I: int64(v)}
-		inputs[v] = args
+		inputs = append(inputs, args)
+	}
+	// Also sweep other params (if any) with lhs==rhs held at a representative value.
+	for i := 0; i < n; i++ {
+		if i == gen.lhsIdx || i == gen.rhsIdx {
+			continue
+		}
+		for v := 0; v < 256; v++ {
+			args := make([]Value, n)
+			args[gen.lhsIdx] = Value{I: 42}
+			args[gen.rhsIdx] = Value{I: 42}
+			args[i] = Value{I: int64(v)}
+			inputs = append(inputs, args)
+		}
 	}
 	return inputs
+}
+
+// funcHasCalls reports whether f contains any OpCall or OpCallIndirect instructions.
+func funcHasCalls(f *Func) bool {
+	for _, blk := range f.Blocks {
+		for _, inst := range blk.Insts {
+			if inst.Op == OpCall || inst.Op == OpCallIndirect {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // beqResultsEqual compares two return-value slices for equality.

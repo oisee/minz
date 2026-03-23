@@ -349,6 +349,18 @@ func NewRanged(base Ty, lo, hi int64) *RangedTy {
 	return &RangedTy{Base: base, Lo: lo, Hi: hi}
 }
 
+// ── Type variable (for parametric polymorphism) ──────────────────────────────
+
+// TyVarTy is a placeholder for a type variable ('a, 'b, etc.) that will be
+// resolved to a concrete type during monomorphization.
+type TyVarTy struct {
+	Name string // e.g. "'a"
+}
+
+func (t *TyVarTy) Width() int     { return 8 } // default; meaningless before resolution
+func (t *TyVarTy) String() string { return t.Name }
+func (t *TyVarTy) isTy()          {}
+
 // IsRanged reports whether ty is a ranged integer type.
 func IsRanged(ty Ty) bool {
 	_, ok := ty.(*RangedTy)

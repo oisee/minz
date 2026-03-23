@@ -1,17 +1,17 @@
-# The Nanz Language Book — v5.3
+# The Nanz Language Book — v6.0
 
 > **Modern language. Vintage iron. Zero overhead.**
 >
 > Nanz is a statically typed systems language that compiles to Z80 assembly
 > with no runtime, no garbage collector, and no performance tax.
-> Every abstraction — iterators, lambdas, interfaces, closures — disappears
-> at compile time and leaves only tight machine code.
+> Every abstraction — iterators, lambdas, interfaces, ADTs, pattern matching —
+> disappears at compile time and leaves only tight machine code.
 >
 > *Also targets native AMD64 via C99 and QBE, and MOS 6502.*
 
-**Version:** MinZ compiler v0.21.x (2026-03-15)
-**Date:** 2026-03-15
-**Status:** Core features stable · 34/34 showcase · 26/26 test packages
+**Version:** MinZ compiler v0.23.0 (2026-03-23)
+**Date:** 2026-03-23
+**Status:** Core features stable · ADT + match · 8 frontends · 26/26 test packages
 
 ---
 
@@ -32,12 +32,13 @@
 13. [Native Compilation: `mzn`](#chapter-13-native-compilation-mzn)
 14. [Roadmap: What's Coming](#chapter-14-roadmap-whats-coming)
 15. [Memory Management: Arena Allocators](#chapter-15-memory-management-arena-allocators)
-16. [Enums and Type Aliases](#chapter-16-enums-and-type-aliases)
+16. [Enums, ADTs, Match, and Type Aliases](#chapter-16-enums-adts-match-and-type-aliases)
 17. [Module System](#chapter-17-module-system)
 18. [Strings and Text Output](#chapter-18-strings-and-text-output)
 19. [Pipe/Trans: Named Iterator Pipelines](#chapter-19-pipetrans-named-iterator-pipelines)
 20. [Metaprogramming: @derive and Introspection](#chapter-20-metaprogramming-derive-and-introspection)
 21. [Cross-Language Imports](#chapter-21-cross-language-imports)
+22. [Self-Hosting: Can Nanz Compile Itself?](#chapter-22-self-hosting--can-nanz-compile-itself)
 
 - [Appendix A: Grammar](#appendix-a-grammar)
 - [Appendix B: Register Classes](#appendix-b-register-classes)
@@ -1726,7 +1727,7 @@ Right-click any `.nanz` file for native compilation commands:
 
 - **Z80 signed codegen:** `S^V` flag for hardware i8/i16 `<`/`>=`
 - **WASM backend:** Nanz → MIR2 → WASM for browser demos
-- **Pattern matching:** Enum destructuring with exhaustiveness checking
+- **Pattern matching:** Done ✅ — `match` expression with ADT payloads, exhaustive check (Chapter 16)
 - **Generator syntax:** `gen { yield }` for lazy iteration
 
 ---
@@ -1933,19 +1934,16 @@ The same sandbox can use `via z80` to verify the Z80 binary produces identical r
 
 ---
 
-## Chapter 16: Enums and Type Aliases
+## Chapter 16: Enums, ADTs, Match, and Type Aliases
 
-### 16.1 Enum Declarations
+Nanz has two kinds of enums: **simple enums** (C-style integer constants) and **ADT enums** (algebraic data types with payload). Both support pattern matching via `match` expressions.
 
-Enums define named integer constants with auto-incrementing or explicit values:
+### 16.1 Simple Enums
+
+Simple enums define named integer constants with auto-incrementing or explicit values. They compile to `u8`:
 
 ```nanz
-enum State {
-    IDLE,        // 0
-    RUNNING,     // 1
-    PAUSED,      // 2
-    GAME_OVER    // 3
-}
+enum State { Idle, Running, Paused, GameOver }  // 0, 1, 2, 3
 
 enum Color {
     RED = 1,
@@ -1955,15 +1953,11 @@ enum Color {
 }
 ```
 
-**Access syntax:** dot notation — `State.IDLE`, `Color.RED`. Values resolve to integer constants at compile time.
+**Access syntax:** dot notation — `State.Idle`, `Color.RED`. Values resolve to integer constants at compile time.
 
 ```nanz
 fun get_state() -> u8 {
-    return State.GAME_OVER       // → LD A, 3
-}
-
-fun mix() -> u8 {
-    return (Color.RED + Color.BLUE)  // → LD A, 5
+    return State.GameOver       // → LD A, 3
 }
 ```
 
@@ -1971,23 +1965,177 @@ fun mix() -> u8 {
 
 ```asm
 get_state:
-    LD A, 3        ; State.GAME_OVER
-    RET
-mix:
-    LD A, 5        ; RED(1) + BLUE(4)
+    LD A, 3        ; State.GameOver
     RET
 ```
 
-Enums work in assertions — both as arguments and expected values:
+### 16.2 ADT Enums (Algebraic Data Types)
+
+When any variant carries a **payload**, the enum becomes an ADT encoded as `u16`:
 
 ```nanz
-assert get_state() == 3
-assert identity(State.IDLE) == 0
-assert identity(Color.WHITE) == 7
-assert identity(State.GAME_OVER) == State.GAME_OVER
+enum Option { None, Some(u8) }
+enum Result { Ok(u8), Err(u8) }
 ```
 
-### 16.2 Type Aliases
+**Encoding:** high byte = tag, low byte = payload.
+
+| Value | Encoded u16 | Tag (high) | Payload (low) |
+|-------|-------------|------------|---------------|
+| `None` | `0x0000` | 0 | 0 |
+| `Some(42)` | `0x012A` | 1 | 42 |
+| `Ok(5)` | `0x0005` | 0 | 5 |
+| `Err(3)` | `0x0103` | 1 | 3 |
+
+The compiler auto-generates two helper functions:
+
+- `__tag(x: u16) -> u8` — extracts `x / 256` (on Z80: `LD A, H`)
+- `__payload(x: u16) -> u8` — extracts `x % 256` (on Z80: `LD A, L`)
+
+**Constructors are expressions:**
+
+```nanz
+var opt: u16 = Some(42)     // 0x012A
+var none: u16 = None         // 0x0000
+
+fun make_result(ok: bool, val: u8) -> u16 {
+    if ok { return Ok(val) }
+    return Err(1)
+}
+```
+
+**The Option pattern — safe nullable values:**
+
+```nanz
+enum Option { None, Some(u8) }
+
+fun unwrap_or(opt: u16, def: u8) -> u8 {
+    if (__tag(opt) == 1) { return __payload(opt) }
+    return def
+}
+
+fun map_option(opt: u16, delta: u8) -> u16 {
+    if (__tag(opt) == 0) { return None }
+    return Some(__payload(opt) + delta)
+}
+```
+
+**The Result pattern — typed error handling:**
+
+```nanz
+enum Result { Ok(u8), Err(u8) }
+
+fun safe_add(a: u8, b: u8) -> u16 {
+    if (u16(a) + u16(b) > 255) { return Err(1) }
+    return Ok(a + b)
+}
+```
+
+**Z80 cost:** Constructors are a single `LD HL, imm16` or `LD H, tag / LD L, val`. Tag extraction is `LD A, H`. Payload extraction is `LD A, L`. Total overhead: 1-2 instructions per ADT operation. On Z80 this is as cheap as it gets — HL is the natural u16 register pair.
+
+### 16.3 Match Expressions
+
+`match` is an **expression** (returns a value) that dispatches on enum variants. Syntax is Rust-style:
+
+```nanz
+enum Color { Red, Green, Blue }
+
+fun color_code(c: Color) -> u8 {
+    return match c {
+        Red   => 5,
+        Green => 10,
+        Blue  => 15,
+    }
+}
+```
+
+**Generated Z80** (production MIR2 backend):
+
+```asm
+color_code:               ; A = color tag
+    AND A                 ; test A == 0 (Red)
+    JR NZ, .cret_else
+    LD A, 5               ; Red => 5
+    RET
+.cret_else:
+    CP 1                  ; Green?
+    JR NZ, .cond_else
+    LD A, 10              ; Green => 10
+    RET
+.cond_else:
+    CP 2
+    LD A, 0               ; fallback
+    RET NZ
+    LD A, 15              ; Blue => 15
+    RET
+```
+
+**Exhaustive check:** The compiler verifies all variants are covered. Missing a variant is a compile error:
+
+```nanz
+fun broken(c: Color) -> u8 {
+    return match c {
+        Red   => 1,
+        Green => 2,
+        // ERROR: match is not exhaustive, missing: Blue
+    }
+}
+```
+
+**Wildcard pattern** `_` matches anything and suppresses the exhaustive check:
+
+```nanz
+fun is_warm(c: Color) -> u8 {
+    return match c {
+        Red => 1,
+        _   => 0,    // Green and Blue
+    }
+}
+```
+
+**Nested match** — state machine pattern:
+
+```nanz
+enum State { Idle, Walking, Jumping, Dead }
+
+fun state_speed(s: State) -> u8 {
+    return match s {
+        Idle    => 0,
+        Walking => 2,
+        Jumping => 4,
+        Dead    => 0,
+    }
+}
+
+fun is_alive(s: State) -> u8 {
+    return match s {
+        Dead => 0,
+        _    => 1,
+    }
+}
+```
+
+### 16.4 Match with Payload Binding
+
+For ADT enums, match arms can **bind the payload** to a variable:
+
+```nanz
+enum Option { None, Some(u8) }
+
+fun describe(opt: Option) -> u8 {
+    return match opt {
+        Some(v) => v + 1,    // v binds to the payload
+        None    => 0,
+    }
+}
+```
+
+Under the hood, the compiler generates a helper function for each payload binding:
+- `Some(v) => v + 1` becomes `__mpay_0(__payload(scrutinee))` where `__mpay_0(v) = v + 1`
+
+This is the same approach Frill uses — zero-cost at the Z80 level because the helper is inlined.
+
+### 16.5 Type Aliases
 
 Type aliases give semantic names to existing types:
 
@@ -2009,7 +2157,17 @@ assert damage(0, 42) == 42
 
 **Z80 output:** Type aliases produce no code. They exist only at the type-checking level.
 
-**Future:** Newtype aliases (opaque — `type PlayerID != u8`) are designed but not yet implemented. These would prevent accidentally passing a `Score` where a `PlayerID` is expected.
+### 16.6 Design: Why u16 for ADTs?
+
+On Z80, `u16` maps naturally to the `HL` register pair. Tag in `H`, payload in `L`. Extraction is a single register read — no memory access, no shifting, no masking. Compare with alternatives:
+
+| Approach | Tag cost | Payload cost | Total |
+|----------|----------|-------------|-------|
+| **u16 (H=tag, L=payload)** | `LD A, H` (4T) | `LD A, L` (4T) | 8T |
+| Struct (2 bytes) | `LD A, (HL)` (7T) | `INC HL; LD A, (HL)` (13T) | 20T |
+| Bitfield (u8) | `AND 0xC0; RRCA; RRCA` (18T) | `AND 0x3F` (7T) | 25T |
+
+The u16 encoding is 2.5-3x faster than alternatives. The tradeoff: payload is limited to u8 (0-255). For u16 payloads, use a struct instead.
 
 ---
 
@@ -2761,7 +2919,11 @@ mod_path       = IDENT ('.' IDENT)*
 import_list    = '*' | IDENT (',' IDENT)*
 
 enum_decl      = 'enum' IDENT '{' enum_member (',' enum_member)* ','? '}'
-enum_member    = IDENT ('=' INT)?
+enum_member    = IDENT ['(' type ')'] ['=' INT]
+                 -- without payload: u8 tags (C-style)
+                 -- with payload:    u16 encoding (tag<<8 | payload)
+match_expr     = 'match' expr '{' (pattern '=>' expr ',')* '}'
+pattern        = '_' | INT | IDENT | IDENT '(' IDENT ')'
 
 type_alias     = 'type' IDENT '=' type
 
@@ -3239,6 +3401,183 @@ fun write_fat12(fat: ^u8, clst: u16, val: u16) -> void {
 ```
 
 Verified end-to-end via **5 independent channels**: Nanz writes text files, binary files (0xDEADBEEF pattern), multi-sector files (700B, i%251), deletes and overwrites — then verified by (A) same Nanz VM, (B) fresh Nanz VM reload, (C) gcc-compiled FatFS R0.16 (14/14), (D) C89 MIR2 VM FAT structure, (E) raw byte inspection. FAT copy synchronization verified. Differential testing proves 28/28 bit-identical low-level results vs C89. 11 total FatFS tests, all PASS.
+
+---
+
+## Chapter 22: Self-Hosting — Can Nanz Compile Itself?
+
+The holy grail of language design: a compiler written in its own language. Can Nanz compile Nanz? The short answer is *partially yes*, and the architecture makes this more interesting than a simple "write a parser in itself" exercise.
+
+### 22.1 The Staged Pipeline Vision
+
+The MinZ compilation pipeline has natural **stage boundaries**:
+
+```
+Stage 1: Source → HIR      (parsing, name resolution, type checking)
+Stage 2: HIR → MIR2        (lowering to SSA, typed virtual registers)
+Stage 3: MIR2 → MIR2       (optimization passes: DCE, const fold, Grace rules)
+Stage 4: MIR2 → Z80 ASM    (register allocation, instruction selection, peephole)
+Stage 5: ASM → Binary      (assembly, label resolution, relocation)
+```
+
+Each stage is a pure function: `data in → data out`. This means each stage could be a **separate tool**, and any single stage could be rewritten in Nanz while the others remain in Go.
+
+The key insight: **you don't need to self-host the entire compiler at once.** You can self-host one stage at a time, using the Go compiler to bootstrap the rest.
+
+### 22.2 What's Feasible Today
+
+**Stage 5 (Assembler) — Feasible Now**
+
+The Z80 assembler (`mza`) is table-driven: opcode table + label resolution + binary emit. This is ~8KB of logic with no complex data structures. A Nanz implementation could:
+- Use a fixed-size array for labels (512 entries covers most programs)
+- Walk instruction tokens linearly
+- Emit binary bytes to a buffer
+
+This fits in 48KB and could run on a real Z80 under CP/M.
+
+**Stage 4 (Codegen) — Feasible with Effort**
+
+The Z80 code generator reads MIR2 (virtual registers + typed ops) and emits assembly. It's ~15KB of pattern matching logic. With `match` expressions now available, this maps naturally to Nanz:
+
+```nanz
+enum MirOp { Add, Sub, Mul, Load, Store, Call, Cmp, Br, Ret }
+
+fun emit_op(op: MirOp, dst: u8, src1: u8, src2: u8) {
+    match op {
+        Add  => emit_add(dst, src1, src2),
+        Sub  => emit_sub(dst, src1, src2),
+        Load => emit_load(dst, src1),
+        _    => emit_generic(op, dst, src1, src2),
+    }
+}
+```
+
+**Stage 3 (Optimizer) — Partially Feasible**
+
+Individual optimization passes are small, self-contained functions. Dead store elimination, constant folding, peephole — each is 200-500 lines. These could be written in Nanz as separate tools that read and write MIR2 text format.
+
+### 22.3 What's Hard
+
+**Stage 1 (Parser) — The Big Challenge**
+
+The Nanz parser (`parse.go`) is 4700+ lines of Go with:
+- Recursive descent (deep call stacks)
+- Hash maps for symbol tables (1000+ entries for stdlib)
+- String manipulation (identifier names, error messages)
+- Dynamic AST construction
+
+Nanz lacks: hash maps, dynamic strings, deep recursion support. A self-hosted parser would need:
+- Linear-probing hash table on a fixed `[u16; 1024]` array
+- Identifier interning via offset into a pre-allocated byte buffer
+- Iterative parsing (convert recursion to explicit stack)
+
+Estimated size: ~50KB of Nanz code + ~30KB working memory = doesn't fit in 48KB Z80 memory.
+
+**But it could run on MZV** — the MIR2 VM has 64KB heap and configurable gas limits. A Nanz parser running on MZV is architecturally equivalent to a cross-compiler: the parser runs on the host (via MZV), producing MIR2 that targets Z80.
+
+### 22.4 The MZV Path
+
+MZV (the MIR2 VM runner) already proves that complex Nanz programs can execute: Tetris runs, interactive demos work, the FAT filesystem library processes real disk images. A self-hosted compiler stage running on MZV is not hypothetical — it's the same execution model.
+
+The missing pieces for MZV-hosted compilation:
+1. **File I/O host functions** — `@mir.io.read_file(path)`, `@mir.io.write_file(path, data)`. Currently MZV only has print I/O. Adding file ops is straightforward Go.
+2. **String operations** — at minimum, string comparison and substring extraction. Can be implemented as host functions or as Nanz library code operating on byte buffers.
+3. **Larger heap** — 64KB default is tight for a compiler. MZV's heap is configurable; 256KB or 1MB would suffice.
+
+### 22.5 TinyNanz: A Bootstrapping Subset
+
+One practical approach: define **TinyNanz** — a minimal subset of Nanz that can express a parser:
+
+| Feature | TinyNanz | Full Nanz |
+|---------|----------|-----------|
+| Types | u8, u16, ^u8 | u8, u16, i8, i16, bool, structs, arrays |
+| Control flow | if/else, while, return | + for, match, switch, break/continue |
+| Functions | fun, no overloading | + overloading, lambdas, UFCS |
+| Data | global arrays, pointers | + structs, enums, ADTs |
+| Strings | byte buffers + length | + interpolation, 3 string types |
+
+A TinyNanz-to-MIR2 compiler in TinyNanz would be ~20KB — comfortably fits on Z80. It couldn't compile full Nanz, but it could compile *itself*, achieving true self-hosting for the subset.
+
+### 22.6 The Multi-Tool Architecture
+
+Instead of one monolithic compiler binary, imagine:
+
+```bash
+# Each stage is a separate tool, each written in Nanz
+nanz-parse program.nanz -o program.hir     # Stage 1: Source → HIR
+nanz-lower program.hir -o program.mir      # Stage 2: HIR → MIR2
+nanz-opt program.mir -o program.opt.mir    # Stage 3: Optimize
+nanz-codegen program.opt.mir -o program.a80 # Stage 4: Codegen
+mza program.a80 -o program.com             # Stage 5: Assemble
+```
+
+Benefits:
+- Each tool is small enough to run on Z80 or MZV
+- Each tool can be tested independently
+- You can mix Go and Nanz tools in the pipeline
+- Self-hosting progresses one stage at a time
+- The pipeline becomes a **build system**, not a monolith
+
+### 22.7 Error Handling: @error vs ADT Result
+
+Nanz has two complementary error handling approaches:
+
+**`@error` + CY flag** — Z80-native, zero overhead:
+```nanz
+fun read_byte?(addr: u16) -> u8 ? ErrCode {
+    if addr == 0 { @error(ErrCode.NotFound) }  // SCF + LD A, errcode + RET
+    return ptr(addr)^                            // OR A + RET (clear CY)
+}
+// Caller: CALL read_byte → JR C, .handle_error (ONE instruction)
+```
+
+**ADT `Result`** — portable, composable:
+```nanz
+enum Result { Ok(u8), Err(u8) }
+
+fun safe_add(a: u8, b: u8) -> u16 {
+    if (u16(a) + u16(b) > 255) { return Err(1) }
+    return Ok(a + b)
+}
+// Caller: __tag(result) check (2-3 instructions)
+```
+
+| Approach | Check cost | Z80-native? | Composable? | Payload size |
+|----------|-----------|-------------|-------------|-------------|
+| `@error` + CY | 1 instruction (`JR C`) | Yes | No (CY is single bit) | u8 (A register) |
+| ADT Result | 2-3 instructions | Via u16 HL | Yes (chain, map) | u8 |
+
+**Future direction:** `@error_abi` annotation that maps ADT Result to CY flag calling convention, getting the best of both worlds — composable Rust-style Result syntax with Z80-native single-instruction error checking.
+
+### 22.8 Roadmap to Self-Hosting
+
+| Phase | Scope | Runs on | Effort |
+|-------|-------|---------|--------|
+| **0** (done) | MZV runs complex Nanz (Tetris, FAT) | Host via Go | Done |
+| **1** | Nanz Z80 assembler (Stage 5) | Z80 / CP/M / Agon | 2-4 weeks |
+| **2** | Nanz MIR2→Z80 codegen (Stage 4) | MZV / Agon | 1-2 months |
+| **3** | Nanz optimizer passes (Stage 3) | MZV / Agon | 1-2 months |
+| **4** | TinyNanz parser (Stage 1 subset) | MZV / Agon / Spectrum 128K | 2-3 months |
+| **5** | Full Nanz parser (Stage 1) | MZV / Agon | 3-6 months |
+| **6** | Native self-host on Agon Light 2 | Agon (512KB, 18MHz eZ80) | 1-2 months after Phase 5 |
+
+Phase 1-2 deliver real value: a Nanz-written backend that produces Z80 code, bootstrapped by the Go frontend. Phase 4-5 close the loop. Phase 6 is the prize: Nanz compiling Nanz on real eZ80 hardware — a compiler that runs on the machine it targets.
+
+**The honest assessment:** Self-hosting on a stock 48KB ZX Spectrum is tight — the compiler alone is 80-120KB. But several real hardware targets make native self-hosting practical:
+
+| Platform | Available RAM | Feasibility |
+|----------|-------------|-------------|
+| ZX Spectrum 48K | 42KB usable | Too tight for full compiler |
+| **ZX Spectrum 128K** | 128KB (8 banks) | **Feasible** — staged compilation across banks |
+| **Agon Light 2 (eZ80)** | 512KB | **Easy** — entire compiler fits in flat memory |
+| CP/M + banked RAM | 256KB+ (Z180, CPC6128, MSX2) | **Feasible** — disk swap for large programs |
+| MZV (MIR2 VM) | Configurable (64KB–16MB) | **Easy** — no hardware constraints |
+
+On Spectrum 128K, the multi-tool architecture maps naturally to bank switching: parser in banks 0-2, optimizer in banks 3-4, codegen in banks 5-7. Each stage reads input from a shared buffer in the unbanked 32KB region and writes output back. The `@target(spectrum128)` annotation could even generate bank-switching trampolines automatically.
+
+On Agon Light 2 with 512KB flat RAM and 18MHz eZ80, the entire compiler fits comfortably with room for 300KB+ of source code and working memory. This is the most natural native self-hosting target.
+
+MZV remains the lowest-friction path — no hardware constraints, easy debugging, extensible host functions — but native Z80/eZ80 self-hosting is not a dream, it's an engineering exercise on the right hardware.
 
 ---
 

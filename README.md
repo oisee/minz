@@ -1,5 +1,43 @@
 # MinZ Programming Language
 
+### ★ NEW: Frill — ML on Z80 | [Language Guide (book)](docs/Frill_Language_Guide.md) | [PDF](docs/book/Frill_Language_Guide.pdf)
+
+**8th frontend:** An ML-style functional language that compiles to Z80. Algebraic data types, pattern matching, parametric polymorphism, effects, property testing — all zero-cost. 13 examples, 3351 compile-time checks.
+
+```frill
+type Option = None | Some of u8
+
+let unwrap (opt : u16) (def : u8) : u8 =
+  match opt with
+  | Some x -> x
+  | None   -> def
+```
+
+### ★ NEW: Nanz ADT + Match Expressions
+
+Nanz (the primary language) now has **algebraic data types with payload** and **Rust-style match expressions**:
+
+```nanz
+enum Result { Ok(u8), Err(u8) }     // u16: tag<<8 | payload
+
+fun safe_add(a: u8, b: u8) -> u16 {
+    if (u16(a) + u16(b) > 255) { return Err(1) }
+    return Ok(a + b)
+}
+
+fun color_name(c: Color) -> u8 {
+    return match c {
+        Red   => 1,
+        Green => 2,
+        Blue  => 3,
+    }
+}
+```
+
+Exhaustive check, payload binding, `_` wildcard. [Showcases: Option](examples/nanz/10_adt_option.nanz) | [Match](examples/nanz/11_match_expression.nanz) | [State machine](examples/nanz/12_state_machine.nanz) | [Result/Error](examples/nanz/13_result_error.nanz)
+
+---
+
 ### ★ [Week In Review: The Everything Sprint](reports/2026-03-18-094-Week_In_Review_Sprint_0311_0318.md) | [Report Guide](docs/Report_Guide.md) | [Nanz Language Book v5](docs/Nanz_Language_Book_v5.md)
 
 253 commits, 8 frontends, 3 backends, FAT12/16 filesystem, TUI framework with compile-time metafunctions, Mini Norton Commander, `@target()` platform detection — in one week.
@@ -32,6 +70,8 @@
 
 ### Latest
 
+- **Nanz ADT + Match** — `enum Option { None, Some(u8) }` with payload (u16 encoding), `match` expression with exhaustive check, 11 new tests. 4 showcase examples.
+- **[Frill Language: ML on Z80](docs/Frill_Language_Guide.md)** — 8th frontend. ADTs, pattern matching, polymorphism, effects, property testing. 38 features, 13 examples, 3351 compile-time checks. [Book (PDF)](docs/book/Frill_Language_Guide.pdf)
 - **[ABAP Frontend + SQLite + Zork](reports/2026-03-16-088-ABAP_Frontend_SQLite_Zork.md)** — 7th frontend (ABAP via abaplint), SQLite host functions in MIR2 VM, CP/M file I/O fixed (ROM protection root cause), **Zork I (1983) runs in MZE**.
 - **[Nanz Z80 Showcase v2](reports/2026-03-15-084-Nanz_Z80_Showcase_Definitive_v2.md)** — 12 verified examples: `abs_diff` 6B (optimal), `swap` 1B (bare RET), `smaller` 0B (EQU), `popcount` 3-inst LUT, `@smc` compiled sprites, value pipes constant-folded, iterator DJNZ fusion. Plus `elimJrToRet` peephole: `JR cc → RET` → `RET cc`.
 - **[C89 Frontend vs SDCC](reports/2026-03-15-081-MinZ_C89_vs_SDCC_Codegen_Comparison.md)** — 6th frontend: C89/C99 via `modernc.org/cc/v4`. Identical C source, **MinZ 81B vs SDCC 179B (−55%)**. Pair-return byte-identical to Nanz. See table below. [Progress report](reports/2026-03-15-082-C89_Frontend_Progress.md): 9 corpus files, 51 functions, 68 MIR2 asserts pass.
@@ -68,7 +108,7 @@ Identical C source compiled through both toolchains. Binary sizes (code only):
 
 ### Modern Programming Language for Vintage Hardware
 
-[![Version](https://img.shields.io/badge/version-0.21.3-blue)](https://github.com/oisee/minz/releases)
+[![Version](https://img.shields.io/badge/version-0.23.0-blue)](https://github.com/oisee/minz/releases)
 [![License](https://img.shields.io/badge/license-MIT-purple)]()
 
 **Write modern code. Run it on Z80, eZ80, 6502, and more.**
@@ -83,7 +123,7 @@ Identical C source compiled through both toolchains. Binary sizes (code only):
 
 MinZ is a compiler toolchain for retro hardware — primarily Z80 and eZ80, with an experimental MOS 6502 backend.
 
-The **primary frontend** is **Nanz** (`.nanz`) — a minimal, type-safe language that compiles through the HIR → MIR2 → Z80 pipeline with PBQP register allocation. Five additional frontends — **Lanz** (S-expressions), **Lizp** (Lisp dialect), **PL/M-80**, **Pascal**, and **C89** — compile through the same backend. Cross-language imports are first-class.
+The **primary frontend** is **Nanz** (`.nanz`) — a type-safe language with ADT enums, pattern matching, lambdas, and zero-cost abstractions. Seven additional frontends — **Frill** (ML-style functional), **Lanz** (S-expressions), **Lizp** (Lisp), **PL/M-80**, **Pascal**, **C89**, and **ABAP** — compile through the same HIR → MIR2 → Z80 pipeline. Cross-language imports are first-class.
 
 Self-contained toolchain: compiler, assembler, emulator, disassembler, and remote runner. No external dependencies — pure Go.
 
@@ -173,6 +213,8 @@ mz program.minz -b crystal -o prog.cr                  # Crystal (stub — not f
 | **Operator overloading** | `v1 + v2` via `impl` blocks |
 | **Error propagation** | `@error(code)` with CY flag ABI |
 | **Enums** | `enum State { IDLE, RUNNING }` with values |
+| **ADT Enums** | `enum Option { None, Some(u8) }` — payload in u16, auto `__tag`/`__payload` |
+| **Match expressions** | `match c { Red => 1, Green => 2, _ => 0 }` — exhaustive check, payload binding |
 | **Module system** | `import stdlib.cpm.bdos;` |
 | **Lambdas** | Closure syntax, zero-cost transform |
 | **PL/M-80 frontend** | Parse + HIR lowering for all 26 Intel 80 Tools corpus files (100%); 1338 functions, 11661 statements |
@@ -186,7 +228,7 @@ mz program.minz -b crystal -o prog.cr                  # Crystal (stub — not f
 
 | Feature | Status |
 |---------|--------|
-| Pattern matching | Syntax parses, codegen partial |
+| Pattern matching | **Working** — `match` expression with ADT payloads, exhaustive check. LIR backend: nested CondExpr WIP |
 | Iterator chains | 9 ops on Z80 + inline lambda filters + **fusion optimizer** (inlines callbacks in DJNZ loops). **87+ tests, 11/11 E2E hex-verified, all pass.** enumerate/reduce at MIR level (Z80 needs OpPush fix). See [Status](docs/Iterator_Implementation_Status.md) |
 | MIR interpreter | Arrays/structs working, not complete |
 
@@ -253,6 +295,51 @@ clamp:
 .clamp_if_join4:
     RET
 ```
+
+### ADT Enums + Match Expressions (NEW)
+
+```nanz
+enum Option { None, Some(u8) }  // u16: tag<<8 | payload
+
+fun unwrap_or(opt: u16, def: u8) -> u8 {
+    if (__tag(opt) == 1) { return __payload(opt) }
+    return def
+}
+
+enum State { Idle, Walking, Jumping, Dead }
+
+fun state_speed(s: State) -> u8 {
+    return match s {
+        Idle    => 0,
+        Walking => 2,
+        Jumping => 4,
+        Dead    => 0,
+    }
+}
+```
+
+Generated Z80 (production backend):
+
+```asm
+state_speed:              ; A = state tag
+    AND A                 ; test A == 0 (Idle)
+    JR NZ, .cret_else
+    XOR A                 ; return 0
+    RET
+.cret_else:
+    CP 1                  ; Walking?
+    JR NZ, .cond_else
+    LD A, 2               ; return 2
+    RET
+.cond_else:
+    CP 2                  ; Jumping?
+    LD A, 0               ; default: 0 (Dead)
+    RET NZ
+    LD A, 4               ; return 4
+    RET
+```
+
+**11 bytes, 5 branches, zero overhead.** Match compiles to a chain of `CP` + conditional returns — the same code a hand-written assembly programmer would write.
 
 ### PBQP Allocator: Hot Registers in Cheap Slots
 
@@ -608,21 +695,23 @@ the full feature matrix and Z80 vs 6502 comparison.
 
 ### Language Frontends
 
-Seven source languages compile through the same HIR → MIR2 → Z80 backend:
+Eight source languages compile through the same HIR → MIR2 → Z80 backend:
 
 ```
   .nanz ──→ nanz.Parse()     ──┐
+  .frl  ──→ frill.Parse()    ──┤  ← NEW: ML-style functional
   .lanz ──→ lanz.Compile()   ──┤
   .lizp ──→ lizp.Compile()   ──┤
   .plm  ──→ plm.Compile()    ──┼──→ *hir.Module ──→ MIR2 ──→ Z80/6502/QBE
   .pas  ──→ pascal.Compile()  ──┤
   .c    ──→ c89.Compile()    ──┤
-  .abap ──→ abap.Compile()   ──┘  ← NEW: ABAP via abaplint!
+  .abap ──→ abap.Compile()   ──┘
 ```
 
 | Frontend | Status | Purpose | Notes |
 |----------|--------|---------|-------|
-| **Nanz** | Primary | Modern systems language | Full-featured: structs, enums, iterators, lambdas, SMC, LUTGen, flag-return ABI |
+| **Nanz** | Primary | Modern systems language | Full-featured: structs, ADT enums, match expressions, iterators, lambdas, SMC, LUTGen, flag-return ABI |
+| **Frill** | Working | ML-style functional | ADTs, pattern matching, polymorphism, effects, property testing, pipes. 38 features, 3351 checks. [Guide](docs/Frill_Language_Guide.md) |
 | **Lanz** | Working | S-expression IR | 1:1 mapping to HIR. Round-trips perfectly. Used by `@derive_*` metafunctions |
 | **Lizp** | Working | Lisp dialect | Macros, threading (`->`, `->>`), `defmacro`/`cond`/`when`/`dotimes`. Desugars to Lanz |
 | **PL/M-80** | Working | Legacy Intel (1976) | 26/26 Intel 80 Tools corpus (100%); 1338 functions, 11661 statements |
@@ -631,7 +720,7 @@ Seven source languages compile through the same HIR → MIR2 → Z80 backend:
 | **ABAP** | NEW | SAP ABAP on Z80! | [abaplint](https://github.com/abaplint/abaplint) parser (TS). DATA, WRITE, IF, WHILE, DO, FORM, CLASS. [Examples →](examples/abap/) |
 | **MinZ** | Frozen on MIR1 | Legacy syntax | Old MIR1 path; will be rewired through HIR→MIR2 |
 
-**Seven pipelines, one backend.** `.nanz`, `.lanz`, `.lizp`, `.plm`, `.pas`, `.c`, and `.abap` files all go through `compileViaHIR()` → HIR → MIR2 → Z80. A function `double(x) = x + x` written in any of the seven languages produces the same Z80: `ADD A, A / RET`.
+**Eight pipelines, one backend.** `.nanz`, `.frl`, `.lanz`, `.lizp`, `.plm`, `.pas`, `.c`, and `.abap` files all go through `compileViaHIR()` → HIR → MIR2 → Z80. A function `double(x) = x + x` written in any of the eight languages produces the same Z80: `ADD A, A / RET`.
 
 ### ABAP on Z80 — Yes, Really
 

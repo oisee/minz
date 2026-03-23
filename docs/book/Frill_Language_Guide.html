@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="MinZ Project" />
+  <meta name="dcterms.date" content="2026-03-23" />
+  <title>Frill: ML on Z80</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="data:text/css,body{font-family:sans-serif;max-width:800px;margin:auto;padding:20px}pre{background:#f4f4f4;padding:10px;border-radius:4px;overflow-x:auto}code{font-size:0.9em}h1,h2,h3{color:#333}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:8px}tr:nth-child(even){background:#f9f9f9}" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Frill: ML on Z80</h1>
+<p class="subtitle">A Functional Language for Vintage Hardware</p>
+<p class="author">MinZ Project</p>
+<p class="date">2026-03-23</p>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#frill-ml-on-z80" id="toc-frill-ml-on-z80">Frill: ML on
+Z80</a>
+<ul>
+<li><a href="#what-is-frill" id="toc-what-is-frill">What Is
+Frill?</a></li>
+<li><a href="#why-ml-on-z80" id="toc-why-ml-on-z80">Why ML on Z80?</a>
+<ul>
+<li><a href="#what-frill-has-that-c-doesnt"
+id="toc-what-frill-has-that-c-doesnt">What Frill Has That C
+Doesn’t</a></li>
+</ul></li>
+<li><a href="#frill-vs-ml-family-languages"
+id="toc-frill-vs-ml-family-languages">Frill vs ML-Family
+Languages</a></li>
+<li><a href="#language-tour" id="toc-language-tour">Language Tour</a>
+<ul>
+<li><a href="#functions-and-let-bindings"
+id="toc-functions-and-let-bindings">Functions and Let Bindings</a></li>
+<li><a href="#recursion" id="toc-recursion">Recursion</a></li>
+<li><a href="#pipe-operator-and-composition"
+id="toc-pipe-operator-and-composition">Pipe Operator and
+Composition</a></li>
+<li><a href="#algebraic-data-types-and-pattern-matching"
+id="toc-algebraic-data-types-and-pattern-matching">Algebraic Data Types
+and Pattern Matching</a></li>
+<li><a href="#parametric-polymorphism"
+id="toc-parametric-polymorphism">Parametric Polymorphism</a></li>
+<li><a href="#effect-system" id="toc-effect-system">Effect
+System</a></li>
+<li><a href="#property-based-testing"
+id="toc-property-based-testing">Property-Based Testing</a></li>
+<li><a href="#while-loops-and-mutation"
+id="toc-while-loops-and-mutation">While Loops and Mutation</a></li>
+<li><a href="#string-operations" id="toc-string-operations">String
+Operations</a></li>
+<li><a href="#let-in-inside-expressions"
+id="toc-let-in-inside-expressions">Let-In Inside Expressions</a></li>
+</ul></li>
+<li><a href="#dsl-showcase" id="toc-dsl-showcase">DSL Showcase</a>
+<ul>
+<li><a href="#expression-evaluator"
+id="toc-expression-evaluator">Expression Evaluator</a></li>
+<li><a href="#music-dsl" id="toc-music-dsl">Music DSL</a></li>
+<li><a href="#graphics-patterns" id="toc-graphics-patterns">Graphics
+Patterns</a></li>
+</ul></li>
+<li><a href="#how-it-compiles" id="toc-how-it-compiles">How It
+Compiles</a></li>
+<li><a href="#compile-time-verification"
+id="toc-compile-time-verification">Compile-Time Verification</a></li>
+<li><a href="#metrics" id="toc-metrics">Metrics</a></li>
+<li><a href="#getting-started" id="toc-getting-started">Getting
+Started</a></li>
+<li><a href="#appendix-feature-reference"
+id="toc-appendix-feature-reference">Appendix: Feature Reference</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="frill-ml-on-z80">Frill: ML on Z80</h1>
+<h2 id="what-is-frill">What Is Frill?</h2>
+<p>Frill is an ML-style functional language that compiles to Z80 machine
+code. The name is deliberately ironic: “frills” — decorations,
+embellishments — on the most constrained hardware imaginable. 64KB RAM.
+3.5MHz. No OS.</p>
+<p>And yet: algebraic data types, pattern matching, parametric
+polymorphism, an effect system, property-based testing, pipe operators,
+and lambda expressions. All compiling to the same tight Z80 assembly a
+hand-written program would produce.</p>
+<p><strong>“What if OCaml ran on a ZX Spectrum?”</strong></p>
+<h2 id="why-ml-on-z80">Why ML on Z80?</h2>
+<p>This sounds absurd. ML-family languages (OCaml, Haskell, F#) are
+associated with garbage collectors, runtime systems, and megabytes of
+memory. Why bring these ideas to an 8-bit CPU from 1976?</p>
+<p>Because the <em>ideas</em> are independent of the <em>implementation
+costs</em>.</p>
+<table>
+<colgroup>
+<col style="width: 32%" />
+<col style="width: 29%" />
+<col style="width: 38%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>ML Concept</th>
+<th>The Idea</th>
+<th>Z80 Reality</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>ADT</td>
+<td>Model data as tagged variants</td>
+<td>A <code>u8</code> tag + payload. Same as C <code>enum</code> +
+<code>union</code>, but type-safe</td>
+</tr>
+<tr class="even">
+<td>Pattern matching</td>
+<td>Dispatch on structure</td>
+<td>Compiles to <code>CP n / JR Z</code> chains — same as
+hand-written</td>
+</tr>
+<tr class="odd">
+<td>Parametric polymorphism</td>
+<td>Write once, use with any type</td>
+<td>Monomorphized at compile time. Zero runtime cost</td>
+</tr>
+<tr class="even">
+<td>Effect tracking</td>
+<td>Know which functions do I/O</td>
+<td>Pure functions are provably side-effect-free. Compiler enforces
+it</td>
+</tr>
+<tr class="odd">
+<td>Pipe operator</td>
+<td>Data flows left-to-right</td>
+<td>Compiles to direct <code>CALL</code> — no overhead</td>
+</tr>
+<tr class="even">
+<td>Property testing</td>
+<td>Verify for ALL inputs</td>
+<td>Runs 256 tests at <em>compile time</em>. Bugs caught before the
+binary exists</td>
+</tr>
+</tbody>
+</table>
+<p>The key insight: <strong>Frill has no runtime system</strong>. No GC,
+no closures allocated on heap, no vtables, no boxed values. Every
+abstraction compiles to the same code you’d write in assembly. The
+abstractions exist only at compile time.</p>
+<h3 id="what-frill-has-that-c-doesnt">What Frill Has That C Doesn’t</h3>
+<p>If you’re writing Z80 programs in C (via SDCC), you already have
+structs, functions, and loops. What does Frill add?</p>
+<ol type="1">
+<li><strong>Pattern matching</strong> — Exhaustive, compiler-checked
+dispatch. No forgotten <code>switch</code> cases.</li>
+<li><strong>Pipe operator</strong> — <code>x |&gt; f |&gt; g</code>
+reads left-to-right. No nested <code>g(f(x))</code>.</li>
+<li><strong>Compile-time verification</strong> —
+<code>assert fib 7 == 13</code> runs during compilation.</li>
+<li><strong>Effect system</strong> — <code>IO</code> annotation prevents
+accidental side effects in pure code.</li>
+<li><strong>Property testing</strong> —
+<code>prop |x| add x 0 == x</code> tests all 256 u8 values.</li>
+<li><strong>Polymorphism</strong> — <code>let id (x : 'a) = x</code>
+works for u8 AND u16 without duplication.</li>
+<li><strong>Type-safe ADTs</strong> —
+<code>type Color = Red | Green | Blue</code> with exhaustive
+matching.</li>
+</ol>
+<h2 id="frill-vs-ml-family-languages">Frill vs ML-Family Languages</h2>
+<p>How close is Frill to “real” ML? Honest comparison:</p>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 23%" />
+<col style="width: 20%" />
+<col style="width: 16%" />
+<col style="width: 18%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th>OCaml/F#</th>
+<th>Haskell</th>
+<th>Frill</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Let bindings</td>
+<td><code>let x = 5 in x + 1</code></td>
+<td>Same</td>
+<td>Same</td>
+<td><strong>Identical syntax</strong></td>
+</tr>
+<tr class="even">
+<td>ADT</td>
+<td><code>type t = A \| B of int</code></td>
+<td><code>data T = A \| B Int</code></td>
+<td><code>type T = A \| B of u8</code></td>
+<td><strong>Works</strong></td>
+</tr>
+<tr class="odd">
+<td>Pattern matching</td>
+<td>Full</td>
+<td>Full</td>
+<td>Match + guards</td>
+<td><strong>Works</strong> (no nested patterns yet)</td>
+</tr>
+<tr class="even">
+<td>Parametric polymorphism</td>
+<td><code>'a -&gt; 'a</code></td>
+<td><code>a -&gt; a</code></td>
+<td><code>'a -&gt; 'a</code></td>
+<td><strong>Works</strong> (monomorphized)</td>
+</tr>
+<tr class="odd">
+<td>Type inference</td>
+<td>Hindley-Milner</td>
+<td>HM + extensions</td>
+<td>Partial (params annotated)</td>
+<td><strong>Partial</strong></td>
+</tr>
+<tr class="even">
+<td>Higher-order functions</td>
+<td>First class</td>
+<td>First class</td>
+<td>Via pipes + compose</td>
+<td><strong>Works</strong> (no closures)</td>
+</tr>
+<tr class="odd">
+<td>Pipe operator</td>
+<td>F#: <code>\|&gt;</code></td>
+<td>N/A</td>
+<td><code>\|&gt;</code></td>
+<td><strong>Identical to F#</strong></td>
+</tr>
+<tr class="even">
+<td>Effect system</td>
+<td>N/A</td>
+<td>Monads</td>
+<td><code>IO</code> annotation</td>
+<td><strong>Simpler than Haskell</strong></td>
+</tr>
+<tr class="odd">
+<td>Linear types</td>
+<td>N/A</td>
+<td>Linear Haskell</td>
+<td>QTT (<code>!</code>, <code>~</code>)</td>
+<td><strong>Works</strong></td>
+</tr>
+<tr class="even">
+<td>Lazy evaluation</td>
+<td>Option</td>
+<td>Default</td>
+<td>No</td>
+<td><strong>By design</strong> (strict)</td>
+</tr>
+<tr class="odd">
+<td>Garbage collection</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>No</td>
+<td><strong>By design</strong> (no heap)</td>
+</tr>
+<tr class="even">
+<td>Modules</td>
+<td>Yes</td>
+<td>Yes</td>
+<td><code>import</code></td>
+<td><strong>Basic</strong></td>
+</tr>
+<tr class="odd">
+<td>Type classes</td>
+<td>N/A</td>
+<td>Yes</td>
+<td><code>class</code>/<code>instance</code></td>
+<td><strong>Partial</strong></td>
+</tr>
+<tr class="even">
+<td>Closures</td>
+<td>Heap-allocated</td>
+<td>Heap-allocated</td>
+<td>No (lambda = named function)</td>
+<td><strong>Limitation</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>What’s missing:</strong> nested pattern matching, recursive
+ADTs (lists), closures that capture mutable state, full Hindley-Milner
+inference, modules with signatures.</p>
+<p><strong>What’s unique to Frill:</strong> compiles to Z80 assembly,
+property testing at compile time, QTT linearity annotations, zero
+runtime overhead.</p>
+<h2 id="language-tour">Language Tour</h2>
+<h3 id="functions-and-let-bindings">Functions and Let Bindings</h3>
+<pre class="frill"><code>(* Functions: name, typed parameters, body *)
+let add (a : u8) (b : u8) = a + b
+let double (x : u8) = x + x
+
+(* Let-in bindings — scoped values *)
+let hypotenuse_sq (x : u8) (y : u8) =
+  let xx = x * x in
+  let yy = y * y in
+  xx + yy
+
+(* Compile-time verification *)
+assert add 3 5 == 8
+assert double 7 == 14
+assert hypotenuse_sq 3 4 == 25</code></pre>
+<h3 id="recursion">Recursion</h3>
+<pre class="frill"><code>let factorial (n : u8) =
+  if n == 0 then 1
+  else n * factorial (n - 1)
+
+let fib (n : u8) =
+  if n &lt; 2 then n
+  else fib (n - 1) + fib (n - 2)
+
+assert factorial 5 == 120
+assert fib 7 == 13</code></pre>
+<h3 id="pipe-operator-and-composition">Pipe Operator and
+Composition</h3>
+<pre class="frill"><code>let inc (x : u8) = x + 1
+let dbl (x : u8) = x * 2
+let sq (x : u8) = x * x
+
+(* Pipe: data flows left to right *)
+let transform (x : u8) = x |&gt; dbl |&gt; inc
+
+(* Composition: combine functions *)
+let dbl_then_inc = dbl &gt;&gt; inc
+
+assert transform 5 == 11      (* 5*2+1 = 11 *)
+assert dbl_then_inc 5 == 11</code></pre>
+<h3 id="algebraic-data-types-and-pattern-matching">Algebraic Data Types
+and Pattern Matching</h3>
+<pre class="frill"><code>type Color = Red | Green | Blue
+
+let color_name (c : u8) =
+  match c with
+  | Red   -&gt; 82   (* &#39;R&#39; *)
+  | Green -&gt; 71   (* &#39;G&#39; *)
+  | Blue  -&gt; 66   (* &#39;B&#39; *)
+
+type Day = Mon | Tue | Wed | Thu | Fri | Sat | Sun
+
+let is_weekend (d : u8) =
+  match d with
+  | Sat -&gt; 1
+  | Sun -&gt; 1
+  | _   -&gt; 0
+
+assert color_name Red == 82
+assert is_weekend Sat == 1
+assert is_weekend Mon == 0</code></pre>
+<h3 id="parametric-polymorphism">Parametric Polymorphism</h3>
+<pre class="frill"><code>(* Type variables: &#39;a is resolved at each call site *)
+let id (x : &#39;a) : &#39;a = x
+let poly_max (a : &#39;a) (b : &#39;a) : &#39;a = if a &gt; b then a else b
+let poly_clamp (x : &#39;a) (lo : &#39;a) (hi : &#39;a) : &#39;a =
+  if x &lt; lo then lo else if x &gt; hi then hi else x
+
+(* Each call generates a specialized u8 version *)
+assert id 42 == 42
+assert poly_max 10 20 == 20
+assert poly_clamp 50 10 200 == 50
+assert poly_clamp 5 10 200 == 10</code></pre>
+<p>Under the hood, <code>id 42</code> generates
+<code>id_u8(x: u8) -&gt; u8 = x</code>. Same as Rust’s monomorphization.
+Zero runtime dispatch, optimal register usage.</p>
+<h3 id="effect-system">Effect System</h3>
+<pre class="frill"><code>(* Pure function — no side effects, safe for compile-time eval *)
+let add (a : u8) (b : u8) = a + b
+
+(* IO function — explicitly marked, can do I/O *)
+let greet (x : u8) : IO u8 =
+  do puts &quot;Hello!\r\n&quot;
+  0
+
+(* Compiler enforces: pure cannot call IO *)
+(* let bad (x : u8) = do puts &quot;oops&quot;  -- ERROR! *)</code></pre>
+<p>The effect system is simpler than Haskell’s monads. You mark
+functions <code>: IO</code> and the compiler checks that pure code stays
+pure. Extern functions (assembly, system calls) are implicitly IO.</p>
+<h3 id="property-based-testing">Property-Based Testing</h3>
+<pre class="frill"><code>(* prop runs the predicate for ALL 256 u8 values *)
+prop |x| add x 0 == x        (* identity *)
+prop |x| poly_max x x == x   (* idempotent *)
+prop |x| id x == x            (* polymorphic identity *)</code></pre>
+<p>Each <code>prop</code> generates 256 compile-time assertions. If any
+value fails, the compiler reports it before the binary is even created.
+This is exhaustive testing for u8 — not sampling, not heuristics, every
+single input.</p>
+<h3 id="while-loops-and-mutation">While Loops and Mutation</h3>
+<pre class="frill"><code>let sum_to (n : u8) =
+  let acc = 0 in
+  let i = 0 in
+  while i &lt; n do
+    do acc &lt;- acc + i
+    do i &lt;- i + 1
+  end
+  acc
+
+assert sum_to 10 == 45</code></pre>
+<p>Frill supports imperative loops where needed. The
+<code>do var &lt;- expr</code> syntax makes mutation explicit — you
+always see where state changes.</p>
+<h3 id="string-operations">String Operations</h3>
+<pre class="frill"><code>let char_at (s : u16) (n : u8) = peek (s + n)
+let str_len (s : u16) : u8 =
+  let p = 0 in
+  while peek (s + p) &gt; 0 do
+    do p &lt;- p + 1
+  end
+  p
+
+assert char_at &quot;Hello&quot; 0 == 72   (* &#39;H&#39; *)
+assert char_at &quot;Hello&quot; 4 == 111  (* &#39;o&#39; *)
+assert str_len &quot;Hello&quot; == 5</code></pre>
+<h3 id="let-in-inside-expressions">Let-In Inside Expressions</h3>
+<pre class="frill"><code>(* let-in works everywhere — even inside if/else branches *)
+let classify (x : u8) =
+  if x &gt; 100 then
+    let half = x / 2 in half
+  else
+    let doubled = x * 2 in doubled
+
+assert classify 200 == 100
+assert classify 50 == 100</code></pre>
+<h2 id="dsl-showcase">DSL Showcase</h2>
+<h3 id="expression-evaluator">Expression Evaluator</h3>
+<p>A complete recursive-descent parser and evaluator in Frill, with
+correct operator precedence and parentheses:</p>
+<pre class="frill"><code>let eval (src : u16) : u8 = unpack_val (eval_expr src 0)
+
+assert eval &quot;5&quot; == 5
+assert eval &quot;3+4&quot; == 7
+assert eval &quot;3+4*2&quot; == 11     (* precedence: * before + *)
+assert eval &quot;2*(3+4)&quot; == 14   (* parentheses *)
+assert eval &quot;(1+2)*3&quot; == 9</code></pre>
+<p>17 compile-time assertions verify the evaluator handles every case
+correctly. The parser is ~60 lines of Frill, demonstrating that
+functional style makes recursive descent natural and readable.</p>
+<h3 id="music-dsl">Music DSL</h3>
+<p>Notes as algebraic data types, frequencies via pattern matching:</p>
+<pre class="frill"><code>type Note = C | Cs | D | Ds | E | F | Fs | G | Gs | A | As | B | Rest
+
+let note_delay (n : u8) =
+  match n with
+  | C    -&gt; 133   (* C4 = 262 Hz *)
+  | E    -&gt; 106   (* E4 = 330 Hz *)
+  | G    -&gt; 89    (* G4 = 392 Hz *)
+  | A    -&gt; 79    (* A4 = 440 Hz *)
+  | Rest -&gt; 0
+  | ...
+
+(* Melody encoding: note + duration packed into one byte *)
+let encode (note : u8) (dur : u8) : u8 = note * 16 + dur
+
+(* Verified: encode-decode round-trip *)
+prop |x| decode_note (encode (x / 16) (x % 16)) == x / 16</code></pre>
+<p>33 asserts + 2 properties verify the entire music system at compile
+time.</p>
+<h3 id="graphics-patterns">Graphics Patterns</h3>
+<p>Pure functions that generate pixel data — Sierpinski triangles, XOR
+textures, checkerboards, smiley sprites:</p>
+<pre class="frill"><code>(* Sierpinski: the classic bitwise fractal *)
+let sierpinski (x : u8) (y : u8) =
+  if (x &amp; y) == 0 then 1 else 0
+
+(* XOR texture: demoscene plasma effect *)
+let xor_tex (x : u8) (y : u8) = (x ^ y) % 8
+
+(* Compose into a multi-region display *)
+let composite (x : u8) (y : u8) =
+  if y &lt; 32 then
+    if x &lt; 32 then sierpinski x y * 5
+    else xor_tex x y
+  else
+    if checker x y 8 &gt; 0 then 6 else 1</code></pre>
+<p>The pattern functions are pure and verified at compile time. The
+rendering loop runs on real Z80 hardware.</p>
+<h2 id="how-it-compiles">How It Compiles</h2>
+<p>Frill compiles through the full MinZ pipeline:</p>
+<pre><code>Frill (.frl) → HIR → MIR2 → Z80 Assembly → Binary</code></pre>
+<p>Each step is a standard compiler transformation: - <strong>Frill →
+HIR</strong>: Desugar ML syntax into a typed intermediate representation
+- <strong>HIR → MIR2</strong>: Lower to SSA form with block arguments -
+<strong>MIR2 → Z80</strong>: Register allocation (PBQP + WFC),
+instruction selection, peephole optimization</p>
+<p>A simple function like <code>let add (a : u8) (b : u8) = a + b</code>
+compiles to:</p>
+<pre class="z80"><code>add:
+    ADD A, B    ; a + b (result in A)
+    RET         ; return</code></pre>
+<p>Two instructions. Zero overhead compared to hand-written
+assembly.</p>
+<h2 id="compile-time-verification">Compile-Time Verification</h2>
+<p>Frill’s <code>assert</code> and <code>prop</code> statements run
+during compilation on the MIR2 virtual machine. This means:</p>
+<ul>
+<li><strong>Bugs are caught before the binary exists</strong></li>
+<li><strong>No test framework needed</strong> — the compiler IS the test
+runner</li>
+<li><strong>Exhaustive for u8</strong> — <code>prop</code> tests all 256
+values, not a sample</li>
+<li><strong>Cross-verified</strong> — same code runs on VM and Z80, both
+must agree</li>
+</ul>
+<p>Current stats: <strong>13 example files, 3351 compile-time checks, 0
+failures</strong>.</p>
+<h2 id="metrics">Metrics</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Metric</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Language features</td>
+<td>41</td>
+</tr>
+<tr class="even">
+<td>Example programs</td>
+<td>13</td>
+</tr>
+<tr class="odd">
+<td>Compile-time checks</td>
+<td>3,351</td>
+</tr>
+<tr class="even">
+<td>Parser LOC (frill.go)</td>
+<td>2,436</td>
+</tr>
+<tr class="odd">
+<td>Stdlib modules</td>
+<td>5 (math, tokenizer, I/O, functional, canvas)</td>
+</tr>
+<tr class="even">
+<td>Compilation target</td>
+<td>Z80 (ZX Spectrum, CP/M, Agon Light 2)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="getting-started">Getting Started</h2>
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compile a Frill program</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="ex">minzc</span> hello.frl <span class="at">-b</span> z80 <span class="at">-o</span> hello.a80</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Compile for CP/M</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="ex">minzc</span> hello.frl <span class="at">-b</span> z80 <span class="at">-t</span> cpm <span class="at">-o</span> hello.com</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="co"># All assertions are checked automatically during compilation</span></span></code></pre></div>
+<p>Create a file <code>hello.frl</code>:</p>
+<pre class="frill"><code>let double (x : u8) = x + x
+let inc (x : u8) = x + 1
+
+assert double 5 == 10
+assert inc 99 == 100
+assert 5 |&gt; double |&gt; inc == 11
+
+let main (x : u8) = 0</code></pre>
+<p>If every assert passes, you get a Z80 binary. If any fails, the
+compiler tells you exactly which assertion and what it got vs what was
+expected.</p>
+<h2 id="appendix-feature-reference">Appendix: Feature Reference</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th>Syntax</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Function</td>
+<td><code>let name (p : type) = body</code></td>
+<td><code>let inc (x : u8) = x + 1</code></td>
+</tr>
+<tr class="even">
+<td>If-else</td>
+<td><code>if cond then a else b</code></td>
+<td><code>if x &gt; 0 then x else 0</code></td>
+</tr>
+<tr class="odd">
+<td>Let-in</td>
+<td><code>let x = e in body</code></td>
+<td><code>let y = x * 2 in y + 1</code></td>
+</tr>
+<tr class="even">
+<td>While</td>
+<td><code>while cond do ... end</code></td>
+<td><code>while i &lt; n do ... end</code></td>
+</tr>
+<tr class="odd">
+<td>Mutation</td>
+<td><code>do var &lt;- expr</code></td>
+<td><code>do i &lt;- i + 1</code></td>
+</tr>
+<tr class="even">
+<td>Pipe</td>
+<td><code>expr \|&gt; fn</code></td>
+<td><code>5 \|&gt; double \|&gt; inc</code></td>
+</tr>
+<tr class="odd">
+<td>Compose</td>
+<td><code>f &gt;&gt; g</code></td>
+<td><code>let h = inc &gt;&gt; double</code></td>
+</tr>
+<tr class="even">
+<td>ADT</td>
+<td><code>type T = A \| B \| C</code></td>
+<td><code>type Color = Red \| Green \| Blue</code></td>
+</tr>
+<tr class="odd">
+<td>Match</td>
+<td><code>match e with \| P -&gt; v</code></td>
+<td><code>match c with \| Red -&gt; 2</code></td>
+</tr>
+<tr class="even">
+<td>Polymorphism</td>
+<td><code>(x : 'a) : 'a</code></td>
+<td><code>let id (x : 'a) : 'a = x</code></td>
+</tr>
+<tr class="odd">
+<td>Effect</td>
+<td><code>: IO type</code></td>
+<td><code>let greet (x : u8) : IO u8 = ...</code></td>
+</tr>
+<tr class="even">
+<td>Assert</td>
+<td><code>assert fn args == val</code></td>
+<td><code>assert add 3 5 == 8</code></td>
+</tr>
+<tr class="odd">
+<td>Property</td>
+<td><code>prop \|x\| pred</code></td>
+<td><code>prop \|x\| add x 0 == x</code></td>
+</tr>
+<tr class="even">
+<td>Peek</td>
+<td><code>peek addr</code></td>
+<td><code>peek (str + n)</code></td>
+</tr>
+<tr class="odd">
+<td>Import</td>
+<td><code>import "path"</code></td>
+<td><code>import "../../stdlib/frill/math.frl"</code></td>
+</tr>
+<tr class="even">
+<td>Extern</td>
+<td><code>extern name (p : t) : t</code></td>
+<td><code>extern putchar (ch : u8) : u8</code></td>
+</tr>
+<tr class="odd">
+<td>Lambda</td>
+<td><code>\|x\| body</code></td>
+<td><code>5 \|&gt; \|x\| x * 2</code></td>
+</tr>
+<tr class="even">
+<td>String</td>
+<td><code>"text"</code></td>
+<td><code>"Hello\r\n"</code></td>
+</tr>
+<tr class="odd">
+<td>Linearity</td>
+<td><code>(! x : t)</code> / <code>(~ x : t)</code></td>
+<td><code>(! buf : u16)</code> (use once)</td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

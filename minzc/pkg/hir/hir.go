@@ -52,6 +52,7 @@ type Assert struct {
 	Source         string   // original source text (for error messages)
 	Line           int      // source line number
 	Via            string   // "" = both MIR2+Z80; "mir2" = MIR2 VM only; "z80" = Z80 only
+	StringArgs     map[int]string // arg index → string symbol (e.g. "@mir2.str.0"); resolved to heap addr at VM time
 }
 
 // Sandbox groups compile-time assertions that share a single VM instance.
@@ -129,6 +130,7 @@ type Func struct {
 	Body       *Block    // nil for extern
 	IsExtern   bool
 	ExternAddr uint16    // non-zero → @extern(addr) — call via CALL/RST to fixed address
+	IsIO       bool      // true = effectful (IO); false = pure (compile-time safe)
 }
 
 // Param is a typed, named function parameter.
@@ -517,6 +519,18 @@ type CondExpr struct {
 
 func (*CondExpr) hirExpr()          {}
 func (e *CondExpr) ExprTy() mir2.Ty { return e.Ty }
+
+// LetInExpr is a scoped binding: let Name = Init in Body.
+// Evaluates Init, binds the result to Name, then evaluates Body.
+type LetInExpr struct {
+	Name string
+	Ty   mir2.Ty // type of the bound variable (= Init.ExprTy())
+	Init Expr    // initializer expression
+	Body Expr    // body expression (may reference Name)
+}
+
+func (*LetInExpr) hirExpr()          {}
+func (e *LetInExpr) ExprTy() mir2.Ty { return e.Body.ExprTy() }
 
 // ── Convenience constructors ──────────────────────────────────────────────────
 

@@ -1,0 +1,149 @@
+// hashmap.nanz — Arena-backed hash map (u16 → u16)
+//
+// Open addressing with linear probing. Power-of-2 capacity.
+// Keys and values are u16. For string keys, use intern table
+// slot indices as keys.
+//
+// Usage:
+//   var arena: Arena
+//   arena.init(0xC000, 4096)
+//   var map: HashMap
+//   map_init(&map, &arena, 32)     // 32 slots
+//   map_put(&map, key, value)
+//   let v = map_get(&map, key)     // returns value or 0xFFFF
+
+// HashMap: open-addressing, linear probing, u16 → u16.
+struct HashMap {
+    keys: ^u8       // arena: array of u16 keys (2 bytes each)
+    vals: ^u8       // arena: array of u16 values (2 bytes each)
+    used: ^u8       // arena: occupancy bitmap (1 byte per slot)
+    count: u16      // number of entries
+    cap: u16        // capacity (power of 2)
+}
+
+// Initialize hash map with given capacity (must be power of 2).
+// Allocates from arena: cap * 5 bytes.
+fun map_init(m: ^HashMap, arena: ^Arena, cap: u16) {
+    m.count = 0
+    m.cap = cap
+    m.keys = ptr(Arena.alloc(arena, cap * 2))
+    m.vals = ptr(Arena.alloc(arena, cap * 2))
+    m.used = ptr(Arena.alloc(arena, cap))
+    var i: u16 = 0
+    while (i < cap) {
+        m.used[i] = 0
+        i = i + 1
+    }
+}
+
+// Read u16 from byte array at index.
+fun rd16(arr: ^u8, idx: u16) -> u16 {
+    var base: u16 = idx * 2
+    return u16(arr[base]) + u16(arr[base + 1]) * 256
+}
+
+// Write u16 to byte array at index.
+fun wr16(arr: ^u8, idx: u16, val: u16) {
+    var base: u16 = idx * 2
+    arr[base] = u8(val)
+    arr[base + 1] = u8(val / 256)
+}
+
+// Simple hash for u16 keys (multiplicative hash).
+fun hash16(key: u16) -> u16 {
+    // XOR-shift hash for u16 keys.
+    // Note: Nanz uses `xor` keyword, not `^` (which is pointer deref).
+    var h: u16 = key
+    h = h xor (h << 7)
+    h = h xor (h >> 4)
+    h = h xor (h << 3)
+    return h
+}
+
+// Put key → value. Returns 1 on success, 0 if table full.
+fun map_put(m: ^HashMap, key: u16, val: u16) -> u8 {
+    var mask: u16 = m.cap - 1
+    var slot: u16 = hash16(key) & mask
+    var probes: u16 = 0
+
+    while (probes < m.cap) {
+        if (m.used[slot] == 0) {
+            // Empty — insert
+            m.used[slot] = 1
+            wr16(m.keys, slot, key)
+            wr16(m.vals, slot, val)
+            m.count = m.count + 1
+            return 1
+        }
+        if (rd16(m.keys, slot) == key) {
+            // Key exists — update value
+            wr16(m.vals, slot, val)
+            return 1
+        }
+        slot = (slot + 1) & mask
+        probes = probes + 1
+    }
+    return 0  // table full
+}
+
+// Get value for key. Returns value or 0xFFFF if not found.
+fun map_get(m: ^HashMap, key: u16) -> u16 {
+    var mask: u16 = m.cap - 1
+    var slot: u16 = hash16(key) & mask
+    var probes: u16 = 0
+
+    while (probes < m.cap) {
+        if (m.used[slot] == 0) {
+            return 0xFFFF  // not found
+        }
+        if (rd16(m.keys, slot) == key) {
+            return rd16(m.vals, slot)
+        }
+        slot = (slot + 1) & mask
+        probes = probes + 1
+    }
+    return 0xFFFF
+}
+
+// Check if key exists. Returns 1 if found, 0 if not.
+fun map_has(m: ^HashMap, key: u16) -> u8 {
+    if (map_get(m, key) == 0xFFFF) {
+        return 0
+    }
+    return 1
+}
+
+// Delete key. Returns 1 if found and deleted, 0 if not found.
+// Uses tombstone approach: marks slot as deleted but keeps probe chain intact.
+// (simplified: we re-insert displaced entries after deletion)
+fun map_del(m: ^HashMap, key: u16) -> u8 {
+    var mask: u16 = m.cap - 1
+    var slot: u16 = hash16(key) & mask
+    var probes: u16 = 0
+
+    while (probes < m.cap) {
+        if (m.used[slot] == 0) {
+            return 0  // not found
+        }
+        if (rd16(m.keys, slot) == key) {
+            // Found — remove and rehash displaced entries
+            m.used[slot] = 0
+            m.count = m.count - 1
+
+            // Rehash subsequent entries in the cluster
+            var next: u16 = (slot + 1) & mask
+            while (m.used[next] == 1) {
+                var k: u16 = rd16(m.keys, next)
+                var v: u16 = rd16(m.vals, next)
+                m.used[next] = 0
+                m.count = m.count - 1
+                map_put(m, k, v)
+                next = (next + 1) & mask
+            }
+            return 1
+        }
+        slot = (slot + 1) & mask
+        probes = probes + 1
+    }
+    return 0
+}

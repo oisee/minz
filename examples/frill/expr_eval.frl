@@ -1,0 +1,90 @@
+(* Frill expression evaluator — recursive descent, compile-time verified *)
+(* Evaluates arithmetic expressions: +, -, *, /, parentheses, integers *)
+(* Result packed as u16: high byte = value, low byte = new position *)
+
+import "../../stdlib/frill/tokenizer.frl"
+
+(* Pack/unpack: value in high byte, position in low byte *)
+let pack (val : u16) (pos : u16) : u16 = val * 256 + pos
+let unpack_val (packed : u16) : u8 = packed / 256
+let unpack_pos (packed : u16) : u8 = packed % 256
+
+(* ── Recursive descent parser+evaluator ──────────────────────── *)
+
+(* Forward declarations not needed — Frill handles forward references *)
+
+let eval_atom (src : u16) (pos : u8) : u16 =
+  let p = skip_spaces src pos in
+  let ch = peek (src + p) in
+  if ch == 40 then
+    let inner = eval_expr src (p + 1) in
+    let p2 = skip_spaces src (unpack_pos inner) in
+    pack (unpack_val inner) (p2 + 1)
+  else
+    let v = read_int src p in
+    let n = read_int_len src p in
+    pack v (p + n)
+
+let eval_term (src : u16) (pos : u8) : u16 =
+  let left = eval_atom src pos in
+  let acc = unpack_val left in
+  let p = skip_spaces src (unpack_pos left) in
+  let ch = peek (src + p) in
+  if ch == 42 then
+    let right = eval_term src (p + 1) in
+    pack (acc * unpack_val right) (unpack_pos right)
+  else if ch == 47 then
+    let right = eval_term src (p + 1) in
+    pack (acc / unpack_val right) (unpack_pos right)
+  else pack acc p
+
+let eval_expr (src : u16) (pos : u8) : u16 =
+  let left = eval_term src pos in
+  let acc = unpack_val left in
+  let p = skip_spaces src (unpack_pos left) in
+  let ch = peek (src + p) in
+  if ch == 43 then
+    let right = eval_expr src (p + 1) in
+    pack (acc + unpack_val right) (unpack_pos right)
+  else if ch == 45 then
+    let right = eval_expr src (p + 1) in
+    pack (acc - unpack_val right) (unpack_pos right)
+  else pack acc p
+
+(* Top-level eval: returns just the value *)
+let eval (src : u16) : u8 = unpack_val (eval_expr src 0)
+
+(* ── Tests ───────────────────────────────────────────────────── *)
+
+(* Pack/unpack *)
+assert pack 11 0 == 2816
+assert unpack_val 2816 == 11
+assert unpack_pos 2816 == 0
+
+(* Single numbers *)
+assert eval "5" == 5
+assert eval "42" == 42
+assert eval "0" == 0
+
+(* Addition *)
+assert eval "3+4" == 7
+assert eval "1+2+3" == 6
+
+(* Subtraction *)
+assert eval "10-3" == 7
+
+(* Multiplication *)
+assert eval "3*4" == 12
+
+(* Precedence: * before + *)
+assert eval "3+4*2" == 11
+assert eval "2*3+4" == 10
+
+(* Parentheses *)
+assert eval "2*(3+4)" == 14
+assert eval "(1+2)*3" == 9
+
+(* Whitespace *)
+assert eval " 3 + 4 " == 7
+
+let main (x : u8) = 0

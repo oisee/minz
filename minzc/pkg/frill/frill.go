@@ -66,6 +66,9 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 		src: src, pos: 0, line: 1, name: name,
 		adts: make(map[string]*adtDef), ctors: make(map[string]*adtCtor),
 		arities: make(map[string]int), classes: make(map[string][]string),
+		stringIdx: make(map[string]int), varTypes: make(map[string]mir2.Ty),
+		polyFuncs: make(map[string]*polyFunc), polySpeced: make(map[string]bool),
+		ioFuncs: make(map[string]bool),
 		baseDir: opts.BaseDir,
 	}
 	return p.parseModule()
@@ -121,14 +124,198 @@ type parser struct {
 	ctors       map[string]*adtCtor // constructor name → ctor (for match + expr)
 	autoFuncs   []*hir.Func         // auto-generated helpers (__tag, __payload, lambdas)
 	lambdaCount int                  // counter for unique lambda names
-	strings     []string             // interned string literals
+	strings    []string             // interned string literals
+	stringIdx  map[string]int      // dedup: content → index in strings[]
 	records     []*mir2.StructTy     // record type declarations
 	arities     map[string]int       // function name → param count (for partial application)
+	varTypes    map[string]mir2.Ty   // variable/param name → declared type (for VarRefExpr)
+	polyFuncs   map[string]*polyFunc // polymorphic function templates
+	polySpeced  map[string]bool      // already-specialized mangled names
+	ioFuncs     map[string]bool      // functions marked as IO (effectful)
 	baseDir     string               // for import resolution
 	lastTuple   []hir.Expr           // pending tuple elements from (e1, e2)
 	classes     map[string][]string  // class name → method names
 	warnings    []string             // linearity warnings
 
+}
+
+// polyFunc stores a polymorphic function template for monomorphization.
+// When called with concrete types, we clone the HIR func and substitute type vars.
+type polyFunc struct {
+	hirFunc  *hir.Func         // parsed HIR (with TyVarTy sentinels in param/return types)
+	tyParams []string          // type variable names found: ["'a", "'b"]
+}
+
+
+// collectTyVars returns the set of type variable names ('a, 'b, ...) in a function's signature.
+func collectTyVars(fn *hir.Func) []string {
+	seen := map[string]bool{}
+	var tvs []string
+	for _, p := range fn.Params {
+		if tv, ok := p.Ty.(*mir2.TyVarTy); ok {
+			if !seen[tv.Name] {
+				seen[tv.Name] = true
+				tvs = append(tvs, tv.Name)
+			}
+		}
+	}
+	if tv, ok := fn.RetTy.(*mir2.TyVarTy); ok {
+		if !seen[tv.Name] {
+			seen[tv.Name] = true
+			tvs = append(tvs, tv.Name)
+		}
+	}
+	return tvs
+}
+
+// specializePolyFunc clones a polymorphic function template, substituting
+// type variables with concrete types. Returns the mangled name and the new HIR func.
+func (p *parser) specializePolyFunc(pf *polyFunc, argTypes []mir2.Ty) (*hir.Func, string) {
+	// Build substitution map: 'a → u8, 'b → u16, etc.
+	subst := map[string]mir2.Ty{}
+	for i, param := range pf.hirFunc.Params {
+		if tv, ok := param.Ty.(*mir2.TyVarTy); ok && i < len(argTypes) {
+			subst[tv.Name] = argTypes[i]
+		}
+	}
+	// Mangle name: id → id_u8, swap → swap_u8_u16
+	mangledName := pf.hirFunc.Name
+	for _, tv := range pf.tyParams {
+		if concrete, ok := subst[tv]; ok {
+			mangledName += "_" + concrete.String()
+		}
+	}
+	// Clone params with resolved types.
+	newParams := make([]hir.Param, len(pf.hirFunc.Params))
+	for i, param := range pf.hirFunc.Params {
+		ty := param.Ty
+		if tv, ok := ty.(*mir2.TyVarTy); ok {
+			if concrete, ok := subst[tv.Name]; ok {
+				ty = concrete
+			}
+		}
+		newParams[i] = hir.Param{Name: param.Name, Ty: ty}
+	}
+	// Resolve return type.
+	retTy := pf.hirFunc.RetTy
+	if tv, ok := retTy.(*mir2.TyVarTy); ok {
+		if concrete, ok := subst[tv.Name]; ok {
+			retTy = concrete
+		}
+	}
+	// Clone body with substituted types in expressions.
+	body := substTyVarsBlock(pf.hirFunc.Body, subst)
+	fn := &hir.Func{
+		Name:   mangledName,
+		Params: newParams,
+		RetTy:  retTy,
+		Body:   body,
+	}
+	return fn, mangledName
+}
+
+// substTyVarsBlock deep-clones a block, replacing tyVarTy with concrete types.
+func substTyVarsBlock(blk *hir.Block, subst map[string]mir2.Ty) *hir.Block {
+	if blk == nil {
+		return nil
+	}
+	newBody := make([]hir.Stmt, len(blk.Body))
+	for i, s := range blk.Body {
+		newBody[i] = substTyVarsStmt(s, subst)
+	}
+	return &hir.Block{Body: newBody}
+}
+
+func substTyVarsStmt(s hir.Stmt, subst map[string]mir2.Ty) hir.Stmt {
+	switch st := s.(type) {
+	case *hir.ReturnStmt:
+		if st.Val != nil {
+			return &hir.ReturnStmt{Val: substTyVarsExpr(st.Val, subst)}
+		}
+		vals := make([]hir.Expr, len(st.Vals))
+		for i, v := range st.Vals {
+			vals[i] = substTyVarsExpr(v, subst)
+		}
+		return &hir.ReturnStmt{Vals: vals}
+	case *hir.VarDeclStmt:
+		return &hir.VarDeclStmt{
+			Name: st.Name,
+			Ty:   resolveTy(st.Ty, subst),
+			Init: substTyVarsExpr(st.Init, subst),
+		}
+	case *hir.AssignStmt:
+		return &hir.AssignStmt{
+			Target: substTyVarsExpr(st.Target, subst).(*hir.VarRefExpr),
+			Val:    substTyVarsExpr(st.Val, subst),
+		}
+	default:
+		return s
+	}
+}
+
+func substTyVarsExpr(e hir.Expr, subst map[string]mir2.Ty) hir.Expr {
+	if e == nil {
+		return nil
+	}
+	switch ex := e.(type) {
+	case *hir.VarRefExpr:
+		return &hir.VarRefExpr{Name: ex.Name, Ty: resolveTy(ex.Ty, subst)}
+	case *hir.IntLitExpr:
+		return &hir.IntLitExpr{Val: ex.Val, Ty: resolveTy(ex.Ty, subst)}
+	case *hir.BinExpr:
+		l := substTyVarsExpr(ex.L, subst)
+		r := substTyVarsExpr(ex.R, subst)
+		return &hir.BinExpr{Op: ex.Op, L: l, R: r, Ty: resolveTy(ex.Ty, subst)}
+	case *hir.CallExpr:
+		args := make([]hir.Expr, len(ex.Args))
+		for i, a := range ex.Args {
+			args[i] = substTyVarsExpr(a, subst)
+		}
+		return &hir.CallExpr{Fn: ex.Fn, Args: args, Ty: resolveTy(ex.Ty, subst)}
+	case *hir.CondExpr:
+		return &hir.CondExpr{
+			Cond: substTyVarsExpr(ex.Cond, subst),
+			Then: substTyVarsExpr(ex.Then, subst),
+			Else: substTyVarsExpr(ex.Else, subst),
+			Ty:   resolveTy(ex.Ty, subst),
+		}
+	case *hir.LetInExpr:
+		return &hir.LetInExpr{
+			Name: ex.Name,
+			Ty:   resolveTy(ex.Ty, subst),
+			Init: substTyVarsExpr(ex.Init, subst),
+			Body: substTyVarsExpr(ex.Body, subst),
+		}
+	case *hir.LoadExpr:
+		return &hir.LoadExpr{Ptr: substTyVarsExpr(ex.Ptr, subst), Ty: resolveTy(ex.Ty, subst)}
+	case *hir.CastExpr:
+		return &hir.CastExpr{X: substTyVarsExpr(ex.X, subst), Ty: resolveTy(ex.Ty, subst)}
+	case *hir.UnaryExpr:
+		return &hir.UnaryExpr{Op: ex.Op, X: substTyVarsExpr(ex.X, subst), Ty: resolveTy(ex.Ty, subst)}
+	default:
+		return e
+	}
+}
+
+// resolveTy returns the concrete type for a possibly-polymorphic type.
+func resolveTy(ty mir2.Ty, subst map[string]mir2.Ty) mir2.Ty {
+	if tv, ok := ty.(*mir2.TyVarTy); ok {
+		if c, ok := subst[tv.Name]; ok {
+			return c
+		}
+	}
+	return ty
+}
+
+// internString deduplicates a string literal and returns its symbol.
+func (p *parser) internString(s string) string {
+	if idx, ok := p.stringIdx[s]; ok {
+		return fmt.Sprintf("@mir2.str.%d", idx)
+	}
+	idx := len(p.strings)
+	p.strings = append(p.strings, s)
+	p.stringIdx[s] = idx
+	return fmt.Sprintf("@mir2.str.%d", idx)
 }
 
 func (p *parser) peek() token {
@@ -236,6 +423,16 @@ func (p *parser) lex() token {
 		return token{tokString, text, line}
 	}
 
+	// Type variable: 'a, 'b, etc.
+	if ch == '\'' && p.pos+1 < len(p.src) && unicode.IsLetter(rune(p.src[p.pos+1])) {
+		start := p.pos
+		p.pos++ // skip '
+		for p.pos < len(p.src) && (unicode.IsLetter(rune(p.src[p.pos])) || p.src[p.pos] >= '0' && p.src[p.pos] <= '9') {
+			p.pos++
+		}
+		return token{tokIdent, p.src[start:p.pos], line}
+	}
+
 	// Identifier or keyword
 	if ch == '_' || unicode.IsLetter(rune(ch)) {
 		start := p.pos
@@ -280,7 +477,7 @@ func (p *parser) lex() token {
 		return token{tokEq, "=", line}
 	case ',':
 		return token{tokComma, ",", line}
-	case '+', '-', '*', '/', '%', '<', '>', '|', '!', '~':
+	case '+', '-', '*', '/', '%', '<', '>', '|', '!', '~', '&', '^':
 		return token{tokOp, string(ch), line}
 	}
 
@@ -300,7 +497,12 @@ func (p *parser) parseModule() (*hir.Module, error) {
 			if err != nil {
 				return nil, err
 			}
-			mod.Funcs = append(mod.Funcs, fn)
+			// Check if this function is polymorphic (has type variables).
+			if tvs := collectTyVars(fn); len(tvs) > 0 {
+				p.polyFuncs[fn.Name] = &polyFunc{hirFunc: fn, tyParams: tvs}
+			} else {
+				mod.Funcs = append(mod.Funcs, fn)
+			}
 		case "assert":
 			a, err := p.parseAssert()
 			if err != nil {
@@ -724,9 +926,13 @@ func (p *parser) parseImport() (*hir.Module, error) {
 	if err != nil {
 		return nil, fmt.Errorf("import %q: %w", pathTok.text, err)
 	}
-	// Register imported function arities
+	// Register imported function arities and IO status.
+	// Functions with asm blocks or extern linkage are IO by default.
 	for _, f := range child.Funcs {
 		p.arities[f.Name] = len(f.Params)
+		if f.IsIO || f.IsExtern || hasAsmBlock(f) {
+			p.ioFuncs[f.Name] = true
+		}
 	}
 	return child, nil
 }
@@ -737,7 +943,8 @@ func (p *parser) parseExtern() (*hir.Func, error) {
 	p.next() // consume "extern"
 	nameTok := p.next()
 
-	fn := &hir.Func{Name: nameTok.text, IsExtern: true}
+	fn := &hir.Func{Name: nameTok.text, IsExtern: true, IsIO: true}
+	p.ioFuncs[nameTok.text] = true // extern functions are IO by default
 
 	for p.peek().kind == tokLParen {
 		p.next()
@@ -750,6 +957,7 @@ func (p *parser) parseExtern() (*hir.Func, error) {
 			return nil, err
 		}
 		fn.Params = append(fn.Params, hir.Param{Name: pname.text, Ty: pty})
+		p.varTypes[pname.text] = pty
 	}
 	p.arities[fn.Name] = len(fn.Params)
 
@@ -871,14 +1079,21 @@ func (p *parser) parseLet() (*hir.Func, error) {
 			return nil, err
 		}
 		fn.Params = append(fn.Params, hir.Param{Name: pname.text, Ty: pty})
+		p.varTypes[pname.text] = pty
 		paramQtys = append(paramQtys, paramQuantity{pname.text, qty})
 	}
 	p.arities[fn.Name] = len(fn.Params)
 
-	// Return type: : type or : (type, type) (optional — inferred from body if omitted)
+	// Return type: : type or : IO type or : (type, type) (optional)
 	inferRetTy := false
+	isIO := false
 	if p.peek().kind == tokColon {
 		p.next() // :
+		// Check for IO prefix
+		if p.peek().kind == tokIdent && p.peek().text == "IO" {
+			p.next() // consume IO
+			isIO = true
+		}
 		if p.peek().kind == tokLParen {
 			// Tuple return: (u8, u8)
 			p.next() // (
@@ -901,6 +1116,10 @@ func (p *parser) parseLet() (*hir.Func, error) {
 	} else {
 		inferRetTy = true
 		fn.RetTy = mir2.TyU8
+	}
+	if isIO {
+		fn.IsIO = true
+		p.ioFuncs[fn.Name] = true
 	}
 
 	// = body (may contain let-in chains which desugar to VarDecl stmts)
@@ -1011,7 +1230,111 @@ func (p *parser) parseLet() (*hir.Func, error) {
 		}
 	}
 
+	// Effect check: pure functions must not call IO functions.
+	if !fn.IsIO && fn.Body != nil {
+		if bad := p.findIOCall(fn.Body); bad != "" {
+			return nil, fmt.Errorf("line %d: effect error: pure function '%s' calls IO function '%s' (add ': IO' to return type)",
+				p.line, fn.Name, bad)
+		}
+	}
+
 	return fn, nil
+}
+
+// findIOCall walks a block looking for calls to IO functions.
+func (p *parser) findIOCall(blk *hir.Block) string {
+	if blk == nil {
+		return ""
+	}
+	for _, s := range blk.Body {
+		if name := p.findIOCallStmt(s); name != "" {
+			return name
+		}
+	}
+	return ""
+}
+
+func (p *parser) findIOCallStmt(s hir.Stmt) string {
+	switch st := s.(type) {
+	case *hir.ReturnStmt:
+		if st.Val != nil {
+			return p.findIOCallExpr(st.Val)
+		}
+		for _, v := range st.Vals {
+			if n := p.findIOCallExpr(v); n != "" {
+				return n
+			}
+		}
+	case *hir.VarDeclStmt:
+		return p.findIOCallExpr(st.Init)
+	case *hir.AssignStmt:
+		return p.findIOCallExpr(st.Val)
+	case *hir.ExprStmt:
+		return p.findIOCallExpr(st.Expr)
+	case *hir.Block:
+		return p.findIOCall(st)
+	case *hir.WhileStmt:
+		if n := p.findIOCallExpr(st.Cond); n != "" {
+			return n
+		}
+		return p.findIOCall(st.Body)
+	case *hir.StoreStmt:
+		return "poke" // poke is always a side-effect
+	}
+	return ""
+}
+
+func (p *parser) findIOCallExpr(e hir.Expr) string {
+	if e == nil {
+		return ""
+	}
+	switch ex := e.(type) {
+	case *hir.CallExpr:
+		if p.ioFuncs[ex.Fn] {
+			return ex.Fn
+		}
+		for _, a := range ex.Args {
+			if n := p.findIOCallExpr(a); n != "" {
+				return n
+			}
+		}
+	case *hir.BinExpr:
+		if n := p.findIOCallExpr(ex.L); n != "" {
+			return n
+		}
+		return p.findIOCallExpr(ex.R)
+	case *hir.CondExpr:
+		if n := p.findIOCallExpr(ex.Cond); n != "" {
+			return n
+		}
+		if n := p.findIOCallExpr(ex.Then); n != "" {
+			return n
+		}
+		return p.findIOCallExpr(ex.Else)
+	case *hir.LetInExpr:
+		if n := p.findIOCallExpr(ex.Init); n != "" {
+			return n
+		}
+		return p.findIOCallExpr(ex.Body)
+	case *hir.UnaryExpr:
+		return p.findIOCallExpr(ex.X)
+	case *hir.LoadExpr:
+		return p.findIOCallExpr(ex.Ptr)
+	}
+	return ""
+}
+
+// hasAsmBlock reports whether a function contains inline assembly.
+func hasAsmBlock(f *hir.Func) bool {
+	if f.Body == nil {
+		return false
+	}
+	for _, s := range f.Body.Body {
+		if _, ok := s.(*hir.AsmStmt); ok {
+			return true
+		}
+	}
+	return false
 }
 
 func countVarUses(block *hir.Block) map[string]int {
@@ -1060,13 +1383,23 @@ func (p *parser) parseAssert() (hir.Assert, error) {
 		return hir.Assert{}, fmt.Errorf("line %d: assert: expected function name", line)
 	}
 
-	// Parse args (int literals or constructor names) until ==
+	// Parse args (int literals, constructor names, or string literals) until ==
 	var args []int64
-	for p.peek().kind == tokInt || (p.peek().kind == tokIdent && !isKeyword(p.peek().text)) {
+	var strArgs map[int]string
+	for p.peek().kind == tokInt || (p.peek().kind == tokIdent && !isKeyword(p.peek().text)) || p.peek().kind == tokString {
 		tok := p.next()
 		if tok.kind == tokInt {
 			val, _ := strconv.ParseInt(tok.text, 0, 64)
 			args = append(args, val)
+		} else if tok.kind == tokString {
+			// String literal: intern and record as a string arg
+			s := unescapeString(tok.text)
+			sym := p.internString(s)
+			if strArgs == nil {
+				strArgs = make(map[int]string)
+			}
+			strArgs[len(args)] = sym
+			args = append(args, 0) // placeholder; resolved to heap addr at VM time
 		} else if ctor, ok := p.ctors[tok.text]; ok {
 			args = append(args, ctor.tag)
 		} else {
@@ -1081,13 +1414,36 @@ func (p *parser) parseAssert() (hir.Assert, error) {
 	expTok := p.next()
 	expected, _ := strconv.ParseInt(expTok.text, 10, 64)
 
+	// Resolve polymorphic function: specialize based on arg types.
+	resolvedName := funcName.text
+	if pf, ok := p.polyFuncs[funcName.text]; ok {
+		argTypes := make([]mir2.Ty, len(args))
+		for i, v := range args {
+			if _, isStr := strArgs[i]; isStr {
+				argTypes[i] = mir2.TyU16 // string pointer
+			} else if v > 255 {
+				argTypes[i] = mir2.TyU16
+			} else {
+				argTypes[i] = mir2.TyU8
+			}
+		}
+		spec, mangledName := p.specializePolyFunc(pf, argTypes)
+		if !p.polySpeced[mangledName] {
+			p.polySpeced[mangledName] = true
+			p.autoFuncs = append(p.autoFuncs, spec)
+			p.arities[mangledName] = len(spec.Params)
+		}
+		resolvedName = mangledName
+	}
+
 	return hir.Assert{
-		FuncName: funcName.text,
-		Args:     args,
-		Expected: expected,
-		Source:   fmt.Sprintf("assert %s %s == %s", funcName.text, fmtArgs(args), expTok.text),
-		Line:     line,
-		Via:      "mir2",
+		FuncName:   resolvedName,
+		Args:       args,
+		Expected:   expected,
+		StringArgs: strArgs,
+		Source:     fmt.Sprintf("assert %s %s == %s", funcName.text, fmtArgs(args), expTok.text),
+		Line:       line,
+		Via:        "mir2",
 	}, nil
 }
 
@@ -1203,7 +1559,7 @@ func (p *parser) parseMul() (hir.Expr, error) {
 	if err != nil {
 		return nil, err
 	}
-	for p.peek().kind == tokOp && (p.peek().text == "*" || p.peek().text == "/" || p.peek().text == "%") {
+	for p.peek().kind == tokOp && (p.peek().text == "*" || p.peek().text == "/" || p.peek().text == "%" || p.peek().text == "&" || p.peek().text == "^") {
 		op := p.next().text
 		right, err := p.parseUnary()
 		if err != nil {
@@ -1316,10 +1672,7 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		p.next()
 		// Process escape sequences
 		s := unescapeString(t.text)
-		// Store string index for later — module will be populated in parseModule
-		idx := len(p.strings)
-		p.strings = append(p.strings, s)
-		sym := fmt.Sprintf("@mir2.str.%d", idx)
+		sym := p.internString(s)
 		return &hir.AddrOfExpr{Sym: sym}, nil
 	}
 
@@ -1420,9 +1773,7 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 			} else if pk.kind == tokString {
 				p.next()
 				s := unescapeString(pk.text)
-				idx := len(p.strings)
-				p.strings = append(p.strings, s)
-				sym := fmt.Sprintf("@mir2.str.%d", idx)
+				sym := p.internString(s)
 				args = append(args, &hir.AddrOfExpr{Sym: sym})
 			} else if pk.kind == tokLParen {
 				p.next()
@@ -1468,7 +1819,24 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 				p.arities[partialName] = missing
 				return &hir.VarRefExpr{Name: partialName, Ty: mir2.TyU8}, nil
 			}
-			return &hir.CallExpr{Fn: name, Args: args, Ty: mir2.TyU8}, nil
+			// Check for polymorphic function — specialize at call site.
+			callName := name
+			callRetTy := mir2.Ty(mir2.TyU8)
+			if pf, ok := p.polyFuncs[name]; ok {
+				argTypes := make([]mir2.Ty, len(args))
+				for i, a := range args {
+					argTypes[i] = a.ExprTy()
+				}
+				spec, mangledName := p.specializePolyFunc(pf, argTypes)
+				if !p.polySpeced[mangledName] {
+					p.polySpeced[mangledName] = true
+					p.autoFuncs = append(p.autoFuncs, spec)
+					p.arities[mangledName] = len(spec.Params)
+				}
+				callName = mangledName
+				callRetTy = spec.RetTy
+			}
+			return &hir.CallExpr{Fn: callName, Args: args, Ty: callRetTy}, nil
 		}
 
 		// Composition: f >> g >> h → generate __compose_N(x) = h(g(f(x)))
@@ -1500,8 +1868,12 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 			return &hir.VarRefExpr{Name: composeName, Ty: mir2.TyU8}, nil
 		}
 
-		// Variable reference
-		return &hir.VarRefExpr{Name: name, Ty: mir2.TyU8}, nil
+		// Variable reference — use declared type if known.
+		ty := mir2.Ty(mir2.TyU8)
+		if t, ok := p.varTypes[name]; ok {
+			ty = t
+		}
+		return &hir.VarRefExpr{Name: name, Ty: ty}, nil
 	}
 
 	return nil, fmt.Errorf("line %d: unexpected token %q", t.line, t.text)
@@ -1640,6 +2012,7 @@ func (p *parser) parseBodyExpr() (hir.Expr, []hir.Stmt, error) {
 			Ty:   val.ExprTy(),
 			Init: val,
 		})
+		p.varTypes[nameTok.text] = val.ExprTy()
 		} else if p.peek().kind == tokIdent && p.peek().text == "while" {
 			// while cond do ... end
 			p.next() // consume "while"
@@ -1922,32 +2295,33 @@ func (p *parser) parseMatch() (hir.Expr, error) {
 // Desugars to a synthetic helper function: let x = e1 in e2 → _let_N(e1)
 // where _let_N(x) = e2.
 func (p *parser) parseLetIn() (hir.Expr, error) {
-	// This is called from parsePrimary when we see "let" inside an expression.
-	// Collect the let chain and final expression.
+	// let x = init in body  →  LetInExpr{x, init, body}
 	p.next() // consume "let"
 	nameTok := p.next()
 	if err := p.expect(tokEq, "="); err != nil {
 		return nil, err
 	}
-	val, err := p.parseExpr()
+	initExpr, err := p.parseExpr()
 	if err != nil {
 		return nil, err
 	}
 	if err := p.expect(tokIdent, "in"); err != nil {
 		return nil, err
 	}
+	initTy := initExpr.ExprTy()
+	// Track the binding type so VarRefExpr uses the right width.
+	oldTy, hadOld := p.varTypes[nameTok.text]
+	p.varTypes[nameTok.text] = initTy
 	body, err := p.parseExpr()
 	if err != nil {
 		return nil, err
 	}
-	// For nested let-in inside expressions, we use a CondExpr hack:
-	// let x = v in body  →  if true then body else body (with x available)
-	// This is wrong for general case. For now, only support let-in at
-	// function body level (via parseBodyExpr). Nested let-in returns body
-	// with the binding lost — a known limitation until HIR gets LetInExpr.
-	_ = nameTok
-	_ = val
-	return body, nil // TODO: nested let-in needs HIR extension
+	if hadOld {
+		p.varTypes[nameTok.text] = oldTy
+	} else {
+		delete(p.varTypes, nameTok.text)
+	}
+	return &hir.LetInExpr{Name: nameTok.text, Ty: initTy, Init: initExpr, Body: body}, nil
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
@@ -1970,6 +2344,10 @@ func (p *parser) parseType() mir2.Ty {
 	case "void":
 		return mir2.TyVoid
 	default:
+		// Type variable: 'a, 'b, etc. (token is the full "'a" string)
+		if len(t.text) >= 2 && t.text[0] == '\'' {
+			return &mir2.TyVarTy{Name: t.text}
+		}
 		return mir2.TyU8 // fallback
 	}
 }
@@ -2020,6 +2398,20 @@ func unescapeString(s string) string {
 				b.WriteByte('"')
 			case '0':
 				b.WriteByte(0)
+			case 'x':
+				// \xNN hex escape
+				if i+2 < len(s) {
+					hi := unhex(s[i+1])
+					lo := unhex(s[i+2])
+					if hi >= 0 && lo >= 0 {
+						b.WriteByte(byte(hi<<4 | lo))
+						i += 2
+					} else {
+						b.WriteByte('x')
+					}
+				} else {
+					b.WriteByte('x')
+				}
 			default:
 				b.WriteByte(s[i])
 			}
@@ -2028,4 +2420,17 @@ func unescapeString(s string) string {
 		}
 	}
 	return b.String()
+}
+
+func unhex(c byte) int {
+	switch {
+	case c >= '0' && c <= '9':
+		return int(c - '0')
+	case c >= 'a' && c <= 'f':
+		return int(c-'a') + 10
+	case c >= 'A' && c <= 'F':
+		return int(c-'A') + 10
+	default:
+		return -1
+	}
 }

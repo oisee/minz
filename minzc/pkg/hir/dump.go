@@ -243,6 +243,9 @@ func dumpExpr(e Expr) string {
 	case *CondExpr:
 		return fmt.Sprintf("(if %s then %s else %s):%s", dumpExpr(ex.Cond), dumpExpr(ex.Then), dumpExpr(ex.Else), ex.Ty)
 
+	case *LetInExpr:
+		return fmt.Sprintf("(let %s:%s = %s in %s)", ex.Name, ex.Ty, dumpExpr(ex.Init), dumpExpr(ex.Body))
+
 	case nil:
 		return "<nil>"
 

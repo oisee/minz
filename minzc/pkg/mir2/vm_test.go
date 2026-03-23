@@ -284,3 +284,125 @@ func TestVMSignedComparison(t *testing.T) {
 		}
 	}
 }
+
+// TestVMStringPtrArith verifies that OpAddrOf for string literals returns a valid
+// heap pointer, and loading bytes at offset > 0 works correctly.
+func TestVMStringPtrArith(t *testing.T) {
+	// Build: fun @char_at_3() -> u8
+	//   %ptr = addr_of "@mir2.str.0"   ; "Hello"
+	//   %off = const 3 : u16
+	//   %p2  = ptr_add %ptr, %off
+	//   %ch  = load %p2 : u8
+	//   ret %ch                         ; expect 'l' = 108
+	m := &mir2.Module{Name: "str_ptr"}
+	m.Strings.InternKind("Hello", mir2.StrCString)
+
+	f := m.AddFunc("char_at_3")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	b := mir2.NewBuilder(f)
+
+	b.SwitchToNewBlock("entry")
+	ptr := b.AddrOf("@mir2.str.0", mir2.ClassPointer)
+	off := b.Const(3, mir2.TyU16, mir2.ClassGeneral)
+	p2 := b.PtrAdd(ptr, off, mir2.ClassPointer)
+	ch := b.Load(p2, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(ch)
+
+	vm := mir2.NewVM(m)
+	got, err := vm.Call("char_at_3", nil)
+	if err != nil {
+		t.Fatalf("char_at_3: %v", err)
+	}
+	if len(got) != 1 || got[0].I != 108 { // 'l'
+		t.Errorf("char_at_3() = %v, want 108 ('l')", got)
+	} else {
+		t.Logf("char_at_3() = %d ('l') ✓", got[0].I)
+	}
+}
+
+// TestVMThreeParamCall verifies that 3-parameter function calls don't clobber args.
+func TestVMThreeParamCall(t *testing.T) {
+	m := &mir2.Module{Name: "three_param"}
+
+	f := m.AddFunc("add3")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	b := mir2.NewBuilder(f)
+
+	b.SwitchToNewBlock("entry")
+	a := b.Param("a", mir2.TyU8, mir2.ClassAcc)
+	bp := b.Param("b", mir2.TyU8, mir2.ClassGeneral)
+	c := b.Param("c", mir2.TyU8, mir2.ClassGeneral)
+	ab := b.Add(a, bp, mir2.TyU8, mir2.ClassAcc)
+	abc := b.Add(ab, c, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(abc)
+
+	// Caller: fun @test() -> u8 { return add3(10, 20, 30) }
+	caller := m.AddFunc("test")
+	caller.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	bc := mir2.NewBuilder(caller)
+
+	bc.SwitchToNewBlock("entry")
+	arg1 := bc.Const(10, mir2.TyU8, mir2.ClassAcc)
+	arg2 := bc.Const(20, mir2.TyU8, mir2.ClassGeneral)
+	arg3 := bc.Const(30, mir2.TyU8, mir2.ClassGeneral)
+	result := bc.Call("add3", []mir2.Reg{arg1, arg2, arg3}, mir2.TyU8, mir2.ClassAcc, mir2.CallAttrs{})
+	bc.Ret(result)
+
+	vm := mir2.NewVM(m)
+	got, err := vm.Call("test", nil)
+	if err != nil {
+		t.Fatalf("test: %v", err)
+	}
+	if len(got) != 1 || got[0].I != 60 {
+		t.Errorf("add3(10, 20, 30) = %v, want 60", got)
+	} else {
+		t.Logf("add3(10, 20, 30) = %d ✓", got[0].I)
+	}
+}
+
+// TestVMCmpEqZero verifies that "if x == 0 then A else B" works correctly.
+func TestVMCmpEqZero(t *testing.T) {
+	m := &mir2.Module{Name: "cmp_eq_zero"}
+
+	f := m.AddFunc("is_zero")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	b := mir2.NewBuilder(f)
+
+	b.SwitchToNewBlock("entry")
+	x := b.Param("x", mir2.TyU8, mir2.ClassAcc)
+	zero := b.Const(0, mir2.TyU8, mir2.ClassGeneral)
+	cmp := b.Cmp(mir2.CmpEq, x, zero, mir2.ClassFlag, false)
+	b.BrIf(cmp, "yes", nil, "no", nil)
+
+	b.SwitchToNewBlock("yes")
+	one := b.Const(1, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(one)
+
+	b.SwitchToNewBlock("no")
+	zero2 := b.Const(0, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(zero2)
+
+	vm := mir2.NewVM(m)
+
+	// is_zero(0) should return 1
+	got, err := vm.Call("is_zero", []mir2.Value{{I: 0}})
+	if err != nil {
+		t.Fatalf("is_zero(0): %v", err)
+	}
+	if len(got) != 1 || got[0].I != 1 {
+		t.Errorf("is_zero(0) = %v, want 1", got)
+	} else {
+		t.Logf("is_zero(0) = 1 ✓")
+	}
+
+	// is_zero(5) should return 0
+	got, err = vm.Call("is_zero", []mir2.Value{{I: 5}})
+	if err != nil {
+		t.Fatalf("is_zero(5): %v", err)
+	}
+	if len(got) != 1 || got[0].I != 0 {
+		t.Errorf("is_zero(5) = %v, want 0", got)
+	} else {
+		t.Logf("is_zero(5) = 0 ✓")
+	}
+}

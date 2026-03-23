@@ -4,16 +4,16 @@
 import "../../stdlib/frill/math.frl"
 import "../../stdlib/frill/io_cpm.nanz"
 
-let print_hundreds (n : u8) = if n > 99 then putchar (n / 100 + 48) else 0
-let print_tens (n : u8) = if n > 9 then putchar (n / 10 % 10 + 48) else 0
-let print_ones (n : u8) = putchar (n % 10 + 48)
-let print_u8 (n : u8) =
+let print_hundreds (n : u8) : IO u8 = if n > 99 then putchar (n / 100 + 48) else 0
+let print_tens (n : u8) : IO u8 = if n > 9 then putchar (n / 10 % 10 + 48) else 0
+let print_ones (n : u8) : IO u8 = putchar (n % 10 + 48)
+let print_u8 (n : u8) : IO u8 =
   do print_hundreds n
   do print_tens n
   do print_ones n
   0
 
-let main (x : u8) =
+let main (x : u8) : IO u8 =
   do putchar 72  do putchar 101 do putchar 108 do putchar 108 do putchar 111
   do putchar 32  do putchar 70  do putchar 114 do putchar 105
   do putchar 108 do putchar 108 do putchar 33  do newline 0

@@ -5,25 +5,38 @@ package nanz
 //
 // Grammar (informal):
 //
-//	module      = (struct_decl | global_decl | fun_decl)*
-//	struct_decl = 'struct' IDENT '{' (IDENT ':' type '\n')* '}'
-//	global_decl = 'global' IDENT ':' type ['at' '(' expr ')'] ['=' array_lit | '=' expr] '\n'
-//	fun_decl    = ['@extern'] 'fun' IDENT '(' params ')' ['->' type] ('{' stmt* '}' | '\n')
+//	module      = (struct_decl | enum_decl | global_decl | const_decl |
+//	               fun_decl | pipe_decl | assert_block | import_decl)*
+//	struct_decl = 'struct' IDENT '{' (IDENT ':' type)* '}'
+//	enum_decl   = 'enum' IDENT '{' (IDENT ['(' type ')'] ['=' INT] ',')* '}'
+//	              — without payload: u8 tags (C-style)
+//	              — with payload:    u16 encoding (tag<<8 | payload), generates __tag/__payload
+//	global_decl = 'global' IDENT ':' type ['at' '(' expr ')'] ['=' array_lit | '=' expr]
+//	const_decl  = 'const' IDENT ':' type '=' expr
+//	fun_decl    = ['@extern'] ('fun'|'fn') IDENT '(' params ')' ['->' type] ('{' stmt* '}' | '\n')
+//	pipe_decl   = ('pipe'|'trans') IDENT '{' (map_step | filter_step | use_step)* '}'
 //	params      = (IDENT ':' type (',' IDENT ':' type)*)?
 //
-//	stmt        = var_decl | assign | store | if_stmt | while_stmt | for_stmt
-//	            | return_stmt | expr_stmt | break | continue | switch_stmt | block
+//	stmt        = var_decl | let_decl | assign | store | if_stmt | while_stmt
+//	            | for_stmt | return_stmt | expr_stmt | break | continue
+//	            | switch_stmt | block
 //	var_decl    = 'var' IDENT ':' type ['at' '(' expr ')'] ['=' (array_lit | expr)]
+//	let_decl    = 'let' (IDENT | '(' IDENT+ ')') [':' type] '=' expr
 //	assign      = expr '=' expr                (where lhs is lvalue)
 //	store       = '^' expr '=' expr
 //	if_stmt     = 'if' expr '{' stmt* '}' ['else' '{' stmt* '}']
 //	while_stmt  = 'while' expr '{' stmt* '}'
 //	for_stmt    = 'for' IDENT 'in' expr '..' expr '{' stmt* '}'
 //	return_stmt = 'return' [expr]
-//	switch_stmt = 'switch' expr '{' ('case' INT ':' stmt*)* ['default' ':' stmt*] '}'
+//	switch_stmt = 'switch' expr '{' ('case' (INT|IDENT) ':' stmt*)* ['default' ':' stmt*] '}'
 //
 //	type        = '^' type | '[' type ';' INT ']' | IDENT
 //	expr        = ... (Pratt parser, standard binary precedence)
+//	match_expr  = 'match' expr '{' (pattern '=>' expr ',')* '}'
+//	              — pattern = '_' | INT | IDENT | IDENT '(' IDENT ')'
+//	              — exhaustive check for enums/ADTs
+//	if_expr     = 'if' expr '{' expr '}' 'else' '{' expr '}'
+//	lambda      = '|' (IDENT [':' type])* '|' (expr | '{' stmt* '}')
 
 import (
 	"fmt"
@@ -106,6 +119,7 @@ const (
 	tokPipeGt     // |>
 	tokColonColon // ::
 	tokAt         // @
+	tokFatArrow   // =>
 )
 
 type token struct {
@@ -188,6 +202,8 @@ func (l *lexer) tokenize() {
 			l.emit(tokColonColon, "::", line); l.pos += 2; continue
 		case ch == '|' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '>':
 			l.emit(tokPipeGt, "|>", line); l.pos += 2; continue
+		case ch == '=' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '>':
+			l.emit(tokFatArrow, "=>", line); l.pos += 2; continue
 		}
 
 		// Single-char
@@ -446,6 +462,21 @@ type opOverload struct {
 	retTy    mir2.Ty
 }
 
+// nanzADT tracks an algebraic data type: enum variants with optional payload.
+type nanzADT struct {
+	name         string
+	constructors []nanzADTCtor
+	hasPayload   bool // true if any variant has a payload
+}
+
+// nanzADTCtor is one variant of an ADT.
+type nanzADTCtor struct {
+	name    string
+	tag     int64
+	payload mir2.Ty // nil = no payload
+	adtName string  // back-reference to parent ADT name
+}
+
 type parser struct {
 	l           *lexer
 	name        string
@@ -479,6 +510,10 @@ type parser struct {
 	pipes           map[string][]pipeStep           // pipe/trans name → stages
 	lambdaHintTy    mir2.Ty                         // type hint for untyped lambda params (set by chain context)
 	metaFuncs       map[string]string               // @name → full Nanz source of metafunction
+	// ADT (algebraic data types) — enums with payload variants
+	adts            map[string]*nanzADT             // type name → ADT definition
+	adtCtors        map[string]*nanzADTCtor         // constructor name → ctor (for match + expr)
+	autoFuncs       []*hir.Func                     // auto-generated helpers (__tag, __payload, lambdas)
 }
 
 // pipeStep is one stage in a named pipe/trans declaration.
@@ -612,6 +647,8 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	p.funcAliases = make(map[string]string)
 	p.pipes = make(map[string][]pipeStep)
 	p.metaFuncs = make(map[string]string)
+	p.adts = make(map[string]*nanzADT)
+	p.adtCtors = make(map[string]*nanzADTCtor)
 
 	for !p.l.is(tokEOF) {
 		t := p.l.peek()
@@ -819,6 +856,8 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	}
 	// Append lambdas generated during parsing (non-capturing anonymous functions).
 	m.Funcs = append(m.Funcs, p.lambdas...)
+	// Append auto-generated helpers (__tag, __payload, match payload wrappers).
+	m.Funcs = append(m.Funcs, p.autoFuncs...)
 
 	// Fix forward-referenced call types: any CallExpr with Ty==TyVoid whose
 	// target function actually returns a value needs its Ty patched.  This
@@ -939,8 +978,13 @@ func (p *parser) parseTypeAlias() error {
 	return nil
 }
 
-// parseEnumDecl parses: enum Name { VARIANT, VARIANT = N, ... }
-// Compile-time integer constants.  Z80: emitted as EQU labels.
+// parseEnumDecl parses two forms:
+//
+//   enum Dir { UP, DOWN, LEFT, RIGHT }              — C-style (u8 tags)
+//   enum Option { None, Some(u8) }                  — ADT with payload (u16 encoded)
+//
+// If any variant has a payload, the enum becomes an ADT: u16 encoding where
+// high byte = tag, low byte = payload.  __tag/__payload helpers are generated.
 func (p *parser) parseEnumDecl() error {
 	p.l.next() // consume "enum"
 	nameTok, err := p.l.eat(tokIdent)
@@ -953,13 +997,29 @@ func (p *parser) parseEnumDecl() error {
 
 	variants := make(map[string]int64)
 	var nextVal int64
+	var adtCtors []nanzADTCtor
+	hasPayload := false
 
 	for !p.l.is(tokRBrace) && !p.l.is(tokEOF) {
 		vTok, err := p.l.eat(tokIdent)
 		if err != nil {
 			return fmt.Errorf("line %d: enum %s: expected variant name", p.l.line, nameTok.val)
 		}
-		if p.l.is(tokEq) {
+
+		var payloadTy mir2.Ty
+
+		if p.l.is(tokLParen) {
+			// Payload variant: Some(u8)
+			p.l.next() // consume '('
+			payloadTy, err = p.parseType()
+			if err != nil {
+				return fmt.Errorf("line %d: enum %s::%s: %v", p.l.line, nameTok.val, vTok.val, err)
+			}
+			if _, err := p.l.eat(tokRParen); err != nil {
+				return fmt.Errorf("line %d: enum %s::%s: expected ')' after payload type", p.l.line, nameTok.val, vTok.val)
+			}
+			hasPayload = true
+		} else if p.l.is(tokEq) {
 			p.l.next() // consume '='
 			valTok, err := p.l.eat(tokInt)
 			if err != nil {
@@ -971,10 +1031,17 @@ func (p *parser) parseEnumDecl() error {
 			}
 			nextVal = v
 		}
-		if nextVal > 255 {
+
+		if !hasPayload && nextVal > 255 {
 			return fmt.Errorf("line %d: enum %s::%s: value %d exceeds u8 (0-255)", vTok.line, nameTok.val, vTok.val, nextVal)
 		}
 		variants[vTok.val] = nextVal
+		adtCtors = append(adtCtors, nanzADTCtor{
+			name:    vTok.val,
+			tag:     nextVal,
+			payload: payloadTy,
+			adtName: nameTok.val,
+		})
 		nextVal++
 
 		// Optional comma between variants
@@ -988,7 +1055,55 @@ func (p *parser) parseEnumDecl() error {
 	}
 
 	p.enums[nameTok.val] = variants
-	p.enumBaseTy[nameTok.val] = mir2.TyU8
+
+	if hasPayload {
+		// ADT mode: u16 encoding (tag << 8 | payload)
+		p.enumBaseTy[nameTok.val] = mir2.TyU16
+		def := &nanzADT{name: nameTok.val, constructors: adtCtors, hasPayload: true}
+		p.adts[nameTok.val] = def
+		for i := range def.constructors {
+			p.adtCtors[def.constructors[i].name] = &def.constructors[i]
+		}
+		// Generate __tag and __payload helpers (idempotent — only once)
+		if p.funcSigs["__tag"] == nil {
+			p.autoFuncs = append(p.autoFuncs,
+				&hir.Func{
+					Name:   "__tag",
+					Params: []hir.Param{{Name: "x", Ty: mir2.TyU16}},
+					RetTy:  mir2.TyU8,
+					Body: &hir.Block{Body: []hir.Stmt{
+						&hir.ReturnStmt{Val: &hir.CastExpr{
+							X:  &hir.BinExpr{Op: "/", L: &hir.VarRefExpr{Name: "x", Ty: mir2.TyU16}, R: &hir.IntLitExpr{Val: 256, Ty: mir2.TyU16}, Ty: mir2.TyU16},
+							Ty: mir2.TyU8,
+						}},
+					}},
+				},
+				&hir.Func{
+					Name:   "__payload",
+					Params: []hir.Param{{Name: "x", Ty: mir2.TyU16}},
+					RetTy:  mir2.TyU8,
+					Body: &hir.Block{Body: []hir.Stmt{
+						&hir.ReturnStmt{Val: &hir.CastExpr{
+							X:  &hir.BinExpr{Op: "%", L: &hir.VarRefExpr{Name: "x", Ty: mir2.TyU16}, R: &hir.IntLitExpr{Val: 256, Ty: mir2.TyU16}, Ty: mir2.TyU16},
+							Ty: mir2.TyU8,
+						}},
+					}},
+				},
+			)
+			p.funcSigs["__tag"] = mir2.TyU8
+			p.funcSigs["__payload"] = mir2.TyU8
+		}
+	} else {
+		// Simple C-style enum: u8 tags
+		p.enumBaseTy[nameTok.val] = mir2.TyU8
+		// Also register as ADT (without payload) for match expression support
+		def := &nanzADT{name: nameTok.val, constructors: adtCtors, hasPayload: false}
+		p.adts[nameTok.val] = def
+		for i := range def.constructors {
+			p.adtCtors[def.constructors[i].name] = &def.constructors[i]
+		}
+	}
+
 	return nil
 }
 
@@ -3346,6 +3461,259 @@ func (p *parser) parseSwitch() (hir.Stmt, error) {
 	return s, nil
 }
 
+// parseMatchExpr parses a Rust-style match expression:
+//
+//	match expr {
+//	    Some(v) => v + 1,
+//	    None    => 0,
+//	    _       => default_val,
+//	}
+//
+// Returns an HIR CondExpr chain (nested if-then-else).
+// For payload ADTs, the scrutinee is compared by tag (__tag(x)),
+// and payload bindings use __payload(x) wrapped in a helper function.
+func (p *parser) parseMatchExpr() (hir.Expr, error) {
+	matchLine := p.l.peek().line
+	p.l.next() // consume "match"
+
+	scrutinee, err := p.parseExpr()
+	if err != nil {
+		return nil, err
+	}
+	if _, err := p.l.eat(tokLBrace); err != nil {
+		return nil, fmt.Errorf("line %d: match: expected '{'", matchLine)
+	}
+
+	// Determine if scrutinee is an ADT with payload
+	var scrutADT *nanzADT
+	if vr, ok := scrutinee.(*hir.VarRefExpr); ok {
+		if eName, ok := p.varEnumType[vr.Name]; ok {
+			if adt, ok := p.adts[eName]; ok {
+				scrutADT = adt
+			}
+		}
+	}
+
+	type matchArm struct {
+		isDefault      bool
+		tagVal         int64
+		body           hir.Expr
+		payloadBind    string  // variable name bound to payload
+		hasPayloadBind bool
+	}
+	var arms []matchArm
+
+	for !p.l.is(tokRBrace) && !p.l.is(tokEOF) {
+		tok := p.l.peek()
+		a := matchArm{}
+
+		if tok.kind == tokIdent && tok.val == "_" {
+			// Wildcard: _ => expr
+			p.l.next()
+			a.isDefault = true
+		} else if tok.kind == tokInt {
+			// Integer pattern: 42 => expr
+			p.l.next()
+			a.tagVal, _ = strconv.ParseInt(tok.val, 0, 64)
+		} else if tok.kind == tokIdent {
+			if ctor, ok := p.adtCtors[tok.val]; ok {
+				// ADT constructor: Some(v) => ... or None => ...
+				p.l.next()
+				a.tagVal = ctor.tag
+				if ctor.payload != nil && p.l.is(tokLParen) {
+					// Payload binding: Some(v) => ...
+					p.l.next() // consume '('
+					bindTok, err := p.l.eat(tokIdent)
+					if err != nil {
+						return nil, fmt.Errorf("line %d: match: expected binding name", tok.line)
+					}
+					if _, err := p.l.eat(tokRParen); err != nil {
+						return nil, fmt.Errorf("line %d: match: expected ')' after binding", tok.line)
+					}
+					a.payloadBind = bindTok.val
+					a.hasPayloadBind = true
+				}
+			} else if variants, ok := p.enums[tok.val]; ok && p.l.peekN(1).kind == tokDot {
+				// Qualified: EnumName.VARIANT => ...
+				p.l.next() // consume enum name
+				p.l.next() // consume '.'
+				vTok, err := p.l.eat(tokIdent)
+				if err != nil {
+					return nil, fmt.Errorf("line %d: match: expected variant after '.'", tok.line)
+				}
+				val, ok := variants[vTok.val]
+				if !ok {
+					return nil, fmt.Errorf("line %d: match: unknown variant %s.%s", vTok.line, tok.val, vTok.val)
+				}
+				a.tagVal = val
+			} else {
+				// Try as bare variant of the scrutinee's enum
+				resolved := false
+				if scrutADT != nil {
+					for _, c := range scrutADT.constructors {
+						if c.name == tok.val {
+							p.l.next()
+							a.tagVal = c.tag
+							if c.payload != nil && p.l.is(tokLParen) {
+								p.l.next()
+								bindTok, err := p.l.eat(tokIdent)
+								if err != nil {
+									return nil, fmt.Errorf("line %d: match: expected binding name", tok.line)
+								}
+								if _, err := p.l.eat(tokRParen); err != nil {
+									return nil, fmt.Errorf("line %d: match: expected ')'", tok.line)
+								}
+								a.payloadBind = bindTok.val
+								a.hasPayloadBind = true
+							}
+							resolved = true
+							break
+						}
+					}
+				}
+				if !resolved {
+					// Check the enums map for bare variant names (simple enums)
+					if vr, ok2 := scrutinee.(*hir.VarRefExpr); ok2 {
+						if eName, ok3 := p.varEnumType[vr.Name]; ok3 {
+							if variants, ok4 := p.enums[eName]; ok4 {
+								if val, ok5 := variants[tok.val]; ok5 {
+									p.l.next()
+									a.tagVal = val
+									resolved = true
+								}
+							}
+						}
+					}
+				}
+				if !resolved {
+					return nil, fmt.Errorf("line %d: match: unexpected pattern %q", tok.line, tok.val)
+				}
+			}
+		} else {
+			return nil, fmt.Errorf("line %d: match: expected pattern, got %q", tok.line, tok.val)
+		}
+
+		// Expect =>
+		if _, err := p.l.eat(tokFatArrow); err != nil {
+			return nil, fmt.Errorf("line %d: match: expected '=>'", p.l.line)
+		}
+
+		// Parse body expression
+		body, err := p.parseExpr()
+		if err != nil {
+			return nil, err
+		}
+
+		// Wrap payload binding: create helper function taking payload as arg
+		if a.hasPayloadBind && a.payloadBind != "" {
+			wrapName := fmt.Sprintf("__mpay_%d", p.lambdaCount)
+			p.lambdaCount++
+			p.autoFuncs = append(p.autoFuncs, &hir.Func{
+				Name:   wrapName,
+				Params: []hir.Param{{Name: a.payloadBind, Ty: mir2.TyU8}},
+				RetTy:  body.ExprTy(),
+				Body:   &hir.Block{Body: []hir.Stmt{&hir.ReturnStmt{Val: body}}},
+			})
+			p.funcSigs[wrapName] = body.ExprTy()
+			body = &hir.CallExpr{
+				Fn:   wrapName,
+				Args: []hir.Expr{&hir.CallExpr{Fn: "__payload", Args: []hir.Expr{scrutinee}, Ty: mir2.TyU8}},
+				Ty:   body.ExprTy(),
+			}
+		}
+		a.body = body
+		arms = append(arms, a)
+
+		// Optional comma between arms
+		if p.l.is(tokComma) {
+			p.l.next()
+		}
+	}
+
+	if _, err := p.l.eat(tokRBrace); err != nil {
+		return nil, fmt.Errorf("line %d: match: expected '}'", p.l.line)
+	}
+
+	if len(arms) == 0 {
+		return nil, fmt.Errorf("line %d: match: no arms", matchLine)
+	}
+
+	// Exhaustiveness check for enums/ADTs
+	hasDefault := false
+	for _, a := range arms {
+		if a.isDefault {
+			hasDefault = true
+		}
+	}
+	if !hasDefault && scrutADT != nil {
+		covered := make(map[int64]bool)
+		for _, a := range arms {
+			if !a.isDefault {
+				covered[a.tagVal] = true
+			}
+		}
+		var missing []string
+		for _, c := range scrutADT.constructors {
+			if !covered[c.tag] {
+				missing = append(missing, c.name)
+			}
+		}
+		if len(missing) > 0 {
+			sort.Strings(missing)
+			return nil, fmt.Errorf("line %d: match is not exhaustive, missing: %s",
+				matchLine, strings.Join(missing, ", "))
+		}
+	}
+
+	// Build CondExpr chain from arms (right-fold: last arm is innermost else)
+	// For payload ADTs, compare __tag(scrutinee) == tagVal
+	// For simple enums, compare scrutinee == tagVal directly
+	useTag := scrutADT != nil && scrutADT.hasPayload
+	var taggedScrutinee hir.Expr
+	if useTag {
+		taggedScrutinee = &hir.CallExpr{Fn: "__tag", Args: []hir.Expr{scrutinee}, Ty: mir2.TyU8}
+	}
+
+	// Find default arm body (or use 0 as fallback)
+	var defaultBody hir.Expr
+	var nonDefaultArms []matchArm
+	for _, a := range arms {
+		if a.isDefault {
+			defaultBody = a.body
+		} else {
+			nonDefaultArms = append(nonDefaultArms, a)
+		}
+	}
+	if defaultBody == nil {
+		defaultBody = &hir.IntLitExpr{Val: 0, Ty: mir2.TyU8}
+	}
+
+	// Build chain from right to left
+	result := defaultBody
+	for i := len(nonDefaultArms) - 1; i >= 0; i-- {
+		a := nonDefaultArms[i]
+		var cmp hir.Expr
+		if useTag {
+			cmp = &hir.BinExpr{
+				Op: "==",
+				L:  taggedScrutinee,
+				R:  &hir.IntLitExpr{Val: a.tagVal, Ty: mir2.TyU8},
+				Ty: mir2.TyBool,
+			}
+		} else {
+			cmp = &hir.BinExpr{
+				Op: "==",
+				L:  scrutinee,
+				R:  &hir.IntLitExpr{Val: a.tagVal, Ty: p.exprTy(scrutinee)},
+				Ty: mir2.TyBool,
+			}
+		}
+		result = &hir.CondExpr{Cond: cmp, Then: a.body, Else: result, Ty: a.body.ExprTy()}
+	}
+
+	return result, nil
+}
+
 func (p *parser) parseExprStmt() (hir.Stmt, error) {
 	lhs, err := p.parseExpr()
 	if err != nil {
@@ -3855,6 +4223,8 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		case "false":
 			p.l.next()
 			return &hir.BoolLitExpr{Val: false}, nil
+		case "match":
+			return p.parseMatchExpr()
 		case "u8", "u16", "i8", "i16":
 			// cast: u8(expr)
 			p.l.next()
@@ -3935,6 +4305,30 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 				rev = true
 			}
 			return &hir.RangeSourceExpr{Lo: lo, Hi: hi, Rev: rev}, nil
+		}
+		// ADT constructor: Some(42) or None
+		if ctor, ok := p.adtCtors[t.val]; ok {
+			p.l.next() // consume constructor name
+			adt := p.adts[ctor.adtName]
+			if ctor.payload != nil && p.l.is(tokLParen) {
+				// Constructor with payload: Some(expr) → (tag * 256) + u16(expr)
+				p.l.next() // consume '('
+				arg, err := p.parseExpr()
+				if err != nil {
+					return nil, err
+				}
+				if _, err := p.l.eat(tokRParen); err != nil {
+					return nil, err
+				}
+				tagExpr := &hir.IntLitExpr{Val: ctor.tag * 256, Ty: mir2.TyU16}
+				return &hir.BinExpr{Op: "+", L: tagExpr, R: &hir.CastExpr{X: arg, Ty: mir2.TyU16}, Ty: mir2.TyU16}, nil
+			}
+			if adt.hasPayload {
+				// No-payload constructor in payload ADT: None → tag * 256 as u16
+				return &hir.IntLitExpr{Val: ctor.tag * 256, Ty: mir2.TyU16}, nil
+			}
+			// Simple enum (no payloads): tag as u8
+			return &hir.IntLitExpr{Val: ctor.tag, Ty: mir2.TyU8}, nil
 		}
 		// Enum qualified access: State.IDLE → IntLitExpr
 		if variants, ok := p.enums[t.val]; ok && p.l.peekN(1).kind == tokDot {
