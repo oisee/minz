@@ -85,7 +85,95 @@ func CodegenModule(m *mir2.Module, opts SolverOptions) (string, []FuncResult) {
 		results = append(results, r)
 	}
 
+	// Emit runtime routines referenced by generated code
+	asmText := sb.String()
+	if strings.Contains(asmText, "__mul8") || strings.Contains(asmText, "__mul16") ||
+		strings.Contains(asmText, "__div8") || strings.Contains(asmText, "__div16") ||
+		strings.Contains(asmText, "__mod8") || strings.Contains(asmText, "__mod16") {
+		sb.WriteString(emitRuntimeRoutines(asmText))
+	}
+
 	return sb.String(), results
+}
+
+// emitRuntimeRoutines appends Z80 runtime helper routines referenced by VIR code.
+func emitRuntimeRoutines(asm string) string {
+	var sb strings.Builder
+
+	if strings.Contains(asm, "__mul8") {
+		sb.WriteString(`; __mul8: A = A * B (8-bit multiply, ~80T)
+__mul8:
+    LD C, A
+    XOR A
+    LD D, 8
+.__mul8_lp:
+    SRL C
+    JR NC, .__mul8_sk
+    ADD A, B
+.__mul8_sk:
+    SLA B
+    DEC D
+    JR NZ, .__mul8_lp
+    RET
+`)
+	}
+
+	if strings.Contains(asm, "__mul16") {
+		sb.WriteString(`; __mul16: HL = HL * DE (~200T)
+__mul16:
+    LD B, H
+    LD C, L
+    LD HL, 0
+    LD A, 16
+.__mul16_lp:
+    SRL B
+    RR C
+    JR NC, .__mul16_sk
+    ADD HL, DE
+.__mul16_sk:
+    SLA E
+    RL D
+    DEC A
+    JR NZ, .__mul16_lp
+    RET
+`)
+	}
+
+	if strings.Contains(asm, "__div8") {
+		sb.WriteString(`; __div8: A = A / B, remainder in C
+__div8:
+    LD C, 0
+    LD D, 8
+.__div8_lp:
+    SLA A
+    RL C
+    LD E, A
+    LD A, C
+    SUB B
+    JR C, .__div8_sk
+    LD C, A
+    LD A, E
+    OR 1
+    JR .__div8_nx
+.__div8_sk:
+    LD A, E
+.__div8_nx:
+    DEC D
+    JR NZ, .__div8_lp
+    RET
+`)
+	}
+
+	if strings.Contains(asm, "__mod8") {
+		sb.WriteString(`; __mod8: A = A mod B
+__mod8:
+    CALL __div8
+    LD A, C
+    RET
+`)
+	}
+
+	return sb.String()
 }
 
 // CodegenFunc runs the VIR solver on a single MIR2 function.

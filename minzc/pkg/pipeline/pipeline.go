@@ -76,6 +76,10 @@ type Options struct {
 }
 
 // DefaultOptions returns options with all recommended passes enabled.
+// DefaultOptions returns the default pipeline options.
+// VIR backend (Z3 joint isel+regalloc) is available via UseVIR: true.
+// Currently PBQP is default; VIR becomes default after runtime routine
+// arg setup is verified (div/mod/mul calling conventions).
 func DefaultOptions() Options { return Options{ContractOpt: true} }
 
 // CompileHIRSteps runs the full HIR→MIR2→Z80 pipeline and returns all intermediate outputs.
@@ -219,7 +223,23 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 
 	if opt.UseVIR {
 		// VIR backend: unified Z3 solver (joint isel+regalloc in one pass).
-		virOpts := vir.SolverOptions{Verbose: false}
+		// Pass PBQP param locations so VIR matches the bootstrap ABI.
+		funcParamLocs := make(map[string]map[int]int)
+		for _, f := range m.Funcs {
+			pl := make(map[int]int)
+			for _, cp := range f.Contract.Params {
+				if loc, ok := combined.Locs[cp.Reg]; ok {
+					idx := vir.Z80.LocByName(loc.Name)
+					if idx >= 0 {
+						pl[int(cp.Reg)] = idx
+					}
+				}
+			}
+			if len(pl) > 0 {
+				funcParamLocs[f.Name] = pl
+			}
+		}
+		virOpts := vir.SolverOptions{FuncParamLocs: funcParamLocs}
 		virAsm, virResults := vir.CodegenModule(m, virOpts)
 
 		ok, fail := 0, 0
