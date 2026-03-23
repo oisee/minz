@@ -444,6 +444,12 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			Flags: PatCall | PatImmediate},
 		{Name: "ret", Op: OpRet,
 			Template: "RET", Cost: 10, Bytes: 1},
+
+		// ── Inline asm block ────────────────────────────────────────
+		{Name: "asm_block", Op: OpAsmBlock,
+			DstLocs: Z80_GPR8.Or(Z80_Pairs),
+			Template: "", Cost: 10, Bytes: 0,
+			Flags: PatCall}, // treated like a call (has clobbers)
 	}
 }
 

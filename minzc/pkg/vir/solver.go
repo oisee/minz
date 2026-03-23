@@ -120,7 +120,7 @@ func splitVRegsAtCalls(ops []VIROp, desc *MachineDesc) []VIROp {
 	// Find calls
 	var callIdxs []int
 	for i, op := range ops {
-		if op.Op == OpCall && !op.Clobbers.IsEmpty() {
+		if (op.Op == OpCall || op.Op == OpAsmBlock) && !op.Clobbers.IsEmpty() {
 			callIdxs = append(callIdxs, i)
 		}
 	}
@@ -269,7 +269,7 @@ func insertCallSaveRestore(ops []VIROp, desc *MachineDesc) []VIROp {
 	// Find call positions
 	var callIdxs []int
 	for i, op := range ops {
-		if op.Op == OpCall {
+		if op.Op == OpCall || op.Op == OpAsmBlock {
 			callIdxs = append(callIdxs, i)
 		}
 	}
@@ -1388,13 +1388,17 @@ func (p *problem) parseSolution(model string, desc *MachineDesc) ([]PIROp, error
 			}
 		}
 
-		result = append(result, PIROp{
+		pir := PIROp{
 			Pat:     pat,
 			DstPhys: dstPhys,
 			SrcPhys: srcPhys,
 			Imm:     op.Imm,
 			Sym:     op.Sym,
-		})
+		}
+		if op.Op == OpAsmBlock {
+			pir.AsmText = op.AsmTemplate
+		}
+		result = append(result, pir)
 	}
 
 	return result, nil
@@ -1735,13 +1739,17 @@ func parsePerInstSolution(p *problem, model string, desc *MachineDesc) ([]PIROp,
 			}
 		}
 
-		raw = append(raw, PIROp{
+		pir := PIROp{
 			Pat:     pat,
 			DstPhys: dstPhys,
 			SrcPhys: srcPhys,
 			Imm:     op.Imm,
 			Sym:     op.Sym,
-		})
+		}
+		if op.Op == OpAsmBlock {
+			pir.AsmText = op.AsmTemplate
+		}
+		raw = append(raw, pir)
 	}
 
 	final := insertPerInstMoves(raw, p, vals, desc)

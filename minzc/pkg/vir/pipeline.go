@@ -62,13 +62,6 @@ func CodegenModule(m *mir2.Module, opts SolverOptions) (string, []FuncResult) {
 	}
 
 	for _, f := range funcs {
-		// Skip HasAsm functions — inline assembly can't be represented in VIR.
-		// These should use PBQP codegen (caller handles fallback).
-		if f.Attrs.HasAsm {
-			r := FuncResult{Name: f.Name, Error: "contains inline asm (use PBQP)"}
-			results = append(results, r)
-			continue
-		}
 		asm, err := CodegenFunc(f, m, opts)
 		r := FuncResult{Name: f.Name}
 		if err != nil {
@@ -181,6 +174,57 @@ __mod8:
 .__mod8_sk:
     DEC D
     JR NZ, .__mod8_lp
+    RET
+`)
+	}
+
+	if strings.Contains(asm, "__div16") {
+		// 16-bit unsigned division: HL / DE → HL=quotient, DE=remainder
+		// Shift-and-subtract long division, 16 iterations.
+		sb.WriteString(`; __div16: HL = HL / DE (quotient), DE = remainder
+__div16:
+    LD B, H
+    LD C, L
+    LD HL, 0
+    LD A, 16
+.__div16_lp:
+    SLA C
+    RL B
+    ADC HL, HL
+    SBC HL, DE
+    JR NC, .__div16_sk
+    ADD HL, DE
+    JR .__div16_noinc
+.__div16_sk:
+    INC C
+.__div16_noinc:
+    DEC A
+    JR NZ, .__div16_lp
+    EX DE, HL
+    LD H, B
+    LD L, C
+    RET
+`)
+	}
+
+	if strings.Contains(asm, "__mod16") {
+		// 16-bit unsigned modulo: HL % DE → HL=remainder
+		sb.WriteString(`; __mod16: HL = HL mod DE (remainder)
+__mod16:
+    LD B, H
+    LD C, L
+    LD HL, 0
+    LD A, 16
+.__mod16_lp:
+    SLA C
+    RL B
+    ADC HL, HL
+    SBC HL, DE
+    JR NC, .__mod16_sk
+    ADD HL, DE
+.__mod16_sk:
+    DEC A
+    JR NZ, .__mod16_lp
     RET
 `)
 	}
@@ -903,6 +947,77 @@ func peepholeCleanup(asm string) string {
 				next := strings.TrimSpace(lines[i+1])
 				if strings.HasPrefix(next, "LD A, ") { i++ }
 			}
+			continue
+		}
+
+		// Inline 16-bit runtime calls
+		if strings.HasPrefix(line, "CALL __div16") || strings.HasPrefix(line, "JP __div16") {
+			idx := inlineCounter
+			inlineCounter++
+			result = append(result,
+				"    LD B, H",
+				"    LD C, L",
+				"    LD HL, 0",
+				"    LD A, 16",
+				fmt.Sprintf(".vir_div16_%d:", idx),
+				"    SLA C",
+				"    RL B",
+				"    ADC HL, HL",
+				"    SBC HL, DE",
+				fmt.Sprintf("    JR NC, .vir_div16_sk_%d", idx),
+				"    ADD HL, DE",
+				fmt.Sprintf("    JR .vir_div16_ni_%d", idx),
+				fmt.Sprintf(".vir_div16_sk_%d:", idx),
+				"    INC C",
+				fmt.Sprintf(".vir_div16_ni_%d:", idx),
+				"    DEC A",
+				fmt.Sprintf("    JR NZ, .vir_div16_%d", idx),
+				"    EX DE, HL",   // DE = remainder
+				"    LD H, B",     // HL = quotient
+				"    LD L, C",
+			)
+			continue
+		}
+		if strings.HasPrefix(line, "CALL __mod16") || strings.HasPrefix(line, "JP __mod16") {
+			idx := inlineCounter
+			inlineCounter++
+			result = append(result,
+				"    LD B, H",
+				"    LD C, L",
+				"    LD HL, 0",
+				"    LD A, 16",
+				fmt.Sprintf(".vir_mod16_%d:", idx),
+				"    SLA C",
+				"    RL B",
+				"    ADC HL, HL",
+				"    SBC HL, DE",
+				fmt.Sprintf("    JR NC, .vir_mod16_sk_%d", idx),
+				"    ADD HL, DE",
+				fmt.Sprintf(".vir_mod16_sk_%d:", idx),
+				"    DEC A",
+				fmt.Sprintf("    JR NZ, .vir_mod16_%d", idx),
+			)
+			continue
+		}
+		if strings.HasPrefix(line, "CALL __mul16") || strings.HasPrefix(line, "JP __mul16") {
+			idx := inlineCounter
+			inlineCounter++
+			result = append(result,
+				"    LD B, H",
+				"    LD C, L",
+				"    LD HL, 0",
+				"    LD A, 16",
+				fmt.Sprintf(".vir_mul16_%d:", idx),
+				"    SRL B",
+				"    RR C",
+				fmt.Sprintf("    JR NC, .vir_mul16_sk_%d", idx),
+				"    ADD HL, DE",
+				fmt.Sprintf(".vir_mul16_sk_%d:", idx),
+				"    SLA E",
+				"    RL D",
+				"    DEC A",
+				fmt.Sprintf("    JR NZ, .vir_mul16_%d", idx),
+			)
 			continue
 		}
 

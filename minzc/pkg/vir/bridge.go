@@ -268,8 +268,7 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 		}}, nil
 
 	case mir2.OpAsm:
-		// Inline assembly — skip (not expressible in VIR)
-		return nil, nil
+		return translateAsm(inst, desc)
 
 	default:
 		// Skip side-effect-free ops with no result
@@ -346,15 +345,15 @@ func translateRuntimeCall(inst *mir2.Inst, desc *MachineDesc, w int, isMul bool)
 	return ops, nil
 }
 
-// translateDivMod emits arg setup + CALL for __div8/__mod8 runtime.
-// ABI: A=dividend, B=divisor → A=quotient (div) or A=remainder (mod).
+// translateDivMod emits arg setup + CALL for __div8/__mod8/__div16/__mod16 runtime.
+// 8-bit ABI: A=dividend, B=divisor → A=quotient (div) or A=remainder (mod).
+// 16-bit ABI: HL=dividend, DE=divisor → HL=quotient (div) or HL=remainder (mod).
 func translateDivMod(inst *mir2.Inst, desc *MachineDesc, w int, isMod bool) ([]VIROp, error) {
-	if w > 8 {
-		return nil, fmt.Errorf("16-bit div/mod: use PBQP fallback")
-	}
-	sym := "__div8"
-	if isMod { sym = "__mod8" }
-	if w == 16 {
+	var sym string
+	if w <= 8 {
+		sym = "__div8"
+		if isMod { sym = "__mod8" }
+	} else {
 		sym = "__div16"
 		if isMod { sym = "__mod16" }
 	}
@@ -372,6 +371,18 @@ func translateDivMod(inst *mir2.Inst, desc *MachineDesc, w int, isMod bool) ([]V
 			Src: [2]int{int(inst.Src[1]), -1}, Width: 8,
 			DstHint: desc.LocSetByNames("B"),
 		})
+	} else {
+		// 16-bit: arg0 → HL, arg1 → DE
+		ops = append(ops, VIROp{
+			Op: OpMove, Dst: int(inst.Src[0]) + 7000,
+			Src: [2]int{int(inst.Src[0]), -1}, Width: 16,
+			DstHint: desc.LocSetByNames("HL"),
+		})
+		ops = append(ops, VIROp{
+			Op: OpMove, Dst: int(inst.Src[1]) + 7100,
+			Src: [2]int{int(inst.Src[1]), -1}, Width: 16,
+			DstHint: desc.LocSetByNames("DE"),
+		})
 	}
 
 	clobbers := desc.LocSetByNames("A", "B", "C", "D", "E", "H", "L", "F")
@@ -379,10 +390,17 @@ func translateDivMod(inst *mir2.Inst, desc *MachineDesc, w int, isMod bool) ([]V
 		clobbers = clobbers.Or(desc.LocSetByNames("BC", "DE", "HL"))
 	}
 
+	var retHint LocSet
+	if w <= 8 {
+		retHint = desc.LocSetByNames("A")
+	} else {
+		retHint = desc.LocSetByNames("HL")
+	}
+
 	ops = append(ops, VIROp{
 		Op: OpCall, Dst: int(inst.Dst),
 		Src: [2]int{-1, -1}, Sym: sym, Width: w,
-		Clobbers: clobbers, DstHint: desc.LocSetByNames("A"),
+		Clobbers: clobbers, DstHint: retHint,
 	})
 
 	return ops, nil
@@ -449,6 +467,65 @@ func translateCall(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 	ops = append(ops, callOp)
 
 	return ops, nil
+}
+
+// translateAsm converts MIR2 OpAsm to VIR OpAsmBlock.
+// The asm template is emitted verbatim. Input vregs are pinned to their
+// contract-assigned physical registers via SrcHint. The block clobbers
+// all GPR conservatively (inline asm may touch anything).
+func translateAsm(inst *mir2.Inst, desc *MachineDesc) ([]VIROp, error) {
+	if inst.Asm == nil {
+		return nil, nil
+	}
+
+	// Conservative clobbers: all GPR + flags
+	clobbers := desc.LocSetByNames("A", "B", "C", "D", "E", "H", "L", "F")
+	if desc.Name == "z80" {
+		clobbers = clobbers.Or(desc.LocSetByNames("BC", "DE", "HL"))
+	}
+
+	// Collect input vregs
+	var asmIns []int
+	for _, r := range inst.Asm.Ins {
+		if r != mir2.NoReg {
+			asmIns = append(asmIns, int(r))
+		}
+	}
+
+	// Collect output vregs
+	var asmOuts []int
+	for _, r := range inst.Asm.Outs {
+		if r != mir2.NoReg {
+			asmOuts = append(asmOuts, int(r))
+		}
+	}
+
+	// Build the VIROp
+	op := VIROp{
+		Op:          OpAsmBlock,
+		Dst:         int(inst.Dst),
+		Src:         [2]int{-1, -1},
+		Width:       8,
+		Clobbers:    clobbers,
+		AsmTemplate: inst.Asm.Template,
+		AsmIns:      asmIns,
+		AsmOuts:     asmOuts,
+	}
+
+	// Pin first two inputs to Src slots for solver visibility
+	if len(asmIns) > 0 {
+		op.Src[0] = asmIns[0]
+	}
+	if len(asmIns) > 1 {
+		op.Src[1] = asmIns[1]
+	}
+
+	// If there's a result, use the instruction's class for DstHint
+	if inst.Dst != mir2.NoReg && inst.Cls != 0 {
+		op.DstHint = regClassToLocSet(desc, inst.Cls, 8)
+	}
+
+	return []VIROp{op}, nil
 }
 
 // regClassToLocSet maps a MIR2 RegClass to a VIR LocSet.

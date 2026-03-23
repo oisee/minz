@@ -21,6 +21,8 @@
 //	ASM  — Assembly text  (string)    — final output
 package vir
 
+import "strings"
+
 // ── Opcodes ──────────────────────────────────────────────────────────────────
 // VIR opcodes are Z80-flavored: they distinguish 8-bit vs 16-bit operations,
 // but do NOT specify which Z80 instruction to use. That's the solver's job.
@@ -54,6 +56,7 @@ const (
 	OpLoadGlobal             // dst = mem[sym]
 	OpCondRet                // if flags, return src0
 	OpLoad16LE               // dst = load16le(src0)
+	OpAsmBlock               // inline asm: emit AsmTemplate verbatim, pinned ins/outs
 )
 
 // ── VIROp ────────────────────────────────────────────────────────────────────
@@ -72,6 +75,11 @@ type VIROp struct {
 	DstHint  LocSet // preferred dst locations (0 = unconstrained)
 	SrcHint  [2]LocSet // preferred src locations
 	Clobbers LocSet // registers clobbered by this op (OpCall)
+
+	// Inline asm (OpAsmBlock only):
+	AsmTemplate string   // verbatim Z80 asm lines (newline-separated)
+	AsmIns      []int    // input vregs (pinned to specific phys regs via SrcHint)
+	AsmOuts     []int    // output vregs (pinned to specific phys regs via DstHint)
 }
 
 // ── LocSet ───────────────────────────────────────────────────────────────────
@@ -313,10 +321,30 @@ type PIROp struct {
 	Imm     int64    // immediate value
 	Sym     string   // symbol name
 	Comment string   // debug annotation (optional)
+
+	// Inline asm (OpAsmBlock): emit verbatim, bypass pattern template
+	AsmText string
 }
 
 // Emit expands this PIROp into assembly text using the pattern template.
 func (p *PIROp) Emit(m *MachineDesc) string {
+	// Inline asm: emit verbatim, split "/" separators into individual lines
+	if p.AsmText != "" {
+		parts := splitAsm(p.AsmText)
+		if len(parts) == 1 {
+			return "    " + parts[0]
+		}
+		var sb strings.Builder
+		for i, part := range parts {
+			if i > 0 {
+				sb.WriteByte('\n')
+			}
+			sb.WriteString("    ")
+			sb.WriteString(part)
+		}
+		return sb.String()
+	}
+
 	if p.Pat == nil {
 		if p.Comment != "" {
 			return "; " + p.Comment
@@ -363,6 +391,22 @@ func indexOf(s, sub string) int {
 		}
 	}
 	return -1
+}
+
+// splitAsm splits an asm template on "/" separators, trimming whitespace.
+func splitAsm(tmpl string) []string {
+	parts := strings.Split(tmpl, "/")
+	var result []string
+	for _, p := range parts {
+		p = strings.TrimSpace(p)
+		if p != "" {
+			result = append(result, p)
+		}
+	}
+	if len(result) == 0 {
+		return []string{tmpl}
+	}
+	return result
 }
 
 func formatImm(v int64) string {
