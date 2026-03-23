@@ -128,7 +128,7 @@ func insertPreTieMoves(ops []VIROp, desc *MachineDesc) []VIROp {
 	}
 	nextVReg++
 
-	// Find def positions
+	// Find def positions (-1 = defined in a previous block / parameter)
 	defAt := make(map[int]int)
 	for i, op := range ops {
 		if op.Dst > 0 {
@@ -137,7 +137,6 @@ func insertPreTieMoves(ops []VIROp, desc *MachineDesc) []VIROp {
 	}
 
 	// Count tied ops — only insert copies if there are multiple tied ops
-	// (single tied op can't conflict with itself)
 	tiedCount := 0
 	for _, t := range hasTied {
 		if t {
@@ -152,10 +151,12 @@ func insertPreTieMoves(ops []VIROp, desc *MachineDesc) []VIROp {
 	for i, op := range ops {
 		if hasTied[i] && op.Src[0] > 0 {
 			src0 := op.Src[0]
-			def := defAt[src0]
-			// If src0 was defined more than 1 instruction ago AND there are
-			// other tied ops → src0 might be live at a conflicting tied point.
-			if i-def > 1 {
+			def, hasDef := defAt[src0]
+			// Insert pre-tie copy if:
+			// - src0 defined in previous block (hasDef=false), OR
+			// - src0 defined more than 1 instruction ago (might conflict)
+			needsCopy := !hasDef || i-def > 1
+			if needsCopy {
 				copyReg := nextVReg
 				nextVReg++
 				result = append(result, VIROp{

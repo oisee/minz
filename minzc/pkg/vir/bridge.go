@@ -234,23 +234,95 @@ func translateMul(inst *mir2.Inst, desc *MachineDesc) ([]VIROp, error) {
 	}}, nil
 }
 
-// translateCall converts OpCall to VIROp with clobber information.
+// translateCall converts OpCall to VIROps: arg setup moves + CALL + result move.
 func translateCall(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIROp, error) {
 	clobbers := desc.LocSetByNames("A", "B", "C", "D", "E", "H", "L", "F")
 	if desc.Name == "z80" {
 		clobbers = clobbers.Or(desc.LocSetByNames("BC", "DE", "HL"))
 	}
 
-	op := VIROp{
+	var ops []VIROp
+
+	// Emit argument setup moves: each arg vreg → register matching callee convention
+	if mod != nil && inst.Sym != "" {
+		callee := mod.FuncByName(inst.Sym)
+		if callee != nil && len(callee.Contract.Params) > 0 {
+			for i, argReg := range inst.Args {
+				if i >= len(callee.Contract.Params) {
+					break
+				}
+				cp := callee.Contract.Params[i]
+				w := 8
+				if cp.Ty != nil {
+					if tw := cp.Ty.Width(); tw > 0 {
+						w = tw
+					}
+				}
+				if w < 8 {
+					w = 8
+				}
+				// Move arg vreg to the callee's param vreg.
+				// No DstHint — let Z3 pick the register.
+				// The callee expects args in specific regs but the
+				// solver handles this via pattern constraints.
+				ops = append(ops, VIROp{
+					Op: OpMove, Dst: int(cp.Reg),
+					Src: [2]int{int(argReg), -1}, Width: w,
+				})
+			}
+		}
+	}
+
+	// The CALL itself
+	callOp := VIROp{
 		Op:       OpCall,
 		Dst:      int(inst.Dst),
-		Src:      [2]int{int(inst.Src[0]), int(inst.Src[1])},
+		Src:      [2]int{-1, -1},
 		Sym:      inst.Sym,
 		Width:    mirWidth(inst, desc),
 		Clobbers: clobbers,
 	}
+	// Return value hint: u8→A, u16→HL
+	w := mirWidth(inst, desc)
+	if inst.Dst != mir2.NoReg {
+		if w <= 8 {
+			callOp.DstHint = desc.LocSetByNames("A")
+		} else {
+			callOp.DstHint = desc.LocSetByNames("HL")
+		}
+	}
+	ops = append(ops, callOp)
 
-	return []VIROp{op}, nil
+	return ops, nil
+}
+
+// regClassToLocSet maps a MIR2 RegClass to a VIR LocSet.
+func regClassToLocSet(desc *MachineDesc, cls mir2.RegClass, width int) LocSet {
+	switch cls {
+	case mir2.ClassAcc:
+		if width <= 8 {
+			return desc.LocSetByNames("A")
+		}
+		return desc.LocSetByNames("HL")
+	case mir2.ClassCounter:
+		return desc.LocSetByNames("B")
+	case mir2.ClassPointer:
+		return desc.LocSetByNames("HL")
+	case mir2.ClassGeneral:
+		if width <= 8 {
+			return desc.LocSetByNames("A", "B", "C", "D", "E", "H", "L")
+		}
+		return desc.LocSetByNames("BC", "DE", "HL")
+	case mir2.ClassPair:
+		return desc.LocSetByNames("BC", "DE", "HL")
+	case mir2.ClassFlag:
+		return desc.LocSetByNames("F")
+	default:
+		if width <= 8 {
+			return desc.LocSetByNames("A", "B", "C", "D", "E", "H", "L")
+		}
+		return desc.LocSetByNames("BC", "DE", "HL")
+	}
 }
 
 // fuseGlobalAccess fuses addr_of + store/load into direct global ops.
