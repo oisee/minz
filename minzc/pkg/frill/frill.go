@@ -1216,7 +1216,7 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		// Store string index for later — module will be populated in parseModule
 		idx := len(p.strings)
 		p.strings = append(p.strings, s)
-		sym := fmt.Sprintf("__str_%d", idx)
+		sym := fmt.Sprintf("@mir2.str.%d", idx)
 		return &hir.AddrOfExpr{Sym: sym}, nil
 	}
 
@@ -1281,6 +1281,16 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		}
 	}
 
+	// Built-in: peek(ptr) = load u8 from address, poke(ptr, val) = store
+	if t.kind == tokIdent && t.text == "peek" {
+		p.next()
+		arg, err := p.parsePrimary()
+		if err != nil {
+			return nil, err
+		}
+		return &hir.LoadExpr{Ptr: arg, Ty: mir2.TyU8}, nil
+	}
+
 	// Identifier (variable ref or function call)
 	if t.kind == tokIdent {
 		p.next()
@@ -1306,7 +1316,7 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 				s := unescapeString(pk.text)
 				idx := len(p.strings)
 				p.strings = append(p.strings, s)
-				sym := fmt.Sprintf("__str_%d", idx)
+				sym := fmt.Sprintf("@mir2.str.%d", idx)
 				args = append(args, &hir.AddrOfExpr{Sym: sym})
 			} else if pk.kind == tokLParen {
 				p.next()
