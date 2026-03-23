@@ -40,7 +40,8 @@ func TestVIR_Z80_Verify(t *testing.T) {
 		// More arithmetic
 		{"and(0xF0,0x0F)=0", `fun band(a: u8, b: u8) -> u8 { return a & b }`, "band", []int{0xF0, 0x0F}, 0, false},
 		{"or(0xF0,0x0F)=0xFF", `fun bor(a: u8, b: u8) -> u8 { return a | b }`, "bor", []int{0xF0, 0x0F}, 0xFF, false},
-		// Note: Nanz uses ^ for pointer dereference, not XOR. XOR tested via C89.
+		// XOR: Nanz parses `a XOR b` but HIR→MIR lowering drops the function (0 MIR funcs).
+		// This is an HIR lowering bug, not a VIR issue. Skipped for now.
 
 		// NOTE: swap(a,b)=b fails because VIR doesn't yet handle
 		// return-value ABI (must move result to A before RET).
