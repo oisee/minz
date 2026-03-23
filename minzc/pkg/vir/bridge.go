@@ -319,13 +319,14 @@ func translateCall(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 				if w < 8 {
 					w = 8
 				}
-				// Move arg vreg to the callee's param vreg.
-				// No DstHint — let Z3 pick the register.
-				// The callee expects args in specific regs but the
-				// solver handles this via pattern constraints.
+				// Move arg vreg to the callee's expected register.
+				// DstHint from callee's contract class — ensures @z80_ pins
+				// are respected (e.g., @z80_b → B, @z80_c → C).
+				hint := regClassToLocSet(desc, cp.Class, w)
 				ops = append(ops, VIROp{
 					Op: OpMove, Dst: int(cp.Reg),
 					Src: [2]int{int(argReg), -1}, Width: w,
+					DstHint: hint,
 				})
 			}
 		}
@@ -364,8 +365,20 @@ func regClassToLocSet(desc *MachineDesc, cls mir2.RegClass, width int) LocSet {
 		return desc.LocSetByNames("HL")
 	case mir2.ClassCounter:
 		return desc.LocSetByNames("B")
+	case mir2.ClassRegC:
+		return desc.LocSetByNames("C")
+	case mir2.ClassRegD:
+		return desc.LocSetByNames("D")
+	case mir2.ClassRegE:
+		return desc.LocSetByNames("E")
+	case mir2.ClassRegH:
+		return desc.LocSetByNames("H")
+	case mir2.ClassRegL:
+		return desc.LocSetByNames("L")
 	case mir2.ClassPointer:
 		return desc.LocSetByNames("HL")
+	case mir2.ClassIndex:
+		return desc.LocSetByNames("DE")
 	case mir2.ClassGeneral:
 		if width <= 8 {
 			return desc.LocSetByNames("A", "B", "C", "D", "E", "H", "L")

@@ -62,6 +62,13 @@ func CodegenModule(m *mir2.Module, opts SolverOptions) (string, []FuncResult) {
 	}
 
 	for _, f := range funcs {
+		// Skip HasAsm functions — inline assembly can't be represented in VIR.
+		// These should use PBQP codegen (caller handles fallback).
+		if f.Attrs.HasAsm {
+			r := FuncResult{Name: f.Name, Error: "contains inline asm (use PBQP)"}
+			results = append(results, r)
+			continue
+		}
 		asm, err := CodegenFunc(f, m, opts)
 		r := FuncResult{Name: f.Name}
 		if err != nil {
