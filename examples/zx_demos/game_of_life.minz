@@ -104,7 +104,7 @@ fun swap_buffers() -> void {
 
 // Render cells to attribute memory
 fun render_cells() -> void {
-    let attr: *u8 = 0x5800 as *u8;
+    let attr: ^u8 = 0x5800 as ^u8;
 
     for i in 0..CELLS {
         if current[i] {

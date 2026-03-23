@@ -5,7 +5,7 @@ import std.io;
 
 // Test results structure
 struct TestResult {
-    name: *u8,
+    name: ^u8,
     passed: bool,
     error_code: u8,
 }

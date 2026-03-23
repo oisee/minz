@@ -1,5 +1,5 @@
 // String Operations Example
-fun str_length(str: *u8) -> u16 {
+fun str_length(str: ^u8) -> u16 {
     let len: u16 = 0;
     while *str != 0 {
         len = len + 1;
@@ -8,7 +8,7 @@ fun str_length(str: *u8) -> u16 {
     return len;
 }
 
-fun str_copy(dest: *u8, src: *u8) -> void {
+fun str_copy(dest: ^u8, src: ^u8) -> void {
     while *src != 0 {
         *dest = *src;
         dest = dest + 1;

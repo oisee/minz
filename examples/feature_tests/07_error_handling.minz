@@ -9,7 +9,7 @@ enum FileError {
 }
 
 // Simulate file operations that can fail
-fun open_file(name: *u8) -> u8? {
+fun open_file(name: ^u8) -> u8? {
     // Simulate different failures based on name
     if name[0] == 'x' {
         @err(FileError.NotFound);
@@ -36,7 +36,7 @@ fun close_file(handle: u8) -> void? {
 
 // Test basic error propagation
 fun test_error_propagation() -> bool {
-    fun read_first_byte(filename: *u8) -> u8? {
+    fun read_first_byte(filename: ^u8) -> u8? {
         let handle = open_file(filename)?;  // Propagate error if open fails
         let byte = read_byte(handle)?;       // Propagate error if read fails
         close_file(handle)?;                 // Propagate error if close fails
@@ -74,7 +74,7 @@ fun test_error_propagation() -> bool {
 
 // Test error handling in loops
 fun test_error_in_loop() -> bool {
-    fun process_files(names: *[*u8; 3]) -> u8? {
+    fun process_files(names: ^[^u8; 3]) -> u8? {
         let mut total: u8 = 0;
         
         for i in 0..3 {
@@ -87,12 +87,12 @@ fun test_error_in_loop() -> bool {
     }
     
     // All good files
-    let good_names: [*u8; 3] = ["a.txt", "b.txt", "c.txt"];
+    let good_names: [^u8; 3] = ["a.txt", "b.txt", "c.txt"];
     let result = process_files(&good_names);
     // Should succeed
     
     // One bad file
-    let bad_names: [*u8; 3] = ["a.txt", "xbad.txt", "c.txt"];
+    let bad_names: [^u8; 3] = ["a.txt", "xbad.txt", "c.txt"];
     let result2 = process_files(&bad_names);
     // Should fail on second file
     

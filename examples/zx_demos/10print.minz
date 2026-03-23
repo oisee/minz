@@ -27,7 +27,7 @@ fun plot(x: u8, y: u8) -> void {
     addr = addr + ((y & 0x07) << 8);
     addr = addr + (x >> 3);
     let mask: u8 = 0x80 >> (x & 7);
-    let ptr: *u8 = addr;
+    let ptr: ^u8 = addr;
     *ptr = *ptr | mask;
 }
 
@@ -43,7 +43,7 @@ fun draw_backslash(x: u8, y: u8) -> void {
 }
 
 fun clear_screen() -> void {
-    let ptr: *u8 = SCREEN_MEM;
+    let ptr: ^u8 = SCREEN_MEM;
     for block in 0..24 {
         for i in 0..255 { *ptr = 0; ptr = ptr + 1; }
     }

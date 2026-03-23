@@ -12,12 +12,12 @@ fun mul16(x: u16, y: u16) -> u16 {
 }
 
 // Function with pointer parameter (TSMC reference)
-fun increment_ptr(ptr: *u8) -> void {
+fun increment_ptr(ptr: ^u8) -> void {
     *ptr = *ptr + 1;
 }
 
 // Function with array parameter
-fun sum_array(arr: *[u8; 5]) -> u16 {
+fun sum_array(arr: ^[u8; 5]) -> u16 {
     let sum: u16 = 0;
     for i in 0..5 {
         sum = sum + (*arr)[i] as u16;
@@ -55,7 +55,7 @@ fun compose_test() -> bool {
 fun eval_order_test() -> bool {
     let mut counter: u8 = 0;
     
-    fun inc_and_return(val: *u8) -> u8 {
+    fun inc_and_return(val: ^u8) -> u8 {
         *val = *val + 1;
         return *val;
     }

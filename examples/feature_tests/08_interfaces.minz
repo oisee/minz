@@ -140,7 +140,7 @@ fun test_interface_array() -> bool {
 }
 
 // Test interface as function parameter
-fun calculate_total_draw_value(shapes: *[Drawable; 2]) -> u8 {
+fun calculate_total_draw_value(shapes: ^[Drawable; 2]) -> u8 {
     let mut sum: u8 = 0;
     for shape in *shapes {
         sum = sum + shape.draw();

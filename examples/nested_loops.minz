@@ -1,5 +1,5 @@
 // Nested Loops Example
-fun multiply_matrices(result: *u8, mat1: *u8, mat2: *u8, size: u8) -> void {
+fun multiply_matrices(result: ^u8, mat1: ^u8, mat2: ^u8, size: u8) -> void {
     let i: u8 = 0;
     while i < size {
         let j: u8 = 0;

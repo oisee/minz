@@ -61,7 +61,7 @@ fun test_boolean_strings() -> void {
 
 // String operations demonstrating O(1) length access
 fun test_string_operations() -> void {
-    let message: *u8 = "Hello, MinZ!";  // Length-prefixed: DB 12, "Hello, MinZ!"
+    let message: ^u8 = "Hello, MinZ!";  // Length-prefixed: DB 12, "Hello, MinZ!"
     
     // O(1) string length - just read first byte!
     let len: u8 = string_length(message);
@@ -74,7 +74,7 @@ fun test_string_operations() -> void {
 }
 
 // O(1) string length function - reads first byte
-fun string_length(s: *u8) -> u8 {
+fun string_length(s: ^u8) -> u8 {
     return s[0];  // Length is always in first byte!
 }
 
