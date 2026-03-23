@@ -22,7 +22,6 @@ import (
 	"github.com/minz/minzc/pkg/optimizer"
 	"github.com/minz/minzc/pkg/parser"
 	"github.com/minz/minzc/pkg/c89"
-	"github.com/minz/minzc/pkg/frill"
 	"github.com/minz/minzc/pkg/lir"
 	"github.com/minz/minzc/pkg/pascal"
 	"github.com/minz/minzc/pkg/pipeline"
@@ -775,14 +774,10 @@ func compileViaHIR(sourceFile string) error {
 			return fmt.Errorf("ABAP compile: %w", err)
 		}
 	case ".frl":
-<<<<<<< HEAD
-		hirMod, err = frill.Compile(string(src), filepath.Base(sourceFile))
-=======
 		absPath, _ := filepath.Abs(sourceFile)
 		hirMod, err = frill.CompileWithOpts(string(src), filepath.Base(sourceFile), frill.CompileOpts{
 			BaseDir: filepath.Dir(absPath),
 		})
->>>>>>> origin/master
 		if err != nil {
 			return fmt.Errorf("Frill compile: %w", err)
 		}
