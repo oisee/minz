@@ -127,6 +127,7 @@ type parser struct {
 	baseDir     string               // for import resolution
 	lastTuple   []hir.Expr           // pending tuple elements from (e1, e2)
 	classes     map[string][]string  // class name → method names
+	warnings    []string             // linearity warnings
 
 }
 
@@ -351,6 +352,9 @@ func (p *parser) parseModule() (*hir.Module, error) {
 
 	// Append record types as structs
 	mod.Structs = append(mod.Structs, p.records...)
+
+	// Linearity warnings
+	mod.Warnings = append(mod.Warnings, p.warnings...)
 
 	// Append auto-generated helper functions (__tag, __payload)
 	mod.Funcs = append(mod.Funcs, p.autoFuncs...)
@@ -847,7 +851,54 @@ func (p *parser) parseLet() (*hir.Func, error) {
 		}
 	}
 
+	// Linearity analysis: count parameter uses in body
+	if fn.Body != nil && len(fn.Params) > 0 {
+		uses := countVarUses(fn.Body)
+		for _, param := range fn.Params {
+			n := uses[param.Name]
+			if n == 0 && param.Name != "_" {
+				p.warnings = append(p.warnings, fmt.Sprintf("linearity: %s: param '%s' unused (erased?)", fn.Name, param.Name))
+			}
+		}
+	}
+
 	return fn, nil
+}
+
+func countVarUses(block *hir.Block) map[string]int {
+	uses := map[string]int{}
+	for _, stmt := range block.Body {
+		countUsesStmt(stmt, uses)
+	}
+	return uses
+}
+
+func countUsesStmt(stmt hir.Stmt, uses map[string]int) {
+	switch s := stmt.(type) {
+	case *hir.ReturnStmt:
+		if s.Val != nil { countUsesExpr(s.Val, uses) }
+		for _, v := range s.Vals { countUsesExpr(v, uses) }
+	case *hir.VarDeclStmt:
+		if s.Init != nil { countUsesExpr(s.Init, uses) }
+	}
+}
+
+func countUsesExpr(expr hir.Expr, uses map[string]int) {
+	switch e := expr.(type) {
+	case *hir.VarRefExpr:
+		uses[e.Name]++
+	case *hir.BinExpr:
+		countUsesExpr(e.L, uses)
+		countUsesExpr(e.R, uses)
+	case *hir.CallExpr:
+		for _, a := range e.Args { countUsesExpr(a, uses) }
+	case *hir.CondExpr:
+		countUsesExpr(e.Cond, uses)
+		countUsesExpr(e.Then, uses)
+		countUsesExpr(e.Else, uses)
+	case *hir.CastExpr:
+		countUsesExpr(e.X, uses)
+	}
 }
 
 // parseAssert: assert funcname arg1 arg2 == expected
