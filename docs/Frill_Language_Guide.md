@@ -356,14 +356,75 @@ Optimal — matches hand-written assembly.
 - [ ] **Parametric polymorphism** — `let id (x : 'a) : 'a = x`
   - Monomorphized at call site (like C++ templates, no runtime cost)
 
-### Frill-3: Linear Types & Dependent Types
+### Frill-3: Linear Types & TSMC Spill (in progress)
 
-- [ ] **Linear types (QTT)** — `let consume (1 buf : Buffer) : ()` — use exactly once
-  - Compiler auto-inserts `free()` at last use
-  - Destructive reuse: if refcount=1, update in place (Lean 4 style)
-- [ ] **Erased types** — `let size (0 T : Type) : u16` — type-level only, zero runtime
+- [x] **Linearity analysis** — compiler classifies each param as 0/1/ω uses
+  - 0 (erased): param unused → dead param elimination
+  - 1 (linear): used once → register freed after use, no save needed
+  - ω (shared): used 2+ times → needs preservation
+- [ ] **Linear type annotations** — `let consume (! buf : u8) = ...` (must use once)
+- [ ] **Erased types** — `let size (~ T : Type) : u16` — type-level only, zero runtime
+- [ ] **TSMC spill slots** — self-modifying code for register preservation (see below)
 - [ ] **Dependent types** — `Vec (n : u8) (a : Type)` — length-indexed vectors
-  - Proofs erased at compile time, no runtime representation
+
+### TSMC Tunnels: Linearity Meets Self-Modifying Code
+
+On Z80, the traditional way to save a register across a function call is
+PUSH/POP (21 T-states, uses stack). Frill's linearity analysis enables
+a better approach: **TSMC (True Self-Modifying Code) spill slots**.
+
+A TSMC tunnel saves a value by patching it into an instruction's immediate
+field, then reloads it later by executing that instruction:
+
+```z80
+; Save A into TSMC slot (13T)
+    LD (_tsmc_slot_a1), A
+
+; ... function call or complex code that clobbers A ...
+
+; Reload A from TSMC slot (7T) — the immediate byte was patched above
+.reload:
+    LD A, 0                   ; ← this 0 gets overwritten to the saved value
+_tsmc_slot_a1 EQU .reload + 1 ; points at the immediate byte
+```
+
+**Cost comparison:**
+
+| Method | Save | Reload | Total | Stack? |
+|--------|------|--------|-------|--------|
+| PUSH/POP | 11T | 10T | 21T | Yes (2 bytes) |
+| TSMC tunnel | 13T | 7T | 20T | No |
+| Shadow (EX AF,AF') | 4T | 4T | 8T | No (but only 1 slot) |
+| IXH/IXL (eZ80) | 8T | 8T | 16T | No (2 slots) |
+| Linear (1 use) | 0T | 0T | 0T | No spill needed! |
+
+For non-A registers, the TSMC save goes through A:
+
+```z80
+; Save D into TSMC slot
+    EX AF, AF'           ; save current A
+    LD A, D              ; move D → A
+    LD (_tsmc_slot_d), A ; patch the reload instruction
+    EX AF, AF'           ; restore A
+
+; Reload D from TSMC slot
+.reload_d:
+    LD D, 0              ; ← patched with saved value
+_tsmc_slot_d EQU .reload_d + 1
+```
+
+**Why TSMC tunnels are recursion-friendly:** Unlike stack spills, TSMC slots
+don't grow with recursion depth. Each function has a fixed set of TSMC slots
+in the data section. For non-recursive functions this is always correct.
+For recursive functions, TSMC slots work when there's no recursive call
+between the save (tunnel start) and reload (tunnel end) — the compiler
+verifies this statically via the linearity analysis.
+
+**Connection to QTT:** A linear parameter (quantity 1) never needs a TSMC
+tunnel — it's used once and the register is freed. An erased parameter
+(quantity 0) never needs a register at all. Only shared parameters
+(quantity ω) might need TSMC tunnels, and the compiler knows exactly which
+ones at compile time.
 
 ### Why These Matter on Z80
 
