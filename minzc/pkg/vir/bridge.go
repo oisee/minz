@@ -168,8 +168,50 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 			Width: w,
 		}}, nil
 
+	case mir2.OpPtrAdd:
+		// ptr_add base, offset → ADD HL, DE (16-bit pointer arithmetic)
+		return []VIROp{{
+			Op: OpAdd, Dst: int(inst.Dst),
+			Src: [2]int{int(inst.Src[0]), int(inst.Src[1])}, Width: 16,
+		}}, nil
+
+	case mir2.OpField:
+		// field base, imm=byte_offset → base + offset
+		if inst.Imm == 0 {
+			// Zero offset: just a copy
+			return []VIROp{{
+				Op: OpMove, Dst: int(inst.Dst), Src: [2]int{int(inst.Src[0]), -1},
+				Width: 16,
+			}}, nil
+		}
+		// Non-zero offset: add immediate
+		return []VIROp{{
+			Op: OpAddImm, Dst: int(inst.Dst), Src: [2]int{int(inst.Src[0]), -1},
+			Imm: inst.Imm, Width: 16,
+		}}, nil
+
+	case mir2.OpPtrBump:
+		// Same as OpField semantically
+		if inst.Imm == 0 {
+			return []VIROp{{
+				Op: OpMove, Dst: int(inst.Dst), Src: [2]int{int(inst.Src[0]), -1},
+				Width: 16,
+			}}, nil
+		}
+		return []VIROp{{
+			Op: OpAddImm, Dst: int(inst.Dst), Src: [2]int{int(inst.Src[0]), -1},
+			Imm: inst.Imm, Width: 16,
+		}}, nil
+
+	case mir2.OpAlloca:
+		// alloca N → SP adjustment, return pointer
+		// For now, treat as const (frame address will be resolved later)
+		return []VIROp{{
+			Op: OpConst, Dst: int(inst.Dst), Imm: inst.Imm, Width: 16,
+		}}, nil
+
 	default:
-		// Skip unsupported ops (OpNop, OpField, OpPtrAdd, etc.)
+		// Skip side-effect-free ops with no result
 		if inst.Dst == mir2.NoReg {
 			return nil, nil
 		}

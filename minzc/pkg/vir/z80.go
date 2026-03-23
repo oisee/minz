@@ -142,6 +142,10 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			DstLocs: Z80_Pairs.Or(Z80_IX).Or(Z80_IY),
 			Template: "LD {dst}, {imm}", Cost: 10, Bytes: 3, Flags: PatImmediate},
 
+		// ── Constants to IXH (spill-tier storage) ────────────────────
+		{Name: "ld_ixh_n", Op: OpConst, Width: 8, DstLocs: Z80_IXHalves,
+			Template: "LD {dst}, {imm}", Cost: 11, Bytes: 3, Flags: PatImmediate},
+
 		// ── 8-bit moves ──────────────────────────────────────────────
 		{Name: "ld_r_r", Op: OpMove, Width: 8, DstLocs: Z80_GPR8,
 			SrcLocs: [2]LocSet{Z80_GPR8}, Template: "LD {dst}, {src0}",
@@ -264,6 +268,11 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			SrcLocs:  [2]LocSet{Z80_Pairs},
 			Template: "INC {dst}", Cost: 6, Bytes: 1, ImmGuard: immGuard(1),
 			Flags: PatImmediate, TiedDstSrc: true},
+		// General 16-bit add immediate: LD BC,N / ADD HL,BC
+		{Name: "add_hl_nn", Op: OpAddImm, Width: 16, DstLocs: Z80_HL,
+			SrcLocs:  [2]LocSet{Z80_HL},
+			Template: "LD BC, {imm}\n    ADD HL, BC", Cost: 21, Bytes: 4,
+			Clobbers: Z80_Flags.Or(Z80_BC), Flags: PatImmediate, TiedDstSrc: true},
 
 		// 16-bit compare
 		{Name: "cmp16_hl_de", Op: OpCmp, Width: 16, DstLocs: Z80_Flags,
@@ -321,6 +330,14 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			DstLocs: Z80_HL,
 			Template: "LD HL, ({imm})", Cost: 16, Bytes: 3,
 			Flags: PatMemRead | PatImmediate},
+
+		// ── 16-bit move to/from memory (spill/reload) ───────────────
+		{Name: "ld_nn_hl", Op: OpMove, Width: 16, DstLocs: Z80_Mem,
+			SrcLocs: [2]LocSet{Z80_HL},
+			Template: "LD ({dst}), HL", Cost: 16, Bytes: 3, Flags: PatMemWrite},
+		{Name: "ld_hl_nn", Op: OpMove, Width: 16, DstLocs: Z80_HL,
+			SrcLocs: [2]LocSet{Z80_Mem},
+			Template: "LD HL, ({src0})", Cost: 16, Bytes: 3, Flags: PatMemRead},
 
 		// ── Negate ───────────────────────────────────────────────────
 		{Name: "neg_a", Op: OpNeg, Width: 8, DstLocs: Z80_A,
