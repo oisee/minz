@@ -377,6 +377,128 @@ func TestAssert_E2E(t *testing.T) {
 	}
 }
 
+// ── Lambda ───────────────────────────────────────────────────────────────────
+
+func TestLambda_Parse(t *testing.T) {
+	src := `
+(fun apply ((f ptr) (x u8)) u8 (return (funcall f x)))
+(fun test_lambda () u8
+  (return (apply (lambda ((x u8)) u8 (return (+ x x))) 5)))
+(assert test_lambda == 10 via mir2)
+`
+	m, err := Compile(src, "test_lambda")
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Should have: apply, test_lambda, lambda_0
+	if len(m.Funcs) < 3 {
+		t.Fatalf("expected >=3 funcs (apply, test_lambda, lambda_0), got %d", len(m.Funcs))
+	}
+	found := false
+	for _, f := range m.Funcs {
+		if strings.HasPrefix(f.Name, "lambda_") {
+			found = true
+			if len(f.Params) != 1 {
+				t.Errorf("lambda params = %d, want 1", len(f.Params))
+			}
+		}
+	}
+	if !found {
+		t.Error("no lambda_ function generated")
+	}
+	_, err = pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("pipeline: %v", err)
+	}
+}
+
+// ── Let-in ───────────────────────────────────────────────────────────────────
+
+func TestLetIn_Parse(t *testing.T) {
+	src := `
+(fun f ((x u8)) u8
+  (return (let-in doubled u8 (+ x x) (+ doubled 1))))
+(assert f 5 == 11 via mir2)
+`
+	m, err := Compile(src, "test_letin")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ret := m.Funcs[0].Body.Body[0].(*hir.ReturnStmt)
+	li, ok := ret.Val.(*hir.LetInExpr)
+	if !ok {
+		t.Fatalf("expected LetInExpr, got %T", ret.Val)
+	}
+	if li.Name != "doubled" {
+		t.Errorf("name = %q, want doubled", li.Name)
+	}
+	_, err = pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("pipeline: %v", err)
+	}
+}
+
+func TestLetIn_Chained(t *testing.T) {
+	src := `
+(fun f ((x u8)) u8
+  (return (let-in a u8 (+ x 1)
+    (let-in b u8 (+ a a) (+ b 10)))))
+(assert f 3 == 18 via mir2)
+`
+	m, err := Compile(src, "test_letin_chain")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("pipeline: %v", err)
+	}
+}
+
+// ── Match ────────────────────────────────────────────────────────────────────
+
+func TestMatch_Parse(t *testing.T) {
+	src := `
+(fun classify ((x u8)) u8
+  (return (match x (0 10) (1 20) (2 30) (_ 99))))
+(assert classify 0 == 10 via mir2)
+(assert classify 1 == 20 via mir2)
+(assert classify 2 == 30 via mir2)
+(assert classify 42 == 99 via mir2)
+`
+	m, err := Compile(src, "test_match")
+	if err != nil {
+		t.Fatal(err)
+	}
+	ret := m.Funcs[0].Body.Body[0].(*hir.ReturnStmt)
+	cond, ok := ret.Val.(*hir.CondExpr)
+	if !ok {
+		t.Fatalf("expected CondExpr (from match desugar), got %T", ret.Val)
+	}
+	_ = cond
+	_, err = pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("pipeline: %v", err)
+	}
+}
+
+func TestMatch_Else(t *testing.T) {
+	src := `
+(fun f ((x u8)) u8
+  (return (match x (1 100) (else 0))))
+(assert f 1 == 100 via mir2)
+(assert f 5 == 0 via mir2)
+`
+	m, err := Compile(src, "test_match_else")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("pipeline: %v", err)
+	}
+}
+
 func TestFuncall(t *testing.T) {
 	// (funcall fn-expr args...) → indirect call through function pointer
 	src := `

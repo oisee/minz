@@ -26,12 +26,15 @@ func CompileNodes(nodes []Node, name string) (*hir.Module, error) {
 }
 
 type compiler struct {
-	name  string
-	funcs map[string]*hir.Func // compiled functions, for return type lookup
+	name     string
+	funcs    map[string]*hir.Func // compiled functions, for return type lookup
+	lambdaID int                   // counter for generating unique lambda names
+	module   *hir.Module           // current module (for appending lambdas)
 }
 
 func (c *compiler) compileModule(nodes []Node) (*hir.Module, error) {
 	m := &hir.Module{Name: c.name}
+	c.module = m
 	c.funcs = make(map[string]*hir.Func)
 	for _, n := range nodes {
 		if !n.IsList() || len(n.List) == 0 {
@@ -653,6 +656,12 @@ func (c *compiler) compileExpr(n Node) (hir.Expr, error) {
 			return nil, err
 		}
 		return &hir.CondExpr{Cond: cond, Then: then, Else: els, Ty: then.ExprTy()}, nil
+	case "lambda":
+		return c.compileLambda(n)
+	case "let-in":
+		return c.compileLetIn(n)
+	case "match":
+		return c.compileMatch(n)
 	default:
 		// Treat as function call: (fname args...)
 		return c.compileCall(n)
@@ -783,4 +792,115 @@ func stmtToBlock(s hir.Stmt) *hir.Block {
 		return b
 	}
 	return &hir.Block{Body: []hir.Stmt{s}}
+}
+
+// ── Lambda ───────────────────────────────────────────────────────────────────
+
+// (lambda ((x u8) (y u8)) u8 (+ x y))
+// Generates a named function "lambda_N" appended to the module, returns a
+// VarRef so the caller can pass it to higher-order functions or call it.
+func (c *compiler) compileLambda(n Node) (hir.Expr, error) {
+	if len(n.List) < 4 {
+		return nil, fmt.Errorf("line %d: lambda: expected (lambda params retty body...)", n.Line)
+	}
+	params, err := c.compileParams(n.List[1])
+	if err != nil {
+		return nil, fmt.Errorf("line %d: lambda: %w", n.Line, err)
+	}
+	retTy := resolveType(n.List[2].Atom)
+
+	var body []hir.Stmt
+	for _, s := range n.List[3:] {
+		st, err := c.compileStmt(s)
+		if err != nil {
+			return nil, fmt.Errorf("line %d: lambda: %w", n.Line, err)
+		}
+		body = append(body, st)
+	}
+
+	name := fmt.Sprintf("lambda_%d", c.lambdaID)
+	c.lambdaID++
+
+	f := &hir.Func{
+		Name:   name,
+		Params: params,
+		RetTy:  retTy,
+	}
+	if len(body) > 0 {
+		f.Body = &hir.Block{Body: body}
+	}
+	c.module.Funcs = append(c.module.Funcs, f)
+	c.funcs[name] = f
+
+	return &hir.AddrOfExpr{Sym: name}, nil
+}
+
+// ── Let-in ───────────────────────────────────────────────────────────────────
+
+// (let-in name ty init body)
+// Scoped binding: evaluates init, binds to name, evaluates body.
+func (c *compiler) compileLetIn(n Node) (hir.Expr, error) {
+	if len(n.List) != 5 {
+		return nil, fmt.Errorf("line %d: let-in: expected (let-in name ty init body)", n.Line)
+	}
+	name := n.List[1].Atom
+	ty := resolveType(n.List[2].Atom)
+	init, err := c.compileExpr(n.List[3])
+	if err != nil {
+		return nil, fmt.Errorf("line %d: let-in: init: %w", n.Line, err)
+	}
+	body, err := c.compileExpr(n.List[4])
+	if err != nil {
+		return nil, fmt.Errorf("line %d: let-in: body: %w", n.Line, err)
+	}
+	return &hir.LetInExpr{Name: name, Ty: ty, Init: init, Body: body}, nil
+}
+
+// ── Match ────────────────────────────────────────────────────────────────────
+
+// (match expr (val1 body1) (val2 body2) ... (_ default))
+// Desugars to nested CondExpr chain: if expr==val1 then body1 else if ...
+func (c *compiler) compileMatch(n Node) (hir.Expr, error) {
+	if len(n.List) < 3 {
+		return nil, fmt.Errorf("line %d: match: expected (match expr clauses...)", n.Line)
+	}
+	scrutinee, err := c.compileExpr(n.List[1])
+	if err != nil {
+		return nil, fmt.Errorf("line %d: match: scrutinee: %w", n.Line, err)
+	}
+	clauses := n.List[2:]
+	return c.buildMatchChain(scrutinee, clauses, n.Line)
+}
+
+func (c *compiler) buildMatchChain(scrutinee hir.Expr, clauses []Node, line int) (hir.Expr, error) {
+	if len(clauses) == 0 {
+		return &hir.IntLitExpr{Val: 0, Ty: mir2.TyU8}, nil
+	}
+	clause := clauses[0]
+	if !clause.IsList() || len(clause.List) < 2 {
+		return nil, fmt.Errorf("line %d: match: clause must be (pattern body)", line)
+	}
+	pattern := clause.List[0]
+	body, err := c.compileExpr(clause.List[1])
+	if err != nil {
+		return nil, fmt.Errorf("line %d: match: body: %w", line, err)
+	}
+
+	// Wildcard: _ or else → unconditional
+	if pattern.IsAtom() && (pattern.Atom == "_" || pattern.Atom == "else") {
+		return body, nil
+	}
+
+	// Literal pattern: compare scrutinee == pattern
+	patExpr, err := c.compileExpr(pattern)
+	if err != nil {
+		return nil, fmt.Errorf("line %d: match: pattern: %w", line, err)
+	}
+	cond := &hir.BinExpr{Op: "==", L: scrutinee, R: patExpr, Ty: mir2.TyBool}
+
+	rest, err := c.buildMatchChain(scrutinee, clauses[1:], line)
+	if err != nil {
+		return nil, err
+	}
+	return &hir.CondExpr{Cond: cond, Then: body, Else: rest, Ty: body.ExprTy()}, nil
 }

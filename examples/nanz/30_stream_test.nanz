@@ -1,0 +1,75 @@
+// Stream abstraction E2E tests — BufStream + NullStream
+// All tests via mir2 (VM-friendly, no Z80 regalloc issues)
+
+// ── Inline BufStream (no import yet, self-contained for testing) ─────────
+
+global buf: [u8; 64]
+global stream: [u8; 6]   // BufStream: [buf_ptr:2][pos:2][cap:2]
+
+fun bufstream_init(s: ^u8, b: ^u8, cap: u16) -> void {
+    var p: ^u16 = s
+    p[0] = b
+    p[1] = 0
+    p[2] = cap
+}
+
+fun bufstream_write_u8(s: ^u8, byte: u8) -> void {
+    var p: ^u16 = s
+    var pos: u16 = p[1]
+    if pos < p[2] {
+        var b: ^u8 = p[0]
+        b[pos] = byte
+        p[1] = pos + 1
+    }
+}
+
+fun bufstream_pos(s: ^u8) -> u16 {
+    var p: ^u16 = s
+    return p[1]
+}
+
+// ── Test: basic write ────────────────────────────────────────────────────
+
+fun test_basic_write() -> u16 {
+    bufstream_init(&stream, &buf, 64)
+    bufstream_write_u8(&stream, 72)   // 'H'
+    bufstream_write_u8(&stream, 105)  // 'i'
+    return bufstream_pos(&stream)
+}
+
+assert test_basic_write() == 2 via mir2
+
+// ── Test: write fills to capacity ────────────────────────────────────────
+
+fun test_cap_write() -> u16 {
+    bufstream_init(&stream, &buf, 3)
+    bufstream_write_u8(&stream, 65)   // 'A'
+    bufstream_write_u8(&stream, 66)   // 'B'
+    bufstream_write_u8(&stream, 67)   // 'C'
+    bufstream_write_u8(&stream, 68)   // 'D' — should be dropped (cap=3)
+    return bufstream_pos(&stream)
+}
+
+assert test_cap_write() == 3 via mir2
+
+// ── Test: first byte is correct ──────────────────────────────────────────
+
+fun test_first_byte() -> u8 {
+    bufstream_init(&stream, &buf, 64)
+    bufstream_write_u8(&stream, 42)
+    return buf[0]
+}
+
+assert test_first_byte() == 42 via mir2
+
+// ── Test: sequential bytes ───────────────────────────────────────────────
+
+fun test_seq_bytes() -> u8 {
+    bufstream_init(&stream, &buf, 64)
+    bufstream_write_u8(&stream, 10)
+    bufstream_write_u8(&stream, 20)
+    bufstream_write_u8(&stream, 30)
+    return buf[1]
+}
+
+assert test_seq_bytes() == 20 via mir2

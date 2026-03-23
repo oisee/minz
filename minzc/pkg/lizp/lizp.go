@@ -275,6 +275,16 @@ func desugarExpr(n lanz.Node) lanz.Node {
 			return list(n.Line, atom("==", n.Line), x, atom("0", n.Line))
 		}
 		return n
+	case "fn":
+		// Scheme-style lambda: (fn ((x u8)) u8 body) → (lambda ((x u8)) u8 body)
+		return desugarRenamed(n, "lambda")
+	case "case":
+		// Scheme-style case: (case expr (val body) ...) → (match expr (val body) ...)
+		return desugarRenamed(n, "match")
+	case "let*":
+		// Scheme let*: (let* ((name type val)) body-expr)
+		// → (let-in name type val body-expr)
+		return desugarLetStar(n)
 	case "->":
 		// Thread-first: (-> x (f a) (g b)) → (g (f x a) b)
 		return desugarThreadFirst(n)
@@ -526,6 +536,43 @@ func substituteNode(n lanz.Node, bindings map[string]lanz.Node, line int) lanz.N
 		result[i] = substituteNode(child, bindings, line)
 	}
 	return lanz.Node{List: result, Line: line}
+}
+
+// desugarRenamed replaces the head atom with newHead, then desugars children.
+func desugarRenamed(n lanz.Node, newHead string) lanz.Node {
+	result := make([]lanz.Node, len(n.List))
+	result[0] = atom(newHead, n.Line)
+	for i := 1; i < len(n.List); i++ {
+		result[i] = desugarExpr(n.List[i])
+	}
+	return lanz.Node{List: result, Line: n.Line}
+}
+
+// (let* ((name type val) ...) body-expr)
+// → nested let-in chain: (let-in name type val (let-in name2 type2 val2 body))
+func desugarLetStar(n lanz.Node) lanz.Node {
+	if len(n.List) < 3 || !n.List[1].IsList() {
+		return n
+	}
+	bindings := n.List[1].List
+	// Body is the last element (expression, not statement)
+	body := desugarExpr(n.List[2])
+
+	// Build inside-out
+	for i := len(bindings) - 1; i >= 0; i-- {
+		b := bindings[i]
+		if !b.IsList() || len(b.List) < 3 {
+			continue
+		}
+		name := b.List[0]
+		ty := b.List[1]
+		val := desugarExpr(b.List[2])
+		body = lanz.Node{
+			List: []lanz.Node{atom("let-in", n.Line), name, ty, val, body},
+			Line: n.Line,
+		}
+	}
+	return body
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
