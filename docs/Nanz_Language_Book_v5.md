@@ -3554,15 +3554,30 @@ fun safe_add(a: u8, b: u8) -> u16 {
 | Phase | Scope | Runs on | Effort |
 |-------|-------|---------|--------|
 | **0** (done) | MZV runs complex Nanz (Tetris, FAT) | Host via Go | Done |
-| **1** | Nanz Z80 assembler (Stage 5) | Z80 / CP/M | 2-4 weeks |
-| **2** | Nanz MIR2→Z80 codegen (Stage 4) | MZV | 1-2 months |
-| **3** | Nanz optimizer passes (Stage 3) | MZV | 1-2 months |
-| **4** | TinyNanz parser (Stage 1 subset) | MZV | 2-3 months |
-| **5** | Full Nanz parser (Stage 1) | MZV (256KB heap) | 3-6 months |
+| **1** | Nanz Z80 assembler (Stage 5) | Z80 / CP/M / Agon | 2-4 weeks |
+| **2** | Nanz MIR2→Z80 codegen (Stage 4) | MZV / Agon | 1-2 months |
+| **3** | Nanz optimizer passes (Stage 3) | MZV / Agon | 1-2 months |
+| **4** | TinyNanz parser (Stage 1 subset) | MZV / Agon / Spectrum 128K | 2-3 months |
+| **5** | Full Nanz parser (Stage 1) | MZV / Agon | 3-6 months |
+| **6** | Native self-host on Agon Light 2 | Agon (512KB, 18MHz eZ80) | 1-2 months after Phase 5 |
 
-Phase 1-2 deliver real value: a Nanz-written backend that produces Z80 code, bootstrapped by the Go frontend. Phase 4-5 close the loop.
+Phase 1-2 deliver real value: a Nanz-written backend that produces Z80 code, bootstrapped by the Go frontend. Phase 4-5 close the loop. Phase 6 is the prize: Nanz compiling Nanz on real eZ80 hardware — a compiler that runs on the machine it targets.
 
-**The honest assessment:** Full self-hosting of Nanz on Z80 hardware is impractical (code won't fit in 48KB). But self-hosting on MZV — the MIR2 VM — is a genuine possibility. MZV is the "Nanz machine": it runs MIR2 natively, has configurable memory, and can be extended with host functions. A Nanz compiler running on MZV compiling Nanz to Z80 is the real self-hosting story.
+**The honest assessment:** Self-hosting on a stock 48KB ZX Spectrum is tight — the compiler alone is 80-120KB. But several real hardware targets make native self-hosting practical:
+
+| Platform | Available RAM | Feasibility |
+|----------|-------------|-------------|
+| ZX Spectrum 48K | 42KB usable | Too tight for full compiler |
+| **ZX Spectrum 128K** | 128KB (8 banks) | **Feasible** — staged compilation across banks |
+| **Agon Light 2 (eZ80)** | 512KB | **Easy** — entire compiler fits in flat memory |
+| CP/M + banked RAM | 256KB+ (Z180, CPC6128, MSX2) | **Feasible** — disk swap for large programs |
+| MZV (MIR2 VM) | Configurable (64KB–16MB) | **Easy** — no hardware constraints |
+
+On Spectrum 128K, the multi-tool architecture maps naturally to bank switching: parser in banks 0-2, optimizer in banks 3-4, codegen in banks 5-7. Each stage reads input from a shared buffer in the unbanked 32KB region and writes output back. The `@target(spectrum128)` annotation could even generate bank-switching trampolines automatically.
+
+On Agon Light 2 with 512KB flat RAM and 18MHz eZ80, the entire compiler fits comfortably with room for 300KB+ of source code and working memory. This is the most natural native self-hosting target.
+
+MZV remains the lowest-friction path — no hardware constraints, easy debugging, extensible host functions — but native Z80/eZ80 self-hosting is not a dream, it's an engineering exercise on the right hardware.
 
 ---
 
