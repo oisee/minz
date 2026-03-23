@@ -1208,11 +1208,12 @@ func (p *parser) parseMatch() (hir.Expr, error) {
 	}
 
 	type arm struct {
-		isDefault bool
-		val       int64
-		guard     hir.Expr // nil = no guard; non-nil = extra condition
-		body      hir.Expr
-		bindName  string // variable name bound to scrutinee (for guards)
+		isDefault       bool
+		val             int64
+		guard           hir.Expr // nil = no guard; non-nil = extra condition
+		body            hir.Expr
+		bindName        string // variable name bound to scrutinee (for guards)
+		hasPayloadBind  bool   // true when | Some x -> ... binds payload
 	}
 	var arms []arm
 
@@ -1221,6 +1222,7 @@ func (p *parser) parseMatch() (hir.Expr, error) {
 		p.next() // consume |
 		tok := p.peek()
 		isDefault := false
+		hasPayloadBind := false
 		var val int64
 		var bindName string
 		if tok.kind == tokIdent && tok.text == "_" {
@@ -1232,8 +1234,12 @@ func (p *parser) parseMatch() (hir.Expr, error) {
 		} else if tok.kind == tokIdent {
 			p.next()
 			if ctor, ok := p.ctors[tok.text]; ok {
-				// Named constructor
+				// Named constructor — check for payload binding: | Some x -> ...
 				val = ctor.tag
+				if ctor.payload != nil && p.peek().kind == tokIdent && !isKeyword(p.peek().text) {
+					bindName = p.next().text
+					hasPayloadBind = true
+				}
 			} else {
 				// Variable binding: | n when n > 10 -> ...
 				bindName = tok.text
@@ -1261,7 +1267,24 @@ func (p *parser) parseMatch() (hir.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
-		arms = append(arms, arm{isDefault: isDefault, val: val, guard: guard, body: body, bindName: bindName})
+		// For payload binding: | Some x -> body  →  wrap body in function taking x
+		if hasPayloadBind && bindName != "" {
+			wrapName := fmt.Sprintf("__mpay_%d", p.lambdaCount)
+			p.lambdaCount++
+			p.autoFuncs = append(p.autoFuncs, &hir.Func{
+				Name: wrapName, Params: []hir.Param{{Name: bindName, Ty: mir2.TyU8}},
+				RetTy: body.ExprTy(),
+				Body:  &hir.Block{Body: []hir.Stmt{&hir.ReturnStmt{Val: body}}},
+			})
+			// Replace body with: wrapName(__payload(scrutinee))
+			body = &hir.CallExpr{
+				Fn:   wrapName,
+				Args: []hir.Expr{&hir.CallExpr{Fn: "__payload", Args: []hir.Expr{scrutinee}, Ty: mir2.TyU8}},
+				Ty:   body.ExprTy(),
+			}
+		}
+		hasPayloadBind = false
+		arms = append(arms, arm{isDefault: isDefault, val: val, guard: guard, body: body, bindName: bindName, hasPayloadBind: false})
 	}
 
 	// Optional "end" keyword
