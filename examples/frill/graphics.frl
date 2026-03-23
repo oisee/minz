@@ -1,0 +1,152 @@
+(* Frill Graphics — pure pattern functions for pixel art on Z80 *)
+(* Demonstrates: ADT, pattern matching, bitwise ops, functional composition *)
+(* These generate pixel data — rendering happens at Z80 runtime *)
+
+-- ═══════════════════════════════════════════
+-- Color palette (ZX Spectrum)
+-- ═══════════════════════════════════════════
+
+type Color = Black | Blue | Red | Magenta | Green | Cyan | Yellow | White
+
+let color_index (c : u8) =
+  match c with
+  | Black   -> 0
+  | Blue    -> 1
+  | Red     -> 2
+  | Magenta -> 3
+  | Green   -> 4
+  | Cyan    -> 5
+  | Yellow  -> 6
+  | White   -> 7
+
+assert color_index Black == 0
+assert color_index White == 7
+assert color_index Cyan == 5
+
+-- ═══════════════════════════════════════════
+-- Sierpinski triangle: x & y == 0 → pixel on
+-- ═══════════════════════════════════════════
+
+let sierpinski (x : u8) (y : u8) =
+  if (x & y) == 0 then 1 else 0
+
+assert sierpinski 0 0 == 1
+assert sierpinski 1 1 == 0
+assert sierpinski 2 0 == 1
+assert sierpinski 3 3 == 0
+assert sierpinski 4 0 == 1
+assert sierpinski 0 7 == 1
+assert sierpinski 7 0 == 1
+
+-- ═══════════════════════════════════════════
+-- XOR texture (classic demoscene plasma)
+-- ═══════════════════════════════════════════
+
+let xor_tex (x : u8) (y : u8) = (x ^ y) % 8
+
+assert xor_tex 0 0 == 0
+assert xor_tex 3 5 == 6
+assert xor_tex 7 7 == 0
+assert xor_tex 15 15 == 0
+assert xor_tex 255 0 == 7
+
+-- ═══════════════════════════════════════════
+-- Checkerboard
+-- ═══════════════════════════════════════════
+
+let checker (x : u8) (y : u8) (sz : u8) =
+  if ((x / sz) + (y / sz)) % 2 == 0 then 1 else 0
+
+assert checker 0 0 8 == 1
+assert checker 8 0 8 == 0
+assert checker 16 0 8 == 1
+assert checker 0 8 8 == 0
+assert checker 8 8 8 == 1
+
+-- ═══════════════════════════════════════════
+-- Diamond pattern
+-- ═══════════════════════════════════════════
+
+let abs_diff (a : u8) (b : u8) = if a > b then a - b else b - a
+
+let diamond (x : u8) (y : u8) (cx : u8) (cy : u8) (r : u8) =
+  if abs_diff x cx + abs_diff y cy < r then 1 else 0
+
+assert diamond 16 16 16 16 8 == 1
+assert diamond 0 0 16 16 8 == 0
+assert diamond 16 12 16 16 8 == 1
+assert diamond 16 8 16 16 8 == 0
+
+-- ═══════════════════════════════════════════
+-- Concentric rings
+-- ═══════════════════════════════════════════
+
+let rings (x : u8) (y : u8) (cx : u8) (cy : u8) =
+  let dx = abs_diff x cx in
+  let dy = abs_diff y cy in
+  (dx * dx + dy * dy) / 16 % 2
+
+assert rings 16 16 16 16 == 0
+assert rings 20 16 16 16 == 1
+
+-- ═══════════════════════════════════════════
+-- Compose: pick pattern by region
+-- ═══════════════════════════════════════════
+
+let composite (x : u8) (y : u8) =
+  if y < 32 then
+    if x < 32 then
+      if sierpinski x y > 0 then color_index Cyan else color_index Black
+    else
+      xor_tex x y
+  else
+    if checker x y 8 > 0 then color_index Yellow else color_index Blue
+
+assert composite 0 0 == 5
+assert composite 1 1 == 0
+assert composite 32 0 == 0
+assert composite 35 5 == 6
+assert composite 0 32 == 6
+assert composite 8 32 == 1
+
+-- ═══════════════════════════════════════════
+-- Sprite: 8x8 smiley face
+-- ═══════════════════════════════════════════
+
+let smiley_row (y : u8) =
+  if y == 0 then 0x3C
+  else if y == 1 then 0x42
+  else if y == 2 then 0xA5
+  else if y == 3 then 0x81
+  else if y == 4 then 0xA5
+  else if y == 5 then 0x99
+  else if y == 6 then 0x42
+  else if y == 7 then 0x3C
+  else 0
+
+let smiley_pixel (x : u8) (y : u8) =
+  let row = smiley_row y in
+  let bit = 7 - x in
+  if (row / pow2_lut bit) % 2 == 1 then 1 else 0
+
+let pow2_lut (n : u8) =
+  if n == 0 then 1
+  else if n == 1 then 2
+  else if n == 2 then 4
+  else if n == 3 then 8
+  else if n == 4 then 16
+  else if n == 5 then 32
+  else if n == 6 then 64
+  else 128
+
+assert pow2_lut 0 == 1
+assert pow2_lut 7 == 128
+
+assert smiley_row 0 == 60
+assert smiley_pixel 2 0 == 1
+assert smiley_pixel 0 0 == 0
+assert smiley_pixel 3 2 == 0
+assert smiley_pixel 2 2 == 1
+
+(* At Z80 runtime, main would iterate over pixels and call composite/smiley *)
+let main (x : u8) = 0

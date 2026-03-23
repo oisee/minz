@@ -1,0 +1,11 @@
+(* Canvas API for Frill — MIR2 VM host functions *)
+(* These run at compile-time via the MIR2 VM canvas subsystem *)
+
+extern canvas_init (w : u16) (h : u16) (mode : u8) : u8
+extern canvas_clear (color : u8) : u8
+extern canvas_pixel (x : u16) (y : u16) (color : u8) : u8
+extern canvas_line (x1 : u16) (y1 : u16) (x2 : u16) (y2 : u16) (color : u8) : u8
+extern canvas_rect (x : u16) (y : u16) (w : u16) (h : u16) (color : u8) : u8
+extern canvas_fill_rect (x : u16) (y : u16) (w : u16) (h : u16) (color : u8) : u8
+extern canvas_circle (cx : u16) (cy : u16) (r : u16) (color : u8) : u8
+extern canvas_save (path : u16) : u8

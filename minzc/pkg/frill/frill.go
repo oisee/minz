@@ -477,7 +477,7 @@ func (p *parser) lex() token {
 		return token{tokEq, "=", line}
 	case ',':
 		return token{tokComma, ",", line}
-	case '+', '-', '*', '/', '%', '<', '>', '|', '!', '~':
+	case '+', '-', '*', '/', '%', '<', '>', '|', '!', '~', '&', '^':
 		return token{tokOp, string(ch), line}
 	}
 
@@ -1559,7 +1559,7 @@ func (p *parser) parseMul() (hir.Expr, error) {
 	if err != nil {
 		return nil, err
 	}
-	for p.peek().kind == tokOp && (p.peek().text == "*" || p.peek().text == "/" || p.peek().text == "%") {
+	for p.peek().kind == tokOp && (p.peek().text == "*" || p.peek().text == "/" || p.peek().text == "%" || p.peek().text == "&" || p.peek().text == "^") {
 		op := p.next().text
 		right, err := p.parseUnary()
 		if err != nil {
