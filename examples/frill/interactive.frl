@@ -1,0 +1,20 @@
+(* Interactive Frill program for CP/M *)
+(* Reads a digit, computes fibonacci, prints result *)
+
+import "../../stdlib/frill/math.frl"
+import "../../stdlib/frill/io.nanz"
+
+let digit_to_num (ch : u8) = ch - 48
+
+let main (x : u8) =
+  do puts "Frill Fibonacci Calculator\r\n"
+  do puts "Enter digit (0-9): "
+  let ch = getchar 0 in
+  do newline 0
+  let n = digit_to_num ch in
+  do puts "fib("
+  do print_u8 n
+  do puts ") = "
+  do print_u8 (fib n)
+  do newline 0
+  0
