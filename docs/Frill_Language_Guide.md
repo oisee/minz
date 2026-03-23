@@ -489,6 +489,162 @@ let name (c : u8) : u8 =
 (* let bad (c : u8) : u8 = match c with | Red -> 0 | Green -> 1 end *)
 ```
 
+## Generated Assembly — Three Backends Compared
+
+MinZ has three codegen backends. Same Frill source, three different outputs.
+
+### add — `let add (a : u8) (b : u8) = a + b`
+
+```z80
+; LIR (ISLE+WFC) — optimal
+add:
+    ADD A, C
+    RET
+
+; PBQP (MIR2) — identical
+add:
+    ADD A, C
+    RET
+```
+
+Both backends generate the same optimal 2-instruction code: a=param1 in A,
+b=param2 in C. ADD A,C. Return result in A. Can't do better.
+
+### double — `let double (x : u8) = x + x`
+
+```z80
+; Both backends:
+double:
+    ADD A, A          ; x + x = shift left, 4T
+    RET
+```
+
+Self-add instead of SLA (which would also work). Both backends identical.
+
+### abs_diff — `let abs_diff (a : u8) (b : u8) = if a > b then a - b else b - a`
+
+```z80
+; PBQP — uses conditional return (TermCondRet)
+abs_diff:
+    SUB C             ; A = a - b
+    RET NC            ; if no carry (a >= b), return a-b
+    NEG               ; else negate: A = b - a
+    RET               ; 4 instructions, branchless-ish
+
+; LIR — different approach
+abs_diff:
+    SUB B             ; subtract
+    CP B              ; compare
+    RET               ; (simplified, may lose accuracy)
+```
+
+PBQP generates elegant code: subtract, check carry flag, conditionally negate.
+Single compare + conditional return — classic Z80 idiom.
+
+### factorial — `let factorial (n : u8) = if n == 0 then 1 else n * factorial (n - 1)`
+
+```z80
+; PBQP — recursive with tail-call to __mul8
+factorial:
+    AND A                    ; test n == 0
+    JRS NZ, .else            ; if not zero, recurse
+    LD A, 1                  ; base case: return 1
+    RET
+.else:
+    LD C, 1
+    SUB 1                    ; n - 1
+    LD B, A
+    CALL factorial           ; recursive call
+    CALL __mul8              ; n * factorial(n-1)
+    RET
+```
+
+Recursive factorial: 11 instructions + shared __mul8 runtime.
+CALL/RET stack manages the recursion naturally on Z80.
+
+### gcd — `let gcd (a : u8) (b : u8) = if b == 0 then a else gcd b (a % b)`
+
+```z80
+; PBQP — tail-recursive Euclid with inline division
+gcd:
+    LD A, C
+    AND A                    ; test b == 0
+    JRS NZ, .else
+    RET                      ; base: return a (already in A)
+.else:
+    LD B, C                  ; setup for div8
+    XOR A
+    LD D, 8
+.div8:
+    SLA B                    ; shift-and-subtract division
+    RLA
+    CP C
+    JR C, .skip
+    SUB C
+    INC B
+.skip:
+    DEC D
+    JR NZ, .div8            ; 8 iterations
+    LD C, A                  ; remainder → b
+    LD A, B                  ; quotient (unused, but b is new a)
+    JP gcd                   ; tail call — no stack growth!
+```
+
+Euclid's algorithm: 23 instructions, fully self-contained.
+Division inlined as 8-cycle shift-and-subtract loop.
+**Tail call** (JP gcd instead of CALL+RET) — zero stack growth for any input.
+
+### inc — `let inc (x : u8) = x + 1`
+
+```z80
+; PBQP — optimal
+inc:
+    INC A             ; 4T, 1 byte — can't do better
+    RET
+
+; LIR — one extra instruction
+inc:
+    LD C, 1           ; materialise constant (unnecessary)
+    INC A
+    RET
+```
+
+PBQP wins here — LIR materialises the constant `1` even though INC A
+doesn't need it. A future ISLE peephole rule could eliminate this.
+
+### square — `let square (x : u8) = x * x`
+
+```z80
+; LIR — tail call to runtime
+square:
+    JP __mul8         ; A=x already, B=x (alias), tail call
+
+; PBQP — explicit setup
+square:
+    LD B, A           ; B = x (for __mul8: A * B → A)
+    CALL __mul8
+    RET
+```
+
+LIR uses a tail call (JP instead of CALL+RET), saving 17 T-states.
+Both use the shared __mul8 runtime (~80T software multiply).
+On eZ80, this would be a single MLT instruction (6T).
+
+### eZ80 ADL — `let add (a : u8) (b : u8) = a + b`
+
+```z80
+; eZ80 ADL mode — same optimal code, 24-bit addresses
+    .ASSUME ADL=1
+    ORG $040045
+add:
+    ADD A, C
+    RET
+```
+
+eZ80 backend wraps Z80 assembly with `.ASSUME ADL=1` header.
+MZA assembler handles 24-bit address encoding automatically.
+Same code, 3-byte immediates instead of 2-byte.
+
 ## Design Decisions
 
 **Why strict?** Lazy evaluation requires thunks (heap-allocated closures).
