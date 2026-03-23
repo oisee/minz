@@ -2,7 +2,7 @@
 
 **Date:** 2026-03-20
 **Status:** Proposed
-**Related:** ADR-0033 (LIR pipeline), ADR-0036 (eZ80 independent backend)
+**Related:** ADR-0033 (LIR pipeline), ADR-0036 (eZ80 independent backend), ADR-0038 (TSMC spill tiers)
 
 ## Context
 
@@ -78,6 +78,10 @@ tradeoffs fundamentally:
 | Frame setup | ~30T (PUSH IX/LD/ADD) | ~4T (LEA IX,SP+0) | Prologue cost |
 | IXH/IXL (undoc Z80) | 4T+prefix | official on eZ80 | More Tier-1 locations |
 | Shadow regs (EXX) | 8T round-trip | 4T round-trip | Cheaper call-save |
+| TSMC spill (A) | 20T (13+7) | 10T (pipelined) | Cheaper than stack, no SP change |
+| TSMC spill (non-A) | 32T (25+7) | 16T (EX AF 1T) | Preserves A, no stack |
+
+See [ADR-0038](0038-tsmc-spill-tiers.md) for full TSMC spill tier design.
 
 ## Decision
 
