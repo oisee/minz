@@ -92,8 +92,90 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 		return "", fmt.Errorf("vir lower %s: %w", f.Name, err)
 	}
 
-	// Per-block approach (whole-function approach needs CFG-aware encoding — TODO)
-	return codegenFuncPerBlock(f, vf, desc, opts)
+	// Deep-copy VIR blocks to avoid stale SrcHint mutations
+	vfCopy := deepCopyFunc(vf)
+
+	// Try CFG-aware whole-function solver first
+	if result, err := codegenFuncCFG(f, vfCopy, desc, opts); err == nil {
+		return result, nil
+	}
+
+	// Fallback to per-block approach (with fresh copy)
+	vfCopy2 := deepCopyFunc(vf)
+	return codegenFuncPerBlock(f, vfCopy2, desc, opts)
+}
+
+// deepCopyFunc creates a deep copy of a VIR Func to avoid stale mutations.
+func deepCopyFunc(vf *Func) *Func {
+	cp := &Func{Name: vf.Name}
+	for _, b := range vf.Blocks {
+		ops := make([]VIROp, len(b.Ops))
+		copy(ops, b.Ops)
+		cp.Blocks = append(cp.Blocks, Block{Label: b.Label, Ops: ops})
+	}
+	return cp
+}
+
+// codegenFuncCFG uses the CFG-aware solver: per-block variables with edge constraints.
+func codegenFuncCFG(f *mir2.Func, vf *Func, desc *MachineDesc, opts SolverOptions) (string, error) {
+	// Apply param SrcHints to entry block
+	if opts.FuncParamLocs != nil || opts.ParamLocs != nil {
+		paramHints := make(map[int]int)
+		if opts.FuncParamLocs != nil {
+			if pl, ok := opts.FuncParamLocs[f.Name]; ok {
+				for v, p := range pl {
+					paramHints[v] = p
+				}
+			}
+		}
+		for v, p := range opts.ParamLocs {
+			if _, ok := paramHints[v]; !ok {
+				paramHints[v] = p
+			}
+		}
+		if len(vf.Blocks) > 0 && len(paramHints) > 0 {
+			for i := range vf.Blocks[0].Ops {
+				for j, s := range vf.Blocks[0].Ops[i].Src {
+					if s > 0 {
+						if phys, ok := paramHints[s]; ok {
+							vf.Blocks[0].Ops[i].SrcHint[j] = Singleton(phys)
+						}
+					}
+				}
+			}
+		}
+	}
+
+	blockPIR, err := SolveCFG(vf, f, desc, opts)
+	if err != nil {
+		return "", err
+	}
+
+	// Emit assembly
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("; %s — VIR codegen (CFG-aware)\n", f.Name))
+	sb.WriteString(f.Name + ":\n")
+
+	for bi, block := range vf.Blocks {
+		label := block.Label
+		if bi > 0 && label != "" {
+			sb.WriteString("." + f.Name + "_" + label + ":\n")
+		}
+
+		pirOps := blockPIR[label]
+		for _, p := range pirOps {
+			line := p.Emit(desc)
+			if !isSelfMove(line) {
+				emitLine(&sb, line)
+			}
+		}
+
+		if bi < len(f.Blocks) {
+			emitTerminator(&sb, f.Blocks[bi], f.Name)
+		}
+	}
+
+	return peepholeCleanup(sb.String()), nil
 }
 
 // codegenFuncWhole solves ALL blocks of a function in one Z3 query.
