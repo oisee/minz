@@ -348,10 +348,11 @@ Optimal — matches hand-written assembly.
 - [x] **Nested function calls** — `f (g x)` works via parens
 - [ ] **Pattern match on payload** — `| Some x -> x + 1` (parses, runtime u16 bug)
 
-### Frill-2: Advanced Types
+### Frill-2: Advanced Types (in progress)
 
-- [ ] **Type classes** — `class Num a where (+) : a -> a -> a`
-  - Compiled via dictionary passing (struct of function pointers)
+- [x] **Type classes** — `class Show where show : u8` + `instance Show Color where ...`
+  - Compiled via monomorphization (mangled names: `show_u8`, `show_Color`)
+  - No vtables, no runtime dispatch — zero cost on Z80
 - [ ] **Parametric polymorphism** — `let id (x : 'a) : 'a = x`
   - Monomorphized at call site (like C++ templates, no runtime cost)
 
