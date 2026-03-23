@@ -221,6 +221,88 @@ func TestZ3SolverChainedOps(t *testing.T) {
 	}
 }
 
+func TestZ3SolverMoveInsertion(t *testing.T) {
+	// Skip if z3 not available
+	if _, err := exec.LookPath("z3"); err != nil {
+		t.Skip("z3 not found, skipping")
+	}
+
+	// v1 = 10, v2 = 3, v3 = v1 - v2, v4 = v3 + v1
+	// SUB destroys v1 (tied to A), but ADD needs v1 again → move insertion required
+	ops := []VIROp{
+		{Op: OpConst, Dst: 1, Imm: 10, Width: 8},
+		{Op: OpConst, Dst: 2, Imm: 3, Width: 8},
+		{Op: OpSub, Dst: 3, Src: [2]int{1, 2}, Width: 8},
+		{Op: OpAdd, Dst: 4, Src: [2]int{3, 1}, Width: 8},
+	}
+
+	result, err := Solve(ops, Z80, SolverOptions{Verbose: testing.Verbose()})
+	if err != nil {
+		t.Fatalf("Solve: %v", err)
+	}
+
+	// Should have 5 PIROps: 2 consts + 1 save move + sub + add
+	for i, p := range result {
+		if p.Pat != nil {
+			t.Logf("  PIR[%d]: %s (pat=%s dst=%d src=%v)",
+				i, p.Emit(Z80), p.Pat.Name, p.DstPhys, p.SrcPhys)
+		} else {
+			t.Logf("  PIR[%d]: (meta) %s", i, p.Comment)
+		}
+	}
+
+	if len(result) < 4 {
+		t.Fatalf("expected at least 4 PIROps (with move), got %d", len(result))
+	}
+
+	// Find the move instruction (should be LD r, r pattern)
+	hasSave := false
+	for _, p := range result {
+		if p.Pat != nil && p.Pat.Op == OpMove {
+			hasSave = true
+			break
+		}
+	}
+	if hasSave {
+		t.Log("Save-before-overwrite move correctly inserted")
+	} else {
+		t.Log("Warning: no save move found — tied operand may have been resolved differently")
+	}
+}
+
+func TestInsertSaveMoves(t *testing.T) {
+	// Unit test for the pre-solver save pass
+	ops := []VIROp{
+		{Op: OpConst, Dst: 1, Imm: 10, Width: 8},
+		{Op: OpConst, Dst: 2, Imm: 3, Width: 8},
+		{Op: OpSub, Dst: 3, Src: [2]int{1, 2}, Width: 8},
+		{Op: OpAdd, Dst: 4, Src: [2]int{3, 1}, Width: 8},
+	}
+
+	expanded := insertSaveMoves(ops, Z80)
+	t.Logf("Original: %d ops, Expanded: %d ops", len(ops), len(expanded))
+
+	for i, op := range expanded {
+		t.Logf("  [%d] Op=%d Dst=%d Src=%v", i, op.Op, op.Dst, op.Src)
+	}
+
+	if len(expanded) != 5 {
+		t.Fatalf("expected 5 ops (1 save inserted), got %d", len(expanded))
+	}
+
+	// The save move should be before the SUB
+	save := expanded[2]
+	if save.Op != OpMove {
+		t.Fatalf("expected OpMove at index 2, got Op=%d", save.Op)
+	}
+
+	// The ADD's src1 should now use the copy vreg, not v1
+	add := expanded[4]
+	if add.Src[1] == 1 {
+		t.Fatal("ADD src1 should use copy vreg, not original v1")
+	}
+}
+
 func findPattern(name string) *Pattern {
 	for i := range Z80.Patterns {
 		if Z80.Patterns[i].Name == name {

@@ -51,6 +51,10 @@ func Solve(ops []VIROp, desc *MachineDesc, opts SolverOptions) ([]PIROp, error) 
 		return nil, fmt.Errorf("z3 not found: %w", err)
 	}
 
+	// Pre-solver: insert save moves for vregs consumed by destructive ops
+	// but needed again later. This expands the VIROp list.
+	ops = insertSaveMoves(ops, desc)
+
 	// Build the problem encoding
 	prob := buildProblem(ops, desc)
 
@@ -74,6 +78,91 @@ func Solve(ops []VIROp, desc *MachineDesc, opts SolverOptions) ([]PIROp, error) 
 
 	// Parse model → PIROps
 	return prob.parseSolution(model, desc)
+}
+
+// ── Save-before-overwrite pass ───────────────────────────────────────────────
+
+// insertSaveMoves detects cases where a tied-dst-src pattern would destroy a
+// vreg that is needed later, and inserts explicit OpMove instructions to save it.
+//
+// Example: v3 = sub(v1, v2); v4 = add(v3, v1)
+//   SUB ties v3←v1 (both A), destroying v1. But v4 needs v1.
+//   Fix: insert v1_copy = move(v1) before SUB, rewrite v4's use of v1 → v1_copy.
+//
+// Result: v1_copy = move(v1); v3 = sub(v1, v2); v4 = add(v3, v1_copy)
+func insertSaveMoves(ops []VIROp, desc *MachineDesc) []VIROp {
+	// Find which patterns are tied for each op
+	hasTied := make([]bool, len(ops))
+	for i, op := range ops {
+		for _, pat := range desc.Patterns {
+			if pat.Matches(op) && pat.TiedDstSrc {
+				hasTied[i] = true
+				break
+			}
+		}
+	}
+
+	// Find last use of each vreg
+	lastUse := make(map[int]int)
+	for i, op := range ops {
+		for _, s := range op.Src {
+			if s > 0 {
+				lastUse[s] = i
+			}
+		}
+	}
+
+	// Next available vreg number
+	nextVReg := 0
+	for _, op := range ops {
+		if op.Dst > nextVReg {
+			nextVReg = op.Dst
+		}
+		for _, s := range op.Src {
+			if s > nextVReg {
+				nextVReg = s
+			}
+		}
+	}
+	nextVReg++
+
+	// Build result with inserted saves
+	var result []VIROp
+	for i, op := range ops {
+		if hasTied[i] && op.Src[0] > 0 {
+			src0 := op.Src[0]
+			// Is src0 used after this instruction?
+			if lu, ok := lastUse[src0]; ok && lu > i {
+				// src0 will be destroyed by tied pattern — insert save
+				copyVReg := nextVReg
+				nextVReg++
+
+				// Insert: v_copy = move(src0)
+				result = append(result, VIROp{
+					Op:    OpMove,
+					Dst:   copyVReg,
+					Src:   [2]int{src0, -1},
+					Width: op.Width,
+				})
+
+				// Rewrite all uses of src0 AFTER this instruction to v_copy
+				// (but NOT this instruction's src0 — it's consumed by the tied op)
+				for j := i + 1; j < len(ops); j++ {
+					if ops[j].Src[0] == src0 {
+						ops[j].Src[0] = copyVReg
+					}
+					if ops[j].Src[1] == src0 {
+						ops[j].Src[1] = copyVReg
+					}
+				}
+				// Update lastUse for the copy
+				lastUse[copyVReg] = lastUse[src0]
+			}
+		}
+		result = append(result, op)
+	}
+
+	return result
 }
 
 // ── Problem encoding ─────────────────────────────────────────────────────────
