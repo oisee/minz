@@ -254,7 +254,7 @@ func (p *parser) lex() token {
 	if p.pos+1 < len(p.src) {
 		two := p.src[p.pos : p.pos+2]
 		switch two {
-		case "==", "!=", "<=", ">=", "&&", "||", "|>", "->", ">>":
+		case "==", "!=", "<=", ">=", "&&", "||", "|>", "->", ">>", "<-":
 			p.pos += 2
 			if two == "->" {
 				return token{tokArrow, two, line}
@@ -1426,8 +1426,30 @@ func (p *parser) parseBodyExpr() (hir.Expr, []hir.Stmt, error) {
 	// Interleaved do-statements and let-in bindings
 	for {
 		if p.peek().kind == tokIdent && p.peek().text == "do" {
-			p.next()
+			p.next() // consume "do"
+			// Mutation: do name <- expr
+			// Detect by parsing first token as potential assignment target
 			doExpr, err := p.parseExpr()
+			if err != nil {
+				return nil, nil, err
+			}
+			// Check if next token is <- (means doExpr is actually the target name)
+			if p.peek().kind == tokOp && p.peek().text == "<-" {
+				p.next() // consume <-
+				val, err := p.parseExpr()
+				if err != nil {
+					return nil, nil, err
+				}
+				// doExpr should be a VarRefExpr
+				if vr, ok := doExpr.(*hir.VarRefExpr); ok {
+					stmts = append(stmts, &hir.AssignStmt{
+						Target: vr,
+						Val:    val,
+					})
+					continue
+				}
+			}
+			// Regular do: discard result
 			if err != nil {
 				return nil, nil, err
 			}
@@ -1489,6 +1511,52 @@ func (p *parser) parseBodyExpr() (hir.Expr, []hir.Stmt, error) {
 			Ty:   val.ExprTy(),
 			Init: val,
 		})
+		} else if p.peek().kind == tokIdent && p.peek().text == "while" {
+			// while cond do ... end
+			p.next() // consume "while"
+			cond, err := p.parseComparison()
+			if err != nil {
+				return nil, nil, err
+			}
+			if err := p.expect(tokIdent, "do"); err != nil {
+				return nil, nil, err
+			}
+			// Parse while body as sub-block of do/let stmts
+			var whileBody []hir.Stmt
+			for {
+				if p.peek().kind == tokIdent && p.peek().text == "end" {
+					p.next()
+					break
+				}
+				if p.peek().kind == tokIdent && p.peek().text == "do" {
+					p.next()
+					doE, err := p.parseExpr()
+					if err != nil {
+						return nil, nil, err
+					}
+					// Check mutation
+					if p.peek().kind == tokOp && p.peek().text == "<-" {
+						p.next()
+						val, err := p.parseExpr()
+						if err != nil {
+							return nil, nil, err
+						}
+						if vr, ok := doE.(*hir.VarRefExpr); ok {
+							whileBody = append(whileBody, &hir.AssignStmt{Target: vr, Val: val})
+						}
+					} else {
+						dn := fmt.Sprintf("__wd_%d", p.lambdaCount)
+						p.lambdaCount++
+						whileBody = append(whileBody, &hir.VarDeclStmt{Name: dn, Ty: doE.ExprTy(), Init: doE})
+					}
+				} else {
+					break
+				}
+			}
+			stmts = append(stmts, &hir.WhileStmt{
+				Cond: cond,
+				Body: &hir.Block{Body: whileBody},
+			})
 		} else {
 			break
 		}
@@ -1776,7 +1844,7 @@ func (p *parser) parseType() mir2.Ty {
 
 func isKeyword(s string) bool {
 	switch s {
-	case "let", "in", "if", "then", "else", "type", "assert", "match", "with", "fun", "end", "where", "when", "prop", "extern", "do", "import", "asm", "class", "instance":
+	case "let", "in", "if", "then", "else", "type", "assert", "match", "with", "fun", "end", "where", "when", "prop", "extern", "do", "import", "asm", "class", "instance", "while":
 		return true
 	}
 	return false
