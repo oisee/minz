@@ -148,5 +148,30 @@ assert smiley_pixel 0 0 == 0
 assert smiley_pixel 3 2 == 0
 assert smiley_pixel 2 2 == 1
 
-(* At Z80 runtime, main would iterate over pixels and call composite/smiley *)
-let main (x : u8) = 0
+(* ═══════════════════════════════════════════ *)
+(* Compile-time rendering via MIR2 VM canvas  *)
+(* ═══════════════════════════════════════════ *)
+
+import "../../stdlib/frill/canvas.frl"
+
+let render_xor (dummy : u8) : IO u8 =
+  let y = 0 in
+  while y < 16 do
+    let x = 0 in
+    while x < 16 do
+      do canvas_pixel x y ((x ^ y) % 8)
+      do x <- x + 1
+    end
+    do y <- y + 1
+  end
+  0
+
+let render (dummy : u8) : IO u8 =
+  do canvas_init 16 16 0
+  do render_xor 0
+  do canvas_save "frill_art.png"
+  0
+
+(* Rendering at Z80 runtime — too expensive for compile-time VM *)
+(* Pattern functions above are fully verified via 30+ asserts *)
+let main (x : u8) : IO u8 = render 0

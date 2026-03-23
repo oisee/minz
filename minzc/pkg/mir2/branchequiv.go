@@ -28,6 +28,11 @@ package mir2
 // For all u8 values v (0..255), run original(v, v) and patched(v, v) through
 // the VM.  If results always match, the branch is provably redundant.
 func BranchEquiv(m *Module, f *Func) bool {
+	// Skip functions that contain calls — they may have side effects or be
+	// too expensive to test-execute (e.g. canvas rendering loops).
+	if funcHasCalls(f) {
+		return false
+	}
 	vm := NewVM(m)
 	changed := false
 
@@ -263,6 +268,18 @@ func beqBoundaryInputs(gen *beqBoundaryGen) [][]Value {
 		}
 	}
 	return inputs
+}
+
+// funcHasCalls reports whether f contains any OpCall or OpCallIndirect instructions.
+func funcHasCalls(f *Func) bool {
+	for _, blk := range f.Blocks {
+		for _, inst := range blk.Insts {
+			if inst.Op == OpCall || inst.Op == OpCallIndirect {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // beqResultsEqual compares two return-value slices for equality.

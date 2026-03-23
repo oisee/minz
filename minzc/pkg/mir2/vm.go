@@ -116,7 +116,7 @@ func NewVM(m *Module) *VM {
 	vm := &VM{
 		Module:     m,
 		Hosts:      make(map[string]HostFunc),
-		MaxSteps:   100_000,
+		MaxSteps:   10_000_000,
 		MaxMemory:  65536,
 		globalSyms: make(map[string]int64),
 	}
@@ -265,37 +265,52 @@ func (vm *VM) callFunc(fn *Func, args []Value) ([]Value, error) {
 		fr.set(p.Reg, truncate(args[i], p.Ty))
 	}
 
-	return vm.execBlock(fr, entry, nil)
-}
+	// ── Iterative block execution loop ──
+	// Instead of recursive execBlock→execTerm→execBlock calls (which overflow
+	// the Go stack on deep loops), we iterate: execute block instructions,
+	// then resolve the terminator to get the next block + args.
+	blk := entry
+	var blockArgs []Value // nil for entry block
 
-// execBlock executes blk, binding blockArgs to the block's params first.
-// Returns when a TermRet is reached.
-func (vm *VM) execBlock(fr *frame, blk *Block, blockArgs []Value) ([]Value, error) {
-	// Bind block arguments to block params.
-	if len(blockArgs) != len(blk.Params) {
-		return nil, fmt.Errorf("mir2.VM: block @%s expects %d params, got %d args",
-			blk.Label, len(blk.Params), len(blockArgs))
-	}
-	for i, p := range blk.Params {
-		fr.set(p.Dst, truncate(blockArgs[i], p.Ty))
-	}
+	for {
+		// Bind block arguments to block params.
+		if len(blockArgs) != len(blk.Params) {
+			return nil, fmt.Errorf("mir2.VM: block @%s expects %d params, got %d args",
+				blk.Label, len(blk.Params), len(blockArgs))
+		}
+		for i, p := range blk.Params {
+			fr.set(p.Dst, truncate(blockArgs[i], p.Ty))
+		}
 
-	// Execute instructions.
-	for _, inst := range blk.Insts {
-		if err := vm.step(); err != nil {
+		// Execute instructions.
+		for _, inst := range blk.Insts {
+			if err := vm.step(); err != nil {
+				return nil, err
+			}
+			if err := vm.execInst(fr, inst); err != nil {
+				return nil, fmt.Errorf("block @%s: %w", blk.Label, err)
+			}
+		}
+
+		// Resolve terminator → either return or jump to next block.
+		rets, next, nextArgs, err := vm.execTerm(fr, blk)
+		if err != nil {
 			return nil, err
 		}
-		if err := vm.execInst(fr, inst); err != nil {
-			return nil, fmt.Errorf("block @%s: %w", blk.Label, err)
+		if next == nil {
+			// TermRet or TermCondRet(return path) — done.
+			return rets, nil
 		}
+		// Jump to next block — iterate, don't recurse.
+		blk = next
+		blockArgs = nextArgs
 	}
-
-	// Execute terminator.
-	return vm.execTerm(fr, blk)
 }
 
-// execTerm follows a terminator, potentially jumping to another block.
-func (vm *VM) execTerm(fr *frame, blk *Block) ([]Value, error) {
+// execTerm resolves a terminator.
+// Returns (retVals, nextBlock, nextBlockArgs, error).
+// If nextBlock is nil, the function returns retVals.
+func (vm *VM) execTerm(fr *frame, blk *Block) ([]Value, *Block, []Value, error) {
 	switch t := blk.Term.(type) {
 
 	case *TermRet:
@@ -303,15 +318,15 @@ func (vm *VM) execTerm(fr *frame, blk *Block) ([]Value, error) {
 		for i, r := range t.Vals {
 			rets[i] = fr.get(r)
 		}
-		return rets, nil
+		return rets, nil, nil, nil
 
 	case *TermJmp:
 		args := collectArgs(fr, t.Args)
 		next := fr.fn.BlockByLabel(t.Target)
 		if next == nil {
-			return nil, fmt.Errorf("jmp to unknown block @%s", t.Target)
+			return nil, nil, nil, fmt.Errorf("jmp to unknown block @%s", t.Target)
 		}
-		return vm.execBlock(fr, next, args)
+		return nil, next, args, nil
 
 	case *TermBrIf:
 		cond := fr.get(t.Cond)
@@ -319,86 +334,79 @@ func (vm *VM) execTerm(fr *frame, blk *Block) ([]Value, error) {
 			args := collectArgs(fr, t.ThenArgs)
 			next := fr.fn.BlockByLabel(t.Then)
 			if next == nil {
-				return nil, fmt.Errorf("br_if then: unknown block @%s", t.Then)
+				return nil, nil, nil, fmt.Errorf("br_if then: unknown block @%s", t.Then)
 			}
-			return vm.execBlock(fr, next, args)
+			return nil, next, args, nil
 		}
 		args := collectArgs(fr, t.ElseArgs)
 		next := fr.fn.BlockByLabel(t.Else)
 		if next == nil {
-			return nil, fmt.Errorf("br_if else: unknown block @%s", t.Else)
+			return nil, nil, nil, fmt.Errorf("br_if else: unknown block @%s", t.Else)
 		}
-		return vm.execBlock(fr, next, args)
+		return nil, next, args, nil
 
 	case *TermBrIf2:
 		lhs := fr.get(t.Lhs).I
 		rhs := fr.get(t.Rhs).I
 		var target string
-		var args []Reg
+		var tArgs []Reg
 		switch {
 		case lhs == rhs:
-			target, args = t.Eq, t.EqArgs
+			target, tArgs = t.Eq, t.EqArgs
 		case uint64(lhs) < uint64(rhs):
-			target, args = t.Lt, t.LtArgs
+			target, tArgs = t.Lt, t.LtArgs
 		default:
-			target, args = t.Gt, t.GtArgs
+			target, tArgs = t.Gt, t.GtArgs
 		}
 		next := fr.fn.BlockByLabel(target)
 		if next == nil {
-			return nil, fmt.Errorf("br_if2: unknown block @%s", target)
+			return nil, nil, nil, fmt.Errorf("br_if2: unknown block @%s", target)
 		}
-		return vm.execBlock(fr, next, collectArgs(fr, args))
+		return nil, next, collectArgs(fr, tArgs), nil
 
 	case *TermDJNZ:
-		// Decrement counter, branch to Body if non-zero, else Exit.
 		cval := fr.get(t.Counter).I
-		cval-- // decrement
+		cval--
 		if cval != 0 {
-			// Body: first block param receives the decremented counter.
-			// BodyArgs are args for body.Params[1:].
 			bodyBlock := fr.fn.BlockByLabel(t.Body)
 			if bodyBlock == nil {
-				return nil, fmt.Errorf("djnz body: unknown block @%s", t.Body)
+				return nil, nil, nil, fmt.Errorf("djnz body: unknown block @%s", t.Body)
 			}
-			// Build args: [decremented counter] + BodyArgs.
 			bodyArgVals := make([]Value, 1+len(t.BodyArgs))
 			bodyArgVals[0] = Value{I: cval}
 			for i, r := range t.BodyArgs {
 				bodyArgVals[i+1] = fr.get(r)
 			}
-			return vm.execBlock(fr, bodyBlock, bodyArgVals)
+			return nil, bodyBlock, bodyArgVals, nil
 		}
-		// Exit path.
 		exitBlock := fr.fn.BlockByLabel(t.Exit)
 		if exitBlock == nil {
-			return nil, fmt.Errorf("djnz exit: unknown block @%s", t.Exit)
+			return nil, nil, nil, fmt.Errorf("djnz exit: unknown block @%s", t.Exit)
 		}
-		return vm.execBlock(fr, exitBlock, collectArgs(fr, t.ExitArgs))
+		return nil, exitBlock, collectArgs(fr, t.ExitArgs), nil
 
 	case *TermCondRet:
 		cond := fr.get(t.Cond)
 		if cond.I == 0 {
-			// Return path (cond is false/zero).
 			rets := make([]Value, len(t.Vals))
 			for i, r := range t.Vals {
 				rets[i] = fr.get(r)
 			}
-			return rets, nil
+			return rets, nil, nil, nil
 		}
-		// Jump path (cond is non-zero).
 		args := collectArgs(fr, t.ThenArgs)
 		next := fr.fn.BlockByLabel(t.Then)
 		if next == nil {
-			return nil, fmt.Errorf("cond_ret then: unknown block @%s", t.Then)
+			return nil, nil, nil, fmt.Errorf("cond_ret then: unknown block @%s", t.Then)
 		}
-		return vm.execBlock(fr, next, args)
+		return nil, next, args, nil
 
 	case *TermUnreachable:
-		return nil, fmt.Errorf("mir2.VM: reached unreachable in @%s block @%s",
+		return nil, nil, nil, fmt.Errorf("mir2.VM: reached unreachable in @%s block @%s",
 			fr.fn.Name, blk.Label)
 	}
 
-	return nil, fmt.Errorf("mir2.VM: unknown terminator type in @%s", fr.fn.Name)
+	return nil, nil, nil, fmt.Errorf("mir2.VM: unknown terminator type in @%s", fr.fn.Name)
 }
 
 // execInst executes a single instruction, updating fr.vals.
