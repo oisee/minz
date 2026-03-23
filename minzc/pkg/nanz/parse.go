@@ -3862,9 +3862,9 @@ func (p *parser) parseBinary(minPrec int) (hir.Expr, error) {
 				return nil, err2
 			}
 			ty, ok2 := map[string]mir2.Ty{
-				"u8": mir2.TyU8, "u16": mir2.TyU16,
-				"i8": mir2.TyI8, "i16": mir2.TyI16,
-				"bool": mir2.TyBool,
+				"u8": mir2.TyU8, "u16": mir2.TyU16, "u24": mir2.TyU24, "u32": mir2.TyU32,
+				"i8": mir2.TyI8, "i16": mir2.TyI16, "i24": mir2.TyI24, "i32": mir2.TyI32,
+				"bool": mir2.TyBool, "ptr": mir2.TyPtr,
 			}[tyTok.val]
 			if !ok2 {
 				return nil, fmt.Errorf("line %d: unknown cast target type %q", tyTok.line, tyTok.val)
@@ -4289,12 +4289,12 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 			return &hir.BoolLitExpr{Val: false}, nil
 		case "match":
 			return p.parseMatchExpr()
-		case "u8", "u16", "i8", "i16":
+		case "u8", "u16", "u24", "u32", "i8", "i16", "i24", "i32":
 			// cast: u8(expr)
 			p.l.next()
 			ty := map[string]mir2.Ty{
-				"u8": mir2.TyU8, "u16": mir2.TyU16,
-				"i8": mir2.TyI8, "i16": mir2.TyI16,
+				"u8": mir2.TyU8, "u16": mir2.TyU16, "u24": mir2.TyU24, "u32": mir2.TyU32,
+				"i8": mir2.TyI8, "i16": mir2.TyI16, "i24": mir2.TyI24, "i32": mir2.TyI32,
 			}[t.val]
 			if _, err := p.l.eat(tokLParen); err != nil {
 				return nil, err
