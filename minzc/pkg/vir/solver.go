@@ -1613,6 +1613,29 @@ func generateSMTPerInst(p *problem) string {
 		}
 	}
 
+	// Soft param hints: for vregs that are function params, prefer their
+	// ABI register. Cost penalty (4T) if param not in expected register
+	// at instruction 0. This is a SOFT constraint — Z3 can deviate when
+	// ALU tied patterns require a different register.
+	for _, op := range p.ops {
+		if !op.DstHint.IsEmpty() && op.Dst > 0 {
+			// Find instruction 0 or first instruction where this vreg is live
+			for i := range p.ops {
+				if p.liveness[i].live[op.Dst] || p.ops[i].Dst == op.Dst {
+					if _, ok := vars[vregAtInst{op.Dst, i}]; ok {
+						op.DstHint.ForEach(func(loc int) bool {
+							// Prefer this location: 0 cost if match, 4T if not
+							b.WriteString(fmt.Sprintf("  (ite (= lv%d_i%d %d) 0 4) ; soft param hint\n",
+								op.Dst, i, loc))
+							return false // only first preferred loc
+						})
+					}
+					break
+				}
+			}
+		}
+	}
+
 	b.WriteString(")))\n")
 	// For large per-instruction problems, skip minimize.
 	// Z3's opt module returns "unknown" quickly on complex ITE chains.
