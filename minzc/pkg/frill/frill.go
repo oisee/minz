@@ -280,7 +280,7 @@ func (p *parser) lex() token {
 		return token{tokEq, "=", line}
 	case ',':
 		return token{tokComma, ",", line}
-	case '+', '-', '*', '/', '%', '<', '>', '|':
+	case '+', '-', '*', '/', '%', '<', '>', '|', '!', '~':
 		return token{tokOp, string(ch), line}
 	}
 
@@ -742,9 +742,23 @@ func (p *parser) parseLet() (*hir.Func, error) {
 
 	fn := &hir.Func{Name: nameTok.text}
 
-	// Parse parameters: (name : type) ...
+	// Parse parameters: (name : type) or (! name : type) or (& name : type) or (~ name : type)
+	// Quantity annotations: ! = linear (1), & = shared (ω), ~ = erased (0)
+	// Default (no annotation) = linear (1)
+	type paramQuantity struct {
+		name     string
+		quantity int // 0=erased, 1=linear, 2=shared(ω)
+	}
+	var paramQtys []paramQuantity
 	for p.peek().kind == tokLParen {
 		p.next() // (
+		qty := -1 // default: no annotation
+		pk := p.peek()
+		if pk.kind == tokOp && pk.text == "!" {
+			p.next(); qty = 1 // explicit linear
+		} else if pk.kind == tokOp && pk.text == "~" {
+			p.next(); qty = 0 // erased
+		}
 		pname := p.next()
 		if err := p.expect(tokColon, ":"); err != nil {
 			return nil, err
@@ -754,6 +768,7 @@ func (p *parser) parseLet() (*hir.Func, error) {
 			return nil, err
 		}
 		fn.Params = append(fn.Params, hir.Param{Name: pname.text, Ty: pty})
+		paramQtys = append(paramQtys, paramQuantity{pname.text, qty})
 	}
 	p.arities[fn.Name] = len(fn.Params)
 
@@ -851,25 +866,40 @@ func (p *parser) parseLet() (*hir.Func, error) {
 		}
 	}
 
-	// Linearity analysis: classify each parameter as erased(0), linear(1), shared(ω)
-	// This information flows into MIR2 lowering for optimization:
-	//   erased  → don't pass at all (dead param elimination)
-	//   linear  → no save/restore needed (register freed after single use)
-	//   shared  → may need PUSH/POP to preserve across multiple uses
+	// Linearity enforcement: verify QTT annotations match actual usage.
+	// ! (linear, qty=1): must use exactly once — error if 0 or 2+
+	// & (shared, qty=2): can use any number of times — no restriction
+	// ~ (erased, qty=0): must NOT use — error if used at all
+	// (default: linear) — warn on mismatch but don't error
 	if fn.Body != nil && len(fn.Params) > 0 {
 		uses := countVarUses(fn.Body)
 		for i, param := range fn.Params {
 			n := uses[param.Name]
+			// Check QTT annotation if present
+			var declQty int = -1 // -1 = no annotation
+			for _, pq := range paramQtys {
+				if pq.name == param.Name {
+					declQty = pq.quantity
+				}
+			}
+			// Enforce annotations
+			if declQty == 0 && n > 0 {
+				return nil, fmt.Errorf("line %d: linearity error: %s: erased param '~%s' used %d times (must be 0)",
+					p.line, fn.Name, param.Name, n)
+			}
+			if declQty == 1 && n != 1 {
+				return nil, fmt.Errorf("line %d: linearity error: %s: linear param '!%s' used %d times (must be exactly 1)",
+					p.line, fn.Name, param.Name, n)
+			}
+			// Default analysis (no annotation)
 			switch {
 			case n == 0 && param.Name != "_":
 				p.warnings = append(p.warnings,
 					fmt.Sprintf("linearity: %s: param '%s' is erased (0 uses) — could be eliminated", fn.Name, param.Name))
-				fn.Params[i].SMC = false // reuse SMC field as linearity hint: false=can optimize
+				fn.Params[i].SMC = false
 			case n == 1:
-				// Linear: used exactly once. Register can be consumed without saving.
-				// No warning — this is the ideal case for Z80.
+				// Linear — ideal
 			default:
-				// Shared: used 2+ times. May need register preservation.
 				if n > 1 {
 					p.warnings = append(p.warnings,
 						fmt.Sprintf("linearity: %s: param '%s' used %d times (shared)", fn.Name, param.Name, n))
