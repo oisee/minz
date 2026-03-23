@@ -3000,6 +3000,109 @@ fun describe(c: Color) -> u8 {
 	}
 }
 
+func TestADT_Parse_MatchSingleArm(t *testing.T) {
+	src := `enum Color { Red, Green, Blue }
+
+fun always_zero(c: Color) -> u8 {
+    return match c {
+        _ => 0,
+    }
+}
+`
+	_, err := nanz.Parse(src, "single_arm_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+}
+
+func TestADT_Parse_MultiPayload(t *testing.T) {
+	// Multiple variants with payloads
+	src := `enum Msg { Empty, Data(u8), Error(u8) }
+
+fun handle(m: u16) -> u8 {
+    if (__tag(m) == 0) { return 0 }
+    return __payload(m)
+}
+`
+	m, err := nanz.Parse(src, "multi_payload_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	names := map[string]bool{}
+	for _, f := range m.Funcs {
+		names[f.Name] = true
+	}
+	if !names["__tag"] || !names["__payload"] {
+		t.Error("missing __tag or __payload for multi-payload ADT")
+	}
+}
+
+func TestADT_Parse_MatchIntegerPattern(t *testing.T) {
+	// Match on integer (non-enum) with wildcard
+	src := `fun classify(x: u8) -> u8 {
+    return match x {
+        0 => 10,
+        1 => 20,
+        _ => 30,
+    }
+}
+`
+	_, err := nanz.Parse(src, "int_match_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+}
+
+func TestADT_Parse_MatchNoArms(t *testing.T) {
+	src := `fun bad(x: u8) -> u8 {
+    return match x {}
+}
+`
+	_, err := nanz.Parse(src, "no_arms_test")
+	if err == nil {
+		t.Fatal("expected error for empty match")
+	}
+	if !strings.Contains(err.Error(), "no arms") {
+		t.Errorf("expected 'no arms' error, got: %v", err)
+	}
+}
+
+func TestADT_Parse_ConstructorExpr(t *testing.T) {
+	// ADT constructors used as expressions without match
+	src := `enum Option { None, Some(u8) }
+
+fun make_some() -> u16 {
+    return Some(42)
+}
+
+fun make_none() -> u16 {
+    return None
+}
+`
+	_, err := nanz.Parse(src, "ctor_expr_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+}
+
+func TestADT_Parse_QualifiedInMatch(t *testing.T) {
+	// Qualified enum access in match patterns
+	src := `enum Dir { Up, Down, Left, Right }
+
+fun is_vertical(d: Dir) -> u8 {
+    return match d {
+        Up   => 1,
+        Down => 1,
+        _    => 0,
+    }
+}
+`
+	_, err := nanz.Parse(src, "qualified_match_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+}
+
 func TestPipeDecl(t *testing.T) {
 	src := `
 fun is_alive(x: u8) -> bool { return (x > 0) }
