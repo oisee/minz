@@ -184,7 +184,7 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 		}
 	}
 
-	// Apply peephole cleanup (PUSH/POP removal, LD A,0→XOR A, etc.)
+	// Apply peephole cleanup (PUSH/POP, fallthrough, LD A,0→XOR A, etc.)
 	return peepholeCleanup(sb.String()), nil
 }
 
@@ -345,6 +345,19 @@ func peepholeCleanup(asm string) string {
 			if next == "POP "+reg {
 				i++ // skip both lines
 				continue
+			}
+		}
+
+		// JP label where label is the very next line → remove (fallthrough)
+		if strings.HasPrefix(line, "JP ") {
+			target := strings.TrimPrefix(line, "JP ")
+			target = strings.TrimSpace(target)
+			if i+1 < len(lines) {
+				nextLine := strings.TrimSpace(lines[i+1])
+				// Next line is "target:" label
+				if nextLine == target+":" || nextLine == "."+target+":" {
+					continue // skip redundant jump
+				}
 			}
 		}
 

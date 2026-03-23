@@ -27,6 +27,9 @@ func LowerBlock(b *mir2.Block, desc *MachineDesc, mod *mir2.Module, fn ...*mir2.
 	// Fuse addr_of + store/load → direct global access
 	ops = fuseGlobalAccess(ops)
 
+	// Fold const + ALU → immediate ALU (enables INC/DEC patterns)
+	ops = foldConstIntoALU(ops)
+
 	// NOTE: Parameter register pinning (injectParamPins) is available but disabled.
 	// It breaks more cases than it fixes because DstHint creates hard Z3 constraints
 	// that conflict with tied ALU patterns. Needs softer approach (cost penalty, not hard).
@@ -507,6 +510,103 @@ func injectParamPins(ops []VIROp, b *mir2.Block, f *mir2.Func, desc *MachineDesc
 		return append(pins, ops...)
 	}
 	return ops
+}
+
+// foldConstIntoALU converts `const N; add(x, const_vreg)` → `addImm(x, N)`.
+// This enables INC/DEC patterns (OpAddImm with imm=1, OpSubImm with imm=1).
+func foldConstIntoALU(ops []VIROp) []VIROp {
+	// Build const map: vreg → immediate value
+	consts := make(map[int]int64)
+	for _, op := range ops {
+		if op.Op == OpConst && op.Dst > 0 && op.Sym == "" {
+			consts[op.Dst] = op.Imm
+		}
+	}
+	if len(consts) == 0 {
+		return ops
+	}
+
+	// Map ALU op → immediate ALU op
+	immOp := map[Op]Op{
+		OpAdd: OpAddImm,
+		OpSub: OpSubImm,
+		OpAnd: OpAndImm,
+		OpOr:  OpOrImm,
+		OpXor: OpXorImm,
+		OpCmp: OpCmpImm,
+	}
+
+	skip := make(map[int]bool) // const ops to remove
+	var result []VIROp
+
+	for i, op := range ops {
+		if skip[i] {
+			continue
+		}
+
+		newOp, ok := immOp[op.Op]
+		if !ok {
+			result = append(result, op)
+			continue
+		}
+
+		// Check if src1 is a constant
+		if op.Src[1] > 0 {
+			if imm, isConst := consts[op.Src[1]]; isConst {
+				// Fold: add(x, const_N) → addImm(x, N)
+				result = append(result, VIROp{
+					Op: newOp, Dst: op.Dst, Src: [2]int{op.Src[0], -1},
+					Imm: imm, Width: op.Width,
+					DstHint: op.DstHint, SrcHint: op.SrcHint,
+				})
+				// Mark the const op for removal (if single-use)
+				for j, cop := range ops {
+					if cop.Op == OpConst && cop.Dst == op.Src[1] {
+						// Check if const is used elsewhere
+						usedElsewhere := false
+						for k, other := range ops {
+							if k == i { continue }
+							for _, s := range other.Src {
+								if s == cop.Dst { usedElsewhere = true }
+							}
+						}
+						if !usedElsewhere {
+							skip[j] = true
+						}
+					}
+				}
+				continue
+			}
+		}
+
+		// Check if src0 is a constant (for commutative ops)
+		if op.Src[0] > 0 && (op.Op == OpAdd || op.Op == OpAnd || op.Op == OpOr || op.Op == OpXor) {
+			if imm, isConst := consts[op.Src[0]]; isConst {
+				result = append(result, VIROp{
+					Op: newOp, Dst: op.Dst, Src: [2]int{op.Src[1], -1},
+					Imm: imm, Width: op.Width,
+					DstHint: op.DstHint, SrcHint: op.SrcHint,
+				})
+				for j, cop := range ops {
+					if cop.Op == OpConst && cop.Dst == op.Src[0] {
+						usedElsewhere := false
+						for k, other := range ops {
+							if k == i { continue }
+							for _, s := range other.Src {
+								if s == cop.Dst { usedElsewhere = true }
+							}
+						}
+						if !usedElsewhere { skip[j] = true }
+					}
+				}
+				continue
+			}
+		}
+
+		result = append(result, op)
+	}
+
+	return result
 }
 
 // appendReturnMove adds an OpMove to place the return value in A (u8) or HL (u16)
