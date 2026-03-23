@@ -130,6 +130,7 @@ type Func struct {
 	Body       *Block    // nil for extern
 	IsExtern   bool
 	ExternAddr uint16    // non-zero → @extern(addr) — call via CALL/RST to fixed address
+	IsIO       bool      // true = effectful (IO); false = pure (compile-time safe)
 }
 
 // Param is a typed, named function parameter.

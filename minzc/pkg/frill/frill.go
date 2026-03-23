@@ -68,6 +68,7 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 		arities: make(map[string]int), classes: make(map[string][]string),
 		stringIdx: make(map[string]int), varTypes: make(map[string]mir2.Ty),
 		polyFuncs: make(map[string]*polyFunc), polySpeced: make(map[string]bool),
+		ioFuncs: make(map[string]bool),
 		baseDir: opts.BaseDir,
 	}
 	return p.parseModule()
@@ -130,6 +131,7 @@ type parser struct {
 	varTypes    map[string]mir2.Ty   // variable/param name → declared type (for VarRefExpr)
 	polyFuncs   map[string]*polyFunc // polymorphic function templates
 	polySpeced  map[string]bool      // already-specialized mangled names
+	ioFuncs     map[string]bool      // functions marked as IO (effectful)
 	baseDir     string               // for import resolution
 	lastTuple   []hir.Expr           // pending tuple elements from (e1, e2)
 	classes     map[string][]string  // class name → method names
@@ -924,9 +926,13 @@ func (p *parser) parseImport() (*hir.Module, error) {
 	if err != nil {
 		return nil, fmt.Errorf("import %q: %w", pathTok.text, err)
 	}
-	// Register imported function arities
+	// Register imported function arities and IO status.
+	// Functions with asm blocks or extern linkage are IO by default.
 	for _, f := range child.Funcs {
 		p.arities[f.Name] = len(f.Params)
+		if f.IsIO || f.IsExtern || hasAsmBlock(f) {
+			p.ioFuncs[f.Name] = true
+		}
 	}
 	return child, nil
 }
@@ -937,7 +943,8 @@ func (p *parser) parseExtern() (*hir.Func, error) {
 	p.next() // consume "extern"
 	nameTok := p.next()
 
-	fn := &hir.Func{Name: nameTok.text, IsExtern: true}
+	fn := &hir.Func{Name: nameTok.text, IsExtern: true, IsIO: true}
+	p.ioFuncs[nameTok.text] = true // extern functions are IO by default
 
 	for p.peek().kind == tokLParen {
 		p.next()
@@ -1077,10 +1084,16 @@ func (p *parser) parseLet() (*hir.Func, error) {
 	}
 	p.arities[fn.Name] = len(fn.Params)
 
-	// Return type: : type or : (type, type) (optional — inferred from body if omitted)
+	// Return type: : type or : IO type or : (type, type) (optional)
 	inferRetTy := false
+	isIO := false
 	if p.peek().kind == tokColon {
 		p.next() // :
+		// Check for IO prefix
+		if p.peek().kind == tokIdent && p.peek().text == "IO" {
+			p.next() // consume IO
+			isIO = true
+		}
 		if p.peek().kind == tokLParen {
 			// Tuple return: (u8, u8)
 			p.next() // (
@@ -1103,6 +1116,10 @@ func (p *parser) parseLet() (*hir.Func, error) {
 	} else {
 		inferRetTy = true
 		fn.RetTy = mir2.TyU8
+	}
+	if isIO {
+		fn.IsIO = true
+		p.ioFuncs[fn.Name] = true
 	}
 
 	// = body (may contain let-in chains which desugar to VarDecl stmts)
@@ -1213,7 +1230,111 @@ func (p *parser) parseLet() (*hir.Func, error) {
 		}
 	}
 
+	// Effect check: pure functions must not call IO functions.
+	if !fn.IsIO && fn.Body != nil {
+		if bad := p.findIOCall(fn.Body); bad != "" {
+			return nil, fmt.Errorf("line %d: effect error: pure function '%s' calls IO function '%s' (add ': IO' to return type)",
+				p.line, fn.Name, bad)
+		}
+	}
+
 	return fn, nil
+}
+
+// findIOCall walks a block looking for calls to IO functions.
+func (p *parser) findIOCall(blk *hir.Block) string {
+	if blk == nil {
+		return ""
+	}
+	for _, s := range blk.Body {
+		if name := p.findIOCallStmt(s); name != "" {
+			return name
+		}
+	}
+	return ""
+}
+
+func (p *parser) findIOCallStmt(s hir.Stmt) string {
+	switch st := s.(type) {
+	case *hir.ReturnStmt:
+		if st.Val != nil {
+			return p.findIOCallExpr(st.Val)
+		}
+		for _, v := range st.Vals {
+			if n := p.findIOCallExpr(v); n != "" {
+				return n
+			}
+		}
+	case *hir.VarDeclStmt:
+		return p.findIOCallExpr(st.Init)
+	case *hir.AssignStmt:
+		return p.findIOCallExpr(st.Val)
+	case *hir.ExprStmt:
+		return p.findIOCallExpr(st.Expr)
+	case *hir.Block:
+		return p.findIOCall(st)
+	case *hir.WhileStmt:
+		if n := p.findIOCallExpr(st.Cond); n != "" {
+			return n
+		}
+		return p.findIOCall(st.Body)
+	case *hir.StoreStmt:
+		return "poke" // poke is always a side-effect
+	}
+	return ""
+}
+
+func (p *parser) findIOCallExpr(e hir.Expr) string {
+	if e == nil {
+		return ""
+	}
+	switch ex := e.(type) {
+	case *hir.CallExpr:
+		if p.ioFuncs[ex.Fn] {
+			return ex.Fn
+		}
+		for _, a := range ex.Args {
+			if n := p.findIOCallExpr(a); n != "" {
+				return n
+			}
+		}
+	case *hir.BinExpr:
+		if n := p.findIOCallExpr(ex.L); n != "" {
+			return n
+		}
+		return p.findIOCallExpr(ex.R)
+	case *hir.CondExpr:
+		if n := p.findIOCallExpr(ex.Cond); n != "" {
+			return n
+		}
+		if n := p.findIOCallExpr(ex.Then); n != "" {
+			return n
+		}
+		return p.findIOCallExpr(ex.Else)
+	case *hir.LetInExpr:
+		if n := p.findIOCallExpr(ex.Init); n != "" {
+			return n
+		}
+		return p.findIOCallExpr(ex.Body)
+	case *hir.UnaryExpr:
+		return p.findIOCallExpr(ex.X)
+	case *hir.LoadExpr:
+		return p.findIOCallExpr(ex.Ptr)
+	}
+	return ""
+}
+
+// hasAsmBlock reports whether a function contains inline assembly.
+func hasAsmBlock(f *hir.Func) bool {
+	if f.Body == nil {
+		return false
+	}
+	for _, s := range f.Body.Body {
+		if _, ok := s.(*hir.AsmStmt); ok {
+			return true
+		}
+	}
+	return false
 }
 
 func countVarUses(block *hir.Block) map[string]int {
