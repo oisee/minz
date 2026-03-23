@@ -435,3 +435,11 @@ max3:
 
 ---
 **Total: 22/22 showcase functions compiled + assembled**
+
+
+
+/tmp/vir_random.go:12:2: no required module provides package github.com/minz/minzc/pkg/c89: go.mod file not found in current directory or any parent directory; see 'go help modules'
+/tmp/vir_random.go:13:2: no required module provides package github.com/minz/minzc/pkg/hir: go.mod file not found in current directory or any parent directory; see 'go help modules'
+/tmp/vir_random.go:14:2: no required module provides package github.com/minz/minzc/pkg/mir2: go.mod file not found in current directory or any parent directory; see 'go help modules'
+/tmp/vir_random.go:15:2: no required module provides package github.com/minz/minzc/pkg/nanz: go.mod file not found in current directory or any parent directory; see 'go help modules'
+/tmp/vir_random.go:16:2: no required module provides package github.com/minz/minzc/pkg/vir: go.mod file not found in current directory or any parent directory; see 'go help modules'
