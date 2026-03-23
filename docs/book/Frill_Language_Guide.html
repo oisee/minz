@@ -8,147 +8,6 @@
   <meta name="dcterms.date" content="2026-03-23" />
   <title>Frill: ML on Z80</title>
   <style>
-    html {
-      color: #1a1a1a;
-      background-color: #fdfdfd;
-    }
-    body {
-      margin: 0 auto;
-      max-width: 36em;
-      padding-left: 50px;
-      padding-right: 50px;
-      padding-top: 50px;
-      padding-bottom: 50px;
-      hyphens: auto;
-      overflow-wrap: break-word;
-      text-rendering: optimizeLegibility;
-      font-kerning: normal;
-    }
-    @media (max-width: 600px) {
-      body {
-        font-size: 0.9em;
-        padding: 12px;
-      }
-      h1 {
-        font-size: 1.8em;
-      }
-    }
-    @media print {
-      html {
-        background-color: white;
-      }
-      body {
-        background-color: transparent;
-        color: black;
-        font-size: 12pt;
-      }
-      p, h2, h3 {
-        orphans: 3;
-        widows: 3;
-      }
-      h2, h3, h4 {
-        page-break-after: avoid;
-      }
-    }
-    p {
-      margin: 1em 0;
-    }
-    a {
-      color: #1a1a1a;
-    }
-    a:visited {
-      color: #1a1a1a;
-    }
-    img {
-      max-width: 100%;
-    }
-    h1, h2, h3, h4, h5, h6 {
-      margin-top: 1.4em;
-    }
-    h5, h6 {
-      font-size: 1em;
-      font-style: italic;
-    }
-    h6 {
-      font-weight: normal;
-    }
-    ol, ul {
-      padding-left: 1.7em;
-      margin-top: 1em;
-    }
-    li > ol, li > ul {
-      margin-top: 0;
-    }
-    blockquote {
-      margin: 1em 0 1em 1.7em;
-      padding-left: 1em;
-      border-left: 2px solid #e6e6e6;
-      color: #606060;
-    }
-    code {
-      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
-      font-size: 85%;
-      margin: 0;
-      hyphens: manual;
-    }
-    pre {
-      margin: 1em 0;
-      overflow: auto;
-    }
-    pre code {
-      padding: 0;
-      overflow: visible;
-      overflow-wrap: normal;
-    }
-    .sourceCode {
-     background-color: transparent;
-     overflow: visible;
-    }
-    hr {
-      background-color: #1a1a1a;
-      border: none;
-      height: 1px;
-      margin: 1em 0;
-    }
-    table {
-      margin: 1em 0;
-      border-collapse: collapse;
-      width: 100%;
-      overflow-x: auto;
-      display: block;
-      font-variant-numeric: lining-nums tabular-nums;
-    }
-    table caption {
-      margin-bottom: 0.75em;
-    }
-    tbody {
-      margin-top: 0.5em;
-      border-top: 1px solid #1a1a1a;
-      border-bottom: 1px solid #1a1a1a;
-    }
-    th {
-      border-top: 1px solid #1a1a1a;
-      padding: 0.25em 0.5em 0.25em 0.5em;
-    }
-    td {
-      padding: 0.125em 0.5em 0.25em 0.5em;
-    }
-    header {
-      margin-bottom: 4em;
-      text-align: center;
-    }
-    #TOC li {
-      list-style: none;
-    }
-    #TOC ul {
-      padding-left: 1.3em;
-    }
-    #TOC > ul {
-      padding-left: 0;
-    }
-    #TOC a:not(:hover) {
-      text-decoration: none;
-    }
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
     div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -195,39 +54,41 @@
       }
     pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
     div.sourceCode
-      {  background-color: #f8f8f8; }
+      {   }
     @media screen {
     pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
     }
-    code span.al { color: #ef2929; } /* Alert */
-    code span.an { color: #8f5902; font-weight: bold; font-style: italic; } /* Annotation */
-    code span.at { color: #204a87; } /* Attribute */
-    code span.bn { color: #0000cf; } /* BaseN */
-    code span.cf { color: #204a87; font-weight: bold; } /* ControlFlow */
-    code span.ch { color: #4e9a06; } /* Char */
-    code span.cn { color: #8f5902; } /* Constant */
-    code span.co { color: #8f5902; font-style: italic; } /* Comment */
-    code span.cv { color: #8f5902; font-weight: bold; font-style: italic; } /* CommentVar */
-    code span.do { color: #8f5902; font-weight: bold; font-style: italic; } /* Documentation */
-    code span.dt { color: #204a87; } /* DataType */
-    code span.dv { color: #0000cf; } /* DecVal */
-    code span.er { color: #a40000; font-weight: bold; } /* Error */
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
     code span.ex { } /* Extension */
-    code span.fl { color: #0000cf; } /* Float */
-    code span.fu { color: #204a87; font-weight: bold; } /* Function */
-    code span.im { } /* Import */
-    code span.in { color: #8f5902; font-weight: bold; font-style: italic; } /* Information */
-    code span.kw { color: #204a87; font-weight: bold; } /* Keyword */
-    code span.op { color: #ce5c00; font-weight: bold; } /* Operator */
-    code span.ot { color: #8f5902; } /* Other */
-    code span.pp { color: #8f5902; font-style: italic; } /* Preprocessor */
-    code span.sc { color: #ce5c00; font-weight: bold; } /* SpecialChar */
-    code span.ss { color: #4e9a06; } /* SpecialString */
-    code span.st { color: #4e9a06; } /* String */
-    code span.va { color: #000000; } /* Variable */
-    code span.vs { color: #4e9a06; } /* VerbatimString */
-    code span.wa { color: #8f5902; font-weight: bold; font-style: italic; } /* Warning */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
   </style>
+  <link rel="stylesheet" href="data:text/css,body{font-family:sans-serif;max-width:800px;margin:auto;padding:20px}pre{background:#f4f4f4;padding:10px;border-radius:4px;overflow-x:auto}code{font-size:0.9em}h1,h2,h3{color:#333}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:8px}tr:nth-child(even){background:#f9f9f9}" />
 </head>
 <body>
 <header id="title-block-header">
@@ -236,6 +97,66 @@
 <p class="author">MinZ Project</p>
 <p class="date">2026-03-23</p>
 </header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#frill-ml-on-z80" id="toc-frill-ml-on-z80">Frill: ML on
+Z80</a>
+<ul>
+<li><a href="#what-is-frill" id="toc-what-is-frill">What Is
+Frill?</a></li>
+<li><a href="#why-ml-on-z80" id="toc-why-ml-on-z80">Why ML on Z80?</a>
+<ul>
+<li><a href="#what-frill-has-that-c-doesnt"
+id="toc-what-frill-has-that-c-doesnt">What Frill Has That C
+Doesn’t</a></li>
+</ul></li>
+<li><a href="#frill-vs-ml-family-languages"
+id="toc-frill-vs-ml-family-languages">Frill vs ML-Family
+Languages</a></li>
+<li><a href="#language-tour" id="toc-language-tour">Language Tour</a>
+<ul>
+<li><a href="#functions-and-let-bindings"
+id="toc-functions-and-let-bindings">Functions and Let Bindings</a></li>
+<li><a href="#recursion" id="toc-recursion">Recursion</a></li>
+<li><a href="#pipe-operator-and-composition"
+id="toc-pipe-operator-and-composition">Pipe Operator and
+Composition</a></li>
+<li><a href="#algebraic-data-types-and-pattern-matching"
+id="toc-algebraic-data-types-and-pattern-matching">Algebraic Data Types
+and Pattern Matching</a></li>
+<li><a href="#parametric-polymorphism"
+id="toc-parametric-polymorphism">Parametric Polymorphism</a></li>
+<li><a href="#effect-system" id="toc-effect-system">Effect
+System</a></li>
+<li><a href="#property-based-testing"
+id="toc-property-based-testing">Property-Based Testing</a></li>
+<li><a href="#while-loops-and-mutation"
+id="toc-while-loops-and-mutation">While Loops and Mutation</a></li>
+<li><a href="#string-operations" id="toc-string-operations">String
+Operations</a></li>
+<li><a href="#let-in-inside-expressions"
+id="toc-let-in-inside-expressions">Let-In Inside Expressions</a></li>
+</ul></li>
+<li><a href="#dsl-showcase" id="toc-dsl-showcase">DSL Showcase</a>
+<ul>
+<li><a href="#expression-evaluator"
+id="toc-expression-evaluator">Expression Evaluator</a></li>
+<li><a href="#music-dsl" id="toc-music-dsl">Music DSL</a></li>
+<li><a href="#graphics-patterns" id="toc-graphics-patterns">Graphics
+Patterns</a></li>
+</ul></li>
+<li><a href="#how-it-compiles" id="toc-how-it-compiles">How It
+Compiles</a></li>
+<li><a href="#compile-time-verification"
+id="toc-compile-time-verification">Compile-Time Verification</a></li>
+<li><a href="#metrics" id="toc-metrics">Metrics</a></li>
+<li><a href="#getting-started" id="toc-getting-started">Getting
+Started</a></li>
+<li><a href="#appendix-feature-reference"
+id="toc-appendix-feature-reference">Appendix: Feature Reference</a></li>
+</ul></li>
+</ul>
+</nav>
 <h1 id="frill-ml-on-z80">Frill: ML on Z80</h1>
 <h2 id="what-is-frill">What Is Frill?</h2>
 <p>Frill is an ML-style functional language that compiles to Z80 machine
