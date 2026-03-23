@@ -1,0 +1,39 @@
+(* Frill functional combinators — higher-order patterns for Z80 *)
+
+(* Identity and constant *)
+let id (x : u8) = x
+let const_val (x : u8) (y : u8) = x
+
+(* Function application helpers *)
+let apply_twice (f_first : u8) (f_second : u8) = f_second
+
+(* Boolean combinators — everything is u8, 0=false, nonzero=true *)
+let bool_not (x : u8) = if x > 0 then 0 else 1
+let bool_and (a : u8) (b : u8) = if a > 0 then b else 0
+let bool_or (a : u8) (b : u8) = if a > 0 then a else b
+
+(* Option as two-value convention: tag=0 means None, tag=1 means Some *)
+let option_none_tag (x : u8) = 0
+let option_some_tag (x : u8) = 1
+let option_is_none (tag : u8) = if tag == 0 then 1 else 0
+let option_is_some (tag : u8) = if tag == 0 then 0 else 1
+
+(* Numeric predicates *)
+let is_zero (x : u8) = if x == 0 then 1 else 0
+let is_positive (x : u8) = if x > 0 then 1 else 0
+let is_even (x : u8) = if x % 2 == 0 then 1 else 0
+let is_odd (x : u8) = if x % 2 == 1 then 1 else 0
+
+(* Clamping and bounding *)
+let max (a : u8) (b : u8) = if a > b then a else b
+let min (a : u8) (b : u8) = if a < b then a else b
+let clamp (x : u8) (lo : u8) (hi : u8) =
+  let t = max x lo in min t hi
+
+(* Fold-style: accumulate over a range 0..n-1 *)
+(* fold_add sums all values from 0 to n-1 *)
+let fold_sum (n : u8) = if n == 0 then 0 else n + fold_sum (n - 1)
+
+(* Count: how many values in 0..n-1 satisfy predicate *)
+(* Using is_even as example *)
+let count_even (n : u8) = if n == 0 then 0 else is_even (n - 1) + count_even (n - 1)
