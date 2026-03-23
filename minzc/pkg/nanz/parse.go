@@ -850,8 +850,16 @@ func (p *parser) parseModule() (*hir.Module, error) {
 			}
 			m.Sandboxes = append(m.Sandboxes, sb)
 
+		case t.kind == tokSemi:
+			// Skip optional semicolons (MinZ compatibility)
+			p.l.next()
+
 		default:
 			return nil, fmt.Errorf("line %d: unexpected token %q at module level", t.line, t.val)
+		}
+		// Skip trailing semicolons after any declaration (MinZ compatibility)
+		for p.l.is(tokSemi) {
+			p.l.next()
 		}
 	}
 	// Append lambdas generated during parsing (non-capturing anonymous functions).
@@ -2490,12 +2498,23 @@ func (p *parser) parseBlock() (*hir.Block, error) {
 	}
 	var stmts []hir.Stmt
 	for !p.l.is(tokRBrace) && !p.l.is(tokEOF) {
+		// Skip optional semicolons (MinZ compatibility)
+		for p.l.is(tokSemi) {
+			p.l.next()
+		}
+		if p.l.is(tokRBrace) || p.l.is(tokEOF) {
+			break
+		}
 		s, err := p.parseStmt()
 		if err != nil {
 			return nil, err
 		}
 		if s != nil {
 			stmts = append(stmts, s)
+		}
+		// Skip trailing semicolons after statements
+		for p.l.is(tokSemi) {
+			p.l.next()
 		}
 	}
 	if _, err := p.l.eat(tokRBrace); err != nil {
@@ -2546,6 +2565,11 @@ func (p *parser) parseStmt() (hir.Stmt, error) {
 func (p *parser) parseLetDecl() (hir.Stmt, error) {
 	if err := p.l.eatIdent("let"); err != nil {
 		return nil, err
+	}
+
+	// Skip optional `mut` qualifier (MinZ compatibility — Nanz vars are mutable by default)
+	if t := p.l.peek(); t.kind == tokIdent && t.val == "mut" {
+		p.l.next()
 	}
 
 	// Tuple destructuring: let (a, b) = fn(...)
@@ -2870,11 +2894,20 @@ func (p *parser) parseIf() (hir.Stmt, error) {
 	s := &hir.IfStmt{Cond: cond, Then: then}
 	if p.l.isIdent("else") {
 		p.l.next()
-		els, err := p.parseBlock()
-		if err != nil {
-			return nil, err
+		if p.l.isIdent("if") {
+			// else if → wrap in block containing a single if stmt
+			inner, err := p.parseIf()
+			if err != nil {
+				return nil, err
+			}
+			s.Else = &hir.Block{Body: []hir.Stmt{inner}}
+		} else {
+			els, err := p.parseBlock()
+			if err != nil {
+				return nil, err
+			}
+			s.Else = els
 		}
-		s.Else = els
 	}
 	return s, nil
 }
