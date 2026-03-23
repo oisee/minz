@@ -38,6 +38,25 @@ Exhaustive check, payload binding, `_` wildcard. [Showcases: Option](examples/na
 
 ---
 
+### ★ [VIR Solver: Z3 Joint Isel+Regalloc — 61% smaller than SDCC](research/abi-paper/vir-e2e-report.md)
+
+**Z3 SMT solver for joint instruction selection + register allocation.** ISLE fusion + Grace PIR dead-register elimination. Now the default backend.
+
+| Program | SDCC | VIR | Delta |
+|---------|------|-----|-------|
+| abs_diff | 12 | 12 | tie |
+| gcd | 17 | 15 | −11% |
+| minmax | 60 | 11 | −81% |
+| fib | 22 | 11 | −50% |
+| swap | 20 | 2 | −90% |
+| **TOTAL** | **131** | **51** | **−61%** |
+
+FatFS `ld_word`: **5 instructions** (SDCC: 29 bytes). 504/520 corpus coverage (97%). 10/10 leaf functions provably optimal (identical to hand-written Z80). 55 Z80-verified asserts.
+
+→ **[Full E2E Report](research/abi-paper/vir-e2e-report.md)** | **[ADR-0039: Unified VIR Solver](docs/adr/0039-unified-vir-solver.md)**
+
+---
+
 ### ★ [Week In Review: The Everything Sprint](reports/2026-03-18-094-Week_In_Review_Sprint_0311_0318.md) | [Report Guide](docs/Report_Guide.md) | [Nanz Language Book v5](docs/Nanz_Language_Book_v5.md)
 
 253 commits, 8 frontends, 3 backends, FAT12/16 filesystem, TUI framework with compile-time metafunctions, Mini Norton Commander, `@target()` platform detection — in one week.
@@ -70,6 +89,7 @@ Exhaustive check, payload binding, `_` wildcard. [Showcases: Option](examples/na
 
 ### Latest
 
+- **[VIR Solver: Z3 isel+regalloc](research/abi-paper/vir-e2e-report.md)** — Z3 SMT joint instruction selection + register allocation. ISLE load16_le fusion (FatFS `ld_word` 5x over SDCC), Grace dead-register elimination, inline div8/mod8/mul8 runtime. −61% vs SDCC on benchmarks. Default backend.
 - **Nanz ADT + Match** — `enum Option { None, Some(u8) }` with payload (u16 encoding), `match` expression with exhaustive check, 11 new tests. 4 showcase examples.
 - **[Frill Language: ML on Z80](docs/Frill_Language_Guide.md)** — 8th frontend. ADTs, pattern matching, polymorphism, effects, property testing. 38 features, 13 examples, 3351 compile-time checks. [Book (PDF)](docs/book/Frill_Language_Guide.pdf)
 - **[ABAP Frontend + SQLite + Zork](reports/2026-03-16-088-ABAP_Frontend_SQLite_Zork.md)** — 7th frontend (ABAP via abaplint), SQLite host functions in MIR2 VM, CP/M file I/O fixed (ROM protection root cause), **Zork I (1983) runs in MZE**.
