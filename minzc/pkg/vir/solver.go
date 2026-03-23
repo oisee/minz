@@ -36,6 +36,10 @@ type SolverOptions struct {
 	// When set, the solver constrains param vregs to these locations to
 	// match the bootstrap ABI (from PBQP allocation).
 	ParamLocs map[int]int
+
+	// FuncParamLocs maps function name → (vreg → physical register index).
+	// Per-function version of ParamLocs for multi-function modules.
+	FuncParamLocs map[string]map[int]int
 }
 
 // Solve converts a basic block of VIROps into PIROps using Z3 SMT solver.
@@ -1163,7 +1167,7 @@ func (p *problem) generateSMT() string {
 			constraint := locSetToSMT(fmt.Sprintf("loc_v%d", op.Dst), op.DstHint)
 			b.WriteString(fmt.Sprintf("(assert %s) ; DstHint\n", constraint))
 		}
-		// SrcHint: constrain source vreg to its known register
+		// SrcHint: hard constraint — we know where the source vreg lives.
 		for j, s := range op.Src {
 			if s > 0 && !op.SrcHint[j].IsEmpty() {
 				constraint := locSetToSMT(fmt.Sprintf("loc_v%d", s), op.SrcHint[j])
@@ -1582,14 +1586,8 @@ func generateSMTPerInst(p *problem) string {
 			c := locSetToSMT(fmt.Sprintf("lv%d_i%d", op.Dst, i), op.DstHint)
 			b.WriteString(fmt.Sprintf("(assert %s) ; DstHint\n", c))
 		}
-		for j, s := range op.Src {
-			if s > 0 && !op.SrcHint[j].IsEmpty() {
-				if _, ok := vars[vregAtInst{s, i}]; ok {
-					c := locSetToSMT(fmt.Sprintf("lv%d_i%d", s, i), op.SrcHint[j])
-					b.WriteString(fmt.Sprintf("(assert %s) ; SrcHint\n", c))
-				}
-			}
-		}
+		// SrcHint: soft constraint in per-inst encoding (hard in global)
+		// Added to cost function in the soft hints section below.
 	}
 
 	// Cost objective
@@ -1651,6 +1649,21 @@ func generateSMTPerInst(p *problem) string {
 						})
 					}
 					break
+				}
+			}
+		}
+	}
+
+	// Soft SrcHint: prefer param vregs in their ABI registers (cost penalty)
+	for i, op := range p.ops {
+		for j, s := range op.Src {
+			if s > 0 && !op.SrcHint[j].IsEmpty() {
+				if _, ok := vars[vregAtInst{s, i}]; ok {
+					op.SrcHint[j].ForEach(func(loc int) bool {
+						b.WriteString(fmt.Sprintf("  (ite (= lv%d_i%d %d) 0 8) ; soft SrcHint\n",
+							s, i, loc))
+						return false
+					})
 				}
 			}
 		}

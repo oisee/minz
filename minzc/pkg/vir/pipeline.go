@@ -100,8 +100,19 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 	// Track vreg → physical register across blocks.
 	// Seed with ParamLocs from PBQP allocation (if available).
 	vregPhys := make(map[int]int)
+	// Per-function param locs (priority)
+	if opts.FuncParamLocs != nil {
+		if pl, ok := opts.FuncParamLocs[f.Name]; ok {
+			for vreg, phys := range pl {
+				vregPhys[vreg] = phys
+			}
+		}
+	}
+	// Global param locs (fallback)
 	for vreg, phys := range opts.ParamLocs {
-		vregPhys[vreg] = phys
+		if _, ok := vregPhys[vreg]; !ok {
+			vregPhys[vreg] = phys
+		}
 	}
 
 	// Process each block — emit PIROps + terminator
@@ -116,13 +127,19 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 
 		// For non-entry blocks: apply known vreg locations as SrcHint
 		// so the solver knows where cross-block vregs live.
+		// Apply cross-block register hints:
+		// - Entry block (bi==0): ALL ops get SrcHint (params MUST match ABI)
+		// - Non-entry: ONLY return-move ops (DstHint + OpMove)
+		//   Computation ops use soft hints to avoid ALU tied conflicts.
 		if len(vregPhys) > 0 {
 			for i := range block.Ops {
-				for j, s := range block.Ops[i].Src {
-					if s > 0 {
-						if phys, ok := vregPhys[s]; ok {
-							// Override with exact register from entry block
-							block.Ops[i].SrcHint[j] = Singleton(phys)
+				isReturnMove := block.Ops[i].Op == OpMove && !block.Ops[i].DstHint.IsEmpty()
+				if bi == 0 || isReturnMove {
+					for j, s := range block.Ops[i].Src {
+						if s > 0 {
+							if phys, ok := vregPhys[s]; ok {
+								block.Ops[i].SrcHint[j] = Singleton(phys)
+							}
 						}
 					}
 				}
