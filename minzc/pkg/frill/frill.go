@@ -125,6 +125,7 @@ type parser struct {
 	records     []*mir2.StructTy     // record type declarations
 	arities     map[string]int       // function name → param count (for partial application)
 	baseDir     string               // for import resolution
+	lastTuple   []hir.Expr           // pending tuple elements from (e1, e2)
 }
 
 func (p *parser) peek() token {
@@ -631,14 +632,32 @@ func (p *parser) parseLet() (*hir.Func, error) {
 	}
 	p.arities[fn.Name] = len(fn.Params)
 
-	// Return type: : type (optional — inferred from body if omitted)
+	// Return type: : type or : (type, type) (optional — inferred from body if omitted)
 	inferRetTy := false
 	if p.peek().kind == tokColon {
 		p.next() // :
-		fn.RetTy = p.parseType()
+		if p.peek().kind == tokLParen {
+			// Tuple return: (u8, u8)
+			p.next() // (
+			for {
+				ty := p.parseType()
+				fn.RetTys = append(fn.RetTys, ty)
+				if p.peek().kind == tokComma {
+					p.next()
+				} else {
+					break
+				}
+			}
+			if err := p.expect(tokRParen, ")"); err != nil {
+				return nil, err
+			}
+			fn.RetTy = fn.RetTys[0] // first element as primary
+		} else {
+			fn.RetTy = p.parseType()
+		}
 	} else {
 		inferRetTy = true
-		fn.RetTy = mir2.TyU8 // placeholder, updated after parsing body
+		fn.RetTy = mir2.TyU8
 	}
 
 	// = body (may contain let-in chains which desugar to VarDecl stmts)
@@ -677,7 +696,17 @@ func (p *parser) parseLet() (*hir.Func, error) {
 	// where-bindings come BEFORE the let-in bindings and body
 	stmts = append(stmts, whereStmts...)
 	stmts = append(stmts, letStmts...)
-	stmts = append(stmts, &hir.ReturnStmt{Val: body})
+
+	// Multi-return: if body is a tuple expression (parsed from parens with comma)
+	if len(fn.RetTys) > 0 {
+		if tupleExprs, ok := p.asTuple(body); ok && len(tupleExprs) == len(fn.RetTys) {
+			stmts = append(stmts, &hir.ReturnStmt{Vals: tupleExprs})
+		} else {
+			stmts = append(stmts, &hir.ReturnStmt{Val: body})
+		}
+	} else {
+		stmts = append(stmts, &hir.ReturnStmt{Val: body})
+	}
 
 	fn.Body = &hir.Block{Body: stmts}
 
@@ -908,6 +937,23 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		e, err := p.parseExpr()
 		if err != nil {
 			return nil, err
+		}
+		// Tuple: (e1, e2, ...)
+		if p.peek().kind == tokComma {
+			elems := []hir.Expr{e}
+			for p.peek().kind == tokComma {
+				p.next()
+				elem, err := p.parseExpr()
+				if err != nil {
+					return nil, err
+				}
+				elems = append(elems, elem)
+			}
+			if err := p.expect(tokRParen, ")"); err != nil {
+				return nil, err
+			}
+			p.lastTuple = elems
+			return elems[0], nil // return first; caller uses asTuple()
 		}
 		if err := p.expect(tokRParen, ")"); err != nil {
 			return nil, err
@@ -1171,13 +1217,45 @@ func (p *parser) parseBodyExpr() (hir.Expr, []hir.Stmt, error) {
 			p.lambdaCount++
 			stmts = append(stmts, &hir.VarDeclStmt{Name: discardName, Ty: doExpr.ExprTy(), Init: doExpr})
 		} else if p.peek().kind == tokIdent && p.peek().text == "let" {
-		// Peek ahead: is this let-in or a function call to "let" (shouldn't happen)?
-		// Save position to restore if this isn't a let-in
 		p.next() // consume "let"
+
+		// Tuple destructuring: let (a, b) = expr in body
+		if p.peek().kind == tokLParen {
+			p.next() // (
+			var names []string
+			var tys []mir2.Ty
+			for {
+				name := p.next()
+				names = append(names, name.text)
+				tys = append(tys, mir2.TyU8) // TODO: infer types
+				if p.peek().kind == tokComma {
+					p.next()
+				} else {
+					break
+				}
+			}
+			if err := p.expect(tokRParen, ")"); err != nil {
+				return nil, nil, err
+			}
+			if err := p.expect(tokEq, "="); err != nil {
+				return nil, nil, err
+			}
+			val, err := p.parseExpr()
+			if err != nil {
+				return nil, nil, err
+			}
+			if err := p.expect(tokIdent, "in"); err != nil {
+				return nil, nil, err
+			}
+			// Emit TupleLetStmt
+			if call, ok := val.(*hir.CallExpr); ok {
+				stmts = append(stmts, &hir.TupleLetStmt{Names: names, Tys: tys, Call: call})
+			}
+			continue
+		}
+
 		nameTok := p.next()
 		if p.peek().kind != tokEq {
-			// Not a let-in binding — put tokens back conceptually
-			// This shouldn't happen in well-formed Frill
 			return nil, nil, fmt.Errorf("line %d: expected '=' after let %s", nameTok.line, nameTok.text)
 		}
 		p.next() // consume "="
@@ -1471,6 +1549,18 @@ func fmtArgs(args []int64) string {
 		parts[i] = strconv.FormatInt(a, 10)
 	}
 	return strings.Join(parts, " ")
+}
+
+// pendingTuple stores tuple elements when a (e1, e2) expression is parsed.
+// Since tupleExpr can't implement hir.Expr (unexported interface method),
+// we store the first element as the expression and save the full list here.
+func (p *parser) asTuple(_ hir.Expr) ([]hir.Expr, bool) {
+	if p.lastTuple != nil {
+		t := p.lastTuple
+		p.lastTuple = nil
+		return t, true
+	}
+	return nil, false
 }
 
 func unescapeString(s string) string {
