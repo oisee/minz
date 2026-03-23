@@ -1,0 +1,101 @@
+// stream.nanz — Unified write interface for MinZ
+//
+// Three backends, one API:
+//   - BufStream: writes to an in-memory buffer (for sprintf, tests, VM)
+//   - Stdout:    writes via platform I/O (BDOS/MOS/ROM)
+//   - Null:      discards output (for benchmarking)
+//
+// Design: no function pointers, no vtables. Each stream type is a struct
+// with its own write functions. Callers pick the type at compile time.
+// For runtime dispatch, use SMC patching (@smc annotation — future).
+//
+// Usage:
+//   global buf: [u8; 128]
+//   var s: BufStream
+//   bufstream_init(&s, &buf, 128)
+//   bufstream_write_u8(&s, 72)      // 'H'
+//   bufstream_write_u8(&s, 105)     // 'i'
+//   // buf now contains "Hi", s.pos == 2
+
+// ── BufStream: write to memory buffer ────────────────────────────────────────
+
+struct BufStream {
+    buf: ^u8       // pointer to output buffer
+    pos: u16       // current write position
+    cap: u16       // buffer capacity
+}
+
+fun bufstream_init(s: ^u8, buf: ^u8, cap: u16) -> void {
+    // s points to BufStream: [buf:2][pos:2][cap:2]
+    // Store buf pointer at offset 0
+    var s_u16: ^u16 = s
+    s_u16[0] = buf
+    s_u16[1] = 0       // pos = 0
+    s_u16[2] = cap
+}
+
+fun bufstream_write_u8(s: ^u8, byte: u8) -> void {
+    var s_u16: ^u16 = s
+    var pos: u16 = s_u16[1]
+    var cap: u16 = s_u16[2]
+    if pos < cap {
+        var buf: ^u8 = s_u16[0]
+        buf[pos] = byte
+        s_u16[1] = pos + 1
+    }
+}
+
+fun bufstream_pos(s: ^u8) -> u16 {
+    var s_u16: ^u16 = s
+    return s_u16[1]
+}
+
+// Write a decimal u8 (0-255) to stream
+fun bufstream_write_dec_u8(s: ^u8, n: u8) -> void {
+    // Hundreds
+    if n >= 100 {
+        var h: u8 = 0
+        while n >= 100 {
+            n = n - 100
+            h = h + 1
+        }
+        bufstream_write_u8(s, h + 48)
+    }
+    // Tens (always print if hundreds were printed, skip leading zero otherwise)
+    var t: u8 = 0
+    while n >= 10 {
+        n = n - 10
+        t = t + 1
+    }
+    // Always print tens digit (even if 0, when there were hundreds)
+    bufstream_write_u8(s, t + 48)
+    // Units
+    bufstream_write_u8(s, n + 48)
+}
+
+// Write a null-terminated string to stream
+fun bufstream_write_str(s: ^u8, str: ^u8) -> void {
+    var i: u16 = 0
+    var ch: u8 = str[i]
+    while ch != 0 {
+        bufstream_write_u8(s, ch)
+        i = i + 1
+        ch = str[i]
+    }
+}
+
+// ── NullStream: discard all output ───────────────────────────────────────────
+
+struct NullStream {
+    count: u16     // bytes "written" (for counting)
+}
+
+fun nullstream_write_u8(s: ^u8, byte: u8) -> void {
+    var s_u16: ^u16 = s
+    s_u16[0] = s_u16[0] + 1
+}
+
+fun nullstream_count(s: ^u8) -> u16 {
+    var s_u16: ^u16 = s
+    return s_u16[0]
+}

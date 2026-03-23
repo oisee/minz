@@ -319,3 +319,67 @@ func TestFuncall(t *testing.T) {
 		t.Fatalf("funcall pipeline: %v", err)
 	}
 }
+
+// ── Lambda (fn) ──────────────────────────────────────────────────────────────
+
+func TestLambda(t *testing.T) {
+	src := `
+(defun apply ((f ptr) (x u8)) -> u8
+  (return (funcall f x)))
+
+(defun test-lambda () -> u8
+  (return (apply (fn ((x u8)) u8 (return (+ x x))) 7)))
+
+(assert test-lambda == 14 via mir2)
+`
+	mod, err := Compile(src, "test_lambda")
+	if err != nil {
+		t.Fatalf("Compile: %v", err)
+	}
+	_, err = pipeline.CompileHIR(mod)
+	if err != nil {
+		t.Fatalf("lambda pipeline: %v", err)
+	}
+}
+
+// ── Let* (let-in chain) ─────────────────────────────────────────────────────
+
+func TestLetStar(t *testing.T) {
+	src := `
+(defun hypotenuse-sq ((x u8) (y u8)) -> u8
+  (return (let* ((xx u8 (* x x)) (yy u8 (* y y)))
+    (+ xx yy))))
+
+(assert hypotenuse-sq 3 4 == 25 via mir2)
+`
+	mod, err := Compile(src, "test_letstar")
+	if err != nil {
+		t.Fatalf("Compile: %v", err)
+	}
+	_, err = pipeline.CompileHIR(mod)
+	if err != nil {
+		t.Fatalf("let* pipeline: %v", err)
+	}
+}
+
+// ── Case (match) ─────────────────────────────────────────────────────────────
+
+func TestCase(t *testing.T) {
+	src := `
+(defun classify ((x u8)) -> u8
+  (return (case x (0 10) (1 20) (2 30) (_ 99))))
+
+(assert classify 0 == 10 via mir2)
+(assert classify 1 == 20 via mir2)
+(assert classify 2 == 30 via mir2)
+(assert classify 99 == 99 via mir2)
+`
+	mod, err := Compile(src, "test_case")
+	if err != nil {
+		t.Fatalf("Compile: %v", err)
+	}
+	_, err = pipeline.CompileHIR(mod)
+	if err != nil {
+		t.Fatalf("case pipeline: %v", err)
+	}
+}
