@@ -127,14 +127,11 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 
 		// For non-entry blocks: apply known vreg locations as SrcHint
 		// so the solver knows where cross-block vregs live.
-		// Apply cross-block register hints:
-		// - Entry block (bi==0): ALL ops get SrcHint (params MUST match ABI)
-		// - Non-entry: ONLY return-move ops (DstHint + OpMove)
-		//   Computation ops use soft hints to avoid ALU tied conflicts.
+		// Cross-block register awareness:
 		if len(vregPhys) > 0 {
-			for i := range block.Ops {
-				isReturnMove := block.Ops[i].Op == OpMove && !block.Ops[i].DstHint.IsEmpty()
-				if bi == 0 || isReturnMove {
+			if bi == 0 {
+				// Entry block: hard SrcHint on ALL ops (params MUST match ABI)
+				for i := range block.Ops {
 					for j, s := range block.Ops[i].Src {
 						if s > 0 {
 							if phys, ok := vregPhys[s]; ok {
@@ -142,6 +139,62 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 							}
 						}
 					}
+				}
+			} else {
+				// Non-entry blocks: inject pin moves at block start.
+				// Each pin defines where a cross-block vreg lives.
+				// The per-instruction solver can then insert moves as needed.
+				var pins []VIROp
+				pinMap := make(map[int]int) // original vreg → pin vreg
+				nextPin := 8500
+
+				// Collect cross-block vregs used in this block
+				used := make(map[int]bool)
+				for _, op := range block.Ops {
+					for _, s := range op.Src {
+						if s > 0 { used[s] = true }
+					}
+				}
+
+				for vreg := range used {
+					phys, ok := vregPhys[vreg]
+					if !ok { continue }
+					// Skip if vreg is defined in this block
+					definedHere := false
+					for _, op := range block.Ops {
+						if op.Dst == vreg { definedHere = true; break }
+					}
+					if definedHere { continue }
+
+					pinReg := nextPin
+					nextPin++
+					pinMap[vreg] = pinReg
+
+					// Pin: "pinReg lives in phys register, loaded from vreg"
+					w := 8
+					for _, op := range block.Ops {
+						for _, s := range op.Src {
+							if s == vreg && op.Width > 0 { w = op.Width }
+						}
+					}
+					pins = append(pins, VIROp{
+						Op: OpMove, Dst: pinReg,
+						Src: [2]int{vreg, -1}, Width: w,
+						DstHint: Singleton(phys),
+						SrcHint: [2]LocSet{Singleton(phys)},
+					})
+				}
+
+				// Rewrite block ops: replace cross-block vregs with pin vregs
+				if len(pins) > 0 {
+					for i := range block.Ops {
+						for j, s := range block.Ops[i].Src {
+							if pin, ok := pinMap[s]; ok {
+								block.Ops[i].Src[j] = pin
+							}
+						}
+					}
+					block.Ops = append(pins, block.Ops...)
 				}
 			}
 		}
@@ -153,15 +206,24 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 				return "", fmt.Errorf("vir solve %s/%s: %w", f.Name, block.Label, err)
 			}
 
-			// Record vreg → physical register from solution
+			// Record vreg → physical register from solution.
+			// DON'T overwrite PBQP param locations — those are the ABI truth.
+			paramVRegs := make(map[int]bool)
+			if opts.FuncParamLocs != nil {
+				if pl, ok := opts.FuncParamLocs[f.Name]; ok {
+					for v := range pl { paramVRegs[v] = true }
+				}
+			}
+			for v := range opts.ParamLocs { paramVRegs[v] = true }
+
 			for k, p := range pirOps {
 				if k < len(block.Ops) {
 					op := block.Ops[k]
-					if op.Dst > 0 && p.DstPhys >= 0 {
+					if op.Dst > 0 && p.DstPhys >= 0 && !paramVRegs[op.Dst] {
 						vregPhys[op.Dst] = p.DstPhys
 					}
 					for j, s := range op.Src {
-						if s > 0 && p.SrcPhys[j] >= 0 {
+						if s > 0 && p.SrcPhys[j] >= 0 && !paramVRegs[s] {
 							vregPhys[s] = p.SrcPhys[j]
 						}
 					}
