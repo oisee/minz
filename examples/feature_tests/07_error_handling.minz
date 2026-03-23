@@ -17,14 +17,14 @@ fun open_file(name: ^u8) -> u8? {
     if name[0] == 'p' {
         @err(FileError.PermissionDenied)
     }
-    return 42;  // File handle
+    return 42  // File handle
 }
 
 fun read_byte(handle: u8) -> u8? {
     if handle == 0 {
         @err(FileError.DiskFull)
     }
-    return 65;  // 'A'
+    return 65  // 'A'
 }
 
 fun close_file(handle: u8) -> void? {
@@ -37,9 +37,9 @@ fun close_file(handle: u8) -> void? {
 // Test basic error propagation
 fun test_error_propagation() -> bool {
     fun read_first_byte(filename: ^u8) -> u8? {
-        let handle = open_file(filename)?;  // Propagate error if open fails
-        let byte = read_byte(handle)?;       // Propagate error if read fails
-        close_file(handle)?;                 // Propagate error if close fails
+        let handle = open_file(filename)?  // Propagate error if open fails
+        let byte = read_byte(handle)?       // Propagate error if read fails
+        close_file(handle)?                 // Propagate error if close fails
         return byte
     }
     
@@ -57,7 +57,7 @@ fun test_error_propagation() -> bool {
     // A register should be 1 (no error)
     
     // Test error case
-    let result2 = read_first_byte("xbad.txt");  // Starts with 'x' - will fail
+    let result2 = read_first_byte("xbad.txt")  // Starts with 'x' - will fail
     // Check carry flag is set (error occurred)
     @asm {
         JR NC, .no_error
@@ -78,7 +78,7 @@ fun test_error_in_loop() -> bool {
         var total: u8 = 0
         
         for i in 0..3 {
-            let handle = open_file((*names)[i])?;  // Error breaks loop
+            let handle = open_file((*names)[i])?  // Error breaks loop
             total = total + handle
             close_file(handle)?
         }
@@ -106,7 +106,7 @@ fun test_manual_error_check() -> bool {
     // Manual error check using @check_error
     if @check_error() {
         // Error occurred
-        let error_code = @get_error();  // Get error code from A register
+        let error_code = @get_error()  // Get error code from A register
         return false
     }
     
@@ -130,16 +130,16 @@ fun test_error_values() -> bool {
     // Test each error type
     for i in 0..3 {
         let result = failing_function(i)
-        if !@check_error() { return false; }
+        if !@check_error() { return false }
         
         // Error code should match enum value
         let error_code = @get_error()
-        if error_code != i { return false; }
+        if error_code != i { return false }
     }
     
     // Test success
     let result = failing_function(99)
-    if @check_error() { return false; }
+    if @check_error() { return false }
     
     return true
 }
@@ -151,18 +151,18 @@ fun test_nested_errors() -> bool {
     }
     
     fun middle() -> u8? {
-        let val = inner()?;  // Propagate
-        return val + 10;     // Never reached
+        let val = inner()?  // Propagate
+        return val + 10     // Never reached
     }
     
     fun outer() -> u8? {
-        let val = middle()?;  // Propagate
-        return val + 20;      // Never reached
+        let val = middle()?  // Propagate
+        return val + 20      // Never reached
     }
     
     let result = outer()
-    if !@check_error() { return false; }
-    if @get_error() != FileError.NotFound { return false; }
+    if !@check_error() { return false }
+    if @get_error() != FileError.NotFound { return false }
     
     return true
 }
@@ -173,26 +173,26 @@ fun test_explicit_ok() -> bool {
         if fail {
             @err(FileError.NotFound)
         }
-        @ok(42);  // Explicit success with value
+        @ok(42)  // Explicit success with value
     }
     
     let result1 = maybe_fail(false)
-    if @check_error() { return false; }
-    if result1 != 42 { return false; }
+    if @check_error() { return false }
+    if result1 != 42 { return false }
     
     let result2 = maybe_fail(true)
-    if !@check_error() { return false; }
+    if !@check_error() { return false }
     
     return true
 }
 
 fun main() -> u8 {
-    if !test_error_propagation() { return 1; }
-    if !test_error_in_loop() { return 2; }
-    if !test_manual_error_check() { return 3; }
-    if !test_error_values() { return 4; }
-    if !test_nested_errors() { return 5; }
-    if !test_explicit_ok() { return 6; }
+    if !test_error_propagation() { return 1 }
+    if !test_error_in_loop() { return 2 }
+    if !test_manual_error_check() { return 3 }
+    if !test_error_values() { return 4 }
+    if !test_nested_errors() { return 5 }
+    if !test_explicit_ok() { return 6 }
     
-    return 0;  // All tests passed
+    return 0  // All tests passed
 }

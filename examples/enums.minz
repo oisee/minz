@@ -65,7 +65,7 @@ fun main() -> void {
     var player_dir = Direction.Right
     
     // Simulate game loop
-    state = next_state(state, Key.KeySpace);  // Start game
+    state = next_state(state, Key.KeySpace)  // Start game
     
     // Move player
     player_dir = Direction.Up

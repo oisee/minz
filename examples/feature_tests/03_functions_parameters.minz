@@ -69,29 +69,29 @@ fun eval_order_test() -> bool {
 
 fun main() -> u8 {
     // Test basic function calls
-    if add(10, 20) != 30 { return 1; }
-    if mul16(100, 200) != 20000 { return 2; }
+    if add(10, 20) != 30 { return 1 }
+    if mul16(100, 200) != 20000 { return 2 }
     
     // Test pointer parameter
     var val: u8 = 5
     increment_ptr(&val)
-    if val != 6 { return 3; }
+    if val != 6 { return 3 }
     
     // Test array parameter
     let arr: [u8; 5] = [1, 2, 3, 4, 5]
-    if sum_array(&arr) != 15 { return 4; }
+    if sum_array(&arr) != 15 { return 4 }
     
     // Test multiple parameters
-    if complex_calc(5, 6, 100, 200) != 330 { return 5; }
+    if complex_calc(5, 6, 100, 200) != 330 { return 5 }
     
     // Test recursion
-    if factorial(5) != 120 { return 6; }
+    if factorial(5) != 120 { return 6 }
     
     // Test composition
-    if !compose_test() { return 7; }
+    if !compose_test() { return 7 }
     
     // Test evaluation order
-    if !eval_order_test() { return 8; }
+    if !eval_order_test() { return 8 }
     
-    return 0;  // All tests passed
+    return 0  // All tests passed
 }

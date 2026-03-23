@@ -3,7 +3,7 @@
 // Expected output: DE (only 68='D' and 69='E' pass the filter)
 // Run: mz iter_filter_foreach.minz -o t.a80 && mza t.a80 -o t.bin && mzx --run t.bin@8000 --frames DI:HALT --console-io
 
-fun is_big(x: u8) -> bool { return x > 67; }
+fun is_big(x: u8) -> bool { return x > 67 }
 
 fun console_log(c: u8) -> void {
     asm {

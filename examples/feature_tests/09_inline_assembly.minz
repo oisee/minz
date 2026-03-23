@@ -10,7 +10,7 @@ fun test_inline_asm() -> bool {
         LD (result), A
     }
     
-    if result != 42 { return false; }
+    if result != 42 { return false }
     
     // Assembly with local variable access
     let x: u8 = 10
@@ -23,7 +23,7 @@ fun test_inline_asm() -> bool {
         LD (result), A
     }
     
-    if result != 30 { return false; }
+    if result != 30 { return false }
     
     return true
 }
@@ -41,7 +41,7 @@ extern fun rom_get_random() -> u16
 // Test calling @abi functions
 fun test_abi_calls() -> bool {
     // Call ROM routine to print character
-    rom_print_char(65);  // Print 'A'
+    rom_print_char(65)  // Print 'A'
     
     // Call ROM routine with multiple parameters
     let buffer: [u8; 10]
@@ -66,7 +66,7 @@ fun test_asm_constraints() -> bool {
         LD (result), A  ; Store result
     }
     
-    if result != 8 { return false; }
+    if result != 8 { return false }
     
     return true
 }
@@ -94,8 +94,8 @@ fun test_register_preservation() -> bool {
         POP HL
     }
     
-    if saved_hl != 0x1234 { return false; }
-    if saved_de != 0x5678 { return false; }
+    if saved_hl != 0x1234 { return false }
+    if saved_de != 0x5678 { return false }
     
     return true
 }
@@ -121,8 +121,8 @@ fun test_shadow_registers() -> bool {
         EX AF, AF'
     }
     
-    if primary_a != 10 { return false; }
-    if shadow_a != 20 { return false; }
+    if primary_a != 10 { return false }
+    if shadow_a != 20 { return false }
     
     return true
 }
@@ -173,19 +173,19 @@ extern fun rom_plot_pixel(x: u16, y: u8, color: u8) -> void
 
 fun test_stack_abi() -> bool {
     // This tests stack-based parameter passing
-    rom_plot_pixel(100, 50, 7);  // White pixel at (100, 50)
+    rom_plot_pixel(100, 50, 7)  // White pixel at (100, 50)
     
     return true
 }
 
 fun main() -> u8 {
-    if !test_inline_asm() { return 1; }
-    if !test_abi_calls() { return 2; }
-    if !test_asm_constraints() { return 3; }
-    if !test_register_preservation() { return 4; }
-    if !test_shadow_registers() { return 5; }
-    if !test_io_ports() { return 6; }
-    if !test_stack_abi() { return 7; }
+    if !test_inline_asm() { return 1 }
+    if !test_abi_calls() { return 2 }
+    if !test_asm_constraints() { return 3 }
+    if !test_register_preservation() { return 4 }
+    if !test_shadow_registers() { return 5 }
+    if !test_io_ports() { return 6 }
+    if !test_stack_abi() { return 7 }
     
-    return 0;  // All tests passed
+    return 0  // All tests passed
 }

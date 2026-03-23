@@ -24,7 +24,7 @@ fun main() -> void {
     // Count from 0 to 9
     var i: u8 = 0
     while i < 10 {
-        putchar(i + 48);   // '0' + i
+        putchar(i + 48)   // '0' + i
         putchar(' ')
         i = i + 1
     }

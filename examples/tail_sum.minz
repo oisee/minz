@@ -8,5 +8,5 @@ fun sum_tail(n: u16, acc: u16) -> u16 {
 }
 
 fun main() -> void {
-    let result = sum_tail(10, 0);  // Should be 55
+    let result = sum_tail(10, 0)  // Should be 55
 }

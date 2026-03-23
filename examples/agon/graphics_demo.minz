@@ -17,24 +17,24 @@ fun main() {
     mos_puts("MinZ Graphics Demo\r\n")
 
     // Draw a red rectangle
-    set_graphics_color(0, 9);  // Red
+    set_graphics_color(0, 9)  // Red
     fill_rect(50, 50, 150, 100)
 
     // Draw a green circle
-    set_graphics_color(0, 10); // Green
+    set_graphics_color(0, 10) // Green
     fill_circle(200, 100, 40)
 
     // Draw a blue triangle
-    set_graphics_color(0, 12); // Blue
+    set_graphics_color(0, 12) // Blue
     fill_triangle(100, 180, 150, 120, 200, 180)
 
     // Draw some lines
-    set_graphics_color(0, 14); // Yellow
+    set_graphics_color(0, 14) // Yellow
     draw_line(0, 200, 319, 200)
     draw_line(0, 220, 319, 220)
 
     // Draw a white outline
-    set_graphics_color(0, 15); // White
+    set_graphics_color(0, 15) // White
     draw_rect(10, 10, 310, 230)
 
     // Wait for keypress

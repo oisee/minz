@@ -2,15 +2,15 @@
 // MinZ v0.17.0 - Idiomatic Vector Syntax Showcase
 //
 // Shows clean ray-sphere intersection with operator overloading:
-//   let hit = ro + rd * t;              // Vector + Vector * scalar
-//   let normal = hit.normalize();       // UFCS method call
-//   let diff = normal.dot(light);       // Dot product method
+//   let hit = ro + rd * t              // Vector + Vector * scalar
+//   let normal = hit.normalize()       // UFCS method call
+//   let diff = normal.dot(light)       // Dot product method
 
 // ============================================
 // Fixed-Point Math (8.8 format)
 // ============================================
 
-const FP_ONE: i16 = 256;  // 1.0 in 8.8 fixed-point
+const FP_ONE: i16 = 256  // 1.0 in 8.8 fixed-point
 
 fun fp_mul(a: i16, b: i16) -> i16 {
     let ah = a >> 8
@@ -21,12 +21,12 @@ fun fp_mul(a: i16, b: i16) -> i16 {
 }
 
 fun fp_max(a: i16, b: i16) -> i16 {
-    if a > b { return a; }
+    if a > b { return a }
     return b
 }
 
 fun fp_sqrt(x: i16) -> i16 {
-    if x <= 0 { return 0; }
+    if x <= 0 { return 0 }
     let g: i16 = 128
     g = (g + x / g) >> 1
     g = (g + x / g) >> 1
@@ -35,7 +35,7 @@ fun fp_sqrt(x: i16) -> i16 {
 }
 
 fun fp_div(a: i16, b: i16) -> i16 {
-    if b == 0 { return 32767; }
+    if b == 0 { return 32767 }
     return (a << 8) / b
 }
 
@@ -74,7 +74,7 @@ impl vec3 {
     // v.normalize()
     fun normalize(self) -> vec3 {
         let len = self.length()
-        if len == 0 { return vec3 { x: 0, y: 0, z: 0 }; }
+        if len == 0 { return vec3 { x: 0, y: 0, z: 0 } }
         return vec3 { x: fp_div(self.x, len), y: fp_div(self.y, len), z: fp_div(self.z, len) }
     }
 }
@@ -98,10 +98,10 @@ fun ray_sphere(ro: vec3, rd: vec3, center: vec3, radius: i16) -> i16 {
     let c = oc.dot(oc) - fp_mul(radius, radius)
     let disc = fp_mul(b, b) - c
 
-    if disc < 0 { return -1; }
+    if disc < 0 { return -1 }
 
     let t = -b - fp_sqrt(disc)
-    if t < 0 { return -1; }
+    if t < 0 { return -1 }
 
     return t
 }
@@ -177,10 +177,10 @@ fun main() -> void {
                 let diff = fp_max(normal.dot(light), 0)
 
                 // Simple dithering based on brightness
-                if diff > 32 { plot(x + 1, y + 1); }
-                if diff > 64 { plot(x, y); }
-                if diff > 128 { plot(x + 2, y); plot(x, y + 2); }
-                if diff > 192 { plot(x + 3, y + 1); plot(x + 1, y + 3); }
+                if diff > 32 { plot(x + 1, y + 1) }
+                if diff > 64 { plot(x, y) }
+                if diff > 128 { plot(x + 2, y); plot(x, y + 2) }
+                if diff > 192 { plot(x + 3, y + 1); plot(x + 1, y + 3) }
             }
         }
     }
@@ -191,9 +191,9 @@ fun main() -> void {
 // ============================================
 // v0.17 IDIOMATIC SYNTAX SHOWCASE:
 //
-//   let hit = ro + rd * t;           // Natural vector math
-//   let normal = (hit - center).normalize();  // Chained ops
-//   let diff = normal.dot(light);    // Method syntax
+//   let hit = ro + rd * t           // Natural vector math
+//   let normal = (hit - center).normalize()  // Chained ops
+//   let diff = normal.dot(light)    // Method syntax
 //
 // Old v0.16 style (same assembly!):
 //   let hit = v3_add(ro, v3_mulf(rd, t))

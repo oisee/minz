@@ -16,7 +16,7 @@ fun fp_mul(a: i16, b: i16) -> i16 {
 }
 
 fun fp_div(a: i16, b: i16) -> i16 {
-    if b == 0 { return 32767; }
+    if b == 0 { return 32767 }
     let a32: i32 = a as i32
     let b32: i32 = b as i32
     let result: i32 = (a32 << 8) / b32
@@ -24,31 +24,31 @@ fun fp_div(a: i16, b: i16) -> i16 {
 }
 
 fun abs16(x: i16) -> i16 {
-    if x < 0 { return 0 - x; }
+    if x < 0 { return 0 - x }
     return x
 }
 
 fun min16(a: i16, b: i16) -> i16 {
-    if a < b { return a; }
+    if a < b { return a }
     return b
 }
 
 fun max16(a: i16, b: i16) -> i16 {
-    if a > b { return a; }
+    if a > b { return a }
     return b
 }
 
 // Integer square root
 fun isqrt(n: i16) -> i16 {
-    if n <= 0 { return 0; }
-    if n < 2 { return n; }
+    if n <= 0 { return 0 }
+    if n < 2 { return n }
     let guess: i16 = n >> 1
-    if guess > 180 { guess = 180; }
+    if guess > 180 { guess = 180 }
     let i: u8 = 0
     while i < 5 {
         let div: i16 = n / guess
         guess = (guess + div) >> 1
-        if guess < 1 { guess = 1; }
+        if guess < 1 { guess = 1 }
         i = i + 1
     }
     return guess
@@ -180,7 +180,7 @@ fun calc_lighting(px: i16, py: i16, pz: i16) -> i16 {
 
     // Normalize
     let len: i16 = length3(nx, ny, nz)
-    if len < 8 { len = 8; }
+    if len < 8 { len = 8 }
 
     nx = fp_div(nx, len)
     ny = fp_div(ny, len)
@@ -192,11 +192,11 @@ fun calc_lighting(px: i16, py: i16, pz: i16) -> i16 {
     let lz: i16 = -72
 
     let dot: i16 = fp_mul(nx, lx) + fp_mul(ny, ly) + fp_mul(nz, lz)
-    if dot < 0 { dot = 0; }
+    if dot < 0 { dot = 0 }
 
     // Ambient + diffuse
     let ambient: i16 = 50
-    let diffuse: i16 = (dot * 3) >> 2;  // dot * 0.75
+    let diffuse: i16 = (dot * 3) >> 2  // dot * 0.75
 
     return ambient + diffuse
 }
@@ -209,7 +209,7 @@ fun march(rox: i16, roy: i16, roz: i16, rdx: i16, rdy: i16, rdz: i16) -> i16 {
     let px: i16 = rox
     let py: i16 = roy
     let pz: i16 = roz
-    let t: i16 = 0;  // Total distance
+    let t: i16 = 0  // Total distance
 
     let i: u8 = 0
     while i < 40 {
@@ -218,8 +218,8 @@ fun march(rox: i16, roy: i16, roz: i16, rdx: i16, rdy: i16, rdz: i16) -> i16 {
         if d < 4 {
             // Hit - simple shading based on height (py)
             let light: i16 = 100 + py
-            if light < 60 { light = 60; }
-            if light > 255 { light = 255; }
+            if light < 60 { light = 60 }
+            if light > 255 { light = 255 }
             return light
         }
 
@@ -230,7 +230,7 @@ fun march(rox: i16, roy: i16, roz: i16, rdx: i16, rdy: i16, rdz: i16) -> i16 {
         pz = roz + fp_mul(rdz, t)
 
         // Too far
-        if t > 400 { return 0; }
+        if t > 400 { return 0 }
 
         i = i + 1
     }
@@ -251,8 +251,8 @@ fun main() -> void {
 
     // Camera like simple test - at z=-200, looking forward
     let cam_x: i16 = 0
-    let cam_y: i16 = 50;    // At lander center height
-    let cam_z: i16 = -200;  // In front
+    let cam_y: i16 = 50    // At lander center height
+    let cam_z: i16 = -200  // In front
 
     let y: i16 = 0
     while y < height {
@@ -274,15 +274,15 @@ fun main() -> void {
                 // Map to palette
                 let color: u8 = 0
                 if brightness > 200 {
-                    color = 15;  // White
+                    color = 15  // White
                 } else if brightness > 160 {
-                    color = 7;   // Light gray
+                    color = 7   // Light gray
                 } else if brightness > 120 {
-                    color = 8;   // Gray
+                    color = 8   // Gray
                 } else if brightness > 80 {
-                    color = 8;   // Medium gray
+                    color = 8   // Medium gray
                 } else {
-                    color = 1;   // Dark
+                    color = 1   // Dark
                 }
 
                 // Draw 2x2 pixel (centered on 320x240)

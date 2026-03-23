@@ -8,15 +8,15 @@ fun test_tail_recursion() -> bool {
         if n <= 1 {
             return acc
         }
-        return factorial_tail(n - 1, n as u16 * acc);  // Tail call!
+        return factorial_tail(n - 1, n as u16 * acc)  // Tail call!
     }
     
     fun factorial(n: u8) -> u16 {
         return factorial_tail(n, 1)
     }
     
-    if factorial(5) != 120 { return false; }
-    if factorial(6) != 720 { return false; }
+    if factorial(5) != 120 { return false }
+    if factorial(6) != 720 { return false }
     
     // This should compile to a loop, not recursive calls!
     return true
@@ -25,19 +25,19 @@ fun test_tail_recursion() -> bool {
 // Test mutual tail recursion
 fun test_mutual_tail_recursion() -> bool {
     fun is_even(n: u8) -> bool {
-        if n == 0 { return true; }
-        return is_odd(n - 1);  // Tail call
+        if n == 0 { return true }
+        return is_odd(n - 1)  // Tail call
     }
     
     fun is_odd(n: u8) -> bool {
-        if n == 0 { return false; }
-        return is_even(n - 1);  // Tail call
+        if n == 0 { return false }
+        return is_even(n - 1)  // Tail call
     }
     
-    if !is_even(10) { return false; }
-    if is_even(11) { return false; }
-    if !is_odd(11) { return false; }
-    if is_odd(10) { return false; }
+    if !is_even(10) { return false }
+    if is_even(11) { return false }
+    if !is_odd(11) { return false }
+    if is_odd(10) { return false }
     
     return true
 }
@@ -65,10 +65,10 @@ fun test_pattern_matching() -> bool {
     let write = Message.Write("Hello")
     let color = Message.ChangeColor(10, 20, 30)
     
-    if process_message(quit) != 0 { return false; }
-    if process_message(move) != 30 { return false; }
-    if process_message(write) != 'H' { return false; }
-    if process_message(color) != 60 { return false; }
+    if process_message(quit) != 0 { return false }
+    if process_message(move) != 30 { return false }
+    if process_message(write) != 'H' { return false }
+    if process_message(color) != 60 { return false }
     
     return true
 }
@@ -84,10 +84,10 @@ fun test_pattern_guards() -> bool {
         }
     }
     
-    if describe_number(0) != 0 { return false; }
-    if describe_number(5) != 1 { return false; }
-    if describe_number(50) != 2 { return false; }
-    if describe_number(150) != 3 { return false; }
+    if describe_number(0) != 0 { return false }
+    if describe_number(5) != 1 { return false }
+    if describe_number(50) != 2 { return false }
+    if describe_number(150) != 3 { return false }
     
     return true
 }
@@ -103,16 +103,16 @@ fun divmod(dividend: u16, divisor: u8) -> (u16, u8) {
 fun test_multiple_returns() -> bool {
     // Normal multiple return
     let (q, r) = divmod(100, 7)
-    if q != 14 { return false; }  // 100 / 7 = 14
-    if r != 2 { return false; }   // 100 % 7 = 2
+    if q != 14 { return false }  // 100 / 7 = 14
+    if r != 2 { return false }   // 100 % 7 = 2
     
     // Direct return to memory locations
     var quotient: u16
     var remainder: u8
     
     @smc_return_to(&quotient, &remainder) divmod(50, 3)
-    if quotient != 16 { return false; }  // 50 / 3 = 16
-    if remainder != 2 { return false; }  // 50 % 3 = 2
+    if quotient != 16 { return false }  // 50 / 3 = 16
+    if remainder != 2 { return false }  // 50 % 3 = 2
     
     return true
 }
@@ -137,10 +137,10 @@ const SINE_TABLE: [u8; 256] = @lua(sine_table)
 
 fun test_metaprogramming() -> bool {
     // Check some known sine values
-    if SINE_TABLE[0] != 128 { return false; }    // sin(0) = 0 → 128
-    if SINE_TABLE[64] != 255 { return false; }   // sin(π/2) = 1 → 255
-    if SINE_TABLE[128] != 128 { return false; }  // sin(π) = 0 → 128
-    if SINE_TABLE[192] != 1 { return false; }    // sin(3π/2) = -1 → 1
+    if SINE_TABLE[0] != 128 { return false }    // sin(0) = 0 → 128
+    if SINE_TABLE[64] != 255 { return false }   // sin(π/2) = 1 → 255
+    if SINE_TABLE[128] != 128 { return false }  // sin(π) = 0 → 128
+    if SINE_TABLE[192] != 1 { return false }    // sin(3π/2) = -1 → 1
     
     return true
 }
@@ -162,7 +162,7 @@ fun test_macros() -> bool {
     // Expand to 5 increment operations
     @repeat(5, "counter = counter + 1;")
     
-    if counter != 5 { return false; }
+    if counter != 5 { return false }
     
     return true
 }
@@ -179,13 +179,13 @@ fun test_macros() -> bool {
 }
 
 fun main() -> u8 {
-    if !test_tail_recursion() { return 1; }
-    if !test_mutual_tail_recursion() { return 2; }
-    if !test_pattern_matching() { return 3; }
-    if !test_pattern_guards() { return 4; }
-    if !test_multiple_returns() { return 5; }
-    if !test_metaprogramming() { return 6; }
-    if !test_macros() { return 7; }
+    if !test_tail_recursion() { return 1 }
+    if !test_mutual_tail_recursion() { return 2 }
+    if !test_pattern_matching() { return 3 }
+    if !test_pattern_guards() { return 4 }
+    if !test_multiple_returns() { return 5 }
+    if !test_metaprogramming() { return 6 }
+    if !test_macros() { return 7 }
     
-    return 0;  // All tests passed
+    return 0  // All tests passed
 }

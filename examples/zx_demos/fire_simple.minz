@@ -2,13 +2,13 @@
 // Classic fire effect using attribute colors
 
 // Fire palette
-const PALETTE_0: u8 = 0x00;  // Black
-const PALETTE_1: u8 = 0x02;  // Red
-const PALETTE_2: u8 = 0x12;  // Bright red
-const PALETTE_3: u8 = 0x06;  // Yellow
-const PALETTE_4: u8 = 0x16;  // Bright yellow
-const PALETTE_5: u8 = 0x07;  // White
-const PALETTE_6: u8 = 0x47;  // Bright white
+const PALETTE_0: u8 = 0x00  // Black
+const PALETTE_1: u8 = 0x02  // Red
+const PALETTE_2: u8 = 0x12  // Bright red
+const PALETTE_3: u8 = 0x06  // Yellow
+const PALETTE_4: u8 = 0x16  // Bright yellow
+const PALETTE_5: u8 = 0x07  // White
+const PALETTE_6: u8 = 0x47  // Bright white
 
 // Heat buffer
 global heat: [u8; 768]
@@ -56,12 +56,12 @@ fun propagate() -> void {
 
 // Get palette color for heat value
 fun palette(h: u8) -> u8 {
-    if h == 0 { return PALETTE_0; }
-    if h == 1 { return PALETTE_1; }
-    if h == 2 { return PALETTE_2; }
-    if h == 3 { return PALETTE_3; }
-    if h == 4 { return PALETTE_4; }
-    if h == 5 { return PALETTE_5; }
+    if h == 0 { return PALETTE_0 }
+    if h == 1 { return PALETTE_1 }
+    if h == 2 { return PALETTE_2 }
+    if h == 3 { return PALETTE_3 }
+    if h == 4 { return PALETTE_4 }
+    if h == 5 { return PALETTE_5 }
     PALETTE_6
 }
 

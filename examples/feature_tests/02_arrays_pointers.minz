@@ -6,15 +6,15 @@ fun test_arrays() -> bool {
     let arr: [u8; 5] = [1, 2, 3, 4, 5]
     
     // Array indexing
-    if arr[0] != 1 { return false; }
-    if arr[4] != 5 { return false; }
+    if arr[0] != 1 { return false }
+    if arr[4] != 5 { return false }
     
     // Array modification
     arr[2] = 10
-    if arr[2] != 10 { return false; }
+    if arr[2] != 10 { return false }
     
     // Array length
-    if len(arr) != 5 { return false; }
+    if len(arr) != 5 { return false }
     
     return true
 }
@@ -24,11 +24,11 @@ fun test_pointers() -> bool {
     let ptr: ^u8 = &val
     
     // Pointer dereference
-    if *ptr != 42 { return false; }
+    if *ptr != 42 { return false }
     
     // Pointer modification
     *ptr = 100
-    if val != 100 { return false; }
+    if val != 100 { return false }
     
     return true
 }
@@ -38,16 +38,16 @@ fun test_array_pointers() -> bool {
     let ptr: ^[u8; 3] = &arr
     
     // Access through pointer
-    if (*ptr)[0] != 10 { return false; }
-    if (*ptr)[2] != 30 { return false; }
+    if (*ptr)[0] != 10 { return false }
+    if (*ptr)[2] != 30 { return false }
     
     // Get pointer to element
     let elem_ptr: ^u8 = &arr[1]
-    if *elem_ptr != 20 { return false; }
+    if *elem_ptr != 20 { return false }
     
     // Modify through pointer
     *elem_ptr = 25
-    if arr[1] != 25 { return false; }
+    if arr[1] != 25 { return false }
     
     return true
 }
@@ -67,22 +67,22 @@ fun test_multidimensional_arrays() -> bool {
     // 2D array (array of arrays)
     let matrix: [[u8; 3]; 2] = [[1, 2, 3], [4, 5, 6]]
     
-    if matrix[0][0] != 1 { return false; }
-    if matrix[1][2] != 6 { return false; }
+    if matrix[0][0] != 1 { return false }
+    if matrix[1][2] != 6 { return false }
     
     // Modify element
     matrix[1][1] = 10
-    if matrix[1][1] != 10 { return false; }
+    if matrix[1][1] != 10 { return false }
     
     return true
 }
 
 fun main() -> u8 {
-    if !test_arrays() { return 1; }
-    if !test_pointers() { return 2; }
-    if !test_array_pointers() { return 3; }
-    if !test_pointer_arithmetic() { return 4; }
-    if !test_multidimensional_arrays() { return 5; }
+    if !test_arrays() { return 1 }
+    if !test_pointers() { return 2 }
+    if !test_array_pointers() { return 3 }
+    if !test_pointer_arithmetic() { return 4 }
+    if !test_multidimensional_arrays() { return 5 }
     
-    return 0;  // All tests passed
+    return 0  // All tests passed
 }

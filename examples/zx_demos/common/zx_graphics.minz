@@ -122,16 +122,16 @@ fun line(x0: u8, y0: u8, x1: u8, y1: u8) -> void {
     while true {
         set_pixel(x, y)
 
-        if x == x1 && y == y1 { break; }
+        if x == x1 && y == y1 { break }
 
         let e2 = 2 * err
         if e2 >= dy {
-            if x == x1 { break; }
+            if x == x1 { break }
             err = err + dy
             x = (x as i8 + sx) as u8
         }
         if e2 <= dx {
-            if y == y1 { break; }
+            if y == y1 { break }
             err = err + dx
             y = (y as i8 + sy) as u8
         }

@@ -13,10 +13,10 @@ fun init_sine() -> void {
         let q: u8 = i & 0xC0
         let v: u8 = 0
 
-        if q == 0    { v = (i >> 3) & 7; }
-        if q == 0x40 { v = ((127 - i) >> 3) & 7; }
-        if q == 0x80 { v = ((i - 128) >> 3) & 7; }
-        if q == 0xC0 { v = ((255 - i) >> 3) & 7; }
+        if q == 0    { v = (i >> 3) & 7 }
+        if q == 0x40 { v = ((127 - i) >> 3) & 7 }
+        if q == 0x80 { v = ((i - 128) >> 3) & 7 }
+        if q == 0xC0 { v = ((255 - i) >> 3) & 7 }
 
         sin_table[i] = v
     }

@@ -5,7 +5,7 @@
 // map(+1) = [66, 67, 68] (B,C,D)
 // Expected output: 42 43 44 0a (hex: B, C, D, newline)
 
-fun add_one(x: u8) -> u8 { return x + 1; }
+fun add_one(x: u8) -> u8 { return x + 1 }
 
 fun console_log(c: u8) -> void {
     asm {

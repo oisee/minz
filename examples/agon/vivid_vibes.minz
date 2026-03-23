@@ -25,8 +25,8 @@ const LZSS_MIN_MATCH: u8 = 3
 const VDU_CLG_BYTE: u8 = 16
 const VDU_GCOL_CMD: u8 = 18
 const VDU_PLOT_CMD: u8 = 25
-const PLOT_MOVE_ABS: u8 = 4;      // MOVE absolute
-const PLOT_TRI_FILL: u8 = 85;     // Fill triangle to last two moves
+const PLOT_MOVE_ABS: u8 = 4      // MOVE absolute
+const PLOT_TRI_FILL: u8 = 85     // Fill triangle to last two moves
 
 // Buffer IDs
 const CUBE_BASE_ID: u16 = 1
@@ -327,7 +327,7 @@ global compressed_buf: [u8; 8192]
 // Load compressed data from SD card
 // Returns number of bytes loaded, or 0 on error
 fun load_compressed(filename: ^u8) -> u16 {
-    let handle: u8 = fopen(filename, 0x01);  // FA_READ
+    let handle: u8 = fopen(filename, 0x01)  // FA_READ
     if handle == 0 {
         return 0
     }

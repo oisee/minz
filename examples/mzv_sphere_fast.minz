@@ -5,10 +5,10 @@
 
 fun main() -> void {
     // Sphere parameters
-    let cx: i16 = 160;      // center x
-    let cy: i16 = 120;      // center y
-    let radius: i16 = 60;   // radius in pixels
-    let radius_sq: i16 = radius * radius;  // 3600
+    let cx: i16 = 160      // center x
+    let cy: i16 = 120      // center y
+    let radius: i16 = 60   // radius in pixels
+    let radius_sq: i16 = radius * radius  // 3600
 
     // Clear screen
     clear()
@@ -36,16 +36,16 @@ fun main() -> void {
 
                 // Add directional shading (fake light from upper-left)
                 // Shift brightness based on position
-                let light_dx: i16 = dx + radius / 2;  // Shift highlight left
-                let light_dy: i16 = dy + radius / 2;  // Shift highlight up
+                let light_dx: i16 = dx + radius / 2  // Shift highlight left
+                let light_dy: i16 = dy + radius / 2  // Shift highlight up
                 let light_dist: i16 = light_dx * light_dx + light_dy * light_dy
                 let highlight: i16 = 255 - (light_dist * 255 / (radius_sq * 2))
-                if highlight < 0 { highlight = 0; }
+                if highlight < 0 { highlight = 0 }
 
                 // Combine base brightness with highlight
                 brightness = (brightness + highlight) / 2
-                if brightness > 255 { brightness = 255; }
-                if brightness < 30 { brightness = 30; }  // Minimum ambient
+                if brightness > 255 { brightness = 255 }
+                if brightness < 30 { brightness = 30 }  // Minimum ambient
 
                 // Create color gradient: orange to yellow based on y position
                 let r: u8 = brightness as u8
@@ -56,15 +56,15 @@ fun main() -> void {
                 // For 8-bit indexed color, use a warm color palette index
                 let color: u8 = 0
                 if brightness > 200 {
-                    color = 15;  // White (highlight)
+                    color = 15  // White (highlight)
                 } else if brightness > 150 {
-                    color = 10;  // Yellow
+                    color = 10  // Yellow
                 } else if brightness > 100 {
-                    color = 2;   // Red
+                    color = 2   // Red
                 } else if brightness > 50 {
-                    color = 1;   // Dark red
+                    color = 1   // Dark red
                 } else {
-                    color = 0;   // Black
+                    color = 0   // Black
                 }
 
                 set_pixel(x as u8, y as u8, color)

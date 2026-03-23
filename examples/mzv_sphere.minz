@@ -17,7 +17,7 @@ fun fp_mul(a: i16, b: i16) -> i16 {
 
 fun fp_div(a: i16, b: i16) -> i16 {
     if b == 0 {
-        if a >= 0 { return 32767; }
+        if a >= 0 { return 32767 }
         return -32768
     }
     let a32: i32 = a as i32
@@ -27,17 +27,17 @@ fun fp_div(a: i16, b: i16) -> i16 {
 }
 
 fun fp_sqrt(x: i16) -> i16 {
-    if x <= 0 { return 0; }
+    if x <= 0 { return 0 }
 
     let guess: i16 = x >> 1
-    if guess == 0 { guess = 1; }
-    if guess > 256 { guess = 256; }
+    if guess == 0 { guess = 1 }
+    if guess > 256 { guess = 256 }
 
     let i: u8 = 0
     while i < 6 {
         let div_result: i16 = fp_div(x, guess)
         guess = (guess + div_result) >> 1
-        if guess == 0 { guess = 1; }
+        if guess == 0 { guess = 1 }
         i = i + 1
     }
 
@@ -60,16 +60,16 @@ fun main() -> void {
     let height: i16 = 240
 
     // Sphere parameters
-    let cx: i16 = 160;  // center x
-    let cy: i16 = 120;  // center y
+    let cx: i16 = 160  // center x
+    let cy: i16 = 120  // center y
     let radius: i16 = 80
-    let radius_fp: i16 = radius << 8;  // 80 in 8.8 = 20480
+    let radius_fp: i16 = radius << 8  // 80 in 8.8 = 20480
 
     // Light direction (normalized, in 8.8)
     // Pointing upper-left-towards: (0.5, -0.5, 0.7)
-    let lx: i16 = 128;   // 0.5
-    let ly: i16 = -128;  // -0.5
-    let lz: i16 = 179;   // 0.7
+    let lx: i16 = 128   // 0.5
+    let ly: i16 = -128  // -0.5
+    let lz: i16 = 179   // 0.7
 
     // Clear screen to dark blue
     clear()
@@ -90,7 +90,7 @@ fun main() -> void {
             if dist_sq < radius_sq {
                 // Calculate z from sphere equation: z = sqrt(r^2 - x^2 - y^2)
                 let z_sq: i16 = radius_sq as i16 - dist_sq as i16
-                let z: i16 = fp_sqrt(z_sq << 8) >> 4;  // Scale for better precision
+                let z: i16 = fp_sqrt(z_sq << 8) >> 4  // Scale for better precision
 
                 // Normal at this point (in 8.8): n = (dx/r, dy/r, z/r)
                 let nx: i16 = fp_div(dx << 8, radius_fp)
@@ -99,13 +99,13 @@ fun main() -> void {
 
                 // Diffuse lighting: N dot L
                 let diffuse: i32 = (nx as i32) * (lx as i32) + (ny as i32) * (ly as i32) + (nz as i32) * (lz as i32)
-                diffuse = diffuse >> 8;  // Back to 8.8
+                diffuse = diffuse >> 8  // Back to 8.8
 
-                if diffuse < 0 { diffuse = 0; }
+                if diffuse < 0 { diffuse = 0 }
 
                 // Add ambient (0.2 = 51 in 8.8)
-                let brightness: i16 = 51 + ((diffuse as i16 * 204) >> 8);  // 0.2 + 0.8 * diffuse
-                if brightness > 256 { brightness = 256; }
+                let brightness: i16 = 51 + ((diffuse as i16 * 204) >> 8)  // 0.2 + 0.8 * diffuse
+                if brightness > 256 { brightness = 256 }
 
                 // Color: orange/red sphere
                 let r: i16 = (255 * brightness) >> 8

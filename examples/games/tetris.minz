@@ -165,8 +165,8 @@ fun create_piece(piece_type: PieceType) -> Piece {
     var piece: Piece
     piece.piece_type = piece_type
     piece.rotation = Rotation.R0
-    piece.position.x = 4;  // Center of board
-    piece.position.y = 0;  // Top of board
+    piece.position.x = 4  // Center of board
+    piece.position.y = 0  // Top of board
     get_piece_blocks(piece_type, Rotation.R0, &piece.blocks)
     return piece
 }
@@ -183,7 +183,7 @@ fun init_board() -> Board {
     while (y < BOARD_HEIGHT) {
         var x: u8 = 0
         while (x < BOARD_WIDTH) {
-            board.grid[y][x] = 0;  // Empty
+            board.grid[y][x] = 0  // Empty
             x = x + 1
         }
         y = y + 1
@@ -200,7 +200,7 @@ fun init_game() -> TetrisGame {
     game.next_piece = PieceType.I
     game.state = GameState.PLAYING
     game.drop_timer = 0
-    game.drop_speed = 60;  // 60 frames = 1 second at 50Hz
+    game.drop_speed = 60  // 60 frames = 1 second at 50Hz
     return game
 }
 
@@ -213,17 +213,17 @@ fun is_valid_position(board: *Board, piece: *Piece) -> u8 {
         
         // Check bounds
         if (block_x >= BOARD_WIDTH || block_y >= BOARD_HEIGHT) {
-            return 0;  // Invalid
+            return 0  // Invalid
         }
         
         // Check collision with placed blocks
         if (board.grid[block_y][block_x] != 0) {
-            return 0;  // Collision
+            return 0  // Collision
         }
         
         i = i + 1
     }
-    return 1;  // Valid
+    return 1  // Valid
 }
 
 // Place piece on board
@@ -234,7 +234,7 @@ fun place_piece(board: *Board, piece: *Piece) -> void {
         let block_y = piece.position.y + piece.blocks[i].y
         
         if (block_x < BOARD_WIDTH && block_y < BOARD_HEIGHT) {
-            let piece_value: u8 = 1;  // Default value
+            let piece_value: u8 = 1  // Default value
             if (piece.piece_type == PieceType.I) piece_value = 1
             if (piece.piece_type == PieceType.O) piece_value = 2
             if (piece.piece_type == PieceType.T) piece_value = 3
@@ -249,12 +249,12 @@ fun move_piece_down(game: *TetrisGame) -> u8 {
     game.current_piece.position.y = game.current_piece.position.y + 1
     
     if (is_valid_position(&game.board, &game.current_piece) == 1) {
-        return 1;  // Successful move
+        return 1  // Successful move
     } else {
         // Can't move down, revert and place piece
         game.current_piece.position.y = game.current_piece.position.y - 1
         place_piece(&game.board, &game.current_piece)
-        return 0;  // Piece placed
+        return 0  // Piece placed
     }
 }
 
@@ -409,7 +409,7 @@ fun handle_input(game: *TetrisGame) -> void {
 // Render the game
 fun render_game(game: *TetrisGame) -> void {
     clear_screen()
-    set_border(1);  // Blue border
+    set_border(1)  // Blue border
     
     // Render placed blocks
     var y: u8 = 0
@@ -431,7 +431,7 @@ fun render_game(game: *TetrisGame) -> void {
         let block_y = game.current_piece.position.y + game.current_piece.blocks[i].y
         
         if (block_x < BOARD_WIDTH && block_y < BOARD_HEIGHT) {
-            plot_block(block_x * 2, block_y, 7);  // White for current piece
+            plot_block(block_x * 2, block_y, 7)  // White for current piece
         }
         i = i + 1
     }
@@ -477,11 +477,11 @@ fun game_loop() -> void {
         }
         
         render_game(&game)
-        delay_frames(1);  // ~50 FPS
+        delay_frames(1)  // ~50 FPS
     }
     
     // Game over
-    set_border(2);  // Red border
+    set_border(2)  // Red border
     delay_frames(100)
     set_border(0)
 }

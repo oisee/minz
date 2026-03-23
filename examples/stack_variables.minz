@@ -49,7 +49,7 @@ fun inner(y: u8) -> u8 {
 
 fun main() -> void {
     let r1 = test_stack_locals(5, 10)
-    let r2 = factorial(5);  // Should be 120
-    let r3 = many_locals();  // Should be 36
-    let r4 = outer(10);      // Should be 23
+    let r2 = factorial(5)  // Should be 120
+    let r3 = many_locals()  // Should be 36
+    let r4 = outer(10)      // Should be 23
 }

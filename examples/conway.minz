@@ -3,9 +3,9 @@
 // Author: @DeanTheCoder
 // zcc +zx -lndos -create-app -o Conway Conway.c
 
-const CELL_SET: u8 = 0;      // Black (INK 0)
-const CELL_UNSET: u8 = 56;   // White paper (PAPER 7)
-const ATTR_MEM: u16 = 22528; // ZX Spectrum attribute memory
+const CELL_SET: u8 = 0      // Black (INK 0)
+const CELL_UNSET: u8 = 56   // White paper (PAPER 7)
+const ATTR_MEM: u16 = 22528 // ZX Spectrum attribute memory
 
 global grid: [u8; 768]
 global backup: [u8; 768]
@@ -101,11 +101,11 @@ fun key_pressed() -> bool {
         and $1F
     }
     // Returns non-zero if key pressed
-    return false; // Placeholder - asm handles it
+    return false // Placeholder - asm handles it
 }
 
 fun main() -> void {
-    set_border(6);  // Yellow border
+    set_border(6)  // Yellow border
     clear_screen()
 
     // Initialize grid to zero

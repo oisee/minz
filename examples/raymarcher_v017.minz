@@ -18,29 +18,29 @@ fun fp_mul(a: i16, b: i16) -> i16 {
 }
 
 fun fp_div(a: i16, b: i16) -> i16 {
-    if b == 0 { return 32767; }
+    if b == 0 { return 32767 }
     return (a << 8) / b
 }
 
 fun fp_max(a: i16, b: i16) -> i16 {
-    if a > b { return a; }
+    if a > b { return a }
     return b
 }
 
 fun fp_min(a: i16, b: i16) -> i16 {
-    if a < b { return a; }
+    if a < b { return a }
     return b
 }
 
 fun fp_abs(x: i16) -> i16 {
-    if x < 0 { return -x; }
+    if x < 0 { return -x }
     return x
 }
 
 // Fast integer square root (good enough for 8.8)
 fun fp_sqrt(x: i16) -> i16 {
-    if x <= 0 { return 0; }
-    if x < 256 { return 16; }  // sqrt of small values
+    if x <= 0 { return 0 }
+    if x < 256 { return 16 }  // sqrt of small values
 
     // Newton-Raphson with 3 iterations
     let guess: i16 = 128
@@ -80,7 +80,7 @@ impl vec3 {
 
     fun normalize(self) -> vec3 {
         let len = self.length()
-        if len == 0 { return vec3 { x: 0, y: 0, z: 0 }; }
+        if len == 0 { return vec3 { x: 0, y: 0, z: 0 } }
         return vec3 { x: fp_div(self.x, len), y: fp_div(self.y, len), z: fp_div(self.z, len) }
     }
 
@@ -131,8 +131,8 @@ fun sdf_box(p: vec3, b: vec3) -> Dist {
 // ============================================
 
 fun map(p: vec3) -> Dist {
-    let s = sphere(p, 200);  // Sphere radius ~0.78
-    let b = sdf_box(p, vec3 { x: 140, y: 140, z: 140 });  // Box ~0.55
+    let s = sphere(p, 200)  // Sphere radius ~0.78
+    let b = sdf_box(p, vec3 { x: 140, y: 140, z: 140 })  // Box ~0.55
 
     // CSG: sphere - box (carve box from sphere)
     return s - b
@@ -149,8 +149,8 @@ fun raymarch(ro: vec3, rd: vec3) -> i16 {
         let p = ro + rd * t
         let d = map(p)
 
-        if d.value < 4 { return t; }
-        if t > 1280 { return -1; }  // 5.0 max dist
+        if d.value < 4 { return t }
+        if t > 1280 { return -1 }  // 5.0 max dist
 
         t = t + d.value
     }

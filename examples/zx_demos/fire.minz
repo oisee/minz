@@ -17,11 +17,11 @@ fun rand() -> u8 {
 fun init_colors() -> void {
     for b in 0..256 {
         let color: u8 = 0
-        if b > 90 { color = 0x3F; }
-        else if b > 70 { color = 0x36; }
-        else if b > 50 { color = 0x32; }
-        else if b > 30 { color = 0x12; }
-        else if b > 20 { color = 0x02; }
+        if b > 90 { color = 0x3F }
+        else if b > 70 { color = 0x36 }
+        else if b > 50 { color = 0x32 }
+        else if b > 30 { color = 0x12 }
+        else if b > 20 { color = 0x02 }
         colLUT[b] = color
     }
 }
@@ -29,7 +29,7 @@ fun init_colors() -> void {
 // Seed bottom row - DJNZ loop
 @inline
 fun seed_base() -> void {
-    for i in 0..64 { grid[320 + i] = rand(); }
+    for i in 0..64 { grid[320 + i] = rand() }
 }
 
 // Fire propagation - hot path, DJNZ critical
@@ -51,7 +51,7 @@ fun update_screen() -> void {
 
 fun main() -> void {
     init_colors()
-    for i in 0..384 { grid[i] = 0; }
+    for i in 0..384 { grid[i] = 0 }
     
     loop {
         seed_base()

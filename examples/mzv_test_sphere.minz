@@ -10,7 +10,7 @@ fun fp_mul(a: i16, b: i16) -> i16 {
 
 // Fixed-point division: (a << 8) / b
 fun fp_div(a: i16, b: i16) -> i16 {
-    if b == 0 { return 32767; }
+    if b == 0 { return 32767 }
     let a32: i32 = a as i32
     let b32: i32 = b as i32
     let result: i32 = (a32 << 8) / b32
@@ -19,15 +19,15 @@ fun fp_div(a: i16, b: i16) -> i16 {
 
 // Integer square root
 fun isqrt(n: i16) -> i16 {
-    if n <= 0 { return 0; }
-    if n < 2 { return n; }
+    if n <= 0 { return 0 }
+    if n < 2 { return n }
     let guess: i16 = n >> 1
-    if guess > 180 { guess = 180; }
+    if guess > 180 { guess = 180 }
     let i: u8 = 0
     while i < 5 {
         let div: i16 = n / guess
         guess = (guess + div) >> 1
-        if guess < 1 { guess = 1; }
+        if guess < 1 { guess = 1 }
         i = i + 1
     }
     return guess
@@ -50,7 +50,7 @@ fun sdf_sphere(px: i16, py: i16, pz: i16, r: i16) -> i16 {
 
 // Simple map - just a sphere at origin
 fun map(px: i16, py: i16, pz: i16) -> i16 {
-    return sdf_sphere(px, py, pz, 100);  // Sphere radius 100 (~0.4 in 8.8)
+    return sdf_sphere(px, py, pz, 100)  // Sphere radius 100 (~0.4 in 8.8)
 }
 
 // Ray march
@@ -67,8 +67,8 @@ fun march(rdx: i16, rdy: i16, rdz: i16) -> i16 {
         if d < 5 {
             // Hit - return brightness based on normal (simplified: use py)
             let bright: i16 = 128 + py
-            if bright < 64 { bright = 64; }
-            if bright > 255 { bright = 255; }
+            if bright < 64 { bright = 64 }
+            if bright > 255 { bright = 255 }
             return bright
         }
 
@@ -77,7 +77,7 @@ fun march(rdx: i16, rdy: i16, rdz: i16) -> i16 {
         py = py + (rdy * d >> 8)
         pz = pz + (rdz * d >> 8)
 
-        if pz > 400 { return 0; }  // Miss
+        if pz > 400 { return 0 }  // Miss
 
         i = i + 1
     }
@@ -97,14 +97,14 @@ fun main() -> void {
             // Ray direction
             let rdx: i16 = (x - 40) * 4
             let rdy: i16 = (30 - y) * 4
-            let rdz: i16 = 256;  // Forward
+            let rdz: i16 = 256  // Forward
 
             let brightness: i16 = march(rdx, rdy, rdz)
 
             if brightness > 32 {
-                let color: u8 = 8;  // Gray
-                if brightness > 180 { color = 15; }
-                else if brightness > 140 { color = 7; }
+                let color: u8 = 8  // Gray
+                if brightness > 180 { color = 15 }
+                else if brightness > 140 { color = 7 }
 
                 let sx: u8 = (x * 2 + 80) as u8
                 let sy: u8 = (y * 2 + 60) as u8

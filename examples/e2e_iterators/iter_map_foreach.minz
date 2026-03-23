@@ -3,7 +3,7 @@
 // Expected output: chr(2) chr(4) chr(6) chr(8) chr(10) = raw bytes 02 04 06 08 0A 0A
 // Run: mz iter_map_foreach.minz -o t.a80 && mza t.a80 -o t.bin && mzx --run t.bin@8000 --frames DI:HALT --console-io
 
-fun double(x: u8) -> u8 { return x * 2; }
+fun double(x: u8) -> u8 { return x * 2 }
 
 fun console_log(c: u8) -> void {
     asm {

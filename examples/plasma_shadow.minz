@@ -9,13 +9,13 @@
 // - Optimized for 128K Spectrum
 
 // Screen addresses
-const SCREEN1_ATTR: u16 = 0x5800;  // Main screen attributes
-const SCREEN2_ATTR: u16 = 0xD800;  // Shadow screen attributes (bank 7)
+const SCREEN1_ATTR: u16 = 0x5800  // Main screen attributes
+const SCREEN2_ATTR: u16 = 0xD800  // Shadow screen attributes (bank 7)
 
 // Animation state
-global phase1: u8 = 0;     // First wave phase
-global phase2: u8 = 0;     // Second wave phase
-global current_screen: u8 = 0;  // 0 = main, 1 = shadow
+global phase1: u8 = 0     // First wave phase
+global phase2: u8 = 0     // Second wave phase
+global current_screen: u8 = 0  // 0 = main, 1 = shadow
 
 // Precomputed sine table (256 entries, values 0-7)
 global sin_table: [u8; 256]
@@ -26,23 +26,23 @@ fun init_sine() -> void {
     for i in 0..256 {
         // Quadrant detection
         let quadrant: u8 = (i >> 6) & 3
-        let pos: u8 = i & 0x3F;  // Position within quadrant (0-63)
+        let pos: u8 = i & 0x3F  // Position within quadrant (0-63)
         var val: u8 = 0
 
         // Triangle wave approximation of sine
         // Q0: rising 0->7,  Q1: falling 7->0
         // Q2: rising 0->7,  Q3: falling 7->0 (inverted)
         if quadrant == 0 {
-            val = pos >> 3;  // 0-7 rising
+            val = pos >> 3  // 0-7 rising
         }
         if quadrant == 1 {
-            val = (63 - pos) >> 3;  // 7-0 falling
+            val = (63 - pos) >> 3  // 7-0 falling
         }
         if quadrant == 2 {
-            val = pos >> 3;  // 0-7 rising
+            val = pos >> 3  // 0-7 rising
         }
         if quadrant == 3 {
-            val = (63 - pos) >> 3;  // 7-0 falling
+            val = (63 - pos) >> 3  // 7-0 falling
         }
 
         sin_table[i] = val
@@ -152,7 +152,7 @@ fun render_plasma() -> void {
         select_main_screen()
     }
 
-    let base: u16 = SCREEN1_ATTR;  // Always write to $5800 area
+    let base: u16 = SCREEN1_ATTR  // Always write to $5800 area
                                     // (banking handles which physical RAM)
 
     var y_angle: u8 = phase1
@@ -166,7 +166,7 @@ fun render_plasma() -> void {
             // Two-wave interference
             let wave1: u8 = sin_table[x_angle]
             let wave2: u8 = sin_table[y_angle]
-            let wave3: u8 = sin_table[x_angle + y_angle];  // Diagonal wave
+            let wave3: u8 = sin_table[x_angle + y_angle]  // Diagonal wave
 
             // Combine waves for color (0-7 range)
             let color: u8 = (wave1 + wave2 + wave3) & 7
@@ -178,10 +178,10 @@ fun render_plasma() -> void {
 
             poke(ptr, attr)
             ptr = ptr + 1
-            x_angle = x_angle + 8;  // X frequency
+            x_angle = x_angle + 8  // X frequency
         }
 
-        y_angle = y_angle + 11;  // Y frequency (prime for variety)
+        y_angle = y_angle + 11  // Y frequency (prime for variety)
     }
 }
 
@@ -199,8 +199,8 @@ fun main() -> void {
         asm { HALT }  // Sync to frame
 
         // Update phases
-        phase1 = phase1 + 3;   // Slow vertical movement
-        phase2 = phase2 + 5;   // Faster horizontal movement
+        phase1 = phase1 + 3   // Slow vertical movement
+        phase2 = phase2 + 5   // Faster horizontal movement
 
         // Render to back buffer
         render_plasma()
