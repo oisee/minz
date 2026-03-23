@@ -1281,7 +1281,7 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		}
 	}
 
-	// Built-in: peek(ptr) = load u8 from address, poke(ptr, val) = store
+	// Built-in: peek(ptr) = load u8 from address
 	if t.kind == tokIdent && t.text == "peek" {
 		p.next()
 		arg, err := p.parsePrimary()
@@ -1290,6 +1290,9 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		}
 		return &hir.LoadExpr{Ptr: arg, Ty: mir2.TyU8}, nil
 	}
+
+	// poke is defined as a regular extern — users import it from stdlib
+	// (can't use HIR StoreStmt from expression context directly)
 
 	// Identifier (variable ref or function call)
 	if t.kind == tokIdent {
