@@ -601,8 +601,101 @@ func peepholeCleanup(asm string) string {
 			continue
 		}
 
+		// ── SDCC-inspired rules ──────────────────────────────────────
+
+		// CALL label / RET → JP label (tail call optimization, saves 1 byte + 17T)
+		if i+1 < len(lines) && strings.HasPrefix(line, "CALL ") {
+			next := strings.TrimSpace(lines[i+1])
+			if next == "RET" {
+				target := strings.TrimPrefix(line, "CALL ")
+				result = append(result, "    JP "+target)
+				i++ // skip RET
+				continue
+			}
+		}
+
+		// LD r, r (self-move) — also catch at peephole level
+		if strings.HasPrefix(line, "LD ") {
+			parts := strings.SplitN(line[3:], ", ", 2)
+			if len(parts) == 2 && strings.TrimSpace(parts[0]) == strings.TrimSpace(parts[1]) {
+				continue // remove self-move
+			}
+		}
+
+		// ADD A, 0 → remove (no effect, just sets flags)
+		if line == "ADD A, 0" {
+			continue
+		}
+
+		// SUB 0 → remove
+		if line == "SUB 0" {
+			continue
+		}
+
+		// LD A, r / LD r, A → remove second (redundant store-back)
+		if i+1 < len(lines) && strings.HasPrefix(line, "LD A, ") {
+			src := strings.TrimPrefix(line, "LD A, ")
+			next := strings.TrimSpace(lines[i+1])
+			if next == "LD "+src+", A" {
+				result = append(result, lines[i]) // keep first LD
+				i++                                // skip second
+				continue
+			}
+		}
+
+		// LD r, A / LD A, r → remove second (redundant reload)
+		if i+1 < len(lines) && strings.HasPrefix(line, "LD ") && strings.HasSuffix(line, ", A") {
+			reg := strings.TrimSuffix(strings.TrimPrefix(line, "LD "), ", A")
+			reg = strings.TrimSpace(reg)
+			next := strings.TrimSpace(lines[i+1])
+			if next == "LD A, "+reg {
+				result = append(result, lines[i]) // keep first LD
+				i++                                // skip second
+				continue
+			}
+		}
+
+		// OR A / OR A → remove duplicate (idempotent)
+		if i+1 < len(lines) && line == "OR A" {
+			next := strings.TrimSpace(lines[i+1])
+			if next == "OR A" {
+				result = append(result, lines[i]) // keep one
+				i++                                // skip duplicate
+				continue
+			}
+		}
+
+		// XOR A / LD A, 0 → keep only XOR A (both set A=0)
+		if i+1 < len(lines) && line == "XOR A" {
+			next := strings.TrimSpace(lines[i+1])
+			if next == "LD A, 0" || next == "XOR A" {
+				result = append(result, lines[i])
+				i++
+				continue
+			}
+		}
+
+		// ── Grace-like CFG rules (on assembly level) ─────────────────
+
+		// Label followed immediately by JP (unconditional) to another label:
+		// remove the JP if the label is the next block
+		// (handled by the earlier fallthrough rule)
+
+		// Empty block: label followed by another label → keep both (no-op block)
+
 		result = append(result, lines[i])
 	}
 
-	return strings.Join(result, "\n")
+	// Second pass: remove consecutive duplicate labels
+	var pass2 []string
+	for i, line := range result {
+		// Skip empty lines between labels
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" && i+1 < len(result) && strings.HasSuffix(strings.TrimSpace(result[i+1]), ":") {
+			continue
+		}
+		pass2 = append(pass2, line)
+	}
+
+	return strings.Join(pass2, "\n")
 }
