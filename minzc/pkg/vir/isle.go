@@ -88,6 +88,21 @@ func eliminateIdentityOps(ops []VIROp) []VIROp {
 	var result []VIROp
 	skip := make(map[int]bool)
 
+	// Mark const 0 vregs for potential sub(0,x)→neg(x) rewrite
+	zeroConsts := make(map[int]bool)
+	for vreg, imm := range consts {
+		if imm == 0 { zeroConsts[vreg] = true }
+	}
+
+	// Pre-scan: mark dead consts for sub(0,x)→neg(x) rewrites
+	for _, op := range ops {
+		if op.Op == OpSub && op.Src[0] > 0 && zeroConsts[op.Src[0]] {
+			for j, cop := range ops {
+				if cop.Op == OpConst && cop.Dst == op.Src[0] { skip[j] = true }
+			}
+		}
+	}
+
 	for i, op := range ops {
 		if skip[i] {
 			continue
@@ -117,6 +132,14 @@ func eliminateIdentityOps(ops []VIROp) []VIROp {
 			}
 
 		case OpSub:
+			// 0 - x → neg(x)
+			if op.Src[0] > 0 && zeroConsts[op.Src[0]] {
+				result = append(result, VIROp{
+					Op: OpNeg, Dst: op.Dst, Src: [2]int{op.Src[1], -1},
+					Width: op.Width,
+				})
+				continue
+			}
 			// x - 0 → x
 			if op.Src[1] > 0 {
 				if v, ok := consts[op.Src[1]]; ok && v == 0 {
