@@ -1698,11 +1698,11 @@ func generateSMTPerInst(p *problem) string {
 func parsePerInstSolution(p *problem, model string, desc *MachineDesc) ([]PIROp, error) {
 	vals := parseZ3Model(model)
 
-	var result []PIROp
+	var raw []PIROp // before move insertion
 	for i, op := range p.ops {
 		pats := p.patterns[i]
 		if len(pats) == 0 {
-			result = append(result, PIROp{
+			raw = append(raw, PIROp{
 				Comment: fmt.Sprintf("no pattern for op %d (Op=%d)", i, op.Op),
 			})
 			continue
@@ -1735,7 +1735,7 @@ func parsePerInstSolution(p *problem, model string, desc *MachineDesc) ([]PIROp,
 			}
 		}
 
-		result = append(result, PIROp{
+		raw = append(raw, PIROp{
 			Pat:     pat,
 			DstPhys: dstPhys,
 			SrcPhys: srcPhys,
@@ -1744,7 +1744,65 @@ func parsePerInstSolution(p *problem, model string, desc *MachineDesc) ([]PIROp,
 		})
 	}
 
-	return result, nil
+	final := insertPerInstMoves(raw, p, vals, desc)
+	return final, nil
+}
+
+// findMovePattern finds a ld_r_r move pattern for source → dest physical registers.
+func findMovePattern(desc *MachineDesc, srcPhys, dstPhys int) *Pattern {
+	for i := range desc.Patterns {
+		pat := &desc.Patterns[i]
+		if pat.Op != OpMove || pat.Width != 8 {
+			continue
+		}
+		if pat.DstLocs.Has(dstPhys) && pat.SrcLocs[0].Has(srcPhys) {
+			return pat
+		}
+	}
+	return nil
+}
+
+// insertPerInstMoves post-processes per-inst PIROps: for each vreg whose
+// location changed between consecutive instructions, insert a LD move.
+func insertPerInstMoves(pirOps []PIROp, p *problem, vals map[string]int, desc *MachineDesc) []PIROp {
+	var result []PIROp
+	for i, pirop := range pirOps {
+		// Before each instruction, check if any source vreg needs a move
+		if i > 0 && i < len(p.ops) {
+			op := p.ops[i]
+			for _, vreg := range []int{op.Src[0], op.Src[1]} {
+				if vreg <= 0 {
+					continue
+				}
+				// Find where this vreg was at previous instruction vs now
+				currKey := fmt.Sprintf("lv%d_i%d", vreg, i)
+				currLoc, hasCurr := vals[currKey]
+				if !hasCurr {
+					continue
+				}
+				// Search backwards for last known location
+				for pi := i - 1; pi >= 0; pi-- {
+					prevKey := fmt.Sprintf("lv%d_i%d", vreg, pi)
+					prevLoc, hasPrev := vals[prevKey]
+					if hasPrev {
+						if prevLoc != currLoc {
+							movePat := findMovePattern(desc, prevLoc, currLoc)
+							if movePat != nil {
+								result = append(result, PIROp{
+									Pat:     movePat,
+									DstPhys: currLoc,
+									SrcPhys: [2]int{prevLoc, -1},
+								})
+							}
+						}
+						break
+					}
+				}
+			}
+		}
+		result = append(result, pirop)
+	}
+	return result
 }
 
 // ── Z3 execution ─────────────────────────────────────────────────────────────

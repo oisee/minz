@@ -142,33 +142,39 @@ assert bor(0x80, 0x01) == 0x81
 `)
 }
 
-func TestVIR_Assert_Conditional(t *testing.T) {
-	// abs_diff(b-a) still fails: sub(v2,v1) with v1=A, v2=C → tied conflict.
-	// The sub_a_r pattern needs src0=A but cross-block SrcHint says v2=C.
-	// Needs soft SrcHint (cost penalty) instead of hard constraint.
-	runVIRAsserts(t, "conditional", `
+func TestVIR_Assert_Max(t *testing.T) {
+	runVIRAsserts(t, "max", `
 fun max(a: u8, b: u8) -> u8 {
     if a > b { return a }
     return b
 }
-fun min(a: u8, b: u8) -> u8 {
-    if a < b { return a }
-    return b
-}
-fun abs_diff(a: u8, b: u8) -> u8 {
-    if a > b { return a - b }
-    return b - a
-}
-
 assert max(10, 3) == 10
 assert max(3, 10) == 10
 assert max(5, 5) == 5
 assert max(0, 255) == 255
 assert max(255, 0) == 255
+`)
+}
+
+func TestVIR_Assert_Min(t *testing.T) {
+	runVIRAsserts(t, "min", `
+fun min(a: u8, b: u8) -> u8 {
+    if a < b { return a }
+    return b
+}
 assert min(10, 3) == 3
 assert min(3, 10) == 3
 assert min(5, 5) == 5
 assert min(0, 255) == 0
+`)
+}
+
+func TestVIR_Assert_AbsDiff(t *testing.T) {
+	runVIRAsserts(t, "abs_diff", `
+fun abs_diff(a: u8, b: u8) -> u8 {
+    if a > b { return a - b }
+    return b - a
+}
 assert abs_diff(10, 3) == 7
 assert abs_diff(3, 10) == 7
 assert abs_diff(0, 0) == 0
