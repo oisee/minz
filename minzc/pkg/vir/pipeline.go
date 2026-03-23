@@ -155,7 +155,11 @@ func deepCopyFunc(vf *Func) *Func {
 	cp := &Func{Name: vf.Name}
 	for _, b := range vf.Blocks {
 		ops := make([]VIROp, len(b.Ops))
-		copy(ops, b.Ops)
+		for i, op := range b.Ops {
+			ops[i] = op
+			// Reset hints to prevent stale mutations from previous runs
+			ops[i].SrcHint = [2]LocSet{}
+		}
 		cp.Blocks = append(cp.Blocks, Block{Label: b.Label, Ops: ops})
 	}
 	return cp
@@ -775,6 +779,42 @@ func peepholeCleanup(asm string) string {
 				continue
 			}
 		}
+
+		// ── Codegen suboptimality fixes ──────────────────────────────
+
+		// LD r, N / INC A / RET → INC A / RET (dead const, only when RET follows)
+		if i+2 < len(lines) && strings.HasPrefix(line, "LD ") && !strings.HasPrefix(line, "LD A,") {
+			next := strings.TrimSpace(lines[i+1])
+			next2 := strings.TrimSpace(lines[i+2])
+			if (next == "INC A" || next == "DEC A") && next2 == "RET" {
+				parts := strings.SplitN(line[3:], ", ", 2)
+				if len(parts) == 2 && strings.TrimSpace(parts[0]) != "A" {
+					continue // skip dead const load
+				}
+			}
+		}
+
+		// LD r, N / LD A, r → LD A, N (const through intermediate, only for immediates)
+		if i+1 < len(lines) && strings.HasPrefix(line, "LD ") && !strings.HasPrefix(line, "LD A,") {
+			parts := strings.SplitN(line[3:], ", ", 2)
+			if len(parts) == 2 {
+				reg := strings.TrimSpace(parts[0])
+				imm := strings.TrimSpace(parts[1])
+				next := strings.TrimSpace(lines[i+1])
+				// Only merge when imm is a numeric constant (not a register name)
+				isImm := len(imm) > 0 && (imm[0] >= '0' && imm[0] <= '9')
+				if next == "LD A, "+reg && isImm {
+					result = append(result, "    LD A, "+imm)
+					i++
+					continue
+				}
+			}
+		}
+
+		// XOR A / SUB r → NEG (when input was in A, 0-x = negate)
+		// Actually: XOR A sets A=0, then SUB r = 0-r = -r = NEG if r had the value
+		// This is tricky — only valid if the SUB source had the original A value.
+		// Skip for now — needs more context.
 
 		// ── Grace-like CFG rules (on assembly level) ─────────────────
 
