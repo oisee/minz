@@ -851,13 +851,29 @@ func (p *parser) parseLet() (*hir.Func, error) {
 		}
 	}
 
-	// Linearity analysis: count parameter uses in body
+	// Linearity analysis: classify each parameter as erased(0), linear(1), shared(ω)
+	// This information flows into MIR2 lowering for optimization:
+	//   erased  → don't pass at all (dead param elimination)
+	//   linear  → no save/restore needed (register freed after single use)
+	//   shared  → may need PUSH/POP to preserve across multiple uses
 	if fn.Body != nil && len(fn.Params) > 0 {
 		uses := countVarUses(fn.Body)
-		for _, param := range fn.Params {
+		for i, param := range fn.Params {
 			n := uses[param.Name]
-			if n == 0 && param.Name != "_" {
-				p.warnings = append(p.warnings, fmt.Sprintf("linearity: %s: param '%s' unused (erased?)", fn.Name, param.Name))
+			switch {
+			case n == 0 && param.Name != "_":
+				p.warnings = append(p.warnings,
+					fmt.Sprintf("linearity: %s: param '%s' is erased (0 uses) — could be eliminated", fn.Name, param.Name))
+				fn.Params[i].SMC = false // reuse SMC field as linearity hint: false=can optimize
+			case n == 1:
+				// Linear: used exactly once. Register can be consumed without saving.
+				// No warning — this is the ideal case for Z80.
+			default:
+				// Shared: used 2+ times. May need register preservation.
+				if n > 1 {
+					p.warnings = append(p.warnings,
+						fmt.Sprintf("linearity: %s: param '%s' used %d times (shared)", fn.Name, param.Name, n))
+				}
 			}
 		}
 	}
