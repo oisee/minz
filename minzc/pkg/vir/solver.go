@@ -51,22 +51,45 @@ func Solve(ops []VIROp, desc *MachineDesc, opts SolverOptions) ([]PIROp, error) 
 		return nil, fmt.Errorf("z3 not found: %w", err)
 	}
 
-	// Pre-solver passes
+	// Phase 1: try without call splitting (handles most functions)
+	// Make a copy so phase 2 gets clean input
+	opsCopy := make([]VIROp, len(ops))
+	copy(opsCopy, ops)
+
+	result, err := solveWithPasses(ops, desc, opts, false)
+	if err == nil {
+		return result, nil
+	}
+
+	// Phase 2: if unsat and block has calls, retry with call vreg splitting
+	for _, op := range opsCopy {
+		if op.Op == OpCall {
+			return solveWithPasses(opsCopy, desc, opts, true)
+		}
+	}
+
+	return nil, err
+}
+
+// solveWithPasses runs pre-solver passes and Z3.
+func solveWithPasses(ops []VIROp, desc *MachineDesc, opts SolverOptions, splitCalls bool) ([]PIROp, error) {
+	if splitCalls {
+		ops = splitVRegsAtCalls(ops, desc)
+	}
+
 	ops = insertPreTieMoves(ops, desc)
 	ops = insertSaveMoves(ops, desc)
 	ops = insertSpillReloads(ops, desc)
 	ops = coalesceVRegs(ops)
 
-	// Build the problem encoding
 	prob := buildProblem(ops, desc)
 	smt := prob.generateSMT()
 
 	if opts.Verbose {
-		fmt.Fprintf(os.Stderr, "[vir/solver] SMT-LIB2 (%d ops, %d vars):\n%s\n",
-			len(ops), len(prob.vregs), smt)
+		fmt.Fprintf(os.Stderr, "[vir/solver] SMT-LIB2 (%d ops, %d vars, splitCalls=%v):\n%s\n",
+			len(ops), len(prob.vregs), splitCalls, smt)
 	}
 
-	// Run Z3
 	model, err := runZ3(smt, opts)
 	if err != nil {
 		return nil, fmt.Errorf("z3 solve: %w", err)
@@ -76,7 +99,6 @@ func Solve(ops []VIROp, desc *MachineDesc, opts SolverOptions) ([]PIROp, error) 
 		fmt.Fprintf(os.Stderr, "[vir/solver] model:\n%s\n", model)
 	}
 
-	// Parse model → PIROps
 	return prob.parseSolution(model, desc)
 }
 
@@ -101,19 +123,6 @@ func splitVRegsAtCalls(ops []VIROp, desc *MachineDesc) []VIROp {
 	}
 	if len(callIdxs) == 0 {
 		return ops
-	}
-
-	// Only split if the block has enough vregs to cause pressure issues.
-	// Low-vreg blocks solve fine without splitting.
-	uniqueVRegs := make(map[int]bool)
-	for _, op := range ops {
-		if op.Dst > 0 { uniqueVRegs[op.Dst] = true }
-		for _, s := range op.Src {
-			if s > 0 { uniqueVRegs[s] = true }
-		}
-	}
-	if len(uniqueVRegs) <= maxGPRPressure+2 {
-		return ops // low pressure, clobber constraints alone should suffice
 	}
 
 	nextVReg := 0
@@ -151,29 +160,51 @@ func splitVRegsAtCalls(ops []VIROp, desc *MachineDesc) []VIROp {
 			}
 		}
 
-		// Identify live-across vregs (not the call's own result)
-		var liveAcross []int
+		// Identify live-across vregs, sorted by uses-after-call (most used first)
+		type laCand struct {
+			vreg  int
+			uses  int
+		}
+		var candidates []laCand
 		for v := range usedAfter {
 			if defBefore[v] && v != callOp.Dst {
-				liveAcross = append(liveAcross, v)
+				uses := 0
+				for j := callIdx + 1; j < len(ops); j++ {
+					for _, s := range ops[j].Src {
+						if s == v { uses++ }
+					}
+				}
+				candidates = append(candidates, laCand{v, uses})
 			}
+		}
+		// Sort by uses descending
+		for i := 0; i < len(candidates); i++ {
+			for j := i + 1; j < len(candidates); j++ {
+				if candidates[j].uses > candidates[i].uses {
+					candidates[i], candidates[j] = candidates[j], candidates[i]
+				}
+			}
+		}
+		// Limit to 6 saves max (4 IXH + 2 unconstrained)
+		if len(candidates) > 6 {
+			candidates = candidates[:6]
+		}
+		var liveAcross []int
+		for _, c := range candidates {
+			liveAcross = append(liveAcross, c.vreg)
 		}
 
 		if len(liveAcross) == 0 {
 			continue
 		}
 
-		// Limit to 4 (IXH capacity for 8-bit)
-		if len(liveAcross) > 4 {
-			liveAcross = liveAcross[:4]
-		}
-
 		// Build: [before...] [saves] [call] [restores] [after...]
 		var newOps []VIROp
 		newOps = append(newOps, ops[:callIdx]...)
 
-		// Save each live-across vreg to IXH-hinted vreg
+		// Save each live-across vreg to call-safe location
 		saveMap := make(map[int]int) // original → save vreg
+		ixhUsed := 0
 		for _, v := range liveAcross {
 			sv := nextVReg
 			nextVReg++
@@ -184,9 +215,16 @@ func splitVRegsAtCalls(ops []VIROp, desc *MachineDesc) []VIROp {
 				if op.Dst == v && op.Width > 0 { w = op.Width; break }
 			}
 
+			// 8-bit → IXH (4 slots), overflow/16-bit → no hint (let Z3 pick)
+			hint := LocSet(0)
+			if w <= 8 && ixhUsed < 4 {
+				hint = ixhHint
+				ixhUsed++
+			}
+
 			newOps = append(newOps, VIROp{
 				Op: OpMove, Dst: sv, Src: [2]int{v, -1},
-				Width: w, DstHint: ixhHint,
+				Width: w, DstHint: hint,
 			})
 		}
 
