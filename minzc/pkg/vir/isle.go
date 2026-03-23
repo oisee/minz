@@ -99,172 +99,170 @@ func eliminateDeadOps(ops []VIROp) []VIROp {
 	return result
 }
 
-// fuseLoad16LE detects the FatFS ld_word pattern and fuses it:
-//
-//   const 1; add(base, const_1); load8 → high byte
-//   const 8; shl(high, const_8)
-//   const 0; add(base, const_0); load8 → low byte (or direct load8(base))
-//   or(shifted, low) → result
-//
-//   → OpLoad16LE(base)  (single VIROp, 4 Z80 instructions)
+// fuseLoad16LE detects the FatFS ld_word pattern and fuses it.
+// Two-pass: first find all fusions and mark skip indices, then filter.
 func fuseLoad16LE(ops []VIROp) []VIROp {
-	// Build def map: vreg → defining op index
 	defAt := make(map[int]int)
 	for i, op := range ops {
-		if op.Dst > 0 {
-			defAt[op.Dst] = i
-		}
+		if op.Dst > 0 { defAt[op.Dst] = i }
 	}
-
-	// Build const map
 	consts := make(map[int]int64)
 	for _, op := range ops {
-		if op.Op == OpConst && op.Dst > 0 && op.Sym == "" {
-			consts[op.Dst] = op.Imm
+		if op.Op == OpConst && op.Dst > 0 && op.Sym == "" { consts[op.Dst] = op.Imm }
+	}
+
+	// Pass 1: find all fusion points + collect all skip indices
+	type fusion struct {
+		orIdx    int // index of the OR op to replace
+		baseVreg int
+		dstVreg  int
+	}
+	var fusions []fusion
+	skip := make(map[int]bool)
+
+	for i, op := range ops {
+		if op.Op != OpOr || op.Src[0] <= 0 || op.Src[1] <= 0 {
+			continue
+		}
+
+		// Try to match or(shl(load(add(base,1)), 8), load(base_or_add0))
+		base, matched, skips := matchLoad16LE(ops, i, defAt, consts)
+		if matched {
+			fusions = append(fusions, fusion{i, base, op.Dst})
+			for _, s := range skips {
+				skip[s] = true
+			}
 		}
 	}
 
-	skip := make(map[int]bool)
-	var result []VIROp
+	if len(fusions) == 0 {
+		return ops
+	}
 
+	// Pass 2: emit ops, replacing OR with Load16LE, skipping consumed ops
+	fusionAt := make(map[int]fusion)
+	for _, f := range fusions {
+		fusionAt[f.orIdx] = f
+	}
+
+	var result []VIROp
 	for i, op := range ops {
 		if skip[i] {
 			continue
 		}
+		if f, isFusion := fusionAt[i]; isFusion {
+			result = append(result, VIROp{
+				Op: OpLoad16LE, Dst: f.dstVreg,
+				Src: [2]int{f.baseVreg, -1}, Width: 16,
+			})
+			continue
+		}
+		result = append(result, op)
+	}
+	return result
+}
 
-		// Match: or(shl_result, low_byte) where shl_result = shl(high_byte, 8)
-		if op.Op == OpOr && op.Src[0] > 0 && op.Src[1] > 0 {
-			shlIdx, shlOk := defAt[op.Src[0]]
-			loadLowIdx, loadLowOk := defAt[op.Src[1]]
+// matchLoad16LE checks if the OR at ops[orIdx] is a load16_le pattern.
+// Returns (baseVreg, matched, skipIndices).
+func matchLoad16LE(ops []VIROp, orIdx int, defAt map[int]int, consts map[int]int64) (int, bool, []int) {
+	op := ops[orIdx]
+	var skips []int
 
-			// Try both orders (or is commutative)
-			if !shlOk || ops[shlIdx].Op != OpShl {
-				shlIdx, shlOk = defAt[op.Src[1]]
-				loadLowIdx, loadLowOk = defAt[op.Src[0]]
+	// Try both orders of OR (commutative)
+	for _, order := range [][2]int{{0, 1}, {1, 0}} {
+		shlSrc, loadLowSrc := op.Src[order[0]], op.Src[order[1]]
+
+		shlIdx, shlOk := defAt[shlSrc]
+		loadLowIdx, loadLowOk := defAt[loadLowSrc]
+		if !shlOk || !loadLowOk { continue }
+		if ops[shlIdx].Op != OpShl || ops[loadLowIdx].Op != OpLoad { continue }
+
+		shlOp := ops[shlIdx]
+		loadLowOp := ops[loadLowIdx]
+
+		// Shift by 8?
+		if shlOp.Src[1] <= 0 { continue }
+		shiftAmt, ok := consts[shlOp.Src[1]]
+		if !ok || shiftAmt != 8 { continue }
+
+		// SHL source = load(high_addr)
+		loadHighIdx, ok := defAt[shlOp.Src[0]]
+		if !ok || ops[loadHighIdx].Op != OpLoad { continue }
+		loadHighOp := ops[loadHighIdx]
+
+		// High addr = base + 1 (via Add, AddImm, or Add with const)
+		baseVreg := 0
+		addHighIdx := -1
+		if ai, ok := defAt[loadHighOp.Src[0]]; ok {
+			addOp := ops[ai]
+			if addOp.Op == OpAddImm && addOp.Imm == 1 {
+				baseVreg = addOp.Src[0]
+				addHighIdx = ai
+			} else if addOp.Op == OpAdd {
+				if addOp.Src[1] > 0 {
+					if v, ok := consts[addOp.Src[1]]; ok && v == 1 {
+						baseVreg = addOp.Src[0]
+						addHighIdx = ai
+					}
+				}
+				if baseVreg == 0 && addOp.Src[0] > 0 {
+					if v, ok := consts[addOp.Src[0]]; ok && v == 1 {
+						baseVreg = addOp.Src[1]
+						addHighIdx = ai
+					}
+				}
 			}
+		}
+		if baseVreg == 0 { continue }
 
-			if shlOk && loadLowOk &&
-				ops[shlIdx].Op == OpShl && ops[loadLowIdx].Op == OpLoad {
+		// Low addr = base or base+0
+		lowBase := loadLowOp.Src[0]
+		addLowIdx := -1
+		validLow := lowBase == baseVreg
+		if !validLow {
+			if ai, ok := defAt[lowBase]; ok {
+				a := ops[ai]
+				if (a.Op == OpAddImm && a.Imm == 0 && a.Src[0] == baseVreg) ||
+					(a.Op == OpAdd && (a.Src[0] == baseVreg || a.Src[1] == baseVreg)) ||
+					(a.Op == OpMove && a.Src[0] == baseVreg) {
+					validLow = true
+					addLowIdx = ai
+				}
+			}
+		}
+		if !validLow { continue }
 
-				shlOp := ops[shlIdx]
-				loadLowOp := ops[loadLowIdx]
-
-				// Check shift amount = 8
-				if shlOp.Src[1] > 0 {
-					if shiftAmt, ok := consts[shlOp.Src[1]]; ok && shiftAmt == 8 {
-
-						// shl source = high byte load
-						if loadHighIdx, ok := defAt[shlOp.Src[0]]; ok &&
-							ops[loadHighIdx].Op == OpLoad {
-
-							loadHighOp := ops[loadHighIdx]
-
-							// High byte addr = base + 1
-							// Low byte addr = base + 0 (or just base)
-							// Find the base pointer
-							var baseVreg int
-							matched := false
-
-							// Check if high addr = add(base, const_1)
-							if addHighIdx, ok := defAt[loadHighOp.Src[0]]; ok &&
-								ops[addHighIdx].Op == OpAdd {
-								addHighOp := ops[addHighIdx]
-								// One src should be const 1
-								if addHighOp.Src[1] > 0 {
-									if v, ok := consts[addHighOp.Src[1]]; ok && v == 1 {
-										baseVreg = addHighOp.Src[0]
-										matched = true
-									}
-								}
-								if !matched && addHighOp.Src[0] > 0 {
-									if v, ok := consts[addHighOp.Src[0]]; ok && v == 1 {
-										baseVreg = addHighOp.Src[1]
-										matched = true
-									}
-								}
-							}
-							// Also try AddImm(base, 1)
-							if !matched {
-								if addHighIdx, ok := defAt[loadHighOp.Src[0]]; ok &&
-									ops[addHighIdx].Op == OpAddImm && ops[addHighIdx].Imm == 1 {
-									baseVreg = ops[addHighIdx].Src[0]
-									skip[addHighIdx] = true
-									matched = true
-								}
-							}
-							// Also try Add where const is already folded away
-							if !matched {
-								if addHighIdx, ok := defAt[loadHighOp.Src[0]]; ok &&
-									ops[addHighIdx].Op == OpAdd {
-									addOp := ops[addHighIdx]
-									if addOp.Src[1] > 0 {
-										if v, ok2 := consts[addOp.Src[1]]; ok2 && v == 1 {
-											baseVreg = addOp.Src[0]
-											skip[addHighIdx] = true
-											matched = true
-										}
-									}
-								}
-							}
-
-							if matched && baseVreg > 0 {
-								// Verify low byte loads from base (or base+0)
-								lowBase := loadLowOp.Src[0]
-								validLow := lowBase == baseVreg
-								if !validLow {
-									// Check if low addr = add(base, 0) or addImm(base, 0)
-									if addLowIdx, ok := defAt[lowBase]; ok {
-										addLowOp := ops[addLowIdx]
-										if addLowOp.Op == OpAdd &&
-											(addLowOp.Src[0] == baseVreg || addLowOp.Src[1] == baseVreg) {
-											validLow = true
-											skip[addLowIdx] = true
-										}
-										if addLowOp.Op == OpAddImm && addLowOp.Imm == 0 &&
-											addLowOp.Src[0] == baseVreg {
-											validLow = true
-											skip[addLowIdx] = true
-										}
-										if addLowOp.Op == OpMove && addLowOp.Src[0] == baseVreg {
-											validLow = true
-											skip[addLowIdx] = true
-										}
-									}
-								}
-
-								if validLow {
-									// MATCH! Replace with Load16LE
-									// Mark all constituent ops for skip
-									skip[shlIdx] = true
-									skip[loadLowIdx] = true
-									if li, ok := defAt[loadHighOp.Src[0]]; ok { skip[li] = true } // add for high
-									skip[defAt[shlOp.Src[0]]] = true // load high
-									// Skip const ops (1, 8, 0) if single-use
-									for _, cvreg := range []int{shlOp.Src[1]} {
-										if ci, ok := defAt[cvreg]; ok && ops[ci].Op == OpConst {
-											skip[ci] = true
-										}
-									}
-
-									result = append(result, VIROp{
-										Op:    OpLoad16LE,
-										Dst:   op.Dst,
-										Src:   [2]int{baseVreg, -1},
-										Width: 16,
-									})
-									continue
-								}
-							}
-						}
+		// MATCH! Collect all indices to skip
+		skips = append(skips, orIdx, shlIdx, loadLowIdx, loadHighIdx)
+		if addHighIdx >= 0 { skips = append(skips, addHighIdx) }
+		if addLowIdx >= 0 { skips = append(skips, addLowIdx) }
+		// Const vregs used in the pattern
+		if ci, ok := defAt[shlOp.Src[1]]; ok && ops[ci].Op == OpConst { skips = append(skips, ci) }
+		// Const 1 for add
+		if addHighIdx >= 0 && ops[addHighIdx].Op == OpAdd {
+			for _, s := range ops[addHighIdx].Src {
+				if s > 0 {
+					if _, isConst := consts[s]; isConst {
+						if ci, ok := defAt[s]; ok { skips = append(skips, ci) }
+					}
+				}
+			}
+		}
+		// Const 0 for low add
+		if addLowIdx >= 0 {
+			for _, s := range ops[addLowIdx].Src {
+				if s > 0 && s != baseVreg {
+					if _, isConst := consts[s]; isConst {
+						if ci, ok := defAt[s]; ok { skips = append(skips, ci) }
 					}
 				}
 			}
 		}
 
-		result = append(result, op)
+		return baseVreg, true, skips
 	}
 
-	return result
+	return 0, false, nil
 }
 
 // eliminateIdentityOps removes trivially redundant operations:
