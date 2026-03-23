@@ -260,12 +260,52 @@ type BlockParam struct {
 
 // Inst is one LIR instruction — a pattern instantiation with concrete operands.
 type Inst struct {
-	Pat     *Pattern   // which instruction pattern
+	Pat     *Pattern   // which instruction pattern (nil for meta instructions)
 	Dst     Operand    // destination operand
 	Srcs    [2]Operand // source operands
 	Imm     int64      // immediate value (for PatImmediate)
 	Sym     string     // symbol name (for OpCall target)
+	Meta    *MetaInst  // non-nil: this is a meta-instruction, not real code
 }
+
+// MetaInst is a compiler-internal instruction that guides the solver
+// but emits no machine code. Meta-instructions are resolved/eliminated
+// before final emission.
+//
+// Design: solvers (WFC, PBQP) inspect Meta fields to gain constraints
+// without backtracking. The emit phase skips or materializes them.
+type MetaInst struct {
+	Kind MetaKind
+
+	// PinReg: force VReg into a specific physical location.
+	// Solver treats this as a hard constraint (no cost, just must).
+	PinVReg int    // virtual register to pin
+	PinLoc  int    // physical location index to pin to
+
+	// SpillBarrier: all live VRegs at this point must be in registers,
+	// not spill slots. Solver must find a valid coloring or error.
+
+	// CostOverride: temporarily change the cost of a pattern or location.
+	CostPatName string // pattern name to override
+	CostDelta   int    // added cost (negative = prefer)
+
+	// FuseNext: merge this instruction with the following one into a
+	// single combined pattern (for multi-instruction idioms).
+
+	// Comment for debug output.
+	Comment string
+}
+
+// MetaKind classifies meta-instructions.
+type MetaKind int
+
+const (
+	MetaPin          MetaKind = iota // pin VReg to physical location
+	MetaSpillBarrier                 // no spills allowed past this point
+	MetaCostOverride                 // adjust pattern/location cost
+	MetaFuseNext                     // fuse with next instruction
+	MetaComment                      // debug annotation (no effect)
+)
 
 // Operand is a virtual register with location constraints.
 type Operand struct {
