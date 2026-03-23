@@ -645,6 +645,78 @@ eZ80 backend wraps Z80 assembly with `.ASSUME ADL=1` header.
 MZA assembler handles 24-bit address encoding automatically.
 Same code, 3-byte immediates instead of 2-byte.
 
+## Honest Assessment: Code Quality
+
+### What's Good
+
+**Simple functions are optimal.** `add`, `double`, `inc` generate the exact
+same code a human would write. `ADD A, C / RET` — you literally cannot do
+better. The PBQP allocator gets register assignment right for leaf functions.
+
+**Conditional returns are clever.** `abs_diff` generates `SUB C / RET NC / NEG / RET` —
+four instructions, no branch. The MIR2 `TermCondRet` produces idiomatic Z80 that
+experienced asm programmers would recognize.
+
+**Tail call optimization works.** `gcd` compiles to `JP gcd` instead of
+`CALL gcd / RET`. Zero stack growth for any recursion depth. This is critical
+on Z80 where the stack is typically <256 bytes.
+
+**Division is self-contained.** No runtime library needed. The 8-bit div loop
+is standard shift-and-subtract — correct if not fancy.
+
+### What's Not Good
+
+**LIR has bugs with recursive functions.** `gcd` through LIR generates
+`JP gcd` (infinite loop) — the constant folder incorrectly eliminates the
+conditional branch. PBQP path works; LIR does not for recursion. This is
+why `--lir=false` is required for recursive Frill programs.
+
+**LIR materialises unnecessary constants.** `inc` generates `LD C, 1 / INC A / RET`
+instead of just `INC A / RET`. The constant `1` is loaded into C but never
+used. A peephole rule should catch this, but doesn't yet.
+
+**8-bit multiply is expensive.** `square` calls `__mul8` (~80 T-states,
+~30 bytes). On eZ80, `MLT BC` would be 6 T-states / 2 bytes. The Z80 has
+no hardware multiply, so this is unavoidable, but the __mul8 routine itself
+could be smaller with loop unrolling or Karatsuba for known-small operands.
+
+**Spill data is always emitted.** Every compiled file includes `mem0: DW 0`
+through `mem3: DW 0` and `tsmc0..7` — 24 bytes of spill slots even when
+unused. This should be emitted only when needed.
+
+**Register pressure in complex expressions.** `print_u8(fib 7)` fails because
+the return value from `fib` gets clobbered before being passed to `print_u8`.
+The Z80 has only 7 general-purpose 8-bit registers — complex expression
+trees exceed this and need spill/reload. The PBQP allocator handles this
+correctly for most cases, but deeply nested calls at the Frill level can
+produce incorrect code because the HIR→MIR2 lowering doesn't insert
+explicit temporaries for intermediate values.
+
+**No inlining across Frill functions.** `x |> double |> inc` generates
+`CALL double / CALL inc` — two function calls (34 T-states overhead).
+Hand-written: `ADD A, A / INC A` — zero overhead. The MIR2 `InlineTrivial`
+pass could inline these, but it requires the functions to be in the same
+module and small enough. Currently works for some cases but not reliably.
+
+### Compared to SDCC (C Compiler)
+
+| Aspect | MinZ/Frill | SDCC |
+|--------|-----------|------|
+| Simple functions | Optimal (same as hand-asm) | Optimal |
+| Register allocation | PBQP — good for leaf, struggles with deep nesting | Graph coloring — more mature |
+| Tail calls | Yes (JP) | Yes (JR) |
+| Division | Inline loop (self-contained) | Library call (smaller caller) |
+| Multiply | __mul8 shared routine | __moduchar library |
+| Inlining | Limited (InlineTrivial) | Aggressive (-O2) |
+| Code size overhead | ~24 bytes spill slots | ~0 bytes (only what's used) |
+| Maturity | ~6 months, experimental | ~20 years, production |
+
+**Bottom line:** Frill generates correct, sometimes optimal Z80 code for
+simple to medium functions. Complex programs with deep recursion or many
+intermediate values hit register pressure limits. The sweet spot is the
+same as ML's sweet spot: small, pure, composable functions — which happen
+to be exactly what the Z80's register file can handle.
+
 ## Design Decisions
 
 **Why strict?** Lazy evaluation requires thunks (heap-allocated closures).
