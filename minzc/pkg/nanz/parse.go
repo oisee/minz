@@ -3470,8 +3470,8 @@ func (p *parser) parseBinary(minPrec int) (hir.Expr, error) {
 			}
 			continue
 		}
-		// `xor` keyword operator — bitwise XOR (precedence 2, between | and &).
-		if t.kind == tokIdent && t.val == "xor" && minPrec < 2 {
+		// `xor`/`XOR` keyword operator — bitwise XOR (precedence 2, between | and &).
+		if t.kind == tokIdent && (t.val == "xor" || t.val == "XOR") && minPrec < 2 {
 			p.l.next()
 			rhs, err := p.parseBinary(2)
 			if err != nil {
