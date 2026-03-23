@@ -519,6 +519,18 @@ type CondExpr struct {
 func (*CondExpr) hirExpr()          {}
 func (e *CondExpr) ExprTy() mir2.Ty { return e.Ty }
 
+// LetInExpr is a scoped binding: let Name = Init in Body.
+// Evaluates Init, binds the result to Name, then evaluates Body.
+type LetInExpr struct {
+	Name string
+	Ty   mir2.Ty // type of the bound variable (= Init.ExprTy())
+	Init Expr    // initializer expression
+	Body Expr    // body expression (may reference Name)
+}
+
+func (*LetInExpr) hirExpr()          {}
+func (e *LetInExpr) ExprTy() mir2.Ty { return e.Body.ExprTy() }
+
 // ── Convenience constructors ──────────────────────────────────────────────────
 
 func U8(n int64) *IntLitExpr  { return &IntLitExpr{Val: n, Ty: mir2.TyU8} }

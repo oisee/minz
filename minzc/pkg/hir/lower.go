@@ -232,6 +232,12 @@ func exprHasFreeRef(e Expr, bound, globals, funcs map[string]bool) bool {
 		return exprHasFreeRef(ex.Cond, bound, globals, funcs) ||
 			exprHasFreeRef(ex.Then, bound, globals, funcs) ||
 			exprHasFreeRef(ex.Else, bound, globals, funcs)
+	case *LetInExpr:
+		if exprHasFreeRef(ex.Init, bound, globals, funcs) {
+			return true
+		}
+		bound[ex.Name] = true
+		return exprHasFreeRef(ex.Body, bound, globals, funcs)
 	}
 	return false
 }
@@ -1664,6 +1670,13 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 	case *CondExpr:
 		return l.lowerCondExpr(ex)
 
+	case *LetInExpr:
+		// Lower init, bind the result to the variable name, then lower body.
+		initReg := l.lowerExpr(ex.Init)
+		l.env[ex.Name] = initReg
+		l.envTy[ex.Name] = ex.Ty
+		return l.lowerExpr(ex.Body)
+
 	default:
 		panic(fmt.Sprintf("hir/lower: unhandled expression type %T", e))
 	}
@@ -2942,6 +2955,12 @@ func renameExpr(e Expr, from, to string) Expr {
 		return &AddrOfExpr{Sym: ex.Sym}
 	case *ConstPtrExpr:
 		return &ConstPtrExpr{ElemTy: ex.ElemTy, Addr: ex.Addr}
+	case *LetInExpr:
+		return &LetInExpr{
+			Name: ex.Name, Ty: ex.Ty,
+			Init: renameExpr(ex.Init, from, to),
+			Body: renameExpr(ex.Body, from, to),
+		}
 	default:
 		return e
 	}

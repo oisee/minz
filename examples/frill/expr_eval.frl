@@ -9,28 +9,21 @@ let pack (val : u16) (pos : u16) : u16 = val * 256 + pos
 let unpack_val (packed : u16) : u8 = packed / 256
 let unpack_pos (packed : u16) : u8 = packed % 256
 
-(* ── Atom: number literal or parenthesized expression ────────── *)
+(* ── Recursive descent parser+evaluator ──────────────────────── *)
 
-(* Parse a bare integer at position p *)
-let parse_num (src : u16) (p : u8) : u16 =
-  let v = read_int src p in
-  let n = read_int_len src p in
-  pack v (p + n)
+(* Forward declarations not needed — Frill handles forward references *)
 
-(* Parse a parenthesized expression: skip '(', parse expr, skip ')' *)
-let parse_paren (src : u16) (p : u8) : u16 =
-  let inner = eval_expr src (p + 1) in
-  let p2 = skip_spaces src (unpack_pos inner) in
-  pack (unpack_val inner) (p2 + 1)
-
-(* eval_atom dispatches to parse_num or parse_paren *)
 let eval_atom (src : u16) (pos : u8) : u16 =
   let p = skip_spaces src pos in
   let ch = peek (src + p) in
-  if ch == 40 then parse_paren src p
-  else parse_num src p
-
-(* ── Term: handles * and / ───────────────────────────────────── *)
+  if ch == 40 then
+    let inner = eval_expr src (p + 1) in
+    let p2 = skip_spaces src (unpack_pos inner) in
+    pack (unpack_val inner) (p2 + 1)
+  else
+    let v = read_int src p in
+    let n = read_int_len src p in
+    pack v (p + n)
 
 let eval_term (src : u16) (pos : u8) : u16 =
   let left = eval_atom src pos in
@@ -38,20 +31,12 @@ let eval_term (src : u16) (pos : u8) : u16 =
   let p = skip_spaces src (unpack_pos left) in
   let ch = peek (src + p) in
   if ch == 42 then
-    eval_term_mul src acc (p + 1)
+    let right = eval_term src (p + 1) in
+    pack (acc * unpack_val right) (unpack_pos right)
   else if ch == 47 then
-    eval_term_div src acc (p + 1)
+    let right = eval_term src (p + 1) in
+    pack (acc / unpack_val right) (unpack_pos right)
   else pack acc p
-
-let eval_term_mul (src : u16) (acc : u8) (pos : u8) : u16 =
-  let right = eval_term src pos in
-  pack (acc * unpack_val right) (unpack_pos right)
-
-let eval_term_div (src : u16) (acc : u8) (pos : u8) : u16 =
-  let right = eval_term src pos in
-  pack (acc / unpack_val right) (unpack_pos right)
-
-(* ── Expr: handles + and - ───────────────────────────────────── *)
 
 let eval_expr (src : u16) (pos : u8) : u16 =
   let left = eval_term src pos in
@@ -59,21 +44,14 @@ let eval_expr (src : u16) (pos : u8) : u16 =
   let p = skip_spaces src (unpack_pos left) in
   let ch = peek (src + p) in
   if ch == 43 then
-    eval_expr_add src acc (p + 1)
+    let right = eval_expr src (p + 1) in
+    pack (acc + unpack_val right) (unpack_pos right)
   else if ch == 45 then
-    eval_expr_sub src acc (p + 1)
+    let right = eval_expr src (p + 1) in
+    pack (acc - unpack_val right) (unpack_pos right)
   else pack acc p
 
-let eval_expr_add (src : u16) (acc : u8) (pos : u8) : u16 =
-  let right = eval_expr src pos in
-  pack (acc + unpack_val right) (unpack_pos right)
-
-let eval_expr_sub (src : u16) (acc : u8) (pos : u8) : u16 =
-  let right = eval_expr src pos in
-  pack (acc - unpack_val right) (unpack_pos right)
-
-(* ── Top-level eval ──────────────────────────────────────────── *)
-
+(* Top-level eval: returns just the value *)
 let eval (src : u16) : u8 = unpack_val (eval_expr src 0)
 
 (* ── Tests ───────────────────────────────────────────────────── *)

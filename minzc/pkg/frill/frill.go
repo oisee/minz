@@ -1949,32 +1949,33 @@ func (p *parser) parseMatch() (hir.Expr, error) {
 // Desugars to a synthetic helper function: let x = e1 in e2 → _let_N(e1)
 // where _let_N(x) = e2.
 func (p *parser) parseLetIn() (hir.Expr, error) {
-	// This is called from parsePrimary when we see "let" inside an expression.
-	// Collect the let chain and final expression.
+	// let x = init in body  →  LetInExpr{x, init, body}
 	p.next() // consume "let"
 	nameTok := p.next()
 	if err := p.expect(tokEq, "="); err != nil {
 		return nil, err
 	}
-	val, err := p.parseExpr()
+	initExpr, err := p.parseExpr()
 	if err != nil {
 		return nil, err
 	}
 	if err := p.expect(tokIdent, "in"); err != nil {
 		return nil, err
 	}
+	initTy := initExpr.ExprTy()
+	// Track the binding type so VarRefExpr uses the right width.
+	oldTy, hadOld := p.varTypes[nameTok.text]
+	p.varTypes[nameTok.text] = initTy
 	body, err := p.parseExpr()
 	if err != nil {
 		return nil, err
 	}
-	// For nested let-in inside expressions, we use a CondExpr hack:
-	// let x = v in body  →  if true then body else body (with x available)
-	// This is wrong for general case. For now, only support let-in at
-	// function body level (via parseBodyExpr). Nested let-in returns body
-	// with the binding lost — a known limitation until HIR gets LetInExpr.
-	_ = nameTok
-	_ = val
-	return body, nil // TODO: nested let-in needs HIR extension
+	if hadOld {
+		p.varTypes[nameTok.text] = oldTy
+	} else {
+		delete(p.varTypes, nameTok.text)
+	}
+	return &hir.LetInExpr{Name: nameTok.text, Ty: initTy, Init: initExpr, Body: body}, nil
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
