@@ -51,9 +51,7 @@ func Solve(ops []VIROp, desc *MachineDesc, opts SolverOptions) ([]PIROp, error) 
 		return nil, fmt.Errorf("z3 not found: %w", err)
 	}
 
-	// Pre-solver pass 1: insert pre-tie moves — when a tied-dst-src op needs
-	// src0 in a specific register but src0 is also live elsewhere, insert a
-	// short-lived copy to avoid global location conflicts.
+	// Pre-solver pass 1: insert pre-tie moves
 	ops = insertPreTieMoves(ops, desc)
 
 	// Pre-solver pass 2: insert save moves for destructive (tied) ops
@@ -61,6 +59,9 @@ func Solve(ops []VIROp, desc *MachineDesc, opts SolverOptions) ([]PIROp, error) 
 
 	// Pre-solver pass 3: insert spill/reload for register pressure relief
 	ops = insertSpillReloads(ops, desc)
+
+	// Pre-solver pass 4: coalesce non-interfering vregs to reduce unique count
+	ops = coalesceVRegs(ops)
 
 	// Build the problem encoding
 	prob := buildProblem(ops, desc)
@@ -485,6 +486,190 @@ func spillVReg(ops []VIROp, vreg int, desc *MachineDesc) []VIROp {
 	}
 
 	return result
+}
+
+// ── Vreg coalescing ─────────────────────────────────────────────────────────
+
+// coalesceVRegs merges non-interfering vregs that have compatible widths,
+// reducing the total number of unique vregs the solver must assign locations to.
+//
+// This is critical for Z80 where only 7 GPR + 4 IXH = 11 locations exist.
+// Short-lived vregs (constants, reloads) often don't overlap and can share.
+//
+// Algorithm:
+//  1. Compute live ranges (def..lastUse) per vreg
+//  2. Collect vreg info (width, DstHint)
+//  3. Sort by live range length descending (long-lived first = merge targets)
+//  4. Greedy: for each short-lived vreg, try to merge into a non-interfering
+//     long-lived one with compatible width and no conflicting DstHint
+//  5. Rewrite all references
+func coalesceVRegs(ops []VIROp) []VIROp {
+	type vregInfo struct {
+		id      int
+		width   int
+		def     int // first instruction index
+		lastUse int // last instruction index
+		hint    LocSet
+	}
+
+	// Collect vreg info
+	info := make(map[int]*vregInfo)
+	for i, op := range ops {
+		if op.Dst > 0 {
+			if _, ok := info[op.Dst]; !ok {
+				info[op.Dst] = &vregInfo{id: op.Dst, width: op.Width, def: i, lastUse: i, hint: op.DstHint}
+			} else {
+				info[op.Dst].def = i // update def (might be redefined)
+			}
+		}
+		for _, s := range op.Src {
+			if s > 0 {
+				if vi, ok := info[s]; ok {
+					if i > vi.lastUse {
+						vi.lastUse = i
+					}
+				} else {
+					// Used but not defined in this block (cross-block param)
+					info[s] = &vregInfo{id: s, width: op.Width, def: -1, lastUse: i}
+				}
+			}
+		}
+	}
+
+	if len(info) <= maxGPRPressure {
+		return ops // already fits, no coalescing needed
+	}
+
+	// Build sorted list: longer-lived first (merge targets)
+	vregs := make([]*vregInfo, 0, len(info))
+	for _, vi := range info {
+		vregs = append(vregs, vi)
+	}
+	// Sort by live range length descending
+	for i := 0; i < len(vregs); i++ {
+		for j := i + 1; j < len(vregs); j++ {
+			li := vregs[i].lastUse - vregs[i].def
+			lj := vregs[j].lastUse - vregs[j].def
+			if lj > li {
+				vregs[i], vregs[j] = vregs[j], vregs[i]
+			}
+		}
+	}
+
+	// Build proper interference from liveness (instruction-level)
+	live := computeLiveness(ops)
+	interferenceSet := make(map[[2]int]bool)
+	for _, l := range live {
+		ids := make([]int, 0, len(l.live))
+		for v := range l.live {
+			ids = append(ids, v)
+		}
+		for x := 0; x < len(ids); x++ {
+			for y := x + 1; y < len(ids); y++ {
+				a, b := ids[x], ids[y]
+				if a > b {
+					a, b = b, a
+				}
+				interferenceSet[[2]int{a, b}] = true
+			}
+		}
+	}
+
+	interferes := func(a, b *vregInfo) bool {
+		x, y := a.id, b.id
+		if x > y {
+			x, y = y, x
+		}
+		return interferenceSet[[2]int{x, y}]
+	}
+
+	// Compatible: same width, no conflicting hints
+	compatible := func(a, b *vregInfo) bool {
+		if a.width != b.width && a.width != 0 && b.width != 0 {
+			return false
+		}
+		if !a.hint.IsEmpty() && !b.hint.IsEmpty() && a.hint.And(b.hint).IsEmpty() {
+			return false // conflicting hints
+		}
+		return true
+	}
+
+	// Greedy merge: for each short-lived vreg, find a non-interfering partner
+	mergeMap := make(map[int]int) // v_b → v_a (b gets rewritten to a)
+	merged := make(map[int]bool)  // vregs that have been merged into something
+
+	for i := len(vregs) - 1; i >= 0; i-- { // start from shortest-lived
+		b := vregs[i]
+		if merged[b.id] {
+			continue
+		}
+		for j := 0; j < i; j++ { // try to merge into longer-lived
+			a := vregs[j]
+			if merged[a.id] {
+				continue
+			}
+			if !compatible(a, b) {
+				continue
+			}
+			if !interferes(a, b) {
+				// Merge b → a
+				mergeMap[b.id] = a.id
+				merged[b.id] = true
+				// Extend a's live range to cover b
+				if b.def >= 0 && (a.def < 0 || b.def < a.def) {
+					a.def = b.def
+				}
+				if b.lastUse > a.lastUse {
+					a.lastUse = b.lastUse
+				}
+				// Merge hints
+				if !b.hint.IsEmpty() {
+					a.hint = a.hint.Or(b.hint)
+				}
+				break
+			}
+		}
+	}
+
+	if len(mergeMap) == 0 {
+		return ops // nothing to coalesce
+	}
+
+	// Resolve transitive merges: if a→b and b→c, then a→c
+	resolve := func(v int) int {
+		for {
+			if target, ok := mergeMap[v]; ok {
+				v = target
+			} else {
+				return v
+			}
+		}
+	}
+
+	// Rewrite all vreg references
+	result := make([]VIROp, len(ops))
+	for i, op := range ops {
+		result[i] = op
+		if op.Dst > 0 {
+			result[i].Dst = resolve(op.Dst)
+		}
+		for j, s := range op.Src {
+			if s > 0 {
+				result[i].Src[j] = resolve(s)
+			}
+		}
+	}
+
+	// Remove self-moves created by coalescing (move v→v)
+	var cleaned []VIROp
+	for _, op := range result {
+		if op.Op == OpMove && op.Dst > 0 && op.Src[0] == op.Dst {
+			continue // self-move, skip
+		}
+		cleaned = append(cleaned, op)
+	}
+
+	return cleaned
 }
 
 // ── Problem encoding ─────────────────────────────────────────────────────────
