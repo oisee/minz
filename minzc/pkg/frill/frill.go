@@ -608,6 +608,20 @@ func (p *parser) parseLoopBody() ([]hir.Stmt, error) {
 		}
 		if p.peek().kind == tokIdent && p.peek().text == "do" {
 			p.next()
+			// Special: do poke ptr val → StoreStmt
+			if p.peek().kind == tokIdent && p.peek().text == "poke" {
+				p.next()
+				ptr, err := p.parsePrimary()
+				if err != nil {
+					return nil, err
+				}
+				val, err := p.parsePrimary()
+				if err != nil {
+					return nil, err
+				}
+				body = append(body, &hir.StoreStmt{Ptr: ptr, Val: val})
+				continue
+			}
 			doE, err := p.parseExpr()
 			if err != nil {
 				return nil, err
@@ -1529,8 +1543,21 @@ func (p *parser) parseBodyExpr() (hir.Expr, []hir.Stmt, error) {
 	for {
 		if p.peek().kind == tokIdent && p.peek().text == "do" {
 			p.next() // consume "do"
+			// Special: do poke ptr val → StoreStmt
+			if p.peek().kind == tokIdent && p.peek().text == "poke" {
+				p.next()
+				ptr, err := p.parsePrimary()
+				if err != nil {
+					return nil, nil, err
+				}
+				val, err := p.parsePrimary()
+				if err != nil {
+					return nil, nil, err
+				}
+				stmts = append(stmts, &hir.StoreStmt{Ptr: ptr, Val: val})
+				continue
+			}
 			// Mutation: do name <- expr
-			// Detect by parsing first token as potential assignment target
 			doExpr, err := p.parseExpr()
 			if err != nil {
 				return nil, nil, err
