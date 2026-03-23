@@ -851,7 +851,14 @@ func (p *parser) parseModule() (*hir.Module, error) {
 			}
 			m.Sandboxes = append(m.Sandboxes, sb)
 
-			default:
+			case t.kind == tokIdent && t.val == "impl":
+			funcs, err := p.parseImplBlock()
+			if err != nil {
+				return nil, err
+			}
+			m.Funcs = append(m.Funcs, funcs...)
+
+		default:
 			return nil, fmt.Errorf("line %d: unexpected token %q at module level", t.line, t.val)
 		}
 	}
@@ -1827,6 +1834,135 @@ func (p *parser) parseInterfaceDecl() (*hir.InterfaceDecl, error) {
 		return nil, err
 	}
 	return decl, nil
+}
+
+// ── Impl block ───────────────────────────────────────────────────────────────
+
+// parseImplBlock parses:
+//
+//	impl TraitName for TypeName { fun method(self, ...) -> T { ... } ... }
+//
+// Desugars each method to: fun TypeName_method(self: ^TypeName, ...) -> T { ... }
+// and registers it in the methodTable for UFCS dispatch.
+func (p *parser) parseImplBlock() ([]*hir.Func, error) {
+	if err := p.l.eatIdent("impl"); err != nil {
+		return nil, err
+	}
+	// impl Trait for Type { ... }
+	traitTok, err := p.l.eat(tokIdent)
+	if err != nil {
+		return nil, err
+	}
+	typeName := traitTok.val // could be trait or type
+
+	// Check for "for Type" (trait impl) vs bare "impl Type" (plain impl)
+	if p.l.isIdent("for") {
+		p.l.next() // consume "for"
+		typeTok, err := p.l.eat(tokIdent)
+		if err != nil {
+			return nil, err
+		}
+		typeName = typeTok.val
+	}
+
+	if _, err := p.l.eat(tokLBrace); err != nil {
+		return nil, err
+	}
+
+	var funcs []*hir.Func
+	for !p.l.is(tokRBrace) && !p.l.is(tokEOF) {
+		if !p.l.isIdent("fun") && !p.l.isIdent("fn") {
+			return nil, fmt.Errorf("line %d: impl block: expected 'fun', got %q", p.l.peek().line, p.l.peek().val)
+		}
+		p.l.next() // consume "fun"/"fn"
+
+		methodTok, err := p.l.eat(tokIdent)
+		if err != nil {
+			return nil, err
+		}
+		methodName := methodTok.val
+		funcName := typeName + "_" + methodName
+
+		if _, err := p.l.eat(tokLParen); err != nil {
+			return nil, err
+		}
+
+		// Parse params — first param "self" gets type ^TypeName
+		var params []hir.Param
+		for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
+			paramTok, err := p.l.eat(tokIdent)
+			if err != nil {
+				return nil, err
+			}
+			if paramTok.val == "self" {
+				params = append(params, hir.Param{Name: "self", Ty: mir2.TyPtr})
+			} else {
+				// name: type
+				if _, err := p.l.eat(tokColon); err != nil {
+					return nil, err
+				}
+				ty, err := p.parseType()
+				if err != nil {
+					return nil, err
+				}
+				params = append(params, hir.Param{Name: paramTok.val, Ty: ty})
+			}
+			if p.l.is(tokComma) {
+				p.l.next()
+			}
+		}
+		if _, err := p.l.eat(tokRParen); err != nil {
+			return nil, err
+		}
+
+		// Return type
+		retTy := mir2.Ty(mir2.TyVoid)
+		if p.l.is(tokArrow) {
+			p.l.next()
+			retTy, err = p.parseType()
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		// Register method for UFCS
+		if p.methodTable[typeName] == nil {
+			p.methodTable[typeName] = make(map[string]methodInfo)
+		}
+		p.methodTable[typeName][methodName] = methodInfo{funcName: funcName, retTy: retTy}
+		p.funcSigs[funcName] = retTy
+
+		// Set up per-function scope for field access on self
+		p.varTypes = make(map[string]mir2.Ty)
+		p.varPtrElem = make(map[string]*mir2.StructTy)
+		p.varInterfaceTypes = make(map[string]string)
+		if st, ok := p.structs[typeName]; ok {
+			p.varPtrElem["self"] = st
+		}
+		p.varTypes["self"] = mir2.TyPtr
+		for _, param := range params {
+			p.varTypes[param.Name] = param.Ty
+		}
+
+		// Parse body
+		body, err := p.parseBlock()
+		if err != nil {
+			return nil, err
+		}
+
+		f := &hir.Func{
+			Name:   funcName,
+			Params: params,
+			RetTy:  retTy,
+			Body:   body,
+		}
+		funcs = append(funcs, f)
+	}
+
+	if _, err := p.l.eat(tokRBrace); err != nil {
+		return nil, err
+	}
+	return funcs, nil
 }
 
 // ── Global declaration ────────────────────────────────────────────────────────
