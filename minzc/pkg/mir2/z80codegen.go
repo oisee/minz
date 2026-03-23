@@ -226,9 +226,31 @@ func asmPeepholePass(src string) string {
 	lines := strings.Split(src, "\n")
 	lines = elimDoubleExDeHl(lines)
 	lines = elimSingleJpEqu(lines)
+	lines = elimCallRet(lines)
 	lines = elimJrToRet(lines)
 	lines = elimDeadAfterRet(lines)
 	return strings.Join(lines, "\n")
+}
+
+// elimCallRet replaces CALL X / RET with JP X (tail call promotion).
+// Saves 17 T-states (CALL=17 + RET=10 → JP=10) and 1 byte.
+func elimCallRet(lines []string) []string {
+	out := make([]string, 0, len(lines))
+	for i := 0; i < len(lines); i++ {
+		trimmed := strings.TrimSpace(lines[i])
+		if strings.HasPrefix(trimmed, "CALL ") && i+1 < len(lines) {
+			next := strings.TrimSpace(lines[i+1])
+			if next == "RET" {
+				target := strings.TrimPrefix(trimmed, "CALL ")
+				out = append(out, strings.Replace(lines[i], "CALL ", "JP ", 1))
+				i++ // skip RET
+				continue
+				_ = target
+			}
+		}
+		out = append(out, lines[i])
+	}
+	return out
 }
 
 // elimDeadAfterRet removes unreachable code between an unconditional RET/JP
