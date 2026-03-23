@@ -27,6 +27,11 @@ func LowerBlock(b *mir2.Block, desc *MachineDesc, mod *mir2.Module, fn ...*mir2.
 	// Fuse addr_of + store/load → direct global access
 	ops = fuseGlobalAccess(ops)
 
+	// NOTE: Parameter register pinning (injectParamPins) is available but disabled.
+	// It breaks more cases than it fixes because DstHint creates hard Z3 constraints
+	// that conflict with tied ALU patterns. Needs softer approach (cost penalty, not hard).
+	// See: abs_diff(b-a) case in verify_test.go.
+
 	// Return-value ABI: if block ends with TermRet or TermCondRet,
 	// move result to A (u8) or HL (u16) before the return.
 	// Only if the result vreg isn't already guaranteed to be in A/HL
@@ -427,6 +432,81 @@ func fuseGlobalAccess(ops []VIROp) []VIROp {
 	}
 
 	return result
+}
+
+// injectParamPins emits identity moves at block entry for function parameter
+// vregs that are used in this block but defined in the entry block (or as
+// function params). The DstHint constrains each param to its ABI register.
+//
+// This tells the Z3 solver: "vreg v1 is in A, v2 is in B" at block entry.
+// Without this, the solver treats cross-block vregs as unconstrained and
+// may assign them to wrong registers (e.g., both to A via tied patterns).
+func injectParamPins(ops []VIROp, b *mir2.Block, f *mir2.Func, desc *MachineDesc) []VIROp {
+	if len(f.Contract.Params) == 0 {
+		return ops
+	}
+
+	// Collect vregs used in this block's VIROps (as sources)
+	usedInBlock := make(map[int]bool)
+	for _, op := range ops {
+		for _, s := range op.Src {
+			if s > 0 { usedInBlock[s] = true }
+		}
+	}
+
+	// For each function param used in this block but not defined here,
+	// prepend a pin move: pinReg = move(paramReg) with DstHint = ABI register.
+	// Then rewrite all VIROp uses of paramReg → pinReg.
+	var pins []VIROp
+
+	for _, cp := range f.Contract.Params {
+		paramReg := int(cp.Reg)
+		if !usedInBlock[paramReg] {
+			continue
+		}
+		// Skip if vreg is defined in this block
+		definedHere := false
+		for _, op := range ops {
+			if op.Dst == paramReg {
+				definedHere = true
+				break
+			}
+		}
+		if definedHere {
+			continue
+		}
+
+		w := 8
+		if cp.Ty != nil {
+			if tw := cp.Ty.Width(); tw > 0 { w = tw }
+		}
+		if w < 8 { w = 8 }
+
+		hint := regClassToLocSet(desc, cp.Class, w)
+		if hint.IsEmpty() {
+			continue
+		}
+
+		pinReg := 8800 + paramReg
+		pins = append(pins, VIROp{
+			Op: OpMove, Dst: pinReg, Src: [2]int{paramReg, -1},
+			Width: w, DstHint: hint,
+		})
+
+		// Rewrite VIROp uses: paramReg → pinReg
+		for i := range ops {
+			for j, s := range ops[i].Src {
+				if s == paramReg {
+					ops[i].Src[j] = pinReg
+				}
+			}
+		}
+	}
+
+	if len(pins) > 0 {
+		return append(pins, ops...)
+	}
+	return ops
 }
 
 // appendReturnMove adds an OpMove to place the return value in A (u8) or HL (u16)
