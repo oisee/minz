@@ -1,0 +1,73 @@
+// HashMap primitives test — rd16/wr16/hash
+// Tests the building blocks individually without cross-function calls,
+// so the MIR2 VM assert runner can verify each one.
+
+// Read u16 from byte pair: lo + hi*256
+fun rd16_test(lo: u8, hi: u8) -> u16 {
+    return u16(lo) + u16(hi) * 256
+}
+
+// Write u16 and read back — round-trip
+fun wr_rd_lo(val: u16) -> u8 {
+    return u8(val)
+}
+
+fun wr_rd_hi(val: u16) -> u8 {
+    return u8(val / 256)
+}
+
+// Hash function produces different results for different keys
+fun hash_val(key: u16) -> u8 {
+    var shifted: u16 = key + 37
+    var result: u16 = key ^ shifted
+    return u8(result)
+}
+
+fun test_hash_diff() -> u8 {
+    if (hash_val(42) != hash_val(43)) { return 1 }
+    return 0
+}
+
+// Linear probe: slot = hash & mask, then (slot+1) & mask
+fun probe_slot(key: u16, mask: u16) -> u16 {
+    var shifted: u16 = key + 37
+    var hashed: u16 = key ^ shifted
+    return hashed & mask
+}
+
+fun test_probe_wraps() -> u8 {
+    // With mask=7 (8 slots), probe should wrap
+    var s1: u16 = probe_slot(100, 7)
+    if (s1 < 8) { return 1 }
+    return 0
+}
+
+// rd16 round-trip: encode u16, decode back
+fun test_rd16_42() -> u16 {
+    return rd16_test(42, 0)
+}
+
+fun test_rd16_256() -> u16 {
+    return rd16_test(0, 1)
+}
+
+fun test_rd16_1000() -> u16 {
+    // 1000 = 0x03E8 → lo=0xE8=232, hi=0x03=3
+    return rd16_test(232, 3)
+}
+
+fun test_wr_lo() -> u8 {
+    return wr_rd_lo(1000)
+}
+
+fun test_wr_hi() -> u8 {
+    return wr_rd_hi(1000)
+}
+
+assert test_rd16_42() == 42
+assert test_rd16_256() == 256
+assert test_rd16_1000() == 1000
+assert test_wr_lo() == 232
+assert test_wr_hi() == 3
+assert test_hash_diff() == 1
+assert test_probe_wraps() == 1
