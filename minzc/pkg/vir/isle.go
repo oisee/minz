@@ -73,10 +73,155 @@ func ISLECombine(ops []VIROp) []VIROp {
 	ops = eliminateIdentityOps(ops)
 	// Phase 3: load16_le fusion (FatFS ld_word pattern)
 	ops = fuseLoad16LE(ops)
-	// Note: dead code elimination deferred — return moves appended AFTER
-	// ISLECombine, so consts used only by return moves would be wrongly removed.
-	// The solver's coalescing handles unused vregs.
+	// Phase 4: store16_le fusion (FatFS st_word pattern)
+	ops = fuseStore16LE(ops)
+	// Note: dead const elim runs in LowerBlock AFTER appendReturnMove.
 	return ops
+}
+
+// fuseStore16LE detects: store(ptr+0, trunc(val)) + store(ptr+1, trunc(shr(val,8)))
+// and replaces with OpStore width=16 of (ptr, val).
+func fuseStore16LE(ops []VIROp) []VIROp {
+	defAt := make(map[int]int)
+	for i, op := range ops {
+		if op.Dst > 0 { defAt[op.Dst] = i }
+	}
+	consts := make(map[int]int64)
+	for _, op := range ops {
+		if op.Op == OpConst && op.Dst > 0 && op.Sym == "" { consts[op.Dst] = op.Imm }
+	}
+
+	// Find pairs of stores: store(low_addr, low_val) + store(high_addr, high_val)
+	skip := make(map[int]bool)
+	type storeFusion struct {
+		lowIdx, highIdx int
+		ptrVreg, valVreg int
+	}
+	var fusions []storeFusion
+
+	for i, opLow := range ops {
+		if opLow.Op != OpStore || opLow.Width != 8 { continue }
+
+		// Low store value = trunc(val16) → OpMove
+		lowValIdx, ok := defAt[opLow.Src[1]]
+		if !ok { continue }
+		lowValOp := ops[lowValIdx]
+		if lowValOp.Op != OpMove { continue }
+		val16 := lowValOp.Src[0]
+		if val16 <= 0 { continue }
+
+		// Low store addr = ptr or add(ptr, 0) or addImm(ptr, 0)
+		lowAddr := opLow.Src[0]
+		ptrVreg := lowAddr
+		if ai, ok := defAt[lowAddr]; ok {
+			a := ops[ai]
+			if a.Op == OpAddImm && a.Imm == 0 { ptrVreg = a.Src[0] }
+			if a.Op == OpMove { ptrVreg = a.Src[0] }
+		}
+
+		// Find matching high store after this one
+		for j := i + 1; j < len(ops); j++ {
+			opHigh := ops[j]
+			if opHigh.Op != OpStore || opHigh.Width != 8 { continue }
+
+			// High store value = trunc(shr(val16, 8))
+			highValIdx, ok := defAt[opHigh.Src[1]]
+			if !ok { continue }
+			highValOp := ops[highValIdx]
+			if highValOp.Op != OpMove { continue }
+			shrVreg := highValOp.Src[0]
+			if shrVreg <= 0 { continue }
+			shrIdx, ok := defAt[shrVreg]
+			if !ok { continue }
+			shrOp := ops[shrIdx]
+			if shrOp.Op != OpShr { continue }
+			if shrOp.Src[0] != val16 { continue }
+			// shift by 8?
+			if shrOp.Src[1] > 0 {
+				if v, ok := consts[shrOp.Src[1]]; !ok || v != 8 { continue }
+			} else {
+				continue
+			}
+
+			// High store addr = add(ptr, 1) or addImm(ptr, 1)
+			highAddr := opHigh.Src[0]
+			highAddrIdx, ok := defAt[highAddr]
+			if !ok { continue }
+			highAddrOp := ops[highAddrIdx]
+			validHigh := false
+			if highAddrOp.Op == OpAddImm && highAddrOp.Imm == 1 && highAddrOp.Src[0] == ptrVreg {
+				validHigh = true
+			}
+			if highAddrOp.Op == OpAdd {
+				for _, s := range highAddrOp.Src {
+					if s > 0 {
+						if v, ok := consts[s]; ok && v == 1 {
+							validHigh = true
+						}
+					}
+				}
+				if validHigh && highAddrOp.Src[0] != ptrVreg && highAddrOp.Src[1] != ptrVreg {
+					validHigh = false
+				}
+			}
+
+			if validHigh {
+				fusions = append(fusions, storeFusion{i, j, ptrVreg, val16})
+				// Mark all constituent ops
+				skip[i] = true   // low store
+				skip[j] = true   // high store
+				skip[lowValIdx] = true  // trunc low
+				skip[highValIdx] = true // trunc high
+				skip[shrIdx] = true     // shr
+				skip[highAddrIdx] = true // add(ptr,1)
+				// Consts: 0, 8, 1
+				if shrOp.Src[1] > 0 {
+					if ci, ok := defAt[shrOp.Src[1]]; ok { skip[ci] = true }
+				}
+				// Low addr: add(ptr,0) or move(ptr) + any const feeding it
+				if lowAddr != ptrVreg {
+					if ai, ok := defAt[lowAddr]; ok {
+						skip[ai] = true
+						// Skip consts feeding the low addr op
+						for _, s := range ops[ai].Src {
+							if s > 0 && s != ptrVreg {
+								if ci, ok := defAt[s]; ok && ops[ci].Op == OpConst { skip[ci] = true }
+							}
+						}
+					}
+				}
+				// Const for high addr
+				for _, s := range ops[highAddrIdx].Src {
+					if s > 0 && s != ptrVreg {
+						if ci, ok := defAt[s]; ok && ops[ci].Op == OpConst { skip[ci] = true }
+					}
+				}
+				break
+			}
+		}
+	}
+
+	if len(fusions) == 0 { return ops }
+
+	// Build output
+	fusionLow := make(map[int]storeFusion)
+	for _, f := range fusions { fusionLow[f.lowIdx] = f }
+
+	var result []VIROp
+	for i, op := range ops {
+		// Check fusion FIRST (before skip — the fused op IS in the skip set)
+		if f, ok := fusionLow[i]; ok {
+			result = append(result, VIROp{
+				Op: OpStore, Dst: -1,
+				Src: [2]int{f.ptrVreg, f.valVreg},
+				Width: 16,
+			})
+			continue
+		}
+		if skip[i] { continue }
+		result = append(result, op)
+	}
+	return result
 }
 
 // eliminateDeadOps is a conservative dead code pass: only removes
@@ -388,6 +533,28 @@ func eliminateIdentityOps(ops []VIROp) []VIROp {
 						Width: op.Width,
 					})
 					continue
+				}
+			}
+
+		case OpAddImm:
+			// x + 0 → x (identity for ptr_add(base, 0))
+			if op.Imm == 0 {
+				result = append(result, VIROp{
+					Op: OpMove, Dst: op.Dst, Src: [2]int{op.Src[0], -1},
+					Width: op.Width,
+				})
+				continue
+			}
+
+		case OpShr:
+			// shr(x, 8) where x is 16-bit → trunc to high byte
+			// On Z80: just take the high byte register (H of HL, D of DE)
+			// This is identity for the high byte — no instruction needed.
+			// Convert to OpMove (16→8 trunc pattern handles it)
+			if op.Src[1] > 0 {
+				if v, ok := consts[op.Src[1]]; ok && v == 8 && op.Width <= 16 {
+					// shr(val16, 8) = high byte → will be handled by trunc pattern
+					// Keep as-is for now — the trunc after it does the work
 				}
 			}
 		}

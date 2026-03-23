@@ -48,7 +48,28 @@ func LowerBlock(b *mir2.Block, desc *MachineDesc, mod *mir2.Module, fn ...*mir2.
 		ops = appendReturnMove(ops, b, desc)
 	}
 
+	// Dead const elimination — safe here because return move has been appended
+	ops = EliminateDeadConsts(ops)
+
 	return ops, nil
+}
+
+// EliminateDeadConsts removes OpConst ops whose dst vreg is never used.
+func EliminateDeadConsts(ops []VIROp) []VIROp {
+	used := make(map[int]bool)
+	for _, op := range ops {
+		for _, s := range op.Src {
+			if s > 0 { used[s] = true }
+		}
+	}
+	var result []VIROp
+	for _, op := range ops {
+		if op.Op == OpConst && op.Dst > 0 && !used[op.Dst] && op.Sym == "" {
+			continue
+		}
+		result = append(result, op)
+	}
+	return result
 }
 
 // LowerFunc converts an entire MIR2 function into VIR blocks.
