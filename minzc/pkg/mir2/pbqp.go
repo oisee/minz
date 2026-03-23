@@ -115,11 +115,22 @@ func nodeCosts(f *Func, info map[Reg]RegInfo, ct CostTable, locs []PhysLoc) map[
 		}
 	}
 
+	// Identify hard-pinned params: function contract params in HasAsm functions
+	// must be in their EXACT class register (e.g., @z80_b → B only).
+	hardPinned := make(map[Reg]bool)
+	if f.Attrs.HasAsm {
+		for _, cp := range f.Contract.Params {
+			// ALL params in HasAsm functions are hard-pinned — the inline
+			// asm reads directly from specific registers (@z80_a → A, etc.)
+			hardPinned[cp.Reg] = true
+		}
+	}
+
 	costs := make(map[Reg][]int, len(info))
 	for r, ri := range info {
 		uc := useCount[r]
 		if uc == 0 {
-			uc = 1 // always pay at least 1× (the definition itself)
+			uc = 1
 		}
 		cv := make([]int, len(locs))
 		for i, loc := range locs {
@@ -127,13 +138,18 @@ func nodeCosts(f *Func, info map[Reg]RegInfo, ct CostTable, locs []PhysLoc) map[
 				cv[i] = InfCost
 				continue
 			}
-			// ALU-used regs cannot live in LocFlag (INC F / DEC F invalid).
 			if loc.Kind == LocFlag && aluUsed[r] {
 				cv[i] = InfCost
 				continue
 			}
 			c := ct.Cost(ri.Cls, loc)
 			if c >= InfCost {
+				cv[i] = InfCost
+				continue
+			}
+			// Hard-pinned params: zero cost for matching reg, InfCost for others.
+			// This ensures @z80_b params ALWAYS get B, not just "prefer" B.
+			if hardPinned[r] && c > 0 {
 				cv[i] = InfCost
 				continue
 			}
