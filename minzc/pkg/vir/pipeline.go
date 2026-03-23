@@ -77,51 +77,109 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 	sb.WriteString(fmt.Sprintf("; %s — VIR codegen\n", f.Name))
 	sb.WriteString(f.Name + ":\n")
 
-	// Process each block
+	// Process each block — emit PIROps + terminator
 	for bi, block := range vf.Blocks {
-		if bi > 0 || block.Label != "" {
-			if block.Label != "" && block.Label != f.Name {
-				sb.WriteString(block.Label + ":\n")
+		// Block label (prefix with function name for uniqueness)
+		label := block.Label
+		if bi == 0 {
+			// First block = function entry, label already emitted
+		} else if label != "" {
+			sb.WriteString("." + f.Name + "_" + label + ":\n")
+		}
+
+		// Solve block ops
+		if len(block.Ops) > 0 {
+			pirOps, err := Solve(block.Ops, desc, opts)
+			if err != nil {
+				return "", fmt.Errorf("vir solve %s/%s: %w", f.Name, block.Label, err)
+			}
+			for _, p := range pirOps {
+				emitLine(&sb, p.Emit(desc))
 			}
 		}
 
-		if len(block.Ops) == 0 {
-			continue
+		// Emit terminator (control flow between blocks)
+		if bi < len(f.Blocks) {
+			mir2Block := f.Blocks[bi]
+			emitTerminator(&sb, mir2Block, f.Name)
 		}
-
-		// Run Z3 solver on this block
-		pirOps, err := Solve(block.Ops, desc, opts)
-		if err != nil {
-			return "", fmt.Errorf("vir solve %s/%s: %w", f.Name, block.Label, err)
-		}
-
-		// Emit PIROps → ASM
-		for _, p := range pirOps {
-			line := p.Emit(desc)
-			if line == "" {
-				continue
-			}
-			// Handle multi-line templates (e.g., "LD L, A\n    LD H, 0")
-			for _, subline := range strings.Split(line, "\n") {
-				subline = strings.TrimSpace(subline)
-				if subline == "" {
-					continue
-				}
-				if strings.HasPrefix(subline, ";") {
-					sb.WriteString("    " + subline + "\n")
-				} else {
-					sb.WriteString("    " + subline + "\n")
-				}
-			}
-		}
-	}
-
-	// Append RET if not already present
-	asmText := sb.String()
-	trimmed := strings.TrimRight(asmText, " \n\t")
-	if !strings.HasSuffix(trimmed, "RET") && !strings.HasSuffix(trimmed, "JP") {
-		sb.WriteString("    RET\n")
 	}
 
 	return sb.String(), nil
+}
+
+// emitLine writes one or more assembly lines (handles multi-line templates).
+func emitLine(sb *strings.Builder, line string) {
+	if line == "" {
+		return
+	}
+	for _, subline := range strings.Split(line, "\n") {
+		subline = strings.TrimSpace(subline)
+		if subline != "" {
+			sb.WriteString("    " + subline + "\n")
+		}
+	}
+}
+
+// emitTerminator generates Z80 control flow instructions for a MIR2 block terminator.
+func emitTerminator(sb *strings.Builder, b *mir2.Block, funcName string) {
+	if b.Term == nil {
+		return
+	}
+	prefix := "." + funcName + "_"
+
+	switch t := b.Term.(type) {
+	case *mir2.TermRet:
+		sb.WriteString("    RET\n")
+
+	case *mir2.TermJmp:
+		sb.WriteString(fmt.Sprintf("    JP %s%s\n", prefix, t.Target))
+
+	case *mir2.TermBrIf:
+		// Conditional branch: cond already set by CP/compare instruction
+		// If cond is true (non-zero) → Then, else → Else
+		// Z80: JR NZ for "if true", JR Z for "if false"
+		// The CMP sets flags: Z=equal, C=less-than (unsigned)
+		// TermBrIf.Cond is the bool vreg from OpCmp
+		sb.WriteString(fmt.Sprintf("    JR NZ, %s%s\n", prefix, t.Then))
+		if t.Else != "" {
+			sb.WriteString(fmt.Sprintf("    JP %s%s\n", prefix, t.Else))
+		}
+
+	case *mir2.TermBrIf2:
+		// Two-way branch based on comparison result
+		// Lhs vs Rhs already compared, flags set
+		if t.Eq != "" && t.Lt == "" && t.Gt == "" {
+			// Simple equality check
+			sb.WriteString(fmt.Sprintf("    JR Z, %s%s\n", prefix, t.Eq))
+		} else {
+			// Full three-way
+			if t.Eq != "" {
+				sb.WriteString(fmt.Sprintf("    JR Z, %s%s\n", prefix, t.Eq))
+			}
+			if t.Lt != "" {
+				sb.WriteString(fmt.Sprintf("    JR C, %s%s\n", prefix, t.Lt))
+			}
+			if t.Gt != "" {
+				sb.WriteString(fmt.Sprintf("    JP %s%s\n", prefix, t.Gt))
+			}
+		}
+
+	case *mir2.TermDJNZ:
+		sb.WriteString(fmt.Sprintf("    DJNZ %s%s\n", prefix, t.Body))
+		if t.Exit != "" {
+			sb.WriteString(fmt.Sprintf("    JP %s%s\n", prefix, t.Exit))
+		}
+
+	case *mir2.TermCondRet:
+		// If cond==0, return vals. Else jump to Then.
+		// Flags set by preceding CMP: Z flag = equal/zero
+		if t.Then != "" {
+			sb.WriteString(fmt.Sprintf("    JR NZ, %s%s\n", prefix, t.Then))
+		}
+		sb.WriteString("    RET\n") // return when cond==0 (Z flag set)
+
+	case *mir2.TermUnreachable:
+		sb.WriteString("    ; unreachable\n")
+	}
 }
