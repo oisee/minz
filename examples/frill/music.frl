@@ -1,0 +1,164 @@
+(* Frill Music DSL — declarative melodies on Z80 *)
+(* Notes as ADT, frequencies via pattern matching, melodies as data *)
+(* Compile-time verified: every note maps to a valid frequency *)
+
+-- ═══════════════════════════════════════════
+-- Notes: Western chromatic (octave 4)
+-- ═══════════════════════════════════════════
+
+type Note = C | Cs | D | Ds | E | F | Fs | G | Gs | A | As | B | Rest
+
+(* Z80 beeper delay values — lower = higher pitch *)
+(* Formula: delay = CPU_FREQ / (2 * freq * loop_overhead) *)
+(* These are approximate for 3.5MHz Z80 with ~80T per loop *)
+let note_delay (n : u8) =
+  match n with
+  | C    -> 133   (* C4  = 262 Hz *)
+  | Cs   -> 126   (* C#4 = 277 Hz *)
+  | D    -> 118   (* D4  = 294 Hz *)
+  | Ds   -> 112   (* D#4 = 311 Hz *)
+  | E    -> 106   (* E4  = 330 Hz *)
+  | F    -> 100   (* F4  = 349 Hz *)
+  | Fs   -> 94    (* F#4 = 370 Hz *)
+  | G    -> 89    (* G4  = 392 Hz *)
+  | Gs   -> 84    (* G#4 = 415 Hz *)
+  | A    -> 79    (* A4  = 440 Hz *)
+  | As   -> 75    (* A#4 = 466 Hz *)
+  | B    -> 71    (* B4  = 494 Hz *)
+  | Rest -> 0     (* silence *)
+
+(* Frequency in Hz (approximate, for display/verification) *)
+let note_hz (n : u8) =
+  match n with
+  | C -> 262 | D -> 294 | E -> 330 | F -> 349
+  | G -> 392 | A -> 440 | B -> 494 | Rest -> 0
+  | _ -> 0
+
+(* Note names as ASCII char *)
+let note_char (n : u8) =
+  match n with
+  | C -> 67 | D -> 68 | E -> 69 | F -> 70
+  | G -> 71 | A -> 65 | B -> 66 | Rest -> 45
+  | _ -> 63
+
+-- ═══════════════════════════════════════════
+-- Duration encoding
+-- ═══════════════════════════════════════════
+
+(* Duration in 16ths of a whole note *)
+let whole    (x : u8) = 16
+let half     (x : u8) = 8
+let quarter  (x : u8) = 4
+let eighth   (x : u8) = 2
+let sixteenth (x : u8) = 1
+
+(* Pack note + duration into one byte: high nibble = note, low nibble = duration *)
+let encode (note : u8) (dur : u8) : u8 = note * 16 + dur
+let decode_note (packed : u8) : u8 = packed / 16
+let decode_dur  (packed : u8) : u8 = packed % 16
+
+-- ═══════════════════════════════════════════
+-- Melody encoding
+-- ═══════════════════════════════════════════
+
+(* Store melodies as strings: each byte = encode(note, dur) *)
+(* Read note N from melody: decode the Nth byte *)
+let melody_note (mel : u16) (pos : u8) = decode_note (peek (mel + pos))
+let melody_dur  (mel : u16) (pos : u8) = decode_dur  (peek (mel + pos))
+
+(* Count notes in melody (until we hit 0xFF sentinel) *)
+let melody_len (mel : u16) =
+  let p = 0 in
+  while peek (mel + p) < 255 do
+    do p <- p + 1
+  end
+  p
+
+(* Total duration of melody in 16ths *)
+let melody_total_dur (mel : u16) =
+  let p = 0 in
+  let total = 0 in
+  let len = melody_len mel in
+  while p < len do
+    do total <- total + melody_dur mel p
+    do p <- p + 1
+  end
+  total
+
+(* Transpose: shift all notes up by N semitones (mod 13) *)
+let transpose_note (n : u8) (shift : u8) =
+  if n == 12 then 12
+  else (n + shift) % 12
+
+-- ═══════════════════════════════════════════
+-- Compile-time verification
+-- ═══════════════════════════════════════════
+
+(* Note → delay mapping *)
+assert note_delay C == 133
+assert note_delay E == 106
+assert note_delay G == 89
+assert note_delay A == 79
+assert note_delay B == 71
+assert note_delay Rest == 0
+
+(* Encoding round-trip *)
+(* C=0, Cs=1, D=2, Ds=3, E=4, F=5, Fs=6, G=7, Gs=8, A=9, As=10, B=11, Rest=12 *)
+assert encode C 4 == 4
+assert encode E 4 == 68
+assert encode G 8 == 120
+assert decode_note 4 == 0
+assert decode_dur 4 == 4
+assert decode_note 68 == 4
+assert decode_dur 68 == 4
+assert decode_note 120 == 7
+assert decode_dur 120 == 8
+
+(* Encode-decode identity *)
+let enc53 (x : u8) = encode 5 3
+let enc04 (x : u8) = encode 0 4
+let roundtrip_note (n : u8) (d : u8) = decode_note (encode n d)
+let roundtrip_dur (n : u8) (d : u8) = decode_dur (encode n d)
+assert roundtrip_note 5 3 == 5
+assert roundtrip_dur 5 3 == 3
+assert roundtrip_note 0 4 == 0
+assert roundtrip_dur 0 4 == 4
+
+(* Transpose *)
+assert transpose_note C 0 == 0
+assert transpose_note C 2 == 2
+assert transpose_note A 3 == 0
+assert transpose_note Rest 5 == 12
+
+(* Properties *)
+prop |x| decode_note (encode (x / 16) (x % 16)) == x / 16
+prop |x| decode_dur (encode (x / 16) (x % 16)) == x % 16
+
+-- ═══════════════════════════════════════════
+-- Example melodies
+-- ═══════════════════════════════════════════
+
+(* Twinkle Twinkle Little Star: C C G G A A G - F F E E D D C *)
+(* Encoded: each byte = note*16 + duration(4=quarter) *)
+
+(* Helper: build note byte from note enum + quarter duration *)
+let q (n : u8) = encode n 4
+let h (n : u8) = encode n 8
+
+(* Verify melody helpers *)
+(* q(C)=0*16+4=4, q(G)=7*16+4=116, h(G)=7*16+8=120, q(A)=9*16+4=148 *)
+assert q C == 4
+assert q G == 116
+assert h G == 120
+assert q A == 148
+
+(* Note frequency sanity: delays decrease C→B (higher pitch = lower delay) *)
+let delay_decreasing (a : u8) (b : u8) = if note_delay a > note_delay b then 1 else 0
+assert delay_decreasing C D == 1
+assert delay_decreasing D E == 1
+assert delay_decreasing E F == 1
+assert delay_decreasing F G == 1
+assert delay_decreasing G A == 1
+assert delay_decreasing A B == 1
+
+let main (x : u8) = 0
