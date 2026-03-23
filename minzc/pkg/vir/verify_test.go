@@ -43,10 +43,9 @@ func TestVIR_Z80_Verify(t *testing.T) {
 		{"xor(0xFF,0x0F)=0xF0", `fun bxor(a: u8, b: u8) -> u8 { return a XOR b }`, "bxor", []int{0xFF, 0x0F}, 0xF0, false},
 		{"xor(0xAA,0x55)=0xFF", `fun bx2(a: u8, b: u8) -> u8 { return a xor b }`, "bx2", []int{0xAA, 0x55}, 0xFF, false},
 
-		// NOTE: swap(a,b)=b fails because VIR doesn't yet handle
-		// return-value ABI (must move result to A before RET).
-		// This is a known limitation — the solver produces correct
-		// per-block code but inter-block ABI contracts are TODO.
+		// Return-value ABI: result must be in A before RET
+		{"swap(42,99)=99", "fun swap(a: u8, b: u8) -> u8 {\n    let t: u8 = a\n    return b\n}", "swap", []int{42, 99}, 99, false},
+		{"ret_b(1,2)=2", `fun ret_b(a: u8, b: u8) -> u8 { return b }`, "ret_b", []int{1, 2}, 2, false},
 	}
 
 	opts := vir.SolverOptions{Timeout: 30 * time.Second}

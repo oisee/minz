@@ -12,7 +12,8 @@ import (
 )
 
 // LowerBlock converts one MIR2 basic block into VIROps.
-func LowerBlock(b *mir2.Block, desc *MachineDesc, mod *mir2.Module) ([]VIROp, error) {
+// The optional func parameter enables return-value ABI enforcement.
+func LowerBlock(b *mir2.Block, desc *MachineDesc, mod *mir2.Module, fn ...*mir2.Func) ([]VIROp, error) {
 	var ops []VIROp
 
 	for _, inst := range b.Insts {
@@ -26,6 +27,16 @@ func LowerBlock(b *mir2.Block, desc *MachineDesc, mod *mir2.Module) ([]VIROp, er
 	// Fuse addr_of + store/load → direct global access
 	ops = fuseGlobalAccess(ops)
 
+	// Return-value ABI: if block ends with TermRet or TermCondRet,
+	// move result to A (u8) or HL (u16) before the return.
+	// Only if the result vreg isn't already guaranteed to be in A/HL
+	// (e.g., from a tied ALU pattern like ADD A, r).
+	if len(fn) > 0 {
+		ops = appendReturnMove(ops, b, desc, fn[0])
+	} else {
+		ops = appendReturnMove(ops, b, desc)
+	}
+
 	return ops, nil
 }
 
@@ -34,7 +45,7 @@ func LowerFunc(f *mir2.Func, desc *MachineDesc, mod *mir2.Module) (*Func, error)
 	vf := &Func{Name: f.Name}
 
 	for _, b := range f.Blocks {
-		ops, err := LowerBlock(b, desc, mod)
+		ops, err := LowerBlock(b, desc, mod, f)
 		if err != nil {
 			return nil, fmt.Errorf("func %s: %w", f.Name, err)
 		}
@@ -416,4 +427,107 @@ func fuseGlobalAccess(ops []VIROp) []VIROp {
 	}
 
 	return result
+}
+
+// appendReturnMove adds an OpMove to place the return value in A (u8) or HL (u16)
+// before a TermRet/TermCondRet. Uses a synthetic vreg (9900+) as the
+// "return register" with DstHint constraining it to A or HL.
+func appendReturnMove(ops []VIROp, b *mir2.Block, desc *MachineDesc, f ...*mir2.Func) []VIROp {
+	term := b.Term
+	var retVals []mir2.Reg
+
+	switch t := term.(type) {
+	case *mir2.TermRet:
+		retVals = t.Vals
+	case *mir2.TermCondRet:
+		retVals = t.Vals
+	default:
+		return ops
+	}
+
+	if len(retVals) == 0 {
+		return ops
+	}
+
+	retReg := int(retVals[0])
+	if retReg <= 0 {
+		return ops
+	}
+
+	// Determine width from the vreg's definition
+	w := 8
+	for i := len(ops) - 1; i >= 0; i-- {
+		if ops[i].Dst == retReg && ops[i].Width > 0 {
+			w = ops[i].Width
+			break
+		}
+		// Also check if it's used as src (cross-block param)
+		for _, s := range ops[i].Src {
+			if s == retReg && ops[i].Width > 0 {
+				w = ops[i].Width
+				break
+			}
+		}
+	}
+
+	// Check if the result vreg is already defined by an op that constrains
+	// it to A (8-bit ALU) or HL (16-bit ALU). If so, no move needed.
+	alreadyConstrained := false
+
+	// Check if result is a block param (function parameter already in correct register)
+	for _, bp := range b.Params {
+		if int(bp.Dst) == retReg {
+			alreadyConstrained = true
+			break
+		}
+	}
+	// Check function-level contract params: only skip move if the param's
+	// ABI register matches the return ABI register (A for u8, HL for u16).
+	if len(f) > 0 && f[0] != nil {
+		for _, cp := range f[0].Contract.Params {
+			if int(cp.Reg) == retReg {
+				if w <= 8 && cp.Class == mir2.ClassAcc {
+					alreadyConstrained = true // param already in A = return register
+				} else if w > 8 && cp.Class == mir2.ClassPointer {
+					alreadyConstrained = true // param already in HL = return register
+				}
+				break
+			}
+		}
+	}
+
+	for _, op := range ops {
+		if op.Dst == retReg {
+			switch op.Op {
+			case OpAdd, OpSub, OpAnd, OpOr, OpXor, OpNeg,
+				OpAddImm, OpSubImm, OpAndImm, OpOrImm, OpXorImm:
+				alreadyConstrained = true
+			case OpMove:
+				if !op.DstHint.IsEmpty() {
+					alreadyConstrained = true
+				}
+			}
+		}
+	}
+
+	if alreadyConstrained {
+		return ops
+	}
+
+	// Synthetic vreg for the return-ABI move
+	retABIReg := 9900 + retReg
+
+	var retHint LocSet
+	if w <= 8 {
+		retHint = desc.LocSetByNames("A")
+	} else {
+		retHint = desc.LocSetByNames("HL")
+	}
+
+	ops = append(ops, VIROp{
+		Op: OpMove, Dst: retABIReg, Src: [2]int{retReg, -1},
+		Width: w, DstHint: retHint,
+	})
+
+	return ops
 }
