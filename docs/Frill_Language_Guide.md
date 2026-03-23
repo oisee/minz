@@ -278,6 +278,7 @@ Each Frill construct maps to HIR nodes:
 - [x] Exhaustive match checking (compile error: `missing Blue`)
 - [x] Guards in match (`| _ when n > 10 -> ...`)
 - [x] Record types (`type Point = { x : u8, y : u8 }`)
+- [x] Tuples — multi-return `(u8, u8)` + destructuring `let (q, r) = divmod x y in`
 
 ### Verification & Testing
 - [x] Compile-time assertions (`assert gcd 12 8 == 4`)
@@ -341,11 +342,11 @@ Optimal — matches hand-written assembly.
 
 ## What's Missing (Roadmap)
 
-### Frill-1: Full ML
+### Frill-1: Full ML (mostly done)
 
-- [ ] **Tuples** — `let (a, b) = divmod x y`
-- [ ] **Pattern match on payload** — `| Some x -> x + 1`
-- [ ] **Nested function calls** — `f (g x)` without let-in workaround
+- [x] **Tuples** — `let divmod (a : u8) (b : u8) : (u8, u8) = (a / b, a % b)`
+- [x] **Nested function calls** — `f (g x)` works via parens
+- [ ] **Pattern match on payload** — `| Some x -> x + 1` (parses, runtime u16 bug)
 
 ### Frill-2: Advanced Types
 
