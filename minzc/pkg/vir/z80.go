@@ -298,7 +298,7 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			Template: "ADD HL, HL", Cost: 11, Bytes: 1,
 			Clobbers: Z80_Flags, ImmGuard: immGuard(1), TiedDstSrc: true},
 
-		// ── Memory loads ─────────────────────────────────────────────
+		// ── Memory loads — 8-bit ─────────────────────────────────────
 		{Name: "ld_a_hl", Op: OpLoad, Width: 8, DstLocs: Z80_A,
 			SrcLocs: [2]LocSet{Z80_HL},
 			Template: "LD A, (HL)", Cost: 7, Bytes: 1, Flags: PatMemRead},
@@ -309,13 +309,32 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			SrcLocs: [2]LocSet{Z80_DE},
 			Template: "LD A, (DE)", Cost: 7, Bytes: 1, Flags: PatMemRead},
 
-		// ── Memory stores ────────────────────────────────────────────
+		// ── Memory loads — 16-bit ────────────────────────────────────
+		// Load 16-bit via HL pointer: LD A,(HL) / INC HL / LD H,(HL) / LD L,A
+		{Name: "ld16_hl_ind", Op: OpLoad, Width: 16, DstLocs: Z80_HL,
+			SrcLocs: [2]LocSet{Z80_HL},
+			Template: "LD A, (HL)\n    INC HL\n    LD H, (HL)\n    LD L, A",
+			Cost: 22, Bytes: 4, Flags: PatMemRead, TiedDstSrc: true},
+
+		// ── Memory stores — 8-bit ────────────────────────────────────
 		{Name: "ld_hl_a", Op: OpStore, Width: 8,
 			SrcLocs: [2]LocSet{Z80_HL, Z80_A},
 			Template: "LD (HL), A", Cost: 7, Bytes: 1, Flags: PatMemWrite},
 		{Name: "ld_hl_r", Op: OpStore, Width: 8,
 			SrcLocs: [2]LocSet{Z80_HL, Z80_GPR8},
 			Template: "LD (HL), {src1}", Cost: 7, Bytes: 1, Flags: PatMemWrite},
+
+		// ── Memory stores — 16-bit ───────────────────────────────────
+		// Store 16-bit via HL pointer, value in DE
+		{Name: "st16_hl_de", Op: OpStore, Width: 16,
+			SrcLocs: [2]LocSet{Z80_HL, Z80_DE},
+			Template: "LD (HL), E\n    INC HL\n    LD (HL), D\n    DEC HL",
+			Cost: 22, Bytes: 4, Flags: PatMemWrite},
+		// Store 16-bit via HL pointer, value in BC
+		{Name: "st16_hl_bc", Op: OpStore, Width: 16,
+			SrcLocs: [2]LocSet{Z80_HL, Z80_BC},
+			Template: "LD (HL), C\n    INC HL\n    LD (HL), B\n    DEC HL",
+			Cost: 22, Bytes: 4, Flags: PatMemWrite},
 
 		// ── Global store/load ────────────────────────────────────────
 		{Name: "st_global_hl", Op: OpStoreGlobal, Width: 16,
