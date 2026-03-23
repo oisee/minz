@@ -1,0 +1,84 @@
+(* Frill tokenizer — character classification + lexing primitives *)
+
+(* Character classification *)
+let is_digit (ch : u8) = if ch > 47 then if ch < 58 then 1 else 0 else 0
+let is_alpha (ch : u8) = if ch > 64 then if ch < 91 then 1 else if ch > 96 then if ch < 123 then 1 else 0 else 0 else 0
+let is_alnum (ch : u8) = if is_digit ch > 0 then 1 else is_alpha ch
+let is_space (ch : u8) = if ch == 32 then 1 else if ch == 10 then 1 else if ch == 13 then 1 else if ch == 9 then 1 else 0
+let is_eof (ch : u8) = if ch == 0 then 1 else 0
+
+(* Token types *)
+let TOK_EOF (x : u8) = 0
+let TOK_INT (x : u8) = 1
+let TOK_IDENT (x : u8) = 2
+let TOK_PLUS (x : u8) = 3
+let TOK_MINUS (x : u8) = 4
+let TOK_STAR (x : u8) = 5
+let TOK_SLASH (x : u8) = 6
+let TOK_LPAREN (x : u8) = 7
+let TOK_RPAREN (x : u8) = 8
+let TOK_EQ (x : u8) = 9
+let TOK_OTHER (x : u8) = 10
+
+(* Skip whitespace *)
+let skip_spaces (src : u8) (pos : u8) =
+  let p = pos in
+  while is_space (peek (src + p)) > 0 do
+    do p <- p + 1
+  end
+  p
+
+(* Read integer value from position *)
+let read_int (src : u8) (pos : u8) =
+  let val = 0 in
+  let p = pos in
+  while is_digit (peek (src + p)) > 0 do
+    do val <- val * 10 + peek (src + p) - 48
+    do p <- p + 1
+  end
+  val
+
+(* Read integer length (how many digits) *)
+let read_int_len (src : u8) (pos : u8) =
+  let p = pos in
+  while is_digit (peek (src + p)) > 0 do
+    do p <- p + 1
+  end
+  p - pos
+
+(* Read identifier length *)
+let read_ident_len (src : u8) (pos : u8) =
+  let p = pos in
+  while is_alnum (peek (src + p)) > 0 do
+    do p <- p + 1
+  end
+  p - pos
+
+(* Classify single char into token type *)
+let char_to_tok (ch : u8) =
+  if ch == 43 then 3
+  else if ch == 45 then 4
+  else if ch == 42 then 5
+  else if ch == 47 then 6
+  else if ch == 40 then 7
+  else if ch == 41 then 8
+  else if ch == 61 then 9
+  else 10
+
+(* Get next token type from src at pos *)
+let next_token (src : u8) (pos : u8) =
+  let p = skip_spaces src pos in
+  let ch = peek (src + p) in
+  if is_eof ch > 0 then 0
+  else if is_digit ch > 0 then 1
+  else if is_alpha ch > 0 then 2
+  else char_to_tok ch
+
+(* Advance past current token, return new position *)
+let skip_token (src : u8) (pos : u8) =
+  let p = skip_spaces src pos in
+  let ch = peek (src + p) in
+  if is_eof ch > 0 then p
+  else if is_digit ch > 0 then p + read_int_len src p
+  else if is_alpha ch > 0 then p + read_ident_len src p
+  else p + 1
