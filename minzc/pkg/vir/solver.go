@@ -1586,8 +1586,15 @@ func generateSMTPerInst(p *problem) string {
 			c := locSetToSMT(fmt.Sprintf("lv%d_i%d", op.Dst, i), op.DstHint)
 			b.WriteString(fmt.Sprintf("(assert %s) ; DstHint\n", c))
 		}
-		// SrcHint: soft constraint in per-inst encoding (hard in global)
-		// Added to cost function in the soft hints section below.
+		// SrcHint: hard for pin/return moves (DstHint set), soft for others
+		for j, s := range op.Src {
+			if s > 0 && !op.SrcHint[j].IsEmpty() && !op.DstHint.IsEmpty() {
+				if _, ok := vars[vregAtInst{s, i}]; ok {
+					c := locSetToSMT(fmt.Sprintf("lv%d_i%d", s, i), op.SrcHint[j])
+					b.WriteString(fmt.Sprintf("(assert %s) ; SrcHint hard (pin/ret)\n", c))
+				}
+			}
+		}
 	}
 
 	// Cost objective

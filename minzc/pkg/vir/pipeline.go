@@ -177,11 +177,14 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 							if s == vreg && op.Width > 0 { w = op.Width }
 						}
 					}
-					pins = append(pins, VIROp{
+					// Pin: source vreg is in phys (hard SrcHint).
+				// Destination is UNCONSTRAINED — solver picks optimal register.
+				// Per-inst solver can then move from phys to wherever needed.
+				pins = append(pins, VIROp{
 						Op: OpMove, Dst: pinReg,
 						Src: [2]int{vreg, -1}, Width: w,
-						DstHint: Singleton(phys),
 						SrcHint: [2]LocSet{Singleton(phys)},
+						// No DstHint — let solver freely place the pin
 					})
 				}
 
