@@ -1570,6 +1570,64 @@ func (p *parser) parseBodyExpr() (hir.Expr, []hir.Stmt, error) {
 				Cond: cond,
 				Body: &hir.Block{Body: whileBody},
 			})
+		} else if p.peek().kind == tokIdent && p.peek().text == "for" {
+			// for i = start to end do ... end
+			p.next() // consume "for"
+			varName := p.next().text
+			if err := p.expect(tokEq, "="); err != nil {
+				return nil, nil, err
+			}
+			startExpr, err := p.parseExpr()
+			if err != nil {
+				return nil, nil, err
+			}
+			if err := p.expect(tokIdent, "to"); err != nil {
+				return nil, nil, err
+			}
+			endExpr, err := p.parseExpr()
+			if err != nil {
+				return nil, nil, err
+			}
+			if err := p.expect(tokIdent, "do"); err != nil {
+				return nil, nil, err
+			}
+			// Parse for body (same as while body)
+			var forBody []hir.Stmt
+			for {
+				if p.peek().kind == tokIdent && p.peek().text == "end" {
+					p.next()
+					break
+				}
+				if p.peek().kind == tokIdent && p.peek().text == "do" {
+					p.next()
+					doE, err := p.parseExpr()
+					if err != nil {
+						return nil, nil, err
+					}
+					if p.peek().kind == tokOp && p.peek().text == "<-" {
+						p.next()
+						val, err := p.parseExpr()
+						if err != nil {
+							return nil, nil, err
+						}
+						if vr, ok := doE.(*hir.VarRefExpr); ok {
+							forBody = append(forBody, &hir.AssignStmt{Target: vr, Val: val})
+						}
+					} else {
+						dn := fmt.Sprintf("__fd_%d", p.lambdaCount)
+						p.lambdaCount++
+						forBody = append(forBody, &hir.VarDeclStmt{Name: dn, Ty: doE.ExprTy(), Init: doE})
+					}
+				} else {
+					break
+				}
+			}
+			stmts = append(stmts, &hir.ForRangeStmt{
+				Var:   varName,
+				Start: startExpr,
+				End:   endExpr,
+				Body:  &hir.Block{Body: forBody},
+			})
 		} else {
 			break
 		}
@@ -1857,7 +1915,7 @@ func (p *parser) parseType() mir2.Ty {
 
 func isKeyword(s string) bool {
 	switch s {
-	case "let", "in", "if", "then", "else", "type", "assert", "match", "with", "fun", "end", "where", "when", "prop", "extern", "do", "import", "asm", "class", "instance", "while":
+	case "let", "in", "if", "then", "else", "type", "assert", "match", "with", "fun", "end", "where", "when", "prop", "extern", "do", "import", "asm", "class", "instance", "while", "for", "to":
 		return true
 	}
 	return false
