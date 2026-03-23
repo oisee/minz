@@ -97,14 +97,14 @@ func buildProblem(ops []VIROp, desc *MachineDesc) *problem {
 		desc: desc,
 	}
 
-	// Collect all virtual registers
+	// Collect all virtual registers (skip -1 and 0 — 0 is Go zero value, not a real vreg)
 	p.vregs = make(map[int]bool)
 	for _, op := range ops {
-		if op.Dst >= 0 {
+		if op.Dst > 0 {
 			p.vregs[op.Dst] = true
 		}
 		for _, s := range op.Src {
-			if s >= 0 {
+			if s > 0 {
 				p.vregs[s] = true
 			}
 		}
@@ -138,7 +138,7 @@ func computeLiveness(ops []VIROp) []livenessAt {
 	lastUse := make(map[int]int) // vreg → last instruction index using it
 	for i, op := range ops {
 		for _, s := range op.Src {
-			if s >= 0 {
+			if s > 0 {
 				lastUse[s] = i
 			}
 		}
@@ -146,7 +146,7 @@ func computeLiveness(ops []VIROp) []livenessAt {
 
 	defAt := make(map[int]int) // vreg → instruction index defining it
 	for i, op := range ops {
-		if op.Dst >= 0 {
+		if op.Dst > 0 {
 			defAt[op.Dst] = i
 		}
 	}
@@ -203,7 +203,11 @@ func (p *problem) generateSMT() string {
 			vreg, vreg, len(p.desc.Locs)))
 	}
 
-	// Pattern → location constraints
+	// Pattern → location constraints + tied operands
+	// Track which vreg pairs are tied (can share a physical register)
+	type vregPair struct{ a, b int }
+	tied := make(map[vregPair]bool)
+
 	for i, op := range p.ops {
 		pats := p.patterns[i]
 		if len(pats) == 0 {
@@ -212,32 +216,41 @@ func (p *problem) generateSMT() string {
 
 		for _, pi := range pats {
 			pat := &p.desc.Patterns[pi]
+			cond := fmt.Sprintf("(= pat%d %d)", i, pi)
 
 			// If this pattern is selected, dst must be in DstLocs
-			if op.Dst >= 0 && !pat.DstLocs.IsEmpty() {
-				cond := fmt.Sprintf("(= pat%d %d)", i, pi)
+			if op.Dst > 0 && !pat.DstLocs.IsEmpty() {
 				locConstraint := locSetToSMT(fmt.Sprintf("loc_v%d", op.Dst), pat.DstLocs)
 				b.WriteString(fmt.Sprintf("(assert (=> %s %s))\n", cond, locConstraint))
 			}
 
 			// src0 must be in SrcLocs[0]
-			if op.Src[0] >= 0 && !pat.SrcLocs[0].IsEmpty() {
-				cond := fmt.Sprintf("(= pat%d %d)", i, pi)
+			if op.Src[0] > 0 && !pat.SrcLocs[0].IsEmpty() {
 				locConstraint := locSetToSMT(fmt.Sprintf("loc_v%d", op.Src[0]), pat.SrcLocs[0])
 				b.WriteString(fmt.Sprintf("(assert (=> %s %s))\n", cond, locConstraint))
 			}
 
 			// src1 must be in SrcLocs[1]
-			if op.Src[1] >= 0 && !pat.SrcLocs[1].IsEmpty() {
-				cond := fmt.Sprintf("(= pat%d %d)", i, pi)
+			if op.Src[1] > 0 && !pat.SrcLocs[1].IsEmpty() {
 				locConstraint := locSetToSMT(fmt.Sprintf("loc_v%d", op.Src[1]), pat.SrcLocs[1])
 				b.WriteString(fmt.Sprintf("(assert (=> %s %s))\n", cond, locConstraint))
+			}
+
+			// Tied operand: dst must equal src0 (same physical register)
+			// Z80: ADD A,r means A = A + r — dst and src0 are both A
+			if pat.TiedDstSrc && op.Dst > 0 && op.Src[0] > 0 {
+				b.WriteString(fmt.Sprintf("(assert (=> %s (= loc_v%d loc_v%d)))\n",
+					cond, op.Dst, op.Src[0]))
+				// Record this pair as tied (skip interference for them)
+				tied[vregPair{op.Dst, op.Src[0]}] = true
+				tied[vregPair{op.Src[0], op.Dst}] = true
 			}
 		}
 	}
 
 	// Interference: simultaneously live vregs cannot share the same location
-	// (unless one is a pair and the other is a sub-register — handled by Alias)
+	// EXCEPT tied pairs (dst=src0 in accumulator patterns)
+	emitted := make(map[vregPair]bool) // dedup interference constraints
 	for i := range p.ops {
 		live := p.liveness[i].live
 		vregs := make([]int, 0, len(live))
@@ -247,6 +260,14 @@ func (p *problem) generateSMT() string {
 		for a := 0; a < len(vregs); a++ {
 			for c := a + 1; c < len(vregs); c++ {
 				va, vc := vregs[a], vregs[c]
+				pair := vregPair{va, vc}
+				if va > vc {
+					pair = vregPair{vc, va}
+				}
+				if tied[pair] || emitted[pair] {
+					continue
+				}
+				emitted[pair] = true
 				b.WriteString(fmt.Sprintf("(assert (not (= loc_v%d loc_v%d)))\n", va, vc))
 			}
 		}
@@ -448,27 +469,43 @@ func runZ3(smt string, opts SolverOptions) (string, error) {
 }
 
 // parseZ3Model extracts variable assignments from Z3 model output.
-// Z3 model format: (define-fun varname () Int value)
+// Z3 model format can be single-line or multi-line:
+//
+//	(define-fun pat0 () Int 3)
+//	(define-fun loc_v1 () Int
+//	  0)
 func parseZ3Model(model string) map[string]int {
 	vals := make(map[string]int)
 	lines := strings.Split(model, "\n")
-	for _, line := range lines {
+	for i, line := range lines {
 		line = strings.TrimSpace(line)
 		if !strings.HasPrefix(line, "(define-fun ") {
 			continue
 		}
-		// (define-fun pat0 () Int 3)
 		parts := strings.Fields(line)
-		if len(parts) < 5 {
+		if len(parts) < 4 {
 			continue
 		}
 		name := parts[1]
-		valStr := strings.TrimSuffix(parts[len(parts)-1], ")")
-		val, err := strconv.Atoi(valStr)
-		if err != nil {
-			continue
+
+		// Try single-line: (define-fun pat0 () Int 3)
+		if len(parts) >= 5 {
+			valStr := strings.TrimRight(parts[len(parts)-1], ")")
+			if val, err := strconv.Atoi(valStr); err == nil {
+				vals[name] = val
+				continue
+			}
 		}
-		vals[name] = val
+
+		// Multi-line: value is on the next line
+		if i+1 < len(lines) {
+			nextLine := strings.TrimSpace(lines[i+1])
+			valStr := strings.TrimRight(nextLine, ")")
+			valStr = strings.TrimSpace(valStr)
+			if val, err := strconv.Atoi(valStr); err == nil {
+				vals[name] = val
+			}
+		}
 	}
 	return vals
 }

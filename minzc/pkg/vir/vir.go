@@ -246,6 +246,16 @@ type Pattern struct {
 	Bytes    int       // encoded instruction size
 	Clobbers LocSet    // registers clobbered (side effects)
 	Flags    PatFlags
+
+	// Guard constrains matching beyond Op/Width.
+	// ImmGuard: if non-nil, only match when op.Imm == *ImmGuard (for INC=+1, DEC=-1)
+	// SelfSrc: if true, only match when op.Src[0] == op.Src[1] (for x+x double)
+	ImmGuard *int64
+	SelfSrc  bool
+
+	// TiedDstSrc: if true, dst is tied to src0 — same physical register.
+	// Z80 example: ADD A, r → A = A + r → dst tied to src0, both must be A.
+	TiedDstSrc bool
 }
 
 type PatFlags uint32
@@ -267,8 +277,16 @@ func (p *Pattern) Matches(op VIROp) bool {
 	if p.Width != 0 && p.Width != op.Width {
 		return false
 	}
+	if p.ImmGuard != nil && op.Imm != *p.ImmGuard {
+		return false
+	}
+	if p.SelfSrc && (op.Src[0] != op.Src[1] || op.Src[0] < 0) {
+		return false
+	}
 	return true
 }
+
+func immGuard(v int64) *int64 { return &v }
 
 // ── Constraint Rule ──────────────────────────────────────────────────────────
 // Encoding constraints that forbid or penalize certain {pattern, register}

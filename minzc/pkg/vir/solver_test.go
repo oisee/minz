@@ -183,6 +183,44 @@ func TestLivenessComputation(t *testing.T) {
 	}
 }
 
+func TestZ3SolverChainedOps(t *testing.T) {
+	// Skip if z3 not available
+	if _, err := exec.LookPath("z3"); err != nil {
+		t.Skip("z3 not found, skipping")
+	}
+
+	// v1 = 10, v2 = 3, v3 = v1 + v2, v4 = v3 - v2
+	// Chain: each op consumes the previous result, no cross-instruction conflict
+	ops := []VIROp{
+		{Op: OpConst, Dst: 1, Imm: 10, Width: 8},
+		{Op: OpConst, Dst: 2, Imm: 3, Width: 8},
+		{Op: OpAdd, Dst: 3, Src: [2]int{1, 2}, Width: 8},
+		{Op: OpSub, Dst: 4, Src: [2]int{3, 2}, Width: 8},
+	}
+
+	result, err := Solve(ops, Z80, SolverOptions{Verbose: testing.Verbose()})
+	if err != nil {
+		t.Fatalf("Solve: %v", err)
+	}
+
+	for i, p := range result {
+		t.Logf("  PIR[%d]: %s (pat=%s dst=%d)", i, p.Emit(Z80), p.Pat.Name, p.DstPhys)
+	}
+
+	if len(result) != 4 {
+		t.Fatalf("expected 4 PIROps, got %d", len(result))
+	}
+
+	// Both ADD and SUB should use A as dst (tied to src0)
+	aIdx := Z80.LocByName("A")
+	if result[2].DstPhys != aIdx {
+		t.Errorf("ADD dst should be A, got %d", result[2].DstPhys)
+	}
+	if result[3].DstPhys != aIdx {
+		t.Errorf("SUB dst should be A, got %d", result[3].DstPhys)
+	}
+}
+
 func findPattern(name string) *Pattern {
 	for i := range Z80.Patterns {
 		if Z80.Patterns[i].Name == name {
