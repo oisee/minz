@@ -589,6 +589,95 @@ func (p *parser) parseInstance() ([]*hir.Func, error) {
 	return funcs, nil
 }
 
+// parseLoopBody parses the body of while/for loops: do-stmts until "end".
+// Handles nesting: inner while/for/match blocks consume their own "end".
+func (p *parser) parseLoopBody() ([]hir.Stmt, error) {
+	var body []hir.Stmt
+	depth := 1 // track nesting for "end" matching
+	for depth > 0 {
+		if p.peek().kind == tokIdent && p.peek().text == "end" {
+			p.next()
+			depth--
+			continue
+		}
+		// Nested while/for increase depth
+		if p.peek().kind == tokIdent && (p.peek().text == "while" || p.peek().text == "for") {
+			// Parse as nested loop within a "do" context
+			// Recurse through parseBodyExpr which handles while/for
+			// For now: track depth manually
+		}
+		if p.peek().kind == tokIdent && p.peek().text == "do" {
+			p.next()
+			doE, err := p.parseExpr()
+			if err != nil {
+				return nil, err
+			}
+			if p.peek().kind == tokOp && p.peek().text == "<-" {
+				p.next()
+				val, err := p.parseExpr()
+				if err != nil {
+					return nil, err
+				}
+				if vr, ok := doE.(*hir.VarRefExpr); ok {
+					body = append(body, &hir.AssignStmt{Target: vr, Val: val})
+				}
+			} else {
+				dn := fmt.Sprintf("__lb_%d", p.lambdaCount)
+				p.lambdaCount++
+				body = append(body, &hir.VarDeclStmt{Name: dn, Ty: doE.ExprTy(), Init: doE})
+			}
+		} else if p.peek().kind == tokIdent && p.peek().text == "for" {
+			// Nested for loop
+			p.next()
+			varName := p.next().text
+			if err := p.expect(tokEq, "="); err != nil {
+				return nil, err
+			}
+			startE, err := p.parseExpr()
+			if err != nil {
+				return nil, err
+			}
+			if err := p.expect(tokIdent, "to"); err != nil {
+				return nil, err
+			}
+			endE, err := p.parseExpr()
+			if err != nil {
+				return nil, err
+			}
+			if err := p.expect(tokIdent, "do"); err != nil {
+				return nil, err
+			}
+			innerBody, err := p.parseLoopBody()
+			if err != nil {
+				return nil, err
+			}
+			body = append(body, &hir.ForRangeStmt{
+				Var: varName, Start: startE, End: endE,
+				Body: &hir.Block{Body: innerBody},
+			})
+		} else if p.peek().kind == tokIdent && p.peek().text == "while" {
+			p.next()
+			cond, err := p.parseComparison()
+			if err != nil {
+				return nil, err
+			}
+			if err := p.expect(tokIdent, "do"); err != nil {
+				return nil, err
+			}
+			innerBody, err := p.parseLoopBody()
+			if err != nil {
+				return nil, err
+			}
+			body = append(body, &hir.WhileStmt{Cond: cond, Body: &hir.Block{Body: innerBody}})
+		} else if p.peek().kind == tokEOF {
+			return nil, fmt.Errorf("unexpected EOF in loop body")
+		} else {
+			break
+		}
+	}
+	return body, nil
+}
+
 // parseImport: import "path/to/module.frl"
 func (p *parser) parseImport() (*hir.Module, error) {
 	p.next() // consume "import"
@@ -1534,37 +1623,9 @@ func (p *parser) parseBodyExpr() (hir.Expr, []hir.Stmt, error) {
 			if err := p.expect(tokIdent, "do"); err != nil {
 				return nil, nil, err
 			}
-			// Parse while body as sub-block of do/let stmts
-			var whileBody []hir.Stmt
-			for {
-				if p.peek().kind == tokIdent && p.peek().text == "end" {
-					p.next()
-					break
-				}
-				if p.peek().kind == tokIdent && p.peek().text == "do" {
-					p.next()
-					doE, err := p.parseExpr()
-					if err != nil {
-						return nil, nil, err
-					}
-					// Check mutation
-					if p.peek().kind == tokOp && p.peek().text == "<-" {
-						p.next()
-						val, err := p.parseExpr()
-						if err != nil {
-							return nil, nil, err
-						}
-						if vr, ok := doE.(*hir.VarRefExpr); ok {
-							whileBody = append(whileBody, &hir.AssignStmt{Target: vr, Val: val})
-						}
-					} else {
-						dn := fmt.Sprintf("__wd_%d", p.lambdaCount)
-						p.lambdaCount++
-						whileBody = append(whileBody, &hir.VarDeclStmt{Name: dn, Ty: doE.ExprTy(), Init: doE})
-					}
-				} else {
-					break
-				}
+			whileBody, err := p.parseLoopBody()
+			if err != nil {
+				return nil, nil, err
 			}
 			stmts = append(stmts, &hir.WhileStmt{
 				Cond: cond,
@@ -1591,36 +1652,9 @@ func (p *parser) parseBodyExpr() (hir.Expr, []hir.Stmt, error) {
 			if err := p.expect(tokIdent, "do"); err != nil {
 				return nil, nil, err
 			}
-			// Parse for body (same as while body)
-			var forBody []hir.Stmt
-			for {
-				if p.peek().kind == tokIdent && p.peek().text == "end" {
-					p.next()
-					break
-				}
-				if p.peek().kind == tokIdent && p.peek().text == "do" {
-					p.next()
-					doE, err := p.parseExpr()
-					if err != nil {
-						return nil, nil, err
-					}
-					if p.peek().kind == tokOp && p.peek().text == "<-" {
-						p.next()
-						val, err := p.parseExpr()
-						if err != nil {
-							return nil, nil, err
-						}
-						if vr, ok := doE.(*hir.VarRefExpr); ok {
-							forBody = append(forBody, &hir.AssignStmt{Target: vr, Val: val})
-						}
-					} else {
-						dn := fmt.Sprintf("__fd_%d", p.lambdaCount)
-						p.lambdaCount++
-						forBody = append(forBody, &hir.VarDeclStmt{Name: dn, Ty: doE.ExprTy(), Init: doE})
-					}
-				} else {
-					break
-				}
+			forBody, err := p.parseLoopBody()
+			if err != nil {
+				return nil, nil, err
 			}
 			stmts = append(stmts, &hir.ForRangeStmt{
 				Var:   varName,
