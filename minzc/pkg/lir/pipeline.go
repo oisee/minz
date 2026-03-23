@@ -769,13 +769,12 @@ func emitTerminator(sb *strings.Builder, term *Term, blockIdx, numBlocks int) {
 func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...AllocHints) (string, error) {
 	// Lower MIR2 → MIROps, collecting cond_ret info per block.
 	type condRetInfo struct {
-		afterOpIdx int      // insert cond_ret asm after this op index
-		condVReg   mir2.Reg // condition vreg
+		label      string
+		carryBased bool     // true = branch on carry (CmpSubCarry), false = branch on Z flag
 		valVReg    mir2.Reg // return value vreg
-		label      string   // unique skip label
 	}
 	var allOps []MIROp
-	var condRets []condRetInfo
+	var condRetMap []condRetInfo // indexed by condRetN
 	fpv := FuncContractVRegs(f)
 	condRetN := 0
 	for _, b := range f.Blocks {
@@ -785,18 +784,31 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 		}
 		allOps = append(allOps, ops...)
 
-		// If block terminator is TermCondRet, record it for asm emission.
+		// If block terminator is TermCondRet, insert a sentinel MIROp.
+		// This sentinel carries the cond_ret info and will be emitted as
+		// inline asm by the emitter (between blocks, not after all insts).
 		if cr, ok := b.Term.(*mir2.TermCondRet); ok && len(cr.Vals) > 0 {
-			condRets = append(condRets, condRetInfo{
-				afterOpIdx: len(allOps) - 1,
-				condVReg:   cr.Cond,
-				valVReg:    cr.Vals[0],
-				label:      fmt.Sprintf(".%s_cond_ret_%d", SanitizeAsmLabel(f.Name), condRetN),
+			carry := false
+			for _, inst := range b.Insts {
+				if inst.Dst == cr.Cond && inst.Op == mir2.OpCmp &&
+					(inst.Cond == mir2.CmpSubCarry || inst.Cond == mir2.CmpSubCarryNot) {
+					carry = true
+					break
+				}
+			}
+			label := fmt.Sprintf(".%s_cr%d", SanitizeAsmLabel(f.Name), condRetN)
+			condRetMap = append(condRetMap, condRetInfo{label: label, carryBased: carry, valVReg: cr.Vals[0]})
+
+			// Insert sentinel: OpCondRet with Imm = condRetN index.
+			allOps = append(allOps, MIROp{
+				Op:  OpCondRet,
+				Dst: -1,
+				Src: [2]int{-1, -1},
+				Imm: int64(condRetN),
 			})
 			condRetN++
 		}
 	}
-	_ = condRets // used after WFC collapse in emit phase
 
 	// Emit explicit move for return value vregs that aren't produced by any
 	// instruction. E.g. ret %r2 where %r2 is a function parameter —
@@ -968,80 +980,62 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 
 		emitInstsWithCallSpills(&sb, insts, desc, paramPhys, retVRegs)
 
-		// Emit cond_ret sequences: conditional return for flat multi-block functions.
-		// cond_ret: if cond==0 return val, else continue to next block.
-		// On Z80: JR NZ, .skip / LD A, val / RET / .skip:
-		for _, cr := range condRets {
-			// Find the physical register assigned to the return value vreg.
-			valPhys := -1
+		// Replace condret markers with actual asm.
+		// Markers are "; __CONDRET_N" comments inserted by emitInstsWithCallSpills.
+		asmSoFar := sb.String()
+		for idx, cr := range condRetMap {
+			marker := fmt.Sprintf("    ; __CONDRET_%d\n", idx)
+			if !strings.Contains(asmSoFar, marker) {
+				continue
+			}
+
+			// Find physical register of return value vreg.
+			valName := "A"
 			for ci := range wfc.Cells {
 				c := &wfc.Cells[ci]
 				if c.VRegDst == int(cr.valVReg) && !c.DstLocs.IsEmpty() {
-					valPhys = PhysOf(c.DstLocs)
+					if p := PhysOf(c.DstLocs); p >= 0 && p < len(desc.Locs) {
+						valName = desc.Locs[p].Name
+					}
 					break
 				}
-				for s := 0; s < 2; s++ {
-					if c.VRegSrc[s] == int(cr.valVReg) && !c.SrcLocs[s].IsEmpty() {
-						valPhys = PhysOf(c.SrcLocs[s])
-						break
-					}
+			}
+			is16 := valName == "DE" || valName == "BC" || valName == "HL"
+
+			loadVal := ""
+			if is16 {
+				if valName == "DE" {
+					loadVal = "    EX DE, HL\n"
+				} else if valName == "BC" {
+					loadVal = "    LD H, B\n    LD L, C\n"
 				}
-			}
-			valName := "A"
-			if valPhys >= 0 && valPhys < len(desc.Locs) {
-				valName = desc.Locs[valPhys].Name
+			} else if valName != "A" {
+				loadVal = fmt.Sprintf("    LD A, %s\n", valName)
 			}
 
-			// Emit conditional return.
-			// cond_ret returns Vals when cond==0. The cond is typically
-			// cmp.ugt result. After CP B on Z80:
-			//   A > B → carry clear, zero clear (cond=1, don't return)
-			//   A ≤ B → carry set OR zero set (cond=0, DO return vals)
-			// Emit: skip the return if cond is true (A > B = NC and NZ).
-			// Since JR can only test one flag, use two jumps:
-			//   JR NC, .check_z   (if not carry, check zero)
-			//   [carry set → A < B → return val]
-			//   .check_z:
-			//   JR NZ, .skip      (if not zero → A > B → skip return)
-			//   [zero set → A == B → return val]
-			// Simplified: just use JP C for A < B, then check equal.
-			// Actually simplest: negate. Skip return when cond!=0.
-			// cond != 0 means cmp.ugt is true → NC AND NZ.
-			// So: if C → return vals. If Z → return vals. Otherwise skip.
-			skipLabel := cr.label
-			noRetLabel := cr.label + "_no"
-
-			// Determine if return value is 8-bit (A) or 16-bit (HL).
-			is16bit := valName == "DE" || valName == "BC" ||
-				valName == "HL" || valName == "IX" || valName == "IY"
-
-			// emitLoadRetVal moves value into return register (A for u8, HL for u16).
-			emitLoadRetVal := func() {
-				if is16bit {
-					switch valName {
-					case "HL":
-						// Already in return register.
-					case "DE":
-						fmt.Fprintf(&sb, "    EX DE, HL\n")
-					case "BC":
-						fmt.Fprintf(&sb, "    LD H, B\n    LD L, C\n")
-					default:
-						fmt.Fprintf(&sb, "    PUSH %s\n    POP HL\n", valName)
-					}
-				} else if valName != "A" {
-					fmt.Fprintf(&sb, "    LD A, %s\n", valName)
-				}
+			var condAsm strings.Builder
+			if cr.carryBased {
+				// Carry-based (CmpSubCarry): cond==0 = no carry = a >= b.
+				// SUB result already in A. Skip return when carry set (a < b).
+				fmt.Fprintf(&condAsm, "    JR C, %s\n", cr.label)
+				fmt.Fprintf(&condAsm, "    RET\n") // return A (= a-b, correct for a >= b)
+				fmt.Fprintf(&condAsm, "%s:\n", cr.label)
+			} else {
+				// Flag-based: return when carry OR zero (cond==0).
+				noLabel := cr.label + "_no"
+				fmt.Fprintf(&condAsm, "    JR NC, %s\n", noLabel)
+				condAsm.WriteString(loadVal)
+				fmt.Fprintf(&condAsm, "    RET\n")
+				fmt.Fprintf(&condAsm, "%s:\n", noLabel)
+				fmt.Fprintf(&condAsm, "    JR NZ, %s\n", cr.label)
+				condAsm.WriteString(loadVal)
+				fmt.Fprintf(&condAsm, "    RET\n")
+				fmt.Fprintf(&condAsm, "%s:\n", cr.label)
 			}
-
-			fmt.Fprintf(&sb, "    JR NC, %s\n", noRetLabel)
-			emitLoadRetVal()
-			fmt.Fprintf(&sb, "    RET\n")
-			fmt.Fprintf(&sb, "%s:\n", noRetLabel)
-			fmt.Fprintf(&sb, "    JR NZ, %s\n", skipLabel)
-			emitLoadRetVal()
-			fmt.Fprintf(&sb, "    RET\n")
-			fmt.Fprintf(&sb, "%s:\n", skipLabel)
+			asmSoFar = strings.Replace(asmSoFar, marker, condAsm.String(), 1)
 		}
+		sb.Reset()
+		sb.WriteString(asmSoFar)
 
 		// Final text-level fixup for remaining invalid Z80.
 		asmText := sb.String()
@@ -1058,7 +1052,7 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 
 		// Tail call optimization: CALL f / RET → JP f
 		// ONLY safe when the CALL result IS the return value (no other vregs live).
-		asmSoFar := sb.String()
+		asmSoFar = sb.String()
 		if len(retVRegs) == 0 || onlyCallResult(retVRegs, insts) {
 			if idx := strings.LastIndex(asmSoFar, "    CALL "); idx >= 0 {
 				callLine := asmSoFar[idx:]
@@ -1140,6 +1134,16 @@ func onlyCallResult(retVRegs map[int]bool, insts []Inst) bool {
 // retVRegs: vregs used by return terminators (always "live after" any CALL).
 func emitInstsWithCallSpills(sb *strings.Builder, insts []Inst, desc *MachineDesc, paramPhys map[int]int, retVRegs ...map[int]bool) {
 	for i, inst := range insts {
+		// Condret sentinel: Meta instruction with condret marker.
+		// Emit inline asm for conditional return between blocks.
+		if inst.Meta != nil && strings.HasPrefix(inst.Meta.Comment, "condret:") {
+			// The condret index is in inst.Imm. Look up in condRetMap
+			// which is passed via closure from the caller. For now,
+			// emit a placeholder comment that the caller will replace.
+			fmt.Fprintf(sb, "    ; __CONDRET_%d\n", inst.Imm)
+			continue
+		}
+
 		if inst.Pat == nil {
 			continue
 		}

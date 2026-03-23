@@ -23,15 +23,16 @@ type WFCState struct {
 
 // WFCCell is the superposition for one instruction position.
 type WFCCell struct {
-	Pat     *Pattern // selected pattern (nil = not yet selected)
-	DstLocs LocSet   // possible locations for destination
+	Pat     *Pattern  // selected pattern (nil = not yet selected)
+	Meta    *MetaInst // non-nil for meta-instructions (condret markers, pins, etc.)
+	DstLocs LocSet    // possible locations for destination
 	SrcLocs [2]LocSet // possible locations for each source
-	VRegDst int      // virtual register for dst (-1 = none)
-	VRegSrc [2]int   // virtual registers for sources
-	Imm     int64    // immediate value (preserved from isel)
-	Sym     string   // symbol name (preserved for call templates)
-	MIROp   *MIROp   // original MIR op (for pattern-level retry in validate-reject)
-	IsMeta  bool     // true for meta-instructions (skip in emit/propagate)
+	VRegDst int       // virtual register for dst (-1 = none)
+	VRegSrc [2]int    // virtual registers for sources
+	Imm     int64     // immediate value (preserved from isel)
+	Sym     string    // symbol name (preserved for call templates)
+	MIROp   *MIROp    // original MIR op (for pattern-level retry in validate-reject)
+	IsMeta  bool      // true for meta-instructions (skip in emit/propagate)
 }
 
 // Entropy returns the number of possible states for this cell.
@@ -66,10 +67,9 @@ func NewWFCState(desc *MachineDesc, insts []Inst) *WFCState {
 
 	cells := make([]WFCCell, len(insts))
 	for i, inst := range insts {
-		// Skip meta instructions — they don't become real cells.
-		// But we still create a placeholder cell to keep indices aligned.
+		// Meta instructions: preserve Meta field, skip constraint propagation.
 		if inst.Meta != nil {
-			cells[i] = WFCCell{IsMeta: true}
+			cells[i] = WFCCell{IsMeta: true, Meta: inst.Meta, Imm: inst.Imm}
 			continue
 		}
 		cells[i] = WFCCell{
@@ -862,14 +862,15 @@ func PhysOf(s LocSet) int {
 func (s *WFCState) ToInsts() []Inst {
 	insts := make([]Inst, 0, len(s.Cells))
 	for _, c := range s.Cells {
-		if c.Pat == nil {
-			continue // skip synthetic param/use cells
+		if c.Pat == nil && c.Meta == nil {
+			continue // skip synthetic param/use cells (but keep Meta instructions)
 		}
 		insts = append(insts, Inst{
-			Pat: c.Pat,
-			Imm: c.Imm,
-			Sym: c.Sym,
-			Dst: Operand{VReg: c.VRegDst, Allowed: c.DstLocs, Phys: PhysOf(c.DstLocs)},
+			Pat:  c.Pat,
+			Meta: c.Meta,
+			Imm:  c.Imm,
+			Sym:  c.Sym,
+			Dst:  Operand{VReg: c.VRegDst, Allowed: c.DstLocs, Phys: PhysOf(c.DstLocs)},
 			Srcs: [2]Operand{
 				{VReg: c.VRegSrc[0], Allowed: c.SrcLocs[0], Phys: PhysOf(c.SrcLocs[0])},
 				{VReg: c.VRegSrc[1], Allowed: c.SrcLocs[1], Phys: PhysOf(c.SrcLocs[1])},

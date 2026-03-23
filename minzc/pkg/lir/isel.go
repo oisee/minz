@@ -144,8 +144,17 @@ func SelectBlockInstructions(desc *MachineDesc, ops []MIROp, params []BlockParam
 	defMap := buildDefMap(ops)
 
 	for i, op := range ops {
+		// Pass through sentinel meta-ops (condret markers).
+		if op.Op == OpCondRet {
+			result.Insts = append(result.Insts, Inst{
+				Pat: nil, // no pattern — emitter handles via Meta
+				Meta: &MetaInst{Kind: MetaComment, Comment: fmt.Sprintf("condret:%d", op.Imm)},
+				Imm: op.Imm,
+			})
+			continue
+		}
+
 		// Immediate ALU folding: if src1 is a const, fold into immediate op.
-		// This replaces LD r,n + OP A,r with a single OP A,n instruction.
 		op = foldConstIntoALU(op, ops, defMap)
 
 		pat, err := findBestPattern(desc, op)
