@@ -106,7 +106,7 @@ fun set_border(color: u8) -> void {
 }
 
 // Tetromino shape definitions - use output parameter instead of return
-fun get_piece_blocks(piece_type: PieceType, rotation: Rotation, blocks: *[Point; 4]) -> void {
+fun get_piece_blocks(piece_type: PieceType, rotation: Rotation, blocks: ^[Point; 4]) -> void {
     if (piece_type == PieceType.I) {
         // I-piece (line)
         if (rotation == Rotation.R0 || rotation == Rotation.R180) {

@@ -147,7 +147,7 @@ fun update_grains() -> void {
 
 // Render grains to attribute memory
 fun render_grains() -> void {
-    let attr: *u8 = 0x5800 as *u8;
+    let attr: ^u8 = 0x5800 as ^u8;
 
     // Clear all to blue
     for i in 0..768 {

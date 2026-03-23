@@ -38,7 +38,7 @@ fun init_colors() -> void {
 }
 
 fun init_chars() -> void {
-    let ptr: *u8 = SCREEN_MEM;
+    let ptr: ^u8 = SCREEN_MEM;
     for cell in 0..736 {
         *ptr = 0x3A + (rand() % 33);
         ptr = ptr + 1;
@@ -46,7 +46,7 @@ fun init_chars() -> void {
 }
 
 fun update_rain() -> void {
-    let ptr: *u8 = ATTR_MEM;
+    let ptr: ^u8 = ATTR_MEM;
     for col in 0..32 {
         for row in 0..23 {
             let idx: u16 = (scroll_offset + col * 23 + row) % 768;

@@ -22,7 +22,7 @@ fun draw_pixel(x: u8, y: u8, set: bool) -> void {
 }
 
 // Draw the entire canvas
-fun draw_canvas(canvas: *[256]bool) -> void {
+fun draw_canvas(canvas: ^[256]bool) -> void {
     let mut y: u8 = 0;
     while y < 16 {
         let mut x: u8 = 0;

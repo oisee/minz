@@ -1,5 +1,5 @@
 // Pointer Arithmetic Example
-fun array_sum(data: *u8, count: u8) -> u16 {
+fun array_sum(data: ^u8, count: u8) -> u16 {
     let sum: u16 = 0;
     let i: u8 = 0;
     while i < count {
@@ -10,7 +10,7 @@ fun array_sum(data: *u8, count: u8) -> u16 {
     return sum;
 }
 
-fun find_max(data: *u8, count: u8) -> u8 {
+fun find_max(data: ^u8, count: u8) -> u8 {
     let max: u8 = *data;
     data = data + 1;
     let i: u8 = 1;

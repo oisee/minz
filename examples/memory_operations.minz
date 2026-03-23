@@ -1,5 +1,5 @@
 // Memory Operations Example
-fun mem_set(dest: *u8, value: u8, count: u16) -> void {
+fun mem_set(dest: ^u8, value: u8, count: u16) -> void {
     while count > 0 {
         *dest = value;
         dest = dest + 1;
@@ -7,7 +7,7 @@ fun mem_set(dest: *u8, value: u8, count: u16) -> void {
     }
 }
 
-fun mem_copy(dest: *u8, src: *u8, count: u16) -> void {
+fun mem_copy(dest: ^u8, src: ^u8, count: u16) -> void {
     while count > 0 {
         *dest = *src;
         dest = dest + 1;
@@ -16,7 +16,7 @@ fun mem_copy(dest: *u8, src: *u8, count: u16) -> void {
     }
 }
 
-fun mem_compare(ptr1: *u8, ptr2: *u8, count: u16) -> i8 {
+fun mem_compare(ptr1: ^u8, ptr2: ^u8, count: u16) -> i8 {
     while count > 0 {
         if *ptr1 != *ptr2 {
             if *ptr1 < *ptr2 {

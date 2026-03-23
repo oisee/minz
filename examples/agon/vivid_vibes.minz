@@ -57,7 +57,7 @@ global scratch_buf: [u8; 512];
 // Format: flag byte + 8 tokens per group
 //   bit=0: literal (1 byte)
 //   bit=1: match (2 bytes: 12-bit offset + 4-bit length)
-fun lzss_decompress(src: *u8, src_len: u16, dst: *u8, dst_size: u16) -> u16 {
+fun lzss_decompress(src: ^u8, src_len: u16, dst: ^u8, dst_size: u16) -> u16 {
     let mut si: u16 = 0;
     let mut di: u16 = 0;
 
@@ -124,17 +124,17 @@ fun lzss_decompress(src: *u8, src_len: u16, dst: *u8, dst_size: u16) -> u16 {
 struct EffectData {
     num_frames: u16,
     max_tris: u8,
-    tri_counts: *u8,
-    colors: *u8,
-    x1_lo: *u8,
-    x1_hi: *u8,
-    y1: *u8,
-    x2_lo: *u8,
-    x2_hi: *u8,
-    y2: *u8,
-    x3_lo: *u8,
-    x3_hi: *u8,
-    y3: *u8,
+    tri_counts: ^u8,
+    colors: ^u8,
+    x1_lo: ^u8,
+    x1_hi: ^u8,
+    y1: ^u8,
+    x2_lo: ^u8,
+    x2_hi: ^u8,
+    y2: ^u8,
+    x3_lo: ^u8,
+    x3_hi: ^u8,
+    y3: ^u8,
 }
 
 // Global effect data (avoid returning struct)
@@ -156,7 +156,7 @@ global col_x3_hi: u16 = 0;
 global col_y3: u16 = 0;
 
 // Parse effect header from decompressed data and set up column pointers
-fun parse_effect(data: *u8) {
+fun parse_effect(data: ^u8) {
     // Header: num_frames (u16-LE), max_tris (u8)
     effect_num_frames = (data[0] as u16) | ((data[1] as u16) << 8);
     effect_max_tris = data[2];
@@ -184,7 +184,7 @@ fun parse_effect(data: *u8) {
 
 // Build VDU command sequence for a single frame into scratch_buf.
 // Returns the number of bytes written.
-fun build_frame_vdu(data: *u8, frame: u16) -> u16 {
+fun build_frame_vdu(data: ^u8, frame: u16) -> u16 {
     let mut pos: u16 = 0;
     let ntris: u8 = data[col_tri_counts + frame];
 
@@ -254,7 +254,7 @@ fun build_frame_vdu(data: *u8, frame: u16) -> u16 {
 }
 
 // Upload all frames of the effect to VDP buffers
-fun upload_all_frames(data: *u8, base_id: u16) {
+fun upload_all_frames(data: ^u8, base_id: u16) {
     let mut frame: u16 = 0;
     while frame < effect_num_frames {
         let vdu_len: u16 = build_frame_vdu(data, frame);
@@ -318,15 +318,15 @@ fun play_effect(base_id: u16, num_frames: u16, cycles: u8) -> bool {
 //       @incbin("data/cube_compressed.bin")
 //       @emit("_cube_compressed_end:")
 //   ]]]
-//   @extern global cube_compressed: *u8;
-//   @extern global cube_compressed_end: *u8;
+//   @extern global cube_compressed: ^u8;
+//   @extern global cube_compressed_end: ^u8;
 
 // File loading buffer for compressed data
 global compressed_buf: [u8; 8192];
 
 // Load compressed data from SD card
 // Returns number of bytes loaded, or 0 on error
-fun load_compressed(filename: *u8) -> u16 {
+fun load_compressed(filename: ^u8) -> u16 {
     let handle: u8 = fopen(filename, 0x01);  // FA_READ
     if handle == 0 {
         return 0;

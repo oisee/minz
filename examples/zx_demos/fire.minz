@@ -42,7 +42,7 @@ fun propagate() -> void {
 
 // Update attributes from heat grid
 fun update_screen() -> void {
-    let ptr: *u8 = ATTR_MEM + 416;
+    let ptr: ^u8 = ATTR_MEM + 416;
     for i in 0..320 {
         *ptr = colLUT[grid[i]];
         ptr = ptr + 1;

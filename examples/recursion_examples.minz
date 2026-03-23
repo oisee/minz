@@ -13,7 +13,7 @@ fun gcd(a: u8, b: u8) -> u8 {
     return gcd(b, a % b);
 }
 
-fun binary_search(arr: *u8, target: u8, left: u8, right: u8) -> i8 {
+fun binary_search(arr: ^u8, target: u8, left: u8, right: u8) -> i8 {
     if left > right {
         return -1;
     }

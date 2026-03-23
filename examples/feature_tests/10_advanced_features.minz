@@ -47,7 +47,7 @@ fun test_pattern_matching() -> bool {
     enum Message {
         Quit,
         Move { x: u8, y: u8 },
-        Write(*u8),
+        Write(^u8),
         ChangeColor(u8, u8, u8),
     }
     
@@ -169,11 +169,11 @@ fun test_macros() -> bool {
 
 // Test @compile_if conditional compilation
 @compile_if(DEBUG) {
-    fun debug_print(msg: *u8) -> void {
+    fun debug_print(msg: ^u8) -> void {
         // Debug implementation
     }
 } else {
-    fun debug_print(msg: *u8) -> void {
+    fun debug_print(msg: ^u8) -> void {
         // Empty in release
     }
 }
