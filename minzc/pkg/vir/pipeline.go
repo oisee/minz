@@ -1943,6 +1943,58 @@ func gracePass(lines []string) []string {
 			}
 		}
 
+		// ── EX DE,HL sandwich elimination ────────────────────────────
+		// EX DE,HL / instr / EX DE,HL → rewrite instr to swap DE↔HL refs
+		// Only when the middle instruction doesn't branch or use both DE and HL.
+		if i+2 < len(lines) && line == "EX DE, HL" {
+			mid := strings.TrimSpace(lines[i+1])
+			after := strings.TrimSpace(lines[i+2])
+			if after == "EX DE, HL" && !strings.HasPrefix(mid, "J") &&
+				!strings.HasPrefix(mid, "CALL") && !strings.HasPrefix(mid, "RET") {
+				// Swap DE↔HL references in the middle instruction
+				swapped := mid
+				swapped = strings.ReplaceAll(swapped, "HL", "##HL##")
+				swapped = strings.ReplaceAll(swapped, "DE", "HL")
+				swapped = strings.ReplaceAll(swapped, "##HL##", "DE")
+				swapped = strings.ReplaceAll(swapped, " H,", " ##H##,")
+				swapped = strings.ReplaceAll(swapped, " L,", " ##L##,")
+				swapped = strings.ReplaceAll(swapped, " D,", " H,")
+				swapped = strings.ReplaceAll(swapped, " E,", " L,")
+				swapped = strings.ReplaceAll(swapped, " ##H##,", " D,")
+				swapped = strings.ReplaceAll(swapped, " ##L##,", " E,")
+				swapped = strings.ReplaceAll(swapped, ",H", ",##H##")
+				swapped = strings.ReplaceAll(swapped, ",L", ",##L##")
+				swapped = strings.ReplaceAll(swapped, ",D", ",H")
+				swapped = strings.ReplaceAll(swapped, ",E", ",L")
+				swapped = strings.ReplaceAll(swapped, ",##H##", ",D")
+				swapped = strings.ReplaceAll(swapped, ",##L##", ",E")
+				if swapped != mid { // only if something actually changed
+					result = append(result, "    "+swapped)
+					i += 2 // skip both EX
+					continue
+				}
+			}
+		}
+
+		// ── Dead LD before CALL ──────────────────────────────────────
+		// LD r, X / CALL func → remove LD if CALL clobbers r.
+		// CALL clobbers A and F always (return value + flags).
+		if i+1 < len(lines) && strings.HasPrefix(line, "LD ") {
+			next := strings.TrimSpace(lines[i+1])
+			if strings.HasPrefix(next, "CALL ") {
+				parts := strings.SplitN(line[3:], ", ", 2)
+				if len(parts) == 2 {
+					reg := strings.TrimSpace(parts[0])
+					// CALL always clobbers A. If we're loading into A
+					// and the next instruction is CALL (which overwrites A
+					// with its return value), the LD is dead.
+					if reg == "A" {
+						continue // dead store — CALL will overwrite A
+					}
+				}
+			}
+		}
+
 		// ── Empty label blocks ───────────────────────────────────────
 		// .label: / .next_label: → merge (empty block)
 		if strings.HasSuffix(line, ":") && i+1 < len(lines) {
