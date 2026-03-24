@@ -332,16 +332,29 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			SrcLocs: [2]LocSet{Z80_DE},
 			Template: "EX DE, HL\n    LD A, (HL)\n    INC HL\n    LD H, (HL)\n    LD L, A\n    EX DE, HL",
 			Cost: 30, Bytes: 6, Flags: PatMemRead, TiedDstSrc: true},
-		// Store 16-bit: ptr in DE, value in HL
+		// Store 16-bit: ptr in DE, value in HL (EX bracket, restores DE/HL)
 		{Name: "st16_de_hl", Op: OpStore, Width: 16,
 			SrcLocs: [2]LocSet{Z80_DE, Z80_HL},
 			Template: "EX DE, HL\n    LD (HL), E\n    INC HL\n    LD (HL), D\n    DEC HL\n    EX DE, HL",
 			Cost: 26, Bytes: 6, Flags: PatMemWrite},
+		// Store 16-bit: ptr in DE, value in HL (via (DE) indirect, A as temp)
+		// Cheaper when A is available — no EX bracket needed
+		{Name: "st16_de_hl_via_a", Op: OpStore, Width: 16,
+			SrcLocs: [2]LocSet{Z80_DE, Z80_HL},
+			Template: "LD A, L\n    LD (DE), A\n    INC DE\n    LD A, H\n    LD (DE), A\n    DEC DE",
+			Cost: 24, Bytes: 6, Flags: PatMemWrite,
+			Clobbers: Z80_A},
 		// Store 16-bit: ptr in DE, value in BC
 		{Name: "st16_de_bc", Op: OpStore, Width: 16,
 			SrcLocs: [2]LocSet{Z80_DE, Z80_BC},
 			Template: "EX DE, HL\n    LD (HL), C\n    INC HL\n    LD (HL), B\n    DEC HL\n    EX DE, HL",
 			Cost: 26, Bytes: 6, Flags: PatMemWrite},
+		// Store 16-bit: ptr in DE, value in BC (via (DE) indirect, A as temp)
+		{Name: "st16_de_bc_via_a", Op: OpStore, Width: 16,
+			SrcLocs: [2]LocSet{Z80_DE, Z80_BC},
+			Template: "LD A, C\n    LD (DE), A\n    INC DE\n    LD A, B\n    LD (DE), A\n    DEC DE",
+			Cost: 24, Bytes: 6, Flags: PatMemWrite,
+			Clobbers: Z80_A},
 
 		// 16-bit compare
 		{Name: "cmp16_hl_de", Op: OpCmp, Width: 16, DstLocs: Z80_Flags,
