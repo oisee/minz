@@ -31,6 +31,7 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('minz.compileNativeQBE', () => compileNative('-q')),
         vscode.commands.registerCommand('minz.emitC', () => emitNativeIR('-emit-c')),
         vscode.commands.registerCommand('minz.emitQBE', () => emitNativeIR('-emit-qbe')),
+        vscode.commands.registerCommand('minz.compileAndRunMZV', () => compileAndRunMZV()),
         diagnosticCollection
     );
 
@@ -56,14 +57,33 @@ export function activate(context: vscode.ExtensionContext) {
         ]
     });
 
+    // Frill language configuration
+    vscode.languages.setLanguageConfiguration('frill', {
+        comments: {
+            lineComment: '--',
+            blockComment: ['(*', '*)']
+        },
+        brackets: [
+            ['{', '}'],
+            ['[', ']'],
+            ['(', ')']
+        ],
+        autoClosingPairs: [
+            { open: '{', close: '}' },
+            { open: '[', close: ']' },
+            { open: '(', close: ')' },
+            { open: '"', close: '"' }
+        ]
+    });
+
     // Register debug configuration provider for DeZog
     context.subscriptions.push(
         vscode.debug.registerDebugConfigurationProvider('dezog', new MinZDebugConfigProvider())
     );
 
     // Compile on save for diagnostics
-    const compilableLangs = new Set(['minz', 'nanz', 'mir', 'lanz', 'lizp', 'plm', 'minz-pascal', 'minz-c', 'minz-objc', 'minz-abap']);
-    const compilableExts = new Set(['.minz', '.mz', '.nanz', '.mir', '.lanz', '.lizp', '.plm', '.pas', '.c', '.m', '.abap']);
+    const compilableLangs = new Set(['minz', 'nanz', 'mir', 'lanz', 'lizp', 'plm', 'minz-pascal', 'minz-c', 'minz-objc', 'minz-abap', 'frill']);
+    const compilableExts = new Set(['.minz', '.mz', '.nanz', '.mir', '.lanz', '.lizp', '.plm', '.pas', '.c', '.m', '.abap', '.frl']);
     vscode.workspace.onDidSaveTextDocument((document) => {
         const lang = document.languageId;
         const ext = path.extname(document.fileName);
@@ -137,6 +157,7 @@ async function startLSP(context: vscode.ExtensionContext) {
             documentSelector: [
                 { scheme: 'file', language: 'minz' },
                 { scheme: 'file', language: 'nanz' },
+                { scheme: 'file', language: 'frill' },
             ],
             outputChannel: outputChannel,
         };
@@ -226,10 +247,10 @@ function getMinZContext(): { filePath: string; config: vscode.WorkspaceConfigura
     const name = activeEditor.document.fileName;
     const lang = activeEditor.document.languageId;
     const ext = path.extname(name);
-    const supportedExts = new Set(['.minz', '.mz', '.nanz', '.mir', '.lanz', '.lizp', '.plm', '.pas', '.c', '.m', '.abap']);
-    const supportedLangs = new Set(['minz', 'nanz', 'mir', 'lanz', 'lizp', 'plm', 'minz-pascal', 'minz-c', 'minz-objc', 'minz-abap']);
+    const supportedExts = new Set(['.minz', '.mz', '.nanz', '.mir', '.lanz', '.lizp', '.plm', '.pas', '.c', '.m', '.abap', '.frl']);
+    const supportedLangs = new Set(['minz', 'nanz', 'mir', 'lanz', 'lizp', 'plm', 'minz-pascal', 'minz-c', 'minz-objc', 'minz-abap', 'frill']);
     if (!supportedExts.has(ext) && !supportedLangs.has(lang)) {
-        vscode.window.showErrorMessage('No MinZ-compatible file is currently open. Supported: .minz, .nanz, .lanz, .lizp, .plm, .pas, .c, .m, .abap');
+        vscode.window.showErrorMessage('No MinZ-compatible file is currently open. Supported: .minz, .nanz, .frl, .lanz, .lizp, .plm, .pas, .c, .m, .abap');
         return null;
     }
 
@@ -375,6 +396,24 @@ async function compileAndRun() {
         // Other targets — use mze with target flag
         terminal.sendText(`${mzePath} -t ${target} "${fullBinFile}"`);
     }
+}
+
+async function compileAndRunMZV() {
+    const ctx = getMinZContext();
+    if (!ctx) { return; }
+    await vscode.window.activeTextEditor?.document.save();
+
+    const mzvPath = path.join(path.dirname(ctx.compilerPath), 'mzv');
+    const filePath = ctx.filePath;
+    const fileName = path.basename(filePath, path.extname(filePath));
+
+    outputChannel.clear();
+    outputChannel.show();
+    outputChannel.appendLine(`Compile & Run MZV: ${filePath}`);
+
+    const terminal = vscode.window.createTerminal({ name: `MZV: ${fileName}`, cwd: ctx.workingDir });
+    terminal.show();
+    terminal.sendText(`${mzvPath} "${filePath}"`);
 }
 
 async function compileToIR() {
@@ -620,7 +659,7 @@ class MinZDebugConfigProvider implements vscode.DebugConfigurationProvider {
         // If no config, provide a default
         if (!config.type) {
             const activeEditor = vscode.window.activeTextEditor;
-            const supportedDebugExts = ['.minz', '.mz', '.mir', '.nanz', '.lanz', '.lizp', '.plm', '.pas', '.c', '.m', '.abap'];
+            const supportedDebugExts = ['.minz', '.mz', '.mir', '.nanz', '.lanz', '.lizp', '.plm', '.pas', '.c', '.m', '.abap', '.frl'];
             if (!activeEditor || !supportedDebugExts.some(ext => activeEditor.document.fileName.endsWith(ext))) {
                 return undefined;
             }

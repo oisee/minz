@@ -151,6 +151,17 @@
           ".abap"
         ],
         "configuration": "./language-configuration.json"
+      },
+      {
+        "id": "frill",
+        "aliases": [
+          "Frill",
+          "frill"
+        ],
+        "extensions": [
+          ".frl"
+        ],
+        "configuration": "./frill-language-configuration.json"
       }
     ],
     "grammars": [
@@ -168,6 +179,11 @@
         "language": "mir",
         "scopeName": "source.mir",
         "path": "./syntaxes/mir.tmLanguage.json"
+      },
+      {
+        "language": "frill",
+        "scopeName": "source.frill",
+        "path": "./syntaxes/frill.tmLanguage.json"
       }
     ],
     "snippets": [
@@ -178,6 +194,10 @@
       {
         "language": "nanz",
         "path": "./snippets/nanz-snippets.json"
+      },
+      {
+        "language": "frill",
+        "path": "./snippets/frill-snippets.json"
       }
     ],
     "commands": [
@@ -255,39 +275,49 @@
         "command": "minz.emitQBE",
         "title": "MinZ: Emit QBE IL",
         "icon": "$(code)"
+      },
+      {
+        "command": "minz.compileAndRunMZV",
+        "title": "MinZ: Compile & Run MZV",
+        "icon": "$(vm)"
       }
     ],
     "menus": {
       "editor/context": [
         {
-          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap",
+          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == frill || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap",
           "command": "minz.compile",
           "group": "minz@1"
         },
         {
-          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap",
+          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == frill || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap",
           "command": "minz.compileAndRun",
           "group": "minz@2"
         },
         {
-          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap",
+          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == frill || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap",
           "command": "minz.compileToMIR",
           "group": "minz@3"
         },
         {
-          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap",
+          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == frill || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap",
           "command": "minz.compileToASM",
           "group": "minz@3"
         },
         {
-          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap",
+          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == frill || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap",
           "command": "minz.compileAll",
           "group": "minz@4"
         },
         {
-          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap",
+          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == frill || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap",
           "command": "minz.compileOptimized",
           "group": "minz@5"
+        },
+        {
+          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == frill || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap",
+          "command": "minz.compileAndRunMZV",
+          "group": "minz@5b"
         },
         {
           "when": "editorLangId == minz",
@@ -300,29 +330,29 @@
           "group": "minz@7"
         },
         {
-          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap",
+          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == frill || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap",
           "command": "minz.compileNative",
           "group": "minz@8"
         },
         {
-          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap",
+          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == frill || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap",
           "command": "minz.emitC",
           "group": "minz@9"
         },
         {
-          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap",
+          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == frill || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap",
           "command": "minz.emitQBE",
           "group": "minz@9"
         }
       ],
       "editor/title": [
         {
-          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap",
+          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == frill || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap",
           "command": "minz.compile",
           "group": "navigation@1"
         },
         {
-          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap",
+          "when": "editorLangId == minz || editorLangId == nanz || editorLangId == frill || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap",
           "command": "minz.compileOptimized",
           "group": "navigation@2"
         },
@@ -338,37 +368,43 @@
         "command": "minz.compile",
         "key": "ctrl+alt+b",
         "mac": "cmd+alt+b",
-        "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap"
+        "when": "editorLangId == minz || editorLangId == nanz || editorLangId == frill || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap"
       },
       {
         "command": "minz.compileAndRun",
         "key": "ctrl+alt+r",
         "mac": "cmd+alt+r",
-        "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap"
+        "when": "editorLangId == minz || editorLangId == nanz || editorLangId == frill || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap"
       },
       {
         "command": "minz.compileOptimized",
         "key": "ctrl+alt+o",
         "mac": "cmd+alt+o",
-        "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap"
+        "when": "editorLangId == minz || editorLangId == nanz || editorLangId == frill || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap"
       },
       {
         "command": "minz.compileToMIR",
         "key": "ctrl+alt+m",
         "mac": "cmd+alt+m",
-        "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap"
+        "when": "editorLangId == minz || editorLangId == nanz || editorLangId == frill || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap"
       },
       {
         "command": "minz.compileToASM",
         "key": "ctrl+alt+i",
         "mac": "cmd+alt+i",
-        "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap"
+        "when": "editorLangId == minz || editorLangId == nanz || editorLangId == frill || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap"
       },
       {
         "command": "minz.compileAll",
         "key": "ctrl+alt+shift+b",
         "mac": "cmd+alt+shift+b",
-        "when": "editorLangId == minz || editorLangId == nanz || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap"
+        "when": "editorLangId == minz || editorLangId == nanz || editorLangId == frill || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap"
+      },
+      {
+        "command": "minz.compileAndRunMZV",
+        "key": "ctrl+alt+v",
+        "mac": "cmd+alt+v",
+        "when": "editorLangId == minz || editorLangId == nanz || editorLangId == frill || editorLangId == lanz || editorLangId == lizp || editorLangId == plm || editorLangId == minz-pascal || editorLangId == minz-c || editorLangId == minz-objc || editorLangId == minz-abap"
       },
       {
         "command": "minz.showAST",
@@ -484,7 +520,9 @@
     "workspaceContains:**/*.pas",
     "workspaceContains:**/*.m",
     "onLanguage:minz-abap",
-    "workspaceContains:**/*.abap"
+    "workspaceContains:**/*.abap",
+    "onLanguage:frill",
+    "workspaceContains:**/*.frl"
   ],
   "scripts": {
     "vscode:prepublish": "npm run compile",

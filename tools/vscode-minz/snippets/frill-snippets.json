@@ -1,0 +1,79 @@
+{
+  "Let function": {
+    "prefix": "let",
+    "body": [
+      "let ${1:name} (${2:x} : ${3:u8}) = ${0}"
+    ],
+    "description": "Define a function"
+  },
+  "Let-in binding": {
+    "prefix": "letin",
+    "body": [
+      "let ${1:x} = ${2:expr} in",
+      "${0}"
+    ],
+    "description": "Let-in scoped binding"
+  },
+  "Match expression": {
+    "prefix": "match",
+    "body": [
+      "match ${1:x} with",
+      "| ${2:pattern} -> ${3:expr}",
+      "| ${0:_} -> 0"
+    ],
+    "description": "Pattern match expression"
+  },
+  "Type ADT": {
+    "prefix": "type",
+    "body": [
+      "type ${1:Name} = ${2:A} | ${3:B} | ${0:C}"
+    ],
+    "description": "Algebraic data type"
+  },
+  "If-then-else": {
+    "prefix": "ifthen",
+    "body": [
+      "if ${1:cond} then ${2:expr}",
+      "else ${0:expr}"
+    ],
+    "description": "If-then-else expression"
+  },
+  "Assert": {
+    "prefix": "assert",
+    "body": [
+      "assert ${1:expr} == ${0:expected}"
+    ],
+    "description": "Compile-time assertion"
+  },
+  "Property test": {
+    "prefix": "prop",
+    "body": [
+      "prop |${1:x}| ${0:expr}"
+    ],
+    "description": "Property-based test (all 256 u8 values)"
+  },
+  "While loop": {
+    "prefix": "while",
+    "body": [
+      "while ${1:cond} do",
+      "  ${0}",
+      "end"
+    ],
+    "description": "While loop with do/end"
+  },
+  "Pipe": {
+    "prefix": "pipe",
+    "body": [
+      "${1:x} |> ${2:f} |> ${0:g}"
+    ],
+    "description": "Pipe operator chain"
+  },
+  "IO function": {
+    "prefix": "letio",
+    "body": [
+      "let ${1:name} (${2:x} : ${3:u8}) : IO ${4:u8} =",
+      "  ${0}"
+    ],
+    "description": "IO-annotated function"
+  }
+}

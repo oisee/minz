@@ -1,0 +1,190 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Frill",
+  "scopeName": "source.frill",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#strings" },
+    { "include": "#keywords" },
+    { "include": "#types" },
+    { "include": "#type_variables" },
+    { "include": "#constructors" },
+    { "include": "#functions" },
+    { "include": "#literals" },
+    { "include": "#operators" },
+    { "include": "#punctuation" },
+    { "include": "#identifiers" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.double-dash.frill",
+          "match": "--.*$"
+        },
+        {
+          "name": "comment.block.frill",
+          "begin": "\\(\\*",
+          "end": "\\*\\)"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.frill",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            { "name": "constant.character.escape.frill", "match": "\\\\." }
+          ]
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.control.frill",
+          "match": "\\b(if|then|else|match|with|while|do|end|for|in|return)\\b"
+        },
+        {
+          "name": "keyword.declaration.frill",
+          "match": "\\b(let|type|class|instance|import|module|extern|rec)\\b"
+        },
+        {
+          "name": "keyword.other.frill",
+          "match": "\\b(of|fun|fn|val|where|and)\\b"
+        },
+        {
+          "name": "keyword.other.assert.frill",
+          "match": "\\b(assert|prop)\\b"
+        },
+        {
+          "name": "keyword.operator.effect.frill",
+          "match": "\\bIO\\b"
+        },
+        {
+          "name": "keyword.other.linearity.frill",
+          "match": "\\b(linear|affine)\\b"
+        },
+        {
+          "name": "constant.language.frill",
+          "match": "\\b(true|false)\\b"
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "storage.type.frill",
+          "match": "\\b(u8|u16|u24|u32|i8|i16|i24|i32|bool|void)\\b"
+        }
+      ]
+    },
+    "type_variables": {
+      "patterns": [
+        {
+          "name": "variable.other.type.frill",
+          "match": "'[a-z][a-zA-Z0-9_]*"
+        }
+      ]
+    },
+    "constructors": {
+      "patterns": [
+        {
+          "comment": "ADT constructors start with uppercase",
+          "name": "entity.name.tag.frill",
+          "match": "\\b[A-Z][A-Za-z0-9_]*\\b"
+        }
+      ]
+    },
+    "functions": {
+      "patterns": [
+        {
+          "comment": "Function definition: let name",
+          "match": "\\b(let)\\s+([a-z_][a-zA-Z0-9_]*)\\b",
+          "captures": {
+            "1": { "name": "keyword.declaration.frill" },
+            "2": { "name": "entity.name.function.frill" }
+          }
+        }
+      ]
+    },
+    "literals": {
+      "patterns": [
+        {
+          "name": "constant.numeric.hex.frill",
+          "match": "\\b0[xX][0-9A-Fa-f_]+\\b"
+        },
+        {
+          "name": "constant.numeric.binary.frill",
+          "match": "\\b0[bB][01_]+\\b"
+        },
+        {
+          "name": "constant.numeric.integer.frill",
+          "match": "\\b[0-9][0-9_]*\\b"
+        }
+      ]
+    },
+    "operators": {
+      "patterns": [
+        {
+          "name": "keyword.operator.pipe.frill",
+          "match": "\\|>"
+        },
+        {
+          "name": "keyword.operator.compose.frill",
+          "match": ">>"
+        },
+        {
+          "name": "keyword.operator.arrow.frill",
+          "match": "->"
+        },
+        {
+          "name": "keyword.operator.mutation.frill",
+          "match": "<-"
+        },
+        {
+          "name": "keyword.operator.linearity.frill",
+          "match": "[!~]"
+        },
+        {
+          "name": "keyword.operator.arithmetic.frill",
+          "match": "\\+|-|\\*|/|%"
+        },
+        {
+          "name": "keyword.operator.bitwise.frill",
+          "match": "&|\\||\\^|<<|>>"
+        },
+        {
+          "name": "keyword.operator.comparison.frill",
+          "match": "==|!=|<=|>=|<|>"
+        },
+        {
+          "name": "keyword.operator.assignment.frill",
+          "match": "="
+        }
+      ]
+    },
+    "punctuation": {
+      "patterns": [
+        { "name": "punctuation.separator.frill", "match": "," },
+        { "name": "punctuation.terminator.frill", "match": ";" },
+        { "name": "punctuation.accessor.frill", "match": "\\." },
+        { "name": "punctuation.definition.block.frill", "match": "[{}]" },
+        { "name": "punctuation.definition.bracket.frill", "match": "[\\[\\]]" },
+        { "name": "punctuation.definition.paren.frill", "match": "[()]" },
+        { "name": "punctuation.separator.colon.frill", "match": ":" },
+        { "name": "punctuation.separator.bar.frill", "match": "\\|" }
+      ]
+    },
+    "identifiers": {
+      "patterns": [
+        {
+          "name": "variable.other.frill",
+          "match": "\\b[a-z_][a-zA-Z0-9_]*\\b"
+        }
+      ]
+    }
+  }
+}
