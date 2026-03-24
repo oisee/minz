@@ -1,6 +1,6 @@
-# VIR Solver: 520/520 = 100% — The World's First Z3-Based Z80 Code Generator
+# VIR Solver: 645/645 = 100% — The World's First Z3-Based Z80 Code Generator
 
-**Date:** 2026-03-23
+**Date:** 2026-03-23 (updated 2026-03-24)
 **Branch:** master
 **Author:** Alice Vinogradova + Claude
 
@@ -10,15 +10,26 @@
 
 A Z80 code generator that uses the Z3 SMT solver to **simultaneously** select instructions and allocate registers in a single query. No existing Z80 compiler does this. No existing compiler for *any* architecture does exactly this at the function level with per-instruction location variables.
 
-**520 functions across 2 corpora. 100% coverage. Zero fallback.**
+**645 functions across 2 corpora. 100% coverage. Zero fallback. -71% vs SDCC.**
 
 | Corpus | Functions | Pass Rate |
 |--------|-----------|----------|
-| Nanz (primary language) | 216/216 | **100%** |
+| Nanz (primary language) | 341/341 | **100%** |
 | C89 (via modernc.org/cc) | 304/304 | **100%** |
-| **Total** | **520/520** | **100%** |
+| **Total** | **645/645** | **100%** |
 
 55 functions verified correct on a cycle-accurate Z80 emulator (MZE, 1335/1335 FUSE tests).
+
+### New since v1 (2026-03-24)
+
+| Feature | Impact |
+|---------|--------|
+| **Dual-mode solver** | Solve constrained + standalone, pick winner. 47 insts saved on 7 funcs. |
+| **Adapter emission** | Entry LD moves when standalone wins. Handles POP SP, IXH/L→H/L routing. |
+| **GPU precomputed table** | 61 provably optimal assignments from CUDA brute-force. O(1) lookup. |
+| **Peephole expansion** | 7 new rules: INC/DEC cancel, dead branch, PUSH/POP→LD, AND 0FFh→AND A |
+| **Readable strings** | `DB "Hello", 0` instead of `DB 72, 101, ...` |
+| **vs SDCC benchmark** | 5/5 wins, 38 vs 131 instructions total (-71%) |
 
 ---
 
