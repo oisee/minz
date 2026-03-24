@@ -2,7 +2,11 @@
 
 ### ★ NEW: [MinZ Weekly #2: The Solver Revolution](reports/MinZ_Weekly_2.md) | [PDF](reports/MinZ_Weekly_2.pdf) | [EPUB](reports/MinZ_Weekly_2.epub)
 
-**Z3 + GPU brute-force + precomputed tables = -71% vs SDCC.** Four Claude Code sessions collaborating via [dedelulu](https://github.com/oisee/dedelulu) built: dual-mode solver with adapter emission, GPU register allocator (CUDA exhaustive search), peephole expansion, ABAP screens on Z80, readable assembly. Also: [GPU Tables for Dummies](reports/MinZ_Weekly_2_1_GPU_Tables_Explained.md) ([PDF](reports/MinZ_Weekly_2_1_GPU_Tables_Explained.pdf)) — explained with pizza analogies.
+**Z3 + GPU brute-force + precomputed tables = -71% vs SDCC.** Four Claude Code sessions collaborating via [dedelulu](https://github.com/oisee/dedelulu) built: dual-mode solver with adapter emission, GPU register allocator (CUDA exhaustive search), peephole expansion, ABAP screens on Z80, readable assembly.
+
+### ★ NEW: [MinZ Weekly #2.1: GPU Lookup Tables for Dummies](reports/MinZ_Weekly_2_1_GPU_Tables_Explained.md) | [PDF](reports/MinZ_Weekly_2_1_GPU_Tables_Explained.pdf) | [EPUB](reports/MinZ_Weekly_2_1_GPU_Tables_Explained.epub)
+
+**How a graphics card makes your compiler smarter — explained with pizza.** Non-specialist guide: dinner party analogy for register allocation, three generations of solving (gut feeling → mathematician → recipe book), the virtuous cycle of precomputation. *"Solve hard problems ONCE. Ship the answers."*
 
 ### ★ NEW: [GPU Brute-Force Optimization](https://github.com/oisee/z80-optimizer) | [Bruteforce Roadmap](https://github.com/oisee/z80-optimizer/blob/main/BRUTEFORCE_ROADMAP.md)
 
