@@ -821,23 +821,23 @@ All examples tested on MZV (MIR2 VM) and through the full Z80 pipeline (`mz` →
 | Example | MZV | mz | mza | Size | mze CP/M | Notes |
 |---------|-----|-----|-----|------|----------|-------|
 | hello.abap | PASS | PASS | PASS | 399B | PASS | "Hello from ABAP on Z80!" |
-| fibonacci.abap | PASS | PASS | PASS | 457B | PASS | numeric output (codegen bug: values wrong) |
+| fibonacci.abap | PASS | PASS | PASS | 443B | PASS | numeric output |
 | fizzbuzz.abap | PASS | PASS | PASS | 471B | PASS | FizzBuzz output correct |
-| bubble_sort.abap | PASS | PASS | PASS | 756B | PASS | "Before:64 25 12..." sorts correctly |
+| bubble_sort.abap | PASS | PASS | PASS | 755B | PASS | "Before:64 25 12..." sorts correctly |
 | forms.abap | PASS | PASS | PASS | 492B | PASS | FORM/PERFORM calls |
 | sysinfo.abap | PASS | PASS | PASS | 805B | PASS | "=== Z80 System Report ===" |
 | hello_param.abap | PASS | PASS | PASS | 526B | PASS | selection screen + "Hello, World!" |
-| tui_screen.nanz | PASS | PASS | PASS | 446B | stub | @extern stubs empty on Z80 |
-| meta_screen.nanz | PASS | PASS | PASS | 259B | stub | needs tui.render import |
-| abap_screen.nanz | PASS | PASS | PASS | 1445B | stub | needs tui.render import |
-| screen_declarative.nanz | PASS | PASS | PASS | 1553B | stub | @screen generates @extern stubs |
-| screen_customer.nanz | PASS | PASS | PASS | 1866B | stub | needs VT100 bridge |
-| screen_alv.nanz | PASS | PASS | PASS | 1996B | stub | needs VT100 bridge |
-| screen_report.nanz | PASS | PASS | PASS | 3053B | stub | needs VT100 bridge |
-| select_demo.abap | PASS | PASS | PASS | 1215B | PASS | SELECT output (SQLite stubs on Z80) |
-| select_loop.abap | PASS | PASS | PASS | 872B | PASS | SELECT loop runs |
+| tui_screen.nanz | PASS | PASS | PASS | 1239B | VT100 | with `import tui.render` |
+| meta_screen.nanz | PASS | PASS | PASS | 259B | stub | user @screen metafun |
+| abap_screen.nanz | PASS | PASS | PASS | 2264B | VT100 | with `import tui.render` |
+| screen_declarative.nanz | PASS | PASS | PASS | 2387B | VT100 | @screen + VT100 BDOS |
+| screen_customer.nanz | PASS | PASS | PASS | 2709B | VT100 | 4-field form on CP/M |
+| screen_alv.nanz | PASS | PASS | PASS | 2821B | stub | table render needs fix |
+| screen_report.nanz | PASS | PASS | PASS | 3875B | VT100 | holy grail on CP/M! |
+| select_demo.abap | PASS | PASS | PASS | 1215B | PASS | SELECT SINGLE + COUNT(*) |
+| select_loop.abap | PASS | PASS | PASS | 872B | PASS | SELECT...ENDSELECT loop |
 
-**Summary:** 16/16 MZV, 16/16 compile, 16/16 assemble. 9/16 produce visible CP/M output via BDOS. 7/16 assemble but TUI functions are empty @extern stubs — needs stdlib `tui.render` import (which has VT100 BDOS bodies) or LIR runtime function bodies.
+**Summary:** 16/16 MZV, 16/16 compile, 16/16 assemble. **14/16 produce CP/M output** (9 ABAP via BDOS text, 5 Nanz via VT100 escape sequences). With `import tui.render`, @screen programs render full TUI on CP/M terminals.
 
 ---
 

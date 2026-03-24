@@ -820,6 +820,14 @@ func (p *parser) parseModule() (*hir.Module, error) {
 					for _, f := range generated.Funcs {
 						p.funcSigs[f.Name] = f.RetTy
 					}
+					// Remap generated code's CallExpr names via import aliases.
+					// e.g. @screen generates calls to "tui_puts" but import tui.render
+					// aliases it to "tui__render__tui_puts".
+					if len(p.funcAliases) > 0 {
+						for _, f := range m.Funcs {
+							remapCallAliases(f.Body, p.funcAliases)
+						}
+					}
 				}
 			} else if metaSrc, ok := p.metaFuncs[attr.val]; ok {
 				// Metafunction invocation: @name("args") { block }
@@ -5079,6 +5087,58 @@ func remapExprStringRefs(e hir.Expr, offset int) {
 		remapExprStringRefs(e.Cond, offset)
 		remapExprStringRefs(e.Then, offset)
 		remapExprStringRefs(e.Else, offset)
+	}
+}
+
+// remapCallAliases walks HIR and replaces CallExpr.Fn names via alias map.
+// Used to resolve @screen-generated calls ("tui_puts") to imported names
+// ("tui__render__tui_puts") when import tui.render is present.
+func remapCallAliases(block *hir.Block, aliases map[string]string) {
+	if block == nil {
+		return
+	}
+	for _, s := range block.Body {
+		remapStmtCallAliases(s, aliases)
+	}
+}
+
+func remapStmtCallAliases(s hir.Stmt, aliases map[string]string) {
+	switch s := s.(type) {
+	case *hir.ExprStmt:
+		remapExprCallAliases(s.Expr, aliases)
+	case *hir.VarDeclStmt:
+		remapExprCallAliases(s.Init, aliases)
+	case *hir.AssignStmt:
+		remapExprCallAliases(s.Val, aliases)
+	case *hir.ReturnStmt:
+		remapExprCallAliases(s.Val, aliases)
+	case *hir.IfStmt:
+		remapExprCallAliases(s.Cond, aliases)
+		remapCallAliases(s.Then, aliases)
+		remapCallAliases(s.Else, aliases)
+	case *hir.WhileStmt:
+		remapExprCallAliases(s.Cond, aliases)
+		remapCallAliases(s.Body, aliases)
+	case *hir.Block:
+		remapCallAliases(s, aliases)
+	}
+}
+
+func remapExprCallAliases(e hir.Expr, aliases map[string]string) {
+	if e == nil {
+		return
+	}
+	switch e := e.(type) {
+	case *hir.CallExpr:
+		if resolved, ok := aliases[e.Fn]; ok {
+			e.Fn = resolved
+		}
+		for _, arg := range e.Args {
+			remapExprCallAliases(arg, aliases)
+		}
+	case *hir.BinExpr:
+		remapExprCallAliases(e.L, aliases)
+		remapExprCallAliases(e.R, aliases)
 	}
 }
 
