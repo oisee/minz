@@ -216,6 +216,15 @@ SUPPORTED PLATFORMS (-t/--target):
 			setupSQLitePorts(z80, verbose)
 		}
 
+		// ZX Spectrum: enable console I/O port ($23) for stdin/stdout.
+		// ABAP runtime uses IN A,($23) for keyboard input + _zx_putchar for echo.
+		if target == "spectrum" {
+			z80.RemogattoZ80.SetConsolePort(0x23, os.Stdin, os.Stdout)
+			if verbose {
+				fmt.Println("ZX Spectrum: console I/O on port $23")
+			}
+		}
+
 		// Set up Agon MOS RST handler if target is agon
 		if target == "agon" {
 			setupAgonMOS(z80)

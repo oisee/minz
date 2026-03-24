@@ -1790,7 +1790,7 @@ func emitRuntimeFuncs(hm *hir.Module, target uint8) {
 	// Buffer format: [max_len, actual_len, text...].
 	// If user enters empty line (len=0), keeps pre-filled default.
 	// Null-terminates the text after actual_len bytes.
-	if !names["abap_sel_read"] {
+	if !names["abap_sel_read"] && target != hir.TargetZXSpectrum {
 		hm.Funcs = append(hm.Funcs, &hir.Func{
 			Name:   "abap_sel_read",
 			Params: []hir.Param{{Name: "buf", Ty: mir2.TyPtr}},
@@ -1826,7 +1826,7 @@ func emitRuntimeFuncs(hm *hir.Module, target uint8) {
 	}
 
 	// abap_read_int — read integer from console (read line, parse decimal)
-	if !names["abap_read_int"] {
+	if !names["abap_read_int"] && target != hir.TargetZXSpectrum {
 		hm.Funcs = append(hm.Funcs, &hir.Func{
 			Name:  "abap_read_int",
 			RetTy: mir2.TyU16,
@@ -2398,5 +2398,92 @@ func emitZXRuntimeFuncs(hm *hir.Module, names map[string]bool) {
 			},
 		})
 		names["_zx_cls"] = true
+	}
+
+	// abap_sel_read(buf: ^u8) — ZX version: read line from console port $23,
+	// echo to screen via _zx_putchar, store in buffer.
+	// Port $23: IN returns 0x80|char (data) or 0x00 (no data).
+	// Reads until CR (13) or LF (10). Null-terminates buffer.
+	// If empty input (just Enter), keeps pre-filled default.
+	if !names["abap_sel_read"] {
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name:   "abap_sel_read",
+			Params: []hir.Param{{Name: "buf", Ty: mir2.TyPtr}},
+			RetTy:  mir2.TyVoid,
+			Body: &hir.Block{
+				Body: []hir.Stmt{
+					&hir.AsmStmt{
+						Target: "z80",
+						// HL = buf pointer (destination text area)
+						Code: "PUSH IX / PUSH HL / POP IX" + // IX = buf
+							"/ LD B, 0" + // B = char count
+							// Poll loop: wait for char from port $23
+							"/ ._poll: IN A, (0x23)" +
+							"/ OR A / JR Z, ._poll" + // 0x00 = no data, keep polling
+							"/ AND 0x7F" + // strip 0x80 flag
+							"/ CP 13 / JR Z, ._done" + // CR = done
+							"/ CP 10 / JR Z, ._done" + // LF = done
+							"/ CP 8 / JR Z, ._bs" + // backspace
+							"/ CP 127 / JR Z, ._bs" + // delete
+							// Store char and echo
+							"/ LD (IX+0), A / INC IX / INC B" +
+							"/ PUSH BC / CALL _zx_putchar / POP BC" +
+							"/ LD A, B / CP 20 / JR NZ, ._poll" + // max 20 chars
+							"/ JR ._done" +
+							// Backspace: if B>0, decrement
+							"/ ._bs: LD A, B / OR A / JR Z, ._poll" +
+							"/ DEC IX / DEC B / JR ._poll" +
+							// Done: check if any chars entered
+							"/ ._done: LD A, B / OR A / JR Z, ._keep" +
+							// Non-empty: null-terminate
+							"/ LD (IX+0), 0" +
+							"/ ._keep:" +
+							// Newline
+							"/ LD A, 13 / PUSH BC / CALL _zx_putchar / POP BC" +
+							"/ POP IX",
+						Ins:         []hir.AsmOperand{{Name: "buf"}},
+						ClobberRegs: []string{"A", "B", "C", "D", "E", "H", "L"},
+					},
+				},
+			},
+		})
+		names["abap_sel_read"] = true
+	}
+
+	// abap_read_int — ZX version: read line from port $23, parse decimal
+	if !names["abap_read_int"] {
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name:  "abap_read_int",
+			RetTy: mir2.TyU16,
+			Body: &hir.Block{
+				Body: []hir.Stmt{
+					&hir.AsmStmt{
+						Target: "z80",
+						Code: "LD DE, 0" + // DE = accumulated value
+							"/ ._rp: IN A, (0x23)" +
+							"/ OR A / JR Z, ._rp" + // poll
+							"/ AND 0x7F" + // strip flag
+							"/ CP 13 / JR Z, ._rd" + // CR = done
+							"/ CP 10 / JR Z, ._rd" + // LF = done
+							// Echo digit
+							"/ PUSH DE / PUSH AF / CALL _zx_putchar / POP AF / POP DE" +
+							// Parse: DE = DE * 10 + (A - '0')
+							"/ SUB 48" + // A = digit value
+							"/ PUSH AF" +
+							"/ LD H, D / LD L, E" + // HL = DE (old value)
+							"/ ADD HL, HL / ADD HL, HL / ADD HL, DE / ADD HL, HL" + // HL = DE*10
+							"/ POP AF / LD E, A / LD D, 0 / ADD HL, DE" + // HL += digit
+							"/ EX DE, HL" + // DE = new value
+							"/ JR ._rp" +
+							// Done: newline, return DE in HL
+							"/ ._rd: LD A, 13 / PUSH DE / CALL _zx_putchar / POP DE" +
+							"/ EX DE, HL", // HL = result
+						RetReg:      "HL",
+						ClobberRegs: []string{"A", "B", "C", "D", "E", "H", "L"},
+					},
+				},
+			},
+		})
+		names["abap_read_int"] = true
 	}
 }
