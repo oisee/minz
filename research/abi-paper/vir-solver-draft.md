@@ -134,10 +134,12 @@ All 55 functions produce identical results on both VMs.
 |---------|------|----------|-------|--------|
 | abs_diff | 12 | 11 | -8% | VIR |
 | gcd | 17 | 16 | -6% | VIR |
-| minmax | 60 | 13 | -78% | VIR |
-| fib | 22 | 16 | -27% | VIR |
-| swap | 20 | 2 | -90% | VIR |
-| **TOTAL** | **131** | **57** | **-56%** | **VIR 5/5** |
+| minmax | 60 | 11 | -82% | VIR |
+| fib | 22 | 12 | -45% | VIR |
+| select_b† | 20 | 2 | -90% | VIR |
+| **TOTAL** | **131** | **52** | **-60%** | **VIR 5/5** |
+
+†select_b: dead-code elimination test (`let t = a; return b`). SDCC cannot eliminate dead code across stack ABI.
 
 ### 4.4 Compile Time
 

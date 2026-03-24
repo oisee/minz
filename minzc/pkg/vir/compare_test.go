@@ -29,7 +29,7 @@ func TestVIR_vs_SDCC(t *testing.T) {
 		"gcd":      17,
 		"minmax":   60, // min + max combined
 		"fib":      22,
-		"swap":     20,
+		"select_b": 20, // dead-code elimination: `let t = a; return b` — SDCC can't optimize
 	}
 
 	nanzSources := map[string]string{
@@ -67,8 +67,8 @@ fun fib(n: u8) -> u16 {
     }
     return b
 }`,
-		"swap": `
-fun swap(a: u8, b: u8) -> u8 {
+		"select_b": `
+fun select_b(a: u8, b: u8) -> u8 {
     let t: u8 = a
     return b
 }`,
@@ -88,7 +88,7 @@ fun swap(a: u8, b: u8) -> u8 {
 	totalSDCC, totalPBQP, totalVIR := 0, 0, 0
 	virWins, sdccWins, ties := 0, 0, 0
 
-	for _, name := range []string{"abs_diff", "gcd", "minmax", "fib", "swap"} {
+	for _, name := range []string{"abs_diff", "gcd", "minmax", "fib", "select_b"} {
 		src := nanzSources[name]
 		sdcc := sdccCounts[name]
 
@@ -138,7 +138,7 @@ fun swap(a: u8, b: u8) -> u8 {
 	t.Log("")
 
 	// Show VIR assembly for each function
-	for _, name := range []string{"abs_diff", "gcd", "minmax", "fib", "swap"} {
+	for _, name := range []string{"abs_diff", "gcd", "minmax", "fib", "select_b"} {
 		src := nanzSources[name]
 		_, virAsm := compileVIR(t, src, name, opts)
 		t.Logf("── %s (VIR) ──", name)

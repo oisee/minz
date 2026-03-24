@@ -41,7 +41,7 @@ On Z80, CALL costs 17T + 10T RET = 27T overhead. An 8-bit div loop is ~160T. The
 The `lv{vreg}_i{inst}` encoding is what makes the solver work for real programs. A vreg can be in A at instruction 3, IXH across a CALL at instruction 5, and B at instruction 7. The solver plans the moves *as part of the optimal solution*. Traditional compilers would need separate spill/reload logic with heuristics.
 
 ### 4. Z3-PFCCO is the SDCC killer
-SDCC's biggest weakness isn't its instruction selection — it's the fixed calling convention. Every function pays stack push/pop overhead. Z3-PFCCO picks the optimal register for each parameter module-wide. `swap(a,b)→u8` gets params in A,C so the body is just `LD A, C / RET`. SDCC: 20 instructions. This is a 10x improvement from one optimization.
+SDCC's biggest weakness isn't its instruction selection — it's the fixed calling convention. Every function pays stack push/pop overhead. Z3-PFCCO picks the optimal register for each parameter module-wide. `select_b(a,b)→u8` (dead-code elimination test: `let t=a; return b`) gets params in A,C so the body is just `LD A, C / RET`. SDCC: 20 instructions (can't eliminate dead code across stack ABI). This is a 10x improvement from one optimization.
 
 ### 5. The "/" separator in asm templates
 MIR2's AsmExtra.Template uses "/" to separate instructions in a single-line asm block: `LD E, A / LD C, 2 / CALL 5`. VIR's `splitAsm()` splits on "/" and emits each part as a separate indented line. Edge case: don't split if there's no "/" (single instruction).
