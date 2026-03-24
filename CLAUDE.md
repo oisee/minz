@@ -159,6 +159,7 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - Error messages with file:line:col format ✅
 - Multi-backend: Z80 (production), C (partial), i8080/M68k (untested), 6502/GB/WASM/LLVM/Crystal (stubs/broken) ✅
 - 100% Z80 instruction coverage in emulator ✅
+- **Compilation provenance tracing**: per-function ASM annotations (backend, passes, splits, fallbacks) + module summary + label audit ✅
 
 ---
 
@@ -410,10 +411,11 @@ fun main() {
 }
 ```
 
-## 📊 Current Metrics (v0.23.0, verified 2026-03-23)
+## 📊 Current Metrics (v0.23.0, verified 2026-03-24)
 
 | Metric | Value |
 |--------|-------|
+| Nanz examples | **35/35** (100%) — all compile + assemble. [Report #110](reports/2026-03-24-110-Reliability-Sprint-35-of-35.md) |
 | Core examples | 71/73 (97%) |
 | All examples | 131/173 (75%) — failures in agon, cpm, feature_tests, zvdb, zx_demos |
 | Stdlib modules | 12 documented (real), ~35-40 of 55 files compile |

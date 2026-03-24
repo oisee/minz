@@ -57,6 +57,14 @@ Books: [Nanz Language Book v7](docs/Nanz_Language_Book_v7.md) ([PDF](docs/Nanz_L
 
 ---
 
+### ★ [Reliability Sprint: 35/35 Nanz Examples + Compilation Provenance Tracing](reports/2026-03-24-110-Reliability-Sprint-35-of-35.md)
+
+**Every function annotated.** Per-function `[trace]` ASM comments show backend (LIR/VIR/PBQP/fallback), optimization passes fired, HIR-SPLIT origin, fallback reason. Module summary header with function counts, label audit.
+
+**7 bugfixes in one session:** condret emission, TSMC orphan redirect, local array promotion, multi-block PBQP fallback, extern stubs, PUSH IXH fixup, BDOS tail-call guard. Score: 26/30 → **35/35**.
+
+---
+
 ### ★ [VIR Solver: 520/520 = 100% — Z3-Based Z80 Code Generator](reports/2026-03-23-109-VIR-100-Percent-Showcase.md)
 
 **The world's first SMT-based joint instruction selection + register allocation for Z80.** Z3 picks both the instruction pattern AND the physical register in one query. CFG-aware solver with soft edge constraints, ISLE fusion, Z3-PFCCO calling conventions, Grace abs_diff fusion, inline div/mod/mul runtime.
