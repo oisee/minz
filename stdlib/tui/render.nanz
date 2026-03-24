@@ -60,13 +60,69 @@ fun _tui_print_dec(val: u8) -> void {
 
 // Position cursor at (x, y) — 0-based.
 // Emits: ESC [ (y+1) ; (x+1) H
+// Full inline asm: saves x,y on stack across BDOS calls.
+// x arrives in A, y in C (PFCCO calling convention: A, C, B, D, E).
 fun tui_goto(x: u8, y: u8) -> void {
-    _tui_esc()
-    _tui_bdos_putchar(91)    // [
-    _tui_print_dec(y + 1)
-    _tui_bdos_putchar(59)    // ;
-    _tui_print_dec(x + 1)
-    _tui_bdos_putchar(72)    // H
+    asm z80 (in x, y) {
+        ; x in A, y in C (PFCCO: first=A, second=C)
+        LD H, A         ; H = x
+        LD L, C         ; L = y
+        PUSH HL         ; save [x, y] on stack
+
+        ; ESC
+        LD E, 0x1B
+        LD C, 2
+        CALL 5
+        ; [
+        LD E, 91
+        LD C, 2
+        CALL 5
+
+        ; y+1 as decimal
+        POP HL
+        PUSH HL         ; peek [x, y]
+        LD A, L         ; A = y
+        INC A
+        LD B, A         ; save in B for _tui_print_dec
+        ; inline print_dec (A = value)
+        ; Hundreds
+        LD C, 0
+        .gh: CP 100 / JR C, .ghd / SUB 100 / INC C / JR .gh
+        .ghd: LD B, A / LD A, C / OR A / JR Z, .gsh
+        ADD A, 48 / LD E, A / PUSH BC / LD C, 2 / CALL 5 / POP BC
+        .gsh:
+        ; Tens
+        LD A, B / LD C, 0
+        .gt: CP 10 / JR C, .gtd / SUB 10 / INC C / JR .gt
+        .gtd: LD B, A / LD A, C / ADD A, 48 / LD E, A / PUSH BC / LD C, 2 / CALL 5 / POP BC
+        ; Units
+        LD A, B / ADD A, 48 / LD E, A / LD C, 2 / CALL 5
+
+        ; semicolon
+        LD E, 59
+        LD C, 2
+        CALL 5
+
+        ; x+1 as decimal
+        POP HL          ; restore [x, y]
+        LD A, H         ; A = x
+        INC A
+        ; inline print_dec
+        LD C, 0
+        .xh: CP 100 / JR C, .xhd / SUB 100 / INC C / JR .xh
+        .xhd: LD B, A / LD A, C / OR A / JR Z, .xsh
+        ADD A, 48 / LD E, A / PUSH BC / LD C, 2 / CALL 5 / POP BC
+        .xsh:
+        LD A, B / LD C, 0
+        .xt: CP 10 / JR C, .xtd / SUB 10 / INC C / JR .xt
+        .xtd: LD B, A / LD A, C / ADD A, 48 / LD E, A / PUSH BC / LD C, 2 / CALL 5 / POP BC
+        LD A, B / ADD A, 48 / LD E, A / LD C, 2 / CALL 5
+
+        ; H
+        LD E, 72
+        LD C, 2
+        CALL 5
+    }
 }
 
 // Set text color: fg (0-7), bg (0-7), bright (0 or 1).
