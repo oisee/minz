@@ -1,5 +1,24 @@
 # MinZ Programming Language
 
+### ★ NEW: [MinZ Weekly #2: The Solver Revolution](reports/MinZ_Weekly_2.md) | [PDF](reports/MinZ_Weekly_2.pdf) | [EPUB](reports/MinZ_Weekly_2.epub)
+
+**Z3 + GPU brute-force + precomputed tables = -71% vs SDCC.** Four Claude Code sessions collaborating via [dedelulu](https://github.com/oisee/dedelulu) built: dual-mode solver with adapter emission, GPU register allocator (CUDA exhaustive search), peephole expansion, ABAP screens on Z80, readable assembly. Also: [GPU Tables for Dummies](reports/MinZ_Weekly_2_1_GPU_Tables_Explained.md) ([PDF](reports/MinZ_Weekly_2_1_GPU_Tables_Explained.pdf)) — explained with pizza analogies.
+
+### ★ NEW: [GPU Brute-Force Optimization](https://github.com/oisee/z80-optimizer) | [Bruteforce Roadmap](https://github.com/oisee/z80-optimizer/blob/main/BRUTEFORCE_ROADMAP.md)
+
+**Let the GPU try everything. Ship the winners.** CUDA-accelerated superoptimizer: 602K peephole rules + 61 precomputed register allocations + constant multiplication tables (in progress). Upcoming: optimal division, ZX Spectrum screen address calculation, approximate sin/cos — all via exhaustive search on RTX 4060 Ti.
+
+```
+                OFFLINE (GPU, once)              COMPILE TIME (CPU)
+   ┌──────────────────────────────┐    ┌─────────────────────────────┐
+   │ Try ALL 7^N assignments      │    │ hash(constraints) → lookup  │
+   │ Check interference + patterns│ →  │ HIT: instant optimal (0ms)  │
+   │ Atomic min across threads    │    │ MISS: Z3 fallback (800ms)   │
+   └──────────────────────────────┘    └─────────────────────────────┘
+```
+
+---
+
 ### ★ NEW: Frill — ML on Z80 | [Language Guide (book)](docs/Frill_Language_Guide.md) | [PDF](docs/book/Frill_Language_Guide.pdf)
 
 **8th frontend:** An ML-style functional language that compiles to Z80. Algebraic data types, pattern matching, parametric polymorphism, effects, property testing — all zero-cost. 13 examples, 3351 compile-time checks.
@@ -65,9 +84,9 @@ Books: [Nanz Language Book v7](docs/Nanz_Language_Book_v7.md) ([PDF](docs/Nanz_L
 
 ---
 
-### ★ [VIR Solver: 520/520 = 100% — Z3-Based Z80 Code Generator](reports/2026-03-23-109-VIR-100-Percent-Showcase.md)
+### ★ [VIR Solver: 645/645 = 100% — Z3-Based Z80 Code Generator](reports/2026-03-23-109-VIR-100-Percent-Showcase.md)
 
-**The world's first SMT-based joint instruction selection + register allocation for Z80.** Z3 picks both the instruction pattern AND the physical register in one query. CFG-aware solver with soft edge constraints, ISLE fusion, Z3-PFCCO calling conventions, Grace abs_diff fusion, inline div/mod/mul runtime.
+**The world's first SMT-based joint instruction selection + register allocation for Z80.** Z3 picks both the instruction pattern AND the physical register in one query. CFG-aware solver, dual-mode (constrained + standalone with adapters), Z3-PFCCO calling conventions, GPU precomputed table, Grace PIR, ISLE fusion, inline runtime.
 
 | Program | SDCC 4.2.0 | MinZ VIR | Delta |
 |---------|-----------|----------|-------|
@@ -78,7 +97,7 @@ Books: [Nanz Language Book v7](docs/Nanz_Language_Book_v7.md) ([PDF](docs/Nanz_L
 | select_b | 20 | 2 | **−90%** |
 | **TOTAL** | **131** | **38** | **−71%** |
 
-**520/520 corpus (100%)** — zero PBQP fallback. `abs_diff`: `SUB L / RET NC / NEG / RET` — 4 bytes, matches hand-optimal. `gcd`: 10 insts via CFG-aware cross-block register optimization. FatFS `ld_word`: 6 insts (SDCC: 29B). 55 Z80-verified asserts. Inline asm passthrough. 16-bit div/mod/mul inlined per call site.
+**645/645 corpus (100%)** — zero PBQP fallback. Dual-mode: constrained vs standalone + adapter emission. GPU precomputed table (61 entries, O(1) lookup). 55 Z80-verified asserts. 5 ABAP screen examples compile + render. SQLite while loops handled correctly.
 
 → **[Full Showcase Report](reports/2026-03-23-109-VIR-100-Percent-Showcase.md)** | **[E2E Data](research/abi-paper/vir-e2e-report.md)** | **[ADR-0039](docs/adr/0039-unified-vir-solver.md)**
 
