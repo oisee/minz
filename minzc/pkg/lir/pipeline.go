@@ -1115,14 +1115,20 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 		sb.WriteString("    RET\n")
 
 		// Tail call optimization: CALL f / RET → JP f
-		// ONLY safe when the CALL result IS the return value (no other vregs live).
+		// ONLY safe when the CALL result IS the return value (no other vregs live)
+		// and the target is a named function (NOT a numeric address like BDOS CALL 5
+		// or RST — those are syscalls that expect a return address on the stack).
 		asmSoFar := sb.String()
 		if len(retVRegs) == 0 || onlyCallResult(retVRegs, insts) {
 			if idx := strings.LastIndex(asmSoFar, "    CALL "); idx >= 0 {
 				callLine := asmSoFar[idx:]
 				if nlIdx := strings.IndexByte(callLine, '\n'); nlIdx >= 0 {
+					target := strings.TrimSpace(callLine[9:nlIdx])
 					after := strings.TrimSpace(callLine[nlIdx+1:])
-					if after == "RET" || after == "" {
+					// Skip numeric targets (BDOS CALL 5, RST addresses).
+					isNumeric := len(target) > 0 && (target[0] >= '0' && target[0] <= '9' ||
+						target[0] == '$' || strings.HasPrefix(target, "0x"))
+					if (after == "RET" || after == "") && !isNumeric {
 						sb.Reset()
 						sb.WriteString(asmSoFar[:idx])
 						sb.WriteString("    JP")

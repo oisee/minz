@@ -241,11 +241,16 @@ func elimCallRet(lines []string) []string {
 		if strings.HasPrefix(trimmed, "CALL ") && i+1 < len(lines) {
 			next := strings.TrimSpace(lines[i+1])
 			if next == "RET" {
-				target := strings.TrimPrefix(trimmed, "CALL ")
-				out = append(out, strings.Replace(lines[i], "CALL ", "JP ", 1))
-				i++ // skip RET
-				continue
-				_ = target
+				target := strings.TrimSpace(strings.TrimPrefix(trimmed, "CALL "))
+				// Skip numeric targets (BDOS CALL 5, RST addresses) —
+				// these are syscalls that need the return address on stack.
+				isNumeric := len(target) > 0 && (target[0] >= '0' && target[0] <= '9' ||
+					target[0] == '$' || strings.HasPrefix(target, "0x"))
+				if !isNumeric {
+					out = append(out, strings.Replace(lines[i], "CALL ", "JP ", 1))
+					i++ // skip RET
+					continue
+				}
 			}
 		}
 		out = append(out, lines[i])
