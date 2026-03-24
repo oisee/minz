@@ -2,60 +2,72 @@
 
 ## What We Did
 
-Starting from VIR 520/520 (100% coverage), we improved code quality across 4 areas.
+Starting from VIR 520/520 (100% coverage) with -60% vs SDCC, we improved to **-71%** in 7 commits.
 
-### 1. Deterministic Z3 encoding (fix)
-- Sorted all Go map iterations in solver.go and cfgsolver.go
-- Root cause: map iteration order → different Z3 assertion order → different (sometimes wrong) register assignments
-- 8 sites in solver.go, 4 in cfgsolver.go: `sort.Ints(vregs)` before every map-to-slice iteration
-- abs_diff was 60% flaky before (wrong values 0 or 10 instead of 7), now 30/30 stable
+### 1. Deterministic Z3 encoding
+- `sort.Ints()` on all Go map iterations in solver.go (8 sites) and cfgsolver.go (4 sites)
+- Root cause of abs_diff flakiness: map order → different Z3 assertions → different models
+- 30/30 stable after fix
 
-### 2. Editorial review of VIR 100% report
-- Renamed misleading "swap" to "select_b" (dead-code elimination test)
-- Replaced hand-written asm examples with actual compiler output
-- Fixed all instruction counts (gcd 15→16, fib 11→12, abs_diff 13→11)
-- Documented gcd cross-block register state bug (else-path SUB L uses stale L)
-- Added 3 new report sections: C89 out-param promotion, HIR function splitting, Grace on MIR2
+### 2. Editorial review
+- "swap" → "select_b" (was misleading — it's a dead-code elimination test)
+- All asm examples replaced with actual compiler output
+- Added sections: C89 out-param promotion, HIR function splitting, Grace on MIR2
 
 ### 3. Three peephole rules
-- **Conditional RET**: `JR/JP cc, .skip / [labels] / RET / .skip:` → `RET cc_inverted` with `invertCC()` helper
-- **Dead LD elimination**: `LD r, X / LD r, Y` → remove first (dead store). Fixed gcd `LD D,A / LD D,B`
-- **Reverse-copy elimination**: `LD X, Y / LD Y, X` → keep only first
+- **Conditional RET**: `JR/JP cc, .skip / [labels] / RET / .skip:` → `RET cc_inverted`
+- **Dead LD**: `LD r, X / LD r, Y` → remove first
+- **Reverse-copy**: `LD X, Y / LD Y, X` → keep first only
 
-### 4. abs_diff fusion (grace pass)
-- `fuseAbsDiffASM()` detects `CP r / JR Z+JR C / block1(SUB,RET) / block2(SUB,RET)` at assembly level
-- Replaces with `SUB r / RET NC / NEG / RET` — 4 instructions, matches MIR2 production optimal
-- Also wired `mir2.FuseAbsDiff(f)` pre-pass and `CmpSubCarry` bridge support for future solver integration
-- abs_diff: 11 → 4 instructions (-67%)
+### 4. abs_diff grace fusion
+- `fuseAbsDiffASM()`: detects `CP r / JR Z+JR C / block(SUB,RET) / block(SUB,RET)`
+- Replaces with `SUB r / RET NC / NEG / RET` — 4 insts, matches MIR2 optimal
+- Also wired `mir2.FuseAbsDiff` pre-pass + `CmpSubCarry` bridge support
 
-## Benchmark Results
+### 5. CFG solver: soft edge constraints (THE BIG FIX)
+- Root cause of unsat: hard `(assert (= from to))` on CFG edges forced vregs to stay in same register across blocks
+- abs_diff else-block needs `b` in A (for SUB), but PFCCO put `b` in C → impossible
+- Fix: `(ite (= from to) 0 4)` — soft penalty instead of hard constraint
+- gcd: 15→10 (solver can now move b from L to C at block entry)
 
-| Program | SDCC | VIR (start) | VIR (end) | vs SDCC |
-|---------|------|------------|-----------|---------|
+### 6. Duplicate CP elimination
+- `CP r / JR cc / [labels] / CP r` → skip second CP (flags unchanged on fall-through)
+- gcd: 10→9
+
+### 7. JP threading
+- `JP .label` where `.label: JP .target` → `JP .target`
+- Build label→target map, rewrite all JP/JR targets through chains
+- Saves one indirection per iteration (no instruction count change, just cycle savings)
+
+## Final Benchmark
+
+| Program | SDCC | Start | End | vs SDCC |
+|---------|------|-------|-----|---------|
 | abs_diff | 12 | 11 | **4** | **-67%** |
-| gcd | 17 | 16 | 15 | -12% |
+| gcd | 17 | 16 | **9** | **-47%** |
 | minmax | 60 | 11 | 11 | -82% |
 | fib | 22 | 12 | 12 | -45% |
 | select_b | 20 | 2 | 2 | -90% |
-| **TOTAL** | **131** | **52** | **44** | **-66%** |
+| **TOTAL** | **131** | **52** | **38** | **-71%** |
 
-## Key Insights
+## Key Insight: Soft CFG Edges
 
-### 1. Assembly-level pattern matching beats solver restructuring for idioms
-The abs_diff optimal sequence (`SUB/RET NC/NEG/RET`) requires fusing a comparison, two subtraction blocks, and a conditional return into one sequence. This is natural at the assembly level but would require restructuring VIR blocks and adding new solver constraints. Post-emission grace rewriting was 10x simpler to implement and debug.
-
-### 2. Go map non-determinism is the #1 correctness risk in SMT-based compilers
-Z3 is deterministic given identical input. But Go map iteration makes the SMT encoding order-dependent. Every `for k := range map` in the encoding path must be sorted. This is not obvious because the constraints are semantically identical — but Z3's heuristics pick different models.
-
-### 3. Dead LD elimination has cascading benefits
-Removing `LD D,A / LD D,B` → `LD D,B` freed register D earlier, allowing the solver to find better allocations in subsequent runs. gcd went from 16→15 with just this rule.
+The single most impactful change was replacing hard CFG edge equality with soft move-cost penalties. This is a fundamental architectural insight: in a multi-block solver, block boundaries are **move opportunities**, not invariants. The solver should treat cross-block register placement as an optimization variable, not a constraint. This one change dropped gcd from 15 to 10 instructions and made the CFG solver succeed for the first time on multi-path functions.
 
 ## Files Changed
 
-- `minzc/pkg/vir/solver.go` — sort.Ints on all map iterations, sort.Slice for coalesce/spill/candidates
-- `minzc/pkg/vir/cfgsolver.go` — sort.Ints on 4 map iterations
-- `minzc/pkg/vir/pipeline.go` — 3 peephole rules, invertCC(), fuseAbsDiffASM(), FuseAbsDiff pre-pass, CmpSubCarry in TermBrIf/TermCondRet
+- `minzc/pkg/vir/solver.go` — sort all map iterations (determinism)
+- `minzc/pkg/vir/cfgsolver.go` — sort map iterations + soft edge constraints
+- `minzc/pkg/vir/pipeline.go` — 5 peephole rules, invertCC(), fuseAbsDiffASM(), JP threading, FuseAbsDiff pre-pass, CmpSubCarry handling
 - `minzc/pkg/vir/bridge.go` — CmpSubCarry no-op translation
-- `minzc/pkg/vir/compare_test.go` — swap→select_b rename
-- `reports/2026-03-23-109-VIR-100-Percent-Showcase.md` — editorial review
+- `minzc/pkg/vir/compare_test.go` — swap→select_b
+- `reports/2026-03-23-109-VIR-100-Percent-Showcase.md` — full rewrite with actual output
 - `research/abi-paper/vir-solver-draft.md` — updated benchmarks
+- `README.md` — -71% featured
+
+## Next Session Priorities
+
+1. **DEC HL elimination at caller level** — when caller doesn't read HL after call, callee's trailing DEC HL is dead
+2. **Fallthrough block reordering** — reorder blocks to maximize JR-to-next (eliminate JP)
+3. **Paper draft Section 4** — update evaluation with 520/520, abs_diff fusion, soft edges
+4. **`--vir` CLI flag** — make VIR accessible from command line
