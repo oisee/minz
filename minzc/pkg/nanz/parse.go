@@ -743,6 +743,74 @@ func (p *parser) parseModule() (*hir.Module, error) {
 				}
 				f.ExternAddr = externAddr
 				m.Funcs = append(m.Funcs, f)
+			} else if attr.kind == tokIdent && attr.val == "screen" && p.metaFuncs["screen"] == "" {
+				// Built-in @screen metafunction (only if no user-defined @screen)
+				p.l.next() // consume "screen"
+				var scalarArgs []string
+				if p.l.is(tokLParen) {
+					p.l.next()
+					for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
+						argTok := p.l.next()
+						val := argTok.val
+						if argTok.kind == tokString {
+							if idx := strings.IndexByte(val, 0); idx >= 0 {
+								val = val[idx+1:]
+							}
+						}
+						scalarArgs = append(scalarArgs, val)
+						if p.l.is(tokComma) {
+							p.l.next()
+						}
+					}
+					if _, err := p.l.eat(tokRParen); err != nil {
+						return nil, err
+					}
+				}
+				title := "Screen"
+				if len(scalarArgs) > 0 {
+					title = scalarArgs[0]
+				}
+				var block []metaBlockNode
+				if p.l.is(tokLBrace) {
+					var err error
+					block, err = parseMetaBlock(p.l)
+					if err != nil {
+						return nil, fmt.Errorf("line %d: @screen block: %w", attr.line, err)
+					}
+				}
+				emitted, err := generateScreenSource(title, block)
+				if err != nil {
+					return nil, fmt.Errorf("line %d: @screen: %w", attr.line, err)
+				}
+				if emitted != "" {
+					generated, err := ParseWithOpts(emitted, p.name+"@screen", p.opts)
+					if err != nil {
+						return nil, fmt.Errorf("line %d: @screen: generated code error: %w\n--- generated ---\n%s", attr.line, err, emitted)
+					}
+					strOffset := len(m.Strings)
+					if len(generated.Strings) > 0 {
+						m.Strings = append(m.Strings, generated.Strings...)
+						m.StrKinds = append(m.StrKinds, generated.StrKinds...)
+						if strOffset > 0 {
+							for _, f := range generated.Funcs {
+								remapStringRefs(f.Body, strOffset)
+							}
+						}
+					}
+					m.Funcs = append(m.Funcs, generated.Funcs...)
+					m.Globals = append(m.Globals, generated.Globals...)
+					m.Structs = append(m.Structs, generated.Structs...)
+					for _, s := range generated.Structs {
+						p.structs[s.Name] = s
+					}
+					// Register generated symbols in parent parser
+					for _, g := range generated.Globals {
+						p.globalTypes[g.Name] = g.Ty
+					}
+					for _, f := range generated.Funcs {
+						p.funcSigs[f.Name] = f.RetTy
+					}
+				}
 			} else if metaSrc, ok := p.metaFuncs[attr.val]; ok {
 				// Metafunction invocation: @name("args") { block }
 				metaName := attr.val

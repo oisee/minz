@@ -1,0 +1,36 @@
+// screen_declarative.nanz — ABAP selection screen via @screen metafunction
+//
+// The @screen built-in generates all screen infrastructure:
+//   - tui_* extern declarations
+//   - Global field buffers (_buf_material, _val_count, etc.)
+//   - screen_init(), screen_render(), screen_handle_key(), screen_show()
+//   - Accessor functions: screen_material() -> ^u8, screen_count() -> u16
+//
+// Run:      mzv examples/nanz/screen_declarative.nanz
+// Headless: echo "" | mzv -H examples/nanz/screen_declarative.nanz
+
+@screen("Material Report") {
+    field "Material" length 10 default "*"
+    field "Plant" length 6
+    int   "Count" default 10
+    button "Execute" key F8
+    button "Back" key F3
+}
+
+fun main() -> void {
+    screen_init()
+    var result: u8 = screen_show()
+
+    if result == SCREEN_EXECUTE {
+        tui_puts(c"Report: Material=")
+        tui_puts(screen_material())
+        tui_puts(c" Plant=")
+        tui_puts(screen_plant())
+        tui_puts(c" Count=")
+        _scr_print_u16(screen_count())
+        tui_puts(c"\n")
+    }
+    if result == SCREEN_BACK {
+        tui_puts(c"Cancelled.\n")
+    }
+}

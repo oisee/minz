@@ -1036,6 +1036,18 @@ Report issues at [github.com/oisee/minz/issues](https://github.com/oisee/minz/is
 
 ---
 
+## Books
+
+Technical books for learning and contributing. Full catalog: **[docs/Book_Catalog.md](docs/Book_Catalog.md)**
+
+| Book | Topics | Formats |
+|------|--------|---------|
+| **[The Nanz Language Book](docs/Nanz_Language_Book_v7.md)** | Complete language guide: types, ADTs, lambdas, iterators, metaprogramming, TUI | [MD](docs/Nanz_Language_Book_v7.md) [PDF](docs/Nanz_Language_Book_v7.pdf) [EPUB](docs/Nanz_Language_Book_v7.epub) |
+| **[ABAP on MinZ](docs/ABAP_on_MinZ_Book.md)** | Enterprise ABAP on Z80, `@screen` declarative screens, PBO/PAI pattern | [MD](docs/ABAP_on_MinZ_Book.md) |
+| **[C89 Frontend Internals](docs/C89_Frontend_Internals.md)** | C parser, lowerer, struct-return promotion, assert system | [MD](docs/C89_Frontend_Internals.md) [PDF](docs/C89_Frontend_Internals.pdf) [EPUB](docs/C89_Frontend_Internals.epub) |
+
+---
+
 ## License
 
 MIT. See [LICENSE](LICENSE) for details.
