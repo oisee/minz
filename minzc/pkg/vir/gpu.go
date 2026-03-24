@@ -327,6 +327,7 @@ func SolveGPU(ops []VIROp, desc *MachineDesc, opts SolverOptions) (map[int]int, 
 }
 
 // locSetToGPU converts a LocSet to GPU-compatible loc indices (0-6 only).
+// Empty LocSet → all 7 GPR (unconstrained).
 func locSetToGPU(ls LocSet) []int {
 	var result []int
 	ls.ForEach(func(loc int) bool {
@@ -335,5 +336,9 @@ func locSetToGPU(ls LocSet) []int {
 		}
 		return true
 	})
+	if len(result) == 0 {
+		// Unconstrained — any GPR is valid
+		return []int{0, 1, 2, 3, 4, 5, 6}
+	}
 	return result
 }
