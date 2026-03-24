@@ -157,6 +157,7 @@ Identical C source compiled through both toolchains. Binary sizes (code only):
 
 [![Version](https://img.shields.io/badge/version-0.23.0-blue)](https://github.com/oisee/minz/releases)
 [![License](https://img.shields.io/badge/license-MIT-purple)]()
+[![Hypercommit](https://img.shields.io/badge/Hypercommit-DB2475)](https://hypercommit.com/minz)
 
 **Write modern code. Run it on Z80, eZ80, 6502, and more.**
 
