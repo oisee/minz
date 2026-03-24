@@ -4,41 +4,16 @@
 //   MZV:  Host function overrides intercept calls directly (already in mzv)
 //   CP/M: I/O port protocol via ports $41/$43/$45/$47 (asm bodies below)
 //
-// I/O port protocol (odd ports, avoids eZ80 internal $80-$FF range):
-//   $41 (cmd):    write command byte
-//   $43 (status): read status / result
-//   $45 (data):   read/write data bytes (string transfer, null-terminated)
-//   $47 (datahi): read/write hi byte (for u16 values)
-//
-// Commands (written to $41):
-//   1 = open     (send filename via $45 first, read handle from $43/$45)
-//   2 = close    (send handle via $45)
-//   3 = query    (send handle+sql via $45, read stmt handle from $43/$45)
-//   4 = step     (send stmt handle via $45, read status from $43)
-//   5 = col_text (send stmt+col via $45, read string from $45)
-//   6 = col_int  (send stmt+col via $45, read lo=$45 hi=$47)
-//   7 = finalize (send stmt handle via $45)
-//   8 = exec     (send handle+sql via $45, read status from $43)
-//
-// Handle transfer: handles are u8 (1-255, 0=error)
-//
-// Usage:
-//   import sql.sqlite
-//   var db: u8 = sqlite_open(c"test.db")
-//   sqlite_exec(db, c"CREATE TABLE t(name TEXT, age INT)")
-//   var q: u8 = sqlite_query(db, c"SELECT name, age FROM t")
-//   while sqlite_step(q) == SQLITE_ROW {
-//       tui_puts(sqlite_column_text(q, 0))
-//   }
-//   sqlite_finalize(q)
-//   sqlite_close(db)
+// Handle types are u16 (matching ABAP lowerer + mzv host functions).
+// Only lo byte sent via I/O ports (max 255 handles).
 
 const SQLITE_OK: u8 = 0
 const SQLITE_ERROR: u8 = 1
 const SQLITE_ROW: u8 = 1
 const SQLITE_DONE: u8 = 0
 
-// Internal: send null-terminated string to data port $45
+// Internal: send null-terminated string via port $45.
+// Expects string pointer in HL.
 fun _sql_send_str(str: ^u8) -> void {
     asm z80 (in str) {
         .loop:
@@ -51,13 +26,11 @@ fun _sql_send_str(str: ^u8) -> void {
     }
 }
 
-// Internal: receive null-terminated string from data port $45 into buf
-// PFCCO: buf=HL
+// Internal: receive null-terminated string from port $45 into buf.
 global _sql_buf: [u8; 256]
 
 fun _sql_recv_str(buf: ^u8) -> ^u8 {
     asm z80 (in buf) (ret HL) {
-        ; HL = buf
         PUSH HL
         .loop:
         IN A, (0x45)
@@ -71,33 +44,51 @@ fun _sql_recv_str(buf: ^u8) -> ^u8 {
     }
 }
 
+// ── Public API ──────────────────────────────────────────────────────
+
 // Open database. Returns handle (0 = error).
-fun sqlite_open(path: ^u8) -> u8 {
+// PFCCO: path=HL (^u8) → ret HL (u16)
+fun sqlite_open(path: ^u8) -> u16 {
     _sql_send_str(path)
-    asm z80 (ret A) {
+    asm z80 (ret HL) {
         LD A, 1
+        OUT (0x41), A
+        IN A, (0x43)
+        LD L, A
+        LD H, 0
+    }
+}
+
+// Close database.
+// PFCCO: db=HL (u16)
+fun sqlite_close(db: u16) -> u8 {
+    asm z80 (in db) (ret A) {
+        LD A, L
+        OUT (0x45), A
+        LD A, 2
         OUT (0x41), A
         IN A, (0x43)
     }
 }
 
-// Close database by handle.
-fun sqlite_close(db: u8) -> void {
-    asm z80 (in db) {
-        OUT (0x45), A
-        LD A, 2
-        OUT (0x41), A
-    }
-}
-
 // Execute SQL (no results). Returns 0=ok, 1=error.
-// Protocol: handle via $47 (hi port), SQL string via $45, then command 8.
-fun sqlite_exec(db: u8, sql: ^u8) -> u8 {
-    asm z80 (in db) {
-        OUT (0x47), A
-    }
-    _sql_send_str(sql)
-    asm z80 (ret A) {
+// PFCCO: db=HL (u16), sql=DE (^u8)
+// All-asm: send handle via $47, string via $45, then command 8.
+fun sqlite_exec(db: u16, sql: ^u8) -> u8 {
+    asm z80 (in db, sql) (ret A) {
+        ; HL=db, DE=sql
+        LD A, L
+        OUT (0x47), A       ; handle via hi port
+        ; Send SQL string from DE
+        EX DE, HL           ; HL = sql
+        .send:
+        LD A, (HL)
+        OUT (0x45), A
+        OR A
+        JR Z, .exec
+        INC HL
+        JR .send
+        .exec:
         LD A, 8
         OUT (0x41), A
         IN A, (0x43)
@@ -105,22 +96,33 @@ fun sqlite_exec(db: u8, sql: ^u8) -> u8 {
 }
 
 // Query (with results). Returns stmt handle (0 = error).
-// Protocol: handle via $47, SQL string via $45, then command 3.
-fun sqlite_query(db: u8, sql: ^u8) -> u8 {
-    asm z80 (in db) {
-        OUT (0x47), A
-    }
-    _sql_send_str(sql)
-    asm z80 (ret A) {
+// PFCCO: db=HL (u16), sql=DE (^u8)
+fun sqlite_query(db: u16, sql: ^u8) -> u16 {
+    asm z80 (in db, sql) (ret HL) {
+        LD A, L
+        OUT (0x47), A       ; handle via hi port
+        EX DE, HL
+        .send:
+        LD A, (HL)
+        OUT (0x45), A
+        OR A
+        JR Z, .qry
+        INC HL
+        JR .send
+        .qry:
         LD A, 3
         OUT (0x41), A
         IN A, (0x43)
+        LD L, A
+        LD H, 0
     }
 }
 
-// Step to next row. Returns SQLITE_ROW (2) or SQLITE_DONE (3).
-fun sqlite_step(q: u8) -> u8 {
+// Step to next row. Returns 1=row, 0=done.
+// PFCCO: q=HL (u16)
+fun sqlite_step(q: u16) -> u8 {
     asm z80 (in q) (ret A) {
+        LD A, L
         OUT (0x45), A
         LD A, 4
         OUT (0x41), A
@@ -129,11 +131,14 @@ fun sqlite_step(q: u8) -> u8 {
 }
 
 // Get text value of column. Returns pointer to static buffer.
-fun sqlite_column_text(q: u8, col: u8) -> ^u8 {
+// PFCCO: q=HL (u16), col=A (u8)
+fun sqlite_column_text(q: u16, col: u8) -> ^u8 {
     asm z80 (in q, col) {
-        ; A=q, C=col
+        ; HL=q, A=col
+        PUSH AF
+        LD A, L
         OUT (0x45), A
-        LD A, C
+        POP AF
         OUT (0x47), A
         LD A, 5
         OUT (0x41), A
@@ -142,11 +147,13 @@ fun sqlite_column_text(q: u8, col: u8) -> ^u8 {
 }
 
 // Get integer value of column. Returns u16.
-fun sqlite_column_int(q: u8, col: u8) -> u16 {
+// PFCCO: q=HL (u16), col=A (u8)
+fun sqlite_column_int(q: u16, col: u8) -> u16 {
     asm z80 (in q, col) (ret HL) {
-        ; A=q, C=col
+        PUSH AF
+        LD A, L
         OUT (0x45), A
-        LD A, C
+        POP AF
         OUT (0x47), A
         LD A, 6
         OUT (0x41), A
@@ -158,10 +165,13 @@ fun sqlite_column_int(q: u8, col: u8) -> u16 {
 }
 
 // Finalize (close) a query statement.
-fun sqlite_finalize(q: u8) -> void {
-    asm z80 (in q) {
+// PFCCO: q=HL (u16)
+fun sqlite_finalize(q: u16) -> u8 {
+    asm z80 (in q) (ret A) {
+        LD A, L
         OUT (0x45), A
         LD A, 7
         OUT (0x41), A
+        IN A, (0x43)
     }
 }
