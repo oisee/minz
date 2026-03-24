@@ -1338,6 +1338,68 @@ func (g *z80cg) genFunc(f *Func) {
 			g.emitf("%s: DW 0", slabel)
 		}
 	}
+
+	// Pass 3: fix orphaned TSMC stores — when a _tsmc_ label is referenced
+	// (by store patches) but never defined (no reload instruction), redirect
+	// the stores to the corresponding _spill_ label so data flows correctly.
+	fixOrphanedTSMCStores(g.sb, label)
+}
+
+// fixOrphanedTSMCStores scans the emitted asm for _tsmc_ labels that are
+// referenced (by LD (_tsmc_label+N), A store patches) but never defined
+// (no _tsmc_label: reload instruction). For each orphan, replaces the
+// TSMC store patches with regular _spill_ stores:
+//
+//	LD (_tsmc_func_rN_M+1), A  →  LD (_spill_func_rN), A
+//	LD (_tsmc_func_rN_M+2), A  →  LD (_spill_func_rN+1), A
+func fixOrphanedTSMCStores(sb *strings.Builder, funcLabel string) {
+	asm := sb.String()
+	tsmcPrefix := "_tsmc_" + funcLabel + "_r"
+
+	// Collect all _tsmc_ labels that appear as references (in store patches)
+	referenced := make(map[string]bool)
+	for idx := 0; ; {
+		pos := strings.Index(asm[idx:], tsmcPrefix)
+		if pos < 0 {
+			break
+		}
+		pos += idx
+		// Extract: _tsmc_func_rN_M
+		end := pos
+		for end < len(asm) && asm[end] != '+' && asm[end] != ')' && asm[end] != ':' &&
+			asm[end] != ' ' && asm[end] != '\n' {
+			end++
+		}
+		label := asm[pos:end]
+		referenced[label] = true
+		idx = end
+	}
+
+	// Check which are defined (have "label:" in the asm)
+	changed := false
+	for label := range referenced {
+		if strings.Contains(asm, label+":") {
+			continue // defined — TSMC reload is working
+		}
+		// Orphaned: extract register number to build _spill_ label.
+		// Label format: _tsmc_func_rN_M → _spill_func_rN
+		tsmcSuffix := label[len("_tsmc_"):]
+		// Find last underscore (the _M part)
+		lastUS := strings.LastIndex(tsmcSuffix, "_")
+		if lastUS < 0 {
+			continue
+		}
+		spillLabel := "_spill_" + tsmcSuffix[:lastUS]
+		// Replace TSMC store patches with regular spill stores
+		asm = strings.ReplaceAll(asm, "LD ("+label+"+1), A", "LD ("+spillLabel+"), A")
+		asm = strings.ReplaceAll(asm, "LD ("+label+"+2), A", "LD ("+spillLabel+"+1), A")
+		changed = true
+	}
+
+	if changed {
+		sb.Reset()
+		sb.WriteString(asm)
+	}
 }
 
 // ── Page-aligned LUT pre-scan ──────────────────────────────────────────────────
