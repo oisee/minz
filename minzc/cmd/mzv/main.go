@@ -215,6 +215,9 @@ func main() {
 
 	registerABAPHosts(vm, *headless, traceEnabled)
 
+	// ── Internal table host functions (dynamic, based on compiled module) ──
+	registerItabHosts(vm, m, traceEnabled)
+
 	// ── TUI host functions (stdlib/tui/render.nanz @extern calls) ────────
 
 	registerTUIHosts(vm, *headless, traceEnabled)
@@ -822,7 +825,252 @@ func registerABAPHosts(vm *mir2.VM, headless bool, trace bool) {
 		return nil, nil
 	}
 
+	// _itab_store_col(src: ^u8, dst: ^u8, maxlen: u8) — copy string to buffer slot.
+	vm.Hosts["_itab_store_col"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		if len(args) < 3 {
+			return nil, nil
+		}
+		srcPtr := args[0].I
+		dstPtr := args[1].I
+		maxlen := int(args[2].I)
+
+		// Read source string
+		var src []byte
+		for i := 0; i < 256; i++ {
+			b := vm.ReadHeap(srcPtr+int64(i), 1)
+			if b == nil || b[0] == 0 {
+				break
+			}
+			src = append(src, b[0])
+		}
+
+		// Write to destination, padded with zeros
+		for i := 0; i < maxlen; i++ {
+			if i < len(src) {
+				vm.WriteHeapBytes(dstPtr+int64(i), []byte{src[i]})
+			} else {
+				vm.WriteHeapBytes(dstPtr+int64(i), []byte{0})
+			}
+		}
+		vm.WriteHeapBytes(dstPtr+int64(maxlen), []byte{0}) // null terminate
+		return nil, nil
+	}
+
+	// _itab_print_col(ptr: ^u8, width: u8) — print string padded to width.
+	vm.Hosts["_itab_print_col"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		ptr := args[0].I
+		width := int(args[1].I)
+
+		var buf []byte
+		for i := 0; i < width; i++ {
+			b := vm.ReadHeap(ptr+int64(i), 1)
+			if b == nil || b[0] == 0 {
+				break
+			}
+			buf = append(buf, b[0])
+		}
+		// Pad to width
+		s := string(buf)
+		for len(s) < width {
+			s += " "
+		}
+		fmt.Print(s)
+		return nil, nil
+	}
+
 	if trace {
-		fmt.Fprintf(os.Stderr, "mzv: ABAP runtime registered (SY + selection screen + write)\n")
+		fmt.Fprintf(os.Stderr, "mzv: ABAP runtime registered (SY + selection screen + write + itab)\n")
+	}
+}
+
+// itabMeta holds metadata for an internal table, used by mzv host functions.
+type itabMeta struct {
+	bufAddr  int64 // VM heap address of the buffer global
+	cntAddr  int64 // VM heap address of the row counter
+	colWidth int   // fixed column width
+	rowSize  int   // total bytes per row
+}
+
+// registerItabHosts dynamically registers host functions for _itab_slot_*,
+// _itab_print_*, and _abap_seed_* functions based on the compiled module.
+func registerItabHosts(vm *mir2.VM, m *mir2.Module, trace bool) {
+
+	// Discover internal tables from globals: _itab_<name>_data, _itab_<name>_cnt
+	tables := make(map[string]*itabMeta) // table name → metadata
+	for _, g := range m.Globals {
+		if strings.HasPrefix(g.Name, "_itab_") && strings.HasSuffix(g.Name, "_data") {
+			tblName := g.Name[6 : len(g.Name)-5] // strip _itab_ and _data
+			if tables[tblName] == nil {
+				tables[tblName] = &itabMeta{}
+			}
+		}
+		if strings.HasPrefix(g.Name, "_itab_") && strings.HasSuffix(g.Name, "_cnt") {
+			tblName := g.Name[6 : len(g.Name)-4] // strip _itab_ and _cnt
+			if tables[tblName] == nil {
+				tables[tblName] = &itabMeta{}
+			}
+		}
+	}
+
+	// Infer colWidth from function count per table
+	// Default: 20 (matching ABAP lowerer)
+	const defaultColWidth = 20
+
+	count := 0
+	for _, f := range m.Funcs {
+		fnName := f.Name
+
+		// _itab_slot_<table>_<row>_<col>(stmt: u16)
+		if strings.HasPrefix(fnName, "_itab_slot_") {
+			suffix := fnName[11:] // after "_itab_slot_"
+			// Parse: <tablename>_<row>_<col> — find last two _N segments
+			parts := strings.Split(suffix, "_")
+			if len(parts) >= 3 {
+				colIdx := 0
+				fmt.Sscanf(parts[len(parts)-1], "%d", &colIdx)
+				rowIdx := 0
+				fmt.Sscanf(parts[len(parts)-2], "%d", &rowIdx)
+				tblName := strings.Join(parts[:len(parts)-2], "_")
+
+				capturedCol := colIdx
+				capturedRow := rowIdx
+				capturedTbl := tblName
+				colW := defaultColWidth
+
+				vm.Hosts[fnName] = func(args []mir2.Value) ([]mir2.Value, error) {
+					if len(args) < 1 {
+						return nil, nil
+					}
+					stmtHandle := args[0].I
+
+					// Call sqlite_column_text via the existing host function
+					colTextFn := vm.Hosts["sqlite_column_text"]
+					if colTextFn == nil {
+						return nil, nil
+					}
+					result, err := colTextFn([]mir2.Value{
+						{I: stmtHandle},
+						{I: int64(capturedCol)},
+					})
+					if err != nil || len(result) == 0 {
+						return nil, err
+					}
+
+					// Read the text from the returned pointer
+					srcPtr := result[0].I
+					var src []byte
+					for i := 0; i < 256; i++ {
+						b := vm.ReadHeap(srcPtr+int64(i), 1)
+						if b == nil || b[0] == 0 {
+							break
+						}
+						src = append(src, b[0])
+					}
+
+					// Find buffer address from globals
+					bufGlobal := fmt.Sprintf("_itab_%s_data", capturedTbl)
+					bufAddr := vm.GlobalAddr(bufGlobal)
+					if bufAddr < 0 {
+						return nil, nil
+					}
+
+					// Calculate offset and write
+					rowSize := colW * 4 // estimate: check actual
+					// Better: count columns from module functions
+					nCols := 1
+					for _, ff := range m.Funcs {
+						prefix := fmt.Sprintf("_itab_slot_%s_%d_", capturedTbl, capturedRow)
+						if strings.HasPrefix(ff.Name, prefix) {
+							colN := 0
+							fmt.Sscanf(ff.Name[len(prefix):], "%d", &colN)
+							if colN+1 > nCols {
+								nCols = colN + 1
+							}
+						}
+					}
+					rowSize = nCols * colW
+					offset := int64(capturedRow*rowSize + capturedCol*colW)
+
+					// Write to buffer
+					dstAddr := bufAddr + offset
+					maxLen := colW - 1
+					for i := 0; i < maxLen; i++ {
+						if i < len(src) {
+							vm.WriteHeapBytes(dstAddr+int64(i), []byte{src[i]})
+						} else {
+							vm.WriteHeapBytes(dstAddr+int64(i), []byte{0})
+						}
+					}
+					vm.WriteHeapBytes(dstAddr+int64(maxLen), []byte{0})
+					return nil, nil
+				}
+				count++
+			}
+		}
+
+		// _itab_print_<table>_<row>_<col>()
+		if strings.HasPrefix(fnName, "_itab_print_") {
+			suffix := fnName[12:] // after "_itab_print_"
+			parts := strings.Split(suffix, "_")
+			if len(parts) >= 3 {
+				colIdx := 0
+				fmt.Sscanf(parts[len(parts)-1], "%d", &colIdx)
+				rowIdx := 0
+				fmt.Sscanf(parts[len(parts)-2], "%d", &rowIdx)
+				tblName := strings.Join(parts[:len(parts)-2], "_")
+
+				capturedCol := colIdx
+				capturedRow := rowIdx
+				capturedTbl := tblName
+				colW := defaultColWidth
+
+				vm.Hosts[fnName] = func(_ []mir2.Value) ([]mir2.Value, error) {
+					bufGlobal := fmt.Sprintf("_itab_%s_data", capturedTbl)
+					bufAddr := vm.GlobalAddr(bufGlobal)
+					if bufAddr < 0 {
+						return nil, nil
+					}
+
+					// Count columns for row size
+					nCols := 1
+					for _, ff := range m.Funcs {
+						prefix := fmt.Sprintf("_itab_print_%s_%d_", capturedTbl, capturedRow)
+						if strings.HasPrefix(ff.Name, prefix) {
+							colN := 0
+							fmt.Sscanf(ff.Name[len(prefix):], "%d", &colN)
+							if colN+1 > nCols {
+								nCols = colN + 1
+							}
+						}
+					}
+					rowSize := nCols * colW
+					offset := int64(capturedRow*rowSize + capturedCol*colW)
+					ptr := bufAddr + offset
+
+					// Read and print padded
+					var buf []byte
+					for i := 0; i < colW; i++ {
+						b := vm.ReadHeap(ptr+int64(i), 1)
+						if b == nil || b[0] == 0 {
+							break
+						}
+						buf = append(buf, b[0])
+					}
+					s := string(buf)
+					for len(s) < colW {
+						s += " "
+					}
+					fmt.Print(s)
+					return nil, nil
+				}
+				count++
+			}
+		}
+	}
+	if trace && count > 0 {
+		fmt.Fprintf(os.Stderr, "mzv: registered %d itab host functions\n", count)
 	}
 }

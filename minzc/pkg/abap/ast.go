@@ -237,9 +237,29 @@ type SelectStmt struct {
 	Single bool     // SELECT SINGLE → one row only
 	// For LOOP AT semantics (SELECT ... ENDSELECT), Body holds the loop body
 	Body []Stmt_
+	// INTO TABLE @DATA(lt_name) — bulk fetch into internal table
+	IntoTable       string // internal table variable name (e.g. "lt_mara")
+	IntoTableInline bool   // true if @DATA() inline declaration
+	// JOIN support
+	Joins []JoinClause
+}
+
+// JoinClause represents INNER JOIN / LEFT JOIN in ABAP Open SQL.
+type JoinClause struct {
+	Type  string // "INNER", "LEFT"
+	Table string // joined table
+	Alias string // optional alias
+	On    string // ON condition as raw SQL
 }
 
 func (*SelectStmt) abapStmt() {}
+
+// ALVDisplayStmt represents cl_salv_table=>factory() or equivalent ALV display.
+type ALVDisplayStmt struct {
+	TableVar string // internal table variable to display
+}
+
+func (*ALVDisplayStmt) abapStmt() {}
 
 // ExecSQLStmt represents ABAP Native SQL: EXEC SQL. ... ENDEXEC.
 type ExecSQLStmt struct {

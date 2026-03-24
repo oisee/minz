@@ -82,9 +82,10 @@ func Compile(src, name string) (*hir.Module, error) {
 // LowerProgram converts a semantic ABAP Program to a HIR module.
 func LowerProgram(prog *Program) (*hir.Module, error) {
 	l := &lowerer{
-		prog:     prog,
-		varTypes: make(map[string]mir2.Ty),
-		strCache: make(map[string]int),
+		prog:           prog,
+		varTypes:       make(map[string]mir2.Ty),
+		strCache:       make(map[string]int),
+		internalTables: make(map[string]*internalTable),
 	}
 	l.hm = &hir.Module{Name: prog.Name}
 	return l.lower()
@@ -96,6 +97,17 @@ type stringInit struct {
 	ty      mir2.Ty
 }
 
+// internalTable tracks metadata for an ABAP internal table (SELECT ... INTO TABLE @DATA(lt_name)).
+type internalTable struct {
+	name     string   // variable name (e.g. "lt_mara")
+	columns  []string // column names
+	colWidth int      // fixed width per text column
+	rowSize  int      // total bytes per row (sum of colWidths + nulls)
+	maxRows  int      // max rows in buffer
+	bufName  string   // HIR global name for the flat buffer
+	cntName  string   // HIR global name for the row counter
+}
+
 type lowerer struct {
 	prog               *Program
 	hm                 *hir.Module
@@ -105,6 +117,7 @@ type lowerer struct {
 	strCache           map[string]int // dedup cache: content → index in hm.Strings
 	hasSelect          bool          // true if any SELECT statement → emit sqlite externs + _abap_db
 	selectStmtCounter  int           // unique IDs for temp variables
+	internalTables     map[string]*internalTable // lt_name → table metadata
 }
 
 // internStr interns a C-string into the HIR module, deduplicating by content.
@@ -459,14 +472,15 @@ func (l *lowerer) lower() (*hir.Module, error) {
 				Ty:   mir2.TyU16,
 			},
 		})
-		// Execute seed SQL statements from *!sql pragmas
+		// Execute seed SQL statements from *!sql pragmas.
+		// Use standard HIR calls with hardcoded handle=1.
 		for _, sql := range l.prog.SeedSQL {
 			sqlSym := l.internStr(sql)
 			initStmts = append(initStmts, &hir.ExprStmt{
 				Expr: &hir.CallExpr{
 					Fn: "sqlite_exec",
 					Args: []hir.Expr{
-						&hir.VarRefExpr{Name: "_abap_db", Ty: mir2.TyU16},
+						&hir.IntLitExpr{Val: 1, Ty: mir2.TyU16},
 						&hir.AddrOfExpr{Sym: sqlSym},
 					},
 					Ty: mir2.TyU8,
@@ -754,6 +768,8 @@ func (l *lowerer) lowerStmt(s Stmt_) (hir.Stmt, error) {
 		return l.lowerCase(s)
 	case *SelectStmt:
 		return l.lowerSelect(s)
+	case *ALVDisplayStmt:
+		return l.lowerALVDisplay(s)
 	case *ExecSQLStmt:
 		return l.lowerExecSQL(s)
 	default:
@@ -987,11 +1003,48 @@ func (l *lowerer) lowerSelect(s *SelectStmt) (hir.Stmt, error) {
 	l.selectStmtCounter++
 	uid := l.selectStmtCounter
 
-	// Build SQL string: SELECT f1, f2 FROM table [WHERE cond]
-	fieldList := strings.Join(s.Fields, ", ")
+	// Build SQL string: SELECT f1, f2 FROM table [JOIN ...] [WHERE cond]
+	// When JOINs exist, qualify ambiguous fields with table name.
+	var qualifiedFields []string
+	if len(s.Joins) > 0 {
+		// Build set of column names from joined tables (from *!sql pragmas)
+		joinedCols := make(map[string]string) // col → table
+		for _, j := range s.Joins {
+			for _, col := range l.inferColumnsFromSeedSQL(j.Table) {
+				joinedCols[strings.ToLower(col)] = j.Table
+			}
+		}
+		mainCols := make(map[string]bool)
+		for _, col := range l.inferColumnsFromSeedSQL(s.Table) {
+			mainCols[strings.ToLower(col)] = true
+		}
+		for _, f := range s.Fields {
+			fl := strings.ToLower(f)
+			if _, inJoined := joinedCols[fl]; inJoined && mainCols[fl] {
+				// Ambiguous — qualify with main table
+				qualifiedFields = append(qualifiedFields, s.Table+"."+f)
+			} else if _, inJoined := joinedCols[fl]; inJoined && !mainCols[fl] {
+				// Only in joined table
+				qualifiedFields = append(qualifiedFields, joinedCols[fl]+"."+f)
+			} else {
+				qualifiedFields = append(qualifiedFields, f)
+			}
+		}
+	} else {
+		qualifiedFields = s.Fields
+	}
+	fieldList := strings.Join(qualifiedFields, ", ")
 	sql := fmt.Sprintf("SELECT %s FROM %s", fieldList, s.Table)
+	for _, j := range s.Joins {
+		sql += fmt.Sprintf(" %s JOIN %s ON %s", j.Type, j.Table, j.On)
+	}
 	if s.Where != "" {
 		sql += " WHERE " + s.Where
+	}
+
+	// INTO TABLE @DATA(lt_name) — bulk fetch into flat buffer
+	if s.IntoTable != "" {
+		return l.lowerSelectIntoTable(s, sql, uid)
 	}
 
 	// Intern the SQL string
@@ -1107,6 +1160,343 @@ func (l *lowerer) lowerSelect(s *SelectStmt) (hir.Stmt, error) {
 			Body: &hir.Block{Body: loopBody},
 		})
 	}
+
+	return &hir.Block{Body: stmts}, nil
+}
+
+// lowerSelectIntoTable handles SELECT ... INTO TABLE @DATA(lt_name).
+// Generates:
+//   - global _itab_<name>_data: flat buffer (maxRows * rowSize bytes)
+//   - global _itab_<name>_cnt: u16 (row counter)
+//   - sqlite loop: step + column_text into buffer slots + increment counter
+func (l *lowerer) lowerSelectIntoTable(s *SelectStmt, sql string, uid int) (hir.Stmt, error) {
+	const colWidth = 20 // fixed column width for text fields
+	const maxRows = 8   // max rows in buffer (limited for Z80 code size)
+
+	// Resolve columns — for *, use table schema from *!sql pragmas
+	cols := s.Fields
+	if len(cols) == 1 && cols[0] == "*" {
+		cols = l.inferColumnsFromSeedSQL(s.Table)
+		if len(cols) == 0 {
+			return nil, fmt.Errorf("SELECT * INTO TABLE: cannot infer columns for %s (add *!sql CREATE TABLE)", s.Table)
+		}
+	}
+
+	rowSize := len(cols) * colWidth
+	bufName := fmt.Sprintf("_itab_%s_data", s.IntoTable)
+	cntName := fmt.Sprintf("_itab_%s_cnt", s.IntoTable)
+
+	// Register internal table metadata
+	it := &internalTable{
+		name:     s.IntoTable,
+		columns:  cols,
+		colWidth: colWidth,
+		rowSize:  rowSize,
+		maxRows:  maxRows,
+		bufName:  bufName,
+		cntName:  cntName,
+	}
+	l.internalTables[s.IntoTable] = it
+
+	// Emit globals: flat buffer + row counter
+	l.hm.Globals = append(l.hm.Globals, mir2.Global{
+		Name: bufName,
+		Ty:   mir2.TyU8,
+		Init: make([]byte, maxRows*rowSize),
+	})
+	l.hm.Globals = append(l.hm.Globals, mir2.Global{
+		Name: cntName,
+		Ty:   mir2.TyU16,
+	})
+
+	// Also register the table variable itself as a pointer (for LOOP AT etc.)
+	l.varTypes[s.IntoTable] = mir2.TyPtr
+
+	sqlSym := l.internStr(sql)
+
+	var stmts []hir.Stmt
+
+	// Reset counter: _itab_<name>_cnt = 0
+	stmts = append(stmts, &hir.AssignStmt{
+		Target: &hir.VarRefExpr{Name: cntName, Ty: mir2.TyU16},
+		Val:    &hir.IntLitExpr{Val: 0, Ty: mir2.TyU16},
+	})
+
+	// sqlite_query(1, sql) — hardcoded db handle to avoid regalloc corruption.
+	// The literal 1 is reloaded each time (no register preservation needed).
+	stmts = append(stmts, &hir.ExprStmt{
+		Expr: &hir.CallExpr{
+			Fn: "sqlite_query",
+			Args: []hir.Expr{
+				&hir.IntLitExpr{Val: 1, Ty: mir2.TyU16},
+				&hir.AddrOfExpr{Sym: sqlSym},
+			},
+			Ty: mir2.TyU16,
+		},
+	})
+
+	// For production backend (no while loops), unroll as chained if-blocks:
+	// sqlite_step(); if has_row { read cols into buf[0]; cnt=1; step(); if has_row { ... } }
+	// This avoids the register allocator bugs with while loops.
+	for row := 0; row < maxRows; row++ {
+		var rowStmts []hir.Stmt
+
+		// Read columns into buffer using per-slot asm blocks on Z80.
+		// On mzv, the _itab_slot_* functions are overridden by host functions.
+		for ci := range cols {
+			offset := row*rowSize + ci*colWidth
+
+			rowStmts = append(rowStmts, &hir.ExprStmt{
+				Expr: &hir.CallExpr{
+					Fn: fmt.Sprintf("_itab_slot_%s_%d_%d", it.name, row, ci),
+					Args: []hir.Expr{
+						&hir.IntLitExpr{Val: 1, Ty: mir2.TyU16}, // hardcoded handle
+					},
+					Ty: mir2.TyVoid,
+				},
+			})
+
+			l.emitItabSlotFunc(it.name, row, ci, offset, colWidth-1, bufName)
+		}
+
+		// _itab_<name>_cnt = row + 1
+		rowStmts = append(rowStmts, &hir.AssignStmt{
+			Target: &hir.VarRefExpr{Name: cntName, Ty: mir2.TyU16},
+			Val:    &hir.IntLitExpr{Val: int64(row + 1), Ty: mir2.TyU16},
+		})
+
+		// Wrap in: if sqlite_step(1) == 1 { ... }  (hardcoded handle)
+		stmts = append(stmts, &hir.IfStmt{
+			Cond: &hir.BinExpr{
+				Op: "==",
+				L: &hir.CallExpr{
+					Fn:   "sqlite_step",
+					Args: []hir.Expr{&hir.IntLitExpr{Val: 1, Ty: mir2.TyU16}},
+					Ty:   mir2.TyU8,
+				},
+				R:  &hir.IntLitExpr{Val: 1, Ty: mir2.TyU8},
+				Ty: mir2.TyU8,
+			},
+			Then: &hir.Block{Body: rowStmts},
+		})
+	}
+
+	// Finalize (hardcoded handle 1)
+	stmts = append(stmts, &hir.ExprStmt{
+		Expr: &hir.CallExpr{
+			Fn:   "sqlite_finalize",
+			Args: []hir.Expr{&hir.IntLitExpr{Val: 1, Ty: mir2.TyU16}},
+			Ty:   mir2.TyU8,
+		},
+	})
+
+	return &hir.Block{Body: stmts}, nil
+}
+
+// emitItabSlotFunc emits a per-slot function that:
+// 1. Calls sqlite_column_text(stmt, col)
+// 2. Copies the result string to bufName+offset (hardcoded address, no ptr arithmetic)
+func (l *lowerer) emitItabSlotFunc(tableName string, row, col, offset, maxLen int, bufName string) {
+	fnName := fmt.Sprintf("_itab_slot_%s_%d_%d", tableName, row, col)
+
+	// Check if already emitted
+	for _, f := range l.hm.Funcs {
+		if f.Name == fnName {
+			return
+		}
+	}
+
+	// Asm body: hardcodes stmt handle as 1 (no param needed).
+	// Calls sqlite_column_text(1, col), result in HL.
+	// Then copies HL → bufName+offset for maxLen bytes.
+	asmCode := fmt.Sprintf(
+		"LD HL, 1"+ // hardcoded stmt handle
+			"/ LD C, %d"+ // column index
+			"/ CALL sqlite_column_text"+ // HL=stmt, C=col → result in HL
+			"/ LD DE, %s+%d"+ // DE = target address (compile-time constant!)
+			"/ LD B, %d"+ // B = max bytes to copy
+			"/ .cp: LD A, (HL) / OR A / JR Z, .pd"+ // null → pad
+			"/ LD (DE), A / INC HL / INC DE / DJNZ .cp"+ // copy byte
+			"/ XOR A / LD (DE), A / RET"+ // null-terminate at max, done
+			"/ .pd: LD (DE), A / INC DE / DJNZ .pd"+ // pad with zeros
+			"/ RET",
+		col, bufName, offset, maxLen)
+
+	l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
+		Name:   fnName,
+		Params: []hir.Param{{Name: "stmt", Ty: mir2.TyU16}},
+		RetTy:  mir2.TyVoid,
+		Body: &hir.Block{
+			Body: []hir.Stmt{
+				&hir.AsmStmt{
+					Target:      "z80",
+					Code:        asmCode,
+					Ins:         []hir.AsmOperand{{Name: "stmt"}},
+					ClobberRegs: []string{"A", "B", "C", "D", "E", "H", "L"},
+				},
+			},
+		},
+	})
+}
+
+// emitItabPrintFunc emits a per-slot function that prints colWidth chars
+// from bufName+offset, padding with spaces. Uses hardcoded address.
+func (l *lowerer) emitItabPrintFunc(tableName string, row, col, offset, width int, bufName string) {
+	fnName := fmt.Sprintf("_itab_print_%s_%d_%d", tableName, row, col)
+
+	for _, f := range l.hm.Funcs {
+		if f.Name == fnName {
+			return
+		}
+	}
+
+	asmCode := fmt.Sprintf(
+		"LD HL, %s+%d"+ // HL = source address (compile-time constant)
+			"/ LD B, %d"+ // B = width
+			"/ .lp: LD A, (HL) / OR A / JR Z, .pd"+ // null → pad
+			"/ LD E, A / PUSH HL / PUSH BC / LD C, 2 / CALL 5 / POP BC / POP HL / INC HL / DJNZ .lp / RET"+
+			"/ .pd: LD E, 32 / PUSH HL / PUSH BC / LD C, 2 / CALL 5 / POP BC / POP HL / DJNZ .pd / RET",
+		bufName, offset, width)
+
+	l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
+		Name:  fnName,
+		RetTy: mir2.TyVoid,
+		Body: &hir.Block{
+			Body: []hir.Stmt{
+				&hir.AsmStmt{
+					Target:      "z80",
+					Code:        asmCode,
+					ClobberRegs: []string{"A", "B", "C", "D", "E", "H", "L"},
+				},
+			},
+		},
+	})
+}
+
+// inferColumnsFromSeedSQL extracts column names from *!sql CREATE TABLE pragmas.
+func (l *lowerer) inferColumnsFromSeedSQL(table string) []string {
+	tableLower := strings.ToLower(table)
+	for _, sql := range l.prog.SeedSQL {
+		lower := strings.ToLower(sql)
+		// Match: CREATE TABLE [IF NOT EXISTS] <table> (col1 TYPE, col2 TYPE, ...)
+		if !strings.Contains(lower, "create table") {
+			continue
+		}
+		if !strings.Contains(lower, tableLower) {
+			continue
+		}
+		// Extract column list from parentheses
+		start := strings.Index(sql, "(")
+		end := strings.LastIndex(sql, ")")
+		if start < 0 || end <= start {
+			continue
+		}
+		colDefs := sql[start+1 : end]
+		var cols []string
+		for _, def := range strings.Split(colDefs, ",") {
+			def = strings.TrimSpace(def)
+			parts := strings.Fields(def)
+			if len(parts) > 0 {
+				cols = append(cols, parts[0])
+			}
+		}
+		return cols
+	}
+	return nil
+}
+
+// lowerALVDisplay generates WRITE-based ALV table output for cl_salv_table=>factory().
+func (l *lowerer) lowerALVDisplay(s *ALVDisplayStmt) (hir.Stmt, error) {
+	it, ok := l.internalTables[s.TableVar]
+	if !ok {
+		return nil, fmt.Errorf("cl_salv_table: unknown internal table %q", s.TableVar)
+	}
+
+	var stmts []hir.Stmt
+
+	// Header line: column names separated by spaces
+	header := ""
+	separator := ""
+	for _, col := range it.columns {
+		padded := col
+		for len(padded) < it.colWidth {
+			padded += " "
+		}
+		header += padded
+		for j := 0; j < it.colWidth; j++ {
+			separator += "-"
+		}
+	}
+	headerSym := l.internStr(header)
+	sepSym := l.internStr(separator)
+
+	stmts = append(stmts, &hir.ExprStmt{
+		Expr: &hir.CallExpr{
+			Fn:   "abap_write_str",
+			Args: []hir.Expr{&hir.AddrOfExpr{Sym: headerSym}},
+			Ty:   mir2.TyVoid,
+		},
+	})
+	stmts = append(stmts, &hir.ExprStmt{
+		Expr: &hir.CallExpr{
+			Fn:   "abap_write_str",
+			Args: []hir.Expr{&hir.AddrOfExpr{Sym: sepSym}},
+			Ty:   mir2.TyVoid,
+		},
+	})
+
+	// Data rows: unrolled static blocks (avoids regalloc loop bugs)
+	// Each column printed via per-slot asm function with hardcoded address
+	for row := 0; row < it.maxRows; row++ {
+		var rowStmts []hir.Stmt
+		for ci := range it.columns {
+			offset := row*it.rowSize + ci*it.colWidth
+			printFn := fmt.Sprintf("_itab_print_%s_%d_%d", it.name, row, ci)
+
+			rowStmts = append(rowStmts, &hir.ExprStmt{
+				Expr: &hir.CallExpr{Fn: printFn, Ty: mir2.TyVoid},
+			})
+
+			l.emitItabPrintFunc(it.name, row, ci, offset, it.colWidth, it.bufName)
+		}
+		// Newline after each row
+		nlSym := l.internStr("\r\n")
+		rowStmts = append(rowStmts, &hir.ExprStmt{
+			Expr: &hir.CallExpr{
+				Fn:   "abap_write_str",
+				Args: []hir.Expr{&hir.AddrOfExpr{Sym: nlSym}},
+				Ty:   mir2.TyVoid,
+			},
+		})
+
+		// if row < _itab_<name>_cnt { print row }
+		stmts = append(stmts, &hir.IfStmt{
+			Cond: &hir.BinExpr{
+				Op: "<",
+				L:  &hir.IntLitExpr{Val: int64(row), Ty: mir2.TyU16},
+				R:  &hir.VarRefExpr{Name: it.cntName, Ty: mir2.TyU16},
+				Ty: mir2.TyBool,
+			},
+			Then: &hir.Block{Body: rowStmts},
+		})
+	}
+
+	// Footer: row count
+	footerSym := l.internStr(" rows displayed.")
+	stmts = append(stmts, &hir.ExprStmt{
+		Expr: &hir.CallExpr{
+			Fn:   "abap_write",
+			Args: []hir.Expr{&hir.VarRefExpr{Name: it.cntName, Ty: mir2.TyU16}},
+			Ty:   mir2.TyVoid,
+		},
+	})
+	stmts = append(stmts, &hir.ExprStmt{
+		Expr: &hir.CallExpr{
+			Fn:   "abap_write_str",
+			Args: []hir.Expr{&hir.AddrOfExpr{Sym: footerSym}},
+			Ty:   mir2.TyVoid,
+		},
+	})
 
 	return &hir.Block{Body: stmts}, nil
 }
@@ -1608,5 +1998,65 @@ func emitRuntimeFuncs(hm *hir.Module) {
 			},
 		})
 		names["_abap_safe_write"] = true
+	}
+
+	// _itab_store_col(src: ^u8, dst: ^u8, maxlen: u8) — copy string to fixed-width buffer slot.
+	// Copies up to maxlen bytes from src to dst, null-terminates, pads rest with spaces.
+	if !names["_itab_store_col"] {
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name: "_itab_store_col",
+			Params: []hir.Param{
+				{Name: "src", Ty: mir2.TyPtr},
+				{Name: "dst", Ty: mir2.TyPtr},
+				{Name: "maxlen", Ty: mir2.TyU8},
+			},
+			RetTy: mir2.TyVoid,
+			Body: &hir.Block{
+				Body: []hir.Stmt{
+					&hir.AsmStmt{
+						Target: "z80",
+						// PFCCO: src=HL, dst=DE, maxlen=C  (ptr, ptr, u8)
+						// Actually PFCCO for (ptr, ptr, u8): HL=src, DE=dst, C=maxlen
+						Code: "LD B, C" + // B = maxlen (counter)
+							"/ .cp: LD A, (HL) / OR A / JR Z, .pad" +
+							"/ LD (DE), A / INC HL / INC DE / DEC B / JR NZ, .cp" +
+							"/ LD A, 0 / LD (DE), A / RET" + // maxlen reached, null-term
+							"/ .pad: LD (DE), A / INC DE / DEC B / JR NZ, .pad" + // pad with 0
+							"/ LD (DE), A / RET", // final null
+						Ins:         []hir.AsmOperand{{Name: "src"}, {Name: "dst"}, {Name: "maxlen"}},
+						ClobberRegs: []string{"A", "B", "C", "D", "E", "H", "L"},
+					},
+				},
+			},
+		})
+		names["_itab_store_col"] = true
+	}
+
+	// _itab_print_col(ptr: ^u8, width: u8) — print string padded to width.
+	// Identical to puts_padded but using ABAP runtime convention.
+	if !names["_itab_print_col"] {
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name: "_itab_print_col",
+			Params: []hir.Param{
+				{Name: "ptr", Ty: mir2.TyPtr},
+				{Name: "width", Ty: mir2.TyU8},
+			},
+			RetTy: mir2.TyVoid,
+			Body: &hir.Block{
+				Body: []hir.Stmt{
+					&hir.AsmStmt{
+						Target: "z80",
+						// PFCCO: ptr=HL, width=C
+						Code: "LD B, C / LD A, C / OR A / RET Z" +
+							"/ .lp: LD A, (HL) / OR A / JR Z, .pd" +
+							"/ LD E, A / PUSH HL / PUSH BC / LD C, 2 / CALL 5 / POP BC / POP HL / INC HL / DJNZ .lp / RET" +
+							"/ .pd: LD E, 32 / PUSH HL / PUSH BC / LD C, 2 / CALL 5 / POP BC / POP HL / DJNZ .pd / RET",
+						Ins:         []hir.AsmOperand{{Name: "ptr"}, {Name: "width"}},
+						ClobberRegs: []string{"A", "B", "C", "D", "E", "H", "L"},
+					},
+				},
+			},
+		})
+		names["_itab_print_col"] = true
 	}
 }

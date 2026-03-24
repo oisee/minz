@@ -910,8 +910,40 @@ func convertStmt(s *StmtNode) (Decl, error) {
 		w := &WriteStmt{Exprs: []Expr_{&StringLit{Val: "\r\n"}}}
 		return &formBodyDecl{stmt: w}, nil
 	default:
+		// Check for cl_salv_table=>factory( table_var ) pattern
+		joined := strings.Join(tokens, " ")
+		if strings.Contains(strings.ToLower(joined), "cl_salv_table") &&
+			strings.Contains(strings.ToLower(joined), "factory") {
+			return parseALVFactory(tokens)
+		}
 		return nil, fmt.Errorf("unsupported: %s", s.Type)
 	}
+}
+
+// parseALVFactory: cl_salv_table=>factory( IMPORTING r_salv_table = lo_salv CHANGING t_table = lt_table ).
+// Simplified: cl_salv_table=>factory( lt_table ).
+func parseALVFactory(tokens []string) (Decl, error) {
+	// Find the table variable — last identifier before ) or .
+	var tableVar string
+	for i := len(tokens) - 1; i >= 0; i-- {
+		t := tokens[i]
+		if t == ")" || t == "." || t == "(" || strings.Contains(t, "=>") ||
+			strings.ToLower(t) == "cl_salv_table" || strings.ToLower(t) == "factory" ||
+			strings.ToUpper(t) == "IMPORTING" || strings.ToUpper(t) == "CHANGING" ||
+			strings.ToUpper(t) == "EXPORTING" || t == "=" {
+			continue
+		}
+		// Skip known keyword params like r_salv_table, lo_salv
+		if strings.HasPrefix(t, "r_") || strings.HasPrefix(t, "lo_") {
+			continue
+		}
+		tableVar = t
+		break
+	}
+	if tableVar == "" {
+		return nil, fmt.Errorf("cl_salv_table: could not find table variable")
+	}
+	return &formBodyDecl{stmt: &ALVDisplayStmt{TableVar: tableVar}}, nil
 }
 
 func collectTokenStrings(s *StmtNode) []string {
@@ -1067,80 +1099,167 @@ func parseSelectStmt(tokens []string) (Decl, error) {
 		}
 	}
 
-	// INTO (v1, v2, ...) or INTO CORRESPONDING FIELDS OF wa
-	if i < len(tokens) && strings.ToUpper(tokens[i]) == "INTO" {
-		i++
-		// Skip optional "(" or "CORRESPONDING FIELDS OF"
-		if i < len(tokens) && tokens[i] == "(" {
-			i++ // skip "("
-		}
-		if i < len(tokens) && strings.ToUpper(tokens[i]) == "CORRESPONDING" {
-			// INTO CORRESPONDING FIELDS OF wa — use field names as vars
-			for i < len(tokens) && strings.ToUpper(tokens[i]) != "WHERE" &&
-				strings.ToUpper(tokens[i]) != "ORDER" && tokens[i] != "." {
-				i++
+	// INNER JOIN / LEFT [OUTER] JOIN
+	for i < len(tokens) {
+		upper := strings.ToUpper(tokens[i])
+		joinType := ""
+		if upper == "INNER" && i+1 < len(tokens) && strings.ToUpper(tokens[i+1]) == "JOIN" {
+			joinType = "INNER"
+			i += 2
+		} else if upper == "LEFT" {
+			joinType = "LEFT"
+			i++ // skip LEFT
+			if i < len(tokens) && strings.ToUpper(tokens[i]) == "OUTER" {
+				i++ // skip OUTER
 			}
-			// Use field names as target var names
-			for _, f := range sel.Fields {
-				if f != "*" {
-					sel.Into = append(sel.Into, f)
-				}
+			if i < len(tokens) && strings.ToUpper(tokens[i]) == "JOIN" {
+				i++ // skip JOIN
 			}
+		} else if upper == "JOIN" {
+			joinType = "INNER"
+			i++
 		} else {
-			// INTO (v1, v2, ...) or INTO v1
+			break
+		}
+		jc := JoinClause{Type: joinType}
+		if i < len(tokens) {
+			jc.Table = tokens[i]
+			i++
+		}
+		// ON condition — collect until WHERE / INTO / ORDER / . / next JOIN
+		if i < len(tokens) && strings.ToUpper(tokens[i]) == "ON" {
+			i++
+			var onParts []string
 			for i < len(tokens) {
-				t := tokens[i]
-				upper := strings.ToUpper(t)
-				if upper == "WHERE" || upper == "ORDER" || t == "." || t == ")" {
-					if t == ")" {
-						i++
-					}
+				tu := strings.ToUpper(tokens[i])
+				if tu == "WHERE" || tu == "INTO" || tu == "ORDER" || tu == "INNER" ||
+					tu == "LEFT" || tu == "JOIN" || tokens[i] == "." {
 					break
 				}
-				if t != "," {
-					sel.Into = append(sel.Into, t)
+				// Convert table~field to table.field for SQLite
+				onParts = append(onParts, strings.ReplaceAll(tokens[i], "~", "."))
+				i++
+			}
+			jc.On = strings.Join(onParts, " ")
+		}
+		sel.Joins = append(sel.Joins, jc)
+	}
+
+	// WHERE and INTO can appear in either order in ABAP Open SQL.
+	// Unified loop handles: INTO TABLE ... WHERE ... or WHERE ... INTO TABLE ...
+	for i < len(tokens) && tokens[i] != "." {
+		upper := strings.ToUpper(tokens[i])
+
+		if upper == "WHERE" && sel.Where == "" {
+			i++
+			var whereParts []string
+			for i < len(tokens) {
+				t := tokens[i]
+				tu := strings.ToUpper(t)
+				if t == "." || tu == "ORDER" || tu == "ENDSELECT" || tu == "INTO" {
+					break
+				}
+				switch tu {
+				case "EQ":
+					whereParts = append(whereParts, "=")
+				case "NE":
+					whereParts = append(whereParts, "!=")
+				case "LT":
+					whereParts = append(whereParts, "<")
+				case "GT":
+					whereParts = append(whereParts, ">")
+				case "LE":
+					whereParts = append(whereParts, "<=")
+				case "GE":
+					whereParts = append(whereParts, ">=")
+				default:
+					whereParts = append(whereParts, t)
 				}
 				i++
 			}
+			sel.Where = strings.Join(whereParts, " ")
+			continue
 		}
-	} else {
-		// No INTO — use field names as target variables
+
+		if upper == "INTO" && sel.IntoTable == "" && len(sel.Into) == 0 {
+			i++
+			if i < len(tokens) && strings.ToUpper(tokens[i]) == "TABLE" {
+				i++ // skip TABLE
+				if i < len(tokens) {
+					varName := tokens[i]
+					if varName == "@" {
+						sel.IntoTableInline = true
+						i++
+						if i < len(tokens) && strings.ToUpper(tokens[i]) == "DATA" {
+							i++
+						}
+						if i < len(tokens) && tokens[i] == "(" {
+							i++
+						}
+						if i < len(tokens) && tokens[i] != ")" && tokens[i] != "." {
+							sel.IntoTable = tokens[i]
+							i++
+						}
+						if i < len(tokens) && tokens[i] == ")" {
+							i++
+						}
+					} else if strings.HasPrefix(varName, "@") {
+						inner := varName
+						if strings.HasPrefix(strings.ToUpper(inner), "@DATA(") {
+							inner = inner[6:]
+						} else {
+							inner = inner[1:]
+						}
+						inner = strings.TrimSuffix(inner, ")")
+						sel.IntoTable = inner
+						sel.IntoTableInline = true
+						i++
+					} else {
+						sel.IntoTable = varName
+						i++
+					}
+				}
+			} else {
+				// INTO (v1, v2, ...) or INTO v1
+				if i < len(tokens) && tokens[i] == "(" {
+					i++
+				}
+				for i < len(tokens) {
+					t := tokens[i]
+					tu := strings.ToUpper(t)
+					if tu == "WHERE" || tu == "ORDER" || t == "." || t == ")" {
+						if t == ")" {
+							i++
+						}
+						break
+					}
+					if t != "," {
+						sel.Into = append(sel.Into, t)
+					}
+					i++
+				}
+			}
+			continue
+		}
+
+		if upper == "ORDER" {
+			// ORDER BY — skip for now
+			for i < len(tokens) && tokens[i] != "." {
+				i++
+			}
+			continue
+		}
+
+		i++ // skip unknown tokens
+	}
+
+	// Default: no INTO → use field names as target variables
+	if sel.IntoTable == "" && len(sel.Into) == 0 {
 		for _, f := range sel.Fields {
 			if f != "*" {
 				sel.Into = append(sel.Into, f)
 			}
 		}
-	}
-
-	// WHERE clause — collect remaining tokens as raw SQL condition
-	if i < len(tokens) && strings.ToUpper(tokens[i]) == "WHERE" {
-		i++
-		var whereParts []string
-		for i < len(tokens) {
-			t := tokens[i]
-			if t == "." || strings.ToUpper(t) == "ORDER" || strings.ToUpper(t) == "ENDSELECT" {
-				break
-			}
-			// Convert ABAP comparison operators to SQL
-			switch strings.ToUpper(t) {
-			case "EQ":
-				whereParts = append(whereParts, "=")
-			case "NE":
-				whereParts = append(whereParts, "!=")
-			case "LT":
-				whereParts = append(whereParts, "<")
-			case "GT":
-				whereParts = append(whereParts, ">")
-			case "LE":
-				whereParts = append(whereParts, "<=")
-			case "GE":
-				whereParts = append(whereParts, ">=")
-			default:
-				whereParts = append(whereParts, t)
-			}
-			i++
-		}
-		sel.Where = strings.Join(whereParts, " ")
 	}
 
 	return &formBodyDecl{stmt: sel}, nil

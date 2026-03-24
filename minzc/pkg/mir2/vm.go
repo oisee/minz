@@ -46,6 +46,14 @@ type VM struct {
 	globalSyms map[string]int64
 }
 
+// GlobalAddr returns the heap offset for a named global, or -1 if not found.
+func (vm *VM) GlobalAddr(name string) int64 {
+	if off, ok := vm.globalSyms[name]; ok {
+		return off
+	}
+	return -1
+}
+
 // HostFunc is the signature of a host-provided function.
 // args correspond to the call's argument list; the returned []Value must
 // match the callee's return type count.
