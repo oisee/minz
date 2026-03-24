@@ -1,12 +1,11 @@
 // screen_report.nanz — The Holy Grail: @screen + SELECT + mini-ALV
 //
-// A complete ABAP-style report:
-//   1. Selection screen with filter field
-//   2. SELECT from SQLite database (seeded at startup)
+// A complete ABAP-style report with live filtering:
+//   1. Selection screen with carrier filter field
+//   2. F8 → SELECT from SQLite WHERE carrid LIKE filter
 //   3. Results displayed in mini-ALV table
-//   4. Status line with row count
-//
-// This is the first time an ABAP-style report has run on a Z80.
+//   4. Change filter → F8 again → re-query → updated ALV
+//   5. F3 → exit
 //
 // Run:      mzv examples/nanz/screen_report.nanz
 // Headless: echo "" | mzv -H examples/nanz/screen_report.nanz
@@ -16,6 +15,7 @@
 @extern fun sqlite_close(handle: u16) -> u8
 @extern fun sqlite_exec(handle: u16, sql: ^u8) -> u8
 @extern fun sqlite_query(handle: u16, sql: ^u8) -> u16
+@extern fun sqlite_query_like(handle: u16, base: ^u8, col: ^u8, filter: ^u8) -> u16
 @extern fun sqlite_step(stmt: u16) -> u8
 @extern fun sqlite_column_int(stmt: u16, col: u8) -> u16
 @extern fun sqlite_column_text(stmt: u16, col: u8) -> ^u8
@@ -24,7 +24,7 @@
 // ── Screen declaration ──────────────────────────────────────────
 
 @screen("SCARR Report") {
-    field "Carrier" length 3 default "%"
+    field "Carrier" length 3 default "*"
     table "Airlines" rows 8
     column "ID" width 4
     column "Carrier Name" width 22
@@ -50,14 +50,17 @@ fun seed_database() -> void {
     sqlite_exec(db, c"INSERT INTO scarr VALUES ('AF', 'Air France', 'http://www.airfrance.com')")
 }
 
-// ── Query: SELECT * FROM scarr WHERE carrid LIKE filter ─────────
+// ── Query with filter from screen field ─────────────────────────
 
 fun run_query() -> void {
     table_init()
 
-    // Build SQL: SELECT carrid, carrname, url FROM scarr
-    // WHERE filter: if "%" → all rows, otherwise LIKE match
-    var q: u16 = sqlite_query(db, c"SELECT carrid, carrname, url FROM scarr ORDER BY carrid")
+    // sqlite_query_like builds: SELECT ... FROM scarr WHERE carrid LIKE '%filter%'
+    // If filter is "%" or empty → returns all rows (no WHERE clause)
+    var q: u16 = sqlite_query_like(db,
+        c"SELECT carrid, carrname, url FROM scarr ORDER BY carrid",
+        c"carrid",
+        screen_carrier())
 
     var row: u8 = 0
     while sqlite_step(q) == 1 {
@@ -75,26 +78,39 @@ fun run_query() -> void {
     table_set_nrows(row)
 }
 
-// ── Main: the classic ABAP report flow ──────────────────────────
+// ── Main: re-entrant PBO/PAI loop ───────────────────────────────
+//
+// The classic ABAP pattern:
+//   INITIALIZATION → seed DB
+//   PBO → run query with filter → render screen + ALV
+//   PAI → user changes filter → F8 → re-query → loop back to PBO
+//         F3 → exit
 
 fun main() -> void {
     seed_database()
     screen_init()
+
+    // Initial query (all rows)
     run_query()
 
+    // Show screen → F8 triggers re-query → show updated ALV → F3 exits
     var result: u8 = screen_show()
 
     if result == SCREEN_EXECUTE {
-        tui_puts(c"Report executed.\n")
-        tui_puts(c"Filter: ")
-        tui_puts(screen_carrier())
-        tui_puts(c"\nRows: ")
-        _scr_print_u16(table_nrows())
-        tui_puts(c"\n")
+        // Re-query with user's filter
+        run_query()
+
+        // Show updated screen with filtered results
+        // (In interactive mode the user can keep changing filter + F8)
+        result = screen_show()
     }
-    if result == SCREEN_BACK {
-        tui_puts(c"Report cancelled.\n")
-    }
+
+    // Final output
+    tui_puts(c"Filter: ")
+    tui_puts(screen_carrier())
+    tui_puts(c" -> ")
+    _scr_print_u16(table_nrows())
+    tui_puts(c" rows\n")
 
     sqlite_close(db)
 }

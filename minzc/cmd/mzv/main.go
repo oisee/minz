@@ -587,6 +587,51 @@ func registerSQLiteHosts(vm *mir2.VM, trace bool) {
 		return []mir2.Value{{I: sh}}, nil
 	}
 
+	// @sqlite_query_like(handle, base_sql_ptr, col_name_ptr, filter_ptr) -> stmt
+	// Appends WHERE col LIKE '%filter%' to base_sql (or no WHERE if filter is "%").
+	// This enables runtime-parameterized queries from @screen filter fields.
+	vm.Hosts["sqlite_query_like"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		h := args[0].I
+		baseSQL := readStr(args[1].I)
+		colName := readStr(args[2].I)
+		filter := readStr(args[3].I)
+
+		fullSQL := baseSQL
+		if filter != "" && filter != "%" && filter != "*" {
+			// ABAP convention: user supplies wildcards explicitly
+			//   "LH"  → WHERE carrid = 'LH'  (exact match)
+			//   "L%"  → WHERE carrid LIKE 'L%' (starts with)
+			//   "%L%" → WHERE carrid LIKE '%L%' (contains)
+			// Replace ABAP * with SQL %
+			safe := strings.ReplaceAll(filter, "'", "''")
+			safe = strings.ReplaceAll(safe, "*", "%")
+			if strings.Contains(safe, "%") {
+				fullSQL = fmt.Sprintf("%s WHERE %s LIKE '%s'", baseSQL, colName, safe)
+			} else {
+				fullSQL = fmt.Sprintf("%s WHERE %s = '%s'", baseSQL, colName, safe)
+			}
+		}
+
+		db, ok := dbs[h]
+		if !ok {
+			return []mir2.Value{{I: 0}}, nil
+		}
+		rows, err := db.Query(fullSQL)
+		if err != nil {
+			if trace {
+				fmt.Fprintf(os.Stderr, "  sqlite_query_like(%d, %q, %q, %q) → error: %v\n", h, baseSQL, colName, filter, err)
+			}
+			return []mir2.Value{{I: 0}}, nil
+		}
+		sh := nextStmt
+		stmts[sh] = &stmtState{rows: rows}
+		nextStmt++
+		if trace {
+			fmt.Fprintf(os.Stderr, "  sqlite_query_like(%d, ..., %q, %q) → %q → stmt %d\n", h, colName, filter, fullSQL, sh)
+		}
+		return []mir2.Value{{I: sh}}, nil
+	}
+
 	// @sqlite_step(stmt_handle) -> has_row (1=yes, 0=done)
 	// Scans the row into cached values so column_int/column_text can read them.
 	vm.Hosts["sqlite_step"] = func(args []mir2.Value) ([]mir2.Value, error) {
