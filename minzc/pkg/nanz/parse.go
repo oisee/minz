@@ -797,7 +797,17 @@ func (p *parser) parseModule() (*hir.Module, error) {
 							}
 						}
 					}
-					m.Funcs = append(m.Funcs, generated.Funcs...)
+					// Skip generated @extern funcs if they already exist (e.g. from import tui.render)
+					existingFuncs := make(map[string]bool)
+					for _, f := range m.Funcs {
+						existingFuncs[f.Name] = true
+					}
+					for _, f := range generated.Funcs {
+						if f.IsExtern && existingFuncs[f.Name] {
+							continue // imported real implementation takes priority
+						}
+						m.Funcs = append(m.Funcs, f)
+					}
 					m.Globals = append(m.Globals, generated.Globals...)
 					m.Structs = append(m.Structs, generated.Structs...)
 					for _, s := range generated.Structs {
@@ -1339,6 +1349,11 @@ func (p *parser) parseImport() error {
 		}
 	}
 
+	// Plain `import tui.render` (no braces) → glob import: all symbols accessible
+	if len(selected) == 0 && !globImport {
+		globImport = true
+	}
+
 	// Resolve module path to filesystem
 	filePath, err := p.resolveModulePath(modPath, line)
 	if err != nil {
@@ -1386,8 +1401,9 @@ func (p *parser) parseImport() error {
 	}
 
 	// Merge imported module into current module.
-	// Module prefix for name mangling: "math.gcd" → "math$gcd$"
-	modPrefix := strings.ReplaceAll(modPath, ".", "$") + "$"
+	// Module prefix for name mangling: "tui.render" → "tui__render__"
+	// Uses __ instead of $ for Z80 assembler label compatibility.
+	modPrefix := strings.ReplaceAll(modPath, ".", "__") + "__"
 
 	// Build name mapping: original → mangled (for all symbols in imported module)
 	nameMap := make(map[string]string)
@@ -4798,7 +4814,7 @@ func (p *parser) resolveCall(base hir.Expr, args []hir.Expr) (hir.Expr, error) {
 	if vr, ok := base.(*hir.VarRefExpr); ok {
 		name = vr.Name
 	}
-	// Resolve import alias: "add" → "mylib$math$add"
+	// Resolve import alias: "tui_puts" → "tui__render__tui_puts"
 	if resolved, ok := p.funcAliases[name]; ok {
 		name = resolved
 	}
