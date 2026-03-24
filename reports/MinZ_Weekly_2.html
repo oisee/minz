@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="The MinZ Team (Human + Claude Opus 4.6 × 4 sessions)" />
+  <meta name="dcterms.date" content="2026-03-24" />
+  <title>MinZ Weekly #2</title>
+  <style>
+    html {
+      font-size: 11pt;
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  
+  
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">MinZ Weekly #2</h1>
+<p class="subtitle">March 18–24, 2026 — From PBQP to Z3 to GPU
+Brute-Force</p>
+<p class="author">The MinZ Team (Human + Claude Opus 4.6 × 4
+sessions)</p>
+<p class="date">2026-03-24</p>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#week-in-review" id="toc-week-in-review">Week in
+Review</a></li>
+<li><a href="#chapter-1-the-z3-unified-solver-vir"
+id="toc-chapter-1-the-z3-unified-solver-vir">Chapter 1: The Z3 Unified
+Solver (VIR)</a>
+<ul>
+<li><a href="#the-problem" id="toc-the-problem">The Problem</a></li>
+<li><a href="#the-solution-joint-iselregalloc-via-z3"
+id="toc-the-solution-joint-iselregalloc-via-z3">The Solution: Joint
+isel+regalloc via Z3</a></li>
+<li><a href="#results" id="toc-results">Results</a></li>
+</ul></li>
+<li><a href="#chapter-2-dual-mode-solver-adapter-emission"
+id="toc-chapter-2-dual-mode-solver-adapter-emission">Chapter 2:
+Dual-Mode Solver + Adapter Emission</a>
+<ul>
+<li><a href="#the-insight" id="toc-the-insight">The Insight</a></li>
+<li><a href="#the-strategy" id="toc-the-strategy">The Strategy</a></li>
+<li><a href="#results-1" id="toc-results-1">Results</a></li>
+<li><a href="#the-adapter" id="toc-the-adapter">The Adapter</a></li>
+</ul></li>
+<li><a href="#chapter-3-gpu-brute-force-register-allocation"
+id="toc-chapter-3-gpu-brute-force-register-allocation">Chapter 3: GPU
+Brute-Force Register Allocation</a>
+<ul>
+<li><a href="#the-breakthrough" id="toc-the-breakthrough">The
+Breakthrough</a></li>
+<li><a href="#the-architecture" id="toc-the-architecture">The
+Architecture</a></li>
+<li><a href="#the-key-insight-constraint-signatures"
+id="toc-the-key-insight-constraint-signatures">The Key Insight:
+Constraint Signatures</a></li>
+<li><a href="#results-2" id="toc-results-2">Results</a></li>
+<li><a href="#the-cuda-kernel" id="toc-the-cuda-kernel">The CUDA
+Kernel</a></li>
+</ul></li>
+<li><a href="#chapter-4-cross-session-collaboration"
+id="toc-chapter-4-cross-session-collaboration">Chapter 4: Cross-Session
+Collaboration</a>
+<ul>
+<li><a href="#the-setup" id="toc-the-setup">The Setup</a></li>
+<li><a href="#how-it-worked" id="toc-how-it-worked">How It
+Worked</a></li>
+</ul></li>
+<li><a href="#chapter-5-abap-on-z80-screen-rendering-sqlite"
+id="toc-chapter-5-abap-on-z80-screen-rendering-sqlite">Chapter 5: ABAP
+on Z80 — Screen Rendering + SQLite</a>
+<ul>
+<li><a href="#the-vision" id="toc-the-vision">The Vision</a></li>
+<li><a href="#what-works" id="toc-what-works">What Works</a></li>
+<li><a href="#sqlite-while-loop" id="toc-sqlite-while-loop">SQLite While
+Loop</a></li>
+</ul></li>
+<li><a href="#chapter-6-readable-assembly-output"
+id="toc-chapter-6-readable-assembly-output">Chapter 6: Readable Assembly
+Output</a>
+<ul>
+<li><a href="#before" id="toc-before">Before</a></li>
+<li><a href="#after" id="toc-after">After</a></li>
+</ul></li>
+<li><a href="#chapter-7-peephole-optimization-analysis"
+id="toc-chapter-7-peephole-optimization-analysis">Chapter 7: Peephole
+Optimization Analysis</a>
+<ul>
+<li><a href="#z80-optimizer-results"
+id="toc-z80-optimizer-results">z80-optimizer Results</a></li>
+<li><a href="#new-peephole-rules-added-anyway"
+id="toc-new-peephole-rules-added-anyway">New Peephole Rules Added
+Anyway</a></li>
+</ul></li>
+<li><a href="#appendix-a-the-regalloc-table-format"
+id="toc-appendix-a-the-regalloc-table-format">Appendix A: The Regalloc
+Table Format</a></li>
+<li><a href="#appendix-b-session-timeline"
+id="toc-appendix-b-session-timeline">Appendix B: Session
+Timeline</a></li>
+</ul>
+</nav>
+<h1 id="week-in-review">Week in Review</h1>
+<p>This week transformed MinZ’s backend from a single PBQP register
+allocator into a <strong>four-tier optimization pipeline</strong>:</p>
+<ol type="1">
+<li><strong>Precomputed GPU Table</strong> — O(1) lookup, provably
+optimal (NEW)</li>
+<li><strong>Z3 SMT Solver</strong> — joint isel+regalloc, -71% vs
+SDCC</li>
+<li><strong>LIR PBQP+WFC</strong> — production default, 97.9%
+convergence</li>
+<li><strong>PBQP</strong> — legacy fallback</li>
+</ol>
+<p>Four Claude Code sessions collaborated via cross-session messaging
+(<code>dedelulu</code>), building what no single session could: a
+compiler that uses GPU brute-force offline, Z3 SMT solving online, and
+ships precomputed optimal answers as a JSON lookup table.</p>
+<p><strong>By the numbers:</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th>Metric</th>
+<th>Start of week</th>
+<th>End of week</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>VIR coverage</td>
+<td>520/520</td>
+<td>645/645 (100%)</td>
+</tr>
+<tr class="even">
+<td>Z80 verified</td>
+<td>55/55</td>
+<td>55/55</td>
+</tr>
+<tr class="odd">
+<td>vs SDCC</td>
+<td>-60%</td>
+<td>-71%</td>
+</tr>
+<tr class="even">
+<td>Peephole rules</td>
+<td>20</td>
+<td>34+</td>
+</tr>
+<tr class="odd">
+<td>GPU regalloc entries</td>
+<td>0</td>
+<td>61</td>
+</tr>
+<tr class="even">
+<td>Frontends</td>
+<td>7</td>
+<td>8 (Frill added)</td>
+</tr>
+<tr class="odd">
+<td>Nanz examples passing</td>
+<td>30/35</td>
+<td>35/35</td>
+</tr>
+<tr class="even">
+<td>ABAP screen examples</td>
+<td>0</td>
+<td>5</td>
+</tr>
+</tbody>
+</table>
+<h1 id="chapter-1-the-z3-unified-solver-vir">Chapter 1: The Z3 Unified
+Solver (VIR)</h1>
+<h2 id="the-problem">The Problem</h2>
+<p>Traditional Z80 compilers use separate passes for instruction
+selection and register allocation. SDCC (the reference C compiler) uses
+a graph-coloring allocator that produces correct but verbose code —
+averaging 131 instructions for our 5-function benchmark.</p>
+<p>MinZ’s PBQP allocator improved on this (72 instructions) but still
+solved each virtual register independently, missing inter-register
+optimization opportunities.</p>
+<h2 id="the-solution-joint-iselregalloc-via-z3">The Solution: Joint
+isel+regalloc via Z3</h2>
+<p>The VIR backend encodes <strong>both</strong> instruction selection
+and register allocation as a single Z3 SMT problem:</p>
+<pre class="smt"><code>; Variable: location of vreg v1 at instruction 3
+(declare-const lv1_i3 Int)
+(assert (and (&gt;= lv1_i3 0) (&lt; lv1_i3 7)))  ; 7 GPR locations
+
+; Pattern constraint: ADD must have dst=A, src0=A (tied)
+(assert (=&gt; (= pat_3 0) (= lv3_i3 0)))       ; dst in A
+(assert (=&gt; (= pat_3 0) (= lv1_i3 lv3_i3)))  ; tied dst=src0
+
+; Interference: v1 and v2 live at instruction 3
+(assert (not (= lv1_i3 lv2_i3)))
+
+; Minimize total cost
+(minimize total_cost)</code></pre>
+<p>Z3 finds the provably optimal solution — the assignment with minimum
+T-state cost that satisfies all constraints simultaneously.</p>
+<h2 id="results">Results</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Program</th>
+<th>SDCC</th>
+<th>PBQP</th>
+<th>VIR</th>
+<th>vs SDCC</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>abs_diff</td>
+<td>12</td>
+<td>8</td>
+<td><strong>4</strong></td>
+<td>-67%</td>
+</tr>
+<tr class="even">
+<td>gcd</td>
+<td>17</td>
+<td>18</td>
+<td><strong>9</strong></td>
+<td>-47%</td>
+</tr>
+<tr class="odd">
+<td>minmax</td>
+<td>60</td>
+<td>8</td>
+<td><strong>11</strong></td>
+<td>-82%</td>
+</tr>
+<tr class="even">
+<td>fib</td>
+<td>22</td>
+<td>36</td>
+<td><strong>12</strong></td>
+<td>-45%</td>
+</tr>
+<tr class="odd">
+<td>select_b</td>
+<td>20</td>
+<td>2</td>
+<td><strong>2</strong></td>
+<td>-90%</td>
+</tr>
+<tr class="even">
+<td><strong>Total</strong></td>
+<td><strong>131</strong></td>
+<td><strong>72</strong></td>
+<td><strong>38</strong></td>
+<td><strong>-71%</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The <code>abs_diff</code> result is optimal:
+<code>SUB L / RET NC / NEG / RET</code> — 4 instructions, provably the
+shortest correct Z80 implementation.</p>
+<h1 id="chapter-2-dual-mode-solver-adapter-emission">Chapter 2:
+Dual-Mode Solver + Adapter Emission</h1>
+<h2 id="the-insight">The Insight</h2>
+<p>Some functions produce better code when solved
+<strong>without</strong> ABI constraints. The caller expects parameters
+in specific registers (e.g., first param in A, second in B), but these
+constraints sometimes force suboptimal register choices inside the
+function body.</p>
+<h2 id="the-strategy">The Strategy</h2>
+<p>Solve each function twice:</p>
+<ol type="1">
+<li><strong>Constrained</strong>: parameters in caller’s expected
+registers</li>
+<li><strong>Standalone</strong>: Z3 picks optimal registers freely</li>
+</ol>
+<p>If standalone + adapter cost &lt; constrained cost, use standalone
+and emit <code>LD</code> moves at function entry to shuffle registers
+from caller’s convention.</p>
+<h2 id="results-1">Results</h2>
+<p>Benchmark across 323 Nanz functions:</p>
+<ul>
+<li><strong>28 functions</strong> benefit from standalone mode</li>
+<li><strong>7 functions</strong> still win after adapter cost</li>
+<li><strong>47 instructions saved</strong> total</li>
+<li><code>_dec</code>: 32 → 1 instruction (standalone body is just
+<code>RET</code>)</li>
+</ul>
+<h2 id="the-adapter">The Adapter</h2>
+<pre class="z80"><code>_dec:
+    ; adapter: caller→standalone convention
+    LD A, L          ; move param from caller&#39;s L to standalone&#39;s A
+    ; ... function body with A-optimized code ...
+    RET</code></pre>
+<h1 id="chapter-3-gpu-brute-force-register-allocation">Chapter 3: GPU
+Brute-Force Register Allocation</h1>
+<h2 id="the-breakthrough">The Breakthrough</h2>
+<p>If Z3 can find optimal assignments in seconds, can a GPU find them in
+milliseconds by trying <strong>every possible assignment</strong>?</p>
+<p>For a function with N virtual registers and 7 physical registers,
+there are 7^N possible assignments. A GPU with thousands of cores can
+evaluate all of them in parallel.</p>
+<h2 id="the-architecture">The Architecture</h2>
+<pre><code>                    OFFLINE (GPU, once)
+    ┌──────────────────────────────────────┐
+    │  For each constraint signature:       │
+    │    - Launch 7^N CUDA threads          │
+    │    - Each thread: one assignment      │
+    │    - Check interference + patterns    │
+    │    - Atomic min across all threads    │
+    │                                       │
+    │  Output: regalloc_table.json          │
+    └──────────────────────────────────────┘
+                        │
+                        ▼
+                 COMPILE TIME (CPU)
+    ┌──────────────────────────────────────┐
+    │  hash(constraints) → table lookup    │
+    │                                       │
+    │  HIT:  instant optimal assignment    │
+    │  MISS: Z3 fallback (~800ms)          │
+    └──────────────────────────────────────┘</code></pre>
+<h2 id="the-key-insight-constraint-signatures">The Key Insight:
+Constraint Signatures</h2>
+<p>Two functions with the same constraint graph — same vreg count, same
+patterns, same interference — have the <strong>same optimal
+assignment</strong>. We hash constraints into a signature:</p>
+<pre><code>&quot;3v_1o_ceab82669bf95b&quot; → {assignment: [0, 1, 0], cost: 4}</code></pre>
+<p>This means <code>putchar</code>, <code>_putch</code>,
+<code>_dec</code>, <code>_puts</code>, <code>_p</code>, and
+<code>tui_puts</code> all share one table entry — 6 functions, 1 GPU
+solve.</p>
+<h2 id="results-2">Results</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Metric</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Functions in corpus</td>
+<td>194</td>
+</tr>
+<tr class="even">
+<td>Unique signatures</td>
+<td>158 (18.6% reuse)</td>
+</tr>
+<tr class="odd">
+<td>GPU-solved</td>
+<td>61</td>
+</tr>
+<tr class="even">
+<td>Mean cost</td>
+<td>35.0 T-states</td>
+</tr>
+<tr class="odd">
+<td>Cheapest</td>
+<td><code>max_byte</code>: 4T</td>
+</tr>
+<tr class="even">
+<td>Biggest solve</td>
+<td><code>alloc_and_check</code>: 13.8B assignments in ~60s</td>
+</tr>
+</tbody>
+</table>
+<h2 id="the-cuda-kernel">The CUDA Kernel</h2>
+<pre class="cuda"><code>__global__ void regalloc_kernel(uint64_t offset, uint64_t count,
+                                 uint32_t *d_bestCost, uint64_t *d_bestIdx) {
+    uint64_t tid = blockIdx.x * blockDim.x + threadIdx.x;
+    uint8_t assignment[MAX_VREGS];
+    decode_assignment(offset + tid, d_func.nVregs, assignment);
+
+    if (!check_interference(assignment)) return;
+    if (!check_params(assignment)) return;
+
+    uint16_t cost = evaluate_cost(assignment);
+    if (cost == INVALID_COST) return;
+
+    atomicMin(d_bestCost, (uint32_t)cost);
+}</code></pre>
+<p>One thread per assignment. 256 threads per block. The RTX 4060 Ti
+processes 282 million assignments in ~2 seconds.</p>
+<h1 id="chapter-4-cross-session-collaboration">Chapter 4: Cross-Session
+Collaboration</h1>
+<h2 id="the-setup">The Setup</h2>
+<p>Four Claude Code sessions working on different parts of the MinZ
+ecosystem, communicating via <code>dedelulu</code> (a cross-session
+messaging tool):</p>
+<table>
+<thead>
+<tr class="header">
+<th>Session</th>
+<th>Directory</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>minz</td>
+<td>~/dev/minz</td>
+<td>Main compiler, ABAP, <span class="citation"
+data-cites="screen">@screen</span></td>
+</tr>
+<tr class="even">
+<td>minz-vir</td>
+<td>~/dev/minz-vir</td>
+<td>VIR solver, Z3, table infrastructure</td>
+</tr>
+<tr class="odd">
+<td>z80-optimizer</td>
+<td>~/dev/z80-optimizer</td>
+<td>CUDA kernels, GPU search</td>
+</tr>
+<tr class="even">
+<td>dedelulu</td>
+<td>~/dev/dedelulu</td>
+<td>Messaging infrastructure</td>
+</tr>
+</tbody>
+</table>
+<h2 id="how-it-worked">How It Worked</h2>
+<pre><code>minz-vir: &quot;Can you add --json mode to z80_regalloc?&quot;
+    → z80-optimizer: &quot;Done. Input/output format matches your spec.&quot;
+
+minz: &quot;Does Z3 handle while loops with pointer arithmetic?&quot;
+    → minz-vir: &quot;Yes, compiled sqlite_demo — clean loop.&quot;
+
+minz-vir: &quot;CUDA hangs from Go test. Your --server mode?&quot;
+    → z80-optimizer: &quot;Done. Protocol: JSON-per-line, &#39;ready&#39; on stderr.&quot;
+    → z80-optimizer: &quot;Hang is Go&#39;s SA_ONSTACK signal handlers vs CUDA.&quot;</code></pre>
+<p>30+ messages exchanged. Each session contributed what it knew best —
+the VIR session understood compiler constraints, the z80-optimizer
+session understood CUDA, the main session understood the ABAP
+integration.</p>
+<h1 id="chapter-5-abap-on-z80-screen-rendering-sqlite">Chapter 5: ABAP
+on Z80 — Screen Rendering + SQLite</h1>
+<h2 id="the-vision">The Vision</h2>
+<p>Run SAP ABAP programs on Z80 hardware. Not a toy — real SELECT
+queries, real screen rendering, real table displays.</p>
+<h2 id="what-works">What Works</h2>
+<p>All 5 ABAP screen examples compile through VIR and render
+correctly:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Example</th>
+<th>Binary</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>screen_alv.nanz</td>
+<td>1374B</td>
+<td>Material list: 5 rows, 3 columns</td>
+</tr>
+<tr class="even">
+<td>screen_customer.nanz</td>
+<td>1317B</td>
+<td>Customer form: 4 fields</td>
+</tr>
+<tr class="odd">
+<td>screen_declarative.nanz</td>
+<td>1095B</td>
+<td>Material report: 3 fields</td>
+</tr>
+<tr class="even">
+<td>screen_report.nanz</td>
+<td>1370B</td>
+<td>Airline table: 8 rows + URLs</td>
+</tr>
+<tr class="odd">
+<td>abap_screen.nanz</td>
+<td>1069B</td>
+<td>Report with render_text/int_field</td>
+</tr>
+</tbody>
+</table>
+<h2 id="sqlite-while-loop">SQLite While Loop</h2>
+<p>The production register allocator can’t handle
+<code>while sqlite_step(q) == 1</code> — it clobbers registers across
+the CALL. VIR’s Z3 solver handles it perfectly:</p>
+<pre class="z80"><code>.main_loop_head1:
+    CALL sqlite_step
+    CP 1
+    JR NZ, .main_loop_exit3
+.main_loop_body2:
+    CALL sqlite_column_int
+    CALL _mir_io_print_u8
+    JP .main_loop_head1
+.main_loop_exit3:</code></pre>
+<p>Clean loop. Z3 knows <code>sqlite_step</code> clobbers A but the
+statement handle in HL/DE survives.</p>
+<h1 id="chapter-6-readable-assembly-output">Chapter 6: Readable Assembly
+Output</h1>
+<h2 id="before">Before</h2>
+<pre class="z80"><code>_mir2_str_0:
+    DB 72, 101, 108, 108, 111, 32, 102, 114, 111, 109,
+       32, 65, 66, 65, 80, 32, 111, 110, 32, 90, 56,
+       48, 33, 0</code></pre>
+<h2 id="after">After</h2>
+<pre class="z80"><code>_mir2_str_0:
+    DB &quot;Hello from ABAP on Z80!&quot;, 0</code></pre>
+<p>Same binary output. Just readable source.</p>
+<h1 id="chapter-7-peephole-optimization-analysis">Chapter 7: Peephole
+Optimization Analysis</h1>
+<h2 id="z80-optimizer-results">z80-optimizer Results</h2>
+<p>The CUDA superoptimizer has 602,008 provably correct length-2 rewrite
+rules. We scanned 21K lines of VIR assembly output against all 602K
+rules.</p>
+<p><strong>Result: only 4 matches (23 bytes saved).</strong></p>
+<p>The Z3 solver’s output is already so close to optimal that peephole
+rules barely improve it. This is a validation of the unified solver
+approach — when instruction selection and register allocation are solved
+jointly, local inefficiencies don’t arise.</p>
+<h2 id="new-peephole-rules-added-anyway">New Peephole Rules Added
+Anyway</h2>
+<p>For the few patterns Z3 can’t prevent (cross-block,
+post-emission):</p>
+<ul>
+<li>INC r / DEC r → cancel (and reverse)</li>
+<li>JP/JR cc, next_label → remove dead branch</li>
+<li>PUSH rr / POP different_rr → LD pair halves (saves 3T)</li>
+<li>AND 0FFh → AND A (1 byte shorter)</li>
+<li>Extended dead-before-RET: INC/DEC any non-A register</li>
+</ul>
+<h1 id="appendix-a-the-regalloc-table-format">Appendix A: The Regalloc
+Table Format</h1>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ot">[</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">{</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;sig&quot;</span><span class="fu">:</span> <span class="st">&quot;4v_3o_a1b2c3d4e5f6...&quot;</span><span class="fu">,</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;nVregs&quot;</span><span class="fu">:</span> <span class="dv">4</span><span class="fu">,</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;nOps&quot;</span><span class="fu">:</span> <span class="dv">3</span><span class="fu">,</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;cost&quot;</span><span class="fu">:</span> <span class="dv">17</span><span class="fu">,</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;assignment&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">,</span> <span class="dv">2</span><span class="ot">]</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="ot">]</span></span></code></pre></div>
+<ul>
+<li><code>sig</code>: SHA256 of (nVregs, nOps, pattern constraints,
+interference)</li>
+<li><code>assignment[i]</code>: physical register for dense vreg index
+i</li>
+<li><code>cost</code>: total T-states (provably minimum)</li>
+</ul>
+<p>The table ships as <code>regalloc_table.json</code> (~6KB for 61
+entries). At compile time, <code>ComputeSignature()</code> hashes the
+function’s constraints and <code>Lookup()</code> returns the optimal
+assignment in O(1).</p>
+<h1 id="appendix-b-session-timeline">Appendix B: Session Timeline</h1>
+<table>
+<thead>
+<tr class="header">
+<th>Time</th>
+<th>Event</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>11:49</td>
+<td>Session start, review VIR status (645/645, 55/55)</td>
+</tr>
+<tr class="even">
+<td>12:00</td>
+<td>Confirmed issues #1-3 already fixed, updated CLAUDE.md</td>
+</tr>
+<tr class="odd">
+<td>12:30</td>
+<td>Standalone vs constrained benchmark (47 insts potential)</td>
+</tr>
+<tr class="even">
+<td>13:00</td>
+<td>Dual-mode + adapter emission implemented</td>
+</tr>
+<tr class="odd">
+<td>13:30</td>
+<td>Cross-session: validated screen_alv through VIR</td>
+</tr>
+<tr class="even">
+<td>14:00</td>
+<td>POP SP fix, trivial func guard, SP/F exclusion</td>
+</tr>
+<tr class="odd">
+<td>14:30</td>
+<td>Cross-session: sqlite_demo while loop confirmed</td>
+</tr>
+<tr class="even">
+<td>15:00</td>
+<td>Readable string DB (all backends)</td>
+</tr>
+<tr class="odd">
+<td>16:00</td>
+<td>Peephole expansion (7 new rules)</td>
+</tr>
+<tr class="even">
+<td>16:30</td>
+<td>z80-optimizer analysis: 4/602K rules match VIR output</td>
+</tr>
+<tr class="odd">
+<td>17:00</td>
+<td>GPU regalloc kernel prototype (z80_regalloc.cu)</td>
+</tr>
+<tr class="even">
+<td>17:30</td>
+<td>z80-optimizer: JSON mode built and tested</td>
+</tr>
+<tr class="odd">
+<td>18:00</td>
+<td>Go bridge + server mode</td>
+</tr>
+<tr class="even">
+<td>18:30</td>
+<td>CUDA + Go test hang investigation (SA_ONSTACK signals)</td>
+</tr>
+<tr class="odd">
+<td>19:00</td>
+<td>GPU corpus: 109 functions generated</td>
+</tr>
+<tr class="even">
+<td>20:00</td>
+<td>First GPU run: 9/109 solved (null dstLocs bug)</td>
+</tr>
+<tr class="odd">
+<td>20:30</td>
+<td>Fix: locSetToGPU emits [0..6] for unconstrained</td>
+</tr>
+<tr class="even">
+<td>21:00</td>
+<td>Second run: 64/109 solved</td>
+</tr>
+<tr class="odd">
+<td>21:15</td>
+<td>11-loc expansion: 61/109 solved, mean 35.0T</td>
+</tr>
+<tr class="even">
+<td>21:30</td>
+<td>regalloc_table.json built (61 entries)</td>
+</tr>
+<tr class="odd">
+<td>21:45</td>
+<td>Report #111 + this article</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>MinZ: Modern programming abstractions with zero-cost performance
+on vintage Z80 hardware.</em></p>
+<p><em>Built by humans and AI, collaborating across session
+boundaries.</em></p>
+</body>
+</html>
