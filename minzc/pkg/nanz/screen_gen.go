@@ -262,6 +262,11 @@ func emitGlobals(sb *strings.Builder, title string, fields []screenField) {
 			fmt.Fprintf(sb, "global _buf_%s: [u8; %d]\n", f.safeName, bufSize)
 		case "int":
 			fmt.Fprintf(sb, "global _val_%s: u16\n", f.safeName)
+			bufSize := f.length + 2
+			if bufSize < 8 {
+				bufSize = 8 // min 6 digits for u16 (65535) + 2 BDOS header
+			}
+			fmt.Fprintf(sb, "global _buf_%s: [u8; %d]\n", f.safeName, bufSize)
 		}
 	}
 	_ = nfields
@@ -334,6 +339,17 @@ fun _scr_print_u16(n: u16) -> void {
         if started == 1 { tui_putch(48) }
     }
     tui_putch(48 + n)
+}
+
+fun _scr_atoi(str: ^u8) -> u16 {
+    var result: u16 = 0
+    var ptr: ^u8 = str
+    while ptr^ >= 48 {
+        if ptr^ > 57 { return result }
+        result = result * 10 + ptr^ - 48
+        ptr = ptr + 1
+    }
+    return result
 }
 
 `)
@@ -494,6 +510,19 @@ func emitScreenHandleKey(sb *strings.Builder, fields []screenField) {
 			sb.WriteString("            tui_color(7, 4, 1)\n")
 			fmt.Fprintf(sb, "            var _len: u8 = tui_read_line(&_buf_%s, %d)\n", f.safeName, f.length)
 			sb.WriteString("            tui_reset()\n")
+			sb.WriteString("        }\n")
+		case "int":
+			intLen := f.length
+			if intLen == 0 {
+				intLen = 6 // enough for "65535"
+			}
+			fmt.Fprintf(sb, "        if _scr_focus == %d {\n", f.index)
+			fmt.Fprintf(sb, "            tui_goto(15, %d)\n", f.row)
+			sb.WriteString("            tui_color(7, 4, 1)\n")
+			fmt.Fprintf(sb, "            var _len: u8 = tui_read_line(&_buf_%s, %d)\n", f.safeName, intLen)
+			sb.WriteString("            tui_reset()\n")
+			// Parse string to u16
+			fmt.Fprintf(sb, "            _val_%s = _scr_atoi(&_buf_%s)\n", f.safeName, f.safeName)
 			sb.WriteString("        }\n")
 		}
 	}

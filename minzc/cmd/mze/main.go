@@ -460,23 +460,27 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 
 		case 0x0A: // Read console buffer (BDOS buffered line input)
 			// Buffer at DE: [max_len, actual_len, chars...]
+			// Read char-by-char until CR/LF (like real CP/M BDOS).
 			maxLen := z80.ReadMemory(de)
 			if maxLen == 0 {
 				maxLen = 127
 			}
-			buf := make([]byte, maxLen+2) // extra for CR/LF
-			n, _ := os.Stdin.Read(buf)
-			// Strip trailing CR, LF, CR+LF
-			for n > 0 && (buf[n-1] == '\n' || buf[n-1] == '\r') {
-				n--
-			}
-			if n > int(maxLen) {
-				n = int(maxLen)
+			n := 0
+			oneByte := make([]byte, 1)
+			for n < int(maxLen) {
+				_, err := os.Stdin.Read(oneByte)
+				if err != nil {
+					break
+				}
+				ch := oneByte[0]
+				if ch == '\r' || ch == '\n' {
+					break
+				}
+				z80.WriteMemory(de+2+uint16(n), ch)
+				fmt.Printf("%c", ch) // echo like real CP/M
+				n++
 			}
 			z80.WriteMemory(de+1, byte(n))
-			for i := 0; i < n; i++ {
-				z80.WriteMemory(de+2+uint16(i), buf[i])
-			}
 			return 0, 0, true
 
 		case 0x0B: // Console status — check if key available

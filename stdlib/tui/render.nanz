@@ -262,19 +262,36 @@ fun tui_read_key() -> u8 {
 }
 
 // Read a line into buffer. BDOS function 0x0A. Returns actual length.
+// After BDOS returns, shifts text from buf[2..] to buf[0..] and null-terminates.
+// PFCCO: buf=HL, maxlen=C (ptr→HL, u8→C)
 fun tui_read_line(buf: ^u8, maxlen: u8) -> u8 {
     asm z80 (in buf, maxlen) (ret A) {
-        ; buf in HL, maxlen routed via calling convention
-        ; BDOS 0x0A: DE→[maxlen, actual, chars...]
-        ; We put maxlen at (HL), then call BDOS with DE=HL
-        PUSH HL
-        LD (HL), A    ; maxlen at buf[0] (A = maxlen from 2nd param)
-        EX DE, HL
+        ; HL=buf, C=maxlen
+        PUSH HL         ; save buf base
+        LD (HL), C      ; buf[0] = maxlen (BDOS header)
+        EX DE, HL       ; DE = buf
         LD C, 10
-        CALL 5
-        POP HL
+        CALL 5          ; BDOS 0x0A: buffered line input
+        ; buf[0]=max, buf[1]=actual, buf[2..]=text
+        POP HL          ; HL = buf
         INC HL
-        LD A, (HL)    ; actual length at buf[1]
+        LD A, (HL)      ; A = actual length
+        INC HL          ; HL = buf+2 (source)
+        PUSH AF         ; save length for return
+        ; Copy buf[2..2+len] → buf[0..len] using LDIR
+        LD D, H
+        LD E, L
+        DEC DE
+        DEC DE          ; DE = buf (destination)
+        LD C, A
+        LD B, 0         ; BC = length
+        OR A
+        JR Z, .done
+        LDIR
+        .done:
+        XOR A
+        LD (DE), A      ; null-terminate buf[len]
+        POP AF          ; A = actual length
     }
 }
 
