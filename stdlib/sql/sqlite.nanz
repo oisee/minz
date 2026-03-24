@@ -35,8 +35,8 @@
 
 const SQLITE_OK: u8 = 0
 const SQLITE_ERROR: u8 = 1
-const SQLITE_ROW: u8 = 2
-const SQLITE_DONE: u8 = 3
+const SQLITE_ROW: u8 = 1
+const SQLITE_DONE: u8 = 0
 
 // Internal: send null-terminated string to data port $45
 fun _sql_send_str(str: ^u8) -> void {

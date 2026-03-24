@@ -775,6 +775,61 @@ func compileViaHIR(sourceFile string) error {
 		if err != nil {
 			return fmt.Errorf("ABAP compile: %w", err)
 		}
+		// If ABAP uses SELECT (has sqlite_* externs), merge sql/sqlite.nanz
+		// to provide real I/O port asm bodies for CP/M.
+		if stdlibDir != "" {
+			hasSQLiteExtern := false
+			for _, f := range hirMod.Funcs {
+				if f.IsExtern && f.Name == "sqlite_open" {
+					hasSQLiteExtern = true
+					break
+				}
+			}
+			if hasSQLiteExtern {
+				sqlPath := filepath.Join(stdlibDir, "sql", "sqlite.nanz")
+				if sqlSrc, err2 := os.ReadFile(sqlPath); err2 == nil {
+					sqlMod, err3 := nanz.ParseWithOpts(string(sqlSrc), sqlPath, nanz.ParseOpts{
+						BaseDir:   filepath.Dir(sqlPath),
+						StdlibDir: stdlibDir,
+					})
+					if err3 == nil {
+						// Replace extern stubs with real implementations
+						externNames := make(map[string]bool)
+						for _, f := range hirMod.Funcs {
+							if f.IsExtern {
+								externNames[f.Name] = true
+							}
+						}
+						// Remove extern stubs that have real implementations
+						var kept []*hir.Func
+						for _, f := range hirMod.Funcs {
+							if f.IsExtern && externNames[f.Name] {
+								// Check if sqlMod has a real implementation
+								hasReal := false
+								for _, sf := range sqlMod.Funcs {
+									if sf.Name == f.Name || sf.Name == "sql__sqlite__"+f.Name {
+										hasReal = true
+										break
+									}
+								}
+								if hasReal {
+									continue // skip extern, real impl will be added
+								}
+							}
+							kept = append(kept, f)
+						}
+						hirMod.Funcs = kept
+						// Add all functions from sqlite module
+						hirMod.Funcs = append(hirMod.Funcs, sqlMod.Funcs...)
+						// Add globals from sqlite module
+						hirMod.Globals = append(hirMod.Globals, sqlMod.Globals...)
+						// Merge strings
+						hirMod.Strings = append(hirMod.Strings, sqlMod.Strings...)
+						hirMod.StrKinds = append(hirMod.StrKinds, sqlMod.StrKinds...)
+					}
+				}
+			}
+		}
 	case ".frl":
 		absPath, _ := filepath.Abs(sourceFile)
 		hirMod, err = frill.CompileWithOpts(string(src), filepath.Base(sourceFile), frill.CompileOpts{

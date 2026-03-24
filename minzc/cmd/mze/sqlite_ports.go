@@ -121,7 +121,11 @@ func execSQLiteCmd(cmd byte, strBuf *[]byte, dataByte, dataHi byte,
 
 	switch cmd {
 	case 1: // open
-		db, err := sql.Open("sqlite", str)
+		dbName := str
+		if dbName == "" || dbName == "\x00" {
+			dbName = ":memory:"
+		}
+		db, err := sql.Open("sqlite", dbName)
 		if err != nil {
 			*status = 0 // error: handle = 0
 			if verbose {
@@ -187,11 +191,11 @@ func execSQLiteCmd(cmd byte, strBuf *[]byte, dataByte, dataHi byte,
 				ptrs[i] = &st.vals[i]
 			}
 			st.rows.Scan(ptrs...)
-			*status = 2 // SQLITE_ROW
+			*status = 1 // has_row (matches mzv convention)
 		} else {
 			st.rows.Close()
 			delete(stmts, sh)
-			*status = 3 // SQLITE_DONE
+			*status = 0 // done (matches mzv convention)
 			if verbose {
 				fmt.Fprintf(os.Stderr, "  sql:step(%d) → done\n", sh)
 			}

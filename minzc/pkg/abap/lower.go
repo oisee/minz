@@ -449,13 +449,14 @@ func (l *lowerer) lower() (*hir.Module, error) {
 		l.emitSQLiteExterns()
 
 		var initStmts []hir.Stmt
-		// _abap_db = sqlite_open(0) — open in-memory database
+		// _abap_db = sqlite_open(c":memory:") — open in-memory database
+		memSym := l.internStr(":memory:")
 		initStmts = append(initStmts, &hir.AssignStmt{
-			Target: &hir.VarRefExpr{Name: "_abap_db", Ty: mir2.TyU16},
+			Target: &hir.VarRefExpr{Name: "_abap_db", Ty: mir2.TyU8},
 			Val: &hir.CallExpr{
 				Fn:   "sqlite_open",
-				Args: []hir.Expr{&hir.IntLitExpr{Val: 0, Ty: mir2.TyPtr}},
-				Ty:   mir2.TyU16,
+				Args: []hir.Expr{&hir.AddrOfExpr{Sym: memSym}},
+				Ty:   mir2.TyU8,
 			},
 		})
 		// Execute seed SQL statements from *!sql pragmas
@@ -465,7 +466,7 @@ func (l *lowerer) lower() (*hir.Module, error) {
 				Expr: &hir.CallExpr{
 					Fn: "sqlite_exec",
 					Args: []hir.Expr{
-						&hir.VarRefExpr{Name: "_abap_db", Ty: mir2.TyU16},
+						&hir.VarRefExpr{Name: "_abap_db", Ty: mir2.TyU8},
 						&hir.AddrOfExpr{Sym: sqlSym},
 					},
 					Ty: mir2.TyU8,
@@ -971,7 +972,7 @@ func (l *lowerer) lowerExecSQL(s *ExecSQLStmt) (hir.Stmt, error) {
 		Expr: &hir.CallExpr{
 			Fn: "sqlite_exec",
 			Args: []hir.Expr{
-				&hir.VarRefExpr{Name: "_abap_db", Ty: mir2.TyU16},
+				&hir.VarRefExpr{Name: "_abap_db", Ty: mir2.TyU8},
 				&hir.AddrOfExpr{Sym: sqlSym},
 			},
 			Ty: mir2.TyU8,
@@ -1001,17 +1002,17 @@ func (l *lowerer) lowerSelect(s *SelectStmt) (hir.Stmt, error) {
 
 	var stmts []hir.Stmt
 
-	// var _sql_stmt_N: u16 = sqlite_query(_abap_db, c"SELECT ...")
+	// var _sql_stmt_N: u8 = sqlite_query(_abap_db, c"SELECT ...")
 	stmts = append(stmts, &hir.VarDeclStmt{
 		Name: stmtVar,
-		Ty:   mir2.TyU16,
+		Ty:   mir2.TyU8,
 		Init: &hir.CallExpr{
 			Fn: "sqlite_query",
 			Args: []hir.Expr{
-				&hir.VarRefExpr{Name: "_abap_db", Ty: mir2.TyU16},
+				&hir.VarRefExpr{Name: "_abap_db", Ty: mir2.TyU8},
 				&hir.AddrOfExpr{Sym: sqlSym},
 			},
-			Ty: mir2.TyU16,
+			Ty: mir2.TyU8,
 		},
 	})
 
@@ -1020,7 +1021,7 @@ func (l *lowerer) lowerSelect(s *SelectStmt) (hir.Stmt, error) {
 		stmts = append(stmts, &hir.ExprStmt{
 			Expr: &hir.CallExpr{
 				Fn:   "sqlite_step",
-				Args: []hir.Expr{&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16}},
+				Args: []hir.Expr{&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU8}},
 				Ty:   mir2.TyU8,
 			},
 		})
@@ -1040,7 +1041,7 @@ func (l *lowerer) lowerSelect(s *SelectStmt) (hir.Stmt, error) {
 				Val: &hir.CallExpr{
 					Fn: fnName,
 					Args: []hir.Expr{
-						&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16},
+						&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU8},
 						&hir.IntLitExpr{Val: int64(i), Ty: mir2.TyU8},
 					},
 					Ty: ty,
@@ -1052,7 +1053,7 @@ func (l *lowerer) lowerSelect(s *SelectStmt) (hir.Stmt, error) {
 		stmts = append(stmts, &hir.ExprStmt{
 			Expr: &hir.CallExpr{
 				Fn:   "sqlite_finalize",
-				Args: []hir.Expr{&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16}},
+				Args: []hir.Expr{&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU8}},
 				Ty:   mir2.TyU8,
 			},
 		})
@@ -1075,7 +1076,7 @@ func (l *lowerer) lowerSelect(s *SelectStmt) (hir.Stmt, error) {
 				Val: &hir.CallExpr{
 					Fn: fnName,
 					Args: []hir.Expr{
-						&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16},
+						&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU8},
 						&hir.IntLitExpr{Val: int64(i), Ty: mir2.TyU8},
 					},
 					Ty: ty,
@@ -1097,7 +1098,7 @@ func (l *lowerer) lowerSelect(s *SelectStmt) (hir.Stmt, error) {
 				Op: "==",
 				L: &hir.CallExpr{
 					Fn:   "sqlite_step",
-					Args: []hir.Expr{&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16}},
+					Args: []hir.Expr{&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU8}},
 					Ty:   mir2.TyU8,
 				},
 				R:  &hir.IntLitExpr{Val: 1, Ty: mir2.TyU8},
@@ -1113,25 +1114,27 @@ func (l *lowerer) lowerSelect(s *SelectStmt) (hir.Stmt, error) {
 // emitSQLiteExterns adds sqlite_* extern function declarations + _abap_db global.
 // Called once if any SELECT statement was encountered.
 func (l *lowerer) emitSQLiteExterns() {
-	// Global: _abap_db: u16 (database handle, opened by runtime)
+	// Global: _abap_db: u8 (database handle, opened by runtime)
 	l.hm.Globals = append(l.hm.Globals, mir2.Global{
-		Name: "_abap_db", Ty: mir2.TyU16,
+		Name: "_abap_db", Ty: mir2.TyU8,
 	})
 
-	// Extern function stubs (on MZV, host functions intercept these)
+	// Extern function stubs — on MZV, host functions intercept these.
+	// On CP/M, import sql.sqlite provides real I/O port asm bodies.
+	// Types match stdlib/sql/sqlite.nanz (u8 handles, 1=row/0=done).
 	sqliteFuncs := []struct {
 		name   string
 		params []hir.Param
 		ret    mir2.Ty
 	}{
-		{"sqlite_open", []hir.Param{{Name: "name", Ty: mir2.TyPtr}}, mir2.TyU16},
-		{"sqlite_close", []hir.Param{{Name: "h", Ty: mir2.TyU16}}, mir2.TyU8},
-		{"sqlite_exec", []hir.Param{{Name: "h", Ty: mir2.TyU16}, {Name: "sql", Ty: mir2.TyPtr}}, mir2.TyU8},
-		{"sqlite_query", []hir.Param{{Name: "h", Ty: mir2.TyU16}, {Name: "sql", Ty: mir2.TyPtr}}, mir2.TyU16},
-		{"sqlite_step", []hir.Param{{Name: "stmt", Ty: mir2.TyU16}}, mir2.TyU8},
-		{"sqlite_column_int", []hir.Param{{Name: "stmt", Ty: mir2.TyU16}, {Name: "col", Ty: mir2.TyU8}}, mir2.TyU16},
-		{"sqlite_column_text", []hir.Param{{Name: "stmt", Ty: mir2.TyU16}, {Name: "col", Ty: mir2.TyU8}}, mir2.TyPtr},
-		{"sqlite_finalize", []hir.Param{{Name: "stmt", Ty: mir2.TyU16}}, mir2.TyU8},
+		{"sqlite_open", []hir.Param{{Name: "name", Ty: mir2.TyPtr}}, mir2.TyU8},
+		{"sqlite_close", []hir.Param{{Name: "h", Ty: mir2.TyU8}}, mir2.TyU8},
+		{"sqlite_exec", []hir.Param{{Name: "h", Ty: mir2.TyU8}, {Name: "sql", Ty: mir2.TyPtr}}, mir2.TyU8},
+		{"sqlite_query", []hir.Param{{Name: "h", Ty: mir2.TyU8}, {Name: "sql", Ty: mir2.TyPtr}}, mir2.TyU8},
+		{"sqlite_step", []hir.Param{{Name: "stmt", Ty: mir2.TyU8}}, mir2.TyU8},
+		{"sqlite_column_int", []hir.Param{{Name: "stmt", Ty: mir2.TyU8}, {Name: "col", Ty: mir2.TyU8}}, mir2.TyU16},
+		{"sqlite_column_text", []hir.Param{{Name: "stmt", Ty: mir2.TyU8}, {Name: "col", Ty: mir2.TyU8}}, mir2.TyPtr},
+		{"sqlite_finalize", []hir.Param{{Name: "stmt", Ty: mir2.TyU8}}, mir2.TyU8},
 	}
 
 	names := make(map[string]bool)
