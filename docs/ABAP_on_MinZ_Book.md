@@ -2,6 +2,24 @@
 
 *A practical guide to running ABAP on 8-bit hardware*
 
+### At a Glance
+
+| Ch | Topic | Key Takeaway |
+|----|-------|-------------|
+| 1 | [Introduction](#1-introduction) | ABAP → abaplint Wasm → HIR → MIR2 → Z80, single binary, no Node.js |
+| 2 | [Hello ABAP](#2-hello-abap) | `REPORT` + `WRITE` compiles and runs on MZV in one command |
+| 3 | [Data Types](#3-data-types) | `TYPE i` → u16, `TYPE c` → ^u8, `TYPE string` → heap pointer |
+| 4 | [Control Flow](#4-control-flow) | IF/WHILE/DO/CASE map directly to HIR — ABAP operators (EQ/NE/LT) supported |
+| 5 | [Subroutines](#5-subroutines-formperform) | Single CHANGING param → return value, zero overhead |
+| 6 | [OOP](#6-oop-classmethod) | Classes → structs, methods → functions, no vtables — zero-cost dispatch |
+| 7 | [Selection Screens](#7-selection-screens-parameters) | PARAMETERS → TUI with focus, colors, TAB/F8/F3 navigation |
+| 8 | [Declarative Screens](#8-declarative-screens-with-screen) | `@screen` DSL: 7 lines → full PBO/PAI screen + mini-ALV table grid |
+| 9 | [Open SQL](#9-open-sql-select--sqlite) | SELECT → sqlite_query, `*!sql` seeds DB, ABAP wildcards (`*` → `%`) |
+| 10 | [Pipeline](#10-the-pipeline-in-detail) | abaplint Wasm → JSON AST → Go lowerer → HIR → MIR2 → Z80/MZV |
+| 11 | [Examples](#11-examples-gallery) | Fibonacci, FizzBuzz, Bubble Sort, MARA report, Customer screen |
+| 12 | [Nanz + ABAP](#12-nanz--abap-best-of-both-worlds) | The Holy Grail: @screen + SELECT + ALV = SE16 on Z80 |
+| 13 | [Architecture](#13-architecture-reference) | Source files, compilation commands, QBE native path |
+
 ---
 
 ## 1. Introduction
