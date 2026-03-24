@@ -22,8 +22,23 @@ import (
 	"github.com/minz/minzc/pkg/mir2"
 )
 
+// CFGSolution holds the result of a CFG-aware Z3 solve.
+type CFGSolution struct {
+	BlockPIR  map[string][]PIROp
+	ParamLocs map[int]int // vreg → physical register index (from Z3 model)
+}
+
 // SolveCFG solves ALL blocks of a function simultaneously with CFG edge constraints.
 func SolveCFG(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions) (map[string][]PIROp, error) {
+	sol, err := SolveCFGFull(vf, f, desc, opts)
+	if err != nil {
+		return nil, err
+	}
+	return sol.BlockPIR, nil
+}
+
+// SolveCFGFull is like SolveCFG but also returns param register assignments.
+func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions) (*CFGSolution, error) {
 	if opts.Z3Path == "" {
 		opts.Z3Path = "z3"
 	}
@@ -32,6 +47,7 @@ func SolveCFG(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions) (ma
 	}
 	if _, err := exec.LookPath(opts.Z3Path); err != nil {
 		return nil, fmt.Errorf("z3 not found: %w", err)
+
 	}
 
 	// Build per-block problems
@@ -489,5 +505,36 @@ func SolveCFG(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions) (ma
 		result[bp.label] = pirOps
 	}
 
-	return result, nil
+	// Extract param register assignments from Z3 model.
+	// For each function param, find the physical register Z3 assigned
+	// at instruction 0 of block 0 (entry point).
+	paramLocs := make(map[int]int)
+	for _, cp := range f.Contract.Params {
+		vreg := int(cp.Reg)
+		key := fmt.Sprintf("lv%d_b0_i0", vreg)
+		if v, ok := vals[key]; ok {
+			paramLocs[vreg] = v
+		} else {
+			// Try first instruction that references this vreg
+			if len(blocks) > 0 {
+				for i, op := range blocks[0].ops {
+					usesVreg := op.Dst == vreg
+					for _, s := range op.Src {
+						if s == vreg {
+							usesVreg = true
+						}
+					}
+					if usesVreg {
+						k := fmt.Sprintf("lv%d_b0_i%d", vreg, i)
+						if v2, ok2 := vals[k]; ok2 {
+							paramLocs[vreg] = v2
+							break
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return &CFGSolution{BlockPIR: result, ParamLocs: paramLocs}, nil
 }

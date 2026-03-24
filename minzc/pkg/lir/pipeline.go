@@ -684,28 +684,47 @@ func EmitStringPool(sb *strings.Builder, m *mir2.Module) {
 
 		switch kind {
 		case mir2.StrSString:
-			fmt.Fprintf(sb, "    DB %d", len(s))
-			for _, c := range []byte(s) {
-				fmt.Fprintf(sb, ", %d", c)
-			}
+			fmt.Fprintf(sb, "    DB %d, ", len(s))
+			emitStringLit(sb, []byte(s))
 			sb.WriteByte('\n')
 		case mir2.StrLString:
 			lo := len(s) & 0xFF
 			hi := (len(s) >> 8) & 0xFF
-			fmt.Fprintf(sb, "    DB %d, %d", lo, hi)
-			for _, c := range []byte(s) {
-				fmt.Fprintf(sb, ", %d", c)
-			}
+			fmt.Fprintf(sb, "    DB %d, %d, ", lo, hi)
+			emitStringLit(sb, []byte(s))
 			sb.WriteByte('\n')
 		default: // StrCString and unknown
 			sb.WriteString("    DB ")
-			for j, c := range []byte(s) {
-				if j > 0 {
-					sb.WriteString(", ")
-				}
-				fmt.Fprintf(sb, "%d", c)
-			}
+			emitStringLit(sb, []byte(s))
 			sb.WriteString(", 0\n")
+		}
+	}
+}
+
+// emitStringLit writes bytes as quoted text + numeric escapes.
+// "Hello", 10, "world" instead of 72, 101, 108, 108, 111, 10, 119, ...
+func emitStringLit(sb *strings.Builder, data []byte) {
+	first := true
+	i := 0
+	for i < len(data) {
+		if data[i] >= 0x20 && data[i] <= 0x7E && data[i] != '"' {
+			if !first {
+				sb.WriteString(", ")
+			}
+			sb.WriteByte('"')
+			for i < len(data) && data[i] >= 0x20 && data[i] <= 0x7E && data[i] != '"' {
+				sb.WriteByte(data[i])
+				i++
+			}
+			sb.WriteByte('"')
+			first = false
+		} else {
+			if !first {
+				sb.WriteString(", ")
+			}
+			fmt.Fprintf(sb, "%d", data[i])
+			i++
+			first = false
 		}
 	}
 }

@@ -157,29 +157,20 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) string {
 			switch kind {
 			case StrSString:
 				// SString: [len:u8][bytes...]
-				fmt.Fprintf(&sb, "    DB %d", len(s))
-				for _, c := range []byte(s) {
-					fmt.Fprintf(&sb, ", %d", c)
-				}
+				fmt.Fprintf(&sb, "    DB %d, ", len(s))
+				emitStringLiteral(&sb, []byte(s))
 				sb.WriteByte('\n')
 			case StrLString:
 				// LString: [len_lo:u8][len_hi:u8][bytes...]
 				lo := len(s) & 0xFF
 				hi := (len(s) >> 8) & 0xFF
-				fmt.Fprintf(&sb, "    DB %d, %d", lo, hi)
-				for _, c := range []byte(s) {
-					fmt.Fprintf(&sb, ", %d", c)
-				}
+				fmt.Fprintf(&sb, "    DB %d, %d, ", lo, hi)
+				emitStringLiteral(&sb, []byte(s))
 				sb.WriteByte('\n')
 			case StrCString:
-				// CString: [bytes...][0x00]
+				// CString: [bytes...][0x00] — emit as DB "text", 0
 				sb.WriteString("    DB ")
-				for j, c := range []byte(s) {
-					if j > 0 {
-						sb.WriteString(", ")
-					}
-					fmt.Fprintf(&sb, "%d", c)
-				}
+				emitStringLiteral(&sb, []byte(s))
 				sb.WriteString(", 0\n")
 			}
 		}
@@ -7235,4 +7226,41 @@ func sortStrings(ss []string) {
 			ss[j], ss[j-1] = ss[j-1], ss[j]
 		}
 	}
+}
+
+// emitStringLiteral writes bytes as a mix of quoted text and numeric escapes.
+// Printable ASCII runs are grouped into "...", non-printable bytes are emitted
+// as individual numeric values. Example: "Hello", 10, "world"
+func emitStringLiteral(sb *strings.Builder, data []byte) {
+	first := true
+	i := 0
+	for i < len(data) {
+		// Collect a run of printable ASCII (0x20-0x7E), excluding quote
+		if isPrintableASCII(data[i]) {
+			if !first {
+				sb.WriteString(", ")
+			}
+			sb.WriteByte('"')
+			for i < len(data) && isPrintableASCII(data[i]) {
+				if data[i] == '"' {
+					break // can't embed quote in DB "..."
+				}
+				sb.WriteByte(data[i])
+				i++
+			}
+			sb.WriteByte('"')
+			first = false
+		} else {
+			if !first {
+				sb.WriteString(", ")
+			}
+			fmt.Fprintf(sb, "%d", data[i])
+			i++
+			first = false
+		}
+	}
+}
+
+func isPrintableASCII(b byte) bool {
+	return b >= 0x20 && b <= 0x7E
 }

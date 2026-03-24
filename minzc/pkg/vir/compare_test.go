@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -264,4 +265,176 @@ func formatDelta(d int) string {
 		return fmt.Sprintf("+%d", d)
 	}
 	return fmt.Sprintf("%d", d)
+}
+
+// TestVIR_Standalone_vs_Constrained compares per-function instruction counts
+// when solved with PBQP-derived param constraints vs unconstrained (standalone).
+// This measures the potential gain from the "solve free + adapter" strategy.
+func TestVIR_Standalone_vs_Constrained(t *testing.T) {
+	if _, err := exec.LookPath("z3"); err != nil {
+		t.Skip("z3 not found")
+	}
+
+	exDir := filepath.Join("..", "..", "..", "examples", "nanz")
+	files, err := filepath.Glob(filepath.Join(exDir, "*.nanz"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	sort.Strings(files)
+
+	opts := vir.SolverOptions{Timeout: 5 * time.Second}
+
+	type funcScore struct {
+		file           string
+		name           string
+		constrained    int // insts with PBQP param constraints
+		standalone     int // insts without param constraints
+		delta          int // constrained - standalone (positive = standalone wins)
+		nParams        int
+		adapterCost    int // estimated LD moves for adapter (= nParams, worst case)
+	}
+	var scores []funcScore
+	var totalConst, totalStand int
+	var standaloneWins, constrainedWins, ties int
+
+	for _, fpath := range files {
+		base := filepath.Base(fpath)
+		src, err := os.ReadFile(fpath)
+		if err != nil {
+			continue
+		}
+
+		hm, err := nanz.ParseWithOpts(string(src), base, nanz.ParseOpts{})
+		if err != nil {
+			continue
+		}
+
+		m, err := lowerHIR(hm)
+		if err != nil {
+			continue
+		}
+
+		// Build PBQP-derived param locations (like assert_test.go)
+		funcParamLocs := make(map[string]map[int]int)
+		for _, f := range m.Funcs {
+			lr := mir2.ComputeLiveness(f)
+			ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
+			if ar == nil {
+				continue
+			}
+			pl := make(map[int]int)
+			for _, cp := range f.Contract.Params {
+				if loc, ok := ar.Locs[cp.Reg]; ok {
+					idx := vir.Z80.LocByName(loc.Name)
+					if idx >= 0 {
+						pl[int(cp.Reg)] = idx
+					}
+				}
+			}
+			funcParamLocs[f.Name] = pl
+		}
+
+		// Run constrained (with PBQP param locs)
+		optsConst := opts
+		optsConst.FuncParamLocs = funcParamLocs
+		_, resultsConst := vir.CodegenModule(m, optsConst)
+
+		// Run standalone (no param constraints)
+		_, resultsStand := vir.CodegenModule(m, opts)
+
+		// Build lookup maps
+		constMap := make(map[string]int)
+		for _, r := range resultsConst {
+			if r.OK {
+				constMap[r.Name] = countInstructions(r.ASM)
+			}
+		}
+		standMap := make(map[string]int)
+		for _, r := range resultsStand {
+			if r.OK {
+				standMap[r.Name] = countInstructions(r.ASM)
+			}
+		}
+
+		for _, f := range m.Funcs {
+			ci, cOK := constMap[f.Name]
+			si, sOK := standMap[f.Name]
+			if !cOK || !sOK {
+				continue
+			}
+
+			nParams := len(f.Contract.Params)
+			delta := ci - si
+			scores = append(scores, funcScore{
+				file: base, name: f.Name,
+				constrained: ci, standalone: si,
+				delta: delta, nParams: nParams,
+				adapterCost: nParams, // worst case: 1 LD per param
+			})
+			totalConst += ci
+			totalStand += si
+			if delta > 0 {
+				standaloneWins++
+			} else if delta < 0 {
+				constrainedWins++
+			} else {
+				ties++
+			}
+		}
+	}
+
+	// Sort by delta descending (biggest standalone wins first)
+	sort.Slice(scores, func(i, j int) bool {
+		return scores[i].delta > scores[j].delta
+	})
+
+	t.Log("")
+	t.Log("╔══════════════════════════════════════════════════════════════════════════════╗")
+	t.Log("║   VIR: Constrained (PBQP ABI) vs Standalone (free regs) + Adapter         ║")
+	t.Log("╚══════════════════════════════════════════════════════════════════════════════╝")
+	t.Log("")
+	t.Logf("%-30s %-20s %6s %6s %6s %5s %7s",
+		"File", "Function", "Const", "Stand", "Delta", "Param", "Net")
+	t.Logf("%-30s %-20s %6s %6s %6s %5s %7s",
+		"──────────────────────────────", "────────────────────",
+		"──────", "──────", "──────", "─────", "───────")
+
+	// Show functions where standalone wins (delta > 0)
+	shown := 0
+	for _, s := range scores {
+		if s.delta <= 0 {
+			break
+		}
+		net := s.delta - s.adapterCost // net gain after adapter cost
+		netStr := formatDelta(net)
+		if net > 0 {
+			netStr += " ✓"
+		}
+		t.Logf("%-30s %-20s %6d %6d %6d %5d %7s",
+			s.file, s.name, s.constrained, s.standalone, s.delta, s.nParams, netStr)
+		shown++
+	}
+
+	if shown == 0 {
+		t.Log("  (no functions benefit from standalone mode)")
+	}
+
+	t.Log("")
+	t.Logf("Total: constrained=%d  standalone=%d  delta=%s",
+		totalConst, totalStand, formatDelta(totalConst-totalStand))
+	t.Logf("Standalone wins: %d  Constrained wins: %d  Ties: %d  (of %d funcs)",
+		standaloneWins, constrainedWins, ties, len(scores))
+
+	// Count net wins (after adapter cost)
+	netWins := 0
+	totalNetSaved := 0
+	for _, s := range scores {
+		net := s.delta - s.adapterCost
+		if net > 0 {
+			netWins++
+			totalNetSaved += net
+		}
+	}
+	t.Logf("Net wins (after adapter cost): %d funcs, %d instructions saved", netWins, totalNetSaved)
+	t.Log("")
 }

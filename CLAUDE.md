@@ -51,7 +51,41 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - **Remaining:** EXX shadow regs (L3), ISLE const-MUL reduction, production switch as default `--lir`
 - See [Architecture](docs/LIR_Backend_Architecture.md), [Reference](docs/LIR_Backend_Reference.md), [Report 094](reports/2026-03-18-094-LIR-100-Percent-C89-Corpus.md), [ADR-0033](docs/adr/0033-lir-pipeline-integration.md)
 
-### 5. Rewrite Triad (ISLE + Grace + Datalog)
+### 5. VIR Backend (Z3 Unified Solver — `--vir`)
+**Status:** ✅ 100% coverage, 55/55 Z80-verified, -60% vs SDCC. Zero PBQP fallback. ~11K LOC.
+- **Pipeline:** MIR2 → Bridge → ISLE → Z3-PFCCO(Module) → Z3-CFG(Function) → Grace(PIR) → Peephole → Z80 ASM
+- **Package:** `pkg/vir/` — vir.go, z80.go, bridge.go, solver.go, cfgsolver.go, pfcco.go, isle.go, pipeline.go
+- **Corpus:** Nanz 341/341 + C89 304/304 = **645/645 functions** (100%). Z3 time ~36s total.
+- **Z3-PFCCO:** Module-level calling convention optimization — Z3 considers all call sites simultaneously. The SDCC killer.
+- **Per-instruction variables:** `lv{vreg}_i{inst}` — solver plans moves as part of optimal solution, not as post-pass fixup.
+- **CFG-aware encoding:** Per-block variables + edge constraints. Handles conditionals/loops correctly.
+- **Inline runtime:** div8/mod8/mul8 per call site with Z3-chosen registers, no fixed ABI overhead.
+- **IXH/IXL spill:** Undocumented half-index regs as call-safe storage (8T vs 11T PUSH/POP).
+- **ISLE combining:** load16_le fusion (FatFS ld_word: 5 insts vs SDCC 29B), identity/strength reduction.
+- **Grace PIR:** Dead register before RET, EX DE,HL elimination, add-zero removal.
+- **OpAsmBlock:** Inline asm as opaque black box with clobbers — surrounding code fully Z3-optimized.
+
+#### VIR Design Wisdom (hard-won lessons)
+1. **Optimal codegen over compile speed:** Compilation time is not a constraint — even minutes per function is acceptable. Z3 can be retried with different seeds, multiple strategies explored, `(minimize)` always preferred. We are here to bring **optimal solutions**, not fast compilation.
+2. **Reliability first:** Understand compilation path before fixing quality. Add tracing/audit before changing codegen. Run full corpus after any change.
+3. **Hard vs soft Z3 constraints:** Hard `(assert ...)` for facts (ABI, spill tiers, return convention). Soft `(ite cost)` for hints (SrcHint, register preferences). Hard hints that conflict with tied-dst patterns → unsat.
+4. **Per-instruction vs global variables:** Global (one `loc_v` per vreg) is fast but fails at >7 live vregs. Per-instruction (`lv{v}_i{k}`) handles everything. Use global as Phase 1, per-inst as Phase 2.
+5. **Inline runtime per call site:** Don't pin runtime ABI — emit div/mul loop body inline with Z3-chosen registers. Deduplicate identical instances post-emit.
+6. **Pre-solver pass interaction:** Pre-tie moves rewrite `v1` → `v1_copy`. DON'T propagate param constraints to copy vregs (both live at move, both constrained to same reg → unsat). Constrain originals only.
+7. **Z3 minimize pitfall:** `(minimize total_cost)` uses opt module, not SAT. On >100 ITE vars it returns "unknown". Use plain `(check-sat)` for large problems — correct, just not provably optimal.
+8. **Dual-mode: constrained vs standalone+adapter:** Solve each function twice — with ABI constraints and without. Pick the cheaper option. Standalone winner gets adapter LD moves at entry/exit. Benchmark shows 7 funcs / 47 insts saved across Nanz corpus (e.g., `_dec`: 32→1 insts).
+
+#### VIR Known Issues / Roadmap
+- ✅ ~~abs_diff CFG solver unsat~~ — now 4 insts (optimal SUB/RET NC/NEG/RET), CFG solver succeeds
+- ✅ ~~fib parallel-copy~~ — now 12 insts (45% win vs SDCC), tight loop body
+- ✅ ~~Non-deterministic coalescing~~ — sort tie-break by vreg ID applied, deterministic
+- **Grace on PIR** — dead register elimination across call boundaries, block merging, fallthrough optimization
+- **RLD/RRD for 4-bit shifts** — Z80 digit-rotate instructions for nibble packing
+- **ISLE store16_le via DE** — EX DE,HL bracket pattern
+- **EX DE,HL elimination** — track register preferences across calls via Z3-PFCCO
+- **Inline 16-bit div/mul** — currently falls back to shared routine; should inline per call site like 8-bit
+
+### 6. Rewrite Triad (ISLE + Grace + Datalog)
 **Status:** ✅ Wired into pipeline, 94.1% convergence. See [Report 097](reports/2026-03-19-097-Rewrite-Triad-Infrastructure.md).
 - **Package:** `pkg/rewrite/` — zero imports from hir/mir2/lir, operates on abstract `IRGraph`/`IRGraphMut` interfaces
 - **ISLE:** Term rewriting with guards `(if (< ?n 256))` + extern Go callbacks. 542 LOC.
@@ -62,7 +96,7 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - **Stats:** `GraceStats` tracks per-rule fire counts across module compilation.
 - **NOT a Z80 constraint solver:** Grace handles CFG patterns. Z80 register constraints / reject+backtrack is done by WFC in LIR (§4 above).
 
-### 6. LSP / DAP / Developer Tooling
+### 7. LSP / DAP / Developer Tooling
 **Status:** Not started. Planned after core language stability.
 
 ---
@@ -77,6 +111,7 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 
 - **[LIR_Backend_Architecture.md](docs/LIR_Backend_Architecture.md)** - PBQP+WFC+ISLE: how three solvers cooperate
 - **[LIR_Backend_Reference.md](docs/LIR_Backend_Reference.md)** - Quick reference: pipeline, DSLs, data structures
+- **VIR Backend** (`pkg/vir/`) - Z3 unified solver: joint isel+regalloc, PFCCO, inline runtime — see §5 in Current Priorities
 - **[INTERNAL_ARCHITECTURE.md](minzc/docs/INTERNAL_ARCHITECTURE.md)** - Complete compiler internals
 - **[COMPILER_SNAPSHOT.md](COMPILER_SNAPSHOT.md)** - Current state tracking
 - **[149_World_Class_Multi_Level_Optimization_Guide.md](docs/149_World_Class_Multi_Level_Optimization_Guide.md)** - Revolutionary optimization strategy
@@ -425,6 +460,7 @@ fun main() {
 | Peephole patterns | 67 (asm) + MIR passes |
 | Production backends | 1 (Z80) + 1 partial (C) + 1 QBE (correctness oracle) + 8 experimental |
 | LIR backend | **948/948 pipeline** (100%), **97.9% VM-verified** (C89/risc32) — PBQP→WFC guided, IXH/IXL spill, __mul8/__mul16, tail call opt |
+| VIR backend | **645/645 functions** (100%), **55/55 Z80-verified**, **-60% vs SDCC** — Z3 unified solver, Z3-PFCCO, inline runtime, zero PBQP fallback |
 | MIR backend tests | 9/11 pass, 2 known bugs (ADR-0006) |
 | Frontends | 8 (Nanz, C89, PL/M, Lanz, Lizp, Pascal, ABAP, **Frill**) — all route through HIR→MIR2→Z80 |
 | Frill (.frl) | ML-style functional: 38 features — let, if/then/else, pipe \|>, compose >>, match+guards, ADT, lambda, currying, tuples, type classes, QTT linearity (!/~), while, for, mutation, peek/poke, property testing. 1000+ compile-time checks. See [Frill Guide](docs/Frill_Language_Guide.md) |
