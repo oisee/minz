@@ -116,6 +116,8 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - **[COMPILER_SNAPSHOT.md](COMPILER_SNAPSHOT.md)** - Current state tracking
 - **[149_World_Class_Multi_Level_Optimization_Guide.md](docs/149_World_Class_Multi_Level_Optimization_Guide.md)** - Revolutionary optimization strategy
 - **[Report 097: Rewrite Triad](reports/2026-03-19-097-Rewrite-Triad-Infrastructure.md)** - ISLE+Grace+Datalog declarative optimization engines (infrastructure, not yet in pipeline)
+- **[Report 111: GPU Regalloc Table](reports/2026-03-24-111-GPU-Precomputed-Regalloc-Table.md)** - Precomputed register allocation from CUDA brute-force (61 entries, O(1) lookup)
+- **[GPU Bruteforce Roadmap](../z80-optimizer/BRUTEFORCE_ROADMAP.md)** - Beyond peephole: constant multiply, division, screen address, sin/cos — all via exhaustive GPU search
 
 ## 🎯 Custom Commands
 
