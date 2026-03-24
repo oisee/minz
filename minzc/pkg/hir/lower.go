@@ -276,6 +276,10 @@ type lowerer struct {
 	// Calls through "f" are resolved to "lambda_0" at call sites.
 	fnAliases map[string]string
 
+	// localArrays tracks local array variables promoted to globals.
+	// &name for these should return the env register (address) directly.
+	localArrays map[string]bool
+
 	// loopStack is the stack of enclosing loops (top = innermost).
 	// Needed by BreakStmt and ContinueStmt.
 	loopStack []loopCtx
@@ -417,6 +421,7 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 		hirFuncNames: funcNames,
 		hirFuncs:     hirFuncs,
 		fnAliases:    make(map[string]string),
+		localArrays:  make(map[string]bool),
 	}
 
 	bld.SwitchToNewBlock("entry")
@@ -677,6 +682,22 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 				size = 1
 			}
 			r = l.bld.Alloca(size)
+		} else if st.ArrayLen > 0 {
+			// Local array variable: promote to module-level global.
+			// Z80 has no stack frames — static storage is used instead.
+			elemBytes := st.Ty.Width() / 8
+			if elemBytes <= 0 {
+				elemBytes = 1
+			}
+			totalBytes := st.ArrayLen * elemBytes
+			globalName := l.mf.Name + "$" + st.Name
+			l.m.Globals = append(l.m.Globals, mir2.Global{
+				Name: globalName,
+				Ty:   mir2.NewArray(st.Ty, st.ArrayLen),
+				Init: make([]byte, totalBytes),
+			})
+			r = l.bld.AddrOf(globalName, mir2.ClassPointer)
+			l.localArrays[st.Name] = true
 		} else {
 			r = l.bld.Const(0, st.Ty, classForExpr(st.Ty))
 		}
@@ -1624,6 +1645,12 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 		return l.bld.CallIndirect(fnPtrReg, args, ex.Ty, cls)
 
 	case *AddrOfExpr:
+		// Local array promoted to global: env register IS the address.
+		if l.localArrays[ex.Sym] {
+			if reg, ok := l.env[ex.Sym]; ok {
+				return reg
+			}
+		}
 		return l.bld.AddrOf(ex.Sym, mir2.ClassPointer)
 
 	case *ConstPtrExpr:
