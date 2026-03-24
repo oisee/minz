@@ -414,6 +414,11 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		})
 	}
 
+	// Emit stubs for @extern functions not already defined in the assembly.
+	// When hybrid LIR+PBQP splicing loses empty function stubs, this ensures
+	// CALL targets for extern functions resolve.
+	s.Assembly = emitExternStubs(s.Assembly, m)
+
 	// Inject per-function trace annotations into the assembly.
 	s.Assembly = injectTraceAnnotations(s.Assembly, s.Traces)
 
@@ -1138,6 +1143,27 @@ func isInstruction(s string) bool {
 		return true
 	}
 	return false
+}
+
+// emitExternStubs appends label stubs for @extern functions that are called
+// in the assembly but have no label definition. This happens when hybrid
+// LIR+PBQP splicing loses LIR's empty-function stubs.
+func emitExternStubs(asm string, m *mir2.Module) string {
+	var stubs strings.Builder
+	for _, f := range m.Funcs {
+		if len(f.Blocks) > 0 {
+			continue // not extern — has a body
+		}
+		label := lir.SanitizeAsmLabel(f.Name)
+		// Only emit stub if the label is referenced but not defined.
+		if strings.Contains(asm, label) && !strings.Contains(asm, label+":") {
+			fmt.Fprintf(&stubs, "; %s — extern stub\n%s:\n    RET\n\n", label, label)
+		}
+	}
+	if stubs.Len() > 0 {
+		return asm + stubs.String()
+	}
+	return asm
 }
 
 // injectModuleSummary prepends a compilation summary block at the top of the assembly.

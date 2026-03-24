@@ -91,6 +91,33 @@ func hasBlockParams(f *mir2.Func) bool {
 	return false
 }
 
+// hasNonTrivialBranch returns true if the function has control flow that the
+// flat LIR path can't handle. Specifically:
+// - br_if terminators (conditional branches — flat path drops them)
+// - cond_ret where the successor block has instructions beyond a bare ret
+//   (those instructions would execute unconditionally in the flat path)
+//
+// Simple cond_ret where the successor only has "ret %rN" is fine — the flat
+// condret emission handles it correctly.
+func hasNonTrivialBranch(f *mir2.Func) bool {
+	blockByLabel := make(map[string]*mir2.Block, len(f.Blocks))
+	for _, b := range f.Blocks {
+		blockByLabel[b.Label] = b
+	}
+	for _, b := range f.Blocks {
+		switch t := b.Term.(type) {
+		case *mir2.TermBrIf:
+			return true
+		case *mir2.TermCondRet:
+			// Check if the then-block has instructions (not just a bare ret).
+			if then := blockByLabel[t.Then]; then != nil && len(then.Insts) > 0 {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 // checkFuncConvergenceMultiBlock uses the structured LowerMIR2Prog path.
 func checkFuncConvergenceMultiBlock(f *mir2.Func, desc *MachineDesc, m *mir2.Module) ConvergenceResult {
 	cr := ConvergenceResult{}
@@ -299,6 +326,17 @@ func LIRCodegenFunc(f *mir2.Func, m *mir2.Module, hints ...AllocHints) (string, 
 	var h AllocHints
 	if len(hints) > 0 {
 		h = hints[0]
+	}
+
+	// Multi-block functions without block params can't be handled correctly
+	// by either LIR path:
+	// - Flat path flattens all blocks, losing control flow (branches dropped,
+	//   instructions from different blocks execute unconditionally)
+	// - Multi-block WFC has cross-block liveness bugs (destructive patterns
+	//   like XOR A chosen when A is live in later blocks)
+	// Bail to PBQP fallback for these functions.
+	if len(f.Blocks) > 1 && !hasBlockParams(f) && hasNonTrivialBranch(f) {
+		return "", fmt.Errorf("multi-block control flow without block params (needs PBQP)")
 	}
 
 	// Try multi-block path for functions with block params.
