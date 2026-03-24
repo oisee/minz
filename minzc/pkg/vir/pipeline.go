@@ -303,6 +303,13 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 		return "", fmt.Errorf("vir lower %s: %w", f.Name, err)
 	}
 
+	// Skip dual-mode for trivial functions (extern stubs, empty bodies)
+	trivial := len(vf.Blocks) == 0 || (len(vf.Blocks) == 1 && len(vf.Blocks[0].Ops) <= 1)
+	if trivial {
+		vfCopy := deepCopyFunc(vf)
+		return codegenFuncCFG(f, vfCopy, desc, opts)
+	}
+
 	// Check if we have caller-imposed param constraints
 	hasConstraints := false
 	var callerParamLocs map[int]int
@@ -388,7 +395,7 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 // emitAdapterEntry inserts LD moves after the function label to shuffle params
 // from caller's convention (callerLocs) to standalone solver's convention (standLocs).
 func emitAdapterEntry(asm string, f *mir2.Func, callerLocs, standLocs map[int]int, desc *MachineDesc) string {
-	// Collect adapter moves needed
+	// Collect adapter moves needed (skip SP/F — not valid param locations)
 	type adapterMove struct {
 		fromPhys, toPhys int
 	}
@@ -398,6 +405,13 @@ func emitAdapterEntry(asm string, f *mir2.Func, callerLocs, standLocs map[int]in
 		callerPhys, cOK := callerLocs[vreg]
 		standPhys, sOK := standLocs[vreg]
 		if cOK && sOK && callerPhys != standPhys {
+			// Skip SP (index 10) and F (index 13) — not valid param registers
+			if callerPhys < len(desc.Locs) && (desc.Locs[callerPhys].Name == "SP" || desc.Locs[callerPhys].Name == "F") {
+				continue
+			}
+			if standPhys < len(desc.Locs) && (desc.Locs[standPhys].Name == "SP" || desc.Locs[standPhys].Name == "F") {
+				continue
+			}
 			moves = append(moves, adapterMove{callerPhys, standPhys})
 		}
 	}
@@ -464,7 +478,29 @@ func emitRegMove(from, to Loc) []string {
 		if (from.Name == "HL" && to.Name == "DE") || (from.Name == "DE" && to.Name == "HL") {
 			return []string{"EX DE, HL"}
 		}
-		// General: PUSH src / POP dst
+		// Special case: LD SP, HL (opcode F9) — POP SP doesn't exist
+		if to.Name == "SP" && from.Name == "HL" {
+			return []string{"LD SP, HL"}
+		}
+		// SP as source or dest with non-HL: route through HL
+		if to.Name == "SP" {
+			return []string{
+				fmt.Sprintf("PUSH %s", from.Name),
+				"POP HL",
+				"LD SP, HL",
+			}
+		}
+		if from.Name == "SP" {
+			// No direct LD rr, SP on Z80. Use ADD HL,SP trick or memory.
+			// Simplest: LD HL, 0 / ADD HL, SP / PUSH HL / POP dst
+			return []string{
+				"LD HL, 0",
+				"ADD HL, SP",
+				fmt.Sprintf("PUSH HL"),
+				fmt.Sprintf("POP %s", to.Name),
+			}
+		}
+		// General: PUSH src / POP dst (works for AF, BC, DE, HL, IX, IY)
 		return []string{
 			fmt.Sprintf("PUSH %s", from.Name),
 			fmt.Sprintf("POP %s", to.Name),
@@ -500,6 +536,24 @@ func emitRegMove(from, to Loc) []string {
 }
 
 // pairHalves returns (low, high) register names for a 16-bit pair.
+// pairHalvesASM returns (high, low) for PUSH/POP pairs. Returns ("","") for AF/SP.
+func pairHalvesASM(pair string) (string, string) {
+	switch pair {
+	case "BC":
+		return "B", "C"
+	case "DE":
+		return "D", "E"
+	case "HL":
+		return "H", "L"
+	case "IX":
+		return "IXH", "IXL"
+	case "IY":
+		return "IYH", "IYL"
+	default:
+		return "", "" // AF, SP — can't decompose
+	}
+}
+
 func pairHalves(pair string) (string, string) {
 	switch pair {
 	case "BC":
@@ -1410,6 +1464,82 @@ func peepholeCleanup(asm string) string {
 		// This is tricky — only valid if the SUB source had the original A value.
 		// Skip for now — needs more context.
 
+		// ── INC r / DEC r → remove both (cancel) ────────────────────
+		if i+1 < len(lines) {
+			next := strings.TrimSpace(lines[i+1])
+			if strings.HasPrefix(line, "INC ") && strings.HasPrefix(next, "DEC ") {
+				reg := strings.TrimSpace(line[4:])
+				nreg := strings.TrimSpace(next[4:])
+				if reg == nreg && len(reg) <= 2 {
+					i++ // skip both
+					continue
+				}
+			}
+			if strings.HasPrefix(line, "DEC ") && strings.HasPrefix(next, "INC ") {
+				reg := strings.TrimSpace(line[4:])
+				nreg := strings.TrimSpace(next[4:])
+				if reg == nreg && len(reg) <= 2 {
+					i++
+					continue
+				}
+			}
+		}
+
+		// ── JP/JR cc, next_label → remove (dead conditional branch) ─
+		if i+1 < len(lines) {
+			next := strings.TrimSpace(lines[i+1])
+			if strings.HasSuffix(next, ":") {
+				label := strings.TrimSuffix(next, ":")
+				deadBranch := false
+				for _, prefix := range []string{"JP Z, ", "JP NZ, ", "JP C, ", "JP NC, ",
+					"JR Z, ", "JR NZ, ", "JR C, ", "JR NC, "} {
+					if strings.HasPrefix(line, prefix) {
+						target := strings.TrimSpace(line[len(prefix):])
+						if target == label {
+							deadBranch = true
+							break
+						}
+					}
+				}
+				if deadBranch {
+					continue // skip dead branch to next instruction
+				}
+			}
+		}
+
+		// ── PUSH rr / POP different_rr → LD pair halves (saves 3T) ──
+		if i+1 < len(lines) && strings.HasPrefix(line, "PUSH ") {
+			next := strings.TrimSpace(lines[i+1])
+			if strings.HasPrefix(next, "POP ") {
+				srcPair := strings.TrimSpace(line[5:])
+				dstPair := strings.TrimSpace(next[4:])
+				if srcPair != dstPair { // same pair already handled above
+					srcH, srcL := pairHalvesASM(srcPair)
+					dstH, dstL := pairHalvesASM(dstPair)
+					if srcH != "" && dstH != "" {
+						result = append(result,
+							fmt.Sprintf("    LD %s, %s", dstH, srcH),
+							fmt.Sprintf("    LD %s, %s", dstL, srcL),
+						)
+						i++ // skip POP
+						continue
+					}
+				}
+			}
+		}
+
+		// ── AND 0FFh → AND A (1 byte shorter, same flags) ──────────
+		if line == "AND 0FFh" || line == "AND 255" {
+			result = append(result, "    AND A")
+			continue
+		}
+
+		// ── OR 00h → OR A (1 byte shorter, same flags) ─────────────
+		if line == "OR 00h" || line == "OR 0" {
+			result = append(result, "    OR A")
+			continue
+		}
+
 		// ── Grace-like CFG rules (on assembly level) ─────────────────
 
 		// Conditional RET: JR/JP cc, .target / [labels...] / RET / .target: → RET cc_inverted
@@ -1729,24 +1859,30 @@ func gracePass(lines []string) []string {
 		if i+1 < len(lines) {
 			next := strings.TrimSpace(lines[i+1])
 			if next == "RET" {
-				// DEC rr / RET → RET (pair decrements are dead before unconditional return)
-				if line == "DEC HL" || line == "DEC DE" || line == "DEC BC" {
-					continue // skip dead decrement
+				// DEC/INC rr / RET → RET (dead before unconditional return)
+				if strings.HasPrefix(line, "DEC ") || strings.HasPrefix(line, "INC ") {
+					reg := strings.TrimSpace(line[4:])
+					if reg != "A" { // keep INC A / DEC A — might set flags for caller
+						continue
+					}
 				}
 				// EX DE, HL / RET → RET (register swap is dead before return)
 				if line == "EX DE, HL" {
 					continue
 				}
 				// LD r, N / RET where r != A → skip (dead const load before return)
-				if strings.HasPrefix(line, "LD ") && !strings.HasPrefix(line, "LD A") {
+				if strings.HasPrefix(line, "LD ") && !strings.HasPrefix(line, "LD A") &&
+					!strings.HasPrefix(line, "LD (") {
 					parts := strings.SplitN(line[3:], ", ", 2)
 					if len(parts) == 2 {
 						reg := strings.TrimSpace(parts[0])
-						if reg != "A" && reg != "(HL)" && !strings.HasPrefix(reg, "(") {
+						if reg != "A" && !strings.HasPrefix(reg, "(") {
 							continue // dead load before RET
 						}
 					}
 				}
+				// Note: OR/AND/XOR before RET are NOT dead — they set flags
+				// for callers that check CY/Z after return.
 			}
 		}
 
