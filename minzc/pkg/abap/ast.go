@@ -57,10 +57,11 @@ type Token struct {
 
 // Program is the top-level semantic unit after AST simplification.
 type Program struct {
-	Name   string
-	Decls  []Decl
-	Params []*ParamDecl  // PARAMETERS declarations (selection screen)
-	Events map[string][]Stmt_ // INITIALIZATION, START-OF-SELECTION, END-OF-SELECTION, etc.
+	Name    string
+	Decls   []Decl
+	Params  []*ParamDecl        // PARAMETERS declarations (selection screen)
+	Events  map[string][]Stmt_  // INITIALIZATION, START-OF-SELECTION, END-OF-SELECTION, etc.
+	SeedSQL []string            // *!sql pragma lines (seed database setup)
 }
 
 // Decl is any top-level or local declaration.
@@ -226,6 +227,26 @@ type CaseStmt struct {
 	Others []Stmt_
 }
 func (*CaseStmt) abapStmt() {}
+
+// SelectStmt represents ABAP Open SQL: SELECT fields FROM table INTO vars WHERE cond.
+type SelectStmt struct {
+	Fields []string // column names (or "*")
+	Table  string   // table name
+	Into   []string // target variable names
+	Where  string   // WHERE clause as raw SQL (compile-time constant)
+	Single bool     // SELECT SINGLE → one row only
+	// For LOOP AT semantics (SELECT ... ENDSELECT), Body holds the loop body
+	Body []Stmt_
+}
+
+func (*SelectStmt) abapStmt() {}
+
+// ExecSQLStmt represents ABAP Native SQL: EXEC SQL. ... ENDEXEC.
+type ExecSQLStmt struct {
+	SQL string // raw SQL to execute
+}
+
+func (*ExecSQLStmt) abapStmt() {}
 
 // ── Expressions ──────────────────────────────────────────────────────────────
 

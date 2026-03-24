@@ -28,6 +28,15 @@ func Compile(src, name string) (*hir.Module, error) {
 			return nil, fmt.Errorf("abap parse: %w", err)
 		}
 	}
+	// Scan source for *!sql pragmas BEFORE lowering (lowerer emits sqlite_exec calls).
+	sqlPragmaRe := regexp.MustCompile(`^\s*[*"]\s*!sql\s+(.+)$`)
+	for _, line := range strings.Split(src, "\n") {
+		m := sqlPragmaRe.FindStringSubmatch(line)
+		if m != nil {
+			prog.SeedSQL = append(prog.SeedSQL, strings.TrimSpace(m[1]))
+		}
+	}
+
 	hm, err := LowerProgram(prog)
 	if err != nil {
 		return nil, fmt.Errorf("abap lower: %w", err)
@@ -94,6 +103,8 @@ type lowerer struct {
 	paramRegistrations []*ParamDecl // collected during lowering
 	stringInits        []stringInit // DATA x TYPE string VALUE '...' → deferred init
 	strCache           map[string]int // dedup cache: content → index in hm.Strings
+	hasSelect          bool          // true if any SELECT statement → emit sqlite externs + _abap_db
+	selectStmtCounter  int           // unique IDs for temp variables
 }
 
 // internStr interns a C-string into the HIR module, deduplicating by content.
@@ -432,6 +443,38 @@ func (l *lowerer) lower() (*hir.Module, error) {
 		}
 	}
 
+	// If any SELECT was used or SeedSQL exists, set up SQLite
+	if l.hasSelect || len(l.prog.SeedSQL) > 0 {
+		l.hasSelect = true
+		l.emitSQLiteExterns()
+
+		var initStmts []hir.Stmt
+		// _abap_db = sqlite_open(0) — open in-memory database
+		initStmts = append(initStmts, &hir.AssignStmt{
+			Target: &hir.VarRefExpr{Name: "_abap_db", Ty: mir2.TyU16},
+			Val: &hir.CallExpr{
+				Fn:   "sqlite_open",
+				Args: []hir.Expr{&hir.IntLitExpr{Val: 0, Ty: mir2.TyPtr}},
+				Ty:   mir2.TyU16,
+			},
+		})
+		// Execute seed SQL statements from *!sql pragmas
+		for _, sql := range l.prog.SeedSQL {
+			sqlSym := l.internStr(sql)
+			initStmts = append(initStmts, &hir.ExprStmt{
+				Expr: &hir.CallExpr{
+					Fn: "sqlite_exec",
+					Args: []hir.Expr{
+						&hir.VarRefExpr{Name: "_abap_db", Ty: mir2.TyU16},
+						&hir.AddrOfExpr{Sym: sqlSym},
+					},
+					Ty: mir2.TyU8,
+				},
+			})
+		}
+		mainStmts = append(initStmts, mainStmts...)
+	}
+
 	// Emit main function
 	if len(mainStmts) > 0 {
 		l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
@@ -708,6 +751,10 @@ func (l *lowerer) lowerStmt(s Stmt_) (hir.Stmt, error) {
 		return &hir.ReturnStmt{}, nil
 	case *CaseStmt:
 		return l.lowerCase(s)
+	case *SelectStmt:
+		return l.lowerSelect(s)
+	case *ExecSQLStmt:
+		return l.lowerExecSQL(s)
 	default:
 		return nil, fmt.Errorf("unsupported ABAP statement: %T", s)
 	}
@@ -913,6 +960,196 @@ func (l *lowerer) lowerCase(s *CaseStmt) (hir.Stmt, error) {
 		}
 	}
 	return &hir.SwitchStmt{Val: val, Cases: cases, Default: defBlock}, nil
+}
+
+// ── EXEC SQL → sqlite_exec lowering ─────────────────────────────────────────
+
+func (l *lowerer) lowerExecSQL(s *ExecSQLStmt) (hir.Stmt, error) {
+	l.hasSelect = true // ensure sqlite externs + _abap_db are emitted
+	sqlSym := l.internStr(s.SQL)
+	return &hir.ExprStmt{
+		Expr: &hir.CallExpr{
+			Fn: "sqlite_exec",
+			Args: []hir.Expr{
+				&hir.VarRefExpr{Name: "_abap_db", Ty: mir2.TyU16},
+				&hir.AddrOfExpr{Sym: sqlSym},
+			},
+			Ty: mir2.TyU8,
+		},
+	}, nil
+}
+
+// ── SELECT → SQLite lowering ─────────────────────────────────────────────────
+
+func (l *lowerer) lowerSelect(s *SelectStmt) (hir.Stmt, error) {
+	l.hasSelect = true
+	l.selectStmtCounter++
+	uid := l.selectStmtCounter
+
+	// Build SQL string: SELECT f1, f2 FROM table [WHERE cond]
+	fieldList := strings.Join(s.Fields, ", ")
+	sql := fmt.Sprintf("SELECT %s FROM %s", fieldList, s.Table)
+	if s.Where != "" {
+		sql += " WHERE " + s.Where
+	}
+
+	// Intern the SQL string
+	sqlSym := l.internStr(sql)
+
+	// Temp variable names
+	stmtVar := fmt.Sprintf("_sql_stmt_%d", uid)
+
+	var stmts []hir.Stmt
+
+	// var _sql_stmt_N: u16 = sqlite_query(_abap_db, c"SELECT ...")
+	stmts = append(stmts, &hir.VarDeclStmt{
+		Name: stmtVar,
+		Ty:   mir2.TyU16,
+		Init: &hir.CallExpr{
+			Fn: "sqlite_query",
+			Args: []hir.Expr{
+				&hir.VarRefExpr{Name: "_abap_db", Ty: mir2.TyU16},
+				&hir.AddrOfExpr{Sym: sqlSym},
+			},
+			Ty: mir2.TyU16,
+		},
+	})
+
+	if s.Single {
+		// SELECT SINGLE: one sqlite_step + column reads + finalize
+		stmts = append(stmts, &hir.ExprStmt{
+			Expr: &hir.CallExpr{
+				Fn:   "sqlite_step",
+				Args: []hir.Expr{&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16}},
+				Ty:   mir2.TyU8,
+			},
+		})
+
+		// Read columns into target variables
+		for i, into := range s.Into {
+			ty := l.varTypes[into]
+			if ty == nil {
+				ty = mir2.TyU16
+			}
+			fnName := "sqlite_column_int"
+			if ty == mir2.TyPtr {
+				fnName = "sqlite_column_text"
+			}
+			stmts = append(stmts, &hir.AssignStmt{
+				Target: &hir.VarRefExpr{Name: into, Ty: ty},
+				Val: &hir.CallExpr{
+					Fn: fnName,
+					Args: []hir.Expr{
+						&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16},
+						&hir.IntLitExpr{Val: int64(i), Ty: mir2.TyU8},
+					},
+					Ty: ty,
+				},
+			})
+		}
+
+		// Finalize
+		stmts = append(stmts, &hir.ExprStmt{
+			Expr: &hir.CallExpr{
+				Fn:   "sqlite_finalize",
+				Args: []hir.Expr{&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16}},
+				Ty:   mir2.TyU8,
+			},
+		})
+	} else {
+		// SELECT ... ENDSELECT loop: while sqlite_step == 1 { read columns; body }
+		var loopBody []hir.Stmt
+
+		// Read columns into target variables
+		for i, into := range s.Into {
+			ty := l.varTypes[into]
+			if ty == nil {
+				ty = mir2.TyU16
+			}
+			fnName := "sqlite_column_int"
+			if ty == mir2.TyPtr {
+				fnName = "sqlite_column_text"
+			}
+			loopBody = append(loopBody, &hir.AssignStmt{
+				Target: &hir.VarRefExpr{Name: into, Ty: ty},
+				Val: &hir.CallExpr{
+					Fn: fnName,
+					Args: []hir.Expr{
+						&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16},
+						&hir.IntLitExpr{Val: int64(i), Ty: mir2.TyU8},
+					},
+					Ty: ty,
+				},
+			})
+		}
+
+		// Append user's loop body (from SELECT...ENDSELECT block)
+		if len(s.Body) > 0 {
+			bodyBlock, err := l.lowerStmts(s.Body)
+			if err != nil {
+				return nil, err
+			}
+			loopBody = append(loopBody, bodyBlock.Body...)
+		}
+
+		stmts = append(stmts, &hir.WhileStmt{
+			Cond: &hir.BinExpr{
+				Op: "==",
+				L: &hir.CallExpr{
+					Fn:   "sqlite_step",
+					Args: []hir.Expr{&hir.VarRefExpr{Name: stmtVar, Ty: mir2.TyU16}},
+					Ty:   mir2.TyU8,
+				},
+				R:  &hir.IntLitExpr{Val: 1, Ty: mir2.TyU8},
+				Ty: mir2.TyU8,
+			},
+			Body: &hir.Block{Body: loopBody},
+		})
+	}
+
+	return &hir.Block{Body: stmts}, nil
+}
+
+// emitSQLiteExterns adds sqlite_* extern function declarations + _abap_db global.
+// Called once if any SELECT statement was encountered.
+func (l *lowerer) emitSQLiteExterns() {
+	// Global: _abap_db: u16 (database handle, opened by runtime)
+	l.hm.Globals = append(l.hm.Globals, mir2.Global{
+		Name: "_abap_db", Ty: mir2.TyU16,
+	})
+
+	// Extern function stubs (on MZV, host functions intercept these)
+	sqliteFuncs := []struct {
+		name   string
+		params []hir.Param
+		ret    mir2.Ty
+	}{
+		{"sqlite_open", []hir.Param{{Name: "name", Ty: mir2.TyPtr}}, mir2.TyU16},
+		{"sqlite_close", []hir.Param{{Name: "h", Ty: mir2.TyU16}}, mir2.TyU8},
+		{"sqlite_exec", []hir.Param{{Name: "h", Ty: mir2.TyU16}, {Name: "sql", Ty: mir2.TyPtr}}, mir2.TyU8},
+		{"sqlite_query", []hir.Param{{Name: "h", Ty: mir2.TyU16}, {Name: "sql", Ty: mir2.TyPtr}}, mir2.TyU16},
+		{"sqlite_step", []hir.Param{{Name: "stmt", Ty: mir2.TyU16}}, mir2.TyU8},
+		{"sqlite_column_int", []hir.Param{{Name: "stmt", Ty: mir2.TyU16}, {Name: "col", Ty: mir2.TyU8}}, mir2.TyU16},
+		{"sqlite_column_text", []hir.Param{{Name: "stmt", Ty: mir2.TyU16}, {Name: "col", Ty: mir2.TyU8}}, mir2.TyPtr},
+		{"sqlite_finalize", []hir.Param{{Name: "stmt", Ty: mir2.TyU16}}, mir2.TyU8},
+	}
+
+	names := make(map[string]bool)
+	for _, f := range l.hm.Funcs {
+		names[f.Name] = true
+	}
+
+	for _, sf := range sqliteFuncs {
+		if !names[sf.name] {
+			l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
+				Name:     sf.name,
+				Params:   sf.params,
+				RetTy:    sf.ret,
+				IsExtern: true,
+				Body:     &hir.Block{},
+			})
+		}
+	}
 }
 
 // ── Expression lowering ──────────────────────────────────────────────────────

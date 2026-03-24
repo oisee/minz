@@ -494,6 +494,8 @@ func convertControlStructure(node *ASTChild) (Stmt_, error) {
 		return convertIf(node)
 	case "Do":
 		return convertDo(node)
+	case "Select":
+		return convertSelect(node)
 	default:
 		return nil, fmt.Errorf("unsupported control structure: %s", node.Type)
 	}
@@ -579,6 +581,44 @@ func convertDo(node *ASTChild) (Stmt_, error) {
 	}
 
 	return &DoStmt{Times: times, Body: body}, nil
+}
+
+func convertSelect(node *ASTChild) (Stmt_, error) {
+	var selectTokens []string
+	var body []Stmt_
+
+	for _, child := range node.Children {
+		switch child.Type {
+		case "Select":
+			// Collect tokens from the SELECT statement (fields, FROM, INTO, WHERE)
+			for _, t := range child.Tokens {
+				selectTokens = append(selectTokens, t.Str)
+			}
+			childToks := collectChildTokens(child.Children)
+			selectTokens = append(selectTokens, childToks...)
+		case "Body":
+			sub := &StructNode{Type: "Body", Children: child.Children}
+			decls, _ := walkStructure(sub)
+			body = collectStmtsFromDecls(decls)
+		}
+	}
+
+	if len(selectTokens) == 0 {
+		return nil, fmt.Errorf("SELECT: no tokens found")
+	}
+
+	// Parse SELECT statement using the existing token parser
+	decl, err := parseSelectStmt(selectTokens)
+	if err != nil {
+		return nil, err
+	}
+	if fb, ok := decl.(*formBodyDecl); ok {
+		if sel, ok := fb.stmt.(*SelectStmt); ok {
+			sel.Body = body
+			return sel, nil
+		}
+	}
+	return nil, fmt.Errorf("SELECT: failed to parse")
 }
 
 // extractCondFromStmt extracts a condition expression from a While/If statement node.
@@ -847,6 +887,14 @@ func convertStmt(s *StmtNode) (Decl, error) {
 		return parseParamStmt(tokens)
 	case upper == "MOVE" || s.Type == "Move":
 		return parseMoveStmt(tokens)
+	case upper == "EXEC" || s.Type == "ExecSQL":
+		return parseExecSQL(tokens)
+	case upper == "SELECT" || s.Type == "Select" || s.Type == "SelectionScreen":
+		if s.Type == "SelectionScreen" {
+			// SELECTION-SCREEN BLOCK → skip for now
+			return nil, nil
+		}
+		return parseSelectStmt(tokens)
 	case upper == "ULINE":
 		// ULINE → WRITE line of dashes
 		w := &WriteStmt{Exprs: []Expr_{&StringLit{Val: "----------------------------------------------------------------------\r\n"}}}
@@ -922,6 +970,174 @@ func parseDataStmt(tokens []string) (Decl, error) {
 		}
 	}
 	return d, nil
+}
+
+// parseExecSQL: EXEC SQL. raw_sql ENDEXEC.
+// Collects tokens between EXEC SQL and ENDEXEC as raw SQL for sqlite_exec.
+func parseExecSQL(tokens []string) (Decl, error) {
+	// Tokens: EXEC SQL <sql_tokens...> ENDEXEC
+	// Skip "EXEC" and "SQL", collect until "ENDEXEC" or "."
+	var sqlParts []string
+	started := false
+	for _, t := range tokens {
+		upper := strings.ToUpper(t)
+		if upper == "EXEC" || upper == "SQL" {
+			started = true
+			continue
+		}
+		if upper == "ENDEXEC" || (started && t == ".") {
+			break
+		}
+		if started {
+			sqlParts = append(sqlParts, t)
+		}
+	}
+	if len(sqlParts) == 0 {
+		return nil, nil // empty EXEC SQL
+	}
+	sql := strings.Join(sqlParts, " ")
+	return &formBodyDecl{stmt: &ExecSQLStmt{SQL: sql}}, nil
+}
+
+// parseSelectStmt: SELECT [SINGLE] f1 f2 ... FROM table [INTO (v1,v2,...)] [WHERE cond].
+// Transpiles Open SQL to SQLite query calls.
+func parseSelectStmt(tokens []string) (Decl, error) {
+	if len(tokens) < 4 {
+		return nil, fmt.Errorf("SELECT: too few tokens")
+	}
+
+	sel := &SelectStmt{}
+	i := 1 // skip SELECT
+
+	// Optional SINGLE
+	if strings.ToUpper(tokens[i]) == "SINGLE" {
+		sel.Single = true
+		i++
+	}
+
+	// Collect field names until FROM, aggregating function calls like COUNT(*)
+	for i < len(tokens) {
+		upper := strings.ToUpper(tokens[i])
+		if upper == "FROM" {
+			break
+		}
+		if tokens[i] == "," || tokens[i] == "." {
+			i++
+			continue
+		}
+		// Check if next token is "(" — aggregate into function call
+		if i+1 < len(tokens) && tokens[i+1] == "(" {
+			// Collect fn(args) as a single field
+			fn := tokens[i]
+			i++ // skip fn name
+			depth := 0
+			for i < len(tokens) {
+				fn += tokens[i]
+				if tokens[i] == "(" {
+					depth++
+				}
+				if tokens[i] == ")" {
+					depth--
+					if depth == 0 {
+						i++
+						break
+					}
+				}
+				i++
+			}
+			sel.Fields = append(sel.Fields, fn)
+		} else {
+			sel.Fields = append(sel.Fields, tokens[i])
+			i++
+		}
+	}
+
+	// FROM table
+	if i < len(tokens) && strings.ToUpper(tokens[i]) == "FROM" {
+		i++
+		if i < len(tokens) {
+			sel.Table = tokens[i]
+			i++
+		}
+	}
+
+	// INTO (v1, v2, ...) or INTO CORRESPONDING FIELDS OF wa
+	if i < len(tokens) && strings.ToUpper(tokens[i]) == "INTO" {
+		i++
+		// Skip optional "(" or "CORRESPONDING FIELDS OF"
+		if i < len(tokens) && tokens[i] == "(" {
+			i++ // skip "("
+		}
+		if i < len(tokens) && strings.ToUpper(tokens[i]) == "CORRESPONDING" {
+			// INTO CORRESPONDING FIELDS OF wa — use field names as vars
+			for i < len(tokens) && strings.ToUpper(tokens[i]) != "WHERE" &&
+				strings.ToUpper(tokens[i]) != "ORDER" && tokens[i] != "." {
+				i++
+			}
+			// Use field names as target var names
+			for _, f := range sel.Fields {
+				if f != "*" {
+					sel.Into = append(sel.Into, f)
+				}
+			}
+		} else {
+			// INTO (v1, v2, ...) or INTO v1
+			for i < len(tokens) {
+				t := tokens[i]
+				upper := strings.ToUpper(t)
+				if upper == "WHERE" || upper == "ORDER" || t == "." || t == ")" {
+					if t == ")" {
+						i++
+					}
+					break
+				}
+				if t != "," {
+					sel.Into = append(sel.Into, t)
+				}
+				i++
+			}
+		}
+	} else {
+		// No INTO — use field names as target variables
+		for _, f := range sel.Fields {
+			if f != "*" {
+				sel.Into = append(sel.Into, f)
+			}
+		}
+	}
+
+	// WHERE clause — collect remaining tokens as raw SQL condition
+	if i < len(tokens) && strings.ToUpper(tokens[i]) == "WHERE" {
+		i++
+		var whereParts []string
+		for i < len(tokens) {
+			t := tokens[i]
+			if t == "." || strings.ToUpper(t) == "ORDER" || strings.ToUpper(t) == "ENDSELECT" {
+				break
+			}
+			// Convert ABAP comparison operators to SQL
+			switch strings.ToUpper(t) {
+			case "EQ":
+				whereParts = append(whereParts, "=")
+			case "NE":
+				whereParts = append(whereParts, "!=")
+			case "LT":
+				whereParts = append(whereParts, "<")
+			case "GT":
+				whereParts = append(whereParts, ">")
+			case "LE":
+				whereParts = append(whereParts, "<=")
+			case "GE":
+				whereParts = append(whereParts, ">=")
+			default:
+				whereParts = append(whereParts, t)
+			}
+			i++
+		}
+		sel.Where = strings.Join(whereParts, " ")
+	}
+
+	return &formBodyDecl{stmt: sel}, nil
 }
 
 // parseWriteStmt: WRITE expr | WRITE: expr1, expr2, ... | WRITE / 'text'
