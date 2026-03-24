@@ -127,19 +127,67 @@ fun tui_goto(x: u8, y: u8) -> void {
 
 // Set text color: fg (0-7), bg (0-7), bright (0 or 1).
 // Emits: ESC [ (30+fg) ; (40+bg) m   (bright adds 60)
+// Full inline asm: computes fg_code/bg_code, saves on stack across BDOS.
+// PFCCO: fg=A, bg=C, bright=B.
 fun tui_color(fg: u8, bg: u8, bright: u8) -> void {
-    var fg_code: u8 = 30 + fg
-    var bg_code: u8 = 40 + bg
-    if bright != 0 {
-        fg_code = fg_code + 60
-        bg_code = bg_code + 60
+    asm z80 (in fg, bg, bright) {
+        ; fg in A, bg in C, bright in B
+        ; Compute fg_code = 30 + fg, bg_code = 40 + bg
+        ADD A, 30       ; A = 30 + fg
+        LD D, A         ; D = fg_code
+        LD A, C
+        ADD A, 40       ; A = 40 + bg
+        LD E, A         ; E = bg_code
+        ; If bright != 0, add 60 to both
+        LD A, B
+        OR A
+        JR Z, .no_bright
+        LD A, D / ADD A, 60 / LD D, A
+        LD A, E / ADD A, 60 / LD E, A
+        .no_bright:
+        ; Save [fg_code, bg_code] on stack
+        PUSH DE
+
+        ; ESC
+        LD E, 0x1B / LD C, 2 / CALL 5
+        ; [
+        LD E, 91 / LD C, 2 / CALL 5
+
+        ; fg_code as decimal
+        POP DE
+        PUSH DE         ; peek
+        LD A, D         ; A = fg_code
+        ; inline print_dec
+        LD C, 0
+        .fh: CP 100 / JR C, .fhd / SUB 100 / INC C / JR .fh
+        .fhd: LD B, A / LD A, C / OR A / JR Z, .fsh
+        ADD A, 48 / LD E, A / PUSH BC / LD C, 2 / CALL 5 / POP BC
+        .fsh:
+        LD A, B / LD C, 0
+        .ft: CP 10 / JR C, .ftd / SUB 10 / INC C / JR .ft
+        .ftd: LD B, A / LD A, C / ADD A, 48 / LD E, A / PUSH BC / LD C, 2 / CALL 5 / POP BC
+        LD A, B / ADD A, 48 / LD E, A / LD C, 2 / CALL 5
+
+        ; semicolon
+        LD E, 59 / LD C, 2 / CALL 5
+
+        ; bg_code as decimal
+        POP DE          ; restore
+        LD A, E         ; A = bg_code
+        ; inline print_dec
+        LD C, 0
+        .bh: CP 100 / JR C, .bhd / SUB 100 / INC C / JR .bh
+        .bhd: LD B, A / LD A, C / OR A / JR Z, .bsh
+        ADD A, 48 / LD E, A / PUSH BC / LD C, 2 / CALL 5 / POP BC
+        .bsh:
+        LD A, B / LD C, 0
+        .bt: CP 10 / JR C, .btd / SUB 10 / INC C / JR .bt
+        .btd: LD B, A / LD A, C / ADD A, 48 / LD E, A / PUSH BC / LD C, 2 / CALL 5 / POP BC
+        LD A, B / ADD A, 48 / LD E, A / LD C, 2 / CALL 5
+
+        ; m
+        LD E, 109 / LD C, 2 / CALL 5
     }
-    _tui_esc()
-    _tui_bdos_putchar(91)    // [
-    _tui_print_dec(fg_code)
-    _tui_bdos_putchar(59)    // ;
-    _tui_print_dec(bg_code)
-    _tui_bdos_putchar(109)   // m
 }
 
 // Reset colors to default. Emits: ESC [ 0 m
