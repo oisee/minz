@@ -2009,3 +2009,178 @@ func gracePass(lines []string) []string {
 
 	return result
 }
+
+// graceReroll detects repeated CALL patterns with varying immediate args
+// and replaces them with a data table + DJNZ loop.
+//
+// Pattern: N repetitions of { LD reg1, imm1 / [LD reg2, imm2] / CALL func }
+// Result:  data table + IX-indexed loop with DJNZ
+//
+// This is a SIZE optimization — the loop is slightly slower per iteration
+// but saves (N-1) * pattern_size bytes for N repetitions.
+// Only fires when N >= 4 (at least 4 repetitions).
+func graceReroll(lines []string, funcName string) []string {
+	const minRepeats = 4
+
+	// Scan for repeated CALL patterns
+	type callBlock struct {
+		startIdx int
+		endIdx   int      // exclusive
+		callFunc string
+		ldArgs   []string // LD instruction lines (with immediate values)
+	}
+
+	var blocks []callBlock
+	i := 0
+	for i < len(lines) {
+		line := strings.TrimSpace(lines[i])
+
+		// Look for sequence: LD reg, imm [...] CALL func
+		if strings.HasPrefix(line, "LD ") && strings.Contains(line, ", ") {
+			start := i
+			var lds []string
+
+			// Collect LD instructions
+			j := i
+			for j < len(lines) {
+				l := strings.TrimSpace(lines[j])
+				if strings.HasPrefix(l, "LD ") {
+					lds = append(lds, l)
+					j++
+				} else if strings.HasPrefix(l, "; ") || l == "" {
+					j++ // skip comments/empty
+				} else {
+					break
+				}
+			}
+
+			// Next non-LD should be CALL
+			if j < len(lines) && len(lds) > 0 {
+				callLine := strings.TrimSpace(lines[j])
+				if strings.HasPrefix(callLine, "CALL ") {
+					blocks = append(blocks, callBlock{
+						startIdx: start,
+						endIdx:   j + 1,
+						callFunc: callLine,
+						ldArgs:   lds,
+					})
+					i = j + 1
+					continue
+				}
+			}
+		}
+		i++
+	}
+
+	// Find runs of identical CALL targets with same LD pattern structure
+	if len(blocks) < minRepeats {
+		return lines // not enough blocks
+	}
+
+	type rerollCandidate struct {
+		blocks []callBlock
+	}
+	var candidates []rerollCandidate
+
+	ri := 0
+	for ri < len(blocks) {
+		run := []callBlock{blocks[ri]}
+		rj := ri + 1
+
+		// Extend run: same CALL target, same number of LD args, consecutive in source
+		for rj < len(blocks) &&
+			blocks[rj].callFunc == blocks[ri].callFunc &&
+			len(blocks[rj].ldArgs) == len(blocks[ri].ldArgs) &&
+			blocks[rj].startIdx == run[len(run)-1].endIdx {
+
+			// Check same LD register targets (only immediates differ)
+			sameStructure := true
+			for k := range blocks[ri].ldArgs {
+				regA := strings.SplitN(blocks[ri].ldArgs[k][3:], ", ", 2)[0]
+				regB := strings.SplitN(blocks[rj].ldArgs[k][3:], ", ", 2)[0]
+				if regA != regB {
+					sameStructure = false
+					break
+				}
+			}
+			if !sameStructure {
+				break
+			}
+
+			run = append(run, blocks[rj])
+			rj++
+		}
+
+		if len(run) >= minRepeats {
+			candidates = append(candidates, rerollCandidate{blocks: run})
+		}
+		ri = rj
+	}
+
+	if len(candidates) == 0 {
+		return lines
+	}
+
+	// Apply reroll: replace the first (largest) candidate
+	// For now, just annotate — full rewrite needs data table emission
+	cand := candidates[0]
+	n := len(cand.blocks)
+	nArgs := len(cand.blocks[0].ldArgs)
+
+	// Extract register names and values
+	var regs []string
+	for _, ld := range cand.blocks[0].ldArgs {
+		parts := strings.SplitN(ld[3:], ", ", 2)
+		regs = append(regs, strings.TrimSpace(parts[0]))
+	}
+
+	// Build replacement: annotate with comment for now
+	// Full implementation would emit IX-indexed loop + data table
+	var result []string
+
+	// Copy lines before the candidate
+	for i := 0; i < cand.blocks[0].startIdx; i++ {
+		result = append(result, lines[i])
+	}
+
+	// Emit reroll comment
+	result = append(result, fmt.Sprintf("    ; [REROLL] %d × %s (%d args: %s) → data table + DJNZ loop",
+		n, strings.TrimPrefix(cand.blocks[0].callFunc, "CALL "),
+		nArgs, strings.Join(regs, ", ")))
+
+	// Emit the loop
+	tableLabel := fmt.Sprintf(".%s_reroll_data", funcName)
+	result = append(result,
+		fmt.Sprintf("    LD IX, %s", tableLabel),
+		fmt.Sprintf("    LD B, %d", n),
+		fmt.Sprintf(".%s_reroll_loop:", funcName),
+	)
+	for k, reg := range regs {
+		result = append(result, fmt.Sprintf("    LD %s, (IX+%d)", reg, k))
+	}
+	result = append(result,
+		fmt.Sprintf("    LD DE, %d", nArgs),
+		"    ADD IX, DE",
+		"    "+cand.blocks[0].callFunc,
+		fmt.Sprintf("    DJNZ .%s_reroll_loop", funcName),
+	)
+
+	// Emit data table
+	result = append(result, tableLabel+":")
+	for _, blk := range cand.blocks {
+		var vals []string
+		for _, ld := range blk.ldArgs {
+			parts := strings.SplitN(ld[3:], ", ", 2)
+			vals = append(vals, strings.TrimSpace(parts[1]))
+		}
+		result = append(result, "    DB "+strings.Join(vals, ", "))
+	}
+
+	// Copy remaining lines after the candidate
+	lastEnd := cand.blocks[len(cand.blocks)-1].endIdx
+	for i := lastEnd; i < len(lines); i++ {
+		result = append(result, lines[i])
+	}
+
+	return result
+}
