@@ -2,17 +2,18 @@
 
 ## What We Did
 
-Starting from VIR 520/520 (100% coverage) with -60% vs SDCC, we improved to **-71%** in 7 commits.
+Starting from VIR 520/520 (100% coverage) with -60% vs SDCC, we improved to **-71%** in 14 commits.
 
 ### 1. Deterministic Z3 encoding
 - `sort.Ints()` on all Go map iterations in solver.go (8 sites) and cfgsolver.go (4 sites)
 - Root cause of abs_diff flakiness: map order → different Z3 assertions → different models
 - 30/30 stable after fix
 
-### 2. Editorial review
-- "swap" → "select_b" (was misleading — it's a dead-code elimination test)
+### 2. Editorial review of VIR 100% report
+- "swap" → "select_b" (was misleading — dead-code elimination test, not a swap)
 - All asm examples replaced with actual compiler output
 - Added sections: C89 out-param promotion, HIR function splitting, Grace on MIR2
+- Renamed "SDCC-inspired" → "superoptimizer-derived" (z80-optimizer/CUDA)
 
 ### 3. Three peephole rules
 - **Conditional RET**: `JR/JP cc, .skip / [labels] / RET / .skip:` → `RET cc_inverted`
@@ -30,44 +31,61 @@ Starting from VIR 520/520 (100% coverage) with -60% vs SDCC, we improved to **-7
 - Fix: `(ite (= from to) 0 4)` — soft penalty instead of hard constraint
 - gcd: 15→10 (solver can now move b from L to C at block entry)
 
-### 6. Duplicate CP elimination
-- `CP r / JR cc / [labels] / CP r` → skip second CP (flags unchanged on fall-through)
+### 6. Duplicate CP elimination + JP threading
+- `CP r / JR cc / [labels] / CP r` → skip second CP (flags unchanged after JR)
+- `JP .L1` where `.L1: JP .L2` → `JP .L2` (thread jumps)
 - gcd: 10→9
 
-### 7. JP threading
-- `JP .label` where `.label: JP .target` → `JP .target`
-- Build label→target map, rewrite all JP/JR targets through chains
-- Saves one indirection per iteration (no instruction count change, just cycle savings)
+### 7. `--vir` CLI flag
+- Added, tested, made default briefly, then **reverted to --lir default**
 
-## Final Benchmark
+### 8. Paper draft Section 4 rewrite
+- 520/520, -71%, soft edges, case studies for abs_diff (4 insts) and gcd (9 insts)
+- 6 design insights, updated conclusion with 3 key contributions
 
-| Program | SDCC | Start | End | vs SDCC |
-|---------|------|-------|-----|---------|
-| abs_diff | 12 | 11 | **4** | **-67%** |
-| gcd | 17 | 16 | **9** | **-47%** |
-| minmax | 60 | 11 | 11 | -82% |
-| fib | 22 | 12 | 12 | -45% |
-| select_b | 20 | 2 | 2 | -90% |
-| **TOTAL** | **131** | **52** | **38** | **-71%** |
+### 9. VIR vs LIR real-world stress test (CRITICAL FINDING)
+- Ran all 30 nanz examples through both backends
+- **VIR: 14/30 pass, 16/30 fail** (11 invalid asm, 3 wrong results, 2 parse)
+- **LIR: stable on all** — PBQP handles features VIR doesn't
+- Reverted `--vir` default → `--lir` remains production default
 
-## Key Insight: Soft CFG Edges
+## Final Benchmark (validated corpus)
 
-The single most impactful change was replacing hard CFG edge equality with soft move-cost penalties. This is a fundamental architectural insight: in a multi-block solver, block boundaries are **move opportunities**, not invariants. The solver should treat cross-block register placement as an optimization variable, not a constraint. This one change dropped gcd from 15 to 10 instructions and made the CFG solver succeed for the first time on multi-path functions.
+| Program | SDCC | VIR | vs SDCC |
+|---------|------|-----|---------|
+| abs_diff | 12 | **4** | **-67%** |
+| gcd | 17 | **9** | **-47%** |
+| minmax | 60 | 11 | -82% |
+| fib | 22 | 12 | -45% |
+| select_b | 20 | 2 | -90% |
+| **TOTAL** | **131** | **38** | **-71%** |
 
-## Files Changed
+## Key Insights
 
-- `minzc/pkg/vir/solver.go` — sort all map iterations (determinism)
-- `minzc/pkg/vir/cfgsolver.go` — sort map iterations + soft edge constraints
-- `minzc/pkg/vir/pipeline.go` — 5 peephole rules, invertCC(), fuseAbsDiffASM(), JP threading, FuseAbsDiff pre-pass, CmpSubCarry handling
+### 1. Soft CFG edges are THE breakthrough
+Hard equality at block boundaries causes UNSAT when successor blocks need values in different registers. One-line change (hard → soft penalty) resolved all UNSAT cases. gcd: 15→9.
+
+### 2. Go map non-determinism is the #1 correctness risk
+Z3 is deterministic given identical input. Go maps make the encoding order-dependent. Every `for k := range map` must be sorted.
+
+### 3. Assembly-level fusion beats solver restructuring for idioms
+abs_diff `SUB/RET NC/NEG/RET` — 50 lines of Go pattern matching vs weeks of solver redesign.
+
+### 4. VIR is NOT production-ready
+520/520 corpus passes, but 16/30 real examples fail. Missing: 16-bit symbol addresses, some conditional patterns, match expression codegen. LIR/PBQP is the stable backend.
+
+### 5. LIR vs VIR on gcd shows the architectural difference
+LIR gcd: 14 insts (parallel-copy artifacts, NEG+ADD in else path). VIR gcd: 9 insts (soft edges, duplicate CP elim, JP threading). The gap is entirely due to cross-block register movement capability.
+
+## Files Changed (14 commits)
+
+- `minzc/pkg/vir/solver.go` — sort all map iterations
+- `minzc/pkg/vir/cfgsolver.go` — sort maps + **soft edge constraints**
+- `minzc/pkg/vir/pipeline.go` — 5 peephole rules, invertCC(), fuseAbsDiffASM(), JP threading, FuseAbsDiff pre-pass, CmpSubCarry, duplicate CP elim
 - `minzc/pkg/vir/bridge.go` — CmpSubCarry no-op translation
 - `minzc/pkg/vir/compare_test.go` — swap→select_b
-- `reports/2026-03-23-109-VIR-100-Percent-Showcase.md` — full rewrite with actual output
-- `research/abi-paper/vir-solver-draft.md` — updated benchmarks
+- `minzc/cmd/minzc/main.go` — --vir flag (opt-in, LIR default)
+- `reports/2026-03-23-109-VIR-100-Percent-Showcase.md` — full rewrite
+- `research/abi-paper/vir-solver-draft.md` — Section 4 rewrite
 - `README.md` — -71% featured
-
-## Next Session Priorities
-
-1. **DEC HL elimination at caller level** — when caller doesn't read HL after call, callee's trailing DEC HL is dead
-2. **Fallthrough block reordering** — reorder blocks to maximize JR-to-next (eliminate JP)
-3. **Paper draft Section 4** — update evaluation with 520/520, abs_diff fusion, soft edges
-4. **`--vir` CLI flag** — make VIR accessible from command line
+- `contexts/` — session docs
