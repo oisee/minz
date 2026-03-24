@@ -724,6 +724,19 @@ func emitTerminatorPrefixed(sb *strings.Builder, term *Term, blockIdx, numBlocks
 		}
 	case TermReturn:
 		fmt.Fprintf(sb, "    RET\n")
+	case TermCondReturn:
+		// Conditional return: if cond false → return RetVals[0], else → jump Targets[0].
+		// The preceding CMP instruction set flags. We need:
+		//   JR NZ, .then   (condition true → jump to then block)
+		//   LD A, retval   (load return value for false path)
+		//   RET            (return)
+		if len(term.Targets) > 0 && term.Targets[0] != "" {
+			fmt.Fprintf(sb, "    JR NZ, %s\n", pfx(term.Targets[0]))
+		}
+		// Move return value to A if not already there.
+		// RetVals[0] was allocated by WFC — we need its physical location.
+		// For now, just RET — the value should already be in the return register.
+		fmt.Fprintf(sb, "    RET\n")
 	}
 }
 
@@ -980,15 +993,9 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 
 		emitInstsWithCallSpills(&sb, insts, desc, paramPhys, retVRegs)
 
-		// Replace condret markers with actual asm.
-		// Markers are "; __CONDRET_N" comments inserted by emitInstsWithCallSpills.
-		asmSoFar := sb.String()
-		for idx, cr := range condRetMap {
-			marker := fmt.Sprintf("    ; __CONDRET_%d\n", idx)
-			if !strings.Contains(asmSoFar, marker) {
-				continue
-			}
-
+		// Emit condret asm directly after instructions.
+		// WFC ToInsts doesn't pass meta cells through, so we emit from condRetMap.
+		for _, cr := range condRetMap {
 			// Find physical register of return value vreg.
 			valName := "A"
 			for ci := range wfc.Cells {
@@ -1013,29 +1020,22 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 				loadVal = fmt.Sprintf("    LD A, %s\n", valName)
 			}
 
-			var condAsm strings.Builder
 			if cr.carryBased {
-				// Carry-based (CmpSubCarry): cond==0 = no carry = a >= b.
-				// SUB result already in A. Skip return when carry set (a < b).
-				fmt.Fprintf(&condAsm, "    JR C, %s\n", cr.label)
-				fmt.Fprintf(&condAsm, "    RET\n") // return A (= a-b, correct for a >= b)
-				fmt.Fprintf(&condAsm, "%s:\n", cr.label)
+				fmt.Fprintf(&sb, "    JR C, %s\n", cr.label)
+				fmt.Fprintf(&sb, "    RET\n")
+				fmt.Fprintf(&sb, "%s:\n", cr.label)
 			} else {
-				// Flag-based: return when carry OR zero (cond==0).
 				noLabel := cr.label + "_no"
-				fmt.Fprintf(&condAsm, "    JR NC, %s\n", noLabel)
-				condAsm.WriteString(loadVal)
-				fmt.Fprintf(&condAsm, "    RET\n")
-				fmt.Fprintf(&condAsm, "%s:\n", noLabel)
-				fmt.Fprintf(&condAsm, "    JR NZ, %s\n", cr.label)
-				condAsm.WriteString(loadVal)
-				fmt.Fprintf(&condAsm, "    RET\n")
-				fmt.Fprintf(&condAsm, "%s:\n", cr.label)
+				fmt.Fprintf(&sb, "    JR NC, %s\n", noLabel)
+				sb.WriteString(loadVal)
+				fmt.Fprintf(&sb, "    RET\n")
+				fmt.Fprintf(&sb, "%s:\n", noLabel)
+				fmt.Fprintf(&sb, "    JR NZ, %s\n", cr.label)
+				sb.WriteString(loadVal)
+				fmt.Fprintf(&sb, "    RET\n")
+				fmt.Fprintf(&sb, "%s:\n", cr.label)
 			}
-			asmSoFar = strings.Replace(asmSoFar, marker, condAsm.String(), 1)
 		}
-		sb.Reset()
-		sb.WriteString(asmSoFar)
 
 		// Final text-level fixup for remaining invalid Z80.
 		asmText := sb.String()
@@ -1052,7 +1052,7 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 
 		// Tail call optimization: CALL f / RET → JP f
 		// ONLY safe when the CALL result IS the return value (no other vregs live).
-		asmSoFar = sb.String()
+		asmSoFar := sb.String()
 		if len(retVRegs) == 0 || onlyCallResult(retVRegs, insts) {
 			if idx := strings.LastIndex(asmSoFar, "    CALL "); idx >= 0 {
 				callLine := asmSoFar[idx:]

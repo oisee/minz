@@ -327,9 +327,10 @@ type Term struct {
 type TermKind int
 
 const (
-	TermNone   TermKind = iota // no terminator (straight-line block)
-	TermJump                    // unconditional jump
-	TermBranch                  // conditional branch (2 targets: [0]=then, [1]=else)
-	TermDJNZ                    // decrement counter, jump if non-zero ([0]=body, [1]=exit)
-	TermReturn                  // function return
+	TermNone       TermKind = iota // no terminator (straight-line block)
+	TermJump                       // unconditional jump
+	TermBranch                     // conditional branch (2 targets: [0]=then, [1]=else)
+	TermDJNZ                       // decrement counter, jump if non-zero ([0]=body, [1]=exit)
+	TermReturn                     // function return
+	TermCondReturn                 // conditional return: if cond false → return RetVals, else → jump Targets[0]
 )

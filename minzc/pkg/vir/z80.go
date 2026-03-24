@@ -60,10 +60,10 @@ var Z80 = &MachineDesc{
 		{Name: "tsmc7", Width: 8, Kind: LocTSMC}, // 32
 
 		// L5: Memory spill slots (index 33-36) — absolute address LD (nn)
-		{Name: "mem0", Width: 16, Kind: LocMem}, // 33
-		{Name: "mem1", Width: 16, Kind: LocMem}, // 34
-		{Name: "mem2", Width: 16, Kind: LocMem}, // 35
-		{Name: "mem3", Width: 16, Kind: LocMem}, // 36
+		{Name: "_vir_mem0", Width: 16, Kind: LocMem}, // 33
+		{Name: "_vir_mem1", Width: 16, Kind: LocMem}, // 34
+		{Name: "_vir_mem2", Width: 16, Kind: LocMem}, // 35
+		{Name: "_vir_mem3", Width: 16, Kind: LocMem}, // 36
 
 		// L6: Stack slots (index 37-40) — PUSH/POP
 		{Name: "stk0", Width: 16, Kind: LocStack}, // 37
@@ -126,7 +126,7 @@ func init() {
 	Z80_ShadowA = m.LocSetByNames("A'")
 	Z80_TSMC = m.LocSetByNames("tsmc0", "tsmc1", "tsmc2", "tsmc3",
 		"tsmc4", "tsmc5", "tsmc6", "tsmc7")
-	Z80_Mem = m.LocSetByNames("mem0", "mem1", "mem2", "mem3")
+	Z80_Mem = m.LocSetByNames("_vir_mem0", "_vir_mem1", "_vir_mem2", "_vir_mem3")
 	Z80_Stack = m.LocSetByNames("stk0", "stk1", "stk2", "stk3")
 
 	m.Patterns = generateZ80Patterns(m)

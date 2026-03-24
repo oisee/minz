@@ -86,6 +86,15 @@ func CodegenModule(m *mir2.Module, opts SolverOptions) (string, []FuncResult) {
 		sb.WriteString(emitRuntimeRoutines(asmText))
 	}
 
+	// Emit VIR memory spill slots (DW 0 storage for _vir_memN labels)
+	asmText = sb.String()
+	for i := 0; i < 4; i++ {
+		label := fmt.Sprintf("_vir_mem%d", i)
+		if strings.Contains(asmText, label) {
+			sb.WriteString(fmt.Sprintf("%s: DW 0\n", label))
+		}
+	}
+
 	return sb.String(), results
 }
 

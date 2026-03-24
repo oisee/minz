@@ -862,13 +862,13 @@ func translateTerm(t mir2.Term, desc *MachineDesc) (Term, error) {
 		return term, nil
 
 	case *mir2.TermCondRet:
-		// Conditional return: treat as branch to then-block with return as fallthrough.
-		// Simplification: if cond==0 return, else jump to Then.
+		// Conditional return: if cond false → return Vals, else → jump to Then.
 		term := Term{
-			Kind:    TermBranch,
+			Kind:    TermCondReturn,
 			Cond:    regToOp(tt.Cond),
-			Targets: []string{tt.Then, ""},
-			Args:    make([][]Operand, 2),
+			Targets: []string{tt.Then},
+			RetVals: regsToOps(tt.Vals),
+			Args:    make([][]Operand, 1),
 		}
 		if len(tt.ThenArgs) > 0 {
 			term.Args[0] = regsToOps(tt.ThenArgs)

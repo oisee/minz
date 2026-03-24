@@ -17,7 +17,7 @@ import "fmt"
 // WFCState holds the superposition state for one basic block.
 type WFCState struct {
 	Desc  *MachineDesc
-	Cells []WFCCell // one per LIR instruction
+	Cells []WFCCell   // one per LIR instruction
 	Hints map[int]int // vreg → preferred phys loc (from PBQP)
 }
 
@@ -30,8 +30,9 @@ type WFCCell struct {
 	VRegSrc [2]int   // virtual registers for sources
 	Imm     int64    // immediate value (preserved from isel)
 	Sym     string   // symbol name (preserved for call templates)
-	MIROp   *MIROp   // original MIR op (for pattern-level retry in validate-reject)
-	IsMeta  bool     // true for meta-instructions (skip in emit/propagate)
+	MIROp   *MIROp    // original MIR op (for pattern-level retry in validate-reject)
+	IsMeta  bool      // true for meta-instructions (skip in emit/propagate)
+	Meta    *MetaInst // preserved meta info (for condret sentinels)
 }
 
 // Entropy returns the number of possible states for this cell.
@@ -69,7 +70,7 @@ func NewWFCState(desc *MachineDesc, insts []Inst) *WFCState {
 		// Skip meta instructions — they don't become real cells.
 		// But we still create a placeholder cell to keep indices aligned.
 		if inst.Meta != nil {
-			cells[i] = WFCCell{IsMeta: true}
+			cells[i] = WFCCell{IsMeta: true, Meta: inst.Meta, Imm: inst.Imm}
 			continue
 		}
 		cells[i] = WFCCell{
@@ -862,6 +863,9 @@ func PhysOf(s LocSet) int {
 func (s *WFCState) ToInsts() []Inst {
 	insts := make([]Inst, 0, len(s.Cells))
 	for _, c := range s.Cells {
+		if c.IsMeta {
+			continue // skip meta cells (condret handled separately)
+		}
 		if c.Pat == nil {
 			continue // skip synthetic param/use cells
 		}

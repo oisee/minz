@@ -18,6 +18,7 @@ package pipeline
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/minz/minzc/pkg/emulator"
@@ -43,6 +44,38 @@ type Steps struct {
 	MIR2Opt    string                   // MIR2 module dump after DSE + ReorderBlocks
 	Assembly   string                   // Final .a80 text
 	LIRResults []lir.ConvergenceResult  // LIR convergence check results (if LIRCheck enabled)
+	Traces     map[string]*FuncTrace    // per-function compilation trace (keyed by func name)
+}
+
+// FuncTrace records the full compilation provenance for one function.
+// This data is emitted as ASM comment annotations for auditability.
+type FuncTrace struct {
+	Name       string // function name (mangled)
+	SplitFrom  string // non-empty if this function was created by HIR-SPLIT
+	SplitPressure int // register pressure that triggered the split
+
+	// Optimization pass counts (MIR2 level)
+	ConstProp   int // PropagateConstants iterations that changed something
+	ConstFold   int // FoldConstants
+	IdentSimp   int // SimplifyIdentities
+	CallElim    int // ConstantCallElim
+	DSE         int // DeadStoreElim
+	DeadBlockArg int // DeadBlockArgElim
+	BranchEquiv int // BranchEquiv
+	SplitJoinRet int // SplitJoinRet
+	CondRetSink int // CondRetSink
+	FuseAbsDiff int // FuseAbsDiff
+	Inlined     bool // function was inlined by InlineTrivial
+	LUTReplaced bool // function was replaced by LUTGen
+
+	// Codegen provenance
+	Backend     string // "LIR", "VIR", "PBQP", "LIR+PBQP-fallback", "VIR+PBQP-fallback"
+	BackendErr  string // error message if primary backend failed (before fallback)
+	WFCAttempt  int    // WFC retry attempt (0 = first try)
+	CondRets    int    // number of cond_ret terminators
+
+	// Label audit
+	LabelWarnings []string // referenced-but-undefined labels (if any)
 }
 
 // Options configures optional pipeline passes.
@@ -88,16 +121,19 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		opt = opts[0]
 	}
 	var s Steps
+	s.Traces = make(map[string]*FuncTrace)
 
 	// Capture HIR before lowering.
 	s.HIR = hm.Dump()
 
 	// Great Autorefactor: split high-pressure functions before lowering.
 	// Each sub-function gets independent PBQP allocation → fewer spills.
+	splitInfo := make(map[string]hir.SplitResult) // splitFunc → SplitResult
 	if splits := hir.SplitHighPressure(hm); len(splits) > 0 {
 		for _, sp := range splits {
 			fmt.Fprintf(os.Stderr, "[HIR-SPLIT] %s → %s (%d inputs, pressure %d)\n",
 				sp.OrigFunc, sp.SubFunc, sp.Inputs, sp.Pressure)
+			splitInfo[sp.SubFunc] = sp
 		}
 	}
 
@@ -105,51 +141,79 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	m := hir.LowerModule(hm)
 	s.MIR2Raw = m.Dump()
 
+	// Initialize per-function traces.
+	for _, f := range m.Funcs {
+		tr := &FuncTrace{Name: f.Name}
+		if sp, ok := splitInfo[f.Name]; ok {
+			tr.SplitFrom = sp.OrigFunc
+			tr.SplitPressure = sp.Pressure
+		}
+		// Count cond_ret terminators
+		for _, b := range f.Blocks {
+			if _, ok := b.Term.(*mir2.TermCondRet); ok {
+				tr.CondRets++
+			}
+		}
+		s.Traces[f.Name] = tr
+	}
+
 	// Per-function optimisation passes.
 	for _, f := range m.Funcs {
+		tr := s.Traces[f.Name]
 		mir2.EliminateDeadBlocks(f)
 		mir2.ReorderBlocks(f)
 		// Constant pipeline: propagate → fold → identity-simplify → call-elim → repeat to fixpoint.
 		for iter := 0; iter < 100; iter++ {
 			p := mir2.PropagateConstants(f)
 			c := mir2.FoldConstants(f)
-			s := mir2.SimplifyIdentities(f)
+			si := mir2.SimplifyIdentities(f)
 			e := mir2.ConstantCallElim(m, f)
-			if !p && !c && !s && !e {
+			if p { tr.ConstProp++ }
+			if c { tr.ConstFold++ }
+			if si { tr.IdentSimp++ }
+			if e { tr.CallElim++ }
+			if !p && !c && !si && !e {
 				break
 			}
 		}
 		if opt.UseGrace {
 			// ── Grace declarative path ──────────────────────────────
-			// All 5 passes (DSE, DeadBlockArg, SplitJoinRet, CondRetSink,
-			// FuseAbsDiff) run as Grace rules with custom Go actions.
-			// BranchEquiv stays pure Go (needs VM/solver).
 			mir2.RunGracePasses(f, opt.GraceStats)
 			mir2.EliminateDeadBlocks(f)
 			if mir2.BranchEquiv(m, f) {
+				tr.BranchEquiv++
 				mir2.EliminateDeadBlocks(f)
 				mir2.RunGracePasses(f, opt.GraceStats)
 				mir2.EliminateDeadBlocks(f)
 			}
-			// Sub+Cmp fusion runs on all blocks (unconditional, same as Go path)
 			for _, blk := range f.Blocks {
 				mir2.FusionSubCmpInBlock(blk)
 			}
 		} else {
 			// ── Go original path ────────────────────────────────────
-			mir2.DeadStoreElim(f)
-			mir2.DeadBlockArgElim(f)
+			mir2.DeadStoreElim(f); tr.DSE++
+			if mir2.DeadBlockArgElim(f) { tr.DeadBlockArg++ }
 			if mir2.BranchEquiv(m, f) {
+				tr.BranchEquiv++
 				mir2.EliminateDeadBlocks(f)
-				mir2.DeadStoreElim(f)
+				mir2.DeadStoreElim(f); tr.DSE++
 			}
 			if mir2.SplitJoinRet(f) {
+				tr.SplitJoinRet++
 				mir2.EliminateDeadBlocks(f)
 			}
 			if mir2.CondRetSink(f) {
+				tr.CondRetSink++
 				mir2.EliminateDeadBlocks(f)
 			}
-			mir2.FuseAbsDiff(f)
+			if mir2.FuseAbsDiff(f) { tr.FuseAbsDiff++ }
+		}
+		// Re-count cond_ret after optimization (CondRetSink creates them)
+		tr.CondRets = 0
+		for _, b := range f.Blocks {
+			if _, ok := b.Term.(*mir2.TermCondRet); ok {
+				tr.CondRets++
+			}
 		}
 	}
 	s.MIR2Opt = m.Dump()
@@ -247,10 +311,17 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		for _, r := range virResults {
 			if r.OK {
 				ok++
+				if tr := s.Traces[r.Name]; tr != nil {
+					tr.Backend = "VIR"
+				}
 			} else {
 				fail++
 				failNames = append(failNames, r.Name+"("+r.Error+")")
 				failSet[r.Name] = true
+				if tr := s.Traces[r.Name]; tr != nil {
+					tr.Backend = "VIR+PBQP-fallback"
+					tr.BackendErr = r.Error
+				}
 			}
 		}
 
@@ -264,6 +335,9 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 				ok, ok+fail, fail, strings.Join(failNames, ", "))
 		} else {
 			s.Assembly = virAsm
+			var strBuf strings.Builder
+			lir.EmitStringPool(&strBuf, m)
+			s.Assembly += strBuf.String()
 			s.Assembly += emitGlobals(m)
 			fmt.Fprintf(os.Stderr, "vir: all %d functions compiled via Z3 unified solver\n", ok)
 		}
@@ -281,10 +355,17 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		for _, r := range lirResults {
 			if r.OK {
 				ok++
+				if tr := s.Traces[r.Name]; tr != nil {
+					tr.Backend = "LIR"
+				}
 			} else {
 				fail++
 				failNames = append(failNames, r.Name+"("+r.Error+")")
 				failSet[r.Name] = true
+				if tr := s.Traces[r.Name]; tr != nil {
+					tr.Backend = "LIR+PBQP-fallback"
+					tr.BackendErr = r.Error
+				}
 			}
 		}
 
@@ -323,10 +404,30 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 			s.LIRResults = append(s.LIRResults, cr)
 		}
 	} else {
+		for _, f := range m.Funcs {
+			if tr := s.Traces[f.Name]; tr != nil {
+				tr.Backend = "PBQP"
+			}
+		}
 		s.Assembly = mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{
 			AnnotateTStates: opt.AnnotateTStates,
 		})
 	}
+
+	// Inject per-function trace annotations into the assembly.
+	s.Assembly = injectTraceAnnotations(s.Assembly, s.Traces)
+
+	// Post-assembly label audit: find referenced-but-undefined labels.
+	labelWarnings := auditLabels(s.Assembly)
+	if len(labelWarnings) > 0 {
+		fmt.Fprintf(os.Stderr, "[label-audit] %d undefined labels:\n", len(labelWarnings))
+		for _, w := range labelWarnings {
+			fmt.Fprintf(os.Stderr, "  %s\n", w)
+		}
+	}
+
+	// Inject module-level compilation summary at the top.
+	s.Assembly = injectModuleSummary(s.Assembly, s.Traces, labelWarnings)
 
 	// Deduplicate labels in assembly (hybrid LIR+PBQP may produce duplicates).
 	s.Assembly = dedupAsmLabels(s.Assembly)
@@ -934,6 +1035,241 @@ func splicePerFunctionFallback(lirAsm, pbqpAsm string, results []lir.LIRFuncResu
 	}
 
 	return sb.String()
+}
+
+// auditLabels scans assembly text for referenced-but-undefined labels.
+// Returns a list of warning strings for each undefined label found.
+func auditLabels(asm string) []string {
+	defined := make(map[string]bool)
+	referenced := make(map[string]bool)
+	lines := strings.Split(asm, "\n")
+
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		// Skip comments and empty lines
+		if trimmed == "" || strings.HasPrefix(trimmed, ";") {
+			continue
+		}
+		// Label definition: "label:" at start (possibly with indent)
+		if idx := strings.IndexByte(trimmed, ':'); idx > 0 {
+			candidate := trimmed[:idx]
+			// Must be a valid label (letters, digits, _, $, .)
+			if isLabel(candidate) && !isInstruction(candidate) {
+				defined[candidate] = true
+			}
+		}
+		// References: operands after instructions
+		// Look for _spill_*, _tsmc_*, _mir2_str_*, _vir_mem*, and function calls
+		for _, prefix := range []string{"_spill_", "_tsmc_", "_mir2_str_", "_vir_mem"} {
+			for idx := 0; ; {
+				pos := strings.Index(trimmed[idx:], prefix)
+				if pos < 0 {
+					break
+				}
+				pos += idx
+				end := pos
+				for end < len(trimmed) && (trimmed[end] == '_' || trimmed[end] == '.' ||
+					(trimmed[end] >= 'a' && trimmed[end] <= 'z') ||
+					(trimmed[end] >= 'A' && trimmed[end] <= 'Z') ||
+					(trimmed[end] >= '0' && trimmed[end] <= '9')) {
+					end++
+				}
+				label := trimmed[pos:end]
+				if len(label) > len(prefix) {
+					referenced[label] = true
+				}
+				idx = end
+			}
+		}
+		// CALL/JP/JR targets
+		for _, inst := range []string{"CALL ", "JP ", "JR ", "JP NZ, ", "JP Z, ", "JP NC, ", "JP C, ",
+			"JR NZ, ", "JR Z, ", "JR NC, ", "JR C, ", "DJNZ "} {
+			if idx := strings.Index(trimmed, inst); idx >= 0 {
+				target := strings.TrimSpace(trimmed[idx+len(inst):])
+				// Remove trailing comments
+				if ci := strings.IndexByte(target, ';'); ci >= 0 {
+					target = strings.TrimSpace(target[:ci])
+				}
+				if isLabel(target) && len(target) > 0 {
+					referenced[target] = true
+				}
+			}
+		}
+	}
+
+	var warnings []string
+	for ref := range referenced {
+		if !defined[ref] {
+			warnings = append(warnings, ref)
+		}
+	}
+	sort.Strings(warnings)
+	return warnings
+}
+
+// isLabel returns true if s looks like a valid assembly label.
+func isLabel(s string) bool {
+	if len(s) == 0 {
+		return false
+	}
+	first := s[0]
+	if first != '_' && first != '.' && !(first >= 'a' && first <= 'z') && !(first >= 'A' && first <= 'Z') {
+		return false
+	}
+	for i := 1; i < len(s); i++ {
+		c := s[i]
+		if c != '_' && c != '.' && c != '$' &&
+			!(c >= 'a' && c <= 'z') && !(c >= 'A' && c <= 'Z') &&
+			!(c >= '0' && c <= '9') {
+			return false
+		}
+	}
+	return true
+}
+
+// isInstruction returns true if s is a Z80 instruction mnemonic (to avoid
+// treating "LD:" or "CP:" as labels in the audit).
+func isInstruction(s string) bool {
+	upper := strings.ToUpper(s)
+	switch upper {
+	case "LD", "CP", "ADD", "SUB", "AND", "OR", "XOR", "INC", "DEC",
+		"PUSH", "POP", "CALL", "RET", "JP", "JR", "NOP", "HALT", "DI", "EI",
+		"DB", "DW", "DS", "ORG", "EQU", "INCLUDE":
+		return true
+	}
+	return false
+}
+
+// injectModuleSummary prepends a compilation summary block at the top of the assembly.
+func injectModuleSummary(asm string, traces map[string]*FuncTrace, labelWarnings []string) string {
+	if len(traces) == 0 {
+		return asm
+	}
+	var sb strings.Builder
+	total := len(traces)
+	counts := map[string]int{}  // backend → count
+	splits, fallbacks := 0, 0
+	totalPasses := 0
+	var fallbackNames []string
+	for _, tr := range traces {
+		counts[tr.Backend]++
+		if tr.SplitFrom != "" { splits++ }
+		if tr.BackendErr != "" {
+			fallbacks++
+			fallbackNames = append(fallbackNames, tr.Name)
+		}
+		totalPasses += tr.ConstProp + tr.ConstFold + tr.IdentSimp + tr.CallElim +
+			tr.DSE + tr.DeadBlockArg + tr.BranchEquiv + tr.SplitJoinRet +
+			tr.CondRetSink + tr.FuseAbsDiff
+	}
+	sb.WriteString("; ── compilation summary ──────────────────────────────────────\n")
+	sb.WriteString(fmt.Sprintf("; functions: %d", total))
+	for _, be := range []string{"LIR", "VIR", "PBQP", "LIR+PBQP-fallback", "VIR+PBQP-fallback"} {
+		if n := counts[be]; n > 0 {
+			sb.WriteString(fmt.Sprintf("  %s=%d", be, n))
+		}
+	}
+	sb.WriteByte('\n')
+	if splits > 0 {
+		sb.WriteString(fmt.Sprintf("; splits: %d (HIR-SPLIT high-pressure)\n", splits))
+	}
+	if fallbacks > 0 {
+		sb.WriteString(fmt.Sprintf("; fallbacks: %d [%s]\n", fallbacks, strings.Join(fallbackNames, ", ")))
+	}
+	sb.WriteString(fmt.Sprintf("; optimization passes fired: %d\n", totalPasses))
+	if len(labelWarnings) > 0 {
+		sb.WriteString(fmt.Sprintf("; LABEL AUDIT: %d undefined labels\n", len(labelWarnings)))
+		for _, w := range labelWarnings {
+			sb.WriteString(fmt.Sprintf(";   %s\n", w))
+		}
+	} else {
+		sb.WriteString("; label audit: OK\n")
+	}
+	sb.WriteString("; ─────────────────────────────────────────────────────────────\n")
+	return sb.String() + asm
+}
+
+// injectTraceAnnotations inserts "; [trace] ..." comments after each
+// "; fun NAME(...)" header line in the assembly. This provides per-function
+// compilation provenance: backend, passes, split info, fallback reason.
+func injectTraceAnnotations(asm string, traces map[string]*FuncTrace) string {
+	if len(traces) == 0 {
+		return asm
+	}
+	lines := strings.Split(asm, "\n")
+	var result []string
+	for _, line := range lines {
+		result = append(result, line)
+		// Match "; fun NAME(" or "; NAME — LIR codegen"
+		if name := extractFuncName(line); name != "" {
+			if tr := traces[name]; tr != nil {
+				result = append(result, formatTrace(tr))
+			}
+		}
+	}
+	return strings.Join(result, "\n")
+}
+
+// extractFuncName extracts the function name from a "; fun NAME(...)" or
+// "; NAME — LIR codegen" comment line.
+func extractFuncName(line string) string {
+	trimmed := strings.TrimSpace(line)
+	// "; fun NAME(" — MIR2/VIR format
+	if strings.HasPrefix(trimmed, "; fun ") {
+		rest := trimmed[6:]
+		if idx := strings.IndexByte(rest, '('); idx > 0 {
+			return rest[:idx]
+		}
+		// "; fun NAME" without parens (stub functions)
+		if idx := strings.IndexByte(rest, ' '); idx > 0 {
+			return rest[:idx]
+		}
+		return strings.TrimSpace(rest)
+	}
+	// "; NAME — LIR codegen" format
+	if strings.HasPrefix(trimmed, "; ") && strings.Contains(trimmed, " — LIR codegen") {
+		rest := trimmed[2:]
+		if idx := strings.Index(rest, " — "); idx > 0 {
+			return rest[:idx]
+		}
+	}
+	return ""
+}
+
+// formatTrace formats a FuncTrace as a single ASM comment line.
+func formatTrace(tr *FuncTrace) string {
+	var parts []string
+	parts = append(parts, "backend="+tr.Backend)
+	if tr.SplitFrom != "" {
+		parts = append(parts, fmt.Sprintf("split-from=%s(pressure=%d)", tr.SplitFrom, tr.SplitPressure))
+	}
+	if tr.BackendErr != "" {
+		parts = append(parts, "fallback-reason="+tr.BackendErr)
+	}
+
+	// Optimization passes — only show non-zero
+	var passes []string
+	if tr.ConstProp > 0 { passes = append(passes, fmt.Sprintf("const-prop=%d", tr.ConstProp)) }
+	if tr.ConstFold > 0 { passes = append(passes, fmt.Sprintf("const-fold=%d", tr.ConstFold)) }
+	if tr.IdentSimp > 0 { passes = append(passes, fmt.Sprintf("ident-simp=%d", tr.IdentSimp)) }
+	if tr.CallElim > 0 { passes = append(passes, fmt.Sprintf("call-elim=%d", tr.CallElim)) }
+	if tr.DSE > 0 { passes = append(passes, fmt.Sprintf("dse=%d", tr.DSE)) }
+	if tr.DeadBlockArg > 0 { passes = append(passes, fmt.Sprintf("dead-block-arg=%d", tr.DeadBlockArg)) }
+	if tr.BranchEquiv > 0 { passes = append(passes, fmt.Sprintf("branch-equiv=%d", tr.BranchEquiv)) }
+	if tr.SplitJoinRet > 0 { passes = append(passes, fmt.Sprintf("split-join-ret=%d", tr.SplitJoinRet)) }
+	if tr.CondRetSink > 0 { passes = append(passes, fmt.Sprintf("condret-sink=%d", tr.CondRetSink)) }
+	if tr.FuseAbsDiff > 0 { passes = append(passes, fmt.Sprintf("fuse-abs-diff=%d", tr.FuseAbsDiff)) }
+	if tr.CondRets > 0 { passes = append(passes, fmt.Sprintf("cond-rets=%d", tr.CondRets)) }
+	if tr.Inlined { passes = append(passes, "inlined") }
+	if tr.LUTReplaced { passes = append(passes, "lut-replaced") }
+
+	if len(passes) > 0 {
+		parts = append(parts, "passes=["+strings.Join(passes, ",")+"]")
+	}
+	if len(tr.LabelWarnings) > 0 {
+		parts = append(parts, fmt.Sprintf("label-warnings=%d", len(tr.LabelWarnings)))
+	}
+	return "; [trace] " + strings.Join(parts, " ")
 }
 
 // dedupAsmLabels removes duplicate label definitions from assembly text.

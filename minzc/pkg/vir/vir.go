@@ -366,7 +366,7 @@ func (p *PIROp) Emit(m *MachineDesc) string {
 	}
 
 	if p.Sym != "" {
-		s = replaceAll(s, "{imm}", p.Sym)
+		s = replaceAll(s, "{imm}", sanitizeSym(p.Sym))
 	} else {
 		s = replaceAll(s, "{imm}", formatImm(p.Imm))
 	}
@@ -391,6 +391,16 @@ func indexOf(s, sub string) int {
 		}
 	}
 	return -1
+}
+
+// sanitizeSym converts MIR2 symbol names to assembler-safe labels.
+// e.g. @mir2.str.0 → _mir2_str_0, fs$fat12$read → fs_fat12_read
+func sanitizeSym(s string) string {
+	s = strings.ReplaceAll(s, "@", "_")
+	s = strings.ReplaceAll(s, ".", "_")
+	s = strings.ReplaceAll(s, "-", "_")
+	s = strings.ReplaceAll(s, "$", "_")
+	return s
 }
 
 // splitAsm splits an asm template on "/" separators, trimming whitespace.

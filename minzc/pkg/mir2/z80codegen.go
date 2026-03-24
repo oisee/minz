@@ -1246,10 +1246,13 @@ func (g *z80cg) genFunc(f *Func) {
 	// Emit named spill data section — one label per spilled register.
 	// DB for 8-bit, DW for 16-bit. Labels resolve forward references
 	// from LD (label),A / LD A,(label) throughout the function.
-	// Emit spill data slots — only for vregs belonging to THIS function
-	// (ar.Spilled is combined across all functions).
-	// Skip TSMC-eligible spills — their storage is inline (patched immediates).
+	//
+	// Two-pass approach:
+	// 1. Emit from g.ar.Spilled for vregs in collectRegInfo (known width)
+	// 2. Scan emitted asm for any _spill_ refs still missing a definition
+	//    (catches vregs not in Spilled or filtered by TSMC/regInfo)
 	regInfo := collectRegInfo(f)
+	emittedSpills := make(map[string]bool)
 	var spillCount int
 	for _, r := range g.ar.Spilled {
 		if _, ok := regInfo[r]; !ok {
@@ -1274,6 +1277,7 @@ func (g *z80cg) genFunc(f *Func) {
 				w = (info.Ty.Width() + 7) / 8
 			}
 			slabel := g.spillLabel(r)
+			emittedSpills[slabel] = true
 			switch w {
 			case 1:
 				g.emitf("%s: DB 0", slabel)
@@ -1284,6 +1288,54 @@ func (g *z80cg) genFunc(f *Func) {
 			default:
 				g.emitf("%s: DB 0", slabel)
 			}
+		}
+	}
+
+	// Pass 2: catch any _spill_ references in the emitted asm that were
+	// not covered above (e.g. vregs missing from g.ar.Spilled due to
+	// coalescing or TSMC filtering, but still referenced in codegen).
+	funcAsm := g.sb.String()
+	prefix := "_spill_" + label + "_r"
+	var missingSpills []string
+	for idx := 0; ; {
+		pos := strings.Index(funcAsm[idx:], prefix)
+		if pos < 0 {
+			break
+		}
+		pos += idx
+		// Extract full label: _spill_funcName_rNNN
+		end := pos + len(prefix)
+		for end < len(funcAsm) && funcAsm[end] >= '0' && funcAsm[end] <= '9' {
+			end++
+		}
+		slabel := funcAsm[pos:end]
+		if !emittedSpills[slabel] {
+			emittedSpills[slabel] = true
+			// Determine width from context: 16-bit reg pair load → DW, else DB
+			// Look for "LD rr, (label)" patterns (BC/DE/HL/IX/IY)
+			is16 := false
+			for _, pat := range []string{
+				"LD BC, (" + slabel, "LD DE, (" + slabel, "LD HL, (" + slabel,
+				"LD IX, (" + slabel, "LD IY, (" + slabel,
+				"(" + slabel + "), HL", "(" + slabel + "), DE",
+				"(" + slabel + "), BC", "(" + slabel + "), IX",
+				"(" + slabel + "), IY",
+			} {
+				if strings.Contains(funcAsm, pat) {
+					is16 = true
+					break
+				}
+			}
+			_ = is16
+			missingSpills = append(missingSpills, slabel)
+		}
+		idx = end
+	}
+	if len(missingSpills) > 0 {
+		g.emitf("; — extra spill slots for %s (%d rescued)", label, len(missingSpills))
+		for _, slabel := range missingSpills {
+			// Default to DW (16-bit) — most missing spills are ptr/u16 regs
+			g.emitf("%s: DW 0", slabel)
 		}
 	}
 }

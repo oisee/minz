@@ -799,8 +799,8 @@ func compileViaHIR(sourceFile string) error {
 	steps, err := pipeline.CompileHIRSteps(hirMod, pipeline.Options{
 		ContractOpt:     true,
 		AnnotateTStates: annotateTStates,
-		UseLIR:          useLIR && !useVIR, // --lir explicitly disables VIR default
-		UseVIR:          useVIR && !useLIR, // --vir default, --lir overrides
+		UseLIR:          useLIR && !useVIR, // --lir is default; --vir overrides it
+		UseVIR:          useVIR,            // --vir always enables VIR (overrides --lir default)
 		Backend:         backend,
 	})
 	if err != nil {
