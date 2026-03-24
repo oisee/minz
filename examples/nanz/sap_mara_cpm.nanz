@@ -1,0 +1,76 @@
+// SAP Material Master on Z80 — CP/M version with real I/O port SQLite bridge
+//
+// Compile: mz sap_mara_cpm.nanz --lir=false -o sap_mara.a80
+// Run:     mza sap_mara.a80 -o sap_mara.com && mze sap_mara.com -t cpm
+
+import tui.render
+import sql.sqlite
+
+fun main() -> void {
+    tui_puts(c"Opening DB...\n")
+    sqlite_open(c":memory:")
+    // db handle = 1 (first open always returns 1)
+
+    // ── Create tables + insert data ──────────────────────────────────
+    sqlite_exec(1, c"CREATE TABLE mara (matnr TEXT, mtart TEXT, meins TEXT, brgew INT)")
+    sqlite_exec(1, c"CREATE TABLE makt (matnr TEXT, spras TEXT, maktx TEXT)")
+
+    sqlite_exec(1, c"INSERT INTO mara VALUES ('100-100','FERT','ST',250)")
+    sqlite_exec(1, c"INSERT INTO mara VALUES ('100-110','FERT','ST',180)")
+    sqlite_exec(1, c"INSERT INTO mara VALUES ('100-200','HALB','KG',50)")
+    sqlite_exec(1, c"INSERT INTO mara VALUES ('200-100','FERT','ST',500)")
+    sqlite_exec(1, c"INSERT INTO mara VALUES ('300-100','DIEN','AU',0)")
+
+    sqlite_exec(1, c"INSERT INTO makt VALUES ('100-100','E','Pump Assembly GRUNDFOS')")
+    sqlite_exec(1, c"INSERT INTO makt VALUES ('100-110','E','Motor 3-Phase 5kW')")
+    sqlite_exec(1, c"INSERT INTO makt VALUES ('100-200','E','Shaft Steel DIN 1.4301')")
+    sqlite_exec(1, c"INSERT INTO makt VALUES ('200-100','E','Desktop PC Standard')")
+    sqlite_exec(1, c"INSERT INTO makt VALUES ('300-100','E','Consulting Service')")
+
+    tui_puts(c"\n=== Material Master Report ===\n")
+    tui_puts(c"Selection: MTART = FERT\n\n")
+    tui_puts(c"MATNR      MTART  MEINS  MAKTX\n")
+    tui_puts(c"----------------------------------------------\n")
+
+    // Query FERT materials with text descriptions
+    // q handle = 1 (first query always returns 1)
+    sqlite_query(1, c"SELECT m.matnr, m.mtart, m.meins, t.maktx FROM mara m LEFT JOIN makt t ON m.matnr = t.matnr WHERE m.mtart = 'FERT' ORDER BY m.matnr")
+
+    // Unrolled: 3 FERT rows in our data
+    sqlite_step(1)
+    tui_puts(sqlite_column_text(1, 0))
+    tui_puts(c"  ")
+    tui_puts(sqlite_column_text(1, 1))
+    tui_puts(c"   ")
+    tui_puts(sqlite_column_text(1, 2))
+    tui_puts(c"    ")
+    tui_puts(sqlite_column_text(1, 3))
+    tui_puts(c"\n")
+
+    sqlite_step(1)
+    tui_puts(sqlite_column_text(1, 0))
+    tui_puts(c"  ")
+    tui_puts(sqlite_column_text(1, 1))
+    tui_puts(c"   ")
+    tui_puts(sqlite_column_text(1, 2))
+    tui_puts(c"    ")
+    tui_puts(sqlite_column_text(1, 3))
+    tui_puts(c"\n")
+
+    sqlite_step(1)
+    tui_puts(sqlite_column_text(1, 0))
+    tui_puts(c"  ")
+    tui_puts(sqlite_column_text(1, 1))
+    tui_puts(c"   ")
+    tui_puts(sqlite_column_text(1, 2))
+    tui_puts(c"    ")
+    tui_puts(sqlite_column_text(1, 3))
+    tui_puts(c"\n")
+
+    tui_puts(c"----------------------------------------------\n")
+    tui_puts(c"3 materials found.\n")
+
+    sqlite_finalize(1)
+    sqlite_close(1)
+    tui_puts(c"\nReport complete.\n")
+}
