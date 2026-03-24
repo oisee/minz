@@ -143,7 +143,7 @@ func registerScreenHosts(vm *mir2.VM, headless bool, trace bool) {
 		return nil, nil
 	}
 
-	fmt.Fprintf(os.Stderr, "mzv: screen host functions registered\n")
+	// verbose: "mzv: screen host functions registered"
 }
 
 // ── TUI rendering for sel_show ──────────────────────────────────────────

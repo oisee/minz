@@ -2,13 +2,26 @@
 // No iterator chain — just a while loop with index.
 // This is what a mechanical PLM→Nanz conversion produces.
 
-fun sum_array(ptr: u16, n: u8) -> u8 {
+global arr: [u8; 5]
+
+fun sum_array(ptr: ^u8, n: u8) -> u8 {
     var s: u8 = 0
     var i: u8 = 0
     while i < n {
-        // ptr[i] — index expr lowered to OpPtrAdd + Load
         s = s + ptr[i]
         i = i + 1
     }
     return s
+}
+
+fun main() -> void {
+    arr[0] = 1
+    arr[1] = 2
+    arr[2] = 3
+    arr[3] = 4
+    arr[4] = 5
+    var result: u8 = sum_array(&arr, 5)
+    @print("sum = ")
+    @print_u8(result)
+    @print_nl()
 }

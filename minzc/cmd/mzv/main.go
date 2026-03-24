@@ -46,6 +46,7 @@ import (
 
 func main() {
 	trace := flag.BoolP("trace", "t", false, "print each VM call")
+	verbose := flag.BoolP("verbose", "v", false, "show compilation info, registered hosts, frame count")
 	headless := flag.BoolP("headless", "H", false, "run without terminal (testing)")
 	zxScreen := flag.Bool("zx", false, "ZX Spectrum screen mode (32x24 attribute grid to stdout)")
 	maxFrames := flag.Int("max-frames", 0, "stop after N frames (0=unlimited)")
@@ -111,7 +112,9 @@ func main() {
 		}
 	}
 
-	fmt.Fprintf(os.Stderr, "mzv: compiled %d functions, %d globals\n", len(m.Funcs), len(m.Globals))
+	if *verbose {
+		fmt.Fprintf(os.Stderr, "mzv: compiled %d functions, %d globals\n", len(m.Funcs), len(m.Globals))
+	}
 
 	// ── VM setup ─────────────────────────────────────────────────────────
 
@@ -253,7 +256,9 @@ func main() {
 	// ── Run ──────────────────────────────────────────────────────────────
 
 	_, err = vm.Call("main", nil)
-	fmt.Fprintf(os.Stderr, "mzv: exited after %d frames\n", frameCount)
+	if *verbose {
+		fmt.Fprintf(os.Stderr, "mzv: exited after %d frames\n", frameCount)
+	}
 
 	// Render final ZX Spectrum frame only in explicit --zx mode.
 	if *zxScreen {
@@ -720,7 +725,9 @@ func registerSQLiteHosts(vm *mir2.VM, trace bool) {
 		return []mir2.Value{{I: 0}}, nil
 	}
 
-	fmt.Fprintf(os.Stderr, "mzv: SQLite host functions registered\n")
+	if trace {
+		fmt.Fprintf(os.Stderr, "mzv: SQLite host functions registered\n")
+	}
 }
 
 // ── ABAP runtime host functions ──────────────────────────────────────────────
@@ -815,5 +822,7 @@ func registerABAPHosts(vm *mir2.VM, headless bool, trace bool) {
 		return nil, nil
 	}
 
-	fmt.Fprintf(os.Stderr, "mzv: ABAP runtime registered (SY + selection screen + write)\n")
+	if trace {
+		fmt.Fprintf(os.Stderr, "mzv: ABAP runtime registered (SY + selection screen + write)\n")
+	}
 }
