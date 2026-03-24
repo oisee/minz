@@ -817,6 +817,7 @@ func rewriteOutParamFunc(fn *hir.Func, info *outParamInfo) {
 	vals := make([]hir.Expr, len(info.fieldTys))
 
 	// Walk body and collect field → expr assignments, remove them.
+	// Also remove void return statements (they precede the tuple return we'll add).
 	var newBody []hir.Stmt
 	for _, s := range fn.Body.Body {
 		if assign, ok := s.(*hir.AssignStmt); ok {
@@ -828,6 +829,10 @@ func rewriteOutParamFunc(fn *hir.Func, info *outParamInfo) {
 					}
 				}
 			}
+		}
+		// Remove void returns — they'll be replaced by the tuple return.
+		if ret, ok := s.(*hir.ReturnStmt); ok && ret.Val == nil && len(ret.Vals) == 0 {
+			continue
 		}
 		newBody = append(newBody, s)
 	}
@@ -881,6 +886,37 @@ func rewriteOutParamCallSites(blk *hir.Block, eligible map[string]*outParamInfo)
 			continue
 		}
 		lastArg := call.Args[info.paramIndex]
+
+		// Check for AddrOfExpr (C89 frontend emits this for &var).
+		if addrExpr, ok := lastArg.(*hir.AddrOfExpr); ok {
+			varName := addrExpr.Sym
+			fieldVars := make(map[string]string)
+			names := make([]string, len(info.fieldTys))
+			for j, f := range info.st.Fields {
+				genName := varName + "_" + f.Name
+				names[j] = genName
+				fieldVars[f.Name] = genName
+			}
+			call.Args = call.Args[:info.paramIndex]
+			blk.Body[i] = &hir.TupleLetStmt{
+				Names: names,
+				Tys:   info.fieldTys,
+				Call:  call,
+			}
+			// Remove preceding VarDeclStmt for the struct variable if it exists.
+			if i > 0 {
+				if decl, ok := blk.Body[i-1].(*hir.VarDeclStmt); ok && decl.Name == varName {
+					blk.Body = append(blk.Body[:i-1], blk.Body[i:]...)
+					i--
+				}
+			}
+			pInfo := &promotionInfo{st: info.st, fieldTys: info.fieldTys, fieldMap: info.fieldMap}
+			for j := i + 1; j < len(blk.Body); j++ {
+				blk.Body[j] = rewriteFieldRefs(blk.Body[j], varName, fieldVars, pInfo)
+			}
+			continue
+		}
+
 		addrOf, isAddr := lastArg.(*hir.UnaryExpr)
 		if !isAddr || addrOf.Op != "&" {
 			// Also check for plain VarRefExpr (already a pointer).

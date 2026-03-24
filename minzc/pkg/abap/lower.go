@@ -2,10 +2,18 @@ package abap
 
 import (
 	"fmt"
+	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
+)
+
+// abapAssertRe matches ABAP comment asserts:
+//   * assert fn(1, 2) == 42 via mir2
+var abapAssertRe = regexp.MustCompile(
+	`^\s*[*"]\s*assert\s+(\w+)\s*\(([^)]*)\)\s*==\s*(-?(?:0[xX][0-9a-fA-F]+|\d+))(?:\s+via\s+(mir2|z80))?\s*$`,
 )
 
 // Compile is the top-level entry point: ABAP source → HIR module.
@@ -25,6 +33,40 @@ func Compile(src, name string) (*hir.Module, error) {
 		return nil, fmt.Errorf("abap lower: %w", err)
 	}
 	emitRuntimeFuncs(hm)
+
+	// Scan source for assert comments (* assert fn(args) == expected [via mir2|z80]).
+	for i, line := range strings.Split(src, "\n") {
+		m := abapAssertRe.FindStringSubmatch(line)
+		if m == nil {
+			continue
+		}
+		funcName := m[1]
+		argsStr := strings.TrimSpace(m[2])
+		expectedStr := m[3]
+		via := m[4]
+
+		var args []int64
+		if argsStr != "" {
+			for _, s := range strings.Split(argsStr, ",") {
+				s = strings.TrimSpace(s)
+				v, err := strconv.ParseInt(s, 0, 64)
+				if err != nil {
+					continue
+				}
+				args = append(args, v)
+			}
+		}
+		expected, _ := strconv.ParseInt(expectedStr, 0, 64)
+		hm.Asserts = append(hm.Asserts, hir.Assert{
+			FuncName: funcName,
+			Args:     args,
+			Expected: expected,
+			Source:   line,
+			Line:     i + 1,
+			Via:      via,
+		})
+	}
+
 	return hm, nil
 }
 
@@ -524,12 +566,33 @@ func (l *lowerer) lowerForm(d *FormDecl) {
 		return
 	}
 
-	l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
-		Name:   d.Name,
-		Params: params,
-		RetTy:  mir2.TyVoid,
-		Body:   body,
-	})
+	// If the FORM has exactly one CHANGING parameter, emit it as a function
+	// that returns the CHANGING value. This enables compile-time asserts and
+	// matches the semantic intent of "compute and return via CHANGING".
+	if len(d.Changing) == 1 {
+		changingName := d.Changing[0].Name
+		changingTy := l.abapTypeToHIR(d.Changing[0].AbapTy, 0)
+		// Remove the CHANGING param from the param list (it's now the return value)
+		usingOnly := make([]hir.Param, len(d.Using))
+		copy(usingOnly, params[:len(d.Using)])
+		retStmt := &hir.ReturnStmt{
+			Val: &hir.VarRefExpr{Name: changingName, Ty: changingTy},
+		}
+		body.Body = append(body.Body, retStmt)
+		l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
+			Name:   d.Name,
+			Params: usingOnly,
+			RetTy:  changingTy,
+			Body:   body,
+		})
+	} else {
+		l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
+			Name:   d.Name,
+			Params: params,
+			RetTy:  mir2.TyVoid,
+			Body:   body,
+		})
+	}
 }
 
 // ── CLASS → struct + methods ─────────────────────────────────────────────────
@@ -548,8 +611,12 @@ func (l *lowerer) lowerClass(d *ClassDecl) {
 }
 
 func (l *lowerer) lowerMethod(className string, m *MethodDecl) {
-	selfTy := mir2.TyPtr
-	params := []hir.Param{{Name: "self", Ty: selfTy}}
+	// Only add self parameter if the class has attributes (instance data).
+	// Pure computation classes emit free functions, enabling compile-time asserts.
+	var params []hir.Param
+	if l.classHasAttrs(className) {
+		params = append(params, hir.Param{Name: "self", Ty: mir2.TyPtr})
+	}
 
 	for _, p := range m.Importing {
 		ty := l.abapTypeToHIR(p.AbapTy, 0)
@@ -568,12 +635,30 @@ func (l *lowerer) lowerMethod(className string, m *MethodDecl) {
 		return
 	}
 
+	// If the method has RETURNING, add implicit return of the RETURNING variable.
+	if m.Returning != nil {
+		retVarTy := l.abapTypeToHIR(m.Returning.AbapTy, 0)
+		body.Body = append(body.Body, &hir.ReturnStmt{
+			Val: &hir.VarRefExpr{Name: m.Returning.Name, Ty: retVarTy},
+		})
+	}
+
 	l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
 		Name:   fmt.Sprintf("%s_%s", className, m.Name),
 		Params: params,
 		RetTy:  retTy,
 		Body:   body,
 	})
+}
+
+// classHasAttrs checks if a class has instance data attributes.
+func (l *lowerer) classHasAttrs(className string) bool {
+	for _, d := range l.prog.Decls {
+		if cd, ok := d.(*ClassDecl); ok && cd.Name == className {
+			return len(cd.Attrs) > 0
+		}
+	}
+	return false
 }
 
 // ── INTERFACE → hir.InterfaceDecl ────────────────────────────────────────────

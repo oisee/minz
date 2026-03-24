@@ -3,6 +3,10 @@ REPORT zforms.
 * Modular ABAP with FORMs — the OG subroutines
 * before everyone went OOP-crazy with ABAP Objects.
 * Now running on hardware from 1976.
+*
+* assert gcd(48, 18) == 6 via mir2
+* assert gcd(100, 75) == 25 via mir2
+* assert gcd(7, 13) == 1 via mir2
 
 DATA: lv_result TYPE i,
       lv_gcd    TYPE i.

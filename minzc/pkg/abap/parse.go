@@ -97,6 +97,32 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 		case child.Type == "Token":
 			continue
 
+		case child.Type == "Form":
+			fd := convertFormStructure(child)
+			if fd != nil {
+				decls = append(decls, fd)
+			}
+			continue
+
+		case child.Type == "ClassDefinition":
+			cd := convertClassDefinition(child)
+			if cd != nil {
+				decls = append(decls, cd)
+			}
+			continue
+
+		case child.Type == "ClassImplementation":
+			// Find matching ClassDecl and fill in method bodies
+			className, methods := convertClassImplementation(child)
+			if className != "" {
+				for _, d := range decls {
+					if cd, ok := d.(*ClassDecl); ok && cd.Name == className {
+						mergeMethodBodies(cd, methods)
+					}
+				}
+			}
+			continue
+
 		case isEventType(child.Type):
 			// Close previous event
 			if currentEvent != nil {
@@ -169,6 +195,290 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 		decls = append(decls, currentEvent)
 	}
 	return decls, nil
+}
+
+// convertFormStructure converts a Form structure node to a FormDecl.
+// Form node children: Form (header with FormName/FormUsing/FormChanging children), Body, EndForm.
+func convertFormStructure(node *ASTChild) *FormDecl {
+	fd := &FormDecl{}
+
+	for _, child := range node.Children {
+		switch child.Type {
+		case "Form":
+			// Header — extract name from FormName child, params from FormUsing/FormChanging
+			for _, sub := range child.Children {
+				switch sub.Type {
+				case "FormName":
+					if len(sub.Tokens) > 0 {
+						fd.Name = strings.ToLower(sub.Tokens[0].Str)
+					}
+				case "FormUsing":
+					fd.Using = parseFormParams(sub.Tokens)
+				case "FormChanging":
+					fd.Changing = parseFormParams(sub.Tokens)
+				}
+			}
+			// Fallback: parse name from header tokens directly
+			if fd.Name == "" {
+				for _, t := range child.Tokens {
+					u := strings.ToUpper(t.Str)
+					if u != "FORM" && u != "USING" && u != "CHANGING" && u != "TYPE" && u != "." &&
+						u != "I" && u != "C" && u != "N" && u != "P" && u != "STRING" {
+						fd.Name = strings.ToLower(t.Str)
+						break
+					}
+				}
+			}
+		case "Body":
+			sub := &StructNode{Type: "Body", Children: child.Children}
+			decls, _ := walkStructure(sub)
+			fd.Body = collectStmtsFromDecls(decls)
+		}
+	}
+
+	if fd.Name == "" {
+		return nil
+	}
+	return fd
+}
+
+// parseFormParams extracts FORM parameters from tokens like "USING pv_a TYPE i pv_b TYPE i".
+func parseFormParams(tokens []*Token) []FormParam {
+	var params []FormParam
+	var toks []string
+	for _, t := range tokens {
+		toks = append(toks, t.Str)
+	}
+
+	// Skip leading USING/CHANGING keyword
+	i := 0
+	if i < len(toks) {
+		u := strings.ToUpper(toks[i])
+		if u == "USING" || u == "CHANGING" || u == "VALUE" {
+			i++
+		}
+	}
+
+	// Parse pairs: name TYPE type
+	for i < len(toks) {
+		name := strings.ToLower(toks[i])
+		if strings.ToUpper(name) == "VALUE" {
+			i++ // skip VALUE( wrapper
+			continue
+		}
+		if name == "." || name == ")" {
+			i++
+			continue
+		}
+		p := FormParam{Name: name}
+		i++
+		if i < len(toks) && strings.ToUpper(toks[i]) == "TYPE" {
+			i++
+			if i < len(toks) {
+				p.AbapTy = strings.ToLower(toks[i])
+				i++
+			}
+		}
+		params = append(params, p)
+	}
+	return params
+}
+
+// convertClassDefinition extracts class name and method signatures from a ClassDefinition node.
+func convertClassDefinition(node *ASTChild) *ClassDecl {
+	cd := &ClassDecl{}
+
+	for _, child := range node.Children {
+		switch child.Type {
+		case "ClassDefinition":
+			// Header — extract class name
+			for _, sub := range child.Children {
+				if sub.Type == "ClassName" && len(sub.Tokens) > 0 {
+					cd.Name = strings.ToLower(sub.Tokens[0].Str)
+				}
+			}
+		case "PublicSection", "ProtectedSection", "PrivateSection":
+			// Extract method signatures from section contents
+			for _, sec := range child.Children {
+				if sec.Type == "SectionContents" {
+					for _, item := range sec.Children {
+						// Use direct tokens from the node (not recursive getAllTokens which duplicates)
+						var toks []string
+						for _, t := range item.Tokens {
+							toks = append(toks, t.Str)
+						}
+						if len(toks) >= 2 && strings.ToUpper(toks[0]) == "METHODS" {
+							md := parseMethodSignature(toks)
+							if md != nil {
+								cd.Methods = append(cd.Methods, md)
+							}
+						} else if len(toks) >= 2 && strings.ToUpper(toks[0]) == "DATA" {
+							// Class attribute
+							attr := parseClassDataAttr(toks)
+							if attr != nil {
+								cd.Attrs = append(cd.Attrs, attr)
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if cd.Name == "" {
+		return nil
+	}
+	return cd
+}
+
+// parseMethodSignature parses tokens like:
+// METHODS add IMPORTING iv_a TYPE i iv_b TYPE i RETURNING VALUE ( rv_sum ) TYPE i .
+func parseMethodSignature(toks []string) *MethodDecl {
+	if len(toks) < 2 {
+		return nil
+	}
+	md := &MethodDecl{Name: strings.ToLower(toks[1])}
+
+	i := 2
+	for i < len(toks) {
+		upper := strings.ToUpper(toks[i])
+		switch upper {
+		case "IMPORTING":
+			i++
+			for i < len(toks) {
+				u := strings.ToUpper(toks[i])
+				if u == "RETURNING" || u == "CHANGING" || u == "EXPORTING" || u == "." {
+					break
+				}
+				p := FormParam{Name: strings.ToLower(toks[i])}
+				i++
+				if i < len(toks) && strings.ToUpper(toks[i]) == "TYPE" {
+					i++
+					if i < len(toks) {
+						p.AbapTy = strings.ToLower(toks[i])
+						i++
+					}
+				}
+				md.Importing = append(md.Importing, p)
+			}
+		case "RETURNING":
+			i++
+			// VALUE ( rv_name ) TYPE type
+			if i < len(toks) && strings.ToUpper(toks[i]) == "VALUE" {
+				i++
+			}
+			if i < len(toks) && toks[i] == "(" {
+				i++
+			}
+			if i < len(toks) {
+				p := FormParam{Name: strings.ToLower(toks[i])}
+				i++
+				if i < len(toks) && toks[i] == ")" {
+					i++
+				}
+				if i < len(toks) && strings.ToUpper(toks[i]) == "TYPE" {
+					i++
+					if i < len(toks) {
+						p.AbapTy = strings.ToLower(toks[i])
+						i++
+					}
+				}
+				md.Returning = &p
+			}
+		case "CHANGING":
+			i++
+			for i < len(toks) {
+				u := strings.ToUpper(toks[i])
+				if u == "RETURNING" || u == "IMPORTING" || u == "EXPORTING" || u == "." {
+					break
+				}
+				p := FormParam{Name: strings.ToLower(toks[i])}
+				i++
+				if i < len(toks) && strings.ToUpper(toks[i]) == "TYPE" {
+					i++
+					if i < len(toks) {
+						p.AbapTy = strings.ToLower(toks[i])
+						i++
+					}
+				}
+				md.Changing = append(md.Changing, p)
+			}
+		default:
+			i++
+		}
+	}
+	return md
+}
+
+// parseClassDataAttr parses DATA tokens into a DataDecl (class attribute).
+func parseClassDataAttr(toks []string) *DataDecl {
+	if len(toks) < 2 {
+		return nil
+	}
+	d := &DataDecl{Name: strings.ToLower(toks[1])}
+	for i := 2; i < len(toks); i++ {
+		if strings.ToUpper(toks[i]) == "TYPE" && i+1 < len(toks) {
+			d.AbapTy = strings.ToLower(toks[i+1])
+			break
+		}
+	}
+	return d
+}
+
+// convertClassImplementation extracts class name and method bodies from a ClassImplementation node.
+func convertClassImplementation(node *ASTChild) (string, map[string]*MethodDecl) {
+	var className string
+	methods := make(map[string]*MethodDecl)
+
+	for _, child := range node.Children {
+		switch child.Type {
+		case "ClassImplementation":
+			for _, sub := range child.Children {
+				if sub.Type == "ClassName" && len(sub.Tokens) > 0 {
+					className = strings.ToLower(sub.Tokens[0].Str)
+				}
+			}
+		case "Method":
+			name, body := convertMethodImpl(child)
+			if name != "" {
+				methods[name] = &MethodDecl{Name: name, Body: body}
+			}
+		}
+	}
+	return className, methods
+}
+
+// convertMethodImpl extracts method name and body from a Method node.
+func convertMethodImpl(node *ASTChild) (string, []Stmt_) {
+	var name string
+	var body []Stmt_
+
+	for _, child := range node.Children {
+		switch child.Type {
+		case "MethodImplementation":
+			// Tokens: METHOD add .
+			for _, t := range child.Tokens {
+				u := strings.ToUpper(t.Str)
+				if u != "METHOD" && u != "." {
+					name = strings.ToLower(t.Str)
+				}
+			}
+		case "Body":
+			sub := &StructNode{Type: "Body", Children: child.Children}
+			decls, _ := walkStructure(sub)
+			body = collectStmtsFromDecls(decls)
+		}
+	}
+	return name, body
+}
+
+// mergeMethodBodies merges method implementations into a ClassDecl's method signatures.
+func mergeMethodBodies(cd *ClassDecl, implMethods map[string]*MethodDecl) {
+	for _, md := range cd.Methods {
+		if impl, ok := implMethods[md.Name]; ok {
+			md.Body = impl.Body
+		}
+	}
 }
 
 func isControlStructure(t string) bool {
