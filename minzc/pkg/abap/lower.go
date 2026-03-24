@@ -189,6 +189,21 @@ func (l *lowerer) lower() (*hir.Module, error) {
 
 	var mainStmts []hir.Stmt
 
+	// ZX Spectrum: clear screen at startup
+	if l.hm.Target == hir.TargetZXSpectrum {
+		mainStmts = append(mainStmts, &hir.ExprStmt{
+			Expr: &hir.CallExpr{Fn: "_zx_cls", Ty: mir2.TyVoid},
+		})
+		// Set border to blue
+		mainStmts = append(mainStmts, &hir.ExprStmt{
+			Expr: &hir.CallExpr{
+				Fn:   "_zx_border",
+				Args: []hir.Expr{&hir.IntLitExpr{Val: 1, Ty: mir2.TyU8}},
+				Ty:   mir2.TyVoid,
+			},
+		})
+	}
+
 	// String DATA globals — assign interned string addresses
 	for _, si := range l.stringInits {
 		mainStmts = append(mainStmts, &hir.AssignStmt{
@@ -280,8 +295,14 @@ func (l *lowerer) lower() (*hir.Module, error) {
 	// On MZV the host function reads stdin and writes values to VM heap.
 	if len(l.prog.Params) > 0 {
 		// ── Register each parameter with the screen host ────────────
+		// Skip on ZX Spectrum — sel_register calls have 4+ args that the
+		// production regalloc can't handle. Go straight to fallback input.
 		fieldIdx := 0
 		for _, p := range l.prog.Params {
+			if l.hm.Target == hir.TargetZXSpectrum {
+				fieldIdx++
+				continue
+			}
 			ty := l.varTypes[p.Name]
 
 			// Intern field label (= uppercase param name)
@@ -333,13 +354,15 @@ func (l *lowerer) lower() (*hir.Module, error) {
 		}
 
 		// ── sel_show() — returns 1 if host handled, 0 for Z80 fallback ──
-		mainStmts = append(mainStmts, &hir.VarDeclStmt{
-			Name: "_sel_rc",
-			Ty:   mir2.TyU8,
-			Init: &hir.CallExpr{Fn: "sel_show", Ty: mir2.TyU8},
-		})
+		if l.hm.Target != hir.TargetZXSpectrum {
+			mainStmts = append(mainStmts, &hir.VarDeclStmt{
+				Name: "_sel_rc",
+				Ty:   mir2.TyU8,
+				Init: &hir.CallExpr{Fn: "sel_show", Ty: mir2.TyU8},
+			})
+		}
 
-		// ── Z80/CP/M fallback: inline BDOS prompts (when sel_show→0) ──
+		// ── Input prompts (BDOS on CP/M, console port on ZX) ──
 		var promptStmts []hir.Stmt
 		for _, p := range l.prog.Params {
 			promptStr := strings.ToUpper(p.Name)
@@ -394,16 +417,20 @@ func (l *lowerer) lower() (*hir.Module, error) {
 			},
 		})
 
-		// if _sel_rc == 0 { ... BDOS prompts ... }
-		mainStmts = append(mainStmts, &hir.IfStmt{
-			Cond: &hir.BinExpr{
-				Op: "==",
-				L:  &hir.VarRefExpr{Name: "_sel_rc", Ty: mir2.TyU8},
-				R:  &hir.IntLitExpr{Val: 0, Ty: mir2.TyU8},
-				Ty: mir2.TyBool,
-			},
-			Then: &hir.Block{Body: promptStmts},
-		})
+		// if _sel_rc == 0 { ... prompts ... } — on ZX, always run prompts (no sel_show)
+		if l.hm.Target == hir.TargetZXSpectrum {
+			mainStmts = append(mainStmts, promptStmts...)
+		} else {
+			mainStmts = append(mainStmts, &hir.IfStmt{
+				Cond: &hir.BinExpr{
+					Op: "==",
+					L:  &hir.VarRefExpr{Name: "_sel_rc", Ty: mir2.TyU8},
+					R:  &hir.IntLitExpr{Val: 0, Ty: mir2.TyU8},
+					Ty: mir2.TyBool,
+				},
+				Then: &hir.Block{Body: promptStmts},
+			})
+		}
 
 		// ── MZV path: read integer values from host (when sel_show→1) ──
 		var intReadStmts []hir.Stmt
