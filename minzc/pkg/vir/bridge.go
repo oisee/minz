@@ -162,6 +162,11 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 		}}, nil
 
 	case mir2.OpCmp:
+		// CmpSubCarry: the carry flag was already set by the preceding SUB.
+		// No CP instruction needed — the branch will use the existing flags.
+		if inst.Cond == mir2.CmpSubCarry || inst.Cond == mir2.CmpSubCarryNot {
+			return nil, nil // no-op: flags already set by SUB
+		}
 		return []VIROp{{
 			Op: OpCmp, Dst: int(inst.Dst),
 			Src: [2]int{int(inst.Src[0]), int(inst.Src[1])}, Width: w,

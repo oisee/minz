@@ -237,6 +237,9 @@ __mod16:
 func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, error) {
 	desc := Z80
 
+	// Pre-lower MIR2 optimizations
+	mir2.FuseAbsDiff(f) // SUB+CMP → SUB with carry reuse (4 insts vs 11)
+
 	// Lower MIR2 → VIR
 	vf, err := LowerFunc(f, desc, m)
 	if err != nil {
@@ -723,6 +726,11 @@ func emitTerminator(sb *strings.Builder, b *mir2.Block, funcName string) {
 			sb.WriteString(fmt.Sprintf("    JR NZ, %s\n", elseLabel))
 		case mir2.CmpNe: // a != b
 			sb.WriteString(fmt.Sprintf("    JR Z, %s\n", elseLabel))
+		case mir2.CmpSubCarry: // carry set by preceding SUB means a < b
+			sb.WriteString(fmt.Sprintf("    JR NC, %s\n", elseLabel))
+			// fall through = then (a < b, carry set)
+		case mir2.CmpSubCarryNot: // no carry means a >= b
+			sb.WriteString(fmt.Sprintf("    JR C, %s\n", elseLabel))
 		default:
 			// Generic: treat as NZ (bool condition)
 			sb.WriteString(fmt.Sprintf("    JR NZ, %s%s\n", prefix, t.Then))
@@ -761,11 +769,20 @@ func emitTerminator(sb *strings.Builder, b *mir2.Block, funcName string) {
 
 	case *mir2.TermCondRet:
 		// If cond==0, return vals. Else jump to Then.
-		// Flags set by preceding CMP: Z flag = equal/zero
+		cmpCond := findCmpCond(b, t.Cond)
 		if t.Then != "" {
-			sb.WriteString(fmt.Sprintf("    JR NZ, %s%s\n", prefix, t.Then))
+			switch cmpCond {
+			case mir2.CmpSubCarry:
+				// Carry set by preceding SUB means a < b → RET NC (return if a >= b)
+				sb.WriteString(fmt.Sprintf("    JR C, %s%s\n", prefix, t.Then))
+			case mir2.CmpSubCarryNot:
+				sb.WriteString(fmt.Sprintf("    JR NC, %s%s\n", prefix, t.Then))
+			default:
+				// Generic: Z flag = equal/zero → jump when NZ
+				sb.WriteString(fmt.Sprintf("    JR NZ, %s%s\n", prefix, t.Then))
+			}
 		}
-		sb.WriteString("    RET\n") // return when cond==0 (Z flag set)
+		sb.WriteString("    RET\n")
 
 	case *mir2.TermUnreachable:
 		sb.WriteString("    ; unreachable\n")
@@ -1256,7 +1273,109 @@ func invertCC(cc string) string {
 	}
 }
 
+// fuseAbsDiffASM detects the abs_diff pattern in assembly and rewrites to SUB/RET NC/NEG/RET.
+// Pattern: CP r / JR Z+JR C → block1(a-b, RET) / block2(b-a, RET)
+// Replacement: SUB r / RET NC / NEG / RET (4 instructions)
+func fuseAbsDiffASM(lines []string) []string {
+	for i := 0; i < len(lines)-5; i++ {
+		l := strings.TrimSpace(lines[i])
+		// Look for: CP r (where r is a single register)
+		if !strings.HasPrefix(l, "CP ") {
+			continue
+		}
+		reg := strings.TrimPrefix(l, "CP ")
+		reg = strings.TrimSpace(reg)
+		if len(reg) == 0 || len(reg) > 3 || strings.Contains(reg, "(") {
+			continue
+		}
+
+		// Next two lines must be: JR Z, .label / JR C, .label (same label)
+		l1 := strings.TrimSpace(lines[i+1])
+		l2 := strings.TrimSpace(lines[i+2])
+		if !strings.HasPrefix(l1, "JR Z, ") || !strings.HasPrefix(l2, "JR C, ") {
+			continue
+		}
+		joinLabel := strings.TrimPrefix(l1, "JR Z, ")
+		joinLabel2 := strings.TrimPrefix(l2, "JR C, ")
+		if joinLabel != joinLabel2 {
+			continue
+		}
+
+		// Scan forward to find: block1 ending with SUB + RET, then joinLabel, block2 ending with SUB + RET
+		// block1: [labels] [LD...] SUB r / RET
+		// block2: joinLabel: [LD...] SUB r / RET
+		block1End := -1
+		for j := i + 3; j < len(lines) && j < i+12; j++ {
+			t := strings.TrimSpace(lines[j])
+			if t == "RET" {
+				block1End = j
+				break
+			}
+		}
+		if block1End < 0 {
+			continue
+		}
+
+		// Check block1 has SUB before RET
+		block1Sub := strings.TrimSpace(lines[block1End-1])
+		if !strings.HasPrefix(block1Sub, "SUB ") {
+			continue
+		}
+
+		// Find join label after block1
+		joinIdx := -1
+		for j := block1End + 1; j < len(lines) && j <= block1End+3; j++ {
+			t := strings.TrimSpace(lines[j])
+			if t == joinLabel+":" {
+				joinIdx = j
+				break
+			}
+			if t == "" || strings.HasSuffix(t, ":") {
+				continue
+			}
+			break
+		}
+		if joinIdx < 0 {
+			continue
+		}
+
+		// Find block2's SUB + RET
+		block2End := -1
+		for j := joinIdx + 1; j < len(lines) && j < joinIdx+8; j++ {
+			t := strings.TrimSpace(lines[j])
+			if t == "RET" {
+				block2End = j
+				break
+			}
+		}
+		if block2End < 0 {
+			continue
+		}
+
+		block2Sub := strings.TrimSpace(lines[block2End-1])
+		if !strings.HasPrefix(block2Sub, "SUB ") {
+			continue
+		}
+
+		// Pattern matched! Replace everything from CP to block2 RET with:
+		// SUB reg / RET NC / NEG / RET
+		var newLines []string
+		newLines = append(newLines, lines[:i]...)
+		indent := "    "
+		newLines = append(newLines, indent+"SUB "+reg)
+		newLines = append(newLines, indent+"RET NC")
+		newLines = append(newLines, indent+"NEG")
+		newLines = append(newLines, indent+"RET")
+		newLines = append(newLines, lines[block2End+1:]...)
+		return fuseAbsDiffASM(newLines) // recurse for multiple patterns
+	}
+	return lines
+}
+
 func gracePass(lines []string) []string {
+	// First: fuse abs_diff patterns
+	lines = fuseAbsDiffASM(lines)
+
 	var result []string
 
 	for i := 0; i < len(lines); i++ {
