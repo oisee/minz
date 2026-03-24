@@ -214,19 +214,23 @@ END-OF-SELECTION.
   WRITE 'Done!'.
 ```
 
-On MZV, this renders an interactive selection screen:
+On MZV, this renders a full TUI selection screen with colors and keyboard navigation:
 
 ```
-┌─ Selection Screen ──────────────────┐
-│                                    │
-│  P_NAME    [Z80 User            ]  │
-│  P_COUNT   [5                   ]  │
-│                                    │
-│  [Enter=Execute]                   │
-└────────────────────────────────────┘
++---------------------------------------------+
+|   Selection Screen                          |  <- white-on-blue
+|                                             |
+|   P_NAME     [Z80 User  ]                  |  <- cyan label, focused field
+|   P_COUNT    [5]                            |  <- cyan label
+|                                             |
+|   [F8=Execute]  [F3=Back]                   |  <- bright buttons
+|                                             |
+|   TAB=Next  Enter=Edit  F8=Execute  F3=Back |  <- white-on-blue status
++---------------------------------------------+
+  MZV verified output — colors via ANSI escapes
 ```
 
-The screen host functions (`sel_register_str`, `sel_register_int`, `sel_show`, `sel_get_int`) handle input on MZV. On Z80/CP/M, the same functions would use BDOS calls for console I/O.
+The screen host functions (`sel_register_str`, `sel_register_int`, `sel_show`, `sel_get_int`) handle input on MZV with full TUI rendering: focus highlighting, TAB navigation, inline editing. On Z80/CP/M, the same functions would use BDOS calls with VT100 escape sequences.
 
 ---
 
@@ -255,6 +259,23 @@ fun main() -> void {
         tui_puts(c"\n")
     }
 }
+```
+
+MZV renders this as a full TUI screen (actual `mzv -H` output):
+
+```
++---------------------------------------------+
+|   Material Report                           |  <- white-on-blue title bar
+|                                             |
+|   Material    [*         ]                  |  <- cyan label, blue focus
+|   Plant       [      ]                      |  <- cyan label
+|   Count       [10]                          |  <- cyan label
+|                                             |
+|   [F8=Execute]  [F3=Back]                   |  <- bright buttons
+|                                             |
+|   TAB=Next  Enter=Edit  F8=Execute  F3=Back |  <- white-on-blue status bar
++---------------------------------------------+
+  MZV verified — 7 lines of @screen DSL → full interactive TUI
 ```
 
 ### What @screen Generates
@@ -364,22 +385,26 @@ fun main() -> void {
 }
 ```
 
-Renders as:
+MZV renders this as (actual `mzv -H` output):
 
 ```
-  Material List
-  Filter      [*         ]
-
-  MATNR      MTART  MEINS
-  -----------------------
-  MAT-001    FERT   ST
-  MAT-002    HALB   KG
-  MAT-003    ROH    L
-  MAT-004    FERT   ST
-  MAT-005    VERP   PC
-
-  [F8=Execute]  [F3=Back]
-  TAB=Next  Enter=Edit  F8=Execute  F3=Back
++---------------------------------------------+
+|   Material List                             |  <- white-on-blue title bar
+|                                             |
+|   Filter      [*         ]                  |  <- cyan label, blue focus
+|   MATNR      MTART  MEINS                   |  <- bright column headers
+|   -----------------------                   |
+|   MAT-001    FERT   ST                      |     data rows
+|   MAT-002    HALB   KG                      |
+|   MAT-003    ROH    L                       |
+|   MAT-004    FERT   ST                      |
+|   MAT-005    VERP   PC                      |
+|                                             |
+|   [F8=Execute]  [F3=Back]                   |  <- bright buttons
+|                                             |
+|   TAB=Next  Enter=Edit  F8=Execute  F3=Back |  <- white-on-blue status bar
++---------------------------------------------+
+  MZV verified — mini-ALV with 5 material rows
 ```
 
 The table uses a flat byte buffer internally (struct arrays have a known VM bug). Each row is `sum(column_widths + 1)` bytes. The `table_set_<col>(row, val)` helpers handle offset calculation automatically.
@@ -511,6 +536,37 @@ START-OF-SELECTION.
 ```
 
 This queries a SQLite database via MZV host functions — the first time MARA has been queried on a Z80 processor.
+
+### Create Customer (@screen)
+
+```nanz
+@screen("Create Customer") {
+    field "Name" length 20 default "ACME Corp"
+    field "City" length 15
+    field "Country" length 3 default "DE"
+    int   "Credit" default 5000
+    button "Execute" key F8
+    button "Back" key F3
+}
+```
+
+MZV output (actual `mzv -H` capture):
+
+```
++---------------------------------------------+
+|   Create Customer                           |  <- white-on-blue title bar
+|                                             |
+|   Name        [ACME Corp           ]        |  <- blue focus on first field
+|   City        [               ]             |  <- cyan labels
+|   Country     [DE ]                         |
+|   Credit      [5000]                        |
+|                                             |
+|   [F8=Execute]  [F3=Back]                   |  <- bright buttons
+|                                             |
+|   TAB=Next  Enter=Edit  F8=Execute  F3=Back |  <- white-on-blue status bar
++---------------------------------------------+
+  MZV verified — 4 fields, defaults pre-filled
+```
 
 ---
 
