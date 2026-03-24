@@ -411,7 +411,83 @@ The table uses a flat byte buffer internally (struct arrays have a known VM bug)
 
 ---
 
-## 9. The Pipeline in Detail
+## 9. Open SQL: SELECT → SQLite
+
+ABAP's Open SQL statements are transpiled to SQLite host function calls at compile time. The SQL string is built from the ABAP `SELECT` syntax and emitted as a `sqlite_query()` call.
+
+### Database Setup with `*!sql`
+
+Use comment pragmas to seed the database. These execute as `sqlite_exec()` calls before `main()`:
+
+```abap
+*!sql CREATE TABLE scarr (carrid TEXT, carrname TEXT, url TEXT)
+*!sql INSERT INTO scarr VALUES ('LH', 'Lufthansa', 'http://www.lufthansa.com')
+```
+
+### SELECT SINGLE — One Row
+
+```abap
+DATA lv_count TYPE i.
+SELECT SINGLE COUNT(*) FROM scarr INTO lv_count.
+WRITE lv_count.   " → 3
+
+DATA lv_name TYPE string.
+SELECT SINGLE carrname FROM scarr INTO lv_name WHERE carrid = 'LH'.
+WRITE lv_name.    " → Lufthansa
+```
+
+Transpiled to: `sqlite_query(db, "SELECT COUNT(*) FROM scarr")` → `sqlite_step` → `sqlite_column_int/text` → `sqlite_finalize`.
+
+### SELECT ... ENDSELECT — Row Loop
+
+```abap
+DATA lv_id TYPE string.
+DATA lv_name TYPE string.
+SELECT carrid carrname FROM scarr INTO (lv_id, lv_name).
+  WRITE lv_id.
+  WRITE lv_name.
+ENDSELECT.
+```
+
+Output:
+```
+AA American Airlines
+LH Lufthansa
+SQ Singapore Airlines
+```
+
+Transpiled to: `sqlite_query` → `while sqlite_step == 1 { column_text + body }`.
+
+### Runtime Filtering with `sqlite_query_like`
+
+In Nanz programs, the `sqlite_query_like()` host function builds `WHERE ... LIKE` clauses at runtime from `@screen` field values:
+
+```nanz
+var q: u16 = sqlite_query_like(db,
+    c"SELECT carrid, carrname FROM scarr ORDER BY carrid",
+    c"carrid",
+    screen_carrier())   // filter from @screen field
+```
+
+ABAP wildcard conventions:
+| Filter | SQL | Matches |
+|--------|-----|---------|
+| `*` or `%` | (no WHERE) | All rows |
+| `LH` | `WHERE carrid = 'LH'` | Exact match |
+| `A*` | `WHERE carrid LIKE 'A%'` | Starts with A |
+| `*A*` | `WHERE carrid LIKE '%A%'` | Contains A |
+
+### Type Mapping
+
+| ABAP Type | SQLite | Host Function |
+|-----------|--------|---------------|
+| `TYPE i` | INTEGER | `sqlite_column_int` |
+| `TYPE string` | TEXT | `sqlite_column_text` |
+| `TYPE c LENGTH n` | TEXT | `sqlite_column_text` |
+
+---
+
+## 10. The Pipeline in Detail
 
 ### Stage 1: Parsing (abaplint)
 
@@ -452,7 +528,7 @@ On Z80/CP/M: the same functions compile to BDOS calls. `abap_write_str` becomes 
 
 ---
 
-## 10. Examples Gallery
+## 11. Examples Gallery
 
 ### Fibonacci
 
@@ -570,7 +646,7 @@ MZV output (actual `mzv -H` capture):
 
 ---
 
-## 11. Nanz + ABAP: Best of Both Worlds
+## 12. Nanz + ABAP: Best of Both Worlds
 
 ABAP excels at business logic patterns: structured data, reports, selection screens. Nanz excels at systems programming: zero-cost abstractions, direct hardware access, metaprogramming.
 
@@ -683,7 +759,7 @@ This is the first time an ABAP-style SE16 report has run on a Z80 processor.
 
 ---
 
-## 12. Architecture Reference
+## 13. Architecture Reference
 
 ### Source Files
 
