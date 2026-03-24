@@ -269,6 +269,8 @@ MinZ includes a comprehensive stdlib optimized for Z80/retro systems:
 | `time/delay` | Frame timing, delays, animation helpers |
 | `mem/copy` | Fast memcpy/memset/memcmp using LDIR |
 | `cpm/bdos` | CP/M BDOS system calls |
+| `tui/render` | VT100 TUI primitives (cursor, color, input, box drawing) |
+| `sql/sqlite` | Z80 SQLite bridge via I/O ports ($41/$43/$45/$47) |
 
 ### Usage Example
 ```minz

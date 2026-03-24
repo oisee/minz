@@ -6,6 +6,16 @@ For pre-MIR2 history (v0.1–v0.15, 2025), see git log.
 
 ---
 
+## 2026-03-24 (Session 2)
+
+**4 commits. 1 report (#113). [Full context →](reports/2026-03-24-113-CPM-Screen-Polish-SQLite-Bridge.md)**
+
+- **[CP/M Screen Polish + Z80 SQLite Bridge](reports/2026-03-24-113-CPM-Screen-Polish-SQLite-Bridge.md)** — One session from truncated labels to SELECT on Z80. Inline Z80 asm for BDOS-safe TUI primitives (puts_padded, tui_clear, tui_reset). ALV table with 5 data rows on CP/M. Interactive field editing (TAB/Enter). Z80 SQLite bridge via I/O ports $41/$43/$45/$47 — `sqlite_column_text(1, 0) → "Alice"`.
+- **stdlib/sql/sqlite.nanz** — New stdlib module: sqlite_open/exec/query/step/column_text/column_int/finalize/close. Z80 asm bodies for I/O port protocol, mzv host functions (pre-existing).
+- **Cross-session coordination** — Used dedelulu send/explore to validate Z3 solver handles all regalloc workarounds natively (VIR: 27/27 functions, correct while loops).
+
+---
+
 ## 2026-03-15
 
 **42 commits. 8 reports (#073–#080). [Full context →](contexts/2026-03-15_u7_context.md)**
