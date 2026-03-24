@@ -39,6 +39,11 @@ type RegAllocTable struct {
 	mu      sync.RWMutex
 }
 
+// Init initializes an empty table (for external construction).
+func (t *RegAllocTable) Init() {
+	t.entries = make(map[string]*RegAllocEntry)
+}
+
 var (
 	globalTable     *RegAllocTable
 	globalTableOnce sync.Once

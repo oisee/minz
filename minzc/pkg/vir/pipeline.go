@@ -303,16 +303,24 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 		return "", fmt.Errorf("vir lower %s: %w", f.Name, err)
 	}
 
-	// Try precomputed regalloc table first (O(1) lookup, provably optimal)
+	// Try precomputed regalloc table first (O(1) lookup, provably optimal).
+	// If hit, feed the GPU assignment as hard constraints to Z3 — it verifies
+	// and emits code instantly (no search, just pattern selection with fixed regs).
 	if table := GetRegAllocTable(); table.Size() > 0 {
 		var allOps []VIROp
 		for _, b := range vf.Blocks {
 			allOps = append(allOps, b.Ops...)
 		}
-		if assignment, cost, ok := table.Lookup(allOps, desc); ok {
-			_ = assignment // TODO: convert assignment to PIROps and emit ASM
-			_ = cost
-			// For now, fall through to Z3 — full table-to-ASM emission is next step
+		if assignment, _, ok := table.Lookup(allOps, desc); ok {
+			gpuOpts := opts
+			gpuOpts.ParamLocs = assignment // force Z3 to use GPU's optimal registers
+			vfGPU := deepCopyFunc(vf)
+			result, err := codegenFuncCFG(f, vfGPU, desc, gpuOpts)
+			if err == nil {
+				return result, nil
+			}
+			// Table hit but Z3 couldn't emit — fall through to normal path
+			fmt.Fprintf(os.Stderr, "[vir] %s: GPU table hit but Z3 emit failed: %v\n", f.Name, err)
 		}
 	}
 

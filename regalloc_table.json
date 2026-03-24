@@ -1,0 +1,473 @@
+[
+  {
+    "sig": "1v_1o_21b51cf1b70aa1e0",
+    "nVregs": 1,
+    "nOps": 1,
+    "cost": 10,
+    "assignment": [
+      6
+    ]
+  },
+  {
+    "sig": "1v_1o_9719e2abb93e8fef",
+    "nVregs": 1,
+    "nOps": 1,
+    "cost": 10,
+    "assignment": [
+      6
+    ]
+  },
+  {
+    "sig": "1v_1o_9cd60570db59fd79",
+    "nVregs": 1,
+    "nOps": 1,
+    "cost": 10,
+    "assignment": [
+      6
+    ]
+  },
+  {
+    "sig": "1v_4o_0036910ec68cd123",
+    "nVregs": 1,
+    "nOps": 4,
+    "cost": 68,
+    "assignment": [
+      0
+    ]
+  },
+  {
+    "sig": "2v_1o_e18765132dbcf77a",
+    "nVregs": 2,
+    "nOps": 1,
+    "cost": 22,
+    "assignment": [
+      6,
+      5
+    ]
+  },
+  {
+    "sig": "2v_2o_06a23031154d5c46",
+    "nVregs": 2,
+    "nOps": 2,
+    "cost": 17,
+    "assignment": [
+      6,
+      2
+    ]
+  },
+  {
+    "sig": "2v_2o_de71ac8bda6f1285",
+    "nVregs": 2,
+    "nOps": 2,
+    "cost": 14,
+    "assignment": [
+      5,
+      6
+    ]
+  },
+  {
+    "sig": "2v_2o_e66aeb313b84e60c",
+    "nVregs": 2,
+    "nOps": 2,
+    "cost": 23,
+    "assignment": [
+      0,
+      6
+    ]
+  },
+  {
+    "sig": "2v_3o_5c2d79b87463c473",
+    "nVregs": 2,
+    "nOps": 3,
+    "cost": 30,
+    "assignment": [
+      0,
+      6
+    ]
+  },
+  {
+    "sig": "3v_3o_5b8eba0fb901360f",
+    "nVregs": 3,
+    "nOps": 3,
+    "cost": 30,
+    "assignment": [
+      2,
+      1,
+      2
+    ]
+  },
+  {
+    "sig": "3v_3o_6ada84a33aeb1c6f",
+    "nVregs": 3,
+    "nOps": 3,
+    "cost": 10,
+    "assignment": [
+      2,
+      1,
+      2
+    ]
+  },
+  {
+    "sig": "3v_6o_5d3684a1d5789b53",
+    "nVregs": 3,
+    "nOps": 6,
+    "cost": 68,
+    "assignment": [
+      6,
+      0,
+      4
+    ]
+  },
+  {
+    "sig": "4v_2o_0d36afbcdbddc4ee",
+    "nVregs": 4,
+    "nOps": 2,
+    "cost": 4,
+    "assignment": [
+      0,
+      6,
+      2,
+      2
+    ]
+  },
+  {
+    "sig": "4v_3o_5545c2f6d895e3fc",
+    "nVregs": 4,
+    "nOps": 3,
+    "cost": 17,
+    "assignment": [
+      3,
+      2,
+      0,
+      2
+    ]
+  },
+  {
+    "sig": "4v_3o_6c6f2fae41784ef4",
+    "nVregs": 4,
+    "nOps": 3,
+    "cost": 21,
+    "assignment": [
+      6,
+      0,
+      0,
+      2
+    ]
+  },
+  {
+    "sig": "4v_4o_2c7824d1bae7d9a0",
+    "nVregs": 4,
+    "nOps": 4,
+    "cost": 31,
+    "assignment": [
+      6,
+      0,
+      0,
+      4
+    ]
+  },
+  {
+    "sig": "5v_5o_1601be70262bd4d1",
+    "nVregs": 5,
+    "nOps": 5,
+    "cost": 39,
+    "assignment": [
+      2,
+      3,
+      6,
+      0,
+      6
+    ]
+  },
+  {
+    "sig": "5v_8o_4becfdb5424d9632",
+    "nVregs": 5,
+    "nOps": 8,
+    "cost": 48,
+    "assignment": [
+      4,
+      6,
+      4,
+      3,
+      6
+    ]
+  },
+  {
+    "sig": "6v_5o_013ef6160c647abe",
+    "nVregs": 6,
+    "nOps": 5,
+    "cost": 21,
+    "assignment": [
+      0,
+      2,
+      4,
+      3,
+      6,
+      6
+    ]
+  },
+  {
+    "sig": "6v_5o_3def5147420fa130",
+    "nVregs": 6,
+    "nOps": 5,
+    "cost": 24,
+    "assignment": [
+      4,
+      5,
+      0,
+      6,
+      6,
+      6
+    ]
+  },
+  {
+    "sig": "6v_5o_408a7f63382f33dc",
+    "nVregs": 6,
+    "nOps": 5,
+    "cost": 28,
+    "assignment": [
+      0,
+      6,
+      5,
+      3,
+      6,
+      6
+    ]
+  },
+  {
+    "sig": "6v_6o_c140afb6dd439187",
+    "nVregs": 6,
+    "nOps": 6,
+    "cost": 38,
+    "assignment": [
+      2,
+      4,
+      5,
+      6,
+      0,
+      6
+    ]
+  },
+  {
+    "sig": "6v_6o_d25d61853452d8ea",
+    "nVregs": 6,
+    "nOps": 6,
+    "cost": 28,
+    "assignment": [
+      0,
+      5,
+      5,
+      0,
+      6,
+      6
+    ]
+  },
+  {
+    "sig": "7v_13o_b86de90ab87d1f90",
+    "nVregs": 7,
+    "nOps": 13,
+    "cost": 89,
+    "assignment": [
+      2,
+      5,
+      6,
+      4,
+      6,
+      5,
+      6
+    ]
+  },
+  {
+    "sig": "7v_6o_115472c5a14e8400",
+    "nVregs": 7,
+    "nOps": 6,
+    "cost": 35,
+    "assignment": [
+      0,
+      1,
+      5,
+      6,
+      6,
+      6,
+      6
+    ]
+  },
+  {
+    "sig": "7v_6o_6415590cc34bc9a6",
+    "nVregs": 7,
+    "nOps": 6,
+    "cost": 35,
+    "assignment": [
+      4,
+      5,
+      0,
+      4,
+      6,
+      6,
+      6
+    ]
+  },
+  {
+    "sig": "7v_7o_258eac8fe4d1a704",
+    "nVregs": 7,
+    "nOps": 7,
+    "cost": 42,
+    "assignment": [
+      5,
+      4,
+      2,
+      1,
+      6,
+      0,
+      6
+    ]
+  },
+  {
+    "sig": "8v_10o_5d86f470ae982e1d",
+    "nVregs": 8,
+    "nOps": 10,
+    "cost": 89,
+    "assignment": [
+      4,
+      0,
+      0,
+      5,
+      6,
+      0,
+      4,
+      6
+    ]
+  },
+  {
+    "sig": "8v_11o_83bd1a2a282cad75",
+    "nVregs": 8,
+    "nOps": 11,
+    "cost": 116,
+    "assignment": [
+      4,
+      0,
+      4,
+      0,
+      6,
+      0,
+      5,
+      6
+    ]
+  },
+  {
+    "sig": "8v_7o_959d91998999f172",
+    "nVregs": 8,
+    "nOps": 7,
+    "cost": 42,
+    "assignment": [
+      3,
+      0,
+      4,
+      3,
+      5,
+      6,
+      6,
+      6
+    ]
+  },
+  {
+    "sig": "8v_7o_dc849c726912203d",
+    "nVregs": 8,
+    "nOps": 7,
+    "cost": 42,
+    "assignment": [
+      6,
+      3,
+      0,
+      6,
+      5,
+      5,
+      6,
+      6
+    ]
+  },
+  {
+    "sig": "8v_8o_5c7aaa0eeba113cd",
+    "nVregs": 8,
+    "nOps": 8,
+    "cost": 59,
+    "assignment": [
+      6,
+      2,
+      2,
+      4,
+      0,
+      0,
+      6,
+      6
+    ]
+  },
+  {
+    "sig": "9v_10o_6aed9a9210c7c03a",
+    "nVregs": 9,
+    "nOps": 10,
+    "cost": 66,
+    "assignment": [
+      6,
+      1,
+      2,
+      0,
+      6,
+      5,
+      5,
+      6,
+      6
+    ]
+  },
+  {
+    "sig": "9v_7o_7a3f32fd4e42a2fb",
+    "nVregs": 9,
+    "nOps": 7,
+    "cost": 49,
+    "assignment": [
+      3,
+      5,
+      0,
+      4,
+      0,
+      6,
+      6,
+      6,
+      6
+    ]
+  },
+  {
+    "sig": "9v_9o_15f4cf8c7c0b27b5",
+    "nVregs": 9,
+    "nOps": 9,
+    "cost": 52,
+    "assignment": [
+      2,
+      4,
+      6,
+      3,
+      4,
+      6,
+      0,
+      0,
+      6
+    ]
+  },
+  {
+    "sig": "9v_9o_e0bc3bf467743206",
+    "nVregs": 9,
+    "nOps": 9,
+    "cost": 52,
+    "assignment": [
+      2,
+      4,
+      1,
+      4,
+      6,
+      0,
+      0,
+      6,
+      6
+    ]
+  }
+]

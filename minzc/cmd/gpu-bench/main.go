@@ -37,7 +37,7 @@ type funcMeta struct {
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, "Usage: gpu-bench --generate | --compare\n")
+		fmt.Fprintf(os.Stderr, "Usage: gpu-bench --generate | --compare | --build-table\n")
 		os.Exit(1)
 	}
 
@@ -46,6 +46,8 @@ func main() {
 		generateCorpus()
 	case "--compare":
 		compareResults()
+	case "--build-table":
+		buildTable()
 	default:
 		fmt.Fprintf(os.Stderr, "Unknown flag: %s\n", os.Args[1])
 		os.Exit(1)
@@ -245,4 +247,114 @@ func compareResults() {
 		fmt.Printf("%-25s %-18s %4d %8s %12d %8d\n",
 			m.File, m.Name, m.NVregs, costStr, r.SearchSpace, r.Feasible)
 	}
+}
+
+// buildTable reads GPU results + corpus, computes proper signatures,
+// and writes regalloc_table.json that the compiler loads at startup.
+func buildTable() {
+	exDir := filepath.Join("..", "examples", "nanz")
+	files, err := filepath.Glob(filepath.Join(exDir, "*.nanz"))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "glob: %v\n", err)
+		os.Exit(1)
+	}
+	sort.Strings(files)
+
+	// Read GPU results
+	rf, err := os.Open(resultsFile)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "open results: %v\n", err)
+		os.Exit(1)
+	}
+	defer rf.Close()
+
+	var gpuResults []vir.GPUResult
+	rScanner := bufio.NewScanner(rf)
+	rScanner.Buffer(make([]byte, 1024*1024), 1024*1024)
+	for rScanner.Scan() {
+		var r vir.GPUResult
+		json.Unmarshal(rScanner.Bytes(), &r)
+		gpuResults = append(gpuResults, r)
+	}
+
+	// Rebuild VIR ops for each function (same order as --generate)
+	table := &vir.RegAllocTable{}
+	table.Init()
+	resultIdx := 0
+	built, skipped := 0, 0
+
+	for _, fpath := range files {
+		base := filepath.Base(fpath)
+		src, err := os.ReadFile(fpath)
+		if err != nil {
+			continue
+		}
+
+		hm, err := nanz.ParseWithOpts(string(src), base, nanz.ParseOpts{})
+		if err != nil {
+			continue
+		}
+
+		m := hir.LowerModule(hm)
+		for _, f := range m.Funcs {
+			mir2.ReorderBlocks(f)
+			mir2.DeadStoreElim(f)
+		}
+		for _, f := range m.Funcs {
+			lr := mir2.ComputeLiveness(f)
+			mir2.Allocate(f, lr, mir2.Z80CostTable{})
+		}
+
+		for _, f := range m.Funcs {
+			mir2.FuseAbsDiff(f)
+			vf, err := vir.LowerFunc(f, vir.Z80, m)
+			if err != nil {
+				continue
+			}
+			var allOps []vir.VIROp
+			for _, b := range vf.Blocks {
+				allOps = append(allOps, b.Ops...)
+			}
+			if len(allOps) == 0 {
+				continue
+			}
+
+			_, _, buildErr := vir.BuildGPUDesc(allOps, vir.Z80, vir.SolverOptions{})
+			if buildErr != nil {
+				skipped++
+				continue
+			}
+
+			// Match with GPU result
+			if resultIdx >= len(gpuResults) {
+				break
+			}
+			r := gpuResults[resultIdx]
+			resultIdx++
+
+			if r.Cost < 0 {
+				skipped++
+				continue
+			}
+
+			// Compute signature and add to table
+			sig := vir.ComputeSignature(allOps, vir.Z80)
+			table.Add(sig, &vir.RegAllocEntry{
+				Signature:  sig,
+				NVregs:     len(r.Assignment),
+				NOps:       len(allOps),
+				Cost:       r.Cost,
+				Assignment: r.Assignment,
+			})
+			built++
+		}
+	}
+
+	outPath := filepath.Join("..", "regalloc_table.json")
+	if err := table.Save(outPath); err != nil {
+		fmt.Fprintf(os.Stderr, "save: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Printf("Built %s: %d entries (%d skipped)\n", outPath, built, skipped)
 }
