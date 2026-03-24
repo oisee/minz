@@ -285,9 +285,20 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 }
 
 // translateMul converts OpMul to runtime call with proper arg setup.
+// For 8-bit constant multipliers, checks the GPU-precomputed multiply table
+// and emits inline shift/add sequences instead of CALL __mul8 (~80T).
 // __mul8: A × B → A.  __mul16: HL × DE → HL.
 func translateMul(inst *mir2.Inst, desc *MachineDesc) ([]VIROp, error) {
 	w := mirWidth(inst, desc)
+
+	// Try constant multiply optimization (8-bit only)
+	if w <= 8 {
+		// Check if either source is a known constant
+		if ops := tryConstMul(inst, desc, w); ops != nil {
+			return ops, nil
+		}
+	}
+
 	return translateRuntimeCall(inst, desc, w, true)
 }
 
