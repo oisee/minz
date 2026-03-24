@@ -589,6 +589,16 @@ func (z *RemogattoZ80) SetIOHandlers(read func(port uint16) byte, write func(por
 	z.ports.ioWrite = write
 }
 
+// GetIORead returns the current I/O read handler (for chaining).
+func (z *RemogattoZ80) GetIORead() func(port uint16) byte {
+	return z.ports.ioRead
+}
+
+// GetIOWrite returns the current I/O write handler (for chaining).
+func (z *RemogattoZ80) GetIOWrite() func(port uint16, value byte) {
+	return z.ports.ioWrite
+}
+
 // SetBDOSHandler sets the CP/M BDOS handler for intercepting CALL 0x0005
 func (z *RemogattoZ80) SetBDOSHandler(handler func(function byte, de uint16) (a byte, hl uint16, handled bool)) {
 	z.bdosHandler = handler

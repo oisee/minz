@@ -212,6 +212,8 @@ SUPPORTED PLATFORMS (-t/--target):
 			// needs cooked mode with Enter to submit. Raw mode only for BDOS 6
 			// (direct console I/O) which is handled inside the BDOS handler.
 			setupCPMBDOS(z80)
+			// SQLite I/O port bridge ($41/$43/$45/$47)
+			setupSQLitePorts(z80, verbose)
 		}
 
 		// Set up Agon MOS RST handler if target is agon

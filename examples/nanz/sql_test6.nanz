@@ -1,0 +1,24 @@
+import tui.render
+import sql.sqlite
+
+fun main() -> void {
+    tui_puts(c"Open...\n")
+    sqlite_open(c":memory:")
+    tui_puts(c"Exec...\n")
+    sqlite_exec(1, c"CREATE TABLE t(name TEXT)")
+    sqlite_exec(1, c"INSERT INTO t VALUES('Alice')")
+    sqlite_exec(1, c"INSERT INTO t VALUES('Bob')")
+    tui_puts(c"Query...\n")
+    sqlite_query(1, c"SELECT name FROM t")
+    tui_puts(c"Step1...\n")
+    sqlite_step(1)
+    tui_puts(sqlite_column_text(1, 0))
+    tui_puts(c"\n")
+    tui_puts(c"Step2...\n")
+    sqlite_step(1)
+    tui_puts(sqlite_column_text(1, 0))
+    tui_puts(c"\n")
+    sqlite_finalize(1)
+    sqlite_close(1)
+    tui_puts(c"Done.\n")
+}
