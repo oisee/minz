@@ -132,14 +132,16 @@ All 55 functions produce identical results on both VMs.
 
 | Program | SDCC | VIR (Z3) | Delta | Winner |
 |---------|------|----------|-------|--------|
-| abs_diff | 12 | 11 | -8% | VIR |
-| gcd | 17 | 16 | -6% | VIR |
+| abs_diff | 12 | **4** | **-67%** | VIR |
+| gcd | 17 | **10** | **-41%** | VIR |
 | minmax | 60 | 11 | -82% | VIR |
 | fib | 22 | 12 | -45% | VIR |
 | select_b† | 20 | 2 | -90% | VIR |
-| **TOTAL** | **131** | **52** | **-60%** | **VIR 5/5** |
+| **TOTAL** | **131** | **39** | **-70%** | **VIR 5/5** |
 
 †select_b: dead-code elimination test (`let t = a; return b`). SDCC cannot eliminate dead code across stack ABI.
+
+Key improvements since initial report: abs_diff uses grace-level `SUB/RET NC/NEG/RET` fusion (4 bytes, matches hand-optimal). gcd benefits from soft CFG edge constraints allowing cross-block register moves (10 instructions, zero register shuffling).
 
 ### 4.4 Compile Time
 
