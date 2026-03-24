@@ -19,6 +19,7 @@ import (
 	"os/exec"
 	"sort"
 	"sync"
+	"syscall"
 )
 
 // GPUFuncDesc is the JSON schema for the CUDA regalloc kernel.
@@ -90,6 +91,7 @@ func startGPUServer() (*gpuServer, error) {
 
 	cmd := exec.Command(binPath, "--server")
 	cmd.Env = append(os.Environ(), "CUDA_VISIBLE_DEVICES=0")
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true} // isolate from Go test signal group
 
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
