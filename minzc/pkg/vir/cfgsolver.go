@@ -13,6 +13,7 @@ package vir
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"sort"
 	"strings"
@@ -290,33 +291,44 @@ func SolveCFG(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions) (ma
 		}
 	}
 
-	// CFG edge constraints: vreg locations must match across block boundaries
+	// CFG edge constraints: vreg locations should match across block boundaries.
+	// We use SOFT constraints (move cost) instead of hard equality, so the solver
+	// can insert moves at block boundaries when needed (e.g., abs_diff: b needs
+	// to move from C to A at the else-block entry for SUB A,r pattern).
+	type edgeMove struct {
+		fromVar, toVar string
+	}
+	var edgeMoves []edgeMove
+
 	for _, edge := range edges {
 		fromBP := blocks[edge.fromBlock]
 		toBP := blocks[edge.toBlock]
 
-		// Vregs live at end of from-block and start of to-block
 		fromLastIdx := len(fromBP.ops) - 1
 		if fromLastIdx < 0 {
 			continue
 		}
 
-		// For each vreg live at both sides of the edge
 		fromLive := fromBP.prob.liveness[fromLastIdx].live
 		var toLive map[int]bool
 		if len(toBP.prob.liveness) > 0 {
 			toLive = toBP.prob.liveness[0].live
 		}
 
+		sortedVRegs := make([]int, 0, len(fromLive))
 		for vreg := range fromLive {
+			sortedVRegs = append(sortedVRegs, vreg)
+		}
+		sort.Ints(sortedVRegs)
+
+		for _, vreg := range sortedVRegs {
 			if toLive != nil && toLive[vreg] {
 				fromVar := fmt.Sprintf("lv%d_b%d_i%d", vreg, edge.fromBlock, fromLastIdx)
 				toVar := fmt.Sprintf("lv%d_b%d_i%d", vreg, edge.toBlock, 0)
-				// Ensure both variables exist
 				ensureVar(vreg, edge.fromBlock, fromLastIdx)
 				ensureVar(vreg, edge.toBlock, 0)
-				b.WriteString(fmt.Sprintf("(assert (= %s %s)) ; CFG edge b%d→b%d\n",
-					fromVar, toVar, edge.fromBlock, edge.toBlock))
+				// Soft: allow different locations with a move cost penalty
+				edgeMoves = append(edgeMoves, edgeMove{fromVar, toVar})
 			}
 		}
 	}
@@ -368,6 +380,11 @@ func SolveCFG(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions) (ma
 		}
 	}
 
+	// Edge move costs: penalty when vreg changes location across block boundary
+	for _, em := range edgeMoves {
+		b.WriteString(fmt.Sprintf("  (ite (= %s %s) 0 4)\n", em.fromVar, em.toVar))
+	}
+
 	b.WriteString(")))\n")
 
 	// Skip minimize for large problems
@@ -387,6 +404,12 @@ func SolveCFG(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions) (ma
 	// Run Z3
 	model, err := runZ3(smt, opts)
 	if err != nil {
+		// Dump SMT on failure for debugging
+		if os.Getenv("VIR_DUMP_SMT") != "" {
+			smtFile := fmt.Sprintf("/tmp/vir_cfg_%s.smt2", f.Name)
+			os.WriteFile(smtFile, []byte(smt), 0644)
+			fmt.Fprintf(os.Stderr, "[CFG-solver] dumped SMT to %s (%d bytes)\n", smtFile, len(smt))
+		}
 		return nil, fmt.Errorf("CFG solve: %w", err)
 	}
 
