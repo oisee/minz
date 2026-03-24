@@ -1193,6 +1193,34 @@ func peepholeCleanup(asm string) string {
 			}
 		}
 
+		// Duplicate CP elimination: CP r / JR cc, label / [labels...] / CP r → skip second CP
+		// JR and labels don't modify flags, so the second CP is redundant on fall-through.
+		if strings.HasPrefix(line, "CP ") {
+			operand := strings.TrimPrefix(line, "CP ")
+			// Look back: was the previous non-label, non-comment instruction a JR cc?
+			// And before that, was there a CP with the same operand?
+			prevCPIdx := -1
+			allFlagsSafe := true
+			for j := len(result) - 1; j >= 0 && j >= len(result)-4; j-- {
+				prev := strings.TrimSpace(result[j])
+				if prev == "" || strings.HasSuffix(prev, ":") || strings.HasPrefix(prev, ";") {
+					continue // labels/comments don't touch flags
+				}
+				if strings.HasPrefix(prev, "JR ") {
+					continue // JR reads but doesn't modify flags
+				}
+				if prev == "CP "+operand {
+					prevCPIdx = j
+					break
+				}
+				allFlagsSafe = false // some other instruction modifies flags
+				break
+			}
+			if prevCPIdx >= 0 && allFlagsSafe {
+				continue // skip redundant CP
+			}
+		}
+
 		// Dead LD elimination: LD r, X / LD r, Y → remove first (same dest, first is dead)
 		// Only for single registers, not memory or pairs
 		if i+1 < len(lines) && strings.HasPrefix(line, "LD ") {
@@ -1375,6 +1403,44 @@ func fuseAbsDiffASM(lines []string) []string {
 func gracePass(lines []string) []string {
 	// First: fuse abs_diff patterns
 	lines = fuseAbsDiffASM(lines)
+
+	// JP threading: JP .label where .label only contains JP .target → JP .target
+	// Build label→first-instruction map
+	labelTarget := make(map[string]string) // label → JP target (if label block is just JP)
+	for i := 0; i < len(lines)-1; i++ {
+		t := strings.TrimSpace(lines[i])
+		if strings.HasSuffix(t, ":") && strings.HasPrefix(t, ".") {
+			label := strings.TrimSuffix(t, ":")
+			// Find next non-label, non-empty line
+			for j := i + 1; j < len(lines) && j <= i+3; j++ {
+				next := strings.TrimSpace(lines[j])
+				if next == "" || strings.HasSuffix(next, ":") || strings.HasPrefix(next, ";") {
+					continue
+				}
+				if strings.HasPrefix(next, "JP ") && !strings.HasPrefix(next, "JP (") {
+					target := strings.TrimPrefix(next, "JP ")
+					target = strings.TrimSpace(target)
+					labelTarget[label] = target
+				}
+				break
+			}
+		}
+	}
+	// Rewrite JP/JR targets through chains
+	if len(labelTarget) > 0 {
+		for i, line := range lines {
+			t := strings.TrimSpace(line)
+			for _, prefix := range []string{"JP ", "JR Z, ", "JR NZ, ", "JR C, ", "JR NC, ", "JR "} {
+				if strings.HasPrefix(t, prefix) {
+					target := strings.TrimSpace(strings.TrimPrefix(t, prefix))
+					if newTarget, ok := labelTarget[target]; ok {
+						lines[i] = "    " + prefix + newTarget
+					}
+					break
+				}
+			}
+		}
+	}
 
 	var result []string
 
