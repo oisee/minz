@@ -196,17 +196,11 @@ func gpuRegAllocPath() string {
 	return ""
 }
 
-// SolveGPU converts a VIR problem to JSON, sends to the GPU server, and
-// returns the optimal register assignment (vreg → physical loc index).
-func SolveGPU(ops []VIROp, desc *MachineDesc, opts SolverOptions) (map[int]int, int, error) {
-	srv, err := getGPUServer()
-	if err != nil {
-		return nil, 0, err
-	}
-
+// BuildGPUDesc converts VIR ops into a GPUFuncDesc for the CUDA kernel.
+// Returns the desc, vreg count, and error. Exported for use by gpu-bench.
+func BuildGPUDesc(ops []VIROp, desc *MachineDesc, opts SolverOptions) (*GPUFuncDesc, int, error) {
 	prob := buildProblem(ops, desc)
 
-	// Map vregs to dense 0..N-1 indices for the GPU
 	vregList := make([]int, 0, len(prob.vregs))
 	for v := range prob.vregs {
 		vregList = append(vregList, v)
@@ -214,7 +208,7 @@ func SolveGPU(ops []VIROp, desc *MachineDesc, opts SolverOptions) (map[int]int, 
 	sort.Ints(vregList)
 
 	if len(vregList) > 14 {
-		return nil, 0, fmt.Errorf("too many vregs for GPU: %d (max 14)", len(vregList))
+		return nil, len(vregList), fmt.Errorf("too many vregs for GPU: %d (max 14)", len(vregList))
 	}
 
 	vregIdx := make(map[int]int)
@@ -222,8 +216,7 @@ func SolveGPU(ops []VIROp, desc *MachineDesc, opts SolverOptions) (map[int]int, 
 		vregIdx[v] = i
 	}
 
-	// Build GPU function description
-	gf := GPUFuncDesc{NVregs: len(vregList)}
+	gf := &GPUFuncDesc{NVregs: len(vregList)}
 
 	for i, op := range ops {
 		gop := GPUOpDesc{Dst: -1, Src0: -1, Src1: -1}
@@ -290,8 +283,23 @@ func SolveGPU(ops []VIROp, desc *MachineDesc, opts SolverOptions) (map[int]int, 
 		}
 	}
 
-	// Solve via server
-	result, err := srv.solve(&gf)
+	return gf, len(vregList), nil
+}
+
+// SolveGPU converts a VIR problem to JSON, sends to the GPU server, and
+// returns the optimal register assignment (vreg → physical loc index).
+func SolveGPU(ops []VIROp, desc *MachineDesc, opts SolverOptions) (map[int]int, int, error) {
+	srv, err := getGPUServer()
+	if err != nil {
+		return nil, 0, err
+	}
+
+	gf, _, err := BuildGPUDesc(ops, desc, opts)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	result, err := srv.solve(gf)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -300,7 +308,14 @@ func SolveGPU(ops []VIROp, desc *MachineDesc, opts SolverOptions) (map[int]int, 
 		return nil, 0, fmt.Errorf("GPU: no feasible assignment (space=%d)", result.SearchSpace)
 	}
 
-	// Map back from dense indices to original vregs
+	// Map back: need vregList to reverse the dense indices
+	prob := buildProblem(ops, desc)
+	vregList := make([]int, 0, len(prob.vregs))
+	for v := range prob.vregs {
+		vregList = append(vregList, v)
+	}
+	sort.Ints(vregList)
+
 	assignment := make(map[int]int)
 	for i, loc := range result.Assignment {
 		if i < len(vregList) {

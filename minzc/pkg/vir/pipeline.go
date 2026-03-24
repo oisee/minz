@@ -303,6 +303,19 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 		return "", fmt.Errorf("vir lower %s: %w", f.Name, err)
 	}
 
+	// Try precomputed regalloc table first (O(1) lookup, provably optimal)
+	if table := GetRegAllocTable(); table.Size() > 0 {
+		var allOps []VIROp
+		for _, b := range vf.Blocks {
+			allOps = append(allOps, b.Ops...)
+		}
+		if assignment, cost, ok := table.Lookup(allOps, desc); ok {
+			_ = assignment // TODO: convert assignment to PIROps and emit ASM
+			_ = cost
+			// For now, fall through to Z3 — full table-to-ASM emission is next step
+		}
+	}
+
 	// Skip dual-mode for trivial functions (extern stubs, empty bodies)
 	trivial := len(vf.Blocks) == 0 || (len(vf.Blocks) == 1 && len(vf.Blocks[0].Ops) <= 1)
 	if trivial {
