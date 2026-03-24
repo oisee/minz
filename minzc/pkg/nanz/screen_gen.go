@@ -25,7 +25,7 @@ import (
 
 // screenField is a parsed field from the @screen block.
 type screenField struct {
-	keyword  string // "field", "int", "button"
+	keyword  string // "field", "int", "button", "table"
 	name     string // label text (e.g. "Material")
 	safeName string // snake_case identifier (e.g. "material")
 	length   int    // buffer length (text fields)
@@ -38,10 +38,26 @@ type screenField struct {
 	row      int    // display row
 }
 
+// screenTable holds table metadata for ALV-style grid display.
+type screenTable struct {
+	name     string
+	safeName string
+	columns  []tableColumn
+	maxRows  int
+	rowSize  int // sum of column widths + null terminators
+	startRow int // first display row
+}
+
+type tableColumn struct {
+	name     string
+	safeName string
+	width    int
+	offset   int // byte offset within a row
+}
+
 // generateScreenSource generates Nanz source for an @screen declaration.
 func generateScreenSource(title string, block []metaBlockNode) (string, error) {
-	// Parse fields from block nodes
-	fields, err := parseScreenFields(block)
+	fields, table, err := parseScreenFieldsAndTable(block)
 	if err != nil {
 		return "", err
 	}
@@ -51,32 +67,42 @@ func generateScreenSource(title string, block []metaBlockNode) (string, error) {
 	emitExterns(&sb)
 	emitConstants(&sb)
 	emitGlobals(&sb, title, fields)
+	if table != nil {
+		emitTableGlobals(&sb, table)
+	}
 	emitHelpers(&sb)
 	emitScreenInit(&sb, title, fields)
-	emitScreenRender(&sb, title, fields)
+	if table != nil {
+		emitTableInit(&sb, table)
+	}
+	emitScreenRender(&sb, title, fields, table)
+	if table != nil {
+		emitTableRender(&sb, table)
+	}
 	emitScreenHandleKey(&sb, fields)
 	emitScreenShow(&sb)
 	emitAccessors(&sb, fields)
+	if table != nil {
+		emitTableAccessors(&sb, table)
+	}
 
 	return sb.String(), nil
 }
 
-func parseScreenFields(block []metaBlockNode) ([]screenField, error) {
+func parseScreenFieldsAndTable(block []metaBlockNode) ([]screenField, *screenTable, error) {
 	var fields []screenField
-	row := 2 // start after title bar (row 0) + blank (row 1)
+	var table *screenTable
+	row := 2
 	btnCount := 0
+	fieldIdx := 0
 
-	for i, n := range block {
-		f := screenField{
-			keyword: n.keyword,
-			index:   i,
-		}
-
+	for _, n := range block {
 		switch n.keyword {
 		case "field":
 			if len(n.args) < 1 {
-				return nil, fmt.Errorf("field requires a label: field \"Name\" ...")
+				return nil, nil, fmt.Errorf("field requires a label: field \"Name\" ...")
 			}
+			f := screenField{keyword: "field", index: fieldIdx, row: row}
 			f.name = n.args[0]
 			f.safeName = toSnake(f.name)
 			f.length = 10
@@ -86,40 +112,86 @@ func parseScreenFields(block []metaBlockNode) ([]screenField, error) {
 			if v, ok := n.kwargs["default"]; ok {
 				f.defStr = v
 			}
-			f.row = row
+			fields = append(fields, f)
+			fieldIdx++
 			row++
 
 		case "int":
 			if len(n.args) < 1 {
-				return nil, fmt.Errorf("int requires a label: int \"Name\" ...")
+				return nil, nil, fmt.Errorf("int requires a label: int \"Name\" ...")
 			}
+			f := screenField{keyword: "int", index: fieldIdx, row: row}
 			f.name = n.args[0]
 			f.safeName = toSnake(f.name)
 			if v, ok := n.kwargs["default"]; ok {
 				fmt.Sscanf(v, "%d", &f.defInt)
 			}
-			f.row = row
+			fields = append(fields, f)
+			fieldIdx++
 			row++
+
+		case "table":
+			if table != nil {
+				return nil, nil, fmt.Errorf("only one table per screen is supported")
+			}
+			name := "Table"
+			if len(n.args) > 0 {
+				name = n.args[0]
+			}
+			maxRows := 8
+			if v, ok := n.kwargs["rows"]; ok {
+				fmt.Sscanf(v, "%d", &maxRows)
+			}
+			table = &screenTable{
+				name:     name,
+				safeName: toSnake(name),
+				maxRows:  maxRows,
+				startRow: row,
+			}
+			// Table takes multiple rows — reserve space for header + data + separator
+			// Actual row count set after columns are parsed
+
+		case "column":
+			if table == nil {
+				return nil, nil, fmt.Errorf("column must follow a table declaration")
+			}
+			if len(n.args) < 1 {
+				return nil, nil, fmt.Errorf("column requires a name: column \"MATNR\" width 10")
+			}
+			width := 10
+			if v, ok := n.kwargs["width"]; ok {
+				fmt.Sscanf(v, "%d", &width)
+			}
+			col := tableColumn{
+				name:     n.args[0],
+				safeName: toSnake(n.args[0]),
+				width:    width,
+				offset:   table.rowSize,
+			}
+			table.rowSize += width + 1 // +1 for null terminator per cell
+			table.columns = append(table.columns, col)
 
 		case "button":
 			if len(n.args) < 1 {
-				return nil, fmt.Errorf("button requires a label: button \"Execute\" ...")
+				return nil, nil, fmt.Errorf("button requires a label: button \"Execute\" ...")
 			}
+			// If table was defined, advance row past table area
+			if table != nil && table.startRow == row {
+				row += 2 + table.maxRows // header + separator + data rows
+			}
+
+			f := screenField{keyword: "button", index: fieldIdx}
 			f.name = n.args[0]
 			f.safeName = toSnake(f.name)
-
-			// Map button name to action
 			switch strings.ToLower(f.name) {
 			case "execute", "run", "ok":
 				f.action = "Execute"
 			case "back", "cancel", "exit":
 				f.action = "Back"
 			default:
-				f.action = "Execute" // default action
+				f.action = "Execute"
 			}
-
-			// Function key
-			f.fkey = "F8" // default
+			f.fkey = "F8"
 			if v, ok := n.kwargs["key"]; ok {
 				f.fkey = v
 			}
@@ -139,20 +211,19 @@ func parseScreenFields(block []metaBlockNode) ([]screenField, error) {
 			default:
 				f.fkeyCode = 147
 			}
-
 			if btnCount == 0 {
-				row++ // blank line before buttons
+				row++
 			}
 			f.row = row
+			fields = append(fields, f)
+			fieldIdx++
 			btnCount++
 
 		default:
-			return nil, fmt.Errorf("unknown screen element: %q", n.keyword)
+			return nil, nil, fmt.Errorf("unknown screen element: %q", n.keyword)
 		}
-
-		fields = append(fields, f)
 	}
-	return fields, nil
+	return fields, table, nil
 }
 
 func emitExterns(sb *strings.Builder) {
@@ -274,7 +345,7 @@ func emitScreenInit(sb *strings.Builder, title string, fields []screenField) {
 	sb.WriteString("}\n\n")
 }
 
-func emitScreenRender(sb *strings.Builder, title string, fields []screenField) {
+func emitScreenRender(sb *strings.Builder, title string, fields []screenField, table *screenTable) {
 	sb.WriteString("fun screen_render() -> void {\n")
 	sb.WriteString("    tui_clear()\n")
 
@@ -343,6 +414,11 @@ func emitScreenRender(sb *strings.Builder, title string, fields []screenField) {
 			sb.WriteString("    tui_putch(93)\n")
 			sb.WriteString("    tui_reset()\n")
 		}
+	}
+
+	// Table (if present)
+	if table != nil {
+		sb.WriteString("    _tbl_render()\n")
 	}
 
 	// Status bar
@@ -438,6 +514,110 @@ func emitAccessors(sb *strings.Builder, fields []screenField) {
 			fmt.Fprintf(sb, "    return _val_%s\n", f.safeName)
 			sb.WriteString("}\n\n")
 		}
+	}
+}
+
+// ── Table generation ────────────────────────────────────────────────────
+
+func emitTableGlobals(sb *strings.Builder, t *screenTable) {
+	totalSize := t.maxRows * t.rowSize
+	fmt.Fprintf(sb, "global _tbl_data: [u8; %d]\n", totalSize)
+	sb.WriteString("global _tbl_nrows: u8\n")
+	// Column offset constants
+	for _, col := range t.columns {
+		fmt.Fprintf(sb, "const TBL_OFF_%s: u16 = %d\n", strings.ToUpper(col.safeName), col.offset)
+	}
+	fmt.Fprintf(sb, "const TBL_ROW_SIZE: u16 = %d\n", t.rowSize)
+	fmt.Fprintf(sb, "const TBL_MAX_ROWS: u8 = %d\n", t.maxRows)
+	sb.WriteString("\n")
+}
+
+func emitTableInit(sb *strings.Builder, t *screenTable) {
+	sb.WriteString("fun table_init() -> void {\n")
+	sb.WriteString("    _tbl_nrows = 0\n")
+	sb.WriteString("}\n\n")
+
+	// table_set_str(row, col_offset, val) — copy string into flat buffer
+	sb.WriteString("fun table_set_str(row: u8, col_off: u16, val: ^u8) -> void {\n")
+	fmt.Fprintf(sb, "    var dst: ^u8 = &_tbl_data + row * %d + col_off\n", t.rowSize)
+	sb.WriteString("    var src: ^u8 = val\n")
+	sb.WriteString("    while src^ != 0 {\n")
+	sb.WriteString("        dst^ = src^\n")
+	sb.WriteString("        src = src + 1\n")
+	sb.WriteString("        dst = dst + 1\n")
+	sb.WriteString("    }\n")
+	sb.WriteString("    dst^ = 0\n")
+	sb.WriteString("}\n\n")
+
+	// table_set_nrows
+	sb.WriteString("fun table_set_nrows(n: u8) -> void {\n")
+	sb.WriteString("    _tbl_nrows = n\n")
+	sb.WriteString("}\n\n")
+
+	// table_nrows
+	sb.WriteString("fun table_nrows() -> u8 {\n")
+	sb.WriteString("    return _tbl_nrows\n")
+	sb.WriteString("}\n\n")
+}
+
+func emitTableRender(sb *strings.Builder, t *screenTable) {
+	// This is called from screen_render after the fields are drawn
+	// We append a table_render() function and call it from screen_render
+
+	sb.WriteString("fun _tbl_render() -> void {\n")
+
+	headerRow := t.startRow
+	fmt.Fprintf(sb, "    tui_goto(2, %d)\n", headerRow)
+
+	// Column headers (bright white)
+	sb.WriteString("    tui_color(7, 0, 1)\n")
+	for _, col := range t.columns {
+		fmt.Fprintf(sb, "    _scr_puts_padded(c\"%s\", %d)\n", col.name, col.width+1)
+	}
+	sb.WriteString("    tui_reset()\n")
+
+	// Separator line
+	fmt.Fprintf(sb, "    tui_goto(2, %d)\n", headerRow+1)
+	sb.WriteString("    tui_color(7, 0, 0)\n")
+	totalWidth := 0
+	for _, col := range t.columns {
+		totalWidth += col.width + 1
+	}
+	fmt.Fprintf(sb, "    var _si: u8 = 0\n")
+	fmt.Fprintf(sb, "    while _si < %d {\n", totalWidth)
+	sb.WriteString("        tui_putch(45)\n") // '-'
+	sb.WriteString("        _si = _si + 1\n")
+	sb.WriteString("    }\n")
+	sb.WriteString("    tui_reset()\n")
+
+	// Data rows
+	sb.WriteString("    var _row: u8 = 0\n")
+	sb.WriteString("    while _row < _tbl_nrows {\n")
+	fmt.Fprintf(sb, "        tui_goto(2, %d + _row)\n", headerRow+2)
+	sb.WriteString("        tui_color(7, 0, 0)\n")
+
+	// Compute row base pointer, then offset for each column
+	fmt.Fprintf(sb, "        var _rbase: ^u8 = &_tbl_data + _row * %d\n", t.rowSize)
+	for _, col := range t.columns {
+		if col.offset == 0 {
+			fmt.Fprintf(sb, "        _scr_puts_padded(_rbase, %d)\n", col.width+1)
+		} else {
+			fmt.Fprintf(sb, "        _scr_puts_padded(_rbase + %d, %d)\n", col.offset, col.width+1)
+		}
+	}
+
+	sb.WriteString("        tui_reset()\n")
+	sb.WriteString("        _row = _row + 1\n")
+	sb.WriteString("    }\n")
+	sb.WriteString("}\n\n")
+}
+
+func emitTableAccessors(sb *strings.Builder, t *screenTable) {
+	// Per-column set helpers: table_set_<col>(row, val)
+	for _, col := range t.columns {
+		fmt.Fprintf(sb, "fun table_set_%s(row: u8, val: ^u8) -> void {\n", col.safeName)
+		fmt.Fprintf(sb, "    table_set_str(row, %d, val)\n", col.offset)
+		sb.WriteString("}\n\n")
 	}
 }
 

@@ -279,7 +279,21 @@ From 7 lines of declaration, `@screen` generates:
 |---------|--------|---------|
 | Text field | `field "Label" length N default "D"` | `field "Name" length 20 default "ACME"` |
 | Integer | `int "Label" default N` | `int "Count" default 10` |
+| Table | `table "Name" rows N` | `table "Materials" rows 8` |
+| Column | `column "Name" width N` | `column "MATNR" width 10` |
 | Button | `button "Label" key FK` | `button "Execute" key F8` |
+
+### Table API (Mini-ALV)
+
+The `table` + `column` elements generate a flat-buffer-backed grid display:
+
+| Generated | Purpose |
+|-----------|---------|
+| `table_init()` | Clear table data, set row count to 0 |
+| `table_set_nrows(n)` | Set number of visible rows |
+| `table_nrows() -> u8` | Get current row count |
+| `table_set_<col>(row, val)` | Set cell value for named column |
+| `table_set_str(row, offset, val)` | Set cell by byte offset |
 
 ### PBO/PAI Flow
 
@@ -318,6 +332,57 @@ The screen follows the ABAP dynpro pattern:
 - **F-keys** — direct action (F8=Execute, F3=Back, etc.)
 - **ESC** — back/cancel
 - Focus highlighting: blue background on active field
+
+### Mini-ALV: Table Display
+
+The `table` element brings ABAP's ALV grid to the terminal. Declare columns, fill data, display:
+
+```nanz
+@screen("Material List") {
+    field "Filter" length 10 default "*"
+    table "Materials" rows 8
+    column "MATNR" width 10
+    column "MTART" width 6
+    column "MEINS" width 4
+    button "Execute" key F8
+    button "Back" key F3
+}
+
+fun load_materials() -> void {
+    table_init()
+    table_set_matnr(0, c"MAT-001")
+    table_set_mtart(0, c"FERT")
+    table_set_meins(0, c"ST")
+    // ... more rows ...
+    table_set_nrows(5)
+}
+
+fun main() -> void {
+    screen_init()
+    load_materials()
+    var result: u8 = screen_show()
+}
+```
+
+Renders as:
+
+```
+  Material List
+  Filter      [*         ]
+
+  MATNR      MTART  MEINS
+  -----------------------
+  MAT-001    FERT   ST
+  MAT-002    HALB   KG
+  MAT-003    ROH    L
+  MAT-004    FERT   ST
+  MAT-005    VERP   PC
+
+  [F8=Execute]  [F3=Back]
+  TAB=Next  Enter=Edit  F8=Execute  F3=Back
+```
+
+The table uses a flat byte buffer internally (struct arrays have a known VM bug). Each row is `sum(column_widths + 1)` bytes. The `table_set_<col>(row, val)` helpers handle offset calculation automatically.
 
 ---
 

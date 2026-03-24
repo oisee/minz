@@ -1,0 +1,58 @@
+// screen_alv.nanz — Mini-ALV: table display with @screen
+//
+// Demonstrates the table element: column headers, data rows,
+// and the ABAP LOOP AT itab pattern using a flat byte buffer.
+//
+// Run: echo "" | mzv -H examples/nanz/screen_alv.nanz
+
+@screen("Material List") {
+    field "Filter" length 10 default "*"
+    table "Materials" rows 8
+    column "MATNR" width 10
+    column "MTART" width 6
+    column "MEINS" width 4
+    button "Execute" key F8
+    button "Back" key F3
+}
+
+// Fill the table with sample data (ABAP: SELECT * FROM MARA)
+fun load_materials() -> void {
+    table_init()
+
+    table_set_matnr(0, c"MAT-001")
+    table_set_mtart(0, c"FERT")
+    table_set_meins(0, c"ST")
+
+    table_set_matnr(1, c"MAT-002")
+    table_set_mtart(1, c"HALB")
+    table_set_meins(1, c"KG")
+
+    table_set_matnr(2, c"MAT-003")
+    table_set_mtart(2, c"ROH")
+    table_set_meins(2, c"L")
+
+    table_set_matnr(3, c"MAT-004")
+    table_set_mtart(3, c"FERT")
+    table_set_meins(3, c"ST")
+
+    table_set_matnr(4, c"MAT-005")
+    table_set_mtart(4, c"VERP")
+    table_set_meins(4, c"PC")
+
+    table_set_nrows(5)
+}
+
+fun main() -> void {
+    screen_init()
+    load_materials()
+
+    var result: u8 = screen_show()
+
+    if result == SCREEN_EXECUTE {
+        tui_puts(c"Filter: ")
+        tui_puts(screen_filter())
+        tui_puts(c"\nRows: ")
+        _scr_print_u16(table_nrows())
+        tui_puts(c"\n")
+    }
+}

@@ -4,8 +4,8 @@ package main
 //
 // Architecture: the compiler emits sel_register_str/sel_register_int calls
 // to describe screen fields, then sel_show() to collect input. On MZV these
-// are host functions that read from stdin and write values to VM heap buffers.
-// On Z80/CP/M the same calls are no-ops and the fallback BDOS path runs.
+// are host functions that render a TUI selection screen with focus, colors,
+// and keyboard navigation. On Z80/CP/M the same calls use BDOS/VT100.
 
 import (
 	"bufio"
@@ -87,73 +87,25 @@ func registerScreenHosts(vm *mir2.VM, headless bool, trace bool) {
 			return []mir2.Value{{I: 1}}, nil
 		}
 
-		// Determine if we should read input:
-		//   - stdin is a pipe → always read (piped test data)
-		//   - not headless → interactive, prompt on stderr and read
-		//   - headless + no pipe → auto-execute with defaults
+		// Determine mode
 		shouldRead := stdinIsPipe || !headless
 
-		if shouldRead {
-			// Render selection screen header to stderr
-			maxLabel := 0
-			for _, f := range fields {
-				if len(f.name) > maxLabel {
-					maxLabel = len(f.name)
-				}
+		if shouldRead && !stdinIsPipe {
+			// Interactive TUI mode — full screen with focus and colors
+			selShowTUI(fields, trace)
+		} else if shouldRead && stdinIsPipe {
+			// Piped input — read values from stdin
+			selShowPiped(fields, trace)
+		} else {
+			// Headless, no pipe — auto-execute with defaults
+			if trace {
+				selShowTrace(fields)
 			}
-
-			if !stdinIsPipe {
-				// Interactive mode: show a nice box
-				fmt.Fprintf(os.Stderr, "\n┌─ Selection Screen ──────────────────┐\n")
-				fmt.Fprintf(os.Stderr, "│                                    │\n")
-				for _, f := range fields {
-					val := f.value
-					if val == "" {
-						val = strings.Repeat("_", f.length)
-					}
-					fmt.Fprintf(os.Stderr, "│  %-10s [%-20s]  │\n", f.name, val)
-				}
-				fmt.Fprintf(os.Stderr, "│                                    │\n")
-				fmt.Fprintf(os.Stderr, "│  [Enter=Execute]                   │\n")
-				fmt.Fprintf(os.Stderr, "└────────────────────────────────────┘\n\n")
-			}
-
-			// Read input for each field
-			reader := bufio.NewReader(os.Stdin)
-			for _, f := range fields {
-				if !stdinIsPipe {
-					fmt.Fprintf(os.Stderr, "%s [%s]: ", f.name, f.value)
-				}
-				line, err := reader.ReadString('\n')
-				if err != nil && len(line) == 0 {
-					break // EOF with no data → keep defaults
-				}
-				line = strings.TrimRight(line, "\r\n")
-				if line != "" {
-					f.value = line
-				}
-			}
-		} else if trace {
-			// Headless with no pipe: show what defaults will be used
-			fmt.Fprintf(os.Stderr, "\n┌─ Selection Screen ──────────────────┐\n")
-			fmt.Fprintf(os.Stderr, "│                                    │\n")
-			for _, f := range fields {
-				val := f.value
-				if val == "" {
-					val = strings.Repeat("_", f.length)
-				}
-				fmt.Fprintf(os.Stderr, "│  %-10s [%-20s]  │\n", f.name, val)
-			}
-			fmt.Fprintf(os.Stderr, "│                                    │\n")
-			fmt.Fprintf(os.Stderr, "│  [Enter=Execute]                   │\n")
-			fmt.Fprintf(os.Stderr, "└────────────────────────────────────┘\n\n")
-			fmt.Fprintf(os.Stderr, "  sel_show() → auto-execute with defaults\n")
 		}
 
 		// Write values back to VM heap buffers
 		for _, f := range fields {
 			if f.ty == 'c' && f.bufPtr != 0 {
-				// Write null-terminated string to the text buffer
 				data := append([]byte(f.value), 0)
 				vm.WriteHeapBytes(f.bufPtr, data)
 			}
@@ -192,6 +144,212 @@ func registerScreenHosts(vm *mir2.VM, headless bool, trace bool) {
 	}
 
 	fmt.Fprintf(os.Stderr, "mzv: screen host functions registered\n")
+}
+
+// ── TUI rendering for sel_show ──────────────────────────────────────────
+
+const (
+	termW = 80
+	termH = 24
+)
+
+// ANSI helpers — output to stdout (the TUI IS the program output)
+func ansiGoto(x, y int)            { fmt.Fprintf(os.Stdout, "\033[%d;%dH", y+1, x+1) }
+func ansiColor(fg, bg int)         { fmt.Fprintf(os.Stdout, "\033[%d;%dm", fg, bg) }
+func ansiReset()                   { fmt.Fprint(os.Stdout, "\033[0m") }
+func ansiClear()                   { fmt.Fprint(os.Stdout, "\033[2J\033[H") }
+func ansiShowCursor()              { fmt.Fprint(os.Stdout, "\033[?25h") }
+func ansiHideCursor()              { fmt.Fprint(os.Stdout, "\033[?25l") }
+
+func selRenderTUI(fields []*selField, focus int, title string) {
+	ansiClear()
+
+	// Title bar: white on blue
+	ansiColor(97, 104)
+	ansiGoto(0, 0)
+	text := "  " + title
+	fmt.Fprint(os.Stdout, text)
+	for i := len(text); i < termW; i++ {
+		fmt.Fprint(os.Stdout, " ")
+	}
+	ansiReset()
+
+	// Fields
+	for i, f := range fields {
+		row := 2 + i
+		ansiGoto(2, row)
+
+		// Label (cyan)
+		ansiColor(36, 40)
+		label := f.name
+		fmt.Fprintf(os.Stdout, "%-12s", label)
+
+		// Value box
+		if i == focus {
+			ansiColor(97, 104) // white on blue = focused
+		} else {
+			ansiColor(37, 40) // white on black = normal
+		}
+		fmt.Fprint(os.Stdout, "[")
+		val := f.value
+		width := f.length
+		if f.ty == 'i' {
+			width = 6
+		}
+		if width < 1 {
+			width = 10
+		}
+		if len(val) > width {
+			val = val[:width]
+		}
+		fmt.Fprintf(os.Stdout, "%-*s", width, val)
+		fmt.Fprint(os.Stdout, "]")
+		ansiReset()
+	}
+
+	// Buttons row
+	btnRow := 2 + len(fields) + 1
+	ansiGoto(2, btnRow)
+	if focus == len(fields) {
+		ansiColor(30, 107) // black on bright white = focused
+	} else {
+		ansiColor(97, 100) // bright white on dark = normal
+	}
+	fmt.Fprint(os.Stdout, "[F8=Execute]")
+	ansiReset()
+	fmt.Fprint(os.Stdout, "  ")
+	if focus == len(fields)+1 {
+		ansiColor(30, 107)
+	} else {
+		ansiColor(97, 100)
+	}
+	fmt.Fprint(os.Stdout, "[F3=Back]")
+	ansiReset()
+
+	// Status bar
+	ansiColor(37, 44)
+	ansiGoto(0, termH-1)
+	status := "  TAB=Next  Enter=Edit  F8=Execute  F3=Back"
+	fmt.Fprint(os.Stdout, status)
+	for i := len(status); i < termW; i++ {
+		fmt.Fprint(os.Stdout, " ")
+	}
+	ansiReset()
+}
+
+func selShowTUI(fields []*selField, trace bool) {
+	focus := 0
+	totalItems := len(fields) + 2 // fields + Execute + Back buttons
+	title := "Selection Screen"
+
+	for {
+		selRenderTUI(fields, focus, title)
+
+		// Read key
+		buf := make([]byte, 8)
+		n, err := os.Stdin.Read(buf)
+		if err != nil || n == 0 {
+			break // execute on EOF
+		}
+
+		b := buf[0]
+
+		// ESC sequences
+		if b == 0x1B && n >= 3 && buf[1] == '[' {
+			// Check for function keys
+			if n >= 4 && buf[n-1] == '~' {
+				code := string(buf[2 : n-1])
+				switch code {
+				case "19": // F8
+					break
+				case "13": // F3
+					break
+				}
+			}
+			switch buf[2] {
+			case 'A': // Up
+				if focus > 0 {
+					focus--
+				}
+			case 'B': // Down
+				if focus < totalItems-1 {
+					focus++
+				}
+			}
+			if n >= 4 && buf[n-1] == '~' {
+				code := string(buf[2 : n-1])
+				if code == "19" || code == "13" {
+					break // F8 or F3 → execute
+				}
+			}
+			continue
+		}
+
+		switch b {
+		case '\t': // TAB
+			focus = (focus + 1) % totalItems
+		case '\r', '\n': // Enter
+			if focus == len(fields) { // Execute button
+				goto done
+			}
+			if focus == len(fields)+1 { // Back button
+				goto done
+			}
+			// Edit focused field
+			if focus < len(fields) {
+				f := fields[focus]
+				row := 2 + focus
+				ansiGoto(15, row)
+				ansiColor(97, 104)
+				ansiShowCursor()
+
+				reader := bufio.NewReader(os.Stdin)
+				line, _ := reader.ReadString('\n')
+				line = strings.TrimRight(line, "\r\n")
+				ansiHideCursor()
+				ansiReset()
+				if line != "" {
+					f.value = line
+				}
+			}
+		case 0x1B: // bare ESC
+			goto done
+		}
+	}
+done:
+	ansiClear()
+	ansiGoto(0, 0)
+	ansiReset()
+}
+
+func selShowPiped(fields []*selField, trace bool) {
+	reader := bufio.NewReader(os.Stdin)
+	for _, f := range fields {
+		line, err := reader.ReadString('\n')
+		if err != nil && len(line) == 0 {
+			break
+		}
+		line = strings.TrimRight(line, "\r\n")
+		if line != "" {
+			f.value = line
+		}
+	}
+}
+
+func selShowTrace(fields []*selField) {
+	fmt.Fprintf(os.Stderr, "\n┌─ Selection Screen ──────────────────┐\n")
+	fmt.Fprintf(os.Stderr, "│                                    │\n")
+	for _, f := range fields {
+		val := f.value
+		if val == "" {
+			val = strings.Repeat("_", f.length)
+		}
+		fmt.Fprintf(os.Stderr, "│  %-10s [%-20s]  │\n", f.name, val)
+	}
+	fmt.Fprintf(os.Stderr, "│                                    │\n")
+	fmt.Fprintf(os.Stderr, "│  [Enter=Execute]                   │\n")
+	fmt.Fprintf(os.Stderr, "└────────────────────────────────────┘\n\n")
+	fmt.Fprintf(os.Stderr, "  sel_show() → auto-execute with defaults\n")
 }
 
 // registerScreenHostsWithSY wires screen hosts to the SY-UCOMM variable.
