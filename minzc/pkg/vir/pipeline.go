@@ -1120,11 +1120,95 @@ func peepholeCleanup(asm string) string {
 
 		// ── Grace-like CFG rules (on assembly level) ─────────────────
 
-		// Label followed immediately by JP (unconditional) to another label:
-		// remove the JP if the label is the next block
-		// (handled by the earlier fallthrough rule)
+		// Conditional RET: JR/JP cc, .target / [labels...] / RET / .target: → RET cc_inverted
+		// Also handles: JR/JP cc, .target / [labels...] / RET / [labels...] / .target:
+		// This is a massive win — saves 2 instructions per conditional return.
+		if (strings.HasPrefix(line, "JR ") || strings.HasPrefix(line, "JP ")) &&
+			!strings.HasPrefix(line, "JR .") && !strings.HasPrefix(line, "JP .") &&
+			!strings.HasPrefix(line, "JP (") {
+			prefix := "JR "
+			if strings.HasPrefix(line, "JP ") {
+				prefix = "JP "
+			}
+			rest := strings.TrimPrefix(line, prefix)
+			if commaIdx := strings.Index(rest, ", "); commaIdx > 0 {
+				cc := strings.TrimSpace(rest[:commaIdx])
+				target := strings.TrimSpace(rest[commaIdx+2:])
+				// Scan forward: skip labels, find RET, then find target label
+				retIdx := -1
+				for j := i + 1; j < len(lines) && j <= i+4; j++ {
+					t := strings.TrimSpace(lines[j])
+					if t == "" || strings.HasSuffix(t, ":") || strings.HasPrefix(t, ";") {
+						continue // skip labels, comments, empty
+					}
+					if t == "RET" {
+						retIdx = j
+						break
+					}
+					break // non-label, non-RET instruction → stop
+				}
+				if retIdx > 0 {
+					// Now find target label after RET
+					targetIdx := -1
+					for j := retIdx + 1; j < len(lines) && j <= retIdx+3; j++ {
+						t := strings.TrimSpace(lines[j])
+						if t == "" || strings.HasPrefix(t, ";") {
+							continue
+						}
+						if t == target+":" {
+							targetIdx = j
+							break
+						}
+						if strings.HasSuffix(t, ":") {
+							continue // other labels, keep scanning
+						}
+						break // instruction → stop
+					}
+					if targetIdx > 0 {
+						invCC := invertCC(cc)
+						if invCC != "" {
+							result = append(result, "    RET "+invCC)
+							i = targetIdx - 1 // skip up to target label; label preserved on next iteration
+							continue
+						}
+					}
+				}
+			}
+		}
 
-		// Empty block: label followed by another label → keep both (no-op block)
+		// Dead LD elimination: LD r, X / LD r, Y → remove first (same dest, first is dead)
+		// Only for single registers, not memory or pairs
+		if i+1 < len(lines) && strings.HasPrefix(line, "LD ") {
+			parts := strings.SplitN(line[3:], ", ", 2)
+			if len(parts) == 2 {
+				dst := strings.TrimSpace(parts[0])
+				nextLine := strings.TrimSpace(lines[i+1])
+				if strings.HasPrefix(nextLine, "LD ") && !strings.HasPrefix(dst, "(") {
+					nextParts := strings.SplitN(nextLine[3:], ", ", 2)
+					if len(nextParts) == 2 {
+						nextDst := strings.TrimSpace(nextParts[0])
+						if dst == nextDst && len(dst) <= 3 && !strings.HasPrefix(dst, "(") {
+							continue // skip first LD — dead store
+						}
+					}
+				}
+			}
+		}
+
+		// Reverse-copy elimination: LD X, Y / LD Y, X → keep only first
+		if i+1 < len(lines) && strings.HasPrefix(line, "LD ") {
+			parts := strings.SplitN(line[3:], ", ", 2)
+			if len(parts) == 2 {
+				a := strings.TrimSpace(parts[0])
+				b := strings.TrimSpace(parts[1])
+				nextLine := strings.TrimSpace(lines[i+1])
+				if nextLine == "LD "+b+", "+a {
+					result = append(result, lines[i]) // keep first
+					i++                                // skip second
+					continue
+				}
+			}
+		}
 
 		result = append(result, lines[i])
 	}
@@ -1148,6 +1232,30 @@ func peepholeCleanup(asm string) string {
 
 // gracePass applies Grace-like CFG pattern rules on Z80 assembly.
 // These are multi-instruction patterns that the simple peephole can't catch.
+// invertCC returns the inverted Z80 condition code, or "" if unknown.
+func invertCC(cc string) string {
+	switch strings.ToUpper(cc) {
+	case "Z":
+		return "NZ"
+	case "NZ":
+		return "Z"
+	case "C":
+		return "NC"
+	case "NC":
+		return "C"
+	case "PE":
+		return "PO"
+	case "PO":
+		return "PE"
+	case "M":
+		return "P"
+	case "P":
+		return "M"
+	default:
+		return ""
+	}
+}
+
 func gracePass(lines []string) []string {
 	var result []string
 
