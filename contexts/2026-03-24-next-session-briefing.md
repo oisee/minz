@@ -1,83 +1,93 @@
-# Next Session Briefing: TinyFrill + More Canvas + MinZ Corpus Push
+# Next Session Briefing: ABAP Screens + C89 Book + TinyFrill
 
 ## Goal
+ABAP declarative screens (SwiftUI-style PAI/PBO) + C89 Frontend Internals booklet + TinyFrill lexer.
 
-TinyFrill lexer (self-hosting phase 1) + generative art + push MinZ corpus past 70%.
+## Priority 1: ABAP Declarative Screens
 
-## Priority 1: TinyFrill Lexer
+Design a minimal screen system for ABAP-on-Z80. Inspiration: SwiftUI declarative UI.
 
-Write a Frill tokenizer in Nanz. Uses existing stdlib/core (StrRef, HashMap).
+### ABAP Screen Model (real SAP)
+- **Selection Screen**: PARAMETERS, SELECT-OPTIONS → input fields before report runs
+- **Dynpro (Screen)**: 4-digit screen number, layout painter, flow logic (PBO/PAI modules)
+- **PBO** (Process Before Output): prepare screen data
+- **PAI** (Process After Input): handle user actions
+- **ALV**: grid display for internal tables
 
-```nanz
-enum TokenKind { Ident, Int, LParen, RParen, Pipe, Arrow, FatArrow,
-                 Eq, Plus, Minus, Star, Slash, Let, In, If, Then, Else,
-                 Match, With, Type, Fun, Assert, Prop, EOF }
+### What We Can Do on Z80 (256x192 or 80x24 terminal)
+- Character-mode screens (CP/M terminal or ZX Spectrum)
+- Fixed layout: labels + input fields at (row, col)
+- Simple flow: PBO fills defaults → display → PAI reads input → process
+- No mouse, no scrolling tables (yet)
 
-struct Token {
-    kind: u8
-    start: u16    // offset in source
-    len: u8       // length
-}
+### Already Implemented
+- `PARAMETERS` parsing (parse.go: `parseParamStmt`)
+- `sel_register`/`sel_show`/`sel_get_int` host functions in MZV
+- `selscreen.abap` and `hello_param.abap` examples work in MZV
+- Events: INITIALIZATION, START-OF-SELECTION
 
-global src: [u8; 4096]
-global pos: u16 = 0
+### Next Steps
+- Terminal rendering for sel_show (CP/M: BDOS calls, ZX: screen buffer)
+- SELECTION-SCREEN BLOCK/FRAME layout
+- Input validation (TYPE checking)
+- Look at ~/dev/vibing-steampunk/ for real ABAP screen patterns
+- Consider: can we support a mini-ALV (table display)?
+- Design SwiftUI-style declarative DSL for screens
 
-fun next_token() -> Token { ... }
-```
+## Priority 2: C89 Frontend Internals Book
 
-Test by lexing `let add (a : u8) (b : u8) = a + b` and verifying token sequence with asserts.
+Write `docs/C89_Frontend_Internals.md` — a compact guide to how C89 source becomes Z80 code.
 
-## Priority 2: More Canvas Renders
+### Chapters
+1. Pipeline overview: C source → cparse AST → HIR → MIR2 → Z80
+2. cparse: tokenizer, recursive descent parser, type system
+3. Lowering: how C constructs map to HIR
+4. Type mapping: int→u16, char→u8, pointer→ptr, void→TyVoid
+5. Struct-return promotion (ADR-0025): SSS detection, out-param, ptr-return
+6. Assert system: comment-based `// assert fn(args) == expected via mir2`
+7. Comparison with SDCC
 
-Ideas for beautiful images:
-- **Sierpinski triangle** — `if (x & y) == 0` pixel test, depth coloring
-- **Mandelbrot set** — fixed-point i16 math, ZX Spectrum colors
-- **Plasma** — sin(x) + sin(y) color cycling
-- **Koch snowflake** — turtle graphics, 60-degree L-system
-- **Barnsley fern** — IFS (iterated function system) with random transform selection
+### Source Files
+- `pkg/cparse/` — C parser
+- `pkg/c89/c89.go` — lowerer
+- `pkg/c89/promote.go` — struct-return promotion
 
-Each can be a `TestCanvas*` Go test that outputs PNG. Canvas API is ready.
+## Priority 3: TinyFrill Lexer (from previous session)
 
-## Priority 3: MinZ Corpus — Push to 70%
+Write a Frill tokenizer in Nanz — self-hosting phase 1.
 
-Remaining 61 failures break down as:
-- **10 imports** — needs stdlib search path in test (not parser issue)
-- **8 `*expr` deref** — Nanz uses `^expr`, could add `*` as alias in expr parser
-- **5 `@inline`** — add as no-op annotation (hint for future optimizer)
-- **4 `@asm` functions** — skip or convert to `asm z80 {}` inside fun
-- **4 `module`** — reject explicitly with helpful error
-- **3 `@abi`** — skip as annotation
-- **1 `@interrupt`** — skip as annotation
-- **~26 misc** — expression parsing edge cases
+## Priority 4: LIR Small-Function Overhead
 
-Low-hanging: skip unknown `@annotations` gracefully (+13 files). Add `*` as deref alias (+8 files). = +21 files → 79/119 (66%).
+LIR adds ~12-16B overhead per trivial function vs legacy. Investigate:
+- Runtime stubs emitted even when unused?
+- Leaf function prologue/epilogue skip?
 
-## Priority 4: Frill Guide — Full Book Treatment
+## Key Context From This Session
 
-Current: 535 lines. Target: 1000+ with:
-- Currying examples
-- Type classes with concrete code
-- Tuples and destructuring
-- QTT linearity worked examples
-- For loops
-- More DSL showcases
-- Canvas renders embedded as illustrations
+### ABAP Frontend (what works now)
+- 14/14 examples compile
+- FORM → separate functions (single CHANGING → return value)
+- CLASS/METHOD → separate functions (RETURNING → return value, no self for pure classes)
+- Assert comments: `* assert fn(args) == expected via mir2`
 
-## Key Constraints
+### C89 Promote (what was fixed)
+- AddrOfExpr handling in call site rewrite
+- Void return stripping in promoted functions
+- All promote tests pass
 
-1. VIR is now default backend — all new code goes through Z3 solver
-2. No semicolons in Nanz (strict policy)
-3. `var` for mutable, `let` for bindings — no `let mut`
-4. impl blocks work: `impl Trait for Type { fun method(self) ... }`
-5. Canvas API: `@extern fun canvas_init(...)` + `RegisterCanvasHosts` in Go tests
-6. Test with `via mir2` for algorithm correctness, `via z80` for codegen verification
+### LIR vs Legacy (book examples)
+- 22% smaller total code (LIR)
+- 0 semantic mismatches on 17 tests
+- LIR wins big on complex code, Legacy wins on trivials
 
 ## Files to Start With
-
 ```
-stdlib/core/strref.nanz        — EXISTS: string references for lexer
-stdlib/core/hashmap.nanz       — EXISTS: hash table for keywords
-minzc/pkg/nanz/canvas_*.go     — EXISTS: canvas test infrastructure
-minzc/pkg/nanz/parse.go        — for MinZ corpus fixes
-docs/Frill_Language_Guide.md   — for expansion
+~/dev/vibing-steampunk/                   — ABAP screen patterns reference
+minzc/pkg/abap/parse.go                   — screen parsing (PARAMETERS done)
+minzc/pkg/abap/lower.go                   — screen lowering
+minzc/pkg/c89/c89.go                      — C89 lowerer (for book)
+minzc/pkg/c89/promote.go                  — struct promotion (for book)
+minzc/pkg/cparse/                         — C parser (for book)
+examples/abap/selscreen.abap              — existing selection screen example
+examples/abap/hello_param.abap            — existing PARAMETERS example
 ```
