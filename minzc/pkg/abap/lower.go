@@ -43,11 +43,10 @@ func Compile(src, name string, target ...uint8) (*hir.Module, error) {
 		}
 	}
 
-	hm, err := LowerProgram(prog)
+	hm, err := LowerProgramWithTarget(prog, tgt)
 	if err != nil {
 		return nil, fmt.Errorf("abap lower: %w", err)
 	}
-	hm.Target = tgt
 	emitRuntimeFuncs(hm, tgt)
 
 	// Scan source for assert comments (* assert fn(args) == expected [via mir2|z80]).
@@ -88,13 +87,18 @@ func Compile(src, name string, target ...uint8) (*hir.Module, error) {
 
 // LowerProgram converts a semantic ABAP Program to a HIR module.
 func LowerProgram(prog *Program) (*hir.Module, error) {
+	return LowerProgramWithTarget(prog, 0)
+}
+
+// LowerProgramWithTarget converts a semantic ABAP Program to a HIR module with target platform.
+func LowerProgramWithTarget(prog *Program, target uint8) (*hir.Module, error) {
 	l := &lowerer{
 		prog:           prog,
 		varTypes:       make(map[string]mir2.Ty),
 		strCache:       make(map[string]int),
 		internalTables: make(map[string]*internalTable),
 	}
-	l.hm = &hir.Module{Name: prog.Name}
+	l.hm = &hir.Module{Name: prog.Name, Target: target}
 	return l.lower()
 }
 
@@ -418,7 +422,9 @@ func (l *lowerer) lower() (*hir.Module, error) {
 			}
 			fieldIdx++
 		}
-		if len(intReadStmts) > 0 {
+		// MZV path: sel_get_int overwrites params with host values.
+		// Skip for ZX Spectrum — the fallback input path already set them.
+		if len(intReadStmts) > 0 && l.hm.Target != hir.TargetZXSpectrum {
 			mainStmts = append(mainStmts, &hir.IfStmt{
 				Cond: &hir.BinExpr{
 					Op: "!=",
