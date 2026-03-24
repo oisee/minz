@@ -1,21 +1,24 @@
 // gpu.go — GPU brute-force register allocator bridge.
 //
-// Serializes a VIR function's constraints to JSON, invokes the CUDA
-// z80_regalloc kernel, and parses the optimal assignment back.
+// Serializes VIR function constraints to JSON, sends to the CUDA
+// z80_regalloc --server process, and parses the optimal assignment back.
 //
-// This is an alternative to Z3 for small-to-medium functions (≤12 vregs).
-// The GPU exhaustively searches ALL 7^N register assignments and returns
-// the provably optimal one.
+// Server mode: CUDA initializes once, GPU buffers reused across solves.
+// Protocol: write JSON-per-line to stdin, read JSON-per-line from stdout.
+// "regalloc-server: ready" on stderr signals startup complete.
 //
 // Requires: z80_regalloc binary in PATH or at $Z80_REGALLOC_PATH
 package vir
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"sort"
+	"sync"
 )
 
 // GPUFuncDesc is the JSON schema for the CUDA regalloc kernel.
@@ -27,9 +30,9 @@ type GPUFuncDesc struct {
 }
 
 type GPUOpDesc struct {
-	Dst      int             `json:"dst"`
-	Src0     int             `json:"src0"`
-	Src1     int             `json:"src1"`
+	Dst      int              `json:"dst"`
+	Src0     int              `json:"src0"`
+	Src1     int              `json:"src1"`
 	Patterns []GPUPatternDesc `json:"patterns"`
 }
 
@@ -48,18 +51,135 @@ type GPUParamConst struct {
 
 // GPUResult is the JSON output from the CUDA kernel.
 type GPUResult struct {
-	Cost        int   `json:"cost"`
-	Assignment  []int `json:"assignment"`
-	SearchSpace int64 `json:"searchSpace"`
-	Feasible    int64 `json:"feasible"`
+	Cost        int    `json:"cost"`
+	Assignment  []int  `json:"assignment"`
+	SearchSpace int64  `json:"searchSpace"`
+	Feasible    int64  `json:"feasible"`
+	Error       string `json:"error,omitempty"`
 }
+
+// ── GPU Server (persistent process) ─────────────────────────────────────────
+
+// gpuServer manages a long-running z80_regalloc --server process.
+type gpuServer struct {
+	cmd    *exec.Cmd
+	stdin  io.WriteCloser
+	stdout *bufio.Scanner
+	mu     sync.Mutex
+}
+
+var (
+	globalGPU     *gpuServer
+	globalGPUOnce sync.Once
+	globalGPUErr  error
+)
+
+// getGPUServer returns a shared GPU server instance, starting it if needed.
+func getGPUServer() (*gpuServer, error) {
+	globalGPUOnce.Do(func() {
+		globalGPU, globalGPUErr = startGPUServer()
+	})
+	return globalGPU, globalGPUErr
+}
+
+func startGPUServer() (*gpuServer, error) {
+	binPath := gpuRegAllocPath()
+	if binPath == "" {
+		return nil, fmt.Errorf("z80_regalloc not found (set Z80_REGALLOC_PATH)")
+	}
+
+	cmd := exec.Command(binPath, "--server")
+	cmd.Env = append(os.Environ(), "CUDA_VISIBLE_DEVICES=0")
+
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		return nil, fmt.Errorf("GPU stdin pipe: %w", err)
+	}
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		return nil, fmt.Errorf("GPU stdout pipe: %w", err)
+	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return nil, fmt.Errorf("GPU stderr pipe: %w", err)
+	}
+
+	if err := cmd.Start(); err != nil {
+		return nil, fmt.Errorf("GPU start: %w", err)
+	}
+
+	// Wait for "regalloc-server: ready" on stderr
+	stderrScanner := bufio.NewScanner(stderr)
+	ready := make(chan bool, 1)
+	go func() {
+		for stderrScanner.Scan() {
+			line := stderrScanner.Text()
+			if line == "regalloc-server: ready" {
+				ready <- true
+				return
+			}
+		}
+		ready <- false
+	}()
+
+	if !<-ready {
+		cmd.Process.Kill()
+		return nil, fmt.Errorf("GPU server did not become ready")
+	}
+
+	// Drain remaining stderr in background
+	go func() {
+		for stderrScanner.Scan() {
+			// discard
+		}
+	}()
+
+	return &gpuServer{
+		cmd:    cmd,
+		stdin:  stdin,
+		stdout: bufio.NewScanner(stdout),
+	}, nil
+}
+
+// solve sends a function description to the GPU server and reads the result.
+func (s *gpuServer) solve(gf *GPUFuncDesc) (*GPUResult, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	jsonData, err := json.Marshal(gf)
+	if err != nil {
+		return nil, fmt.Errorf("GPU json: %w", err)
+	}
+
+	// Write JSON + newline
+	if _, err := s.stdin.Write(append(jsonData, '\n')); err != nil {
+		return nil, fmt.Errorf("GPU write: %w", err)
+	}
+
+	// Read result line
+	if !s.stdout.Scan() {
+		return nil, fmt.Errorf("GPU read: %v", s.stdout.Err())
+	}
+
+	var result GPUResult
+	if err := json.Unmarshal(s.stdout.Bytes(), &result); err != nil {
+		return nil, fmt.Errorf("GPU parse: %w\nraw: %s", err, s.stdout.Text())
+	}
+
+	if result.Error != "" {
+		return nil, fmt.Errorf("GPU error: %s", result.Error)
+	}
+
+	return &result, nil
+}
+
+// ── Public API ──────────────────────────────────────────────────────────────
 
 // gpuRegAllocPath returns the path to the z80_regalloc binary.
 func gpuRegAllocPath() string {
 	if p := os.Getenv("Z80_REGALLOC_PATH"); p != "" {
 		return p
 	}
-	// Try common locations
 	for _, p := range []string{
 		"z80_regalloc",
 		os.ExpandEnv("$HOME/dev/z80-optimizer/cuda/z80_regalloc"),
@@ -67,7 +187,6 @@ func gpuRegAllocPath() string {
 		if _, err := exec.LookPath(p); err == nil {
 			return p
 		}
-		// Check absolute path
 		if _, err := os.Stat(p); err == nil {
 			return p
 		}
@@ -75,13 +194,12 @@ func gpuRegAllocPath() string {
 	return ""
 }
 
-// SolveGPU converts a VIR problem to JSON, invokes the GPU kernel, and
+// SolveGPU converts a VIR problem to JSON, sends to the GPU server, and
 // returns the optimal register assignment (vreg → physical loc index).
-// Returns nil, error if GPU is unavailable or function is too large.
 func SolveGPU(ops []VIROp, desc *MachineDesc, opts SolverOptions) (map[int]int, int, error) {
-	binPath := gpuRegAllocPath()
-	if binPath == "" {
-		return nil, 0, fmt.Errorf("z80_regalloc not found (set Z80_REGALLOC_PATH)")
+	srv, err := getGPUServer()
+	if err != nil {
+		return nil, 0, err
 	}
 
 	prob := buildProblem(ops, desc)
@@ -97,17 +215,14 @@ func SolveGPU(ops []VIROp, desc *MachineDesc, opts SolverOptions) (map[int]int, 
 		return nil, 0, fmt.Errorf("too many vregs for GPU: %d (max 14)", len(vregList))
 	}
 
-	vregIdx := make(map[int]int) // vreg → dense index
+	vregIdx := make(map[int]int)
 	for i, v := range vregList {
 		vregIdx[v] = i
 	}
 
 	// Build GPU function description
-	gf := GPUFuncDesc{
-		NVregs: len(vregList),
-	}
+	gf := GPUFuncDesc{NVregs: len(vregList)}
 
-	// Convert ops
 	for i, op := range ops {
 		gop := GPUOpDesc{Dst: -1, Src0: -1, Src1: -1}
 		if op.Dst > 0 {
@@ -126,7 +241,6 @@ func SolveGPU(ops []VIROp, desc *MachineDesc, opts SolverOptions) (map[int]int, 
 			}
 		}
 
-		// Convert matching patterns (only 8-bit GPR locs: indices 0-6)
 		for _, pi := range prob.patterns[i] {
 			pat := &desc.Patterns[pi]
 			gpat := GPUPatternDesc{
@@ -144,7 +258,7 @@ func SolveGPU(ops []VIROp, desc *MachineDesc, opts SolverOptions) (map[int]int, 
 		}
 	}
 
-	// Build interference from liveness
+	// Interference from liveness
 	emitted := make(map[[2]int]bool)
 	for _, l := range prob.liveness {
 		ids := make([]int, 0, len(l.live))
@@ -166,47 +280,18 @@ func SolveGPU(ops []VIROp, desc *MachineDesc, opts SolverOptions) (map[int]int, 
 	}
 
 	// Param constraints
-	if opts.FuncParamLocs != nil || opts.ParamLocs != nil {
-		paramLocs := opts.ParamLocs
-		if paramLocs == nil {
-			paramLocs = make(map[int]int)
-		}
-		for vreg, phys := range paramLocs {
-			if idx, ok := vregIdx[vreg]; ok && phys < 7 { // only 8-bit GPR
+	if opts.ParamLocs != nil {
+		for vreg, phys := range opts.ParamLocs {
+			if idx, ok := vregIdx[vreg]; ok && phys < 7 {
 				gf.ParamConstraints = append(gf.ParamConstraints, GPUParamConst{Vreg: idx, Loc: phys})
 			}
 		}
 	}
 
-	// Serialize to JSON
-	jsonData, err := json.Marshal(gf)
+	// Solve via server
+	result, err := srv.solve(&gf)
 	if err != nil {
-		return nil, 0, fmt.Errorf("GPU json: %w", err)
-	}
-
-	// Write JSON to temp file (avoids stdin pipe issues with CUDA process)
-	tmpFile, err := os.CreateTemp("", "gpu_regalloc_*.json")
-	if err != nil {
-		return nil, 0, fmt.Errorf("GPU tmpfile: %w", err)
-	}
-	tmpPath := tmpFile.Name()
-	defer os.Remove(tmpPath)
-	tmpFile.Write(jsonData)
-	tmpFile.Close()
-
-	// Invoke kernel via shell: z80_regalloc --json < tmpfile
-	out, err := exec.Command("sh", "-c", fmt.Sprintf("cat %s | %s --json", tmpPath, binPath)).Output()
-	if err != nil {
-		if exitErr, ok := err.(*exec.ExitError); ok {
-			return nil, 0, fmt.Errorf("GPU exec: %w\nstderr: %s", err, string(exitErr.Stderr))
-		}
-		return nil, 0, fmt.Errorf("GPU exec: %w", err)
-	}
-
-	// Parse result
-	var result GPUResult
-	if err := json.Unmarshal(out, &result); err != nil {
-		return nil, 0, fmt.Errorf("GPU parse result: %w\nraw: %s", err, string(out))
+		return nil, 0, err
 	}
 
 	if result.Cost < 0 {
@@ -224,11 +309,11 @@ func SolveGPU(ops []VIROp, desc *MachineDesc, opts SolverOptions) (map[int]int, 
 	return assignment, result.Cost, nil
 }
 
-// locSetToGPU converts a LocSet to a slice of GPU-compatible loc indices (0-6 only).
+// locSetToGPU converts a LocSet to GPU-compatible loc indices (0-6 only).
 func locSetToGPU(ls LocSet) []int {
 	var result []int
 	ls.ForEach(func(loc int) bool {
-		if loc < 7 { // only 8-bit GPR: A=0..L=6
+		if loc < 7 {
 			result = append(result, loc)
 		}
 		return true
