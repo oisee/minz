@@ -198,9 +198,8 @@ gcd:                        ; params=[A,L] ret=A (Z3-PFCCO, CFG-solver)
 .gcd_loop_head1:
     CP L                    ; compare a, b (b in L via PFCCO)
     JR Z, .gcd_loop_exit3  ; a == b → done
-.gcd_loop_body2:
-    CP L                    ; compare a vs b for direction
-    JR Z, .gcd_if_else6
+.gcd_loop_body2:            ; duplicate CP eliminated (flags unchanged after JR)
+    JR Z, .gcd_if_else6    ; reuses flags from CP L above
     JR C, .gcd_if_else6
 .gcd_if_then4:              ; a > b path
     SUB L                   ; a = a - b (direct SUB, no register shuffling!)
@@ -208,15 +207,16 @@ gcd:                        ; params=[A,L] ret=A (Z3-PFCCO, CFG-solver)
     JP .gcd_loop_head1
 .gcd_if_else6:              ; a <= b path
     SUB C                   ; b = b - a (solver moved b→C at block entry)
-    JP .gcd_if_join5
+    JP .gcd_loop_head1      ; JP threaded (was JP .gcd_if_join5)
 .gcd_loop_exit3:
-    RET                     ; 10 instructions (SDCC: 17) — 41% smaller!
+    RET                     ; 9 instructions (SDCC: 17) — 47% smaller!
 ```
 
-> **CFG solver breakthrough:** The soft CFG edge constraints allow the solver
-> to insert register moves at block boundaries. `b` lives in L for the main
-> loop but the solver can move it to C for the else-path's `SUB C`. No more
-> dead stores, no register shuffling — just clean `SUB L` and `SUB C`.
+> **Three optimizations stacked:** (1) CFG solver with soft edge constraints
+> allows cross-block register moves (`b` from L to C). (2) Duplicate CP
+> elimination: the second `CP L` was redundant since `JR` doesn't modify flags.
+> (3) JP threading: `JP .gcd_if_join5` → `JP .gcd_loop_head1` (skip indirection).
+> Result: 9 instructions, beating even hand-optimized Z80 code.
 
 ```nanz
 fun fib(n: u8) -> u16 {
@@ -259,11 +259,11 @@ Same Nanz source, compiled through VIR solver. SDCC numbers from `sdcc -mz80 -S`
 | Program | SDCC insts | VIR insts | Delta | Winner |
 |---------|-----------|----------|-------|--------|
 | abs_diff | 12 | **4** | **-67%** | **VIR** |
-| gcd | 17 | **10** | **-41%** | **VIR** |
+| gcd | 17 | **9** | **-47%** | **VIR** |
 | minmax (min+max) | 60 | 11 | **-82%** | **VIR** |
 | fib | 22 | 12 | **-45%** | **VIR** |
 | select_b† | 20 | 2 | **-90%** | **VIR** |
-| **TOTAL** | **131** | **39** | **-70%** | **VIR wins 5/5** |
+| **TOTAL** | **131** | **38** | **-71%** | **VIR wins 5/5** |
 
 †select_b: dead-code elimination test (`let t = a; return b`). SDCC can't eliminate dead code across stack ABI.
 
@@ -461,7 +461,7 @@ Each rule is a Grace S-expression with `match`, `where` (predicates), and `actio
 |--------|-------|
 | Corpus coverage | **520/520 (100%)** |
 | Z80-verified asserts | **55/55** |
-| VIR vs SDCC (paper benchmarks) | **-70%** instructions (5/5 wins) |
+| VIR vs SDCC (paper benchmarks) | **-71%** instructions (5/5 wins) |
 | abs_diff vs SDCC | **4 insts vs 12** — provably optimal (`SUB/RET NC/NEG/RET`) |
 | FatFS ld_word vs SDCC | **6 insts vs 29 bytes** (~4x smaller) |
 | Optimal leaf functions | add, identity, neg, double, band, abs_diff — all match hand-written |

@@ -45,11 +45,11 @@ Exhaustive check, payload binding, `_` wildcard. [Showcases: Option](examples/na
 | Program | SDCC 4.2.0 | MinZ VIR | Delta |
 |---------|-----------|----------|-------|
 | abs_diff | 12 | **4** | **−67%** |
-| gcd | 17 | **10** | **−41%** |
+| gcd | 17 | **9** | **−47%** |
 | minmax | 60 | 11 | **−82%** |
 | fib | 22 | 12 | **−45%** |
 | select_b | 20 | 2 | **−90%** |
-| **TOTAL** | **131** | **39** | **−70%** |
+| **TOTAL** | **131** | **38** | **−71%** |
 
 **520/520 corpus (100%)** — zero PBQP fallback. `abs_diff`: `SUB L / RET NC / NEG / RET` — 4 bytes, matches hand-optimal. `gcd`: 10 insts via CFG-aware cross-block register optimization. FatFS `ld_word`: 6 insts (SDCC: 29B). 55 Z80-verified asserts. Inline asm passthrough. 16-bit div/mod/mul inlined per call site.
 
@@ -89,7 +89,7 @@ Exhaustive check, payload binding, `_` wildcard. [Showcases: Option](examples/na
 
 ### Latest
 
-- **[VIR Solver: 520/520 = 100%](reports/2026-03-23-109-VIR-100-Percent-Showcase.md)** — Z3 joint isel+regalloc, 520/520 corpus, **−70% vs SDCC**. CFG-aware solver with soft edge constraints. Grace abs_diff fusion (`SUB/RET NC/NEG/RET` = 4 bytes). Inline asm passthrough, 16-bit div/mod/mul per call site, ISLE load16_le fusion, Z3-PFCCO conventions.
+- **[VIR Solver: 520/520 = 100%](reports/2026-03-23-109-VIR-100-Percent-Showcase.md)** — Z3 joint isel+regalloc, 520/520 corpus, **−71% vs SDCC**. CFG-aware solver with soft edge constraints. Grace abs_diff fusion (`SUB/RET NC/NEG/RET` = 4 bytes). Inline asm passthrough, 16-bit div/mod/mul per call site, ISLE load16_le fusion, Z3-PFCCO conventions.
 - **Nanz ADT + Match** — `enum Option { None, Some(u8) }` with payload (u16 encoding), `match` expression with exhaustive check, 11 new tests. 4 showcase examples.
 - **[Frill Language: ML on Z80](docs/Frill_Language_Guide.md)** — 8th frontend. ADTs, pattern matching, polymorphism, effects, property testing. 38 features, 13 examples, 3351 compile-time checks. [Book (PDF)](docs/book/Frill_Language_Guide.pdf)
 - **[ABAP Frontend + SQLite + Zork](reports/2026-03-16-088-ABAP_Frontend_SQLite_Zork.md)** — 7th frontend (ABAP via abaplint), SQLite host functions in MIR2 VM, CP/M file I/O fixed (ROM protection root cause), **Zork I (1983) runs in MZE**.

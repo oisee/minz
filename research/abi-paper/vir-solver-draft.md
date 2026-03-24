@@ -133,11 +133,11 @@ All 55 functions produce identical results on both VMs.
 | Program | SDCC | VIR (Z3) | Delta | Winner |
 |---------|------|----------|-------|--------|
 | abs_diff | 12 | **4** | **-67%** | VIR |
-| gcd | 17 | **10** | **-41%** | VIR |
+| gcd | 17 | **9** | **-47%** | VIR |
 | minmax | 60 | 11 | -82% | VIR |
 | fib | 22 | 12 | -45% | VIR |
 | select_b† | 20 | 2 | -90% | VIR |
-| **TOTAL** | **131** | **39** | **-70%** | **VIR 5/5** |
+| **TOTAL** | **131** | **38** | **-71%** | **VIR 5/5** |
 
 †select_b: dead-code elimination test (`let t = a; return b`). SDCC cannot eliminate dead code across stack ABI.
 
