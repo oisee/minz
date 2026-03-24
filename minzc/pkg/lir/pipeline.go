@@ -530,6 +530,9 @@ func lirCodegenMultiBlock(f *mir2.Func, desc *MachineDesc, m *mir2.Module) (stri
 	// Final text-level fixup for any remaining invalid Z80.
 	asm = strings.ReplaceAll(asm, "    LD (HL), HL\n",
 		"    LD D, H\n    LD E, L\n    LD (HL), E\n    INC HL\n    LD (HL), D\n    DEC HL\n")
+	// PUSH IXH/IXL/IYH/IYL don't exist — only full PUSH IX/IY.
+	// Replace PUSH half-reg / POP rr with direct register transfers.
+	asm = fixInvalidHalfRegPushPop(asm)
 
 	// Emit stub labels for JP targets that have no definition in the asm.
 	asm = emitMissingLabels(asm)
@@ -550,6 +553,28 @@ func lirCodegenMultiBlock(f *mir2.Func, desc *MachineDesc, m *mir2.Module) (stri
 
 // emitMissingLabels scans asm text for JP/JR targets and emits stub
 // label definitions for any targets not defined in the asm.
+// fixInvalidHalfRegPushPop replaces invalid PUSH IXH/IXL/IYH/IYL + POP rr
+// sequences with direct register transfers. Z80 only supports PUSH/POP on
+// full 16-bit register pairs (IX, IY), not their 8-bit halves.
+//
+// Patterns handled:
+//
+//	PUSH IXH / POP DE  →  LD D, 0 / LD E, IXH
+//	PUSH IXL / POP DE  →  LD D, 0 / LD E, IXL
+//	(same for IYH, IYL, and POP BC/HL targets)
+func fixInvalidHalfRegPushPop(asm string) string {
+	for _, half := range []string{"IXH", "IXL", "IYH", "IYL"} {
+		for _, pair := range []struct{ name, hi, lo string }{
+			{"BC", "B", "C"}, {"DE", "D", "E"}, {"HL", "H", "L"},
+		} {
+			old := "    PUSH " + half + "\n    POP " + pair.name + "\n"
+			fix := "    LD " + pair.hi + ", 0\n    LD " + pair.lo + ", " + half + "\n"
+			asm = strings.ReplaceAll(asm, old, fix)
+		}
+	}
+	return asm
+}
+
 func emitMissingLabels(asm string) string {
 	// Collect all defined labels.
 	defined := make(map[string]bool)
@@ -1079,6 +1104,7 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 		asmText := sb.String()
 		asmText = strings.ReplaceAll(asmText, "    LD (HL), HL\n",
 			"    LD D, H\n    LD E, L\n    LD (HL), E\n    INC HL\n    LD (HL), D\n    DEC HL\n")
+		asmText = fixInvalidHalfRegPushPop(asmText)
 		asmText = emitMissingLabels(asmText)
 		// Post-emit peephole optimization + spill reload
 		asmPeepholed := Z80Peephole(asmText)
