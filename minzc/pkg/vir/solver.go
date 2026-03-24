@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -180,14 +181,13 @@ func splitVRegsAtCalls(ops []VIROp, desc *MachineDesc) []VIROp {
 				candidates = append(candidates, laCand{v, uses})
 			}
 		}
-		// Sort by uses descending
-		for i := 0; i < len(candidates); i++ {
-			for j := i + 1; j < len(candidates); j++ {
-				if candidates[j].uses > candidates[i].uses {
-					candidates[i], candidates[j] = candidates[j], candidates[i]
-				}
+		// Sort by uses descending, break ties by vreg ID ascending (deterministic)
+		sort.Slice(candidates, func(i, j int) bool {
+			if candidates[i].uses != candidates[j].uses {
+				return candidates[i].uses > candidates[j].uses
 			}
-		}
+			return candidates[i].vreg < candidates[j].vreg
+		})
 		// Limit to 6 saves max (4 IXH + 2 unconstrained)
 		if len(candidates) > 6 {
 			candidates = candidates[:6]
@@ -382,14 +382,13 @@ func insertCallSaveRestore(ops []VIROp, desc *MachineDesc) []VIROp {
 			candidates = append(candidates, candidate{vreg, w, usesAfter})
 		}
 
-		// Sort by uses descending (save most-used first), limit to IXH capacity
-		for i := 0; i < len(candidates); i++ {
-			for j := i + 1; j < len(candidates); j++ {
-				if candidates[j].uses > candidates[i].uses {
-					candidates[i], candidates[j] = candidates[j], candidates[i]
-				}
+		// Sort by uses descending (save most-used first), break ties by vreg ID (deterministic)
+		sort.Slice(candidates, func(i, j int) bool {
+			if candidates[i].uses != candidates[j].uses {
+				return candidates[i].uses > candidates[j].uses
 			}
-		}
+			return candidates[i].vreg < candidates[j].vreg
+		})
 
 		// Limit saves: at most 4 for 8-bit (IXH slots), 2 for 16-bit (memory)
 		maxSaves := 4
@@ -749,7 +748,7 @@ func pickSpillCandidate(ops []VIROp) int {
 		}
 		// Score: prefer long ranges with few uses (cheapest to spill)
 		score := liveRange * 100 / uses
-		if score > bestScore {
+		if score > bestScore || (score == bestScore && vreg < bestVReg) {
 			bestScore = score
 			bestVReg = vreg
 		}
@@ -908,16 +907,16 @@ func coalesceVRegs(ops []VIROp) []VIROp {
 	for _, vi := range info {
 		vregs = append(vregs, vi)
 	}
-	// Sort by live range length descending
-	for i := 0; i < len(vregs); i++ {
-		for j := i + 1; j < len(vregs); j++ {
-			li := vregs[i].lastUse - vregs[i].def
-			lj := vregs[j].lastUse - vregs[j].def
-			if lj > li {
-				vregs[i], vregs[j] = vregs[j], vregs[i]
-			}
+	// Sort by live range length descending, break ties by vreg ID ascending
+	// (deterministic: immune to Go map iteration order)
+	sort.Slice(vregs, func(i, j int) bool {
+		li := vregs[i].lastUse - vregs[i].def
+		lj := vregs[j].lastUse - vregs[j].def
+		if li != lj {
+			return li > lj // longer-lived first
 		}
-	}
+		return vregs[i].id < vregs[j].id // stable tie-break
+	})
 
 	// Build proper interference from liveness (instruction-level)
 	live := computeLiveness(ops)
@@ -1155,7 +1154,13 @@ func (p *problem) generateSMT() string {
 	}
 
 	// Variable: which physical location for each virtual register
+	// Sort vregs for deterministic Z3 encoding (Go map iteration is random)
+	sortedVRegs := make([]int, 0, len(p.vregs))
 	for vreg := range p.vregs {
+		sortedVRegs = append(sortedVRegs, vreg)
+	}
+	sort.Ints(sortedVRegs)
+	for _, vreg := range sortedVRegs {
 		b.WriteString(fmt.Sprintf("(declare-const loc_v%d Int)\n", vreg))
 		b.WriteString(fmt.Sprintf("(assert (and (>= loc_v%d 0) (< loc_v%d %d)))\n",
 			vreg, vreg, len(p.desc.Locs)))
@@ -1230,6 +1235,7 @@ func (p *problem) generateSMT() string {
 		for v := range live {
 			vregs = append(vregs, v)
 		}
+		sort.Ints(vregs) // deterministic interference pair ordering
 		for a := 0; a < len(vregs); a++ {
 			for c := a + 1; c < len(vregs); c++ {
 				va, vc := vregs[a], vregs[c]
@@ -1252,7 +1258,12 @@ func (p *problem) generateSMT() string {
 		if op.Clobbers.IsEmpty() {
 			continue
 		}
+		clobberVRegs := make([]int, 0, len(p.liveness[i].live))
 		for vreg := range p.liveness[i].live {
+			clobberVRegs = append(clobberVRegs, vreg)
+		}
+		sort.Ints(clobberVRegs)
+		for _, vreg := range clobberVRegs {
 			if vreg == op.Dst {
 				continue // dst is being defined, not live-through
 			}
@@ -1296,7 +1307,7 @@ func (p *problem) generateSMT() string {
 	}
 
 	// Location cost (spill tier penalties)
-	for vreg := range p.vregs {
+	for _, vreg := range sortedVRegs {
 		if len(p.desc.LocCost) == 0 {
 			continue
 		}
@@ -1481,9 +1492,14 @@ func generateSMTPerInst(p *problem) string {
 		}
 	}
 
-	// From liveness
+	// From liveness (sorted for deterministic Z3 encoding)
 	for i, l := range p.liveness {
+		liveVRegs := make([]int, 0, len(l.live))
 		for v := range l.live {
+			liveVRegs = append(liveVRegs, v)
+		}
+		sort.Ints(liveVRegs)
+		for _, v := range liveVRegs {
 			ensureVar(v, i)
 		}
 	}
@@ -1547,6 +1563,7 @@ func generateSMTPerInst(p *problem) string {
 		for v := range live {
 			vregs = append(vregs, v)
 		}
+		sort.Ints(vregs) // deterministic interference pair ordering
 		for a := 0; a < len(vregs); a++ {
 			for c := a + 1; c < len(vregs); c++ {
 				va, vc := vregs[a], vregs[c]
@@ -1573,7 +1590,12 @@ func generateSMTPerInst(p *problem) string {
 		if op.Clobbers.IsEmpty() {
 			continue
 		}
+		clobVRegs := make([]int, 0, len(p.liveness[i].live))
 		for vreg := range p.liveness[i].live {
+			clobVRegs = append(clobVRegs, vreg)
+		}
+		sort.Ints(clobVRegs)
+		for _, vreg := range clobVRegs {
 			if vreg == op.Dst {
 				continue
 			}
@@ -1631,7 +1653,12 @@ func generateSMTPerInst(p *problem) string {
 	// Move cost: for each vreg, for each consecutive instruction pair where
 	// it's live at both, add penalty if location changes (cost = 4T per move)
 	moveCost := 4
+	sortedVRegsPI := make([]int, 0, len(p.vregs))
 	for vreg := range p.vregs {
+		sortedVRegsPI = append(sortedVRegsPI, vreg)
+	}
+	sort.Ints(sortedVRegsPI)
+	for _, vreg := range sortedVRegsPI {
 		for i := 0; i < len(p.ops)-1; i++ {
 			if !p.liveness[i].live[vreg] || !p.liveness[i+1].live[vreg] {
 				continue

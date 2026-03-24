@@ -93,7 +93,7 @@ Z3 model: lv1_b1_i0 = 0 (A), lv1_b1_i1 = 1 (B)
 
 ### 2.5 Peephole (Post-solver)
 
-16 SDCC-inspired rules on Z80 assembly:
+16 superoptimizer-derived rules on Z80 assembly (from our CUDA-based z80-optimizer):
 - `CALL label / RET → JP label` (tail call, -1 byte -17T)
 - `LD r, r → remove` (self-move)
 - `LD A, 0 → XOR A` (-1 byte)

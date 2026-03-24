@@ -14,6 +14,7 @@ package vir
 import (
 	"fmt"
 	"os/exec"
+	"sort"
 	"strings"
 	"time"
 
@@ -147,9 +148,14 @@ func SolveCFG(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions) (ma
 				}
 			}
 		}
-		// From liveness
+		// From liveness (sorted for deterministic Z3 encoding)
 		for i, l := range p.liveness {
+			liveVRegs := make([]int, 0, len(l.live))
 			for v := range l.live {
+				liveVRegs = append(liveVRegs, v)
+			}
+			sort.Ints(liveVRegs)
+			for _, v := range liveVRegs {
 				ensureVar(v, bi, i)
 			}
 		}
@@ -189,35 +195,43 @@ func SolveCFG(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions) (ma
 			}
 		}
 
-		// Interference within block
+		// Interference within block (sorted for deterministic Z3 encoding)
 		emitted := make(map[[3]int]bool)
 		for i := range p.ops {
-			for va := range p.liveness[i].live {
-				for vb := range p.liveness[i].live {
-					if va >= vb {
+			liveVRegs := make([]int, 0, len(p.liveness[i].live))
+			for v := range p.liveness[i].live {
+				liveVRegs = append(liveVRegs, v)
+			}
+			sort.Ints(liveVRegs)
+			for a := 0; a < len(liveVRegs); a++ {
+				for c := a + 1; c < len(liveVRegs); c++ {
+					va, vc := liveVRegs[a], liveVRegs[c]
+					if tied[vregPair{va, vc}] {
 						continue
 					}
-					if tied[vregPair{va, vb}] {
-						continue
-					}
-					key := [3]int{i, va, vb}
+					key := [3]int{i, va, vc}
 					if emitted[key] {
 						continue
 					}
 					emitted[key] = true
 					av := fmt.Sprintf("lv%d_b%d_i%d", va, bi, i)
-					bv := fmt.Sprintf("lv%d_b%d_i%d", vb, bi, i)
+					bv := fmt.Sprintf("lv%d_b%d_i%d", vc, bi, i)
 					b.WriteString(fmt.Sprintf("(assert (not (= %s %s)))\n", av, bv))
 				}
 			}
 		}
 
-		// Clobber constraints
+		// Clobber constraints (sorted for deterministic Z3 encoding)
 		for i, op := range p.ops {
 			if op.Clobbers.IsEmpty() {
 				continue
 			}
+			clobVRegs := make([]int, 0, len(p.liveness[i].live))
 			for vreg := range p.liveness[i].live {
+				clobVRegs = append(clobVRegs, vreg)
+			}
+			sort.Ints(clobVRegs)
+			for _, vreg := range clobVRegs {
 				if vreg == op.Dst {
 					continue
 				}
@@ -336,8 +350,13 @@ func SolveCFG(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions) (ma
 			}
 		}
 
-		// Move costs within block
+		// Move costs within block (sorted for deterministic Z3 encoding)
+		cfgSortedVRegs := make([]int, 0, len(bp.prob.vregs))
 		for vreg := range bp.prob.vregs {
+			cfgSortedVRegs = append(cfgSortedVRegs, vreg)
+		}
+		sort.Ints(cfgSortedVRegs)
+		for _, vreg := range cfgSortedVRegs {
 			for i := 0; i < len(bp.ops)-1; i++ {
 				if !bp.prob.liveness[i].live[vreg] || !bp.prob.liveness[i+1].live[vreg] {
 					continue

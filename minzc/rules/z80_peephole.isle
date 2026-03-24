@@ -59,7 +59,7 @@
 ;; SRL A; RL A → OR A  (same: clear low bit then rotate back)
 (rule 15 (rl_a (srl_a ?x)) (or_a ?x))
 
-;; ── SDCC-inspired patterns ──────────────────────────────────────────────
+;; ── Superoptimizer-derived patterns (z80-optimizer/CUDA) ────────────────
 
 ;; LD A, (HL); INC HL → LDI pattern (when safe)
 ;; (expressed as: sequential load+increment on pointer register)

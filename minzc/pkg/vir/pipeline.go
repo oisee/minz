@@ -858,7 +858,7 @@ func peepholeCleanup(asm string) string {
 			continue
 		}
 
-		// ── SDCC-inspired rules ──────────────────────────────────────
+		// ── Superoptimizer-derived rules (z80-optimizer/CUDA) ────────
 
 		// CALL label / RET → JP label (tail call optimization, saves 1 byte + 17T)
 		if i+1 < len(lines) && strings.HasPrefix(line, "CALL ") {

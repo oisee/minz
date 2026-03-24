@@ -65,7 +65,7 @@ For each instruction `i` and virtual register `v`, we create a variable `lv{v}_i
 
 4. **Grace PIR** — Post-solve cleanup on physical instructions. Dead register elimination before RET, EX DE,HL removal when target is dead, ADD A,0 removal.
 
-5. **Peephole** — SDCC-inspired rules: tail call (CALL+RET→JP), self-move elimination, inline runtime expansion (div8/mod8/mul8/div16/mod16/mul16 inlined per call site with unique labels).
+5. **Peephole** — Superoptimizer-derived rules (z80-optimizer on CUDA): tail call (CALL+RET→JP), self-move elimination, inline runtime expansion (div8/mod8/mul8/div16/mod16/mul16 inlined per call site with unique labels).
 
 ---
 
