@@ -18,7 +18,13 @@ var abapAssertRe = regexp.MustCompile(
 
 // Compile is the top-level entry point: ABAP source → HIR module.
 // Tries embedded Wasm parser first (no Node.js needed), falls back to Node.js bridge.
-func Compile(src, name string) (*hir.Module, error) {
+// Target: hir.TargetCPM (default), hir.TargetZXSpectrum, etc.
+func Compile(src, name string, target ...uint8) (*hir.Module, error) {
+	tgt := uint8(0) // default: CPM
+	if len(target) > 0 {
+		tgt = target[0]
+	}
+	_ = tgt // used below
 	// Try embedded Wasm parser (self-contained, no Node.js)
 	prog, err := ParseWasm(src, name)
 	if err != nil {
@@ -41,7 +47,8 @@ func Compile(src, name string) (*hir.Module, error) {
 	if err != nil {
 		return nil, fmt.Errorf("abap lower: %w", err)
 	}
-	emitRuntimeFuncs(hm)
+	hm.Target = tgt
+	emitRuntimeFuncs(hm, tgt)
 
 	// Scan source for assert comments (* assert fn(args) == expected [via mir2|z80]).
 	for i, line := range strings.Split(src, "\n") {
@@ -1663,7 +1670,7 @@ func (l *lowerer) lowerBinOp(e *BinOp) (hir.Expr, error) {
 // ── Runtime functions ────────────────────────────────────────────────────────
 
 // emitRuntimeFuncs adds built-in ABAP runtime functions.
-func emitRuntimeFuncs(hm *hir.Module) {
+func emitRuntimeFuncs(hm *hir.Module, target uint8) {
 	names := map[string]bool{}
 	for _, f := range hm.Funcs {
 		names[f.Name] = true
@@ -1852,8 +1859,8 @@ func emitRuntimeFuncs(hm *hir.Module) {
 		names["abap_read_int"] = true
 	}
 
-	if !names["abap_write"] {
-		// Print u16 as decimal + space. Uses _abap_wr_dig helper (subtract-and-count).
+	if !names["abap_write"] && target != hir.TargetZXSpectrum {
+		// CP/M: Print u16 as decimal + space. Uses _abap_wr_dig helper (subtract-and-count).
 		hm.Funcs = append(hm.Funcs, &hir.Func{
 			Name:   "abap_write",
 			Params: []hir.Param{{Name: "val", Ty: mir2.TyU16}},
@@ -1920,26 +1927,29 @@ func emitRuntimeFuncs(hm *hir.Module) {
 		})
 	}
 
-	if !names["abap_write_str"] {
-		// Print a null-terminated string by outputting char-by-char via BDOS 2.
-		// PUSH/POP DE+BC to preserve caller's loop variables.
-		hm.Funcs = append(hm.Funcs, &hir.Func{
-			Name:   "abap_write_str",
-			Params: []hir.Param{{Name: "str", Ty: mir2.TyPtr}},
-			RetTy:  mir2.TyVoid,
-			Body: &hir.Block{
-				Body: []hir.Stmt{
-					&hir.AsmStmt{
-						Target: "z80",
-						Code: "PUSH DE / PUSH BC" +
-							"/ .loop: LD A, (HL) / OR A / JR NZ, .print / POP BC / POP DE / RET" +
-							"/ .print: LD E, A / LD C, 2 / PUSH HL / CALL 5 / POP HL / INC HL / JR .loop",
-						Ins:         []hir.AsmOperand{{Name: "str"}},
-						ClobberRegs: []string{"A"},
+	if target == hir.TargetZXSpectrum {
+		emitZXRuntimeFuncs(hm, names)
+	} else {
+		// CP/M: Print a null-terminated string by outputting char-by-char via BDOS 2.
+		if !names["abap_write_str"] {
+			hm.Funcs = append(hm.Funcs, &hir.Func{
+				Name:   "abap_write_str",
+				Params: []hir.Param{{Name: "str", Ty: mir2.TyPtr}},
+				RetTy:  mir2.TyVoid,
+				Body: &hir.Block{
+					Body: []hir.Stmt{
+						&hir.AsmStmt{
+							Target: "z80",
+							Code: "PUSH DE / PUSH BC" +
+								"/ .loop: LD A, (HL) / OR A / JR NZ, .print / POP BC / POP DE / RET" +
+								"/ .print: LD E, A / LD C, 2 / PUSH HL / CALL 5 / POP HL / INC HL / JR .loop",
+							Ins:         []hir.AsmOperand{{Name: "str"}},
+							ClobberRegs: []string{"A"},
+						},
 					},
 				},
-			},
-		})
+			})
+		}
 	}
 
 	// Safe wrappers: PUSH HL/DE before call, POP after.
@@ -2058,5 +2068,335 @@ func emitRuntimeFuncs(hm *hir.Module) {
 			},
 		})
 		names["_itab_print_col"] = true
+	}
+}
+
+// emitZXRuntimeFuncs emits ZX Spectrum-specific runtime functions.
+// Uses embedded font + direct screen memory writes instead of BDOS.
+func emitZXRuntimeFuncs(hm *hir.Module, names map[string]bool) {
+	// Global: cursor position (row, col) — 2 bytes
+	hm.Globals = append(hm.Globals, mir2.Global{
+		Name: "_zx_cursor",
+		Ty:   mir2.TyU8,
+		Init: []byte{0, 0}, // row=0, col=0
+	})
+
+	// Global: embedded ZX Spectrum font (chars 32-95 = space to underscore, 64 chars × 8 bytes = 512)
+	// Covers: space, !, ", #, $, %, &, ', (, ), *, +, ,, -, ., /, 0-9, :, ;, <, =, >, ?, @, A-Z, [, \, ], ^, _
+	fontData := []byte{
+		// Space (32)
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		// ! (33)
+		0x00, 0x10, 0x10, 0x10, 0x10, 0x00, 0x10, 0x00,
+		// " (34)
+		0x00, 0x24, 0x24, 0x00, 0x00, 0x00, 0x00, 0x00,
+		// # (35)
+		0x00, 0x24, 0x7E, 0x24, 0x24, 0x7E, 0x24, 0x00,
+		// $ (36)
+		0x00, 0x08, 0x3E, 0x28, 0x3E, 0x0A, 0x3E, 0x08,
+		// % (37)
+		0x00, 0x62, 0x64, 0x08, 0x10, 0x26, 0x46, 0x00,
+		// & (38)
+		0x00, 0x10, 0x28, 0x10, 0x2A, 0x44, 0x3A, 0x00,
+		// ' (39)
+		0x00, 0x08, 0x10, 0x00, 0x00, 0x00, 0x00, 0x00,
+		// ( (40)
+		0x00, 0x04, 0x08, 0x08, 0x08, 0x08, 0x04, 0x00,
+		// ) (41)
+		0x00, 0x20, 0x10, 0x10, 0x10, 0x10, 0x20, 0x00,
+		// * (42)
+		0x00, 0x00, 0x14, 0x08, 0x3E, 0x08, 0x14, 0x00,
+		// + (43)
+		0x00, 0x00, 0x08, 0x08, 0x3E, 0x08, 0x08, 0x00,
+		// , (44)
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x08, 0x10,
+		// - (45)
+		0x00, 0x00, 0x00, 0x00, 0x3E, 0x00, 0x00, 0x00,
+		// . (46)
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x18, 0x18, 0x00,
+		// / (47)
+		0x00, 0x00, 0x02, 0x04, 0x08, 0x10, 0x20, 0x00,
+		// 0-9 (48-57)
+		0x00, 0x3C, 0x46, 0x4A, 0x52, 0x62, 0x3C, 0x00,
+		0x00, 0x18, 0x28, 0x08, 0x08, 0x08, 0x3E, 0x00,
+		0x00, 0x3C, 0x42, 0x02, 0x3C, 0x40, 0x7E, 0x00,
+		0x00, 0x3C, 0x42, 0x0C, 0x02, 0x42, 0x3C, 0x00,
+		0x00, 0x08, 0x18, 0x28, 0x48, 0x7E, 0x08, 0x00,
+		0x00, 0x7E, 0x40, 0x7C, 0x02, 0x42, 0x3C, 0x00,
+		0x00, 0x3C, 0x40, 0x7C, 0x42, 0x42, 0x3C, 0x00,
+		0x00, 0x7E, 0x02, 0x04, 0x08, 0x10, 0x10, 0x00,
+		0x00, 0x3C, 0x42, 0x3C, 0x42, 0x42, 0x3C, 0x00,
+		0x00, 0x3C, 0x42, 0x42, 0x3E, 0x02, 0x3C, 0x00,
+		// : ; < = > ? @ (58-64)
+		0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x10, 0x00,
+		0x00, 0x00, 0x10, 0x00, 0x00, 0x10, 0x10, 0x20,
+		0x00, 0x00, 0x04, 0x08, 0x10, 0x08, 0x04, 0x00,
+		0x00, 0x00, 0x00, 0x3E, 0x00, 0x3E, 0x00, 0x00,
+		0x00, 0x00, 0x10, 0x08, 0x04, 0x08, 0x10, 0x00,
+		0x00, 0x3C, 0x42, 0x04, 0x08, 0x00, 0x08, 0x00,
+		0x00, 0x3C, 0x4A, 0x56, 0x5E, 0x40, 0x3C, 0x00,
+		// A-Z (65-90)
+		0x00, 0x3C, 0x42, 0x42, 0x7E, 0x42, 0x42, 0x00, // A
+		0x00, 0x7C, 0x42, 0x7C, 0x42, 0x42, 0x7C, 0x00, // B
+		0x00, 0x3C, 0x42, 0x40, 0x40, 0x42, 0x3C, 0x00, // C
+		0x00, 0x78, 0x44, 0x42, 0x42, 0x44, 0x78, 0x00, // D
+		0x00, 0x7E, 0x40, 0x7C, 0x40, 0x40, 0x7E, 0x00, // E
+		0x00, 0x7E, 0x40, 0x7C, 0x40, 0x40, 0x40, 0x00, // F
+		0x00, 0x3C, 0x42, 0x40, 0x4E, 0x42, 0x3C, 0x00, // G
+		0x00, 0x42, 0x42, 0x7E, 0x42, 0x42, 0x42, 0x00, // H
+		0x00, 0x3E, 0x08, 0x08, 0x08, 0x08, 0x3E, 0x00, // I
+		0x00, 0x02, 0x02, 0x02, 0x42, 0x42, 0x3C, 0x00, // J
+		0x00, 0x44, 0x48, 0x70, 0x48, 0x44, 0x42, 0x00, // K
+		0x00, 0x40, 0x40, 0x40, 0x40, 0x40, 0x7E, 0x00, // L
+		0x00, 0x42, 0x66, 0x5A, 0x42, 0x42, 0x42, 0x00, // M
+		0x00, 0x42, 0x62, 0x52, 0x4A, 0x46, 0x42, 0x00, // N
+		0x00, 0x3C, 0x42, 0x42, 0x42, 0x42, 0x3C, 0x00, // O
+		0x00, 0x7C, 0x42, 0x42, 0x7C, 0x40, 0x40, 0x00, // P
+		0x00, 0x3C, 0x42, 0x42, 0x52, 0x4A, 0x3C, 0x00, // Q
+		0x00, 0x7C, 0x42, 0x42, 0x7C, 0x44, 0x42, 0x00, // R
+		0x00, 0x3C, 0x40, 0x3C, 0x02, 0x42, 0x3C, 0x00, // S
+		0x00, 0x7F, 0x08, 0x08, 0x08, 0x08, 0x08, 0x00, // T
+		0x00, 0x42, 0x42, 0x42, 0x42, 0x42, 0x3C, 0x00, // U
+		0x00, 0x42, 0x42, 0x42, 0x42, 0x24, 0x18, 0x00, // V
+		0x00, 0x42, 0x42, 0x42, 0x42, 0x5A, 0x24, 0x00, // W
+		0x00, 0x42, 0x24, 0x18, 0x18, 0x24, 0x42, 0x00, // X
+		0x00, 0x22, 0x14, 0x08, 0x08, 0x08, 0x08, 0x00, // Y
+		0x00, 0x7E, 0x04, 0x08, 0x10, 0x20, 0x7E, 0x00, // Z
+		// [ \ ] ^ _ ` (91-96)
+		0x00, 0x0E, 0x08, 0x08, 0x08, 0x08, 0x0E, 0x00,
+		0x00, 0x00, 0x40, 0x20, 0x10, 0x08, 0x04, 0x00,
+		0x00, 0x70, 0x10, 0x10, 0x10, 0x10, 0x70, 0x00,
+		0x00, 0x10, 0x38, 0x54, 0x10, 0x10, 0x10, 0x00,
+		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
+		0x00, 0x10, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, // `
+		// a-z (97-122) — lowercase (same as uppercase glyphs)
+		0x00, 0x00, 0x38, 0x04, 0x3C, 0x44, 0x3C, 0x00, // a
+		0x00, 0x20, 0x20, 0x3C, 0x22, 0x22, 0x3C, 0x00, // b
+		0x00, 0x00, 0x1C, 0x20, 0x20, 0x20, 0x1C, 0x00, // c
+		0x00, 0x04, 0x04, 0x3C, 0x44, 0x44, 0x3C, 0x00, // d
+		0x00, 0x00, 0x38, 0x44, 0x78, 0x40, 0x3C, 0x00, // e
+		0x00, 0x0C, 0x10, 0x18, 0x10, 0x10, 0x10, 0x00, // f
+		0x00, 0x00, 0x3C, 0x44, 0x44, 0x3C, 0x04, 0x38, // g
+		0x00, 0x40, 0x40, 0x78, 0x44, 0x44, 0x44, 0x00, // h
+		0x00, 0x10, 0x00, 0x30, 0x10, 0x10, 0x38, 0x00, // i
+		0x00, 0x04, 0x00, 0x04, 0x04, 0x04, 0x24, 0x18, // j
+		0x00, 0x20, 0x28, 0x30, 0x30, 0x28, 0x24, 0x00, // k
+		0x00, 0x10, 0x10, 0x10, 0x10, 0x10, 0x0C, 0x00, // l
+		0x00, 0x00, 0x68, 0x54, 0x54, 0x54, 0x54, 0x00, // m
+		0x00, 0x00, 0x78, 0x44, 0x44, 0x44, 0x44, 0x00, // n
+		0x00, 0x00, 0x38, 0x44, 0x44, 0x44, 0x38, 0x00, // o
+		0x00, 0x00, 0x78, 0x44, 0x44, 0x78, 0x40, 0x40, // p
+		0x00, 0x00, 0x3C, 0x44, 0x44, 0x3C, 0x04, 0x06, // q
+		0x00, 0x00, 0x1C, 0x20, 0x20, 0x20, 0x20, 0x00, // r
+		0x00, 0x00, 0x38, 0x40, 0x38, 0x04, 0x78, 0x00, // s
+		0x00, 0x10, 0x38, 0x10, 0x10, 0x10, 0x0C, 0x00, // t
+		0x00, 0x00, 0x44, 0x44, 0x44, 0x44, 0x38, 0x00, // u
+		0x00, 0x00, 0x44, 0x44, 0x28, 0x28, 0x10, 0x00, // v
+		0x00, 0x00, 0x44, 0x54, 0x54, 0x54, 0x28, 0x00, // w
+		0x00, 0x00, 0x44, 0x28, 0x10, 0x28, 0x44, 0x00, // x
+		0x00, 0x00, 0x44, 0x44, 0x44, 0x3C, 0x04, 0x38, // y
+		0x00, 0x00, 0x7C, 0x08, 0x10, 0x20, 0x7C, 0x00, // z
+		// { | } ~ (123-126)
+		0x00, 0x0E, 0x08, 0x30, 0x08, 0x08, 0x0E, 0x00,
+		0x00, 0x08, 0x08, 0x08, 0x08, 0x08, 0x08, 0x00,
+		0x00, 0x70, 0x10, 0x0C, 0x10, 0x10, 0x70, 0x00,
+		0x00, 0x14, 0x28, 0x00, 0x00, 0x00, 0x00, 0x00,
+		// (c) (127)
+		0x3C, 0x42, 0x99, 0xA1, 0xA1, 0x99, 0x42, 0x3C,
+	}
+	hm.Globals = append(hm.Globals, mir2.Global{
+		Name: "_zx_font",
+		Ty:   mir2.TyU8,
+		Init: fontData,
+	})
+
+	// _zx_putchar(ch: u8) — render one character to screen at cursor position.
+	// Reads font from _zx_font, writes 8 scanlines to screen memory, advances cursor.
+	if !names["_zx_putchar"] {
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name:   "_zx_putchar",
+			Params: []hir.Param{{Name: "ch", Ty: mir2.TyU8}},
+			RetTy:  mir2.TyVoid,
+			Body: &hir.Block{
+				Body: []hir.Stmt{
+					&hir.AsmStmt{
+						Target: "z80",
+						// A = char code
+						// 1. Handle newline (13 or 10): row++, col=0
+						// 2. Find font data: _zx_font + (ch - 32) * 8
+						// 3. Calculate screen address from _zx_cursor (row, col)
+						// 4. Copy 8 font bytes to 8 scanlines
+						// 5. Advance cursor (col++, wrap to next row if col>=32)
+						Code: "CP 13 / JR Z, ._nl / CP 10 / JR Z, ._nl" +
+							// Font lookup: HL = _zx_font + (A - 32) * 8
+							"/ SUB 32 / LD L, A / LD H, 0" +
+							"/ ADD HL, HL / ADD HL, HL / ADD HL, HL" + // HL = (ch-32)*8
+							"/ LD DE, _zx_font / ADD HL, DE" + // HL = font address
+							"/ PUSH HL" + // save font ptr
+							// Screen address from cursor: row=(_zx_cursor), col=(_zx_cursor+1)
+							"/ LD A, (_zx_cursor) / LD C, A" + // C = row
+							"/ LD A, (_zx_cursor+1)" + // A = col
+							"/ LD B, A" + // B = col
+							// Screen addr = $4000 | (row&0x18)<<8 | (row&7)<<5 | col
+							"/ LD A, C / AND 0x07 / LD D, A / LD A, C / AND 0x18 / OR 0x40 / LD E, D" +
+							// E = (row&7), A = $40|(row&0x18)
+							// Full addr: H = A, L = (row&7)*32 + col
+							"/ LD H, A / LD A, E" + // H = high, A = row&7
+							"/ RRCA / RRCA / RRCA / AND 0xE0" + // A = (row&7) << 5
+							"/ OR B / LD L, A" + // L = (row&7)<<5 | col
+							// HL = screen address for scanline 0
+							"/ POP DE" + // DE = font ptr
+							"/ LD B, 8" +
+							"/ ._cp: LD A, (DE) / LD (HL), A / INC DE / INC H / DJNZ ._cp" +
+							// Advance cursor
+							"/ LD HL, _zx_cursor+1 / INC (HL) / LD A, (HL) / CP 32 / RET NZ" +
+							"/ LD (HL), 0 / DEC HL / INC (HL)" + // wrap: col=0, row++
+							"/ RET" +
+							// Newline handler
+							"/ ._nl: LD HL, _zx_cursor / INC (HL) / INC HL / LD (HL), 0 / RET",
+						Ins:         []hir.AsmOperand{{Name: "ch"}},
+						ClobberRegs: []string{"A", "B", "C", "D", "E", "H", "L"},
+					},
+				},
+			},
+		})
+		names["_zx_putchar"] = true
+	}
+
+	// abap_write_str on ZX: loop through string, call _zx_putchar for each char
+	if !names["abap_write_str"] {
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name:   "abap_write_str",
+			Params: []hir.Param{{Name: "str", Ty: mir2.TyPtr}},
+			RetTy:  mir2.TyVoid,
+			Body: &hir.Block{
+				Body: []hir.Stmt{
+					&hir.AsmStmt{
+						Target: "z80",
+						Code: "PUSH IX / PUSH HL / POP IX" + // IX = string ptr (saved across calls)
+							"/ .lp: LD A, (IX+0) / OR A / JR Z, .dn" +
+							"/ PUSH IX / CALL _zx_putchar / POP IX / INC IX / JR .lp" +
+							// Append newline after WRITE
+							"/ .dn: LD A, 13 / CALL _zx_putchar / POP IX",
+						Ins:         []hir.AsmOperand{{Name: "str"}},
+						ClobberRegs: []string{"A", "B", "C", "D", "E", "H", "L"},
+					},
+				},
+			},
+		})
+		names["abap_write_str"] = true
+	}
+
+	// abap_write on ZX: print u16 as decimal using _zx_putchar
+	if !names["abap_write"] {
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name:   "abap_write",
+			Params: []hir.Param{{Name: "val", Ty: mir2.TyU16}},
+			RetTy:  mir2.TyVoid,
+			Body: &hir.Block{
+				Body: []hir.Stmt{
+					&hir.AsmStmt{
+						Target: "z80",
+						Code: "PUSH IX" +
+							"/ PUSH HL / POP IX" + // IX = value
+							"/ LD D, 0" + // D = leading zero flag
+							"/ PUSH IX / POP HL / LD BC, 10000 / CALL _abap_wr_dig / PUSH HL / POP IX" +
+							"/ PUSH IX / POP HL / LD BC, 1000 / CALL _abap_wr_dig / PUSH HL / POP IX" +
+							"/ PUSH IX / POP HL / LD BC, 100 / CALL _abap_wr_dig / PUSH HL / POP IX" +
+							"/ PUSH IX / POP HL / LD BC, 10 / CALL _abap_wr_dig / PUSH HL / POP IX" +
+							"/ LD A, IXL / ADD A, 48 / CALL _zx_putchar" + // ones digit
+							"/ LD A, 32 / CALL _zx_putchar" + // space
+							"/ POP IX",
+						Ins:         []hir.AsmOperand{{Name: "val"}},
+						ClobberRegs: []string{"A"},
+					},
+				},
+			},
+		})
+		// Helper: _abap_wr_dig for ZX — same as CP/M but uses _zx_putchar
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name:  "_abap_wr_dig",
+			RetTy: mir2.TyVoid,
+			Body: &hir.Block{
+				Body: []hir.Stmt{
+					&hir.AsmStmt{
+						Target: "z80",
+						Code: "LD A, 48" +
+							"/ _awd_sub: OR A / SBC HL, BC / JR NC, _awd_cont" +
+							"/ ADD HL, BC" +
+							"/ CP 48 / JR NZ, _awd_pr" +
+							"/ LD A, D / OR A / RET Z" +
+							"/ LD A, 48" +
+							"/ _awd_pr: LD D, 1 / PUSH HL / PUSH DE / PUSH BC / CALL _zx_putchar / POP BC / POP DE / POP HL / RET" +
+							"/ _awd_cont: INC A / JR _awd_sub",
+						ClobberRegs: []string{"A", "E"},
+					},
+				},
+			},
+		})
+		names["_abap_wr_dig"] = true
+		names["abap_write"] = true
+	}
+
+	// _zx_set_attr: set attribute for cursor row
+	if !names["_zx_set_attr"] {
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name:   "_zx_set_attr",
+			Params: []hir.Param{{Name: "row", Ty: mir2.TyU8}, {Name: "attr", Ty: mir2.TyU8}},
+			RetTy:  mir2.TyVoid,
+			Body: &hir.Block{
+				Body: []hir.Stmt{
+					&hir.AsmStmt{
+						Target: "z80",
+						// A=row, C=attr
+						Code: "LD H, 0 / LD L, A / ADD HL, HL / ADD HL, HL / ADD HL, HL / ADD HL, HL / ADD HL, HL" +
+							"/ LD DE, 0x5800 / ADD HL, DE / LD B, 32 / .fa: LD (HL), C / INC HL / DJNZ .fa",
+						Ins:         []hir.AsmOperand{{Name: "row"}, {Name: "attr"}},
+						ClobberRegs: []string{"A", "B", "C", "D", "E", "H", "L"},
+					},
+				},
+			},
+		})
+		names["_zx_set_attr"] = true
+	}
+
+	// ZX border: set border color
+	if !names["_zx_border"] {
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name:   "_zx_border",
+			Params: []hir.Param{{Name: "c", Ty: mir2.TyU8}},
+			RetTy:  mir2.TyVoid,
+			Body: &hir.Block{
+				Body: []hir.Stmt{
+					&hir.AsmStmt{
+						Target: "z80",
+						Code:        "OUT (0xFE), A",
+						Ins:         []hir.AsmOperand{{Name: "c"}},
+						ClobberRegs: []string{"A"},
+					},
+				},
+			},
+		})
+		names["_zx_border"] = true
+	}
+
+	// Clear ZX screen (fill screen+attrs with 0)
+	if !names["_zx_cls"] {
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name:  "_zx_cls",
+			RetTy: mir2.TyVoid,
+			Body: &hir.Block{
+				Body: []hir.Stmt{
+					&hir.AsmStmt{
+						Target: "z80",
+						Code: "LD HL, 0x4000 / LD DE, 0x4001 / LD BC, 6143 / LD (HL), 0 / LDIR" +
+							"/ LD HL, 0x5800 / LD DE, 0x5801 / LD BC, 767 / LD (HL), 0x47 / LDIR" + // default: white on black, bright
+							"/ LD HL, _zx_cursor / LD (HL), 0 / INC HL / LD (HL), 0", // reset cursor
+						ClobberRegs: []string{"A", "B", "C", "D", "E", "H", "L"},
+					},
+				},
+			},
+		})
+		names["_zx_cls"] = true
 	}
 }

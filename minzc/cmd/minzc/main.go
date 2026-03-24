@@ -771,7 +771,7 @@ func compileViaHIR(sourceFile string) error {
 			return fmt.Errorf("C89/ObjC compile: %w", err)
 		}
 	case ".abap":
-		hirMod, err = abap.Compile(string(src), filepath.Base(sourceFile))
+		hirMod, err = abap.Compile(string(src), filepath.Base(sourceFile), hir.TargetFromString(target))
 		if err != nil {
 			return fmt.Errorf("ABAP compile: %w", err)
 		}
