@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="The MinZ Team" />
+  <meta name="dcterms.date" content="2026-03-24" />
+  <title>MinZ Weekly #2.1: GPU Lookup Tables for Dummies</title>
+  <style>
+    html {
+      font-size: 12pt;
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">MinZ Weekly #2.1: GPU Lookup Tables for Dummies</h1>
+<p class="subtitle">How a graphics card makes your compiler smarter —
+explained with pizza</p>
+<p class="author">The MinZ Team</p>
+<p class="date">2026-03-24</p>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#what-is-this-about" id="toc-what-is-this-about">What Is
+This About?</a></li>
+<li><a href="#the-pizza-analogy" id="toc-the-pizza-analogy">The Pizza
+Analogy</a>
+<ul>
+<li><a href="#the-problem-seating-guests-at-a-round-table"
+id="toc-the-problem-seating-guests-at-a-round-table">The Problem:
+Seating Guests at a Round Table</a></li>
+<li><a href="#the-brute-force-approach"
+id="toc-the-brute-force-approach">The Brute Force Approach</a></li>
+<li><a href="#the-gpu-approach" id="toc-the-gpu-approach">The GPU
+Approach</a></li>
+<li><a href="#the-lookup-table" id="toc-the-lookup-table">The Lookup
+Table</a></li>
+</ul></li>
+<li><a href="#how-it-works-in-the-compiler"
+id="toc-how-it-works-in-the-compiler">How It Works in the Compiler</a>
+<ul>
+<li><a href="#step-1-the-compiler-sees-a-function"
+id="toc-step-1-the-compiler-sees-a-function">Step 1: The Compiler Sees a
+Function</a></li>
+<li><a href="#step-2-compute-a-fingerprint"
+id="toc-step-2-compute-a-fingerprint">Step 2: Compute a
+Fingerprint</a></li>
+<li><a href="#step-3-look-up-the-table"
+id="toc-step-3-look-up-the-table">Step 3: Look Up the Table</a></li>
+<li><a href="#step-4-generate-code" id="toc-step-4-generate-code">Step
+4: Generate Code</a></li>
+</ul></li>
+<li><a href="#real-numbers" id="toc-real-numbers">Real Numbers</a>
+<ul>
+<li><a href="#what-we-measured" id="toc-what-we-measured">What We
+Measured</a>
+<ul>
+<li><a href="#pattern-reuse-in-action"
+id="toc-pattern-reuse-in-action">Pattern Reuse in Action</a></li>
+<li><a href="#the-biggest-solve" id="toc-the-biggest-solve">The Biggest
+Solve</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#why-this-matters" id="toc-why-this-matters">Why This
+Matters</a>
+<ul>
+<li><a href="#without-the-table-before"
+id="toc-without-the-table-before">Without the Table (Before)</a></li>
+<li><a href="#with-the-table-after" id="toc-with-the-table-after">With
+the Table (After)</a></li>
+<li><a href="#the-virtuous-cycle" id="toc-the-virtuous-cycle">The
+Virtuous Cycle</a></li>
+</ul></li>
+<li><a href="#comparison-three-generations-of-solving"
+id="toc-comparison-three-generations-of-solving">Comparison: Three
+Generations of Solving</a>
+<ul>
+<li><a href="#generation-1-greedy-heuristic-pbqp"
+id="toc-generation-1-greedy-heuristic-pbqp">Generation 1: Greedy
+Heuristic (PBQP)</a></li>
+<li><a href="#generation-2-smt-solver-z3"
+id="toc-generation-2-smt-solver-z3">Generation 2: SMT Solver
+(Z3)</a></li>
+<li><a href="#generation-3-gpu-lookup-table-this-work"
+id="toc-generation-3-gpu-lookup-table-this-work">Generation 3: GPU +
+Lookup Table (This Work)</a></li>
+</ul></li>
+<li><a href="#the-bigger-picture" id="toc-the-bigger-picture">The Bigger
+Picture</a>
+<ul>
+<li><a href="#what-this-enables" id="toc-what-this-enables">What This
+Enables</a></li>
+<li><a href="#whats-next" id="toc-whats-next">What’s Next</a></li>
+<li><a href="#the-philosophy" id="toc-the-philosophy">The
+Philosophy</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="what-is-this-about">What Is This About?</h1>
+<p>You wrote a program. The compiler needs to decide which of the Z80’s
+7 tiny registers (think: 7 desk drawers) each variable lives in. This is
+called <strong>register allocation</strong> — and it’s one of the
+hardest problems in compiler design.</p>
+<p>We found a way to <strong>solve it once on a graphics card, save the
+answer, and reuse it forever</strong>. Here’s how, explained for
+non-specialists.</p>
+<h1 id="the-pizza-analogy">The Pizza Analogy</h1>
+<h2 id="the-problem-seating-guests-at-a-round-table">The Problem:
+Seating Guests at a Round Table</h2>
+<p>Imagine you’re planning a dinner party. You have:</p>
+<ul>
+<li><strong>7 chairs</strong> around a table (= 7 CPU registers)</li>
+<li><strong>5 guests</strong> who need seats (= 5 program
+variables)</li>
+<li><strong>Rules</strong>: Alice can’t sit next to Bob (they argue).
+Charlie must sit at the head of the table (special chair). David and Eve
+arrive together (same car).</li>
+</ul>
+<p>You need to find a seating arrangement that satisfies ALL rules AND
+minimizes how often people have to swap seats during courses (= minimize
+instruction cost).</p>
+<h2 id="the-brute-force-approach">The Brute Force Approach</h2>
+<p>With 7 chairs and 5 guests, there are <strong>7 × 7 × 7 × 7 × 7 =
+16,807</strong> possible arrangements. A human would take hours to check
+them all. But a computer? Milliseconds.</p>
+<h2 id="the-gpu-approach">The GPU Approach</h2>
+<p>A graphics card (GPU) has <strong>thousands of tiny workers</strong>
+(CUDA cores). Instead of checking arrangements one by one:</p>
+<pre><code>Worker #0:     checks arrangement [A→chair1, B→chair1, C→chair1, ...]
+Worker #1:     checks arrangement [A→chair1, B→chair1, C→chair2, ...]
+Worker #2:     checks arrangement [A→chair1, B→chair1, C→chair3, ...]
+...
+Worker #16806: checks arrangement [A→chair7, B→chair7, C→chair7, ...]</code></pre>
+<p>All 16,807 workers run <strong>simultaneously</strong>. Each one
+checks: “Does this arrangement satisfy all rules? If yes, how expensive
+is it?” The cheapest valid arrangement wins.</p>
+<p><strong>Result:</strong> Instead of hours → milliseconds. Instead of
+“probably good” → <strong>provably optimal</strong>.</p>
+<h2 id="the-lookup-table">The Lookup Table</h2>
+<p>Here’s the key insight: <strong>different dinner parties have the
+same seating constraints</strong>.</p>
+<p>Your company’s holiday party has 5 guests with 3 rules. Your friend’s
+birthday has different people but the SAME constraints (5 guests, 3
+rules, same conflict pattern). The optimal seating is identical!</p>
+<p>So we: 1. Solve each <strong>unique pattern</strong> once on the GPU
+2. Save the answer in a little notebook (JSON file) 3. Next time we see
+the same pattern → just look it up</p>
+<p>No GPU needed at party time. Just open the notebook.</p>
+<h1 id="how-it-works-in-the-compiler">How It Works in the Compiler</h1>
+<h2 id="step-1-the-compiler-sees-a-function">Step 1: The Compiler Sees a
+Function</h2>
+<pre><code>fun add(a: u8, b: u8) -&gt; u8 {
+    return a + b
+}</code></pre>
+<p>Three variables (<code>a</code>, <code>b</code>, result), one ADD
+instruction, rules say: ADD’s output must be in register A, and
+<code>a</code> and <code>b</code> can’t share a register.</p>
+<h2 id="step-2-compute-a-fingerprint">Step 2: Compute a Fingerprint</h2>
+<p>The compiler hashes the constraints into a
+<strong>signature</strong>:</p>
+<pre><code>&quot;3 variables, 1 operation, ADD pattern, interference: a↔b&quot;
+→ signature: &quot;3v_1o_ceab8266...&quot;</code></pre>
+<p>This signature captures the SHAPE of the problem, not the specific
+variable names. Any function with the same shape gets the same
+signature.</p>
+<h2 id="step-3-look-up-the-table">Step 3: Look Up the Table</h2>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;sig&quot;</span><span class="fu">:</span> <span class="st">&quot;3v_1o_ceab8266...&quot;</span><span class="fu">,</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;assignment&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="dv">0</span><span class="ot">,</span> <span class="dv">1</span><span class="ot">,</span> <span class="dv">0</span><span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;cost&quot;</span><span class="fu">:</span> <span class="dv">4</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p>Translation: variable 0 → register A, variable 1 → register B,
+variable 2 → register A. Cost: 4 T-states (the Z80’s time unit).</p>
+<p><strong>This is provably optimal.</strong> The GPU checked ALL 343
+possible arrangements and this one is the cheapest that works.</p>
+<h2 id="step-4-generate-code">Step 4: Generate Code</h2>
+<pre class="z80"><code>add:
+    ADD A, B    ; A = A + B (4 T-states)
+    RET</code></pre>
+<p>Done. Two instructions. Optimal. And the compiler didn’t need Z3,
+GPU, or any solver — just a dictionary lookup.</p>
+<h1 id="real-numbers">Real Numbers</h1>
+<h2 id="what-we-measured">What We Measured</h2>
+<p>We compiled 194 functions from the MinZ compiler’s test suite:</p>
+<pre><code>194 functions
+ → 158 unique constraint patterns (some functions share patterns)
+ → 61 patterns solved by GPU
+ → 61 optimal answers saved in a 6KB file</code></pre>
+<h3 id="pattern-reuse-in-action">Pattern Reuse in Action</h3>
+<p>These 6 functions all have the SAME constraint pattern (1 variable, 1
+operation):</p>
+<table>
+<thead>
+<tr class="header">
+<th>Function</th>
+<th>What it does</th>
+<th>Same signature?</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>putchar</code></td>
+<td>Print a character</td>
+<td>Yes</td>
+</tr>
+<tr class="even">
+<td><code>_putch</code></td>
+<td>Print a character (CP/M)</td>
+<td>Yes</td>
+</tr>
+<tr class="odd">
+<td><code>_dec</code></td>
+<td>Print a decimal digit</td>
+<td>Yes</td>
+</tr>
+<tr class="even">
+<td><code>_puts</code></td>
+<td>Print a string</td>
+<td>Yes</td>
+</tr>
+<tr class="odd">
+<td><code>_p</code></td>
+<td>Print with padding</td>
+<td>Yes</td>
+</tr>
+<tr class="even">
+<td><code>tui_puts</code></td>
+<td>Print to TUI screen</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>One GPU solve covers all six.</strong> They look different in
+source code but have identical register allocation constraints.</p>
+<h3 id="the-biggest-solve">The Biggest Solve</h3>
+<p><code>screen_show</code> has 12 variables. The GPU searched
+<strong>13.8 billion</strong> possible register arrangements:</p>
+<pre><code>12 variables × 11 possible registers each = 11^12 ≈ 13,800,000,000 combinations
+
+GPU time: ~60 seconds on RTX 4060 Ti
+Result: cost = 133 T-states
+Feasible arrangements: 9,797,760 (0.07% of search space)</code></pre>
+<p>Only 0.07% of all arrangements actually work — the rest violate some
+constraint. The GPU found the cheapest one among those 9.8 million valid
+options.</p>
+<h1 id="why-this-matters">Why This Matters</h1>
+<h2 id="without-the-table-before">Without the Table (Before)</h2>
+<pre><code>Source code
+    → Compiler runs Z3 SMT solver (~800ms per function)
+    → Optimal register assignment
+    → Z80 assembly</code></pre>
+<p>Every compilation pays the 800ms cost. Needs <code>z3</code> binary
+installed.</p>
+<h2 id="with-the-table-after">With the Table (After)</h2>
+<pre><code>Source code
+    → Compiler looks up signature in JSON table (~0.001ms)
+    → HIT: instant optimal assignment (no solver needed!)
+    → MISS: fall back to Z3 (~800ms)
+    → Z80 assembly</code></pre>
+<p>For the 61 cached patterns: <strong>800,000x faster</strong>. No
+external dependencies.</p>
+<h2 id="the-virtuous-cycle">The Virtuous Cycle</h2>
+<pre><code>    ┌─ Compiler finds new pattern (table miss) ─┐
+    │                                             │
+    │  Run GPU brute-force (offline, once)         │
+    │         ↓                                    │
+    │  Add to regalloc_table.json                  │
+    │         ↓                                    │
+    └─ Next compilation: instant lookup ───────────┘</code></pre>
+<p>Every new program we compile potentially discovers new constraint
+patterns. We solve them on the GPU once and <strong>the table
+grows</strong>. Over time, the table covers more and more patterns, and
+fewer functions need Z3.</p>
+<p>It’s like a <strong>recipe book that writes itself</strong>: every
+time you invent a new dish, the recipe gets added. Next time anyone
+wants that dish, they just follow the recipe instead of experimenting
+from scratch.</p>
+<h1 id="comparison-three-generations-of-solving">Comparison: Three
+Generations of Solving</h1>
+<h2 id="generation-1-greedy-heuristic-pbqp">Generation 1: Greedy
+Heuristic (PBQP)</h2>
+<pre><code>Speed:   Instant (~1ms)
+Quality: Good but not optimal
+Bugs:    Yes — sometimes assigns two variables to the same register
+Example: add(3,5) → &quot;42+7=84&quot; bug (both operands in A → ADD A,A = double)</code></pre>
+<p>Like seating guests by gut feeling. Fast, usually OK, sometimes
+disastrous.</p>
+<h2 id="generation-2-smt-solver-z3">Generation 2: SMT Solver (Z3)</h2>
+<pre><code>Speed:   Slow (~800ms per function)
+Quality: Provably optimal
+Bugs:    None — mathematical proof of correctness
+Needs:   z3 binary installed, PATH configured
+Example: add(3,5) = 8 ✓ (always correct)</code></pre>
+<p>Like hiring a mathematician to prove the optimal seating. Slow but
+perfect.</p>
+<h2 id="generation-3-gpu-lookup-table-this-work">Generation 3: GPU +
+Lookup Table (This Work)</h2>
+<pre><code>Speed:   Instant (table hit) or slow (table miss → Z3 fallback)
+Quality: Provably optimal (same as Z3)
+Bugs:    None — exhaustive verification
+Needs:   Nothing at compile time (table ships with compiler)
+Example: add(3,5) = 8 ✓ (from precomputed table, no solver)</code></pre>
+<p>Like having a <strong>book of proven seating arrangements</strong>
+for common party sizes. Instant for known patterns, falls back to the
+mathematician for new ones.</p>
+<h1 id="the-bigger-picture">The Bigger Picture</h1>
+<h2 id="what-this-enables">What This Enables</h2>
+<ol type="1">
+<li><p><strong>ABAP on Z80</strong>: SAP enterprise programs running on
+1980s hardware. The GPU table fixes the register allocation bugs that
+blocked <code>SELECT * FROM mara</code>.</p></li>
+<li><p><strong>Zero-dependency compiler</strong>: No need to install Z3.
+The table handles common patterns; Z3 is optional for edge
+cases.</p></li>
+<li><p><strong>Faster compilation</strong>: O(1) lookup instead of
+O(SMT) solving for cached functions.</p></li>
+<li><p><strong>Correctness guarantee</strong>: Every table entry is
+verified by exhaustive search — not heuristic, not approximate, but
+mathematically provably optimal.</p></li>
+</ol>
+<h2 id="whats-next">What’s Next</h2>
+<ul>
+<li><strong>Expand the table</strong>: Run GPU on the entire standard
+library (55 modules)</li>
+<li><strong>15 location types</strong>: Add IX/IY halves + memory spill
+slots for complex functions</li>
+<li><strong>STOKE search</strong>: For functions too large for brute
+force (13+ variables), use stochastic search (random mutations + MCMC
+acceptance)</li>
+<li><strong>Self-growing table</strong>: Compiler automatically caches
+Z3 results in the table format for future compilations</li>
+</ul>
+<h2 id="the-philosophy">The Philosophy</h2>
+<blockquote>
+<p>“Solve hard problems ONCE. Ship the answers. Make compilation
+instant.”</p>
+</blockquote>
+<p>This is the compiler equivalent of <strong>precomputing
+multiplication tables</strong> instead of doing long division every
+time. The GPU does the hard work offline. The compiler just looks up the
+answer.</p>
+<hr />
+<p><em>MinZ: Where a graphics card from 2024 optimizes code for a CPU
+from 1976.</em></p>
+</body>
+</html>
