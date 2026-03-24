@@ -68,15 +68,20 @@ func tryConstMul(inst *mir2.Inst, desc *MachineDesc, w int) []VIROp {
 	}
 
 	// Check if Src[1] is a constant (most common: x * K)
-	// We look for OpConst in the function's instructions that defines Src[1].
-	// Since we're in translateInst (single instruction), we check inst.Imm
-	// which is set for immediate multiply (from constant folding).
 	k := int(inst.Imm)
 	varSrc := int(inst.Src[0])
 
 	// If Imm is 0, check if this is a reg×reg multiply (can't optimize)
 	if k == 0 {
 		return nil
+	}
+
+	// Safety: these sequences compute A×K mod 256 (8-bit truncated).
+	// Only use when the MIR2 instruction is 8-bit width AND the result
+	// type is u8. For u16 results (where overflow matters), fall back
+	// to the full __mul8 or __mul16 runtime which returns in HL.
+	if inst.Ty != nil && inst.Ty.Width() > 8 {
+		return nil // needs 16-bit result — use runtime
 	}
 
 	entry, ok := table[k]
