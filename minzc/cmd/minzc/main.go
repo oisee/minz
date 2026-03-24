@@ -66,9 +66,10 @@ var (
 	pgoProfile   string  // Path to .tas profile file for PGO compilation
 	pgoDebug     bool    // Debug PGO decisions
 
-	// LIR backend
-	useLIR       bool    // Use experimental LIR backend (ISLE+WFC) instead of PBQP
-	useZ3        bool    // Use Z3 SMT solver for optimal regalloc
+	// Backend selection
+	useLIR       bool    // Use LIR backend (ISLE+WFC+PBQP)
+	useVIR       bool    // Use VIR backend (Z3 joint isel+regalloc, -71% vs SDCC)
+	useZ3        bool    // Use Z3 SMT solver for optimal regalloc (legacy, use --vir instead)
 
 	// Debug info
 	emitSLD      bool    // Emit SLD file for DeZog source-level debugging
@@ -206,6 +207,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&compileTrace, "compile-trace", false, "show all optimization decisions and transformations")
 	rootCmd.Flags().StringVar(&superoptRules, "superopt-rules", "", "path to z80-optimizer rules.json[.gz] for superoptimizer peephole pass")
 	rootCmd.Flags().BoolVar(&useLIR, "lir", true, "use LIR backend (ISLE+WFC+PBQP) for code generation (default: on)")
+	rootCmd.Flags().BoolVar(&useVIR, "vir", false, "use VIR backend (Z3 joint isel+regalloc, -71% vs SDCC, requires z3 in PATH)")
 	rootCmd.Flags().BoolVar(&useZ3, "z3", false, "use Z3 SMT solver for optimal register allocation (slower, provably optimal)")
 	rootCmd.Flags().BoolVar(&emitSLD, "emit-sld", false, "emit SLD file for DeZog source-level debugging")
 	rootCmd.Flags().BoolVar(&annotateTStates, "annotate-tstates", false, "annotate each Z80 instruction with its T-state cost")
@@ -797,7 +799,8 @@ func compileViaHIR(sourceFile string) error {
 	steps, err := pipeline.CompileHIRSteps(hirMod, pipeline.Options{
 		ContractOpt:     true,
 		AnnotateTStates: annotateTStates,
-		UseLIR:          useLIR,
+		UseLIR:          useLIR && !useVIR,
+		UseVIR:          useVIR,
 		Backend:         backend,
 	})
 	if err != nil {
