@@ -5,6 +5,8 @@
 //
 // Run: echo "" | mzv -H examples/nanz/screen_alv.nanz
 
+import tui.render
+
 @screen("Material List") {
     field "Filter" length 10 default "*"
     table "Materials" rows 8

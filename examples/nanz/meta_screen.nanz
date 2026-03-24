@@ -6,12 +6,16 @@
 //
 // Run: echo "" | mzv -H examples/nanz/meta_screen.nanz
 
-@extern fun tui_clear() -> void
-@extern fun tui_puts(str: ^u8) -> void
-@extern fun tui_goto(x: u8, y: u8) -> void
-@extern fun tui_color(fg: u8, bg: u8, bright: u8) -> void
-@extern fun tui_reset() -> void
-@extern fun tui_read_key() -> u8
+import tui.render
+
+// Trampolines: @screen emits CALL tui_clear, but import gives tui_render_tui_clear.
+// These forward calls to the imported implementations.
+fun tui_clear() -> void { tui.render.tui_clear() }
+fun tui_puts(str: ^u8) -> void { tui.render.tui_puts(str) }
+fun tui_goto(x: u8, y: u8) -> void { tui.render.tui_goto(x, y) }
+fun tui_color(fg: u8, bg: u8, bright: u8) -> void { tui.render.tui_color(fg, bg, bright) }
+fun tui_reset() -> void { tui.render.tui_reset() }
+fun tui_read_key() -> u8 { return tui.render.tui_read_key() }
 
 // ── BlockNode struct: matches 8-byte layout on VM heap ───────
 struct BlockNode {

@@ -9,6 +9,8 @@
 // Run:      mzv examples/nanz/screen_declarative.nanz
 // Headless: echo "" | mzv -H examples/nanz/screen_declarative.nanz
 
+import tui.render
+
 @screen("Material Report") {
     field "Material" length 10 default "*"
     field "Plant" length 6

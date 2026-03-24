@@ -270,16 +270,35 @@ func emitGlobals(sb *strings.Builder, title string, fields []screenField) {
 
 func emitHelpers(sb *strings.Builder) {
 	sb.WriteString(`fun _scr_puts_padded(str: ^u8, width: u8) -> void {
-    var ptr: ^u8 = str
-    var i: u8 = 0
-    while i < width {
-        if ptr^ != 0 {
-            tui_putch(ptr^)
-            ptr = ptr + 1
-        } else {
-            tui_putch(32)
-        }
-        i = i + 1
+    asm z80 (in str, width) {
+        ; HL = str, width = C (PFCCO: ptr→HL, u8→C)
+        LD B, C
+        LD A, C
+        OR A
+        RET Z
+        .loop:
+        LD A, (HL)
+        OR A
+        JR Z, .pad
+        LD E, A
+        PUSH HL
+        PUSH BC
+        LD C, 2
+        CALL 5
+        POP BC
+        POP HL
+        INC HL
+        DJNZ .loop
+        RET
+        .pad:
+        LD E, 32
+        PUSH HL
+        PUSH BC
+        LD C, 2
+        CALL 5
+        POP BC
+        POP HL
+        DJNZ .pad
     }
 }
 
@@ -537,17 +556,39 @@ func emitTableInit(sb *strings.Builder, t *screenTable) {
 	sb.WriteString("    _tbl_nrows = 0\n")
 	sb.WriteString("}\n\n")
 
-	// table_set_str(row, col_offset, val) — copy string into flat buffer
-	sb.WriteString("fun table_set_str(row: u8, col_off: u16, val: ^u8) -> void {\n")
-	fmt.Fprintf(sb, "    var row16: u16 = row\n")
-	fmt.Fprintf(sb, "    var dst: ^u8 = &_tbl_data + row16 * %d + col_off\n", t.rowSize)
-	sb.WriteString("    var src: ^u8 = val\n")
-	sb.WriteString("    while src^ != 0 {\n")
-	sb.WriteString("        dst^ = src^\n")
-	sb.WriteString("        src = src + 1\n")
-	sb.WriteString("        dst = dst + 1\n")
-	sb.WriteString("    }\n")
-	sb.WriteString("    dst^ = 0\n")
+	// table_set_str — inline asm to avoid regalloc bugs with u16 multiply.
+	// Param order chosen for PFCCO: val (^u8) → HL, row (u8) → A, col_off (u8) → C.
+	// Using u8 col_off since max offset fits in a byte.
+	sb.WriteString("fun table_set_str(val: ^u8, row: u8, col_off: u8) -> void {\n")
+	fmt.Fprintf(sb, `    asm z80 (in val, row, col_off) {
+        ; HL=val (source), A=row, C=col_off
+        PUSH HL
+        LD HL, _tbl_data
+        LD B, 0
+        ADD HL, BC
+        LD BC, %d
+        OR A
+        JR Z, .mul_done
+        .mul_loop:
+        ADD HL, BC
+        DEC A
+        JR NZ, .mul_loop
+        .mul_done:
+        EX DE, HL
+        POP HL
+        .copy:
+        LD A, (HL)
+        OR A
+        JR Z, .null
+        LD (DE), A
+        INC HL
+        INC DE
+        JR .copy
+        .null:
+        XOR A
+        LD (DE), A
+    }
+`, t.rowSize)
 	sb.WriteString("}\n\n")
 
 	// table_set_nrows
@@ -591,34 +632,88 @@ func emitTableRender(sb *strings.Builder, t *screenTable) {
 	sb.WriteString("    }\n")
 	sb.WriteString("    tui_reset()\n")
 
-	// Data rows
-	sb.WriteString("    var _row: u16 = 0\n")
-	sb.WriteString("    while _row < _tbl_nrows {\n")
-	fmt.Fprintf(sb, "        tui_goto(2, %d + _row)\n", headerRow+2)
-	sb.WriteString("        tui_color(7, 0, 0)\n")
-
-	// Compute row base pointer, then offset for each column (u16 to avoid overflow)
-	fmt.Fprintf(sb, "        var _roff: u16 = _row * %d\n", t.rowSize)
-	sb.WriteString("        var _rbase: ^u8 = &_tbl_data + _roff\n")
-	for _, col := range t.columns {
-		if col.offset == 0 {
-			fmt.Fprintf(sb, "        _scr_puts_padded(_rbase, %d)\n", col.width+1)
-		} else {
-			fmt.Fprintf(sb, "        _scr_puts_padded(_rbase + %d, %d)\n", col.offset, col.width+1)
+	// Data rows — unrolled to avoid register allocator bugs in loops with
+	// pointer arithmetic. Each row is a separate block of code.
+	sb.WriteString("    var _ri: u8 = 0\n")
+	for row := 0; row < t.maxRows; row++ {
+		sb.WriteString("    if _ri < _tbl_nrows {\n")
+		fmt.Fprintf(sb, "        tui_goto(2, %d)\n", headerRow+2+row)
+		sb.WriteString("        tui_color(7, 0, 0)\n")
+		byteOffset := row * t.rowSize
+		for _, col := range t.columns {
+			fmt.Fprintf(sb, "        _scr_puts_padded(&_tbl_data + %d, %d)\n", byteOffset+col.offset, col.width+1)
 		}
+		sb.WriteString("        tui_reset()\n")
+		sb.WriteString("        _ri = _ri + 1\n")
+		sb.WriteString("    }\n")
 	}
-
-	sb.WriteString("        tui_reset()\n")
-	sb.WriteString("        _row = _row + 1\n")
-	sb.WriteString("    }\n")
 	sb.WriteString("}\n\n")
 }
 
 func emitTableAccessors(sb *strings.Builder, t *screenTable) {
-	// Per-column set helpers: table_set_<col>(row, val)
+	// Per-column set helpers with inline asm — avoids register forwarding bugs.
+	// PFCCO for (u8, ^u8): row=A, val=HL
 	for _, col := range t.columns {
 		fmt.Fprintf(sb, "fun table_set_%s(row: u8, val: ^u8) -> void {\n", col.safeName)
-		fmt.Fprintf(sb, "    table_set_str(row, %d, val)\n", col.offset)
+		if col.offset == 0 {
+			fmt.Fprintf(sb, `    asm z80 (in row, val) {
+        ; A=row, HL=val (source string)
+        PUSH HL
+        LD HL, _tbl_data
+        LD BC, %d
+        OR A
+        JR Z, .md
+        .ml:
+        ADD HL, BC
+        DEC A
+        JR NZ, .ml
+        .md:
+        EX DE, HL
+        POP HL
+        .cp:
+        LD A, (HL)
+        OR A
+        JR Z, .nu
+        LD (DE), A
+        INC HL
+        INC DE
+        JR .cp
+        .nu:
+        XOR A
+        LD (DE), A
+    }
+`, t.rowSize)
+		} else {
+			fmt.Fprintf(sb, `    asm z80 (in row, val) {
+        ; A=row, HL=val (source string)
+        PUSH HL
+        LD HL, _tbl_data
+        LD BC, %d
+        ADD HL, BC
+        LD BC, %d
+        OR A
+        JR Z, .md
+        .ml:
+        ADD HL, BC
+        DEC A
+        JR NZ, .ml
+        .md:
+        EX DE, HL
+        POP HL
+        .cp:
+        LD A, (HL)
+        OR A
+        JR Z, .nu
+        LD (DE), A
+        INC HL
+        INC DE
+        JR .cp
+        .nu:
+        XOR A
+        LD (DE), A
+    }
+`, col.offset, t.rowSize)
+		}
 		sb.WriteString("}\n\n")
 	}
 }

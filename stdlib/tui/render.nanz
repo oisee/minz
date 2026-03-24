@@ -192,21 +192,27 @@ fun tui_color(fg: u8, bg: u8, bright: u8) -> void {
 
 // Reset colors to default. Emits: ESC [ 0 m
 fun tui_reset() -> void {
-    _tui_esc()
-    _tui_bdos_putchar(91)    // [
-    _tui_bdos_putchar(48)    // 0
-    _tui_bdos_putchar(109)   // m
+    asm z80 {
+        LD E, 0x1B / LD C, 2 / CALL 5
+        LD E, 91   / LD C, 2 / CALL 5
+        LD E, 48   / LD C, 2 / CALL 5
+        LD E, 109  / LD C, 2 / CALL 5
+    }
 }
 
 // Clear the entire screen. Emits: ESC [ 2 J  ESC [ H
 fun tui_clear() -> void {
-    _tui_esc()
-    _tui_bdos_putchar(91)    // [
-    _tui_bdos_putchar(50)    // 2
-    _tui_bdos_putchar(74)    // J
-    _tui_esc()
-    _tui_bdos_putchar(91)    // [
-    _tui_bdos_putchar(72)    // H
+    asm z80 {
+        ; ESC [ 2 J
+        LD E, 0x1B / LD C, 2 / CALL 5
+        LD E, 91   / LD C, 2 / CALL 5
+        LD E, 50   / LD C, 2 / CALL 5
+        LD E, 74   / LD C, 2 / CALL 5
+        ; ESC [ H
+        LD E, 0x1B / LD C, 2 / CALL 5
+        LD E, 91   / LD C, 2 / CALL 5
+        LD E, 72   / LD C, 2 / CALL 5
+    }
 }
 
 // Print a single character. Codes 1-6 → box-drawing (ASCII fallback on CP/M).
@@ -329,17 +335,40 @@ fun clear_rect(x: u8, y: u8, w: u8, h: u8) -> void {
     }
 }
 
-// Print string padded to width
+// Print string padded to width (inline asm — safe across BDOS CALL 5)
+// PFCCO: str=HL (pointer), width=A (second param via C register? no — ^u8 arrives in HL, u8 in A)
+// Actually: first param ^u8 → HL, second param u8 → A (PFCCO for ptr+u8)
 fun puts_padded(str: ^u8, width: u8) -> void {
-    var i: u8 = 0
-    var ptr: ^u8 = str
-    while i < width {
-        if ptr^ != 0 {
-            tui_putch(ptr^)
-            ptr = ptr + 1
-        } else {
-            tui_putch(32)
-        }
-        i = i + 1
+    asm z80 (in str, width) {
+        ; HL = str, width = C (PFCCO: ptr→HL, u8→C)
+        LD B, C         ; B = remaining width (loop counter)
+        LD A, C
+        OR A
+        RET Z           ; width == 0 → nothing to do
+        .loop:
+        LD A, (HL)      ; load current char
+        OR A
+        JR Z, .pad      ; hit null → switch to padding
+        ; Print character from string
+        LD E, A
+        PUSH HL         ; save string pointer
+        PUSH BC         ; save width counter
+        LD C, 2
+        CALL 5
+        POP BC
+        POP HL
+        INC HL          ; advance string pointer
+        DJNZ .loop
+        RET
+        .pad:
+        ; Fill remaining width with spaces
+        LD E, 32
+        PUSH HL         ; save pointer (not advancing, but keep stack balanced)
+        PUSH BC         ; save counter
+        LD C, 2
+        CALL 5
+        POP BC
+        POP HL
+        DJNZ .pad
     }
 }
