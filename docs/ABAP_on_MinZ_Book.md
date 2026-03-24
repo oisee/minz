@@ -607,6 +607,80 @@ fun main() -> void {
 }
 ```
 
+### The Holy Grail: @screen + SELECT + ALV
+
+The complete ABAP report pattern — selection screen, database query, grid display — in one Nanz program:
+
+```nanz
+@screen("SCARR Report") {
+    field "Carrier" length 3 default "%"
+    table "Airlines" rows 8
+    column "ID" width 4
+    column "Carrier Name" width 22
+    column "URL" width 30
+    button "Execute" key F8
+    button "Back" key F3
+}
+
+global db: u16
+
+fun seed_database() -> void {
+    db = sqlite_open(0)
+    sqlite_exec(db, c"CREATE TABLE scarr (carrid TEXT, carrname TEXT, url TEXT)")
+    sqlite_exec(db, c"INSERT INTO scarr VALUES ('AA', 'American Airlines', 'http://www.aa.com')")
+    // ... 8 airlines total ...
+}
+
+fun run_query() -> void {
+    table_init()
+    var q: u16 = sqlite_query(db,
+        c"SELECT carrid, carrname, url FROM scarr ORDER BY carrid")
+    var row: u8 = 0
+    while sqlite_step(q) == 1 {
+        table_set_id(row, sqlite_column_text(q, 0))
+        table_set_carrier_name(row, sqlite_column_text(q, 1))
+        table_set_url(row, sqlite_column_text(q, 2))
+        row = row + 1
+    }
+    table_set_nrows(row)
+}
+
+fun main() -> void {
+    seed_database()
+    screen_init()
+    run_query()
+    screen_show()
+    sqlite_close(db)
+}
+```
+
+MZV renders this as (actual `mzv -H` output):
+
+```
++--------------------------------------------------------------+
+|   SCARR Report                                               |  <- white-on-blue
+|                                                              |
+|   Carrier     [%  ]                                          |  <- filter field
+|   ID   Carrier Name           URL                            |  <- bright headers
+|   ---------------------------------------------------------- |
+|   AA   American Airlines      http://www.aa.com              |
+|   AF   Air France             http://www.airfrance.com       |
+|   BA   British Airways        http://www.ba.com              |
+|   EK   Emirates               http://www.emirates.com        |
+|   LH   Lufthansa              http://www.lufthansa.com       |
+|   QF   Qantas                 http://www.qantas.com.au       |
+|   SQ   Singapore Airlines     http://www.singaporeair.com    |
+|   UA   United Airlines        http://www.united.com          |
+|                                                              |
+|   [F8=Execute]  [F3=Back]                                    |  <- buttons
+|                                                              |
+|   TAB=Next  Enter=Edit  F8=Execute  F3=Back                  |  <- status bar
++--------------------------------------------------------------+
+  MZV verified — 8 airlines from SQLite, displayed in mini-ALV
+```
+
+This is the first time an ABAP-style SE16 report has run on a Z80 processor.
+
 ---
 
 ## 12. Architecture Reference

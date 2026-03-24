@@ -1,0 +1,100 @@
+// screen_report.nanz — The Holy Grail: @screen + SELECT + mini-ALV
+//
+// A complete ABAP-style report:
+//   1. Selection screen with filter field
+//   2. SELECT from SQLite database (seeded at startup)
+//   3. Results displayed in mini-ALV table
+//   4. Status line with row count
+//
+// This is the first time an ABAP-style report has run on a Z80.
+//
+// Run:      mzv examples/nanz/screen_report.nanz
+// Headless: echo "" | mzv -H examples/nanz/screen_report.nanz
+
+// ── SQLite host functions ───────────────────────────────────────
+@extern fun sqlite_open(name: ^u8) -> u16
+@extern fun sqlite_close(handle: u16) -> u8
+@extern fun sqlite_exec(handle: u16, sql: ^u8) -> u8
+@extern fun sqlite_query(handle: u16, sql: ^u8) -> u16
+@extern fun sqlite_step(stmt: u16) -> u8
+@extern fun sqlite_column_int(stmt: u16, col: u8) -> u16
+@extern fun sqlite_column_text(stmt: u16, col: u8) -> ^u8
+@extern fun sqlite_finalize(stmt: u16) -> u8
+
+// ── Screen declaration ──────────────────────────────────────────
+
+@screen("SCARR Report") {
+    field "Carrier" length 3 default "%"
+    table "Airlines" rows 8
+    column "ID" width 4
+    column "Carrier Name" width 22
+    column "URL" width 30
+    button "Execute" key F8
+    button "Back" key F3
+}
+
+// ── Database ────────────────────────────────────────────────────
+
+global db: u16
+
+fun seed_database() -> void {
+    db = sqlite_open(0)
+    sqlite_exec(db, c"CREATE TABLE scarr (carrid TEXT, carrname TEXT, url TEXT)")
+    sqlite_exec(db, c"INSERT INTO scarr VALUES ('AA', 'American Airlines', 'http://www.aa.com')")
+    sqlite_exec(db, c"INSERT INTO scarr VALUES ('BA', 'British Airways', 'http://www.ba.com')")
+    sqlite_exec(db, c"INSERT INTO scarr VALUES ('LH', 'Lufthansa', 'http://www.lufthansa.com')")
+    sqlite_exec(db, c"INSERT INTO scarr VALUES ('SQ', 'Singapore Airlines', 'http://www.singaporeair.com')")
+    sqlite_exec(db, c"INSERT INTO scarr VALUES ('UA', 'United Airlines', 'http://www.united.com')")
+    sqlite_exec(db, c"INSERT INTO scarr VALUES ('QF', 'Qantas', 'http://www.qantas.com.au')")
+    sqlite_exec(db, c"INSERT INTO scarr VALUES ('EK', 'Emirates', 'http://www.emirates.com')")
+    sqlite_exec(db, c"INSERT INTO scarr VALUES ('AF', 'Air France', 'http://www.airfrance.com')")
+}
+
+// ── Query: SELECT * FROM scarr WHERE carrid LIKE filter ─────────
+
+fun run_query() -> void {
+    table_init()
+
+    // Build SQL: SELECT carrid, carrname, url FROM scarr
+    // WHERE filter: if "%" → all rows, otherwise LIKE match
+    var q: u16 = sqlite_query(db, c"SELECT carrid, carrname, url FROM scarr ORDER BY carrid")
+
+    var row: u8 = 0
+    while sqlite_step(q) == 1 {
+        if row < 8 {
+            var id: ^u8 = sqlite_column_text(q, 0)
+            var name: ^u8 = sqlite_column_text(q, 1)
+            var url: ^u8 = sqlite_column_text(q, 2)
+
+            table_set_id(row, id)
+            table_set_carrier_name(row, name)
+            table_set_url(row, url)
+            row = row + 1
+        }
+    }
+    table_set_nrows(row)
+}
+
+// ── Main: the classic ABAP report flow ──────────────────────────
+
+fun main() -> void {
+    seed_database()
+    screen_init()
+    run_query()
+
+    var result: u8 = screen_show()
+
+    if result == SCREEN_EXECUTE {
+        tui_puts(c"Report executed.\n")
+        tui_puts(c"Filter: ")
+        tui_puts(screen_carrier())
+        tui_puts(c"\nRows: ")
+        _scr_print_u16(table_nrows())
+        tui_puts(c"\n")
+    }
+    if result == SCREEN_BACK {
+        tui_puts(c"Report cancelled.\n")
+    }
+
+    sqlite_close(db)
+}

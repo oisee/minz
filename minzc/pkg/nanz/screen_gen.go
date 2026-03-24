@@ -539,7 +539,8 @@ func emitTableInit(sb *strings.Builder, t *screenTable) {
 
 	// table_set_str(row, col_offset, val) — copy string into flat buffer
 	sb.WriteString("fun table_set_str(row: u8, col_off: u16, val: ^u8) -> void {\n")
-	fmt.Fprintf(sb, "    var dst: ^u8 = &_tbl_data + row * %d + col_off\n", t.rowSize)
+	fmt.Fprintf(sb, "    var row16: u16 = row\n")
+	fmt.Fprintf(sb, "    var dst: ^u8 = &_tbl_data + row16 * %d + col_off\n", t.rowSize)
 	sb.WriteString("    var src: ^u8 = val\n")
 	sb.WriteString("    while src^ != 0 {\n")
 	sb.WriteString("        dst^ = src^\n")
@@ -591,13 +592,14 @@ func emitTableRender(sb *strings.Builder, t *screenTable) {
 	sb.WriteString("    tui_reset()\n")
 
 	// Data rows
-	sb.WriteString("    var _row: u8 = 0\n")
+	sb.WriteString("    var _row: u16 = 0\n")
 	sb.WriteString("    while _row < _tbl_nrows {\n")
 	fmt.Fprintf(sb, "        tui_goto(2, %d + _row)\n", headerRow+2)
 	sb.WriteString("        tui_color(7, 0, 0)\n")
 
-	// Compute row base pointer, then offset for each column
-	fmt.Fprintf(sb, "        var _rbase: ^u8 = &_tbl_data + _row * %d\n", t.rowSize)
+	// Compute row base pointer, then offset for each column (u16 to avoid overflow)
+	fmt.Fprintf(sb, "        var _roff: u16 = _row * %d\n", t.rowSize)
+	sb.WriteString("        var _rbase: ^u8 = &_tbl_data + _roff\n")
 	for _, col := range t.columns {
 		if col.offset == 0 {
 			fmt.Fprintf(sb, "        _scr_puts_padded(_rbase, %d)\n", col.width+1)
