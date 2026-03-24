@@ -613,7 +613,7 @@ The complete ABAP report pattern — selection screen, database query, grid disp
 
 ```nanz
 @screen("SCARR Report") {
-    field "Carrier" length 3 default "%"
+    field "Carrier" length 3 default "*"
     table "Airlines" rows 8
     column "ID" width 4
     column "Carrier Name" width 22
@@ -660,7 +660,7 @@ MZV renders this as (actual `mzv -H` output):
 +--------------------------------------------------------------+
 |   SCARR Report                                               |  <- white-on-blue
 |                                                              |
-|   Carrier     [%  ]                                          |  <- filter field
+|   Carrier     [*  ]                                          |  <- filter field
 |   ID   Carrier Name           URL                            |  <- bright headers
 |   ---------------------------------------------------------- |
 |   AA   American Airlines      http://www.aa.com              |

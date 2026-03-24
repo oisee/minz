@@ -38,6 +38,25 @@ Exhaustive check, payload binding, `_` wildcard. [Showcases: Option](examples/na
 
 ---
 
+### ★ NEW: ABAP Screens on Z80 + Open SQL → SQLite | [ABAP Book](docs/ABAP_on_MinZ_Book.md) | [Book Catalog](docs/Book_Catalog.md)
+
+**`@screen` declarative TUI** — 7 lines of DSL generate a full interactive selection screen with PBO/PAI event loop, focus highlighting, and keyboard navigation. **Mini-ALV** table display with column headers. **Open SQL → SQLite** bridge transpiles `SELECT` to `sqlite_query` calls. The complete ABAP report pattern: selection screen → filter → query → ALV grid.
+
+```nanz
+@screen("SCARR Report") {
+    field "Carrier" length 3 default "*"
+    table "Airlines" rows 8
+    column "ID" width 4
+    column "Carrier Name" width 22
+    button "Execute" key F8
+    button "Back" key F3
+}
+```
+
+Books: [Nanz Language Book v7](docs/Nanz_Language_Book_v7.md) ([PDF](docs/Nanz_Language_Book_v7.pdf)) | [ABAP on MinZ](docs/ABAP_on_MinZ_Book.md) | [C89 Frontend Internals](docs/C89_Frontend_Internals.md) ([PDF](docs/C89_Frontend_Internals.pdf))
+
+---
+
 ### ★ [VIR Solver: 520/520 = 100% — Z3-Based Z80 Code Generator](reports/2026-03-23-109-VIR-100-Percent-Showcase.md)
 
 **The world's first SMT-based joint instruction selection + register allocation for Z80.** Z3 picks both the instruction pattern AND the physical register in one query. CFG-aware solver with soft edge constraints, ISLE fusion, Z3-PFCCO calling conventions, Grace abs_diff fusion, inline div/mod/mul runtime.
