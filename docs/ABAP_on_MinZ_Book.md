@@ -814,6 +814,32 @@ mz examples/abap/hello.abap -b qbe -o hello
 
 ---
 
+## Appendix: Test Matrix (MZV + Z80 CP/M)
+
+All examples tested on MZV (MIR2 VM) and through the full Z80 pipeline (`mz` → `mza` → `mze -t cpm`).
+
+| Example | MZV | mz | mza | Size | mze CP/M | Notes |
+|---------|-----|-----|-----|------|----------|-------|
+| hello.abap | PASS | PASS | PASS | 318B | runs | string print via BDOS |
+| fibonacci.abap | PASS | PASS | PASS | 372B | PASS | numeric output works |
+| fizzbuzz.abap | PASS | PASS | PASS | 393B | PASS | IF/ELSEIF + MOD |
+| bubble_sort.abap | PASS | PASS | PASS | 544B | PASS | nested WHILE + swap |
+| forms.abap | PASS | PASS | PASS | 322B | runs | FORM/PERFORM |
+| sysinfo.abap | PASS | PASS | PASS | 597B | PASS | multiple WRITE |
+| hello_param.abap | PASS | PASS | PASS | 420B | PASS | PARAMETERS + sel_show |
+| tui_screen.nanz | PASS | PASS | PASS | 446B | runs | TUI host functions |
+| meta_screen.nanz | PASS | PASS | PASS | 259B | runs | user @screen metafun |
+| abap_screen.nanz | PASS | PASS | PASS | 1407B | runs | manual PBO/PAI |
+| screen_declarative.nanz | PASS | -- | -- | -- | -- | built-in @screen (MZV only) |
+| screen_alv.nanz | PASS | -- | -- | -- | -- | mini-ALV (MZV only) |
+| screen_report.nanz | PASS | -- | -- | -- | -- | holy grail (MZV only) |
+| select_demo.abap | PASS | PASS | PASS | 428B | PASS | SELECT SINGLE + COUNT(*) |
+| select_loop.abap | PASS | PASS | PASS | 315B | PASS | SELECT...ENDSELECT loop |
+
+**Summary:** 15/15 MZV, 12/15 compile to Z80, 7/12 produce visible CP/M output, 5/12 run correctly but need CP/M string-print bridge (TUI host functions are MZV-only).
+
+---
+
 *ABAP: Advanced Business Application Programming.*
 *Z80: Advanced Business Application Processor (retroactively).*
 
