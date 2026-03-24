@@ -141,6 +141,42 @@ func CodegenModule(m *mir2.Module, opts SolverOptions) (string, []FuncResult) {
 		}
 	}
 
+	// Grace reroll: -Osize — replace repeated CALL patterns with DJNZ loops
+	if opts.OptSize {
+		finalAsm := sb.String()
+		// Apply reroll per function (extract function name from labels)
+		lines := strings.Split(finalAsm, "\n")
+		currentFunc := ""
+		funcStart := 0
+		var rerolled []string
+		for i, line := range lines {
+			trimmed := strings.TrimSpace(line)
+			// Detect function label (not local label, not comment)
+			if strings.HasSuffix(trimmed, ":") && !strings.HasPrefix(trimmed, ".") &&
+				!strings.HasPrefix(trimmed, ";") && !strings.HasPrefix(trimmed, "_vir_") &&
+				!strings.HasPrefix(trimmed, "_mir2_") && !strings.HasPrefix(trimmed, "_spill_") {
+				if currentFunc != "" {
+					// Reroll previous function
+					funcLines := lines[funcStart:i]
+					funcLines = graceReroll(funcLines, currentFunc)
+					rerolled = append(rerolled, funcLines...)
+				}
+				currentFunc = strings.TrimSuffix(trimmed, ":")
+				funcStart = i
+			}
+		}
+		// Last function + remaining
+		if currentFunc != "" && funcStart < len(lines) {
+			funcLines := lines[funcStart:]
+			funcLines = graceReroll(funcLines, currentFunc)
+			rerolled = append(rerolled, funcLines...)
+		} else {
+			rerolled = append(rerolled, lines[funcStart:]...)
+		}
+		sb.Reset()
+		sb.WriteString(strings.Join(rerolled, "\n"))
+	}
+
 	return sb.String(), results
 }
 

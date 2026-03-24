@@ -70,6 +70,7 @@ var (
 	useLIR       bool    // Use LIR backend (ISLE+WFC+PBQP)
 	useVIR       bool    // Use VIR backend (Z3 joint isel+regalloc, -71% vs SDCC)
 	useZ3        bool    // Use Z3 SMT solver for optimal regalloc (legacy, use --vir instead)
+	optSize      bool    // -Osize: optimize for code size (Grace reroll, DJNZ loops)
 
 	// Debug info
 	emitSLD      bool    // Emit SLD file for DeZog source-level debugging
@@ -209,6 +210,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&useLIR, "lir", true, "use LIR backend (ISLE+WFC+PBQP) for code generation (default: on)")
 	rootCmd.Flags().BoolVar(&useVIR, "vir", false, "use VIR backend (Z3 joint isel+regalloc, -71% vs SDCC, requires z3 in PATH)")
 	rootCmd.Flags().BoolVar(&useZ3, "z3", false, "use Z3 SMT solver for optimal register allocation (slower, provably optimal)")
+	rootCmd.Flags().BoolVar(&optSize, "Osize", false, "optimize for code size: Grace reroll (repeated CALLs → DJNZ loop + data table)")
 	rootCmd.Flags().BoolVar(&emitSLD, "emit-sld", false, "emit SLD file for DeZog source-level debugging")
 	rootCmd.Flags().BoolVar(&annotateTStates, "annotate-tstates", false, "annotate each Z80 instruction with its T-state cost")
 	rootCmd.Flags().StringVar(&emitFormat, "emit", "", "emit format: nanz (HIR as Nanz syntax), hir (HIR typed tree), lanz (HIR as S-expr), mir2-raw, mir2 (works with .plm/.nanz/.lanz input)")
@@ -856,6 +858,7 @@ func compileViaHIR(sourceFile string) error {
 		AnnotateTStates: annotateTStates,
 		UseLIR:          useLIR && !useVIR, // --lir is default; --vir overrides it
 		UseVIR:          useVIR,            // --vir always enables VIR (overrides --lir default)
+		OptSize:         optSize,           // --Osize enables Grace reroll
 		Backend:         backend,
 	})
 	if err != nil {

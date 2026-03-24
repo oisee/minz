@@ -103,6 +103,9 @@ type Options struct {
 	// (Z3 joint isel+regalloc, single pass, no text fixups).
 	// Functions that fail VIR fall back to the PBQP path automatically.
 	UseVIR bool
+	// OptSize enables size optimizations (Grace reroll: repeated CALLs → DJNZ loop).
+	// Trades ~4T/iteration for code size reduction. Use for ROM-constrained targets.
+	OptSize bool
 	// Backend selects the codegen backend: "z80" (default), "ez80".
 	// When "ez80", the pipeline generates eZ80 ADL assembly instead of Z80.
 	Backend string
@@ -302,7 +305,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 				funcParamLocs[f.Name] = pl
 			}
 		}
-		virOpts := vir.SolverOptions{FuncParamLocs: funcParamLocs}
+		virOpts := vir.SolverOptions{FuncParamLocs: funcParamLocs, OptSize: opt.OptSize}
 		virAsm, virResults := vir.CodegenModule(m, virOpts)
 
 		ok, fail := 0, 0

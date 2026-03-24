@@ -41,6 +41,10 @@ type SolverOptions struct {
 	// FuncParamLocs maps function name → (vreg → physical register index).
 	// Per-function version of ParamLocs for multi-function modules.
 	FuncParamLocs map[string]map[int]int
+
+	// OptSize enables size optimizations (Grace reroll: repeated CALL patterns
+	// → data table + DJNZ loop). Trades ~4T/iteration for code size reduction.
+	OptSize bool
 }
 
 // Solve converts a basic block of VIROps into PIROps using Z3 SMT solver.
