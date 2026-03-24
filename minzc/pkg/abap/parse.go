@@ -482,7 +482,7 @@ func mergeMethodBodies(cd *ClassDecl, implMethods map[string]*MethodDecl) {
 }
 
 func isControlStructure(t string) bool {
-	return t == "While" || t == "If" || t == "Do" || t == "Case"
+	return t == "While" || t == "If" || t == "Do" || t == "Case" || t == "Select"
 }
 
 // convertControlStructure converts a structured control flow node to a semantic Stmt_.
@@ -589,13 +589,19 @@ func convertSelect(node *ASTChild) (Stmt_, error) {
 
 	for _, child := range node.Children {
 		switch child.Type {
-		case "Select":
-			// Collect tokens from the SELECT statement (fields, FROM, INTO, WHERE)
+		case "Select", "SelectLoop":
+			// Collect tokens from the SELECT statement header.
+			// Use only direct tokens — collectChildTokens would duplicate
+			// expression sub-tokens that are already in the flat token list.
 			for _, t := range child.Tokens {
 				selectTokens = append(selectTokens, t.Str)
 			}
-			childToks := collectChildTokens(child.Children)
-			selectTokens = append(selectTokens, childToks...)
+			// Also collect Token-type direct children (some parsers put tokens there)
+			for _, sub := range child.Children {
+				if sub.Type == "Token" {
+					selectTokens = append(selectTokens, sub.Str)
+				}
+			}
 		case "Body":
 			sub := &StructNode{Type: "Body", Children: child.Children}
 			decls, _ := walkStructure(sub)
