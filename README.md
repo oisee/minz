@@ -61,9 +61,13 @@ Exhaustive check, payload binding, `_` wildcard. [Showcases: Option](examples/na
 
 ---
 
-### ★ NEW: ABAP Screens on Z80 + Open SQL → SQLite | [ABAP Book](docs/ABAP_on_MinZ_Book.md) | [Book Catalog](docs/Book_Catalog.md)
+### ★ NEW: ABAP on ZX Spectrum + Open SQL → SQLite | [ABAP Book](docs/ABAP_on_MinZ_Book.md) | [Book Catalog](docs/Book_Catalog.md)
 
-**`@screen` declarative TUI** — 7 lines of DSL generate a full interactive selection screen with PBO/PAI event loop, focus highlighting, and keyboard navigation. **Mini-ALV** table display with column headers. **Open SQL → SQLite** bridge transpiles `SELECT` to `sqlite_query` calls. The complete ABAP report pattern: selection screen → filter → query → ALV grid.
+**ABAP/4 renders on ZX Spectrum** — real `.abap` source, embedded ZX font, direct screen memory writes. 2KB binary.
+
+<img src="media/abap_zx_spectrum.png" width="400" alt="SAP Material Master on ZX Spectrum">
+
+**Open SQL pipeline**: `SELECT ... INTO TABLE @DATA(lt_mara)` with `INNER JOIN` + `cl_salv_table=>factory()` → ALV grid. **Interactive CP/M selection screen** with `PARAMETERS`, defaults, typed input. **`@screen` declarative TUI** — 7 lines of DSL generate full interactive screens with PBO/PAI, focus, keyboard nav. **SQLite bridge** via I/O ports.
 
 ```nanz
 @screen("SCARR Report") {
@@ -811,7 +815,15 @@ WHILE lv_i < 10.
 ENDWHILE.
 ```
 
-This compiles through: ABAP → [abaplint](https://github.com/abaplint/abaplint) (TypeScript parser by Lars Hvam Petersen) → JSON AST → Go lowerer → HIR → MIR2 → Z80 assembly. Your ZX Spectrum is now an enterprise-grade ABAP runtime. See [8 examples](examples/abap/) including FizzBuzz, bubble sort, OOP with interfaces, and a system info report.
+This compiles through: ABAP → [abaplint](https://github.com/abaplint/abaplint) (TypeScript parser by Lars Hvam Petersen) → JSON AST → Go lowerer → HIR → MIR2 → Z80 assembly. Your ZX Spectrum is now an enterprise-grade ABAP runtime. See [16 examples](examples/abap/) including FizzBuzz, bubble sort, OOP with interfaces, selection screens on CP/M, and a material master report.
+
+**ABAP on ZX Spectrum** — `mz sap_zx_demo.abap --target=spectrum` → 2KB binary with embedded font:
+
+<img src="media/abap_zx_spectrum.png" width="512" alt="SAP Material Master report running on ZX Spectrum">
+
+**ABAP Open SQL on Z80** — `SELECT ... INTO TABLE @DATA(lt_mara)` + `INNER JOIN` + `cl_salv_table=>factory()` → ALV grid display. SQLite bridge via I/O ports ($41/$43/$45/$47). [Demo →](examples/abap/mara_alv.abap)
+
+**Interactive selection screen on CP/M** — `PARAMETERS` with defaults + typed input + IF/ENDIF dispatch. [Calculator →](examples/abap/sap_calculator.abap) | [Hello →](examples/abap/sap_hello_zx.abap)
 
 **Cross-language imports** — Nanz can import from any frontend:
 
