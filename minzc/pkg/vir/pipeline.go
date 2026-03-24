@@ -2184,6 +2184,25 @@ func graceReroll(lines []string, funcName string) []string {
 		n, strings.TrimPrefix(cand.blocks[0].callFunc, "CALL "),
 		nArgs, strings.Join(regs, ", ")))
 
+	// Classify each arg as 8-bit (DB) or 16-bit (DW) based on register name
+	type argInfo struct {
+		reg    string
+		is16   bool
+		offset int // byte offset within data entry
+	}
+	var args []argInfo
+	offset := 0
+	for _, reg := range regs {
+		is16 := reg == "HL" || reg == "DE" || reg == "BC" || reg == "IX" || reg == "IY"
+		args = append(args, argInfo{reg: reg, is16: is16, offset: offset})
+		if is16 {
+			offset += 2
+		} else {
+			offset += 1
+		}
+	}
+	entrySize := offset
+
 	// Emit the loop
 	tableLabel := fmt.Sprintf(".%s_reroll_data", funcName)
 	result = append(result,
@@ -2191,12 +2210,30 @@ func graceReroll(lines []string, funcName string) []string {
 		fmt.Sprintf("    LD B, %d", n),
 		fmt.Sprintf(".%s_reroll_loop:", funcName),
 	)
-	for k, reg := range regs {
-		result = append(result, fmt.Sprintf("    LD %s, (IX+%d)", reg, k))
+	for _, arg := range args {
+		if arg.is16 {
+			// 16-bit: load pair from (IX+offset) and (IX+offset+1)
+			lo, hi := pairHalvesASM(arg.reg)
+			result = append(result,
+				fmt.Sprintf("    LD %s, (IX+%d)", lo, arg.offset),
+				fmt.Sprintf("    LD %s, (IX+%d)", hi, arg.offset+1),
+			)
+		} else {
+			result = append(result, fmt.Sprintf("    LD %s, (IX+%d)", arg.reg, arg.offset))
+		}
+	}
+	if entrySize <= 4 {
+		// Small entry: INC IX × entrySize (no DE clobber)
+		for k := 0; k < entrySize; k++ {
+			result = append(result, "    INC IX")
+		}
+	} else {
+		result = append(result,
+			fmt.Sprintf("    LD DE, %d", entrySize),
+			"    ADD IX, DE",
+		)
 	}
 	result = append(result,
-		fmt.Sprintf("    LD DE, %d", nArgs),
-		"    ADD IX, DE",
 		"    "+cand.blocks[0].callFunc,
 		fmt.Sprintf("    DJNZ .%s_reroll_loop", funcName),
 	)
@@ -2205,11 +2242,16 @@ func graceReroll(lines []string, funcName string) []string {
 	result = append(result, tableLabel+":")
 	for _, blk := range cand.blocks {
 		var vals []string
-		for _, ld := range blk.ldArgs {
+		for k, ld := range blk.ldArgs {
 			parts := strings.SplitN(ld[3:], ", ", 2)
-			vals = append(vals, strings.TrimSpace(parts[1]))
+			val := strings.TrimSpace(parts[1])
+			if args[k].is16 {
+				vals = append(vals, "DW "+val)
+			} else {
+				vals = append(vals, "DB "+val)
+			}
 		}
-		result = append(result, "    DB "+strings.Join(vals, ", "))
+		result = append(result, "    "+strings.Join(vals, " : "))
 	}
 
 	// Copy remaining lines after the candidate
