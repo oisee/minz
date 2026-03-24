@@ -327,6 +327,27 @@ fun main() -> void {
 
 ## 📋 Development Commands
 
+### Cross-Session Communication (dedelulu)
+Multiple Claude Code sessions can communicate via dedelulu:
+```bash
+# Discover all active sessions
+dedelulu explore
+
+# Send a message to another session
+dedelulu send <session_id>:main "your message here"
+
+# Example: send to the main minz repo session
+dedelulu send bazyqg2s:main "Hey! VIR solver results for screen_alv.nanz..."
+```
+Sessions are identified by `session_id:worker_name`. Use `dedelulu explore` to find live sessions.
+Messages appear as `[from:main]` in the recipient's conversation. Reply with `dedelulu send`.
+
+Active project sessions:
+- `~/dev/minz` — main MinZ compiler (production codegen, @screen, ABAP)
+- `~/dev/minz-vir` — VIR backend (Z3 solver, dual-mode, adapters)
+- `~/dev/z80-optimizer` — CUDA superoptimizer (602K rules, GPU regalloc)
+- `~/dev/dedelulu` — cross-session messaging tool itself
+
 ### Releasing
 **IMPORTANT:** Before creating a release, ALWAYS check the latest version on GitHub:
 ```bash

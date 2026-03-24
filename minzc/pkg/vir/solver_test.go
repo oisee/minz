@@ -1,6 +1,7 @@
 package vir
 
 import (
+	"os"
 	"os/exec"
 	"testing"
 )
@@ -373,6 +374,60 @@ func TestZ3SolverHighPressure(t *testing.T) {
 	for i, p := range result {
 		if p.Pat != nil {
 			t.Logf("  PIR[%d]: %s (pat=%s dst=%d)", i, p.Emit(Z80), p.Pat.Name, p.DstPhys)
+		}
+	}
+}
+
+func TestGPURegAlloc(t *testing.T) {
+	if gpuRegAllocPath() == "" {
+		t.Skip("z80_regalloc not found, skipping GPU test")
+	}
+	// CUDA exec from Go test hangs on some systems (driver/sandbox issue).
+	// Enable with: go test -run TestGPURegAlloc -gpu
+	if os.Getenv("VIR_GPU_TEST") == "" {
+		t.Skip("GPU test disabled (set VIR_GPU_TEST=1 to enable)")
+	}
+
+	// Same program as TestZ3SolverSimple: v1=5, v2=3, v3=v1+v2
+	ops := []VIROp{
+		{Op: OpConst, Dst: 1, Imm: 5, Width: 8},
+		{Op: OpConst, Dst: 2, Imm: 3, Width: 8},
+		{Op: OpAdd, Dst: 3, Src: [2]int{1, 2}, Width: 8},
+	}
+
+	assignment, cost, err := SolveGPU(ops, Z80, SolverOptions{})
+	if err != nil {
+		t.Fatalf("SolveGPU: %v", err)
+	}
+
+	t.Logf("GPU optimal: cost=%d, assignment=%v", cost, assignment)
+
+	// v3 must be in A (ADD tied dst=src0, and ADD dst must be A)
+	if loc, ok := assignment[3]; ok {
+		if loc != 0 { // A=0
+			t.Errorf("v3 should be in A(0), got %d", loc)
+		}
+	}
+
+	// v1 must also be in A (tied to v3 via ADD)
+	if loc, ok := assignment[1]; ok {
+		if loc != 0 {
+			t.Errorf("v1 should be in A(0) due to tied ADD, got %d", loc)
+		}
+	}
+
+	// v2 must NOT be in A (interference with v1 at ADD instruction)
+	if loc, ok := assignment[2]; ok {
+		if loc == 0 {
+			t.Errorf("v2 should not be in A(0) — interferes with v1")
+		}
+	}
+
+	// Compare with Z3 if available
+	if _, err := exec.LookPath("z3"); err == nil {
+		z3Result, z3Err := Solve(ops, Z80, SolverOptions{})
+		if z3Err == nil {
+			t.Logf("Z3 produced %d PIROps, GPU cost=%d", len(z3Result), cost)
 		}
 	}
 }
