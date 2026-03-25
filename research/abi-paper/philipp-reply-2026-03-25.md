@@ -4,36 +4,38 @@ Dear Philipp,
 
 Since our last exchange, we've stumbled onto something that may interest you beyond the MinZ/SDCC comparison — a structural result about the nature of register allocation on small architectures.
 
-## The Surprising Finding: 88.2% Cross-Language Transfer
+## The Surprising Finding: 88.2% Cross-Program Transfer
 
 We built a GPU brute-force register allocator that exhaustively searches all 15^N possible register assignments for the Z80 (N = number of virtual registers). For N≤8, this is tractable — seconds on a modern GPU. The result is provably globally optimal: not heuristic, not approximate, but the actual minimum-cost assignment.
 
 The surprising part isn't the GPU. It's what the GPU revealed about the structure of the problem.
 
-We compiled 1,605 functions across 8 language frontends (Nanz, C89, Pascal, PL/M, ABAP, Frill, Lizp, Lanz) and extracted the register allocation constraint signature for each. A signature captures: which patterns are available per instruction, which virtual registers interfere, and what the tied-operand/accumulator constraints are. It does NOT capture function names, immediates, or source language.
+We compiled 1,605 functions from 8 source language frontends (Nanz, C89, Pascal, PL/M, ABAP, Frill, Lizp, Lanz) through our shared HIR→MIR2→VIR pipeline, and extracted the register allocation constraint signature for each function at the VIR level. A signature captures: which patterns are available per instruction, which virtual registers interfere, and what the tied-operand/accumulator constraints are. It does NOT capture function names, immediates, or source language.
 
 **Result: 1,605 functions collapse to 312 unique signatures. 80% reuse.**
 
-Then we ran a transfer experiment: built the lookup table from Nanz + PL/M + misc programs, tested on completely unseen ABAP + SQLite + Screen programs.
+We then ran a transfer experiment: built the lookup table from one subset of programs (Nanz core + PL/M), tested on a disjoint set (ABAP + SQLite + Screen rendering).
 
-**88.2% hit rate on unseen frontends.** ABAP business logic: 98.8%. Screen rendering: 89.6%.
+**88.2% hit rate on unseen programs.** ABAP business logic: 98.8%. Screen rendering: 89.6%.
 
-The implication: the Z80 instruction set creates a small, recurring vocabulary of allocation problems. Different source languages, different application domains — but from the allocator's perspective, they're asking the same questions.
+**Important caveat:** All 8 frontends share the same IR pipeline (HIR→MIR2→VIR), so the 80% reuse and 88.2% transfer reflect the constraint vocabulary of *our IR and backend*, not necessarily a universal property of the Z80 ISA. Different compilers with different IRs and instruction selection strategies may produce different constraint signatures.
+
+This is exactly why we'd like to test on SDCC — it would tell us whether the low signature entropy is a property of the Z80 itself, or an artifact of our particular IR design.
 
 ## An Invitation: Test This on SDCC's Corpus
 
-This leads to a concrete, testable hypothesis:
+This leads to a concrete, testable hypothesis — but one we cannot test alone:
 
-> *For a fixed ISA with N physical locations, the number of distinct allocation constraint signatures encountered in practice is bounded by a function much smaller than the theoretical N^K, and this bound is language-independent.*
+> *For a fixed ISA with N physical locations, the number of distinct allocation constraint signatures encountered in practice is bounded by a function much smaller than the theoretical N^K. Open question: is this bound a property of the ISA, or of the compiler's IR?*
 
-You're uniquely positioned to test this. SDCC compiles real-world C programs for Z80 — a much larger and more diverse corpus than ours. The experiment:
+You're uniquely positioned to help answer this. SDCC has a completely different IR, different instruction selection, and a much larger real-world C corpus. The experiment:
 
 1. For each function SDCC compiles, extract the interference graph + register class constraints
 2. Hash them into a canonical signature
 3. Count unique signatures vs total functions
 4. Measure: does the 80% reuse hold? Is the signature vocabulary similar to ours?
 
-If yes — this is a structural property of the Z80 ISA, not of our compiler. If no — it tells us something interesting about how different IRs shape the constraint space.
+If SDCC also shows high signature reuse — the low entropy is a property of the Z80 ISA itself. If SDCC shows low reuse — the constraint vocabulary depends heavily on IR design, which is equally interesting and worth reporting honestly.
 
 We'd be happy to share our signature extraction code and GPU solver. The JSON protocol is simple (one JSON per function, stdin/stdout).
 
