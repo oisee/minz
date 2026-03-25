@@ -2607,3 +2607,100 @@
 {"ts": "2026-03-24T22:34:46.894229", "event": "hook_approve", "tool": "Bash"}
 {"ts": "2026-03-24T22:34:53.933583", "event": "hook_approve", "tool": "Bash"}
 {"ts": "2026-03-24T22:35:00.760238", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:11:13.371625", "event": "hook_post_tool", "tool": "Bash", "summary": "git rebase --abort 2>&1; git stash drop 2>/dev/null; git checkout master 2>&1; git reset --hard origin/master 2>&1 | tai"}
+{"ts": "2026-03-25T06:11:25.664023", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:11:28.368093", "event": "hook_post_tool", "tool": "Bash", "summary": "go build -o ~/.local/bin/mz ./cmd/minzc && go build -o ~/.local/bin/mza ./cmd/mza && mz /home/alice/dev/minz/examples/na"}
+{"ts": "2026-03-25T06:11:38.584879", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:11:38.849254", "event": "hook_post_tool", "tool": "Bash", "summary": "grep -c \"ZSQL\" /tmp/ZSQL_VIR.COM; xxd /tmp/ZSQL_VIR.COM | grep -i \"5a53 514c\\|zsql\" | head -3"}
+{"ts": "2026-03-25T06:11:48.582784", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:11:48.747153", "event": "hook_post_tool", "tool": "Bash", "summary": "grep -n \"^; strings\\|_vir_mem\\|^; globals\\|_mir2_str_5\" /tmp/zsql_vir.a80"}
+{"ts": "2026-03-25T06:11:59.812438", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:12:00.093623", "event": "hook_post_tool", "tool": "Bash", "summary": "ls -la /tmp/ZSQL_VIR.COM && python3 -c \"\n# Check addresses\nimport subprocess\nr = subprocess.run(['xxd', '/tmp/ZSQL_VIR.C"}
+{"ts": "2026-03-25T06:12:12.982196", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:12:13.227466", "event": "hook_post_tool", "tool": "Bash", "summary": "sed -n '630,660p' /tmp/zsql_vir.a80"}
+{"ts": "2026-03-25T06:12:23.581163", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:12:23.840682", "event": "hook_post_tool", "tool": "Bash", "summary": "mza /tmp/zsql_vir.a80 -o /tmp/ZSQL_VIR.COM -v 2>&1 && xxd -s 0x3C0 -l 60 /tmp/ZSQL_VIR.COM"}
+{"ts": "2026-03-25T06:12:35.251697", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:12:35.504954", "event": "hook_post_tool", "tool": "Bash", "summary": "grep -rn \"size\\|Size\\|len(.*binary\\|binary.*len\\|output.*\\[\" /home/alice/dev/minz/minzc/cmd/mza/main.go | head -10"}
+{"ts": "2026-03-25T06:12:42.981480", "event": "hook_approve", "tool": "Read"}
+{"ts": "2026-03-25T06:12:43.214377", "event": "hook_post_tool", "tool": "Read", "summary": "/home/alice/dev/minz/minzc/cmd/mza/main.go"}
+{"ts": "2026-03-25T06:12:53.808172", "event": "hook_approve", "tool": "Grep"}
+{"ts": "2026-03-25T06:12:53.926359", "event": "hook_post_tool", "tool": "Grep", "summary": "Size.*=.*currentAddr\\|Binary.*=\\|result\\.Size\""}
+{"ts": "2026-03-25T06:13:01.956207", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:13:02.119900", "event": "hook_post_tool", "tool": "Bash", "summary": "grep -rn \"\\.Size\\|\\.Binary\\|result\\.\" /home/alice/dev/minz/minzc/pkg/z80asm/assembler.go | grep -i \"size\\|binary\" | head"}
+{"ts": "2026-03-25T06:13:09.953592", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:13:10.121700", "event": "hook_post_tool", "tool": "Bash", "summary": "grep -rn \"type.*Result\\|Size int\\|Binary \\[\\]byte\" /home/alice/dev/minz/minzc/pkg/z80asm/*.go | head -10"}
+{"ts": "2026-03-25T06:13:18.256420", "event": "hook_approve", "tool": "Read"}
+{"ts": "2026-03-25T06:13:18.491255", "event": "hook_post_tool", "tool": "Read", "summary": "/home/alice/dev/minz/minzc/pkg/z80asm/assembler.go"}
+{"ts": "2026-03-25T06:13:28.070165", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:13:28.363982", "event": "hook_post_tool", "tool": "Bash", "summary": "grep -n \"result.Size\\|result.Binary\\|memory\\[\" /home/alice/dev/minz/minzc/pkg/z80asm/assembler.go | head -10"}
+{"ts": "2026-03-25T06:13:36.564920", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:13:36.830392", "event": "hook_post_tool", "tool": "Bash", "summary": "grep -n \"\\.Binary\\|\\.Size\" /home/alice/dev/minz/minzc/pkg/z80asm/assembler.go | head -10"}
+{"ts": "2026-03-25T06:13:44.577479", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:13:44.870346", "event": "hook_post_tool", "tool": "Bash", "summary": "grep -rn \"\\.Binary\\b\\|\\.Size\\b\" /home/alice/dev/minz/minzc/pkg/z80asm/*.go | grep -v test | head -10"}
+{"ts": "2026-03-25T06:13:51.551516", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:13:51.733791", "event": "hook_post_tool", "tool": "Bash", "summary": "grep -rn \"result\\.Binary =\" /home/alice/dev/minz/minzc/pkg/z80asm/*.go | head -5"}
+{"ts": "2026-03-25T06:14:00.702135", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:14:00.885836", "event": "hook_post_tool", "tool": "Bash", "summary": "grep -rn \"Binary:\" /home/alice/dev/minz/minzc/pkg/z80asm/*.go | grep -v test | head -10"}
+{"ts": "2026-03-25T06:14:13.368969", "event": "hook_approve", "tool": "Read"}
+{"ts": "2026-03-25T06:14:13.616688", "event": "hook_post_tool", "tool": "Read", "summary": "/home/alice/dev/minz/minzc/pkg/z80asm/assembler.go"}
+{"ts": "2026-03-25T06:14:22.325971", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:14:22.596821", "event": "hook_post_tool", "tool": "Bash", "summary": "grep -n \"a\\.output\" /home/alice/dev/minz/minzc/pkg/z80asm/assembler.go | head -15"}
+{"ts": "2026-03-25T06:14:37.020395", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:14:37.293628", "event": "hook_post_tool", "tool": "Bash", "summary": "mza /tmp/zsql_vir.a80 -o /tmp/ZSQL_VIR.COM -l /tmp/zsql.lst 2>/dev/null && grep \"_mir2_str_5\\|_inbuf:\" /tmp/zsql.lst | h"}
+{"ts": "2026-03-25T06:14:44.268568", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:14:44.533512", "event": "hook_post_tool", "tool": "Bash", "summary": "grep \"^04\" /tmp/zsql.lst | head -20"}
+{"ts": "2026-03-25T06:14:51.567537", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:14:51.719031", "event": "hook_post_tool", "tool": "Bash", "summary": "grep \"zsql>\" /tmp/zsql.lst"}
+{"ts": "2026-03-25T06:14:59.170325", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:14:59.454269", "event": "hook_post_tool", "tool": "Bash", "summary": "grep \"_mir2_str_0:\" /tmp/zsql.lst"}
+{"ts": "2026-03-25T06:15:06.622961", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:15:06.798269", "event": "hook_post_tool", "tool": "Bash", "summary": "grep \"049\" /tmp/zsql.lst | tail -10"}
+{"ts": "2026-03-25T06:15:19.766189", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:15:20.033359", "event": "hook_post_tool", "tool": "Bash", "summary": "echo -e 'ORG $100\\nmain:\\n    LD HL, mystr\\n    RET\\nmystr:\\n    DB \"hello\", 0' | mza /dev/stdin -o /tmp/test_db.bin && "}
+{"ts": "2026-03-25T06:15:30.671180", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:15:30.954015", "event": "hook_post_tool", "tool": "Bash", "summary": "mza /tmp/zsql_vir.a80 -o /tmp/ZSQL_VIR.COM 2>&1"}
+{"ts": "2026-03-25T06:15:44.281454", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:15:45.978407", "event": "hook_post_tool", "tool": "Bash", "summary": "mz /home/alice/dev/minz/examples/abap/sap_zx_demo.abap --vir --target=cpm -o /tmp/demo_vir.a80 2>/dev/null && grep -n \"^"}
+{"ts": "2026-03-25T06:16:03.966026", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:16:04.298245", "event": "hook_post_tool", "tool": "Bash", "summary": "ddll send cekgp49j:main \"Still broken \u2014 strings not in binary. Root cause deeper: _vir_mem DW 0 labels ARE extracted by "}
+{"ts": "2026-03-25T06:16:13.522112", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:16:13.792897", "event": "hook_post_tool", "tool": "Bash", "summary": "grep \"END\" /tmp/zsql_vir.a80 | head -3"}
+{"ts": "2026-03-25T06:16:22.501930", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:16:22.659448", "event": "hook_post_tool", "tool": "Bash", "summary": "wc -l /tmp/zsql_vir.a80 && wc -l /tmp/zsql.lst"}
+{"ts": "2026-03-25T06:16:29.836057", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:16:30.102793", "event": "hook_post_tool", "tool": "Bash", "summary": "tail -5 /tmp/zsql.lst"}
+{"ts": "2026-03-25T06:16:43.199377", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:16:43.470138", "event": "hook_post_tool", "tool": "Bash", "summary": "grep -n \"\\\"DB\\\"\\|processDB\\|handleDB\\|DB.*case\\|DEFB\" /home/alice/dev/minz/minzc/pkg/z80asm/assembler.go | head -10"}
+{"ts": "2026-03-25T06:16:51.128776", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:16:51.424787", "event": "hook_post_tool", "tool": "Bash", "summary": "grep -rn \"\\\"DB\\\"\\|Directive.*DB\\|case.*DB\" /home/alice/dev/minz/minzc/pkg/z80asm/*.go | grep -v test | head -10"}
+{"ts": "2026-03-25T06:16:59.102108", "event": "hook_approve", "tool": "Read"}
+{"ts": "2026-03-25T06:16:59.225876", "event": "hook_post_tool", "tool": "Read", "summary": "/home/alice/dev/minz/minzc/pkg/z80asm/directives.go"}
+{"ts": "2026-03-25T06:17:05.751278", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:17:06.035117", "event": "hook_post_tool", "tool": "Bash", "summary": "grep -n \"func.*handleDB\" /home/alice/dev/minz/minzc/pkg/z80asm/directives.go"}
+{"ts": "2026-03-25T06:17:12.850883", "event": "hook_approve", "tool": "Read"}
+{"ts": "2026-03-25T06:17:13.089677", "event": "hook_post_tool", "tool": "Read", "summary": "/home/alice/dev/minz/minzc/pkg/z80asm/directives.go"}
+{"ts": "2026-03-25T06:17:21.178960", "event": "hook_approve", "tool": "Read"}
+{"ts": "2026-03-25T06:17:21.427169", "event": "hook_post_tool", "tool": "Read", "summary": "/home/alice/dev/minz/minzc/pkg/z80asm/directives.go"}
+{"ts": "2026-03-25T06:17:35.348633", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:17:35.615914", "event": "hook_post_tool", "tool": "Bash", "summary": "grep 'DB \"' /tmp/zsql_vir.a80 | head -3"}
+{"ts": "2026-03-25T06:17:45.650942", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:17:45.818173", "event": "hook_post_tool", "tool": "Bash", "summary": "mza /tmp/zsql_vir.a80 -o /tmp/ZSQL_VIR.COM 2>&1; echo \"exit: $?\""}
+{"ts": "2026-03-25T06:17:54.738845", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:17:55.047502", "event": "hook_post_tool", "tool": "Bash", "summary": "cp /tmp/zsql_vir.a80 /tmp/zsql_test.a80 && echo '_test_marker: DB $AA, $BB, $CC' >> /tmp/zsql_test.a80 && mza /tmp/zsql_"}
+{"ts": "2026-03-25T06:18:08.273832", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:18:08.555501", "event": "hook_post_tool", "tool": "Bash", "summary": "# Create minimal test: code, then DB, then more DB\ncat > /tmp/minimal_test.a80 << 'EOF'\n    ORG $100\nmain:\n    LD HL, my"}
+{"ts": "2026-03-25T06:18:18.863779", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:18:19.161765", "event": "hook_post_tool", "tool": "Bash", "summary": "head -640 /tmp/zsql_vir.a80 > /tmp/zsql_head.a80 && echo '_test_: DB $AA' >> /tmp/zsql_head.a80 && mza /tmp/zsql_head.a8"}
+{"ts": "2026-03-25T06:18:32.498333", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:18:32.802981", "event": "hook_post_tool", "tool": "Bash", "summary": "# Check: does line 649 (string section) process?\nsed -n '640,660p' /tmp/zsql_vir.a80"}
+{"ts": "2026-03-25T06:18:44.296382", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:18:53.152285", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:18:53.475062", "event": "hook_post_tool", "tool": "Bash", "summary": "mza /tmp/zsql_fixed.a80 -o /tmp/ZSQL_FIXED.COM 2>&1"}
+{"ts": "2026-03-25T06:19:00.836618", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:19:10.036205", "event": "hook_post_tool", "tool": "Bash", "summary": "strings /tmp/ZSQL_FIXED.COM | head -5 && ls -la /tmp/ZSQL_FIXED.COM"}
+{"ts": "2026-03-25T06:19:22.543682", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:19:22.804065", "event": "hook_post_tool", "tool": "Bash", "summary": "# Find which line MZA stops at by adding markers\nfor line in 635 640 645 650; do\n    head -$line /tmp/zsql_vir.a80 > /tm"}
+{"ts": "2026-03-25T06:19:36.910309", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T06:19:37.217349", "event": "hook_post_tool", "tool": "Bash", "summary": "mza /tmp/zsql_vir.a80 -o /tmp/ZSQL_VIR.COM -v 2>&1; python3 -c \"\nwith open('/tmp/ZSQL_VIR.COM','rb') as f:\n    data = f."}
+{"ts": "2026-03-25T06:19:53.828420", "event": "hook_approve", "tool": "Bash"}
