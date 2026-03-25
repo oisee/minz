@@ -56,9 +56,31 @@ The calling convention difference means the exact register assignments differ,
 but the **constraint pattern** (1 dst-A, 2 src-GPR, tied-dst) is the same.
 Different physical allocation, same abstract signature.
 
+## Per-Frontend Signature Data (Table 2)
+
+| Corpus | Functions | Unique Sigs | Reuse Rate |
+|--------|-----------|-------------|------------|
+| Nanz | ~200 | ~100 | 80.9% |
+| C89 | 292 | 129 | 55.8% |
+| ABAP | ~80 | ~20 | 98.8% |
+| Combined | 645 | 315 | 97.8% convergence |
+
+C89 has lower reuse (55.8%) because it has more diverse patterns (pointer
+arithmetic, struct access, bitops). ABAP has highest reuse (98.8%) because
+business logic functions share common ALU + WRITE patterns.
+
+Top signature reuse in C89 corpus:
+- 68 functions share one trivial signature (test stubs)
+- `abs_diff`: same sig across 7 files (0a1625cad3c1)
+- `add/add8`: same sig, 8 instances (21a88efb6705)
+- `max/min`: same sig, 7 instances (4b042982e36f)
+
+This is the Zipf-like distribution: few signatures cover many functions.
+
 ### Next Steps
 
 1. Compile all 333 C89 functions with SDCC → extract register pressure
 2. Fix C89 frontend: avoid u16 promotion for u8 operations
-3. Re-measure: signature count with native widths
+3. Re-measure: signature count with native widths (predicted: ~250)
 4. Cross-compiler transfer: compute signature overlap between MinZ and SDCC
+5. Width-equivalence tagging in VIR → hash without promotion → true ISA vocabulary
