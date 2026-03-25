@@ -1,5 +1,22 @@
 # MinZ Programming Language
 
+### ★ NEW: [Anytime-Optimal Register Allocation](docs/Anytime_Optimal_Register_Allocation.md) — 5-Level Graceful Degradation
+
+**The compiler never fails. It only varies in how optimal the result is.**
+
+```
+ Function → Table(O(1)) → Z3(sec) → Backtrack(min) → Islands → PBQP(always)
+             optimal       optimal    optimal          ~94%      heuristic
+```
+
+5 levels: GPU precomputed table (87% of functions, O(1), provably optimal) → Z3 SMT solver (99%+, seconds) → CPU backtracking with 745,000x interference pruning (99.9%) → island decomposition at liveness bottlenecks (bounded 6% overhead) → PBQP heuristic fallback (100%, SDCC-quality). Every function compiles. The table grows over time — each solved function is cached. See the [full writeup](docs/Anytime_Optimal_Register_Allocation.md).
+
+**Компилятор никогда не ломается. Он лишь варьирует степень оптимальности.**
+
+5 уровней: GPU таблица (87%, O(1), доказуемо оптимально) → Z3 (99%+, секунды) → перебор с отсечением 745,000x (99.9%) → декомпозиция на острова (потеря ≤6%) → PBQP эвристика (100%). Каждая функция компилируется. Таблица растёт со временем. [Подробнее](docs/Anytime_Optimal_Register_Allocation.md).
+
+---
+
 ### ★ NEW: [MinZ Weekly #2: The Solver Revolution](reports/MinZ_Weekly_2.md) | [PDF](reports/MinZ_Weekly_2.pdf) | [EPUB](reports/MinZ_Weekly_2.epub)
 
 **Z3 + GPU brute-force + precomputed tables = -71% vs SDCC.** Four Claude Code sessions collaborating via [dedelulu](https://github.com/oisee/dedelulu) built: dual-mode solver with adapter emission, GPU register allocator (CUDA exhaustive search), peephole expansion, ABAP screens on Z80, readable assembly.
