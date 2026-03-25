@@ -1420,13 +1420,22 @@ func (l *lowerer) emitItabPrintFunc(tableName string, row, col, offset, width in
 		}
 	}
 
+	// Target-aware: BDOS CALL 5 on CP/M, _zx_putchar on ZX Spectrum
+	var printChar, printSpace string
+	if l.hm.Target == hir.TargetZXSpectrum {
+		printChar = "PUSH HL / PUSH BC / CALL _zx_putchar / POP BC / POP HL"
+		printSpace = "LD A, 32 / PUSH HL / PUSH BC / CALL _zx_putchar / POP BC / POP HL"
+	} else {
+		printChar = "LD E, A / PUSH HL / PUSH BC / LD C, 2 / CALL 5 / POP BC / POP HL"
+		printSpace = "LD E, 32 / PUSH HL / PUSH BC / LD C, 2 / CALL 5 / POP BC / POP HL"
+	}
 	asmCode := fmt.Sprintf(
 		"LD HL, %s+%d"+ // HL = source address (compile-time constant)
 			"/ LD B, %d"+ // B = width
 			"/ .lp: LD A, (HL) / OR A / JR Z, .pd"+ // null → pad
-			"/ LD E, A / PUSH HL / PUSH BC / LD C, 2 / CALL 5 / POP BC / POP HL / INC HL / DJNZ .lp / RET"+
-			"/ .pd: LD E, 32 / PUSH HL / PUSH BC / LD C, 2 / CALL 5 / POP BC / POP HL / DJNZ .pd / RET",
-		bufName, offset, width)
+			"/ %s / INC HL / DJNZ .lp / RET"+
+			"/ .pd: %s / DJNZ .pd / RET",
+		bufName, offset, width, printChar, printSpace)
 
 	l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
 		Name:  fnName,
