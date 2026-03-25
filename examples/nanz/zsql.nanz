@@ -156,9 +156,16 @@ fun _prompt() -> void {
     _do_exec(sql)
 }
 
+// Exec SQL via asm wrapper — hardcodes register setup to avoid regalloc issues.
+// PFCCO for sqlite_exec(db: u16, sql: ^u8): HL=db, DE=sql
 fun _do_exec(sql: ^u8) -> void {
-    var rc: u8 = sqlite_exec(db, sql)
-    if rc == 0 {
+    asm z80 (in sql) {
+        ; HL = sql pointer (from param)
+        EX DE, HL           ; DE = sql
+        LD HL, (db)         ; HL = db handle
+        CALL sql__sqlite__sqlite_exec
+    }
+    if _last_rc() == 0 {
         puts(c"OK")
     } else {
         puts(c"ERR")
@@ -166,33 +173,86 @@ fun _do_exec(sql: ^u8) -> void {
     newline()
 }
 
+// Get result of last sqlite call (A register after CALL)
+fun _last_rc() -> u8 {
+    asm z80 (ret A) { NOP }
+}
+
+// SELECT via asm — query + step loop with hardcoded registers
 fun _do_select(sql: ^u8) -> void {
-    var stmt: u16 = sqlite_query(db, sql)
+    // sqlite_query(db, sql) → stmt handle in HL
+    _sql_query(sql)
+    // Step + print rows — hardcoded handle 1 (first query)
+    _sel_rows()
+}
+
+// Query wrapper: PFCCO sqlite_query(db: u16, sql: ^u8) → HL=db, DE=sql
+fun _sql_query(sql: ^u8) -> void {
+    asm z80 (in sql) {
+        EX DE, HL           ; DE = sql
+        LD HL, (db)         ; HL = db handle
+        CALL sql__sqlite__sqlite_query
+        ; result handle in HL — store for later use
+        LD (_sel_stmt), HL
+    }
+}
+
+// Step through rows and print — uses stored stmt handle
+fun _sel_rows() -> void {
     var n: u16 = 0
-
-    // Unrolled — max 16 rows
-    if sqlite_step(stmt) == 1 { _prow(stmt) n = n + 1 }
-    if sqlite_step(stmt) == 1 { _prow(stmt) n = n + 1 }
-    if sqlite_step(stmt) == 1 { _prow(stmt) n = n + 1 }
-    if sqlite_step(stmt) == 1 { _prow(stmt) n = n + 1 }
-    if sqlite_step(stmt) == 1 { _prow(stmt) n = n + 1 }
-    if sqlite_step(stmt) == 1 { _prow(stmt) n = n + 1 }
-    if sqlite_step(stmt) == 1 { _prow(stmt) n = n + 1 }
-    if sqlite_step(stmt) == 1 { _prow(stmt) n = n + 1 }
-    if sqlite_step(stmt) == 1 { _prow(stmt) n = n + 1 }
-    if sqlite_step(stmt) == 1 { _prow(stmt) n = n + 1 }
-    if sqlite_step(stmt) == 1 { _prow(stmt) n = n + 1 }
-    if sqlite_step(stmt) == 1 { _prow(stmt) n = n + 1 }
-    if sqlite_step(stmt) == 1 { _prow(stmt) n = n + 1 }
-    if sqlite_step(stmt) == 1 { _prow(stmt) n = n + 1 }
-    if sqlite_step(stmt) == 1 { _prow(stmt) n = n + 1 }
-    if sqlite_step(stmt) == 1 { _prow(stmt) n = n + 1 }
-
-    sqlite_finalize(stmt)
+    if _step1() == 1 { _prow1() n = n + 1 }
+    if _step1() == 1 { _prow1() n = n + 1 }
+    if _step1() == 1 { _prow1() n = n + 1 }
+    if _step1() == 1 { _prow1() n = n + 1 }
+    if _step1() == 1 { _prow1() n = n + 1 }
+    if _step1() == 1 { _prow1() n = n + 1 }
+    if _step1() == 1 { _prow1() n = n + 1 }
+    if _step1() == 1 { _prow1() n = n + 1 }
+    _finalize1()
     print_u16(n)
     puts(c" rows")
     newline()
 }
+
+// Step with hardcoded stmt handle from _sel_stmt
+fun _step1() -> u8 {
+    asm z80 (ret A) {
+        LD HL, (_sel_stmt)
+        CALL sql__sqlite__sqlite_step
+    }
+}
+
+// Print row with hardcoded stmt handle
+fun _prow1() -> void {
+    asm z80 {
+        LD HL, (_sel_stmt)
+        LD C, 0
+        CALL sql__sqlite__sqlite_column_text
+    }
+    // HL = text pointer from column_text
+    _print_col_result()
+    newline()
+}
+
+// Print column text result (HL = string pointer after sqlite_column_text)
+fun _print_col_result() -> void {
+    asm z80 {
+        ; HL already has the text pointer from sqlite_column_text return
+        .lp: LD A, (HL) / OR A / RET Z
+        LD E, A / PUSH HL / LD C, 2 / CALL 5 / POP HL / INC HL / JR .lp
+    }
+}
+
+// Finalize with hardcoded stmt handle
+fun _finalize1() -> void {
+    asm z80 {
+        LD HL, (_sel_stmt)
+        CALL sql__sqlite__sqlite_finalize
+    }
+}
+
+// Stored stmt handle for SELECT operations
+global _sel_stmt: u16 = 0
 
 fun _prow(stmt: u16) -> void {
     // Print columns 0-3 pipe-separated
