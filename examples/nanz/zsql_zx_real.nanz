@@ -1,0 +1,236 @@
+// ZSQL on ZX Spectrum — REAL SQLite via I/O port bridge!
+// ZX font rendering + console port $23 input + SQLite ports $41-$47.
+//
+// Build:
+//   mz zsql_zx_real.nanz --target=spectrum -o zsql_zx.a80
+//   mza zsql_zx.a80 -o ZSQL_ZX.bin
+//   printf "CREATE TABLE makt(matnr TEXT, maktx TEXT)\nINSERT INTO makt VALUES('100-100','Pump Assembly')\nSELECT * FROM makt\n" | mzx --run ZSQL_ZX.bin@8000
+//   # or headless:
+//   printf "...\n" | mze ZSQL_ZX.bin -t spectrum --profile /tmp/zx.json
+//   python3 tools/render_zx_screen.py /tmp/zx.json /tmp/zsql.png
+
+import sql.sqlite
+
+// ── ZX Spectrum output ─────────────────────────────────────────
+
+global _zx_row: u8 = 0
+global _zx_col: u8 = 0
+
+fun _zxch(ch: u8) -> void {
+    asm z80 (in ch) {
+        CP 13 / JR Z, ._nl / CP 10 / JR Z, ._nl
+        SUB 32 / LD L, A / LD H, 0
+        ADD HL, HL / ADD HL, HL / ADD HL, HL
+        LD DE, 0x3D00 / ADD HL, DE
+        PUSH HL
+        LD A, (_zx_row) / LD C, A
+        LD A, (_zx_col) / LD B, A
+        LD A, C / AND 0x07 / RRCA / RRCA / RRCA / AND 0xE0
+        OR B / LD L, A
+        LD A, C / AND 0x18 / OR 0x40 / LD H, A
+        POP DE
+        LD B, 8
+        ._cp: LD A, (DE) / LD (HL), A / INC DE / INC H / DJNZ ._cp
+        LD HL, _zx_col / INC (HL) / LD A, (HL) / CP 32 / RET NZ
+        LD (HL), 0 / DEC HL / INC (HL) / RET
+        ._nl: LD HL, _zx_row / INC (HL) / INC HL / LD (HL), 0
+    }
+}
+
+fun puts(s: ^u8) -> void {
+    asm z80 (in s) {
+        PUSH IX / PUSH HL / POP IX
+        .lp: LD A, (IX+0) / OR A / JR Z, .dn
+        PUSH IX / CALL _zxch / POP IX / INC IX / JR .lp
+        .dn: POP IX
+    }
+}
+
+fun putch(ch: u8) -> void { _zxch(ch) }
+fun newline() -> void { _zxch(13) }
+
+// ── ZX input via console port $23 ──────────────────────────────
+
+fun readline() -> u8 {
+    asm z80 (ret A) {
+        LD IX, _inbuf
+        LD B, 0
+        ._poll: IN A, (0x23)
+        OR A / JR Z, ._poll
+        AND 0x7F
+        CP 13 / JR Z, ._done
+        CP 10 / JR Z, ._done
+        LD (IX+0), A / INC IX / INC B
+        PUSH BC / CALL _zxch / POP BC
+        LD A, B / CP 60 / JR NZ, ._poll
+        ._done: LD (IX+0), 0
+        PUSH BC / LD A, 13 / CALL _zxch / POP BC
+        LD A, B
+    }
+}
+
+fun getinput() -> ^u8 {
+    asm z80 (ret HL) { LD HL, _inbuf }
+}
+
+fun terminate(len: u8) -> void {
+    asm z80 (in len) {
+        LD HL, _inbuf / LD D, 0 / LD E, A / ADD HL, DE / LD (HL), 0
+    }
+}
+
+fun first_char(s: ^u8) -> u8 {
+    asm z80 (in s) (ret A) { LD A, (HL) }
+}
+
+fun zx_cls() -> void {
+    asm z80 {
+        LD HL, 0x4000 / LD DE, 0x4001 / LD BC, 6143 / LD (HL), 0 / LDIR
+        LD HL, 0x5800 / LD DE, 0x5801 / LD BC, 767 / LD (HL), 0x47 / LDIR
+        LD HL, _zx_row / LD (HL), 0 / INC HL / LD (HL), 0
+    }
+}
+
+fun zx_attr_row(row: u8, attr: u8) -> void {
+    asm z80 (in row, attr) {
+        LD H, 0 / LD L, A
+        ADD HL, HL / ADD HL, HL / ADD HL, HL / ADD HL, HL / ADD HL, HL
+        LD DE, 0x5800 / ADD HL, DE
+        LD B, 32 / .f: LD (HL), C / INC HL / DJNZ .f
+    }
+}
+
+// ── SQLite wrappers (hardcoded registers) ──────────────────────
+
+global db: u16 = 0
+global _sel_stmt: u16 = 0
+
+fun _do_exec(sql: ^u8) -> void {
+    asm z80 (in sql) {
+        EX DE, HL
+        LD HL, (db)
+        CALL sql__sqlite__sqlite_exec
+    }
+    puts(c"OK")
+    newline()
+}
+
+fun _sql_query(sql: ^u8) -> void {
+    asm z80 (in sql) {
+        EX DE, HL
+        LD HL, (db)
+        CALL sql__sqlite__sqlite_query
+        LD (_sel_stmt), HL
+    }
+}
+
+fun _step1() -> u8 {
+    asm z80 (ret A) {
+        LD HL, (_sel_stmt)
+        CALL sql__sqlite__sqlite_step
+    }
+}
+
+fun _prow1() -> void {
+    asm z80 {
+        ; Col 0
+        LD HL, (_sel_stmt)
+        LD A, 0
+        CALL sql__sqlite__sqlite_column_text
+        .c0: LD A, (HL) / OR A / JR Z, .sep
+        PUSH HL / CALL _zxch / POP HL / INC HL / JR .c0
+        ; Separator
+        .sep: LD A, 32 / CALL _zxch
+        LD A, 124 / CALL _zxch
+        LD A, 32 / CALL _zxch
+        ; Col 1 — inline port protocol to avoid A clobber
+        LD HL, (_sel_stmt)
+        LD A, L / OUT (0x45), A
+        LD A, 1 / OUT (0x47), A
+        LD A, 5 / OUT (0x41), A
+        LD HL, sql__sqlite___sql_buf
+        CALL sql__sqlite___sql_recv_str
+        .c1: LD A, (HL) / OR A / JR Z, .nl
+        PUSH HL / CALL _zxch / POP HL / INC HL / JR .c1
+        .nl: LD A, 13 / CALL _zxch
+    }
+}
+
+fun _finalize1() -> void {
+    asm z80 {
+        LD HL, (_sel_stmt)
+        CALL sql__sqlite__sqlite_finalize
+    }
+}
+
+fun _do_select(sql: ^u8) -> void {
+    _sql_query(sql)
+    if _step1() == 1 { _prow1() }
+    if _step1() == 1 { _prow1() }
+    if _step1() == 1 { _prow1() }
+    if _step1() == 1 { _prow1() }
+    if _step1() == 1 { _prow1() }
+    if _step1() == 1 { _prow1() }
+    if _step1() == 1 { _prow1() }
+    if _step1() == 1 { _prow1() }
+    _finalize1()
+    newline()
+}
+
+// ── REPL ───────────────────────────────────────────────────────
+
+fun _prompt() -> void {
+    puts(c"zsql> ")
+    var len: u8 = readline()
+    if len == 0 { return }
+    terminate(len)
+    var sql: ^u8 = getinput()
+    var ch: u8 = first_char(sql)
+    if ch == 46 { puts(c".help .quit") newline() return }
+    if ch == 83 { _do_select(sql) return }
+    if ch == 115 { _do_select(sql) return }
+    _do_exec(sql)
+}
+
+fun main() -> void {
+    zx_cls()
+    asm z80 { LD A, 1 / OUT (0xFE), A }
+    zx_attr_row(0, 0x4F)
+    zx_attr_row(1, 0x4F)
+    puts(c" ZSQL - Real SQL on ZX Spectrum")
+    puts(c" SQLite via I/O ports")
+    newline()
+
+    db = sqlite_open(c":memory:")
+
+    _prompt() _prompt() _prompt() _prompt()
+    _prompt() _prompt() _prompt() _prompt()
+    _prompt() _prompt() _prompt() _prompt()
+    _prompt() _prompt() _prompt() _prompt()
+
+    sqlite_close(db)
+    puts(c"Bye!")
+    asm z80 { DI / HALT }
+}
+
+// ── Input buffer ───────────────────────────────────────────────
+global _inbuf: u16 = 0
+global _inbuf2: u16 = 0
+global _inbuf3: u16 = 0
+global _inbuf4: u16 = 0
+global _inbuf5: u16 = 0
+global _inbuf6: u16 = 0
+global _inbuf7: u16 = 0
+global _inbuf8: u16 = 0
+global _inbuf9: u16 = 0
+global _inbufa: u16 = 0
+global _inbufb: u16 = 0
+global _inbufc: u16 = 0
+global _inbufd: u16 = 0
+global _inbufe: u16 = 0
+global _inbuff: u16 = 0
+global _inbufg: u16 = 0
+global _inbufh: u16 = 0
+global _inbufi: u16 = 0
+global _inbufj: u16 = 0
+global _inbufk: u16 = 0
