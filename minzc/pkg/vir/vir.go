@@ -328,19 +328,27 @@ type PIROp struct {
 
 // Emit expands this PIROp into assembly text using the pattern template.
 func (p *PIROp) Emit(m *MachineDesc) string {
-	// Inline asm: emit verbatim, split "/" separators into individual lines
+	// Inline asm: emit verbatim, split on "/" or newlines.
+	// Apply DD/FD prefix conflict fix per-line (inline asm may contain LD IXH,H).
 	if p.AsmText != "" {
+		// Split on "/" first (compact format), then on newlines (multi-line)
 		parts := splitAsm(p.AsmText)
-		if len(parts) == 1 {
-			return "    " + parts[0]
+		var allLines []string
+		for _, part := range parts {
+			for _, line := range strings.Split(part, "\n") {
+				line = strings.TrimSpace(line)
+				if line != "" {
+					allLines = append(allLines, line)
+				}
+			}
 		}
 		var sb strings.Builder
-		for i, part := range parts {
+		for i, line := range allLines {
 			if i > 0 {
 				sb.WriteByte('\n')
 			}
 			sb.WriteString("    ")
-			sb.WriteString(part)
+			sb.WriteString(fixDDPrefixConflict(line))
 		}
 		return sb.String()
 	}
