@@ -208,8 +208,14 @@ func BuildGPUDesc(ops []VIROp, desc *MachineDesc, opts SolverOptions) (*GPUFuncD
 	}
 	sort.Ints(vregList)
 
-	if len(vregList) > 14 {
-		return nil, len(vregList), fmt.Errorf("too many vregs for GPU: %d (max 14)", len(vregList))
+	maxVregs := 14
+	if os.Getenv("VIR_GPU_MAX_VREGS") != "" {
+		if n, err := fmt.Sscanf(os.Getenv("VIR_GPU_MAX_VREGS"), "%d", &maxVregs); n != 1 || err != nil {
+			maxVregs = 14
+		}
+	}
+	if len(vregList) > maxVregs {
+		return nil, len(vregList), fmt.Errorf("too many vregs for GPU: %d (max %d)", len(vregList), maxVregs)
 	}
 
 	vregIdx := make(map[int]int)
