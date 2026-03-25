@@ -489,6 +489,16 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 										Pat: movePat, DstPhys: currLoc,
 										SrcPhys: [2]int{prevLoc, -1},
 									})
+								} else {
+									srcName, dstName := "?", "?"
+									if prevLoc >= 0 && prevLoc < len(desc.Locs) {
+										srcName = desc.Locs[prevLoc].Name
+									}
+									if currLoc >= 0 && currLoc < len(desc.Locs) {
+										dstName = desc.Locs[currLoc].Name
+									}
+									fmt.Fprintf(os.Stderr, "[CFG-solver] WARNING: no move pattern for v%d: %s(%d) → %s(%d) at block %d inst %d\n",
+										vreg, srcName, prevLoc, dstName, currLoc, bi, i)
 								}
 							}
 							break

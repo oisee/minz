@@ -1986,7 +1986,12 @@ func gracePass(lines []string) []string {
 			mid := strings.TrimSpace(lines[i+1])
 			after := strings.TrimSpace(lines[i+2])
 			if after == "EX DE, HL" && !strings.HasPrefix(mid, "J") &&
-				!strings.HasPrefix(mid, "CALL") && !strings.HasPrefix(mid, "RET") {
+				!strings.HasPrefix(mid, "CALL") && !strings.HasPrefix(mid, "RET") &&
+				// Z80 ADD/ADC/SBC only work with HL as implicit dest.
+				// Swapping HL↔DE would produce invalid ADD DE,rr / SBC DE,rr.
+				!strings.HasPrefix(mid, "ADD HL") &&
+				!strings.HasPrefix(mid, "ADC HL") &&
+				!strings.HasPrefix(mid, "SBC HL") {
 				// Swap DE↔HL references in the middle instruction
 				swapped := mid
 				swapped = strings.ReplaceAll(swapped, "HL", "##HL##")

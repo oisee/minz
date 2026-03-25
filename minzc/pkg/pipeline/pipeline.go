@@ -1441,6 +1441,9 @@ func spliceVIRFallback(virAsm, pbqpAsm string, results []vir.FuncResult, failSet
 		}
 	}
 
+	var strBuf strings.Builder
+	lir.EmitStringPool(&strBuf, m)
+	sb.WriteString(strBuf.String())
 	sb.WriteString(emitGlobals(m))
 	return sb.String()
 }

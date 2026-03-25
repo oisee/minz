@@ -1164,6 +1164,7 @@ func (p *problem) generateSMT() string {
 		sortedVRegs = append(sortedVRegs, vreg)
 	}
 	sort.Ints(sortedVRegs)
+
 	for _, vreg := range sortedVRegs {
 		b.WriteString(fmt.Sprintf("(declare-const loc_v%d Int)\n", vreg))
 		b.WriteString(fmt.Sprintf("(assert (and (>= loc_v%d 0) (< loc_v%d %d)))\n",
@@ -1787,11 +1788,34 @@ func parsePerInstSolution(p *problem, model string, desc *MachineDesc) ([]PIROp,
 	return final, nil
 }
 
-// findMovePattern finds a ld_r_r move pattern for source → dest physical registers.
+// findMovePattern finds a move pattern for source → dest physical registers.
+// Tries exact-width first, then cross-width (truncation/extension) patterns.
+// Skips EX-based patterns (swaps) — inter-instruction moves must be copies.
 func findMovePattern(desc *MachineDesc, srcPhys, dstPhys int) *Pattern {
+	dstWidth := 8
+	if dstPhys >= 0 && dstPhys < len(desc.Locs) {
+		dstWidth = desc.Locs[dstPhys].Width
+	}
+	// Try exact width first
 	for i := range desc.Patterns {
 		pat := &desc.Patterns[i]
-		if pat.Op != OpMove || pat.Width != 8 {
+		if pat.Op != OpMove || pat.Width != dstWidth {
+			continue
+		}
+		if strings.Contains(pat.Template, "EX ") {
+			continue
+		}
+		if pat.DstLocs.Has(dstPhys) && pat.SrcLocs[0].Has(srcPhys) {
+			return pat
+		}
+	}
+	// Try any width (covers truncation 16→8 and extension 8→16 patterns)
+	for i := range desc.Patterns {
+		pat := &desc.Patterns[i]
+		if pat.Op != OpMove || pat.Width == dstWidth {
+			continue // already tried
+		}
+		if strings.Contains(pat.Template, "EX ") {
 			continue
 		}
 		if pat.DstLocs.Has(dstPhys) && pat.SrcLocs[0].Has(srcPhys) {

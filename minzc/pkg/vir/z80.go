@@ -162,7 +162,7 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			DstLocs: m.LocSetByNames("C"), SrcLocs: [2]LocSet{Z80_BC},
 			Template: "; trunc BC->C (alias)", Cost: 0, Bytes: 0},
 
-		// Truncation routed through A (for ALU consumer)
+		// Truncation to A (for ALU consumer)
 		{Name: "trunc_hl_a", Op: OpMove, Width: 8,
 			DstLocs: Z80_A, SrcLocs: [2]LocSet{Z80_HL},
 			Template: "LD A, L", Cost: 4, Bytes: 1},
@@ -172,6 +172,16 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 		{Name: "trunc_bc_a", Op: OpMove, Width: 8,
 			DstLocs: Z80_A, SrcLocs: [2]LocSet{Z80_BC},
 			Template: "LD A, C", Cost: 4, Bytes: 1},
+		// Truncation to any GPR8 (low byte of pair)
+		{Name: "trunc_hl_r", Op: OpMove, Width: 8,
+			DstLocs: Z80_GPR8, SrcLocs: [2]LocSet{Z80_HL},
+			Template: "LD {dst}, L", Cost: 4, Bytes: 1},
+		{Name: "trunc_de_r", Op: OpMove, Width: 8,
+			DstLocs: Z80_GPR8, SrcLocs: [2]LocSet{Z80_DE},
+			Template: "LD {dst}, E", Cost: 4, Bytes: 1},
+		{Name: "trunc_bc_r", Op: OpMove, Width: 8,
+			DstLocs: Z80_GPR8, SrcLocs: [2]LocSet{Z80_BC},
+			Template: "LD {dst}, C", Cost: 4, Bytes: 1},
 
 		// IX/IY half moves (call-safe, DD/FD prefix)
 		{Name: "ld_ixh_r", Op: OpMove, Width: 8, DstLocs: Z80_IXHalves,
@@ -215,6 +225,12 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 		{Name: "ld_bc_de", Op: OpMove, Width: 16, DstLocs: Z80_BC,
 			SrcLocs: [2]LocSet{Z80_DE},
 			Template: "LD B, D\n    LD C, E", Cost: 8, Bytes: 2},
+		{Name: "ld_de_hl", Op: OpMove, Width: 16, DstLocs: Z80_DE,
+			SrcLocs: [2]LocSet{Z80_HL},
+			Template: "LD D, H\n    LD E, L", Cost: 8, Bytes: 2},
+		{Name: "ld_hl_de", Op: OpMove, Width: 16, DstLocs: Z80_HL,
+			SrcLocs: [2]LocSet{Z80_DE},
+			Template: "LD H, D\n    LD L, E", Cost: 8, Bytes: 2},
 
 		// ── 8-bit ALU (A = accumulator, dst tied to src0) ───────────
 		{Name: "add_a_r", Op: OpAdd, Width: 8, DstLocs: Z80_A,
