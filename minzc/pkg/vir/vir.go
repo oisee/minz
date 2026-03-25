@@ -371,6 +371,42 @@ func (p *PIROp) Emit(m *MachineDesc) string {
 		s = replaceAll(s, "{imm}", formatImm(p.Imm))
 	}
 
+	// Fix DD/FD prefix conflict: LD IXH,H is impossible because under DD
+	// prefix H/L are reinterpreted as IXH/IXL. Route through A instead.
+	s = fixDDPrefixConflict(s)
+
+	return s
+}
+
+// fixDDPrefixConflict detects LD instructions where src/dst mix IXH/IXL with H/L.
+// Under DD prefix, H→IXH and L→IXL, so LD IXH,H becomes LD IXH,IXH (no-op).
+// Fix: route through A (LD A,H / LD IXH,A) or (LD A,IXH / LD H,A).
+func fixDDPrefixConflict(s string) string {
+	// Map of invalid combos → replacement (route through A)
+	conflicts := [...]struct{ bad, fix string }{
+		{"LD IXH, H", "LD A, H\n    LD IXH, A"},
+		{"LD IXH, L", "LD A, L\n    LD IXH, A"},
+		{"LD IXL, H", "LD A, H\n    LD IXL, A"},
+		{"LD IXL, L", "LD A, L\n    LD IXL, A"},
+		{"LD H, IXH", "LD A, IXH\n    LD H, A"},
+		{"LD H, IXL", "LD A, IXL\n    LD H, A"},
+		{"LD L, IXH", "LD A, IXH\n    LD L, A"},
+		{"LD L, IXL", "LD A, IXL\n    LD L, A"},
+		// IYH/IYL have the same FD prefix conflict
+		{"LD IYH, H", "LD A, H\n    LD IYH, A"},
+		{"LD IYH, L", "LD A, L\n    LD IYH, A"},
+		{"LD IYL, H", "LD A, H\n    LD IYL, A"},
+		{"LD IYL, L", "LD A, L\n    LD IYL, A"},
+		{"LD H, IYH", "LD A, IYH\n    LD H, A"},
+		{"LD H, IYL", "LD A, IYL\n    LD H, A"},
+		{"LD L, IYH", "LD A, IYH\n    LD L, A"},
+		{"LD L, IYL", "LD A, IYL\n    LD L, A"},
+	}
+	for _, c := range conflicts {
+		if s == c.bad {
+			return c.fix
+		}
+	}
 	return s
 }
 
