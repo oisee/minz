@@ -1,8 +1,7 @@
--- Frill: ML-inspired functional language for Z80
--- This is a simple test program
-
+-- Frill hello — basic arithmetic
 let double (x : u8) : u8 = x + x
-
 let add (a : u8) (b : u8) : u8 = a + b
+let main (x : u8) : u8 = add (double 10) 1
 
-let main () : u8 = add(double(10), 1)
+assert double 5 == 10
+assert add 3 4 == 7
