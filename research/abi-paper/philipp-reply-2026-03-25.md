@@ -45,19 +45,19 @@ One of our peer reviewers (we consulted three independent AI researchers) made a
 
 > *Architecture irregularity doesn't just make compilation harder — it makes the constraint space more compressible. Fewer valid assignments means smaller tables and higher reuse.*
 
-The Z80's messy register file (accumulator-only ALU, tied operands, pair constraints, DD/FD prefix conflicts) drastically reduces the number of valid allocations. A regular architecture like ARM with 16 interchangeable registers has a much larger effective search space — every register is equally valid, so there are more distinct constraint patterns.
+The Z80's messy register file (accumulator-only ALU, tied operands, pair constraints, DD/FD prefix conflicts) drastically reduces the number of valid allocations. A more regular architecture like ARM (even Thumb mode has asymmetry: R0-R7 vs R8-R12) has a larger effective search space — more registers are interchangeable, so there are more distinct valid constraint patterns.
 
 This predicts a **phase transition**: as the number of physical locations grows, "tableability" (fraction of functions solvable by precomputed table) drops sharply.
 
 We're testing this now by parametrizing our GPU kernel:
 
-| Architecture | Locations | Predicted Tableability |
-|-------------|-----------|----------------------|
-| 6502 | 3 (A,X,Y) | ~99% |
-| Z80 GPR only | 7 | ~92% |
-| Z80 full | 15 | 88.2% (measured) |
-| ARM Thumb | 16 | ~5%? |
-| RISC-V | 32 | ~0%? |
+| Architecture | Locations | Tableability |
+|-------------|-----------|--------------|
+| 6502 | 3 (A,X,Y) | predicted ~99% (not yet measured) |
+| Z80 GPR only | 7 | predicted ~92% (not yet measured) |
+| **Z80 full** | **15** | **88.2% (measured)** |
+| ARM Thumb | 8-13 (R0-R7 direct, R8-R12 limited) | predicted low (not yet measured) |
+| RISC-V | 32 | predicted near-zero (not yet measured) |
 
 If the phase transition is real, it explains why exhaustive allocation has never been tried on modern architectures — not because the idea is wrong, but because the ISA doesn't support it. The Z80 sits in a sweet spot: complex enough to be interesting, constrained enough to be solvable.
 
@@ -70,7 +70,7 @@ Results so far:
 - **divmod10:** 27 instructions, 124 T-states, verified all 256 inputs. Uses Hacker's Delight reciprocal with RRA+AND optimization.
 - **A negative result as theorem:** Exhaustive GPU search proves no instruction sequence of length ≤12 (over a set of 18 Z80 opcodes) computes floor(n/10) for all n ∈ {0..255}. This is a lower bound via exhaustive search certificate — 37.8 billion sequences verified at length 8, 794 billion at length 9.
 
-The superoptimizer also powers the register allocation brute-force: same CUDA kernel, different cost function.
+The register allocation brute-force uses a separate CUDA kernel (`z80_regalloc.cu`) with a different search structure — assignment enumeration rather than sequence synthesis.
 
 ## Three Concrete Proposals
 
@@ -86,7 +86,29 @@ We've had the benefit of extensive discussion and peer review. The emerging pict
 
 - **Register allocation on constrained ISAs may be a "solved game"** — like chess endgame tablebases, the space is finite and the optimal answers can be precomputed.
 - **The compiler becomes a retrieval engine**, not a search engine. For 87% of functions (those with ≤8 virtual registers), we look up the answer. For the rest, we decompose into solvable subproblems at call boundaries.
-- **Calling conventions are part of the optimization space**, not external constraints. Z3-PFCCO jointly optimizes conventions across all functions in a module. This is where most of the -60% vs SDCC comes from.
+- **Calling conventions are part of the optimization space**, not external constraints. Z3-PFCCO jointly optimizes conventions across all functions in a module. This is where most of the -60% vs SDCC comes from (measured on a 5-function benchmark: abs_diff, gcd, minmax, fib, swap — 131 vs 52 instructions).
+
+## Honest Caveats and Limitations
+
+In the spirit of transparency, here's what we know is shaky:
+
+**On "provably optimal":** Optimal with respect to our cost model (T-states per pattern) and our legal assignment space (15 GPU locations). A different cost model (e.g., code size, or including pipeline stalls on eZ80) could produce different optimal tables. We have not measured cost model sensitivity.
+
+**On "80% signature reuse":** Measured on our corpus through our IR. All 8 frontends share the same HIR→MIR2→VIR pipeline — the reuse may reflect our IR's constraint vocabulary, not the Z80 ISA's. This is precisely why the SDCC experiment matters.
+
+**On "-60% vs SDCC":** Measured on a 5-function micro-benchmark (abs_diff, gcd, minmax, fib, swap — 131 vs 52 instructions total). Not representative of all program types. Larger functions with many call sites show smaller differences. We also compare against SDCC 4.2.0; 4.5.0 trunk output is tighter (you showed this in your review).
+
+**On "88.2% transfer":** The train/test split used program groups, not independent corpora. The "Other" category in the training set may include utility functions similar to test programs. A cleaner experiment would use entirely separate codebases.
+
+**On phase transition predictions:** Only Z80 at 15 locations is measured (88.2%). The 6502, ARM Thumb, and RISC-V numbers are predictions based on location count, not measurements. We're running the parametric sweep now.
+
+**On IXH/IXL as spill:** We are not aware of mainstream Z80 compilers using IXH/IXL as general-purpose spill locations, but we have not done a systematic survey. SDCC uses IX as a frame pointer (with IXH/IXL accessible via DD prefix), and z88dk also uses IX. Our claim is about using the halves as a call-safe fast spill tier, not about their existence.
+
+**On divmod10 lower bound:** The exhaustive search certificate (no solution at length ≤12) was produced by the z80-optimizer GPU kernel. We have not independently verified the search completeness — the theorem is only as strong as the kernel's correctness.
+
+**On GPU throughput:** "19K solves/sec" is dual-GPU aggregate (two RTX 4060 Ti). Per-GPU throughput is ~9.5K/sec.
+
+---
 
 We're now writing Paper A: "Precomputed Optimal Register Allocation via Corpus-Driven Exhaustive GPU Search" — focused on the Z80 as a case study for the broader principle. Your input on whether this generalizes to SDCC's perspective would be invaluable.
 
