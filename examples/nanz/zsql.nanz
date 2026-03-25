@@ -36,8 +36,9 @@ fun readline() -> u8 {
     }
 }
 
+// Return pointer to input text (2 bytes past _inbuf header)
 fun getinput() -> ^u8 {
-    asm z80 (ret HL) { LD HL, _inbuf+2 }
+    asm z80 (ret HL) { LD HL, _inbuf / INC HL / INC HL }
 }
 
 fun terminate(len: u8) -> void {
