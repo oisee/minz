@@ -840,16 +840,16 @@ func (a *Assembler) preprocessIncludes(source string, sourceFile string) (string
 	return strings.Join(result, "\n"), nil
 }
 
-// EmitByte emits a byte to the output in pass 2
+// EmitByte emits a byte to the output in pass 2+
 func (a *Assembler) EmitByte(b byte) {
-	if a.pass == 2 {
+	if a.pass >= 2 {
 		a.output = append(a.output, b)
 	}
 }
 
-// EmitWord emits a word (little-endian) to the output in pass 2
+// EmitWord emits a word (little-endian) to the output in pass 2+
 func (a *Assembler) EmitWord(w int) {
-	if a.pass == 2 {
+	if a.pass >= 2 {
 		a.output = append(a.output, a.emitWord(w)...)
 	}
 }

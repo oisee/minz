@@ -149,7 +149,7 @@ func (a *Assembler) handleDB(line *Line) error {
 		}
 	}
 	
-	if a.pass == 2 {
+	if a.pass >= 2 {
 		inst := &AssembledInstruction{
 			Address: a.currentAddr,
 			Line:    line,
@@ -215,7 +215,7 @@ func (a *Assembler) handleDW(line *Line) error {
 		}
 	}
 	
-	if a.pass == 2 {
+	if a.pass >= 2 {
 		inst := &AssembledInstruction{
 			Address: a.currentAddr,
 			Line:    line,
@@ -266,7 +266,7 @@ func (a *Assembler) handleDW24(line *Line) error {
 		bytes = append(bytes, byte(val), byte(val>>8), byte(val>>16))
 	}
 
-	if a.pass == 2 {
+	if a.pass >= 2 {
 		inst := &AssembledInstruction{
 			Address: a.currentAddr,
 			Line:    line,
@@ -305,7 +305,7 @@ func (a *Assembler) handleDS(line *Line) error {
 		fillValue = byte(val)
 	}
 	
-	if a.pass == 2 {
+	if a.pass >= 2 {
 		bytes := make([]byte, size)
 		for i := range bytes {
 			bytes[i] = fillValue
@@ -382,7 +382,7 @@ func (a *Assembler) handleALIGN(line *Line) error {
 	if remainder != 0 {
 		padding := alignment - remainder
 		
-		if a.pass == 2 {
+		if a.pass >= 2 {
 			bytes := make([]byte, padding)
 			inst := &AssembledInstruction{
 				Address: a.currentAddr,
@@ -407,7 +407,7 @@ func (a *Assembler) handleEND(line *Line) error {
 		entryLabel := line.Operands[0]
 
 		// Resolve the entry point in pass 2 (symbols are defined)
-		if a.pass == 2 {
+		if a.pass >= 2 {
 			entryAddr, err := a.resolveSymbol(entryLabel)
 			if err != nil {
 				return fmt.Errorf("END: cannot resolve entry point '%s': %w", entryLabel, err)
