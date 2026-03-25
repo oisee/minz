@@ -77,6 +77,12 @@ func CodegenModule(m *mir2.Module, opts SolverOptions) (string, []FuncResult) {
 		dumpCallGraph(m, opts)
 	}
 
+	// Dump merged GPU problems if requested (for z80-optimizer partopt)
+	// VIR_DUMP_MERGED=path.json — reads merge pairs from stdin or generates from call graph
+	if mergedPath := os.Getenv("VIR_DUMP_MERGED"); mergedPath != "" {
+		dumpMergedProblems(m, opts, mergedPath)
+	}
+
 	// Emit main first
 	funcs := m.Funcs
 	if main := m.FuncByName("main"); main != nil && len(funcs) > 0 && funcs[0].Name != "main" {
@@ -2716,4 +2722,232 @@ func dumpCallGraph(m *mir2.Module, opts SolverOptions) {
 		}
 	}
 	fmt.Fprintf(os.Stderr, "[callgraph] dumped %d functions to %s\n", len(entries), outPath)
+}
+
+// ── Merged Function GPU Problem Dump ────────────────────────────────────────
+// For z80-optimizer's partopt: merge caller+callee VIR ops into a single
+// GPU allocation problem. Remap vregs, add boundary interference.
+
+type mergedProblem struct {
+	Name    string      `json:"name"`
+	Funcs   []string    `json:"funcs"`
+	NVregs  int         `json:"nVregs"`
+	Desc    *GPUFuncDesc `json:"desc"`
+}
+
+type mergePair struct {
+	Funcs []string `json:"funcs"` // function names to merge
+}
+
+type mergedFuncData struct {
+	ops  []VIROp
+	gpu  *GPUFuncDesc
+	nv   int
+}
+
+func dumpMergedProblems(m *mir2.Module, opts SolverOptions, outPath string) {
+	desc := Z80
+
+	// Read merge pairs from VIR_MERGE_PAIRS env var (JSON array of {funcs: [...]})
+	// or auto-detect from call graph (all caller→callee pairs where merged nVregs ≤ 14)
+	var pairs []mergePair
+	if pairsJSON := os.Getenv("VIR_MERGE_PAIRS"); pairsJSON != "" {
+		if err := json.Unmarshal([]byte(pairsJSON), &pairs); err != nil {
+			fmt.Fprintf(os.Stderr, "[merged] parse VIR_MERGE_PAIRS: %v\n", err)
+			return
+		}
+	} else {
+		// Auto-detect: for each function, merge with each callee if combined ≤ 14 vregs
+		pairs = autoDetectMergePairs(m, desc)
+	}
+
+	// Lower all functions once
+	cache := make(map[string]*mergedFuncData)
+	for _, f := range m.Funcs {
+		vf, err := LowerFunc(f, desc, m)
+		if err != nil {
+			continue
+		}
+		var allOps []VIROp
+		for _, b := range vf.Blocks {
+			allOps = append(allOps, b.Ops...)
+		}
+		gf, nv, err := BuildGPUDesc(allOps, desc, SolverOptions{})
+		if err != nil || nv == 0 {
+			continue
+		}
+		cache[f.Name] = &mergedFuncData{allOps, gf, nv}
+	}
+
+	var results []mergedProblem
+	for _, pair := range pairs {
+		if len(pair.Funcs) < 2 {
+			continue
+		}
+		merged := mergeFuncDescs(pair.Funcs, cache)
+		if merged != nil {
+			results = append(results, *merged)
+		}
+	}
+
+	jsonData, err := json.MarshalIndent(results, "", "  ")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[merged] marshal error: %v\n", err)
+		return
+	}
+	if err := os.WriteFile(outPath, append(jsonData, '\n'), 0644); err != nil {
+		fmt.Fprintf(os.Stderr, "[merged] write error: %v\n", err)
+		return
+	}
+	fmt.Fprintf(os.Stderr, "[merged] dumped %d merged problems to %s\n", len(results), outPath)
+}
+
+func autoDetectMergePairs(m *mir2.Module, desc *MachineDesc) []mergePair {
+	// Lower all and count vregs
+	nv := make(map[string]int)
+	callees := make(map[string][]string)
+	for _, f := range m.Funcs {
+		vf, err := LowerFunc(f, desc, m)
+		if err != nil {
+			continue
+		}
+		var allOps []VIROp
+		for _, b := range vf.Blocks {
+			allOps = append(allOps, b.Ops...)
+		}
+		_, n, _ := BuildGPUDesc(allOps, desc, SolverOptions{})
+		nv[f.Name] = n
+		seen := make(map[string]bool)
+		for _, op := range allOps {
+			if op.Op == OpCall && op.Sym != "" && !seen[op.Sym] {
+				seen[op.Sym] = true
+				callees[f.Name] = append(callees[f.Name], op.Sym)
+			}
+		}
+	}
+
+	var pairs []mergePair
+	for caller, cees := range callees {
+		for _, callee := range cees {
+			if nv[caller]+nv[callee] <= 14 && nv[callee] > 0 {
+				pairs = append(pairs, mergePair{Funcs: []string{caller, callee}})
+			}
+		}
+	}
+	return pairs
+}
+
+func mergeFuncDescs(names []string, cache map[string]*mergedFuncData) *mergedProblem {
+	// Collect all func data
+	var descs []*mergedFuncData
+	for _, name := range names {
+		fd, ok := cache[name]
+		if !ok {
+			fmt.Fprintf(os.Stderr, "[merged] skip %s: not found\n", name)
+			return nil
+		}
+		descs = append(descs, fd)
+	}
+
+	// Compute vreg offset per function
+	offsets := make([]int, len(descs))
+	totalVregs := 0
+	for i, fd := range descs {
+		offsets[i] = totalVregs
+		totalVregs += fd.nv
+	}
+
+	merged := &GPUFuncDesc{NVregs: totalVregs}
+
+	// Merge widths
+	hasWidths := false
+	allWidths := make([]int, totalVregs)
+	for i := range allWidths {
+		allWidths[i] = 8 // default
+	}
+	for fi, fd := range descs {
+		if fd.gpu.Widths != nil {
+			hasWidths = true
+			for vi, w := range fd.gpu.Widths {
+				allWidths[offsets[fi]+vi] = w
+			}
+		}
+	}
+	if hasWidths {
+		merged.Widths = allWidths
+	}
+
+	// Merge ops (remap vreg indices)
+	for fi, fd := range descs {
+		off := offsets[fi]
+		for _, op := range fd.gpu.Ops {
+			remapped := GPUOpDesc{
+				Dst:      remapIdx(op.Dst, off),
+				Src0:     remapIdx(op.Src0, off),
+				Src1:     remapIdx(op.Src1, off),
+				Patterns: op.Patterns, // patterns are location-based, no remap needed
+			}
+			merged.Ops = append(merged.Ops, remapped)
+		}
+	}
+
+	// Merge interference (remap indices)
+	seen := make(map[[2]int]bool)
+	for fi, fd := range descs {
+		off := offsets[fi]
+		for _, pair := range fd.gpu.Interference {
+			a, b := pair[0]+off, pair[1]+off
+			if a > b { a, b = b, a }
+			key := [2]int{a, b}
+			if !seen[key] {
+				seen[key] = true
+				merged.Interference = append(merged.Interference, key)
+			}
+		}
+	}
+
+	// Add boundary interference: caller's live-at-call vregs interfere
+	// with callee's vregs. Conservative: all caller vregs that appear in
+	// ops AFTER a call to the callee interfere with ALL callee vregs.
+	// This is an over-approximation but safe.
+	for fi := 0; fi < len(descs)-1; fi++ {
+		callerNV := descs[fi].nv
+		calleeOff := offsets[fi+1]
+		calleeNV := descs[fi+1].nv
+		// All caller vregs that could be live across the call boundary
+		// interfere with all callee vregs.
+		// Conservative: caller param vregs that are used after the call
+		// In practice, the call's return value is the only thing that
+		// crosses the boundary. Use all callee vregs for safety.
+		for cv := 0; cv < callerNV; cv++ {
+			for ev := 0; ev < calleeNV; ev++ {
+				a, b := offsets[fi]+cv, calleeOff+ev
+				if a > b { a, b = b, a }
+				key := [2]int{a, b}
+				if !seen[key] {
+					seen[key] = true
+					merged.Interference = append(merged.Interference, key)
+				}
+			}
+		}
+	}
+
+	// Merge param constraints (only from first function — the entry point)
+	for _, pc := range descs[0].gpu.ParamConstraints {
+		merged.ParamConstraints = append(merged.ParamConstraints, pc)
+	}
+
+	return &mergedProblem{
+		Name:   strings.Join(names, "+"),
+		Funcs:  names,
+		NVregs: totalVregs,
+		Desc:   merged,
+	}
+}
+
+func remapIdx(idx, offset int) int {
+	if idx < 0 {
+		return idx
+	}
+	return idx + offset
 }
