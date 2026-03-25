@@ -66,10 +66,12 @@ func (t *RegAllocTable) Lookup(ops []VIROp, desc *MachineDesc) (map[int]int, int
 
 	t.mu.RLock()
 	entry, ok := t.entries[sig]
+	gpuHit := false
 	if !ok {
 		// Try exhaustive table signature (GPU format)
 		gpuSig := computeGPUSignature(ops, desc)
 		entry, ok = t.entries[gpuSig]
+		gpuHit = ok
 	}
 	t.mu.RUnlock()
 
@@ -88,6 +90,9 @@ func (t *RegAllocTable) Lookup(ops []VIROp, desc *MachineDesc) (map[int]int, int
 	assignment := make(map[int]int)
 	for i, loc := range entry.Assignment {
 		if i < len(vregList) {
+			if gpuHit {
+				loc = gpuLocToZ80(loc)
+			}
 			assignment[vregList[i]] = loc
 		}
 	}
@@ -303,6 +308,23 @@ func ComputeSignature(ops []VIROp, desc *MachineDesc) string {
 
 	sum := h.Sum(nil)
 	return fmt.Sprintf("%dv_%do_%x", len(vregList), len(ops), sum[:8])
+}
+
+// gpuLocToZ80 maps GPU regalloc location indices to Z80 descriptor indices.
+// GPU: A=0..L=6, BC=7, DE=8, HL=9, IXH=10, IXL=11, IYH=12, IYL=13, MEM0=14
+// Z80: A=0..L=6, BC=7, DE=8, HL=9, SP=10, IX=11, IY=12, F=13, IXH=14..IYL=17
+var gpuToZ80Loc = [15]int{
+	0, 1, 2, 3, 4, 5, 6, // A-L: same
+	7, 8, 9,              // BC, DE, HL: same
+	14, 15, 16, 17,       // IXH, IXL, IYH, IYL: shifted
+	-1,                   // MEM0: no direct Z80 equivalent (spill)
+}
+
+func gpuLocToZ80(gpuLoc int) int {
+	if gpuLoc >= 0 && gpuLoc < len(gpuToZ80Loc) {
+		return gpuToZ80Loc[gpuLoc]
+	}
+	return gpuLoc // passthrough for unknown
 }
 
 // computeGPUSignature produces a signature matching the exhaustive enumerator's
