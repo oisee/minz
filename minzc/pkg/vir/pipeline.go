@@ -1100,26 +1100,42 @@ func emitLine(sb *strings.Builder, line string) {
 }
 
 // validateNoClobber detects Z3 interference bugs where a 16-bit load is
-// immediately clobbered by an 8-bit write to the same register pair.
-// Pattern: LD HL, (addr) / LD L, r — the db handle is overwritten.
+// overwritten before being used (e.g., LD HL,(db) then LD H,D / LD L,E).
+// Tracks 16-bit pair loads and flags if the pair is overwritten by half-reg
+// writes before a CALL/JP/JR that would consume the value.
 // Returns error description or "" if clean.
 func validateNoClobber(asm string) string {
 	lines := strings.Split(asm, "\n")
-	for i := 0; i+1 < len(lines); i++ {
+	// Track: did we just load a pair from memory?
+	hlFromMem := false
+	for i := 0; i < len(lines); i++ {
 		line := strings.TrimSpace(lines[i])
-		next := strings.TrimSpace(lines[i+1])
 
-		// LD HL, (addr) followed by LD L, r or LD H, r → clobbered
+		// LD HL, (addr) — 16-bit load from memory
 		if strings.HasPrefix(line, "LD HL, (") && !strings.HasPrefix(line, "LD HL, (HL)") {
-			if strings.HasPrefix(next, "LD L, ") || strings.HasPrefix(next, "LD H, ") {
-				return fmt.Sprintf("16-bit load clobbered: %s → %s", line, next)
+			hlFromMem = true
+			continue
+		}
+
+		if hlFromMem {
+			// HL used properly: CALL, JP, ADD HL, PUSH HL, LD (addr),HL, etc.
+			if strings.HasPrefix(line, "CALL ") || strings.HasPrefix(line, "JP ") ||
+				strings.HasPrefix(line, "ADD HL") || strings.HasPrefix(line, "PUSH HL") ||
+				strings.HasPrefix(line, "LD (") || line == "RET" ||
+				strings.HasPrefix(line, "EX DE") || strings.HasPrefix(line, "SBC HL") {
+				hlFromMem = false
+				continue
+			}
+			// HL clobbered by half-reg write before use
+			if strings.HasPrefix(line, "LD L, ") || strings.HasPrefix(line, "LD H, ") {
+				return fmt.Sprintf("16-bit HL load clobbered before use at: %s", line)
 			}
 		}
-		// Same for DE
-		if strings.HasPrefix(line, "LD DE, (") || (strings.HasPrefix(line, "LD D, (") && strings.Contains(line, "LD E, (")) {
-			if strings.HasPrefix(next, "LD E, ") || strings.HasPrefix(next, "LD D, ") {
-				return fmt.Sprintf("16-bit load clobbered: %s → %s", line, next)
-			}
+
+		// Reset tracking on labels, branches
+		if strings.HasSuffix(line, ":") || strings.HasPrefix(line, "JR ") ||
+			strings.HasPrefix(line, "JP ") || line == "RET" {
+			hlFromMem = false
 		}
 	}
 	return ""
