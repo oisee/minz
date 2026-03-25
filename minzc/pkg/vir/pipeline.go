@@ -90,6 +90,12 @@ func CodegenModule(m *mir2.Module, opts SolverOptions) (string, []FuncResult) {
 		dumpLiveness(m, opts, livePath)
 	}
 
+	// Dump island sub-problems: split large functions at VIR level, BuildGPUDesc per island
+	// VIR_DUMP_ISLANDS=path.json — reads split config from VIR_ISLAND_CONFIG or auto-splits
+	if islandPath := os.Getenv("VIR_DUMP_ISLANDS"); islandPath != "" {
+		dumpIslands(m, opts, islandPath)
+	}
+
 	// Emit main first
 	funcs := m.Funcs
 	if main := m.FuncByName("main"); main != nil && len(funcs) > 0 && funcs[0].Name != "main" {
@@ -3081,6 +3087,238 @@ func dumpLiveness(m *mir2.Module, opts SolverOptions, outPath string) {
 		return
 	}
 	fmt.Fprintf(os.Stderr, "[liveness] dumped %d functions to %s\n", len(entries), outPath)
+}
+
+// ── Island Sub-Problem Dump (VIR-level splitting) ───────────────────────────
+// Correct approach: split VIR ops at liveness bottlenecks, then BuildGPUDesc
+// per island. Each island gets fresh pattern matching against its own vregs.
+
+type islandConfig struct {
+	Func   string `json:"func"`
+	Splits []int  `json:"splits"` // PC indices where to split (exclusive end of each island)
+}
+
+type islandResult struct {
+	Name         string       `json:"name"`
+	Func         string       `json:"func"`
+	IslandIdx    int          `json:"islandIdx"`
+	PCRange      [2]int       `json:"pcRange"`
+	NVregs       int          `json:"nVregs"`
+	Desc         *GPUFuncDesc `json:"desc"`
+	BoundaryIn   []int        `json:"boundaryIn,omitempty"`  // vregs live at island entry (from previous island)
+	BoundaryOut  []int        `json:"boundaryOut,omitempty"` // vregs live at island exit (to next island)
+}
+
+func dumpIslands(m *mir2.Module, opts SolverOptions, outPath string) {
+	desc := Z80
+
+	// Read island config or auto-detect
+	var configs []islandConfig
+	if cfgJSON := os.Getenv("VIR_ISLAND_CONFIG"); cfgJSON != "" {
+		if err := json.Unmarshal([]byte(cfgJSON), &configs); err != nil {
+			// Try reading from file
+			data, ferr := os.ReadFile(cfgJSON)
+			if ferr != nil {
+				fmt.Fprintf(os.Stderr, "[islands] parse config: %v\n", err)
+				return
+			}
+			if err2 := json.Unmarshal(data, &configs); err2 != nil {
+				fmt.Fprintf(os.Stderr, "[islands] parse config file: %v\n", err2)
+				return
+			}
+		}
+	} else {
+		// Auto-detect: split functions with >15 vregs at call sites where live ≤ threshold
+		liveThresh := 4
+		if lt := os.Getenv("VIR_ISLAND_THRESHOLD"); lt != "" {
+			fmt.Sscanf(lt, "%d", &liveThresh)
+		}
+		configs = autoDetectIslands(m, desc, 15, liveThresh)
+	}
+
+	var results []islandResult
+
+	for _, cfg := range configs {
+		f := m.FuncByName(cfg.Func)
+		if f == nil {
+			fmt.Fprintf(os.Stderr, "[islands] function %s not found\n", cfg.Func)
+			continue
+		}
+
+		vf, err := LowerFunc(f, desc, m)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "[islands] lower %s: %v\n", cfg.Func, err)
+			continue
+		}
+
+		// Flatten all blocks into one op sequence
+		var allOps []VIROp
+		for _, b := range vf.Blocks {
+			allOps = append(allOps, b.Ops...)
+		}
+
+		// Compute liveness for boundary detection
+		prob := buildProblem(allOps, desc)
+
+		// Build split points: [0, split0, split1, ..., len(allOps)]
+		splits := []int{0}
+		splits = append(splits, cfg.Splits...)
+		splits = append(splits, len(allOps))
+
+		for i := 0; i < len(splits)-1; i++ {
+			start, end := splits[i], splits[i+1]
+			if start >= end || start >= len(allOps) {
+				continue
+			}
+			if end > len(allOps) {
+				end = len(allOps)
+			}
+
+			// Extract VIR ops for this island
+			islandOps := allOps[start:end]
+
+			// Compute boundary vregs: live at entry and exit of island
+			var boundaryIn, boundaryOut []int
+			if start > 0 && start < len(prob.liveness) {
+				for v := range prob.liveness[start].live {
+					boundaryIn = append(boundaryIn, v)
+				}
+				sort.Ints(boundaryIn)
+			}
+			if end < len(prob.liveness) {
+				for v := range prob.liveness[end-1].live {
+					boundaryOut = append(boundaryOut, v)
+				}
+				sort.Ints(boundaryOut)
+			}
+
+			// Build GPU desc from the island's VIR ops (fresh pattern matching!)
+			maxVregs := 15
+			if mv := os.Getenv("VIR_GPU_MAX_VREGS"); mv != "" {
+				fmt.Sscanf(mv, "%d", &maxVregs)
+			}
+			origMax := os.Getenv("VIR_GPU_MAX_VREGS")
+			os.Setenv("VIR_GPU_MAX_VREGS", fmt.Sprintf("%d", maxVregs))
+			gf, nv, err := BuildGPUDesc(islandOps, desc, SolverOptions{})
+			if origMax != "" {
+				os.Setenv("VIR_GPU_MAX_VREGS", origMax)
+			} else {
+				os.Unsetenv("VIR_GPU_MAX_VREGS")
+			}
+
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "[islands] %s island %d: BuildGPUDesc: %v\n", cfg.Func, i, err)
+				continue
+			}
+
+			name := fmt.Sprintf("%s_island%d", cfg.Func, i)
+			results = append(results, islandResult{
+				Name:        name,
+				Func:        cfg.Func,
+				IslandIdx:   i,
+				PCRange:     [2]int{start, end},
+				NVregs:      nv,
+				Desc:        gf,
+				BoundaryIn:  boundaryIn,
+				BoundaryOut: boundaryOut,
+			})
+			fmt.Fprintf(os.Stderr, "[islands] %s: %dv, %d ops, %d intf, boundary in=%d out=%d\n",
+				name, nv, len(gf.Ops), len(gf.Interference), len(boundaryIn), len(boundaryOut))
+		}
+	}
+
+	jsonData, err := json.MarshalIndent(results, "", "  ")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[islands] marshal error: %v\n", err)
+		return
+	}
+	if err := os.WriteFile(outPath, append(jsonData, '\n'), 0644); err != nil {
+		fmt.Fprintf(os.Stderr, "[islands] write error: %v\n", err)
+		return
+	}
+	fmt.Fprintf(os.Stderr, "[islands] dumped %d islands to %s\n", len(results), outPath)
+}
+
+// autoDetectIslands finds split points for functions with >maxVregs vregs.
+// Splits at call sites where liveness ≤ liveThreshold.
+func autoDetectIslands(m *mir2.Module, desc *MachineDesc, maxVregs, liveThreshold int) []islandConfig {
+	var configs []islandConfig
+
+	for _, f := range m.Funcs {
+		vf, err := LowerFunc(f, desc, m)
+		if err != nil {
+			continue
+		}
+
+		var allOps []VIROp
+		for _, b := range vf.Blocks {
+			allOps = append(allOps, b.Ops...)
+		}
+
+		prob := buildProblem(allOps, desc)
+		if len(prob.vregs) <= maxVregs {
+			continue
+		}
+
+		// Find split points: call sites with low liveness
+		var splits []int
+		for i, op := range allOps {
+			if (op.Op == OpCall || op.Op == OpAsmBlock) && i > 0 && i < len(allOps)-1 {
+				if i < len(prob.liveness) && len(prob.liveness[i].live) <= liveThreshold {
+					splits = append(splits, i)
+				}
+			}
+		}
+
+		if len(splits) > 0 {
+			// Greedily merge adjacent islands that would have ≤ maxVregs
+			filtered := greedyMergeIslands(allOps, prob, splits, maxVregs)
+			if len(filtered) > 0 {
+				configs = append(configs, islandConfig{Func: f.Name, Splits: filtered})
+			}
+		}
+	}
+
+	return configs
+}
+
+// greedyMergeIslands merges adjacent tiny islands while staying ≤ maxVregs.
+// Returns split points (exclusive ends of islands, except last which is implicit).
+func greedyMergeIslands(ops []VIROp, prob *problem, splits []int, maxVregs int) []int {
+	countVregs := func(start, end int) int {
+		seen := make(map[int]bool)
+		for i := start; i < end && i < len(ops); i++ {
+			op := ops[i]
+			if op.Dst > 0 { seen[op.Dst] = true }
+			for _, s := range op.Src {
+				if s > 0 { seen[s] = true }
+			}
+		}
+		return len(seen)
+	}
+
+	// All boundaries: [0, split0, split1, ..., len(ops)]
+	bounds := []int{0}
+	bounds = append(bounds, splits...)
+	bounds = append(bounds, len(ops))
+
+	// Greedy: walk through boundaries, accumulate segments while ≤ maxVregs
+	var result []int
+	islandStart := 0
+	lastGoodSplit := 0
+	for i := 1; i < len(bounds); i++ {
+		nv := countVregs(islandStart, bounds[i])
+		if nv > maxVregs && lastGoodSplit > islandStart {
+			// Split at the last boundary that fit
+			result = append(result, lastGoodSplit)
+			islandStart = lastGoodSplit
+		}
+		if countVregs(islandStart, bounds[i]) <= maxVregs {
+			lastGoodSplit = bounds[i]
+		}
+	}
+
+	return result
 }
 
 func opName(op Op) string {
