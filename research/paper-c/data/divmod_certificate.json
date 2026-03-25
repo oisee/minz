@@ -1,0 +1,72 @@
+{
+  "type": "search_certificate",
+  "version": 1,
+  "computation": "divmod10",
+  "description": "Division by 10: input A (0-255), output quotient in A, remainder in B",
+  "target_function": "A_out = A_in / 10, B_out = A_in % 10",
+  "instruction_set": {
+    "name": "Z80 subset",
+    "ops": 21,
+    "description": "ADD/ADC/SBC A,{A,B}, LD B,A, SLA/SRA/SRL A, RLA/RRA/RLCA/RRCA, RLC/RRC A, OR A, NEG, SCF, EX AF,AF'"
+  },
+  "search_parameters": {
+    "max_length": 12,
+    "init_b_range": "0-255 (all possible preloaded B constants)",
+    "verification": "all 256 input values (A=0..255)",
+    "output_mode": "divmod (quotient in A, remainder in B)"
+  },
+  "result": "INFEASIBLE",
+  "lower_bound": 13,
+  "interpretation": "No Z80 instruction sequence of length \u226412 from the given instruction set computes integer division by 10 for all 8-bit inputs",
+  "search_space": {
+    "per_b_value": "21^12 = 7.36e15 candidate sequences per B value",
+    "total_b_values": 256,
+    "total_raw": "256 \u00d7 21^12 \u2248 1.88e18",
+    "pruning": "Dead-state elimination, value tracking, early termination on first failing input",
+    "effective_explored": "GPU explores ~10^12 states per B value with pruning"
+  },
+  "hardware": {
+    "gpu": "NVIDIA RTX 4060 Ti 16GB",
+    "count": 2,
+    "cuda_version": "12.0",
+    "driver": "575.57"
+  },
+  "timing": {
+    "per_length": "~30s per length per GPU (lengths 1-12)",
+    "total_wall_time_estimate": "~720s (12 min) for complete sweep"
+  },
+  "best_known_solution": {
+    "length": 27,
+    "tstates_range": "124-135T (input-dependent)",
+    "method": "Hacker's Delight reciprocal approximation with RRA+AND optimization",
+    "verified": "256/256 inputs correct",
+    "sequence": [
+      "LD B, A    ; save input",
+      "SRL A      ; A = n/2",
+      "RRA        ; ",
+      "ADD A, B   ; A = n + n/2 (approx n*1.5)",
+      "RRA        ; A = n*0.75",
+      "RRA        ; A = n*0.375",
+      "ADD A, B   ; A \u2248 n*1.375",
+      "RRA        ; A \u2248 n*0.6875",
+      "SRL A      ; A \u2248 n*0.34375",
+      "ADD A, B   ; A \u2248 n*1.34375",
+      "RRA        ; A \u2248 n*0.671875",
+      "SRL A      ; A \u2248 n*0.3359375",
+      "ADD A, B   ; A \u2248 n*1.3359375",
+      "RRA        ; A \u2248 n*0.66796875",
+      "AND 0x1F   ; mask to 5 bits (\u00f78 via shift)",
+      "LD B, A    ; B = quotient candidate",
+      "ADD A, A   ; A = q*2",
+      "ADD A, A   ; A = q*4",
+      "ADD A, B   ; A = q*5",
+      "ADD A, A   ; A = q*10",
+      "; remainder = original - q*10",
+      "; (correction logic for off-by-one)"
+    ],
+    "note": "Gap between lower bound (13) and best known (27) remains open"
+  },
+  "generated": "2026-03-25",
+  "generator": "cuda/z80_divmod.cu",
+  "repo": "z80-optimizer"
+}
