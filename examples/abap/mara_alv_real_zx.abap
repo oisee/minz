@@ -1,9 +1,8 @@
 REPORT zmara_alv_real.
 
-* REAL SQLite → ALV on ZX Spectrum!
-* SELECT with INNER JOIN from actual database.
+* REAL SQLite ALV on ZX Spectrum — no PARAMETERS, no interaction.
 *
-* mz mara_alv_real_zx.abap --lir=false --target=spectrum -o out.a80
+* mz mara_alv_real_zx.abap --vir --target=spectrum -o out.a80
 * mza out.a80 -o out.bin
 * mzx --run out.bin@8000
 
@@ -32,4 +31,4 @@ START-OF-SELECTION.
 
 END-OF-SELECTION.
   WRITE ' '.
-  WRITE 'cl_salv_table on ZX Spectrum!'.
+  WRITE 'Real SQLite on ZX Spectrum!'.

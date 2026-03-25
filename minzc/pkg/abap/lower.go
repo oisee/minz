@@ -1254,7 +1254,10 @@ func (l *lowerer) lowerSelect(s *SelectStmt) (hir.Stmt, error) {
 //   - global _itab_<name>_cnt: u16 (row counter)
 //   - sqlite loop: step + column_text into buffer slots + increment counter
 func (l *lowerer) lowerSelectIntoTable(s *SelectStmt, sql string, uid int) (hir.Stmt, error) {
-	const colWidth = 20 // fixed column width for text fields
+	colWidth := 20 // fixed column width for text fields
+	if l.hm.Target == hir.TargetZXSpectrum {
+		colWidth = 8 // ZX Spectrum: 32 chars wide, 4 cols × 8 = 32
+	}
 	const maxRows = 8   // max rows in buffer (limited for Z80 code size)
 
 	// Resolve columns — for *, use table schema from *!sql pragmas
