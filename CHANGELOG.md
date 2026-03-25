@@ -6,6 +6,47 @@ For pre-MIR2 history (v0.1–v0.15, 2025), see git log.
 
 ---
 
+## 2026-03-25 (Sessions 3-4)
+
+**~25 commits across 3 repos. 3 ZX Spectrum screenshots. Paper A draft.**
+
+### SQL on Z80 CP/M
+- **ZSQL.COM** — Interactive SQLite REPL on CP/M. `CREATE TABLE OK`, `INSERT OK`, `SELECT` returns row data via I/O port bridge. Readline with BDOS 0x0A, prompt loop, .quit/.help commands. [zsql.nanz →](examples/nanz/zsql.nanz)
+- **SELECT returns data** — `sqlite_query` → `sqlite_step` → `sqlite_column_text` → row output. Asm wrappers bypass Z3 register pressure (hardcoded `EX DE,HL / LD HL,(db) / CALL sqlite_query`).
+
+### ABAP on ZX Spectrum
+- **ZSQL MARA session** — CREATE TABLE mara → INSERT 4 materials → SELECT WHERE mtart=FERT → filtered results. Enterprise SQL on 1982 hardware. [Screenshot →](media/zsql_mara_zx_spectrum.png)
+- **ALV grid** — Material Master with 5 rows (MATNR/MTART/MEINS/MAKTX) + ABAP source code visible below. [Screenshot →](media/mara_alv_zx_spectrum.png)
+- **ZSQL session** — CREATE TABLE, INSERT, SELECT with pipe-separated columns. [Screenshot →](media/zsql_zx_spectrum.png)
+- **Embedded ZX font** — 96-char charset (768 bytes, ASCII 32-127 including lowercase). Target-aware ABAP runtime: `--target=spectrum` swaps BDOS for `_zx_putchar` + console port $23 input.
+
+### MZA Assembler Fixes
+- **`pass >= 2`** — Multi-pass data emission. DB/DW/DS directives were silently dropped on pass 3+ (JRS expansion caused reconvergence). Binary went from 923→1465 bytes. Root cause of VIR blank output.
+- **LD IXH,H fake instruction** — DD prefix conflict expansion: `LD IXH,H` → `LD A,H / LD IXH,A`. Covers all 8 IXH/IXL/IYH/IYL × H/L combinations.
+
+### VIR Backend Fixes (from minz-vir)
+- **Grace INC dedup** — `INC HL / INC HL / RET` → Grace removed second INC ("dead before RET"). Fix: preserve INC/DEC on return-capable registers.
+- **Tail call guard** — `CALL+RET→JP` restricted to local labels. External calls keep CALL+RET. Fixes parameter passing for Z3-compiled functions.
+- **Post-emit validation** — Catches Z3 16-bit load clobber pattern (`LD HL,(addr) → LD L,r` overwrite). Falls back to PBQP.
+- **String pool ordering** — `spliceVIRFallback` + all-Z3 path: globals before strings. Prevents MZA trailing-zero trim from clipping string data.
+- **DD prefix routing** — `fixDDPrefixConflict` in all emit paths. Routes H/L↔IXH/IXL through A.
+- **OpAsmBlock CFG solver** — CFG solver preserves AsmTemplate. Inline asm functions get proper bodies.
+
+### GPU Regalloc Table (from z80-optimizer)
+- **11.6M feasible 5-vreg entries** (17.2M patterns, 20 min dual GPU)
+- **299K feasible 6-vreg entries** (corpus-derived)
+- **1325 real VIR corpus entries** (639 feasible, 48.2%)
+- **Width-aware kernel** — 16-bit vregs restricted to BC/DE/HL/mem
+- **Direct PIR emit** — Table hit → pattern select → asm. Zero solver. O(1) compilation.
+- **315 unique signatures** — 97.8% convergence. The table is effectively complete.
+
+### Research
+- **Phase transition** — Cliff at 16 register locations. Z80(15)=81% coverage, 6502(3)=100%.
+- **88.2% cross-frontend transfer** — Train Nanz+PL/M, test ABAP+Screen+SQLite.
+- **Paper A draft** — *"Register Allocation as a Solved Game: Exhaustive GPU Tables for Sub-Cliff Architectures"*. 7 sections, full evaluation, honest caveats. [ADR-0040](docs/adr/0040-island-of-optimality-regalloc.md)
+
+---
+
 ## 2026-03-24 (Session 2)
 
 **4 commits. 1 report (#113). [Full context →](reports/2026-03-24-113-CPM-Screen-Polish-SQLite-Bridge.md)**

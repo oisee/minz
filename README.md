@@ -85,6 +85,18 @@ Books: [Nanz Language Book v7](docs/Nanz_Language_Book_v7.md) ([PDF](docs/Nanz_L
 
 ---
 
+### ★ NEW: SQL Executes on Z80 CP/M + GPU Regalloc Table
+
+**ZSQL.COM** — interactive SQLite client running on Z80 CP/M. `CREATE TABLE OK`, `INSERT OK`, `SELECT` returns data. SQL via I/O port bridge ($41/$43/$45/$47) → modernc.org/sqlite. [Demo →](examples/nanz/zsql.nanz)
+
+**GPU exhaustive regalloc table** — 11.6M provably optimal register allocations for 5-vreg functions (dual RTX 4060 Ti, 20 min). Direct PIR emit: table hit → pattern select → asm. **Zero solver.** 315 unique signatures cover the entire Z80 backend (97.8% convergence). [ADR-0040](docs/adr/0040-island-of-optimality-regalloc.md)
+
+**VIR fixes this session:** Grace INC dedup, tail call guard, post-emit HL-clobber validation, DD prefix conflict routing, string pool ordering. MZA fix: `pass >= 2` for multi-pass data emission.
+
+**Research:** Phase transition at 16 register locations — below the cliff, exhaustive tables cover >80% of functions. 88.2% cross-frontend transfer. Paper A draft: *"Register Allocation as a Solved Game"*.
+
+---
+
 ### ★ [Reliability Sprint: 35/35 Nanz Examples + Compilation Provenance Tracing](reports/2026-03-24-110-Reliability-Sprint-35-of-35.md)
 
 **Every function annotated.** Per-function `[trace]` ASM comments show backend (LIR/VIR/PBQP/fallback), optimization passes fired, HIR-SPLIT origin, fallback reason. Module summary header with function counts, label audit.
