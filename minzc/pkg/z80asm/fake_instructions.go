@@ -59,10 +59,24 @@ func tryExpandFakeLD(line *Line) []*Line {
 	if len(line.Operands) != 2 {
 		return nil
 	}
-	
+
 	dst := strings.ToUpper(strings.TrimSpace(line.Operands[0]))
 	src := strings.ToUpper(strings.TrimSpace(line.Operands[1]))
-	
+
+	// DD/FD prefix conflict: LD IXH,H / LD IXH,L / LD IXL,H / LD IXL,L
+	// (and IYH/IYL variants). Under DD prefix, H→IXH and L→IXL, making
+	// these either no-ops or wrong. Route through A.
+	isIXY := func(r string) bool {
+		return r == "IXH" || r == "IXL" || r == "IYH" || r == "IYL"
+	}
+	isHL := func(r string) bool { return r == "H" || r == "L" }
+	if (isIXY(dst) && isHL(src)) || (isHL(dst) && isIXY(src)) {
+		return []*Line{
+			{Number: line.Number, Mnemonic: "LD", Operands: []string{"A", src}},
+			{Number: line.Number, Mnemonic: "LD", Operands: []string{dst, "A"}},
+		}
+	}
+
 	// Check if this is a 16-bit to 16-bit transfer (fake instruction)
 	if !is16BitReg(dst) || !is16BitReg(src) {
 		return nil // This is a normal LD instruction
