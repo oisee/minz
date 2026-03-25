@@ -189,16 +189,24 @@ func (l *lowerer) lower() (*hir.Module, error) {
 
 	var mainStmts []hir.Stmt
 
-	// ZX Spectrum: clear screen at startup
+	// ZX Spectrum: clear screen at startup with diagnostic border colors
 	if l.hm.Target == hir.TargetZXSpectrum {
-		mainStmts = append(mainStmts, &hir.ExprStmt{
-			Expr: &hir.CallExpr{Fn: "_zx_cls", Ty: mir2.TyVoid},
-		})
-		// Set border to blue
+		// RED border = program started
 		mainStmts = append(mainStmts, &hir.ExprStmt{
 			Expr: &hir.CallExpr{
 				Fn:   "_zx_border",
-				Args: []hir.Expr{&hir.IntLitExpr{Val: 1, Ty: mir2.TyU8}},
+				Args: []hir.Expr{&hir.IntLitExpr{Val: 2, Ty: mir2.TyU8}},
+				Ty:   mir2.TyVoid,
+			},
+		})
+		mainStmts = append(mainStmts, &hir.ExprStmt{
+			Expr: &hir.CallExpr{Fn: "_zx_cls", Ty: mir2.TyVoid},
+		})
+		// GREEN border = CLS done
+		mainStmts = append(mainStmts, &hir.ExprStmt{
+			Expr: &hir.CallExpr{
+				Fn:   "_zx_border",
+				Args: []hir.Expr{&hir.IntLitExpr{Val: 4, Ty: mir2.TyU8}},
 				Ty:   mir2.TyVoid,
 			},
 		})
@@ -542,7 +550,28 @@ func (l *lowerer) lower() (*hir.Module, error) {
 				},
 			})
 		}
+		// YELLOW border = seed SQL done
+		if l.hm.Target == hir.TargetZXSpectrum {
+			initStmts = append(initStmts, &hir.ExprStmt{
+				Expr: &hir.CallExpr{
+					Fn:   "_zx_border",
+					Args: []hir.Expr{&hir.IntLitExpr{Val: 6, Ty: mir2.TyU8}},
+					Ty:   mir2.TyVoid,
+				},
+			})
+		}
 		mainStmts = append(initStmts, mainStmts...)
+	}
+
+	// WHITE border = about to HALT (end of program)
+	if l.hm.Target == hir.TargetZXSpectrum {
+		mainStmts = append(mainStmts, &hir.ExprStmt{
+			Expr: &hir.CallExpr{
+				Fn:   "_zx_border",
+				Args: []hir.Expr{&hir.IntLitExpr{Val: 7, Ty: mir2.TyU8}},
+				Ty:   mir2.TyVoid,
+			},
+		})
 	}
 
 	// Emit main function
