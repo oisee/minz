@@ -25,6 +25,7 @@ import (
 // GPUFuncDesc is the JSON schema for the CUDA regalloc kernel.
 type GPUFuncDesc struct {
 	NVregs           int              `json:"nVregs"`
+	Widths           []int            `json:"widths,omitempty"`  // per-vreg width (8 or 16); omit for all-8-bit
 	Ops              []GPUOpDesc      `json:"ops"`
 	Interference     [][2]int         `json:"interference"`
 	ParamConstraints []GPUParamConst  `json:"paramConstraints"`
@@ -217,6 +218,29 @@ func BuildGPUDesc(ops []VIROp, desc *MachineDesc, opts SolverOptions) (*GPUFuncD
 	}
 
 	gf := &GPUFuncDesc{NVregs: len(vregList)}
+
+	// Build per-vreg width array (from defining op's Width)
+	vregWidth := make(map[int]int)
+	for _, op := range ops {
+		if op.Dst > 0 && op.Width > 0 {
+			vregWidth[op.Dst] = op.Width
+		}
+	}
+	has16 := false
+	widths := make([]int, len(vregList))
+	for i, v := range vregList {
+		w := vregWidth[v]
+		if w == 0 {
+			w = 8
+		}
+		widths[i] = w
+		if w == 16 {
+			has16 = true
+		}
+	}
+	if has16 {
+		gf.Widths = widths // only emit if any 16-bit vregs
+	}
 
 	for i, op := range ops {
 		gop := GPUOpDesc{Dst: -1, Src0: -1, Src1: -1}
