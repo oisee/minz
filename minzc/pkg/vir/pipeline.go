@@ -87,6 +87,12 @@ func CodegenModule(m *mir2.Module, opts SolverOptions) (string, []FuncResult) {
 
 	for _, f := range funcs {
 		asm, err := CodegenFunc(f, m, opts)
+		// Post-emit validation: detect clobbered 16-bit loads (Z3 interference bug)
+		if err == nil {
+			if clobErr := validateNoClobber(asm); clobErr != "" {
+				err = fmt.Errorf("post-emit validation: %s", clobErr)
+			}
+		}
 		r := FuncResult{Name: f.Name}
 		if err != nil {
 			r.Error = err.Error()
@@ -1091,6 +1097,32 @@ func emitLine(sb *strings.Builder, line string) {
 			sb.WriteString("    " + subline + "\n")
 		}
 	}
+}
+
+// validateNoClobber detects Z3 interference bugs where a 16-bit load is
+// immediately clobbered by an 8-bit write to the same register pair.
+// Pattern: LD HL, (addr) / LD L, r — the db handle is overwritten.
+// Returns error description or "" if clean.
+func validateNoClobber(asm string) string {
+	lines := strings.Split(asm, "\n")
+	for i := 0; i+1 < len(lines); i++ {
+		line := strings.TrimSpace(lines[i])
+		next := strings.TrimSpace(lines[i+1])
+
+		// LD HL, (addr) followed by LD L, r or LD H, r → clobbered
+		if strings.HasPrefix(line, "LD HL, (") && !strings.HasPrefix(line, "LD HL, (HL)") {
+			if strings.HasPrefix(next, "LD L, ") || strings.HasPrefix(next, "LD H, ") {
+				return fmt.Sprintf("16-bit load clobbered: %s → %s", line, next)
+			}
+		}
+		// Same for DE
+		if strings.HasPrefix(line, "LD DE, (") || (strings.HasPrefix(line, "LD D, (") && strings.Contains(line, "LD E, (")) {
+			if strings.HasPrefix(next, "LD E, ") || strings.HasPrefix(next, "LD D, ") {
+				return fmt.Sprintf("16-bit load clobbered: %s → %s", line, next)
+			}
+		}
+	}
+	return ""
 }
 
 // emitFromTable generates assembly directly from a GPU table assignment.
