@@ -507,10 +507,14 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 				}
 			}
 
-			pirOps = append(pirOps, PIROp{
+			pir := PIROp{
 				Pat: pat, DstPhys: dstPhys, SrcPhys: srcPhys,
 				Imm: op.Imm, Sym: op.Sym,
-			})
+			}
+			if op.Op == OpAsmBlock {
+				pir.AsmText = op.AsmTemplate
+			}
+			pirOps = append(pirOps, pir)
 		}
 		result[bp.label] = pirOps
 	}
