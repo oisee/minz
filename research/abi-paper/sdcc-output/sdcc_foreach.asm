@@ -41,7 +41,7 @@
 ; code
 ;--------------------------------------------------------
 	.area _CODE
-;/tmp/sdcc_foreach.c:3: uint8_t sum_array(uint8_t *buf, uint8_t n) {
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_foreach.c:3: uint8_t sum_array(uint8_t *buf, uint8_t n) {
 ;	---------------------------------
 ; Function sum_array
 ; ---------------------------------
@@ -50,32 +50,32 @@ _sum_array::
 	ld	ix,#0
 	add	ix,sp
 	ex	de, hl
-;/tmp/sdcc_foreach.c:4: uint8_t s = 0;
-;/tmp/sdcc_foreach.c:5: for (uint8_t i = 0; i < n; i++) {
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_foreach.c:4: uint8_t s = 0;
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_foreach.c:5: for (uint8_t i = 0; i < n; i++) {
 	ld	bc, #0x0
 00103$:
 	ld	a, b
 	sub	a, 4 (ix)
 	jr	NC, 00101$
-;/tmp/sdcc_foreach.c:6: s += buf[i];
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_foreach.c:6: s += buf[i];
 	ld	l, b
 	ld	h, #0x00
 	add	hl, de
 	ld	a, (hl)
 	add	a, c
 	ld	c, a
-;/tmp/sdcc_foreach.c:5: for (uint8_t i = 0; i < n; i++) {
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_foreach.c:5: for (uint8_t i = 0; i < n; i++) {
 	inc	b
 	jr	00103$
 00101$:
-;/tmp/sdcc_foreach.c:8: return s;
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_foreach.c:8: return s;
 	ld	a, c
-;/tmp/sdcc_foreach.c:9: }
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_foreach.c:9: }
 	pop	ix
 	pop	hl
 	inc	sp
 	jp	(hl)
-;/tmp/sdcc_foreach.c:11: uint8_t max_array(uint8_t *buf, uint8_t n) {
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_foreach.c:11: uint8_t max_array(uint8_t *buf, uint8_t n) {
 ;	---------------------------------
 ; Function max_array
 ; ---------------------------------
@@ -84,14 +84,14 @@ _max_array::
 	ld	ix,#0
 	add	ix,sp
 	ex	de, hl
-;/tmp/sdcc_foreach.c:12: uint8_t m = 0;
-;/tmp/sdcc_foreach.c:13: for (uint8_t i = 0; i < n; i++) {
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_foreach.c:12: uint8_t m = 0;
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_foreach.c:13: for (uint8_t i = 0; i < n; i++) {
 	ld	bc, #0x0
 00105$:
 	ld	a, b
 	sub	a, 4 (ix)
 	jr	NC, 00103$
-;/tmp/sdcc_foreach.c:14: if (buf[i] > m) m = buf[i];
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_foreach.c:14: if (buf[i] > m) m = buf[i];
 	ld	l, b
 	ld	h, #0x00
 	add	hl, de
@@ -102,13 +102,13 @@ _max_array::
 	jr	NC, 00106$
 	ld	c, l
 00106$:
-;/tmp/sdcc_foreach.c:13: for (uint8_t i = 0; i < n; i++) {
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_foreach.c:13: for (uint8_t i = 0; i < n; i++) {
 	inc	b
 	jr	00105$
 00103$:
-;/tmp/sdcc_foreach.c:16: return m;
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_foreach.c:16: return m;
 	ld	a, c
-;/tmp/sdcc_foreach.c:17: }
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_foreach.c:17: }
 	pop	ix
 	pop	hl
 	inc	sp

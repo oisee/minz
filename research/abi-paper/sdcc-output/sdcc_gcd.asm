@@ -40,18 +40,18 @@
 ; code
 ;--------------------------------------------------------
 	.area _CODE
-;/tmp/sdcc_gcd.c:3: uint8_t gcd(uint8_t a, uint8_t b) {
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_gcd.c:3: uint8_t gcd(uint8_t a, uint8_t b) {
 ;	---------------------------------
 ; Function gcd
 ; ---------------------------------
 _gcd::
 	ld	c, a
-;/tmp/sdcc_gcd.c:4: while (a != b) {
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_gcd.c:4: while (a != b) {
 00104$:
 	ld	a, c
 	sub	a, l
 	jr	Z, 00106$
-;/tmp/sdcc_gcd.c:5: if (a > b) a = a - b;
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_gcd.c:5: if (a > b) a = a - b;
 	ld	a, l
 	sub	a, c
 	jr	NC, 00102$
@@ -60,7 +60,7 @@ _gcd::
 	ld	c, a
 	jr	00104$
 00102$:
-;/tmp/sdcc_gcd.c:6: else       b = b - a;
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_gcd.c:6: else       b = b - a;
 	ld	a, l
 	sub	a, c
 	ld	l, a
@@ -68,9 +68,9 @@ _gcd::
 ;	spillPairReg hl
 	jr	00104$
 00106$:
-;/tmp/sdcc_gcd.c:8: return a;
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_gcd.c:8: return a;
 	ld	a, c
-;/tmp/sdcc_gcd.c:9: }
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_gcd.c:9: }
 	ret
 	.area _CODE
 	.area _INITIALIZER

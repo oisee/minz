@@ -40,7 +40,7 @@
 ; code
 ;--------------------------------------------------------
 	.area _CODE
-;/tmp/sdcc_swap.c:4: void swap(uint16_t a, uint16_t b, uint16_t *out_a, uint16_t *out_b) {
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_swap.c:4: void swap(uint16_t a, uint16_t b, uint16_t *out_a, uint16_t *out_b) {
 ;	---------------------------------
 ; Function swap
 ; ---------------------------------
@@ -50,7 +50,7 @@ _swap::
 	add	ix,sp
 	ld	c, l
 	ld	b, h
-;/tmp/sdcc_swap.c:5: *out_a = b;
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_swap.c:5: *out_a = b;
 	ld	l, 4 (ix)
 ;	spillPairReg hl
 ;	spillPairReg hl
@@ -60,7 +60,7 @@ _swap::
 	ld	(hl), e
 	inc	hl
 	ld	(hl), d
-;/tmp/sdcc_swap.c:6: *out_b = a;
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_swap.c:6: *out_b = a;
 	ld	l, 6 (ix)
 ;	spillPairReg hl
 ;	spillPairReg hl
@@ -70,7 +70,7 @@ _swap::
 	ld	(hl), c
 	inc	hl
 	ld	(hl), b
-;/tmp/sdcc_swap.c:7: }
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_swap.c:7: }
 	pop	ix
 	pop	hl
 	pop	af

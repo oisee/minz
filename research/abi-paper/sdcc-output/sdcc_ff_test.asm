@@ -2,13 +2,13 @@
 ; File Created by SDCC : free open source ANSI-C Compiler
 ; Version 4.2.0 #13081 (Linux)
 ;--------------------------------------------------------
-	.module sdcc_abs_diff_u16
+	.module sdcc_ff_test
 	.optsdcc -mz80
 	
 ;--------------------------------------------------------
 ; Public variables in this module
 ;--------------------------------------------------------
-	.globl _abs_diff_u16
+	.globl _test
 ;--------------------------------------------------------
 ; special function registers
 ;--------------------------------------------------------
@@ -40,31 +40,28 @@
 ; code
 ;--------------------------------------------------------
 	.area _CODE
-;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_abs_diff_u16.c:3: uint16_t abs_diff_u16(uint16_t a, uint16_t b) {
+;sdcc_ff_test.c:3: static int dbc_1st(BYTE c) {
 ;	---------------------------------
-; Function abs_diff_u16
+; Function dbc_1st
 ; ---------------------------------
-_abs_diff_u16::
-;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_abs_diff_u16.c:4: if (a < b) return b - a;
-	ld	a, l
-	sub	a, e
-	ld	a, h
-	sbc	a, d
-	jr	NC, 00102$
-	ld	a, e
-	sub	a, l
-	ld	e, a
-	ld	a, d
-	sbc	a, h
-	ld	d, a
+_dbc_1st:
+;sdcc_ff_test.c:4: if (c != 0) return 0;
+	or	a, a
+	jr	Z, 00102$
+	ld	de, #0x0000
 	ret
 00102$:
-;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_abs_diff_u16.c:5: return a - b;
-	cp	a, a
-	sbc	hl, de
-	ex	de, hl
-;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_abs_diff_u16.c:6: }
+;sdcc_ff_test.c:5: return 0;
+	ld	de, #0x0000
+;sdcc_ff_test.c:6: }
 	ret
+;sdcc_ff_test.c:7: int test(void) { return dbc_1st(42); }
+;	---------------------------------
+; Function test
+; ---------------------------------
+_test::
+	ld	a, #0x2a
+	jp	_dbc_1st
 	.area _CODE
 	.area _INITIALIZER
 	.area _CABS (ABS)

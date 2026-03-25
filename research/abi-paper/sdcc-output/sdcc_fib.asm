@@ -40,20 +40,20 @@
 ; code
 ;--------------------------------------------------------
 	.area _CODE
-;/tmp/sdcc_fib.c:3: uint16_t fib(uint8_t n) {
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_fib.c:3: uint16_t fib(uint8_t n) {
 ;	---------------------------------
 ; Function fib
 ; ---------------------------------
 _fib::
 	ld	e, a
-;/tmp/sdcc_fib.c:4: if (n <= 1) return n;
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_fib.c:4: if (n <= 1) return n;
 	ld	a, #0x01
 	sub	a, e
 	jr	C, 00102$
 	ld	d, #0x00
 	ret
 00102$:
-;/tmp/sdcc_fib.c:5: return fib(n - 1) + fib(n - 2);
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_fib.c:5: return fib(n - 1) + fib(n - 2);
 	ld	c, e
 	dec	c
 	push	de
@@ -69,7 +69,7 @@ _fib::
 	pop	hl
 	add	hl, de
 	ex	de, hl
-;/tmp/sdcc_fib.c:6: }
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_fib.c:6: }
 	ret
 	.area _CODE
 	.area _INITIALIZER
