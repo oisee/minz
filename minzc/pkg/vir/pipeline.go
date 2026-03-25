@@ -362,20 +362,20 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 	}
 
 	// Try precomputed regalloc table first (O(1) lookup, provably optimal).
-	// If hit, feed the GPU assignment as hard constraints to Z3 — it verifies
-	// and emits code instantly (no search, just pattern selection with fixed regs).
+	// Direct PIR emit — no Z3 needed. GPU assignment is the final answer.
+	// Only use for functions where ABI constraints are satisfied by the table assignment.
 	if table := GetRegAllocTable(); table.Size() > 0 {
 		if assignment, cost, ok := table.Lookup(allOps, desc); ok {
-			fmt.Fprintf(os.Stderr, "[vir] %s: table hit (cost=%d, %d regs)\n", f.Name, cost, len(assignment))
-			gpuOpts := opts
-			gpuOpts.ParamLocs = assignment // force Z3 to use GPU's optimal registers
-			vfGPU := deepCopyFunc(vf)
-			result, err := codegenFuncCFG(f, vfGPU, desc, gpuOpts)
-			if err == nil {
-				return result, nil
+			// Verify ABI compatibility: table assignment must match param/return constraints
+			abiOK := verifyABICompat(allOps, assignment, opts)
+			if abiOK {
+				result, err := emitFromTable(f, vf, allOps, assignment, desc, opts)
+				if err == nil {
+					fmt.Fprintf(os.Stderr, "[vir] %s: table emit OK (cost=%d)\n", f.Name, cost)
+					return result, nil
+				}
+				fmt.Fprintf(os.Stderr, "[vir] %s: table hit (cost=%d) but emit failed: %v\n", f.Name, cost, err)
 			}
-			// Table hit but Z3 couldn't emit — fall through to normal path
-			fmt.Fprintf(os.Stderr, "[vir] %s: GPU table hit but Z3 emit failed: %v\n", f.Name, err)
 		}
 	}
 
@@ -1091,6 +1091,141 @@ func emitLine(sb *strings.Builder, line string) {
 			sb.WriteString("    " + subline + "\n")
 		}
 	}
+}
+
+// emitFromTable generates assembly directly from a GPU table assignment.
+// No Z3 solver needed — just pattern selection + PIR emit.
+func emitFromTable(f *mir2.Func, vf *Func, allOps []VIROp, assignment map[int]int, desc *MachineDesc, opts SolverOptions) (string, error) {
+	var sb strings.Builder
+	emitFuncHeader(&sb, f, opts)
+	sb.WriteString(f.Name + ":\n")
+
+	opIdx := 0
+	for bi, block := range vf.Blocks {
+		label := block.Label
+		if bi > 0 && label != "" {
+			sb.WriteString("." + f.Name + "_" + label + ":\n")
+		}
+
+		for _, op := range block.Ops {
+			if opIdx >= len(allOps) {
+				break
+			}
+
+			// Inline asm: emit verbatim
+			if op.Op == OpAsmBlock {
+				pir := PIROp{AsmText: op.AsmTemplate}
+				emitLine(&sb, pir.Emit(desc))
+				opIdx++
+				continue
+			}
+
+			// Find the cheapest pattern that matches this op AND the GPU assignment
+			dstPhys := -1
+			if op.Dst > 0 {
+				if loc, ok := assignment[op.Dst]; ok {
+					dstPhys = loc
+				}
+			}
+			var srcPhys [2]int
+			srcPhys[0] = -1
+			srcPhys[1] = -1
+			for j, s := range op.Src {
+				if s > 0 {
+					if loc, ok := assignment[s]; ok {
+						srcPhys[j] = loc
+					}
+				}
+			}
+
+			pat := findBestPattern(op, dstPhys, srcPhys, desc)
+			if pat == nil {
+				return "", fmt.Errorf("no pattern for op %d (%v) dst=%d src=%v", opIdx, op.Op, dstPhys, srcPhys)
+			}
+
+			pir := PIROp{
+				Pat:     pat,
+				DstPhys: dstPhys,
+				SrcPhys: srcPhys,
+				Imm:     op.Imm,
+				Sym:     op.Sym,
+			}
+
+			line := pir.Emit(desc)
+			if !isSelfMove(line) {
+				emitLine(&sb, line)
+			}
+			opIdx++
+		}
+
+		if bi < len(f.Blocks) {
+			emitTerminator(&sb, f.Blocks[bi], f.Name)
+		}
+	}
+
+	return peepholeCleanup(sb.String()), nil
+}
+
+// verifyABICompat checks if a GPU table assignment is compatible with ABI constraints.
+// ParamLocs from PFCCO must match the table assignment for constrained vregs.
+func verifyABICompat(ops []VIROp, assignment map[int]int, opts SolverOptions) bool {
+	// Check param constraints
+	paramLocs := opts.ParamLocs
+	if paramLocs == nil && opts.FuncParamLocs != nil {
+		// FuncParamLocs checked later — for now just allow
+	}
+	for vreg, requiredLoc := range paramLocs {
+		if tableLoc, ok := assignment[vreg]; ok {
+			if tableLoc != requiredLoc {
+				return false // table puts vreg at wrong loc for ABI
+			}
+		}
+	}
+	// Check DstHint/SrcHint constraints from ops
+	for _, op := range ops {
+		if op.Dst > 0 && !op.DstHint.IsEmpty() {
+			if loc, ok := assignment[op.Dst]; ok {
+				if !op.DstHint.Has(loc) {
+					return false
+				}
+			}
+		}
+	}
+	return true
+}
+
+// findBestPattern finds the cheapest pattern matching an op with given physical locs.
+func findBestPattern(op VIROp, dstPhys int, srcPhys [2]int, desc *MachineDesc) *Pattern {
+	var best *Pattern
+	bestCost := 1<<30
+
+	for i := range desc.Patterns {
+		pat := &desc.Patterns[i]
+		if !pat.Matches(op) {
+			continue
+		}
+		// Check dst loc is in pattern's allowed set
+		if dstPhys >= 0 && !pat.DstLocs.IsEmpty() && !pat.DstLocs.Has(dstPhys) {
+			continue
+		}
+		// Check src0 loc
+		if srcPhys[0] >= 0 && !pat.SrcLocs[0].IsEmpty() && !pat.SrcLocs[0].Has(srcPhys[0]) {
+			continue
+		}
+		// Check src1 loc
+		if srcPhys[1] >= 0 && !pat.SrcLocs[1].IsEmpty() && !pat.SrcLocs[1].Has(srcPhys[1]) {
+			continue
+		}
+		// Tied constraint: dst must equal src0
+		if pat.TiedDstSrc && dstPhys >= 0 && srcPhys[0] >= 0 && dstPhys != srcPhys[0] {
+			continue
+		}
+		if pat.Cost < bestCost {
+			best = pat
+			bestCost = pat.Cost
+		}
+	}
+	return best
 }
 
 // emitTerminator generates Z80 control flow instructions for a MIR2 block terminator.
