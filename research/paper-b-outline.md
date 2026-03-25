@@ -164,7 +164,20 @@ Each island is provably optimal (exhaustive GPU search). Total function cost = �
 | _prompt | 21 | 29 | 13.8% | 13 |
 | _sel_rows | 37 | 162 | 24.3% | 31 |
 
-Interference is universally sparse. Even `_sel_rows` (densest) has only 24% density. This suggests interference-aware GPU kernels could solve these directly without decomposition.
+Interference is universally sparse. Even `_sel_rows` (densest) has only 24% density.
+
+### 5.4 Backtracking with Interference Pruning
+
+For islands where brute-force GPU search exceeds budget (15^15 = 437 trillion), a CPU backtracking solver with interference-aware pruning achieves massive reduction:
+
+| Island | nVregs | Intf | Brute Force | Backtracking | Pruning Factor |
+|--------|--------|------|-------------|--------------|----------------|
+| main_island0 | 15 | 7 | 437T | 587M | 745,000× |
+| _prompt_island0 | 14 | 18 | 11.1T | 23.4B | 475× |
+
+The pruning factor correlates inversely with interference density: sparser graphs → more pruning → faster solve. This shifts the tractability frontier: not just ≤8v functions (Paper A), but any function whose interference graph is sparse enough for backtracking to converge.
+
+**Implication for the phase transition (Paper A, §4.5):** The naive formula max_vregs = ⌊log(B)/log(L)⌋ assumes uniform search. With interference pruning, the effective search space is orders of magnitude smaller, extending tractability well beyond 15 vregs.
 
 ---
 
