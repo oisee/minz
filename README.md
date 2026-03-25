@@ -61,10 +61,11 @@ Exhaustive check, payload binding, `_` wildcard. [Showcases: Option](examples/na
 
 ---
 
-### ★ NEW: ABAP on ZX Spectrum + Open SQL → SQLite | [ABAP Book](docs/ABAP_on_MinZ_Book.md) | [Book Catalog](docs/Book_Catalog.md)
+### ★ NEW: SQL on ZX Spectrum + ABAP Open SQL → SQLite | [ABAP Book](docs/ABAP_on_MinZ_Book.md) | [Book Catalog](docs/Book_Catalog.md)
 
-**ABAP/4 renders on ZX Spectrum** — real `.abap` source, embedded ZX font, direct screen memory writes. 2KB binary.
+**SQL database on a 1982 home computer.** CREATE TABLE, INSERT, SELECT — rendered with ZX Spectrum font on real Z80 hardware. 2KB binary. 44 years bridged.
 
+<img src="media/zsql_zx_spectrum.png" width="400" alt="ZSQL — SQL on ZX Spectrum">
 <img src="media/abap_zx_spectrum.png" width="400" alt="SAP Material Master on ZX Spectrum">
 
 **Open SQL pipeline**: `SELECT ... INTO TABLE @DATA(lt_mara)` with `INNER JOIN` + `cl_salv_table=>factory()` → ALV grid. **Interactive CP/M selection screen** with `PARAMETERS`, defaults, typed input. **`@screen` declarative TUI** — 7 lines of DSL generate full interactive screens with PBO/PAI, focus, keyboard nav. **SQLite bridge** via I/O ports.
