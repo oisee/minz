@@ -5,6 +5,7 @@
 package vir
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -339,15 +340,33 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 		return "", fmt.Errorf("vir lower %s: %w", f.Name, err)
 	}
 
+	// Collect all ops for table lookup and GPU batch dump
+	var allOps []VIROp
+	for _, b := range vf.Blocks {
+		allOps = append(allOps, b.Ops...)
+	}
+
+	// Dump GPU batch JSON if requested (for offline CUDA solve)
+	if os.Getenv("VIR_DUMP_GPU_BATCH") != "" {
+		if gf, nv, err := BuildGPUDesc(allOps, desc, opts); err == nil {
+			sig := computeGPUSignature(allOps, desc)
+			type batchEntry struct {
+				Name string       `json:"name"`
+				Sig  string       `json:"sig"`
+				NV   int          `json:"nVregs"`
+				Desc *GPUFuncDesc `json:"desc"`
+			}
+			jsonData, _ := json.Marshal(batchEntry{f.Name, sig, nv, gf})
+			fmt.Fprintf(os.Stdout, "%s\n", jsonData)
+		}
+	}
+
 	// Try precomputed regalloc table first (O(1) lookup, provably optimal).
 	// If hit, feed the GPU assignment as hard constraints to Z3 — it verifies
 	// and emits code instantly (no search, just pattern selection with fixed regs).
 	if table := GetRegAllocTable(); table.Size() > 0 {
-		var allOps []VIROp
-		for _, b := range vf.Blocks {
-			allOps = append(allOps, b.Ops...)
-		}
-		if assignment, _, ok := table.Lookup(allOps, desc); ok {
+		if assignment, cost, ok := table.Lookup(allOps, desc); ok {
+			fmt.Fprintf(os.Stderr, "[vir] %s: table hit (cost=%d, %d regs)\n", f.Name, cost, len(assignment))
 			gpuOpts := opts
 			gpuOpts.ParamLocs = assignment // force Z3 to use GPU's optimal registers
 			vfGPU := deepCopyFunc(vf)

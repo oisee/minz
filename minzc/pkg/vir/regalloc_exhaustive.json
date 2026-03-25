@@ -1,0 +1,415 @@
+{
+ "b2902a53c7748cb9": {
+  "cost": 24,
+  "assignment": [
+   6,
+   5,
+   0,
+   4,
+   6,
+   6
+  ]
+ },
+ "207049274d77ef72": {
+  "cost": 17,
+  "assignment": [
+   1,
+   2
+  ]
+ },
+ "d5cf60049fa4dee6": {
+  "cost": 22,
+  "assignment": [
+   3,
+   4
+  ]
+ },
+ "b0096df87a811151": {
+  "cost": 14,
+  "assignment": [
+   6,
+   1,
+   4,
+   2
+  ]
+ },
+ "d209a84e26346d81": {
+  "cost": 17,
+  "assignment": [
+   5,
+   6,
+   0,
+   4
+  ]
+ },
+ "154483e618eb8f2d": {
+  "cost": 42,
+  "assignment": [
+   4,
+   4,
+   2,
+   5,
+   6,
+   0,
+   6
+  ]
+ },
+ "6cd68a129e285121": {
+  "cost": 7,
+  "assignment": [
+   1,
+   2
+  ]
+ },
+ "28e59b252ff9a2f9": {
+  "cost": 35,
+  "assignment": [
+   5,
+   1,
+   0,
+   4,
+   6,
+   6,
+   6
+  ]
+ },
+ "d31d07793f560dcc": {
+  "cost": 21,
+  "assignment": [
+   0,
+   3,
+   4,
+   3,
+   6,
+   6
+  ]
+ },
+ "3fa50552da823bc3": {
+  "cost": 42,
+  "assignment": [
+   5,
+   6,
+   0,
+   6,
+   5,
+   5,
+   6,
+   6
+  ]
+ },
+ "f0d43ee6d801c24a": {
+  "cost": 66,
+  "assignment": [
+   6,
+   2,
+   0,
+   5,
+   5,
+   5,
+   6,
+   6
+  ]
+ },
+ "5d074adba0235364": {
+  "cost": 10,
+  "assignment": [
+   6
+  ]
+ },
+ "f25ab0a40831136d": {
+  "cost": 48,
+  "assignment": [
+   6,
+   1,
+   1
+  ]
+ },
+ "8fc5451f205e059b": {
+  "cost": 113,
+  "assignment": [
+   4,
+   0,
+   6,
+   5
+  ]
+ },
+ "a8f29deb438fb7fe": {
+  "cost": 109,
+  "assignment": [
+   4,
+   0,
+   3,
+   0,
+   6,
+   0
+  ]
+ },
+ "2a3a995c77c1bc8c": {
+  "cost": 4,
+  "assignment": [
+   0,
+   4,
+   3,
+   2
+  ]
+ },
+ "cdafd9a6aef22477": {
+  "cost": 10,
+  "assignment": [
+   6
+  ]
+ },
+ "5c842696116943ba": {
+  "cost": 10,
+  "assignment": [
+   6
+  ]
+ },
+ "08115289051ca5cd": {
+  "cost": 10,
+  "assignment": [
+   5,
+   6
+  ]
+ },
+ "ecd1f68eaae01f68": {
+  "cost": 25,
+  "assignment": [
+   6,
+   1,
+   3
+  ]
+ },
+ "b912de5280641f0a": {
+  "cost": 17,
+  "assignment": [
+   2,
+   2,
+   3,
+   4,
+   6
+  ]
+ },
+ "26d05172c1b766ee": {
+  "cost": 17,
+  "assignment": [
+   2,
+   2,
+   2,
+   6,
+   3,
+   5,
+   4,
+   6
+  ]
+ },
+ "1a35ecac18b9a8fc": {
+  "cost": 17,
+  "assignment": [
+   0,
+   4
+  ]
+ },
+ "578772841600c9ae": {
+  "cost": 45,
+  "assignment": [
+   6,
+   0,
+   4,
+   5,
+   5,
+   6,
+   6
+  ]
+ },
+ "769187268eda0fba": {
+  "cost": 30,
+  "assignment": [
+   0,
+   4
+  ]
+ },
+ "fd77f1523bff0a9d": {
+  "cost": 10,
+  "assignment": [
+   5,
+   6
+  ]
+ },
+ "ff035af53851260f": {
+  "cost": 35,
+  "assignment": [
+   6,
+   6,
+   2,
+   0
+  ]
+ },
+ "56a1987a409453fb": {
+  "cost": 49,
+  "assignment": [
+   6,
+   6,
+   2,
+   0,
+   6,
+   6
+  ]
+ },
+ "1c07ab2e4002c0c6": {
+  "cost": 23,
+  "assignment": [
+   0,
+   4
+  ]
+ },
+ "def1b3df860229c0": {
+  "cost": 10,
+  "assignment": [
+   3,
+   6,
+   2
+  ]
+ },
+ "e3634eb5e731ca3c": {
+  "cost": 14,
+  "assignment": [
+   3,
+   4
+  ]
+ },
+ "7b6f1f156bf4f5d3": {
+  "cost": 30,
+  "assignment": [
+   6,
+   6,
+   2
+  ]
+ },
+ "c5a23584afe3764d": {
+  "cost": 68,
+  "assignment": [
+   6,
+   0,
+   4
+  ]
+ },
+ "0dc5b38c42d159b5": {
+  "cost": 68,
+  "assignment": [
+   0
+  ]
+ },
+ "2bd2a1e69ddf868f": {
+  "cost": 89,
+  "assignment": [
+   6,
+   6,
+   4,
+   1
+  ]
+ },
+ "0b5100f0a6e49879": {
+  "cost": 154,
+  "assignment": [
+   4,
+   6,
+   4,
+   5,
+   6,
+   6
+  ]
+ },
+ "94f41926edd7ae7d": {
+  "cost": 82,
+  "assignment": [
+   3,
+   2,
+   0,
+   0,
+   4,
+   6
+  ]
+ },
+ "def578fabf11a23e": {
+  "cost": 10,
+  "assignment": [
+   1,
+   2
+  ]
+ },
+ "6c3598454bcdbc72": {
+  "cost": 10,
+  "assignment": [
+   1,
+   2
+  ]
+ },
+ "00ca85e0290ef409": {
+  "cost": 49,
+  "assignment": [
+   5,
+   2,
+   4,
+   6,
+   0,
+   6
+  ]
+ },
+ "f4a83a9b46ca414a": {
+  "cost": 32,
+  "assignment": [
+   5,
+   0,
+   6,
+   0,
+   6,
+   6
+  ]
+ },
+ "807e69bc258100d2": {
+  "cost": 107,
+  "assignment": [
+   5,
+   6,
+   5,
+   6,
+   5,
+   6
+  ]
+ },
+ "59dbbb38210a646e": {
+  "cost": 55,
+  "assignment": [
+   5,
+   6,
+   2
+  ]
+ },
+ "59c2d24034a0c5fa": {
+  "cost": 10,
+  "assignment": [
+   6
+  ]
+ },
+ "bb18fd8b9b2c1c18": {
+  "cost": 165,
+  "assignment": [
+   6,
+   0,
+   5,
+   6,
+   6,
+   5,
+   6
+  ]
+ },
+ "a964e6b179814b39": {
+  "cost": 45,
+  "assignment": [
+   5,
+   6,
+   2
+  ]
+ }
+}

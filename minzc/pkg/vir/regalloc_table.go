@@ -59,12 +59,18 @@ func GetRegAllocTable() *RegAllocTable {
 }
 
 // Lookup checks if a precomputed assignment exists for the given VIR ops.
+// Tries both the original signature format and the exhaustive GPU format.
 // Returns (assignment vreg→phys, cost, true) if found, (nil, 0, false) otherwise.
 func (t *RegAllocTable) Lookup(ops []VIROp, desc *MachineDesc) (map[int]int, int, bool) {
 	sig := ComputeSignature(ops, desc)
 
 	t.mu.RLock()
 	entry, ok := t.entries[sig]
+	if !ok {
+		// Try exhaustive table signature (GPU format)
+		gpuSig := computeGPUSignature(ops, desc)
+		entry, ok = t.entries[gpuSig]
+	}
 	t.mu.RUnlock()
 
 	if !ok {
@@ -143,17 +149,60 @@ func (t *RegAllocTable) Load(path string) error {
 	return nil
 }
 
-// loadDefaults loads built-in entries (embedded at compile time from GPU runs).
+// loadDefaults loads built-in entries from well-known paths.
 func (t *RegAllocTable) loadDefaults() {
-	// Try loading from well-known paths
+	// Try original format (array of entries with sig field)
 	for _, p := range []string{
 		os.ExpandEnv("$HOME/dev/z80-optimizer/regalloc_table.json"),
 		"regalloc_table.json",
 	} {
 		if err := t.Load(p); err == nil {
-			return
+			break
 		}
 	}
+
+	// Try exhaustive table format (map[hash] → {cost, assignment, nVregs, nOps})
+	for _, p := range []string{
+		os.ExpandEnv("$HOME/dev/minz-vir/minzc/pkg/vir/regalloc_exhaustive.json"),
+		"regalloc_exhaustive.json",
+	} {
+		if err := t.LoadExhaustive(p); err == nil {
+			break
+		}
+	}
+}
+
+// LoadExhaustive loads entries from the exhaustive enumeration format.
+// Format: {"hash16": {"cost": N, "assignment": [...], "nVregs": N, "nOps": N}, ...}
+func (t *RegAllocTable) LoadExhaustive(path string) error {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+	var raw map[string]struct {
+		Cost       int   `json:"cost"`
+		Assignment []int `json:"assignment"`
+		NVregs     int   `json:"nVregs"`
+		NOps       int   `json:"nOps"`
+	}
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	for sig, e := range raw {
+		if _, exists := t.entries[sig]; !exists {
+			t.entries[sig] = &RegAllocEntry{
+				Signature:  sig,
+				NVregs:     e.NVregs,
+				NOps:       e.NOps,
+				Cost:       e.Cost,
+				Assignment: e.Assignment,
+			}
+		}
+	}
+	fmt.Fprintf(os.Stderr, "[regalloc] loaded %d exhaustive entries from %s\n", len(raw), path)
+	return nil
 }
 
 // ── Signature computation ───────────────────────────────────────────────────
@@ -254,4 +303,27 @@ func ComputeSignature(ops []VIROp, desc *MachineDesc) string {
 
 	sum := h.Sum(nil)
 	return fmt.Sprintf("%dv_%do_%x", len(vregList), len(ops), sum[:8])
+}
+
+// computeGPUSignature produces a signature matching the exhaustive enumerator's
+// funcDescFP format. Uses GPU pattern desc ([]int loc lists) instead of LocSet hex.
+func computeGPUSignature(ops []VIROp, desc *MachineDesc) string {
+	gf, _, err := BuildGPUDesc(ops, desc, SolverOptions{})
+	if err != nil {
+		return ""
+	}
+
+	h := sha256.New()
+	fmt.Fprintf(h, "V%d:", gf.NVregs)
+	for _, op := range gf.Ops {
+		fmt.Fprintf(h, "O%d,%d,%d:", op.Dst, op.Src0, op.Src1)
+		for _, p := range op.Patterns {
+			fmt.Fprintf(h, "P%v,%v,%v,%d,%v;", p.DstLocs, p.SrcLocs0, p.SrcLocs1, p.Cost, p.TiedDstSrc)
+		}
+	}
+	for _, i := range gf.Interference {
+		fmt.Fprintf(h, "I%d,%d;", i[0], i[1])
+	}
+
+	return fmt.Sprintf("%x", h.Sum(nil)[:8])
 }
