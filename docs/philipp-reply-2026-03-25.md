@@ -69,7 +69,26 @@ I'd be very interested in your thoughts on:
 2. Whether island decomposition at CALL boundaries aligns with your experience on register pressure patterns in real Z80 code
 3. Whether a similar approach could benefit SDCC — even a small lookup table for the most common 2-4 vreg patterns could speed up compilation while guaranteeing optimality for those cases
 
-The full technical details: `docs/2026-03-25-Superoptimizer-Research-Ideas.md` in the repository. We're also preparing the paper revision with these new results.
+## z80-superoptimizer: GPU-Accelerated Instruction Synthesis
+
+Alongside the regalloc work, we've been building an open-source Z80 superoptimizer that runs entirely on CUDA. The core idea: emulate the Z80 on GPU — thousands of candidate instruction sequences executing in parallel, each verified against a reference implementation for all possible inputs.
+
+What it's found so far:
+
+- **Multiply-by-constant table:** 103 entries for 8-bit (A×K mod 256), 51+ entries for 16-bit (HL×K). Some patterns no human would write — `NEG` as ×255 (8T), carry-chain sequences like `RLA / NEG / ADD A,A` for ×252.
+- **divmod10:** 27 instructions, 124 T-states, verified correct for all 256 inputs. Uses Hacker's Delight reciprocal approximation with RRA+AND trick. Clobbers only B,C,F — leaves HL/DE untouched.
+- **Register allocation brute-force:** The same CUDA kernel that finds instruction sequences also solves regalloc — try all 15^N assignments, keep the cheapest valid one. This is what powers the exhaustive tables described above.
+
+The superoptimizer treats the Z80 as a black box: any instruction sequence that produces correct output for all inputs is valid, regardless of how "weird" it looks. The GPU doesn't know about conventional programming patterns — it just searches. This is how it discovers things like using `NEG` (negate accumulator) as a multiply-by-255, or `RL B` to capture carry from 8-bit operations into the high byte of a 16-bit result.
+
+The repository is at github.com/oisee/z80-optimizer. The CUDA kernel supports:
+- Instruction sequence synthesis (find shortest program for a given function)
+- Register allocation brute-force (15-location model with width constraints)
+- Server mode for batch processing (stdin/stdout JSON protocol)
+
+We think this approach generalizes to other constrained architectures — 6502, 8080, GameBoy Z80 variant. The emulation core is small (~200 lines of CUDA per target), and modern GPUs can evaluate billions of candidate programs per second.
+
+The full technical details and research paper seeds: `docs/2026-03-25-Superoptimizer-Research-Ideas.md` in the repository. We're also preparing the paper revision with these new results.
 
 Best regards,
 Alice
