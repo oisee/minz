@@ -3325,3 +3325,76 @@
 {"ts": "2026-03-25T17:08:00.445484", "event": "hook_post_tool", "tool": "Bash", "summary": "ddll send 1oqrq4ku:main \"31/31 Z3 is amazing! ZSQL works perfectly: 100-100 | Pump Assembly, 200-200 | Control Panel. AB"}
 {"ts": "2026-03-25T17:08:13.377692", "event": "hook_supervise", "status": "on_track", "action": "continue", "reasoning": "The agent is actively executing commands related to building and testing the project, which aligns with the goal."}
 {"ts": "2026-03-25T17:11:08.908321", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:20:40.370361", "event": "hook_post_tool", "tool": "Bash", "summary": "cd /home/alice/dev/minz && git stash 2>/dev/null; git pull --rebase 2>&1 | tail -5"}
+{"ts": "2026-03-25T17:20:53.732332", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:20:54.446797", "event": "hook_post_tool", "tool": "Bash", "summary": "git fetch origin && git log --oneline origin/master..HEAD | head -3 && git log --oneline HEAD..origin/master | head -3"}
+{"ts": "2026-03-25T17:21:04.310452", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:21:04.742370", "event": "hook_post_tool", "tool": "Bash", "summary": "git log --oneline -3"}
+{"ts": "2026-03-25T17:21:13.864201", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:21:14.112056", "event": "hook_post_tool", "tool": "Bash", "summary": "git status --short minzc/pkg/vir/ | head -10"}
+{"ts": "2026-03-25T17:21:22.478777", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:21:22.721514", "event": "hook_post_tool", "tool": "Bash", "summary": "ls -la minzc/pkg/vir/pipeline.go | awk '{print $6, $7, $8}'"}
+{"ts": "2026-03-25T17:21:33.643556", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:21:34.260444", "event": "hook_post_tool", "tool": "Bash", "summary": "cd /home/alice/dev/minz/minzc && go build ./pkg/vir/ 2>&1 | head -5 && go build -o ~/.local/bin/mz ./cmd/minzc 2>&1 | he"}
+{"ts": "2026-03-25T17:21:46.924788", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:21:48.869593", "event": "hook_post_tool", "tool": "Bash", "summary": "mz /home/alice/dev/minz/examples/abap/mara_alv_real_zx.abap --vir --target=spectrum -o /tmp/mara_birthday.a80 2>&1 | tai"}
+{"ts": "2026-03-25T17:22:00.804790", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:22:01.235010", "event": "hook_post_tool", "tool": "Bash", "summary": "grep -n \"validateNoClobber\\|WARNING.*clobber\\|demote.*clobber\" minzc/pkg/vir/pipeline.go | head -5"}
+{"ts": "2026-03-25T17:22:26.559954", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:22:26.808746", "event": "hook_post_tool", "tool": "Bash", "summary": "grep -n \"validateNoClobber\\|WARNING.*clobber\\|post-emit\" /home/alice/dev/minz/minzc/pkg/vir/pipeline.go | head -5"}
+{"ts": "2026-03-25T17:22:37.941055", "event": "hook_approve", "tool": "Read"}
+{"ts": "2026-03-25T17:22:38.359839", "event": "hook_post_tool", "tool": "Read", "summary": "/home/alice/dev/minz/minzc/pkg/vir/pipeline.go"}
+{"ts": "2026-03-25T17:22:52.578523", "event": "hook_approve", "tool": "Edit"}
+{"ts": "2026-03-25T17:22:52.800201", "event": "hook_post_tool", "tool": "Edit", "summary": "/home/alice/dev/minz/minzc/pkg/vir/pipeline.go"}
+{"ts": "2026-03-25T17:23:04.213712", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:23:07.238707", "event": "hook_post_tool", "tool": "Bash", "summary": "go build -o ~/.local/bin/mz ./cmd/minzc && mz /home/alice/dev/minz/examples/abap/mara_alv_real_zx.abap --vir --target=sp"}
+{"ts": "2026-03-25T17:23:20.207986", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:23:36.365723", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:23:38.630460", "event": "hook_post_tool", "tool": "Bash", "summary": "cd /home/alice/dev/minz && git add minzc/pkg/vir/pipeline.go && git commit -m \"$(cat <<'EOF'\nfeat: ALL 112 ABAP function"}
+{"ts": "2026-03-25T17:23:51.751948", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:23:52.062208", "event": "hook_post_tool", "tool": "Bash", "summary": "ddll send 1oqrq4ku:main \"112/112 Z3 \u2014 ZERO PBQP! Birthday screenshot in progress. SQL executes on ZX Spectrum: all 13 se"}
+{"ts": "2026-03-25T17:24:10.020879", "event": "hook_supervise", "status": "on_track", "action": "continue", "reasoning": "The agent is actively working on the task, making edits, running builds, and testing outputs, which aligns with the goal."}
+{"ts": "2026-03-25T17:24:52.282123", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:26:53.282086", "event": "hook_post_tool", "tool": "Bash", "summary": "cd /home/alice/dev/minz/minzc && go build -o ~/.local/bin/mze ./cmd/mze && echo \"\" | /usr/bin/timeout 120 mze /home/alic"}
+{"ts": "2026-03-25T17:27:04.989146", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:27:05.232935", "event": "hook_post_tool", "tool": "Bash", "summary": "grep \"DI\\|HALT\" /tmp/mara_birthday.a80 | tail -5"}
+{"ts": "2026-03-25T17:27:17.026143", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:27:17.476108", "event": "hook_post_tool", "tool": "Bash", "summary": "grep -A2 \"abap_write_str\" /tmp/mara_birthday.a80 | tail -5"}
+{"ts": "2026-03-25T17:27:28.741887", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:27:28.976191", "event": "hook_post_tool", "tool": "Bash", "summary": "tail -20 /tmp/mara_birthday.a80"}
+{"ts": "2026-03-25T17:27:40.829458", "event": "hook_approve", "tool": "Read"}
+{"ts": "2026-03-25T17:27:41.260751", "event": "hook_post_tool", "tool": "Read", "summary": "/home/alice/dev/minz/minzc/pkg/abap/lower.go"}
+{"ts": "2026-03-25T17:27:59.663489", "event": "hook_approve", "tool": "Edit"}
+{"ts": "2026-03-25T17:27:59.906442", "event": "hook_post_tool", "tool": "Edit", "summary": "/home/alice/dev/minz/minzc/pkg/abap/lower.go"}
+{"ts": "2026-03-25T17:28:14.029046", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:28:16.950116", "event": "hook_post_tool", "tool": "Bash", "summary": "go build -o ~/.local/bin/mz ./cmd/minzc && mz /home/alice/dev/minz/examples/abap/mara_alv_real_zx.abap --vir --target=sp"}
+{"ts": "2026-03-25T17:28:33.983502", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:29:17.937967", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:31:18.969713", "event": "hook_post_tool", "tool": "Bash", "summary": "echo \"\" | /usr/bin/timeout 120 mze /home/alice/dev/minz/mara_real_zx.bin -t spectrum --profile /tmp/birthday_final.json "}
+{"ts": "2026-03-25T17:31:29.013124", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:31:59.700962", "event": "hook_post_tool", "tool": "Bash", "summary": "echo \"\" | /usr/bin/timeout 30 mze /home/alice/dev/minz/mara_real_zx.bin -t spectrum -v 2>&1 | tail -5"}
+{"ts": "2026-03-25T17:32:10.748456", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:32:11.179776", "event": "hook_post_tool", "tool": "Bash", "summary": "grep -A3 \"_zx_halt\" /tmp/mara_halt.a80 | head -5"}
+{"ts": "2026-03-25T17:32:22.365463", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:32:22.785416", "event": "hook_post_tool", "tool": "Bash", "summary": "grep -A5 \"^_zx_halt:\" /tmp/mara_halt.a80"}
+{"ts": "2026-03-25T17:32:37.890231", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:32:48.529474", "event": "hook_post_tool", "tool": "Bash", "summary": "echo \"\" | /usr/bin/timeout 10 mze /home/alice/dev/minz/mara_real_zx.bin -t spectrum --warn-on-halt -v 2>&1 | grep -a \"HA"}
+{"ts": "2026-03-25T17:33:06.114217", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:33:37.643711", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:33:39.816302", "event": "hook_post_tool", "tool": "Bash", "summary": "cd /home/alice/dev/minz && git add minzc/pkg/abap/lower.go && git commit -m \"fix: add DI/HALT at end of ZX Spectrum main"}
+{"ts": "2026-03-25T17:33:53.606347", "event": "hook_supervise", "status": "on_track", "action": "continue", "reasoning": "The agent is actively working on the task, making edits, running builds, and testing outputs, which aligns with the goal."}
+{"ts": "2026-03-25T17:39:46.948117", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:39:47.382689", "event": "hook_post_tool", "tool": "Bash", "summary": "grep -n \"^main:\\|CALL _zx_halt\\|RET\\|JP\\|_abap_seed_11\\|CALL _zx_cls\\|CALL _zx_border\\|CALL abap_write\" /tmp/mara_halt.a"}
+{"ts": "2026-03-25T17:39:59.516543", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:39:59.954484", "event": "hook_post_tool", "tool": "Bash", "summary": "grep -n \"CALL _zx_halt\\|^_zx_halt:\\|RET$\" /tmp/mara_halt.a80 | tail -10"}
+{"ts": "2026-03-25T17:40:10.332938", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:40:10.567988", "event": "hook_post_tool", "tool": "Bash", "summary": "grep -n \"CALL _zx_halt\" /tmp/mara_halt.a80"}
+{"ts": "2026-03-25T17:40:20.050344", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:40:20.488566", "event": "hook_post_tool", "tool": "Bash", "summary": "sed -n '630,640p' /tmp/mara_halt.a80"}
+{"ts": "2026-03-25T17:40:34.564904", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:40:35.010631", "event": "hook_post_tool", "tool": "Bash", "summary": "sed -n '1,15p' /tmp/mara_halt.a80 | grep -v \"^;\" | grep -v \"^$\""}
+{"ts": "2026-03-25T17:40:45.300761", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:40:45.554474", "event": "hook_post_tool", "tool": "Bash", "summary": "head -90 /tmp/mara_halt.a80 | grep -v \"^;\" | grep -v \"^$\" | head -20"}
+{"ts": "2026-03-25T17:41:07.159516", "event": "hook_approve", "tool": "Bash"}
+{"ts": "2026-03-25T17:41:07.607770", "event": "hook_post_tool", "tool": "Bash", "summary": "grep -B2 \"^sqlite_step:\" /tmp/mara_halt.a80 | head -3"}
+{"ts": "2026-03-25T17:41:28.972039", "event": "hook_approve", "tool": "Bash"}
