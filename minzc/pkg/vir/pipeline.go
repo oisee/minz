@@ -2071,9 +2071,10 @@ func gracePass(lines []string) []string {
 			next := strings.TrimSpace(lines[i+1])
 			if next == "RET" {
 				// DEC/INC rr / RET → RET (dead before unconditional return)
+				// BUT: keep INC/DEC on return registers (A for u8, HL for u16/ptr)
 				if strings.HasPrefix(line, "DEC ") || strings.HasPrefix(line, "INC ") {
 					reg := strings.TrimSpace(line[4:])
-					if reg != "A" { // keep INC A / DEC A — might set flags for caller
+					if reg != "A" && reg != "HL" && reg != "DE" && reg != "BC" {
 						continue
 					}
 				}
