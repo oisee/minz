@@ -234,6 +234,14 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 					av := fmt.Sprintf("lv%d_b%d_i%d", va, bi, i)
 					bv := fmt.Sprintf("lv%d_b%d_i%d", vc, bi, i)
 					b.WriteString(fmt.Sprintf("(assert (not (= %s %s)))\n", av, bv))
+					// Register pair aliasing: if va=HL(9), vb can't be H(5) or L(6)
+					// because HL physically contains H and L.
+					for _, alias := range pairAliases {
+						b.WriteString(fmt.Sprintf("(assert (=> (= %s %d) (and (not (= %s %d)) (not (= %s %d)))))\n",
+							av, alias.pair, bv, alias.hi, bv, alias.lo))
+						b.WriteString(fmt.Sprintf("(assert (=> (= %s %d) (and (not (= %s %d)) (not (= %s %d)))))\n",
+							bv, alias.pair, av, alias.hi, av, alias.lo))
+					}
 				}
 			}
 		}

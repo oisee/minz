@@ -296,6 +296,21 @@ func (p *Pattern) Matches(op VIROp) bool {
 
 func immGuard(v int64) *int64 { return &v }
 
+// ── Register Pair Aliasing ───────────────────────────────────────────────────
+
+// pairAlias defines register pair → component aliasing.
+// If a 16-bit vreg is at pair, no 8-bit vreg can be at hi or lo.
+type pairAlias struct {
+	pair, hi, lo int
+}
+
+// Z80 pair aliasing: BC(7)=B(1)+C(2), DE(8)=D(3)+E(4), HL(9)=H(5)+L(6)
+var pairAliases = []pairAlias{
+	{7, 1, 2}, // BC = B + C
+	{8, 3, 4}, // DE = D + E
+	{9, 5, 6}, // HL = H + L
+}
+
 // ── Constraint Rule ──────────────────────────────────────────────────────────
 // Encoding constraints that forbid or penalize certain {pattern, register}
 // combinations. Replaces text-level fixups.

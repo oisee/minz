@@ -1253,6 +1253,13 @@ func (p *problem) generateSMT() string {
 				}
 				emitted[pair] = true
 				b.WriteString(fmt.Sprintf("(assert (not (= loc_v%d loc_v%d)))\n", va, vc))
+				// Pair aliasing: HL(9) conflicts with H(5)/L(6), etc.
+				for _, alias := range pairAliases {
+					b.WriteString(fmt.Sprintf("(assert (=> (= loc_v%d %d) (and (not (= loc_v%d %d)) (not (= loc_v%d %d)))))\n",
+						va, alias.pair, vc, alias.hi, vc, alias.lo))
+					b.WriteString(fmt.Sprintf("(assert (=> (= loc_v%d %d) (and (not (= loc_v%d %d)) (not (= loc_v%d %d)))))\n",
+						vc, alias.pair, va, alias.hi, va, alias.lo))
+				}
 			}
 		}
 	}
@@ -1585,6 +1592,13 @@ func generateSMTPerInst(p *problem) string {
 				emitted[key] = true
 				b.WriteString(fmt.Sprintf("(assert (not (= lv%d_i%d lv%d_i%d)))\n",
 					va, i, vc, i))
+				// Pair aliasing
+				for _, alias := range pairAliases {
+					b.WriteString(fmt.Sprintf("(assert (=> (= lv%d_i%d %d) (and (not (= lv%d_i%d %d)) (not (= lv%d_i%d %d)))))\n",
+						va, i, alias.pair, vc, i, alias.hi, vc, i, alias.lo))
+					b.WriteString(fmt.Sprintf("(assert (=> (= lv%d_i%d %d) (and (not (= lv%d_i%d %d)) (not (= lv%d_i%d %d)))))\n",
+						vc, i, alias.pair, va, i, alias.hi, va, i, alias.lo))
+				}
 			}
 		}
 	}
