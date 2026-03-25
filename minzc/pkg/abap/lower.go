@@ -1282,7 +1282,16 @@ func (l *lowerer) lowerSelectIntoTable(s *SelectStmt, sql string, uid int) (hir.
 	}
 	l.internalTables[s.IntoTable] = it
 
-	// Emit globals: flat buffer + row counter
+	// Emit globals: flat buffer + row counter + stmt handle
+	hasStmtHandle := false
+	for _, g := range l.hm.Globals {
+		if g.Name == "_itab_stmt_handle" { hasStmtHandle = true }
+	}
+	if !hasStmtHandle {
+		l.hm.Globals = append(l.hm.Globals, mir2.Global{
+			Name: "_itab_stmt_handle", Ty: mir2.TyU16,
+		})
+	}
 	l.hm.Globals = append(l.hm.Globals, mir2.Global{
 		Name: bufName,
 		Ty:   mir2.TyU8,
@@ -1319,7 +1328,7 @@ func (l *lowerer) lowerSelectIntoTable(s *SelectStmt, sql string, uid int) (hir.
 				&hir.AsmStmt{
 					Target: "z80",
 					Code: fmt.Sprintf(
-						"LD HL, 1 / LD DE, %s / CALL sqlite_query", sqlAsmSym),
+						"LD HL, 1 / LD DE, %s / CALL sqlite_query / LD (_itab_stmt_handle), HL", sqlAsmSym),
 					Ins:         []hir.AsmOperand{{Name: "_x"}},
 					ClobberRegs: []string{"A", "B", "C", "D", "E", "H", "L"},
 				},
@@ -1364,13 +1373,13 @@ func (l *lowerer) lowerSelectIntoTable(s *SelectStmt, sql string, uid int) (hir.
 			Val:    &hir.IntLitExpr{Val: int64(row + 1), Ty: mir2.TyU16},
 		})
 
-		// Wrap in: if sqlite_step(1) == 1 { ... }  (hardcoded handle)
+		// Wrap in: if sqlite_step(handle) == 1 { ... }
 		stmts = append(stmts, &hir.IfStmt{
 			Cond: &hir.BinExpr{
 				Op: "==",
 				L: &hir.CallExpr{
 					Fn:   "sqlite_step",
-					Args: []hir.Expr{&hir.IntLitExpr{Val: 1, Ty: mir2.TyU16}},
+					Args: []hir.Expr{&hir.VarRefExpr{Name: "_itab_stmt_handle", Ty: mir2.TyU16}},
 					Ty:   mir2.TyU8,
 				},
 				R:  &hir.IntLitExpr{Val: 1, Ty: mir2.TyU8},
@@ -1380,11 +1389,11 @@ func (l *lowerer) lowerSelectIntoTable(s *SelectStmt, sql string, uid int) (hir.
 		})
 	}
 
-	// Finalize (hardcoded handle 1)
+	// Finalize (use stored handle)
 	stmts = append(stmts, &hir.ExprStmt{
 		Expr: &hir.CallExpr{
 			Fn:   "sqlite_finalize",
-			Args: []hir.Expr{&hir.IntLitExpr{Val: 1, Ty: mir2.TyU16}},
+			Args: []hir.Expr{&hir.VarRefExpr{Name: "_itab_stmt_handle", Ty: mir2.TyU16}},
 			Ty:   mir2.TyU8,
 		},
 	})
@@ -1405,11 +1414,11 @@ func (l *lowerer) emitItabSlotFunc(tableName string, row, col, offset, maxLen in
 		}
 	}
 
-	// Asm body: hardcodes stmt handle as 1 (no param needed).
-	// Calls sqlite_column_text(1, col), result in HL.
+	// Asm body: loads stmt handle from global _itab_stmt_handle.
+	// Calls sqlite_column_text(handle, col), result in HL.
 	// Then copies HL → bufName+offset for maxLen bytes.
 	asmCode := fmt.Sprintf(
-		"LD HL, 1"+ // hardcoded stmt handle
+		"LD HL, (_itab_stmt_handle)"+ // stmt handle from query result
 			"/ LD C, %d"+ // column index
 			"/ CALL sqlite_column_text"+ // HL=stmt, C=col → result in HL
 			"/ LD DE, %s+%d"+ // DE = target address (compile-time constant!)
