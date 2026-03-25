@@ -199,7 +199,7 @@ fun _sql_query(sql: ^u8) -> void {
 
 // Step through rows and print — uses stored stmt handle
 fun _sel_rows() -> void {
-    var n: u16 = 0
+    var n: u8 = 0
     if _step1() == 1 { _prow1() n = n + 1 }
     if _step1() == 1 { _prow1() n = n + 1 }
     if _step1() == 1 { _prow1() n = n + 1 }
@@ -209,7 +209,8 @@ fun _sel_rows() -> void {
     if _step1() == 1 { _prow1() n = n + 1 }
     if _step1() == 1 { _prow1() n = n + 1 }
     _finalize1()
-    print_u16(n)
+    // Print row count as single digit (0-8)
+    putch(48 + n)
     puts(c" rows")
     newline()
 }
@@ -222,24 +223,58 @@ fun _step1() -> u8 {
     }
 }
 
-// Print row with hardcoded stmt handle
+// Print row: column 0, then " | ", then column 1 (if exists)
+// All in one asm block to keep register state across calls
 fun _prow1() -> void {
     asm z80 {
+        ; Print column 0
         LD HL, (_sel_stmt)
         LD C, 0
         CALL sql__sqlite__sqlite_column_text
-    }
-    // HL = text pointer from column_text
-    _print_col_result()
-    newline()
-}
-
-// Print column text result (HL = string pointer after sqlite_column_text)
-fun _print_col_result() -> void {
-    asm z80 {
-        ; HL already has the text pointer from sqlite_column_text return
-        .lp: LD A, (HL) / OR A / RET Z
-        LD E, A / PUSH HL / LD C, 2 / CALL 5 / POP HL / INC HL / JR .lp
+        ; HL = text ptr for col 0 — print it
+        .c0: LD A, (HL)
+        OR A
+        JR Z, .sep
+        LD E, A
+        PUSH HL
+        LD C, 2
+        CALL 5
+        POP HL
+        INC HL
+        JR .c0
+        ; Print separator " | "
+        .sep:
+        LD E, 32
+        LD C, 2
+        CALL 5
+        LD E, 124
+        LD C, 2
+        CALL 5
+        LD E, 32
+        LD C, 2
+        CALL 5
+        ; Print column 1
+        LD HL, (_sel_stmt)
+        LD C, 1
+        CALL sql__sqlite__sqlite_column_text
+        .c1: LD A, (HL)
+        OR A
+        JR Z, .nl
+        LD E, A
+        PUSH HL
+        LD C, 2
+        CALL 5
+        POP HL
+        INC HL
+        JR .c1
+        ; Newline
+        .nl:
+        LD E, 13
+        LD C, 2
+        CALL 5
+        LD E, 10
+        LD C, 2
+        CALL 5
     }
 }
 
