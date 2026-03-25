@@ -1,0 +1,399 @@
+// ZSQL on ZX Spectrum — SQL queries with ZX font rendering!
+//
+// Build:
+//   mz zsql_zx.nanz --target=spectrum -o zsql_zx.a80
+//   mza zsql_zx.a80 -o zsql_zx.bin
+//   printf "CREATE TABLE t(name TEXT)\nINSERT INTO t VALUES('Alice')\nSELECT * FROM t\n" | mze zsql_zx.bin -t spectrum --profile /tmp/zx.json
+//   python3 tools/render_zx_screen.py /tmp/zx.json /tmp/zsql_zx.png
+
+import sql.sqlite
+
+// ── ZX Spectrum output (embedded font + screen memory) ─────────
+
+// Cursor position
+global _zx_row: u8 = 0
+global _zx_col: u8 = 0
+
+// Print one char to ZX screen using embedded font
+fun _zxch(ch: u8) -> void {
+    asm z80 (in ch) {
+        CP 13
+        JR Z, ._nl
+        CP 10
+        JR Z, ._nl
+        SUB 32
+        LD L, A
+        LD H, 0
+        ADD HL, HL
+        ADD HL, HL
+        ADD HL, HL
+        LD DE, _zx_font
+        ADD HL, DE
+        PUSH HL
+        LD A, (_zx_row)
+        LD C, A
+        LD A, (_zx_col)
+        LD B, A
+        LD A, C
+        AND 0x07
+        RRCA
+        RRCA
+        RRCA
+        AND 0xE0
+        OR B
+        LD L, A
+        LD A, C
+        AND 0x18
+        OR 0x40
+        LD H, A
+        POP DE
+        LD B, 8
+        ._cp: LD A, (DE)
+        LD (HL), A
+        INC DE
+        INC H
+        DJNZ ._cp
+        LD HL, _zx_col
+        INC (HL)
+        LD A, (HL)
+        CP 32
+        RET NZ
+        LD (HL), 0
+        DEC HL
+        INC (HL)
+        RET
+        ._nl: LD HL, _zx_row
+        INC (HL)
+        INC HL
+        LD (HL), 0
+    }
+}
+
+fun zx_puts(s: ^u8) -> void {
+    asm z80 (in s) {
+        PUSH IX
+        PUSH HL
+        POP IX
+        .lp: LD A, (IX+0)
+        OR A
+        JR Z, .dn
+        PUSH IX
+        CALL _zxch
+        POP IX
+        INC IX
+        JR .lp
+        .dn: POP IX
+    }
+}
+
+fun zx_newline() -> void { _zxch(13) }
+
+fun zx_cls() -> void {
+    asm z80 {
+        LD HL, 0x4000
+        LD DE, 0x4001
+        LD BC, 6143
+        LD (HL), 0
+        LDIR
+        LD HL, 0x5800
+        LD DE, 0x5801
+        LD BC, 767
+        LD (HL), 0x47
+        LDIR
+        LD HL, _zx_row
+        LD (HL), 0
+        INC HL
+        LD (HL), 0
+    }
+}
+
+fun zx_attr_row(row: u8, attr: u8) -> void {
+    asm z80 (in row, attr) {
+        LD H, 0
+        LD L, A
+        ADD HL, HL
+        ADD HL, HL
+        ADD HL, HL
+        ADD HL, HL
+        ADD HL, HL
+        LD DE, 0x5800
+        ADD HL, DE
+        LD B, 32
+        .f: LD (HL), C
+        INC HL
+        DJNZ .f
+    }
+}
+
+// ── Console I/O via port $23 ───────────────────────────────────
+
+fun zx_readline() -> u8 {
+    asm z80 (ret A) {
+        LD IX, _zx_inbuf
+        LD B, 0
+        ._poll: IN A, (0x23)
+        OR A
+        JR Z, ._poll
+        AND 0x7F
+        CP 13
+        JR Z, ._done
+        CP 10
+        JR Z, ._done
+        LD (IX+0), A
+        INC IX
+        INC B
+        PUSH BC
+        CALL _zxch
+        POP BC
+        LD A, B
+        CP 60
+        JR NZ, ._poll
+        ._done: LD (IX+0), 0
+        PUSH BC
+        LD A, 13
+        CALL _zxch
+        POP BC
+        LD A, B
+    }
+}
+
+fun zx_getinput() -> ^u8 {
+    asm z80 (ret HL) { LD HL, _zx_inbuf }
+}
+
+fun first_char(s: ^u8) -> u8 {
+    asm z80 (in s) (ret A) { LD A, (HL) }
+}
+
+// ── SQLite wrappers (hardcoded register setup) ─────────────────
+
+global db: u16 = 0
+global _sel_stmt: u16 = 0
+
+fun _do_exec(sql: ^u8) -> void {
+    asm z80 (in sql) {
+        EX DE, HL
+        LD HL, (db)
+        CALL sql__sqlite__sqlite_exec
+    }
+    zx_puts(c"OK")
+    zx_newline()
+}
+
+fun _sql_query(sql: ^u8) -> void {
+    asm z80 (in sql) {
+        EX DE, HL
+        LD HL, (db)
+        CALL sql__sqlite__sqlite_query
+        LD (_sel_stmt), HL
+    }
+}
+
+fun _step1() -> u8 {
+    asm z80 (ret A) {
+        LD HL, (_sel_stmt)
+        CALL sql__sqlite__sqlite_step
+    }
+}
+
+fun _print_col(col: u8) -> void {
+    asm z80 (in col) {
+        LD C, A
+        LD HL, (_sel_stmt)
+        CALL sql__sqlite__sqlite_column_text
+        ; HL = text pointer
+        PUSH IX
+        PUSH HL
+        POP IX
+        .lp: LD A, (IX+0)
+        OR A
+        JR Z, .dn
+        PUSH IX
+        CALL _zxch
+        POP IX
+        INC IX
+        JR .lp
+        .dn: POP IX
+    }
+}
+
+fun _finalize1() -> void {
+    asm z80 {
+        LD HL, (_sel_stmt)
+        CALL sql__sqlite__sqlite_finalize
+    }
+}
+
+fun _do_select(sql: ^u8) -> void {
+    _sql_query(sql)
+    var n: u8 = 0
+    if _step1() == 1 { _print_col(0) zx_puts(c" | ") _print_col(1) zx_newline() n = n + 1 }
+    if _step1() == 1 { _print_col(0) zx_puts(c" | ") _print_col(1) zx_newline() n = n + 1 }
+    if _step1() == 1 { _print_col(0) zx_puts(c" | ") _print_col(1) zx_newline() n = n + 1 }
+    if _step1() == 1 { _print_col(0) zx_puts(c" | ") _print_col(1) zx_newline() n = n + 1 }
+    if _step1() == 1 { _print_col(0) zx_puts(c" | ") _print_col(1) zx_newline() n = n + 1 }
+    if _step1() == 1 { _print_col(0) zx_puts(c" | ") _print_col(1) zx_newline() n = n + 1 }
+    if _step1() == 1 { _print_col(0) zx_puts(c" | ") _print_col(1) zx_newline() n = n + 1 }
+    if _step1() == 1 { _print_col(0) zx_puts(c" | ") _print_col(1) zx_newline() n = n + 1 }
+    _finalize1()
+    zx_newline()
+}
+
+// ── REPL ───────────────────────────────────────────────────────
+
+fun _prompt() -> void {
+    zx_puts(c"zsql> ")
+    var len: u8 = zx_readline()
+    if len == 0 { return }
+    var sql: ^u8 = zx_getinput()
+    var ch: u8 = first_char(sql)
+    if ch == 46 { zx_puts(c".help .quit") zx_newline() return }
+    if ch == 83 { _do_select(sql) return }
+    if ch == 115 { _do_select(sql) return }
+    _do_exec(sql)
+}
+
+fun main() -> void {
+    zx_cls()
+    // Border: blue
+    asm z80 { LD A, 1 / OUT (0xFE), A }
+    // Title bar
+    zx_attr_row(0, 0x4F)
+    zx_puts(c" ZSQL - Z80 SQLite on Spectrum")
+    zx_newline()
+    zx_attr_row(1, 0x4E)
+    zx_puts(c" Type SQL. Connected :memory: ")
+    zx_newline()
+    zx_newline()
+
+    db = sqlite_open(c":memory:")
+
+    // Unrolled REPL — 16 iterations
+    _prompt() _prompt() _prompt() _prompt()
+    _prompt() _prompt() _prompt() _prompt()
+    _prompt() _prompt() _prompt() _prompt()
+    _prompt() _prompt() _prompt() _prompt()
+
+    sqlite_close(db)
+    zx_puts(c"Bye!")
+    asm z80 { DI / HALT }
+}
+
+// ── Input buffer ───────────────────────────────────────────────
+global _zx_inbuf: u16 = 0
+global _zx_inbuf2: u16 = 0
+global _zx_inbuf3: u16 = 0
+global _zx_inbuf4: u16 = 0
+global _zx_inbuf5: u16 = 0
+global _zx_inbuf6: u16 = 0
+global _zx_inbuf7: u16 = 0
+global _zx_inbuf8: u16 = 0
+global _zx_inbuf9: u16 = 0
+global _zx_inbufa: u16 = 0
+global _zx_inbufb: u16 = 0
+global _zx_inbufc: u16 = 0
+global _zx_inbufd: u16 = 0
+global _zx_inbufe: u16 = 0
+global _zx_inbuff: u16 = 0
+global _zx_inbufg: u16 = 0
+global _zx_inbufh: u16 = 0
+global _zx_inbufi: u16 = 0
+global _zx_inbufj: u16 = 0
+global _zx_inbufk: u16 = 0
+
+// ZX font: inject via asm data block (91 chars × 8 bytes)
+fun _font_anchor() -> void {
+    asm z80 {
+    DB $00, $00, $00, $00, $00, $00, $00, $00
+    DB $00, $10, $10, $10, $10, $00, $10, $00
+    DB $00, $24, $24, $00, $00, $00, $00, $00
+    DB $00, $24, $7E, $24, $24, $7E, $24, $00
+    DB $00, $08, $3E, $28, $3E, $0A, $3E, $08
+    DB $00, $62, $64, $08, $10, $26, $46, $00
+    DB $00, $10, $28, $10, $2A, $44, $3A, $00
+    DB $00, $08, $10, $00, $00, $00, $00, $00
+    DB $00, $04, $08, $08, $08, $08, $04, $00
+    DB $00, $20, $10, $10, $10, $10, $20, $00
+    DB $00, $00, $14, $08, $3E, $08, $14, $00
+    DB $00, $00, $08, $08, $3E, $08, $08, $00
+    DB $00, $00, $00, $00, $00, $08, $08, $10
+    DB $00, $00, $00, $00, $3E, $00, $00, $00
+    DB $00, $00, $00, $00, $00, $18, $18, $00
+    DB $00, $00, $02, $04, $08, $10, $20, $00
+    DB $00, $3C, $46, $4A, $52, $62, $3C, $00
+    DB $00, $18, $28, $08, $08, $08, $3E, $00
+    DB $00, $3C, $42, $02, $3C, $40, $7E, $00
+    DB $00, $3C, $42, $0C, $02, $42, $3C, $00
+    DB $00, $08, $18, $28, $48, $7E, $08, $00
+    DB $00, $7E, $40, $7C, $02, $42, $3C, $00
+    DB $00, $3C, $40, $7C, $42, $42, $3C, $00
+    DB $00, $7E, $02, $04, $08, $10, $10, $00
+    DB $00, $3C, $42, $3C, $42, $42, $3C, $00
+    DB $00, $3C, $42, $42, $3E, $02, $3C, $00
+    DB $00, $00, $00, $10, $00, $00, $10, $00
+    DB $00, $00, $10, $00, $00, $10, $10, $20
+    DB $00, $00, $04, $08, $10, $08, $04, $00
+    DB $00, $00, $00, $3E, $00, $3E, $00, $00
+    DB $00, $00, $10, $08, $04, $08, $10, $00
+    DB $00, $3C, $42, $04, $08, $00, $08, $00
+    DB $00, $3C, $4A, $56, $5E, $40, $3C, $00
+    DB $00, $3C, $42, $42, $7E, $42, $42, $00
+    DB $00, $7C, $42, $7C, $42, $42, $7C, $00
+    DB $00, $3C, $42, $40, $40, $42, $3C, $00
+    DB $00, $78, $44, $42, $42, $44, $78, $00
+    DB $00, $7E, $40, $7C, $40, $40, $7E, $00
+    DB $00, $7E, $40, $7C, $40, $40, $40, $00
+    DB $00, $3C, $42, $40, $4E, $42, $3C, $00
+    DB $00, $42, $42, $7E, $42, $42, $42, $00
+    DB $00, $3E, $08, $08, $08, $08, $3E, $00
+    DB $00, $02, $02, $02, $42, $42, $3C, $00
+    DB $00, $44, $48, $70, $48, $44, $42, $00
+    DB $00, $40, $40, $40, $40, $40, $7E, $00
+    DB $00, $42, $66, $5A, $42, $42, $42, $00
+    DB $00, $42, $62, $52, $4A, $46, $42, $00
+    DB $00, $3C, $42, $42, $42, $42, $3C, $00
+    DB $00, $7C, $42, $42, $7C, $40, $40, $00
+    DB $00, $3C, $42, $42, $52, $4A, $3C, $00
+    DB $00, $7C, $42, $42, $7C, $44, $42, $00
+    DB $00, $3C, $40, $3C, $02, $42, $3C, $00
+    DB $00, $7F, $08, $08, $08, $08, $08, $00
+    DB $00, $42, $42, $42, $42, $42, $3C, $00
+    DB $00, $42, $42, $42, $42, $24, $18, $00
+    DB $00, $42, $42, $42, $42, $5A, $24, $00
+    DB $00, $42, $24, $18, $18, $24, $42, $00
+    DB $00, $22, $14, $08, $08, $08, $08, $00
+    DB $00, $7E, $04, $08, $10, $20, $7E, $00
+    DB $00, $0E, $08, $08, $08, $08, $0E, $00
+    DB $00, $00, $40, $20, $10, $08, $04, $00
+    DB $00, $70, $10, $10, $10, $10, $70, $00
+    DB $00, $10, $38, $54, $10, $10, $10, $00
+    DB $00, $00, $00, $00, $00, $00, $00, $FF
+    DB $00, $10, $08, $00, $00, $00, $00, $00
+    DB $00, $00, $38, $04, $3C, $44, $3C, $00
+    DB $00, $20, $20, $3C, $22, $22, $3C, $00
+    DB $00, $00, $1C, $20, $20, $20, $1C, $00
+    DB $00, $04, $04, $3C, $44, $44, $3C, $00
+    DB $00, $00, $38, $44, $78, $40, $3C, $00
+    DB $00, $0C, $10, $18, $10, $10, $10, $00
+    DB $00, $00, $3C, $44, $44, $3C, $04, $38
+    DB $00, $40, $40, $78, $44, $44, $44, $00
+    DB $00, $10, $00, $30, $10, $10, $38, $00
+    DB $00, $04, $00, $04, $04, $04, $24, $18
+    DB $00, $20, $28, $30, $30, $28, $24, $00
+    DB $00, $10, $10, $10, $10, $10, $0C, $00
+    DB $00, $00, $68, $54, $54, $54, $54, $00
+    DB $00, $00, $78, $44, $44, $44, $44, $00
+    DB $00, $00, $38, $44, $44, $44, $38, $00
+    DB $00, $00, $78, $44, $44, $78, $40, $40
+    DB $00, $00, $3C, $44, $44, $3C, $04, $06
+    DB $00, $00, $1C, $20, $20, $20, $20, $00
+    DB $00, $00, $38, $40, $38, $04, $78, $00
+    DB $00, $10, $38, $10, $10, $10, $0C, $00
+    DB $00, $00, $44, $44, $44, $44, $38, $00
+    DB $00, $00, $44, $44, $28, $28, $10, $00
+    DB $00, $00, $44, $54, $54, $54, $28, $00
+    DB $00, $00, $44, $28, $10, $28, $44, $00
+    DB $00, $00, $44, $44, $44, $3C, $04, $38
+    DB $00, $00, $7C, $08, $10, $20, $7C, $00
+    }
+}
