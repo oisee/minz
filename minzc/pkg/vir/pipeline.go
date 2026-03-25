@@ -1418,13 +1418,20 @@ func peepholeCleanup(asm string) string {
 		// ── Superoptimizer-derived rules (z80-optimizer/CUDA) ────────
 
 		// CALL label / RET → JP label (tail call optimization, saves 1 byte + 17T)
+		// Only for local labels (starting with .) — external function tail calls
+		// are unsafe because the callee may expect params in _vir_mem locations
+		// that the caller hasn't stored.
 		if i+1 < len(lines) && strings.HasPrefix(line, "CALL ") {
 			next := strings.TrimSpace(lines[i+1])
 			if next == "RET" {
 				target := strings.TrimPrefix(line, "CALL ")
-				result = append(result, "    JP "+target)
-				i++ // skip RET
-				continue
+				target = strings.TrimSpace(target)
+				// Only tail-call to local labels (.funcname_block) or runtime (__mul8 etc)
+				if strings.HasPrefix(target, ".") || strings.HasPrefix(target, "__") {
+					result = append(result, "    JP "+target)
+					i++ // skip RET
+					continue
+				}
 			}
 		}
 
