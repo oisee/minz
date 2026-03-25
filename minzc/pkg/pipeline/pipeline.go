@@ -1441,9 +1441,8 @@ func spliceVIRFallback(virAsm, pbqpAsm string, results []vir.FuncResult, failSet
 		}
 	}
 
-	var strBuf strings.Builder
-	lir.EmitStringPool(&strBuf, m)
-	sb.WriteString(strBuf.String())
+	// Emit string pool (was missing — caused undefined _mir2_str_N symbols)
+	lir.EmitStringPool(&sb, m)
 	sb.WriteString(emitGlobals(m))
 	return sb.String()
 }
