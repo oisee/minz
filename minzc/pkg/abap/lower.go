@@ -574,6 +574,27 @@ func (l *lowerer) lower() (*hir.Module, error) {
 		})
 	}
 
+	// ZX Spectrum: DI + HALT to freeze screen at end
+	if l.hm.Target == hir.TargetZXSpectrum {
+		mainStmts = append(mainStmts, &hir.ExprStmt{
+			Expr: &hir.CallExpr{Fn: "_zx_halt", Ty: mir2.TyVoid},
+		})
+		// Emit _zx_halt function
+		hasHalt := false
+		for _, f := range l.hm.Funcs {
+			if f.Name == "_zx_halt" { hasHalt = true }
+		}
+		if !hasHalt {
+			l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
+				Name: "_zx_halt", RetTy: mir2.TyVoid,
+				Body: &hir.Block{Body: []hir.Stmt{
+					&hir.AsmStmt{Target: "z80", Code: "DI / HALT",
+						ClobberRegs: []string{"A"}},
+				}},
+			})
+		}
+	}
+
 	// Emit main function
 	if len(mainStmts) > 0 {
 		l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
