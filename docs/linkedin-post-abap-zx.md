@@ -42,7 +42,7 @@ MATNR     MTART MEINS MAKTX
 5 entries displayed.
 ```
 
-[screenshot: media/mara_alv_zx_spectrum.png]
+![SAP Material Master ALV on ZX Spectrum](../media/mara_alv_zx_spectrum.png)
 
 ### How it works (seriously)
 
@@ -111,8 +111,10 @@ Happy birthday to me. 🎂
 
 ---
 
-## Suggested LinkedIn image
+## Screenshots
 
-Use `media/mara_alv_zx_spectrum.png` (512×384) — shows the ALV grid with ABAP source code visible below. Every SAP developer will recognize `cl_salv_table=>factory()` and `SELECT ... INTO TABLE @DATA()`.
+### ALV Grid + ABAP Source (primary)
+![SAP Material Master ALV on ZX Spectrum](../media/mara_alv_zx_spectrum.png)
 
-Alternative: side-by-side with `media/zsql_mara_zx_spectrum.png` for the SQL angle.
+### SQL Session with MARA data (alternative)
+![ZSQL MARA on ZX Spectrum](../media/zsql_mara_zx_spectrum.png)
