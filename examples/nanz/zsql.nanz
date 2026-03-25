@@ -227,9 +227,9 @@ fun _step1() -> u8 {
 // All in one asm block to keep register state across calls
 fun _prow1() -> void {
     asm z80 {
-        ; Print column 0
+        ; Print column 0 (col index in A for PFCCO)
         LD HL, (_sel_stmt)
-        LD C, 0
+        LD A, 0
         CALL sql__sqlite__sqlite_column_text
         ; HL = text ptr for col 0 — print it
         .c0: LD A, (HL)
@@ -253,10 +253,17 @@ fun _prow1() -> void {
         LD E, 32
         LD C, 2
         CALL 5
-        ; Print column 1
+        ; Print column 1 — inline port protocol for col=1
         LD HL, (_sel_stmt)
-        LD C, 1
-        CALL sql__sqlite__sqlite_column_text
+        LD A, L
+        OUT (0x45), A       ; stmt handle
+        LD A, 1
+        OUT (0x47), A       ; col index = 1
+        LD A, 5
+        OUT (0x41), A       ; command: column_text
+        ; Read result string
+        LD HL, sql__sqlite___sql_buf
+        CALL sql__sqlite___sql_recv_str
         .c1: LD A, (HL)
         OR A
         JR Z, .nl
