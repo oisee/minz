@@ -1270,14 +1270,23 @@ func (p *problem) generateSMT() string {
 		if op.Clobbers.IsEmpty() {
 			continue
 		}
+		// Consumed vregs: dst + srcs + asm ins/outs — read/written at this instruction
+		consumed := make(map[int]bool)
+		if op.Dst > 0 { consumed[op.Dst] = true }
+		for _, s := range op.Src { if s > 0 { consumed[s] = true } }
+		if op.Op == OpAsmBlock {
+			for _, v := range op.AsmIns { consumed[v] = true }
+			for _, v := range op.AsmOuts { consumed[v] = true }
+		}
+
 		clobberVRegs := make([]int, 0, len(p.liveness[i].live))
 		for vreg := range p.liveness[i].live {
 			clobberVRegs = append(clobberVRegs, vreg)
 		}
 		sort.Ints(clobberVRegs)
 		for _, vreg := range clobberVRegs {
-			if vreg == op.Dst {
-				continue // dst is being defined, not live-through
+			if consumed[vreg] {
+				continue // consumed by this instruction, not live-through
 			}
 			// vreg must NOT be in any clobbered location
 			op.Clobbers.ForEach(func(loc int) bool {
@@ -1609,13 +1618,21 @@ func generateSMTPerInst(p *problem) string {
 		if op.Clobbers.IsEmpty() {
 			continue
 		}
+		consumed := make(map[int]bool)
+		if op.Dst > 0 { consumed[op.Dst] = true }
+		for _, s := range op.Src { if s > 0 { consumed[s] = true } }
+		if op.Op == OpAsmBlock {
+			for _, v := range op.AsmIns { consumed[v] = true }
+			for _, v := range op.AsmOuts { consumed[v] = true }
+		}
+
 		clobVRegs := make([]int, 0, len(p.liveness[i].live))
 		for vreg := range p.liveness[i].live {
 			clobVRegs = append(clobVRegs, vreg)
 		}
 		sort.Ints(clobVRegs)
 		for _, vreg := range clobVRegs {
-			if vreg == op.Dst {
+			if consumed[vreg] {
 				continue
 			}
 			op.Clobbers.ForEach(func(loc int) bool {

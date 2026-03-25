@@ -212,6 +212,24 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 			}
 		}
 
+		// Build asm-block coalesce set: input/output vregs of OpAsmBlock
+		// can share a register (input consumed, output produced).
+		asmCoalesce := make(map[vregPair]bool)
+		for _, op := range bp.ops {
+			if op.Op == OpAsmBlock && op.Dst > 0 {
+				for _, s := range op.Src {
+					if s > 0 {
+						asmCoalesce[vregPair{op.Dst, s}] = true
+						asmCoalesce[vregPair{s, op.Dst}] = true
+					}
+				}
+				for _, v := range op.AsmIns {
+					asmCoalesce[vregPair{op.Dst, v}] = true
+					asmCoalesce[vregPair{v, op.Dst}] = true
+				}
+			}
+		}
+
 		// Interference within block (sorted for deterministic Z3 encoding)
 		emitted := make(map[[3]int]bool)
 		for i := range p.ops {
@@ -223,7 +241,7 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 			for a := 0; a < len(liveVRegs); a++ {
 				for c := a + 1; c < len(liveVRegs); c++ {
 					va, vc := liveVRegs[a], liveVRegs[c]
-					if tied[vregPair{va, vc}] {
+					if tied[vregPair{va, vc}] || asmCoalesce[vregPair{va, vc}] {
 						continue
 					}
 					key := [3]int{i, va, vc}
@@ -251,13 +269,35 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 			if op.Clobbers.IsEmpty() {
 				continue
 			}
+			// Build set of vregs that are consumed by this instruction
+			// (dst + srcs) — these are read/written at the instruction
+			// and should not be excluded by clobber constraints.
+			consumed := make(map[int]bool)
+			if op.Dst > 0 {
+				consumed[op.Dst] = true
+			}
+			for _, s := range op.Src {
+				if s > 0 {
+					consumed[s] = true
+				}
+			}
+			// OpAsmBlock: all asm inputs/outputs are consumed
+			if op.Op == OpAsmBlock {
+				for _, v := range op.AsmIns {
+					consumed[v] = true
+				}
+				for _, v := range op.AsmOuts {
+					consumed[v] = true
+				}
+			}
+
 			clobVRegs := make([]int, 0, len(p.liveness[i].live))
 			for vreg := range p.liveness[i].live {
 				clobVRegs = append(clobVRegs, vreg)
 			}
 			sort.Ints(clobVRegs)
 			for _, vreg := range clobVRegs {
-				if vreg == op.Dst {
+				if consumed[vreg] {
 					continue
 				}
 				v := fmt.Sprintf("lv%d_b%d_i%d", vreg, bi, i)
