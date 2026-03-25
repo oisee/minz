@@ -65,7 +65,7 @@ Exhaustive check, payload binding, `_` wildcard. [Showcases: Option](examples/na
 
 **SQL database on a 1982 home computer.** CREATE TABLE, INSERT, SELECT — rendered with ZX Spectrum font on real Z80 hardware. 2KB binary. 44 years bridged.
 
-<img src="media/zsql_zx_spectrum.png" width="400" alt="ZSQL — SQL on ZX Spectrum">
+<img src="media/zsql_mara_zx_spectrum.png" width="400" alt="ZSQL — SAP MARA SQL on ZX Spectrum">
 <img src="media/mara_alv_zx_spectrum.png" width="400" alt="SAP Material Master ALV on ZX Spectrum">
 
 **Open SQL pipeline**: `SELECT ... INTO TABLE @DATA(lt_mara)` with `INNER JOIN` + `cl_salv_table=>factory()` → ALV grid. **Interactive CP/M selection screen** with `PARAMETERS`, defaults, typed input. **`@screen` declarative TUI** — 7 lines of DSL generate full interactive screens with PBO/PAI, focus, keyboard nav. **SQLite bridge** via I/O ports.
