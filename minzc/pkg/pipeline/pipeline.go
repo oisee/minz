@@ -337,11 +337,13 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 			fmt.Fprintf(os.Stderr, "vir: %d/%d via Z3 solver, %d via PBQP fallback: %s\n",
 				ok, ok+fail, fail, strings.Join(failNames, ", "))
 		} else {
+			// Order: code → globals (may contain zeros) → strings (non-zero).
+			// Strings LAST prevents MZA trailing-zero trim from clipping them.
 			s.Assembly = virAsm
+			s.Assembly += emitGlobals(m)
 			var strBuf strings.Builder
 			lir.EmitStringPool(&strBuf, m)
 			s.Assembly += strBuf.String()
-			s.Assembly += emitGlobals(m)
 			fmt.Fprintf(os.Stderr, "vir: all %d functions compiled via Z3 unified solver\n", ok)
 		}
 	} else if opt.UseLIR {
@@ -1441,9 +1443,10 @@ func spliceVIRFallback(virAsm, pbqpAsm string, results []vir.FuncResult, failSet
 		}
 	}
 
-	// Emit string pool (was missing — caused undefined _mir2_str_N symbols)
-	lir.EmitStringPool(&sb, m)
+	// Globals before strings: zero-filled globals won't cause MZA trailing trim
+	// to clip string data when strings are at the end.
 	sb.WriteString(emitGlobals(m))
+	lir.EmitStringPool(&sb, m)
 	return sb.String()
 }
 
