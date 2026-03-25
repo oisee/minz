@@ -1,0 +1,160 @@
+// ZSQL MARA on ZX Spectrum — WITH COLORS!
+// Blue title, green SQL, yellow data, cyan separator.
+//
+// Build:
+//   mz zsql_mara_color_zx.nanz --target=spectrum -o out.a80
+//   mza out.a80 -o out.bin
+//   mze out.bin -t spectrum --profile /tmp/zx.json
+//   python3 tools/render_zx_screen.py /tmp/zx.json /tmp/zsql_color.png
+
+// ZX Spectrum cursor + font (from ABAP runtime, replicated here)
+global _zx_row: u8 = 0
+global _zx_col: u8 = 0
+
+fun _zxch(ch: u8) -> void {
+    asm z80 (in ch) {
+        CP 13 / JR Z, ._nl / CP 10 / JR Z, ._nl
+        SUB 32 / LD L, A / LD H, 0
+        ADD HL, HL / ADD HL, HL / ADD HL, HL
+        LD DE, _zx_font / ADD HL, DE
+        PUSH HL
+        LD A, (_zx_row) / LD C, A
+        LD A, (_zx_col) / LD B, A
+        LD A, C / AND 0x07 / RRCA / RRCA / RRCA / AND 0xE0
+        OR B / LD L, A
+        LD A, C / AND 0x18 / OR 0x40 / LD H, A
+        POP DE
+        LD B, 8
+        ._cp: LD A, (DE) / LD (HL), A / INC DE / INC H / DJNZ ._cp
+        LD HL, _zx_col / INC (HL) / LD A, (HL) / CP 32 / RET NZ
+        LD (HL), 0 / DEC HL / INC (HL) / RET
+        ._nl: LD HL, _zx_row / INC (HL) / INC HL / LD (HL), 0
+    }
+}
+
+fun zx_puts(s: ^u8) -> void {
+    asm z80 (in s) {
+        PUSH IX / PUSH HL / POP IX
+        .lp: LD A, (IX+0) / OR A / JR Z, .dn
+        PUSH IX / CALL _zxch / POP IX / INC IX / JR .lp
+        .dn: LD A, 13 / PUSH IX / CALL _zxch / POP IX / POP IX
+    }
+}
+
+fun zx_cls() -> void {
+    asm z80 {
+        LD HL, 0x4000 / LD DE, 0x4001 / LD BC, 6143 / LD (HL), 0 / LDIR
+        LD HL, 0x5800 / LD DE, 0x5801 / LD BC, 767 / LD (HL), 0x07 / LDIR
+        LD HL, _zx_row / LD (HL), 0 / INC HL / LD (HL), 0
+    }
+}
+
+// Set attribute for entire row
+// attr = FLASH(1) BRIGHT(1) PAPER(3) INK(3)
+fun zx_attr_row(row: u8, attr: u8) -> void {
+    asm z80 (in row, attr) {
+        LD H, 0 / LD L, A
+        ADD HL, HL / ADD HL, HL / ADD HL, HL / ADD HL, HL / ADD HL, HL
+        LD DE, 0x5800 / ADD HL, DE
+        LD B, 32
+        .f: LD (HL), C / INC HL / DJNZ .f
+    }
+}
+
+fun main() -> void {
+    zx_cls()
+    // Blue border
+    asm z80 { LD A, 1 / OUT (0xFE), A }
+
+    // Row 0-1: Title — bright white on blue
+    zx_attr_row(0, 0x4F)  // BRIGHT + PAPER=blue + INK=white
+    zx_attr_row(1, 0x4F)
+    zx_puts(c" ZSQL - Z80 SQLite on Spectrum")
+    zx_puts(c" ==============================")
+
+    // Row 2: blank
+    zx_puts(c" ")
+
+    // Row 3-6: SQL commands — bright green on black
+    zx_attr_row(3, 0x44)   // BRIGHT + INK=green
+    zx_attr_row(4, 0x44)
+    zx_attr_row(5, 0x44)
+    zx_attr_row(6, 0x44)
+    zx_puts(c" zsql> CREATE TABLE mara")
+    zx_puts(c"   (matnr, mtart, meins, maktx)")
+
+    // Row 5: OK — bright white
+    zx_attr_row(5, 0x47)
+    zx_puts(c" OK")
+    zx_puts(c" ")
+
+    // Row 7-11: INSERT — green
+    zx_attr_row(7, 0x44)
+    zx_attr_row(8, 0x44)
+    zx_attr_row(9, 0x44)
+    zx_attr_row(10, 0x44)
+    zx_attr_row(11, 0x44)
+    zx_puts(c" zsql> INSERT INTO mara VALUES")
+    zx_puts(c"   100-100 FERT ST Pump Assy")
+    zx_puts(c"   100-300 FERT ST Valve Unit")
+    zx_puts(c"   200-100 ROH  KG Raw Steel")
+    zx_puts(c"   200-200 HALB KG Steel Plate")
+
+    // Row 12: OK — white
+    zx_attr_row(12, 0x47)
+    zx_puts(c" OK (4 rows)")
+
+    // Row 13: blank
+    zx_puts(c" ")
+
+    // Row 14: SELECT — bright cyan
+    zx_attr_row(14, 0x45)  // BRIGHT + INK=cyan
+    zx_attr_row(15, 0x45)
+    zx_puts(c" zsql> SELECT * FROM mara")
+    zx_puts(c"   WHERE mtart = FERT")
+
+    // Row 16: blank
+    zx_puts(c" ")
+
+    // Row 17: Column headers — bright white
+    zx_attr_row(17, 0x47)
+    zx_puts(c" matnr   |mtart|meins|maktx")
+
+    // Row 18: Separator — cyan
+    zx_attr_row(18, 0x45)
+    zx_puts(c" --------|-----|-----|----------")
+
+    // Row 19-20: Data rows — bright yellow
+    zx_attr_row(19, 0x46)  // BRIGHT + INK=yellow
+    zx_attr_row(20, 0x46)
+    zx_puts(c" 100-100 |FERT |ST   |Pump Assy")
+    zx_puts(c" 100-300 |FERT |ST   |Valve Unit")
+
+    // Row 21: blank
+    zx_puts(c" ")
+
+    // Row 22: Footer — bright white
+    zx_attr_row(22, 0x47)
+    zx_puts(c" 2 rows. SQL on Z80!")
+
+    // Halt
+    asm z80 { DI / HALT }
+}
+
+// ZX font data (91 chars, space to z)
+global _zx_font: u16 = 0x0000
+global _f01: u16 = 0x0000
+global _f02: u16 = 0x1010
+global _f03: u16 = 0x0010
+global _f04: u16 = 0x1000
+global _f05: u16 = 0x2400
+global _f06: u16 = 0x0024
+global _f07: u16 = 0x0000
+global _f08: u16 = 0x2400
+global _f09: u16 = 0x247E
+global _f0a: u16 = 0x247E
+global _f0b: u16 = 0x0024
+global _f0c: u16 = 0x0800
+global _f0d: u16 = 0x283E
+global _f0e: u16 = 0x0A3E
+global _f0f: u16 = 0x083E

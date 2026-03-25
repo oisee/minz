@@ -1,7 +1,7 @@
 REPORT zsql_mara_zx.
 
-* ZSQL + SAP MARA combined demo on ZX Spectrum
-* Enterprise SQL meets 1982 retro hardware.
+* ZSQL + SAP MARA on ZX Spectrum
+* Now matching real ZSQL output format!
 
 START-OF-SELECTION.
 
@@ -14,18 +14,15 @@ START-OF-SELECTION.
   WRITE 'OK'.
   WRITE ' '.
   WRITE 'zsql> INSERT INTO mara VALUES'.
-  WRITE '  100-100 FERT ST Pump Assy'.
-  WRITE '  100-300 FERT ST Valve Unit'.
-  WRITE '  200-100 ROH  KG Raw Steel'.
-  WRITE '  200-200 HALB KG Steel Plate'.
-  WRITE 'OK (4 rows)'.
+  WRITE 'OK (5 rows)'.
   WRITE ' '.
   WRITE 'zsql> SELECT * FROM mara'.
-  WRITE '  WHERE mtart = FERT'.
   WRITE ' '.
-  WRITE 'matnr   |mtart|meins|maktx'.
-  WRITE '--------|-----|-----|----------'.
-  WRITE '100-100 |FERT |ST   |Pump Assy'.
-  WRITE '100-300 |FERT |ST   |Valve Unit'.
+  WRITE '100-100 | FERT | ST | Pump Assy'.
+  WRITE '100-200 | HALB | KG | Impeller'.
+  WRITE '100-300 | FERT | ST | Valve Unit'.
+  WRITE '200-100 | ROH  | KG | Raw Steel'.
+  WRITE '200-200 | FERT | PC | Ctrl Panel'.
   WRITE ' '.
-  WRITE '2 rows. SQL on Z80!'.
+  WRITE '5 rows'.
+  WRITE '=============================='.
