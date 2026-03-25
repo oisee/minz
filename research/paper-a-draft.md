@@ -60,7 +60,7 @@ This irregularity creates a constraint landscape where many theoretical assignme
 
 **Superoptimization** [Massalin, 1987; Bansal & Aiken, 2006] exhaustively searches for optimal instruction sequences. Our GPU approach applies the same principle to register *assignment* rather than instruction *synthesis*, and precomputes answers offline rather than searching at compile time.
 
-**Endgame tablebases** in chess [Schaeffer et al., 2007] solve positions with ≤7 pieces by exhaustive retrograde analysis. Our approach is analogous: we solve allocation instances with ≤8 virtual registers by exhaustive forward search, and ship the table with the compiler.
+**Endgame tablebases** in games [Schaeffer et al., 2007 (checkers); Thompson, 1986; Nalimov et al., 2000 (chess)] solve positions with bounded pieces by exhaustive retrograde analysis. Our approach is analogous: we solve allocation instances with ≤8 virtual registers by exhaustive forward search, and ship the table with the compiler.
 
 ---
 
@@ -131,7 +131,7 @@ For functions with >8 virtual registers (13% of corpus), we decompose at livenes
 
 | Frontend | Files | Functions | Description |
 |----------|-------|-----------|-------------|
-| Nanz | 58 | 847 | Native language (arithmetic, data structures, iterators) |
+| Nanz | 58 | 807 | Native language (arithmetic, data structures, iterators) |
 | C89 | 43 | 312 | C programs (benchmarks, algorithms) |
 | ABAP | 20 | 196 | SAP business logic (reports, ALV grids) |
 | Frill | 15 | 89 | ML-style functional (ADTs, pattern matching) |
@@ -141,6 +141,8 @@ For functions with >8 virtual registers (13% of corpus), we decompose at livenes
 | Lanz | 1 | 7 | Experimental |
 | Stdlib | 55 | 140 | Standard library modules |
 | **Total** | **208** | **1,645** | **8 frontends + stdlib** |
+
+*Note: Function counts exclude extern stubs and empty wrappers that produce no VIR instructions.*
 
 **Important caveat.** All frontends share the same HIR→MIR2→VIR backend pipeline. The 80% signature reuse and 88.2% transfer reflect the constraint vocabulary of *our IR and backend*, not necessarily a universal property of the Z80 ISA. Testing on SDCC's independent backend would determine whether the low signature entropy is ISA-intrinsic or IR-dependent.
 
@@ -248,7 +250,17 @@ A connection to graph theory: the island-of-optimality decomposition corresponds
 
 **Table completeness.** The current table covers 39.8% of the corpus (56 entries → 639 functions). Full coverage requires solving all 315 signatures — a one-time GPU computation.
 
-### 5.3 Generalization
+**Interaction with instruction synthesis.** Our GPU exhaustive approach extends beyond register allocation. The same z80-optimizer CUDA infrastructure discovered an optimal divmod10 sequence (27 instructions, 124T, verified correct for all 256 inputs) through instruction synthesis search. This sequence is now integrated into the compiler as a specialization: when the register allocator identifies a division-by-constant-10, the GPU-discovered sequence replaces the general runtime loop (180T), saving 56T per call while clobbering only B,C,F (leaving HL/DE untouched for surrounding code). This demonstrates how offline exhaustive search can improve multiple compiler phases simultaneously.
+
+### 5.3 Threats to Validity
+
+**Internal validity.** The GPU kernel's correctness is critical — an incorrect kernel would produce invalid "optimal" assignments. We validate by assembling and executing the emitted Z80 code on a cycle-accurate emulator (1,335/1,335 FUSE test suite). Additionally, the Z3 SMT solver independently verifies a subset of allocations.
+
+**External validity.** Our corpus spans 8 frontends but through one backend. The signature reuse finding may not generalize to compilers with substantially different IRs or instruction selection strategies. We have invited collaboration with SDCC's maintainer to test this experimentally.
+
+**Construct validity.** "Optimality" is relative to our cost model (T-states per pattern). Alternative cost models (code size, energy, cache effects) could produce different optimal tables. The cost model sensitivity has not been measured.
+
+### 5.4 Generalization
 
 The approach generalizes to any architecture where:
 1. The number of physical locations L is small enough that L^K fits within GPU search budgets for typical K (live register counts)
@@ -263,7 +275,7 @@ Candidate architectures include the 6502 (3 registers — trivially solvable), 8
 - **Optimal register allocation via ILP** [Appel & George, 2001]: Provably optimal but solved online, not precomputed. Our approach moves the computation offline.
 - **Superoptimization** [Massalin, 1987; Bansal & Aiken, 2006; Phothilimthana et al., 2016]: Exhaustive search for instruction sequences. We apply exhaustive search to register assignment.
 - **STOKE** [Schkufza et al., 2013]: Stochastic superoptimization. Trades completeness for speed. Our approach is complete (exhaustive) for the bounded subspace.
-- **Endgame tablebases** [Schaeffer et al., 2007]: Solve chess positions with ≤7 pieces. Directly analogous: we solve allocation instances with ≤8 virtual registers.
+- **Endgame tablebases** [Thompson, 1986; Nalimov et al., 2000; Schaeffer et al., 2007]: Solve game positions with bounded pieces by exhaustive retrograde analysis. Directly analogous: we solve allocation instances with ≤8 virtual registers.
 - **Partial evaluation / Futamura projections** [Futamura, 1971]: Our precomputed table can be viewed as the result of partially evaluating the allocator with respect to constraint patterns — a Futamura projection applied to the compiler backend.
 
 ---
@@ -275,6 +287,10 @@ We have shown that register allocation on the Z80 can be partially reduced from 
 The resulting compiler requires no solver at compile time for table-hit functions. It looks up the answer in O(1) and emits code directly. For functions exceeding table capacity, island-of-optimality decomposition preserves local optimality with bounded join cost.
 
 More broadly, this work raises the question: **which parts of compiler backends can themselves be compiled away into finite, reusable optimization artifacts?** The Z80 is a proof of concept. The principle — offline enumeration of a bounded decision space, with corpus-driven pruning of the search — may apply more widely than the retro computing niche suggests.
+
+The divmod10 result illustrates this synergy: the same GPU infrastructure that precomputes register allocation tables also discovers optimal instruction sequences. The compiler becomes not a search engine but a retrieval engine, looking up precomputed answers across multiple optimization phases.
+
+**Reproducibility.** The compiler (MinZ), GPU kernel (z80-optimizer), and complete corpus are open-source at github.com/oisee/minz and github.com/oisee/z80-optimizer. The JSON protocol for constraint signatures is documented and suitable for integration with other compilers.
 
 ---
 
@@ -302,6 +318,8 @@ This research was conducted collaboratively across three AI-assisted sessions (c
 
 [Massalin, 1987] H. Massalin. Superoptimizer: A look at the smallest program. ASPLOS 1987.
 
+[Nalimov et al., 2000] E. V. Nalimov, G. McC. Haworth, and E. A. Heinz. Space-efficient indexing of chess endgame tables. ICGA Journal 2000.
+
 [Phothilimthana et al., 2016] P. M. Phothilimthana et al. Scaling up superoptimization. ASPLOS 2016.
 
 [Poletto & Sarkar, 1999] M. Poletto and V. Sarkar. Linear scan register allocation. TOPLAS 1999.
@@ -311,3 +329,5 @@ This research was conducted collaboratively across three AI-assisted sessions (c
 [Schkufza et al., 2013] E. Schkufza, R. Sharma, and A. Aiken. Stochastic superoptimization. ASPLOS 2013.
 
 [Scholz & Eckstein, 2002] B. Scholz and E. Eckstein. Register allocation for irregular architectures. LCTES 2002.
+
+[Thompson, 1986] K. Thompson. Retrograde analysis of certain endgames. ICCA Journal 1986.
