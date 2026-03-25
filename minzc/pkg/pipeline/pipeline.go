@@ -337,13 +337,16 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 			fmt.Fprintf(os.Stderr, "vir: %d/%d via Z3 solver, %d via PBQP fallback: %s\n",
 				ok, ok+fail, fail, strings.Join(failNames, ", "))
 		} else {
-			// Order: code → globals (may contain zeros) → strings (non-zero).
-			// Strings LAST prevents MZA trailing-zero trim from clipping them.
-			s.Assembly = virAsm
-			s.Assembly += emitGlobals(m)
+			// Order: code → strings → zero-storage (globals + vir_mem + spills).
+			// Zero-filled storage LAST: MZA trims trailing zeros from COM files,
+			// so non-zero strings must not follow zero data.
+			virCode, virZeros := splitVIRZeroStorage(virAsm)
+			s.Assembly = virCode
 			var strBuf strings.Builder
 			lir.EmitStringPool(&strBuf, m)
 			s.Assembly += strBuf.String()
+			s.Assembly += emitGlobals(m)
+			s.Assembly += virZeros
 			fmt.Fprintf(os.Stderr, "vir: all %d functions compiled via Z3 unified solver\n", ok)
 		}
 	} else if opt.UseLIR {
@@ -1443,16 +1446,36 @@ func spliceVIRFallback(virAsm, pbqpAsm string, results []vir.FuncResult, failSet
 		}
 	}
 
-	// Globals before strings: zero-filled globals won't cause MZA trailing trim
-	// to clip string data when strings are at the end.
-	sb.WriteString(emitGlobals(m))
-	lir.EmitStringPool(&sb, m)
-	return sb.String()
+	// Split zero storage from code, emit strings before zeros
+	funcCode, funcZeros := splitVIRZeroStorage(sb.String())
+	var out strings.Builder
+	out.WriteString(funcCode)
+	lir.EmitStringPool(&out, m)
+	out.WriteString(emitGlobals(m))
+	out.WriteString(funcZeros)
+	return out.String()
 }
 
 // emitGlobals generates Z80 assembly for global variables in a MIR2 module.
 // This is a simplified version of the globals portion of mir2.Z80Codegen,
 // used when the LIR backend handles function codegen.
+// splitVIRZeroStorage separates zero-initialized storage (_vir_memN, _spill_*)
+// from VIR asm output so the caller can place them after strings.
+// Returns (code, zeroStorage).
+func splitVIRZeroStorage(virAsm string) (string, string) {
+	var code, zeros strings.Builder
+	for _, line := range strings.Split(virAsm, "\n") {
+		trimmed := strings.TrimSpace(line)
+		if (strings.HasPrefix(trimmed, "_vir_mem") || strings.HasPrefix(trimmed, "_spill_")) &&
+			strings.Contains(trimmed, "DW 0") {
+			zeros.WriteString(line + "\n")
+		} else {
+			code.WriteString(line + "\n")
+		}
+	}
+	return code.String(), zeros.String()
+}
+
 func emitGlobals(m *mir2.Module) string {
 	if len(m.Globals) == 0 {
 		return ""
