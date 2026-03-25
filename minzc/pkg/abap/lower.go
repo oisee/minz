@@ -513,17 +513,32 @@ func (l *lowerer) lower() (*hir.Module, error) {
 			},
 		})
 		// Execute seed SQL statements from *!sql pragmas.
-		// Use standard HIR calls with hardcoded handle=1.
-		for _, sql := range l.prog.SeedSQL {
+		// Each wrapped in asm function to avoid regalloc string pointer corruption.
+		for si, sql := range l.prog.SeedSQL {
 			sqlSym := l.internStr(sql)
+			sqlAsmSym := strings.ReplaceAll(strings.ReplaceAll(sqlSym, "@", "_"), ".", "_")
+			seedFn := fmt.Sprintf("_abap_seed_%d", si)
+			l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
+				Name:   seedFn,
+				Params: []hir.Param{{Name: "_x", Ty: mir2.TyU8}},
+				RetTy:  mir2.TyVoid,
+				Body: &hir.Block{
+					Body: []hir.Stmt{
+						&hir.AsmStmt{
+							Target: "z80",
+							Code: fmt.Sprintf(
+								"LD HL, 1 / LD DE, %s / CALL sqlite_exec", sqlAsmSym),
+							Ins:         []hir.AsmOperand{{Name: "_x"}},
+							ClobberRegs: []string{"A", "B", "C", "D", "E", "H", "L"},
+						},
+					},
+				},
+			})
 			initStmts = append(initStmts, &hir.ExprStmt{
 				Expr: &hir.CallExpr{
-					Fn: "sqlite_exec",
-					Args: []hir.Expr{
-						&hir.IntLitExpr{Val: 1, Ty: mir2.TyU16},
-						&hir.AddrOfExpr{Sym: sqlSym},
-					},
-					Ty: mir2.TyU8,
+					Fn:   seedFn,
+					Args: []hir.Expr{&hir.IntLitExpr{Val: 0, Ty: mir2.TyU8}},
+					Ty:   mir2.TyVoid,
 				},
 			})
 		}
@@ -1262,16 +1277,31 @@ func (l *lowerer) lowerSelectIntoTable(s *SelectStmt, sql string, uid int) (hir.
 		Val:    &hir.IntLitExpr{Val: 0, Ty: mir2.TyU16},
 	})
 
-	// sqlite_query(1, sql) — hardcoded db handle to avoid regalloc corruption.
-	// The literal 1 is reloaded each time (no register preservation needed).
+	// sqlite_query via asm wrapper — hardcodes both handle and SQL string address.
+	// PFCCO for sqlite_query(db: u16, sql: ^u8): HL=db, DE=sql
+	sqlAsmSym := strings.ReplaceAll(strings.ReplaceAll(sqlSym, "@", "_"), ".", "_")
+	queryFn := fmt.Sprintf("_itab_query_%s", it.name)
+	l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
+		Name:   queryFn,
+		Params: []hir.Param{{Name: "_x", Ty: mir2.TyU8}},
+		RetTy:  mir2.TyVoid,
+		Body: &hir.Block{
+			Body: []hir.Stmt{
+				&hir.AsmStmt{
+					Target: "z80",
+					Code: fmt.Sprintf(
+						"LD HL, 1 / LD DE, %s / CALL sqlite_query", sqlAsmSym),
+					Ins:         []hir.AsmOperand{{Name: "_x"}},
+					ClobberRegs: []string{"A", "B", "C", "D", "E", "H", "L"},
+				},
+			},
+		},
+	})
 	stmts = append(stmts, &hir.ExprStmt{
 		Expr: &hir.CallExpr{
-			Fn: "sqlite_query",
-			Args: []hir.Expr{
-				&hir.IntLitExpr{Val: 1, Ty: mir2.TyU16},
-				&hir.AddrOfExpr{Sym: sqlSym},
-			},
-			Ty: mir2.TyU16,
+			Fn:   queryFn,
+			Args: []hir.Expr{&hir.IntLitExpr{Val: 0, Ty: mir2.TyU8}},
+			Ty:   mir2.TyVoid,
 		},
 	})
 

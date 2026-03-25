@@ -225,6 +225,11 @@ SUPPORTED PLATFORMS (-t/--target):
 			}
 		}
 
+		// ZX Spectrum also gets SQLite I/O ports (for ABAP Open SQL demos)
+		if target == "spectrum" {
+			setupSQLitePorts(z80, verbose)
+		}
+
 		// Set up Agon MOS RST handler if target is agon
 		if target == "agon" {
 			setupAgonMOS(z80)
