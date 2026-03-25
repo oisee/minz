@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 
 	"github.com/minz/minzc/pkg/mir2"
@@ -81,6 +82,12 @@ func CodegenModule(m *mir2.Module, opts SolverOptions) (string, []FuncResult) {
 	// VIR_DUMP_MERGED=path.json — reads merge pairs from stdin or generates from call graph
 	if mergedPath := os.Getenv("VIR_DUMP_MERGED"); mergedPath != "" {
 		dumpMergedProblems(m, opts, mergedPath)
+	}
+
+	// Dump per-program-point liveness for island decomposition
+	// VIR_DUMP_LIVENESS=path.json — functions with >15 vregs (or all if VIR_LIVENESS_ALL=1)
+	if livePath := os.Getenv("VIR_DUMP_LIVENESS"); livePath != "" {
+		dumpLiveness(m, opts, livePath)
 	}
 
 	// Emit main first
@@ -2950,4 +2957,132 @@ func remapIdx(idx, offset int) int {
 		return idx
 	}
 	return idx + offset
+}
+
+// ── Per-Point Liveness Dump ─────────────────────────────────────────────────
+// For z80-optimizer island decomposition: find liveness bottlenecks to split
+// large functions into GPU-solvable islands.
+
+type livenessEntry struct {
+	Name   string          `json:"name"`
+	NVregs int             `json:"nVregs"`
+	Points []livenessPoint `json:"points"`
+}
+
+type livenessPoint struct {
+	PC       int    `json:"pc"`
+	Op       string `json:"op"`
+	Dst      int    `json:"dst"`
+	NLive    int    `json:"nLive"`
+	LiveRegs []int  `json:"liveRegs"`
+	IsCall   bool   `json:"isCall,omitempty"`
+	CallSym  string `json:"callSym,omitempty"`
+}
+
+func dumpLiveness(m *mir2.Module, opts SolverOptions, outPath string) {
+	desc := Z80
+	minVregs := 15 // only dump functions needing decomposition
+	if os.Getenv("VIR_LIVENESS_ALL") == "1" {
+		minVregs = 0
+	}
+
+	var entries []livenessEntry
+
+	for _, f := range m.Funcs {
+		vf, err := LowerFunc(f, desc, m)
+		if err != nil {
+			continue
+		}
+
+		// Flatten all blocks into one op sequence (like codegenFuncWhole)
+		var allOps []VIROp
+		for _, b := range vf.Blocks {
+			allOps = append(allOps, b.Ops...)
+		}
+
+		prob := buildProblem(allOps, desc)
+		nv := len(prob.vregs)
+		if nv < minVregs {
+			continue
+		}
+
+		// Build vreg index map (sorted for deterministic output)
+		vregList := make([]int, 0, len(prob.vregs))
+		for v := range prob.vregs {
+			vregList = append(vregList, v)
+		}
+		sort.Ints(vregList)
+		vregIdx := make(map[int]int)
+		for i, v := range vregList {
+			vregIdx[v] = i
+		}
+
+		var points []livenessPoint
+		for i, op := range allOps {
+			// Remap live vregs to dense indices
+			var liveRegs []int
+			if i < len(prob.liveness) {
+				for v := range prob.liveness[i].live {
+					if idx, ok := vregIdx[v]; ok {
+						liveRegs = append(liveRegs, idx)
+					}
+				}
+				sort.Ints(liveRegs)
+			}
+
+			dst := -1
+			if op.Dst > 0 {
+				if idx, ok := vregIdx[op.Dst]; ok {
+					dst = idx
+				}
+			}
+
+			pt := livenessPoint{
+				PC:       i,
+				Op:       opName(op.Op),
+				Dst:      dst,
+				NLive:    len(liveRegs),
+				LiveRegs: liveRegs,
+				IsCall:   op.Op == OpCall || op.Op == OpAsmBlock,
+			}
+			if op.Op == OpCall {
+				pt.CallSym = op.Sym
+			}
+			points = append(points, pt)
+		}
+
+		entries = append(entries, livenessEntry{
+			Name:   f.Name,
+			NVregs: nv,
+			Points: points,
+		})
+	}
+
+	jsonData, err := json.MarshalIndent(entries, "", "  ")
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[liveness] marshal error: %v\n", err)
+		return
+	}
+	if err := os.WriteFile(outPath, append(jsonData, '\n'), 0644); err != nil {
+		fmt.Fprintf(os.Stderr, "[liveness] write error: %v\n", err)
+		return
+	}
+	fmt.Fprintf(os.Stderr, "[liveness] dumped %d functions to %s\n", len(entries), outPath)
+}
+
+func opName(op Op) string {
+	names := map[Op]string{
+		OpConst: "const", OpMove: "move", OpAdd: "add", OpSub: "sub",
+		OpMul: "mul", OpAnd: "and", OpOr: "or", OpXor: "xor",
+		OpCmp: "cmp", OpLoad: "load", OpStore: "store", OpCall: "call",
+		OpRet: "ret", OpShl: "shl", OpShr: "shr", OpNeg: "neg",
+		OpAddImm: "addimm", OpSubImm: "subimm", OpAndImm: "andimm",
+		OpOrImm: "orimm", OpXorImm: "xorimm", OpCmpImm: "cmpimm",
+		OpStoreGlobal: "storeglobal", OpLoadGlobal: "loadglobal",
+		OpCondRet: "condret", OpLoad16LE: "load16le", OpAsmBlock: "asmblock",
+	}
+	if n, ok := names[op]; ok {
+		return n
+	}
+	return fmt.Sprintf("op%d", int(op))
 }
