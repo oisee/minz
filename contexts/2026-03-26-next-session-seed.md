@@ -2,108 +2,140 @@
 
 ---
 
-## Immediate: Check Overnight Results
+## Immediate: Check Results
 
 ```bash
-# 6v dense GPU (66M shapes, was running overnight)
-ddll send <z80-optimizer-id>:main "Did 6v dense finish?"
+ddll explore   # get session IDs
 
-# VIR reliability sprint progress
-ddll send <vir-id>:main "P6 (InlineTrivial asm-body labels) status?"
+# 6v dense GPU — was it killed at 22% (537K sample) or did it continue?
+ddll send <z80-optimizer>:main "6v status?"
+
+# VIR reliability sprint — P1 (clobber), P6 (InlineTrivial labels)
+ddll send <vir>:main "P1/P6 status? P6 fixes Pascal stdlib + ABAP seed SQL."
 ```
 
-## Priority 1: VIR Reliability Sprint Results
+## Priority 1: @error Enforcement (Layer 2)
 
-VIR committed a reliability sprint plan (docs/VIR_Reliability_Sprint.md):
-- P1: cross-block clobber constraints
-- P5: edge-move emission for call-safe vregs
-- P6: asm-body functions must NOT be inlined (ClobberAll guard)
+Layer 1 shipped: `@error(N)`, `@check`, `@propagate` as metafunctions (55 LOC).
+Layer 2: parser enforcement of `?` naming convention.
 
-When P6 lands → Pascal stdlib works on CP/M (casetest.pas, sieve.pas).
-When P1+P5 land → Nanz Tetris variants work. ZSQL row counter works.
+```nanz
+// ? in name = fallible
+fun safe_div?(a: u8, b: u8) -> u8 { ... }
 
-## Priority 2: C89 Width Promotion Fix
+// Compiler ERROR if @check/@propagate missing after call to name?()
+var x: u8 = safe_div?(10, y)
+// NEXT LINE MUST BE @check or @propagate — otherwise compile error
+@propagate
+```
 
-VIR checking pkg/c89/ type rules. `add8(u8,u8)→u8` should be `ADD A,C / RET` (2 inst) not 5 inst. Paper A signature count drops 315→~250 when fixed.
+Implementation: ~50 LOC in parser. Check: after parsing `CALL name?()`,
+verify next statement is `@check` or `@propagate`. Emit error if not.
 
-Test after fix:
+## Priority 2: VIR P6 (InlineTrivial Label Fix)
+
+When P6 lands, test:
 ```bash
-cat > /tmp/test_width.c << 'EOF'
+# Pascal stdlib — should now work
+mz examples/pascal/casetest.pas --target=cpm -o out.a80
+mza out.a80 -o CASE.COM
+echo "" | mze CASE.COM -t cpm
+# Expected: "Beta" (CASE Ch of 66)
+
+# Sieve of Eratosthenes
+mz examples/pascal/sieve.pas --target=cpm -o out.a80
+mza out.a80 -o SIEVE.COM
+mze SIEVE.COM -t cpm
+# Expected: prime count
+```
+
+## Priority 3: C89 Width Fix
+
+When VIR fixes pkg/c89/ u16 promotion:
+```bash
+cat > /tmp/test.c << 'EOF'
 unsigned char add8(unsigned char a, unsigned char b) { return a + b; }
 /* assert add8(3, 4) == 7 via z80 */
 EOF
-mz /tmp/test_width.c --vir -o /tmp/test_width.a80
-grep "^add8:" -A3 /tmp/test_width.a80
-# Expected: ADD A, C / RET (not LD L,A / LD H,0 / ADD HL,BC / LD A,L / RET)
+mz /tmp/test.c --vir -o /tmp/test.a80
+grep "^add8:" -A3 /tmp/test.a80
+# Expected: ADD A, C / RET (2 inst, not 5)
 ```
-
-## Priority 3: 6v Data Analysis
-
-From z80-optimizer:
-- 6v feasibility: only 0.9% feasible (double phase transition)
-- 0.9% × 1.9B = ~17M feasible entries (same size as ≤5v table)
-- Treewidth of 54 dense corpus functions: 46.3% tw≤3, 35.2% tw=4, 18.5% tw≥5
-- Composition verification: 13.2M shapes, 5.06T avg overhead
-
-Questions to resolve:
-1. Do corpus 6v+ functions fall in the 0.9% feasible region?
-2. Composition vs direct GPU cost for 6v corpus shapes
-3. Self-hosting table size: ≤3v (2.7K) + treewidth DP → how much RAM on Z80?
+Impact: Paper A signature count drops 315→~250.
 
 ## Priority 4: Paper A Final Draft
 
-All data available. Need to integrate:
+All data ready:
+- 17.4M exhaustive ≤5v table
+- 13.2M composition verification (5.06T overhead)
 - Double phase transition (enumeration + feasibility)
-- Cross-compiler proof (Nanz=SDCC for u8)
-- Composition verification (13.2M points)
-- Honest treewidth correction (99.5% random → 46.3% dense)
-- 5-level pipeline coverage (80%+15%+5%=100%)
+- Cross-compiler: Nanz = SDCC for u8
+- SDCC comparison table (swap 20:0)
+- Treewidth: 99.5% random, 46.3% dense corpus
+- 5-level pipeline: composition 80% + backtrack 15% + Z3 5% = 100%
 
-Review cycle: `ddll ask gpt54 -s paper-review @research/paper-a-draft.md "final review"`
+Draft: `research/paper-a-draft.md`
+Review: `ddll ask gpt54 -s paper-review @research/paper-a-draft.md "final review"`
+
+## Priority 5: @error Examples + Tests
+
+Add to test suite:
+```bash
+# Verify @error codegen
+mz examples/nanz/14_error_propagation.nanz --lir=false -o /tmp/err.a80
+grep "SCF" /tmp/err.a80     # should find SCF in safe_div
+grep "RET C" /tmp/err.a80   # should find RET C in compute
+```
+
+Write more examples:
+- `15_error_enum.nanz` — typed errors with enum
+- I/O error handling (port read failure)
+- CP/M BDOS error checking (file not found)
 
 ## Backlog
 
-### Frontend
-- [ ] Nanz import paths for .lanz/.lizp modules
-- [ ] Pascal stdlib (blocked on VIR P6)
-- [ ] Frill match expression desugaring
+### Language
+- [ ] @error `?` enforcement in parser (Layer 2)
 - [ ] PL/M MOD operator in HIR lowerer
-- [ ] ABAP OPEN SQL: GROUP BY, HAVING, ORDER BY
+- [ ] Frill match expression desugaring
+- [ ] Nanz import paths for .lanz/.lizp modules
 
 ### Backend (VIR)
-- [ ] InlineTrivial asm-body guard (P6)
-- [ ] Cross-block clobber constraints (P1)
-- [ ] C89 u16 promotion fix
+- [ ] P1: cross-block clobber constraints → Tetris, ZSQL row counter
+- [ ] P6: InlineTrivial asm-body label guard → Pascal stdlib, ABAP seeds
+- [ ] C89 u16 promotion fix → Paper A signature count
 - [ ] MZA instruction table expansion
 - [ ] ZX Spectrum real SQLite (main() loop fix)
 
 ### Research
-- [ ] Paper A final draft
+- [ ] Paper A final draft + GPT review
 - [ ] Paper B prototype (DP partition)
-- [ ] Paper C compositional data
-- [ ] ABI paper response to Philipp
-- [ ] V6 incremental completion (7 nights)
+- [ ] Paper C composition data on 6v
+- [ ] ABI paper response to Philipp Krause
+- [ ] V6 incremental or treewidth-filtered completion
 
 ### Demo
 - [ ] ZX Spectrum real SQLite ALV (needs main() loop fix)
-- [ ] ZSQL on MZX with ROM font + SQLite ports
+- [ ] Pascal CASE + Sieve on CP/M (needs VIR P6)
 - [ ] LinkedIn post — ship with clean screenshots
-
-## Session IDs (will change on reboot)
-- minz-vir: check with `ddll explore`
-- z80-optimizer: check with `ddll explore`
-- minz-abap: check with `ddll explore`
-- GPT-5.4: `ddll ask gpt54 -s <session>`
 
 ## Key Files
 
 | File | Purpose |
 |------|---------|
+| `docs/Error_Propagation_Design.md` | @error full design |
+| `docs/Error_Propagation_Codegen.md` | What compiles to what |
+| `examples/nanz/14_error_propagation.nanz` | @error examples |
 | `research/README.md` | 4 papers overview |
-| `research/paper-a/exhaustive-enumeration-strategy.md` | V4→V5→V6 strategy |
-| `research/paper-a/cross-compiler-analysis.md` | Nanz vs SDCC |
+| `research/paper-a/exhaustive-enumeration-strategy.md` | V4→V5→V6 |
 | `research/paper-c-compositional-regalloc.md` | Treewidth decomposition |
 | `docs/Anytime_Optimal_Register_Allocation.md` | 5-level pipeline |
-| `docs/VIR_Reliability_Sprint.md` | VIR sprint plan |
+| `docs/VIR_Reliability_Sprint.md` | VIR P1-P6 sprint |
 | `contexts/2026-03-26-sprint-plan.md` | Frontend/backend task split |
-| `docs/linkedin-post-abap-zx.md` | LinkedIn post draft |
+
+## Session IDs (check with `ddll explore`)
+- minz-vir: was jjjlhyva
+- z80-optimizer: was um2dy4ex
+- minz-abap: was fq7jsz_r
+- GPT-5.4: `ddll ask gpt54 -s <session>`
+- Gemini: `ddll ask gemini -s <session>`

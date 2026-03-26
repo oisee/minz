@@ -1,7 +1,7 @@
-# Session Wisdom: Birthday Marathon (Sessions 3-7)
+# Session Wisdom: Birthday Marathon (Sessions 3-8)
 
 **Dates:** 2026-03-24 to 2026-03-26
-**Commits:** ~50 across main repo + VIR + z80-optimizer
+**Commits:** ~60 across main repo + VIR + z80-optimizer
 
 ---
 
@@ -49,6 +49,29 @@ SDCC swap = 20 instructions (stack params + pointer writes).
 Nanz PFCCO swap = 0 instructions (registers already in place).
 minmax 63:11, clamp 21:11, abs_diff 13:4.
 
+### 9. @error — CY Flag Error Propagation (Session 8)
+`@error(N)` → `SCF / LD A, N / RET` (2 bytes). `@propagate` → `RET C` (1 byte!).
+Implemented as built-in metafunction — zero parser/AST/semantic changes. 55 LOC.
+Design insight: `?` in function name = fallible (parser enforcement, not solver).
+CY liveness = just "require @check immediately after fallible call" — no Z3 needed.
+
+### 10. Frontend Sprint (Session 8)
+- PL/M: 5 examples created, all compile. MOD operator missing in HIR (filed).
+- Lizp: all 8 examples pass (MZA fixes from session 4 resolved gaps).
+- Pascal: SwitchStmt traversal fixed. Stdlib blocked on InlineTrivial dropping labels (VIR P6).
+- InlineTrivial asm-body label drop: affects Pascal stdlib, ABAP seed SQL, mzv hosts. ONE backend fix covers all.
+
+### 11. Double Phase Transition (Session 7-8)
+- Enumeration cliff at ~16 register locations (Paper A original)
+- Feasibility cliff at 6v: only 0.9% of shapes feasible!
+- 99.1% of 6v shapes are PROVABLY IMPOSSIBLE on Z80
+- Treewidth analysis: 99.5% random graphs tractable, 46.3% for dense corpus
+- Composition verified on 13.2M shapes (5.06T avg overhead)
+
+### 12. GPT-5.4 + Gemini Integration via dedelulu
+`ddll ask gpt54 -s session @file.md "review"` — persistent LLM sessions with file injection.
+Paper A reviewed by GPT-5.4. @error design reviewed. Cross-LLM consensus on publishability.
+
 ---
 
 ## Hard-Won Lessons
@@ -80,10 +103,33 @@ minmax 63:11, clamp 21:11, abs_diff 13:4.
 - Screen address interleaving: `H = $40 | (row & $18)`, `L = (row & 7) << 5 | col`.
 - `_itab_print_*` needs `_zx_putchar` not BDOS on spectrum target.
 
+### @error as Metafunction (not language feature)
+- `@error(N)` = pure asm expansion: `SCF / LD A, N / RET`. Zero compiler changes.
+- CY liveness doesn't need Z3 modeling — just parser enforcement: `@check` must follow fallible call.
+- `?` in function name is convention, not syntax. Parser checks it, solver doesn't see it.
+- `RET C` for propagation = Z80's NATIVE error mechanism. 1 byte, 5T. No other arch has this.
+- Dead code after `@error(N)` is harmless — Z80 never reaches it, peephole can strip later.
+- Design reviewed by GPT-5.4 + VIR. Both approve metafunction approach.
+
+### InlineTrivial Label Drop (the recurring bug)
+Affects: Pascal stdlib (WriteCrLf, WriteStr), ABAP seed SQL, mzv host overrides.
+Root cause: InlineTrivial inlines small asm-body functions → CALL target label removed.
+The function code is inlined but the LABEL disappears from the assembly output.
+Other code that CALLs by label fails at assembly time.
+Fix (VIR P6): ClobberAll=true guard prevents inlining of asm-body functions.
+This ONE fix resolves issues in 3 frontends.
+
+### Pascal moduleReferences Bug
+stmtReferences didn't traverse SwitchStmt (CASE branches) or VarDeclStmt.
+WriteLn calls inside CASE blocks weren't detected → runtime functions not emitted.
+Fixed by adding cases to stmtReferences. But the emit still fails because
+InlineTrivial drops the emitted function labels (see above).
+
 ### Cross-Session Coordination
 - dedelulu session IDs change on reboot — always broadcast new ID.
 - GPT-5.4 integration: `ddll ask gpt54 -s session @file.md "review this"` — persistent sessions with file injection.
 - Five teams coordinating: minz, minz-vir, z80-optimizer, minz-abap, dedelulu.
+- Gemini also available via `ddll ask gemini`.
 
 ---
 
