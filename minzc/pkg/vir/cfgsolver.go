@@ -83,6 +83,26 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 		// original vregs. The move pattern naturally copies the value.
 
 		prob := buildProblem(ops, desc)
+
+		// Inject block parameter vregs into liveness from instruction 0
+		// up to their last use (or all instructions if they pass through).
+		// Block params (PHI destinations) are live from block entry but
+		// computeLiveness misses them before their first use in the block
+		// (and entirely if they're only passed to successor terminators).
+		if os.Getenv("VIR_DEBUG_EDGES") != "" && len(block.Params) > 0 {
+			fmt.Fprintf(os.Stderr, "[PARAMS] %s b%d: params=%v\n", f.Name, bi, block.Params)
+		}
+		for _, paramVreg := range block.Params {
+			prob.vregs[paramVreg] = true
+			// Block params are live for the ENTIRE block (from entry to exit).
+			// They enter via edge and either exit via edge to successor or are
+			// consumed within the block. Either way, they must be in liveness
+			// at every instruction to get proper clobber + interference constraints.
+			for i := range prob.liveness {
+				prob.liveness[i].live[paramVreg] = true
+			}
+		}
+
 		label := block.Label
 		if label == "" {
 			label = fmt.Sprintf("block%d", bi)

@@ -759,7 +759,9 @@ func deepCopyFunc(vf *Func) *Func {
 			// Reset hints to prevent stale mutations from previous runs
 			ops[i].SrcHint = [2]LocSet{}
 		}
-		cp.Blocks = append(cp.Blocks, Block{Label: b.Label, Ops: ops})
+		params := make([]int, len(b.Params))
+		copy(params, b.Params)
+		cp.Blocks = append(cp.Blocks, Block{Label: b.Label, Ops: ops, Params: params})
 	}
 	return cp
 }
