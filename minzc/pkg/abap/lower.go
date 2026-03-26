@@ -1011,11 +1011,21 @@ func (l *lowerer) lowerDo(s *DoStmt) (hir.Stmt, error) {
 		if timesExpr.ExprTy() == mir2.TyU8 {
 			timesExpr = &hir.CastExpr{X: timesExpr, Ty: mir2.TyU16}
 		}
+		// Prepend SY-INDEX update to body: sy_set_index(_abap_sy_index)
+		// so WRITE SY-INDEX inside DO shows 1, 2, 3...
+		syUpdate := &hir.ExprStmt{
+			Expr: &hir.CallExpr{
+				Fn:   "sy_set_index",
+				Args: []hir.Expr{&hir.VarRefExpr{Name: "_abap_sy_index", Ty: mir2.TyU16}},
+				Ty:   mir2.TyVoid,
+			},
+		}
+		augBody := &hir.Block{Body: append([]hir.Stmt{syUpdate}, body.Body...)}
 		return &hir.ForRangeStmt{
 			Var:   "_abap_sy_index",
 			Start: &hir.IntLitExpr{Val: 1, Ty: mir2.TyU16},
 			End:   &hir.BinExpr{Op: "+", L: timesExpr, R: &hir.IntLitExpr{Val: 1, Ty: mir2.TyU16}, Ty: mir2.TyU16},
-			Body:  body,
+			Body:  augBody,
 		}, nil
 	}
 	return &hir.WhileStmt{
