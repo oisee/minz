@@ -995,21 +995,33 @@ func codegenFuncWhole(f *mir2.Func, vf *Func, desc *MachineDesc, opts SolverOpti
 		}
 	}
 
-	// Apply param SrcHints to first block's ops
+	// Apply param SrcHints to ALL blocks' ops (not just block 0).
+	// Params may be referenced in any block after flattening.
 	for bi, block := range vf.Blocks {
 		start := len(allOps)
 
-		if bi == 0 && len(paramHints) > 0 {
+		if len(paramHints) > 0 {
 			for i := range block.Ops {
 				for j, s := range block.Ops[i].Src {
 					if s > 0 {
 						if phys, ok := paramHints[s]; ok {
 							block.Ops[i].SrcHint[j] = Singleton(phys)
+							if os.Getenv("VIR_DEBUG_ASM") != "" {
+								fmt.Fprintf(os.Stderr, "[HINT] %s b%d op%d: src[%d]=v%d → SrcHint loc %d\n",
+									f.Name, bi, i, j, s, phys)
+							}
 						}
+					}
+				}
+				// Also set DstHint for ops that define param vregs
+				if block.Ops[i].Dst > 0 {
+					if phys, ok := paramHints[block.Ops[i].Dst]; ok {
+						block.Ops[i].DstHint = Singleton(phys)
 					}
 				}
 			}
 		}
+		_ = bi
 
 		allOps = append(allOps, block.Ops...)
 		ranges = append(ranges, blockRange{block.Label, start, len(allOps)})

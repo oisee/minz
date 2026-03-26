@@ -99,6 +99,11 @@ func solveWithPasses(ops []VIROp, desc *MachineDesc, opts SolverOptions, splitCa
 	prob := buildProblem(ops, desc)
 	smt := prob.generateSMT()
 
+	if os.Getenv("VIR_DEBUG_SMT") != "" {
+		os.WriteFile("/tmp/vir_phase1_debug.smt2", []byte(smt), 0644)
+		fmt.Fprintf(os.Stderr, "[PHASE1-SMT] %d bytes, %d ops, %d vregs\n", len(smt), len(ops), len(prob.vregs))
+	}
+
 	if opts.Verbose {
 		fmt.Fprintf(os.Stderr, "[vir/solver] SMT-LIB2 (%d ops, %d vars, splitCalls=%v):\n%s\n",
 			len(ops), len(prob.vregs), splitCalls, smt)
@@ -1479,6 +1484,11 @@ func solvePerInstruction(ops []VIROp, desc *MachineDesc, opts SolverOptions) ([]
 	prob := buildProblem(ops, desc)
 	smt := generateSMTPerInst(prob)
 
+	if os.Getenv("VIR_DEBUG_SMT") != "" {
+		suffix := fmt.Sprintf("%d", len(smt))
+		os.WriteFile(fmt.Sprintf("/tmp/vir_phase2_%s.smt2", suffix), []byte(smt), 0644)
+		fmt.Fprintf(os.Stderr, "[PHASE2-SMT] %d bytes, %d ops → /tmp/vir_phase2_%s.smt2\n", len(smt), len(ops), suffix)
+	}
 	if opts.Verbose {
 		fmt.Fprintf(os.Stderr, "[vir/solver] Per-inst SMT (%d ops, %d vregs):\n%s\n",
 			len(ops), len(prob.vregs), smt)
@@ -1744,6 +1754,39 @@ func generateSMTPerInst(p *problem) string {
 		}
 	}
 
+	// SrcHint: HARD at first occurrence of each param vreg as source.
+	// NOTE: must be OUTSIDE the cost expression (which hasn't closed yet).
+	// We'll collect them and emit after the cost expression closes.
+	var hardSrcHints []string
+	srcHintDone := make(map[int]bool)
+	if os.Getenv("VIR_DEBUG_SMT") != "" {
+		for i, op := range p.ops {
+			for j := range op.SrcHint {
+				if !op.SrcHint[j].IsEmpty() {
+					fmt.Fprintf(os.Stderr, "[PHASE2-HINT] op%d src[%d]=v%d SrcHint=%v\n", i, j, op.Src[j], op.SrcHint[j])
+				}
+			}
+		}
+	}
+	for i, op := range p.ops {
+		for j, s := range op.Src {
+			if s > 0 && !op.SrcHint[j].IsEmpty() && !srcHintDone[s] {
+				if os.Getenv("VIR_DEBUG_SMT") != "" {
+					_, exists := vars[vregAtInst{s, i}]
+					fmt.Fprintf(os.Stderr, "[PHASE2-HARD] v%d at i%d: exists=%v\n", s, i, exists)
+				}
+				if _, ok := vars[vregAtInst{s, i}]; ok {
+					c := locSetToSMT(fmt.Sprintf("lv%d_i%d", s, i), op.SrcHint[j])
+					hardSrcHints = append(hardSrcHints, fmt.Sprintf("(assert %s) ; hard SrcHint v%d at i%d\n", c, s, i))
+					if os.Getenv("VIR_DEBUG_SMT") != "" {
+						fmt.Fprintf(os.Stderr, "[PHASE2-ASSERT] (assert %s) for v%d\n", c, s)
+					}
+					srcHintDone[s] = true
+				}
+			}
+		}
+	}
+
 	// Soft hints for remaining instructions
 	for i, op := range p.ops {
 		for j, s := range op.Src {
@@ -1774,7 +1817,13 @@ func generateSMTPerInst(p *problem) string {
 		}
 	}
 
-	b.WriteString(")))\n")
+	b.WriteString(")))\n") // close cost expression
+
+	// Emit hard SrcHint constraints (collected above, outside cost ITE)
+	for _, h := range hardSrcHints {
+		b.WriteString(h)
+	}
+
 	// For large per-instruction problems, skip minimize.
 	// Z3's opt module returns "unknown" quickly on complex ITE chains.
 	// Satisfiability alone gives correct code (not provably optimal).
