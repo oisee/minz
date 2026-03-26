@@ -1,4 +1,4 @@
-# Next Session Seed (after Session 9)
+# Next Session Seed (after Session 9, final)
 
 **Date:** 2026-03-26 evening
 **Release:** v0.23.0 Birthday Marathon Release
@@ -61,7 +61,20 @@ ddll send <vir>:main "P6 InlineTrivial fix landed?"
 ddll send <antique-toy>:main "Questions about minz_v023_highlights.md?"
 ```
 
-## Priority 1: C23 `#embed` Directive
+## Priority 0: `--asserts` Flag + MIR2→Z80 Bugs
+
+**`--asserts mir|z80|all` flag for mz CLI.**
+Currently all test asserts use `via mir2` because z80 path times out on complex functions.
+Need: `--asserts mir` (fast, default), `--asserts z80` (full verify), `--asserts all`.
+Default `// assert` without `via` = both mir2+z80 (already wired in pipeline, `Via==""` = both).
+
+**MIR2→Z80 lowering bugs** discovered by VIR team:
+- `abs_val(5, 0)` → returns 0 on Z80, correct on mir2 VM
+- `gcd(12, 8)` → returns 0 on Z80, correct on mir2 VM
+- Both PBQP and VIR backends produce wrong Z80 code → MIR2 codegen issue
+- Likely: conditional codegen or while-loop register clobber (ADR-0006/0007)
+
+## Priority 1: C23 `#embed` Directive — DONE ✅
 
 The killer feature for Z80. Binary include at compile time.
 ```c
@@ -72,9 +85,9 @@ Needs: preprocessor-level handling (before cc parser sees it).
 Approach: intercept `#embed` in source, replace with `DB` byte sequence.
 z80-optimizer has .bin files ready: mulopt8, divopt8, regalloc tables.
 
-## Priority 2: C23 `nullptr`
+## Priority 2: C23 `nullptr` — DONE ✅
 
-Small: map `nullptr` to `(void*)0`. Check if `modernc.org/cc` parser handles it.
+Predefined as `((void*)0)` in z80Predefined.
 
 ## Priority 3: Peephole — swap_nibbles Pattern
 
@@ -107,8 +120,9 @@ All data ready. GPT-5.4 reviewed. Draft at `research/paper-a-draft.md`.
 - [ ] C89 u16 promotion fix → Paper A signature count 315→~250
 
 ### C Frontend
-- [ ] `#embed` (C23) — binary include
-- [ ] `nullptr` (C23)
+- [x] `#embed` (C23) — DONE
+- [x] `nullptr` (C23) — DONE
+- [ ] `--asserts mir|z80|all` CLI flag
 - [ ] `constexpr` (C23)
 - [ ] Enum underlying type `enum E : uint8_t` (C23)
 - [ ] `<stdbit.h>` — bit manipulation functions (C23)
