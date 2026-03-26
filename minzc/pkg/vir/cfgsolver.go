@@ -671,6 +671,7 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 	vals := parseZ3Model(model)
 
 	// Parse solution per block
+	var moveErrors []string
 	result := make(map[string][]PIROp)
 	for bi, bp := range blocks {
 		var pirOps []PIROp
@@ -753,8 +754,10 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 									if currLoc >= 0 && currLoc < len(desc.Locs) {
 										dstName = desc.Locs[currLoc].Name
 									}
-									fmt.Fprintf(os.Stderr, "[CFG-solver] WARNING: no move pattern for v%d: %s(%d) → %s(%d) at block %d inst %d\n",
+									moveErr := fmt.Sprintf("no move pattern for v%d: %s(%d) → %s(%d) at block %d inst %d",
 										vreg, srcName, prevLoc, dstName, currLoc, bi, i)
+									fmt.Fprintf(os.Stderr, "[CFG-solver] %s\n", moveErr)
+									moveErrors = append(moveErrors, moveErr)
 								}
 							}
 							break
@@ -869,6 +872,11 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 				}
 			}
 		}
+	}
+
+	// If any move patterns were missing, return error → triggers PBQP fallback
+	if len(moveErrors) > 0 {
+		return nil, fmt.Errorf("missing move patterns: %s", moveErrors[0])
 	}
 
 	return &CFGSolution{BlockPIR: result, ParamLocs: paramLocs}, nil
