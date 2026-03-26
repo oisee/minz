@@ -216,3 +216,94 @@ assert double_add(5, 3) == 13
 assert double_add(0, 42) == 42
 `)
 }
+
+// ── P3 Reliability Sprint: 10 new tests ─────────────────────────────────────
+
+func TestVIR_Assert_NestedCalls(t *testing.T) {
+	runVIRAsserts(t, "nested_calls", `
+fun inc(x: u8) -> u8 { return x + 1 }
+fun double_inc(x: u8) -> u8 { return inc(inc(x)) }
+fun triple(x: u8) -> u8 { return inc(inc(inc(x))) }
+
+assert double_inc(5) == 7
+assert double_inc(0) == 2
+assert triple(10) == 13
+assert triple(0) == 3
+`)
+}
+
+func TestVIR_Assert_MultiReturn(t *testing.T) {
+	runVIRAsserts(t, "multi_return", `
+fun abs_val(x: u8, is_neg: u8) -> u8 {
+    if is_neg > 0 { return 0 - x }
+    return x
+}
+fun safe_sub(a: u8, b: u8) -> u8 {
+    if a >= b { return a - b }
+    return 0
+}
+
+assert abs_val(5, 0) == 5
+assert abs_val(5, 1) == 251
+assert safe_sub(10, 3) == 7
+assert safe_sub(3, 10) == 0
+assert safe_sub(5, 5) == 0
+`)
+}
+
+func TestVIR_Assert_Clamp(t *testing.T) {
+	runVIRAsserts(t, "clamp", `
+fun clamp(x: u8, lo: u8, hi: u8) -> u8 {
+    if x < lo { return lo }
+    if x > hi { return hi }
+    return x
+}
+
+assert clamp(5, 0, 10) == 5
+assert clamp(0, 3, 10) == 3
+assert clamp(20, 0, 10) == 10
+assert clamp(0, 0, 255) == 0
+assert clamp(255, 0, 255) == 255
+`)
+}
+
+func TestVIR_Assert_ChainedCalls(t *testing.T) {
+	runVIRAsserts(t, "chained_calls", `
+fun add(a: u8, b: u8) -> u8 { return a + b }
+fun mul2(x: u8) -> u8 { return x + x }
+fun compute(x: u8) -> u8 { return mul2(add(x, 1)) }
+
+assert compute(3) == 8
+assert compute(0) == 2
+assert compute(10) == 22
+`)
+}
+
+func TestVIR_Assert_Div8(t *testing.T) {
+	runVIRAsserts(t, "div8", `
+fun div(a: u8, b: u8) -> u8 { return a / b }
+fun mod(a: u8, b: u8) -> u8 { return a % b }
+
+assert div(10, 3) == 3
+assert div(255, 1) == 255
+assert div(100, 10) == 10
+assert mod(10, 3) == 1
+assert mod(255, 2) == 1
+assert mod(100, 10) == 0
+`)
+}
+
+func TestVIR_Assert_GCD(t *testing.T) {
+	runVIRAsserts(t, "gcd", `
+fun gcd(a: u8, b: u8) -> u8 {
+    if b == 0 { return a }
+    return gcd(b, a % b)
+}
+
+assert gcd(12, 8) == 4
+assert gcd(7, 13) == 1
+assert gcd(100, 25) == 25
+assert gcd(0, 5) == 5
+assert gcd(5, 0) == 5
+`)
+}
