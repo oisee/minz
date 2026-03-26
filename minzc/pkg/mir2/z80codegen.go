@@ -5026,6 +5026,33 @@ func (g *z80cg) genCall(inst *Inst) {
 		g.emit("    OUT (0x25), A")
 		g.invalidate("A")
 		return
+
+	case "@error":
+		// @error(N) — set carry flag, error code in A, return.
+		// Used in fallible functions (name?). A = argument (error code).
+		g.emit("    SCF")          // CY = 1 (error)
+		g.emit("    RET")          // return to caller with CY set + A = code
+		g.invalidate("A")
+		return
+
+	case "@check":
+		// @check — jump to error handler if carry set.
+		// Emits: JR NC, .skip / <handler will be next block> / .skip:
+		// For now: just emit RET C (propagate). Handler block TBD.
+		idx := g.trampIdx
+		g.trampIdx++
+		g.emitf("    JR NC, .check_ok_%d", idx)
+		// The handler code follows in the next statement.
+		// For simple propagation, emit RET:
+		g.emit("    RET")           // propagate error (CY + A intact)
+		g.emitf(".check_ok_%d:", idx)
+		return
+
+	case "@propagate":
+		// @propagate — conditional return on carry. 1 byte, 5T.
+		// If CY=1 (error from previous call), return immediately.
+		g.emit("    RET C")
+		return
 	}
 
 	sym := sanitizeIdent(inst.Sym)

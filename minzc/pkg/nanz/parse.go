@@ -4770,6 +4770,36 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 			}
 			return &hir.CallExpr{Fn: "@mir.io.console.err", Args: []hir.Expr{arg}, Ty: mir2.TyVoid}, nil
 		}
+		// @error(N) — set carry flag + error code in A, return.
+		// Used inside fallible functions (name?). Expands to: SCF / LD A, N / RET
+		if p.l.isIdent("error") {
+			p.l.next()
+			if _, err := p.l.eat(tokLParen); err != nil {
+				return nil, err
+			}
+			arg, err := p.parseExpr()
+			if err != nil {
+				return nil, err
+			}
+			if _, err := p.l.eat(tokRParen); err != nil {
+				return nil, err
+			}
+			// Emit: LD A, <code> / SCF / RET
+			// We use a special intrinsic that the HIR lowerer recognizes
+			return &hir.CallExpr{Fn: "@error", Args: []hir.Expr{arg}, Ty: mir2.TyVoid}, nil
+		}
+		// @check { body } — check carry flag after fallible call.
+		// Expands to: JR NC, .skip / body / .skip:
+		if p.l.isIdent("check") {
+			p.l.next()
+			return &hir.CallExpr{Fn: "@check", Ty: mir2.TyVoid}, nil
+		}
+		// @propagate — propagate error from fallible call to caller.
+		// Expands to: RET C (1 byte! conditional return on carry)
+		if p.l.isIdent("propagate") {
+			p.l.next()
+			return &hir.CallExpr{Fn: "@propagate", Ty: mir2.TyVoid}, nil
+		}
 		if p.l.isIdent("target") {
 			p.l.next()
 			if _, err := p.l.eat(tokLParen); err != nil {
