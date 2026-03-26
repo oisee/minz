@@ -1882,6 +1882,29 @@ func peepholeCleanup(asm string) string {
 			}
 			continue
 		}
+		// Constant multiply optimization: if B holds a known constant K and
+		// we have a GPU-optimal sequence for A×K→A, inline it directly.
+		// Saves ~60T vs the general __mul8 loop (80T).
+		if (strings.HasPrefix(line, "CALL __mul8") || strings.HasPrefix(line, "JP __mul8")) &&
+			resolveBValue(result) > 0 {
+			k := resolveBValue(result)
+			mulTable := GetMulOptTable()
+			if entry := mulTable.Lookup(k, false); entry != nil {
+				// Strip the LD B, K (dead — constant is baked into the sequence)
+				if len(result) > 0 && strings.TrimSpace(result[len(result)-1]) == fmt.Sprintf("LD B, %d", k) {
+					result = result[:len(result)-1]
+				}
+				result = append(result, fmt.Sprintf("    ; mul×%d (GPU-optimal, %dT)", k, entry.TStates))
+				for _, op := range entry.Ops {
+					result = append(result, "    "+op)
+				}
+				if i+1 < len(lines) {
+					next := strings.TrimSpace(lines[i+1])
+					if strings.HasPrefix(next, "LD A, ") { i++ }
+				}
+				continue
+			}
+		}
 		if strings.HasPrefix(line, "CALL __mul8") || strings.HasPrefix(line, "JP __mul8") {
 			idx := inlineCounter
 			inlineCounter++
