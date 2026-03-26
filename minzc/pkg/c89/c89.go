@@ -143,6 +143,10 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 	// These are cosmetic (warnings/hints) — no codegen effect on Z80.
 	src = stripC23Attributes(src)
 
+	// Process C23 _BitInt(N) → Z80 native types.
+	// N=1..8 → uint8_t, N=9..16 → uint16_t, N=17..32 → uint32_t, else → error comment.
+	src = preprocessBitInt(src)
+
 	// Strip C23 digit separators: 1'000 → 1000, 0xFF'FF → 0xFFFF.
 	// Safe: only matches digit'digit, never touches char literals ('A').
 	src = stripDigitSeparators(src)
@@ -312,6 +316,38 @@ func parseCommentDirectives(src string) ([]hir.Assert, []hir.Sandbox) {
 	}
 
 	return asserts, sandboxes
+}
+
+// bitIntRe matches C23 _BitInt(N) type specifier.
+var bitIntRe = regexp.MustCompile(`_BitInt\(\s*(\d+)\s*\)`)
+
+// preprocessBitInt replaces _BitInt(N) with Z80-native types.
+//
+//	_BitInt(1)..._BitInt(8)   → uint8_t
+//	_BitInt(9)..._BitInt(16)  → uint16_t
+//	_BitInt(17)..._BitInt(32) → uint32_t
+//	_BitInt(>32)              → /* _BitInt(N) error: too wide for Z80 */ int
+func preprocessBitInt(src string) string {
+	return bitIntRe.ReplaceAllStringFunc(src, func(match string) string {
+		m := bitIntRe.FindStringSubmatch(match)
+		if m == nil {
+			return match
+		}
+		n, err := strconv.Atoi(m[1])
+		if err != nil || n < 1 {
+			return match
+		}
+		switch {
+		case n <= 8:
+			return "uint8_t"
+		case n <= 16:
+			return "uint16_t"
+		case n <= 32:
+			return "uint32_t"
+		default:
+			return fmt.Sprintf("/* _BitInt(%d): too wide for Z80 (max 32) */ int", n)
+		}
+	})
 }
 
 // digitSepRe matches C23 digit separators: digit'digit (e.g. 1'000, 0xFF'FF).
