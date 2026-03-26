@@ -3762,6 +3762,15 @@ type PostfixExpression struct {
 	TypeName               *TypeName
 }
 
+// FieldOffset returns the byte offset of the selected field (for Select/PSelect).
+// Returns -1 if no field info is available.
+func (n *PostfixExpression) FieldOffset() int64 {
+	if n.field == nil {
+		return -1
+	}
+	return n.field.Offset()
+}
+
 // String implements fmt.Stringer.
 func (n *PostfixExpression) String() string { return PrettyString(n) }
 

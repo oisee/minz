@@ -96,6 +96,11 @@ func (l *lowerer) structTag(st *cc.StructType) string {
 	return t.SrcStr()
 }
 
+func (l *lowerer) unionTag(ut *cc.UnionType) string {
+	t := ut.Tag()
+	return t.SrcStr()
+}
+
 // boolNormalize wraps an expression so that any non-zero value becomes 1.
 // Implements C99 _Bool semantics: `_Bool b = 42` → `b = 1`.
 func boolNormalize(e hir.Expr) hir.Expr {
@@ -235,33 +240,62 @@ func (l *lowerer) lowerStructDecl(tag string, st *cc.StructType) {
 			continue
 		}
 		fname := f.Name()
-		if fname == "" {
+		isAnonymous := fname == ""
+		if isAnonymous {
 			fname = fmt.Sprintf("_f%d", i)
 		}
 		fty := f.Type()
-		// Flatten embedded struct fields: `Point origin` → `origin.x`, `origin.y`.
-		// This ensures correct byte layout and field offset computation.
-		if fty != nil && fty.Kind() == cc.Struct {
-			innerSt, ok := fty.(*cc.StructType)
-			if ok {
-				innerTag := l.structTag(innerSt)
-				if innerTag == "" {
-					innerTag = fname
+		// Flatten embedded struct/union fields into parent.
+		// Named: `Point origin` → `origin.x`, `origin.y` (prefixed)
+		// Anonymous (C11): `struct { uint8_t x; uint8_t y; };` → `x`, `y` (no prefix)
+		if fty != nil && (fty.Kind() == cc.Struct || fty.Kind() == cc.Union) {
+			var innerFields []mir2.StructField
+			if fty.Kind() == cc.Struct {
+				innerSt, ok := fty.(*cc.StructType)
+				if ok {
+					innerTag := l.structTag(innerSt)
+					if innerTag == "" {
+						innerTag = fname
+					}
+					if l.structs[innerTag] == nil {
+						l.lowerStructDecl(innerTag, innerSt)
+					}
+					if inner := l.structs[innerTag]; inner != nil {
+						innerFields = inner.Fields
+					}
 				}
-				// Ensure inner struct is lowered first.
-				if l.structs[innerTag] == nil {
-					l.lowerStructDecl(innerTag, innerSt)
+			} else {
+				innerUt, ok := fty.(*cc.UnionType)
+				if ok {
+					innerTag := l.unionTag(innerUt)
+					if innerTag == "" {
+						innerTag = fname
+					}
+					if l.structs[innerTag] == nil {
+						l.lowerUnionDecl(innerTag, innerUt)
+					}
+					if inner := l.structs[innerTag]; inner != nil {
+						innerFields = inner.Fields
+					}
 				}
-				// Flatten: add inner fields with prefixed names.
-				if inner := l.structs[innerTag]; inner != nil {
-					for _, sf := range inner.Fields {
+			}
+			if innerFields != nil {
+				for _, sf := range innerFields {
+					if isAnonymous {
+						// C11 anonymous: promote fields directly (no prefix)
+						mst.Fields = append(mst.Fields, mir2.StructField{
+							Name: sf.Name,
+							Ty:   sf.Ty,
+						})
+					} else {
+						// Named embedded: prefix with field name
 						mst.Fields = append(mst.Fields, mir2.StructField{
 							Name: fname + "." + sf.Name,
 							Ty:   sf.Ty,
 						})
 					}
-					continue
 				}
+				continue
 			}
 		}
 		mst.Fields = append(mst.Fields, mir2.StructField{
@@ -1334,7 +1368,11 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 		}
 		field := pf.Token2.SrcStr()
 		ty := fl.low.mapType(pf.Type())
-		offset := fl.resolveFieldOffset(pf.PostfixExpression.Type(), field)
+		// Prefer cc parser's field offset (handles anonymous structs/unions correctly).
+		offset := int(pf.FieldOffset())
+		if offset < 0 {
+			offset = fl.resolveFieldOffset(pf.PostfixExpression.Type(), field)
+		}
 		// Flatten nested struct access: if base is a FieldExpr for an embedded struct,
 		// combine offsets instead of nesting (FieldExpr always does Load, which is wrong
 		// for embedded struct intermediate access).
@@ -1350,7 +1388,10 @@ func (fl *funcLow) lowerPostfix(pf *cc.PostfixExpression) (*exprResult, error) {
 		}
 		field := pf.Token2.SrcStr()
 		ty := fl.low.mapType(pf.Type())
-		offset := fl.resolveFieldOffset(pf.PostfixExpression.Type(), field)
+		offset := int(pf.FieldOffset())
+		if offset < 0 {
+			offset = fl.resolveFieldOffset(pf.PostfixExpression.Type(), field)
+		}
 		// Flatten: ptr->inner.field where inner is embedded.
 		if fe, ok := base.(*hir.FieldExpr); ok {
 			return wrapExpr(&hir.FieldExpr{X: fe.X, Field: field, Offset: fe.Offset + offset, Ty: ty}), nil
@@ -1477,6 +1518,10 @@ func (fl *funcLow) lowerUnary(ue *cc.UnaryExpression) (*exprResult, error) {
 			return wrapExpr(&hir.IntLitExpr{Val: constToInt64(v), Ty: mir2.TyU16}), nil
 		}
 		return wrapExpr(&hir.IntLitExpr{Val: 0, Ty: mir2.TyU16}), nil
+
+	case cc.UnaryExpressionAlignofExpr, cc.UnaryExpressionAlignofType:
+		// Z80 is byte-addressed — alignment is always 1 for all types.
+		return wrapExpr(&hir.IntLitExpr{Val: 1, Ty: mir2.TyU16}), nil
 
 	case cc.UnaryExpressionAddrof: // &x
 		inner, err := fl.lowerExprAsExpr(ue.CastExpression)

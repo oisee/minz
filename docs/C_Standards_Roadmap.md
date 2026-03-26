@@ -75,12 +75,13 @@ MinZ C frontend progression toward modern C standards on Z80.
 | `u8""`/`u""`/`U""` string prefixes | Z80: ASCII only, no Unicode |
 | `_Alignas(N)` | Z80: byte-addressed, alignment always 1 |
 
-### 📋 TODO
+### ✅ Recently Added
 
-| Feature | Difficulty | Notes |
-|---------|-----------|-------|
-| Anonymous structs/unions | Medium | Flatten unnamed member fields into parent namespace. Affects `lowerStructDecl()` + `resolveFieldOffset()`. |
-| `_Alignof` operator | Small | Return 1 for all types on Z80 (byte-addressed). |
+| Feature | Implementation | Notes |
+|---------|---------------|-------|
+| Anonymous structs/unions | `lowerStructDecl()` + `FieldOffset()` | Fields promoted into parent — no prefix. Uses cc parser's field offset for correct anonymous member resolution. |
+| `_Alignof` / `_Alignof(expr)` | `lowerUnary()` | Returns 1 for all types (Z80 = byte-addressed) |
+| `typeof` | Already worked via `modernc.org/cc` | Parser resolves typeof to underlying type, `mapType()` handles it |
 
 ---
 
