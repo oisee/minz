@@ -141,3 +141,5 @@ progress-*.txt
 
 # Showcase snapshots: track assembly evolution over time
 !reports/showcase-src/**/*.a80
+research/paper-a/data/exhaustive_5v_complete.jsonl
+research/paper-a/data/exhaustive_4v_complete.jsonl
