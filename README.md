@@ -59,24 +59,59 @@ let unwrap (opt : u16) (def : u8) : u8 =
   | None   -> def
 ```
 
-### ★ NEW: @error — Z80-Native Error Propagation | [Codegen Report](docs/Error_Propagation_Codegen.md) | [Design](docs/Error_Propagation_Design.md)
+### ★ NEW: @error — Z80-Native Error Propagation + `?` Enforcement | [Codegen](docs/Error_Propagation_Codegen.md) | [Design](docs/Error_Propagation_Design.md)
 
 **CY flag + A register.** `@error(N)` → `SCF / LD A, N / RET` (2 bytes). `@propagate` → `RET C` (**1 byte!** — conditional return on carry). The Z80 was designed for this pattern.
 
+**Layer 2: Parser enforcement.** Functions ending with `?` are fallible — the compiler **requires** `@check` or `@propagate` after every `?`-call. Forget it → compile error.
+
 ```nanz
-fun safe_div(a: u8, b: u8) -> u8 {
+fun safe_div?(a: u8, b: u8) -> u8 {
     if b == 0 { @error(1) }     // SCF / LD A, 1 / RET
     return a / b
 }
 
 fun compute(a: u8, b: u8) -> u8 {
-    var x: u8 = safe_div(a, b)
+    var x: u8 = safe_div?(a, b)
     @propagate                   // RET C — 1 byte propagation!
     return x + 1
 }
+
+// Forgetting @check/@propagate after safe_div?() → COMPILE ERROR
 ```
 
-No Result types, no exceptions, no runtime overhead. Pure CPU flags. [Example →](examples/nanz/14_error_propagation.nanz)
+No Result types, no exceptions, no runtime overhead. Pure CPU flags + compiler enforcement. [Example →](examples/nanz/14_error_propagation.nanz) | [Enforcement →](examples/nanz/15_error_enforcement.nanz)
+
+---
+
+### ★ NEW: C99/C11/C17/C23 Standards Sprint | [Roadmap](docs/C_Standards_Roadmap.md)
+
+**C frontend leveled up.** 5 new libc headers, C23 `bool`/`true`/`false` as keywords, array designated initializers, `__STDC_VERSION__ = 201710L`. Most C99/C11 features already worked (modernc.org/cc parser) — we just needed the headers.
+
+```c
+#include <stdbool.h>          // or just use bool — it's a C23 keyword now
+#include <ctype.h>            // 17 inline funcs, zero lookup table overhead
+
+bool is_valid(char c) {
+    return isalpha(c) || c == '_';
+}
+
+uint8_t lut[256] = {[0] = 1, [42] = 99, [255] = 42};  // C99 designated init
+```
+
+**New headers:** `stdbool.h`, `assert.h`, `ctype.h`, `stdalign.h`, `stdnoreturn.h` | **350/350** corpus asserts | **Next:** `#embed` (C23) — binary include for sprites, fonts, GPU lookup tables
+
+---
+
+### ★ NEW: MZA INCBIN — Binary Data Embedding
+
+```z80
+sprite_data:  INCBIN "player.spr"              ; entire file
+font_8x8:    INCBIN "font.bin", 0, 768         ; first 768 bytes
+mul_table:   INCBIN "mulopt8.bin", 128          ; skip header
+```
+
+**Embed binary blobs directly in assembly.** Perfect for sprites, fonts, GPU-precomputed lookup tables. Optional offset + length slicing. [GPU tables ready →](https://github.com/oisee/z80-optimizer)
 
 ---
 

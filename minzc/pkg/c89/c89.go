@@ -44,6 +44,12 @@ const z80Predefined = `
 #define NULL ((void*)0)
 #define __Z80__ 1
 #define __MINZ__ 1
+#define __STDC__ 1
+#define __STDC_VERSION__ 201710L
+#define __STDC_HOSTED__ 0
+#define bool _Bool
+#define true 1
+#define false 0
 typedef unsigned char uint8_t;
 typedef signed char int8_t;
 typedef unsigned int uint16_t;

@@ -348,6 +348,10 @@ func (l *lexer) tokenize() {
 				for l.pos < len(l.src) && isIdentCont(l.src[l.pos]) {
 					l.pos++
 				}
+				// Allow trailing '?' for fallible function names (e.g. safe_div?)
+				if l.pos < len(l.src) && l.src[l.pos] == '?' {
+					l.pos++
+				}
 				l.emit(tokIdent, string(l.src[start:l.pos]), line)
 				continue
 			}
@@ -2730,7 +2734,59 @@ func (p *parser) parseBlock() (*hir.Block, error) {
 	if _, err := p.l.eat(tokRBrace); err != nil {
 		return nil, err
 	}
+	// Layer 2: enforce @check/@propagate after calls to fallible functions (name?)
+	if err := p.enforceFallibleCalls(stmts); err != nil {
+		return nil, err
+	}
 	return &hir.Block{Body: stmts}, nil
+}
+
+// enforceFallibleCalls checks that every call to a function whose name ends
+// with '?' is immediately followed by @check or @propagate.
+func (p *parser) enforceFallibleCalls(stmts []hir.Stmt) error {
+	for i, s := range stmts {
+		fn := extractFallibleCall(s)
+		if fn == "" {
+			continue
+		}
+		// Next statement must be @check or @propagate
+		if i+1 < len(stmts) {
+			if isCheckOrPropagate(stmts[i+1]) {
+				continue
+			}
+		}
+		return fmt.Errorf("call to fallible function %s must be followed by @check or @propagate", fn)
+	}
+	return nil
+}
+
+// extractFallibleCall returns the function name if the statement contains a
+// call to a function ending with '?', or "" otherwise.
+func extractFallibleCall(s hir.Stmt) string {
+	switch st := s.(type) {
+	case *hir.ExprStmt:
+		if c, ok := st.Expr.(*hir.CallExpr); ok && strings.HasSuffix(c.Fn, "?") {
+			return c.Fn
+		}
+	case *hir.VarDeclStmt:
+		if c, ok := st.Init.(*hir.CallExpr); ok && strings.HasSuffix(c.Fn, "?") {
+			return c.Fn
+		}
+	}
+	return ""
+}
+
+// isCheckOrPropagate returns true if the statement is @check or @propagate.
+func isCheckOrPropagate(s hir.Stmt) bool {
+	st, ok := s.(*hir.ExprStmt)
+	if !ok {
+		return false
+	}
+	c, ok := st.Expr.(*hir.CallExpr)
+	if !ok {
+		return false
+	}
+	return c.Fn == "@check" || c.Fn == "@propagate"
 }
 
 func (p *parser) parseStmt() (hir.Stmt, error) {

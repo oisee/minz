@@ -691,13 +691,46 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			}
 			totalBytes := st.ArrayLen * elemBytes
 			globalName := l.mf.Name + "$" + st.Name
+			initBytes := make([]byte, totalBytes)
+			// Pre-populate from Initial (array designated/positional init)
+			for i, expr := range st.Initial {
+				if expr == nil {
+					continue
+				}
+				if lit, ok := expr.(*IntLitExpr); ok {
+					off := i * elemBytes
+					if off < totalBytes {
+						initBytes[off] = byte(lit.Val)
+						if elemBytes >= 2 && off+1 < totalBytes {
+							initBytes[off+1] = byte(lit.Val >> 8)
+						}
+					}
+				}
+			}
 			l.m.Globals = append(l.m.Globals, mir2.Global{
 				Name: globalName,
 				Ty:   mir2.NewArray(st.Ty, st.ArrayLen),
-				Init: make([]byte, totalBytes),
+				Init: initBytes,
 			})
 			r = l.bld.AddrOf(globalName, mir2.ClassPointer)
 			l.localArrays[st.Name] = true
+			// For non-constant initializers, emit runtime stores
+			for i, expr := range st.Initial {
+				if expr == nil {
+					continue
+				}
+				if _, ok := expr.(*IntLitExpr); ok {
+					continue // already in initBytes
+				}
+				val := l.lowerExpr(expr)
+				off := i * elemBytes
+				if off == 0 {
+					l.bld.Store(r, val, st.Ty)
+				} else {
+					addr := l.bld.Add(r, l.bld.Const(int64(off), mir2.TyU16, mir2.ClassPointer), mir2.TyU16, mir2.ClassPointer)
+					l.bld.Store(addr, val, st.Ty)
+				}
+			}
 		} else {
 			r = l.bld.Const(0, st.Ty, classForExpr(st.Ty))
 		}

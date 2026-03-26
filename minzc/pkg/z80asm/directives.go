@@ -2,6 +2,8 @@ package z80asm
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -28,6 +30,8 @@ func (a *Assembler) processDirective(line *Line) error {
 		return a.handleEND(line)
 	case "INCLUDE":
 		return a.handleINCLUDE(line)
+	case "INCBIN":
+		return a.handleINCBIN(line)
 	case "MACRO":
 		return a.handleMACRO(line)
 	case "ENDM":
@@ -416,6 +420,63 @@ func (a *Assembler) handleEND(line *Line) error {
 			a.hasEntryPoint = true
 		}
 	}
+	return nil
+}
+
+// handleINCBIN includes a binary file verbatim as data bytes.
+// Syntax: INCBIN "filename" [,offset [,length]]
+func (a *Assembler) handleINCBIN(line *Line) error {
+	if len(line.Operands) < 1 {
+		return fmt.Errorf("INCBIN requires a filename")
+	}
+
+	// Parse filename (strip quotes)
+	filename := line.Operands[0]
+	if isString(filename) {
+		filename = parseString(filename)
+	}
+
+	// Resolve relative to source directory
+	if !filepath.IsAbs(filename) && a.sourceDir != "" {
+		filename = filepath.Join(a.sourceDir, filename)
+	}
+
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return fmt.Errorf("INCBIN: %w", err)
+	}
+
+	// Optional offset
+	offset := 0
+	if len(line.Operands) >= 2 {
+		v, err := a.resolveValue(line.Operands[1])
+		if err != nil {
+			return fmt.Errorf("INCBIN offset: %w", err)
+		}
+		offset = v
+		if offset < 0 || offset > len(data) {
+			return fmt.Errorf("INCBIN offset %d out of range (file is %d bytes)", offset, len(data))
+		}
+	}
+
+	// Optional length
+	length := len(data) - offset
+	if len(line.Operands) >= 3 {
+		v, err := a.resolveValue(line.Operands[2])
+		if err != nil {
+			return fmt.Errorf("INCBIN length: %w", err)
+		}
+		length = v
+		if length < 0 || offset+length > len(data) {
+			return fmt.Errorf("INCBIN length %d out of range (available: %d bytes from offset %d)", length, len(data)-offset, offset)
+		}
+	}
+
+	// Emit bytes
+	for _, b := range data[offset : offset+length] {
+		a.EmitByte(b)
+	}
+	a.currentAddr += length
 	return nil
 }
 

@@ -548,6 +548,22 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 						return nil, err
 					}
 					init = lit
+				} else if decl.Type() != nil && decl.Type().Kind() == cc.Array {
+					// Array initializer: {1, 2, 3} or {[2]=10, [4]=20}
+					at := decl.Type().(*cc.ArrayType)
+					elemTy := fl.low.mapType(at.Elem())
+					length := int(at.Len())
+					if length < 1 {
+						length = 1
+					}
+					arrInit, err := fl.lowerArrayInit(elemTy, length, id.Initializer.InitializerList)
+					if err != nil {
+						return nil, err
+					}
+					stmts = append(stmts, &hir.VarDeclStmt{
+						Name: name, Ty: elemTy, ArrayLen: length, Initial: arrInit,
+					})
+					continue
 				}
 			}
 		}
@@ -1862,6 +1878,47 @@ func (fl *funcLow) lowerStructInit(st *mir2.StructTy, il *cc.InitializerList) (*
 		fieldIdx++
 	}
 	return lit, nil
+}
+
+// lowerArrayInit converts C array initializer list to HIR Initial slice.
+// Handles both positional {1, 2, 3} and designated {[2]=10, [4]=20} forms.
+func (fl *funcLow) lowerArrayInit(elemTy mir2.Ty, length int, il *cc.InitializerList) ([]hir.Expr, error) {
+	result := make([]hir.Expr, length)
+	// Fill with zeros
+	for i := range result {
+		result[i] = &hir.IntLitExpr{Val: 0, Ty: elemTy}
+	}
+	idx := 0
+	for ; il != nil; il = il.InitializerList {
+		init := il.Initializer
+		if init == nil {
+			continue
+		}
+		// Check for [index] designator
+		if il.Designation != nil {
+			if dl := il.Designation.DesignatorList; dl != nil && dl.Designator != nil {
+				d := dl.Designator
+				if d.Case == cc.DesignatorIndex {
+					idx = int(constToInt64(d.ConstantExpression.Value()))
+				}
+			}
+		}
+		if idx < 0 || idx >= length {
+			idx = 0 // safety: skip out-of-bounds
+		}
+		switch init.Case {
+		case cc.InitializerExpr:
+			if init.AssignmentExpression != nil {
+				r, err := fl.lowerExpr(init.AssignmentExpression)
+				if err != nil {
+					return nil, err
+				}
+				result[idx] = r.toExpr()
+			}
+		}
+		idx++
+	}
+	return result, nil
 }
 
 func constToInt64(v cc.Value) int64 {
