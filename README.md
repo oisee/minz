@@ -102,7 +102,7 @@ bool is_valid(char c) {
 uint8_t lut[256] = {[0] = 1, [42] = 99, [255] = 42};  // C99 designated init
 ```
 
-**New headers:** `stdbool.h`, `assert.h`, `ctype.h`, `stdalign.h`, `stdnoreturn.h` | **350/350** corpus asserts | **Next:** `#embed` (C23) — binary include for sprites, fonts, GPU lookup tables
+**13/13 C23 features:** `#embed`, `nullptr`, `constexpr`, `_BitInt(N)`, `[[attributes]]`, `<stdbit.h>`, `auto`, `typeof`, digit separators, enum underlying type, `bool` keywords, `static_assert`, `__builtin_unreachable` | **619/619** corpus asserts | [C23 Book (epub)](docs/C23_on_Z80_Book.epub) | [C23 Book (pdf)](docs/C23_on_Z80_Book.pdf)
 
 ---
 

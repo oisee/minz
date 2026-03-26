@@ -54,6 +54,8 @@ const z80Predefined = `
 #define false 0
 #define nullptr ((void*)0)
 #define constexpr const
+static inline void unreachable(void) { for(;;); }
+#define __builtin_unreachable() unreachable()
 typedef unsigned char uint8_t;
 typedef signed char int8_t;
 typedef unsigned int uint16_t;
@@ -136,6 +138,18 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 		src = cleaned
 		importedModules = mods
 	}
+
+	// Strip C23 [[attribute]] annotations before cc/v4 sees the source.
+	// These are cosmetic (warnings/hints) — no codegen effect on Z80.
+	src = stripC23Attributes(src)
+
+	// Process C23 _BitInt(N) → Z80 native types.
+	// N=1..8 → uint8_t, N=9..16 → uint16_t, N=17..32 → uint32_t, else → error comment.
+	src = preprocessBitInt(src)
+
+	// Strip C23 digit separators: 1'000 → 1000, 0xFF'FF → 0xFFFF.
+	// Safe: only matches digit'digit, never touches char literals ('A').
+	src = stripDigitSeparators(src)
 
 	// Process C23 #embed directives before cc/v4 sees the source.
 	// #embed "file" → comma-separated byte values inline.
@@ -302,6 +316,62 @@ func parseCommentDirectives(src string) ([]hir.Assert, []hir.Sandbox) {
 	}
 
 	return asserts, sandboxes
+}
+
+// bitIntRe matches C23 _BitInt(N) type specifier.
+var bitIntRe = regexp.MustCompile(`_BitInt\(\s*(\d+)\s*\)`)
+
+// preprocessBitInt replaces _BitInt(N) with Z80-native types.
+//
+//	_BitInt(1)..._BitInt(8)   → uint8_t
+//	_BitInt(9)..._BitInt(16)  → uint16_t
+//	_BitInt(17)..._BitInt(32) → uint32_t
+//	_BitInt(>32)              → /* _BitInt(N) error: too wide for Z80 */ int
+func preprocessBitInt(src string) string {
+	return bitIntRe.ReplaceAllStringFunc(src, func(match string) string {
+		m := bitIntRe.FindStringSubmatch(match)
+		if m == nil {
+			return match
+		}
+		n, err := strconv.Atoi(m[1])
+		if err != nil || n < 1 {
+			return match
+		}
+		switch {
+		case n <= 8:
+			return "uint8_t"
+		case n <= 16:
+			return "uint16_t"
+		case n <= 32:
+			return "uint32_t"
+		default:
+			return fmt.Sprintf("/* _BitInt(%d): too wide for Z80 (max 32) */ int", n)
+		}
+	})
+}
+
+// digitSepRe matches C23 digit separators: digit'digit (e.g. 1'000, 0xFF'FF).
+// Safe: [0-9a-fA-F]'[0-9a-fA-F] never matches char literals ('A').
+var digitSepRe = regexp.MustCompile(`([0-9a-fA-F])'([0-9a-fA-F])`)
+
+// stripDigitSeparators removes C23 digit separators from numeric literals.
+// Applied repeatedly to handle multiple separators (1'000'000 → 1000000).
+func stripDigitSeparators(src string) string {
+	for digitSepRe.MatchString(src) {
+		src = digitSepRe.ReplaceAllString(src, "${1}${2}")
+	}
+	return src
+}
+
+// c23AttrRe matches C23 [[attribute]] annotations.
+// Fixed set: maybe_unused, nodiscard, deprecated, noreturn, fallthrough,
+// _Noreturn, unsequenced, reproducible. Optional ("msg") argument.
+var c23AttrRe = regexp.MustCompile(`\[\[\s*(?:maybe_unused|nodiscard|noreturn|_Noreturn|fallthrough|unsequenced|reproducible|deprecated(?:\s*\([^)]*\))?)\s*\]\]`)
+
+// stripC23Attributes removes [[attribute]] annotations from C23 source.
+// These are cosmetic hints (warnings) — no codegen effect on Z80.
+func stripC23Attributes(src string) string {
+	return c23AttrRe.ReplaceAllString(src, "")
 }
 
 // embedRe matches: #embed "filename" or #embed <filename>
