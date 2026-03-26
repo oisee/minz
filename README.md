@@ -15,6 +15,12 @@
 
 5 уровней: GPU таблица (87%, O(1), доказуемо оптимально) → Z3 (99%+, секунды) → перебор с отсечением 745,000x (99.9%) → декомпозиция на острова (потеря ≤6%) → PBQP эвристика (100%). Каждая функция компилируется. Таблица растёт со временем. [Подробнее](docs/Anytime_Optimal_Register_Allocation.md).
 
+### ★ NEW: [Compositional Register Allocation](research/paper-c-compositional-regalloc.md) — Decomposing Large Problems from Solved Atoms
+
+Can a 6-vreg problem be solved by composing two 3-vreg solutions from the complete table? **Yes.** Split the interference graph at cut vertices, look up each half in the precomputed table, stitch with bounded-cost shuffles. The ≤4v table (156K entries, 40 seconds GPU) is the alphabet — all larger problems are sentences composed from these atoms via graph decomposition. ~99% of 6v shapes decompose this way, with ≤20T overhead. [Paper C outline](research/paper-c-compositional-regalloc.md).
+
+Можно ли решить задачу на 6 регистров, скомпоновав два решения на 3 регистра из готовой таблицы? **Да.** Разрезаем граф интерференции по точкам сочленения, ищем каждую половину в предвычисленной таблице, сшиваем с ограниченной стоимостью. Таблица ≤4v (156K записей, 40 секунд GPU) — это алфавит, все большие задачи — предложения из этих атомов. [Paper C](research/paper-c-compositional-regalloc.md).
+
 ---
 
 ### ★ NEW: [MinZ Weekly #2: The Solver Revolution](reports/MinZ_Weekly_2.md) | [PDF](reports/MinZ_Weekly_2.pdf) | [EPUB](reports/MinZ_Weekly_2.epub)
