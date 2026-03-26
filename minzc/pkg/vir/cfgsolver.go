@@ -110,45 +110,70 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 		}
 	}
 
-	// Inject live-through vregs into per-block liveness.
-	// Block parameters that flow through a block (live-in from edge + live-out
-	// to another edge) but are never referenced in any op within the block are
-	// invisible to computeLiveness. Without this, they don't get clobber
-	// constraints at CALL instructions — the root cause of counter drift.
+	// Compute per-block live-in (from incoming edges) and live-out (to outgoing edges).
+	// Vregs that are live-in AND live-out but not referenced within the block
+	// are "live-through" — they must get clobber constraints at CALL instructions.
+	blockLiveIn := make([]map[int]bool, len(blocks))
+	blockLiveOut := make([]map[int]bool, len(blocks))
+	for i := range blocks {
+		blockLiveIn[i] = make(map[int]bool)
+		blockLiveOut[i] = make(map[int]bool)
+	}
 	for _, edge := range edges {
 		fromBP := blocks[edge.fromBlock]
-		toBP := blocks[edge.toBlock]
 		fromLastIdx := len(fromBP.ops) - 1
 		if fromLastIdx < 0 {
 			continue
 		}
+		for vreg := range fromBP.prob.liveness[fromLastIdx].live {
+			blockLiveOut[edge.fromBlock][vreg] = true
+			blockLiveIn[edge.toBlock][vreg] = true
+		}
+	}
 
-		// Vregs live at the end of fromBlock
-		fromLive := fromBP.prob.liveness[fromLastIdx].live
+	// Inject live-through vregs at CALL/clobber points.
+	// A vreg is live-through block B if it's in liveIn[B] AND
+	// (liveOut[B] OR used-after-call within B).
+	// At each CALL in B, the vreg needs a clobber constraint.
+	for bi, bp := range blocks {
+		liveIn := blockLiveIn[bi]
+		liveOut := blockLiveOut[bi]
+		if len(liveIn) == 0 {
+			continue
+		}
 
-		// For each vreg live across this edge, ensure it's in the
-		// destination block's liveness at ALL instructions.
-		for vreg := range fromLive {
-			// Check if vreg is also live-out of toBP (appears in an outgoing edge)
-			// or is used in toBP. If it's just passing through, it's still live.
-			alreadyInBlock := false
-			for _, l := range toBP.prob.liveness {
+		// ALL live-in vregs must be in the liveness set at every instruction
+		// from block entry until their first use (or block exit if unused).
+		// Without this, a vreg live-in from an edge may be missing from
+		// liveness at a CALL that precedes its first use in the block.
+		for vreg := range liveIn {
+			// Find first instruction in block where vreg is already live
+			firstLive := len(bp.prob.liveness) // default: not live anywhere
+			for i, l := range bp.prob.liveness {
 				if l.live[vreg] {
-					alreadyInBlock = true
+					firstLive = i
 					break
 				}
 			}
-			if !alreadyInBlock {
-				// This vreg flows through toBP without being referenced.
-				// Inject it into liveness only at CLOBBER instructions (CALL/AsmBlock)
-				// so it gets clobber constraints. Don't add to all instructions
-				// (that over-constrains interference, causing unsat).
-				for i, op := range toBP.ops {
-					if !op.Clobbers.IsEmpty() && i < len(toBP.prob.liveness) {
-						toBP.prob.liveness[i].live[vreg] = true
-					}
+			// If live-out but never live in block, it's fully live-through
+			if firstLive == len(bp.prob.liveness) && liveOut[vreg] {
+				firstLive = len(bp.prob.liveness) // inject at all
+			}
+
+			// Inject from instruction 0 up to (and including) firstLive
+			injected := false
+			limit := firstLive
+			if liveOut[vreg] && firstLive == len(bp.prob.liveness) {
+				limit = len(bp.prob.liveness) - 1 // inject at all instructions
+			}
+			for i := 0; i <= limit && i < len(bp.prob.liveness); i++ {
+				if !bp.prob.liveness[i].live[vreg] {
+					bp.prob.liveness[i].live[vreg] = true
+					injected = true
 				}
-				toBP.prob.vregs[vreg] = true
+			}
+			if injected {
+				bp.prob.vregs[vreg] = true
 			}
 		}
 	}
@@ -209,6 +234,17 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 			}
 		}
 		// From liveness (sorted for deterministic Z3 encoding)
+		// Debug liveness injection
+		if os.Getenv("VIR_DEBUG_LIVENESS") != "" {
+			for i, l := range p.liveness {
+				vs := make([]int, 0)
+				for v := range l.live { vs = append(vs, v) }
+				sort.Ints(vs)
+				if len(vs) > 0 {
+					fmt.Fprintf(os.Stderr, "[DEBUG] %s b%d i%d live: %v\n", f.Name, bi, i, vs)
+				}
+			}
+		}
 		for i, l := range p.liveness {
 			liveVRegs := make([]int, 0, len(l.live))
 			for v := range l.live {
