@@ -303,11 +303,35 @@ Average overhead for decomposable shapes: **~3T** (< 2% of typical function cost
 | Treewidth = 4 | 0.4% | Tree DP + table | 0T (exact) |
 | Irreducible | 0.5% | GPU/Z3/backtracking | 0T (exact, slow) |
 
-**99.5% of shapes can be solved from the ≤3v table** via classical graph decomposition. No GPU needed at compile time.
+**For random graphs:** 99.5% solvable from the ≤3v table via classical decomposition.
+
+**For compiler-generated code (empirical correction):** Real interference graphs are denser than random. Treewidth analysis of 54 dense corpus functions (>40% density) shows:
+
+| Treewidth | Fraction | Method |
+|-----------|----------|--------|
+| tw ≤ 3 | 46.3% | Composition from table (exact) |
+| tw = 4 | 35.2% | GPU/backtracking (all ≤15v, <1s) |
+| tw = 5 | 9.3% | Island decomposition + Z3 |
+| tw ≥ 6 | 9.3% | Island decomposition + Z3 |
+
+Compiler-generated interference graphs are biased toward higher treewidth because real programs have tight loops with many simultaneously live variables. The 99.5% random-graph result is a theoretical upper bound; the practical decomposability for dense corpus functions is ~46%.
+
+**However:** ALL tw=4 functions in the corpus have ≤15v — directly solvable by our backtracking solver (745,000x pruning, <1s each). Only 10 functions (1.3% of total corpus) require island decomposition.
+
+### Revised Coverage (honest result)
+
+| Corpus category | Fraction | Method |
+|-----------------|----------|--------|
+| ≤5v (sparse) | 59.4% | Complete table (O(1)) |
+| 6-15v, tw≤3 | ~20% | Composition from table |
+| 6-15v, tw=4 | ~15% | Backtracking (<1s) |
+| 6-15v, tw≥5 | ~4% | Z3 (seconds) |
+| >15v | ~1.6% | Island decomposition |
+| **Total** | **100%** | **Every function compiles** |
 
 ### Implication for Self-Hosting
 
-The ≤3v table has only ~2,744 entries. At ~16 bytes per entry, that's ~44KB — fits in Z80 RAM. Combined with a tree decomposition algorithm (~2KB code), a Z80-native compiler can solve 99.5% of register allocation problems optimally, on the target hardware itself.
+The ≤4v table has 156,506 entries (~2.4MB). Too large for Z80 RAM, but fits on disk. A practical self-hosting compiler would use the corpus-derived table (~315 entries, ~5KB) for O(1) hits on common patterns, with Z3 or backtracking as compile-time fallback for misses. The tree decomposition algorithm (~2KB code) handles the 46% of dense functions that decompose classically.
 
 ---
 
