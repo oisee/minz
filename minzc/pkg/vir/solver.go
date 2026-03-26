@@ -25,6 +25,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/minz/minzc/pkg/mir2"
 )
 
 // SolverOptions controls the unified solver.
@@ -51,6 +53,11 @@ type SolverOptions struct {
 	// Catches: validateNoClobber, missing edge moves, missing move patterns,
 	// clobber exclusions, table ABI mismatches, peephole skips.
 	Strict bool
+
+	// PBQPAlloc: pre-computed PBQP allocation for fallback codegen.
+	// When set and VIR fails, CodegenModule uses mir2.Z80Codegen for
+	// the failed function. Safety net — always correct, SDCC-quality.
+	PBQPAlloc *mir2.AllocResult
 }
 
 // Solve converts a basic block of VIROps into PIROps using Z3 SMT solver.

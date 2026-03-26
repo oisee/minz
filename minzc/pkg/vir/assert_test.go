@@ -1,11 +1,9 @@
 package vir_test
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
@@ -16,67 +14,6 @@ import (
 	"github.com/minz/minzc/pkg/vir"
 )
 
-// removeFuncASM removes a function's ASM from the module output.
-func removeFuncASM(asm, funcName string) string {
-	lines := strings.Split(asm, "\n")
-	var result []string
-	inFunc := false
-	for _, line := range lines {
-		trimmed := strings.TrimSpace(line)
-		if trimmed == funcName+":" {
-			inFunc = true
-			continue
-		}
-		if inFunc && strings.HasSuffix(trimmed, ":") &&
-			!strings.HasPrefix(trimmed, ".") &&
-			!strings.HasPrefix(trimmed, ";") &&
-			!strings.HasPrefix(trimmed, "_") {
-			inFunc = false // next function starts
-		}
-		// Skip ABI comment for this function
-		if !inFunc && strings.Contains(line, "fun "+funcName+"(") {
-			continue
-		}
-		// Skip trace comment
-		if !inFunc && strings.Contains(line, "[trace] backend=") && strings.Contains(line, funcName) {
-			continue
-		}
-		if !inFunc {
-			result = append(result, line)
-		}
-	}
-	return strings.Join(result, "\n")
-}
-
-// extractFuncASM extracts a single function's ASM from full module output.
-// Looks for "funcname:" label and collects until the next function label.
-func extractFuncASM(asm, funcName string) string {
-	lines := strings.Split(asm, "\n")
-	var result []string
-	inFunc := false
-	for _, line := range lines {
-		trimmed := strings.TrimSpace(line)
-		// Function label: "funcname:" (not local label, not comment)
-		if trimmed == funcName+":" {
-			inFunc = true
-		} else if inFunc && strings.HasSuffix(trimmed, ":") &&
-			!strings.HasPrefix(trimmed, ".") &&
-			!strings.HasPrefix(trimmed, ";") &&
-			!strings.HasPrefix(trimmed, "_") {
-			// Next function label — stop
-			break
-		}
-		// Also collect ABI comment before function
-		if !inFunc && strings.Contains(line, "fun "+funcName+"(") {
-			result = append(result, line)
-			continue
-		}
-		if inFunc {
-			result = append(result, line)
-		}
-	}
-	return strings.Join(result, "\n")
-}
 
 // runVIRAsserts compiles Nanz source through VIR and runs both MIR2-VM and Z80 asserts.
 func runVIRAsserts(t *testing.T, name, src string) {
@@ -134,39 +71,23 @@ func runVIRAsserts(t *testing.T, name, src string) {
 		t.Fatalf("MIR2-VM: %v", err)
 	}
 
-	// VIR codegen with per-function param locs
+	// VIR codegen with PBQP fallback for failed functions
 	virAsm, results := vir.CodegenModule(m, vir.SolverOptions{
 		Timeout:       30 * time.Second,
 		FuncParamLocs: funcParamLocs,
+		PBQPAlloc:     combined,
 	})
-
-	// PBQP fallback: for functions VIR couldn't solve, splice PBQP ASM.
-	// Generate full PBQP module, extract per-function blocks.
-	failedFuncs := make(map[string]bool)
 	for _, r := range results {
 		if !r.OK {
-			failedFuncs[r.Name] = true
+			t.Fatalf("VIR+PBQP codegen %s: %s", r.Name, r.Error)
 		}
 	}
 
-	if len(failedFuncs) > 0 {
-		// Fallback to full PBQP output for the module.
-		// Note: PBQP may also fail for these functions (pre-existing MIR2 bugs).
-		virAsm = mir2.Z80Codegen(m, combined)
-		for fname := range failedFuncs {
-			t.Logf("%s: VIR→PBQP fallback", fname)
-		}
-	}
-
-	// Z80 asserts on combined VIR+PBQP output
+	// Z80 asserts on VIR+PBQP output
 	if err := pipeline.RunAssertsZ80(hm, m, combined, virAsm); err != nil {
 		t.Errorf("Z80: %v", err)
 	} else {
-		suffix := ""
-		if len(failedFuncs) > 0 {
-			suffix = fmt.Sprintf(" (%d PBQP fallback)", len(failedFuncs))
-		}
-		t.Logf("%s: %d asserts passed ✓ (MIR2-VM + Z80)%s", name, len(hm.Asserts), suffix)
+		t.Logf("%s: %d asserts passed ✓ (MIR2-VM + Z80)", name, len(hm.Asserts))
 	}
 }
 

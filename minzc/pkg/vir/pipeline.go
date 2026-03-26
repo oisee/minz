@@ -22,6 +22,38 @@ type FuncResult struct {
 	ASM   string
 }
 
+// extractFuncFromASM extracts a single function's ASM from full module output.
+func extractFuncFromASM(asm, funcName string) string {
+	lines := strings.Split(asm, "\n")
+	var result []string
+	inFunc := false
+	for _, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == funcName+":" {
+			inFunc = true
+		} else if inFunc && strings.HasSuffix(trimmed, ":") &&
+			!strings.HasPrefix(trimmed, ".") &&
+			!strings.HasPrefix(trimmed, ";") &&
+			!strings.HasPrefix(trimmed, "_") {
+			break
+		}
+		if !inFunc && strings.Contains(line, "fun "+funcName+"(") {
+			result = append(result, line)
+			continue
+		}
+		if inFunc {
+			result = append(result, line)
+		}
+	}
+	return strings.Join(result, "\n")
+}
+
+// PBQPFallback holds pre-computed PBQP allocation for fallback codegen.
+// When set, CodegenModule uses PBQP ASM for functions that VIR can't solve.
+type PBQPFallback struct {
+	AllocResult *mir2.AllocResult
+}
+
 // CodegenModule runs the VIR unified solver on all functions in a MIR2 module.
 // Returns assembly text and per-function results.
 func CodegenModule(m *mir2.Module, opts SolverOptions) (string, []FuncResult) {
@@ -133,9 +165,27 @@ func CodegenModule(m *mir2.Module, opts SolverOptions) (string, []FuncResult) {
 		}
 		r := FuncResult{Name: f.Name}
 		if err != nil {
-			r.Error = err.Error()
-			if opts.Verbose {
-				fmt.Fprintf(os.Stderr, "[vir] %s: %v\n", f.Name, err)
+			// PBQP fallback: if VIR fails and PBQP allocation is available,
+			// generate PBQP ASM for this function as safety net.
+			if opts.PBQPAlloc != nil {
+				// Generate full PBQP module, extract this function's ASM
+				fullPBQP := mir2.Z80Codegen(m, opts.PBQPAlloc)
+				pbqpASM := extractFuncFromASM(fullPBQP, f.Name)
+				if pbqpASM != "" {
+					r.OK = true
+					r.ASM = pbqpASM
+					sb.WriteString("; VIR→PBQP fallback for " + f.Name + "\n")
+					sb.WriteString(pbqpASM)
+					sb.WriteByte('\n')
+					fmt.Fprintf(os.Stderr, "[vir] %s: PBQP fallback (%v)\n", f.Name, err)
+				} else {
+					r.Error = err.Error()
+				}
+			} else {
+				r.Error = err.Error()
+				if opts.Verbose {
+					fmt.Fprintf(os.Stderr, "[vir] %s: %v\n", f.Name, err)
+				}
 			}
 		} else {
 			r.OK = true
