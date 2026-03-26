@@ -150,10 +150,10 @@ Each island is provably optimal (exhaustive GPU search). Total function cost = �
 |----------|--------|----------|---------|---------|--------|
 | main | 18 | 2 | 2 | 4T | 184T |
 | _prompt | 21 | 4 | 2 | 8T | 179T |
-| _prow | 28 | 3 | 2 | 8T | partial (1/2) |
-| _sel_rows | 37 | 10 | 4 | 52T | partial (2/4) |
+| _prow | 28 | 3 | 3 | 8T | 2/3 solved (VIR-level split) |
+| _sel_rows | 37 | 10 | 3 | ~24T | per-call split (accumulator contention) |
 
-`main` and `_prompt` fully decomposed and GPU-solved. `_prow` and `_sel_rows` partially solved — remaining islands have dense interference requiring further decomposition or interference-aware pruning (future work).
+`main` and `_prompt` fully decomposed with provably optimal costs (184T and 183T respectively, backtracking <1s each). `_prow` splits into 3 islands (14v+15v+12v) via VIR-level splitting. `_sel_rows` requires per-call-site splitting due to accumulator contention in unrolled loop (3 islands, 14v+14v+9v). Island splitter now operates at VIR level — no more constraint narrowing bugs.
 
 ### 5.3 Interference Sparsity
 
@@ -176,6 +176,8 @@ For islands where brute-force GPU search exceeds budget (15^15 = 437 trillion), 
 | _prompt_island0 | 14 | 18 | 11.1T | 23.4B | 475× |
 
 The pruning factor correlates inversely with interference density: sparser graphs → more pruning → faster solve. This shifts the tractability frontier: not just ≤8v functions (Paper A), but any function whose interference graph is sparse enough for backtracking to converge.
+
+With pattern-aware location masks + constraint propagation (subsequent improvement): main_island0 reduced from 587M to 350K nodes (1,680x additional speedup, <1s).
 
 **Implication for the phase transition (Paper A, §4.5):** The naive formula max_vregs = ⌊log(B)/log(L)⌋ assumes uniform search. With interference pruning, the effective search space is orders of magnitude smaller, extending tractability well beyond 15 vregs.
 
@@ -201,7 +203,7 @@ If register allocation reduces to table lookup (Paper A) and cross-function opti
 
 ### 6.4 Limitations
 
-**Island splitter correctness:** Current prototype splits at the GPU descriptor level (post-lowering). This can lose pattern constraints that depend on the full function context, producing infeasible sub-problems. Correct splitting must happen at the VIR level, before GPU descriptor construction.
+**Island splitter correctness:** Island splitter now operates at VIR level (fixed). Remaining limitation: unrolled loops with accumulator contention create islands where multiple tied-to-A operations interfere — requires per-call-site granularity, increasing shuffle overhead.
 
 **Conservative boundary interference:** We add interference between ALL caller vregs and ALL callee vregs at boundaries. This over-approximation may prevent some valid merged allocations. Precise boundary interference (only truly live vregs) would improve results.
 

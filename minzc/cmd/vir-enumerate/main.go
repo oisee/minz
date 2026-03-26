@@ -80,12 +80,25 @@ func extractOpClasses(desc *vir.MachineDesc) [][]vir.GPUPatternDesc {
 	return classes
 }
 
+// locSetToSlice converts a LocSet to GPU-mapped location indices (0-14).
+// Uses the same z80→GPU mapping as locSetToGPU in gpu.go.
+var z80ToGPU = map[int]int{
+	0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, // A-L
+	7: 7, 8: 8, 9: 9,                            // BC, DE, HL
+	14: 10, 15: 11, 16: 12, 17: 13,              // IXH, IXL, IYH, IYL
+}
+
 func locSetToSlice(ls vir.LocSet) []int {
 	var result []int
-	for i := 0; i < 64; i++ {
-		if ls.Has(i) {
-			result = append(result, i)
+	ls.ForEach(func(loc int) bool {
+		if gpuLoc, ok := z80ToGPU[loc]; ok {
+			result = append(result, gpuLoc)
 		}
+		return true
+	})
+	if len(result) == 0 {
+		// Unconstrained 8-bit default
+		return []int{0, 1, 2, 3, 4, 5, 6}
 	}
 	return result
 }

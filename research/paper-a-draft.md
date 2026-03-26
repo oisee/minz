@@ -248,7 +248,11 @@ A connection to graph theory: the island-of-optimality decomposition corresponds
 
 **Small benchmark.** The −60% vs SDCC result is on 5 functions. Comprehensive comparison on larger codebases (FatFS, CP/M utilities, games) is future work.
 
-**Table completeness.** The current table covers 39.8% of the corpus (56 entries → 639 functions). Full coverage requires solving all 315 signatures — a one-time GPU computation.
+**Table completeness.** ≤4v shapes are now exhaustively enumerated (156,506 entries in 40 seconds GPU time, covering all functions with ≤4 virtual registers). For ≤5v, 17.2M shapes were enumerated overnight. Full coverage of all 315 corpus signatures is a subset of this exhaustive table.
+
+**Exhaustive enumeration and negative certificates.** Complete enumeration of all ≤4v constraint shapes (156,506 total) revealed that 21.1% (33,053) are provably infeasible — no valid Z80 register assignment exists. These negative certificates allow the compiler to detect impossible allocation patterns in O(1) and immediately trigger spilling or instruction rewriting, rather than searching fruitlessly.
+
+**Island splitter correctness.** The island splitter now operates at the VIR level — splitting ops before GPU descriptor construction, so each island gets fresh pattern matching. ZSQL's 4 large functions (18-37 vregs) successfully decompose into 10 islands, all ≤15v. Remaining limitation: functions with unrolled loops and high accumulator contention (e.g., _sel_rows) require per-call-site splitting, increasing shuffle overhead.
 
 **Interaction with instruction synthesis.** Our GPU exhaustive approach extends beyond register allocation. The same z80-optimizer CUDA infrastructure discovered an optimal divmod10 sequence (27 instructions, 124T, verified correct for all 256 inputs) through instruction synthesis search. This sequence is now integrated into the compiler as a specialization: when the register allocator identifies a division-by-constant-10, the GPU-discovered sequence replaces the general runtime loop (180T), saving 56T per call while clobbering only B,C,F (leaving HL/DE untouched for surrounding code). This demonstrates how offline exhaustive search can improve multiple compiler phases simultaneously.
 

@@ -364,6 +364,14 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 	}
 	var edgeMoves []edgeMove
 
+	// Check which blocks start with a CALL (clobbers GPR)
+	blockStartsWithCall := make(map[int]bool)
+	for bi, bp := range blocks {
+		if len(bp.ops) > 0 && (bp.ops[0].Op == OpCall || bp.ops[0].Op == OpAsmBlock) {
+			blockStartsWithCall[bi] = true
+		}
+	}
+
 	for _, edge := range edges {
 		fromBP := blocks[edge.fromBlock]
 		toBP := blocks[edge.toBlock]
@@ -379,6 +387,9 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 			toLive = toBP.prob.liveness[0].live
 		}
 
+		// Does the destination block have a CALL early that would clobber GPR?
+		destHasCall := blockStartsWithCall[edge.toBlock]
+
 		sortedVRegs := make([]int, 0, len(fromLive))
 		for vreg := range fromLive {
 			sortedVRegs = append(sortedVRegs, vreg)
@@ -391,8 +402,19 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 				toVar := fmt.Sprintf("lv%d_b%d_i%d", vreg, edge.toBlock, 0)
 				ensureVar(vreg, edge.fromBlock, fromLastIdx)
 				ensureVar(vreg, edge.toBlock, 0)
-				// Soft: allow different locations with a move cost penalty
-				edgeMoves = append(edgeMoves, edgeMove{fromVar, toVar})
+
+				if destHasCall {
+					// Vreg must survive a CALL at the start of the dest block.
+					// HARD constraint: same location in both blocks AND must be
+					// in a call-safe register (IXH=14, IXL=15, IYH=16, IYL=17).
+					b.WriteString(fmt.Sprintf("(assert (= %s %s))\n", fromVar, toVar))
+					// Constrain to call-safe locations
+					b.WriteString(fmt.Sprintf("(assert (or (= %s 14) (= %s 15) (= %s 16) (= %s 17)))\n",
+						fromVar, fromVar, fromVar, fromVar))
+				} else {
+					// Soft: allow different locations with a move cost penalty
+					edgeMoves = append(edgeMoves, edgeMove{fromVar, toVar})
+				}
 			}
 		}
 	}
