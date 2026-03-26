@@ -1302,12 +1302,24 @@ func (p *problem) generateSMT() string {
 		}
 	}
 
-	// DstHint: HARD constraint — param vregs MUST be in ABI register.
-	// These come from FuncParamLocs (caller convention) via SrcHint on ops.
+	// Hard DstHint + SrcHint: params MUST be in their ABI registers.
+	// Phase 1 (global): one location per vreg lifetime. If param is
+	// pinned to C and CMP needs A → Phase 1 unsat → falls to Phase 2
+	// which handles the move via per-instruction variables.
 	for _, op := range p.ops {
 		if op.Dst > 0 && !op.DstHint.IsEmpty() {
 			c := locSetToSMT(fmt.Sprintf("loc_v%d", op.Dst), op.DstHint)
 			b.WriteString(fmt.Sprintf("(assert %s) ; hard DstHint\n", c))
+		}
+		for _, s := range op.Src {
+			if s > 0 {
+				for j := range op.SrcHint {
+					if op.Src[j] == s && !op.SrcHint[j].IsEmpty() {
+						c := locSetToSMT(fmt.Sprintf("loc_v%d", s), op.SrcHint[j])
+						b.WriteString(fmt.Sprintf("(assert %s) ; hard SrcHint\n", c))
+					}
+				}
+			}
 		}
 	}
 
@@ -1717,29 +1729,31 @@ func generateSMTPerInst(p *problem) string {
 		}
 	}
 
-	// Param hints: HARD at first instruction (ABI entry point), soft elsewhere.
-	// This ensures params are in the caller's expected registers at function entry.
-	// Without HARD, Z3 ignores 4T soft penalty when CMP pattern (0T in A) is cheaper.
+	// DstHint: HARD at first live instruction for each param vreg.
+	// Per-instruction solver can move the vreg to a different register
+	// at later instructions (paying 4T move cost). But at entry, the
+	// vreg MUST be in the ABI register for caller compatibility.
 	paramHardDone := make(map[int]bool)
-	for _, op := range p.ops {
-		if !op.DstHint.IsEmpty() && op.Dst > 0 {
-			for i := range p.ops {
-				if p.liveness[i].live[op.Dst] || p.ops[i].Dst == op.Dst {
-					if _, ok := vars[vregAtInst{op.Dst, i}]; ok {
-						if !paramHardDone[op.Dst] {
-							// HARD at first live instruction: param MUST be in ABI register
-							c := locSetToSMT(fmt.Sprintf("lv%d_i%d", op.Dst, i), op.DstHint)
-							b.WriteString(fmt.Sprintf("(assert %s) ; hard param at entry\n", c))
-							paramHardDone[op.Dst] = true
-						} else {
-							op.DstHint.ForEach(func(loc int) bool {
-								b.WriteString(fmt.Sprintf("  (ite (= lv%d_i%d %d) 0 4) ; soft param hint\n",
-									op.Dst, i, loc))
-								return false
-							})
-						}
-					}
-					break
+	for i, op := range p.ops {
+		if op.Dst > 0 && !op.DstHint.IsEmpty() && !paramHardDone[op.Dst] {
+			if _, ok := vars[vregAtInst{op.Dst, i}]; ok {
+				c := locSetToSMT(fmt.Sprintf("lv%d_i%d", op.Dst, i), op.DstHint)
+				b.WriteString(fmt.Sprintf("(assert %s) ; hard param at i%d\n", c, i))
+				paramHardDone[op.Dst] = true
+			}
+		}
+	}
+
+	// Soft hints for remaining instructions
+	for i, op := range p.ops {
+		for j, s := range op.Src {
+			if s > 0 && !op.SrcHint[j].IsEmpty() {
+				if _, ok := vars[vregAtInst{s, i}]; ok {
+					op.SrcHint[j].ForEach(func(loc int) bool {
+						b.WriteString(fmt.Sprintf("  (ite (= lv%d_i%d %d) 0 8) ; soft SrcHint\n",
+							s, i, loc))
+						return false
+					})
 				}
 			}
 		}

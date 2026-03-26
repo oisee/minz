@@ -507,7 +507,7 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 			}
 
 			if adapterConflict {
-				fmt.Fprintf(os.Stderr, "[vir] %s: adapter conflict (param swap), falling to per-block\n", f.Name)
+				fmt.Fprintf(os.Stderr, "[vir] %s: adapter conflict, trying whole-function\n", f.Name)
 			} else {
 				adapterCost := 0
 				for vreg, callerPhys := range callerParamLocs {
@@ -634,12 +634,43 @@ func resolveParallelMoves(moves []adapterMove, desc *MachineDesc) []string {
 				}
 			}
 		} else {
-			// Generic cycle break: save source via PUSH, do all moves, POP
-			// For 8-bit: use PUSH AF / ... / POP AF as temp
-			result = append(result, fmt.Sprintf("PUSH AF ; save %s for cycle", from.Name))
-			result = append(result, emitRegMove(from, to)...)
-			result = append(result, "POP AF")
-			emitted[i] = true
+			// Generic cycle break for 2-element cycle (swap):
+			// Find the OTHER move in the cycle, emit as 3-move swap via temp.
+			// For A↔C: LD B,A / LD A,C / LD C,B (using B as temp)
+			var partner int = -1
+			for j, other := range moves {
+				if !emitted[j] && j != i && other.toPhys == mv.fromPhys {
+					partner = j
+					break
+				}
+			}
+			if partner >= 0 {
+				// 2-element swap via temp: A↔C → LD B,A / LD A,C / LD C,B
+				tempLoc := -1
+				for t := 0; t < 7; t++ {
+					if t != mv.fromPhys && t != mv.toPhys {
+						tempLoc = t
+						break
+					}
+				}
+				if tempLoc >= 0 {
+					temp := desc.Locs[tempLoc].Name
+					result = append(result,
+						fmt.Sprintf("LD %s, %s", temp, from.Name),  // save first
+						fmt.Sprintf("LD %s, %s", from.Name, to.Name), // move second → first
+						fmt.Sprintf("LD %s, %s", to.Name, temp),   // restore first to second's old loc
+					)
+					emitted[i] = true
+					emitted[partner] = true
+				}
+			}
+			if !emitted[i] {
+				// Fallback: PUSH/POP
+				result = append(result, fmt.Sprintf("PUSH AF ; save %s", from.Name))
+				result = append(result, emitRegMove(from, to)...)
+				result = append(result, "POP AF")
+				emitted[i] = true
+			}
 		}
 	}
 
