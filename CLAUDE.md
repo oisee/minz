@@ -288,10 +288,14 @@ CALL func
 ```
 
 **Spill tier hierarchy for VIR Z3 solver:**
-- **L1: IXH/IXL/IYH/IYL** — 0T, 4 slots, callee-saved, always safe
-- **L2: TSMC 8-bit tunnel** — 20T, unlimited slots, non-recursive only, SP-clean
-- **L3: PUSH/POP pairs** — 21T, unlimited, always safe, @error needs N×POP cleanup
-- **L4: Memory spill** — 26T, unlimited, always safe
+- **L0: Primary regs (A-L)** — 0T, 7 slots
+- **L1: IXH/IXL/IYH/IYL** — 8T, 4 slots, callee-saved, always safe
+- **L2: I register** — 18T, 1 slot, clobbers P/V flag (safe when IRQ disabled)
+- **L2b: R register** — 18T, 1 slot, R[7] preserved, R[6:0] auto-increments (recoverable if compiler knows instruction count N between save/restore)
+- **L3: TSMC 8-bit tunnel** — 20T, unlimited, safe when no recursion between endpoints
+- **L3b: Shadow regs (EXX/EX AF,AF')** — 4T batch swap, 7+7 slots, ALL swap simultaneously
+- **L4: PUSH/POP pairs** — 21T, unlimited, always safe, @error needs N×POP cleanup
+- **L5: Memory spill** — 26T, unlimited, always safe
 
 **TSMC wins for 8-bit** (20T vs PUSH/POP 21T + saves whole pair). **PUSH/POP wins for 16-bit pairs** (21T vs TSMC 44T). For @error propagation: PUSH/POP + compiler-generated stack cleanup (N×POP on error path) is cheaper than TSMC for pairs.
 
