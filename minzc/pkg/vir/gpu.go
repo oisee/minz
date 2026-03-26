@@ -208,8 +208,14 @@ func BuildGPUDesc(ops []VIROp, desc *MachineDesc, opts SolverOptions) (*GPUFuncD
 	}
 	sort.Ints(vregList)
 
-	if len(vregList) > 14 {
-		return nil, len(vregList), fmt.Errorf("too many vregs for GPU: %d (max 14)", len(vregList))
+	maxVregs := 14
+	if os.Getenv("VIR_GPU_MAX_VREGS") != "" {
+		if n, err := fmt.Sscanf(os.Getenv("VIR_GPU_MAX_VREGS"), "%d", &maxVregs); n != 1 || err != nil {
+			maxVregs = 14
+		}
+	}
+	if len(vregList) > maxVregs {
+		return nil, len(vregList), fmt.Errorf("too many vregs for GPU: %d (max %d)", len(vregList), maxVregs)
 	}
 
 	vregIdx := make(map[int]int)
@@ -350,18 +356,30 @@ func SolveGPU(ops []VIROp, desc *MachineDesc, opts SolverOptions) (map[int]int, 
 	return assignment, result.Cost, nil
 }
 
-// locSetToGPU converts a LocSet to GPU-compatible loc indices (0-6 only).
-// Empty LocSet → all 7 GPR (unconstrained).
+// z80ToGPULoc maps Z80 descriptor location indices to GPU location indices.
+// Z80: A=0..L=6, BC=7, DE=8, HL=9, SP=10, IX=11, IY=12, F=13, IXH=14..IYL=17
+// GPU: A=0..L=6, BC=7, DE=8, HL=9, IXH=10, IXL=11, IYH=12, IYL=13, MEM0=14
+var z80ToGPULoc = map[int]int{
+	0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, // A-L
+	7: 7, 8: 8, 9: 9,                            // BC, DE, HL
+	14: 10, 15: 11, 16: 12, 17: 13,              // IXH, IXL, IYH, IYL
+}
+
+const gpuMaxLocs = 15
+
+// locSetToGPU converts a LocSet to GPU-compatible loc indices (0-14).
+// Includes pair locations (7=BC, 8=DE, 9=HL) and IX halves (10-13).
+// Empty LocSet → all 7 GPR (unconstrained 8-bit default).
 func locSetToGPU(ls LocSet) []int {
 	var result []int
 	ls.ForEach(func(loc int) bool {
-		if loc < 7 {
-			result = append(result, loc)
+		if gpuLoc, ok := z80ToGPULoc[loc]; ok {
+			result = append(result, gpuLoc)
 		}
 		return true
 	})
 	if len(result) == 0 {
-		// Unconstrained — any GPR is valid
+		// Unconstrained — any 8-bit GPR is valid (default)
 		return []int{0, 1, 2, 3, 4, 5, 6}
 	}
 	return result

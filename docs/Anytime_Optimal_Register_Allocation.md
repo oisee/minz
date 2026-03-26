@@ -98,6 +98,8 @@ The results are stored as a lookup table: `hash(constraint_signature) → optima
 
 **Empirical result.** 1,645 functions from 8 language frontends produce only 315 unique constraint signatures (80.9% reuse). Adding an entire standard library produces fewer than 3% new signatures — the vocabulary has converged.
 
+**Exhaustive enumeration.** For ≤4v, ALL 156,506 possible constraint shapes have been GPU-solved in 40 seconds. For ≤5v, 17.2M shapes solved overnight. 21.1% of shapes are provably infeasible (negative certificates — no valid Z80 assignment exists). The table is complete: zero misses for any function with ≤5 virtual registers.
+
 **Optimality guarantee.** Every table entry was found by evaluating ALL possible assignments. The stored solution is the global minimum-cost allocation. No heuristic can do better.
 
 ## Level 2: Z3 SMT Solver (Seconds, Provably Optimal)

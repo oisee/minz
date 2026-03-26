@@ -83,6 +83,35 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 		// original vregs. The move pattern naturally copies the value.
 
 		prob := buildProblem(ops, desc)
+
+		// Inject block parameter vregs into liveness from instruction 0
+		// up to their last use (or all instructions if they pass through).
+		// Block params (PHI destinations) are live from block entry but
+		// computeLiveness misses them before their first use in the block
+		// (and entirely if they're only passed to successor terminators).
+		// Only inject block param liveness for blocks that CONTAIN CALLs.
+		// These are the blocks where the param vreg needs to survive clobber.
+		// For blocks without CALLs (e.g., simple conditionals), injection
+		// over-constrains and causes unsat.
+		hasCall := false
+		for _, op := range ops {
+			if (op.Op == OpCall || op.Op == OpAsmBlock) && !op.Clobbers.IsEmpty() {
+				hasCall = true
+				break
+			}
+		}
+		if hasCall && len(block.Params) > 0 {
+			if os.Getenv("VIR_DEBUG_EDGES") != "" {
+				fmt.Fprintf(os.Stderr, "[PARAMS] %s b%d: params=%v (block has CALL)\n", f.Name, bi, block.Params)
+			}
+			for _, paramVreg := range block.Params {
+				prob.vregs[paramVreg] = true
+				for i := range prob.liveness {
+					prob.liveness[i].live[paramVreg] = true
+				}
+			}
+		}
+
 		label := block.Label
 		if label == "" {
 			label = fmt.Sprintf("block%d", bi)
@@ -91,10 +120,14 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 		blocks = append(blocks, blockProblem{label, ops, prob})
 	}
 
-	// Build CFG edges from MIR2 terminators
+	// Build CFG edges from MIR2 terminators + PHI maps from block params.
+	// MIR2 uses block arguments instead of PHI nodes:
+	//   TermJmp{Target: "join", Args: [r73]} → Block{Params: [{Dst: r79}]}
+	// This means r73 (in the source block) becomes r79 (in the dest block).
 	type cfgEdge struct {
 		fromBlock int
 		toBlock   int
+		phiMap    map[int]int // old vreg → new vreg (from term Args → block Params)
 	}
 	var edges []cfgEdge
 
@@ -102,10 +135,108 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 		if mirBlock.Term == nil {
 			continue
 		}
-		succs := mirBlock.Term.Successors()
-		for _, succLabel := range succs {
-			if si, ok := blockIdx[succLabel]; ok {
-				edges = append(edges, cfgEdge{bi, si})
+
+		// Extract args from the terminator for each successor
+		type succInfo struct {
+			label string
+			args  []mir2.Reg
+		}
+		var succs []succInfo
+
+		switch t := mirBlock.Term.(type) {
+		case *mir2.TermJmp:
+			succs = append(succs, succInfo{t.Target, t.Args})
+		case *mir2.TermBrIf:
+			succs = append(succs, succInfo{t.Then, t.ThenArgs})
+			succs = append(succs, succInfo{t.Else, t.ElseArgs})
+		default:
+			for _, label := range mirBlock.Term.Successors() {
+				succs = append(succs, succInfo{label, nil})
+			}
+		}
+
+		for _, succ := range succs {
+			si, ok := blockIdx[succ.label]
+			if !ok {
+				continue
+			}
+
+			// Build PHI map: term args[i] → VIR block params[i]
+			// Uses VIR block params (populated by LowerFunc from MIR2 block params).
+			// Both args and params use the same vreg ID space.
+			phi := make(map[int]int)
+			destVIR := vf.Blocks[si]
+			for pi, arg := range succ.args {
+				if pi < len(destVIR.Params) {
+					phi[int(arg)] = destVIR.Params[pi]
+				}
+			}
+
+			edges = append(edges, cfgEdge{bi, si, phi})
+			if os.Getenv("VIR_DEBUG_EDGES") != "" && len(phi) > 0 {
+				fmt.Fprintf(os.Stderr, "[PHI] %s: edge b%d→b%d phi=%v\n", f.Name, bi, si, phi)
+			}
+
+			// Force terminator-arg vregs into liveness at the last instruction
+			// of the source block. These vregs are used by the PHI but don't
+			// appear in VIR ops — without this they're invisible to liveness.
+			if len(succ.args) > 0 && len(blocks[bi].prob.liveness) > 0 {
+				lastIdx := len(blocks[bi].prob.liveness) - 1
+				for _, arg := range succ.args {
+					blocks[bi].prob.liveness[lastIdx].live[int(arg)] = true
+					blocks[bi].prob.vregs[int(arg)] = true
+				}
+			}
+		}
+	}
+
+	// Compute per-block live-in (from incoming edges) and live-out (to outgoing edges).
+	// Vregs that are live-in AND live-out but not referenced within the block
+	// are "live-through" — they must get clobber constraints at CALL instructions.
+	blockLiveIn := make([]map[int]bool, len(blocks))
+	blockLiveOut := make([]map[int]bool, len(blocks))
+	for i := range blocks {
+		blockLiveIn[i] = make(map[int]bool)
+		blockLiveOut[i] = make(map[int]bool)
+	}
+	for _, edge := range edges {
+		fromBP := blocks[edge.fromBlock]
+		fromLastIdx := len(fromBP.ops) - 1
+		if fromLastIdx < 0 {
+			continue
+		}
+		for vreg := range fromBP.prob.liveness[fromLastIdx].live {
+			blockLiveOut[edge.fromBlock][vreg] = true
+			blockLiveIn[edge.toBlock][vreg] = true
+		}
+	}
+
+	// Inject live-through vregs at CALL/clobber points.
+	// A vreg is live-through block B if it's in liveIn[B] AND
+	// (liveOut[B] OR used-after-call within B).
+	// At each CALL in B, the vreg needs a clobber constraint.
+	for bi, bp := range blocks {
+		liveIn := blockLiveIn[bi]
+		_ = blockLiveOut[bi] // used for future live-through analysis
+		if len(liveIn) == 0 {
+			continue
+		}
+
+		// Inject live-in vregs at CLOBBER instructions (CALL/AsmBlock) only.
+		// This ensures clobber constraints fire without over-constraining
+		// interference at every instruction (which causes unsat for large functions).
+		for vreg := range liveIn {
+			injected := false
+			for i, op := range bp.ops {
+				if !op.Clobbers.IsEmpty() && i < len(bp.prob.liveness) {
+					if !bp.prob.liveness[i].live[vreg] {
+						bp.prob.liveness[i].live[vreg] = true
+						injected = true
+					}
+				}
+			}
+			if injected {
+				bp.prob.vregs[vreg] = true
 			}
 		}
 	}
@@ -166,6 +297,17 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 			}
 		}
 		// From liveness (sorted for deterministic Z3 encoding)
+		// Debug liveness injection
+		if os.Getenv("VIR_DEBUG_LIVENESS") != "" {
+			for i, l := range p.liveness {
+				vs := make([]int, 0)
+				for v := range l.live { vs = append(vs, v) }
+				sort.Ints(vs)
+				if len(vs) > 0 {
+					fmt.Fprintf(os.Stderr, "[DEBUG] %s b%d i%d live: %v\n", f.Name, bi, i, vs)
+				}
+			}
+		}
 		for i, l := range p.liveness {
 			liveVRegs := make([]int, 0, len(l.live))
 			for v := range l.live {
@@ -212,6 +354,24 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 			}
 		}
 
+		// Build asm-block coalesce set: input/output vregs of OpAsmBlock
+		// can share a register (input consumed, output produced).
+		asmCoalesce := make(map[vregPair]bool)
+		for _, op := range bp.ops {
+			if op.Op == OpAsmBlock && op.Dst > 0 {
+				for _, s := range op.Src {
+					if s > 0 {
+						asmCoalesce[vregPair{op.Dst, s}] = true
+						asmCoalesce[vregPair{s, op.Dst}] = true
+					}
+				}
+				for _, v := range op.AsmIns {
+					asmCoalesce[vregPair{op.Dst, v}] = true
+					asmCoalesce[vregPair{v, op.Dst}] = true
+				}
+			}
+		}
+
 		// Interference within block (sorted for deterministic Z3 encoding)
 		emitted := make(map[[3]int]bool)
 		for i := range p.ops {
@@ -223,7 +383,7 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 			for a := 0; a < len(liveVRegs); a++ {
 				for c := a + 1; c < len(liveVRegs); c++ {
 					va, vc := liveVRegs[a], liveVRegs[c]
-					if tied[vregPair{va, vc}] {
+					if tied[vregPair{va, vc}] || asmCoalesce[vregPair{va, vc}] {
 						continue
 					}
 					key := [3]int{i, va, vc}
@@ -251,13 +411,35 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 			if op.Clobbers.IsEmpty() {
 				continue
 			}
+			// Build set of vregs that are consumed by this instruction
+			// (dst + srcs) — these are read/written at the instruction
+			// and should not be excluded by clobber constraints.
+			consumed := make(map[int]bool)
+			if op.Dst > 0 {
+				consumed[op.Dst] = true
+			}
+			for _, s := range op.Src {
+				if s > 0 {
+					consumed[s] = true
+				}
+			}
+			// OpAsmBlock: all asm inputs/outputs are consumed
+			if op.Op == OpAsmBlock {
+				for _, v := range op.AsmIns {
+					consumed[v] = true
+				}
+				for _, v := range op.AsmOuts {
+					consumed[v] = true
+				}
+			}
+
 			clobVRegs := make([]int, 0, len(p.liveness[i].live))
 			for vreg := range p.liveness[i].live {
 				clobVRegs = append(clobVRegs, vreg)
 			}
 			sort.Ints(clobVRegs)
 			for _, vreg := range clobVRegs {
-				if vreg == op.Dst {
+				if consumed[vreg] {
 					continue
 				}
 				v := fmt.Sprintf("lv%d_b%d_i%d", vreg, bi, i)
@@ -286,30 +468,33 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 	}
 
 	// Param location constraints: entry block (b0) params must be in PBQP registers.
-	// Includes copy vregs from pre-tie passes (tracked in paramHintsEarly).
-	if len(paramHintsEarly) > 0 && len(blocks) > 0 {
-		bp := blocks[0]
-		for vreg, phys := range paramHintsEarly {
-			// Find the first instruction in block 0 that references this vreg
-			for i, op := range bp.ops {
-				usesVreg := false
-				if op.Dst == vreg {
-					usesVreg = true
+	// Param location constraints: pin each param vreg to its PBQP register
+	// at the FIRST instruction that references it, in ANY block.
+	// (Was: only block 0, missing params first used in later blocks.)
+	if len(paramHintsEarly) > 0 {
+		applied := make(map[int]bool)
+		for bi, bp := range blocks {
+			for vreg, phys := range paramHintsEarly {
+				if applied[vreg] {
+					continue
 				}
-				for _, s := range op.Src {
-					if s == vreg {
-						usesVreg = true
+				for i, op := range bp.ops {
+					usesVreg := false
+					if op.Dst == vreg { usesVreg = true }
+					for _, s := range op.Src {
+						if s == vreg { usesVreg = true }
 					}
-				}
-				if usesVreg {
-					v := ensureVar(vreg, 0, i)
-					locName := "?"
-					if phys < len(desc.Locs) {
-						locName = desc.Locs[phys].Name
+					if usesVreg {
+						v := ensureVar(vreg, bi, i)
+						locName := "?"
+						if phys < len(desc.Locs) {
+							locName = desc.Locs[phys].Name
+						}
+						b.WriteString(fmt.Sprintf("(assert (= %s %d)) ; param vreg %d in %s\n",
+							v, phys, vreg, locName))
+						applied[vreg] = true
+						break
 					}
-					b.WriteString(fmt.Sprintf("(assert (= %s %d)) ; param vreg %d in %s\n",
-						v, phys, vreg, locName))
-					break
 				}
 			}
 		}
@@ -324,6 +509,18 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 	}
 	var edgeMoves []edgeMove
 
+	// Check which blocks CONTAIN a CALL (clobbers GPR).
+	// Any vreg live across an edge into such a block must be call-safe.
+	blockContainsCall := make(map[int]bool)
+	for bi, bp := range blocks {
+		for _, op := range bp.ops {
+			if (op.Op == OpCall || op.Op == OpAsmBlock) && !op.Clobbers.IsEmpty() {
+				blockContainsCall[bi] = true
+				break
+			}
+		}
+	}
+
 	for _, edge := range edges {
 		fromBP := blocks[edge.fromBlock]
 		toBP := blocks[edge.toBlock]
@@ -334,10 +531,9 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 		}
 
 		fromLive := fromBP.prob.liveness[fromLastIdx].live
-		var toLive map[int]bool
-		if len(toBP.prob.liveness) > 0 {
-			toLive = toBP.prob.liveness[0].live
-		}
+
+		// Does the destination block have a CALL early that would clobber GPR?
+		destHasCall := blockContainsCall[edge.toBlock]
 
 		sortedVRegs := make([]int, 0, len(fromLive))
 		for vreg := range fromLive {
@@ -346,13 +542,48 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 		sort.Ints(sortedVRegs)
 
 		for _, vreg := range sortedVRegs {
-			if toLive != nil && toLive[vreg] {
-				fromVar := fmt.Sprintf("lv%d_b%d_i%d", vreg, edge.fromBlock, fromLastIdx)
-				toVar := fmt.Sprintf("lv%d_b%d_i%d", vreg, edge.toBlock, 0)
-				ensureVar(vreg, edge.fromBlock, fromLastIdx)
-				ensureVar(vreg, edge.toBlock, 0)
-				// Soft: allow different locations with a move cost penalty
-				edgeMoves = append(edgeMoves, edgeMove{fromVar, toVar})
+			// Determine the destination vreg: either same ID or PHI-mapped
+			toVreg := vreg
+			if mapped, ok := edge.phiMap[vreg]; ok {
+				toVreg = mapped
+			}
+
+			// Check if the destination vreg is live in the destination block
+			toBlockHasVreg := false
+			if toBP.prob.vregs[toVreg] {
+				toBlockHasVreg = true
+			}
+			// Also check toLive at instruction 0
+			if len(toBP.prob.liveness) > 0 && toBP.prob.liveness[0].live[toVreg] {
+				toBlockHasVreg = true
+			}
+			// PHI-mapped vregs are always live at block entry
+			if _, ok := edge.phiMap[vreg]; ok {
+				toBlockHasVreg = true
+			}
+
+			if !toBlockHasVreg {
+				continue
+			}
+
+			fromVar := ensureVar(vreg, edge.fromBlock, fromLastIdx)
+			toVar := ensureVar(toVreg, edge.toBlock, 0)
+
+			if destHasCall {
+				// Vreg must survive a CALL at the start of the dest block.
+				// HARD constraint: same location in both blocks AND must be
+				// in a call-safe register (IXH=14, IXL=15, IYH=16, IYL=17).
+				b.WriteString(fmt.Sprintf("(assert (= %s %s))\n", fromVar, toVar))
+				b.WriteString(fmt.Sprintf("(assert (or (= %s 14) (= %s 15) (= %s 16) (= %s 17)))\n",
+					fromVar, fromVar, fromVar, fromVar))
+			} else {
+				// HARD equality for PHI-mapped vregs (they MUST match — no move possible)
+				// Soft for same-ID vregs (move can be inserted)
+				if toVreg != vreg {
+					b.WriteString(fmt.Sprintf("(assert (= %s %s))\n", fromVar, toVar))
+				} else {
+					edgeMoves = append(edgeMoves, edgeMove{fromVar, toVar})
+				}
 			}
 		}
 	}
@@ -475,9 +706,26 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 				}
 			}
 
-			// Insert inter-instruction moves
+			// Insert inter-instruction moves for ALL live vregs that change location.
+			// Not just src operands — also block params and other live-through vregs.
 			if i > 0 {
-				for _, vreg := range []int{op.Src[0], op.Src[1]} {
+				moveVregs := make([]int, 0)
+				// Start with src operands (original behavior)
+				for _, s := range []int{op.Src[0], op.Src[1]} {
+					if s > 0 { moveVregs = append(moveVregs, s) }
+				}
+				// Add all live vregs at this instruction (catches block params)
+				if i < len(bp.prob.liveness) {
+					for v := range bp.prob.liveness[i].live {
+						found := false
+						for _, mv := range moveVregs {
+							if mv == v { found = true; break }
+						}
+						if !found && v > 0 { moveVregs = append(moveVregs, v) }
+					}
+					sort.Ints(moveVregs)
+				}
+				for _, vreg := range moveVregs {
 					if vreg <= 0 {
 						continue
 					}
@@ -525,6 +773,71 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 			pirOps = append(pirOps, pir)
 		}
 		result[bp.label] = pirOps
+	}
+
+	// Emit edge moves: if Z3 assigned different locations for a vreg across
+	// a block boundary, insert LD at the start of the destination block.
+	// Without this, cross-block location changes are phantom — the 4T cost
+	// is paid in the objective but no instruction implements the move.
+	if opts.Verbose || os.Getenv("VIR_DEBUG_EDGES") != "" {
+		fmt.Fprintf(os.Stderr, "[CFG-solver] %s: %d edges to check for moves\n", f.Name, len(edges))
+	}
+
+	// Dump SMT for debugging when requested
+	if os.Getenv("VIR_DUMP_SMT") != "" {
+		smtFile := fmt.Sprintf("/tmp/vir_cfg_%s.smt2", f.Name)
+		os.WriteFile(smtFile, []byte(smt), 0644)
+		fmt.Fprintf(os.Stderr, "[CFG-solver] dumped SMT to %s (%d bytes)\n", smtFile, len(smt))
+	}
+	for _, edge := range edges {
+		fromBP := blocks[edge.fromBlock]
+		toBP := blocks[edge.toBlock]
+		fromLastIdx := len(fromBP.ops) - 1
+		if fromLastIdx < 0 {
+			continue
+		}
+
+		fromLive := fromBP.prob.liveness[fromLastIdx].live
+		var toLive map[int]bool
+		if len(toBP.prob.liveness) > 0 {
+			toLive = toBP.prob.liveness[0].live
+		}
+
+		// Sort for deterministic emission order
+		edgeVRegs := make([]int, 0)
+		for vreg := range fromLive {
+			if toLive != nil && toLive[vreg] {
+				edgeVRegs = append(edgeVRegs, vreg)
+			}
+		}
+		sort.Ints(edgeVRegs)
+
+		var edgeMoveOps []PIROp
+		for _, vreg := range edgeVRegs {
+			fromKey := fmt.Sprintf("lv%d_b%d_i%d", vreg, edge.fromBlock, fromLastIdx)
+			toKey := fmt.Sprintf("lv%d_b%d_i%d", vreg, edge.toBlock, 0)
+			fromLoc, hasFrom := vals[fromKey]
+			toLoc, hasTo := vals[toKey]
+			if hasFrom && hasTo && fromLoc != toLoc {
+				movePat := findMovePattern(desc, fromLoc, toLoc)
+				if movePat != nil {
+					edgeMoveOps = append(edgeMoveOps, PIROp{
+						Pat: movePat, DstPhys: toLoc,
+						SrcPhys:  [2]int{fromLoc, -1},
+						Comment: fmt.Sprintf("edge move v%d: %s→%s", vreg, desc.Locs[fromLoc].Name, desc.Locs[toLoc].Name),
+					})
+				} else {
+					fmt.Fprintf(os.Stderr, "[CFG-solver] WARNING: no edge move pattern for v%d: %s(%d) → %s(%d) at edge b%d→b%d\n",
+						vreg, desc.Locs[fromLoc].Name, fromLoc, desc.Locs[toLoc].Name, toLoc, edge.fromBlock, edge.toBlock)
+				}
+			}
+		}
+
+		if len(edgeMoveOps) > 0 {
+			// Prepend edge moves to destination block's PIR
+			existing := result[toBP.label]
+			result[toBP.label] = append(edgeMoveOps, existing...)
+		}
 	}
 
 	// Extract param register assignments from Z3 model.

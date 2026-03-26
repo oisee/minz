@@ -81,9 +81,15 @@ func LowerFunc(f *mir2.Func, desc *MachineDesc, mod *mir2.Module) (*Func, error)
 		if err != nil {
 			return nil, fmt.Errorf("func %s: %w", f.Name, err)
 		}
+		// Extract block parameter vreg IDs (PHI destinations)
+		var params []int
+		for _, p := range b.Params {
+			params = append(params, int(p.Dst))
+		}
 		vf.Blocks = append(vf.Blocks, Block{
-			Label: b.Label,
-			Ops:   ops,
+			Label:  b.Label,
+			Ops:    ops,
+			Params: params,
 		})
 	}
 

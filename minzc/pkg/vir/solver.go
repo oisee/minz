@@ -45,6 +45,12 @@ type SolverOptions struct {
 	// OptSize enables size optimizations (Grace reroll: repeated CALL patterns
 	// → data table + DJNZ loop). Trades ~4T/iteration for code size reduction.
 	OptSize bool
+
+	// Strict mode: treat warnings as errors, log all implicit decisions.
+	// ON by default during development. Turn OFF when --vir becomes prod-ready.
+	// Catches: validateNoClobber, missing edge moves, missing move patterns,
+	// clobber exclusions, table ABI mismatches, peephole skips.
+	Strict bool
 }
 
 // Solve converts a basic block of VIROps into PIROps using Z3 SMT solver.
@@ -92,6 +98,11 @@ func solveWithPasses(ops []VIROp, desc *MachineDesc, opts SolverOptions, splitCa
 
 	prob := buildProblem(ops, desc)
 	smt := prob.generateSMT()
+
+	if os.Getenv("VIR_DEBUG_SMT") != "" {
+		os.WriteFile("/tmp/vir_phase1_debug.smt2", []byte(smt), 0644)
+		fmt.Fprintf(os.Stderr, "[PHASE1-SMT] %d bytes, %d ops, %d vregs\n", len(smt), len(ops), len(prob.vregs))
+	}
 
 	if opts.Verbose {
 		fmt.Fprintf(os.Stderr, "[vir/solver] SMT-LIB2 (%d ops, %d vars, splitCalls=%v):\n%s\n",
@@ -1270,14 +1281,23 @@ func (p *problem) generateSMT() string {
 		if op.Clobbers.IsEmpty() {
 			continue
 		}
+		// Consumed vregs: dst + srcs + asm ins/outs — read/written at this instruction
+		consumed := make(map[int]bool)
+		if op.Dst > 0 { consumed[op.Dst] = true }
+		for _, s := range op.Src { if s > 0 { consumed[s] = true } }
+		if op.Op == OpAsmBlock {
+			for _, v := range op.AsmIns { consumed[v] = true }
+			for _, v := range op.AsmOuts { consumed[v] = true }
+		}
+
 		clobberVRegs := make([]int, 0, len(p.liveness[i].live))
 		for vreg := range p.liveness[i].live {
 			clobberVRegs = append(clobberVRegs, vreg)
 		}
 		sort.Ints(clobberVRegs)
 		for _, vreg := range clobberVRegs {
-			if vreg == op.Dst {
-				continue // dst is being defined, not live-through
+			if consumed[vreg] {
+				continue // consumed by this instruction, not live-through
 			}
 			// vreg must NOT be in any clobbered location
 			op.Clobbers.ForEach(func(loc int) bool {
@@ -1287,8 +1307,26 @@ func (p *problem) generateSMT() string {
 		}
 	}
 
-	// Hint constraints (soft — via cost, not hard)
-	// DstHint and SrcHint from PFCCO contracts
+	// Hard DstHint + SrcHint: params MUST be in their ABI registers.
+	// Phase 1 (global): one location per vreg lifetime. If param is
+	// pinned to C and CMP needs A → Phase 1 unsat → falls to Phase 2
+	// which handles the move via per-instruction variables.
+	for _, op := range p.ops {
+		if op.Dst > 0 && !op.DstHint.IsEmpty() {
+			c := locSetToSMT(fmt.Sprintf("loc_v%d", op.Dst), op.DstHint)
+			b.WriteString(fmt.Sprintf("(assert %s) ; hard DstHint\n", c))
+		}
+		for _, s := range op.Src {
+			if s > 0 {
+				for j := range op.SrcHint {
+					if op.Src[j] == s && !op.SrcHint[j].IsEmpty() {
+						c := locSetToSMT(fmt.Sprintf("loc_v%d", s), op.SrcHint[j])
+						b.WriteString(fmt.Sprintf("(assert %s) ; hard SrcHint\n", c))
+					}
+				}
+			}
+		}
+	}
 
 	// Cost objective: minimize total cost
 	b.WriteString("(declare-const total_cost Int)\n")
@@ -1446,6 +1484,11 @@ func solvePerInstruction(ops []VIROp, desc *MachineDesc, opts SolverOptions) ([]
 	prob := buildProblem(ops, desc)
 	smt := generateSMTPerInst(prob)
 
+	if os.Getenv("VIR_DEBUG_SMT") != "" {
+		suffix := fmt.Sprintf("%d", len(smt))
+		os.WriteFile(fmt.Sprintf("/tmp/vir_phase2_%s.smt2", suffix), []byte(smt), 0644)
+		fmt.Fprintf(os.Stderr, "[PHASE2-SMT] %d bytes, %d ops → /tmp/vir_phase2_%s.smt2\n", len(smt), len(ops), suffix)
+	}
 	if opts.Verbose {
 		fmt.Fprintf(os.Stderr, "[vir/solver] Per-inst SMT (%d ops, %d vregs):\n%s\n",
 			len(ops), len(prob.vregs), smt)
@@ -1609,13 +1652,21 @@ func generateSMTPerInst(p *problem) string {
 		if op.Clobbers.IsEmpty() {
 			continue
 		}
+		consumed := make(map[int]bool)
+		if op.Dst > 0 { consumed[op.Dst] = true }
+		for _, s := range op.Src { if s > 0 { consumed[s] = true } }
+		if op.Op == OpAsmBlock {
+			for _, v := range op.AsmIns { consumed[v] = true }
+			for _, v := range op.AsmOuts { consumed[v] = true }
+		}
+
 		clobVRegs := make([]int, 0, len(p.liveness[i].live))
 		for vreg := range p.liveness[i].live {
 			clobVRegs = append(clobVRegs, vreg)
 		}
 		sort.Ints(clobVRegs)
 		for _, vreg := range clobVRegs {
-			if vreg == op.Dst {
+			if consumed[vreg] {
 				continue
 			}
 			op.Clobbers.ForEach(func(loc int) bool {
@@ -1688,24 +1739,64 @@ func generateSMTPerInst(p *problem) string {
 		}
 	}
 
-	// Soft param hints: for vregs that are function params, prefer their
-	// ABI register. Cost penalty (4T) if param not in expected register
-	// at instruction 0. This is a SOFT constraint — Z3 can deviate when
-	// ALU tied patterns require a different register.
-	for _, op := range p.ops {
-		if !op.DstHint.IsEmpty() && op.Dst > 0 {
-			// Find instruction 0 or first instruction where this vreg is live
-			for i := range p.ops {
-				if p.liveness[i].live[op.Dst] || p.ops[i].Dst == op.Dst {
-					if _, ok := vars[vregAtInst{op.Dst, i}]; ok {
-						op.DstHint.ForEach(func(loc int) bool {
-							// Prefer this location: 0 cost if match, 4T if not
-							b.WriteString(fmt.Sprintf("  (ite (= lv%d_i%d %d) 0 4) ; soft param hint\n",
-								op.Dst, i, loc))
-							return false // only first preferred loc
-						})
+	// DstHint: HARD at first live instruction for each param vreg.
+	// Per-instruction solver can move the vreg to a different register
+	// at later instructions (paying 4T move cost). But at entry, the
+	// vreg MUST be in the ABI register for caller compatibility.
+	paramHardDone := make(map[int]bool)
+	for i, op := range p.ops {
+		if op.Dst > 0 && !op.DstHint.IsEmpty() && !paramHardDone[op.Dst] {
+			if _, ok := vars[vregAtInst{op.Dst, i}]; ok {
+				c := locSetToSMT(fmt.Sprintf("lv%d_i%d", op.Dst, i), op.DstHint)
+				b.WriteString(fmt.Sprintf("(assert %s) ; hard param at i%d\n", c, i))
+				paramHardDone[op.Dst] = true
+			}
+		}
+	}
+
+	// SrcHint: HARD at first occurrence of each param vreg as source.
+	// NOTE: must be OUTSIDE the cost expression (which hasn't closed yet).
+	// We'll collect them and emit after the cost expression closes.
+	var hardSrcHints []string
+	srcHintDone := make(map[int]bool)
+	if os.Getenv("VIR_DEBUG_SMT") != "" {
+		for i, op := range p.ops {
+			for j := range op.SrcHint {
+				if !op.SrcHint[j].IsEmpty() {
+					fmt.Fprintf(os.Stderr, "[PHASE2-HINT] op%d src[%d]=v%d SrcHint=%v\n", i, j, op.Src[j], op.SrcHint[j])
+				}
+			}
+		}
+	}
+	for i, op := range p.ops {
+		for j, s := range op.Src {
+			if s > 0 && !op.SrcHint[j].IsEmpty() && !srcHintDone[s] {
+				if os.Getenv("VIR_DEBUG_SMT") != "" {
+					_, exists := vars[vregAtInst{s, i}]
+					fmt.Fprintf(os.Stderr, "[PHASE2-HARD] v%d at i%d: exists=%v\n", s, i, exists)
+				}
+				if _, ok := vars[vregAtInst{s, i}]; ok {
+					c := locSetToSMT(fmt.Sprintf("lv%d_i%d", s, i), op.SrcHint[j])
+					hardSrcHints = append(hardSrcHints, fmt.Sprintf("(assert %s) ; hard SrcHint v%d at i%d\n", c, s, i))
+					if os.Getenv("VIR_DEBUG_SMT") != "" {
+						fmt.Fprintf(os.Stderr, "[PHASE2-ASSERT] (assert %s) for v%d\n", c, s)
 					}
-					break
+					srcHintDone[s] = true
+				}
+			}
+		}
+	}
+
+	// Soft hints for remaining instructions
+	for i, op := range p.ops {
+		for j, s := range op.Src {
+			if s > 0 && !op.SrcHint[j].IsEmpty() {
+				if _, ok := vars[vregAtInst{s, i}]; ok {
+					op.SrcHint[j].ForEach(func(loc int) bool {
+						b.WriteString(fmt.Sprintf("  (ite (= lv%d_i%d %d) 0 8) ; soft SrcHint\n",
+							s, i, loc))
+						return false
+					})
 				}
 			}
 		}
@@ -1726,7 +1817,13 @@ func generateSMTPerInst(p *problem) string {
 		}
 	}
 
-	b.WriteString(")))\n")
+	b.WriteString(")))\n") // close cost expression
+
+	// Emit hard SrcHint constraints (collected above, outside cost ITE)
+	for _, h := range hardSrcHints {
+		b.WriteString(h)
+	}
+
 	// For large per-instruction problems, skip minimize.
 	// Z3's opt module returns "unknown" quickly on complex ITE chains.
 	// Satisfiability alone gives correct code (not provably optimal).
@@ -1844,10 +1941,26 @@ func findMovePattern(desc *MachineDesc, srcPhys, dstPhys int) *Pattern {
 func insertPerInstMoves(pirOps []PIROp, p *problem, vals map[string]int, desc *MachineDesc) []PIROp {
 	var result []PIROp
 	for i, pirop := range pirOps {
-		// Before each instruction, check if any source vreg needs a move
+		// Before each instruction, check if ANY live vreg needs a move.
+		// Not just Src operands — also vregs that changed location for
+		// pattern requirements (e.g., is_neg moves C→A for CMP pattern).
 		if i > 0 && i < len(p.ops) {
+			// Collect all vregs to check: srcs + all live vregs at this point
+			checkVregs := make(map[int]bool)
 			op := p.ops[i]
-			for _, vreg := range []int{op.Src[0], op.Src[1]} {
+			if op.Src[0] > 0 { checkVregs[op.Src[0]] = true }
+			if op.Src[1] > 0 { checkVregs[op.Src[1]] = true }
+			if i < len(p.liveness) {
+				for v := range p.liveness[i].live {
+					if v > 0 { checkVregs[v] = true }
+				}
+			}
+			sortedVregs := make([]int, 0, len(checkVregs))
+			for v := range checkVregs {
+				sortedVregs = append(sortedVregs, v)
+			}
+			sort.Ints(sortedVregs)
+			for _, vreg := range sortedVregs {
 				if vreg <= 0 {
 					continue
 				}
