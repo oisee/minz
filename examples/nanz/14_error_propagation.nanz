@@ -1,0 +1,123 @@
+// @error — Z80-native error propagation via Carry Flag
+//
+// CY flag = error signal (SCF = 1 byte, 4T)
+// A register = error code on error, return value on success
+// RET C = propagate error (1 byte, 5T!)
+//
+// Compile: mz 14_error_propagation.nanz -o out.a80
+// Run: echo "" | mzv -H 14_error_propagation.nanz
+
+// ── Basic: division with error ─────────────────────────
+//
+// Z80 codegen:
+//   safe_div:
+//       LD A, C        ; b in C (PFCCO)
+//       OR A           ; b == 0?
+//       JR NZ, .ok
+//       SCF            ; CY = 1 (error!)
+//       LD A, 1        ; error code = 1
+//       RET            ; return with error
+//   .ok:
+//       ; ... division ...
+//       OR A           ; CY = 0 (success)
+//       RET
+
+fun safe_div(a: u8, b: u8) -> u8 {
+    if b == 0 { @error(1) }
+    return a / b
+}
+
+// ── Propagation: caller passes error up ────────────────
+//
+// Z80 codegen:
+//   compute:
+//       CALL safe_div
+//       RET C          ; ← @propagate: 1 BYTE! if CY=1, return immediately
+//       ; A = result, continue...
+//       ADD A, 1
+//       OR A           ; clear CY (success)
+//       RET
+
+fun compute(a: u8, b: u8) -> u8 {
+    var x: u8 = safe_div(a, b)
+    @propagate
+    return x + 1
+}
+
+// ── Bounds checking ────────────────────────────────────
+
+fun safe_add(a: u8, b: u8) -> u8 {
+    var sum: u16 = u16(a) + u16(b)
+    if sum > 255 { @error(2) }
+    return a + b
+}
+
+fun safe_sub(a: u8, b: u8) -> u8 {
+    if a < b { @error(3) }
+    return a - b
+}
+
+// ── Array bounds ───────────────────────────────────────
+
+global data: u8 = 10
+global data1: u8 = 20
+global data2: u8 = 30
+global data3: u8 = 40
+global data_len: u8 = 4
+
+fun array_get(idx: u8) -> u8 {
+    if idx >= data_len { @error(4) }
+    var p: ^u8 = &data
+    return p[idx]
+}
+
+// ── Chain: multiple fallible calls ─────────────────────
+//
+// Z80 codegen:
+//   chain:
+//       CALL safe_div
+//       RET C            ; propagate div error
+//       LD C, 5
+//       CALL safe_add
+//       RET C            ; propagate add error
+//       ; A = final result
+//       RET
+
+fun chain(a: u8, b: u8) -> u8 {
+    var x: u8 = safe_div(a, b)
+    @propagate
+    var y: u8 = safe_add(x, 5)
+    @propagate
+    return y
+}
+
+// ── Tests ──────────────────────────────────────────────
+
+// safe_div: 10 / 2 = 5 (no error)
+// assert safe_div(10, 2) == 5 via z80
+
+// safe_add: 200 + 50 = 250 (no error)
+// assert safe_add(200, 50) == 250 via z80
+
+// safe_sub: 10 - 3 = 7 (no error)
+// assert safe_sub(10, 3) == 7 via z80
+
+// chain: 10 / 2 + 5 = 10 (no error)
+// assert chain(10, 2) == 10 via z80
+
+fun main() -> void {
+    // Success cases
+    var a: u8 = safe_div(10, 2)
+    @propagate
+    @print_u8(a)
+
+    var b: u8 = safe_add(200, 50)
+    @propagate
+    @print_u8(b)
+
+    // Error case — safe_div(10, 0) sets CY
+    var c: u8 = safe_div(10, 0)
+    @check
+    // If we get here, c is valid
+    @print_u8(c)
+}
