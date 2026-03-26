@@ -487,19 +487,42 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 	}
 	if standErr == nil {
 		if constRan && hasConstraints {
-			// Constrained failed, standalone OK — emit with adapters
-			adapterCost := 0
+			// Check for adapter conflicts: if a move's destination is another param's
+			// caller register, the adapter will clobber that param. In this case,
+			// skip standalone+adapter and fall to per-block.
+			adapterConflict := false
+			callerRegsUsed := make(map[int]bool)
+			for _, phys := range callerParamLocs {
+				callerRegsUsed[phys] = true
+			}
 			for vreg, callerPhys := range callerParamLocs {
-				if standPhys, ok := standParamLocs[vreg]; ok && standPhys != callerPhys {
-					adapterCost++
+				standPhys, ok := standParamLocs[vreg]
+				if ok && standPhys != callerPhys {
+					// This move writes to standPhys. Is standPhys another param's caller reg?
+					if callerRegsUsed[standPhys] {
+						adapterConflict = true
+						break
+					}
 				}
 			}
-			adapted := emitAdapterEntry(standASM, f, callerParamLocs, standParamLocs, desc)
-			fmt.Fprintf(os.Stderr, "[vir] %s: constrained unsat, using standalone+adapter (%d adapters)\n",
-				f.Name, adapterCost)
-			return adapted, nil
+
+			if adapterConflict {
+				fmt.Fprintf(os.Stderr, "[vir] %s: adapter conflict (param swap), falling to per-block\n", f.Name)
+			} else {
+				adapterCost := 0
+				for vreg, callerPhys := range callerParamLocs {
+					if standPhys, ok := standParamLocs[vreg]; ok && standPhys != callerPhys {
+						adapterCost++
+					}
+				}
+				adapted := emitAdapterEntry(standASM, f, callerParamLocs, standParamLocs, desc)
+				fmt.Fprintf(os.Stderr, "[vir] %s: constrained unsat, using standalone+adapter (%d adapters)\n",
+					f.Name, adapterCost)
+				return adapted, nil
+			}
+		} else {
+			return standASM, nil
 		}
-		return standASM, nil
 	}
 
 	// Both CFG solves failed — per-block fallback
@@ -512,13 +535,98 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 	return codegenFuncPerBlock(f, vfFallback, desc, opts)
 }
 
+// resolveParallelMoves orders adapter moves to avoid clobbering.
+// Uses topological sort; breaks cycles with EX DE,HL or temp via PUSH/POP.
+type adapterMove struct {
+	fromPhys, toPhys int
+}
+
+func resolveParallelMoves(moves []adapterMove, desc *MachineDesc) []string {
+
+	if len(moves) <= 1 {
+		var result []string
+		for _, mv := range moves {
+			result = append(result, emitRegMove(desc.Locs[mv.fromPhys], desc.Locs[mv.toPhys])...)
+		}
+		return result
+	}
+
+	// Build dependency graph: which destination registers are also sources?
+	destIsSource := make(map[int]bool)
+	for _, mv := range moves {
+		destIsSource[mv.toPhys] = false
+	}
+	for _, mv := range moves {
+		if _, ok := destIsSource[mv.fromPhys]; ok {
+			destIsSource[mv.fromPhys] = true
+		}
+	}
+
+	// Emit moves where the destination is NOT someone else's source first
+	var result []string
+	emitted := make(map[int]bool) // source index → done
+	changed := true
+	for changed {
+		changed = false
+		for i, mv := range moves {
+			if emitted[i] {
+				continue
+			}
+			// Check: is mv.toPhys used as source by any un-emitted move?
+			blocked := false
+			for j, other := range moves {
+				if j != i && !emitted[j] && other.fromPhys == mv.toPhys {
+					blocked = true
+					break
+				}
+			}
+			if !blocked {
+				result = append(result, emitRegMove(desc.Locs[mv.fromPhys], desc.Locs[mv.toPhys])...)
+				emitted[i] = true
+				changed = true
+			}
+		}
+	}
+
+	// Any remaining moves form cycles — break with EX DE,HL or PUSH/POP
+	for i, mv := range moves {
+		if emitted[i] {
+			continue
+		}
+		from := desc.Locs[mv.fromPhys]
+		to := desc.Locs[mv.toPhys]
+		// Try EX DE,HL for DE↔HL swap
+		if (from.Name == "D" || from.Name == "E" || from.Name == "H" || from.Name == "L") &&
+			(to.Name == "D" || to.Name == "E" || to.Name == "H" || to.Name == "L") {
+			result = append(result, "EX DE, HL")
+			// Mark all DE↔HL moves as done
+			for j, other := range moves {
+				if !emitted[j] {
+					of := desc.Locs[other.fromPhys].Name
+					ot := desc.Locs[other.toPhys].Name
+					if (of == "D" || of == "E" || of == "H" || of == "L") &&
+						(ot == "D" || ot == "E" || ot == "H" || ot == "L") {
+						emitted[j] = true
+					}
+				}
+			}
+		} else {
+			// Generic cycle break: save source via PUSH, do all moves, POP
+			// For 8-bit: use PUSH AF / ... / POP AF as temp
+			result = append(result, fmt.Sprintf("PUSH AF ; save %s for cycle", from.Name))
+			result = append(result, emitRegMove(from, to)...)
+			result = append(result, "POP AF")
+			emitted[i] = true
+		}
+	}
+
+	return result
+}
+
 // emitAdapterEntry inserts LD moves after the function label to shuffle params
 // from caller's convention (callerLocs) to standalone solver's convention (standLocs).
 func emitAdapterEntry(asm string, f *mir2.Func, callerLocs, standLocs map[int]int, desc *MachineDesc) string {
 	// Collect adapter moves needed (skip SP/F — not valid param locations)
-	type adapterMove struct {
-		fromPhys, toPhys int
-	}
 	var moves []adapterMove
 	for _, cp := range f.Contract.Params {
 		vreg := int(cp.Reg)
@@ -539,15 +647,15 @@ func emitAdapterEntry(asm string, f *mir2.Func, callerLocs, standLocs map[int]in
 		return asm
 	}
 
-	// Generate adapter move instructions (Z80-aware)
+	// Resolve parallel moves: topological sort to avoid clobbering.
+	// If move B writes to a register that move A reads from, do A first.
+	// For cycles (A→B, B→A): use a temp register or PUSH/POP.
+	resolved := resolveParallelMoves(moves, desc)
+
 	var adapter strings.Builder
 	adapter.WriteString("    ; adapter: caller→standalone convention\n")
-	for _, mv := range moves {
-		from := desc.Locs[mv.fromPhys]
-		to := desc.Locs[mv.toPhys]
-		for _, inst := range emitRegMove(from, to) {
-			adapter.WriteString("    " + inst + "\n")
-		}
+	for _, inst := range resolved {
+		adapter.WriteString("    " + inst + "\n")
 	}
 
 	// Insert after function label line (funcname:)
