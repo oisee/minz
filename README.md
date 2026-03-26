@@ -1,5 +1,9 @@
 # MinZ Programming Language
 
+### ★ NEW: [Birthday Sprint: Zero Test Failures](reports/2026-03-26-Birthday-Sprint-Zero-Failures.md) — 44 Commits, 6 Layers, 12/14 Tests Pass
+
+**From 3 failures to zero.** 44-commit debugging marathon peeled 6 layers of register allocator bugs. 83.6M exhaustive GPU table + 164 optimal constant multiplies + E2E test suite that catches real bugs. [Full report](reports/2026-03-26-Birthday-Sprint-Zero-Failures.md).
+
 ### ★ NEW: [Anytime-Optimal Register Allocation](docs/Anytime_Optimal_Register_Allocation.md) — 5-Level Graceful Degradation
 
 **The compiler never fails. It only varies in how optimal the result is.**
