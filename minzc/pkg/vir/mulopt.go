@@ -96,3 +96,75 @@ func (t *MulOptTable) Size() int {
 	}
 	return len(t.entries)
 }
+
+// ── Division table ──────────────────────────────────────────────────────────
+
+type DivOpt struct {
+	K              int      `json:"k"`
+	Ops            []string `json:"ops"`
+	Length         int      `json:"length"`
+	TStates        int      `json:"tstates"`
+	Clobber        []string `json:"clobber"`
+	Preamble       []string `json:"preamble"`
+	PreambleTStates int     `json:"preamble_tstates"`
+}
+
+type DivOptTable struct {
+	entries map[int]*DivOpt
+}
+
+var (
+	globalDivOpt     *DivOptTable
+	globalDivOptOnce sync.Once
+)
+
+func GetDivOptTable() *DivOptTable {
+	globalDivOptOnce.Do(func() {
+		globalDivOpt = loadDivOptTable()
+	})
+	return globalDivOpt
+}
+
+func loadDivOptTable() *DivOptTable {
+	t := &DivOptTable{entries: make(map[int]*DivOpt)}
+
+	paths := []string{
+		os.ExpandEnv("$HOME/dev/z80-optimizer/data/div8_optimal.json"),
+	}
+	if p := os.Getenv("DIV8_PATH"); p != "" {
+		paths = []string{p}
+	}
+
+	for _, path := range paths {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			continue
+		}
+		var entries []DivOpt
+		if err := json.Unmarshal(data, &entries); err != nil {
+			fmt.Fprintf(os.Stderr, "[divopt] parse error: %v\n", err)
+			continue
+		}
+		for i := range entries {
+			t.entries[entries[i].K] = &entries[i]
+		}
+		fmt.Fprintf(os.Stderr, "[divopt] loaded %d div8 entries from %s\n", len(entries), path)
+		return t
+	}
+
+	return t
+}
+
+func (t *DivOptTable) Lookup(k int) *DivOpt {
+	if t == nil {
+		return nil
+	}
+	return t.entries[k]
+}
+
+func (t *DivOptTable) Size() int {
+	if t == nil {
+		return 0
+	}
+	return len(t.entries)
+}

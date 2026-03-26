@@ -1912,9 +1912,34 @@ func peepholeCleanup(asm string) string {
 		// Inline runtime calls — replace CALL __div8/mod8/mul8 with inline body.
 		// Each instance gets a unique label suffix. Dedup'd in post-pass.
 
-		// Specialization: divmod10 — GPU-discovered optimal sequence (124T, 27 insts).
-		// Clobbers only B,C,F — HL/DE untouched! Verified for all 256 inputs.
-		// Detect: B holds constant 10 before the CALL (direct LD B,10 or via LD B,r chain).
+		// GPU-optimal constant division: if B holds a known constant K and
+		// we have an optimal sequence for A/K→A, inline it directly.
+		if (strings.HasPrefix(line, "CALL __div8") || strings.HasPrefix(line, "JP __div8")) &&
+			resolveBValue(result) > 0 {
+			k := resolveBValue(result)
+			divTable := GetDivOptTable()
+			if entry := divTable.Lookup(k); entry != nil {
+				// Strip the LD B, K
+				if len(result) > 0 && strings.TrimSpace(result[len(result)-1]) == fmt.Sprintf("LD B, %d", k) {
+					result = result[:len(result)-1]
+				}
+				result = append(result, fmt.Sprintf("    ; div%d (GPU-optimal, %dT)", k, entry.TStates+entry.PreambleTStates))
+				for _, op := range entry.Preamble {
+					result = append(result, "    "+op)
+				}
+				for _, op := range entry.Ops {
+					result = append(result, "    "+op)
+				}
+				result = append(result, "    LD A, H") // result in H → move to A
+				if i+1 < len(lines) {
+					next := strings.TrimSpace(lines[i+1])
+					if strings.HasPrefix(next, "LD A, ") { i++ }
+				}
+				continue
+			}
+		}
+
+		// Fallback: divmod10 hardcoded sequence (for both div10 and mod10)
 		if (strings.HasPrefix(line, "CALL __div8") || strings.HasPrefix(line, "JP __div8")) &&
 			resolveBValue(result) == 10 {
 			idx := inlineCounter
