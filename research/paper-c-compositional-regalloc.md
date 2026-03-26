@@ -108,15 +108,18 @@ Step 3: Else: shape is "irreducible" — solve directly or use Z3
 
 **Applicability:** Depends on graph structure. Sparse interference (most real programs) → small separators exist. Dense interference (register pressure > L/2) → no small separator.
 
-**Theoretical fraction with |S| ≤ 2 on 6 vertices:**
+**Empirical decomposability (GPU-verified on 17.2M 5v shapes):**
 
-For random graphs G(6, p):
-- p = 0.1 (sparse): ~95% have separator ≤ 2
-- p = 0.3 (moderate): ~70% have separator ≤ 2
-- p = 0.5 (dense): ~30% have separator ≤ 2
-- p = 0.7 (very dense): ~5% have separator ≤ 2
+| Category | Fraction | Method | Time |
+|----------|----------|--------|------|
+| Disconnected | 29.0% | Component split + table | O(1) |
+| Cut vertex | 47.9% | Split at cut + table | O(1) |
+| 2-connected, tw≤3 | 22.7% | Tree DP + table | O(L^3 × N) |
+| 2-connected, tw=4 | 0.4% | Tree DP + table | O(L^4 × N) |
+| **Total tractable** | **99.5%** | **No GPU needed** | **polynomial** |
+| Brute-force required | 0.5% | GPU exhaustive | exponential |
 
-Real programs have sparse interference (Paper A: 6-24% density). At 10-20% density, nearly all 6v graphs decompose.
+**The GPU table is the proof, not the solution.** Classical graph decomposition handles 99.5% of all shapes. The exhaustive GPU enumeration served as a verification oracle — confirming that tractable methods produce optimal results.
 
 ### Strategy 2: Treewidth-Bounded Composition
 
@@ -294,12 +297,17 @@ Average overhead for decomposable shapes: **~3T** (< 2% of typical function cost
 
 | Category | Fraction | Method | Overhead |
 |----------|----------|--------|----------|
-| Treewidth ≤ 4 | ~85% | Tree DP + table | 0T (exact) |
-| Small separator | ~10% | Graph-cut + table | 4-12T |
-| Spill-to-fit | ~4% | Alter + table | 20T |
-| Irreducible | ~1% | Z3/backtracking | 0T (exact, slow) |
+| Disconnected | 29.0% | Component split | 0T (exact) |
+| Cut vertex | 47.9% | Split + table | 0-8T (boundary shuffle) |
+| Treewidth ≤ 3 | 22.7% | Tree DP + table | 0T (exact) |
+| Treewidth = 4 | 0.4% | Tree DP + table | 0T (exact) |
+| Irreducible | 0.5% | GPU/Z3/backtracking | 0T (exact, slow) |
 
-**99% of 6v shapes can be solved from the ≤5v table** with at most 20T overhead.
+**99.5% of shapes can be solved from the ≤3v table** via classical graph decomposition. No GPU needed at compile time.
+
+### Implication for Self-Hosting
+
+The ≤3v table has only ~2,744 entries. At ~16 bytes per entry, that's ~44KB — fits in Z80 RAM. Combined with a tree decomposition algorithm (~2KB code), a Z80-native compiler can solve 99.5% of register allocation problems optimally, on the target hardware itself.
 
 ---
 
