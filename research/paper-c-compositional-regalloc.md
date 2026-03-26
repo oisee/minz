@@ -108,15 +108,18 @@ Step 3: Else: shape is "irreducible" — solve directly or use Z3
 
 **Applicability:** Depends on graph structure. Sparse interference (most real programs) → small separators exist. Dense interference (register pressure > L/2) → no small separator.
 
-**Theoretical fraction with |S| ≤ 2 on 6 vertices:**
+**Empirical decomposability (GPU-verified on 17.2M 5v shapes):**
 
-For random graphs G(6, p):
-- p = 0.1 (sparse): ~95% have separator ≤ 2
-- p = 0.3 (moderate): ~70% have separator ≤ 2
-- p = 0.5 (dense): ~30% have separator ≤ 2
-- p = 0.7 (very dense): ~5% have separator ≤ 2
+| Category | Fraction | Method | Time |
+|----------|----------|--------|------|
+| Disconnected | 29.0% | Component split + table | O(1) |
+| Cut vertex | 47.9% | Split at cut + table | O(1) |
+| 2-connected, tw≤3 | 22.7% | Tree DP + table | O(L^3 × N) |
+| 2-connected, tw=4 | 0.4% | Tree DP + table | O(L^4 × N) |
+| **Total tractable** | **99.5%** | **No GPU needed** | **polynomial** |
+| Brute-force required | 0.5% | GPU exhaustive | exponential |
 
-Real programs have sparse interference (Paper A: 6-24% density). At 10-20% density, nearly all 6v graphs decompose.
+**The GPU table is the proof, not the solution.** Classical graph decomposition handles 99.5% of all shapes. The exhaustive GPU enumeration served as a verification oracle — confirming that tractable methods produce optimal results.
 
 ### Strategy 2: Treewidth-Bounded Composition
 
@@ -294,12 +297,41 @@ Average overhead for decomposable shapes: **~3T** (< 2% of typical function cost
 
 | Category | Fraction | Method | Overhead |
 |----------|----------|--------|----------|
-| Treewidth ≤ 4 | ~85% | Tree DP + table | 0T (exact) |
-| Small separator | ~10% | Graph-cut + table | 4-12T |
-| Spill-to-fit | ~4% | Alter + table | 20T |
-| Irreducible | ~1% | Z3/backtracking | 0T (exact, slow) |
+| Disconnected | 29.0% | Component split | 0T (exact) |
+| Cut vertex | 47.9% | Split + table | 0-8T (boundary shuffle) |
+| Treewidth ≤ 3 | 22.7% | Tree DP + table | 0T (exact) |
+| Treewidth = 4 | 0.4% | Tree DP + table | 0T (exact) |
+| Irreducible | 0.5% | GPU/Z3/backtracking | 0T (exact, slow) |
 
-**99% of 6v shapes can be solved from the ≤5v table** with at most 20T overhead.
+**For random graphs:** 99.5% solvable from the ≤3v table via classical decomposition.
+
+**For compiler-generated code (empirical correction):** Real interference graphs are denser than random. Treewidth analysis of 54 dense corpus functions (>40% density) shows:
+
+| Treewidth | Fraction | Method |
+|-----------|----------|--------|
+| tw ≤ 3 | 46.3% | Composition from table (exact) |
+| tw = 4 | 35.2% | GPU/backtracking (all ≤15v, <1s) |
+| tw = 5 | 9.3% | Island decomposition + Z3 |
+| tw ≥ 6 | 9.3% | Island decomposition + Z3 |
+
+Compiler-generated interference graphs are biased toward higher treewidth because real programs have tight loops with many simultaneously live variables. The 99.5% random-graph result is a theoretical upper bound; the practical decomposability for dense corpus functions is ~46%.
+
+**However:** ALL tw=4 functions in the corpus have ≤15v — directly solvable by our backtracking solver (745,000x pruning, <1s each). Only 10 functions (1.3% of total corpus) require island decomposition.
+
+### Revised Coverage (honest result)
+
+| Corpus category | Fraction | Method |
+|-----------------|----------|--------|
+| ≤5v (sparse) | 59.4% | Complete table (O(1)) |
+| 6-15v, tw≤3 | ~20% | Composition from table |
+| 6-15v, tw=4 | ~15% | Backtracking (<1s) |
+| 6-15v, tw≥5 | ~4% | Z3 (seconds) |
+| >15v | ~1.6% | Island decomposition |
+| **Total** | **100%** | **Every function compiles** |
+
+### Implication for Self-Hosting
+
+The ≤4v table has 156,506 entries (~2.4MB). Too large for Z80 RAM, but fits on disk. A practical self-hosting compiler would use the corpus-derived table (~315 entries, ~5KB) for O(1) hits on common patterns, with Z3 or backtracking as compile-time fallback for misses. The tree decomposition algorithm (~2KB code) handles the 46% of dense functions that decompose classically.
 
 ---
 
