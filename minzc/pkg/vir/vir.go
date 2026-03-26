@@ -497,9 +497,10 @@ func formatImm(v int64) string {
 // ── Block ────────────────────────────────────────────────────────────────────
 
 type Block struct {
-	Label string
-	Ops   []VIROp  // input: virtual ops
-	PIR   []PIROp  // output: physical ops (filled by solver)
+	Label  string
+	Ops    []VIROp  // input: virtual ops
+	PIR    []PIROp  // output: physical ops (filled by solver)
+	Params []int    // block parameter vreg IDs (PHI destinations)
 }
 
 // ── Func ─────────────────────────────────────────────────────────────────────

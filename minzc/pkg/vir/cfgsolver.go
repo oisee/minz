@@ -132,12 +132,14 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 				continue
 			}
 
-			// Build PHI map: term args[i] → dest block params[i].Dst
+			// Build PHI map: term args[i] → VIR block params[i]
+			// Uses VIR block params (populated by LowerFunc from MIR2 block params).
+			// Both args and params use the same vreg ID space.
 			phi := make(map[int]int)
-			destMIR := f.Blocks[si]
+			destVIR := vf.Blocks[si]
 			for pi, arg := range succ.args {
-				if pi < len(destMIR.Params) {
-					phi[int(arg)] = int(destMIR.Params[pi].Dst)
+				if pi < len(destVIR.Params) {
+					phi[int(arg)] = destVIR.Params[pi]
 				}
 			}
 
@@ -186,39 +188,22 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 	// At each CALL in B, the vreg needs a clobber constraint.
 	for bi, bp := range blocks {
 		liveIn := blockLiveIn[bi]
-		liveOut := blockLiveOut[bi]
+		_ = blockLiveOut[bi] // used for future live-through analysis
 		if len(liveIn) == 0 {
 			continue
 		}
 
-		// ALL live-in vregs must be in the liveness set at every instruction
-		// from block entry until their first use (or block exit if unused).
-		// Without this, a vreg live-in from an edge may be missing from
-		// liveness at a CALL that precedes its first use in the block.
+		// Inject live-in vregs at CLOBBER instructions (CALL/AsmBlock) only.
+		// This ensures clobber constraints fire without over-constraining
+		// interference at every instruction (which causes unsat for large functions).
 		for vreg := range liveIn {
-			// Find first instruction in block where vreg is already live
-			firstLive := len(bp.prob.liveness) // default: not live anywhere
-			for i, l := range bp.prob.liveness {
-				if l.live[vreg] {
-					firstLive = i
-					break
-				}
-			}
-			// If live-out but never live in block, it's fully live-through
-			if firstLive == len(bp.prob.liveness) && liveOut[vreg] {
-				firstLive = len(bp.prob.liveness) // inject at all
-			}
-
-			// Inject from instruction 0 up to (and including) firstLive
 			injected := false
-			limit := firstLive
-			if liveOut[vreg] && firstLive == len(bp.prob.liveness) {
-				limit = len(bp.prob.liveness) - 1 // inject at all instructions
-			}
-			for i := 0; i <= limit && i < len(bp.prob.liveness); i++ {
-				if !bp.prob.liveness[i].live[vreg] {
-					bp.prob.liveness[i].live[vreg] = true
-					injected = true
+			for i, op := range bp.ops {
+				if !op.Clobbers.IsEmpty() && i < len(bp.prob.liveness) {
+					if !bp.prob.liveness[i].live[vreg] {
+						bp.prob.liveness[i].live[vreg] = true
+						injected = true
+					}
 				}
 			}
 			if injected {
