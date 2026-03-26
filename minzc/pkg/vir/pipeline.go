@@ -525,12 +525,20 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 		}
 	}
 
-	// Both CFG solves failed — per-block fallback
+	// Both CFG solves failed — try whole-function solve (flattens all blocks)
+	vfWhole := deepCopyFunc(vf)
+	wholeASM, wholeErr := codegenFuncWhole(f, vfWhole, desc, optsStand)
+	if wholeErr == nil {
+		fmt.Fprintf(os.Stderr, "[vir] %s: CFG unsat, whole-function solve OK\n", f.Name)
+		return wholeASM, nil
+	}
+
+	// Last resort: per-block fallback
 	errMsg := standErr
 	if constRan && constErr != nil {
 		errMsg = constErr
 	}
-	fmt.Fprintf(os.Stderr, "[vir] CFG solver failed for %s: %v, falling back to per-block\n", f.Name, errMsg)
+	fmt.Fprintf(os.Stderr, "[vir] %s: all solvers failed (%v), falling back to per-block\n", f.Name, errMsg)
 	vfFallback := deepCopyFunc(vf)
 	return codegenFuncPerBlock(f, vfFallback, desc, opts)
 }
