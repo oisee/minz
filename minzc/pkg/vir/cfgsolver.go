@@ -91,10 +91,14 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 		blocks = append(blocks, blockProblem{label, ops, prob})
 	}
 
-	// Build CFG edges from MIR2 terminators
+	// Build CFG edges from MIR2 terminators + PHI maps from block params.
+	// MIR2 uses block arguments instead of PHI nodes:
+	//   TermJmp{Target: "join", Args: [r73]} → Block{Params: [{Dst: r79}]}
+	// This means r73 (in the source block) becomes r79 (in the dest block).
 	type cfgEdge struct {
 		fromBlock int
 		toBlock   int
+		phiMap    map[int]int // old vreg → new vreg (from term Args → block Params)
 	}
 	var edges []cfgEdge
 
@@ -102,10 +106,55 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 		if mirBlock.Term == nil {
 			continue
 		}
-		succs := mirBlock.Term.Successors()
-		for _, succLabel := range succs {
-			if si, ok := blockIdx[succLabel]; ok {
-				edges = append(edges, cfgEdge{bi, si})
+
+		// Extract args from the terminator for each successor
+		type succInfo struct {
+			label string
+			args  []mir2.Reg
+		}
+		var succs []succInfo
+
+		switch t := mirBlock.Term.(type) {
+		case *mir2.TermJmp:
+			succs = append(succs, succInfo{t.Target, t.Args})
+		case *mir2.TermBrIf:
+			succs = append(succs, succInfo{t.Then, t.ThenArgs})
+			succs = append(succs, succInfo{t.Else, t.ElseArgs})
+		default:
+			for _, label := range mirBlock.Term.Successors() {
+				succs = append(succs, succInfo{label, nil})
+			}
+		}
+
+		for _, succ := range succs {
+			si, ok := blockIdx[succ.label]
+			if !ok {
+				continue
+			}
+
+			// Build PHI map: term args[i] → dest block params[i].Dst
+			phi := make(map[int]int)
+			destMIR := f.Blocks[si]
+			for pi, arg := range succ.args {
+				if pi < len(destMIR.Params) {
+					phi[int(arg)] = int(destMIR.Params[pi].Dst)
+				}
+			}
+
+			edges = append(edges, cfgEdge{bi, si, phi})
+			if os.Getenv("VIR_DEBUG_EDGES") != "" && len(phi) > 0 {
+				fmt.Fprintf(os.Stderr, "[PHI] %s: edge b%d→b%d phi=%v\n", f.Name, bi, si, phi)
+			}
+
+			// Force terminator-arg vregs into liveness at the last instruction
+			// of the source block. These vregs are used by the PHI but don't
+			// appear in VIR ops — without this they're invisible to liveness.
+			if len(succ.args) > 0 && len(blocks[bi].prob.liveness) > 0 {
+				lastIdx := len(blocks[bi].prob.liveness) - 1
+				for _, arg := range succ.args {
+					blocks[bi].prob.liveness[lastIdx].live[int(arg)] = true
+					blocks[bi].prob.vregs[int(arg)] = true
+				}
 			}
 		}
 	}
@@ -443,11 +492,15 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 	}
 	var edgeMoves []edgeMove
 
-	// Check which blocks start with a CALL (clobbers GPR)
-	blockStartsWithCall := make(map[int]bool)
+	// Check which blocks CONTAIN a CALL (clobbers GPR).
+	// Any vreg live across an edge into such a block must be call-safe.
+	blockContainsCall := make(map[int]bool)
 	for bi, bp := range blocks {
-		if len(bp.ops) > 0 && (bp.ops[0].Op == OpCall || bp.ops[0].Op == OpAsmBlock) {
-			blockStartsWithCall[bi] = true
+		for _, op := range bp.ops {
+			if (op.Op == OpCall || op.Op == OpAsmBlock) && !op.Clobbers.IsEmpty() {
+				blockContainsCall[bi] = true
+				break
+			}
 		}
 	}
 
@@ -461,13 +514,9 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 		}
 
 		fromLive := fromBP.prob.liveness[fromLastIdx].live
-		var toLive map[int]bool
-		if len(toBP.prob.liveness) > 0 {
-			toLive = toBP.prob.liveness[0].live
-		}
 
 		// Does the destination block have a CALL early that would clobber GPR?
-		destHasCall := blockStartsWithCall[edge.toBlock]
+		destHasCall := blockContainsCall[edge.toBlock]
 
 		sortedVRegs := make([]int, 0, len(fromLive))
 		for vreg := range fromLive {
@@ -476,22 +525,46 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 		sort.Ints(sortedVRegs)
 
 		for _, vreg := range sortedVRegs {
-			if toLive != nil && toLive[vreg] {
-				fromVar := fmt.Sprintf("lv%d_b%d_i%d", vreg, edge.fromBlock, fromLastIdx)
-				toVar := fmt.Sprintf("lv%d_b%d_i%d", vreg, edge.toBlock, 0)
-				ensureVar(vreg, edge.fromBlock, fromLastIdx)
-				ensureVar(vreg, edge.toBlock, 0)
+			// Determine the destination vreg: either same ID or PHI-mapped
+			toVreg := vreg
+			if mapped, ok := edge.phiMap[vreg]; ok {
+				toVreg = mapped
+			}
 
-				if destHasCall {
-					// Vreg must survive a CALL at the start of the dest block.
-					// HARD constraint: same location in both blocks AND must be
-					// in a call-safe register (IXH=14, IXL=15, IYH=16, IYL=17).
+			// Check if the destination vreg is live in the destination block
+			toBlockHasVreg := false
+			if toBP.prob.vregs[toVreg] {
+				toBlockHasVreg = true
+			}
+			// Also check toLive at instruction 0
+			if len(toBP.prob.liveness) > 0 && toBP.prob.liveness[0].live[toVreg] {
+				toBlockHasVreg = true
+			}
+			// PHI-mapped vregs are always live at block entry
+			if _, ok := edge.phiMap[vreg]; ok {
+				toBlockHasVreg = true
+			}
+
+			if !toBlockHasVreg {
+				continue
+			}
+
+			fromVar := ensureVar(vreg, edge.fromBlock, fromLastIdx)
+			toVar := ensureVar(toVreg, edge.toBlock, 0)
+
+			if destHasCall {
+				// Vreg must survive a CALL at the start of the dest block.
+				// HARD constraint: same location in both blocks AND must be
+				// in a call-safe register (IXH=14, IXL=15, IYH=16, IYL=17).
+				b.WriteString(fmt.Sprintf("(assert (= %s %s))\n", fromVar, toVar))
+				b.WriteString(fmt.Sprintf("(assert (or (= %s 14) (= %s 15) (= %s 16) (= %s 17)))\n",
+					fromVar, fromVar, fromVar, fromVar))
+			} else {
+				// HARD equality for PHI-mapped vregs (they MUST match — no move possible)
+				// Soft for same-ID vregs (move can be inserted)
+				if toVreg != vreg {
 					b.WriteString(fmt.Sprintf("(assert (= %s %s))\n", fromVar, toVar))
-					// Constrain to call-safe locations
-					b.WriteString(fmt.Sprintf("(assert (or (= %s 14) (= %s 15) (= %s 16) (= %s 17)))\n",
-						fromVar, fromVar, fromVar, fromVar))
 				} else {
-					// Soft: allow different locations with a move cost penalty
 					edgeMoves = append(edgeMoves, edgeMove{fromVar, toVar})
 				}
 			}
