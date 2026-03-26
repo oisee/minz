@@ -694,9 +694,26 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 				}
 			}
 
-			// Insert inter-instruction moves
+			// Insert inter-instruction moves for ALL live vregs that change location.
+			// Not just src operands — also block params and other live-through vregs.
 			if i > 0 {
-				for _, vreg := range []int{op.Src[0], op.Src[1]} {
+				moveVregs := make([]int, 0)
+				// Start with src operands (original behavior)
+				for _, s := range []int{op.Src[0], op.Src[1]} {
+					if s > 0 { moveVregs = append(moveVregs, s) }
+				}
+				// Add all live vregs at this instruction (catches block params)
+				if i < len(bp.prob.liveness) {
+					for v := range bp.prob.liveness[i].live {
+						found := false
+						for _, mv := range moveVregs {
+							if mv == v { found = true; break }
+						}
+						if !found && v > 0 { moveVregs = append(moveVregs, v) }
+					}
+					sort.Ints(moveVregs)
+				}
+				for _, vreg := range moveVregs {
 					if vreg <= 0 {
 						continue
 					}
