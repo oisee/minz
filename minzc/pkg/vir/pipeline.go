@@ -441,6 +441,8 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 	}
 
 	// --- Mode 1: Constrained solve (ABI-compatible) ---
+	// When caller provides param locations, try constrained first.
+	// If constrained succeeds, params are in the right place — no adapter needed.
 	var constASM string
 	constRan := false
 	var constErr error
@@ -448,6 +450,10 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 		constRan = true
 		vfConst := deepCopyFunc(vf)
 		constASM, constErr = codegenFuncCFG(f, vfConst, desc, opts)
+		if constErr == nil {
+			// Constrained mode succeeded — params match caller, return directly
+			return constASM, nil
+		}
 	}
 
 	// --- Mode 2: Standalone solve (no param constraints) ---
@@ -507,7 +513,9 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 			}
 
 			if adapterConflict {
-				fmt.Fprintf(os.Stderr, "[vir] %s: adapter conflict, trying whole-function\n", f.Name)
+				// Adapter conflict: standalone convention swaps param registers.
+				// Can't resolve with simple adapter moves. Fall to PBQP.
+				return "", fmt.Errorf("adapter conflict: param register swap requires PBQP")
 			} else {
 				adapterCost := 0
 				for vreg, callerPhys := range callerParamLocs {
