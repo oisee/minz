@@ -468,30 +468,33 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 	}
 
 	// Param location constraints: entry block (b0) params must be in PBQP registers.
-	// Includes copy vregs from pre-tie passes (tracked in paramHintsEarly).
-	if len(paramHintsEarly) > 0 && len(blocks) > 0 {
-		bp := blocks[0]
-		for vreg, phys := range paramHintsEarly {
-			// Find the first instruction in block 0 that references this vreg
-			for i, op := range bp.ops {
-				usesVreg := false
-				if op.Dst == vreg {
-					usesVreg = true
+	// Param location constraints: pin each param vreg to its PBQP register
+	// at the FIRST instruction that references it, in ANY block.
+	// (Was: only block 0, missing params first used in later blocks.)
+	if len(paramHintsEarly) > 0 {
+		applied := make(map[int]bool)
+		for bi, bp := range blocks {
+			for vreg, phys := range paramHintsEarly {
+				if applied[vreg] {
+					continue
 				}
-				for _, s := range op.Src {
-					if s == vreg {
-						usesVreg = true
+				for i, op := range bp.ops {
+					usesVreg := false
+					if op.Dst == vreg { usesVreg = true }
+					for _, s := range op.Src {
+						if s == vreg { usesVreg = true }
 					}
-				}
-				if usesVreg {
-					v := ensureVar(vreg, 0, i)
-					locName := "?"
-					if phys < len(desc.Locs) {
-						locName = desc.Locs[phys].Name
+					if usesVreg {
+						v := ensureVar(vreg, bi, i)
+						locName := "?"
+						if phys < len(desc.Locs) {
+							locName = desc.Locs[phys].Name
+						}
+						b.WriteString(fmt.Sprintf("(assert (= %s %d)) ; param vreg %d in %s\n",
+							v, phys, vreg, locName))
+						applied[vreg] = true
+						break
 					}
-					b.WriteString(fmt.Sprintf("(assert (= %s %d)) ; param vreg %d in %s\n",
-						v, phys, vreg, locName))
-					break
 				}
 			}
 		}

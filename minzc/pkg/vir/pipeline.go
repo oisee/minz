@@ -448,6 +448,9 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 	var constErr error
 	if hasConstraints {
 		constRan = true
+		if os.Getenv("VIR_DEBUG_ASM") != "" {
+			fmt.Fprintf(os.Stderr, "[PARAMS] %s: callerParamLocs=%v\n", f.Name, callerParamLocs)
+		}
 		vfConst := deepCopyFunc(vf)
 		constASM, constErr = codegenFuncCFG(f, vfConst, desc, opts)
 		if constErr == nil {
