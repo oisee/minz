@@ -6,6 +6,41 @@ For pre-MIR2 history (v0.1–v0.15, 2025), see git log.
 
 ---
 
+## 2026-03-26 (Sessions 7-8)
+
+**Birthday marathon continues. Research + language features.**
+
+### @error — Z80-Native Error Propagation
+- **`@error(N)`** → `SCF / LD A, N / RET` — set carry flag, error code in A, return (2 bytes, 15T)
+- **`@propagate`** → `RET C` — **1 byte** conditional return on carry. Z80's native error propagation.
+- **`@check`** → `JR NC, .ok / RET / .ok:` — check + propagate inline
+- Pure metafunction expansion — zero parser/AST/semantic changes. 55 LOC.
+- Convention: `?` in function name = fallible (enforcement TBD)
+- [Codegen Report](docs/Error_Propagation_Codegen.md) | [Design Doc](docs/Error_Propagation_Design.md) | [Example](examples/nanz/14_error_propagation.nanz)
+
+### GPU Exhaustive Table — Complete ≤5v
+- **≤4v:** 156,506 shapes, 40 sec, COMPLETE
+- **≤5v:** 17,366,874 shapes, 20 min, COMPLETE
+- **6v sample:** 537K shapes (45 min partial run)
+- **Feasibility cliff:** 6v = only 0.9% feasible (99.1% impossible!)
+- **Composition verified:** 13.2M shapes, 5.06T avg overhead, 480 cases composition BEATS GPU
+- **Treewidth:** 99.5% random graphs classically tractable, 46.3% for dense corpus
+
+### Frontend Sprint
+- **PL/M:** 5 examples created (hello, assert, showcase, abs_diff_fib, sum_array) — all compile
+- **Lizp:** all 8 examples compile + assemble (MZA fixes resolved all gaps)
+- **Pascal:** SwitchStmt/VarDeclStmt traversal fix. Stdlib blocked on InlineTrivial (VIR P6)
+
+### Research
+- 4 papers with companion files + data
+- Cross-compiler analysis: Nanz `ADD A, A` = SDCC `ADD A, A` (ISA-intrinsic proof)
+- SDCC comparison: swap 20:0, minmax 63:11, abs_diff 13:4
+- C89 signatures: 292 funcs → 129 unique (55.8% reuse)
+- Paper C: compositional regalloc from solved sub-shapes
+- Anytime-optimal 5-level pipeline doc (263 lines with ASCII diagrams)
+
+---
+
 ## 2026-03-25 (Sessions 3-4)
 
 **~25 commits across 3 repos. 3 ZX Spectrum screenshots. Paper A draft.**

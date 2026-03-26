@@ -59,6 +59,27 @@ let unwrap (opt : u16) (def : u8) : u8 =
   | None   -> def
 ```
 
+### ★ NEW: @error — Z80-Native Error Propagation | [Codegen Report](docs/Error_Propagation_Codegen.md) | [Design](docs/Error_Propagation_Design.md)
+
+**CY flag + A register.** `@error(N)` → `SCF / LD A, N / RET` (2 bytes). `@propagate` → `RET C` (**1 byte!** — conditional return on carry). The Z80 was designed for this pattern.
+
+```nanz
+fun safe_div(a: u8, b: u8) -> u8 {
+    if b == 0 { @error(1) }     // SCF / LD A, 1 / RET
+    return a / b
+}
+
+fun compute(a: u8, b: u8) -> u8 {
+    var x: u8 = safe_div(a, b)
+    @propagate                   // RET C — 1 byte propagation!
+    return x + 1
+}
+```
+
+No Result types, no exceptions, no runtime overhead. Pure CPU flags. [Example →](examples/nanz/14_error_propagation.nanz)
+
+---
+
 ### ★ NEW: Nanz ADT + Match Expressions
 
 Nanz (the primary language) now has **algebraic data types with payload** and **Rust-style match expressions**:
