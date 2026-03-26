@@ -1302,8 +1302,14 @@ func (p *problem) generateSMT() string {
 		}
 	}
 
-	// Hint constraints (soft — via cost, not hard)
-	// DstHint and SrcHint from PFCCO contracts
+	// DstHint: HARD constraint — param vregs MUST be in ABI register.
+	// These come from FuncParamLocs (caller convention) via SrcHint on ops.
+	for _, op := range p.ops {
+		if op.Dst > 0 && !op.DstHint.IsEmpty() {
+			c := locSetToSMT(fmt.Sprintf("loc_v%d", op.Dst), op.DstHint)
+			b.WriteString(fmt.Sprintf("(assert %s) ; hard DstHint\n", c))
+		}
+	}
 
 	// Cost objective: minimize total cost
 	b.WriteString("(declare-const total_cost Int)\n")
@@ -1711,22 +1717,27 @@ func generateSMTPerInst(p *problem) string {
 		}
 	}
 
-	// Soft param hints: for vregs that are function params, prefer their
-	// ABI register. Cost penalty (4T) if param not in expected register
-	// at instruction 0. This is a SOFT constraint — Z3 can deviate when
-	// ALU tied patterns require a different register.
+	// Param hints: HARD at first instruction (ABI entry point), soft elsewhere.
+	// This ensures params are in the caller's expected registers at function entry.
+	// Without HARD, Z3 ignores 4T soft penalty when CMP pattern (0T in A) is cheaper.
+	paramHardDone := make(map[int]bool)
 	for _, op := range p.ops {
 		if !op.DstHint.IsEmpty() && op.Dst > 0 {
-			// Find instruction 0 or first instruction where this vreg is live
 			for i := range p.ops {
 				if p.liveness[i].live[op.Dst] || p.ops[i].Dst == op.Dst {
 					if _, ok := vars[vregAtInst{op.Dst, i}]; ok {
-						op.DstHint.ForEach(func(loc int) bool {
-							// Prefer this location: 0 cost if match, 4T if not
-							b.WriteString(fmt.Sprintf("  (ite (= lv%d_i%d %d) 0 4) ; soft param hint\n",
-								op.Dst, i, loc))
-							return false // only first preferred loc
-						})
+						if !paramHardDone[op.Dst] {
+							// HARD at first live instruction: param MUST be in ABI register
+							c := locSetToSMT(fmt.Sprintf("lv%d_i%d", op.Dst, i), op.DstHint)
+							b.WriteString(fmt.Sprintf("(assert %s) ; hard param at entry\n", c))
+							paramHardDone[op.Dst] = true
+						} else {
+							op.DstHint.ForEach(func(loc int) bool {
+								b.WriteString(fmt.Sprintf("  (ite (= lv%d_i%d %d) 0 4) ; soft param hint\n",
+									op.Dst, i, loc))
+								return false
+							})
+						}
 					}
 					break
 				}
@@ -1867,10 +1878,26 @@ func findMovePattern(desc *MachineDesc, srcPhys, dstPhys int) *Pattern {
 func insertPerInstMoves(pirOps []PIROp, p *problem, vals map[string]int, desc *MachineDesc) []PIROp {
 	var result []PIROp
 	for i, pirop := range pirOps {
-		// Before each instruction, check if any source vreg needs a move
+		// Before each instruction, check if ANY live vreg needs a move.
+		// Not just Src operands — also vregs that changed location for
+		// pattern requirements (e.g., is_neg moves C→A for CMP pattern).
 		if i > 0 && i < len(p.ops) {
+			// Collect all vregs to check: srcs + all live vregs at this point
+			checkVregs := make(map[int]bool)
 			op := p.ops[i]
-			for _, vreg := range []int{op.Src[0], op.Src[1]} {
+			if op.Src[0] > 0 { checkVregs[op.Src[0]] = true }
+			if op.Src[1] > 0 { checkVregs[op.Src[1]] = true }
+			if i < len(p.liveness) {
+				for v := range p.liveness[i].live {
+					if v > 0 { checkVregs[v] = true }
+				}
+			}
+			sortedVregs := make([]int, 0, len(checkVregs))
+			for v := range checkVregs {
+				sortedVregs = append(sortedVregs, v)
+			}
+			sort.Ints(sortedVregs)
+			for _, vreg := range sortedVregs {
 				if vreg <= 0 {
 					continue
 				}
