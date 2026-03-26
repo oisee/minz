@@ -189,16 +189,24 @@ func (l *lowerer) lower() (*hir.Module, error) {
 
 	var mainStmts []hir.Stmt
 
-	// ZX Spectrum: clear screen at startup
+	// ZX Spectrum: clear screen at startup with diagnostic border colors
 	if l.hm.Target == hir.TargetZXSpectrum {
-		mainStmts = append(mainStmts, &hir.ExprStmt{
-			Expr: &hir.CallExpr{Fn: "_zx_cls", Ty: mir2.TyVoid},
-		})
-		// Set border to blue
+		// RED border = program started
 		mainStmts = append(mainStmts, &hir.ExprStmt{
 			Expr: &hir.CallExpr{
 				Fn:   "_zx_border",
-				Args: []hir.Expr{&hir.IntLitExpr{Val: 1, Ty: mir2.TyU8}},
+				Args: []hir.Expr{&hir.IntLitExpr{Val: 2, Ty: mir2.TyU8}},
+				Ty:   mir2.TyVoid,
+			},
+		})
+		mainStmts = append(mainStmts, &hir.ExprStmt{
+			Expr: &hir.CallExpr{Fn: "_zx_cls", Ty: mir2.TyVoid},
+		})
+		// GREEN border = CLS done
+		mainStmts = append(mainStmts, &hir.ExprStmt{
+			Expr: &hir.CallExpr{
+				Fn:   "_zx_border",
+				Args: []hir.Expr{&hir.IntLitExpr{Val: 4, Ty: mir2.TyU8}},
 				Ty:   mir2.TyVoid,
 			},
 		})
@@ -513,21 +521,78 @@ func (l *lowerer) lower() (*hir.Module, error) {
 			},
 		})
 		// Execute seed SQL statements from *!sql pragmas.
-		// Use standard HIR calls with hardcoded handle=1.
-		for _, sql := range l.prog.SeedSQL {
+		// Each wrapped in asm function to avoid regalloc string pointer corruption.
+		for si, sql := range l.prog.SeedSQL {
 			sqlSym := l.internStr(sql)
+			sqlAsmSym := strings.ReplaceAll(strings.ReplaceAll(sqlSym, "@", "_"), ".", "_")
+			seedFn := fmt.Sprintf("_abap_seed_%d", si)
+			l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
+				Name:   seedFn,
+				Params: []hir.Param{{Name: "_x", Ty: mir2.TyU8}},
+				RetTy:  mir2.TyVoid,
+				Body: &hir.Block{
+					Body: []hir.Stmt{
+						&hir.AsmStmt{
+							Target: "z80",
+							Code: fmt.Sprintf(
+								"LD HL, 1 / LD DE, %s / CALL sqlite_exec", sqlAsmSym),
+							Ins:         []hir.AsmOperand{{Name: "_x"}},
+							ClobberRegs: []string{"A", "B", "C", "D", "E", "H", "L"},
+						},
+					},
+				},
+			})
 			initStmts = append(initStmts, &hir.ExprStmt{
 				Expr: &hir.CallExpr{
-					Fn: "sqlite_exec",
-					Args: []hir.Expr{
-						&hir.IntLitExpr{Val: 1, Ty: mir2.TyU16},
-						&hir.AddrOfExpr{Sym: sqlSym},
-					},
-					Ty: mir2.TyU8,
+					Fn:   seedFn,
+					Args: []hir.Expr{&hir.IntLitExpr{Val: 0, Ty: mir2.TyU8}},
+					Ty:   mir2.TyVoid,
+				},
+			})
+		}
+		// YELLOW border = seed SQL done
+		if l.hm.Target == hir.TargetZXSpectrum {
+			initStmts = append(initStmts, &hir.ExprStmt{
+				Expr: &hir.CallExpr{
+					Fn:   "_zx_border",
+					Args: []hir.Expr{&hir.IntLitExpr{Val: 6, Ty: mir2.TyU8}},
+					Ty:   mir2.TyVoid,
 				},
 			})
 		}
 		mainStmts = append(initStmts, mainStmts...)
+	}
+
+	// WHITE border = about to HALT (end of program)
+	if l.hm.Target == hir.TargetZXSpectrum {
+		mainStmts = append(mainStmts, &hir.ExprStmt{
+			Expr: &hir.CallExpr{
+				Fn:   "_zx_border",
+				Args: []hir.Expr{&hir.IntLitExpr{Val: 7, Ty: mir2.TyU8}},
+				Ty:   mir2.TyVoid,
+			},
+		})
+	}
+
+	// ZX Spectrum: DI + HALT to freeze screen at end
+	if l.hm.Target == hir.TargetZXSpectrum {
+		mainStmts = append(mainStmts, &hir.ExprStmt{
+			Expr: &hir.CallExpr{Fn: "_zx_halt", Ty: mir2.TyVoid},
+		})
+		// Emit _zx_halt function
+		hasHalt := false
+		for _, f := range l.hm.Funcs {
+			if f.Name == "_zx_halt" { hasHalt = true }
+		}
+		if !hasHalt {
+			l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
+				Name: "_zx_halt", RetTy: mir2.TyVoid,
+				Body: &hir.Block{Body: []hir.Stmt{
+					&hir.AsmStmt{Target: "z80", Code: "DI / HALT",
+						ClobberRegs: []string{"A"}},
+				}},
+			})
+		}
 	}
 
 	// Emit main function
@@ -946,11 +1011,21 @@ func (l *lowerer) lowerDo(s *DoStmt) (hir.Stmt, error) {
 		if timesExpr.ExprTy() == mir2.TyU8 {
 			timesExpr = &hir.CastExpr{X: timesExpr, Ty: mir2.TyU16}
 		}
+		// Prepend SY-INDEX update to body: sy_set_index(_abap_sy_index)
+		// so WRITE SY-INDEX inside DO shows 1, 2, 3...
+		syUpdate := &hir.ExprStmt{
+			Expr: &hir.CallExpr{
+				Fn:   "sy_set_index",
+				Args: []hir.Expr{&hir.VarRefExpr{Name: "_abap_sy_index", Ty: mir2.TyU16}},
+				Ty:   mir2.TyVoid,
+			},
+		}
+		augBody := &hir.Block{Body: append([]hir.Stmt{syUpdate}, body.Body...)}
 		return &hir.ForRangeStmt{
 			Var:   "_abap_sy_index",
 			Start: &hir.IntLitExpr{Val: 1, Ty: mir2.TyU16},
 			End:   &hir.BinExpr{Op: "+", L: timesExpr, R: &hir.IntLitExpr{Val: 1, Ty: mir2.TyU16}, Ty: mir2.TyU16},
-			Body:  body,
+			Body:  augBody,
 		}, nil
 	}
 	return &hir.WhileStmt{
@@ -1210,7 +1285,10 @@ func (l *lowerer) lowerSelect(s *SelectStmt) (hir.Stmt, error) {
 //   - global _itab_<name>_cnt: u16 (row counter)
 //   - sqlite loop: step + column_text into buffer slots + increment counter
 func (l *lowerer) lowerSelectIntoTable(s *SelectStmt, sql string, uid int) (hir.Stmt, error) {
-	const colWidth = 20 // fixed column width for text fields
+	colWidth := 20 // fixed column width for text fields
+	if l.hm.Target == hir.TargetZXSpectrum {
+		colWidth = 8 // ZX Spectrum: 32 chars wide, 4 cols × 8 = 32
+	}
 	const maxRows = 8   // max rows in buffer (limited for Z80 code size)
 
 	// Resolve columns — for *, use table schema from *!sql pragmas
@@ -1238,7 +1316,16 @@ func (l *lowerer) lowerSelectIntoTable(s *SelectStmt, sql string, uid int) (hir.
 	}
 	l.internalTables[s.IntoTable] = it
 
-	// Emit globals: flat buffer + row counter
+	// Emit globals: flat buffer + row counter + stmt handle
+	hasStmtHandle := false
+	for _, g := range l.hm.Globals {
+		if g.Name == "_itab_stmt_handle" { hasStmtHandle = true }
+	}
+	if !hasStmtHandle {
+		l.hm.Globals = append(l.hm.Globals, mir2.Global{
+			Name: "_itab_stmt_handle", Ty: mir2.TyU16,
+		})
+	}
 	l.hm.Globals = append(l.hm.Globals, mir2.Global{
 		Name: bufName,
 		Ty:   mir2.TyU8,
@@ -1262,16 +1349,31 @@ func (l *lowerer) lowerSelectIntoTable(s *SelectStmt, sql string, uid int) (hir.
 		Val:    &hir.IntLitExpr{Val: 0, Ty: mir2.TyU16},
 	})
 
-	// sqlite_query(1, sql) — hardcoded db handle to avoid regalloc corruption.
-	// The literal 1 is reloaded each time (no register preservation needed).
+	// sqlite_query via asm wrapper — hardcodes both handle and SQL string address.
+	// PFCCO for sqlite_query(db: u16, sql: ^u8): HL=db, DE=sql
+	sqlAsmSym := strings.ReplaceAll(strings.ReplaceAll(sqlSym, "@", "_"), ".", "_")
+	queryFn := fmt.Sprintf("_itab_query_%s", it.name)
+	l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
+		Name:   queryFn,
+		Params: []hir.Param{{Name: "_x", Ty: mir2.TyU8}},
+		RetTy:  mir2.TyVoid,
+		Body: &hir.Block{
+			Body: []hir.Stmt{
+				&hir.AsmStmt{
+					Target: "z80",
+					Code: fmt.Sprintf(
+						"LD HL, 1 / LD DE, %s / CALL sqlite_query / LD (_itab_stmt_handle), HL", sqlAsmSym),
+					Ins:         []hir.AsmOperand{{Name: "_x"}},
+					ClobberRegs: []string{"A", "B", "C", "D", "E", "H", "L"},
+				},
+			},
+		},
+	})
 	stmts = append(stmts, &hir.ExprStmt{
 		Expr: &hir.CallExpr{
-			Fn: "sqlite_query",
-			Args: []hir.Expr{
-				&hir.IntLitExpr{Val: 1, Ty: mir2.TyU16},
-				&hir.AddrOfExpr{Sym: sqlSym},
-			},
-			Ty: mir2.TyU16,
+			Fn:   queryFn,
+			Args: []hir.Expr{&hir.IntLitExpr{Val: 0, Ty: mir2.TyU8}},
+			Ty:   mir2.TyVoid,
 		},
 	})
 
@@ -1305,13 +1407,13 @@ func (l *lowerer) lowerSelectIntoTable(s *SelectStmt, sql string, uid int) (hir.
 			Val:    &hir.IntLitExpr{Val: int64(row + 1), Ty: mir2.TyU16},
 		})
 
-		// Wrap in: if sqlite_step(1) == 1 { ... }  (hardcoded handle)
+		// Wrap in: if sqlite_step(handle) == 1 { ... }
 		stmts = append(stmts, &hir.IfStmt{
 			Cond: &hir.BinExpr{
 				Op: "==",
 				L: &hir.CallExpr{
 					Fn:   "sqlite_step",
-					Args: []hir.Expr{&hir.IntLitExpr{Val: 1, Ty: mir2.TyU16}},
+					Args: []hir.Expr{&hir.VarRefExpr{Name: "_itab_stmt_handle", Ty: mir2.TyU16}},
 					Ty:   mir2.TyU8,
 				},
 				R:  &hir.IntLitExpr{Val: 1, Ty: mir2.TyU8},
@@ -1321,11 +1423,11 @@ func (l *lowerer) lowerSelectIntoTable(s *SelectStmt, sql string, uid int) (hir.
 		})
 	}
 
-	// Finalize (hardcoded handle 1)
+	// Finalize (use stored handle)
 	stmts = append(stmts, &hir.ExprStmt{
 		Expr: &hir.CallExpr{
 			Fn:   "sqlite_finalize",
-			Args: []hir.Expr{&hir.IntLitExpr{Val: 1, Ty: mir2.TyU16}},
+			Args: []hir.Expr{&hir.VarRefExpr{Name: "_itab_stmt_handle", Ty: mir2.TyU16}},
 			Ty:   mir2.TyU8,
 		},
 	})
@@ -1346,11 +1448,11 @@ func (l *lowerer) emitItabSlotFunc(tableName string, row, col, offset, maxLen in
 		}
 	}
 
-	// Asm body: hardcodes stmt handle as 1 (no param needed).
-	// Calls sqlite_column_text(1, col), result in HL.
+	// Asm body: loads stmt handle from global _itab_stmt_handle.
+	// Calls sqlite_column_text(handle, col), result in HL.
 	// Then copies HL → bufName+offset for maxLen bytes.
 	asmCode := fmt.Sprintf(
-		"LD HL, 1"+ // hardcoded stmt handle
+		"LD HL, (_itab_stmt_handle)"+ // stmt handle from query result
 			"/ LD C, %d"+ // column index
 			"/ CALL sqlite_column_text"+ // HL=stmt, C=col → result in HL
 			"/ LD DE, %s+%d"+ // DE = target address (compile-time constant!)
@@ -1390,13 +1492,22 @@ func (l *lowerer) emitItabPrintFunc(tableName string, row, col, offset, width in
 		}
 	}
 
+	// Target-aware: BDOS CALL 5 on CP/M, _zx_putchar on ZX Spectrum
+	var printChar, printSpace string
+	if l.hm.Target == hir.TargetZXSpectrum {
+		printChar = "PUSH HL / PUSH BC / CALL _zx_putchar / POP BC / POP HL"
+		printSpace = "LD A, 32 / PUSH HL / PUSH BC / CALL _zx_putchar / POP BC / POP HL"
+	} else {
+		printChar = "LD E, A / PUSH HL / PUSH BC / LD C, 2 / CALL 5 / POP BC / POP HL"
+		printSpace = "LD E, 32 / PUSH HL / PUSH BC / LD C, 2 / CALL 5 / POP BC / POP HL"
+	}
 	asmCode := fmt.Sprintf(
 		"LD HL, %s+%d"+ // HL = source address (compile-time constant)
 			"/ LD B, %d"+ // B = width
 			"/ .lp: LD A, (HL) / OR A / JR Z, .pd"+ // null → pad
-			"/ LD E, A / PUSH HL / PUSH BC / LD C, 2 / CALL 5 / POP BC / POP HL / INC HL / DJNZ .lp / RET"+
-			"/ .pd: LD E, 32 / PUSH HL / PUSH BC / LD C, 2 / CALL 5 / POP BC / POP HL / DJNZ .pd / RET",
-		bufName, offset, width)
+			"/ %s / INC HL / DJNZ .lp / RET"+
+			"/ .pd: %s / DJNZ .pd / RET",
+		bufName, offset, width, printChar, printSpace)
 
 	l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
 		Name:  fnName,

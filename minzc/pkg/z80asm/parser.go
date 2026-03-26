@@ -111,7 +111,7 @@ func isDirective(token string) bool {
 	upper := strings.ToUpper(token)
 	directives := []string{
 		"ORG", "END", "DB", "DEFB", "DW", "DEFW", "DW24", "DL", "DS", "DEFS", "EQU",
-		"ALIGN", "INCLUDE", "MACRO", "ENDM",
+		"ALIGN", "INCLUDE", "INCBIN", "MACRO", "ENDM",
 		".ASSUME", "ASSUME", // eZ80 ADL mode control
 		"TARGET", "MODEL",  // Platform-specific directives
 	}

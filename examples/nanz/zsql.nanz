@@ -198,19 +198,20 @@ fun _sql_query(sql: ^u8) -> void {
 }
 
 // Step through rows and print — uses stored stmt handle
+// Row counter as global to avoid vreg drift across 16 CALLs in 1 block
+global _sel_n: u8 = 0
 fun _sel_rows() -> void {
-    var n: u8 = 0
-    if _step1() == 1 { _prow1() n = n + 1 }
-    if _step1() == 1 { _prow1() n = n + 1 }
-    if _step1() == 1 { _prow1() n = n + 1 }
-    if _step1() == 1 { _prow1() n = n + 1 }
-    if _step1() == 1 { _prow1() n = n + 1 }
-    if _step1() == 1 { _prow1() n = n + 1 }
-    if _step1() == 1 { _prow1() n = n + 1 }
-    if _step1() == 1 { _prow1() n = n + 1 }
+    _sel_n = 0
+    if _step1() == 1 { _prow1() _sel_n = _sel_n + 1 }
+    if _step1() == 1 { _prow1() _sel_n = _sel_n + 1 }
+    if _step1() == 1 { _prow1() _sel_n = _sel_n + 1 }
+    if _step1() == 1 { _prow1() _sel_n = _sel_n + 1 }
+    if _step1() == 1 { _prow1() _sel_n = _sel_n + 1 }
+    if _step1() == 1 { _prow1() _sel_n = _sel_n + 1 }
+    if _step1() == 1 { _prow1() _sel_n = _sel_n + 1 }
+    if _step1() == 1 { _prow1() _sel_n = _sel_n + 1 }
     _finalize1()
-    // Print row count as single digit (0-8)
-    putch(48 + n)
+    putch(48 + _sel_n)
     puts(c" rows")
     newline()
 }

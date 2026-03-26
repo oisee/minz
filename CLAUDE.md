@@ -519,11 +519,21 @@ fun main() {
 | Frontends | 8 (Nanz, C89, PL/M, Lanz, Lizp, Pascal, ABAP, **Frill**) — all route through HIR→MIR2→Z80 |
 | Frill (.frl) | ML-style functional: 38 features — let, if/then/else, pipe \|>, compose >>, match+guards, ADT, lambda, currying, tuples, type classes, QTT linearity (!/~), while, for, mutation, peek/poke, property testing. 1000+ compile-time checks. See [Frill Guide](docs/Frill_Language_Guide.md) |
 
-> **Note on C89 frontend:** C language support exists to demonstrate compiler maturity and
-> enable benchmarking against SDCC — it is not a priority. We recommend **Nanz** as the
-> primary language: it has zero-cost lambdas, pipe operators, iterator fusion, pattern
-> matching, and compile-time evaluation that C simply cannot express. Use Nanz. Have fun.
-| C89 corpus | 333/333 asserts, 36 files (MIR2) / 700/720 LIR convergence (97.2%) |
+> **Note on C frontend:** C17 conformant (freestanding) + C23 extensions. First Z80 compiler
+> with C11/C17. Use for benchmarking against SDCC. Recommend **Nanz** as primary language.
+>
+> **C test asserts:** Always add DUAL asserts for new C test programs:
+> ```c
+> // assert func(args) == expected via mir2
+> // assert func(args) == expected via z80
+> ```
+> `via mir2` = MIR2 VM (fast, u16 arithmetic). `via z80` = full Z80 compile+emulate.
+> Exceptions: pointer tests → z80 only. u8 overflow → z80 only (mir2 does u16).
+> Test files: `examples/c89/` (legacy C89) and `examples/c/` (C99+, new tests go here).
+| C89 corpus | 350/350 asserts, 38 files in `examples/c89/` (MIR2) |
+| C99+ corpus | 174/174 asserts, 13 files in `examples/c/` (MIR2) — C99/C11/C23 |
+| C total | **524/524** asserts across 51 test files |
+| C conformance | **C17** (freestanding) + C23 extensions (#embed, nullptr, bool) |
 | ABAP examples | 8 programs (hello, fibonacci, fizzbuzz, guessing, bubblesort, forms, oop, sysinfo) |
 | E2E Z80 tests | 24 (fibonacci, flag-return, div8, div16, mod8, divmod-combined + 6502) |
 | Parser | Participle (native Go, zero deps) |

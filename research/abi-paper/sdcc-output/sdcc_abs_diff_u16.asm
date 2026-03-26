@@ -40,12 +40,12 @@
 ; code
 ;--------------------------------------------------------
 	.area _CODE
-;/tmp/sdcc_abs_diff_u16.c:3: uint16_t abs_diff_u16(uint16_t a, uint16_t b) {
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_abs_diff_u16.c:3: uint16_t abs_diff_u16(uint16_t a, uint16_t b) {
 ;	---------------------------------
 ; Function abs_diff_u16
 ; ---------------------------------
 _abs_diff_u16::
-;/tmp/sdcc_abs_diff_u16.c:4: if (a < b) return b - a;
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_abs_diff_u16.c:4: if (a < b) return b - a;
 	ld	a, l
 	sub	a, e
 	ld	a, h
@@ -59,11 +59,11 @@ _abs_diff_u16::
 	ld	d, a
 	ret
 00102$:
-;/tmp/sdcc_abs_diff_u16.c:5: return a - b;
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_abs_diff_u16.c:5: return a - b;
 	cp	a, a
 	sbc	hl, de
 	ex	de, hl
-;/tmp/sdcc_abs_diff_u16.c:6: }
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_abs_diff_u16.c:6: }
 	ret
 	.area _CODE
 	.area _INITIALIZER

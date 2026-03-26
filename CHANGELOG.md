@@ -6,6 +6,65 @@ For pre-MIR2 history (v0.1–v0.15, 2025), see git log.
 
 ---
 
+## v0.23.0 — Birthday Marathon (2026-03-26, Sessions 7-9)
+
+**The birthday sprint that wouldn't stop. 12 breakthroughs across 3 sessions.**
+
+### @error — Z80-Native Error Propagation (Layer 1 + Layer 2)
+- **`@error(N)`** → `SCF / LD A, N / RET` — set carry flag, error code in A, return (2 bytes, 15T)
+- **`@propagate`** → `RET C` — **1 byte** conditional return on carry. Z80's native error propagation.
+- **`@check`** → `JR NC, .ok / RET / .ok:` — check + propagate inline
+- Pure metafunction expansion — zero parser/AST/semantic changes. 55 LOC.
+- **Layer 2: `?` enforcement** — `fun safe_div?(a: u8, b: u8)` marks fallible functions. Parser enforces `@check`/`@propagate` after every `?`-call. Missing it → compile error.
+- [Codegen Report](docs/Error_Propagation_Codegen.md) | [Design Doc](docs/Error_Propagation_Design.md) | [Example](examples/nanz/14_error_propagation.nanz) | [Enforcement Example](examples/nanz/15_error_enforcement.nanz)
+
+### C Standards Sprint — C99/C11/C17/C23
+- **5 new libc headers:** `stdbool.h`, `assert.h`, `ctype.h` (17 inline funcs, zero LUT), `stdalign.h`, `stdnoreturn.h`
+- **C23 keywords:** `bool`/`true`/`false` as predefined macros — no `#include` needed
+- **`__STDC_VERSION__ = 201710L`** — C17 conformance level
+- **Array designated initializers:** `uint8_t arr[5] = {[2] = 42, [4] = 99}` — positional, designated, mixed, sparse
+- **350/350** existing C89 corpus asserts still pass + 5 new `examples/c/` test programs
+- [C Standards Roadmap](docs/C_Standards_Roadmap.md)
+
+### VIR Backend: Zero Test Failures (45 commits)
+- **12/14 E2E tests PASS**, 0 FAIL (2 skip) — [Sprint Report](reports/2026-03-26-Birthday-Sprint-Zero-Failures.md)
+- **83.6M exhaustive regalloc table** (≤6v complete)
+- **164 GPU-optimal constant multiplies** inline (4-20x speedup over shift-add)
+- **VIR_STRICT** development safety net
+- Param constraints across **all CFG blocks** (was block 0 only — one-line fix!)
+- Edge-move emission for cross-block vregs
+- Block param PHI infrastructure
+- validateNoClobber with half-register tracking
+
+### MZA: INCBIN Directive
+- **`INCBIN "file.bin"`** — include binary data verbatim (sprites, fonts, GPU lookup tables)
+- Optional offset + length: `INCBIN "data.bin", 128, 256`
+- Resolves paths relative to source file
+- Unlocks runtime table-driven multiply from GPU-precomputed sequences
+
+### GPU Exhaustive Table — Complete ≤5v
+- **≤4v:** 156,506 shapes, 40 sec, COMPLETE
+- **≤5v:** 17,366,874 shapes, 20 min, COMPLETE
+- **6v sample:** 537K shapes (45 min partial run)
+- **Feasibility cliff:** 6v = only 0.9% feasible (99.1% impossible!)
+- **Composition verified:** 13.2M shapes, 5.06T avg overhead, 480 cases composition BEATS GPU
+- **Treewidth:** 99.5% random graphs classically tractable, 46.3% for dense corpus
+
+### Frontend Sprint
+- **PL/M:** 5 examples created (hello, assert, showcase, abs_diff_fib, sum_array) — all compile
+- **Lizp:** all 8 examples compile + assemble (MZA fixes resolved all gaps)
+- **Pascal:** SwitchStmt/VarDeclStmt traversal fix. Stdlib blocked on InlineTrivial (VIR P6)
+
+### Research
+- 4 papers with companion files + data
+- Cross-compiler analysis: Nanz `ADD A, A` = SDCC `ADD A, A` (ISA-intrinsic proof)
+- SDCC comparison: swap 20:0, minmax 63:11, abs_diff 13:4
+- C89 signatures: 292 funcs → 129 unique (55.8% reuse)
+- Paper C: compositional regalloc from solved sub-shapes
+- Anytime-optimal 5-level pipeline doc (263 lines with ASCII diagrams)
+
+---
+
 ## 2026-03-25 (Sessions 3-4)
 
 **~25 commits across 3 repos. 3 ZX Spectrum screenshots. Paper A draft.**

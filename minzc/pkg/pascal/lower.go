@@ -978,6 +978,22 @@ func stmtReferences(s hir.Stmt, name string) bool {
 		if s.Val != nil && exprReferences(s.Val, name) {
 			return true
 		}
+	case *hir.SwitchStmt:
+		if exprReferences(s.Val, name) {
+			return true
+		}
+		for _, c := range s.Cases {
+			if c.Body != nil && blockReferences(c.Body, name) {
+				return true
+			}
+		}
+		if s.Default != nil && blockReferences(s.Default, name) {
+			return true
+		}
+	case *hir.VarDeclStmt:
+		if s.Init != nil && exprReferences(s.Init, name) {
+			return true
+		}
 	}
 	return false
 }
@@ -1038,32 +1054,17 @@ func emitRuntimeFuncs(hm *hir.Module) {
 		defined["ConOut"] = true
 	}
 
-	// WriteCrLf() -> void — output CR+LF
+	// WriteCrLf() -> void — output CR+LF via inline asm (BDOS 2)
 	if need("WriteCrLf") {
-		// Ensure ConOut is available for WriteCrLf
-		if !defined["ConOut"] {
-			hm.Funcs = append(hm.Funcs, &hir.Func{
-				Name:   "ConOut",
-				Params: []hir.Param{{Name: "ch", Ty: mir2.TyU8}},
-				RetTy:  mir2.TyVoid,
-				Body: &hir.Block{Body: []hir.Stmt{
-					&hir.AsmStmt{
-						Target:     "z80",
-						Code:       "LD E, A / LD C, 2 / CALL 0x0005",
-						ClobberAll: true,
-						Ins:        []hir.AsmOperand{{Name: "ch"}},
-					},
-					&hir.ReturnStmt{},
-				}},
-			})
-			defined["ConOut"] = true
-		}
 		hm.Funcs = append(hm.Funcs, &hir.Func{
 			Name:  "WriteCrLf",
 			RetTy: mir2.TyVoid,
 			Body: &hir.Block{Body: []hir.Stmt{
-				&hir.ExprStmt{Expr: &hir.CallExpr{Fn: "ConOut", Args: []hir.Expr{&hir.IntLitExpr{Val: 13, Ty: mir2.TyU8}}, Ty: mir2.TyVoid}},
-				&hir.ExprStmt{Expr: &hir.CallExpr{Fn: "ConOut", Args: []hir.Expr{&hir.IntLitExpr{Val: 10, Ty: mir2.TyU8}}, Ty: mir2.TyVoid}},
+				&hir.AsmStmt{
+					Target:     "z80",
+					Code:       "LD E, 13 / LD C, 2 / CALL 5 / LD E, 10 / LD C, 2 / CALL 5",
+					ClobberAll: true,
+				},
 				&hir.ReturnStmt{},
 			}},
 		})
@@ -1135,6 +1136,70 @@ func emitRuntimeFuncs(hm *hir.Module) {
 			}},
 		})
 		defined["WriteU8"] = true
+	}
+
+	// WriteI16(val: u16) -> void — print i16 as decimal via BDOS 2
+	if need("WriteI16") {
+		if !defined["ConOut"] {
+			hm.Funcs = append(hm.Funcs, &hir.Func{
+				Name:   "ConOut",
+				Params: []hir.Param{{Name: "ch", Ty: mir2.TyU8}},
+				RetTy:  mir2.TyVoid,
+				Body: &hir.Block{Body: []hir.Stmt{
+					&hir.AsmStmt{
+						Target:     "z80",
+						Code:       "LD E, A / LD C, 2 / CALL 0x0005",
+						ClobberAll: true,
+						Ins:        []hir.AsmOperand{{Name: "ch"}},
+					},
+					&hir.ReturnStmt{},
+				}},
+			})
+			defined["ConOut"] = true
+		}
+		hm.Funcs = append(hm.Funcs, &hir.Func{
+			Name:   "WriteI16",
+			Params: []hir.Param{{Name: "val", Ty: mir2.TyU16}},
+			RetTy:  mir2.TyVoid,
+			Body: &hir.Block{Body: []hir.Stmt{
+				&hir.AsmStmt{
+					Target: "z80",
+					// HL = val. Print decimal via subtract-and-count.
+					Code: "PUSH IX / PUSH HL / POP IX / LD D, 0" +
+						" / PUSH IX / POP HL / LD BC, 10000 / CALL _wr16_dig / PUSH HL / POP IX" +
+						" / PUSH IX / POP HL / LD BC, 1000 / CALL _wr16_dig / PUSH HL / POP IX" +
+						" / PUSH IX / POP HL / LD BC, 100 / CALL _wr16_dig / PUSH HL / POP IX" +
+						" / PUSH IX / POP HL / LD BC, 10 / CALL _wr16_dig / PUSH HL / POP IX" +
+						" / LD A, IXL / ADD A, 48 / LD E, A / LD C, 2 / CALL 5" +
+						" / POP IX",
+					ClobberAll: true,
+					Ins:        []hir.AsmOperand{{Name: "val"}},
+				},
+				&hir.ReturnStmt{},
+			}},
+		})
+		// Helper: _wr16_dig — same as ABAP's _abap_wr_dig
+		if !defined["_wr16_dig"] {
+			hm.Funcs = append(hm.Funcs, &hir.Func{
+				Name:  "_wr16_dig",
+				RetTy: mir2.TyVoid,
+				Body: &hir.Block{Body: []hir.Stmt{
+					&hir.AsmStmt{
+						Target: "z80",
+						Code: "LD A, 48" +
+							" / _w16_sub: OR A / SBC HL, BC / JR NC, _w16_cont" +
+							" / ADD HL, BC / CP 48 / JR NZ, _w16_pr" +
+							" / LD A, D / OR A / RET Z / LD A, 48" +
+							" / _w16_pr: LD D, 1 / LD E, A / PUSH HL / PUSH DE / PUSH BC / LD C, 2 / CALL 5 / POP BC / POP DE / POP HL / RET" +
+							" / _w16_cont: INC A / JR _w16_sub",
+						ClobberAll: true,
+					},
+					&hir.ReturnStmt{},
+				}},
+			})
+			defined["_wr16_dig"] = true
+		}
+		defined["WriteI16"] = true
 	}
 
 	// PascalHalt() -> void — BDOS 0

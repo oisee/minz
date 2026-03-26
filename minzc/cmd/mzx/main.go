@@ -1349,6 +1349,9 @@ VERSION: %s (build %s, %s)
 		fmt.Fprintf(os.Stderr, "%s: auto-capture armed, will start on first AY write → %s\n", fmtName, *psgFlag)
 	}
 
+	// SQLite I/O port bridge ($41/$43/$45/$47)
+	setupMZXSQLitePorts(machine, *verboseFlag)
+
 	// Warn on DI+HALT (CPU stuck)
 	if *warnOnHalt {
 		machine.WarnOnHalt = true

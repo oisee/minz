@@ -41,7 +41,7 @@
 ; code
 ;--------------------------------------------------------
 	.area _CODE
-;/tmp/sdcc_minmax.c:3: void minmax(uint16_t a, uint16_t b, uint16_t *lo, uint16_t *hi) {
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_minmax.c:3: void minmax(uint16_t a, uint16_t b, uint16_t *lo, uint16_t *hi) {
 ;	---------------------------------
 ; Function minmax
 ; ---------------------------------
@@ -52,7 +52,7 @@ _minmax::
 	push	af
 	ld	c, l
 	ld	b, h
-;/tmp/sdcc_minmax.c:4: if (a <= b) { *lo = a; *hi = b; }
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_minmax.c:4: if (a <= b) { *lo = a; *hi = b; }
 	ld	l, 4 (ix)
 ;	spillPairReg hl
 ;	spillPairReg hl
@@ -78,7 +78,7 @@ _minmax::
 	ld	(hl), d
 	jr	00104$
 00102$:
-;/tmp/sdcc_minmax.c:5: else        { *lo = b; *hi = a; }
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_minmax.c:5: else        { *lo = b; *hi = a; }
 	ld	(hl), e
 	inc	hl
 	ld	(hl), d
@@ -88,14 +88,14 @@ _minmax::
 	inc	hl
 	ld	(hl), b
 00104$:
-;/tmp/sdcc_minmax.c:6: }
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_minmax.c:6: }
 	ld	sp, ix
 	pop	ix
 	pop	hl
 	pop	af
 	pop	af
 	jp	(hl)
-;/tmp/sdcc_minmax.c:8: uint16_t min_of(uint16_t a, uint16_t b) {
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_minmax.c:8: uint16_t min_of(uint16_t a, uint16_t b) {
 ;	---------------------------------
 ; Function min_of
 ; ---------------------------------
@@ -107,7 +107,7 @@ _min_of::
 	push	af
 	ld	c, l
 	ld	b, h
-;/tmp/sdcc_minmax.c:10: minmax(a, b, &lo, &hi);
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_minmax.c:10: minmax(a, b, &lo, &hi);
 	ld	hl, #2
 	add	hl, sp
 	push	hl
@@ -121,10 +121,10 @@ _min_of::
 ;	spillPairReg hl
 ;	spillPairReg hl
 	call	_minmax
-;/tmp/sdcc_minmax.c:11: return lo;
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_minmax.c:11: return lo;
 	pop	de
 	push	de
-;/tmp/sdcc_minmax.c:12: }
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_minmax.c:12: }
 	ld	sp, ix
 	pop	ix
 	ret

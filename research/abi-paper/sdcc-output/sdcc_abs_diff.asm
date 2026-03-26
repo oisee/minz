@@ -41,12 +41,12 @@
 ; code
 ;--------------------------------------------------------
 	.area _CODE
-;sdcc_abs_diff.c:3: uint8_t abs_diff(uint8_t a, uint8_t b) {
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_abs_diff.c:3: uint8_t abs_diff(uint8_t a, uint8_t b) {
 ;	---------------------------------
 ; Function abs_diff
 ; ---------------------------------
 _abs_diff::
-;sdcc_abs_diff.c:4: if (a >= b) return a - b;
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_abs_diff.c:4: if (a >= b) return a - b;
 	ld	c, a
 	sub	a, l
 	jr	C, 00102$
@@ -54,22 +54,22 @@ _abs_diff::
 	sub	a, l
 	ret
 00102$:
-;sdcc_abs_diff.c:5: return b - a;
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_abs_diff.c:5: return b - a;
 	ld	a, l
 	sub	a, c
-;sdcc_abs_diff.c:6: }
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_abs_diff.c:6: }
 	ret
-;sdcc_abs_diff.c:8: uint8_t main(void) {
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_abs_diff.c:8: uint8_t main(void) {
 ;	---------------------------------
 ; Function main
 ; ---------------------------------
 _main::
-;sdcc_abs_diff.c:9: return abs_diff(10, 3);
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_abs_diff.c:9: return abs_diff(10, 3);
 	ld	l, #0x03
 ;	spillPairReg hl
 ;	spillPairReg hl
 	ld	a, #0x0a
-;sdcc_abs_diff.c:10: }
+;/home/alice/dev/minz/research/abi-paper/sdcc-output/sdcc_abs_diff.c:10: }
 	jp	_abs_diff
 	.area _CODE
 	.area _INITIALIZER

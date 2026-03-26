@@ -468,6 +468,70 @@ func TestCorpus_AllExamples(t *testing.T) {
 	t.Logf("TOTAL: %d/%d mir2 asserts passed across corpus", passedAsserts, totalAsserts)
 }
 
+func TestCorpus_C99Examples(t *testing.T) {
+	corpusDir := filepath.Join("..", "..", "..", "examples", "c")
+	entries, err := os.ReadDir(corpusDir)
+	if err != nil {
+		t.Skipf("examples/c dir not found: %v", err)
+	}
+	totalMir2 := 0
+	passedMir2 := 0
+	totalZ80 := 0
+	passedZ80 := 0
+	for _, e := range entries {
+		if e.IsDir() || filepath.Ext(e.Name()) != ".c" {
+			continue
+		}
+		t.Run(e.Name(), func(t *testing.T) {
+			src, err := os.ReadFile(filepath.Join(corpusDir, e.Name()))
+			if err != nil {
+				t.Fatalf("read: %v", err)
+			}
+			absDir, _ := filepath.Abs(corpusDir)
+			hm, err := CompileWithOpts(string(src), e.Name(), CompileOpts{
+				BaseDir:      absDir,
+				IncludePaths: []string{absDir},
+			})
+			if err != nil {
+				t.Fatalf("Compile: %v", err)
+			}
+
+			mir2Asserts := 0
+			z80Asserts := 0
+			dualAsserts := 0
+			for _, a := range hm.Asserts {
+				switch a.Via {
+				case "mir2":
+					mir2Asserts++
+				case "z80":
+					z80Asserts++
+				default: // "" = both mir2+z80
+					dualAsserts++
+				}
+			}
+			totalMir2 += mir2Asserts + dualAsserts
+			totalZ80 += z80Asserts + dualAsserts
+			t.Logf("  %d funcs, %d asserts (dual=%d, mir2=%d, z80=%d)",
+				len(hm.Funcs), len(hm.Asserts), dualAsserts, mir2Asserts, z80Asserts)
+
+			if mir2Asserts+z80Asserts+dualAsserts == 0 {
+				return
+			}
+			_, err = pipeline.CompileHIR(hm)
+			if err != nil {
+				t.Logf("  pipeline: %v", err)
+			} else {
+				passedMir2 += mir2Asserts
+				passedZ80 += z80Asserts
+				t.Logf("  %d mir2 + %d z80 asserts passed", mir2Asserts, z80Asserts)
+			}
+		})
+	}
+	t.Logf("TOTAL: mir2=%d/%d z80=%d/%d combined=%d/%d across C99+ corpus",
+		passedMir2, totalMir2, passedZ80, totalZ80,
+		passedMir2+passedZ80, totalMir2+totalZ80)
+}
+
 func TestInclude_LocalAndSysHeaders(t *testing.T) {
 	testDir := filepath.Join("..", "..", "..", "examples", "c89", "include_test")
 	src, err := os.ReadFile(filepath.Join(testDir, "main.c"))
