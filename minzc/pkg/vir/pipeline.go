@@ -1146,28 +1146,33 @@ func emitLine(sb *strings.Builder, line string) {
 // Returns error description or "" if clean.
 func validateNoClobber(asm string) string {
 	lines := strings.Split(asm, "\n")
-	// Track: did we just load a pair from memory?
 	hlFromMem := false
+	hRead := false // H value was consumed (LD r, H)
+	lRead := false // L value was consumed (LD r, L)
+
 	for i := 0; i < len(lines); i++ {
 		line := strings.TrimSpace(lines[i])
 
-		// Reset tracking on labels (function boundaries), branches, returns
-		// Must come BEFORE clobber check to avoid cross-function false positives
+		// Reset tracking on labels, branches, returns, comments, blanks
 		if strings.HasSuffix(line, ":") || strings.HasPrefix(line, "JR ") ||
 			strings.HasPrefix(line, "JP ") || line == "RET" ||
 			strings.HasPrefix(line, ";") || line == "" {
 			hlFromMem = false
+			hRead = false
+			lRead = false
 			continue
 		}
 
 		// LD HL, (addr) — 16-bit load from memory
 		if strings.HasPrefix(line, "LD HL, (") && !strings.HasPrefix(line, "LD HL, (HL)") {
 			hlFromMem = true
+			hRead = false
+			lRead = false
 			continue
 		}
 
 		if hlFromMem {
-			// HL used properly: CALL, JP, ADD HL, PUSH HL, LD (addr),HL, etc.
+			// HL consumed as whole: CALL, PUSH HL, ADD HL, LD (addr), EX DE, etc.
 			if strings.HasPrefix(line, "CALL ") || strings.HasPrefix(line, "JP ") ||
 				strings.HasPrefix(line, "ADD HL") || strings.HasPrefix(line, "PUSH HL") ||
 				strings.HasPrefix(line, "LD (") || line == "RET" ||
@@ -1175,16 +1180,31 @@ func validateNoClobber(asm string) string {
 				hlFromMem = false
 				continue
 			}
-			// Reading H or L (LD r, H / LD r, L) consumes the value — not a clobber
-			if (strings.HasSuffix(line, ", H") || strings.HasSuffix(line, ", L")) &&
-				strings.HasPrefix(line, "LD ") && !strings.HasPrefix(line, "LD H,") && !strings.HasPrefix(line, "LD L,") {
-				hlFromMem = false // value consumed by reading a half
+
+			// Track reads of H and L individually
+			if strings.HasPrefix(line, "LD ") && !strings.HasPrefix(line, "LD H,") && !strings.HasPrefix(line, "LD L,") {
+				if strings.HasSuffix(line, ", H") {
+					hRead = true
+				}
+				if strings.HasSuffix(line, ", L") {
+					lRead = true
+				}
+			}
+
+			// Both halves consumed → HL fully used, stop tracking
+			if hRead && lRead {
+				hlFromMem = false
 				continue
 			}
-			// LD H, 0 after LD B, L (or similar) is a zero-extend pattern, not clobber
-			// Only flag as clobber if neither H nor L was read first
-			if strings.HasPrefix(line, "LD L, ") || strings.HasPrefix(line, "LD H, ") {
-				return fmt.Sprintf("16-bit HL load clobbered before use at: %s", line)
+
+			// Write to H or L: clobber only if NEITHER half was consumed yet.
+			// Once either half is read (LD r, H or LD r, L), the code is
+			// decomposing HL into separate bytes — writing the other half
+			// is building a new value, not clobbering the 16-bit load.
+			if strings.HasPrefix(line, "LD H, ") || strings.HasPrefix(line, "LD L, ") {
+				if !hRead && !lRead {
+					return fmt.Sprintf("16-bit HL load clobbered before use at: %s", line)
+				}
 			}
 		}
 	}
