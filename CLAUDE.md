@@ -290,7 +290,7 @@ CALL func
 **Spill tier hierarchy for VIR Z3 solver:**
 - **L0: Primary regs (A-L)** — 0T, 7 slots
 - **L1: IXH/IXL/IYH/IYL** — 8T, 4 slots, callee-saved, always safe
-- **L2: I register** — 18T, 1 slot, clobbers P/V flag (safe when IRQ disabled)
+- **L2: I register** — 18T, 1 slot, clobbers P/V flag. **UNSAFE in IM 2** (I = interrupt vector table high byte). Safe in IM 0/1 or with DI/EI bracket. CP/M: usually safe. ZX Spectrum IM 2 demos: NEVER touch I.
 - **L2b: R register** — 18T, 1 slot, R[7] preserved, R[6:0] auto-increments (recoverable if compiler knows instruction count N between save/restore)
 - **L3: TSMC 8-bit tunnel** — 20T, unlimited, safe when no recursion between endpoints
 - **L3b: Shadow regs (EXX/EX AF,AF')** — 4T batch swap, 7+7 slots, ALL swap simultaneously
