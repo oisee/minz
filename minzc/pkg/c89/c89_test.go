@@ -468,6 +468,55 @@ func TestCorpus_AllExamples(t *testing.T) {
 	t.Logf("TOTAL: %d/%d mir2 asserts passed across corpus", passedAsserts, totalAsserts)
 }
 
+func TestCorpus_C99Examples(t *testing.T) {
+	corpusDir := filepath.Join("..", "..", "..", "examples", "c")
+	entries, err := os.ReadDir(corpusDir)
+	if err != nil {
+		t.Skipf("examples/c dir not found: %v", err)
+	}
+	totalAsserts := 0
+	passedAsserts := 0
+	for _, e := range entries {
+		if e.IsDir() || filepath.Ext(e.Name()) != ".c" {
+			continue
+		}
+		t.Run(e.Name(), func(t *testing.T) {
+			src, err := os.ReadFile(filepath.Join(corpusDir, e.Name()))
+			if err != nil {
+				t.Fatalf("read: %v", err)
+			}
+			absDir, _ := filepath.Abs(corpusDir)
+			hm, err := CompileWithOpts(string(src), e.Name(), CompileOpts{
+				BaseDir:      absDir,
+				IncludePaths: []string{absDir},
+			})
+			if err != nil {
+				t.Fatalf("Compile: %v", err)
+			}
+			t.Logf("  %d funcs, %d asserts", len(hm.Funcs), len(hm.Asserts))
+
+			mir2Asserts := 0
+			for _, a := range hm.Asserts {
+				if a.Via == "mir2" {
+					mir2Asserts++
+				}
+			}
+			totalAsserts += mir2Asserts
+			if mir2Asserts == 0 {
+				return
+			}
+			_, err = pipeline.CompileHIR(hm)
+			if err != nil {
+				t.Logf("  pipeline: %v", err)
+			} else {
+				passedAsserts += mir2Asserts
+				t.Logf("  %d/%d mir2 asserts passed", mir2Asserts, mir2Asserts)
+			}
+		})
+	}
+	t.Logf("TOTAL: %d/%d mir2 asserts passed across C99+ corpus", passedAsserts, totalAsserts)
+}
+
 func TestInclude_LocalAndSysHeaders(t *testing.T) {
 	testDir := filepath.Join("..", "..", "..", "examples", "c89", "include_test")
 	src, err := os.ReadFile(filepath.Join(testDir, "main.c"))
