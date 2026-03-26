@@ -589,6 +589,64 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 		result[bp.label] = pirOps
 	}
 
+	// Emit edge moves: if Z3 assigned different locations for a vreg across
+	// a block boundary, insert LD at the start of the destination block.
+	// Without this, cross-block location changes are phantom — the 4T cost
+	// is paid in the objective but no instruction implements the move.
+	if opts.Verbose || os.Getenv("VIR_DEBUG_EDGES") != "" {
+		fmt.Fprintf(os.Stderr, "[CFG-solver] %s: %d edges to check for moves\n", f.Name, len(edges))
+	}
+	for _, edge := range edges {
+		fromBP := blocks[edge.fromBlock]
+		toBP := blocks[edge.toBlock]
+		fromLastIdx := len(fromBP.ops) - 1
+		if fromLastIdx < 0 {
+			continue
+		}
+
+		fromLive := fromBP.prob.liveness[fromLastIdx].live
+		var toLive map[int]bool
+		if len(toBP.prob.liveness) > 0 {
+			toLive = toBP.prob.liveness[0].live
+		}
+
+		// Sort for deterministic emission order
+		edgeVRegs := make([]int, 0)
+		for vreg := range fromLive {
+			if toLive != nil && toLive[vreg] {
+				edgeVRegs = append(edgeVRegs, vreg)
+			}
+		}
+		sort.Ints(edgeVRegs)
+
+		var edgeMoveOps []PIROp
+		for _, vreg := range edgeVRegs {
+			fromKey := fmt.Sprintf("lv%d_b%d_i%d", vreg, edge.fromBlock, fromLastIdx)
+			toKey := fmt.Sprintf("lv%d_b%d_i%d", vreg, edge.toBlock, 0)
+			fromLoc, hasFrom := vals[fromKey]
+			toLoc, hasTo := vals[toKey]
+			if hasFrom && hasTo && fromLoc != toLoc {
+				movePat := findMovePattern(desc, fromLoc, toLoc)
+				if movePat != nil {
+					edgeMoveOps = append(edgeMoveOps, PIROp{
+						Pat: movePat, DstPhys: toLoc,
+						SrcPhys:  [2]int{fromLoc, -1},
+						Comment: fmt.Sprintf("edge move v%d: %s→%s", vreg, desc.Locs[fromLoc].Name, desc.Locs[toLoc].Name),
+					})
+				} else {
+					fmt.Fprintf(os.Stderr, "[CFG-solver] WARNING: no edge move pattern for v%d: %s(%d) → %s(%d) at edge b%d→b%d\n",
+						vreg, desc.Locs[fromLoc].Name, fromLoc, desc.Locs[toLoc].Name, toLoc, edge.fromBlock, edge.toBlock)
+				}
+			}
+		}
+
+		if len(edgeMoveOps) > 0 {
+			// Prepend edge moves to destination block's PIR
+			existing := result[toBP.label]
+			result[toBP.label] = append(edgeMoveOps, existing...)
+		}
+	}
+
 	// Extract param register assignments from Z3 model.
 	// For each function param, find the physical register Z3 assigned
 	// at instruction 0 of block 0 (entry point).
