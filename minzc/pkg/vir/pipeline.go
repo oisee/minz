@@ -560,6 +560,84 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 
 // resolveParallelMoves orders adapter moves to avoid clobbering.
 // Uses topological sort; breaks cycles with EX DE,HL or temp via PUSH/POP.
+// insertParamMoves inserts OpMove instructions at the start of the flattened
+// ops for param vregs whose caller register (from paramHints) doesn't match
+// the register required by their first use pattern. This gives the solver
+// a "slot" to plan the move (e.g., LD A, C before OR A).
+func insertParamMoves(ops []VIROp, paramHints map[int]int, desc *MachineDesc) []VIROp {
+	// Find which param vregs need moves: their first use as Src is in
+	// a pattern that requires a different register than the caller convention.
+	nextVReg := 0
+	for _, op := range ops {
+		if op.Dst > nextVReg { nextVReg = op.Dst }
+		for _, s := range op.Src {
+			if s > nextVReg { nextVReg = s }
+		}
+	}
+	nextVReg++
+
+	var moves []VIROp
+	moved := make(map[int]int) // original vreg → copy vreg
+
+	for vreg, callerPhys := range paramHints {
+		// Insert: copy_vreg = move(vreg) with DstHint = caller's register
+		// Then rewrite all uses of vreg in ops to copy_vreg.
+		// The solver will place vreg at callerPhys (via DstHint on the move)
+		// and copy_vreg wherever the pattern needs it.
+		copyVReg := nextVReg
+		nextVReg++
+		moves = append(moves, VIROp{
+			Op:      OpMove,
+			Dst:     copyVReg,
+			Src:     [2]int{vreg, -1},
+			Width:   8,
+			DstHint: Singleton(callerPhys), // copy starts in caller's register
+		})
+		moved[vreg] = copyVReg
+	}
+
+	if len(moves) == 0 {
+		return ops
+	}
+
+	// DON'T rewrite uses — the solver handles the move naturally.
+	// The move instruction copies vreg → copyVReg. The original vreg
+	// is defined by the move's Src and has DstHint=callerPhys.
+	// The pattern that needs A will get copyVReg (which starts at callerPhys
+	// and can move to A via the per-instruction solver).
+	//
+	// Actually: we DO need to rewrite. The CMP's Src is the original vreg.
+	// After the move, the CMP should use copyVReg (which has the value).
+	// But the original vreg is the function parameter — defined outside.
+	// The move creates a copy with a known starting location.
+	//
+	// Simplest: just prepend the moves. The solver sees:
+	//   i0: copy_v2 = move(v2)  ; DstHint=C (caller's convention)
+	//   i1: v4 = cmp(v2, 0)    ; pattern needs v2 in A
+	// The solver puts v2 at A (for the cmp) and copy_v2 at C.
+	// But that means the MOVE goes from A to C (wrong direction!).
+	//
+	// The correct approach: rewrite all Src references to use the copy,
+	// and let the move instruction handle the transition.
+
+	// Rewrite: every Src reference to a moved vreg → copy vreg
+	newOps := make([]VIROp, len(ops))
+	for i, op := range ops {
+		newOps[i] = op
+		for j, s := range op.Src {
+			if copyV, ok := moved[s]; ok {
+				newOps[i].Src[j] = copyV
+			}
+		}
+	}
+
+	// Prepend moves, then rewritten ops
+	result := make([]VIROp, 0, len(moves)+len(newOps))
+	result = append(result, moves...)
+	result = append(result, newOps...)
+	return result
+}
+
 type adapterMove struct {
 	fromPhys, toPhys int
 }
@@ -1025,6 +1103,32 @@ func codegenFuncWhole(f *mir2.Func, vf *Func, desc *MachineDesc, opts SolverOpti
 
 		allOps = append(allOps, block.Ops...)
 		ranges = append(ranges, blockRange{block.Label, start, len(allOps)})
+	}
+
+	// Insert param moves: when a param vreg's caller register conflicts
+	// with the pattern that first uses it, insert an explicit OpMove.
+	// This gives the solver a "slot" to emit LD A,C (etc.) before the CMP.
+	if len(paramHints) > 0 && len(allOps) > 0 {
+		allOps = insertParamMoves(allOps, paramHints, desc)
+		// Rebuild ranges (param moves added to beginning)
+		ranges = nil
+		cursor := 0
+		for _, block := range vf.Blocks {
+			start := cursor
+			// Count how many ops this block contributed (approximate)
+			blockOpCount := len(block.Ops)
+			cursor += blockOpCount
+			ranges = append(ranges, blockRange{block.Label, start, cursor})
+		}
+		// Adjust for inserted moves at start
+		if len(allOps) > cursor {
+			extra := len(allOps) - cursor
+			for i := range ranges {
+				ranges[i].start += extra
+				ranges[i].end += extra
+			}
+			ranges[0].start = 0 // first block starts at 0 (includes param moves)
+		}
 	}
 
 	if len(allOps) == 0 {
