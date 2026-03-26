@@ -139,6 +139,10 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 		importedModules = mods
 	}
 
+	// Strip C23 [[attribute]] annotations before cc/v4 sees the source.
+	// These are cosmetic (warnings/hints) — no codegen effect on Z80.
+	src = stripC23Attributes(src)
+
 	// Process C23 #embed directives before cc/v4 sees the source.
 	// #embed "file" → comma-separated byte values inline.
 	src = preprocessEmbed(src, opts.BaseDir)
@@ -304,6 +308,17 @@ func parseCommentDirectives(src string) ([]hir.Assert, []hir.Sandbox) {
 	}
 
 	return asserts, sandboxes
+}
+
+// c23AttrRe matches C23 [[attribute]] annotations.
+// Fixed set: maybe_unused, nodiscard, deprecated, noreturn, fallthrough,
+// _Noreturn, unsequenced, reproducible. Optional ("msg") argument.
+var c23AttrRe = regexp.MustCompile(`\[\[\s*(?:maybe_unused|nodiscard|noreturn|_Noreturn|fallthrough|unsequenced|reproducible|deprecated(?:\s*\([^)]*\))?)\s*\]\]`)
+
+// stripC23Attributes removes [[attribute]] annotations from C23 source.
+// These are cosmetic hints (warnings) — no codegen effect on Z80.
+func stripC23Attributes(src string) string {
+	return c23AttrRe.ReplaceAllString(src, "")
 }
 
 // embedRe matches: #embed "filename" or #embed <filename>
