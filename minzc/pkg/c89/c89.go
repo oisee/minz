@@ -16,6 +16,8 @@ package c89
 import (
 	"encoding/binary"
 	"fmt"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -50,6 +52,7 @@ const z80Predefined = `
 #define bool _Bool
 #define true 1
 #define false 0
+#define nullptr ((void*)0)
 typedef unsigned char uint8_t;
 typedef signed char int8_t;
 typedef unsigned int uint16_t;
@@ -132,6 +135,10 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 		src = cleaned
 		importedModules = mods
 	}
+
+	// Process C23 #embed directives before cc/v4 sees the source.
+	// #embed "file" → comma-separated byte values inline.
+	src = preprocessEmbed(src, opts.BaseDir)
 
 	// Build include paths: "@" means "same dir as source file".
 	incPaths := []string{"@"}
@@ -294,4 +301,76 @@ func parseCommentDirectives(src string) ([]hir.Assert, []hir.Sandbox) {
 	}
 
 	return asserts, sandboxes
+}
+
+// embedRe matches: #embed "filename" or #embed <filename>
+// Optional limit/offset params (C23): #embed "file" limit(N) offset(N)
+var embedRe = regexp.MustCompile(`(?m)^\s*#\s*embed\s+("([^"]+)"|<([^>]+)>)(?:\s+limit\((\d+)\))?(?:\s+offset\((\d+)\))?\s*$`)
+
+// preprocessEmbed replaces C23 #embed directives with comma-separated byte literals.
+// This runs before the cc parser sees the source.
+//
+//	#embed "font.bin"                → 0x41,0x42,...
+//	#embed "data.bin" limit(256)     → first 256 bytes
+//	#embed "data.bin" offset(128)    → skip 128 bytes
+func preprocessEmbed(src, baseDir string) string {
+	return embedRe.ReplaceAllStringFunc(src, func(match string) string {
+		m := embedRe.FindStringSubmatch(match)
+		if m == nil {
+			return match
+		}
+		filename := m[2]
+		if filename == "" {
+			filename = m[3] // <file> form
+		}
+		if filename == "" {
+			return match
+		}
+
+		// Resolve relative to baseDir
+		if !filepath.IsAbs(filename) && baseDir != "" {
+			filename = filepath.Join(baseDir, filename)
+		}
+
+		data, err := os.ReadFile(filename)
+		if err != nil {
+			// Return error as comment so cc parser gives a clear message
+			return fmt.Sprintf("/* #embed error: %s */", err)
+		}
+
+		// Optional offset
+		offset := 0
+		if m[5] != "" {
+			offset, _ = strconv.Atoi(m[5])
+			if offset > len(data) {
+				offset = len(data)
+			}
+			data = data[offset:]
+		}
+
+		// Optional limit
+		if m[4] != "" {
+			limit, _ := strconv.Atoi(m[4])
+			if limit < len(data) {
+				data = data[:limit]
+			}
+		}
+
+		if len(data) == 0 {
+			return "/* #embed: empty */"
+		}
+
+		// Convert to comma-separated hex bytes
+		var sb strings.Builder
+		for i, b := range data {
+			if i > 0 {
+				sb.WriteByte(',')
+				if i%16 == 0 {
+					sb.WriteByte('\n')
+				}
+			}
+			fmt.Fprintf(&sb, "0x%02X", b)
+		}
+		return sb.String()
+	})
 }

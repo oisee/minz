@@ -220,7 +220,46 @@ func (l *lowerer) lowerTopDecl(d *cc.Declaration) error {
 
 		// Initial value.
 		if id.Initializer != nil {
-			if val, ok := l.evalConstInit(id.Initializer); ok {
+			if id.Initializer.Case == cc.InitializerInitList && ty.Kind() == cc.Array {
+				// Array initializer: populate Init bytes from brace list.
+				at := ty.(*cc.ArrayType)
+				length := int(at.Len())
+				elemSize := int(at.Elem().Size())
+				if elemSize <= 0 {
+					elemSize = 1
+				}
+				initBytes := make([]byte, length*elemSize)
+				idx := 0
+				for il := id.Initializer.InitializerList; il != nil; il = il.InitializerList {
+					init := il.Initializer
+					if init == nil {
+						continue
+					}
+					// Check for [index] designator
+					if il.Designation != nil {
+						if dl := il.Designation.DesignatorList; dl != nil && dl.Designator != nil {
+							d := dl.Designator
+							if d.Case == cc.DesignatorIndex {
+								idx = int(constToInt64(d.ConstantExpression.Value()))
+							}
+						}
+					}
+					if init.Case == cc.InitializerExpr {
+						if v := init.Value(); v != nil {
+							val := constToInt64(v)
+							off := idx * elemSize
+							if off >= 0 && off < len(initBytes) {
+								initBytes[off] = byte(val)
+								if elemSize >= 2 && off+1 < len(initBytes) {
+									initBytes[off+1] = byte(val >> 8)
+								}
+							}
+						}
+					}
+					idx++
+				}
+				g.Init = initBytes
+			} else if val, ok := l.evalConstInit(id.Initializer); ok {
 				g.Init = []byte{byte(val)}
 			}
 		}
