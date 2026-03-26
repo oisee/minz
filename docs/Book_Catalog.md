@@ -48,11 +48,26 @@ Covers the ABAP frontend (abaplint Wasm parser, Go lowerer), supported construct
 
 ---
 
+### 4. C23 on Z80: The World's First C23 Compiler for 8-Bit
+
+**Full C23 (freestanding) on Zilog Z80 — 13/13 features, 619 asserts.**
+
+Covers every C standard from C99 to C23: `#embed`, `nullptr`, `constexpr`, `_BitInt(N)`, `[[attributes]]`, `<stdbit.h>`, `auto` inference, `typeof`, digit separators, enum underlying type. Includes Z80-specific considerations (16-bit int, no FPU, byte alignment), libc headers reference, and 19 test programs with examples.
+
+| Format | File | Size |
+|--------|------|------|
+| Markdown | [C23_on_Z80_Book.md](C23_on_Z80_Book.md) | 8 chapters + appendices |
+| PDF | [C23_on_Z80_Book.pdf](C23_on_Z80_Book.pdf) | 71K |
+| EPUB | [C23_on_Z80_Book.epub](C23_on_Z80_Book.epub) | 17K |
+
+---
+
 ## Reading Order
 
 1. **Nanz Language Book** — Start here. Covers the primary language and all core concepts.
-2. **ABAP on MinZ** — If you're interested in multi-language support and the ABAP screen pattern.
-3. **C89 Frontend Internals** — For contributors working on C compatibility or the compilation pipeline.
+2. **C23 on Z80** — The C frontend story: C99→C11→C17→C23, all on 8-bit hardware.
+3. **ABAP on MinZ** — If you're interested in multi-language support and the ABAP screen pattern.
+4. **C89 Frontend Internals** — For contributors working on the compilation pipeline internals.
 
 ## Building Books
 
