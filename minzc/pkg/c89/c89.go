@@ -143,6 +143,10 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 	// These are cosmetic (warnings/hints) — no codegen effect on Z80.
 	src = stripC23Attributes(src)
 
+	// Strip C23 digit separators: 1'000 → 1000, 0xFF'FF → 0xFFFF.
+	// Safe: only matches digit'digit, never touches char literals ('A').
+	src = stripDigitSeparators(src)
+
 	// Process C23 #embed directives before cc/v4 sees the source.
 	// #embed "file" → comma-separated byte values inline.
 	src = preprocessEmbed(src, opts.BaseDir)
@@ -308,6 +312,19 @@ func parseCommentDirectives(src string) ([]hir.Assert, []hir.Sandbox) {
 	}
 
 	return asserts, sandboxes
+}
+
+// digitSepRe matches C23 digit separators: digit'digit (e.g. 1'000, 0xFF'FF).
+// Safe: [0-9a-fA-F]'[0-9a-fA-F] never matches char literals ('A').
+var digitSepRe = regexp.MustCompile(`([0-9a-fA-F])'([0-9a-fA-F])`)
+
+// stripDigitSeparators removes C23 digit separators from numeric literals.
+// Applied repeatedly to handle multiple separators (1'000'000 → 1000000).
+func stripDigitSeparators(src string) string {
+	for digitSepRe.MatchString(src) {
+		src = digitSepRe.ReplaceAllString(src, "${1}${2}")
+	}
+	return src
 }
 
 // c23AttrRe matches C23 [[attribute]] annotations.
