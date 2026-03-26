@@ -1,0 +1,30 @@
+/* PL/M-80 Hello World for CP/M */
+/* mz hello.plm --target=cpm -o hello.a80 && mza hello.a80 -o HELLO.COM */
+
+HELLO: DO;
+
+DECLARE CR LITERALLY '0DH';
+DECLARE LF LITERALLY '0AH';
+
+PRINT$CHAR: PROCEDURE (C);
+    DECLARE C BYTE;
+    /* BDOS function 2: console output */
+END PRINT$CHAR;
+
+PRINT$MSG: PROCEDURE (PTR);
+    DECLARE PTR WORD;
+    DECLARE C BYTE;
+    C = PTR(0);
+    DO WHILE C <> 0;
+        CALL PRINT$CHAR(C);
+        PTR = PTR + 1;
+        C = PTR(0);
+    END;
+END PRINT$MSG;
+
+/* Main program */
+CALL PRINT$MSG(.'Hello from PL/M-80!');
+CALL PRINT$CHAR(CR);
+CALL PRINT$CHAR(LF);
+
+END HELLO;
