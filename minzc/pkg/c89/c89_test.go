@@ -474,8 +474,10 @@ func TestCorpus_C99Examples(t *testing.T) {
 	if err != nil {
 		t.Skipf("examples/c dir not found: %v", err)
 	}
-	totalAsserts := 0
-	passedAsserts := 0
+	totalMir2 := 0
+	passedMir2 := 0
+	totalZ80 := 0
+	passedZ80 := 0
 	for _, e := range entries {
 		if e.IsDir() || filepath.Ext(e.Name()) != ".c" {
 			continue
@@ -493,28 +495,41 @@ func TestCorpus_C99Examples(t *testing.T) {
 			if err != nil {
 				t.Fatalf("Compile: %v", err)
 			}
-			t.Logf("  %d funcs, %d asserts", len(hm.Funcs), len(hm.Asserts))
 
 			mir2Asserts := 0
+			z80Asserts := 0
+			dualAsserts := 0
 			for _, a := range hm.Asserts {
-				if a.Via == "mir2" {
+				switch a.Via {
+				case "mir2":
 					mir2Asserts++
+				case "z80":
+					z80Asserts++
+				default: // "" = both mir2+z80
+					dualAsserts++
 				}
 			}
-			totalAsserts += mir2Asserts
-			if mir2Asserts == 0 {
+			totalMir2 += mir2Asserts + dualAsserts
+			totalZ80 += z80Asserts + dualAsserts
+			t.Logf("  %d funcs, %d asserts (dual=%d, mir2=%d, z80=%d)",
+				len(hm.Funcs), len(hm.Asserts), dualAsserts, mir2Asserts, z80Asserts)
+
+			if mir2Asserts+z80Asserts+dualAsserts == 0 {
 				return
 			}
 			_, err = pipeline.CompileHIR(hm)
 			if err != nil {
 				t.Logf("  pipeline: %v", err)
 			} else {
-				passedAsserts += mir2Asserts
-				t.Logf("  %d/%d mir2 asserts passed", mir2Asserts, mir2Asserts)
+				passedMir2 += mir2Asserts
+				passedZ80 += z80Asserts
+				t.Logf("  %d mir2 + %d z80 asserts passed", mir2Asserts, z80Asserts)
 			}
 		})
 	}
-	t.Logf("TOTAL: %d/%d mir2 asserts passed across C99+ corpus", passedAsserts, totalAsserts)
+	t.Logf("TOTAL: mir2=%d/%d z80=%d/%d combined=%d/%d across C99+ corpus",
+		passedMir2, totalMir2, passedZ80, totalZ80,
+		passedMir2+passedZ80, totalMir2+totalZ80)
 }
 
 func TestInclude_LocalAndSysHeaders(t *testing.T) {

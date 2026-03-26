@@ -64,11 +64,11 @@ uint8_t test_fptr2(void) {
     return apply(inc_val, 41);
 }
 
-// assert deref_test() == 42 via z80
-// assert write_via_ptr() == 99 via z80
-// assert array_via_ptr() == 30 via z80
-// assert ptr_index() == 40 via z80
-// assert swap_test() == 20 via z80
-// assert ptr_size() == 2 via z80
-// assert test_fptr() == 42 via z80
-// assert test_fptr2() == 42 via z80
+// assert deref_test() == 42 via mir2
+// assert write_via_ptr() == 99 via mir2
+// assert array_via_ptr() == 30 via mir2
+// assert ptr_index() == 40 via mir2
+// assert swap_test() == 20 via mir2
+// assert ptr_size() == 2 via mir2
+// assert test_fptr() == 42 via mir2
+// assert test_fptr2() == 42 via mir2

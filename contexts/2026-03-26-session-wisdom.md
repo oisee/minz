@@ -1,7 +1,8 @@
-# Session Wisdom: Birthday Marathon (Sessions 3-8)
+# Session Wisdom: Birthday Marathon (Sessions 3-9)
 
 **Dates:** 2026-03-24 to 2026-03-26
-**Commits:** ~60 across main repo + VIR + z80-optimizer
+**Commits:** ~80 across main repo + VIR + z80-optimizer
+**Release:** v0.23.0 Birthday Marathon Release
 
 ---
 
@@ -68,7 +69,45 @@ CY liveness = just "require @check immediately after fallible call" — no Z3 ne
 - Treewidth analysis: 99.5% random graphs tractable, 46.3% for dense corpus
 - Composition verified on 13.2M shapes (5.06T avg overhead)
 
-### 12. GPT-5.4 + Gemini Integration via dedelulu
+### 12. C17 Conformance + C23 Extensions (Session 9)
+First Z80 compiler with C11/C17 conformance. SDCC doesn't even have C11.
+- **5 libc headers:** stdbool.h, assert.h, ctype.h (17 inline funcs, zero LUT), stdalign.h, stdnoreturn.h
+- **C11:** anonymous structs/unions (field promotion via FieldOffset()), `_Alignof` → 1, `typeof`
+- **C23:** `bool`/`true`/`false` as keywords, `nullptr`, `#embed "file" limit(N) offset(N)`
+- **`#embed`** = the Z80 killer: binary include for sprites, fonts, GPU lookup tables
+- **Array designated init:** `uint8_t arr[5] = {[2] = 42, [4] = 99}`
+- **Global array init fix:** const LUTs from brace initializers now populate correctly (was all-zeros)
+- **524/524 corpus asserts** (350 c89 + 174 c99+), 13 test files
+- `docs/C_Standards_Roadmap.md` — full C99→C23 feature matrix
+
+### 13. @error Layer 2 — `?` Parser Enforcement (Session 9)
+`fun safe_div?(a: u8, b: u8)` — `?` in function name marks fallible.
+Parser enforces: `@check`/`@propagate` MUST follow every `?`-call. Missing → compile error.
+Lexer change: trailing `?` allowed in identifiers. `sanitizeIdent()` maps `?` → `_` for asm labels.
+35/35 Nanz examples still compile. VIR 5/5 Z3.
+
+### 14. RLCA Sled — Multi-Entry Barrel Shifter (Session 9)
+9 bytes, 8 entry points. `CALL __rotate_4` = nibble swap. No loop, no counter.
+```z80
+__rotate_7:  RLCA    ; fall through ↓
+...
+__rotate_4:  RLCA    ; nibble swap entry
+...
+__rotate_0:  RET     ; 9 bytes total
+```
+Assembly peephole: 3+ consecutive RLCAs → `CALL __rotate_N`. Sled auto-emitted.
+TSMC variant: first call patches CALL target → zero-overhead dispatch forever.
+
+### 15. MZA INCBIN — Binary Data Embedding (Session 9)
+`INCBIN "file.bin" [, offset [, length]]` — include binary verbatim.
+Parser + directive handler. Resolves paths relative to source. Bounds checking.
+Unlocks GPU lookup tables: mulopt8.bin, divopt8.bin, regalloc entries.
+
+### 16. antique-toy Book Collaboration (Session 9)
+New session (eo29c66e) joined for Z80 demoscene book.
+Sent `_in/minz_v023_highlights.md` with: INCBIN, RLCA sled, DD prefix gotcha, GPU arithmetic, C23, @error.
+
+### 17. GPT-5.4 + Gemini Integration via dedelulu
 `ddll ask gpt54 -s session @file.md "review"` — persistent LLM sessions with file injection.
 Paper A reviewed by GPT-5.4. @error design reviewed. Cross-LLM consensus on publishability.
 
@@ -124,6 +163,21 @@ stmtReferences didn't traverse SwitchStmt (CASE branches) or VarDeclStmt.
 WriteLn calls inside CASE blocks weren't detected → runtime functions not emitted.
 Fixed by adding cases to stmtReferences. But the emit still fails because
 InlineTrivial drops the emitted function labels (see above).
+
+### C Frontend (Session 9)
+- **modernc.org/cc already handles most C99/C11** — for-init-decl, _Bool, _Generic, _Static_assert, typeof, _Alignof all parsed. Gap was just missing libc headers + predefined macros.
+- **`FieldOffset()` from cc parser** is authoritative for struct field offsets. Our manual `resolveFieldOffset()` via MIR2 struct was wrong for anonymous members. Always prefer cc parser's offset.
+- **Global array init was broken** — `evalConstInit()` only handled single values. Brace initializer lists for arrays needed manual byte population in the global lowerer. Cost: hours of "why are my LUTs all zeros?"
+- **`#embed` as preprocessor text replacement** — simplest approach. Replace `#embed "file"` with comma-separated hex bytes BEFORE cc.Translate() sees the source. No parser changes needed.
+- **ctype.h inline functions** — 17 functions, zero lookup table. Each is a pure leaf → VIR Z3 optimizes well. No ROM dependency.
+- **MIR2 VM uses u16 arithmetic** — u8 overflow tests (swap_nibbles, mul8 wrapping) fail on mir2, work on z80. Use `via z80` for overflow-dependent asserts.
+
+### RLCA Sled Design (Session 9)
+- **Multi-entry fall-through** is the key insight. One function, N entry points. 9 bytes serve all 8 rotations.
+- **Peephole folding threshold: 3+ RLCAs** → CALL __rotate_N. Below 3, inline is smaller (no CALL overhead).
+- **SLA ≠ RLCA** — don't confuse shifts with rotations. SLA shifts 0 into bit 0, RLCA rotates bit 7 to bit 0. Sled is for rotation only.
+- **RLD/RRD are slower** than 4×RLCA for nibble swap (18T each + memory setup vs 16T total).
+- **Sled auto-emission** — detect `CALL __rotate_` in output string after peephole pass, emit sled if found. No manual flag needed.
 
 ### Cross-Session Coordination
 - dedelulu session IDs change on reboot — always broadcast new ID.
