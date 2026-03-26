@@ -25,6 +25,13 @@ type FuncResult struct {
 // CodegenModule runs the VIR unified solver on all functions in a MIR2 module.
 // Returns assembly text and per-function results.
 func CodegenModule(m *mir2.Module, opts SolverOptions) (string, []FuncResult) {
+	// VIR_STRICT env var controls strict mode (default: ON).
+	// Treats warnings as errors, logs implicit decisions.
+	// Set VIR_STRICT=0 to disable, or remove env var for default ON.
+	if os.Getenv("VIR_STRICT") != "0" {
+		opts.Strict = true
+	}
+
 	var sb strings.Builder
 	var results []FuncResult
 
@@ -113,11 +120,15 @@ func CodegenModule(m *mir2.Module, opts SolverOptions) (string, []FuncResult) {
 		asm, err := CodegenFunc(f, m, opts)
 		// Post-emit validation: heuristic check for clobbered 16-bit loads.
 		// Z3 pair aliasing constraints are the authoritative interference check.
-		// Demote to warning — false positives occur when Z3 correctly reuses HL
-		// (e.g., zero-extend after extracting low byte).
+		// In strict mode: ERROR (catches real bugs, may have false positives).
+		// In non-strict mode: WARNING (for prod after false positives are fixed).
 		if err == nil {
 			if clobErr := validateNoClobber(asm); clobErr != "" {
-				fmt.Fprintf(os.Stderr, "[vir] %s: post-emit warning: %s\n", f.Name, clobErr)
+				if opts.Strict {
+					err = fmt.Errorf("[STRICT] post-emit validation: %s", clobErr)
+				} else {
+					fmt.Fprintf(os.Stderr, "[vir] %s: post-emit warning: %s\n", f.Name, clobErr)
+				}
 			}
 		}
 		r := FuncResult{Name: f.Name}

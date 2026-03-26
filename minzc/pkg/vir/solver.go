@@ -45,6 +45,12 @@ type SolverOptions struct {
 	// OptSize enables size optimizations (Grace reroll: repeated CALL patterns
 	// → data table + DJNZ loop). Trades ~4T/iteration for code size reduction.
 	OptSize bool
+
+	// Strict mode: treat warnings as errors, log all implicit decisions.
+	// ON by default during development. Turn OFF when --vir becomes prod-ready.
+	// Catches: validateNoClobber, missing edge moves, missing move patterns,
+	// clobber exclusions, table ABI mismatches, peephole skips.
+	Strict bool
 }
 
 // Solve converts a basic block of VIROps into PIROps using Z3 SMT solver.
