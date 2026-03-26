@@ -53,6 +53,7 @@ const z80Predefined = `
 #define true 1
 #define false 0
 #define nullptr ((void*)0)
+#define constexpr const
 typedef unsigned char uint8_t;
 typedef signed char int8_t;
 typedef unsigned int uint16_t;
