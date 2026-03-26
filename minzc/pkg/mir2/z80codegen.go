@@ -206,7 +206,28 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) string {
 		sb.WriteString("    RET\n")
 	}
 
-	return asmPeepholePass(sb.String())
+	// Run peephole pass first (may introduce __rotate_N calls from RLCA folding).
+	result := asmPeepholePass(sb.String())
+
+	// Emit __rotate runtime: multi-entry RLCA sled (barrel shifter).
+	// CALL __rotate_N rotates A left by N bits. 9 bytes shared, zero overhead.
+	// Nibble swap = CALL __rotate_4. No loop, no counter.
+	if cg.needsRotate || strings.Contains(result, "CALL __rotate_") {
+		var sled strings.Builder
+		sled.WriteString("\n; runtime: RLCA sled — multi-entry barrel shifter (9 bytes)\n")
+		sled.WriteString("; CALL __rotate_N rotates A left by N bits (N×4T + 27T)\n")
+		sled.WriteString("__rotate_7:  RLCA\n")
+		sled.WriteString("__rotate_6:  RLCA\n")
+		sled.WriteString("__rotate_5:  RLCA\n")
+		sled.WriteString("__rotate_4:  RLCA    ; nibble swap\n")
+		sled.WriteString("__rotate_3:  RLCA\n")
+		sled.WriteString("__rotate_2:  RLCA\n")
+		sled.WriteString("__rotate_1:  RLCA\n")
+		sled.WriteString("__rotate_0:  RET     ; identity / shared return\n")
+		result += sled.String()
+	}
+
+	return result
 }
 
 // asmPeepholePass applies post-emit string-level peephole optimisations:
@@ -220,8 +241,50 @@ func asmPeepholePass(src string) string {
 	lines = elimCallRet(lines)
 	lines = elimJrToRet(lines)
 	lines = elimDeadAfterRet(lines)
+	lines = foldRLCASled(lines)
 	return strings.Join(lines, "\n")
 }
+
+// foldRLCASled replaces consecutive RLCA sequences (3+) with CALL __rotate_N.
+// RLCA = 4T each. CALL __rotate_N = 17T + N×4T + 10T = 27 + N×4T.
+// Break-even at N=7 (inline=28T, sled=55T) — so sled is about code SIZE savings.
+// For N >= 3 inline RLCAs, fold to CALL to save code bytes (shared sled is 9 bytes).
+// Caller must ensure __rotate sled is emitted (needsRotate flag).
+func foldRLCASled(lines []string) []string {
+	out := make([]string, 0, len(lines))
+	i := 0
+	needsSled := false
+	for i < len(lines) {
+		// Count consecutive RLCA instructions
+		if strings.TrimSpace(lines[i]) == "RLCA" {
+			count := 0
+			j := i
+			for j < len(lines) && strings.TrimSpace(lines[j]) == "RLCA" {
+				count++
+				j++
+			}
+			if count >= 3 {
+				// Replace with CALL __rotate_N
+				indent := "    "
+				if idx := strings.Index(lines[i], "RLCA"); idx > 0 {
+					indent = lines[i][:idx]
+				}
+				out = append(out, fmt.Sprintf("%sCALL __rotate_%d", indent, count))
+				needsSled = true
+				i = j
+				continue
+			}
+		}
+		out = append(out, lines[i])
+		i++
+	}
+	// If we folded any, add a marker comment so the caller knows to emit the sled
+	if needsSled {
+		out = append(out, "; [peephole] RLCA sled referenced — __rotate runtime required")
+	}
+	return out
+}
+
 
 // elimCallRet replaces CALL X / RET with JP X (tail call promotion).
 // Saves 17 T-states (CALL=17 + RET=10 → JP=10) and 1 byte.
@@ -522,6 +585,7 @@ type z80cg struct {
 	deadConsts     map[Reg]bool  // OpConst dsts whose LD is suppressed by DSE
 	needsCallHL    bool          // emit __call_hl trampoline (JP (HL)) at end of module
 	needsMul8      bool          // emit __mul8 runtime (A*B→A) at end of module
+	needsRotate    bool          // emit __rotate RLCA sled (multi-entry barrel shifter)
 	tsmcPairs      []tsmcSpillPair // TSMC spill-reload pairs for current function
 	curInstIdx     int             // current instruction index within block (for TSMC matching)
 

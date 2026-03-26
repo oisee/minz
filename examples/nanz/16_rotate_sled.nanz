@@ -1,0 +1,67 @@
+// RLCA Sled — Multi-entry barrel shifter for Z80
+//
+// 9 bytes of shared code provide all 8 rotation counts.
+// CALL __rotate_4 = nibble swap. No loop, no counter.
+//
+// __rotate_7:  RLCA         ; fall through
+// __rotate_6:  RLCA
+// __rotate_5:  RLCA
+// __rotate_4:  RLCA         ; nibble swap entry
+// __rotate_3:  RLCA
+// __rotate_2:  RLCA
+// __rotate_1:  RLCA
+// __rotate_0:  RET          ; shared return
+//
+// Cost: 17T (CALL) + N×4T (RLCAs) + 10T (RET) = 27 + N×4T
+// Nibble swap: 27 + 16 = 43T total via sled
+//
+// Compile: mz 16_rotate_sled.nanz -o out.a80
+// Run: echo "" | mzv -H 16_rotate_sled.nanz
+
+// Nibble swap via direct RLCA (inline, 16T)
+fun swap_nibbles(x: u8) -> u8 {
+    asm (in x) (clob all) {
+        RLCA / RLCA / RLCA / RLCA
+    }
+    return x
+}
+
+// Rotate left by 1
+fun rol1(x: u8) -> u8 {
+    asm (in x) (clob all) {
+        RLCA
+    }
+    return x
+}
+
+// Rotate left by 3
+fun rol3(x: u8) -> u8 {
+    asm (in x) (clob all) {
+        RLCA / RLCA / RLCA
+    }
+    return x
+}
+
+// High nibble extraction: (x >> 4) via rotate + mask
+fun high_nibble(x: u8) -> u8 {
+    asm (in x) (clob all) {
+        RLCA / RLCA / RLCA / RLCA / AND 0x0F
+    }
+    return x
+}
+
+// Low nibble extraction
+fun low_nibble(x: u8) -> u8 {
+    return x & 0x0F
+}
+
+fun main() -> void {
+    var a: u8 = swap_nibbles(0xAB)
+    @print_u8(a)
+
+    var b: u8 = high_nibble(0xAB)
+    @print_u8(b)
+
+    var c: u8 = low_nibble(0xAB)
+    @print_u8(c)
+}
