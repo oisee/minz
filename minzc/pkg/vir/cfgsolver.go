@@ -110,6 +110,49 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 		}
 	}
 
+	// Inject live-through vregs into per-block liveness.
+	// Block parameters that flow through a block (live-in from edge + live-out
+	// to another edge) but are never referenced in any op within the block are
+	// invisible to computeLiveness. Without this, they don't get clobber
+	// constraints at CALL instructions — the root cause of counter drift.
+	for _, edge := range edges {
+		fromBP := blocks[edge.fromBlock]
+		toBP := blocks[edge.toBlock]
+		fromLastIdx := len(fromBP.ops) - 1
+		if fromLastIdx < 0 {
+			continue
+		}
+
+		// Vregs live at the end of fromBlock
+		fromLive := fromBP.prob.liveness[fromLastIdx].live
+
+		// For each vreg live across this edge, ensure it's in the
+		// destination block's liveness at ALL instructions.
+		for vreg := range fromLive {
+			// Check if vreg is also live-out of toBP (appears in an outgoing edge)
+			// or is used in toBP. If it's just passing through, it's still live.
+			alreadyInBlock := false
+			for _, l := range toBP.prob.liveness {
+				if l.live[vreg] {
+					alreadyInBlock = true
+					break
+				}
+			}
+			if !alreadyInBlock {
+				// This vreg flows through toBP without being referenced.
+				// Inject it into liveness only at CLOBBER instructions (CALL/AsmBlock)
+				// so it gets clobber constraints. Don't add to all instructions
+				// (that over-constrains interference, causing unsat).
+				for i, op := range toBP.ops {
+					if !op.Clobbers.IsEmpty() && i < len(toBP.prob.liveness) {
+						toBP.prob.liveness[i].live[vreg] = true
+					}
+				}
+				toBP.prob.vregs[vreg] = true
+			}
+		}
+	}
+
 	// Generate unified SMT
 	nLocs := len(desc.Locs)
 	var b strings.Builder
@@ -595,6 +638,13 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 	// is paid in the objective but no instruction implements the move.
 	if opts.Verbose || os.Getenv("VIR_DEBUG_EDGES") != "" {
 		fmt.Fprintf(os.Stderr, "[CFG-solver] %s: %d edges to check for moves\n", f.Name, len(edges))
+	}
+
+	// Dump SMT for debugging when requested
+	if os.Getenv("VIR_DUMP_SMT") != "" {
+		smtFile := fmt.Sprintf("/tmp/vir_cfg_%s.smt2", f.Name)
+		os.WriteFile(smtFile, []byte(smt), 0644)
+		fmt.Fprintf(os.Stderr, "[CFG-solver] dumped SMT to %s (%d bytes)\n", smtFile, len(smt))
 	}
 	for _, edge := range edges {
 		fromBP := blocks[edge.fromBlock]
