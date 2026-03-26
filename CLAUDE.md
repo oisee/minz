@@ -268,6 +268,33 @@ See `docs/Metafunction_Design_Decisions.md` for complete details.
 - **Behavioral Morphing**: One function, infinite behaviors
 - Complete docs: `docs/145_TSMC_Complete_Philosophy.md`
 
+### TSMC Tunnels (Register Preservation Across CALLs)
+
+TSMC tunnels save/restore register values across CALL instructions by patching the immediate byte of a subsequent LD instruction:
+
+```z80
+; 8-bit: save A across CALL (20T total, SP untouched)
+LD (.tsmc_n+1), A      ; 13T — patch the NN byte below
+CALL some_function      ; clobbers A
+.tsmc_n:
+LD A, 0                 ; 7T — 0 was overwritten! Reads saved value as immediate
+
+; 16-bit: save DE across CALL via patching LD DE,NNNN (44T total)
+LD A, E / LD (.tsmc+1), A / LD A, D / LD (.tsmc+2), A  ; 34T save
+CALL func
+.tsmc: LD DE, 0000      ; 10T — both bytes patched
+
+; NOT recursion-safe: nested call overwrites the patched byte!
+```
+
+**Spill tier hierarchy for VIR Z3 solver:**
+- **L1: IXH/IXL/IYH/IYL** — 0T, 4 slots, callee-saved, always safe
+- **L2: TSMC 8-bit tunnel** — 20T, unlimited slots, non-recursive only, SP-clean
+- **L3: PUSH/POP pairs** — 21T, unlimited, always safe, @error needs N×POP cleanup
+- **L4: Memory spill** — 26T, unlimited, always safe
+
+**TSMC wins for 8-bit** (20T vs PUSH/POP 21T + saves whole pair). **PUSH/POP wins for 16-bit pairs** (21T vs TSMC 44T). For @error propagation: PUSH/POP + compiler-generated stack cleanup (N×POP on error path) is cheaper than TSMC for pairs.
+
 ## 🏆 Zero-Cost Abstractions on Z80
 
 ### ✅ Zero-Cost Lambda Iterators (v0.10.0) 🎊
