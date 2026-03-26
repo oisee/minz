@@ -526,10 +526,25 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 	}
 
 	// Both CFG solves failed — try whole-function solve (flattens all blocks)
+	// First try with caller constraints (params in expected registers)
 	vfWhole := deepCopyFunc(vf)
-	wholeASM, wholeErr := codegenFuncWhole(f, vfWhole, desc, optsStand)
+	wholeASM, wholeErr := codegenFuncWhole(f, vfWhole, desc, opts)
 	if wholeErr == nil {
-		fmt.Fprintf(os.Stderr, "[vir] %s: CFG unsat, whole-function solve OK\n", f.Name)
+		fmt.Fprintf(os.Stderr, "[vir] %s: CFG unsat, whole-function solve OK (constrained)\n", f.Name)
+		if os.Getenv("VIR_DEBUG_ASM") != "" {
+			fmt.Fprintf(os.Stderr, "[DEBUG-ASM] %s:\n%s\n", f.Name, wholeASM)
+		}
+		return wholeASM, nil
+	}
+	// Then try standalone + adapter
+	vfWhole2 := deepCopyFunc(vf)
+	wholeASM, wholeErr = codegenFuncWhole(f, vfWhole2, desc, optsStand)
+	if wholeErr == nil && !hasConstraints {
+		adapted := emitAdapterEntry(wholeASM, f, callerParamLocs, standParamLocs, desc)
+		fmt.Fprintf(os.Stderr, "[vir] %s: CFG unsat, whole-function standalone+adapter OK\n", f.Name)
+		return adapted, nil
+	} else if wholeErr == nil {
+		fmt.Fprintf(os.Stderr, "[vir] %s: CFG unsat, whole-function standalone OK (no constraints)\n", f.Name)
 		return wholeASM, nil
 	}
 
