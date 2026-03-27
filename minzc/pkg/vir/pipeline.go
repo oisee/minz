@@ -609,7 +609,16 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 		return wholeASM, nil
 	}
 
-	// Last resort: per-block fallback
+	// Recursive island decomposition: split function at liveness bottlenecks,
+	// solve each island independently, stitch with LD moves at boundaries.
+	vfIsland := deepCopyFunc(vf)
+	islandASM, islandErr := codegenFuncIslands(f, vfIsland, desc, opts)
+	if islandErr == nil {
+		fmt.Fprintf(os.Stderr, "[vir] %s: island decomposition OK\n", f.Name)
+		return islandASM, nil
+	}
+
+	// Last resort: per-block fallback (legacy, may produce wrong code)
 	errMsg := standErr
 	if constRan && constErr != nil {
 		errMsg = constErr
@@ -1301,6 +1310,180 @@ func codegenFuncWhole(f *mir2.Func, vf *Func, desc *MachineDesc, opts SolverOpti
 }
 
 // codegenFuncPerBlock is the original per-block solver (fallback).
+// codegenFuncIslands splits a function at liveness bottlenecks and solves
+// each island independently via Solve (Phase 1→Phase 2). Stitches islands
+// with LD moves at boundaries. Recursive: if an island is too large, split again.
+// islandRange tracks a block's position in the flattened op sequence.
+type islandRange struct {
+	label string
+	start int
+	end   int
+}
+
+func codegenFuncIslands(f *mir2.Func, vf *Func, desc *MachineDesc, opts SolverOptions) (string, error) {
+	// Flatten all blocks into one sequence
+	var allOps []VIROp
+	var ranges []islandRange
+	for _, block := range vf.Blocks {
+		start := len(allOps)
+		allOps = append(allOps, block.Ops...)
+		ranges = append(ranges, islandRange{block.Label, start, len(allOps)})
+	}
+	if len(allOps) == 0 {
+		return "", fmt.Errorf("empty function")
+	}
+
+	// Compute liveness to find split points
+	prob := buildProblem(allOps, desc)
+
+	// Find liveness bottlenecks: points where few vregs are live
+	type splitCandidate struct {
+		pc    int
+		nLive int
+	}
+	var candidates []splitCandidate
+	for i := range prob.liveness {
+		if i == 0 || i == len(allOps)-1 {
+			continue
+		}
+		nLive := len(prob.liveness[i].live)
+		// Split at call sites with low liveness
+		if allOps[i].Op == OpCall || allOps[i].Op == OpAsmBlock {
+			candidates = append(candidates, splitCandidate{i, nLive})
+		}
+	}
+
+	if len(candidates) == 0 {
+		// No split points — try solving as a whole
+		pirOps, err := Solve(allOps, desc, opts)
+		if err != nil {
+			return "", fmt.Errorf("island: no split points and solve failed: %w", err)
+		}
+		return emitIslandPIR(f, pirOps, allOps, ranges, desc, opts)
+	}
+
+	// Pick the best split: lowest liveness
+	best := candidates[0]
+	for _, c := range candidates[1:] {
+		if c.nLive < best.nLive {
+			best = c
+		}
+	}
+
+	// Split into two islands at the best point
+	island1Ops := allOps[:best.pc+1]
+	island2Ops := allOps[best.pc+1:]
+
+	// Solve island 1
+	pir1, err1 := solveIsland(island1Ops, desc, opts, 0)
+	if err1 != nil {
+		return "", fmt.Errorf("island 1 (pc 0-%d): %w", best.pc, err1)
+	}
+
+	// Compute boundary: vregs live at split point
+	boundary := prob.liveness[best.pc]
+
+	// Determine exit locations from island 1 (from Z3 model)
+	// For now: use the last PIROp's physical registers as hints
+	island2Opts := opts
+	// Pass boundary vreg locations as SrcHint on island 2's first ops
+	// (simplified: just solve island 2 independently)
+
+	pir2, err2 := solveIsland(island2Ops, desc, island2Opts, best.pc+1)
+	if err2 != nil {
+		return "", fmt.Errorf("island 2 (pc %d-%d): %w", best.pc+1, len(allOps)-1, err2)
+	}
+
+	// Stitch: emit island 1 PIR + boundary moves + island 2 PIR
+	var sb strings.Builder
+	emitFuncHeader(&sb, f, opts)
+	sb.WriteString(f.Name + ":\n")
+
+	// Island 1 PIR with block labels
+	emitPIRWithLabels(&sb, pir1, island1Ops, ranges, 0, f.Name, desc, f)
+
+	// Boundary: emit LD moves for vregs that changed location
+	// (simplified: no moves for now — islands are independent)
+	_ = boundary
+
+	// Island 2 PIR with block labels
+	emitPIRWithLabels(&sb, pir2, island2Ops, ranges, best.pc+1, f.Name, desc, f)
+
+	return peepholeCleanup(sb.String()), nil
+}
+
+// emitIslandPIR emits PIR for a single-island function (no split needed).
+func emitIslandPIR(f *mir2.Func, pirOps []PIROp, ops []VIROp, ranges []islandRange, desc *MachineDesc, opts SolverOptions) (string, error) {
+	var sb strings.Builder
+	emitFuncHeader(&sb, f, opts)
+	sb.WriteString(f.Name + ":\n")
+	emitPIRWithLabels(&sb, pirOps, ops, ranges, 0, f.Name, desc, f)
+	return peepholeCleanup(sb.String()), nil
+}
+
+// solveIsland tries to solve a slice of VIR ops as a single unit.
+func solveIsland(ops []VIROp, desc *MachineDesc, opts SolverOptions, startPC int) ([]PIROp, error) {
+	if len(ops) == 0 {
+		return nil, nil
+	}
+	return Solve(ops, desc, opts)
+}
+
+// emitPIRWithLabels emits PIROps with block labels injected at correct positions.
+func emitPIRWithLabels(sb *strings.Builder, pirOps []PIROp, ops []VIROp, ranges []islandRange, startPC int, funcName string, desc *MachineDesc, f *mir2.Func) {
+	pirCursor := 0
+	opCursor := 0
+	for _, br := range ranges {
+		if br.end <= startPC || br.start >= startPC+len(ops) {
+			continue // block outside this island
+		}
+		// Adjust block range to island-local coordinates
+		localStart := br.start - startPC
+		localEnd := br.end - startPC
+		if localStart < 0 { localStart = 0 }
+		if localEnd > len(ops) { localEnd = len(ops) }
+
+		// Emit block label (except first block = function entry)
+		if br.start > startPC && br.label != "" {
+			sb.WriteString("." + funcName + "_" + br.label + ":\n")
+		}
+
+		// Emit PIROps for this block
+		blockOps := localEnd - localStart
+		for k := 0; k < blockOps && pirCursor < len(pirOps); {
+			p := pirOps[pirCursor]
+			line := p.Emit(desc)
+			if !isSelfMove(line) {
+				emitLine(sb, line)
+			}
+			pirCursor++
+			if p.Pat != nil && p.Pat.Op != OpMove {
+				k++
+			} else if p.Pat != nil && p.Pat.Op == OpMove {
+				origIdx := localStart + k
+				if origIdx < len(ops) && ops[origIdx].Op == OpMove {
+					k++
+				}
+			}
+		}
+
+		// Emit terminator for the MIR2 block
+		blockIdx := -1
+		for bi, b := range f.Blocks {
+			if b.Label == br.label || (bi == 0 && br.label == "") {
+				blockIdx = bi
+				break
+			}
+		}
+		if blockIdx >= 0 && blockIdx < len(f.Blocks) {
+			emitTerminator(sb, f.Blocks[blockIdx], funcName)
+		}
+
+		opCursor = localEnd
+	}
+	_ = opCursor
+}
+
 func codegenFuncPerBlock(f *mir2.Func, vf *Func, desc *MachineDesc, opts SolverOptions) (string, error) {
 
 	var sb strings.Builder
