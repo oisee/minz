@@ -1,10 +1,10 @@
-# ML on a Calculator: Functional Programming on Z80
+# ML on ZX Spectrum: Functional Programming on Z80
 
-**Algebraic data types, pattern matching, pipe operators — on a 3.5 MHz 8-bit CPU from 1976.**
+**Algebraic data types, pattern matching, pipe operators — on a ZX Spectrum. 3.5 MHz. 48 KB RAM. 1982.**
 
 ---
 
-Frill is an ML-style functional language that compiles to native Z80 machine code. Not interpreted. Not bytecoded. Directly compiled to the same instruction set that runs Pac-Man and ZX Spectrum games.
+Frill is an ML-style functional language that compiles to native Z80 machine code. Not interpreted. Not bytecoded. Directly compiled to the same instruction set that runs Pac-Man, ZX Spectrum games, and CP/M business software.
 
 Here's a complete traffic light controller:
 
@@ -176,7 +176,7 @@ cd minz/minzc && go build -o mz ./cmd/minzc
 ./mz examples/frill/state_machine.frl -o out.a80
 ```
 
-175 bytes. A traffic light controller. In ML. On Z80.
+175 bytes. A traffic light controller. In ML. On ZX Spectrum.
 
 ---
 
