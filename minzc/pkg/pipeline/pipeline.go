@@ -305,7 +305,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 				funcParamLocs[f.Name] = pl
 			}
 		}
-		virOpts := vir.SolverOptions{FuncParamLocs: funcParamLocs, OptSize: opt.OptSize}
+		virOpts := vir.SolverOptions{FuncParamLocs: funcParamLocs, OptSize: opt.OptSize, PBQPAlloc: combined}
 		virAsm, virResults := vir.CodegenModule(m, virOpts)
 
 		ok, fail := 0, 0
