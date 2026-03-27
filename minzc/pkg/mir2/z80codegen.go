@@ -3725,9 +3725,10 @@ func (g *z80cg) genShift(mnem string, inst *Inst) {
 	}
 	// Shift count in Src[1] — Z80 shifts are always by 1 per instruction.
 	// For constant counts, emit N copies.  Variable shifts → TODO.
+	// IMPORTANT: count=0 must emit zero shifts (identity), not default to 1.
 	count := int64(1)
-	if cv, ok := g.constVals[inst.Src[1]]; ok && cv > 0 {
-		count = cv
+	if cv, ok := g.constVals[inst.Src[1]]; ok {
+		count = cv // cv=0 → no shifts emitted (identity)
 	}
 	if w == 16 {
 		// Z80 has no SLA/SRL/SRA on register pairs.
