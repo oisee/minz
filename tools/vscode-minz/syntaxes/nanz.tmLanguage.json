@@ -35,7 +35,7 @@
         },
         {
           "name": "keyword.declaration.nanz",
-          "match": "\\b(fun|fn|var|let|struct|global|interface)\\b"
+          "match": "\\b(fun|fn|var|let|struct|global|interface|enum|const|import|pipe|trans|asm)\\b"
         },
         {
           "name": "keyword.other.assert.nanz",
@@ -55,7 +55,7 @@
       "patterns": [
         {
           "name": "storage.type.nanz",
-          "match": "\\b(u8|u16|u24|u32|i8|i16|i24|i32|bool|void)\\b"
+          "match": "\\b(u8|u16|u24|u32|i8|i16|i24|i32|bool|void|bcd8|bcd16|bcd24|bcd32|ptr)\\b"
         },
         {
           "comment": "Ranged type annotation: u8<lo..hi>",
@@ -66,6 +66,14 @@
     },
     "attributes": {
       "patterns": [
+        {
+          "name": "keyword.control.error.nanz",
+          "match": "@(error|check|propagate)\\b"
+        },
+        {
+          "name": "support.function.builtin.nanz",
+          "match": "@(print|print_u8|print_u16|print_str|emit|define|if|elif|else|target|embed)\\b"
+        },
         {
           "name": "entity.other.attribute-name.nanz",
           "match": "@\\w+"
@@ -89,6 +97,14 @@
           "captures": {
             "1": { "name": "keyword.declaration.nanz" },
             "2": { "name": "entity.name.function.operator.nanz keyword.operator.nanz" }
+          }
+        },
+        {
+          "comment": "Fallible function declaration: fun name?(",
+          "match": "\\b(fun|fn)\\s+([A-Za-z_][A-Za-z0-9_]*\\?)\\s*\\(",
+          "captures": {
+            "1": { "name": "keyword.declaration.nanz" },
+            "2": { "name": "entity.name.function.fallible.nanz" }
           }
         },
         {
