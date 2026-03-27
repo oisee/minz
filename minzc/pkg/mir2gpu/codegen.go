@@ -136,8 +136,12 @@ func Compile(m *mir2.Module, opts CompileOptions) (string, error) {
 			sb.WriteString("    " + spec.ThreadID + "\n")
 		}
 
-		// Universal body
-		emitUniversalBody(&sb, f, spec)
+		// Body: structured (Metal/Vulkan) or goto-based (CUDA/OpenCL)
+		if needsStructuredCF(opts.Backend, f) {
+			emitStructuredBody(&sb, f, spec, opts.Backend)
+		} else {
+			emitUniversalBody(&sb, f, spec)
+		}
 
 		sb.WriteString("}\n\n")
 	}
@@ -318,6 +322,143 @@ func gpuType(width int) string {
 		return "uint32_t"
 	default:
 		return "uint64_t"
+	}
+}
+
+// needsStructuredCF returns true if the backend doesn't support goto/labels.
+// Metal Shading Language is based on C++14 but forbids goto and labels.
+func needsStructuredCF(backend Backend, f *mir2.Func) bool {
+	if backend != Metal && backend != Vulkan {
+		return false
+	}
+	// Only need structured CF if there are multiple blocks (i.e., control flow)
+	return len(f.Blocks) > 1
+}
+
+// emitStructuredBody emits the function body as a while(true)/switch state machine.
+// This is semantically equivalent to goto-based code but works on Metal.
+func emitStructuredBody(sb *strings.Builder, f *mir2.Func, spec backendSpec, backend Backend) {
+	// Declare vregs
+	vregs := make(map[mir2.Reg]bool)
+	for _, b := range f.Blocks {
+		for _, inst := range b.Insts {
+			if inst.Dst != mir2.NoReg {
+				vregs[inst.Dst] = true
+			}
+		}
+		for _, p := range b.Params {
+			vregs[p.Dst] = true
+		}
+	}
+
+	// Map first param to tid
+	for i, cp := range f.Contract.Params {
+		if i == 0 {
+			sb.WriteString(fmt.Sprintf("    %s r%d = tid;\n", spec.UintType, cp.Reg))
+		} else {
+			sb.WriteString(fmt.Sprintf("    %s r%d = 0;\n", spec.UintType, cp.Reg))
+		}
+		delete(vregs, cp.Reg)
+	}
+	for vreg := range vregs {
+		sb.WriteString(fmt.Sprintf("    %s r%d = 0;\n", spec.UintType, vreg))
+	}
+	sb.WriteString("\n")
+
+	// Build label → block index map
+	labelIdx := make(map[string]int)
+	for i, b := range f.Blocks {
+		if b.Label != "" {
+			labelIdx[gpuSym(b.Label)] = i
+		}
+	}
+
+	// State machine
+	sb.WriteString("    int _block = 0;\n")
+	sb.WriteString("    while (true) {\n")
+	sb.WriteString("    switch (_block) {\n")
+
+	for bi, b := range f.Blocks {
+		sb.WriteString(fmt.Sprintf("    case %d: {\n", bi))
+
+		// Emit instructions
+		for _, inst := range b.Insts {
+			sb.WriteString("    ")
+			emitUniversalInst(sb, inst, spec)
+		}
+
+		// Emit terminator as state transitions
+		emitStructuredTerm(sb, f, b, spec, labelIdx, backend)
+
+		sb.WriteString("    } break;\n")
+	}
+
+	sb.WriteString("    default: return;\n")
+	sb.WriteString("    } // switch\n")
+	sb.WriteString("    } // while\n")
+}
+
+// emitStructuredTerm emits a terminator using _block assignments instead of goto.
+func emitStructuredTerm(sb *strings.Builder, f *mir2.Func, b *mir2.Block, spec backendSpec, labelIdx map[string]int, backend Backend) {
+	if b.Term == nil {
+		return
+	}
+	// GLSL (Vulkan) needs "r == 0u" instead of "!r" (uint is not bool)
+	notFmt := "!r%d"
+	condFmt := "r%d"
+	ternFmt := "r%d ? %d : %d"
+	if backend == Vulkan {
+		notFmt = "r%d == 0u"
+		condFmt = "r%d != 0u"
+		ternFmt = "(r%d != 0u) ? %d : %d"
+	}
+
+	switch t := b.Term.(type) {
+	case *mir2.TermRet:
+		if len(t.Vals) > 0 {
+			sb.WriteString(fmt.Sprintf("        %s\n", spec.ResultWrite(fmt.Sprintf("r%d", t.Vals[0]))))
+		}
+		sb.WriteString("        return;\n")
+	case *mir2.TermJmp:
+		target := f.BlockByLabel(t.Target)
+		if target != nil {
+			for i, arg := range t.Args {
+				if i < len(target.Params) {
+					sb.WriteString(fmt.Sprintf("        r%d = r%d;\n", target.Params[i].Dst, arg))
+				}
+			}
+		}
+		idx := labelIdx[gpuSym(t.Target)]
+		sb.WriteString(fmt.Sprintf("        _block = %d;\n", idx))
+	case *mir2.TermBrIf:
+		thenBlock := f.BlockByLabel(t.Then)
+		if thenBlock != nil {
+			for i, arg := range t.ThenArgs {
+				if i < len(thenBlock.Params) {
+					sb.WriteString(fmt.Sprintf("        if ("+condFmt+") r%d = r%d;\n", t.Cond, thenBlock.Params[i].Dst, arg))
+				}
+			}
+		}
+		elseBlock := f.BlockByLabel(t.Else)
+		if elseBlock != nil {
+			for i, arg := range t.ElseArgs {
+				if i < len(elseBlock.Params) {
+					sb.WriteString(fmt.Sprintf("        if ("+notFmt+") r%d = r%d;\n", t.Cond, elseBlock.Params[i].Dst, arg))
+				}
+			}
+		}
+		thenIdx := labelIdx[gpuSym(t.Then)]
+		elseIdx := labelIdx[gpuSym(t.Else)]
+		sb.WriteString(fmt.Sprintf("        _block = "+ternFmt+";\n", t.Cond, thenIdx, elseIdx))
+	case *mir2.TermCondRet:
+		if len(t.Vals) > 0 {
+			sb.WriteString(fmt.Sprintf("        if ("+notFmt+") { %s return; }\n",
+				t.Cond, spec.ResultWrite(fmt.Sprintf("r%d", t.Vals[0]))))
+		}
+		idx := labelIdx[gpuSym(t.Then)]
+		sb.WriteString(fmt.Sprintf("        _block = %d;\n", idx))
+	default:
+		sb.WriteString("        return; // TODO: terminator\n")
 	}
 }
 
