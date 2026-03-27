@@ -62,12 +62,28 @@ Covers every C standard from C99 to C23: `#embed`, `nullptr`, `constexpr`, `_Bit
 
 ---
 
+### 5. Frill: ML on ZX Spectrum
+
+**ML-style functional programming on Z80 — ADTs, pattern matching, pipes, 427 asserts.**
+
+Covers Frill's 38 features: algebraic data types, exhaustive pattern matching, pipe operators, lambdas, type classes, QTT linearity, property testing. Includes 3 real-world demos: state machine (175 bytes), minigame engine (226 bytes), parser combinator (498 bytes). All compile to Z80 binaries via Z3 SMT solver.
+
+| Format | File | Size |
+|--------|------|------|
+| Markdown | [Frill_Language_Guide.md](Frill_Language_Guide.md) | 16 chapters |
+| PDF | [book/Frill_Language_Guide.pdf](book/Frill_Language_Guide.pdf) | |
+| EPUB | [book/Frill_Language_Guide.epub](book/Frill_Language_Guide.epub) | |
+| Article | [Frill_on_Z80_Article.md](Frill_on_Z80_Article.md) | "ML on ZX Spectrum" |
+
+---
+
 ## Reading Order
 
 1. **Nanz Language Book** — Start here. Covers the primary language and all core concepts.
-2. **C23 on Z80** — The C frontend story: C99→C11→C17→C23, all on 8-bit hardware.
-3. **ABAP on MinZ** — If you're interested in multi-language support and the ABAP screen pattern.
-4. **C89 Frontend Internals** — For contributors working on the compilation pipeline internals.
+2. **Frill: ML on ZX Spectrum** — Functional programming on Z80. ADTs, match, pipes.
+3. **C23 on Z80** — The C frontend story: C99→C11→C17→C23, all on 8-bit hardware.
+4. **ABAP on MinZ** — Multi-language support and the ABAP screen pattern.
+5. **C89 Frontend Internals** — For contributors working on the compilation pipeline internals.
 
 ## Building Books
 
