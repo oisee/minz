@@ -618,14 +618,15 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 		return islandASM, nil
 	}
 
-	// Last resort: per-block fallback (legacy, may produce wrong code)
+	// All VIR solvers failed → return error → PBQP fallback in CodegenModule
 	errMsg := standErr
 	if constRan && constErr != nil {
 		errMsg = constErr
 	}
-	fmt.Fprintf(os.Stderr, "[vir] %s: all solvers failed (%v), falling back to per-block\n", f.Name, errMsg)
-	vfFallback := deepCopyFunc(vf)
-	return codegenFuncPerBlock(f, vfFallback, desc, opts)
+	if islandErr != nil {
+		errMsg = islandErr
+	}
+	return "", fmt.Errorf("all VIR solvers failed: %v", errMsg)
 }
 
 // resolveParallelMoves orders adapter moves to avoid clobbering.
