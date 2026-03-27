@@ -4788,6 +4788,37 @@ func (g *z80cg) materializePendingAcc(upcomingInst *Inst) {
 	g.pendingAccReg = NoReg
 }
 
+// saveAccForCondRet saves A to a scratch register if:
+//   - the current block ends with TermCondRet
+//   - A holds a vreg that TermCondRet returns
+//   - the CMP is about to load a different vreg into A
+// This prevents the return value from being clobbered by the comparison operand.
+// Without this, abs_val(5,0) returns 0 instead of 5 on Z80.
+func (g *z80cg) saveAccForCondRet(cmpInst *Inst) {
+	if g.fn == nil || g.curBlock == nil {
+		return
+	}
+	tcr, ok := g.curBlock.Term.(*TermCondRet)
+	if !ok {
+		return
+	}
+	// Check if CMP will load a different vreg into A (clobbering current A value).
+	lhs := g.loc(cmpInst.Src[0])
+	if lhs == "A" {
+		return // lhs already in A, no clobber
+	}
+	// Check if any TermCondRet return value is currently in A.
+	for _, v := range tcr.Vals {
+		if g.loc(v) == "A" {
+			// A holds a return value that CMP will clobber. Save it.
+			scratch := g.pickScratch8(cmpInst)
+			g.emitf("    LD %s, A    ; save ret val before CMP", scratch)
+			g.physOverride[v] = scratch
+			return
+		}
+	}
+}
+
 func (g *z80cg) genCmp(inst *Inst) {
 	// CmpSubCarry / CmpSubCarryNot: carry flag already set by the immediately
 	// preceding SUB.  No instruction needed — carry encodes a < b (C) or a >= b (NC).
@@ -4799,10 +4830,13 @@ func (g *z80cg) genCmp(inst *Inst) {
 	// 1. Materialize any live ClassFlag register whose carry would be overwritten.
 	// 2. Save any live ClassAcc register whose A value would be overwritten by
 	//    the "LD A, imm" used to set up the CP operand.
+	// 3. Save A if the block ends with TermCondRet and A holds a return value
+	//    that would be clobbered by loading the CMP operand (ADR-0041 fix).
 	// Both are saved to "D" (scratch) via physOverride; the OR-from-flag handler
 	// in genBinOp will then read them from "D" instead of from "F"/"A".
 	g.materializePendingFlag(inst)
 	g.materializePendingAcc(inst)
+	g.saveAccForCondRet(inst)
 
 	lhs := g.loc(inst.Src[0])
 	rhs := g.loc(inst.Src[1])
