@@ -1,8 +1,12 @@
 # MinZ Programming Language
 
-### ★ NEW: [Birthday Sprint: Zero Test Failures](reports/2026-03-26-Birthday-Sprint-Zero-Failures.md) — 49 Commits, 6 Layers, 12/12 VIR Tests Pass
+### ★ NEW: [VIR Zero Bugs — Default Backend](reports/2026-03-27-VIR-Zero-Bugs-Default-Backend.md) — v0.24.0
 
-**From 3 failures to zero.** 49-commit debugging marathon peeled 6 layers of register allocator bugs. 83.6M exhaustive GPU table + 372 optimal arithmetic sequences (254 mul + 118 div) + E2E test suite that catches real bugs. [Full report](reports/2026-03-26-Birthday-Sprint-Zero-Failures.md).
+**VIR has zero known bugs.** Now the default backend (`--vir=true`). Pipeline: Table(83.6M) → Z3 → Islands → PBQP. 500 GPU-optimal arithmetic + 500 peephole rules. Frill runs on CP/M. [Full report](reports/2026-03-27-VIR-Zero-Bugs-Default-Backend.md).
+
+### ★ [Birthday Sprint: Zero Test Failures](reports/2026-03-26-Birthday-Sprint-Zero-Failures.md)
+
+**From 3 failures to zero.** 49-commit debugging marathon. 83.6M exhaustive GPU table + 500 optimal arithmetic sequences + E2E test suite. [Full report](reports/2026-03-26-Birthday-Sprint-Zero-Failures.md).
 ### ★ NEW: [Anytime-Optimal Register Allocation](docs/Anytime_Optimal_Register_Allocation.md) — 5-Level Graceful Degradation
 
 **The compiler never fails. It only varies in how optimal the result is.**
