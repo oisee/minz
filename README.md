@@ -1,5 +1,19 @@
 # MinZ Programming Language
 
+### ★ NEW: [One Compiler, 50 Years](docs/One_Compiler_50_Years.md) — Z80 (1976) + GPU (2026) | [PDF](docs/One_Compiler_50_Years.pdf) | [EPUB](docs/One_Compiler_50_Years.epub)
+
+**Same source code → Z80 + CUDA + OpenCL + Vulkan + Metal.** 8 frontends × 5 backends. 4/4 GPU backends verified 256/256 on real hardware (NVIDIA, AMD RX 580, Apple M2). 1284 LOC, 95% shared. GPU as exhaustive verification oracle for Z80 codegen.
+
+```
+Nanz / Frill / C23 / ABAP  →  MIR2  →  Z80 (2 bytes)
+                                    →  CUDA (NVIDIA)
+                                    →  OpenCL (AMD/Intel)
+                                    →  Vulkan (SPIR-V)
+                                    →  Metal (Apple)
+```
+
+---
+
 ### ★ NEW: [VIR Zero Bugs — Default Backend](reports/2026-03-27-VIR-Zero-Bugs-Default-Backend.md) — v0.24.0
 
 **VIR has zero known bugs.** Now the default backend (`--vir=true`). Pipeline: Table(83.6M) → Z3 → Islands → PBQP. 500 GPU-optimal arithmetic + 500 peephole rules. Frill runs on CP/M. [Full report](reports/2026-03-27-VIR-Zero-Bugs-Default-Backend.md).
