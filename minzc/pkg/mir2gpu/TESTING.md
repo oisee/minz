@@ -7,7 +7,7 @@
 | CUDA | NVIDIA (any) | i7 | **256/256** ✅ | `go test -run TestCUDA_RealGPU` |
 | OpenCL | NVIDIA (any) | i7 | **256/256** ✅ | `go test -run TestOpenCL_RealGPU` |
 | Vulkan | AMD RX 580 | i3 | **256/256** ✅ | Manual (see below) |
-| Metal | Apple M2 | Mac | **Pending** ⏳ | Manual (see below) |
+| Metal | Apple M2 | Mac | **256/256** ✅ | Manual (see below) |
 
 ## Automatic Tests (i7 with NVIDIA)
 
