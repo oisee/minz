@@ -486,8 +486,32 @@ func translateCall(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 			callOp.DstHint = desc.LocSetByNames("HL")
 		}
 	}
-	ops = append(ops, callOp)
+	// Flag materialization: if the callee returns ClassFlag, the result
+	// is in the carry flag (F register). Immediately materialize to A
+	// via SBC A,A (A = 0xFF if CY=1, 0x00 if CY=0). This prevents
+	// Z3 from needing F as a general allocation location.
+	if inst.Dst != mir2.NoReg && mod != nil && inst.Sym != "" {
+		callee := mod.FuncByName(inst.Sym)
+		if callee != nil && len(callee.Contract.Returns) > 0 &&
+			callee.Contract.Returns[0].Class == mir2.ClassFlag {
+			// Override: result goes to A (not F), via SBC A,A post-call
+			callOp.DstHint = desc.LocSetByNames("A")
+			ops = append(ops, callOp)
+			// Insert SBC A,A to materialize carry → A
+			ops = append(ops, VIROp{
+				Op:          OpAsmBlock,
+				Dst:         int(inst.Dst),
+				Src:         [2]int{-1, -1},
+				Width:       8,
+				AsmTemplate: "SBC A, A",
+				DstHint:     desc.LocSetByNames("A"),
+				Clobbers:    desc.LocSetByNames("F"),
+			})
+			return ops, nil
+		}
+	}
 
+	ops = append(ops, callOp)
 	return ops, nil
 }
 
