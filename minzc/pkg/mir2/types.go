@@ -59,6 +59,21 @@ var (
 	//   TyF16_8 — 24-bit, large range + 8-bit fraction
 	//   TyF16_16 — 32-bit, high precision (4-register on Z80, expensive)
 
+	// ── BCD Packed Decimal (ADR-0041) ───────────────────────────────────────
+	// Binary-Coded Decimal: two digits per byte, big-endian (COBOL convention).
+	// Z80: ADD A,r / DAA.  6502: SED / ADC / CLD.
+	// Arithmetic uses accumulator (A) only — same constraint as ALU ops.
+	//
+	//   TyBCD8  — 1 byte,  2 digits (00-99)
+	//   TyBCD16 — 2 bytes, 4 digits (0000-9999)
+	//   TyBCD24 — 3 bytes, 6 digits (000000-999999)
+	//   TyBCD32 — 4 bytes, 8 digits (00000000-99999999)
+
+	TyBCD8  = &bcdTy{bytes: 1, digits: 2, name: "bcd8"}
+	TyBCD16 = &bcdTy{bytes: 2, digits: 4, name: "bcd16"}
+	TyBCD24 = &bcdTy{bytes: 3, digits: 6, name: "bcd24"}
+	TyBCD32 = &bcdTy{bytes: 4, digits: 8, name: "bcd32"}
+
 	TyF0_8  = &fixedTy{intBits: 0, fracBits: 8}  // pure fraction .8  (0.0 – 0.996)
 	TyF0_16 = &fixedTy{intBits: 0, fracBits: 16} // pure fraction .16 (0.0 – 0.99998)
 	TyF8_8  = &fixedTy{intBits: 8, fracBits: 8}  // 0..255 + 1/256 steps
@@ -128,6 +143,58 @@ func (t *fixedTy) FracBits() int { return t.fracBits }
 func IsFixed(ty Ty) bool {
 	_, ok := ty.(*fixedTy)
 	return ok
+}
+
+// ── BCD Packed Decimal ──────────────────────────────────────────────────────
+
+// bcdTy is a packed BCD type: 2 decimal digits per byte, big-endian.
+// Storage width matches byte count × 8 bits.
+// Z80 codegen: ADD A,r / DAA per byte. 6502: SED / ADC / CLD.
+type bcdTy struct {
+	bytes  int    // storage bytes (1, 2, 3, 4)
+	digits int    // decimal digits (2, 4, 6, 8)
+	name   string // display name: "bcd8", "bcd16", etc.
+	scale  int    // fixed-point scale: digits after implicit decimal point (0 = integer)
+}
+
+func (t *bcdTy) Width() int     { return t.bytes * 8 }
+func (t *bcdTy) String() string { return t.name }
+func (t *bcdTy) isTy()          {}
+func (t *bcdTy) Bytes() int     { return t.bytes }
+func (t *bcdTy) Digits() int    { return t.digits }
+func (t *bcdTy) Scale() int     { return t.scale }
+
+// IsBCD reports whether ty is a BCD packed decimal type.
+func IsBCD(ty Ty) bool {
+	_, ok := ty.(*bcdTy)
+	return ok
+}
+
+// BCDWithScale returns a BCD type with the given fixed-point scale.
+// Example: BCDWithScale(TyBCD16, 2) → bcd16 with PIC 99V99 semantics.
+func BCDWithScale(ty Ty, scale int) Ty {
+	bt, ok := ty.(*bcdTy)
+	if !ok {
+		return ty
+	}
+	return &bcdTy{bytes: bt.bytes, digits: bt.digits, name: bt.name, scale: scale}
+}
+
+// BCDForDigits returns the smallest BCD type that holds n decimal digits.
+// 1-2 → TyBCD8, 3-4 → TyBCD16, 5-6 → TyBCD24, 7-8 → TyBCD32.
+func BCDForDigits(n int) Ty {
+	switch {
+	case n <= 2:
+		return TyBCD8
+	case n <= 4:
+		return TyBCD16
+	case n <= 6:
+		return TyBCD24
+	case n <= 8:
+		return TyBCD32
+	default:
+		return TyBCD32 // clamp to max
+	}
 }
 
 // ── Tuple (multi-return) ──────────────────────────────────────────────────────
