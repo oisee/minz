@@ -8,6 +8,147 @@
   <meta name="dcterms.date" content="2026-03-23" />
   <title>Frill: ML on Z80</title>
   <style>
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
     code{white-space: pre-wrap;}
     span.smallcaps{font-variant: small-caps;}
     div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -88,7 +229,6 @@
     code span.vs { color: #4070a0; } /* VerbatimString */
     code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
   </style>
-  <link rel="stylesheet" href="data:text/css,body{font-family:sans-serif;max-width:800px;margin:auto;padding:20px}pre{background:#f4f4f4;padding:10px;border-radius:4px;overflow-x:auto}code{font-size:0.9em}h1,h2,h3{color:#333}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:8px}tr:nth-child(even){background:#f9f9f9}" />
 </head>
 <body>
 <header id="title-block-header">
@@ -149,11 +289,36 @@ Patterns</a></li>
 Compiles</a></li>
 <li><a href="#compile-time-verification"
 id="toc-compile-time-verification">Compile-Time Verification</a></li>
+<li><a href="#turtle-graphics-and-l-systems"
+id="toc-turtle-graphics-and-l-systems">Turtle Graphics and L-Systems</a>
+<ul>
+<li><a href="#recursive-fractal-tree"
+id="toc-recursive-fractal-tree">Recursive Fractal Tree</a></li>
+<li><a href="#variations" id="toc-variations">Variations</a></li>
+</ul></li>
+<li><a href="#canvas-and-impl-blocks"
+id="toc-canvas-and-impl-blocks">Canvas and impl Blocks</a></li>
 <li><a href="#metrics" id="toc-metrics">Metrics</a></li>
 <li><a href="#getting-started" id="toc-getting-started">Getting
 Started</a></li>
 <li><a href="#appendix-feature-reference"
 id="toc-appendix-feature-reference">Appendix: Feature Reference</a></li>
+<li><a href="#chapter-real-world-demos-v0.23.0"
+id="toc-chapter-real-world-demos-v0.23.0">Chapter: Real-World Demos
+(v0.23.0)</a>
+<ul>
+<li><a href="#state-machine-175-bytes"
+id="toc-state-machine-175-bytes">State Machine (175 bytes)</a></li>
+<li><a href="#minigame-engine-226-bytes"
+id="toc-minigame-engine-226-bytes">Minigame Engine (226 bytes)</a></li>
+<li><a href="#parser-combinator-498-bytes"
+id="toc-parser-combinator-498-bytes">Parser Combinator (498
+bytes)</a></li>
+<li><a href="#compilation-pipeline"
+id="toc-compilation-pipeline">Compilation Pipeline</a></li>
+<li><a href="#assert-summary" id="toc-assert-summary">Assert
+Summary</a></li>
+</ul></li>
 </ul></li>
 </ul>
 </nav>
@@ -565,12 +730,15 @@ let composite (x : u8) (y : u8) =
 rendering loop runs on real Z80 hardware.</p>
 <h2 id="how-it-compiles">How It Compiles</h2>
 <p>Frill compiles through the full MinZ pipeline:</p>
-<pre><code>Frill (.frl) → HIR → MIR2 → Z80 Assembly → Binary</code></pre>
+<pre><code>Frill (.frl) → HIR → MIR2 → VIR (Z3 solver) → Z80 Assembly → Binary</code></pre>
 <p>Each step is a standard compiler transformation: - <strong>Frill →
 HIR</strong>: Desugar ML syntax into a typed intermediate representation
 - <strong>HIR → MIR2</strong>: Lower to SSA form with block arguments -
-<strong>MIR2 → Z80</strong>: Register allocation (PBQP + WFC),
-instruction selection, peephole optimization</p>
+<strong>MIR2 → VIR</strong>: Z3 SMT solver for joint instruction
+selection + register allocation (provably optimal) - <strong>VIR →
+Z80</strong>: Peephole optimization (16 rules), assembly emission -
+<strong>Fallback</strong>: PBQP register allocator for functions with
+inline assembly</p>
 <p>A simple function like <code>let add (a : u8) (b : u8) = a + b</code>
 compiles to:</p>
 <pre class="z80"><code>add:
@@ -592,6 +760,125 @@ must agree</li>
 </ul>
 <p>Current stats: <strong>13 example files, 3351 compile-time checks, 0
 failures</strong>.</p>
+<h2 id="turtle-graphics-and-l-systems">Turtle Graphics and
+L-Systems</h2>
+<p>Frill’s pure functions and recursion make it natural for generative
+art. Here’s a turtle graphics system with L-system fractal trees:</p>
+<pre class="frill"><code>(* Turtle state — global for Z80 simplicity *)
+let tx = 128
+let ty = 160
+let tangle = 192   (* pointing up in 256-step circle *)
+
+(* Quarter-sine table: 64 entries, scale 112 *)
+let fsin (a : u8) : i16 =
+  let q = a / 64 in
+  let idx = a &amp; 63 in
+  match q with
+  | 0 -&gt; qsin idx
+  | 1 -&gt; qsin (63 - idx)
+  | 2 -&gt; 0 - qsin idx
+  | _ -&gt; 0 - qsin (63 - idx)
+
+let fcos (a : u8) : i16 = fsin (a + 64)
+
+(* Move forward, drawing a line *)
+let forward (dist : u8) =
+  let nx = tx + fcos tangle * dist / 112 in
+  let ny = ty + fsin tangle * dist / 112 in
+  canvas_line tx ty nx ny color
+  do tx &lt;- nx
+  do ty &lt;- ny</code></pre>
+<h3 id="recursive-fractal-tree">Recursive Fractal Tree</h3>
+<pre class="frill"><code>(* Binary tree: trunk + two shorter branches at an angle *)
+let branch (len : u8) (depth : u8) (angle : u8) =
+  if depth == 0 then forward len
+  else
+    forward len
+    let next = len * 2 / 3 in
+    push ()
+    left angle
+    branch next (depth - 1) angle
+    pop ()
+    push ()
+    right angle
+    branch next (depth - 1) angle
+    pop ()
+
+(* Render: green tree, depth 7, 30-degree branching *)
+let draw () =
+  canvas_init 256 192 0
+  canvas_clear 0
+  do color &lt;- 4
+  branch 12 7 30</code></pre>
+<p>This generates fractal trees on a 256x192 ZX Spectrum canvas. The
+same code compiles to Z80 assembly and runs on real hardware.</p>
+<figure>
+<img src="../reports/nanz_lsystem_forest.png" alt="L-System Forest" />
+<figcaption aria-hidden="true">L-System Forest</figcaption>
+</figure>
+<p><em>Five fractal trees rendered on MIR2 VM. Each tree uses different
+branching angles and depths. 256x192, ZX Spectrum palette.</em></p>
+<h3 id="variations">Variations</h3>
+<p>Different parameters produce radically different trees:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Style</th>
+<th>Parameters</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Symmetric</strong></td>
+<td>angle=28, depth=7</td>
+<td>Classic binary tree</td>
+</tr>
+<tr class="even">
+<td><strong>Ternary</strong></td>
+<td>3-way branch, depth=5</td>
+<td>Bushy, dense canopy</td>
+</tr>
+<tr class="odd">
+<td><strong>Windblown</strong></td>
+<td>left=25, right=35</td>
+<td>Asymmetric, natural look</td>
+</tr>
+<tr class="even">
+<td><strong>Fern</strong></td>
+<td>alternating sides, depth=5</td>
+<td>Barnsley fern pattern</td>
+</tr>
+</tbody>
+</table>
+<figure>
+<img src="../reports/nanz_lsystem_windblown.png"
+alt="Windblown Trees" />
+<figcaption aria-hidden="true">Windblown Trees</figcaption>
+</figure>
+<p><em>Asymmetric trees — left branches longer than right, like
+wind-shaped growth.</em></p>
+<h2 id="canvas-and-impl-blocks">Canvas and impl Blocks</h2>
+<p>Shapes can be drawn using <code>impl</code> blocks (OOP-style method
+dispatch):</p>
+<pre class="frill"><code>(* In Nanz syntax — Frill uses the same HIR backend *)
+struct Circle { cx : u16, cy : u16, r : u16, color : u16 }
+struct Box { x : u16, y : u16, w : u16, h : u16, color : u16 }
+
+impl Renderable for Circle {
+    fun draw (self) -&gt; u16 { canvas_circle self.cx self.cy self.r self.color }
+}
+
+impl Renderable for Box {
+    fun draw (self) -&gt; u16 { canvas_fill_rect self.x self.y self.w self.h self.color }
+}</code></pre>
+<figure>
+<img src="../reports/nanz_impl_showcase.png" alt="Impl Showcase" />
+<figcaption aria-hidden="true">Impl Showcase</figcaption>
+</figure>
+<p><em>House scene rendered through impl dispatch: Circle (sun, tree
+crown), Box (sky, ground, house, door, window). All method calls resolve
+to direct CALL instructions at compile time — zero overhead.</em></p>
 <h2 id="metrics">Metrics</h2>
 <table>
 <thead>
@@ -607,11 +894,11 @@ failures</strong>.</p>
 </tr>
 <tr class="even">
 <td>Example programs</td>
-<td>13</td>
+<td>13+</td>
 </tr>
 <tr class="odd">
 <td>Compile-time checks</td>
-<td>3,351</td>
+<td>3,351+</td>
 </tr>
 <tr class="even">
 <td>Parser LOC (frill.go)</td>
@@ -622,20 +909,24 @@ failures</strong>.</p>
 <td>5 (math, tokenizer, I/O, functional, canvas)</td>
 </tr>
 <tr class="even">
+<td>Canvas output</td>
+<td>6 PNG renders (L-system trees, impl shapes)</td>
+</tr>
+<tr class="odd">
 <td>Compilation target</td>
 <td>Z80 (ZX Spectrum, CP/M, Agon Light 2)</td>
 </tr>
 </tbody>
 </table>
 <h2 id="getting-started">Getting Started</h2>
-<div class="sourceCode" id="cb16"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compile a Frill program</span></span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="ex">minzc</span> hello.frl <span class="at">-b</span> z80 <span class="at">-o</span> hello.a80</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Compile for CP/M</span></span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="ex">minzc</span> hello.frl <span class="at">-b</span> z80 <span class="at">-t</span> cpm <span class="at">-o</span> hello.com</span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="co"># All assertions are checked automatically during compilation</span></span></code></pre></div>
+<div class="sourceCode" id="cb19"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compile a Frill program</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="ex">minzc</span> hello.frl <span class="at">-b</span> z80 <span class="at">-o</span> hello.a80</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Compile for CP/M</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a><span class="ex">minzc</span> hello.frl <span class="at">-b</span> z80 <span class="at">-t</span> cpm <span class="at">-o</span> hello.com</span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="co"># All assertions are checked automatically during compilation</span></span></code></pre></div>
 <p>Create a file <code>hello.frl</code>:</p>
 <pre class="frill"><code>let double (x : u8) = x + x
 let inc (x : u8) = x + 1
@@ -752,6 +1043,163 @@ expected.</p>
 <td>Linearity</td>
 <td><code>(! x : t)</code> / <code>(~ x : t)</code></td>
 <td><code>(! buf : u16)</code> (use once)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="chapter-real-world-demos-v0.23.0">Chapter: Real-World Demos
+(v0.23.0)</h2>
+<p>Three demos that prove Frill is more than a toy — it’s a practical
+language for Z80 development.</p>
+<h3 id="state-machine-175-bytes">State Machine (175 bytes)</h3>
+<p>A traffic light controller with exhaustive state transitions:</p>
+<pre class="frill"><code>type Light = Red | Yellow | Green
+
+let next_light (s : u8) : u8 =
+  match s with
+  | Red    -&gt; 2   (* → Green *)
+  | Yellow -&gt; 0   (* → Red *)
+  | Green  -&gt; 1   (* → Yellow *)
+  end
+
+let light_duration (s : u8) : u8 =
+  match s with
+  | Red    -&gt; 30
+  | Yellow -&gt; 5
+  | Green  -&gt; 25
+  end</code></pre>
+<p>Also includes a door lock (Locked/Unlocked/Open/Alarm) with key-based
+transitions. <strong>32 assertions</strong>, all verified at compile
+time.</p>
+<p>The Z80 binary is 175 bytes. The compiler proves every state is
+handled — missing a match branch is a compile error, not a runtime
+crash.</p>
+<p><strong>File:</strong>
+<code>examples/frill/state_machine.frl</code></p>
+<h3 id="minigame-engine-226-bytes">Minigame Engine (226 bytes)</h3>
+<p>A complete game logic library using ADTs and pipe operators:</p>
+<pre class="frill"><code>type Entity = Player | Enemy | Bullet | Coin | Wall
+
+let is_solid (e : u8) : u8 =
+  match e with
+  | Player -&gt; 0
+  | Enemy  -&gt; 1
+  | Bullet -&gt; 0
+  | Coin   -&gt; 0
+  | Wall   -&gt; 1
+  end
+
+let apply_score (base : u8) (combo : u8) : u8 =
+  base * combo_mult combo
+
+let tick_score (base : u8) : u8 =
+  base |&gt; double |&gt; inc</code></pre>
+<p>Includes: entity system, Manhattan distance, 1D collision detection,
+combo scoring, health with damage/heal, pipe-based tick processing.</p>
+<p><strong>33 assertions.</strong> Every game logic function tested at
+compile time. 226 bytes on Z80.</p>
+<p><strong>File:</strong> <code>examples/frill/minigame.frl</code></p>
+<h3 id="parser-combinator-498-bytes">Parser Combinator (498 bytes)</h3>
+<p>Functional parsing on Z80 — character classification, tokenization,
+expression evaluation:</p>
+<pre class="frill"><code>let parse_hex_byte (hi : u8) (lo : u8) : u8 =
+  let h = parse_hex hi in
+  let l = parse_hex lo in
+  if h == 255 then 255
+  else if l == 255 then 255
+  else h * 16 + l
+
+type Token = Number | Ident | Operator | LParen | RParen | Unknown
+
+let classify_token (c : u8) : u8 =
+  if is_digit c == 1 then 0
+  else if is_alpha c == 1 then 1
+  else if c == 43 then 2   (* &#39;+&#39; *)
+  else if c == 40 then 3   (* &#39;(&#39; *)
+  else if c == 41 then 4   (* &#39;)&#39; *)
+  else 5
+
+let eval_op (a : u8) (op : u8) (b : u8) : u8 =
+  if op == 43 then a + b
+  else if op == 45 then a - b
+  else if op == 42 then a * b
+  else if op == 47 then if b == 0 then 0 else a / b
+  else 0</code></pre>
+<p>17 character classification functions (is_digit through to_upper),
+decimal and hex parsing, operator precedence, expression evaluation.
+<strong>45 assertions.</strong></p>
+<p><strong>File:</strong>
+<code>examples/frill/parser_combinator.frl</code></p>
+<h3 id="compilation-pipeline">Compilation Pipeline</h3>
+<p>All three demos compile through the VIR backend (Z3 SMT solver):</p>
+<table>
+<thead>
+<tr class="header">
+<th>Demo</th>
+<th>Z3 functions</th>
+<th>PBQP fallback</th>
+<th>Binary</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>state_machine</td>
+<td>9/9</td>
+<td>0</td>
+<td>175 bytes</td>
+</tr>
+<tr class="even">
+<td>minigame</td>
+<td>14/18</td>
+<td>4</td>
+<td>226 bytes</td>
+</tr>
+<tr class="odd">
+<td>parser_combinator</td>
+<td>13/18</td>
+<td>5</td>
+<td>498 bytes</td>
+</tr>
+</tbody>
+</table>
+<p>Functions that exceed Z3’s timeout (30s) or require parameter
+register swapping fall back to PBQP heuristic allocation. The result is
+always correct — the question is only whether it’s provably
+<em>optimal</em>.</p>
+<h3 id="assert-summary">Assert Summary</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Demo</th>
+<th>Asserts</th>
+<th>Topics</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>state_machine</td>
+<td>32</td>
+<td>ADT transitions, exhaustive match</td>
+</tr>
+<tr class="even">
+<td>minigame</td>
+<td>33</td>
+<td>Entity ADT, collision, scoring, health, pipe</td>
+</tr>
+<tr class="odd">
+<td>parser_combinator</td>
+<td>45</td>
+<td>Char classify, digit parse, tokenize, eval</td>
+</tr>
+<tr class="even">
+<td><strong>Total new</strong></td>
+<td><strong>110</strong></td>
+<td></td>
+</tr>
+<tr class="odd">
+<td><strong>Frill total</strong></td>
+<td><strong>427</strong></td>
+<td>Across 16 examples</td>
 </tr>
 </tbody>
 </table>

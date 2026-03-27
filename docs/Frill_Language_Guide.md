@@ -533,3 +533,122 @@ tells you exactly which assertion and what it got vs what was expected.
 | Lambda | `\|x\| body` | `5 \|> \|x\| x * 2` |
 | String | `"text"` | `"Hello\r\n"` |
 | Linearity | `(! x : t)` / `(~ x : t)` | `(! buf : u16)` (use once) |
+
+---
+
+## Chapter: Real-World Demos (v0.23.0)
+
+Three demos that prove Frill is more than a toy — it's a practical language for Z80 development.
+
+### State Machine (175 bytes)
+
+A traffic light controller with exhaustive state transitions:
+
+```frill
+type Light = Red | Yellow | Green
+
+let next_light (s : u8) : u8 =
+  match s with
+  | Red    -> 2   (* → Green *)
+  | Yellow -> 0   (* → Red *)
+  | Green  -> 1   (* → Yellow *)
+  end
+
+let light_duration (s : u8) : u8 =
+  match s with
+  | Red    -> 30
+  | Yellow -> 5
+  | Green  -> 25
+  end
+```
+
+Also includes a door lock (Locked/Unlocked/Open/Alarm) with key-based transitions. **32 assertions**, all verified at compile time.
+
+The Z80 binary is 175 bytes. The compiler proves every state is handled — missing a match branch is a compile error, not a runtime crash.
+
+**File:** `examples/frill/state_machine.frl`
+
+### Minigame Engine (226 bytes)
+
+A complete game logic library using ADTs and pipe operators:
+
+```frill
+type Entity = Player | Enemy | Bullet | Coin | Wall
+
+let is_solid (e : u8) : u8 =
+  match e with
+  | Player -> 0
+  | Enemy  -> 1
+  | Bullet -> 0
+  | Coin   -> 0
+  | Wall   -> 1
+  end
+
+let apply_score (base : u8) (combo : u8) : u8 =
+  base * combo_mult combo
+
+let tick_score (base : u8) : u8 =
+  base |> double |> inc
+```
+
+Includes: entity system, Manhattan distance, 1D collision detection, combo scoring, health with damage/heal, pipe-based tick processing.
+
+**33 assertions.** Every game logic function tested at compile time. 226 bytes on Z80.
+
+**File:** `examples/frill/minigame.frl`
+
+### Parser Combinator (498 bytes)
+
+Functional parsing on Z80 — character classification, tokenization, expression evaluation:
+
+```frill
+let parse_hex_byte (hi : u8) (lo : u8) : u8 =
+  let h = parse_hex hi in
+  let l = parse_hex lo in
+  if h == 255 then 255
+  else if l == 255 then 255
+  else h * 16 + l
+
+type Token = Number | Ident | Operator | LParen | RParen | Unknown
+
+let classify_token (c : u8) : u8 =
+  if is_digit c == 1 then 0
+  else if is_alpha c == 1 then 1
+  else if c == 43 then 2   (* '+' *)
+  else if c == 40 then 3   (* '(' *)
+  else if c == 41 then 4   (* ')' *)
+  else 5
+
+let eval_op (a : u8) (op : u8) (b : u8) : u8 =
+  if op == 43 then a + b
+  else if op == 45 then a - b
+  else if op == 42 then a * b
+  else if op == 47 then if b == 0 then 0 else a / b
+  else 0
+```
+
+17 character classification functions (is_digit through to_upper), decimal and hex parsing, operator precedence, expression evaluation. **45 assertions.**
+
+**File:** `examples/frill/parser_combinator.frl`
+
+### Compilation Pipeline
+
+All three demos compile through the VIR backend (Z3 SMT solver):
+
+| Demo | Z3 functions | PBQP fallback | Binary |
+|------|-------------|---------------|--------|
+| state_machine | 9/9 | 0 | 175 bytes |
+| minigame | 14/18 | 4 | 226 bytes |
+| parser_combinator | 13/18 | 5 | 498 bytes |
+
+Functions that exceed Z3's timeout (30s) or require parameter register swapping fall back to PBQP heuristic allocation. The result is always correct — the question is only whether it's provably *optimal*.
+
+### Assert Summary
+
+| Demo | Asserts | Topics |
+|------|---------|--------|
+| state_machine | 32 | ADT transitions, exhaustive match |
+| minigame | 33 | Entity ADT, collision, scoring, health, pipe |
+| parser_combinator | 45 | Char classify, digit parse, tokenize, eval |
+| **Total new** | **110** | |
+| **Frill total** | **427** | Across 16 examples |
