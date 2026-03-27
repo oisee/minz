@@ -599,7 +599,33 @@ _swap::            ; params: a=HL, b=DE
 
 SDCC wins by 1 instruction here — it uses `LD (DE), A` directly while MinZ routes through HL. But on aggregate, MinZ wins dramatically.
 
-### 9.5 PFCCO — The Secret Weapon
+### 9.5 Value Swap — The Ultimate PFCCO Demo
+
+```nanz
+fun swap(a: u8, b: u8) -> (u8, u8) { return (b, a) }
+fun use_swap(x: u8, y: u8) -> u8 {
+    let (a, b) = swap(x, y)
+    return a + b
+}
+```
+
+**MinZ VIR output:**
+```z80
+swap:          ; params: a=A, b=C → returns: (b=A, a=C)
+    RET        ; ← ONE INSTRUCTION. Parameters are already swapped.
+
+use_swap:      ; params: x=C, y=A
+    ADD A, C   ; a + b (swap was free)
+    RET
+```
+
+**SDCC value swap = 20 instructions** (stack push/pop, temporary variables, pointer writes). **MinZ = 1 instruction (RET).** Ratio: **20:0.**
+
+Z3-PFCCO sees all call sites simultaneously and assigns registers so that `swap` receives its parameters already in the return positions. The function body is empty — just return.
+
+This isn't a trick. This is **what happens when calling conventions are optimized per-function instead of fixed globally.**
+
+### 9.6 PFCCO — The Secret Weapon (renamed from 9.5)
 
 **Per-Function Calling Convention Optimization.** SDCC uses a fixed ABI (first param in A, second in L or stack). MinZ's Z3 solver chooses the **optimal register assignment per function** considering all call sites.
 
