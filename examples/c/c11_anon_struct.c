@@ -59,8 +59,8 @@ uint8_t test_typeof(uint8_t x) {
     return y;
 }
 
-// assert pair_first() == 42 via mir2
-// assert pair_second() == 99 via mir2
+// assert pair_first() == 42 via mir2  // z80: got 0, anonymous struct offset bug
+// assert pair_second() == 99 via mir2  // z80: same bug
 // assert reg_low() == 0x34 via mir2
 // assert reg_high() == 0x12 via mir2
 // assert test_alignof() == 1 via mir2

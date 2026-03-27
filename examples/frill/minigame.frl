@@ -1,0 +1,158 @@
+(* Minigame Engine — functional game logic on Z80
+ *
+ * Pure functions for game state: entities, collision, scoring, health.
+ * Zero mutation — each frame computes new state from old.
+ *
+ * Compile: mz minigame.frl -o out.a80
+ *)
+
+-- ═══════════════════════════════════════════
+-- Entity types (ADT with exhaustive match)
+-- ═══════════════════════════════════════════
+
+type Entity = Player | Enemy | Bullet | Coin | Wall
+
+let entity_char (e : u8) : u8 =
+  match e with
+  | Player -> 64    (* '@' *)
+  | Enemy  -> 35    (* '#' *)
+  | Bullet -> 42    (* '*' *)
+  | Coin   -> 36    (* '$' *)
+  | Wall   -> 219   (* block char *)
+  end
+
+let is_solid (e : u8) : u8 =
+  match e with
+  | Player -> 0
+  | Enemy  -> 1
+  | Bullet -> 0
+  | Coin   -> 0
+  | Wall   -> 1
+  end
+
+let is_collectible (e : u8) : u8 =
+  match e with
+  | Player -> 0
+  | Enemy  -> 0
+  | Bullet -> 0
+  | Coin   -> 1
+  | Wall   -> 0
+  end
+
+let score_for (e : u8) : u8 =
+  match e with
+  | Player -> 0
+  | Enemy  -> 50
+  | Bullet -> 0
+  | Coin   -> 10
+  | Wall   -> 0
+  end
+
+-- ═══════════════════════════════════════════
+-- Position math (u8 coordinates, 0-255)
+-- ═══════════════════════════════════════════
+
+let max (a : u8) (b : u8) : u8 = if a > b then a else b
+let min (a : u8) (b : u8) : u8 = if a < b then a else b
+
+let clamp (x : u8) (lo : u8) (hi : u8) : u8 =
+  let top = max x lo in min top hi
+
+let abs_diff (a : u8) (b : u8) : u8 =
+  if a > b then a - b else b - a
+
+let manhattan (ax : u8) (ay : u8) (bx : u8) (by : u8) : u8 =
+  abs_diff ax bx + abs_diff ay by
+
+-- ═══════════════════════════════════════════
+-- Collision (1D overlap)
+-- ═══════════════════════════════════════════
+
+let overlaps (ax : u8) (aw : u8) (bx : u8) (bw : u8) : u8 =
+  if ax + aw < bx then 0
+  else if bx + bw < ax then 0
+  else 1
+
+-- ═══════════════════════════════════════════
+-- Scoring with combo
+-- ═══════════════════════════════════════════
+
+let combo_mult (combo : u8) : u8 =
+  if combo > 4 then 4
+  else if combo > 2 then 2
+  else 1
+
+let apply_score (base : u8) (combo : u8) : u8 =
+  base * combo_mult combo
+
+-- ═══════════════════════════════════════════
+-- Health system
+-- ═══════════════════════════════════════════
+
+let take_dmg (hp : u8) (dmg : u8) : u8 =
+  if hp < dmg then 0 else hp - dmg
+
+let heal (hp : u8) (amt : u8) (cap : u8) : u8 =
+  let sum = hp + amt in
+  if sum > cap then cap else sum
+
+let is_dead (hp : u8) : u8 = if hp == 0 then 1 else 0
+
+-- ═══════════════════════════════════════════
+-- Pipeline: game tick (compose via |>)
+-- ═══════════════════════════════════════════
+
+let double (x : u8) : u8 = x + x
+let inc (x : u8) : u8 = x + 1
+
+let tick_score (base : u8) : u8 =
+  base |> double |> inc
+
+-- ═══════════════════════════════════════════
+-- Assertions
+-- ═══════════════════════════════════════════
+
+-- Entity
+assert entity_char 0 == 64
+assert entity_char 1 == 35
+assert entity_char 2 == 42
+assert entity_char 3 == 36
+assert entity_char 4 == 219
+assert is_solid 0 == 0
+assert is_solid 1 == 1
+assert is_solid 4 == 1
+assert is_collectible 3 == 1
+assert is_collectible 1 == 0
+assert score_for 1 == 50
+assert score_for 3 == 10
+
+-- Position
+assert clamp 50 10 100 == 50
+assert clamp 5 10 100 == 10
+assert abs_diff 10 3 == 7
+assert abs_diff 3 10 == 7
+assert manhattan 10 10 20 20 == 20
+assert manhattan 5 5 5 5 == 0
+
+-- Collision
+assert overlaps 10 5 12 5 == 1
+assert overlaps 10 5 20 5 == 0
+
+-- Scoring
+assert combo_mult 0 == 1
+assert combo_mult 3 == 2
+assert combo_mult 5 == 4
+assert apply_score 10 5 == 40
+assert apply_score 50 1 == 50
+
+-- Health
+assert take_dmg 100 30 == 70
+assert take_dmg 10 50 == 0
+assert heal 50 30 100 == 80
+assert heal 90 30 100 == 100
+assert is_dead 0 == 1
+assert is_dead 50 == 0
+
+-- Pipeline
+assert tick_score 5 == 11
+assert tick_score 0 == 1

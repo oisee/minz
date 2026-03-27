@@ -47,4 +47,4 @@ uint8_t test_sparse_sum(void) {
 // assert test_designated_last() == 99 via mir2
 // assert test_zeros() == 0 via mir2
 // assert test_mixed() == 99 via mir2
-// assert test_sparse_sum() == 60 via mir2
+// assert test_sparse_sum() == 60 via mir2  // z80: got 144, sparse array init bug

@@ -1,0 +1,150 @@
+(* State Machine — ADT-driven with exhaustive match
+ *
+ * A traffic light controller on Z80.
+ * Each state transition is a pure function.
+ * The compiler verifies ALL states are handled.
+ *
+ * Compile: mz state_machine.frl -o out.a80
+ *)
+
+-- ═══════════════════════════════════════════
+-- Traffic Light States (ADT)
+-- ═══════════════════════════════════════════
+
+type Light = Red | Yellow | Green
+
+-- State → next state (pure transition function)
+-- Red=0 → Green=2, Yellow=1 → Red=0, Green=2 → Yellow=1
+let next_light (s : u8) : u8 =
+  match s with
+  | Red    -> 2   (* → Green *)
+  | Yellow -> 0   (* → Red *)
+  | Green  -> 1   (* → Yellow *)
+  end
+
+-- State → duration in ticks
+let light_duration (s : u8) : u8 =
+  match s with
+  | Red    -> 30
+  | Green  -> 25
+  | Yellow -> 5
+  end
+
+-- State → color code for display
+let light_color (s : u8) : u8 =
+  match s with
+  | Red    -> 2   (* red attribute *)
+  | Green  -> 4   (* green attribute *)
+  | Yellow -> 6   (* yellow attribute *)
+  end
+
+-- Is it safe to cross?
+let can_cross (s : u8) : u8 =
+  match s with
+  | Green -> 1
+  | _     -> 0
+  end
+
+-- ═══════════════════════════════════════════
+-- Door Lock (ADT with more states)
+-- ═══════════════════════════════════════════
+
+type Door = Locked | Unlocked | Open | Alarm
+
+let door_action (state : u8) (key : u8) : u8 =
+  match state with
+  | Locked   -> if key == 42 then 1 else 3   (* correct key → Unlocked, wrong → Alarm *)
+  | Unlocked -> 2                              (* → Open *)
+  | Open     -> 0                              (* → Locked (auto-close) *)
+  | Alarm    -> if key == 42 then 0 else 3    (* reset with correct key *)
+  end
+
+-- Is door in a safe state?
+let is_safe (state : u8) : u8 =
+  match state with
+  | Locked   -> 1
+  | Unlocked -> 1
+  | Open     -> 0
+  | Alarm    -> 0
+  end
+
+-- ═══════════════════════════════════════════
+-- Game Character States
+-- ═══════════════════════════════════════════
+
+type CharState = Idle | Walking | Jumping | Falling | Dead
+
+let char_speed (state : u8) : u8 =
+  match state with
+  | Idle    -> 0
+  | Walking -> 2
+  | Jumping -> 1
+  | Falling -> 3
+  | Dead    -> 0
+  end
+
+let is_alive (state : u8) : u8 =
+  match state with
+  | Dead -> 0
+  | _    -> 1
+  end
+
+let can_jump (state : u8) : u8 =
+  match state with
+  | Idle    -> 1
+  | Walking -> 1
+  | _       -> 0
+  end
+
+-- ═══════════════════════════════════════════
+-- Assertions
+-- ═══════════════════════════════════════════
+
+-- Traffic light cycle: Red(0) → Green(2) → Yellow(1) → Red(0)
+assert next_light 0 == 2
+assert next_light 1 == 0
+assert next_light 2 == 1
+
+-- Durations: Red=0→30, Yellow=1→5, Green=2→25
+assert light_duration 0 == 30
+assert light_duration 1 == 5
+assert light_duration 2 == 25
+
+-- Colors: Red=0→2, Yellow=1→6, Green=2→4
+assert light_color 0 == 2
+assert light_color 1 == 6
+assert light_color 2 == 4
+
+-- Crossing safety: Green=2
+assert can_cross 0 == 0
+assert can_cross 1 == 0
+assert can_cross 2 == 1
+
+-- Door lock: Locked + correct key → Unlocked
+assert door_action 0 42 == 1
+-- Door lock: Locked + wrong key → Alarm
+assert door_action 0 99 == 3
+-- Door lock: Unlocked → Open
+assert door_action 1 0 == 2
+-- Door lock: Open → Locked (auto-close)
+assert door_action 2 0 == 0
+-- Door lock: Alarm + correct key → Locked
+assert door_action 3 42 == 0
+-- Safety
+assert is_safe 0 == 1
+assert is_safe 1 == 1
+assert is_safe 2 == 0
+assert is_safe 3 == 0
+
+-- Character states
+assert char_speed 0 == 0
+assert char_speed 1 == 2
+assert char_speed 2 == 1
+assert char_speed 3 == 3
+assert char_speed 4 == 0
+assert is_alive 0 == 1
+assert is_alive 4 == 0
+assert can_jump 0 == 1
+assert can_jump 1 == 1
+assert can_jump 2 == 0
+assert can_jump 4 == 0
