@@ -2079,7 +2079,57 @@ func writesReg(line, reg string) bool {
 
 // peepholeCleanup applies additional Z80 peephole optimizations.
 // Inspired by SDCC's peephole rules (https://sdcc.sourceforge.net/).
+// applyGPUPeepholeRules applies GPU-proven peephole optimizations from
+// z80-optimizer's rule table. Each rule: source instruction pair/triple →
+// optimal replacement, verified correct on all 256 inputs via GPU.
+func applyGPUPeepholeRules(asm string) string {
+	rules := GetPeepholeRules()
+	if rules == nil || rules.Size() == 0 {
+		return asm
+	}
+
+	lines := strings.Split(asm, "\n")
+	var result []string
+	applied := 0
+
+	for i := 0; i < len(lines); i++ {
+		inst := strings.TrimSpace(lines[i])
+
+		// Skip non-instructions (labels, comments, blanks)
+		if inst == "" || strings.HasSuffix(inst, ":") || strings.HasPrefix(inst, ";") {
+			result = append(result, lines[i])
+			continue
+		}
+
+		// Try 2-instruction match
+		if i+1 < len(lines) {
+			next := strings.TrimSpace(lines[i+1])
+			if next != "" && !strings.HasSuffix(next, ":") && !strings.HasPrefix(next, ";") {
+				if rule := rules.Lookup2(inst, next); rule != nil {
+					// Replace pair with optimal sequence
+					for _, repl := range strings.Split(rule.Replacement, " : ") {
+						result = append(result, "    "+strings.TrimSpace(repl))
+					}
+					i++ // skip the second instruction
+					applied++
+					continue
+				}
+			}
+		}
+
+		result = append(result, lines[i])
+	}
+
+	if applied > 0 {
+		fmt.Fprintf(os.Stderr, "[peephole] applied %d GPU-proven rules\n", applied)
+	}
+	return strings.Join(result, "\n")
+}
+
 func peepholeCleanup(asm string) string {
+	// Phase 0: GPU-proven peephole rules (z80-optimizer, table-driven)
+	asm = applyGPUPeepholeRules(asm)
+
 	lines := strings.Split(asm, "\n")
 	var result []string
 	inlineCounter := 0
