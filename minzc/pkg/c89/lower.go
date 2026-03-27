@@ -1689,6 +1689,8 @@ func (fl *funcLow) lowerBinaryOp(left, right cc.ExpressionNode, caseVal interfac
 	// multiplication — those can legitimately overflow u8 (e.g. 200+200).
 	lty, rty := l.ExprTy(), r.ExprTy()
 	narrow8 := (lty == mir2.TyU8 || lty == mir2.TyI8) && lty == rty
+	// For shifts: narrow based on left operand only (shift count type is irrelevant)
+	narrow8Shift := lty == mir2.TyU8 || lty == mir2.TyI8
 
 	op := ""
 	switch v := caseVal.(type) {
@@ -1752,8 +1754,13 @@ func (fl *funcLow) lowerBinaryOp(left, right cc.ExpressionNode, caseVal interfac
 		switch op {
 		case "-", "/", "%", "&", "|", "^": // safe: result fits in u8
 			mty = lty
-		// "+", "*", "<<" — do NOT narrow, overflow loses information
+		// "+", "*" — do NOT narrow, overflow loses information
 		}
+	}
+	// Shifts: narrow based on LEFT operand only (shift count type is irrelevant).
+	// C promotes shift count to int, but u8 << N should stay u8 on Z80.
+	if narrow8Shift && (op == "<<" || op == ">>") {
+		mty = lty
 	}
 
 	return wrapExpr(&hir.BinExpr{Op: op, L: l, R: r, Ty: mty}), nil
