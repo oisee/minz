@@ -188,7 +188,7 @@ ADTs, pattern matching, pipe operators — all on GPU. Not through a VM or inter
 | Lanz | ✅ | ✅ | ✅ | ✅ | ✅* |
 | Lizp | ✅ | ✅ | ✅ | ✅ | ✅* |
 
-*Metal: generates valid MSL, needs Apple Silicon for testing.
+All 4 GPU backends verified 256/256 on real hardware (NVIDIA, AMD RX 580, Apple M2).
 
 Any function written in any of the 8 languages can run on any of the 5 backends. The MIR2 intermediate representation is the universal bridge.
 
@@ -202,8 +202,10 @@ Any function written in any of the 8 languages can run on any of the 5 backends.
 | Backend targets | 5 (Z80 + CUDA + OpenCL + Vulkan + Metal) |
 | Year span | 1976–2026 (50 years) |
 | GPU backend LOC | 700 (95% shared across 4 APIs) |
-| CUDA verification | 256/256 correct on real NVIDIA GPU |
-| OpenCL verification | 256/256 correct on real GPU |
+| CUDA verification | 256/256 on NVIDIA ✅ |
+| OpenCL verification | 256/256 on NVIDIA ✅ |
+| Vulkan verification | 256/256 on AMD RX 580 ✅ |
+| Metal verification | 256/256 on Apple M2 ✅ |
 | Z80 corpus asserts | 1046 |
 | Z80 VIR codegen | -71% vs SDCC |
 | GPU precomputed tables | 83.6M register allocations, 501 arithmetic sequences |
