@@ -49,9 +49,23 @@ Can a 6-vreg problem be solved by composing two 3-vreg solutions from the comple
 
 ---
 
-### ★ NEW: Frill — ML on Z80 | [Language Guide (book)](docs/Frill_Language_Guide.md) | [PDF](docs/book/Frill_Language_Guide.pdf)
+### ★ NEW: Frill — ML on ZX Spectrum | [Article](docs/Frill_on_Z80_Article.md) | [Book](docs/Frill_Language_Guide.md) | [PDF](docs/book/Frill_Language_Guide.pdf) | [EPUB](docs/book/Frill_Language_Guide.epub)
 
-**8th frontend:** An ML-style functional language that compiles to Z80. Algebraic data types, pattern matching, parametric polymorphism, effects, property testing — all zero-cost. 13 examples, 3351 compile-time checks.
+**8th frontend:** An ML-style functional language that compiles to Z80. ADTs, pattern matching, pipe operators, lambdas, type classes, QTT linearity — all zero-cost. **427 compile-time assertions** across 16 examples.
+
+**3 killer demos:** State machine (175 bytes), minigame engine (226 bytes), parser combinator (498 bytes) — all compile to Z80 binaries via Z3 SMT solver.
+
+```frill
+type Entity = Player | Enemy | Bullet | Coin | Wall
+
+let is_solid (e : u8) : u8 =
+  match e with        (* exhaustive — compiler catches missing variants *)
+  | Player -> 0
+  | Enemy  -> 1  | Bullet -> 0  | Coin -> 0  | Wall -> 1
+  end
+
+let tick_score (base : u8) : u8 = base |> double |> inc  (* pipe operator *)
+```
 
 ```frill
 type Option = None | Some of u8
