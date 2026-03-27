@@ -538,9 +538,17 @@ tells you exactly which assertion and what it got vs what was expected.
 
 ## Chapter: Real-World Demos (v0.23.0)
 
-Three demos that prove Frill is more than a toy — it's a practical language for Z80 development.
+Three demos that prove Frill is more than a toy — it's a practical language for Z80 development. Each one showcases a different strength of ML-style programming on constrained hardware.
 
-### State Machine (175 bytes)
+### Why Frill?
+
+**C can't do this.** C has no ADTs, no exhaustive match, no pipe operators. A C state machine uses `switch` with no guarantee all states are handled — miss one and you get undefined behavior at runtime. On Z80, runtime UB means a hard crash with no debugger, no stack trace, no recovery. Frill catches it at compile time.
+
+**Assembly can't do this.** Assembly has no types at all. A traffic light state is a number in a register — nothing stops you from passing 42 to a function that expects 0/1/2. Frill's type system prevents invalid states from existing.
+
+**Frill gives you ML safety with Z80 performance.** ADTs compile to integer tags. Match compiles to conditional jumps. Pipe compiles to CALL chains. Zero overhead. The abstraction is free.
+
+### State Machine (175 bytes) — Why ADTs Matter
 
 A traffic light controller with exhaustive state transitions:
 
@@ -568,7 +576,13 @@ The Z80 binary is 175 bytes. The compiler proves every state is handled — miss
 
 **File:** `examples/frill/state_machine.frl`
 
-### Minigame Engine (226 bytes)
+### Minigame Engine (226 bytes) — Why Pure Functions Matter
+
+In C game engines, state is everywhere — global variables, mutable structs, pointer aliasing. Bugs hide in mutation. On Z80 with 64KB RAM and no debugger, mutable state bugs are fatal.
+
+Frill's approach: **every game function is pure.** No mutation, no side effects. Entity classification, collision detection, damage calculation — all pure `u8 → u8` functions. The entire game state is recomputed each frame from immutable inputs.
+
+This isn't slow — on Z80, pure functions compile to tight register-only code. And it's **GPU-parallelizable**: each entity's collision check runs independently on a GPU thread.
 
 A complete game logic library using ADTs and pipe operators:
 
@@ -673,6 +687,27 @@ __device__ uint8_t next_light(uint8_t s) {
 ```
 
 Also compiles to: **OpenCL** (AMD/Intel), **Vulkan** (SPIR-V), **Metal** (Apple M2). All 4 GPU backends verified 256/256 on real hardware.
+
+### Frill vs Nanz — Same ASM, Different Syntax
+
+The same function in both languages produces **identical Z80 assembly and identical CUDA kernel:**
+
+| | Frill | Nanz |
+|--|-------|------|
+| **Source** | `let double (x : u8) : u8 = x + x` | `fun double(x: u8) -> u8 { return x + x }` |
+| **Z80** | `ADD A, A / RET` | `ADD A, A / RET` |
+| **CUDA** | `r2 = (r1 + r1) & 0xFF;` | `r2 = (r1 + r1) & 0xFF;` |
+
+Both frontends lower to the same MIR2. MIR2 is the universal bridge — any of the 8 frontends can target any of the 5 backends. Choose your syntax, get the same optimal code.
+
+**Compile to all 5 backends from command line:**
+```bash
+mz demo.frl -b z80     -o demo.a80      # Z80 assembly (2 bytes!)
+mz demo.frl -b cuda    -o demo.cu       # NVIDIA CUDA kernel
+mz demo.frl -b opencl  -o demo.cl       # OpenCL (AMD/Intel)
+mz demo.frl -b vulkan  -o demo.comp     # Vulkan GLSL compute shader
+mz demo.frl -b metal   -o demo.metal    # Apple Metal shader
+```
 
 ### Compilation Pipeline
 
