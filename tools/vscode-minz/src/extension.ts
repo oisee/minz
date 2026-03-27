@@ -32,6 +32,10 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('minz.emitC', () => emitNativeIR('-emit-c')),
         vscode.commands.registerCommand('minz.emitQBE', () => emitNativeIR('-emit-qbe')),
         vscode.commands.registerCommand('minz.compileAndRunMZV', () => compileAndRunMZV()),
+        vscode.commands.registerCommand('minz.compileCUDA', () => compileGPU('cuda', '.cu')),
+        vscode.commands.registerCommand('minz.compileOpenCL', () => compileGPU('opencl', '.cl')),
+        vscode.commands.registerCommand('minz.compileVulkan', () => compileGPU('vulkan', '.comp')),
+        vscode.commands.registerCommand('minz.compileMetal', () => compileGPU('metal', '.metal')),
         diagnosticCollection
     );
 
@@ -570,6 +574,31 @@ async function compileNative(backendFlag?: string) {
             vscode.window.showInformationMessage(`Native compilation (${backend}) complete`);
         }
     });
+}
+
+async function compileGPU(backend: string, ext: string) {
+    const ctx = getMinZContext();
+    if (!ctx) { return; }
+    await vscode.window.activeTextEditor?.document.save();
+
+    const outputDir = path.join(ctx.workingDir, 'build');
+    if (!fs.existsSync(outputDir)) { fs.mkdirSync(outputDir, { recursive: true }); }
+
+    const fileName = path.basename(ctx.filePath, path.extname(ctx.filePath));
+    const outFile = path.join(outputDir, `${fileName}${ext}`);
+
+    const compileResult = await runCompiler(ctx,
+        [`"${ctx.filePath}"`, `--target=${backend}`, '-o', `"${outFile}"`],
+        `Compile to ${backend.toUpperCase()}`);
+
+    if (compileResult.success) {
+        // Open the generated GPU code side-by-side
+        const doc = await vscode.workspace.openTextDocument(outFile);
+        await vscode.window.showTextDocument(doc, vscode.ViewColumn.Beside);
+        vscode.window.showInformationMessage(`${backend.toUpperCase()} compilation complete: ${outFile}`);
+    } else {
+        vscode.window.showErrorMessage(`${backend.toUpperCase()} compilation failed — see MinZ output`);
+    }
 }
 
 async function emitNativeIR(emitFlag: string) {

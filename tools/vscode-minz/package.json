@@ -1,8 +1,8 @@
 {
   "name": "minz-language-support",
   "displayName": "MinZ Multi-Frontend Language Support",
-  "description": "Language support for MinZ, Nanz, Lanz, Lizp, PL/M-80, Pascal, C89, and ObjC — all targeting Z80",
-  "version": "0.8.0",
+  "description": "Language support for MinZ, Nanz, Frill, C23 — targeting Z80, CUDA, OpenCL, Vulkan, Metal",
+  "version": "0.9.0",
   "publisher": "minz-lang",
   "repository": {
     "type": "git",
@@ -280,6 +280,26 @@
         "command": "minz.compileAndRunMZV",
         "title": "MinZ: Compile & Run MZV",
         "icon": "$(vm)"
+      },
+      {
+        "command": "minz.compileCUDA",
+        "title": "MinZ: Compile to CUDA",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "minz.compileOpenCL",
+        "title": "MinZ: Compile to OpenCL",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "minz.compileVulkan",
+        "title": "MinZ: Compile to Vulkan (GLSL)",
+        "icon": "$(rocket)"
+      },
+      {
+        "command": "minz.compileMetal",
+        "title": "MinZ: Compile to Metal",
+        "icon": "$(rocket)"
       }
     ],
     "menus": {
