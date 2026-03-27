@@ -380,6 +380,13 @@ func gpuSym(name string) string {
 	s = strings.ReplaceAll(s, ".", "_")
 	s = strings.ReplaceAll(s, "$", "_")
 	s = strings.ReplaceAll(s, "-", "_")
+	// Prefix C/C++ reserved words
+	switch s {
+	case "double", "float", "int", "char", "short", "long", "void",
+		"return", "if", "else", "for", "while", "do", "switch", "case",
+		"break", "continue", "goto", "default", "struct", "union", "enum":
+		return "fn_" + s
+	}
 	return s
 }
 
