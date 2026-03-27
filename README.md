@@ -4,9 +4,17 @@
 
 **VIR has zero known bugs.** Now the default backend (`--vir=true`). Pipeline: Table(83.6M) → Z3 → Islands → PBQP. 500 GPU-optimal arithmetic + 500 peephole rules. Frill runs on CP/M. [Full report](reports/2026-03-27-VIR-Zero-Bugs-Default-Backend.md).
 
+### ★ NEW: [Frill — ML on Z80](docs/Frill_on_Z80_Article.md) | [Language Guide (book)](docs/Frill_Language_Guide.md) | [PDF](docs/book/Frill_Language_Guide.pdf) | [EPUB](docs/book/Frill_Language_Guide.epub)
+
+**An ML-style functional language compiling to Z80.** 3 demos running on CP/M: state_machine (81 bytes!), minigame (226 bytes), parser_combinator (498 bytes). Pattern matching, ADTs, lambdas, currying — all zero-cost on 8-bit hardware. "Hello Frill!" prints on real CP/M. [Article](docs/Frill_on_Z80_Article.md).
+
+### ★ NEW: [C23 on Z80 Book](docs/book/) | 13/13 C23 features, 619 asserts
+
+**First Z80 compiler with C17 conformance + C23 extensions.** #embed, _BitInt(N), constexpr, typeof, nullptr, bool, digit separators. 524/524 C asserts pass. SDCC doesn't even have C11. [Book (epub+pdf)](docs/book/).
+
 ### ★ [Birthday Sprint: Zero Test Failures](reports/2026-03-26-Birthday-Sprint-Zero-Failures.md)
 
-**From 3 failures to zero.** 49-commit debugging marathon. 83.6M exhaustive GPU table + 500 optimal arithmetic sequences + E2E test suite. [Full report](reports/2026-03-26-Birthday-Sprint-Zero-Failures.md).
+**From 3 failures to zero.** 49-commit debugging marathon. [Full report](reports/2026-03-26-Birthday-Sprint-Zero-Failures.md).
 ### ★ NEW: [Anytime-Optimal Register Allocation](docs/Anytime_Optimal_Register_Allocation.md) — 5-Level Graceful Degradation
 
 **The compiler never fails. It only varies in how optimal the result is.**
