@@ -179,10 +179,20 @@ InlineTrivial drops the emitted function labels (see above).
 - **RLD/RRD are slower** than 4×RLCA for nibble swap (18T each + memory setup vs 16T total).
 - **Sled auto-emission** — detect `CALL __rotate_` in output string after peephole pass, emit sled if found. No manual flag needed.
 
+### Z80 Assert Reality Check (Session 9)
+- **619/619 on mir2 VM — but Z80 path still broken.**
+- `mul3(14)` returns 0 on Z80 via VIR. Simple multiply codegen wrong.
+- `abs_val(5,0)` returns 0 — condition vreg tests wrong register (OR A tests x, not is_neg).
+- `gcd(12,8)` returns 0 — while loop body probably never executes.
+- Root cause: MIR2→Z80 lowering bugs, NOT VIR/frontend bugs. MIR2 VM = correct reference.
+- VIR F→A move pattern: WARNING doesn't propagate as error → PBQP fallback never triggers → silent corruption.
+- **Fix identified**: WARNING → return error (one line). Then PBQP catches it.
+- Dual asserts (mir2 + z80) are THE pattern for catching these: divergence = codegen bug.
+
 ### Cross-Session Coordination
 - dedelulu session IDs change on reboot — always broadcast new ID.
 - GPT-5.4 integration: `ddll ask gpt54 -s session @file.md "review this"` — persistent sessions with file injection.
-- Five teams coordinating: minz, minz-vir, z80-optimizer, minz-abap, dedelulu.
+- Six teams coordinating: minz, minz-vir, z80-optimizer, minz-abap, antique-toy, dedelulu.
 - Gemini also available via `ddll ask gemini`.
 
 ---

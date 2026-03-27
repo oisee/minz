@@ -54,8 +54,7 @@ const z80Predefined = `
 #define false 0
 #define nullptr ((void*)0)
 #define constexpr const
-static inline void unreachable(void) { for(;;); }
-#define __builtin_unreachable() unreachable()
+#define __builtin_unreachable() do { while(1); } while(0)
 typedef unsigned char uint8_t;
 typedef signed char int8_t;
 typedef unsigned int uint16_t;
