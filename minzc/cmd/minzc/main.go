@@ -23,6 +23,8 @@ import (
 	"github.com/minz/minzc/pkg/parser"
 	"github.com/minz/minzc/pkg/c89"
 	"github.com/minz/minzc/pkg/lir"
+	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/mir2gpu"
 	"github.com/minz/minzc/pkg/pascal"
 	"github.com/minz/minzc/pkg/pipeline"
 	"github.com/minz/minzc/pkg/plm"
@@ -847,6 +849,12 @@ func compileViaHIR(sourceFile string) error {
 	// Set target platform so @target() intrinsic resolves correctly.
 	hirMod.Target = hir.TargetFromString(target)
 
+	// ── GPU backend path ───────────────────────────────────────────────────
+	// -b cuda|opencl|vulkan|metal → HIR → MIR2 → mir2gpu → write output
+	if gpuBackend, ok := gpuBackendFromFlag(backend); ok {
+		return compileToGPU(hirMod, gpuBackend, sourceFile)
+	}
+
 	// Run all pipeline stages (always, cheaply; we may want any step).
 	// Wire Z3 flag to LIR package.
 	if useZ3 {
@@ -1082,6 +1090,60 @@ func addTASSupport(asmFile string) error {
 // DEPRECATED: MIR1 visualizer archived. Use --emit mir2 instead.
 func generateVisualization(module *ir.Module, filename string) error {
 	return fmt.Errorf("MIR1 visualizer deprecated — use --emit mir2 for MIR2 dump")
+}
+
+// ── GPU backend support ────────────────────────────────────────────────────────
+
+// gpuBackendFromFlag maps -b flag values to mir2gpu backends.
+func gpuBackendFromFlag(flag string) (mir2gpu.Backend, bool) {
+	switch flag {
+	case "cuda":
+		return mir2gpu.CUDA, true
+	case "opencl":
+		return mir2gpu.OpenCL, true
+	case "vulkan":
+		return mir2gpu.Vulkan, true
+	case "metal":
+		return mir2gpu.Metal, true
+	}
+	return 0, false
+}
+
+// compileToGPU compiles an HIR module to GPU compute shader source.
+func compileToGPU(hirMod *hir.Module, gpuBE mir2gpu.Backend, sourceFile string) error {
+	// HIR → MIR2
+	m := hir.LowerModule(hirMod)
+	for _, f := range m.Funcs {
+		mir2.ReorderBlocks(f)
+	}
+
+	// Auto-detect GPU candidates
+	candidates := mir2gpu.DetectGPUCandidates(m)
+	if debug && len(candidates) > 0 {
+		fmt.Fprintf(os.Stderr, "GPU candidates detected:\n%s", mir2gpu.FormatCandidates(candidates))
+	}
+
+	// Compile MIR2 → GPU source
+	code, err := mir2gpu.Compile(m, mir2gpu.CompileOptions{Backend: gpuBE})
+	if err != nil {
+		return fmt.Errorf("GPU compile (%s): %w", gpuBE, err)
+	}
+
+	// Determine output file
+	ext := filepath.Ext(sourceFile)
+	base := sourceFile[:len(sourceFile)-len(ext)]
+	out := outputFile
+	if out == "" {
+		out = base + gpuBE.Ext()
+	}
+
+	if err := os.WriteFile(out, []byte(code), 0644); err != nil {
+		return fmt.Errorf("write %s: %w", out, err)
+	}
+	fmt.Fprintf(os.Stderr, "Wrote %s shader to %s (%d bytes, %d functions)\n",
+		gpuBE, out, len(code), len(m.Funcs))
+
+	return nil
 }
 
 // saveIRModule saves the IR module to a .mir file

@@ -119,16 +119,22 @@ func Compile(m *mir2.Module, opts CompileOptions) (string, error) {
 	sb.WriteString(spec.Header)
 	sb.WriteString("\n")
 
-	// Emit each function as a kernel
-	for _, f := range m.Funcs {
+	// Emit each function.
+	// For Vulkan: first function is main() (the entry point),
+	// additional functions are regular GLSL helpers.
+	for fi, f := range m.Funcs {
 		name := gpuSym(f.Name)
+		isEntry := fi == 0
 
-		// Kernel declaration
-		sb.WriteString(spec.KernelDecl(name))
-		sb.WriteString(" {\n")
-
-		// Thread ID
-		sb.WriteString("    " + spec.ThreadID + "\n")
+		if opts.Backend == Vulkan && !isEntry {
+			// Vulkan helper function (non-kernel)
+			sb.WriteString(fmt.Sprintf("uint %s(uint tid) {\n", name))
+		} else {
+			// Kernel declaration
+			sb.WriteString(spec.KernelDecl(name))
+			sb.WriteString(" {\n")
+			sb.WriteString("    " + spec.ThreadID + "\n")
+		}
 
 		// Universal body
 		emitUniversalBody(&sb, f, spec)

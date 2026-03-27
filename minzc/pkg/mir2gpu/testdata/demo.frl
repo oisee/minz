@@ -1,0 +1,16 @@
+-- demo.frl — One source, 50 years of hardware
+-- Compiles to: Z80 (1976) + CUDA (2007) + Vulkan (2016) + Metal (2014)
+--
+-- Usage:
+--   mz demo.frl -b z80     -o demo.a80     # Z80 assembly
+--   mz demo.frl -b cuda    -o demo.cu      # CUDA kernel
+--   mz demo.frl -b vulkan  -o demo.comp    # Vulkan GLSL
+--   mz demo.frl -b metal   -o demo.metal   # Metal shader
+--   mz demo.frl -b opencl  -o demo.cl      # OpenCL kernel
+
+let double (x : u8) : u8 = x + x
+
+let triple (x : u8) : u8 = x + x + x
+
+let max (a : u8) (b : u8) : u8 =
+  if a > b then a else b
