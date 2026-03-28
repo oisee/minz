@@ -349,3 +349,175 @@ func computeGPUSignature(ops []VIROp, desc *MachineDesc) string {
 
 	return fmt.Sprintf("%x", h.Sum(nil)[:8])
 }
+
+// ── O(1) Enriched Table Integration ──────────────────────────────────────────
+// These functions compute the (interference_shape, op_bag) signature that
+// indexes into z80-optimizer's precomputed enriched tables (37.6M entries).
+//
+// Architecture: hash(shape, op_bag) → enriched_Nv.enr → {assignment, flags, costs}
+// See: z80-optimizer/data/ENRICHED_TABLES.md for binary format spec.
+
+// OpBag is a multiset of abstract VIR operations. Order doesn't matter —
+// only counts. This is the "operation bag" half of the enriched table key.
+type OpBag struct {
+	Add   int `json:"add"`   // OpAdd + OpAddImm
+	Sub   int `json:"sub"`   // OpSub + OpSubImm
+	Mul   int `json:"mul"`   // OpMul (runtime call)
+	Cmp   int `json:"cmp"`   // OpCmp + OpCmpImm
+	Logic int `json:"logic"` // OpAnd + OpOr + OpXor + *Imm variants
+	Shift int `json:"shift"` // OpShl + OpShr
+	Load  int `json:"load"`  // OpLoad + OpLoadGlobal + OpLoad16LE
+	Store int `json:"store"` // OpStore + OpStoreGlobal
+	Call  int `json:"call"`  // OpCall
+	Move  int `json:"move"`  // OpMove
+	Const int `json:"const"` // OpConst
+	Neg   int `json:"neg"`   // OpNeg
+}
+
+// ComputeOpBag counts abstract VIR operations for the enriched table key.
+func ComputeOpBag(ops []VIROp) OpBag {
+	var bag OpBag
+	for _, op := range ops {
+		switch op.Op {
+		case OpAdd, OpAddImm:
+			bag.Add++
+		case OpSub, OpSubImm:
+			bag.Sub++
+		case OpMul:
+			bag.Mul++
+		case OpCmp, OpCmpImm:
+			bag.Cmp++
+		case OpAnd, OpOr, OpXor, OpAndImm, OpOrImm, OpXorImm:
+			bag.Logic++
+		case OpShl, OpShr:
+			bag.Shift++
+		case OpLoad, OpLoadGlobal, OpLoad16LE:
+			bag.Load++
+		case OpStore, OpStoreGlobal:
+			bag.Store++
+		case OpCall:
+			bag.Call++
+		case OpMove:
+			bag.Move++
+		case OpConst:
+			bag.Const++
+		case OpNeg:
+			bag.Neg++
+		}
+	}
+	return bag
+}
+
+// opBagHash produces a compact hash of the operation bag for table lookup.
+func (b OpBag) Hash() uint64 {
+	// Pack counts into bytes (each 0-255), hash the result.
+	// 12 categories × 8 bits = 96 bits → SHA256 → truncate to 64 bits.
+	data := []byte{
+		byte(b.Add), byte(b.Sub), byte(b.Mul), byte(b.Cmp),
+		byte(b.Logic), byte(b.Shift), byte(b.Load), byte(b.Store),
+		byte(b.Call), byte(b.Move), byte(b.Const), byte(b.Neg),
+	}
+	h := sha256.Sum256(data)
+	var v uint64
+	for i := 0; i < 8; i++ {
+		v = (v << 8) | uint64(h[i])
+	}
+	return v
+}
+
+// InterferenceShape is a canonical representation of the interference graph.
+// Two functions with the same shape and op_bag have the same optimal assignment.
+type InterferenceShape struct {
+	NVregs int      `json:"nVregs"`
+	Edges  [][2]int `json:"edges"` // sorted pairs (lo, hi)
+}
+
+// ComputeInterferenceShape extracts the canonical interference graph from VIR ops.
+func ComputeInterferenceShape(ops []VIROp, desc *MachineDesc) InterferenceShape {
+	prob := buildProblem(ops, desc)
+
+	// Collect unique interference edges
+	edgeSet := make(map[[2]int]bool)
+	for i := range prob.liveness {
+		vregs := make([]int, 0, len(prob.liveness[i].live))
+		for v := range prob.liveness[i].live {
+			vregs = append(vregs, v)
+		}
+		sort.Ints(vregs)
+		for a := 0; a < len(vregs); a++ {
+			for b := a + 1; b < len(vregs); b++ {
+				edgeSet[[2]int{vregs[a], vregs[b]}] = true
+			}
+		}
+	}
+
+	// Canonicalize: renumber vregs to 0..N-1 in order of first appearance
+	vregOrder := make(map[int]int) // original vreg → canonical index
+	for _, op := range ops {
+		if op.Dst > 0 {
+			if _, ok := vregOrder[op.Dst]; !ok {
+				vregOrder[op.Dst] = len(vregOrder)
+			}
+		}
+		for _, s := range op.Src {
+			if s > 0 {
+				if _, ok := vregOrder[s]; !ok {
+					vregOrder[s] = len(vregOrder)
+				}
+			}
+		}
+	}
+
+	var edges [][2]int
+	for e := range edgeSet {
+		ca, cb := vregOrder[e[0]], vregOrder[e[1]]
+		if ca > cb {
+			ca, cb = cb, ca
+		}
+		edges = append(edges, [2]int{ca, cb})
+	}
+	sort.Slice(edges, func(i, j int) bool {
+		if edges[i][0] != edges[j][0] {
+			return edges[i][0] < edges[j][0]
+		}
+		return edges[i][1] < edges[j][1]
+	})
+
+	return InterferenceShape{
+		NVregs: len(vregOrder),
+		Edges:  edges,
+	}
+}
+
+// Hash produces a compact hash of the interference shape for table lookup.
+func (s InterferenceShape) Hash() uint64 {
+	h := sha256.New()
+	fmt.Fprintf(h, "V%d:", s.NVregs)
+	for _, e := range s.Edges {
+		fmt.Fprintf(h, "%d-%d;", e[0], e[1])
+	}
+	sum := h.Sum(nil)
+	var v uint64
+	for i := 0; i < 8; i++ {
+		v = (v << 8) | uint64(sum[i])
+	}
+	return v
+}
+
+// EnrichedSignature combines shape + op_bag into a single lookup key.
+type EnrichedSignature struct {
+	ShapeHash uint64 `json:"shapeHash"`
+	OpBagHash uint64 `json:"opBagHash"`
+	NVregs    int    `json:"nVregs"`
+}
+
+// ComputeEnrichedSignature computes the full enriched table lookup key.
+func ComputeEnrichedSignature(ops []VIROp, desc *MachineDesc) EnrichedSignature {
+	shape := ComputeInterferenceShape(ops, desc)
+	bag := ComputeOpBag(ops)
+	return EnrichedSignature{
+		ShapeHash: shape.Hash(),
+		OpBagHash: bag.Hash(),
+		NVregs:    shape.NVregs,
+	}
+}

@@ -457,17 +457,23 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 		allOps = append(allOps, b.Ops...)
 	}
 
-	// Dump GPU batch JSON if requested (for offline CUDA solve)
+	// Dump GPU batch JSON if requested (for offline CUDA solve + enriched table indexing)
 	if os.Getenv("VIR_DUMP_GPU_BATCH") != "" {
 		if gf, nv, err := BuildGPUDesc(allOps, desc, opts); err == nil {
 			sig := computeGPUSignature(allOps, desc)
+			enrichedSig := ComputeEnrichedSignature(allOps, desc)
+			opBag := ComputeOpBag(allOps)
+			shape := ComputeInterferenceShape(allOps, desc)
 			type batchEntry struct {
-				Name string       `json:"name"`
-				Sig  string       `json:"sig"`
-				NV   int          `json:"nVregs"`
-				Desc *GPUFuncDesc `json:"desc"`
+				Name        string              `json:"name"`
+				Sig         string              `json:"sig"`
+				NV          int                 `json:"nVregs"`
+				Desc        *GPUFuncDesc        `json:"desc"`
+				OpBag       OpBag               `json:"opBag"`
+				Shape       InterferenceShape   `json:"shape"`
+				EnrichedSig EnrichedSignature   `json:"enrichedSig"`
 			}
-			jsonData, _ := json.Marshal(batchEntry{f.Name, sig, nv, gf})
+			jsonData, _ := json.Marshal(batchEntry{f.Name, sig, nv, gf, opBag, shape, enrichedSig})
 			fmt.Fprintf(os.Stdout, "%s\n", jsonData)
 		}
 	}
@@ -1428,15 +1434,18 @@ func codegenFuncIslands(f *mir2.Func, vf *Func, desc *MachineDesc, opts SolverOp
 	emitFuncHeader(&sb, f, opts)
 	sb.WriteString(f.Name + ":\n")
 
+	// Shared label tracking to prevent duplicate labels across islands
+	sharedLabels := make(map[string]bool)
+
 	// Island 1 PIR with block labels
-	emitPIRWithLabels(&sb, pir1, island1Ops, ranges, 0, f.Name, desc, f)
+	emitPIRWithLabels(&sb, pir1, island1Ops, ranges, 0, f.Name, desc, f, sharedLabels)
 
 	// Boundary: emit LD moves for vregs that changed location
 	// (simplified: no moves for now — islands are independent)
 	_ = boundary
 
 	// Island 2 PIR with block labels
-	emitPIRWithLabels(&sb, pir2, island2Ops, ranges, best.pc+1, f.Name, desc, f)
+	emitPIRWithLabels(&sb, pir2, island2Ops, ranges, best.pc+1, f.Name, desc, f, sharedLabels)
 
 	return peepholeCleanup(sb.String()), nil
 }
@@ -1459,10 +1468,15 @@ func solveIsland(ops []VIROp, desc *MachineDesc, opts SolverOptions, startPC int
 }
 
 // emitPIRWithLabels emits PIROps with block labels injected at correct positions.
-func emitPIRWithLabels(sb *strings.Builder, pirOps []PIROp, ops []VIROp, ranges []islandRange, startPC int, funcName string, desc *MachineDesc, f *mir2.Func) {
+func emitPIRWithLabels(sb *strings.Builder, pirOps []PIROp, ops []VIROp, ranges []islandRange, startPC int, funcName string, desc *MachineDesc, f *mir2.Func, emittedLabels ...map[string]bool) {
 	pirCursor := 0
 	opCursor := 0
-	emittedLabels := make(map[string]bool)
+	var labels map[string]bool
+	if len(emittedLabels) > 0 && emittedLabels[0] != nil {
+		labels = emittedLabels[0]
+	} else {
+		labels = make(map[string]bool)
+	}
 	for _, br := range ranges {
 		if br.end <= startPC || br.start >= startPC+len(ops) {
 			continue // block outside this island
@@ -1474,9 +1488,9 @@ func emitPIRWithLabels(sb *strings.Builder, pirOps []PIROp, ops []VIROp, ranges 
 		if localEnd > len(ops) { localEnd = len(ops) }
 
 		// Emit block label (except the entry block which uses the function name)
-		if br.label != "" && br.label != "entry" && !emittedLabels[br.label] {
+		if br.label != "" && br.label != "entry" && !labels[br.label] {
 			sb.WriteString("." + funcName + "_" + br.label + ":\n")
-			emittedLabels[br.label] = true
+			labels[br.label] = true
 		}
 
 		// Emit PIROps for this block
