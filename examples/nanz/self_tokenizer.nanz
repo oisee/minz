@@ -1,6 +1,8 @@
-// Self-hosting tokenizer — Nanz tokenizes Nanz source on MZV!
-// Uses @file_read host function for source access.
-// Arena allocator for token storage.
+// Self-hosting tokenizer v2 — Nanz tokenizes Nanz source on MZV!
+//
+// Produces a token stream with position info + keyword detection.
+// Each token: (type: u8, start: u16, len: u8)
+// Stored in arena at 0xA000, 4 bytes per token.
 //
 // Run: mzv self_tokenizer.nanz -v
 
@@ -9,7 +11,6 @@
 @extern fun poke(addr: u16, val: u8) -> void
 
 // ── Token types ─────────────────────────────────────────
-// Using constants (enum not needed for self-host MVP)
 global TOK_EOF: u8 = 0
 global TOK_IDENT: u8 = 1
 global TOK_INT: u8 = 2
@@ -21,15 +22,33 @@ global TOK_COLON: u8 = 7
 global TOK_COMMA: u8 = 8
 global TOK_ARROW: u8 = 9
 global TOK_EQ: u8 = 10
-global TOK_PLUS: u8 = 11
-global TOK_MINUS: u8 = 12
-global TOK_STAR: u8 = 13
-global TOK_SLASH: u8 = 14
-global TOK_LT: u8 = 15
-global TOK_GT: u8 = 16
-global TOK_STRING: u8 = 17
-global TOK_KEYWORD: u8 = 18
-global TOK_SEMI: u8 = 19
+global TOK_EQEQ: u8 = 11
+global TOK_PLUS: u8 = 12
+global TOK_MINUS: u8 = 13
+global TOK_STAR: u8 = 14
+global TOK_SLASH: u8 = 15
+global TOK_LT: u8 = 16
+global TOK_GT: u8 = 17
+global TOK_LTEQ: u8 = 18
+global TOK_GTEQ: u8 = 19
+global TOK_BANGEQ: u8 = 20
+global TOK_STRING: u8 = 21
+global TOK_SEMI: u8 = 22
+// Keywords
+global TOK_FUN: u8 = 30
+global TOK_RETURN: u8 = 31
+global TOK_IF: u8 = 32
+global TOK_ELSE: u8 = 33
+global TOK_WHILE: u8 = 34
+global TOK_LET: u8 = 35
+global TOK_VAR: u8 = 36
+global TOK_GLOBAL: u8 = 37
+global TOK_STRUCT: u8 = 38
+global TOK_ENUM: u8 = 39
+global TOK_IMPORT: u8 = 40
+global TOK_TRUE: u8 = 41
+global TOK_FALSE: u8 = 42
+global TOK_ASSERT: u8 = 43
 
 // ── Character classification ────────────────────────────
 
@@ -47,7 +66,7 @@ fun is_alpha(c: u8) -> u8 {
     if c >= 97 {
         if c <= 122 { return 1 }
     }
-    if c == 95 { return 1 }  // underscore
+    if c == 95 { return 1 }
     return 0
 }
 
@@ -57,30 +76,28 @@ fun is_alnum(c: u8) -> u8 {
 }
 
 fun is_space(c: u8) -> u8 {
-    if c == 32 { return 1 }   // space
-    if c == 9 { return 1 }    // tab
-    if c == 10 { return 1 }   // newline
-    if c == 13 { return 1 }   // CR
+    if c == 32 { return 1 }
+    if c == 9 { return 1 }
+    if c == 10 { return 1 }
+    if c == 13 { return 1 }
     return 0
 }
 
-// ── Tokenizer state ─────────────────────────────────────
-
-global src_buf: u16 = 0xC000   // source buffer in high memory
+// ── Source buffer + tokenizer state ─────────────────────
+global src_buf: u16 = 0xC000
 global src_len: u16 = 0
 global pos: u16 = 0
+global tok_start: u16 = 0   // start of current token
+
+// Token arena: 0xA000, 4 bytes per token (type, start_lo, start_hi, len)
+global tok_arena: u16 = 0xA000
+global tok_count: u16 = 0
 
 // ── Core tokenizer ──────────────────────────────────────
 
 fun peek_char() -> u8 {
     if pos >= src_len { return 0 }
     return peek(src_buf + pos)
-}
-
-fun next_char() -> u8 {
-    let c: u8 = peek_char()
-    pos = pos + 1
-    return c
 }
 
 fun skip_whitespace() -> void {
@@ -94,203 +111,348 @@ fun skip_line_comment() -> void {
         if peek_char() == 0 { return }
         pos = pos + 1
     }
-    pos = pos + 1  // skip newline
+    pos = pos + 1
 }
 
-// Return token type for current position
-fun next_token() -> u8 {
+// ── String comparison (source buffer vs constant) ───────
+
+fun src_eq_3(start: u16, a: u8, b: u8, c: u8) -> u8 {
+    if peek(src_buf + start) != a { return 0 }
+    if peek(src_buf + start + 1) != b { return 0 }
+    if peek(src_buf + start + 2) != c { return 0 }
+    return 1
+}
+
+fun src_eq_2(start: u16, a: u8, b: u8) -> u8 {
+    if peek(src_buf + start) != a { return 0 }
+    if peek(src_buf + start + 1) != b { return 0 }
+    return 1
+}
+
+fun src_eq_4(start: u16, a: u8, b: u8, c: u8, d: u8) -> u8 {
+    if peek(src_buf + start) != a { return 0 }
+    if peek(src_buf + start + 1) != b { return 0 }
+    if peek(src_buf + start + 2) != c { return 0 }
+    if peek(src_buf + start + 3) != d { return 0 }
+    return 1
+}
+
+fun src_eq_5(start: u16, a: u8, b: u8, c: u8, d: u8, e: u8) -> u8 {
+    if src_eq_4(start, a, b, c, d) == 0 { return 0 }
+    if peek(src_buf + start + 4) != e { return 0 }
+    return 1
+}
+
+fun src_eq_6(start: u16, a: u8, b: u8, c: u8, d: u8, e: u8, f: u8) -> u8 {
+    if src_eq_4(start, a, b, c, d) == 0 { return 0 }
+    if peek(src_buf + start + 4) != e { return 0 }
+    if peek(src_buf + start + 5) != f { return 0 }
+    return 1
+}
+
+// ── Keyword detection ───────────────────────────────────
+
+fun classify_keyword(start: u16, len: u8) -> u8 {
+    // fun
+    if len == 3 {
+        if src_eq_3(start, 102, 117, 110) == 1 { return TOK_FUN }
+        if src_eq_3(start, 108, 101, 116) == 1 { return TOK_LET }
+        if src_eq_3(start, 118, 97, 114) == 1 { return TOK_VAR }
+    }
+    // if
+    if len == 2 {
+        if src_eq_2(start, 105, 102) == 1 { return TOK_IF }
+        if src_eq_2(start, 102, 110) == 1 { return TOK_FUN }  // fn
+    }
+    // else
+    if len == 4 {
+        if src_eq_4(start, 101, 108, 115, 101) == 1 { return TOK_ELSE }
+        if src_eq_4(start, 101, 110, 117, 109) == 1 { return TOK_ENUM }
+        if src_eq_4(start, 116, 114, 117, 101) == 1 { return TOK_TRUE }
+    }
+    // while, false
+    if len == 5 {
+        if src_eq_5(start, 119, 104, 105, 108, 101) == 1 { return TOK_WHILE }
+        if src_eq_5(start, 102, 97, 108, 115, 101) == 1 { return TOK_FALSE }
+    }
+    // return, global, struct, import, assert
+    if len == 6 {
+        if src_eq_6(start, 114, 101, 116, 117, 114, 110) == 1 { return TOK_RETURN }
+        if src_eq_6(start, 103, 108, 111, 98, 97, 108) == 1 { return TOK_GLOBAL }
+        if src_eq_6(start, 115, 116, 114, 117, 99, 116) == 1 { return TOK_STRUCT }
+        if src_eq_6(start, 105, 109, 112, 111, 114, 116) == 1 { return TOK_IMPORT }
+        if src_eq_6(start, 97, 115, 115, 101, 114, 116) == 1 { return TOK_ASSERT }
+    }
+    return TOK_IDENT
+}
+
+// ── Store token in arena ────────────────────────────────
+
+fun emit_token(typ: u8, start: u16, len: u8) -> void {
+    let addr: u16 = tok_arena + tok_count * 4
+    poke(addr, typ)
+    poke(addr + 1, start % 256)
+    poke(addr + 2, start / 256)
+    poke(addr + 3, len)
+    tok_count = tok_count + 1
+}
+
+// ── Parse number value from source ──────────────────────
+
+fun parse_int(start: u16, len: u8) -> u16 {
+    var val: u16 = 0
+    var i: u8 = 0
+    while i < len {
+        val = val * 10 + peek(src_buf + start + i) - 48
+        i = i + 1
+    }
+    return val
+}
+
+// ── Main tokenizer: scan one token ──────────────────────
+
+fun scan_token() -> u8 {
     skip_whitespace()
+    tok_start = pos
     let c: u8 = peek_char()
-    
+
     if c == 0 { return TOK_EOF }
-    
+
     // Line comment
-    if c == 47 {  // '/'
+    if c == 47 {
         if peek(src_buf + pos + 1) == 47 {
             skip_line_comment()
-            return next_token()  // recursive skip
+            return scan_token()
         }
         pos = pos + 1
+        emit_token(TOK_SLASH, tok_start, 1)
         return TOK_SLASH
     }
-    
-    // Single-char tokens
-    if c == 40 { pos = pos + 1
-        return TOK_LPAREN }
-    if c == 41 { pos = pos + 1
-        return TOK_RPAREN }
-    if c == 123 { pos = pos + 1
-        return TOK_LBRACE }
-    if c == 125 { pos = pos + 1
-        return TOK_RBRACE }
-    if c == 58 { pos = pos + 1
-        return TOK_COLON }
-    if c == 44 { pos = pos + 1
-        return TOK_COMMA }
-    if c == 59 { pos = pos + 1
-        return TOK_SEMI }
-    if c == 43 { pos = pos + 1
-        return TOK_PLUS }
-    if c == 42 { pos = pos + 1
-        return TOK_STAR }
-    if c == 60 { pos = pos + 1
-        return TOK_LT }
-    if c == 62 { pos = pos + 1
-        return TOK_GT }
-    
-    // Arrow ->
-    if c == 45 {  // '-'
-        if peek(src_buf + pos + 1) == 62 {  // '>'
+
+    // Two-char tokens
+    if c == 45 {
+        if peek(src_buf + pos + 1) == 62 {
             pos = pos + 2
+            emit_token(TOK_ARROW, tok_start, 2)
             return TOK_ARROW
         }
         pos = pos + 1
+        emit_token(TOK_MINUS, tok_start, 1)
         return TOK_MINUS
     }
-    
-    // == 
-    if c == 61 {  // '='
+    if c == 61 {
         if peek(src_buf + pos + 1) == 61 {
             pos = pos + 2
-            return TOK_EQ
+            emit_token(TOK_EQEQ, tok_start, 2)
+            return TOK_EQEQ
         }
         pos = pos + 1
+        emit_token(TOK_EQ, tok_start, 1)
         return TOK_EQ
     }
-    
-    // Number
+    if c == 60 {
+        if peek(src_buf + pos + 1) == 61 {
+            pos = pos + 2
+            emit_token(TOK_LTEQ, tok_start, 2)
+            return TOK_LTEQ
+        }
+        pos = pos + 1
+        emit_token(TOK_LT, tok_start, 1)
+        return TOK_LT
+    }
+    if c == 62 {
+        if peek(src_buf + pos + 1) == 61 {
+            pos = pos + 2
+            emit_token(TOK_GTEQ, tok_start, 2)
+            return TOK_GTEQ
+        }
+        pos = pos + 1
+        emit_token(TOK_GT, tok_start, 1)
+        return TOK_GT
+    }
+    if c == 33 {
+        if peek(src_buf + pos + 1) == 61 {
+            pos = pos + 2
+            emit_token(TOK_BANGEQ, tok_start, 2)
+            return TOK_BANGEQ
+        }
+        pos = pos + 1
+        return scan_token()
+    }
+
+    // Single-char tokens
+    if c == 40  { pos = pos + 1
+        emit_token(TOK_LPAREN, tok_start, 1)
+        return TOK_LPAREN }
+    if c == 41  { pos = pos + 1
+        emit_token(TOK_RPAREN, tok_start, 1)
+        return TOK_RPAREN }
+    if c == 123 { pos = pos + 1
+        emit_token(TOK_LBRACE, tok_start, 1)
+        return TOK_LBRACE }
+    if c == 125 { pos = pos + 1
+        emit_token(TOK_RBRACE, tok_start, 1)
+        return TOK_RBRACE }
+    if c == 58  { pos = pos + 1
+        emit_token(TOK_COLON, tok_start, 1)
+        return TOK_COLON }
+    if c == 44  { pos = pos + 1
+        emit_token(TOK_COMMA, tok_start, 1)
+        return TOK_COMMA }
+    if c == 43  { pos = pos + 1
+        emit_token(TOK_PLUS, tok_start, 1)
+        return TOK_PLUS }
+    if c == 42  { pos = pos + 1
+        emit_token(TOK_STAR, tok_start, 1)
+        return TOK_STAR }
+
+    // Number literal
     if is_digit(c) == 1 {
         while is_digit(peek_char()) == 1 {
             pos = pos + 1
         }
+        let len: u8 = pos - tok_start
+        emit_token(TOK_INT, tok_start, len)
         return TOK_INT
     }
-    
+
     // Identifier or keyword
     if is_alpha(c) == 1 {
         while is_alnum(peek_char()) == 1 {
             pos = pos + 1
         }
-        return TOK_IDENT
+        let len: u8 = pos - tok_start
+        let kw: u8 = classify_keyword(tok_start, len)
+        emit_token(kw, tok_start, len)
+        return kw
     }
-    
+
     // String literal
-    if c == 34 {  // '"'
+    if c == 34 {
         pos = pos + 1
         while peek_char() != 34 {
             if peek_char() == 0 { return TOK_EOF }
             pos = pos + 1
         }
-        pos = pos + 1  // skip closing quote
+        pos = pos + 1
+        let len: u8 = pos - tok_start
+        emit_token(TOK_STRING, tok_start, len)
         return TOK_STRING
     }
-    
+
     // Unknown — skip
     pos = pos + 1
-    return next_token()
+    return scan_token()
 }
 
-// ── Test: count tokens in a hardcoded string ────────────
-
-fun count_tokens_in(s: ^u8, len: u16) -> u16 {
-    // Copy string to src_buf
-    var i: u16 = 0
-    while i < len {
-        poke(src_buf + i, peek(s + i))
-        i = i + 1
-    }
-    poke(src_buf + len, 0)  // null terminate
-    src_len = len
-    pos = 0
-    
-    var count: u16 = 0
-    while next_token() != TOK_EOF {
-        count = count + 1
-    }
-    return count
-}
-
-// ── Asserts ─────────────────────────────────────────────
-
-// ── Token name for display ──────────────────────────────
+// ── Token name printer ──────────────────────────────────
 
 fun print_tok_name(tok: u8) -> void {
-    if tok == 0 { @print("EOF") }
-    if tok == 1 { @print("IDENT") }
-    if tok == 2 { @print("INT") }
-    if tok == 3 { @print("LPAREN") }
-    if tok == 4 { @print("RPAREN") }
-    if tok == 5 { @print("LBRACE") }
-    if tok == 6 { @print("RBRACE") }
-    if tok == 7 { @print("COLON") }
-    if tok == 8 { @print("COMMA") }
-    if tok == 9 { @print("ARROW") }
-    if tok == 10 { @print("EQ") }
-    if tok == 11 { @print("PLUS") }
-    if tok == 12 { @print("MINUS") }
-    if tok == 13 { @print("STAR") }
-    if tok == 14 { @print("SLASH") }
-    if tok == 17 { @print("STRING") }
-    if tok == 19 { @print("SEMI") }
+    if tok == 1  { @print("id") }
+    if tok == 2  { @print("int") }
+    if tok == 3  { @print("(") }
+    if tok == 4  { @print(")") }
+    if tok == 5  { @print("{") }
+    if tok == 6  { @print("}") }
+    if tok == 7  { @print(":") }
+    if tok == 8  { @print(",") }
+    if tok == 9  { @print("->") }
+    if tok == 10 { @print("=") }
+    if tok == 11 { @print("==") }
+    if tok == 12 { @print("+") }
+    if tok == 13 { @print("-") }
+    if tok == 14 { @print("*") }
+    if tok == 15 { @print("/") }
+    if tok == 16 { @print("<") }
+    if tok == 17 { @print(">") }
+    if tok == 18 { @print("<=") }
+    if tok == 19 { @print(">=") }
+    if tok == 20 { @print("!=") }
+    if tok == 21 { @print("str") }
+    if tok == 30 { @print("FUN") }
+    if tok == 31 { @print("RET") }
+    if tok == 32 { @print("IF") }
+    if tok == 33 { @print("ELSE") }
+    if tok == 34 { @print("WHILE") }
+    if tok == 35 { @print("LET") }
+    if tok == 36 { @print("VAR") }
+    if tok == 41 { @print("TRUE") }
+    if tok == 42 { @print("FALSE") }
+    if tok == 43 { @print("ASSERT") }
 }
 
-// ── Print token text from source ────────────────────────
+// ── Print source span ───────────────────────────────────
 
-// ── Main: tokenize hardcoded source and print tokens ────
+// print_span needs @print_char host — skip for now
+// Token text available via peek(src_buf + start + i)
 
-fun tokenize_buffer(len: u16) -> u16 {
-    src_len = len
+// ── Tokenize entire buffer ──────────────────────────────
+
+fun tokenize_all() -> u16 {
     pos = 0
-    var count: u16 = 0
-    var tok: u8 = next_token()
+    tok_count = 0
+    var tok: u8 = scan_token()
     while tok != TOK_EOF {
-        print_tok_name(tok)
-        @print(" ")
-        count = count + 1
-        tok = next_token()
+        tok = scan_token()
     }
-    return count
+    return tok_count
 }
+
+// ── Print all tokens from arena ─────────────────────────
+
+fun print_tokens() -> void {
+    var i: u16 = 0
+    while i < tok_count {
+        let addr: u16 = tok_arena + i * 4
+        let typ: u8 = peek(addr)
+        let start: u16 = peek(addr + 1) + peek(addr + 2) * 256
+        let len: u8 = peek(addr + 3)
+        print_tok_name(typ)
+        @print(" ")
+        i = i + 1
+    }
+}
+
+// ── Main ────────────────────────────────────────────────
 
 fun main() -> void {
-    // Hardcode tiny source: "fun add(a: u8) -> u8 { return a + a }"
-    // ASCII: fun=102,117,110 add=97,100,100 etc
-    poke(src_buf, 102) poke(src_buf+1, 117) poke(src_buf+2, 110)  // fun
-    poke(src_buf+3, 32)                                             // space
-    poke(src_buf+4, 97) poke(src_buf+5, 100) poke(src_buf+6, 100)  // add
-    poke(src_buf+7, 40)                                             // (
-    poke(src_buf+8, 97)                                             // a
-    poke(src_buf+9, 58)                                             // :
-    poke(src_buf+10, 32)                                            // space
-    poke(src_buf+11, 117) poke(src_buf+12, 56)                     // u8
-    poke(src_buf+13, 41)                                            // )
-    poke(src_buf+14, 32)                                            // space
-    poke(src_buf+15, 45) poke(src_buf+16, 62)                      // ->
-    poke(src_buf+17, 32)                                            // space
-    poke(src_buf+18, 117) poke(src_buf+19, 56)                     // u8
-    poke(src_buf+20, 32)                                            // space
-    poke(src_buf+21, 123)                                           // {
-    poke(src_buf+22, 32)                                            // space
-    poke(src_buf+23, 97)                                            // a
-    poke(src_buf+24, 32)                                            // space
-    poke(src_buf+25, 43)                                            // +
-    poke(src_buf+26, 32)                                            // space
-    poke(src_buf+27, 97)                                            // a
-    poke(src_buf+28, 32)                                            // space
-    poke(src_buf+29, 125)                                           // }
-    poke(src_buf+30, 0)                                             // null
+    // Load test source
+    poke(src_buf, 102) poke(src_buf+1, 117) poke(src_buf+2, 110)    // fun
+    poke(src_buf+3, 32)                                               // space
+    poke(src_buf+4, 97) poke(src_buf+5, 100) poke(src_buf+6, 100)   // add
+    poke(src_buf+7, 40)                                               // (
+    poke(src_buf+8, 97)                                               // a
+    poke(src_buf+9, 58) poke(src_buf+10, 32)                         // : space
+    poke(src_buf+11, 117) poke(src_buf+12, 56)                       // u8
+    poke(src_buf+13, 44) poke(src_buf+14, 32)                        // , space
+    poke(src_buf+15, 98)                                              // b
+    poke(src_buf+16, 58) poke(src_buf+17, 32)                        // : space
+    poke(src_buf+18, 117) poke(src_buf+19, 56)                       // u8
+    poke(src_buf+20, 41) poke(src_buf+21, 32)                        // ) space
+    poke(src_buf+22, 45) poke(src_buf+23, 62) poke(src_buf+24, 32)  // -> space
+    poke(src_buf+25, 117) poke(src_buf+26, 56) poke(src_buf+27, 32) // u8 space
+    poke(src_buf+28, 123) poke(src_buf+29, 32)                       // { space
+    poke(src_buf+30, 114) poke(src_buf+31, 101) poke(src_buf+32, 116) // ret
+    poke(src_buf+33, 117) poke(src_buf+34, 114) poke(src_buf+35, 110) // urn
+    poke(src_buf+36, 32)                                               // space
+    poke(src_buf+37, 97) poke(src_buf+38, 32)                        // a space
+    poke(src_buf+39, 43) poke(src_buf+40, 32)                        // + space
+    poke(src_buf+41, 98)                                              // b
+    poke(src_buf+42, 32) poke(src_buf+43, 125)                       // space }
+    poke(src_buf+44, 0)                                               // null
+    src_len = 44
 
-    @print("Tokenizing: fun add(a: u8) -> u8 { a + a }")
+    @print("Source: fun add(a: u8, b: u8) -> u8 { return a + b }")
     @print_nl()
-    let count: u16 = tokenize_buffer(30)
-    @print_nl()
+    let n: u16 = tokenize_all()
     @print("Tokens: ")
-    @print_u8(count)
+    @print_u8(n)
+    @print_nl()
+    print_tokens()
     @print_nl()
 }
 
 // ── Asserts ─────────────────────────────────────────────
-
 assert is_digit(48) == 1 via mir2
 assert is_digit(57) == 1 via mir2
 assert is_digit(65) == 0 via mir2
