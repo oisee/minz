@@ -514,7 +514,21 @@ fun main() {
 }
 ```
 
-## 📊 Current Metrics (v0.23.0, verified 2026-03-24)
+### 8. Self-Hosting Pipeline (Nanz compiles Nanz)
+**Status:** 🚧 Stage 1+2 complete, Stage 3-4 in progress.
+- **Stage 1**: .nanz → tokenizer → parser → .lanz ✅ (480 LOC Nanz, MZV)
+- **Stage 2**: .lanz → S-expr parser → AST tree ✅ (262 LOC Nanz, MZV)
+- **Stage 3**: AST → .mir2 → regalloc via enriched tables 🔧 (Go helper)
+- **Stage 4**: assignment → peephole → .a80 🔧 (Go helper)
+- **Stage 5**: .a80 → mza → .com ✅ (existing)
+- Proven: `fun add(a: u8, b: u8) -> u8 { return a + b }` → `ADD A, C / RET`
+- Interned strings (Pascal-style, pointer equality for keywords)
+- Three arenas: strings (0x9000), AST (0x8000), tokens (0xB000)
+- See [Self-Hosting Pipeline Report](reports/2026-03-29-Self-Hosting-Pipeline.md)
+
+---
+
+## 📊 Current Metrics (v0.24.0+, sessions 12-15)
 
 | Metric | Value |
 |--------|-------|
