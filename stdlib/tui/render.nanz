@@ -254,9 +254,12 @@ fun tui_puts(str: ^u8) -> void {
 }
 
 // Read one key (blocking). BDOS function 1.
+// Non-blocking key read via BDOS 6 (Direct Console I/O).
+// E=0xFF → poll input. Returns char or 0 if no key pressed.
 fun tui_read_key() -> u8 {
     asm z80 (ret A) {
-        LD C, 1
+        LD E, 0xFF
+        LD C, 6
         CALL 5
     }
 }
