@@ -4823,6 +4823,21 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 			}
 			return &hir.CallExpr{Fn: "@mir.io.print.u8", Args: []hir.Expr{arg}, Ty: mir2.TyVoid}, nil
 		}
+		// @print_char(expr) — print u8 value as ASCII character
+		if p.l.isIdent("print_char") {
+			p.l.next()
+			if _, err := p.l.eat(tokLParen); err != nil {
+				return nil, err
+			}
+			arg, err := p.parseExpr()
+			if err != nil {
+				return nil, err
+			}
+			if _, err := p.l.eat(tokRParen); err != nil {
+				return nil, err
+			}
+			return &hir.CallExpr{Fn: "@mir.io.print.char", Args: []hir.Expr{arg}, Ty: mir2.TyVoid}, nil
+		}
 		// @print_dec(expr) — print u8 value as decimal digits via OUT ($23)
 		if p.l.isIdent("print_dec") {
 			p.l.next()

@@ -5137,6 +5137,12 @@ func (g *z80cg) genCall(inst *Inst) {
 		g.invalidate("A")
 		return
 
+	case "@mir.io.print.char":
+		// Print ASCII character in A via OUT ($23).
+		g.emit("    OUT (0x23), A")
+		g.invalidate("A")
+		return
+
 	case "@mir.io.print.nl":
 		// Emit newline (\n = 0x0A) via OUT ($23), A.
 		g.emit("    LD A, 0x0A")

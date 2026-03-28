@@ -106,6 +106,12 @@ func registerFileHosts(vm *mir2.VM, baseDir string, trace bool) {
 		return nil, nil
 	}
 
+	// @print_char(val: u8) -> void — print ASCII character
+	vm.Hosts["@print_char"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		fmt.Fprintf(os.Stdout, "%c", byte(args[0].I))
+		return nil, nil
+	}
+
 	// @print_nl() -> void — print newline
 	vm.Hosts["@print_nl"] = func(args []mir2.Value) ([]mir2.Value, error) {
 		fmt.Fprintln(os.Stdout)
