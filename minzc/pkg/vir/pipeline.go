@@ -1949,18 +1949,46 @@ func emitTerminator(sb *strings.Builder, b *mir2.Block, funcName string) {
 		}
 
 	case *mir2.TermCondRet:
-		// If cond==0, return vals. Else jump to Then.
+		// If cond==0, return vals. Else jump to Then (cond!=0).
+		// Emit JR with the Z80 condition code that fires when cond!=0.
 		cmpCond := findCmpCond(b, t.Cond)
+		tgt := fmt.Sprintf("%s%s", prefix, t.Then)
 		if t.Then != "" {
 			switch cmpCond {
 			case mir2.CmpSubCarry:
-				// Carry set by preceding SUB means a < b → RET NC (return if a >= b)
-				sb.WriteString(fmt.Sprintf("    JR C, %s%s\n", prefix, t.Then))
+				// Carry from SUB: cond!=0 when a < b → JR C
+				sb.WriteString(fmt.Sprintf("    JR C, %s\n", tgt))
 			case mir2.CmpSubCarryNot:
-				sb.WriteString(fmt.Sprintf("    JR NC, %s%s\n", prefix, t.Then))
+				// No-carry from SUB: cond!=0 when a >= b → JR NC
+				sb.WriteString(fmt.Sprintf("    JR NC, %s\n", tgt))
+			case mir2.CmpEq:
+				// cond!=0 when equal → Z flag set → JR Z
+				sb.WriteString(fmt.Sprintf("    JR Z, %s\n", tgt))
+			case mir2.CmpNe:
+				// cond!=0 when not equal → Z flag clear → JR NZ
+				sb.WriteString(fmt.Sprintf("    JR NZ, %s\n", tgt))
+			case mir2.CmpLt, mir2.CmpUlt:
+				// cond!=0 when a < b → C flag set → JR C
+				sb.WriteString(fmt.Sprintf("    JR C, %s\n", tgt))
+			case mir2.CmpGe, mir2.CmpUge:
+				// cond!=0 when a >= b → C flag clear → JR NC
+				sb.WriteString(fmt.Sprintf("    JR NC, %s\n", tgt))
+			case mir2.CmpGt, mir2.CmpUgt:
+				// cond!=0 when a > b → NC AND NZ (two conditions)
+				// Invert: fall through (return) when C or Z
+				// Jump to Then when NC and NZ → skip return on C or Z
+				retLabel := fmt.Sprintf(".%s_cret_ret", funcName)
+				sb.WriteString(fmt.Sprintf("    JR Z, %s\n", retLabel))
+				sb.WriteString(fmt.Sprintf("    JR C, %s\n", retLabel))
+				sb.WriteString(fmt.Sprintf("    JR %s\n", tgt))
+				sb.WriteString(retLabel + ":\n")
+			case mir2.CmpLe, mir2.CmpUle:
+				// cond!=0 when a <= b → C OR Z (two conditions)
+				sb.WriteString(fmt.Sprintf("    JR C, %s\n", tgt))
+				sb.WriteString(fmt.Sprintf("    JR Z, %s\n", tgt))
 			default:
-				// Generic: Z flag = equal/zero → jump when NZ
-				sb.WriteString(fmt.Sprintf("    JR NZ, %s%s\n", prefix, t.Then))
+				// Fallback: NZ (preserves old behavior)
+				sb.WriteString(fmt.Sprintf("    JR NZ, %s\n", tgt))
 			}
 		}
 		sb.WriteString("    RET\n")
@@ -2663,6 +2691,59 @@ func peepholeCleanup(asm string) string {
 		}
 
 		// ── Grace-like CFG rules (on assembly level) ─────────────────
+
+		// Return-move reorder: LD A, reg / <JR/JP cc sequence> / RET
+		// → <JR/JP cc sequence> / LD A, reg / RET
+		// The return move must execute only on the return path, not on the then-path.
+		// Z80 LD does not modify flags, so moving it past conditional jumps is safe.
+		// Without this, VIR TermCondRet emits "CP B; LD A, B; JR cc; RET" where
+		// LD A,B clobbers A before the then-path can use it.
+		if strings.HasPrefix(line, "LD A, ") {
+			// Scan forward for a sequence of conditional JR/JP followed by RET.
+			var condJumps []string
+			retFound := false
+			j := i + 1
+			for j < len(lines) {
+				t := strings.TrimSpace(lines[j])
+				if t == "" || strings.HasPrefix(t, ";") {
+					j++
+					continue
+				}
+				isCondJump := (strings.HasPrefix(t, "JR ") || strings.HasPrefix(t, "JP ")) &&
+					!strings.HasPrefix(t, "JR .") && !strings.HasPrefix(t, "JP .") &&
+					!strings.HasPrefix(t, "JP (") &&
+					strings.Contains(t, ", ")
+				isUncondJump := (strings.HasPrefix(t, "JR .") || strings.HasPrefix(t, "JP ."))
+				if isCondJump || isUncondJump {
+					condJumps = append(condJumps, t)
+					j++
+					continue
+				}
+				if strings.HasSuffix(t, ":") {
+					condJumps = append(condJumps, t)
+					j++
+					continue
+				}
+				if t == "RET" && len(condJumps) > 0 {
+					retFound = true
+				}
+				break
+			}
+			if retFound {
+				// Reorder: emit jumps first, then LD A, then RET
+				for _, jl := range condJumps {
+					if strings.HasSuffix(jl, ":") {
+						result = append(result, jl) // label
+					} else {
+						result = append(result, "    "+jl)
+					}
+				}
+				result = append(result, "    "+line)
+				result = append(result, "    RET")
+				i = j // skip past RET
+				continue
+			}
+		}
 
 		// Conditional RET: JR/JP cc, .target / [labels...] / RET / .target: → RET cc_inverted
 		// Also handles: JR/JP cc, .target / [labels...] / RET / [labels...] / .target:

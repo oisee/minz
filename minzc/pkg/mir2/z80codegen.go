@@ -4789,35 +4789,106 @@ func (g *z80cg) materializePendingAcc(upcomingInst *Inst) {
 	g.pendingAccReg = NoReg
 }
 
-// saveAccForCondRet saves A to a scratch register if:
-//   - the current block ends with TermCondRet
-//   - A holds a vreg that TermCondRet returns
-//   - the CMP is about to load a different vreg into A
-// This prevents the return value from being clobbered by the comparison operand.
-// Without this, abs_val(5,0) returns 0 instead of 5 on Z80.
+// saveAccForCondRet saves A to a scratch register if a CMP is about to load a
+// different vreg into A and there is a live vreg in A that the terminator or a
+// successor block still needs.
+//
+// Originally this only covered TermCondRet (abs_val fix). Expanded to also
+// cover TermBrIf: gcd(a,b) has CmpEq(b,0) that loads b into A, clobbering a
+// which the then-branch returns.
 func (g *z80cg) saveAccForCondRet(cmpInst *Inst) {
 	if g.fn == nil || g.curBlock == nil {
 		return
 	}
-	tcr, ok := g.curBlock.Term.(*TermCondRet)
-	if !ok {
+	term := g.curBlock.Term
+	if term == nil {
 		return
 	}
+
 	// Check if CMP will load a different vreg into A (clobbering current A value).
 	lhs := g.loc(cmpInst.Src[0])
 	if lhs == "A" {
 		return // lhs already in A, no clobber
 	}
-	// Check if any TermCondRet return value is currently in A.
-	for _, v := range tcr.Vals {
-		if g.loc(v) == "A" {
-			// A holds a return value that CMP will clobber. Save it.
-			scratch := g.pickScratch8(cmpInst)
-			g.emitf("    LD %s, A    ; save ret val before CMP", scratch)
-			g.physOverride[v] = scratch
-			return
+
+	// Collect all vregs that the terminator and successor blocks need.
+	// If any of them is currently in A, save A before the CMP clobbers it.
+	liveInA := g.findVregInA()
+	if liveInA == NoReg {
+		return // nothing in A worth saving
+	}
+
+	needed := false
+	switch t := term.(type) {
+	case *TermCondRet:
+		for _, v := range t.Vals {
+			if v == liveInA {
+				needed = true
+				break
+			}
+		}
+		if !needed {
+			// Check if the Then successor needs it
+			needed = g.vregUsedInBlock(liveInA, t.Then)
+		}
+	case *TermBrIf:
+		// Check if either successor uses the vreg in A
+		needed = g.vregUsedInBlock(liveInA, t.Then) || g.vregUsedInBlock(liveInA, t.Else)
+	case *TermBrIf2:
+		needed = g.vregUsedInBlock(liveInA, t.Eq) ||
+			g.vregUsedInBlock(liveInA, t.Lt) ||
+			g.vregUsedInBlock(liveInA, t.Gt)
+	}
+
+	if needed {
+		scratch := g.pickScratch8(cmpInst)
+		g.emitf("    LD %s, A    ; save ret val before CMP", scratch)
+		g.physOverride[liveInA] = scratch
+	}
+}
+
+// findVregInA returns the vreg currently mapped to A, or NoReg if none.
+func (g *z80cg) findVregInA() Reg {
+	if g.fn == nil {
+		return NoReg
+	}
+	// Check block params first (they're live-through the block)
+	for _, bp := range g.curBlock.Params {
+		if g.loc(bp.Dst) == "A" {
+			return bp.Dst
 		}
 	}
+	// Check function params that might still be in A
+	for _, cp := range g.fn.Contract.Params {
+		if g.loc(cp.Reg) == "A" {
+			return cp.Reg
+		}
+	}
+	return NoReg
+}
+
+// vregUsedInBlock checks if vreg is used in the instructions or terminator
+// of the block with the given label.
+func (g *z80cg) vregUsedInBlock(vreg Reg, label string) bool {
+	blk := g.fn.BlockByLabel(label)
+	if blk == nil {
+		return false
+	}
+	for _, inst := range blk.Insts {
+		for _, r := range inst.Uses() {
+			if r == vreg {
+				return true
+			}
+		}
+	}
+	if blk.Term != nil {
+		for _, r := range blk.Term.termUses() {
+			if r == vreg {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 func (g *z80cg) genCmp(inst *Inst) {
@@ -5765,13 +5836,6 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		// Strategy: jump to Then FIRST (before moving return values),
 		// because moving return values may emit instructions that clobber
 		// the flag register the condition depends on (e.g. OR A before SBC).
-		//
-		//   JRS cc, @then      ; when Cond!=0 → jump, skipping the return path
-		//   [move return vals] ; only executed when Cond==0
-		//   RET
-		//
-		// Compound conditions CGT/CLE need two jumps — no single Z80 condition
-		// encodes (NC && NZ) or (C || Z). Handle them separately.
 		cc := g.condCode(f, t.Cond)
 		copies := g.buildBlockCopies(f, t.Then, t.ThenArgs)
 		thenLbl := g.branchLabel(f, t.Then, copies)
