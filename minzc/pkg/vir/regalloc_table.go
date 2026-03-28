@@ -59,7 +59,10 @@ func GetRegAllocTable() *RegAllocTable {
 }
 
 // Lookup checks if a precomputed assignment exists for the given VIR ops.
-// Tries both the original signature format and the exhaustive GPU format.
+// Tries three signature formats in order:
+//   1. Original signature (legacy)
+//   2. Exhaustive GPU signature (56 entries)
+//   3. Enriched signature (shapeHash:opBagHash — O(1) from 37.6M entries)
 // Returns (assignment vreg→phys, cost, true) if found, (nil, 0, false) otherwise.
 func (t *RegAllocTable) Lookup(ops []VIROp, desc *MachineDesc) (map[int]int, int, bool) {
 	sig := ComputeSignature(ops, desc)
@@ -72,6 +75,13 @@ func (t *RegAllocTable) Lookup(ops []VIROp, desc *MachineDesc) (map[int]int, int
 		gpuSig := computeGPUSignature(ops, desc)
 		entry, ok = t.entries[gpuSig]
 		gpuHit = ok
+	}
+	if !ok {
+		// Try enriched signature (shapeHash:opBagHash)
+		esig := ComputeEnrichedSignature(ops, desc)
+		enrichedKey := fmt.Sprintf("%d:%d", esig.ShapeHash, esig.OpBagHash)
+		entry, ok = t.entries[enrichedKey]
+		gpuHit = ok // enriched entries also use GPU loc indices
 	}
 	t.mu.RUnlock()
 
@@ -175,6 +185,21 @@ func (t *RegAllocTable) loadDefaults() {
 			break
 		}
 	}
+
+	// Try enriched table (z80-optimizer, O(1) lookup for ≤6v)
+	for _, p := range []string{
+		os.ExpandEnv("$HOME/dev/z80-optimizer/data/enriched_regalloc.jsonl"),
+		os.ExpandEnv("$HOME/dev/minz-vir/data/enriched_regalloc.jsonl"),
+		"enriched_regalloc.jsonl",
+	} {
+		if err := t.LoadEnriched(p); err == nil {
+			break
+		}
+	}
+	// Also check env var for custom path
+	if p := os.Getenv("VIR_ENRICHED_TABLE"); p != "" {
+		t.LoadEnriched(p)
+	}
 }
 
 // LoadExhaustive loads entries from the exhaustive enumeration format.
@@ -208,6 +233,81 @@ func (t *RegAllocTable) LoadExhaustive(path string) error {
 	}
 	fmt.Fprintf(os.Stderr, "[regalloc] loaded %d exhaustive entries from %s\n", len(raw), path)
 	return nil
+}
+
+// LoadEnriched loads entries from z80-optimizer enriched table format.
+// Format: JSON-per-line with shapeHash, opBagHash, assignment, cost, flags.
+// Key: "shapeHash:opBagHash" → RegAllocEntry.
+func (t *RegAllocTable) LoadEnriched(path string) error {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	type enrichedEntry struct {
+		ShapeHash uint64 `json:"shapeHash"`
+		OpBagHash uint64 `json:"opBagHash"`
+		NVregs    int    `json:"nVregs"`
+		Cost      int    `json:"cost"`
+		Assignment []int `json:"assignment"`
+		Flags     struct {
+			NoAccumulator bool `json:"no_accumulator"`
+			NoHL          bool `json:"no_hl"`
+			Mul8Safe      bool `json:"mul8_safe"`
+			DjnzConflict  bool `json:"djnz_conflict"`
+			U16Capable    bool `json:"u16_capable"`
+		} `json:"flags"`
+	}
+
+	// Try JSON array first, then JSONL
+	var entries []enrichedEntry
+	if err := json.Unmarshal(data, &entries); err != nil {
+		// Try JSONL (one entry per line)
+		for _, line := range splitLines(data) {
+			if len(line) == 0 || line[0] != '{' {
+				continue
+			}
+			var e enrichedEntry
+			if err := json.Unmarshal(line, &e); err == nil {
+				entries = append(entries, e)
+			}
+		}
+	}
+
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	loaded := 0
+	for _, e := range entries {
+		key := fmt.Sprintf("%d:%d", e.ShapeHash, e.OpBagHash)
+		if _, exists := t.entries[key]; !exists {
+			t.entries[key] = &RegAllocEntry{
+				Signature:  key,
+				NVregs:     e.NVregs,
+				Cost:       e.Cost,
+				Assignment: e.Assignment,
+			}
+			loaded++
+		}
+	}
+	if loaded > 0 {
+		fmt.Fprintf(os.Stderr, "[regalloc] loaded %d enriched entries from %s\n", loaded, path)
+	}
+	return nil
+}
+
+func splitLines(data []byte) [][]byte {
+	var lines [][]byte
+	start := 0
+	for i, b := range data {
+		if b == '\n' {
+			lines = append(lines, data[start:i])
+			start = i + 1
+		}
+	}
+	if start < len(data) {
+		lines = append(lines, data[start:])
+	}
+	return lines
 }
 
 // ── Signature computation ───────────────────────────────────────────────────
