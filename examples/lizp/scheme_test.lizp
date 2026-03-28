@@ -1,0 +1,72 @@
+;; Scheme R5RS features on Z80 — Lizp extension test
+
+;; define shorthand (Scheme style)
+(define (square (x u8)) -> u8
+  (return (* x x)))
+
+(define (cube (x u8)) -> u8
+  (return (* x (* x x))))
+
+;; Scheme predicates
+(defun is-zero ((x u8)) -> u8
+  (return (if (zerop x) 1 0)))
+
+(defun is-even ((x u8)) -> u8
+  (return (if (even? x) 1 0)))
+
+(defun is-odd ((x u8)) -> u8
+  (return (if (odd? x) 1 0)))
+
+;; min/max
+(defun my-min ((a u8) (b u8)) -> u8
+  (return (min a b)))
+
+(defun my-max ((a u8) (b u8)) -> u8
+  (return (max a b)))
+
+;; cond (Scheme multi-way conditional)
+(defun classify ((x u8)) -> u8
+  (return (cond
+    ((< x 10) 1)    ;; small
+    ((< x 100) 2)   ;; medium
+    (t 3))))         ;; large
+
+;; let* with Scheme style
+(defun hypotenuse-sq ((x u8) (y u8)) -> u8
+  (return (let* ((xx u8 (* x x))
+                 (yy u8 (* y y)))
+    (+ xx yy))))
+
+;; threading macro (Clojure ->)
+(defun inc ((x u8)) -> u8
+  (return (+ x 1)))
+
+(defun dbl ((x u8)) -> u8
+  (return (+ x x)))
+
+;; Asserts
+(assert square 5 == 25)
+(assert square 0 == 0)
+(assert cube 3 == 27)
+(assert cube 2 == 8)
+
+(assert is-zero 0 == 1)
+(assert is-zero 5 == 0)
+(assert is-even 4 == 1)
+(assert is-even 7 == 0)
+(assert is-odd 7 == 1)
+(assert is-odd 4 == 0)
+
+(assert my-min 3 7 == 3)
+(assert my-min 10 2 == 2)
+(assert my-max 3 7 == 7)
+(assert my-max 10 2 == 10)
+
+(assert classify 5 == 1)
+(assert classify 50 == 2)
+(assert classify 200 == 3)
+
+(assert hypotenuse-sq 3 4 == 25)
+
+(assert inc 5 == 6)
+(assert dbl 5 == 10)

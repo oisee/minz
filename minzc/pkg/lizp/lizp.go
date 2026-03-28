@@ -84,6 +84,9 @@ func desugar(n lanz.Node, macros map[string]*macro) ([]lanz.Node, error) {
 		return desugarDefmacro(n, macros)
 	case "defun":
 		return desugarDefun(n)
+	case "define":
+		// Scheme R5RS: (define (name params...) body) → defun
+		return desugarDefine(n)
 	case "defstruct":
 		return desugarDefstruct(n)
 	case "defglobal":
@@ -151,6 +154,39 @@ func desugarDefun(n lanz.Node) ([]lanz.Node, error) {
 		Line: n.Line,
 	}
 	return []lanz.Node{result}, nil
+}
+
+// (define (name ((param type) ...)) -> rettype body...)
+// Scheme R5RS shorthand: (define (square ((x u8))) -> u8 (return (* x x)))
+// Also supports: (define name value) for simple constants → defglobal
+func desugarDefine(n lanz.Node) ([]lanz.Node, error) {
+	if len(n.List) < 3 {
+		return nil, fmt.Errorf("line %d: define: too few arguments", n.Line)
+	}
+	nameOrSig := n.List[1]
+	if nameOrSig.IsList() {
+		// (define (name params...) -> rettype body...) → (defun name params -> rettype body...)
+		if len(nameOrSig.List) < 1 {
+			return nil, fmt.Errorf("line %d: define: empty signature", n.Line)
+		}
+		// Rewrite as defun
+		defunList := []lanz.Node{atom("defun", n.Line)}
+		defunList = append(defunList, nameOrSig.List[0]) // name
+		if len(nameOrSig.List) > 1 {
+			// params as list
+			defunList = append(defunList, lanz.Node{List: nameOrSig.List[1:], Line: n.Line})
+		} else {
+			defunList = append(defunList, lanz.Node{List: nil, Line: n.Line}) // no params
+		}
+		defunList = append(defunList, n.List[2:]...) // -> rettype body...
+		return desugarDefun(lanz.Node{List: defunList, Line: n.Line})
+	}
+	// (define name value) → (defglobal name u8 value) — simple constant
+	elems := []lanz.Node{atom("global", n.Line), nameOrSig, atom("u8", n.Line)}
+	if len(n.List) >= 3 {
+		elems = append(elems, desugarExpr(n.List[2]))
+	}
+	return []lanz.Node{{List: elems, Line: n.Line}}, nil
 }
 
 // (defstruct name (field1 type1) (field2 type2) ...)
@@ -268,15 +304,80 @@ func desugarExpr(n lanz.Node) lanz.Node {
 		// (ash x n) → (<< x n) if n>0, (>> x (neg n)) if n<0
 		// Simplified: just pass through as << for now
 		return desugarBinOp(n, "<<")
-	case "zerop":
-		// (zerop x) → (== x 0)
+	case "zerop", "zero?", "null?":
+		// (zerop x) / (zero? x) / (null? x) → (== x 0)
 		if len(n.List) == 2 {
 			x := desugarExpr(n.List[1])
 			return list(n.Line, atom("==", n.Line), x, atom("0", n.Line))
 		}
 		return n
-	case "fn":
-		// Scheme-style lambda: (fn ((x u8)) u8 body) → (lambda ((x u8)) u8 body)
+	case "positive?":
+		// (positive? x) → (> x 0)
+		if len(n.List) == 2 {
+			x := desugarExpr(n.List[1])
+			return list(n.Line, atom(">", n.Line), x, atom("0", n.Line))
+		}
+		return n
+	case "negative?":
+		// (negative? x) → (< x 0) — always false for u8!
+		if len(n.List) == 2 {
+			x := desugarExpr(n.List[1])
+			return list(n.Line, atom("<", n.Line), x, atom("0", n.Line))
+		}
+		return n
+	case "not":
+		// (not x) → (== x 0) — logical not
+		if len(n.List) == 2 {
+			x := desugarExpr(n.List[1])
+			return list(n.Line, atom("==", n.Line), x, atom("0", n.Line))
+		}
+		return n
+	case "even?":
+		// (even? x) → (== (% x 2) 0)
+		if len(n.List) == 2 {
+			x := desugarExpr(n.List[1])
+			mod := list(n.Line, atom("%", n.Line), x, atom("2", n.Line))
+			return list(n.Line, atom("==", n.Line), mod, atom("0", n.Line))
+		}
+		return n
+	case "odd?":
+		// (odd? x) → (!= (% x 2) 0)
+		if len(n.List) == 2 {
+			x := desugarExpr(n.List[1])
+			mod := list(n.Line, atom("%", n.Line), x, atom("2", n.Line))
+			return list(n.Line, atom("!=", n.Line), mod, atom("0", n.Line))
+		}
+		return n
+	case "min":
+		// (min a b) → (if (< a b) a b)
+		if len(n.List) == 3 {
+			a := desugarExpr(n.List[1])
+			b := desugarExpr(n.List[2])
+			return list(n.Line, atom("if", n.Line),
+				list(n.Line, atom("<", n.Line), a, b), a, b)
+		}
+		return n
+	case "max":
+		// (max a b) → (if (> a b) a b)
+		if len(n.List) == 3 {
+			a := desugarExpr(n.List[1])
+			b := desugarExpr(n.List[2])
+			return list(n.Line, atom("if", n.Line),
+				list(n.Line, atom(">", n.Line), a, b), a, b)
+		}
+		return n
+	case "abs":
+		// (abs x) → (if (> x 127) (- 0 x) x) — u8 twos complement
+		if len(n.List) == 2 {
+			x := desugarExpr(n.List[1])
+			return list(n.Line, atom("if", n.Line),
+				list(n.Line, atom(">", n.Line), x, atom("127", n.Line)),
+				list(n.Line, atom("-", n.Line), atom("0", n.Line), x),
+				x)
+		}
+		return n
+	case "fn", "lambda":
+		// Scheme-style lambda: (fn ((x u8)) u8 body) or (lambda ((x u8)) u8 body)
 		return desugarRenamed(n, "lambda")
 	case "case":
 		// Scheme-style case: (case expr (val body) ...) → (match expr (val body) ...)
