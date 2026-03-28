@@ -379,6 +379,86 @@ func desugarExpr(n lanz.Node) lanz.Node {
 	case "fn", "lambda":
 		// Scheme-style lambda: (fn ((x u8)) u8 body) or (lambda ((x u8)) u8 body)
 		return desugarRenamed(n, "lambda")
+	case "do":
+		// Scheme R5RS do-loop:
+		// (do ((var init type step)) (test result) body...)
+		// → (block (var var type init) (while (not test) body... (set var step)) result)
+		return desugarDo(n)
+	case "letrec":
+		// (letrec ((name type val)) body) — same as let for our purposes
+		// (recursive bindings resolved at compile time)
+		return desugarLet(n)
+	case "modulo", "remainder", "mod":
+		// (modulo a b) → (% a b) — Lanz uses % for modulo
+		return desugarBinOp(n, "%")
+	case "quotient":
+		// (quotient a b) → (/ a b) — integer division
+		return desugarBinOp(n, "/")
+	case "char->integer":
+		// (char->integer c) → c (identity on Z80, chars are u8)
+		if len(n.List) == 2 {
+			return desugarExpr(n.List[1])
+		}
+		return n
+	case "integer->char":
+		// (integer->char n) → n (identity on Z80)
+		if len(n.List) == 2 {
+			return desugarExpr(n.List[1])
+		}
+		return n
+	case "string-ref":
+		// (string-ref str idx) → (load (+ str idx))
+		if len(n.List) == 3 {
+			str := desugarExpr(n.List[1])
+			idx := desugarExpr(n.List[2])
+			addr := list(n.Line, atom("+", n.Line), str, idx)
+			return list(n.Line, atom("load", n.Line), addr)
+		}
+		return n
+	case "string-length":
+		// (string-length str) → strlen(str) — needs runtime, approximate with 0
+		if len(n.List) == 2 {
+			return desugarExpr(n.List[1])
+		}
+		return n
+	case "display":
+		// (display x) → (call putchar x) — single char output
+		if len(n.List) == 2 {
+			return list(n.Line, atom("putchar", n.Line), desugarExpr(n.List[1]))
+		}
+		return n
+	case "newline":
+		// (newline) → (block (putchar 13) (putchar 10))
+		return list(n.Line, atom("block", n.Line),
+			list(n.Line, atom("putchar", n.Line), atom("13", n.Line)),
+			list(n.Line, atom("putchar", n.Line), atom("10", n.Line)))
+	case "number->string":
+		// stub — return the number itself
+		if len(n.List) == 2 {
+			return desugarExpr(n.List[1])
+		}
+		return n
+	case "bitwise-and":
+		return desugarBinOp(n, "&")
+	case "bitwise-or":
+		return desugarBinOp(n, "|")
+	case "bitwise-xor":
+		return desugarBinOp(n, "^")
+	case "bitwise-not":
+		// (bitwise-not x) → (^ x 255)
+		if len(n.List) == 2 {
+			return list(n.Line, atom("^", n.Line), desugarExpr(n.List[1]), atom("255", n.Line))
+		}
+		return n
+	case "arithmetic-shift":
+		// (arithmetic-shift x n) → (<< x n) if n>0, (>> x (- 0 n)) if n<0
+		return desugarBinOp(n, "<<")
+	case "exact->inexact", "inexact->exact":
+		// identity on Z80 (all integers)
+		if len(n.List) == 2 {
+			return desugarExpr(n.List[1])
+		}
+		return n
 	case "case":
 		// Scheme-style case: (case expr (val body) ...) → (match expr (val body) ...)
 		return desugarRenamed(n, "match")
@@ -396,6 +476,65 @@ func desugarExpr(n lanz.Node) lanz.Node {
 		// Recursively desugar children
 		return desugarList(n)
 	}
+}
+
+// (do ((var type init step)) (test result) body...)
+// → (block (var var type init) (while (not test) body... (set var step)) result)
+// Scheme R5RS iteration construct.
+func desugarDo(n lanz.Node) lanz.Node {
+	if len(n.List) < 3 || !n.List[1].IsList() || !n.List[2].IsList() {
+		return n
+	}
+	bindings := n.List[1] // ((var type init step) ...)
+	testClause := n.List[2] // (test result)
+	body := n.List[3:]
+
+	var stmts []lanz.Node
+	stmts = append(stmts, atom("block", n.Line))
+
+	// Declare loop variables
+	var stepSets []lanz.Node
+	for _, b := range bindings.List {
+		if !b.IsList() || len(b.List) < 3 {
+			continue
+		}
+		varName := b.List[0]
+		varType := b.List[1]
+		initVal := desugarExpr(b.List[2])
+		// (var name type init)
+		stmts = append(stmts, lanz.Node{
+			List: []lanz.Node{atom("var", b.Line), varName, varType, initVal},
+			Line: b.Line,
+		})
+		// step expression (if provided)
+		if len(b.List) >= 4 {
+			step := desugarExpr(b.List[3])
+			stepSets = append(stepSets, list(b.Line, atom("set", b.Line), varName, step))
+		}
+	}
+
+	// Test and result
+	test := desugarExpr(testClause.List[0])
+	var result lanz.Node
+	if len(testClause.List) >= 2 {
+		result = desugarExpr(testClause.List[1])
+	} else {
+		result = atom("0", n.Line)
+	}
+
+	// Build while loop: (while (not test) body... steps...)
+	notTest := list(n.Line, atom("==", n.Line), test, atom("0", n.Line))
+	var whileBody []lanz.Node
+	whileBody = append(whileBody, atom("while", n.Line), notTest)
+	for _, s := range body {
+		whileBody = append(whileBody, desugarExpr(s))
+	}
+	whileBody = append(whileBody, stepSets...)
+
+	stmts = append(stmts, lanz.Node{List: whileBody, Line: n.Line})
+	stmts = append(stmts, result)
+
+	return lanz.Node{List: stmts, Line: n.Line}
 }
 
 // (let ((name type val) (name2 type2 val2)) body...)
