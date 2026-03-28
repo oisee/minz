@@ -1462,6 +1462,7 @@ func solveIsland(ops []VIROp, desc *MachineDesc, opts SolverOptions, startPC int
 func emitPIRWithLabels(sb *strings.Builder, pirOps []PIROp, ops []VIROp, ranges []islandRange, startPC int, funcName string, desc *MachineDesc, f *mir2.Func) {
 	pirCursor := 0
 	opCursor := 0
+	emittedLabels := make(map[string]bool)
 	for _, br := range ranges {
 		if br.end <= startPC || br.start >= startPC+len(ops) {
 			continue // block outside this island
@@ -1472,9 +1473,10 @@ func emitPIRWithLabels(sb *strings.Builder, pirOps []PIROp, ops []VIROp, ranges 
 		if localStart < 0 { localStart = 0 }
 		if localEnd > len(ops) { localEnd = len(ops) }
 
-		// Emit block label (except first block = function entry)
-		if br.start > startPC && br.label != "" {
+		// Emit block label (except the entry block which uses the function name)
+		if br.label != "" && br.label != "entry" && !emittedLabels[br.label] {
 			sb.WriteString("." + funcName + "_" + br.label + ":\n")
+			emittedLabels[br.label] = true
 		}
 
 		// Emit PIROps for this block

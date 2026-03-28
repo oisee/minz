@@ -1925,7 +1925,50 @@ func parsePerInstSolution(p *problem, model string, desc *MachineDesc) ([]PIROp,
 // findMovePattern finds a move pattern for source → dest physical registers.
 // Tries exact-width first, then cross-width (truncation/extension) patterns.
 // Skips EX-based patterns (swaps) — inter-instruction moves must be copies.
+// Falls back to pair→half mapping when the solver assigns an 8-bit vreg to a
+// 16-bit pair location (e.g., IY→A: try IYL→A instead).
+// Returns the pattern AND remapped src/dst via the pointer args (if non-nil).
 func findMovePattern(desc *MachineDesc, srcPhys, dstPhys int) *Pattern {
+	_, pat := findMovePatternRemap(desc, srcPhys, dstPhys)
+	return pat
+}
+
+// findMovePatternRemap returns (remappedSrc, pattern) or (remappedDst, pattern).
+// The caller should use the remapped values for PIROp emission.
+func findMovePatternRemap(desc *MachineDesc, srcPhys, dstPhys int) (int, *Pattern) {
+	pat := findMovePatternDirect(desc, srcPhys, dstPhys)
+	if pat != nil {
+		return srcPhys, pat
+	}
+	halfMap := map[string]string{
+		"BC": "C", "DE": "E", "HL": "L", "IX": "IXL", "IY": "IYL",
+	}
+	// Fallback: if src is a 16-bit pair and dst is 8-bit, try the low half.
+	if srcPhys >= 0 && srcPhys < len(desc.Locs) && desc.Locs[srcPhys].Width == 16 {
+		if halfName, ok := halfMap[desc.Locs[srcPhys].Name]; ok {
+			halfIdx := desc.LocByName(halfName)
+			if halfIdx >= 0 {
+				if p := findMovePatternDirect(desc, halfIdx, dstPhys); p != nil {
+					return halfIdx, p // remapped src
+				}
+			}
+		}
+	}
+	// Also try: dst is 16-bit pair, src is 8-bit → try the low half
+	if dstPhys >= 0 && dstPhys < len(desc.Locs) && desc.Locs[dstPhys].Width == 16 {
+		if halfName, ok := halfMap[desc.Locs[dstPhys].Name]; ok {
+			halfIdx := desc.LocByName(halfName)
+			if halfIdx >= 0 {
+				if p := findMovePatternDirect(desc, srcPhys, halfIdx); p != nil {
+					return srcPhys, p // dst remapped (caller updates DstPhys)
+				}
+			}
+		}
+	}
+	return srcPhys, nil
+}
+
+func findMovePatternDirect(desc *MachineDesc, srcPhys, dstPhys int) *Pattern {
 	dstWidth := 8
 	if dstPhys >= 0 && dstPhys < len(desc.Locs) {
 		dstWidth = desc.Locs[dstPhys].Width

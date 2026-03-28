@@ -211,10 +211,104 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 		}
 	}
 
-	// Inject live-through vregs at CALL/clobber points.
-	// A vreg is live-through block B if it's in liveIn[B] AND
-	// (liveOut[B] OR used-after-call within B).
-	// At each CALL in B, the vreg needs a clobber constraint.
+	// Inject function params into blocks that use them but don't define them.
+	// Per-block liveness misses cross-block params (e.g., param b used in block 2
+	// but not in block 0). Without injection, the Z3 model has no variable for b
+	// in block 0, preventing edge moves from being emitted.
+	funcParams := make(map[int]bool) // set of function param vregs
+	for _, cp := range f.Contract.Params {
+		if cp.Reg != mir2.NoReg {
+			funcParams[int(cp.Reg)] = true
+		}
+	}
+	if len(funcParams) > 0 {
+		// First: identify which params are used in ANY non-entry block
+		paramUsedLater := make(map[int]bool)
+		for bi, bp := range blocks {
+			if bi == 0 {
+				continue // skip entry
+			}
+			for paramV := range funcParams {
+				for _, op := range bp.ops {
+					for _, s := range op.Src {
+						if s == paramV {
+							paramUsedLater[paramV] = true
+						}
+					}
+				}
+			}
+		}
+
+		for bi, bp := range blocks {
+			for paramV := range funcParams {
+				// Entry block: inject params used in later blocks at ALL instructions.
+				// This ensures: (1) Z3 variables exist for edge move constraints,
+				// (2) interference with other params is correct (a≠b at entry),
+				// (3) move cost pairs are generated for consecutive instructions.
+				if bi == 0 && paramUsedLater[paramV] && len(bp.prob.liveness) > 0 {
+					for li := range bp.prob.liveness {
+						bp.prob.liveness[li].live[paramV] = true
+					}
+					bp.prob.vregs[paramV] = true
+				}
+
+				// Non-entry blocks: inject at i0 and use points
+				if bi > 0 {
+					usedInBlock := false
+					for _, op := range bp.ops {
+						for _, s := range op.Src {
+							if s == paramV {
+								usedInBlock = true
+								break
+							}
+						}
+						if usedInBlock {
+							break
+						}
+					}
+					if !usedInBlock {
+						continue
+					}
+					for i, op := range bp.ops {
+						if i >= len(bp.prob.liveness) {
+							break
+						}
+						needInject := (i == 0) // at block entry
+						for _, s := range op.Src {
+							if s == paramV {
+								needInject = true
+								break
+							}
+						}
+						if needInject && !bp.prob.liveness[i].live[paramV] {
+							bp.prob.liveness[i].live[paramV] = true
+							bp.prob.vregs[paramV] = true
+						}
+					}
+				}
+			}
+		}
+		// Recompute blockLiveIn/Out now that params are injected
+		for i := range blockLiveIn {
+			blockLiveIn[i] = make(map[int]bool)
+			blockLiveOut[i] = make(map[int]bool)
+		}
+		for _, edge := range edges {
+			fromBP := blocks[edge.fromBlock]
+			fromLastIdx := len(fromBP.ops) - 1
+			if fromLastIdx < 0 {
+				continue
+			}
+			for vreg := range fromBP.prob.liveness[fromLastIdx].live {
+				blockLiveOut[edge.fromBlock][vreg] = true
+				blockLiveIn[edge.toBlock][vreg] = true
+			}
+		}
+	}
+
+	// Inject live-in vregs into per-block liveness for two purposes:
+	// 1. At CLOBBER instructions (CALL): clobber constraints need the vreg
+	// 2. At block entry (inst 0) and where used: edge moves and proper allocation
 	for bi, bp := range blocks {
 		liveIn := blockLiveIn[bi]
 		_ = blockLiveOut[bi] // used for future live-through analysis
@@ -222,17 +316,35 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 			continue
 		}
 
-		// Inject live-in vregs at CLOBBER instructions (CALL/AsmBlock) only.
-		// This ensures clobber constraints fire without over-constraining
-		// interference at every instruction (which causes unsat for large functions).
 		for vreg := range liveIn {
 			injected := false
+			// Inject at CLOBBER instructions (CALL/AsmBlock)
 			for i, op := range bp.ops {
 				if !op.Clobbers.IsEmpty() && i < len(bp.prob.liveness) {
 					if !bp.prob.liveness[i].live[vreg] {
 						bp.prob.liveness[i].live[vreg] = true
 						injected = true
 					}
+				}
+			}
+			// Inject at instruction 0 (for edge move constraints) and at
+			// all instructions where this vreg is used as a source.
+			// This ensures the Z3 model has variables for cross-block params
+			// at the block boundary AND at their use points.
+			for i, op := range bp.ops {
+				if i >= len(bp.prob.liveness) {
+					break
+				}
+				needInject := (i == 0) // always at block entry
+				for _, s := range op.Src {
+					if s == vreg {
+						needInject = true
+						break
+					}
+				}
+				if needInject && !bp.prob.liveness[i].live[vreg] {
+					bp.prob.liveness[i].live[vreg] = true
+					injected = true
 				}
 			}
 			if injected {
@@ -745,11 +857,11 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 						prevLoc, hasPrev := vals[prevKey]
 						if hasPrev {
 							if prevLoc != currLoc {
-								movePat := findMovePattern(desc, prevLoc, currLoc)
+								remSrc, movePat := findMovePatternRemap(desc, prevLoc, currLoc)
 								if movePat != nil {
 									pirOps = append(pirOps, PIROp{
 										Pat: movePat, DstPhys: currLoc,
-										SrcPhys: [2]int{prevLoc, -1},
+										SrcPhys: [2]int{remSrc, -1},
 									})
 								} else {
 									srcName, dstName := "?", "?"
@@ -811,12 +923,39 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 			toLive = toBP.prob.liveness[0].live
 		}
 
-		// Sort for deterministic emission order
+		// Collect vregs that need edge moves:
+		// 1. Live at both ends of the edge (classic case)
+		// 2. Used in destination but not defined there (cross-block live-through,
+		//    e.g., function params used in later blocks)
 		edgeVRegs := make([]int, 0)
+		edgeVRegSet := make(map[int]bool)
 		for vreg := range fromLive {
 			if toLive != nil && toLive[vreg] {
-				edgeVRegs = append(edgeVRegs, vreg)
+				edgeVRegSet[vreg] = true
 			}
+		}
+		// Add vregs used in destination block but defined elsewhere
+		// (function params, cross-block values). These may not appear in
+		// per-block liveness if only used in successor blocks.
+		for _, op := range toBP.ops {
+			for _, s := range op.Src {
+				if s > 0 && !edgeVRegSet[s] {
+					// Check if this vreg is defined in the destination block
+					definedInTo := false
+					for _, dop := range toBP.ops {
+						if dop.Dst == s {
+							definedInTo = true
+							break
+						}
+					}
+					if !definedInTo {
+						edgeVRegSet[s] = true
+					}
+				}
+			}
+		}
+		for v := range edgeVRegSet {
+			edgeVRegs = append(edgeVRegs, v)
 		}
 		sort.Ints(edgeVRegs)
 
@@ -826,12 +965,24 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 			toKey := fmt.Sprintf("lv%d_b%d_i%d", vreg, edge.toBlock, 0)
 			fromLoc, hasFrom := vals[fromKey]
 			toLoc, hasTo := vals[toKey]
+
+			// If vreg has no Z3 variable in the source block (live-through param
+			// not used in that block), use its initial ABI location from FuncParamLocs.
+			if !hasFrom && hasTo {
+				if paramLocs := paramHintsEarly; len(paramLocs) > 0 {
+					if pl, ok := paramLocs[vreg]; ok {
+						fromLoc = pl
+						hasFrom = true
+					}
+				}
+			}
+
 			if hasFrom && hasTo && fromLoc != toLoc {
-				movePat := findMovePattern(desc, fromLoc, toLoc)
+				remappedSrc, movePat := findMovePatternRemap(desc, fromLoc, toLoc)
 				if movePat != nil {
 					edgeMoveOps = append(edgeMoveOps, PIROp{
 						Pat: movePat, DstPhys: toLoc,
-						SrcPhys:  [2]int{fromLoc, -1},
+						SrcPhys:  [2]int{remappedSrc, -1},
 						Comment: fmt.Sprintf("edge move v%d: %s→%s", vreg, desc.Locs[fromLoc].Name, desc.Locs[toLoc].Name),
 					})
 				} else {
