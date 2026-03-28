@@ -207,6 +207,13 @@ func (vm *VM) AllocHeap(data []byte) Value {
 	return Value{I: offset}
 }
 
+// EnsureHeap grows the heap if needed to hold at least minSize bytes.
+func (vm *VM) EnsureHeap(minSize int64) {
+	if int(minSize) > len(vm.heap) {
+		vm.heap = append(vm.heap, make([]byte, int(minSize)-len(vm.heap))...)
+	}
+}
+
 // WriteHeap writes a single byte to the VM heap at addr.
 func (vm *VM) WriteHeap(addr int64, b byte) {
 	if addr >= 0 && int(addr) < len(vm.heap) {

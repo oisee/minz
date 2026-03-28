@@ -210,13 +210,90 @@ fun count_tokens_in(s: ^u8, len: u16) -> u16 {
 
 // ── Asserts ─────────────────────────────────────────────
 
-assert is_digit(48) == 1
-assert is_digit(57) == 1
-assert is_digit(65) == 0
-assert is_alpha(65) == 1
-assert is_alpha(48) == 0
-assert is_alpha(95) == 1
-assert is_space(32) == 1
-assert is_space(65) == 0
+// ── Token name for display ──────────────────────────────
 
-fun main() -> u8 { return 0 }
+fun print_tok_name(tok: u8) -> void {
+    if tok == 0 { @print("EOF") }
+    if tok == 1 { @print("IDENT") }
+    if tok == 2 { @print("INT") }
+    if tok == 3 { @print("LPAREN") }
+    if tok == 4 { @print("RPAREN") }
+    if tok == 5 { @print("LBRACE") }
+    if tok == 6 { @print("RBRACE") }
+    if tok == 7 { @print("COLON") }
+    if tok == 8 { @print("COMMA") }
+    if tok == 9 { @print("ARROW") }
+    if tok == 10 { @print("EQ") }
+    if tok == 11 { @print("PLUS") }
+    if tok == 12 { @print("MINUS") }
+    if tok == 13 { @print("STAR") }
+    if tok == 14 { @print("SLASH") }
+    if tok == 17 { @print("STRING") }
+    if tok == 19 { @print("SEMI") }
+}
+
+// ── Print token text from source ────────────────────────
+
+// ── Main: tokenize hardcoded source and print tokens ────
+
+fun tokenize_buffer(len: u16) -> u16 {
+    src_len = len
+    pos = 0
+    var count: u16 = 0
+    var tok: u8 = next_token()
+    while tok != TOK_EOF {
+        print_tok_name(tok)
+        @print(" ")
+        count = count + 1
+        tok = next_token()
+    }
+    return count
+}
+
+fun main() -> void {
+    // Hardcode tiny source: "fun add(a: u8) -> u8 { return a + a }"
+    // ASCII: fun=102,117,110 add=97,100,100 etc
+    poke(src_buf, 102) poke(src_buf+1, 117) poke(src_buf+2, 110)  // fun
+    poke(src_buf+3, 32)                                             // space
+    poke(src_buf+4, 97) poke(src_buf+5, 100) poke(src_buf+6, 100)  // add
+    poke(src_buf+7, 40)                                             // (
+    poke(src_buf+8, 97)                                             // a
+    poke(src_buf+9, 58)                                             // :
+    poke(src_buf+10, 32)                                            // space
+    poke(src_buf+11, 117) poke(src_buf+12, 56)                     // u8
+    poke(src_buf+13, 41)                                            // )
+    poke(src_buf+14, 32)                                            // space
+    poke(src_buf+15, 45) poke(src_buf+16, 62)                      // ->
+    poke(src_buf+17, 32)                                            // space
+    poke(src_buf+18, 117) poke(src_buf+19, 56)                     // u8
+    poke(src_buf+20, 32)                                            // space
+    poke(src_buf+21, 123)                                           // {
+    poke(src_buf+22, 32)                                            // space
+    poke(src_buf+23, 97)                                            // a
+    poke(src_buf+24, 32)                                            // space
+    poke(src_buf+25, 43)                                            // +
+    poke(src_buf+26, 32)                                            // space
+    poke(src_buf+27, 97)                                            // a
+    poke(src_buf+28, 32)                                            // space
+    poke(src_buf+29, 125)                                           // }
+    poke(src_buf+30, 0)                                             // null
+
+    @print("Tokenizing: fun add(a: u8) -> u8 { a + a }")
+    @print_nl()
+    let count: u16 = tokenize_buffer(30)
+    @print_nl()
+    @print("Tokens: ")
+    @print_u8(count)
+    @print_nl()
+}
+
+// ── Asserts ─────────────────────────────────────────────
+
+assert is_digit(48) == 1 via mir2
+assert is_digit(57) == 1 via mir2
+assert is_digit(65) == 0 via mir2
+assert is_alpha(65) == 1 via mir2
+assert is_alpha(48) == 0 via mir2
+assert is_alpha(95) == 1 via mir2
+assert is_space(32) == 1 via mir2
+assert is_space(65) == 0 via mir2

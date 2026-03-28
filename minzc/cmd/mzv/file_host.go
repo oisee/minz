@@ -79,6 +79,31 @@ func registerFileHosts(vm *mir2.VM, baseDir string, trace bool) {
 		return []mir2.Value{{I: int64(len(data))}}, nil
 	}
 
+	// peek(addr: u16) -> u8 — read byte from VM heap
+	// Auto-extends heap if needed (Z80 has 64KB address space).
+	vm.Hosts["peek"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		addr := args[0].I
+		vm.EnsureHeap(addr + 1)
+		b := vm.ReadHeap(addr, 1)
+		if b == nil || len(b) == 0 {
+			return []mir2.Value{{I: 0}}, nil
+		}
+		return []mir2.Value{{I: int64(b[0])}}, nil
+	}
+
+	// poke(addr: u16, val: u8) -> void — write byte to VM heap
+	// Auto-extends heap if needed.
+	vm.Hosts["poke"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		addr := args[0].I
+		val := byte(args[1].I)
+		vm.EnsureHeap(addr + 1)
+		vm.WriteHeap(addr, val)
+		if trace {
+			fmt.Fprintf(os.Stderr, "  poke(%d, %d)\n", addr, val)
+		}
+		return nil, nil
+	}
+
 	// @file_exists(path: ^u8) -> u8
 	vm.Hosts["@file_exists"] = func(args []mir2.Value) ([]mir2.Value, error) {
 		path := resolve(readStr(args[0].I))
