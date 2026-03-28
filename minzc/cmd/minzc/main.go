@@ -74,6 +74,10 @@ var (
 	useZ3        bool    // Use Z3 SMT solver for optimal regalloc (legacy, use --vir instead)
 	optSize      bool    // -Osize: optimize for code size (Grace reroll, DJNZ loops)
 
+	// Assert control
+	assertMode   string  // --asserts mir|z80|all|none — select which assert backends run
+	assertForce  string  // --asserts-force mir|z80 — force ALL asserts to run on this backend
+
 	// Debug info
 	emitSLD      bool    // Emit SLD file for DeZog source-level debugging
 	annotateTStates bool // Annotate each instruction with its Z80 T-state cost
@@ -213,6 +217,8 @@ func init() {
 	rootCmd.Flags().BoolVar(&useVIR, "vir", true, "use VIR backend (Z3 joint isel+regalloc, -71% vs SDCC) [default]")
 	rootCmd.Flags().BoolVar(&useZ3, "z3", false, "use Z3 SMT solver for optimal register allocation (slower, provably optimal)")
 	rootCmd.Flags().BoolVar(&optSize, "Osize", false, "optimize for code size: Grace reroll (repeated CALLs → DJNZ loop + data table)")
+	rootCmd.Flags().StringVar(&assertMode, "asserts", "", "assert backend: mir2, z80, all (default), none")
+	rootCmd.Flags().StringVar(&assertForce, "asserts-force", "", "force ALL asserts to run on this backend (mir2 or z80), ignoring 'via' annotations")
 	rootCmd.Flags().BoolVar(&emitSLD, "emit-sld", false, "emit SLD file for DeZog source-level debugging")
 	rootCmd.Flags().BoolVar(&annotateTStates, "annotate-tstates", false, "annotate each Z80 instruction with its T-state cost")
 	rootCmd.Flags().StringVar(&emitFormat, "emit", "", "emit format: nanz (HIR as Nanz syntax), hir (HIR typed tree), lanz (HIR as S-expr), mir2-raw, mir2 (works with .plm/.nanz/.lanz input)")
@@ -861,6 +867,16 @@ func compileViaHIR(sourceFile string) error {
 		lir.UseZ3 = true
 	}
 
+	// --asserts-force overrides all 'via' annotations
+	am := assertMode
+	if assertForce != "" {
+		am = assertForce
+		// Force all asserts to specified backend by rewriting Via
+		for i := range hirMod.Asserts {
+			hirMod.Asserts[i].Via = ""
+		}
+	}
+
 	steps, err := pipeline.CompileHIRSteps(hirMod, pipeline.Options{
 		ContractOpt:     true,
 		AnnotateTStates: annotateTStates,
@@ -868,6 +884,7 @@ func compileViaHIR(sourceFile string) error {
 		UseVIR:          useVIR && !useLIR, // --vir is default; --lir overrides it
 		OptSize:         optSize,           // --Osize enables Grace reroll
 		Backend:         backend,
+		AssertMode:      am,
 	})
 	if err != nil {
 		return fmt.Errorf("HIR compile: %w", err)

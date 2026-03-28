@@ -109,6 +109,12 @@ type Options struct {
 	// Backend selects the codegen backend: "z80" (default), "ez80".
 	// When "ez80", the pipeline generates eZ80 ADL assembly instead of Z80.
 	Backend string
+	// AssertMode controls which assert backends run:
+	//   "" or "all" = both MIR2 VM + Z80 emulator (default)
+	//   "mir2"      = MIR2 VM only (skip Z80 — use when Z80 codegen has known bugs)
+	//   "z80"       = Z80 emulator only (skip MIR2)
+	//   "none"      = skip all asserts
+	AssertMode string
 }
 
 // DefaultOptions returns options with all recommended passes enabled.
@@ -283,8 +289,10 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	}
 
 	// MIR2 VM assertion checks (skip "z80"-only asserts).
-	if err := RunAssertsMIR2(hm, m); err != nil {
-		return s, err
+	if opt.AssertMode != "z80" && opt.AssertMode != "none" {
+		if err := RunAssertsMIR2(hm, m); err != nil {
+			return s, err
+		}
 	}
 
 	if opt.UseVIR {
@@ -497,7 +505,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	}
 
 	// Z80 binary assertion checks (skip for eZ80 — different encoding).
-	if opt.Backend != "ez80" {
+	if opt.Backend != "ez80" && opt.AssertMode != "mir2" && opt.AssertMode != "none" {
 		if err := RunAssertsZ80(hm, m, combined, s.Assembly); err != nil {
 			return s, err
 		}
