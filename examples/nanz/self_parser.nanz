@@ -374,13 +374,14 @@ fun parse_param() -> u16 {
 }
 
 // fun name(params) -> type { body }
+// AST_FUN: d0=name, d1=params_node, d2=0
+// Params node: AST_BLOCK with d0=first_param, d1=second_param, d2=ret_type
+// This encodes: name, param list, return type, body all reachable
 fun parse_fun() -> u16 {
-    // 'fun' already consumed
     let name: u16 = cur_str()
     expect(TOK_IDENT)
     expect(TOK_LPAREN)
 
-    // params (0-2 for now)
     let p0: u16 = 0
     let p1: u16 = 0
     if cur_tok() != TOK_RPAREN {
@@ -392,17 +393,18 @@ fun parse_fun() -> u16 {
     }
     expect(TOK_RPAREN)
 
-    // -> return_type
     expect(TOK_ARROW)
     let ret_type: u16 = cur_str()
     expect(TOK_IDENT)
 
-    // { body }
     expect(TOK_LBRACE)
     let body: u16 = parse_return()
     expect(TOK_RBRACE)
 
-    return ast_new(AST_FUN, name, body, ret_type)
+    // Pack: params_block = (p0, p1, ret_type)
+    let params: u16 = ast_new(AST_BLOCK, p0, p1, ret_type)
+    // fun_node = (name, params_block, body)
+    return ast_new(AST_FUN, name, params, body)
 }
 
 // ── Parse program ───────────────────────────────────────
@@ -443,12 +445,21 @@ fun print_ast(node: u16) -> void {
     let tag: u8 = ast_tag(node)
 
     if tag == AST_FUN {
+        // d0=name, d1=params_block, d2=body
+        let params_blk: u16 = ast_d1(node)
+        let ret_type: u16 = ast_d2(params_blk)  // ret_type in params block d2
         @print("(fun ")
         print_str_arena(ast_d0(node))
-        @print(" -> ")
-        print_str_arena(ast_d2(node))
+        @print(" (")
+        // Print params
+        let p0: u16 = ast_d0(params_blk)
+        let p1: u16 = ast_d1(params_blk)
+        if p0 != 0 { print_ast(p0) }
+        if p1 != 0 { @print(" ") print_ast(p1) }
+        @print(") ")
+        print_str_arena(ret_type)
         @print(" ")
-        print_ast(ast_d1(node))
+        print_ast(ast_d2(node))  // body
         @print(")")
         return
     }
@@ -479,9 +490,9 @@ fun print_ast(node: u16) -> void {
         return
     }
     if tag == AST_PARAM {
-        @print("(param ")
+        @print("(")
         print_str_arena(ast_d0(node))
-        @print(":")
+        @print(" ")
         print_str_arena(ast_d1(node))
         @print(")")
         return
