@@ -4797,7 +4797,7 @@ func (g *z80cg) materializePendingAcc(upcomingInst *Inst) {
 		return
 	}
 	scratch := g.pickScratch8(upcomingInst)
-	g.emitf("    LD %s, A", scratch)
+	g.emitf("    LD %s, A    ; materialize r%d (pendingAcc)", scratch, g.pendingAccReg)
 	g.physOverride[g.pendingAccReg] = scratch
 	g.pendingAccReg = NoReg
 }
@@ -5326,6 +5326,27 @@ func (g *z80cg) genCall(inst *Inst) {
 	for r, phys := range g.physOverride {
 		if phys == "A" || phys == "F" {
 			delete(g.physOverride, r)
+		}
+	}
+
+	// After CALL: A holds the return value (for u8 returns).
+	// Record this so materializePendingAcc saves it before next ALU overwrite.
+	if inst.Dst != NoReg {
+		retLoc := g.ar.Loc(inst.Dst)
+		if retLoc.Kind == LocReg && retLoc.Name == "A" {
+			g.setCopy("A", "A")
+			g.pendingAccReg = inst.Dst
+		}
+		// Also handle case where CALL result is u8 but allocated elsewhere
+		// (still arrives in A from callee's RET convention).
+		if retLoc.Name != "A" && callee != nil && len(callee.Contract.Returns) > 0 {
+			ret := callee.Contract.Returns[0]
+			if ret.Class == ClassAcc || (ret.Ty != nil && ret.Ty.Width() <= 8 && ret.Class != ClassFlag) {
+				// Result IS in A (callee returns u8 in A), but PBQP allocated dst elsewhere.
+				// Set pendingAccReg so it gets saved before A is overwritten.
+				g.pendingAccReg = inst.Dst
+				g.comment(fmt.Sprintf("CALL result r%d in A (alloc=%s), pendingAcc set", inst.Dst, retLoc.Name))
+			}
 		}
 	}
 
