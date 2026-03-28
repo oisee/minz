@@ -615,20 +615,31 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 
 	// Recursive island decomposition: split function at liveness bottlenecks,
 	// solve each island independently, stitch with LD moves at boundaries.
-	vfIsland := deepCopyFunc(vf)
-	islandASM, islandErr := codegenFuncIslands(f, vfIsland, desc, opts)
-	if islandErr == nil {
-		fmt.Fprintf(os.Stderr, "[vir] %s: island decomposition OK\n", f.Name)
-		return islandASM, nil
+	// SKIP for self-recursive functions: island split at CALL inserts RET
+	// between islands, making post-CALL code unreachable.
+	isSelfRecursive := false
+	for _, b := range f.Blocks {
+		for _, inst := range b.Insts {
+			if inst.Op == mir2.OpCall && inst.Sym == f.Name {
+				isSelfRecursive = true
+			}
+		}
+	}
+	if isSelfRecursive {
+		fmt.Fprintf(os.Stderr, "[vir] %s: skip island decomposition (self-recursive)\n", f.Name)
+	} else {
+		vfIsland := deepCopyFunc(vf)
+		islandASM, islandErr := codegenFuncIslands(f, vfIsland, desc, opts)
+		if islandErr == nil {
+			fmt.Fprintf(os.Stderr, "[vir] %s: island decomposition OK\n", f.Name)
+			return islandASM, nil
+		}
 	}
 
 	// All VIR solvers failed → return error → PBQP fallback in CodegenModule
 	errMsg := standErr
 	if constRan && constErr != nil {
 		errMsg = constErr
-	}
-	if islandErr != nil {
-		errMsg = islandErr
 	}
 	return "", fmt.Errorf("all VIR solvers failed: %v", errMsg)
 }
