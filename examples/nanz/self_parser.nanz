@@ -1,0 +1,564 @@
+// Self-hosting parser — Nanz parses Nanz on MZV!
+//
+// Depends on self_tokenizer.nanz (token arena at 0xB000)
+// AST arena at 0x8000
+//
+// Parses: fun name(params) -> type { body }
+//
+// Run: mzv self_parser.nanz -v
+
+// ── Host functions ──────────────────────────────────────
+@extern fun peek(addr: u16) -> u8
+@extern fun poke(addr: u16, val: u8) -> void
+
+// ═══════════════════════════════════════════════════════
+// Inline tokenizer (same as self_tokenizer.nanz)
+// ═══════════════════════════════════════════════════════
+
+// Memory layout
+global str_arena: u16 = 0x9000
+global str_bump: u16 = 0x9000
+global tok_arena: u16 = 0xB000
+global tok_count: u16 = 0
+global src_buf: u16 = 0xC000
+global src_len: u16 = 0
+global pos: u16 = 0
+global tok_start: u16 = 0
+
+// Token types
+global TOK_EOF: u8 = 0
+global TOK_IDENT: u8 = 1
+global TOK_INT: u8 = 2
+global TOK_LPAREN: u8 = 3
+global TOK_RPAREN: u8 = 4
+global TOK_LBRACE: u8 = 5
+global TOK_RBRACE: u8 = 6
+global TOK_COLON: u8 = 7
+global TOK_COMMA: u8 = 8
+global TOK_ARROW: u8 = 9
+global TOK_EQ: u8 = 10
+global TOK_EQEQ: u8 = 11
+global TOK_PLUS: u8 = 12
+global TOK_MINUS: u8 = 13
+global TOK_STAR: u8 = 14
+global TOK_SLASH: u8 = 15
+global TOK_LT: u8 = 16
+global TOK_GT: u8 = 17
+global TOK_STRING: u8 = 21
+global TOK_KW: u8 = 30
+
+// Keyword pointers
+global KW_FUN: u16 = 0
+global KW_FN: u16 = 0
+global KW_RETURN: u16 = 0
+global KW_IF: u16 = 0
+global KW_ELSE: u16 = 0
+global KW_WHILE: u16 = 0
+global KW_LET: u16 = 0
+global KW_VAR: u16 = 0
+
+// AST node types
+global AST_FUN: u8 = 1
+global AST_PARAM: u8 = 2
+global AST_RETURN: u8 = 3
+global AST_BINOP: u8 = 4
+global AST_IDENT: u8 = 5
+global AST_INT: u8 = 6
+global AST_CALL: u8 = 7
+global AST_IF: u8 = 8
+global AST_BLOCK: u8 = 9
+
+// ── Character helpers ───────────────────────────────────
+
+fun is_digit(c: u8) -> u8 {
+    if c >= 48 { if c <= 57 { return 1 } }
+    return 0
+}
+fun is_alpha(c: u8) -> u8 {
+    if c >= 65 { if c <= 90 { return 1 } }
+    if c >= 97 { if c <= 122 { return 1 } }
+    if c == 95 { return 1 }
+    return 0
+}
+fun is_alnum(c: u8) -> u8 {
+    if is_digit(c) == 1 { return 1 }
+    return is_alpha(c)
+}
+fun is_space(c: u8) -> u8 {
+    if c == 32 { return 1 }
+    if c == 9 { return 1 }
+    if c == 10 { return 1 }
+    if c == 13 { return 1 }
+    return 0
+}
+
+// ── String arena ────────────────────────────────────────
+
+fun str_alloc_2(a: u8, b: u8) -> u16 {
+    let p: u16 = str_bump
+    poke(p, 2) poke(p+1, a) poke(p+2, b)
+    str_bump = str_bump + 3
+    return p
+}
+fun str_alloc_3(a: u8, b: u8, c: u8) -> u16 {
+    let p: u16 = str_bump
+    poke(p, 3) poke(p+1, a) poke(p+2, b) poke(p+3, c)
+    str_bump = str_bump + 4
+    return p
+}
+fun str_alloc_5(a: u8, b: u8, c: u8, d: u8, e: u8) -> u16 {
+    let p: u16 = str_bump
+    poke(p, 5) poke(p+1, a) poke(p+2, b) poke(p+3, c) poke(p+4, d) poke(p+5, e)
+    str_bump = str_bump + 6
+    return p
+}
+fun str_alloc_6(a: u8, b: u8, c: u8, d: u8, e: u8, f: u8) -> u16 {
+    let p: u16 = str_bump
+    poke(p, 6) poke(p+1, a) poke(p+2, b) poke(p+3, c) poke(p+4, d) poke(p+5, e) poke(p+6, f)
+    str_bump = str_bump + 7
+    return p
+}
+
+fun region_eq(src_start: u16, arena_ptr: u16, len: u8) -> u8 {
+    var i: u8 = 0
+    while i < len {
+        if peek(src_buf + src_start + i) != peek(arena_ptr + 1 + i) { return 0 }
+        i = i + 1
+    }
+    return 1
+}
+
+fun intern(start: u16, len: u8) -> u16 {
+    var p: u16 = str_arena
+    while p < str_bump {
+        let slen: u8 = peek(p)
+        if slen == len {
+            if region_eq(start, p, len) == 1 { return p }
+        }
+        p = p + 1 + slen
+    }
+    let new_p: u16 = str_bump
+    poke(str_bump, len)
+    var j: u8 = 0
+    while j < len {
+        poke(str_bump + 1 + j, peek(src_buf + start + j))
+        j = j + 1
+    }
+    str_bump = str_bump + 1 + len
+    return new_p
+}
+
+// ── Tokenizer ───────────────────────────────────────────
+
+fun peek_char() -> u8 {
+    if pos >= src_len { return 0 }
+    return peek(src_buf + pos)
+}
+fun skip_ws() -> void {
+    while is_space(peek_char()) == 1 { pos = pos + 1 }
+}
+fun skip_comment() -> void {
+    while peek_char() != 10 {
+        if peek_char() == 0 { return }
+        pos = pos + 1
+    }
+    pos = pos + 1
+}
+
+fun classify(str_ptr: u16) -> u8 {
+    if str_ptr == KW_FUN { return TOK_KW }
+    if str_ptr == KW_FN { return TOK_KW }
+    if str_ptr == KW_RETURN { return TOK_KW }
+    if str_ptr == KW_IF { return TOK_KW }
+    if str_ptr == KW_ELSE { return TOK_KW }
+    if str_ptr == KW_WHILE { return TOK_KW }
+    if str_ptr == KW_LET { return TOK_KW }
+    if str_ptr == KW_VAR { return TOK_KW }
+    return TOK_IDENT
+}
+
+fun emit_tok(typ: u8, str_ptr: u16) -> void {
+    let addr: u16 = tok_arena + tok_count * 4
+    poke(addr, typ)
+    poke(addr + 1, str_ptr % 256)
+    poke(addr + 2, str_ptr / 256)
+    poke(addr + 3, 0)
+    tok_count = tok_count + 1
+}
+
+fun scan() -> u8 {
+    skip_ws()
+    tok_start = pos
+    let c: u8 = peek_char()
+    if c == 0 { return TOK_EOF }
+    if c == 47 {
+        if peek(src_buf + pos + 1) == 47 { skip_comment() return scan() }
+        pos = pos + 1 emit_tok(TOK_SLASH, 0) return TOK_SLASH
+    }
+    if c == 45 {
+        if peek(src_buf + pos + 1) == 62 { pos = pos + 2 emit_tok(TOK_ARROW, 0) return TOK_ARROW }
+        pos = pos + 1 emit_tok(TOK_MINUS, 0) return TOK_MINUS
+    }
+    if c == 61 {
+        if peek(src_buf + pos + 1) == 61 { pos = pos + 2 emit_tok(TOK_EQEQ, 0) return TOK_EQEQ }
+        pos = pos + 1 emit_tok(TOK_EQ, 0) return TOK_EQ
+    }
+    if c == 40  { pos = pos + 1 emit_tok(TOK_LPAREN, 0) return TOK_LPAREN }
+    if c == 41  { pos = pos + 1 emit_tok(TOK_RPAREN, 0) return TOK_RPAREN }
+    if c == 123 { pos = pos + 1 emit_tok(TOK_LBRACE, 0) return TOK_LBRACE }
+    if c == 125 { pos = pos + 1 emit_tok(TOK_RBRACE, 0) return TOK_RBRACE }
+    if c == 58  { pos = pos + 1 emit_tok(TOK_COLON, 0) return TOK_COLON }
+    if c == 44  { pos = pos + 1 emit_tok(TOK_COMMA, 0) return TOK_COMMA }
+    if c == 43  { pos = pos + 1 emit_tok(TOK_PLUS, 0) return TOK_PLUS }
+    if c == 42  { pos = pos + 1 emit_tok(TOK_STAR, 0) return TOK_STAR }
+    if c == 60  { pos = pos + 1 emit_tok(TOK_LT, 0) return TOK_LT }
+    if c == 62  { pos = pos + 1 emit_tok(TOK_GT, 0) return TOK_GT }
+    if is_digit(c) == 1 {
+        while is_digit(peek_char()) == 1 { pos = pos + 1 }
+        let len: u8 = pos - tok_start
+        let s: u16 = intern(tok_start, len)
+        emit_tok(TOK_INT, s) return TOK_INT
+    }
+    if is_alpha(c) == 1 {
+        while is_alnum(peek_char()) == 1 { pos = pos + 1 }
+        let len: u8 = pos - tok_start
+        let s: u16 = intern(tok_start, len)
+        let kw: u8 = classify(s)
+        emit_tok(kw, s) return kw
+    }
+    pos = pos + 1
+    return scan()
+}
+
+fun tokenize_all() -> u16 {
+    pos = 0 tok_count = 0
+    var tok: u8 = scan()
+    while tok != TOK_EOF { tok = scan() }
+    return tok_count
+}
+
+// ═══════════════════════════════════════════════════════
+// AST Arena (0x8000) — 8 bytes per node
+// [tag: u8] [data0: u16] [data1: u16] [data2: u16] [_pad: u8]
+// ═══════════════════════════════════════════════════════
+
+global ast_arena: u16 = 0x8000
+global ast_bump: u16 = 0x8000
+
+fun ast_new(tag: u8, d0: u16, d1: u16, d2: u16) -> u16 {
+    let p: u16 = ast_bump
+    poke(p, tag)
+    poke(p + 1, d0 % 256)
+    poke(p + 2, d0 / 256)
+    poke(p + 3, d1 % 256)
+    poke(p + 4, d1 / 256)
+    poke(p + 5, d2 % 256)
+    poke(p + 6, d2 / 256)
+    poke(p + 7, 0)
+    ast_bump = ast_bump + 8
+    return p
+}
+
+fun ast_tag(node: u16) -> u8 { return peek(node) }
+fun ast_d0(node: u16) -> u16 { return peek(node + 1) + peek(node + 2) * 256 }
+fun ast_d1(node: u16) -> u16 { return peek(node + 3) + peek(node + 4) * 256 }
+fun ast_d2(node: u16) -> u16 { return peek(node + 5) + peek(node + 6) * 256 }
+
+// ═══════════════════════════════════════════════════════
+// Parser — recursive descent over token arena
+// ═══════════════════════════════════════════════════════
+
+global parse_pos: u16 = 0
+global parse_error: u8 = 0
+
+// Current token type
+fun cur_tok() -> u8 {
+    if parse_pos >= tok_count { return TOK_EOF }
+    return peek(tok_arena + parse_pos * 4)
+}
+
+// Current token string pointer
+fun cur_str() -> u16 {
+    let addr: u16 = tok_arena + parse_pos * 4
+    return peek(addr + 1) + peek(addr + 2) * 256
+}
+
+// Advance to next token
+fun advance() -> void {
+    parse_pos = parse_pos + 1
+}
+
+// Expect token type, advance
+fun expect(typ: u8) -> u8 {
+    if cur_tok() != typ {
+        parse_error = 1
+        return 0
+    }
+    advance()
+    return 1
+}
+
+// Expect keyword by pointer
+fun expect_kw(kw_ptr: u16) -> u8 {
+    if cur_tok() != TOK_KW { parse_error = 1 return 0 }
+    if cur_str() != kw_ptr { parse_error = 1 return 0 }
+    advance()
+    return 1
+}
+
+// ── Parse expressions ───────────────────────────────────
+
+// atom: IDENT | INT | '(' expr ')'
+fun parse_atom() -> u16 {
+    if cur_tok() == TOK_IDENT {
+        let s: u16 = cur_str()
+        advance()
+        return ast_new(AST_IDENT, s, 0, 0)
+    }
+    if cur_tok() == TOK_INT {
+        let s: u16 = cur_str()
+        advance()
+        return ast_new(AST_INT, s, 0, 0)
+    }
+    if cur_tok() == TOK_LPAREN {
+        advance()
+        let inner: u16 = parse_expr()
+        expect(TOK_RPAREN)
+        return inner
+    }
+    // Error
+    parse_error = 1
+    return 0
+}
+
+// expr: atom (('+' | '-' | '*' | '/' | '==' | '<' | '>') atom)*
+fun parse_expr() -> u16 {
+    let left: u16 = parse_atom()
+    while cur_tok() == TOK_PLUS {
+        advance()
+        let right: u16 = parse_atom()
+        left = ast_new(AST_BINOP, TOK_PLUS, left, right)
+    }
+    while cur_tok() == TOK_MINUS {
+        advance()
+        let right: u16 = parse_atom()
+        left = ast_new(AST_BINOP, TOK_MINUS, left, right)
+    }
+    while cur_tok() == TOK_STAR {
+        advance()
+        let right: u16 = parse_atom()
+        left = ast_new(AST_BINOP, TOK_STAR, left, right)
+    }
+    return left
+}
+
+// ── Parse statements ────────────────────────────────────
+
+// return expr
+fun parse_return() -> u16 {
+    expect_kw(KW_RETURN)
+    let val: u16 = parse_expr()
+    return ast_new(AST_RETURN, val, 0, 0)
+}
+
+// ── Parse function ──────────────────────────────────────
+
+// param: name ':' type
+fun parse_param() -> u16 {
+    let name: u16 = cur_str()
+    expect(TOK_IDENT)
+    expect(TOK_COLON)
+    let typ: u16 = cur_str()
+    expect(TOK_IDENT)
+    return ast_new(AST_PARAM, name, typ, 0)
+}
+
+// fun name(params) -> type { body }
+fun parse_fun() -> u16 {
+    // 'fun' already consumed
+    let name: u16 = cur_str()
+    expect(TOK_IDENT)
+    expect(TOK_LPAREN)
+
+    // params (0-2 for now)
+    let p0: u16 = 0
+    let p1: u16 = 0
+    if cur_tok() != TOK_RPAREN {
+        p0 = parse_param()
+        if cur_tok() == TOK_COMMA {
+            advance()
+            p1 = parse_param()
+        }
+    }
+    expect(TOK_RPAREN)
+
+    // -> return_type
+    expect(TOK_ARROW)
+    let ret_type: u16 = cur_str()
+    expect(TOK_IDENT)
+
+    // { body }
+    expect(TOK_LBRACE)
+    let body: u16 = parse_return()
+    expect(TOK_RBRACE)
+
+    return ast_new(AST_FUN, name, body, ret_type)
+}
+
+// ── Parse program ───────────────────────────────────────
+
+fun parse_program() -> u16 {
+    parse_pos = 0
+    parse_error = 0
+
+    if cur_tok() == TOK_KW {
+        if cur_str() == KW_FUN {
+            advance()
+            return parse_fun()
+        }
+        if cur_str() == KW_FN {
+            advance()
+            return parse_fun()
+        }
+    }
+    parse_error = 1
+    return 0
+}
+
+// ═══════════════════════════════════════════════════════
+// AST printer
+// ═══════════════════════════════════════════════════════
+
+fun print_str_arena(s: u16) -> void {
+    let len: u8 = peek(s)
+    var i: u8 = 0
+    while i < len {
+        @print_char(peek(s + 1 + i))
+        i = i + 1
+    }
+}
+
+fun print_ast(node: u16) -> void {
+    if node == 0 { @print("null") return }
+    let tag: u8 = ast_tag(node)
+
+    if tag == AST_FUN {
+        @print("(fun ")
+        print_str_arena(ast_d0(node))
+        @print(" -> ")
+        print_str_arena(ast_d2(node))
+        @print(" ")
+        print_ast(ast_d1(node))
+        @print(")")
+        return
+    }
+    if tag == AST_RETURN {
+        @print("(return ")
+        print_ast(ast_d0(node))
+        @print(")")
+        return
+    }
+    if tag == AST_BINOP {
+        @print("(")
+        if ast_d0(node) == TOK_PLUS { @print("+") }
+        if ast_d0(node) == TOK_MINUS { @print("-") }
+        if ast_d0(node) == TOK_STAR { @print("*") }
+        @print(" ")
+        print_ast(ast_d1(node))
+        @print(" ")
+        print_ast(ast_d2(node))
+        @print(")")
+        return
+    }
+    if tag == AST_IDENT {
+        print_str_arena(ast_d0(node))
+        return
+    }
+    if tag == AST_INT {
+        print_str_arena(ast_d0(node))
+        return
+    }
+    if tag == AST_PARAM {
+        @print("(param ")
+        print_str_arena(ast_d0(node))
+        @print(":")
+        print_str_arena(ast_d1(node))
+        @print(")")
+        return
+    }
+    @print("?")
+}
+
+// ═══════════════════════════════════════════════════════
+// Init + Main
+// ═══════════════════════════════════════════════════════
+
+fun init_keywords() -> void {
+    KW_FN     = str_alloc_2(102, 110)
+    KW_IF     = str_alloc_2(105, 102)
+    KW_FUN    = str_alloc_3(102, 117, 110)
+    KW_LET    = str_alloc_3(108, 101, 116)
+    KW_VAR    = str_alloc_3(118, 97, 114)
+    KW_WHILE  = str_alloc_5(119, 104, 105, 108, 101)
+    KW_RETURN = str_alloc_6(114, 101, 116, 117, 114, 110)
+    KW_ELSE   = str_alloc_3(101, 108, 115)  // simplified
+}
+
+fun main() -> void {
+    init_keywords()
+
+    // Source: fun add(a: u8, b: u8) -> u8 { return a + b }
+    poke(src_buf, 102) poke(src_buf+1, 117) poke(src_buf+2, 110)
+    poke(src_buf+3, 32)
+    poke(src_buf+4, 97) poke(src_buf+5, 100) poke(src_buf+6, 100)
+    poke(src_buf+7, 40)
+    poke(src_buf+8, 97) poke(src_buf+9, 58) poke(src_buf+10, 32)
+    poke(src_buf+11, 117) poke(src_buf+12, 56)
+    poke(src_buf+13, 44) poke(src_buf+14, 32)
+    poke(src_buf+15, 98) poke(src_buf+16, 58) poke(src_buf+17, 32)
+    poke(src_buf+18, 117) poke(src_buf+19, 56)
+    poke(src_buf+20, 41) poke(src_buf+21, 32)
+    poke(src_buf+22, 45) poke(src_buf+23, 62) poke(src_buf+24, 32)
+    poke(src_buf+25, 117) poke(src_buf+26, 56) poke(src_buf+27, 32)
+    poke(src_buf+28, 123) poke(src_buf+29, 32)
+    poke(src_buf+30, 114) poke(src_buf+31, 101) poke(src_buf+32, 116)
+    poke(src_buf+33, 117) poke(src_buf+34, 114) poke(src_buf+35, 110)
+    poke(src_buf+36, 32)
+    poke(src_buf+37, 97) poke(src_buf+38, 32)
+    poke(src_buf+39, 43) poke(src_buf+40, 32)
+    poke(src_buf+41, 98)
+    poke(src_buf+42, 32) poke(src_buf+43, 125)
+    poke(src_buf+44, 0)
+    src_len = 44
+
+    @print("=== Tokenize ===")
+    @print_nl()
+    let n: u16 = tokenize_all()
+    @print("Tokens: ")
+    @print_u8(n)
+    @print_nl()
+
+    @print("=== Parse ===")
+    @print_nl()
+    let ast: u16 = parse_program()
+
+    if parse_error == 1 {
+        @print("PARSE ERROR at token ")
+        @print_u8(parse_pos)
+        @print_nl()
+    }
+
+    if parse_error == 0 {
+        @print("AST: ")
+        print_ast(ast)
+        @print_nl()
+        @print("AST arena: ")
+        @print_u8(ast_bump - ast_arena)
+        @print(" bytes")
+        @print_nl()
+    }
+}
+
+assert is_digit(48) == 1 via mir2
+assert is_alpha(65) == 1 via mir2
+assert is_space(32) == 1 via mir2
