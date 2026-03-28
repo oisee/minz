@@ -827,6 +827,439 @@ func TestMax3Z80(t *testing.T) {
 	}
 }
 
+// ── max2 (CondRetSink) ───────────────────────────────────────────────────────
+//
+// fun max2(a: u8, b: u8) -> u8 { if a >= b { a } else { b } }
+//
+// Tests the TermCondRet path: CondRetSink hoists the trivial "ret b" block
+// into a condret, and genTerm must not clobber A (holding a) with the
+// return-copy LD A, B before the conditional branch resolves.
+func TestMax2CondRetZ80(t *testing.T) {
+	m := &mir2.Module{Name: "max2"}
+	f := m.AddFunc("max2")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	b := mir2.NewBuilder(f)
+
+	b.SwitchToNewBlock("entry")
+	a := b.Param("a", mir2.TyU8, mir2.ClassAcc)     // A
+	bv := b.Param("b", mir2.TyU8, mir2.ClassCounter) // B
+
+	cmp := b.Cmp(mir2.CmpGe, a, bv, mir2.ClassFlag, false) // a >= b?
+	b.BrIf(cmp, "ret_a", nil, "ret_b", nil)
+
+	b.SwitchToNewBlock("ret_a")
+	b.Ret(a) // return a
+
+	b.SwitchToNewBlock("ret_b")
+	b.Ret(bv) // return b — trivial block, CondRetSink will hoist
+
+	asm := compileOptModule(t, m)
+	t.Log("\n" + asm)
+
+	cases := []struct{ a, b, want int }{
+		{10, 2, 10},
+		{2, 10, 10},
+		{5, 5, 5},
+		{255, 0, 255},
+		{0, 255, 255},
+		{100, 100, 100},
+		{0, 0, 0},
+		{1, 0, 1},
+		{0, 1, 1},
+	}
+	for _, tc := range cases {
+		src := bootstrap2("max2", tc.a, tc.b) + "\n" + asm
+		a, _, err := runZ80(t, src)
+		if err != nil {
+			t.Errorf("max2(%d,%d): %v", tc.a, tc.b, err)
+			continue
+		}
+		if int(a) != tc.want {
+			t.Errorf("max2(%d,%d) = %d, want %d", tc.a, tc.b, int(a), tc.want)
+		} else {
+			t.Logf("max2(%d,%d) = %d ✓", tc.a, tc.b, int(a))
+		}
+	}
+}
+
+// ── max2 (CmpGt ClassAcc + CondRetSink) ──────────────────────────────────────
+//
+// Same as Max2CondRet but with CmpGt in ClassAcc (materialised comparison).
+// This is the pattern Pascal/C frontends may produce when CMP is not ClassFlag.
+func TestMax2CmpAccCondRetZ80(t *testing.T) {
+	m := &mir2.Module{Name: "max2acc"}
+	f := m.AddFunc("max2acc")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	b := mir2.NewBuilder(f)
+
+	b.SwitchToNewBlock("entry")
+	a := b.Param("a", mir2.TyU8, mir2.ClassAcc)     // A
+	bv := b.Param("b", mir2.TyU8, mir2.ClassCounter) // B
+
+	// CmpGt with ClassAcc → materialises to A as 0/1
+	cmp := b.Cmp(mir2.CmpUgt, a, bv, mir2.ClassAcc, false)
+	b.BrIf(cmp, "ret_a", nil, "ret_b", nil)
+
+	b.SwitchToNewBlock("ret_a")
+	b.Ret(a) // return a
+
+	b.SwitchToNewBlock("ret_b")
+	b.Ret(bv) // return b
+
+	asm := compileOptModule(t, m)
+	t.Log("\n" + asm)
+
+	cases := []struct{ a, b, want int }{
+		{10, 2, 10},
+		{2, 10, 10},
+		{5, 5, 5},
+		{255, 0, 255},
+		{0, 255, 255},
+		{1, 0, 1},
+		{0, 1, 1},
+	}
+	for _, tc := range cases {
+		src := bootstrap2("max2acc", tc.a, tc.b) + "\n" + asm
+		a, _, err := runZ80(t, src)
+		if err != nil {
+			t.Errorf("max2acc(%d,%d): %v", tc.a, tc.b, err)
+			continue
+		}
+		if int(a) != tc.want {
+			t.Errorf("max2acc(%d,%d) = %d, want %d", tc.a, tc.b, int(a), tc.want)
+		} else {
+			t.Logf("max2acc(%d,%d) = %d ✓", tc.a, tc.b, int(a))
+		}
+	}
+}
+
+// ── max2 (with move in ret block — tests CondRetSink hoist of non-trivial blocks) ─
+//
+// Same Max pattern but ret_b has an explicit Move instruction (like Pascal codegen).
+// CondRetSink should hoist the move. Tests that the hoisted move doesn't clobber A.
+func TestMax2MoveCondRetZ80(t *testing.T) {
+	m := &mir2.Module{Name: "max2mv"}
+	f := m.AddFunc("max2mv")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	b := mir2.NewBuilder(f)
+
+	b.SwitchToNewBlock("entry")
+	a := b.Param("a", mir2.TyU8, mir2.ClassAcc)     // A
+	bv := b.Param("b", mir2.TyU8, mir2.ClassCounter) // B
+
+	cmp := b.Cmp(mir2.CmpGe, a, bv, mir2.ClassFlag, false) // a >= b?
+	b.BrIf(cmp, "ret_a", nil, "ret_b", nil)
+
+	b.SwitchToNewBlock("ret_a")
+	b.Ret(a) // return a
+
+	// ret_b: move b to acc, then ret — CondRetSink will hoist the move
+	b.SwitchToNewBlock("ret_b")
+	bA := b.Move(bv, mir2.TyU8, mir2.ClassAcc) // LD A, B (explicit)
+	b.Ret(bA)
+
+	asm := compileOptModule(t, m)
+	t.Log("\n" + asm)
+
+	cases := []struct{ a, b, want int }{
+		{10, 2, 10},
+		{2, 10, 10},
+		{5, 5, 5},
+		{255, 0, 255},
+		{0, 255, 255},
+		{128, 1, 128},
+		{1, 128, 128},
+	}
+	for _, tc := range cases {
+		src := bootstrap2("max2mv", tc.a, tc.b) + "\n" + asm
+		a, _, err := runZ80(t, src)
+		if err != nil {
+			t.Errorf("max2mv(%d,%d): %v", tc.a, tc.b, err)
+			continue
+		}
+		if int(a) != tc.want {
+			t.Errorf("max2mv(%d,%d) = %d, want %d", tc.a, tc.b, int(a), tc.want)
+		} else {
+			t.Logf("max2mv(%d,%d) = %d ✓", tc.a, tc.b, int(a))
+		}
+	}
+}
+
+// ── max2gt (CmpUgt + hoisted Move — the Pascal TermCondRet bug) ──────────────
+//
+// max2gt(a, b) = if a > b then a else b
+//
+// CondRetSink hoists Move(b→A) from ret_b into entry before TermCondRet.
+// If the allocator puts the hoisted Move result in A, it clobbers the original
+// a before the Then path (ret_a) can use it.
+//
+// The bug scenario from Pascal:
+//   CP B; LD A, B; RET Z; .then: RET
+// where LD A,B clobbers A before the then-path resolution.
+func TestMax2GtCondRetZ80(t *testing.T) {
+	m := &mir2.Module{Name: "max2gt"}
+	f := m.AddFunc("max2gt")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	b := mir2.NewBuilder(f)
+
+	b.SwitchToNewBlock("entry")
+	a := b.Param("a", mir2.TyU8, mir2.ClassAcc)     // A
+	bv := b.Param("b", mir2.TyU8, mir2.ClassCounter) // B
+
+	// CmpUgt: cond!=0 (a>b) → goto ret_a (return a)
+	//         cond==0 (a<=b) → CondRetSink: return b
+	cmp := b.Cmp(mir2.CmpUgt, a, bv, mir2.ClassFlag, false)
+	b.BrIf(cmp, "ret_a", nil, "ret_b", nil)
+
+	b.SwitchToNewBlock("ret_a")
+	b.Ret(a) // return a (needs A intact!)
+
+	// ret_b: trivial else branch — CondRetSink will hoist the Move
+	b.SwitchToNewBlock("ret_b")
+	bA := b.Move(bv, mir2.TyU8, mir2.ClassAcc) // LD A, B
+	b.Ret(bA)
+
+	asm := compileOptModule(t, m)
+	t.Log("\n" + asm)
+
+	cases := []struct{ a, b, want int }{
+		{10, 2, 10},   // a > b → return a=10
+		{2, 10, 10},   // a < b → return b=10
+		{5, 5, 5},     // a == b → return b=5
+		{255, 0, 255}, // a > b → return a=255
+		{0, 255, 255}, // a < b → return b=255
+		{1, 0, 1},     // a > b → return a=1
+		{0, 1, 1},     // a < b → return b=1
+	}
+	for _, tc := range cases {
+		src := bootstrap2("max2gt", tc.a, tc.b) + "\n" + asm
+		a, _, err := runZ80(t, src)
+		if err != nil {
+			t.Errorf("max2gt(%d,%d): %v", tc.a, tc.b, err)
+			continue
+		}
+		if int(a) != tc.want {
+			t.Errorf("max2gt(%d,%d) = %d, want %d", tc.a, tc.b, int(a), tc.want)
+		} else {
+			t.Logf("max2gt(%d,%d) = %d ✓", tc.a, tc.b, int(a))
+		}
+	}
+}
+
+// ── max2join (Pascal-style if/else with join block) ──────────────────────────
+//
+// fun max2join(a, b) = { let r = if a > b then a else b; return r }
+//
+// This is the pattern HIR→MIR2 produces for Pascal's "if A > B then Max := A else Max := B".
+// Both branches Jmp to a join block with the result as block param. No CondRetSink.
+func TestMax2JoinZ80(t *testing.T) {
+	m := &mir2.Module{Name: "max2join"}
+	f := m.AddFunc("max2join")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	b := mir2.NewBuilder(f)
+
+	b.SwitchToNewBlock("entry")
+	a := b.Param("a", mir2.TyU8, mir2.ClassAcc)     // A
+	bv := b.Param("b", mir2.TyU8, mir2.ClassCounter) // B
+
+	cmp := b.Cmp(mir2.CmpUgt, a, bv, mir2.ClassFlag, false)
+	b.BrIf(cmp, "if_then", nil, "if_else", nil)
+
+	b.SwitchToNewBlock("if_then")
+	b.Jmp("if_join", a) // result = a
+
+	b.SwitchToNewBlock("if_else")
+	b.Jmp("if_join", bv) // result = b
+
+	join := b.SwitchToNewBlock("if_join")
+	result := b.BlockParam(join, mir2.TyU8, mir2.ClassAcc) // merged result
+	b.Ret(result)
+
+	asm := compileOptModule(t, m)
+	t.Log("\n" + asm)
+
+	cases := []struct{ a, b, want int }{
+		{10, 2, 10},
+		{2, 10, 10},
+		{5, 5, 5},
+		{255, 0, 255},
+		{0, 255, 255},
+		{1, 0, 1},
+		{0, 1, 1},
+	}
+	for _, tc := range cases {
+		src := bootstrap2("max2join", tc.a, tc.b) + "\n" + asm
+		a, _, err := runZ80(t, src)
+		if err != nil {
+			t.Errorf("max2join(%d,%d): %v", tc.a, tc.b, err)
+			continue
+		}
+		if int(a) != tc.want {
+			t.Errorf("max2join(%d,%d) = %d, want %d", tc.a, tc.b, int(a), tc.want)
+		} else {
+			t.Logf("max2join(%d,%d) = %d ✓", tc.a, tc.b, int(a))
+		}
+	}
+}
+
+// ── max2pipe (full pipeline — SplitJoinRet + CondRetSink + PBQPAllocate) ─────
+//
+// Tests the exact pipeline path that Pascal Max uses: join-block is split by
+// SplitJoinRet, then CondRetSink creates TermCondRet.
+func TestMax2PipelineZ80(t *testing.T) {
+	m := &mir2.Module{Name: "max2pipe"}
+	f := m.AddFunc("max2pipe")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	b := mir2.NewBuilder(f)
+
+	b.SwitchToNewBlock("entry")
+	a := b.Param("a", mir2.TyU8, mir2.ClassAcc)     // A
+	bv := b.Param("b", mir2.TyU8, mir2.ClassCounter) // B
+
+	cmp := b.Cmp(mir2.CmpUgt, a, bv, mir2.ClassFlag, false)
+	b.BrIf(cmp, "if_then", nil, "if_else", nil)
+
+	b.SwitchToNewBlock("if_then")
+	b.Jmp("if_join", a) // result = a
+
+	b.SwitchToNewBlock("if_else")
+	b.Jmp("if_join", bv) // result = b
+
+	join := b.SwitchToNewBlock("if_join")
+	result := b.BlockParam(join, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(result)
+
+	// Run through the FULL pipeline (same passes as pipeline.go).
+	mir2.ReorderBlocks(f)
+	mir2.DeadStoreElim(f)
+	mir2.DeadBlockArgElim(f)
+	if mir2.SplitJoinRet(f) {
+		mir2.EliminateDeadBlocks(f)
+	}
+	if mir2.CondRetSink(f) {
+		mir2.EliminateDeadBlocks(f)
+	}
+	if err := mir2.Verify(m); err != nil {
+		t.Fatalf("verify: %v", err)
+	}
+	mir2.PreallocCoalesce(f)
+	lr := mir2.ComputeLiveness(f)
+	ar := mir2.PBQPAllocate(f, lr, mir2.Z80CostTable{})
+	combined := &mir2.AllocResult{Locs: make(map[mir2.Reg]mir2.PhysLoc)}
+	for r, loc := range ar.Locs {
+		combined.Locs[r] = loc
+	}
+	asm := mir2.Z80Codegen(m, combined)
+	t.Log("\n" + asm)
+
+	cases := []struct{ a, b, want int }{
+		{10, 2, 10},
+		{2, 10, 10},
+		{5, 5, 5},
+		{255, 0, 255},
+		{0, 255, 255},
+		{1, 0, 1},
+		{0, 1, 1},
+	}
+	for _, tc := range cases {
+		src := bootstrap2("max2pipe", tc.a, tc.b) + "\n" + asm
+		a, _, err := runZ80(t, src)
+		if err != nil {
+			t.Errorf("max2pipe(%d,%d): %v", tc.a, tc.b, err)
+			continue
+		}
+		if int(a) != tc.want {
+			t.Errorf("max2pipe(%d,%d) = %d, want %d", tc.a, tc.b, int(a), tc.want)
+		} else {
+			t.Logf("max2pipe(%d,%d) = %d ✓", tc.a, tc.b, int(a))
+		}
+	}
+}
+
+// ── gcd (CondRetSink + PBQP — the real TermCondRet bug) ──────────────────────
+//
+// gcd(a, b) = if b == 0 then a else gcd(b, a%b)
+//
+// The Frill frontend lowers this with CmpNe(b, 0). CondRetSink hoists the
+// trivial "ret a" else-branch. The comparison needs to load b into A (for AND A),
+// clobbering a which is also in A. saveAccForCondRet must save A first.
+func TestGcdCondRetZ80(t *testing.T) {
+	m := &mir2.Module{Name: "gcd"}
+	f := m.AddFunc("gcd")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	b := mir2.NewBuilder(f)
+
+	b.SwitchToNewBlock("entry")
+	a := b.Param("a", mir2.TyU8, mir2.ClassAcc)     // A
+	bv := b.Param("b", mir2.TyU8, mir2.ClassGeneral) // C
+
+	zero := b.Const(0, mir2.TyU8, mir2.ClassGeneral)
+	cmp := b.Cmp(mir2.CmpNe, bv, zero, mir2.ClassFlag, false) // b != 0?
+	// cond!=0 (b!=0) → then = recursive
+	// cond==0 (b==0) → else = ret a (trivial, CondRetSink will hoist)
+	b.BrIf(cmp, "recursive", nil, "ret_a", nil)
+
+	b.SwitchToNewBlock("ret_a")
+	b.Ret(a) // return a when b==0
+
+	b.SwitchToNewBlock("recursive")
+	rem := b.Mod(a, bv, mir2.TyU8, mir2.ClassAcc)     // a % b
+	// Recursive call: gcd(b, a%b)
+	result := b.Call("gcd", []mir2.Reg{bv, rem}, mir2.TyU8, mir2.ClassAcc, mir2.CallAttrs{})
+	b.Ret(result)
+
+	// Run pipeline
+	mir2.ReorderBlocks(f)
+	mir2.DeadStoreElim(f)
+	if mir2.SplitJoinRet(f) {
+		mir2.EliminateDeadBlocks(f)
+	}
+	if mir2.CondRetSink(f) {
+		mir2.EliminateDeadBlocks(f)
+	}
+	if err := mir2.Verify(m); err != nil {
+		t.Fatalf("verify: %v", err)
+	}
+	mir2.PreallocCoalesce(f)
+	lr := mir2.ComputeLiveness(f)
+	ar := mir2.PBQPAllocate(f, lr, mir2.Z80CostTable{})
+	combined := &mir2.AllocResult{Locs: make(map[mir2.Reg]mir2.PhysLoc)}
+	for r, loc := range ar.Locs {
+		combined.Locs[r] = loc
+	}
+	asm := mir2.Z80Codegen(m, combined)
+	t.Log("\n" + asm)
+
+	// The critical test: gcd(12, 0) must return 12, not 0
+	cases := []struct{ a, b, want int }{
+		{12, 0, 12},  // b==0 → return a=12
+		{8, 0, 8},    // b==0 → return a=8
+		{0, 0, 0},    // b==0 → return a=0
+		{255, 0, 255}, // b==0 → return a=255
+	}
+	for _, tc := range cases {
+		src := fmt.Sprintf(`
+    ORG 0x%04X
+    LD SP, 0xFF00
+    LD A, %d
+    LD C, %d
+    CALL gcd
+    DI
+    HALT
+`, testLoadAddr, tc.a, tc.b) + "\n" + asm
+		got, _, err := runZ80(t, src)
+		if err != nil {
+			t.Errorf("gcd(%d,%d): %v", tc.a, tc.b, err)
+			continue
+		}
+		if int(got) != tc.want {
+			t.Errorf("gcd(%d,%d) = %d, want %d", tc.a, tc.b, int(got), tc.want)
+		} else {
+			t.Logf("gcd(%d,%d) = %d ✓", tc.a, tc.b, int(got))
+		}
+	}
+}
+
 // ── rol8 ──────────────────────────────────────────────────────────────────────
 //
 // fun rol8(x: u8) -> u8 { (x << 1) | (x >> 7) }

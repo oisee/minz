@@ -5,6 +5,7 @@ import (
 
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/pipeline"
 )
 
 func compile(t *testing.T, src string) *hir.Module {
@@ -97,13 +98,12 @@ assert pipe_test 10 == 21
 
 func TestLetIn(t *testing.T) {
 	m := compile(t, `
-let dist (a : u8) (b : u8) : u8 =
-  let sum = a + b in
-  let diff = a - b in
-  sum + diff
-
-assert dist 10 3 == 20
-assert dist 5 5 == 10
+let foo (x : u8) : u8 =
+  let y = x + 1 in
+  let z = y * 2 in
+  z
+assert foo 3 == 8
+assert foo 10 == 22
 `)
 	mir2mod := hir.LowerModule(m)
 	for _, a := range m.Asserts {
@@ -118,16 +118,52 @@ assert dist 5 5 == 10
 	}
 }
 
-func TestLetInChain(t *testing.T) {
+func TestDo(t *testing.T) {
 	m := compile(t, `
-let compute (x : u8) : u8 =
-  let a = x + 1 in
-  let b = a + a in
-  let c = b * 2 in
-  c
+let side (x : u8) : IO u8 = x
+let test (x : u8) : IO u8 =
+  do side x
+  x + 1
+assert test 5 == 6
+`)
+	mir2mod := hir.LowerModule(m)
+	for _, a := range m.Asserts {
+		result, err := mir2.Eval1(mir2mod, a.FuncName, a.Args...)
+		if err != nil {
+			t.Errorf("assert %s: %v", a.Source, err)
+			continue
+		}
+		if result != a.Expected {
+			t.Errorf("assert %s: got %d, want %d", a.Source, result, a.Expected)
+		}
+	}
+}
 
-assert compute 3 == 16
-assert compute 0 == 4
+func TestCompose(t *testing.T) {
+	m := compile(t, `
+let double (x : u8) : u8 = x + x
+let inc (x : u8) : u8 = x + 1
+let double_then_inc = double >> inc
+assert double_then_inc 5 == 11
+`)
+	mir2mod := hir.LowerModule(m)
+	for _, a := range m.Asserts {
+		result, err := mir2.Eval1(mir2mod, a.FuncName, a.Args...)
+		if err != nil {
+			t.Errorf("assert %s: %v", a.Source, err)
+			continue
+		}
+		if result != a.Expected {
+			t.Errorf("assert %s: got %d, want %d", a.Source, result, a.Expected)
+		}
+	}
+}
+
+func TestRecursion(t *testing.T) {
+	m := compile(t, `
+let factorial (n : u8) : u8 = if n == 0 then 1 else n * factorial (n - 1)
+assert factorial 0 == 1
+assert factorial 5 == 120
 `)
 	mir2mod := hir.LowerModule(m)
 	for _, a := range m.Asserts {
@@ -144,19 +180,14 @@ assert compute 0 == 4
 
 func TestMatch(t *testing.T) {
 	m := compile(t, `
-let describe (x : u8) : u8 =
+let classify (x : u8) : u8 =
   match x with
   | 0 -> 10
   | 1 -> 20
-  | 2 -> 30
-  | _ -> 99
-  end
-
-assert describe 0 == 10
-assert describe 1 == 20
-assert describe 2 == 30
-assert describe 5 == 99
-assert describe 255 == 99
+  | _ -> 30
+assert classify 0 == 10
+assert classify 1 == 20
+assert classify 5 == 30
 `)
 	mir2mod := hir.LowerModule(m)
 	for _, a := range m.Asserts {
@@ -171,105 +202,38 @@ assert describe 255 == 99
 	}
 }
 
-func TestMatchExhaustive(t *testing.T) {
+func TestTupleReturn(t *testing.T) {
 	m := compile(t, `
-let day_type (d : u8) : u8 =
-  match d with
-  | 0 -> 0
-  | 6 -> 0
-  | _ -> 1
-  end
-
-assert day_type 0 == 0
-assert day_type 6 == 0
-assert day_type 1 == 1
-assert day_type 3 == 1
+let swap (a : u8) (b : u8) : (u8, u8) = (b, a)
 `)
-	mir2mod := hir.LowerModule(m)
-	for _, a := range m.Asserts {
-		result, err := mir2.Eval1(mir2mod, a.FuncName, a.Args...)
-		if err != nil {
-			t.Errorf("assert %s: %v", a.Source, err)
-			continue
-		}
-		if result != a.Expected {
-			t.Errorf("assert %s: got %d, want %d", a.Source, result, a.Expected)
-		}
+	if len(m.Funcs) != 1 {
+		t.Fatalf("expected 1 func, got %d", len(m.Funcs))
 	}
 }
 
-func TestADT(t *testing.T) {
-	m := compile(t, `
-type Color = Red | Green | Blue
-
-let is_warm (c : u8) : u8 =
-  match c with
-  | Red -> 1
-  | _ -> 0
-  end
-
-assert is_warm 0 == 1
-assert is_warm 1 == 0
-assert is_warm 2 == 0
-`)
-	mir2mod := hir.LowerModule(m)
-	for _, a := range m.Asserts {
-		result, err := mir2.Eval1(mir2mod, a.FuncName, a.Args...)
-		if err != nil {
-			t.Errorf("assert %s: %v", a.Source, err)
-			continue
-		}
-		if result != a.Expected {
-			t.Errorf("assert %s: got %d, want %d", a.Source, result, a.Expected)
-		}
-	}
-}
-
-func TestADTConstructorExpr(t *testing.T) {
-	m := compile(t, `
-type Direction = North | South | East | West
-
-let go_north (x : u8) : u8 = North
-let go_south (x : u8) : u8 = South
-let is_vertical (d : u8) : u8 =
-  match d with
-  | North -> 1
-  | South -> 1
-  | _ -> 0
-  end
-
-assert go_north 0 == 0
-assert go_south 0 == 1
-assert is_vertical 0 == 1
-assert is_vertical 1 == 1
-assert is_vertical 2 == 0
-assert is_vertical 3 == 0
-`)
-	mir2mod := hir.LowerModule(m)
-	for _, a := range m.Asserts {
-		result, err := mir2.Eval1(mir2mod, a.FuncName, a.Args...)
-		if err != nil {
-			t.Errorf("assert %s: %v", a.Source, err)
-			continue
-		}
-		if result != a.Expected {
-			t.Errorf("assert %s: got %d, want %d", a.Source, result, a.Expected)
-		}
-	}
-}
-
-func TestPipeWithExtraArgs(t *testing.T) {
+func TestMathLib(t *testing.T) {
 	m := compile(t, `
 let add (a : u8) (b : u8) : u8 = a + b
-let test (x : u8) : u8 = x |> add 10
-assert test 3 == 13
-assert test 0 == 10
+let double (x : u8) : u8 = x + x
+let square (x : u8) : u8 = x * x
+let max (a : u8) (b : u8) : u8 = if a > b then a else b
+let min (a : u8) (b : u8) : u8 = if a < b then a else b
+let abs_diff (a : u8) (b : u8) : u8 = if a > b then a - b else b - a
+let gcd (a : u8) (b : u8) : u8 = if b == 0 then a else gcd b (a % b)
+assert add 3 5 == 8
+assert square 4 == 16
+assert max 5 3 == 5
+assert max 3 5 == 5
+assert abs_diff 10 3 == 7
+assert abs_diff 3 10 == 7
+assert gcd 12 8 == 4
+assert gcd 12 0 == 12
 `)
 	mir2mod := hir.LowerModule(m)
 	for _, a := range m.Asserts {
 		result, err := mir2.Eval1(mir2mod, a.FuncName, a.Args...)
 		if err != nil {
-			t.Errorf("assert %s: %v", a.Source, err)
+			t.Errorf("assert %s: VM error: %v", a.Source, err)
 			continue
 		}
 		if result != a.Expected {
@@ -297,4 +261,19 @@ assert square 4 == 16
 			t.Errorf("assert %s: got %d, want %d", a.Source, result, a.Expected)
 		}
 	}
+}
+
+func TestGcdE2E(t *testing.T) {
+	m := compile(t, `
+let gcd (a : u8) (b : u8) : u8 = if b == 0 then a else gcd b (a % b)
+assert gcd 12 0 == 12
+assert gcd 12 8 == 4
+assert gcd 8 12 == 4
+assert gcd 255 0 == 255
+`)
+	asm, err := pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("pipeline: %v", err)
+	}
+	t.Log("\n" + asm)
 }

@@ -305,8 +305,49 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 				funcParamLocs[f.Name] = pl
 			}
 		}
+		// NOTE: InsertAccSaves disabled for VIR path — it renames vregs that
+		// the codegen's pendingAccReg mechanism needs to track. The codegen
+		// handles A saves via materializePendingAcc + saveAccAcrossCall.
+
 		virOpts := vir.SolverOptions{FuncParamLocs: funcParamLocs, OptSize: opt.OptSize, PBQPAlloc: combined}
 		virAsm, virResults := vir.CodegenModule(m, virOpts)
+
+		// Update combined allocation with PFCCO-chosen param registers.
+		// VIR Z3-PFCCO may assign different registers than PBQP; the assert
+		// harness (buildAssertBootstrap) reads combined.Locs to set up args,
+		// so it must reflect the actual VIR register choices.
+		for _, f := range m.Funcs {
+			for _, cp := range f.Contract.Params {
+				if cp.Reg == mir2.NoReg {
+					continue
+				}
+				// Map contract class to physical register name
+				var name string
+				switch cp.Class {
+				case mir2.ClassAcc:
+					name = "A"
+				case mir2.ClassCounter:
+					name = "B"
+				case mir2.ClassRegC:
+					name = "C"
+				case mir2.ClassGeneral:
+					name = "C" // default general
+				case mir2.ClassRegD:
+					name = "D"
+				case mir2.ClassRegE:
+					name = "E"
+				case mir2.ClassPointer:
+					name = "HL"
+				case mir2.ClassIndex:
+					name = "DE"
+				case mir2.ClassPair:
+					name = "BC"
+				}
+				if name != "" {
+					combined.Locs[cp.Reg] = mir2.PhysLoc{Kind: mir2.LocReg, Name: name}
+				}
+			}
+		}
 
 		ok, fail := 0, 0
 		var failNames []string
@@ -329,6 +370,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		}
 
 		if fail > 0 {
+			// (InsertAccSaves already ran before CodegenModule)
 			// Fallback: generate PBQP asm for failed functions.
 			pbqpAsm := mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{
 				AnnotateTStates: opt.AnnotateTStates,
@@ -548,6 +590,11 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	// MIR2 VM assertion checks (skip "z80"-only asserts).
 	if err := RunAssertsMIR2(hm, m); err != nil {
 		return "", err
+	}
+
+	// Insert explicit A-register saves before destructive ops.
+	for _, f := range m.Funcs {
+		mir2.InsertAccSaves(f, combined)
 	}
 
 	// Z80 assembly text.

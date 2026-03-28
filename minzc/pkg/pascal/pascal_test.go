@@ -648,3 +648,32 @@ end.`
 	}
 	t.Logf("APPLY body: %+v", applyFn.Body)
 }
+
+func TestMaxE2E(t *testing.T) {
+	src := `program Test;
+function Max(A, B: Byte): Byte;
+begin
+  if A > B then
+    Max := A
+  else
+    Max := B;
+end;
+begin
+  assert Max(10, 2) = 10;
+  assert Max(2, 10) = 10;
+  assert Max(5, 5) = 5;
+  assert Max(255, 0) = 255;
+  assert Max(0, 255) = 255;
+  assert Max(1, 0) = 1;
+  assert Max(0, 1) = 1;
+end.`
+	hm, err := Compile(src, "test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	asm, err := pipeline.CompileHIR(hm)
+	if err != nil {
+		t.Fatalf("pipeline: %v", err)
+	}
+	t.Log("\n" + asm)
+}
