@@ -445,6 +445,12 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 		return "", fmt.Errorf("vir lower %s: %w", f.Name, err)
 	}
 
+	// Fix call arg setup DstHints: bridge uses broad register class, but we
+	// need the specific PFCCO-assigned register for each callee param.
+	if opts.FuncParamLocs != nil {
+		fixCallArgHints(vf, m, desc, opts.FuncParamLocs)
+	}
+
 	// Collect all ops for table lookup and GPU batch dump
 	var allOps []VIROp
 	for _, b := range vf.Blocks {
@@ -1680,6 +1686,67 @@ func emitLine(sb *strings.Builder, line string) {
 		subline = strings.TrimSpace(subline)
 		if subline != "" {
 			sb.WriteString("    " + subline + "\n")
+		}
+	}
+}
+
+// fixCallArgHints narrows arg-setup DstHints from broad register classes to
+// the specific physical register assigned by PFCCO/PBQP for each callee param.
+// Arg-setup OpMoves are identified by Dst >= 8000 (offset used in translateCall).
+// Without this, the solver picks any register in the class, which may not match
+// the callee's compiled convention.
+func fixCallArgHints(vf *Func, mod *mir2.Module, desc *MachineDesc, funcParamLocs map[string]map[int]int) {
+	debug := os.Getenv("VIR_DEBUG_ASM") != ""
+	for bi := range vf.Blocks {
+		ops := vf.Blocks[bi].Ops
+		for i := 0; i < len(ops); i++ {
+			if ops[i].Op != OpCall || ops[i].Sym == "" {
+				continue
+			}
+			calleeName := ops[i].Sym
+			// Look up callee's param locations
+			calleeLocs, ok := funcParamLocs[calleeName]
+			if !ok {
+				if debug {
+					fmt.Fprintf(os.Stderr, "[fixCallArgHints] no param locs for callee %s\n", calleeName)
+				}
+				continue
+			}
+			// Also need callee's contract to map param index → vreg
+			callee := mod.FuncByName(calleeName)
+			if callee == nil {
+				continue
+			}
+
+			// Count arg-setup moves backward from call
+			argIdx := 0
+			for j := i - 1; j >= 0 && ops[j].Op == OpMove && ops[j].Dst >= 8000; j-- {
+				argIdx++
+			}
+			if debug && argIdx > 0 {
+				fmt.Fprintf(os.Stderr, "[fixCallArgHints] CALL %s: %d arg-setup moves, calleeLocs=%v\n",
+					calleeName, argIdx, calleeLocs)
+			}
+			// Walk forward through the arg-setup region
+			startJ := i - argIdx
+			for j := startJ; j < i; j++ {
+				if ops[j].Op != OpMove || ops[j].Dst < 8000 {
+					continue
+				}
+				pIdx := j - startJ
+				if pIdx >= len(callee.Contract.Params) {
+					break
+				}
+				cpReg := int(callee.Contract.Params[pIdx].Reg)
+				if physIdx, ok := calleeLocs[cpReg]; ok {
+					if debug {
+						fmt.Fprintf(os.Stderr, "[fixCallArgHints]   param[%d] vreg=%d → phys=%d (%s)\n",
+							pIdx, cpReg, physIdx, desc.Locs[physIdx].Name)
+					}
+					// Narrow DstHint to the specific register
+					ops[j].DstHint = Singleton(physIdx)
+				}
+			}
 		}
 	}
 }
@@ -3307,23 +3374,13 @@ func gracePass(lines []string) []string {
 		}
 
 		// ── Dead LD before CALL ──────────────────────────────────────
-		// LD r, X / CALL func → remove LD if CALL clobbers r.
-		// CALL clobbers A and F always (return value + flags).
-		if i+1 < len(lines) && strings.HasPrefix(line, "LD ") {
-			next := strings.TrimSpace(lines[i+1])
-			if strings.HasPrefix(next, "CALL ") {
-				parts := strings.SplitN(line[3:], ", ", 2)
-				if len(parts) == 2 {
-					reg := strings.TrimSpace(parts[0])
-					// CALL always clobbers A. If we're loading into A
-					// and the next instruction is CALL (which overwrites A
-					// with its return value), the LD is dead.
-					if reg == "A" {
-						continue // dead store — CALL will overwrite A
-					}
-				}
-			}
-		}
+		// LD r, X / CALL func → remove LD if CALL clobbers r AND the callee
+		// doesn't need that register as an argument. Since we can't easily
+		// distinguish arg-setup from dead stores at this level, we KEEP all
+		// LD instructions before CALL. The solver only emits moves that are
+		// needed — dead arg-setup moves (like LD A, A) are already filtered
+		// as self-moves upstream.
+		// (Previously this removed LD A, X before CALL, breaking arg setup.)
 
 		// ── Empty label blocks ───────────────────────────────────────
 		// .label: / .next_label: → merge (empty block)

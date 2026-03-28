@@ -1249,8 +1249,16 @@ func (p *problem) generateSMT() string {
 		}
 	}
 
+	// OpMove coalescing: src and dst of OpMove can share a register (LD A,A is nop).
+	for _, op := range p.ops {
+		if op.Op == OpMove && op.Dst > 0 && op.Src[0] > 0 {
+			tied[vregPair{op.Dst, op.Src[0]}] = true
+			tied[vregPair{op.Src[0], op.Dst}] = true
+		}
+	}
+
 	// Interference: simultaneously live vregs cannot share the same location
-	// EXCEPT tied pairs (dst=src0 in accumulator patterns)
+	// EXCEPT tied pairs (dst=src0 in accumulator patterns) and move-coalesced pairs
 	emitted := make(map[vregPair]bool) // dedup interference constraints
 	for i := range p.ops {
 		live := p.liveness[i].live
@@ -1614,6 +1622,14 @@ func generateSMTPerInst(p *problem) string {
 				tied[vregPair{op.Dst, op.Src[0]}] = true
 				tied[vregPair{op.Src[0], op.Dst}] = true
 			}
+		}
+	}
+
+	// OpMove coalescing: src and dst can share a register (LD A,A is nop)
+	for _, op := range p.ops {
+		if op.Op == OpMove && op.Dst > 0 && op.Src[0] > 0 {
+			tied[vregPair{op.Dst, op.Src[0]}] = true
+			tied[vregPair{op.Src[0], op.Dst}] = true
 		}
 	}
 

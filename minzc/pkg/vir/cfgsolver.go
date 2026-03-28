@@ -354,10 +354,16 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 			}
 		}
 
-		// Build asm-block coalesce set: input/output vregs of OpAsmBlock
-		// can share a register (input consumed, output produced).
+		// Build coalesce set: pairs of vregs that CAN share a register.
+		// OpMove src→dst: hardware LD r,r is valid when src=dst (nop).
+		// OpAsmBlock: input/output vregs can share (consumed/produced).
 		asmCoalesce := make(map[vregPair]bool)
 		for _, op := range bp.ops {
+			// OpMove: src and dst can coalesce (LD A,A is valid nop)
+			if op.Op == OpMove && op.Dst > 0 && op.Src[0] > 0 {
+				asmCoalesce[vregPair{op.Dst, op.Src[0]}] = true
+				asmCoalesce[vregPair{op.Src[0], op.Dst}] = true
+			}
 			if op.Op == OpAsmBlock && op.Dst > 0 {
 				for _, s := range op.Src {
 					if s > 0 {
@@ -655,7 +661,6 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 	if opts.Verbose {
 		fmt.Printf("[CFG-solver] %d blocks, %d edges, %d vars\n", len(blocks), len(edges), len(vars))
 	}
-
 	// Run Z3
 	model, err := runZ3(smt, opts)
 	if err != nil {

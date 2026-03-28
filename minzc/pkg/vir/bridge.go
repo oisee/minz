@@ -437,7 +437,10 @@ func translateCall(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 
 	var ops []VIROp
 
-	// Emit argument setup moves: each arg vreg → register matching callee convention
+	// Emit argument setup moves: each arg vreg → register matching callee convention.
+	// IMPORTANT: Use fresh vreg IDs (8000+i) for destinations to avoid collision
+	// with the caller's vreg namespace. cp.Reg is the callee's vreg and may
+	// collide with caller vregs, breaking liveness analysis in the solver.
 	if mod != nil && inst.Sym != "" {
 		callee := mod.FuncByName(inst.Sym)
 		if callee != nil && len(callee.Contract.Params) > 0 {
@@ -459,8 +462,10 @@ func translateCall(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 				// DstHint from callee's contract class — ensures @z80_ pins
 				// are respected (e.g., @z80_b → B, @z80_c → C).
 				hint := regClassToLocSet(desc, cp.Class, w)
+				// Use 8000 + argReg offset for unique dst vreg (same pattern as translateRuntimeCall).
+				dstVReg := int(argReg) + 8000 + i*100
 				ops = append(ops, VIROp{
-					Op: OpMove, Dst: int(cp.Reg),
+					Op: OpMove, Dst: dstVReg,
 					Src: [2]int{int(argReg), -1}, Width: w,
 					DstHint: hint,
 				})
