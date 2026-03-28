@@ -4,7 +4,9 @@
 //
 // Run: mzv self_tokenizer.nanz -v
 
-// ── Host functions ──────────────────────────────────────
+// ── Host functions (MZV provides these) ─────────────────
+@extern fun peek(addr: u16) -> u8
+@extern fun poke(addr: u16, val: u8) -> void
 
 // ── Token types ─────────────────────────────────────────
 // Using constants (enum not needed for self-host MVP)
