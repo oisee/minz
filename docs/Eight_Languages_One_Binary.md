@@ -364,14 +364,22 @@ ASSERT MAX$BYTE(99, 1) = 99;
 
 The `$` in identifiers is original PL/M syntax. `ABS$DIFF` reads as "abs-diff".
 
-### Lizp: S-Expressions on Z80
+### Lizp: Lisp That Compiles to Z80
 
-Lisp meets Z80. S-expression syntax, functional style, compile-time asserts.
-A Lisp dialect that compiles to 2-byte functions.
+Lizp is Scheme for Z80 — a minimal Lisp with S-expression syntax that
+compiles to the same optimal Z80 code as every other frontend. Not an
+interpreter. Not a bytecode VM. A real Lisp-to-machine-code compiler.
+
+The name: **Li**sp + Min**z** = **Lizp**. Pronounced "lisp" with a Z80 accent.
+
+Why? Because if you can compile Lisp to 2-byte Z80 functions, you can
+compile anything. Lizp proves the MIR2 pipeline is truly language-agnostic.
 
 ```lizp
+;; S-expressions → Z80 machine code
 (defun double ((x u8)) -> u8
   (return (+ x x)))
+;; → ADD A, A / RET  (2 bytes)
 
 (defun max_byte ((a u8) (b u8)) -> u8
   (if (> a b) (return a) (return b)))
@@ -379,13 +387,14 @@ A Lisp dialect that compiles to 2-byte functions.
 (defun add ((a u8) (b u8)) -> u8
   (return (+ a b)))
 
+;; Compile-time verification — in S-expression syntax
 (assert double 5 == 10)
 (assert max_byte 10 20 == 20)
 (assert add 3 4 == 7)
 ```
 
-The parentheses are real. The Z80 code is optimal. A Lisp compiler that
-produces `ADD A, A / RET`.
+The parentheses are real. The Z80 code is optimal. John McCarthy meets
+Zilog, 1958 meets 1976.
 
 ### ABAP: Enterprise on Z80
 
@@ -486,11 +495,68 @@ the binary is not produced.
 | C99+ | 20 | 305 | ✅ |
 | ObjC | 11 | 98 | ✅ 11/11 |
 | Pascal | 9 | 54 | ✅ 9/9 |
-| Nanz | 44 | 341 | ✅ |
-| PL/M | 5 | 9+ | ✅ |
-| Lizp | 5 | 9+ | ✅ |
-| ABAP | 26 | 3+ | MIR2 |
-| **Total** | **173** | **~1600+** | |
+| Nanz | 44 | 371 | ✅ |
+| ABAP | 28 | 31 | ✅ (MIR2) |
+| PL/M | 5 | 9 | ✅ |
+| Lizp | 5 | 9 | ✅ |
+| **Total** | **175** | **~1666** | |
+
+## Bool Return Convention (GPU-Proven)
+
+How should a predicate like `is_digit` return its result? GPU brute-force
+search across 456,976 instruction sequences proved the optimal design:
+
+**Z flag is write-only on Z80.** No instruction reads Z into A or CY.
+The only way to use Z is an immediate conditional branch (JR Z/NZ).
+This was proven exhaustive — not a heuristic, a mathematical fact.
+
+**CY flag can be materialized branchless:**
+```z80
+SBC A, A    ; A = 0xFF if CY was set, 0x00 if clear. 1 instruction, 4T.
+```
+
+Z3 chooses the optimal return mode per-function:
+
+| Comparison | Natural flag | Caller branch | Materialize to A |
+|-----------|-------------|---------------|-----------------|
+| `a == b` | Z | JR Z (0T) | branch (14T) |
+| `a < b` | CY | JR C (0T) | SBC A,A (4T) |
+| `a >= b` | NC | JR NC (0T) | SBC A,A;CPL (8T) |
+
+**Branchless conditional move (CMOV) on Z80:**
+```z80
+; CY ? B : C  — 6 instructions, 24T, no branches
+SBC A, A      ; A = mask (0xFF or 0x00)
+LD  D, A      ; save mask
+LD  A, B      ; load X
+XOR C         ; A = X ^ Y
+AND D         ; A = (X^Y) & mask
+XOR C         ; A = Y ^ ((X^Y) & mask) = CY ? X : Y
+```
+
+The classic bitwise select trick, verified exhaustive on all 131,072
+input combinations (2 × 256 × 256).
+
+## Idiomatic Bool Asserts
+
+Nanz supports natural bool assertion syntax:
+
+```nanz
+// Classic
+assert is_digit(48) == 1
+
+// Bool shorthand — implies == true
+assert is_digit(48)
+
+// Negated — implies == false
+assert not is_digit(65)
+
+// Bool literals
+assert is_digit(48) == true
+assert is_digit(65) == false
+```
+
+All forms compile to the same assertion check.
 
 ## Why This Matters
 
