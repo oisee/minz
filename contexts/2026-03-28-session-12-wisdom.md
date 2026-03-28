@@ -83,6 +83,13 @@ Flag-based return is POST-regalloc ABI convention. Exhaustive tables solve regis
 
 ## Hard-Won Lessons
 
+### Z80 Assert Harness Uses Wrong Registers for VIR — CRITICAL
+buildAssertBootstrap loads params from PBQP AllocResult, but VIR Z3-PFCCO
+assigns different registers. All Z80 asserts for VIR functions are false positives.
+is_digit(65)==0 "passed" because bootstrap loaded 65 into wrong register,
+function read garbage from A, and accidentally returned 0.
+Fix: propagate VIR param locs to assert harness.
+
 ### TermCondRet Has Two Layers
 The VIR Z3 solver and MIR2 PBQP codegen have DIFFERENT TermCondRet bugs. Fixing MIR2 doesn't fix VIR. Must test with both backends.
 

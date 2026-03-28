@@ -14,6 +14,17 @@ ddll explore
 ddll send <vir>:main "fib accVreg+EX AF,AF' status? shr4? is_digit clobber?"
 ```
 
+## Priority 0: Z80 Assert Harness — BLOCKER
+
+buildAssertBootstrap (pipeline.go:821) loads args using PBQP AllocResult,
+but VIR Z3-PFCCO assigns DIFFERENT registers. All Z80 asserts for VIR-compiled
+functions are potentially false positives!
+
+Fix: update combined allocation from VIR results (virResults.ParamLocs) after
+CodegenModule, before RunAssertsZ80. Or parse '; func: params=[A,B]' from ASM.
+
+Until fixed: cannot trust Z80 asserts, cannot add new asserts meaningfully.
+
 ## Priority 1: fib(7)=13 → CP/M Screenshot → LinkedIn
 
 VIR working on g.accVreg tracking + EX AF,AF' for save/restore A across CALL.
