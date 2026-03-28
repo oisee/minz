@@ -665,13 +665,18 @@ fun main() -> void {
         var handled: u8 = 0
         if cur_tok() == TOK_KW {
             if cur_str() == KW_FUN {
+                @print_u8(parse_pos)
+                @print_nl()
                 advance()
                 let ast: u16 = parse_fun()
+                @print_u8(parse_pos)
+                @print(" tok_count=")
+                @print_u8(tok_count)
+                @print_nl()
                 if parse_error == 0 {
                     emit_lanz(ast)
                     out_nl()
-                    print_ast(ast)
-                    @print_nl()
+                    // print_ast removed (infinite recursion bug)
                 }
                 handled = 1
             }
