@@ -604,6 +604,191 @@ func (s InterferenceShape) Hash() uint64 {
 	return v
 }
 
+// ── Graph Analysis for Decomposition ─────────────────────────────────────────
+// Level 0: Cut vertices (Tarjan) → free decomposition, 87% corpus
+// Level 2: EXX 2-coloring (BFS bipartite) → dual-bank for 7-12v
+
+// FindCutVertices returns articulation points in the interference graph.
+// Cutting at these vertices splits the graph into independent components
+// with ZERO boundary move cost — optimal for enriched table lookup.
+// Uses Tarjan's algorithm: O(V+E).
+func (s InterferenceShape) FindCutVertices() []int {
+	n := s.NVregs
+	if n <= 1 {
+		return nil
+	}
+
+	// Build adjacency list
+	adj := make([][]int, n)
+	for _, e := range s.Edges {
+		adj[e[0]] = append(adj[e[0]], e[1])
+		adj[e[1]] = append(adj[e[1]], e[0])
+	}
+
+	disc := make([]int, n)
+	low := make([]int, n)
+	parent := make([]int, n)
+	isAP := make([]bool, n)
+	visited := make([]bool, n)
+	for i := range parent {
+		parent[i] = -1
+		disc[i] = -1
+	}
+
+	timer := 0
+	var dfs func(u int)
+	dfs = func(u int) {
+		visited[u] = true
+		disc[u] = timer
+		low[u] = timer
+		timer++
+		childCount := 0
+		for _, v := range adj[u] {
+			if !visited[v] {
+				childCount++
+				parent[v] = u
+				dfs(v)
+				if low[v] < low[u] {
+					low[u] = low[v]
+				}
+				// u is AP if: (1) root with 2+ children, or (2) non-root with low[v] >= disc[u]
+				if parent[u] == -1 && childCount > 1 {
+					isAP[u] = true
+				}
+				if parent[u] != -1 && low[v] >= disc[u] {
+					isAP[u] = true
+				}
+			} else if v != parent[u] {
+				if disc[v] < low[u] {
+					low[u] = disc[v]
+				}
+			}
+		}
+	}
+
+	for i := 0; i < n; i++ {
+		if !visited[i] {
+			dfs(i)
+		}
+	}
+
+	var cuts []int
+	for i, ap := range isAP {
+		if ap {
+			cuts = append(cuts, i)
+		}
+	}
+	return cuts
+}
+
+// IsBipartite checks if the interference graph is 2-colorable (bipartite).
+// If true, the graph can be split into two banks for EXX scheduling:
+// main bank (A-L) and shadow bank (A'-L'), swapped with EXX (4T).
+// Returns (true, coloring) where coloring[i] ∈ {0, 1}, or (false, nil).
+func (s InterferenceShape) IsBipartite() (bool, []int) {
+	n := s.NVregs
+	if n == 0 {
+		return true, nil
+	}
+
+	adj := make([][]int, n)
+	for _, e := range s.Edges {
+		adj[e[0]] = append(adj[e[0]], e[1])
+		adj[e[1]] = append(adj[e[1]], e[0])
+	}
+
+	color := make([]int, n)
+	for i := range color {
+		color[i] = -1 // unvisited
+	}
+
+	for start := 0; start < n; start++ {
+		if color[start] != -1 {
+			continue
+		}
+		// BFS from start
+		color[start] = 0
+		queue := []int{start}
+		for len(queue) > 0 {
+			u := queue[0]
+			queue = queue[1:]
+			for _, v := range adj[u] {
+				if color[v] == -1 {
+					color[v] = 1 - color[u]
+					queue = append(queue, v)
+				} else if color[v] == color[u] {
+					return false, nil // odd cycle → not bipartite
+				}
+			}
+		}
+	}
+	return true, color
+}
+
+// DecomposeAtCutVertices splits the graph into components by removing cut vertices.
+// Each component + its adjacent cut vertices forms an island ≤ original size.
+// Returns list of vertex sets (canonical indices).
+func (s InterferenceShape) DecomposeAtCutVertices() [][]int {
+	cuts := s.FindCutVertices()
+	if len(cuts) == 0 {
+		// No cut vertices — return whole graph as single component
+		all := make([]int, s.NVregs)
+		for i := range all {
+			all[i] = i
+		}
+		return [][]int{all}
+	}
+
+	cutSet := make(map[int]bool)
+	for _, c := range cuts {
+		cutSet[c] = true
+	}
+
+	// Build adjacency, find connected components excluding cut vertices
+	adj := make([][]int, s.NVregs)
+	for _, e := range s.Edges {
+		adj[e[0]] = append(adj[e[0]], e[1])
+		adj[e[1]] = append(adj[e[1]], e[0])
+	}
+
+	visited := make([]bool, s.NVregs)
+	var components [][]int
+
+	for i := 0; i < s.NVregs; i++ {
+		if visited[i] || cutSet[i] {
+			continue
+		}
+		// BFS from i, skipping cut vertices
+		var component []int
+		adjCuts := make(map[int]bool) // cut vertices adjacent to this component
+		queue := []int{i}
+		visited[i] = true
+		for len(queue) > 0 {
+			u := queue[0]
+			queue = queue[1:]
+			component = append(component, u)
+			for _, v := range adj[u] {
+				if cutSet[v] {
+					adjCuts[v] = true
+					continue
+				}
+				if !visited[v] {
+					visited[v] = true
+					queue = append(queue, v)
+				}
+			}
+		}
+		// Include adjacent cut vertices in the component
+		for c := range adjCuts {
+			component = append(component, c)
+		}
+		sort.Ints(component)
+		components = append(components, component)
+	}
+
+	return components
+}
+
 // EnrichedSignature combines shape + op_bag into a single lookup key.
 type EnrichedSignature struct {
 	ShapeHash uint64 `json:"shapeHash"`
