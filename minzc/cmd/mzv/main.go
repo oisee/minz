@@ -222,6 +222,10 @@ func main() {
 
 	registerTUIHosts(vm, *headless, traceEnabled)
 
+	// ── File host functions (host filesystem access for self-hosting) ───
+
+	registerFileHosts(vm, filepath.Dir(srcPath), traceEnabled)
+
 	// ── Disk host functions (--disk flag) ────────────────────────────────
 
 	if *diskImage != "" {

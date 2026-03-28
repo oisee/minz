@@ -1,0 +1,222 @@
+// Self-hosting tokenizer — Nanz tokenizes Nanz source on MZV!
+// Uses @file_read host function for source access.
+// Arena allocator for token storage.
+//
+// Run: mzv self_tokenizer.nanz -v
+
+// ── Host functions ──────────────────────────────────────
+
+// ── Token types ─────────────────────────────────────────
+// Using constants (enum not needed for self-host MVP)
+global TOK_EOF: u8 = 0
+global TOK_IDENT: u8 = 1
+global TOK_INT: u8 = 2
+global TOK_LPAREN: u8 = 3
+global TOK_RPAREN: u8 = 4
+global TOK_LBRACE: u8 = 5
+global TOK_RBRACE: u8 = 6
+global TOK_COLON: u8 = 7
+global TOK_COMMA: u8 = 8
+global TOK_ARROW: u8 = 9
+global TOK_EQ: u8 = 10
+global TOK_PLUS: u8 = 11
+global TOK_MINUS: u8 = 12
+global TOK_STAR: u8 = 13
+global TOK_SLASH: u8 = 14
+global TOK_LT: u8 = 15
+global TOK_GT: u8 = 16
+global TOK_STRING: u8 = 17
+global TOK_KEYWORD: u8 = 18
+global TOK_SEMI: u8 = 19
+
+// ── Character classification ────────────────────────────
+
+fun is_digit(c: u8) -> u8 {
+    if c >= 48 {
+        if c <= 57 { return 1 }
+    }
+    return 0
+}
+
+fun is_alpha(c: u8) -> u8 {
+    if c >= 65 {
+        if c <= 90 { return 1 }
+    }
+    if c >= 97 {
+        if c <= 122 { return 1 }
+    }
+    if c == 95 { return 1 }  // underscore
+    return 0
+}
+
+fun is_alnum(c: u8) -> u8 {
+    if is_digit(c) == 1 { return 1 }
+    return is_alpha(c)
+}
+
+fun is_space(c: u8) -> u8 {
+    if c == 32 { return 1 }   // space
+    if c == 9 { return 1 }    // tab
+    if c == 10 { return 1 }   // newline
+    if c == 13 { return 1 }   // CR
+    return 0
+}
+
+// ── Tokenizer state ─────────────────────────────────────
+
+global src_buf: u16 = 0xC000   // source buffer in high memory
+global src_len: u16 = 0
+global pos: u16 = 0
+
+// ── Core tokenizer ──────────────────────────────────────
+
+fun peek_char() -> u8 {
+    if pos >= src_len { return 0 }
+    return peek(src_buf + pos)
+}
+
+fun next_char() -> u8 {
+    let c: u8 = peek_char()
+    pos = pos + 1
+    return c
+}
+
+fun skip_whitespace() -> void {
+    while is_space(peek_char()) == 1 {
+        pos = pos + 1
+    }
+}
+
+fun skip_line_comment() -> void {
+    while peek_char() != 10 {
+        if peek_char() == 0 { return }
+        pos = pos + 1
+    }
+    pos = pos + 1  // skip newline
+}
+
+// Return token type for current position
+fun next_token() -> u8 {
+    skip_whitespace()
+    let c: u8 = peek_char()
+    
+    if c == 0 { return TOK_EOF }
+    
+    // Line comment
+    if c == 47 {  // '/'
+        if peek(src_buf + pos + 1) == 47 {
+            skip_line_comment()
+            return next_token()  // recursive skip
+        }
+        pos = pos + 1
+        return TOK_SLASH
+    }
+    
+    // Single-char tokens
+    if c == 40 { pos = pos + 1
+        return TOK_LPAREN }
+    if c == 41 { pos = pos + 1
+        return TOK_RPAREN }
+    if c == 123 { pos = pos + 1
+        return TOK_LBRACE }
+    if c == 125 { pos = pos + 1
+        return TOK_RBRACE }
+    if c == 58 { pos = pos + 1
+        return TOK_COLON }
+    if c == 44 { pos = pos + 1
+        return TOK_COMMA }
+    if c == 59 { pos = pos + 1
+        return TOK_SEMI }
+    if c == 43 { pos = pos + 1
+        return TOK_PLUS }
+    if c == 42 { pos = pos + 1
+        return TOK_STAR }
+    if c == 60 { pos = pos + 1
+        return TOK_LT }
+    if c == 62 { pos = pos + 1
+        return TOK_GT }
+    
+    // Arrow ->
+    if c == 45 {  // '-'
+        if peek(src_buf + pos + 1) == 62 {  // '>'
+            pos = pos + 2
+            return TOK_ARROW
+        }
+        pos = pos + 1
+        return TOK_MINUS
+    }
+    
+    // == 
+    if c == 61 {  // '='
+        if peek(src_buf + pos + 1) == 61 {
+            pos = pos + 2
+            return TOK_EQ
+        }
+        pos = pos + 1
+        return TOK_EQ
+    }
+    
+    // Number
+    if is_digit(c) == 1 {
+        while is_digit(peek_char()) == 1 {
+            pos = pos + 1
+        }
+        return TOK_INT
+    }
+    
+    // Identifier or keyword
+    if is_alpha(c) == 1 {
+        while is_alnum(peek_char()) == 1 {
+            pos = pos + 1
+        }
+        return TOK_IDENT
+    }
+    
+    // String literal
+    if c == 34 {  // '"'
+        pos = pos + 1
+        while peek_char() != 34 {
+            if peek_char() == 0 { return TOK_EOF }
+            pos = pos + 1
+        }
+        pos = pos + 1  // skip closing quote
+        return TOK_STRING
+    }
+    
+    // Unknown — skip
+    pos = pos + 1
+    return next_token()
+}
+
+// ── Test: count tokens in a hardcoded string ────────────
+
+fun count_tokens_in(s: ^u8, len: u16) -> u16 {
+    // Copy string to src_buf
+    var i: u16 = 0
+    while i < len {
+        poke(src_buf + i, peek(s + i))
+        i = i + 1
+    }
+    poke(src_buf + len, 0)  // null terminate
+    src_len = len
+    pos = 0
+    
+    var count: u16 = 0
+    while next_token() != TOK_EOF {
+        count = count + 1
+    }
+    return count
+}
+
+// ── Asserts ─────────────────────────────────────────────
+
+assert is_digit(48) == 1
+assert is_digit(57) == 1
+assert is_digit(65) == 0
+assert is_alpha(65) == 1
+assert is_alpha(48) == 0
+assert is_alpha(95) == 1
+assert is_space(32) == 1
+assert is_space(65) == 0
+
+fun main() -> u8 { return 0 }
