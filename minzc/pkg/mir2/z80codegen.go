@@ -7277,11 +7277,22 @@ func (g *z80cg) callerSavePairs(inst *Inst, callee *Func) []string {
 	}
 
 	// Get callee's clobbered registers (cached).
+	// Self-recursive calls: treat ALL GPR as clobbered — the recursive
+	// invocation uses the same scratch registers (H, D, E from
+	// materializePendingAcc / save-before-overwrite) that aren't in the
+	// static clobber set.
 	clobberedRegs, ok := g.clobberCache[inst.Sym]
 	if !ok {
 		clobberedRegs = make(map[string]bool)
-		for _, name := range computeClobbers(callee, g.ar) {
-			clobberedRegs[name] = true
+		if callee.Name == g.fn.Name {
+			// Self-recursive: all GPR clobbered
+			for _, r := range []string{"A", "B", "C", "D", "E", "H", "L", "F"} {
+				clobberedRegs[r] = true
+			}
+		} else {
+			for _, name := range computeClobbers(callee, g.ar) {
+				clobberedRegs[name] = true
+			}
 		}
 		if g.clobberCache == nil {
 			g.clobberCache = make(map[string]map[string]bool)
@@ -7318,12 +7329,19 @@ func (g *z80cg) callerSavePairs(inst *Inst, callee *Func) []string {
 		if excluded[r] {
 			continue
 		}
-		loc := g.ar.Locs[r]
-		if loc.Kind != LocReg {
+		// Use g.loc() which respects physOverride — a vreg may have been
+		// relocated to a different register by materializePendingAcc or
+		// save-before-overwrite. The static ar.Locs doesn't reflect these
+		// runtime relocations.
+		locName := g.loc(r)
+		if locName == "" || locName == "?" {
 			continue
 		}
-		if clobberedRegs[loc.Name] {
-			livePhys[loc.Name] = true
+		if isSpill(locName) {
+			continue // spilled to memory — not a register
+		}
+		if clobberedRegs[locName] {
+			livePhys[locName] = true
 		}
 	}
 
