@@ -1,6 +1,33 @@
--- Pipe operator test
+(* Pipe operator tests *)
 let double (x : u8) : u8 = x + x
 let inc (x : u8) : u8 = x + 1
+let dec (x : u8) : u8 = x - 1
+let sq (x : u8) : u8 = x * x
 
--- 5 |> double |> inc = inc(double(5)) = inc(10) = 11
-let main () : u8 = 5 |> double |> inc
+(* Pipe chains *)
+let pipe_dbl_inc (x : u8) : u8 = x |> double |> inc
+let pipe_inc_dbl (x : u8) : u8 = x |> inc |> double
+let pipe_triple (x : u8) : u8 = x |> double |> inc |> dec
+
+(* Composition *)
+let dbl_then_inc = double >> inc
+let inc_then_dbl = inc >> double
+
+assert double 5 == 10
+assert inc 10 == 11
+assert dec 10 == 9
+assert sq 5 == 25
+
+assert pipe_dbl_inc 5 == 11
+assert pipe_inc_dbl 5 == 12
+assert pipe_triple 5 == 10
+
+assert dbl_then_inc 5 == 11
+assert inc_then_dbl 5 == 12
+
+(* Inline pipe in assert not supported yet
+assert 5 |> double == 10
+assert 5 |> double |> inc == 11
+*)
+
+let main (x : u8) = 0

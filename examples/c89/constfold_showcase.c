@@ -41,3 +41,7 @@ int factorial(int n) {
 
 // fact(6) = 720 — compile-time constant
 int fact6(void) { return factorial(6); }
+
+// assert fib10() == 55 via mir2
+// assert sum10() == 45 via mir2
+// assert fact6() == 720 via mir2
