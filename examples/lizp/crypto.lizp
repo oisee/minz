@@ -1,0 +1,29 @@
+;; Cryptography in Scheme on Z80
+
+(defun xor_encrypt ((plaintext u8) (key u8)) -> u8
+  (return (bitwise-xor plaintext key)))
+
+(defun xor_decrypt ((ciphertext u8) (key u8)) -> u8
+  (return (bitwise-xor ciphertext key)))
+
+(defun caesar_encrypt ((ch u8) (shift u8)) -> u8
+  (return (if (and (>= ch 65) (<= ch 90))
+    (+ 65 (modulo (+ (- ch 65) shift) 26))
+    ch)))
+
+(defun hash_combine ((hash u8) (byte u8)) -> u8
+  (return (bitwise-xor (+ (* hash 5) hash) byte)))
+
+(defun checksum_xor ((a u8) (b u8) (c u8)) -> u8
+  (return (bitwise-xor (bitwise-xor a b) c)))
+
+(defun checksum_add ((a u8) (b u8) (c u8)) -> u8
+  (return (+ (+ a b) c)))
+
+(assert xor_encrypt 72 42 == 98)
+(assert xor_decrypt 98 42 == 72)
+(assert xor_encrypt 0 255 == 255)
+(assert caesar_encrypt 65 3 == 68)
+(assert caesar_encrypt 48 3 == 48)
+(assert checksum_xor 1 2 3 == 0)
+(assert checksum_add 10 20 30 == 60)

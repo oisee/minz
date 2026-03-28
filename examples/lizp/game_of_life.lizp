@@ -1,0 +1,31 @@
+;; Cellular automata in Scheme on Z80
+
+(defun rule30 ((left u8) (center u8) (right u8)) -> u8
+  (let ((pattern u8 (+ (+ (* left 4) (* center 2)) right)))
+    (return (cond
+      ((= pattern 4) 1)
+      ((= pattern 3) 1)
+      ((= pattern 2) 1)
+      ((= pattern 1) 1)
+      (t 0)))))
+
+(defun xor_rule ((left u8) (right u8)) -> u8
+  (return (bitwise-xor left right)))
+
+(defun popcount ((x u8)) -> u8
+  (let ((n u8 x) (count u8 0))
+    (while (> n 0)
+      (setq count (+ count (bitwise-and n 1)))
+      (setq n (quotient n 2)))
+    (return count)))
+
+(assert rule30 1 0 0 == 1)
+(assert rule30 0 1 1 == 1)
+(assert rule30 0 0 0 == 0)
+(assert xor_rule 0 0 == 0)
+(assert xor_rule 1 0 == 1)
+(assert xor_rule 1 1 == 0)
+(assert popcount 0 == 0)
+(assert popcount 1 == 1)
+(assert popcount 255 == 8)
+(assert popcount 170 == 4)

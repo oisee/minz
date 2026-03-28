@@ -1,0 +1,26 @@
+;; Digital Signal Processing in Scheme on Z80
+
+(defun square_wave ((t u8) (period u8)) -> u8
+  (return (if (< (modulo t period) (quotient period 2)) 255 0)))
+
+(defun sawtooth ((t u8) (period u8)) -> u8
+  (return (quotient (* (modulo t period) 255) period)))
+
+(defun lowpass ((current u8) (prev u8)) -> u8
+  (return (quotient (+ current prev) 2)))
+
+(defun clamp_signal ((x u8) (lo u8) (hi u8)) -> u8
+  (return (cond ((< x lo) lo) ((> x hi) hi) (t x))))
+
+(defun peak ((a u8) (b u8)) -> u8
+  (return (max a b)))
+
+(assert square_wave 0 10 == 255)
+(assert square_wave 3 10 == 255)
+(assert sawtooth 0 10 == 0)
+(assert lowpass 100 50 == 75)
+(assert lowpass 0 0 == 0)
+(assert clamp_signal 50 10 200 == 50)
+(assert clamp_signal 5 10 200 == 10)
+(assert peak 100 200 == 200)
+(assert peak 200 100 == 200)
