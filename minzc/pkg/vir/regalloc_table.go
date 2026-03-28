@@ -121,6 +121,15 @@ func (t *RegAllocTable) Add(sig string, entry *RegAllocEntry) {
 	t.entries[sig] = entry
 }
 
+// LookupByKey looks up an entry by its raw signature key.
+// Used by MZV host functions that compute the key externally.
+func (t *RegAllocTable) LookupByKey(key string) (*RegAllocEntry, bool) {
+	t.mu.RLock()
+	defer t.mu.RUnlock()
+	e, ok := t.entries[key]
+	return e, ok
+}
+
 // Size returns the number of entries.
 func (t *RegAllocTable) Size() int {
 	t.mu.RLock()
