@@ -11,6 +11,7 @@
 @extern fun peek(addr: u16) -> u8
 @extern fun poke(addr: u16, val: u8) -> void
 @extern fun file_read(path: ^u8, buf: ^u8) -> u16
+@extern fun file_write(path: ^u8, buf: ^u8, len: u16) -> u16
 @extern fun file_size(path: ^u8) -> u16
 
 // ═══════════════════════════════════════════════════════
@@ -26,6 +27,10 @@ global src_buf: u16 = 0xC000
 global src_len: u16 = 0
 global pos: u16 = 0
 global tok_start: u16 = 0
+
+// Output buffer at 0xD000 (4KB for .lanz output)
+global out_buf: u16 = 0xD000
+global out_len: u16 = 0
 
 // Token types
 global TOK_EOF: u8 = 0
@@ -433,6 +438,98 @@ fun parse_program() -> u16 {
 // AST printer
 // ═══════════════════════════════════════════════════════
 
+// ═══════════════════════════════════════════════════════
+// Output buffer — write to 0xD000 for file output
+// ═══════════════════════════════════════════════════════
+
+fun out_char(c: u8) -> void {
+    poke(0xD000 + out_len, c)
+    out_len = out_len + 1
+}
+
+fun out_str(s: ^u8) -> void {
+    var i: u16 = 0
+    while peek(s + i) != 0 {
+        out_char(peek(s + i))
+        i = i + 1
+    }
+}
+
+fun out_arena_str(s: u16) -> void {
+    let len: u8 = peek(s)
+    var i: u8 = 0
+    while i < len {
+        out_char(peek(s + 1 + i))
+        i = i + 1
+    }
+}
+
+fun out_nl() -> void {
+    out_char(10)
+}
+
+// Emit AST as Lanz to output buffer
+fun emit_lanz(node: u16) -> void {
+    if node == 0 { return }
+    let tag: u8 = ast_tag(node)
+
+    if tag == AST_FUN {
+        let params_blk: u16 = ast_d1(node)
+        let ret_type: u16 = ast_d2(params_blk)
+        out_str("(fun ")
+        out_arena_str(ast_d0(node))
+        out_str(" (")
+        let p0: u16 = ast_d0(params_blk)
+        let p1: u16 = ast_d1(params_blk)
+        if p0 != 0 { emit_lanz(p0) }
+        if p1 != 0 { out_char(32) emit_lanz(p1) }
+        out_str(") ")
+        out_arena_str(ret_type)
+        out_char(32)
+        emit_lanz(ast_d2(node))
+        out_char(41)
+        return
+    }
+    if tag == AST_RETURN {
+        out_str("(return ")
+        emit_lanz(ast_d0(node))
+        out_char(41)
+        return
+    }
+    if tag == AST_BINOP {
+        out_char(40)
+        if ast_d0(node) == TOK_PLUS { out_char(43) }
+        if ast_d0(node) == TOK_MINUS { out_char(45) }
+        if ast_d0(node) == TOK_STAR { out_char(42) }
+        out_char(32)
+        emit_lanz(ast_d1(node))
+        out_char(32)
+        emit_lanz(ast_d2(node))
+        out_char(41)
+        return
+    }
+    if tag == AST_IDENT {
+        out_arena_str(ast_d0(node))
+        return
+    }
+    if tag == AST_INT {
+        out_arena_str(ast_d0(node))
+        return
+    }
+    if tag == AST_PARAM {
+        out_char(40)
+        out_arena_str(ast_d0(node))
+        out_char(32)
+        out_arena_str(ast_d1(node))
+        out_char(41)
+        return
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// Screen printing (for debug, uses @print)
+// ═══════════════════════════════════════════════════════
+
 fun print_str_arena(s: u16) -> void {
     let len: u8 = peek(s)
     var i: u8 = 0
@@ -555,44 +652,57 @@ fun main() -> void {
     parse_pos = 0
     parse_error = 0
 
-    @print("=== Lanz output ===")
-    @print_nl()
+    // Parse all functions and emit Lanz to output buffer
+    out_len = 0
 
     while parse_pos < tok_count {
-        if cur_tok() == TOK_KW {
-            let s: u16 = cur_str()
-            if s == KW_FUN {
-                advance()
-                let ast: u16 = parse_fun()
-                if parse_error == 0 {
-                    print_ast(ast)
-                    @print_nl()
-                }
-            }
-            if s == KW_FN {
-                advance()
-                let ast: u16 = parse_fun()
-                if parse_error == 0 {
-                    print_ast(ast)
-                    @print_nl()
-                }
-            }
-        }
-        // Skip non-fun tokens (asserts, globals, etc)
-        if cur_tok() != TOK_KW {
-            advance()
-        }
         if parse_error == 1 {
             @print("PARSE ERROR at token ")
             @print_u8(parse_pos)
             @print_nl()
             return
         }
+        var handled: u8 = 0
+        if cur_tok() == TOK_KW {
+            if cur_str() == KW_FUN {
+                advance()
+                let ast: u16 = parse_fun()
+                if parse_error == 0 {
+                    emit_lanz(ast)
+                    out_nl()
+                    print_ast(ast)
+                    @print_nl()
+                }
+                handled = 1
+            }
+            if handled == 0 {
+                if cur_str() == KW_FN {
+                    advance()
+                    let ast: u16 = parse_fun()
+                    if parse_error == 0 {
+                        emit_lanz(ast)
+                        out_nl()
+                        print_ast(ast)
+                        @print_nl()
+                    }
+                    handled = 1
+                }
+            }
+        }
+        if handled == 0 {
+            advance()
+        }
     }
 
-    @print("=== Stats ===")
+    // Write .lanz output file
+    let out_path: ^u8 = "tiny.lanz"
+    let written: u16 = file_write(out_path, 0xD000, out_len)
+    @print("=== Written ")
+    @print_u8(written)
+    @print(" bytes to tiny.lanz ===")
     @print_nl()
-    @print("AST: ")
+
+    @print("Stats: ")
     @print_u8((ast_bump - ast_arena) / 8)
     @print(" nodes, ")
     @print_u8(str_bump - str_arena)

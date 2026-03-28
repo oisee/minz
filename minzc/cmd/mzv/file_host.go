@@ -122,6 +122,30 @@ func registerFileHosts(vm *mir2.VM, baseDir string, trace bool) {
 		return nil, nil
 	}
 
+	// file_write(path: ^u8, buf: ^u8, len: u16) -> u16
+	// Writes len bytes from VM heap to host file. Returns bytes written.
+	fileWriteFn := func(args []mir2.Value) ([]mir2.Value, error) {
+		path := resolve(readStr(args[0].I))
+		length := int(args[2].I)
+		vm.EnsureHeap(args[1].I + int64(length))
+		data := vm.ReadHeap(args[1].I, length)
+		if data == nil {
+			return []mir2.Value{{I: 0}}, nil
+		}
+		if err := os.WriteFile(path, data, 0644); err != nil {
+			if trace {
+				fmt.Fprintf(os.Stderr, "  file_write(%q): %v\n", path, err)
+			}
+			return []mir2.Value{{I: 0}}, nil
+		}
+		if trace {
+			fmt.Fprintf(os.Stderr, "  file_write(%q) → %d bytes\n", path, length)
+		}
+		return []mir2.Value{{I: int64(length)}}, nil
+	}
+	vm.Hosts["@file_write"] = fileWriteFn
+	vm.Hosts["file_write"] = fileWriteFn
+
 	// @file_exists(path: ^u8) -> u8
 	vm.Hosts["@file_exists"] = func(args []mir2.Value) ([]mir2.Value, error) {
 		path := resolve(readStr(args[0].I))
