@@ -62,6 +62,11 @@ func Compile(src, name string) (*hir.Module, error) {
 		}
 		desugared = append(desugared, ds...)
 	}
+	// Sanitize identifiers: Lisp allows hyphens in names (sum-loop),
+	// but Z80 assembler treats '-' as minus. Replace with '_'.
+	for i := range desugared {
+		desugared[i] = sanitizeIdents(desugared[i])
+	}
 	// Pass desugared nodes directly to Lanz compiler (no serialize roundtrip).
 	return lanz.CompileNodes(desugared, name)
 }
@@ -677,6 +682,31 @@ func desugarNodes(nodes []lanz.Node) []lanz.Node {
 		result[i] = desugarExpr(n)
 	}
 	return result
+}
+
+// sanitizeIdents replaces hyphens in identifiers with underscores.
+// Lisp convention: sum-loop, is-even. Z80 assembler: sum_loop, is_even.
+func sanitizeIdents(n lanz.Node) lanz.Node {
+	if n.IsAtom() {
+		if strings.Contains(n.Atom, "-") {
+			// Don't touch operators, numbers, hex literals, arrows
+			if n.Atom == "-" || n.Atom == "->" || n.Atom == "->>" ||
+				strings.HasPrefix(n.Atom, "0x") || strings.HasPrefix(n.Atom, "#") {
+				return n
+			}
+			// Check if it's a negative number
+			if len(n.Atom) > 1 && n.Atom[0] == '-' && n.Atom[1] >= '0' && n.Atom[1] <= '9' {
+				return n
+			}
+			return lanz.Node{Atom: strings.ReplaceAll(n.Atom, "-", "_"), Line: n.Line}
+		}
+		return n
+	}
+	result := make([]lanz.Node, len(n.List))
+	for i, child := range n.List {
+		result[i] = sanitizeIdents(child)
+	}
+	return lanz.Node{List: result, Line: n.Line}
 }
 
 // ── Threading macros ─────────────────────────────────────────────────────────
