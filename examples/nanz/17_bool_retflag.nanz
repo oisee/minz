@@ -1,0 +1,111 @@
+// Bool retFlag test corpus
+// Tests all comparison types for Z3 per-function retFlag optimization
+//
+// CmpEq → Z natural
+// CmpLt → CY natural
+// CmpGt → CY+Z
+// Each should get optimal ret_mode from Z3
+
+// --- Equality (Z flag natural) ---
+
+fun is_zero(x: u8) -> u8 {
+    if x == 0 { return 1 }
+    return 0
+}
+
+fun is_ten(x: u8) -> u8 {
+    if x == 10 { return 1 }
+    return 0
+}
+
+fun eq(a: u8, b: u8) -> u8 {
+    if a == b { return 1 }
+    return 0
+}
+
+// --- Less-than (CY flag natural) ---
+
+fun is_small(x: u8) -> u8 {
+    if x < 10 { return 1 }
+    return 0
+}
+
+fun lt(a: u8, b: u8) -> u8 {
+    if a < b { return 1 }
+    return 0
+}
+
+// --- Greater-than ---
+
+fun is_big(x: u8) -> u8 {
+    if x > 200 { return 1 }
+    return 0
+}
+
+fun gt(a: u8, b: u8) -> u8 {
+    if a > b { return 1 }
+    return 0
+}
+
+// --- Range check (two CY checks) ---
+
+fun in_range(x: u8, lo: u8, hi: u8) -> u8 {
+    if x >= lo {
+        if x <= hi { return 1 }
+    }
+    return 0
+}
+
+fun is_digit(c: u8) -> u8 {
+    if c >= 48 {
+        if c <= 57 { return 1 }
+    }
+    return 0
+}
+
+// --- Compound ---
+
+fun is_alpha_upper(c: u8) -> u8 {
+    if c >= 65 {
+        if c <= 90 { return 1 }
+    }
+    return 0
+}
+
+// Asserts
+assert is_zero(0) == 1
+assert is_zero(1) == 0
+assert is_zero(255) == 0
+assert is_ten(10) == 1
+assert is_ten(0) == 0
+assert eq(5, 5) == 1
+assert eq(5, 6) == 0
+
+assert is_small(0) == 1
+assert is_small(9) == 1
+assert is_small(10) == 0
+assert is_small(255) == 0
+assert lt(3, 7) == 1
+assert lt(7, 3) == 0
+assert lt(5, 5) == 0
+
+assert is_big(201) == 1
+assert is_big(200) == 0
+assert is_big(0) == 0
+assert gt(7, 3) == 1
+assert gt(3, 7) == 0
+
+assert in_range(50, 10, 200) == 1
+assert in_range(5, 10, 200) == 0
+assert in_range(250, 10, 200) == 0
+
+assert is_digit(48) == 1
+assert is_digit(57) == 1
+assert is_digit(47) == 0
+assert is_digit(58) == 0
+assert is_digit(65) == 0
+
+assert is_alpha_upper(65) == 1
+assert is_alpha_upper(90) == 1
+assert is_alpha_upper(64) == 0
+assert is_alpha_upper(91) == 0
