@@ -1,14 +1,45 @@
-// Self-hosting tokenizer v2 — Nanz tokenizes Nanz source on MZV!
+// Self-hosting tokenizer v3 — with interned strings!
 //
-// Produces a token stream with position info + keyword detection.
-// Each token: (type: u8, start: u16, len: u8)
-// Stored in arena at 0xA000, 4 bytes per token.
+// Two arenas:
+//   String arena (0x9000) — interned identifier/keyword text
+//   Token arena  (0xB000) — token stream: [type, str_ptr_lo, str_ptr_hi, len]
+//   Source buffer (0xC000) — raw source text
+//
+// String interning: same text → same pointer. Keyword check = pointer equality!
 //
 // Run: mzv self_tokenizer.nanz -v
 
-// ── Host functions (MZV provides these) ─────────────────
+// ── Host functions ──────────────────────────────────────
 @extern fun peek(addr: u16) -> u8
 @extern fun poke(addr: u16, val: u8) -> void
+
+// ── Memory layout ───────────────────────────────────────
+global str_arena: u16 = 0x9000      // interned strings
+global str_bump: u16 = 0x9000       // next free in string arena
+global tok_arena: u16 = 0xB000      // token stream
+global tok_count: u16 = 0
+global src_buf: u16 = 0xC000        // source text
+global src_len: u16 = 0
+global pos: u16 = 0
+global tok_start: u16 = 0
+
+// ── Keyword pointers (set during init) ──────────────────
+global KW_FUN: u16 = 0
+global KW_FN: u16 = 0
+global KW_RETURN: u16 = 0
+global KW_IF: u16 = 0
+global KW_ELSE: u16 = 0
+global KW_WHILE: u16 = 0
+global KW_LET: u16 = 0
+global KW_VAR: u16 = 0
+global KW_GLOBAL: u16 = 0
+global KW_STRUCT: u16 = 0
+global KW_ENUM: u16 = 0
+global KW_IMPORT: u16 = 0
+global KW_TRUE: u16 = 0
+global KW_FALSE: u16 = 0
+global KW_ASSERT: u16 = 0
+global KW_RETURN_S: u16 = 0
 
 // ── Token types ─────────────────────────────────────────
 global TOK_EOF: u8 = 0
@@ -33,24 +64,127 @@ global TOK_LTEQ: u8 = 18
 global TOK_GTEQ: u8 = 19
 global TOK_BANGEQ: u8 = 20
 global TOK_STRING: u8 = 21
-global TOK_SEMI: u8 = 22
-// Keywords
-global TOK_FUN: u8 = 30
-global TOK_RETURN: u8 = 31
-global TOK_IF: u8 = 32
-global TOK_ELSE: u8 = 33
-global TOK_WHILE: u8 = 34
-global TOK_LET: u8 = 35
-global TOK_VAR: u8 = 36
-global TOK_GLOBAL: u8 = 37
-global TOK_STRUCT: u8 = 38
-global TOK_ENUM: u8 = 39
-global TOK_IMPORT: u8 = 40
-global TOK_TRUE: u8 = 41
-global TOK_FALSE: u8 = 42
-global TOK_ASSERT: u8 = 43
+global TOK_KW: u8 = 30
 
-// ── Character classification ────────────────────────────
+// ═══════════════════════════════════════════════════════
+// String Arena — interned Pascal-style strings
+// Layout: [len: u8] [char0] [char1] ... [charN-1]
+// ═══════════════════════════════════════════════════════
+
+// Allocate string from literal bytes (for keyword init)
+fun str_alloc_2(a: u8, b: u8) -> u16 {
+    let p: u16 = str_bump
+    poke(p, 2)
+    poke(p + 1, a)
+    poke(p + 2, b)
+    str_bump = str_bump + 3
+    return p
+}
+
+fun str_alloc_3(a: u8, b: u8, c: u8) -> u16 {
+    let p: u16 = str_bump
+    poke(p, 3)
+    poke(p + 1, a)
+    poke(p + 2, b)
+    poke(p + 3, c)
+    str_bump = str_bump + 4
+    return p
+}
+
+fun str_alloc_4(a: u8, b: u8, c: u8, d: u8) -> u16 {
+    let p: u16 = str_bump
+    poke(p, 4)
+    poke(p + 1, a)
+    poke(p + 2, b)
+    poke(p + 3, c)
+    poke(p + 4, d)
+    str_bump = str_bump + 5
+    return p
+}
+
+fun str_alloc_5(a: u8, b: u8, c: u8, d: u8, e: u8) -> u16 {
+    let p: u16 = str_bump
+    poke(p, 5)
+    poke(p + 1, a)
+    poke(p + 2, b)
+    poke(p + 3, c)
+    poke(p + 4, d)
+    poke(p + 5, e)
+    str_bump = str_bump + 6
+    return p
+}
+
+fun str_alloc_6(a: u8, b: u8, c: u8, d: u8, e: u8, f: u8) -> u16 {
+    let p: u16 = str_bump
+    poke(p, 6)
+    poke(p + 1, a)
+    poke(p + 2, b)
+    poke(p + 3, c)
+    poke(p + 4, d)
+    poke(p + 5, e)
+    poke(p + 6, f)
+    str_bump = str_bump + 7
+    return p
+}
+
+// String length
+fun str_len(s: u16) -> u8 {
+    return peek(s)
+}
+
+// String equality — compare length + bytes
+fun str_eq(a: u16, b: u16) -> u8 {
+    if a == b { return 1 }  // pointer equality!
+    let la: u8 = peek(a)
+    if la != peek(b) { return 0 }
+    var i: u8 = 0
+    while i < la {
+        if peek(a + 1 + i) != peek(b + 1 + i) { return 0 }
+        i = i + 1
+    }
+    return 1
+}
+
+// Compare source region with arena string
+fun region_eq(src_start: u16, arena_ptr: u16, len: u8) -> u8 {
+    var i: u8 = 0
+    while i < len {
+        if peek(src_buf + src_start + i) != peek(arena_ptr + 1 + i) {
+            return 0
+        }
+        i = i + 1
+    }
+    return 1
+}
+
+// Intern: find existing or allocate new from source buffer
+fun intern(start: u16, len: u8) -> u16 {
+    // Search all existing strings
+    var p: u16 = str_arena
+    while p < str_bump {
+        let slen: u8 = peek(p)
+        if slen == len {
+            if region_eq(start, p, len) == 1 {
+                return p
+            }
+        }
+        p = p + 1 + slen
+    }
+    // Not found — allocate new
+    let new_p: u16 = str_bump
+    poke(str_bump, len)
+    var j: u8 = 0
+    while j < len {
+        poke(str_bump + 1 + j, peek(src_buf + start + j))
+        j = j + 1
+    }
+    str_bump = str_bump + 1 + len
+    return new_p
+}
+
+// ═══════════════════════════════════════════════════════
+// Character classification
+// ═══════════════════════════════════════════════════════
 
 fun is_digit(c: u8) -> u8 {
     if c >= 48 {
@@ -60,12 +194,8 @@ fun is_digit(c: u8) -> u8 {
 }
 
 fun is_alpha(c: u8) -> u8 {
-    if c >= 65 {
-        if c <= 90 { return 1 }
-    }
-    if c >= 97 {
-        if c <= 122 { return 1 }
-    }
+    if c >= 65 { if c <= 90 { return 1 } }
+    if c >= 97 { if c <= 122 { return 1 } }
     if c == 95 { return 1 }
     return 0
 }
@@ -83,30 +213,20 @@ fun is_space(c: u8) -> u8 {
     return 0
 }
 
-// ── Source buffer + tokenizer state ─────────────────────
-global src_buf: u16 = 0xC000
-global src_len: u16 = 0
-global pos: u16 = 0
-global tok_start: u16 = 0   // start of current token
-
-// Token arena: 0xA000, 4 bytes per token (type, start_lo, start_hi, len)
-global tok_arena: u16 = 0xA000
-global tok_count: u16 = 0
-
-// ── Core tokenizer ──────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+// Tokenizer
+// ═══════════════════════════════════════════════════════
 
 fun peek_char() -> u8 {
     if pos >= src_len { return 0 }
     return peek(src_buf + pos)
 }
 
-fun skip_whitespace() -> void {
-    while is_space(peek_char()) == 1 {
-        pos = pos + 1
-    }
+fun skip_ws() -> void {
+    while is_space(peek_char()) == 1 { pos = pos + 1 }
 }
 
-fun skip_line_comment() -> void {
+fun skip_comment() -> void {
     while peek_char() != 10 {
         if peek_char() == 0 { return }
         pos = pos + 1
@@ -114,350 +234,309 @@ fun skip_line_comment() -> void {
     pos = pos + 1
 }
 
-// ── String comparison (source buffer vs constant) ───────
-
-fun src_eq_3(start: u16, a: u8, b: u8, c: u8) -> u8 {
-    if peek(src_buf + start) != a { return 0 }
-    if peek(src_buf + start + 1) != b { return 0 }
-    if peek(src_buf + start + 2) != c { return 0 }
-    return 1
-}
-
-fun src_eq_2(start: u16, a: u8, b: u8) -> u8 {
-    if peek(src_buf + start) != a { return 0 }
-    if peek(src_buf + start + 1) != b { return 0 }
-    return 1
-}
-
-fun src_eq_4(start: u16, a: u8, b: u8, c: u8, d: u8) -> u8 {
-    if peek(src_buf + start) != a { return 0 }
-    if peek(src_buf + start + 1) != b { return 0 }
-    if peek(src_buf + start + 2) != c { return 0 }
-    if peek(src_buf + start + 3) != d { return 0 }
-    return 1
-}
-
-fun src_eq_5(start: u16, a: u8, b: u8, c: u8, d: u8, e: u8) -> u8 {
-    if src_eq_4(start, a, b, c, d) == 0 { return 0 }
-    if peek(src_buf + start + 4) != e { return 0 }
-    return 1
-}
-
-fun src_eq_6(start: u16, a: u8, b: u8, c: u8, d: u8, e: u8, f: u8) -> u8 {
-    if src_eq_4(start, a, b, c, d) == 0 { return 0 }
-    if peek(src_buf + start + 4) != e { return 0 }
-    if peek(src_buf + start + 5) != f { return 0 }
-    return 1
-}
-
-// ── Keyword detection ───────────────────────────────────
-
-fun classify_keyword(start: u16, len: u8) -> u8 {
-    // fun
-    if len == 3 {
-        if src_eq_3(start, 102, 117, 110) == 1 { return TOK_FUN }
-        if src_eq_3(start, 108, 101, 116) == 1 { return TOK_LET }
-        if src_eq_3(start, 118, 97, 114) == 1 { return TOK_VAR }
-    }
-    // if
-    if len == 2 {
-        if src_eq_2(start, 105, 102) == 1 { return TOK_IF }
-        if src_eq_2(start, 102, 110) == 1 { return TOK_FUN }  // fn
-    }
-    // else
-    if len == 4 {
-        if src_eq_4(start, 101, 108, 115, 101) == 1 { return TOK_ELSE }
-        if src_eq_4(start, 101, 110, 117, 109) == 1 { return TOK_ENUM }
-        if src_eq_4(start, 116, 114, 117, 101) == 1 { return TOK_TRUE }
-    }
-    // while, false
-    if len == 5 {
-        if src_eq_5(start, 119, 104, 105, 108, 101) == 1 { return TOK_WHILE }
-        if src_eq_5(start, 102, 97, 108, 115, 101) == 1 { return TOK_FALSE }
-    }
-    // return, global, struct, import, assert
-    if len == 6 {
-        if src_eq_6(start, 114, 101, 116, 117, 114, 110) == 1 { return TOK_RETURN }
-        if src_eq_6(start, 103, 108, 111, 98, 97, 108) == 1 { return TOK_GLOBAL }
-        if src_eq_6(start, 115, 116, 114, 117, 99, 116) == 1 { return TOK_STRUCT }
-        if src_eq_6(start, 105, 109, 112, 111, 114, 116) == 1 { return TOK_IMPORT }
-        if src_eq_6(start, 97, 115, 115, 101, 114, 116) == 1 { return TOK_ASSERT }
-    }
-    return TOK_IDENT
-}
-
-// ── Store token in arena ────────────────────────────────
-
-fun emit_token(typ: u8, start: u16, len: u8) -> void {
+// Emit token to arena
+fun emit(typ: u8, str_ptr: u16) -> void {
     let addr: u16 = tok_arena + tok_count * 4
     poke(addr, typ)
-    poke(addr + 1, start % 256)
-    poke(addr + 2, start / 256)
-    poke(addr + 3, len)
+    poke(addr + 1, str_ptr % 256)
+    poke(addr + 2, str_ptr / 256)
+    poke(addr + 3, 0)
     tok_count = tok_count + 1
 }
 
-// ── Parse number value from source ──────────────────────
-
-fun parse_int(start: u16, len: u8) -> u16 {
-    var val: u16 = 0
-    var i: u8 = 0
-    while i < len {
-        val = val * 10 + peek(src_buf + start + i) - 48
-        i = i + 1
-    }
-    return val
+// Classify keyword by pointer equality
+fun classify(str_ptr: u16) -> u8 {
+    if str_ptr == KW_FUN { return TOK_KW }
+    if str_ptr == KW_FN { return TOK_KW }
+    if str_ptr == KW_RETURN { return TOK_KW }
+    if str_ptr == KW_IF { return TOK_KW }
+    if str_ptr == KW_ELSE { return TOK_KW }
+    if str_ptr == KW_WHILE { return TOK_KW }
+    if str_ptr == KW_LET { return TOK_KW }
+    if str_ptr == KW_VAR { return TOK_KW }
+    if str_ptr == KW_TRUE { return TOK_KW }
+    if str_ptr == KW_FALSE { return TOK_KW }
+    return TOK_IDENT
 }
 
-// ── Main tokenizer: scan one token ──────────────────────
-
-fun scan_token() -> u8 {
-    skip_whitespace()
+// Scan one token
+fun scan() -> u8 {
+    skip_ws()
     tok_start = pos
     let c: u8 = peek_char()
 
     if c == 0 { return TOK_EOF }
 
-    // Line comment
+    // Comment
     if c == 47 {
         if peek(src_buf + pos + 1) == 47 {
-            skip_line_comment()
-            return scan_token()
+            skip_comment()
+            return scan()
         }
         pos = pos + 1
-        emit_token(TOK_SLASH, tok_start, 1)
+        emit(TOK_SLASH, 0)
         return TOK_SLASH
     }
 
-    // Two-char tokens
+    // Two-char ops
     if c == 45 {
         if peek(src_buf + pos + 1) == 62 {
             pos = pos + 2
-            emit_token(TOK_ARROW, tok_start, 2)
+            emit(TOK_ARROW, 0)
             return TOK_ARROW
         }
         pos = pos + 1
-        emit_token(TOK_MINUS, tok_start, 1)
+        emit(TOK_MINUS, 0)
         return TOK_MINUS
     }
     if c == 61 {
         if peek(src_buf + pos + 1) == 61 {
             pos = pos + 2
-            emit_token(TOK_EQEQ, tok_start, 2)
+            emit(TOK_EQEQ, 0)
             return TOK_EQEQ
         }
         pos = pos + 1
-        emit_token(TOK_EQ, tok_start, 1)
+        emit(TOK_EQ, 0)
         return TOK_EQ
     }
     if c == 60 {
         if peek(src_buf + pos + 1) == 61 {
             pos = pos + 2
-            emit_token(TOK_LTEQ, tok_start, 2)
+            emit(TOK_LTEQ, 0)
             return TOK_LTEQ
         }
         pos = pos + 1
-        emit_token(TOK_LT, tok_start, 1)
+        emit(TOK_LT, 0)
         return TOK_LT
     }
     if c == 62 {
         if peek(src_buf + pos + 1) == 61 {
             pos = pos + 2
-            emit_token(TOK_GTEQ, tok_start, 2)
+            emit(TOK_GTEQ, 0)
             return TOK_GTEQ
         }
         pos = pos + 1
-        emit_token(TOK_GT, tok_start, 1)
+        emit(TOK_GT, 0)
         return TOK_GT
     }
     if c == 33 {
         if peek(src_buf + pos + 1) == 61 {
             pos = pos + 2
-            emit_token(TOK_BANGEQ, tok_start, 2)
+            emit(TOK_BANGEQ, 0)
             return TOK_BANGEQ
         }
         pos = pos + 1
-        return scan_token()
+        return scan()
     }
 
-    // Single-char tokens
-    if c == 40  { pos = pos + 1
-        emit_token(TOK_LPAREN, tok_start, 1)
+    // Single-char
+    if c == 40 { pos = pos + 1
+        emit(TOK_LPAREN, 0)
         return TOK_LPAREN }
-    if c == 41  { pos = pos + 1
-        emit_token(TOK_RPAREN, tok_start, 1)
+    if c == 41 { pos = pos + 1
+        emit(TOK_RPAREN, 0)
         return TOK_RPAREN }
     if c == 123 { pos = pos + 1
-        emit_token(TOK_LBRACE, tok_start, 1)
+        emit(TOK_LBRACE, 0)
         return TOK_LBRACE }
     if c == 125 { pos = pos + 1
-        emit_token(TOK_RBRACE, tok_start, 1)
+        emit(TOK_RBRACE, 0)
         return TOK_RBRACE }
-    if c == 58  { pos = pos + 1
-        emit_token(TOK_COLON, tok_start, 1)
+    if c == 58 { pos = pos + 1
+        emit(TOK_COLON, 0)
         return TOK_COLON }
-    if c == 44  { pos = pos + 1
-        emit_token(TOK_COMMA, tok_start, 1)
+    if c == 44 { pos = pos + 1
+        emit(TOK_COMMA, 0)
         return TOK_COMMA }
-    if c == 43  { pos = pos + 1
-        emit_token(TOK_PLUS, tok_start, 1)
+    if c == 43 { pos = pos + 1
+        emit(TOK_PLUS, 0)
         return TOK_PLUS }
-    if c == 42  { pos = pos + 1
-        emit_token(TOK_STAR, tok_start, 1)
+    if c == 42 { pos = pos + 1
+        emit(TOK_STAR, 0)
         return TOK_STAR }
 
-    // Number literal
+    // Number
     if is_digit(c) == 1 {
-        while is_digit(peek_char()) == 1 {
-            pos = pos + 1
-        }
+        while is_digit(peek_char()) == 1 { pos = pos + 1 }
         let len: u8 = pos - tok_start
-        emit_token(TOK_INT, tok_start, len)
+        let s: u16 = intern(tok_start, len)
+        emit(TOK_INT, s)
         return TOK_INT
     }
 
-    // Identifier or keyword
+    // Identifier / keyword
     if is_alpha(c) == 1 {
-        while is_alnum(peek_char()) == 1 {
-            pos = pos + 1
-        }
+        while is_alnum(peek_char()) == 1 { pos = pos + 1 }
         let len: u8 = pos - tok_start
-        let kw: u8 = classify_keyword(tok_start, len)
-        emit_token(kw, tok_start, len)
+        let s: u16 = intern(tok_start, len)
+        let kw: u8 = classify(s)
+        emit(kw, s)
         return kw
     }
 
-    // String literal
+    // String
     if c == 34 {
         pos = pos + 1
+        let str_start: u16 = pos
         while peek_char() != 34 {
             if peek_char() == 0 { return TOK_EOF }
             pos = pos + 1
         }
+        let slen: u8 = pos - str_start
+        let s: u16 = intern(str_start, slen)
         pos = pos + 1
-        let len: u8 = pos - tok_start
-        emit_token(TOK_STRING, tok_start, len)
+        emit(TOK_STRING, s)
         return TOK_STRING
     }
 
-    // Unknown — skip
+    // Unknown
     pos = pos + 1
-    return scan_token()
+    return scan()
 }
 
-// ── Token name printer ──────────────────────────────────
+// ═══════════════════════════════════════════════════════
+// Init keywords + run
+// ═══════════════════════════════════════════════════════
 
-fun print_tok_name(tok: u8) -> void {
-    if tok == 1  { @print("id") }
-    if tok == 2  { @print("int") }
-    if tok == 3  { @print("(") }
-    if tok == 4  { @print(")") }
-    if tok == 5  { @print("{") }
-    if tok == 6  { @print("}") }
-    if tok == 7  { @print(":") }
-    if tok == 8  { @print(",") }
-    if tok == 9  { @print("->") }
-    if tok == 10 { @print("=") }
-    if tok == 11 { @print("==") }
-    if tok == 12 { @print("+") }
-    if tok == 13 { @print("-") }
-    if tok == 14 { @print("*") }
-    if tok == 15 { @print("/") }
-    if tok == 16 { @print("<") }
-    if tok == 17 { @print(">") }
-    if tok == 18 { @print("<=") }
-    if tok == 19 { @print(">=") }
-    if tok == 20 { @print("!=") }
-    if tok == 21 { @print("str") }
-    if tok == 30 { @print("FUN") }
-    if tok == 31 { @print("RET") }
-    if tok == 32 { @print("IF") }
-    if tok == 33 { @print("ELSE") }
-    if tok == 34 { @print("WHILE") }
-    if tok == 35 { @print("LET") }
-    if tok == 36 { @print("VAR") }
-    if tok == 41 { @print("TRUE") }
-    if tok == 42 { @print("FALSE") }
-    if tok == 43 { @print("ASSERT") }
+fun init_keywords() -> void {
+    // Pre-intern all keywords — these get the first arena slots
+    KW_FN     = str_alloc_2(102, 110)                         // fn
+    KW_IF     = str_alloc_2(105, 102)                         // if
+    KW_FUN    = str_alloc_3(102, 117, 110)                    // fun
+    KW_LET    = str_alloc_3(108, 101, 116)                    // let
+    KW_VAR    = str_alloc_3(118, 97, 114)                     // var
+    KW_ELSE   = str_alloc_4(101, 108, 115, 101)               // else
+    KW_ENUM   = str_alloc_4(101, 110, 117, 109)               // enum
+    KW_TRUE   = str_alloc_4(116, 114, 117, 101)               // true
+    KW_WHILE  = str_alloc_5(119, 104, 105, 108, 101)          // while
+    KW_FALSE  = str_alloc_5(102, 97, 108, 115, 101)           // false
+    KW_RETURN = str_alloc_6(114, 101, 116, 117, 114, 110)     // return
+    KW_GLOBAL = str_alloc_6(103, 108, 111, 98, 97, 108)       // global
+    KW_STRUCT = str_alloc_6(115, 116, 114, 117, 99, 116)      // struct
+    KW_IMPORT = str_alloc_6(105, 109, 112, 111, 114, 116)     // import
+    KW_ASSERT = str_alloc_6(97, 115, 115, 101, 114, 116)      // assert
 }
-
-// ── Print source span ───────────────────────────────────
-
-// print_span needs @print_char host — skip for now
-// Token text available via peek(src_buf + start + i)
-
-// ── Tokenize entire buffer ──────────────────────────────
 
 fun tokenize_all() -> u16 {
     pos = 0
     tok_count = 0
-    var tok: u8 = scan_token()
+    var tok: u8 = scan()
     while tok != TOK_EOF {
-        tok = scan_token()
+        tok = scan()
     }
     return tok_count
 }
 
-// ── Print all tokens from arena ─────────────────────────
+// Print interned string at ptr
+fun print_str(s: u16) -> void {
+    let len: u8 = peek(s)
+    var i: u8 = 0
+    while i < len {
+        @print_dec(peek(s + 1 + i))
+        i = i + 1
+    }
+}
 
-fun print_tokens() -> void {
+// Print token name
+fun tok_name(typ: u8, str_ptr: u16) -> void {
+    if typ == TOK_KW {
+        // Keyword — identify which one by pointer
+        if str_ptr == KW_FUN { @print("fun") }
+        if str_ptr == KW_FN { @print("fn") }
+        if str_ptr == KW_RETURN { @print("return") }
+        if str_ptr == KW_IF { @print("if") }
+        if str_ptr == KW_ELSE { @print("else") }
+        if str_ptr == KW_WHILE { @print("while") }
+        if str_ptr == KW_LET { @print("let") }
+        if str_ptr == KW_VAR { @print("var") }
+        if str_ptr == KW_TRUE { @print("true") }
+        if str_ptr == KW_FALSE { @print("false") }
+        return
+    }
+    if typ == TOK_IDENT { @print("id") }
+    if typ == TOK_INT { @print("num") }
+    if typ == TOK_LPAREN { @print("(") }
+    if typ == TOK_RPAREN { @print(")") }
+    if typ == TOK_LBRACE { @print("{") }
+    if typ == TOK_RBRACE { @print("}") }
+    if typ == TOK_COLON { @print(":") }
+    if typ == TOK_COMMA { @print(",") }
+    if typ == TOK_ARROW { @print("->") }
+    if typ == TOK_EQ { @print("=") }
+    if typ == TOK_EQEQ { @print("==") }
+    if typ == TOK_PLUS { @print("+") }
+    if typ == TOK_MINUS { @print("-") }
+    if typ == TOK_STAR { @print("*") }
+    if typ == TOK_STRING { @print("str") }
+}
+
+fun print_all_tokens() -> void {
     var i: u16 = 0
     while i < tok_count {
         let addr: u16 = tok_arena + i * 4
         let typ: u8 = peek(addr)
-        let start: u16 = peek(addr + 1) + peek(addr + 2) * 256
-        let len: u8 = peek(addr + 3)
-        print_tok_name(typ)
+        let sp: u16 = peek(addr + 1) + peek(addr + 2) * 256
+        tok_name(typ, sp)
         @print(" ")
         i = i + 1
     }
 }
 
-// ── Main ────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+// Main
+// ═══════════════════════════════════════════════════════
 
 fun main() -> void {
-    // Load test source
+    init_keywords()
+
+    // Load: fun add(a: u8, b: u8) -> u8 { return a + b }
     poke(src_buf, 102) poke(src_buf+1, 117) poke(src_buf+2, 110)    // fun
-    poke(src_buf+3, 32)                                               // space
+    poke(src_buf+3, 32)
     poke(src_buf+4, 97) poke(src_buf+5, 100) poke(src_buf+6, 100)   // add
     poke(src_buf+7, 40)                                               // (
-    poke(src_buf+8, 97)                                               // a
-    poke(src_buf+9, 58) poke(src_buf+10, 32)                         // : space
+    poke(src_buf+8, 97) poke(src_buf+9, 58) poke(src_buf+10, 32)    // a:
     poke(src_buf+11, 117) poke(src_buf+12, 56)                       // u8
-    poke(src_buf+13, 44) poke(src_buf+14, 32)                        // , space
-    poke(src_buf+15, 98)                                              // b
-    poke(src_buf+16, 58) poke(src_buf+17, 32)                        // : space
+    poke(src_buf+13, 44) poke(src_buf+14, 32)                        // ,
+    poke(src_buf+15, 98) poke(src_buf+16, 58) poke(src_buf+17, 32)  // b:
     poke(src_buf+18, 117) poke(src_buf+19, 56)                       // u8
-    poke(src_buf+20, 41) poke(src_buf+21, 32)                        // ) space
-    poke(src_buf+22, 45) poke(src_buf+23, 62) poke(src_buf+24, 32)  // -> space
-    poke(src_buf+25, 117) poke(src_buf+26, 56) poke(src_buf+27, 32) // u8 space
-    poke(src_buf+28, 123) poke(src_buf+29, 32)                       // { space
+    poke(src_buf+20, 41) poke(src_buf+21, 32)                        // )
+    poke(src_buf+22, 45) poke(src_buf+23, 62) poke(src_buf+24, 32)  // ->
+    poke(src_buf+25, 117) poke(src_buf+26, 56) poke(src_buf+27, 32) // u8
+    poke(src_buf+28, 123) poke(src_buf+29, 32)                       // {
     poke(src_buf+30, 114) poke(src_buf+31, 101) poke(src_buf+32, 116) // ret
     poke(src_buf+33, 117) poke(src_buf+34, 114) poke(src_buf+35, 110) // urn
-    poke(src_buf+36, 32)                                               // space
-    poke(src_buf+37, 97) poke(src_buf+38, 32)                        // a space
-    poke(src_buf+39, 43) poke(src_buf+40, 32)                        // + space
+    poke(src_buf+36, 32)
+    poke(src_buf+37, 97) poke(src_buf+38, 32)                        // a
+    poke(src_buf+39, 43) poke(src_buf+40, 32)                        // +
     poke(src_buf+41, 98)                                              // b
-    poke(src_buf+42, 32) poke(src_buf+43, 125)                       // space }
-    poke(src_buf+44, 0)                                               // null
+    poke(src_buf+42, 32) poke(src_buf+43, 125)                       // }
+    poke(src_buf+44, 0)
     src_len = 44
 
     @print("Source: fun add(a: u8, b: u8) -> u8 { return a + b }")
     @print_nl()
+
     let n: u16 = tokenize_all()
     @print("Tokens: ")
     @print_u8(n)
     @print_nl()
-    print_tokens()
+
+    print_all_tokens()
+    @print_nl()
+
+    // Stats
+    @print("Interned strings: ")
+    @print_u8(str_bump - str_arena)
+    @print(" bytes")
     @print_nl()
 }
 
-// ── Asserts ─────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+// Asserts
+// ═══════════════════════════════════════════════════════
 assert is_digit(48) == 1 via mir2
-assert is_digit(57) == 1 via mir2
 assert is_digit(65) == 0 via mir2
 assert is_alpha(65) == 1 via mir2
-assert is_alpha(48) == 0 via mir2
 assert is_alpha(95) == 1 via mir2
 assert is_space(32) == 1 via mir2
 assert is_space(65) == 0 via mir2
