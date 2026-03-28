@@ -111,7 +111,30 @@ Correct approach: systematic accVreg tracking + EX AF,AF' for save/restore.
 
 ---
 
+## Bool Convention — GPU Brute-Force Proven
+
+Z→A and Z→CY branchless IMPOSSIBLE on Z80 (exhaustive 456K sequences).
+Z flag is write-only — only conditional branch reads it.
+
+CY→A: SBC A,A (1 instruction, 4T, 0xFF/0x00). The killer primitive.
+CMOV: SBC A,A;LD D,A;LD A,B;XOR C;AND D;XOR C (24T branchless select CY?B:C).
+0xFF representation beats 0/1 by 7T average across all conversions.
+
+Final design: Z3 per-function retFlag ∈ {A, CY, Z, A(0xFF)}.
+CmpEq → Z natural. CmpLt → CY natural. Z3 picks optimal per call site.
+retFlag ⊥ regalloc (two independent layers). GPU tables unchanged.
+
+## ABAP FUNCTION MODULE Support
+Preprocessor rewrites FUNCTION/ENDFUNCTION → FORM/ENDFORM before abaplint.
+IMPORTING→USING, EXPORTING→CHANGING. Name: lowercase (z_add).
+No conflicts with FORM (same names) or CLASS (ClassName_Method prefix).
+
+## Assert Harness Critical Bug Found & Fixed
+buildAssertBootstrap used PBQP AllocResult for VIR-compiled functions.
+VIR PFCCO assigns different registers → all Z80 asserts were false positives.
+Fixed: update combined.Locs from VIR Contract after CodegenModule.
+
 ## VIR Session Priorities (Next)
-1. fib recursive — g.accVreg + EX AF,AF' (4T save/restore)
-2. shr4 shift count const propagation
-3. BoolReturnElim Grace rule
+1. retFlag in PFCCO (~50 LOC)
+2. fib recursive — CALL arg setup + clobber restore
+3. shr4 shift count const propagation

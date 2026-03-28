@@ -1,96 +1,93 @@
 # Next Session Seed — 2026-03-29
 
-**Previous:** Session 12 — TermCondRet fix, Pascal 26/26, bool convention design
-**State:** VIR default, TermCondRet fixed (VIR+PBQP), 1046+ asserts, Pascal working
+**Previous:** Session 12-13 — TermCondRet fix, assert harness fix, bool convention proven
+**State:** VIR default, 1636+ asserts, 8 frontends verified, harness fixed
 
 ---
 
-## Immediate: Check VIR Results
+## Priority 0: Implement retFlag in PFCCO (~50 LOC)
 
-```bash
-ddll explore
+GPU brute-force PROVEN design (456K sequences, 131K combos verified):
 
-# VIR: fib recursive fix? shr4? is_digit?
-ddll send <vir>:main "fib accVreg+EX AF,AF' status? shr4? is_digit clobber?"
+**Z→A branchless IMPOSSIBLE** on Z80. Z flag is write-only.
+
+retFlag enum in PFCCO contract: Z3 chooses per-function from {A, CY, Z, A(0xFF)}
+
+```smt
+(declare-const ret_mode Int)  ; 0=A, 1=CY, 2=Z, 3=A_0xFF
+; Cost per call site depends on caller usage (branch vs store)
 ```
 
-## Priority 0: Z80 Assert Harness — BLOCKER
+Key primitives:
+| CY→A(0xFF) | SBC A,A | 1i 4T branchless |
+| CY?B:0 | SBC A,A; AND B | 2i 8T |
+| CY?B:C | SBC A,A;LD D,A;LD A,B;XOR C;AND D;XOR C | 6i 24T CMOV |
+| bool→int | SBC A,A; NEG | 2i 8T (0xFF→0x01) |
 
-buildAssertBootstrap (pipeline.go:821) loads args using PBQP AllocResult,
-but VIR Z3-PFCCO assigns DIFFERENT registers. All Z80 asserts for VIR-compiled
-functions are potentially false positives!
+Architecture: regalloc (tables) ⊥ retFlag (epilog). Two independent layers.
+GPU tables: NO regeneration needed.
 
-Fix: update combined allocation from VIR results (virResults.ParamLocs) after
-CodegenModule, before RunAssertsZ80. Or parse '; func: params=[A,B]' from ASM.
+VIR estimate: ~50 LOC additive extension in pfcco.go.
 
-Until fixed: cannot trust Z80 asserts, cannot add new asserts meaningfully.
-
-## Priority 1: fib(7)=13 → CP/M Screenshot → LinkedIn
+## Priority 1: fib(7)=13
 
 VIR working on g.accVreg tracking + EX AF,AF' for save/restore A across CALL.
-When fixed: `Hello Frill! fib(7)=13 gcd(12,8)=4` on CP/M → screenshot → LinkedIn.
+Same root cause as parse_digit (CALL arg setup + clobber restore).
 
-3 layers of save bug identified:
-1. SUB 1 kills n → LD E,A ✅
-2. LD A,E for n-2 kills fib(n-1) → LD H,A ✅
-3. ADD A,B uses wrong reg → needs accVreg tracking
+## Priority 2: CALL Arg Setup + Clobber Restore
 
-## Priority 2: shr4 Shift Count
+Root cause for parse_digit, fib, all inter-function calls:
+- Missing LD A,B before CALL (arg not in expected register)
+- Missing LD A,L after CALL (saved value not restored)
+VIR: bridge.go translateCall / solver.go CALL modeling.
 
-shr4(0xAB)=0x55 (shifts by 1 instead of 4). VIR const propagation for shift operand.
+## Priority 3: shr4 Shift Count
 
-## Priority 3: is_digit + All Clobber Bugs
+shr4(0xAB)=0x55 — VIR const propagation for shift operand.
 
-is_digit(65)=1 (wrong, should be 0). LD A,0 between two CPs kills original A.
-Same class: condret-sink inserts return value before comparisons finish.
-Fix: accVreg tracking in codegen (same mechanism as fib).
+## Priority 4: Nested condret-sink
 
-## Priority 4: BoolReturnElim Grace Rule
+Pascal IsDigit, BoolAnd: condret-sink doesn't insert LD A,0/1 for nested if.
+Same mechanism as is_digit fix but for deeper nesting.
 
-Design decided: bool=Z per-call-site, @error=CY always.
-- Grace rule matches callee [CP→LD A,0/1→RET] + caller [CALL→CP 0/1→JR]
-- Needs type info, cross-function analysis, liveness, condition flip
-- NOT text peephole
+## Priority 5: MZA SRL/AND Instructions
 
-## Priority 5: Pascal Corpus Growth
-
-26 asserts working. Can add: recursive examples (fibonacci, tower of hanoi),
-string operations, record field access, nested procedures, for..downto.
-
-## Priority 6: New Frontends (COBOL/1С/BASIC)
-
-BCD types ready. COBOL PIC 9 → DAA codegen.
+SRL and AND not assembling — blocks shift/bitwise Pascal tests.
 
 ---
 
-## What Was Done (Session 12)
+## What Was Done (Session 12-13)
 
 | Feature | Status |
 |---------|--------|
-| TermCondRet fix (VIR) | ✅ condret-sink reorder + condcode mapping |
-| TermCondRet fix (PBQP) | ✅ saveAccForCondRet for BrIf/BrIf2 |
-| Pascal 26/26 Z80 asserts | ✅ |
-| Pascal 6/6 examples compile | ✅ |
-| Frill book: images embedded | ✅ epub+pdf rebuilt, uploaded v0.24.0 |
-| Frill book: expr_eval full source | ✅ |
-| Frill book: parser_combinator full source | ✅ |
-| Frill book: ASM + Nanz comparison | ✅ |
-| Bool convention design | ✅ Z per-call-site, CY for @error |
-| is_digit clobber bug found | ✅ reported to VIR |
-| PSIL exploration | ✅ compilable through MinZ |
+| TermCondRet fix (VIR + PBQP) | ✅ |
+| Assert harness PFCCO-aware | ✅ CRITICAL FIX |
+| is_digit return-move reorder | ✅ |
+| Pascal 54 Z80 asserts (9/9) | ✅ |
+| ObjC 98 asserts (11/11) | ✅ |
+| Frill pipe.frl 9 asserts | ✅ |
+| C edge_cases 36 asserts | ✅ |
+| ABAP OOP 21 asserts | ✅ |
+| ABAP FUNCTION/ENDFUNCTION | ✅ preprocessor |
+| ABAP name_test (FORM+CLASS) | ✅ no conflict |
+| Eight Languages article + 11 images | ✅ |
+| Bool convention GPU proven | ✅ CY per-function, Z3 decides |
+| Z→A branchless impossible | ✅ PROVEN exhaustive |
+| Branchless CMOV found | ✅ SBC A,A select pattern |
+| Total asserts | ~1636 |
 
-## Design Decisions Made
+## Design Decisions (GPU PROVEN)
 
-- **Bool return (pure `-> bool`, no tuples):** Z3 models flag path vs materialize
-  - Flag path: callee sets Z, caller JR Z (cost=0)
-  - Materialize: callee LD A,0/1, caller OR A/JR Z (cost=+1B+4T)
-  - Z3 dual-mode decides per-call-site (same as constrained vs standalone+adapter)
-- **Tuples with bool `(u8, bool)`:** ALWAYS materialize A(0/1), no flag optimization
-- **@error:** CY flag always (orthogonal to bool)
-- **Implementation:** Z3 solver (NOT Grace peephole — needs Z3 for optimal decision)
-- **GPU tables:** No regeneration needed — Z_flag is final-return-only (not intermediate storage)
-  - Postfilter: for bool functions, check if last instruction before RET already sets Z correctly → skip LD A,0/1
-  - z80-optimizer confirmed: existing tables valid, postfilter sufficient
+- **Bool return:** Z3 per-function from {A(0/1), CY, Z, A(0xFF)}
+  - CmpEq → Z natural, CmpLt → CY natural
+  - Caller branch → use flag directly (0T)
+  - Caller store → materialize (SBC A,A for CY=4T, branch for Z=14T)
+- **Bool representation:** 0x00/0xFF (SBC A,A, 1 instruction)
+- **@error:** CY flag (orthogonal via A materialization)
+- **CMOV:** SBC A,A;LD D,A;LD A,B;XOR C;AND D;XOR C (24T branchless)
+- **Z flag:** write-only on Z80 (proven exhaustive 456K sequences)
+- **GPU tables:** ⊥ retFlag (regalloc independent of epilog)
+- **ABAP naming:** FORM=name, CLASS=ClassName_Method, FUNCTION=name (no conflicts)
 
 ## Session IDs
 
@@ -98,5 +95,4 @@ BCD types ready. COBOL PIC 9 → DAA codegen.
 ddll explore
 # VIR: cok1cgsq
 # z80-optimizer: um2dy4ex
-# antique-toy: eo29c66e
 ```
