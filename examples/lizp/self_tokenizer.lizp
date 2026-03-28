@@ -1,0 +1,162 @@
+;; Self-hosting Lizp tokenizer — Lizp tokenizes Lizp!
+;; Runs on MZV with peek/poke host functions.
+;;
+;; Lizp tokens: ( ) atom number string comment
+;; Simplest useful tokenizer — only 6 token types.
+;;
+;; Run: mzv examples/lizp/self_tokenizer.lizp -H -v
+
+;; ── Token types ─────────────────────────────────────────
+
+;; 0=EOF 1=LPAREN 2=RPAREN 3=ATOM 4=NUMBER 5=STRING 6=COMMENT
+
+;; ── Buffer address: 0xC000 (49152) ─────────────────────
+;; Using literal addresses since global var poke has lowering issue
+
+;; ── Character classification ────────────────────────────
+
+(defun is_ws ((c u8)) -> u8
+  (return (cond
+    ((= c 32) 1)    ; space
+    ((= c 9) 1)     ; tab
+    ((= c 10) 1)    ; newline
+    ((= c 13) 1)    ; CR
+    (t 0))))
+
+(defun is_digit ((c u8)) -> u8
+  (return (if (and (>= c 48) (<= c 57)) 1 0)))
+
+(defun is_atom_char ((c u8)) -> u8
+  (return (cond
+    ((= c 0) 0)
+    ((= c 32) 0)    ; space
+    ((= c 9) 0)     ; tab
+    ((= c 10) 0)    ; newline
+    ((= c 13) 0)    ; CR
+    ((= c 40) 0)    ; (
+    ((= c 41) 0)    ; )
+    ((= c 34) 0)    ; "
+    ((= c 59) 0)    ; ;
+    (t 1))))
+
+;; ── Tokenizer state (at fixed addresses) ────────────────
+;; 0xBFF0 = pos (u16: lo at BFF0, hi at BFF1)
+;; 0xBFF2 = len (u16: lo at BFF2, hi at BFF3)
+;; 0xBFF4 = token_count (u16)
+;; Source buffer at 0xC000
+
+(defun get_pos () -> u16
+  (return (+ (peek #xBFF0) (* (peek #xBFF1) 256))))
+
+(defun set_pos ((v u16)) -> void
+  (poke #xBFF0 (% v 256))
+  (poke #xBFF1 (/ v 256)))
+
+(defun get_len () -> u16
+  (return (+ (peek #xBFF2) (* (peek #xBFF3) 256))))
+
+(defun set_len ((v u16)) -> void
+  (poke #xBFF2 (% v 256))
+  (poke #xBFF3 (/ v 256)))
+
+(defun cur_char () -> u8
+  (let ((p u16 (get_pos)))
+    (return (if (>= p (get_len)) 0 (peek (+ #xC000 p))))))
+
+(defun advance () -> void
+  (set_pos (+ (get_pos) 1)))
+
+;; ── Skip whitespace and comments ────────────────────────
+
+(defun skip_ws () -> void
+  (while (= (is_ws (cur_char)) 1)
+    (advance)))
+
+(defun skip_comment () -> void
+  ;; Skip from ; to end of line
+  (while (and (/= (cur_char) 10) (/= (cur_char) 0))
+    (advance))
+  (when (/= (cur_char) 0) (advance)))
+
+(defun skip_ignored () -> void
+  (progn
+    (skip_ws)
+    (when (= (cur_char) 59)  ;; ';'
+      (skip_comment)
+      (skip_ignored))))       ;; recurse for ws after comment
+
+;; ── Next token ──────────────────────────────────────────
+
+(defun skip_string () -> void
+  (progn
+    (advance)
+    (while (and (/= (cur_char) 34) (/= (cur_char) 0))
+      (advance))
+    (unless (= (cur_char) 0) (advance))))
+
+(defun skip_number () -> void
+  (while (= (is_digit (cur_char)) 1) (advance)))
+
+(defun skip_atom () -> void
+  (while (= (is_atom_char (cur_char)) 1) (advance)))
+
+(defun next_token () -> u8
+  (progn
+    (skip_ignored)
+    (let ((c u8 (cur_char)))
+      (return (cond
+        ((= c 0)  0)
+        ((= c 40) (progn (advance) 1))
+        ((= c 41) (progn (advance) 2))
+        ((= c 34) (progn (skip_string) 5))
+        ((= (is_digit c) 1) (progn (skip_number) 4))
+        (t (progn (skip_atom) 3)))))))
+
+;; ── Token name printer ──────────────────────────────────
+
+;; print_tok: output token type as number + space char
+;; Uses @print_u8 which MZV handles as host function
+(defun print_tok ((tok u8)) -> void
+  (@print_u8 tok))
+
+;; ── Main: tokenize "(+ 1 2)" ───────────────────────────
+
+(defun load_test ((x u8)) -> void
+  (progn
+    (poke #xC000 40)    ;; (
+    (poke #xC001 43)    ;; +
+    (poke #xC002 32)    ;; space
+    (poke #xC003 49)    ;; 1
+    (poke #xC004 32)    ;; space
+    (poke #xC005 50)    ;; 2
+    (poke #xC006 41)    ;; )
+    (poke #xC007 0)     ;; null
+    (set_len 7)
+    (set_pos 0)))
+
+(defun run_tokenizer ((x u8)) -> u8
+  (let ((count u8 0)
+        (tok u8 (next_token)))
+    (while (/= tok 0)
+      (print_tok tok)
+      (setq count (1+ count))
+      (setq tok (next_token)))
+    (return count)))
+
+(defun main ((x u8)) -> u8
+  (progn
+    (load_test 0)
+    (let ((n u8 (run_tokenizer 0)))
+      (@print_u8 n)
+      (@print_nl))
+    (return 0)))
+
+;; ── Asserts ─────────────────────────────────────────────
+
+(assert is_ws 32 == 1)
+(assert is_ws 65 == 0)
+(assert is_digit 48 == 1)
+(assert is_digit 65 == 0)
+(assert is_atom_char 43 == 1)
+(assert is_atom_char 40 == 0)
+(assert is_atom_char 0 == 0)

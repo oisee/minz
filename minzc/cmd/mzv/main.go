@@ -262,7 +262,15 @@ func main() {
 
 	// ── Run ──────────────────────────────────────────────────────────────
 
-	_, err = vm.Call("main", nil)
+	// Try main() — if it expects args, pass zeros.
+	var mainArgs []mir2.Value
+	for _, f := range m.Funcs {
+		if f.Name == "main" && len(f.Contract.Params) > 0 {
+			mainArgs = make([]mir2.Value, len(f.Contract.Params))
+			break
+		}
+	}
+	_, err = vm.Call("main", mainArgs)
 	if *verbose {
 		fmt.Fprintf(os.Stderr, "mzv: exited after %d frames\n", frameCount)
 	}

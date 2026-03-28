@@ -95,12 +95,20 @@ func registerFileHosts(vm *mir2.VM, baseDir string, trace bool) {
 	// Auto-extends heap if needed.
 	vm.Hosts["poke"] = func(args []mir2.Value) ([]mir2.Value, error) {
 		addr := args[0].I
-		val := byte(args[1].I)
 		vm.EnsureHeap(addr + 1)
-		vm.WriteHeap(addr, val)
-		if trace {
-			fmt.Fprintf(os.Stderr, "  poke(%d, %d)\n", addr, val)
-		}
+		vm.WriteHeap(addr, byte(args[1].I))
+		return nil, nil
+	}
+
+	// @print_u8(val: u8) -> void — print decimal
+	vm.Hosts["@print_u8"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		fmt.Fprintf(os.Stdout, "%d", args[0].I)
+		return nil, nil
+	}
+
+	// @print_nl() -> void — print newline
+	vm.Hosts["@print_nl"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		fmt.Fprintln(os.Stdout)
 		return nil, nil
 	}
 
