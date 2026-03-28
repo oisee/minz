@@ -10,6 +10,8 @@
 // ── Host functions ──────────────────────────────────────
 @extern fun peek(addr: u16) -> u8
 @extern fun poke(addr: u16, val: u8) -> void
+@extern fun file_read(path: ^u8, buf: ^u8) -> u16
+@extern fun file_size(path: ^u8) -> u16
 
 // ═══════════════════════════════════════════════════════
 // Inline tokenizer (same as self_tokenizer.nanz)
@@ -152,7 +154,7 @@ fun intern(start: u16, len: u8) -> u16 {
 
 fun peek_char() -> u8 {
     if pos >= src_len { return 0 }
-    return peek(src_buf + pos)
+    return peek(0xC000 + pos)
 }
 fun skip_ws() -> void {
     while is_space(peek_char()) == 1 { pos = pos + 1 }
@@ -518,56 +520,84 @@ fun init_keywords() -> void {
 fun main() -> void {
     init_keywords()
 
-    // Source: fun add(a: u8, b: u8) -> u8 { return a + b }
-    poke(src_buf, 102) poke(src_buf+1, 117) poke(src_buf+2, 110)
-    poke(src_buf+3, 32)
-    poke(src_buf+4, 97) poke(src_buf+5, 100) poke(src_buf+6, 100)
-    poke(src_buf+7, 40)
-    poke(src_buf+8, 97) poke(src_buf+9, 58) poke(src_buf+10, 32)
-    poke(src_buf+11, 117) poke(src_buf+12, 56)
-    poke(src_buf+13, 44) poke(src_buf+14, 32)
-    poke(src_buf+15, 98) poke(src_buf+16, 58) poke(src_buf+17, 32)
-    poke(src_buf+18, 117) poke(src_buf+19, 56)
-    poke(src_buf+20, 41) poke(src_buf+21, 32)
-    poke(src_buf+22, 45) poke(src_buf+23, 62) poke(src_buf+24, 32)
-    poke(src_buf+25, 117) poke(src_buf+26, 56) poke(src_buf+27, 32)
-    poke(src_buf+28, 123) poke(src_buf+29, 32)
-    poke(src_buf+30, 114) poke(src_buf+31, 101) poke(src_buf+32, 116)
-    poke(src_buf+33, 117) poke(src_buf+34, 114) poke(src_buf+35, 110)
-    poke(src_buf+36, 32)
-    poke(src_buf+37, 97) poke(src_buf+38, 32)
-    poke(src_buf+39, 43) poke(src_buf+40, 32)
-    poke(src_buf+41, 98)
-    poke(src_buf+42, 32) poke(src_buf+43, 125)
-    poke(src_buf+44, 0)
-    src_len = 44
+    // Read source file from host filesystem
+    let path: ^u8 = "tiny.nanz"
+    src_len = file_read(path, src_buf)
 
-    @print("=== Tokenize ===")
+    if src_len == 0 {
+        @print("ERROR: cannot read file")
+        @print_nl()
+        return
+    }
+
+    @print("=== Source (")
+    @print_u8(src_len)
+    @print(" bytes) ===")
     @print_nl()
+
+    // Debug: print first 3 chars
+    let base: u16 = 0xC000
+    @print("First chars: ")
+    @print_u8(peek(base))
+    @print(" ")
+    @print_u8(peek(base + 1))
+    @print(" ")
+    @print_u8(peek(base + 2))
+    @print_nl()
+
+    // Tokenize
     let n: u16 = tokenize_all()
     @print("Tokens: ")
     @print_u8(n)
     @print_nl()
 
-    @print("=== Parse ===")
+    // Parse all top-level functions
+    parse_pos = 0
+    parse_error = 0
+
+    @print("=== Lanz output ===")
     @print_nl()
-    let ast: u16 = parse_program()
 
-    if parse_error == 1 {
-        @print("PARSE ERROR at token ")
-        @print_u8(parse_pos)
-        @print_nl()
+    while parse_pos < tok_count {
+        if cur_tok() == TOK_KW {
+            let s: u16 = cur_str()
+            if s == KW_FUN {
+                advance()
+                let ast: u16 = parse_fun()
+                if parse_error == 0 {
+                    print_ast(ast)
+                    @print_nl()
+                }
+            }
+            if s == KW_FN {
+                advance()
+                let ast: u16 = parse_fun()
+                if parse_error == 0 {
+                    print_ast(ast)
+                    @print_nl()
+                }
+            }
+        }
+        // Skip non-fun tokens (asserts, globals, etc)
+        if cur_tok() != TOK_KW {
+            advance()
+        }
+        if parse_error == 1 {
+            @print("PARSE ERROR at token ")
+            @print_u8(parse_pos)
+            @print_nl()
+            return
+        }
     }
 
-    if parse_error == 0 {
-        @print("AST: ")
-        print_ast(ast)
-        @print_nl()
-        @print("AST arena: ")
-        @print_u8(ast_bump - ast_arena)
-        @print(" bytes")
-        @print_nl()
-    }
+    @print("=== Stats ===")
+    @print_nl()
+    @print("AST: ")
+    @print_u8((ast_bump - ast_arena) / 8)
+    @print(" nodes, ")
+    @print_u8(str_bump - str_arena)
+    @print(" string bytes")
+    @print_nl()
 }
 
 assert is_digit(48) == 1 via mir2

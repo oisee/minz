@@ -58,8 +58,8 @@ func registerFileHosts(vm *mir2.VM, baseDir string, trace bool) {
 		return []mir2.Value{{I: size}}, nil
 	}
 
-	// @file_read(path: ^u8, buf: ^u8) -> u16
-	vm.Hosts["@file_read"] = func(args []mir2.Value) ([]mir2.Value, error) {
+	// file_read / @file_read (path: ^u8, buf: ^u8) -> u16
+	fileReadFn := func(args []mir2.Value) ([]mir2.Value, error) {
 		path := resolve(readStr(args[0].I))
 		data, err := os.ReadFile(path)
 		if err != nil {
@@ -71,6 +71,7 @@ func registerFileHosts(vm *mir2.VM, baseDir string, trace bool) {
 		if len(data) > 65535 {
 			data = data[:65535]
 		}
+		vm.EnsureHeap(args[1].I + int64(len(data)) + 1)
 		vm.WriteHeapBytes(args[1].I, data)
 		// Null-terminate
 		vm.WriteHeapBytes(args[1].I+int64(len(data)), []byte{0})
@@ -79,6 +80,8 @@ func registerFileHosts(vm *mir2.VM, baseDir string, trace bool) {
 		}
 		return []mir2.Value{{I: int64(len(data))}}, nil
 	}
+	vm.Hosts["@file_read"] = fileReadFn
+	vm.Hosts["file_read"] = fileReadFn
 
 	// peek(addr: u16) -> u8 — read byte from VM heap
 	// Auto-extends heap if needed (Z80 has 64KB address space).
