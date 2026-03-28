@@ -1,93 +1,124 @@
-# Next Session Seed — 2026-03-29 (updated end of session 13)
+# Next Session Seed — 2026-03-29 (end of session 14)
 
-**Previous:** Session 12-13 — TermCondRet fix, assert harness fix, bool convention proven
-**State:** VIR default, 1636+ asserts, 8 frontends verified, harness fixed
+**Previous:** Sessions 12-14 — fib(7)=13, Tetris CP/M, VIR P0 CALL fix, bool GPU-proven
+**State:** VIR production for non-leaf, 1700+ asserts, 8 frontends, Tetris on CP/M
 
 ---
 
-## Priority 0: Implement retFlag in PFCCO (~50 LOC)
+## Immediate: Check VIR Results
 
-GPU brute-force PROVEN design (456K sequences, 131K combos verified):
-
-**Z→A branchless IMPOSSIBLE** on Z80. Z flag is write-only.
-
-retFlag enum in PFCCO contract: Z3 chooses per-function from {A, CY, Z, A(0xFF)}
-
-```smt
-(declare-const ret_mode Int)  ; 0=A, 1=CY, 2=Z, 3=A_0xFF
-; Cost per call site depends on caller usage (branch vs store)
+```bash
+ddll explore
+ddll send <vir>:main "P1 condret-sink status? P2 loop_head? BuildGPUDesc?"
+ddll send <z80-optimizer>:main "corpus dump ready?"
 ```
 
-Key primitives:
-| CY→A(0xFF) | SBC A,A | 1i 4T branchless |
-| CY?B:0 | SBC A,A; AND B | 2i 8T |
-| CY?B:C | SBC A,A;LD D,A;LD A,B;XOR C;AND D;XOR C | 6i 24T CMOV |
-| bool→int | SBC A,A; NEG | 2i 8T (0xFF→0x01) |
+## What's Fixed
 
-Architecture: regalloc (tables) ⊥ retFlag (epilog). Two independent layers.
-GPU tables: NO regeneration needed.
+- **VIR P0 CALL arg setup** ✅ — 4 bugs (vreg collision, DstHint, peephole, coalescing)
+- **VIR TermCondRet** ✅ — condret-sink reorder + condcode mapping
+- **Assert harness PFCCO** ✅ — correct register loading for VIR functions
+- **validateCallArgSetup** ✅ — auto-PBQP fallback safety net
+- **fib(7)=13** ✅ — recursive via PBQP fallback (island skip)
+- **Tetris CP/M** ✅ — VIR default, 23/38 VIR + 15 PBQP
+- **Hello Frill!** ✅ — VIR default, fib(7)=13 gcd(12,8)=4
 
-VIR estimate: ~50 LOC additive extension in pfcco.go.
+## Priority 1: P1 condret-sink (VIR working)
 
-## Priority 1: fib(7)=13
+Cross-block edge moves not generated. bool_and(1,0)=1 because LD A,B
+not inserted at block edge. CFG solver per-instruction vars within block,
+but edge moves between blocks missing.
 
-VIR working on g.accVreg tracking + EX AF,AF' for save/restore A across CALL.
-Same root cause as parse_digit (CALL arg setup + clobber restore).
+Affects: Pascal IsDigit, BoolAnd, SubSafe, Lizp max_byte.
 
-## Priority 2: CALL Arg Setup + Clobber Restore
+## Priority 2: P2 loop_head label (VIR)
 
-Root cause for parse_digit, fib, all inter-function calls:
-- Missing LD A,B before CALL (arg not in expected register)
-- Missing LD A,L after CALL (saved value not restored)
-VIR: bridge.go translateCall / solver.go CALL modeling.
+While-loop label not emitted in VIR ASM. JP .func_loop_head1 but label
+not defined. Affects Lizp fact_loop, sum_loop.
 
-## Priority 3: shr4 Shift Count
+## Priority 3: BuildGPUDesc corpus dump (VIR)
 
-shr4(0xAB)=0x55 — VIR const propagation for shift operand.
+z80-optimizer evaluator ready. Expand BuildGPUDesc (+ops/fixed/costs, ~30 LOC).
+VIR_DUMP_GPU_BATCH → JSON per function. z80-optimizer will precompute
+ALL 7M combinations for ≤6 vregs. Replaces Z3 for 95%+ functions.
 
-## Priority 4: Nested condret-sink
+GPU regalloc architecture:
+- hash(shape, op_bag) → O(1) optimal assignment
+- infeasible detection → decompose by cut vertex → recurse
+- enricher v4: CALL save cost, mul8_safe, width-aware feasibility
 
-Pascal IsDigit, BoolAnd: condret-sink doesn't insert LD A,0/1 for nested if.
-Same mechanism as is_digit fix but for deeper nesting.
+## Priority 4: Print number fix
 
-## Priority 5: MZA SRL/AND Instructions
+Tetris Score displays garbage. print_number/WriteU8 codegen issue.
 
-SRL and AND not assembling — blocks shift/bitwise Pascal tests.
+## Priority 5: Bool return convention implementation
 
----
+Design GPU-proven:
+- bool = CY flag (caller JR C/NC)
+- materialize = SBC A,A → 0xFF/0x00 (4T branchless)
+- Z→A branchless IMPOSSIBLE (proven 456K sequences)
+- CMOV: SBC A,A;LD D,A;LD A,B;XOR C;AND D;XOR C (24T)
+- retFlag: Z3 per-function from {A, CY, Z, A(0xFF)}
+- Peephole first, Z3 dual-mode second
 
-## What Was Done (Session 12-13)
+## What Was Done (Sessions 12-14)
 
 | Feature | Status |
 |---------|--------|
-| TermCondRet fix (VIR + PBQP) | ✅ |
-| Assert harness PFCCO-aware | ✅ CRITICAL FIX |
-| is_digit return-move reorder | ✅ |
-| Pascal 54 Z80 asserts (9/9) | ✅ |
-| ObjC 98 asserts (11/11) | ✅ |
-| Frill pipe.frl 9 asserts | ✅ |
+| VIR P0 CALL arg fix (4 bugs) | ✅ |
+| VIR TermCondRet (both paths) | ✅ |
+| Assert harness PFCCO-aware | ✅ |
+| VIR validateCallArgSetup safety net | ✅ |
+| fib(7)=13 on Z80 (PBQP) | ✅ |
+| Tetris on CP/M (VIR default) | ✅ |
+| Hello Frill! CP/M (VIR default) | ✅ |
+| --asserts mir2/z80/none CLI | ✅ |
+| assert func() / assert not func() | ✅ |
+| assert == true/false literals | ✅ |
+| Lizp → Scheme R5RS (define, lambda, predicates) | ✅ |
+| Lizp ident sanitize (hyphen→underscore) | ✅ |
+| ABAP FUNCTION/ENDFUNCTION | ✅ |
+| ABAP OOP asserts (21) | ✅ |
+| ObjC math + game_ecs (22 asserts) | ✅ |
+| Pascal bubble_sort + records | ✅ |
+| Pascal 54 Z80 asserts | ✅ |
 | C edge_cases 36 asserts | ✅ |
-| ABAP OOP 21 asserts | ✅ |
-| ABAP FUNCTION/ENDFUNCTION | ✅ preprocessor |
-| ABAP name_test (FORM+CLASS) | ✅ no conflict |
 | Eight Languages article + 11 images | ✅ |
-| Bool convention GPU proven | ✅ CY per-function, Z3 decides |
-| Z→A branchless impossible | ✅ PROVEN exhaustive |
-| Branchless CMOV found | ✅ SBC A,A select pattern |
-| Total asserts | ~1636 |
+| Bool convention GPU-proven | ✅ |
+| Branchless ABS/MIN/MAX/CMOV | ✅ |
+| div3 EXACT (mul171>>9) | ✅ |
+| Non-blocking tui_read_key (BDOS 6) | ✅ |
+| Total asserts | ~1750+ |
 
-## Design Decisions (GPU PROVEN)
+## Assert Corpus
 
-- **Bool return:** Z3 per-function from {A(0/1), CY, Z, A(0xFF)}
-  - CmpEq → Z natural, CmpLt → CY natural
-  - Caller branch → use flag directly (0T)
-  - Caller store → materialize (SBC A,A for CY=4T, branch for Z=14T)
-- **Bool representation:** 0x00/0xFF (SBC A,A, 1 instruction)
-- **@error:** CY flag (orthogonal via A materialization)
-- **CMOV:** SBC A,A;LD D,A;LD A,B;XOR C;AND D;XOR C (24T branchless)
-- **Z flag:** write-only on Z80 (proven exhaustive 456K sequences)
-- **GPU tables:** ⊥ retFlag (regalloc independent of epilog)
-- **ABAP naming:** FORM=name, CLASS=ClassName_Method, FUNCTION=name (no conflicts)
+| Language | Asserts | Z80 Status |
+|----------|---------|------------|
+| Frill | 436 | ✅ 14/15 |
+| C89 | 353 | ✅ |
+| C99+ | 305 | ✅ |
+| ObjC | 98 | ✅ 11/11 |
+| Pascal | 54 | ✅ 9/9 (leaf) |
+| Nanz | 371+ | ✅ |
+| Lizp | 52 | ✅ mir2, Z80 partial |
+| ABAP | 31 | ✅ mir2 |
+| PL/M | 9 | ✅ |
+
+## Known VIR Bugs (P1, P2)
+
+1. **P1 condret-sink** — cross-block edge moves missing (VIR working on it)
+2. **P2 loop_head label** — while-loop label not emitted
+3. **Recursive** → PBQP fallback (island skip workaround)
+4. **Print number** — WriteU8 codegen garbled
+
+## GPU Regalloc Revolution (z80-optimizer)
+
+- Enricher v4: 123K shapes, width-aware, CALL save cost
+- operation_bag + shape → O(1) lookup
+- Infeasibility detection before codegen
+- 7M combinations for ≤6 vregs (GPU minutes)
+- 755 arithmetic sequences with clobber info
+- Awaits corpus dump from VIR
 
 ## Session IDs
 
