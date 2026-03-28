@@ -2190,9 +2190,88 @@ func peepholeCleanup(asm string) string {
 		}
 
 		// LD A, 0 → XOR A (1 byte shorter, faster)
-		if line == "LD A, 0" {
-			result = append(result, "    XOR A")
-			continue
+		// BUT: skip when the LD A is a return-move followed by conditional JR/JP.
+		// XOR A would clobber flags. LD A, reg doesn't modify flags — reorder it
+		// past the conditional JR to execute only on the return path.
+		if strings.HasPrefix(line, "LD A, ") || (strings.HasPrefix(line, "LD ") && i+1 < len(lines) && strings.TrimSpace(lines[i+1]) == "LD A, "+strings.TrimSpace(strings.SplitN(line[3:], ",", 2)[0])) {
+			// Handle two-instruction pattern: LD B, 0 / LD A, B → treat as atomic return move
+			actualLine := line
+			skipExtra := 0
+			if strings.HasPrefix(line, "LD ") && !strings.HasPrefix(line, "LD A,") {
+				parts := strings.SplitN(line[3:], ",", 2)
+				if len(parts) == 2 {
+					reg := strings.TrimSpace(parts[0])
+					nextT := strings.TrimSpace(lines[i+1])
+					if nextT == "LD A, "+reg {
+						// Merge: LD R, N / LD A, R → LD A, N
+						actualLine = "LD A, " + strings.TrimSpace(parts[1])
+						skipExtra = 1
+					}
+				}
+			}
+			// Check if next line after the LD A is a conditional JR/JP
+			reordered := false
+			scanStart := i + 1 + skipExtra
+			if scanStart < len(lines) {
+				nt := strings.TrimSpace(lines[scanStart])
+				isCondJR := (strings.HasPrefix(nt, "JR ") || strings.HasPrefix(nt, "JP ")) &&
+					!strings.HasPrefix(nt, "JR .") && !strings.HasPrefix(nt, "JP .") &&
+					strings.Contains(nt, ", ")
+				if isCondJR {
+					// Return-move reorder: LD A, N / <JR cc sequence> / RET
+					// → <JR cc sequence> / LD A, N / RET
+					var condJumps []string
+					retFound := false
+					j := scanStart
+					for j < len(lines) {
+						t := strings.TrimSpace(lines[j])
+						if t == "" || strings.HasPrefix(t, ";") {
+							j++
+							continue
+						}
+						isCJ := (strings.HasPrefix(t, "JR ") || strings.HasPrefix(t, "JP ")) &&
+							!strings.HasPrefix(t, "JR .") && !strings.HasPrefix(t, "JP .") &&
+							!strings.HasPrefix(t, "JP (") &&
+							strings.Contains(t, ", ")
+						isUJ := strings.HasPrefix(t, "JR .") || strings.HasPrefix(t, "JP .")
+						if isCJ || isUJ {
+							condJumps = append(condJumps, t)
+							j++
+							continue
+						}
+						if strings.HasSuffix(t, ":") {
+							condJumps = append(condJumps, t)
+							j++
+							continue
+						}
+						if t == "RET" && len(condJumps) > 0 {
+							retFound = true
+						}
+						break
+					}
+					if retFound {
+						for _, jl := range condJumps {
+							if strings.HasSuffix(jl, ":") {
+								result = append(result, jl)
+							} else {
+								result = append(result, "    "+jl)
+							}
+						}
+						result = append(result, "    "+actualLine)
+						result = append(result, "    RET")
+						i = j
+						reordered = true
+					}
+				}
+			}
+			if reordered {
+				continue
+			}
+			// Safe to convert to XOR A (no conditional JR follows)
+			if line == "LD A, 0" {
+				result = append(result, "    XOR A")
+				continue
+			}
 		}
 
 		// CP 0 → OR A (sets Z flag same way, 1 byte shorter)

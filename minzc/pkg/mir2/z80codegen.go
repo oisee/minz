@@ -3155,6 +3155,15 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		// Coalescing: if A already holds lhs or (commutative) rhs, skip LD A, reg.
 		isCommutative := mnem == "ADD" || mnem == "AND" || mnem == "OR" || mnem == "XOR"
 		if g.holdsValue("A", lhs) {
+			// Save-before-overwrite: if the lhs vreg in A is still live after this
+			// instruction (used by a later inst or terminator), save it to a scratch
+			// register. The ALU op will overwrite A with the result.
+			// Example: fib's r6=sub(r0,1) where r0 is still needed for r9=sub(r0,2).
+			if inst.Src[0] != inst.Dst && g.isVregLiveAfter(inst.Src[0], inst) {
+				scratch := g.pickScratch8(inst)
+				g.emitf("    LD %s, A    ; save r%d before ALU overwrite", scratch, inst.Src[0])
+				g.physOverride[inst.Src[0]] = scratch
+			}
 			// A == lhs already — skip LD A, lhs.
 			g.invalidate("A")
 			// Use immediate form if rhs is a known constant.
@@ -3192,6 +3201,10 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		// Immediate peephole: AND/OR/XOR/ADD/SUB n — no register needed for rhs.
 		if cv, ok := g.constVals[inst.Src[1]]; ok {
 			if lhs != "A" {
+				// Before loading lhs into A, save any live vreg currently in A.
+				// Example: fib — after first CALL, A=fib(n-1) is needed later but
+				// computing n-2 requires loading n (from scratch) into A.
+				g.saveABeforeOverwrite(inst)
 				g.emitLDA(lhs)
 			}
 			switch mnem {
@@ -5227,14 +5240,25 @@ func (g *z80cg) genCall(inst *Inst) {
 
 	sym := sanitizeIdent(inst.Sym)
 
-	// Emit argument setup (parallel copy) when we have explicit Args and the
-	// callee's contract is known.  This covers cases where the current physical
-	// locations of the argument registers differ from the callee's expected
-	// parameter locations (e.g. phi in C must move to A for the second CALL).
 	var callee *Func
 	if g.mod != nil {
 		callee = g.mod.FuncByName(inst.Sym)
 	}
+
+	// ── Save A across CALL if needed ─────────────────────────────────────
+	// A is always clobbered by CALL (return value). If A holds a vreg that
+	// is live after the call AND is not a call arg or result, save it to a
+	// scratch register. Can't use PUSH AF/POP AF because POP AF would
+	// overwrite the return value.
+	var accSavedTo string // scratch register holding saved A value
+	if callee != nil {
+		accSavedTo, _ = g.saveAccAcrossCall(inst, callee)
+	}
+
+	// Emit argument setup (parallel copy) when we have explicit Args and the
+	// callee's contract is known.  This covers cases where the current physical
+	// locations of the argument registers differ from the callee's expected
+	// parameter locations (e.g. phi in C must move to A for the second CALL).
 	if len(inst.Args) > 0 && callee != nil && len(callee.Contract.Params) > 0 {
 		g.emitCallArgs(inst.Args, callee.Contract.Params)
 	}
@@ -5245,6 +5269,22 @@ func (g *z80cg) genCall(inst *Inst) {
 	var callerSavePairs []string // pairs to PUSH before / POP after CALL
 	if callee != nil {
 		callerSavePairs = g.callerSavePairs(inst, callee)
+		// If we saved A to a scratch in a PUSH'd pair, ensure that pair is included.
+		if accSavedTo != "" {
+			pair := regToPairMap[accSavedTo]
+			if pair != "" {
+				found := false
+				for _, p := range callerSavePairs {
+					if p == pair {
+						found = true
+						break
+					}
+				}
+				if !found {
+					callerSavePairs = append(callerSavePairs, pair)
+				}
+			}
+		}
 		for _, pair := range callerSavePairs {
 			g.emitf("    PUSH %s", pair)
 		}
@@ -7269,13 +7309,8 @@ func (g *z80cg) callerSavePairs(inst *Inst, callee *Func) []string {
 	// Map individual registers to PUSH-able pairs.
 	// Z80 can only PUSH/POP pairs: BC, DE, HL (and AF, IX, IY).
 	pairNeeded := make(map[string]bool)
-	regToPair := map[string]string{
-		"B": "BC", "C": "BC",
-		"D": "DE", "E": "DE",
-		"H": "HL", "L": "HL",
-	}
 	for reg := range livePhys {
-		if pair, ok := regToPair[reg]; ok {
+		if pair, ok := regToPairMap[reg]; ok {
 			pairNeeded[pair] = true
 		}
 	}
@@ -7290,16 +7325,183 @@ func (g *z80cg) callerSavePairs(inst *Inst, callee *Func) []string {
 	return result
 }
 
+// regToPairMap maps individual Z80 registers to their PUSH-able pair.
+var regToPairMap = map[string]string{
+	"B": "BC", "C": "BC",
+	"D": "DE", "E": "DE",
+	"H": "HL", "L": "HL",
+}
+
+// saveAccAcrossCall saves A to a scratch register if A holds a vreg that is
+// live after the CALL but is not a call arg or result. Returns the scratch
+// register name and the vreg that was saved, or ("", NoReg) if no save needed.
+//
+// A cannot use PUSH AF/POP AF because POP would overwrite the return value.
+// Instead, we save A to a GPR (D or E) that will be preserved via PUSH/POP.
+func (g *z80cg) saveAccAcrossCall(inst *Inst, callee *Func) (string, Reg) {
+	// Find which vreg is allocated to A AND still live after the call.
+	// Skip vregs that are already saved via physOverride (e.g., save-before-overwrite
+	// already moved the value to a scratch register).
+	liveInA := NoReg
+	liveAfter := g.regsLiveAfterInst(inst)
+	for r := range liveAfter {
+		// If already saved via physOverride, the value is not in A anymore
+		if _, overridden := g.physOverride[r]; overridden {
+			continue
+		}
+		loc := g.ar.Locs[r]
+		if loc.Kind != LocReg || loc.Name != "A" {
+			continue
+		}
+		// Exclude call args and result — they're consumed/produced by the call
+		excluded := false
+		for _, a := range inst.Args {
+			if a == r {
+				excluded = true
+			}
+		}
+		if inst.Dst == r {
+			excluded = true
+		}
+		if excluded {
+			continue
+		}
+		liveInA = r
+		break
+	}
+	if liveInA == NoReg {
+		return "", NoReg
+	}
+
+	// Pick a scratch register for the save. Prefer D or E (likely to be PUSH'd).
+	// Avoid registers used by call args.
+	argLocs := make(map[string]bool)
+	for _, a := range inst.Args {
+		loc := g.ar.Locs[a]
+		if loc.Kind == LocReg {
+			argLocs[loc.Name] = true
+		}
+	}
+	for _, scratch := range []string{"D", "E", "B", "C", "H", "L"} {
+		if !argLocs[scratch] {
+			g.emitf("    LD %s, A    ; save A (r%d) across CALL", scratch, liveInA)
+			g.physOverride[liveInA] = scratch
+			return scratch, liveInA
+		}
+	}
+	return "", NoReg
+}
+
 // regsLiveAfterInst returns the set of virtual registers that are used after
 // the given instruction within the current block (including the terminator).
 // This is a lightweight local liveness check — no full dataflow, but sufficient
 // for caller-save elimination since most calls are followed by uses in the same block.
+// saveABeforeOverwrite checks if A currently holds a vreg that is still live
+// after the current instruction. If so, saves it to a scratch register.
+// Used before emitLDA in ALU paths to prevent clobbering live values.
+func (g *z80cg) saveABeforeOverwrite(inst *Inst) {
+	if g.curBlock == nil {
+		return
+	}
+	// Find the vreg MOST RECENTLY defined in A, but only considering
+	// definitions BEFORE the current instruction. Only that vreg's
+	// value is actually in A right now.
+	instIdx := -1
+	for idx, bi := range g.curBlock.Insts {
+		if bi == inst {
+			instIdx = idx
+			break
+		}
+	}
+
+	var bestReg Reg
+	bestIdx := -2
+	for r, loc := range g.ar.Locs {
+		if loc.Kind != LocReg || loc.Name != "A" {
+			continue
+		}
+		if _, ok := g.physOverride[r]; ok {
+			continue // already saved elsewhere
+		}
+		// Find definition index in the current block, only BEFORE inst
+		defIdx := -2
+		for idx, bi := range g.curBlock.Insts {
+			if idx >= instIdx {
+				break // stop before current instruction
+			}
+			if bi.Dst == r {
+				defIdx = idx
+			}
+		}
+		// Params are defined before block — use -1 as sentinel
+		for _, cp := range g.fn.Contract.Params {
+			if cp.Reg == r && defIdx == -2 {
+				defIdx = -1
+			}
+		}
+		if defIdx > bestIdx {
+			bestIdx = defIdx
+			bestReg = r
+		}
+	}
+	if bestReg == NoReg {
+		return
+	}
+	// Skip if this vreg is not live after the current instruction
+	if !g.isVregLiveAfter(bestReg, inst) {
+		return
+	}
+	// Skip if this vreg is a source of the current instruction
+	for _, s := range inst.Src[:] {
+		if s == bestReg {
+			return
+		}
+	}
+	scratch := g.pickScratch8(inst)
+	g.emitf("    LD %s, A    ; save r%d before A overwrite", scratch, bestReg)
+	g.physOverride[bestReg] = scratch
+}
+
+// isVregLiveAfter checks if vreg is used by any instruction after target in the
+// current block, or by the block's terminator.
+func (g *z80cg) isVregLiveAfter(vreg Reg, target *Inst) bool {
+	if g.curBlock == nil || vreg == NoReg {
+		return false
+	}
+	found := false
+	for _, inst := range g.curBlock.Insts {
+		if !found {
+			if inst == target {
+				found = true
+			}
+			continue
+		}
+		// Check if vreg is used by this instruction
+		for _, r := range inst.Uses() {
+			if r == vreg {
+				return true
+			}
+		}
+	}
+	// Check terminator
+	if g.curBlock.Term != nil {
+		for _, r := range g.curBlock.Term.termUses() {
+			if r == vreg {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func (g *z80cg) regsLiveAfterInst(target *Inst) map[Reg]bool {
 	live := make(map[Reg]bool)
 	if g.curBlock == nil {
 		return live
 	}
-	// Find the target instruction's position.
+	// Track which vregs are redefined between target and their use.
+	// A vreg that is redefined (Dst) before its next use is NOT live-across.
+	redefined := make(map[Reg]bool)
 	found := false
 	for _, inst := range g.curBlock.Insts {
 		if inst == target {
@@ -7309,16 +7511,20 @@ func (g *z80cg) regsLiveAfterInst(target *Inst) map[Reg]bool {
 		if !found {
 			continue
 		}
-		// Collect all register uses from instructions after target.
+		// Collect uses (only if not yet redefined since target).
 		for _, s := range inst.Src {
-			if s != NoReg {
+			if s != NoReg && !redefined[s] {
 				live[s] = true
 			}
 		}
 		for _, a := range inst.Args {
-			if a != NoReg {
+			if a != NoReg && !redefined[a] {
 				live[a] = true
 			}
+		}
+		// Track redefinitions.
+		if inst.Dst != NoReg {
+			redefined[inst.Dst] = true
 		}
 	}
 	// Collect terminator uses.
