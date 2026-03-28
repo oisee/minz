@@ -1623,6 +1623,13 @@ func (p *parser) parseAssert() (hir.Assert, error) {
 		return hir.Assert{}, err
 	}
 
+	// Optional `not` prefix for bool negation: `assert not is_digit(65)`
+	negated := false
+	if p.l.is(tokIdent) && p.l.peek().val == "not" {
+		p.l.next()
+		negated = true
+	}
+
 	// Parse: ident(args...)
 	nameTok, err := p.l.eat(tokIdent)
 	if err != nil {
@@ -1647,6 +1654,32 @@ func (p *parser) parseAssert() (hir.Assert, error) {
 	}
 	if _, err2 := p.l.eat(tokRParen); err2 != nil {
 		return hir.Assert{}, fmt.Errorf("line %d: assert: expected ')'", line)
+	}
+
+	// Bool shorthand: `assert is_digit(48)` implies `== true` (expected=1)
+	// Negated:        `assert not is_digit(65)` implies `== false` (expected=0)
+	if !p.l.is(tokEqEq) {
+		via := p.parseAssertVia()
+		expected := int64(1) // true
+		if negated {
+			expected = 0 // false
+		}
+		prefix := "assert "
+		if negated {
+			prefix = "assert not "
+		}
+		src := fmt.Sprintf("%s%s(%s)", prefix, nameTok.val, intSliceStr(args))
+		if via != "" {
+			src += " via " + via
+		}
+		return hir.Assert{
+			FuncName: nameTok.val,
+			Args:     args,
+			Expected: expected,
+			Source:   src,
+			Line:     line,
+			Via:      via,
+		}, nil
 	}
 
 	// Parse: == expected  OR  == (v1, v2, ...)
@@ -1730,6 +1763,15 @@ func (p *parser) parseAssertValue() (int64, error) {
 			return val, nil
 		}
 	}
+	// true/false literals for bool asserts
+	if p.l.is(tokIdent) && p.l.peek().val == "true" {
+		p.l.next()
+		return 1, nil
+	}
+	if p.l.is(tokIdent) && p.l.peek().val == "false" {
+		p.l.next()
+		return 0, nil
+	}
 	// Optionally negative integer
 	neg := false
 	if p.l.is(tokMinus) {
@@ -1738,7 +1780,7 @@ func (p *parser) parseAssertValue() (int64, error) {
 	}
 	intTok, err := p.l.eat(tokInt)
 	if err != nil {
-		return 0, fmt.Errorf("expected integer literal or enum value")
+		return 0, fmt.Errorf("expected integer literal, enum value, or true/false")
 	}
 	v, err := strconv.ParseInt(intTok.val, 0, 64)
 	if err != nil {

@@ -84,8 +84,12 @@ func CodegenModule(m *mir2.Module, opts SolverOptions) (string, []FuncResult) {
 		for ri, pr := range pfccoResults {
 			pfccoIdx[pr.FuncName] = ri
 			if len(pr.ParamNames) > 0 {
+				retStr := pr.ReturnName
+				if pr.IsBoolRet {
+					retStr = fmt.Sprintf("%s(bool=%s)", pr.ReturnName, pr.RetFlag)
+				}
 				sb.WriteString(fmt.Sprintf("; %s: params=[%s] ret=%s (Z3-PFCCO)\n",
-					pr.FuncName, strings.Join(pr.ParamNames, ","), pr.ReturnName))
+					pr.FuncName, strings.Join(pr.ParamNames, ","), retStr))
 			}
 			// Map param index → vreg → phys register
 			f := m.FuncByName(pr.FuncName)

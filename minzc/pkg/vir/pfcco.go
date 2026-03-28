@@ -27,6 +27,20 @@ type PFCCOOptions struct {
 	Verbose bool
 }
 
+// RetMode describes how a bool return value is conveyed.
+type RetMode int
+
+const (
+	RetModeA    RetMode = 0 // return in A register (0/1)
+	RetModeCY   RetMode = 1 // return in CY flag (set=true, clear=false)
+	RetModeZ    RetMode = 2 // return in Z flag (set=true, clear=false)
+	RetModeA0xFF RetMode = 3 // return in A register (0xFF=true, 0x00=false)
+)
+
+func (rm RetMode) String() string {
+	return [...]string{"A", "CY", "Z", "A_0xFF"}[rm]
+}
+
 // PFCCOResult holds the optimal calling convention for one function.
 type PFCCOResult struct {
 	FuncName    string
@@ -34,6 +48,8 @@ type PFCCOResult struct {
 	ParamNames  []string // register names (A, B, C, ...)
 	ReturnLoc   int      // physical register for return value
 	ReturnName  string
+	RetFlag     RetMode  // for bool-returning functions: how the bool is conveyed
+	IsBoolRet   bool     // true if function returns bool (retFlag is meaningful)
 }
 
 // OptimizePFCCO finds provably optimal calling conventions for all functions
@@ -51,10 +67,11 @@ func OptimizePFCCO(m *mir2.Module, desc *MachineDesc, opts PFCCOOptions) ([]PFCC
 
 	// Collect functions and call sites
 	type funcInfo struct {
-		name     string
-		nParams  int
-		retWidth int // 0=void, 8=u8, 16=u16
-		paramW   []int
+		name      string
+		nParams   int
+		retWidth  int  // 0=void, 8=u8, 16=u16
+		isBoolRet bool // true if return type is bool
+		paramW    []int
 	}
 	type callSite struct {
 		callerFunc string
@@ -86,6 +103,9 @@ func OptimizePFCCO(m *mir2.Module, desc *MachineDesc, opts PFCCOOptions) ([]PFCC
 			if r.Ty != nil {
 				if tw := r.Ty.Width(); tw > 0 {
 					fi.retWidth = tw
+				}
+				if r.Ty == mir2.TyBool {
+					fi.isBoolRet = true
 				}
 			}
 		}
@@ -148,6 +168,7 @@ func OptimizePFCCO(m *mir2.Module, desc *MachineDesc, opts PFCCOOptions) ([]PFCC
 		}
 
 		// Return value: u8 → A (index 0), u16 → HL (index 9)
+		// Bool → ret_mode enum: A(0), CY(1), Z(2), A_0xFF(3)
 		if f.retWidth > 0 {
 			varName := fmt.Sprintf("f%d_ret", fi)
 			b.WriteString(fmt.Sprintf("(declare-const %s Int)\n", varName))
@@ -155,6 +176,19 @@ func OptimizePFCCO(m *mir2.Module, desc *MachineDesc, opts PFCCOOptions) ([]PFCC
 				b.WriteString(fmt.Sprintf("(assert (= %s 0))\n", varName)) // A
 			} else {
 				b.WriteString(fmt.Sprintf("(assert (= %s 9))\n", varName)) // HL
+			}
+
+			// Bool return: add ret_mode variable
+			if f.isBoolRet {
+				modeName := fmt.Sprintf("f%d_retmode", fi)
+				b.WriteString(fmt.Sprintf("(declare-const %s Int)\n", modeName))
+				// Domain: 0=A(0/1), 1=CY, 2=Z
+				b.WriteString(fmt.Sprintf("(assert (or (= %s 0) (= %s 1) (= %s 2)))\n",
+					modeName, modeName, modeName))
+				// Base cost: CY=0 (natural from CP), Z=0 (natural from CP),
+				// A=4 (need LD A,0/1 or SBC A,A materialization)
+				b.WriteString(fmt.Sprintf("  (ite (= %s 0) 4 0) ; bool ret materialize cost\n",
+					modeName))
 			}
 		}
 	}
@@ -176,6 +210,30 @@ func OptimizePFCCO(m *mir2.Module, desc *MachineDesc, opts PFCCOOptions) ([]PFCC
 				// Cost 0 if in natural position, 4 if moved
 				b.WriteString(fmt.Sprintf("  (ite (= f%d_p%d %d) 0 4)\n",
 					fi, pi, naturalRegs8[pi]))
+			}
+		}
+	}
+
+	// Call-site cost for bool return mode: if callee returns bool and caller
+	// immediately branches → flag mode is free. If caller stores → A mode needed.
+	for _, cs := range calls {
+		calleeIdx2, ok := funcIdx[cs.calleeFunc]
+		if !ok {
+			continue
+		}
+		callee2 := funcs[calleeIdx2]
+		if callee2.isBoolRet {
+			modeName := fmt.Sprintf("f%d_retmode", calleeIdx2)
+			// Detect if caller immediately branches on the bool result
+			callerBranches := callResultUsedAsBranch(m, cs.callerFunc, cs.calleeFunc)
+			if callerBranches {
+				// Caller branches: flag mode = 0T, A mode = 4T (CP 1 needed)
+				b.WriteString(fmt.Sprintf("  (ite (= %s 0) 4 0) ; call %s→%s bool branch\n",
+					modeName, cs.callerFunc, cs.calleeFunc))
+			} else {
+				// Caller stores: A mode = 0T, flag mode = 4T (SBC A,A needed)
+				b.WriteString(fmt.Sprintf("  (ite (= %s 0) 0 4) ; call %s→%s bool store\n",
+					modeName, cs.callerFunc, cs.calleeFunc))
 			}
 		}
 	}
@@ -263,8 +321,66 @@ func OptimizePFCCO(m *mir2.Module, desc *MachineDesc, opts PFCCOOptions) ([]PFCC
 			}
 		}
 
+		if f.isBoolRet {
+			r.IsBoolRet = true
+			modeKey := fmt.Sprintf("f%d_retmode", fi)
+			if v, ok := vals[modeKey]; ok {
+				r.RetFlag = RetMode(v)
+			}
+		}
+
 		results = append(results, r)
 	}
 
 	return results, nil
+}
+
+// callResultUsedAsBranch checks if the result of calling calleeFunc from
+// callerFunc is immediately used in a branch (BrIf/TermCondRet) rather than
+// stored or passed to another function. Returns true if branching.
+func callResultUsedAsBranch(m *mir2.Module, callerName, calleeName string) bool {
+	f := m.FuncByName(callerName)
+	if f == nil {
+		return true // default: assume branch (cheaper)
+	}
+	for _, blk := range f.Blocks {
+		for i, inst := range blk.Insts {
+			if inst.Op != mir2.OpCall || inst.Sym != calleeName {
+				continue
+			}
+			if inst.Dst == mir2.NoReg {
+				continue
+			}
+			// Check if the call result is used by a CMP or directly by a BrIf/TermCondRet
+			resultReg := inst.Dst
+			// Scan forward for use of resultReg
+			for j := i + 1; j < len(blk.Insts); j++ {
+				next := blk.Insts[j]
+				if next.Op == mir2.OpCmp {
+					for _, s := range next.Src {
+						if s == resultReg {
+							return true // used in comparison → branch
+						}
+					}
+				}
+				if next.Dst == resultReg {
+					break // redefined before use
+				}
+			}
+			// Check terminator
+			if blk.Term != nil {
+				switch t := blk.Term.(type) {
+				case *mir2.TermBrIf:
+					if t.Cond == resultReg {
+						return true
+					}
+				case *mir2.TermCondRet:
+					if t.Cond == resultReg {
+						return true
+					}
+				}
+			}
+		}
+	}
+	return false // used as value (stored/passed)
 }

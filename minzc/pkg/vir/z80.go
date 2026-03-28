@@ -151,6 +151,12 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			SrcLocs: [2]LocSet{Z80_GPR8}, Template: "LD {dst}, {src0}",
 			Cost: 4, Bytes: 1},
 
+		// Flag→A materialization: SBC A,A produces 0xFF (CY=1) or 0x00 (CY=0).
+		// Used for bool return values conveyed via CY flag.
+		{Name: "sbc_a_a", Op: OpMove, Width: 8, DstLocs: Z80_A,
+			SrcLocs: [2]LocSet{Z80_Flags}, Template: "SBC A, A",
+			Cost: 4, Bytes: 1},
+
 		// Truncation: pair → low byte (zero-cost alias)
 		{Name: "trunc_hl_l", Op: OpMove, Width: 8,
 			DstLocs: m.LocSetByNames("L"), SrcLocs: [2]LocSet{Z80_HL},
