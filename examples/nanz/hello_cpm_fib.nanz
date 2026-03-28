@@ -1,0 +1,47 @@
+fun putch(c: u8) -> void {
+    asm {
+        LD E, A
+        LD C, 2
+        CALL 0x0005
+    }
+}
+
+fun print_digit(d: u8) -> void {
+    putch(d + 48)
+}
+
+fun fib(n: u8) -> u8 {
+    if n < 2 { return n }
+    return fib(n - 1) + fib(n - 2)
+}
+
+fun gcd(a: u8, b: u8) -> u8 {
+    while b != 0 {
+        let t = b
+        b = a % b
+        a = t
+    }
+    return a
+}
+
+fun main() -> void {
+    // Hello Frill!
+    putch(72) putch(101) putch(108) putch(108) putch(111)
+    putch(32) putch(70) putch(114) putch(105) putch(108) putch(108) putch(33)
+    putch(13) putch(10)
+    // fib(7)=
+    putch(102) putch(105) putch(98) putch(40) putch(55) putch(41) putch(61)
+    let f = fib(7)
+    print_digit(f / 10)
+    print_digit(f % 10)
+    putch(13) putch(10)
+    // gcd(12,8)=
+    putch(103) putch(99) putch(100) putch(40) putch(49) putch(50)
+    putch(44) putch(56) putch(41) putch(61)
+    let g = gcd(12, 8)
+    print_digit(g)
+    putch(13) putch(10)
+}
+
+assert fib(7) == 13
+assert gcd(12, 8) == 4

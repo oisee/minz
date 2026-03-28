@@ -14,14 +14,19 @@ let print_u8 (n : u8) : IO u8 =
   0
 
 let main (x : u8) : IO u8 =
+  (* "Hello Frill!\r\n" *)
   do putchar 72  do putchar 101 do putchar 108 do putchar 108 do putchar 111
   do putchar 32  do putchar 70  do putchar 114 do putchar 105
   do putchar 108 do putchar 108 do putchar 33  do newline 0
+  (* "fib(7)=" *)
   do putchar 102 do putchar 105 do putchar 98  do putchar 40
   do putchar 55  do putchar 41  do putchar 61
-  do print_u8 (fib 7) do newline 0
+  let f7 = fib 7 in
+  do print_u8 f7 do newline 0
+  (* "gcd(12,8)=" *)
   do putchar 103 do putchar 99  do putchar 100 do putchar 40
   do putchar 49  do putchar 50  do putchar 44  do putchar 56
   do putchar 41  do putchar 61
-  do print_u8 (gcd 12 8) do newline 0
+  let g = gcd 12 8 in
+  do print_u8 g do newline 0
   0
