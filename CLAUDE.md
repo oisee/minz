@@ -52,10 +52,16 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - See [Architecture](docs/LIR_Backend_Architecture.md), [Reference](docs/LIR_Backend_Reference.md), [Report 094](reports/2026-03-18-094-LIR-100-Percent-C89-Corpus.md), [ADR-0033](docs/adr/0033-lir-pipeline-integration.md)
 
 ### 5. VIR Backend (Z3 Unified Solver — `--vir`)
-**Status:** ✅ 100% coverage, 55/55 Z80-verified, -60% vs SDCC. Zero PBQP fallback. ~11K LOC.
-- **Pipeline:** MIR2 → Bridge → ISLE → Z3-PFCCO(Module) → Z3-CFG(Function) → Grace(PIR) → Peephole → Z80 ASM
-- **Package:** `pkg/vir/` — vir.go, z80.go, bridge.go, solver.go, cfgsolver.go, pfcco.go, isle.go, pipeline.go
-- **Corpus:** Nanz 341/341 + C89 304/304 = **645/645 functions** (100%). Z3 time ~36s total.
+**Status:** ✅ Non-leaf production, O(1) regalloc for 91% corpus, -60% vs SDCC. ~12K LOC.
+- **Pipeline:** MIR2 → Bridge → ISLE → Z3-PFCCO(Module) → **O(1) Enriched Table** / Z3-CFG(Function) → Grace(PIR) → Peephole → Z80 ASM
+- **Package:** `pkg/vir/` — vir.go, z80.go, bridge.go, solver.go, cfgsolver.go, pfcco.go, isle.go, pipeline.go, regalloc_table.go
+- **Corpus:** 820 functions (546 Nanz + 274 C89), 235 unique signatures. Non-leaf functions verified (Hello Frill, Tetris CP/M).
+- **O(1) Regalloc (NEW):** 5-level pipeline replaces Z3 30s solve:
+  - L0: Tarjan cut vertex decomposition → free split (91% with enriched)
+  - L1: Enriched table ≤6v → hash lookup O(1) (79% corpus, 37.6M precomputed entries)
+  - L2: EXX bipartite check → dual-bank scheduling (70% functions feasible)
+  - L3: GPU min-cut partition → <1ms for ≤14v (z80-optimizer CUDA kernel)
+  - L4: Z3 fallback (<1% functions)
 - **Z3-PFCCO:** Module-level calling convention optimization — Z3 considers all call sites simultaneously. The SDCC killer.
 - **Per-instruction variables:** `lv{vreg}_i{inst}` — solver plans moves as part of optimal solution, not as post-pass fixup.
 - **CFG-aware encoding:** Per-block variables + edge constraints. Handles conditionals/loops correctly.
@@ -74,11 +80,17 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 6. **Pre-solver pass interaction:** Pre-tie moves rewrite `v1` → `v1_copy`. DON'T propagate param constraints to copy vregs (both live at move, both constrained to same reg → unsat). Constrain originals only.
 7. **Z3 minimize pitfall:** `(minimize total_cost)` uses opt module, not SAT. On >100 ITE vars it returns "unknown". Use plain `(check-sat)` for large problems — correct, just not provably optimal.
 8. **Dual-mode: constrained vs standalone+adapter:** Solve each function twice — with ABI constraints and without. Pick the cheaper option. Standalone winner gets adapter LD moves at entry/exit. Benchmark shows 7 funcs / 47 insts saved across Nanz corpus (e.g., `_dec`: 32→1 insts).
+9. **O(1) before Z3:** Compute (interference_shape, op_bag) signature → enriched table lookup. 91% of real functions hit. Only fall to Z3 on miss. Compile time: 30s → 0ms for majority.
+10. **Cross-block params need injection:** Per-block Z3 liveness misses function params used in later blocks. Inject at ALL entry-block instructions + recompute blockLiveIn. Without this, edge moves for params are silently lost.
+11. **Never remove LD before CALL:** Peephole "LD A,X / CALL → dead" is WRONG — the LD may be loading the callee's argument. The solver only emits needed moves.
 
 #### VIR Known Issues / Roadmap
 - ✅ ~~abs_diff CFG solver unsat~~ — now 4 insts (optimal SUB/RET NC/NEG/RET), CFG solver succeeds
 - ✅ ~~fib parallel-copy~~ — now 12 insts (45% win vs SDCC), tight loop body
 - ✅ ~~Non-deterministic coalescing~~ — sort tie-break by vreg ID applied, deterministic
+- ✅ ~~CALL arg setup~~ — 4 bugs fixed (vreg collision, DstHint, peephole, coalescing). Non-leaf production.
+- ✅ ~~Cross-block params~~ — param injection + pair→half move fallback. bool_and/is_digit correct.
+- ✅ ~~Loop head labels~~ — emitPIRWithLabels fixed for 0-op entry blocks + island dedup.
 - **Grace on PIR** — dead register elimination across call boundaries, block merging, fallthrough optimization
 - **RLD/RRD for 4-bit shifts** — Z80 digit-rotate instructions for nibble packing
 - **ISLE store16_le via DE** — EX DE,HL bracket pattern
