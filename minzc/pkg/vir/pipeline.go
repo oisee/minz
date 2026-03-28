@@ -167,6 +167,13 @@ func CodegenModule(m *mir2.Module, opts SolverOptions) (string, []FuncResult) {
 				}
 			}
 		}
+		// Sanity check: CALL without preceding arg setup → PBQP fallback.
+		// VIR translateCall doesn't always emit LD moves for call args.
+		if err == nil {
+			if callErr := validateCallArgSetup(asm, f, m); callErr != "" {
+				err = fmt.Errorf("[call-args] %s", callErr)
+			}
+		}
 		r := FuncResult{Name: f.Name}
 		if err != nil {
 			// PBQP fallback: if VIR fails and PBQP allocation is available,
@@ -1675,6 +1682,47 @@ func emitLine(sb *strings.Builder, line string) {
 			sb.WriteString("    " + subline + "\n")
 		}
 	}
+}
+
+// validateCallArgSetup scans VIR-generated ASM for CALL instructions that
+// aren't preceded by arg setup moves. If a callee expects params but the
+// VIR emitter didn't generate LD moves, the function is broken.
+func validateCallArgSetup(asm string, f *mir2.Func, m *mir2.Module) string {
+	lines := strings.Split(asm, "\n")
+	for i, line := range lines {
+		t := strings.TrimSpace(line)
+		if !strings.HasPrefix(t, "CALL ") || strings.HasPrefix(t, "CALL 0x") {
+			continue
+		}
+		calleeName := strings.TrimPrefix(t, "CALL ")
+		calleeName = strings.TrimSpace(calleeName)
+		if calleeName == "__call_hl" || calleeName == "" {
+			continue
+		}
+		// Find callee's param count
+		callee := m.FuncByName(calleeName)
+		if callee == nil || len(callee.Contract.Params) == 0 {
+			continue // no params needed
+		}
+		// Scan backward for arg setup (LD, PUSH) within 5 lines
+		hasSetup := false
+		for j := i - 1; j >= 0 && j >= i-5; j-- {
+			prev := strings.TrimSpace(lines[j])
+			if prev == "" || strings.HasPrefix(prev, ";") || strings.HasSuffix(prev, ":") {
+				continue
+			}
+			if strings.HasPrefix(prev, "LD ") || strings.HasPrefix(prev, "PUSH ") {
+				hasSetup = true
+				break
+			}
+			break // non-LD/PUSH instruction → stop
+		}
+		if !hasSetup {
+			return fmt.Sprintf("CALL %s without arg setup (callee expects %d params)",
+				calleeName, len(callee.Contract.Params))
+		}
+	}
+	return ""
 }
 
 // validateNoClobber detects Z3 interference bugs where a 16-bit load is
