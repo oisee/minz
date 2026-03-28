@@ -1,0 +1,521 @@
+// tetris_cpm.nanz — TUI Tetris for CP/M via BDOS + VT100
+//
+// Uses stdlib/tui/render.nanz (BDOS-based VT100 escape sequences).
+// Runs on any CP/M system with VT100-compatible terminal.
+//
+// Compile: mz tetris_cpm.nanz -t cpm -o tetris.com --vir=false
+// Run:     mze tetris.com -t cpm
+
+import tui.render
+
+// ── Key codes ───────────────────────────────────────────────────────────────
+
+const KEY_UP: u8    = 128
+const KEY_DOWN: u8  = 129
+const KEY_LEFT: u8  = 130
+const KEY_RIGHT: u8 = 131
+const KEY_ESC: u8   = 27
+const KEY_Q: u8     = 113   // q
+const KEY_Z: u8     = 122   // z = rotate
+const KEY_X: u8     = 120   // x = hard drop
+const KEY_C: u8     = 99    // c = hold
+
+// ── Box drawing ─────────────────────────────────────────────────────────────
+
+const BOX_TL: u8 = 1
+const BOX_TR: u8 = 2
+const BOX_BL: u8 = 3
+const BOX_BR: u8 = 4
+const BOX_H: u8  = 5
+const BOX_V: u8  = 6
+
+// ── Colors (ANSI terminal) ──────────────────────────────────────────────────
+
+const FG_BLACK: u8   = 0
+const FG_RED: u8     = 1
+const FG_GREEN: u8   = 2
+const FG_YELLOW: u8  = 3
+const FG_BLUE: u8    = 4
+const FG_MAGENTA: u8 = 5
+const FG_CYAN: u8    = 6
+const FG_WHITE: u8   = 7
+const BG_BLACK: u8   = 0
+const BG_BLUE: u8    = 4
+
+// ── Board constants ─────────────────────────────────────────────────────────
+
+const BOARD_W: u8  = 10
+const BOARD_H: u8  = 20
+const DRAW_X: u8   = 12   // screen column for left wall
+const DRAW_Y: u8   = 1    // screen row for top
+
+// ── Game state ──────────────────────────────────────────────────────────────
+
+global board: [u8; 200]
+
+global cur_type: u8 = 0
+global cur_rot: u8 = 0
+global cur_x: u8 = 3
+global cur_y: u8 = 0
+
+global drop_timer: u8 = 0
+global drop_speed: u8 = 8
+global tick: u16 = 0
+
+global score: u16 = 0
+global lines_cleared: u16 = 0
+global game_over: u8 = 0
+
+global next_type: u8 = 0
+global hold_type: u8 = 255
+global hold_used: u8 = 0
+
+global rng_state: u16 = 0xACE1
+
+// ── PRNG ────────────────────────────────────────────────────────────────────
+
+fun rng_next() -> u8 {
+    let bit: u16 = rng_state & 1
+    rng_state = rng_state >> 1
+    if bit == 1 {
+        rng_state = rng_state xor 0xB400
+    }
+    return u8(rng_state & 0xFF)
+}
+
+fun random_piece() -> u8 {
+    let r: u8 = rng_next() & 7
+    if r >= 7 { return 0 }
+    return r
+}
+
+// ── Piece geometry LUTs ─────────────────────────────────────────────────────
+
+global PIECE_DX: [u8; 112] = [
+    0,1,2,3,  0,0,0,0,  0,1,2,3,  0,0,0,0,
+    0,1,0,1,  0,1,0,1,  0,1,0,1,  0,1,0,1,
+    1,0,1,2,  0,0,1,0,  0,1,2,1,  1,0,1,1,
+    1,2,0,1,  0,0,1,1,  1,2,0,1,  0,0,1,1,
+    0,1,1,2,  1,0,1,0,  0,1,1,2,  1,0,1,0,
+    2,0,1,2,  0,0,0,1,  0,1,2,0,  0,1,1,1,
+    0,0,1,2,  0,1,0,0,  0,1,2,2,  1,1,0,1
+]
+
+global PIECE_DY: [u8; 112] = [
+    0,0,0,0,  0,1,2,3,  0,0,0,0,  0,1,2,3,
+    0,0,1,1,  0,0,1,1,  0,0,1,1,  0,0,1,1,
+    0,1,1,1,  0,1,1,2,  0,0,0,1,  0,1,1,2,
+    0,0,1,1,  0,1,1,2,  0,0,1,1,  0,1,1,2,
+    0,0,1,1,  0,1,1,2,  0,0,1,1,  0,1,1,2,
+    0,1,1,1,  0,1,2,2,  0,0,0,1,  0,0,1,2,
+    0,1,1,1,  0,0,1,2,  0,0,0,1,  0,1,2,2
+]
+
+// TUI colors per piece type: 0=I(cyan), 1=O(yellow), 2=T(magenta),
+// 3=S(green), 4=Z(red), 5=L(yellow+bright), 6=J(blue)
+global PIECE_FG: [u8; 7] = [ 6, 3, 5, 2, 1, 3, 4 ]
+global PIECE_BR: [u8; 7] = [ 0, 0, 0, 0, 0, 1, 0 ]
+
+fun piece_dx(t: u8, r: u8, c: u8) -> u8 {
+    return PIECE_DX[u16(t) * 16 + u16(r) * 4 + u16(c)]
+}
+
+fun piece_dy(t: u8, r: u8, c: u8) -> u8 {
+    return PIECE_DY[u16(t) * 16 + u16(r) * 4 + u16(c)]
+}
+
+// ── Board operations ────────────────────────────────────────────────────────
+
+fun board_get(x: u8, y: u8) -> u8 {
+    return board[u16(y) * 10 + u16(x)]
+}
+
+fun board_set(x: u8, y: u8, val: u8) -> void {
+    board[u16(y) * 10 + u16(x)] = val
+}
+
+fun can_place(t: u8, r: u8, px: u8, py: u8) -> bool {
+    for c in 0..4 {
+        let cx: u8 = px + piece_dx(t, r, c)
+        let cy: u8 = py + piece_dy(t, r, c)
+        if cx >= BOARD_W { return false }
+        if cy >= BOARD_H { return false }
+        if board_get(cx, cy) != 0 { return false }
+    }
+    return true
+}
+
+fun lock_piece() -> void {
+    let color_idx: u8 = cur_type + 1
+    for c in 0..4 {
+        let cx: u8 = cur_x + piece_dx(cur_type, cur_rot, c)
+        let cy: u8 = cur_y + piece_dy(cur_type, cur_rot, c)
+        if (cx < BOARD_W) & (cy < BOARD_H) {
+            board_set(cx, cy, color_idx)
+        }
+    }
+}
+
+fun clear_lines() -> u8 {
+    var cleared: u8 = 0
+    var y: u8 = 19
+    while y < BOARD_H {
+        var full: u8 = 1
+        for x in 0..10 {
+            if board_get(x, y) == 0 { full = 0 }
+        }
+        if full == 1 {
+            var sy: u8 = y
+            while sy > 0 {
+                for sx in 0..10 {
+                    board_set(sx, sy, board_get(sx, sy - 1))
+                }
+                sy = sy - 1
+            }
+            for sx in 0..10 {
+                board_set(sx, 0, 0)
+            }
+            cleared = cleared + 1
+        } else {
+            y = y - 1
+        }
+    }
+    return cleared
+}
+
+fun ghost_y() -> u8 {
+    var gy: u8 = cur_y
+    while can_place(cur_type, cur_rot, cur_x, gy + 1) {
+        gy = gy + 1
+    }
+    return gy
+}
+
+fun try_rotate() -> u8 {
+    let nr: u8 = (cur_rot + 1) & 3
+    if can_place(cur_type, nr, cur_x, cur_y) {
+        cur_rot = nr
+        return 1
+    }
+    if cur_x < 9 {
+        if can_place(cur_type, nr, cur_x + 1, cur_y) {
+            cur_x = cur_x + 1
+            cur_rot = nr
+            return 1
+        }
+    }
+    if cur_x > 0 {
+        if can_place(cur_type, nr, cur_x - 1, cur_y) {
+            cur_x = cur_x - 1
+            cur_rot = nr
+            return 1
+        }
+    }
+    if cur_y > 0 {
+        if can_place(cur_type, nr, cur_x, cur_y - 1) {
+            cur_y = cur_y - 1
+            cur_rot = nr
+            return 1
+        }
+    }
+    return 0
+}
+
+fun spawn_piece() -> void {
+    cur_type = next_type
+    next_type = random_piece()
+    cur_rot = 0
+    cur_x = 3
+    cur_y = 0
+    hold_used = 0
+    if can_place(cur_type, cur_rot, cur_x, cur_y) == false {
+        game_over = 1
+    }
+}
+
+fun hold_piece() -> void {
+    if hold_used == 1 { return }
+    hold_used = 1
+    if hold_type == 255 {
+        hold_type = cur_type
+        spawn_piece()
+    } else {
+        let tmp: u8 = cur_type
+        cur_type = hold_type
+        hold_type = tmp
+        cur_rot = 0
+        cur_x = 3
+        cur_y = 0
+    }
+}
+
+fun score_lines(cl: u8) -> void {
+    if cl == 0 { return }
+    if cl == 1 { score = score + 100 }
+    if cl == 2 { score = score + 300 }
+    if cl == 3 { score = score + 500 }
+    if cl == 4 { score = score + 800 }
+    lines_cleared = lines_cleared + u16(cl)
+    if drop_speed > 2 {
+        if (u8(lines_cleared) & 0x07) == 0 {
+            drop_speed = drop_speed - 1
+        }
+    }
+}
+
+fun do_lock_and_clear() -> void {
+    lock_piece()
+    let cl: u8 = clear_lines()
+    score_lines(cl)
+    spawn_piece()
+}
+
+// ── TUI rendering ───────────────────────────────────────────────────────────
+
+fun draw_cell(sx: u8, sy: u8, color_idx: u8) -> void {
+    tui_goto(sx, sy)
+    if color_idx == 0 {
+        tui_color(FG_BLACK, BG_BLACK, 0)
+        tui_putch(32)   // space
+        tui_putch(32)
+    } else {
+        let fg: u8 = PIECE_FG[color_idx - 1]
+        let br: u8 = PIECE_BR[color_idx - 1]
+        tui_color(FG_BLACK, fg, br)
+        tui_putch(32)   // two spaces = solid block
+        tui_putch(32)
+    }
+}
+
+fun draw_border() -> void {
+    tui_color(FG_WHITE, BG_BLACK, 1)
+    // Top border
+    tui_goto(DRAW_X - 1, DRAW_Y - 1)
+    tui_putch(BOX_TL)
+    for i in 0..20 { tui_putch(BOX_H) }
+    tui_putch(BOX_TR)
+    // Bottom border
+    tui_goto(DRAW_X - 1, DRAW_Y + 20)
+    tui_putch(BOX_BL)
+    for i in 0..20 { tui_putch(BOX_H) }
+    tui_putch(BOX_BR)
+    // Side borders
+    for y in 0..20 {
+        tui_goto(DRAW_X - 1, DRAW_Y + y)
+        tui_putch(BOX_V)
+        tui_goto(DRAW_X + 20, DRAW_Y + y)
+        tui_putch(BOX_V)
+    }
+}
+
+fun draw_digit(n: u8) -> void {
+    tui_putch(48 + n)
+}
+
+fun draw_number(val: u16) -> void {
+    var n: u16 = val
+    var d4: u8 = 0
+    while n >= 10000 {
+        d4 = d4 + 1
+        n = n - 10000
+    }
+    var d3: u8 = 0
+    while n >= 1000 {
+        d3 = d3 + 1
+        n = n - 1000
+    }
+    var d2: u8 = 0
+    while n >= 100 {
+        d2 = d2 + 1
+        n = n - 100
+    }
+    var d1: u8 = 0
+    while n >= 10 {
+        d1 = d1 + 1
+        n = n - 10
+    }
+    let d0: u8 = u8(n)
+    draw_digit(d4)
+    draw_digit(d3)
+    draw_digit(d2)
+    draw_digit(d1)
+    draw_digit(d0)
+}
+
+fun draw_info() -> void {
+    tui_color(FG_WHITE, BG_BLACK, 0)
+    tui_goto(DRAW_X + 22, DRAW_Y)
+    tui_puts("SCORE")
+    tui_goto(DRAW_X + 22, DRAW_Y + 1)
+    draw_number(score)
+
+    tui_goto(DRAW_X + 22, DRAW_Y + 3)
+    tui_puts("LINES")
+    tui_goto(DRAW_X + 22, DRAW_Y + 4)
+    draw_number(lines_cleared)
+
+    tui_goto(DRAW_X + 22, DRAW_Y + 6)
+    tui_puts("NEXT")
+    // Draw next piece preview
+    for py in 0..2 {
+        for px in 0..4 {
+            tui_goto(DRAW_X + 22 + px * 2, DRAW_Y + 7 + py)
+            tui_color(FG_BLACK, BG_BLACK, 0)
+            tui_putch(32)
+            tui_putch(32)
+        }
+    }
+    if next_type < 7 {
+        let fg: u8 = PIECE_FG[next_type]
+        let br: u8 = PIECE_BR[next_type]
+        for c in 0..4 {
+            let dx: u8 = piece_dx(next_type, 0, c)
+            let dy: u8 = piece_dy(next_type, 0, c)
+            tui_goto(DRAW_X + 22 + dx * 2, DRAW_Y + 7 + dy)
+            tui_color(FG_BLACK, fg, br)
+            tui_putch(32)
+            tui_putch(32)
+        }
+    }
+
+    // Controls hint
+    tui_color(FG_WHITE, BG_BLACK, 0)
+    tui_goto(DRAW_X + 22, DRAW_Y + 12)
+    tui_puts("HOLD")
+    if hold_type < 7 {
+        let hfg: u8 = PIECE_FG[hold_type]
+        let hbr: u8 = PIECE_BR[hold_type]
+        for c in 0..4 {
+            let dx: u8 = piece_dx(hold_type, 0, c)
+            let dy: u8 = piece_dy(hold_type, 0, c)
+            tui_goto(DRAW_X + 22 + dx * 2, DRAW_Y + 13 + dy)
+            tui_color(FG_BLACK, hfg, hbr)
+            tui_putch(32)
+            tui_putch(32)
+        }
+    }
+
+    tui_color(FG_WHITE, BG_BLACK, 0)
+    tui_goto(1, 23)
+    tui_puts("Arrows:Move Z:Rot X:Drop C:Hold Q:Quit")
+}
+
+fun render() -> void {
+    // Draw board cells
+    for y in 0..20 {
+        for x in 0..10 {
+            let cell: u8 = board_get(x, y)
+            draw_cell(DRAW_X + x * 2, DRAW_Y + y, cell)
+        }
+    }
+
+    // Ghost piece
+    let gy: u8 = ghost_y()
+    if gy != cur_y {
+        for c in 0..4 {
+            let cx: u8 = cur_x + piece_dx(cur_type, cur_rot, c)
+            let cy: u8 = gy + piece_dy(cur_type, cur_rot, c)
+            if (cx < BOARD_W) & (cy < BOARD_H) {
+                if board_get(cx, cy) == 0 {
+                    tui_goto(DRAW_X + cx * 2, DRAW_Y + cy)
+                    tui_color(FG_WHITE, BG_BLACK, 0)
+                    tui_putch(46)   // dot
+                    tui_putch(46)
+                }
+            }
+        }
+    }
+
+    // Current piece
+    for c in 0..4 {
+        let cx: u8 = cur_x + piece_dx(cur_type, cur_rot, c)
+        let cy: u8 = cur_y + piece_dy(cur_type, cur_rot, c)
+        if (cx < BOARD_W) & (cy < BOARD_H) {
+            draw_cell(DRAW_X + cx * 2, DRAW_Y + cy, cur_type + 1)
+        }
+    }
+
+    draw_info()
+    tui_reset()
+}
+
+// ── Main ────────────────────────────────────────────────────────────────────
+
+fun main() -> void {
+    for i in 0..200 { board[i] = 0 }
+    next_type = random_piece()
+    spawn_piece()
+
+    tui_clear()
+    draw_border()
+
+    while game_over == 0 {
+        render()
+
+        let key: u8 = tui_read_key()
+
+        if key == KEY_LEFT {
+            if cur_x > 0 {
+                if can_place(cur_type, cur_rot, cur_x - 1, cur_y) {
+                    cur_x = cur_x - 1
+                }
+            }
+        }
+        if key == KEY_RIGHT {
+            if can_place(cur_type, cur_rot, cur_x + 1, cur_y) {
+                cur_x = cur_x + 1
+            }
+        }
+        if key == KEY_UP {
+            try_rotate()
+        }
+        if key == KEY_Z {
+            try_rotate()
+        }
+        if key == KEY_DOWN {
+            if can_place(cur_type, cur_rot, cur_x, cur_y + 1) {
+                cur_y = cur_y + 1
+                score = score + 1
+            }
+        }
+        if key == KEY_X {
+            while can_place(cur_type, cur_rot, cur_x, cur_y + 1) {
+                cur_y = cur_y + 1
+                score = score + 2
+            }
+            do_lock_and_clear()
+        }
+        if key == KEY_C {
+            hold_piece()
+        }
+        if key == KEY_Q {
+            game_over = 1
+        }
+        if key == KEY_ESC {
+            game_over = 1
+        }
+
+        // Gravity
+        drop_timer = drop_timer + 1
+        if drop_timer >= drop_speed {
+            drop_timer = 0
+            if can_place(cur_type, cur_rot, cur_x, cur_y + 1) {
+                cur_y = cur_y + 1
+            } else {
+                do_lock_and_clear()
+            }
+        }
+
+        tick = tick + 1
+    }
+
+    tui_color(FG_WHITE, BG_BLACK, 1)
+    tui_goto(DRAW_X + 4, DRAW_Y + 9)
+    tui_puts("GAME OVER!")
+    tui_goto(DRAW_X + 2, DRAW_Y + 11)
+    tui_puts("Score: ")
+    draw_number(score)
+    tui_reset()
+    tui_goto(1, 23)
+    tui_read_key()
+}
