@@ -104,6 +104,13 @@ func walkStructure(sn *StructNode) ([]Decl, error) {
 			}
 			continue
 
+		case child.Type == "FunctionModule":
+			fd := convertFunctionStructure(child)
+			if fd != nil {
+				decls = append(decls, fd)
+			}
+			continue
+
 		case child.Type == "ClassDefinition":
 			cd := convertClassDefinition(child)
 			if cd != nil {
@@ -230,6 +237,50 @@ func convertFormStructure(node *ASTChild) *FormDecl {
 				}
 			}
 		case "Body":
+			sub := &StructNode{Type: "Body", Children: child.Children}
+			decls, _ := walkStructure(sub)
+			fd.Body = collectStmtsFromDecls(decls)
+		}
+	}
+
+	if fd.Name == "" {
+		return nil
+	}
+	return fd
+}
+
+// convertFunctionStructure converts a FunctionModule structure to a FunctionDecl.
+// Reuses FORM infrastructure — FUNCTION is essentially FORM with IMPORTING/EXPORTING.
+func convertFunctionStructure(node *ASTChild) *FunctionDecl {
+	fd := &FunctionDecl{}
+
+	for _, child := range node.Children {
+		switch {
+		case child.Type == "FunctionModule":
+			// Header — extract name and params
+			for _, t := range child.Tokens {
+				u := strings.ToUpper(t.Str)
+				if u != "FUNCTION" && u != "." && u != "IMPORTING" && u != "EXPORTING" &&
+					u != "CHANGING" && u != "TYPE" && u != "I" && u != "C" && u != "STRING" {
+					if fd.Name == "" {
+						// Strip quotes from 'Z_FUNC_NAME'
+						name := strings.Trim(t.Str, "'\"")
+						fd.Name = strings.ToLower(name)
+					}
+				}
+			}
+			// Parse sub-sections
+			for _, sub := range child.Children {
+				switch sub.Type {
+				case "FunctionImporting":
+					fd.Importing = parseFormParams(sub.Tokens)
+				case "FunctionExporting":
+					fd.Exporting = parseFormParams(sub.Tokens)
+				case "FunctionChanging":
+					fd.Changing = parseFormParams(sub.Tokens)
+				}
+			}
+		case child.Type == "Body":
 			sub := &StructNode{Type: "Body", Children: child.Children}
 			decls, _ := walkStructure(sub)
 			fd.Body = collectStmtsFromDecls(decls)

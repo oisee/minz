@@ -112,6 +112,27 @@ type FormParam struct {
 	AbapTy string // type after TYPE/LIKE
 }
 
+// FunctionDecl is a FUNCTION/ENDFUNCTION module.
+type FunctionDecl struct {
+	Name      string
+	Importing []FormParam
+	Exporting []FormParam
+	Changing  []FormParam
+	Body      []Stmt_
+}
+
+func (*FunctionDecl) abapDecl() {}
+
+// CallFunctionStmt is CALL FUNCTION 'name' EXPORTING/IMPORTING/CHANGING.
+type CallFunctionStmt struct {
+	FuncName  string
+	Exporting map[string]Expr_ // caller → function params
+	Importing map[string]string // function → caller vars
+	Changing  map[string]Expr_
+}
+
+func (*CallFunctionStmt) abapStmt() {}
+
 // ClassDecl is a CLASS ... DEFINITION/IMPLEMENTATION.
 type ClassDecl struct {
 	Name       string

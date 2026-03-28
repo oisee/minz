@@ -10,6 +10,87 @@ import (
 	"github.com/minz/minzc/pkg/mir2"
 )
 
+// preprocessFunctions rewrites FUNCTION/ENDFUNCTION → FORM/ENDFORM.
+// Converts IMPORTING → USING, EXPORTING → CHANGING for FORM compatibility.
+//
+//	FUNCTION z_add.                     →  FORM z_add USING a TYPE i b TYPE i CHANGING result TYPE i.
+//	  IMPORTING a TYPE i b TYPE i         (body)
+//	  EXPORTING result TYPE i.           ENDFORM.
+//	  result = a + b.
+//	ENDFUNCTION.
+func preprocessFunctions(src string) string {
+	lines := strings.Split(src, "\n")
+	var out []string
+	i := 0
+	for i < len(lines) {
+		line := lines[i]
+		trimmed := strings.TrimSpace(strings.ToUpper(line))
+		if strings.HasPrefix(trimmed, "FUNCTION ") && !strings.HasPrefix(trimmed, "FUNCTION-") {
+			// Extract function name
+			parts := strings.Fields(strings.TrimSpace(line))
+			fname := strings.TrimSuffix(strings.ToLower(parts[1]), ".")
+
+			// Collect IMPORTING/EXPORTING/CHANGING params
+			var importing, exporting, changing string
+			i++
+			for i < len(lines) {
+				pl := strings.TrimSpace(lines[i])
+				pu := strings.ToUpper(pl)
+				if strings.HasPrefix(pu, "IMPORTING") {
+					importing = strings.TrimSuffix(strings.TrimSpace(pl[len("IMPORTING"):]), ".")
+					i++
+				} else if strings.HasPrefix(pu, "EXPORTING") {
+					exporting = strings.TrimSuffix(strings.TrimSpace(pl[len("EXPORTING"):]), ".")
+					i++
+				} else if strings.HasPrefix(pu, "CHANGING") {
+					changing = strings.TrimSuffix(strings.TrimSpace(pl[len("CHANGING"):]), ".")
+					i++
+				} else {
+					break
+				}
+			}
+
+			// Build FORM line: IMPORTING→USING, EXPORTING→CHANGING
+			formLine := "FORM " + fname
+			var usingParts []string
+			if importing != "" {
+				usingParts = append(usingParts, importing)
+			}
+			if len(usingParts) > 0 {
+				formLine += " USING " + strings.Join(usingParts, " ")
+			}
+			var changingParts []string
+			if exporting != "" {
+				changingParts = append(changingParts, exporting)
+			}
+			if changing != "" {
+				changingParts = append(changingParts, changing)
+			}
+			if len(changingParts) > 0 {
+				formLine += " CHANGING " + strings.Join(changingParts, " ")
+			}
+			formLine += "."
+			out = append(out, formLine)
+
+			// Copy body until ENDFUNCTION
+			for i < len(lines) {
+				bl := strings.TrimSpace(strings.ToUpper(lines[i]))
+				if bl == "ENDFUNCTION." || bl == "ENDFUNCTION" {
+					out = append(out, "ENDFORM.")
+					i++
+					break
+				}
+				out = append(out, lines[i])
+				i++
+			}
+		} else {
+			out = append(out, line)
+			i++
+		}
+	}
+	return strings.Join(out, "\n")
+}
+
 // abapAssertRe matches ABAP comment asserts:
 //   * assert fn(1, 2) == 42 via mir2
 var abapAssertRe = regexp.MustCompile(
@@ -25,6 +106,12 @@ func Compile(src, name string, target ...uint8) (*hir.Module, error) {
 		tgt = target[0]
 	}
 	_ = tgt // used below
+
+	// Preprocess: rewrite FUNCTION/ENDFUNCTION → FORM/ENDFORM for abaplint.
+	// ABAP FUNCTION lives in function groups; abaplint REPORT mode doesn't
+	// parse them. We rewrite to FORM which is semantically equivalent.
+	src = preprocessFunctions(src)
+
 	// Try embedded Wasm parser (self-contained, no Node.js)
 	prog, err := ParseWasm(src, name)
 	if err != nil {
@@ -165,6 +252,8 @@ func (l *lowerer) lower() (*hir.Module, error) {
 			l.lowerParamRegister(d)
 		case *FormDecl:
 			l.lowerForm(d)
+		case *FunctionDecl:
+			l.lowerFunction(d)
 		case *ClassDecl:
 			l.lowerClass(d)
 		case *InterfaceDecl:
@@ -746,6 +835,54 @@ func (l *lowerer) lowerForm(d *FormDecl) {
 			Name:   d.Name,
 			Params: usingOnly,
 			RetTy:  changingTy,
+			Body:   body,
+		})
+	} else {
+		l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
+			Name:   d.Name,
+			Params: params,
+			RetTy:  mir2.TyVoid,
+			Body:   body,
+		})
+	}
+}
+
+// ── FUNCTION MODULE → hir.Func ──────────────────────────────────────────────
+// Same as FORM but with IMPORTING/EXPORTING/CHANGING.
+// Name is lowercased function module name (e.g. 'Z_ADD' → 'z_add').
+
+func (l *lowerer) lowerFunction(d *FunctionDecl) {
+	params := make([]hir.Param, 0, len(d.Importing)+len(d.Changing))
+	for _, p := range d.Importing {
+		ty := l.abapTypeToHIR(p.AbapTy, 0)
+		params = append(params, hir.Param{Name: p.Name, Ty: ty})
+		l.varTypes[p.Name] = ty
+	}
+	for _, p := range d.Changing {
+		ty := l.abapTypeToHIR(p.AbapTy, 0)
+		params = append(params, hir.Param{Name: p.Name, Ty: ty})
+		l.varTypes[p.Name] = ty
+	}
+
+	body, err := l.lowerStmts(d.Body)
+	if err != nil {
+		l.hm.Warnings = append(l.hm.Warnings, fmt.Sprintf("FUNCTION %s: %v", d.Name, err))
+		return
+	}
+
+	// If exactly one EXPORTING param → promote to return value (like FORM CHANGING).
+	if len(d.Exporting) == 1 {
+		expName := d.Exporting[0].Name
+		expTy := l.abapTypeToHIR(d.Exporting[0].AbapTy, 0)
+		l.varTypes[expName] = expTy
+		retStmt := &hir.ReturnStmt{
+			Val: &hir.VarRefExpr{Name: expName, Ty: expTy},
+		}
+		body.Body = append(body.Body, retStmt)
+		l.hm.Funcs = append(l.hm.Funcs, &hir.Func{
+			Name:   d.Name,
+			Params: params,
+			RetTy:  expTy,
 			Body:   body,
 		})
 	} else {
