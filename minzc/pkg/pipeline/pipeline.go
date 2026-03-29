@@ -26,6 +26,7 @@ import (
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/lir"
 	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/mir2wasm"
 	"github.com/minz/minzc/pkg/vir"
 	"github.com/minz/minzc/pkg/z80asm"
 )
@@ -505,11 +506,19 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	}
 
 	// Z80 binary assertion checks (skip for eZ80 — different encoding).
-	if opt.Backend != "ez80" && opt.AssertMode != "mir2" && opt.AssertMode != "none" {
+	if opt.Backend != "ez80" && opt.AssertMode != "mir2" && opt.AssertMode != "none" && opt.AssertMode != "wasm" {
 		if err := RunAssertsZ80(hm, m, combined, s.Assembly); err != nil {
 			return s, err
 		}
 	}
+
+	// WASM assertion checks — only when explicit "via wasm" or --asserts-force wasm.
+	if opt.AssertMode == "wasm" {
+		if err := mir2wasm.RunAsserts(hm, m, true); err != nil {
+			return s, err
+		}
+	}
+
 	return s, nil
 }
 
