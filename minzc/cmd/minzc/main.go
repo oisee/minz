@@ -86,6 +86,7 @@ var (
 
 	// Transpiler flags
 	emitFormat   string  // emit format: "nanz" (HIR pretty-printed as Nanz source), "mir2-raw", "mir2"
+	gpuRun       string  // --gpu-run cuda|opencl|vulkan|all — compile+run on GPU
 )
 
 var rootCmd = &cobra.Command{
@@ -224,6 +225,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&emitSLD, "emit-sld", false, "emit SLD file for DeZog source-level debugging")
 	rootCmd.Flags().BoolVar(&annotateTStates, "annotate-tstates", false, "annotate each Z80 instruction with its T-state cost")
 	rootCmd.Flags().StringVar(&emitFormat, "emit", "", "emit format: nanz, hir, lanz, mir2-raw, mir2, llvm, wasm, cuda, opencl, vulkan, metal")
+	rootCmd.Flags().StringVar(&gpuRun, "gpu-run", "", "compile and run on GPU: cuda, opencl, vulkan, all")
 }
 
 func main() {
@@ -987,6 +989,29 @@ func compileViaHIR(sourceFile string) error {
 			}
 		} else {
 			fmt.Print(text)
+		}
+		return nil
+	}
+
+	// --gpu-run: compile and execute on GPU
+	if gpuRun != "" {
+		gpuBackendMap := map[string][]mir2gpu.Backend{
+			"cuda":   {mir2gpu.CUDA},
+			"opencl": {mir2gpu.OpenCL},
+			"vulkan": {mir2gpu.Vulkan},
+			"all":    {mir2gpu.CUDA, mir2gpu.OpenCL, mir2gpu.Vulkan},
+		}
+		backends, ok := gpuBackendMap[gpuRun]
+		if !ok {
+			return fmt.Errorf("unknown --gpu-run backend: %s (use cuda, opencl, vulkan, all)", gpuRun)
+		}
+		for _, be := range backends {
+			result, err := mir2gpu.Run(steps.MIR2Module, be, 256)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "GPU %s: %v\n", be, err)
+				continue
+			}
+			fmt.Print(mir2gpu.FormatResult(result))
 		}
 		return nil
 	}

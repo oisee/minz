@@ -1,0 +1,157 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build MinZ Compiler",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/minzc && go build ./cmd/minzc/",
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": ["$go"]
+    },
+    {
+      "label": "GPU: Run on CUDA",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/minzc && ./minzc ${file} --gpu-run cuda",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "GPU: Run on OpenCL",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/minzc && ./minzc ${file} --gpu-run opencl",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "GPU: Run on ALL (CUDA+OpenCL+Vulkan)",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/minzc && ./minzc ${file} --gpu-run all",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "GPU: Emit CUDA (.cu)",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/minzc && ./minzc ${file} --emit cuda",
+      "group": "none",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "GPU: Emit OpenCL (.cl)",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/minzc && ./minzc ${file} --emit opencl",
+      "group": "none"
+    },
+    {
+      "label": "GPU: Emit Vulkan GLSL (.comp)",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/minzc && ./minzc ${file} --emit vulkan",
+      "group": "none"
+    },
+    {
+      "label": "GPU: Emit Metal (.metal)",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/minzc && ./minzc ${file} --emit metal",
+      "group": "none"
+    },
+    {
+      "label": "GPU: Run on Metal (via SSH m2)",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/minzc && ./minzc ${file} --emit metal -o /tmp/minz.metal && scp /tmp/minz.metal m2:/tmp/ && ssh m2 'xcrun -sdk macosx metal -c /tmp/minz.metal -o /tmp/minz.air && xcrun -sdk macosx metallib /tmp/minz.air -o /tmp/minz.metallib && swift /tmp/metal_runner.swift'",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "LLVM: Emit IR (.ll)",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/minzc && ./minzc ${file} --emit llvm",
+      "group": "none"
+    },
+    {
+      "label": "LLVM: Run via lli (JIT)",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/minzc && ./minzc ${file} --emit llvm -o /tmp/_vsc.ll && echo 'define i32 @_m(){%r=call i32 @main() ret i32 %r}' >> /tmp/_vsc.ll && lli -entry-function=_m /tmp/_vsc.ll; echo \"exit=$?\"",
+      "group": "test"
+    },
+    {
+      "label": "LLVM: Compile to native x86_64",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/minzc && ./minzc ${file} --emit llvm -o /tmp/_vsc.ll && echo 'define i32 @_m(){%r=call i32 @main() ret i32 %r}' >> /tmp/_vsc.ll && clang -x ir /tmp/_vsc.ll -o /tmp/_vsc_native && /tmp/_vsc_native; echo \"exit=$?\"",
+      "group": "test"
+    },
+    {
+      "label": "WASM: Emit WAT",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/minzc && ./minzc ${file} --emit wasm",
+      "group": "none"
+    },
+    {
+      "label": "IR: Show all 5 representations",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/minzc && echo '=== HIR ===' && ./minzc ${file} --emit hir 2>/dev/null && echo '\\n=== MIR2 ===' && ./minzc ${file} --emit mir2 2>/dev/null && echo '\\n=== LLVM ===' && ./minzc ${file} --emit llvm 2>/dev/null && echo '\\n=== WASM ===' && ./minzc ${file} --emit wasm 2>/dev/null && echo '\\n=== CUDA ===' && ./minzc ${file} --emit cuda 2>/dev/null",
+      "group": "none",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "Z80: Compile + Emulate (mze)",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/minzc && ./minzc ${file} -o /tmp/_vsc.a80 && mza /tmp/_vsc.a80 -o /tmp/_vsc.bin && mze /tmp/_vsc.bin",
+      "group": "test"
+    },
+    {
+      "label": "Z80: Compile + Disassemble with T-states",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/minzc && ./minzc ${file} -o /tmp/_vsc.a80 --annotate-tstates && cat /tmp/_vsc.a80",
+      "group": "none"
+    },
+    {
+      "label": "Native: Run via QBE",
+      "type": "shell",
+      "command": "mzn ${file} --qbe",
+      "group": "test"
+    },
+    {
+      "label": "Native: Run via C99",
+      "type": "shell",
+      "command": "mzn ${file} --c99",
+      "group": "test"
+    },
+    {
+      "label": "MIR2 VM: Run headless",
+      "type": "shell",
+      "command": "mzv ${file} --headless",
+      "group": "test"
+    },
+    {
+      "label": "Asserts: Verify on MIR2 VM",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/minzc && ./minzc ${file} --asserts-force mir2",
+      "group": "test"
+    },
+    {
+      "label": "Asserts: Verify on Z80",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/minzc && ./minzc ${file} --asserts-force z80",
+      "group": "test"
+    },
+    {
+      "label": "Asserts: Verify on WASM",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/minzc && ./minzc ${file} --asserts-force wasm",
+      "group": "test"
+    },
+    {
+      "label": "Asserts: Verify on LLVM",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/minzc && ./minzc ${file} --asserts-force llvm",
+      "group": "test"
+    },
+    {
+      "label": "ALL: Run on every backend",
+      "type": "shell",
+      "command": "cd ${workspaceFolder}/minzc && echo '=== LLVM lli ===' && ./minzc ${file} --emit llvm -o /tmp/_all.ll 2>/dev/null && echo 'define i32 @_m(){%r=call i32 @main() ret i32 %r}' >> /tmp/_all.ll && timeout 5 lli -entry-function=_m /tmp/_all.ll; echo \"lli=$?\" && echo '\\n=== QBE ===' && mzn ${file} --qbe 2>&1 | tail -3 && echo '\\n=== C99 ===' && mzn ${file} --c99 2>&1 | tail -3 && echo '\\n=== GPU (all) ===' && ./minzc ${file} --gpu-run all 2>&1 | grep -v '^\\[' | grep -v '^vir:'",
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "shared" }
+    }
+  ]
+}
