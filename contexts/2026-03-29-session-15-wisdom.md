@@ -31,7 +31,34 @@ peek, poke, @file_read, @file_size, @file_exists, @print_u8, @print_nl,
 L0: cut vertex split, L1: enriched ≤6v, L2: EXX bipartite,
 L3: GPU partition, L4: Z3 fallback (<1%).
 
+## Self-Hosting Status: ~5% of Nanz
+
+Parses: `fun name(params) -> type { return expr }`
+Missing: if/else, while, let/var, struct, enum, @extern, import,
+nested expressions, string literals, multi-function emit.
+Foundation proven: file → tokenize → parse → AST → Lanz → file → Z80.
+
+## Critical Fix: EnsureHeap Before WriteHeapBytes
+
+file_read host wrote 145 bytes to heap@49152 but WriteHeapBytes
+silently dropped the write (heap too small). Adding EnsureHeap
+before WriteHeapBytes fixed it. Same pattern needed for file_write.
+
+## Critical Fix: @extern for Host Function Return Types
+
+Without `@extern fun peek(addr: u16) -> u8`, Nanz lowering generates
+`call @peek(x); ret void` — no Dst register, return value lost.
+With @extern, generates `%r = call @peek(x); ret %r` — correct.
+
+## WASM Backend (New!)
+
+pkg/mir2wasm: MIR2 → WASM binary (174 bytes for 2 functions).
+wazero runtime for verification. 6th backend: Z80/eZ80/QBE/C/WASM/VIR.
+
 ## Known Issues
+- Multi-function emit_lanz: first function outputs nulls to buffer
+- print_ast infinite recursion on complex AST (removed, needs fix)
 - `i = len` (assignment-as-break) in if block — Nanz parse error
 - Lizp host function return values don't propagate (Lanz lowering)
 - VIR edge move F→D pattern missing (scheme_r5rs Z80)
+- FatFS corpus bias: our functions too small (max 14v vs FatFS 35v)

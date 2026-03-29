@@ -1,7 +1,7 @@
 # Next Session Seed — 2026-03-30
 
-**Previous:** Sessions 12-15 — self-hosting pipeline, VIR P0/P1/P2, fib(7)=13
-**State:** Self-hosting Stage 1 works, ~1800 asserts, 8 frontends
+**Previous:** Sessions 12-15 — self-hosting pipeline, VIR P0/P1/P2, fib(7)=13, WASM backend
+**State:** Self-hosting ~5% Nanz, ~1800 asserts, 8 frontends × 6 backends
 
 ---
 
@@ -55,3 +55,20 @@ Add self-hosting, z88dk comparison (-54%), new articles to README.md header.
 | O(1) regalloc (91% without Z3) | ✅ |
 | Branchless CMOV/ABS/MIN/MAX | ✅ |
 | ~1800+ asserts, 8 frontends | ✅ |
+| WASM backend (174 bytes, wazero) | ✅ |
+| 6 backends: Z80/eZ80/QBE/C/WASM/VIR | ✅ |
+
+## Self-Hosting Coverage: ~5%
+
+What works: `fun name(params) -> type { return a + b }`
+What's missing: if/else, while, let/var, struct, enum, @extern, import,
+nested expressions, string literals, recursive calls, multi-function emit.
+
+Foundation proven: file read → tokenize → parse → AST → Lanz → file write → Z80.
+Need ~20 sessions for full self-hosting.
+
+## Bugs to Fix First
+
+1. **Multi-function emit_lanz**: out_str poke chain writes nulls for first function
+2. **print_ast infinite recursion**: AST traversal cycles on complex trees
+3. **Nanz `i = len` in if block**: parse error on assignment-as-break pattern
