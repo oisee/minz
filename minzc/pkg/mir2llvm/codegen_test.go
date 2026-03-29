@@ -31,19 +31,19 @@ func compileNanz(t *testing.T, src string) string {
 func TestAdd(t *testing.T) {
 	ll := compileNanz(t, `fun add(a: u8, b: u8) -> u8 { return a + b }`)
 	t.Log(ll)
-	if !strings.Contains(ll, "add i8") {
-		t.Error("expected add i8 in output")
+	if !strings.Contains(ll, "add i32") {
+		t.Error("expected add i32 in output")
 	}
-	if !strings.Contains(ll, "define i8 @add") {
-		t.Error("expected define i8 @add")
+	if !strings.Contains(ll, "define i32 @add") {
+		t.Error("expected define i32 @add")
 	}
 }
 
 func TestDouble(t *testing.T) {
 	ll := compileNanz(t, `fun double(x: u8) -> u8 { return x + x }`)
 	t.Log(ll)
-	if !strings.Contains(ll, "add i8") {
-		t.Error("expected add i8")
+	if !strings.Contains(ll, "add i32") {
+		t.Error("expected add i32")
 	}
 }
 
@@ -57,7 +57,7 @@ fun max_byte(a: u8, b: u8) -> u8 {
 	if !strings.Contains(ll, "icmp ugt") {
 		t.Error("expected icmp ugt")
 	}
-	if !strings.Contains(ll, "br i1") || !strings.Contains(ll, "ret i8") {
+	if !strings.Contains(ll, "br i1") || !strings.Contains(ll, "ret i32") {
 		t.Error("expected br + ret for conditional")
 	}
 }
@@ -70,10 +70,10 @@ fun top(z: u8) -> u8 { return middle(z) }
 fun main() -> u8 { return top(5) }
 `)
 	t.Log(ll)
-	if !strings.Contains(ll, "call i8 @leaf") {
+	if !strings.Contains(ll, "call i32 @leaf") {
 		t.Error("expected call to leaf")
 	}
-	if !strings.Contains(ll, "call i8 @middle") {
+	if !strings.Contains(ll, "call i32 @middle") {
 		t.Error("expected call to middle")
 	}
 }
@@ -131,9 +131,8 @@ fun main() -> u8 { return max_byte(10, 20) }`, 20},
 
 			// Wrap main() to return i32 for lli (process exit code)
 			wrapper := ll + "\ndefine i32 @_main_wrapper() {\n" +
-				"  %r = call i8 @main()\n" +
-				"  %ext = zext i8 %r to i32\n" +
-				"  ret i32 %ext\n}\n"
+				"  %r = call i32 @main()\n" +
+				"  ret i32 %r\n}\n"
 
 			// Write to temp file
 			tmpFile := t.TempDir() + "/test.ll"

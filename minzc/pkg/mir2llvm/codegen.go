@@ -18,6 +18,7 @@
 //   TyVoid        → void
 //
 // MIR2 block params → LLVM phi nodes (same as QBE backend).
+// Registers use named format %vN to avoid LLVM's sequential numbering constraint.
 package mir2llvm
 
 import (
@@ -39,12 +40,40 @@ type gen struct {
 	mod *mir2.Module
 
 	// Per-function state
-	preds map[string][][]predEdge // block → param → [(predLabel, argReg)]
+	preds   map[string][][]predEdge // block → param → [(predLabel, argReg)]
+	nextTmp int                     // counter for synthetic temp registers
+	regTy   map[mir2.Reg]string     // tracks LLVM type of each register
+	phiRegs  map[mir2.Reg]bool           // regs defined by phi nodes (block params)
+	instDefs map[string]map[mir2.Reg]bool // block label → set of regs defined by instructions
+	phiRemap  map[mir2.Reg]map[string]string // reg → block label → unique LLVM name (for multi-block phis)
+	curBlock  string                         // current block label being emitted
 }
 
 type predEdge struct {
 	label string
 	reg   mir2.Reg
+}
+
+// reg formats a MIR2 register as LLVM named register %vN
+func reg(r mir2.Reg) string {
+	return fmt.Sprintf("%%v%d", r)
+}
+
+// use returns the correct LLVM name for reading register r in the current block.
+func (g *gen) use(r mir2.Reg) string {
+	// Check if this reg has a block-specific phi rename in the current block
+	if remap, ok := g.phiRemap[r]; ok {
+		if name, ok := remap[g.curBlock]; ok {
+			return name
+		}
+	}
+	return reg(r)
+}
+
+// tmp allocates a fresh temporary register name
+func (g *gen) tmp() string {
+	g.nextTmp++
+	return fmt.Sprintf("%%_t%d", g.nextTmp)
 }
 
 func (g *gen) emitModule() {
@@ -77,21 +106,122 @@ func (g *gen) emitModule() {
 		g.sb.WriteString("\n")
 	}
 
+	// Collect defined function names
+	defined := make(map[string]bool)
+	for _, f := range g.mod.Funcs {
+		defined[f.Name] = true
+	}
+
+	// Collect external function references (called but not defined)
+	declared := make(map[string]bool)
+	for _, f := range g.mod.Funcs {
+		for _, b := range f.Blocks {
+			for _, inst := range b.Insts {
+				if inst.Op == mir2.OpCall && !defined[inst.Sym] && !declared[inst.Sym] {
+					declared[inst.Sym] = true
+					// Emit declaration with generic signature
+					callRetTy := llvmType(inst.Ty)
+					var argTys []string
+					for range inst.Args {
+						argTys = append(argTys, "i8")
+					}
+					g.sb.WriteString(fmt.Sprintf("declare %s @%s(%s)\n",
+						callRetTy, llvmSym(inst.Sym), strings.Join(argTys, ", ")))
+				}
+			}
+		}
+	}
+	if len(declared) > 0 {
+		g.sb.WriteString("\n")
+	}
+
 	// Functions
 	for _, f := range g.mod.Funcs {
+		if len(f.Blocks) == 0 {
+			// External function — emit as declare
+			retTy := llvmType(contractRetTy(f))
+			var params []string
+			for _, p := range f.Contract.Params {
+				params = append(params, llvmType(p.Ty))
+			}
+			g.sb.WriteString(fmt.Sprintf("declare %s @%s(%s)\n\n",
+				retTy, llvmSym(f.Name), strings.Join(params, ", ")))
+			continue
+		}
 		g.emitFunc(f)
 	}
 }
 
 func (g *gen) emitFunc(f *mir2.Func) {
-	// Build predecessor map for phi nodes
+	// Reset per-function state
 	g.preds = buildPredMap(f)
+	g.nextTmp = 0
+	g.regTy = make(map[mir2.Reg]string)
+
+	// Collect phi-defined regs (block params) — these may conflict with
+	// instruction defs in earlier blocks. We rename the instruction def
+	// to %_init_vN and update phi predecessors accordingly.
+	g.phiRegs = make(map[mir2.Reg]bool)
+	g.instDefs = make(map[string]map[mir2.Reg]bool)
+	g.phiRemap = make(map[mir2.Reg]map[string]string)
+
+	// Track how many blocks define each reg as a phi
+	phiCount := make(map[mir2.Reg]int)
+	for _, b := range f.Blocks {
+		for _, bp := range b.Params {
+			g.phiRegs[bp.Dst] = true
+			phiCount[bp.Dst]++
+		}
+		defs := make(map[mir2.Reg]bool)
+		for _, inst := range b.Insts {
+			if inst.Dst != mir2.NoReg {
+				defs[inst.Dst] = true
+			}
+		}
+		g.instDefs[b.Label] = defs
+	}
+
+	// For regs that appear as phi in multiple blocks, assign unique names
+	for _, b := range f.Blocks {
+		for _, bp := range b.Params {
+			if phiCount[bp.Dst] > 1 {
+				if g.phiRemap[bp.Dst] == nil {
+					g.phiRemap[bp.Dst] = make(map[string]string)
+				}
+				g.phiRemap[bp.Dst][b.Label] = fmt.Sprintf("%%_phi_%s_v%d", llvmLabel(b.Label), bp.Dst)
+			}
+		}
+	}
+
+	// Build register type map from all definitions
+	for _, p := range f.Contract.Params {
+		g.regTy[p.Reg] = llvmType(p.Ty)
+	}
+	for _, b := range f.Blocks {
+		for _, bp := range b.Params {
+			g.regTy[bp.Dst] = llvmType(bp.Ty)
+		}
+		for _, inst := range b.Insts {
+			if inst.Dst != mir2.NoReg {
+				g.regTy[inst.Dst] = llvmType(inst.Ty)
+				if inst.Op == mir2.OpCmp {
+					g.regTy[inst.Dst] = "i1"
+				}
+				if inst.Op == mir2.OpAlloca || inst.Op == mir2.OpField || inst.Op == mir2.OpPtrAdd || inst.Op == mir2.OpPtrBump {
+					g.regTy[inst.Dst] = "ptr"
+				}
+				if inst.Op == mir2.OpAddrOf && inst.Ty == mir2.TyPtr {
+					g.regTy[inst.Dst] = "ptr"
+				}
+			}
+		}
+	}
 
 	retTy := llvmType(contractRetTy(f))
 
 	var params []string
 	for _, p := range f.Contract.Params {
-		params = append(params, fmt.Sprintf("%s %%%d", llvmType(p.Ty), p.Reg))
+		params = append(params, fmt.Sprintf("%s %s", llvmType(p.Ty), reg(p.Reg)))
 	}
 
 	name := llvmSym(f.Name)
@@ -107,6 +237,7 @@ func (g *gen) emitFunc(f *mir2.Func) {
 }
 
 func (g *gen) emitBlock(b *mir2.Block, f *mir2.Func) {
+	g.curBlock = b.Label
 	label := llvmLabel(b.Label)
 	g.sb.WriteString(fmt.Sprintf("%s:\n", label))
 
@@ -114,12 +245,20 @@ func (g *gen) emitBlock(b *mir2.Block, f *mir2.Func) {
 	for pi, bp := range b.Params {
 		if preds, ok := g.preds[b.Label]; ok && pi < len(preds) {
 			ty := llvmType(bp.Ty)
-			g.sb.WriteString(fmt.Sprintf("  %%%d = phi %s", bp.Dst, ty))
+			// Use unique name if this reg has phi in multiple blocks
+			phiName := reg(bp.Dst)
+			if remap, ok := g.phiRemap[bp.Dst]; ok {
+				if name, ok := remap[b.Label]; ok {
+					phiName = name
+				}
+			}
+			g.sb.WriteString(fmt.Sprintf("  %s = phi %s", phiName, ty))
 			for j, pe := range preds[pi] {
 				if j > 0 {
 					g.sb.WriteString(",")
 				}
-				g.sb.WriteString(fmt.Sprintf(" [ %%%d, %%%s ]", pe.reg, llvmLabel(pe.label)))
+				predRef := g.resolveRef(pe.reg, pe.label)
+				g.sb.WriteString(fmt.Sprintf(" [ %s, %%%s ]", predRef, llvmLabel(pe.label)))
 			}
 			g.sb.WriteString("\n")
 		}
@@ -134,107 +273,187 @@ func (g *gen) emitBlock(b *mir2.Block, f *mir2.Func) {
 	g.emitTerm(b.Term, f)
 }
 
+// initReg returns the LLVM name for a register that also has a phi definition.
+// Instructions that define a phi-conflicting reg get renamed to %_init_vN.
+func initReg(r mir2.Reg) string {
+	return fmt.Sprintf("%%_init_v%d", r)
+}
+
 func (g *gen) emitInst(inst *mir2.Inst) {
-	dst := inst.Dst
-	src0 := inst.Src[0]
-	src1 := inst.Src[1]
+	d := reg(inst.Dst)
+	// If this reg is also defined by a phi, rename the instruction def
+	if g.phiRegs[inst.Dst] && inst.Dst != mir2.NoReg {
+		d = initReg(inst.Dst)
+	}
+	s0 := g.use(inst.Src[0])
+	s1 := g.use(inst.Src[1])
 	ty := llvmType(inst.Ty)
 
 	switch inst.Op {
 	case mir2.OpConst:
-		g.sb.WriteString(fmt.Sprintf("  %%%d = add %s 0, %d\n", dst, ty, inst.Imm))
+		if inst.Ty == mir2.TyPtr || ty == "ptr" {
+			// ptr constant: use inttoptr
+			g.sb.WriteString(fmt.Sprintf("  %s = inttoptr i64 %d to ptr\n", d, inst.Imm))
+		} else {
+			g.sb.WriteString(fmt.Sprintf("  %s = add %s 0, %d\n", d, ty, inst.Imm))
+		}
 
 	case mir2.OpMove:
-		g.sb.WriteString(fmt.Sprintf("  %%%d = add %s 0, %%%d\n", dst, ty, src0))
+		if ty == "ptr" {
+			// ptr move: bitcast (no-op in opaque ptr mode)
+			g.sb.WriteString(fmt.Sprintf("  %s = getelementptr i8, ptr %s, i32 0\n", d, s0))
+		} else {
+			g.sb.WriteString(fmt.Sprintf("  %s = add %s 0, %s\n", d, ty, s0))
+		}
 
 	case mir2.OpAdd:
-		g.sb.WriteString(fmt.Sprintf("  %%%d = add %s %%%d, %%%d\n", dst, ty, src0, src1))
+		g.sb.WriteString(fmt.Sprintf("  %s = add %s %s, %s\n", d, ty, s0, s1))
 
 	case mir2.OpSub:
-		g.sb.WriteString(fmt.Sprintf("  %%%d = sub %s %%%d, %%%d\n", dst, ty, src0, src1))
+		g.sb.WriteString(fmt.Sprintf("  %s = sub %s %s, %s\n", d, ty, s0, s1))
 
 	case mir2.OpMul:
-		g.sb.WriteString(fmt.Sprintf("  %%%d = mul %s %%%d, %%%d\n", dst, ty, src0, src1))
+		g.sb.WriteString(fmt.Sprintf("  %s = mul %s %s, %s\n", d, ty, s0, s1))
+
+	case mir2.OpDiv:
+		g.sb.WriteString(fmt.Sprintf("  %s = udiv %s %s, %s\n", d, ty, s0, s1))
+
+	case mir2.OpSDiv:
+		g.sb.WriteString(fmt.Sprintf("  %s = sdiv %s %s, %s\n", d, ty, s0, s1))
+
+	case mir2.OpMod:
+		g.sb.WriteString(fmt.Sprintf("  %s = urem %s %s, %s\n", d, ty, s0, s1))
 
 	case mir2.OpAnd:
-		g.sb.WriteString(fmt.Sprintf("  %%%d = and %s %%%d, %%%d\n", dst, ty, src0, src1))
+		g.sb.WriteString(fmt.Sprintf("  %s = and %s %s, %s\n", d, ty, s0, s1))
 
 	case mir2.OpOr:
-		g.sb.WriteString(fmt.Sprintf("  %%%d = or %s %%%d, %%%d\n", dst, ty, src0, src1))
+		g.sb.WriteString(fmt.Sprintf("  %s = or %s %s, %s\n", d, ty, s0, s1))
 
 	case mir2.OpXor:
-		g.sb.WriteString(fmt.Sprintf("  %%%d = xor %s %%%d, %%%d\n", dst, ty, src0, src1))
+		g.sb.WriteString(fmt.Sprintf("  %s = xor %s %s, %s\n", d, ty, s0, s1))
 
 	case mir2.OpShl:
-		g.sb.WriteString(fmt.Sprintf("  %%%d = shl %s %%%d, %%%d\n", dst, ty, src0, src1))
+		g.sb.WriteString(fmt.Sprintf("  %s = shl %s %s, %s\n", d, ty, s0, s1))
 
 	case mir2.OpShr:
-		g.sb.WriteString(fmt.Sprintf("  %%%d = lshr %s %%%d, %%%d\n", dst, ty, src0, src1))
+		g.sb.WriteString(fmt.Sprintf("  %s = lshr %s %s, %s\n", d, ty, s0, s1))
 
 	case mir2.OpSar:
-		g.sb.WriteString(fmt.Sprintf("  %%%d = ashr %s %%%d, %%%d\n", dst, ty, src0, src1))
+		g.sb.WriteString(fmt.Sprintf("  %s = ashr %s %s, %s\n", d, ty, s0, s1))
 
 	case mir2.OpNeg:
-		g.sb.WriteString(fmt.Sprintf("  %%%d = sub %s 0, %%%d\n", dst, ty, src0))
+		g.sb.WriteString(fmt.Sprintf("  %s = sub %s 0, %s\n", d, ty, s0))
 
 	case mir2.OpNot:
-		g.sb.WriteString(fmt.Sprintf("  %%%d = xor %s %%%d, -1\n", dst, ty, src0))
+		g.sb.WriteString(fmt.Sprintf("  %s = xor %s %s, -1\n", d, ty, s0))
 
 	case mir2.OpCmp:
 		pred := llvmCmpPred(inst.Cond)
-		// CMP result is i1 but operands are the source type
-		cmpTy := "i8" // default for u8 operands
+		cmpTy := "i32"
 		if inst.SrcTy != nil {
 			cmpTy = llvmType(inst.SrcTy)
 		}
-		g.sb.WriteString(fmt.Sprintf("  %%%d = icmp %s %s %%%d, %%%d\n", dst, pred, cmpTy, src0, src1))
+		g.sb.WriteString(fmt.Sprintf("  %s = icmp %s %s %s, %s\n", d, pred, cmpTy, s0, s1))
 
 	case mir2.OpLoad:
 		elemTy := llvmType(inst.Ty)
-		g.sb.WriteString(fmt.Sprintf("  %%%d = load %s, ptr %%%d\n", dst, elemTy, src0))
+		g.sb.WriteString(fmt.Sprintf("  %s = load %s, ptr %s\n", d, elemTy, s0))
 
 	case mir2.OpStore:
 		valTy := llvmType(inst.Ty)
-		g.sb.WriteString(fmt.Sprintf("  store %s %%%d, ptr %%%d\n", valTy, src1, src0))
+		g.sb.WriteString(fmt.Sprintf("  store %s %s, ptr %s\n", valTy, s1, s0))
 
 	case mir2.OpExt:
 		srcTy := llvmType(inst.SrcTy)
-		g.sb.WriteString(fmt.Sprintf("  %%%d = zext %s %%%d to %s\n", dst, srcTy, src0, ty))
+		if srcTy == ty {
+			g.sb.WriteString(fmt.Sprintf("  %s = add %s 0, %s\n", d, ty, s0)) // no-op
+		} else {
+			g.sb.WriteString(fmt.Sprintf("  %s = zext %s %s to %s\n", d, srcTy, s0, ty))
+		}
 
 	case mir2.OpSext:
 		srcTy := llvmType(inst.SrcTy)
-		g.sb.WriteString(fmt.Sprintf("  %%%d = sext %s %%%d to %s\n", dst, srcTy, src0, ty))
+		if srcTy == ty {
+			g.sb.WriteString(fmt.Sprintf("  %s = add %s 0, %s\n", d, ty, s0))
+		} else {
+			g.sb.WriteString(fmt.Sprintf("  %s = sext %s %s to %s\n", d, srcTy, s0, ty))
+		}
 
 	case mir2.OpTrunc:
 		srcTy := llvmType(inst.SrcTy)
-		g.sb.WriteString(fmt.Sprintf("  %%%d = trunc %s %%%d to %s\n", dst, srcTy, src0, ty))
+		if srcTy == ty {
+			g.sb.WriteString(fmt.Sprintf("  %s = add %s 0, %s\n", d, ty, s0))
+		} else {
+			g.sb.WriteString(fmt.Sprintf("  %s = trunc %s %s to %s\n", d, srcTy, s0, ty))
+		}
 
 	case mir2.OpCall:
 		callRetTy := llvmType(inst.Ty)
 		var args []string
 		callee := g.mod.FuncByName(inst.Sym)
 		for i, arg := range inst.Args {
-			argTy := "i8" // default
+			// Determine expected param type
+			paramTy := "i8"
 			if callee != nil && i < len(callee.Contract.Params) {
-				argTy = llvmType(callee.Contract.Params[i].Ty)
+				paramTy = llvmType(callee.Contract.Params[i].Ty)
 			}
-			args = append(args, fmt.Sprintf("%s %%%d", argTy, arg))
+			// Get actual register type
+			actualTy := g.regTy[arg]
+			if actualTy == "" {
+				actualTy = "i8"
+			}
+			// Insert conversion if types mismatch
+			argRef := g.use(arg)
+			if actualTy != paramTy && actualTy != "" && paramTy != "" {
+				tmp := g.tmp()
+				g.emitConvert(tmp, g.use(arg), actualTy, paramTy)
+				argRef = tmp
+			}
+			args = append(args, fmt.Sprintf("%s %s", paramTy, argRef))
 		}
 		callName := llvmSym(inst.Sym)
-		if dst != mir2.NoReg {
-			g.sb.WriteString(fmt.Sprintf("  %%%d = call %s @%s(%s)\n",
-				dst, callRetTy, callName, strings.Join(args, ", ")))
+		if inst.Dst != mir2.NoReg {
+			g.sb.WriteString(fmt.Sprintf("  %s = call %s @%s(%s)\n",
+				d, callRetTy, callName, strings.Join(args, ", ")))
 		} else {
 			g.sb.WriteString(fmt.Sprintf("  call %s @%s(%s)\n",
 				callRetTy, callName, strings.Join(args, ", ")))
 		}
 
 	case mir2.OpAddrOf:
-		g.sb.WriteString(fmt.Sprintf("  %%%d = ptrtoint ptr @%s to %s\n",
-			dst, llvmSym(inst.Sym), ty))
+		if ty == "ptr" {
+			// Global address → ptr directly
+			g.sb.WriteString(fmt.Sprintf("  %s = getelementptr i8, ptr @%s, i32 0\n",
+				d, llvmSym(inst.Sym)))
+		} else {
+			// Address as integer
+			g.sb.WriteString(fmt.Sprintf("  %s = ptrtoint ptr @%s to %s\n",
+				d, llvmSym(inst.Sym), ty))
+		}
+
+	case mir2.OpAlloca:
+		bytes := inst.Imm
+		if bytes <= 0 {
+			bytes = 1
+		}
+		g.sb.WriteString(fmt.Sprintf("  %s = alloca [%d x i8]\n", d, bytes))
+
+	case mir2.OpField:
+		// Struct field access: base ptr + offset
+		offset := inst.Imm
+		g.sb.WriteString(fmt.Sprintf("  %s = getelementptr i8, ptr %s, i64 %d\n", d, s0, offset))
+
+	case mir2.OpPtrAdd:
+		// Pointer arithmetic: ptr + offset reg
+		g.sb.WriteString(fmt.Sprintf("  %s = getelementptr i8, ptr %s, i32 %s\n", d, s0, s1))
+
+	case mir2.OpPtrBump:
+		// Like PtrAdd but always i8 step
+		g.sb.WriteString(fmt.Sprintf("  %s = getelementptr i8, ptr %s, i32 %s\n", d, s0, s1))
 
 	default:
-		g.sb.WriteString(fmt.Sprintf("  ; TODO: op %d\n", inst.Op))
+		g.sb.WriteString(fmt.Sprintf("  ; TODO: op %v\n", inst.Op))
 	}
 }
 
@@ -243,44 +462,121 @@ func (g *gen) emitTerm(term mir2.Term, f *mir2.Func) {
 	case *mir2.TermRet:
 		if len(t.Vals) > 0 && t.Vals[0] != mir2.NoReg {
 			retTy := llvmType(contractRetTy(f))
-			g.sb.WriteString(fmt.Sprintf("  ret %s %%%d\n", retTy, t.Vals[0]))
+			valTy := g.regTy[t.Vals[0]]
+			if valTy == "" {
+				valTy = "i32"
+			}
+			retRef := g.use(t.Vals[0])
+			if valTy != retTy && retTy != "void" {
+				tmp := g.tmp()
+				g.emitConvert(tmp, retRef, valTy, retTy)
+				retRef = tmp
+			}
+			g.sb.WriteString(fmt.Sprintf("  ret %s %s\n", retTy, retRef))
 		} else {
-			g.sb.WriteString("  ret void\n")
+			retTy := llvmType(contractRetTy(f))
+			if retTy == "void" {
+				g.sb.WriteString("  ret void\n")
+			} else if retTy == "ptr" {
+				g.sb.WriteString("  ret ptr null\n")
+			} else {
+				g.sb.WriteString(fmt.Sprintf("  ret %s 0\n", retTy))
+			}
 		}
 
 	case *mir2.TermJmp:
 		g.sb.WriteString(fmt.Sprintf("  br label %%%s\n", llvmLabel(t.Target)))
 
 	case *mir2.TermBrIf:
-		g.sb.WriteString(fmt.Sprintf("  br i1 %%%d, label %%%s, label %%%s\n",
-			t.Cond, llvmLabel(t.Then), llvmLabel(t.Else)))
+		g.sb.WriteString(fmt.Sprintf("  br i1 %s, label %%%s, label %%%s\n",
+			g.use(t.Cond), llvmLabel(t.Then), llvmLabel(t.Else)))
 
 	case *mir2.TermCondRet:
-		// cond_ret %cond, [vals], @then
-		// if cond==0 → return vals, else → jump to then
 		retTy := llvmType(contractRetTy(f))
-		// Need a temp for i1 eqz
-		tmpReg := int(t.Cond) + 10000
-		g.sb.WriteString(fmt.Sprintf("  %%%d = icmp eq i1 %%%d, 0\n", tmpReg, t.Cond))
+		tmpName := g.tmp()
+		g.sb.WriteString(fmt.Sprintf("  %s = icmp eq i1 %s, 0\n", tmpName, g.use(t.Cond)))
 		thenLabel := llvmLabel(t.Then)
-		retLabel := fmt.Sprintf("condret_%d", t.Cond)
-		g.sb.WriteString(fmt.Sprintf("  br i1 %%%d, label %%%s, label %%%s\n",
-			tmpReg, retLabel, thenLabel))
-		// Return block
+		retLabel := fmt.Sprintf("_condret%d", g.nextTmp)
+		g.sb.WriteString(fmt.Sprintf("  br i1 %s, label %%%s, label %%%s\n",
+			tmpName, retLabel, thenLabel))
 		g.sb.WriteString(fmt.Sprintf("%s:\n", retLabel))
 		if len(t.Vals) > 0 && t.Vals[0] != mir2.NoReg {
-			g.sb.WriteString(fmt.Sprintf("  ret %s %%%d\n", retTy, t.Vals[0]))
+			g.sb.WriteString(fmt.Sprintf("  ret %s %s\n", retTy, g.use(t.Vals[0])))
 		} else {
 			g.sb.WriteString("  ret void\n")
 		}
 
+	case *mir2.TermBrIf2:
+		// Three-way branch: eq/lt/gt
+		// Emit as two nested comparisons
+		tmpEq := g.tmp()
+		tmpLt := g.tmp()
+		g.sb.WriteString(fmt.Sprintf("  %s = icmp eq i32 %s, %s\n", tmpEq, g.use(t.Lhs), g.use(t.Rhs)))
+		g.sb.WriteString(fmt.Sprintf("  br i1 %s, label %%%s, label %%_brif2_%d\n",
+			tmpEq, llvmLabel(t.Eq), g.nextTmp))
+		g.sb.WriteString(fmt.Sprintf("_brif2_%d:\n", g.nextTmp))
+		g.sb.WriteString(fmt.Sprintf("  %s = icmp ult i32 %s, %s\n", tmpLt, g.use(t.Lhs), g.use(t.Rhs)))
+		g.sb.WriteString(fmt.Sprintf("  br i1 %s, label %%%s, label %%%s\n",
+			tmpLt, llvmLabel(t.Lt), llvmLabel(t.Gt)))
+
 	case nil:
-		g.sb.WriteString("  unreachable\n")
+		// No terminator — emit default return
+		retTy := llvmType(contractRetTy(f))
+		if retTy == "void" {
+			g.sb.WriteString("  ret void\n")
+		} else if retTy == "ptr" {
+			g.sb.WriteString("  ret ptr null\n")
+		} else {
+			g.sb.WriteString(fmt.Sprintf("  ret %s 0\n", retTy))
+		}
 
 	default:
 		g.sb.WriteString("  ; TODO: terminator\n")
-		g.sb.WriteString("  unreachable\n")
+		retTy := llvmType(contractRetTy(f))
+		if retTy == "void" {
+			g.sb.WriteString("  ret void\n")
+		} else if retTy == "ptr" {
+			g.sb.WriteString("  ret ptr null\n")
+		} else {
+			g.sb.WriteString(fmt.Sprintf("  ret %s 0\n", retTy))
+		}
 	}
+}
+
+// emitConvert emits a type conversion instruction.
+func (g *gen) emitConvert(dst, src, fromTy, toTy string) {
+	if fromTy == toTy {
+		g.sb.WriteString(fmt.Sprintf("  %s = add %s 0, %s\n", dst, toTy, src))
+	} else if fromTy == "ptr" {
+		g.sb.WriteString(fmt.Sprintf("  %s = ptrtoint ptr %s to %s\n", dst, src, toTy))
+	} else if toTy == "ptr" {
+		g.sb.WriteString(fmt.Sprintf("  %s = inttoptr %s %s to ptr\n", dst, fromTy, src))
+	} else if llvmTypeWidth(fromTy) > llvmTypeWidth(toTy) {
+		g.sb.WriteString(fmt.Sprintf("  %s = trunc %s %s to %s\n", dst, fromTy, src, toTy))
+	} else if llvmTypeWidth(fromTy) < llvmTypeWidth(toTy) {
+		g.sb.WriteString(fmt.Sprintf("  %s = zext %s %s to %s\n", dst, fromTy, src, toTy))
+	} else {
+		// Same width, different type — shouldn't happen with uniform i32
+		g.sb.WriteString(fmt.Sprintf("  %s = add %s 0, %s\n", dst, toTy, src))
+	}
+}
+
+// resolveRef returns the correct LLVM name for a register reference
+// from a specific predecessor block. Handles init renames and multi-block phi renames.
+func (g *gen) resolveRef(r mir2.Reg, fromLabel string) string {
+	// If this reg has multi-block phi remap and the predecessor block is one of them
+	if remap, ok := g.phiRemap[r]; ok {
+		if name, ok := remap[fromLabel]; ok {
+			return name
+		}
+	}
+	// If defined by an instruction in the predecessor (and also a phi elsewhere)
+	if g.phiRegs[r] {
+		if defs, ok := g.instDefs[fromLabel]; ok && defs[r] {
+			return initReg(r)
+		}
+	}
+	return reg(r)
 }
 
 // ── helpers ──────────────────────────────────────────────────────────────
@@ -289,7 +585,6 @@ func buildPredMap(f *mir2.Func) map[string][][]predEdge {
 	preds := make(map[string][][]predEdge)
 	for _, b := range f.Blocks {
 		b.Term.ForEachEdge(func(target string, args []mir2.Reg, idx int) {
-			// Ensure target has enough param slots
 			for len(preds[target]) < len(args) {
 				preds[target] = append(preds[target], nil)
 			}
@@ -306,28 +601,20 @@ func buildPredMap(f *mir2.Func) map[string][][]predEdge {
 
 func llvmType(ty mir2.Ty) string {
 	if ty == nil {
-		return "i8"
+		return "i32"
 	}
 	switch ty {
 	case mir2.TyVoid:
 		return "void"
 	case mir2.TyBool:
 		return "i1"
-	case mir2.TyU8, mir2.TyI8:
-		return "i8"
-	case mir2.TyU16, mir2.TyI16:
-		return "i16"
-	}
-	if ty == mir2.TyPtr {
+	case mir2.TyPtr:
 		return "ptr"
 	}
-	w := ty.Width()
-	if w <= 8 {
-		return "i8"
-	}
-	if w <= 16 {
-		return "i16"
-	}
+	// Use i32 for all integer types to avoid type mismatches across
+	// phi nodes and call boundaries. MIR2 SSA doesn't always propagate
+	// types consistently (e.g. u8 block param fed by u16 producer).
+	// Masking to u8/u16 range happens at the Z80 level, not here.
 	return "i32"
 }
 
@@ -356,6 +643,24 @@ func llvmCmpPred(cond mir2.CmpCond) string {
 	default:
 		return "eq"
 	}
+}
+
+func llvmTypeWidth(ty string) int {
+	switch ty {
+	case "i1":
+		return 1
+	case "i8":
+		return 8
+	case "i16":
+		return 16
+	case "i32":
+		return 32
+	case "i64":
+		return 64
+	case "ptr":
+		return 64
+	}
+	return 8
 }
 
 func llvmSym(name string) string {
