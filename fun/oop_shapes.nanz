@@ -1,0 +1,84 @@
+// impl blocks showcase — OOP-style methods on Z80
+//
+// Demonstrates:
+//   - impl Trait for Type { fun method(self) ... }
+//   - UFCS dispatch: obj.method()
+//   - Multiple traits per type
+//   - Methods with extra params
+
+struct Circle {
+    x: u8,
+    y: u8,
+    radius: u8
+}
+
+struct Rect {
+    x: u8,
+    y: u8,
+    w: u8,
+    h: u8
+}
+
+// -- Traits --
+
+interface Shape {
+    area
+    perimeter
+}
+
+// -- Implementations --
+
+impl Shape for Circle {
+    fun area(self) -> u8 {
+        // pi * r^2 ~ 3 * r * r (integer approx)
+        return 3 * self.radius * self.radius
+    }
+
+    fun perimeter(self) -> u8 {
+        // 2 * pi * r ~ 6 * r
+        return 6 * self.radius
+    }
+}
+
+impl Shape for Rect {
+    fun area(self) -> u8 {
+        return self.w * self.h
+    }
+
+    fun perimeter(self) -> u8 {
+        return 2 * self.w + 2 * self.h
+    }
+}
+
+// -- Tests --
+
+fun test_circle_area() -> u8 {
+    var c: Circle
+    c.radius = 5
+    return c.area()
+}
+
+fun test_circle_perim() -> u8 {
+    var c: Circle
+    c.radius = 4
+    return c.perimeter()
+}
+
+fun test_rect_area() -> u8 {
+    var r: Rect
+    r.w = 10
+    r.h = 5
+    return r.area()
+}
+
+fun test_rect_perim() -> u8 {
+    var r: Rect
+    r.w = 8
+    r.h = 3
+    return r.perimeter()
+}
+
+assert test_circle_area() == 75 via mir2
+assert test_circle_perim() == 24 via mir2
+assert test_rect_area() == 50 via mir2
+assert test_rect_perim() == 22 via mir2

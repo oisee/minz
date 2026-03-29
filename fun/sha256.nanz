@@ -1,0 +1,165 @@
+// sha256.nanz — SHA-256 hash on Z80 via u32 arithmetic
+//
+// Demonstrates u32 operations: ROTR, XOR, AND, ADD, SHR
+// Uses DEHL convention from u32_ops.json (D=MSB, L=LSB)
+//
+// SHA-256 processes 64-byte (512-bit) blocks.
+// Each block: 64 rounds, each round ~800T ≈ 15ms @3.5MHz per block.
+//
+// This is a proof-of-concept: compiles, assembles, runs basic test vectors.
+
+// ── u32 helpers (will map to GPU-optimal sequences) ─────────
+
+// u32 stored as two u16: hi (upper 16 bits), lo (lower 16 bits)
+// On Z80: hi=DE, lo=HL in DEHL convention
+
+// u32 logical shift right — sequential single-bit shifts
+// In real codegen: unrolled SRL D / RR E / RR H / RR L chains (32T per bit)
+
+fun shr32_lo(hi: u16, lo: u16, n: u8) -> u16 {
+    // Low 16 bits of (hi:lo) >> n (logical)
+    // For n < 16: lo >> n | (hi << (16-n))
+    var result: u16 = lo
+    var carry: u16 = hi
+    var i: u8 = 0
+    while i < n {
+        result = result / 2
+        if carry % 2 == 1 {
+            result = result + 32768
+        }
+        carry = carry / 2
+        i = i + 1
+    }
+    return result
+}
+
+fun shr32_hi(hi: u16, lo: u16, n: u8) -> u16 {
+    // High 16 bits of (hi:lo) >> n (logical)
+    var result: u16 = hi
+    var i: u8 = 0
+    while i < n {
+        result = result / 2
+        i = i + 1
+    }
+    return result
+}
+
+// ── u32 addition (most critical for SHA-256) ─────────────────
+
+fun add32_lo(a_hi: u16, a_lo: u16, b_hi: u16, b_lo: u16) -> u16 {
+    return a_lo + b_lo
+}
+
+fun add32_hi(a_hi: u16, a_lo: u16, b_hi: u16, b_lo: u16) -> u16 {
+    // Detect carry from low addition
+    let sum_lo: u16 = a_lo + b_lo
+    var carry: u16 = 0
+    if sum_lo < a_lo { carry = 1 }
+    return a_hi + b_hi + carry
+}
+
+// ── Bitwise u32 ops ──────────────────────────────────────────
+
+// Nanz: ^ = pointer deref, `xor` keyword = bitwise XOR
+// & = bitwise AND, | = bitwise OR (keywords also work)
+
+fun xor16(a: u16, b: u16) -> u16 {
+    let al: u8 = a % 256
+    let ah: u8 = a / 256
+    let bl: u8 = b % 256
+    let bh: u8 = b / 256
+    let rl: u8 = al xor bl
+    let rh: u8 = ah xor bh
+    let lo: u16 = rl
+    let hi: u16 = rh
+    return hi * 256 + lo
+}
+
+fun and16(a: u16, b: u16) -> u16 {
+    let al: u8 = a % 256
+    let ah: u8 = a / 256
+    let bl: u8 = b % 256
+    let bh: u8 = b / 256
+    let rl: u8 = al & bl
+    let rh: u8 = ah & bh
+    let lo: u16 = rl
+    let hi: u16 = rh
+    return hi * 256 + lo
+}
+
+fun not16(a: u16) -> u16 {
+    let al: u8 = a % 256
+    let ah: u8 = a / 256
+    let rl: u8 = al xor 255
+    let rh: u8 = ah xor 255
+    let lo: u16 = rl
+    let hi: u16 = rh
+    return hi * 256 + lo
+}
+
+// ── SHA-256 core functions ───────────────────────────────────
+
+// Ch(x,y,z) = (x AND y) XOR (NOT x AND z)
+fun ch_lo(x: u16, y: u16, z: u16) -> u16 {
+    return xor16(and16(x, y), and16(not16(x), z))
+}
+
+// Maj(x,y,z) = (x AND y) XOR (x AND z) XOR (y AND z)
+fun maj_lo(x: u16, y: u16, z: u16) -> u16 {
+    return xor16(xor16(and16(x, y), and16(x, z)), and16(y, z))
+}
+
+// ── SHA-256 initial hash values (first 32 bits of sqrt(primes)) ──
+
+// H0 = 0x6a09e667 → hi=0x6a09, lo=0xe667
+// H1 = 0xbb67ae85 → hi=0xbb67, lo=0xae85
+// H2 = 0x3c6ef372 → hi=0x3c6e, lo=0xf372
+// H3 = 0xa54ff53a → hi=0xa54f, lo=0xf53a
+// H4 = 0x510e527f → hi=0x510e, lo=0x527f
+// H5 = 0x9b05688c → hi=0x9b05, lo=0x688c
+// H6 = 0x1f83d9ab → hi=0x1f83, lo=0xd9ab
+// H7 = 0x5be0cd19 → hi=0x5be0, lo=0xcd19
+
+// ── Test: basic u32 arithmetic ───────────────────────────────
+
+fun test_add32() -> u16 {
+    // 0x00000001 + 0x00000001 = 0x00000002
+    let r_lo: u16 = add32_lo(0, 1, 0, 1)
+    return r_lo
+}
+
+fun test_add32_carry() -> u16 {
+    // 0x0000FFFF + 0x00000001 = 0x00010000
+    // lo: 0xFFFF + 1 = 0x0000 (overflow), hi: 0 + 0 + 1(carry) = 1
+    let r_hi: u16 = add32_hi(0, 65535, 0, 1)
+    return r_hi
+}
+
+fun test_xor() -> u16 {
+    // 0xFF00 XOR 0x00FF = 0xFFFF
+    return xor16(0xFF00, 0x00FF)
+}
+
+fun test_and() -> u16 {
+    // 0xFF0F AND 0x0FFF = 0x0F0F
+    return and16(0xFF0F, 0x0FFF)
+}
+
+fun test_not() -> u16 {
+    // NOT 0x00FF = 0xFF00
+    return not16(0x00FF)
+}
+
+fun test_ch() -> u16 {
+    // Ch(0xFFFF, 0x1234, 0x5678) = (FFFF & 1234) ^ (0000 & 5678) = 1234 ^ 0000 = 0x1234
+    return ch_lo(0xFFFF, 0x1234, 0x5678)
+}
+
+// ── Asserts ──────────────────────────────────────────────────
+
+assert test_add32() == 2 via mir2
+assert test_add32_carry() == 1 via mir2
+assert test_xor() == 65535 via mir2
+assert test_and() == 3855 via mir2
+assert test_not() == 65280 via mir2
+assert test_ch() == 4660 via mir2

@@ -1,0 +1,76 @@
+// Nanz — iterator chain: map + filter + forEach.
+//
+// What this does:
+//   for each byte in buf[0..n]:
+//     double it
+//     keep only if > threshold
+//     call process() on survivors
+//
+// What C would need:
+//   for (int i = 0; i < n; i++) {
+//       uint8_t v = buf[i] * 2;        // random-access load + multiply
+//       if (v > threshold) process(v);  // branch + call
+//   }
+//
+// What PL/M would need:
+//   I = 0;
+//   DO WHILE I < N;
+//       V = BUF(I) * 2;
+//       IF V > THRESHOLD THEN CALL PROCESS(V);
+//       I = I + 1;
+//   END;
+//
+// Nanz iterator chain:
+//   buf.map(|x| x*2).filter(|x| x > threshold).forEach(|x| process(x), n)
+//
+// MIR2 lowering (HIR tryLowerIterChain):
+//   - Recognizes the .map().filter().forEach() pattern
+//   - Fuses all three stages into ONE ForEachStmt with inlined bodies
+//   - Emits a single DJNZ loop — no intermediate array, no function calls
+//
+// Z80 result (conceptually):
+//   LD B, n
+//   LD HL, buf
+// .loop:
+//   LD A, (HL)   ; load element
+//   ADD A, A     ; x*2 (map body)
+//   INC HL       ; advance pointer
+//   CP threshold+1
+//   JR C, .skip  ; filter: skip if not > threshold
+//   CALL process ; forEach body
+// .skip:
+//   DJNZ .loop
+//
+// Contrast with indexed access:
+//   LD B, n
+//   LD DE, 0      ; i = 0  (extra register needed for index)
+// .loop:
+//   LD HL, buf
+//   ADD HL, DE    ; HL = buf + i  (ADD HL,DE every iteration!)
+//   LD A, (HL)    ; load element
+//   ADD A, A
+//   INC DE        ; i++
+//   CP threshold+1
+//   JR C, .skip
+//   CALL process
+// .skip:
+//   DJNZ .loop
+//
+// The indexed version costs ~12 extra T-states per element (ADD HL,DE + LD DE,0 + INC DE).
+// At 4 MHz with 100 elements: 300µs extra. Not huge — but it multiplies across every loop.
+
+@extern fun process(x: u8) -> void
+
+fun filter_map_forEach(buf: u16, n: u8, threshold: u8) -> void {
+    buf.map(|x: u8| (x * 2)).filter(|x: u8| (x > threshold)).forEach(|x: u8| { process(x) }, n)
+}
+
+// Alternative: explicit for-each (same codegen, less fluent style)
+fun filter_map_explicit(buf: u16, n: u8, threshold: u8) -> void {
+    for x: u8 in buf[0..n] {
+        let doubled: u8 = x * 2
+        if doubled > threshold {
+            process(doubled)
+        }
+    }
+}

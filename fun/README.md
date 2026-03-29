@@ -2,132 +2,204 @@
 
 Try these in VSCode terminal. Each file is self-contained with asserts.
 
-## Quick Start
-
 ```bash
 cd minzc && make build    # build toolchain (once)
 ```
 
-## Showcase Examples
+---
 
-### 1. Raymarcher — SDF with Vec3, CSG, operator overloading
-```bash
-mzv fun/raymarcher.nanz --zx        # ZX Spectrum screen output
-mzv fun/raymarcher.nanz             # TUI terminal mode
-mz  fun/raymarcher.nanz --asserts mir2  # verify math
-```
-Vec3 + fixed-point 8.8 + signed distance functions + CSG (union, subtract).
-Sphere with box carved out. UFCS methods: `p.length()`, `n.dot(light)`.
+## Nanz Examples
 
-### 2. Vectors — 2D/3D/Color with operators + widening multiply
+### OOP & Interfaces — `oop_shapes.nanz`
 ```bash
-mz fun/vectors.nanz --asserts mir2
-```
-`Vec2`, `Vec3`, `Color` structs with `+`, `-`, `==` operators.
-UFCS: `v.dot(u)`, `v.manhattan()`, `c.blend(other, mix)`.
-**Scalar overload**: `fun *(a: u8, b: u8) -> u16` — `200*200=40000` no overflow!
-
-### 3. Widemath — GPU-optimal arithmetic library (31 asserts)
-```bash
-mz examples/nanz/widemath.nanz --asserts mir2
-```
-abs, sign, min, max, clamp, sat_add, sat_sub, abs_diff.
-Pixel distance, brightness blending. Newtype W8 wrapper.
-
-### 4. SHA-256 Primitives — u32 on Z80 (808 bytes!)
-```bash
-mz examples/nanz/sha256.nanz --asserts mir2
-mz examples/nanz/sha256.nanz -o /tmp/sha256.a80 && mza /tmp/sha256.a80 -o /tmp/sha256.bin
-```
-xor16, and16, not16, add32 with carry propagation, shr32.
-Ch/Maj SHA-256 core functions. 15 functions, 808 bytes binary.
-
-### 5. Tetris — Playable on CP/M terminal
-```bash
-mzv examples/nanz/tetris_tui.nanz   # play in terminal!
-mzv examples/nanz/tetris_cpm.nanz   # CP/M variant
-```
-Arrow keys, Z=rotate, X=drop, Q=quit. Full game with scoring.
-
-### 6. Iterator Chains — Zero-cost fusion
-```bash
-mz examples/nanz/03_filter_map_chain.nanz --asserts mir2
-```
-```nanz
-buf.map(|x| x * 2)
-   .filter(|x| x > threshold)
-   .forEach(|x| process(x), n)
-```
-Fused into single DJNZ loop — zero intermediate arrays.
-
-### 7. Pipe Operator + Composition (Frill)
-```bash
-mz examples/frill/pipe.frl --asserts mir2
-```
-```frill
-let result = x |> double |> inc
-let dbl_then_inc = double >> inc   (* compose *)
-```
-
-### 8. Pattern Matching + ADT (Frill)
-```bash
-mz examples/frill/showcase.frl --asserts mir2
-```
-```frill
-type Color = Red | Green | Blue
-match c with
-| Red -> 1
-| _ -> 0
-end
-```
-
-### 9. Impl/UFCS — Zero-cost interfaces
-```bash
-mz examples/nanz/50_impl_showcase.nanz --asserts mir2
+mz fun/oop_shapes.nanz --asserts mir2     # 4 asserts
 ```
 ```nanz
 interface Shape { area, perimeter }
-impl Shape for Circle { fun area(self) -> u8 { ... } }
-c.area()   // → Circle_area(&c), direct CALL, no vtable
+
+impl Shape for Circle {
+    fun area(self) -> u8 { return 3 * self.radius * self.radius }
+}
+
+c.area()     // → Circle_area(&c) — direct CALL, no vtable!
+r.perimeter()  // → Rect_perimeter(&r)
 ```
 
-### 10. Raymarching Gallery (MZV visual)
+### ADT Option — `adt_option.nanz`
 ```bash
-mzv examples/mzv_sphere_shaded.minz --zx
-mzv examples/mzv_one_small_step.minz --zx
-mzv examples/fire.minz --zx
-mzv examples/plasma.minz --zx
-mzv examples/conway.minz --zx
+mz fun/adt_option.nanz --asserts mir2     # 7 asserts
+```
+```nanz
+enum Option { None, Some(u8) }
+
+fun unwrap_or(opt: u16, def: u8) -> u8 {
+    if (__tag(opt) == 1) { return __payload(opt) }
+    return def
+}
+assert test_unwrap_some() == 42    // Some(42) → 42
+assert test_unwrap_none() == 77    // None → default 77
 ```
 
-## GPU-Optimal Codegen
+### State Machine — `state_machine.nanz`
+```bash
+mz fun/state_machine.nanz --asserts mir2  # 12 asserts
+```
+```nanz
+enum State { Idle, Walking, Jumping, Dead }
 
-When you compile with VIR backend, these fire automatically:
+fun next_state(s: State, input: u8) -> u8 {
+    if (s == State.Idle) {
+        return match input {
+            1 => State.Walking,
+            2 => State.Jumping,
+            3 => State.Dead,
+            _ => State.Idle,
+        }
+    }
+    ...
+}
+```
+
+### Iterator Fusion — `iterator_fusion.nanz`
+```bash
+mz fun/iterator_fusion.nanz -o /tmp/iter.a80   # see Z80 asm
+```
+```nanz
+// Three operations fused into ONE DJNZ loop — zero intermediate arrays
+buf.map(|x: u8| (x * 2))
+   .filter(|x: u8| (x > threshold))
+   .forEach(|x: u8| { process(x) }, n)
+```
+
+### Tail Recursion — `tail_recursion.nanz`
+```bash
+mz fun/tail_recursion.nanz --asserts mir2 # 17 asserts
+```
+```nanz
+fun fib_tail(n: u8, a: u8, b: u8) -> u8 {
+    if n == 0 { return a }
+    return fib_tail(n - 1, b, a + b)
+}
+assert fib(10) == 55
+assert fact(5) == 120
+```
+
+### Vectors & Operators — `vectors.nanz`
+```bash
+mz fun/vectors.nanz --asserts mir2        # 6 asserts
+```
+```nanz
+struct Vec2 { x: u8, y: u8 }
+fun +(a: Vec2, b: Vec2) -> Vec2 { ... }   // struct operator
+fun *(a: u8, b: u8) -> u16 { ... }        // scalar widening!
+
+impl Vec2 {
+    fun dot(self, other: Vec2) -> u16 {
+        return self.x * other.x + self.y * other.y  // widening mul!
+    }
+}
+assert test_widening_mul() == 40000   // 200*200 without overflow
+```
+
+### Widemath — `widemath.nanz`
+```bash
+mz fun/widemath.nanz --asserts mir2       # 31 asserts
+```
+abs, sign, min, max, clamp, sat_add, sat_sub, abs_diff, pixel_distance, brightness_blend. GPU-optimal sequences inside.
+
+### Raymarcher — `raymarcher.nanz`
+```bash
+mz fun/raymarcher.nanz --asserts mir2     # 3 asserts
+mz fun/raymarcher.nanz -o /tmp/ray.a80    # see Z80 asm
+```
+SDF sphere-minus-box with Vec3 impl, CSG ops, fixed-point 8.8, normal calculation. Full raymarcher in ~180 lines.
+
+### SHA-256 — `sha256.nanz`
+```bash
+mz fun/sha256.nanz --asserts mir2         # 6 asserts
+mz fun/sha256.nanz -o /tmp/sha.a80 && mza /tmp/sha.a80 -o /tmp/sha.bin  # 808 bytes!
+```
+u32 arithmetic on Z80: xor16, and16, add32 with carry. SHA-256 Ch/Maj functions.
+
+---
+
+## Frill Examples (ML-style functional)
+
+### Pipes & Composition — `pipes.frl`
+```bash
+mz fun/pipes.frl --asserts mir2           # 9 asserts
+```
+```frill
+let pipe_dbl_inc (x : u8) : u8 = x |> double |> inc
+let dbl_then_inc = double >> inc   (* function composition *)
+assert dbl_then_inc 5 == 11
+```
+
+### Full Showcase — `frill_showcase.frl`
+```bash
+mz fun/frill_showcase.frl --asserts mir2  # 50+ asserts
+```
+Everything: recursion, let-in, if-then-else, match, ADT, currying, lambda, while, for, peek/poke.
+
+### Functional Graphics — `frill_graphics.frl`
+```bash
+mz fun/frill_graphics.frl --asserts mir2  # 20+ asserts
+```
+```frill
+type Color = Black | Blue | Red | Magenta | Green | Cyan | Yellow | White
+let sierpinski (x : u8) (y : u8) = if (x & y) == 0 then 1 else 0
+let xor_tex (x : u8) (y : u8) = (x ^ y) % 8
+```
+
+---
+
+## Visual Demos (run with mzv/mze)
+
+```bash
+mzv examples/nanz/tetris_tui.nanz        # playable Tetris!
+mzv examples/nanz/tetris_cpm.nanz        # CP/M Tetris
+mzv examples/mzv_sphere_shaded.minz --zx # raytraced sphere
+mzv examples/mzv_one_small_step.minz --zx # lunar lander scene
+mzv examples/fire.minz --zx              # fire effect
+mzv examples/plasma.minz --zx            # plasma demo
+mzv examples/conway.minz --zx            # Game of Life
+```
+
+---
+
+## GPU-Optimal Codegen (automatic)
+
+When you compile, these fire automatically:
 - **mul8**: 254 GPU-proven A×K→A sequences
-- **mul16**: 254 GPU-proven HL×K→HL (7.7× faster than loop!)
-- **u32 ops**: SHL32 34T, SHR32 32T, ADD32 54T (ADC HL,rr!)
-- **500 peephole rules**: GPU-exhaustive pattern replacements
+- **mul16**: 254 GPU-proven HL×K→HL (**7.7× faster** than loop!)
+- **div8**: 254 entries with carry_compare trick (**GPU-discovered**, not in any textbook)
+- **u32 ops**: SHL32 34T, SHR32 32T, ADD32 54T (via ADC HL,rr)
+- **500 peephole rules**: GPU-exhaustive verified
 
-## Toolchain
+---
+
+## Toolchain Cheat Sheet
 
 | Tool | Command | What it does |
 |------|---------|-------------|
 | **mz** | `mz file.nanz -o out.a80` | Compile to Z80 assembly |
-| **mzv** | `mzv file.nanz` | Run on MIR2 VM (visual) |
-| **mza** | `mza file.a80 -o file.bin` | Assemble to binary |
-| **mze** | `mze file.com` | Run on Z80 emulator (CP/M) |
+| **mz** | `mz file.nanz --asserts mir2` | Compile + run MIR2 VM asserts |
+| **mz** | `mz file.nanz --asserts z80` | Compile + run Z80 emulator asserts |
+| **mzv** | `mzv file.nanz` | Run on MIR2 VM with TUI display |
+| **mza** | `mza file.a80 -o file.bin` | Assemble (.a80 or .asm) |
+| **mze** | `mze file.com` | Run on Z80 CP/M emulator |
 | **mzx** | `mzx file.sna` | ZX Spectrum emulator |
 | **mzd** | `mzd file.bin --regs` | Disassemble with register analysis |
 
-## Languages (8 frontends → same Z80 backend)
+## 8 Languages → Same Z80
 
 | Extension | Language | Style |
 |-----------|----------|-------|
-| `.nanz` | **Nanz** | Rust-like, primary language |
-| `.frl` | **Frill** | ML/Haskell-like, functional |
-| `.c` | **C99+** | C17 conformant, C23 extensions |
-| `.lizp` | **Lizp** | Scheme R5RS dialect |
-| `.pas` | **Pascal** | Standard Pascal |
+| `.nanz` | **Nanz** | Rust-like (primary) |
+| `.frl` | **Frill** | ML/Haskell functional |
+| `.c` | **C17+C23** | First Z80 compiler at C17 |
+| `.lizp` | **Lizp** | Scheme R5RS |
+| `.pas` | **Pascal** | Standard |
 | `.plm` | **PL/M** | Intel PL/M-80 |
-| `.abap` | **ABAP** | SAP ABAP subset |
+| `.abap` | **ABAP** | SAP subset |
 | `.lanz` | **Lanz** | S-expression IR |
