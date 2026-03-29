@@ -10,6 +10,7 @@ import (
 	"os"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/minz/minzc/pkg/mir2"
 )
@@ -188,7 +189,7 @@ func CodegenModule(m *mir2.Module, opts SolverOptions) (string, []FuncResult) {
 					sb.WriteString("; VIR→PBQP fallback for " + f.Name + "\n")
 					sb.WriteString(pbqpASM)
 					sb.WriteByte('\n')
-					fmt.Fprintf(os.Stderr, "[vir] %s: PBQP fallback (%v)\n", f.Name, err)
+					fmt.Fprintf(os.Stderr, "[vir] %s: PBQP fallback (timeout=%v, err=%v)\n", f.Name, opts.Timeout, err)
 				} else {
 					r.Error = err.Error()
 				}
@@ -486,12 +487,50 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 			// Verify ABI compatibility: table assignment must match param/return constraints
 			abiOK := verifyABICompat(allOps, assignment, opts)
 			if abiOK {
-				result, err := emitFromTable(f, vf, allOps, assignment, desc, opts)
-				if err == nil {
-					fmt.Fprintf(os.Stderr, "[vir] %s: table emit OK (cost=%d)\n", f.Name, cost)
-					return result, nil
+				// Table emit WIP: emitFromTable still has correctness issues
+				// (missing inter-instruction moves, param/return ABI setup).
+				// Enable with VIR_TABLE_EMIT=1 for testing. Default: log hit, use Z3.
+				if os.Getenv("VIR_TABLE_EMIT") != "" {
+					result, err := emitFromTable(f, vf, allOps, assignment, desc, opts)
+					if err == nil {
+						fmt.Fprintf(os.Stderr, "[vir] %s: table emit OK (cost=%d)\n", f.Name, cost)
+						return result, nil
+					}
+					fmt.Fprintf(os.Stderr, "[vir] %s: table hit (cost=%d) but emit failed: %v\n", f.Name, cost, err)
+				} else {
+					fmt.Fprintf(os.Stderr, "[vir] %s: table HIT (cost=%d, %dv) — emit disabled, using Z3\n",
+						f.Name, cost, len(assignment))
 				}
-				fmt.Fprintf(os.Stderr, "[vir] %s: table hit (cost=%d) but emit failed: %v\n", f.Name, cost, err)
+			}
+		}
+	}
+
+	// Adaptive Z3 timeout: large functions get shorter timeout → faster PBQP fallback.
+	// Default 30s is too long for 8-12v functions (raymarcher fp_mul etc.).
+	// Table lookup already handles ≤6v; Z3 only needed for 7v+ misses.
+	if opts.Timeout == 0 || opts.Timeout > 10*time.Second {
+		nVregs := 0
+		vregSet := make(map[int]bool)
+		for _, b := range vf.Blocks {
+			for _, op := range b.Ops {
+				if op.Dst > 0 { vregSet[op.Dst] = true }
+				for _, s := range op.Src {
+					if s > 0 { vregSet[s] = true }
+				}
+			}
+		}
+		nVregs = len(vregSet)
+		switch {
+		case nVregs > 12:
+			opts.Timeout = 2 * time.Second
+		case nVregs > 8:
+			opts.Timeout = 5 * time.Second
+		case nVregs > 6:
+			opts.Timeout = 10 * time.Second
+		default:
+			// ≤6v: should hit enriched table, Z3 rarely needed
+			if opts.Timeout == 0 {
+				opts.Timeout = 15 * time.Second
 			}
 		}
 	}
