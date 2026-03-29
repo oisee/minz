@@ -14,6 +14,23 @@ Nanz / Frill / C23 / ABAP  →  MIR2  →  Z80 (2 bytes)
 
 ---
 
+### ★ NEW: [GPU-Optimal Arithmetic Library](reports/2026-03-29-GPU-Arithmetic-Library.md) — 800 Verified Entries
+
+**Scalar operator overloading** (`fun *(a: u8, b: u8) -> u16`), **GPU-optimal mul16** (7.7× faster), **carry_compare division** (GPU-discovered, not in any textbook), **u32 on Z80** (ADC HL,rr!), **SHA-256 in 808 bytes**.
+
+```nanz
+fun area(w: u8, h: u8) -> u16 { return w * h }  // widening: 200*200=40000
+assert area(200, 200) == 40000
+```
+
+```z80
+; GPU-discovered div by K≥128: 5 ops, 26T, branchless
+OR A; LD B,(256-K); ADC A,B; SBC A,A; AND 1
+; Verified: 32768/32768 exhaustive tests
+```
+
+Try: `mz fun/vectors.nanz --asserts mir2` | `mz fun/raymarcher.nanz --asserts mir2` | [Full report](reports/2026-03-29-GPU-Arithmetic-Library.md) | [Playground](fun/README.md)
+
 ### ★ NEW: [VIR Zero Bugs — Default Backend](reports/2026-03-27-VIR-Zero-Bugs-Default-Backend.md) — v0.24.0
 
 **VIR has zero known bugs.** Now the default backend (`--vir=true`). Pipeline: Table(83.6M) → Z3 → Islands → PBQP. 500 GPU-optimal arithmetic + 500 peephole rules. Frill runs on CP/M. [Full report](reports/2026-03-27-VIR-Zero-Bugs-Default-Backend.md).
