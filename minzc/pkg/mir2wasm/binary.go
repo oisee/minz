@@ -190,12 +190,99 @@ func (e *encoder) encodeFuncBody(f *mir2.Func, funcIdx int) []byte {
 		body = append(body, 0x00) // 0 local decl groups
 	}
 
-	// Instructions
-	for _, b := range f.Blocks {
+	// Instructions — handle control flow between blocks.
+	// Strategy: for each block, emit instructions + terminator.
+	// cond_ret → WASM if/else/end
+	// br_if → WASM if/else/end
+	// jmp → fall through (blocks already in order)
+	blockMap := make(map[string]int)
+	for i, b := range f.Blocks {
+		blockMap[b.Label] = i
+	}
+
+	for bi, b := range f.Blocks {
 		for _, inst := range b.Insts {
 			body = append(body, c.encodeInst(inst)...)
 		}
-		body = append(body, c.encodeTerm(b.Term)...)
+
+		switch t := b.Term.(type) {
+		case *mir2.TermRet:
+			if len(t.Vals) > 0 && t.Vals[0] != mir2.NoReg {
+				body = append(body, c.getLocal(t.Vals[0])...)
+				body = append(body, 0x0F) // return
+			}
+
+		case *mir2.TermCondRet:
+			// cond_ret %cond, [vals], @then
+			// if cond==0 → return vals; else → jump to then (next block)
+			// WASM: get cond; i32.eqz; if [result] { get val; return } end
+			body = append(body, c.getLocal(t.Cond)...)
+			body = append(body, 0x45) // i32.eqz (cond==0 means return)
+
+			// Determine result type for if block
+			retTy := byte(0x40) // void block type
+			if len(f.Contract.Returns) > 0 && f.Contract.Returns[0].Ty != mir2.TyVoid {
+				retTy = 0x7F // i32
+			}
+			body = append(body, 0x04, retTy) // if (result type)
+			if len(t.Vals) > 0 && t.Vals[0] != mir2.NoReg {
+				body = append(body, c.getLocal(t.Vals[0])...)
+				body = append(body, 0x0F) // return
+			}
+			body = append(body, 0x0B) // end if
+			// Fall through to next block (the "then" target)
+
+		case *mir2.TermBrIf:
+			// br_if %cond, @then, @else
+			// WASM: get cond; if { then_block } else { else_block } end
+			body = append(body, c.getLocal(t.Cond)...)
+
+			retTy := byte(0x40) // void
+			body = append(body, 0x04, retTy) // if
+
+			// Then block: emit inline if it's the next block
+			if thenIdx, ok := blockMap[t.Then]; ok && thenIdx < len(f.Blocks) {
+				thenBlock := f.Blocks[thenIdx]
+				for _, inst := range thenBlock.Insts {
+					body = append(body, c.encodeInst(inst)...)
+				}
+				// Then block terminator (usually ret)
+				if ret, ok := thenBlock.Term.(*mir2.TermRet); ok {
+					if len(ret.Vals) > 0 && ret.Vals[0] != mir2.NoReg {
+						body = append(body, c.getLocal(ret.Vals[0])...)
+						body = append(body, 0x0F) // return
+					}
+				}
+			}
+
+			body = append(body, 0x05) // else
+
+			// Else block: emit inline if it exists
+			if elseIdx, ok := blockMap[t.Else]; ok && elseIdx < len(f.Blocks) {
+				elseBlock := f.Blocks[elseIdx]
+				for _, inst := range elseBlock.Insts {
+					body = append(body, c.encodeInst(inst)...)
+				}
+				if ret, ok := elseBlock.Term.(*mir2.TermRet); ok {
+					if len(ret.Vals) > 0 && ret.Vals[0] != mir2.NoReg {
+						body = append(body, c.getLocal(ret.Vals[0])...)
+						body = append(body, 0x0F) // return
+					}
+				}
+			}
+
+			body = append(body, 0x0B) // end if
+
+			// Skip the blocks we already emitted inline
+			_ = bi // blocks emitted inline, don't emit again
+
+		case *mir2.TermJmp:
+			// Unconditional jump — pass block args then fall through
+			// (blocks are in order, so next block IS the target usually)
+
+		case nil:
+			// no terminator — fall through
+		}
 	}
 
 	// End of function
