@@ -220,9 +220,21 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 		}}, nil
 
 	case mir2.OpDiv, mir2.OpSDiv:
+		// Try GPU-optimal constant division first (carry_compare for K≥128, etc.)
+		if w <= 8 && inst.Imm > 0 {
+			if ops := tryConstDiv(inst, desc, w); ops != nil {
+				return ops, nil
+			}
+		}
 		return translateDivMod(inst, desc, w, false)
 
 	case mir2.OpMod:
+		// Try power-of-2 mod optimization (AND K-1)
+		if w <= 8 && inst.Imm > 0 {
+			if ops := tryConstMod(inst, desc, w); ops != nil {
+				return ops, nil
+			}
+		}
 		return translateDivMod(inst, desc, w, true)
 
 	case mir2.OpAddrOf:
