@@ -1,0 +1,32 @@
+// Inspect IR — see what the compiler does to your code.
+// Compare 5 intermediate representations of the same program.
+//
+//   mz inspect_ir.nanz --emit hir        (1. HIR: typed AST)
+//   mz inspect_ir.nanz --emit mir2-raw   (2. MIR2: raw SSA before opts)
+//   mz inspect_ir.nanz --emit mir2       (3. MIR2: optimized SSA)
+//   mz inspect_ir.nanz --emit llvm       (4. LLVM IR: machine-independent)
+//   mz inspect_ir.nanz --emit wasm       (5. WebAssembly text)
+//   mz inspect_ir.nanz -o out.a80        (6. Z80 assembly)
+//
+// Spot the difference:
+//   - mir2-raw has redundant moves, mir2 has them eliminated (DSE)
+//   - LLVM IR uses phi nodes where MIR2 uses block params
+//   - WASM uses a stack machine (no registers)
+//   - Z80 asm shows physical register allocation (A, B, C, DE, HL)
+//
+// Bonus: disassemble the binary!
+//   mza out.a80 -o out.bin && mzd out.bin --cycles
+
+fun swap_add(a: u8, b: u8) -> u8 {
+    let x: u8 = a + b
+    let y: u8 = a - b
+    return x * y
+}
+
+fun main() -> u8 {
+    return swap_add(10, 3)
+}
+
+// assert swap_add(10, 3) == 91
+// assert swap_add(5, 5) == 0
+// assert swap_add(7, 2) == 45

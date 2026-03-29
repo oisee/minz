@@ -1,0 +1,22 @@
+// Fibonacci — compiles to 8 different targets from one source.
+// Try: mz fibonacci.nanz --emit llvm | lli
+//       mz fibonacci.nanz --emit wasm  (WAT output)
+//       mzn fibonacci.nanz             (native x86_64 via QBE)
+//       mzn fibonacci.nanz --c99       (native via C99)
+//       mzn fibonacci.nanz --emit-c    (show generated C)
+//       mzn fibonacci.nanz --emit-qbe  (show generated QBE IL)
+//       mz fibonacci.nanz -o fib.a80 && mza fib.a80 -o fib.bin && mze fib.bin  (Z80)
+
+fun fib(n: u8) -> u8 {
+    if n < 2 { return n }
+    return fib(n - 1) + fib(n - 2)
+}
+
+fun main() -> u8 {
+    return fib(10)
+}
+
+// assert fib(0) == 0
+// assert fib(1) == 1
+// assert fib(5) == 5
+// assert fib(10) == 55

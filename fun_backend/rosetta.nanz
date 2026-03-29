@@ -1,0 +1,55 @@
+// Rosetta Stone — one algorithm, verify across ALL backends.
+// This is the backend correctness oracle test.
+//
+// Run all backends at once:
+//   mz rosetta.nanz --asserts-force mir2   (MIR2 VM)
+//   mz rosetta.nanz --asserts-force z80    (Z80 emulator)
+//   mz rosetta.nanz --asserts-force wasm   (WebAssembly via wazero)
+//   mz rosetta.nanz --asserts-force llvm   (LLVM via llvmlite)
+//
+// If all 4 agree → the algorithm is correct.
+// If they disagree → you found a backend bug!
+
+fun abs_diff(a: u8, b: u8) -> u8 {
+    if a > b { return a - b }
+    return b - a
+}
+
+fun max(a: u8, b: u8) -> u8 {
+    if a > b { return a }
+    return b
+}
+
+fun min(a: u8, b: u8) -> u8 {
+    if a < b { return a }
+    return b
+}
+
+fun clamp(x: u8, lo: u8, hi: u8) -> u8 {
+    if x < lo { return lo }
+    if x > hi { return hi }
+    return x
+}
+
+fun gcd(a: u8, b: u8) -> u8 {
+    while b > 0 {
+        let t: u8 = b
+        b = a - (a / b) * b
+        a = t
+    }
+    return a
+}
+
+fun main() -> u8 {
+    return abs_diff(3, 10)
+}
+
+// assert abs_diff(3, 10) == 7
+// assert abs_diff(10, 3) == 7
+// assert abs_diff(5, 5) == 0
+// assert max(10, 20) == 20
+// assert max(20, 10) == 20
+// assert min(10, 20) == 10
+// assert clamp(5, 0, 10) == 5
+// assert clamp(0, 3, 10) == 3
+// assert clamp(255, 0, 100) == 100
