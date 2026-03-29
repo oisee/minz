@@ -87,14 +87,16 @@ EXAMPLES:
   mza -o game.sna program.a80         # Auto-detect target from extension
   mza -l program.lst program.a80      # Generate listing
   mza -s symbols.sym program.a80      # Generate symbol table
-  mza -v program.a80                  # Verbose output`,
+  mza -v program.a80                  # Verbose output
+  mza program.asm                     # .asm extension also accepted`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		inputFile := args[0]
 
-		// Validate input file extension
-		if !strings.HasSuffix(strings.ToLower(inputFile), ".a80") {
-			fmt.Fprintf(os.Stderr, "Warning: Input file doesn't have .a80 extension\n")
+		// Accept .a80, .asm, .z80 extensions (no warning for common assembly extensions)
+		ext := strings.ToLower(filepath.Ext(inputFile))
+		if ext != ".a80" && ext != ".asm" && ext != ".z80" && ext != ".s" {
+			fmt.Fprintf(os.Stderr, "Warning: Input file has unusual extension %q (expected .a80, .asm, .z80)\n", ext)
 		}
 
 		// Infer target from output file extension if target is generic and output is specified
