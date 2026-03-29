@@ -46,6 +46,7 @@ type gen struct {
 	phiRegs  map[mir2.Reg]bool           // regs defined by phi nodes (block params)
 	instDefs map[string]map[mir2.Reg]bool // block label → set of regs defined by instructions
 	phiRemap  map[mir2.Reg]map[string]string // reg → block label → unique LLVM name (for multi-block phis)
+	reaching  map[string]map[mir2.Reg]string // block label → reg → visible LLVM name
 	curBlock  string                         // current block label being emitted
 }
 
@@ -59,11 +60,24 @@ func reg(r mir2.Reg) string {
 	return fmt.Sprintf("%%v%d", r)
 }
 
+// toBool ensures a value is i1 for branch conditions. If the register
+// type is i32 (from a zext'd CMP), emits trunc i32 → i1.
+func (g *gen) toBool(ref string, r mir2.Reg) string {
+	ty := g.regTy[r]
+	if ty == "i1" {
+		return ref
+	}
+	// CMP results are now i32 after zext; trunc back to i1 for br
+	tmp := g.tmp()
+	g.sb.WriteString(fmt.Sprintf("  %s = trunc i32 %s to i1\n", tmp, ref))
+	return tmp
+}
+
 // use returns the correct LLVM name for reading register r in the current block.
 func (g *gen) use(r mir2.Reg) string {
-	// Check if this reg has a block-specific phi rename in the current block
-	if remap, ok := g.phiRemap[r]; ok {
-		if name, ok := remap[g.curBlock]; ok {
+	// Check reaching definitions (handles multi-block phis)
+	if reach, ok := g.reaching[g.curBlock]; ok {
+		if name, ok := reach[r]; ok {
 			return name
 		}
 	}
@@ -193,6 +207,82 @@ func (g *gen) emitFunc(f *mir2.Func) {
 		}
 	}
 
+	// Compute reaching definitions for multi-phi regs.
+	// Forward pass in block order (MIR2 blocks are RPO).
+	// For each block, determine which LLVM name is visible for each renamed reg.
+	g.reaching = make(map[string]map[mir2.Reg]string)
+	if len(g.phiRemap) > 0 {
+		// Collect all regs that need reaching analysis
+		var needsReach []mir2.Reg
+		for r := range g.phiRemap {
+			needsReach = append(needsReach, r)
+		}
+		// Also include single-phi regs that have inst defs (init rename)
+		for r := range g.phiRegs {
+			if _, multi := g.phiRemap[r]; !multi {
+				needsReach = append(needsReach, r)
+			}
+		}
+
+		// Build successor map for propagation
+		blockIdx := make(map[string]int)
+		for i, b := range f.Blocks {
+			blockIdx[b.Label] = i
+			g.reaching[b.Label] = make(map[mir2.Reg]string)
+		}
+
+		// Forward pass: for each block, set reaching defs
+		for _, b := range f.Blocks {
+			for _, r := range needsReach {
+				// Check if this block defines r via phi
+				if remap, ok := g.phiRemap[r]; ok {
+					if name, ok := remap[b.Label]; ok {
+						g.reaching[b.Label][r] = name
+						continue
+					}
+				}
+				// Check if this block defines r via single phi (non-remapped)
+				isPhi := false
+				for _, bp := range b.Params {
+					if bp.Dst == r {
+						if _, multi := g.phiRemap[r]; !multi {
+							g.reaching[b.Label][r] = reg(r)
+							isPhi = true
+						}
+						break
+					}
+				}
+				if isPhi {
+					continue
+				}
+				// Check if this block defines r via instruction
+				if defs, ok := g.instDefs[b.Label]; ok && defs[r] {
+					g.reaching[b.Label][r] = initReg(r)
+					continue
+				}
+				// Inherit from first predecessor that has a reaching def
+				// (in well-formed SSA, all preds should agree)
+				inherited := false
+				for _, predB := range f.Blocks {
+					if !blockEdgesTo(predB, b.Label) {
+						continue
+					}
+					if predReach, ok := g.reaching[predB.Label]; ok {
+						if name, ok := predReach[r]; ok {
+							g.reaching[b.Label][r] = name
+							inherited = true
+							break
+						}
+					}
+				}
+				if !inherited {
+					// Fallback: use plain reg name
+					g.reaching[b.Label][r] = reg(r)
+				}
+			}
+		}
+	}
+
 	// Build register type map from all definitions
 	for _, p := range f.Contract.Params {
 		g.regTy[p.Reg] = llvmType(p.Ty)
@@ -205,7 +295,7 @@ func (g *gen) emitFunc(f *mir2.Func) {
 			if inst.Dst != mir2.NoReg {
 				g.regTy[inst.Dst] = llvmType(inst.Ty)
 				if inst.Op == mir2.OpCmp {
-					g.regTy[inst.Dst] = "i1"
+					g.regTy[inst.Dst] = "i32" // CMP now zext i1→i32 for uniform types
 				}
 				if inst.Op == mir2.OpAlloca || inst.Op == mir2.OpField || inst.Op == mir2.OpPtrAdd || inst.Op == mir2.OpPtrBump {
 					g.regTy[inst.Dst] = "ptr"
@@ -354,7 +444,10 @@ func (g *gen) emitInst(inst *mir2.Inst) {
 		if inst.SrcTy != nil {
 			cmpTy = llvmType(inst.SrcTy)
 		}
-		g.sb.WriteString(fmt.Sprintf("  %s = icmp %s %s %s, %s\n", d, pred, cmpTy, s0, s1))
+		// CMP returns i1; zext to i32 for uniform type consistency
+		cmpTmp := g.tmp()
+		g.sb.WriteString(fmt.Sprintf("  %s = icmp %s %s %s, %s\n", cmpTmp, pred, cmpTy, s0, s1))
+		g.sb.WriteString(fmt.Sprintf("  %s = zext i1 %s to i32\n", d, cmpTmp))
 
 	case mir2.OpLoad:
 		elemTy := llvmType(inst.Ty)
@@ -488,13 +581,15 @@ func (g *gen) emitTerm(term mir2.Term, f *mir2.Func) {
 		g.sb.WriteString(fmt.Sprintf("  br label %%%s\n", llvmLabel(t.Target)))
 
 	case *mir2.TermBrIf:
+		condRef := g.toBool(g.use(t.Cond), t.Cond)
 		g.sb.WriteString(fmt.Sprintf("  br i1 %s, label %%%s, label %%%s\n",
-			g.use(t.Cond), llvmLabel(t.Then), llvmLabel(t.Else)))
+			condRef, llvmLabel(t.Then), llvmLabel(t.Else)))
 
 	case *mir2.TermCondRet:
 		retTy := llvmType(contractRetTy(f))
 		tmpName := g.tmp()
-		g.sb.WriteString(fmt.Sprintf("  %s = icmp eq i1 %s, 0\n", tmpName, g.use(t.Cond)))
+		condBool := g.toBool(g.use(t.Cond), t.Cond)
+		g.sb.WriteString(fmt.Sprintf("  %s = icmp eq i1 %s, 0\n", tmpName, condBool))
 		thenLabel := llvmLabel(t.Then)
 		retLabel := fmt.Sprintf("_condret%d", g.nextTmp)
 		g.sb.WriteString(fmt.Sprintf("  br i1 %s, label %%%s, label %%%s\n",
@@ -562,21 +657,32 @@ func (g *gen) emitConvert(dst, src, fromTy, toTy string) {
 }
 
 // resolveRef returns the correct LLVM name for a register reference
-// from a specific predecessor block. Handles init renames and multi-block phi renames.
+// from a specific predecessor block.
 func (g *gen) resolveRef(r mir2.Reg, fromLabel string) string {
-	// If this reg has multi-block phi remap and the predecessor block is one of them
-	if remap, ok := g.phiRemap[r]; ok {
-		if name, ok := remap[fromLabel]; ok {
+	// Use reaching definitions
+	if reach, ok := g.reaching[fromLabel]; ok {
+		if name, ok := reach[r]; ok {
 			return name
 		}
 	}
-	// If defined by an instruction in the predecessor (and also a phi elsewhere)
+	// Fallback for non-renamed regs
 	if g.phiRegs[r] {
 		if defs, ok := g.instDefs[fromLabel]; ok && defs[r] {
 			return initReg(r)
 		}
 	}
 	return reg(r)
+}
+
+// blockEdgesTo returns true if block b has an edge to the given target label.
+func blockEdgesTo(b *mir2.Block, target string) bool {
+	found := false
+	b.Term.ForEachEdge(func(t string, args []mir2.Reg, idx int) {
+		if t == target {
+			found = true
+		}
+	})
+	return found
 }
 
 // ── helpers ──────────────────────────────────────────────────────────────
@@ -607,7 +713,7 @@ func llvmType(ty mir2.Ty) string {
 	case mir2.TyVoid:
 		return "void"
 	case mir2.TyBool:
-		return "i1"
+		return "i32" // uniform i32, CMP results are zext'd to i32
 	case mir2.TyPtr:
 		return "ptr"
 	}
