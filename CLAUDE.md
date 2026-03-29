@@ -333,6 +333,48 @@ let add = |x: u8, y: u8| => u8 { x + y };
 add(5, 3)  // Direct CALL - 100% performance
 ```
 
+## 📚 GPU-Optimal Arithmetic Library (NEW)
+
+**Status:** Production. Scalar operator overloading + GPU-proven optimal sequences.
+
+### Scalar Operator Overloading
+`fun *(a: u8, b: u8) -> u16` — widening multiply fires transparently for scalar types.
+Multi-dispatch by (lhsTy, rhsTy): exact type match for scalars, legacy struct match for custom types.
+Enables zero-overhead widening/narrowing arithmetic via operator syntax.
+
+### GPU-Precomputed Tables (from z80-optimizer)
+| Table | Entries | Source | Used in |
+|-------|---------|--------|---------|
+| mul8 A×K→A | 254/254 | `mulopt8_clobber.json` | VIR pipeline, inlined at `CALL __mul8` |
+| mul16 HL×K→HL | 254/254 | `mulopt16_complete.json` | VIR pipeline, inlined at `CALL __mul16` |
+| u32 ops (DEHL) | 13 ops | `u32_ops.json` | Loaded, codegen pending |
+| divmod8 A÷K | WIP | multiply-and-shift (analytical + GPU verify) | Pending |
+
+### u32 Arithmetic (DEHL convention, verified optimal)
+| Op | T-states | Insts | Key insight |
+|----|----------|-------|-------------|
+| SHL32 | 34T | 4 | ADD HL,HL + EX + ADC HL,HL + EX (proven optimal) |
+| SHR32 | 32T | 4 | SRL D / RR E / RR H / RR L (proven optimal) |
+| SAR32 | 32T | 4 | SRA D (preserves sign) / RR chain |
+| ADD32 | 54T | 6 | POP BC / ADD HL,BC / POP BC / EX / ADC HL,BC / EX |
+| SUB32 | 58T | 7 | OR A (clear CY) + SBC HL,BC chain |
+| NEG32 | 57T | 12 | XOR A / SUB L / LD A,0 (not XOR! preserves CY) / SBC chain |
+| CMP32==0 | 16T | 4 | LD A,D / OR E / OR H / OR L |
+| SEXT16→32 | 24T | 5 | RLA + SBC A,A trick (sign → CY → 0xFF/0x00) |
+| XOR32 | 100T | 16 | Byte-by-byte (no native 16-bit XOR) |
+| ROTR32 | 32-40T | 6 | For SHA-256 rounds (~800T/round, 15ms/block @3.5MHz) |
+
+### widemath.nanz — Arithmetic showcase (31 asserts)
+Widening mul (u8×u8→u16), abs, sign, min, max, clamp, sat_add, sat_sub,
+abs_diff, pixel_distance, brightness_blend. Both scalar overload + newtype W8 variants.
+
+### mul16 GPU Speedups
+| Constant | GPU-optimal | Generic loop | Speedup |
+|----------|------------|--------------|---------|
+| ×3 | 26T | ~200T | 7.7× |
+| ×10 | 48T | ~200T | 4.2× |
+| ×100 | 92T | ~200T | 2.2× |
+
 ## 📚 Standard Library (v0.15.0+)
 
 MinZ includes a comprehensive stdlib optimized for Z80/retro systems:
@@ -537,7 +579,9 @@ fun main() {
 | All examples | 131/173 (75%) — failures in agon, cpm, feature_tests, zvdb, zx_demos |
 | Stdlib modules | 12 documented (real), ~35-40 of 55 files compile |
 | Z80 emulator coverage | 100% (1335/1335 FUSE) |
-| Peephole patterns | 67 (asm) + MIR passes |
+| Peephole patterns | 67 (asm) + MIR passes + 500 GPU-proven peephole rules |
+| GPU mul tables | 254 mul8 (A×K→A) + 254 mul16 (HL×K→HL) + 13 u32 ops |
+| Scalar op overload | `fun *(a: u8, b: u8) -> u16` — widening arithmetic via operator syntax |
 | Production backends | 1 (Z80) + 1 partial (C) + 1 QBE (correctness oracle) + 8 experimental |
 | LIR backend | **948/948 pipeline** (100%), **97.9% VM-verified** (C89/risc32) — PBQP→WFC guided, IXH/IXL spill, __mul8/__mul16, tail call opt |
 | VIR backend | **645/645 functions** (100%), **55/55 Z80-verified**, **-60% vs SDCC** — Z3 unified solver, Z3-PFCCO, inline runtime, zero PBQP fallback |
