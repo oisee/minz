@@ -60,53 +60,16 @@ fun add32_hi(a_hi: u16, a_lo: u16, b_hi: u16, b_lo: u16) -> u16 {
 
 // ── Bitwise u32 ops ──────────────────────────────────────────
 
-// XOR via arithmetic: a^b = (a|b) - (a&b)
-// But OR also may have VM issues. Use: a^b = (a+b) - 2*(a&b)
-// AND via arithmetic: a&b needs bitwise... use lookup or loop.
-// Simplest: bit-by-bit XOR loop (works on MIR2 VM)
-fun xor8(a: u8, b: u8) -> u8 {
-    var result: u8 = 0
-    var bit: u8 = 1
-    var i: u8 = 0
-    var aa: u8 = a
-    var bb: u8 = b
-    while i < 8 {
-        let ab: u8 = aa % 2
-        let bb_bit: u8 = bb % 2
-        if ab != bb_bit { result = result + bit }
-        aa = aa / 2
-        bb = bb / 2
-        bit = bit + bit
-        i = i + 1
-    }
-    return result
-}
-
-fun and8(a: u8, b: u8) -> u8 {
-    var result: u8 = 0
-    var bit: u8 = 1
-    var i: u8 = 0
-    var aa: u8 = a
-    var bb: u8 = b
-    while i < 8 {
-        if aa % 2 == 1 {
-            if bb % 2 == 1 { result = result + bit }
-        }
-        aa = aa / 2
-        bb = bb / 2
-        bit = bit + bit
-        i = i + 1
-    }
-    return result
-}
+// Nanz: ^ = pointer deref, `xor` keyword = bitwise XOR
+// & = bitwise AND, | = bitwise OR (keywords also work)
 
 fun xor16(a: u16, b: u16) -> u16 {
     let al: u8 = a % 256
     let ah: u8 = a / 256
     let bl: u8 = b % 256
     let bh: u8 = b / 256
-    let rl: u8 = xor8(al, bl)
-    let rh: u8 = xor8(ah, bh)
+    let rl: u8 = al xor bl
+    let rh: u8 = ah xor bh
     let lo: u16 = rl
     let hi: u16 = rh
     return hi * 256 + lo
@@ -117,8 +80,8 @@ fun and16(a: u16, b: u16) -> u16 {
     let ah: u8 = a / 256
     let bl: u8 = b % 256
     let bh: u8 = b / 256
-    let rl: u8 = and8(al, bl)
-    let rh: u8 = and8(ah, bh)
+    let rl: u8 = al & bl
+    let rh: u8 = ah & bh
     let lo: u16 = rl
     let hi: u16 = rh
     return hi * 256 + lo
@@ -127,8 +90,8 @@ fun and16(a: u16, b: u16) -> u16 {
 fun not16(a: u16) -> u16 {
     let al: u8 = a % 256
     let ah: u8 = a / 256
-    let rl: u8 = xor8(al, 255)
-    let rh: u8 = xor8(ah, 255)
+    let rl: u8 = al xor 255
+    let rh: u8 = ah xor 255
     let lo: u16 = rl
     let hi: u16 = rh
     return hi * 256 + lo
