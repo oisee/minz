@@ -239,11 +239,11 @@ func (t *RegAllocTable) loadDefaults() {
 		t.LoadEnriched(p)
 	}
 
-	// Try Z80T binary enriched tables (37.6M entries, .z80t files)
+	// Try ENRT binary enriched tables. Only load 4v (4MB) by default.
+	// 5v (387MB) and 6v (899MB) are too large for startup — use VIR_ENRICHED_5V/6V env.
 	for _, p := range []string{
+		os.ExpandEnv("$HOME/dev/minz-vir/data/enriched_4v.z80t"),
 		os.ExpandEnv("$HOME/dev/z80-optimizer/data/enriched_4v.z80t"),
-		os.ExpandEnv("$HOME/dev/z80-optimizer/data/enriched_5v.z80t"),
-		os.ExpandEnv("$HOME/dev/z80-optimizer/data/enriched_6v.z80t"),
 	} {
 		bt, err := LoadEnrichedBinary(p)
 		if err != nil {
@@ -253,6 +253,19 @@ func (t *RegAllocTable) loadDefaults() {
 		t.binaryTables = append(t.binaryTables, bt)
 		fmt.Fprintf(os.Stderr, "[regalloc] loaded %d enriched binary entries (%d feasible) from %s\n",
 			total, feasible, p)
+		break
+	}
+	// Optionally load 5v/6v via env vars (large files, explicit opt-in)
+	for _, envKey := range []string{"VIR_ENRICHED_5V", "VIR_ENRICHED_6V"} {
+		if p := os.Getenv(envKey); p != "" {
+			bt, err := LoadEnrichedBinary(p)
+			if err == nil {
+				total, feasible, _ := bt.Stats()
+				t.binaryTables = append(t.binaryTables, bt)
+				fmt.Fprintf(os.Stderr, "[regalloc] loaded %d enriched binary entries (%d feasible) from %s\n",
+					total, feasible, p)
+			}
+		}
 	}
 }
 

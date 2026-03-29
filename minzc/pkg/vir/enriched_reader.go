@@ -21,10 +21,12 @@ import (
 	"os"
 )
 
-// EnrichedEntry is a single register allocation result from Z80T binary table.
+// EnrichedEntry is a single register allocation result from ENRT binary table.
 type EnrichedEntry struct {
-	Cost       int    // T-states cost, -1 if infeasible
-	Assignment []byte // physical location per vreg (nil if infeasible)
+	Cost         int      // T-states cost, -1 if infeasible
+	Assignment   []byte   // physical location per vreg (nil if infeasible)
+	Flags        uint16   // feasibility flags (no_accumulator, mul8_safe, etc.)
+	PatternCosts []uint16 // per-pattern-category costs (12 metrics)
 }
 
 // Infeasible returns true if no valid assignment exists for this shape.
@@ -35,8 +37,9 @@ type EnrichedBinaryTable struct {
 	Entries []EnrichedEntry
 }
 
-// LoadBinary reads a Z80T binary table (optionally zstd-compressed).
-// Returns a Table with entries indexed by enumeration order.
+// LoadEnrichedBinary reads an ENRT binary table.
+// Header: 4B magic "ENRT" + 4B version(LE) + 4B count(LE) + 1B maxVregs + 1B nMetrics + 2B reserved = 16 bytes.
+// Per-entry: 0xFF=infeasible, or nVregs(1) + cost(2 LE) + assignment[nVregs] + flags(2 LE) + nMetrics×cost(2 LE each).
 func LoadEnrichedBinary(path string) (*EnrichedBinaryTable, error) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -44,13 +47,13 @@ func LoadEnrichedBinary(path string) (*EnrichedBinaryTable, error) {
 	}
 	defer f.Close()
 
-	// Read header
+	// Read 16-byte header
 	var magic [4]byte
 	if _, err := io.ReadFull(f, magic[:]); err != nil {
 		return nil, fmt.Errorf("read magic: %w", err)
 	}
-	if string(magic[:]) != "Z80T" {
-		return nil, fmt.Errorf("bad magic: %q (expected Z80T)", magic)
+	if string(magic[:]) != "ENRT" {
+		return nil, fmt.Errorf("bad magic: %q (expected ENRT)", magic)
 	}
 
 	var version uint32
@@ -61,8 +64,19 @@ func LoadEnrichedBinary(path string) (*EnrichedBinaryTable, error) {
 		return nil, fmt.Errorf("unsupported version: %d", version)
 	}
 
+	var count uint32
+	if err := binary.Read(f, binary.LittleEndian, &count); err != nil {
+		return nil, fmt.Errorf("read count: %w", err)
+	}
+
+	var maxVregs, nMetrics uint8
+	binary.Read(f, binary.LittleEndian, &maxVregs)
+	binary.Read(f, binary.LittleEndian, &nMetrics)
+	var reserved uint16
+	binary.Read(f, binary.LittleEndian, &reserved)
+
 	// Read all records
-	var entries []EnrichedEntry
+	entries := make([]EnrichedEntry, 0, count)
 	buf := make([]byte, 1)
 
 	for {
@@ -89,7 +103,18 @@ func LoadEnrichedBinary(path string) (*EnrichedBinaryTable, error) {
 			if _, err := io.ReadFull(f, assign); err != nil {
 				return nil, fmt.Errorf("read assignment at record %d: %w", len(entries), err)
 			}
-			entries = append(entries, EnrichedEntry{Cost: int(cost), Assignment: assign})
+			// Read flags (2 bytes)
+			var flags uint16
+			binary.Read(f, binary.LittleEndian, &flags)
+			// Read pattern costs (nMetrics × 2 bytes each)
+			patternCosts := make([]uint16, nMetrics)
+			for i := range patternCosts {
+				binary.Read(f, binary.LittleEndian, &patternCosts[i])
+			}
+			entries = append(entries, EnrichedEntry{
+				Cost: int(cost), Assignment: assign,
+				Flags: flags, PatternCosts: patternCosts,
+			})
 		}
 	}
 
