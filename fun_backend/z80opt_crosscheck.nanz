@@ -1,0 +1,44 @@
+// Cross-check z80-optimizer exhaustive search results.
+// Verify sat_add8, sat_sub8 semantics via MIR2 VM and LLVM.
+
+fun sat_add8(a: u8, b: u8) -> u8 {
+    let sum: u8 = a + b
+    if sum < a { return 255 }
+    return sum
+}
+
+fun sat_sub8(a: u8, b: u8) -> u8 {
+    if b > a { return 0 }
+    return a - b
+}
+
+fun div8_ge128(a: u8) -> u8 {
+    if a >= 128 { return 1 }
+    return 0
+}
+
+fun main() -> u8 {
+    return sat_add8(200, 100)
+}
+
+// === sat_add8: branchless saturating add ===
+// assert sat_add8(100, 50) == 150
+// assert sat_add8(200, 100) == 255
+// assert sat_add8(255, 1) == 255
+// assert sat_add8(0, 0) == 0
+// assert sat_add8(128, 127) == 255
+// assert sat_add8(128, 128) == 255
+// assert sat_add8(1, 254) == 255
+
+// === sat_sub8: branchless saturating subtract ===
+// assert sat_sub8(100, 50) == 50
+// assert sat_sub8(50, 100) == 0
+// assert sat_sub8(0, 1) == 0
+// assert sat_sub8(255, 255) == 0
+// assert sat_sub8(255, 0) == 255
+
+// === div8 carry compare (K>=128 threshold) ===
+// assert div8_ge128(0) == 0
+// assert div8_ge128(127) == 0
+// assert div8_ge128(128) == 1
+// assert div8_ge128(255) == 1
