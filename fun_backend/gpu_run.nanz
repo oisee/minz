@@ -1,0 +1,17 @@
+// GPU-executable program — actually runs on NVIDIA CUDA!
+//
+// Try:
+//   mz gpu_run.nanz --emit cuda -o /tmp/gpu.cu
+//   nvcc /tmp/gpu.cu /tmp/gpu_harness.cu -o /tmp/gpu_test
+//   /tmp/gpu_test
+//
+// Output: each function runs on 256 GPU threads in parallel,
+// with tid as first argument. Results verified on host.
+
+fun add(a: u8, b: u8) -> u8 { return a + b }
+fun square(x: u8) -> u8 { return x * x }
+fun double(x: u8) -> u8 { return x + x }
+
+fun main() -> u8 {
+    return add(3, 4)
+}
