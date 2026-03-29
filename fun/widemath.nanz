@@ -6,6 +6,10 @@
 // Two approaches:
 //   B) Scalar overload:  fun *(a: u8, b: u8) -> u16   — transparent
 //   A) Newtype wrapper:  struct W8 { v: u8 }           — explicit opt-in
+//
+// HOW TO RUN:
+//   mz fun/widemath.nanz --asserts mir2        # 31 asserts, all pass
+//   mz fun/widemath.nanz -o build/math.a80     # compile to Z80 asm
 
 // ═══════════════════════════════════════════════════════════
 // Part 1: Widening multiply — u8 * u8 -> u16

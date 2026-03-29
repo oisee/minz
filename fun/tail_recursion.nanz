@@ -1,8 +1,10 @@
 // Tail-recursive algorithms — O(n), single stack frame
 // Tail call: last operation is CALL → optimizable to JP (no stack growth)
 //
-// Currently PBQP fallback on Z80 (VIR timeout on recursion).
-// Z80 asserts blocked by CALL clobber bug — use mir2 only.
+// HOW TO RUN:
+//   mz fun/tail_recursion.nanz --asserts mir2     # 17 asserts, all pass
+//   mz fun/tail_recursion.nanz -o build/tail.a80  # compile to Z80 asm
+//   # Note: Z80 asserts currently blocked by CALL clobber bug — mir2 only
 
 // Fibonacci with accumulator
 fun fib_tail(n: u8, a: u8, b: u8) -> u8 {

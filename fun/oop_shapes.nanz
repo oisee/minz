@@ -4,6 +4,10 @@
 //   - impl Trait for Type { fun method(self) ... }
 //   - UFCS dispatch: obj.method()
 //   - Multiple traits per type
+//
+// HOW TO RUN:
+//   mz fun/oop_shapes.nanz --asserts mir2      # 4 asserts, all pass
+//   mz fun/oop_shapes.nanz -o build/oop.a80    # see zero-cost dispatch in asm
 //   - Methods with extra params
 
 struct Circle {

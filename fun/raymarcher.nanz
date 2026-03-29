@@ -1,11 +1,13 @@
 // raymarcher.nanz — SDF Raymarcher with Vec3, CSG, and operator overloading
 //
 // Renders a sphere with a box carved out using signed distance functions.
-// Demonstrates: struct, impl, UFCS, operator overloading, for..in range,
+// Demonstrates: struct, impl, UFCS, operator overloading,
 // fixed-point math (8.8), CSG boolean operations.
 //
-// Run:  mzv fun/raymarcher.nanz --zx
-//       mzv fun/raymarcher.nanz
+// HOW TO RUN:
+//   mz fun/raymarcher.nanz --asserts mir2          # verify math (3 asserts)
+//   mz fun/raymarcher.nanz -o build/ray.a80        # compile to Z80 asm
+//   NOTE: compilation may be slow (~2 min) due to Z3 solver on complex functions
 
 // ── Fixed-Point 8.8 ─────────────────────────────────────────
 

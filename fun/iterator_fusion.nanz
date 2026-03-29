@@ -4,6 +4,11 @@
 //   for each byte in buf[0..n]:
 //     double it
 //     keep only if > threshold
+//
+// HOW TO RUN:
+//   mz fun/iterator_fusion.nanz -o build/iter.a80   # compile to Z80 asm
+//   # Look at the asm — three operations fused into ONE DJNZ loop!
+//   # No asserts (conceptual demo), but compiles clean.
 //     call process() on survivors
 //
 // What C would need:

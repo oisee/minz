@@ -2,6 +2,10 @@
 //
 // match with payload destructuring: Some(val) => val
 // Zero-cost: compiles to tag check + payload extraction
+//
+// HOW TO RUN:
+//   mz fun/adt_option.nanz --asserts mir2      # 5 asserts, all pass
+//   mz fun/adt_option.nanz -o build/adt.a80    # compile to Z80 asm
 
 enum Option { None, Some(u8) }
 

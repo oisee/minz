@@ -1,6 +1,10 @@
-(* Frill Graphics — pure pattern functions for pixel art on Z80 *)
-(* Demonstrates: ADT, pattern matching, bitwise ops, functional composition *)
-(* These generate pixel data — rendering happens at Z80 runtime *)
+(* Frill Graphics — pure pattern functions for pixel art on Z80
+   Demonstrates: ADT, pattern matching, bitwise ops, functional composition
+
+   HOW TO RUN:
+     mz fun/frill_graphics.frl --asserts mir2       -- 20+ asserts, all pass
+     mzv examples/frill/graphics.frl                -- full visual version with canvas
+*)
 
 -- ═══════════════════════════════════════════
 -- Color palette (ZX Spectrum)

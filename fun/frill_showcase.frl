@@ -1,4 +1,9 @@
-(* Frill showcase — every feature in one file, 50+ assertions *)
+(* Frill showcase — every feature in one file, 50+ assertions
+
+   HOW TO RUN:
+     mz fun/frill_showcase.frl --asserts mir2     -- 50+ asserts, all pass
+     mz fun/frill_showcase.frl -o build/frill.a80 -- compile to Z80 asm
+*)
 
 -- ═══════════════════════════════════════════
 -- 1. Basic functions + type inference

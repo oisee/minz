@@ -2,6 +2,10 @@
 //
 // Game entity states: Idle, Walking, Jumping, Dead
 // Transitions via match expression.
+//
+// HOW TO RUN:
+//   mz fun/state_machine.nanz --asserts mir2     # 12 asserts, all pass
+//   mz fun/state_machine.nanz -o build/sm.a80    # compile to Z80 asm
 
 enum State { Idle, Walking, Jumping, Dead }
 

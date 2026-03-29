@@ -1,9 +1,11 @@
 // vectors.nanz — 2D/3D Vector library with operator overloading + UFCS
 //
 // Demonstrates: struct, operator overloading for both structs AND scalars,
-// UFCS method calls, widening multiply, interface-like patterns.
+// UFCS method calls, widening multiply (u8*u8→u16), interface-like patterns.
 //
-// Run:  mz fun/vectors.nanz --asserts mir2
+// HOW TO RUN:
+//   mz fun/vectors.nanz --asserts mir2         # 6 asserts, all pass
+//   mz fun/vectors.nanz -o build/vec.a80       # see GPU-optimal mul16 in asm
 
 // ── Widening multiply: u8 * u8 -> u16 ──────────────────────
 

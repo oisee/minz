@@ -1,12 +1,13 @@
 // sha256.nanz — SHA-256 hash on Z80 via u32 arithmetic
 //
-// Demonstrates u32 operations: ROTR, XOR, AND, ADD, SHR
-// Uses DEHL convention from u32_ops.json (D=MSB, L=LSB)
+// Demonstrates u32 operations: XOR, AND, ADD with carry propagation.
+// Uses DEHL convention from u32_ops.json (D=MSB, L=LSB).
+// Reminder: in Nanz ^ = pointer deref, use `xor` keyword for bitwise XOR!
 //
-// SHA-256 processes 64-byte (512-bit) blocks.
-// Each block: 64 rounds, each round ~800T ≈ 15ms @3.5MHz per block.
-//
-// This is a proof-of-concept: compiles, assembles, runs basic test vectors.
+// HOW TO RUN:
+//   mz fun/sha256.nanz --asserts mir2           # 6 asserts, all pass
+//   mz fun/sha256.nanz -o build/sha.a80         # compile to Z80 asm
+//   mza build/sha.a80 -o build/sha256.bin       # assemble → 808 bytes!
 
 // ── u32 helpers (will map to GPU-optimal sequences) ─────────
 

@@ -1,4 +1,9 @@
-(* Pipe operator tests *)
+(* Pipe operator |> and function composition >>
+
+   HOW TO RUN:
+     mz fun/pipes.frl --asserts mir2       -- 9 asserts, all pass
+     mz fun/pipes.frl -o build/pipes.a80   -- compile to Z80 asm
+*)
 let double (x : u8) : u8 = x + x
 let inc (x : u8) : u8 = x + 1
 let dec (x : u8) : u8 = x - 1
