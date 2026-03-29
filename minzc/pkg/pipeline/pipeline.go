@@ -26,6 +26,7 @@ import (
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/lir"
 	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/mir2llvm"
 	"github.com/minz/minzc/pkg/mir2wasm"
 	"github.com/minz/minzc/pkg/vir"
 	"github.com/minz/minzc/pkg/z80asm"
@@ -43,6 +44,7 @@ type Steps struct {
 	HIR        string                   // HIR structural dump (hir.Module.Dump())
 	MIR2Raw    string                   // MIR2 module dump before optimisation passes
 	MIR2Opt    string                   // MIR2 module dump after DSE + ReorderBlocks
+	MIR2Module *mir2.Module             // MIR2 module (for LLVM/WASM/ABAP emit)
 	Assembly   string                   // Final .a80 text
 	LIRResults []lir.ConvergenceResult  // LIR convergence check results (if LIRCheck enabled)
 	Traces     map[string]*FuncTrace    // per-function compilation trace (keyed by func name)
@@ -227,6 +229,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		}
 	}
 	s.MIR2Opt = m.Dump()
+	s.MIR2Module = m
 
 	// Structural verification.
 	if err := mir2.Verify(m); err != nil {
@@ -515,6 +518,13 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	// WASM assertion checks — only when explicit "via wasm" or --asserts-force wasm.
 	if opt.AssertMode == "wasm" {
 		if err := mir2wasm.RunAsserts(hm, m, true); err != nil {
+			return s, err
+		}
+	}
+
+	// LLVM assertion checks — only when explicit "via llvm" or --asserts-force llvm.
+	if opt.AssertMode == "llvm" {
+		if err := mir2llvm.RunAsserts(hm, m, true); err != nil {
 			return s, err
 		}
 	}

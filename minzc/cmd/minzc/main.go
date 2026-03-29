@@ -25,6 +25,8 @@ import (
 	"github.com/minz/minzc/pkg/lir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/mir2gpu"
+	"github.com/minz/minzc/pkg/mir2llvm"
+	"github.com/minz/minzc/pkg/mir2wasm"
 	"github.com/minz/minzc/pkg/pascal"
 	"github.com/minz/minzc/pkg/pipeline"
 	"github.com/minz/minzc/pkg/plm"
@@ -217,11 +219,11 @@ func init() {
 	rootCmd.Flags().BoolVar(&useVIR, "vir", true, "use VIR backend (Z3 joint isel+regalloc, -71% vs SDCC) [default]")
 	rootCmd.Flags().BoolVar(&useZ3, "z3", false, "use Z3 SMT solver for optimal register allocation (slower, provably optimal)")
 	rootCmd.Flags().BoolVar(&optSize, "Osize", false, "optimize for code size: Grace reroll (repeated CALLs → DJNZ loop + data table)")
-	rootCmd.Flags().StringVar(&assertMode, "asserts", "", "assert backend: mir2, z80, wasm, all (default), none")
-	rootCmd.Flags().StringVar(&assertForce, "asserts-force", "", "force ALL asserts to run on this backend (mir2, z80, or wasm), ignoring 'via' annotations")
+	rootCmd.Flags().StringVar(&assertMode, "asserts", "", "assert backend: mir2, z80, wasm, llvm, all (default), none")
+	rootCmd.Flags().StringVar(&assertForce, "asserts-force", "", "force ALL asserts to run on this backend (mir2, z80, wasm, or llvm), ignoring 'via' annotations")
 	rootCmd.Flags().BoolVar(&emitSLD, "emit-sld", false, "emit SLD file for DeZog source-level debugging")
 	rootCmd.Flags().BoolVar(&annotateTStates, "annotate-tstates", false, "annotate each Z80 instruction with its T-state cost")
-	rootCmd.Flags().StringVar(&emitFormat, "emit", "", "emit format: nanz (HIR as Nanz syntax), hir (HIR typed tree), lanz (HIR as S-expr), mir2-raw, mir2 (works with .plm/.nanz/.lanz input)")
+	rootCmd.Flags().StringVar(&emitFormat, "emit", "", "emit format: nanz, hir, lanz, mir2-raw, mir2, llvm, wasm (works with .plm/.nanz/.lanz input)")
 }
 
 func main() {
@@ -930,6 +932,36 @@ func compileViaHIR(sourceFile string) error {
 	// --emit=mir2-raw  → raw MIR2 before optimisation passes
 	if emitFormat == "mir2-raw" {
 		text := steps.MIR2Raw
+		if outputFile != "" {
+			if err := os.WriteFile(outputFile, []byte(text), 0644); err != nil {
+				return fmt.Errorf("write %s: %w", outputFile, err)
+			}
+		} else {
+			fmt.Print(text)
+		}
+		return nil
+	}
+	// --emit=llvm  → MIR2 as LLVM IR text (.ll format)
+	if emitFormat == "llvm" {
+		text, err := mir2llvm.Compile(steps.MIR2Module)
+		if err != nil {
+			return fmt.Errorf("llvm compile: %w", err)
+		}
+		if outputFile != "" {
+			if err := os.WriteFile(outputFile, []byte(text), 0644); err != nil {
+				return fmt.Errorf("write %s: %w", outputFile, err)
+			}
+		} else {
+			fmt.Print(text)
+		}
+		return nil
+	}
+	// --emit=wasm  → MIR2 as WebAssembly text (.wat format)
+	if emitFormat == "wasm" {
+		text, err := mir2wasm.Compile(steps.MIR2Module)
+		if err != nil {
+			return fmt.Errorf("wasm compile: %w", err)
+		}
 		if outputFile != "" {
 			if err := os.WriteFile(outputFile, []byte(text), 0644); err != nil {
 				return fmt.Errorf("write %s: %w", outputFile, err)

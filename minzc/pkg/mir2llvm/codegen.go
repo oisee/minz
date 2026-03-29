@@ -182,7 +182,12 @@ func (g *gen) emitInst(inst *mir2.Inst) {
 
 	case mir2.OpCmp:
 		pred := llvmCmpPred(inst.Cond)
-		g.sb.WriteString(fmt.Sprintf("  %%%d = icmp %s %s %%%d, %%%d\n", dst, pred, ty, src0, src1))
+		// CMP result is i1 but operands are the source type
+		cmpTy := "i8" // default for u8 operands
+		if inst.SrcTy != nil {
+			cmpTy = llvmType(inst.SrcTy)
+		}
+		g.sb.WriteString(fmt.Sprintf("  %%%d = icmp %s %s %%%d, %%%d\n", dst, pred, cmpTy, src0, src1))
 
 	case mir2.OpLoad:
 		elemTy := llvmType(inst.Ty)
@@ -207,8 +212,13 @@ func (g *gen) emitInst(inst *mir2.Inst) {
 	case mir2.OpCall:
 		callRetTy := llvmType(inst.Ty)
 		var args []string
-		for _, arg := range inst.Args {
-			args = append(args, fmt.Sprintf("i32 %%%d", arg))
+		callee := g.mod.FuncByName(inst.Sym)
+		for i, arg := range inst.Args {
+			argTy := "i8" // default
+			if callee != nil && i < len(callee.Contract.Params) {
+				argTy = llvmType(callee.Contract.Params[i].Ty)
+			}
+			args = append(args, fmt.Sprintf("%s %%%d", argTy, arg))
 		}
 		callName := llvmSym(inst.Sym)
 		if dst != mir2.NoReg {
