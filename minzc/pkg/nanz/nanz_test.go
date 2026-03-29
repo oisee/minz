@@ -886,6 +886,82 @@ fun prim(x: u8, y: u8) -> u8 {
 	}
 }
 
+func TestScalarOperatorOverload(t *testing.T) {
+	// Scalar operator overloading: fun *(a: u8, b: u8) -> u16 should fire
+	// for u8 * u8, emitting a CallExpr instead of BinExpr.
+	src := `fun *(a: u8, b: u8) -> u16 {
+    return 0
+}
+
+fun test(x: u8, y: u8) -> u16 {
+    return x * y
+}
+`
+	m, err := nanz.Parse(src, "scalar_op_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+
+	var test *hir.Func
+	for _, f := range m.Funcs {
+		if f.Name == "test" {
+			test = f
+		}
+	}
+	if test == nil {
+		t.Fatal("test func not found")
+	}
+	ret, ok := test.Body.Body[0].(*hir.ReturnStmt)
+	if !ok {
+		t.Fatalf("body[0]: want ReturnStmt, got %T", test.Body.Body[0])
+	}
+	// x * y with u8 operands and *(u8,u8)->u16 declared → should be CallExpr
+	call, isCall := ret.Val.(*hir.CallExpr)
+	if !isCall {
+		t.Fatalf("scalar * overload should produce CallExpr, got %T", ret.Val)
+	}
+	if call.Fn != "op_mul_u8_u8" {
+		t.Errorf("funcName = %q, want op_mul_u8_u8", call.Fn)
+	}
+	if call.Ty != mir2.TyU16 {
+		t.Errorf("retTy = %v, want u16", call.Ty)
+	}
+}
+
+func TestScalarOverloadDoesNotAffectOtherTypes(t *testing.T) {
+	// A u8*u8->u16 overload should NOT fire for u16*u16 — that stays BinExpr.
+	src := `fun *(a: u8, b: u8) -> u16 {
+    return 0
+}
+
+fun test16(x: u16, y: u16) -> u16 {
+    return x * y
+}
+`
+	m, err := nanz.Parse(src, "scalar_no_cross_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+
+	var test *hir.Func
+	for _, f := range m.Funcs {
+		if f.Name == "test16" {
+			test = f
+		}
+	}
+	if test == nil {
+		t.Fatal("test16 func not found")
+	}
+	ret, ok := test.Body.Body[0].(*hir.ReturnStmt)
+	if !ok {
+		t.Fatalf("body[0]: want ReturnStmt, got %T", test.Body.Body[0])
+	}
+	// u16 * u16 with only *(u8,u8)->u16 declared → should stay BinExpr
+	if _, isBin := ret.Val.(*hir.BinExpr); !isBin {
+		t.Errorf("u16 * u16 should stay BinExpr (no matching overload), got %T", ret.Val)
+	}
+}
+
 // ── Struct field offset resolution ────────────────────────────────────────────
 
 func TestStructFieldOffsets(t *testing.T) {

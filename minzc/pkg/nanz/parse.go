@@ -460,9 +460,13 @@ type methodInfo struct {
 	retTy    mir2.Ty
 }
 
-// opOverload records an operator overload's mangled function name and return type.
+// opOverload records an operator overload's mangled function name, parameter types,
+// and return type. Multiple overloads per operator symbol are supported — dispatch
+// matches (lhsTy, rhsTy) at the call site.
 type opOverload struct {
 	funcName string
+	lhsTy    mir2.Ty // nil = any (legacy struct-only overloads)
+	rhsTy    mir2.Ty // nil = any
 	retTy    mir2.Ty
 }
 
@@ -497,7 +501,7 @@ type parser struct {
 	varInterfaceTypes    map[string]string               // current function scope: varname → interface name
 	varPtrElem           map[string]*mir2.StructTy       // current function scope: varname → pointed-to struct (for ^Struct params)
 	methodTable          map[string]map[string]methodInfo // structName → methodName → info
-	opTable     map[string]opOverload             // op symbol ("+", "-", ...) → overload
+	opTable     map[string][]opOverload            // op symbol ("+", "-", ...) → overloads (multi-dispatch)
 	// use-before-init analysis
 	uninitVars  map[string]int  // varname → declaration line; nil disables tracking (at branches)
 	warnings    []string        // accumulated diagnostic warnings
@@ -636,7 +640,7 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	p.structs = make(map[string]*mir2.StructTy)
 	p.interfaces = make(map[string]*hir.InterfaceDecl)
 	p.methodTable = make(map[string]map[string]methodInfo)
-	p.opTable = make(map[string]opOverload)
+	p.opTable = make(map[string][]opOverload)
 	p.funcSigs = make(map[string]mir2.Ty)
 	p.funcParamTys = make(map[string][]mir2.Ty)
 	p.varEnumType = make(map[string]string)
@@ -2405,6 +2409,18 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 		}
 	}
 
+	// Mangle funcName for scalar operator overloads BEFORE registering signatures.
+	// Scalar overloads get type suffixes (e.g. op_mul_u8_u8) to avoid collisions.
+	// Struct overloads keep the plain name (e.g. op_mul).
+	var opLTy, opRTy mir2.Ty
+	if opSym != "" && len(params) >= 2 {
+		opLTy = params[0].Ty
+		opRTy = params[1].Ty
+		if _, isStruct := opLTy.(*mir2.StructTy); !isStruct {
+			funcName = funcName + "_" + opLTy.String() + "_" + opRTy.String()
+		}
+	}
+
 	// Register function signature for call-site typing.
 	p.funcSigs[funcName] = retTy
 	{
@@ -2417,7 +2433,9 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 
 	// Update method/op tables now that we know the return type
 	if opSym != "" {
-		p.opTable[opSym] = opOverload{funcName: funcName, retTy: retTy}
+		p.opTable[opSym] = append(p.opTable[opSym], opOverload{
+			funcName: funcName, lhsTy: opLTy, rhsTy: opRTy, retTy: retTy,
+		})
 	} else {
 		// Update methodTable if this is a struct method (find by funcName)
 		for structName, methods := range p.methodTable {
@@ -4224,10 +4242,13 @@ func (p *parser) parseBinary(minPrec int) (hir.Expr, error) {
 		if err != nil {
 			return nil, err
 		}
-		// Operator overloading: if lhs is a struct type and this op has an overload,
-		// emit a CallExpr instead of BinExpr.
-		if ov, hasOv := p.opTable[bo.op]; hasOv {
-			if _, isStruct := p.exprTy(lhs).(*mir2.StructTy); isStruct {
+		// Operator overloading: multi-dispatch by (lhsTy, rhsTy).
+		// Struct overloads match when lhsTy is nil (legacy) or exact.
+		// Scalar overloads match on exact type pair — enables widening mul, narrowing div, etc.
+		if ovs, hasOv := p.opTable[bo.op]; hasOv {
+			lTy := p.exprTy(lhs)
+			rTy := p.exprTy(rhs)
+			if ov, found := matchOpOverload(ovs, lTy, rTy); found {
 				lhs = &hir.CallExpr{Fn: ov.funcName, Args: []hir.Expr{lhs, rhs}, Ty: ov.retTy}
 				continue
 			}
@@ -5150,6 +5171,28 @@ func (p *parser) makeFieldExpr(base hir.Expr, fieldName string) *hir.FieldExpr {
 	}
 
 	return &hir.FieldExpr{X: base, Field: fieldName, Offset: fieldOffset, Ty: fieldTy}
+}
+
+// matchOpOverload finds the best matching overload for (lhsTy, rhsTy).
+// Priority: exact type match > struct match (legacy, lhsTy==nil) > no match.
+func matchOpOverload(ovs []opOverload, lTy, rTy mir2.Ty) (opOverload, bool) {
+	// Pass 1: exact type match (scalar overloads, e.g. *(u8,u8)->u16)
+	for _, ov := range ovs {
+		if ov.lhsTy != nil && ov.rhsTy != nil {
+			if ov.lhsTy == lTy && ov.rhsTy == rTy {
+				return ov, true
+			}
+		}
+	}
+	// Pass 2: legacy struct overloads (lhsTy==nil means "match any struct")
+	if _, isStruct := lTy.(*mir2.StructTy); isStruct {
+		for _, ov := range ovs {
+			if ov.lhsTy == nil {
+				return ov, true
+			}
+		}
+	}
+	return opOverload{}, false
 }
 
 func resultTy(l, r mir2.Ty, op string) mir2.Ty {

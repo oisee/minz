@@ -2213,9 +2213,75 @@ func resolveRegValue(lines []string, target string, depth int) int {
 			}
 			return -1
 		}
+		// LD pair, N — extract high/low byte from 16-bit immediate
+		// LD BC, N → B = N>>8, C = N&0xFF
+		// LD DE, N → D = N>>8, E = N&0xFF
+		// LD HL, N → H = N>>8, L = N&0xFF
+		pairMap := map[string][2]string{
+			"BC": {"B", "C"}, "DE": {"D", "E"}, "HL": {"H", "L"},
+		}
+		for pair, regs := range pairMap {
+			if (target == regs[0] || target == regs[1]) &&
+				strings.HasPrefix(line, "LD "+pair+", ") {
+				val := strings.TrimPrefix(line, "LD "+pair+", ")
+				if n, ok := parseSmallInt(val); ok {
+					if target == regs[0] {
+						return n >> 8
+					}
+					return n & 0xFF
+				}
+			}
+		}
 		// Any other instruction that writes target → stop (unknown)
 		if writesReg(line, target) {
 			return -1
+		}
+	}
+	return -1
+}
+
+// resolveDEValue scans backwards to find the 16-bit constant in DE.
+// Handles: LD DE, N, LD D,N / LD E,N, EX DE,HL (resolves HL before exchange),
+// and LD BC,N / LD H,B / LD L,C / EX DE,HL pattern from VIR solver.
+func resolveDEValue(lines []string) int {
+	for i := len(lines) - 1; i >= 0; i-- {
+		line := strings.TrimSpace(lines[i])
+		if line == "" || strings.HasPrefix(line, ";") || strings.HasSuffix(line, ":") {
+			continue
+		}
+		// LD DE, N — direct 16-bit load
+		if strings.HasPrefix(line, "LD DE, ") {
+			val := strings.TrimPrefix(line, "LD DE, ")
+			if n, ok := parseSmallInt(val); ok {
+				return n
+			}
+			return -1
+		}
+		// EX DE, HL — DE gets old HL value, resolve HL before the exchange
+		if line == "EX DE, HL" {
+			h := resolveRegValue(lines[:i], "H", 3)
+			l := resolveRegValue(lines[:i], "L", 3)
+			if h >= 0 && l >= 0 {
+				return h*256 + l
+			}
+			return -1
+		}
+		// LD D, N / LD E, N — pair of 8-bit loads
+		if strings.HasPrefix(line, "LD D, ") {
+			d := resolveRegValue(lines[:i+1], "D", 2)
+			e := resolveRegValue(lines[:i+1], "E", 2)
+			if d >= 0 && e >= 0 {
+				return d*256 + e
+			}
+			return -1
+		}
+		if strings.HasPrefix(line, "LD E, ") {
+			continue // E might be set before D, keep scanning
+		}
+		// Stop at anything else that writes D or E
+		if strings.HasPrefix(line, "POP DE") ||
+			strings.HasPrefix(line, "CALL ") || strings.HasPrefix(line, "JP ") {
+			break
 		}
 	}
 	return -1
@@ -2721,6 +2787,28 @@ func peepholeCleanup(asm string) string {
 			continue
 		}
 		if strings.HasPrefix(line, "CALL __mul16") || strings.HasPrefix(line, "JP __mul16") {
+			// GPU-optimal constant mul16: if DE holds a known constant K,
+			// inline the GPU-proven HL×K→HL sequence instead of the loop.
+			if k := resolveDEValue(result); k > 0 && k <= 255 {
+				mul16Table := GetMul16OptTable()
+				if entry := mul16Table.Lookup(k); entry != nil {
+					// Strip the LD DE, K or LD D,0 / LD E,K (dead — constant baked in)
+					for j := len(result) - 1; j >= 0 && j >= len(result)-4; j-- {
+						ln := strings.TrimSpace(result[j])
+						if ln == fmt.Sprintf("LD DE, %d", k) ||
+							ln == fmt.Sprintf("LD E, %d", k) ||
+							ln == "LD D, 0" {
+							result = append(result[:j], result[j+1:]...)
+						}
+					}
+					result = append(result, fmt.Sprintf("    ; mul16×%d (GPU-optimal, %dT)", k, entry.TStates))
+					for _, op := range entry.Ops {
+						result = append(result, "    "+op)
+					}
+					continue
+				}
+			}
+			// Generic __mul16 inline (~200T loop)
 			idx := inlineCounter
 			inlineCounter++
 			result = append(result,

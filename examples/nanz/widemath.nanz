@@ -1,0 +1,257 @@
+// widemath.nanz — Multi-width arithmetic library for Z80
+//
+// Scalar operator overloading + math functions.
+// GPU-optimal sequences will replace bodies when tables arrive.
+//
+// Two approaches:
+//   B) Scalar overload:  fun *(a: u8, b: u8) -> u16   — transparent
+//   A) Newtype wrapper:  struct W8 { v: u8 }           — explicit opt-in
+
+// ═══════════════════════════════════════════════════════════
+// Part 1: Widening multiply — u8 * u8 -> u16
+// ═══════════════════════════════════════════════════════════
+
+fun *(a: u8, b: u8) -> u16 {
+    var result: u16 = 0
+    var shift: u16 = a
+    var mult: u8 = b
+    while mult > 0 {
+        if mult % 2 == 1 {
+            result = result + shift
+        }
+        shift = shift + shift
+        mult = mult / 2
+    }
+    return result
+}
+
+// ═══════════════════════════════════════════════════════════
+// Part 2: Math functions — abs, sign, min, max, clamp
+// ═══════════════════════════════════════════════════════════
+
+// ── Signed i8 math ──────────────────────────────────────────
+
+fun abs8(x: i8) -> u8 {
+    // On Z80: BIT 7,A / JR Z,+2 / NEG → 6 insts, 24T
+    // GPU may find branchless in 4-5 insts
+    if x < 0 { return 0 - x }
+    return x
+}
+
+fun sign8(x: i8) -> i8 {
+    // Returns -1, 0, or +1
+    if x < 0 { return -1 }
+    if x > 0 { return 1 }
+    return 0
+}
+
+fun negate8(x: i8) -> i8 {
+    // Z80: NEG (4T, 1 inst) — already optimal
+    return 0 - x
+}
+
+// ── Unsigned u8 math ────────────────────────────────────────
+
+fun min8(a: u8, b: u8) -> u8 {
+    // Z80: CP B / JR C,+1 / LD A,B → 8 insts, ~28T
+    // GPU branchless: ~32T
+    if a < b { return a }
+    return b
+}
+
+fun max8(a: u8, b: u8) -> u8 {
+    if a > b { return a }
+    return b
+}
+
+fun clamp8(x: u8, lo: u8, hi: u8) -> u8 {
+    if x < lo { return lo }
+    if x > hi { return hi }
+    return x
+}
+
+fun abs_diff8(a: u8, b: u8) -> u8 {
+    // |a - b| without underflow
+    // Z80 optimal: SUB B / RET NC / NEG / RET → 4 insts (VIR proven)
+    if a >= b { return a - b }
+    return b - a
+}
+
+// ── Saturating arithmetic ───────────────────────────────────
+
+fun sat_add8(a: u8, b: u8) -> u8 {
+    // a + b, clamped to 255
+    // Must widen BEFORE adding to detect overflow
+    let wa: u16 = a
+    let wb: u16 = b
+    let sum: u16 = wa + wb
+    if sum > 255 { return 255 }
+    return a + b
+}
+
+fun sat_sub8(a: u8, b: u8) -> u8 {
+    // a - b, clamped to 0
+    if a < b { return 0 }
+    return a - b
+}
+
+// ── Signed i16 math ─────────────────────────────────────────
+
+fun abs16(x: i16) -> u16 {
+    // Z80: BIT 7,H / JR Z,+ / XOR A / SUB L / LD L,A / SBC A,A / SUB H / LD H,A
+    if x < 0 { return 0 - x }
+    return x
+}
+
+fun sign16(x: i16) -> i8 {
+    if x < 0 { return -1 }
+    if x > 0 { return 1 }
+    return 0
+}
+
+// ── Unsigned u16 math ───────────────────────────────────────
+
+fun min16(a: u16, b: u16) -> u16 {
+    if a < b { return a }
+    return b
+}
+
+fun max16(a: u16, b: u16) -> u16 {
+    if a > b { return a }
+    return b
+}
+
+fun clamp16(x: u16, lo: u16, hi: u16) -> u16 {
+    if x < lo { return lo }
+    if x > hi { return hi }
+    return x
+}
+
+fun abs_diff16(a: u16, b: u16) -> u16 {
+    if a >= b { return a - b }
+    return b - a
+}
+
+fun sat_add16(a: u16, b: u16) -> u16 {
+    // Widening add to detect overflow
+    let ah: u16 = a / 256
+    let bh: u16 = b / 256
+    if ah + bh > 255 { return 65535 }
+    let sum: u16 = a + b
+    if sum < a { return 65535 }
+    return sum
+}
+
+fun sat_sub16(a: u16, b: u16) -> u16 {
+    if a < b { return 0 }
+    return a - b
+}
+
+// ═══════════════════════════════════════════════════════════
+// Part 3: Newtype W8 (explicit widening wrapper)
+// ═══════════════════════════════════════════════════════════
+
+struct W8 { v: u8 }
+
+fun *(a: W8, b: W8) -> u16 {
+    var result: u16 = 0
+    var shift: u16 = a.v
+    var mult: u8 = b.v
+    while mult > 0 {
+        if mult % 2 == 1 { result = result + shift }
+        shift = shift + shift
+        mult = mult / 2
+    }
+    return result
+}
+
+fun +(a: W8, b: W8) -> W8 {
+    return W8 { v: a.v + b.v }
+}
+
+fun -(a: W8, b: W8) -> W8 {
+    return W8 { v: a.v - b.v }
+}
+
+// ═══════════════════════════════════════════════════════════
+// Part 4: Application examples
+// ═══════════════════════════════════════════════════════════
+
+fun area(w: u8, h: u8) -> u16 {
+    return w * h
+}
+
+fun big_area() -> u16 {
+    let w: u8 = 200
+    let h: u8 = 200
+    return w * h
+}
+
+fun pixel_distance(x1: u8, y1: u8, x2: u8, y2: u8) -> u16 {
+    // Manhattan distance squared (for fast collision checks)
+    let dx: u8 = abs_diff8(x1, x2)
+    let dy: u8 = abs_diff8(y1, y2)
+    return dx * dy
+}
+
+fun brightness_blend(a: u8, b: u8, mix: u8) -> u8 {
+    // mix=0 → all a, mix=255 → all b
+    let inv: u8 = 255 - mix
+    let wa: u16 = a * inv
+    let wb: u16 = b * mix
+    let total: u16 = wa + wb
+    return total / 256
+}
+
+fun newtype_area(w: u8, h: u8) -> u16 {
+    let a: W8 = W8 { v: w }
+    let b: W8 = W8 { v: h }
+    return a * b
+}
+
+// ═══════════════════════════════════════════════════════════
+// Asserts
+// ═══════════════════════════════════════════════════════════
+
+// Widening multiply
+assert area(10, 20) == 200 via mir2
+assert area(200, 200) == 40000 via mir2
+assert big_area() == 40000 via mir2
+
+// Math functions — u8
+assert abs8(-5) == 5 via mir2
+assert abs8(5) == 5 via mir2
+assert abs8(0) == 0 via mir2
+assert sign8(-42) == 255 via mir2    // -1 as u8 = 255
+assert sign8(0) == 0 via mir2
+assert sign8(42) == 1 via mir2
+assert min8(3, 7) == 3 via mir2
+assert min8(7, 3) == 3 via mir2
+assert max8(3, 7) == 7 via mir2
+assert max8(7, 3) == 7 via mir2
+assert clamp8(1, 10, 200) == 10 via mir2
+assert clamp8(50, 10, 200) == 50 via mir2
+assert clamp8(250, 10, 200) == 200 via mir2
+assert abs_diff8(10, 3) == 7 via mir2
+assert abs_diff8(3, 10) == 7 via mir2
+
+// Saturating arithmetic
+assert sat_add8(200, 100) == 255 via mir2
+assert sat_add8(100, 50) == 150 via mir2
+assert sat_sub8(10, 3) == 7 via mir2
+assert sat_sub8(3, 10) == 0 via mir2
+
+// Math functions — u16
+assert min16(100, 50000) == 100 via mir2
+assert max16(100, 50000) == 50000 via mir2
+assert clamp16(5, 100, 60000) == 100 via mir2
+assert abs_diff16(50000, 30000) == 20000 via mir2
+assert sat_sub16(100, 50000) == 0 via mir2
+
+// Application examples
+assert pixel_distance(10, 20, 13, 24) == 12 via mir2
+assert brightness_blend(0, 255, 128) == 127 via mir2
+
+// Newtype W8
+assert newtype_area(10, 20) == 200 via mir2
+assert newtype_area(200, 200) == 40000 via mir2

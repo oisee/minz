@@ -97,6 +97,152 @@ func (t *MulOptTable) Size() int {
 	return len(t.entries)
 }
 
+// ── Widening / 16-bit multiply table ────────────────────────────────────────
+// GPU-optimal HL×K→HL sequences from mulopt16_complete.json.
+// For u8→u16 widening: prepend LD L,A; LD H,0 (11T).
+// For u16×K: use directly.
+
+type Mul16Opt struct {
+	K       int      `json:"k"`
+	Ops     []string `json:"ops"`
+	Length  int      `json:"length"`
+	TStates int      `json:"tstates"`
+	Clobber []string `json:"clobber"`
+}
+
+type Mul16OptTable struct {
+	entries map[int]*Mul16Opt
+}
+
+var (
+	globalMul16Opt     *Mul16OptTable
+	globalMul16OptOnce sync.Once
+)
+
+func GetMul16OptTable() *Mul16OptTable {
+	globalMul16OptOnce.Do(func() {
+		globalMul16Opt = loadMul16OptTable()
+	})
+	return globalMul16Opt
+}
+
+func loadMul16OptTable() *Mul16OptTable {
+	t := &Mul16OptTable{entries: make(map[int]*Mul16Opt)}
+
+	paths := []string{
+		os.ExpandEnv("$HOME/dev/z80-optimizer/data/mulopt16_complete.json"),
+	}
+	if p := os.Getenv("MUL16_PATH"); p != "" {
+		paths = []string{p}
+	}
+
+	for _, path := range paths {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			continue
+		}
+		var entries []Mul16Opt
+		if err := json.Unmarshal(data, &entries); err != nil {
+			fmt.Fprintf(os.Stderr, "[mul16opt] parse error: %v\n", err)
+			continue
+		}
+		for i := range entries {
+			t.entries[entries[i].K] = &entries[i]
+		}
+		fmt.Fprintf(os.Stderr, "[mul16opt] loaded %d mul16 entries from %s\n", len(entries), path)
+		return t
+	}
+
+	return t
+}
+
+// Lookup returns the optimal multiply sequence for HL × K → HL.
+func (t *Mul16OptTable) Lookup(k int) *Mul16Opt {
+	if t == nil {
+		return nil
+	}
+	return t.entries[k]
+}
+
+func (t *Mul16OptTable) Size() int {
+	if t == nil {
+		return 0
+	}
+	return len(t.entries)
+}
+
+// ── u32 operations table ────────────────────────────────────────────────────
+// GPU-verified optimal u32 (DEHL) operations from z80-optimizer.
+
+type U32Op struct {
+	Ops     []string `json:"ops"`
+	Length  int      `json:"length"`
+	Bytes   int      `json:"bytes"`
+	TStates any      `json:"tstates"` // int or string ("32-40" for branch)
+	Clobber []string `json:"clobbers"`
+	Proven  bool     `json:"proven_optimal"`
+	Notes   string   `json:"notes"`
+}
+
+type U32OpsTable struct {
+	SHL32     *U32Op `json:"shl32"`
+	SHR32     *U32Op `json:"shr32"`
+	SAR32     *U32Op `json:"sar32"`
+	ADD32stk  *U32Op `json:"add32_stack"`
+	ADD32ixiy *U32Op `json:"add32_ixiy"`
+	SUB32stk  *U32Op `json:"sub32_stack"`
+	NEG32     *U32Op `json:"neg32"`
+	CMP32zero *U32Op `json:"cmp32_zero"`
+	ZEXT16_32 *U32Op `json:"zext16_32"`
+	SEXT16_32 *U32Op `json:"sext16_32"`
+	XOR32     *U32Op `json:"xor32_ixiy"`
+	AND32     *U32Op `json:"and32_ixiy"`
+	ROTR32    *U32Op `json:"rotr32"`
+}
+
+var (
+	globalU32Ops     *U32OpsTable
+	globalU32OpsOnce sync.Once
+)
+
+func GetU32OpsTable() *U32OpsTable {
+	globalU32OpsOnce.Do(func() {
+		globalU32Ops = loadU32OpsTable()
+	})
+	return globalU32Ops
+}
+
+func loadU32OpsTable() *U32OpsTable {
+	paths := []string{
+		os.ExpandEnv("$HOME/dev/z80-optimizer/data/u32_ops.json"),
+	}
+
+	for _, path := range paths {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			continue
+		}
+		var table U32OpsTable
+		if err := json.Unmarshal(data, &table); err != nil {
+			fmt.Fprintf(os.Stderr, "[u32ops] parse error: %v\n", err)
+			continue
+		}
+		count := 0
+		if table.SHL32 != nil { count++ }
+		if table.SHR32 != nil { count++ }
+		if table.SAR32 != nil { count++ }
+		if table.ADD32stk != nil { count++ }
+		if table.NEG32 != nil { count++ }
+		if table.CMP32zero != nil { count++ }
+		if table.XOR32 != nil { count++ }
+		if table.ROTR32 != nil { count++ }
+		fmt.Fprintf(os.Stderr, "[u32ops] loaded %d u32 operations from %s\n", count, path)
+		return &table
+	}
+
+	return &U32OpsTable{}
+}
+
 // ── Division table ──────────────────────────────────────────────────────────
 
 type DivOpt struct {
