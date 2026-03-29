@@ -1914,6 +1914,10 @@ func emitFromTable(f *mir2.Func, vf *Func, allOps []VIROp, assignment map[int]in
 					dstPhys = loc
 				}
 			}
+			// CMP/CmpImm: dst is always F (flags), not from assignment
+			if op.Op == OpCmp || op.Op == OpCmpImm {
+				dstPhys = desc.LocByName("F")
+			}
 			var srcPhys [2]int
 			srcPhys[0] = -1
 			srcPhys[1] = -1
