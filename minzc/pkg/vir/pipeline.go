@@ -1925,7 +1925,27 @@ func emitFromTable(f *mir2.Func, vf *Func, allOps []VIROp, assignment map[int]in
 				}
 			}
 
+			// Try direct pattern match first
 			pat := findBestPattern(op, dstPhys, srcPhys, desc)
+			if pat == nil && dstPhys >= 0 && srcPhys[0] >= 0 {
+				// No direct match — insert moves to satisfy pattern constraints.
+				// For tied-dst ops (ADD A,r): move src0 to A, then op uses A as dst+src0.
+				// The GPU assignment accounts for this in its total cost.
+				tiedPat := findBestPattern(op, dstPhys, [2]int{dstPhys, srcPhys[1]}, desc)
+				if tiedPat != nil && tiedPat.TiedDstSrc {
+					// Emit LD A, src0 (move src0 to dst=A for tied pattern)
+					movePat := findMovePattern(desc, srcPhys[0], dstPhys)
+					if movePat != nil {
+						movePir := PIROp{Pat: movePat, DstPhys: dstPhys, SrcPhys: [2]int{srcPhys[0], -1}}
+						line := movePir.Emit(desc)
+						if !isSelfMove(line) {
+							emitLine(&sb, line)
+						}
+					}
+					srcPhys[0] = dstPhys // src0 now in dst register
+					pat = tiedPat
+				}
+			}
 			if pat == nil {
 				return "", fmt.Errorf("no pattern for op %d (%v) dst=%d src=%v", opIdx, op.Op, dstPhys, srcPhys)
 			}
