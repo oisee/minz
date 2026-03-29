@@ -7,7 +7,7 @@
 | **CUDA** | ✓ | ✓ | NVIDIA RTX 4060 Ti, CUDA 12.9 |
 | **OpenCL** | ✓ | ✓ | NVIDIA via OpenCL 3.0 |
 | **Vulkan GLSL** | ✓ (single func) | ✗ (needs runner) | Vulkan 1.3.275 available |
-| **Metal** | ✓ (syntax) | ✗ | No Apple hardware |
+| **Metal** | ✓ | ✓ **verified** | Apple M2 (via SSH to m2) |
 
 ## CUDA — Fully Working
 
@@ -59,9 +59,26 @@ glslangValidator -V prog.comp -o prog.spv
 mz program.nanz --emit metal -o /tmp/prog.metal
 ```
 
-Generates valid Metal Shading Language with `kernel void`, `device uint*`, `thread_position_in_grid`. Cannot verify — no Apple hardware available.
+Generates valid Metal Shading Language with `kernel void`, `device uint*`, `thread_position_in_grid`.
 
-**To test:** Copy .metal file to macOS, compile with `xcrun -sdk macosx metal prog.metal -o prog.air`.
+**Verified on Apple M2 (macOS 15.5) via SSH:**
+```bash
+# On i7 (Linux):
+mz program.nanz --emit metal -o /tmp/minz.metal
+scp /tmp/minz.metal m2:/tmp/
+
+# On m2 (macOS):
+xcrun -sdk macosx metal -c /tmp/minz.metal -o /tmp/minz.air
+xcrun -sdk macosx metallib /tmp/minz.air -o /tmp/minz.metallib
+swiftc runner.swift -framework Metal -framework Foundation -o runner
+./runner
+# → add: PASS (256 threads)
+# → square: PASS (256 threads)
+# → fn_double: PASS (256 threads)
+# → fn_main: PASS (256 threads)
+```
+
+All 4 kernels verified: add, square, double, main. 256 threads each, u8 overflow correct.
 
 ## GPU Codegen Design (mir2gpu)
 
