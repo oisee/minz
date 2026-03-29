@@ -1,0 +1,184 @@
+// raymarcher.nanz — SDF Raymarcher with Vec3, CSG, and operator overloading
+//
+// Renders a sphere with a box carved out using signed distance functions.
+// Demonstrates: struct, impl, UFCS, operator overloading, for..in range,
+// fixed-point math (8.8), CSG boolean operations.
+//
+// Run:  mzv fun/raymarcher.nanz --zx
+//       mzv fun/raymarcher.nanz
+
+// ── Fixed-Point 8.8 ─────────────────────────────────────────
+
+global FP_ONE: i16 = 256
+
+fun fp_mul(a: i16, b: i16) -> i16 {
+    let ah: i16 = a / 256
+    let al: i16 = a % 256
+    let bh: i16 = b / 256
+    let bl: i16 = b % 256
+    return ah * bh * 256 + ah * bl + al * bh + al * bl / 256
+}
+
+fun fp_div(a: i16, b: i16) -> i16 {
+    if b == 0 { return 32767 }
+    return a * 256 / b
+}
+
+fun fp_abs(x: i16) -> i16 {
+    if x < 0 { return 0 - x }
+    return x
+}
+
+fun fp_max(a: i16, b: i16) -> i16 {
+    if a > b { return a }
+    return b
+}
+
+fun fp_min(a: i16, b: i16) -> i16 {
+    if a < b { return a }
+    return b
+}
+
+fun fp_sqrt(x: i16) -> i16 {
+    if x <= 0 { return 0 }
+    if x < 256 { return 16 }
+    var g: i16 = 128
+    g = (g + x / g) / 2
+    g = (g + x / g) / 2
+    g = (g + x / g) / 2
+    return g
+}
+
+// ── Vec3 with UFCS methods ──────────────────────────────────
+
+struct Vec3 { x: i16, y: i16, z: i16 }
+
+fun Vec3.add(self, other: Vec3) -> Vec3 {
+    return Vec3 { x: self.x + other.x, y: self.y + other.y, z: self.z + other.z }
+}
+
+fun Vec3.sub(self, other: Vec3) -> Vec3 {
+    return Vec3 { x: self.x - other.x, y: self.y - other.y, z: self.z - other.z }
+}
+
+fun Vec3.scale(self, s: i16) -> Vec3 {
+    return Vec3 { x: fp_mul(self.x, s), y: fp_mul(self.y, s), z: fp_mul(self.z, s) }
+}
+
+fun Vec3.dot(self, other: Vec3) -> i16 {
+    return fp_mul(self.x, other.x) + fp_mul(self.y, other.y) + fp_mul(self.z, other.z)
+}
+
+fun Vec3.length(self) -> i16 {
+    return fp_sqrt(self.dot(self))
+}
+
+fun Vec3.normalize(self) -> Vec3 {
+    let len: i16 = self.length()
+    if len == 0 { return Vec3 { x: 0, y: 0, z: 0 } }
+    return Vec3 { x: fp_div(self.x, len), y: fp_div(self.y, len), z: fp_div(self.z, len) }
+}
+
+fun Vec3.abs(self) -> Vec3 {
+    return Vec3 { x: fp_abs(self.x), y: fp_abs(self.y), z: fp_abs(self.z) }
+}
+
+fun Vec3.max_scalar(self, s: i16) -> Vec3 {
+    return Vec3 { x: fp_max(self.x, s), y: fp_max(self.y, s), z: fp_max(self.z, s) }
+}
+
+// Operator overloading for Vec3
+fun +(a: Vec3, b: Vec3) -> Vec3 { return a.add(b) }
+fun -(a: Vec3, b: Vec3) -> Vec3 { return a.sub(b) }
+
+// ── SDF Primitives ──────────────────────────────────────────
+
+fun sdf_sphere(p: Vec3, r: i16) -> i16 {
+    return p.length() - r
+}
+
+fun sdf_box(p: Vec3, b: Vec3) -> i16 {
+    let q: Vec3 = p.abs() - b
+    let outside: i16 = q.max_scalar(0).length()
+    let inside: i16 = fp_min(fp_max(q.x, fp_max(q.y, q.z)), 0)
+    return outside + inside
+}
+
+// CSG operations
+fun csg_union(a: i16, b: i16) -> i16 { return fp_min(a, b) }
+fun csg_subtract(a: i16, b: i16) -> i16 { return fp_max(a, 0 - b) }
+
+// ── Scene: Sphere - Box ─────────────────────────────────────
+
+fun scene(p: Vec3) -> i16 {
+    let s: i16 = sdf_sphere(p, 200)
+    let b: i16 = sdf_box(p, Vec3 { x: 140, y: 140, z: 140 })
+    return csg_subtract(s, b)
+}
+
+// ── Raymarcher ──────────────────────────────────────────────
+
+fun raymarch(ro: Vec3, rd: Vec3) -> i16 {
+    var t: i16 = 0
+    var i: u8 = 0
+    while i < 24 {
+        let p: Vec3 = ro + rd.scale(t)
+        let d: i16 = scene(p)
+        if d < 4 { return t }
+        if t > 1280 { return 0 - 1 }
+        t = t + d
+        i = i + 1
+    }
+    return 0 - 1
+}
+
+// ── Normal via central differences ──────────────────────────
+
+fun calc_normal(p: Vec3) -> Vec3 {
+    let e: i16 = 4
+    let dx: i16 = scene(Vec3{x: p.x+e, y: p.y, z: p.z}) - scene(Vec3{x: p.x-e, y: p.y, z: p.z})
+    let dy: i16 = scene(Vec3{x: p.x, y: p.y+e, z: p.z}) - scene(Vec3{x: p.x, y: p.y-e, z: p.z})
+    let dz: i16 = scene(Vec3{x: p.x, y: p.y, z: p.z+e}) - scene(Vec3{x: p.x, y: p.y, z: p.z-e})
+    return Vec3 { x: dx, y: dy, z: dz }.normalize()
+}
+
+// ── Render ──────────────────────────────────────────────────
+
+fun render(width: u8, height: u8) -> void {
+    let cam: Vec3 = Vec3 { x: 0, y: 0, z: 0 - 768 }
+    let light: Vec3 = Vec3 { x: 256, y: 256, z: 0 - 256 }.normalize()
+
+    var y: u8 = 0
+    while y < height {
+        var x: u8 = 0
+        while x < width {
+            // Map pixel to [-1,1] range
+            let px: i16 = (x - width / 2) * 256 / width * 2
+            let py: i16 = (y - height / 2) * 256 / height * 2
+            let rd: Vec3 = Vec3 { x: px, y: py, z: 256 }.normalize()
+
+            let t: i16 = raymarch(cam, rd)
+            if t > 0 {
+                let hit: Vec3 = cam + rd.scale(t)
+                let n: Vec3 = calc_normal(hit)
+                let diff: i16 = fp_max(n.dot(light), 0)
+                // Map brightness to ZX attribute
+                let bright: u8 = diff / 32
+                if bright > 7 { bright = 7 }
+                poke(0x5800 + y * 32 + x, bright)
+            }
+            x = x + 1
+        }
+        y = y + 1
+    }
+}
+
+fun main() -> void {
+    render(32, 24)
+}
+
+// ── Tests ───────────────────────────────────────────────────
+
+assert fp_mul(256, 256) == 256 via mir2
+assert fp_abs(0 - 100) == 100 via mir2
+assert sdf_sphere(Vec3{x:0,y:0,z:0}, 256) == 0 - 256 via mir2

@@ -1,0 +1,137 @@
+// vectors.nanz — 2D/3D Vector library with operator overloading + UFCS
+//
+// Demonstrates: struct, operator overloading for both structs AND scalars,
+// UFCS method calls, widening multiply, interface-like patterns.
+//
+// Run:  mz fun/vectors.nanz --asserts mir2
+
+// ── Widening multiply: u8 * u8 -> u16 ──────────────────────
+
+fun *(a: u8, b: u8) -> u16 {
+    var result: u16 = 0
+    var shift: u16 = a
+    var mult: u8 = b
+    while mult > 0 {
+        if mult % 2 == 1 { result = result + shift }
+        shift = shift + shift
+        mult = mult / 2
+    }
+    return result
+}
+
+// ── Vec2: 2D vector with full operator set ──────────────────
+
+struct Vec2 { x: u8, y: u8 }
+
+fun +(a: Vec2, b: Vec2) -> Vec2 {
+    return Vec2 { x: a.x + b.x, y: a.y + b.y }
+}
+
+fun -(a: Vec2, b: Vec2) -> Vec2 {
+    return Vec2 { x: a.x - b.x, y: a.y - b.y }
+}
+
+fun ==(a: Vec2, b: Vec2) -> bool {
+    if a.x != b.x { return false }
+    return a.y == b.y
+}
+
+// UFCS methods via impl block
+impl Vec2 {
+    fun dot(self, other: Vec2) -> u16 {
+        return self.x * other.x + self.y * other.y
+    }
+
+    fun manhattan(self) -> u8 {
+        return self.x + self.y
+    }
+
+    fun scale(self, s: u8) -> Vec2 {
+        return Vec2 { x: self.x * s, y: self.y * s }
+    }
+}
+
+// ── Vec3: 3D vector ─────────────────────────────────────────
+
+struct Vec3 { x: u8, y: u8, z: u8 }
+
+fun +(a: Vec3, b: Vec3) -> Vec3 {
+    return Vec3 { x: a.x + b.x, y: a.y + b.y, z: a.z + b.z }
+}
+
+fun -(a: Vec3, b: Vec3) -> Vec3 {
+    return Vec3 { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z }
+}
+
+impl Vec3 {
+    fun dot(self, other: Vec3) -> u16 {
+        return self.x * other.x + self.y * other.y + self.z * other.z
+    }
+
+    fun cross_z(self, other: Vec3) -> u16 {
+        return self.x * other.y - self.y * other.x
+    }
+}
+
+// ── Color: RGB with blending ────────────────────────────────
+
+struct Color { r: u8, g: u8, b: u8 }
+
+fun +(a: Color, b: Color) -> Color {
+    return Color { r: a.r + b.r, g: a.g + b.g, b: a.b + b.b }
+}
+
+impl Color {
+    fun brightness(self) -> u16 {
+        let lum: u16 = self.r + self.g + self.g + self.b
+        return lum / 4
+    }
+
+    fun blend(self, other: Color, mix: u8) -> Color {
+        let inv: u8 = 255 - mix
+        return Color {
+            r: (self.r * inv + other.r * mix) / 256,
+            g: (self.g * inv + other.g * mix) / 256,
+            b: (self.b * inv + other.b * mix) / 256
+        }
+    }
+}
+
+// ── Demo: game-like usage ───────────────────────────────────
+
+fun distance_squared(a: Vec2, b: Vec2) -> u16 {
+    let d: Vec2 = a - b
+    return d.dot(d)
+}
+
+fun collides(a: Vec2, b: Vec2, radius: u8) -> u8 {
+    let dist_sq: u16 = distance_squared(a, b)
+    let r_sq: u16 = radius * radius   // widening multiply!
+    if dist_sq < r_sq { return 1 }
+    return 0
+}
+
+// ── Test wrappers (assert needs function calls) ─────────────
+
+// Simple scalar tests (MIR2 VM has struct return limitations)
+fun test_manhattan() -> u8 {
+    let v: Vec2 = Vec2{x:3, y:4}
+    return v.manhattan()
+}
+
+fun test_dot2() -> u16 {
+    let a: Vec2 = Vec2{x:3, y:4}
+    let b: Vec2 = Vec2{x:1, y:2}
+    return a.dot(b)
+}
+
+// ── Asserts ─────────────────────────────────────────────────
+
+assert test_manhattan() == 7 via mir2
+assert test_dot2() == 11 via mir2
+fun test_widening_mul() -> u16 {
+    let a: u8 = 200
+    let b: u8 = 200
+    return a * b
+}
+assert test_widening_mul() == 40000 via mir2
