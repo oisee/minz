@@ -1,74 +1,74 @@
 # Next Session Seed — 2026-03-30
 
-**Previous:** Sessions 12-15 — self-hosting pipeline, VIR P0/P1/P2, fib(7)=13, WASM backend
-**State:** Self-hosting ~5% Nanz, ~1800 asserts, 8 frontends × 6 backends
+**Previous:** Session 16 — scalar op overload, GPU mul16 codegen, u32 ops, SHA-256
+**State:** 5 commits, ~800 GPU-verified arithmetic entries, SHA-256 808 bytes
 
 ---
 
-## Priority 0: Fix Self-Hosting Bugs
+## Priority 0: Wire div8 GPU-Optimal into Codegen
 
-1. **Multi-function emit_lanz**: first function outputs nulls to buffer. `out_str` poke chain — string literal address conflicts with output buffer?
-2. **print_ast infinite recursion**: removed, need to fix AST traversal for debugging
+div8_optimal.json loaded (254/254), but `JP __div8` gets transformed by GPU peephole
+rules BEFORE the div8 inline check runs. Fix: expansion phase before optimization
+(z80-optimizer suggested this). Same pattern for mod8/divmod8.
 
-## Priority 1: FatFS VIR_DUMP_GPU_BATCH
+## Priority 1: Complete Arithmetic Library
 
-z80-optimizer found CORPUS BIAS: our 820 functions are leaf/small (max 14v).
-FatFS = 10-35 vregs, 200-764 instructions. Need corpus dump to calibrate enriched tables.
+What's integrated and WORKING in codegen:
+- mul8 A×K→A: 254 entries ✅
+- mul16 HL×K→HL: 254 entries ✅ (7.7× speedup proven)
 
-## Priority 2: Self-Hosting Stage 2 → Stage 3
+What's loaded but NOT wired to codegen:
+- div8/mod8/divmod8: 254×3 entries (loader works, codegen pending)
+- u32 ops: 13 operations (loader works, codegen pending)
+- sign8 43T, sat_add8 16T, sat_sub8 20T (not in codegen yet)
+- arith16: abs16 44T, neg16 27T, min16/max16 41T (not in codegen yet)
 
-- Stage 2: Lanz S-expr parser ✅ (roundtrip verified)
-- Stage 3: AST → MIR2 (Go helper ready, @regalloc_lookup host ready)
-- Stage 4: assignment → peephole → .a80 (@peephole_match host ready)
+## Priority 2: Fix Self-Hosting Bugs (from session 15)
 
-## Priority 3: README Update
+1. **Multi-function emit_lanz**: first function outputs nulls to buffer
+2. **print_ast infinite recursion**: AST traversal cycles
 
-Add self-hosting, z88dk comparison (-54%), new articles to README.md header.
+## Priority 3: FatFS VIR_DUMP_GPU_BATCH
 
-## Self-Hosting Pipeline Files
+Corpus bias: our functions max 14v, FatFS 35v. Need dump for GPU regalloc tables.
 
-- `examples/nanz/self_tokenizer.nanz` — tokenizer v3 (interned strings)
-- `examples/nanz/self_parser.nanz` — parser + Lanz emitter + file I/O
-- `examples/nanz/self_lanz_parser.nanz` — S-expr parser
-- `examples/nanz/tiny.nanz` — test input (3 functions)
+## Priority 4: README Update
 
-## What Was Done
+Add: GPU arithmetic library, SHA-256, z88dk comparison, scalar op overload.
+
+## What Was Done in Session 16
 
 | Feature | Status |
 |---------|--------|
-| VIR P0/P1/P2 all fixed | ✅ |
-| fib(7)=13 on Z80 | ✅ |
-| Tetris on CP/M | ✅ |
-| Self-hosting tokenizer v3 | ✅ |
-| Self-hosting parser + Lanz emit | ✅ (single func) |
-| Self-hosting S-expr parser | ✅ |
-| @file_read/@file_write hosts | ✅ |
-| EnsureHeap fix | ✅ |
-| @extern for host return types | ✅ |
-| Lizp → Scheme R5RS | ✅ |
-| ABAP FUNCTION/ENDFUNCTION | ✅ |
-| --asserts mir2/z80/none | ✅ |
-| assert func() / assert not func() | ✅ |
-| MinZ vs z88dk comparison (-54%) | ✅ |
-| Eight Languages article | ✅ |
-| Bool convention GPU-proven | ✅ |
-| O(1) regalloc (91% without Z3) | ✅ |
-| Branchless CMOV/ABS/MIN/MAX | ✅ |
-| ~1800+ asserts, 8 frontends | ✅ |
-| WASM backend (174 bytes, wazero) | ✅ |
-| 6 backends: Z80/eZ80/QBE/C/WASM/VIR | ✅ |
+| Scalar operator overloading (parse.go) | ✅ |
+| GPU-optimal mul16 in codegen (254 entries) | ✅ |
+| Mul16OptTable loader | ✅ |
+| U32OpsTable loader (13 ops) | ✅ |
+| DivOptTable loader (254 entries, new format) | ✅ |
+| widemath.nanz (31 asserts) | ✅ |
+| SHA-256 primitives (808 bytes, 15 funcs) | ✅ |
+| MZA accepts .asm/.z80 extensions | ✅ |
+| ^ = pointer deref bug found + fixed | ✅ |
+| CLAUDE.md GPU arithmetic library section | ✅ |
+| div8 codegen wiring | ❌ (peephole ordering issue) |
 
-## Self-Hosting Coverage: ~5%
+## Key Discoveries
 
-What works: `fun name(params) -> type { return a + b }`
-What's missing: if/else, while, let/var, struct, enum, @extern, import,
-nested expressions, string literals, recursive calls, multi-function emit.
+- `^` in Nanz = pointer deref, `xor` = bitwise XOR
+- ADC HL,rr exists (ED prefix) — enables efficient u32 arithmetic
+- sat_add8 = ADD A,B; LD C,A; SBC A,A; OR C (4 insts, 16T)
+- SHA-256 feasible on Z80: 58ms/block @3.5MHz
+- SDCC uses IY for u32 temp; we can do better with DEHL + ADC HL,rr
+- div8 via multiply-and-shift: A÷K = (A×M)>>S, reuses mul16 table
 
-Foundation proven: file read → tokenize → parse → AST → Lanz → file write → Z80.
-Need ~20 sessions for full self-hosting.
+## Files Modified
 
-## Bugs to Fix First
-
-1. **Multi-function emit_lanz**: out_str poke chain writes nulls for first function
-2. **print_ast infinite recursion**: AST traversal cycles on complex trees
-3. **Nanz `i = len` in if block**: parse error on assignment-as-break pattern
+- `minzc/pkg/nanz/parse.go` — scalar operator overloading
+- `minzc/pkg/nanz/nanz_test.go` — 2 new tests
+- `minzc/pkg/vir/mulopt.go` — Mul16OptTable, U32OpsTable, updated DivOpt
+- `minzc/pkg/vir/pipeline.go` — GPU mul16 inline, resolveDEValue, resolveRegValue pair loads
+- `minzc/cmd/mza/main.go` — .asm/.z80 extension support
+- `examples/nanz/widemath.nanz` — 31 asserts
+- `examples/nanz/mul16_gpu_test.nanz` — mul16 GPU test
+- `examples/nanz/sha256.nanz` — SHA-256 primitives
+- `CLAUDE.md` — GPU arithmetic library section
