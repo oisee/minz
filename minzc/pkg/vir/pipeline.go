@@ -1907,7 +1907,7 @@ func emitFromTable(f *mir2.Func, vf *Func, allOps []VIROp, assignment map[int]in
 				continue
 			}
 
-			// Find the cheapest pattern that matches this op AND the GPU assignment
+			// Resolve physical locations from GPU assignment
 			dstPhys := -1
 			if op.Dst > 0 {
 				if loc, ok := assignment[op.Dst]; ok {
@@ -1929,27 +1929,51 @@ func emitFromTable(f *mir2.Func, vf *Func, allOps []VIROp, assignment map[int]in
 				}
 			}
 
-			// Try direct pattern match first
+			// Find pattern, inserting moves to satisfy constraints if needed.
+			// Strategy: try direct match, then try with src0 moved to dst (tied),
+			// then try with src0 moved to A (accumulator ops).
 			pat := findBestPattern(op, dstPhys, srcPhys, desc)
-			if pat == nil && dstPhys >= 0 && srcPhys[0] >= 0 {
-				// No direct match — insert moves to satisfy pattern constraints.
-				// For tied-dst ops (ADD A,r): move src0 to A, then op uses A as dst+src0.
-				// The GPU assignment accounts for this in its total cost.
-				tiedPat := findBestPattern(op, dstPhys, [2]int{dstPhys, srcPhys[1]}, desc)
-				if tiedPat != nil && tiedPat.TiedDstSrc {
-					// Emit LD A, src0 (move src0 to dst=A for tied pattern)
-					movePat := findMovePattern(desc, srcPhys[0], dstPhys)
-					if movePat != nil {
-						movePir := PIROp{Pat: movePat, DstPhys: dstPhys, SrcPhys: [2]int{srcPhys[0], -1}}
-						line := movePir.Emit(desc)
-						if !isSelfMove(line) {
-							emitLine(&sb, line)
+
+			if pat == nil {
+				// Try moving src0 to where the pattern needs it.
+				// Most Z80 ALU ops need src0 in A (tied dst=src0=A).
+				aLoc := desc.LocByName("A")
+				candidates := []int{dstPhys, aLoc} // try dst first, then A
+				for _, tryLoc := range candidates {
+					if tryLoc < 0 {
+						continue
+					}
+					trySrc := [2]int{tryLoc, srcPhys[1]}
+					tryPat := findBestPattern(op, dstPhys, trySrc, desc)
+					if tryPat == nil {
+						// Also try with dst=tryLoc for non-CMP ops
+						tryPat = findBestPattern(op, tryLoc, trySrc, desc)
+						if tryPat != nil {
+							dstPhys = tryLoc
 						}
 					}
-					srcPhys[0] = dstPhys // src0 now in dst register
-					pat = tiedPat
+					if tryPat != nil && srcPhys[0] >= 0 && srcPhys[0] != tryLoc {
+						movePat := findMovePattern(desc, srcPhys[0], tryLoc)
+						if movePat != nil {
+							remSrc, mp := findMovePatternRemap(desc, srcPhys[0], tryLoc)
+							if mp != nil {
+								movePir := PIROp{Pat: mp, DstPhys: tryLoc, SrcPhys: [2]int{remSrc, -1}}
+								line := movePir.Emit(desc)
+								if !isSelfMove(line) {
+									emitLine(&sb, line)
+								}
+							}
+						}
+						srcPhys[0] = tryLoc
+						pat = tryPat
+						break
+					} else if tryPat != nil {
+						pat = tryPat
+						break
+					}
 				}
 			}
+
 			if pat == nil {
 				return "", fmt.Errorf("no pattern for op %d (%v) dst=%d src=%v", opIdx, op.Op, dstPhys, srcPhys)
 			}
@@ -1965,6 +1989,25 @@ func emitFromTable(f *mir2.Func, vf *Func, allOps []VIROp, assignment map[int]in
 			line := pir.Emit(desc)
 			if !isSelfMove(line) {
 				emitLine(&sb, line)
+			}
+
+			// Post-op move: if pattern produced result in dstPhys but vreg
+			// is assigned to a different location, move result there.
+			if op.Dst > 0 && op.Op != OpCmp && op.Op != OpCmpImm {
+				assignedLoc := -1
+				if loc, ok := assignment[op.Dst]; ok {
+					assignedLoc = loc
+				}
+				if assignedLoc >= 0 && assignedLoc != dstPhys {
+					_, mp := findMovePatternRemap(desc, dstPhys, assignedLoc)
+					if mp != nil {
+						movePir := PIROp{Pat: mp, DstPhys: assignedLoc, SrcPhys: [2]int{dstPhys, -1}}
+						mline := movePir.Emit(desc)
+						if !isSelfMove(mline) {
+							emitLine(&sb, mline)
+						}
+					}
+				}
 			}
 			opIdx++
 		}
