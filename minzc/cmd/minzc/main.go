@@ -24,7 +24,7 @@ import (
 	"github.com/minz/minzc/pkg/c89"
 	"github.com/minz/minzc/pkg/lir"
 	"github.com/minz/minzc/pkg/mir2"
-	"github.com/minz/minzc/pkg/mir2gpu"
+	"github.com/minz/minzc/pkg/mir2gpu"  // GPU backends: CUDA, OpenCL, Vulkan, Metal
 	"github.com/minz/minzc/pkg/mir2llvm"
 	"github.com/minz/minzc/pkg/mir2wasm"
 	"github.com/minz/minzc/pkg/pascal"
@@ -223,7 +223,7 @@ func init() {
 	rootCmd.Flags().StringVar(&assertForce, "asserts-force", "", "force ALL asserts to run on this backend (mir2, z80, wasm, or llvm), ignoring 'via' annotations")
 	rootCmd.Flags().BoolVar(&emitSLD, "emit-sld", false, "emit SLD file for DeZog source-level debugging")
 	rootCmd.Flags().BoolVar(&annotateTStates, "annotate-tstates", false, "annotate each Z80 instruction with its T-state cost")
-	rootCmd.Flags().StringVar(&emitFormat, "emit", "", "emit format: nanz, hir, lanz, mir2-raw, mir2, llvm, wasm (works with .plm/.nanz/.lanz input)")
+	rootCmd.Flags().StringVar(&emitFormat, "emit", "", "emit format: nanz, hir, lanz, mir2-raw, mir2, llvm, wasm, cuda, opencl, vulkan, metal")
 }
 
 func main() {
@@ -946,6 +946,25 @@ func compileViaHIR(sourceFile string) error {
 		text, err := mir2llvm.Compile(steps.MIR2Module)
 		if err != nil {
 			return fmt.Errorf("llvm compile: %w", err)
+		}
+		if outputFile != "" {
+			if err := os.WriteFile(outputFile, []byte(text), 0644); err != nil {
+				return fmt.Errorf("write %s: %w", outputFile, err)
+			}
+		} else {
+			fmt.Print(text)
+		}
+		return nil
+	}
+	// --emit=cuda/opencl/vulkan/metal  → MIR2 as GPU compute shader
+	gpuBackends := map[string]mir2gpu.Backend{
+		"cuda": mir2gpu.CUDA, "opencl": mir2gpu.OpenCL,
+		"vulkan": mir2gpu.Vulkan, "metal": mir2gpu.Metal,
+	}
+	if gpuBE, ok := gpuBackends[emitFormat]; ok {
+		text, err := mir2gpu.Compile(steps.MIR2Module, mir2gpu.CompileOptions{Backend: gpuBE})
+		if err != nil {
+			return fmt.Errorf("gpu compile: %w", err)
 		}
 		if outputFile != "" {
 			if err := os.WriteFile(outputFile, []byte(text), 0644); err != nil {

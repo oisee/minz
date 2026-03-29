@@ -1,0 +1,48 @@
+// Eleven Targets — one source, eleven backends, one truth.
+//
+// From a single Nanz function, generate code for 11 platforms:
+//
+//   ── CPU ──
+//   1. Z80 assembly     mz eleven_targets.nanz -o out.a80
+//   2. eZ80 (Agon)      mz eleven_targets.nanz -b ez80 -o out.asm
+//   3. LLVM IR           mz eleven_targets.nanz --emit llvm
+//   4. x86_64 native     mz ... --emit llvm -o t.ll && clang -x ir t.ll -o t
+//   5. QBE native        mzn eleven_targets.nanz --qbe
+//   6. C99 native        mzn eleven_targets.nanz --c99
+//   7. WebAssembly       mz eleven_targets.nanz --emit wasm
+//
+//   ── GPU ──
+//   8. CUDA              mz eleven_targets.nanz --emit cuda
+//   9. OpenCL            mz eleven_targets.nanz --emit opencl
+//  10. Vulkan GLSL       mz eleven_targets.nanz --emit vulkan
+//  11. Apple Metal       mz eleven_targets.nanz --emit metal
+//
+//   ── Interpreters ──
+//   12. MIR2 VM          mzv eleven_targets.nanz --headless
+//   13. lli (LLVM JIT)   lli -entry-function=_m out.ll
+//
+// Verify correctness:
+//   mz eleven_targets.nanz --asserts-force mir2
+//   mz eleven_targets.nanz --asserts-force z80
+//   mz eleven_targets.nanz --asserts-force wasm
+//   mz eleven_targets.nanz --asserts-force llvm
+
+fun add(a: u8, b: u8) -> u8 { return a + b }
+fun sub(a: u8, b: u8) -> u8 { return a - b }
+fun mul(a: u8, b: u8) -> u8 { return a * b }
+fun shl(x: u8, n: u8) -> u8 { return x << n }
+
+fun dot2(ax: u8, ay: u8, bx: u8, by: u8) -> u8 {
+    return ax * bx + ay * by
+}
+
+fun main() -> u8 {
+    return dot2(3, 4, 5, 6)
+}
+
+// assert add(3, 4) == 7
+// assert sub(10, 3) == 7
+// assert mul(6, 7) == 42
+// assert shl(1, 3) == 8
+// assert dot2(3, 4, 5, 6) == 39
+// assert dot2(1, 0, 0, 1) == 0
