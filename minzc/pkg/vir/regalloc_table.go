@@ -35,8 +35,9 @@ type RegAllocEntry struct {
 
 // RegAllocTable holds precomputed assignments indexed by signature.
 type RegAllocTable struct {
-	entries map[string]*RegAllocEntry
-	mu      sync.RWMutex
+	entries      map[string]*RegAllocEntry
+	binaryTables []*EnrichedBinaryTable // Z80T binary tables (indexed by enumeration)
+	mu           sync.RWMutex
 }
 
 // Init initializes an empty table (for external construction).
@@ -83,7 +84,35 @@ func (t *RegAllocTable) Lookup(ops []VIROp, desc *MachineDesc) (map[int]int, int
 		entry, ok = t.entries[enrichedKey]
 		gpuHit = ok // enriched entries also use GPU loc indices
 	}
+	// Try Z80T binary tables (enumeration index lookup)
+	var binaryEntry *EnrichedEntry
+	if !ok && len(t.binaryTables) > 0 {
+		shape, _, shapeErr := VIRToEnrichedShape(ops, desc)
+		if shapeErr == nil {
+			idx, idxErr := EnrichedIndexOf(*shape, 6)
+			if idxErr == nil {
+				for _, bt := range t.binaryTables {
+					if e := bt.Lookup(idx); e != nil && !e.Infeasible() {
+						binaryEntry = e
+						break
+					}
+				}
+			}
+		}
+	}
 	t.mu.RUnlock()
+
+	// Handle binary table hit (different format: []byte assignment)
+	if !ok && binaryEntry != nil {
+		_, vregList, _ := VIRToEnrichedShape(ops, desc)
+		assignment := make(map[int]int)
+		for i, loc := range binaryEntry.Assignment {
+			if i < len(vregList) {
+				assignment[vregList[i]] = gpuLocToZ80(int(loc))
+			}
+		}
+		return assignment, binaryEntry.Cost, true
+	}
 
 	if !ok {
 		return nil, 0, false
@@ -221,6 +250,7 @@ func (t *RegAllocTable) loadDefaults() {
 			continue
 		}
 		total, feasible, _ := bt.Stats()
+		t.binaryTables = append(t.binaryTables, bt)
 		fmt.Fprintf(os.Stderr, "[regalloc] loaded %d enriched binary entries (%d feasible) from %s\n",
 			total, feasible, p)
 	}
@@ -811,6 +841,123 @@ func (s InterferenceShape) DecomposeAtCutVertices() [][]int {
 	}
 
 	return components
+}
+
+// ── VIR → EnrichedShape converter ────────────────────────────────────────────
+// Converts VIR ops to the EnrichedShape format used by Z80T binary tables.
+// locSetIndex per vreg is determined by operation constraints (not hints):
+//   ADD/SUB/AND/OR/XOR/CMP dst → must_A (locSets8[0])
+//   OpCall dst → must_A (return in A for u8)
+//   any GPR src/dst otherwise → any_gpr8 (locSets8[2])
+// Intersection of all constraints per vreg → strictest wins.
+
+// VIRToEnrichedShape converts VIR ops into an EnrichedShape for binary table lookup.
+// Returns the shape + a vreg mapping (canonical index → original vreg).
+// Only works for ≤6 vreg functions with 8-bit operations (first version).
+func VIRToEnrichedShape(ops []VIROp, desc *MachineDesc) (*EnrichedShape, []int, error) {
+	// Collect vregs in canonical order
+	prob := buildProblem(ops, desc)
+	vregList := make([]int, 0, len(prob.vregs))
+	for v := range prob.vregs {
+		vregList = append(vregList, v)
+	}
+	sort.Ints(vregList)
+
+	nv := len(vregList)
+	if nv < 2 || nv > 6 {
+		return nil, nil, fmt.Errorf("nVregs=%d out of range [2,6]", nv)
+	}
+
+	vregIdx := make(map[int]int) // original vreg → canonical index
+	for i, v := range vregList {
+		vregIdx[v] = i
+	}
+
+	// Compute per-vreg constraints from operations.
+	// Start with "any GPR8" and intersect with operation requirements.
+	// locSets8: 0=must_A, 1=must_C, 2=any_gpr8, 3=any_gpr8_except_A
+	type constraint struct {
+		mustA bool // at least one op requires A
+		noA   bool // at least one op forbids A (src of tied-dst-A op where dst≠this vreg)
+		mustC bool // at least one op requires C
+		w16   bool // any 16-bit usage
+	}
+	constraints := make([]constraint, nv)
+
+	for _, op := range ops {
+		switch op.Op {
+		case OpAdd, OpSub, OpAnd, OpOr, OpXor, OpNeg:
+			// Accumulator ALU: dst must be A
+			if op.Dst > 0 {
+				if ci, ok := vregIdx[op.Dst]; ok {
+					constraints[ci].mustA = true
+				}
+			}
+		case OpCmp, OpCmpImm:
+			// CP: src0 must be A (comparison reads A)
+			if op.Src[0] > 0 {
+				if ci, ok := vregIdx[op.Src[0]]; ok {
+					constraints[ci].mustA = true
+				}
+			}
+		case OpAddImm, OpSubImm, OpAndImm, OpOrImm, OpXorImm:
+			// Immediate ALU: dst must be A
+			if op.Dst > 0 {
+				if ci, ok := vregIdx[op.Dst]; ok {
+					constraints[ci].mustA = true
+				}
+			}
+		case OpCall:
+			// Return value in A (for u8)
+			if op.Dst > 0 && op.Width <= 8 {
+				if ci, ok := vregIdx[op.Dst]; ok {
+					constraints[ci].mustA = true
+				}
+			}
+		}
+	}
+
+	// Build widths and locSetIndex
+	widths := make([]int, nv)
+	locSetIdx := make([]int, nv)
+	for i := range widths {
+		widths[i] = 8 // default 8-bit (first version)
+		if constraints[i].mustA {
+			locSetIdx[i] = 0 // must_A
+		} else if constraints[i].mustC {
+			locSetIdx[i] = 1 // must_C
+		} else if constraints[i].noA {
+			locSetIdx[i] = 3 // any_gpr8_except_A
+		} else {
+			locSetIdx[i] = 2 // any_gpr8
+		}
+	}
+
+	// Build interference bitmask
+	intfEdges := make([][2]int, 0)
+	for i := range prob.liveness {
+		liveVregs := make([]int, 0)
+		for v := range prob.liveness[i].live {
+			if ci, ok := vregIdx[v]; ok {
+				liveVregs = append(liveVregs, ci)
+			}
+		}
+		sort.Ints(liveVregs)
+		for a := 0; a < len(liveVregs); a++ {
+			for b := a + 1; b < len(liveVregs); b++ {
+				intfEdges = append(intfEdges, [2]int{liveVregs[a], liveVregs[b]})
+			}
+		}
+	}
+	bitmask := InterferenceBitmask(nv, intfEdges)
+
+	shape := &EnrichedShape{
+		NVregs:       nv,
+		Widths:       widths,
+		LocSetIndex:  locSetIdx,
+		Interference: bitmask,
+	}
+	return shape, vregList, nil
 }
 
 // EnrichedSignature combines shape + op_bag into a single lookup key.
