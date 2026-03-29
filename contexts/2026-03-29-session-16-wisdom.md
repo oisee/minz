@@ -44,11 +44,33 @@ ROTR16=EX DE,HL (4T). Full block: ~202K T-states = 58ms @3.5MHz = 17 blocks/sec.
 - arith16: abs16 44T, neg16 27T, min16/max16 41T
 - SHA-256 round analysis
 
+### div8 v3 carry_compare — GPU-Discovered, Not In Any Textbook
+For K≥128, quotient always 0 or 1:
+`OR A; LD B,(256-K); ADC A,B; SBC A,A; AND 1` = 5 ops, 26T, branchless.
+ADC overflow detects A≥K. SBC A,A materializes carry. AND 1 clamps.
+Verified: 32768/32768 exhaustive. avg div8: 154T→79T (−49%).
+Three-level validation found what each alone missed:
+1. Analytical (Hacker's Delight) → v1 baseline
+2. Compositional search (preshift) → v2 −12%
+3. GPU brute-force → v3 −49% (carry_compare discovery)
+
+### VIR IntrinsicTable Architecture (from 4tw49890)
+`ISLE(isel) → IntrinsicTable(strength reduction) → Z3(regalloc)`
+intrinsics.go pushed same day: tryConstDiv (carry_compare), tryConstMod (AND mask).
+Pattern: OpAsmBlock with GPU-precomputed ops[], clobbers from table, Z3 allocates around.
+
+### Cross-Team Productivity
+5 sessions coordinated via dedelulu in one day:
+- z80-optimizer: 7 JSON files, ~800 entries, carry_compare discovery
+- minz-vir: intrinsics.go same-day turnaround
+- minz-abap: 42 LLVM native binaries, FatFS→ABAP on SAP
+- antique-toy: FatFS source sharing
+
 ## Known Issues
-- div8 GPU-optimal codegen not wiring: JP __div8 transformed by GPU peephole
-  rules BEFORE div8 inline check. Fix: expansion phase before optimization.
-- MIR2 VM: u8 XOR (^) operator = pointer deref, not bitwise XOR
-- SDCC u32 uses IY as temp, we use DEHL + ADC HL,rr (better)
+- ~~div8 codegen not wiring~~ → FIXED by 4tw49890's intrinsics.go (8cfba219)
+- MIR2 VM: struct return field access causes OOB (heap too small for struct pointers)
+- MIR2 VM: `u8(expr)` cast may trigger unexpected load
+- fun/ examples are self-contained demos, NOT importable stdlib modules yet
 
 ## Nanz Operator Cheat Sheet
 | Symbol | Meaning | Example |
