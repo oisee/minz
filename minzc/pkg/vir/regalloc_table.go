@@ -209,6 +209,21 @@ func (t *RegAllocTable) loadDefaults() {
 	if p := os.Getenv("VIR_ENRICHED_TABLE"); p != "" {
 		t.LoadEnriched(p)
 	}
+
+	// Try Z80T binary enriched tables (37.6M entries, .z80t files)
+	for _, p := range []string{
+		os.ExpandEnv("$HOME/dev/z80-optimizer/data/enriched_4v.z80t"),
+		os.ExpandEnv("$HOME/dev/z80-optimizer/data/enriched_5v.z80t"),
+		os.ExpandEnv("$HOME/dev/z80-optimizer/data/enriched_6v.z80t"),
+	} {
+		bt, err := LoadEnrichedBinary(p)
+		if err != nil {
+			continue
+		}
+		total, feasible, _ := bt.Stats()
+		fmt.Fprintf(os.Stderr, "[regalloc] loaded %d enriched binary entries (%d feasible) from %s\n",
+			total, feasible, p)
+	}
 }
 
 // LoadExhaustive loads entries from the exhaustive enumeration format.
