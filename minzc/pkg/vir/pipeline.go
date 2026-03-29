@@ -2522,18 +2522,15 @@ func peepholeCleanup(asm string) string {
 			k := resolveBValue(result)
 			divTable := GetDivOptTable()
 			if entry := divTable.Lookup(k); entry != nil {
-				// Strip the LD B, K
+				// Strip the LD B, K (dead — divisor baked into sequence)
 				if len(result) > 0 && strings.TrimSpace(result[len(result)-1]) == fmt.Sprintf("LD B, %d", k) {
 					result = result[:len(result)-1]
 				}
-				result = append(result, fmt.Sprintf("    ; div%d (GPU-optimal, %dT)", k, entry.TStates+entry.PreambleTStates))
-				for _, op := range entry.Preamble {
-					result = append(result, "    "+op)
-				}
+				result = append(result, fmt.Sprintf("    ; div%d (GPU-optimal, %dT)", k, entry.TStates))
+				// ops[] is the complete sequence (preamble + mul + postamble)
 				for _, op := range entry.Ops {
 					result = append(result, "    "+op)
 				}
-				result = append(result, "    LD A, H") // result in H → move to A
 				if i+1 < len(lines) {
 					next := strings.TrimSpace(lines[i+1])
 					if strings.HasPrefix(next, "LD A, ") { i++ }

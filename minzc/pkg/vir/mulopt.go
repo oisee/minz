@@ -246,11 +246,16 @@ func loadU32OpsTable() *U32OpsTable {
 // ── Division table ──────────────────────────────────────────────────────────
 
 type DivOpt struct {
-	K              int      `json:"k"`
-	Ops            []string `json:"ops"`
-	Length         int      `json:"length"`
-	TStates        int      `json:"tstates"`
-	Clobber        []string `json:"clobber"`
+	K        int      `json:"k"`
+	Method   string   `json:"method"`   // "shift", "mul_shift", "mul_add256_shift"
+	MagicM   *int     `json:"magic_m"`
+	ShiftS   int      `json:"shift_s"`
+	Ops      []string `json:"ops"`      // complete sequence
+	Length   int      `json:"length"`
+	TStates  int      `json:"tstates"`
+	Bytes    int      `json:"bytes"`
+	Clobber  []string `json:"clobbers"`
+	Verified bool     `json:"verified"`
 	Preamble       []string `json:"preamble"`
 	PreambleTStates int     `json:"preamble_tstates"`
 }
@@ -286,6 +291,18 @@ func loadDivOptTable() *DivOptTable {
 		if err != nil {
 			continue
 		}
+		// Try wrapped format: {"entries": [...]}
+		var wrapped struct {
+			Entries []DivOpt `json:"entries"`
+		}
+		if err := json.Unmarshal(data, &wrapped); err == nil && len(wrapped.Entries) > 0 {
+			for i := range wrapped.Entries {
+				t.entries[wrapped.Entries[i].K] = &wrapped.Entries[i]
+			}
+			fmt.Fprintf(os.Stderr, "[divopt] loaded %d div8 entries from %s\n", len(wrapped.Entries), path)
+			return t
+		}
+		// Fallback: flat array format
 		var entries []DivOpt
 		if err := json.Unmarshal(data, &entries); err != nil {
 			fmt.Fprintf(os.Stderr, "[divopt] parse error: %v\n", err)
