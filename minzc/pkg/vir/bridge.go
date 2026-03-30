@@ -16,7 +16,27 @@ import (
 func LowerBlock(b *mir2.Block, desc *MachineDesc, mod *mir2.Module, fn ...*mir2.Func) ([]VIROp, error) {
 	var ops []VIROp
 
+	// Pre-scan: collect MIR2 constants for strength reduction
+	mirConsts := make(map[mir2.Reg]int64)
 	for _, inst := range b.Insts {
+		if inst.Op == mir2.OpConst {
+			mirConsts[inst.Dst] = inst.Imm
+		}
+	}
+
+	for _, inst := range b.Insts {
+		// Strength reduce div/mod by power-of-2 BEFORE translation
+		if (inst.Op == mir2.OpDiv || inst.Op == mir2.OpSDiv) && inst.Imm == 0 {
+			if k, ok := mirConsts[inst.Src[1]]; ok && k > 0 && isPow2(k) {
+				inst.Imm = k // propagate const into Imm for bridge
+			}
+		}
+		if inst.Op == mir2.OpMod && inst.Imm == 0 {
+			if k, ok := mirConsts[inst.Src[1]]; ok && k > 0 && isPow2(k) {
+				inst.Imm = k
+			}
+		}
+
 		translated, err := translateInst(inst, desc, mod)
 		if err != nil {
 			return nil, fmt.Errorf("block %s: %w", b.Label, err)
@@ -115,6 +135,21 @@ func mirWidth(inst *mir2.Inst, desc *MachineDesc) int {
 		w = maxW
 	}
 	return w
+}
+
+// isPow2 returns true if n is a power of 2 (1, 2, 4, 8, ...).
+func isPow2(n int64) bool {
+	return n > 0 && (n&(n-1)) == 0
+}
+
+// log2 returns the base-2 logarithm of a power of 2.
+func log2(n int64) int {
+	r := 0
+	for n > 1 {
+		n >>= 1
+		r++
+	}
+	return r
 }
 
 // translateInst maps a single MIR2 instruction to one or more VIROps.
@@ -220,7 +255,18 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 		}}, nil
 
 	case mir2.OpDiv, mir2.OpSDiv:
-		// Try GPU-optimal constant division first (carry_compare for K≥128, etc.)
+		// Power-of-2 division → shift right (ALL widths, u8 and u16)
+		if inst.Imm > 0 && isPow2(inst.Imm) {
+			shift := log2(inst.Imm)
+			// Rewrite: div(x, 2^n) → shr(x, n)
+			// Emit const for shift amount + OpShr
+			shiftVreg := int(inst.Dst) + 10000 // temp vreg (above normal range)
+			return []VIROp{
+				{Op: OpConst, Dst: shiftVreg, Imm: int64(shift), Width: 8},
+				{Op: OpShr, Dst: int(inst.Dst), Src: [2]int{int(inst.Src[0]), shiftVreg}, Width: w},
+			}, nil
+		}
+		// Try GPU-optimal constant division (carry_compare for K≥128, etc.)
 		if w <= 8 && inst.Imm > 0 {
 			if ops := tryConstDiv(inst, desc, w); ops != nil {
 				return ops, nil
@@ -229,7 +275,15 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 		return translateDivMod(inst, desc, w, false)
 
 	case mir2.OpMod:
-		// Try power-of-2 mod optimization (AND K-1)
+		// Power-of-2 modulo → AND (K-1) (ALL widths, u8 and u16)
+		if inst.Imm > 0 && isPow2(inst.Imm) {
+			mask := inst.Imm - 1
+			return []VIROp{{
+				Op: OpAndImm, Dst: int(inst.Dst), Src: [2]int{int(inst.Src[0]), -1},
+				Imm: mask, Width: w,
+			}}, nil
+		}
+		// Try GPU-optimal constant mod (u8 only)
 		if w <= 8 && inst.Imm > 0 {
 			if ops := tryConstMod(inst, desc, w); ops != nil {
 				return ops, nil

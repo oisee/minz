@@ -2958,6 +2958,12 @@ func peepholeCleanup(asm string) string {
 			continue
 		}
 
+		// XOR 255 → CPL (complement accumulator, 1 byte / 4T vs 2 bytes / 7T)
+		if line == "XOR 255" {
+			result = append(result, "    CPL")
+			continue
+		}
+
 		// LD A, r / LD r, A → remove second (redundant store-back)
 		if i+1 < len(lines) && strings.HasPrefix(line, "LD A, ") {
 			src := strings.TrimPrefix(line, "LD A, ")

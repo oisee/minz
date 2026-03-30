@@ -75,6 +75,8 @@ func ISLECombine(ops []VIROp) []VIROp {
 	ops = fuseLoad16LE(ops)
 	// Phase 4: store16_le fusion (FatFS st_word pattern)
 	ops = fuseStore16LE(ops)
+	// Note: power-of-2 div/mod strength reduction is in LowerBlock (bridge.go)
+	// where MIR2 consts are propagated into inst.Imm before translateInst.
 	// Note: dead const elim runs in LowerBlock AFTER appendReturnMove.
 	return ops
 }
