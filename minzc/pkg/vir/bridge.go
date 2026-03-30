@@ -7,9 +7,12 @@ package vir
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/minz/minzc/pkg/mir2"
 )
+
+func joinLines(lines []string) string { return strings.Join(lines, "\n") }
 
 // LowerBlock converts one MIR2 basic block into VIROps.
 // The optional func parameter enables return-value ABI enforcement.
@@ -255,16 +258,27 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 		}}, nil
 
 	case mir2.OpDiv, mir2.OpSDiv:
-		// Power-of-2 division → shift right (ALL widths, u8 and u16)
+		// Power-of-2 division → shift right
 		if inst.Imm > 0 && isPow2(inst.Imm) {
 			shift := log2(inst.Imm)
-			// Rewrite: div(x, 2^n) → shr(x, n)
-			// Emit const for shift amount + OpShr
-			shiftVreg := int(inst.Dst) + 10000 // temp vreg (above normal range)
-			return []VIROp{
-				{Op: OpConst, Dst: shiftVreg, Imm: int64(shift), Width: 8},
-				{Op: OpShr, Dst: int(inst.Dst), Src: [2]int{int(inst.Src[0]), shiftVreg}, Width: w},
-			}, nil
+			if w <= 8 {
+				// u8: simple SRL chain
+				shiftVreg := int(inst.Dst) + 10000
+				return []VIROp{
+					{Op: OpConst, Dst: shiftVreg, Imm: int64(shift), Width: 8},
+					{Op: OpShr, Dst: int(inst.Dst), Src: [2]int{int(inst.Src[0]), shiftVreg}, Width: 8},
+				}, nil
+			}
+			// u16: emit inline asm — SRL H; RR L chain (no u16 SHR pattern)
+			var asmLines []string
+			for i := 0; i < shift; i++ {
+				asmLines = append(asmLines, "    SRL H", "    RR L")
+			}
+			return []VIROp{{
+				Op: OpAsmBlock, Dst: int(inst.Dst), Src: [2]int{int(inst.Src[0]), -1},
+				Sym: fmt.Sprintf("; div%d (u16, strength reduced)\n%s", inst.Imm, joinLines(asmLines)),
+				Width: 16,
+			}}, nil
 		}
 		// Try GPU-optimal constant division (carry_compare for K≥128, etc.)
 		if w <= 8 && inst.Imm > 0 {
@@ -275,9 +289,23 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 		return translateDivMod(inst, desc, w, false)
 
 	case mir2.OpMod:
-		// Power-of-2 modulo → AND (K-1) (ALL widths, u8 and u16)
+		// Power-of-2 modulo → AND (K-1)
 		if inst.Imm > 0 && isPow2(inst.Imm) {
 			mask := inst.Imm - 1
+			if w <= 8 {
+				return []VIROp{{
+					Op: OpAndImm, Dst: int(inst.Dst), Src: [2]int{int(inst.Src[0]), -1},
+					Imm: mask, Width: 8,
+				}}, nil
+			}
+			// u16: AND mask on low byte only (mask < 256 for power-of-2 ≤ 256)
+			if mask < 256 {
+				return []VIROp{{
+					Op: OpAsmBlock, Dst: int(inst.Dst), Src: [2]int{int(inst.Src[0]), -1},
+					Sym: fmt.Sprintf("; mod%d (u16, strength reduced)\n    LD H, 0\n    LD A, L\n    AND %d\n    LD L, A", inst.Imm, mask),
+					Width: 16,
+				}}, nil
+			}
 			return []VIROp{{
 				Op: OpAndImm, Dst: int(inst.Dst), Src: [2]int{int(inst.Src[0]), -1},
 				Imm: mask, Width: w,
