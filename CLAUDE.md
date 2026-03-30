@@ -535,6 +535,23 @@ print(42);     // No more print_u8!
 print("Hi");   // Just print!
 ```
 
+### Memory Access via Pointers
+```nanz
+// ^ = pointer type (in declarations), postfix deref (in expressions)
+let p: ^u8 = 0x4000        // p points to address 0x4000
+let val: u8 = p^            // READ: p^ → LD A,(HL) on Z80
+p^ = val xor 0xFF           // WRITE: p^ = ... → LD (HL),A on Z80
+p^ = p^ xor 0xFF            // READ-MODIFY-WRITE: LD A,(HL); XOR 0xFF; LD (HL),A
+
+// Pointer arithmetic
+let next: ^u8 = p + 1       // next byte
+let screen: ^u8 = 0x5800 + y * 32 + x   // ZX attribute address
+
+// IMPORTANT: ^ in expressions = deref, NOT XOR!
+// Use `xor` keyword for bitwise XOR:  a xor b
+// Use `&` for AND, `|` for OR
+```
+
 ### Target Architecture
 One backend, multiple targets:
 ```bash
