@@ -4379,6 +4379,72 @@ func (g *z80cg) genMul32(inst *Inst) {
 
 func (g *z80cg) genDivMod(inst *Inst) {
 	w := inst.Ty.Width()
+
+	// Strength reduction: power-of-2 div → shift, mod → AND mask
+	if rhs := g.loc(inst.Src[1]); rhs != "" {
+		k, isConst := g.constVals[inst.Src[1]]
+		if isConst && k > 0 && k&(k-1) == 0 {
+			dst := g.loc(inst.Dst)
+			lhs := g.loc(inst.Src[0])
+			// For 8-bit ops on pair regs, use low byte
+			lhsA := lhs
+			if isPairReg(lhs) { lhsA = lowByte(lhs) }
+			dstA := dst
+			if isPairReg(dst) { dstA = lowByte(dst) }
+			if inst.Op == OpMod && w <= 8 {
+				mask := k - 1
+				g.comment(fmt.Sprintf("mod%d → AND $%02X (strength reduced)", k, mask))
+				if lhsA != "A" { g.emitf("    LD A, %s", lhsA) }
+				g.emitf("    AND %d", mask)
+				if dstA != "A" { g.emitf("    LD %s, A", dstA) }
+				if isPairReg(dst) { g.emitf("    LD %s, 0", highByte(dst)) }
+				return
+			}
+			if inst.Op == OpMod && w > 8 {
+				// u16 mod power-of-2: AND mask on L, zero H
+				mask := k - 1
+				g.comment(fmt.Sprintf("mod%d → AND $%02X (u16 strength reduced)", k, mask))
+				if lhs != "HL" && isPairReg(lhs) {
+					g.emitf("    LD H, %s", highByte(lhs))
+					g.emitf("    LD L, %s", lowByte(lhs))
+				}
+				g.emit("    LD A, L")
+				g.emitf("    AND %d", mask)
+				g.emit("    LD L, A")
+				g.emit("    LD H, 0")
+				if dst != "HL" && isPairReg(dst) {
+					g.emitf("    LD %s, H", highByte(dst))
+					g.emitf("    LD %s, L", lowByte(dst))
+				}
+				return
+			}
+			shift := 0
+			for v := k; v > 1; v >>= 1 { shift++ }
+			g.comment(fmt.Sprintf("div%d → SHR %d (strength reduced)", k, shift))
+			if w <= 8 {
+				if lhsA != "A" { g.emitf("    LD A, %s", lhsA) }
+				for i := 0; i < shift; i++ { g.emit("    SRL A") }
+				if dstA != "A" { g.emitf("    LD %s, A", dstA) }
+				if isPairReg(dst) { g.emitf("    LD %s, 0", highByte(dst)) }
+				return
+			} else {
+				if lhs != "HL" && isPairReg(lhs) {
+					g.emitf("    LD H, %s", highByte(lhs))
+					g.emitf("    LD L, %s", lowByte(lhs))
+				}
+				for i := 0; i < shift; i++ {
+					g.emit("    SRL H")
+					g.emit("    RR L")
+				}
+				if dst != "HL" && isPairReg(dst) {
+					g.emitf("    LD %s, H", highByte(dst))
+					g.emitf("    LD %s, L", lowByte(dst))
+				}
+			}
+			return
+		}
+	}
+
 	if w <= 8 {
 		g.genDivMod8(inst)
 	} else if w <= 16 {

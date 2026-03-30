@@ -1,123 +1,107 @@
-// che_nanz.nanz — Che Guevara decoder: LFSR → buffer → screen
+// che_nanz.nanz — Che Guevara decoder, optimized for Z80 code size
 //
-// Two layers:
-//   1. lfsr_fill: LFSR(seed) → 768-byte buffer (32×24, 0x00 or 0xFF per cell)
-//   2. blit_buffer: buffer → XOR 8×8 blocks onto ZX Spectrum screen
+// 32-bit Galois LFSR → XOR 8×8 blocks on ZX Spectrum screen
+// seg0: seed=0x8165, init=0xBEEF, 576 points, 128×96 region
 //
 // HOW TO RUN:
 //   mz fun/che_nanz.nanz -o build/che_n.a80
 //   mza build/che_n.a80 -o build/che_n.bin
 //   mze build/che_n.bin
 
-// ── Layer 1: LFSR → Buffer ─────────────────────────────────
-// 32-bit Galois LFSR, poly 0xB4BCD35C
-// Buffer at 0xC000: 768 bytes (32×24), each = 0x00 or 0xFF
+// ── LFSR-32 Galois via two u16 halves ───────────────────────
+// State = dh:el (dh=high 16, el=low 16)
+// Poly = 0xB4BCD35C → dh ^= 0xB4BC, el ^= 0xD35C
+// Stored at fixed addresses to avoid parameter passing overhead
 
-global buf: u16 = 0xC000
+global st_dh: u16 = 0
+global st_el: u16 = 0
 
-fun lfsr32_step(dh: u16, el: u16) -> u16 {
-    // Returns new el (low 16 bits). dh returned via global.
-    // 32-bit shift right: DEHL >>= 1
-    // Nanz doesn't have u32, so we do two u16 halves
-    let bit: u8 = el % 2               // LSB → carry
-    var new_el: u16 = el / 2
-    if dh % 2 == 1 { new_el = new_el + 32768 }  // carry from dh bit0
-    var new_dh: u16 = dh / 2
-    if bit == 1 {
-        new_dh = new_dh xor 0xB4BC
-        new_el = new_el xor 0xD35C
+fun lfsr_step() -> void {
+    let el: u16 = st_el
+    let dh: u16 = st_dh
+    let bit: u8 = el % 2  // AND 1 via strength reduction
+    st_el = el / 2         // SRL+RR via strength reduction
+    if dh % 2 == 1 {       // carry from dh bit 0
+        st_el = st_el + 32768  // set bit 15
     }
-    // Store dh in global (can't return two values easily)
-    let g: ^u8 = 0xBFFE
-    let g2: ^u8 = 0xBFFF
-    g^ = new_dh % 256
-    g2^ = new_dh / 256
-    return new_el
+    st_dh = dh / 2
+    if bit == 1 {
+        st_dh = st_dh xor 0xB4BC
+        st_el = st_el xor 0xD35C
+    }
 }
 
-fun get_dh() -> u16 {
-    let g: ^u8 = 0xBFFE
-    let g2: ^u8 = 0xBFFF
-    return g2^ * 256 + g^
+// ── XOR 8×8 block using pointer + INC-H trick ──────────────
+// Compute screen address ONCE, then p^ xor, ptr+256 for next row
+
+fun xor_block(cx: u8, cy: u8) -> void {
+    // Screen addr: 0x4000 + (cy/8)*2048 + (cy%8)*32 + cx
+    // cy is char row 0..11 for seg0
+    let third: u16 = cy / 8       // 0 or 1 for 12 rows
+    let row: u16 = cy % 8
+    var addr: u16 = 0x4000 + third * 2048 + row * 32 + cx
+
+    // XOR 8 pixel rows: addr, addr+256, addr+512, ...
+    var r: u8 = 0
+    while r < 8 {
+        let p: ^u8 = addr
+        p^ = p^ xor 0xFF   // → LD A,(HL); CPL; LD (HL),A
+        addr = addr + 256   // → INC H on Z80
+        r = r + 1
+    }
 }
 
-fun lfsr_fill(seed: u16, seg_id: u8) -> void {
-    // Init: DEHL = (seed << 16) | (seg_id * 13 + 0xBEEF)
-    var dh: u16 = seed
-    var el: u16 = seg_id * 13 + 0xBEEF
+// ── Main decoder ────────────────────────────────────────────
 
-    // Store dh
-    let g: ^u8 = 0xBFFE
-    let g2: ^u8 = 0xBFFF
-    g^ = dh % 256
-    g2^ = dh / 256
+fun main() -> void {
+    // Init LFSR: state = (0x8165 << 16) | 0xBEEF
+    st_dh = 0x8165
+    st_el = 0xBEEF
 
     // Warmup: 8 steps
     var w: u8 = 0
     while w < 8 {
-        el = lfsr32_step(get_dh(), el)
+        lfsr_step()
         w = w + 1
     }
 
-    // Clear buffer
-    var i: u16 = 0
-    while i < 768 {
-        let p: ^u8 = buf + i
+    // Clear buffer at 0xC000 (192 bytes = 16×12 grid, one byte per cell)
+    var i: u8 = 0
+    while i < 192 {
+        let p: ^u8 = 0xC000 + i
         p^ = 0
         i = i + 1
     }
 
-    // 576 points → toggle cells in buffer
+    // 576 points → toggle buffer cells
     var pt: u16 = 0
     while pt < 576 {
-        el = lfsr32_step(get_dh(), el)
-        dh = get_dh()
+        lfsr_step()
+        // cx = (st_el % 128) / 8 = (st_el AND 0x7F) >> 3
+        // Range: 0..15 (16 columns in 128px)
+        let raw_x: u8 = st_el % 128
+        let cx: u8 = raw_x / 8
 
-        // x = (el & 0xFFFF) % 128, aligned to 8 → cell_x = x/8 (0..15)
-        let cell_x: u8 = (el % 128) / 8
-        // y = (dh & 0xFFFF) % 96, aligned to 8 → cell_y = y/8 (0..11)
-        let cell_y: u8 = (dh % 96) / 8
+        // cy = (st_dh % 96) / 8
+        // Manual mod96: subtract 96 until < 96
+        let dh_lo: u8 = st_dh % 256  // low byte
+        var raw_y: u8 = dh_lo
+        while raw_y >= 96 { raw_y = raw_y - 96 }
+        let cy: u8 = raw_y / 8
 
-        // Toggle buffer cell
-        let idx: u16 = cell_y * 16 + cell_x
-        let bp: ^u8 = buf + idx
+        // Toggle cell in buffer
+        let bp: ^u8 = 0xC000 + cy * 16 + cx
         bp^ = bp^ xor 0xFF
 
         pt = pt + 1
     }
-}
 
-// ── Layer 2: Buffer → Screen ────────────────────────────────
-// Read buffer, XOR 8×8 blocks where cell != 0
-
-fun screen_addr(cx: u8, cy: u8) -> u16 {
-    // ZX Spectrum: addr = 0x4000 + (cy/8)*2048 + (cy%8)*32 + cx
-    // cy here is character row (0..23), for blk=8: 0..11
-    let third: u16 = cy / 8
-    let row: u16 = cy % 8
-    return 0x4000 + third * 2048 + row * 32 + cx
-}
-
-fun xor_block(cx: u8, cy: u8) -> void {
-    // XOR 8 pixel rows of character cell
-    // p^ = p^ xor 0xFF → LD A,(HL); CPL; LD (HL),A on Z80
-    var row: u8 = 0
-    while row < 8 {
-        let addr: u16 = screen_addr(cx, cy) + row * 256
-        let p: ^u8 = addr
-        p^ = p^ xor 0xFF
-        row = row + 1
-    }
-}
-
-fun blit_buffer() -> void {
-    // Scan 16×12 buffer (seg0 covers 128×96 = 16×12 char cells)
+    // Blit buffer to screen
     var cy: u8 = 0
     while cy < 12 {
         var cx: u8 = 0
         while cx < 16 {
-            let idx: u16 = cy * 16 + cx
-            let bp: ^u8 = buf + idx
+            let bp: ^u8 = 0xC000 + cy * 16 + cx
             if bp^ != 0 {
                 xor_block(cx, cy)
             }
@@ -125,12 +109,4 @@ fun blit_buffer() -> void {
         }
         cy = cy + 1
     }
-}
-
-// ── Main ────────────────────────────────────────────────────
-
-fun main() -> void {
-    // seg0: seed=0x8165, seg_id=0, blk=8, pts=576, region=[0,0 128x96]
-    lfsr_fill(0x8165, 0)
-    blit_buffer()
 }
