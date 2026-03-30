@@ -4,13 +4,13 @@
 // GPU-found optimal seeds: 2968 total points → recognizable face.
 // 351 bytes Z80 binary. The original GPU-to-Z80 pipeline demo.
 //
-// HOW TO RUN (asm version — works now):
-//   mza fun/che_intro.asm -o build/che.bin             # 351 bytes!
-//   mze build/che.bin                                  # display on Z80 emulator
+// HOW TO RUN (Nanz → Z80):
+//   mz fun/che_intro.nanz -o build/che.a80             # compile
+//   mza build/che.a80 -o build/che.bin                 # assemble → 1518 bytes
+//   mze build/che.bin                                  # display Che on Z80 emulator!
 //
-// HOW TO RUN (Nanz version — WIP, spill label collision):
-//   mz fun/che_intro.nanz -o build/che.a80             # compiles but asm has dup labels
-//   # Fix: PBQP spill label dedup (BUG-001)
+// HOW TO RUN (asm version — hand-optimized, 351 bytes):
+//   mza fun/che_intro.asm -o build/che_asm.bin
 
 // ── LFSR-16: same as z80-optimizer CUDA kernel ──────────────
 

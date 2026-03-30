@@ -229,20 +229,27 @@ func CodegenModule(m *mir2.Module, opts SolverOptions) (string, []FuncResult) {
 	// These come from PBQP spill slots that VIR inherits via MIR2 lowering.
 	asmText = sb.String()
 	emittedSpills := make(map[string]bool)
+	// Pre-scan: collect all already-defined spill labels (from z80codegen Pass 2)
 	for _, line := range strings.Split(asmText, "\n") {
 		trimmed := strings.TrimSpace(line)
-		// Look for references to _spill_* labels (in operands, not as definitions)
-		if strings.Contains(trimmed, "_spill_") && !strings.HasSuffix(trimmed, ":") {
-			// Extract _spill_xxx label from the line
+		if strings.HasPrefix(trimmed, "_spill_") && strings.Contains(trimmed, ":") {
+			label := strings.SplitN(trimmed, ":", 2)[0]
+			emittedSpills[label] = true
+		}
+	}
+	// Only emit spill labels that are referenced but NOT yet defined
+	for _, line := range strings.Split(asmText, "\n") {
+		trimmed := strings.TrimSpace(line)
+		if strings.Contains(trimmed, "_spill_") && !strings.HasSuffix(trimmed, ":") &&
+			!strings.Contains(trimmed, ": D") {
 			for _, part := range strings.Fields(trimmed) {
-				// Strip parens and commas: (_spill_main_r74) → _spill_main_r74
-				part = strings.Trim(part, "(),")
+				part = strings.Trim(part, "(),+")
+				if idx := strings.Index(part, "+"); idx > 0 {
+					part = part[:idx]
+				}
 				if strings.HasPrefix(part, "_spill_") && !emittedSpills[part] {
-					// Check it's not already defined as a label
-					if !strings.Contains(asmText, part+":") {
-						sb.WriteString(fmt.Sprintf("%s: DW 0\n", part))
-						emittedSpills[part] = true
-					}
+					sb.WriteString(fmt.Sprintf("%s: DW 0\n", part))
+					emittedSpills[part] = true
 				}
 			}
 		}
