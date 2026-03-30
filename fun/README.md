@@ -195,7 +195,7 @@ When you compile, these fire automatically:
 
 | Extension | Language | Style |
 |-----------|----------|-------|
-| `.nanz` | **Nanz** | Rust-like (primary) |
+| `.nanz` | **Nanz** | Swift/Zig-like (primary) |
 | `.frl` | **Frill** | ML/Haskell functional |
 | `.c` | **C17+C23** | First Z80 compiler at C17 |
 | `.lizp` | **Lizp** | Scheme R5RS |
