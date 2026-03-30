@@ -1,71 +1,123 @@
 // lfsr_decoder.nanz — PRNG-based video frame decoder for ZX Spectrum
 //
 // Masked two-layer delta codec:
-//   Coarse: LFSR seed → XOR 8×8 blocks where movement detected
-//   Fine:   LFSR seed → XOR pixels only inside active coarse blocks
+//   1. LFSR(seed) → fill 96-byte linear buffer (768 bits = 32×24 grid)
+//   2. Scan buffer: if bit set → XOR solid 8×8 block on screen
 //   4 bytes per delta frame. 3 min × 10fps = 8.8KB total.
 //
 // HOW TO RUN:
-//   mz fun/lfsr_decoder.nanz --asserts mir2            # ✓ 5 asserts, ~1s
+//   mz fun/lfsr_decoder.nanz --asserts mir2            # asserts pass
+//   mzv fun/lfsr_decoder.nanz                          # visual on MZV!
 //   mz fun/lfsr_decoder.nanz -o build/lfsr.a80         # compile to Z80 asm
 //   mza build/lfsr.a80 -o build/lfsr.bin               # assemble to binary
-//   mzd build/lfsr.bin --cycles                        # measure T-states
+
+@extern fun peek(addr: u16) -> u8
+@extern fun poke(addr: u16, val: u8) -> void
 
 // ── LFSR-16: Galois form, taps at 16,14,13,11 ──────────────
-// Period: 65535 (maximal). One step: ~40T on Z80.
-// Polynomial: x^16 + x^14 + x^13 + x^11 + 1
 
 fun lfsr_step(state: u16) -> u16 {
-    // Galois LFSR: if LSB=1, shift right and XOR taps
     let lsb: u8 = state % 2
     var next: u16 = state / 2
     if lsb == 1 {
-        // Taps: 0xB400 = bits 15,13,12,10 (reversed for Galois)
         next = next xor 0xB400
     }
     return next
 }
 
-// Advance LFSR by N steps (for seeking)
-fun lfsr_advance(state: u16, n: u8) -> u16 {
-    var s: u16 = state
+// ── Linear buffer: 96 bytes at 0xE000 ──────────────────────
+// Bit layout: byte[y*4 + x/8], bit (x%8)
+// Covers 32×24 character grid = 768 bits
+
+global buf_addr: u16 = 0xE000
+
+fun lfsr_fill_buffer(seed: u16) -> u16 {
+    // Fill 96 bytes from LFSR (768 bits = 96 × 8)
+    // Returns final LFSR state (for chaining)
+    var state: u16 = seed
     var i: u8 = 0
-    while i < n {
-        s = lfsr_step(s)
+    while i < 96 {
+        // Take low byte of LFSR as buffer byte
+        let val: u8 = state % 256
+        poke(buf_addr + i, val)
+        // Advance LFSR 8 times (one per bit used)
+        var j: u8 = 0
+        while j < 8 {
+            state = lfsr_step(state)
+            j = j + 1
+        }
         i = i + 1
     }
-    return s
+    return state
 }
 
-// ── XOR block renderer ──────────────────────────────────────
-// XOR 8×8 character cell on ZX Spectrum screen.
-// Screen layout: line N at 0x4000 + (N/8)*256 + (N%8)*32 + X
-// Within cell: next row = addr + 256 (INC H on Z80)
+fun buf_bit_set(cx: u8, cy: u8) -> u8 {
+    // Test if bit (cx, cy) is set in buffer
+    // cx=0..31, cy=0..23
+    let byte_idx: u8 = cy * 4 + cx / 8
+    let bit_idx: u8 = cx % 8
+    let byte_val: u8 = peek(buf_addr + byte_idx)
+    // Test bit: shift right by bit_idx, check LSB
+    var val: u8 = byte_val
+    var k: u8 = 0
+    while k < bit_idx {
+        val = val / 2
+        k = k + 1
+    }
+    return val % 2
+}
 
-fun screen_addr(cx: u8, cy: u8) -> u16 {
-    // Character cell (cx, cy) → screen byte address
-    // cy bits: Y4 Y3 | Y2 Y1 Y0 → third(Y4Y3) * 0x800 + row(Y2Y1Y0) * 0x100 + cx
+// ── ZX Spectrum screen address ──────────────────────────────
+// Character cell (cx, cy) pixel row r:
+//   addr = 0x4000 + (cy/8)*2048 + r*256 + (cy%8)*32 + cx
+// Next pixel row within cell: addr + 256 (INC H on Z80)
+
+fun cell_addr(cx: u8, cy: u8, row: u8) -> u16 {
     let third: u16 = cy / 8
-    let row: u16 = cy % 8
-    return 0x4000 + third * 2048 + row * 256 + cx
+    let char_row: u16 = cy % 8
+    return 0x4000 + third * 2048 + row * 256 + char_row * 32 + cx
 }
 
-// ── Bitmask scan ────────────────────────────────────────────
-// 96-byte buffer (32×24 bits / 8): each bit = coarse block active
+// ── XOR solid 8×8 block ────────────────────────────────────
+// Flips all 8 pixel rows of character cell (cx, cy)
 
-fun bit_test(buf: u16, byte_idx: u8, bit_idx: u8) -> u8 {
-    // TODO: when arrays work on Z80, use buf[byte_idx]
-    // For now, test with constants
-    if bit_idx == 0 { return 1 }
-    return 0
+fun xor_block_8x8(cx: u8, cy: u8) -> void {
+    var row: u8 = 0
+    while row < 8 {
+        let addr: u16 = cell_addr(cx, cy, row)
+        poke(addr, peek(addr) xor 0xFF)
+        row = row + 1
+    }
 }
 
-// ── Frame decode (conceptual) ───────────────────────────────
+// ── Decode one frame ────────────────────────────────────────
+// seed → fill buffer → scan buffer → XOR blocks where bit set
 
-fun decode_cost() -> u16 {
-    // Estimate: 768 cells × 50% active × 128T per XOR = ~49152T
-    // At 3.5MHz = ~14ms per frame, fits in 20ms (50fps) budget
-    return 49152
+fun decode_frame(seed: u16) -> u16 {
+    let final_state: u16 = lfsr_fill_buffer(seed)
+
+    var cy: u8 = 0
+    while cy < 24 {
+        var cx: u8 = 0
+        while cx < 32 {
+            if buf_bit_set(cx, cy) == 1 {
+                xor_block_8x8(cx, cy)
+            }
+            cx = cx + 1
+        }
+        cy = cy + 1
+    }
+    return final_state
+}
+
+// ── Main: decode a few frames ───────────────────────────────
+
+fun main() -> void {
+    var seed: u16 = 0xACE1
+    // Decode 3 frames — each XOR's on top of previous
+    seed = decode_frame(seed)
+    seed = decode_frame(seed)
+    seed = decode_frame(seed)
 }
 
 // ── Tests ───────────────────────────────────────────────────
@@ -74,13 +126,7 @@ fun test_lfsr_nonzero() -> u16 {
     return lfsr_step(1)
 }
 
-fun test_lfsr_period() -> u16 {
-    // After 10 steps from seed=1, should be deterministic
-    return lfsr_advance(1, 10)
-}
-
 fun test_lfsr_no_zero() -> u8 {
-    // LFSR should never reach zero (maximal period property)
     var s: u16 = 1
     var i: u8 = 0
     while i < 100 {
@@ -91,16 +137,22 @@ fun test_lfsr_no_zero() -> u8 {
     return 1
 }
 
-fun test_screen_origin() -> u16 {
-    return screen_addr(0, 0)
+fun test_cell_addr_origin() -> u16 {
+    return cell_addr(0, 0, 0)
 }
 
-fun test_screen_next_char() -> u16 {
-    return screen_addr(1, 0)
+fun test_cell_addr_row1() -> u16 {
+    // Row 1 of cell (0,0) = 0x4000 + 256 = 0x4100
+    return cell_addr(0, 0, 1)
+}
+
+fun test_cell_addr_third2() -> u16 {
+    // Cell (0,16) = third 2 = 0x4000 + 2*2048 = 0x5000
+    return cell_addr(0, 16, 0)
 }
 
 assert test_lfsr_nonzero() == 46080 via mir2
 assert test_lfsr_no_zero() == 1 via mir2
-assert test_screen_origin() == 16384 via mir2
-assert test_screen_next_char() == 16385 via mir2
-assert decode_cost() == 49152 via mir2
+assert test_cell_addr_origin() == 16384 via mir2
+assert test_cell_addr_row1() == 16640 via mir2
+assert test_cell_addr_third2() == 20480 via mir2
