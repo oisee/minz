@@ -1,16 +1,13 @@
-// che_nanz.nanz — Che Guevara decoder, optimized for Z80 code size
+// che_nanz.nanz — Che Guevara decoder, idiomatic Nanz
 //
-// 32-bit Galois LFSR → XOR 8×8 blocks on ZX Spectrum screen
-// seg0: seed=0x8165, init=0xBEEF, 576 points, 128×96 region
+// for..in range → DJNZ, pointer deref → LD (HL), strength-reduced div/mod
 //
 // HOW TO RUN:
 //   mz fun/che_nanz.nanz -o build/che_n.a80
-//   mza build/che_n.a80 -o build/che_n.bin       # ~400 bytes
-//   mze build/che_n.bin                            # display Che!
-//
-// Gap: 3.3× vs optimal asm (121B). Remaining gap is structural:
-//   globals in memory (not register-resident DEHL)
-//   CALL overhead, while-mod96 loop, multiply-based screen addr
+//   mza build/che_n.a80 -o build/che_n.bin
+//   mze build/che_n.bin
+
+// ── LFSR state (globals → VIR accesses via LD (nn)) ─────────
 
 global st_dh: u16 = 0
 global st_el: u16 = 0
@@ -28,54 +25,62 @@ fun lfsr_step() -> void {
     }
 }
 
+fun lfsr_x(el: u16) -> u8 {
+    let raw: u8 = el % 128
+    return raw / 8
+}
+
+fun lfsr_y(dh: u16) -> u8 {
+    let lo: u8 = dh % 256
+    var y: u8 = lo
+    while y >= 96 { y = y - 96 }
+    return y / 8
+}
+
+// ── Screen XOR block ────────────────────────────────────────
+
 fun xor_block(cx: u8, cy: u8) -> void {
     let third: u16 = cy / 8
     let row: u16 = cy % 8
     var addr: u16 = 0x4000 + third * 2048 + row * 32 + cx
-    var r: u8 = 0
-    while r < 8 {
+    for r in 0..8 {
         let p: ^u8 = addr
         p^ = p^ xor 0xFF
         addr = addr + 256
-        r = r + 1
     }
 }
+
+// ── Main ────────────────────────────────────────────────────
 
 fun main() -> void {
     st_dh = 0x8165
     st_el = 0xBEEF
 
-    var w: u8 = 0
-    while w < 8 { lfsr_step()  w = w + 1 }
+    // Warmup
+    for i in 0..8 { lfsr_step() }
 
-    var i: u8 = 0
-    while i < 192 {
+    // Clear buffer
+    for i in 0..192 {
         let p: ^u8 = 0xC000 + i
         p^ = 0
-        i = i + 1
     }
 
+    // 576 points → toggle buffer cells
     var pt: u16 = 0
     while pt < 576 {
         lfsr_step()
-        let cx: u8 = (st_el % 128) / 8
-        let dh_lo: u8 = st_dh % 256
-        var raw_y: u8 = dh_lo
-        while raw_y >= 96 { raw_y = raw_y - 96 }
-        let cy: u8 = raw_y / 8
+        let cx: u8 = lfsr_x(st_el)
+        let cy: u8 = lfsr_y(st_dh)
         let bp: ^u8 = 0xC000 + cy * 16 + cx
         bp^ = bp^ xor 0xFF
         pt = pt + 1
     }
 
-    var cy: u8 = 0
-    while cy < 12 {
-        var cx: u8 = 0
-        while cx < 16 {
+    // Blit buffer → screen
+    for cy in 0..12 {
+        for cx in 0..16 {
             let bp: ^u8 = 0xC000 + cy * 16 + cx
             if bp^ != 0 { xor_block(cx, cy) }
-            cx = cx + 1
         }
-        cy = cy + 1
     }
 }
