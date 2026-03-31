@@ -212,6 +212,23 @@ const graceFuseAbsDiffRule = `
     (custom "fuseAbsDiff" ?b)))
 `
 
+// Bounded loop unrolling: while x >= K { x -= K } → unrolled if-chain.
+// For u8 x and constant K: max iterations = 255/K.
+// If max iters ≤ 4: replace loop with sequential if(x>=K){x-=K} blocks.
+// Pattern: loop_head(cmp x,K; brif) → loop_body(sub x,K; jmp head) → exit
+const graceBoundedLoopUnrollRule = `
+(grace bounded-loop-unroll 8
+  (match
+    (block ?head (term-kind "br_if"))
+    (block ?body (term-kind "jump"))
+    (edge ?head ?body "then")
+    (edge ?body ?head "succ"))
+  (where
+    (is-bounded-sub-loop ?head ?body))
+  (action
+    (custom "unrollBoundedLoop" ?head ?body)))
+`
+
 // ── Statistics ──────────────────────────────────────────────────────────────
 
 // GraceStats tracks how many times each Grace rule fired across the module.
@@ -266,7 +283,7 @@ func loadAllRules() ([]grace.GraceRule, error) {
 		allSrc := graceCondRetSinkRule + graceSplitJoinRetRule + graceDeadBlockArgRule + graceDSERule + graceFuseAbsDiffRule +
 			graceEmptyBlockElimRule + graceBlockMergeRule + graceTrivialBranchRule + graceParamForwardRule + graceFuseCmpBrIf2Rule +
 			graceTailCallRule + graceNarrowArithRule + graceTailRecursionRule +
-			graceRedundantLoadRule + graceFlagsOnlyCmpRule
+			graceRedundantLoadRule + graceFlagsOnlyCmpRule + graceBoundedLoopUnrollRule
 		cachedRules, cachedRulesErr = grace.ParseRules(allSrc)
 	})
 	return cachedRules, cachedRulesErr
@@ -1326,6 +1343,140 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 			return false
 		}
 		blk.Term = &TermJmp{Target: brif.Then, Args: brif.ThenArgs}
+		return true
+	})
+
+	// ── Bounded loop unrolling ──────────────────────────────────────
+
+	// Predicate: is-bounded-sub-loop checks if head+body form a
+	// "while x >= K { x -= K }" loop with bounded iterations.
+	// head: CMP x, K; BrIf(cond, body, exit)
+	// body: x' = SUB x, K; Jmp head (with x' as phi arg)
+	reg.RegisterPredicate("is-bounded-sub-loop", func(graph rewrite.IRGraph, bindings grace.BlockBindings, args []string) bool {
+		if len(args) < 2 {
+			return false
+		}
+		headLabel := bindings[args[0]]
+		bodyLabel := bindings[args[1]]
+		head := f.BlockByLabel(headLabel)
+		body := f.BlockByLabel(bodyLabel)
+		if head == nil || body == nil {
+			return false
+		}
+
+		// Body must have exactly one instruction: SUB with constant
+		if len(body.Insts) != 1 {
+			return false
+		}
+		sub := body.Insts[0]
+		if sub.Op != OpSub {
+			return false
+		}
+
+		// Get the constant K — Src[1] must be a const defined in head or body
+		var k int64
+		for _, blk := range []*Block{head, body} {
+			for _, inst := range blk.Insts {
+				if inst.Dst == sub.Src[1] && inst.Op == OpConst {
+					k = inst.Imm
+					break
+				}
+			}
+		}
+		if k <= 0 || k > 255 {
+			return false
+		}
+
+		// u8 max = 255, max iterations = 255/K
+		maxIters := 255 / k
+		return maxIters <= 4 // only unroll if bounded to ≤4 iterations
+	})
+
+	// Action: unrollBoundedLoop replaces the loop with a linear if-chain.
+	// For maxIters=1 (K>127): while→if (break back-edge, body→exit).
+	// For maxIters=2 (K>85): body→cmp2→brif2→body2→exit.
+	// Higher iterations: duplicate cmp+sub blocks in sequence.
+	reg.RegisterAction("unrollBoundedLoop", func(graph rewrite.IRGraphMut, bindings grace.BlockBindings) bool {
+		headLabel := bindings["head"]
+		bodyLabel := bindings["body"]
+		head := f.BlockByLabel(headLabel)
+		body := f.BlockByLabel(bodyLabel)
+		if head == nil || body == nil {
+			return false
+		}
+
+		brif, ok := head.Term.(*TermBrIf)
+		if !ok {
+			return false
+		}
+		exitLabel := brif.Else
+
+		// Get constant K from body's SUB
+		sub := body.Insts[0]
+		var k int64
+		for _, blk := range []*Block{head, body} {
+			for _, inst := range blk.Insts {
+				if inst.Dst == sub.Src[1] && inst.Op == OpConst {
+					k = inst.Imm
+				}
+			}
+		}
+		if k <= 0 {
+			return false
+		}
+
+		maxIters := int(255 / k)
+		if maxIters < 1 || maxIters > 4 {
+			return false
+		}
+
+		// Core transform: break the back-edge (body→head) → body→exit.
+		// This converts the loop to a single if-then.
+		body.Term = &TermJmp{Target: exitLabel, Args: brif.ElseArgs}
+
+		// For maxIters > 1: duplicate cmp+body blocks after the first body.
+		// Chain: head→body1→cmp2→body2→...→exit
+		prevBodyLabel := bodyLabel
+		for i := 1; i < maxIters; i++ {
+			// Duplicate CMP + BrIf block
+			newCmpLabel := fmt.Sprintf("unroll_cmp%d", i)
+			newCmpBlk := &Block{Label: newCmpLabel}
+			for _, inst := range head.Insts {
+				dup := *inst
+				dup.Dst = f.AllocReg()
+				newCmpBlk.Insts = append(newCmpBlk.Insts, &dup)
+			}
+
+			// Duplicate SUB block
+			newSubLabel := fmt.Sprintf("unroll_sub%d", i)
+			newSubBlk := &Block{Label: newSubLabel}
+			dupSub := *sub
+			dupSub.Dst = f.AllocReg()
+			newSubBlk.Insts = append(newSubBlk.Insts, &dupSub)
+
+			// CMP block: brif → subBlk or exit
+			cmpReg := Reg(0)
+			for _, inst := range newCmpBlk.Insts {
+				if inst.Op == OpCmp {
+					cmpReg = inst.Dst
+				}
+			}
+			newCmpBlk.Term = &TermBrIf{
+				Cond: cmpReg, Then: newSubLabel, Else: exitLabel,
+				ElseArgs: brif.ElseArgs,
+			}
+			newSubBlk.Term = &TermJmp{Target: exitLabel, Args: brif.ElseArgs}
+
+			f.Blocks = append(f.Blocks, newCmpBlk, newSubBlk)
+
+			// Wire previous body → this CMP block
+			prevBody := f.BlockByLabel(prevBodyLabel)
+			if prevBody != nil {
+				prevBody.Term = &TermJmp{Target: newCmpLabel}
+			}
+			prevBodyLabel = newSubLabel
+		}
+
 		return true
 	})
 
