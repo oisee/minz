@@ -948,6 +948,12 @@ func (g *z80cg) emitLD8(dst, src string) {
 	if isPairReg(src) && !isPairReg(dst) {
 		src = lowByte(src)
 	}
+	// Width mismatch: 8bit→pair widening (u8 result stored in pair reg).
+	if !isPairReg(src) && isPairReg(dst) {
+		g.emitf("    LD %s, %s", lowByte(dst), src)
+		g.emitf("    LD %s, 0", highByte(dst))
+		return
+	}
 	// DD/FD prefix conflicts — route through shadow A:
 	if (isIXYReg(src) && (dst == "H" || dst == "L")) ||
 		(isIXYReg(dst) && (src == "H" || src == "L")) ||

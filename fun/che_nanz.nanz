@@ -83,8 +83,7 @@ fun main() -> void {
         let cx: u8 = raw_x / 8
 
         // cy = (st_dh % 96) / 8
-        // Manual mod96: subtract 96 until < 96
-        let dh_lo: u8 = st_dh % 256  // low byte
+        let dh_lo: u8 = st_dh % 256
         var raw_y: u8 = dh_lo
         while raw_y >= 96 { raw_y = raw_y - 96 }
         let cy: u8 = raw_y / 8
