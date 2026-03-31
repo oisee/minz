@@ -190,12 +190,31 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			Template: "LD {dst}, C", Cost: 4, Bytes: 1},
 
 		// IX/IY half moves (call-safe, DD/FD prefix)
+		// Direct: A,B,C,D,E ↔ IXH/IXL/IYH/IYL (no H,L — DD/FD conflict)
 		{Name: "ld_ixh_r", Op: OpMove, Width: 8, DstLocs: Z80_IXHalves,
 			SrcLocs: [2]LocSet{Z80_GPRNoHL}, Template: "LD {dst}, {src0}",
 			Cost: 8, Bytes: 2},
 		{Name: "ld_r_ixh", Op: OpMove, Width: 8, DstLocs: Z80_GPRNoHL,
 			SrcLocs: [2]LocSet{Z80_IXHalves}, Template: "LD {dst}, {src0}",
 			Cost: 8, Bytes: 2},
+		// Compound: pair → IXHalf (extract low byte via A, route around H/L conflict)
+		// DE→IXH: LD IXH,E (direct, E is not H/L) = 8T
+		{Name: "trunc_de_ixh", Op: OpMove, Width: 8, DstLocs: Z80_IXHalves,
+			SrcLocs: [2]LocSet{Z80_DE}, Template: "LD {dst}, E",
+			Cost: 8, Bytes: 2},
+		// BC→IXH: LD IXH,C (direct, C is not H/L) = 8T
+		{Name: "trunc_bc_ixh", Op: OpMove, Width: 8, DstLocs: Z80_IXHalves,
+			SrcLocs: [2]LocSet{Z80_BC}, Template: "LD {dst}, C",
+			Cost: 8, Bytes: 2},
+		// HL→IXH: must route through A (H/L conflict with DD/FD prefix)
+		{Name: "trunc_hl_ixh", Op: OpMove, Width: 8, DstLocs: Z80_IXHalves,
+			SrcLocs: [2]LocSet{Z80_HL}, Template: "LD A, L\n    LD {dst}, A",
+			Cost: 16, Bytes: 3, Clobbers: Z80_A},
+		// IXH→H or L: route through A (DD/FD conflict with H,L)
+		{Name: "ld_hl8_ixh", Op: OpMove, Width: 8,
+			DstLocs: m.LocSetByNames("H", "L"),
+			SrcLocs: [2]LocSet{Z80_IXHalves}, Template: "LD A, {src0}\n    LD {dst}, A",
+			Cost: 16, Bytes: 3, Clobbers: Z80_A},
 
 		// Zero-extend 8→16
 		{Name: "zext_hl_r", Op: OpMove, Width: 16, DstLocs: Z80_HL,
