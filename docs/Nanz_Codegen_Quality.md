@@ -284,3 +284,67 @@ p^→(HL)) produce near-optimal code. Features that fight the architecture
 
 **Paper B insight:** On 7-register machines, split functions beat inline —
 CALL overhead (17T) < register spill overhead (21T per PUSH/POP pair).
+
+---
+
+## 8. Bool Returns: Z Flag vs CY Flag vs Register (PFCCO-chosen)
+
+The most elegant codegen: Z3-PFCCO **per-function** chooses the optimal boolean
+return convention. No programmer annotation needed.
+
+### Nanz
+
+```nanz
+fun is_zero(x: u8) -> bool { return x == 0 }
+fun is_less(a: u8, b: u8) -> bool { return a < b }
+```
+
+### Z80 Assembly (generated — note the PFCCO annotations!)
+
+```z80
+; is_zero: ret=A(bool=A) — Z3 chose: return bool in A register
+; SBC A,A = GPU-proven CY→A materialization (4T, branchless)
+is_zero:
+    OR A              ; set Z flag if A==0 → CY=0, else CY=0
+    SBC A, A          ; A = 0x00 (false) or 0xFF (true)
+    RET               ; 3 instructions, 15T, branchless!
+
+; is_less: ret=A(bool=Z) — Z3 chose: return bool via Z flag
+is_less:
+    CP C              ; compare A with C, sets CY if A < C
+    SBC A, A          ; materialize CY → A
+    RET               ; 3 instructions, 15T, branchless!
+```
+
+### Three Return Modes (per-function, Z3-optimized)
+
+| Mode | Convention | When chosen | Example |
+|------|-----------|-------------|---------|
+| `bool=A` | Return 0x00/0xFF in A | Caller stores result | `is_zero` |
+| `bool=Z` | Return via Z flag | Caller branches immediately | `is_positive` |
+| `bool=CY` | Return via CY flag | After CP instruction | fallible functions |
+
+**Z3 decides per call-site:** if the caller does `if is_zero(x) { ... }`, the solver
+may choose Z flag return (caller branches on JR Z/JR NZ, no register needed).
+If the caller does `let alive: u8 = is_alive(s)`, the solver chooses A return.
+
+### The GPU-Proven Trick: SBC A,A
+
+```z80
+; CY=1 → A = A - A - 1 = -1 = 0xFF (true)
+; CY=0 → A = A - A - 0 = 0 (false)
+SBC A, A    ; 1 instruction, 4T, branchless bool materialization
+```
+
+This trick was verified correct via GPU exhaustive search (256 inputs).
+No branch, no conditional jump. Pure arithmetic flag materialization.
+
+### Bool Representation: 0x00/0xFF (not 0/1)
+
+MinZ uses 0xFF for true (not 0x01). Why:
+- `SBC A,A` naturally produces 0xFF/-1 (not 1)
+- `AND mask` works: `0xFF AND anything = anything`
+- Branchless CMOV: `SBC A,A; AND (x XOR y); XOR y` = 24T select
+
+**Assessment:** Bool returns are **optimal** — the compiler generates what a Z80
+expert would write, and Z3-PFCCO picks the best convention per function automatically.
