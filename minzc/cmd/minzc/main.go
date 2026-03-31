@@ -887,6 +887,7 @@ func compileViaHIR(sourceFile string) error {
 		UseLIR:          useLIR && !useVIR, // --lir enables legacy LIR; --vir overrides
 		UseVIR:          useVIR && !useLIR, // --vir is default; --lir overrides it
 		OptSize:         optSize,           // --Osize enables Grace reroll
+		UseGrace:        optSize,           // Grace rules (bounded loop unroll, etc.)
 		Backend:         backend,
 		AssertMode:      am,
 	})
