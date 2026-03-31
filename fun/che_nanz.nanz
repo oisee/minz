@@ -31,9 +31,9 @@ fun lfsr_x(el: u16) -> u8 {
 }
 
 fun lfsr_y(dh: u16) -> u8 {
-    let lo: u8 = dh % 256
-    var y: u8 = lo
-    while y >= 96 { y = y - 96 }
+    // Full 16-bit mod 96, not just low byte!
+    let y16: u16 = dh % 96
+    let y: u8 = y16 % 256
     return y / 8
 }
 

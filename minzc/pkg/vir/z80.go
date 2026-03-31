@@ -207,14 +207,16 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			SrcLocs: [2]LocSet{Z80_BC}, Template: "LD {dst}, C",
 			Cost: 8, Bytes: 2},
 		// HL→IXH: must route through A (H/L conflict with DD/FD prefix)
+		// LD A,L(4T,1B) + LD IXH,A(8T,2B) = 12T, 3B
 		{Name: "trunc_hl_ixh", Op: OpMove, Width: 8, DstLocs: Z80_IXHalves,
 			SrcLocs: [2]LocSet{Z80_HL}, Template: "LD A, L\n    LD {dst}, A",
-			Cost: 16, Bytes: 3, Clobbers: Z80_A},
+			Cost: 12, Bytes: 3, Clobbers: Z80_A},
 		// IXH→H or L: route through A (DD/FD conflict with H,L)
+		// LD A,IXH(8T,2B) + LD H,A(4T,1B) = 12T, 3B
 		{Name: "ld_hl8_ixh", Op: OpMove, Width: 8,
 			DstLocs: m.LocSetByNames("H", "L"),
 			SrcLocs: [2]LocSet{Z80_IXHalves}, Template: "LD A, {src0}\n    LD {dst}, A",
-			Cost: 16, Bytes: 3, Clobbers: Z80_A},
+			Cost: 12, Bytes: 3, Clobbers: Z80_A},
 
 		// Zero-extend 8→16
 		{Name: "zext_hl_r", Op: OpMove, Width: 16, DstLocs: Z80_HL,
@@ -427,7 +429,7 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			Template: "LD A, (HL)", Cost: 7, Bytes: 1, Flags: PatMemRead},
 		{Name: "ld_r_hl", Op: OpLoad, Width: 8, DstLocs: Z80_GPR8,
 			SrcLocs: [2]LocSet{Z80_HL},
-			Template: "LD {dst}, (HL)", Cost: 9, Bytes: 1, Flags: PatMemRead},
+			Template: "LD {dst}, (HL)", Cost: 7, Bytes: 1, Flags: PatMemRead},
 		{Name: "ld_a_de", Op: OpLoad, Width: 8, DstLocs: Z80_A,
 			SrcLocs: [2]LocSet{Z80_DE},
 			Template: "LD A, (DE)", Cost: 7, Bytes: 1, Flags: PatMemRead},
