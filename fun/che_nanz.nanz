@@ -5,13 +5,12 @@
 //
 // HOW TO RUN:
 //   mz fun/che_nanz.nanz -o build/che_n.a80
-//   mza build/che_n.a80 -o build/che_n.bin
-//   mze build/che_n.bin
-
-// ── LFSR-32 Galois via two u16 halves ───────────────────────
-// State = dh:el (dh=high 16, el=low 16)
-// Poly = 0xB4BCD35C → dh ^= 0xB4BC, el ^= 0xD35C
-// Stored at fixed addresses to avoid parameter passing overhead
+//   mza build/che_n.a80 -o build/che_n.bin       # ~400 bytes
+//   mze build/che_n.bin                            # display Che!
+//
+// Gap: 3.3× vs optimal asm (121B). Remaining gap is structural:
+//   globals in memory (not register-resident DEHL)
+//   CALL overhead, while-mod96 loop, multiply-based screen addr
 
 global st_dh: u16 = 0
 global st_el: u16 = 0
@@ -19,11 +18,9 @@ global st_el: u16 = 0
 fun lfsr_step() -> void {
     let el: u16 = st_el
     let dh: u16 = st_dh
-    let bit: u8 = el % 2  // AND 1 via strength reduction
-    st_el = el / 2         // SRL+RR via strength reduction
-    if dh % 2 == 1 {       // carry from dh bit 0
-        st_el = st_el + 32768  // set bit 15
-    }
+    let bit: u8 = el % 2
+    st_el = el / 2
+    if dh % 2 == 1 { st_el = st_el + 32768 }
     st_dh = dh / 2
     if bit == 1 {
         st_dh = st_dh xor 0xB4BC
@@ -31,41 +28,26 @@ fun lfsr_step() -> void {
     }
 }
 
-// ── XOR 8×8 block using pointer + INC-H trick ──────────────
-// Compute screen address ONCE, then p^ xor, ptr+256 for next row
-
 fun xor_block(cx: u8, cy: u8) -> void {
-    // Screen addr: 0x4000 + (cy/8)*2048 + (cy%8)*32 + cx
-    // cy is char row 0..11 for seg0
-    let third: u16 = cy / 8       // 0 or 1 for 12 rows
+    let third: u16 = cy / 8
     let row: u16 = cy % 8
     var addr: u16 = 0x4000 + third * 2048 + row * 32 + cx
-
-    // XOR 8 pixel rows: addr, addr+256, addr+512, ...
     var r: u8 = 0
     while r < 8 {
         let p: ^u8 = addr
-        p^ = p^ xor 0xFF   // → LD A,(HL); CPL; LD (HL),A
-        addr = addr + 256   // → INC H on Z80
+        p^ = p^ xor 0xFF
+        addr = addr + 256
         r = r + 1
     }
 }
 
-// ── Main decoder ────────────────────────────────────────────
-
 fun main() -> void {
-    // Init LFSR: state = (0x8165 << 16) | 0xBEEF
     st_dh = 0x8165
     st_el = 0xBEEF
 
-    // Warmup: 8 steps
     var w: u8 = 0
-    while w < 8 {
-        lfsr_step()
-        w = w + 1
-    }
+    while w < 8 { lfsr_step()  w = w + 1 }
 
-    // Clear buffer at 0xC000 (192 bytes = 16×12 grid, one byte per cell)
     var i: u8 = 0
     while i < 192 {
         let p: ^u8 = 0xC000 + i
@@ -73,37 +55,25 @@ fun main() -> void {
         i = i + 1
     }
 
-    // 576 points → toggle buffer cells
     var pt: u16 = 0
     while pt < 576 {
         lfsr_step()
-        // cx = (st_el % 128) / 8 = (st_el AND 0x7F) >> 3
-        // Range: 0..15 (16 columns in 128px)
-        let raw_x: u8 = st_el % 128
-        let cx: u8 = raw_x / 8
-
-        // cy = (st_dh % 96) / 8
+        let cx: u8 = (st_el % 128) / 8
         let dh_lo: u8 = st_dh % 256
         var raw_y: u8 = dh_lo
         while raw_y >= 96 { raw_y = raw_y - 96 }
         let cy: u8 = raw_y / 8
-
-        // Toggle cell in buffer
         let bp: ^u8 = 0xC000 + cy * 16 + cx
         bp^ = bp^ xor 0xFF
-
         pt = pt + 1
     }
 
-    // Blit buffer to screen
     var cy: u8 = 0
     while cy < 12 {
         var cx: u8 = 0
         while cx < 16 {
             let bp: ^u8 = 0xC000 + cy * 16 + cx
-            if bp^ != 0 {
-                xor_block(cx, cy)
-            }
+            if bp^ != 0 { xor_block(cx, cy) }
             cx = cx + 1
         }
         cy = cy + 1
