@@ -1,14 +1,14 @@
 // che_cascade.nanz — Che Guevara cascade LFSR-16 renderer
 //
-// 1171 seeds, AND-3→7 masking, progressive refinement.
-// LFSR-16 (poly 0xB400) — single u16, minimal register pressure!
+// LFSR-16 (poly 0xB400) — single u16! Minimal register pressure.
+// Split into tiny functions for PBQP (7 GPR = split wins over inline).
 //
 // HOW TO RUN:
 //   mz fun/che_cascade.nanz -o build/che_cas.a80
 //   mza build/che_cas.a80 -o build/che_cas.sna -t zxspectrum
 //   mzx build/che_cas.sna
 
-// ── LFSR-16: Galois, poly 0xB400 ───────────────────────────
+// ── LFSR-16 ─────────────────────────────────────────────────
 
 fun lfsr16(state: u16) -> u16 {
     let bit: u8 = state % 2
@@ -18,28 +18,22 @@ fun lfsr16(state: u16) -> u16 {
     return next
 }
 
-// ── Make 768-bit buffer from seed + AND-N mask ──────────────
-// Buffer at 0xC000 (96 bytes = 32×24 bits, 1 byte per cell)
+// ── Make buffer: LFSR → 768 bytes at 0xC000 ─────────────────
 
-fun make_buf(seed: u16, and_n: u8, warmup: u16) -> void {
-    var state: u16 = seed
+global g_state: u16 = 0
 
-    // Warmup
-    var w: u16 = 0
-    while w < warmup { state = lfsr16(state)  w = w + 1 }
+fun warmup(n: u16) -> void {
+    var i: u16 = 0
+    while i < n { g_state = lfsr16(g_state)  i = i + 1 }
+}
 
-    // AND mask: (1 << and_n) - 1
-    var mask: u8 = 1
-    var m: u8 = 0
-    while m < and_n { mask = mask + mask  m = m + 1 }
-    mask = mask - 1
-
-    // Fill 32×24 = 768 cells
+fun fill_buf(and_mask: u8) -> void {
     var idx: u16 = 0
     while idx < 768 {
-        state = lfsr16(state)
+        g_state = lfsr16(g_state)
         let p: ^u8 = 0xC000 + idx
-        if (state % 256) % (mask + 1) == mask {
+        let lo: u8 = g_state % 256
+        if (lo % (and_mask + 1)) == and_mask {
             p^ = 1
         } else {
             p^ = 0
@@ -48,7 +42,39 @@ fun make_buf(seed: u16, and_n: u8, warmup: u16) -> void {
     }
 }
 
-// ── Apply buffer: XOR blk×blk blocks at (ox,oy) ────────────
+// ── XOR single pixel on ZX screen ───────────────────────────
+
+fun xor_pixel(px: u8, py: u8) -> void {
+    if px >= 128 { return }
+    if py >= 96 { return }
+    let third: u16 = py / 64
+    let prow: u16 = py % 8
+    let crow: u16 = (py / 8) % 8
+    let xbyte: u8 = px / 8
+    let xbit: u8 = 7 - (px % 8)
+    let addr: u16 = 0x4000 + third * 2048 + prow * 256 + crow * 32 + xbyte
+    var bit_mask: u8 = 1
+    var s: u8 = 0
+    while s < xbit { bit_mask = bit_mask + bit_mask  s = s + 1 }
+    let sp: ^u8 = addr
+    sp^ = sp^ xor bit_mask
+}
+
+// ── XOR blk×blk block at (px, py) ──────────────────────────
+
+fun xor_blk(px: u8, py: u8, blk: u8) -> void {
+    var dy: u8 = 0
+    while dy < blk {
+        var dx: u8 = 0
+        while dx < blk {
+            xor_pixel(px + dx, py + dy)
+            dx = dx + 1
+        }
+        dy = dy + 1
+    }
+}
+
+// ── Apply buffer to screen ──────────────────────────────────
 
 fun apply_buf(ox: u8, oy: u8, blk: u8) -> void {
     var by: u8 = 0
@@ -57,34 +83,7 @@ fun apply_buf(ox: u8, oy: u8, blk: u8) -> void {
         while bx < 32 {
             let p: ^u8 = 0xC000 + by * 32 + bx
             if p^ != 0 {
-                // XOR blk×blk pixels at (ox + bx*blk, oy + by*blk)
-                var dy: u8 = 0
-                while dy < blk {
-                    let py: u8 = oy + by * blk + dy
-                    if py < 96 {
-                        // Screen addr for pixel row py, byte column
-                        let third: u16 = py / 64
-                        let prow: u16 = py % 8
-                        let crow: u16 = (py / 8) % 8
-                        var dx: u8 = 0
-                        while dx < blk {
-                            let px: u8 = ox + bx * blk + dx
-                            if px < 128 {
-                                let xbyte: u8 = px / 8
-                                let xbit: u8 = 7 - (px % 8)
-                                let addr: u16 = 0x4000 + third * 2048 + prow * 256 + crow * 32 + xbyte
-                                // XOR single pixel
-                                var bit_mask: u8 = 1
-                                var s: u8 = 0
-                                while s < xbit { bit_mask = bit_mask + bit_mask  s = s + 1 }
-                                let sp: ^u8 = addr
-                                sp^ = sp^ xor bit_mask
-                            }
-                            dx = dx + 1
-                        }
-                    }
-                    dy = dy + 1
-                }
+                xor_blk(ox + bx * blk, oy + by * blk, blk)
             }
             bx = bx + 1
         }
@@ -92,30 +91,41 @@ fun apply_buf(ox: u8, oy: u8, blk: u8) -> void {
     }
 }
 
-// ── First 21 seeds (coarse layer, visible immediately) ──────
-// From cascade_seeds.json step 1..21
+// ── Process one seed ────────────────────────────────────────
+
+fun process_seed(seed: u16, and_n: u8, wu: u16, ox: u8, oy: u8, blk: u8) -> void {
+    g_state = seed
+    warmup(wu)
+    var mask: u8 = 1
+    var m: u8 = 0
+    while m < and_n { mask = mask + mask  m = m + 1 }
+    mask = mask - 1
+    fill_buf(mask)
+    apply_buf(ox, oy, blk)
+}
+
+// ── Main: first 21 seeds (coarse layer) ─────────────────────
 
 fun main() -> void {
-    // L0-AND3: blk=4, and_n=3, ox=0, oy=0
-    make_buf(450, 3, 0) apply_buf(0, 0, 4)
-    make_buf(30498, 3, 1) apply_buf(0, 0, 4)
-    make_buf(38498, 3, 2) apply_buf(0, 0, 4)
-    make_buf(63498, 3, 3) apply_buf(0, 0, 4)
-    make_buf(50498, 3, 4) apply_buf(0, 0, 4)
-    make_buf(10498, 3, 5) apply_buf(0, 0, 4)
-    make_buf(20498, 3, 6) apply_buf(0, 0, 4)
-    make_buf(40498, 3, 7) apply_buf(0, 0, 4)
-    make_buf(60498, 3, 8) apply_buf(0, 0, 4)
-    make_buf(15498, 3, 9) apply_buf(0, 0, 4)
-    make_buf(25498, 3, 10) apply_buf(0, 0, 4)
-    make_buf(35498, 3, 11) apply_buf(0, 0, 4)
-    make_buf(45498, 3, 12) apply_buf(0, 0, 4)
-    make_buf(55498, 3, 13) apply_buf(0, 0, 4)
-    make_buf(5498, 3, 14) apply_buf(0, 0, 4)
-    make_buf(1498, 3, 15) apply_buf(0, 0, 4)
-    make_buf(2498, 3, 16) apply_buf(0, 0, 4)
-    make_buf(3498, 3, 17) apply_buf(0, 0, 4)
-    make_buf(4498, 3, 18) apply_buf(0, 0, 4)
-    make_buf(6498, 3, 19) apply_buf(0, 0, 4)
-    make_buf(7498, 3, 20) apply_buf(0, 0, 4)
+    process_seed(450, 3, 0, 0, 0, 4)
+    process_seed(36448, 3, 1, 0, 0, 2)
+    process_seed(45514, 3, 2, 64, 0, 2)
+    process_seed(47687, 3, 3, 0, 48, 2)
+    process_seed(16538, 3, 4, 64, 48, 2)
+    process_seed(14207, 4, 6, 32, 0, 1)
+    process_seed(55820, 4, 7, 64, 0, 1)
+    process_seed(10184, 4, 8, 96, 0, 1)
+    process_seed(11048, 4, 9, 0, 24, 1)
+    process_seed(790, 4, 10, 32, 24, 1)
+    process_seed(38965, 4, 11, 64, 24, 1)
+    process_seed(38486, 4, 12, 96, 24, 1)
+    process_seed(31984, 4, 13, 0, 48, 1)
+    process_seed(19344, 4, 14, 32, 48, 1)
+    process_seed(19633, 4, 15, 64, 48, 1)
+    process_seed(15835, 4, 16, 96, 48, 1)
+    process_seed(5730, 4, 17, 0, 72, 1)
+    process_seed(33666, 4, 18, 32, 72, 1)
+    process_seed(53986, 4, 19, 64, 72, 1)
+    process_seed(52090, 4, 20, 96, 72, 1)
+    process_seed(16304, 5, 21, 0, 0, 1)
 }
