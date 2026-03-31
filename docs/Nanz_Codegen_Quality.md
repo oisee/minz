@@ -348,3 +348,54 @@ MinZ uses 0xFF for true (not 0x01). Why:
 
 **Assessment:** Bool returns are **optimal** — the compiler generates what a Z80
 expert would write, and Z3-PFCCO picks the best convention per function automatically.
+
+---
+
+## 9. Branchless Equality: Z Flag Materialization via Two CP (NEW DISCOVERY)
+
+GPU exhaustive search proved: **arbitrary Z→A is impossible branchlessly.**
+But we discovered: Z flag **from CP with known constant N** CAN be materialized!
+
+### Principle
+
+```
+(A == N)  ⟺  (A ≤ N) XOR (A < N)  ⟺  CY(CP N+1) XOR CY(CP N)
+```
+
+Two comparisons decompose equality into two carry flags. XOR extracts the answer.
+
+### Sequences (GPU-verified 65536/65536)
+
+```z80
+; General case N=1..254: 8 ops, 38T, branchless
+    CP N           ; 7T — CY = (A < N)
+    LD B, A        ; 4T — save A
+    SBC A, A       ; 4T — mask1
+    LD C, A        ; 4T — save mask1
+    LD A, B        ; 4T — restore A
+    CP N+1         ; 7T — CY = (A ≤ N)
+    SBC A, A       ; 4T — mask2
+    XOR C          ; 4T — (A ≤ N) XOR (A < N) = (A == N)
+
+; N=255: 3 ops, 15T (A==255 ⟺ A≥255, invert CY)
+    CP 255         ; 7T
+    SBC A, A       ; 4T
+    CPL            ; 4T
+
+; N=0: 2 ops, 11T
+    SUB 1          ; 7T — CY = (A < 1) = (A == 0)
+    SBC A, A       ; 4T
+```
+
+### When to Use
+
+| Approach | T-states | When |
+|----------|----------|------|
+| Branch (CP N; JR Z) | ~19T avg | normal control flow |
+| Branchless (two CP) | 38T | boolean masking, CMOV, constant-time crypto |
+| N=0 special | 11T | common `x == 0` check |
+| N=255 special | 15T | byte boundary check |
+
+**First known branchless equality predicate for Z80.**
+Arbitrary Z→A remains impossible (GPU-proven). But Z-from-CP-with-known-constant
+is solvable via CY decomposition.
