@@ -1,0 +1,121 @@
+// che_cascade.nanz — Che Guevara cascade LFSR-16 renderer
+//
+// 1171 seeds, AND-3→7 masking, progressive refinement.
+// LFSR-16 (poly 0xB400) — single u16, minimal register pressure!
+//
+// HOW TO RUN:
+//   mz fun/che_cascade.nanz -o build/che_cas.a80
+//   mza build/che_cas.a80 -o build/che_cas.sna -t zxspectrum
+//   mzx build/che_cas.sna
+
+// ── LFSR-16: Galois, poly 0xB400 ───────────────────────────
+
+fun lfsr16(state: u16) -> u16 {
+    let bit: u8 = state % 2
+    var next: u16 = state / 2
+    if bit == 1 { next = next xor 0xB400 }
+    if next == 0 { next = 1 }
+    return next
+}
+
+// ── Make 768-bit buffer from seed + AND-N mask ──────────────
+// Buffer at 0xC000 (96 bytes = 32×24 bits, 1 byte per cell)
+
+fun make_buf(seed: u16, and_n: u8, warmup: u16) -> void {
+    var state: u16 = seed
+
+    // Warmup
+    var w: u16 = 0
+    while w < warmup { state = lfsr16(state)  w = w + 1 }
+
+    // AND mask: (1 << and_n) - 1
+    var mask: u8 = 1
+    var m: u8 = 0
+    while m < and_n { mask = mask + mask  m = m + 1 }
+    mask = mask - 1
+
+    // Fill 32×24 = 768 cells
+    var idx: u16 = 0
+    while idx < 768 {
+        state = lfsr16(state)
+        let p: ^u8 = 0xC000 + idx
+        if (state % 256) % (mask + 1) == mask {
+            p^ = 1
+        } else {
+            p^ = 0
+        }
+        idx = idx + 1
+    }
+}
+
+// ── Apply buffer: XOR blk×blk blocks at (ox,oy) ────────────
+
+fun apply_buf(ox: u8, oy: u8, blk: u8) -> void {
+    var by: u8 = 0
+    while by < 24 {
+        var bx: u8 = 0
+        while bx < 32 {
+            let p: ^u8 = 0xC000 + by * 32 + bx
+            if p^ != 0 {
+                // XOR blk×blk pixels at (ox + bx*blk, oy + by*blk)
+                var dy: u8 = 0
+                while dy < blk {
+                    let py: u8 = oy + by * blk + dy
+                    if py < 96 {
+                        // Screen addr for pixel row py, byte column
+                        let third: u16 = py / 64
+                        let prow: u16 = py % 8
+                        let crow: u16 = (py / 8) % 8
+                        var dx: u8 = 0
+                        while dx < blk {
+                            let px: u8 = ox + bx * blk + dx
+                            if px < 128 {
+                                let xbyte: u8 = px / 8
+                                let xbit: u8 = 7 - (px % 8)
+                                let addr: u16 = 0x4000 + third * 2048 + prow * 256 + crow * 32 + xbyte
+                                // XOR single pixel
+                                var bit_mask: u8 = 1
+                                var s: u8 = 0
+                                while s < xbit { bit_mask = bit_mask + bit_mask  s = s + 1 }
+                                let sp: ^u8 = addr
+                                sp^ = sp^ xor bit_mask
+                            }
+                            dx = dx + 1
+                        }
+                    }
+                    dy = dy + 1
+                }
+            }
+            bx = bx + 1
+        }
+        by = by + 1
+    }
+}
+
+// ── First 21 seeds (coarse layer, visible immediately) ──────
+// From cascade_seeds.json step 1..21
+
+fun main() -> void {
+    // L0-AND3: blk=4, and_n=3, ox=0, oy=0
+    make_buf(450, 3, 0) apply_buf(0, 0, 4)
+    make_buf(30498, 3, 1) apply_buf(0, 0, 4)
+    make_buf(38498, 3, 2) apply_buf(0, 0, 4)
+    make_buf(63498, 3, 3) apply_buf(0, 0, 4)
+    make_buf(50498, 3, 4) apply_buf(0, 0, 4)
+    make_buf(10498, 3, 5) apply_buf(0, 0, 4)
+    make_buf(20498, 3, 6) apply_buf(0, 0, 4)
+    make_buf(40498, 3, 7) apply_buf(0, 0, 4)
+    make_buf(60498, 3, 8) apply_buf(0, 0, 4)
+    make_buf(15498, 3, 9) apply_buf(0, 0, 4)
+    make_buf(25498, 3, 10) apply_buf(0, 0, 4)
+    make_buf(35498, 3, 11) apply_buf(0, 0, 4)
+    make_buf(45498, 3, 12) apply_buf(0, 0, 4)
+    make_buf(55498, 3, 13) apply_buf(0, 0, 4)
+    make_buf(5498, 3, 14) apply_buf(0, 0, 4)
+    make_buf(1498, 3, 15) apply_buf(0, 0, 4)
+    make_buf(2498, 3, 16) apply_buf(0, 0, 4)
+    make_buf(3498, 3, 17) apply_buf(0, 0, 4)
+    make_buf(4498, 3, 18) apply_buf(0, 0, 4)
+    make_buf(6498, 3, 19) apply_buf(0, 0, 4)
+    make_buf(7498, 3, 20) apply_buf(0, 0, 4)
+}
