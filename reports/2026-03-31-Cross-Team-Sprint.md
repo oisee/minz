@@ -127,6 +127,42 @@ Overflow→0xFF|anything=0xFF. No overflow→0x00|sum=sum. Textbook-worthy.
 | Novel Z80 discoveries | 1 (SBC A,A) | **4** |
 | Documentation articles | — | **4 new** |
 
+## z80-optimizer: PRNG Video Codec Breakthroughs
+
+### Carrier-Payload (CP) Delta Encoding
+New encoding: carrier seed (blk=8) finds hot zones, payload seeds (blk=4→2→1)
+refine inside. **3× fewer seeds** at comparable quality.
+
+### GPU Carrier Catalog
+Precomputed 192-bit bitmaps for all (seed, andN) pairs.
+GPU builds in 236ms, ~9.4MB. CPU popcount query = **instant carrier search** without GPU.
+
+### New Animations
+- Che Guevara: 63 frames, budgets 256 and 64
+- Hedgehog in the Fog (YouTube source): 104 frames, contrast-boosted
+- Plain vs weighted vs CP comparison on same clip
+
+### Seed Stream Analysis
+- Seeds are **incompressible by construction** (entropy ~11.8 bits ≈ raw size)
+- Optimal binary format: **4 bytes/seed**, no compression
+- CP mode for ZX tape: ~48 bytes/frame = 0.32s load time
+
+## minz-vir: 19 Commits, O(1) Regalloc Pipeline
+
+### ENRT (Enriched Register Allocation Table)
+- Binary reader + **156K entries** loaded, O(1) lookup WORKS
+- emitFromTable: move insertion + O(1) emit for simple functions
+- CMP dst always flags register in table emit
+
+### Grace/MIR2
+- Bounded loop unroll rule (while x>=K → if-chain)
+- Inter-instruction move insertion WIP (VIR_TABLE_EMIT=1 gated)
+
+### z80.go Editorial Review
+- 7 timing corrections found and fixed
+- 45 new move patterns for IX/IY halves (compound moves)
+- DD/FD prefix conflict rules maintained
+
 ## What's Next
 
 1. **mze screenshot** — get Z80-verified Che render (mze SNA loader fix needed)
@@ -139,3 +175,5 @@ Overflow→0xFF|anything=0xFF. No overflow→0x00|sum=sum. Textbook-worthy.
 
 *5 sessions. 3 days. 800 GPU-verified entries. 4 novel discoveries.*
 *The Z80 has 18 registers, not 7 — we just proved it.*
+*Seeds are incompressible. The only compression is better algorithms.*
+*Carrier-Payload: 3× fewer seeds. The codec evolves faster than the compiler.*
