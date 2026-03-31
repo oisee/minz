@@ -86,6 +86,7 @@ var (
 	Z80_IY       LocSet
 	Z80_Flags    LocSet
 	Z80_IXHalves LocSet // {IXH,IXL,IYH,IYL}
+	Z80_HL8      LocSet // {H,L} — GPR8 excluded from DD/FD prefix moves
 	Z80_Shadow8  LocSet // {B',C',D',E',H',L'}
 	Z80_ShadowA  LocSet // {A'}
 	Z80_TSMC     LocSet // {tsmc0..tsmc7}
@@ -122,6 +123,7 @@ func init() {
 	Z80_IY = m.LocSetByNames("IY")
 	Z80_Flags = m.LocSetByNames("F")
 	Z80_IXHalves = m.LocSetByNames("IXH", "IXL", "IYH", "IYL")
+	Z80_HL8 = m.LocSetByNames("H", "L")
 	Z80_Shadow8 = m.LocSetByNames("B'", "C'", "D'", "E'", "H'", "L'")
 	Z80_ShadowA = m.LocSetByNames("A'")
 	Z80_TSMC = m.LocSetByNames("tsmc0", "tsmc1", "tsmc2", "tsmc3",
@@ -197,26 +199,27 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 		{Name: "ld_r_ixh", Op: OpMove, Width: 8, DstLocs: Z80_GPRNoHL,
 			SrcLocs: [2]LocSet{Z80_IXHalves}, Template: "LD {dst}, {src0}",
 			Cost: 8, Bytes: 2},
-		// Compound: pair → IXHalf (extract low byte via A, route around H/L conflict)
-		// DE→IXH: LD IXH,E (direct, E is not H/L) = 8T
+		// H/L ↔ IXHalves: DD/FD prefix replaces H/L with IXH/IXL — must go via A
+		// LD A, H (4T,1B) + LD IXH, A (8T,2B) = 12T, 3B
+		{Name: "ld_ixh_hl8", Op: OpMove, Width: 8, DstLocs: Z80_IXHalves,
+			SrcLocs: [2]LocSet{Z80_HL8}, Template: "LD A, {src0}\n    LD {dst}, A",
+			Cost: 12, Bytes: 3},
+		{Name: "ld_hl8_ixh", Op: OpMove, Width: 8, DstLocs: Z80_HL8,
+			SrcLocs: [2]LocSet{Z80_IXHalves}, Template: "LD A, {src0}\n    LD {dst}, A",
+			Cost: 12, Bytes: 3},
+		// Pair → IXHalf truncation (extract low byte)
+		// DE/BC: E and C are GPRNoHL, so DD/FD prefix works directly (8T,2B)
 		{Name: "trunc_de_ixh", Op: OpMove, Width: 8, DstLocs: Z80_IXHalves,
 			SrcLocs: [2]LocSet{Z80_DE}, Template: "LD {dst}, E",
 			Cost: 8, Bytes: 2},
-		// BC→IXH: LD IXH,C (direct, C is not H/L) = 8T
 		{Name: "trunc_bc_ixh", Op: OpMove, Width: 8, DstLocs: Z80_IXHalves,
 			SrcLocs: [2]LocSet{Z80_BC}, Template: "LD {dst}, C",
 			Cost: 8, Bytes: 2},
-		// HL→IXH: must route through A (H/L conflict with DD/FD prefix)
-		// LD A,L(4T,1B) + LD IXH,A(8T,2B) = 12T, 3B
+		// HL→IXHalf: L is replaced by IXL in DD context, must go via A
+		// LD A, L (4T,1B) + LD IXH, A (8T,2B) = 12T, 3B
 		{Name: "trunc_hl_ixh", Op: OpMove, Width: 8, DstLocs: Z80_IXHalves,
 			SrcLocs: [2]LocSet{Z80_HL}, Template: "LD A, L\n    LD {dst}, A",
-			Cost: 12, Bytes: 3, Clobbers: Z80_A},
-		// IXH→H or L: route through A (DD/FD conflict with H,L)
-		// LD A,IXH(8T,2B) + LD H,A(4T,1B) = 12T, 3B
-		{Name: "ld_hl8_ixh", Op: OpMove, Width: 8,
-			DstLocs: m.LocSetByNames("H", "L"),
-			SrcLocs: [2]LocSet{Z80_IXHalves}, Template: "LD A, {src0}\n    LD {dst}, A",
-			Cost: 12, Bytes: 3, Clobbers: Z80_A},
+			Cost: 12, Bytes: 3},
 
 		// Zero-extend 8→16
 		{Name: "zext_hl_r", Op: OpMove, Width: 16, DstLocs: Z80_HL,
@@ -233,6 +236,37 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 		{Name: "push_pop", Op: OpMove, Width: 16, DstLocs: Z80_Pairs,
 			SrcLocs: [2]LocSet{Z80_Pairs},
 			Template: "PUSH {src0}\n    POP {dst}", Cost: 21, Bytes: 2},
+		// IX/IY ↔ pairs (PUSH/POP is only general path; LD IX,HL doesn't exist)
+		// PUSH IX (DD E5) = 15T,2B; POP rr = 10T,1B → 25T, 3B
+		{Name: "push_pop_ix_pair", Op: OpMove, Width: 16, DstLocs: Z80_Pairs,
+			SrcLocs: [2]LocSet{Z80_IX}, Template: "PUSH {src0}\n    POP {dst}",
+			Cost: 25, Bytes: 3},
+		{Name: "push_pop_iy_pair", Op: OpMove, Width: 16, DstLocs: Z80_Pairs,
+			SrcLocs: [2]LocSet{Z80_IY}, Template: "PUSH {src0}\n    POP {dst}",
+			Cost: 25, Bytes: 3},
+		// PUSH rr = 11T,1B; POP IX (DD E1) = 14T,2B → 25T, 3B
+		{Name: "push_pop_pair_ix", Op: OpMove, Width: 16, DstLocs: Z80_IX,
+			SrcLocs: [2]LocSet{Z80_Pairs}, Template: "PUSH {src0}\n    POP {dst}",
+			Cost: 25, Bytes: 3},
+		{Name: "push_pop_pair_iy", Op: OpMove, Width: 16, DstLocs: Z80_IY,
+			SrcLocs: [2]LocSet{Z80_Pairs}, Template: "PUSH {src0}\n    POP {dst}",
+			Cost: 25, Bytes: 3},
+		// PUSH IX (15T,2B) + POP IY (DD E1, 14T,2B) = 29T, 4B
+		{Name: "push_pop_ix_iy", Op: OpMove, Width: 16, DstLocs: Z80_IY,
+			SrcLocs: [2]LocSet{Z80_IX}, Template: "PUSH {src0}\n    POP {dst}",
+			Cost: 29, Bytes: 4},
+		{Name: "push_pop_iy_ix", Op: OpMove, Width: 16, DstLocs: Z80_IX,
+			SrcLocs: [2]LocSet{Z80_IY}, Template: "PUSH {src0}\n    POP {dst}",
+			Cost: 29, Bytes: 4},
+		// SP ↔ HL
+		// LD SP, HL = F9 = 6T, 1B
+		{Name: "ld_sp_hl", Op: OpMove, Width: 16, DstLocs: m.LocSetByNames("SP"),
+			SrcLocs: [2]LocSet{Z80_HL}, Template: "LD SP, HL",
+			Cost: 6, Bytes: 1},
+		// LD HL, 0 (10T,3B) + ADD HL, SP (11T,1B) = 21T, 4B
+		{Name: "ld_hl_sp", Op: OpMove, Width: 16, DstLocs: Z80_HL,
+			SrcLocs: [2]LocSet{m.LocSetByNames("SP")},
+			Template: "LD HL, 0\n    ADD HL, SP", Cost: 21, Bytes: 4},
 		{Name: "ex_de_hl", Op: OpMove, Width: 16, DstLocs: Z80_DE,
 			SrcLocs: [2]LocSet{Z80_HL},
 			Template: "EX DE, HL", Cost: 4, Bytes: 1},
@@ -392,43 +426,48 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 
 		// ── 16-bit load/store via DE (EX DE,HL bracket) ──────────────
 		// Load 16-bit via DE pointer
+		// EX(4T)+LD A,(HL)(7T)+INC HL(6T)+LD H,(HL)(7T)+LD L,A(4T)+EX(4T) = 32T
 		{Name: "ld16_de_ind", Op: OpLoad, Width: 16, DstLocs: Z80_DE,
 			SrcLocs: [2]LocSet{Z80_DE},
 			Template: "EX DE, HL\n    LD A, (HL)\n    INC HL\n    LD H, (HL)\n    LD L, A\n    EX DE, HL",
-			Cost: 30, Bytes: 6, Flags: PatMemRead, TiedDstSrc: true},
-		// Store 16-bit: ptr in DE, value in HL (EX bracket, restores DE/HL)
+			Cost: 32, Bytes: 6, Flags: PatMemRead, TiedDstSrc: true},
+		// Store 16-bit: ptr in DE, value in HL (EX bracket)
+		// EX(4T)+LD(HL),E(7T)+INC HL(6T)+LD(HL),D(7T)+DEC HL(6T)+EX(4T) = 34T
 		{Name: "st16_de_hl", Op: OpStore, Width: 16,
 			SrcLocs: [2]LocSet{Z80_DE, Z80_HL},
 			Template: "EX DE, HL\n    LD (HL), E\n    INC HL\n    LD (HL), D\n    DEC HL\n    EX DE, HL",
-			Cost: 26, Bytes: 6, Flags: PatMemWrite},
-		// Store 16-bit: ptr in DE, value in HL (via (DE) indirect, A as temp)
-		// Cheaper when A is available — no EX bracket needed
+			Cost: 34, Bytes: 6, Flags: PatMemWrite},
+		// Store 16-bit: ptr in DE, value in HL (via (DE), A as temp)
+		// LD A,L(4T)+LD(DE),A(7T)+INC DE(6T)+LD A,H(4T)+LD(DE),A(7T)+DEC DE(6T) = 34T
 		{Name: "st16_de_hl_via_a", Op: OpStore, Width: 16,
 			SrcLocs: [2]LocSet{Z80_DE, Z80_HL},
 			Template: "LD A, L\n    LD (DE), A\n    INC DE\n    LD A, H\n    LD (DE), A\n    DEC DE",
-			Cost: 24, Bytes: 6, Flags: PatMemWrite,
+			Cost: 34, Bytes: 6, Flags: PatMemWrite,
 			Clobbers: Z80_A},
-		// Store 16-bit: ptr in DE, value in BC
+		// Store 16-bit: ptr in DE, value in BC (EX bracket)
+		// EX(4T)+LD(HL),C(7T)+INC HL(6T)+LD(HL),B(7T)+DEC HL(6T)+EX(4T) = 34T
 		{Name: "st16_de_bc", Op: OpStore, Width: 16,
 			SrcLocs: [2]LocSet{Z80_DE, Z80_BC},
 			Template: "EX DE, HL\n    LD (HL), C\n    INC HL\n    LD (HL), B\n    DEC HL\n    EX DE, HL",
-			Cost: 26, Bytes: 6, Flags: PatMemWrite},
-		// Store 16-bit: ptr in DE, value in BC (via (DE) indirect, A as temp)
+			Cost: 34, Bytes: 6, Flags: PatMemWrite},
+		// Store 16-bit: ptr in DE, value in BC (via (DE), A as temp)
+		// LD A,C(4T)+LD(DE),A(7T)+INC DE(6T)+LD A,B(4T)+LD(DE),A(7T)+DEC DE(6T) = 34T
 		{Name: "st16_de_bc_via_a", Op: OpStore, Width: 16,
 			SrcLocs: [2]LocSet{Z80_DE, Z80_BC},
 			Template: "LD A, C\n    LD (DE), A\n    INC DE\n    LD A, B\n    LD (DE), A\n    DEC DE",
-			Cost: 24, Bytes: 6, Flags: PatMemWrite,
+			Cost: 34, Bytes: 6, Flags: PatMemWrite,
 			Clobbers: Z80_A},
 
 		// 16-bit compare
+		// OR A(4T) + SBC HL,rr(15T) + ADD HL,rr(11T) = 30T, 4B
 		{Name: "cmp16_hl_de", Op: OpCmp, Width: 16, DstLocs: Z80_Flags,
 			SrcLocs: [2]LocSet{Z80_HL, Z80_DE},
 			Template: "OR A\n    SBC HL, DE\n    ADD HL, DE",
-			Cost: 26, Bytes: 4, Clobbers: Z80_Flags},
+			Cost: 30, Bytes: 4, Clobbers: Z80_Flags},
 		{Name: "cmp16_hl_bc", Op: OpCmp, Width: 16, DstLocs: Z80_Flags,
 			SrcLocs: [2]LocSet{Z80_HL, Z80_BC},
 			Template: "OR A\n    SBC HL, BC\n    ADD HL, BC",
-			Cost: 26, Bytes: 4, Clobbers: Z80_Flags},
+			Cost: 30, Bytes: 4, Clobbers: Z80_Flags},
 
 		// ── Shifts ───────────────────────────────────────────────────
 		{Name: "sla_a", Op: OpShl, Width: 8, DstLocs: Z80_A,
@@ -456,16 +495,16 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			Template: "LD A, (DE)", Cost: 7, Bytes: 1, Flags: PatMemRead},
 
 		// ── Memory loads — 16-bit ────────────────────────────────────
-		// Load 16-bit via HL pointer: LD A,(HL) / INC HL / LD H,(HL) / LD L,A
+		// Load 16-bit via HL pointer: LD A,(HL)(7T) / INC HL(6T) / LD H,(HL)(7T) / LD L,A(4T) = 24T
 		{Name: "ld16_hl_ind", Op: OpLoad, Width: 16, DstLocs: Z80_HL,
 			SrcLocs: [2]LocSet{Z80_HL},
 			Template: "LD A, (HL)\n    INC HL\n    LD H, (HL)\n    LD L, A",
-			Cost: 22, Bytes: 4, Flags: PatMemRead, TiedDstSrc: true},
+			Cost: 24, Bytes: 4, Flags: PatMemRead, TiedDstSrc: true},
 		// Load16LE: fused FatFS ld_word — same Z80 code
 		{Name: "load16_le_hl", Op: OpLoad16LE, DstLocs: Z80_HL,
 			SrcLocs: [2]LocSet{Z80_HL},
 			Template: "LD A, (HL)\n    INC HL\n    LD H, (HL)\n    LD L, A",
-			Cost: 22, Bytes: 4, Flags: PatMemRead, TiedDstSrc: true},
+			Cost: 24, Bytes: 4, Flags: PatMemRead, TiedDstSrc: true},
 
 		// ── Memory stores — 8-bit ────────────────────────────────────
 		{Name: "ld_hl_a", Op: OpStore, Width: 8,
@@ -477,15 +516,16 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 
 		// ── Memory stores — 16-bit ───────────────────────────────────
 		// Store 16-bit via HL pointer, value in DE
+		// LD (HL),E(7T) + INC HL(6T) + LD (HL),D(7T) + DEC HL(6T) = 26T
 		{Name: "st16_hl_de", Op: OpStore, Width: 16,
 			SrcLocs: [2]LocSet{Z80_HL, Z80_DE},
 			Template: "LD (HL), E\n    INC HL\n    LD (HL), D\n    DEC HL",
-			Cost: 22, Bytes: 4, Flags: PatMemWrite},
+			Cost: 26, Bytes: 4, Flags: PatMemWrite},
 		// Store 16-bit via HL pointer, value in BC
 		{Name: "st16_hl_bc", Op: OpStore, Width: 16,
 			SrcLocs: [2]LocSet{Z80_HL, Z80_BC},
 			Template: "LD (HL), C\n    INC HL\n    LD (HL), B\n    DEC HL",
-			Cost: 22, Bytes: 4, Flags: PatMemWrite},
+			Cost: 26, Bytes: 4, Flags: PatMemWrite},
 
 		// ── Global store/load ────────────────────────────────────────
 		{Name: "st_global_hl", Op: OpStoreGlobal, Width: 16,
