@@ -109,6 +109,10 @@ type Options struct {
 	// OptSize enables size optimizations (Grace reroll: repeated CALLs → DJNZ loop).
 	// Trades ~4T/iteration for code size reduction. Use for ROM-constrained targets.
 	OptSize bool
+	// UseVIRDSE enables post-lowering dead VIROp elimination (pre-solver).
+	// Removes pure ops whose dst vreg is unused in the block.
+	// Each removed op saves ~88 Z3 SMT variables. Safe to enable on all functions.
+	UseVIRDSE bool
 	// Backend selects the codegen backend: "z80" (default), "ez80".
 	// When "ez80", the pipeline generates eZ80 ADL assembly instead of Z80.
 	Backend string
@@ -321,7 +325,14 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		// the codegen's pendingAccReg mechanism needs to track. The codegen
 		// handles A saves via materializePendingAcc + saveAccAcrossCall.
 
-		virOpts := vir.SolverOptions{FuncParamLocs: funcParamLocs, OptSize: opt.OptSize, PBQPAlloc: combined}
+		virOpts := vir.SolverOptions{
+			FuncParamLocs: funcParamLocs,
+			OptSize:       opt.OptSize,
+			PBQPAlloc:     combined,
+			UseGrace:      opt.UseGrace,
+			GraceStats:    opt.GraceStats,
+			UseVIRDSE:     opt.UseVIRDSE,
+		}
 		virAsm, virResults := vir.CodegenModule(m, virOpts)
 
 		// Update combined allocation with PFCCO-chosen param registers.

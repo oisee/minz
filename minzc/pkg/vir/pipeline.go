@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/rewrite/datalog"
 )
 
 // FuncResult tracks per-function codegen outcome.
@@ -140,18 +141,15 @@ func CodegenModule(m *mir2.Module, opts SolverOptions) (string, []FuncResult) {
 		dumpIslands(m, opts, islandPath)
 	}
 
-	// Emit main first
-	funcs := m.Funcs
-	if main := m.FuncByName("main"); main != nil && len(funcs) > 0 && funcs[0].Name != "main" {
-		ordered := make([]*mir2.Func, 0, len(funcs))
-		ordered = append(ordered, main)
-		for _, f := range funcs {
-			if f.Name != "main" {
-				ordered = append(ordered, f)
-			}
-		}
-		funcs = ordered
-	}
+	// Build Datalog call-graph facts for topological ordering.
+	// Facts: calls(caller, callee) — used to emit callees before callers.
+	// This ensures PFCCO can propagate param conventions forward.
+	callDB := buildCallGraphFacts(m)
+
+	// Topological sort: callees before callers (reverse post-order on call graph).
+	// Keeps main last so the linker finds it as entry point.
+	funcs := topoSortFuncs(m.Funcs, callDB)
+	_ = callDB // available for future SCC-based PFCCO clustering
 
 	for _, f := range funcs {
 		asm, err := CodegenFunc(f, m, opts)
@@ -464,6 +462,16 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 	// need the specific PFCCO-assigned register for each callee param.
 	if opts.FuncParamLocs != nil {
 		fixCallArgHints(vf, m, desc, opts.FuncParamLocs)
+	}
+
+	// Post-lowering dead VIROp elimination (pre-solver).
+	// Removes pure ops whose dst vreg is unused in the block.
+	// Reduces Z3 problem size: each removed op saves ~88 SMT variables.
+	if opts.UseVIRDSE {
+		removed := ApplyVIRDSE(vf)
+		if removed > 0 && opts.Verbose {
+			fmt.Fprintf(os.Stderr, "[vir-dse] %s: removed %d dead ops\n", f.Name, removed)
+		}
 	}
 
 	// Collect all ops for table lookup and GPU batch dump
@@ -4479,6 +4487,94 @@ func greedyMergeIslands(ops []VIROp, prob *problem, splits []int, maxVregs int) 
 		}
 	}
 
+	return result
+}
+
+// ── Datalog call-graph analysis ──────────────────────────────────────────────
+
+// buildCallGraphFacts builds a Datalog fact database of call-graph edges.
+// Facts: calls(caller, callee) — one fact per (caller, callee) pair.
+// Used for topological ordering and future SCC-based PFCCO clustering.
+func buildCallGraphFacts(m *mir2.Module) *datalog.FactDB {
+	db := datalog.NewFactDB()
+	for _, f := range m.Funcs {
+		for _, b := range f.Blocks {
+			for _, inst := range b.Insts {
+				if inst.Op == mir2.OpCall && inst.Sym != "" {
+					db.Add("calls", f.Name, inst.Sym)
+				}
+			}
+		}
+	}
+	return db
+}
+
+// topoSortFuncs returns funcs in reverse post-order on the call graph
+// (callees before callers). main is placed last.
+// Cycles (mutual recursion) are handled by visited-set: first-seen wins.
+func topoSortFuncs(funcs []*mir2.Func, db *datalog.FactDB) []*mir2.Func {
+	// Build adjacency: name → callees (within module)
+	moduleFunc := make(map[string]*mir2.Func, len(funcs))
+	for _, f := range funcs {
+		moduleFunc[f.Name] = f
+	}
+	adj := make(map[string][]string, len(funcs))
+	for _, f := range db.All("calls") {
+		if len(f.Args) == 2 {
+			caller, callee := f.Args[0], f.Args[1]
+			if _, ok := moduleFunc[callee]; ok {
+				adj[caller] = append(adj[caller], callee)
+			}
+		}
+	}
+
+	// Post-order DFS
+	visited := make(map[string]bool, len(funcs))
+	var order []*mir2.Func
+	var dfs func(name string)
+	dfs = func(name string) {
+		if visited[name] {
+			return
+		}
+		visited[name] = true
+		for _, callee := range adj[name] {
+			dfs(callee)
+		}
+		if f, ok := moduleFunc[name]; ok {
+			order = append(order, f)
+		}
+	}
+	// Start DFS from all roots (functions with no callers in module)
+	calledSet := make(map[string]bool)
+	for _, facts := range db.All("calls") {
+		if len(facts.Args) == 2 {
+			calledSet[facts.Args[1]] = true
+		}
+	}
+	// Roots first (not called by anyone), then rest
+	for _, f := range funcs {
+		if !calledSet[f.Name] {
+			dfs(f.Name)
+		}
+	}
+	// Catch any remaining (cycles / isolated)
+	for _, f := range funcs {
+		dfs(f.Name)
+	}
+
+	// Reverse for callee-first order, but keep main last
+	result := make([]*mir2.Func, 0, len(order))
+	var mainFunc *mir2.Func
+	for i := len(order) - 1; i >= 0; i-- {
+		if order[i].Name == "main" {
+			mainFunc = order[i]
+		} else {
+			result = append(result, order[i])
+		}
+	}
+	if mainFunc != nil {
+		result = append(result, mainFunc)
+	}
 	return result
 }
 

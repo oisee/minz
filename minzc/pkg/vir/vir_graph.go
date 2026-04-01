@@ -377,7 +377,14 @@ func virDSEBlock(b *Block) int {
 }
 
 // isPureVIROp returns true for ops without side effects (safe to eliminate if dead).
+// Ops with DstHint set are NOT pure: they pin a vreg to a physical register,
+// which is an implicit side effect (e.g. call arg setup moves: DstHint=A means
+// the callee reads A — the move cannot be removed even if its Dst vreg is
+// never explicitly used in op.Src of subsequent ops).
 func isPureVIROp(op VIROp) bool {
+	if op.DstHint != 0 {
+		return false // pinned to physical register — implicit side effect
+	}
 	switch op.Op {
 	case OpConst, OpMove, OpAdd, OpSub, OpAnd, OpOr, OpXor,
 		OpShl, OpShr, OpNeg, OpMul,

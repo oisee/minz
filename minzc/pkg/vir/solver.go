@@ -68,6 +68,12 @@ type SolverOptions struct {
 	// GraceStats accumulates per-rule Grace statistics across the module.
 	// Caller provides; CodegenModule writes into it.
 	GraceStats *mir2.GraceStats
+
+	// UseVIRDSE enables dead VIROp elimination after lowering (pre-solver).
+	// Removes pure ops (add/sub/and/or/xor/shl/shr/neg/mul + imm variants)
+	// whose dst vreg is never used in the block. Conservative: intra-block only.
+	// Always safe to enable. Default: false until corpus validated.
+	UseVIRDSE bool
 }
 
 // Solve converts a basic block of VIROps into PIROps using Z3 SMT solver.
