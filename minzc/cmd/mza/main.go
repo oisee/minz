@@ -20,6 +20,8 @@ var (
 	strict        bool
 	caseSensitive bool
 	verbose       bool
+	optSize       bool
+	optSpeed      bool
 )
 
 var rootCmd = &cobra.Command{
@@ -164,6 +166,12 @@ EXAMPLES:
 		assembler.AllowUndocumented = allowUndoc
 		assembler.Strict = strict
 		assembler.CaseSensitive = caseSensitive
+		switch {
+		case optSize:
+			assembler.OptMode = z80asm.OptSize
+		case optSpeed:
+			assembler.OptMode = z80asm.OptSpeed
+		}
 		
 		// Set target platform
 		if err := assembler.SetTarget(target); err != nil {
@@ -255,6 +263,10 @@ func init() {
 	rootCmd.Flags().BoolVar(&strict, "strict", false, "strict assembly mode")
 	rootCmd.Flags().BoolVarP(&caseSensitive, "case-sensitive", "c", true, "case-sensitive labels")
 	
+	// Optimization options (affect JRS pseudo-instruction)
+	rootCmd.Flags().BoolVar(&optSize, "Osize", false, "optimize for code size: JRS→JR where in range (2B), JP when not (3B)")
+	rootCmd.Flags().BoolVar(&optSpeed, "Ospeed", false, "optimize for speed: JRS→JP always (3B, 10T, no range limit)")
+
 	// General options
 	rootCmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 }

@@ -538,9 +538,21 @@ func encodeJRRel(a *Assembler, pattern *InstructionPattern, values []interface{}
 	for _, v := range values {
 		if offset, ok := v.(int8); ok {
 			if fromJRS {
-				// Even with a literal offset we reserved 3 bytes — pad with NOP
-				result = append(result, byte(offset), 0x00)
-				return result, nil
+				switch a.OptMode {
+				case OptSpeed:
+					// JRS+Ospeed: always JP — but we got int8 from pattern_matcher
+					// meaning it was in JR range; we still want JP. Emit JP with abs addr.
+					// Reconstruct absolute target from offset: target = PC+2+offset
+					jpOpcode := jrToJPOpcode(pattern.Encoding[0])
+					if jpOpcode == 0 {
+						return nil, fmt.Errorf("JRS: no JP equivalent for opcode %02X", pattern.Encoding[0])
+					}
+					absTarget := a.currentAddr + 2 + int(offset)
+					return append([]byte{jpOpcode}, a.emitWord(absTarget)...), nil
+				default: // OptSize, OptBalanced: JRS → JR (2 bytes, saves 1 vs old NOP padding)
+					result = append(result, byte(offset))
+					return result, nil
+				}
 			}
 			result = append(result, byte(offset))
 			return result, nil
@@ -550,8 +562,18 @@ func encodeJRRel(a *Assembler, pattern *InstructionPattern, values []interface{}
 			// In pass 1, use a placeholder
 			if a.pass == 1 {
 				if fromJRS {
-					// Reserve 3 bytes so labels stay stable across JR↔JP promotion
-					result = append(result, 0, 0) // 1 opcode + 2 placeholder = 3 bytes
+					if a.OptMode == OptSpeed {
+						// Always JP: reserve 3 bytes (jpOpcode + 2 addr bytes)
+						result[0] = jrToJPOpcode(pattern.Encoding[0])
+						if result[0] == 0 {
+							result[0] = pattern.Encoding[0]
+						}
+						result = append(result, 0, 0)
+					} else {
+						// OptSize/OptBalanced: start optimistic (2 bytes), convergence
+						// will grow to 3 if JR turns out out of range
+						result = append(result, 0) // 2 bytes
+					}
 				} else {
 					result = append(result, 0) // Normal JR: 2 bytes
 				}
@@ -559,19 +581,24 @@ func encodeJRRel(a *Assembler, pattern *InstructionPattern, values []interface{}
 			}
 
 			if fromJRS {
-				// Pass 2: we reserved 3 bytes. Calculate offset from the 3-byte slot.
-				offset := addr - a.currentAddr - 2 // JR offset is relative to PC+2
-				if offset < -128 || offset > 127 {
-					// Out of JR range → emit JP (3 bytes, exact fit)
-					jpOpcode := jrToJPOpcode(pattern.Encoding[0])
-					if jpOpcode == 0 {
-						return nil, fmt.Errorf("relative jump out of range: %d", offset)
+				// Pass 2+: OptMode determines JR vs JP for JRS pseudo-instruction.
+				// Size changes trigger another pass (multi-pass convergence handles it).
+				jpOpcode := jrToJPOpcode(pattern.Encoding[0])
+				if jpOpcode == 0 {
+					return nil, fmt.Errorf("JRS: no JP equivalent for opcode %02X", pattern.Encoding[0])
+				}
+				switch a.OptMode {
+				case OptSpeed:
+					// Osize=false: always JP (3 bytes, 10T, no range limit)
+					return append([]byte{jpOpcode}, a.emitWord(addr)...), nil
+				default: // OptSize, OptBalanced
+					// Osize: prefer JR (2 bytes) when in range, JP (3 bytes) when not
+					offset := addr - a.currentAddr - 2
+					if offset >= -128 && offset <= 127 {
+						return []byte{pattern.Encoding[0], byte(offset)}, nil
 					}
 					return append([]byte{jpOpcode}, a.emitWord(addr)...), nil
 				}
-				// In JR range → emit JR + offset + NOP padding (3 bytes total)
-				result = append(result, byte(offset), 0x00)
-				return result, nil
 			}
 
 			// Normal (non-JRS) JR instruction
