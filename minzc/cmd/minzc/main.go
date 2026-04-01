@@ -77,6 +77,7 @@ var (
 	optSize      bool    // -Osize: optimize for code size (Grace reroll, DJNZ loops)
 	useGrace     bool    // --grace: run all Grace MIR2 passes before VIR lowering
 	useVIRDSE    bool    // --vir-dse: post-lowering dead VIROp elimination (pre-solver)
+	useVIRInline bool    // --vir-inline: inline small callees in loop bodies (pre-solver)
 
 	// Assert control
 	assertMode   string  // --asserts mir|z80|all|none — select which assert backends run
@@ -224,6 +225,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&optSize, "Osize", false, "optimize for code size: Grace reroll (repeated CALLs → DJNZ loop + data table)")
 	rootCmd.Flags().BoolVar(&useGrace, "grace", false, "run all Grace MIR2 passes before VIR lowering (DSE, CondRetSink, BlockMerge, etc.)")
 	rootCmd.Flags().BoolVar(&useVIRDSE, "vir-dse", true, "post-lowering dead VIROp elimination before Z3 solver (saves ~88 SMT vars per dead op)")
+	rootCmd.Flags().BoolVar(&useVIRInline, "vir-inline", false, "inline small single-block callees (≤15 ops) called from loop bodies (eliminates CALL/RET overhead)")
 	rootCmd.Flags().StringVar(&assertMode, "asserts", "", "assert backend: mir2, z80, wasm, llvm, all (default), none")
 	rootCmd.Flags().StringVar(&assertForce, "asserts-force", "", "force ALL asserts to run on this backend (mir2, z80, wasm, or llvm), ignoring 'via' annotations")
 	rootCmd.Flags().BoolVar(&emitSLD, "emit-sld", false, "emit SLD file for DeZog source-level debugging")
@@ -893,6 +895,7 @@ func compileViaHIR(sourceFile string) error {
 		OptSize:         optSize,           // --Osize enables Grace reroll
 		UseGrace:        useGrace,          // --grace enables full Grace MIR2 pass suite
 		UseVIRDSE:       useVIRDSE,         // --vir-dse enables post-lowering dead op elim
+		UseVIRInline:    useVIRInline,      // --vir-inline enables small callee inlining
 		Backend:         backend,
 		AssertMode:      am,
 	})

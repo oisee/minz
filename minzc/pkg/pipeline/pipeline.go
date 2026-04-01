@@ -113,6 +113,10 @@ type Options struct {
 	// Removes pure ops whose dst vreg is unused in the block.
 	// Each removed op saves ~88 Z3 SMT variables. Safe to enable on all functions.
 	UseVIRDSE bool
+	// UseVIRInline enables VIR-level inlining of small single-block callees
+	// called from loop-body blocks. Eliminates CALL/RET overhead and enables
+	// cross-call optimization. Default: false until validated on corpus.
+	UseVIRInline bool
 	// Backend selects the codegen backend: "z80" (default), "ez80".
 	// When "ez80", the pipeline generates eZ80 ADL assembly instead of Z80.
 	Backend string
@@ -332,6 +336,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 			UseGrace:      opt.UseGrace,
 			GraceStats:    opt.GraceStats,
 			UseVIRDSE:     opt.UseVIRDSE,
+			UseInliner:    opt.UseVIRInline,
 		}
 		virAsm, virResults := vir.CodegenModule(m, virOpts)
 

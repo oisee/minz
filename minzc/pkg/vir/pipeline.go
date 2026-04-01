@@ -452,6 +452,28 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 		mir2.FuseAbsDiff(f) // SUB+CMP → SUB with carry reuse (4 insts vs 11)
 	}
 
+	// MIR2-level inlining: inline small DAG callees into loop-body blocks.
+	// Done BEFORE LowerFunc so the enlarged function is lowered+solved as one unit.
+	// Eliminates CALL/RET overhead; enables cross-call optimization by the solver.
+	// Enable: --vir-inline flag or VIR_INLINE=1 env var.
+	useInliner := opts.UseInliner || os.Getenv("VIR_INLINE") == "1"
+	if useInliner {
+		inlineOpts := DefaultInlineOptions()
+		inlineOpts.Verbose = opts.Verbose
+		if opts.InlineMaxOps > 0 {
+			inlineOpts.MaxOps = opts.InlineMaxOps
+		}
+		if inlined, results := InlineMIR2(f, m, desc, inlineOpts); inlined {
+			for _, r := range results {
+				_ = r
+				if opts.Verbose {
+					fmt.Fprintf(os.Stderr, "[inline-mir2] %s/%s: inlined %s (%d VIR ops)\n",
+						r.CallerName, r.BlockLabel, r.CalleeName, r.OpsInlined)
+				}
+			}
+		}
+	}
+
 	// Lower MIR2 → VIR
 	vf, err := LowerFunc(f, desc, m)
 	if err != nil {

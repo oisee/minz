@@ -74,6 +74,14 @@ type SolverOptions struct {
 	// whose dst vreg is never used in the block. Conservative: intra-block only.
 	// Always safe to enable. Default: false until corpus validated.
 	UseVIRDSE bool
+
+	// UseInliner enables VIR-level inlining of small single-block callees
+	// called from loop-body blocks. Default: false until validated on corpus.
+	// Enable via --vir-inline flag or VIR_INLINE=1 env var.
+	UseInliner bool
+
+	// InlineMaxOps: max VIR op count for a callee to be inlined. Default: 15.
+	InlineMaxOps int
 }
 
 // Solve converts a basic block of VIROps into PIROps using Z3 SMT solver.
@@ -1158,9 +1166,16 @@ func computeLiveness(ops []VIROp) []livenessAt {
 		}
 	}
 
-	// Vregs that are defined but never used are live only at their def point
+	// Vregs that are defined but never used are live only at their def point.
+	// Exception: OpCmp/OpCmpImm produce FLAGS that are consumed by the branch
+	// terminator (which is outside VIR ops). These must NOT be propagated to
+	// successor blocks via liveness — FLAGS can't be moved across block boundaries.
 	for vreg, def := range defAt {
 		if _, used := lastUse[vreg]; !used {
+			op := ops[def]
+			if op.Op == OpCmp || op.Op == OpCmpImm {
+				continue // FLAGS consumed by MIR2 branch terminator, not by successor VIROps
+			}
 			result[def].live[vreg] = true
 		}
 	}
