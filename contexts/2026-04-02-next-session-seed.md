@@ -1,48 +1,64 @@
 # Next Session Seed — 2026-04-02
 
-## READY TO PICK UP
+## READY TO TEST (from VIR backend, on minz-vir repo)
 
-### 11-loc GPU tables (overnight run complete)
-- data/ix_expanded_5v.jsonl — 2.3M+ shapes, 11 locs (A,B,C,D,E,H,L,IXH,IXL,IYH,IYL)
-- Load into VIR enriched table, test on fun/ examples
-- Expected: higher O(1) hit rate, fewer Z3 calls
+### P1+P2 commits (need merge from minz-vir)
+- arithmetic idiom: div/256→LD L,H, mul*2048→ADD HL×11
+- MIR2 DAG inliner: --vir-inline, lfsr_step inlined in loop
+- enriched loader: Z80T v2 graceful reject
+- parallel-move ordering fix
+Test: `git pull minz-vir && mz --vir-inline fun/che_nanz.nanz`
 
-### IXH→pair fix (41c4e41d from VIR backend)
-- Pull and verify: LD BC, IXH → LD C, IXH (correct)
-- sha256 and widemath should now ASSEMBLE (were blocked by this bug)
+### 11-loc enriched table (61M entries, 86% feasible)
+- data/enriched_5v.enr: 17.4M entries, load via VIR_ENRICHED_5V=path
+- data/ix_expanded_5v.jsonl: 61M (11-loc with IXH/IXL/IYH/IYL)
+- 6v_dense: running (~66M shapes, ETA minutes)
 
-### ISLE combining rules LIR→VIR (VIR backend working on it)
-- load16_le fusion, MUL strength reduction, store16_le
-- Expect PR from p0gf238i
-
-### mze screenshot for Che decoder
-- Problem: mze SNA loader doesn't RETN — use raw .bin with --load/--start
-- Need: longer timeout (120s+) or fewer seeds
-- Alternative: fix mzv EnsureHeap for 0xC000 buffer
-
-## ARCHITECTURE DECISIONS (recorded)
+## ARCHITECTURE (decided)
 
 ### 18-Register Model
 - 11 GPR active: LocCost IXH=1, ADD IX/IY patterns ✅
-- EXX-zone: separate 6-loc table + compose at boundary
-- IXH/IXL = zero-cost inter-zone bridges (survive EXX+AF swap)
-- Cross-zone channels: IX(0T), A(0T), TSMC(20T), PUSH/POP(21T)
-- HLH'L' > DEHL when DE needed as pointer
+- IXH/IXL = zero-cost inter-zone bridges (survive EXX+AF swap) ✅
+- EXX pragmatic path: S1+S2 independent table lookups + IX bridges
+- Formula: total = cost(S1) + cost(S2) + 8T×bridges + 4T×EXX_count
+- P5 infrastructure EXISTS: FindCutVertices+IsBipartite in regalloc_table.go
 
-### Che Gap: 8.6×→3.2× (structural limit without interprocedural regalloc)
-- Instruction mix: 61% data moves = cost of 7 GPR
-- Split functions > inline on Z80 (Paper B insight)
-- Remaining: globals in memory, CALL overhead
+### Che Gap Roadmap (240ms target, beats hand-written 290ms)
+- P1 arithmetic idiom: ✅ committed (saves 459ms)
+- P2 MIR2 DAG inliner: ✅ committed (saves ~90K T-states)
+- P3 IYL counter: pending (DEC IYL sets Z flag, confirmed)
+- P4 LICM / embedded globals: pending
+- P5 EXX zone: infrastructure ready, wire into Lookup() needed
 
-## ARTICLES WRITTEN
-- docs/2026-03-31-PRNG-Image-Decoding-On-Z80.md (3 chapters)
+### Cross-Zone Channels
+- IX halves: 0T (survive EXX+AF)
+- A: 0T (EXX pass-through)
+- TSMC tunnel: 20T (8-bit, code-memory patching)
+- PUSH/POP: 21T (stack, always safe)
+- R register: 26T boolean spill (bit7, zero named regs)
+
+## FUN/ STATUS (all pass)
+- 13 files, 185+ asserts, 9/9 regression ✓
+- Che decoder: 394B (3.3× vs 121B asm)
+- With P1+P2: expected ~300B (~2.5×)
+
+## ARTICLES
+- docs/2026-03-31-PRNG-Image-Decoding-On-Z80.md (3 chapters + CP codec)
 - docs/2026-03-31-Closing-The-Gap.md
-- docs/2026-03-31-Nanz-Codegen-Quality.md (9 sections + bool returns)
+- docs/2026-03-31-Nanz-Codegen-Quality.md (9 sections)
+- docs/2026-04-01-Che-Gap-Proposal.md (397 lines, compiler beats hand-written)
+- docs/z80_opref.md (415 lines, complete Z80 reference)
 - reports/2026-03-31-Cross-Team-Sprint.md
 
-## SPRINT STATS
-- ~60 commits across 5 sessions
-- 800 GPU-verified arithmetic entries
-- 4 novel Z80 discoveries (Z materialization, carry_compare, sat_add8, split>inline)
-- 13 fun/ examples, 185+ asserts
-- 4 articles, 3 reports
+## GPU Tables Available
+| Table | Entries | Status |
+|-------|---------|--------|
+| mul8 A×K→A | 254 | ✅ in codegen |
+| mul16 HL×K→HL | 254 | ✅ in codegen (7.7× speedup) |
+| div8 A÷K→A v3 | 254 | ✅ loaded (carry_compare for K≥128) |
+| u32 ops (DEHL+HLH'L') | 16 | ✅ loaded |
+| enriched 4v | 156K | ✅ default |
+| enriched 5v | 17.4M | ✅ via VIR_ENRICHED_5V |
+| ix_expanded 5v (11-loc) | 61M | ✅ ready |
+| ix_expanded 6v_dense | ~66M | ⏳ running |
+| OFB flags | ready | ✅ ComputeOFB() API |
