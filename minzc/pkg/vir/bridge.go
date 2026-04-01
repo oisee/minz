@@ -51,6 +51,18 @@ func LowerBlock(b *mir2.Block, desc *MachineDesc, mod *mir2.Module, fn ...*mir2.
 				inst.Src[0], inst.Src[1] = inst.Src[1], inst.Src[0]
 			}
 		}
+		// Propagate constant into inst.Imm for xor — enables 16-bit XorImm lowering
+		// via tryXorImm16 (emits LD A,H / XOR $hi / LD H,A sequence instead of OpXor
+		// which has no native 16-bit Z80 encoding and causes Z3 unsat → PBQP fallback).
+		// Convention: Src[0]=variable operand, Src[1]=constant (swap if needed).
+		if inst.Op == mir2.OpXor && inst.Imm == 0 {
+			if k, ok := mirConsts[inst.Src[1]]; ok && k != 0 {
+				inst.Imm = k
+			} else if k, ok := mirConsts[inst.Src[0]]; ok && k != 0 {
+				inst.Imm = k
+				inst.Src[0], inst.Src[1] = inst.Src[1], inst.Src[0]
+			}
+		}
 
 		translated, err := translateInst(inst, desc, mod)
 		if err != nil {
@@ -212,6 +224,14 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 		}}, nil
 
 	case mir2.OpXor:
+		// 16-bit XOR with immediate constant: no native Z80 opcode — lower to
+		// two 8-bit XOR A,n instructions (LD A,H / XOR hi / LD H,A / LD A,L / XOR lo / LD L,A).
+		// This runs before foldConstIntoALU so we check mirConsts directly.
+		if w > 8 && inst.Imm != 0 {
+			if ops := tryXorImm16(inst, desc); ops != nil {
+				return ops, nil
+			}
+		}
 		return []VIROp{{
 			Op: OpXor, Dst: int(inst.Dst),
 			Src: [2]int{int(inst.Src[0]), int(inst.Src[1])}, Width: w,
@@ -281,9 +301,35 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 					{Op: OpShr, Dst: int(inst.Dst), Src: [2]int{int(inst.Src[0]), shiftVreg}, Width: 8},
 				}, nil
 			}
-			// u16: emit inline asm — SRL H; RR L chain (no u16 SHR pattern)
+			// u16: for shift >= 8, the result fits in a single byte — use high-byte
+			// extraction instead of SRL H; RR L chains.
+			// div256 (shift=8): LD L, H / LD H, 0 (11T, 2 insts vs 64T, 16 insts)
+			// div512 (shift=9): LD A, H / SRL A / LD L, A / LD H, 0 (17T vs 72T)
 			hlSet := desc.LocSetByNames("HL")
 			var asmLines []string
+			if shift >= 8 {
+				extraShift := shift - 8
+				if extraShift == 0 {
+					// div256: high byte → low byte, clear high
+					asmLines = append(asmLines, "LD L, H", "LD H, 0")
+				} else {
+					// div512..div32768: extract high byte, shift right by (shift-8), clear high
+					asmLines = append(asmLines, "LD A, H")
+					for i := 0; i < extraShift; i++ {
+						asmLines = append(asmLines, "SRL A")
+					}
+					asmLines = append(asmLines, "LD L, A", "LD H, 0")
+				}
+				return []VIROp{{
+					Op: OpAsmBlock, Dst: int(inst.Dst), Src: [2]int{int(inst.Src[0]), -1},
+					AsmTemplate: joinLines(asmLines),
+					Clobbers:    desc.LocSetByNames("A", "H", "L", "HL", "F"),
+					DstHint:     hlSet,
+					SrcHint:     [2]LocSet{hlSet},
+					Width: 16,
+				}}, nil
+			}
+			// shift < 8: SRL H; RR L chain
 			for i := 0; i < shift; i++ {
 				asmLines = append(asmLines, "SRL H", "RR L")
 			}
@@ -440,6 +486,45 @@ func translateMul(inst *mir2.Inst, desc *MachineDesc) ([]VIROp, error) {
 //	×10: 52T
 //	×12: 52T
 //	×16: 44T, ×32: 55T, ×64: 66T (powers of 2 via ADD HL,HL chain)
+// tryXorImm16 lowers a 16-bit XOR with immediate constant to an OpAsmBlock.
+// Z80 has no native 16-bit XOR; we emit two 8-bit XOR A,n sequences:
+//   LD A, H / XOR hi / LD H, A / LD A, L / XOR lo / LD L, A  (28T, 6 insts)
+// Special cases: hi=0 or lo=0 skip that byte (21T or 14T).
+func tryXorImm16(inst *mir2.Inst, desc *MachineDesc) []VIROp {
+	k := inst.Imm
+	if k == 0 {
+		return nil // XOR 0 = identity, eliminateIdentityOps handles it
+	}
+	hi := (k >> 8) & 0xFF
+	lo := k & 0xFF
+
+	var lines []string
+	if hi != 0 {
+		lines = append(lines, fmt.Sprintf("LD A, H\n    XOR $%02X\n    LD H, A", hi))
+	}
+	if lo != 0 {
+		lines = append(lines, fmt.Sprintf("LD A, L\n    XOR $%02X\n    LD L, A", lo))
+	}
+	if len(lines) == 0 {
+		return nil
+	}
+
+	asm := joinLines(lines)
+	hlSet := desc.LocSetByNames("HL")
+	clobbers := desc.LocSetByNames("A", "H", "L", "HL", "F")
+
+	return []VIROp{{
+		Op:          OpAsmBlock,
+		Dst:         int(inst.Dst),
+		Src:         [2]int{int(inst.Src[0]), -1},
+		Width:       16,
+		AsmTemplate: asm,
+		Clobbers:    clobbers,
+		DstHint:     hlSet,
+		SrcHint:     [2]LocSet{hlSet},
+	}}
+}
+
 func tryStrengthReduceMul16(inst *mir2.Inst, desc *MachineDesc) []VIROp {
 	k := inst.Imm
 	srcVreg := int(inst.Src[0])
@@ -487,8 +572,9 @@ func tryStrengthReduceMul16(inst *mir2.Inst, desc *MachineDesc) []VIROp {
 		asm = "ADD HL, HL\n    ADD HL, HL\n    LD B, H\n    LD C, L\n    ADD HL, HL\n    ADD HL, BC"
 		clobbers = clobHLBC
 	default:
-		// Powers of 2 via repeated ADD HL, HL (handles ×16, ×32, ×64, ×128, ×256)
-		if isPow2(k) && k >= 16 && k <= 256 {
+		// Powers of 2 via repeated ADD HL, HL (×16 through ×32768 = 2^4..2^15)
+		// ADD HL, HL = 11T, so k×2048 (11 shifts) = 121T vs __mul16 ~380T
+		if isPow2(k) && k >= 16 {
 			shift := log2(k)
 			var lines []string
 			for i := 0; i < shift; i++ {
