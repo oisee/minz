@@ -220,6 +220,19 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 		{Name: "trunc_hl_ixh", Op: OpMove, Width: 8, DstLocs: Z80_IXHalves,
 			SrcLocs: [2]LocSet{Z80_HL}, Template: "LD A, L\n    LD {dst}, A",
 			Cost: 12, Bytes: 3},
+		// IXHalf → pair (store into low byte): fixes 'LD BC, IXH' invalid emit.
+		// findMovePatternRemap dst-remap emits with wrong dst; explicit patterns avoid this.
+		// BC/DE: C and E are GPRNoHL, direct (8T,2B)
+		{Name: "trunc_ixh_bc", Op: OpMove, Width: 8, DstLocs: Z80_BC,
+			SrcLocs: [2]LocSet{Z80_IXHalves}, Template: "LD C, {src0}",
+			Cost: 8, Bytes: 2},
+		{Name: "trunc_ixh_de", Op: OpMove, Width: 8, DstLocs: Z80_DE,
+			SrcLocs: [2]LocSet{Z80_IXHalves}, Template: "LD E, {src0}",
+			Cost: 8, Bytes: 2},
+		// HL: L is HL8, must go via A (12T,3B)
+		{Name: "trunc_ixh_hl", Op: OpMove, Width: 8, DstLocs: Z80_HL,
+			SrcLocs: [2]LocSet{Z80_IXHalves}, Template: "LD A, {src0}\n    LD L, A",
+			Cost: 12, Bytes: 3},
 
 		// Zero-extend 8→16
 		{Name: "zext_hl_r", Op: OpMove, Width: 16, DstLocs: Z80_HL,
