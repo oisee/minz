@@ -294,12 +294,44 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 		if inst.Imm > 0 && isPow2(inst.Imm) {
 			shift := log2(inst.Imm)
 			if w <= 8 {
-				// u8: simple SRL chain
-				shiftVreg := int(inst.Dst) + 10000
-				return []VIROp{
-					{Op: OpConst, Dst: shiftVreg, Imm: int64(shift), Width: 8},
-					{Op: OpShr, Dst: int(inst.Dst), Src: [2]int{int(inst.Src[0]), shiftVreg}, Width: 8},
-				}, nil
+				// u8 div-by-pow2: shift right by N bits.
+				//
+				// All cases use "LD A, {src0}" + shift sequence, result in A.
+				// SrcHint EXCLUDES A: this ensures src0 stays in a non-A register
+				// so that "LD A, {src0}" is a real copy and the source vreg is
+				// preserved for any subsequent uses (e.g. sh is live after sh/128).
+				// If src0 were allowed in A, RLCA/SRL would destroy it.
+				//
+				// shift=1: LD A, {src0} + SRL A  (12T)
+				// shift=2-3: LD A, {src0} + N×SRL A  (4+8N T)
+				// shift=4-7: LD A, {src0} + (8-N)×RLCA + AND mask  (much cheaper)
+				//   RLCA rotates left: bit7→bit0; N left-rotates extracts bit(7) at bit(N-1).
+				//   AND mask isolates the result (mask = 2^(8-shift)-1).
+				//   e.g. shift=7: LD A,{src} + RLCA + AND 1 = 15T vs 4+56=60T for SRL chain.
+				gpr8NoA := desc.LocSetByNames("B", "C", "D", "E", "H", "L")
+				aSet := desc.LocSetByNames("A")
+				var lines []string
+				lines = append(lines, "LD A, {src0}")
+				if shift >= 4 {
+					rotates := 8 - shift
+					mask := (1 << (8 - shift)) - 1
+					for i := 0; i < rotates; i++ {
+						lines = append(lines, "RLCA")
+					}
+					lines = append(lines, fmt.Sprintf("AND %d", mask))
+				} else {
+					for i := 0; i < shift; i++ {
+						lines = append(lines, "SRL A")
+					}
+				}
+				return []VIROp{{
+					Op: OpAsmBlock, Dst: int(inst.Dst), Src: [2]int{int(inst.Src[0]), -1},
+					AsmTemplate: strings.Join(lines, "\n    "),
+					Clobbers:    desc.LocSetByNames("A", "F"),
+					DstHint:     aSet,
+					SrcHint:     [2]LocSet{gpr8NoA},
+					Width: 8,
+				}}, nil
 			}
 			// u16: for shift >= 8, the result fits in a single byte — use high-byte
 			// extraction instead of SRL H; RR L chains.
@@ -542,6 +574,23 @@ func tryStrengthReduceMul16(inst *mir2.Inst, desc *MachineDesc) []VIROp {
 	var clobbers LocSet
 
 	switch k {
+	case 256:
+		// u8 × 256 → u16: place the byte in H, zero L.
+		// "LD H, {src0}; LD L, 0" works when src0 is a GPR8 (A,B,C,D,E,H,L).
+		// This is 8T/2B — 11× cheaper than 8× ADD HL,HL (88T).
+		// SrcHint is GPR8 (not HL) so Z3 keeps the vreg in a byte register.
+		gpr8 := desc.LocSetByNames("A", "B", "C", "D", "E", "H", "L")
+		clobHLonly := desc.LocSetByNames("H", "L", "HL")
+		return []VIROp{{
+			Op:          OpAsmBlock,
+			Dst:         dstVreg,
+			Src:         [2]int{srcVreg, -1},
+			Width:       16,
+			AsmTemplate: "LD H, {src0}\n    LD L, 0",
+			Clobbers:    clobHLonly,
+			DstHint:     hlSet,
+			SrcHint:     [2]LocSet{gpr8},
+		}}
 	case 2:
 		asm = "ADD HL, HL"
 		clobbers = clobHL

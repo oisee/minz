@@ -278,6 +278,24 @@ func (t *RegAllocTable) loadDefaults() {
 			total, feasible, p)
 		break
 	}
+	// Auto-load 6v table (ix_expanded_6v_dense.bin: Z80T v2, 298.7M entries, GPU-brute-force).
+	// Requires ~20GB RAM. Skipped gracefully on systems with insufficient memory.
+	for _, p := range []string{
+		"../data/ix_expanded_6v_dense.bin",
+		"data/ix_expanded_6v_dense.bin",
+		os.ExpandEnv("$HOME/dev/minz-vir/data/ix_expanded_6v_dense.bin"),
+		os.ExpandEnv("$HOME/dev/z80-optimizer/data/ix_expanded_6v_dense.bin"),
+	} {
+		bt, err := LoadEnrichedBinary(p)
+		if err != nil {
+			continue
+		}
+		total, feasible, _ := bt.Stats()
+		t.binaryTables = append(t.binaryTables, bt)
+		fmt.Fprintf(os.Stderr, "[regalloc] loaded %d enriched binary entries (%d feasible) from %s\n",
+			total, feasible, p)
+		break
+	}
 }
 
 // LoadExhaustive loads entries from the exhaustive enumeration format.

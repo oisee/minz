@@ -667,41 +667,18 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 	}
 	if standErr == nil {
 		if constRan && hasConstraints {
-			// Check for adapter conflicts: if a move's destination is another param's
-			// caller register, the adapter will clobber that param. In this case,
-			// skip standalone+adapter and fall to per-block.
-			adapterConflict := false
-			callerRegsUsed := make(map[int]bool)
-			for _, phys := range callerParamLocs {
-				callerRegsUsed[phys] = true
-			}
+			// resolveParallelMoves handles dependency ordering (topological sort)
+			// and cycles (EX DE,HL or 3-move XOR swap). Just emit the adapter.
+			adapterCost := 0
 			for vreg, callerPhys := range callerParamLocs {
-				standPhys, ok := standParamLocs[vreg]
-				if ok && standPhys != callerPhys {
-					// This move writes to standPhys. Is standPhys another param's caller reg?
-					if callerRegsUsed[standPhys] {
-						adapterConflict = true
-						break
-					}
+				if standPhys, ok := standParamLocs[vreg]; ok && standPhys != callerPhys {
+					adapterCost++
 				}
 			}
-
-			if adapterConflict {
-				// Adapter conflict: standalone convention swaps param registers.
-				// Can't resolve with simple adapter moves. Fall to PBQP.
-				return "", fmt.Errorf("adapter conflict: param register swap requires PBQP")
-			} else {
-				adapterCost := 0
-				for vreg, callerPhys := range callerParamLocs {
-					if standPhys, ok := standParamLocs[vreg]; ok && standPhys != callerPhys {
-						adapterCost++
-					}
-				}
-				adapted := emitAdapterEntry(standASM, f, callerParamLocs, standParamLocs, desc)
-				fmt.Fprintf(os.Stderr, "[vir] %s: constrained unsat, using standalone+adapter (%d adapters)\n",
-					f.Name, adapterCost)
-				return adapted, nil
-			}
+			adapted := emitAdapterEntry(standASM, f, callerParamLocs, standParamLocs, desc)
+			fmt.Fprintf(os.Stderr, "[vir] %s: constrained unsat, using standalone+adapter (%d adapters)\n",
+				f.Name, adapterCost)
+			return adapted, nil
 		} else {
 			return standASM, nil
 		}
@@ -1200,19 +1177,53 @@ func emitFuncHeader(sb *strings.Builder, f *mir2.Func, opts SolverOptions) {
 // so they can reuse the same physical registers independently.
 // Returns (assignment, true) if all components succeed, or (nil, false) to fall through.
 func tryCutVertexDecompose(allOps []VIROp, desc *MachineDesc, table *RegAllocTable, verbose bool, funcName string) (map[int]int, bool) {
+	verbose = verbose || os.Getenv("VIR_CUT_VERBOSE") != ""
 	shape := ComputeInterferenceShape(allOps, desc)
+	if verbose {
+		fmt.Fprintf(os.Stderr, "[vir] cut-vertex? %s nv=%d\n", funcName, shape.NVregs)
+	}
 	if shape.NVregs <= 6 {
 		return nil, false // table.Lookup already handles this
 	}
 
 	components := shape.DecomposeAtCutVertices()
+	if verbose {
+		fmt.Fprintf(os.Stderr, "[vir] %s: cut-vertex nv=%d components=%d\n", funcName, shape.NVregs, len(components))
+	}
 	if len(components) <= 1 {
+		if verbose {
+			bp, coloring := shape.IsBipartite()
+			s1, s2 := 0, 0
+			for _, c := range coloring {
+				if c == 0 {
+					s1++
+				} else {
+					s2++
+				}
+			}
+			fmt.Fprintf(os.Stderr, "[vir] %s: no cut-vertices; bipartite=%v S1=%d S2=%d\n",
+				funcName, bp, s1, s2)
+		}
 		return nil, false // no decomposition
 	}
 
-	// Check all components are within enriched table range
+	// Check all components are within enriched table range.
+	// On first oversized component, check bipartite as diagnostic for EXX zone potential.
 	for _, comp := range components {
 		if len(comp) > 6 {
+			if verbose {
+				bp, coloring := shape.IsBipartite()
+				s1, s2 := 0, 0
+				for _, c := range coloring {
+					if c == 0 {
+						s1++
+					} else {
+						s2++
+					}
+				}
+				fmt.Fprintf(os.Stderr, "[vir] %s: cut-vertex component too large (nv=%d > 6); whole-graph bipartite=%v S1=%d S2=%d\n",
+					funcName, len(comp), bp, s1, s2)
+			}
 			return nil, false // some component too large for O(1) lookup
 		}
 	}

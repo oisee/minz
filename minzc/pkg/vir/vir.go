@@ -21,7 +21,10 @@
 //	ASM  — Assembly text  (string)    — final output
 package vir
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 // ── Opcodes ──────────────────────────────────────────────────────────────────
 // VIR opcodes are Z80-flavored: they distinguish 8-bit vs 16-bit operations,
@@ -347,8 +350,22 @@ func (p *PIROp) Emit(m *MachineDesc) string {
 	// Inline asm: emit verbatim, split on "/" or newlines.
 	// Apply DD/FD prefix conflict fix per-line (inline asm may contain LD IXH,H).
 	if p.AsmText != "" {
+		// Substitute {dst}/{src0}/{src1}/{imm} before splitting.
+		text := p.AsmText
+		if p.DstPhys >= 0 && p.DstPhys < len(m.Locs) {
+			text = replaceAll(text, "{dst}", m.Locs[p.DstPhys].Name)
+		}
+		for i, ph := range p.SrcPhys {
+			tag := "{src" + string(rune('0'+i)) + "}"
+			if ph >= 0 && ph < len(m.Locs) {
+				text = replaceAll(text, tag, m.Locs[ph].Name)
+			}
+		}
+		if p.Imm != 0 {
+			text = replaceAll(text, "{imm}", fmt.Sprintf("%d", p.Imm))
+		}
 		// Split on "/" first (compact format), then on newlines (multi-line)
-		parts := splitAsm(p.AsmText)
+		parts := splitAsm(text)
 		var allLines []string
 		for _, part := range parts {
 			for _, line := range strings.Split(part, "\n") {

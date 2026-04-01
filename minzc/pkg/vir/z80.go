@@ -517,6 +517,12 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			SrcLocs: [2]LocSet{Z80_A, Z80_GPR8},
 			Template: "SRL A", Cost: 8, Bytes: 2,
 			Clobbers: Z80_Flags, TiedDstSrc: true},
+		// SRL r — CB-prefix, same cost (8T/2B) but dst can be any GPR8.
+		// Gives Z3 freedom to avoid A when accumulator is under pressure.
+		{Name: "srl_r", Op: OpShr, Width: 8, DstLocs: Z80_GPR8,
+			SrcLocs: [2]LocSet{Z80_GPR8, Z80_GPR8},
+			Template: "SRL {dst}", Cost: 8, Bytes: 2,
+			Clobbers: Z80_Flags, TiedDstSrc: true},
 		{Name: "shl16_hl", Op: OpShl, Width: 16, DstLocs: Z80_HL,
 			SrcLocs: [2]LocSet{Z80_HL, Z80_GPR8},
 			Template: "ADD HL, HL", Cost: 11, Bytes: 1,

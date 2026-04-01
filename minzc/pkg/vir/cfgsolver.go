@@ -467,6 +467,31 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 	}
 	vars := make(map[varKey]bool)
 
+	// Pre-scan: when a single forced pattern requires the destination to occupy
+	// a NonAllocatable loc (e.g. CMP dst must be F/flags), the generic exclusion
+	// would create an immediate contradiction. Collect those (vreg,block,inst)
+	// keys so ensureVar can skip the exclusion for exactly those forced locs.
+	type forcedKey struct{ vreg, block, inst int }
+	allowedForcedLocs := make(map[forcedKey]LocSet)
+	for bi, bp := range blocks {
+		p := bp.prob
+		for i, pats := range p.patterns {
+			if len(pats) != 1 {
+				continue // skip multi-choice instructions
+			}
+			pi := pats[0]
+			op := p.ops[i]
+			if op.Dst <= 0 {
+				continue
+			}
+			pat := &desc.Patterns[pi]
+			forced := pat.DstLocs.And(desc.NonAllocatable)
+			if !forced.IsEmpty() {
+				allowedForcedLocs[forcedKey{op.Dst, bi, i}] = forced
+			}
+		}
+	}
+
 	ensureVar := func(vreg, block, inst int) string {
 		name := fmt.Sprintf("lv%d_b%d_i%d", vreg, block, inst)
 		key := varKey{vreg, block, inst}
@@ -475,7 +500,14 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 			b.WriteString(fmt.Sprintf("(declare-const %s Int)\n", name))
 			b.WriteString(fmt.Sprintf("(assert (and (>= %s 0) (< %s %d)))\n", name, name, nLocs))
 			// Exclude non-allocatable locations (F, SP) from general vreg storage.
+			// Exception: if a forced single-choice pattern requires this vreg to be
+			// at a NonAllocatable loc (e.g. CMP destination → F register), skip that
+			// exclusion to avoid an immediate contradiction in the SMT.
+			allowedForced := allowedForcedLocs[forcedKey{vreg, block, inst}]
 			desc.NonAllocatable.ForEach(func(i int) bool {
+				if allowedForced.Has(i) {
+					return true // pattern forces it here — don't exclude
+				}
 				b.WriteString(fmt.Sprintf("(assert (not (= %s %d))) ; exclude %s\n", name, i, desc.Locs[i].Name))
 				return true
 			})
@@ -806,13 +838,11 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 				b.WriteString(fmt.Sprintf("(assert (or (= %s 14) (= %s 15) (= %s 16) (= %s 17)))\n",
 					fromVar, fromVar, fromVar, fromVar))
 			} else {
-				// HARD equality for PHI-mapped vregs (they MUST match — no move possible)
-				// Soft for same-ID vregs (move can be inserted)
-				if toVreg != vreg {
-					b.WriteString(fmt.Sprintf("(assert (= %s %s))\n", fromVar, toVar))
-				} else {
-					edgeMoves = append(edgeMoves, edgeMove{fromVar, toVar})
-				}
+				// SOFT equality for all edge vregs (PHI-mapped and same-ID alike).
+				// PHI moves are computed and emitted at source-block tail — after the last
+				// regular PIR op and before the block terminator.  On Z80, LD r,r' does
+				// NOT set any flags, so a PHI move between a CP and a conditional JR is safe.
+				edgeMoves = append(edgeMoves, edgeMove{fromVar, toVar})
 			}
 		}
 	}
@@ -1032,7 +1062,11 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 
 	// Dump SMT for debugging when requested
 	if os.Getenv("VIR_DUMP_SMT") != "" {
-		smtFile := fmt.Sprintf("/tmp/vir_cfg_%s.smt2", f.Name)
+		suffix := "2"
+		if len(paramHintsEarly) > 0 {
+			suffix = "1_constrained"
+		}
+		smtFile := fmt.Sprintf("/tmp/vir_cfg_%s_%s.smt2", f.Name, suffix)
 		os.WriteFile(smtFile, []byte(smt), 0644)
 		fmt.Fprintf(os.Stderr, "[CFG-solver] dumped SMT to %s (%d bytes)\n", smtFile, len(smt))
 	}
@@ -1136,6 +1170,49 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 			// Prepend edge moves to destination block's PIR
 			existing := result[toBP.label]
 			result[toBP.label] = append(edgeMoveOps, existing...)
+		}
+
+		// PHI edge moves: vregs that change identity across a block edge (block args).
+		// Unlike same-ID edge moves (prepended to destination), PHI moves are APPENDED
+		// to the source block — they execute on ALL outgoing paths, which is safe because:
+		//   1. Z80 LD r,r' does NOT affect flags, so a PHI move between CP and JR is valid.
+		//   2. Any path that doesn't need the move (loc already matches) sees a no-op.
+		// Conflicts across different edges are resolved by sortParallelMoves.
+		if len(edge.phiMap) > 0 {
+			var phiPending []parallelMove
+			for fromVreg, toVreg := range edge.phiMap {
+				fromKey := fmt.Sprintf("lv%d_b%d_i%d", fromVreg, edge.fromBlock, fromLastIdx)
+				toKey := fmt.Sprintf("lv%d_b%d_i%d", toVreg, edge.toBlock, 0)
+				fromLoc, hasFrom := vals[fromKey]
+				toLoc, hasTo := vals[toKey]
+				if !hasFrom || !hasTo || fromLoc == toLoc {
+					continue // no move needed
+				}
+				remappedSrc, movePat := findMovePatternRemap(desc, fromLoc, toLoc)
+				if movePat == nil {
+					fmt.Fprintf(os.Stderr, "[CFG-solver] WARNING: no PHI move pattern for v%d→v%d: %s(%d)→%s(%d) at b%d→b%d\n",
+						fromVreg, toVreg, desc.Locs[fromLoc].Name, fromLoc, desc.Locs[toLoc].Name, toLoc, edge.fromBlock, edge.toBlock)
+					continue
+				}
+				if os.Getenv("VIR_DEBUG_EDGES") != "" {
+					fmt.Fprintf(os.Stderr, "[PHI-MOVE] v%d→v%d: %s(%d)→%s(%d) at b%d→b%d\n",
+						fromVreg, toVreg, desc.Locs[fromLoc].Name, fromLoc, desc.Locs[toLoc].Name, toLoc, edge.fromBlock, edge.toBlock)
+				}
+				phiPending = append(phiPending, parallelMove{
+					vreg: fromVreg, prevLoc: fromLoc, currLoc: toLoc,
+					movePat: movePat, remSrc: remappedSrc,
+				})
+			}
+			if len(phiPending) > 0 {
+				phiPending = sortParallelMoves(desc, phiPending)
+				for _, pm := range phiPending {
+					result[fromBP.label] = append(result[fromBP.label], PIROp{
+						Pat: pm.movePat, DstPhys: pm.currLoc,
+						SrcPhys: [2]int{pm.remSrc, -1},
+						Comment: fmt.Sprintf("phi move v%d→v%d: %s→%s", pm.vreg, edge.phiMap[pm.vreg], desc.Locs[pm.prevLoc].Name, desc.Locs[pm.currLoc].Name),
+					})
+				}
+			}
 		}
 	}
 
