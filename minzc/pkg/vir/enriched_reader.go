@@ -52,16 +52,27 @@ func LoadEnrichedBinary(path string) (*EnrichedBinaryTable, error) {
 	if _, err := io.ReadFull(f, magic[:]); err != nil {
 		return nil, fmt.Errorf("read magic: %w", err)
 	}
-	if string(magic[:]) != "ENRT" {
-		return nil, fmt.Errorf("bad magic: %q (expected ENRT)", magic)
+	isENRT := string(magic[:]) == "ENRT"
+	isZ80T := string(magic[:]) == "Z80T"
+	if !isENRT && !isZ80T {
+		return nil, fmt.Errorf("bad magic: %q (expected ENRT or Z80T)", magic)
 	}
 
 	var version uint32
 	if err := binary.Read(f, binary.LittleEndian, &version); err != nil {
 		return nil, fmt.Errorf("read version: %w", err)
 	}
+	// Z80T v2 has a different header layout — not yet implemented in this loader.
+	// The ENRT format (v1) is the standard output from the enriched table pipeline.
+	// Z80T v2 is the z80-optimizer's native format with a different count/header layout.
+	if isZ80T && version == 2 {
+		return nil, fmt.Errorf("Z80T v2 format not yet supported by ENRT loader (need header spec from z80-optimizer)")
+	}
+	if !isENRT && !(isZ80T && version == 1) {
+		return nil, fmt.Errorf("unsupported format: magic=%q version=%d", magic, version)
+	}
 	if version != 1 {
-		return nil, fmt.Errorf("unsupported version: %d", version)
+		return nil, fmt.Errorf("unsupported ENRT version: %d (loader supports v1)", version)
 	}
 
 	var count uint32
