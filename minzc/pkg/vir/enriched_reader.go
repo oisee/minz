@@ -1,17 +1,20 @@
-// enriched_reader.go — Z80T binary format reader for enriched regalloc tables.
+// enriched_reader.go — binary format reader for enriched regalloc tables.
 //
-// Vendored from github.com/oisee/z80-optimizer/pkg/regalloc/table.go
+// Supports two formats from github.com/oisee/z80-optimizer:
 //
-// Tables are indexed by enumeration order — shape N in the file corresponds to
-// shape N from regalloc-enum. Callers must compute the enumeration index from
-// their constraint shape to perform a lookup.
+// ENRT v1 (enriched table, from pipeline/enrich step):
 //
-// Binary format (Z80T v1):
+//	Header: "ENRT"(4) + version=1(u32le) + count(u32le) + maxVregs(u8) + nMetrics(u8) + reserved(u16) = 16B
+//	Records: 0xFF=infeasible | nVregs(u8) + cost(u16le) + assignment[nVregs] + flags(u16le) + nMetrics×u16le
 //
-//	Header:  4 bytes magic "Z80T" + 4 bytes version (uint32 LE)
-//	Records: variable-length, one per shape:
-//	  Infeasible: 0xFF (1 byte)
-//	  Feasible:   nVregs (uint8) + cost (uint16 LE) + assignment (nVregs bytes)
+// Z80T v2 (ix-expanded table, from build-ix-table cmd):
+//
+//	Header: "Z80T"(4) + version=2(u32le) + nLocSets8(u8) + nLocSets16(u8) + maxVregs(u8) + n_entries(u64le) = 19B
+//	Records: 0xFF=infeasible | nVregs(u8) + cost(u16le) + assignment[nVregs]
+//	         (no flags or metrics — leaner format, includes IX-half locs)
+//
+// Both formats use the same enumeration index (EnrichedIndexOf) for O(1) lookup.
+// Z80T v2 "ix_expanded" tables include IXH/IXL as allocation targets (+12% coverage).
 package vir
 
 import (
@@ -62,12 +65,47 @@ func LoadEnrichedBinary(path string) (*EnrichedBinaryTable, error) {
 	if err := binary.Read(f, binary.LittleEndian, &version); err != nil {
 		return nil, fmt.Errorf("read version: %w", err)
 	}
-	// Z80T v2 has a different header layout — not yet implemented in this loader.
-	// The ENRT format (v1) is the standard output from the enriched table pipeline.
-	// Z80T v2 is the z80-optimizer's native format with a different count/header layout.
+	// Z80T v2: remaining header = nLocSets8(u8) + nLocSets16(u8) + maxVregs(u8) + n_entries(u64le).
+	// Records: 0xFF=infeasible | nVregs(u8) + cost(u16le) + assignment[nVregs].
+	// Simpler than ENRT — no flags or metrics. Includes IX-half locs (+12% coverage).
 	if isZ80T && version == 2 {
-		return nil, fmt.Errorf("Z80T v2 format not yet supported by ENRT loader (need header spec from z80-optimizer)")
+		var nLocSets8, nLocSets16, maxVregs uint8
+		binary.Read(f, binary.LittleEndian, &nLocSets8)
+		binary.Read(f, binary.LittleEndian, &nLocSets16)
+		binary.Read(f, binary.LittleEndian, &maxVregs)
+		var nEntries uint64
+		if err := binary.Read(f, binary.LittleEndian, &nEntries); err != nil {
+			return nil, fmt.Errorf("Z80T v2 read n_entries: %w", err)
+		}
+		entries := make([]EnrichedEntry, 0, nEntries)
+		buf := make([]byte, 1)
+		for {
+			_, err := io.ReadFull(f, buf)
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				return nil, fmt.Errorf("Z80T v2 read record %d: %w", len(entries), err)
+			}
+			marker := buf[0]
+			if marker == 0xFF {
+				entries = append(entries, EnrichedEntry{Cost: -1})
+			} else {
+				nv := int(marker)
+				var cost uint16
+				if err := binary.Read(f, binary.LittleEndian, &cost); err != nil {
+					return nil, fmt.Errorf("Z80T v2 read cost at record %d: %w", len(entries), err)
+				}
+				assign := make([]byte, nv)
+				if _, err := io.ReadFull(f, assign); err != nil {
+					return nil, fmt.Errorf("Z80T v2 read assignment at record %d: %w", len(entries), err)
+				}
+				entries = append(entries, EnrichedEntry{Cost: int(cost), Assignment: assign})
+			}
+		}
+		return &EnrichedBinaryTable{Entries: entries}, nil
 	}
+
 	if !isENRT && !(isZ80T && version == 1) {
 		return nil, fmt.Errorf("unsupported format: magic=%q version=%d", magic, version)
 	}
