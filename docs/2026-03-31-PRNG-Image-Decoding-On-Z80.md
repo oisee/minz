@@ -219,6 +219,123 @@ The GPU needed 2 hours to find them. The ratio — 14,400:1 — is the cost
 of discovery vs reproduction. Once found, the seeds are eternal:
 the same 9.4 KB will produce the same face on any Z80, forever.
 
+## Chapter 2: Carrier-Payload Codec — 3× Fewer Seeds
+
+The cascade approach uses 1171 seeds for 1.2% error. Can we do better?
+
+### The Problem with Flat Cascade
+
+Every seed sprays random points across its entire region. Most points
+land on areas that are already correct — wasted work. At AND-7 density
+(0.78%), you need hundreds of seeds just to correct a few pixels.
+
+### Carrier-Payload: Two-Level Search
+
+Split each delta into two parts:
+
+**Carrier** (blk=8, AND-3): finds WHERE motion/error is concentrated.
+Produces a 32×24 bitmask of "hot zones" — character cells that need work.
+
+**Payload** (blk=4→2→1, AND-4→7): sprays points ONLY inside carrier-activated cells.
+The payload LFSR buffer is AND-masked with the carrier bitmask before applying.
+
+```
+Traditional:  seed → buffer → XOR entire region
+Carrier-Payload:  carrier_seed → hot_mask
+                  payload_seed → buffer & hot_mask → XOR masked region
+```
+
+### Why It Works
+
+The carrier focuses the payload's "correlation budget" on the ~20% of the screen
+that actually needs correction. Instead of wasting 80% of random points on
+already-correct areas, every payload point lands where it matters.
+
+**Result: 3× fewer seeds** for the same visual quality.
+
+### Data Format
+
+```json
+{
+  "type": "cp",
+  "cs": 12345,           // carrier seed
+  "ps": [45678, 23456],  // payload seeds (applied inside carrier mask)
+  "blk": 2,
+  "and_n": 5,
+  "ox": 32, "oy": 24
+}
+```
+
+### On Z80
+
+The decoder adds one extra step — AND the payload buffer with the carrier buffer:
+
+```nanz
+// Traditional: fill_buf → apply_buf
+// CP mode:     fill_carrier → fill_payload → AND together → apply_buf
+
+fun mask_payload(carrier_addr: u16, payload_addr: u16) -> void {
+    for i in 0..768 {
+        let c: ^u8 = carrier_addr + i
+        let p: ^u8 = payload_addr + i
+        p^ = p^ & c^    // AND mask: only keep payload where carrier active
+    }
+}
+```
+
+Extra cost: 768 AND operations × ~15T = ~11.5K T-states. Negligible vs the
+savings from fewer seeds (each seed = ~50K T-states of LFSR + XOR work).
+
+### Budget Comparison
+
+| Method | Seeds for Che | Data size | Decode time |
+|--------|--------------|-----------|-------------|
+| Flat cascade | 1171 | 9.4 KB | ~0.5s |
+| Carrier-Payload | ~400 | ~3.2 KB | ~0.2s |
+| CP for ZX tape | ~400 | ~1.6 KB (4B/seed) | 0.32s load |
+
+For ZX Spectrum tape at 1500 baud: 1.6 KB loads in **0.85 seconds**.
+A recognizable face from less than one second of tape audio.
+
+## Chapter 3: Seeds Are Incompressible
+
+A surprising result from entropy analysis:
+
+```
+Field      Entropy     Raw size    gzip ratio
+seed       ~11.8 bits  16 bits     98-100%
+and_n      ~1.5 bits   3 bits      <1%
+blk        ~1.2 bits   2 bits      <1%
+ox, oy     ~3 bits     8 bits      ~40%
+warmup     varies      16 bits     ~60%
+```
+
+**Seeds cannot be compressed.** By construction, the GPU search picks seeds
+that maximize decorrelation with all previously chosen seeds. This means
+the seed sequence has near-maximum entropy — it's already as compact as
+random data.
+
+The metadata fields (and_n, blk, ox, oy) compress well because they follow
+a structured cascade pattern. But seeds are ~74% of the data, and they're
+incompressible.
+
+**Implication: the only "compression" is better algorithms** — fewer seeds
+for the same quality. Carrier-Payload achieves this: 3× fewer seeds
+by focusing each seed's work on hot zones.
+
+### Optimal Binary Format
+
+```
+4 bytes per seed:
+  [seed: u16] [flags: u8 = ox_hi:2|oy_hi:2|blk:2|andN:2] [warmup: u8]
+
+1171 seeds × 4 = 4.7 KB
+400 CP seeds × 4 = 1.6 KB
+```
+
+No entropy coding, no Huffman, no LZ77. The data is already at maximum entropy.
+The format is just packed fields. Decodable with zero memory overhead.
+
 ## Try It
 
 ```bash
