@@ -310,35 +310,67 @@ func NewVIRNode(op VIROp) rewrite.IRNode { return &virIRNode{op: op} }
 // when the store destination vreg is overwritten in the same block.
 // Returns the number of stores removed.
 func ApplyVIRDSE(vf *Func) int {
+	// Collect vregs that are live-out from each block via TermRet/TermCondRet/TermJmp.
+	// These must not be treated as dead even if no intra-block op uses them as src.
+	liveOut := make([]map[int]bool, len(vf.Blocks))
+	if mf, ok := vf.MIRFunc.(*mir2.Func); ok {
+		for bi, mb := range mf.Blocks {
+			lo := make(map[int]bool)
+			switch t := mb.Term.(type) {
+			case *mir2.TermRet:
+				for _, v := range t.Vals {
+					if v != mir2.NoReg {
+						lo[int(v)] = true
+					}
+				}
+			case *mir2.TermCondRet:
+				for _, v := range t.Vals {
+					if v != mir2.NoReg {
+						lo[int(v)] = true
+					}
+				}
+			case *mir2.TermJmp:
+				for _, v := range t.Args {
+					if v != mir2.NoReg {
+						lo[int(v)] = true
+					}
+				}
+			case *mir2.TermBrIf:
+				lo[int(t.Cond)] = true
+				for _, v := range t.ThenArgs {
+					if v != mir2.NoReg {
+						lo[int(v)] = true
+					}
+				}
+				for _, v := range t.ElseArgs {
+					if v != mir2.NoReg {
+						lo[int(v)] = true
+					}
+				}
+			}
+			if bi < len(liveOut) {
+				liveOut[bi] = lo
+			}
+		}
+	}
 	removed := 0
 	for bi := range vf.Blocks {
 		b := &vf.Blocks[bi]
-		removed += virDSEBlock(b)
+		var lo map[int]bool
+		if bi < len(liveOut) {
+			lo = liveOut[bi]
+		}
+		removed += virDSEBlock(b, lo)
 	}
 	return removed
 }
 
 // virDSEBlock eliminates dead VIROps within a single block.
+// liveOut: vregs that are live-out (used by the block terminator or successor params).
 // Conservative: only handles dead instructions whose dst is never used.
-func virDSEBlock(b *Block) int {
+func virDSEBlock(b *Block, liveOut map[int]bool) int {
 	if len(b.Ops) == 0 {
 		return 0
-	}
-
-	// Build use set: vregs that are used by any op
-	used := make(map[int]bool)
-	for _, op := range b.Ops {
-		for _, s := range op.Src {
-			if s > 0 {
-				used[s] = true
-			}
-		}
-		// AsmIns are also uses
-		for _, v := range op.AsmIns {
-			if v > 0 {
-				used[v] = true
-			}
-		}
 	}
 
 	// Remove ops whose dst is defined but never used (pure ops only)
@@ -347,8 +379,11 @@ func virDSEBlock(b *Block) int {
 	totalRemoved := 0
 	for changed {
 		changed = false
-		// Recompute used set (dst of remaining ops may have become unused)
-		used = make(map[int]bool)
+		// Build use set: vregs used by remaining ops + liveOut vregs
+		used := make(map[int]bool)
+		for v := range liveOut {
+			used[v] = true
+		}
 		for _, op := range b.Ops {
 			for _, s := range op.Src {
 				if s > 0 {

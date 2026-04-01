@@ -531,28 +531,25 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 			// Verify ABI compatibility: table assignment must match param/return constraints
 			abiOK := verifyABICompat(allOps, assignment, opts)
 			if abiOK {
-				// Table emit WIP: emitFromTable still has correctness issues
-				// (missing inter-instruction moves, param/return ABI setup).
-				// Enable with VIR_TABLE_EMIT=1 for testing. Default: log hit, use Z3.
-				if os.Getenv("VIR_TABLE_EMIT") != "" {
-					result, err := emitFromTable(f, vf, allOps, assignment, desc, opts)
-					if err == nil {
+				// Table emit: try emitFromTable directly. On failure fall through to Z3.
+				result, err := emitFromTable(f, vf, allOps, assignment, desc, opts)
+				if err == nil {
+					if opts.Verbose {
 						fmt.Fprintf(os.Stderr, "[vir] %s: table emit OK (cost=%d)\n", f.Name, cost)
-						return result, nil
 					}
-					fmt.Fprintf(os.Stderr, "[vir] %s: table hit (cost=%d) but emit failed: %v\n", f.Name, cost, err)
-				} else {
-					fmt.Fprintf(os.Stderr, "[vir] %s: table HIT (cost=%d, %dv) — emit disabled, using Z3\n",
-						f.Name, cost, len(assignment))
+					return result, nil
+				}
+				if opts.Verbose {
+					fmt.Fprintf(os.Stderr, "[vir] %s: table hit (cost=%d) emit failed: %v — trying Z3\n", f.Name, cost, err)
 				}
 			}
 		}
 	}
 
-	// Adaptive Z3 timeout: large functions get shorter timeout → faster PBQP fallback.
-	// Default 30s is too long for 8-12v functions (raymarcher fp_mul etc.).
-	// Table lookup already handles ≤6v; Z3 only needed for 7v+ misses.
-	if opts.Timeout == 0 || opts.Timeout > 10*time.Second {
+	// Adaptive Z3 timeout. Compilation time is not a constraint (CLAUDE.md §5.1).
+	// Tables cover ≤6v single-block; Z3 handles multi-block and 7v+ misses.
+	// Short timeout for very large functions (>12v) where PBQP is usually better.
+	if opts.Timeout == 0 || opts.Timeout > 30*time.Second {
 		nVregs := 0
 		vregSet := make(map[int]bool)
 		for _, b := range vf.Blocks {
@@ -566,15 +563,13 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 		nVregs = len(vregSet)
 		switch {
 		case nVregs > 12:
-			opts.Timeout = 2 * time.Second
-		case nVregs > 8:
 			opts.Timeout = 5 * time.Second
-		case nVregs > 6:
-			opts.Timeout = 10 * time.Second
+		case nVregs > 8:
+			opts.Timeout = 15 * time.Second
 		default:
-			// ≤6v: should hit enriched table, Z3 rarely needed
+			// ≤8v or multi-block ≤6v: give Z3 time to find optimal
 			if opts.Timeout == 0 {
-				opts.Timeout = 15 * time.Second
+				opts.Timeout = 30 * time.Second
 			}
 		}
 	}
@@ -2125,6 +2120,15 @@ func verifyABICompat(ops []VIROp, assignment map[int]int, opts SolverOptions) bo
 			if loc, ok := assignment[op.Dst]; ok {
 				if !op.DstHint.Has(loc) {
 					return false
+				}
+			}
+		}
+		for j, s := range op.Src {
+			if s > 0 && j < 2 && !op.SrcHint[j].IsEmpty() {
+				if loc, ok := assignment[s]; ok {
+					if !op.SrcHint[j].Has(loc) {
+						return false
+					}
 				}
 			}
 		}
