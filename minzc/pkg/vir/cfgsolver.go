@@ -474,6 +474,11 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 			vars[key] = true
 			b.WriteString(fmt.Sprintf("(declare-const %s Int)\n", name))
 			b.WriteString(fmt.Sprintf("(assert (and (>= %s 0) (< %s %d)))\n", name, name, nLocs))
+			// Exclude non-allocatable locations (F, SP) from general vreg storage.
+			desc.NonAllocatable.ForEach(func(i int) bool {
+				b.WriteString(fmt.Sprintf("(assert (not (= %s %d))) ; exclude %s\n", name, i, desc.Locs[i].Name))
+				return true
+			})
 		}
 		return name
 	}

@@ -173,12 +173,13 @@ const (
 // ── Machine Descriptor ───────────────────────────────────────────────────────
 
 type MachineDesc struct {
-	Name     string           // "z80"
-	WordSize int              // default operand width in bits (8 for Z80)
-	Locs     []Loc            // all physical locations (index = bit in LocSet)
-	LocCost  []int            // per-loc access cost in T-states
-	Patterns []Pattern        // all instruction patterns
-	Rules    []ConstraintRule // encoding constraint rules
+	Name           string           // "z80"
+	WordSize       int              // default operand width in bits (8 for Z80)
+	Locs           []Loc            // all physical locations (index = bit in LocSet)
+	LocCost        []int            // per-loc access cost in T-states
+	Patterns       []Pattern        // all instruction patterns
+	Rules          []ConstraintRule // encoding constraint rules
+	NonAllocatable LocSet           // locs excluded from general vreg storage (F, SP, etc.)
 }
 
 // LocByName returns the index of the named location, or -1.

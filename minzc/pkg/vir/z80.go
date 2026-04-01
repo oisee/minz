@@ -131,6 +131,18 @@ func init() {
 	Z80_Mem = m.LocSetByNames("_vir_mem0", "_vir_mem1", "_vir_mem2", "_vir_mem3")
 	Z80_Stack = m.LocSetByNames("stk0", "stk1", "stk2", "stk3")
 
+	// Exclude from general Z3 vreg allocation:
+	// - F (flags): not freely readable/writable as storage
+	// - SP (stack pointer): must not be reassigned
+	// - Shadow regs (B',C',...,A'): EXX/EX AF,AF' swaps the whole bank atomically;
+	//   individual shadow moves don't exist. EXX zone support is not yet wired.
+	// - TSMC spill slots: require self-modifying code setup
+	// - mem/stack spill slots: require special emit infrastructure (labels, PUSH/POP frames)
+	//   that cfgsolver doesn't produce; let PBQP handle spilling instead.
+	m.NonAllocatable = m.LocSetByNames("F", "SP").
+		Or(Z80_Shadow8).Or(Z80_ShadowA).
+		Or(Z80_TSMC).Or(Z80_Mem).Or(Z80_Stack)
+
 	m.Patterns = generateZ80Patterns(m)
 	m.Rules = generateZ80Rules(m)
 }
@@ -220,6 +232,20 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 		{Name: "trunc_hl_ixh", Op: OpMove, Width: 8, DstLocs: Z80_IXHalves,
 			SrcLocs: [2]LocSet{Z80_HL}, Template: "LD A, L\n    LD {dst}, A",
 			Cost: 12, Bytes: 3},
+		// IX→IXHalf: extract low byte via IXL (goes through A; src0 is the IX pair)
+		// LD A, IXL (DD 7D, 8T,2B) + LD {dst}, A (8T,2B) = 16T, 4B
+		{Name: "trunc_ix_ixhalf", Op: OpMove, Width: 8, DstLocs: Z80_IXHalves,
+			SrcLocs: [2]LocSet{Z80_IX}, Template: "LD A, IXL\n    LD {dst}, A",
+			Cost: 16, Bytes: 4},
+		// IY→IXHalf: extract low byte via IYL
+		// LD A, IYL (FD 7D, 8T,2B) + LD {dst}, A (8T,2B) = 16T, 4B
+		{Name: "trunc_iy_ixhalf", Op: OpMove, Width: 8, DstLocs: Z80_IXHalves,
+			SrcLocs: [2]LocSet{Z80_IY}, Template: "LD A, IYL\n    LD {dst}, A",
+			Cost: 16, Bytes: 4},
+		// IXHalf→IXHalf: both in DD/FD context, must go via A (16T, 4B)
+		{Name: "ld_ixhalf_ixhalf", Op: OpMove, Width: 8, DstLocs: Z80_IXHalves,
+			SrcLocs: [2]LocSet{Z80_IXHalves}, Template: "LD A, {src0}\n    LD {dst}, A",
+			Cost: 16, Bytes: 4},
 		// IXHalf → pair (store into low byte): fixes 'LD BC, IXH' invalid emit.
 		// findMovePatternRemap dst-remap emits with wrong dst; explicit patterns avoid this.
 		// BC/DE: C and E are GPRNoHL, direct (8T,2B)
