@@ -102,7 +102,7 @@ func init() {
 		0, 0, 0, 0,                 // BC,DE,HL,SP
 		4, 4,                       // IX,IY (DD/FD prefix)
 		0,                          // F (flags)
-		8, 8, 8, 8,                 // L2: IXH,IXL,IYH,IYL
+		1, 1, 1, 1,                 // L2: IXH,IXL,IYH,IYL (cost=1: slight preference for primary, but usable)
 		8, 8, 8, 8, 8, 8,          // L3: B',C',D',E',H',L'
 		8,                          // A' (EX AF,AF')
 		20, 20, 20, 20, 20, 20, 20, 20, // L4: tsmc0-7
@@ -362,6 +362,27 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			SrcLocs: [2]LocSet{Z80_DE, Z80_BC},
 			Template: "EX DE, HL\n    OR A\n    SBC HL, BC\n    EX DE, HL",
 			Cost: 27, Bytes: 5, Clobbers: Z80_Flags, TiedDstSrc: true},
+
+		// ── 16-bit ALU via IX/IY (additional accumulators) ──────
+		// ADD IX, rr: DD 09/19/29 — src1 = BC, DE, or IX only
+		{Name: "add_ix_rr", Op: OpAdd, Width: 16, DstLocs: Z80_IX,
+			SrcLocs: [2]LocSet{Z80_IX, Z80_BC.Or(Z80_DE).Or(Z80_IX)},
+			Template: "ADD IX, {src1}", Cost: 15, Bytes: 2,
+			Clobbers: Z80_Flags, TiedDstSrc: true},
+		// ADD IY, rr: FD 09/19/29
+		{Name: "add_iy_rr", Op: OpAdd, Width: 16, DstLocs: Z80_IY,
+			SrcLocs: [2]LocSet{Z80_IY, Z80_BC.Or(Z80_DE).Or(Z80_IY)},
+			Template: "ADD IY, {src1}", Cost: 15, Bytes: 2,
+			Clobbers: Z80_Flags, TiedDstSrc: true},
+		// INC IX/IY
+		{Name: "inc_ix", Op: OpAddImm, Width: 16, DstLocs: Z80_IX,
+			SrcLocs: [2]LocSet{Z80_IX},
+			Template: "INC IX", Cost: 10, Bytes: 2, ImmGuard: immGuard(1),
+			Flags: PatImmediate, TiedDstSrc: true},
+		{Name: "inc_iy", Op: OpAddImm, Width: 16, DstLocs: Z80_IY,
+			SrcLocs: [2]LocSet{Z80_IY},
+			Template: "INC IY", Cost: 10, Bytes: 2, ImmGuard: immGuard(1),
+			Flags: PatImmediate, TiedDstSrc: true},
 		// addImm via DE: EX DE,HL / LD BC,N / ADD HL,BC / EX DE,HL
 		{Name: "add_de_nn", Op: OpAddImm, Width: 16, DstLocs: Z80_DE,
 			SrcLocs:  [2]LocSet{Z80_DE},
