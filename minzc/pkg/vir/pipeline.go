@@ -1162,8 +1162,9 @@ func deepCopyFunc(vf *Func) *Func {
 		ops := make([]VIROp, len(b.Ops))
 		for i, op := range b.Ops {
 			ops[i] = op
-			// Reset hints to prevent stale mutations from previous runs
-			ops[i].SrcHint = [2]LocSet{}
+			// NOTE: SrcHint is preserved — encoding hints (tryXorImm16, tryStrengthReduceMul16)
+			// must survive deepCopy. Only DstHint from call-arg setup should be reset
+			// if needed, but those are set after deepCopy, not before.
 		}
 		params := make([]int, len(b.Params))
 		copy(params, b.Params)

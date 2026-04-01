@@ -28,6 +28,109 @@ type CFGSolution struct {
 	ParamLocs map[int]int // vreg → physical register index (from Z3 model)
 }
 
+// parallelMove represents a pending register-to-register move before ordering.
+type parallelMove struct {
+	vreg    int
+	prevLoc int // source physical register
+	currLoc int // destination physical register
+	movePat *Pattern
+	remSrc  int // remapped source (for pair→half patterns)
+}
+
+// locsOverlap returns true if writing to loc w would clobber a read from loc r.
+// Handles 16-bit pair ↔ 8-bit half aliasing (HL↔H/L, DE↔D/E, BC↔B/C).
+func locsOverlap(desc *MachineDesc, w, r int) bool {
+	if w == r {
+		return true
+	}
+	if w < 0 || r < 0 || w >= len(desc.Locs) || r >= len(desc.Locs) {
+		return false
+	}
+	wName := desc.Locs[w].Name
+	rName := desc.Locs[r].Name
+	// Check if w (pair) subsumes r (half)
+	switch wName {
+	case "HL":
+		return rName == "H" || rName == "L"
+	case "DE":
+		return rName == "D" || rName == "E"
+	case "BC":
+		return rName == "B" || rName == "C"
+	}
+	// Check if r (pair) subsumes w (half)
+	switch rName {
+	case "HL":
+		return wName == "H" || wName == "L"
+	case "DE":
+		return wName == "D" || wName == "E"
+	case "BC":
+		return wName == "B" || wName == "C"
+	}
+	return false
+}
+
+// sortParallelMoves orders pending moves so reads-from-R happen before writes-to-R.
+// This prevents parallel-move ordering bugs where move A clobbers the source of move B.
+// Uses Kahn's topological sort. Cycles (swaps) are left in original order (rare on Z80).
+func sortParallelMoves(desc *MachineDesc, moves []parallelMove) []parallelMove {
+	n := len(moves)
+	if n <= 1 {
+		return moves
+	}
+	// deps[j] = indices i that must come AFTER j (j reads from what i writes)
+	deps := make([][]int, n)
+	inDegree := make([]int, n)
+	for i := 0; i < n; i++ {
+		for j := 0; j < n; j++ {
+			if i == j {
+				continue
+			}
+			// If move i writes to a loc that move j reads from → j before i
+			if locsOverlap(desc, moves[i].currLoc, moves[j].prevLoc) {
+				deps[j] = append(deps[j], i)
+				inDegree[i]++
+			}
+		}
+	}
+	// Kahn's algorithm
+	queue := make([]int, 0, n)
+	for i := 0; i < n; i++ {
+		if inDegree[i] == 0 {
+			queue = append(queue, i)
+		}
+	}
+	result := make([]parallelMove, 0, n)
+	for len(queue) > 0 {
+		curr := queue[0]
+		queue = queue[1:]
+		result = append(result, moves[curr])
+		for _, next := range deps[curr] {
+			inDegree[next]--
+			if inDegree[next] == 0 {
+				queue = append(queue, next)
+			}
+		}
+	}
+	// If cycle detected, append remaining in original order
+	if len(result) < n {
+		emitted := make(map[int]bool)
+		for _, r := range result {
+			for i, m := range moves {
+				if m.vreg == r.vreg && m.prevLoc == r.prevLoc && m.currLoc == r.currLoc {
+					emitted[i] = true
+					break
+				}
+			}
+		}
+		for i, m := range moves {
+			if !emitted[i] {
+				result = append(result, m)
+			}
+		}
+	}
+	return result
+}
+
 // SolveCFG solves ALL blocks of a function simultaneously with CFG edge constraints.
 func SolveCFG(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions) (map[string][]PIROp, error) {
 	sol, err := SolveCFGFull(vf, f, desc, opts)
@@ -627,12 +730,15 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 	}
 	var edgeMoves []edgeMove
 
-	// Check which blocks CONTAIN a CALL (clobbers GPR).
+	// Check which blocks CONTAIN a CALL (clobbers ALL GPRs).
 	// Any vreg live across an edge into such a block must be call-safe.
+	// NOTE: OpAsmBlock with specific clobbers is NOT treated as a CALL here —
+	// its clobbers are handled at instruction-level. Only genuine OpCall ops
+	// (which clobber all GPRs per calling convention) trigger this constraint.
 	blockContainsCall := make(map[int]bool)
 	for bi, bp := range blocks {
 		for _, op := range bp.ops {
-			if (op.Op == OpCall || op.Op == OpAsmBlock) && !op.Clobbers.IsEmpty() {
+			if op.Op == OpCall && !op.Clobbers.IsEmpty() {
 				blockContainsCall[bi] = true
 				break
 			}
@@ -826,6 +932,9 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 
 			// Insert inter-instruction moves for ALL live vregs that change location.
 			// Not just src operands — also block params and other live-through vregs.
+			// Moves are collected first and sorted by dependency (reads-before-writes)
+			// to avoid parallel-move ordering bugs (e.g., DE→HL clobbering HL before
+			// HL→IXH has saved the value).
 			if i > 0 {
 				moveVregs := make([]int, 0)
 				// Start with src operands (original behavior)
@@ -843,6 +952,7 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 					}
 					sort.Ints(moveVregs)
 				}
+				var pendingMoves []parallelMove
 				for _, vreg := range moveVregs {
 					if vreg <= 0 {
 						continue
@@ -859,9 +969,13 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 							if prevLoc != currLoc {
 								remSrc, movePat := findMovePatternRemap(desc, prevLoc, currLoc)
 								if movePat != nil {
-									pirOps = append(pirOps, PIROp{
-										Pat: movePat, DstPhys: currLoc,
-										SrcPhys: [2]int{remSrc, -1},
+									if os.Getenv("VIR_DEBUG_EDGES") != "" {
+										fmt.Fprintf(os.Stderr, "[INTRA-MOVE] v%d: %s(%d)→%s(%d) at b%d i%d\n",
+											vreg, desc.Locs[prevLoc].Name, prevLoc, desc.Locs[currLoc].Name, currLoc, bi, i)
+									}
+									pendingMoves = append(pendingMoves, parallelMove{
+										vreg: vreg, prevLoc: prevLoc, currLoc: currLoc,
+										movePat: movePat, remSrc: remSrc,
 									})
 								} else {
 									srcName, dstName := "?", "?"
@@ -880,6 +994,14 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 							break
 						}
 					}
+				}
+				// Sort pending moves: reads from R must come before writes to R
+				pendingMoves = sortParallelMoves(desc, pendingMoves)
+				for _, pm := range pendingMoves {
+					pirOps = append(pirOps, PIROp{
+						Pat: pm.movePat, DstPhys: pm.currLoc,
+						SrcPhys: [2]int{pm.remSrc, -1},
+					})
 				}
 			}
 
@@ -959,7 +1081,7 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 		}
 		sort.Ints(edgeVRegs)
 
-		var edgeMoveOps []PIROp
+		var edgePending []parallelMove
 		for _, vreg := range edgeVRegs {
 			fromKey := fmt.Sprintf("lv%d_b%d_i%d", vreg, edge.fromBlock, fromLastIdx)
 			toKey := fmt.Sprintf("lv%d_b%d_i%d", vreg, edge.toBlock, 0)
@@ -980,10 +1102,13 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 			if hasFrom && hasTo && fromLoc != toLoc {
 				remappedSrc, movePat := findMovePatternRemap(desc, fromLoc, toLoc)
 				if movePat != nil {
-					edgeMoveOps = append(edgeMoveOps, PIROp{
-						Pat: movePat, DstPhys: toLoc,
-						SrcPhys:  [2]int{remappedSrc, -1},
-						Comment: fmt.Sprintf("edge move v%d: %s→%s", vreg, desc.Locs[fromLoc].Name, desc.Locs[toLoc].Name),
+					if os.Getenv("VIR_DEBUG_EDGES") != "" {
+						fmt.Fprintf(os.Stderr, "[EDGE-MOVE] v%d: %s(%d)→%s(%d) at b%d→b%d\n",
+							vreg, desc.Locs[fromLoc].Name, fromLoc, desc.Locs[toLoc].Name, toLoc, edge.fromBlock, edge.toBlock)
+					}
+					edgePending = append(edgePending, parallelMove{
+						vreg: vreg, prevLoc: fromLoc, currLoc: toLoc,
+						movePat: movePat, remSrc: remappedSrc,
 					})
 				} else {
 					fmt.Fprintf(os.Stderr, "[CFG-solver] WARNING: no edge move pattern for v%d: %s(%d) → %s(%d) at edge b%d→b%d\n",
@@ -992,7 +1117,17 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 			}
 		}
 
-		if len(edgeMoveOps) > 0 {
+		if len(edgePending) > 0 {
+			// Sort edge moves: reads-before-writes to avoid parallel-move ordering bugs
+			edgePending = sortParallelMoves(desc, edgePending)
+			edgeMoveOps := make([]PIROp, len(edgePending))
+			for i, pm := range edgePending {
+				edgeMoveOps[i] = PIROp{
+					Pat: pm.movePat, DstPhys: pm.currLoc,
+					SrcPhys: [2]int{pm.remSrc, -1},
+					Comment: fmt.Sprintf("edge move v%d: %s→%s", pm.vreg, desc.Locs[pm.prevLoc].Name, desc.Locs[pm.currLoc].Name),
+				}
+			}
 			// Prepend edge moves to destination block's PIR
 			existing := result[toBP.label]
 			result[toBP.label] = append(edgeMoveOps, existing...)
