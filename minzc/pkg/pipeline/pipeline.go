@@ -128,7 +128,7 @@ type Options struct {
 // DefaultOptions returns the default pipeline options.
 // VIR backend available via UseVIR: true. Runtime calls inlined.
 // One new assembly error (sap_mara_demo) — needs investigation before default.
-func DefaultOptions() Options { return Options{ContractOpt: true, UseVIR: true} }
+func DefaultOptions() Options { return Options{ContractOpt: true, UseVIR: true, UseVIRDSE: true} }
 
 // CompileHIRSteps runs the full HIR→MIR2→Z80 pipeline and returns all intermediate outputs.
 func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {

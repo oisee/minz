@@ -223,7 +223,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&useZ3, "z3", false, "use Z3 SMT solver for optimal register allocation (slower, provably optimal)")
 	rootCmd.Flags().BoolVar(&optSize, "Osize", false, "optimize for code size: Grace reroll (repeated CALLs → DJNZ loop + data table)")
 	rootCmd.Flags().BoolVar(&useGrace, "grace", false, "run all Grace MIR2 passes before VIR lowering (DSE, CondRetSink, BlockMerge, etc.)")
-	rootCmd.Flags().BoolVar(&useVIRDSE, "vir-dse", false, "post-lowering dead VIROp elimination before Z3 solver (saves ~88 SMT vars per dead op)")
+	rootCmd.Flags().BoolVar(&useVIRDSE, "vir-dse", true, "post-lowering dead VIROp elimination before Z3 solver (saves ~88 SMT vars per dead op)")
 	rootCmd.Flags().StringVar(&assertMode, "asserts", "", "assert backend: mir2, z80, wasm, llvm, all (default), none")
 	rootCmd.Flags().StringVar(&assertForce, "asserts-force", "", "force ALL asserts to run on this backend (mir2, z80, wasm, or llvm), ignoring 'via' annotations")
 	rootCmd.Flags().BoolVar(&emitSLD, "emit-sld", false, "emit SLD file for DeZog source-level debugging")
