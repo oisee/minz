@@ -239,9 +239,11 @@ func (t *RegAllocTable) loadDefaults() {
 		t.LoadEnriched(p)
 	}
 
-	// Try ENRT binary enriched tables. Only load 4v (4MB) by default.
-	// 5v (383MB) loaded via VIR_ENRICHED_5V or VIR_ENRICHED_5V_AUTO=1; 6v via VIR_ENRICHED_6V.
+	// Auto-load enriched binary tables. Search order: relative paths first (portable),
+	// then absolute paths for known dev-machine layouts.
 	for _, p := range []string{
+		"../data/enriched_4v.z80t",
+		"data/enriched_4v.z80t",
 		os.ExpandEnv("$HOME/dev/minz-vir/data/enriched_4v.z80t"),
 		os.ExpandEnv("$HOME/dev/z80-optimizer/data/enriched_4v.z80t"),
 	} {
@@ -255,37 +257,26 @@ func (t *RegAllocTable) loadDefaults() {
 			total, feasible, p)
 		break
 	}
-	// Load 5v: explicit path via VIR_ENRICHED_5V, or auto-detect merged_ix_5v.bin with VIR_ENRICHED_5V_AUTO=1.
-	// merged_ix_5v.bin is Z80T v2 (includes IXH/IXL locs, +12% coverage vs enriched_5v).
-	if p5 := os.Getenv("VIR_ENRICHED_5V"); p5 != "" {
-		if bt, err := LoadEnrichedBinary(p5); err == nil {
-			total, feasible, _ := bt.Stats()
-			t.binaryTables = append(t.binaryTables, bt)
-			fmt.Fprintf(os.Stderr, "[regalloc] loaded %d enriched binary entries (%d feasible) from %s\n",
-				total, feasible, p5)
+	// Auto-load 5v table (merged_ix_5v.bin: Z80T v2, includes IXH/IXL locs, +12% coverage).
+	for _, p := range []string{
+		"../data/merged_ix_5v.bin",
+		"data/merged_ix_5v.bin",
+		os.ExpandEnv("$HOME/dev/minz-vir/data/merged_ix_5v.bin"),
+		os.ExpandEnv("$HOME/dev/z80-optimizer/data/merged_ix_5v.bin"),
+		"../data/enriched_5v.z80t",
+		"data/enriched_5v.z80t",
+		os.ExpandEnv("$HOME/dev/minz-vir/data/enriched_5v.z80t"),
+		os.ExpandEnv("$HOME/dev/z80-optimizer/data/enriched_5v.z80t"),
+	} {
+		bt, err := LoadEnrichedBinary(p)
+		if err != nil {
+			continue
 		}
-	} else if os.Getenv("VIR_ENRICHED_5V_AUTO") == "1" {
-		for _, p := range []string{
-			os.ExpandEnv("$HOME/dev/minz-vir/data/merged_ix_5v.bin"),
-			os.ExpandEnv("$HOME/dev/z80-optimizer/data/merged_ix_5v.bin"),
-		} {
-			if bt, err := LoadEnrichedBinary(p); err == nil {
-				total, feasible, _ := bt.Stats()
-				t.binaryTables = append(t.binaryTables, bt)
-				fmt.Fprintf(os.Stderr, "[regalloc] loaded %d enriched binary entries (%d feasible) from %s\n",
-					total, feasible, p)
-				break
-			}
-		}
-	}
-	// Optionally load 6v via env var (large file, explicit opt-in).
-	if p6 := os.Getenv("VIR_ENRICHED_6V"); p6 != "" {
-		if bt, err := LoadEnrichedBinary(p6); err == nil {
-			total, feasible, _ := bt.Stats()
-			t.binaryTables = append(t.binaryTables, bt)
-			fmt.Fprintf(os.Stderr, "[regalloc] loaded %d enriched binary entries (%d feasible) from %s\n",
-				total, feasible, p6)
-		}
+		total, feasible, _ := bt.Stats()
+		t.binaryTables = append(t.binaryTables, bt)
+		fmt.Fprintf(os.Stderr, "[regalloc] loaded %d enriched binary entries (%d feasible) from %s\n",
+			total, feasible, p)
+		break
 	}
 }
 

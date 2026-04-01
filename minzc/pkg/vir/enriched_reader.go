@@ -77,30 +77,32 @@ func LoadEnrichedBinary(path string) (*EnrichedBinaryTable, error) {
 		if err := binary.Read(f, binary.LittleEndian, &nEntries); err != nil {
 			return nil, fmt.Errorf("Z80T v2 read n_entries: %w", err)
 		}
+		// Read remaining file data in one shot — avoids 60M individual ReadFull calls.
+		data, err := io.ReadAll(f)
+		if err != nil {
+			return nil, fmt.Errorf("Z80T v2 read body: %w", err)
+		}
+		// Parse records from in-memory slice. Arena for assignments avoids per-entry allocs.
+		mv := int(maxVregs)
+		assignArena := make([]byte, 0, int(nEntries)*mv*4/5) // ~80% feasible, avg nv≈mv
 		entries := make([]EnrichedEntry, 0, nEntries)
-		buf := make([]byte, 1)
-		for {
-			_, err := io.ReadFull(f, buf)
-			if err == io.EOF {
-				break
-			}
-			if err != nil {
-				return nil, fmt.Errorf("Z80T v2 read record %d: %w", len(entries), err)
-			}
-			marker := buf[0]
+		pos := 0
+		for pos < len(data) {
+			marker := data[pos]
+			pos++
 			if marker == 0xFF {
 				entries = append(entries, EnrichedEntry{Cost: -1})
 			} else {
 				nv := int(marker)
-				var cost uint16
-				if err := binary.Read(f, binary.LittleEndian, &cost); err != nil {
-					return nil, fmt.Errorf("Z80T v2 read cost at record %d: %w", len(entries), err)
+				if pos+2+nv > len(data) {
+					return nil, fmt.Errorf("Z80T v2 truncated at record %d", len(entries))
 				}
-				assign := make([]byte, nv)
-				if _, err := io.ReadFull(f, assign); err != nil {
-					return nil, fmt.Errorf("Z80T v2 read assignment at record %d: %w", len(entries), err)
-				}
-				entries = append(entries, EnrichedEntry{Cost: int(cost), Assignment: assign})
+				cost := int(data[pos]) | int(data[pos+1])<<8
+				pos += 2
+				base := len(assignArena)
+				assignArena = append(assignArena, data[pos:pos+nv]...)
+				pos += nv
+				entries = append(entries, EnrichedEntry{Cost: cost, Assignment: assignArena[base : base+nv]})
 			}
 		}
 		return &EnrichedBinaryTable{Entries: entries}, nil
