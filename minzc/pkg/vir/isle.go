@@ -37,6 +37,12 @@ var ISLECombineRules = `
 (rule 14 (mul (const 3) ?x)   (add ?x (add ?x ?x)))
 (rule 14 (mul ?x (const 5))   (add ?x (shl ?x (const 2))))
 (rule 14 (mul (const 5) ?x)   (add ?x (shl ?x (const 2))))
+(rule 14 (mul ?x (const 6))   (add (add ?x ?x) (shl ?x (const 2))))
+(rule 14 (mul (const 6) ?x)   (add (add ?x ?x) (shl ?x (const 2))))
+(rule 14 (mul ?x (const 10))  (add (add ?x ?x) (shl ?x (const 3))))
+(rule 14 (mul (const 10) ?x)  (add (add ?x ?x) (shl ?x (const 3))))
+(rule 14 (mul ?x (const 12))  (add (shl ?x (const 2)) (shl ?x (const 3))))
+(rule 14 (mul (const 12) ?x)  (add (shl ?x (const 2)) (shl ?x (const 3))))
 
 ;; Trivial
 (rule 10 (mul ?x (const 1))   ?x)
@@ -424,6 +430,20 @@ func eliminateIdentityOps(ops []VIROp) []VIROp {
 		}
 	}
 
+	// Compute max vreg for fresh intermediate allocation (mul strength reduction)
+	maxVreg := 0
+	for _, op := range ops {
+		if op.Dst > maxVreg {
+			maxVreg = op.Dst
+		}
+		for _, s := range op.Src {
+			if s > maxVreg {
+				maxVreg = s
+			}
+		}
+	}
+	nextVreg := maxVreg + 1
+
 	var result []VIROp
 	skip := make(map[int]bool)
 
@@ -502,28 +522,89 @@ func eliminateIdentityOps(ops []VIROp) []VIROp {
 			}
 
 		case OpMul:
-			// x * 0 → 0, x * 1 → x, x * 2 → x + x
+			// x * K strength reduction for common constants.
+			// Handles both src[1]=const (normal) and src[0]=const (commuted).
+			var mulK int64
+			var mulSrc int
 			if op.Src[1] > 0 {
 				if v, ok := consts[op.Src[1]]; ok {
-					switch v {
-					case 0:
-						result = append(result, VIROp{
-							Op: OpConst, Dst: op.Dst, Imm: 0, Width: op.Width,
-						})
-						continue
-					case 1:
-						result = append(result, VIROp{
-							Op: OpMove, Dst: op.Dst, Src: [2]int{op.Src[0], -1},
-							Width: op.Width,
-						})
-						continue
-					case 2:
-						result = append(result, VIROp{
-							Op: OpAdd, Dst: op.Dst, Src: [2]int{op.Src[0], op.Src[0]},
-							Width: op.Width,
-						})
-						continue
-					}
+					mulK, mulSrc = v, op.Src[0]
+				}
+			}
+			if mulK == 0 && op.Src[0] > 0 {
+				if v, ok := consts[op.Src[0]]; ok {
+					mulK, mulSrc = v, op.Src[1]
+				}
+			}
+			if mulK != 0 {
+				switch mulK {
+				case 0:
+					result = append(result, VIROp{Op: OpConst, Dst: op.Dst, Imm: 0, Width: op.Width})
+					continue
+				case 1:
+					result = append(result, VIROp{Op: OpMove, Dst: op.Dst, Src: [2]int{mulSrc, -1}, Width: op.Width})
+					continue
+				case 2:
+					result = append(result, VIROp{Op: OpAdd, Dst: op.Dst, Src: [2]int{mulSrc, mulSrc}, Width: op.Width})
+					continue
+				case 3:
+					// x*3 = x + (x+x)
+					tmp := nextVreg; nextVreg++
+					result = append(result, VIROp{Op: OpAdd, Dst: tmp, Src: [2]int{mulSrc, mulSrc}, Width: op.Width})
+					result = append(result, VIROp{Op: OpAdd, Dst: op.Dst, Src: [2]int{mulSrc, tmp}, Width: op.Width})
+					continue
+				case 4:
+					// x*4 = x << 2
+					tmp := nextVreg; nextVreg++
+					result = append(result, VIROp{Op: OpConst, Dst: tmp, Imm: 2, Width: op.Width})
+					result = append(result, VIROp{Op: OpShl, Dst: op.Dst, Src: [2]int{mulSrc, tmp}, Width: op.Width})
+					continue
+				case 5:
+					// x*5 = x + (x<<2)
+					tmp1 := nextVreg; nextVreg++
+					tmp2 := nextVreg; nextVreg++
+					result = append(result, VIROp{Op: OpConst, Dst: tmp1, Imm: 2, Width: op.Width})
+					result = append(result, VIROp{Op: OpShl, Dst: tmp2, Src: [2]int{mulSrc, tmp1}, Width: op.Width})
+					result = append(result, VIROp{Op: OpAdd, Dst: op.Dst, Src: [2]int{mulSrc, tmp2}, Width: op.Width})
+					continue
+				case 6:
+					// x*6 = (x+x) + (x<<2)
+					tmp1 := nextVreg; nextVreg++ // x*2
+					tmp2 := nextVreg; nextVreg++ // const 2
+					tmp3 := nextVreg; nextVreg++ // x*4
+					result = append(result, VIROp{Op: OpAdd, Dst: tmp1, Src: [2]int{mulSrc, mulSrc}, Width: op.Width})
+					result = append(result, VIROp{Op: OpConst, Dst: tmp2, Imm: 2, Width: op.Width})
+					result = append(result, VIROp{Op: OpShl, Dst: tmp3, Src: [2]int{mulSrc, tmp2}, Width: op.Width})
+					result = append(result, VIROp{Op: OpAdd, Dst: op.Dst, Src: [2]int{tmp1, tmp3}, Width: op.Width})
+					continue
+				case 8:
+					// x*8 = x << 3
+					tmp := nextVreg; nextVreg++
+					result = append(result, VIROp{Op: OpConst, Dst: tmp, Imm: 3, Width: op.Width})
+					result = append(result, VIROp{Op: OpShl, Dst: op.Dst, Src: [2]int{mulSrc, tmp}, Width: op.Width})
+					continue
+				case 10:
+					// x*10 = (x+x) + (x<<3)
+					tmp1 := nextVreg; nextVreg++ // x*2
+					tmp2 := nextVreg; nextVreg++ // const 3
+					tmp3 := nextVreg; nextVreg++ // x*8
+					result = append(result, VIROp{Op: OpAdd, Dst: tmp1, Src: [2]int{mulSrc, mulSrc}, Width: op.Width})
+					result = append(result, VIROp{Op: OpConst, Dst: tmp2, Imm: 3, Width: op.Width})
+					result = append(result, VIROp{Op: OpShl, Dst: tmp3, Src: [2]int{mulSrc, tmp2}, Width: op.Width})
+					result = append(result, VIROp{Op: OpAdd, Dst: op.Dst, Src: [2]int{tmp1, tmp3}, Width: op.Width})
+					continue
+				case 12:
+					// x*12 = (x<<2) + (x<<3)
+					tmp1 := nextVreg; nextVreg++ // const 2
+					tmp2 := nextVreg; nextVreg++ // x*4
+					tmp3 := nextVreg; nextVreg++ // const 3
+					tmp4 := nextVreg; nextVreg++ // x*8
+					result = append(result, VIROp{Op: OpConst, Dst: tmp1, Imm: 2, Width: op.Width})
+					result = append(result, VIROp{Op: OpShl, Dst: tmp2, Src: [2]int{mulSrc, tmp1}, Width: op.Width})
+					result = append(result, VIROp{Op: OpConst, Dst: tmp3, Imm: 3, Width: op.Width})
+					result = append(result, VIROp{Op: OpShl, Dst: tmp4, Src: [2]int{mulSrc, tmp3}, Width: op.Width})
+					result = append(result, VIROp{Op: OpAdd, Dst: op.Dst, Src: [2]int{tmp2, tmp4}, Width: op.Width})
+					continue
 				}
 			}
 

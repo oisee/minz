@@ -39,6 +39,18 @@ func LowerBlock(b *mir2.Block, desc *MachineDesc, mod *mir2.Module, fn ...*mir2.
 				inst.Imm = k
 			}
 		}
+		// Propagate constant into inst.Imm for mul — enables:
+		//   8-bit:  GPU table lookup in tryConstMul (currently NEVER fires without this!)
+		//   16-bit: shift+add strength reduction in tryStrengthReduceMul16
+		// Convention: Src[0]=variable, Src[1]=constant (swap if needed).
+		if inst.Op == mir2.OpMul && inst.Imm == 0 {
+			if k, ok := mirConsts[inst.Src[1]]; ok && k > 0 {
+				inst.Imm = k
+			} else if k, ok := mirConsts[inst.Src[0]]; ok && k > 0 {
+				inst.Imm = k
+				inst.Src[0], inst.Src[1] = inst.Src[1], inst.Src[0]
+			}
+		}
 
 		translated, err := translateInst(inst, desc, mod)
 		if err != nil {
@@ -97,7 +109,7 @@ func EliminateDeadConsts(ops []VIROp) []VIROp {
 
 // LowerFunc converts an entire MIR2 function into VIR blocks.
 func LowerFunc(f *mir2.Func, desc *MachineDesc, mod *mir2.Module) (*Func, error) {
-	vf := &Func{Name: f.Name}
+	vf := &Func{Name: f.Name, MIRFunc: f}
 
 	for _, b := range f.Blocks {
 		ops, err := LowerBlock(b, desc, mod, f)
@@ -270,13 +282,17 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 				}, nil
 			}
 			// u16: emit inline asm — SRL H; RR L chain (no u16 SHR pattern)
+			hlSet := desc.LocSetByNames("HL")
 			var asmLines []string
 			for i := 0; i < shift; i++ {
-				asmLines = append(asmLines, "    SRL H", "    RR L")
+				asmLines = append(asmLines, "SRL H", "RR L")
 			}
 			return []VIROp{{
 				Op: OpAsmBlock, Dst: int(inst.Dst), Src: [2]int{int(inst.Src[0]), -1},
-				Sym: fmt.Sprintf("; div%d (u16, strength reduced)\n%s", inst.Imm, joinLines(asmLines)),
+				AsmTemplate: joinLines(asmLines),
+				Clobbers:    desc.LocSetByNames("H", "L", "HL", "F"),
+				DstHint:     hlSet,
+				SrcHint:     [2]LocSet{hlSet},
 				Width: 16,
 			}}, nil
 		}
@@ -387,19 +403,114 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 // translateMul converts OpMul to runtime call with proper arg setup.
 // For 8-bit constant multipliers, checks the GPU-precomputed multiply table
 // and emits inline shift/add sequences instead of CALL __mul8 (~80T).
+// For 16-bit constant multipliers, emits shift+add inline asm (saves ~150T vs __mul16).
 // __mul8: A × B → A.  __mul16: HL × DE → HL.
 func translateMul(inst *mir2.Inst, desc *MachineDesc) ([]VIROp, error) {
 	w := mirWidth(inst, desc)
 
-	// Try constant multiply optimization (8-bit only)
+	// Try constant multiply optimization (8-bit only, GPU table)
 	if w <= 8 {
-		// Check if either source is a known constant
 		if ops := tryConstMul(inst, desc, w); ops != nil {
 			return ops, nil
 		}
 	}
 
+	// 16-bit: strength reduce small constant multipliers (saves ~150T vs __mul16)
+	if w > 8 && inst.Imm != 0 {
+		if ops := tryStrengthReduceMul16(inst, desc); ops != nil {
+			return ops, nil
+		}
+	}
+
 	return translateRuntimeCall(inst, desc, w, true)
+}
+
+// tryStrengthReduceMul16 emits inline asm for 16-bit constant multiplication.
+// Handles k=2..12 (common array indexing) and powers of 2 up to 256.
+// All sequences assume input/output in HL. Returns nil if not applicable.
+//
+// T-state costs vs __mul16 (~200T):
+//
+//	×2:  11T (ADD HL,HL)
+//	×3:  30T (copy+double+add)
+//	×4:  22T (double twice)
+//	×5:  41T
+//	×6:  41T
+//	×8:  33T (double thrice)
+//	×10: 52T
+//	×12: 52T
+//	×16: 44T, ×32: 55T, ×64: 66T (powers of 2 via ADD HL,HL chain)
+func tryStrengthReduceMul16(inst *mir2.Inst, desc *MachineDesc) []VIROp {
+	k := inst.Imm
+	srcVreg := int(inst.Src[0])
+	dstVreg := int(inst.Dst)
+
+	hlSet := desc.LocSetByNames("HL")
+	// Clobbers for ops that only use HL (no scratch)
+	clobHL := desc.LocSetByNames("H", "L", "HL", "F")
+	// Clobbers for ops that use BC as scratch
+	clobHLBC := desc.LocSetByNames("B", "C", "BC", "H", "L", "HL", "F")
+	// Clobbers for ops that use DE as scratch
+	clobHLDE := desc.LocSetByNames("D", "E", "DE", "H", "L", "HL", "F")
+
+	var asm string
+	var clobbers LocSet
+
+	switch k {
+	case 2:
+		asm = "ADD HL, HL"
+		clobbers = clobHL
+	case 3:
+		// BC=x, HL=x*2, HL=x*2+x=x*3
+		asm = "LD B, H\n    LD C, L\n    ADD HL, HL\n    ADD HL, BC"
+		clobbers = clobHLBC
+	case 4:
+		asm = "ADD HL, HL\n    ADD HL, HL"
+		clobbers = clobHL
+	case 5:
+		// BC=x, HL=x*2, HL=x*4, HL=x*4+x=x*5
+		asm = "LD B, H\n    LD C, L\n    ADD HL, HL\n    ADD HL, HL\n    ADD HL, BC"
+		clobbers = clobHLBC
+	case 6:
+		// HL=x*2, DE=x*2, HL=x*4, HL=x*4+x*2=x*6
+		asm = "ADD HL, HL\n    LD D, H\n    LD E, L\n    ADD HL, HL\n    ADD HL, DE"
+		clobbers = clobHLDE
+	case 8:
+		asm = "ADD HL, HL\n    ADD HL, HL\n    ADD HL, HL"
+		clobbers = clobHL
+	case 10:
+		// HL=x*2, BC=x*2, HL=x*4, HL=x*8, HL=x*8+x*2=x*10
+		asm = "ADD HL, HL\n    LD B, H\n    LD C, L\n    ADD HL, HL\n    ADD HL, HL\n    ADD HL, BC"
+		clobbers = clobHLBC
+	case 12:
+		// HL=x*2, HL=x*4, BC=x*4, HL=x*8, HL=x*8+x*4=x*12
+		asm = "ADD HL, HL\n    ADD HL, HL\n    LD B, H\n    LD C, L\n    ADD HL, HL\n    ADD HL, BC"
+		clobbers = clobHLBC
+	default:
+		// Powers of 2 via repeated ADD HL, HL (handles ×16, ×32, ×64, ×128, ×256)
+		if isPow2(k) && k >= 16 && k <= 256 {
+			shift := log2(k)
+			var lines []string
+			for i := 0; i < shift; i++ {
+				lines = append(lines, "ADD HL, HL")
+			}
+			asm = joinLines(lines)
+			clobbers = clobHL
+		} else {
+			return nil
+		}
+	}
+
+	return []VIROp{{
+		Op:          OpAsmBlock,
+		Dst:         dstVreg,
+		Src:         [2]int{srcVreg, -1},
+		Width:       16,
+		AsmTemplate: asm,
+		Clobbers:    clobbers,
+		DstHint:     hlSet,
+		SrcHint:     [2]LocSet{hlSet},
+	}}
 }
 
 // translateRuntimeCall emits arg setup moves + CALL for runtime routines.

@@ -506,6 +506,7 @@ type Block struct {
 // ── Func ─────────────────────────────────────────────────────────────────────
 
 type Func struct {
-	Name   string
-	Blocks []Block
+	Name    string
+	Blocks  []Block
+	MIRFunc interface{} // *mir2.Func back-reference for CFG queries (avoid import cycle: use interface{})
 }

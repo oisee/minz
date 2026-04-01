@@ -445,7 +445,14 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 	desc := Z80
 
 	// Pre-lower MIR2 optimizations
-	mir2.FuseAbsDiff(f) // SUB+CMP → SUB with carry reuse (4 insts vs 11)
+	if opts.UseGrace {
+		// Run all Grace-declared passes: DSE, DeadBlockArgElim, CondRetSink,
+		// SplitJoinRet, FuseAbsDiff, EmptyBlockElim, BlockMerge, ...
+		// Each eliminated op/block saves ~88 Z3 variables (4 per vreg × 22 locs).
+		mir2.RunGracePasses(f, opts.GraceStats)
+	} else {
+		mir2.FuseAbsDiff(f) // SUB+CMP → SUB with carry reuse (4 insts vs 11)
+	}
 
 	// Lower MIR2 → VIR
 	vf, err := LowerFunc(f, desc, m)

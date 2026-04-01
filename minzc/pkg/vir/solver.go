@@ -58,6 +58,16 @@ type SolverOptions struct {
 	// When set and VIR fails, CodegenModule uses mir2.Z80Codegen for
 	// the failed function. Safety net — always correct, SDCC-quality.
 	PBQPAlloc *mir2.AllocResult
+
+	// UseGrace enables MIR2-level Grace optimization passes before VIR lowering.
+	// Runs: DSE, DeadBlockArgElim, CondRetSink, SplitJoinRet, FuseAbsDiff, etc.
+	// Default: false (opt-in until validated on full corpus).
+	// Each eliminated MIR2 op/block saves ~88 Z3 variables (4 per vreg × 22 locs).
+	UseGrace bool
+
+	// GraceStats accumulates per-rule Grace statistics across the module.
+	// Caller provides; CodegenModule writes into it.
+	GraceStats *mir2.GraceStats
 }
 
 // Solve converts a basic block of VIROps into PIROps using Z3 SMT solver.
