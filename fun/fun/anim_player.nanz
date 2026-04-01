@@ -1,0 +1,194 @@
+// anim_player.nanz — Animated LFSR-16 AND-cascade player for ZX Spectrum
+//
+// Binary format at anim_addr (0xCC00):
+//   u8[4]  "ANMZ"
+//   u16 LE n_frames
+//   u8     fps       (1-50)
+//   u8     _pad
+//   × n_frames × 4 bytes: [u16 seed_count, u8 frame_type(0=kf,1=dt), u8 _pad]
+//   × total_seeds  × 7 bytes: [u16 seed, u8 ox,oy,blk,and_n,warmup]
+//
+// HOW TO BUILD:
+//   python3 gen_anim_bin.py input.json anim_data.bin
+//   mz --vir anim_player.nanz -o build/anim_player.a80
+//   mza build/anim_player.a80 -o build/anim_player.bin
+//   mze --target spectrum build/anim_player.bin
+
+global anim_addr: u16 = 0xCC00
+global buf_addr:  u16 = 0xC000
+
+// ── LFSR-16 ────────────────────────────────────────────────────
+fun lfsr16(state: u16) -> u16 {
+    let lsb: u8 = state % 2
+    let next: u16 = state / 2
+    if lsb == 1 {
+        return next xor 0xB400
+    }
+    return next
+}
+
+// ── makeBuf ────────────────────────────────────────────────────
+fun make_buf(seed: u16, warmup: u8, and_n: u8) -> void {
+    var s: u16 = seed
+    if s == 0 { s = 1 }
+
+    var w: u8 = 0
+    while w < warmup { s = lfsr16(s)  w = w + 1 }
+
+    var i: u8 = 0
+    var j: u8 = 0
+    while i < 3 {
+        while j < 255 {
+            var acc: u8 = 1
+            var k: u8 = 0
+            while k < and_n {
+                s = lfsr16(s)
+                acc = acc & (s % 2)
+                k = k + 1
+            }
+            let p: ^u8 = buf_addr + i * 256 + j
+            p^ = acc
+            j = j + 1
+        }
+        var acc: u8 = 1
+        var k: u8 = 0
+        while k < and_n {
+            s = lfsr16(s)
+            acc = acc & (s % 2)
+            k = k + 1
+        }
+        let p: ^u8 = buf_addr + i * 256 + 255
+        p^ = acc
+        i = i + 1
+        j = 0
+    }
+}
+
+// ── ZX pixel address ───────────────────────────────────────────
+fun pixel_addr(x: u8, y: u8) -> u16 {
+    let y7:   u8 = y / 64
+    let y2_0: u8 = y % 8
+    let y5_3: u8 = (y / 8) % 8
+    let xb:   u8 = x / 8
+    return 0x4000 + y7 * 2048 + y2_0 * 256 + y5_3 * 32 + xb
+}
+
+// ── XOR one pixel ──────────────────────────────────────────────
+fun xor_pixel(x: u8, y: u8) -> void {
+    let bit_pos: u8 = 7 - (x % 8)
+    var mask: u8 = 1
+    var i: u8 = 0
+    while i < bit_pos { mask = mask + mask  i = i + 1 }
+    let addr: u16 = pixel_addr(x, y)
+    let p: ^u8 = addr
+    p^ = p^ xor mask
+}
+
+// ── applyBuf ───────────────────────────────────────────────────
+fun apply_buf(ox: u8, oy: u8, blk: u8) -> void {
+    var by: u8 = 0
+    while by < 24 {
+        var bx: u8 = 0
+        while bx < 32 {
+            let bidx: u16 = by * 32 + bx
+            let bp: ^u8 = buf_addr + bidx
+            if bp^ == 1 {
+                var dy: u8 = 0
+                while dy < blk {
+                    var dx: u8 = 0
+                    while dx < blk {
+                        let px: u8 = ox + bx * blk + dx
+                        let py: u8 = oy + by * blk + dy
+                        if px < 128 {
+                            if py < 96 {
+                                xor_pixel(px, py)
+                            }
+                        }
+                        dx = dx + 1
+                    }
+                    dy = dy + 1
+                }
+            }
+            bx = bx + 1
+        }
+        by = by + 1
+    }
+}
+
+// ── Clear screen ───────────────────────────────────────────────
+fun clear_screen() -> void {
+    var i: u16 = 0
+    while i < 0x1800 {
+        let p: ^u8 = 0x4000 + i
+        p^ = 0
+        i = i + 1
+    }
+}
+
+// ── Wait N vsyncs (HALT = wait for 50Hz interrupt) ─────────────
+fun wait_halts(n: u8) -> void {
+    var i: u8 = 0
+    while i < n {
+        asm { halt }
+        i = i + 1
+    }
+}
+
+// ── Render one seed entry from ptr ────────────────────────────
+fun render_seed(ptr: u16) -> void {
+    let ps0: ^u8 = ptr
+    let ps1: ^u8 = ptr + 1
+    let seed: u16 = ps0^ + ps1^ * 256
+    let ox_p:     ^u8 = ptr + 2
+    let oy_p:     ^u8 = ptr + 3
+    let blk_p:    ^u8 = ptr + 4
+    let and_n_p:  ^u8 = ptr + 5
+    let warmup_p: ^u8 = ptr + 6
+    make_buf(seed, warmup_p^, and_n_p^)
+    apply_buf(ox_p^, oy_p^, blk_p^)
+}
+
+// ── Main ───────────────────────────────────────────────────────
+fun main() -> void {
+    // Parse header
+    let p_nf0: ^u8 = anim_addr + 4
+    let p_nf1: ^u8 = anim_addr + 5
+    let n_frames: u16 = p_nf0^ + p_nf1^ * 256
+
+    let p_fps: ^u8 = anim_addr + 6
+    let fps: u8 = p_fps^
+    let halts: u8 = 50 / fps
+
+    // frame table at anim_addr + 8
+    // seeds data at anim_addr + 8 + n_frames * 4
+    let frame_table:  u16 = anim_addr + 8
+    let seeds_base:   u16 = frame_table + n_frames * 4
+
+    // Loop forever
+    while 1 == 1 {
+        var seeds_ptr: u16 = seeds_base
+        var fi: u16 = 0
+        while fi < n_frames {
+            // Read frame header (4 bytes at frame_table + fi*4)
+            let fh: u16 = frame_table + fi * 4
+            let sc0: ^u8 = fh
+            let sc1: ^u8 = fh + 1
+            let seed_count: u16 = sc0^ + sc1^ * 256
+            let ftype: ^u8 = fh + 2
+
+            if ftype^ == 0 {
+                clear_screen()
+            }
+
+            var si: u16 = 0
+            while si < seed_count {
+                render_seed(seeds_ptr)
+                seeds_ptr = seeds_ptr + 7
+                si = si + 1
+            }
+
+            wait_halts(halts)
+            fi = fi + 1
+        }
+    }
+}
