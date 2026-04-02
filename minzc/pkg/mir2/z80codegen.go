@@ -8,6 +8,85 @@ import (
 	"github.com/minz/minzc/pkg/z80validate"
 )
 
+func emitDBLine(sb *strings.Builder, data []byte) {
+	sb.WriteString("    DB ")
+	for i, b := range data {
+		if i > 0 {
+			sb.WriteString(", ")
+		}
+		fmt.Fprintf(sb, "%d", b)
+	}
+	sb.WriteByte('\n')
+}
+
+func emitDWLine(sb *strings.Builder, data []byte) {
+	sb.WriteString("    DW ")
+	for i := 0; i+1 < len(data); i += 2 {
+		if i > 0 {
+			sb.WriteString(", ")
+		}
+		w := uint16(data[i]) | (uint16(data[i+1]) << 8)
+		fmt.Fprintf(sb, "%d", w)
+	}
+	sb.WriteByte('\n')
+}
+
+func paddedInitBytes(ty Ty, init []byte) []byte {
+	w := ByteWidth(ty)
+	if len(init) >= w {
+		return init[:w]
+	}
+	buf := make([]byte, w)
+	copy(buf, init)
+	return buf
+}
+
+func emitTypedGlobalData(sb *strings.Builder, ty Ty, init []byte) {
+	init = paddedInitBytes(ty, init)
+	switch t := ty.(type) {
+	case *ArrayTy:
+		if t.Layout != LayoutAoS {
+			emitDBLine(sb, init)
+			return
+		}
+		elemW := ByteWidth(t.Elem)
+		switch elemW {
+		case 0:
+			return
+		case 1:
+			emitDBLine(sb, init)
+		case 2:
+			emitDWLine(sb, init)
+		default:
+			for off := 0; off < len(init); off += elemW {
+				emitTypedGlobalData(sb, t.Elem, init[off:off+elemW])
+			}
+		}
+	case *StructTy:
+		if t.IsUnion {
+			emitDBLine(sb, init)
+			return
+		}
+		off := 0
+		for _, f := range t.Fields {
+			fw := ByteWidth(f.Ty)
+			emitTypedGlobalData(sb, f.Ty, init[off:off+fw])
+			off += fw
+		}
+	default:
+		switch ByteWidth(ty) {
+		case 0:
+			return
+		case 1:
+			emitDBLine(sb, init)
+		case 2:
+			emitDWLine(sb, init)
+		default:
+			emitDBLine(sb, init)
+		}
+	}
+}
+
 // Z80Codegen lowers allocated MIR2 to Z80 assembly text (.a80 format).
 //
 // Prerequisites:
@@ -107,20 +186,7 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) string {
 			}
 			sanitized := sanitizeIdent(g.Name)
 			sb.WriteString(sanitized + ":\n")
-			// Emit as DB sequence for all types — always readable,
-			// correct for struct fields, and unambiguous byte order.
-			sb.WriteString("    DB ")
-			for i := 0; i < w; i++ {
-				if i > 0 {
-					sb.WriteString(", ")
-				}
-				b := byte(0)
-				if i < len(g.Init) {
-					b = g.Init[i]
-				}
-				fmt.Fprintf(&sb, "%d", b)
-			}
-			sb.WriteByte('\n')
+			emitTypedGlobalData(&sb, g.Ty, g.Init)
 			// For struct globals, emit EQU labels for each field so that direct
 			// addressing (LD A,(sym__field)) works without pointer arithmetic.
 			// Format: sanitizeIdent(sym)__fieldName  EQU  sym + byteOffset
@@ -188,21 +254,21 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) string {
 	if cg.needsMul8 {
 		sb.WriteString("\n; runtime: 8-bit multiply A*B → A (~80T)\n")
 		sb.WriteString("__mul8:\n")
-		sb.WriteString("    LD C, 0\n")       // C = result accumulator
-		sb.WriteString("    LD D, 8\n")       // D = bit counter
+		sb.WriteString("    LD C, 0\n") // C = result accumulator
+		sb.WriteString("    LD D, 8\n") // D = bit counter
 		sb.WriteString(".__mul8_loop:\n")
-		sb.WriteString("    SRL B\n")         // shift multiplier right, LSB → CF
+		sb.WriteString("    SRL B\n") // shift multiplier right, LSB → CF
 		sb.WriteString("    JR NC, .__mul8_noadd\n")
-		sb.WriteString("    LD E, A\n")       // save A
+		sb.WriteString("    LD E, A\n") // save A
 		sb.WriteString("    LD A, C\n")
-		sb.WriteString("    ADD A, E\n")      // C += multiplicand
+		sb.WriteString("    ADD A, E\n") // C += multiplicand
 		sb.WriteString("    LD C, A\n")
-		sb.WriteString("    LD A, E\n")       // restore A
+		sb.WriteString("    LD A, E\n") // restore A
 		sb.WriteString(".__mul8_noadd:\n")
-		sb.WriteString("    ADD A, A\n")      // shift multiplicand left
+		sb.WriteString("    ADD A, A\n") // shift multiplicand left
 		sb.WriteString("    DEC D\n")
 		sb.WriteString("    JR NZ, .__mul8_loop\n")
-		sb.WriteString("    LD A, C\n")       // result in A
+		sb.WriteString("    LD A, C\n") // result in A
 		sb.WriteString("    RET\n")
 	}
 
@@ -284,7 +350,6 @@ func foldRLCASled(lines []string) []string {
 	}
 	return out
 }
-
 
 // elimCallRet replaces CALL X / RET with JP X (tail call promotion).
 // Saves 17 T-states (CALL=17 + RET=10 → JP=10) and 1 byte.
@@ -570,24 +635,24 @@ func elimJrToRet(lines []string) []string {
 // ── Internal codegen state ────────────────────────────────────────────────────
 
 type z80cg struct {
-	ar         *AllocResult
-	sb         *strings.Builder
-	mod        *Module // parent module (for callee contract lookup at call sites)
-	fn         *Func   // current function
-	blockIdx   int     // index of current block in fn.Blocks (for fall-through)
-	cmpSwapped  map[Reg]bool    // dst reg → operands were swapped in genCmp
-	cmpAndZero  map[Reg]bool    // dst reg → comparison used AND A (rhs=0), use NZ/Z not NC/C
-	cmpNeedsTwo map[Reg]bool    // dst reg → CmpGt/CmpLe with lhs in A, needs two-JP in BrIf
-	callFlags   map[Reg]CmpCond // dst reg of OpCall → FlagCond when callee returns ClassFlag
-	clobberCache map[string]map[string]bool // func name → set of clobbered phys reg names
-	constVals      map[Reg]int64 // virtual reg → compile-time constant value (for peepholes)
-	blockParamRegs map[Reg]bool  // regs that are block parameters (loop-variant, not const)
-	deadConsts     map[Reg]bool  // OpConst dsts whose LD is suppressed by DSE
-	needsCallHL    bool          // emit __call_hl trampoline (JP (HL)) at end of module
-	needsMul8      bool          // emit __mul8 runtime (A*B→A) at end of module
-	needsRotate    bool          // emit __rotate RLCA sled (multi-entry barrel shifter)
-	tsmcPairs      []tsmcSpillPair // TSMC spill-reload pairs for current function
-	curInstIdx     int             // current instruction index within block (for TSMC matching)
+	ar             *AllocResult
+	sb             *strings.Builder
+	mod            *Module                    // parent module (for callee contract lookup at call sites)
+	fn             *Func                      // current function
+	blockIdx       int                        // index of current block in fn.Blocks (for fall-through)
+	cmpSwapped     map[Reg]bool               // dst reg → operands were swapped in genCmp
+	cmpAndZero     map[Reg]bool               // dst reg → comparison used AND A (rhs=0), use NZ/Z not NC/C
+	cmpNeedsTwo    map[Reg]bool               // dst reg → CmpGt/CmpLe with lhs in A, needs two-JP in BrIf
+	callFlags      map[Reg]CmpCond            // dst reg of OpCall → FlagCond when callee returns ClassFlag
+	clobberCache   map[string]map[string]bool // func name → set of clobbered phys reg names
+	constVals      map[Reg]int64              // virtual reg → compile-time constant value (for peepholes)
+	blockParamRegs map[Reg]bool               // regs that are block parameters (loop-variant, not const)
+	deadConsts     map[Reg]bool               // OpConst dsts whose LD is suppressed by DSE
+	needsCallHL    bool                       // emit __call_hl trampoline (JP (HL)) at end of module
+	needsMul8      bool                       // emit __mul8 runtime (A*B→A) at end of module
+	needsRotate    bool                       // emit __rotate RLCA sled (multi-entry barrel shifter)
+	tsmcPairs      []tsmcSpillPair            // TSMC spill-reload pairs for current function
+	curInstIdx     int                        // current instruction index within block (for TSMC matching)
 
 	// holdsPhys is a bidirectional alias map for local copy-propagation within a
 	// basic block.  holdsPhys[r] = s means physical register r currently holds the
@@ -723,10 +788,10 @@ type globalFieldInfo struct {
 // It resolves block-argument copies for one outgoing BrIf edge.
 // If isRet is true, the block ends with RET instead of JRS target.
 type trampolineBlock struct {
-	label  string        // local label for this trampoline
+	label  string // local label for this trampoline
 	copies []parallelCopy
-	target string        // real destination label (already formatted)
-	isRet  bool          // true → emit RET instead of JRS target
+	target string // real destination label (already formatted)
+	isRet  bool   // true → emit RET instead of JRS target
 }
 
 // parallelCopy is a single register-to-register move in a parallel copy sequence.
@@ -1006,7 +1071,13 @@ func (g *z80cg) emitMovViaAltA(dst, src string) {
 func (g *z80cg) emitADDHL(rhs string) {
 	if rhs == "IX" || rhs == "IY" {
 		g.emit("    PUSH DE")
-		if rhs == "IX" { g.emit("    LD D, IXH"); g.emit("    LD E, IXL") } else { g.emit("    LD D, IYH"); g.emit("    LD E, IYL") }
+		if rhs == "IX" {
+			g.emit("    LD D, IXH")
+			g.emit("    LD E, IXL")
+		} else {
+			g.emit("    LD D, IYH")
+			g.emit("    LD E, IYL")
+		}
 		g.emit("    ADD HL, DE")
 		g.emit("    POP DE")
 	} else if isSpill(rhs) {
@@ -1139,7 +1210,7 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 		return ""
 	}
 
-	totalUses  := make(map[Reg]int)
+	totalUses := make(map[Reg]int)
 	foldedUses := make(map[Reg]int)
 
 	for _, b := range f.Blocks {
@@ -1196,7 +1267,7 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 					if src == inst.Src[1] {
 						foldedUses[src]++
 					}
-					case OpShl, OpShr, OpSar:
+				case OpShl, OpShr, OpSar:
 					// genShift always shifts by 1 and completely ignores Src[1].
 					// Any constant passed as the shift count is effectively dead.
 					if src == inst.Src[1] {
@@ -1729,8 +1800,8 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 					offset:    offset,
 					fieldName: fieldName,
 				}
-				g.globalFieldSkip[ptrReg] = true    // Field result
-				g.globalFieldSkip[baseReg] = true   // AddrOf result
+				g.globalFieldSkip[ptrReg] = true  // Field result
+				g.globalFieldSkip[baseReg] = true // AddrOf result
 			}
 		}
 	}
@@ -1785,8 +1856,8 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 				offset:    offset,
 				fieldName: fieldName,
 			}
-			g.globalFieldSkip[addrReg] = true     // Field result
-			g.globalFieldSkip[baseReg2] = true    // AddrOf result
+			g.globalFieldSkip[addrReg] = true  // Field result
+			g.globalFieldSkip[baseReg2] = true // AddrOf result
 		}
 	}
 
@@ -1958,10 +2029,10 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	if b.Label != "entry" {
 		g.emitf(".%s_%s:", sanitizeIdent(f.Name), sanitizeIdent(b.Label))
 	}
-	clear(g.holdsPhys)       // all register aliases unknown at block entry
-	g.lastFlagsLhs = ""      // flags state unknown at block entry
+	clear(g.holdsPhys)  // all register aliases unknown at block entry
+	g.lastFlagsLhs = "" // flags state unknown at block entry
 	g.lastFlagsRhs = ""
-	g.blockT = 0             // reset per-block T-state accumulator
+	g.blockT = 0 // reset per-block T-state accumulator
 	g.curBlock = b
 	g.pendingFlagReg = NoReg
 	g.pendingAccReg = NoReg
@@ -3537,9 +3608,9 @@ func (g *z80cg) genBinOp32(mnem, dst, lhs, rhs string) {
 		} else {
 			// Non-HL dst: save HL, use it as scratch, then move result.
 			g.comment(fmt.Sprintf("32-bit ADD via HL scratch: %s += %s", dst, rhs))
-			g.emit("    PUSH HL")     // save main HL
+			g.emit("    PUSH HL") // save main HL
 			g.emit("    EXX")
-			g.emit("    PUSH HL")     // save shadow HL
+			g.emit("    PUSH HL") // save shadow HL
 			g.emit("    EXX")
 			// Transfer dst to HL.
 			g.emitMov32("HL", dst)
@@ -3552,13 +3623,13 @@ func (g *z80cg) genBinOp32(mnem, dst, lhs, rhs string) {
 			// Move result from HL to dst, then restore HL.
 			g.emitMov32(dst, "HL")
 			g.emit("    EXX")
-			g.emit("    POP HL")      // restore shadow HL
+			g.emit("    POP HL") // restore shadow HL
 			g.emit("    EXX")
-			g.emit("    POP HL")      // restore main HL
+			g.emit("    POP HL") // restore main HL
 		}
 	case "SUB":
 		if dst == "HL" {
-			g.emit("    AND A")       // clear carry
+			g.emit("    AND A") // clear carry
 			g.emitSBCHL(rhs)
 			g.emit("    EXX")
 			g.emitSBCHL(rhs)
@@ -3968,50 +4039,50 @@ func (g *z80cg) genMul(inst *Inst) {
 			_ = avoid // suppress unused
 			switch cv {
 			case 3: // x + x*2
-				g.emitf("    LD %s, A", tmp) // tmp = x
+				g.emitf("    LD %s, A", tmp)  // tmp = x
 				g.emit("    ADD A, A")        // A  = x*2
 				g.emitf("    ADD A, %s", tmp) // A  = x*3
 			case 5: // x + x*4
 				g.emitf("    LD %s, A", tmp)
 				g.emit("    ADD A, A")
-				g.emit("    ADD A, A")         // A  = x*4
+				g.emit("    ADD A, A")        // A  = x*4
 				g.emitf("    ADD A, %s", tmp) // A  = x*5
 			case 6: // x*2 + x*4
-				g.emit("    ADD A, A")         // A  = x*2
+				g.emit("    ADD A, A")        // A  = x*2
 				g.emitf("    LD %s, A", tmp)  // tmp= x*2
-				g.emit("    ADD A, A")         // A  = x*4
+				g.emit("    ADD A, A")        // A  = x*4
 				g.emitf("    ADD A, %s", tmp) // A  = x*6
 			case 7: // x*8 - x
 				g.emitf("    LD %s, A", tmp) // tmp = x
 				g.emit("    ADD A, A")
 				g.emit("    ADD A, A")
-				g.emit("    ADD A, A")         // A  = x*8
-				g.emitf("    SUB %s", tmp)    // A  = x*7
+				g.emit("    ADD A, A")     // A  = x*8
+				g.emitf("    SUB %s", tmp) // A  = x*7
 			case 9: // x + x*8
 				g.emitf("    LD %s, A", tmp)
 				g.emit("    ADD A, A")
 				g.emit("    ADD A, A")
-				g.emit("    ADD A, A")         // A  = x*8
+				g.emit("    ADD A, A")        // A  = x*8
 				g.emitf("    ADD A, %s", tmp) // A  = x*9
 			case 10: // x*2 + x*8
-				g.emit("    ADD A, A")         // A  = x*2
-				g.emitf("    LD %s, A", tmp)  // tmp= x*2
+				g.emit("    ADD A, A")       // A  = x*2
+				g.emitf("    LD %s, A", tmp) // tmp= x*2
 				g.emit("    ADD A, A")
-				g.emit("    ADD A, A")         // A  = x*8
+				g.emit("    ADD A, A")        // A  = x*8
 				g.emitf("    ADD A, %s", tmp) // A  = x*10
 			case 12: // x*4 + x*8
 				g.emit("    ADD A, A")
-				g.emit("    ADD A, A")         // A  = x*4
+				g.emit("    ADD A, A")        // A  = x*4
 				g.emitf("    LD %s, A", tmp)  // tmp= x*4
-				g.emit("    ADD A, A")         // A  = x*8
+				g.emit("    ADD A, A")        // A  = x*8
 				g.emitf("    ADD A, %s", tmp) // A  = x*12
 			case 15: // x*16 - x
 				g.emitf("    LD %s, A", tmp) // tmp = x
 				g.emit("    ADD A, A")
 				g.emit("    ADD A, A")
 				g.emit("    ADD A, A")
-				g.emit("    ADD A, A")         // A  = x*16
-				g.emitf("    SUB %s", tmp)    // A  = x*15
+				g.emit("    ADD A, A")     // A  = x*16
+				g.emitf("    SUB %s", tmp) // A  = x*15
 			}
 			g.invalidate("A")
 			if dst != "A" {
@@ -4200,8 +4271,8 @@ func (g *z80cg) genMul16(inst *Inst) {
 	g.comment(fmt.Sprintf("mul16 %s * %s → HL  (~320T, 16-iter shift-and-add)", lhs, rhs))
 	// Save AF and DE: the multiply uses A as a loop counter and clobbers DE by
 	// shifting it 16 times.  Any live variable in A, D, or E would be corrupted.
-	g.emit("    PUSH AF")             // preserve A (= possible live variable) and F
-	g.emit("    PUSH DE")             // preserve D and E across multiply
+	g.emit("    PUSH AF") // preserve A (= possible live variable) and F
+	g.emit("    PUSH DE") // preserve D and E across multiply
 	// Load multiplier into DE BEFORE overwriting BC with the multiplicand.
 	// (rhs may be in C/B/BC which gets clobbered by LD B,H; LD C,L below.)
 	if rhs != "DE" {
@@ -4225,25 +4296,25 @@ func (g *z80cg) genMul16(inst *Inst) {
 		}
 		g.invalidate("DE")
 	}
-	g.emit("    PUSH BC")              // save BC across multiply
+	g.emit("    PUSH BC") // save BC across multiply
 	g.emit("    LD B, H")
-	g.emit("    LD C, L")             // BC = multiplicand (lhs)
+	g.emit("    LD C, L") // BC = multiplicand (lhs)
 	g.emit("    LD H, 0")
-	g.emit("    LD L, 0")             // HL = result = 0
-	g.emit("    LD A, 16")            // A = bit counter
+	g.emit("    LD L, 0")  // HL = result = 0
+	g.emit("    LD A, 16") // A = bit counter
 	g.emitf("%s:", loopLbl)
-	g.emit("    SRL D")               // DE >>= 1 (logical right shift, bit0 → carry)
+	g.emit("    SRL D") // DE >>= 1 (logical right shift, bit0 → carry)
 	g.emit("    RR E")
 	g.emitf("    JRS NC, %s", skipLbl)
-	g.emit("    ADD HL, BC")          // result += multiplicand (current bit weight)
+	g.emit("    ADD HL, BC") // result += multiplicand (current bit weight)
 	g.emitf("%s:", skipLbl)
-	g.emit("    SLA C")               // BC <<= 1 (multiplicand doubles)
+	g.emit("    SLA C") // BC <<= 1 (multiplicand doubles)
 	g.emit("    RL B")
-	g.emit("    DEC A")               // counter-- (does not affect carry)
+	g.emit("    DEC A") // counter-- (does not affect carry)
 	g.emitf("    JRS NZ, %s", loopLbl)
-	g.emit("    POP BC")              // restore BC
-	g.emit("    POP DE")              // restore old DE (live variables in D/E preserved)
-	g.emit("    POP AF")              // restore old A (live variables in A preserved)
+	g.emit("    POP BC") // restore BC
+	g.emit("    POP DE") // restore old DE (live variables in D/E preserved)
+	g.emit("    POP AF") // restore old A (live variables in A preserved)
 	mul16Epilogue()
 	g.invalidate("BC")
 }
@@ -4325,9 +4396,9 @@ func (g *z80cg) genMul32(inst *Inst) {
 	// Only valid when dst is HL (has ADD/ADC). For others, fall through to TODO.
 	if dst == "HL" && cv > 0 {
 		// Save original in DE (push to stack if DE is occupied).
-		g.emit("    PUSH DE")      // save main DE
+		g.emit("    PUSH DE") // save main DE
 		g.emit("    EXX")
-		g.emit("    PUSH DE")      // save shadow DE
+		g.emit("    PUSH DE") // save shadow DE
 		g.emit("    EXX")
 		// Copy lhs (already in HL/H'L') to DE/D'E'.
 		g.emitMov32("DE", "HL")
@@ -4394,16 +4465,26 @@ func (g *z80cg) genDivMod(inst *Inst) {
 			lhs := g.loc(inst.Src[0])
 			// For 8-bit ops on pair regs, use low byte
 			lhsA := lhs
-			if isPairReg(lhs) { lhsA = lowByte(lhs) }
+			if isPairReg(lhs) {
+				lhsA = lowByte(lhs)
+			}
 			dstA := dst
-			if isPairReg(dst) { dstA = lowByte(dst) }
+			if isPairReg(dst) {
+				dstA = lowByte(dst)
+			}
 			if inst.Op == OpMod && w <= 8 {
 				mask := k - 1
 				g.comment(fmt.Sprintf("mod%d → AND $%02X (strength reduced)", k, mask))
-				if lhsA != "A" { g.emitf("    LD A, %s", lhsA) }
+				if lhsA != "A" {
+					g.emitf("    LD A, %s", lhsA)
+				}
 				g.emitf("    AND %d", mask)
-				if dstA != "A" { g.emitf("    LD %s, A", dstA) }
-				if isPairReg(dst) { g.emitf("    LD %s, 0", highByte(dst)) }
+				if dstA != "A" {
+					g.emitf("    LD %s, A", dstA)
+				}
+				if isPairReg(dst) {
+					g.emitf("    LD %s, 0", highByte(dst))
+				}
 				return
 			}
 			if inst.Op == OpMod && w > 8 {
@@ -4425,13 +4506,23 @@ func (g *z80cg) genDivMod(inst *Inst) {
 				return
 			}
 			shift := 0
-			for v := k; v > 1; v >>= 1 { shift++ }
+			for v := k; v > 1; v >>= 1 {
+				shift++
+			}
 			g.comment(fmt.Sprintf("div%d → SHR %d (strength reduced)", k, shift))
 			if w <= 8 {
-				if lhsA != "A" { g.emitf("    LD A, %s", lhsA) }
-				for i := 0; i < shift; i++ { g.emit("    SRL A") }
-				if dstA != "A" { g.emitf("    LD %s, A", dstA) }
-				if isPairReg(dst) { g.emitf("    LD %s, 0", highByte(dst)) }
+				if lhsA != "A" {
+					g.emitf("    LD A, %s", lhsA)
+				}
+				for i := 0; i < shift; i++ {
+					g.emit("    SRL A")
+				}
+				if dstA != "A" {
+					g.emitf("    LD %s, A", dstA)
+				}
+				if isPairReg(dst) {
+					g.emitf("    LD %s, 0", highByte(dst))
+				}
 				return
 			} else {
 				if lhs != "HL" && isPairReg(lhs) {
@@ -4508,15 +4599,15 @@ func (g *z80cg) genDivMod8(inst *Inst) {
 		g.emitf("    LD C, %s", rhs)
 	}
 
-	g.emit("    XOR A")          // clear accumulator (remainder workspace)
-	g.emit("    LD D, 8")        // 8 bits to process
+	g.emit("    XOR A")   // clear accumulator (remainder workspace)
+	g.emit("    LD D, 8") // 8 bits to process
 	g.emitf(".div8_%d:", idx)
-	g.emit("    SLA B")          // shift dividend left — MSB → CF
-	g.emit("    RLA")            // shift CF into accumulator
-	g.emit("    CP C")           // try subtract divisor
+	g.emit("    SLA B")                     // shift dividend left — MSB → CF
+	g.emit("    RLA")                       // shift CF into accumulator
+	g.emit("    CP C")                      // try subtract divisor
 	g.emitf("    JR C, .div8_skip_%d", idx) // A < C → skip
-	g.emit("    SUB C")          // subtract divisor
-	g.emit("    INC B")          // set quotient bit 0 (free after SLA)
+	g.emit("    SUB C")                     // subtract divisor
+	g.emit("    INC B")                     // set quotient bit 0 (free after SLA)
 	g.emitf(".div8_skip_%d:", idx)
 	g.emit("    DEC D")
 	g.emitf("    JR NZ, .div8_%d", idx)
@@ -4611,26 +4702,26 @@ func (g *z80cg) genDivMod16(inst *Inst) {
 
 	// Main loop.
 	g.emitf(".div16_%d:", idx)
-	g.emit("    ADD HL, HL")    // shift dividend left; MSB → CF
-	g.emit("    RL C")          // shift CF into remainder (BC)
+	g.emit("    ADD HL, HL") // shift dividend left; MSB → CF
+	g.emit("    RL C")       // shift CF into remainder (BC)
 	g.emit("    RL B")
-	g.emit("    PUSH HL")       // save quotient-in-progress
-	g.emit("    LD H, B")       // HL = BC (remainder)
+	g.emit("    PUSH HL") // save quotient-in-progress
+	g.emit("    LD H, B") // HL = BC (remainder)
 	g.emit("    LD L, C")
-	g.emit("    OR A")          // clear CF for SBC
-	g.emit("    SBC HL, DE")    // trial subtract: remainder - divisor
+	g.emit("    OR A")                       // clear CF for SBC
+	g.emit("    SBC HL, DE")                 // trial subtract: remainder - divisor
 	g.emitf("    JR C, .div16_skip_%d", idx) // borrow → remainder < divisor
 	// Accept: remainder = HL (after subtract).
 	g.emit("    LD B, H")
 	g.emit("    LD C, L")
-	g.emit("    POP HL")        // restore quotient
-	g.emit("    SET 0, L")      // this quotient bit = 1
+	g.emit("    POP HL")   // restore quotient
+	g.emit("    SET 0, L") // this quotient bit = 1
 	g.emit("    DEC A")
 	g.emitf("    JR NZ, .div16_%d", idx)
 	g.emitf("    JR .div16_done_%d", idx)
 	// Skip: remainder stays, quotient bit stays 0.
 	g.emitf(".div16_skip_%d:", idx)
-	g.emit("    POP HL")        // restore quotient (bit 0 = 0)
+	g.emit("    POP HL") // restore quotient (bit 0 = 0)
 	g.emit("    DEC A")
 	g.emitf("    JR NZ, .div16_%d", idx)
 
@@ -5067,7 +5158,7 @@ func (g *z80cg) genCmp(inst *Inst) {
 			g.emit("    AND A") // AND A ≡ CP 0 for all flags; 1B/4T vs 2B/7T
 			g.cmpAndZero[inst.Dst] = true
 		} else {
-			g.emitf("    CP %d", cv & 0xFF)
+			g.emitf("    CP %d", cv&0xFF)
 		}
 		// CP/AND A does not modify A; aliases remain valid.
 		g.pendingFlagReg = inst.Dst
@@ -5229,8 +5320,8 @@ func (g *z80cg) genCall(inst *Inst) {
 		idx := g.trampIdx
 		g.trampIdx++
 		// Hundreds digit
-		g.emitf("    LD C, A")                       // C = n
-		g.emitf("    LD B, 0")                        // B = hundreds count
+		g.emitf("    LD C, A") // C = n
+		g.emitf("    LD B, 0") // B = hundreds count
 		g.emitf(".pdec_h%d:", idx)
 		g.emitf("    LD A, C")
 		g.emitf("    CP 100")
@@ -5244,11 +5335,11 @@ func (g *z80cg) genCall(inst *Inst) {
 		g.emitf("    LD A, B")
 		g.emitf("    OR A")
 		g.emitf("    JR Z, .pdec_t%d", idx)
-		g.emitf("    ADD A, 48")                      // '0'
+		g.emitf("    ADD A, 48") // '0'
 		g.emitf("    OUT (0x23), A")
 		// Tens digit
 		g.emitf(".pdec_t%d:", idx)
-		g.emitf("    LD D, 0")                        // D = tens count
+		g.emitf("    LD D, 0") // D = tens count
 		g.emitf(".pdec_tl%d:", idx)
 		g.emitf("    LD A, C")
 		g.emitf("    CP 10")
@@ -5291,8 +5382,8 @@ func (g *z80cg) genCall(inst *Inst) {
 	case "@error":
 		// @error(N) — set carry flag, error code in A, return.
 		// Used in fallible functions (name?). A = argument (error code).
-		g.emit("    SCF")          // CY = 1 (error)
-		g.emit("    RET")          // return to caller with CY set + A = code
+		g.emit("    SCF") // CY = 1 (error)
+		g.emit("    RET") // return to caller with CY set + A = code
 		g.invalidate("A")
 		return
 
@@ -5305,7 +5396,7 @@ func (g *z80cg) genCall(inst *Inst) {
 		g.emitf("    JR NC, .check_ok_%d", idx)
 		// The handler code follows in the next statement.
 		// For simple propagation, emit RET:
-		g.emit("    RET")           // propagate error (CY + A intact)
+		g.emit("    RET") // propagate error (CY + A intact)
 		g.emitf(".check_ok_%d:", idx)
 		return
 
@@ -5541,12 +5632,12 @@ func (g *z80cg) emitMov32(dst, src string) {
 	if dst == src {
 		return
 	}
-	g.emitf("    PUSH %s", src)     // save main src_lo
-	g.emit("    EXX")               // switch to shadow
-	g.emitf("    PUSH %s", src)     // save shadow src_hi
-	g.emitf("    POP %s", dst)      // restore shadow dst_hi
-	g.emit("    EXX")               // switch back to main
-	g.emitf("    POP %s", dst)      // restore main dst_lo
+	g.emitf("    PUSH %s", src) // save main src_lo
+	g.emit("    EXX")           // switch to shadow
+	g.emitf("    PUSH %s", src) // save shadow src_hi
+	g.emitf("    POP %s", dst)  // restore shadow dst_hi
+	g.emit("    EXX")           // switch back to main
+	g.emitf("    POP %s", dst)  // restore main dst_lo
 }
 
 // ── Move helper ───────────────────────────────────────────────────────────────
@@ -5903,7 +5994,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 			if !g.holdsValue("A", lhs) {
 				g.emitLDA(lhs)
 			}
-			g.emitf("    CP %d", cv & 0xFF)
+			g.emitf("    CP %d", cv&0xFF)
 		} else if rhs == "A" && lhs != "A" {
 			// A already holds rhs; swap: CP lhs computes rhs-lhs.
 			// Eq is still Z (rhs-lhs==0 ↔ rhs==lhs), but C now means rhs<lhs.
@@ -6281,7 +6372,7 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 			// Save the LocMem value into the destination first (it will be
 			// overwritten by the cycle walk anyway), then push that pair.
 			if isSpill(m.src) {
-				g.loadSpill16(m.dst, m.src) // load LocMem into dest pair
+				g.loadSpill16(m.dst, m.src)   // load LocMem into dest pair
 				g.emitf("    PUSH %s", m.dst) // save that value on stack
 			} else {
 				g.emitf("    PUSH %s", m.src)
@@ -7047,21 +7138,21 @@ func (g *z80cg) genCmp32(inst *Inst) {
 	}
 
 	// Non-destructive 32-bit comparison (lhs preserved by PUSH/POP):
-	g.emit("    PUSH HL")         // save a_lo (main HL)
+	g.emit("    PUSH HL") // save a_lo (main HL)
 	g.emit("    EXX")
-	g.emit("    PUSH HL")         // save a_hi (shadow HL = H'L')
+	g.emit("    PUSH HL") // save a_hi (shadow HL = H'L')
 	g.emit("    EXX")
-	g.emit("    AND A")           // clear carry
-	g.emitSBCHL(rhs) // a_lo - b_lo; carry = lo borrow
+	g.emit("    AND A") // clear carry
+	g.emitSBCHL(rhs)    // a_lo - b_lo; carry = lo borrow
 	g.emit("    EXX")
 	g.emitSBCHL(rhs) // a_hi - b_hi - lo_carry; carry = 32-bit borrow
 	g.emit("    EXX")
 	// Restore a (carry preserved by POP rr — POP does not affect flags):
 	g.emit("    EXX")
-	g.emit("    POP HL")           // restore H'L' (a_hi)
+	g.emit("    POP HL") // restore H'L' (a_hi)
 	g.emit("    EXX")
-	g.emit("    POP HL")           // restore HL   (a_lo)
-	g.invalidate("HL")             // HL was clobbered during SBC, now restored; flush cache
+	g.emit("    POP HL") // restore HL   (a_lo)
+	g.invalidate("HL")   // HL was clobbered during SBC, now restored; flush cache
 }
 
 // ── PUSH/POP pair helpers ─────────────────────────────────────────────────────

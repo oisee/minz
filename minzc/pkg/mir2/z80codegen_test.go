@@ -364,9 +364,9 @@ func TestGlobalFieldDirectAddr_SharedBase(t *testing.T) {
 	bld.SwitchToNewBlock("entry")
 	// Shared base: used for two loads.
 	base := bld.AddrOf("palette", mir2.ClassPointer)
-	pr := bld.Load(base, mir2.TyU8, mir2.ClassAcc)                         // palette.r (offset 0)
-	gPtr := bld.FieldOf(base, colorTy, 1, mir2.ClassPointer)               // &palette.g
-	pg := bld.Load(gPtr, mir2.TyU8, mir2.ClassGeneral)                     // palette.g
+	pr := bld.Load(base, mir2.TyU8, mir2.ClassAcc)           // palette.r (offset 0)
+	gPtr := bld.FieldOf(base, colorTy, 1, mir2.ClassPointer) // &palette.g
+	pg := bld.Load(gPtr, mir2.TyU8, mir2.ClassGeneral)       // palette.g
 	result := bld.Add(pr, pg, mir2.TyU8, mir2.ClassAcc)
 	bld.Ret(result)
 
@@ -382,6 +382,28 @@ func TestGlobalFieldDirectAddr_SharedBase(t *testing.T) {
 	// Must contain RET.
 	if !strings.Contains(asm, "RET") {
 		t.Errorf("sum_rg: missing RET:\n%s", asm)
+	}
+}
+
+func TestGlobalArrayTypedEmission_U16(t *testing.T) {
+	m := &mir2.Module{Name: "u16_array_globals"}
+	m.AddGlobal(mir2.Global{
+		Name: "nums",
+		Ty:   mir2.NewArray(mir2.TyU16, 3),
+		Init: []byte{1, 0, 2, 0, 0x34, 0x12},
+	})
+
+	asm := compileModuleForCodegenTest(t, m)
+	t.Log("\n" + asm)
+
+	if !strings.Contains(asm, "nums:") {
+		t.Fatalf("missing nums label:\n%s", asm)
+	}
+	if !strings.Contains(asm, "    DW 1, 2, 4660") {
+		t.Fatalf("expected typed DW emission for u16 array:\n%s", asm)
+	}
+	if strings.Contains(asm, "    DB 1, 0, 2, 0, 52, 18") {
+		t.Fatalf("u16 array should not be emitted as flat DB byte stream:\n%s", asm)
 	}
 }
 
@@ -600,7 +622,8 @@ func extractFuncAsm(asm, name string) string {
 // ── ClassDWord / 32-bit tests ─────────────────────────────────────────────────
 
 // TestDWord_Const verifies that a 32-bit constant is loaded via EXX:
-//   LD rr, lo16 / EXX / LD rr, hi16 / EXX
+//
+//	LD rr, lo16 / EXX / LD rr, hi16 / EXX
 func TestDWord_Const(t *testing.T) {
 	m := &mir2.Module{Name: "dword_const"}
 	f := m.AddFunc("dword_const")
