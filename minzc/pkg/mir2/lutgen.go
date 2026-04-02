@@ -1,6 +1,5 @@
 package mir2
 
-
 // LUTGen replaces pure functions whose sole parameter is a RangedTy integer
 // (range size ≤ 256) with compile-time-computed lookup tables.
 //
@@ -40,6 +39,8 @@ func LUTGen(m *Module) bool {
 		origParam := f.Contract.Params[0]
 		rt, _ := origParam.Ty.(*RangedTy)
 		rangeSize := rt.Hi - rt.Lo // exclusive-Hi convention → count
+		retTy := f.Contract.Returns[0].Ty
+		retW := ByteWidth(retTy)
 
 		// Evaluate every value in [Lo, Hi).
 		table, err := vm.evalRange(f.Name, rt.Lo, rt.Hi)
@@ -47,25 +48,52 @@ func LUTGen(m *Module) bool {
 			continue // VM error — keep original body
 		}
 
-		// Emit read-only global "funcname_lut".
-		lutName := f.Name + "_lut"
-		init := make([]byte, int(rangeSize))
-		for i, v := range table {
-			init[i] = byte(v)
+		// Emit read-only LUT global(s).
+		//
+		// u8 return  -> one [N]u8 table
+		// u16 return -> split [N]u8 low/high tables on Z80-friendly layout
+		if retW == 1 {
+			lutName := f.Name + "_lut"
+			init := make([]byte, int(rangeSize))
+			for i, v := range table {
+				init[i] = byte(v)
+			}
+			arrayTy := NewArray(retTy, int(rangeSize))
+			if rangeSize == 256 {
+				arrayTy.Align = 256
+			}
+			m.AddGlobal(Global{
+				Name:    lutName,
+				Ty:      arrayTy,
+				Init:    init,
+				IsConst: true,
+			})
+		} else {
+			lutLoName := f.Name + "_lut_lo"
+			lutHiName := f.Name + "_lut_hi"
+			initLo := make([]byte, int(rangeSize))
+			initHi := make([]byte, int(rangeSize))
+			for i, v := range table {
+				initLo[i] = byte(v)
+				initHi[i] = byte(v >> 8)
+			}
+			arrayTy := NewArray(TyU8, int(rangeSize))
+			if rangeSize == 256 {
+				arrayTy.Align = 256
+			}
+			m.AddGlobal(Global{
+				Name:    lutLoName,
+				Ty:      arrayTy,
+				Init:    initLo,
+				IsConst: true,
+			})
+			m.AddGlobal(Global{
+				Name:    lutHiName,
+				Ty:      arrayTy,
+				Init:    initHi,
+				IsConst: true,
+			})
 		}
-		// Full 256-entry tables: page-align so the fast LD L,A path applies.
-		// The assembler emits ALIGN 256 before the label, guaranteeing L=0
-		// when LD HL, lutName is executed.
-		arrayTy := NewArray(TyU8, int(rangeSize))
-		if rangeSize == 256 {
-			arrayTy.Align = 256
-		}
-		m.AddGlobal(Global{
-			Name:    lutName,
-			Ty:      arrayTy,
-			Init:    init,
-			IsConst: true,
-		})
 
 		// Replace function body with lookup sequence.
 		// Clear blocks AND contract params — b.Param() appends to Contract.Params,
@@ -79,26 +107,48 @@ func LUTGen(m *Module) bool {
 		x := b.Param(origParam.Name, rt.Base, origParam.Class)
 
 		// Adjust index: idx8 = x - lo  (if lo != 0)
-		var idx8 Reg
+		var idxVal Reg
 		if rt.Lo == 0 {
-			idx8 = x
+			idxVal = x
 		} else {
 			loReg := b.Const(rt.Lo, rt.Base, origParam.Class)
-			idx8 = b.Sub(x, loReg, rt.Base, origParam.Class)
+			idxVal = b.Sub(x, loReg, rt.Base, origParam.Class)
 		}
 
-		// Zero-extend to u16 for pointer arithmetic.
-		idx16 := b.Ext(idx8, rt.Base, TyU16, ClassIndex)
+		// Zero-extend to u16 for pointer arithmetic when needed.
+		var idx16 Reg
+		if rt.Base.Width() <= 8 {
+			idx16 = b.Ext(idxVal, rt.Base, TyU16, ClassIndex)
+		} else {
+			idx8 := b.Trunc(idxVal, rt.Base, TyU8, ClassGeneral)
+			idx16 = b.Ext(idx8, TyU8, TyU16, ClassIndex)
+		}
 
-		// base = address of LUT.
-		base := b.AddrOf(lutName, ClassPointer)
-
-		// ptr = base + idx16
-		ptr := b.PtrAdd(base, idx16, ClassPointer)
-
-		// result = *ptr
 		retCls := f.Contract.Returns[0].Class
-		result := b.Load(ptr, TyU8, retCls)
+		var result Reg
+		if retW == 1 {
+			lutName := f.Name + "_lut"
+			base := b.AddrOf(lutName, ClassPointer)
+			ptr := b.PtrAdd(base, idx16, ClassPointer)
+			result = b.Load(ptr, retTy, retCls)
+		} else {
+			lutLoName := f.Name + "_lut_lo"
+			lutHiName := f.Name + "_lut_hi"
+
+			baseLo := b.AddrOf(lutLoName, ClassPointer)
+			ptrLo := b.PtrAdd(baseLo, idx16, ClassPointer)
+			lo8 := b.Load(ptrLo, TyU8, ClassGeneral)
+
+			baseHi := b.AddrOf(lutHiName, ClassPointer)
+			ptrHi := b.PtrAdd(baseHi, idx16, ClassPointer)
+			hi8 := b.Load(ptrHi, TyU8, ClassGeneral)
+
+			lo16 := b.Ext(lo8, TyU8, TyU16, ClassGeneral)
+			hi16 := b.Ext(hi8, TyU8, TyU16, ClassGeneral)
+			shift8 := b.Const(8, TyU8, ClassGeneral)
+			hiShifted := b.Shl(hi16, shift8, TyU16, ClassGeneral)
+			result = b.Or(lo16, hiShifted, TyU16, retCls)
+		}
 
 		b.Ret(result)
 
@@ -122,8 +172,8 @@ func lutEligible(f *Func) bool {
 	if !ok {
 		return false
 	}
-	// Base type must be an 8-bit integer (u8 or i8).
-	if rt.Base.Width() != 8 {
+	// Base type must be an 8-bit or 16-bit integer.
+	if rt.Base.Width() != 8 && rt.Base.Width() != 16 {
 		return false
 	}
 	// Range must be ≤ 256 values.
@@ -131,11 +181,11 @@ func lutEligible(f *Func) bool {
 	if size <= 0 || size > 256 {
 		return false
 	}
-	// Must return exactly one u8 value.
+	// Must return exactly one u8/u16 value.
 	if len(f.Contract.Returns) != 1 {
 		return false
 	}
-	if f.Contract.Returns[0].Ty.Width() != 8 {
+	if f.Contract.Returns[0].Ty.Width() != 8 && f.Contract.Returns[0].Ty.Width() != 16 {
 		return false
 	}
 	return true

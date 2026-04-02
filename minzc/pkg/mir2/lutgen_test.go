@@ -207,6 +207,92 @@ func TestLUTGen_NonZeroLo(t *testing.T) {
 	}
 }
 
+func TestLUTGen_U16Return(t *testing.T) {
+	m := &mir2.Module{Name: "lut_u16_ret"}
+	f := m.AddFunc("widen")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU16, Class: mir2.ClassPointer}}
+	b := mir2.NewBuilder(f)
+	b.SwitchToNewBlock("entry")
+	x := b.Param("x", mir2.NewRanged(mir2.TyU8, 0, 4), mir2.ClassAcc)
+	r := b.Ext(x, mir2.TyU8, mir2.TyU16, mir2.ClassPointer)
+	b.Ret(r)
+
+	changed := mir2.LUTGen(m)
+	if !changed {
+		t.Fatal("LUTGen: expected widen to be replaced")
+	}
+
+	var lutLo *mir2.Global
+	var lutHi *mir2.Global
+	for i := range m.Globals {
+		if m.Globals[i].Name == "widen_lut_lo" {
+			lutLo = &m.Globals[i]
+		}
+		if m.Globals[i].Name == "widen_lut_hi" {
+			lutHi = &m.Globals[i]
+		}
+	}
+	if lutLo == nil || lutHi == nil {
+		t.Fatal("split u16 LUT globals not found")
+	}
+	if got := len(lutLo.Init); got != 4 {
+		t.Fatalf("u16 low LUT size: want 4 bytes, got %d", got)
+	}
+	if got := len(lutHi.Init); got != 4 {
+		t.Fatalf("u16 high LUT size: want 4 bytes, got %d", got)
+	}
+	wantLo := []byte{0, 1, 2, 3}
+	wantHi := []byte{0, 0, 0, 0}
+	for i, b := range wantLo {
+		if lutLo.Init[i] != b {
+			t.Fatalf("u16 low LUT byte %d: got %d want %d", i, lutLo.Init[i], b)
+		}
+	}
+	for i, b := range wantHi {
+		if lutHi.Init[i] != b {
+			t.Fatalf("u16 high LUT byte %d: got %d want %d", i, lutHi.Init[i], b)
+		}
+	}
+}
+
+func TestLUTGen_U16ParamSmallRange(t *testing.T) {
+	m := &mir2.Module{Name: "lut_u16_param"}
+	f := m.AddFunc("low_byte")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	b := mir2.NewBuilder(f)
+	b.SwitchToNewBlock("entry")
+	x := b.Param("x", mir2.NewRanged(mir2.TyU16, 1000, 1004), mir2.ClassPointer)
+	xff := b.Const(0x00FF, mir2.TyU16, mir2.ClassIndex)
+	masked := b.And(x, xff, mir2.TyU16, mir2.ClassPointer)
+	r := b.Trunc(masked, mir2.TyU16, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(r)
+
+	changed := mir2.LUTGen(m)
+	if !changed {
+		t.Fatal("LUTGen: expected low_byte to be replaced")
+	}
+
+	var lut *mir2.Global
+	for i := range m.Globals {
+		if m.Globals[i].Name == "low_byte_lut" {
+			lut = &m.Globals[i]
+			break
+		}
+	}
+	if lut == nil {
+		t.Fatal("global low_byte_lut not found")
+	}
+	want := []byte{232, 233, 234, 235}
+	if len(lut.Init) != len(want) {
+		t.Fatalf("u16-param LUT size: want %d, got %d", len(want), len(lut.Init))
+	}
+	for i, b := range want {
+		if lut.Init[i] != b {
+			t.Fatalf("u16-param LUT[%d]: got %d want %d", i, lut.Init[i], b)
+		}
+	}
+}
+
 // popcount8 is the reference popcount for test verification.
 func popcount8(x int) int {
 	n := 0
