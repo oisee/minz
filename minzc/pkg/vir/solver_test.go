@@ -288,6 +288,36 @@ func TestInsertPreTieMoves_PreservesSelfAddShape(t *testing.T) {
 	}
 }
 
+func TestInsertPreTieMoves_PreservesSelfAdd16Shape(t *testing.T) {
+	ops := []VIROp{
+		{Op: OpAdd, Dst: 2, Src: [2]int{1, 1}, Width: 16},
+		{Op: OpAddImm, Dst: 3, Src: [2]int{2, -1}, Imm: 1, Width: 16},
+	}
+
+	got := insertPreTieMoves(ops, Z80)
+	if len(got) != len(ops) {
+		t.Fatalf("unexpected pre-tie move inserted: got %d ops, want %d", len(got), len(ops))
+	}
+	if got[0].Src != [2]int{1, 1} {
+		t.Fatalf("16-bit self-add shape changed: got src=%v, want [1 1]", got[0].Src)
+	}
+}
+
+func TestInsertPreTieMoves_PreservesImmediateTiedChain(t *testing.T) {
+	ops := []VIROp{
+		{Op: OpAddImm, Dst: 2, Src: [2]int{1, -1}, Imm: 1, Width: 8},
+		{Op: OpSubImm, Dst: 3, Src: [2]int{2, -1}, Imm: 1, Width: 8},
+	}
+
+	got := insertPreTieMoves(ops, Z80)
+	if len(got) != len(ops) {
+		t.Fatalf("unexpected pre-tie move inserted: got %d ops, want %d", len(got), len(ops))
+	}
+	if got[0].Src[0] != 1 || got[1].Src[0] != 2 {
+		t.Fatalf("immediate tied chain changed: got src0s [%d %d], want [1 2]", got[0].Src[0], got[1].Src[0])
+	}
+}
+
 func TestInsertSaveMoves(t *testing.T) {
 	// Unit test for the pre-solver save pass
 	ops := []VIROp{

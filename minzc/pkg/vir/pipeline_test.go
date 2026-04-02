@@ -88,3 +88,39 @@ func TestCodegenModule_TwoFunctions(t *testing.T) {
 		t.Errorf("expected 2 OK functions, got %d", ok)
 	}
 }
+
+func TestCodegenModule_Double16ThenInc(t *testing.T) {
+	if _, err := exec.LookPath("z3"); err != nil {
+		t.Skip("z3 not found")
+	}
+
+	m := &mir2.Module{}
+
+	// fun double_inc(x: u16) -> u16 { return (x + x) + 1 }
+	f := m.AddFunc("double_inc")
+	b := f.NewBlock("entry")
+
+	in := f.AllocReg()
+	b.Params = append(b.Params, mir2.BlockParam{Dst: in, Ty: mir2.TyU16})
+
+	doubled := f.AllocReg()
+	b.Append(&mir2.Inst{Op: mir2.OpAdd, Dst: doubled, Src: [2]mir2.Reg{in, in}, Ty: mir2.TyU16})
+
+	one := f.AllocReg()
+	b.Append(&mir2.Inst{Op: mir2.OpConst, Dst: one, Imm: 1, Ty: mir2.TyU16})
+
+	out := f.AllocReg()
+	b.Append(&mir2.Inst{Op: mir2.OpAdd, Dst: out, Src: [2]mir2.Reg{doubled, one}, Ty: mir2.TyU16})
+	b.Seal(&mir2.TermRet{Vals: []mir2.Reg{out}})
+
+	asm, results := CodegenModule(m, SolverOptions{Verbose: testing.Verbose()})
+	if len(results) != 1 || !results[0].OK {
+		t.Fatalf("codegen failed: %+v\nasm:\n%s", results, asm)
+	}
+	if !strings.Contains(asm, "ADD HL, HL") {
+		t.Fatalf("expected 16-bit self-add fast path in asm:\n%s", asm)
+	}
+	if !strings.Contains(asm, "INC HL") {
+		t.Fatalf("expected 16-bit increment fast path in asm:\n%s", asm)
+	}
+}
