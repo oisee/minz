@@ -2,163 +2,83 @@
 //
 // 64 LFSR layers XOR random pixels on 128×96 screen.
 // GPU-found optimal seeds: 2968 total points → recognizable face.
-// 351 bytes Z80 binary. The original GPU-to-Z80 pipeline demo.
+// Rewritten in a more idiomatic Nanz style:
+//   - static typed arrays for layer data
+//   - LUT-based bit masks
+//   - no runtime table construction
 //
 // HOW TO RUN (Nanz → Z80):
-//   mz fun/che_intro.nanz -o build/che.a80             # compile
-//   mza build/che.a80 -o build/che.bin                 # assemble → 1518 bytes
-//   mze build/che.bin                                  # display Che on Z80 emulator!
+//   mz fun/che_intro.nanz -o build/che.a80
+//   mza build/che.a80 -o build/che.bin
+//   mze build/che.bin
 //
-// HOW TO RUN (asm version — hand-optimized, 351 bytes):
+// HOW TO RUN (asm version — hand-optimized):
 //   mza fun/che_intro.asm -o build/che_asm.bin
 
 // ── LFSR-16: same as z80-optimizer CUDA kernel ──────────────
 
 fun lfsr_step(seed_h: u8, seed_l: u8, init_h: u8, init_l: u8) -> u16 {
-    // Fibonacci LFSR matching CUDA kernel
-    // Returns new seed as u16
     var sh: u8 = seed_h
     var sl: u8 = seed_l
-    var ih: u8 = init_h
-    var il: u8 = init_l
+    let feedback: u8 = sh / 128
 
-    // XOR feedback: tap positions match z80-optimizer
-    let feedback: u8 = sh / 128    // bit 7 of seed_h
-    sh = (sh + sh) + (sl / 128)    // shift left, carry from sl
-    sl = sl + sl                   // shift left
+    sh = (sh + sh) + (sl / 128)
+    sl = sl + sl
 
     if feedback == 1 {
-        sl = sl xor il
-        sh = sh xor ih
+        sl = sl xor init_l
+        sh = sh xor init_h
     }
+
     return sh * 256 + sl
 }
+
+// ── Static layer data ───────────────────────────────────────
+
+global bit_masks: [u8; 8] = [128, 64, 32, 16, 8, 4, 2, 1]
+
+global layer_seeds: [u16; 64] = [
+    0xC6A1, 0xDE22, 0xA455, 0x6CCA, 0x6CCA, 0x6CCA, 0x6CCA, 0x6CCA,
+    0x43AD, 0x2D28, 0x2D28, 0x2D28, 0xCE7A, 0x0C20, 0xF88E, 0x40B0,
+    0x6370, 0x3498, 0x70C8, 0xE447, 0xD595, 0x1840, 0x1F56, 0x5E92,
+    0x3449, 0x0BE0, 0x2968, 0x83C6, 0x894A, 0x5C3A, 0xB662, 0xD337,
+    0x744F, 0x99F1, 0xC176, 0x060D, 0x56A7, 0x3E4D, 0x2FCD, 0x4AB5,
+    0x9475, 0x3A0F, 0x5E9C, 0x2B1C, 0x6EF7, 0x0FD2, 0xAED2, 0x5EB5,
+    0x7CE5, 0x4BE5, 0x0BEA, 0x33EC, 0x7D0D, 0x0613, 0x13F0, 0x96CE,
+    0x4CCE, 0x091E, 0x2A8D, 0x5364, 0xB494, 0x15C5, 0x0176, 0x02EA
+]
+
+global layer_points: [u8; 64] = [
+    128, 126, 124, 122, 120, 118, 116, 114,
+    112, 110, 108, 106, 104, 102, 100, 98,
+    48, 47, 46, 45, 44, 43, 42, 41,
+    40, 39, 38, 37, 36, 35, 34, 33,
+    24, 23, 23, 22, 22, 21, 21, 20,
+    20, 19, 19, 18, 18, 17, 17, 16,
+    16, 15, 15, 14, 14, 13, 13, 12,
+    12, 11, 11, 10, 10, 9, 9, 8
+]
 
 // ── Pixel plot via pointer deref ────────────────────────────
 
 fun xor_pixel(x: u8, y: u8) -> void {
-    // ZX Spectrum pixel address:
-    // addr = 0x4000 + (y/64)*2048 + (y%8)*256 + ((y/8)%8)*32 + x/8
-    // bit = 7 - (x % 8)
-    let y7: u8 = y / 64          // third (0-2)
-    let y2_0: u8 = y % 8         // pixel row in cell
-    let y5_3: u8 = (y / 8) % 8   // character row in third
+    let y7: u8 = y / 64
+    let y2_0: u8 = y % 8
+    let y5_3: u8 = (y / 8) % 8
     let xbyte: u8 = x / 8
 
     let addr: u16 = 0x4000 + y7 * 2048 + y2_0 * 256 + y5_3 * 32 + xbyte
-
-    // Bit mask: bit 7 = leftmost pixel
-    let bit_pos: u8 = 7 - (x % 8)
-    var mask: u8 = 1
-    var i: u8 = 0
-    while i < bit_pos { mask = mask + mask  i = i + 1 }
+    let mask: u8 = bit_masks[x % 8]
 
     let p: ^u8 = addr
     p^ = p^ xor mask
 }
 
-// ── Layer table: 64 × (seed: u16, points: u8) ──────────────
-// GPU-found optimal seeds from z80-optimizer CUDA kernel.
-// Stored at 0xC000 (above screen, below stack).
-
-global data_addr: u16 = 0xC000
-
-fun store_layer(idx: u8, seed: u16, points: u8) -> void {
-    let base: u16 = data_addr + idx * 3
-    let p0: ^u8 = base
-    let p1: ^u8 = base + 1
-    let p2: ^u8 = base + 2
-    p0^ = seed % 256
-    p1^ = seed / 256
-    p2^ = points
-}
-
-fun load_seed(idx: u8) -> u16 {
-    let base: u16 = data_addr + idx * 3
-    let p0: ^u8 = base
-    let p1: ^u8 = base + 1
-    return p1^ * 256 + p0^
-}
-
-fun load_points(idx: u8) -> u8 {
-    let p: ^u8 = data_addr + idx * 3 + 2
-    return p^
-}
-
-// ── Init layer table with GPU-found seeds ───────────────────
-
-fun init_layers() -> void {
-    store_layer(0,  0xC6A1, 128)
-    store_layer(1,  0xDE22, 126)
-    store_layer(2,  0xA455, 124)
-    store_layer(3,  0x6CCA, 122)
-    store_layer(4,  0x6CCA, 120)
-    store_layer(5,  0x6CCA, 118)
-    store_layer(6,  0x6CCA, 116)
-    store_layer(7,  0x6CCA, 114)
-    store_layer(8,  0x43AD, 112)
-    store_layer(9,  0x2D28, 110)
-    store_layer(10, 0x2D28, 108)
-    store_layer(11, 0x2D28, 106)
-    store_layer(12, 0xCE7A, 104)
-    store_layer(13, 0x0C20, 102)
-    store_layer(14, 0xF88E, 100)
-    store_layer(15, 0x40B0, 98)
-    store_layer(16, 0x6370, 48)
-    store_layer(17, 0x3498, 47)
-    store_layer(18, 0x70C8, 46)
-    store_layer(19, 0xE447, 45)
-    store_layer(20, 0xD595, 44)
-    store_layer(21, 0x1840, 43)
-    store_layer(22, 0x1F56, 42)
-    store_layer(23, 0x5E92, 41)
-    store_layer(24, 0x3449, 40)
-    store_layer(25, 0x0BE0, 39)
-    store_layer(26, 0x2968, 38)
-    store_layer(27, 0x83C6, 37)
-    store_layer(28, 0x894A, 36)
-    store_layer(29, 0x5C3A, 35)
-    store_layer(30, 0xB662, 34)
-    store_layer(31, 0xD337, 33)
-    store_layer(32, 0x744F, 24)
-    store_layer(33, 0x99F1, 23)
-    store_layer(34, 0xC176, 23)
-    store_layer(35, 0x060D, 22)
-    store_layer(36, 0x56A7, 22)
-    store_layer(37, 0x3E4D, 21)
-    store_layer(38, 0x2FCD, 21)
-    store_layer(39, 0x4AB5, 20)
-    store_layer(40, 0x9475, 20)
-    store_layer(41, 0x3A0F, 19)
-    store_layer(42, 0x5E9C, 19)
-    store_layer(43, 0x2B1C, 18)
-    store_layer(44, 0x6EF7, 18)
-    store_layer(45, 0x0FD2, 17)
-    store_layer(46, 0xAED2, 17)
-    store_layer(47, 0x5EB5, 16)
-    store_layer(48, 0x7CE5, 16)
-    store_layer(49, 0x4BE5, 15)
-    store_layer(50, 0x0BEA, 15)
-    store_layer(51, 0x33EC, 14)
-    store_layer(52, 0x7D0D, 14)
-    store_layer(53, 0x0613, 13)
-    store_layer(54, 0x13F0, 13)
-    store_layer(55, 0x96CE, 12)
-    store_layer(56, 0x4CCE, 12)
-    store_layer(57, 0x091E, 11)
-    store_layer(58, 0x2A8D, 11)
-    store_layer(59, 0x5364, 10)
-    store_layer(60, 0xB494, 10)
-    store_layer(61, 0x15C5, 9)
-    store_layer(62, 0x0176, 9)
-    store_layer(63, 0x02EA, 8)
-}
-
 // ── Render one layer ────────────────────────────────────────
 
 fun render_layer(layer_idx: u8) -> void {
-    let seed: u16 = load_seed(layer_idx)
-    let points: u8 = load_points(layer_idx)
+    let seed: u16 = layer_seeds[layer_idx]
+    let points: u8 = layer_points[layer_idx]
     let init: u16 = 0x1337
 
     var sh: u8 = seed / 256
@@ -166,7 +86,6 @@ fun render_layer(layer_idx: u8) -> void {
     let ih: u8 = init / 256
     let il: u8 = init % 256
 
-    // Warmup: 8 LFSR steps
     var w: u8 = 0
     while w < 8 {
         let next: u16 = lfsr_step(sh, sl, ih, il)
@@ -175,15 +94,14 @@ fun render_layer(layer_idx: u8) -> void {
         w = w + 1
     }
 
-    // Plot points
     var p: u8 = 0
     while p < points {
         let next: u16 = lfsr_step(sh, sl, ih, il)
         sh = next / 256
         sl = next % 256
 
-        let x: u8 = sl % 128     // 0..127
-        let y: u8 = sh % 96      // 0..95
+        let x: u8 = sl % 128
+        let y: u8 = sh % 96
 
         xor_pixel(x, y)
         p = p + 1
@@ -193,8 +111,6 @@ fun render_layer(layer_idx: u8) -> void {
 // ── Main: render all 64 layers ──────────────────────────────
 
 fun main() -> void {
-    init_layers()
-
     var layer: u8 = 0
     while layer < 64 {
         render_layer(layer)
@@ -202,5 +118,5 @@ fun main() -> void {
     }
 }
 
-// Tests: run via mzv (MIR2 VM heap too small for 0xC000 address)
-// mzv fun/che_intro.nanz → should display Che face on screen!
+// Tests: run via mzv (MIR2 VM heap too small for 0x4000 screen address)
+// mzv fun/che_intro.nanz
