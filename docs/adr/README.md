@@ -27,6 +27,7 @@ We use a lightweight format inspired by Michael Nygard's template:
 | [ADR-0005](0005-future-consideration-monorepo-structure.md) | Future Consideration - Monorepo Structure | Draft | 2025-08-10 |
 | [ADR-0006](0006-ez80-adl-address-widening.md) | eZ80 ADL Address Widening Strategy | Accepted | 2026-02-14 |
 | [ADR-0007](0007-platform-specific-newline-handling.md) | Platform-Specific Newline Handling | Accepted | 2026-02-14 |
+| [ADR-0042](0042-let-vs-var-binding-mutability.md) | Let vs Var Binding Mutability | Proposed | 2026-04-02 |
 
 ## Creating a New ADR
 

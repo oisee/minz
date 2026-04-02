@@ -265,6 +265,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 			mir2.DeadStoreElim(f)
 		}
 	}
+	mir2.PruneUnreachableFuncs(m, functionPruneRoots(hm))
 	// Renumber regs to guarantee uniqueness after inlining may have
 	// allocated regs in earlier functions that overlap later functions.
 	m.RenumberRegs()
@@ -604,6 +605,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 			mir2.DeadStoreElim(f)
 		}
 	}
+	mir2.PruneUnreachableFuncs(m, functionPruneRoots(hm))
 	m.RenumberRegs()
 
 	// Phase 5b: interprocedural contract optimisation (greedy DP on call graph).
@@ -1272,11 +1274,16 @@ func injectModuleSummary(asm string, traces map[string]*FuncTrace, labelWarnings
 	var sb strings.Builder
 	total := len(traces)
 	counts := map[string]int{}  // backend → count
-	splits, fallbacks := 0, 0
+	splits, fallbacks, emitted := 0, 0, 0
 	totalPasses := 0
-	var fallbackNames []string
+	var fallbackNames, prunedNames []string
 	for _, tr := range traces {
 		counts[tr.Backend]++
+		if tr.Backend != "" {
+			emitted++
+		} else {
+			prunedNames = append(prunedNames, tr.Name)
+		}
 		if tr.SplitFrom != "" { splits++ }
 		if tr.BackendErr != "" {
 			fallbacks++
@@ -1294,6 +1301,10 @@ func injectModuleSummary(asm string, traces map[string]*FuncTrace, labelWarnings
 		}
 	}
 	sb.WriteByte('\n')
+	if pruned := total - emitted; pruned > 0 {
+		sort.Strings(prunedNames)
+		sb.WriteString(fmt.Sprintf("; pruned functions: %d [%s]\n", pruned, strings.Join(prunedNames, ", ")))
+	}
 	if splits > 0 {
 		sb.WriteString(fmt.Sprintf("; splits: %d (HIR-SPLIT high-pressure)\n", splits))
 	}
@@ -1564,6 +1575,61 @@ func splitVIRZeroStorage(virAsm string) (string, string) {
 		}
 	}
 	return code.String(), zeros.String()
+}
+
+func functionPruneRoots(hm *hir.Module) map[string]bool {
+	roots := make(map[string]bool)
+
+	if hm.FuncByName("main") != nil {
+		roots["main"] = true
+	}
+
+	for _, f := range hm.Funcs {
+		// Root explicit user-declared functions from the current module.
+		// Imported module functions and compiler-generated helpers are kept only
+		// when reachable from these roots, asserts, or address-taken edges.
+		if isUserFacingPruneRoot(f.Name) {
+			roots[f.Name] = true
+		}
+	}
+
+	for _, a := range hm.Asserts {
+		roots[a.FuncName] = true
+	}
+	for _, sb := range hm.Sandboxes {
+		for _, a := range sb.Asserts {
+			roots[a.FuncName] = true
+		}
+	}
+
+	return roots
+}
+
+func isUserFacingPruneRoot(name string) bool {
+	if name == "" {
+		return false
+	}
+	if isCompilerGeneratedFunc(name) {
+		return false
+	}
+	if isImportedModuleFunc(name) {
+		return false
+	}
+	return true
+}
+
+func isCompilerGeneratedFunc(name string) bool {
+	return name == "__tag" ||
+		name == "__payload" ||
+		strings.HasPrefix(name, "__mpay_") ||
+		strings.HasPrefix(name, "__arr_") ||
+		strings.HasPrefix(name, "lambda_")
+}
+
+func isImportedModuleFunc(name string) bool {
+	// Nanz import mangling uses "__" between module path segments and before
+	// the imported symbol: "lib.math.add" -> "lib__math__add".
+	return !strings.HasPrefix(name, "__") && strings.Count(name, "__") >= 2
 }
 
 func emitGlobals(m *mir2.Module) string {

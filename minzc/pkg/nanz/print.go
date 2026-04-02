@@ -399,7 +399,12 @@ func (p *printer) expr(e hir.Expr) {
 	case *hir.ConstPtrExpr:
 		p.writef("@ptr(%s, 0x%04X)", tyStr(e.ElemTy), e.Addr)
 	case *hir.AddrOfExpr:
-		p.writef("&%s", e.Sym)
+		p.write("&")
+		if e.X != nil {
+			p.exprParen(e.X)
+		} else {
+			p.write(e.Sym)
+		}
 	case *hir.LoadExpr:
 		// ptr^  (postfix ^)
 		p.exprParen(e.Ptr)
@@ -413,7 +418,7 @@ func (p *printer) expr(e hir.Expr) {
 		p.write(")")
 	case *hir.IndexExpr:
 		// Sugar: (&sym)[i]  →  sym[i]  (array variable indexed directly)
-		if ao, ok := e.Base.(*hir.AddrOfExpr); ok {
+		if ao, ok := e.Base.(*hir.AddrOfExpr); ok && ao.X == nil {
 			p.write(ao.Sym)
 		} else {
 			p.exprParen(e.Base)

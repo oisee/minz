@@ -518,12 +518,6 @@ func insertPreTieMoves(ops []VIROp, desc *MachineDesc) []VIROp {
 		}
 	}
 
-	// For each tied op: if src0 is also used as src0 in another tied op,
-	// OR if src0 is live at another tied op's position, insert a copy.
-	// Simple heuristic: for ALL tied ops, if src0 was not just defined
-	// (i.e., src0's def is not the immediately preceding instruction),
-	// insert a move to create a short-lived copy.
-
 	nextVReg := 0
 	for _, op := range ops {
 		if op.Dst > nextVReg {
@@ -537,34 +531,32 @@ func insertPreTieMoves(ops []VIROp, desc *MachineDesc) []VIROp {
 	}
 	nextVReg++
 
-	// Find def positions (-1 = defined in a previous block / parameter)
-	defAt := make(map[int]int)
-	for i, op := range ops {
-		if op.Dst > 0 {
-			defAt[op.Dst] = i
-		}
-	}
-
-	// Count tied ops — only insert copies if there are multiple tied ops
-	tiedCount := 0
-	for _, t := range hasTied {
-		if t {
-			tiedCount++
-		}
-	}
-	if tiedCount <= 1 {
-		return ops
-	}
+	// Only insert a pre-tie copy when src0 stays live across ANOTHER tied op
+	// whose src0 is a different vreg. That is the real "A register conflict"
+	// case this helper is meant to address.
+	live := computeLiveness(ops)
 
 	var result []VIROp
 	for i, op := range ops {
 		if hasTied[i] && op.Src[0] > 0 {
 			src0 := op.Src[0]
-			def, hasDef := defAt[src0]
-			// Insert pre-tie copy if:
-			// - src0 defined in previous block (hasDef=false), OR
-			// - src0 defined more than 1 instruction ago (might conflict)
-			needsCopy := !hasDef || i-def > 1
+			needsCopy := false
+			for j, otherTied := range hasTied {
+				if !otherTied || j == i {
+					continue
+				}
+				otherSrc0 := ops[j].Src[0]
+				if otherSrc0 <= 0 || otherSrc0 == src0 {
+					continue
+				}
+				if ops[j].Dst == src0 {
+					continue // src0 is born here, not live-through here
+				}
+				if live[j].live[src0] {
+					needsCopy = true
+					break
+				}
+			}
 			if needsCopy {
 				copyReg := nextVReg
 				nextVReg++
@@ -574,6 +566,9 @@ func insertPreTieMoves(ops []VIROp, desc *MachineDesc) []VIROp {
 				})
 				newOp := op
 				newOp.Src[0] = copyReg
+				if op.Src[1] == src0 {
+					newOp.Src[1] = copyReg
+				}
 				result = append(result, newOp)
 				continue
 			}

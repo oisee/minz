@@ -8,6 +8,7 @@ import (
 
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/nanz"
+	"github.com/minz/minzc/pkg/pipeline"
 )
 
 func TestFactcheck_AddressOfGlobalParses(t *testing.T) {
@@ -27,7 +28,7 @@ fun ptr_to_counter() -> ptr {
 	}
 }
 
-func TestFactcheck_AddressOfFieldRejected(t *testing.T) {
+func TestFactcheck_AddressOfFieldParses(t *testing.T) {
 	src := `
 struct Point { x: u8 }
 global p: Point
@@ -36,11 +37,73 @@ fun ptr_to_field() -> ptr {
     return &p.x
 }
 `
-	_, err := nanz.Parse(src, "addr_field_test")
-	if err == nil {
-		t.Fatal("expected parse error for &p.x")
+	m, err := nanz.Parse(src, "addr_field_test")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
 	}
-	t.Logf("got expected error: %v", err)
+	ret := m.Funcs[0].Body.Body[0].(*hir.ReturnStmt)
+	ao, ok := ret.Val.(*hir.AddrOfExpr)
+	if !ok {
+		t.Fatalf("return expr: want AddrOfExpr, got %T", ret.Val)
+	}
+	fe, ok := ao.X.(*hir.FieldExpr)
+	if !ok {
+		t.Fatalf("addr-of target: want FieldExpr, got %T", ao.X)
+	}
+	if fe.Field != "x" || fe.Offset != 0 {
+		t.Fatalf("field target mismatch: field=%q offset=%d", fe.Field, fe.Offset)
+	}
+}
+
+func TestFactcheck_AddressOfFieldCompilesAndDerefs(t *testing.T) {
+	src := `
+struct Pair { a: u8, b: u8 }
+global pair_g: Pair
+
+fun write_then_read() -> u8 {
+    let pb = &pair_g.b
+    pb^ = 7
+    return pb^
+}
+
+assert write_then_read() == 7 via mir2
+`
+	hm, err := nanz.Parse(src, "addr_field_compile_test")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	if _, err := pipeline.CompileHIR(hm); err != nil {
+		t.Fatalf("compile: %v", err)
+	}
+}
+
+func TestFactcheck_AddressOfArrayIndexCompilesAndDerefs(t *testing.T) {
+	src := `
+global data: [u8; 4] = [10, 20, 30, 40]
+
+fun read_index_ptr() -> u8 {
+    var p: ptr
+    p = &data[2]
+    return p^
+}
+
+fun write_index_ptr() -> u8 {
+    var p: ptr
+    p = &data[1]
+    p^ = 99
+    return data[1]
+}
+
+assert read_index_ptr() == 30 via mir2
+assert write_index_ptr() == 99 via mir2
+`
+	hm, err := nanz.Parse(src, "addr_index_compile_test")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+	if _, err := pipeline.CompileHIR(hm); err != nil {
+		t.Fatalf("compile: %v", err)
+	}
 }
 
 func TestFactcheck_OffsetOfIsNotIntrinsic(t *testing.T) {

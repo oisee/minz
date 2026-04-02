@@ -1678,6 +1678,9 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 		return l.bld.CallIndirect(fnPtrReg, args, ex.Ty, cls)
 
 	case *AddrOfExpr:
+		if ex.X != nil {
+			return l.lowerExprAddr(ex.X)
+		}
 		// Local array promoted to global: env register IS the address.
 		if l.localArrays[ex.Sym] {
 			if reg, ok := l.env[ex.Sym]; ok {
@@ -2499,6 +2502,9 @@ func (l *lowerer) resolveFunc(arg Expr) string {
 	case *VarRefExpr:
 		name = a.Name
 	case *AddrOfExpr:
+		if a.X != nil {
+			return ""
+		}
 		name = a.Sym
 	default:
 		return ""
@@ -3012,6 +3018,9 @@ func renameExpr(e Expr, from, to string) Expr {
 	case *FieldExpr:
 		return &FieldExpr{X: renameExpr(ex.X, from, to), Field: ex.Field, Offset: ex.Offset, Ty: ex.Ty}
 	case *AddrOfExpr:
+		if ex.X != nil {
+			return &AddrOfExpr{Sym: ex.Sym, X: renameExpr(ex.X, from, to)}
+		}
 		return &AddrOfExpr{Sym: ex.Sym}
 	case *ConstPtrExpr:
 		return &ConstPtrExpr{ElemTy: ex.ElemTy, Addr: ex.Addr}

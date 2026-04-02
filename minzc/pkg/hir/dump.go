@@ -223,6 +223,9 @@ func dumpExpr(e Expr) string {
 		return fmt.Sprintf("(%s).%s[+%d]:%s", dumpExpr(ex.X), ex.Field, ex.Offset, ex.Ty)
 
 	case *AddrOfExpr:
+		if ex.X != nil {
+			return fmt.Sprintf("addr(%s):ptr", dumpExpr(ex.X))
+		}
 		return fmt.Sprintf("addr @%s:ptr", ex.Sym)
 
 	case *LoadExpr:

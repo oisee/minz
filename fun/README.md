@@ -1,6 +1,22 @@
 # fun/ — MinZ Playground
 
-**12/12 files verified.** Try in VSCode terminal — each file is self-contained.
+**12/12 files verified.** Treat these as runnable examples, regression fixtures,
+and quick fact-checks for the language/backend path they exercise.
+
+## Current High-Signal Examples
+
+The April 1-2 work confirmed a useful pattern: the best short-term wins are
+small, visible fixes on machinery that already exists.
+
+In this directory, that currently means:
+
+- `&obj.field` is now a real parse/lower/codegen path
+- `&arr[i]` is verified on the same addressable-lvalue path
+- field-pointer examples are part of the language docs, not just tests
+- there is still no built-in `offsetof(...)` language primitive
+
+If you want the fastest read on what changed recently, start with the four
+address-of examples below.
 
 ```bash
 cd minzc && make build    # build toolchain (once)
@@ -9,6 +25,58 @@ cd minzc && make build    # build toolchain (once)
 ---
 
 ## Nanz Examples
+
+### Address Of Field — `addr_field_basic.nanz`
+```bash
+mz fun/addr_field_basic.nanz --asserts mir2    # ✓ 2 asserts, fast
+```
+```nanz
+var pb: ptr
+pb = &pair_g.b
+pb^ = 7
+return pb^
+```
+Expected: field pointer write/read works through `ptr^`.
+
+### Address Of Field In Method — `addr_field_method.nanz`
+```bash
+mz fun/addr_field_method.nanz --asserts mir2   # ✓ 1 assert, fast
+```
+```nanz
+fun Counter.bump_via_ptr(self: ^Counter) -> u8 {
+    var pv: ptr
+    var ps: ptr
+    pv = &self.value
+    ps = &self.step
+    pv^ = pv^ + ps^
+    return pv^
+}
+```
+Expected: `counter_g.bump_via_ptr() == 14`
+
+### Address Of Field Across Objects — `addr_field_aos_walk.nanz`
+```bash
+mz fun/addr_field_aos_walk.nanz --asserts mir2 # ✓ 1 assert, fast
+```
+```nanz
+var p0x: ptr
+var p1y: ptr
+p0x = &p0.x
+p1y = &p1.y
+return p0x^ + p1y^
+```
+Expected: multiple field pointers can coexist and be read/written independently.
+
+### Address Of Array Element — `addr_index_basic.nanz`
+```bash
+mz fun/addr_index_basic.nanz --asserts mir2    # ✓ 2 asserts, fast
+```
+```nanz
+var p: ptr
+p = &data[2]
+return p^
+```
+Expected: indexed element pointers support both read and write via `ptr^`.
 
 ### ADT Option with Match Destructuring — `adt_option.nanz`
 ```bash

@@ -4284,13 +4284,20 @@ func (p *parser) parseUnary() (hir.Expr, error) {
 		}
 		return &hir.UnaryExpr{Op: "~", X: x, Ty: x.ExprTy()}, nil
 	case tokAmp:
-		// &name — address-of
+		// &lvalue — address-of
 		p.l.next()
-		nameTok, err := p.l.eat(tokIdent)
+		target, err := p.parsePostfixFull()
 		if err != nil {
 			return nil, err
 		}
-		return &hir.AddrOfExpr{Sym: nameTok.val}, nil
+		switch target := target.(type) {
+		case *hir.VarRefExpr:
+			return &hir.AddrOfExpr{Sym: target.Name}, nil
+		case *hir.FieldExpr, *hir.IndexExpr:
+			return &hir.AddrOfExpr{X: target}, nil
+		default:
+			return nil, fmt.Errorf("line %d: &: expected addressable name, field, or index", t.line)
+		}
 	}
 	return p.parsePostfixFull()
 }
@@ -5253,7 +5260,10 @@ func remapExprStringRefs(e hir.Expr, offset int) {
 	}
 	switch e := e.(type) {
 	case *hir.AddrOfExpr:
-		// @mir2.str.N → @mir2.str.(N+offset)
+		if e.X != nil {
+			remapExprStringRefs(e.X, offset)
+			return
+		}
 		var idx int
 		if n, _ := fmt.Sscanf(e.Sym, "@mir2.str.%d", &idx); n == 1 {
 			e.Sym = fmt.Sprintf("@mir2.str.%d", idx+offset)
@@ -5581,7 +5591,9 @@ func rewriteExpr(expr hir.Expr, nameMap map[string]string) {
 	case *hir.FieldExpr:
 		rewriteExpr(e.X, nameMap)
 	case *hir.AddrOfExpr:
-		if mangled, ok := nameMap[e.Sym]; ok {
+		if e.X != nil {
+			rewriteExpr(e.X, nameMap)
+		} else if mangled, ok := nameMap[e.Sym]; ok {
 			e.Sym = mangled
 		}
 	case *hir.LoadExpr:

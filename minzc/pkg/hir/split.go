@@ -509,7 +509,9 @@ func collectExprRefs(e Expr, refs map[string]bool) {
 	case *FieldExpr:
 		collectExprRefs(e.X, refs)
 	case *AddrOfExpr:
-		// AddrOfExpr.Sym is a symbol name, not a variable — no ref needed
+		if e.X != nil {
+			collectExprRefs(e.X, refs)
+		}
 	case *DerefExpr:
 		collectExprRefs(e.Ptr, refs)
 	}

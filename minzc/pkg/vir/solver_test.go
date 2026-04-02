@@ -273,6 +273,21 @@ func TestZ3SolverMoveInsertion(t *testing.T) {
 	}
 }
 
+func TestInsertPreTieMoves_PreservesSelfAddShape(t *testing.T) {
+	ops := []VIROp{
+		{Op: OpAdd, Dst: 2, Src: [2]int{1, 1}, Width: 8},
+		{Op: OpAddImm, Dst: 3, Src: [2]int{2, -1}, Imm: 1, Width: 8},
+	}
+
+	got := insertPreTieMoves(ops, Z80)
+	if len(got) != len(ops) {
+		t.Fatalf("unexpected pre-tie move inserted: got %d ops, want %d", len(got), len(ops))
+	}
+	if got[0].Src != [2]int{1, 1} {
+		t.Fatalf("self-add shape changed: got src=%v, want [1 1]", got[0].Src)
+	}
+}
+
 func TestInsertSaveMoves(t *testing.T) {
 	// Unit test for the pre-solver save pass
 	ops := []VIROp{

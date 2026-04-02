@@ -1,0 +1,36 @@
+// addr_field_basic.nanz — address-of struct field + pointer dereference
+//
+// Demonstrates:
+//   - &obj.field
+//   - ptr^ read/write through a field pointer
+//
+// HOW TO RUN:
+//   mz fun/addr_field_basic.nanz --asserts mir2
+//   mz fun/addr_field_basic.nanz -o build/addr_field_basic.a80
+
+struct Pair {
+    a: u8,
+    b: u8
+}
+
+global pair_g: Pair
+
+fun write_then_read() -> u8 {
+    var pb: ptr
+    pb = &pair_g.b
+    pb^ = 7
+    return pb^
+}
+
+fun sum_fields() -> u8 {
+    var pa: ptr
+    var pb: ptr
+    pa = &pair_g.a
+    pb = &pair_g.b
+    pa^ = 3
+    pb^ = 9
+    return pa^ + pb^
+}
+
+assert write_then_read() == 7 via mir2
+assert sum_fields() == 12 via mir2

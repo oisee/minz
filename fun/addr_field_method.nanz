@@ -1,0 +1,38 @@
+// addr_field_method.nanz — field pointer inside ^Struct methods
+//
+// Demonstrates:
+//   - self: ^Struct
+//   - &self.field
+//   - reusing ptr^ for updates
+//
+// HOW TO RUN:
+//   mz fun/addr_field_method.nanz --asserts mir2
+//   mz fun/addr_field_method.nanz -o build/addr_field_method.a80
+
+struct Counter {
+    value: u8,
+    step: u8
+}
+
+global counter_g: Counter
+
+fun Counter.bump_via_ptr(self: ^Counter) -> u8 {
+    var pv: ptr
+    var ps: ptr
+    pv = &self.value
+    ps = &self.step
+    pv^ = pv^ + ps^
+    return pv^
+}
+
+fun prepare() -> void {
+    counter_g.value = 10
+    counter_g.step = 4
+}
+
+fun test_method_pointer_update() -> u8 {
+    prepare()
+    return counter_g.bump_via_ptr()
+}
+
+assert test_method_pointer_update() == 14 via mir2

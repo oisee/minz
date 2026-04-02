@@ -1,0 +1,27 @@
+// addr_index_basic.nanz — address-of array element + pointer dereference
+//
+// Demonstrates:
+//   - &arr[i]
+//   - ptr^ read/write through an indexed element pointer
+//
+// HOW TO RUN:
+//   mz fun/addr_index_basic.nanz --asserts mir2
+//   mz fun/addr_index_basic.nanz -o build/addr_index_basic.a80
+
+global data: [u8; 4] = [10, 20, 30, 40]
+
+fun read_index_ptr() -> u8 {
+    var p: ptr
+    p = &data[2]
+    return p^
+}
+
+fun write_index_ptr() -> u8 {
+    var p: ptr
+    p = &data[1]
+    p^ = 99
+    return data[1]
+}
+
+assert read_index_ptr() == 30 via mir2
+assert write_index_ptr() == 99 via mir2

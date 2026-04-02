@@ -416,9 +416,11 @@ type FieldExpr struct {
 func (*FieldExpr) hirExpr()          {}
 func (e *FieldExpr) ExprTy() mir2.Ty { return e.Ty }
 
-// AddrOfExpr takes the address of a global symbol or string literal.
+// AddrOfExpr takes the address of either a named symbol or an addressable
+// expression such as a field/index lvalue.
 type AddrOfExpr struct {
-	Sym string // global or string symbol name
+	Sym string // global/function/string symbol name
+	X   Expr   // optional addressable expression
 }
 
 func (*AddrOfExpr) hirExpr()          {}
@@ -547,7 +549,8 @@ func Gt(l, r Expr) *BinExpr              { return &BinExpr{Op: ">", L: l, R: r, 
 func Eq(l, r Expr) *BinExpr              { return &BinExpr{Op: "==", L: l, R: r, Ty: mir2.TyBool} }
 func Ne(l, r Expr) *BinExpr              { return &BinExpr{Op: "!=", L: l, R: r, Ty: mir2.TyBool} }
 func Call(fn string, ty mir2.Ty, args ...Expr) *CallExpr { return &CallExpr{Fn: fn, Args: args, Ty: ty} }
-func Addr(sym string) *AddrOfExpr       { return &AddrOfExpr{Sym: sym} }
+func Addr(sym string) *AddrOfExpr         { return &AddrOfExpr{Sym: sym} }
+func AddrExpr(x Expr) *AddrOfExpr         { return &AddrOfExpr{X: x} }
 func Load(ptr Expr, ty mir2.Ty) *LoadExpr { return &LoadExpr{Ptr: ptr, Ty: ty} }
 func Cast(x Expr, ty mir2.Ty) *CastExpr { return &CastExpr{X: x, Ty: ty} }
 

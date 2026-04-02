@@ -1,0 +1,47 @@
+// addr_field_aos_walk.nanz — array-of-struct style field-pointer walk
+//
+// Demonstrates:
+//   - taking addresses of fields in multiple objects
+//   - using ptr^ as the stable low-level access form
+//
+// HOW TO RUN:
+//   mz fun/addr_field_aos_walk.nanz --asserts mir2
+//   mz fun/addr_field_aos_walk.nanz -o build/addr_field_aos_walk.a80
+
+struct Pixel {
+    x: u8,
+    y: u8
+}
+
+global p0: Pixel
+global p1: Pixel
+
+fun seed_pixels() -> void {
+    var p0x: ptr
+    var p0y: ptr
+    var p1x: ptr
+    var p1y: ptr
+    p0x = &p0.x
+    p0y = &p0.y
+    p1x = &p1.x
+    p1y = &p1.y
+    p0x^ = 1
+    p0y^ = 2
+    p1x^ = 10
+    p1y^ = 20
+}
+
+fun sum_pixel_components() -> u8 {
+    seed_pixels()
+    var p0x: ptr
+    var p0y: ptr
+    var p1x: ptr
+    var p1y: ptr
+    p0x = &p0.x
+    p0y = &p0.y
+    p1x = &p1.x
+    p1y = &p1.y
+    return p0x^ + p0y^ + p1x^ + p1y^
+}
+
+assert sum_pixel_components() == 33 via mir2
