@@ -10,9 +10,10 @@ all: build
 build:
 	cd minzc && $(MAKE) all
 
-# Clean build artifacts
+# Clean build artifacts and optionally remove user-local installed binaries
 clean:
 	cd minzc && $(MAKE) clean
+	@if [ -d "$(HOME)/.local/bin" ]; then rm -f "$(HOME)"/.local/bin/mz*; fi
 
 # Run tests
 test:
@@ -22,7 +23,7 @@ test:
 install:
 	cd minzc && $(MAKE) install
 
-# Install to ~/bin
+# Install to ~/.local/bin
 install-user:
 	cd minzc && $(MAKE) install-user
 
@@ -37,7 +38,7 @@ help:
 	@echo "  clean        - Remove built executables"
 	@echo "  test         - Run basic tests"
 	@echo "  install      - Install to /usr/local/bin (may need sudo)"
-	@echo "  install-user - Install to ~/bin"
+	@echo "  install-user - Install to ~/.local/bin"
 	@echo "  help         - Show this help"
 	@echo ""
 	@echo "Quick start:"
