@@ -25,7 +25,7 @@ func collectKnownConsts(f *Func) map[Reg]int64 {
 // Supports:
 //   - Unary:   OpNeg, OpNot, OpMove, OpExt, OpTrunc, OpSext
 //   - Binary:  OpAdd, OpSub, OpMul, OpDiv, OpSDiv, OpMod
-//              OpAnd, OpOr, OpXor, OpShl, OpShr, OpSar
+//     OpAnd, OpOr, OpXor, OpShl, OpShr, OpSar
 //   - Compare: OpCmp (all conditions, signed and unsigned)
 //
 // Returns true if any instruction was folded.  Callers should follow with
@@ -81,6 +81,21 @@ func tryFoldInst(inst *Inst, consts map[Reg]int64) (int64, bool) {
 			return 0, false
 		}
 		return maskToWidth(^src0, inst.Ty), true
+	case OpBitGet:
+		if !ok0 {
+			return 0, false
+		}
+		return (maskToWidth(src0, inst.SrcTy) >> uint(inst.Imm)) & 1, true
+	case OpBitSet:
+		if !ok0 {
+			return 0, false
+		}
+		return maskToWidth(src0|(int64(1)<<uint(inst.Imm)), inst.Ty), true
+	case OpBitReset:
+		if !ok0 {
+			return 0, false
+		}
+		return maskToWidth(src0 & ^(int64(1)<<uint(inst.Imm)), inst.Ty), true
 	case OpExt, OpTrunc:
 		if !ok0 {
 			return 0, false
@@ -380,7 +395,7 @@ func PropagateConstants(f *Func) bool {
 // SimplifyIdentities replaces instructions whose result is trivially equal to
 // one of their operands.  Currently handles:
 //
-//   OpPtrAdd(base, Const(0)) → OpMove(base)
+//	OpPtrAdd(base, Const(0)) → OpMove(base)
 //
 // This fires after FoldConstants has turned any literal 0 offset into OpConst.
 // Returns true if any instruction was rewritten.

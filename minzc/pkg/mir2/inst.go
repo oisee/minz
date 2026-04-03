@@ -7,7 +7,8 @@ import "fmt"
 // Field usage by opcode — unlisted fields are zero/nil:
 //
 //	Binary (OpAdd…OpSar):       Dst, Src[0], Src[1], Ty, Cls
-//	Unary (OpNeg, OpNot):       Dst, Src[0], Ty, Cls
+//	Unary (OpBitGet/Set/Reset,
+//	       OpNeg, OpNot):       Dst, Src[0], Imm(bit for bit ops), Ty, Cls
 //	Convert (OpExt/Sext/Trunc): Dst, Src[0], SrcTy, Ty(=dest), Cls
 //	OpCmp:                      Dst, Src[0], Src[1], Cond, Ty(=TyBool), Cls
 //	OpConst:                    Dst, Imm, Ty, Cls
@@ -181,7 +182,7 @@ func filterNoReg(regs ...Reg) []Reg {
 // Concrete types: *TermJmp, *TermBrIf, *TermBrIf2, *TermDJNZ, *TermCondRet, *TermRet, *TermUnreachable.
 type Term interface {
 	isTerm()
-	termUses() []Reg   // all Reg values read by this terminator
+	termUses() []Reg      // all Reg values read by this terminator
 	Successors() []string // successor block labels
 
 	// ForEachEdge calls fn for every outgoing CFG edge that carries block
@@ -204,9 +205,9 @@ type TermJmp struct {
 	Args   []Reg // values for target block's BlockParams (may be empty)
 }
 
-func (*TermJmp) isTerm()               {}
-func (t *TermJmp) termUses() []Reg      { return t.Args }
-func (t *TermJmp) Successors() []string { return []string{t.Target} }
+func (*TermJmp) isTerm()                                   {}
+func (t *TermJmp) termUses() []Reg                         { return t.Args }
+func (t *TermJmp) Successors() []string                    { return []string{t.Target} }
 func (t *TermJmp) ForEachEdge(fn func(string, []Reg, int)) { fn(t.Target, t.Args, 0) }
 
 // TermBrIf is a conditional branch with optional block arguments per edge.
@@ -223,7 +224,7 @@ type TermBrIf struct {
 	ElseArgs []Reg
 }
 
-func (*TermBrIf) isTerm()               {}
+func (*TermBrIf) isTerm() {}
 func (t *TermBrIf) termUses() []Reg {
 	all := make([]Reg, 0, 1+len(t.ThenArgs)+len(t.ElseArgs))
 	all = append(all, t.Cond)
@@ -250,10 +251,13 @@ func (t *TermBrIf) ForEachEdge(fn func(string, []Reg, int)) {
 // the equality and ordering checks are needed after one comparison.
 type TermBrIf2 struct {
 	Lhs    Reg
-	Rhs    Reg    // compared against Lhs; may alias a constant via OpConst
-	Eq     string; EqArgs []Reg // Z flag set: lhs == rhs
-	Lt     string; LtArgs []Reg // C flag set: lhs <  rhs (unsigned)
-	Gt     string; GtArgs []Reg // no flag:    lhs >  rhs
+	Rhs    Reg // compared against Lhs; may alias a constant via OpConst
+	Eq     string
+	EqArgs []Reg // Z flag set: lhs == rhs
+	Lt     string
+	LtArgs []Reg // C flag set: lhs <  rhs (unsigned)
+	Gt     string
+	GtArgs []Reg // no flag:    lhs >  rhs
 }
 
 func (*TermBrIf2) isTerm() {}
@@ -338,8 +342,8 @@ func (t *TermDJNZ) ForEachEdge(fn func(string, []Reg, int)) {
 // is a trivial return block.
 type TermCondRet struct {
 	Cond     Reg
-	Vals     []Reg   // return values when Cond == 0
-	Then     string  // block to jump to when Cond != 0
+	Vals     []Reg  // return values when Cond == 0
+	Then     string // block to jump to when Cond != 0
 	ThenArgs []Reg
 }
 
@@ -361,17 +365,17 @@ func (t *TermCondRet) ForEachEdge(fn func(string, []Reg, int)) {
 // Vals is empty for void returns; multiple values for multi-return.
 type TermRet struct{ Vals []Reg }
 
-func (*TermRet) isTerm()               {}
-func (t *TermRet) termUses() []Reg      { return t.Vals }
-func (*TermRet) Successors() []string   { return nil }
+func (*TermRet) isTerm()                              {}
+func (t *TermRet) termUses() []Reg                    { return t.Vals }
+func (*TermRet) Successors() []string                 { return nil }
 func (*TermRet) ForEachEdge(func(string, []Reg, int)) {} // no successors
 
 // TermUnreachable marks dead code.
 type TermUnreachable struct{}
 
-func (*TermUnreachable) isTerm()               {}
-func (*TermUnreachable) termUses() []Reg        { return nil }
-func (*TermUnreachable) Successors() []string   { return nil }
+func (*TermUnreachable) isTerm()                              {}
+func (*TermUnreachable) termUses() []Reg                      { return nil }
+func (*TermUnreachable) Successors() []string                 { return nil }
 func (*TermUnreachable) ForEachEdge(func(string, []Reg, int)) {} // no successors
 
 // TermString formats a terminator for dump output.

@@ -28,6 +28,14 @@ const (
 	OpShr // shr %a, %b : ty  (logical right shift, zero-fill)
 	OpSar // sar %a, %b : ty  (arithmetic right shift, sign-extend)
 
+	// ── Bit intent ─────────────────────────────────────────────────────────────
+	// OpBitGet:   Dst = bit_get   %a, imm=bit : u8 [cls]    (returns 0|1)
+	// OpBitSet:   Dst = bit_set   %a, imm=bit : ty [cls]
+	// OpBitReset: Dst = bit_reset %a, imm=bit : ty [cls]
+	OpBitGet
+	OpBitSet
+	OpBitReset
+
 	// ── Unary ──────────────────────────────────────────────────────────────────
 	// Inst: Dst = op Src[0] : Ty [Cls]
 	OpNeg   // neg   %a : ty            (arithmetic negate)
@@ -126,6 +134,7 @@ func (op Op) String() string {
 var opNames = [opCount]string{
 	OpAdd: "add", OpSub: "sub", OpMul: "mul", OpDiv: "div", OpSDiv: "sdiv", OpMod: "mod",
 	OpAnd: "and", OpOr: "or", OpXor: "xor", OpShl: "shl", OpShr: "shr", OpSar: "sar",
+	OpBitGet: "bit_get", OpBitSet: "bit_set", OpBitReset: "bit_reset",
 	OpNeg: "neg", OpNot: "not", OpExt: "ext", OpSext: "sext", OpTrunc: "trunc",
 	OpCmp:          "cmp",
 	OpConst:        "const",
@@ -153,7 +162,9 @@ var opNames = [opCount]string{
 func IsBinary(op Op) bool { return op >= OpAdd && op <= OpSar }
 
 // IsUnary reports whether op takes one value operand (not conversions).
-func IsUnary(op Op) bool { return op == OpNeg || op == OpNot }
+func IsUnary(op Op) bool {
+	return op == OpBitGet || op == OpBitSet || op == OpBitReset || op == OpNeg || op == OpNot
+}
 
 // IsConversion reports whether op changes the type of a value.
 func IsConversion(op Op) bool { return op == OpExt || op == OpSext || op == OpTrunc }

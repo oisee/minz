@@ -1208,6 +1208,31 @@ fun bad(x: u8) {
 	}
 }
 
+func TestBitSelectorLoweringUsesDirectBitOps(t *testing.T) {
+	src := `
+fun poke(ptr: ptr) {
+    ptr^.4 = 1
+}
+
+fun read(ptr: ptr) -> u8 {
+    return ptr^.4
+}
+`
+	m, err := nanz.Parse(src, "bit_selector_lowering_test")
+	if err != nil {
+		t.Fatalf("parse: %v", err)
+	}
+
+	mirMod := hir.LowerModule(m)
+	dump := mirMod.Dump()
+	if !strings.Contains(dump, "bit_set") {
+		t.Fatalf("expected lowered MIR to contain bit_set, got:\n%s", dump)
+	}
+	if !strings.Contains(dump, "bit_get") {
+		t.Fatalf("expected lowered MIR to contain bit_get, got:\n%s", dump)
+	}
+}
+
 // ── Interface declaration ─────────────────────────────────────────────────────
 
 func TestInterfaceDecl(t *testing.T) {

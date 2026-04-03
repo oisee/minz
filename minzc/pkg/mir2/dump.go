@@ -202,6 +202,9 @@ func DumpInst(inst *Inst) string {
 		}
 		fmt.Fprintf(&sb, "%s %%r%d : %s%s%s", inst.Op, inst.Src[0], srcTy, inst.Ty, clsSuffix())
 
+	case OpBitGet, OpBitSet, OpBitReset:
+		fmt.Fprintf(&sb, "%s %%r%d, .%d : %s%s", inst.Op, inst.Src[0], inst.Imm, inst.Ty, clsSuffix())
+
 	case OpAsm:
 		if inst.Asm != nil {
 			fmt.Fprintf(&sb, "asm %q", inst.Asm.Template)

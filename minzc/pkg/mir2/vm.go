@@ -479,6 +479,17 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		result = truncate(Value{I: -a.I}, ty)
 	case OpNot:
 		result = truncate(Value{I: ^a.I}, ty)
+	case OpBitGet:
+		baseTy := inst.SrcTy
+		if baseTy == nil {
+			baseTy = ty
+		}
+		v := truncate(a, baseTy)
+		result = Value{I: (v.I >> uint(inst.Imm)) & 1}
+	case OpBitSet:
+		result = truncate(Value{I: a.I | (int64(1) << uint(inst.Imm))}, ty)
+	case OpBitReset:
+		result = truncate(Value{I: a.I & ^(int64(1) << uint(inst.Imm))}, ty)
 
 	// ── Conversions ─────────────────────────────────────────────────────────
 	case OpExt:
@@ -531,11 +542,11 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 			// Carry from sub ≡ (r + b) >= 2^width ≡ orig_a < orig_b unsigned.
 			// Use SrcTy (operand width), not Ty (result=TyBool with Width()=1).
 			width := uint(inst.SrcTy.Width())
-			ok = (ua+ub) >= (1 << width)
+			ok = (ua + ub) >= (1 << width)
 		case CmpSubCarryNot:
 			// Complement of CmpSubCarry: no borrow ≡ orig_a >= orig_b unsigned.
 			width := uint(inst.SrcTy.Width())
-			ok = (ua+ub) < (1 << width)
+			ok = (ua + ub) < (1 << width)
 		}
 		if ok {
 			result = Value{I: 1}

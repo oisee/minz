@@ -405,31 +405,41 @@ func bitMaskFor(baseTy mir2.Ty, bit int64) int64 {
 func (l *lowerer) lowerBitRead(ex *BitExpr) mir2.Reg {
 	baseTy := bitBaseTy(ex.X)
 	base := l.lowerExpr(ex.X)
-	shift := l.bld.Const(int64(ex.Bit), baseTy, mir2.ClassGeneral)
-	shifted := l.bld.Shr(base, shift, baseTy, classForExpr(baseTy))
-	one := l.bld.Const(1, baseTy, mir2.ClassGeneral)
-	masked := l.bld.And(shifted, one, baseTy, classForExpr(baseTy))
-	if baseTy.Width() > 8 {
-		return l.bld.Trunc(masked, baseTy, mir2.TyU8, classForExpr(mir2.TyU8))
-	}
-	return masked
+	return l.bld.BitGet(base, ex.Bit, baseTy, classForExpr(mir2.TyU8))
 }
 
 func (l *lowerer) lowerBitAssign(tgt *BitExpr, val Expr) {
 	baseTy := bitBaseTy(tgt.X)
 	maskImm := bitMaskFor(baseTy, int64(tgt.Bit))
-	notMask := l.bld.Const(^maskImm, baseTy, mir2.ClassGeneral)
-	rhs := l.lowerExprAs(val, mir2.TyU8)
-	rhsBase := l.bld.Ext(rhs, mir2.TyU8, baseTy, classForExpr(baseTy))
-	one := l.bld.Const(1, baseTy, mir2.ClassGeneral)
-	bitVal := l.bld.And(rhsBase, one, baseTy, classForExpr(baseTy))
-	setVal := bitVal
-	if tgt.Bit > 0 {
-		shift := l.bld.Const(int64(tgt.Bit), baseTy, mir2.ClassGeneral)
-		setVal = l.bld.Shl(bitVal, shift, baseTy, classForExpr(baseTy))
+
+	constAssign := func() (set bool, value bool) {
+		switch v := val.(type) {
+		case *IntLitExpr:
+			return true, (v.Val & 1) != 0
+		case *BoolLitExpr:
+			return true, v.Val
+		default:
+			return false, false
+		}
 	}
 
 	merge := func(cur mir2.Reg) mir2.Reg {
+		if ok, bit := constAssign(); ok {
+			if bit {
+				return l.bld.BitSet(cur, tgt.Bit, baseTy, classForExpr(baseTy))
+			}
+			return l.bld.BitReset(cur, tgt.Bit, baseTy, classForExpr(baseTy))
+		}
+		notMask := l.bld.Const(^maskImm, baseTy, mir2.ClassGeneral)
+		rhs := l.lowerExprAs(val, mir2.TyU8)
+		rhsBase := l.bld.Ext(rhs, mir2.TyU8, baseTy, classForExpr(baseTy))
+		one := l.bld.Const(1, baseTy, mir2.ClassGeneral)
+		bitVal := l.bld.And(rhsBase, one, baseTy, classForExpr(baseTy))
+		setVal := bitVal
+		if tgt.Bit > 0 {
+			shift := l.bld.Const(int64(tgt.Bit), baseTy, mir2.ClassGeneral)
+			setVal = l.bld.Shl(bitVal, shift, baseTy, classForExpr(baseTy))
+		}
 		cleared := l.bld.And(cur, notMask, baseTy, classForExpr(baseTy))
 		return l.bld.Or(cleared, setVal, baseTy, classForExpr(baseTy))
 	}

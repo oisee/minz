@@ -1657,6 +1657,12 @@ func (g *z80cg) scanLUTPatterns(b *Block) {
 //	next = And(cur, const(^ (1<<n) & 0xFF))
 //	Store(ptr, next, u8)
 //
+// and explicit MIR2 bit intent:
+//
+//	cur  = Load(ptr, ty)
+//	next = BitSet(cur, .n) / BitReset(cur, .n)
+//	Store(ptr, next, ty)
+//
 // When matched:
 //   - g.bitStorePat[nextReg] = {bit:n, op:"SET"/"RES"}
 //   - g.bitStoreSkip[cur,next] = true
@@ -1700,7 +1706,7 @@ func (g *z80cg) scanBitStorePatterns(b *Block) {
 		if !ok || useCount[valReg] != 1 {
 			continue
 		}
-		if valInst.Op != OpOr && valInst.Op != OpAnd {
+		if valInst.Op != OpOr && valInst.Op != OpAnd && valInst.Op != OpBitSet && valInst.Op != OpBitReset {
 			continue
 		}
 
@@ -1715,7 +1721,13 @@ func (g *z80cg) scanBitStorePatterns(b *Block) {
 			}
 		}
 		if loadReg == NoReg || useCount[loadReg] != 1 {
-			continue
+			if valInst.Op != OpBitSet && valInst.Op != OpBitReset {
+				continue
+			}
+			loadReg = valInst.Src[0]
+			if def, ok := defInst[loadReg]; !ok || def.Op != OpLoad || def.Ty.Width() != width || def.Src[0] != inst.Src[0] || useCount[loadReg] != 1 {
+				continue
+			}
 		}
 
 		switch width {
@@ -1733,6 +1745,10 @@ func (g *z80cg) scanBitStorePatterns(b *Block) {
 				}
 				bit := bits.TrailingZeros8(^mask)
 				g.bitStorePat[valReg] = bitStorePat{bit: bit, byteOffset: 0, op: "RES"}
+			case OpBitSet:
+				g.bitStorePat[valReg] = bitStorePat{bit: int(valInst.Imm), byteOffset: 0, op: "SET"}
+			case OpBitReset:
+				g.bitStorePat[valReg] = bitStorePat{bit: int(valInst.Imm), byteOffset: 0, op: "RES"}
 			}
 		case 16:
 			mask16 := uint16(0)
@@ -1753,6 +1769,12 @@ func (g *z80cg) scanBitStorePatterns(b *Block) {
 					continue
 				}
 				totalBit := bits.TrailingZeros16(^mask16)
+				g.bitStorePat[valReg] = bitStorePat{bit: totalBit % 8, byteOffset: totalBit / 8, op: "RES"}
+			case OpBitSet:
+				totalBit := int(valInst.Imm)
+				g.bitStorePat[valReg] = bitStorePat{bit: totalBit % 8, byteOffset: totalBit / 8, op: "SET"}
+			case OpBitReset:
+				totalBit := int(valInst.Imm)
 				g.bitStorePat[valReg] = bitStorePat{bit: totalBit % 8, byteOffset: totalBit / 8, op: "RES"}
 			}
 		}
@@ -1808,17 +1830,18 @@ func (g *z80cg) scanBitCmpPatterns(b *Block) {
 		if inst.Op != OpCmp || (inst.Cond != CmpEq && inst.Cond != CmpNe) {
 			continue
 		}
-		andReg := NoReg
+		testReg := NoReg
 		if rhsInst, ok := defInst[inst.Src[1]]; ok && rhsInst.Op == OpConst && rhsInst.Imm == 0 {
-			andReg = inst.Src[0]
+			testReg = inst.Src[0]
 		} else if lhsInst, ok := defInst[inst.Src[0]]; ok && lhsInst.Op == OpConst && lhsInst.Imm == 0 {
-			andReg = inst.Src[1]
+			testReg = inst.Src[1]
 		}
-		if andReg == NoReg {
+		if testReg == NoReg {
 			continue
 		}
-		andInst, ok := defInst[andReg]
-		if !ok || andInst.Op != OpAnd || useCount[andReg] != 1 {
+
+		testInst, ok := defInst[testReg]
+		if !ok || useCount[testReg] != 1 {
 			continue
 		}
 
@@ -1829,7 +1852,35 @@ func (g *z80cg) scanBitCmpPatterns(b *Block) {
 			maskConst uint16
 			otherReg  Reg = NoReg
 		)
-		for _, src := range andInst.Src {
+
+		if testInst.Op == OpBitGet {
+			totalBit := int(testInst.Imm)
+			pat.bit = totalBit % 8
+			pat.byteOffset = totalBit / 8
+			baseReg := testInst.Src[0]
+			if loadInst, ok := defInst[baseReg]; ok && loadInst.Op == OpLoad && (loadInst.Ty.Width() == 8 || loadInst.Ty.Width() == 16) && useCount[baseReg] == 1 {
+				pat.ptrReg = loadInst.Src[0]
+				pat.useMem = true
+				skipRegs = []Reg{baseReg, testReg}
+				matched = true
+			} else {
+				pat.srcReg = baseReg
+				skipRegs = []Reg{testReg}
+				matched = true
+			}
+		}
+		if matched {
+			g.bitCmpPat[inst.Dst] = pat
+			for _, r := range skipRegs {
+				g.bitCmpSkip[r] = true
+			}
+			continue
+		}
+
+		if testInst.Op != OpAnd {
+			continue
+		}
+		for _, src := range testInst.Src {
 			if def, ok := defInst[src]; ok && def.Op == OpConst {
 				maskConst = uint16(def.Imm)
 			} else {
@@ -1849,11 +1900,11 @@ func (g *z80cg) scanBitCmpPatterns(b *Block) {
 					if loadInst, ok := defInst[baseReg]; ok && loadInst.Op == OpLoad && (loadInst.Ty.Width() == 8 || loadInst.Ty.Width() == 16) && useCount[baseReg] == 1 {
 						pat.ptrReg = loadInst.Src[0]
 						pat.useMem = true
-						skipRegs = []Reg{baseReg, otherReg, andReg}
+						skipRegs = []Reg{baseReg, otherReg, testReg}
 						matched = true
 					} else {
 						pat.srcReg = baseReg
-						skipRegs = []Reg{otherReg, andReg}
+						skipRegs = []Reg{otherReg, testReg}
 						matched = true
 					}
 				}
@@ -1867,11 +1918,11 @@ func (g *z80cg) scanBitCmpPatterns(b *Block) {
 			if loadInst, ok := defInst[otherReg]; ok && loadInst.Op == OpLoad && (loadInst.Ty.Width() == 8 || loadInst.Ty.Width() == 16) && useCount[otherReg] == 1 {
 				pat.ptrReg = loadInst.Src[0]
 				pat.useMem = true
-				skipRegs = []Reg{otherReg, andReg}
+				skipRegs = []Reg{otherReg, testReg}
 				matched = true
 			} else {
 				pat.srcReg = otherReg
-				skipRegs = []Reg{andReg}
+				skipRegs = []Reg{testReg}
 				matched = true
 			}
 		}
@@ -2606,6 +2657,89 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
 		g.genBinOp("XOR", inst)
+
+	case OpBitGet:
+		g.lastFlagsLhs = ""
+		g.lastFlagsRhs = ""
+		src := g.loc(inst.Src[0])
+		bit := int(inst.Imm)
+		byteOffset := bit / 8
+		bitInByte := bit % 8
+		target := selectBitReg(src, byteOffset)
+		if isSpill(src) {
+			if inst.SrcTy != nil && inst.SrcTy.Width() > 8 {
+				g.loadSpill16("HL", src)
+				target = selectBitReg("HL", byteOffset)
+			} else {
+				g.emitLD8("A", src)
+				target = "A"
+			}
+		}
+		if target != "A" {
+			g.emitLDA(target)
+		}
+		for i := 0; i < bitInByte; i++ {
+			g.emit("    SRL A")
+		}
+		g.emit("    AND 1")
+		g.invalidate("A")
+		if dst != "A" {
+			g.emitLD8(dst, "A")
+		} else {
+			g.pendingAccReg = inst.Dst
+		}
+
+	case OpBitSet, OpBitReset:
+		g.lastFlagsLhs = ""
+		g.lastFlagsRhs = ""
+		src := g.loc(inst.Src[0])
+		bit := int(inst.Imm)
+		byteOffset := bit / 8
+		bitInByte := bit % 8
+		op := "SET"
+		if inst.Op == OpBitReset {
+			op = "RES"
+		}
+		if dst != src {
+			g.emitMov(dst, src, inst.Ty.Width())
+		}
+		target := selectBitReg(dst, byteOffset)
+		if g.emitBitRegOp(op, bitInByte, target) {
+			g.invalidate(dst)
+			g.invalidate(target)
+			break
+		}
+		if isSpill(dst) && inst.Ty.Width() > 8 {
+			g.loadSpill16("HL", dst)
+			target = selectBitReg("HL", byteOffset)
+			g.emitLDA(target)
+			if op == "SET" {
+				g.emitf("    OR %d", 1<<bitInByte)
+			} else {
+				g.emitf("    AND %d", ^(1<<bitInByte)&0xFF)
+			}
+			g.emitLD8(target, "A")
+			g.storeSpill16(dst, "HL")
+			g.invalidate("HL")
+			g.invalidate("A")
+			break
+		}
+		if target != "A" {
+			g.emitLDA(target)
+		}
+		if op == "SET" {
+			g.emitf("    OR %d", 1<<bitInByte)
+		} else {
+			g.emitf("    AND %d", ^(1<<bitInByte)&0xFF)
+		}
+		g.invalidate("A")
+		if target != "A" {
+			g.emitLD8(target, "A")
+		}
+		if dst != "A" && target == "A" {
+			g.emitLD8(dst, "A")
+		}
+		g.invalidate(dst)
 
 	case OpNeg:
 		g.lastFlagsLhs = ""

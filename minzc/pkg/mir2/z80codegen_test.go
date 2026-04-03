@@ -520,6 +520,30 @@ func TestBitStorePattern_RES_U16_HLHighByte(t *testing.T) {
 	}
 }
 
+func TestBitStorePattern_DirectBitSet_U8_HL(t *testing.T) {
+	m := &mir2.Module{Name: "bit_direct_set_hl"}
+	f := m.AddFunc("set_bit4_direct")
+
+	b := mir2.NewBuilder(f)
+	b.SwitchToNewBlock("entry")
+	ptr := b.Param("ptr", mir2.TyPtr, mir2.ClassPointer)
+	cur := b.Load(ptr, mir2.TyU8, mir2.ClassGeneral)
+	next := b.BitSet(cur, 4, mir2.TyU8, mir2.ClassGeneral)
+	b.Store(ptr, next, mir2.TyU8)
+	b.Ret()
+
+	asm := compileModuleForCodegenTest(t, m)
+	t.Log("\n" + asm)
+
+	fnAsm := extractFuncAsm(asm, "set_bit4_direct")
+	if !strings.Contains(fnAsm, "SET 4, (HL)") {
+		t.Fatalf("expected direct MIR2 bit_set store fusion, got:\n%s", fnAsm)
+	}
+	if strings.Contains(fnAsm, "OR 16") {
+		t.Fatalf("expected no arithmetic OR fallback, got:\n%s", fnAsm)
+	}
+}
+
 func TestBitRegPattern_SET_U8_B(t *testing.T) {
 	m := &mir2.Module{Name: "bit_reg_set_u8"}
 	f := m.AddFunc("set_bit5_reg")
@@ -549,6 +573,34 @@ func TestBitRegPattern_SET_U8_B(t *testing.T) {
 	}
 }
 
+func TestBitRegPattern_DirectBitReset_U8_IXL(t *testing.T) {
+	m := &mir2.Module{Name: "bit_direct_res_ixl"}
+	f := m.AddFunc("reset_bit2_direct")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassGeneral}}
+
+	b := mir2.NewBuilder(f)
+	b.SwitchToNewBlock("entry")
+	val := b.Param("val", mir2.TyU8, mir2.ClassGeneral)
+	next := b.BitReset(val, 2, mir2.TyU8, mir2.ClassGeneral)
+	b.Ret(next)
+
+	lr := mir2.ComputeLiveness(f)
+	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
+	ar.Locs[val] = mir2.PhysLoc{Kind: mir2.LocIXY8, Name: "IXL"}
+	ar.Locs[next] = mir2.PhysLoc{Kind: mir2.LocIXY8, Name: "IXL"}
+
+	asm := mir2.Z80Codegen(m, ar)
+	t.Log("\n" + asm)
+
+	fnAsm := extractFuncAsm(asm, "reset_bit2_direct")
+	if !strings.Contains(fnAsm, "RES 2, IXL") {
+		t.Fatalf("expected direct MIR2 bit_reset on IXL, got:\n%s", fnAsm)
+	}
+	if strings.Contains(fnAsm, "AND 251") {
+		t.Fatalf("expected no arithmetic AND fallback, got:\n%s", fnAsm)
+	}
+}
+
 func TestBitRegPattern_RES_U8_IXL(t *testing.T) {
 	m := &mir2.Module{Name: "bit_reg_res_ixl"}
 	f := m.AddFunc("reset_bit1_reg")
@@ -575,6 +627,41 @@ func TestBitRegPattern_RES_U8_IXL(t *testing.T) {
 	}
 	if strings.Contains(fnAsm, "LD A, IXL") || strings.Contains(fnAsm, "AND 253") {
 		t.Fatalf("expected no accumulator-based AND sequence, got:\n%s", fnAsm)
+	}
+}
+
+func TestBitCmpPattern_DirectBitGet_U16_IXRegPair(t *testing.T) {
+	m := &mir2.Module{Name: "bit_direct_get_ix"}
+	f := m.AddFunc("test_bit11_direct")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+
+	b := mir2.NewBuilder(f)
+	b.SwitchToNewBlock("entry")
+	val := b.Param("val", mir2.TyU16, mir2.ClassGeneral)
+	bitVal := b.BitGet(val, 11, mir2.TyU16, mir2.ClassGeneral)
+	zero := b.Const(0, mir2.TyU8, mir2.ClassGeneral)
+	cond := b.Cmp(mir2.CmpNe, bitVal, zero, mir2.ClassFlag, false)
+	b.BrIf(cond, "ret1", nil, "ret0", nil)
+	b.SwitchToNewBlock("ret1")
+	one := b.Const(1, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(one)
+	b.SwitchToNewBlock("ret0")
+	z := b.Const(0, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(z)
+
+	lr := mir2.ComputeLiveness(f)
+	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
+	ar.Locs[val] = mir2.PhysLoc{Kind: mir2.LocIXY, Name: "IX"}
+
+	asm := mir2.Z80Codegen(m, ar)
+	t.Log("\n" + asm)
+
+	fnAsm := extractFuncAsm(asm, "test_bit11_direct")
+	if !strings.Contains(fnAsm, "BIT 3, IXH") {
+		t.Fatalf("expected direct MIR2 bit_get compare to collapse to BIT on IXH, got:\n%s", fnAsm)
+	}
+	if strings.Contains(fnAsm, "SRL") || strings.Contains(fnAsm, "AND 1") || strings.Contains(fnAsm, "CP 0") {
+		t.Fatalf("expected no shifted/arithmetic fallback, got:\n%s", fnAsm)
 	}
 }
 

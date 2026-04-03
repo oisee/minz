@@ -136,6 +136,24 @@ func (b *Builder) unary(op Op, src Reg, ty Ty, cls RegClass) Reg {
 func (b *Builder) Neg(src Reg, ty Ty, cls RegClass) Reg { return b.unary(OpNeg, src, ty, cls) }
 func (b *Builder) Not(src Reg, ty Ty, cls RegClass) Reg { return b.unary(OpNot, src, ty, cls) }
 
+func (b *Builder) bitUnary(op Op, src Reg, bit int, srcTy, ty Ty, cls RegClass) Reg {
+	r := b.reg()
+	b.emit(&Inst{Op: op, Dst: r, Src: [2]Reg{src}, Imm: int64(bit), SrcTy: srcTy, Ty: ty, Cls: cls})
+	return r
+}
+
+func (b *Builder) BitGet(src Reg, bit int, srcTy Ty, cls RegClass) Reg {
+	return b.bitUnary(OpBitGet, src, bit, srcTy, TyU8, cls)
+}
+
+func (b *Builder) BitSet(src Reg, bit int, ty Ty, cls RegClass) Reg {
+	return b.bitUnary(OpBitSet, src, bit, ty, ty, cls)
+}
+
+func (b *Builder) BitReset(src Reg, bit int, ty Ty, cls RegClass) Reg {
+	return b.bitUnary(OpBitReset, src, bit, ty, ty, cls)
+}
+
 // ── Type conversions ──────────────────────────────────────────────────────────
 
 func (b *Builder) conv(op Op, src Reg, srcTy, dstTy Ty, cls RegClass) Reg {
@@ -424,9 +442,9 @@ func (b *Builder) PtrBumpSoA256Field(ptr Reg, cls RegClass) Reg {
 // the decremented counter. BodyArgs are args for body.Params[1:].
 func (b *Builder) DJNZ(counter Reg, body string, bodyArgs []Reg, exit string, exitArgs []Reg) {
 	b.Cur.Seal(&TermDJNZ{
-		Counter:  counter,
-		Body:     body, BodyArgs: bodyArgs,
-		Exit:     exit, ExitArgs: exitArgs,
+		Counter: counter,
+		Body:    body, BodyArgs: bodyArgs,
+		Exit: exit, ExitArgs: exitArgs,
 	})
 }
 
