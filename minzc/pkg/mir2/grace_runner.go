@@ -229,6 +229,25 @@ const graceBoundedLoopUnrollRule = `
     (custom "unrollBoundedLoop" ?head ?body)))
 `
 
+// Pointer-walk threading (Shape A): convert indexed addressing in a counted
+// loop to pointer increment. Pattern:
+//   header: br_if (cmp idx, limit), body, exit
+//   body:   addr = add base, idx; ...use addr...; idx' = add idx, stride; jmp header(idx')
+// Transform: add pointer block arg, replace addr computation with pointer use,
+// thread pointer increment through back-edge.
+const gracePointerWalkRule = `
+(grace pointer-walk-threading 22
+  (match
+    (block ?head (term-kind "br_if"))
+    (block ?body (term-kind "jump"))
+    (edge ?head ?body "then")
+    (edge ?body ?head "succ"))
+  (where
+    (has-pointer-walk-opportunity ?head ?body))
+  (action
+    (custom "threadPointerWalk" ?head ?body)))
+`
+
 // ── Statistics ──────────────────────────────────────────────────────────────
 
 // GraceStats tracks how many times each Grace rule fired across the module.
@@ -283,7 +302,8 @@ func loadAllRules() ([]grace.GraceRule, error) {
 		allSrc := graceCondRetSinkRule + graceSplitJoinRetRule + graceDeadBlockArgRule + graceDSERule + graceFuseAbsDiffRule +
 			graceEmptyBlockElimRule + graceBlockMergeRule + graceTrivialBranchRule + graceParamForwardRule + graceFuseCmpBrIf2Rule +
 			graceTailCallRule + graceNarrowArithRule + graceTailRecursionRule +
-			graceRedundantLoadRule + graceFlagsOnlyCmpRule + graceBoundedLoopUnrollRule
+			graceRedundantLoadRule + graceFlagsOnlyCmpRule + graceBoundedLoopUnrollRule +
+			gracePointerWalkRule
 		cachedRules, cachedRulesErr = grace.ParseRules(allSrc)
 	})
 	return cachedRules, cachedRulesErr
@@ -1480,7 +1500,394 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		return true
 	})
 
+	// ── Pointer-walk threading ─────────────────────────────────────────────
+
+	// has-pointer-walk-opportunity: detects Shape A counted loops where the
+	// body computes addr = base + idx (idx is a header block param) and
+	// increments idx by a constant stride on the back-edge.
+	//
+	// Requirements:
+	//   - header has ≥1 block param (the index)
+	//   - body has an OpAdd where one source is a header param and the other
+	//     is a constant (the base address), and the result is used by OpLoad/OpStore
+	//   - body's back-edge jump increments that param by a constant stride
+	//   - stride must be a small constant (1-256) for safety
+	reg.RegisterPredicate("has-pointer-walk-opportunity", func(graph rewrite.IRGraph, bindings grace.BlockBindings, args []string) bool {
+		if len(args) < 2 {
+			return false
+		}
+		headLabel := bindings[args[0]]
+		bodyLabel := bindings[args[1]]
+		head := f.BlockByLabel(headLabel)
+		body := f.BlockByLabel(bodyLabel)
+		if head == nil || body == nil || len(head.Params) == 0 {
+			return false
+		}
+
+		_, ok := findPointerWalkCandidate(f, head, body)
+		return ok
+	})
+
+	// threadPointerWalk: performs the Shape A pointer-threading transform.
+	reg.RegisterAction("threadPointerWalk", func(graph rewrite.IRGraphMut, bindings grace.BlockBindings) bool {
+		headLabel := bindings["head"]
+		bodyLabel := bindings["body"]
+		head := f.BlockByLabel(headLabel)
+		body := f.BlockByLabel(bodyLabel)
+		if head == nil || body == nil {
+			return false
+		}
+
+		cand, ok := findPointerWalkCandidate(f, head, body)
+		if !ok {
+			return false
+		}
+
+		// 1. Allocate a fresh register for the pointer block param
+		ptrReg := f.AllocReg()
+
+		// 2. Add pointer param to header
+		head.Params = append(head.Params, BlockParam{
+			Dst:   ptrReg,
+			Ty:    TyU16,
+			Class: ClassPointer,
+		})
+
+		// 3. Find body's corresponding param index for the pointer
+		//    The body receives header params via the br_if then-args.
+		//    We need to add a new param to body too (if body has params).
+		bodyPtrReg := ptrReg // if body has no params, header param carries through
+		brif, ok := head.Term.(*TermBrIf)
+		if !ok {
+			return false
+		}
+
+		if len(body.Params) > 0 {
+			// Body has params — add a new one for the pointer
+			bodyPtrReg = f.AllocReg()
+			body.Params = append(body.Params, BlockParam{
+				Dst:   bodyPtrReg,
+				Ty:    TyU16,
+				Class: ClassPointer,
+			})
+			brif.ThenArgs = append(brif.ThenArgs, ptrReg)
+		} else {
+			// Body has no params — it uses header's regs directly.
+			// The pointer reg from header is available in body.
+			bodyPtrReg = ptrReg
+			// Still need to add to then-args if there are any
+			if len(brif.ThenArgs) > 0 {
+				brif.ThenArgs = append(brif.ThenArgs, ptrReg)
+			}
+		}
+
+		// 4. Replace the address computation (add base, idx) with the pointer reg
+		//    cand.addrInst is the instruction in body that computes the address.
+		//    Replace its result register usage with bodyPtrReg.
+		addrReg := cand.addrInst.Dst
+		replaceRegInBlock(body, addrReg, bodyPtrReg)
+
+		// Remove the address computation instruction
+		removeInstFromBlock(body, cand.addrInstIdx)
+
+		// 5. Add pointer increment instruction in body (before the back-edge jump)
+		ptrNextReg := f.AllocReg()
+		strideConst := f.AllocReg()
+		// Insert stride const and add before the terminator
+		body.Insts = append(body.Insts,
+			&Inst{Op: OpConst, Dst: strideConst, Imm: cand.stride, Ty: TyU16},
+			&Inst{Op: OpAdd, Dst: ptrNextReg, Src: [2]Reg{bodyPtrReg, strideConst}, Ty: TyU16, Cls: ClassPointer},
+		)
+
+		// 6. Update back-edge jump args to include ptrNextReg
+		bodyJmp, ok := body.Term.(*TermJmp)
+		if !ok {
+			return false
+		}
+		bodyJmp.Args = append(bodyJmp.Args, ptrNextReg)
+
+		// 7. Update all OTHER edges to header to include the initial pointer value.
+		//    For the pre-header (entry block or setup block that jumps to header),
+		//    we need to compute base + initial_idx and pass it as the new arg.
+		//    For simplicity: find all predecessors of header and add the base constant
+		//    as the initial pointer value.
+		for _, blk := range f.Blocks {
+			if blk == body {
+				continue // already handled
+			}
+			addInitialPtrArg(f, blk, head.Label, cand.baseImm, cand.idxParamIdx)
+		}
+
+		return true
+	})
+
 	return reg
+}
+
+// pointerWalkCandidate describes a detected pointer-walk opportunity in a loop body.
+type pointerWalkCandidate struct {
+	idxParamIdx int    // index of the header param used as loop index
+	addrInst    *Inst  // the OpAdd instruction computing base + idx
+	addrInstIdx int    // index of addrInst in body.Insts
+	baseImm     int64  // the constant base address
+	stride      int64  // the constant increment per iteration
+}
+
+// findPointerWalkCandidate searches for the pattern:
+//   addr = add(const_base, idx_param) where addr is used by load/store
+//   idx_next = add(idx_param, const_stride) where idx_next flows back to header
+func findPointerWalkCandidate(f *Func, head, body *Block) (pointerWalkCandidate, bool) {
+	// Build set of header param registers
+	headerParamRegs := make(map[Reg]int) // reg → param index
+	for i, p := range head.Params {
+		headerParamRegs[p.Dst] = i
+	}
+
+	// Map body params to header params (via br_if then-args)
+	bodyToHeaderParam := make(map[Reg]int)
+	brif, ok := head.Term.(*TermBrIf)
+	if !ok {
+		return pointerWalkCandidate{}, false
+	}
+	if len(body.Params) > 0 {
+		for i, bp := range body.Params {
+			if i < len(brif.ThenArgs) {
+				if pidx, ok := headerParamRegs[brif.ThenArgs[i]]; ok {
+					bodyToHeaderParam[bp.Dst] = pidx
+				}
+			}
+		}
+	} else {
+		// Body uses header params directly
+		for reg, idx := range headerParamRegs {
+			bodyToHeaderParam[reg] = idx
+		}
+	}
+
+	// Find constants defined in body
+	bodyConsts := make(map[Reg]int64)
+	for _, inst := range body.Insts {
+		if inst.Op == OpConst {
+			bodyConsts[inst.Dst] = inst.Imm
+		}
+	}
+	// Also check constants in head
+	headConsts := make(map[Reg]int64)
+	for _, inst := range head.Insts {
+		if inst.Op == OpConst {
+			headConsts[inst.Dst] = inst.Imm
+		}
+	}
+
+	// Find addr = add(base_const, idx_param) where addr is used by load/store
+	for i, inst := range body.Insts {
+		if inst.Op != OpAdd || inst.Ty != TyU16 {
+			continue
+		}
+
+		// Check both orderings: add(base, idx) or add(idx, base)
+		var baseImm int64
+		var idxReg Reg
+		var idxParamIdx int
+		found := false
+
+		// Try src[0]=base_const, src[1]=idx_param
+		if base, ok := bodyConsts[inst.Src[0]]; ok {
+			if pidx, ok := bodyToHeaderParam[inst.Src[1]]; ok {
+				baseImm = base
+				idxReg = inst.Src[1]
+				idxParamIdx = pidx
+				found = true
+			}
+		}
+		if !found {
+			if base, ok := headConsts[inst.Src[0]]; ok {
+				if pidx, ok := bodyToHeaderParam[inst.Src[1]]; ok {
+					baseImm = base
+					idxReg = inst.Src[1]
+					idxParamIdx = pidx
+					found = true
+				}
+			}
+		}
+		// Try src[1]=base_const, src[0]=idx_param
+		if !found {
+			if base, ok := bodyConsts[inst.Src[1]]; ok {
+				if pidx, ok := bodyToHeaderParam[inst.Src[0]]; ok {
+					baseImm = base
+					idxReg = inst.Src[0]
+					idxParamIdx = pidx
+					found = true
+				}
+			}
+		}
+		if !found {
+			if base, ok := headConsts[inst.Src[1]]; ok {
+				if pidx, ok := bodyToHeaderParam[inst.Src[0]]; ok {
+					baseImm = base
+					idxReg = inst.Src[0]
+					idxParamIdx = pidx
+					found = true
+				}
+			}
+		}
+
+		if !found {
+			continue
+		}
+
+		// Verify addr result is used by load or store in this block
+		addrReg := inst.Dst
+		usedByMem := false
+		for _, user := range body.Insts {
+			if user == inst {
+				continue
+			}
+			if (user.Op == OpLoad && user.Src[0] == addrReg) ||
+				(user.Op == OpStore && user.Src[0] == addrReg) {
+				usedByMem = true
+				break
+			}
+		}
+		if !usedByMem {
+			continue
+		}
+
+		// Find stride: look for idx_next = add(idx_param, const_stride)
+		// where idx_next is passed back to header via the back-edge jump.
+		jmp, ok := body.Term.(*TermJmp)
+		if !ok || jmp.Target != head.Label {
+			continue
+		}
+
+		// Find which back-edge arg corresponds to idxParamIdx
+		if idxParamIdx >= len(jmp.Args) {
+			continue
+		}
+		idxNextReg := jmp.Args[idxParamIdx]
+
+		// Find the instruction that defines idxNextReg
+		var stride int64
+		strideFound := false
+		for _, sinst := range body.Insts {
+			if sinst.Dst != idxNextReg || sinst.Op != OpAdd {
+				continue
+			}
+			// Check: add(idx, stride_const) or add(stride_const, idx)
+			if sinst.Src[0] == idxReg {
+				if s, ok := bodyConsts[sinst.Src[1]]; ok && s >= 1 && s <= 256 {
+					stride = s
+					strideFound = true
+				}
+			} else if sinst.Src[1] == idxReg {
+				if s, ok := bodyConsts[sinst.Src[0]]; ok && s >= 1 && s <= 256 {
+					stride = s
+					strideFound = true
+				}
+			}
+		}
+		if !strideFound {
+			continue
+		}
+		_ = idxReg
+
+		return pointerWalkCandidate{
+			idxParamIdx: idxParamIdx,
+			addrInst:    inst,
+			addrInstIdx: i,
+			baseImm:     baseImm,
+			stride:      stride,
+		}, true
+	}
+
+	return pointerWalkCandidate{}, false
+}
+
+// replaceRegInBlock replaces all uses of oldReg with newReg in a block's instructions and terminator.
+func replaceRegInBlock(blk *Block, oldReg, newReg Reg) {
+	for _, inst := range blk.Insts {
+		if inst.Src[0] == oldReg {
+			inst.Src[0] = newReg
+		}
+		if inst.Src[1] == oldReg {
+			inst.Src[1] = newReg
+		}
+		// Don't replace Dst — the definition is being removed, not renamed
+	}
+	// Replace in terminator args
+	switch t := blk.Term.(type) {
+	case *TermJmp:
+		for i, r := range t.Args {
+			if r == oldReg {
+				t.Args[i] = newReg
+			}
+		}
+	case *TermBrIf:
+		if t.Cond == oldReg {
+			t.Cond = newReg
+		}
+		for i, r := range t.ThenArgs {
+			if r == oldReg {
+				t.ThenArgs[i] = newReg
+			}
+		}
+		for i, r := range t.ElseArgs {
+			if r == oldReg {
+				t.ElseArgs[i] = newReg
+			}
+		}
+	case *TermRet:
+		for i, r := range t.Vals {
+			if r == oldReg {
+				t.Vals[i] = newReg
+			}
+		}
+	}
+}
+
+// removeInstFromBlock removes instruction at index i from a block.
+func removeInstFromBlock(blk *Block, i int) {
+	blk.Insts = append(blk.Insts[:i], blk.Insts[i+1:]...)
+}
+
+// addInitialPtrArg updates edges from blk to headerLabel to include an initial
+// pointer value (base + initial_idx) as the last argument.
+func addInitialPtrArg(f *Func, blk *Block, headerLabel string, baseImm int64, idxParamIdx int) {
+	switch t := blk.Term.(type) {
+	case *TermJmp:
+		if t.Target == headerLabel && len(t.Args) > idxParamIdx {
+			// Compute initial pointer: base + initial_idx
+			idxArg := t.Args[idxParamIdx]
+			baseReg := f.AllocReg()
+			ptrInitReg := f.AllocReg()
+			blk.Insts = append(blk.Insts,
+				&Inst{Op: OpConst, Dst: baseReg, Imm: baseImm, Ty: TyU16},
+				&Inst{Op: OpAdd, Dst: ptrInitReg, Src: [2]Reg{baseReg, idxArg}, Ty: TyU16, Cls: ClassPointer},
+			)
+			t.Args = append(t.Args, ptrInitReg)
+		}
+	case *TermBrIf:
+		if t.Then == headerLabel && len(t.ThenArgs) > idxParamIdx {
+			idxArg := t.ThenArgs[idxParamIdx]
+			baseReg := f.AllocReg()
+			ptrInitReg := f.AllocReg()
+			blk.Insts = append(blk.Insts,
+				&Inst{Op: OpConst, Dst: baseReg, Imm: baseImm, Ty: TyU16},
+				&Inst{Op: OpAdd, Dst: ptrInitReg, Src: [2]Reg{baseReg, idxArg}, Ty: TyU16, Cls: ClassPointer},
+			)
+			t.ThenArgs = append(t.ThenArgs, ptrInitReg)
+		}
+		if t.Else == headerLabel && len(t.ElseArgs) > idxParamIdx {
+			idxArg := t.ElseArgs[idxParamIdx]
+			baseReg := f.AllocReg()
+			ptrInitReg := f.AllocReg()
+			blk.Insts = append(blk.Insts,
+				&Inst{Op: OpConst, Dst: baseReg, Imm: baseImm, Ty: TyU16},
+				&Inst{Op: OpAdd, Dst: ptrInitReg, Src: [2]Reg{baseReg, idxArg}, Ty: TyU16, Cls: ClassPointer},
+			)
+			t.ElseArgs = append(t.ElseArgs, ptrInitReg)
+		}
+	}
 }
 
 // ── Public API ──────────────────────────────────────────────────────────────
