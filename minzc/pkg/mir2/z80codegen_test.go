@@ -395,6 +395,74 @@ func TestBitStorePattern_RES_IX(t *testing.T) {
 	}
 }
 
+func TestBitCmpPattern_MaskAndZero_HL(t *testing.T) {
+	m := &mir2.Module{Name: "bit_cmp_mask"}
+	f := m.AddFunc("test_bit5")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+
+	b := mir2.NewBuilder(f)
+	b.SwitchToNewBlock("entry")
+	ptr := b.Param("ptr", mir2.TyPtr, mir2.ClassPointer)
+	cur := b.Load(ptr, mir2.TyU8, mir2.ClassGeneral)
+	mask := b.Const(32, mir2.TyU8, mir2.ClassGeneral)
+	masked := b.And(cur, mask, mir2.TyU8, mir2.ClassGeneral)
+	zero := b.Const(0, mir2.TyU8, mir2.ClassGeneral)
+	cond := b.Cmp(mir2.CmpNe, masked, zero, mir2.ClassFlag, false)
+	b.BrIf(cond, "ret1", nil, "ret0", nil)
+	b.SwitchToNewBlock("ret1")
+	one := b.Const(1, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(one)
+	b.SwitchToNewBlock("ret0")
+	z := b.Const(0, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(z)
+
+	asm := compileModuleForCodegenTest(t, m)
+	t.Log("\n" + asm)
+
+	fnAsm := extractFuncAsm(asm, "test_bit5")
+	if !strings.Contains(fnAsm, "BIT 5, (HL)") {
+		t.Fatalf("expected BIT fast path, got:\n%s", fnAsm)
+	}
+	if strings.Contains(fnAsm, "LD A, (HL)") || strings.Contains(fnAsm, "AND 32") || strings.Contains(fnAsm, "CP 0") {
+		t.Fatalf("expected fused bit test without load/and/cp sequence, got:\n%s", fnAsm)
+	}
+}
+
+func TestBitCmpPattern_ShiftedBitRead_HL(t *testing.T) {
+	m := &mir2.Module{Name: "bit_cmp_shift"}
+	f := m.AddFunc("test_bit7")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+
+	b := mir2.NewBuilder(f)
+	b.SwitchToNewBlock("entry")
+	ptr := b.Param("ptr", mir2.TyPtr, mir2.ClassPointer)
+	cur := b.Load(ptr, mir2.TyU8, mir2.ClassGeneral)
+	shiftAmt := b.Const(7, mir2.TyU8, mir2.ClassGeneral)
+	shifted := b.Shr(cur, shiftAmt, mir2.TyU8, mir2.ClassGeneral)
+	oneMask := b.Const(1, mir2.TyU8, mir2.ClassGeneral)
+	bitVal := b.And(shifted, oneMask, mir2.TyU8, mir2.ClassGeneral)
+	zero := b.Const(0, mir2.TyU8, mir2.ClassGeneral)
+	cond := b.Cmp(mir2.CmpEq, bitVal, zero, mir2.ClassFlag, false)
+	b.BrIf(cond, "ret0", nil, "ret1", nil)
+	b.SwitchToNewBlock("ret0")
+	z := b.Const(0, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(z)
+	b.SwitchToNewBlock("ret1")
+	one := b.Const(1, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(one)
+
+	asm := compileModuleForCodegenTest(t, m)
+	t.Log("\n" + asm)
+
+	fnAsm := extractFuncAsm(asm, "test_bit7")
+	if !strings.Contains(fnAsm, "BIT 7, (HL)") {
+		t.Fatalf("expected BIT fast path for shifted bit-read, got:\n%s", fnAsm)
+	}
+	if strings.Contains(fnAsm, "LD A, (HL)") || strings.Contains(fnAsm, "SRL") || strings.Contains(fnAsm, "AND 1") || strings.Contains(fnAsm, "CP 0") {
+		t.Fatalf("expected fused bit test without load/shift/and/cp sequence, got:\n%s", fnAsm)
+	}
+}
+
 // TestGlobalFieldDirectAddr_SharedBase verifies that when the base pointer is shared
 // (used by multiple loads), the optimization correctly fires only for the A-dst load
 // and leaves the base register alive for the non-A load.
