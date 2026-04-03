@@ -638,6 +638,7 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 func generateBitPatterns() []Pattern {
 	var pats []Pattern
 	gpr8Any := Z80_GPR8.Or(Z80_IXHalves)
+	gpr8BitDst := Z80_GPR8.Subtract(Z80_A).Or(Z80_IXHalves)
 
 	addBitGet8 := func(bit int) {
 		lines := []string{"LD A, {src0}"}
@@ -663,13 +664,27 @@ func generateBitPatterns() []Pattern {
 			Name:       fmt.Sprintf("%s8_%d", strings.ToLower(mnemonic), bit),
 			Op:         op,
 			Width:      8,
-			DstLocs:    gpr8Any,
-			SrcLocs:    [2]LocSet{gpr8Any},
+			DstLocs:    gpr8BitDst,
+			SrcLocs:    [2]LocSet{gpr8BitDst},
 			Template:   fmt.Sprintf("%s %d, {dst}", mnemonic, bit),
 			Cost:       8,
 			Bytes:      2,
 			ImmGuard:   immGuard(int64(bit)),
 			TiedDstSrc: true,
+		})
+	}
+	addBitTest8 := func(bit int) {
+		pats = append(pats, Pattern{
+			Name:     fmt.Sprintf("bittest8_%d", bit),
+			Op:       OpBitTest,
+			Width:    8,
+			DstLocs:  Z80_Flags,
+			SrcLocs:  [2]LocSet{gpr8Any},
+			Template: fmt.Sprintf("BIT %d, {src0}", bit),
+			Cost:     8,
+			Bytes:    2,
+			Clobbers: Z80_Flags,
+			ImmGuard: immGuard(int64(bit)),
 		})
 	}
 
@@ -727,18 +742,39 @@ func generateBitPatterns() []Pattern {
 			TiedDstSrc: true,
 		})
 	}
+	addBitTest16 := func(form pairBitForm, bit int, reg string) {
+		localBit := bit
+		if localBit >= 8 {
+			localBit -= 8
+		}
+		pats = append(pats, Pattern{
+			Name:     fmt.Sprintf("bittest16_%s_%d", form.name, bit),
+			Op:       OpBitTest,
+			Width:    16,
+			DstLocs:  Z80_Flags,
+			SrcLocs:  [2]LocSet{form.dstLocs},
+			Template: fmt.Sprintf("BIT %d, %s", localBit, reg),
+			Cost:     8,
+			Bytes:    2,
+			Clobbers: Z80_Flags,
+			ImmGuard: immGuard(int64(bit)),
+		})
+	}
 
 	for bit := 0; bit < 8; bit++ {
 		addBitGet8(bit)
+		addBitTest8(bit)
 		addBitSetReset8(OpBitSet, "SET", bit)
 		addBitSetReset8(OpBitReset, "RES", bit)
 	}
 	for _, form := range pairForms {
 		for bit := 0; bit < 8; bit++ {
 			addBitGet16(form, bit, form.lo)
+			addBitTest16(form, bit, form.lo)
 			addBitSetReset16(OpBitSet, "SET", form, bit, form.lo)
 			addBitSetReset16(OpBitReset, "RES", form, bit, form.lo)
 			addBitGet16(form, bit+8, form.hi)
+			addBitTest16(form, bit+8, form.hi)
 			addBitSetReset16(OpBitSet, "SET", form, bit+8, form.hi)
 			addBitSetReset16(OpBitReset, "RES", form, bit+8, form.hi)
 		}

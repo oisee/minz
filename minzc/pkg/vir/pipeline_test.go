@@ -251,3 +251,41 @@ func TestCodegenModule_DirectBitSet_U16(t *testing.T) {
 		t.Fatalf("expected direct VIR u16 bit_set in asm:\n%s", asm)
 	}
 }
+
+func TestCodegenModule_DirectBitBranch_U8(t *testing.T) {
+	if _, err := exec.LookPath("z3"); err != nil {
+		t.Skip("z3 not found")
+	}
+
+	m := &mir2.Module{}
+	f := m.AddFunc("bitbranch8")
+	b0 := f.NewBlock("entry")
+	bt := f.NewBlock("then")
+	be := f.NewBlock("else")
+
+	in := f.AllocReg()
+	b0.Params = append(b0.Params, mir2.BlockParam{Dst: in, Ty: mir2.TyU8})
+	bitv := f.AllocReg()
+	b0.Append(&mir2.Inst{Op: mir2.OpBitGet, Dst: bitv, Src: [2]mir2.Reg{in, 0}, Imm: 3, Ty: mir2.TyU8})
+	zero := f.AllocReg()
+	b0.Append(&mir2.Inst{Op: mir2.OpConst, Dst: zero, Imm: 0, Ty: mir2.TyU8})
+	cond := f.AllocReg()
+	b0.Append(&mir2.Inst{Op: mir2.OpCmp, Dst: cond, Src: [2]mir2.Reg{bitv, zero}, Ty: mir2.TyBool, Cond: mir2.CmpNe})
+	b0.Seal(&mir2.TermBrIf{Cond: cond, Then: bt.Label, Else: be.Label})
+
+	one := f.AllocReg()
+	bt.Append(&mir2.Inst{Op: mir2.OpConst, Dst: one, Imm: 1, Ty: mir2.TyU8})
+	bt.Seal(&mir2.TermRet{Vals: []mir2.Reg{one}})
+
+	zeroOut := f.AllocReg()
+	be.Append(&mir2.Inst{Op: mir2.OpConst, Dst: zeroOut, Imm: 0, Ty: mir2.TyU8})
+	be.Seal(&mir2.TermRet{Vals: []mir2.Reg{zeroOut}})
+
+	asm, results := CodegenModule(m, SolverOptions{Verbose: testing.Verbose()})
+	if len(results) != 1 || !results[0].OK {
+		t.Fatalf("codegen failed: %+v\nasm:\n%s", results, asm)
+	}
+	if !strings.Contains(asm, "BIT 3,") {
+		t.Fatalf("expected BIT-based branch lowering in asm:\n%s", asm)
+	}
+}

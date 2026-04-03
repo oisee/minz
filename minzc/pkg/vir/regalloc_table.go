@@ -605,7 +605,7 @@ func ComputeOpBag(ops []VIROp) OpBag {
 			bag.Sub++
 		case OpMul:
 			bag.Mul++
-		case OpCmp, OpCmpImm:
+		case OpCmp, OpCmpImm, OpBitTest:
 			bag.Cmp++
 		case OpAnd, OpOr, OpXor, OpAndImm, OpOrImm, OpXorImm, OpBitGet, OpBitSet, OpBitReset:
 			bag.Logic++

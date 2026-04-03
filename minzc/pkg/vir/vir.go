@@ -60,6 +60,7 @@ const (
 	OpCondRet                   // if flags, return src0
 	OpLoad16LE                  // dst = load16le(src0)
 	OpBitGet                    // dst(u8/A) = bit_get(src0, imm=bit)
+	OpBitTest                   // flags = bit_test(src0, imm=bit)
 	OpBitSet                    // dst = bit_set(src0, imm=bit)
 	OpBitReset                  // dst = bit_reset(src0, imm=bit)
 	OpAsmBlock                  // inline asm: emit AsmTemplate verbatim, pinned ins/outs

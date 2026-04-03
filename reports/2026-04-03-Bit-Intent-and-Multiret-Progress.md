@@ -50,6 +50,13 @@ The active MIR2 Z80 backend now recognizes and emits:
 
 The backend also preserves support for older arithmetic-shaped patterns as fallback, so existing code that still lowers through masks can benefit too.
 
+The VIR path now also carries this further than before:
+
+- direct MIR2 bit intent lowers into explicit VIR bit ops
+- `bit_get` followed by compare-to-zero can be fused into a flag-only VIR bit-test shape
+- branch cases can now use `BIT`-style lowering through the current default backend path instead of materializing the bit value first
+- `SET/RES` is no longer forced for accumulator `A`, leaving room for the cheaper ordinary `OR/AND` paths there
+
 ### 4. IX/IY Halves as First-Class Registers
 
 `IXH/IXL/IYH/IYL` are now treated as first-class 8-bit registers in the backend model, not as special cases used only when convenient.

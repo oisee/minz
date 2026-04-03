@@ -77,6 +77,9 @@ func LowerBlock(b *mir2.Block, desc *MachineDesc, mod *mir2.Module, fn ...*mir2.
 	// Fold const + ALU → immediate ALU (enables INC/DEC patterns)
 	ops = foldConstIntoALU(ops)
 
+	// Fuse bit_get + cmp(eq/ne, 0) → flag-only bit_test
+	ops = fuseBitTests(ops)
+
 	// ISLE combining: identity elimination, dead const removal
 	ops = ISLECombine(ops)
 
@@ -101,7 +104,7 @@ func LowerBlock(b *mir2.Block, desc *MachineDesc, mod *mir2.Module, fn ...*mir2.
 	return ops, nil
 }
 
-// EliminateDeadConsts removes OpConst ops whose dst vreg is never used.
+// EliminateDeadConsts removes dead pure defs whose dst vreg is never used.
 func EliminateDeadConsts(ops []VIROp) []VIROp {
 	used := make(map[int]bool)
 	for _, op := range ops {
@@ -113,8 +116,56 @@ func EliminateDeadConsts(ops []VIROp) []VIROp {
 	}
 	var result []VIROp
 	for _, op := range ops {
-		if op.Op == OpConst && op.Dst > 0 && !used[op.Dst] && op.Sym == "" {
+		if op.Dst > 0 && !used[op.Dst] {
+			switch op.Op {
+			case OpConst:
+				if op.Sym == "" {
+					continue
+				}
+			case OpBitGet:
+				continue
+			}
+		}
+		result = append(result, op)
+	}
+	return result
+}
+
+func fuseBitTests(ops []VIROp) []VIROp {
+	uses := make(map[int]int)
+	defIdx := make(map[int]int)
+	for i, op := range ops {
+		if op.Dst > 0 {
+			defIdx[op.Dst] = i
+		}
+		for _, s := range op.Src {
+			if s > 0 {
+				uses[s]++
+			}
+		}
+	}
+
+	skip := make(map[int]bool)
+	var result []VIROp
+	for i, op := range ops {
+		if skip[i] {
 			continue
+		}
+		if op.Op == OpCmpImm && op.Imm == 0 && op.Src[0] > 0 {
+			if di, ok := defIdx[op.Src[0]]; ok {
+				def := ops[di]
+				if def.Op == OpBitGet && uses[def.Dst] == 1 {
+					result = append(result, VIROp{
+						Op:    OpBitTest,
+						Dst:   op.Dst,
+						Src:   [2]int{def.Src[0], -1},
+						Imm:   def.Imm,
+						Width: def.Width,
+					})
+					skip[di] = true
+					continue
+				}
+			}
 		}
 		result = append(result, op)
 	}

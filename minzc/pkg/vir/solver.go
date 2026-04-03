@@ -5,8 +5,9 @@
 // fixInvalidZ80Template → spill_reload → validate-reject).
 //
 // Architecture:
-//   Z3 solver (primary): encodes joint isel+regalloc as SMT, provably optimal.
-//   WFC solver (future):  fast greedy approximation, validated against Z3.
+//
+//	Z3 solver (primary): encodes joint isel+regalloc as SMT, provably optimal.
+//	WFC solver (future):  fast greedy approximation, validated against Z3.
 //
 // For each VIROp the solver sees:
 //   - ALL matching patterns (e.g., add_a_r, inc_r for OpAdd)
@@ -156,8 +157,9 @@ func solveWithPasses(ops []VIROp, desc *MachineDesc, opts SolverOptions, splitCa
 
 // splitVRegsAtCalls handles the call clobber problem by splitting vregs that
 // are live across CALL instructions. For each such vreg, it inserts:
-//   v_save = move(v)     ; before call — save to IXH
-//   v      = move(v_save) ; after call  — restore from IXH
+//
+//	v_save = move(v)     ; before call — save to IXH
+//	v      = move(v_save) ; after call  — restore from IXH
 //
 // This splits the vreg's live range so the "before" identity can be in GPR
 // and the "save" identity survives the call in IXH.
@@ -177,9 +179,13 @@ func splitVRegsAtCalls(ops []VIROp, desc *MachineDesc) []VIROp {
 
 	nextVReg := 0
 	for _, op := range ops {
-		if op.Dst > nextVReg { nextVReg = op.Dst }
+		if op.Dst > nextVReg {
+			nextVReg = op.Dst
+		}
 		for _, s := range op.Src {
-			if s > nextVReg { nextVReg = s }
+			if s > nextVReg {
+				nextVReg = s
+			}
 		}
 	}
 	nextVReg++
@@ -195,13 +201,17 @@ func splitVRegsAtCalls(ops []VIROp, desc *MachineDesc) []VIROp {
 		usedAfter := make(map[int]bool)
 		for j := callIdx + 1; j < len(ops); j++ {
 			for _, s := range ops[j].Src {
-				if s > 0 { usedAfter[s] = true }
+				if s > 0 {
+					usedAfter[s] = true
+				}
 			}
 		}
 
 		defBefore := make(map[int]bool)
 		for j := 0; j < callIdx; j++ {
-			if ops[j].Dst > 0 { defBefore[ops[j].Dst] = true }
+			if ops[j].Dst > 0 {
+				defBefore[ops[j].Dst] = true
+			}
 		}
 		// Cross-block params: used but not defined in this block
 		for v := range usedAfter {
@@ -212,8 +222,8 @@ func splitVRegsAtCalls(ops []VIROp, desc *MachineDesc) []VIROp {
 
 		// Identify live-across vregs, sorted by uses-after-call (most used first)
 		type laCand struct {
-			vreg  int
-			uses  int
+			vreg int
+			uses int
 		}
 		var candidates []laCand
 		for v := range usedAfter {
@@ -221,7 +231,9 @@ func splitVRegsAtCalls(ops []VIROp, desc *MachineDesc) []VIROp {
 				uses := 0
 				for j := callIdx + 1; j < len(ops); j++ {
 					for _, s := range ops[j].Src {
-						if s == v { uses++ }
+						if s == v {
+							uses++
+						}
 					}
 				}
 				candidates = append(candidates, laCand{v, uses})
@@ -261,7 +273,10 @@ func splitVRegsAtCalls(ops []VIROp, desc *MachineDesc) []VIROp {
 
 			w := 8 // default
 			for _, op := range ops {
-				if op.Dst == v && op.Width > 0 { w = op.Width; break }
+				if op.Dst == v && op.Width > 0 {
+					w = op.Width
+					break
+				}
 			}
 
 			// 8-bit → IXH (4 slots), overflow/16-bit → no hint (let Z3 pick)
@@ -285,7 +300,10 @@ func splitVRegsAtCalls(ops []VIROp, desc *MachineDesc) []VIROp {
 			sv := saveMap[v]
 			w := 8
 			for _, op := range ops {
-				if op.Dst == v && op.Width > 0 { w = op.Width; break }
+				if op.Dst == v && op.Width > 0 {
+					w = op.Width
+					break
+				}
 			}
 			newOps = append(newOps, VIROp{
 				Op: OpMove, Dst: v, Src: [2]int{sv, -1}, Width: w,
@@ -306,8 +324,9 @@ func splitVRegsAtCalls(ops []VIROp, desc *MachineDesc) []VIROp {
 //
 // CALLs clobber A,B,C,D,E,H,L,F — any vreg in GPR will be destroyed.
 // Strategy: for each live-across vreg, insert:
-//   v_saved = OpMove(vreg)     ; before call — constrained to IXH (call-safe)
-//   vreg    = OpMove(v_saved)  ; after call  — reload from IXH
+//
+//	v_saved = OpMove(vreg)     ; before call — constrained to IXH (call-safe)
+//	vreg    = OpMove(v_saved)  ; after call  — reload from IXH
 //
 // IXH/IXL/IYH/IYL survive calls (Z80 convention: IX/IY are callee-saved).
 // If we run out of IXH slots (4), fall back to PUSH/POP via stack.
@@ -328,9 +347,13 @@ func insertCallSaveRestore(ops []VIROp, desc *MachineDesc) []VIROp {
 	// creates unnecessary pressure.
 	uniqueVRegs := make(map[int]bool)
 	for _, op := range ops {
-		if op.Dst > 0 { uniqueVRegs[op.Dst] = true }
+		if op.Dst > 0 {
+			uniqueVRegs[op.Dst] = true
+		}
 		for _, s := range op.Src {
-			if s > 0 { uniqueVRegs[s] = true }
+			if s > 0 {
+				uniqueVRegs[s] = true
+			}
 		}
 	}
 	if len(uniqueVRegs) <= maxGPRPressure+2 {
@@ -503,9 +526,10 @@ func insertCallSaveRestore(ops []VIROp, desc *MachineDesc) []VIROp {
 // in the tied register (because another tied op uses that register).
 //
 // Example: v1=const, v3=const, v5=add(v1,v2), v6=add(v3,v4)
-//   Both ADDs tie src0 to A. v1 and v3 can't both be A simultaneously.
-//   Fix: insert v3_copy=move(v3) before the second ADD, use v3_copy as src0.
-//   v3_copy is short-lived (only at the ADD instruction) so no conflict.
+//
+//	Both ADDs tie src0 to A. v1 and v3 can't both be A simultaneously.
+//	Fix: insert v3_copy=move(v3) before the second ADD, use v3_copy as src0.
+//	v3_copy is short-lived (only at the ADD instruction) so no conflict.
 func insertPreTieMoves(ops []VIROp, desc *MachineDesc) []VIROp {
 	// Find which ops have tied patterns
 	hasTied := make([]bool, len(ops))
@@ -585,8 +609,9 @@ func insertPreTieMoves(ops []VIROp, desc *MachineDesc) []VIROp {
 // vreg that is needed later, and inserts explicit OpMove instructions to save it.
 //
 // Example: v3 = sub(v1, v2); v4 = add(v3, v1)
-//   SUB ties v3←v1 (both A), destroying v1. But v4 needs v1.
-//   Fix: insert v1_copy = move(v1) before SUB, rewrite v4's use of v1 → v1_copy.
+//
+//	SUB ties v3←v1 (both A), destroying v1. But v4 needs v1.
+//	Fix: insert v1_copy = move(v1) before SUB, rewrite v4's use of v1 → v1_copy.
 //
 // Result: v1_copy = move(v1); v3 = sub(v1, v2); v4 = add(v3, v1_copy)
 func insertSaveMoves(ops []VIROp, desc *MachineDesc) []VIROp {
@@ -1162,13 +1187,13 @@ func computeLiveness(ops []VIROp) []livenessAt {
 	}
 
 	// Vregs that are defined but never used are live only at their def point.
-	// Exception: OpCmp/OpCmpImm produce FLAGS that are consumed by the branch
+	// Exception: OpCmp/OpCmpImm/OpBitTest produce FLAGS that are consumed by the branch
 	// terminator (which is outside VIR ops). These must NOT be propagated to
 	// successor blocks via liveness — FLAGS can't be moved across block boundaries.
 	for vreg, def := range defAt {
 		if _, used := lastUse[vreg]; !used {
 			op := ops[def]
-			if op.Op == OpCmp || op.Op == OpCmpImm {
+			if op.Op == OpCmp || op.Op == OpCmpImm || op.Op == OpBitTest {
 				continue // FLAGS consumed by MIR2 branch terminator, not by successor VIROps
 			}
 			result[def].live[vreg] = true
@@ -1324,11 +1349,21 @@ func (p *problem) generateSMT() string {
 		}
 		// Consumed vregs: dst + srcs + asm ins/outs — read/written at this instruction
 		consumed := make(map[int]bool)
-		if op.Dst > 0 { consumed[op.Dst] = true }
-		for _, s := range op.Src { if s > 0 { consumed[s] = true } }
+		if op.Dst > 0 {
+			consumed[op.Dst] = true
+		}
+		for _, s := range op.Src {
+			if s > 0 {
+				consumed[s] = true
+			}
+		}
 		if op.Op == OpAsmBlock {
-			for _, v := range op.AsmIns { consumed[v] = true }
-			for _, v := range op.AsmOuts { consumed[v] = true }
+			for _, v := range op.AsmIns {
+				consumed[v] = true
+			}
+			for _, v := range op.AsmOuts {
+				consumed[v] = true
+			}
 		}
 
 		clobberVRegs := make([]int, 0, len(p.liveness[i].live))
@@ -1702,11 +1737,21 @@ func generateSMTPerInst(p *problem) string {
 			continue
 		}
 		consumed := make(map[int]bool)
-		if op.Dst > 0 { consumed[op.Dst] = true }
-		for _, s := range op.Src { if s > 0 { consumed[s] = true } }
+		if op.Dst > 0 {
+			consumed[op.Dst] = true
+		}
+		for _, s := range op.Src {
+			if s > 0 {
+				consumed[s] = true
+			}
+		}
 		if op.Op == OpAsmBlock {
-			for _, v := range op.AsmIns { consumed[v] = true }
-			for _, v := range op.AsmOuts { consumed[v] = true }
+			for _, v := range op.AsmIns {
+				consumed[v] = true
+			}
+			for _, v := range op.AsmOuts {
+				consumed[v] = true
+			}
 		}
 
 		clobVRegs := make([]int, 0, len(p.liveness[i].live))
@@ -2040,11 +2085,17 @@ func insertPerInstMoves(pirOps []PIROp, p *problem, vals map[string]int, desc *M
 			// Collect all vregs to check: srcs + all live vregs at this point
 			checkVregs := make(map[int]bool)
 			op := p.ops[i]
-			if op.Src[0] > 0 { checkVregs[op.Src[0]] = true }
-			if op.Src[1] > 0 { checkVregs[op.Src[1]] = true }
+			if op.Src[0] > 0 {
+				checkVregs[op.Src[0]] = true
+			}
+			if op.Src[1] > 0 {
+				checkVregs[op.Src[1]] = true
+			}
 			if i < len(p.liveness) {
 				for v := range p.liveness[i].live {
-					if v > 0 { checkVregs[v] = true }
+					if v > 0 {
+						checkVregs[v] = true
+					}
 				}
 			}
 			sortedVregs := make([]int, 0, len(checkVregs))

@@ -2161,7 +2161,7 @@ func emitFromTable(f *mir2.Func, vf *Func, allOps []VIROp, assignment map[int]in
 				}
 			}
 			// CMP/CmpImm: dst is always F (flags), not from assignment
-			if op.Op == OpCmp || op.Op == OpCmpImm {
+			if op.Op == OpCmp || op.Op == OpCmpImm || op.Op == OpBitTest {
 				dstPhys = desc.LocByName("F")
 			}
 			var srcPhys [2]int
@@ -2239,7 +2239,7 @@ func emitFromTable(f *mir2.Func, vf *Func, allOps []VIROp, assignment map[int]in
 
 			// Post-op move: if pattern produced result in dstPhys but vreg
 			// is assigned to a different location, move result there.
-			if op.Dst > 0 && op.Op != OpCmp && op.Op != OpCmpImm {
+			if op.Dst > 0 && op.Op != OpCmp && op.Op != OpCmpImm && op.Op != OpBitTest {
 				assignedLoc := -1
 				if loc, ok := assignment[op.Dst]; ok {
 					assignedLoc = loc
@@ -4813,7 +4813,7 @@ func opName(op Op) string {
 		OpOrImm: "orimm", OpXorImm: "xorimm", OpCmpImm: "cmpimm",
 		OpStoreGlobal: "storeglobal", OpLoadGlobal: "loadglobal",
 		OpCondRet: "condret", OpLoad16LE: "load16le",
-		OpBitGet: "bitget", OpBitSet: "bitset", OpBitReset: "bitreset",
+		OpBitGet: "bitget", OpBitTest: "bittest", OpBitSet: "bitset", OpBitReset: "bitreset",
 		OpAsmBlock: "asmblock",
 	}
 	if n, ok := names[op]; ok {
