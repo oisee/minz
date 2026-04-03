@@ -1,0 +1,37 @@
+// pointer_threading.nanz — simple indexed loops that should rewrite to walking pointers
+//
+// Demonstrates:
+//   - single-access indexed loop over one array base
+//   - multi-access same-base loop using data[i] and data[i + 1]
+//   - end-to-end Grace trace visibility for ptr-threading / ptr-add-cse
+//
+// HOW TO RUN:
+//   mz fun/pointer_threading.nanz --asserts mir2
+//   mz fun/pointer_threading.nanz --grace --compile-trace -o build/pointer_threading.a80
+
+global data_g: [u8; 9] = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+fun sum_prefix(n: u8) -> u8 {
+    var i: u8 = 0
+    var acc: u8 = 0
+    while i < n {
+        acc = acc + data_g[i]
+        i = i + 1
+    }
+    return acc
+}
+
+fun sum_neighbors(n: u8) -> u8 {
+    var i: u8 = 0
+    var acc: u8 = 0
+    while i < n {
+        let a: u8 = data_g[i]
+        let b: u8 = data_g[i + 1]
+        acc = acc + a + b
+        i = i + 1
+    }
+    return acc
+}
+
+assert sum_prefix(4) == 10 via mir2
+assert sum_neighbors(4) == 24 via mir2

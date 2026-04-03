@@ -92,6 +92,21 @@ if p^.4 != 0 { return 42 }
 ```
 Expected: scalar bit selectors work on plain scalars, `ptr^`, and `u16` high bits.
 
+### Pointer Threading — `pointer_threading.nanz`
+```bash
+mz fun/pointer_threading.nanz --asserts mir2
+mz fun/pointer_threading.nanz --grace --compile-trace -o build/pointer_threading.a80
+```
+```nanz
+while i < n {
+    let a: u8 = data_g[i]
+    let b: u8 = data_g[i + 1]
+    acc = acc + a + b
+    i = i + 1
+}
+```
+Expected: this is a small real source example where compile trace should show `ptr-threading` on indexed loops over one array base.
+
 ### Tuple Return — `tuple_return.nanz`
 ```bash
 mz fun/tuple_return.nanz --asserts mir2        # ✓ 5 asserts, fast

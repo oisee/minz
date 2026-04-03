@@ -234,6 +234,75 @@ func TestPointerThreading_Positive_CountUp(t *testing.T) {
 	}
 }
 
+// TestPointerThreading_Positive_CondRetHeader: same loop shape, but after
+// cond-ret sinking the header jumps to body via TermCondRet instead of TermBrIf.
+func TestPointerThreading_Positive_CondRetHeader(t *testing.T) {
+	f := &Func{Name: "condret_thread_test", nextReg: 100}
+
+	entry := &Block{
+		Label: "entry",
+		Insts: []*Inst{
+			{Op: OpConst, Dst: Reg(1), Imm: 0, Ty: TyU8},
+			{Op: OpConst, Dst: Reg(2), Imm: 4, Ty: TyU8},
+		},
+		Term: &TermJmp{Target: "head", Args: []Reg{Reg(1), Reg(1), Reg(2)}},
+	}
+
+	head := &Block{
+		Label: "head",
+		Params: []BlockParam{
+			{Dst: Reg(10), Ty: TyU8, Class: ClassGeneral}, // acc
+			{Dst: Reg(11), Ty: TyU8, Class: ClassGeneral}, // idx
+			{Dst: Reg(12), Ty: TyU8, Class: ClassGeneral}, // limit
+		},
+		Insts: []*Inst{
+			{Op: OpCmp, Dst: Reg(13), Src: [2]Reg{Reg(11), Reg(12)}, Ty: TyBool, Cond: CmpUlt},
+		},
+		Term: &TermCondRet{
+			Cond:     Reg(13),
+			Vals:     []Reg{Reg(10)},
+			Then:     "body",
+			ThenArgs: nil,
+		},
+	}
+
+	body := &Block{
+		Label: "body",
+		Insts: []*Inst{
+			{Op: OpAddrOf, Dst: Reg(20), Sym: "buf", Ty: TyPtr, Cls: ClassPointer},
+			{Op: OpExt, Dst: Reg(21), Src: [2]Reg{Reg(11)}, SrcTy: TyU8, Ty: TyU16},
+			{Op: OpPtrAdd, Dst: Reg(22), Src: [2]Reg{Reg(20), Reg(21)}, Ty: TyPtr, Cls: ClassPointer},
+			{Op: OpLoad, Dst: Reg(23), Src: [2]Reg{Reg(22)}, Ty: TyU8, Cls: ClassAcc},
+			{Op: OpAdd, Dst: Reg(24), Src: [2]Reg{Reg(10), Reg(23)}, Ty: TyU8},
+			{Op: OpConst, Dst: Reg(25), Imm: 1, Ty: TyU8},
+			{Op: OpAdd, Dst: Reg(26), Src: [2]Reg{Reg(11), Reg(25)}, Ty: TyU8},
+		},
+		Term: &TermJmp{Target: "head", Args: []Reg{Reg(24), Reg(26), Reg(12)}},
+	}
+
+	f.Blocks = []*Block{entry, head, body}
+
+	var stats PointerThreadingStats
+	if !ApplyPointerThreading(f, &stats) {
+		t.Fatal("expected pointer threading to fire for TermCondRet header")
+	}
+
+	term, ok := head.Term.(*TermCondRet)
+	if !ok {
+		t.Fatalf("expected header term to remain TermCondRet, got %T", head.Term)
+	}
+	if len(term.ThenArgs) != 1 {
+		t.Fatalf("expected TermCondRet ThenArgs to gain 1 arg, got %d", len(term.ThenArgs))
+	}
+	if len(body.Params) != 1 {
+		t.Fatalf("expected body to gain 1 param, got %d", len(body.Params))
+	}
+	headerWalkReg := head.Params[len(head.Params)-1].Dst
+	if term.ThenArgs[0] != headerWalkReg {
+		t.Fatalf("expected TermCondRet ThenArgs[0]=header walk reg %%r%d, got %%r%d", headerWalkReg, term.ThenArgs[0])
+	}
+}
+
 // TestPointerThreading_Positive_U16Access: loop accessing u16 values.
 // accessWidthBytes should be detected as 2.
 func TestPointerThreading_Positive_U16Access(t *testing.T) {

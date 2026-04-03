@@ -4,6 +4,71 @@ import (
 	"testing"
 )
 
+func TestGraceRunner_PointerThreadingRealLoopShape(t *testing.T) {
+	f := &Func{Name: "sum_prefix_shape", nextReg: 100}
+
+	entry := &Block{
+		Label: "entry",
+		Insts: []*Inst{
+			{Op: OpConst, Dst: Reg(1), Imm: 4, Ty: TyU8},
+			{Op: OpConst, Dst: Reg(2), Imm: 0, Ty: TyU8},
+			{Op: OpConst, Dst: Reg(3), Imm: 0, Ty: TyU8},
+		},
+		Term: &TermJmp{Target: "loop_head1", Args: []Reg{Reg(3), Reg(2), Reg(1)}},
+	}
+
+	head := &Block{
+		Label: "loop_head1",
+		Params: []BlockParam{
+			{Dst: Reg(4), Ty: TyU8, Class: ClassGeneral},
+			{Dst: Reg(5), Ty: TyU8, Class: ClassGeneral},
+			{Dst: Reg(6), Ty: TyU8, Class: ClassGeneral},
+		},
+		Insts: []*Inst{
+			{Op: OpCmp, Dst: Reg(7), Src: [2]Reg{Reg(5), Reg(6)}, Ty: TyBool, Cond: CmpLt},
+		},
+		Term: &TermBrIf{
+			Cond: Reg(7),
+			Then: "loop_body2",
+			Else: "loop_exit3",
+			ElseArgs: []Reg{Reg(4), Reg(5), Reg(6)},
+		},
+	}
+
+	body := &Block{
+		Label: "loop_body2",
+		Insts: []*Inst{
+			{Op: OpAddrOf, Dst: Reg(8), Sym: "data_g", Ty: TyPtr, Cls: ClassPointer},
+			{Op: OpExt, Dst: Reg(9), Src: [2]Reg{Reg(5)}, SrcTy: TyU8, Ty: TyU16, Cls: ClassIndex},
+			{Op: OpPtrAdd, Dst: Reg(10), Src: [2]Reg{Reg(8), Reg(9)}, Ty: TyPtr, Cls: ClassPointer},
+			{Op: OpLoad, Dst: Reg(11), Src: [2]Reg{Reg(10)}, Ty: TyU8, Cls: ClassGeneral},
+			{Op: OpAdd, Dst: Reg(12), Src: [2]Reg{Reg(4), Reg(11)}, Ty: TyU8, Cls: ClassGeneral},
+			{Op: OpConst, Dst: Reg(13), Imm: 1, Ty: TyU8},
+			{Op: OpAdd, Dst: Reg(14), Src: [2]Reg{Reg(5), Reg(13)}, Ty: TyU8, Cls: ClassGeneral},
+		},
+		Term: &TermJmp{Target: "loop_head1", Args: []Reg{Reg(12), Reg(14), Reg(6)}},
+	}
+
+	exit := &Block{
+		Label: "loop_exit3",
+		Params: []BlockParam{
+			{Dst: Reg(15), Ty: TyU8, Class: ClassGeneral},
+			{Dst: Reg(16), Ty: TyU8, Class: ClassGeneral},
+			{Dst: Reg(17), Ty: TyU8, Class: ClassGeneral},
+		},
+		Term: &TermRet{Vals: []Reg{Reg(15)}},
+	}
+
+	f.Blocks = []*Block{entry, head, body, exit}
+
+	stats := NewGraceStats()
+	RunGracePasses(f, stats)
+
+	if err := Verify(&Module{Funcs: []*Func{f}}); err != nil {
+		t.Fatalf("verify after RunGracePasses: %v", err)
+	}
+}
+
 func TestGraceRunner_DSE(t *testing.T) {
 	// Build a function with a dead instruction
 	f := &Func{Name: "test_dse", nextReg: 100}

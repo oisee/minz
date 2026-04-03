@@ -53,7 +53,7 @@ func ApplyPointerThreading(f *Func, stats *PointerThreadingStats) bool {
 //   - the latch passes the updated index back to header
 func threadPointerInLoop(f *Func, loop *LoopRegionFact, facts *SolverFriendlyShapeFacts, stats *PointerThreadingStats) bool {
 	header := f.BlockByLabel(loop.Header)
-	if header == nil || len(loop.Blocks) < 2 {
+	if header == nil || len(loop.Blocks) != 2 {
 		return false
 	}
 
@@ -64,6 +64,24 @@ func threadPointerInLoop(f *Func, loop *LoopRegionFact, facts *SolverFriendlySha
 	}
 	latchJmp, ok := latchBlock.Term.(*TermJmp)
 	if !ok || latchJmp.Target != loop.Header {
+		return false
+	}
+
+	// Only handle single-block loop bodies for now:
+	// header branches directly to the latch/body block, and that same block
+	// jumps back to header. Real lowered loops may be header->body->latch->header;
+	// rewriting those requires threading through multiple interior blocks.
+	if !headerBranchesTo(f, header, latchBlock.Label) {
+		return false
+	}
+
+	// Conservative CFG guard: only handle simple header->body->header loops.
+	// If the body already has block params or has another predecessor, this
+	// pass can create arity mismatches on real source code.
+	if len(latchBlock.Params) != 0 {
+		return false
+	}
+	if !hasUniquePred(f, latchBlock.Label, header.Label) {
 		return false
 	}
 
@@ -96,6 +114,37 @@ func threadPointerInLoop(f *Func, loop *LoopRegionFact, facts *SolverFriendlySha
 		return true // one rewrite per loop per pass (conservative)
 	}
 
+	return false
+}
+
+func hasUniquePred(f *Func, target, pred string) bool {
+	count := 0
+	for _, b := range f.Blocks {
+		if b.Term == nil {
+			continue
+		}
+		for _, succ := range b.Term.Successors() {
+			if succ != target {
+				continue
+			}
+			count++
+			if b.Label != pred {
+				return false
+			}
+		}
+	}
+	return count == 1
+}
+
+func headerBranchesTo(f *Func, header *Block, target string) bool {
+	if header == nil || header.Term == nil {
+		return false
+	}
+	for _, succ := range header.Term.Successors() {
+		if succ == target {
+			return true
+		}
+	}
 	return false
 }
 
@@ -376,6 +425,19 @@ func applyThreading(f *Func, header, body *Block, latchJmp *TermJmp, c *threadin
 				initPtr := computeInitialPointerForBrIf(f, b, c, false)
 				tt.ElseArgs = append(tt.ElseArgs, initPtr)
 			}
+		case *TermBrIf2:
+			if tt.Eq == header.Label {
+				initPtr := computeInitialPointerForBrIf2(f, b, c, 0)
+				tt.EqArgs = append(tt.EqArgs, initPtr)
+			}
+			if tt.Lt == header.Label {
+				initPtr := computeInitialPointerForBrIf2(f, b, c, 1)
+				tt.LtArgs = append(tt.LtArgs, initPtr)
+			}
+			if tt.Gt == header.Label {
+				initPtr := computeInitialPointerForBrIf2(f, b, c, 2)
+				tt.GtArgs = append(tt.GtArgs, initPtr)
+			}
 		}
 	}
 
@@ -401,6 +463,20 @@ func applyThreading(f *Func, header, body *Block, latchJmp *TermJmp, c *threadin
 	case *TermJmp:
 		if tt.Target == body.Label {
 			tt.Args = append(tt.Args, walkPtrReg)
+		}
+	case *TermBrIf2:
+		if tt.Eq == body.Label {
+			tt.EqArgs = append(tt.EqArgs, walkPtrReg)
+		}
+		if tt.Lt == body.Label {
+			tt.LtArgs = append(tt.LtArgs, walkPtrReg)
+		}
+		if tt.Gt == body.Label {
+			tt.GtArgs = append(tt.GtArgs, walkPtrReg)
+		}
+	case *TermCondRet:
+		if tt.Then == body.Label {
+			tt.ThenArgs = append(tt.ThenArgs, walkPtrReg)
 		}
 	}
 
@@ -535,6 +611,54 @@ func computeInitialPointerForBrIf(f *Func, b *Block, c *threadingCandidate, isTh
 	if c.paramIdx >= len(args) {
 		// No existing args — this edge doesn't pass an index.
 		// Return a placeholder (should not happen in well-formed loops).
+		return NoReg
+	}
+
+	initialIdx := args[c.paramIdx]
+
+	baseReg := f.AllocReg()
+	b.Insts = append(b.Insts, &Inst{
+		Op:  OpAddrOf,
+		Dst: baseReg,
+		Sym: findAddrOfSym(c.baseReg, f),
+		Ty:  TyPtr,
+		Cls: ClassPointer,
+	})
+
+	wideIdx := f.AllocReg()
+	b.Insts = append(b.Insts, &Inst{
+		Op:    OpExt,
+		Dst:   wideIdx,
+		Src:   [2]Reg{initialIdx},
+		SrcTy: TyU8,
+		Ty:    TyU16,
+	})
+
+	ptrReg := f.AllocReg()
+	b.Insts = append(b.Insts, &Inst{
+		Op:  OpPtrAdd,
+		Dst: ptrReg,
+		Src: [2]Reg{baseReg, wideIdx},
+		Ty:  TyPtr,
+		Cls: ClassPointer,
+	})
+
+	return ptrReg
+}
+
+func computeInitialPointerForBrIf2(f *Func, b *Block, c *threadingCandidate, edge int) Reg {
+	term := b.Term.(*TermBrIf2)
+	var args []Reg
+	switch edge {
+	case 0:
+		args = term.EqArgs
+	case 1:
+		args = term.LtArgs
+	default:
+		args = term.GtArgs
+	}
+
+	if c.paramIdx >= len(args) {
 		return NoReg
 	}
 
