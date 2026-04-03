@@ -124,3 +124,130 @@ func TestCodegenModule_Double16ThenInc(t *testing.T) {
 		t.Fatalf("expected 16-bit increment fast path in asm:\n%s", asm)
 	}
 }
+
+func TestCodegenModule_Double16ThenDec(t *testing.T) {
+	if _, err := exec.LookPath("z3"); err != nil {
+		t.Skip("z3 not found")
+	}
+
+	m := &mir2.Module{}
+
+	// fun double_dec(x: u16) -> u16 { return (x + x) - 1 }
+	f := m.AddFunc("double_dec")
+	b := f.NewBlock("entry")
+
+	in := f.AllocReg()
+	b.Params = append(b.Params, mir2.BlockParam{Dst: in, Ty: mir2.TyU16})
+
+	doubled := f.AllocReg()
+	b.Append(&mir2.Inst{Op: mir2.OpAdd, Dst: doubled, Src: [2]mir2.Reg{in, in}, Ty: mir2.TyU16})
+
+	one := f.AllocReg()
+	b.Append(&mir2.Inst{Op: mir2.OpConst, Dst: one, Imm: 1, Ty: mir2.TyU16})
+
+	out := f.AllocReg()
+	b.Append(&mir2.Inst{Op: mir2.OpSub, Dst: out, Src: [2]mir2.Reg{doubled, one}, Ty: mir2.TyU16})
+	b.Seal(&mir2.TermRet{Vals: []mir2.Reg{out}})
+
+	asm, results := CodegenModule(m, SolverOptions{Verbose: testing.Verbose()})
+	if len(results) != 1 || !results[0].OK {
+		t.Fatalf("codegen failed: %+v\nasm:\n%s", results, asm)
+	}
+	if !strings.Contains(asm, "ADD HL, HL") {
+		t.Fatalf("expected 16-bit self-add fast path in asm:\n%s", asm)
+	}
+	if !strings.Contains(asm, "DEC HL") {
+		t.Fatalf("expected 16-bit decrement fast path in asm:\n%s", asm)
+	}
+}
+
+func TestLowerBlock_DirectBitOps(t *testing.T) {
+	m := &mir2.Module{}
+	f := m.AddFunc("bit_ops")
+	b := f.NewBlock("entry")
+
+	in8 := f.AllocReg()
+	b.Params = append(b.Params, mir2.BlockParam{Dst: in8, Ty: mir2.TyU8})
+	in16 := f.AllocReg()
+	b.Params = append(b.Params, mir2.BlockParam{Dst: in16, Ty: mir2.TyU16})
+
+	r1 := f.AllocReg()
+	b.Append(&mir2.Inst{Op: mir2.OpBitSet, Dst: r1, Src: [2]mir2.Reg{in8, 0}, Imm: 3, Ty: mir2.TyU8})
+	r2 := f.AllocReg()
+	b.Append(&mir2.Inst{Op: mir2.OpBitReset, Dst: r2, Src: [2]mir2.Reg{in16, 0}, Imm: 12, Ty: mir2.TyU16})
+	r3 := f.AllocReg()
+	b.Append(&mir2.Inst{Op: mir2.OpBitGet, Dst: r3, Src: [2]mir2.Reg{in8, 0}, Imm: 4, Ty: mir2.TyU8})
+	b.Seal(&mir2.TermRet{Vals: []mir2.Reg{r3}})
+
+	ops, err := LowerBlock(b, Z80, m, f)
+	if err != nil {
+		t.Fatalf("LowerBlock: %v", err)
+	}
+
+	var sawGet, sawSet, sawReset bool
+	for _, op := range ops {
+		switch op.Op {
+		case OpBitGet:
+			sawGet = true
+		case OpBitSet:
+			sawSet = true
+		case OpBitReset:
+			sawReset = true
+		}
+	}
+	if !sawGet || !sawSet || !sawReset {
+		t.Fatalf("expected direct VIR bit ops, got: %+v", ops)
+	}
+}
+
+func TestCodegenModule_DirectBitSet_U8(t *testing.T) {
+	if _, err := exec.LookPath("z3"); err != nil {
+		t.Skip("z3 not found")
+	}
+
+	m := &mir2.Module{}
+	f := m.AddFunc("bitset8")
+	b := f.NewBlock("entry")
+
+	in := f.AllocReg()
+	b.Params = append(b.Params, mir2.BlockParam{Dst: in, Ty: mir2.TyU8})
+	out := f.AllocReg()
+	b.Append(&mir2.Inst{Op: mir2.OpBitSet, Dst: out, Src: [2]mir2.Reg{in, 0}, Imm: 3, Ty: mir2.TyU8})
+	b.Seal(&mir2.TermRet{Vals: []mir2.Reg{out}})
+
+	asm, results := CodegenModule(m, SolverOptions{Verbose: testing.Verbose()})
+	if len(results) != 1 || !results[0].OK {
+		t.Fatalf("codegen failed: %+v\nasm:\n%s", results, asm)
+	}
+	if !strings.Contains(asm, "SET 3,") {
+		t.Fatalf("expected direct VIR bit_set in asm:\n%s", asm)
+	}
+}
+
+func TestCodegenModule_DirectBitSet_U16(t *testing.T) {
+	if _, err := exec.LookPath("z3"); err != nil {
+		t.Skip("z3 not found")
+	}
+
+	m := &mir2.Module{}
+	f := m.AddFunc("bitset16")
+	b := f.NewBlock("entry")
+
+	in := f.AllocReg()
+	b.Params = append(b.Params, mir2.BlockParam{Dst: in, Ty: mir2.TyU16})
+	out := f.AllocReg()
+	b.Append(&mir2.Inst{Op: mir2.OpBitSet, Dst: out, Src: [2]mir2.Reg{in, 0}, Imm: 12, Ty: mir2.TyU16})
+	b.Seal(&mir2.TermRet{Vals: []mir2.Reg{out}})
+
+	asm, results := CodegenModule(m, SolverOptions{Verbose: testing.Verbose()})
+	if len(results) != 1 || !results[0].OK {
+		t.Fatalf("codegen failed: %+v\nasm:\n%s", results, asm)
+	}
+	if !strings.Contains(asm, "SET 4, H") &&
+		!strings.Contains(asm, "SET 4, D") &&
+		!strings.Contains(asm, "SET 4, B") &&
+		!strings.Contains(asm, "SET 4, IXH") &&
+		!strings.Contains(asm, "SET 4, IYH") {
+		t.Fatalf("expected direct VIR u16 bit_set in asm:\n%s", asm)
+	}
+}

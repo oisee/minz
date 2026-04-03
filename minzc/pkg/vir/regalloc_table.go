@@ -5,7 +5,8 @@
 // compiler hashes the function's constraints and looks up the answer.
 //
 // Signature format:
-//   "{nVregs}v_{nOps}o_{patternHash}_{interferenceHash}"
+//
+//	"{nVregs}v_{nOps}o_{patternHash}_{interferenceHash}"
 //
 // The pattern hash encodes: for each op, which patterns are available
 // and their dst/src constraints. The interference hash encodes which
@@ -61,9 +62,10 @@ func GetRegAllocTable() *RegAllocTable {
 
 // Lookup checks if a precomputed assignment exists for the given VIR ops.
 // Tries three signature formats in order:
-//   1. Original signature (legacy)
-//   2. Exhaustive GPU signature (56 entries)
-//   3. Enriched signature (shapeHash:opBagHash — O(1) from 37.6M entries)
+//  1. Original signature (legacy)
+//  2. Exhaustive GPU signature (56 entries)
+//  3. Enriched signature (shapeHash:opBagHash — O(1) from 37.6M entries)
+//
 // Returns (assignment vreg→phys, cost, true) if found, (nil, 0, false) otherwise.
 func (t *RegAllocTable) Lookup(ops []VIROp, desc *MachineDesc) (map[int]int, int, bool) {
 	sig := ComputeSignature(ops, desc)
@@ -88,14 +90,27 @@ func (t *RegAllocTable) Lookup(ops []VIROp, desc *MachineDesc) (map[int]int, int
 	var binaryEntry *EnrichedEntry
 	if !ok && len(t.binaryTables) > 0 {
 		shape, _, shapeErr := VIRToEnrichedShape(ops, desc)
-		if shapeErr == nil {
-			idx, idxErr := EnrichedIndexOf(*shape, 6)
-			if idxErr == nil {
-				for _, bt := range t.binaryTables {
-					if e := bt.Lookup(idx); e != nil && !e.Infeasible() {
-						binaryEntry = e
-						break
-					}
+		if shapeErr == nil && !shapeUses16Bit(*shape) {
+			for _, bt := range t.binaryTables {
+				maxVregs := bt.MaxVregs
+				if maxVregs == 0 {
+					maxVregs = 6
+				}
+				nLocSets8 := bt.NLocSets8
+				if nLocSets8 == 0 {
+					nLocSets8 = len(locSets8)
+				}
+				nLocSets16 := bt.NLocSets16
+				if nLocSets16 == 0 {
+					nLocSets16 = len(locSets16)
+				}
+				idx, idxErr := EnrichedIndexOfWithLocSets(*shape, maxVregs, nLocSets8, nLocSets16)
+				if idxErr != nil {
+					continue
+				}
+				if e := bt.Lookup(idx); e != nil && !e.Infeasible() {
+					binaryEntry = e
+					break
 				}
 			}
 		}
@@ -137,6 +152,15 @@ func (t *RegAllocTable) Lookup(ops []VIROp, desc *MachineDesc) (map[int]int, int
 	}
 
 	return assignment, entry.Cost, true
+}
+
+func shapeUses16Bit(shape EnrichedShape) bool {
+	for _, w := range shape.Widths {
+		if w > 8 {
+			return true
+		}
+	}
+	return false
 }
 
 // Add inserts a new entry into the table.
@@ -341,12 +365,12 @@ func (t *RegAllocTable) LoadEnriched(path string) error {
 	}
 
 	type enrichedEntry struct {
-		ShapeHash uint64 `json:"shapeHash"`
-		OpBagHash uint64 `json:"opBagHash"`
-		NVregs    int    `json:"nVregs"`
-		Cost      int    `json:"cost"`
-		Assignment []int `json:"assignment"`
-		Flags     struct {
+		ShapeHash  uint64 `json:"shapeHash"`
+		OpBagHash  uint64 `json:"opBagHash"`
+		NVregs     int    `json:"nVregs"`
+		Cost       int    `json:"cost"`
+		Assignment []int  `json:"assignment"`
+		Flags      struct {
 			NoAccumulator bool `json:"no_accumulator"`
 			NoHL          bool `json:"no_hl"`
 			Mul8Safe      bool `json:"mul8_safe"`
@@ -511,9 +535,9 @@ func ComputeSignature(ops []VIROp, desc *MachineDesc) string {
 // Z80: A=0..L=6, BC=7, DE=8, HL=9, SP=10, IX=11, IY=12, F=13, IXH=14..IYL=17
 var gpuToZ80Loc = [15]int{
 	0, 1, 2, 3, 4, 5, 6, // A-L: same
-	7, 8, 9,              // BC, DE, HL: same
-	14, 15, 16, 17,       // IXH, IXL, IYH, IYL: shifted
-	-1,                   // MEM0: no direct Z80 equivalent (spill)
+	7, 8, 9, // BC, DE, HL: same
+	14, 15, 16, 17, // IXH, IXL, IYH, IYL: shifted
+	-1, // MEM0: no direct Z80 equivalent (spill)
 }
 
 func gpuLocToZ80(gpuLoc int) int {
@@ -583,7 +607,7 @@ func ComputeOpBag(ops []VIROp) OpBag {
 			bag.Mul++
 		case OpCmp, OpCmpImm:
 			bag.Cmp++
-		case OpAnd, OpOr, OpXor, OpAndImm, OpOrImm, OpXorImm:
+		case OpAnd, OpOr, OpXor, OpAndImm, OpOrImm, OpXorImm, OpBitGet, OpBitSet, OpBitReset:
 			bag.Logic++
 		case OpShl, OpShr:
 			bag.Shift++
@@ -895,7 +919,6 @@ func (s InterferenceShape) DecomposeAtCutVertices() [][]int {
 
 // VIRToEnrichedShape converts VIR ops into an EnrichedShape for binary table lookup.
 // Returns the shape + a vreg mapping (canonical index → original vreg).
-// Only works for ≤6 vreg functions with 8-bit operations (first version).
 func VIRToEnrichedShape(ops []VIROp, desc *MachineDesc) (*EnrichedShape, []int, error) {
 	// Collect vregs in canonical order
 	prob := buildProblem(ops, desc)
@@ -916,20 +939,70 @@ func VIRToEnrichedShape(ops []VIROp, desc *MachineDesc) (*EnrichedShape, []int, 
 	}
 
 	// Compute per-vreg constraints from operations.
-	// Start with "any GPR8" and intersect with operation requirements.
-	// locSets8: 0=must_A, 1=must_C, 2=any_gpr8, 3=any_gpr8_except_A
+	// locSets8: 0=must_A, 1=must_C, 2=any_gpr8, 3=any_gpr8_except_A,
+	//           4=must_ixhalf, 5=any8_except_hl
 	type constraint struct {
 		mustA bool // at least one op requires A
 		noA   bool // at least one op forbids A (src of tied-dst-A op where dst≠this vreg)
 		mustC bool // at least one op requires C
 		w16   bool // any 16-bit usage
+		hint  LocSet
 	}
 	constraints := make([]constraint, nv)
 
+	accumulateHint := func(ci int, hint LocSet) {
+		if ci < 0 || ci >= len(constraints) || hint.IsEmpty() {
+			return
+		}
+		if constraints[ci].hint.IsEmpty() {
+			constraints[ci].hint = hint
+			return
+		}
+		if ih := constraints[ci].hint.And(hint); !ih.IsEmpty() {
+			constraints[ci].hint = ih
+			return
+		}
+		// Conflicting exact hints are not representable in table lookup.
+		constraints[ci].hint = 0
+	}
+
 	for _, op := range ops {
+		if op.Width > 8 {
+			if op.Dst > 0 {
+				if ci, ok := vregIdx[op.Dst]; ok {
+					constraints[ci].w16 = true
+				}
+			}
+			for _, s := range op.Src {
+				if s > 0 {
+					if ci, ok := vregIdx[s]; ok {
+						constraints[ci].w16 = true
+					}
+				}
+			}
+		}
+		if op.Dst > 0 {
+			if ci, ok := vregIdx[op.Dst]; ok {
+				accumulateHint(ci, op.DstHint)
+			}
+		}
+		for j, s := range op.Src {
+			if s > 0 && j < len(op.SrcHint) {
+				if ci, ok := vregIdx[s]; ok {
+					accumulateHint(ci, op.SrcHint[j])
+				}
+			}
+		}
+
 		switch op.Op {
 		case OpAdd, OpSub, OpAnd, OpOr, OpXor, OpNeg:
 			// Accumulator ALU: dst must be A
+			if op.Dst > 0 {
+				if ci, ok := vregIdx[op.Dst]; ok {
+					constraints[ci].mustA = true
+				}
+			}
+		case OpBitGet:
 			if op.Dst > 0 {
 				if ci, ok := vregIdx[op.Dst]; ok {
 					constraints[ci].mustA = true
@@ -959,19 +1032,72 @@ func VIRToEnrichedShape(ops []VIROp, desc *MachineDesc) (*EnrichedShape, []int, 
 		}
 	}
 
+	gpr8 := desc.LocSetByNames("A", "B", "C", "D", "E", "H", "L")
+	gpr8NoA := desc.LocSetByNames("B", "C", "D", "E", "H", "L")
+	ixHalf := desc.LocsOfKind(LocIXHalf)
+	any8NoHL := desc.LocSetByNames("A", "B", "C", "D", "E").Or(ixHalf)
+	hlSet := desc.LocSetByNames("HL")
+	deSet := desc.LocSetByNames("DE")
+	pairSet := desc.LocSetByNames("BC", "DE", "HL")
+
+	locSetIndexFromHint := func(width int, hint LocSet) (int, bool) {
+		if hint.IsEmpty() {
+			return 0, false
+		}
+		if width == 16 {
+			switch hint {
+			case hlSet:
+				return 0, true
+			case deSet:
+				return 1, true
+			case pairSet:
+				return 2, true
+			default:
+				return 0, false
+			}
+		}
+		switch hint {
+		case desc.LocSetByNames("A"):
+			return 0, true
+		case desc.LocSetByNames("C"):
+			return 1, true
+		case gpr8:
+			return 2, true
+		case gpr8NoA:
+			return 3, true
+		case ixHalf:
+			return 4, true
+		case any8NoHL:
+			return 5, true
+		default:
+			return 0, false
+		}
+	}
+
 	// Build widths and locSetIndex
 	widths := make([]int, nv)
 	locSetIdx := make([]int, nv)
 	for i := range widths {
-		widths[i] = 8 // default 8-bit (first version)
+		widths[i] = 8
+		if constraints[i].w16 {
+			widths[i] = 16
+		}
+		if idx, ok := locSetIndexFromHint(widths[i], constraints[i].hint); ok {
+			locSetIdx[i] = idx
+			continue
+		}
+		if widths[i] == 16 {
+			locSetIdx[i] = 2 // any pair
+			continue
+		}
 		if constraints[i].mustA {
-			locSetIdx[i] = 0 // must_A
+			locSetIdx[i] = 0
 		} else if constraints[i].mustC {
-			locSetIdx[i] = 1 // must_C
+			locSetIdx[i] = 1
 		} else if constraints[i].noA {
-			locSetIdx[i] = 3 // any_gpr8_except_A
+			locSetIdx[i] = 3
 		} else {
-			locSetIdx[i] = 2 // any_gpr8
+			locSetIdx[i] = 2
 		}
 	}
 

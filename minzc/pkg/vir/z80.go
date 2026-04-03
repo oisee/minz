@@ -1,26 +1,32 @@
 package vir
 
+import (
+	"fmt"
+	"strings"
+)
+
 // Z80 is the production Z80 machine descriptor with all spill tiers.
 //
 // Spill tier hierarchy (cheapest first):
-//   L1: GPR          {A,B,C,D,E,H,L,BC,DE,HL,SP,IX,IY,F}  0-4T
-//   L2: IX halves    {IXH,IXL,IYH,IYL}                      8T  (DD/FD prefix, call-safe)
-//   L3: Shadow       {B',C',D',E',H',L',A'}                 8T  (EXX/EX AF,AF')
-//   L4: TSMC         {tsmc0..tsmc7}                          20T (self-modifying code)
-//   L5: Memory       {mem0..mem3}                             26T (absolute address)
-//   L6: Stack        {stk0..stk3}                             22T (PUSH/POP)
+//
+//	L1: GPR          {A,B,C,D,E,H,L,BC,DE,HL,SP,IX,IY,F}  0-4T
+//	L2: IX halves    {IXH,IXL,IYH,IYL}                      8T  (DD/FD prefix, call-safe)
+//	L3: Shadow       {B',C',D',E',H',L',A'}                 8T  (EXX/EX AF,AF')
+//	L4: TSMC         {tsmc0..tsmc7}                          20T (self-modifying code)
+//	L5: Memory       {mem0..mem3}                             26T (absolute address)
+//	L6: Stack        {stk0..stk3}                             22T (PUSH/POP)
 var Z80 = &MachineDesc{
 	Name:     "z80",
 	WordSize: 8,
 	Locs: []Loc{
 		// L1: 8-bit GPR (index 0-6)
-		{Name: "A", Width: 8, Kind: LocAcc},  // 0
-		{Name: "B", Width: 8, Kind: LocGPR},  // 1
-		{Name: "C", Width: 8, Kind: LocGPR},  // 2
-		{Name: "D", Width: 8, Kind: LocGPR},  // 3
-		{Name: "E", Width: 8, Kind: LocGPR},  // 4
-		{Name: "H", Width: 8, Kind: LocGPR},  // 5
-		{Name: "L", Width: 8, Kind: LocGPR},  // 6
+		{Name: "A", Width: 8, Kind: LocAcc}, // 0
+		{Name: "B", Width: 8, Kind: LocGPR}, // 1
+		{Name: "C", Width: 8, Kind: LocGPR}, // 2
+		{Name: "D", Width: 8, Kind: LocGPR}, // 3
+		{Name: "E", Width: 8, Kind: LocGPR}, // 4
+		{Name: "H", Width: 8, Kind: LocGPR}, // 5
+		{Name: "L", Width: 8, Kind: LocGPR}, // 6
 
 		// L1: 16-bit pairs (index 7-12)
 		{Name: "BC", Width: 16, Kind: LocPair},  // 7
@@ -99,16 +105,16 @@ func init() {
 
 	// Per-location cost in T-states
 	m.LocCost = []int{
-		0, 0, 0, 0, 0, 0, 0,       // L1: A,B,C,D,E,H,L
-		0, 0, 0, 0,                 // BC,DE,HL,SP
-		4, 4,                       // IX,IY (DD/FD prefix)
-		0,                          // F (flags)
-		1, 1, 1, 1,                 // L2: IXH,IXL,IYH,IYL (cost=1: slight preference for primary, but usable)
-		8, 8, 8, 8, 8, 8,          // L3: B',C',D',E',H',L'
-		8,                          // A' (EX AF,AF')
+		0, 0, 0, 0, 0, 0, 0, // L1: A,B,C,D,E,H,L
+		0, 0, 0, 0, // BC,DE,HL,SP
+		4, 4, // IX,IY (DD/FD prefix)
+		0,          // F (flags)
+		1, 1, 1, 1, // L2: IXH,IXL,IYH,IYL (cost=1: slight preference for primary, but usable)
+		8, 8, 8, 8, 8, 8, // L3: B',C',D',E',H',L'
+		8,                              // A' (EX AF,AF')
 		20, 20, 20, 20, 20, 20, 20, 20, // L4: tsmc0-7
-		26, 26, 26, 26,             // L5: mem0-3
-		22, 22, 22, 22,             // L6: stk0-3
+		26, 26, 26, 26, // L5: mem0-3
+		22, 22, 22, 22, // L6: stk0-3
 	}
 
 	// Precompute LocSet groups
@@ -148,12 +154,12 @@ func init() {
 }
 
 func generateZ80Patterns(m *MachineDesc) []Pattern {
-	return []Pattern{
+	pats := []Pattern{
 		// ── Constants ─────────────────────────────────────────────────
 		{Name: "ld_r_n", Op: OpConst, Width: 8, DstLocs: Z80_GPR8,
 			Template: "LD {dst}, {imm}", Cost: 7, Bytes: 2, Flags: PatImmediate},
 		{Name: "ld_rr_nn", Op: OpConst, Width: 16,
-			DstLocs: Z80_Pairs.Or(Z80_IX).Or(Z80_IY),
+			DstLocs:  Z80_Pairs.Or(Z80_IX).Or(Z80_IY),
 			Template: "LD {dst}, {imm}", Cost: 10, Bytes: 3, Flags: PatImmediate},
 
 		// ── Constants to IXH (spill-tier storage) ────────────────────
@@ -262,18 +268,18 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 
 		// Zero-extend 8→16
 		{Name: "zext_hl_r", Op: OpMove, Width: 16, DstLocs: Z80_HL,
-			SrcLocs: [2]LocSet{Z80_GPR8},
+			SrcLocs:  [2]LocSet{Z80_GPR8},
 			Template: "LD L, {src0}\n    LD H, 0", Cost: 11, Bytes: 3},
 		{Name: "zext_bc_r", Op: OpMove, Width: 16, DstLocs: Z80_BC,
-			SrcLocs: [2]LocSet{Z80_GPR8},
+			SrcLocs:  [2]LocSet{Z80_GPR8},
 			Template: "LD C, {src0}\n    LD B, 0", Cost: 11, Bytes: 3},
 		{Name: "zext_de_r", Op: OpMove, Width: 16, DstLocs: Z80_DE,
-			SrcLocs: [2]LocSet{Z80_GPR8},
+			SrcLocs:  [2]LocSet{Z80_GPR8},
 			Template: "LD E, {src0}\n    LD D, 0", Cost: 11, Bytes: 3},
 
 		// 16-bit moves
 		{Name: "push_pop", Op: OpMove, Width: 16, DstLocs: Z80_Pairs,
-			SrcLocs: [2]LocSet{Z80_Pairs},
+			SrcLocs:  [2]LocSet{Z80_Pairs},
 			Template: "PUSH {src0}\n    POP {dst}", Cost: 21, Bytes: 2},
 		// IX/IY ↔ pairs (PUSH/POP is only general path; LD IX,HL doesn't exist)
 		// PUSH IX (DD E5) = 15T,2B; POP rr = 10T,1B → 25T, 3B
@@ -304,82 +310,82 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 			Cost: 6, Bytes: 1},
 		// LD HL, 0 (10T,3B) + ADD HL, SP (11T,1B) = 21T, 4B
 		{Name: "ld_hl_sp", Op: OpMove, Width: 16, DstLocs: Z80_HL,
-			SrcLocs: [2]LocSet{m.LocSetByNames("SP")},
+			SrcLocs:  [2]LocSet{m.LocSetByNames("SP")},
 			Template: "LD HL, 0\n    ADD HL, SP", Cost: 21, Bytes: 4},
 		{Name: "ex_de_hl", Op: OpMove, Width: 16, DstLocs: Z80_DE,
-			SrcLocs: [2]LocSet{Z80_HL},
+			SrcLocs:  [2]LocSet{Z80_HL},
 			Template: "EX DE, HL", Cost: 4, Bytes: 1},
 		{Name: "ex_hl_de", Op: OpMove, Width: 16, DstLocs: Z80_HL,
-			SrcLocs: [2]LocSet{Z80_DE},
+			SrcLocs:  [2]LocSet{Z80_DE},
 			Template: "EX DE, HL", Cost: 4, Bytes: 1},
 		// LD HL, BC via LD H,B / LD L,C (8T, 2 bytes — cheaper than PUSH/POP)
 		{Name: "ld_hl_bc", Op: OpMove, Width: 16, DstLocs: Z80_HL,
-			SrcLocs: [2]LocSet{Z80_BC},
+			SrcLocs:  [2]LocSet{Z80_BC},
 			Template: "LD H, B\n    LD L, C", Cost: 8, Bytes: 2},
 		{Name: "ld_bc_hl", Op: OpMove, Width: 16, DstLocs: Z80_BC,
-			SrcLocs: [2]LocSet{Z80_HL},
+			SrcLocs:  [2]LocSet{Z80_HL},
 			Template: "LD B, H\n    LD C, L", Cost: 8, Bytes: 2},
 		{Name: "ld_de_bc", Op: OpMove, Width: 16, DstLocs: Z80_DE,
-			SrcLocs: [2]LocSet{Z80_BC},
+			SrcLocs:  [2]LocSet{Z80_BC},
 			Template: "LD D, B\n    LD E, C", Cost: 8, Bytes: 2},
 		{Name: "ld_bc_de", Op: OpMove, Width: 16, DstLocs: Z80_BC,
-			SrcLocs: [2]LocSet{Z80_DE},
+			SrcLocs:  [2]LocSet{Z80_DE},
 			Template: "LD B, D\n    LD C, E", Cost: 8, Bytes: 2},
 		{Name: "ld_de_hl", Op: OpMove, Width: 16, DstLocs: Z80_DE,
-			SrcLocs: [2]LocSet{Z80_HL},
+			SrcLocs:  [2]LocSet{Z80_HL},
 			Template: "LD D, H\n    LD E, L", Cost: 8, Bytes: 2},
 		{Name: "ld_hl_de", Op: OpMove, Width: 16, DstLocs: Z80_HL,
-			SrcLocs: [2]LocSet{Z80_DE},
+			SrcLocs:  [2]LocSet{Z80_DE},
 			Template: "LD H, D\n    LD L, E", Cost: 8, Bytes: 2},
 
 		// ── 8-bit ALU (A = accumulator, dst tied to src0) ───────────
 		{Name: "add_a_r", Op: OpAdd, Width: 8, DstLocs: Z80_A,
-			SrcLocs: [2]LocSet{Z80_A, Z80_GPR8},
+			SrcLocs:  [2]LocSet{Z80_A, Z80_GPR8},
 			Template: "ADD A, {src1}", Cost: 4, Bytes: 1,
 			Clobbers: Z80_Flags, Flags: PatCommutative, TiedDstSrc: true},
 		{Name: "sub_a_r", Op: OpSub, Width: 8, DstLocs: Z80_A,
-			SrcLocs: [2]LocSet{Z80_A, Z80_GPR8},
+			SrcLocs:  [2]LocSet{Z80_A, Z80_GPR8},
 			Template: "SUB {src1}", Cost: 4, Bytes: 1,
 			Clobbers: Z80_Flags, TiedDstSrc: true},
 		{Name: "and_a_r", Op: OpAnd, Width: 8, DstLocs: Z80_A,
-			SrcLocs: [2]LocSet{Z80_A, Z80_GPR8},
+			SrcLocs:  [2]LocSet{Z80_A, Z80_GPR8},
 			Template: "AND {src1}", Cost: 4, Bytes: 1,
 			Clobbers: Z80_Flags, Flags: PatCommutative, TiedDstSrc: true},
 		{Name: "or_a_r", Op: OpOr, Width: 8, DstLocs: Z80_A,
-			SrcLocs: [2]LocSet{Z80_A, Z80_GPR8},
+			SrcLocs:  [2]LocSet{Z80_A, Z80_GPR8},
 			Template: "OR {src1}", Cost: 4, Bytes: 1,
 			Clobbers: Z80_Flags, Flags: PatCommutative, TiedDstSrc: true},
 		{Name: "xor_a_r", Op: OpXor, Width: 8, DstLocs: Z80_A,
-			SrcLocs: [2]LocSet{Z80_A, Z80_GPR8},
+			SrcLocs:  [2]LocSet{Z80_A, Z80_GPR8},
 			Template: "XOR {src1}", Cost: 4, Bytes: 1,
 			Clobbers: Z80_Flags, Flags: PatCommutative, TiedDstSrc: true},
 		{Name: "cp_r", Op: OpCmp, Width: 8, DstLocs: Z80_Flags,
-			SrcLocs: [2]LocSet{Z80_A, Z80_GPR8},
+			SrcLocs:  [2]LocSet{Z80_A, Z80_GPR8},
 			Template: "CP {src1}", Cost: 4, Bytes: 1, Clobbers: Z80_Flags},
 
 		// 8-bit ALU immediate (dst tied to src0 = A)
 		{Name: "add_a_n", Op: OpAddImm, Width: 8, DstLocs: Z80_A,
-			SrcLocs: [2]LocSet{Z80_A},
+			SrcLocs:  [2]LocSet{Z80_A},
 			Template: "ADD A, {imm}", Cost: 7, Bytes: 2,
 			Clobbers: Z80_Flags, Flags: PatImmediate, TiedDstSrc: true},
 		{Name: "sub_a_n", Op: OpSubImm, Width: 8, DstLocs: Z80_A,
-			SrcLocs: [2]LocSet{Z80_A},
+			SrcLocs:  [2]LocSet{Z80_A},
 			Template: "SUB {imm}", Cost: 7, Bytes: 2,
 			Clobbers: Z80_Flags, Flags: PatImmediate, TiedDstSrc: true},
 		{Name: "cp_n", Op: OpCmpImm, Width: 8, DstLocs: Z80_Flags,
-			SrcLocs: [2]LocSet{Z80_A},
+			SrcLocs:  [2]LocSet{Z80_A},
 			Template: "CP {imm}", Cost: 7, Bytes: 2,
 			Clobbers: Z80_Flags, Flags: PatImmediate},
 		{Name: "and_a_n", Op: OpAndImm, Width: 8, DstLocs: Z80_A,
-			SrcLocs: [2]LocSet{Z80_A},
+			SrcLocs:  [2]LocSet{Z80_A},
 			Template: "AND {imm}", Cost: 7, Bytes: 2,
 			Clobbers: Z80_Flags, Flags: PatImmediate, TiedDstSrc: true},
 		{Name: "or_a_n", Op: OpOrImm, Width: 8, DstLocs: Z80_A,
-			SrcLocs: [2]LocSet{Z80_A},
+			SrcLocs:  [2]LocSet{Z80_A},
 			Template: "OR {imm}", Cost: 7, Bytes: 2,
 			Clobbers: Z80_Flags, Flags: PatImmediate, TiedDstSrc: true},
 		{Name: "xor_a_n", Op: OpXorImm, Width: 8, DstLocs: Z80_A,
-			SrcLocs: [2]LocSet{Z80_A},
+			SrcLocs:  [2]LocSet{Z80_A},
 			Template: "XOR {imm}", Cost: 7, Bytes: 2,
 			Clobbers: Z80_Flags, Flags: PatImmediate, TiedDstSrc: true},
 
@@ -395,22 +401,26 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 
 		// 8-bit self-add: ADD A, A (x+x = double, dst tied to src0)
 		{Name: "add_a_a", Op: OpAdd, Width: 8, DstLocs: Z80_A,
-			SrcLocs: [2]LocSet{Z80_A, Z80_A},
+			SrcLocs:  [2]LocSet{Z80_A, Z80_A},
 			Template: "ADD A, A", Cost: 4, Bytes: 1,
 			Clobbers: Z80_Flags, SelfSrc: true, TiedDstSrc: true},
 
 		// ── 16-bit ALU (HL destination) ──────────────────────────────
 		{Name: "add_hl_rr", Op: OpAdd, Width: 16, DstLocs: Z80_HL,
-			SrcLocs: [2]LocSet{Z80_HL, Z80_BC.Or(Z80_DE).Or(Z80_HL)},
+			SrcLocs:  [2]LocSet{Z80_HL, Z80_BC.Or(Z80_DE).Or(Z80_HL)},
 			Template: "ADD HL, {src1}", Cost: 11, Bytes: 1,
 			Clobbers: Z80_Flags, TiedDstSrc: true},
 		{Name: "sbc_hl_rr", Op: OpSub, Width: 16, DstLocs: Z80_HL,
-			SrcLocs: [2]LocSet{Z80_HL, Z80_BC.Or(Z80_DE).Or(Z80_HL)},
+			SrcLocs:  [2]LocSet{Z80_HL, Z80_BC.Or(Z80_DE).Or(Z80_HL)},
 			Template: "OR A\n    SBC HL, {src1}", Cost: 19, Bytes: 3,
 			Clobbers: Z80_Flags, TiedDstSrc: true},
 		{Name: "inc_rr", Op: OpAddImm, Width: 16, DstLocs: Z80_Pairs,
 			SrcLocs:  [2]LocSet{Z80_Pairs},
 			Template: "INC {dst}", Cost: 6, Bytes: 1, ImmGuard: immGuard(1),
+			Flags: PatImmediate, TiedDstSrc: true},
+		{Name: "dec_rr", Op: OpSubImm, Width: 16, DstLocs: Z80_Pairs,
+			SrcLocs:  [2]LocSet{Z80_Pairs},
+			Template: "DEC {dst}", Cost: 6, Bytes: 1, ImmGuard: immGuard(1),
 			Flags: PatImmediate, TiedDstSrc: true},
 		// General 16-bit add immediate: LD BC,N / ADD HL,BC
 		{Name: "add_hl_nn", Op: OpAddImm, Width: 16, DstLocs: Z80_HL,
@@ -421,182 +431,190 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 		// ── 16-bit ALU via EX DE,HL (value in DE, avoids HL contention) ─
 		// add16_de: EX DE,HL / ADD HL,BC / EX DE,HL — DE = DE + BC
 		{Name: "add16_de_bc", Op: OpAdd, Width: 16, DstLocs: Z80_DE,
-			SrcLocs: [2]LocSet{Z80_DE, Z80_BC},
+			SrcLocs:  [2]LocSet{Z80_DE, Z80_BC},
 			Template: "EX DE, HL\n    ADD HL, BC\n    EX DE, HL",
-			Cost: 19, Bytes: 3, Clobbers: Z80_Flags, TiedDstSrc: true},
+			Cost:     19, Bytes: 3, Clobbers: Z80_Flags, TiedDstSrc: true},
 		// add16_de_hl: EX DE,HL / ADD HL,DE / EX DE,HL — DE = DE + HL
 		// After first EX: old_DE→HL, old_HL→DE. ADD HL, DE = old_DE + old_HL. EX: result→DE.
 		{Name: "add16_de_hl", Op: OpAdd, Width: 16, DstLocs: Z80_DE,
-			SrcLocs: [2]LocSet{Z80_DE, Z80_HL},
+			SrcLocs:  [2]LocSet{Z80_DE, Z80_HL},
 			Template: "EX DE, HL\n    ADD HL, DE\n    EX DE, HL",
-			Cost: 19, Bytes: 3, Clobbers: Z80_Flags, TiedDstSrc: true},
+			Cost:     19, Bytes: 3, Clobbers: Z80_Flags, TiedDstSrc: true},
 		// sub16_de: EX DE,HL / OR A / SBC HL,BC / EX DE,HL
 		{Name: "sub16_de_bc", Op: OpSub, Width: 16, DstLocs: Z80_DE,
-			SrcLocs: [2]LocSet{Z80_DE, Z80_BC},
+			SrcLocs:  [2]LocSet{Z80_DE, Z80_BC},
 			Template: "EX DE, HL\n    OR A\n    SBC HL, BC\n    EX DE, HL",
-			Cost: 27, Bytes: 5, Clobbers: Z80_Flags, TiedDstSrc: true},
+			Cost:     27, Bytes: 5, Clobbers: Z80_Flags, TiedDstSrc: true},
 
 		// ── 16-bit ALU via IX/IY (additional accumulators) ──────
 		// ADD IX, rr: DD 09/19/29 — src1 = BC, DE, or IX only
 		{Name: "add_ix_rr", Op: OpAdd, Width: 16, DstLocs: Z80_IX,
-			SrcLocs: [2]LocSet{Z80_IX, Z80_BC.Or(Z80_DE).Or(Z80_IX)},
+			SrcLocs:  [2]LocSet{Z80_IX, Z80_BC.Or(Z80_DE).Or(Z80_IX)},
 			Template: "ADD IX, {src1}", Cost: 15, Bytes: 2,
 			Clobbers: Z80_Flags, TiedDstSrc: true},
 		// ADD IY, rr: FD 09/19/29
 		{Name: "add_iy_rr", Op: OpAdd, Width: 16, DstLocs: Z80_IY,
-			SrcLocs: [2]LocSet{Z80_IY, Z80_BC.Or(Z80_DE).Or(Z80_IY)},
+			SrcLocs:  [2]LocSet{Z80_IY, Z80_BC.Or(Z80_DE).Or(Z80_IY)},
 			Template: "ADD IY, {src1}", Cost: 15, Bytes: 2,
 			Clobbers: Z80_Flags, TiedDstSrc: true},
 		// INC IX/IY
 		{Name: "inc_ix", Op: OpAddImm, Width: 16, DstLocs: Z80_IX,
-			SrcLocs: [2]LocSet{Z80_IX},
+			SrcLocs:  [2]LocSet{Z80_IX},
 			Template: "INC IX", Cost: 10, Bytes: 2, ImmGuard: immGuard(1),
 			Flags: PatImmediate, TiedDstSrc: true},
+		{Name: "dec_ix", Op: OpSubImm, Width: 16, DstLocs: Z80_IX,
+			SrcLocs:  [2]LocSet{Z80_IX},
+			Template: "DEC IX", Cost: 10, Bytes: 2, ImmGuard: immGuard(1),
+			Flags: PatImmediate, TiedDstSrc: true},
 		{Name: "inc_iy", Op: OpAddImm, Width: 16, DstLocs: Z80_IY,
-			SrcLocs: [2]LocSet{Z80_IY},
+			SrcLocs:  [2]LocSet{Z80_IY},
 			Template: "INC IY", Cost: 10, Bytes: 2, ImmGuard: immGuard(1),
+			Flags: PatImmediate, TiedDstSrc: true},
+		{Name: "dec_iy", Op: OpSubImm, Width: 16, DstLocs: Z80_IY,
+			SrcLocs:  [2]LocSet{Z80_IY},
+			Template: "DEC IY", Cost: 10, Bytes: 2, ImmGuard: immGuard(1),
 			Flags: PatImmediate, TiedDstSrc: true},
 		// addImm via DE: EX DE,HL / LD BC,N / ADD HL,BC / EX DE,HL
 		{Name: "add_de_nn", Op: OpAddImm, Width: 16, DstLocs: Z80_DE,
 			SrcLocs:  [2]LocSet{Z80_DE},
 			Template: "EX DE, HL\n    LD BC, {imm}\n    ADD HL, BC\n    EX DE, HL",
-			Cost: 29, Bytes: 6, Clobbers: Z80_Flags.Or(Z80_BC),
+			Cost:     29, Bytes: 6, Clobbers: Z80_Flags.Or(Z80_BC),
 			Flags: PatImmediate, TiedDstSrc: true},
 
 		// ── 16-bit load/store via DE (EX DE,HL bracket) ──────────────
 		// Load 16-bit via DE pointer
 		// EX(4T)+LD A,(HL)(7T)+INC HL(6T)+LD H,(HL)(7T)+LD L,A(4T)+EX(4T) = 32T
 		{Name: "ld16_de_ind", Op: OpLoad, Width: 16, DstLocs: Z80_DE,
-			SrcLocs: [2]LocSet{Z80_DE},
+			SrcLocs:  [2]LocSet{Z80_DE},
 			Template: "EX DE, HL\n    LD A, (HL)\n    INC HL\n    LD H, (HL)\n    LD L, A\n    EX DE, HL",
-			Cost: 32, Bytes: 6, Flags: PatMemRead, TiedDstSrc: true},
+			Cost:     32, Bytes: 6, Flags: PatMemRead, TiedDstSrc: true},
 		// Store 16-bit: ptr in DE, value in HL (EX bracket)
 		// EX(4T)+LD(HL),E(7T)+INC HL(6T)+LD(HL),D(7T)+DEC HL(6T)+EX(4T) = 34T
 		{Name: "st16_de_hl", Op: OpStore, Width: 16,
-			SrcLocs: [2]LocSet{Z80_DE, Z80_HL},
+			SrcLocs:  [2]LocSet{Z80_DE, Z80_HL},
 			Template: "EX DE, HL\n    LD (HL), E\n    INC HL\n    LD (HL), D\n    DEC HL\n    EX DE, HL",
-			Cost: 34, Bytes: 6, Flags: PatMemWrite},
+			Cost:     34, Bytes: 6, Flags: PatMemWrite},
 		// Store 16-bit: ptr in DE, value in HL (via (DE), A as temp)
 		// LD A,L(4T)+LD(DE),A(7T)+INC DE(6T)+LD A,H(4T)+LD(DE),A(7T)+DEC DE(6T) = 34T
 		{Name: "st16_de_hl_via_a", Op: OpStore, Width: 16,
-			SrcLocs: [2]LocSet{Z80_DE, Z80_HL},
+			SrcLocs:  [2]LocSet{Z80_DE, Z80_HL},
 			Template: "LD A, L\n    LD (DE), A\n    INC DE\n    LD A, H\n    LD (DE), A\n    DEC DE",
-			Cost: 34, Bytes: 6, Flags: PatMemWrite,
+			Cost:     34, Bytes: 6, Flags: PatMemWrite,
 			Clobbers: Z80_A},
 		// Store 16-bit: ptr in DE, value in BC (EX bracket)
 		// EX(4T)+LD(HL),C(7T)+INC HL(6T)+LD(HL),B(7T)+DEC HL(6T)+EX(4T) = 34T
 		{Name: "st16_de_bc", Op: OpStore, Width: 16,
-			SrcLocs: [2]LocSet{Z80_DE, Z80_BC},
+			SrcLocs:  [2]LocSet{Z80_DE, Z80_BC},
 			Template: "EX DE, HL\n    LD (HL), C\n    INC HL\n    LD (HL), B\n    DEC HL\n    EX DE, HL",
-			Cost: 34, Bytes: 6, Flags: PatMemWrite},
+			Cost:     34, Bytes: 6, Flags: PatMemWrite},
 		// Store 16-bit: ptr in DE, value in BC (via (DE), A as temp)
 		// LD A,C(4T)+LD(DE),A(7T)+INC DE(6T)+LD A,B(4T)+LD(DE),A(7T)+DEC DE(6T) = 34T
 		{Name: "st16_de_bc_via_a", Op: OpStore, Width: 16,
-			SrcLocs: [2]LocSet{Z80_DE, Z80_BC},
+			SrcLocs:  [2]LocSet{Z80_DE, Z80_BC},
 			Template: "LD A, C\n    LD (DE), A\n    INC DE\n    LD A, B\n    LD (DE), A\n    DEC DE",
-			Cost: 34, Bytes: 6, Flags: PatMemWrite,
+			Cost:     34, Bytes: 6, Flags: PatMemWrite,
 			Clobbers: Z80_A},
 
 		// 16-bit compare
 		// OR A(4T) + SBC HL,rr(15T) + ADD HL,rr(11T) = 30T, 4B
 		{Name: "cmp16_hl_de", Op: OpCmp, Width: 16, DstLocs: Z80_Flags,
-			SrcLocs: [2]LocSet{Z80_HL, Z80_DE},
+			SrcLocs:  [2]LocSet{Z80_HL, Z80_DE},
 			Template: "OR A\n    SBC HL, DE\n    ADD HL, DE",
-			Cost: 30, Bytes: 4, Clobbers: Z80_Flags},
+			Cost:     30, Bytes: 4, Clobbers: Z80_Flags},
 		{Name: "cmp16_hl_bc", Op: OpCmp, Width: 16, DstLocs: Z80_Flags,
-			SrcLocs: [2]LocSet{Z80_HL, Z80_BC},
+			SrcLocs:  [2]LocSet{Z80_HL, Z80_BC},
 			Template: "OR A\n    SBC HL, BC\n    ADD HL, BC",
-			Cost: 30, Bytes: 4, Clobbers: Z80_Flags},
+			Cost:     30, Bytes: 4, Clobbers: Z80_Flags},
 
 		// ── Shifts ───────────────────────────────────────────────────
 		{Name: "sla_a", Op: OpShl, Width: 8, DstLocs: Z80_A,
-			SrcLocs: [2]LocSet{Z80_A, Z80_GPR8},
+			SrcLocs:  [2]LocSet{Z80_A, Z80_GPR8},
 			Template: "SLA A", Cost: 8, Bytes: 2,
 			Clobbers: Z80_Flags, TiedDstSrc: true},
 		{Name: "srl_a", Op: OpShr, Width: 8, DstLocs: Z80_A,
-			SrcLocs: [2]LocSet{Z80_A, Z80_GPR8},
+			SrcLocs:  [2]LocSet{Z80_A, Z80_GPR8},
 			Template: "SRL A", Cost: 8, Bytes: 2,
 			Clobbers: Z80_Flags, TiedDstSrc: true},
 		// SRL r — CB-prefix, same cost (8T/2B) but dst can be any GPR8.
 		// Gives Z3 freedom to avoid A when accumulator is under pressure.
 		{Name: "srl_r", Op: OpShr, Width: 8, DstLocs: Z80_GPR8,
-			SrcLocs: [2]LocSet{Z80_GPR8, Z80_GPR8},
+			SrcLocs:  [2]LocSet{Z80_GPR8, Z80_GPR8},
 			Template: "SRL {dst}", Cost: 8, Bytes: 2,
 			Clobbers: Z80_Flags, TiedDstSrc: true},
 		{Name: "shl16_hl", Op: OpShl, Width: 16, DstLocs: Z80_HL,
-			SrcLocs: [2]LocSet{Z80_HL, Z80_GPR8},
+			SrcLocs:  [2]LocSet{Z80_HL, Z80_GPR8},
 			Template: "ADD HL, HL", Cost: 11, Bytes: 1,
 			Clobbers: Z80_Flags, ImmGuard: immGuard(1), TiedDstSrc: true},
 
 		// ── Memory loads — 8-bit ─────────────────────────────────────
 		{Name: "ld_a_hl", Op: OpLoad, Width: 8, DstLocs: Z80_A,
-			SrcLocs: [2]LocSet{Z80_HL},
+			SrcLocs:  [2]LocSet{Z80_HL},
 			Template: "LD A, (HL)", Cost: 7, Bytes: 1, Flags: PatMemRead},
 		{Name: "ld_r_hl", Op: OpLoad, Width: 8, DstLocs: Z80_GPR8,
-			SrcLocs: [2]LocSet{Z80_HL},
+			SrcLocs:  [2]LocSet{Z80_HL},
 			Template: "LD {dst}, (HL)", Cost: 7, Bytes: 1, Flags: PatMemRead},
 		{Name: "ld_a_de", Op: OpLoad, Width: 8, DstLocs: Z80_A,
-			SrcLocs: [2]LocSet{Z80_DE},
+			SrcLocs:  [2]LocSet{Z80_DE},
 			Template: "LD A, (DE)", Cost: 7, Bytes: 1, Flags: PatMemRead},
 
 		// ── Memory loads — 16-bit ────────────────────────────────────
 		// Load 16-bit via HL pointer: LD A,(HL)(7T) / INC HL(6T) / LD H,(HL)(7T) / LD L,A(4T) = 24T
 		{Name: "ld16_hl_ind", Op: OpLoad, Width: 16, DstLocs: Z80_HL,
-			SrcLocs: [2]LocSet{Z80_HL},
+			SrcLocs:  [2]LocSet{Z80_HL},
 			Template: "LD A, (HL)\n    INC HL\n    LD H, (HL)\n    LD L, A",
-			Cost: 24, Bytes: 4, Flags: PatMemRead, TiedDstSrc: true},
+			Cost:     24, Bytes: 4, Flags: PatMemRead, TiedDstSrc: true},
 		// Load16LE: fused FatFS ld_word — same Z80 code
 		{Name: "load16_le_hl", Op: OpLoad16LE, DstLocs: Z80_HL,
-			SrcLocs: [2]LocSet{Z80_HL},
+			SrcLocs:  [2]LocSet{Z80_HL},
 			Template: "LD A, (HL)\n    INC HL\n    LD H, (HL)\n    LD L, A",
-			Cost: 24, Bytes: 4, Flags: PatMemRead, TiedDstSrc: true},
+			Cost:     24, Bytes: 4, Flags: PatMemRead, TiedDstSrc: true},
 
 		// ── Memory stores — 8-bit ────────────────────────────────────
 		{Name: "ld_hl_a", Op: OpStore, Width: 8,
-			SrcLocs: [2]LocSet{Z80_HL, Z80_A},
+			SrcLocs:  [2]LocSet{Z80_HL, Z80_A},
 			Template: "LD (HL), A", Cost: 7, Bytes: 1, Flags: PatMemWrite},
 		{Name: "ld_hl_r", Op: OpStore, Width: 8,
-			SrcLocs: [2]LocSet{Z80_HL, Z80_GPR8},
+			SrcLocs:  [2]LocSet{Z80_HL, Z80_GPR8},
 			Template: "LD (HL), {src1}", Cost: 7, Bytes: 1, Flags: PatMemWrite},
 
 		// ── Memory stores — 16-bit ───────────────────────────────────
 		// Store 16-bit via HL pointer, value in DE
 		// LD (HL),E(7T) + INC HL(6T) + LD (HL),D(7T) + DEC HL(6T) = 26T
 		{Name: "st16_hl_de", Op: OpStore, Width: 16,
-			SrcLocs: [2]LocSet{Z80_HL, Z80_DE},
+			SrcLocs:  [2]LocSet{Z80_HL, Z80_DE},
 			Template: "LD (HL), E\n    INC HL\n    LD (HL), D\n    DEC HL",
-			Cost: 26, Bytes: 4, Flags: PatMemWrite},
+			Cost:     26, Bytes: 4, Flags: PatMemWrite},
 		// Store 16-bit via HL pointer, value in BC
 		{Name: "st16_hl_bc", Op: OpStore, Width: 16,
-			SrcLocs: [2]LocSet{Z80_HL, Z80_BC},
+			SrcLocs:  [2]LocSet{Z80_HL, Z80_BC},
 			Template: "LD (HL), C\n    INC HL\n    LD (HL), B\n    DEC HL",
-			Cost: 26, Bytes: 4, Flags: PatMemWrite},
+			Cost:     26, Bytes: 4, Flags: PatMemWrite},
 
 		// ── Global store/load ────────────────────────────────────────
 		{Name: "st_global_hl", Op: OpStoreGlobal, Width: 16,
-			SrcLocs: [2]LocSet{Z80_HL, Z80_HL},
+			SrcLocs:  [2]LocSet{Z80_HL, Z80_HL},
 			Template: "LD ({imm}), HL", Cost: 16, Bytes: 3,
 			Flags: PatMemWrite | PatImmediate},
 		{Name: "st_global_a", Op: OpStoreGlobal, Width: 8,
-			SrcLocs: [2]LocSet{Z80_A, Z80_A},
+			SrcLocs:  [2]LocSet{Z80_A, Z80_A},
 			Template: "LD ({imm}), A", Cost: 13, Bytes: 3,
 			Flags: PatMemWrite | PatImmediate},
 		{Name: "ld_global_hl", Op: OpLoadGlobal, Width: 16,
-			DstLocs: Z80_HL,
+			DstLocs:  Z80_HL,
 			Template: "LD HL, ({imm})", Cost: 16, Bytes: 3,
 			Flags: PatMemRead | PatImmediate},
 
 		// ── 16-bit move to/from memory (spill/reload) ───────────────
 		{Name: "ld_nn_hl", Op: OpMove, Width: 16, DstLocs: Z80_Mem,
-			SrcLocs: [2]LocSet{Z80_HL},
+			SrcLocs:  [2]LocSet{Z80_HL},
 			Template: "LD ({dst}), HL", Cost: 16, Bytes: 3, Flags: PatMemWrite},
 		{Name: "ld_hl_nn", Op: OpMove, Width: 16, DstLocs: Z80_HL,
-			SrcLocs: [2]LocSet{Z80_Mem},
+			SrcLocs:  [2]LocSet{Z80_Mem},
 			Template: "LD HL, ({src0})", Cost: 16, Bytes: 3, Flags: PatMemRead},
 
 		// ── Negate ───────────────────────────────────────────────────
 		{Name: "neg_a", Op: OpNeg, Width: 8, DstLocs: Z80_A,
-			SrcLocs: [2]LocSet{Z80_A},
+			SrcLocs:  [2]LocSet{Z80_A},
 			Template: "NEG", Cost: 8, Bytes: 2,
 			Clobbers: Z80_Flags, TiedDstSrc: true},
 
@@ -609,10 +627,123 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 
 		// ── Inline asm block ────────────────────────────────────────
 		{Name: "asm_block", Op: OpAsmBlock,
-			DstLocs: Z80_GPR8.Or(Z80_Pairs),
+			DstLocs:  Z80_GPR8.Or(Z80_Pairs),
 			Template: "", Cost: 10, Bytes: 0,
 			Flags: PatCall}, // treated like a call (has clobbers)
 	}
+	pats = append(pats, generateBitPatterns()...)
+	return pats
+}
+
+func generateBitPatterns() []Pattern {
+	var pats []Pattern
+	gpr8Any := Z80_GPR8.Or(Z80_IXHalves)
+
+	addBitGet8 := func(bit int) {
+		lines := []string{"LD A, {src0}"}
+		for i := 0; i < bit; i++ {
+			lines = append(lines, "SRL A")
+		}
+		lines = append(lines, "AND 1")
+		pats = append(pats, Pattern{
+			Name:     fmt.Sprintf("bitget8_%d", bit),
+			Op:       OpBitGet,
+			Width:    8,
+			DstLocs:  Z80_A,
+			SrcLocs:  [2]LocSet{gpr8Any},
+			Template: strings.Join(lines, "\n    "),
+			Cost:     11 + (8 * bit),
+			Bytes:    3 + (2 * bit),
+			Clobbers: Z80_Flags,
+			ImmGuard: immGuard(int64(bit)),
+		})
+	}
+	addBitSetReset8 := func(op Op, mnemonic string, bit int) {
+		pats = append(pats, Pattern{
+			Name:       fmt.Sprintf("%s8_%d", strings.ToLower(mnemonic), bit),
+			Op:         op,
+			Width:      8,
+			DstLocs:    gpr8Any,
+			SrcLocs:    [2]LocSet{gpr8Any},
+			Template:   fmt.Sprintf("%s %d, {dst}", mnemonic, bit),
+			Cost:       8,
+			Bytes:      2,
+			ImmGuard:   immGuard(int64(bit)),
+			TiedDstSrc: true,
+		})
+	}
+
+	type pairBitForm struct {
+		name    string
+		dstLocs LocSet
+		lo      string
+		hi      string
+	}
+	pairForms := []pairBitForm{
+		{name: "hl", dstLocs: Z80_HL, lo: "L", hi: "H"},
+		{name: "de", dstLocs: Z80_DE, lo: "E", hi: "D"},
+		{name: "bc", dstLocs: Z80_BC, lo: "C", hi: "B"},
+		{name: "ix", dstLocs: Z80_IX, lo: "IXL", hi: "IXH"},
+		{name: "iy", dstLocs: Z80_IY, lo: "IYL", hi: "IYH"},
+	}
+	addBitGet16 := func(form pairBitForm, bit int, reg string) {
+		shift := bit
+		if shift >= 8 {
+			shift -= 8
+		}
+		lines := []string{fmt.Sprintf("LD A, %s", reg)}
+		for i := 0; i < shift; i++ {
+			lines = append(lines, "SRL A")
+		}
+		lines = append(lines, "AND 1")
+		pats = append(pats, Pattern{
+			Name:     fmt.Sprintf("bitget16_%s_%d", form.name, bit),
+			Op:       OpBitGet,
+			Width:    16,
+			DstLocs:  Z80_A,
+			SrcLocs:  [2]LocSet{form.dstLocs},
+			Template: strings.Join(lines, "\n    "),
+			Cost:     11 + (8 * shift),
+			Bytes:    3 + (2 * shift),
+			Clobbers: Z80_Flags,
+			ImmGuard: immGuard(int64(bit)),
+		})
+	}
+	addBitSetReset16 := func(op Op, mnemonic string, form pairBitForm, bit int, reg string) {
+		localBit := bit
+		if localBit >= 8 {
+			localBit -= 8
+		}
+		pats = append(pats, Pattern{
+			Name:       fmt.Sprintf("%s16_%s_%d", strings.ToLower(mnemonic), form.name, bit),
+			Op:         op,
+			Width:      16,
+			DstLocs:    form.dstLocs,
+			SrcLocs:    [2]LocSet{form.dstLocs},
+			Template:   fmt.Sprintf("%s %d, %s", mnemonic, localBit, reg),
+			Cost:       8,
+			Bytes:      2,
+			ImmGuard:   immGuard(int64(bit)),
+			TiedDstSrc: true,
+		})
+	}
+
+	for bit := 0; bit < 8; bit++ {
+		addBitGet8(bit)
+		addBitSetReset8(OpBitSet, "SET", bit)
+		addBitSetReset8(OpBitReset, "RES", bit)
+	}
+	for _, form := range pairForms {
+		for bit := 0; bit < 8; bit++ {
+			addBitGet16(form, bit, form.lo)
+			addBitSetReset16(OpBitSet, "SET", form, bit, form.lo)
+			addBitSetReset16(OpBitReset, "RES", form, bit, form.lo)
+			addBitGet16(form, bit+8, form.hi)
+			addBitSetReset16(OpBitSet, "SET", form, bit+8, form.hi)
+			addBitSetReset16(OpBitReset, "RES", form, bit+8, form.hi)
+		}
+	}
+	return pats
 }
 
 func generateZ80Rules(m *MachineDesc) []ConstraintRule {

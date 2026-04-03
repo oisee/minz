@@ -106,7 +106,9 @@ func EliminateDeadConsts(ops []VIROp) []VIROp {
 	used := make(map[int]bool)
 	for _, op := range ops {
 		for _, s := range op.Src {
-			if s > 0 { used[s] = true }
+			if s > 0 {
+				used[s] = true
+			}
 		}
 	}
 	var result []VIROp
@@ -281,6 +283,34 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 			Src: [2]int{int(inst.Src[0]), -1}, Width: w,
 		}}, nil
 
+	case mir2.OpBitGet:
+		return []VIROp{{
+			Op:      OpBitGet,
+			Dst:     int(inst.Dst),
+			Src:     [2]int{int(inst.Src[0]), -1},
+			Imm:     inst.Imm,
+			Width:   w,
+			DstHint: desc.LocSetByNames("A"),
+		}}, nil
+
+	case mir2.OpBitSet:
+		return []VIROp{{
+			Op:    OpBitSet,
+			Dst:   int(inst.Dst),
+			Src:   [2]int{int(inst.Src[0]), -1},
+			Imm:   inst.Imm,
+			Width: w,
+		}}, nil
+
+	case mir2.OpBitReset:
+		return []VIROp{{
+			Op:    OpBitReset,
+			Dst:   int(inst.Dst),
+			Src:   [2]int{int(inst.Src[0]), -1},
+			Imm:   inst.Imm,
+			Width: w,
+		}}, nil
+
 	case mir2.OpNot:
 		// Bitwise NOT: XOR A, 0xFF (complement)
 		// Implemented as XOR with immediate 0xFF
@@ -330,7 +360,7 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 					Clobbers:    desc.LocSetByNames("A", "F"),
 					DstHint:     aSet,
 					SrcHint:     [2]LocSet{gpr8NoA},
-					Width: 8,
+					Width:       8,
 				}}, nil
 			}
 			// u16: for shift >= 8, the result fits in a single byte — use high-byte
@@ -358,7 +388,7 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 					Clobbers:    desc.LocSetByNames("A", "H", "L", "HL", "F"),
 					DstHint:     hlSet,
 					SrcHint:     [2]LocSet{hlSet},
-					Width: 16,
+					Width:       16,
 				}}, nil
 			}
 			// shift < 8: SRL H; RR L chain
@@ -371,7 +401,7 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 				Clobbers:    desc.LocSetByNames("H", "L", "HL", "F"),
 				DstHint:     hlSet,
 				SrcHint:     [2]LocSet{hlSet},
-				Width: 16,
+				Width:       16,
 			}}, nil
 		}
 		// Try GPU-optimal constant division (carry_compare for K≥128, etc.)
@@ -396,7 +426,7 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]VIRO
 			if mask < 256 {
 				return []VIROp{{
 					Op: OpAsmBlock, Dst: int(inst.Dst), Src: [2]int{int(inst.Src[0]), -1},
-					Sym: fmt.Sprintf("; mod%d (u16, strength reduced)\n    LD H, 0\n    LD A, L\n    AND %d\n    LD L, A", inst.Imm, mask),
+					Sym:   fmt.Sprintf("; mod%d (u16, strength reduced)\n    LD H, 0\n    LD A, L\n    AND %d\n    LD L, A", inst.Imm, mask),
 					Width: 16,
 				}}, nil
 			}
@@ -518,9 +548,12 @@ func translateMul(inst *mir2.Inst, desc *MachineDesc) ([]VIROp, error) {
 //	×10: 52T
 //	×12: 52T
 //	×16: 44T, ×32: 55T, ×64: 66T (powers of 2 via ADD HL,HL chain)
+//
 // tryXorImm16 lowers a 16-bit XOR with immediate constant to an OpAsmBlock.
 // Z80 has no native 16-bit XOR; we emit two 8-bit XOR A,n sequences:
-//   LD A, H / XOR hi / LD H, A / LD A, L / XOR lo / LD L, A  (28T, 6 insts)
+//
+//	LD A, H / XOR hi / LD H, A / LD A, L / XOR lo / LD L, A  (28T, 6 insts)
+//
 // Special cases: hi=0 or lo=0 skip that byte (21T or 14T).
 func tryXorImm16(inst *mir2.Inst, desc *MachineDesc) []VIROp {
 	k := inst.Imm
@@ -650,13 +683,18 @@ func tryStrengthReduceMul16(inst *mir2.Inst, desc *MachineDesc) []VIROp {
 
 // translateRuntimeCall emits arg setup moves + CALL for runtime routines.
 // Runtime ABI:  8-bit: arg0→A, arg1→B, result→A
-//              16-bit: arg0→HL, arg1→DE, result→HL
+//
+//	16-bit: arg0→HL, arg1→DE, result→HL
 func translateRuntimeCall(inst *mir2.Inst, desc *MachineDesc, w int, isMul bool) ([]VIROp, error) {
 	var ops []VIROp
 	var sym string
 
 	if isMul {
-		if w <= 8 { sym = "__mul8" } else { sym = "__mul16" }
+		if w <= 8 {
+			sym = "__mul8"
+		} else {
+			sym = "__mul16"
+		}
 	} else {
 		// div/mod determined by caller
 		return nil, fmt.Errorf("use translateDiv/translateMod")
@@ -696,7 +734,11 @@ func translateRuntimeCall(inst *mir2.Inst, desc *MachineDesc, w int, isMul bool)
 
 	// Return value hint
 	var retHint LocSet
-	if w <= 8 { retHint = desc.LocSetByNames("A") } else { retHint = desc.LocSetByNames("HL") }
+	if w <= 8 {
+		retHint = desc.LocSetByNames("A")
+	} else {
+		retHint = desc.LocSetByNames("HL")
+	}
 
 	ops = append(ops, VIROp{
 		Op: OpCall, Dst: int(inst.Dst),
@@ -714,10 +756,14 @@ func translateDivMod(inst *mir2.Inst, desc *MachineDesc, w int, isMod bool) ([]V
 	var sym string
 	if w <= 8 {
 		sym = "__div8"
-		if isMod { sym = "__mod8" }
+		if isMod {
+			sym = "__mod8"
+		}
 	} else {
 		sym = "__div16"
-		if isMod { sym = "__mod16" }
+		if isMod {
+			sym = "__mod16"
+		}
 	}
 
 	var ops []VIROp
@@ -1033,7 +1079,9 @@ func injectParamPins(ops []VIROp, b *mir2.Block, f *mir2.Func, desc *MachineDesc
 	usedInBlock := make(map[int]bool)
 	for _, op := range ops {
 		for _, s := range op.Src {
-			if s > 0 { usedInBlock[s] = true }
+			if s > 0 {
+				usedInBlock[s] = true
+			}
 		}
 	}
 
@@ -1061,9 +1109,13 @@ func injectParamPins(ops []VIROp, b *mir2.Block, f *mir2.Func, desc *MachineDesc
 
 		w := 8
 		if cp.Ty != nil {
-			if tw := cp.Ty.Width(); tw > 0 { w = tw }
+			if tw := cp.Ty.Width(); tw > 0 {
+				w = tw
+			}
 		}
-		if w < 8 { w = 8 }
+		if w < 8 {
+			w = 8
+		}
 
 		hint := regClassToLocSet(desc, cp.Class, w)
 		if hint.IsEmpty() {
@@ -1145,9 +1197,13 @@ func foldConstIntoALU(ops []VIROp) []VIROp {
 						// Check if const is used elsewhere
 						usedElsewhere := false
 						for k, other := range ops {
-							if k == i { continue }
+							if k == i {
+								continue
+							}
 							for _, s := range other.Src {
-								if s == cop.Dst { usedElsewhere = true }
+								if s == cop.Dst {
+									usedElsewhere = true
+								}
 							}
 						}
 						if !usedElsewhere {
@@ -1171,12 +1227,18 @@ func foldConstIntoALU(ops []VIROp) []VIROp {
 					if cop.Op == OpConst && cop.Dst == op.Src[0] {
 						usedElsewhere := false
 						for k, other := range ops {
-							if k == i { continue }
+							if k == i {
+								continue
+							}
 							for _, s := range other.Src {
-								if s == cop.Dst { usedElsewhere = true }
+								if s == cop.Dst {
+									usedElsewhere = true
+								}
 							}
 						}
-						if !usedElsewhere { skip[j] = true }
+						if !usedElsewhere {
+							skip[j] = true
+						}
 					}
 				}
 				continue
@@ -1292,8 +1354,8 @@ func appendReturnMove(ops []VIROp, b *mir2.Block, desc *MachineDesc, f ...*mir2.
 		for _, cp := range f[0].Contract.Params {
 			if int(cp.Reg) == retReg {
 				// Use PBQP allocation if available (exact register).
-			// This is passed via a module-level allocResults map.
-			// For now, fall through to class-based hint.
+				// This is passed via a module-level allocResults map.
+				// For now, fall through to class-based hint.
 				// Fallback to class-based hint
 				srcHint = regClassToLocSet(desc, cp.Class, w)
 				break

@@ -103,16 +103,15 @@ Focused parser and MIR2 tests were run during the work, including:
 
 The new playground examples were also compiled via the current CLI with `--asserts mir2`.
 
-## Current Gap
+## Current State Of The Default Backend
 
-There is one important follow-up still open:
+The previous gap in the current default backend has now been closed as well:
 
-- direct MIR2 `bit_get/bit_set/bit_reset` intent is understood by MIR2 Z80 codegen
-- but VIR lowering does not yet understand those MIR2 ops directly
+- VIR lowering now accepts direct MIR2 `bit_get/bit_set/bit_reset`
+- VIR has corresponding explicit bit-intent ops
+- the `fun/bit_intent.nanz` example now compiles through the current VIR path without the earlier unsupported-op fallback
 
-So today the examples still compile successfully, but the default path reports a VIR-lowering miss and falls back for those functions.
-
-That does not block the user-visible feature, but it is the next correctness-and-quality step if the goal is full parity across the current default backend stack.
+There is still room to improve code quality and cost modeling on the VIR side, especially for branch/test-specific `BIT` lowering, but the end-to-end support gap itself is no longer there.
 
 ## Next Steps
 

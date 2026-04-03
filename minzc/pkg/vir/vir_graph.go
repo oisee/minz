@@ -5,8 +5,8 @@
 // original MIR2 Func (stored as vf.MIRFunc); the instruction view uses VIROps.
 //
 // Two use cases:
-//   1. Pre-solver VIROp simplification (DSE, dead-instruction elimination)
-//   2. Post-solver PIROp cleanup (dead register before RET, EX DE,HL elimination)
+//  1. Pre-solver VIROp simplification (DSE, dead-instruction elimination)
+//  2. Post-solver PIROp cleanup (dead register before RET, EX DE,HL elimination)
 //
 // Note: VIROp blocks are linear — block arguments (PHI destinations) and
 // CFG edges come from MIR2. The adapter delegates CFG queries to MIR2.
@@ -233,8 +233,8 @@ func (b *virIRBlock) TermKind() string {
 	}
 }
 
-func (b *virIRBlock) ParamCount() int  { return len(b.vb.Params) }
-func (b *virIRBlock) InstCount() int   { return len(b.vb.Ops) }
+func (b *virIRBlock) ParamCount() int { return len(b.vb.Params) }
+func (b *virIRBlock) InstCount() int  { return len(b.vb.Ops) }
 
 func (b *virIRBlock) Inst(i int) rewrite.IRNode {
 	if i < 0 || i >= len(b.vb.Ops) {
@@ -422,7 +422,7 @@ func isPureVIROp(op VIROp) bool {
 	}
 	switch op.Op {
 	case OpConst, OpMove, OpAdd, OpSub, OpAnd, OpOr, OpXor,
-		OpShl, OpShr, OpNeg, OpMul,
+		OpShl, OpShr, OpNeg, OpMul, OpBitGet, OpBitSet, OpBitReset,
 		OpAddImm, OpSubImm, OpAndImm, OpOrImm, OpXorImm:
 		return true
 	}

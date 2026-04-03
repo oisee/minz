@@ -510,13 +510,13 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 			opBag := ComputeOpBag(allOps)
 			shape := ComputeInterferenceShape(allOps, desc)
 			type batchEntry struct {
-				Name        string              `json:"name"`
-				Sig         string              `json:"sig"`
-				NV          int                 `json:"nVregs"`
-				Desc        *GPUFuncDesc        `json:"desc"`
-				OpBag       OpBag               `json:"opBag"`
-				Shape       InterferenceShape   `json:"shape"`
-				EnrichedSig EnrichedSignature   `json:"enrichedSig"`
+				Name        string            `json:"name"`
+				Sig         string            `json:"sig"`
+				NV          int               `json:"nVregs"`
+				Desc        *GPUFuncDesc      `json:"desc"`
+				OpBag       OpBag             `json:"opBag"`
+				Shape       InterferenceShape `json:"shape"`
+				EnrichedSig EnrichedSignature `json:"enrichedSig"`
 			}
 			jsonData, _ := json.Marshal(batchEntry{f.Name, sig, nv, gf, opBag, shape, enrichedSig})
 			fmt.Fprintf(os.Stdout, "%s\n", jsonData)
@@ -574,9 +574,13 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 		vregSet := make(map[int]bool)
 		for _, b := range vf.Blocks {
 			for _, op := range b.Ops {
-				if op.Dst > 0 { vregSet[op.Dst] = true }
+				if op.Dst > 0 {
+					vregSet[op.Dst] = true
+				}
 				for _, s := range op.Src {
-					if s > 0 { vregSet[s] = true }
+					if s > 0 {
+						vregSet[s] = true
+					}
 				}
 			}
 		}
@@ -749,9 +753,13 @@ func insertParamMoves(ops []VIROp, paramHints map[int]int, desc *MachineDesc) []
 	// a pattern that requires a different register than the caller convention.
 	nextVReg := 0
 	for _, op := range ops {
-		if op.Dst > nextVReg { nextVReg = op.Dst }
+		if op.Dst > nextVReg {
+			nextVReg = op.Dst
+		}
 		for _, s := range op.Src {
-			if s > nextVReg { nextVReg = s }
+			if s > nextVReg {
+				nextVReg = s
+			}
 		}
 	}
 	nextVReg++
@@ -914,9 +922,9 @@ func resolveParallelMoves(moves []adapterMove, desc *MachineDesc) []string {
 				if tempLoc >= 0 {
 					temp := desc.Locs[tempLoc].Name
 					result = append(result,
-						fmt.Sprintf("LD %s, %s", temp, from.Name),  // save first
+						fmt.Sprintf("LD %s, %s", temp, from.Name),    // save first
 						fmt.Sprintf("LD %s, %s", from.Name, to.Name), // move second → first
-						fmt.Sprintf("LD %s, %s", to.Name, temp),   // restore first to second's old loc
+						fmt.Sprintf("LD %s, %s", to.Name, temp),      // restore first to second's old loc
 					)
 					emitted[i] = true
 					emitted[partner] = true
@@ -1703,8 +1711,12 @@ func emitPIRWithLabels(sb *strings.Builder, pirOps []PIROp, ops []VIROp, ranges 
 		// Adjust block range to island-local coordinates
 		localStart := br.start - startPC
 		localEnd := br.end - startPC
-		if localStart < 0 { localStart = 0 }
-		if localEnd > len(ops) { localEnd = len(ops) }
+		if localStart < 0 {
+			localStart = 0
+		}
+		if localEnd > len(ops) {
+			localEnd = len(ops)
+		}
 
 		// Emit block label (except the entry block which uses the function name)
 		if br.label != "" && br.label != "entry" && !labels[br.label] {
@@ -1811,19 +1823,28 @@ func codegenFuncPerBlock(f *mir2.Func, vf *Func, desc *MachineDesc, opts SolverO
 				used := make(map[int]bool)
 				for _, op := range block.Ops {
 					for _, s := range op.Src {
-						if s > 0 { used[s] = true }
+						if s > 0 {
+							used[s] = true
+						}
 					}
 				}
 
 				for vreg := range used {
 					phys, ok := vregPhys[vreg]
-					if !ok { continue }
+					if !ok {
+						continue
+					}
 					// Skip if vreg is defined in this block
 					definedHere := false
 					for _, op := range block.Ops {
-						if op.Dst == vreg { definedHere = true; break }
+						if op.Dst == vreg {
+							definedHere = true
+							break
+						}
 					}
-					if definedHere { continue }
+					if definedHere {
+						continue
+					}
 
 					pinReg := nextPin
 					nextPin++
@@ -1833,13 +1854,15 @@ func codegenFuncPerBlock(f *mir2.Func, vf *Func, desc *MachineDesc, opts SolverO
 					w := 8
 					for _, op := range block.Ops {
 						for _, s := range op.Src {
-							if s == vreg && op.Width > 0 { w = op.Width }
+							if s == vreg && op.Width > 0 {
+								w = op.Width
+							}
 						}
 					}
 					// Pin: source vreg is in phys (hard SrcHint).
-				// Destination is UNCONSTRAINED — solver picks optimal register.
-				// Per-inst solver can then move from phys to wherever needed.
-				pins = append(pins, VIROp{
+					// Destination is UNCONSTRAINED — solver picks optimal register.
+					// Per-inst solver can then move from phys to wherever needed.
+					pins = append(pins, VIROp{
 						Op: OpMove, Dst: pinReg,
 						Src: [2]int{vreg, -1}, Width: w,
 						SrcHint: [2]LocSet{Singleton(phys)},
@@ -1873,10 +1896,14 @@ func codegenFuncPerBlock(f *mir2.Func, vf *Func, desc *MachineDesc, opts SolverO
 			paramVRegs := make(map[int]bool)
 			if opts.FuncParamLocs != nil {
 				if pl, ok := opts.FuncParamLocs[f.Name]; ok {
-					for v := range pl { paramVRegs[v] = true }
+					for v := range pl {
+						paramVRegs[v] = true
+					}
 				}
 			}
-			for v := range opts.ParamLocs { paramVRegs[v] = true }
+			for v := range opts.ParamLocs {
+				paramVRegs[v] = true
+			}
 
 			for k, p := range pirOps {
 				if k < len(block.Ops) {
@@ -2279,7 +2306,7 @@ func verifyABICompat(ops []VIROp, assignment map[int]int, opts SolverOptions) bo
 // findBestPattern finds the cheapest pattern matching an op with given physical locs.
 func findBestPattern(op VIROp, dstPhys int, srcPhys [2]int, desc *MachineDesc) *Pattern {
 	var best *Pattern
-	bestCost := 1<<30
+	bestCost := 1 << 30
 
 	for i := range desc.Patterns {
 		pat := &desc.Patterns[i]
@@ -2454,9 +2481,10 @@ func findCmpCond(b *mir2.Block, condReg mir2.Reg) mir2.CmpCond {
 // ── Peephole ────────────────────────────────────────────────────────────────
 
 // isSelfMove detects Z80 no-op moves that can be eliminated:
-//   LD A, A    — register self-copy
-//   PUSH HL / POP HL  — stack self-move (from coalescing artifacts)
-//   ; trunc ... (alias) — zero-cost aliases (already no instruction)
+//
+//	LD A, A    — register self-copy
+//	PUSH HL / POP HL  — stack self-move (from coalescing artifacts)
+//	; trunc ... (alias) — zero-cost aliases (already no instruction)
 func isSelfMove(line string) bool {
 	line = strings.TrimSpace(line)
 	if line == "" {
@@ -2585,10 +2613,14 @@ func resolveDEValue(lines []string) int {
 func parseSmallInt(s string) (int, bool) {
 	n := 0
 	for _, c := range s {
-		if c < '0' || c > '9' { return 0, false }
+		if c < '0' || c > '9' {
+			return 0, false
+		}
 		n = n*10 + int(c-'0')
 	}
-	if len(s) == 0 { return 0, false }
+	if len(s) == 0 {
+		return 0, false
+	}
 	return n, true
 }
 
@@ -2596,11 +2628,17 @@ func writesReg(line, reg string) bool {
 	// Instructions that write to a register: LD, INC, DEC, ADD, SUB, AND, OR, XOR, SRL, SLA, RR, RL, POP, etc.
 	line = strings.TrimSpace(line)
 	// LD reg, ...
-	if strings.HasPrefix(line, "LD "+reg+", ") { return true }
+	if strings.HasPrefix(line, "LD "+reg+", ") {
+		return true
+	}
 	// INC/DEC reg
-	if line == "INC "+reg || line == "DEC "+reg { return true }
+	if line == "INC "+reg || line == "DEC "+reg {
+		return true
+	}
 	// POP BC writes B and C
-	if reg == "B" && (line == "POP BC" || strings.HasPrefix(line, "POP BC")) { return true }
+	if reg == "B" && (line == "POP BC" || strings.HasPrefix(line, "POP BC")) {
+		return true
+	}
 	// Any ALU op that targets A (if checking B, not relevant unless it's B)
 	// For simplicity, conservatively return true for ops that could affect B
 	if reg == "B" {
@@ -2828,7 +2866,9 @@ func peepholeCleanup(asm string) string {
 				}
 				if i+1 < len(lines) {
 					next := strings.TrimSpace(lines[i+1])
-					if strings.HasPrefix(next, "LD A, ") { i++ }
+					if strings.HasPrefix(next, "LD A, ") {
+						i++
+					}
 				}
 				continue
 			}
@@ -2846,35 +2886,35 @@ func peepholeCleanup(asm string) string {
 			}
 			result = append(result,
 				"    ; divmod10 (GPU-optimal, 124T)",
-				"    LD C, A",       // save n
-				"    SRL A",         // n >> 1
-				"    LD B, A",       // B = n >> 1
-				"    SRL A",         // n >> 2
-				"    ADD A, B",      // (n>>1) + (n>>2) = q0
+				"    LD C, A",  // save n
+				"    SRL A",    // n >> 1
+				"    LD B, A",  // B = n >> 1
+				"    SRL A",    // n >> 2
+				"    ADD A, B", // (n>>1) + (n>>2) = q0
 				"    LD B, A",
-				"    RRA",           // ┐
-				"    RRA",           // │ q0 >> 4 via RRA + mask
-				"    RRA",           // │
-				"    RRA",           // ┘
-				"    AND 0x0F",       // mask to 4 bits
-				"    ADD A, B",      // q0 + (q0 >> 4)
-				"    RRA",           // ┐
-				"    RRA",           // │ >> 3 via RRA + mask
-				"    RRA",           // ┘
-				"    AND 0x1F",       // quotient approximation
-				"    LD B, A",       // B = quotient
-				"    ADD A, A",      // ┐
-				"    ADD A, A",      // │ ×10 = (q×4 + q) × 2
-				"    ADD A, B",      // │
-				"    ADD A, A",      // ┘
-				"    SUB C",         // remainder = -(n - 10q)
-				"    NEG",           // fix sign
-				"    CP 10",         // correction needed?
+				"    RRA",      // ┐
+				"    RRA",      // │ q0 >> 4 via RRA + mask
+				"    RRA",      // │
+				"    RRA",      // ┘
+				"    AND 0x0F", // mask to 4 bits
+				"    ADD A, B", // q0 + (q0 >> 4)
+				"    RRA",      // ┐
+				"    RRA",      // │ >> 3 via RRA + mask
+				"    RRA",      // ┘
+				"    AND 0x1F", // quotient approximation
+				"    LD B, A",  // B = quotient
+				"    ADD A, A", // ┐
+				"    ADD A, A", // │ ×10 = (q×4 + q) × 2
+				"    ADD A, B", // │
+				"    ADD A, A", // ┘
+				"    SUB C",    // remainder = -(n - 10q)
+				"    NEG",      // fix sign
+				"    CP 10",    // correction needed?
 				fmt.Sprintf("    JR C, .vir_div10_ok_%d", idx), // no → done
-				"    SUB 10",        // yes → adjust remainder
-				"    INC B",         // and quotient
+				"    SUB 10", // yes → adjust remainder
+				"    INC B",  // and quotient
 				fmt.Sprintf(".vir_div10_ok_%d:", idx),
-				"    LD A, B",       // A = quotient (matches __div8 ABI)
+				"    LD A, B", // A = quotient (matches __div8 ABI)
 			)
 			if i+1 < len(lines) {
 				next := strings.TrimSpace(lines[i+1])
@@ -2909,13 +2949,13 @@ func peepholeCleanup(asm string) string {
 				"    RRA",
 				"    RRA",
 				"    AND 0x1F",
-				"    LD B, A",       // B = quotient (discarded for mod)
+				"    LD B, A", // B = quotient (discarded for mod)
 				"    ADD A, A",
 				"    ADD A, A",
 				"    ADD A, B",
 				"    ADD A, A",
 				"    SUB C",
-				"    NEG",           // A = raw remainder
+				"    NEG", // A = raw remainder
 				"    CP 10",
 				fmt.Sprintf("    JR C, .vir_mod10_ok_%d", idx),
 				"    SUB 10",
@@ -2924,7 +2964,9 @@ func peepholeCleanup(asm string) string {
 			)
 			if i+1 < len(lines) {
 				next := strings.TrimSpace(lines[i+1])
-				if strings.HasPrefix(next, "LD A, ") { i++ }
+				if strings.HasPrefix(next, "LD A, ") {
+					i++
+				}
 			}
 			continue
 		}
@@ -2947,7 +2989,7 @@ func peepholeCleanup(asm string) string {
 				fmt.Sprintf(".vir_div8_sk_%d:", idx),
 				"    DEC D",
 				fmt.Sprintf("    JR NZ, .vir_div8_%d", idx),
-				"    LD A, B",  // A = quotient
+				"    LD A, B", // A = quotient
 			)
 			// Skip subsequent LD A, r (return-move — result already in A)
 			if i+1 < len(lines) {
@@ -2979,7 +3021,9 @@ func peepholeCleanup(asm string) string {
 			)
 			if i+1 < len(lines) {
 				next := strings.TrimSpace(lines[i+1])
-				if strings.HasPrefix(next, "LD A, ") { i++ }
+				if strings.HasPrefix(next, "LD A, ") {
+					i++
+				}
 			}
 			continue
 		}
@@ -3001,7 +3045,9 @@ func peepholeCleanup(asm string) string {
 				}
 				if i+1 < len(lines) {
 					next := strings.TrimSpace(lines[i+1])
-					if strings.HasPrefix(next, "LD A, ") { i++ }
+					if strings.HasPrefix(next, "LD A, ") {
+						i++
+					}
 				}
 				continue
 			}
@@ -3024,7 +3070,9 @@ func peepholeCleanup(asm string) string {
 			)
 			if i+1 < len(lines) {
 				next := strings.TrimSpace(lines[i+1])
-				if strings.HasPrefix(next, "LD A, ") { i++ }
+				if strings.HasPrefix(next, "LD A, ") {
+					i++
+				}
 			}
 			continue
 		}
@@ -3051,8 +3099,8 @@ func peepholeCleanup(asm string) string {
 				fmt.Sprintf(".vir_div16_ni_%d:", idx),
 				"    DEC A",
 				fmt.Sprintf("    JR NZ, .vir_div16_%d", idx),
-				"    EX DE, HL",   // DE = remainder
-				"    LD H, B",     // HL = quotient
+				"    EX DE, HL", // DE = remainder
+				"    LD H, B",   // HL = quotient
 				"    LD L, C",
 			)
 			continue
@@ -3152,7 +3200,7 @@ func peepholeCleanup(asm string) string {
 			next := strings.TrimSpace(lines[i+1])
 			if next == "LD "+src+", A" {
 				result = append(result, lines[i]) // keep first LD
-				i++                                // skip second
+				i++                               // skip second
 				continue
 			}
 		}
@@ -3164,7 +3212,7 @@ func peepholeCleanup(asm string) string {
 			next := strings.TrimSpace(lines[i+1])
 			if next == "LD A, "+reg {
 				result = append(result, lines[i]) // keep first LD
-				i++                                // skip second
+				i++                               // skip second
 				continue
 			}
 		}
@@ -3174,7 +3222,7 @@ func peepholeCleanup(asm string) string {
 			next := strings.TrimSpace(lines[i+1])
 			if next == "OR A" {
 				result = append(result, lines[i]) // keep one
-				i++                                // skip duplicate
+				i++                               // skip duplicate
 				continue
 			}
 		}
@@ -3468,7 +3516,7 @@ func peepholeCleanup(asm string) string {
 				nextLine := strings.TrimSpace(lines[i+1])
 				if nextLine == "LD "+b+", "+a {
 					result = append(result, lines[i]) // keep first
-					i++                                // skip second
+					i++                               // skip second
 					continue
 				}
 			}
@@ -3720,7 +3768,9 @@ func gracePass(lines []string) []string {
 		if i+1 < len(lines) && (line == "LD BC, 0" || line == "LD DE, 0") {
 			next := strings.TrimSpace(lines[i+1])
 			pair := "BC"
-			if strings.HasPrefix(line, "LD DE") { pair = "DE" }
+			if strings.HasPrefix(line, "LD DE") {
+				pair = "DE"
+			}
 			if next == "ADD HL, "+pair {
 				i++ // skip both
 				continue
@@ -3814,7 +3864,7 @@ func graceReroll(lines []string, funcName string) []string {
 	// Scan for repeated CALL patterns
 	type callBlock struct {
 		startIdx int
-		endIdx   int      // exclusive
+		endIdx   int // exclusive
 		callFunc string
 		ldArgs   []string // LD instruction lines (with immediate values)
 	}
@@ -4091,10 +4141,10 @@ func dumpCallGraph(m *mir2.Module, opts SolverOptions) {
 // GPU allocation problem. Remap vregs, add boundary interference.
 
 type mergedProblem struct {
-	Name    string      `json:"name"`
-	Funcs   []string    `json:"funcs"`
-	NVregs  int         `json:"nVregs"`
-	Desc    *GPUFuncDesc `json:"desc"`
+	Name   string       `json:"name"`
+	Funcs  []string     `json:"funcs"`
+	NVregs int          `json:"nVregs"`
+	Desc   *GPUFuncDesc `json:"desc"`
 }
 
 type mergePair struct {
@@ -4102,9 +4152,9 @@ type mergePair struct {
 }
 
 type mergedFuncData struct {
-	ops  []VIROp
-	gpu  *GPUFuncDesc
-	nv   int
+	ops []VIROp
+	gpu *GPUFuncDesc
+	nv  int
 }
 
 func dumpMergedProblems(m *mir2.Module, opts SolverOptions, outPath string) {
@@ -4259,7 +4309,9 @@ func mergeFuncDescs(names []string, cache map[string]*mergedFuncData) *mergedPro
 		off := offsets[fi]
 		for _, pair := range fd.gpu.Interference {
 			a, b := pair[0]+off, pair[1]+off
-			if a > b { a, b = b, a }
+			if a > b {
+				a, b = b, a
+			}
 			key := [2]int{a, b}
 			if !seen[key] {
 				seen[key] = true
@@ -4284,7 +4336,9 @@ func mergeFuncDescs(names []string, cache map[string]*mergedFuncData) *mergedPro
 		for cv := 0; cv < callerNV; cv++ {
 			for ev := 0; ev < calleeNV; ev++ {
 				a, b := offsets[fi]+cv, calleeOff+ev
-				if a > b { a, b = b, a }
+				if a > b {
+					a, b = b, a
+				}
 				key := [2]int{a, b}
 				if !seen[key] {
 					seen[key] = true
@@ -4435,14 +4489,14 @@ type islandConfig struct {
 }
 
 type islandResult struct {
-	Name         string       `json:"name"`
-	Func         string       `json:"func"`
-	IslandIdx    int          `json:"islandIdx"`
-	PCRange      [2]int       `json:"pcRange"`
-	NVregs       int          `json:"nVregs"`
-	Desc         *GPUFuncDesc `json:"desc"`
-	BoundaryIn   []int        `json:"boundaryIn,omitempty"`  // vregs live at island entry (from previous island)
-	BoundaryOut  []int        `json:"boundaryOut,omitempty"` // vregs live at island exit (to next island)
+	Name        string       `json:"name"`
+	Func        string       `json:"func"`
+	IslandIdx   int          `json:"islandIdx"`
+	PCRange     [2]int       `json:"pcRange"`
+	NVregs      int          `json:"nVregs"`
+	Desc        *GPUFuncDesc `json:"desc"`
+	BoundaryIn  []int        `json:"boundaryIn,omitempty"`  // vregs live at island entry (from previous island)
+	BoundaryOut []int        `json:"boundaryOut,omitempty"` // vregs live at island exit (to next island)
 }
 
 func dumpIslands(m *mir2.Module, opts SolverOptions, outPath string) {
@@ -4625,9 +4679,13 @@ func greedyMergeIslands(ops []VIROp, prob *problem, splits []int, maxVregs int) 
 		seen := make(map[int]bool)
 		for i := start; i < end && i < len(ops); i++ {
 			op := ops[i]
-			if op.Dst > 0 { seen[op.Dst] = true }
+			if op.Dst > 0 {
+				seen[op.Dst] = true
+			}
 			for _, s := range op.Src {
-				if s > 0 { seen[s] = true }
+				if s > 0 {
+					seen[s] = true
+				}
 			}
 		}
 		return len(seen)
@@ -4754,7 +4812,9 @@ func opName(op Op) string {
 		OpAddImm: "addimm", OpSubImm: "subimm", OpAndImm: "andimm",
 		OpOrImm: "orimm", OpXorImm: "xorimm", OpCmpImm: "cmpimm",
 		OpStoreGlobal: "storeglobal", OpLoadGlobal: "loadglobal",
-		OpCondRet: "condret", OpLoad16LE: "load16le", OpAsmBlock: "asmblock",
+		OpCondRet: "condret", OpLoad16LE: "load16le",
+		OpBitGet: "bitget", OpBitSet: "bitset", OpBitReset: "bitreset",
+		OpAsmBlock: "asmblock",
 	}
 	if n, ok := names[op]; ok {
 		return n

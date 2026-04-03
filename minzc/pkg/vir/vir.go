@@ -33,33 +33,36 @@ import (
 type Op int
 
 const (
-	OpConst    Op = iota + 1 // dst = immediate
-	OpMove                   // dst = src0 (may cross widths: trunc/zext)
-	OpAdd                    // dst = src0 + src1
-	OpSub                    // dst = src0 - src1
-	OpMul                    // dst = src0 * src1
-	OpAnd                    // dst = src0 & src1
-	OpOr                     // dst = src0 | src1
-	OpXor                    // dst = src0 ^ src1
-	OpCmp                    // flags = cmp(src0, src1)
-	OpLoad                   // dst = mem[src0]
-	OpStore                  // mem[src0] = src1
-	OpCall                   // dst = call sym(args...)
-	OpRet                    // return src0
-	OpShl                    // dst = src0 << src1
-	OpShr                    // dst = src0 >> src1
-	OpNeg                    // dst = -src0
-	OpAddImm                 // dst = src0 + imm
-	OpSubImm                 // dst = src0 - imm
-	OpAndImm                 // dst = src0 & imm
-	OpOrImm                  // dst = src0 | imm
-	OpXorImm                 // dst = src0 ^ imm
-	OpCmpImm                 // flags = cmp(src0, imm)
-	OpStoreGlobal            // mem[sym] = src0
-	OpLoadGlobal             // dst = mem[sym]
-	OpCondRet                // if flags, return src0
-	OpLoad16LE               // dst = load16le(src0)
-	OpAsmBlock               // inline asm: emit AsmTemplate verbatim, pinned ins/outs
+	OpConst       Op = iota + 1 // dst = immediate
+	OpMove                      // dst = src0 (may cross widths: trunc/zext)
+	OpAdd                       // dst = src0 + src1
+	OpSub                       // dst = src0 - src1
+	OpMul                       // dst = src0 * src1
+	OpAnd                       // dst = src0 & src1
+	OpOr                        // dst = src0 | src1
+	OpXor                       // dst = src0 ^ src1
+	OpCmp                       // flags = cmp(src0, src1)
+	OpLoad                      // dst = mem[src0]
+	OpStore                     // mem[src0] = src1
+	OpCall                      // dst = call sym(args...)
+	OpRet                       // return src0
+	OpShl                       // dst = src0 << src1
+	OpShr                       // dst = src0 >> src1
+	OpNeg                       // dst = -src0
+	OpAddImm                    // dst = src0 + imm
+	OpSubImm                    // dst = src0 - imm
+	OpAndImm                    // dst = src0 & imm
+	OpOrImm                     // dst = src0 | imm
+	OpXorImm                    // dst = src0 ^ imm
+	OpCmpImm                    // flags = cmp(src0, imm)
+	OpStoreGlobal               // mem[sym] = src0
+	OpLoadGlobal                // dst = mem[sym]
+	OpCondRet                   // if flags, return src0
+	OpLoad16LE                  // dst = load16le(src0)
+	OpBitGet                    // dst(u8/A) = bit_get(src0, imm=bit)
+	OpBitSet                    // dst = bit_set(src0, imm=bit)
+	OpBitReset                  // dst = bit_reset(src0, imm=bit)
+	OpAsmBlock                  // inline asm: emit AsmTemplate verbatim, pinned ins/outs
 )
 
 // ── VIROp ────────────────────────────────────────────────────────────────────
@@ -75,14 +78,14 @@ type VIROp struct {
 	Sym   string // symbol name (OpCall target, OpStoreGlobal/OpLoadGlobal address)
 
 	// Solver hints (optional, from bridge or PFCCO contracts):
-	DstHint  LocSet // preferred dst locations (0 = unconstrained)
+	DstHint  LocSet    // preferred dst locations (0 = unconstrained)
 	SrcHint  [2]LocSet // preferred src locations
-	Clobbers LocSet // registers clobbered by this op (OpCall)
+	Clobbers LocSet    // registers clobbered by this op (OpCall)
 
 	// Inline asm (OpAsmBlock only):
-	AsmTemplate string   // verbatim Z80 asm lines (newline-separated)
-	AsmIns      []int    // input vregs (pinned to specific phys regs via SrcHint)
-	AsmOuts     []int    // output vregs (pinned to specific phys regs via DstHint)
+	AsmTemplate string // verbatim Z80 asm lines (newline-separated)
+	AsmIns      []int  // input vregs (pinned to specific phys regs via SrcHint)
+	AsmOuts     []int  // output vregs (pinned to specific phys regs via DstHint)
 }
 
 // ── LocSet ───────────────────────────────────────────────────────────────────
@@ -139,7 +142,7 @@ func (s LocSet) ForEach(f func(int) bool) {
 	}
 }
 
-func Singleton(i int) LocSet     { return 1 << uint(i) }
+func Singleton(i int) LocSet { return 1 << uint(i) }
 func Range(lo, hi int) LocSet {
 	var s LocSet
 	for i := lo; i < hi; i++ {
@@ -151,10 +154,10 @@ func Range(lo, hi int) LocSet {
 // ── Physical Location ────────────────────────────────────────────────────────
 
 type Loc struct {
-	Name  string  // "A", "HL", "IXH", "tsmc0", "mem0"
-	Width int     // bits: 8, 16
+	Name  string // "A", "HL", "IXH", "tsmc0", "mem0"
+	Width int    // bits: 8, 16
 	Kind  LocKind
-	Alias LocSet  // overlapping locations (sub-register aliasing)
+	Alias LocSet // overlapping locations (sub-register aliasing)
 }
 
 type LocKind int
@@ -320,11 +323,11 @@ var pairAliases = []pairAlias{
 // combinations. Replaces text-level fixups.
 
 type ConstraintRule struct {
-	Name    string // "dd_prefix_conflict", "pair_only_add"
-	DstSet  LocSet // applies when dst in DstSet
-	SrcSet  LocSet // applies when src in SrcSet
-	OpMask  Op     // 0 = all ops; nonzero = specific op
-	Cost    int    // additional cost (MaxCost = forbidden)
+	Name   string // "dd_prefix_conflict", "pair_only_add"
+	DstSet LocSet // applies when dst in DstSet
+	SrcSet LocSet // applies when src in SrcSet
+	OpMask Op     // 0 = all ops; nonzero = specific op
+	Cost   int    // additional cost (MaxCost = forbidden)
 }
 
 const MaxCost = 1 << 30 // impossible/forbidden combination
@@ -516,9 +519,9 @@ func formatImm(v int64) string {
 
 type Block struct {
 	Label  string
-	Ops    []VIROp  // input: virtual ops
-	PIR    []PIROp  // output: physical ops (filled by solver)
-	Params []int    // block parameter vreg IDs (PHI destinations)
+	Ops    []VIROp // input: virtual ops
+	PIR    []PIROp // output: physical ops (filled by solver)
+	Params []int   // block parameter vreg IDs (PHI destinations)
 }
 
 // ── Func ─────────────────────────────────────────────────────────────────────
