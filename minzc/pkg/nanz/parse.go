@@ -4185,6 +4185,11 @@ func (p *parser) parseExprStmt() (hir.Stmt, error) {
 		case *hir.IndexExpr:
 			// arr[i] = val → AssignStmt (HIR lowerer handles ptr arithmetic)
 			return &hir.AssignStmt{Target: lv, Val: rhs}, nil
+		case *hir.BitExpr:
+			if !isAddressableBitBase(lv.X) {
+				return nil, fmt.Errorf("line %d: bit assignment requires addressable scalar lvalue base", p.l.peek().line)
+			}
+			return &hir.AssignStmt{Target: lv, Val: rhs}, nil
 		default:
 			return &hir.AssignStmt{Target: lhs, Val: rhs}, nil
 		}
@@ -4192,6 +4197,25 @@ func (p *parser) parseExprStmt() (hir.Stmt, error) {
 	// Not an assignment: lhs is a value expression — check for uninit use.
 	p.warnUninitInExpr(lhs)
 	return &hir.ExprStmt{Expr: lhs}, nil
+}
+
+func isAddressableBitBase(e hir.Expr) bool {
+	switch ex := e.(type) {
+	case *hir.VarRefExpr:
+		return true
+	case *hir.FieldExpr:
+		return true
+	case *hir.IndexExpr:
+		return true
+	case *hir.LoadExpr:
+		return true
+	case *hir.DerefExpr:
+		return true
+	case *hir.BitExpr:
+		return isAddressableBitBase(ex.X)
+	default:
+		return false
+	}
 }
 
 // ── Expression parser (Pratt) ─────────────────────────────────────────────────

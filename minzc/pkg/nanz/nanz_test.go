@@ -1175,6 +1175,39 @@ fun bad(p: Pair) -> u8 {
 	}
 }
 
+func TestBitSelectorRejectsNonLValueAssignmentBase(t *testing.T) {
+	cases := []struct {
+		name string
+		src  string
+	}{
+		{
+			name: "literal",
+			src: `
+fun bad() {
+    (128).7 = 0
+}
+`,
+		},
+		{
+			name: "computed",
+			src: `
+fun bad(x: u8) {
+    (x + 1).3 = 0
+}
+`,
+		},
+	}
+	for _, tc := range cases {
+		_, err := nanz.Parse(tc.src, "bit_selector_non_lvalue_"+tc.name)
+		if err == nil {
+			t.Fatalf("%s: expected parse error for non-lvalue bit assignment", tc.name)
+		}
+		if !strings.Contains(err.Error(), "bit assignment requires addressable scalar lvalue base") {
+			t.Fatalf("%s: unexpected error: %v", tc.name, err)
+		}
+	}
+}
+
 // ── Interface declaration ─────────────────────────────────────────────────────
 
 func TestInterfaceDecl(t *testing.T) {
