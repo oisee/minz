@@ -167,6 +167,77 @@ func TestZ80Codegen_IX16bitLoadStore(t *testing.T) {
 	}
 }
 
+func TestZ80Codegen_IXYHalvesAreFirstClassForMoves(t *testing.T) {
+	m := &mir2.Module{Name: "ixyhalves"}
+	f := m.AddFunc("half_moves")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+
+	bld := mir2.NewBuilder(f)
+	bld.SwitchToNewBlock("entry")
+	x := bld.Param("x", mir2.TyU8, mir2.ClassGeneral)
+	mid := bld.Move(x, mir2.TyU8, mir2.ClassGeneral)
+	y := bld.Move(mid, mir2.TyU8, mir2.ClassGeneral)
+	retv := bld.Move(y, mir2.TyU8, mir2.ClassAcc)
+	bld.Ret(retv)
+
+	ar := &mir2.AllocResult{Locs: map[mir2.Reg]mir2.PhysLoc{
+		x:    {Kind: mir2.LocReg, Name: "IXL"},
+		mid:  {Kind: mir2.LocReg, Name: "B"},
+		y:    {Kind: mir2.LocReg, Name: "IYL"},
+		retv: {Kind: mir2.LocReg, Name: "A"},
+	}}
+
+	asm := mir2.Z80Codegen(m, ar)
+	t.Log("\n" + asm)
+
+	fnAsm := extractFuncAsm(asm, "half_moves")
+	if !strings.Contains(fnAsm, "LD B, IXL") {
+		t.Fatalf("expected direct first-class move from IXL, got:\n%s", fnAsm)
+	}
+	if !strings.Contains(fnAsm, "LD IYL, B") {
+		t.Fatalf("expected direct first-class move into IYL, got:\n%s", fnAsm)
+	}
+}
+
+func TestZ80Codegen_IXYHalvesCompareAsNormal8BitRegs(t *testing.T) {
+	m := &mir2.Module{Name: "ixycmp"}
+	f := m.AddFunc("half_cmp_zero")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+
+	bld := mir2.NewBuilder(f)
+	entry := bld.SwitchToNewBlock("entry")
+	x := bld.Param("x", mir2.TyU8, mir2.ClassGeneral)
+	zero := bld.Const(0, mir2.TyU8, mir2.ClassGeneral)
+	cond := bld.Cmp(mir2.CmpEq, x, zero, mir2.ClassFlag, false)
+	bld.BrIf(cond, "ret1", nil, "ret0", nil)
+	bld.SwitchToNewBlock("ret1")
+	one := bld.Const(1, mir2.TyU8, mir2.ClassAcc)
+	bld.Ret(one)
+	bld.SwitchTo(entry)
+	bld.SwitchToNewBlock("ret0")
+	z := bld.Const(0, mir2.TyU8, mir2.ClassAcc)
+	bld.Ret(z)
+
+	ar := &mir2.AllocResult{Locs: map[mir2.Reg]mir2.PhysLoc{
+		x:    {Kind: mir2.LocReg, Name: "IYH"},
+		zero: {Kind: mir2.LocReg, Name: "C"},
+		cond: {Kind: mir2.LocReg, Name: "F"},
+		one:  {Kind: mir2.LocReg, Name: "A"},
+		z:    {Kind: mir2.LocReg, Name: "A"},
+	}}
+
+	asm := mir2.Z80Codegen(m, ar)
+	t.Log("\n" + asm)
+
+	fnAsm := extractFuncAsm(asm, "half_cmp_zero")
+	if !strings.Contains(fnAsm, "LD A, IYH") {
+		t.Fatalf("expected direct compare setup from IYH, got:\n%s", fnAsm)
+	}
+	if !strings.Contains(fnAsm, "AND A") {
+		t.Fatalf("expected zero-compare path to work for IYH, got:\n%s", fnAsm)
+	}
+}
+
 // TestZ80Codegen_IXAllocUnderPressure verifies that the PBQP allocator selects
 // IX for a ClassPointer reg when HL, DE, and BC are already occupied by other
 // simultaneously-live ClassPointer / ClassIndex / ClassPair regs.

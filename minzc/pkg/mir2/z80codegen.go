@@ -1027,6 +1027,13 @@ func (g *z80cg) physNameFor(pl PhysLoc, r Reg) string {
 }
 
 // emitLD8 emits a safe 8-bit LD, handling spill labels.
+//
+// Backend policy: IXH/IXL/IYH/IYL are treated as first-class 8-bit registers,
+// not as exotic fallbacks reserved only for bit operations. Direct half-reg
+// paths should be preferred whenever they are encoding-correct; alternative
+// routes through A / pair copies / memory are justified only by real DD/FD
+// prefix conflicts or by proven size/timing wins elsewhere.
+//
 // Z80 only supports LD A,(nn) and LD (nn),A for absolute memory.
 // Routes through shadow A (EX AF,AF') to preserve main A register.
 func (g *z80cg) emitLD8(dst, src string) {
@@ -7086,6 +7093,11 @@ func sanitizeIdent(s string) string {
 }
 
 // ── 16-bit register half helpers ──────────────────────────────────────────────
+//
+// These helpers encode the project's "first-class half-register" policy:
+// HL/DE/BC/IX/IY all expose stable low/high 8-bit halves for generic backend
+// reasoning. IXH/IXL/IYH/IYL must be considered alongside H/L/D/E/B/C in all
+// legal direct paths; they are not special-cased only for bit ops.
 
 // lowByte returns the low-byte name of a 16-bit register.
 func lowByte(rr string) string {
