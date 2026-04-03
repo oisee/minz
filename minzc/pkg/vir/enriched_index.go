@@ -13,6 +13,18 @@ var locSets8 = [][]int{
 	{1, 2, 3, 4, 5, 6},      // 3: any GPR8 except A
 }
 
+// locSets8IX extends locSets8 with IX/IY half-register options.
+// These are NOT in the binary tables yet — they define what an IX-expanded
+// enumeration would look like. Used for gap analysis / diagnostics only.
+var locSets8IX = [][]int{
+	{0},                                              // 0: must be A
+	{2},                                              // 1: must be C
+	{0, 1, 2, 3, 4, 5, 6},                            // 2: any GPR8 (original)
+	{1, 2, 3, 4, 5, 6},                               // 3: any GPR8 except A
+	{10, 11, 12, 13},                                  // 4: IX/IY halves only (call-safe 8-bit)
+	{0, 1, 2, 3, 4, 5, 6, 10, 11, 12, 13},            // 5: any GPR8 + IX halves
+}
+
 var locSets16 = [][]int{
 	{9},       // 0: must be HL
 	{8},       // 1: must be DE

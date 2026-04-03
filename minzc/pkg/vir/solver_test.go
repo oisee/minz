@@ -477,6 +477,81 @@ func TestGPURegAlloc(t *testing.T) {
 	}
 }
 
+func TestEnrichedGapAnalysis(t *testing.T) {
+	// Leaf function (no calls) — should be "shape_ok", no IX benefit
+	leafOps := []VIROp{
+		{Op: OpConst, Dst: 1, Imm: 5, Width: 8},
+		{Op: OpConst, Dst: 2, Imm: 3, Width: 8},
+		{Op: OpAdd, Dst: 3, Src: [2]int{1, 2}, Width: 8},
+	}
+	leafInfo := AnalyzeEnrichedGap(leafOps, Z80, "leaf_add")
+	t.Logf("leaf_add: %+v", leafInfo)
+	if leafInfo.HasCall {
+		t.Error("leaf function should not have HasCall")
+	}
+	if leafInfo.WouldBenefitIX {
+		t.Error("leaf function should not benefit from IX expansion")
+	}
+	if leafInfo.MissReason != "shape_ok" {
+		t.Errorf("expected shape_ok, got %s", leafInfo.MissReason)
+	}
+
+	// Function with a call and a vreg live across it — should benefit from IX
+	callOps := []VIROp{
+		{Op: OpConst, Dst: 1, Imm: 42, Width: 8},       // v1 = 42
+		{Op: OpConst, Dst: 2, Imm: 10, Width: 8},        // v2 = 10 (arg for call)
+		{Op: OpCall, Dst: 3, Src: [2]int{2, 0}, Width: 8, Sym: "foo"}, // v3 = foo(v2)
+		{Op: OpAdd, Dst: 4, Src: [2]int{1, 3}, Width: 8}, // v4 = v1 + v3  (v1 was live across call)
+	}
+	callInfo := AnalyzeEnrichedGap(callOps, Z80, "call_add")
+	t.Logf("call_add: %+v", callInfo)
+	if !callInfo.HasCall {
+		t.Error("call function should have HasCall")
+	}
+	if callInfo.CallLiveVregs == 0 {
+		t.Error("expected vregs live across call")
+	}
+	if !callInfo.WouldBenefitIX {
+		t.Error("function with call-live vregs should benefit from IX expansion")
+	}
+	if callInfo.MissReason != "call_pressure" {
+		t.Errorf("expected call_pressure, got %s", callInfo.MissReason)
+	}
+
+	// Too many vregs — should report too_many_vregs
+	bigOps := make([]VIROp, 0)
+	for i := 1; i <= 8; i++ {
+		bigOps = append(bigOps, VIROp{Op: OpConst, Dst: i, Imm: int64(i), Width: 8})
+	}
+	bigInfo := AnalyzeEnrichedGap(bigOps, Z80, "too_big")
+	t.Logf("too_big: %+v", bigInfo)
+	if bigInfo.MissReason != "too_many_vregs" {
+		t.Errorf("expected too_many_vregs, got %s", bigInfo.MissReason)
+	}
+}
+
+func TestLocSets8IXDefinitions(t *testing.T) {
+	// Verify IX-expanded loc sets contain expected locations
+	if len(locSets8IX) != 6 {
+		t.Fatalf("expected 6 IX-expanded locSets, got %d", len(locSets8IX))
+	}
+	// Index 4: IX halves only
+	ixOnly := locSets8IX[4]
+	if len(ixOnly) != 4 {
+		t.Fatalf("locSets8IX[4] should have 4 entries, got %d", len(ixOnly))
+	}
+	for _, loc := range ixOnly {
+		if loc < 10 || loc > 13 {
+			t.Errorf("locSets8IX[4] should only contain 10-13, got %d", loc)
+		}
+	}
+	// Index 5: GPR8 + IX halves
+	gprIx := locSets8IX[5]
+	if len(gprIx) != 11 {
+		t.Fatalf("locSets8IX[5] should have 11 entries, got %d", len(gprIx))
+	}
+}
+
 func findPattern(name string) *Pattern {
 	for i := range Z80.Patterns {
 		if Z80.Patterns[i].Name == name {

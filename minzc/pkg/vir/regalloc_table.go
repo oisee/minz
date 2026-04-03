@@ -1145,3 +1145,85 @@ func ComputeEnrichedSignature(ops []VIROp, desc *MachineDesc) EnrichedSignature 
 		NVregs:    shape.NVregs,
 	}
 }
+
+// EnrichedGapInfo describes why a function misses the enriched table
+// and whether IX/IY-expanded loc sets would help.
+type EnrichedGapInfo struct {
+	FuncName      string
+	NVregs        int
+	HasCall       bool   // function contains OpCall
+	CallLiveVregs int    // vregs live across a CALL
+	MissReason    string // "too_many_vregs", "no_table", "shape_ok", "call_pressure"
+	WouldBenefitIX bool  // true if IX-expanded locSets would help
+}
+
+// AnalyzeEnrichedGap diagnoses whether a function could benefit from
+// IX/IY-expanded enriched tables. This is a diagnostic tool — it does NOT
+// change any allocation. It answers: "would adding locSets8IX indices 4/5
+// (call-safe IXH/IXL) to the GPU enumeration help this function?"
+func AnalyzeEnrichedGap(ops []VIROp, desc *MachineDesc, funcName string) EnrichedGapInfo {
+	info := EnrichedGapInfo{FuncName: funcName}
+
+	// Count vregs
+	vregs := make(map[int]bool)
+	for _, op := range ops {
+		if op.Dst > 0 {
+			vregs[op.Dst] = true
+		}
+		for _, s := range op.Src {
+			if s > 0 {
+				vregs[s] = true
+			}
+		}
+	}
+	info.NVregs = len(vregs)
+
+	if info.NVregs > 6 {
+		info.MissReason = "too_many_vregs"
+		return info
+	}
+	if info.NVregs < 2 {
+		info.MissReason = "trivial"
+		return info
+	}
+
+	// Check for calls and compute call-live vregs
+	liveness := computeLiveness(ops)
+	for i, op := range ops {
+		if op.Op == OpCall || op.Op == OpAsmBlock {
+			info.HasCall = true
+			// Count vregs live at this call point (excluding the call's own dst)
+			for v := range liveness[i].live {
+				if v != op.Dst && v > 0 {
+					info.CallLiveVregs++
+				}
+			}
+		}
+	}
+
+	// Try current shape conversion
+	shape, _, err := VIRToEnrichedShape(ops, desc)
+	if err != nil {
+		info.MissReason = "shape_error: " + err.Error()
+		return info
+	}
+
+	// Check if any vreg is constrained to any_gpr8 but lives across a call.
+	// These vregs can't survive the call in GPR (all GPR are call-clobbered on Z80).
+	// With IX-expanded locSets, they could be placed in IXH/IXL (call-safe).
+	if info.HasCall && info.CallLiveVregs > 0 {
+		// Current shape uses locSets8[2] (any_gpr8) for unconstrained vregs.
+		// All GPR8 are call-clobbered. The table assignment would either:
+		// (a) be infeasible (if interference models call clobber — but it doesn't)
+		// (b) produce a wrong assignment (vreg in GPR across call)
+		// With locSets8IX[5] (any_gpr8 + IX halves), the enumerator could
+		// place these vregs in IXH/IXL, producing a correct & optimal result.
+		info.WouldBenefitIX = true
+		info.MissReason = "call_pressure"
+	} else {
+		info.MissReason = "shape_ok"
+		_ = shape // shape is valid, table should handle this
+	}
+
+	return info
+}
