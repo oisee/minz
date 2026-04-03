@@ -14,6 +14,9 @@ global g_state: u16 = 0
 
 global and_masks: [u8; 6] = [0, 1, 3, 7, 15, 31]
 global bit_masks: [u8; 8] = [1, 2, 4, 8, 16, 32, 64, 128]
+global zx_third_base: [u16; 2] = [0x4000, 0x4800]
+global zx_prow_off: [u16; 8] = [0x0000, 0x0100, 0x0200, 0x0300, 0x0400, 0x0500, 0x0600, 0x0700]
+global zx_crow_off: [u16; 8] = [0, 32, 64, 96, 128, 160, 192, 224]
 
 global cascade_seed: [u16; 21] = [
     450, 36448, 45514, 47687, 16538,
@@ -84,31 +87,35 @@ fun warmup(n: u16) -> void {
 
 fun fill_buf(and_n: u8) -> void {
     let mask: u8 = and_masks[and_n]
-    var idx: u16 = 0
-    while idx < 768 {
+    var p: ^u8 = 0xC000
+    var left: u16 = 768
+    while left != 0 {
         g_state = lfsr16(g_state)
-        let p: ^u8 = 0xC000 + idx
         let lo: u8 = g_state % 256
         if (lo & mask) == mask {
             p^ = 1
         } else {
             p^ = 0
         }
-        idx = idx + 1
+        p = p + 1
+        left = left - 1
     }
 }
 
 // ── XOR single pixel on ZX screen ───────────────────────────
 
+fun zx_row_addr(py: u8) -> u16 {
+    let third: u8 = py / 64
+    let prow: u8 = py % 8
+    let crow: u8 = (py / 8) % 8
+    return zx_third_base[third] + zx_prow_off[prow] + zx_crow_off[crow]
+}
+
 fun xor_pixel(px: u8, py: u8) -> void {
     if px >= 128 { return }
     if py >= 96 { return }
 
-    let third: u16 = py / 64
-    let prow: u16 = py % 8
-    let crow: u16 = (py / 8) % 8
-    let xbyte: u8 = px / 8
-    let addr: u16 = 0x4000 + third * 2048 + prow * 256 + crow * 32 + xbyte
+    let addr: u16 = zx_row_addr(py) + (px / 8)
     let mask: u8 = bit_masks[7 - (px % 8)]
 
     let sp: ^u8 = addr
@@ -117,42 +124,61 @@ fun xor_pixel(px: u8, py: u8) -> void {
 
 // ── XOR blk×blk block at (px, py) ──────────────────────────
 
+fun xor_blk_row(px: u8, py: u8, blk: u8) -> void {
+    var dx: u8 = 0
+    var x: u8 = px
+    while dx < blk {
+        xor_pixel(x, py)
+        x = x + 1
+        dx = dx + 1
+    }
+}
+
 fun xor_blk(px: u8, py: u8, blk: u8) -> void {
     var dy: u8 = 0
+    var y: u8 = py
     while dy < blk {
-        var dx: u8 = 0
-        while dx < blk {
-            xor_pixel(px + dx, py + dy)
-            dx = dx + 1
-        }
+        xor_blk_row(px, y, blk)
+        y = y + 1
         dy = dy + 1
     }
 }
 
 // ── Apply buffer to screen ──────────────────────────────────
 
+fun apply_buf_row(buf: ^u8, ox: u8, py: u8, blk: u8) -> void {
+    var bx: u8 = 0
+    var p: ^u8 = buf
+    var px: u8 = ox
+    while bx < 32 {
+        if p^ != 0 {
+            xor_blk(px, py, blk)
+        }
+        p = p + 1
+        px = px + blk
+        bx = bx + 1
+    }
+}
+
 fun apply_buf(ox: u8, oy: u8, blk: u8) -> void {
     var by: u8 = 0
+    var row_ptr: ^u8 = 0xC000
+    var py: u8 = oy
     while by < 24 {
-        var bx: u8 = 0
-        while bx < 32 {
-            let p: ^u8 = 0xC000 + by * 32 + bx
-            if p^ != 0 {
-                xor_blk(ox + bx * blk, oy + by * blk, blk)
-            }
-            bx = bx + 1
-        }
+        apply_buf_row(row_ptr, ox, py, blk)
+        row_ptr = row_ptr + 32
+        py = py + blk
         by = by + 1
     }
 }
 
 // ── Process one seed ────────────────────────────────────────
 
-fun process_layer(layer: u8) -> void {
-    g_state = cascade_seed[layer]
-    warmup(cascade_warmup[layer])
-    fill_buf(cascade_and_n[layer])
-    apply_buf(cascade_ox[layer], cascade_oy[layer], cascade_blk[layer])
+fun process_seed(seed: u16, wu: u16, and_n: u8, ox: u8, oy: u8, blk: u8) -> void {
+    g_state = seed
+    warmup(wu)
+    fill_buf(and_n)
+    apply_buf(ox, oy, blk)
 }
 
 // ── Main: first 21 seeds (coarse layer) ─────────────────────
@@ -160,7 +186,13 @@ fun process_layer(layer: u8) -> void {
 fun main() -> void {
     var layer: u8 = 0
     while layer < 21 {
-        process_layer(layer)
+        let seed: u16 = cascade_seed[layer]
+        let wu: u16 = cascade_warmup[layer]
+        let and_n: u8 = cascade_and_n[layer]
+        let ox: u8 = cascade_ox[layer]
+        let oy: u8 = cascade_oy[layer]
+        let blk: u8 = cascade_blk[layer]
+        process_seed(seed, wu, and_n, ox, oy, blk)
         layer = layer + 1
     }
 
