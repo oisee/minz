@@ -2,6 +2,7 @@ package mir2
 
 import (
 	"fmt"
+	"math/bits"
 	"sort"
 	"strings"
 
@@ -696,6 +697,12 @@ type z80cg struct {
 	globalFieldStore map[Reg]globalFieldInfo
 	globalFieldSkip  map[Reg]bool
 
+	// bitStorePat maps the stored value reg of a Store to a fused u8 bit-update
+	// on the same memory cell.
+	// bitStoreSkip suppresses the intermediate Load / And / Or regs merged into that Store.
+	bitStorePat  map[Reg]bitStorePat
+	bitStoreSkip map[Reg]bool
+
 	// globalU16StoreSym[addrReg] = sym: addrReg holds the address of a u16 global.
 	// Enables emitting LD (sym), HL (16T, no A clobber) instead of the
 	// byte-by-byte DE-based sequence (LD A,lo; LD (DE),A; INC DE; LD A,hi; LD (DE),A; DEC DE).
@@ -767,6 +774,11 @@ type smcPatcherInfo struct {
 type lutLoadPat struct {
 	sym     string // page-aligned global symbol
 	src8Reg Reg    // virtual reg holding the 8-bit index (after lo-subtract if any)
+}
+
+type bitStorePat struct {
+	bit int
+	op  string // "SET" or "RES"
 }
 
 // globalFieldInfo describes a global struct field access that can be lowered
@@ -1331,6 +1343,8 @@ func (g *z80cg) genFunc(f *Func) {
 	g.globalFieldLoad = make(map[Reg]globalFieldInfo)
 	g.globalFieldStore = make(map[Reg]globalFieldInfo)
 	g.globalFieldSkip = make(map[Reg]bool)
+	g.bitStorePat = make(map[Reg]bitStorePat)
+	g.bitStoreSkip = make(map[Reg]bool)
 	g.globalU16StoreSym = make(map[Reg]string)
 	g.globalU16LoadSym = make(map[Reg]string)
 	g.fnWorstT = 0
@@ -1607,6 +1621,95 @@ func (g *z80cg) scanLUTPatterns(b *Block) {
 		g.lutSkip[idx16Reg] = true
 		g.lutSkip[baseReg] = true
 		g.lutSkip[ptrReg] = true
+	}
+}
+
+// scanBitStorePatterns detects the common u8 load-modify-store forms:
+//
+//	cur  = Load(ptr, u8)
+//	next = Or(cur, const(1<<n))
+//	Store(ptr, next, u8)
+//
+//	cur  = Load(ptr, u8)
+//	next = And(cur, const(^ (1<<n) & 0xFF))
+//	Store(ptr, next, u8)
+//
+// When matched:
+//   - g.bitStorePat[nextReg] = {bit:n, op:"SET"/"RES"}
+//   - g.bitStoreSkip[cur,next] = true
+//
+// The optimisation only skips single-use intermediates so it is safe to merge.
+func (g *z80cg) scanBitStorePatterns(b *Block) {
+	clear(g.bitStorePat)
+	clear(g.bitStoreSkip)
+
+	defInst := make(map[Reg]*Inst, len(b.Insts))
+	useCount := make(map[Reg]int, len(b.Insts))
+	for _, inst := range b.Insts {
+		if inst.Dst != NoReg {
+			defInst[inst.Dst] = inst
+		}
+		for _, src := range inst.Src {
+			if src != NoReg {
+				useCount[src]++
+			}
+		}
+		for _, arg := range inst.Args {
+			if arg != NoReg {
+				useCount[arg]++
+			}
+		}
+	}
+	if b.Term != nil {
+		for _, src := range b.Term.termUses() {
+			if src != NoReg {
+				useCount[src]++
+			}
+		}
+	}
+
+	for _, inst := range b.Insts {
+		if inst.Op != OpStore || inst.Ty.Width() != 8 {
+			continue
+		}
+		valReg := inst.Src[1]
+		valInst, ok := defInst[valReg]
+		if !ok || useCount[valReg] != 1 {
+			continue
+		}
+		if valInst.Op != OpOr && valInst.Op != OpAnd {
+			continue
+		}
+
+		var loadReg Reg = NoReg
+		var mask byte
+		for _, src := range valInst.Src {
+			if def, ok := defInst[src]; ok && def.Op == OpLoad && def.Ty.Width() == 8 && def.Src[0] == inst.Src[0] {
+				loadReg = src
+			} else if def, ok := defInst[src]; ok && def.Op == OpConst {
+				mask = byte(def.Imm)
+			}
+		}
+		if loadReg == NoReg || useCount[loadReg] != 1 {
+			continue
+		}
+
+		switch valInst.Op {
+		case OpOr:
+			if bits.OnesCount8(mask) != 1 {
+				continue
+			}
+			g.bitStorePat[valReg] = bitStorePat{bit: bits.TrailingZeros8(mask), op: "SET"}
+		case OpAnd:
+			if bits.OnesCount8(^mask) != 1 {
+				continue
+			}
+			g.bitStorePat[valReg] = bitStorePat{bit: bits.TrailingZeros8(^mask), op: "RES"}
+		}
+		if _, ok := g.bitStorePat[valReg]; ok {
+			g.bitStoreSkip[loadReg] = true
+			g.bitStoreSkip[valReg] = true
+		}
 	}
 }
 
@@ -2063,6 +2166,10 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	// LD A,(sym__field) / LD (sym__field),A instead of LD HL,sym + INC HL… + LD A,(HL).
 	g.scanGlobalFieldPatterns(b)
 
+	// Pre-scan: detect u8 load-modify-store bit updates so Store can emit
+	// SET/RES directly on memory and skip the intermediate Load/ALU regs.
+	g.scanBitStorePatterns(b)
+
 	// Pre-scan: detect ptr_add+load patterns where the base (ptr) is in HL
 	// and must survive across the instruction (e.g. in a loop).  Arranges
 	// for PUSH HL / ADD HL,rr / LD dst,(HL) / POP HL to preserve the base.
@@ -2131,6 +2238,10 @@ func (g *z80cg) genInst(inst *Inst) {
 	// Instructions merged into a page-aligned LUT load are skipped here;
 	// their code is emitted by the Load case below.
 	if g.lutSkip[inst.Dst] {
+		return
+	}
+
+	if inst.Op != OpStore && g.bitStoreSkip[inst.Dst] {
 		return
 	}
 
@@ -2453,6 +2564,10 @@ func (g *z80cg) genInst(inst *Inst) {
 			g.invalidate("HL")
 			ptr = "HL"
 		}
+		if pat, ok := g.bitStorePat[inst.Src[1]]; ok && (ptr == "HL" || isIXY(ptr)) {
+			g.emitf("    %s %d, %s", pat.op, pat.bit, ptrIndirect(ptr, 0))
+			break
+		}
 		if w == 24 {
 			// 24-bit load (3 bytes little-endian) into DWord shadow pair.
 			// Shadow H' (high byte of hi16) is always zero for u24 semantics.
@@ -2705,6 +2820,10 @@ func (g *z80cg) genInst(inst *Inst) {
 			g.emitf("    LD HL, (%s)   ; reload spilled ptr", ptr)
 			g.invalidate("HL")
 			ptr = "HL"
+		}
+		if pat, ok := g.bitStorePat[inst.Src[1]]; ok && (ptr == "HL" || isIXY(ptr)) {
+			g.emitf("    %s %d, %s", pat.op, pat.bit, ptrIndirect(ptr, 0))
+			break
 		}
 		if w == 24 {
 			// 24-bit store: write 3 bytes little-endian.

@@ -341,6 +341,60 @@ func TestGlobalFieldDirectAddr_Store(t *testing.T) {
 	}
 }
 
+func TestBitStorePattern_SET_HL(t *testing.T) {
+	m := &mir2.Module{Name: "bit_set"}
+	f := m.AddFunc("set_bit3")
+
+	bld := mir2.NewBuilder(f)
+	bld.SwitchToNewBlock("entry")
+	ptr := bld.Param("ptr", mir2.TyPtr, mir2.ClassPointer)
+	cur := bld.Load(ptr, mir2.TyU8, mir2.ClassGeneral)
+	mask := bld.Const(8, mir2.TyU8, mir2.ClassGeneral)
+	next := bld.Or(cur, mask, mir2.TyU8, mir2.ClassGeneral)
+	bld.Store(ptr, next, mir2.TyU8)
+	bld.Ret()
+
+	asm := compileModuleForCodegenTest(t, m)
+	t.Log("\n" + asm)
+
+	fnAsm := extractFuncAsm(asm, "set_bit3")
+	if !strings.Contains(fnAsm, "SET 3, (HL)") {
+		t.Fatalf("expected SET fast path, got:\n%s", fnAsm)
+	}
+	if strings.Contains(fnAsm, "LD A, (HL)") || strings.Contains(fnAsm, "OR 8") {
+		t.Fatalf("expected fused store without load/or sequence, got:\n%s", fnAsm)
+	}
+}
+
+func TestBitStorePattern_RES_IX(t *testing.T) {
+	m := &mir2.Module{Name: "bit_res"}
+	f := m.AddFunc("reset_bit2")
+
+	bld := mir2.NewBuilder(f)
+	bld.SwitchToNewBlock("entry")
+	ptr := bld.Param("ptr", mir2.TyPtr, mir2.ClassPointer)
+	cur := bld.Load(ptr, mir2.TyU8, mir2.ClassGeneral)
+	mask := bld.Const(^int64(1<<2), mir2.TyU8, mir2.ClassGeneral)
+	next := bld.And(cur, mask, mir2.TyU8, mir2.ClassGeneral)
+	bld.Store(ptr, next, mir2.TyU8)
+	bld.Ret()
+
+	lr := mir2.ComputeLiveness(f)
+	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
+	ar.Locs[ptr] = mir2.PhysLoc{Kind: mir2.LocIXY, Name: "IX"}
+
+	asm := mir2.Z80Codegen(m, ar)
+	t.Log("\n" + asm)
+
+	fnAsm := extractFuncAsm(asm, "reset_bit2")
+	if !strings.Contains(fnAsm, "RES 2, (IX+0)") {
+		t.Fatalf("expected RES fast path, got:\n%s", fnAsm)
+	}
+	if strings.Contains(fnAsm, "LD A, (IX+0)") || strings.Contains(fnAsm, "AND 251") || strings.Contains(fnAsm, "AND -5") {
+		t.Fatalf("expected fused store without load/and sequence, got:\n%s", fnAsm)
+	}
+}
+
 // TestGlobalFieldDirectAddr_SharedBase verifies that when the base pointer is shared
 // (used by multiple loads), the optimization correctly fires only for the A-dst load
 // and leaves the base register alive for the non-A load.
