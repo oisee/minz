@@ -31,6 +31,10 @@ OR A; LD B,(256-K); ADC A,B; SBC A,A; AND 1
 
 Try: `mz fun/vectors.nanz --asserts mir2` | `mz fun/raymarcher.nanz --asserts mir2` | [Full report](reports/2026-03-29-GPU-Arithmetic-Library.md) | [Playground](fun/README.md)
 
+### ★ NEW: Bit Intent + Multi-Return Playground Examples
+
+Fresh runnable examples now cover scalar bit selectors and direct bit intent (`x.N`, `ptr^.N`, `u16` high-bit access), plus tuple/triple returns with `_`-skip unpacking. Start with [`fun/bit_intent.nanz`](fun/bit_intent.nanz), [`fun/tuple_return.nanz`](fun/tuple_return.nanz), [`fun/triple_return_skip.nanz`](fun/triple_return_skip.nanz), or browse the updated [Playground index](fun/README.md).
+
 ### ★ NEW: [VIR Zero Bugs — Default Backend](reports/2026-03-27-VIR-Zero-Bugs-Default-Backend.md) — v0.24.0
 
 **VIR has zero known bugs.** Now the default backend (`--vir=true`). Pipeline: Table(83.6M) → Z3 → Islands → PBQP. 500 GPU-optimal arithmetic + 500 peephole rules. Frill runs on CP/M. [Full report](reports/2026-03-27-VIR-Zero-Bugs-Default-Backend.md).

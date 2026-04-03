@@ -1,0 +1,56 @@
+// bit_intent.nanz — scalar bit selectors with pointer-backed and wide-scalar access
+//
+// Demonstrates:
+//   - x.N read/write on scalar lvalues
+//   - ptr^.N on memory-backed bytes
+//   - u16 high-byte bit access
+//   - direct branch on a selected bit
+//
+// HOW TO RUN:
+//   mz fun/bit_intent.nanz --asserts mir2
+//   mz fun/bit_intent.nanz -o build/bit_intent.a80
+
+global flags_g: u8
+global bytes_g: [u8; 2]
+global word0_g: u16
+global word1_g: u16
+
+fun set_ptr_bit() -> u8 {
+    var p: ptr
+    p = &flags_g
+    p^.4 = 1
+    return p^.4
+}
+
+fun clear_ptr_bit() -> u8 {
+    var p: ptr
+    p = &flags_g
+    p^.4 = 1
+    p^.4 = 0
+    return p^.4
+}
+
+fun branch_on_ptr_bit() -> u8 {
+    var p: ptr
+    p = &bytes_g[1]
+    p^.7 = 1
+    if p^.7 != 0 { return 42 }
+    return 0
+}
+
+fun set_u16_high_bit() -> u8 {
+    word0_g.12 = 1
+    return word0_g.12
+}
+
+fun clear_u16_high_bit() -> u8 {
+    word1_g.9 = 1
+    word1_g.9 = 0
+    return word1_g.9
+}
+
+assert set_ptr_bit() == 1 via mir2
+assert clear_ptr_bit() == 0 via mir2
+assert branch_on_ptr_bit() == 42 via mir2
+assert set_u16_high_bit() == 1 via mir2
+assert clear_u16_high_bit() == 0 via mir2

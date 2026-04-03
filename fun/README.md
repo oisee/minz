@@ -1,6 +1,6 @@
 # fun/ — MinZ Playground
 
-**12/12 files verified.** Treat these as runnable examples, regression fixtures,
+**15/15 files verified.** Treat these as runnable examples, regression fixtures,
 and quick fact-checks for the language/backend path they exercise.
 
 ## Current High-Signal Examples
@@ -12,6 +12,8 @@ In this directory, that currently means:
 
 - `&obj.field` is now a real parse/lower/codegen path
 - `&arr[i]` is verified on the same addressable-lvalue path
+- scalar bit selectors (`x.N`, `ptr^.N`) now preserve direct bit intent
+- tuple/triple returns and `_`-skip unpacking are part of the runnable examples
 - field-pointer examples are part of the language docs, not just tests
 - there is still no built-in `offsetof(...)` language primitive
 
@@ -77,6 +79,42 @@ p = &data[2]
 return p^
 ```
 Expected: indexed element pointers support both read and write via `ptr^`.
+
+### Bit Intent And Memory Bits — `bit_intent.nanz`
+```bash
+mz fun/bit_intent.nanz --asserts mir2          # ✓ 5 asserts, fast
+```
+```nanz
+var p: ptr
+p = &flags_g
+p^.4 = 1
+if p^.4 != 0 { return 42 }
+```
+Expected: scalar bit selectors work on plain scalars, `ptr^`, and `u16` high bits.
+
+### Tuple Return — `tuple_return.nanz`
+```bash
+mz fun/tuple_return.nanz --asserts mir2        # ✓ 5 asserts, fast
+```
+```nanz
+fun minmax(a: u16, b: u16) -> (u16, u16) { ... }
+
+let (lo, _) = minmax(x, y)
+let (_, hi) = minmax(x, y)
+```
+Expected: two-value returns unpack cleanly, including `_` for ignored values.
+
+### Triple Return And Skip — `triple_return_skip.nanz`
+```bash
+mz fun/triple_return_skip.nanz --asserts mir2  # ✓ 4 asserts, fast
+```
+```nanz
+fun stats3(a: u8, b: u8, c: u8) -> (u8, u8, u8) { ... }
+
+let (_, mid, _) = stats3(x, y, z)
+let (first, _, last) = stats3(x, y, z)
+```
+Expected: triple returns and blank-identifier skips work in ordinary callers.
 
 ### ADT Option with Match Destructuring — `adt_option.nanz`
 ```bash

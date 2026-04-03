@@ -1,0 +1,35 @@
+// triple_return_skip.nanz — triple returns with blank-identifier skipping
+//
+// Demonstrates:
+//   - -> (T1, T2, T3) triple returns
+//   - let (_, mid, _) = fn(...)
+//   - let (first, _, last) = fn(...)
+//
+// HOW TO RUN:
+//   mz fun/triple_return_skip.nanz --asserts mir2
+//   mz fun/triple_return_skip.nanz -o build/triple_return_skip.a80
+
+fun stats3(a: u8, b: u8, c: u8) -> (u8, u8, u8) {
+    return (a, b, c)
+}
+
+fun middle_only(x: u8, y: u8, z: u8) -> u8 {
+    let (_, mid, _) = stats3(x, y, z)
+    return mid
+}
+
+fun ends_sum(x: u8, y: u8, z: u8) -> u8 {
+    let (first, _, last) = stats3(x, y, z)
+    return first + last
+}
+
+fun endpoints_equal(x: u8, y: u8, z: u8) -> u8 {
+    let (first, _, last) = stats3(x, y, z)
+    if first == last { return 1 }
+    return 0
+}
+
+assert middle_only(4, 9, 12) == 9 via mir2
+assert ends_sum(4, 9, 12) == 16 via mir2
+assert endpoints_equal(7, 1, 7) == 1 via mir2
+assert endpoints_equal(7, 1, 8) == 0 via mir2

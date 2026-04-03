@@ -1,0 +1,36 @@
+// tuple_return.nanz — two-value returns and selective unpacking
+//
+// Demonstrates:
+//   - -> (T1, T2) tuple returns
+//   - let (a, b) = fn(...)
+//   - let (a, _) / let (_, b) to skip unwanted values
+//
+// HOW TO RUN:
+//   mz fun/tuple_return.nanz --asserts mir2
+//   mz fun/tuple_return.nanz -o build/tuple_return.a80
+
+fun minmax(a: u16, b: u16) -> (u16, u16) {
+    if a <= b { return (a, b) }
+    return (b, a)
+}
+
+fun smaller(x: u16, y: u16) -> u16 {
+    let (lo, _) = minmax(x, y)
+    return lo
+}
+
+fun larger(x: u16, y: u16) -> u16 {
+    let (_, hi) = minmax(x, y)
+    return hi
+}
+
+fun span(x: u16, y: u16) -> u16 {
+    let (lo, hi) = minmax(x, y)
+    return hi - lo
+}
+
+assert smaller(30, 5) == 5 via mir2
+assert smaller(7, 7) == 7 via mir2
+assert larger(30, 5) == 30 via mir2
+assert larger(7, 7) == 7 via mir2
+assert span(30, 5) == 25 via mir2

@@ -2224,6 +2224,32 @@ fun onlyfirst(x: u16, y: u16) -> u16 {
 	}
 }
 
+func TestMultiReturn_TripleAndBlankIdentifier(t *testing.T) {
+	src := `
+fun stats3(a: u8, b: u8, c: u8) -> (u8, u8, u8) {
+    return (a, b, c)
+}
+fun middle_only(x: u8, y: u8, z: u8) -> u8 {
+    let (_, mid, _) = stats3(x, y, z)
+    return mid
+}
+`
+	m, err := nanz.Parse(src, "test")
+	if err != nil {
+		t.Fatalf("parse error: %v", err)
+	}
+	f := m.FuncByName("stats3")
+	if f == nil {
+		t.Fatal("stats3 not found")
+	}
+	if len(f.RetTys) != 3 {
+		t.Fatalf("want 3 RetTys, got %d", len(f.RetTys))
+	}
+	if m.FuncByName("middle_only") == nil {
+		t.Fatal("middle_only not found")
+	}
+}
+
 func TestMultiReturn_E2E_Z80(t *testing.T) {
 	src := `
 fun minmax(a: u16, b: u16) -> (u16, u16) {
