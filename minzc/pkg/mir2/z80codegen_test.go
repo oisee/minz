@@ -466,6 +466,60 @@ func TestBitStorePattern_RES_IX(t *testing.T) {
 	}
 }
 
+func TestBitStorePattern_SET_U16_IXHighByte(t *testing.T) {
+	m := &mir2.Module{Name: "bit_set_u16_ix"}
+	f := m.AddFunc("set_bit10")
+
+	bld := mir2.NewBuilder(f)
+	bld.SwitchToNewBlock("entry")
+	ptr := bld.Param("ptr", mir2.TyPtr, mir2.ClassPointer)
+	cur := bld.Load(ptr, mir2.TyU16, mir2.ClassGeneral)
+	mask := bld.Const(1<<10, mir2.TyU16, mir2.ClassGeneral)
+	next := bld.Or(cur, mask, mir2.TyU16, mir2.ClassGeneral)
+	bld.Store(ptr, next, mir2.TyU16)
+	bld.Ret()
+
+	lr := mir2.ComputeLiveness(f)
+	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
+	ar.Locs[ptr] = mir2.PhysLoc{Kind: mir2.LocIXY, Name: "IX"}
+
+	asm := mir2.Z80Codegen(m, ar)
+	t.Log("\n" + asm)
+
+	fnAsm := extractFuncAsm(asm, "set_bit10")
+	if !strings.Contains(fnAsm, "SET 2, (IX+1)") {
+		t.Fatalf("expected u16 high-byte SET fast path, got:\n%s", fnAsm)
+	}
+	if strings.Contains(fnAsm, "LD A, (IX+1)") || strings.Contains(fnAsm, "OR 4") {
+		t.Fatalf("expected fused u16 store without high-byte load/or sequence, got:\n%s", fnAsm)
+	}
+}
+
+func TestBitStorePattern_RES_U16_HLHighByte(t *testing.T) {
+	m := &mir2.Module{Name: "bit_res_u16_hl"}
+	f := m.AddFunc("reset_bit9")
+
+	bld := mir2.NewBuilder(f)
+	bld.SwitchToNewBlock("entry")
+	ptr := bld.Param("ptr", mir2.TyPtr, mir2.ClassPointer)
+	cur := bld.Load(ptr, mir2.TyU16, mir2.ClassGeneral)
+	mask := bld.Const(^int64(1<<9), mir2.TyU16, mir2.ClassGeneral)
+	next := bld.And(cur, mask, mir2.TyU16, mir2.ClassGeneral)
+	bld.Store(ptr, next, mir2.TyU16)
+	bld.Ret()
+
+	asm := compileModuleForCodegenTest(t, m)
+	t.Log("\n" + asm)
+
+	fnAsm := extractFuncAsm(asm, "reset_bit9")
+	if !strings.Contains(fnAsm, "INC HL") || !strings.Contains(fnAsm, "RES 1, (HL)") || !strings.Contains(fnAsm, "DEC HL") {
+		t.Fatalf("expected HL bump + high-byte RES fast path, got:\n%s", fnAsm)
+	}
+	if strings.Contains(fnAsm, "LD A, (HL)") || strings.Contains(fnAsm, "AND 253") {
+		t.Fatalf("expected fused u16 store without load/and sequence, got:\n%s", fnAsm)
+	}
+}
+
 func TestBitCmpPattern_MaskAndZero_HL(t *testing.T) {
 	m := &mir2.Module{Name: "bit_cmp_mask"}
 	f := m.AddFunc("test_bit5")
@@ -496,6 +550,39 @@ func TestBitCmpPattern_MaskAndZero_HL(t *testing.T) {
 	}
 	if strings.Contains(fnAsm, "LD A, (HL)") || strings.Contains(fnAsm, "AND 32") || strings.Contains(fnAsm, "CP 0") {
 		t.Fatalf("expected fused bit test without load/and/cp sequence, got:\n%s", fnAsm)
+	}
+}
+
+func TestBitCmpPattern_MaskAndZero_U16_HLHighByte(t *testing.T) {
+	m := &mir2.Module{Name: "bit_cmp_mask_u16_hl"}
+	f := m.AddFunc("test_bit12")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+
+	b := mir2.NewBuilder(f)
+	b.SwitchToNewBlock("entry")
+	ptr := b.Param("ptr", mir2.TyPtr, mir2.ClassPointer)
+	cur := b.Load(ptr, mir2.TyU16, mir2.ClassGeneral)
+	mask := b.Const(1<<12, mir2.TyU16, mir2.ClassGeneral)
+	masked := b.And(cur, mask, mir2.TyU16, mir2.ClassGeneral)
+	zero := b.Const(0, mir2.TyU16, mir2.ClassGeneral)
+	cond := b.Cmp(mir2.CmpNe, masked, zero, mir2.ClassFlag, false)
+	b.BrIf(cond, "ret1", nil, "ret0", nil)
+	b.SwitchToNewBlock("ret1")
+	one := b.Const(1, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(one)
+	b.SwitchToNewBlock("ret0")
+	z := b.Const(0, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(z)
+
+	asm := compileModuleForCodegenTest(t, m)
+	t.Log("\n" + asm)
+
+	fnAsm := extractFuncAsm(asm, "test_bit12")
+	if !strings.Contains(fnAsm, "INC HL") || !strings.Contains(fnAsm, "BIT 4, (HL)") || !strings.Contains(fnAsm, "DEC HL") {
+		t.Fatalf("expected u16 high-byte BIT fast path via HL bump, got:\n%s", fnAsm)
+	}
+	if strings.Contains(fnAsm, "LD A, (HL)") || strings.Contains(fnAsm, "AND 16") || strings.Contains(fnAsm, "CP 0") {
+		t.Fatalf("expected fused u16 bit test without load/and/cp sequence, got:\n%s", fnAsm)
 	}
 }
 
@@ -531,6 +618,44 @@ func TestBitCmpPattern_ShiftedBitRead_HL(t *testing.T) {
 	}
 	if strings.Contains(fnAsm, "LD A, (HL)") || strings.Contains(fnAsm, "SRL") || strings.Contains(fnAsm, "AND 1") || strings.Contains(fnAsm, "CP 0") {
 		t.Fatalf("expected fused bit test without load/shift/and/cp sequence, got:\n%s", fnAsm)
+	}
+}
+
+func TestBitCmpPattern_ShiftedBitRead_U16_IXRegPair(t *testing.T) {
+	m := &mir2.Module{Name: "bit_cmp_shift_u16_ix"}
+	f := m.AddFunc("test_bit13")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+
+	b := mir2.NewBuilder(f)
+	b.SwitchToNewBlock("entry")
+	val := b.Param("val", mir2.TyU16, mir2.ClassGeneral)
+	shiftAmt := b.Const(13, mir2.TyU8, mir2.ClassGeneral)
+	shifted := b.Shr(val, shiftAmt, mir2.TyU16, mir2.ClassGeneral)
+	oneMask := b.Const(1, mir2.TyU16, mir2.ClassGeneral)
+	bitVal := b.And(shifted, oneMask, mir2.TyU16, mir2.ClassGeneral)
+	zero := b.Const(0, mir2.TyU16, mir2.ClassGeneral)
+	cond := b.Cmp(mir2.CmpEq, bitVal, zero, mir2.ClassFlag, false)
+	b.BrIf(cond, "ret0", nil, "ret1", nil)
+	b.SwitchToNewBlock("ret0")
+	z := b.Const(0, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(z)
+	b.SwitchToNewBlock("ret1")
+	one := b.Const(1, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(one)
+
+	lr := mir2.ComputeLiveness(f)
+	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
+	ar.Locs[val] = mir2.PhysLoc{Kind: mir2.LocIXY, Name: "IX"}
+
+	asm := mir2.Z80Codegen(m, ar)
+	t.Log("\n" + asm)
+
+	fnAsm := extractFuncAsm(asm, "test_bit13")
+	if !strings.Contains(fnAsm, "BIT 5, IXH") {
+		t.Fatalf("expected u16 register-pair BIT collapse to IXH, got:\n%s", fnAsm)
+	}
+	if strings.Contains(fnAsm, "SRL") || strings.Contains(fnAsm, "AND 1") || strings.Contains(fnAsm, "CP 0") {
+		t.Fatalf("expected fused pair-backed bit test without shift/and/cp sequence, got:\n%s", fnAsm)
 	}
 }
 

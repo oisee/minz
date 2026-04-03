@@ -697,13 +697,13 @@ type z80cg struct {
 	globalFieldStore map[Reg]globalFieldInfo
 	globalFieldSkip  map[Reg]bool
 
-	// bitStorePat maps the stored value reg of a Store to a fused u8 bit-update
+	// bitStorePat maps the stored value reg of a Store to a fused u8/u16 bit-update
 	// on the same memory cell.
 	// bitStoreSkip suppresses the intermediate Load / And / Or regs merged into that Store.
 	bitStorePat  map[Reg]bitStorePat
 	bitStoreSkip map[Reg]bool
 
-	// bitCmpPat maps a cmp result reg to a fused u8 bit-test feeding Z/NZ.
+	// bitCmpPat maps a cmp result reg to a fused u8/u16 bit-test feeding Z/NZ.
 	// bitCmpSkip suppresses intermediate Load / Shr / And regs merged into that cmp.
 	bitCmpPat  map[Reg]bitCmpPat
 	bitCmpSkip map[Reg]bool
@@ -782,15 +782,17 @@ type lutLoadPat struct {
 }
 
 type bitStorePat struct {
-	bit int
-	op  string // "SET" or "RES"
+	bit        int
+	byteOffset int
+	op         string // "SET" or "RES"
 }
 
 type bitCmpPat struct {
-	bit    int
-	ptrReg Reg
-	srcReg Reg
-	useMem bool
+	bit        int
+	byteOffset int
+	ptrReg     Reg
+	srcReg     Reg
+	useMem     bool
 }
 
 // globalFieldInfo describes a global struct field access that can be lowered
@@ -1645,7 +1647,7 @@ func (g *z80cg) scanLUTPatterns(b *Block) {
 	}
 }
 
-// scanBitStorePatterns detects the common u8 load-modify-store forms:
+// scanBitStorePatterns detects the common u8/u16 load-modify-store forms:
 //
 //	cur  = Load(ptr, u8)
 //	next = Or(cur, const(1<<n))
@@ -1690,7 +1692,7 @@ func (g *z80cg) scanBitStorePatterns(b *Block) {
 	}
 
 	for _, inst := range b.Insts {
-		if inst.Op != OpStore || inst.Ty.Width() != 8 {
+		if inst.Op != OpStore || (inst.Ty.Width() != 8 && inst.Ty.Width() != 16) {
 			continue
 		}
 		valReg := inst.Src[1]
@@ -1704,8 +1706,9 @@ func (g *z80cg) scanBitStorePatterns(b *Block) {
 
 		var loadReg Reg = NoReg
 		var mask byte
+		width := inst.Ty.Width()
 		for _, src := range valInst.Src {
-			if def, ok := defInst[src]; ok && def.Op == OpLoad && def.Ty.Width() == 8 && def.Src[0] == inst.Src[0] {
+			if def, ok := defInst[src]; ok && def.Op == OpLoad && def.Ty.Width() == width && def.Src[0] == inst.Src[0] {
 				loadReg = src
 			} else if def, ok := defInst[src]; ok && def.Op == OpConst {
 				mask = byte(def.Imm)
@@ -1715,17 +1718,43 @@ func (g *z80cg) scanBitStorePatterns(b *Block) {
 			continue
 		}
 
-		switch valInst.Op {
-		case OpOr:
-			if bits.OnesCount8(mask) != 1 {
-				continue
+		switch width {
+		case 8:
+			switch valInst.Op {
+			case OpOr:
+				if bits.OnesCount8(mask) != 1 {
+					continue
+				}
+				bit := bits.TrailingZeros8(mask)
+				g.bitStorePat[valReg] = bitStorePat{bit: bit, byteOffset: 0, op: "SET"}
+			case OpAnd:
+				if bits.OnesCount8(^mask) != 1 {
+					continue
+				}
+				bit := bits.TrailingZeros8(^mask)
+				g.bitStorePat[valReg] = bitStorePat{bit: bit, byteOffset: 0, op: "RES"}
 			}
-			g.bitStorePat[valReg] = bitStorePat{bit: bits.TrailingZeros8(mask), op: "SET"}
-		case OpAnd:
-			if bits.OnesCount8(^mask) != 1 {
-				continue
+		case 16:
+			mask16 := uint16(0)
+			for _, src := range valInst.Src {
+				if def, ok := defInst[src]; ok && def.Op == OpConst {
+					mask16 = uint16(def.Imm)
+				}
 			}
-			g.bitStorePat[valReg] = bitStorePat{bit: bits.TrailingZeros8(^mask), op: "RES"}
+			switch valInst.Op {
+			case OpOr:
+				if bits.OnesCount16(mask16) != 1 {
+					continue
+				}
+				totalBit := bits.TrailingZeros16(mask16)
+				g.bitStorePat[valReg] = bitStorePat{bit: totalBit % 8, byteOffset: totalBit / 8, op: "SET"}
+			case OpAnd:
+				if bits.OnesCount16(^mask16) != 1 {
+					continue
+				}
+				totalBit := bits.TrailingZeros16(^mask16)
+				g.bitStorePat[valReg] = bitStorePat{bit: totalBit % 8, byteOffset: totalBit / 8, op: "RES"}
+			}
 		}
 		if _, ok := g.bitStorePat[valReg]; ok {
 			g.bitStoreSkip[loadReg] = true
@@ -1734,7 +1763,7 @@ func (g *z80cg) scanBitStorePatterns(b *Block) {
 	}
 }
 
-// scanBitCmpPatterns detects u8 bit-test compares against zero:
+// scanBitCmpPatterns detects u8/u16 bit-test compares against zero:
 //
 //	masked = And(x, const(1<<n))
 //	cmp    = CmpEq/CmpNe(masked, 0)
@@ -1745,7 +1774,7 @@ func (g *z80cg) scanBitStorePatterns(b *Block) {
 //	masked  = And(shifted, 1)
 //	cmp     = CmpEq/CmpNe(masked, 0)
 //
-// x may be a Load(ptr,u8) or an already-materialized 8-bit register value.
+// x may be a Load(ptr,u8/u16) or an already-materialized register/pair value.
 func (g *z80cg) scanBitCmpPatterns(b *Block) {
 	clear(g.bitCmpPat)
 	clear(g.bitCmpSkip)
@@ -1779,12 +1808,15 @@ func (g *z80cg) scanBitCmpPatterns(b *Block) {
 		if inst.Op != OpCmp || (inst.Cond != CmpEq && inst.Cond != CmpNe) {
 			continue
 		}
-		rhsInst, ok := defInst[inst.Src[1]]
-		if !ok || rhsInst.Op != OpConst || rhsInst.Imm != 0 {
+		andReg := NoReg
+		if rhsInst, ok := defInst[inst.Src[1]]; ok && rhsInst.Op == OpConst && rhsInst.Imm == 0 {
+			andReg = inst.Src[0]
+		} else if lhsInst, ok := defInst[inst.Src[0]]; ok && lhsInst.Op == OpConst && lhsInst.Imm == 0 {
+			andReg = inst.Src[1]
+		}
+		if andReg == NoReg {
 			continue
 		}
-
-		andReg := inst.Src[0]
 		andInst, ok := defInst[andReg]
 		if !ok || andInst.Op != OpAnd || useCount[andReg] != 1 {
 			continue
@@ -1794,12 +1826,12 @@ func (g *z80cg) scanBitCmpPatterns(b *Block) {
 			pat       bitCmpPat
 			skipRegs  []Reg
 			matched   bool
-			maskConst byte
+			maskConst uint16
 			otherReg  Reg = NoReg
 		)
 		for _, src := range andInst.Src {
 			if def, ok := defInst[src]; ok && def.Op == OpConst {
-				maskConst = byte(def.Imm)
+				maskConst = uint16(def.Imm)
 			} else {
 				otherReg = src
 			}
@@ -1810,9 +1842,11 @@ func (g *z80cg) scanBitCmpPatterns(b *Block) {
 			if ok && shrInst.Op == OpShr && useCount[otherReg] == 1 {
 				shiftConstInst, ok := defInst[shrInst.Src[1]]
 				if ok && shiftConstInst.Op == OpConst {
-					pat.bit = int(shiftConstInst.Imm)
+					totalBit := int(shiftConstInst.Imm)
+					pat.bit = totalBit % 8
+					pat.byteOffset = totalBit / 8
 					baseReg := shrInst.Src[0]
-					if loadInst, ok := defInst[baseReg]; ok && loadInst.Op == OpLoad && loadInst.Ty.Width() == 8 && useCount[baseReg] == 1 {
+					if loadInst, ok := defInst[baseReg]; ok && loadInst.Op == OpLoad && (loadInst.Ty.Width() == 8 || loadInst.Ty.Width() == 16) && useCount[baseReg] == 1 {
 						pat.ptrReg = loadInst.Src[0]
 						pat.useMem = true
 						skipRegs = []Reg{baseReg, otherReg, andReg}
@@ -1826,9 +1860,11 @@ func (g *z80cg) scanBitCmpPatterns(b *Block) {
 			}
 		}
 
-		if !matched && bits.OnesCount8(maskConst) == 1 && otherReg != NoReg {
-			pat.bit = bits.TrailingZeros8(maskConst)
-			if loadInst, ok := defInst[otherReg]; ok && loadInst.Op == OpLoad && loadInst.Ty.Width() == 8 && useCount[otherReg] == 1 {
+		if !matched && bits.OnesCount16(maskConst) == 1 && otherReg != NoReg {
+			totalBit := bits.TrailingZeros16(maskConst)
+			pat.bit = totalBit % 8
+			pat.byteOffset = totalBit / 8
+			if loadInst, ok := defInst[otherReg]; ok && loadInst.Op == OpLoad && (loadInst.Ty.Width() == 8 || loadInst.Ty.Width() == 16) && useCount[otherReg] == 1 {
 				pat.ptrReg = loadInst.Src[0]
 				pat.useMem = true
 				skipRegs = []Reg{otherReg, andReg}
@@ -1860,6 +1896,39 @@ func (g *z80cg) isGlobalPageAligned(sym string) bool {
 		}
 	}
 	return false
+}
+
+func (g *z80cg) emitBitMemOp(op string, bit int, ptr string, byteOffset int) bool {
+	if ptr == "HL" {
+		switch byteOffset {
+		case 0:
+			g.emitf("    %s %d, (HL)", op, bit)
+			return true
+		case 1:
+			g.emit("    INC HL")
+			g.emitf("    %s %d, (HL)", op, bit)
+			g.emit("    DEC HL")
+			return true
+		default:
+			return false
+		}
+	}
+	if isIXY(ptr) && byteOffset >= 0 && byteOffset <= 127 {
+		g.emitf("    %s %d, %s", op, bit, ptrIndirect(ptr, byteOffset))
+		return true
+	}
+	return false
+}
+
+func selectBitReg(src string, byteOffset int) string {
+	switch byteOffset {
+	case 0:
+		return lowByte(src)
+	case 1:
+		return highByte(src)
+	default:
+		return ""
+	}
 }
 
 // globalFieldLabel returns the EQU label for a global struct field access.
@@ -2707,9 +2776,10 @@ func (g *z80cg) genInst(inst *Inst) {
 			g.invalidate("HL")
 			ptr = "HL"
 		}
-		if pat, ok := g.bitStorePat[inst.Src[1]]; ok && (ptr == "HL" || isIXY(ptr)) {
-			g.emitf("    %s %d, %s", pat.op, pat.bit, ptrIndirect(ptr, 0))
-			break
+		if pat, ok := g.bitStorePat[inst.Src[1]]; ok {
+			if g.emitBitMemOp(pat.op, pat.bit, ptr, pat.byteOffset) {
+				break
+			}
 		}
 		if w == 24 {
 			// 24-bit load (3 bytes little-endian) into DWord shadow pair.
@@ -2964,9 +3034,10 @@ func (g *z80cg) genInst(inst *Inst) {
 			g.invalidate("HL")
 			ptr = "HL"
 		}
-		if pat, ok := g.bitStorePat[inst.Src[1]]; ok && (ptr == "HL" || isIXY(ptr)) {
-			g.emitf("    %s %d, %s", pat.op, pat.bit, ptrIndirect(ptr, 0))
-			break
+		if pat, ok := g.bitStorePat[inst.Src[1]]; ok {
+			if g.emitBitMemOp(pat.op, pat.bit, ptr, pat.byteOffset) {
+				break
+			}
 		}
 		if w == 24 {
 			// 24-bit store: write 3 bytes little-endian.
@@ -5358,6 +5429,29 @@ func (g *z80cg) genCmp(inst *Inst) {
 		return
 	}
 
+	if pat, ok := g.bitCmpPat[inst.Dst]; ok {
+		if pat.useMem {
+			ptr := g.loc(pat.ptrReg)
+			if isSpill(ptr) {
+				g.emitf("    LD HL, (%s)   ; reload spilled ptr", ptr)
+				g.invalidate("HL")
+				ptr = "HL"
+			}
+			if g.emitBitMemOp("BIT", pat.bit, ptr, pat.byteOffset) {
+				g.pendingFlagReg = inst.Dst
+				return
+			}
+		} else {
+			src := g.loc(pat.srcReg)
+			src = selectBitReg(src, pat.byteOffset)
+			if isSimpleReg(src) && !isSpill(src) {
+				g.emitf("    BIT %d, %s", pat.bit, src)
+				g.pendingFlagReg = inst.Dst
+				return
+			}
+		}
+	}
+
 	// 16-bit comparison: one or both operands are register pairs (HL/DE/BC/…).
 	// Z80 only supports SBC HL, rr for 16-bit flag-setting subtraction.
 	if isPairReg(lhs) || isPairReg(rhs) {
@@ -5410,32 +5504,6 @@ func (g *z80cg) genCmp(inst *Inst) {
 	// This avoids an extra register load (e.g. LD C,0 / LD A,B / CP C
 	// → LD A,B / CP 0), and the constant no longer needs to be
 	// materialised into a register (eliminating a dead store).
-	if pat, ok := g.bitCmpPat[inst.Dst]; ok {
-		if pat.useMem {
-			ptr := g.loc(pat.ptrReg)
-			if isSpill(ptr) {
-				g.emitf("    LD HL, (%s)   ; reload spilled ptr", ptr)
-				g.invalidate("HL")
-				ptr = "HL"
-			}
-			if ptr == "HL" || isIXY(ptr) {
-				g.emitf("    BIT %d, %s", pat.bit, ptrIndirect(ptr, 0))
-				g.pendingFlagReg = inst.Dst
-				return
-			}
-		} else {
-			src := g.loc(pat.srcReg)
-			if isPairReg(src) {
-				src = lowByte(src)
-			}
-			if isSimpleReg(src) && !isSpill(src) {
-				g.emitf("    BIT %d, %s", pat.bit, src)
-				g.pendingFlagReg = inst.Dst
-				return
-			}
-		}
-	}
-
 	if cv, ok := g.constVals[inst.Src[1]]; ok {
 		if !g.holdsValue("A", lhs) {
 			g.emitLDA(lhs)
