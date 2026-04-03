@@ -1499,17 +1499,33 @@ func RunGracePasses(f *Func, stats *GraceStats) bool {
 
 	result := grace.ApplyRules(graph, rules, reg, 50)
 
+	// Run shape-fact-driven passes after declarative Grace rules.
+
+	// Phase 1: True pointer threading — rewrite indexed loops to carry walking pointers.
+	var ptStats PointerThreadingStats
+	ptChanged := ApplyPointerThreading(f, &ptStats)
+
+	// Phase 2: PtrAdd CSE — deduplicate remaining repeated ptr_add in loop bodies.
+	var pwStats PointerWalkStats
+	pwChanged := ApplyPointerWalkDedup(f, &pwStats)
+
 	if stats != nil {
 		stats.mu.Lock()
 		stats.Funcs++
-		stats.Total += result.Applied
+		stats.Total += result.Applied + ptStats.PtrAddsRemoved + pwStats.PtrAddsDeduped
 		for name, count := range result.ByRule {
 			stats.ByRule[name] += count
+		}
+		if ptStats.LoopsThreaded > 0 {
+			stats.ByRule["ptr-threading"] += ptStats.LoopsThreaded
+		}
+		if pwStats.PtrAddsDeduped > 0 {
+			stats.ByRule["ptr-add-cse"] += pwStats.PtrAddsDeduped
 		}
 		stats.mu.Unlock()
 	}
 
-	return result.Applied > 0
+	return result.Applied > 0 || ptChanged || pwChanged
 }
 
 // RunGraceCondRetSink runs only the cond-ret-sink Grace rule.

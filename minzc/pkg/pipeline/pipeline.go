@@ -41,41 +41,43 @@ type Result struct {
 
 // Steps holds the intermediate outputs of each pipeline stage.
 type Steps struct {
-	HIR        string                   // HIR structural dump (hir.Module.Dump())
-	MIR2Raw    string                   // MIR2 module dump before optimisation passes
-	MIR2Opt    string                   // MIR2 module dump after DSE + ReorderBlocks
-	MIR2Module *mir2.Module             // MIR2 module (for LLVM/WASM/ABAP emit)
-	Assembly   string                   // Final .a80 text
-	LIRResults []lir.ConvergenceResult  // LIR convergence check results (if LIRCheck enabled)
-	Traces     map[string]*FuncTrace    // per-function compilation trace (keyed by func name)
+	HIR        string                  // HIR structural dump (hir.Module.Dump())
+	MIR2Raw    string                  // MIR2 module dump before optimisation passes
+	MIR2Opt    string                  // MIR2 module dump after DSE + ReorderBlocks
+	MIR2Module *mir2.Module            // MIR2 module (for LLVM/WASM/ABAP emit)
+	Assembly   string                  // Final .a80 text
+	LIRResults []lir.ConvergenceResult // LIR convergence check results (if LIRCheck enabled)
+	Traces     map[string]*FuncTrace   // per-function compilation trace (keyed by func name)
 }
 
 // FuncTrace records the full compilation provenance for one function.
 // This data is emitted as ASM comment annotations for auditability.
 type FuncTrace struct {
-	Name       string // function name (mangled)
-	SplitFrom  string // non-empty if this function was created by HIR-SPLIT
-	SplitPressure int // register pressure that triggered the split
+	Name          string // function name (mangled)
+	SplitFrom     string // non-empty if this function was created by HIR-SPLIT
+	SplitPressure int    // register pressure that triggered the split
 
 	// Optimization pass counts (MIR2 level)
-	ConstProp   int // PropagateConstants iterations that changed something
-	ConstFold   int // FoldConstants
-	IdentSimp   int // SimplifyIdentities
-	CallElim    int // ConstantCallElim
-	DSE         int // DeadStoreElim
-	DeadBlockArg int // DeadBlockArgElim
-	BranchEquiv int // BranchEquiv
-	SplitJoinRet int // SplitJoinRet
-	CondRetSink int // CondRetSink
-	FuseAbsDiff int // FuseAbsDiff
-	Inlined     bool // function was inlined by InlineTrivial
-	LUTReplaced bool // function was replaced by LUTGen
+	ConstProp    int  // PropagateConstants iterations that changed something
+	ConstFold    int  // FoldConstants
+	IdentSimp    int  // SimplifyIdentities
+	CallElim     int  // ConstantCallElim
+	DSE          int  // DeadStoreElim
+	DeadBlockArg int  // DeadBlockArgElim
+	BranchEquiv  int  // BranchEquiv
+	SplitJoinRet int  // SplitJoinRet
+	CondRetSink  int  // CondRetSink
+	FuseAbsDiff  int  // FuseAbsDiff
+	PtrThreading int  // MIR2 loop-carried pointer threading
+	PtrAddCSE    int  // MIR2 ptr_add local CSE
+	Inlined      bool // function was inlined by InlineTrivial
+	LUTReplaced  bool // function was replaced by LUTGen
 
 	// Codegen provenance
-	Backend     string // "LIR", "VIR", "PBQP", "LIR+PBQP-fallback", "VIR+PBQP-fallback"
-	BackendErr  string // error message if primary backend failed (before fallback)
-	WFCAttempt  int    // WFC retry attempt (0 = first try)
-	CondRets    int    // number of cond_ret terminators
+	Backend    string // "LIR", "VIR", "PBQP", "LIR+PBQP-fallback", "VIR+PBQP-fallback"
+	BackendErr string // error message if primary backend failed (before fallback)
+	WFCAttempt int    // WFC retry attempt (0 = first try)
+	CondRets   int    // number of cond_ret terminators
 
 	// Label audit
 	LabelWarnings []string // referenced-but-undefined labels (if any)
@@ -188,22 +190,36 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 			c := mir2.FoldConstants(f)
 			si := mir2.SimplifyIdentities(f)
 			e := mir2.ConstantCallElim(m, f)
-			if p { tr.ConstProp++ }
-			if c { tr.ConstFold++ }
-			if si { tr.IdentSimp++ }
-			if e { tr.CallElim++ }
+			if p {
+				tr.ConstProp++
+			}
+			if c {
+				tr.ConstFold++
+			}
+			if si {
+				tr.IdentSimp++
+			}
+			if e {
+				tr.CallElim++
+			}
 			if !p && !c && !si && !e {
 				break
 			}
 		}
 		if opt.UseGrace {
 			// ── Grace declarative path ──────────────────────────────
-			mir2.RunGracePasses(f, opt.GraceStats)
+			localGrace := mir2.NewGraceStats()
+			mir2.RunGracePasses(f, localGrace)
+			mergeGraceStats(opt.GraceStats, localGrace)
+			applyGraceStatsToTrace(tr, localGrace)
 			mir2.EliminateDeadBlocks(f)
 			if mir2.BranchEquiv(m, f) {
 				tr.BranchEquiv++
 				mir2.EliminateDeadBlocks(f)
-				mir2.RunGracePasses(f, opt.GraceStats)
+				localGrace = mir2.NewGraceStats()
+				mir2.RunGracePasses(f, localGrace)
+				mergeGraceStats(opt.GraceStats, localGrace)
+				applyGraceStatsToTrace(tr, localGrace)
 				mir2.EliminateDeadBlocks(f)
 			}
 			for _, blk := range f.Blocks {
@@ -211,12 +227,16 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 			}
 		} else {
 			// ── Go original path ────────────────────────────────────
-			mir2.DeadStoreElim(f); tr.DSE++
-			if mir2.DeadBlockArgElim(f) { tr.DeadBlockArg++ }
+			mir2.DeadStoreElim(f)
+			tr.DSE++
+			if mir2.DeadBlockArgElim(f) {
+				tr.DeadBlockArg++
+			}
 			if mir2.BranchEquiv(m, f) {
 				tr.BranchEquiv++
 				mir2.EliminateDeadBlocks(f)
-				mir2.DeadStoreElim(f); tr.DSE++
+				mir2.DeadStoreElim(f)
+				tr.DSE++
 			}
 			if mir2.SplitJoinRet(f) {
 				tr.SplitJoinRet++
@@ -226,7 +246,9 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 				tr.CondRetSink++
 				mir2.EliminateDeadBlocks(f)
 			}
-			if mir2.FuseAbsDiff(f) { tr.FuseAbsDiff++ }
+			if mir2.FuseAbsDiff(f) {
+				tr.FuseAbsDiff++
+			}
 		}
 		// Re-count cond_ret after optimization (CondRetSink creates them)
 		tr.CondRets = 0
@@ -1273,7 +1295,7 @@ func injectModuleSummary(asm string, traces map[string]*FuncTrace, labelWarnings
 	}
 	var sb strings.Builder
 	total := len(traces)
-	counts := map[string]int{}  // backend → count
+	counts := map[string]int{} // backend → count
 	splits, fallbacks, emitted := 0, 0, 0
 	totalPasses := 0
 	var fallbackNames, prunedNames []string
@@ -1284,14 +1306,16 @@ func injectModuleSummary(asm string, traces map[string]*FuncTrace, labelWarnings
 		} else {
 			prunedNames = append(prunedNames, tr.Name)
 		}
-		if tr.SplitFrom != "" { splits++ }
+		if tr.SplitFrom != "" {
+			splits++
+		}
 		if tr.BackendErr != "" {
 			fallbacks++
 			fallbackNames = append(fallbackNames, tr.Name)
 		}
 		totalPasses += tr.ConstProp + tr.ConstFold + tr.IdentSimp + tr.CallElim +
 			tr.DSE + tr.DeadBlockArg + tr.BranchEquiv + tr.SplitJoinRet +
-			tr.CondRetSink + tr.FuseAbsDiff
+			tr.CondRetSink + tr.FuseAbsDiff + tr.PtrThreading + tr.PtrAddCSE
 	}
 	sb.WriteString("; ── compilation summary ──────────────────────────────────────\n")
 	sb.WriteString(fmt.Sprintf("; functions: %d", total))
@@ -1371,6 +1395,42 @@ func extractFuncName(line string) string {
 	return ""
 }
 
+func mergeGraceStats(dst, src *mir2.GraceStats) {
+	if dst == nil || src == nil {
+		return
+	}
+	dst.Funcs += src.Funcs
+	dst.Matches += src.Matches
+	dst.Total += src.Total
+	for name, count := range src.ByRule {
+		dst.ByRule[name] += count
+	}
+}
+
+func applyGraceStatsToTrace(tr *FuncTrace, stats *mir2.GraceStats) {
+	if tr == nil || stats == nil {
+		return
+	}
+	for name, count := range stats.ByRule {
+		switch name {
+		case "dead-store-elim":
+			tr.DSE += count
+		case "dead-block-arg":
+			tr.DeadBlockArg += count
+		case "split-join-ret":
+			tr.SplitJoinRet += count
+		case "cond-ret-sink":
+			tr.CondRetSink += count
+		case "fuse-abs-diff":
+			tr.FuseAbsDiff += count
+		case "ptr-threading":
+			tr.PtrThreading += count
+		case "ptr-add-cse":
+			tr.PtrAddCSE += count
+		}
+	}
+}
+
 // formatTrace formats a FuncTrace as a single ASM comment line.
 func formatTrace(tr *FuncTrace) string {
 	var parts []string
@@ -1384,19 +1444,51 @@ func formatTrace(tr *FuncTrace) string {
 
 	// Optimization passes — only show non-zero
 	var passes []string
-	if tr.ConstProp > 0 { passes = append(passes, fmt.Sprintf("const-prop=%d", tr.ConstProp)) }
-	if tr.ConstFold > 0 { passes = append(passes, fmt.Sprintf("const-fold=%d", tr.ConstFold)) }
-	if tr.IdentSimp > 0 { passes = append(passes, fmt.Sprintf("ident-simp=%d", tr.IdentSimp)) }
-	if tr.CallElim > 0 { passes = append(passes, fmt.Sprintf("call-elim=%d", tr.CallElim)) }
-	if tr.DSE > 0 { passes = append(passes, fmt.Sprintf("dse=%d", tr.DSE)) }
-	if tr.DeadBlockArg > 0 { passes = append(passes, fmt.Sprintf("dead-block-arg=%d", tr.DeadBlockArg)) }
-	if tr.BranchEquiv > 0 { passes = append(passes, fmt.Sprintf("branch-equiv=%d", tr.BranchEquiv)) }
-	if tr.SplitJoinRet > 0 { passes = append(passes, fmt.Sprintf("split-join-ret=%d", tr.SplitJoinRet)) }
-	if tr.CondRetSink > 0 { passes = append(passes, fmt.Sprintf("condret-sink=%d", tr.CondRetSink)) }
-	if tr.FuseAbsDiff > 0 { passes = append(passes, fmt.Sprintf("fuse-abs-diff=%d", tr.FuseAbsDiff)) }
-	if tr.CondRets > 0 { passes = append(passes, fmt.Sprintf("cond-rets=%d", tr.CondRets)) }
-	if tr.Inlined { passes = append(passes, "inlined") }
-	if tr.LUTReplaced { passes = append(passes, "lut-replaced") }
+	if tr.ConstProp > 0 {
+		passes = append(passes, fmt.Sprintf("const-prop=%d", tr.ConstProp))
+	}
+	if tr.ConstFold > 0 {
+		passes = append(passes, fmt.Sprintf("const-fold=%d", tr.ConstFold))
+	}
+	if tr.IdentSimp > 0 {
+		passes = append(passes, fmt.Sprintf("ident-simp=%d", tr.IdentSimp))
+	}
+	if tr.CallElim > 0 {
+		passes = append(passes, fmt.Sprintf("call-elim=%d", tr.CallElim))
+	}
+	if tr.DSE > 0 {
+		passes = append(passes, fmt.Sprintf("dse=%d", tr.DSE))
+	}
+	if tr.DeadBlockArg > 0 {
+		passes = append(passes, fmt.Sprintf("dead-block-arg=%d", tr.DeadBlockArg))
+	}
+	if tr.BranchEquiv > 0 {
+		passes = append(passes, fmt.Sprintf("branch-equiv=%d", tr.BranchEquiv))
+	}
+	if tr.SplitJoinRet > 0 {
+		passes = append(passes, fmt.Sprintf("split-join-ret=%d", tr.SplitJoinRet))
+	}
+	if tr.CondRetSink > 0 {
+		passes = append(passes, fmt.Sprintf("condret-sink=%d", tr.CondRetSink))
+	}
+	if tr.FuseAbsDiff > 0 {
+		passes = append(passes, fmt.Sprintf("fuse-abs-diff=%d", tr.FuseAbsDiff))
+	}
+	if tr.PtrThreading > 0 {
+		passes = append(passes, fmt.Sprintf("ptr-threading=%d", tr.PtrThreading))
+	}
+	if tr.PtrAddCSE > 0 {
+		passes = append(passes, fmt.Sprintf("ptr-add-cse=%d", tr.PtrAddCSE))
+	}
+	if tr.CondRets > 0 {
+		passes = append(passes, fmt.Sprintf("cond-rets=%d", tr.CondRets))
+	}
+	if tr.Inlined {
+		passes = append(passes, "inlined")
+	}
+	if tr.LUTReplaced {
+		passes = append(passes, "lut-replaced")
+	}
 
 	if len(passes) > 0 {
 		parts = append(parts, "passes=["+strings.Join(passes, ",")+"]")
