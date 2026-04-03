@@ -284,6 +284,18 @@ This keeps structural decisions early and instruction-selection decisions late.
 1. Prototype EXX as a region-only mechanism
 2. Measure on a small set of hot kernels before broader adoption
 
+## Initial implementation note
+
+The first practical step can be very small and still useful:
+
+- add a MIR2-side shape-fact collector,
+- detect conservative loop regions from backedges in block order,
+- detect indexed accesses whose pointer comes from `OpPtrAdd`,
+- record repeated exact address terms and repeated base roots inside a block.
+
+This does not commit the compiler to a specific transform yet. It gives Grace
+and future profitability logic a real substrate instead of hand-wavy heuristics.
+
 ## Recommendation
 
 The next best investment is not global EXX. It is a solver-friendly reshaping layer driven by facts and implemented by Grace.
