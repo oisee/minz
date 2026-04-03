@@ -520,6 +520,122 @@ func TestBitStorePattern_RES_U16_HLHighByte(t *testing.T) {
 	}
 }
 
+func TestBitRegPattern_SET_U8_B(t *testing.T) {
+	m := &mir2.Module{Name: "bit_reg_set_u8"}
+	f := m.AddFunc("set_bit5_reg")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassGeneral}}
+
+	b := mir2.NewBuilder(f)
+	b.SwitchToNewBlock("entry")
+	val := b.Param("val", mir2.TyU8, mir2.ClassGeneral)
+	mask := b.Const(1<<5, mir2.TyU8, mir2.ClassGeneral)
+	next := b.Or(val, mask, mir2.TyU8, mir2.ClassGeneral)
+	b.Ret(next)
+
+	lr := mir2.ComputeLiveness(f)
+	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
+	ar.Locs[val] = mir2.PhysLoc{Kind: mir2.LocReg, Name: "B"}
+	ar.Locs[next] = mir2.PhysLoc{Kind: mir2.LocReg, Name: "B"}
+
+	asm := mir2.Z80Codegen(m, ar)
+	t.Log("\n" + asm)
+
+	fnAsm := extractFuncAsm(asm, "set_bit5_reg")
+	if !strings.Contains(fnAsm, "SET 5, B") {
+		t.Fatalf("expected direct register SET, got:\n%s", fnAsm)
+	}
+	if strings.Contains(fnAsm, "LD A, B") || strings.Contains(fnAsm, "OR 32") {
+		t.Fatalf("expected no accumulator-based OR sequence, got:\n%s", fnAsm)
+	}
+}
+
+func TestBitRegPattern_RES_U8_IXL(t *testing.T) {
+	m := &mir2.Module{Name: "bit_reg_res_ixl"}
+	f := m.AddFunc("reset_bit1_reg")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassGeneral}}
+
+	b := mir2.NewBuilder(f)
+	b.SwitchToNewBlock("entry")
+	val := b.Param("val", mir2.TyU8, mir2.ClassGeneral)
+	mask := b.Const(^int64(1<<1), mir2.TyU8, mir2.ClassGeneral)
+	next := b.And(val, mask, mir2.TyU8, mir2.ClassGeneral)
+	b.Ret(next)
+
+	lr := mir2.ComputeLiveness(f)
+	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
+	ar.Locs[val] = mir2.PhysLoc{Kind: mir2.LocIXY8, Name: "IXL"}
+	ar.Locs[next] = mir2.PhysLoc{Kind: mir2.LocIXY8, Name: "IXL"}
+
+	asm := mir2.Z80Codegen(m, ar)
+	t.Log("\n" + asm)
+
+	fnAsm := extractFuncAsm(asm, "reset_bit1_reg")
+	if !strings.Contains(fnAsm, "RES 1, IXL") {
+		t.Fatalf("expected direct half-register RES, got:\n%s", fnAsm)
+	}
+	if strings.Contains(fnAsm, "LD A, IXL") || strings.Contains(fnAsm, "AND 253") {
+		t.Fatalf("expected no accumulator-based AND sequence, got:\n%s", fnAsm)
+	}
+}
+
+func TestBitRegPattern_SET_U16_IXHigh(t *testing.T) {
+	m := &mir2.Module{Name: "bit_reg_set_u16_ix"}
+	f := m.AddFunc("set_bit14_reg")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU16, Class: mir2.ClassGeneral}}
+
+	b := mir2.NewBuilder(f)
+	b.SwitchToNewBlock("entry")
+	val := b.Param("val", mir2.TyU16, mir2.ClassGeneral)
+	mask := b.Const(1<<14, mir2.TyU16, mir2.ClassGeneral)
+	next := b.Or(val, mask, mir2.TyU16, mir2.ClassGeneral)
+	b.Ret(next)
+
+	lr := mir2.ComputeLiveness(f)
+	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
+	ar.Locs[val] = mir2.PhysLoc{Kind: mir2.LocIXY, Name: "IX"}
+	ar.Locs[next] = mir2.PhysLoc{Kind: mir2.LocIXY, Name: "IX"}
+
+	asm := mir2.Z80Codegen(m, ar)
+	t.Log("\n" + asm)
+
+	fnAsm := extractFuncAsm(asm, "set_bit14_reg")
+	if !strings.Contains(fnAsm, "SET 6, IXH") {
+		t.Fatalf("expected direct pair-half SET on IXH, got:\n%s", fnAsm)
+	}
+	if strings.Contains(fnAsm, "OR 64") {
+		t.Fatalf("expected no accumulator-based OR sequence, got:\n%s", fnAsm)
+	}
+}
+
+func TestBitRegPattern_RES_U16_IYLow(t *testing.T) {
+	m := &mir2.Module{Name: "bit_reg_res_u16_iy"}
+	f := m.AddFunc("reset_bit3_reg")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU16, Class: mir2.ClassGeneral}}
+
+	b := mir2.NewBuilder(f)
+	b.SwitchToNewBlock("entry")
+	val := b.Param("val", mir2.TyU16, mir2.ClassGeneral)
+	mask := b.Const(^int64(1<<3), mir2.TyU16, mir2.ClassGeneral)
+	next := b.And(val, mask, mir2.TyU16, mir2.ClassGeneral)
+	b.Ret(next)
+
+	lr := mir2.ComputeLiveness(f)
+	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
+	ar.Locs[val] = mir2.PhysLoc{Kind: mir2.LocIXY, Name: "IY"}
+	ar.Locs[next] = mir2.PhysLoc{Kind: mir2.LocIXY, Name: "IY"}
+
+	asm := mir2.Z80Codegen(m, ar)
+	t.Log("\n" + asm)
+
+	fnAsm := extractFuncAsm(asm, "reset_bit3_reg")
+	if !strings.Contains(fnAsm, "RES 3, IYL") {
+		t.Fatalf("expected direct pair-half RES on IYL, got:\n%s", fnAsm)
+	}
+	if strings.Contains(fnAsm, "AND 247") {
+		t.Fatalf("expected no accumulator-based AND sequence, got:\n%s", fnAsm)
+	}
+}
+
 func TestBitCmpPattern_MaskAndZero_HL(t *testing.T) {
 	m := &mir2.Module{Name: "bit_cmp_mask"}
 	f := m.AddFunc("test_bit5")

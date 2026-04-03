@@ -1931,6 +1931,19 @@ func selectBitReg(src string, byteOffset int) string {
 	}
 }
 
+func (g *z80cg) emitBitRegOp(op string, bit int, reg string) bool {
+	if reg == "" || reg == "A" || isSpill(reg) || reg == "F" {
+		return false
+	}
+	if !isSimpleReg(reg) {
+		return false
+	}
+	// IXH/IXL/IYH/IYL are first-class 8-bit regs here; the only excluded direct
+	// path is A, where AND/OR masks are often still the better code shape.
+	g.emitf("    %s %d, %s", op, bit, reg)
+	return true
+}
+
 // globalFieldLabel returns the EQU label for a global struct field access.
 // Format: sanitizeIdent(sym)__fieldName  (or just sanitizeIdent(sym) for offset 0 / no name).
 func globalFieldLabel(sym string, offset int64, fieldName string) string {
@@ -3456,6 +3469,31 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 	}
 
 	if w <= 8 {
+		if lhs == dst && dst != "A" && dst != "F" && !isSpill(dst) {
+			if cv, ok := g.constVals[inst.Src[1]]; ok {
+				switch mnem {
+				case "OR":
+					mask := uint16(cv)
+					if bits.OnesCount16(mask) == 1 {
+						bit := bits.TrailingZeros16(mask)
+						if bit < 8 && g.emitBitRegOp("SET", bit, dst) {
+							g.invalidate(dst)
+							return
+						}
+					}
+				case "AND":
+					mask := uint16(cv)
+					if bits.OnesCount16(^mask) == 1 {
+						bit := bits.TrailingZeros16(^mask)
+						if bit < 8 && g.emitBitRegOp("RES", bit, dst) {
+							g.invalidate(dst)
+							return
+						}
+					}
+				}
+			}
+		}
+
 		// Special case: boolean OR with a ClassFlag operand — Z80 cannot LD A, F
 		// or OR F.  Materialize the flag condition as 0/1 via a conditional skip:
 		//   (ensure A holds the non-flag operand)
@@ -3657,6 +3695,35 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			g.pendingAccReg = inst.Dst
 		}
 	} else {
+		if lhs == dst && dst != "A" && !isSpill(dst) {
+			if cv, ok := g.constVals[inst.Src[1]]; ok {
+				switch mnem {
+				case "OR":
+					mask := uint16(cv)
+					if bits.OnesCount16(mask) == 1 {
+						totalBit := bits.TrailingZeros16(mask)
+						target := selectBitReg(dst, totalBit/8)
+						if g.emitBitRegOp("SET", totalBit%8, target) {
+							g.invalidate(dst)
+							g.invalidate(target)
+							return
+						}
+					}
+				case "AND":
+					mask := uint16(cv)
+					if bits.OnesCount16(^mask) == 1 {
+						totalBit := bits.TrailingZeros16(^mask)
+						target := selectBitReg(dst, totalBit/8)
+						if g.emitBitRegOp("RES", totalBit%8, target) {
+							g.invalidate(dst)
+							g.invalidate(target)
+							return
+						}
+					}
+				}
+			}
+		}
+
 		// 16-bit peephole: INC/DEC rr when adding/subtracting 1 in-place.
 		if lhs == dst && !isSpill(dst) && dst != "F" {
 			if cv, ok := g.constVals[inst.Src[1]]; ok {
