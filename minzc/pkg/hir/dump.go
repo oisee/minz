@@ -222,6 +222,9 @@ func dumpExpr(e Expr) string {
 	case *FieldExpr:
 		return fmt.Sprintf("(%s).%s[+%d]:%s", dumpExpr(ex.X), ex.Field, ex.Offset, ex.Ty)
 
+	case *BitExpr:
+		return fmt.Sprintf("(%s).%d:u8", dumpExpr(ex.X), ex.Bit)
+
 	case *AddrOfExpr:
 		if ex.X != nil {
 			return fmt.Sprintf("addr(%s):ptr", dumpExpr(ex.X))

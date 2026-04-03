@@ -45,12 +45,12 @@ type printer struct {
 	indent int
 }
 
-func (p *printer) nl()              { p.b.WriteByte('\n') }
-func (p *printer) tab()            { p.b.WriteString(strings.Repeat("    ", p.indent)) }
-func (p *printer) write(s string)  { p.b.WriteString(s) }
+func (p *printer) nl()                          { p.b.WriteByte('\n') }
+func (p *printer) tab()                         { p.b.WriteString(strings.Repeat("    ", p.indent)) }
+func (p *printer) write(s string)               { p.b.WriteString(s) }
 func (p *printer) writef(f string, args ...any) { p.write(fmt.Sprintf(f, args...)) }
-func (p *printer) line(s string)   { p.tab(); p.write(s); p.nl() }
-func (p *printer) linef(f string, args ...any) { p.tab(); p.writef(f, args...); p.nl() }
+func (p *printer) line(s string)                { p.tab(); p.write(s); p.nl() }
+func (p *printer) linef(f string, args ...any)  { p.tab(); p.writef(f, args...); p.nl() }
 
 // ── Module ────────────────────────────────────────────────────────────────────
 
@@ -429,6 +429,9 @@ func (p *printer) expr(e hir.Expr) {
 	case *hir.FieldExpr:
 		p.exprParen(e.X)
 		p.writef(".%s", e.Field)
+	case *hir.BitExpr:
+		p.exprParen(e.X)
+		p.writef(".%d", e.Bit)
 	default:
 		p.writef("/* expr %T */", e)
 	}

@@ -1055,6 +1055,126 @@ fun get_z(v: Vec3d) -> u8 {
 	}
 }
 
+func TestBitSelectorParseReadAndWrite(t *testing.T) {
+	src := `
+fun get_hi(x: u8) -> u8 {
+    return x.7
+}
+
+fun set_mid(x: u8) -> u8 {
+    x.2 = 1
+    return x
+}
+`
+	m, err := nanz.Parse(src, "bit_selector_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+
+	funcs := make(map[string]*hir.Func)
+	for _, f := range m.Funcs {
+		funcs[f.Name] = f
+	}
+
+	getHi := funcs["get_hi"]
+	if getHi == nil {
+		t.Fatal("get_hi not found")
+	}
+	ret := getHi.Body.Body[0].(*hir.ReturnStmt)
+	bitRead, ok := ret.Val.(*hir.BitExpr)
+	if !ok {
+		t.Fatalf("return expr: want BitExpr, got %T", ret.Val)
+	}
+	if bitRead.Bit != 7 {
+		t.Fatalf("bit index: want 7, got %d", bitRead.Bit)
+	}
+
+	setMid := funcs["set_mid"]
+	if setMid == nil {
+		t.Fatal("set_mid not found")
+	}
+	assign, ok := setMid.Body.Body[0].(*hir.AssignStmt)
+	if !ok {
+		t.Fatalf("set_mid body[0]: want AssignStmt, got %T", setMid.Body.Body[0])
+	}
+	bitWrite, ok := assign.Target.(*hir.BitExpr)
+	if !ok {
+		t.Fatalf("assign target: want BitExpr, got %T", assign.Target)
+	}
+	if bitWrite.Bit != 2 {
+		t.Fatalf("write bit index: want 2, got %d", bitWrite.Bit)
+	}
+}
+
+func TestBitSelectorRejectsOutOfRange(t *testing.T) {
+	src := `
+fun bad(x: u8) -> u8 {
+    return x.8
+}
+`
+	_, err := nanz.Parse(src, "bit_selector_oob_test")
+	if err == nil {
+		t.Fatal("expected parse error for out-of-range bit selector")
+	}
+	if !strings.Contains(err.Error(), "out of range for u8 (8 bits)") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+func TestBitSelectorSupportsWideScalars(t *testing.T) {
+	src := `
+fun bit_u24(x: u24) -> u8 { return x.23 }
+fun bit_u32(x: u32) -> u8 { return x.31 }
+fun bit_i32(x: i32) -> u8 { return x.31 }
+fun bit_ptr(x: ptr) -> u8 { return x.15 }
+`
+	m, err := nanz.Parse(src, "bit_selector_wide_scalar_test")
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+
+	want := map[string]int{
+		"bit_u24": 23,
+		"bit_u32": 31,
+		"bit_i32": 31,
+		"bit_ptr": 15,
+	}
+	for _, f := range m.Funcs {
+		wantBit, ok := want[f.Name]
+		if !ok {
+			continue
+		}
+		ret := f.Body.Body[0].(*hir.ReturnStmt)
+		be, ok := ret.Val.(*hir.BitExpr)
+		if !ok {
+			t.Fatalf("%s return expr: want BitExpr, got %T", f.Name, ret.Val)
+		}
+		if be.Bit != wantBit {
+			t.Fatalf("%s bit index: want %d, got %d", f.Name, wantBit, be.Bit)
+		}
+	}
+}
+
+func TestBitSelectorRejectsStructBase(t *testing.T) {
+	src := `
+struct Pair {
+    x: u8
+    y: u8
+}
+
+fun bad(p: Pair) -> u8 {
+    return p.3
+}
+`
+	_, err := nanz.Parse(src, "bit_selector_struct_base_test")
+	if err == nil {
+		t.Fatal("expected parse error for struct base bit selector")
+	}
+	if !strings.Contains(err.Error(), "requires scalar base") {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
 // ── Interface declaration ─────────────────────────────────────────────────────
 
 func TestInterfaceDecl(t *testing.T) {

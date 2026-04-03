@@ -56,9 +56,9 @@ import (
 
 // ParseOpts configures module-aware parsing (import resolution).
 type ParseOpts struct {
-	BaseDir    string            // directory of the source file (for relative imports)
-	StdlibDir  string            // path to stdlib/ root (for stdlib imports)
-	Loaded     map[string]bool   // already-loaded module paths (circular import detection)
+	BaseDir   string          // directory of the source file (for relative imports)
+	StdlibDir string          // path to stdlib/ root (for stdlib imports)
+	Loaded    map[string]bool // already-loaded module paths (circular import detection)
 }
 
 // Parse parses Nanz source and returns a HIR module (no import resolution).
@@ -85,34 +85,34 @@ const (
 	tokIdent
 	tokInt
 	tokString
-	tokArrow   // ->
-	tokDotDot  // ..
-	tokLBrace  // {
-	tokRBrace  // }
-	tokLParen  // (
-	tokRParen  // )
-	tokLBrack  // [
-	tokRBrack  // ]
-	tokColon   // :
-	tokSemi    // ;
-	tokComma   // ,
-	tokDot     // .
-	tokEq      // =
-	tokEqEq    // ==
-	tokBang    // !
-	tokBangEq  // !=
-	tokLt      // <
-	tokLtEq    // <=
-	tokGt      // >
-	tokGtEq    // >=
-	tokPlus    // +
-	tokMinus   // -
-	tokStar    // *
-	tokSlash   // /
-	tokPercent // %
-	tokAmp     // &
-	tokPipe    // |
-	tokCaret   // ^ (also used as pointer dereference)
+	tokArrow      // ->
+	tokDotDot     // ..
+	tokLBrace     // {
+	tokRBrace     // }
+	tokLParen     // (
+	tokRParen     // )
+	tokLBrack     // [
+	tokRBrack     // ]
+	tokColon      // :
+	tokSemi       // ;
+	tokComma      // ,
+	tokDot        // .
+	tokEq         // =
+	tokEqEq       // ==
+	tokBang       // !
+	tokBangEq     // !=
+	tokLt         // <
+	tokLtEq       // <=
+	tokGt         // >
+	tokGtEq       // >=
+	tokPlus       // +
+	tokMinus      // -
+	tokStar       // *
+	tokSlash      // /
+	tokPercent    // %
+	tokAmp        // &
+	tokPipe       // |
+	tokCaret      // ^ (also used as pointer dereference)
 	tokTilde      // ~
 	tokLtLt       // <<
 	tokGtGt       // >>
@@ -183,27 +183,49 @@ func (l *lexer) tokenize() {
 		// Multi-char tokens
 		switch {
 		case ch == '-' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '>':
-			l.emit(tokArrow, "->", line); l.pos += 2; continue
+			l.emit(tokArrow, "->", line)
+			l.pos += 2
+			continue
 		case ch == '.' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '.':
-			l.emit(tokDotDot, "..", line); l.pos += 2; continue
+			l.emit(tokDotDot, "..", line)
+			l.pos += 2
+			continue
 		case ch == '=' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '=':
-			l.emit(tokEqEq, "==", line); l.pos += 2; continue
+			l.emit(tokEqEq, "==", line)
+			l.pos += 2
+			continue
 		case ch == '!' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '=':
-			l.emit(tokBangEq, "!=", line); l.pos += 2; continue
+			l.emit(tokBangEq, "!=", line)
+			l.pos += 2
+			continue
 		case ch == '<' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '=':
-			l.emit(tokLtEq, "<=", line); l.pos += 2; continue
+			l.emit(tokLtEq, "<=", line)
+			l.pos += 2
+			continue
 		case ch == '>' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '=':
-			l.emit(tokGtEq, ">=", line); l.pos += 2; continue
+			l.emit(tokGtEq, ">=", line)
+			l.pos += 2
+			continue
 		case ch == '<' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '<':
-			l.emit(tokLtLt, "<<", line); l.pos += 2; continue
+			l.emit(tokLtLt, "<<", line)
+			l.pos += 2
+			continue
 		case ch == '>' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '>':
-			l.emit(tokGtGt, ">>", line); l.pos += 2; continue
+			l.emit(tokGtGt, ">>", line)
+			l.pos += 2
+			continue
 		case ch == ':' && l.pos+1 < len(l.src) && l.src[l.pos+1] == ':':
-			l.emit(tokColonColon, "::", line); l.pos += 2; continue
+			l.emit(tokColonColon, "::", line)
+			l.pos += 2
+			continue
 		case ch == '|' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '>':
-			l.emit(tokPipeGt, "|>", line); l.pos += 2; continue
+			l.emit(tokPipeGt, "|>", line)
+			l.pos += 2
+			continue
 		case ch == '=' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '>':
-			l.emit(tokFatArrow, "=>", line); l.pos += 2; continue
+			l.emit(tokFatArrow, "=>", line)
+			l.pos += 2
+			continue
 		}
 
 		// Single-char
@@ -382,10 +404,11 @@ func (l *lexer) next() token {
 	}
 	return t
 }
-func (l *lexer) is(k tokKind) bool         { return l.peek().kind == k }
-func (l *lexer) isIdent(v string) bool      { return l.peek().kind == tokIdent && l.peek().val == v }
-func (l *lexer) save() int                  { return l.cur }
-func (l *lexer) restore(pos int)            { l.cur = pos }
+func (l *lexer) is(k tokKind) bool     { return l.peek().kind == k }
+func (l *lexer) isIdent(v string) bool { return l.peek().kind == tokIdent && l.peek().val == v }
+func (l *lexer) save() int             { return l.cur }
+func (l *lexer) restore(pos int)       { l.cur = pos }
+
 // peekN returns the n-th token ahead without consuming any (0 == peek()).
 func (l *lexer) peekN(n int) token {
 	idx := l.cur + n
@@ -491,38 +514,38 @@ type parser struct {
 	opts        ParseOpts
 	module      *hir.Module // current module being built (set in parseModule)
 	structs     map[string]*mir2.StructTy
-	interfaces  map[string]*hir.InterfaceDecl   // interface name → declaration
-	lambdas     []*hir.Func // anonymous functions generated from |params| body syntax
+	interfaces  map[string]*hir.InterfaceDecl // interface name → declaration
+	lambdas     []*hir.Func                   // anonymous functions generated from |params| body syntax
 	lambdaCount int
 	// Week 1: UFCS + struct methods + operator overloading
-	globalTypes          map[string]mir2.Ty              // module-level: global varname → type (persistent)
-	globalInterfaceTypes map[string]string               // module-level: global varname → interface name
-	varTypes             map[string]mir2.Ty              // current function scope: varname → type (reset per func)
-	varInterfaceTypes    map[string]string               // current function scope: varname → interface name
-	varPtrElem           map[string]*mir2.StructTy       // current function scope: varname → pointed-to struct (for ^Struct params)
+	globalTypes          map[string]mir2.Ty               // module-level: global varname → type (persistent)
+	globalInterfaceTypes map[string]string                // module-level: global varname → interface name
+	varTypes             map[string]mir2.Ty               // current function scope: varname → type (reset per func)
+	varInterfaceTypes    map[string]string                // current function scope: varname → interface name
+	varPtrElem           map[string]*mir2.StructTy        // current function scope: varname → pointed-to struct (for ^Struct params)
 	methodTable          map[string]map[string]methodInfo // structName → methodName → info
-	opTable     map[string][]opOverload            // op symbol ("+", "-", ...) → overloads (multi-dispatch)
+	opTable              map[string][]opOverload          // op symbol ("+", "-", ...) → overloads (multi-dispatch)
 	// use-before-init analysis
-	uninitVars  map[string]int  // varname → declaration line; nil disables tracking (at branches)
-	warnings    []string        // accumulated diagnostic warnings
+	uninitVars map[string]int // varname → declaration line; nil disables tracking (at branches)
+	warnings   []string       // accumulated diagnostic warnings
 	// function return type table — populated as functions are parsed so that
 	// call expressions can get the correct Ty instead of TyVoid.
-	funcSigs      map[string]mir2.Ty
-	funcParamTys  map[string][]mir2.Ty // function name → param types (for partial application)
-	varEnumType   map[string]string   // variable name → enum name (for exhaustive switch check)
-	typeAliases     map[string]mir2.Ty              // type X = Y — structural alias
-	enums           map[string]map[string]int64     // enumName → {variantName → value}
-	enumBaseTy      map[string]mir2.Ty              // enumName → base type (default TyU8)
-	importedModules map[string]string               // modPath → mangled prefix (for qualified access)
-	funcAliases     map[string]string               // local name → mangled name (for unqualified imports)
-	pipes           map[string][]pipeStep           // pipe/trans name → stages
-	lambdaHintTy    mir2.Ty                         // type hint for untyped lambda params (set by chain context)
-	metaFuncs       map[string]string               // @name → full Nanz source of metafunction
+	funcSigs        map[string]mir2.Ty
+	funcParamTys    map[string][]mir2.Ty        // function name → param types (for partial application)
+	varEnumType     map[string]string           // variable name → enum name (for exhaustive switch check)
+	typeAliases     map[string]mir2.Ty          // type X = Y — structural alias
+	enums           map[string]map[string]int64 // enumName → {variantName → value}
+	enumBaseTy      map[string]mir2.Ty          // enumName → base type (default TyU8)
+	importedModules map[string]string           // modPath → mangled prefix (for qualified access)
+	funcAliases     map[string]string           // local name → mangled name (for unqualified imports)
+	pipes           map[string][]pipeStep       // pipe/trans name → stages
+	lambdaHintTy    mir2.Ty                     // type hint for untyped lambda params (set by chain context)
+	metaFuncs       map[string]string           // @name → full Nanz source of metafunction
 	// ADT (algebraic data types) — enums with payload variants
-	adts            map[string]*nanzADT             // type name → ADT definition
-	adtCtors        map[string]*nanzADTCtor         // constructor name → ctor (for match + expr)
-	autoFuncs       []*hir.Func                     // auto-generated helpers (__tag, __payload, lambdas)
-	localArrayID    int                              // counter for mangled local array globals
+	adts         map[string]*nanzADT     // type name → ADT definition
+	adtCtors     map[string]*nanzADTCtor // constructor name → ctor (for match + expr)
+	autoFuncs    []*hir.Func             // auto-generated helpers (__tag, __payload, lambdas)
+	localArrayID int                     // counter for mangled local array globals
 }
 
 // pipeStep is one stage in a named pipe/trans declaration.
@@ -554,6 +577,29 @@ func (p *parser) exprTy(e hir.Expr) mir2.Ty {
 		}
 	}
 	return e.ExprTy()
+}
+
+func (p *parser) makeBitExpr(base hir.Expr, bitTok token) (*hir.BitExpr, error) {
+	bit, err := strconv.Atoi(bitTok.val)
+	if err != nil {
+		return nil, fmt.Errorf("line %d: invalid bit index %q", bitTok.line, bitTok.val)
+	}
+	baseTy := p.exprTy(base)
+	if baseTy == nil {
+		return nil, fmt.Errorf("line %d: bit selector requires typed scalar base", bitTok.line)
+	}
+	switch baseTy.(type) {
+	case *mir2.ArrayTy, *mir2.StructTy, *mir2.TupleTy, *mir2.SliceTy:
+		return nil, fmt.Errorf("line %d: bit selector requires scalar base, got %s", bitTok.line, baseTy)
+	}
+	w := baseTy.Width()
+	if w <= 0 {
+		return nil, fmt.Errorf("line %d: bit selector requires scalar base, got %s", bitTok.line, baseTy)
+	}
+	if bit < 0 || bit >= w {
+		return nil, fmt.Errorf("line %d: bit selector .%d out of range for %s (%d bits)", bitTok.line, bit, baseTy, w)
+	}
+	return &hir.BitExpr{X: base, Bit: bit}, nil
 }
 
 // inferChainElemTy infers the element type flowing through an iterator chain.
@@ -945,7 +991,7 @@ func (p *parser) parseModule() (*hir.Module, error) {
 			}
 			m.Sandboxes = append(m.Sandboxes, sb)
 
-			case t.kind == tokIdent && t.val == "impl":
+		case t.kind == tokIdent && t.val == "impl":
 			funcs, err := p.parseImplBlock()
 			if err != nil {
 				return nil, err
@@ -1082,8 +1128,8 @@ func (p *parser) parseTypeAlias() error {
 
 // parseEnumDecl parses two forms:
 //
-//   enum Dir { UP, DOWN, LEFT, RIGHT }              — C-style (u8 tags)
-//   enum Option { None, Some(u8) }                  — ADT with payload (u16 encoded)
+//	enum Dir { UP, DOWN, LEFT, RIGHT }              — C-style (u8 tags)
+//	enum Option { None, Some(u8) }                  — ADT with payload (u16 encoded)
 //
 // If any variant has a payload, the enum becomes an ADT: u16 encoding where
 // high byte = tag, low byte = payload.  __tag/__payload helpers are generated.
@@ -2294,8 +2340,8 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 		return nil, err
 	}
 	var params []hir.Param
-	var paramIfaceNames []string        // parallel to params: interface name or ""
-	var paramPtrElems []*mir2.StructTy  // parallel to params: ^Struct elem type or nil
+	var paramIfaceNames []string       // parallel to params: interface name or ""
+	var paramPtrElems []*mir2.StructTy // parallel to params: ^Struct elem type or nil
 	for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
 		// Check for @z80_X / @smc annotation BEFORE param name
 		var regClass mir2.RegClass
@@ -3401,7 +3447,7 @@ func (p *parser) parseFor() (hir.Stmt, error) {
 		return &hir.ForEachStmt{
 			Var: varTok.val, ElemTy: elemTy, ElemStride: elemStride,
 			PtrIter: ptrStructName != "",
-			Ptr: base, Start: startExpr, Len: lenExpr,
+			Ptr:     base, Start: startExpr, Len: lenExpr,
 			Body: body,
 		}, nil
 	}
@@ -3441,6 +3487,16 @@ func (p *parser) parsePostfixNoBrack(base hir.Expr) (hir.Expr, error) {
 			}
 		case tokDot:
 			p.l.next()
+			fieldTok := p.l.peek()
+			if fieldTok.kind == tokInt {
+				p.l.next()
+				var bitErr error
+				base, bitErr = p.makeBitExpr(base, fieldTok)
+				if bitErr != nil {
+					return nil, bitErr
+				}
+				continue
+			}
 			fieldTok, err := p.l.eat(tokIdent)
 			if err != nil {
 				return nil, err
@@ -3584,7 +3640,7 @@ func (p *parser) warnUninitInExpr(e hir.Expr) {
 	case *hir.IndexExpr:
 		p.warnUninitInExpr(ex.Base)
 		p.warnUninitInExpr(ex.Idx)
-	// IntLitExpr, BoolLitExpr, AddrOfExpr, ConstPtrExpr: no variable refs
+		// IntLitExpr, BoolLitExpr, AddrOfExpr, ConstPtrExpr: no variable refs
 	}
 }
 
@@ -3683,7 +3739,7 @@ func (p *parser) parseAsm() (hir.Stmt, error) {
 	if lbrace.kind != tokLBrace {
 		return nil, fmt.Errorf("line %d: asm block: expected '{', got %q", lbrace.line, lbrace.val)
 	}
-	p.l.next() // consume '{'
+	p.l.next()                 // consume '{'
 	startPos := lbrace.pos + 1 // byte offset of first char inside the block
 
 	// Walk the token stream to find the matching '}'.
@@ -3882,7 +3938,7 @@ func (p *parser) parseMatchExpr() (hir.Expr, error) {
 		isDefault      bool
 		tagVal         int64
 		body           hir.Expr
-		payloadBind    string  // variable name bound to payload
+		payloadBind    string // variable name bound to payload
 		hasPayloadBind bool
 	}
 	var arms []matchArm
@@ -4151,7 +4207,7 @@ var binops = map[tokKind]binop{
 	tokPipe: {"|", 1},
 	// XOR uses the `xor` keyword operator (see parseBinary), not ^.
 	// ^ is reserved exclusively for postfix pointer dereference.
-	tokAmp: {"&", 3},
+	tokAmp:     {"&", 3},
 	tokEqEq:    {"==", 4},
 	tokBangEq:  {"!=", 4},
 	tokLt:      {"<", 5},
@@ -4342,6 +4398,16 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 			// base.field    — struct field access
 			// base.method() — UFCS method call: rewritten to method(base, args...)
 			p.l.next()
+			fieldTok := p.l.peek()
+			if fieldTok.kind == tokInt {
+				p.l.next()
+				var bitErr error
+				base, bitErr = p.makeBitExpr(base, fieldTok)
+				if bitErr != nil {
+					return nil, bitErr
+				}
+				continue
+			}
 			fieldTok, err := p.l.eat(tokIdent)
 			if err != nil {
 				return nil, err

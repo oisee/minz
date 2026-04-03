@@ -383,6 +383,84 @@ func (l *lowerer) lowerExprAddr(ex Expr) mir2.Reg {
 	}
 }
 
+func bitBaseTy(base Expr) mir2.Ty {
+	if base == nil {
+		return mir2.TyU8
+	}
+	return base.ExprTy()
+}
+
+func bitMaskFor(baseTy mir2.Ty, bit int64) int64 {
+	mask := int64(1) << bit
+	if baseTy == nil {
+		return mask
+	}
+	w := baseTy.Width()
+	if w <= 0 || w >= 63 {
+		return mask
+	}
+	return mask & ((int64(1) << w) - 1)
+}
+
+func (l *lowerer) lowerBitRead(ex *BitExpr) mir2.Reg {
+	baseTy := bitBaseTy(ex.X)
+	base := l.lowerExpr(ex.X)
+	shift := l.bld.Const(int64(ex.Bit), baseTy, mir2.ClassGeneral)
+	shifted := l.bld.Shr(base, shift, baseTy, classForExpr(baseTy))
+	one := l.bld.Const(1, baseTy, mir2.ClassGeneral)
+	masked := l.bld.And(shifted, one, baseTy, classForExpr(baseTy))
+	if baseTy.Width() > 8 {
+		return l.bld.Trunc(masked, baseTy, mir2.TyU8, classForExpr(mir2.TyU8))
+	}
+	return masked
+}
+
+func (l *lowerer) lowerBitAssign(tgt *BitExpr, val Expr) {
+	baseTy := bitBaseTy(tgt.X)
+	maskImm := bitMaskFor(baseTy, int64(tgt.Bit))
+	notMask := l.bld.Const(^maskImm, baseTy, mir2.ClassGeneral)
+	rhs := l.lowerExprAs(val, mir2.TyU8)
+	rhsBase := l.bld.Ext(rhs, mir2.TyU8, baseTy, classForExpr(baseTy))
+	one := l.bld.Const(1, baseTy, mir2.ClassGeneral)
+	bitVal := l.bld.And(rhsBase, one, baseTy, classForExpr(baseTy))
+	setVal := bitVal
+	if tgt.Bit > 0 {
+		shift := l.bld.Const(int64(tgt.Bit), baseTy, mir2.ClassGeneral)
+		setVal = l.bld.Shl(bitVal, shift, baseTy, classForExpr(baseTy))
+	}
+
+	merge := func(cur mir2.Reg) mir2.Reg {
+		cleared := l.bld.And(cur, notMask, baseTy, classForExpr(baseTy))
+		return l.bld.Or(cleared, setVal, baseTy, classForExpr(baseTy))
+	}
+
+	switch base := tgt.X.(type) {
+	case *VarRefExpr:
+		next := merge(l.lowerExpr(base))
+		if g, found := l.findGlobal(base.Name); found {
+			addr := l.globalAddr(base.Name)
+			l.bld.Store(addr, next, g.Ty)
+			return
+		}
+		l.env[base.Name] = next
+	case *FieldExpr:
+		addr := l.lowerExprAddr(base)
+		l.bld.Store(addr, merge(l.lowerExpr(base)), baseTy)
+	case *IndexExpr:
+		addr := l.lowerExprAddr(base)
+		l.bld.Store(addr, merge(l.lowerExpr(base)), baseTy)
+	case *LoadExpr:
+		ptr := l.lowerExpr(base.Ptr)
+		l.bld.Store(ptr, merge(l.lowerExpr(base)), baseTy)
+	case *DerefExpr:
+		ptr := l.lowerExpr(base.Ptr)
+		cur := l.bld.Load(ptr, baseTy, classForExpr(baseTy))
+		l.bld.Store(ptr, merge(cur), baseTy)
+	default:
+		panic(fmt.Sprintf("hir/lower: unsupported BitExpr target base %T", tgt.X))
+	}
+}
+
 // ── Function lowering ─────────────────────────────────────────────────────────
 
 func lowerFunc(m *mir2.Module, f *Func) {
@@ -792,6 +870,8 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			// arr[i] = val: compute element address then store.
 			addr := l.lowerExprAddr(tgt)
 			l.bld.Store(addr, val, tgt.ElemTy)
+		case *BitExpr:
+			l.lowerBitAssign(tgt, st.Val)
 		default:
 			panic(fmt.Sprintf("hir/lower: unsupported AssignStmt target %T", st.Target))
 		}
@@ -1073,12 +1153,14 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 // ── If/else lowering (two-pass) ───────────────────────────────────────────────
 
 // lowerIf lowers an IfStmt using a two-pass approach:
-//   Pass 1: scan for mutations in each branch.
-//   Pass 2: emit MIR2 with correct Jmp args to the join block.
+//
+//	Pass 1: scan for mutations in each branch.
+//	Pass 2: emit MIR2 with correct Jmp args to the join block.
 //
 // Cases:
-//   (a) Both branches always return → no join block, returns true.
-//   (b) Neither/one branch returns → join block collects updated vars as params.
+//
+//	(a) Both branches always return → no join block, returns true.
+//	(b) Neither/one branch returns → join block collects updated vars as params.
 func (l *lowerer) lowerIf(st *IfStmt) bool {
 	envBefore := cloneMap(l.env)
 
@@ -1710,6 +1792,9 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 		}
 		return l.bld.Load(base, ex.Ty, classForExpr(ex.Ty))
 
+	case *BitExpr:
+		return l.lowerBitRead(ex)
+
 	case *CastExpr:
 		src := l.lowerExpr(ex.X)
 		srcTy := ex.X.ExprTy()
@@ -2027,7 +2112,7 @@ func scanStmt(s Stmt, env map[string]mir2.Reg, muts map[string]bool) {
 		if st.Default != nil {
 			scanBlock(st.Default, env, muts)
 		}
-	// BreakStmt, ContinueStmt, LabelStmt, GotoStmt: no mutations
+		// BreakStmt, ContinueStmt, LabelStmt, GotoStmt: no mutations
 	}
 }
 
@@ -2164,6 +2249,8 @@ func scanUsedExpr(e Expr, env map[string]mir2.Reg, used map[string]bool) {
 		}
 	case *FieldExpr:
 		scanUsedExpr(ex.X, env, used)
+	case *BitExpr:
+		scanUsedExpr(ex.X, env, used)
 	case *LoadExpr:
 		scanUsedExpr(ex.Ptr, env, used)
 	case *DerefExpr:
@@ -2173,7 +2260,7 @@ func scanUsedExpr(e Expr, env map[string]mir2.Reg, used map[string]bool) {
 	case *IndexExpr:
 		scanUsedExpr(ex.Base, env, used)
 		scanUsedExpr(ex.Idx, env, used)
-	// IntLitExpr, BoolLitExpr, AddrOfExpr: no variable references
+		// IntLitExpr, BoolLitExpr, AddrOfExpr: no variable references
 	}
 }
 
@@ -2245,7 +2332,7 @@ func scanUsedInStmt(s Stmt, env map[string]mir2.Reg, used map[string]bool) {
 		if st.Default != nil {
 			scanUsedInBlock(st.Default, env, used)
 		}
-	// BreakStmt, ContinueStmt, LabelStmt, GotoStmt: no expressions to scan
+		// BreakStmt, ContinueStmt, LabelStmt, GotoStmt: no expressions to scan
 	}
 }
 
@@ -2636,7 +2723,7 @@ func (l *lowerer) lowerFusedForEach(chain iterChain) {
 		Start:         &IntLitExpr{Val: 0, Ty: mir2.TyU8},
 		Len:           chain.len,
 		MutateInPlace: chain.mutate,
-		Body:   &Block{Body: bodyStmts},
+		Body:          &Block{Body: bodyStmts},
 	}
 	l.lowerForEach(forEach)
 }
@@ -3017,6 +3104,8 @@ func renameExpr(e Expr, from, to string) Expr {
 		}
 	case *FieldExpr:
 		return &FieldExpr{X: renameExpr(ex.X, from, to), Field: ex.Field, Offset: ex.Offset, Ty: ex.Ty}
+	case *BitExpr:
+		return &BitExpr{X: renameExpr(ex.X, from, to), Bit: ex.Bit}
 	case *AddrOfExpr:
 		if ex.X != nil {
 			return &AddrOfExpr{Sym: ex.Sym, X: renameExpr(ex.X, from, to)}

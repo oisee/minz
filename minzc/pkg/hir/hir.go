@@ -45,14 +45,14 @@ type InterfaceDecl struct {
 // Assertions are checked after MIR2 optimisation.  They are NOT emitted into
 // the generated binary.
 type Assert struct {
-	FuncName       string   // function to call
-	Args           []int64  // literal integer arguments
-	Expected       int64    // expected return value (single-return)
-	ExpectedMulti  []int64  // expected values for multi-return; non-nil overrides Expected
-	Source         string   // original source text (for error messages)
-	Line           int      // source line number
-	Via            string   // "" = both MIR2+Z80; "mir2" = MIR2 VM only; "z80" = Z80 only
-	StringArgs     map[int]string // arg index → string symbol (e.g. "@mir2.str.0"); resolved to heap addr at VM time
+	FuncName      string         // function to call
+	Args          []int64        // literal integer arguments
+	Expected      int64          // expected return value (single-return)
+	ExpectedMulti []int64        // expected values for multi-return; non-nil overrides Expected
+	Source        string         // original source text (for error messages)
+	Line          int            // source line number
+	Via           string         // "" = both MIR2+Z80; "mir2" = MIR2 VM only; "z80" = Z80 only
+	StringArgs    map[int]string // arg index → string symbol (e.g. "@mir2.str.0"); resolved to heap addr at VM time
 }
 
 // Sandbox groups compile-time assertions that share a single VM instance.
@@ -97,16 +97,16 @@ func TargetFromString(s string) uint8 {
 // Module is the top-level HIR unit.
 type Module struct {
 	Name       string
-	Target     uint8              // platform target (TargetCPM, TargetZXSpectrum, etc.)
+	Target     uint8 // platform target (TargetCPM, TargetZXSpectrum, etc.)
 	Funcs      []*Func
-	Globals    []mir2.Global      // reuse mir2.Global directly
-	Structs    []*mir2.StructTy   // named struct type declarations
-	Interfaces []*InterfaceDecl   // interface declarations (zero-cost, monomorphised)
-	Strings    []string           // interned string literals (index = position)
-	StrKinds   []mir2.StringKind  // encoding per string (SString/LString/CString)
-	Warnings   []string           // use-before-init and other diagnostic warnings
-	Asserts    []Assert           // top-level compile-time assertions (each gets fresh VM)
-	Sandboxes  []Sandbox          // grouped assertions (shared VM per sandbox)
+	Globals    []mir2.Global     // reuse mir2.Global directly
+	Structs    []*mir2.StructTy  // named struct type declarations
+	Interfaces []*InterfaceDecl  // interface declarations (zero-cost, monomorphised)
+	Strings    []string          // interned string literals (index = position)
+	StrKinds   []mir2.StringKind // encoding per string (SString/LString/CString)
+	Warnings   []string          // use-before-init and other diagnostic warnings
+	Asserts    []Assert          // top-level compile-time assertions (each gets fresh VM)
+	Sandboxes  []Sandbox         // grouped assertions (shared VM per sandbox)
 }
 
 // FuncByName returns the first HIR function with the given name, or nil.
@@ -129,8 +129,8 @@ type Func struct {
 	RetTys     []mir2.Ty // non-empty → multiple return values (overrides RetTy)
 	Body       *Block    // nil for extern
 	IsExtern   bool
-	ExternAddr uint16    // non-zero → @extern(addr) — call via CALL/RST to fixed address
-	IsIO       bool      // true = effectful (IO); false = pure (compile-time safe)
+	ExternAddr uint16 // non-zero → @extern(addr) — call via CALL/RST to fixed address
+	IsIO       bool   // true = effectful (IO); false = pure (compile-time safe)
 }
 
 // Param is a typed, named function parameter.
@@ -155,11 +155,11 @@ func (*Block) hirStmt() {}
 // In HIR, variables are mutable (assignments create new bindings in lowering).
 type VarDeclStmt struct {
 	Name     string
-	Ty       mir2.Ty  // element type (for arrays) or scalar type
-	ArrayLen int      // if > 0: this is a [ArrayLen]Ty array; Ty is the element type
-	Init     Expr     // nil = zero-initialised (scalar only; use Initial for arrays)
-	Initial  []Expr   // array initializer values (len must equal ArrayLen or be 0)
-	At       *uint16  // if non-nil: variable is at this absolute address (AT attribute)
+	Ty       mir2.Ty // element type (for arrays) or scalar type
+	ArrayLen int     // if > 0: this is a [ArrayLen]Ty array; Ty is the element type
+	Init     Expr    // nil = zero-initialised (scalar only; use Initial for arrays)
+	Initial  []Expr  // array initializer values (len must equal ArrayLen or be 0)
+	At       *uint16 // if non-nil: variable is at this absolute address (AT attribute)
 }
 
 func (*VarDeclStmt) hirStmt() {}
@@ -248,7 +248,7 @@ type ForEachStmt struct {
 	Start         Expr    // start index (often IntLitExpr{0})
 	Len           Expr    // element count (= end - start when start=0)
 	Body          *Block
-	MutateInPlace bool    // if true: store transformed element back to ptr after body
+	MutateInPlace bool // if true: store transformed element back to ptr after body
 }
 
 func (*ForEachStmt) hirStmt() {}
@@ -275,7 +275,7 @@ func (*GotoStmt) hirStmt() {}
 
 // SwitchCase is one arm of a SwitchStmt.
 type SwitchCase struct {
-	Val  int64  // constant case value
+	Val  int64 // constant case value
 	Body *Block
 }
 
@@ -319,12 +319,12 @@ type AsmOperand struct {
 }
 
 type AsmStmt struct {
-	Target     string        // architecture tag, e.g. "z80"; "" = any
-	Code       string        // verbatim assembly text
-	ClobberAll bool          // true when no explicit clobber list and no auto analysis
-	Ins        []AsmOperand  // explicit input operands  — (in x, y)
-	Outs       []AsmOperand  // explicit output operands — (out x)
-	RetReg     string        // physical register name from (ret REG), e.g. "A", "HL"
+	Target      string       // architecture tag, e.g. "z80"; "" = any
+	Code        string       // verbatim assembly text
+	ClobberAll  bool         // true when no explicit clobber list and no auto analysis
+	Ins         []AsmOperand // explicit input operands  — (in x, y)
+	Outs        []AsmOperand // explicit output operands — (out x)
+	RetReg      string       // physical register name from (ret REG), e.g. "A", "HL"
 	ClobberRegs []string     // explicit clobber list from (clob A, F); nil = auto
 	ClobberAuto bool         // true when clobbers should be auto-computed from asm text
 }
@@ -352,8 +352,8 @@ func (e *IntLitExpr) ExprTy() mir2.Ty { return e.Ty }
 // BoolLitExpr is a boolean constant.
 type BoolLitExpr struct{ Val bool }
 
-func (*BoolLitExpr) hirExpr()          {}
-func (*BoolLitExpr) ExprTy() mir2.Ty   { return mir2.TyBool }
+func (*BoolLitExpr) hirExpr()        {}
+func (*BoolLitExpr) ExprTy() mir2.Ty { return mir2.TyBool }
 
 // VarRefExpr references a named variable or parameter.
 type VarRefExpr struct {
@@ -397,7 +397,7 @@ func (e *CallExpr) ExprTy() mir2.Ty { return e.Ty }
 
 // CallIndirectExpr is an indirect function call through a pointer.
 type CallIndirectExpr struct {
-	FnPtr Expr    // expression yielding the function pointer
+	FnPtr Expr // expression yielding the function pointer
 	Args  []Expr
 	Ty    mir2.Ty // return type
 }
@@ -416,6 +416,17 @@ type FieldExpr struct {
 func (*FieldExpr) hirExpr()          {}
 func (e *FieldExpr) ExprTy() mir2.Ty { return e.Ty }
 
+// BitExpr accesses a constant bit of an integer scalar.
+// X must have scalar integer type; Bit is the zero-based bit index.
+// The expression result type is always u8 (0 or 1).
+type BitExpr struct {
+	X   Expr
+	Bit int
+}
+
+func (*BitExpr) hirExpr()        {}
+func (*BitExpr) ExprTy() mir2.Ty { return mir2.TyU8 }
+
 // AddrOfExpr takes the address of either a named symbol or an addressable
 // expression such as a field/index lvalue.
 type AddrOfExpr struct {
@@ -423,8 +434,8 @@ type AddrOfExpr struct {
 	X   Expr   // optional addressable expression
 }
 
-func (*AddrOfExpr) hirExpr()          {}
-func (*AddrOfExpr) ExprTy() mir2.Ty   { return mir2.TyPtr }
+func (*AddrOfExpr) hirExpr()        {}
+func (*AddrOfExpr) ExprTy() mir2.Ty { return mir2.TyPtr }
 
 // LoadExpr dereferences a pointer: *Ptr
 type LoadExpr struct {
@@ -462,17 +473,17 @@ type ConstPtrExpr struct {
 	Addr   uint16
 }
 
-func (*ConstPtrExpr) hirExpr()          {}
-func (*ConstPtrExpr) ExprTy() mir2.Ty   { return mir2.TyPtr }
+func (*ConstPtrExpr) hirExpr()        {}
+func (*ConstPtrExpr) ExprTy() mir2.Ty { return mir2.TyPtr }
 
 // IndexExpr reads element i from an array pointer: base[i]
 // Base must have type TyPtr (pointing to element type ElemTy).
 // ElemStride is the byte size of each element (1 for u8, 2 for u16, etc.).
 type IndexExpr struct {
-	Base      Expr   // TyPtr — pointer to first element
-	Idx       Expr   // TyU8 or TyU16 — index
-	ElemTy    mir2.Ty
-	ElemStride int   // bytes per element; 0 means derive from ElemTy.Width()/8
+	Base       Expr // TyPtr — pointer to first element
+	Idx        Expr // TyU8 or TyU16 — index
+	ElemTy     mir2.Ty
+	ElemStride int // bytes per element; 0 means derive from ElemTy.Width()/8
 }
 
 func (*IndexExpr) hirExpr()          {}
@@ -494,8 +505,8 @@ type StructLitExpr struct {
 	Fields []FieldInit
 }
 
-func (*StructLitExpr) hirExpr()          {}
-func (*StructLitExpr) ExprTy() mir2.Ty   { return mir2.TyPtr }
+func (*StructLitExpr) hirExpr()        {}
+func (*StructLitExpr) ExprTy() mir2.Ty { return mir2.TyPtr }
 
 // RangeSourceExpr is produced by range(lo..hi) / range(hi..lo).
 // It is a pure counter source — no memory pointer, no Load.
@@ -536,26 +547,28 @@ func (e *LetInExpr) ExprTy() mir2.Ty { return e.Body.ExprTy() }
 
 // ── Convenience constructors ──────────────────────────────────────────────────
 
-func U8(n int64) *IntLitExpr  { return &IntLitExpr{Val: n, Ty: mir2.TyU8} }
-func U16(n int64) *IntLitExpr { return &IntLitExpr{Val: n, Ty: mir2.TyU16} }
-func Bool(v bool) *BoolLitExpr { return &BoolLitExpr{Val: v} }
+func U8(n int64) *IntLitExpr                  { return &IntLitExpr{Val: n, Ty: mir2.TyU8} }
+func U16(n int64) *IntLitExpr                 { return &IntLitExpr{Val: n, Ty: mir2.TyU16} }
+func Bool(v bool) *BoolLitExpr                { return &BoolLitExpr{Val: v} }
 func Var(name string, ty mir2.Ty) *VarRefExpr { return &VarRefExpr{Name: name, Ty: ty} }
-func Add(l, r Expr, ty mir2.Ty) *BinExpr { return &BinExpr{Op: "+", L: l, R: r, Ty: ty} }
-func Sub(l, r Expr, ty mir2.Ty) *BinExpr { return &BinExpr{Op: "-", L: l, R: r, Ty: ty} }
-func Mul(l, r Expr, ty mir2.Ty) *BinExpr { return &BinExpr{Op: "*", L: l, R: r, Ty: ty} }
-func Lt(l, r Expr) *BinExpr              { return &BinExpr{Op: "<", L: l, R: r, Ty: mir2.TyBool} }
-func Le(l, r Expr) *BinExpr              { return &BinExpr{Op: "<=", L: l, R: r, Ty: mir2.TyBool} }
-func Gt(l, r Expr) *BinExpr              { return &BinExpr{Op: ">", L: l, R: r, Ty: mir2.TyBool} }
-func Eq(l, r Expr) *BinExpr              { return &BinExpr{Op: "==", L: l, R: r, Ty: mir2.TyBool} }
-func Ne(l, r Expr) *BinExpr              { return &BinExpr{Op: "!=", L: l, R: r, Ty: mir2.TyBool} }
-func Call(fn string, ty mir2.Ty, args ...Expr) *CallExpr { return &CallExpr{Fn: fn, Args: args, Ty: ty} }
+func Add(l, r Expr, ty mir2.Ty) *BinExpr      { return &BinExpr{Op: "+", L: l, R: r, Ty: ty} }
+func Sub(l, r Expr, ty mir2.Ty) *BinExpr      { return &BinExpr{Op: "-", L: l, R: r, Ty: ty} }
+func Mul(l, r Expr, ty mir2.Ty) *BinExpr      { return &BinExpr{Op: "*", L: l, R: r, Ty: ty} }
+func Lt(l, r Expr) *BinExpr                   { return &BinExpr{Op: "<", L: l, R: r, Ty: mir2.TyBool} }
+func Le(l, r Expr) *BinExpr                   { return &BinExpr{Op: "<=", L: l, R: r, Ty: mir2.TyBool} }
+func Gt(l, r Expr) *BinExpr                   { return &BinExpr{Op: ">", L: l, R: r, Ty: mir2.TyBool} }
+func Eq(l, r Expr) *BinExpr                   { return &BinExpr{Op: "==", L: l, R: r, Ty: mir2.TyBool} }
+func Ne(l, r Expr) *BinExpr                   { return &BinExpr{Op: "!=", L: l, R: r, Ty: mir2.TyBool} }
+func Call(fn string, ty mir2.Ty, args ...Expr) *CallExpr {
+	return &CallExpr{Fn: fn, Args: args, Ty: ty}
+}
 func Addr(sym string) *AddrOfExpr         { return &AddrOfExpr{Sym: sym} }
 func AddrExpr(x Expr) *AddrOfExpr         { return &AddrOfExpr{X: x} }
 func Load(ptr Expr, ty mir2.Ty) *LoadExpr { return &LoadExpr{Ptr: ptr, Ty: ty} }
-func Cast(x Expr, ty mir2.Ty) *CastExpr { return &CastExpr{X: x, Ty: ty} }
+func Cast(x Expr, ty mir2.Ty) *CastExpr   { return &CastExpr{X: x, Ty: ty} }
 
-func Ret(val Expr) *ReturnStmt        { return &ReturnStmt{Val: val} }
-func RetVoid() *ReturnStmt            { return &ReturnStmt{} }
+func Ret(val Expr) *ReturnStmt          { return &ReturnStmt{Val: val} }
+func RetVoid() *ReturnStmt              { return &ReturnStmt{} }
 func RetMulti(vals ...Expr) *ReturnStmt { return &ReturnStmt{Vals: vals} }
 func Decl(name string, ty mir2.Ty, init Expr) *VarDeclStmt {
 	return &VarDeclStmt{Name: name, Ty: ty, Init: init}
@@ -570,7 +583,7 @@ func For(v string, start, end Expr, body *Block) *ForRangeStmt {
 }
 func Blk(stmts ...Stmt) *Block { return &Block{Body: stmts} }
 
-func Break() *BreakStmt    { return &BreakStmt{} }
+func Break() *BreakStmt       { return &BreakStmt{} }
 func Continue() *ContinueStmt { return &ContinueStmt{} }
 func Switch(val Expr, cases []*SwitchCase, def *Block) *SwitchStmt {
 	return &SwitchStmt{Val: val, Cases: cases, Default: def}
