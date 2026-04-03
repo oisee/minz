@@ -112,63 +112,67 @@ fun zx_row_addr(py: u8) -> u16 {
 }
 
 fun xor_pixel(px: u8, py: u8) -> void {
-    if px >= 128 { return }
     if py >= 96 { return }
+    let row: ^u8 = zx_row_addr(py)
+    xor_pixel_row(row, px)
+}
 
-    let addr: u16 = zx_row_addr(py) + (px / 8)
+fun xor_pixel_row(row: ^u8, px: u8) -> void {
+    if px >= 128 { return }
+    let sp: ^u8 = row + (px / 8)
     let mask: u8 = bit_masks[7 - (px % 8)]
-
-    let sp: ^u8 = addr
     sp^ = sp^ xor mask
 }
 
 // ── XOR blk×blk block at (px, py) ──────────────────────────
 
 fun xor_blk_row(px: u8, py: u8, blk: u8) -> void {
-    var dx: u8 = 0
+    if py >= 96 { return }
+    let row: ^u8 = zx_row_addr(py)
+    var left: u8 = blk
     var x: u8 = px
-    while dx < blk {
-        xor_pixel(x, py)
+    while left != 0 {
+        xor_pixel_row(row, x)
         x = x + 1
-        dx = dx + 1
+        left = left - 1
     }
 }
 
 fun xor_blk(px: u8, py: u8, blk: u8) -> void {
-    var dy: u8 = 0
+    var left: u8 = blk
     var y: u8 = py
-    while dy < blk {
+    while left != 0 {
         xor_blk_row(px, y, blk)
         y = y + 1
-        dy = dy + 1
+        left = left - 1
     }
 }
 
 // ── Apply buffer to screen ──────────────────────────────────
 
 fun apply_buf_row(buf: ^u8, ox: u8, py: u8, blk: u8) -> void {
-    var bx: u8 = 0
+    var left: u8 = 32
     var p: ^u8 = buf
     var px: u8 = ox
-    while bx < 32 {
+    while left != 0 {
         if p^ != 0 {
             xor_blk(px, py, blk)
         }
         p = p + 1
         px = px + blk
-        bx = bx + 1
+        left = left - 1
     }
 }
 
 fun apply_buf(ox: u8, oy: u8, blk: u8) -> void {
-    var by: u8 = 0
+    var left: u8 = 24
     var row_ptr: ^u8 = 0xC000
     var py: u8 = oy
-    while by < 24 {
+    while left != 0 {
         apply_buf_row(row_ptr, ox, py, blk)
         row_ptr = row_ptr + 32
         py = py + blk
-        by = by + 1
+        left = left - 1
     }
 }
 
