@@ -1227,3 +1227,226 @@ func AnalyzeEnrichedGap(ops []VIROp, desc *MachineDesc, funcName string) Enriche
 
 	return info
 }
+
+// ── Pre-split for enriched table lookup ─────────────────────────────────────
+
+// PreSplitForTableLookup inserts call save/restore moves into the op sequence
+// so that no vreg's live range crosses a CALL boundary. This makes the
+// resulting shape compatible with the enriched table's GPR-only locSets,
+// since save vregs are consumed/produced immediately adjacent to the call
+// and never need call-safe registers.
+//
+// This is a LIGHTWEIGHT version of splitVRegsAtCalls: no DstHint (table
+// doesn't understand solver hints), no IXH preference. The table will
+// assign all vregs to GPR, which is correct because no vreg crosses a call.
+//
+// Returns the pre-split ops and the number of save/restore pairs inserted.
+func PreSplitForTableLookup(ops []VIROp) ([]VIROp, int) {
+	// Find calls
+	var callIdxs []int
+	for i, op := range ops {
+		if op.Op == OpCall || op.Op == OpAsmBlock {
+			callIdxs = append(callIdxs, i)
+		}
+	}
+	if len(callIdxs) == 0 {
+		return ops, 0
+	}
+
+	// Find max vreg number for generating new vregs
+	nextVReg := 0
+	for _, op := range ops {
+		if op.Dst > nextVReg {
+			nextVReg = op.Dst
+		}
+		for _, s := range op.Src {
+			if s > nextVReg {
+				nextVReg = s
+			}
+		}
+	}
+	nextVReg++
+
+	totalSaves := 0
+
+	// Process calls back-to-front to avoid index invalidation
+	for ci := len(callIdxs) - 1; ci >= 0; ci-- {
+		callIdx := callIdxs[ci]
+		callOp := ops[callIdx]
+
+		// Find vregs defined before and used after this call
+		usedAfter := make(map[int]bool)
+		for j := callIdx + 1; j < len(ops); j++ {
+			for _, s := range ops[j].Src {
+				if s > 0 {
+					usedAfter[s] = true
+				}
+			}
+		}
+
+		defBefore := make(map[int]bool)
+		for j := 0; j < callIdx; j++ {
+			if ops[j].Dst > 0 {
+				defBefore[ops[j].Dst] = true
+			}
+		}
+		// Cross-block params: used but not defined → treat as defined before
+		for v := range usedAfter {
+			if !defBefore[v] {
+				defBefore[v] = true
+			}
+		}
+
+		// Collect live-across vregs (sorted for determinism)
+		var liveAcross []int
+		for v := range usedAfter {
+			if defBefore[v] && v != callOp.Dst {
+				liveAcross = append(liveAcross, v)
+			}
+		}
+		sort.Ints(liveAcross)
+
+		if len(liveAcross) == 0 {
+			continue
+		}
+
+		// Build: [before...] [saves] [call] [restores] [after...]
+		var newOps []VIROp
+		newOps = append(newOps, ops[:callIdx]...)
+
+		saveMap := make(map[int]int) // original → save vreg
+		for _, v := range liveAcross {
+			sv := nextVReg
+			nextVReg++
+			saveMap[v] = sv
+
+			w := 8
+			for _, op := range ops {
+				if op.Dst == v && op.Width > 0 {
+					w = op.Width
+					break
+				}
+			}
+
+			// No DstHint — table assigns freely within locSets8
+			newOps = append(newOps, VIROp{
+				Op: OpMove, Dst: sv, Src: [2]int{v, -1}, Width: w,
+			})
+		}
+
+		newOps = append(newOps, ops[callIdx])
+
+		// Restore: reload from save vreg
+		for _, v := range liveAcross {
+			sv := saveMap[v]
+			w := 8
+			for _, op := range ops {
+				if op.Dst == v && op.Width > 0 {
+					w = op.Width
+					break
+				}
+			}
+			newOps = append(newOps, VIROp{
+				Op: OpMove, Dst: v, Src: [2]int{sv, -1}, Width: w,
+			})
+		}
+
+		newOps = append(newOps, ops[callIdx+1:]...)
+		ops = newOps
+		totalSaves += len(liveAcross)
+	}
+
+	return ops, totalSaves
+}
+
+// PreSplitTableEligibility checks whether pre-splitting call-live vregs
+// makes a function eligible for enriched table lookup.
+// Returns the gap info for both original and pre-split ops.
+type PreSplitResult struct {
+	OriginalNVregs   int
+	PresplitNVregs   int
+	SavesInserted    int
+	OriginalEligible bool   // ≤6v and shape converts OK
+	PresplitEligible bool   // ≤6v after split and shape converts OK
+	OriginalReason   string // miss reason for original
+	PresplitReason   string // miss reason for pre-split (or "eligible")
+	Blocker          string // why pre-split didn't help (if applicable)
+}
+
+// AnalyzePreSplitEligibility runs the pre-split and checks table eligibility
+// for both original and pre-split versions of the ops.
+func AnalyzePreSplitEligibility(ops []VIROp, desc *MachineDesc, funcName string) PreSplitResult {
+	var r PreSplitResult
+
+	// Count original vregs
+	origVregs := make(map[int]bool)
+	for _, op := range ops {
+		if op.Dst > 0 {
+			origVregs[op.Dst] = true
+		}
+		for _, s := range op.Src {
+			if s > 0 {
+				origVregs[s] = true
+			}
+		}
+	}
+	r.OriginalNVregs = len(origVregs)
+
+	// Check original eligibility
+	if r.OriginalNVregs >= 2 && r.OriginalNVregs <= 6 {
+		if _, _, err := VIRToEnrichedShape(ops, desc); err == nil {
+			r.OriginalEligible = true
+			r.OriginalReason = "eligible"
+		} else {
+			r.OriginalReason = "shape_error"
+		}
+	} else if r.OriginalNVregs > 6 {
+		r.OriginalReason = "too_many_vregs"
+	} else {
+		r.OriginalReason = "too_few_vregs"
+	}
+
+	// Pre-split
+	splitOps, nSaves := PreSplitForTableLookup(ops)
+	r.SavesInserted = nSaves
+
+	if nSaves == 0 {
+		r.PresplitNVregs = r.OriginalNVregs
+		r.PresplitEligible = r.OriginalEligible
+		r.PresplitReason = r.OriginalReason
+		r.Blocker = "no_calls_to_split"
+		return r
+	}
+
+	// Count pre-split vregs
+	splitVregs := make(map[int]bool)
+	for _, op := range splitOps {
+		if op.Dst > 0 {
+			splitVregs[op.Dst] = true
+		}
+		for _, s := range op.Src {
+			if s > 0 {
+				splitVregs[s] = true
+			}
+		}
+	}
+	r.PresplitNVregs = len(splitVregs)
+
+	// Check pre-split eligibility
+	if r.PresplitNVregs >= 2 && r.PresplitNVregs <= 6 {
+		if _, _, err := VIRToEnrichedShape(splitOps, desc); err == nil {
+			r.PresplitEligible = true
+			r.PresplitReason = "eligible"
+		} else {
+			r.PresplitReason = "shape_error: " + err.Error()
+			r.Blocker = "shape_conversion_failed"
+		}
+	} else if r.PresplitNVregs > 6 {
+		r.PresplitReason = "too_many_vregs"
+		r.Blocker = "save_vregs_exceed_6v_limit"
+	} else {
+		r.PresplitReason = "too_few_vregs"
+	}
+
+	return r
+}

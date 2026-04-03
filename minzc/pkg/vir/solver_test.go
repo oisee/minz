@@ -530,6 +530,223 @@ func TestEnrichedGapAnalysis(t *testing.T) {
 	}
 }
 
+func TestPreSplitForTableLookup(t *testing.T) {
+	// Leaf function — no change expected
+	leafOps := []VIROp{
+		{Op: OpConst, Dst: 1, Imm: 5, Width: 8},
+		{Op: OpConst, Dst: 2, Imm: 3, Width: 8},
+		{Op: OpAdd, Dst: 3, Src: [2]int{1, 2}, Width: 8},
+	}
+	splitOps, nSaves := PreSplitForTableLookup(leafOps)
+	if nSaves != 0 {
+		t.Errorf("leaf: expected 0 saves, got %d", nSaves)
+	}
+	if len(splitOps) != len(leafOps) {
+		t.Errorf("leaf: expected %d ops unchanged, got %d", len(leafOps), len(splitOps))
+	}
+
+	// Function with call: v1=42, v2=foo(10), v3=v1+v2
+	// v1 is live across the call → should be saved/restored
+	callOps := []VIROp{
+		{Op: OpConst, Dst: 1, Imm: 42, Width: 8},
+		{Op: OpConst, Dst: 2, Imm: 10, Width: 8},
+		{Op: OpCall, Dst: 3, Src: [2]int{2, 0}, Width: 8, Sym: "foo"},
+		{Op: OpAdd, Dst: 4, Src: [2]int{1, 3}, Width: 8},
+	}
+	splitCallOps, nCallSaves := PreSplitForTableLookup(callOps)
+	if nCallSaves != 1 {
+		t.Errorf("call: expected 1 save (v1 across call), got %d", nCallSaves)
+	}
+	// Original: 4 ops → +1 save +1 restore = 6 ops
+	if len(splitCallOps) != 6 {
+		t.Errorf("call: expected 6 ops after split, got %d", len(splitCallOps))
+	}
+
+	// Verify structure: [const, const, save, call, restore, add]
+	if splitCallOps[2].Op != OpMove {
+		t.Errorf("call: expected OpMove (save) at index 2, got %d", splitCallOps[2].Op)
+	}
+	if splitCallOps[3].Op != OpCall {
+		t.Errorf("call: expected OpCall at index 3, got %d", splitCallOps[3].Op)
+	}
+	if splitCallOps[4].Op != OpMove {
+		t.Errorf("call: expected OpMove (restore) at index 4, got %d", splitCallOps[4].Op)
+	}
+
+	// Verify the save vreg is fresh
+	saveVreg := splitCallOps[2].Dst
+	if saveVreg <= 4 {
+		t.Errorf("call: save vreg should be > 4 (fresh), got %d", saveVreg)
+	}
+	// Restore should write back to v1
+	if splitCallOps[4].Dst != 1 {
+		t.Errorf("call: restore should write to v1, got v%d", splitCallOps[4].Dst)
+	}
+
+	t.Logf("Pre-split: %d → %d ops, %d saves", len(callOps), len(splitCallOps), nCallSaves)
+	for i, op := range splitCallOps {
+		t.Logf("  [%d] Op=%d Dst=v%d Src=[v%d,v%d] Sym=%s", i, op.Op, op.Dst, op.Src[0], op.Src[1], op.Sym)
+	}
+}
+
+func TestPreSplitEligibility(t *testing.T) {
+	desc := Z80
+
+	// Case 1: leaf function — both original and pre-split eligible
+	leafOps := []VIROp{
+		{Op: OpConst, Dst: 1, Imm: 5, Width: 8},
+		{Op: OpConst, Dst: 2, Imm: 3, Width: 8},
+		{Op: OpAdd, Dst: 3, Src: [2]int{1, 2}, Width: 8},
+	}
+	r1 := AnalyzePreSplitEligibility(leafOps, desc, "leaf")
+	t.Logf("leaf: %+v", r1)
+	if !r1.OriginalEligible {
+		t.Error("leaf should be originally eligible")
+	}
+	if r1.SavesInserted != 0 {
+		t.Error("leaf should have 0 saves")
+	}
+
+	// Case 2: non-leaf with 4 vregs, 1 call-live → 5 vregs after split (still ≤6)
+	callOps := []VIROp{
+		{Op: OpConst, Dst: 1, Imm: 42, Width: 8},
+		{Op: OpConst, Dst: 2, Imm: 10, Width: 8},
+		{Op: OpCall, Dst: 3, Src: [2]int{2, 0}, Width: 8, Sym: "foo"},
+		{Op: OpAdd, Dst: 4, Src: [2]int{1, 3}, Width: 8},
+	}
+	r2 := AnalyzePreSplitEligibility(callOps, desc, "call_4v")
+	t.Logf("call_4v: %+v", r2)
+	if r2.OriginalNVregs != 4 {
+		t.Errorf("expected 4 original vregs, got %d", r2.OriginalNVregs)
+	}
+	if r2.SavesInserted != 1 {
+		t.Errorf("expected 1 save, got %d", r2.SavesInserted)
+	}
+	if r2.PresplitNVregs != 5 {
+		t.Errorf("expected 5 pre-split vregs, got %d", r2.PresplitNVregs)
+	}
+	if !r2.PresplitEligible {
+		t.Errorf("5v after split should be eligible, reason: %s", r2.PresplitReason)
+	}
+
+	// Case 3: non-leaf with 5 vregs, 2 call-live → 7 vregs after split (exceeds 6v limit)
+	bigCallOps := []VIROp{
+		{Op: OpConst, Dst: 1, Imm: 1, Width: 8},
+		{Op: OpConst, Dst: 2, Imm: 2, Width: 8},
+		{Op: OpConst, Dst: 3, Imm: 10, Width: 8},
+		{Op: OpCall, Dst: 4, Src: [2]int{3, 0}, Width: 8, Sym: "bar"},
+		{Op: OpAdd, Dst: 5, Src: [2]int{1, 2}, Width: 8}, // v1, v2 live across call
+	}
+	r3 := AnalyzePreSplitEligibility(bigCallOps, desc, "call_5v")
+	t.Logf("call_5v: %+v", r3)
+	if r3.OriginalNVregs != 5 {
+		t.Errorf("expected 5 original vregs, got %d", r3.OriginalNVregs)
+	}
+	if r3.SavesInserted < 2 {
+		t.Errorf("expected ≥2 saves, got %d", r3.SavesInserted)
+	}
+	if r3.PresplitEligible {
+		t.Errorf("7v after split should NOT be eligible")
+	}
+	if r3.Blocker != "save_vregs_exceed_6v_limit" {
+		t.Errorf("expected blocker=save_vregs_exceed_6v_limit, got %s", r3.Blocker)
+	}
+}
+
+func TestPreSplitHitRateMeasurement(t *testing.T) {
+	desc := Z80
+
+	// Simulate representative function profiles from a corpus:
+	// Mix of leaf and non-leaf functions with varying vreg counts.
+	type testCase struct {
+		name string
+		ops  []VIROp
+	}
+
+	cases := []testCase{
+		// Leaf functions (no calls)
+		{"leaf_2v", []VIROp{
+			{Op: OpConst, Dst: 1, Imm: 1, Width: 8},
+			{Op: OpNeg, Dst: 2, Src: [2]int{1, -1}, Width: 8},
+		}},
+		{"leaf_3v", []VIROp{
+			{Op: OpConst, Dst: 1, Imm: 5, Width: 8},
+			{Op: OpConst, Dst: 2, Imm: 3, Width: 8},
+			{Op: OpAdd, Dst: 3, Src: [2]int{1, 2}, Width: 8},
+		}},
+		{"leaf_4v", []VIROp{
+			{Op: OpConst, Dst: 1, Imm: 1, Width: 8},
+			{Op: OpConst, Dst: 2, Imm: 2, Width: 8},
+			{Op: OpAdd, Dst: 3, Src: [2]int{1, 2}, Width: 8},
+			{Op: OpSub, Dst: 4, Src: [2]int{3, 1}, Width: 8},
+		}},
+		// Non-leaf: 1 call, 1 live-across (4v→5v: fits)
+		{"call_1live_4v", []VIROp{
+			{Op: OpConst, Dst: 1, Imm: 42, Width: 8},
+			{Op: OpConst, Dst: 2, Imm: 10, Width: 8},
+			{Op: OpCall, Dst: 3, Src: [2]int{2, 0}, Width: 8, Sym: "f"},
+			{Op: OpAdd, Dst: 4, Src: [2]int{1, 3}, Width: 8},
+		}},
+		// Non-leaf: 1 call, 1 live-across (3v→4v: fits)
+		{"call_1live_3v", []VIROp{
+			{Op: OpConst, Dst: 1, Imm: 42, Width: 8},
+			{Op: OpCall, Dst: 2, Src: [2]int{1, 0}, Width: 8, Sym: "g"},
+			{Op: OpAdd, Dst: 3, Src: [2]int{1, 2}, Width: 8},
+		}},
+		// Non-leaf: 1 call, 2 live-across (5v→7v: exceeds)
+		{"call_2live_5v", []VIROp{
+			{Op: OpConst, Dst: 1, Imm: 1, Width: 8},
+			{Op: OpConst, Dst: 2, Imm: 2, Width: 8},
+			{Op: OpConst, Dst: 3, Imm: 10, Width: 8},
+			{Op: OpCall, Dst: 4, Src: [2]int{3, 0}, Width: 8, Sym: "h"},
+			{Op: OpAdd, Dst: 5, Src: [2]int{1, 2}, Width: 8},
+		}},
+		// Non-leaf: 1 call, 3 live-across (6v→9v: exceeds)
+		{"call_3live_6v", []VIROp{
+			{Op: OpConst, Dst: 1, Imm: 1, Width: 8},
+			{Op: OpConst, Dst: 2, Imm: 2, Width: 8},
+			{Op: OpConst, Dst: 3, Imm: 3, Width: 8},
+			{Op: OpConst, Dst: 4, Imm: 10, Width: 8},
+			{Op: OpCall, Dst: 5, Src: [2]int{4, 0}, Width: 8, Sym: "k"},
+			{Op: OpAdd, Dst: 6, Src: [2]int{1, 2}, Width: 8},
+			// v3 also used after call (but we only have 1 ADD using v1,v2)
+		}},
+		// Non-leaf: 2 calls, 1 live-across each (4v→6v: fits)
+		{"call2_1live_4v", []VIROp{
+			{Op: OpConst, Dst: 1, Imm: 42, Width: 8},
+			{Op: OpConst, Dst: 2, Imm: 10, Width: 8},
+			{Op: OpCall, Dst: 3, Src: [2]int{2, 0}, Width: 8, Sym: "f1"},
+			{Op: OpCall, Dst: 4, Src: [2]int{3, 0}, Width: 8, Sym: "f2"},
+			// v1 live across both calls
+		}},
+	}
+
+	origEligible, presplitEligible, newlyEligible := 0, 0, 0
+	for _, tc := range cases {
+		r := AnalyzePreSplitEligibility(tc.ops, desc, tc.name)
+		t.Logf("%-20s  orig=%dv(%s)  split=%dv(%s)  saves=%d  blocker=%s",
+			tc.name, r.OriginalNVregs, r.OriginalReason,
+			r.PresplitNVregs, r.PresplitReason,
+			r.SavesInserted, r.Blocker)
+		if r.OriginalEligible {
+			origEligible++
+		}
+		if r.PresplitEligible {
+			presplitEligible++
+		}
+		if r.PresplitEligible && !r.OriginalEligible {
+			newlyEligible++
+		}
+	}
+
+	t.Logf("\n=== Hit-rate summary ===")
+	t.Logf("Total functions:       %d", len(cases))
+	t.Logf("Original eligible:     %d/%d (%.0f%%)", origEligible, len(cases), float64(origEligible)/float64(len(cases))*100)
+	t.Logf("Pre-split eligible:    %d/%d (%.0f%%)", presplitEligible, len(cases), float64(presplitEligible)/float64(len(cases))*100)
+	t.Logf("Newly eligible:        %d", newlyEligible)
+	t.Logf("Lost eligibility:      %d", origEligible-presplitEligible+newlyEligible)
+}
+
 func TestLocSets8IXDefinitions(t *testing.T) {
 	// Verify IX-expanded loc sets contain expected locations
 	if len(locSets8IX) != 6 {
