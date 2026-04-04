@@ -17,6 +17,7 @@ import (
 	"image/png"
 	"log"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -207,7 +208,12 @@ func main() {
 			fmt.Fprintf(os.Stderr, "Screenshot: %s\n", *screenshotFlag)
 		}
 		if *saveSnapshotFlag != "" {
-			formats.SaveSNA(*saveSnapshotFlag, machine)
+			if dir := filepath.Dir(*saveSnapshotFlag); dir != "" && dir != "." {
+				os.MkdirAll(dir, 0755)
+			}
+			if err := formats.SaveSNA(*saveSnapshotFlag, machine); err != nil {
+				log.Fatalf("Save SNA: %v", err)
+			}
 			fmt.Fprintf(os.Stderr, "Snapshot: %s\n", *saveSnapshotFlag)
 		}
 		if saved > 0 {
@@ -266,6 +272,9 @@ func main() {
 
 	// Save snapshot
 	if *saveSnapshotFlag != "" {
+		if dir := filepath.Dir(*saveSnapshotFlag); dir != "" && dir != "." {
+			os.MkdirAll(dir, 0755)
+		}
 		if err := formats.SaveSNA(*saveSnapshotFlag, machine); err != nil {
 			log.Fatalf("Save SNA: %v", err)
 		}
@@ -310,12 +319,18 @@ func saveScreenPNG(m *spectrum.Machine, path string, noBorder bool) {
 		}
 	}
 
+	if dir := filepath.Dir(path); dir != "" && dir != "." {
+		os.MkdirAll(dir, 0755)
+	}
 	f, err := os.Create(path)
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "[mzx] screenshot: %v\n", err)
 		return
 	}
 	defer f.Close()
-	png.Encode(f, img)
+	if err := png.Encode(f, img); err != nil {
+		fmt.Fprintf(os.Stderr, "[mzx] png encode: %v\n", err)
+	}
 }
 
 func zxColor(c, bright byte) color.RGBA {
