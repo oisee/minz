@@ -14,7 +14,7 @@
 
 // BDOS putchar (function 2, char in E)
 fun _tui_bdos_putchar(ch: u8) -> void {
-    asm z80 (in ch) {
+    asm z80 (in ch) (clob all) {
         LD E, A
         LD C, 2
         CALL 5
@@ -23,7 +23,7 @@ fun _tui_bdos_putchar(ch: u8) -> void {
 
 // Print ESC (0x1B)
 fun _tui_esc() -> void {
-    asm z80 {
+    asm z80 (clob all) {
         LD E, 0x1B
         LD C, 2
         CALL 5
@@ -32,7 +32,7 @@ fun _tui_esc() -> void {
 
 // Print u8 as decimal (for ANSI escape sequences: row/col numbers)
 fun _tui_print_dec(val: u8) -> void {
-    asm z80 (in val) {
+    asm z80 (in val) (clob all) {
         ; A = val (0-255)
         LD B, A
         ; Hundreds digit
@@ -63,7 +63,7 @@ fun _tui_print_dec(val: u8) -> void {
 // Full inline asm: saves x,y on stack across BDOS calls.
 // x arrives in A, y in C (PFCCO calling convention: A, C, B, D, E).
 fun tui_goto(x: u8, y: u8) -> void {
-    asm z80 (in x, y) {
+    asm z80 (in x, y) (clob all) {
         ; x in A, y in C (PFCCO: first=A, second=C)
         LD H, A         ; H = x
         LD L, C         ; L = y
@@ -130,7 +130,7 @@ fun tui_goto(x: u8, y: u8) -> void {
 // Full inline asm: computes fg_code/bg_code, saves on stack across BDOS.
 // PFCCO: fg=A, bg=C, bright=B.
 fun tui_color(fg: u8, bg: u8, bright: u8) -> void {
-    asm z80 (in fg, bg, bright) {
+    asm z80 (in fg, bg, bright) (clob all) {
         ; fg in A, bg in C, bright in B
         ; Compute fg_code = 30 + fg, bg_code = 40 + bg
         ADD A, 30       ; A = 30 + fg
@@ -192,7 +192,7 @@ fun tui_color(fg: u8, bg: u8, bright: u8) -> void {
 
 // Reset colors to default. Emits: ESC [ 0 m
 fun tui_reset() -> void {
-    asm z80 {
+    asm z80 (clob all) {
         LD E, 0x1B / LD C, 2 / CALL 5
         LD E, 91   / LD C, 2 / CALL 5
         LD E, 48   / LD C, 2 / CALL 5
@@ -202,7 +202,7 @@ fun tui_reset() -> void {
 
 // Clear the entire screen. Emits: ESC [ 2 J  ESC [ H
 fun tui_clear() -> void {
-    asm z80 {
+    asm z80 (clob all) {
         ; ESC [ 2 J
         LD E, 0x1B / LD C, 2 / CALL 5
         LD E, 91   / LD C, 2 / CALL 5
@@ -246,21 +246,56 @@ fun tui_putch(ch: u8) -> void {
 
 // Print a null-terminated string.
 fun tui_puts(str: ^u8) -> void {
-    asm z80 (in str) {
+    asm z80 (in str) (clob all) {
         .loop: LD A, (HL) / OR A / RET Z
         LD E, A / PUSH HL / LD C, 2 / CALL 5 / POP HL / INC HL
         JR .loop
     }
 }
 
-// Read one key (blocking). BDOS function 1.
-// Non-blocking key read via BDOS 6 (Direct Console I/O).
-// E=0xFF → poll input. Returns char or 0 if no key pressed.
+// Read one key (blocking).
+// Uses BDOS 1 for blocking console input and decodes VT100 arrow sequences:
+//   ESC [ A/B/C/D -> KEY_UP/DOWN/RIGHT/LEFT (128..131)
 fun tui_read_key() -> u8 {
-    asm z80 (ret A) {
-        LD E, 0xFF
-        LD C, 6
+    asm z80 (ret A) (clob all) {
+        ; BDOS 1: blocking console input, char returned in A.
+        LD C, 1
         CALL 5
+        CP 27              ; ESC?
+        RET NZ
+
+        ; Try to decode VT100 escape sequence ESC [ X
+        LD C, 1
+        CALL 5
+        CP 91              ; '['
+        LD A, 27
+        RET NZ
+
+        LD C, 1
+        CALL 5
+        CP 65              ; 'A'
+        JR Z, .up
+        CP 66              ; 'B'
+        JR Z, .down
+        CP 67              ; 'C'
+        JR Z, .right
+        CP 68              ; 'D'
+        JR Z, .left
+        LD A, 27
+        RET
+
+        .up:
+        LD A, 128
+        RET
+        .down:
+        LD A, 129
+        RET
+        .left:
+        LD A, 130
+        RET
+        .right:
+        LD A, 131
+        RET
     }
 }
 
@@ -268,7 +303,7 @@ fun tui_read_key() -> u8 {
 // After BDOS returns, shifts text from buf[2..] to buf[0..] and null-terminates.
 // PFCCO: buf=HL, maxlen=C (ptr→HL, u8→C)
 fun tui_read_line(buf: ^u8, maxlen: u8) -> u8 {
-    asm z80 (in buf, maxlen) (ret A) {
+    asm z80 (in buf, maxlen) (ret A) (clob all) {
         ; HL=buf, C=maxlen
         PUSH HL         ; save buf base
         LD (HL), C      ; buf[0] = maxlen (BDOS header)
@@ -300,11 +335,11 @@ fun tui_read_line(buf: ^u8, maxlen: u8) -> u8 {
 
 // Terminal dimensions (CP/M standard: 80x24).
 fun tui_width() -> u8 {
-    asm z80 (ret A) { LD A, 80 }
+    asm z80 (ret A) (clob all) { LD A, 80 }
 }
 
 fun tui_height() -> u8 {
-    asm z80 (ret A) { LD A, 24 }
+    asm z80 (ret A) (clob all) { LD A, 24 }
 }
 
 // =============================================================================
@@ -359,7 +394,7 @@ fun clear_rect(x: u8, y: u8, w: u8, h: u8) -> void {
 // PFCCO: str=HL (pointer), width=A (second param via C register? no — ^u8 arrives in HL, u8 in A)
 // Actually: first param ^u8 → HL, second param u8 → A (PFCCO for ptr+u8)
 fun puts_padded(str: ^u8, width: u8) -> void {
-    asm z80 (in str, width) {
+    asm z80 (in str, width) (clob all) {
         ; HL = str, width = C (PFCCO: ptr→HL, u8→C)
         LD B, C         ; B = remaining width (loop counter)
         LD A, C

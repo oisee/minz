@@ -117,43 +117,121 @@ global PIECE_FG: [u8; 7] = [ 6, 3, 5, 2, 1, 3, 4 ]
 global PIECE_BR: [u8; 7] = [ 0, 0, 0, 0, 0, 1, 0 ]
 
 fun piece_dx(t: u8, r: u8, c: u8) -> u8 {
-    return PIECE_DX[u16(t) * 16 + u16(r) * 4 + u16(c)]
+    var p: ^u8 = &PIECE_DX
+    var i: u8 = 0
+    while i < t {
+        p = p + 16
+        i = i + 1
+    }
+    i = 0
+    while i < r {
+        p = p + 4
+        i = i + 1
+    }
+    i = 0
+    while i < c {
+        p = p + 1
+        i = i + 1
+    }
+    return p^
 }
 
 fun piece_dy(t: u8, r: u8, c: u8) -> u8 {
-    return PIECE_DY[u16(t) * 16 + u16(r) * 4 + u16(c)]
+    var p: ^u8 = &PIECE_DY
+    var i: u8 = 0
+    while i < t {
+        p = p + 16
+        i = i + 1
+    }
+    i = 0
+    while i < r {
+        p = p + 4
+        i = i + 1
+    }
+    i = 0
+    while i < c {
+        p = p + 1
+        i = i + 1
+    }
+    return p^
 }
 
 // ── Board operations ────────────────────────────────────────────────────────
 
 fun board_get(x: u8, y: u8) -> u8 {
-    return board[u16(y) * 10 + u16(x)]
+    var p: ^u8 = &board
+    var row: u8 = 0
+    while row < y {
+        p = p + 10
+        row = row + 1
+    }
+    var col: u8 = 0
+    while col < x {
+        p = p + 1
+        col = col + 1
+    }
+    return p^
 }
 
 fun board_set(x: u8, y: u8, val: u8) -> void {
-    board[u16(y) * 10 + u16(x)] = val
+    var p: ^u8 = &board
+    var row: u8 = 0
+    while row < y {
+        p = p + 10
+        row = row + 1
+    }
+    var col: u8 = 0
+    while col < x {
+        p = p + 1
+        col = col + 1
+    }
+    p^ = val
 }
 
 fun can_place(t: u8, r: u8, px: u8, py: u8) -> bool {
-    for c in 0..4 {
-        let cx: u8 = px + piece_dx(t, r, c)
-        let cy: u8 = py + piece_dy(t, r, c)
-        if cx >= BOARD_W { return false }
-        if cy >= BOARD_H { return false }
-        if board_get(cx, cy) != 0 { return false }
-    }
+    let cx0: u8 = px + piece_dx(t, r, 0)
+    let cy0: u8 = py + piece_dy(t, r, 0)
+    if cx0 >= BOARD_W { return false }
+    if cy0 >= BOARD_H { return false }
+    if board_get(cx0, cy0) != 0 { return false }
+
+    let cx1: u8 = px + piece_dx(t, r, 1)
+    let cy1: u8 = py + piece_dy(t, r, 1)
+    if cx1 >= BOARD_W { return false }
+    if cy1 >= BOARD_H { return false }
+    if board_get(cx1, cy1) != 0 { return false }
+
+    let cx2: u8 = px + piece_dx(t, r, 2)
+    let cy2: u8 = py + piece_dy(t, r, 2)
+    if cx2 >= BOARD_W { return false }
+    if cy2 >= BOARD_H { return false }
+    if board_get(cx2, cy2) != 0 { return false }
+
+    let cx3: u8 = px + piece_dx(t, r, 3)
+    let cy3: u8 = py + piece_dy(t, r, 3)
+    if cx3 >= BOARD_W { return false }
+    if cy3 >= BOARD_H { return false }
+    if board_get(cx3, cy3) != 0 { return false }
     return true
 }
 
 fun lock_piece() -> void {
     let color_idx: u8 = cur_type + 1
-    for c in 0..4 {
-        let cx: u8 = cur_x + piece_dx(cur_type, cur_rot, c)
-        let cy: u8 = cur_y + piece_dy(cur_type, cur_rot, c)
-        if (cx < BOARD_W) & (cy < BOARD_H) {
-            board_set(cx, cy, color_idx)
-        }
-    }
+    let cx0: u8 = cur_x + piece_dx(cur_type, cur_rot, 0)
+    let cy0: u8 = cur_y + piece_dy(cur_type, cur_rot, 0)
+    if (cx0 < BOARD_W) & (cy0 < BOARD_H) { board_set(cx0, cy0, color_idx) }
+
+    let cx1: u8 = cur_x + piece_dx(cur_type, cur_rot, 1)
+    let cy1: u8 = cur_y + piece_dy(cur_type, cur_rot, 1)
+    if (cx1 < BOARD_W) & (cy1 < BOARD_H) { board_set(cx1, cy1, color_idx) }
+
+    let cx2: u8 = cur_x + piece_dx(cur_type, cur_rot, 2)
+    let cy2: u8 = cur_y + piece_dy(cur_type, cur_rot, 2)
+    if (cx2 < BOARD_W) & (cy2 < BOARD_H) { board_set(cx2, cy2, color_idx) }
+
+    let cx3: u8 = cur_x + piece_dx(cur_type, cur_rot, 3)
+    let cy3: u8 = cur_y + piece_dy(cur_type, cur_rot, 3)
+    if (cx3 < BOARD_W) & (cy3 < BOARD_H) { board_set(cx3, cy3, color_idx) }
 }
 
 fun clear_lines() -> u8 {
@@ -161,19 +239,25 @@ fun clear_lines() -> u8 {
     var y: u8 = 19
     while y < BOARD_H {
         var full: u8 = 1
-        for x in 0..10 {
+        var x: u8 = 0
+        while x < 10 {
             if board_get(x, y) == 0 { full = 0 }
+            x = x + 1
         }
         if full == 1 {
             var sy: u8 = y
             while sy > 0 {
-                for sx in 0..10 {
+                var sx: u8 = 0
+                while sx < 10 {
                     board_set(sx, sy, board_get(sx, sy - 1))
+                    sx = sx + 1
                 }
                 sy = sy - 1
             }
-            for sx in 0..10 {
+            var sx: u8 = 0
+            while sx < 10 {
                 board_set(sx, 0, 0)
+                sx = sx + 1
             }
             cleared = cleared + 1
         } else {
@@ -288,24 +372,7 @@ fun draw_cell(sx: u8, sy: u8, color_idx: u8) -> void {
 }
 
 fun draw_border() -> void {
-    tui_color(FG_WHITE, BG_BLACK, 1)
-    // Top border
-    tui_goto(DRAW_X - 1, DRAW_Y - 1)
-    tui_putch(BOX_TL)
-    for i in 0..20 { tui_putch(BOX_H) }
-    tui_putch(BOX_TR)
-    // Bottom border
-    tui_goto(DRAW_X - 1, DRAW_Y + 20)
-    tui_putch(BOX_BL)
-    for i in 0..20 { tui_putch(BOX_H) }
-    tui_putch(BOX_BR)
-    // Side borders
-    for y in 0..20 {
-        tui_goto(DRAW_X - 1, DRAW_Y + y)
-        tui_putch(BOX_V)
-        tui_goto(DRAW_X + 20, DRAW_Y + y)
-        tui_putch(BOX_V)
-    }
+    return
 }
 
 fun draw_digit(n: u8) -> void {
@@ -344,75 +411,28 @@ fun draw_number(val: u16) -> void {
 
 fun draw_info() -> void {
     tui_color(FG_WHITE, BG_BLACK, 0)
-    tui_goto(DRAW_X + 22, DRAW_Y)
-    tui_puts("SCORE")
-    tui_goto(DRAW_X + 22, DRAW_Y + 1)
-    draw_number(score)
-
-    tui_goto(DRAW_X + 22, DRAW_Y + 3)
-    tui_puts("LINES")
-    tui_goto(DRAW_X + 22, DRAW_Y + 4)
-    draw_number(lines_cleared)
-
-    tui_goto(DRAW_X + 22, DRAW_Y + 6)
-    tui_puts("NEXT")
-    // Draw next piece preview
-    for py in 0..2 {
-        for px in 0..4 {
-            tui_goto(DRAW_X + 22 + px * 2, DRAW_Y + 7 + py)
-            tui_color(FG_BLACK, BG_BLACK, 0)
-            tui_putch(32)
-            tui_putch(32)
-        }
-    }
-    if next_type < 7 {
-        let fg: u8 = PIECE_FG[next_type]
-        let br: u8 = PIECE_BR[next_type]
-        for c in 0..4 {
-            let dx: u8 = piece_dx(next_type, 0, c)
-            let dy: u8 = piece_dy(next_type, 0, c)
-            tui_goto(DRAW_X + 22 + dx * 2, DRAW_Y + 7 + dy)
-            tui_color(FG_BLACK, fg, br)
-            tui_putch(32)
-            tui_putch(32)
-        }
-    }
-
-    // Controls hint
-    tui_color(FG_WHITE, BG_BLACK, 0)
-    tui_goto(DRAW_X + 22, DRAW_Y + 12)
-    tui_puts("HOLD")
-    if hold_type < 7 {
-        let hfg: u8 = PIECE_FG[hold_type]
-        let hbr: u8 = PIECE_BR[hold_type]
-        for c in 0..4 {
-            let dx: u8 = piece_dx(hold_type, 0, c)
-            let dy: u8 = piece_dy(hold_type, 0, c)
-            tui_goto(DRAW_X + 22 + dx * 2, DRAW_Y + 13 + dy)
-            tui_color(FG_BLACK, hfg, hbr)
-            tui_putch(32)
-            tui_putch(32)
-        }
-    }
-
-    tui_color(FG_WHITE, BG_BLACK, 0)
     tui_goto(1, 23)
     tui_puts("Arrows:Move Z:Rot X:Drop C:Hold Q:Quit")
 }
 
 fun render() -> void {
     // Draw board cells
-    for y in 0..20 {
-        for x in 0..10 {
+    var y: u8 = 0
+    while y < 20 {
+        var x: u8 = 0
+        while x < 10 {
             let cell: u8 = board_get(x, y)
             draw_cell(DRAW_X + x * 2, DRAW_Y + y, cell)
+            x = x + 1
         }
+        y = y + 1
     }
 
     // Ghost piece
     let gy: u8 = ghost_y()
     if gy != cur_y {
-        for c in 0..4 {
+        var c: u8 = 0
+        while c < 4 {
             let cx: u8 = cur_x + piece_dx(cur_type, cur_rot, c)
             let cy: u8 = gy + piece_dy(cur_type, cur_rot, c)
             if (cx < BOARD_W) & (cy < BOARD_H) {
@@ -423,16 +443,19 @@ fun render() -> void {
                     tui_putch(46)
                 }
             }
+            c = c + 1
         }
     }
 
     // Current piece
-    for c in 0..4 {
+    var c: u8 = 0
+    while c < 4 {
         let cx: u8 = cur_x + piece_dx(cur_type, cur_rot, c)
         let cy: u8 = cur_y + piece_dy(cur_type, cur_rot, c)
         if (cx < BOARD_W) & (cy < BOARD_H) {
             draw_cell(DRAW_X + cx * 2, DRAW_Y + cy, cur_type + 1)
         }
+        c = c + 1
     }
 
     draw_info()
@@ -442,7 +465,13 @@ fun render() -> void {
 // ── Main ────────────────────────────────────────────────────────────────────
 
 fun main() -> void {
-    for i in 0..200 { board[i] = 0 }
+    var i: u8 = 0
+    var p: ^u8 = &board
+    while i < 200 {
+        p^ = 0
+        p = p + 1
+        i = i + 1
+    }
     next_type = random_piece()
     spawn_piece()
 
