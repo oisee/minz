@@ -416,47 +416,22 @@ fun draw_info() -> void {
 }
 
 fun render() -> void {
-    // Draw board cells
-    var y: u8 = 0
-    while y < 20 {
-        var x: u8 = 0
-        while x < 10 {
-            let cell: u8 = board_get(x, y)
-            draw_cell(DRAW_X + x * 2, DRAW_Y + y, cell)
-            x = x + 1
-        }
-        y = y + 1
-    }
-
-    // Ghost piece
-    let gy: u8 = ghost_y()
-    if gy != cur_y {
-        var c: u8 = 0
-        while c < 4 {
-            let cx: u8 = cur_x + piece_dx(cur_type, cur_rot, c)
-            let cy: u8 = gy + piece_dy(cur_type, cur_rot, c)
-            if (cx < BOARD_W) & (cy < BOARD_H) {
-                if board_get(cx, cy) == 0 {
-                    tui_goto(DRAW_X + cx * 2, DRAW_Y + cy)
-                    tui_color(FG_WHITE, BG_BLACK, 0)
-                    tui_putch(46)   // dot
-                    tui_putch(46)
-                }
-            }
-            c = c + 1
-        }
-    }
-
     // Current piece
-    var c: u8 = 0
-    while c < 4 {
-        let cx: u8 = cur_x + piece_dx(cur_type, cur_rot, c)
-        let cy: u8 = cur_y + piece_dy(cur_type, cur_rot, c)
-        if (cx < BOARD_W) & (cy < BOARD_H) {
-            draw_cell(DRAW_X + cx * 2, DRAW_Y + cy, cur_type + 1)
-        }
-        c = c + 1
-    }
+    let cx0: u8 = cur_x + piece_dx(cur_type, cur_rot, 0)
+    let cy0: u8 = cur_y + piece_dy(cur_type, cur_rot, 0)
+    if (cx0 < BOARD_W) & (cy0 < BOARD_H) { draw_cell(DRAW_X + cx0 * 2, DRAW_Y + cy0, cur_type + 1) }
+
+    let cx1: u8 = cur_x + piece_dx(cur_type, cur_rot, 1)
+    let cy1: u8 = cur_y + piece_dy(cur_type, cur_rot, 1)
+    if (cx1 < BOARD_W) & (cy1 < BOARD_H) { draw_cell(DRAW_X + cx1 * 2, DRAW_Y + cy1, cur_type + 1) }
+
+    let cx2: u8 = cur_x + piece_dx(cur_type, cur_rot, 2)
+    let cy2: u8 = cur_y + piece_dy(cur_type, cur_rot, 2)
+    if (cx2 < BOARD_W) & (cy2 < BOARD_H) { draw_cell(DRAW_X + cx2 * 2, DRAW_Y + cy2, cur_type + 1) }
+
+    let cx3: u8 = cur_x + piece_dx(cur_type, cur_rot, 3)
+    let cy3: u8 = cur_y + piece_dy(cur_type, cur_rot, 3)
+    if (cx3 < BOARD_W) & (cy3 < BOARD_H) { draw_cell(DRAW_X + cx3 * 2, DRAW_Y + cy3, cur_type + 1) }
 
     draw_info()
     tui_reset()
