@@ -6068,10 +6068,12 @@ func (g *z80cg) genCall(inst *Inst) {
 		if retLoc.Name != "A" && callee != nil && len(callee.Contract.Returns) > 0 {
 			ret := callee.Contract.Returns[0]
 			if ret.Class == ClassAcc || (ret.Ty != nil && ret.Ty.Width() <= 8 && ret.Class != ClassFlag) {
-				// Result IS in A (callee returns u8 in A), but PBQP allocated dst elsewhere.
-				// Set pendingAccReg so it gets saved before A is overwritten.
-				g.pendingAccReg = inst.Dst
-				g.comment(fmt.Sprintf("CALL result r%d in A (alloc=%s), pendingAcc set", inst.Dst, retLoc.Name))
+				// Result IS in A (callee returns u8 in A), but allocation chose a
+				// different physical 8-bit location. Materialize it immediately so
+				// subsequent ALU ops don't consume a stale allocated register.
+				g.emitMov(retLoc.Name, "A", 8)
+				g.comment(fmt.Sprintf("CALL result r%d materialized A->%s", inst.Dst, retLoc.Name))
+				g.pendingAccReg = NoReg
 			}
 		}
 	}
@@ -6451,12 +6453,13 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 			// Use ar.Loc (static allocation) not g.loc (which returns the override).
 			canonLoc := g.ar.Loc(bp.Dst)
 			delete(g.physOverride, bp.Dst)
-			// Only restore GPR/IXY block params — spilled params (LocMem) are
-			// already in memory and weren't saved to a scratch GPR.
+			// Only restore register-backed block params — spilled params
+			// (LocMem) are already in memory and weren't saved to a scratch GPR.
 			if canonLoc.Kind == LocReg || canonLoc.Kind == LocIXY8 {
 				canon := canonLoc.Name
 				if canon != "" && canon != scratch {
-					g.emitf("    LD %s, %s    ; restore block param from scratch", canon, scratch)
+					g.emitMov(canon, scratch, bp.Ty.Width())
+					g.comment("restore block param from scratch")
 				}
 			}
 		}

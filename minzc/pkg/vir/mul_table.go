@@ -13,6 +13,7 @@ package vir
 import (
 	"encoding/json"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/minz/minzc/pkg/mir2"
@@ -102,6 +103,15 @@ func tryConstMul(inst *mir2.Inst, desc *MachineDesc, w int) []VIROp {
 	// it just sees: input=srcVreg, output=dstVreg, clobbers=A,B,F)
 	// Build asm template: join instructions with newlines
 	asmTemplate := ""
+	needsCarryClear := false
+	for _, op := range entry.Ops {
+		if strings.Contains(op, "ADC ") {
+			needsCarryClear = true
+		}
+	}
+	if needsCarryClear {
+		asmTemplate += "    OR A\n"
+	}
 	for i, op := range entry.Ops {
 		if i > 0 {
 			asmTemplate += "\n"
@@ -116,7 +126,7 @@ func tryConstMul(inst *mir2.Inst, desc *MachineDesc, w int) []VIROp {
 		Src:         [2]int{srcVreg, -1},
 		Width:       w,
 		Clobbers:    clobbers,
-		DstHint:     desc.LocSetByNames("A"), // result in A
+		DstHint:     desc.LocSetByNames("A"),            // result in A
 		SrcHint:     [2]LocSet{desc.LocSetByNames("A")}, // input in A
 		AsmTemplate: asmTemplate,
 	})

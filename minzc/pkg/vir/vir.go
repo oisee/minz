@@ -400,6 +400,13 @@ func (p *PIROp) Emit(m *MachineDesc) string {
 	s := p.Pat.Template
 
 	// Replace {dst}, {src0}, {src1}, {imm}
+	if p.Sym != "" && p.Pat.Op == OpConst && p.DstPhys >= 0 && p.DstPhys < len(m.Locs) {
+		dst := m.Locs[p.DstPhys].Name
+		if dst == "IX" || dst == "IY" {
+			sym := sanitizeSym(p.Sym)
+			return "    LD HL, " + sym + "\n    PUSH HL\n    POP " + dst
+		}
+	}
 	if p.DstPhys >= 0 && p.DstPhys < len(m.Locs) {
 		s = replaceAll(s, "{dst}", m.Locs[p.DstPhys].Name)
 	}
@@ -446,11 +453,33 @@ func fixDDPrefixConflict(s string) string {
 		{"LD H, IYL", "LD A, IYL\n    LD H, A"},
 		{"LD L, IYH", "LD A, IYH\n    LD L, A"},
 		{"LD L, IYL", "LD A, IYL\n    LD L, A"},
+		// Cross-family IX/IY half-register moves are not directly encodable.
+		{"LD IXH, IYH", "LD A, IYH\n    LD IXH, A"},
+		{"LD IXH, IYL", "LD A, IYL\n    LD IXH, A"},
+		{"LD IXL, IYH", "LD A, IYH\n    LD IXL, A"},
+		{"LD IXL, IYL", "LD A, IYL\n    LD IXL, A"},
+		{"LD IYH, IXH", "LD A, IXH\n    LD IYH, A"},
+		{"LD IYH, IXL", "LD A, IXL\n    LD IYH, A"},
+		{"LD IYL, IXH", "LD A, IXH\n    LD IYL, A"},
+		{"LD IYL, IXL", "LD A, IXL\n    LD IYL, A"},
 	}
 	for _, c := range conflicts {
-		if s == c.bad {
-			return c.fix
-		}
+		s = replaceAll(s, c.bad, c.fix)
+	}
+	// Prefer legal pair moves over IX/IY half-register sequences when possible.
+	s = replaceAll(s, "LD A, H\n    LD IYH, A\n    LD A, L\n    LD IYL, A", "PUSH HL\n    POP IY")
+	s = replaceAll(s, "LD A, H\n    LD IXH, A\n    LD A, L\n    LD IXL, A", "PUSH HL\n    POP IX")
+	s = replaceAll(s, "LD A, D\n    LD IYH, A\n    LD A, E\n    LD IYL, A", "PUSH DE\n    POP IY")
+	s = replaceAll(s, "LD A, D\n    LD IXH, A\n    LD A, E\n    LD IXL, A", "PUSH DE\n    POP IX")
+	s = replaceAll(s, "LD A, B\n    LD IYH, A\n    LD A, C\n    LD IYL, A", "PUSH BC\n    POP IY")
+	s = replaceAll(s, "LD A, B\n    LD IXH, A\n    LD A, C\n    LD IXL, A", "PUSH BC\n    POP IX")
+
+	// Fix illegal narrow→index-pair loads that can still leak from some
+	// late VIR copy paths. Z80 has no "LD IY, C"; materialize as u8→u16
+	// zero-extension instead.
+	for _, r := range []string{"A", "B", "C", "D", "E", "H", "L", "IXH", "IXL", "IYH", "IYL"} {
+		s = replaceAll(s, "LD IX, "+r, "LD IXL, "+r+"\n    LD IXH, 0")
+		s = replaceAll(s, "LD IY, "+r, "LD IYL, "+r+"\n    LD IYH, 0")
 	}
 	return s
 }

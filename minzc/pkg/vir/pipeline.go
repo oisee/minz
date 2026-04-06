@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/minz/minzc/pkg/lir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/rewrite/datalog"
 )
@@ -152,6 +153,9 @@ func CodegenModule(m *mir2.Module, opts SolverOptions) (string, []FuncResult) {
 	_ = callDB // available for future SCC-based PFCCO clustering
 
 	for _, f := range funcs {
+		if os.Getenv("VIR_DEBUG_FUNCS") != "" {
+			fmt.Fprintf(os.Stderr, "[vir-func] begin %s\n", f.Name)
+		}
 		asm, err := CodegenFunc(f, m, opts)
 		// Post-emit validation: heuristic check for clobbered 16-bit loads.
 		// Z3 pair aliasing constraints are the authoritative interference check.
@@ -188,6 +192,9 @@ func CodegenModule(m *mir2.Module, opts SolverOptions) (string, []FuncResult) {
 					sb.WriteString(pbqpASM)
 					sb.WriteByte('\n')
 					fmt.Fprintf(os.Stderr, "[vir] %s: PBQP fallback (timeout=%v, err=%v)\n", f.Name, opts.Timeout, err)
+					if os.Getenv("VIR_DEBUG_ASM") != "" {
+						fmt.Fprintf(os.Stderr, "[PBQP-ASM] %s:\n%s\n", f.Name, pbqpASM)
+					}
 				} else {
 					r.Error = err.Error()
 				}
@@ -204,6 +211,13 @@ func CodegenModule(m *mir2.Module, opts SolverOptions) (string, []FuncResult) {
 			sb.WriteByte('\n')
 		}
 		results = append(results, r)
+		if os.Getenv("VIR_DEBUG_FUNCS") != "" {
+			status := "ok"
+			if !r.OK {
+				status = "err"
+			}
+			fmt.Fprintf(os.Stderr, "[vir-func] end %s (%s)\n", f.Name, status)
+		}
 	}
 
 	// Emit runtime routines referenced by generated code
@@ -253,6 +267,13 @@ func CodegenModule(m *mir2.Module, opts SolverOptions) (string, []FuncResult) {
 		}
 	}
 
+	// Emit MIR2 globals referenced by VIR/PBQP-generated assembly.
+	// The top-level pipeline does this for the non-VIR paths; the VIR path must
+	// do the same or global symbols remain undefined in assert/module assembly.
+	if len(m.Globals) > 0 {
+		sb.WriteString(emitModuleGlobals(m))
+	}
+
 	// Grace reroll: -Osize — replace repeated CALL patterns with DJNZ loops
 	if opts.OptSize {
 		finalAsm := sb.String()
@@ -290,6 +311,39 @@ func CodegenModule(m *mir2.Module, opts SolverOptions) (string, []FuncResult) {
 	}
 
 	return sb.String(), results
+}
+
+func emitModuleGlobals(m *mir2.Module) string {
+	if len(m.Globals) == 0 {
+		return ""
+	}
+	var sb strings.Builder
+	sb.WriteString("; globals\n")
+	for _, g := range m.Globals {
+		w := mir2.ByteWidth(g.Ty)
+		if len(g.Init) > w {
+			w = len(g.Init)
+		}
+		name := lir.SanitizeAsmLabel(g.Name)
+		if w == 0 {
+			sb.WriteString(name + ":\n")
+			continue
+		}
+		sb.WriteString(name + ":\n")
+		sb.WriteString("    DB ")
+		for i := 0; i < w; i++ {
+			if i > 0 {
+				sb.WriteString(", ")
+			}
+			b := byte(0)
+			if i < len(g.Init) {
+				b = g.Init[i]
+			}
+			fmt.Fprintf(&sb, "%d", b)
+		}
+		sb.WriteByte('\n')
+	}
+	return sb.String()
 }
 
 // emitRuntimeRoutines appends Z80 runtime helper routines referenced by VIR code.
@@ -498,8 +552,14 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 
 	// Collect all ops for table lookup and GPU batch dump
 	var allOps []VIROp
+	nCalls := 0
 	for _, b := range vf.Blocks {
 		allOps = append(allOps, b.Ops...)
+		for _, op := range b.Ops {
+			if op.Op == OpCall {
+				nCalls++
+			}
+		}
 	}
 
 	// Dump GPU batch JSON if requested (for offline CUDA solve + enriched table indexing)
@@ -569,7 +629,7 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 	// Adaptive Z3 timeout. Compilation time is not a constraint (CLAUDE.md §5.1).
 	// Tables cover ≤6v single-block; Z3 handles multi-block and 7v+ misses.
 	// Short timeout for very large functions (>12v) where PBQP is usually better.
-	if opts.Timeout == 0 || opts.Timeout > 30*time.Second {
+	if opts.Timeout == 0 || opts.Timeout >= 30*time.Second {
 		nVregs := 0
 		vregSet := make(map[int]bool)
 		for _, b := range vf.Blocks {
@@ -586,6 +646,11 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 		}
 		nVregs = len(vregSet)
 		switch {
+		case nCalls >= 2 && nVregs > 6:
+			// Call-heavy callers often explode CFG solve time without improving
+			// over the existing fallback path. Bound them early so the module can
+			// keep progressing to PBQP/whole-function alternatives.
+			opts.Timeout = 5 * time.Second
 		case nVregs > 12:
 			opts.Timeout = 5 * time.Second
 		case nVregs > 8:
@@ -723,8 +788,12 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 			}
 		}
 	}
-	if isSelfRecursive {
-		fmt.Fprintf(os.Stderr, "[vir] %s: skip island decomposition (self-recursive)\n", f.Name)
+	if isSelfRecursive || nCalls >= 2 {
+		reason := "self-recursive"
+		if nCalls >= 2 && !isSelfRecursive {
+			reason = "call-heavy"
+		}
+		fmt.Fprintf(os.Stderr, "[vir] %s: skip island decomposition (%s)\n", f.Name, reason)
 	} else {
 		vfIsland := deepCopyFunc(vf)
 		islandASM, islandErr := codegenFuncIslands(f, vfIsland, desc, opts)
@@ -912,20 +981,22 @@ func resolveParallelMoves(moves []adapterMove, desc *MachineDesc) []string {
 			}
 			if partner >= 0 {
 				// 2-element swap via temp: A↔C → LD B,A / LD A,C / LD C,B
+				// Restrict this fast path to 8-bit registers; pair/index cases
+				// must go through emitRegMove or the generic fallback.
 				tempLoc := -1
-				for t := 0; t < 7; t++ {
-					if t != mv.fromPhys && t != mv.toPhys {
-						tempLoc = t
-						break
+				if from.Width == 8 && to.Width == 8 {
+					for t := 0; t < 7; t++ {
+						if t != mv.fromPhys && t != mv.toPhys {
+							tempLoc = t
+							break
+						}
 					}
 				}
 				if tempLoc >= 0 {
-					temp := desc.Locs[tempLoc].Name
-					result = append(result,
-						fmt.Sprintf("LD %s, %s", temp, from.Name),    // save first
-						fmt.Sprintf("LD %s, %s", from.Name, to.Name), // move second → first
-						fmt.Sprintf("LD %s, %s", to.Name, temp),      // restore first to second's old loc
-					)
+					temp := desc.Locs[tempLoc]
+					result = append(result, emitRegMove(from, temp)...)
+					result = append(result, emitRegMove(to, from)...)
+					result = append(result, emitRegMove(temp, to)...)
 					emitted[i] = true
 					emitted[partner] = true
 				}
@@ -971,6 +1042,15 @@ func emitAdapterEntry(asm string, f *mir2.Func, callerLocs, standLocs map[int]in
 	// If move B writes to a register that move A reads from, do A first.
 	// For cycles (A→B, B→A): use a temp register or PUSH/POP.
 	resolved := resolveParallelMoves(moves, desc)
+	if os.Getenv("VIR_DEBUG_ASM") != "" {
+		fmt.Fprintf(os.Stderr, "[ADAPTER] %s caller=%v standalone=%v\n", f.Name, callerLocs, standLocs)
+		for _, mv := range moves {
+			fmt.Fprintf(os.Stderr, "[ADAPTER]   %s -> %s\n", desc.Locs[mv.fromPhys].Name, desc.Locs[mv.toPhys].Name)
+		}
+		for _, inst := range resolved {
+			fmt.Fprintf(os.Stderr, "[ADAPTER]   emit %s\n", inst)
+		}
+	}
 
 	var adapter strings.Builder
 	adapter.WriteString("    ; adapter: caller→standalone convention\n")
@@ -993,7 +1073,11 @@ func emitAdapterEntry(asm string, f *mir2.Func, callerLocs, standLocs map[int]in
 			inserted = true
 		}
 	}
-	return result.String()
+	fixed := fixDDPrefixConflict(result.String())
+	if os.Getenv("VIR_DEBUG_ASM") != "" {
+		fmt.Fprintf(os.Stderr, "[ADAPTER-ASM] %s:\n%s\n", f.Name, fixed)
+	}
+	return fixed
 }
 
 // emitRegMove generates Z80 instructions to move a value between physical locations.
@@ -1010,8 +1094,9 @@ func emitRegMove(from, to Loc) []string {
 		// (DD prefix replaces H→IXH, L→IXL in the opcode).
 		// Route through A as intermediate.
 		isIXY := to.Name == "IXH" || to.Name == "IXL" || to.Name == "IYH" || to.Name == "IYL"
+		isIXYSrc := from.Name == "IXH" || from.Name == "IXL" || from.Name == "IYH" || from.Name == "IYL"
 		isHL := from.Name == "H" || from.Name == "L"
-		if isIXY && isHL {
+		if (isIXY && isHL) || (isIXY && isIXYSrc && to.Name[:2] != from.Name[:2]) {
 			return []string{
 				fmt.Sprintf("LD A, %s", from.Name),
 				fmt.Sprintf("LD %s, A", to.Name),
@@ -3040,6 +3125,19 @@ func peepholeCleanup(asm string) string {
 					result = result[:len(result)-1]
 				}
 				result = append(result, fmt.Sprintf("    ; mul×%d (GPU-optimal, %dT)", k, entry.TStates))
+				needsCarryClear := false
+				for _, op := range entry.Ops {
+					if strings.Contains(op, "ADC ") {
+						needsCarryClear = true
+						break
+					}
+				}
+				if needsCarryClear {
+					// The mulopt table assumes a clean initial carry for ADC-based
+					// chains. Preserve semantics by clearing CY explicitly before
+					// inlining the sequence.
+					result = append(result, "    OR A")
+				}
 				for _, op := range entry.Ops {
 					result = append(result, "    "+op)
 				}
@@ -3326,6 +3424,16 @@ func peepholeCleanup(asm string) string {
 					srcH, srcL := pairHalvesASM(srcPair)
 					dstH, dstL := pairHalvesASM(dstPair)
 					if srcH != "" && dstH != "" {
+						// Keep PUSH/POP for IX/IY cross-family moves. Expanding
+						// them to direct half-register LDs can produce illegal
+						// encodings like LD IXH, IYH.
+						if (strings.HasPrefix(srcPair, "IX") || strings.HasPrefix(srcPair, "IY") ||
+							strings.HasPrefix(dstPair, "IX") || strings.HasPrefix(dstPair, "IY")) &&
+							srcPair[:2] != dstPair[:2] {
+							result = append(result, line, lines[i+1])
+							i++ // skip POP
+							continue
+						}
 						result = append(result,
 							fmt.Sprintf("    LD %s, %s", dstH, srcH),
 							fmt.Sprintf("    LD %s, %s", dstL, srcL),

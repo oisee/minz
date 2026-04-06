@@ -851,9 +851,15 @@ func runOneAssertZ80(z *emulator.RemogattoZ80, a hir.Assert,
 	as := z80asm.NewAssembler()
 	res, err := as.AssembleString(src)
 	if err != nil {
+		if os.Getenv("ASSERT_DEBUG_ASM") != "" {
+			fmt.Fprintf(os.Stderr, "[ASSERT-ASM] %s:\n%s\n", a.FuncName, src)
+		}
 		return fmt.Errorf("line %d: assert %q [z80]: assemble: %w", a.Line, a.Source, err)
 	}
 	if len(res.Errors) > 0 {
+		if os.Getenv("ASSERT_DEBUG_ASM") != "" {
+			fmt.Fprintf(os.Stderr, "[ASSERT-ASM] %s:\n%s\n", a.FuncName, src)
+		}
 		return fmt.Errorf("line %d: assert %q [z80]: assemble errors: %v", a.Line, a.Source, res.Errors[0])
 	}
 
@@ -1054,6 +1060,9 @@ func checkAssertZ80Result(z *emulator.RemogattoZ80, a hir.Assert,
 // Assemble assembles .a80 text to a binary using MZA.
 // target: "cpm", "zxspectrum", "generic" (default).
 func Assemble(asmSrc string, target string) ([]byte, []error) {
+	if dumpPath := os.Getenv("MINZ_DUMP_FINAL_ASM"); dumpPath != "" {
+		_ = os.WriteFile(dumpPath, []byte(asmSrc), 0644)
+	}
 	a := z80asm.NewAssembler()
 	if target != "" {
 		t, err := z80asm.ParseTarget(target)

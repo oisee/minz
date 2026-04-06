@@ -219,6 +219,48 @@ assert double_add(0, 42) == 42
 `)
 }
 
+func TestVIR_Assert_ForCallLoopRegression(t *testing.T) {
+	runVIRAsserts(t, "for_call_loop_regression", `
+global acc: u8 = 0
+
+fun bump(v: u8) -> void {
+    acc = acc + v
+}
+
+fun count5() -> u8 {
+    acc = 0
+    for i in 0..5 {
+        bump(1)
+    }
+    return acc
+}
+
+assert count5() == 5
+`)
+}
+
+func TestVIR_Assert_IndexedArrayBaseRegression(t *testing.T) {
+	runVIRAsserts(t, "indexed_array_base_regression", `
+global board: [u8; 25]
+
+fun board_get(x: u8, y: u8) -> u8 {
+    return board[y * 5 + x]
+}
+
+fun board_set(x: u8, y: u8, val: u8) -> void {
+    board[y * 5 + x] = val
+}
+
+fun scenario() -> u8 {
+    board_set(0, 0, 7)
+    board_set(3, 2, 9)
+    return board_get(0, 0) + board_get(3, 2)
+}
+
+assert scenario() == 16
+`)
+}
+
 // ── P3 Reliability Sprint: 10 new tests ─────────────────────────────────────
 
 func TestVIR_Assert_NestedCalls(t *testing.T) {
