@@ -280,6 +280,35 @@ let sierpinski (x : u8) (y : u8) = if (x & y) == 0 then 1 else 0
 let xor_tex (x : u8) (y : u8) = (x ^ y) % 8
 ```
 
+## Lizp Examples (Scheme-flavored)
+
+### Functional Core — `functional.lizp`
+```bash
+mz examples/lizp/functional.lizp --asserts mir2
+```
+```lizp
+(defun sum3 ((a u8) (b u8) (c u8)) -> u8
+  (+ a (+ b c)))
+```
+Expected: compact proof that lambda/`let*`/`case` style Lizp lowers cleanly through the same backend.
+
+### Full Lizp Showcase — `showcase.lizp`
+```bash
+mz examples/lizp/showcase.lizp --asserts mir2
+```
+```lizp
+(-> 5
+    double
+    inc)
+```
+Expected: threading pipes, macros, and ordinary function calls compose in one runnable file.
+
+### ZX Visuals — `zx_rainbow.lizp`
+```bash
+mz examples/lizp/zx_rainbow.lizp -o build/zx_rainbow.a80
+```
+Expected: visual Lizp path to Z80 still exists; good for checking that the Lisp syntax is not just a parser toy.
+
 ---
 
 ## Visual Demos (run with mzv/mze)
@@ -305,6 +334,21 @@ mzv examples/conway.minz --zx            # Game of Life
 | div8 A÷K→A | 254 | **2.5×** avg (carry_compare: 26T for K≥128) | GPU-discovered |
 | u32 ops (DEHL) | 13 | SHL32 34T, ADD32 54T | Verified optimal |
 | 500 peephole rules | 500 | various | GPU-exhaustive |
+
+---
+
+## Fresh Benchmark Snapshot
+
+Current quick number to remember:
+
+- `go test ./pkg/pipeline -run 'TestGrace_SDCC_Full$' -count=1 -v`
+- latest totals: `SDCC 196`, `C89(Go) 173`, `C89(Grace) 151`, `Nanz(Grace) 47`
+- MinZ wins `7 / 8` matched programs in the current full comparison
+
+See:
+
+- [`reports/2026-04-06-Fun-Benchmark-And-FP-Refresh-RU.md`](../reports/2026-04-06-Fun-Benchmark-And-FP-Refresh-RU.md)
+- [`reports/2026-03-20-104-C89-vs-SDCC-Extended-Benchmark.md`](../reports/2026-03-20-104-C89-vs-SDCC-Extended-Benchmark.md)
 
 ---
 
