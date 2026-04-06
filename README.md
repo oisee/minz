@@ -1,98 +1,58 @@
 # MinZ Programming Language
 
-### ★ NEW: [One Compiler, 50 Years](docs/One_Compiler_50_Years.md) — Z80 (1976) + GPU (2026) | [PDF](docs/One_Compiler_50_Years.pdf) | [EPUB](docs/One_Compiler_50_Years.epub)
+**One compiler, many frontends, many backends.** MinZ compiles high-level source to Z80 and also to modern targets like CUDA, OpenCL, Vulkan, and Metal. The same core pipeline is shared across `Nanz`, `Frill`, `C`, `ObjC`, `Lizp`, `Pascal`, `ABAP`, `PL/M`, and `Lanz`.
 
-**Same source code → Z80 + CUDA + OpenCL + Vulkan + Metal.** 8 frontends × 5 backends. 4/4 GPU backends verified 256/256 on real hardware (NVIDIA, AMD RX 580, Apple M2). 1284 LOC, 95% shared. GPU as exhaustive verification oracle for Z80 codegen.
+## Top Off The Press
 
-```
-Nanz / Frill / C23 / ABAP  →  MIR2  →  Z80 (2 bytes)
-                                    →  CUDA (NVIDIA)
-                                    →  OpenCL (AMD/Intel)
-                                    →  Vulkan (SPIR-V)
-                                    →  Metal (Apple)
-```
-
----
-
-### ★ NEW: [GPU-Optimal Arithmetic Library](reports/2026-03-29-GPU-Arithmetic-Library.md) — 800 Verified Entries
-
-**Scalar operator overloading** (`fun *(a: u8, b: u8) -> u16`), **GPU-optimal mul16** (7.7× faster), **carry_compare division** (GPU-discovered, not in any textbook), **u32 on Z80** (ADC HL,rr!), **SHA-256 in 808 bytes**.
-
-```nanz
-fun area(w: u8, h: u8) -> u16 { return w * h }  // widening: 200*200=40000
-assert area(200, 200) == 40000
-```
-
-```z80
-; GPU-discovered div by K≥128: 5 ops, 26T, branchless
-OR A; LD B,(256-K); ADC A,B; SBC A,A; AND 1
-; Verified: 32768/32768 exhaustive tests
-```
-
-Try: `mz fun/vectors.nanz --asserts mir2` | `mz fun/raymarcher.nanz --asserts mir2` | [Full report](reports/2026-03-29-GPU-Arithmetic-Library.md) | [Playground](fun/README.md)
-
-### ★ NEW: Bit Intent + Multi-Return Playground Examples
-
-Fresh runnable examples now cover scalar bit selectors and direct bit intent (`x.N`, `ptr^.N`, `u16` high-bit access), plus tuple/triple returns with `_`-skip unpacking. Start with [`fun/bit_intent.nanz`](fun/bit_intent.nanz), [`fun/tuple_return.nanz`](fun/tuple_return.nanz), [`fun/triple_return_skip.nanz`](fun/triple_return_skip.nanz), or browse the updated [Playground index](fun/README.md).
-
-### ★ Top Off The Press
-
-- [Fun / Frontend / Runtime Status](reports/2026-04-06-Fun-Frontend-Runtime-Status-RU.md)
+- [Fun / Frontend / Runtime Status](reports/2026-04-06-Fun-Frontend-Runtime-Status-RU.md)  
   Current compile/run matrix for representative `Nanz` / `Frill` / `Lizp` / `Pascal` / `ObjC` examples, plus `mzv` / `mze` / `mzx` runtime notes and good asm snippets.
-- [Fun / Benchmark / FP Refresh](reports/2026-04-06-Fun-Benchmark-And-FP-Refresh-RU.md)
+- [Fun / Benchmark / FP Refresh](reports/2026-04-06-Fun-Benchmark-And-FP-Refresh-RU.md)  
   Fresh `SDCC / C89 / Nanz` comparison snapshot: `196 / 173 / 151 / 47`, with MinZ winning `7 / 8` matched programs, plus a short floating-point roadmap note.
-- [Playground Index](fun/README.md)
+- [Playground Index](fun/README.md)  
   Curated entry point for the current high-signal examples across `Nanz`, `Frill`, and `Lizp`.
+- [Tetris on MZE Progress](reports/2026-04-05-Tetris-MZE-Progress-RU.md)  
+  Current backend/runtime debugging trail for `tetris_cpm` and the CP/M emulator path.
 
-### ★ NEW: [VIR Zero Bugs — Default Backend](reports/2026-03-27-VIR-Zero-Bugs-Default-Backend.md) — v0.24.0
-
-**VIR has zero known bugs.** Now the default backend (`--vir=true`). Pipeline: Table(83.6M) → Z3 → Islands → PBQP. 500 GPU-optimal arithmetic + 500 peephole rules. Frill runs on CP/M. [Full report](reports/2026-03-27-VIR-Zero-Bugs-Default-Backend.md).
-
-### ★ NEW: [Frill — ML on Z80](docs/Frill_on_Z80_Article.md) | [Language Guide (book)](docs/Frill_Language_Guide.md) | [PDF](docs/book/Frill_Language_Guide.pdf) | [EPUB](docs/book/Frill_Language_Guide.epub)
-
-**An ML-style functional language compiling to Z80.** 3 demos running on CP/M: state_machine (81 bytes!), minigame (226 bytes), parser_combinator (498 bytes). Pattern matching, ADTs, lambdas, currying — all zero-cost on 8-bit hardware. "Hello Frill!" prints on real CP/M. [Article](docs/Frill_on_Z80_Article.md).
-
-### ★ NEW: [C23 on Z80 Book](docs/book/) | 13/13 C23 features, 619 asserts
-
-**First Z80 compiler with C17 conformance + C23 extensions.** #embed, _BitInt(N), constexpr, typeof, nullptr, bool, digit separators. 524/524 C asserts pass. SDCC doesn't even have C11. [Book (epub+pdf)](docs/book/).
-
-### ★ [Birthday Sprint: Zero Test Failures](reports/2026-03-26-Birthday-Sprint-Zero-Failures.md)
-
-**From 3 failures to zero.** 49-commit debugging marathon. [Full report](reports/2026-03-26-Birthday-Sprint-Zero-Failures.md).
-### ★ NEW: [Anytime-Optimal Register Allocation](docs/Anytime_Optimal_Register_Allocation.md) — 5-Level Graceful Degradation
-
-**The compiler never fails. It only varies in how optimal the result is.**
+## At a Glance
 
 ```
- Function → Table(O(1)) → Z3(sec) → Backtrack(min) → Islands → PBQP(always)
-             optimal       optimal    optimal          ~94%      heuristic
+Nanz / Frill / C23 / ObjC / Lizp / Pascal / ABAP
+                        ↓
+                       MIR2
+                        ↓
+            Z80 / CUDA / OpenCL / Vulkan / Metal
 ```
 
-5 levels: GPU precomputed table (87% of functions, O(1), provably optimal) → Z3 SMT solver (99%+, seconds) → CPU backtracking with 745,000x interference pruning (99.9%) → island decomposition at liveness bottlenecks (bounded 6% overhead) → PBQP heuristic fallback (100%, SDCC-quality). Every function compiles. The table grows over time — each solved function is cached. See the [full writeup](docs/Anytime_Optimal_Register_Allocation.md).
+Key themes:
 
-**Компилятор никогда не ломается. Он лишь варьирует степень оптимальности.**
+- one shared backend stack across many source languages
+- Z80 as a first-class target, not a novelty backend
+- GPU-assisted search and tables for codegen quality
+- visible runnable examples in `fun/` and `examples/`
 
-5 уровней: GPU таблица (87%, O(1), доказуемо оптимально) → Z3 (99%+, секунды) → перебор с отсечением 745,000x (99.9%) → декомпозиция на острова (потеря ≤6%) → PBQP эвристика (100%). Каждая функция компилируется. Таблица растёт со временем. [Подробнее](docs/Anytime_Optimal_Register_Allocation.md).
+## Core Reading
 
-### ★ NEW: [Compositional Register Allocation](research/paper-c-compositional-regalloc.md) — Decomposing Large Problems from Solved Atoms
+- [One Compiler, 50 Years](docs/One_Compiler_50_Years.md) | [PDF](docs/One_Compiler_50_Years.pdf) | [EPUB](docs/One_Compiler_50_Years.epub)
+- [Playground Index](fun/README.md)
+- [GPU-Optimal Arithmetic Library](reports/2026-03-29-GPU-Arithmetic-Library.md)
+- [Anytime-Optimal Register Allocation](docs/Anytime_Optimal_Register_Allocation.md)
+- [C23 on Z80 Book](docs/book/)
+- [Frill Language Guide](docs/Frill_Language_Guide.md)
 
-Can a 6-vreg problem be solved by composing two 3-vreg solutions from the complete table? **Yes.** Split the interference graph at cut vertices, look up each half in the precomputed table, stitch with bounded-cost shuffles. The ≤4v table (156K entries, 40 seconds GPU) is the alphabet — all larger problems are sentences composed from these atoms via graph decomposition. ~99% of 6v shapes decompose this way, with ≤20T overhead. [Paper C outline](research/paper-c-compositional-regalloc.md).
+## March Highlights
 
-Можно ли решить задачу на 6 регистров, скомпоновав два решения на 3 регистра из готовой таблицы? **Да.** Разрезаем граф интерференции по точкам сочленения, ищем каждую половину в предвычисленной таблице, сшиваем с ограниченной стоимостью. Таблица ≤4v (156K записей, 40 секунд GPU) — это алфавит, все большие задачи — предложения из этих атомов. [Paper C](research/paper-c-compositional-regalloc.md).
+- [VIR Zero Bugs — Default Backend](reports/2026-03-27-VIR-Zero-Bugs-Default-Backend.md)
+- [Birthday Sprint: Zero Test Failures](reports/2026-03-26-Birthday-Sprint-Zero-Failures.md)
+- [MinZ Weekly #2: The Solver Revolution](reports/MinZ_Weekly_2.md)
+- [MinZ Weekly #2.1: GPU Lookup Tables for Dummies](reports/MinZ_Weekly_2_1_GPU_Tables_Explained.md)
+- [ObjC Canvas Demoscene, Multi-Frontend, CLI Standardization](reports/2026-03-16-089-ObjC_Canvas_Demoscene_Multi_Frontend.md)
+- [C89 vs SDCC Extended Benchmark](reports/2026-03-20-104-C89-vs-SDCC-Extended-Benchmark.md)
 
----
+## Research / Deeper Dives
 
-### ★ NEW: [MinZ Weekly #2: The Solver Revolution](reports/MinZ_Weekly_2.md) | [PDF](reports/MinZ_Weekly_2.pdf) | [EPUB](reports/MinZ_Weekly_2.epub)
-
-**Z3 + GPU brute-force + precomputed tables = -71% vs SDCC.** Four Claude Code sessions collaborating via [dedelulu](https://github.com/oisee/dedelulu) built: dual-mode solver with adapter emission, GPU register allocator (CUDA exhaustive search), peephole expansion, ABAP screens on Z80, readable assembly.
-
-### ★ NEW: [MinZ Weekly #2.1: GPU Lookup Tables for Dummies](reports/MinZ_Weekly_2_1_GPU_Tables_Explained.md) | [PDF](reports/MinZ_Weekly_2_1_GPU_Tables_Explained.pdf) | [EPUB](reports/MinZ_Weekly_2_1_GPU_Tables_Explained.epub)
-
-**How a graphics card makes your compiler smarter — explained with pizza.** Non-specialist guide: dinner party analogy for register allocation, three generations of solving (gut feeling → mathematician → recipe book), the virtuous cycle of precomputation. *"Solve hard problems ONCE. Ship the answers."*
-
-### ★ NEW: [GPU Brute-Force Optimization](https://github.com/oisee/z80-optimizer) | [Bruteforce Roadmap](https://github.com/oisee/z80-optimizer/blob/main/BRUTEFORCE_ROADMAP.md)
-
-**Let the GPU try everything. Ship the winners.** CUDA-accelerated superoptimizer: 602K peephole rules + 61 precomputed register allocations + constant multiplication tables (in progress). Upcoming: optimal division, ZX Spectrum screen address calculation, approximate sin/cos — all via exhaustive search on RTX 4060 Ti.
+- [Compositional Register Allocation](research/paper-c-compositional-regalloc.md)
+- [GPU Brute-Force Optimization](https://github.com/oisee/z80-optimizer)
+- [Bruteforce Roadmap](https://github.com/oisee/z80-optimizer/blob/main/BRUTEFORCE_ROADMAP.md)
 
 ```
                 OFFLINE (GPU, once)              COMPILE TIME (CPU)
@@ -103,36 +63,9 @@ Can a 6-vreg problem be solved by composing two 3-vreg solutions from the comple
    └──────────────────────────────┘    └─────────────────────────────┘
 ```
 
----
+## Language / Runtime Features
 
-### ★ NEW: Frill — ML on ZX Spectrum | [Article](docs/Frill_on_Z80_Article.md) | [Book](docs/Frill_Language_Guide.md) | [PDF](docs/book/Frill_Language_Guide.pdf) | [EPUB](docs/book/Frill_Language_Guide.epub)
-
-**8th frontend:** An ML-style functional language that compiles to Z80. ADTs, pattern matching, pipe operators, lambdas, type classes, QTT linearity — all zero-cost. **427 compile-time assertions** across 16 examples.
-
-**3 killer demos:** State machine (175 bytes), minigame engine (226 bytes), parser combinator (498 bytes) — all compile to Z80 binaries via Z3 SMT solver.
-
-```frill
-type Entity = Player | Enemy | Bullet | Coin | Wall
-
-let is_solid (e : u8) : u8 =
-  match e with        (* exhaustive — compiler catches missing variants *)
-  | Player -> 0
-  | Enemy  -> 1  | Bullet -> 0  | Coin -> 0  | Wall -> 1
-  end
-
-let tick_score (base : u8) : u8 = base |> double |> inc  (* pipe operator *)
-```
-
-```frill
-type Option = None | Some of u8
-
-let unwrap (opt : u16) (def : u8) : u8 =
-  match opt with
-  | Some x -> x
-  | None   -> def
-```
-
-### ★ NEW: @error — Z80-Native Error Propagation + `?` Enforcement | [Codegen](docs/Error_Propagation_Codegen.md) | [Design](docs/Error_Propagation_Design.md)
+### @error — Z80-Native Error Propagation + `?` Enforcement | [Codegen](docs/Error_Propagation_Codegen.md) | [Design](docs/Error_Propagation_Design.md)
 
 **CY flag + A register.** `@error(N)` → `SCF / LD A, N / RET` (2 bytes). `@propagate` → `RET C` (**1 byte!** — conditional return on carry). The Z80 was designed for this pattern.
 
@@ -157,7 +90,7 @@ No Result types, no exceptions, no runtime overhead. Pure CPU flags + compiler e
 
 ---
 
-### ★ NEW: C99/C11/C17/C23 Standards Sprint | [Roadmap](docs/C_Standards_Roadmap.md)
+### C99/C11/C17/C23 Standards Sprint | [Roadmap](docs/C_Standards_Roadmap.md)
 
 **C frontend leveled up.** 5 new libc headers, C23 `bool`/`true`/`false` as keywords, array designated initializers, `__STDC_VERSION__ = 201710L`. Most C99/C11 features already worked (modernc.org/cc parser) — we just needed the headers.
 
@@ -176,7 +109,7 @@ uint8_t lut[256] = {[0] = 1, [42] = 99, [255] = 42};  // C99 designated init
 
 ---
 
-### ★ NEW: MZA INCBIN — Binary Data Embedding
+### MZA INCBIN — Binary Data Embedding
 
 ```z80
 sprite_data:  INCBIN "player.spr"              ; entire file
@@ -188,7 +121,7 @@ mul_table:   INCBIN "mulopt8.bin", 128          ; skip header
 
 ---
 
-### ★ NEW: Nanz ADT + Match Expressions
+### Nanz ADT + Match Expressions
 
 Nanz (the primary language) now has **algebraic data types with payload** and **Rust-style match expressions**:
 
@@ -213,7 +146,7 @@ Exhaustive check, payload binding, `_` wildcard. [Showcases: Option](examples/na
 
 ---
 
-### ★ NEW: SQL on ZX Spectrum + ABAP Open SQL → SQLite | [ABAP Book](docs/ABAP_on_MinZ_Book.md) | [Book Catalog](docs/Book_Catalog.md)
+### SQL on ZX Spectrum + ABAP Open SQL → SQLite | [ABAP Book](docs/ABAP_on_MinZ_Book.md) | [Book Catalog](docs/Book_Catalog.md)
 
 **SQL database on a 1982 home computer.** CREATE TABLE, INSERT, SELECT — rendered with ZX Spectrum font on real Z80 hardware. 2KB binary. 44 years bridged.
 
@@ -237,7 +170,7 @@ Books: [Nanz Language Book v7](docs/Nanz_Language_Book_v7.md) ([PDF](docs/Nanz_L
 
 ---
 
-### ★ NEW: SQL Executes on Z80 CP/M + GPU Regalloc Table
+### SQL Executes on Z80 CP/M + GPU Regalloc Table
 
 **ZSQL.COM** — interactive SQLite client running on Z80 CP/M. `CREATE TABLE OK`, `INSERT OK`, `SELECT` returns data. SQL via I/O port bridge ($41/$43/$45/$47) → modernc.org/sqlite. [Demo →](examples/nanz/zsql.nanz)
 
