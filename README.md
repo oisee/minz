@@ -35,6 +35,15 @@ Try: `mz fun/vectors.nanz --asserts mir2` | `mz fun/raymarcher.nanz --asserts mi
 
 Fresh runnable examples now cover scalar bit selectors and direct bit intent (`x.N`, `ptr^.N`, `u16` high-bit access), plus tuple/triple returns with `_`-skip unpacking. Start with [`fun/bit_intent.nanz`](fun/bit_intent.nanz), [`fun/tuple_return.nanz`](fun/tuple_return.nanz), [`fun/triple_return_skip.nanz`](fun/triple_return_skip.nanz), or browse the updated [Playground index](fun/README.md).
 
+### ★ Top Off The Press
+
+- [Fun / Frontend / Runtime Status](reports/2026-04-06-Fun-Frontend-Runtime-Status-RU.md)
+  Current compile/run matrix for representative `Nanz` / `Frill` / `Lizp` / `Pascal` / `ObjC` examples, plus `mzv` / `mze` / `mzx` runtime notes and good asm snippets.
+- [Fun / Benchmark / FP Refresh](reports/2026-04-06-Fun-Benchmark-And-FP-Refresh-RU.md)
+  Fresh `SDCC / C89 / Nanz` comparison snapshot: `196 / 173 / 151 / 47`, with MinZ winning `7 / 8` matched programs, plus a short floating-point roadmap note.
+- [Playground Index](fun/README.md)
+  Curated entry point for the current high-signal examples across `Nanz`, `Frill`, and `Lizp`.
+
 ### ★ NEW: [VIR Zero Bugs — Default Backend](reports/2026-03-27-VIR-Zero-Bugs-Default-Backend.md) — v0.24.0
 
 **VIR has zero known bugs.** Now the default backend (`--vir=true`). Pipeline: Table(83.6M) → Z3 → Islands → PBQP. 500 GPU-optimal arithmetic + 500 peephole rules. Frill runs on CP/M. [Full report](reports/2026-03-27-VIR-Zero-Bugs-Default-Backend.md).
