@@ -335,6 +335,7 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 	currentDisk := byte(0)
 	fileHandles := make(map[byte]*os.File) // FCB cr byte → host file
 	nextHandle := byte(1)
+	var pendingInput *byte
 
 	// ── CP/M Zero Page Setup ─────────────────────────────────────────────
 	// 0x0000: JP 0x0000 (warm boot → intercepted as exit)
@@ -429,6 +430,15 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 			return 0, 0, true
 
 		case 0x01: // Console input (blocking)
+			if pendingInput != nil {
+				ch := *pendingInput
+				pendingInput = nil
+				if ch == '\n' {
+					ch = '\r'
+				}
+				fmt.Printf("%c", ch)
+				return ch, 0, true
+			}
 			buf := make([]byte, 1)
 			n, _ := os.Stdin.Read(buf)
 			if n > 0 {
@@ -438,7 +448,7 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 				fmt.Printf("%c", buf[0])
 				return buf[0], 0, true
 			}
-			return '\r', 0, true
+			return 0, 0, true
 
 		case 0x02: // Console output
 			ch := byte(de & 0xFF)
@@ -500,13 +510,16 @@ func setupCPMBDOS(z80 *emulator.RemogattoZ80WithScreen) {
 			return 0, 0, true
 
 		case 0x0B: // Console status — check if key available
+			if pendingInput != nil {
+				return 0xFF, 0, true
+			}
 			buf := make([]byte, 1)
 			syscall.SetNonblock(int(os.Stdin.Fd()), true)
 			n, _ := os.Stdin.Read(buf)
 			syscall.SetNonblock(int(os.Stdin.Fd()), false)
 			if n > 0 {
-				// Put it back — can't unread, so use a channel or buffer
-				// For now, return 0xFF (char available) but char is lost
+				ch := buf[0]
+				pendingInput = &ch
 				return 0xFF, 0, true
 			}
 			return 0, 0, true
