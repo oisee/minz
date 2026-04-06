@@ -123,6 +123,19 @@ Interpretation:
 
 ### 1. `bit_intent.nanz`
 
+Source:
+
+- [fun/bit_intent.nanz](/home/alice/dev/minz-vir/fun/bit_intent.nanz)
+
+Representative source shape:
+
+```nanz
+var p: ptr
+p = &flags_g
+p^.4 = 1
+if p^.7 != 0 { return 42 }
+```
+
 This one already shows the expected direct bit ops:
 
 ```asm
@@ -149,6 +162,21 @@ What this proves:
 
 ### 2. `pointer_threading.nanz`
 
+Source:
+
+- [fun/pointer_threading.nanz](/home/alice/dev/minz-vir/fun/pointer_threading.nanz)
+
+Representative source shape:
+
+```nanz
+while i < n {
+    let a: u8 = data_g[i]
+    let b: u8 = data_g[i + 1]
+    acc = acc + a + b
+    i = i + 1
+}
+```
+
 The interesting thing here is not that the whole asm is perfect; it is that the trace shows the transform actually firing on real source:
 
 ```asm
@@ -163,6 +191,19 @@ What this proves:
 - it really triggers on source code
 
 ### 3. `examples/objc/simple.m`
+
+Source:
+
+- [examples/objc/simple.m](/home/alice/dev/minz-vir/examples/objc/simple.m)
+
+Representative source shape:
+
+```objc
+@interface Box { int value; }
+- (int)get;
+- (int)addN:(int)n;
+@end
+```
 
 This is a good compact asm sample because it shows ObjC syntax lowering to short direct functions, not objc runtime theater:
 
@@ -220,4 +261,3 @@ The next useful operational moves are clear:
 2. keep using `tetris_cpm` as backend/runtime regression target for `mze`
 3. either fix current `mzx` headless path or stop pretending `che_cascade` is already a stable emulator demo
 4. if desired later, run a separate **full corpus sweep script** instead of pretending this small matrix already covers everything
-
