@@ -725,12 +725,34 @@ func SolveCFGFull(vf *Func, f *mir2.Func, desc *MachineDesc, opts SolverOptions)
 		}
 	}
 
-	// Param location constraints: entry block (b0) params must be in PBQP registers.
-	// Param location constraints: pin each param vreg to its PBQP register
-	// at the FIRST instruction that references it, in ANY block.
-	// (Was: only block 0, missing params first used in later blocks.)
+	// Param location constraints.
+	//
+	// For function params that are live at entry but only flow through block args
+	// / terminator edges before their first direct op use, pinning only at the
+	// first op reference is too late: the entry block can "teleport" the value to
+	// a different location in the Z3 model with no real materialization site.
+	//
+	// Fix: if a param is live at b0/i0, pin it there first. This gives entry-edge
+	// and loop-header moves a concrete source location. Fall back to the first
+	// direct op reference for params whose first real appearance is in a later block.
 	if len(paramHintsEarly) > 0 {
 		applied := make(map[int]bool)
+		if len(blocks) > 0 && len(blocks[0].prob.liveness) > 0 {
+			entryLive := blocks[0].prob.liveness[0].live
+			for vreg, phys := range paramHintsEarly {
+				if !entryLive[vreg] {
+					continue
+				}
+				v := ensureVar(vreg, 0, 0)
+				locName := "?"
+				if phys < len(desc.Locs) {
+					locName = desc.Locs[phys].Name
+				}
+				b.WriteString(fmt.Sprintf("(assert (= %s %d)) ; entry param vreg %d in %s\n",
+					v, phys, vreg, locName))
+				applied[vreg] = true
+			}
+		}
 		for bi, bp := range blocks {
 			for vreg, phys := range paramHintsEarly {
 				if applied[vreg] {

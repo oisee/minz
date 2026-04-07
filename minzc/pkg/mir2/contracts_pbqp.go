@@ -18,13 +18,14 @@ package mir2
 // on diamond call graphs (A→C, B→C where A and B have conflicting preferences
 // for C's convention).
 //
-// Known gap: long pass-through chains (step1→step2→...→leaf) where intermediate
-// functions don't use the param in ALU ops — their unary cost is 0 for all
-// classes, so the cost signal lives entirely in edge costs. Single-pass R1
-// folding propagates this bottom-up, but loses it when the chain is long enough
-// that the folded cost gets diluted across multiple candidates. The greedy DP
-// handles this via multi-pass convergence with incomingEdgeCost. A future fix:
-// either multi-pass PBQP re-evaluation, or hybrid PBQP + incoming-edge re-eval.
+// Pass-through chain fix: simple forwarders (single call, no ALU on params)
+// get zero unary cost so edge costs drive the decision. This prevents
+// unaryCostWithMod's bias toward original callee contracts from dominating.
+//
+// Remaining gap: multi-call functions (e.g. double_sum calling double twice)
+// where unaryCostWithMod depends on original (pre-optimization) callee
+// contracts via inferNaturalClass. PBQP picks a different convention than
+// greedy in some cases. Fix: decouple unaryCost from original contracts.
 //
 // Status: NOT the default. Use OptimizeContracts() (greedy) for production.
 //
@@ -73,13 +74,26 @@ func OptimizeContractsPBQP(m *Module, ct CostTable) ContractSet {
 			choices = []*ContractChoice{ch}
 			costs = []int{0}
 		} else {
-			choices = candidateChoices(f, ct)
+			// Only vary param classes; keep return classes fixed.
+			// ApplyContracts never overrides return classes, so varying
+			// them in PBQP adds noise that skews param selection.
+			choices = candidateParamOnlyChoices(f, ct)
 			if len(choices) == 0 {
 				choices = []*ContractChoice{currentChoice(f)}
 			}
 			costs = make([]int, len(choices))
-			for i, ch := range choices {
-				costs[i] = unaryCostWithMod(f, ch, ct, m)
+			// For pass-through functions (param only used as call arg, no ALU),
+			// unaryCostWithMod is biased toward the callee's *original* contract
+			// class, not the optimized one. Zero out unary costs and let edge
+			// costs drive the decision — they capture the real adapter cost.
+			if isPassThrough(f) {
+				for i := range costs {
+					costs[i] = 0
+				}
+			} else {
+				for i, ch := range choices {
+					costs[i] = unaryCostWithMod(f, ch, ct, m)
+				}
 			}
 		}
 
@@ -143,6 +157,79 @@ func OptimizeContractsPBQP(m *Module, ct CostTable) ContractSet {
 		}
 	}
 	return cs
+}
+
+// isPassThrough reports whether f is a simple forwarder: single call,
+// params only used as call args, no ALU/load/store on params.
+// Functions with multiple calls or ALU ops on params are NOT pass-through
+// because param class affects spill cost and register pressure.
+func isPassThrough(f *Func) bool {
+	paramRegs := make(map[Reg]bool, len(f.Contract.Params))
+	for _, p := range f.Contract.Params {
+		paramRegs[p.Reg] = true
+	}
+	callCount := 0
+	for _, b := range f.Blocks {
+		for _, inst := range b.Insts {
+			if inst.Op == OpCall {
+				callCount++
+				if callCount > 1 {
+					return false // multiple calls = spill pressure, unary cost matters
+				}
+				continue
+			}
+			for _, s := range inst.Src {
+				if paramRegs[s] {
+					return false
+				}
+			}
+		}
+	}
+	return true
+}
+
+// candidateParamOnlyChoices generates candidate ContractChoices varying only
+// param classes, keeping return classes fixed at their current values.
+// This matches ApplyContracts behavior which never overrides return classes.
+func candidateParamOnlyChoices(f *Func, ct CostTable) []*ContractChoice {
+	paramCandidates := make([][]RegClass, len(f.Contract.Params))
+	for i, p := range f.Contract.Params {
+		paramCandidates[i] = plausibleClasses(p.Ty, p.Class)
+	}
+
+	// Fixed return classes.
+	retClasses := make([]RegClass, len(f.Contract.Returns))
+	for i, r := range f.Contract.Returns {
+		retClasses[i] = r.Class
+	}
+
+	// Cartesian product of param candidates only.
+	var results []*ContractChoice
+	var recurse func(pi int, ch *ContractChoice)
+	recurse = func(pi int, ch *ContractChoice) {
+		if pi >= len(paramCandidates) {
+			results = append(results, ch)
+			return
+		}
+		for _, cls := range paramCandidates[pi] {
+			next := ch.clone()
+			next.ParamClasses[pi] = cls
+			if choiceHasParamConflict(next.ParamClasses[:pi+1], ct) {
+				continue
+			}
+			recurse(pi+1, next)
+		}
+	}
+	base := &ContractChoice{
+		ParamClasses:  make([]RegClass, len(paramCandidates)),
+		ReturnClasses: make([]RegClass, len(retClasses)),
+	}
+	copy(base.ReturnClasses, retClasses)
+	if len(paramCandidates) == 0 {
+		return []*ContractChoice{base}
+	}
+	recurse(0, base)
+	return results
 }
 
 // pfccoEdgeCost computes the adapter move cost at call sites from caller to

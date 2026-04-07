@@ -351,3 +351,49 @@ assert gcd(0, 5) == 5
 assert gcd(5, 0) == 5
 `)
 }
+
+// TestVIR_Assert_LookupLoopHeader is a regression test for the loop-header
+// block-arg materialization bug: OpConst vregs used only as terminator
+// arguments were eliminated by EliminateDeadConsts, so the counter
+// initialization (i = 0) was never emitted at the loop entry edge.
+func TestVIR_Assert_LookupLoopHeader(t *testing.T) {
+	runVIRAsserts(t, "lookup_loop_header", `
+global DATA: [u8; 8] = [ 10, 20, 30, 40, 50, 60, 70, 80 ]
+
+fun lookup(idx: u8) -> u8 {
+    var p: ^u8 = &DATA
+    var i: u8 = 0
+    while i < idx {
+        p = p + 1
+        i = i + 1
+    }
+    return p^
+}
+
+assert lookup(0) == 10
+assert lookup(1) == 20
+assert lookup(3) == 40
+assert lookup(7) == 80
+`)
+}
+
+// TestVIR_Assert_CountedLoop is a regression test for the loop-header
+// block-arg materialization path.  A counted loop with a parameter bound
+// exercises: (a) counter init to 0, (b) parameter forwarding across the
+// entry-to-header edge, (c) counter increment on the back-edge.
+func TestVIR_Assert_CountedLoop(t *testing.T) {
+	runVIRAsserts(t, "counted_loop", `
+fun count_to(n: u8) -> u8 {
+    var i: u8 = 0
+    while i < n {
+        i = i + 1
+    }
+    return i
+}
+
+assert count_to(0) == 0
+assert count_to(1) == 1
+assert count_to(5) == 5
+assert count_to(255) == 255
+`)
+}

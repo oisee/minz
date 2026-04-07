@@ -37,10 +37,10 @@ func (e *EnrichedEntry) Infeasible() bool { return e.Cost < 0 }
 
 // EnrichedBinaryTable holds all entries from a Z80T binary file, indexed by enumeration order.
 type EnrichedBinaryTable struct {
-	Entries   []EnrichedEntry
-	MaxVregs  int // max vreg count this table covers (0 = default 6)
-	NLocSets8  int // number of 8-bit loc sets (0 = use default)
-	NLocSets16 int // number of 16-bit loc sets (0 = use default)
+	Entries    []EnrichedEntry
+	NLocSets8  int
+	NLocSets16 int
+	MaxVregs   int
 }
 
 // LoadEnrichedBinary reads an ENRT binary table.
@@ -108,7 +108,12 @@ func LoadEnrichedBinary(path string) (*EnrichedBinaryTable, error) {
 				entries = append(entries, EnrichedEntry{Cost: cost, Assignment: assignArena[base : base+nv]})
 			}
 		}
-		return &EnrichedBinaryTable{Entries: entries}, nil
+		return &EnrichedBinaryTable{
+			Entries:    entries,
+			NLocSets8:  int(nLocSets8),
+			NLocSets16: int(nLocSets16),
+			MaxVregs:   int(maxVregs),
+		}, nil
 	}
 
 	if !isENRT && !(isZ80T && version == 1) {
@@ -172,7 +177,12 @@ func LoadEnrichedBinary(path string) (*EnrichedBinaryTable, error) {
 		}
 	}
 
-	return &EnrichedBinaryTable{Entries: entries}, nil
+	return &EnrichedBinaryTable{
+		Entries:    entries,
+		NLocSets8:  len(locSets8),
+		NLocSets16: len(locSets16),
+		MaxVregs:   int(maxVregs),
+	}, nil
 }
 
 // Lookup returns the entry at the given enumeration index, or nil if out of range.

@@ -7,22 +7,19 @@ import "fmt"
 
 // Loc set definitions — must match regalloc-enum exactly.
 var locSets8 = [][]int{
-	{0},                      // 0: must be A
-	{2},                      // 1: must be C
-	{0, 1, 2, 3, 4, 5, 6},   // 2: any GPR8
-	{1, 2, 3, 4, 5, 6},      // 3: any GPR8 except A
+	{0},                   // 0: must be A
+	{2},                   // 1: must be C
+	{0, 1, 2, 3, 4, 5, 6}, // 2: any GPR8
+	{1, 2, 3, 4, 5, 6},    // 3: any GPR8 except A
 }
 
-// locSets8IX extends locSets8 with IX/IY half-register options.
-// These are NOT in the binary tables yet — they define what an IX-expanded
-// enumeration would look like. Used for gap analysis / diagnostics only.
 var locSets8IX = [][]int{
-	{0},                                              // 0: must be A
-	{2},                                              // 1: must be C
-	{0, 1, 2, 3, 4, 5, 6},                            // 2: any GPR8 (original)
-	{1, 2, 3, 4, 5, 6},                               // 3: any GPR8 except A
-	{10, 11, 12, 13},                                  // 4: IX/IY halves only (call-safe 8-bit)
-	{0, 1, 2, 3, 4, 5, 6, 10, 11, 12, 13},            // 5: any GPR8 + IX halves
+	{0},                             // 0: must be A
+	{2},                             // 1: must be C
+	{0, 1, 2, 3, 4, 5, 6},           // 2: any GPR8
+	{1, 2, 3, 4, 5, 6},              // 3: any GPR8 except A
+	{10, 11, 12, 13},                // 4: must be IX/IY half
+	{0, 1, 2, 3, 4, 10, 11, 12, 13}, // 5: any 8-bit except H/L
 }
 
 var locSets16 = [][]int{
@@ -33,9 +30,9 @@ var locSets16 = [][]int{
 
 // Shape describes a register allocation constraint shape for table lookup.
 type EnrichedShape struct {
-	NVregs      int     // number of virtual registers (2-6)
-	Widths      []int   // per-vreg width: 8 or 16
-	LocSetIndex []int   // per-vreg index into locSets8 (0-3) or locSets16 (0-2)
+	NVregs       int    // number of virtual registers (2-6)
+	Widths       []int  // per-vreg width: 8 or 16
+	LocSetIndex  []int  // per-vreg index into locSets8 (0-3) or locSets16 (0-2)
 	Interference uint32 // bitmask of interference edges (bit K = edge K present)
 }
 
@@ -46,7 +43,7 @@ func LocSetIndexFor(width int, locs []int) int {
 	if width == 16 {
 		sets = locSets16
 	} else {
-		sets = locSets8
+		sets = locSets8IX
 	}
 	for i, s := range sets {
 		if len(s) != len(locs) {
@@ -79,6 +76,12 @@ func LocSetIndexFor(width int, locs []int) int {
 //
 // Returns -1 if the shape is invalid or doesn't match known loc sets.
 func EnrichedIndexOf(s EnrichedShape, maxVregs int) (int, error) {
+	return EnrichedIndexOfWithLocSets(s, maxVregs, len(locSets8), len(locSets16))
+}
+
+// EnrichedIndexOfWithLocSets computes the enumeration index for a table that
+// may use an expanded 8-bit loc-set space (for example Z80T v2 with IX halves).
+func EnrichedIndexOfWithLocSets(s EnrichedShape, maxVregs, nLocSets8, nLocSets16 int) (int, error) {
 	if s.NVregs < 2 || s.NVregs > maxVregs || s.NVregs > 6 {
 		return -1, fmt.Errorf("nVregs %d out of range [2, %d]", s.NVregs, maxVregs)
 	}
@@ -91,7 +94,7 @@ func EnrichedIndexOf(s EnrichedShape, maxVregs int) (int, error) {
 
 	// Add offset for all smaller nVregs values
 	for nv := 2; nv < s.NVregs; nv++ {
-		index += countShapes(nv)
+		index += countShapesWithLocSets(nv, nLocSets8, nLocSets16)
 	}
 
 	// Width combo: bit i = vreg i is 16-bit
@@ -107,12 +110,12 @@ func EnrichedIndexOf(s EnrichedShape, maxVregs int) (int, error) {
 	nIntfGraphs := 1 << nEdges
 
 	for wc := 0; wc < widthCombo; wc++ {
-		nLocCombos := locComboCount(s.NVregs, wc)
+		nLocCombos := locComboCountWithLocSets(s.NVregs, wc, nLocSets8, nLocSets16)
 		index += nLocCombos * nIntfGraphs
 	}
 
 	// Offset within this width combo: enumerate loc combos before ours
-	locCombo := encodeLocCombo(s.NVregs, widthCombo, s.LocSetIndex)
+	locCombo := encodeLocComboWithLocSets(s.NVregs, widthCombo, s.LocSetIndex, nLocSets8, nLocSets16)
 	if locCombo < 0 {
 		return -1, fmt.Errorf("invalid loc set index")
 	}
@@ -124,36 +127,34 @@ func EnrichedIndexOf(s EnrichedShape, maxVregs int) (int, error) {
 	return index, nil
 }
 
-// EnrichedIndexOfWithLocSets is like EnrichedIndexOf but accepts custom loc set counts
-// for tables with non-default register sets (e.g. 11-loc IX-expanded tables).
-func EnrichedIndexOfWithLocSets(s EnrichedShape, maxVregs, nLocSets8, nLocSets16 int) (int, error) {
-	// For now, delegate to the standard function. Custom loc set counts will be
-	// used once the 11-loc tables are integrated.
-	_ = nLocSets8
-	_ = nLocSets16
-	return EnrichedIndexOf(s, maxVregs)
-}
-
 // countShapes returns the total number of shapes for a given nVregs.
 func countShapes(nv int) int {
+	return countShapesWithLocSets(nv, len(locSets8), len(locSets16))
+}
+
+func countShapesWithLocSets(nv, nLocSets8, nLocSets16 int) int {
 	nEdges := nv * (nv - 1) / 2
 	nIntfGraphs := 1 << nEdges
 	total := 0
 	nWidthCombos := 1 << nv
 	for wc := 0; wc < nWidthCombos; wc++ {
-		total += locComboCount(nv, wc) * nIntfGraphs
+		total += locComboCountWithLocSets(nv, wc, nLocSets8, nLocSets16) * nIntfGraphs
 	}
 	return total
 }
 
 // locComboCount returns how many loc set combinations exist for a given width combo.
 func locComboCount(nv, widthCombo int) int {
+	return locComboCountWithLocSets(nv, widthCombo, len(locSets8), len(locSets16))
+}
+
+func locComboCountWithLocSets(nv, widthCombo, nLocSets8, nLocSets16 int) int {
 	count := 1
 	for i := 0; i < nv; i++ {
 		if widthCombo&(1<<i) != 0 {
-			count *= len(locSets16)
+			count *= nLocSets16
 		} else {
-			count *= len(locSets8)
+			count *= nLocSets8
 		}
 	}
 	return count
@@ -162,13 +163,17 @@ func locComboCount(nv, widthCombo int) int {
 // encodeLocCombo encodes per-vreg loc set indices into a single combo index.
 // Uses mixed-radix encoding: vreg[nv-1] varies fastest.
 func encodeLocCombo(nv, widthCombo int, locSetIdx []int) int {
+	return encodeLocComboWithLocSets(nv, widthCombo, locSetIdx, len(locSets8), len(locSets16))
+}
+
+func encodeLocComboWithLocSets(nv, widthCombo int, locSetIdx []int, nLocSets8, nLocSets16 int) int {
 	combo := 0
 	for i := 0; i < nv; i++ {
 		var nSets int
 		if widthCombo&(1<<i) != 0 {
-			nSets = len(locSets16)
+			nSets = nLocSets16
 		} else {
-			nSets = len(locSets8)
+			nSets = nLocSets8
 		}
 		if locSetIdx[i] < 0 || locSetIdx[i] >= nSets {
 			return -1
@@ -177,9 +182,9 @@ func encodeLocCombo(nv, widthCombo int, locSetIdx []int) int {
 		mul := 1
 		for j := i + 1; j < nv; j++ {
 			if widthCombo&(1<<j) != 0 {
-				mul *= len(locSets16)
+				mul *= nLocSets16
 			} else {
-				mul *= len(locSets8)
+				mul *= nLocSets8
 			}
 		}
 		combo += locSetIdx[i] * mul

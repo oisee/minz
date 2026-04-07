@@ -98,20 +98,64 @@ func LowerBlock(b *mir2.Block, desc *MachineDesc, mod *mir2.Module, fn ...*mir2.
 		ops = appendReturnMove(ops, b, desc)
 	}
 
-	// Dead const elimination — safe here because return move has been appended
-	ops = EliminateDeadConsts(ops)
+	// Dead const elimination — safe here because return move has been appended.
+	// Terminator args (block arguments on outgoing edges) must be treated as
+	// uses so their defining OpConst is not eliminated.  Without this, a
+	// constant like `i = 0` that is only consumed as a TermJmp arg gets
+	// removed and the loop header never receives its initial value.
+	var termArgVRegs []int
+	if b.Term != nil {
+		switch t := b.Term.(type) {
+		case *mir2.TermJmp:
+			for _, a := range t.Args {
+				termArgVRegs = append(termArgVRegs, int(a))
+			}
+		case *mir2.TermBrIf:
+			for _, a := range t.ThenArgs {
+				termArgVRegs = append(termArgVRegs, int(a))
+			}
+			for _, a := range t.ElseArgs {
+				termArgVRegs = append(termArgVRegs, int(a))
+			}
+		case *mir2.TermBrIf2:
+			for _, a := range t.EqArgs {
+				termArgVRegs = append(termArgVRegs, int(a))
+			}
+			for _, a := range t.LtArgs {
+				termArgVRegs = append(termArgVRegs, int(a))
+			}
+			for _, a := range t.GtArgs {
+				termArgVRegs = append(termArgVRegs, int(a))
+			}
+		case *mir2.TermDJNZ:
+			for _, a := range t.BodyArgs {
+				termArgVRegs = append(termArgVRegs, int(a))
+			}
+			for _, a := range t.ExitArgs {
+				termArgVRegs = append(termArgVRegs, int(a))
+			}
+		}
+	}
+	ops = EliminateDeadConsts(ops, termArgVRegs...)
 
 	return ops, nil
 }
 
 // EliminateDeadConsts removes dead pure defs whose dst vreg is never used.
-func EliminateDeadConsts(ops []VIROp) []VIROp {
+// extraUsed contains additional vreg IDs that should be considered live
+// (e.g. terminator block-argument vregs that are not visible in VIR ops).
+func EliminateDeadConsts(ops []VIROp, extraUsed ...int) []VIROp {
 	used := make(map[int]bool)
 	for _, op := range ops {
 		for _, s := range op.Src {
 			if s > 0 {
 				used[s] = true
 			}
+		}
+	}
+	for _, v := range extraUsed {
+		if v > 0 {
+			used[v] = true
 		}
 	}
 	var result []VIROp

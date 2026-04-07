@@ -591,6 +591,17 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 			// Verify ABI compatibility: table assignment must match param/return constraints
 			abiOK := verifyABICompat(allOps, assignment, opts)
 			if abiOK {
+				// Skip table emit for multi-block functions: the table path
+				// doesn't emit edge moves or PHI moves between blocks, so
+				// cross-block register transfers (loop header block args,
+				// parameter forwarding) are silently lost.
+				if len(vf.Blocks) > 1 {
+					if opts.Verbose || os.Getenv("VIR_DEBUG_EDGES") != "" {
+						fmt.Fprintf(os.Stderr, "[vir] %s: table hit (cost=%d) but %d blocks — skip to Z3 for edge moves\n",
+							f.Name, cost, len(vf.Blocks))
+					}
+					goto skipTable
+				}
 				// Table emit: try emitFromTable directly. On failure fall through to Z3.
 				result, err := emitFromTable(f, vf, allOps, assignment, desc, opts)
 				if err == nil {
@@ -625,6 +636,7 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 			}
 		}
 	}
+skipTable:
 
 	// Adaptive Z3 timeout. Compilation time is not a constraint (CLAUDE.md §5.1).
 	// Tables cover ≤6v single-block; Z3 handles multi-block and 7v+ misses.
