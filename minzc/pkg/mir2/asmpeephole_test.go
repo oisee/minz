@@ -100,3 +100,73 @@ func TestAbsDiff_NoExDeHl(t *testing.T) {
 		t.Fatalf("RET missing after elimination:\n%s", got)
 	}
 }
+
+// ── Conditional CALL folding ────────────────────────────────────────────────
+
+func TestFoldCondCall_Basic(t *testing.T) {
+	src := `foo:
+    CP D
+    JRS NC, .skip
+    CALL process
+.skip:
+    RET
+`
+	got := asmPeepholePass(src)
+	if !strings.Contains(got, "CALL C, process") {
+		t.Fatalf("JRS NC + CALL not folded to CALL C:\n%s", got)
+	}
+	if strings.Contains(got, "JRS NC") {
+		t.Fatalf("JRS NC should be eliminated:\n%s", got)
+	}
+	t.Logf("result:\n%s", got)
+}
+
+func TestFoldCondCall_WithIntermediateLabel(t *testing.T) {
+	src := `foo:
+    CP D
+    JRS NC, .join
+.then:
+    CALL process
+.join:
+    RET
+`
+	got := asmPeepholePass(src)
+	if !strings.Contains(got, "CALL C, process") {
+		t.Fatalf("JRS NC + label + CALL not folded:\n%s", got)
+	}
+	if !strings.Contains(got, ".then:") {
+		t.Fatalf("intermediate label should be preserved:\n%s", got)
+	}
+	t.Logf("result:\n%s", got)
+}
+
+func TestFoldCondCall_JR_Z(t *testing.T) {
+	src := `check:
+    AND A
+    JR Z, .nope
+    CALL handler
+.nope:
+    RET
+`
+	got := asmPeepholePass(src)
+	if !strings.Contains(got, "CALL NZ, handler") {
+		t.Fatalf("JR Z + CALL not folded to CALL NZ:\n%s", got)
+	}
+	t.Logf("result:\n%s", got)
+}
+
+func TestFoldCondCall_NoFoldWhenMismatch(t *testing.T) {
+	// CALL followed by different label — should NOT fold
+	src := `foo:
+    JRS NC, .other
+    CALL process
+.skip:
+    RET
+.other:
+    LD A, 0
+`
+	got := asmPeepholePass(src)
+	if strings.Contains(got, "CALL C,") || strings.Contains(got, "CALL NC,") {
+		t.Fatalf("should NOT fold when skip label doesn't match:\n%s", got)
+	}
+}

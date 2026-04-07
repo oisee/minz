@@ -306,10 +306,133 @@ func asmPeepholePass(src string) string {
 	lines = elimDoubleExDeHl(lines)
 	lines = elimSingleJpEqu(lines)
 	lines = elimCallRet(lines)
+	lines = foldCondCall(lines)
 	lines = elimJrToRet(lines)
 	lines = elimDeadAfterRet(lines)
 	lines = foldRLCASled(lines)
 	return strings.Join(lines, "\n")
+}
+
+// foldCondCall replaces JR cc, skip / CALL target / skip: with CALL cc, target.
+// Saves 2 bytes and avoids branch penalty.
+//
+// Pattern (any of JR/JRS, any condition):
+//
+//	JR  NC, .skip        (or JRS, or any cc: Z/NZ/C/NC)
+//	[.optional_label:]   (zero or more intermediate labels, no instructions)
+//	CALL target
+//	.skip:
+//
+// → CALL NC, target
+//
+// The inverse condition is used: JR NC skips the CALL when NC,
+// so we emit CALL C (call when condition is met, i.e. NOT NC).
+func foldCondCall(lines []string) []string {
+	invertCC := map[string]string{
+		"Z": "NZ", "NZ": "Z", "C": "NC", "NC": "C",
+		"z": "nz", "nz": "z", "c": "nc", "nc": "c",
+	}
+
+	out := make([]string, 0, len(lines))
+	i := 0
+	for i < len(lines) {
+		trimmed := strings.TrimSpace(lines[i])
+		// Match JR cc, .label or JRS cc, .label
+		var jrCC, skipLabel string
+		if strings.HasPrefix(trimmed, "JR ") || strings.HasPrefix(trimmed, "JRS ") {
+			// Parse: JR(S) CC, .label
+			rest := trimmed
+			if strings.HasPrefix(rest, "JRS ") {
+				rest = rest[4:]
+			} else {
+				rest = rest[3:]
+			}
+			parts := strings.SplitN(rest, ",", 2)
+			if len(parts) == 2 {
+				cc := strings.TrimSpace(parts[0])
+				lab := strings.TrimSpace(parts[1])
+				if _, ok := invertCC[cc]; ok && strings.HasPrefix(lab, ".") {
+					jrCC = cc
+					skipLabel = lab
+				}
+			}
+		}
+
+		if jrCC == "" {
+			out = append(out, lines[i])
+			i++
+			continue
+		}
+
+		// Scan forward: skip label-only lines, find CALL, then skip label.
+		j := i + 1
+		var intermediateLabels []string
+		for j < len(lines) {
+			t := strings.TrimSpace(lines[j])
+			if t == "" || strings.HasPrefix(t, ";") {
+				j++
+				continue
+			}
+			if strings.HasSuffix(t, ":") {
+				intermediateLabels = append(intermediateLabels, lines[j])
+				j++
+				continue
+			}
+			break
+		}
+
+		// Expect CALL target at position j
+		if j >= len(lines) {
+			out = append(out, lines[i])
+			i++
+			continue
+		}
+		callLine := strings.TrimSpace(lines[j])
+		if !strings.HasPrefix(callLine, "CALL ") {
+			out = append(out, lines[i])
+			i++
+			continue
+		}
+		callTarget := strings.TrimSpace(callLine[5:])
+
+		// Expect skip label at position j+1 (possibly with blank/comment lines between)
+		k := j + 1
+		for k < len(lines) {
+			t := strings.TrimSpace(lines[k])
+			if t == "" || strings.HasPrefix(t, ";") {
+				k++
+				continue
+			}
+			break
+		}
+		if k >= len(lines) {
+			out = append(out, lines[i])
+			i++
+			continue
+		}
+		labelLine := strings.TrimSpace(lines[k])
+		expectedLabel := skipLabel + ":"
+		if labelLine != expectedLabel {
+			out = append(out, lines[i])
+			i++
+			continue
+		}
+
+		// Match! Emit intermediate labels + CALL cc, target + skip label.
+		invCC := invertCC[jrCC]
+		indent := "    "
+		if idx := strings.Index(lines[j], "CALL "); idx > 0 {
+			indent = lines[j][:idx]
+		}
+		for _, lab := range intermediateLabels {
+			out = append(out, lab)
+		}
+		out = append(out, fmt.Sprintf("%sCALL %s, %s", indent, invCC, callTarget))
+		out = append(out, lines[k]) // keep the skip label
+		i = k + 1
+		continue
+	}
+	return out
 }
 
 // foldRLCASled replaces consecutive RLCA sequences (3+) with CALL __rotate_N.
