@@ -1989,8 +1989,12 @@ func (g *z80cg) emitBitRegOp(op string, bit int, reg string) bool {
 	if !isSimpleReg(reg) {
 		return false
 	}
-	// IXH/IXL/IYH/IYL are first-class 8-bit regs here; the only excluded direct
-	// path is A, where AND/OR masks are often still the better code shape.
+	// BIT/SET/RES use CB prefix encoding — IXH/IXL/IYH/IYL are NOT valid
+	// operands (no DD/FD CB r form exists). Return false to fall through
+	// to the AND/OR mask path in every caller.
+	if isIXYReg(reg) {
+		return false
+	}
 	g.emitf("    %s %d, %s", op, bit, reg)
 	return true
 }
@@ -5660,7 +5664,7 @@ func (g *z80cg) genCmp(inst *Inst) {
 		} else {
 			src := g.loc(pat.srcReg)
 			src = selectBitReg(src, pat.byteOffset)
-			if isSimpleReg(src) && !isSpill(src) {
+			if isSimpleReg(src) && !isSpill(src) && !isIXYReg(src) {
 				g.emitf("    BIT %d, %s", pat.bit, src)
 				g.pendingFlagReg = inst.Dst
 				return

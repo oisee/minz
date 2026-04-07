@@ -574,6 +574,8 @@ func TestBitRegPattern_SET_U8_B(t *testing.T) {
 }
 
 func TestBitRegPattern_DirectBitReset_U8_IXL(t *testing.T) {
+	// RES n, IXL is invalid on Z80 (CB prefix doesn't support IX halves).
+	// The codegen must fall back to AND mask via A.
 	m := &mir2.Module{Name: "bit_direct_res_ixl"}
 	f := m.AddFunc("reset_bit2_direct")
 	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassGeneral}}
@@ -593,15 +595,17 @@ func TestBitRegPattern_DirectBitReset_U8_IXL(t *testing.T) {
 	t.Log("\n" + asm)
 
 	fnAsm := extractFuncAsm(asm, "reset_bit2_direct")
-	if !strings.Contains(fnAsm, "RES 2, IXL") {
-		t.Fatalf("expected direct MIR2 bit_reset on IXL, got:\n%s", fnAsm)
+	if strings.Contains(fnAsm, "RES 2, IXL") {
+		t.Fatalf("RES n, IXL is invalid Z80 — should use AND mask fallback, got:\n%s", fnAsm)
 	}
-	if strings.Contains(fnAsm, "AND 251") {
-		t.Fatalf("expected no arithmetic AND fallback, got:\n%s", fnAsm)
+	if !strings.Contains(fnAsm, "AND") {
+		t.Fatalf("expected AND mask fallback for IXL bit reset, got:\n%s", fnAsm)
 	}
 }
 
 func TestBitRegPattern_RES_U8_IXL(t *testing.T) {
+	// AND-with-single-bit-clear mask on IXL must NOT emit RES n, IXL
+	// (CB prefix doesn't support IX halves). Must use LD A,IXL; AND mask.
 	m := &mir2.Module{Name: "bit_reg_res_ixl"}
 	f := m.AddFunc("reset_bit1_reg")
 	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassGeneral}}
@@ -622,15 +626,18 @@ func TestBitRegPattern_RES_U8_IXL(t *testing.T) {
 	t.Log("\n" + asm)
 
 	fnAsm := extractFuncAsm(asm, "reset_bit1_reg")
-	if !strings.Contains(fnAsm, "RES 1, IXL") {
-		t.Fatalf("expected direct half-register RES, got:\n%s", fnAsm)
+	if strings.Contains(fnAsm, "RES 1, IXL") {
+		t.Fatalf("RES n, IXL is invalid Z80 — should use AND mask, got:\n%s", fnAsm)
 	}
-	if strings.Contains(fnAsm, "LD A, IXL") || strings.Contains(fnAsm, "AND 253") {
-		t.Fatalf("expected no accumulator-based AND sequence, got:\n%s", fnAsm)
+	// Must use accumulator-based AND sequence instead
+	if !strings.Contains(fnAsm, "LD A, IXL") {
+		t.Fatalf("expected LD A, IXL for AND mask fallback, got:\n%s", fnAsm)
 	}
 }
 
 func TestBitCmpPattern_DirectBitGet_U16_IXRegPair(t *testing.T) {
+	// BIT n, IXH is invalid on Z80 (CB prefix doesn't support IX halves).
+	// The codegen must NOT emit BIT 3, IXH when val is in IX pair.
 	m := &mir2.Module{Name: "bit_direct_get_ix"}
 	f := m.AddFunc("test_bit11_direct")
 	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
@@ -657,15 +664,13 @@ func TestBitCmpPattern_DirectBitGet_U16_IXRegPair(t *testing.T) {
 	t.Log("\n" + asm)
 
 	fnAsm := extractFuncAsm(asm, "test_bit11_direct")
-	if !strings.Contains(fnAsm, "BIT 3, IXH") {
-		t.Fatalf("expected direct MIR2 bit_get compare to collapse to BIT on IXH, got:\n%s", fnAsm)
-	}
-	if strings.Contains(fnAsm, "SRL") || strings.Contains(fnAsm, "AND 1") || strings.Contains(fnAsm, "CP 0") {
-		t.Fatalf("expected no shifted/arithmetic fallback, got:\n%s", fnAsm)
+	if strings.Contains(fnAsm, "BIT 3, IXH") || strings.Contains(fnAsm, "BIT 3, IXL") {
+		t.Fatalf("BIT n, IXH/IXL is invalid Z80 — must use AND mask fallback, got:\n%s", fnAsm)
 	}
 }
 
 func TestBitRegPattern_SET_U16_IXHigh(t *testing.T) {
+	// SET n, IXH is invalid Z80 — must use OR mask via A.
 	m := &mir2.Module{Name: "bit_reg_set_u16_ix"}
 	f := m.AddFunc("set_bit14_reg")
 	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU16, Class: mir2.ClassGeneral}}
@@ -686,15 +691,13 @@ func TestBitRegPattern_SET_U16_IXHigh(t *testing.T) {
 	t.Log("\n" + asm)
 
 	fnAsm := extractFuncAsm(asm, "set_bit14_reg")
-	if !strings.Contains(fnAsm, "SET 6, IXH") {
-		t.Fatalf("expected direct pair-half SET on IXH, got:\n%s", fnAsm)
-	}
-	if strings.Contains(fnAsm, "OR 64") {
-		t.Fatalf("expected no accumulator-based OR sequence, got:\n%s", fnAsm)
+	if strings.Contains(fnAsm, "SET 6, IXH") {
+		t.Fatalf("SET n, IXH is invalid Z80 — must use OR mask, got:\n%s", fnAsm)
 	}
 }
 
 func TestBitRegPattern_RES_U16_IYLow(t *testing.T) {
+	// RES n, IYL is invalid Z80 — must use AND mask via A.
 	m := &mir2.Module{Name: "bit_reg_res_u16_iy"}
 	f := m.AddFunc("reset_bit3_reg")
 	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU16, Class: mir2.ClassGeneral}}
@@ -715,11 +718,8 @@ func TestBitRegPattern_RES_U16_IYLow(t *testing.T) {
 	t.Log("\n" + asm)
 
 	fnAsm := extractFuncAsm(asm, "reset_bit3_reg")
-	if !strings.Contains(fnAsm, "RES 3, IYL") {
-		t.Fatalf("expected direct pair-half RES on IYL, got:\n%s", fnAsm)
-	}
-	if strings.Contains(fnAsm, "AND 247") {
-		t.Fatalf("expected no accumulator-based AND sequence, got:\n%s", fnAsm)
+	if strings.Contains(fnAsm, "RES 3, IYL") {
+		t.Fatalf("RES n, IYL is invalid Z80 — must use AND mask, got:\n%s", fnAsm)
 	}
 }
 
@@ -854,11 +854,9 @@ func TestBitCmpPattern_ShiftedBitRead_U16_IXRegPair(t *testing.T) {
 	t.Log("\n" + asm)
 
 	fnAsm := extractFuncAsm(asm, "test_bit13")
-	if !strings.Contains(fnAsm, "BIT 5, IXH") {
-		t.Fatalf("expected u16 register-pair BIT collapse to IXH, got:\n%s", fnAsm)
-	}
-	if strings.Contains(fnAsm, "SRL") || strings.Contains(fnAsm, "AND 1") || strings.Contains(fnAsm, "CP 0") {
-		t.Fatalf("expected fused pair-backed bit test without shift/and/cp sequence, got:\n%s", fnAsm)
+	// BIT n, IXH is invalid Z80 — must NOT be emitted.
+	if strings.Contains(fnAsm, "BIT 5, IXH") || strings.Contains(fnAsm, "BIT 5, IXL") {
+		t.Fatalf("BIT n, IXH/IXL is invalid Z80 — must use fallback, got:\n%s", fnAsm)
 	}
 }
 
