@@ -3118,13 +3118,13 @@ func (g *z80cg) genInst(inst *Inst) {
 					g.emitf("    LD (HL), %d", cv)
 				} else {
 					val := g.loc(inst.Src[1])
-					if isPairReg(val) {
+					if isPairReg(val) && !isIXY(val) {
 						// 16-bit value → store byte-by-byte: LD (HL),lo; INC HL; LD (HL),hi; DEC HL
 						g.emitf("    LD (HL), %s", lowByte(val))
 						g.emit("    INC HL")
 						g.emitf("    LD (HL), %s", highByte(val))
 						g.emit("    DEC HL")
-					} else if isIXYReg(val) || isSpill(val) {
+					} else if isIXYReg(val) || isIXY(val) || isSpill(val) {
 						g.emit("    EX AF, AF'")
 						if isSpill(val) {
 							g.emitf("    LD A, (%s)", val)
@@ -3248,10 +3248,12 @@ func (g *z80cg) genInst(inst *Inst) {
 				if (ptr == "BC" || ptr == "DE") && val != "A" {
 					g.emitLDA(val)
 					g.emitf("    LD (%s), A", ptr)
-				} else if ptr == "HL" && isPairReg(val) {
+				} else if ptr == "HL" && isPairReg(val) && !isIXY(val) {
 					// Width mismatch: 8-bit store but val is pair. Use low byte.
+					// Excludes IX/IY: lowByte("IX")="IXL" can't appear in LD (HL),r
+					// (DD prefix conflict).
 					g.emitf("    LD (HL), %s", lowByte(val))
-				} else if ptr == "HL" && (isIXYReg(val) || isSpill(val)) {
+				} else if ptr == "HL" && (isIXYReg(val) || isIXY(val) || isSpill(val)) {
 					g.emit("    EX AF, AF'")
 					if isSpill(val) {
 						g.emitf("    LD A, (%s)", val)
@@ -3268,7 +3270,20 @@ func (g *z80cg) genInst(inst *Inst) {
 					g.emitf("    LD %s, A", ptrIndirect(ptr, 0))
 				} else if isPairReg(val) {
 					// Width mismatch: 8-bit store but val is pair. Use low byte.
-					g.emitf("    LD %s, %s", ptrIndirect(ptr, 0), lowByte(val))
+					lo := lowByte(val)
+					if isIXY(ptr) && (lo == "H" || lo == "L" || isIXYReg(lo)) {
+						// DD/FD prefix conflict: LD (IX+d),IXL or LD (IX+d),H impossible.
+						g.emitLDA(lo)
+						g.invalidate("A")
+						g.emitf("    LD %s, A", ptrIndirect(ptr, 0))
+					} else if ptr == "HL" && isIXYReg(lo) {
+						// DD prefix conflict: LD (HL),IXL impossible.
+						g.emitLDA(lo)
+						g.invalidate("A")
+						g.emitf("    LD (HL), A")
+					} else {
+						g.emitf("    LD %s, %s", ptrIndirect(ptr, 0), lo)
+					}
 				} else if isSpill(val) {
 					g.emit("    EX AF, AF'")
 					g.emitf("    LD A, (%s)", val)

@@ -124,6 +124,16 @@ func EnrichedIndexOf(s EnrichedShape, maxVregs int) (int, error) {
 	return index, nil
 }
 
+// EnrichedIndexOfWithLocSets is like EnrichedIndexOf but accepts custom loc set counts
+// for tables with non-default register sets (e.g. 11-loc IX-expanded tables).
+func EnrichedIndexOfWithLocSets(s EnrichedShape, maxVregs, nLocSets8, nLocSets16 int) (int, error) {
+	// For now, delegate to the standard function. Custom loc set counts will be
+	// used once the 11-loc tables are integrated.
+	_ = nLocSets8
+	_ = nLocSets16
+	return EnrichedIndexOf(s, maxVregs)
+}
+
 // countShapes returns the total number of shapes for a given nVregs.
 func countShapes(nv int) int {
 	nEdges := nv * (nv - 1) / 2
