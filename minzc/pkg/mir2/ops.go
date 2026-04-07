@@ -93,6 +93,7 @@ const (
 	// Intrinsic calls: OpCall with Sym = "@mir.<subsystem>.<op>"
 	// Example: "@mir.io.print.u8", "@mir.z80.port_out", "@mir.mem.memcpy"
 	OpCall         // call @Sym(%Args...)          : ty [cls]
+	OpCallCond     // call_cc @Sym(%Args...) if Cond : ty [cls] — conditional call
 	OpCallIndirect // call_indirect %Src[0](%Args...) : ty [cls]
 
 	// ── Platform-independent SMC ───────────────────────────────────────────────
@@ -147,6 +148,7 @@ var opNames = [opCount]string{
 	OpPtrBump:      "ptr_bump",
 	OpPtrAdd:       "ptr_add",
 	OpCall:         "call",
+	OpCallCond:     "call_cc",
 	OpCallIndirect: "call_indirect",
 	OpPatchSlot:    "patch_slot",
 	OpLoadPatched:  "load_patched",

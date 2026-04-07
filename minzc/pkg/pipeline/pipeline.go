@@ -258,6 +258,11 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 			}
 		}
 	}
+	// Fold conditional calls: BrIf → single-call-block → join → CALL cc.
+	for _, f := range m.Funcs {
+		mir2.FoldConditionalCalls(f)
+	}
+
 	s.MIR2Opt = m.Dump()
 	s.MIR2Module = m
 

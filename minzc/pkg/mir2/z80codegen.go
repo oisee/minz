@@ -3502,6 +3502,17 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.comment(fmt.Sprintf("genCall: %s dst=%v", inst.Sym, inst.Dst))
 		g.genCall(inst)
 
+	case OpCallCond:
+		// Conditional CALL: the condition flag is already set by a preceding CP/AND.
+		// inst.Cond carries the CmpCond from the OpCmp that produced the condition.
+		// Only applies to void calls (Dst == NoReg) where args are already in place.
+		g.lastFlagsLhs = ""
+		g.lastFlagsRhs = ""
+		cc := cmpCondCode(inst.Cond)
+		g.comment(fmt.Sprintf("genCallCond: CALL %s, %s", cc, inst.Sym))
+		g.emitf("    CALL %s, %s", cc, inst.Sym)
+		clear(g.holdsPhys) // calls clobber all volatile registers
+
 	case OpAddrOf:
 		sym := sanitizeIdent(inst.Sym)
 		if isPairReg(dst) {
