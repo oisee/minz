@@ -61,6 +61,20 @@ type ContractChoice struct {
 //
 // Callers should call ApplyContracts(m, cs) before running Allocate.
 func OptimizeContracts(m *Module, ct CostTable) ContractSet {
+	// Use the battle-tested greedy DP solver. The PBQP solver
+	// (OptimizeContractsPBQP) is available but has edge-propagation gaps
+	// on long chains — will be promoted once R1 folding is fixed.
+	return optimizeContractsGreedy(m, ct)
+}
+
+// optimizeContractsGreedy is the original greedy DP implementation.
+// Retained for comparison and as a fallback if needed.
+// OptimizeContractsGreedy is the original greedy DP implementation, exported for testing.
+func OptimizeContractsGreedy(m *Module, ct CostTable) ContractSet {
+	return optimizeContractsGreedy(m, ct)
+}
+
+func optimizeContractsGreedy(m *Module, ct CostTable) ContractSet {
 	cg := BuildCallGraph(m)
 	cs := make(ContractSet, len(m.Funcs))
 
