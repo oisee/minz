@@ -176,6 +176,33 @@ func (g *gen) emitInst(inst *mir2.Inst) {
 	}
 	reg := func(r mir2.Reg) string { return fmt.Sprintf("%%r%d", r) }
 
+	// narrowMask emits a post-op "and <mask>" to truncate the result to
+	// the declared bit width.  On Z80 this wrapping is free (8-bit regs);
+	// on QBE's 32-bit "w" we must do it explicitly after any arithmetic
+	// that can overflow the declared width.
+	//
+	// Implementation: we emit the arithmetic into a fresh temp, then define
+	// %r{dst} = and tmp, mask.  This keeps SSA form valid (each %rN defined
+	// exactly once).  When no masking is needed (bits >= 32), defNarrow
+	// emits directly into %r{dst}.
+	needsNarrow := func() bool {
+		bits := typeBits(inst.Ty)
+		return bits > 0 && bits < 32
+	}
+	// defNarrow works like def() but routes through a temp + mask when
+	// the result type is narrower than 32 bits.
+	defNarrow := func(op string, args ...string) {
+		if !needsNarrow() {
+			def(op, args...)
+			return
+		}
+		bits := typeBits(inst.Ty)
+		mask := (int64(1) << bits) - 1
+		tmp := g.freshTmp()
+		g.printf("\t%s =%s %s %s\n", tmp, ty, op, strings.Join(args, ", "))
+		g.printf("\t%%r%d =%s and %s, %d\n", dst, ty, tmp, mask)
+	}
+
 	switch inst.Op {
 	// Binary arithmetic
 	case mir2.OpAdd:
@@ -185,12 +212,12 @@ func (g *gen) emitInst(inst *mir2.Inst) {
 			bL := g.ptrReg(b2, dst, "addr")
 			g.printf("\t%%r%d =l add %s, %s\n", dst, aL, bL)
 		} else {
-			def("add", reg(a), reg(b2))
+			defNarrow("add", reg(a), reg(b2))
 		}
 	case mir2.OpSub:
-		def("sub", reg(a), reg(b2))
+		defNarrow("sub", reg(a), reg(b2))
 	case mir2.OpMul:
-		def("mul", reg(a), reg(b2))
+		defNarrow("mul", reg(a), reg(b2))
 	case mir2.OpDiv:
 		def("udiv", reg(a), reg(b2))
 	case mir2.OpSDiv:
@@ -206,7 +233,7 @@ func (g *gen) emitInst(inst *mir2.Inst) {
 	case mir2.OpXor:
 		def("xor", reg(a), reg(b2))
 	case mir2.OpShl:
-		def("shl", reg(a), reg(b2))
+		defNarrow("shl", reg(a), reg(b2))
 	case mir2.OpShr:
 		def("shr", reg(a), reg(b2))
 	case mir2.OpSar:
@@ -214,10 +241,10 @@ func (g *gen) emitInst(inst *mir2.Inst) {
 
 	// Unary
 	case mir2.OpNeg:
-		def("neg", reg(a))
+		defNarrow("neg", reg(a))
 	case mir2.OpNot:
 		// QBE has no bitwise-not; use xor with -1
-		def("xor", reg(a), "-1")
+		defNarrow("xor", reg(a), "-1")
 
 	// Conversions — QBE's w is 32-bit; zero/sign extend within w is implicit
 	case mir2.OpExt:

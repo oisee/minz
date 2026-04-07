@@ -269,6 +269,97 @@ func TestQBEGCD(t *testing.T) {
 	}
 }
 
+// ── u8 wrapping arithmetic ───────────────────────────────────────────────────
+//
+// u8_wrap_add(a, b) = a + b  (must wrap at 255)
+// u8_wrap_shift(a)  = (a >> 1) + (a << 7)  (sfn_checksum rotation pattern)
+//
+// On Z80 these wrap naturally. QBE uses 32-bit "w", so without explicit
+// truncation, results exceed 255.
+
+func buildU8WrapAdd(m *mir2.Module) {
+	f := m.AddFunc("u8_wrap_add")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	b := mir2.NewBuilder(f)
+
+	b.SwitchToNewBlock("entry")
+	a := b.Param("a", mir2.TyU8, mir2.ClassAcc)
+	bv := b.Param("b", mir2.TyU8, mir2.ClassCounter)
+	sum := b.Add(a, bv, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(sum)
+}
+
+func buildU8WrapShift(m *mir2.Module) {
+	f := m.AddFunc("u8_wrap_shift")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	b := mir2.NewBuilder(f)
+
+	b.SwitchToNewBlock("entry")
+	a := b.Param("a", mir2.TyU8, mir2.ClassAcc)
+	c1 := b.Const(1, mir2.TyU8, mir2.ClassGeneral)
+	c7 := b.Const(7, mir2.TyU8, mir2.ClassGeneral)
+	lo := b.Shr(a, c1, mir2.TyU8, mir2.ClassGeneral)
+	hi := b.Shl(a, c7, mir2.TyU8, mir2.ClassGeneral)
+	sum := b.Add(lo, hi, mir2.TyU8, mir2.ClassAcc)
+	b.Ret(sum)
+}
+
+func TestQBEU8WrapAdd(t *testing.T) {
+	if _, err := exec.LookPath("qbe"); err != nil {
+		t.Skip("qbe not in PATH")
+	}
+	m := &mir2.Module{Name: "u8_wrap_add"}
+	buildU8WrapAdd(m)
+
+	cases := []struct{ a, b, want int }{
+		{200, 100, 44},  // 300 & 0xFF = 44
+		{255, 1, 0},     // 256 & 0xFF = 0
+		{128, 128, 0},   // 256 & 0xFF = 0
+		{100, 50, 150},  // no wrap
+		{255, 255, 254}, // 510 & 0xFF = 254
+	}
+	for _, tc := range cases {
+		got, err := runNative(t, m, "u8_wrap_add", tc.a, tc.b)
+		if err != nil {
+			t.Fatalf("u8_wrap_add(%d,%d): %v", tc.a, tc.b, err)
+		}
+		if got != tc.want {
+			t.Errorf("u8_wrap_add(%d,%d) = %d, want %d", tc.a, tc.b, got, tc.want)
+		} else {
+			t.Logf("u8_wrap_add(%d,%d) = %d ✓", tc.a, tc.b, got)
+		}
+	}
+}
+
+func TestQBEU8WrapShift(t *testing.T) {
+	if _, err := exec.LookPath("qbe"); err != nil {
+		t.Skip("qbe not in PATH")
+	}
+	m := &mir2.Module{Name: "u8_wrap_shift"}
+	buildU8WrapShift(m)
+
+	// (a >> 1) + (a << 7), truncated to u8
+	// This is the sfn_checksum rotation pattern.
+	cases := []struct{ a, want int }{
+		{0, 0},
+		{1, 128},       // (0) + (128) = 128
+		{2, 1},         // (1) + (256→0) = 1
+		{255, 255},     // (127) + (128) = 255  (shift: 255<<7=32640→128)
+		{0x55, 0xAA},   // (0x2A) + (0x80) = 0xAA  (shift: 0x55<<7=0x2A80→0x80)
+	}
+	for _, tc := range cases {
+		got, err := runNative(t, m, "u8_wrap_shift", tc.a)
+		if err != nil {
+			t.Fatalf("u8_wrap_shift(%d): %v", tc.a, err)
+		}
+		if got != tc.want {
+			t.Errorf("u8_wrap_shift(%d) = %d, want %d", tc.a, got, tc.want)
+		} else {
+			t.Logf("u8_wrap_shift(%d) = %d ✓", tc.a, got)
+		}
+	}
+}
+
 // ── emit smoke test ───────────────────────────────────────────────────────────
 
 // TestQBEEmit just checks that Compile produces non-empty output for a trivial
