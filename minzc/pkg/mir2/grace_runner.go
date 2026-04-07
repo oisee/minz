@@ -248,6 +248,24 @@ const gracePointerWalkRule = `
     (custom "threadPointerWalk" ?head ?body)))
 `
 
+// Conditional call folding: BrIf → single-void-call-block → join → CALL cc.
+// Same transform as FoldConditionalCalls in condcall.go, but expressed as a
+// Grace rule for the declarative path. Priority 15 = after CondRetSink (20)
+// so cond_ret has priority over cond_call when both patterns match.
+const graceCondCallRule = `
+(grace cond-call-fold 15
+  (match
+    (block ?cur (term-kind "br_if"))
+    (block ?call (term-kind "jump"))
+    (edge ?cur ?call "then"))
+  (where
+    (is-single-void-call ?call)
+    (pred-count ?call == 1)
+    (jumps-to-else ?cur ?call))
+  (action
+    (custom "foldCondCall" ?cur ?call)))
+`
+
 // ── Statistics ──────────────────────────────────────────────────────────────
 
 // GraceStats tracks how many times each Grace rule fired across the module.
@@ -303,7 +321,7 @@ func loadAllRules() ([]grace.GraceRule, error) {
 			graceEmptyBlockElimRule + graceBlockMergeRule + graceTrivialBranchRule + graceParamForwardRule + graceFuseCmpBrIf2Rule +
 			graceTailCallRule + graceNarrowArithRule + graceTailRecursionRule +
 			graceRedundantLoadRule + graceFlagsOnlyCmpRule + graceBoundedLoopUnrollRule +
-			gracePointerWalkRule
+			gracePointerWalkRule + graceCondCallRule
 		cachedRules, cachedRulesErr = grace.ParseRules(allSrc)
 	})
 	return cachedRules, cachedRulesErr
@@ -1618,6 +1636,73 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 			addInitialPtrArg(f, blk, head.Label, cand.baseImm, cand.idxParamIdx)
 		}
 
+		return true
+	})
+
+	// ── Conditional call predicates & action ──────────────────────────
+
+	// is-single-void-call: block has exactly one OpCall with Dst==NoReg
+	reg.RegisterPredicate("is-single-void-call", func(graph rewrite.IRGraph, bindings grace.BlockBindings, args []string) bool {
+		label := bindings[args[0]]
+		blk := f.BlockByLabel(label)
+		if blk == nil || len(blk.Insts) != 1 {
+			return false
+		}
+		return blk.Insts[0].Op == OpCall && blk.Insts[0].Dst == NoReg
+	})
+
+	// jumps-to-else: the call block's TermJmp target matches the BrIf's else target
+	reg.RegisterPredicate("jumps-to-else", func(graph rewrite.IRGraph, bindings grace.BlockBindings, args []string) bool {
+		curLabel := bindings[args[0]]
+		callLabel := bindings[args[1]]
+		curBlock := f.BlockByLabel(curLabel)
+		callBlock := f.BlockByLabel(callLabel)
+		if curBlock == nil || callBlock == nil {
+			return false
+		}
+		brif, ok := curBlock.Term.(*TermBrIf)
+		if !ok {
+			return false
+		}
+		jmp, ok := callBlock.Term.(*TermJmp)
+		if !ok {
+			return false
+		}
+		// Call block jumps to BrIf's else (join) block, no block args
+		return jmp.Target == brif.Else && len(jmp.Args) == 0 && len(brif.ThenArgs) == 0
+	})
+
+	// foldCondCall: rewrite BrIf+call-block into OpCallCond
+	reg.RegisterAction("foldCondCall", func(graph rewrite.IRGraphMut, bindings grace.BlockBindings) bool {
+		curLabel := bindings["cur"]
+		callLabel := bindings["call"]
+		curBlock := f.BlockByLabel(curLabel)
+		callBlock := f.BlockByLabel(callLabel)
+		if curBlock == nil || callBlock == nil {
+			return false
+		}
+		brif, ok := curBlock.Term.(*TermBrIf)
+		if !ok {
+			return false
+		}
+		callInst := callBlock.Insts[0]
+
+		condCall := &Inst{
+			Op:   OpCallCond,
+			Dst:  NoReg,
+			Src:  [2]Reg{brif.Cond, 0},
+			Sym:  callInst.Sym,
+			Args: callInst.Args,
+			Ty:   callInst.Ty,
+			Cls:  callInst.Cls,
+			Cond: findCondForReg(curBlock, brif.Cond),
+		}
+
+		curBlock.Insts = append(curBlock.Insts, condCall)
+		curBlock.Term = &TermJmp{Target: brif.Else, Args: brif.ElseArgs}
+
+		callBlock.Insts = nil
+		callBlock.Term = &TermJmp{Target: brif.Else}
 		return true
 	})
 
