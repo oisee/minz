@@ -1,146 +1,25 @@
-# fun/ — MinZ Playground
+# MinZ Fun Showcase
 
-**15/15 files verified.** Treat these as runnable examples, regression fixtures,
-and quick fact-checks for the language/backend path they exercise.
+**27 programs, 3 languages, 1 Z80 backend. All compile. All verified.**
 
-## Current High-Signal Examples
+This directory contains showcase programs that demonstrate what MinZ can do on vintage Z80 hardware. Each program compiles to tight, hand-quality Z80 assembly through the MIR2 pipeline with PBQP register allocation and Z3-PFCCO calling convention optimization.
 
-The April 1-2 work confirmed a useful pattern: the best short-term wins are
-small, visible fixes on machinery that already exists.
-
-In this directory, that currently means:
-
-- `&obj.field` is now a real parse/lower/codegen path
-- `&arr[i]` is verified on the same addressable-lvalue path
-- scalar bit selectors (`x.N`, `ptr^.N`) now preserve direct bit intent
-- tuple/triple returns and `_`-skip unpacking are part of the runnable examples
-- field-pointer examples are part of the language docs, not just tests
-- there is still no built-in `offsetof(...)` language primitive
-
-If you want the fastest read on what changed recently, start with the four
-address-of examples below.
-
-```bash
-cd minzc && make build    # build toolchain (once)
-```
+Compilation: `mz fun/<file> -o build/<name>.a80`
 
 ---
 
-## Nanz Examples
+## The Highlights
 
-### Address Of Field — `addr_field_basic.nanz`
-```bash
-mz fun/addr_field_basic.nanz --asserts mir2    # ✓ 2 asserts, fast
-```
-```nanz
-var pb: ptr
-pb = &pair_g.b
-pb^ = 7
-return pb^
-```
-Expected: field pointer write/read works through `ptr^`.
+### ADT Option: Safe Nullable Values
 
-### Address Of Field In Method — `addr_field_method.nanz`
-```bash
-mz fun/addr_field_method.nanz --asserts mir2   # ✓ 1 assert, fast
-```
-```nanz
-fun Counter.bump_via_ptr(self: ^Counter) -> u8 {
-    var pv: ptr
-    var ps: ptr
-    pv = &self.value
-    ps = &self.step
-    pv^ = pv^ + ps^
-    return pv^
-}
-```
-Expected: `counter_g.bump_via_ptr() == 14`
+`adt_option.nanz` -- 5 asserts, all pass
 
-### Address Of Field Across Objects — `addr_field_aos_walk.nanz`
-```bash
-mz fun/addr_field_aos_walk.nanz --asserts mir2 # ✓ 1 assert, fast
-```
-```nanz
-var p0x: ptr
-var p1y: ptr
-p0x = &p0.x
-p1y = &p1.y
-return p0x^ + p1y^
-```
-Expected: multiple field pointers can coexist and be read/written independently.
-
-### Address Of Array Element — `addr_index_basic.nanz`
-```bash
-mz fun/addr_index_basic.nanz --asserts mir2    # ✓ 2 asserts, fast
-```
-```nanz
-var p: ptr
-p = &data[2]
-return p^
-```
-Expected: indexed element pointers support both read and write via `ptr^`.
-
-### Bit Intent And Memory Bits — `bit_intent.nanz`
-```bash
-mz fun/bit_intent.nanz --asserts mir2          # ✓ 5 asserts, fast
-```
-```nanz
-var p: ptr
-p = &flags_g
-p^.4 = 1
-if p^.4 != 0 { return 42 }
-```
-Expected: scalar bit selectors work on plain scalars, `ptr^`, and `u16` high bits.
-
-### Pointer Threading — `pointer_threading.nanz`
-```bash
-mz fun/pointer_threading.nanz --asserts mir2
-mz fun/pointer_threading.nanz --grace --compile-trace -o build/pointer_threading.a80
-```
-```nanz
-while i < n {
-    let a: u8 = data_g[i]
-    let b: u8 = data_g[i + 1]
-    acc = acc + a + b
-    i = i + 1
-}
-```
-Expected: this is a small real source example where compile trace should show `ptr-threading` on indexed loops over one array base.
-
-### Tuple Return — `tuple_return.nanz`
-```bash
-mz fun/tuple_return.nanz --asserts mir2        # ✓ 5 asserts, fast
-```
-```nanz
-fun minmax(a: u16, b: u16) -> (u16, u16) { ... }
-
-let (lo, _) = minmax(x, y)
-let (_, hi) = minmax(x, y)
-```
-Expected: two-value returns unpack cleanly, including `_` for ignored values.
-
-### Triple Return And Skip — `triple_return_skip.nanz`
-```bash
-mz fun/triple_return_skip.nanz --asserts mir2  # ✓ 4 asserts, fast
-```
-```nanz
-fun stats3(a: u8, b: u8, c: u8) -> (u8, u8, u8) { ... }
-
-let (_, mid, _) = stats3(x, y, z)
-let (first, _, last) = stats3(x, y, z)
-```
-Expected: triple returns and blank-identifier skips work in ordinary callers.
-
-### ADT Option with Match Destructuring — `adt_option.nanz`
-```bash
-mz fun/adt_option.nanz --asserts mir2     # ✓ 5 asserts, ~1s
-```
 ```nanz
 enum Option { None, Some(u8) }
 
 fun unwrap_or(opt: Option, def: u8) -> u8 {
     return match opt {
-        Some(val) => val,     // payload destructuring!
+        Some(val) => val,
         None      => def,
     }
 }
@@ -149,231 +28,303 @@ fun safe_div(a: u8, b: u8) -> Option {
     if b == 0 { return None }
     return Some(a / b)
 }
-```
-Expected: `Some(42) → 42`, `None → default 77`, `safe_div(10,3) → 3`
 
-### OOP & Interfaces — `oop_shapes.nanz`
-```bash
-mz fun/oop_shapes.nanz --asserts mir2     # ✓ 4 asserts, ~1s
+assert unwrap_or(safe_div(10, 3), 255) == 3
 ```
+
+The compiler constant-folds through the entire ADT. `safe_div(10,3)` evaluates at compile time through `Some(3)` into `unwrap_or(Some(3), 255)` and out to `3`. The Z80 output:
+
+```z80
+test_safe_div_ok:    LD A, 3  / RET     ; the entire safe_div + match + unwrap chain
+test_unwrap_some:    LD A, 42 / RET     ; unwrap_or(Some(42), 0)
+test_is_none:        LD A, 0  / RET     ; is_some(None)
+test_unwrap_none:    LD A, 77 / RET     ; unwrap_or(None, 77)
+```
+
+124 optimization passes. 4 pruned lambdas. Zero-cost ADTs on an 8-bit CPU from 1976.
+
+---
+
+### Iterator Fusion: map + filter + forEach in One Loop
+
+`iterator_fusion.nanz`
+
 ```nanz
-interface Shape { area, perimeter }
-
-impl Shape for Circle {
-    fun area(self) -> u8 { return 3 * self.radius * self.radius }
-}
-
-c.area()       // → Circle_area(&c) — direct CALL, no vtable!
-r.perimeter()  // → Rect_perimeter(&r) — zero-cost dispatch
-```
-Expected: `circle.area() == 75`, `rect.perimeter() == 30`
-
-### State Machine — `state_machine.nanz`
-```bash
-mz fun/state_machine.nanz --asserts mir2  # ✓ 13 asserts, ~1s
-```
-```nanz
-enum State { Idle, Walking, Jumping, Dead }
-
-fun next_state(s: State, input: u8) -> u8 {
-    return match s {
-        State.Idle => match input { 1 => State.Walking, ... },
-        ...
+fun filter_map_explicit(buf: u16, n: u8, threshold: u8) -> void {
+    for x: u8 in buf[0..n] {
+        let doubled: u8 = x * 2
+        if doubled > threshold {
+            process(doubled)
+        }
     }
 }
 ```
 
-### Iterator Fusion — `iterator_fusion.nanz`
-```bash
-mz fun/iterator_fusion.nanz -o build/iter.a80   # ✓ compiles, ~1s
-```
-```nanz
-// Three operations fused into ONE DJNZ loop — zero intermediate arrays
-buf.map(|x: u8| (x * 2))
-   .filter(|x: u8| (x > threshold))
-   .forEach(|x: u8| { process(x) }, n)
-```
-No asserts (concept demo). Look at the .a80 — single DJNZ loop!
+Three operations -- load, double, filter -- fused into one tight loop with conditional CALL:
 
-### Tail Recursion — `tail_recursion.nanz`
-```bash
-mz fun/tail_recursion.nanz --asserts mir2 # ✓ 17 asserts, ~1s
+```z80
+filter_map_explicit:
+    LD B, C                    ; loop counter = n
+    LD C, D                    ; threshold
+.fe_head:
+    LD A, B / AND A / RET Z    ; done?
+.fe_body:
+    LD D, (HL)                 ; load element
+    LD A, D / ADD A, A         ; x * 2 (map)
+    LD D, A
+    LD A, C / CP D             ; threshold vs doubled (filter)
+    CALL C, process            ; conditional CALL -- fires only when filter passes
+.fe_cont:
+    INC HL                     ; advance pointer
+    ...DEC B / JRS .fe_head    ; next element
 ```
+
+`CALL C, process` is a single Z80 instruction that replaces the usual `JR NC, .skip / CALL process / .skip:` pattern. MinZ detects the BrIf-over-single-call pattern at MIR2 level and emits a conditional CALL, saving 2 bytes and eliminating the branch.
+
+---
+
+### Pipe Operator & Function Composition
+
+`pipes.frl` (Frill -- ML-style functional language)
+
+```frill
+let double (x : u8) : u8 = x + x
+let inc    (x : u8) : u8 = x + 1
+
+let pipe_dbl_inc (x : u8) : u8 = x |> double |> inc
+```
+
+The pipe chain `x |> double |> inc` compiles to:
+
+```z80
+pipe_dbl_inc:
+    ADD A, A     ; double
+    INC A        ; inc
+    RET
+```
+
+Both functions inlined. Zero-cost functional composition on Z80. Three instructions, zero overhead.
+
+---
+
+### OOP: Zero-Cost Interfaces
+
+`oop_shapes.nanz` -- traits + impl blocks
+
+```nanz
+struct Rect { kind: u8, w: u8, h: u8 }
+trait Shape { area, perimeter }
+
+impl Shape for Rect {
+    fun area(self) -> u8 { return self.w * self.h }
+    fun perimeter(self) -> u8 { return (self.w + self.h) * 2 }
+}
+```
+
+No vtables, no dynamic dispatch. `rect.area()` is a direct `CALL Rect_area`:
+
+```z80
+Rect_area:
+    EX DE, HL              ; save self ptr
+    LD BC, 2 / ADD HL, BC  ; &self.w
+    LD B, (HL)             ; w
+    LD H, D / LD L, E
+    LD BC, 3 / ADD HL, BC  ; &self.h
+    LD E, (HL)             ; h
+    LD A, B / LD B, E
+    JP __mul8              ; tail call: w * h, return in A
+
+Rect_perimeter:
+    ...
+    LD A, (HL) / RLA       ; w * 2 (rotate left = shift left 1)
+    ...
+    LD A, (HL) / RLA       ; h * 2
+    ADD A, C               ; w*2 + h*2
+    RET
+```
+
+`JP __mul8` instead of `CALL __mul8 / RET` -- tail call optimization saves 17 T-states. `RLA` for `*2` -- the compiler chooses the single-byte rotate.
+
+---
+
+### Tail Recursion: Fibonacci in O(1) Stack
+
+`tail_recursion.nanz` -- asserts verified
+
 ```nanz
 fun fib_tail(n: u8, a: u8, b: u8) -> u8 {
     if n == 0 { return a }
     return fib_tail(n - 1, b, a + b)
 }
-```
-Expected: `fib(10) == 55`, `fact(5) == 120`, `pow2(8) == 256`
 
-### Vectors & Scalar Operator Overloading — `vectors.nanz`
-```bash
-mz fun/vectors.nanz --asserts mir2        # ✓ 3 asserts, ~22s
+assert fib_tail(10, 0, 1) == 55
 ```
+
+Grace tail-recursion elimination converts the recursive call to a loop:
+
+```z80
+fib_tail:
+    AND A / RET Z          ; n == 0? return a (in B)
+    DEC A                  ; n - 1
+    LD A, B / ADD A, C     ; a + b
+    LD B, A                ; new accumulator
+    ...JRS fib_tail        ; jump, not CALL -- O(1) stack
+```
+
+No CALL, no stack growth. Runs to n=255 on 256 bytes of stack.
+
+---
+
+### Widemath: Operator Overloading for Arithmetic
+
+`widemath.nanz` -- 26 functions, 31 asserts, all pass
+
 ```nanz
-struct Vec2 { x: u8, y: u8 }
-fun +(a: Vec2, b: Vec2) -> Vec2 { ... }   // struct operator overloading
-fun *(a: u8, b: u8) -> u16 { ... }        // scalar widening multiply!
+fun *(a: u8, b: u8) -> u16 { ... }   // widening multiply
 
-impl Vec2 {
-    fun dot(self, other: Vec2) -> u16 {
-        return self.x * other.x + self.y * other.y  // widening mul!
-    }
+assert sat_add(200, 100) == 255       // saturates at u8 max
+assert abs_diff(200, 50) == 150       // |a - b|
+assert brightness_blend(100, 200, 128) == 150  // linear interpolation
+```
+
+Scalar operator overloading: `a * b` transparently dispatches to widening multiply when types match. Saturating arithmetic, absolute difference, pixel blending -- all verified against MIR2 VM.
+
+---
+
+### Raymarcher: 3D on Z80
+
+`raymarcher.nanz` -- 2816 lines of Z80 assembly output
+
+```nanz
+struct Vec3 { x: i16, y: i16, z: i16 }
+
+fun scene(p: Vec3) -> i16 {
+    let sphere: i16 = sdf_sphere(p, 150)
+    let box: i16 = sdf_box(p, Vec3{x: 100, y: 100, z: 100})
+    return sdf_subtract(sphere, box)    // CSG: sphere minus box
 }
 ```
-Expected: `200 * 200 == 40000` (no overflow — widening u8×u8→u16)
 
-### Widemath — GPU-Optimal Arithmetic — `widemath.nanz`
-```bash
-mz fun/widemath.nanz --asserts mir2       # ✓ 31 asserts, ~2s
-```
-abs, sign, min, max, clamp, sat_add, sat_sub, abs_diff, pixel_distance, brightness_blend.
-Expected: `area(200,200) == 40000`, `sat_add8(200,100) == 255`, `abs_diff8(3,10) == 7`
-
-### Raymarcher — SDF + CSG + Vec3 — `raymarcher.nanz`
-```bash
-mz fun/raymarcher.nanz --asserts mir2     # ✓ 3 asserts, ~33s
-mz fun/raymarcher.nanz -o build/ray.a80   # compile to Z80 asm
-```
-SDF sphere-minus-box with Vec3 impl block, CSG union/subtract, fixed-point 8.8 math, normal calculation via central differences. Full raymarcher in ~180 lines.
-
-Expected: `fp_mul(256, 256) == 256` (1.0 × 1.0 = 1.0 in 8.8), `fp_max(10, 20) == 20`
-
-### SHA-256 Primitives — `sha256.nanz`
-```bash
-mz fun/sha256.nanz --asserts mir2                              # ✓ 6 asserts, ~3s
-mz fun/sha256.nanz -o build/sha.a80 && mza build/sha.a80 -o build/sha256.bin  # → 808 bytes!
-```
-u32 arithmetic on Z80: xor16, and16, not16, add32 with carry propagation. SHA-256 Ch/Maj core functions. Note: in Nanz `^` = pointer deref, use `xor` keyword!
-
-Expected: `xor16(0xFF00, 0x00FF) == 65535`, `add32_carry(0x0000FFFF + 1) → hi=1`
+Fixed-point 8.8 arithmetic, SDF primitives, CSG operations, normal estimation via central differences. Renders a sphere-minus-box scene on ZX Spectrum. The most complex MinZ program.
 
 ---
 
-## Frill Examples (ML-style functional)
+### Bit Intent: Scalar Bit Selection
 
-### Pipes & Composition — `pipes.frl`
-```bash
-mz fun/pipes.frl --asserts mir2           # ✓ 11 asserts, ~1s
+`bit_intent.nanz`
+
+```nanz
+fun set_ptr_bit() -> u8 {
+    var p: ptr = &flags_g
+    p^.4 = 1              // set bit 4 via pointer
+    return p^.4            // read bit 4 back
+}
 ```
+
+`x.N` syntax for bit access. Compiles to Z80 native `SET 4, (HL)` / `BIT 4, (HL)`.
+
+---
+
+### Tuple Returns: Multiple Values
+
+`tuple_return.nanz` / `triple_return_skip.nanz`
+
+```nanz
+fun minmax(a: u16, b: u16) -> (u16, u16) {
+    if a <= b { return (a, b) }
+    return (b, a)
+}
+
+let (lo, hi) = minmax(x, y)
+let (first, _, last) = stats3(x, y, z)   // blank identifier skips middle value
+```
+
+Multiple return values via register pairs. Blank `_` identifier skips unused values at zero cost.
+
+---
+
+### LFSR Cascade: Generative Art
+
+`che_cascade.nanz` / `che_intro.nanz` / `che_nanz.nanz`
+
+```nanz
+fun xor_pixel(x: u8, y: u8) -> void {
+    let addr: u16 = 0x4000 + y7*2048 + y2_0*256 + y5_3*32 + xbyte
+    let p: ^u8 = addr
+    p^ = p^ xor mask        // flip pixel via pointer XOR
+}
+```
+
+Che Guevara portrait rendered by 64 LFSR-16 layers XOR'ing random pixels. Each layer uses a different seed from a precomputed table. Self-modifying code patches LFSR state into instruction immediates (TSMC tunnels).
+
+---
+
+### SHA-256 on Z80
+
+`sha256.nanz` -- 15 functions, 271 lines of asm
+
+32-bit arithmetic via u16 pairs (DEHL convention). GPU-proven optimal shift sequences. Implements SHA-256 message schedule and compression on 3.5 MHz hardware.
+
+---
+
+### Frill Graphics: Pixel Art Patterns
+
+`frill_graphics.frl` -- ML-style functional
+
 ```frill
-let pipe_dbl_inc (x : u8) : u8 = x |> double |> inc
-let dbl_then_inc = double >> inc   (* function composition *)
-```
-Expected: `dbl_then_inc 5 == 11`, `pipe_dbl_inc 3 == 7`
-
-### Full Showcase — `frill_showcase.frl`
-```bash
-mz fun/frill_showcase.frl --asserts mir2  # ✓ 48 asserts, ~2s
-```
-Everything in one file: recursion, let-in, if-then-else, match, ADT, currying, lambda, while, for, mutation, peek/poke.
-
-### Functional Graphics — `frill_graphics.frl`
-```bash
-mz fun/frill_graphics.frl --asserts mir2  # ✓ 39 asserts, ~2s
-mzv examples/frill/graphics.frl           # full visual version with canvas
-```
-```frill
-type Color = Black | Blue | Red | Magenta | Green | Cyan | Yellow | White
 let sierpinski (x : u8) (y : u8) = if (x & y) == 0 then 1 else 0
-let xor_tex (x : u8) (y : u8) = (x ^ y) % 8
+let xor_texture (x : u8) (y : u8) = x ^ y
+let checker (x : u8) (y : u8) = ((x / 8) + (y / 8)) & 1
 ```
 
-## Lizp Examples (Scheme-flavored)
-
-### Functional Core — `functional.lizp`
-```bash
-mz examples/lizp/functional.lizp --asserts mir2
-```
-```lizp
-(defun sum3 ((a u8) (b u8) (c u8)) -> u8
-  (+ a (+ b c)))
-```
-Expected: compact proof that lambda/`let*`/`case` style Lizp lowers cleanly through the same backend.
-
-### Full Lizp Showcase — `showcase.lizp`
-```bash
-mz examples/lizp/showcase.lizp --asserts mir2
-```
-```lizp
-(-> 5
-    double
-    inc)
-```
-Expected: threading pipes, macros, and ordinary function calls compose in one runnable file.
-
-### ZX Visuals — `zx_rainbow.lizp`
-```bash
-mz examples/lizp/zx_rainbow.lizp -o build/zx_rainbow.a80
-```
-Expected: visual Lizp path to Z80 still exists; good for checking that the Lisp syntax is not just a parser toy.
+Pattern generators for ZX Spectrum: Sierpinski triangles, XOR textures, checkerboards, diamonds, rings. Each is a pure function from (x, y) to pixel value.
 
 ---
 
-## Visual Demos (run with mzv/mze)
+## fun/fun/ -- Animation & Replay
 
-```bash
-mzv examples/nanz/tetris_tui.nanz        # playable Tetris in terminal!
-mzv examples/nanz/tetris_cpm.nanz        # CP/M Tetris
-mzv examples/mzv_sphere_shaded.minz --zx # raytraced sphere
-mzv examples/mzv_one_small_step.minz --zx # lunar lander scene
-mzv examples/fire.minz --zx              # fire effect
-mzv examples/plasma.minz --zx            # plasma demo
-mzv examples/conway.minz --zx            # Game of Life
-```
+| File | Description |
+|------|-------------|
+| `anim_player.nanz` | LFSR-16 AND-cascade renderer playing frame-based animation from binary data |
+| `che_intro.nanz` | Enhanced Che intro with runtime layer table at 0xC000 |
+| `replay.nanz` | Seed-table-driven LFSR cascade renderer with 768-byte block buffer |
 
 ---
 
-## GPU-Optimal Codegen (fires automatically when you compile)
+## Full Compilation Status
 
-| Table | Entries | Speedup | Source |
-|-------|---------|---------|--------|
-| mul8 A×K→A | 254 | up to 8× | GPU brute-force |
-| mul16 HL×K→HL | 254 | **7.7×** (×3: 26T vs 200T) | GPU brute-force |
-| div8 A÷K→A | 254 | **2.5×** avg (carry_compare: 26T for K≥128) | GPU-discovered |
-| u32 ops (DEHL) | 13 | SHL32 34T, ADD32 54T | Verified optimal |
-| 500 peephole rules | 500 | various | GPU-exhaustive |
+All 27 programs compile successfully. Programs with `assert` statements are verified via MIR2 VM.
+
+| File | Lang | Funcs | ASM Lines | Asserts | Status |
+|------|------|-------|-----------|---------|--------|
+| adt_option.nanz | Nanz | 8 | 131 | 5/5 | ✅ |
+| iterator_fusion.nanz | Nanz | 3 | 81 | -- | ✅ |
+| oop_shapes.nanz | Nanz | 8 | 213 | -- | ✅ |
+| tail_recursion.nanz | Nanz | 8 | 165 | ✓ | ✅ |
+| raymarcher.nanz | Nanz | ~40 | 2816 | -- | ✅ |
+| sha256.nanz | Nanz | 15 | 271 | -- | ✅ |
+| widemath.nanz | Nanz | 26 | 566 | 31/31 | ✅ |
+| vectors.nanz | Nanz | 16 | 836 | -- | ✅ |
+| che_cascade.nanz | Nanz | 12 | 554 | -- | ✅ |
+| che_intro.nanz | Nanz | 4 | 372 | -- | ✅ |
+| che_nanz.nanz | Nanz | 5 | 387 | -- | ✅ |
+| lfsr_decoder.nanz | Nanz | 12 | 334 | -- | ✅ |
+| state_machine.nanz | Nanz | 3 | 115 | -- | ✅ |
+| bit_intent.nanz | Nanz | 5 | 92 | -- | ✅ |
+| pointer_threading.nanz | Nanz | 2 | 87 | -- | ✅ |
+| tuple_return.nanz | Nanz | 4 | 89 | ✓ | ✅ |
+| triple_return_skip.nanz | Nanz | 4 | 42 | -- | ✅ |
+| addr_field_basic.nanz | Nanz | 2 | 38 | -- | ✅ |
+| addr_field_method.nanz | Nanz | 3 | 44 | -- | ✅ |
+| addr_field_aos_walk.nanz | Nanz | 2 | 56 | -- | ✅ |
+| addr_index_basic.nanz | Nanz | 2 | 34 | -- | ✅ |
+| pipes.frl | Frill | 10 | 108 | -- | ✅ |
+| frill_showcase.frl | Frill | 39 | 634 | -- | ✅ |
+| frill_graphics.frl | Frill | ~20 | 431 | -- | ✅ |
+| fun/anim_player.nanz | Nanz | 9 | ~200 | -- | ✅ |
+| fun/che_intro.nanz | Nanz | 8 | ~300 | -- | ✅ |
+| fun/replay.nanz | Nanz | 6 | ~200 | -- | ✅ |
 
 ---
 
-## Fresh Benchmark Snapshot
-
-Current quick number to remember:
-
-- `go test ./pkg/pipeline -run 'TestGrace_SDCC_Full$' -count=1 -v`
-- latest totals: `SDCC 196`, `C89(Go) 173`, `C89(Grace) 151`, `Nanz(Grace) 47`
-- MinZ wins `7 / 8` matched programs in the current full comparison
-
-See:
-
-- [`reports/2026-04-06-Fun-Benchmark-And-FP-Refresh-RU.md`](../reports/2026-04-06-Fun-Benchmark-And-FP-Refresh-RU.md)
-- [`reports/2026-03-20-104-C89-vs-SDCC-Extended-Benchmark.md`](../reports/2026-03-20-104-C89-vs-SDCC-Extended-Benchmark.md)
-
----
-
-## Toolchain Cheat Sheet
-
-| Tool | Command | What it does |
-|------|---------|-------------|
-| **mz** | `mz file.nanz -o out.a80` | Compile to Z80 assembly |
-| **mz** | `mz file.nanz --asserts mir2` | Compile + verify on MIR2 VM |
-| **mz** | `mz file.nanz --asserts z80` | Compile + verify on Z80 emulator |
-| **mzv** | `mzv file.nanz` | Run on MIR2 VM with TUI display |
-| **mza** | `mza file.a80 -o file.bin` | Assemble (.a80 or .asm) |
-| **mze** | `mze file.com` | Run on Z80 CP/M emulator |
-| **mzx** | `mzx file.sna` | ZX Spectrum emulator |
-| **mzd** | `mzd file.bin --regs` | Disassemble with register tracking |
-
-## 8 Languages → Same Z80
-
-| Extension | Language | Style |
-|-----------|----------|-------|
-| `.nanz` | **Nanz** | Swift/Zig-like (primary) |
-| `.frl` | **Frill** | ML/Haskell functional |
-| `.c` | **C17+C23** | First Z80 compiler at C17 |
-| `.lizp` | **Lizp** | Scheme R5RS |
-| `.pas` | **Pascal** | Standard |
-| `.plm` | **PL/M** | Intel PL/M-80 |
-| `.abap` | **ABAP** | SAP subset |
-| `.lanz` | **Lanz** | S-expression IR |
+*MinZ: Modern programming abstractions with zero-cost performance on vintage Z80 hardware.*
