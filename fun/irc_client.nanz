@@ -1,0 +1,380 @@
+// IRC Client for Z80 — runs on MZV with pre-established TCP connection
+//
+// The host (mzv) connects to the IRC server before launching this program.
+// The Z80 program communicates via I/O ports:
+//   Port $30 (IN):  network read — $00 = no data, $80|byte = byte ready
+//   Port $31 (OUT): network write — send byte to server
+//   Port $23:       console I/O (VT100 terminal via TUI stdlib)
+//
+// IRC protocol subset:
+//   PING :server          → auto PONG :server
+//   :nick!user@host PRIVMSG #channel :message
+//   :nick!user@host JOIN :#channel
+//   :nick!user@host PART #channel :reason
+//   :nick!user@host QUIT :reason
+//
+// HOW TO RUN:
+//   mzv examples/nanz/irc_client.nanz --net irc.libera.chat:6667
+//   (mzv pre-connects TCP, then launches the Z80 program)
+
+import tui.render
+
+// ── I/O: network port ──────────────────────────────────────────────
+// Single port $30: IN = read from server, OUT = write to server
+// Same convention as console $23: IN returns $00 (no data) or $80|byte
+
+@extern fun net_read() -> u8       // IN A, ($30): $00=no data, $80|byte=ready
+@extern fun net_write(b: u8)       // OUT ($30), A: send byte to server
+
+// ── Constants ──────────────────────────────────────────────────────
+
+global NICK: [u8; 12]     // our nickname (set during init)
+global CHANNEL: [u8; 32]  // current channel
+
+// IRC line buffer (server → us)
+global srv_buf: [u8; 512]
+global srv_pos: u16 = 0
+
+// User input buffer (keyboard → us)
+global usr_buf: [u8; 256]
+global usr_pos: u8 = 0
+
+// Scroll region: messages area
+global MSG_TOP: u8 = 2
+global MSG_BOT: u8 = 22
+global INPUT_Y: u8 = 24
+global STATUS_Y: u8 = 0
+
+// ── Entry point ────────────────────────────────────────────────────
+
+fun main() -> void {
+    tui_clear()
+    draw_status("MinZ IRC v0.1 — connecting...")
+    draw_input_line()
+
+    // Set default nick and channel
+    set_str(&NICK, "minz_user")
+    set_str(&CHANNEL, "#minz")
+
+    // Register with IRC server
+    send_str("NICK minz_user\r\n")
+    send_str("USER minz 0 * :MinZ Z80 IRC Client\r\n")
+
+    // Main loop: poll network + keyboard
+    loop {
+        poll_network()
+        poll_keyboard()
+    }
+}
+
+// ── Network polling ────────────────────────────────────────────────
+
+fun poll_network() -> void {
+    var i: u8 = 0
+    // Read up to 32 bytes per tick (non-blocking)
+    while i < 32 {
+        let b: u8 = net_read()
+        if b == 0 { return }
+        let ch: u8 = b & 0x7F
+
+        if ch == 10 {
+            // Line complete (\n) — process it
+            let p: ^u8 = &srv_buf + srv_pos
+            p^ = 0   // null-terminate
+            handle_server_line()
+            srv_pos = 0
+        } else if ch != 13 {
+            // Accumulate (skip \r)
+            let p: ^u8 = &srv_buf + srv_pos
+            p^ = ch
+            srv_pos = srv_pos + 1
+            if srv_pos >= 510 { srv_pos = 0 }  // overflow protection
+        }
+        i = i + 1
+    }
+}
+
+// ── Keyboard polling ───────────────────────────────────────────────
+
+fun poll_keyboard() -> void {
+    let k: u8 = tui_read_key()
+    if k == 0 { return }
+
+    if k == 13 {
+        // Enter → send message
+        if usr_pos > 0 {
+            let p: ^u8 = &usr_buf + usr_pos
+            p^ = 0  // null-terminate
+            handle_user_input()
+            usr_pos = 0
+            draw_input_line()
+        }
+    } else if k == 8 {
+        // Backspace
+        if usr_pos > 0 {
+            usr_pos = usr_pos - 1
+            draw_input_line()
+        }
+    } else if k == 127 {
+        // Delete (also backspace on some terminals)
+        if usr_pos > 0 {
+            usr_pos = usr_pos - 1
+            draw_input_line()
+        }
+    } else if k >= 32 && k < 127 {
+        // Printable character
+        if usr_pos < 250 {
+            let p: ^u8 = &usr_buf + usr_pos
+            p^ = k
+            usr_pos = usr_pos + 1
+            draw_input_line()
+        }
+    }
+}
+
+// ── IRC line parser ────────────────────────────────────────────────
+
+fun handle_server_line() -> void {
+    // PING :xxx → PONG :xxx
+    if buf_starts_with(&srv_buf, "PING") {
+        send_str("PONG")
+        send_from(&srv_buf, 4)  // echo everything after "PING"
+        send_str("\r\n")
+        return
+    }
+
+    // Skip numeric replies (001-999) for now — just show them
+    // :server 001 nick :Welcome...
+
+    // Parse :prefix COMMAND params :trailing
+    var pos: u16 = 0
+    var nick_start: u16 = 0
+    var nick_len: u8 = 0
+
+    // Extract sender nick from :nick!user@host
+    if srv_buf[0] == 58 {   // ':'
+        nick_start = 1
+        pos = 1
+        while srv_buf[pos] != 33 && srv_buf[pos] != 32 && srv_buf[pos] != 0 {
+            pos = pos + 1
+        }
+        nick_len = pos - 1
+        // Skip to space after prefix
+        while srv_buf[pos] != 32 && srv_buf[pos] != 0 { pos = pos + 1 }
+        pos = pos + 1  // skip space
+    }
+
+    // Match command
+    if region_match(&srv_buf, pos, "PRIVMSG", 7) {
+        pos = pos + 8  // skip "PRIVMSG "
+        // Skip channel/target name
+        while srv_buf[pos] != 58 && srv_buf[pos] != 0 { pos = pos + 1 }
+        if srv_buf[pos] == 58 { pos = pos + 1 }  // skip ':'
+
+        // Display: <nick> message
+        tui_color(6, 0, 1)  // cyan, bright
+        tui_putch(60)        // '<'
+        print_region(&srv_buf, nick_start, nick_len)
+        tui_putch(62)        // '>'
+        tui_color(7, 0, 0)   // white, normal
+        tui_putch(32)         // space
+        print_from(&srv_buf, pos)
+        scroll_msg()
+        return
+    }
+
+    if region_match(&srv_buf, pos, "JOIN", 4) {
+        tui_color(2, 0, 0)  // green
+        print_region(&srv_buf, nick_start, nick_len)
+        tui_puts(" joined")
+        tui_reset()
+        scroll_msg()
+        return
+    }
+
+    if region_match(&srv_buf, pos, "PART", 4) {
+        tui_color(1, 0, 0)
+        print_region(&srv_buf, nick_start, nick_len)
+        tui_puts(" left")
+        tui_reset()
+        scroll_msg()
+        return
+    }
+
+    if region_match(&srv_buf, pos, "QUIT", 4) {
+        tui_color(1, 0, 0)  // red
+        print_region(&srv_buf, nick_start, nick_len)
+        tui_puts(" left")
+        tui_reset()
+        scroll_msg()
+        return
+    }
+
+    // Unknown/numeric → show raw (dim)
+    tui_color(7, 0, 0)
+    print_from(&srv_buf, 0)
+    scroll_msg()
+}
+
+// ── User input handler ─────────────────────────────────────────────
+
+fun handle_user_input() -> void {
+    // /join #channel
+    if usr_buf[0] == 47 && usr_buf[1] == 106 {  // "/j"
+        send_str("JOIN ")
+        send_from(&usr_buf, 6)  // skip "/join "
+        send_str("\r\n")
+        return
+    }
+
+    // /nick newnick
+    if usr_buf[0] == 47 && usr_buf[1] == 110 {  // "/n"
+        send_str("NICK ")
+        send_from(&usr_buf, 6)  // skip "/nick "
+        send_str("\r\n")
+        return
+    }
+
+    // /quit
+    if usr_buf[0] == 47 && usr_buf[1] == 113 {  // "/q"
+        send_str("QUIT :MinZ IRC signing off\r\n")
+        tui_goto(0, INPUT_Y)
+        tui_puts("Disconnected.")
+        return
+    }
+
+    // Regular message → PRIVMSG #channel :message
+    send_str("PRIVMSG ")
+    send_buf(&CHANNEL)
+    send_str(" :")
+    send_buf(&usr_buf)
+    send_str("\r\n")
+
+    // Echo locally (server won't echo our own messages)
+    tui_color(3, 0, 1)   // yellow, bright
+    tui_putch(60)          // '<'
+    tui_puts(&NICK)
+    tui_putch(62)          // '>'
+    tui_color(7, 0, 0)
+    tui_putch(32)
+    tui_puts(&usr_buf)
+    scroll_msg()
+}
+
+// ── TUI drawing ────────────────────────────────────────────────────
+
+fun draw_status(msg: ^u8) -> void {
+    tui_goto(0, STATUS_Y)
+    tui_color(0, 4, 1)    // black on blue, bright
+    var i: u8 = 0
+    while i < tui_width() {
+        tui_putch(32)      // fill with spaces
+        i = i + 1
+    }
+    tui_goto(1, STATUS_Y)
+    tui_puts(msg)
+    tui_reset()
+}
+
+fun draw_input_line() -> void {
+    tui_goto(0, INPUT_Y)
+    tui_color(7, 0, 1)   // bright white
+    tui_putch(62)          // '>'
+    tui_putch(32)          // space
+    tui_reset()
+
+    // Print user input so far
+    var i: u8 = 0
+    while i < usr_pos {
+        let p: ^u8 = &usr_buf + i
+        tui_putch(p^)
+        i = i + 1
+    }
+
+    // Clear rest of line
+    while i < tui_width() - 2 {
+        tui_putch(32)
+        i = i + 1
+    }
+
+    // Position cursor after input
+    tui_goto(2 + usr_pos, INPUT_Y)
+}
+
+fun scroll_msg() -> void {
+    // Move to next line in message area
+    // (simplified: just print newline, VT100 handles scrolling)
+    tui_putch(13)  // CR
+    tui_putch(10)  // LF
+}
+
+// ── String helpers ─────────────────────────────────────────────────
+
+fun set_str(dst: ^u8, src: ^u8) -> void {
+    var i: u8 = 0
+    while src[i] != 0 {
+        let pd: ^u8 = dst + i
+        pd^ = src[i]
+        i = i + 1
+    }
+    let pd: ^u8 = dst + i
+    pd^ = 0
+}
+
+fun region_match(buf: ^u8, offset: u16, target: ^u8, len: u8) -> u8 {
+    var i: u8 = 0
+    while i < len {
+        let pb: ^u8 = buf + offset + i
+        if pb^ != target[i] { return 0 }
+        i = i + 1
+    }
+    return 1
+}
+
+fun buf_starts_with(buf: ^u8, prefix: ^u8) -> u8 {
+    var i: u8 = 0
+    while prefix[i] != 0 {
+        if buf[i] != prefix[i] { return 0 }
+        i = i + 1
+    }
+    return 1
+}
+
+fun print_region(buf: ^u8, start: u16, len: u8) -> void {
+    var i: u8 = 0
+    while i < len {
+        let p: ^u8 = buf + start + i
+        tui_putch(p^)
+        i = i + 1
+    }
+}
+
+fun print_from(buf: ^u8, pos: u16) -> void {
+    var p: ^u8 = buf + pos
+    while p^ != 0 {
+        tui_putch(p^)
+        p = p + 1
+    }
+}
+
+// ── Network send helpers ───────────────────────────────────────────
+
+fun send_str(s: ^u8) -> void {
+    var i: u8 = 0
+    while s[i] != 0 {
+        net_write(s[i])
+        i = i + 1
+    }
+}
+
+fun send_from(buf: ^u8, offset: u16) -> void {
+    var p: ^u8 = buf + offset
+    while p^ != 0 {
+        net_write(p^)
+        p = p + 1
+    }
+}
+
+fun send_buf(buf: ^u8) -> void {
+    send_from(buf, 0)
+}
