@@ -34,15 +34,82 @@
 | MZV Host | TCP connect, DNS resolve, port I/O bridge | Go | ~30 |
 | Z80 Client | IRC parsing, TUI rendering, user input | Nanz | ~300 |
 
-**Принцип:** Z80 программа не знает про TCP/IP. Она видит один I/O порт:
+**Принцип:** Z80 программа не знает про TCP/IP. Она видит два I/O порта:
 
 ```
-Port $30:
+Port $30 — Data port (передача данных):
   IN  A, ($30)  →  $00 = нет данных, $80|byte = байт от сервера
   OUT ($30), A  →  отправить байт серверу
+
+Port $31 — Control port (управление подключением):
+  OUT ($31), A  →  записать байт в command buffer
+  IN  A, ($31)  →  прочитать status/response
 ```
 
 Та же конвенция что console port $23. MZV делает всю сетевую работу.
+
+### Control Port $31 — Протокол Управления
+
+Z80 программа может сама устанавливать подключения через control port.
+Команды пишутся побайтно, завершаются нулём (0x00). Ответ читается через IN.
+
+**Команды:**
+
+| Cmd | Формат (OUT $31 побайтно) | Действие |
+|-----|---------------------------|----------|
+| `C` | `C host:port\0` | **Connect** — DNS resolve + TCP connect |
+| `D` | `D\0` | **Disconnect** — закрыть текущее соединение |
+| `S` | `S\0` | **Status** — запросить статус |
+
+**Пример: подключение из Z80 кода:**
+
+```nanz
+// Подключиться к irc.libera.chat:6667
+fun connect_irc() -> u8 {
+    // Пишем команду "Circ.libera.chat:6667\0" в control port
+    ctl_write(67)   // 'C'
+    send_ctl_str("irc.libera.chat:6667")
+    ctl_write(0)    // null terminator = execute
+
+    // Ждём ответ
+    var status: u8 = 0
+    while status == 0 {
+        status = ctl_read()  // IN A, ($31)
+    }
+    // status: 1 = connected, 2 = DNS error, 3 = connection refused
+    return status
+}
+```
+
+**Ответы (IN $31):**
+
+| Байт | Значение |
+|------|----------|
+| $00 | Busy — команда ещё выполняется |
+| $01 | OK — подключение установлено |
+| $02 | DNS error — имя не резолвится |
+| $03 | Connection refused |
+| $04 | Timeout |
+| $05 | Already connected (disconnect first) |
+| $FF | No pending command |
+
+**Последовательность для полностью автономного клиента:**
+
+```
+Z80 boot → OUT $31: "Circ.libera.chat:6667\0"
+         → IN  $31: wait for $01 (connected)
+         → OUT $30: "NICK minz_user\r\n"        (data port)
+         → OUT $30: "USER minz 0 * :MinZ\r\n"
+         → main loop: IN $30 / OUT $30 / keyboard
+```
+
+**Или через CLI (pre-connected):**
+
+```bash
+mzv irc_client.com --net irc.libera.chat:6667
+# MZV connects BEFORE launching Z80, port $30 already active
+# Control port $31 reports $01 (connected) on first IN
+```
 
 ---
 
@@ -129,54 +196,135 @@ IRC — текстовый протокол. Строки заканчивают
 
 ## Что Нужно Доделать в MZV
 
-### Port $30 Handler (~30 LOC Go)
+### NetPort Handler (~80 LOC Go)
 
 ```go
-// В pkg/emulator/z80_remogatto.go или cmd/mzv/net.go
+// cmd/mzv/net.go — network I/O ports for Z80 programs
 
 type NetPort struct {
-    conn net.Conn
-    buf  chan byte  // buffered channel, non-blocking read
+    conn   net.Conn
+    rxBuf  chan byte      // data port read buffer
+    ctlBuf []byte         // control port command accumulator
+    status byte           // last status for IN $31
+    mu     sync.Mutex
 }
 
-func (n *NetPort) Start(addr string) error {
-    conn, err := net.Dial("tcp", addr)
-    if err != nil { return err }
-    n.conn = conn
-    n.buf = make(chan byte, 4096)
-    go func() {  // read goroutine
-        b := make([]byte, 1)
-        for {
-            if _, err := conn.Read(b); err != nil { return }
-            n.buf <- b[0]
-        }
-    }()
-    return nil
-}
+// ── Data Port $30 ──────────────────────────────────────────
 
-// IN A, ($30) — non-blocking read
-func (n *NetPort) Read() byte {
+// IN A, ($30) — non-blocking read from server
+func (n *NetPort) DataRead() byte {
+    if n.conn == nil { return 0x00 }
     select {
-    case b := <-n.buf:
+    case b := <-n.rxBuf:
         return 0x80 | b
     default:
         return 0x00
     }
 }
 
-// OUT ($30), A — write
-func (n *NetPort) Write(b byte) {
+// OUT ($30), A — write byte to server
+func (n *NetPort) DataWrite(b byte) {
+    if n.conn == nil { return }
     n.conn.Write([]byte{b})
+}
+
+// ── Control Port $31 ───────────────────────────────────────
+
+// OUT ($31), A — accumulate command byte, execute on \0
+func (n *NetPort) CtlWrite(b byte) {
+    if b != 0 {
+        n.ctlBuf = append(n.ctlBuf, b)
+        return
+    }
+    // \0 = execute command
+    if len(n.ctlBuf) == 0 { return }
+    cmd := n.ctlBuf[0]
+    arg := string(n.ctlBuf[1:])
+    n.ctlBuf = n.ctlBuf[:0]
+
+    switch cmd {
+    case 'C': // Connect
+        go n.doConnect(arg)
+    case 'D': // Disconnect
+        n.doDisconnect()
+    case 'S': // Status
+        // status already readable via IN
+    }
+}
+
+// IN A, ($31) — read status
+func (n *NetPort) CtlRead() byte {
+    n.mu.Lock()
+    defer n.mu.Unlock()
+    s := n.status
+    if s != 0x00 { n.status = 0xFF } // consume: return $FF after first read
+    return s
+}
+
+func (n *NetPort) doConnect(addr string) {
+    n.mu.Lock()
+    n.status = 0x00 // busy
+    n.mu.Unlock()
+
+    conn, err := net.DialTimeout("tcp", addr, 10*time.Second)
+    n.mu.Lock()
+    defer n.mu.Unlock()
+    if err != nil {
+        if strings.Contains(err.Error(), "no such host") {
+            n.status = 0x02 // DNS error
+        } else if strings.Contains(err.Error(), "refused") {
+            n.status = 0x03 // connection refused
+        } else {
+            n.status = 0x04 // timeout / other
+        }
+        return
+    }
+    n.conn = conn
+    n.rxBuf = make(chan byte, 4096)
+    n.status = 0x01 // connected
+
+    go func() { // read pump
+        b := make([]byte, 1)
+        for {
+            if _, err := conn.Read(b); err != nil { return }
+            n.rxBuf <- b[0]
+        }
+    }()
+}
+
+func (n *NetPort) doDisconnect() {
+    n.mu.Lock()
+    defer n.mu.Unlock()
+    if n.conn != nil {
+        n.conn.Close()
+        n.conn = nil
+    }
+    n.status = 0xFF
 }
 ```
 
-### CLI Flag
+### Wire Into Emulator
 
-```bash
-mzv examples/nanz/irc_client.nanz --net irc.libera.chat:6667
+```go
+// In ReadPort:
+case 0x30: return netPort.DataRead()
+case 0x31: return netPort.CtlRead()
+
+// In WritePort:
+case 0x30: netPort.DataWrite(b)
+case 0x31: netPort.CtlWrite(b)
 ```
 
-MZV connects TCP, wires port $30, then launches the Z80 program.
+### CLI
+
+```bash
+# Pre-connected (MZV connects before Z80 boot):
+mzv irc_client.com --net irc.libera.chat:6667
+
+# Autonomous (Z80 connects via control port):
+mzv irc_client.com
+# Z80 program sends "Circ.libera.chat:6667\0" to port $31
+```
 
 ---
 

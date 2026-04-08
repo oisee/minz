@@ -1,331 +1,369 @@
-// IRC Client for Z80 — runs on MZV with pre-established TCP connection
+// IRC Client for Z80 — runs on MZV with network I/O ports
 //
-// The host (mzv) connects to the IRC server before launching this program.
-// The Z80 program communicates via I/O ports:
-//   Port $30 (IN):  network read — $00 = no data, $80|byte = byte ready
-//   Port $31 (OUT): network write — send byte to server
-//   Port $23:       console I/O (VT100 terminal via TUI stdlib)
-//
-// IRC protocol subset:
-//   PING :server          → auto PONG :server
-//   :nick!user@host PRIVMSG #channel :message
-//   :nick!user@host JOIN :#channel
-//   :nick!user@host PART #channel :reason
-//   :nick!user@host QUIT :reason
+// Port $30 — data:    IN = read byte from server, OUT = write byte to server
+// Port $31 — control: OUT = command byte (connect/disconnect), IN = status
 //
 // HOW TO RUN:
-//   mzv examples/nanz/irc_client.nanz --net irc.libera.chat:6667
-//   (mzv pre-connects TCP, then launches the Z80 program)
+//   mzv irc_client.nanz --net irc.libera.chat:6667    (pre-connected)
+//   mzv irc_client.nanz                                (Z80 connects via $31)
 
 import tui.render
 
-// ── I/O: network port ──────────────────────────────────────────────
-// Single port $30: IN = read from server, OUT = write to server
-// Same convention as console $23: IN returns $00 (no data) or $80|byte
+// ── I/O ports ──────────────────────────────────────────────────────
 
-@extern fun net_read() -> u8       // IN A, ($30): $00=no data, $80|byte=ready
-@extern fun net_write(b: u8)       // OUT ($30), A: send byte to server
+@extern fun net_read() -> u8       // IN A, ($30)
+@extern fun net_write(b: u8)       // OUT ($30), A
+@extern fun ctl_read() -> u8       // IN A, ($31)
+@extern fun ctl_write(b: u8)       // OUT ($31), A
 
-// ── Constants ──────────────────────────────────────────────────────
+// ── Types ──────────────────────────────────────────────────────────
 
-global NICK: [u8; 12]     // our nickname (set during init)
-global CHANNEL: [u8; 32]  // current channel
+enum ConnStatus { Busy, Connected, DnsError, Refused, Timeout }
 
-// IRC line buffer (server → us)
+enum IrcCmd { Ping, Privmsg, Join, Part, Quit, Numeric, Unknown }
+
+enum UserCmd { Say, CmdJoin, CmdNick, CmdQuit, CmdUnknown }
+
+// ANSI colors
+enum Color { Black, Red, Green, Yellow, Blue, Magenta, Cyan, White }
+
+// ── Globals ────────────────────────────────────────────────────────
+
+global NICK: [u8; 16]
+global CHANNEL: [u8; 32]
 global srv_buf: [u8; 512]
 global srv_pos: u16 = 0
-
-// User input buffer (keyboard → us)
 global usr_buf: [u8; 256]
 global usr_pos: u8 = 0
+global INPUT_Y: u8 = 23
 
-// Scroll region: messages area
-global MSG_TOP: u8 = 2
-global MSG_BOT: u8 = 22
-global INPUT_Y: u8 = 24
-global STATUS_Y: u8 = 0
+// ── Connection ─────────────────────────────────────────────────────
+
+fun net_connect(host: ^u8, port: u16) -> ConnStatus {
+    ctl_write(67)   // 'C'
+    var i: u8 = 0
+    while host[i] != 0 {
+        ctl_write(host[i])
+        i = i + 1
+    }
+    ctl_write(58)   // ':'
+    emit_port_digits(port)
+    ctl_write(0)    // execute
+
+    var s: u8 = 0
+    while s == 0 { s = ctl_read() }
+
+    return match s {
+        1 => ConnStatus.Connected,
+        2 => ConnStatus.DnsError,
+        3 => ConnStatus.Refused,
+        4 => ConnStatus.Timeout,
+        _ => ConnStatus.Busy,
+    }
+}
+
+fun emit_port_digits(p: u16) -> void {
+    if p >= 10000 {
+        ctl_write(p / 10000 + 48)
+        p = p - (p / 10000) * 10000
+    }
+    if p >= 1000 {
+        ctl_write(p / 1000 + 48)
+        p = p - (p / 1000) * 1000
+    }
+    if p >= 100 {
+        ctl_write(p / 100 + 48)
+        p = p - (p / 100) * 100
+    }
+    if p >= 10 {
+        ctl_write(p / 10 + 48)
+        p = p - (p / 10) * 10
+    }
+    ctl_write(p + 48)
+}
 
 // ── Entry point ────────────────────────────────────────────────────
 
 fun main() -> void {
     tui_clear()
-    draw_status("MinZ IRC v0.1 — connecting...")
-    draw_input_line()
-
-    // Set default nick and channel
     set_str(&NICK, "minz_user")
     set_str(&CHANNEL, "#minz")
 
-    // Register with IRC server
-    send_str("NICK minz_user\r\n")
-    send_str("USER minz 0 * :MinZ Z80 IRC Client\r\n")
+    // Check if pre-connected
+    let s: u8 = ctl_read()
+    if s != 1 {
+        status_msg("Connecting to irc.libera.chat:6667...")
+        let r: ConnStatus = net_connect("irc.libera.chat", 6667)
+        if r != ConnStatus.Connected {
+            status_msg("Connection failed!")
+            return
+        }
+    }
+    status_msg("MinZ IRC v0.1 — connected")
 
-    // Main loop: poll network + keyboard
+    // IRC registration
+    net_send("NICK minz_user\r\n")
+    net_send("USER minz 0 * :MinZ Z80 IRC Client\r\n")
+
+    // Main loop
     loop {
         poll_network()
         poll_keyboard()
     }
 }
 
-// ── Network polling ────────────────────────────────────────────────
+// ── Network: line accumulator ──────────────────────────────────────
 
 fun poll_network() -> void {
-    var i: u8 = 0
-    // Read up to 32 bytes per tick (non-blocking)
-    while i < 32 {
+    for i: u8 in 0..32 {
         let b: u8 = net_read()
         if b == 0 { return }
         let ch: u8 = b & 0x7F
 
         if ch == 10 {
-            // Line complete (\n) — process it
-            let p: ^u8 = &srv_buf + srv_pos
-            p^ = 0   // null-terminate
-            handle_server_line()
+            null_terminate(&srv_buf, srv_pos)
+            dispatch_server_line()
             srv_pos = 0
         } else if ch != 13 {
-            // Accumulate (skip \r)
-            let p: ^u8 = &srv_buf + srv_pos
-            p^ = ch
+            poke(&srv_buf, srv_pos, ch)
             srv_pos = srv_pos + 1
-            if srv_pos >= 510 { srv_pos = 0 }  // overflow protection
-        }
-        i = i + 1
-    }
-}
-
-// ── Keyboard polling ───────────────────────────────────────────────
-
-fun poll_keyboard() -> void {
-    let k: u8 = tui_read_key()
-    if k == 0 { return }
-
-    if k == 13 {
-        // Enter → send message
-        if usr_pos > 0 {
-            let p: ^u8 = &usr_buf + usr_pos
-            p^ = 0  // null-terminate
-            handle_user_input()
-            usr_pos = 0
-            draw_input_line()
-        }
-    } else if k == 8 {
-        // Backspace
-        if usr_pos > 0 {
-            usr_pos = usr_pos - 1
-            draw_input_line()
-        }
-    } else if k == 127 {
-        // Delete (also backspace on some terminals)
-        if usr_pos > 0 {
-            usr_pos = usr_pos - 1
-            draw_input_line()
-        }
-    } else if k >= 32 && k < 127 {
-        // Printable character
-        if usr_pos < 250 {
-            let p: ^u8 = &usr_buf + usr_pos
-            p^ = k
-            usr_pos = usr_pos + 1
-            draw_input_line()
+            if srv_pos >= 510 { srv_pos = 0 }
         }
     }
 }
 
-// ── IRC line parser ────────────────────────────────────────────────
+// ── IRC command dispatch ───────────────────────────────────────────
 
-fun handle_server_line() -> void {
-    // PING :xxx → PONG :xxx
-    if buf_starts_with(&srv_buf, "PING") {
-        send_str("PONG")
-        send_from(&srv_buf, 4)  // echo everything after "PING"
-        send_str("\r\n")
-        return
+fun classify_irc(buf: ^u8, pos: u16) -> IrcCmd {
+    if buf_starts_with(buf, "PING")              { return IrcCmd.Ping }
+    if region_match(buf, pos, "PRIVMSG", 7)      { return IrcCmd.Privmsg }
+    if region_match(buf, pos, "JOIN", 4)          { return IrcCmd.Join }
+    if region_match(buf, pos, "PART", 4)          { return IrcCmd.Part }
+    if region_match(buf, pos, "QUIT", 4)          { return IrcCmd.Quit }
+    // Check if numeric (digit after prefix)
+    let p: ^u8 = buf + pos
+    if p^ >= 48 {
+        if p^ <= 57 { return IrcCmd.Numeric }
     }
+    return IrcCmd.Unknown
+}
 
-    // Skip numeric replies (001-999) for now — just show them
-    // :server 001 nick :Welcome...
-
-    // Parse :prefix COMMAND params :trailing
+fun dispatch_server_line() -> void {
+    // Extract sender nick and command position
     var pos: u16 = 0
     var nick_start: u16 = 0
     var nick_len: u8 = 0
 
-    // Extract sender nick from :nick!user@host
-    if srv_buf[0] == 58 {   // ':'
+    if srv_buf[0] == 58 {  // ':' prefix
         nick_start = 1
         pos = 1
         while srv_buf[pos] != 33 && srv_buf[pos] != 32 && srv_buf[pos] != 0 {
             pos = pos + 1
         }
         nick_len = pos - 1
-        // Skip to space after prefix
         while srv_buf[pos] != 32 && srv_buf[pos] != 0 { pos = pos + 1 }
-        pos = pos + 1  // skip space
+        pos = pos + 1
     }
 
-    // Match command
-    if region_match(&srv_buf, pos, "PRIVMSG", 7) {
-        pos = pos + 8  // skip "PRIVMSG "
-        // Skip channel/target name
-        while srv_buf[pos] != 58 && srv_buf[pos] != 0 { pos = pos + 1 }
-        if srv_buf[pos] == 58 { pos = pos + 1 }  // skip ':'
+    let cmd: IrcCmd = classify_irc(&srv_buf, pos)
 
-        // Display: <nick> message
-        tui_color(6, 0, 1)  // cyan, bright
-        tui_putch(60)        // '<'
-        print_region(&srv_buf, nick_start, nick_len)
-        tui_putch(62)        // '>'
-        tui_color(7, 0, 0)   // white, normal
-        tui_putch(32)         // space
-        print_from(&srv_buf, pos)
-        scroll_msg()
-        return
+    match cmd {
+        Ping    => handle_ping(),
+        Privmsg => handle_privmsg(pos, nick_start, nick_len),
+        Join    => show_event(nick_start, nick_len, " joined", Color.Green),
+        Part    => show_event(nick_start, nick_len, " left", Color.Red),
+        Quit    => show_event(nick_start, nick_len, " quit", Color.Red),
+        Numeric => show_raw(),
+        _       => show_raw(),
     }
+}
 
-    if region_match(&srv_buf, pos, "JOIN", 4) {
-        tui_color(2, 0, 0)  // green
-        print_region(&srv_buf, nick_start, nick_len)
-        tui_puts(" joined")
-        tui_reset()
-        scroll_msg()
-        return
-    }
+fun handle_ping() -> void {
+    net_send("PONG")
+    send_from(&srv_buf, 4)
+    net_send("\r\n")
+}
 
-    if region_match(&srv_buf, pos, "PART", 4) {
-        tui_color(1, 0, 0)
-        print_region(&srv_buf, nick_start, nick_len)
-        tui_puts(" left")
-        tui_reset()
-        scroll_msg()
-        return
-    }
+fun handle_privmsg(cmd_pos: u16, nick_start: u16, nick_len: u8) -> void {
+    var pos: u16 = cmd_pos + 8
+    // Skip to trailing (after ':')
+    while srv_buf[pos] != 58 && srv_buf[pos] != 0 { pos = pos + 1 }
+    if srv_buf[pos] == 58 { pos = pos + 1 }
 
-    if region_match(&srv_buf, pos, "QUIT", 4) {
-        tui_color(1, 0, 0)  // red
-        print_region(&srv_buf, nick_start, nick_len)
-        tui_puts(" left")
-        tui_reset()
-        scroll_msg()
-        return
-    }
+    tui_color(Color.Cyan, Color.Black, 1)
+    tui_putch(60)   // '<'
+    print_region(&srv_buf, nick_start, nick_len)
+    tui_putch(62)   // '>'
+    tui_color(Color.White, Color.Black, 0)
+    tui_putch(32)
+    print_from(&srv_buf, pos)
+    scroll_msg()
+}
 
-    // Unknown/numeric → show raw (dim)
-    tui_color(7, 0, 0)
+fun show_event(nick_start: u16, nick_len: u8, action: ^u8, color: Color) -> void {
+    tui_color(color, Color.Black, 0)
+    print_region(&srv_buf, nick_start, nick_len)
+    tui_puts(action)
+    tui_reset()
+    scroll_msg()
+}
+
+fun show_raw() -> void {
+    tui_color(Color.White, Color.Black, 0)
     print_from(&srv_buf, 0)
     scroll_msg()
 }
 
-// ── User input handler ─────────────────────────────────────────────
+// ── Keyboard: input + commands ─────────────────────────────────────
 
-fun handle_user_input() -> void {
-    // /join #channel
-    if usr_buf[0] == 47 && usr_buf[1] == 106 {  // "/j"
-        send_str("JOIN ")
-        send_from(&usr_buf, 6)  // skip "/join "
-        send_str("\r\n")
-        return
+fun poll_keyboard() -> void {
+    let k: u8 = tui_read_key()
+    if k == 0 { return }
+
+    match k {
+        13  => submit_input(),                   // Enter
+        8   => backspace(),                      // Backspace
+        127 => backspace(),                      // Delete
+        _   => type_char(k),
+    }
+}
+
+fun type_char(ch: u8) -> void {
+    if ch < 32 { return }
+    if ch >= 127 { return }
+    if usr_pos >= 250 { return }
+    poke(&usr_buf, usr_pos, ch)
+    usr_pos = usr_pos + 1
+    draw_input_line()
+}
+
+fun backspace() -> void {
+    if usr_pos == 0 { return }
+    usr_pos = usr_pos - 1
+    draw_input_line()
+}
+
+fun submit_input() -> void {
+    if usr_pos == 0 { return }
+    null_terminate(&usr_buf, usr_pos)
+
+    let cmd: UserCmd = classify_user_cmd()
+    if cmd == UserCmd.CmdJoin {
+        net_send("JOIN ")
+        send_from(&usr_buf, 6)
+        net_send("\r\n")
+    } else if cmd == UserCmd.CmdNick {
+        net_send("NICK ")
+        send_from(&usr_buf, 6)
+        net_send("\r\n")
+    } else if cmd == UserCmd.CmdQuit {
+        net_send("QUIT :MinZ IRC signing off\r\n")
+        status_msg("Disconnected.")
+    } else {
+        send_privmsg()
     }
 
-    // /nick newnick
-    if usr_buf[0] == 47 && usr_buf[1] == 110 {  // "/n"
-        send_str("NICK ")
-        send_from(&usr_buf, 6)  // skip "/nick "
-        send_str("\r\n")
-        return
-    }
+    usr_pos = 0
+    draw_input_line()
+}
 
-    // /quit
-    if usr_buf[0] == 47 && usr_buf[1] == 113 {  // "/q"
-        send_str("QUIT :MinZ IRC signing off\r\n")
-        tui_goto(0, INPUT_Y)
-        tui_puts("Disconnected.")
-        return
+fun classify_user_cmd() -> UserCmd {
+    if usr_buf[0] != 47 { return UserCmd.Say }   // not '/'
+    return match usr_buf[1] {
+        106 => UserCmd.CmdJoin,     // 'j'
+        110 => UserCmd.CmdNick,     // 'n'
+        113 => UserCmd.CmdQuit,     // 'q'
+        _   => UserCmd.CmdUnknown,
     }
+}
 
-    // Regular message → PRIVMSG #channel :message
-    send_str("PRIVMSG ")
+fun send_privmsg() -> void {
+    net_send("PRIVMSG ")
     send_buf(&CHANNEL)
-    send_str(" :")
+    net_send(" :")
     send_buf(&usr_buf)
-    send_str("\r\n")
+    net_send("\r\n")
 
-    // Echo locally (server won't echo our own messages)
-    tui_color(3, 0, 1)   // yellow, bright
-    tui_putch(60)          // '<'
+    // Local echo
+    tui_color(Color.Yellow, Color.Black, 1)
+    tui_putch(60)
     tui_puts(&NICK)
-    tui_putch(62)          // '>'
-    tui_color(7, 0, 0)
+    tui_putch(62)
+    tui_color(Color.White, Color.Black, 0)
     tui_putch(32)
     tui_puts(&usr_buf)
     scroll_msg()
 }
 
-// ── TUI drawing ────────────────────────────────────────────────────
+// ── TUI ────────────────────────────────────────────────────────────
 
-fun draw_status(msg: ^u8) -> void {
-    tui_goto(0, STATUS_Y)
-    tui_color(0, 4, 1)    // black on blue, bright
+fun status_msg(msg: ^u8) -> void {
+    tui_goto(0, 0)
+    tui_color(Color.White, Color.Blue, 1)
     var i: u8 = 0
     while i < tui_width() {
-        tui_putch(32)      // fill with spaces
+        tui_putch(32)
         i = i + 1
     }
-    tui_goto(1, STATUS_Y)
+    tui_goto(1, 0)
     tui_puts(msg)
     tui_reset()
 }
 
 fun draw_input_line() -> void {
     tui_goto(0, INPUT_Y)
-    tui_color(7, 0, 1)   // bright white
-    tui_putch(62)          // '>'
-    tui_putch(32)          // space
+    tui_color(Color.White, Color.Black, 1)
+    tui_putch(62)   // '>'
+    tui_putch(32)
     tui_reset()
 
-    // Print user input so far
-    var i: u8 = 0
-    while i < usr_pos {
+    for i: u8 in 0..usr_pos {
         let p: ^u8 = &usr_buf + i
         tui_putch(p^)
-        i = i + 1
     }
 
-    // Clear rest of line
-    while i < tui_width() - 2 {
+    // Clear rest
+    var j: u8 = usr_pos
+    while j < tui_width() - 2 {
         tui_putch(32)
-        i = i + 1
+        j = j + 1
     }
-
-    // Position cursor after input
     tui_goto(2 + usr_pos, INPUT_Y)
 }
 
 fun scroll_msg() -> void {
-    // Move to next line in message area
-    // (simplified: just print newline, VT100 handles scrolling)
-    tui_putch(13)  // CR
-    tui_putch(10)  // LF
+    tui_putch(13)   // CR
+    tui_putch(10)   // LF
 }
 
-// ── String helpers ─────────────────────────────────────────────────
+// ── String primitives ──────────────────────────────────────────────
+
+fun poke(buf: ^u8, offset: u16, val: u8) -> void {
+    let p: ^u8 = buf + offset
+    p^ = val
+}
+
+fun null_terminate(buf: ^u8, offset: u16) -> void {
+    let p: ^u8 = buf + offset
+    p^ = 0
+}
 
 fun set_str(dst: ^u8, src: ^u8) -> void {
     var i: u8 = 0
     while src[i] != 0 {
-        let pd: ^u8 = dst + i
-        pd^ = src[i]
+        let p: ^u8 = dst + i
+        p^ = src[i]
         i = i + 1
     }
-    let pd: ^u8 = dst + i
-    pd^ = 0
+    let p: ^u8 = dst + i
+    p^ = 0
 }
 
 fun region_match(buf: ^u8, offset: u16, target: ^u8, len: u8) -> u8 {
     var i: u8 = 0
     while i < len {
-        let pb: ^u8 = buf + offset + i
-        if pb^ != target[i] { return 0 }
+        let p: ^u8 = buf + offset + i
+        if p^ != target[i] { return 0 }
         i = i + 1
     }
     return 1
@@ -357,9 +395,9 @@ fun print_from(buf: ^u8, pos: u16) -> void {
     }
 }
 
-// ── Network send helpers ───────────────────────────────────────────
+// ── Network send ───────────────────────────────────────────────────
 
-fun send_str(s: ^u8) -> void {
+fun net_send(s: ^u8) -> void {
     var i: u8 = 0
     while s[i] != 0 {
         net_write(s[i])
