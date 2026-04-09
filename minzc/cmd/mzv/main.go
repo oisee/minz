@@ -148,9 +148,12 @@ func main() {
 					return
 				}
 				b := buf[0]
-				if b == 3 || b == 4 { // Ctrl+C / Ctrl+D
+				if b == 4 { // Ctrl+D = exit MZV
 					exitCleanly()
 					return
+				}
+				if b == 3 { // Ctrl+C = pass to program (copy in some terminals)
+					// fall through to stdinCh
 				}
 				select {
 				case stdinCh <- b:
