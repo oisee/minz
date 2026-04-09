@@ -141,7 +141,9 @@ func main() {
 			}
 		}
 	}()
-	vm.Ports = newVMPorts(nh, stdinCh, *verbose)
+	vmPorts := newVMPorts(nh, stdinCh, *verbose)
+	vm.Ports = vmPorts
+	registerPortHosts(vm, vmPorts)
 
 	// Pre-connect network if --net flag given.
 	if *netAddr != "" {

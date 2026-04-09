@@ -8,11 +8,17 @@ package main
 //   $30 — network data (read/write)
 //   $31 — network control (connect/disconnect/status)
 //
+// Also registers @extern host functions (net_read, net_write, ctl_read,
+// ctl_write) that delegate to the same port handlers, so programs using
+// @extern declarations work identically to programs using OpIn8/OpOut8.
+//
 // Implements mir2.PortIO interface.
 
 import (
 	"fmt"
 	"os"
+
+	"github.com/minz/minzc/pkg/mir2"
 )
 
 // VMPorts bridges MIR2 VM port I/O to console and network.
@@ -87,6 +93,29 @@ func (p *VMPorts) WritePort(address uint16, b byte) {
 
 	if p.verbose {
 		fmt.Fprintf(os.Stderr, "[port] OUT 0x%04X, 0x%02X (unmapped)\n", address, b)
+	}
+}
+
+// registerPortHosts registers @extern host functions that delegate to port I/O.
+// This bridges the gap: Nanz @extern declarations → VM host table → port handlers.
+func registerPortHosts(vm *mir2.VM, ports *VMPorts) {
+	// net_read() -> u8 : IN A, ($30)
+	vm.Hosts["net_read"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		return []mir2.Value{{I: int64(ports.ReadPort(0x30))}}, nil
+	}
+	// net_write(b: u8) : OUT ($30), A
+	vm.Hosts["net_write"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		ports.WritePort(0x30, byte(args[0].I&0xFF))
+		return nil, nil
+	}
+	// ctl_read() -> u8 : IN A, ($31)
+	vm.Hosts["ctl_read"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		return []mir2.Value{{I: int64(ports.ReadPort(0x31))}}, nil
+	}
+	// ctl_write(b: u8) : OUT ($31), A
+	vm.Hosts["ctl_write"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		ports.WritePort(0x31, byte(args[0].I&0xFF))
+		return nil, nil
 	}
 }
 
