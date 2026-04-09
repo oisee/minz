@@ -1,0 +1,78 @@
+// Nanz Pipe Showcase — |>, pipe, trans, UFCS chains
+//
+// Nanz has FIVE forms of function composition:
+//   1. Value pipe:      expr |> func         (like Frill, Elixir, F#)
+//   2. Pipe with args:  expr |> func(arg)    (partial application!)
+//   3. Named pipe:      pipe name { stages } (composable pipeline)
+//   4. Trans:           trans name { use base; more stages }
+//   5. UFCS chains:     obj.method().method() (zero-cost)
+//
+// All five compile to the SAME tight Z80 code — no intermediate values,
+// no function call overhead for inlined stages.
+//
+// HOW TO RUN:
+//   mz fun/pipes_nanz.nanz --asserts mir2   # 9 asserts, all pass
+
+// ── 1. Value pipe |> ───────────────────────────────────────
+
+fun double(x: u8) -> u8 { return x + x }
+fun inc(x: u8) -> u8 { return x + 1 }
+fun dec(x: u8) -> u8 { return x - 1 }
+
+fun test_basic_pipe() -> u8 {
+    return 5 |> double |> inc          // double(5)=10, inc(10)=11
+}
+
+// ── 2. Pipe with arguments ─────────────────────────────────
+
+fun add(a: u8, b: u8) -> u8 { return a + b }
+fun mul(a: u8, b: u8) -> u8 { return a * b }
+
+fun test_pipe_with_args() -> u8 {
+    return 5 |> add(3) |> mul(2)       // add(5,3)=8, mul(8,2)=16
+}
+
+// ── 3. Named pipe declaration ──────────────────────────────
+
+fun add_acc(acc: u8, x: u8) -> u8 { return acc + x }
+
+pipe doubled { map(|x: u8| x + x) }
+
+fun test_named_pipe() -> u8 {
+    return range(0..5).apply(doubled).fold(0, add_acc)
+    // range: 5,4,3,2,1 → doubled: 10,8,6,4,2 → fold: 30
+}
+
+// ── 4. Trans — pipe composition ────────────────────────────
+
+trans doubled_plus_one { use doubled; map(|x: u8| x + 1) }
+
+fun test_trans() -> u8 {
+    return range(0..3).apply(doubled_plus_one).fold(0, add_acc)
+    // range: 3,2,1 → double: 6,4,2 → +1: 7,5,3 → fold: 15
+}
+
+// ── 5. UFCS iterator chains ────────────────────────────────
+
+fun test_lambda_inference() -> u8 {
+    return range(0..5).map(|x| x + x).fold(0, add_acc)
+    // same as test_named_pipe but inline, no type annotation
+}
+
+// ── Asserts ────────────────────────────────────────────────
+
+assert test_basic_pipe() == 11
+assert test_pipe_with_args() == 16
+assert test_named_pipe() == 30
+assert test_trans() == 15
+assert test_lambda_inference() == 30
+
+fun test_inline_1() -> u8 { return 10 |> double }
+fun test_inline_2() -> u8 { return 10 |> double |> inc }
+fun test_inline_3() -> u8 { return 10 |> add(5) }
+fun test_inline_4() -> u8 { return 3 |> mul(7) }
+
+assert test_inline_1() == 20
+assert test_inline_2() == 21
+assert test_inline_3() == 15
+assert test_inline_4() == 21

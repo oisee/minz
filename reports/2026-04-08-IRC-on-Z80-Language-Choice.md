@@ -203,9 +203,42 @@ The `for i in 0..n` compiles to a DJNZ loop on Z80 — the tightest possible ite
 
 ---
 
+## Wait — Nanz Has Pipes Too!
+
+A common misconception: "Frill has `|>`, Nanz doesn't." Wrong. Nanz has **five** forms of function composition — more than Frill:
+
+```nanz
+// 1. Value pipe (same as Frill |>)
+5 |> double |> inc                           // → 11
+
+// 2. Pipe with partial application (Frill CAN'T do this)
+5 |> add(3) |> mul(2)                        // → 16
+
+// 3. Named pipe declaration (unique to Nanz)
+pipe doubled { map(|x: u8| x + x) }
+range(0..5).apply(doubled).fold(0, add_acc)  // → 30
+
+// 4. Trans — pipe composition (unique to Nanz)
+trans doubled_inc { use doubled; map(|x| x + 1) }
+
+// 5. UFCS chains
+buf.map(|x| x*2).filter(|x| x > threshold).forEach(|x| process(x), n)
+```
+
+Z80 output — **every pipe chain with constant args const-folds to one instruction:**
+
+```z80
+test_basic_pipe:       LD A, 11 / RET    ; 5 |> double |> inc
+test_pipe_with_args:   LD A, 16 / RET    ; 5 |> add(3) |> mul(2)
+```
+
+Named pipes with `range().apply().fold()` produce DJNZ loops. Nanz doesn't trade away functional composition for imperative performance. It has both.
+
+---
+
 ## What Frill Would Have Been Good For
 
-**The parser.** If IRC parsing were a bigger part of the codebase (like a protocol analyzer, not a client), Frill's pattern matching and algebraic types would shine:
+**ADT destructuring.** If IRC parsing were a bigger part of the codebase (like a protocol analyzer, not a client), Frill's algebraic types would shine:
 
 ```frill
 type IrcMsg =

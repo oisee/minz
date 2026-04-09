@@ -175,9 +175,42 @@ for slot: u8 in 0..MAX_CLIENTS {
 
 ---
 
+## Стоп — У Nanz тоже есть Pipes!
+
+Распространённое заблуждение: «У Frill есть `|>`, у Nanz нет». Неправда. У Nanz **пять** форм композиции функций — больше чем у Frill:
+
+```nanz
+// 1. Value pipe (как Frill |>)
+5 |> double |> inc                           // → 11
+
+// 2. Pipe с частичным применением (Frill ТАК НЕ МОЖЕТ)
+5 |> add(3) |> mul(2)                        // → 16
+
+// 3. Именованный pipe (уникально для Nanz)
+pipe doubled { map(|x: u8| x + x) }
+range(0..5).apply(doubled).fold(0, add_acc)  // → 30
+
+// 4. Trans — композиция pipe'ов (уникально для Nanz)
+trans doubled_inc { use doubled; map(|x| x + 1) }
+
+// 5. UFCS цепочки
+buf.map(|x| x*2).filter(|x| x > threshold).forEach(|x| process(x), n)
+```
+
+Z80 выход — **каждая pipe-цепочка с константными аргументами сворачивается в одну инструкцию:**
+
+```z80
+test_basic_pipe:       LD A, 11 / RET    ; 5 |> double |> inc
+test_pipe_with_args:   LD A, 16 / RET    ; 5 |> add(3) |> mul(2)
+```
+
+Именованные pipe'ы с `range().apply().fold()` дают DJNZ циклы. Nanz не жертвует функциональной композицией ради императивной производительности. У него есть и то, и другое.
+
+---
+
 ## Где Frill был бы лучше
 
-**Парсер.** Если бы парсинг IRC был бо́льшей частью кода (анализатор протокола, а не клиент), паттерн-матчинг Frill и ADT бы сияли:
+**Деструктуризация ADT.** Если бы парсинг IRC был бо́льшей частью кода, паттерн-матчинг Frill и ADT бы сияли:
 
 ```frill
 let display (msg : IrcMsg) : unit = match msg with
