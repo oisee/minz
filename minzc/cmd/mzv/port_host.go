@@ -102,7 +102,7 @@ func registerPortHosts(vm *mir2.VM, ports *VMPorts) {
 	// net_read() -> u8 : IN A, ($30)
 	vm.Hosts["net_read"] = func(args []mir2.Value) ([]mir2.Value, error) {
 		b := ports.ReadPort(0x30)
-		if b != 0 {
+		if b != 0 && ports.verbose {
 			ch := b & 0x7F
 			fmt.Fprintf(os.Stderr, "[net<] %c (0x%02X)\n", ch, ch)
 		}
@@ -111,7 +111,9 @@ func registerPortHosts(vm *mir2.VM, ports *VMPorts) {
 	// net_write(b: u8) : OUT ($30), A
 	vm.Hosts["net_write"] = func(args []mir2.Value) ([]mir2.Value, error) {
 		b := byte(args[0].I & 0xFF)
-		fmt.Fprintf(os.Stderr, "[net>] %c (0x%02X)\n", b, b)
+		if ports.verbose {
+			fmt.Fprintf(os.Stderr, "[net>] %c (0x%02X)\n", b, b)
+		}
 		ports.WritePort(0x30, b)
 		return nil, nil
 	}
