@@ -157,11 +157,21 @@ fun dispatch_server_line() -> void {
     if srv_buf[0] == 58 {  // ':' prefix
         nick_start = 1
         pos = 1
-        while srv_buf[pos] != 33 && srv_buf[pos] != 32 && srv_buf[pos] != 0 {
+        // Skip to '!' or ' ' or null (find nick end)
+        while pos < 510 {
+            let c: u8 = srv_buf[pos]
+            if c == 33 { break }  // '!'
+            if c == 32 { break }  // ' '
+            if c == 0 { break }
             pos = pos + 1
         }
         nick_len = pos - 1
-        while srv_buf[pos] != 32 && srv_buf[pos] != 0 { pos = pos + 1 }
+        // Skip to space after prefix
+        while pos < 510 {
+            if srv_buf[pos] == 32 { break }
+            if srv_buf[pos] == 0 { break }
+            pos = pos + 1
+        }
         pos = pos + 1
     }
 
@@ -187,7 +197,11 @@ fun handle_ping() -> void {
 fun handle_privmsg(cmd_pos: u16, nick_start: u16, nick_len: u8) -> void {
     var pos: u16 = cmd_pos + 8
     // Skip to trailing (after ':')
-    while srv_buf[pos] != 58 && srv_buf[pos] != 0 { pos = pos + 1 }
+    while pos < 510 {
+        if srv_buf[pos] == 58 { break }
+        if srv_buf[pos] == 0 { break }
+        pos = pos + 1
+    }
     if srv_buf[pos] == 58 { pos = pos + 1 }
 
     tui_color(Color.Cyan, Color.Black, 1)
