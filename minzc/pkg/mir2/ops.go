@@ -128,10 +128,10 @@ const (
 	//   MZV:  Ports.ReadPort(n) / Ports.WritePort(n, val)
 	//   MZE:  same Ports interface
 	// One harness, all runtimes.
-	OpIn8   // in8  port=Imm         → dst : u8   — read byte from I/O port
-	OpOut8  // out8 port=Imm, val=%Src[0]          — write byte to I/O port
-	OpIn16  // in16 port=Imm         → dst : u16  — read 16-bit (lo=port, hi=port+1)
-	OpOut16 // out16 port=Imm, val=%Src[0]         — write 16-bit to I/O port pair
+	OpIn8   // in8  port=Imm(u8)      → dst : u8   — IN A,(n)     8-bit port, 8-bit data
+	OpOut8  // out8 port=Imm(u8), val=%Src[0]      — OUT (n),A   8-bit port, 8-bit data
+	OpIn16  // in16 port=Imm(u16)    → dst : u8   — IN r,(C)    16-bit port, 8-bit data (AY, bank switch)
+	OpOut16 // out16 port=Imm(u16), val=%Src[0]    — OUT (C),r   16-bit port, 8-bit data
 
 	opCount // sentinel — must remain last
 )

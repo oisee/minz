@@ -737,20 +737,19 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		}
 		result = zeroValue
 	case OpIn16:
-		port := uint16(inst.Imm & 0xFF)
+		// 16-bit port address, 8-bit data (Z80: IN r,(C) with BC=port)
+		port := uint16(inst.Imm & 0xFFFF)
 		if vm.Ports != nil {
-			lo := int64(vm.Ports.ReadPort(port))
-			hi := int64(vm.Ports.ReadPort(port + 1))
-			result = Value{I: lo | (hi << 8)}
+			result = Value{I: int64(vm.Ports.ReadPort(port))}
 		} else {
 			result = zeroValue
 		}
 	case OpOut16:
-		port := uint16(inst.Imm & 0xFF)
-		val := fr.get(inst.Src[0]).I
+		// 16-bit port address, 8-bit data (Z80: OUT (C),r with BC=port)
+		port := uint16(inst.Imm & 0xFFFF)
+		val := byte(fr.get(inst.Src[0]).I & 0xFF)
 		if vm.Ports != nil {
-			vm.Ports.WritePort(port, byte(val&0xFF))
-			vm.Ports.WritePort(port+1, byte((val>>8)&0xFF))
+			vm.Ports.WritePort(port, val)
 		}
 		result = zeroValue
 
