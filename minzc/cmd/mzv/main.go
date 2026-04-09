@@ -127,20 +127,30 @@ func main() {
 	// Port I/O: same ports as MZE/MZX ($23=console, $30=net, $31=ctl).
 	nh := newNetHost()
 	defer nh.Close()
-	// Stdin channel for console port reads (non-blocking).
+	// Single stdin reader shared by all consumers (TUI, ports, ZX keyboard).
 	stdinCh := make(chan byte, 256)
-	go func() {
-		buf := make([]byte, 1)
-		for {
-			if _, err := os.Stdin.Read(buf); err != nil {
-				return
+	startStdinReader := func(restore func()) {
+		go func() {
+			buf := make([]byte, 1)
+			for {
+				if _, err := os.Stdin.Read(buf); err != nil {
+					return
+				}
+				b := buf[0]
+				if b == 3 || b == 4 { // Ctrl+C / Ctrl+D
+					if restore != nil {
+						restore()
+					}
+					fmt.Print("\033[?25h")
+					os.Exit(0)
+				}
+				select {
+				case stdinCh <- b:
+				default:
+				}
 			}
-			select {
-			case stdinCh <- buf[0]:
-			default:
-			}
-		}
-	}()
+		}()
+	}
 	vmPorts := newVMPorts(nh, stdinCh, *verbose)
 	vm.Ports = vmPorts
 	registerPortHosts(vm, vmPorts)
@@ -291,8 +301,40 @@ func main() {
 		// Clear screen + hide cursor.
 		fmt.Print("\033[2J\033[H\033[?25l")
 
-		// Input reader goroutine.
-		go readInput(&keyMu, keyState, oldState)
+		// Start stdin reader with terminal restore on exit.
+		startStdinReader(func() {
+			term.Restore(int(os.Stdin.Fd()), oldState)
+		})
+
+		// ZX keyboard goroutine only started in --zx mode.
+		// TUI programs use tui_read_key via stdinCh directly.
+		if *zxScreen {
+			go func() {
+				for b := range stdinCh {
+					keyMu.Lock()
+					switch b {
+					case 'o', 'O':
+						keyState[0xDF] |= 0x02
+					case 'p', 'P':
+						keyState[0xDF] |= 0x01
+					case 'q', 'Q':
+						keyState[0xFB] |= 0x01
+					case 'a', 'A':
+						keyState[0xFD] |= 0x01
+					case ' ':
+						keyState[0x7F] |= 0x01
+					case 'h', 'H':
+						keyState[0xBF] |= 0x10
+					}
+					keyMu.Unlock()
+				}
+			}()
+		}
+	}
+
+	// If headless or no raw terminal, start stdin reader without restore.
+	if *headless {
+		startStdinReader(nil)
 	}
 
 	// ── Run ──────────────────────────────────────────────────────────────
