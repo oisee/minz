@@ -2907,6 +2907,8 @@ func (p *parser) parseStmt() (hir.Stmt, error) {
 		return p.parseIf()
 	case t.kind == tokIdent && t.val == "while":
 		return p.parseWhile()
+	case t.kind == tokIdent && t.val == "loop":
+		return p.parseLoop()
 	case t.kind == tokIdent && t.val == "for":
 		return p.parseFor()
 	case t.kind == tokIdent && t.val == "return":
@@ -3324,6 +3326,22 @@ func (p *parser) parseWhile() (hir.Stmt, error) {
 		return nil, err
 	}
 	return &hir.WhileStmt{Cond: cond, Body: body}, nil
+}
+
+func (p *parser) parseLoop() (hir.Stmt, error) {
+	if err := p.l.eatIdent("loop"); err != nil {
+		return nil, err
+	}
+	p.uninitVars = nil // stop tracking inside loops
+	body, err := p.parseBlock()
+	if err != nil {
+		return nil, err
+	}
+	// loop {} = while true {}
+	return &hir.WhileStmt{
+		Cond: &hir.BoolLitExpr{Val: true},
+		Body: body,
+	}, nil
 }
 
 func (p *parser) parseFor() (hir.Stmt, error) {
