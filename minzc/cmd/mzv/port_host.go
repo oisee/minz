@@ -101,11 +101,18 @@ func (p *VMPorts) WritePort(address uint16, b byte) {
 func registerPortHosts(vm *mir2.VM, ports *VMPorts) {
 	// net_read() -> u8 : IN A, ($30)
 	vm.Hosts["net_read"] = func(args []mir2.Value) ([]mir2.Value, error) {
-		return []mir2.Value{{I: int64(ports.ReadPort(0x30))}}, nil
+		b := ports.ReadPort(0x30)
+		if b != 0 {
+			ch := b & 0x7F
+			fmt.Fprintf(os.Stderr, "[net<] %c (0x%02X)\n", ch, ch)
+		}
+		return []mir2.Value{{I: int64(b)}}, nil
 	}
 	// net_write(b: u8) : OUT ($30), A
 	vm.Hosts["net_write"] = func(args []mir2.Value) ([]mir2.Value, error) {
-		ports.WritePort(0x30, byte(args[0].I&0xFF))
+		b := byte(args[0].I & 0xFF)
+		fmt.Fprintf(os.Stderr, "[net>] %c (0x%02X)\n", b, b)
+		ports.WritePort(0x30, b)
 		return nil, nil
 	}
 	// ctl_read() -> u8 : IN A, ($31)
