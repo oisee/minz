@@ -144,6 +144,7 @@ func main() {
 	vmPorts := newVMPorts(nh, stdinCh, *verbose)
 	vm.Ports = vmPorts
 	registerPortHosts(vm, vmPorts)
+	stdinForTUI = stdinCh // share stdin channel with TUI host functions
 
 	// Pre-connect network if --net flag given.
 	if *netAddr != "" {

@@ -31,6 +31,9 @@ var boxChars = map[byte]string{
 
 // registerTUIHosts installs tui_* host functions on the VM.
 // Output goes to stdout (the TUI IS the program output).
+// stdinForTUI is set by main.go to share the stdin channel with TUI hosts.
+var stdinForTUI <-chan byte
+
 func registerTUIHosts(vm *mir2.VM, headless bool, trace bool) {
 	termW := 80
 	termH := 24
@@ -109,10 +112,28 @@ if len(args) > 0 {
 
 	// ── Input ───────────────────────────────────────────────────────
 	vm.Hosts["tui_read_key"] = func(_ []mir2.Value) ([]mir2.Value, error) {
-if headless {
-			return []mir2.Value{{I: 147}}, nil // KEY_F8
+		if headless {
+			return []mir2.Value{{I: 0}}, nil // no key
 		}
 
+		// Non-blocking read from shared stdin channel.
+		if stdinForTUI == nil {
+			return []mir2.Value{{I: 0}}, nil
+		}
+		select {
+		case b := <-stdinForTUI:
+			// Ctrl+C / Ctrl+D → exit
+			if b == 3 || b == 4 {
+				return []mir2.Value{{I: 0}}, fmt.Errorf("user exit (ctrl+c/d)")
+			}
+			return []mir2.Value{{I: int64(b)}}, nil
+		default:
+			return []mir2.Value{{I: 0}}, nil // no key available
+		}
+	}
+
+	// Legacy blocking tui_read_key kept for reference but not used.
+	_ = func(_ []mir2.Value) ([]mir2.Value, error) {
 		buf := make([]byte, 8)
 		n, err := os.Stdin.Read(buf)
 		if err != nil || n == 0 {
