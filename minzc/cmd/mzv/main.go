@@ -129,24 +129,32 @@ func main() {
 	defer nh.Close()
 	// Single stdin reader shared by all consumers (TUI, ports, ZX keyboard).
 	stdinCh := make(chan byte, 256)
-	startStdinReader := func(restore func()) {
+	// exitCleanly is called from any goroutine to restore terminal and quit.
+	var termRestore func()
+	exitCleanly := func() {
+		if termRestore != nil {
+			termRestore()
+		}
+		fmt.Print("\033[?25h\033[0m\n") // show cursor, reset colors, newline
+		os.Exit(0)
+	}
+
+	startStdinReader := func() {
 		go func() {
 			buf := make([]byte, 1)
 			for {
 				if _, err := os.Stdin.Read(buf); err != nil {
+					exitCleanly()
 					return
 				}
 				b := buf[0]
 				if b == 3 || b == 4 { // Ctrl+C / Ctrl+D
-					if restore != nil {
-						restore()
-					}
-					fmt.Print("\033[?25h")
-					os.Exit(0)
+					exitCleanly()
+					return
 				}
 				select {
 				case stdinCh <- b:
-				default:
+				default: // drop if full — don't block reader
 				}
 			}
 		}()
@@ -286,25 +294,24 @@ func main() {
 			fmt.Fprintf(os.Stderr, "mzv: failed to set raw terminal: %v\n", err)
 			os.Exit(1)
 		}
-		defer term.Restore(int(os.Stdin.Fd()), oldState)
+		termRestore = func() {
+			term.Restore(int(os.Stdin.Fd()), oldState)
+		}
+		defer termRestore()
 
-		// Handle signals to restore terminal.
+		// Handle SIGINT/SIGTERM (from kill command).
 		sigCh := make(chan os.Signal, 1)
 		signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
 		go func() {
 			<-sigCh
-			term.Restore(int(os.Stdin.Fd()), oldState)
-			fmt.Print("\033[?25h") // show cursor
-			os.Exit(0)
+			exitCleanly()
 		}()
 
 		// Clear screen + hide cursor.
 		fmt.Print("\033[2J\033[H\033[?25l")
 
-		// Start stdin reader with terminal restore on exit.
-		startStdinReader(func() {
-			term.Restore(int(os.Stdin.Fd()), oldState)
-		})
+		// Start single stdin reader.
+		startStdinReader()
 
 		// ZX keyboard goroutine only started in --zx mode.
 		// TUI programs use tui_read_key via stdinCh directly.
@@ -332,9 +339,8 @@ func main() {
 		}
 	}
 
-	// If headless or no raw terminal, start stdin reader without restore.
 	if *headless {
-		startStdinReader(nil)
+		startStdinReader()
 	}
 
 	// ── Run ──────────────────────────────────────────────────────────────

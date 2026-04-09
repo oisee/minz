@@ -17,6 +17,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"runtime"
 
 	"github.com/minz/minzc/pkg/mir2"
 )
@@ -101,6 +102,7 @@ func (p *VMPorts) WritePort(address uint16, b byte) {
 func registerPortHosts(vm *mir2.VM, ports *VMPorts) {
 	// net_read() -> u8 : IN A, ($30)
 	vm.Hosts["net_read"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		runtime.Gosched() // yield to stdin reader goroutine
 		b := ports.ReadPort(0x30)
 		if b != 0 && ports.verbose {
 			ch := b & 0x7F
