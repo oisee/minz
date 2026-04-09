@@ -23,6 +23,13 @@ import (
 //   - No OpPatchSlot physical encoding (treated as a mutable slot variable)
 //   - Pointer arithmetic uses a flat []byte heap; no OS-level memory
 //   - No concurrency
+// PortIO is the interface for I/O port access, shared across all runtimes
+// (MZV VM, MZE Z80 emulator, MZX ZX Spectrum). One harness, all platforms.
+type PortIO interface {
+	ReadPort(address uint16) byte
+	WritePort(address uint16, b byte)
+}
+
 type VM struct {
 	Module *Module
 
@@ -30,6 +37,11 @@ type VM struct {
 	// Key: full intrinsic name (e.g. "@mir.io.print.u8", "@host.emit.code")
 	// Value: Go function that receives args and returns results.
 	Hosts map[string]HostFunc
+
+	// I/O port handler — same interface as emulator.Ports.
+	// When set, OpIn8/OpOut8/OpIn16/OpOut16 dispatch here.
+	// Console ($23), network ($30), control ($31) — all through one interface.
+	Ports PortIO
 
 	// Execution limits (protect against infinite loops in comptime code).
 	MaxSteps  int64 // 0 = unlimited (not recommended for comptime)
@@ -707,6 +719,39 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 	case OpAsm:
 		// Cannot execute target-specific asm in the VM.
 		// Return zero and continue (lenient) — comptime code shouldn't use asm.
+		result = zeroValue
+
+	// ── Port I/O ─────────────────────────────────────────────────────────────
+	case OpIn8:
+		port := uint16(inst.Imm & 0xFF)
+		if vm.Ports != nil {
+			result = Value{I: int64(vm.Ports.ReadPort(port))}
+		} else {
+			result = zeroValue
+		}
+	case OpOut8:
+		port := uint16(inst.Imm & 0xFF)
+		val := byte(fr.get(inst.Src[0]).I & 0xFF)
+		if vm.Ports != nil {
+			vm.Ports.WritePort(port, val)
+		}
+		result = zeroValue
+	case OpIn16:
+		port := uint16(inst.Imm & 0xFF)
+		if vm.Ports != nil {
+			lo := int64(vm.Ports.ReadPort(port))
+			hi := int64(vm.Ports.ReadPort(port + 1))
+			result = Value{I: lo | (hi << 8)}
+		} else {
+			result = zeroValue
+		}
+	case OpOut16:
+		port := uint16(inst.Imm & 0xFF)
+		val := fr.get(inst.Src[0]).I
+		if vm.Ports != nil {
+			vm.Ports.WritePort(port, byte(val&0xFF))
+			vm.Ports.WritePort(port+1, byte((val>>8)&0xFF))
+		}
 		result = zeroValue
 
 	default:

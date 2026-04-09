@@ -3513,6 +3513,44 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.emitf("    CALL %s, %s", cc, inst.Sym)
 		clear(g.holdsPhys) // calls clobber all volatile registers
 
+	case OpIn8:
+		// IN A, (port) — 8-bit port read
+		port := inst.Imm & 0xFF
+		g.emitf("    IN A, (0x%02X)", port)
+		if dst != "A" {
+			g.emitf("    LD %s, A", dst)
+		}
+
+	case OpOut8:
+		// OUT (port), A — 8-bit port write
+		port := inst.Imm & 0xFF
+		src := g.loc(inst.Src[0])
+		if src != "A" {
+			g.emitf("    LD A, %s", src)
+		}
+		g.emitf("    OUT (0x%02X), A", port)
+
+	case OpIn16:
+		// IN lo from port, IN hi from port+1 → combine into pair
+		port := inst.Imm & 0xFF
+		lo := lowByte(dst)
+		g.emitf("    IN A, (0x%02X)", port)
+		g.emitf("    LD %s, A", lo)
+		g.emitf("    IN A, (0x%02X)", port+1)
+		hi := highByte(dst)
+		g.emitf("    LD %s, A", hi)
+
+	case OpOut16:
+		// OUT lo to port, OUT hi to port+1
+		port := inst.Imm & 0xFF
+		src := g.loc(inst.Src[0])
+		lo := lowByte(src)
+		hi := highByte(src)
+		g.emitf("    LD A, %s", lo)
+		g.emitf("    OUT (0x%02X), A", port)
+		g.emitf("    LD A, %s", hi)
+		g.emitf("    OUT (0x%02X), A", port+1)
+
 	case OpAddrOf:
 		sym := sanitizeIdent(inst.Sym)
 		if isPairReg(dst) {

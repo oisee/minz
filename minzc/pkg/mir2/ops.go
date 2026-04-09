@@ -122,6 +122,17 @@ const (
 	// Use ClsHard=true on result/input regs that the template hard-requires.
 	OpAsm
 
+	// ── Port I/O ──────────────────────────────────────────────────────────────
+	// Platform-independent I/O port access. Compiles to:
+	//   Z80:  IN A,(n) / OUT (n),A   (8-bit port)
+	//   MZV:  Ports.ReadPort(n) / Ports.WritePort(n, val)
+	//   MZE:  same Ports interface
+	// One harness, all runtimes.
+	OpIn8   // in8  port=Imm         → dst : u8   — read byte from I/O port
+	OpOut8  // out8 port=Imm, val=%Src[0]          — write byte to I/O port
+	OpIn16  // in16 port=Imm         → dst : u16  — read 16-bit (lo=port, hi=port+1)
+	OpOut16 // out16 port=Imm, val=%Src[0]         — write 16-bit to I/O port pair
+
 	opCount // sentinel — must remain last
 )
 
@@ -156,6 +167,10 @@ var opNames = [opCount]string{
 	OpPush:         "push",
 	OpPop:          "pop",
 	OpAsm:          "asm",
+	OpIn8:          "in8",
+	OpOut8:         "out8",
+	OpIn16:         "in16",
+	OpOut16:        "out16",
 }
 
 // Predicate helpers
@@ -173,7 +188,9 @@ func IsConversion(op Op) bool { return op == OpExt || op == OpSext || op == OpTr
 
 // IsSideEffect reports whether op has no result (Dst must be NoReg).
 // OpPush and OpPop are side-effecting (modify stack pointer).
-func IsSideEffect(op Op) bool { return op == OpStore || op == OpPatch || op == OpPush }
+func IsSideEffect(op Op) bool {
+	return op == OpStore || op == OpPatch || op == OpPush || op == OpOut8 || op == OpOut16
+}
 
 // ── Comparison predicate ──────────────────────────────────────────────────────
 
