@@ -52,6 +52,8 @@ func main() {
 	maxFrames := flag.Int("max-frames", 0, "stop after N frames (0=unlimited)")
 	dumpDir := flag.String("dump-frames", "", "dump each frame as .scr file to directory")
 	diskImage := flag.String("disk", "", "FAT disk image file (enables @disk_read/@disk_write hosts)")
+	netAddr := flag.String("net", "", "pre-connect TCP to host:port (IRC, telnet, etc.)")
+	netTLS := flag.Bool("tls", false, "use TLS for --net connection")
 	flag.Parse()
 	if flag.NArg() < 1 {
 		fmt.Fprintln(os.Stderr, "usage: mzv [--trace] [--headless] [--zx] [--disk img] <file>")
@@ -121,6 +123,36 @@ func main() {
 	vm := mir2.NewVM(m)
 	vm.MaxSteps = 0 // unlimited — game loop runs forever
 	vm.MaxMemory = 1 << 20
+
+	// Port I/O: same ports as MZE/MZX ($23=console, $30=net, $31=ctl).
+	nh := newNetHost()
+	defer nh.Close()
+	// Stdin channel for console port reads (non-blocking).
+	stdinCh := make(chan byte, 256)
+	go func() {
+		buf := make([]byte, 1)
+		for {
+			if _, err := os.Stdin.Read(buf); err != nil {
+				return
+			}
+			select {
+			case stdinCh <- buf[0]:
+			default:
+			}
+		}
+	}()
+	vm.Ports = newVMPorts(nh, stdinCh, *verbose)
+
+	// Pre-connect network if --net flag given.
+	if *netAddr != "" {
+		if err := nh.preConnect(*netAddr, *netTLS); err != nil {
+			fmt.Fprintf(os.Stderr, "mzv: %v\n", err)
+			os.Exit(1)
+		}
+		if *verbose {
+			fmt.Fprintf(os.Stderr, "[mzv] pre-connected to %s\n", *netAddr)
+		}
+	}
 
 	// Canvas host functions (for any frontend using canvas_* or @canvas.*).
 	mir2.RegisterCanvasHosts(vm)
