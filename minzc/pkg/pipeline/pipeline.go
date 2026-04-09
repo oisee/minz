@@ -104,9 +104,9 @@ type Options struct {
 	// GraceStats (if non-nil) collects per-rule application counts.
 	UseGrace   bool
 	GraceStats *mir2.GraceStats
-	// UseVIR replaces PBQP+Z80Codegen with the unified VIR solver
-	// (Z3 joint isel+regalloc, single pass, no text fixups).
-	// Functions that fail VIR fall back to the PBQP path automatically.
+	// UseVIR replaces PBQP+Z80Codegen with the experimental VIR solver.
+	// It remains opt-in; functions that fail VIR fall back to the PBQP path
+	// automatically.
 	UseVIR bool
 	// OptSize enables size optimizations (Grace reroll: repeated CALLs → DJNZ loop).
 	// Trades ~4T/iteration for code size reduction. Use for ROM-constrained targets.
@@ -130,11 +130,9 @@ type Options struct {
 	AssertMode string
 }
 
-// DefaultOptions returns options with all recommended passes enabled.
 // DefaultOptions returns the default pipeline options.
-// VIR backend available via UseVIR: true. Runtime calls inlined.
-// One new assembly error (sap_mara_demo) — needs investigation before default.
-func DefaultOptions() Options { return Options{ContractOpt: true, UseVIR: true, UseVIRDSE: true} }
+// Production default stays on PBQP; VIR remains an explicit opt-in.
+func DefaultOptions() Options { return Options{ContractOpt: true, UseVIRDSE: true} }
 
 // CompileHIRSteps runs the full HIR→MIR2→Z80 pipeline and returns all intermediate outputs.
 func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
@@ -432,7 +430,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 				AnnotateTStates: opt.AnnotateTStates,
 			})
 			s.Assembly = spliceVIRFallback(virAsm, pbqpAsm, virResults, failSet, m)
-			fmt.Fprintf(os.Stderr, "vir: %d/%d via Z3 solver, %d via PBQP fallback: %s\n",
+			fmt.Fprintf(os.Stderr, "vir: %d/%d via VIR backend, %d via PBQP fallback: %s\n",
 				ok, ok+fail, fail, strings.Join(failNames, ", "))
 		} else {
 			// Order: code → strings → zero-storage (globals + vir_mem + spills).
@@ -445,7 +443,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 			s.Assembly += strBuf.String()
 			s.Assembly += emitGlobals(m)
 			s.Assembly += virZeros
-			fmt.Fprintf(os.Stderr, "vir: all %d functions compiled via Z3 unified solver\n", ok)
+			fmt.Fprintf(os.Stderr, "vir: all %d functions compiled via VIR backend\n", ok)
 		}
 	} else if opt.UseLIR {
 		// Convert PBQP allocation to LIR hints for guided WFC.

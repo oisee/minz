@@ -147,18 +147,11 @@ BIT 7, C
 JR NZ, .branch_on_ptr_bit_if_then1
 ```
 
-And memory-backed bit intent appears too:
-
-```asm
-LD A, (flags_g)
-SET 4, IXL
-LD (flags_g), A
-```
-
 What this proves:
 
 - bit intent survives far enough to become `BIT/SET/RES`
-- this is one of the cleanest current “backend did the right thing” showcases
+- register-backed bit intent is one of the cleanest current “backend did the right thing” showcases
+- memory-backed bit intent still needs a separate quality audit and is not claimed here as showcase-quality
 
 ### 2. `pointer_threading.nanz`
 
@@ -205,34 +198,20 @@ Representative source shape:
 @end
 ```
 
-This is a good compact asm sample because it shows ObjC syntax lowering to short direct functions, not objc runtime theater:
+What is still worth showing here is the source-level intent:
 
-```asm
-; Box_get: params=[BC] ret=HL (Z3-PFCCO)
-; Box_addN: params=[BC,HL] ret=HL (Z3-PFCCO)
+- ObjC methods lower to direct functions over plain data
+- there is no “runtime theater” requirement for simple field access
 
-Box_addN:
-    LD A, (HL)
-    INC HL
-    LD H, (HL)
-    LD L, A
-    ADD HL, DE
-    RET
+But the current emitted asm is not clean enough to use as a showcase snippet yet:
 
-Box_get:
-    LD A, (HL)
-    INC HL
-    LD H, (HL)
-    LD L, A
-    LD D, H
-    LD E, L
-    RET
-```
+- top-of-file ABI summary comments in the emitted `.a80` are stale (`BC/HL`) and contradict the actual function-local comments (`HL/DE`)
+- `Box_get` still carries an extra `DE` copy, so the snippet is correct-looking but not elegant enough to feature as “good asm”
 
-What this proves:
+Current defensible verdict:
 
 - ObjC here is genuinely “syntax over direct calls and struct access”
-- not a fake frontend with huge runtime tax
+- but this particular asm output should be treated as “interesting and mostly direct”, not as a polished showcase of backend quality
 
 ## Main Takeaways
 
