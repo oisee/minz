@@ -106,7 +106,7 @@ fun main() -> void {
     net_send("USER minz 0 * :MinZ Z80 IRC Client\r\n")
 
     // Main loop
-    loop {
+    while 1 == 1 {
         poll_network()
         poll_keyboard()
     }
