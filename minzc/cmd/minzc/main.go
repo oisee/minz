@@ -220,7 +220,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&compileTrace, "compile-trace", false, "show all optimization decisions and transformations")
 	rootCmd.Flags().StringVar(&superoptRules, "superopt-rules", "", "path to z80-optimizer rules.json[.gz] for superoptimizer peephole pass")
 	rootCmd.Flags().BoolVar(&useLIR, "lir", false, "use LIR backend (ISLE+WFC+PBQP) for code generation (legacy)")
-	rootCmd.Flags().BoolVar(&useVIR, "vir", true, "use VIR backend (Z3 joint isel+regalloc, -71% vs SDCC) [default]")
+	rootCmd.Flags().BoolVar(&useVIR, "vir", false, "use VIR backend (Z3 joint isel+regalloc) — experimental: miscompiles loops with a parameter-bound counter")
 	rootCmd.Flags().BoolVar(&useZ3, "z3", false, "use Z3 SMT solver for optimal register allocation (slower, provably optimal)")
 	rootCmd.Flags().BoolVar(&optSize, "Osize", false, "optimize for code size: Grace reroll (repeated CALLs → DJNZ loop + data table)")
 	rootCmd.Flags().BoolVar(&useGrace, "grace", false, "run all Grace MIR2 passes before VIR lowering (DSE, CondRetSink, BlockMerge, etc.)")
@@ -890,8 +890,8 @@ func compileViaHIR(sourceFile string) error {
 	steps, err := pipeline.CompileHIRSteps(hirMod, pipeline.Options{
 		ContractOpt:     true,
 		AnnotateTStates: annotateTStates,
-		UseLIR:          useLIR && !useVIR, // --lir enables legacy LIR; --vir overrides
-		UseVIR:          useVIR && !useLIR, // --vir is default; --lir overrides it
+		UseLIR:          useLIR && !useVIR, // --lir selects LIR; --vir wins if both given
+		UseVIR:          useVIR && !useLIR, // neither flag → PBQP, the production default
 		OptSize:         optSize,           // --Osize enables Grace reroll
 		UseGrace:        useGrace,          // --grace enables full Grace MIR2 pass suite
 		UseVIRDSE:       useVIRDSE,         // --vir-dse enables post-lowering dead op elim
