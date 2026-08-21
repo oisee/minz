@@ -456,24 +456,57 @@ func emitLine(
 	rs := regsIn(toks[3:], alloc)
 	imm, hasImm := firstInt(toks[3:])
 
-	src0, src1 := mir2.NoReg, mir2.NoReg
+	src0 := mir2.NoReg
 	if len(rs) > 0 {
 		src0 = rs[0]
-	}
-	if len(rs) > 1 {
-		src1 = rs[1]
 	}
 
 	blk := bld.Cur
 	emit := func(inst *mir2.Inst) { blk.Append(inst) }
+
+	// QBE allows an immediate in either operand position (`and %r, 255`,
+	// `sub 10, %r`), but MIR2 binary ops read registers only. Walk the operands
+	// in source order and materialise each immediate into a fresh OpConst
+	// register, so the operand order of non-commutative ops survives the trip.
+	// Taking both operands from regsIn alone drops the immediate and leaves the
+	// operand at NoReg, which is Reg(0) and surfaces downstream as a reference
+	// to the never-declared r0.
+	nImm := 0
+	binOperands := func() (mir2.Reg, mir2.Reg) {
+		ops := make([]mir2.Reg, 0, 2)
+		for _, t := range toks[3:] {
+			switch t.kind {
+			case tkReg:
+				ops = append(ops, alloc(t.text))
+			case tkInt:
+				v, err := strconv.ParseInt(t.text, 10, 64)
+				if err != nil {
+					continue
+				}
+				c := alloc(fmt.Sprintf("__imm.%s.%d", toks[0].text, nImm))
+				nImm++
+				emit(&mir2.Inst{Op: mir2.OpConst, Dst: c, Imm: v, Ty: ty, Cls: cls})
+				ops = append(ops, c)
+			}
+			if len(ops) == 2 {
+				break
+			}
+		}
+		for len(ops) < 2 {
+			ops = append(ops, mir2.NoReg)
+		}
+		return ops[0], ops[1]
+	}
 	bin := func(op mir2.Op) {
-		emit(&mir2.Inst{Op: op, Dst: dst, Src: [2]mir2.Reg{src0, src1}, Ty: ty, Cls: cls})
+		a, b := binOperands()
+		emit(&mir2.Inst{Op: op, Dst: dst, Src: [2]mir2.Reg{a, b}, Ty: ty, Cls: cls})
 	}
 	una := func(op mir2.Op) {
 		emit(&mir2.Inst{Op: op, Dst: dst, Src: [2]mir2.Reg{src0}, Ty: ty, Cls: cls})
 	}
 	cmp := func(cond mir2.CmpCond) {
-		emit(&mir2.Inst{Op: mir2.OpCmp, Dst: dst, Src: [2]mir2.Reg{src0, src1}, Cond: cond, Ty: mir2.TyBool, Cls: mir2.ClassFlag})
+		a, b := binOperands()
+		emit(&mir2.Inst{Op: mir2.OpCmp, Dst: dst, Src: [2]mir2.Reg{a, b}, Cond: cond, Ty: mir2.TyBool, Cls: mir2.ClassFlag})
 	}
 
 	switch opName {

@@ -276,3 +276,63 @@ func TestRoundTripGCD(t *testing.T) {
 		}
 	}
 }
+
+// TestParseImmediateOperands: QBE puts constants directly in binary ops
+// (`and %r, 255`), but MIR2 binary ops read registers only, so each immediate
+// has to be materialised into an OpConst register. The immediate can sit in
+// either position, so operand order must survive for non-commutative ops —
+// `sub 10, %a` is 10-a, not a-10.
+func TestParseImmediateOperands(t *testing.T) {
+	src := `
+export function w $imms(w %a) {
+@start
+	%m =w and %a, 255
+	%r =w sub 100, %m
+	%s =w shr %r, 1
+	ret %s
+}
+`
+	m, err := qbe2mir2.Parse(src)
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	// (100 - (a & 255)) >> 1, evaluated as u16 (QBE w maps to TyU16).
+	// The last case underflows and wraps: 100-255 = 65381, >>1 = 32690.
+	// It also pins operand order — a flipped `sub` would give (255-100)>>1 = 77.
+	cases := [][2]int64{{0, 50}, {10, 45}, {50, 25}, {100, 0}, {511, 32690}}
+	for _, tc := range cases {
+		got := vmCall(t, m, "imms", tc[0])
+		if got != tc[1] {
+			t.Errorf("imms(%d) = %d, want %d", tc[0], got, tc[1])
+		}
+	}
+}
+
+// TestParseImmediateCompare: the same materialisation is needed for compares,
+// where a reversed operand order silently flips the predicate.
+func TestParseImmediateCompare(t *testing.T) {
+	src := `
+export function w $over(w %a) {
+@start
+	%c =w cugtw %a, 10
+	jnz %c, @yes, @no
+@yes
+	%y =w copy 1
+	ret %y
+@no
+	%n =w copy 0
+	ret %n
+}
+`
+	m, err := qbe2mir2.Parse(src)
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	cases := [][2]int64{{0, 0}, {10, 0}, {11, 1}, {255, 1}}
+	for _, tc := range cases {
+		got := vmCall(t, m, "over", tc[0])
+		if got != tc[1] {
+			t.Errorf("over(%d) = %d, want %d", tc[0], got, tc[1])
+		}
+	}
+}
