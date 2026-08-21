@@ -16,6 +16,9 @@ import (
 // on equivalent C/Nanz programs. Uses SDCC instruction counts from
 // research/abi-paper/sdcc-output/ as reference.
 func TestGrace_SDCC_Comparison(t *testing.T) {
+	if testing.Short() {
+		t.Skip("corpus-scale test; runs under `make test-all`, skipped by -short")
+	}
 	// SDCC instruction counts (from pre-compiled .asm files)
 	sdccCounts := map[string]int{
 		"abs_diff": 12,
@@ -122,6 +125,9 @@ fun swap(a: u8, b: u8) -> u8 {
 
 // TestGrace_FatFS compiles FatFS C89 test files through Grace and reports.
 func TestGrace_FatFS(t *testing.T) {
+	if testing.Short() {
+		t.Skip("corpus-scale test; runs under `make test-all`, skipped by -short")
+	}
 	c89Dir := filepath.Join("..", "..", "..", "examples", "c89")
 
 	fatfsFiles := []string{

@@ -20,6 +20,9 @@ import (
 // both Go and Grace paths. Reports per-file: compile status, instruction count,
 // convergence with Go path.
 func TestGrace_AllFrontends(t *testing.T) {
+	if testing.Short() {
+		t.Skip("corpus-scale test; runs under `make test-all`, skipped by -short")
+	}
 	examplesRoot := filepath.Join("..", "..", "..", "examples")
 
 	type frontend struct {

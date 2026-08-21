@@ -17,6 +17,9 @@ import (
 // programs, using BOTH the C89 frontend (identical source) and Nanz
 // (idiomatic MinZ). This is the definitive apples-to-apples comparison.
 func TestGrace_SDCC_Full(t *testing.T) {
+	if testing.Short() {
+		t.Skip("corpus-scale test; runs under `make test-all`, skipped by -short")
+	}
 	sdccDir := filepath.Join("..", "..", "..", "research", "abi-paper", "sdcc-output")
 
 	// SDCC instruction counts (hand-counted from .asm files)

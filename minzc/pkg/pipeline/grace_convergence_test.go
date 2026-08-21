@@ -14,6 +14,9 @@ import (
 // optimization paths and compares assembly output. Any difference is a
 // convergence failure — the Grace rules didn't replicate the Go behavior.
 func TestGraceConvergence(t *testing.T) {
+	if testing.Short() {
+		t.Skip("corpus-scale test; runs under `make test-all`, skipped by -short")
+	}
 	nanzDir := filepath.Join("..", "..", "..", "examples", "nanz")
 	entries, err := os.ReadDir(nanzDir)
 	if err != nil {
@@ -103,6 +106,9 @@ func TestGraceConvergence(t *testing.T) {
 // TestGraceVerify runs the Grace path on the full Nanz corpus and checks
 // that MIR2 verification passes (no structural corruption).
 func TestGraceVerify(t *testing.T) {
+	if testing.Short() {
+		t.Skip("corpus-scale test; runs under `make test-all`, skipped by -short")
+	}
 	nanzDir := filepath.Join("..", "..", "..", "examples", "nanz")
 	entries, err := os.ReadDir(nanzDir)
 	if err != nil {

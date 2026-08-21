@@ -147,9 +147,18 @@ test-all:
 	go test ./pkg/codegen/ -run "^TestMIRBackend$$" -v -timeout 120s -count=1 -vet=off 2>&1 | tail -20
 	@echo ""
 	@echo "--- All remaining packages ---"
-	go test ./... -count=1 2>&1 | grep -E '(ok|FAIL|---)'
+	@# 45m, not the 10m default: pkg/vir needs ~25 minutes and pkg/pipeline
+	@# longer still. With the default they time out, their failures never print,
+	@# and a genuinely failing test (TestVIR_Assert_GCD) stays invisible.
+	go test ./... -count=1 -timeout 45m 2>&1 | grep -E '(ok|FAIL|---)'
 	@echo ""
 	@echo "=== Test run complete ==="
+
+# Run the fast tests only — skips the corpus and solver suites via -short.
+# Use this in the edit-test loop; use test-all before pushing.
+.PHONY: test-quick
+test-quick:
+	go test ./pkg/... -count=1 -short -timeout 10m 2>&1 | grep -E '(ok|FAIL|---)'
 
 # Show help
 .PHONY: help

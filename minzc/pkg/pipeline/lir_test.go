@@ -17,6 +17,9 @@ import (
 // For each .c file, it compiles through C89→HIR→MIR2, then runs
 // CheckModuleConvergence to verify LIR can process the functions.
 func TestLIR_C89Corpus(t *testing.T) {
+	if testing.Short() {
+		t.Skip("corpus-scale test; runs under `make test-all`, skipped by -short")
+	}
 	exDir := filepath.Join("..", "..", "..", "examples", "c89")
 	files, err := filepath.Glob(filepath.Join(exDir, "*.c"))
 	if err != nil {
@@ -161,6 +164,9 @@ func TestLIR_CodegenOutput(t *testing.T) {
 
 // TestLIR_NanzCorpus runs LIR convergence on all .nanz examples.
 func TestLIR_NanzCorpus(t *testing.T) {
+	if testing.Short() {
+		t.Skip("corpus-scale test; runs under `make test-all`, skipped by -short")
+	}
 	runFrontendCorpus(t, "nanz", filepath.Join("..", "..", "..", "examples", "nanz"), "*.nanz",
 		func(src, name string) (*hir.Module, error) {
 			return nanz.ParseWithOpts(src, name, nanz.ParseOpts{})
@@ -169,6 +175,9 @@ func TestLIR_NanzCorpus(t *testing.T) {
 
 // TestLIR_LanzCorpus runs LIR convergence on all .lanz examples.
 func TestLIR_LanzCorpus(t *testing.T) {
+	if testing.Short() {
+		t.Skip("corpus-scale test; runs under `make test-all`, skipped by -short")
+	}
 	// Lanz examples live alongside lizp examples
 	runFrontendCorpus(t, "lanz", filepath.Join("..", "..", "..", "examples", "lizp"), "*.lanz",
 		func(src, name string) (*hir.Module, error) {
@@ -178,6 +187,9 @@ func TestLIR_LanzCorpus(t *testing.T) {
 
 // TestLIR_LizpCorpus runs LIR convergence on all .lizp examples.
 func TestLIR_LizpCorpus(t *testing.T) {
+	if testing.Short() {
+		t.Skip("corpus-scale test; runs under `make test-all`, skipped by -short")
+	}
 	runFrontendCorpus(t, "lizp", filepath.Join("..", "..", "..", "examples", "lizp"), "*.lizp",
 		func(src, name string) (*hir.Module, error) {
 			return lizp.Compile(src, name)

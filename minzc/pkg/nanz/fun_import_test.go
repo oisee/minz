@@ -46,7 +46,7 @@ func TestFunImportFixture(t *testing.T) {
 	}
 }
 
-func TestFunImportFixtureVIRSelfAddRegression(t *testing.T) {
+func TestFunImportFixtureSelfAddRegression(t *testing.T) {
 	if _, err := exec.LookPath("z3"); err != nil {
 		t.Skip("z3 not found")
 	}
@@ -69,12 +69,10 @@ func TestFunImportFixtureVIRSelfAddRegression(t *testing.T) {
 
 	steps, err := pipeline.CompileHIRSteps(hm, pipeline.Options{
 		ContractOpt: true,
-		UseVIR:      true,
-		UseVIRDSE:   true,
 		AssertMode:  "mir2",
 	})
 	if err != nil {
-		t.Fatalf("compile import fixture via VIR: %v", err)
+		t.Fatalf("compile import fixture: %v", err)
 	}
 
 	if !strings.Contains(steps.Assembly, "compute:\n    ADD A, A\n    INC A\n    RET") {

@@ -7,6 +7,9 @@ import (
 )
 
 func TestGraceVerify_PointerThreadingSourceShape(t *testing.T) {
+	if testing.Short() {
+		t.Skip("corpus-scale test; runs under `make test-all`, skipped by -short")
+	}
 const src = `
 global data_g: [u8; 9] = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 

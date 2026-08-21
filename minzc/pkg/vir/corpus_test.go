@@ -20,6 +20,9 @@ import (
 // For each file: Nanz→HIR→MIR2→VIR→Z3→PIR→ASM.
 // Reports per-function and per-file pass/fail rates.
 func TestVIR_NanzCorpus(t *testing.T) {
+	if testing.Short() {
+		t.Skip("corpus-scale test; runs under `make test-all`, skipped by -short")
+	}
 	if _, err := exec.LookPath("z3"); err != nil {
 		t.Skip("z3 not found, skipping corpus test")
 	}

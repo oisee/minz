@@ -16,6 +16,9 @@ import (
 // TestVIR_C89Corpus runs the VIR unified solver on all C89 example files.
 // This is the corpus used for SDCC comparison in the paper.
 func TestVIR_C89Corpus(t *testing.T) {
+	if testing.Short() {
+		t.Skip("corpus-scale test; runs under `make test-all`, skipped by -short")
+	}
 	if _, err := exec.LookPath("z3"); err != nil {
 		t.Skip("z3 not found, skipping corpus test")
 	}

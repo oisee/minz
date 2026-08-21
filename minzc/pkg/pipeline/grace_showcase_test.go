@@ -15,6 +15,9 @@ import (
 // Go and Grace paths, comparing assembly output, instruction count, and
 // binary size. Produces a detailed report.
 func TestGraceShowcase(t *testing.T) {
+	if testing.Short() {
+		t.Skip("corpus-scale test; runs under `make test-all`, skipped by -short")
+	}
 	nanzDir := filepath.Join("..", "..", "..", "examples", "nanz")
 
 	// The 9 official showcase programs (from Report 096)

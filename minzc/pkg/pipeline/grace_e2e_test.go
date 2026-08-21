@@ -95,6 +95,9 @@ fun gcd(a: u8, b: u8) -> u8 {
 // through the Grace path, verifying they produce valid Z80 binaries that
 // assemble without errors.
 func TestGraceE2E_Showcase(t *testing.T) {
+	if testing.Short() {
+		t.Skip("corpus-scale test; runs under `make test-all`, skipped by -short")
+	}
 	programs := []struct {
 		name string
 		src  string

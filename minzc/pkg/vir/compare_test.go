@@ -20,6 +20,9 @@ import (
 // TestVIR_vs_SDCC compares the unified VIR solver output against SDCC reference
 // instruction counts for the 5 paper benchmark programs.
 func TestVIR_vs_SDCC(t *testing.T) {
+	if testing.Short() {
+		t.Skip("corpus-scale test; runs under `make test-all`, skipped by -short")
+	}
 	if _, err := exec.LookPath("z3"); err != nil {
 		t.Skip("z3 not found")
 	}
@@ -155,6 +158,9 @@ fun select_b(a: u8, b: u8) -> u8 {
 // TestVIR_C89_SDCC_Benchmark compiles sdcc_benchmark.c through VIR and
 // reports per-function instruction counts.
 func TestVIR_C89_SDCC_Benchmark(t *testing.T) {
+	if testing.Short() {
+		t.Skip("corpus-scale test; runs under `make test-all`, skipped by -short")
+	}
 	if _, err := exec.LookPath("z3"); err != nil {
 		t.Skip("z3 not found")
 	}
@@ -271,6 +277,9 @@ func formatDelta(d int) string {
 // when solved with PBQP-derived param constraints vs unconstrained (standalone).
 // This measures the potential gain from the "solve free + adapter" strategy.
 func TestVIR_Standalone_vs_Constrained(t *testing.T) {
+	if testing.Short() {
+		t.Skip("corpus-scale test; runs under `make test-all`, skipped by -short")
+	}
 	if _, err := exec.LookPath("z3"); err != nil {
 		t.Skip("z3 not found")
 	}
