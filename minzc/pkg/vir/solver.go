@@ -2168,6 +2168,17 @@ func runZ3(smt string, opts SolverOptions) (string, error) {
 		}
 	}
 
+	// A malformed term makes z3 print "unsupported" (or an "(error ...)" line)
+	// and carry on solving whatever it did understand — then report sat. The
+	// answer is to a different problem than the one we posed, so accepting it
+	// means trusting a solution that silently ignored some of our constraints.
+	// This is not hypothetical: PFCCO's bare top-level (ite ...) has been
+	// dropped this way, taking the bool-return cost term with it.
+	if bad := solverComplaints(output); len(bad) > 0 {
+		return "", fmt.Errorf("z3 rejected part of the query, so the model does not "+
+			"answer the question asked: %s", strings.Join(bad, "; "))
+	}
+
 	if strings.Contains(output, "unsat") {
 		return "", fmt.Errorf("unsatisfiable: no valid pattern+register assignment exists")
 	}
@@ -2230,4 +2241,22 @@ func parseZ3Model(model string) map[string]int {
 		}
 	}
 	return vals
+}
+
+// solverComplaints returns the lines on which z3 reported that it could not
+// process part of the query. Both forms matter: "unsupported" for a term it
+// does not understand, and "(error ...)" for one it considers malformed.
+func solverComplaints(output string) []string {
+	var out []string
+	for _, line := range strings.Split(output, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		if line == "unsupported" || strings.HasPrefix(line, "unsupported") ||
+			strings.HasPrefix(line, "(error") {
+			out = append(out, line)
+		}
+	}
+	return out
 }

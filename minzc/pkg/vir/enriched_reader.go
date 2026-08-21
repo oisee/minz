@@ -122,6 +122,14 @@ func LoadEnrichedBinary(path string) (*EnrichedBinaryTable, error) {
 	if version != 1 {
 		return nil, fmt.Errorf("unsupported ENRT version: %d (loader supports v1)", version)
 	}
+	// Below this point the ENRT v1 header layout is assumed: count(u32) +
+	// maxVregs(u8) + nMetrics(u8) + reserved(u16). A Z80T v1 file does not carry
+	// those 8 bytes, so parsing one here desynchronises immediately and yields a
+	// short, silently-wrong table. Refuse rather than guess.
+	if isZ80T {
+		return nil, fmt.Errorf("Z80T v1 is not readable by the ENRT v1 record parser " +
+			"(different header layout); regenerate the table as Z80T v2 or ENRT v1")
+	}
 
 	var count uint32
 	if err := binary.Read(f, binary.LittleEndian, &count); err != nil {
@@ -175,6 +183,15 @@ func LoadEnrichedBinary(path string) (*EnrichedBinaryTable, error) {
 				Flags: flags, PatternCosts: patternCosts,
 			})
 		}
+	}
+
+	// The header declares how many records the file holds. A mismatch means the
+	// record layout we assumed is not the one on disk, and every entry after the
+	// first divergence is garbage. Allocating registers from that is worse than
+	// not having a table at all, so this is an error, not a warning.
+	if int(count) != len(entries) {
+		return nil, fmt.Errorf("record count mismatch: header declares %d, parsed %d "+
+			"(record layout does not match this file)", count, len(entries))
 	}
 
 	return &EnrichedBinaryTable{

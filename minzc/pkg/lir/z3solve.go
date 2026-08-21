@@ -24,13 +24,28 @@ package lir
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
 )
 
-// Z3Path is the path to the Z3 binary. Set by init or caller.
-var Z3Path = "/home/alice/miniconda3/bin/z3"
+// Z3Path is the path to the Z3 binary. Resolved from PATH at init; a caller may
+// override it, and MINZ_Z3 takes precedence over both.
+//
+// It used to be hardcoded to one developer's conda prefix, which meant hasZ3()
+// returned false on every other machine and the Z3 path silently never ran.
+var Z3Path = resolveZ3Path()
+
+func resolveZ3Path() string {
+	if p := os.Getenv("MINZ_Z3"); p != "" {
+		return p
+	}
+	if p, err := exec.LookPath("z3"); err == nil {
+		return p
+	}
+	return "z3" // not found; callers report the failure when they try to run it
+}
 
 // Z3Result holds the result of SMT-based register allocation.
 type Z3Result struct {
