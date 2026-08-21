@@ -689,8 +689,15 @@ func desugarNodes(nodes []lanz.Node) []lanz.Node {
 func sanitizeIdents(n lanz.Node) lanz.Node {
 	if n.IsAtom() {
 		if strings.Contains(n.Atom, "-") {
-			// Don't touch operators, numbers, hex literals, arrows
+			// Don't touch operators, numbers, hex literals, arrows.
+			//
+			// "let-in" is a lanz reserved form, not an identifier: desugarLetStar
+			// expands (let* ...) into a chain of it, and this pass runs after
+			// desugaring, so mangling it to let_in leaves a form lanz's lowerer
+			// does not recognise — the enclosing function then fails to lower and
+			// silently disappears from the module.
 			if n.Atom == "-" || n.Atom == "->" || n.Atom == "->>" ||
+				n.Atom == "let-in" ||
 				strings.HasPrefix(n.Atom, "0x") || strings.HasPrefix(n.Atom, "#") {
 				return n
 			}
