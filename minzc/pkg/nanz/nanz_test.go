@@ -1967,12 +1967,12 @@ fun main() -> void {
 		t.Fatalf("CompileHIR: %v", err)
 	}
 
-	// Assembly must contain the string bytes ("Hello, World!\n" = 72 101 108 ...)
-	// The string is emitted as a DB sequence in the MIR2 string pool section.
-	// Check for 'H' (decimal 72) and presence of OUT instruction.
+	// Assembly must contain the string payload and the print loop. The string
+	// pool emits runs of printable ASCII as quoted literals, so the text appears
+	// as DB "Hello, World!" rather than as decimal bytes.
 	checks := []string{
-		"72",  // 'H' in decimal (DB encoding)
-		"OUT", // OUT (0x01), A — the print_str loop
+		`"Hello, World!"`, // string pool payload
+		"OUT",             // OUT (0x01), A — the print_str loop
 	}
 	for _, want := range checks {
 		if !strings.Contains(asm, want) {
