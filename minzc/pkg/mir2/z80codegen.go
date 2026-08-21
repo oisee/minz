@@ -8594,16 +8594,17 @@ func emitStringLiteral(sb *strings.Builder, data []byte) {
 	first := true
 	i := 0
 	for i < len(data) {
-		// Collect a run of printable ASCII (0x20-0x7E), excluding quote
-		if isPrintableASCII(data[i]) {
+		// Collect a run of printable ASCII (0x20-0x7E). A double quote can't be
+		// embedded in DB "...", so it is excluded from the run and emitted as a
+		// byte by the branch below. Excluding it here rather than breaking out
+		// of the inner loop matters: breaking left i unchanged, so the outer
+		// loop re-entered this branch on the same quote and spun forever.
+		if isPrintableASCII(data[i]) && data[i] != '"' {
 			if !first {
 				sb.WriteString(", ")
 			}
 			sb.WriteByte('"')
-			for i < len(data) && isPrintableASCII(data[i]) {
-				if data[i] == '"' {
-					break // can't embed quote in DB "..."
-				}
+			for i < len(data) && isPrintableASCII(data[i]) && data[i] != '"' {
 				sb.WriteByte(data[i])
 				i++
 			}

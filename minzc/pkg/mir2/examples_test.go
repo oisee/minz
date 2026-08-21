@@ -1980,8 +1980,9 @@ func TestStrLenZ80(t *testing.T) {
 	if !strings.Contains(asm, "mir2_str_0:") {
 		t.Errorf("expected string label mir2_str_0 in assembly")
 	}
-	if !strings.Contains(asm, "72, 101") { // H, e
-		t.Errorf("expected 'Hello' bytes (72, 101...) in assembly")
+	// Printable runs are emitted as quoted literals, not decimal bytes.
+	if !strings.Contains(asm, `DB "Hello", 0`) {
+		t.Errorf(`expected 'Hello' emitted as DB "Hello", 0 in assembly`)
 	}
 
 	// Z80 test: load HL = address of "Hello", call strlen, check A = 5.
