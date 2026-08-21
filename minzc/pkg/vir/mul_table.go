@@ -103,13 +103,7 @@ func tryConstMul(inst *mir2.Inst, desc *MachineDesc, w int) []VIROp {
 	// it just sees: input=srcVreg, output=dstVreg, clobbers=A,B,F)
 	// Build asm template: join instructions with newlines
 	asmTemplate := ""
-	needsCarryClear := false
-	for _, op := range entry.Ops {
-		if strings.Contains(op, "ADC ") {
-			needsCarryClear = true
-		}
-	}
-	if needsCarryClear {
+	if dependsOnEntryCarry(entry.Ops) {
 		asmTemplate += "    OR A\n"
 	}
 	for i, op := range entry.Ops {
@@ -132,4 +126,62 @@ func tryConstMul(inst *mir2.Inst, desc *MachineDesc, w int) []VIROp {
 	})
 
 	return ops
+}
+
+// Carry classification for the precomputed multiply sequences.
+//
+// The GPU search that produced these tables fixed CY=0 in its test vectors
+// instead of sweeping it, so some sequences begin with a carry-consuming
+// instruction and silently inherit the caller's flags. For a * 23 the table
+// emits "LD B,A / RLA / ..." — which returns 161 with CY=0 on entry and 169
+// with CY=1. Both are "optimal"; only one is correct.
+//
+// carryConsumers read CY. Reaching one before any definer means the result
+// depends on the caller's flags and the block needs an OR A in front.
+var carryConsumers = map[string]bool{
+	"ADC": true, "SBC": true, "RLA": true, "RRA": true,
+	"RL": true, "RR": true, "CCF": true, "DAA": true,
+}
+
+// carryDefiners write CY without reading it. Once one has executed, the rest
+// of the sequence cannot observe the entry carry, so no guard is needed.
+var carryDefiners = map[string]bool{
+	"ADD": true, "SUB": true, "AND": true, "OR": true, "XOR": true,
+	"CP": true, "NEG": true, "SCF": true,
+	"RLCA": true, "RRCA": true, "RLC": true, "RRC": true,
+	"SLA": true, "SRA": true, "SRL": true, "SLL": true,
+}
+
+// carryTransparent lists mnemonics known not to touch CY. Kept explicit so an
+// unfamiliar instruction falls through to the conservative branch in
+// dependsOnEntryCarry rather than being silently assumed harmless.
+var carryTransparent = map[string]bool{
+	"LD": true, "INC": true, "DEC": true, "EX": true, "EXX": true,
+	"NOP": true, "CPL": true, "PUSH": true, "BIT": true,
+	"SET": true, "RES": true, "HALT": true,
+}
+
+// dependsOnEntryCarry reports whether a table sequence observes the carry flag
+// as it stood on entry. Transparent instructions are skipped; an unrecognised
+// mnemonic is treated as a consumer, since a spurious OR A costs 4T while a
+// missing one is a miscompile.
+func dependsOnEntryCarry(ops []string) bool {
+	for _, op := range ops {
+		fields := strings.Fields(op)
+		if len(fields) == 0 {
+			continue
+		}
+		m := strings.ToUpper(strings.TrimSuffix(fields[0], ","))
+		switch {
+		case carryConsumers[m]:
+			return true
+		case carryDefiners[m]:
+			return false
+		case carryTransparent[m]:
+			continue
+		default:
+			return true // unknown mnemonic — be safe
+		}
+	}
+	return false
 }
