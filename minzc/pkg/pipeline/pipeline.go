@@ -28,7 +28,6 @@ import (
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/mir2llvm"
 	"github.com/minz/minzc/pkg/mir2wasm"
-	"github.com/minz/minzc/pkg/vir"
 	"github.com/minz/minzc/pkg/z80asm"
 )
 
@@ -104,21 +103,9 @@ type Options struct {
 	// GraceStats (if non-nil) collects per-rule application counts.
 	UseGrace   bool
 	GraceStats *mir2.GraceStats
-	// UseVIR replaces PBQP+Z80Codegen with the experimental VIR solver.
-	// It remains opt-in; functions that fail VIR fall back to the PBQP path
-	// automatically.
-	UseVIR bool
 	// OptSize enables size optimizations (Grace reroll: repeated CALLs → DJNZ loop).
 	// Trades ~4T/iteration for code size reduction. Use for ROM-constrained targets.
 	OptSize bool
-	// UseVIRDSE enables post-lowering dead VIROp elimination (pre-solver).
-	// Removes pure ops whose dst vreg is unused in the block.
-	// Each removed op saves ~88 Z3 SMT variables. Safe to enable on all functions.
-	UseVIRDSE bool
-	// UseVIRInline enables VIR-level inlining of small single-block callees
-	// called from loop-body blocks. Eliminates CALL/RET overhead and enables
-	// cross-call optimization. Default: false until validated on corpus.
-	UseVIRInline bool
 	// Backend selects the codegen backend: "z80" (default), "ez80".
 	// When "ez80", the pipeline generates eZ80 ADL assembly instead of Z80.
 	Backend string
@@ -132,7 +119,7 @@ type Options struct {
 
 // DefaultOptions returns the default pipeline options.
 // Production default stays on PBQP; VIR remains an explicit opt-in.
-func DefaultOptions() Options { return Options{ContractOpt: true, UseVIRDSE: true} }
+func DefaultOptions() Options { return Options{ContractOpt: true} }
 
 // CompileHIRSteps runs the full HIR→MIR2→Z80 pipeline and returns all intermediate outputs.
 func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
@@ -333,119 +320,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		}
 	}
 
-	if opt.UseVIR {
-		// VIR backend: unified Z3 solver (joint isel+regalloc in one pass).
-		// Pass PBQP param locations so VIR matches the bootstrap ABI.
-		funcParamLocs := make(map[string]map[int]int)
-		for _, f := range m.Funcs {
-			pl := make(map[int]int)
-			for _, cp := range f.Contract.Params {
-				if loc, ok := combined.Locs[cp.Reg]; ok {
-					idx := vir.Z80.LocByName(loc.Name)
-					if idx >= 0 {
-						pl[int(cp.Reg)] = idx
-					}
-				}
-			}
-			if len(pl) > 0 {
-				funcParamLocs[f.Name] = pl
-			}
-		}
-		// NOTE: InsertAccSaves disabled for VIR path — it renames vregs that
-		// the codegen's pendingAccReg mechanism needs to track. The codegen
-		// handles A saves via materializePendingAcc + saveAccAcrossCall.
-
-		virOpts := vir.SolverOptions{
-			FuncParamLocs: funcParamLocs,
-			OptSize:       opt.OptSize,
-			PBQPAlloc:     combined,
-			UseGrace:      opt.UseGrace,
-			GraceStats:    opt.GraceStats,
-			UseVIRDSE:     opt.UseVIRDSE,
-			UseInliner:    opt.UseVIRInline,
-		}
-		virAsm, virResults := vir.CodegenModule(m, virOpts)
-
-		// Update combined allocation with PFCCO-chosen param registers.
-		// VIR Z3-PFCCO may assign different registers than PBQP; the assert
-		// harness (buildAssertBootstrap) reads combined.Locs to set up args,
-		// so it must reflect the actual VIR register choices.
-		for _, f := range m.Funcs {
-			for _, cp := range f.Contract.Params {
-				if cp.Reg == mir2.NoReg {
-					continue
-				}
-				// Map contract class to physical register name
-				var name string
-				switch cp.Class {
-				case mir2.ClassAcc:
-					name = "A"
-				case mir2.ClassCounter:
-					name = "B"
-				case mir2.ClassRegC:
-					name = "C"
-				case mir2.ClassGeneral:
-					name = "C" // default general
-				case mir2.ClassRegD:
-					name = "D"
-				case mir2.ClassRegE:
-					name = "E"
-				case mir2.ClassPointer:
-					name = "HL"
-				case mir2.ClassIndex:
-					name = "DE"
-				case mir2.ClassPair:
-					name = "BC"
-				}
-				if name != "" {
-					combined.Locs[cp.Reg] = mir2.PhysLoc{Kind: mir2.LocReg, Name: name}
-				}
-			}
-		}
-
-		ok, fail := 0, 0
-		var failNames []string
-		failSet := make(map[string]bool)
-		for _, r := range virResults {
-			if r.OK {
-				ok++
-				if tr := s.Traces[r.Name]; tr != nil {
-					tr.Backend = "VIR"
-				}
-			} else {
-				fail++
-				failNames = append(failNames, r.Name+"("+r.Error+")")
-				failSet[r.Name] = true
-				if tr := s.Traces[r.Name]; tr != nil {
-					tr.Backend = "VIR+PBQP-fallback"
-					tr.BackendErr = r.Error
-				}
-			}
-		}
-
-		if fail > 0 {
-			// (InsertAccSaves already ran before CodegenModule)
-			// Fallback: generate PBQP asm for failed functions.
-			pbqpAsm := mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{
-				AnnotateTStates: opt.AnnotateTStates,
-			})
-			s.Assembly = spliceVIRFallback(virAsm, pbqpAsm, virResults, failSet, m)
-			fmt.Fprintf(os.Stderr, "vir: %d/%d via VIR backend, %d via PBQP fallback: %s\n",
-				ok, ok+fail, fail, strings.Join(failNames, ", "))
-		} else {
-			// Order: code → strings → zero-storage (globals + vir_mem + spills).
-			// Zero-filled storage LAST: MZA trims trailing zeros from COM files,
-			// so non-zero strings must not follow zero data.
-			virCode, virZeros := splitVIRZeroStorage(virAsm)
-			s.Assembly = virCode
-			var strBuf strings.Builder
-			lir.EmitStringPool(&strBuf, m)
-			s.Assembly += strBuf.String()
-			s.Assembly += emitGlobals(m)
-			s.Assembly += virZeros
-			fmt.Fprintf(os.Stderr, "vir: all %d functions compiled via VIR backend\n", ok)
-		}
-	} else if opt.UseLIR {
+	if opt.UseLIR {
 		// Convert PBQP allocation to LIR hints for guided WFC.
 		hints := pbqpToLIRHints(combined, lir.Z80)
 
@@ -1615,50 +1490,6 @@ func splitAsmByFunction(asm string) map[string]string {
 	}
 	flush(len(lines))
 	return funcs
-}
-
-// spliceVIRFallback combines VIR output with PBQP fallback for failed functions.
-func spliceVIRFallback(virAsm, pbqpAsm string, results []vir.FuncResult, failSet map[string]bool, m *mir2.Module) string {
-	pbqpFuncs := splitAsmByFunction(pbqpAsm)
-	virFuncs := splitAsmByFunction(virAsm)
-
-	var sb strings.Builder
-	sb.WriteString("; generated by VIR+PBQP hybrid backend\n\n")
-
-	funcs := m.Funcs
-	if main := m.FuncByName("main"); main != nil && len(funcs) > 0 && funcs[0].Name != "main" {
-		ordered := make([]*mir2.Func, 0, len(funcs))
-		ordered = append(ordered, main)
-		for _, f := range funcs {
-			if f.Name != "main" {
-				ordered = append(ordered, f)
-			}
-		}
-		funcs = ordered
-	}
-
-	for _, f := range funcs {
-		if failSet[f.Name] {
-			if asm, ok := pbqpFuncs[f.Name]; ok {
-				sb.WriteString(asm)
-				sb.WriteByte('\n')
-			}
-		} else {
-			if asm, ok := virFuncs[f.Name]; ok {
-				sb.WriteString(asm)
-				sb.WriteByte('\n')
-			}
-		}
-	}
-
-	// Split zero storage from code, emit strings before zeros
-	funcCode, funcZeros := splitVIRZeroStorage(sb.String())
-	var out strings.Builder
-	out.WriteString(funcCode)
-	lir.EmitStringPool(&out, m)
-	out.WriteString(emitGlobals(m))
-	out.WriteString(funcZeros)
-	return out.String()
 }
 
 // emitGlobals generates Z80 assembly for global variables in a MIR2 module.

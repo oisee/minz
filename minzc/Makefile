@@ -14,7 +14,7 @@ MZX_LDFLAGS = -X 'main.version=$(MZX_VERSION)' -X 'main.buildNum=$(MZX_BUILD_NUM
 
 # Build all tools
 .PHONY: all
-all: mz mza mze mzv mzn mzr mzrun mztap mzd mzx mzlsp
+all: mz mza mze mzv mzn mzr mzrun mztap mzd mzx mzlsp vir-oracle
 all-but: mz mza mze mzn mzr mzrun mztap mzd mzlsp #skip mzv mzx
 
 # Build the main compiler
@@ -56,6 +56,11 @@ mzn:
 # Build the LSP server
 mzlsp:
 	go build -o mzlsp ./cmd/mzlsp
+
+# Build the offline SMT allocator oracle (research tool, needs z3 on PATH).
+# Not part of the compiler — see docs/adr/0043-vir-demoted-to-offline-oracle.md
+vir-oracle:
+	go build -o vir-oracle ./cmd/vir-oracle
 
 # Build the ZX Spectrum emulator (auto-increments build number)
 mzx:

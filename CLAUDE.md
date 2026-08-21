@@ -51,51 +51,48 @@ This file provides guidance to Claude Code when working with the MinZ compiler r
 - **Remaining:** EXX shadow regs (L3), ISLE const-MUL reduction, production switch as default `--lir`
 - See [Architecture](docs/LIR_Backend_Architecture.md), [Reference](docs/LIR_Backend_Reference.md), [Report 094](reports/2026-03-18-094-LIR-100-Percent-C89-Corpus.md), [ADR-0033](docs/adr/0033-lir-pipeline-integration.md)
 
-### 5. VIR Backend (Z3 Unified Solver — `--vir`)
-**Status:** ✅ Non-leaf production, O(1) regalloc for 91% corpus, -60% vs SDCC. ~12K LOC.
-- **Pipeline:** MIR2 → Bridge → ISLE → Z3-PFCCO(Module) → **O(1) Enriched Table** / Z3-CFG(Function) → Grace(PIR) → Peephole → Z80 ASM
-- **Package:** `pkg/vir/` — vir.go, z80.go, bridge.go, solver.go, cfgsolver.go, pfcco.go, isle.go, pipeline.go, regalloc_table.go
-- **Corpus:** 820 functions (546 Nanz + 274 C89), 235 unique signatures. Non-leaf functions verified (Hello Frill, Tetris CP/M).
-- **O(1) Regalloc (NEW):** 5-level pipeline replaces Z3 30s solve:
-  - L0: Tarjan cut vertex decomposition → free split (91% with enriched)
-  - L1: Enriched table ≤6v → hash lookup O(1) (79% corpus, 37.6M precomputed entries)
-  - L2: EXX bipartite check → dual-bank scheduling (70% functions feasible)
-  - L3: GPU min-cut partition → <1ms for ≤14v (z80-optimizer CUDA kernel)
-  - L4: Z3 fallback (<1% functions)
-- **Z3-PFCCO:** Module-level calling convention optimization — Z3 considers all call sites simultaneously. The SDCC killer.
-- **Per-instruction variables:** `lv{vreg}_i{inst}` — solver plans moves as part of optimal solution, not as post-pass fixup.
-- **CFG-aware encoding:** Per-block variables + edge constraints. Handles conditionals/loops correctly.
-- **Inline runtime:** div8/mod8/mul8 per call site with Z3-chosen registers, no fixed ABI overhead.
-- **IXH/IXL spill:** Undocumented half-index regs as call-safe storage (8T vs 11T PUSH/POP).
-- **ISLE combining:** load16_le fusion (FatFS ld_word: 5 insts vs SDCC 29B), identity/strength reduction.
-- **Grace PIR:** Dead register before RET, EX DE,HL elimination, add-zero removal.
-- **OpAsmBlock:** Inline asm as opaque black box with clobbers — surrounding code fully Z3-optimized.
+### 5. VIR — retired as a backend, kept as an offline oracle
+**Status:** ⏸️ **Removed from the compiler on 2026-08-21.** See
+[ADR-0043](docs/adr/0043-vir-demoted-to-offline-oracle.md).
 
-#### VIR Design Wisdom (hard-won lessons)
-1. **Optimal codegen over compile speed:** Compilation time is not a constraint — even minutes per function is acceptable. Z3 can be retried with different seeds, multiple strategies explored, `(minimize)` always preferred. We are here to bring **optimal solutions**, not fast compilation.
-2. **Reliability first:** Understand compilation path before fixing quality. Add tracing/audit before changing codegen. Run full corpus after any change.
-3. **Hard vs soft Z3 constraints:** Hard `(assert ...)` for facts (ABI, spill tiers, return convention). Soft `(ite cost)` for hints (SrcHint, register preferences). Hard hints that conflict with tied-dst patterns → unsat.
-4. **Per-instruction vs global variables:** Global (one `loc_v` per vreg) is fast but fails at >7 live vregs. Per-instruction (`lv{v}_i{k}`) handles everything. Use global as Phase 1, per-inst as Phase 2.
-5. **Inline runtime per call site:** Don't pin runtime ABI — emit div/mul loop body inline with Z3-chosen registers. Deduplicate identical instances post-emit.
-6. **Pre-solver pass interaction:** Pre-tie moves rewrite `v1` → `v1_copy`. DON'T propagate param constraints to copy vregs (both live at move, both constrained to same reg → unsat). Constrain originals only.
-7. **Z3 minimize pitfall:** `(minimize total_cost)` uses opt module, not SAT. On >100 ITE vars it returns "unknown". Use plain `(check-sat)` for large problems — correct, just not provably optimal.
-8. **Dual-mode: constrained vs standalone+adapter:** Solve each function twice — with ABI constraints and without. Pick the cheaper option. Standalone winner gets adapter LD moves at entry/exit. Benchmark shows 7 funcs / 47 insts saved across Nanz corpus (e.g., `_dec`: 32→1 insts).
-9. **O(1) before Z3:** Compute (interference_shape, op_bag) signature → enriched table lookup. 91% of real functions hit. Only fall to Z3 on miss. Compile time: 30s → 0ms for majority.
-10. **Cross-block params need injection:** Per-block Z3 liveness misses function params used in later blocks. Inject at ALL entry-block instructions + recompute blockLiveIn. Without this, edge moves for params are silently lost.
-11. **Never remove LD before CALL:** Peephole "LD A,X / CALL → dead" is WRONG — the LD may be loading the callee's argument. The solver only emits needed moves.
+The `--vir` flag no longer exists and the pipeline no longer calls the Z3 solver. VIR was the
+default until it was measured against the path it replaced:
 
-#### VIR Known Issues / Roadmap
-- ✅ ~~abs_diff CFG solver unsat~~ — now 4 insts (optimal SUB/RET NC/NEG/RET), CFG solver succeeds
-- ✅ ~~fib parallel-copy~~ — now 12 insts (45% win vs SDCC), tight loop body
-- ✅ ~~Non-deterministic coalescing~~ — sort tie-break by vreg ID applied, deterministic
-- ✅ ~~CALL arg setup~~ — 4 bugs fixed (vreg collision, DstHint, peephole, coalescing). Non-leaf production.
-- ✅ ~~Cross-block params~~ — param injection + pair→half move fallback. bool_and/is_digit correct.
-- ✅ ~~Loop head labels~~ — emitPIRWithLabels fixed for 0-op entry blocks + island dedup.
-- **Grace on PIR** — dead register elimination across call boundaries, block merging, fallthrough optimization
-- **RLD/RRD for 4-bit shifts** — Z80 digit-rotate instructions for nibble packing
-- **ISLE store16_le via DE** — EX DE,HL bracket pattern
-- **EX DE,HL elimination** — track register preferences across calls via Z3-PFCCO
-- **Inline 16-bit div/mul** — currently falls back to shared routine; should inline per call site like 8-bit
+| Corpus | PBQP (production) | VIR |
+|---|---|---|
+| `examples/c89`, Z80 asserts on the emulator | **37 pass / 2 fail** | 33 / 6 |
+| `examples/abap`, assembles | **28 / 30** | **0 / 30** |
+
+Our own `TestVIR_Assert_GCD` fails — `gcd(12,8)` returns 0 — and nobody saw it because `pkg/vir`
+takes ~25 minutes while `go test` gives up at 10. This also matches the April decision recorded in
+`reports/2026-04-08-Session-Report-EN.md`: *"Z3 parked as `--vir` flag, PBQP stays production
+default."* `DefaultOptions` honoured that; the CLI flag did not.
+
+**What survives.** `pkg/vir` keeps the machine description, the regalloc tables, the GPU mul/div
+tables and the peephole rules — all imported by `cmd/mzv`, `cmd/mir2asm` and `cmd/gpu-bench`, none
+of which want an SMT solver. The solver itself is now `cmd/vir-oracle`, a research tool that
+reports what an optimal allocation *would* be so the precomputed tables have something independent
+to be checked against. It needs `z3` on PATH; the compiler needs nothing.
+
+```bash
+make vir-oracle
+./vir-oracle prog.c            # human-readable comparison against production
+./vir-oracle --json prog.nanz  # one record per function
+```
+
+It compares **size, not correctness** — it reports `gcd` as two instructions tighter than
+production, on the function it miscompiles.
+
+**PFCCO is unaffected.** The per-function calling-convention optimiser is `pkg/mir2/contracts.go`
+and runs on the production path; `research/abi-paper/` documents that implementation. The separate
+Z3 reimplementation in `pkg/vir/pfcco.go` is Phase 0 of the oracle's own solve and stays there for
+now — but its encoding is broken (a bare `(ite …)` at SMT top level; z3 prints `unsupported` and
+the bool-return cost term is silently dropped), so the oracle's convention choices should not be
+trusted until it is fixed or removed.
+
+> The performance claims previously in this section — "-60% vs SDCC", "645/645 functions (100%)",
+> "non-leaf production", "O(1) regalloc for 91% of corpus" — were not supportable. See
+> [Report 116](reports/2026-08-21-116-Prior-Art-and-Novelty-Audit.md).
 
 ### 6. Rewrite Triad (ISLE + Grace + Datalog)
 **Status:** ✅ Wired into pipeline, 94.1% convergence. See [Report 097](reports/2026-03-19-097-Rewrite-Triad-Infrastructure.md).
