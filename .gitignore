@@ -40,6 +40,8 @@ build/
 /mzr
 /mzv
 /mzrun
+/mzx
+/mztap
 
 # Root level compiled outputs (keep in examples/output, minzc/release_validation)
 /*.a80
@@ -143,3 +145,11 @@ progress-*.txt
 !reports/showcase-src/**/*.a80
 research/paper-a/data/exhaustive_5v_complete.jsonl
 research/paper-a/data/exhaustive_4v_complete.jsonl
+
+# Cross-session message logs (grow unboundedly, not source)
+/dedelulu.jsonl
+/termiclaude.jsonl
+
+# Test-run artifacts (rewritten by every `go test ./pkg/...`)
+minzc/pkg/z80testing/tsmc_benchmark_report.txt
+minzc/tests/corpus/results/summary.json
