@@ -63,10 +63,17 @@ inline-asm defect below and the `@error`/`@check`/`@propagate` breakage.
 | f | **Cross-language import returns 0 functions.** `TestImportLanzModule` / `TestImportLizpModule`: "expected 2, found 0". | Reproduced | |
 | g | **`Z3Path` hardcoded** to `/home/alice/miniconda3/bin/z3` (`lir/z3solve.go:33`) — `exec.LookPath("z3")`. | Reproduced | One line |
 | h | **`IsRecursive` is always false.** The only assignment in the pipeline is `grace_runner.go:1134: f.Attrs.IsRecursive = false`, so the recursion guards in `consteval.go:96` and `inline.go:89` never fire. | **(unverified)** | Matters because `@smc` has no recursion guard either |
+| i | **Pascal emits an instruction that does not exist.** `records.pas` produces `LD L, (A)`; Z80 memory operands are only `(HL)`, `(BC)`, `(DE)`, `(IX+d)`, `(IY+d)`, `(nn)`. | Reproduced — 1 of 11 Pascal files | Both backends |
+| j | **PL/M calls a symbol that is never defined.** `CALL PTR` appears in `hello.plm`, `showcase.plm`, `sum_array.plm`. | Reproduced — 3 of 5 PL/M files | Both backends; §1.3 would have caught this |
+
+These last two are frontend defects that survive on **both** backends, so flipping the default
+does not touch them. Note that (i) and (j) are exactly the class of bug §1.3 exists to catch: an
+undefined symbol and an unencodable instruction, both currently reaching a `.a80` at exit 0.
 
 ### 1.5 Already landed this session
-`qbe2mir2` immediate operands · `emitStringLiteral` quote hang · `lizp` `let-in` mangling ·
-mul-table carry-in guard · `--vir` no longer the default (which also un-broke `--lir`).
+`qbe2mir2` immediate operands · `emitStringLiteral` quote hang · `lizp` `let-in` mangling (this was
+the "Lizp `let*` loses functions" defect seen from the frontend side) · mul-table carry-in guard ·
+`--vir` no longer the default (which also un-broke `--lir`).
 
 **Exit criterion:** `make test-all` runs to completion, fails on real defects, and every number in
 its output is asserted somewhere.
