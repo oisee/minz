@@ -553,6 +553,19 @@ func (z *Z80) GetExitCode() uint16 {
 	return z.exitCode
 }
 
+// SetIOHandlers replaces the port I/O handlers. A nil argument leaves that
+// handler unchanged. Mirrors RemogattoZ80.SetIOHandlers, and lets callers
+// observe port traffic — dynamic analysis uses it to tell a pure function from
+// one that talks to hardware.
+func (z *Z80) SetIOHandlers(read func(port uint8) uint8, write func(port uint8, value uint8)) {
+	if read != nil {
+		z.ioRead = read
+	}
+	if write != nil {
+		z.ioWrite = write
+	}
+}
+
 // SetExitConventions configures which exit conventions are enabled
 // rst38: Enable RST 38h exit (cross-platform MinZ convention, HL = exit code)
 // ret0: Enable RET to 0x0000 exit (ZX Spectrum convention, BC = exit code)
