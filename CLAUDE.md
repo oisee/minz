@@ -427,10 +427,16 @@ Sessions are identified by `session_id:worker_name`. Use `dedelulu explore` to f
 Messages appear as `[from:main]` in the recipient's conversation. Reply with `dedelulu send`.
 
 Active project sessions:
-- `~/dev/minz` — main MinZ compiler (production codegen, @screen, ABAP)
-- `~/dev/minz-vir` — VIR backend (Z3 solver, dual-mode, adapters)
+- `~/dev/minz` — the only MinZ working copy (see note below)
 - `~/dev/z80-optimizer` — CUDA superoptimizer (602K rules, GPU regalloc)
 - `~/dev/dedelulu` — cross-session messaging tool itself
+
+**One clone only (since 2026-09-17).** `~/dev/minz-abap`, `~/dev/minz-vir` and
+`~/dev/minz-parallel` were deleted: all three were clones of this same repository
+(`oisee/minz` and `oisee/minz-ts` resolve to one repo) and held no commits that
+`master` lacked. Their unversioned content — untracked session notes, the
+precomputed `enriched_4v.z80t` table, and 18 stashes as patches — is archived in
+`~/dev/minz-clones-archive-2026-09-17/`, which has its own README.
 
 ### Releasing
 **IMPORTANT:** Before creating a release, ALWAYS check the latest version on GitHub:
@@ -441,15 +447,23 @@ Bump from the latest GitHub version, not from what CLAUDE.md says (it may be sta
 
 ### Build & Test
 ```bash
-# Build compiler
-cd minzc && make build
-
-# Test all examples
-./compile_all_examples.sh
+# Build everything (mz, mza, mze, mzd, mzx, mzv, mzn, mzlsp, mzrun, mztap, mzr)
+cd minzc && make all
+make mz            # just the compiler
+make help          # list every target
 
 # Compile with optimizations
-./minzc program.minz -O --enable-smc
+cd minzc && ./mz program.minz -O --enable-smc
+
+# Corpus check — counts Z80-VALIDATE errors across all examples
+cd minzc && go build -o mz ./cmd/minzc && bash ../scripts/validate_corpus.sh
+
+# Go unit tests
+cd minzc && make test-all
 ```
+There is no `make build` target and no `./compile_all_examples.sh`; the compiler
+binary is `mz`, not `minzc`. Example sweeps live in `scripts/` —
+`validate_corpus.sh` is the maintained one.
 
 ### Multi-Backend Compilation
 ```bash
@@ -621,7 +635,7 @@ fun main() {
 | ABAP examples | 8 programs (hello, fibonacci, fizzbuzz, guessing, bubblesort, forms, oop, sysinfo) |
 | E2E Z80 tests | 24 (fibonacci, flag-return, div8, div16, mod8, divmod-combined + 6502) |
 | Parser | Participle (native Go, zero deps) |
-| Toolchain binaries | 9 working (mz, mza, mze, mzx, mzd, mzlsp, mzrun, mztap, mzv) + mzv1 (MIR1) + mzr (broken) |
+| Toolchain binaries | 10 working (mz, mza, mze, mzx, mzd, mzn, mzlsp, mzrun, mztap, mzv) + vir-oracle (offline) + mzv1 (MIR1) + mzr (broken) |
 | Go test packages | 26/26 pass, 0 fail |
 
 ---
@@ -635,6 +649,7 @@ fun main() {
 | **MZE** | ✅ DONE | Z80 Emulator (1335/1335 FUSE tests) |
 | **MZX** | ✅ DONE | ZX Spectrum emulator (T-state accurate, Ebitengine) |
 | **MZD** | ✅ DONE | Z80 Disassembler (IDA-like analysis, `--regs` IN/OUT/CLOBBER, `--verify-abi`) |
+| **MZN** | ✅ DONE | Native compiler — Nanz → C99/QBE → AMD64 (`--emit-c`, `--emit-qbe`, `--disasm`) |
 | **MZLSP** | ✅ DONE | Language Server Protocol (diagnostics, hover, goto-def, completion) |
 | **MZRUN** | ✅ DONE | Remote runner (DZRP) |
 | **MZTAP** | ✅ DONE | TAP file loader |
