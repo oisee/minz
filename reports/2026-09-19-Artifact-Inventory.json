@@ -1,0 +1,59 @@
+{
+  "date": "2026-09-19",
+  "note": "Header/size inventory only; declared_records are not independently verified body counts. Large-file hashes were not calculated. Local working-tree artifacts, not a release manifest.",
+  "artifacts": [
+    {
+      "repository": "z80-optimizer",
+      "path": "data/enriched_4v.enr",
+      "bytes": 4104402,
+      "tracked": true,
+      "header_hex": "454e5254010000005a630200040c00000208000000060004",
+      "sha256": "7b49113c8a885e4fbe6bf0154ff11fbf88426f0d3daacc7ac019408dd4617a58",
+      "declared_records": 156506
+    },
+    {
+      "repository": "z80-optimizer",
+      "path": "data/enriched_5v.enr",
+      "bytes": 405419260,
+      "tracked": false,
+      "header_hex": "454e5254010000005aff0801050c00000208000000060004",
+      "sha256": null,
+      "declared_records": 17366874
+    },
+    {
+      "repository": "z80-optimizer",
+      "path": "data/enriched_6v_dense.enr",
+      "bytes": 942369916,
+      "tracked": false,
+      "header_hex": "454e52540100000052e4f003060c0000ffffffffffffffff",
+      "sha256": null,
+      "declared_records": 66118738
+    },
+    {
+      "repository": "z80-optimizer",
+      "path": "data/merged_ix_5v.bin",
+      "bytes": 400702579,
+      "tracked": false,
+      "header_hex": "5a38305402000000060305aa23a103000000000208000000",
+      "sha256": null,
+      "declared_records": 60892074
+    },
+    {
+      "repository": "z80-optimizer",
+      "path": "data/ix_expanded_6v_dense.bin",
+      "bytes": 1684752173,
+      "tracked": false,
+      "header_hex": "5a383054020000000603061257cd1100000000ffffffffff",
+      "sha256": null,
+      "declared_records": 298669842
+    },
+    {
+      "repository": "z80-optimizer",
+      "path": "data/ix_derived_6v.jsonl",
+      "bytes": 0,
+      "tracked": false,
+      "header_hex": "",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

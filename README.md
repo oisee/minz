@@ -4,6 +4,10 @@
 
 ## Top Off The Press
 
+- [Ecosystem audit: MinZ, GPU brute force, WFC, PRNG and AY (2026-09-19, RU)](reports/2026-09-19-Ecosystem-Audit-RU.md) — current-code checks, artifact inventory, and findings.
+
+- [Current project status and ranked backlog (2026-09-19, RU)](BACKLOG.md) — tracks, quick wins, foundational work, dependencies, and release gates.
+
 - [Fun / Frontend / Runtime Status](reports/2026-04-06-Fun-Frontend-Runtime-Status-RU.md)  
   Current compile/run matrix for representative `Nanz` / `Frill` / `Lizp` / `Pascal` / `ObjC` examples, plus `mzv` / `mze` / `mzx` runtime notes and good asm snippets.
 - [Fun / Benchmark / FP Refresh](reports/2026-04-06-Fun-Benchmark-And-FP-Refresh-RU.md)  
