@@ -132,24 +132,37 @@ fun put_zscii(ch: u16) {
         if ch < 127 { @print_char(u8(ch)) }
     }
 }
-fun symbol(z: u8) -> u8 {
-    if z >= 8 {
-        if z <= 17 { return z + 40 }
+// The A2 alphabet is data in the Z3 specification. Generate its decoder at
+// compile time in Nanz, leaving only ordinary typed code in the runtime VM.
+fun @z3_symbols() -> void {
+    emit(c"fun symbol(z: u8) -> u8 {")
+    emit(c"if z >= 8 { if z <= 17 { return z + 40 } }")
+    for i in 0..block_len() {
+        if str_eq(node_keyword(i), c"glyph") == 1 {
+            let code: ^u8 = node_arg_str(i, 0)
+            let ascii: ^u8 = node_arg_str(i, 1)
+            emit(str_concat(c"if z == ", str_concat(code,
+                str_concat(c" { return ", str_concat(ascii, c" }")))))
+        }
     }
-    if z == 18 { return 46 }
-    if z == 19 { return 44 }
-    if z == 20 { return 33 }
-    if z == 21 { return 63 }
-    if z == 22 { return 95 }
-    if z == 23 { return 35 }
-    if z == 24 { return 39 }
-    if z == 25 { return 34 }
-    if z == 26 { return 47 }
-    if z == 27 { return 92 }
-    if z == 28 { return 45 }
-    if z == 29 { return 58 }
-    if z == 30 { return 40 }
-    return 41
+    emit(c"return 41")
+    emit(c"}")
+}
+@z3_symbols() {
+    glyph 18 46  // .
+    glyph 19 44  // ,
+    glyph 20 33  // !
+    glyph 21 63  // ?
+    glyph 22 95  // _
+    glyph 23 35  // #
+    glyph 24 39  // '
+    glyph 25 34  // double quote
+    glyph 26 47  // /
+    glyph 27 92  // backslash
+    glyph 28 45  // -
+    glyph 29 58  // :
+    glyph 30 40  // (
+    glyph 31 41  // )
 }
 fun print_text(addr: u16) -> u16 {
     var at: u16 = addr
