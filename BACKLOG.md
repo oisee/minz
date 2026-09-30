@@ -1,6 +1,6 @@
 # MinZ — статус и дерево бэклога
 
-**Актуализация 2026-09-30:** главная ветка переименована в `main`; снимок до уборки сохранён в `main-archive` на `7cee4aae`. [Карта веток, ссылок, субмодулей и CI](reports/2026-09-30-Repository-Cleanup-and-Branch-Map.md) описывает изменения после исходного аудита ниже. A1/A2 выполнены: `PR gate` прошёл [в PR #20](https://github.com/oisee/minz/pull/20), `main` защищён обязательными PR и актуальной проверкой. Полный набор тестов остаётся отдельной открытой задачей A3/A5.
+**Актуализация 2026-09-30:** главная ветка переименована в `main`; снимок до уборки сохранён в `main-archive` на `7cee4aae`. [Карта веток, ссылок, субмодулей и CI](reports/2026-09-30-Repository-Cleanup-and-Branch-Map.md) описывает изменения после исходного аудита ниже. A1/A2 выполнены: `PR gate` прошёл [в PR #20](https://github.com/oisee/minz/pull/20), `main` защищён обязательными PR и актуальной проверкой. Пять устаревших workflow удалены; до пересборки автоматизирован только CI/PR gate. Полный набор тестов остаётся отдельной открытой задачей A3/A5.
 
 Дата: **2026-09-19**. База: **`f51171a5`**, `master`, после `git fetch origin` совпадает с `origin/master`.
 Это текущая очередь решений и работ; старые планы сохраняют исторические детали. Расширенный [аудит MinZ, gpuforce, Z80/6502 optimizer и архивов](reports/2026-09-19-Ecosystem-Audit-RU.md) содержит свежие проверки и ограничения.
@@ -48,7 +48,8 @@ MinZ
 │   ├── [x] A2 [P0 Q U5 V] Привести CI к go.mod и реальным build-командам
 │   ├── [ ] A3 [P0 F U5 V] Чистый baseline: manifest корпуса, JSON-результаты, причины skips
 │   ├── [ ] A4 [P0 F U5 H] Compile → MZA → Z80 execution + dual MIR2/Z80 asserts
-│   └── [ ] A5 [P1 F U4 H] Разнести fast / integration / oracle, ограничить зависания
+│   ├── [ ] A5 [P1 F U4 H] Разнести fast / integration / oracle, ограничить зависания
+│   └── [ ] A6 [P1 F U4 V] Пересобрать nightly/security/benchmark на текущих командах
 ├── B. Production MIR2 → Z80: корректность — P0, U5
 │   ├── [ ] B1 [P0 F U5 V] Undefined labels: triage → исправления → fatal diagnostic
 │   ├── [ ] B2 [P0 F U5 H] ABI/parallel copies, div/mod, live values через CALL
@@ -65,7 +66,8 @@ MinZ
 │   ├── [ ] D1 [P1 F U5 H] Явные версии/хеши таблиц и правил; исключить скрытый CWD/HOME
 │   ├── [ ] D2 [P1 Q U4 V] Одна текущая точка входа в статус и команды сборки
 │   ├── [ ] D3 [P1 F U4 H] Headless install/smoke из чистого checkout, pinned dependencies
-│   └── [ ] D4 [P2 F U3 H] Инвентаризация legacy consumers → ADR → архивирование
+│   ├── [ ] D4 [P2 F U3 H] Инвентаризация legacy consumers → ADR → архивирование
+│   └── [ ] D5 [P1 F U4 V] Новый release workflow: tag build, smoke, dry run, артефакты
 ├── E. Пользовательские сценарии и runtime — P1/P2, U4
 │   ├── [ ] E1 [P1 Q U4 H] Один золотой CP/M пример: исходник → .com → expected output
 │   ├── [ ] E2 [P1 F U4 H] IRC/TUI в MZV: mock событий → render/input → transport
@@ -102,6 +104,7 @@ MinZ
 | A3 | Запуск в чистом checkout, версия toolchain/assets, фиксированный manifest tracked-примеров, expected failures по полному пути. **Done:** pass/fail/skip/timeout и общий denominator сохранены в артефакте; untracked не меняет набор; известные дефекты имеют ID и не выдаются за pass. |
 | A4 | CLI-default и тесты должны выполнять один pipeline; проверить ABI bootstrap и фактическое число Z80 asserts. **Done:** опорный корпус действительно собирается MZA и исполняется на Z80; wrong-code отрицательный контроль ловится; floors не снижаются. После A3. |
 | A5 | Отдельные бюджеты на тест/процесс, отмена дочернего solver, причины пропусков. **Done:** fast tier имеет измеренный бюджет, integration/oracle заканчиваются результатом либо диагностированным timeout; новые production failures блокируют merge. |
+| A6 | С нуля собрать плановый полный тест, security scan и benchmark с Go из `go.mod` и явными зависимостями. **Done:** каждый job запускается вручную на чистом checkout, публикует воспроизводимый результат и не маскирует известные failures; включить расписание только после проверки. После A3/A5. |
 | B1 | Собрать список undefined labels; проверить inline-asm references/DCE и error intrinsics. **Done:** standalone executable с неразрешённым символом не получает успешный exit; явные внешние символы допустимы лишь в документированном режиме. Known failures допускаются в test manifest, не как молчаливый успех компилятора. После A3. |
 | B2 | Малый repro div8(10,3), mod8(13,5), double_sum(3,4) сейчас PASS; расширить ABI/edge cases и cyclic moves именно на PBQP; фиксировать emitted ABI. **Done:** значения и сохранность live registers проверены Z80 execution при разных размещениях аргументов; oracle GCD отдельно в G4. После A4. |
 | B3 | Сначала минимальные repro чтения patch slot и рекурсивного call graph. **Done:** оптимизации учитывают эффекты; небезопасные SMC-преобразования отклонены/отключены; тесты покрывают рекурсию, writable code и сохранение значения после patch. После A4. |
@@ -116,6 +119,7 @@ MinZ
 | D2 | Обновить README/STATUS/snapshot/CLAUDE current-ссылки, исторические цифры пометить датой и revision. **Done:** новичок находит production backend, install и support matrix из README; старое «VIR default» не выглядит текущей рекомендацией. Этот бэклог — первый шаг, не вся задача. |
 | D3 | Минимальный compiler+assembler+headless runtime профиль отдельно от GUI/research. **Done:** чистая установка собирает и выполняет E1 без личных путей; dependencies и hashes заданы. После A2/D1/E1. |
 | D4 | Найти CLI/library/test consumers старых parser/semantic/codegen/CTIE и QBE round-trip. **Done:** ADR keep/archive/remove и отдельные безопасные миграции; shared LIR/VIR зависимости сохранены. |
+| D5 | Сконструировать новый релизный workflow из проверенных `go build` и smoke-команд. **Done:** dry run тега создаёт платформенные артефакты и checksums из чистого checkout, публикация выполняется только после успешных проверок; ни один известный failure не скрыт через `|| true`. После A3/D3. |
 | E1 | Выбрать tracked CP/M hello с вычислением, зафиксировать target/команды/вывод. **Done:** один smoke запускается через MZA+MZE из чистого checkout. После A3; discovered backend defects → B. |
 | E2 | Взять апрельский handoff, сделать tracked mock для status/log/input/PING/EOF. **Done:** детерминированный сценарий не зависает и рисует ожидаемые состояния; сетевой smoke отдельно и опционально. Без зависимости CI от публичного IRC. После A3. |
 | E3 | Сначала подтвердить актуальные Tetris failures, затем input replay с ограничением шагов. **Done:** spawn/move/rotate/line-clear проходят на заявленной платформе; screenshots дополняют проверки состояния. После B4/E1. |
