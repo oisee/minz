@@ -2206,6 +2206,7 @@ func (p *parser) parseGlobalDecl() (mir2.Global, error) {
 	// = initializer?
 	if p.l.is(tokEq) {
 		p.l.next()
+		g.InitString = p.l.is(tokString)
 		init, err := p.parseInitializer(ty)
 		if err != nil {
 			return g, err
@@ -2237,6 +2238,7 @@ func (p *parser) parseConstDecl() (mir2.Global, error) {
 	if _, err := p.l.eat(tokEq); err != nil {
 		return g, fmt.Errorf("line %d: const %s requires an initializer", nameTok.line, nameTok.val)
 	}
+	g.InitString = p.l.is(tokString)
 	init, err := p.parseInitializer(ty)
 	if err != nil {
 		return g, err
@@ -2246,6 +2248,27 @@ func (p *parser) parseConstDecl() (mir2.Global, error) {
 }
 
 func (p *parser) parseInitializer(ty mir2.Ty) ([]byte, error) {
+	if p.l.is(tokString) {
+		// A byte-array string initializer is stored in the global itself. This
+		// also keeps its address stable when later globals exceed 64 KiB.
+		t := p.l.next()
+		array, ok := ty.(*mir2.ArrayTy)
+		if !ok || array.Elem != mir2.TyU8 {
+			return nil, fmt.Errorf("line %d: string initializer requires a [u8; N] array", t.line)
+		}
+		raw := t.val
+		if len(raw) >= 2 && raw[1] == '\x00' {
+			if raw[0] != 'c' {
+				return nil, fmt.Errorf("line %d: byte-array initializer requires a plain or c string", t.line)
+			}
+			raw = raw[2:]
+		}
+		data := append([]byte(processStringEscapes(raw)), 0)
+		if len(data) > array.Len {
+			return nil, fmt.Errorf("line %d: string initializer needs %d bytes including NUL, but array has %d", t.line, len(data), array.Len)
+		}
+		return data, nil
+	}
 	if p.l.is(tokLBrack) {
 		// Array initializer [v1, v2, ...]
 		p.l.next()

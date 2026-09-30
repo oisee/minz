@@ -50,9 +50,9 @@ jobs:
           "$RUNNER_TEMP/mz" ../examples/fibonacci.minz -o "$RUNNER_TEMP/fibonacci.a80"
           "$RUNNER_TEMP/mza" -o "$RUNNER_TEMP/fibonacci.bin" "$RUNNER_TEMP/fibonacci.a80"
           test -s "$RUNNER_TEMP/fibonacci.bin"
-      - name: Run Nanz metafunction tests
+      - name: Run Nanz language regression tests
         id: metafunctions
-        run: go test ./pkg/nanz -run '^TestUserMetafunction' -count=1
+        run: go test ./pkg/nanz -run '^Test(UserMetafunction|GlobalStringByteArrayInitializer)' -count=1
       - name: Run Z3 demo through Nanz on mzv
         id: z3_demo
         run: ../examples/zmachine/zork-west-demo/smoke.sh "$RUNNER_TEMP/mzv"
@@ -86,7 +86,7 @@ jobs:
               ['Build mz, mza, mze, mzv', process.env.BUILD_RESULT],
               ['Stable Go package tests', process.env.STABLE_RESULT],
               ['Fibonacci compile + assemble', process.env.ASSEMBLE_RESULT],
-              ['Nanz metafunction tests', process.env.META_RESULT],
+              ['Nanz language regressions', process.env.META_RESULT],
               ['Z3 West of House demo', process.env.DEMO_RESULT],
               ['Z3 small conformance fixtures', process.env.FIXTURES_RESULT],
             ];

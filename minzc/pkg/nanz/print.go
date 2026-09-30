@@ -27,6 +27,8 @@ package nanz
 import (
 	"fmt"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
@@ -115,6 +117,14 @@ func (p *printer) global(g mir2.Global) {
 	if len(g.Init) > 0 {
 		switch ty := g.Ty.(type) {
 		case *mir2.ArrayTy:
+			if g.InitString && ty.Elem == mir2.TyU8 {
+				if value, ok := printableCString(g.Init); ok {
+					p.write(" = \"")
+					p.write(value)
+					p.write("\"")
+					break
+				}
+			}
 			p.write(" = [")
 			ew := mir2.ByteWidth(ty.Elem)
 			for i := 0; i < ty.Len && i*ew < len(g.Init); i++ {
@@ -130,6 +140,24 @@ func (p *printer) global(g mir2.Global) {
 		}
 	}
 	p.nl()
+}
+
+// Keep literal syntax for printable strings. Less common strings with
+// escapes fall back to byte arrays until Nanz can round-trip quoted escapes.
+func printableCString(data []byte) (string, bool) {
+	if len(data) == 0 || data[len(data)-1] != 0 {
+		return "", false
+	}
+	value := string(data[:len(data)-1])
+	if !utf8.ValidString(value) {
+		return "", false
+	}
+	for _, r := range value {
+		if !unicode.IsPrint(r) || r == '"' || r == '\\' {
+			return "", false
+		}
+	}
+	return value, true
 }
 
 func (p *printer) writeInitBytes(data []byte, ty mir2.Ty) {

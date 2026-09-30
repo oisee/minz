@@ -79,6 +79,61 @@ func TestParse(t *testing.T) {
 	}
 }
 
+func TestGlobalStringByteArrayInitializer(t *testing.T) {
+	src := `global path: [u8; 9] = "save.dat"
+global escaped: [u8; 6] = c"a\nb"
+global utf8: [u8; 7] = "Пр"
+fun main() {}`
+	m, err := nanz.Parse(src, "strings")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := string(m.Globals[0].Init); got != "save.dat\x00" {
+		t.Fatalf("path init = %q", got)
+	}
+	if got := string(m.Globals[1].Init); got != "a\nb\x00" {
+		t.Fatalf("escaped init = %q", got)
+	}
+	if got := string(m.Globals[2].Init); got != "Пр\x00" {
+		t.Fatalf("UTF-8 init = %q", got)
+	}
+	printed := nanz.Print(m)
+	if !strings.Contains(printed, `global path: [u8; 9] = "save.dat"`) {
+		t.Fatalf("printer lost the string initializer:\n%s", printed)
+	}
+	if !strings.Contains(printed, `global utf8: [u8; 7] = "Пр"`) {
+		t.Fatalf("printer lost the UTF-8 initializer:\n%s", printed)
+	}
+	parsedAgain, err := nanz.Parse(printed, "strings-roundtrip")
+	if err != nil || string(parsedAgain.Globals[0].Init) != "save.dat\x00" {
+		t.Fatalf("string initializer round-trip failed: %v", err)
+	}
+	lowered := hir.LowerModule(m)
+	if !lowered.Globals[0].InitString {
+		t.Fatal("MIR2 lost string initializer origin")
+	}
+	vm := mir2.NewVM(lowered)
+	if got := string(vm.ReadHeap(0, 9)); got != "save.dat\x00" {
+		t.Fatalf("VM path = %q", got)
+	}
+	asm, err := pipeline.CompileHIR(m)
+	if err != nil {
+		t.Fatalf("Z80 pipeline: %v", err)
+	}
+	if !strings.Contains(asm, "path:\n    DB 115, 97, 118, 101, 46, 100, 97, 116, 0") {
+		t.Fatalf("Z80 global bytes missing from assembly:\n%s", asm)
+	}
+	for _, bad := range []string{
+		`global path: [u8; 4] = "long"`,
+		`global path: [u16; 6] = "hello"`,
+		`global path: [u8; 6] = l"hello"`,
+	} {
+		if _, err := nanz.Parse(bad, "bad-init"); err == nil {
+			t.Errorf("accepted invalid initializer %q", bad)
+		}
+	}
+}
+
 func TestPrint(t *testing.T) {
 	m, err := nanz.Parse(sampleNanz, "test")
 	if err != nil {
