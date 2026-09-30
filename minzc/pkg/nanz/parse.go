@@ -1540,6 +1540,22 @@ func (p *parser) parseImport() error {
 		}
 
 		p.module.Structs = append(p.module.Structs, st)
+
+		// Imported struct methods have already been desugared into functions.
+		// Rebuild their UFCS entries for the importing parser so obj.method()
+		// still resolves directly to the imported concrete function.
+		methodPrefix := modPrefix + origName + "_"
+		for _, f := range imported.Funcs {
+			if len(f.Params) == 0 || f.Params[0].Name != "self" ||
+				!strings.HasPrefix(f.Name, methodPrefix) {
+				continue
+			}
+			methodName := strings.TrimPrefix(f.Name, methodPrefix)
+			if p.methodTable[mangledName] == nil {
+				p.methodTable[mangledName] = make(map[string]methodInfo)
+			}
+			p.methodTable[mangledName][methodName] = methodInfo{funcName: f.Name, retTy: f.RetTy}
+		}
 	}
 
 	// Merge globals
