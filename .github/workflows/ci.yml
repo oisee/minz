@@ -42,5 +42,5 @@ jobs:
           test -s "$RUNNER_TEMP/fibonacci.bin"
       - name: Run Z3 story through Nanz on mzv
         run: |
-          go test ./pkg/nanz -run '^TestUserMetafunctionGeneratedReturnType$' -count=1
+          go test ./pkg/nanz -run '^TestUserMetafunction' -count=1
           ../examples/zmachine/zork-west-demo/smoke.sh "$RUNNER_TEMP/mzv"

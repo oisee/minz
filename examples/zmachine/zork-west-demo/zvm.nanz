@@ -139,10 +139,10 @@ fun @z3_symbols() -> void {
     emit(c"if z >= 8 { if z <= 17 { return z + 40 } }")
     for i in 0..block_len() {
         if str_eq(node_keyword(i), c"glyph") == 1 {
-            let code: ^u8 = node_arg_str(i, 0)
-            let ascii: ^u8 = node_arg_str(i, 1)
-            emit(str_concat(c"if z == ", str_concat(code,
-                str_concat(c" { return ", str_concat(ascii, c" }")))))
+            let code: u8 = node_arg_int(i, 0)
+            let ascii: u8 = node_arg_int(i, 1)
+            emit(str_concat(c"if z == ", str_concat(str_from_int(code),
+                str_concat(c" { return ", str_concat(str_from_int(ascii), c" }")))))
         }
     }
     emit(c"return 41")
