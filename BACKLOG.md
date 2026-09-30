@@ -100,7 +100,8 @@ MinZ
     ├── [x] J2a [P1 Q U4 V] West of House: Nanz core в mzv, полный transcript и CI smoke
     ├── [ ] J2b [P1 F U4 ?] Независимые opcode/state fixtures, больше Z3 и диагностика unsupported
     ├── [x] J2c [P1 Q U4 V] Полный CZECH v0.8 Z3: 349 assertions, 0 failures, 19 print cases достигнуты
-    ├── [ ] J2d [P1 F U4 ?] Полный Z3: save/restore, потоки, I/O, story до 128K и oracle для print cases
+    ├── [x] J2e [P1 Q U4 V] mzv: 128K адресация, save/restore, потоки 2–4 и input stream 1 с fixtures
+    ├── [ ] J2d [P1 F U4 ?] Полный Z3: экран/status, ZSCII keyboard input, sound, error boundaries и длинные игровые транскрипты
     ├── [ ] J3 [P2 F U3 ?] Позже: тот же core через MZA + Z80, сравнение трасс/состояния
     ├── [ ] J4 [P2 F U4 V] Spectrum 128K: банкование, память, I/O и формат поставки
     └── [ ] J5 [P2 E U3 ?] Zork I startup/LOOK/команды, затем отдельный demo-артефакт
@@ -122,7 +123,7 @@ J1 можно начать параллельно с текущими P0-зад�
 
 [Проверка внешнего Z3-корпуса](reports/2026-09-30-ZMachine-V3-Test-Corpus-RU.md): CZECH v3 — 10 752 байта и группы opcode с возможностью пропуска; готовая MIT-игра Dark Pit — 27 490 байт. Для J1/J3 сначала маленькие fixtures и CZECH, затем игра как интеграционный тест. CZECH распространяется под собственной разрешительной лицензией, поэтому пока только pinned external input, без копии в репозитории.
 
-**J2c (2026-09-30):** `czech-smoke.sh` проверяет SHA-256 внешнего Z3 story и прогоняет весь CZECH на Nanz/`mzv`: 368 tests, 349 passed, 0 failed, 19 print cases; ключевые строки печати сверяются автоматически, остальные ещё не имеют отдельного oracle. Dark Pit (27 490 байт) загружается, отвечает на `look`/`inventory` и перезапускается. Это не закрывает J2d: отсутствуют persistent save/restore, output/input streams, полноценная экранная модель и загрузка историй до максимума Z3 128K. Общий `go test -short ./pkg/nanz` остаётся красным на bit accessor, Lanz/Lizp imports и Z80 showcase; `pkg/pipeline`, мета-функции и Z3 smoke зелёные.
+**J2c/J2e (2026-09-30):** `czech-smoke.sh` проверяет SHA-256 внешнего Z3 story: 368 tests, 349 passed, 0 failed, 19 print cases. С Frotz сверяется текст всех print cases, кроме отличий в расположении пустых строк. [MIT fixtures](examples/zmachine/z3-fixtures/README.md) отдельно проверяют вложенный memory stream, transcript, запись/воспроизведение команд, persistent save/restore с проверкой идентичности story, дополнительные символы ZSCII с UTF-8 выводом и вызов процедуры у границы 128K. Полный MIT Zork I 86 928 байт проходит шесть команд `LOOK → OPEN MAILBOX → TAKE LEAFLET → READ LEAFLET → INVENTORY → QUIT` с совпадением игрового текста с Frotz, а также `save → restore`; Dark Pit 27 490 байт — старт, `look`/`inventory` и `restart`. J2d остаётся открытым: экран/status, не-ASCII ввод, sound, ошибки на границах и более длинный gameplay пока не доказаны. Общий `go test -short ./pkg/nanz` остаётся красным на bit accessor, Lanz/Lizp imports и Z80 showcase; `pkg/pipeline`, мета-функции и Z3 smoke зелёные.
 
 ## Карточки: первый шаг, зависимости, критерий готовности
 

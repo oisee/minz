@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/binary"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,9 +15,11 @@ import (
 // Programs can read source files directly from the host filesystem via MZV.
 //
 // Host functions:
-//   @file_size(path: ^u8) -> u16          — returns file size (0 if not found)
-//   @file_read(path: ^u8, buf: ^u8) -> u16 — reads entire file into buf, returns bytes read
-//   @file_exists(path: ^u8) -> u8         — returns 1 if file exists, 0 otherwise
+//
+//	@file_size(path: ^u8) -> u16          — returns file size (0 if not found)
+//	@file_read(path: ^u8, buf: ^u8) -> u16 — reads entire file into buf, returns bytes read
+//	@file_read_bounded(path: ^u8, buf: ^u8, capacity: u32) -> u32 — reads an entire file that fits
+//	@file_exists(path: ^u8) -> u8         — returns 1 if file exists, 0 otherwise
 func registerFileHosts(vm *mir2.VM, baseDir string, trace bool) {
 	// Helper: read null-terminated string from VM heap.
 	readStr := func(ptr int64) string {
@@ -82,6 +86,132 @@ func registerFileHosts(vm *mir2.VM, baseDir string, trace bool) {
 	}
 	vm.Hosts["@file_read"] = fileReadFn
 	vm.Hosts["file_read"] = fileReadFn
+	boundedReadFn := func(args []mir2.Value) ([]mir2.Value, error) {
+		path := resolve(readStr(args[0].I))
+		capacity := args[2].I
+		if trace {
+			fmt.Fprintf(os.Stderr, "  file_read_bounded(%q, buf=%d, capacity=%d)\n", path, args[1].I, capacity)
+		}
+		if capacity < 0 || capacity > 131072 {
+			return []mir2.Value{{I: 0}}, nil
+		}
+		data, err := os.ReadFile(path)
+		if err != nil || int64(len(data)) > capacity {
+			return []mir2.Value{{I: 0}}, nil
+		}
+		vm.EnsureHeap(args[1].I + int64(len(data)))
+		vm.WriteHeapBytes(args[1].I, data)
+		return []mir2.Value{{I: int64(len(data))}}, nil
+	}
+	vm.Hosts["@file_read_bounded"] = boundedReadFn
+	vm.Hosts["file_read_bounded"] = boundedReadFn
+
+	// Two fixed-size buffers let an interpreter persist VM state plus its
+	// dynamic story memory without requiring host knowledge of either format.
+	vm.Hosts["file_write_pair"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		path := resolve(readStr(args[0].I))
+		firstLen, secondLen := int(args[2].I), int(args[4].I)
+		if firstLen < 0 || firstLen > 65535 || secondLen < 0 || secondLen > 65535 {
+			return []mir2.Value{{I: 0}}, nil
+		}
+		first := vm.ReadHeap(args[1].I, firstLen)
+		second := vm.ReadHeap(args[3].I, secondLen)
+		if len(first) != firstLen || len(second) != secondLen {
+			return []mir2.Value{{I: 0}}, nil
+		}
+		data := append(append(make([]byte, 0, firstLen+secondLen), first...), second...)
+		f, err := os.CreateTemp(filepath.Dir(path), ".minz-save-*")
+		if err != nil {
+			return []mir2.Value{{I: 0}}, nil
+		}
+		tempPath := f.Name()
+		defer os.Remove(tempPath)
+		if _, err = f.Write(data); err != nil {
+			f.Close()
+			return []mir2.Value{{I: 0}}, nil
+		}
+		if err = f.Close(); err != nil {
+			return []mir2.Value{{I: 0}}, nil
+		}
+		if err = os.Rename(tempPath, path); err != nil {
+			return []mir2.Value{{I: 0}}, nil
+		}
+		return []mir2.Value{{I: 1}}, nil
+	}
+	vm.Hosts["file_read_pair_checked"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		path := resolve(readStr(args[0].I))
+		firstLen, secondLen := int(args[2].I), int(args[4].I)
+		if firstLen < 0 || firstLen > 65535 || secondLen < 0 || secondLen > 65535 {
+			return []mir2.Value{{I: 0}}, nil
+		}
+		data, err := os.ReadFile(path)
+		if err != nil || len(data) != firstLen+secondLen {
+			return []mir2.Value{{I: 0}}, nil
+		}
+		if firstLen < 16 || !bytes.Equal(data[:16], vm.ReadHeap(args[1].I, 16)) {
+			return []mir2.Value{{I: 0}}, nil
+		}
+		vm.WriteHeapBytes(args[1].I, data[:firstLen])
+		vm.WriteHeapBytes(args[3].I, data[firstLen:])
+		return []mir2.Value{{I: 1}}, nil
+	}
+	vm.Hosts["file_append_byte"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		path := resolve(readStr(args[0].I))
+		f, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
+		if err != nil {
+			return []mir2.Value{{I: 0}}, nil
+		}
+		_, err = f.Write([]byte{byte(args[1].I)})
+		closeErr := f.Close()
+		if err != nil || closeErr != nil {
+			return []mir2.Value{{I: 0}}, nil
+		}
+		return []mir2.Value{{I: 1}}, nil
+	}
+	vm.Hosts["file_append_utf8"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		path := resolve(readStr(args[0].I))
+		f, err := os.OpenFile(path, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
+		if err != nil {
+			return []mir2.Value{{I: 0}}, nil
+		}
+		_, err = f.Write([]byte(string(rune(args[1].I))))
+		closeErr := f.Close()
+		if err != nil || closeErr != nil {
+			return []mir2.Value{{I: 0}}, nil
+		}
+		return []mir2.Value{{I: 1}}, nil
+	}
+	vm.Hosts["file_read_line"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		path := resolve(readStr(args[0].I))
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return []mir2.Value{{I: 65535}}, nil
+		}
+		offsetBytes := vm.ReadHeap(args[3].I, 4)
+		if len(offsetBytes) != 4 {
+			return []mir2.Value{{I: 65535}}, nil
+		}
+		offset := int(binary.LittleEndian.Uint32(offsetBytes))
+		if offset >= len(data) {
+			return []mir2.Value{{I: 65535}}, nil
+		}
+		end := offset
+		for end < len(data) && data[end] != '\n' {
+			end++
+		}
+		line := bytes.TrimSuffix(data[offset:end], []byte{'\r'})
+		if len(line) > int(args[2].I) {
+			line = line[:int(args[2].I)]
+		}
+		vm.WriteHeapBytes(args[1].I, append(append([]byte(nil), line...), 0))
+		if end < len(data) {
+			end++
+		}
+		var next [4]byte
+		binary.LittleEndian.PutUint32(next[:], uint32(end))
+		vm.WriteHeapBytes(args[3].I, next[:])
+		return []mir2.Value{{I: int64(len(line))}}, nil
+	}
 
 	// peek(addr: u16) -> u8 — read byte from VM heap
 	// Auto-extends heap if needed (Z80 has 64KB address space).
@@ -115,6 +245,11 @@ func registerFileHosts(vm *mir2.VM, baseDir string, trace bool) {
 		fmt.Fprintf(os.Stdout, "%c", byte(args[0].I))
 		return nil, nil
 	}
+	vm.Hosts["@print_utf8"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		fmt.Fprint(os.Stdout, string(rune(args[0].I)))
+		return nil, nil
+	}
+	vm.Hosts["print_utf8"] = vm.Hosts["@print_utf8"]
 
 	// @print_nl() -> void — print newline
 	vm.Hosts["@print_nl"] = func(args []mir2.Value) ([]mir2.Value, error) {

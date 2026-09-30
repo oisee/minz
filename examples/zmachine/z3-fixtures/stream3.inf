@@ -1,0 +1,23 @@
+! SPDX-License-Identifier: MIT
+! A small independent Z3 fixture for output stream 3.
+Constant Story "Z3 stream test";
+Constant Headline "^";
+Array buffer -> 32;
+Array outer -> 32;
+Array inner -> 32;
+[ Main;
+    @output_stream 3 buffer;
+    print "A", (char) 13, "B";
+    @output_stream -3;
+    print buffer-->0, ":", buffer->2, ",", buffer->3, ",", buffer->4, "^";
+    @output_stream 3 outer;
+    print "X";
+    @output_stream 3 inner;
+    print "Y";
+    @output_stream -3;
+    print "Z";
+    @output_stream -3;
+    print outer-->0, ":", outer->2, ",", outer->3, ";",
+        inner-->0, ":", inner->2, "^";
+    quit;
+];

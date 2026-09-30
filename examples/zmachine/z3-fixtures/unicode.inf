@@ -1,0 +1,12 @@
+! SPDX-License-Identifier: MIT
+! Z3's default ZSCII extras include Latin-1 and the oe ligature.
+[ Main;
+    @output_stream 2;
+    @print_char 155;
+    @print_char 170;
+    @print_char 220;
+    @print_char 223;
+    @output_stream -2;
+    print "^";
+    quit;
+];

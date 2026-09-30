@@ -1,0 +1,18 @@
+! SPDX-License-Identifier: MIT
+! Record one command, replay it, then fall back to keyboard at EOF.
+Array text -> 40;
+Array parse -> 10;
+[ Main;
+    text->0 = 38;
+    parse->0 = 2;
+    @output_stream 4;
+    @sread text parse;
+    @output_stream -4;
+    print "first:", (char) text->1, "^";
+    @input_stream 1;
+    @sread text parse;
+    print "second:", (char) text->1, "^";
+    @sread text parse;
+    print "third:", (char) text->1, "^";
+    quit;
+];
