@@ -1,10 +1,7 @@
 name: Security
 
 on:
-  push:
-    branches: [ master, main, develop ]
-  pull_request:
-    branches: [ master, main, develop ]
+  workflow_dispatch:
   schedule:
     # Run at 1 AM UTC on Mondays
     - cron: '0 1 * * 1'

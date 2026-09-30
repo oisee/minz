@@ -102,10 +102,11 @@ clean:
 .PHONY: test
 test: mz mza mze
 	@echo "Running basic tests..."
-	./mz ../examples/hello_clean.minz -o test.a80
-	./mza -o test.bin test.a80
+	./mz ../examples/fibonacci.minz -o smoke_test.a80
+	./mza -o smoke_test.bin smoke_test.a80
+	test -s smoke_test.bin
 	@echo "Basic compilation test passed"
-	@rm -f test.a80 test.bin
+	@rm -f smoke_test.a80 smoke_test.bin
 
 # Run MIR backend tests (MIR→Z80→emulate pipeline)
 .PHONY: test-mir
@@ -126,39 +127,13 @@ bench-mir:
 # Run ALL Go unit tests across the entire toolchain
 .PHONY: test-all
 test-all:
-	@echo "=== Running all Go unit tests ==="
-	@echo ""
-	@echo "--- Z80 Emulator (FUSE test suite) ---"
-	go test ./pkg/emulator/... -count=1 -v 2>&1 | tail -5
-	@echo ""
-	@echo "--- Z80 Assembler ---"
-	go test ./pkg/z80asm/... -count=1 -v 2>&1 | tail -5
-	@echo ""
-	@echo "--- Spectrum Emulator (MZX) ---"
-	go test ./pkg/spectrum/... -count=1 -v 2>&1 | tail -5
-	@echo ""
-	@echo "--- Disassembler ---"
-	go test ./pkg/disasm/... -count=1 -v 2>&1 | tail -5
-	@echo ""
-	@echo "--- Parser ---"
-	go test ./pkg/parser/... -count=1 -v 2>&1 | tail -5
-	@echo ""
-	@echo "--- MIR Backend (codegen pipeline) ---"
-	go test ./pkg/codegen/ -run "^TestMIRBackend$$" -v -timeout 120s -count=1 -vet=off 2>&1 | tail -20
-	@echo ""
-	@echo "--- All remaining packages ---"
-	@# 45m, not the 10m default: pkg/vir needs ~25 minutes and pkg/pipeline
-	@# longer still. With the default they time out, their failures never print,
-	@# and a genuinely failing test (TestVIR_Assert_GCD) stays invisible.
-	go test ./... -count=1 -timeout 45m 2>&1 | grep -E '(ok|FAIL|---)'
-	@echo ""
-	@echo "=== Test run complete ==="
+	go test ./... -count=1 -timeout 45m
 
 # Run the fast tests only — skips the corpus and solver suites via -short.
 # Use this in the edit-test loop; use test-all before pushing.
 .PHONY: test-quick
 test-quick:
-	go test ./pkg/... -count=1 -short -timeout 10m 2>&1 | grep -E '(ok|FAIL|---)'
+	go test ./pkg/... -count=1 -short -timeout 10m
 
 # Show help
 .PHONY: help

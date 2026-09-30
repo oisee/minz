@@ -2,11 +2,9 @@ name: Build and Release MinZ
 
 on:
   push:
-    branches: [ master, main ]
     tags:
       - 'v*'
-  pull_request:
-    branches: [ master, main ]
+  workflow_dispatch:
 
 env:
   GO_VERSION: '1.21'

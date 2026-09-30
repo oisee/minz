@@ -1,0 +1,6 @@
+[submodule "corpus/intel80tools"]
+	path = corpus/intel80tools
+	url = https://github.com/ogdenpm/intel80tools.git
+[submodule "examples/zvdb-minz"]
+	path = examples/zvdb-minz
+	url = https://github.com/oisee/zvdb-minz.git

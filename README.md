@@ -215,7 +215,7 @@ Books: [Nanz Language Book v7](docs/Nanz_Language_Book_v7.md) ([PDF](docs/Nanz_L
 
 ---
 
-### ★ [Week In Review: The Everything Sprint](reports/2026-03-18-094-Week_In_Review_Sprint_0311_0318.md) | [Report Guide](docs/Report_Guide.md) | [Nanz Language Book v5](docs/Nanz_Language_Book_v5.md)
+### ★ [Week In Review: The Everything Sprint](reports/2026-03-18-094-Week_In_Review_Sprint_0311_0318.md) | [Report Guide](docs/Report_Guide.md) | [Nanz Language Book](docs/Nanz_Language_Book_v7.md)
 
 253 commits, 8 frontends, 3 backends, FAT12/16 filesystem, TUI framework with compile-time metafunctions, Mini Norton Commander, `@target()` platform detection — in one week.
 
@@ -253,8 +253,8 @@ Books: [Nanz Language Book v7](docs/Nanz_Language_Book_v7.md) ([PDF](docs/Nanz_L
 - **[ABAP Frontend + SQLite + Zork](reports/2026-03-16-088-ABAP_Frontend_SQLite_Zork.md)** — 7th frontend (ABAP via abaplint), SQLite host functions in MIR2 VM, CP/M file I/O fixed (ROM protection root cause), **Zork I (1983) runs in MZE**.
 - **[Nanz Z80 Showcase v2](reports/2026-03-15-084-Nanz_Z80_Showcase_Definitive_v2.md)** — 12 verified examples: `abs_diff` 6B (optimal), `swap` 1B (bare RET), `smaller` 0B (EQU), `popcount` 3-inst LUT, `@smc` compiled sprites, value pipes constant-folded, iterator DJNZ fusion. Plus `elimJrToRet` peephole: `JR cc → RET` → `RET cc`.
 - **[C89 Frontend vs SDCC](reports/2026-03-15-081-MinZ_C89_vs_SDCC_Codegen_Comparison.md)** — 6th frontend: C89/C99 via `modernc.org/cc/v4`. Identical C source, **MinZ 81B vs SDCC 179B (−55%)**. Pair-return byte-identical to Nanz. See table below. [Progress report](reports/2026-03-15-082-C89_Frontend_Progress.md): 9 corpus files, 51 functions, 68 MIR2 asserts pass.
-- **[Six Frontends, Universal Assert](reports/2026-03-15-080-Five_Frontends_Universal_Assert.md)** — Nanz, Lanz, Lizp, PL/M-80, Pascal, C89 — all compile through one HIR → MIR2 → Z80 pipeline. Compile-time assert works in all 6. Pascal → CP/M hello world runs in MZE.
-- **[Nanz Language Book v5.3](docs/Nanz_Language_Book_v5.md)** — 21 chapters + 8 appendices. New: five-frontend architecture, universal assert syntax, Pascal/Lizp imports, transpilation via `--emit`.
+- **[Six Frontends, Universal Assert](reports/2026-03-15-080-Six_Frontends_Universal_Assert.md)** — Nanz, Lanz, Lizp, PL/M-80, Pascal, C89 — all compile through one HIR → MIR2 → Z80 pipeline. Compile-time assert works in all 6. Pascal → CP/M hello world runs in MZE.
+- **[Nanz Language Book v5.3](releases/v0.21.4/Nanz_Language_Book_v5.pdf)** — 21 chapters + 8 appendices. New: five-frontend architecture, universal assert syntax, Pascal/Lizp imports, transpilation via `--emit`.
 - **[ZX Spectrum Tetris](examples/zx/tetris.nanz)** — 853 LOC, 7 tetrominoes, SRS wall kicks, hold/next/ghost piece, T-spin scoring. Attribute-based rendering for fast frame updates.
 - **[Nanz Language Sprint: 6 features](reports/2026-03-15-073-Nanz_Language_Sprint_Six_Features.md)** — enums, type aliases, module imports, three string types, pipe/trans named pipelines with DJNZ fusion.
 - **[Arena allocator + sandbox + sizeof](reports/2026-03-14-069-Arena_Allocator_Sandbox_Sizeof.md)** — struct-based bump allocator with `^Arena` pointer receiver, `arena_split` chaining, `sizeof(Type)` compile-time constant.
@@ -971,7 +971,7 @@ mz program.plm -o prog.com -t cpm  # Assemble to CP/M binary
 The Nanz transpiler is lossless: `mz prog.plm --emit=nanz | mz --stdin` produces
 byte-identical assembly to compiling `.plm` directly.
 
-See [Chapter 21 of the Nanz Language Book](docs/Nanz_Language_Book_v5.md) for the full cross-language import guide.
+See [Chapter 21 of the Nanz Language Book](docs/Nanz_Language_Book_v7.md#chapter-21-cross-language-imports) for the full cross-language import guide.
 
 ---
 

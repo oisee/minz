@@ -1,5 +1,7 @@
 # MinZ — статус и дерево бэклога
 
+**Актуализация 2026-09-30:** главная ветка переименована в `main`; снимок до уборки сохранён в `main-archive` на `7cee4aae`. [Карта веток, ссылок, субмодулей и CI](reports/2026-09-30-Repository-Cleanup-and-Branch-Map.md) описывает изменения после исходного аудита ниже. A1 исправлен в текущей уборке; A2 остаётся открытым до успешного прогона нового PR gate на GitHub и включения защиты ветки.
+
 Дата: **2026-09-19**. База: **`f51171a5`**, `master`, после `git fetch origin` совпадает с `origin/master`.
 Это текущая очередь решений и работ; старые планы сохраняют исторические детали. Расширенный [аудит MinZ, gpuforce, Z80/6502 optimizer и архивов](reports/2026-09-19-Ecosystem-Audit-RU.md) содержит свежие проверки и ограничения.
 
@@ -42,7 +44,7 @@
 ```text
 MinZ
 ├── A. Достоверность сборки и тестов — P0, U5
-│   ├── [ ] A1 [P0 Q U5 V] Сохранить exit code go test в Makefile
+│   ├── [x] A1 [P0 Q U5 V] Сохранить exit code go test в Makefile
 │   ├── [ ] A2 [P0 Q U5 V] Привести CI к go.mod и реальным build-командам
 │   ├── [ ] A3 [P0 F U5 V] Чистый baseline: manifest корпуса, JSON-результаты, причины skips
 │   ├── [ ] A4 [P0 F U5 H] Compile → MZA → Z80 execution + dual MIR2/Z80 asserts

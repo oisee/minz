@@ -123,7 +123,7 @@ trusted until it is fixed or removed.
 - **VIR Backend** (`pkg/vir/`) - Z3 unified solver: joint isel+regalloc, PFCCO, inline runtime — see §5 in Current Priorities
 - **[INTERNAL_ARCHITECTURE.md](minzc/docs/INTERNAL_ARCHITECTURE.md)** - Complete compiler internals
 - **[COMPILER_SNAPSHOT.md](COMPILER_SNAPSHOT.md)** - Current state tracking
-- **[149_World_Class_Multi_Level_Optimization_Guide.md](docs/149_World_Class_Multi_Level_Optimization_Guide.md)** - Revolutionary optimization strategy
+- **[149_World_Class_Multi_Level_Optimization_Guide.md](https://github.com/oisee/minz/blob/main-archive/docs/_archive_2025/2025-08-07-149-World_Class_Multi_Level_Optimization_Guide.md)** - Historical optimization strategy
 - **[Report 097: Rewrite Triad](reports/2026-03-19-097-Rewrite-Triad-Infrastructure.md)** - ISLE+Grace+Datalog declarative optimization engines (infrastructure, not yet in pipeline)
 - **[Report 111: GPU Regalloc Table](reports/2026-03-24-111-GPU-Precomputed-Regalloc-Table.md)** - Precomputed register allocation from CUDA brute-force (61 entries, O(1) lookup)
 - **[GPU Bruteforce Roadmap](../z80-optimizer/BRUTEFORCE_ROADMAP.md)** - Beyond peephole: constant multiply, division, screen address, sin/cos — all via exhaustive GPU search

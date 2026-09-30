@@ -1,12 +1,7 @@
 name: Benchmark PR
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
-    paths:
-      - 'minzc/**'
-      - 'examples/**'
-      - '.github/workflows/benchmark-pr.yml'
+  workflow_dispatch:
 
 env:
   SJASMPLUS_VERSION: v1.20.3
