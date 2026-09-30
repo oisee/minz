@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [ "$#" -ne 2 ]; then
-    echo "usage: $0 /path/to/mzv /path/to/pinned-czech.z3" >&2
+if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]; then
+    echo "usage: $0 /path/to/mzv /path/to/pinned-czech.z3 [/path/to/dfrotz]" >&2
     exit 2
 fi
 
@@ -18,21 +18,9 @@ fi
 
 tmp_dir=$(mktemp -d)
 trap 'rm -rf "$tmp_dir"' EXIT
-cp "$story" "$tmp_dir/czech.z3"
-python3 - "$demo_dir/zvm.nanz" "$tmp_dir/zvm-czech.nanz" "$tmp_dir/czech.z3" <<'PY'
-from pathlib import Path
-import sys
-
-source, target, story = map(Path, sys.argv[1:])
-program = source.read_text()
-assert program.count('story: [u8; 4096]') == 1
-assert program.count('c"zork-west-demo.z3"') == 2
-program = program.replace('story: [u8; 4096]', 'story: [u8; 16384]')
-program = program.replace('c"zork-west-demo.z3"', f'c"{story}"')
-target.write_text(program)
-PY
-
-"$vm" -H "$tmp_dir/zvm-czech.nanz" > "$tmp_dir/output"
+cp "$story" "$tmp_dir/zork-west-demo.z3"
+cp "$demo_dir/zvm.nanz" "$tmp_dir/zvm.nanz"
+"$vm" -H "$tmp_dir/zvm.nanz" > "$tmp_dir/output"
 python3 - "$tmp_dir/output" <<'PY'
 from pathlib import Path
 import sys
@@ -57,8 +45,30 @@ for expected in (
 ):
     if expected not in output:
         raise SystemExit(f'CZECH output missing: {expected!r}\n{output}')
-for failure in ('ERROR [', 'Unsupported Z3 opcode', 'Z3 step budget exceeded'):
+for failure in ('ERROR [', 'Z3 error'):
     if failure in output:
         raise SystemExit(f'CZECH output contains: {failure}')
 print('CZECH v3: 349/349 assertions passed; 19 print cases reached')
 PY
+
+if [ "$#" -eq 3 ]; then
+    frotz=$(realpath "$3")
+    "$frotz" -m -w 255 "$story" < /dev/null > "$tmp_dir/frotz-output"
+    python3 - "$tmp_dir/output" "$tmp_dir/frotz-output" <<'PY'
+from pathlib import Path
+import sys
+
+def print_lines(path):
+    output = Path(path).read_text()
+    section = output[output.index('Print opcodes [350]:'):]
+    return [line for line in section.splitlines() if line.strip()]
+
+mzv, frotz = map(print_lines, sys.argv[1:])
+if mzv != frotz:
+    raise SystemExit('CZECH print block differs from Frotz beyond blank-line layout')
+output = Path(sys.argv[1]).read_text()
+if '[360] new_line:\n\nThere should be an empty line above this line.' not in output:
+    raise SystemExit('CZECH new_line did not produce its expected blank line')
+print('CZECH v3: 19 print cases match Frotz text; blank-line layout differs')
+PY
+fi

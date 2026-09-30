@@ -1,0 +1,9 @@
+! SPDX-License-Identifier: MIT
+! Stream 2 records only the output while selected.
+[ Main;
+    @output_stream 2;
+    print "AB";
+    @output_stream -2;
+    print "C^";
+    quit;
+];

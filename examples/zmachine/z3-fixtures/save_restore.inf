@@ -1,0 +1,30 @@
+! SPDX-License-Identifier: MIT
+! Saving resumes at the save branch with dynamic memory and PC restored.
+Global value = 1;
+Array text -> 40;
+Array parse -> 10;
+[ Main;
+    text->0 = 38;
+    parse->0 = 2;
+.loop;
+    print ">";
+    @sread text parse;
+    if (text->1 == 's') {
+        @save ?saved;
+        print "save failed^";
+        jump loop;
+.saved;
+        print "saved ", value, "^";
+        jump loop;
+    }
+    if (text->1 == 'r') {
+        value = 7;
+        @restore ?unexpected;
+        print "restore failed^";
+        jump loop;
+.unexpected;
+        print "unexpected^";
+    }
+    new_line;
+    quit;
+];
