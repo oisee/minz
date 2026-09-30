@@ -83,6 +83,7 @@ func TestGlobalStringByteArrayInitializer(t *testing.T) {
 	src := `global path: [u8; 9] = "save.dat"
 global escaped: [u8; 6] = c"a\nb"
 global utf8: [u8; 7] = "Пр"
+global explicit: [u8; 9] = c"save.dat"
 fun main() {}`
 	m, err := nanz.Parse(src, "strings")
 	if err != nil {
@@ -97,12 +98,18 @@ fun main() {}`
 	if got := string(m.Globals[2].Init); got != "Пр\x00" {
 		t.Fatalf("UTF-8 init = %q", got)
 	}
+	if got := string(m.Globals[3].Init); got != "save.dat\x00" {
+		t.Fatalf("explicit C-string init = %q", got)
+	}
 	printed := nanz.Print(m)
-	if !strings.Contains(printed, `global path: [u8; 9] = "save.dat"`) {
+	if !strings.Contains(printed, `global path: [u8; 9] = c"save.dat"`) {
 		t.Fatalf("printer lost the string initializer:\n%s", printed)
 	}
-	if !strings.Contains(printed, `global utf8: [u8; 7] = "Пр"`) {
+	if !strings.Contains(printed, `global utf8: [u8; 7] = c"Пр"`) {
 		t.Fatalf("printer lost the UTF-8 initializer:\n%s", printed)
+	}
+	if !strings.Contains(printed, `global explicit: [u8; 9] = c"save.dat"`) {
+		t.Fatalf("printer lost the explicit C-string initializer:\n%s", printed)
 	}
 	parsedAgain, err := nanz.Parse(printed, "strings-roundtrip")
 	if err != nil || string(parsedAgain.Globals[0].Init) != "save.dat\x00" {

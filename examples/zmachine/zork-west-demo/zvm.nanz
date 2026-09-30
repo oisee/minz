@@ -10,10 +10,10 @@
 @extern fun file_read_line(path: ^u8, buf: ^u8, maxlen: u8, offset: ^u8) -> u16
 @extern fun tui_read_line_or_eof(buf: ^u8, maxlen: u8) -> u8
 
-global story_path: [u8; 18] = "zork-west-demo.z3"
-global save_path: [u8; 13] = "zvm-save.dat"
-global transcript_path: [u8; 19] = "zvm-transcript.txt"
-global command_path: [u8; 17] = "zvm-commands.txt"
+global story_path: [u8; 18] = c"zork-west-demo.z3"
+global save_path: [u8; 13] = c"zvm-save.dat"
+global transcript_path: [u8; 19] = c"zvm-transcript.txt"
+global command_path: [u8; 17] = c"zvm-commands.txt"
 global command_offset: [u8; 4]
 global snapshot: [u8; 9018]
 global input: [u8; 256]
