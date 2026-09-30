@@ -20,6 +20,8 @@ tmp_dir=$(mktemp -d)
 trap 'rm -rf "$tmp_dir"' EXIT
 cp "$story" "$tmp_dir/zork-west-demo.z3"
 cp "$demo_dir/zvm.nanz" "$tmp_dir/zvm.nanz"
+mkdir -p "$tmp_dir/text"
+cp "$demo_dir/../../../stdlib/text/print.nanz" "$tmp_dir/text/print.nanz"
 "$vm" -H "$tmp_dir/zvm.nanz" > "$tmp_dir/output"
 python3 - "$tmp_dir/output" <<'PY'
 from pathlib import Path

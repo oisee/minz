@@ -8,6 +8,8 @@ The committed `zork-west-demo.z3` is 2,378 bytes (SHA-256 `916d31de9303c9084f275
 
 The four file paths are initialized directly from `c"..."` literals into NUL-terminated byte-array globals, as required by the `mzv` file host API. `output_stream` uses `switch` for its side effects; `match` is better suited to value-producing enum/ADT expressions, while interfaces and `impl` would add no useful polymorphism to this single interpreter backend.
 
+Z3 `print_num` uses the typed `Dec16` formatter from [`stdlib/text/print.nanz`](../../../stdlib/text/print.nanz) for decimal digits, then sends those bytes through `emit_zscii`. That preserves screen, transcript, and memory-stream behavior while sharing the formatting logic with other Nanz programs.
+
 To run the checked transcript from a MinZ checkout:
 
 ```sh

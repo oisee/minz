@@ -1,6 +1,8 @@
 // Experimental Z-machine v3 core. The story is data; instruction decoding,
 // variables, calls and text decoding run in Nanz on MIR2, not in a Go host.
 // Run from this directory: mzv -H zvm.nanz
+import text.print
+
 @extern fun file_read_bounded(path: ^u8, buf: ^u8, capacity: u32) -> u32
 @extern fun file_write_pair(path: ^u8, first: ^u8, first_len: u16, second: ^u8, second_len: u16) -> u8
 @extern fun file_read_pair_checked(path: ^u8, first: ^u8, first_len: u16, second: ^u8, second_len: u16) -> u8
@@ -14,6 +16,9 @@ global story_path: [u8; 18] = c"zork-west-demo.z3"
 global save_path: [u8; 13] = c"zvm-save.dat"
 global transcript_path: [u8; 19] = c"zvm-transcript.txt"
 global command_path: [u8; 17] = c"zvm-commands.txt"
+global number_bytes: [u8; 5]
+global number_writer: BufWriter
+global number_value: Dec16
 global command_offset: [u8; 4]
 global snapshot: [u8; 9018]
 global input: [u8; 256]
@@ -381,15 +386,13 @@ fun print_num(value: u16) {
         emit_zscii(45)
         n = 0 - n
     }
-    var divisor: u16 = 10000
-    var started: u8 = 0
-    while divisor > 0 {
-        let digit: u8 = u8(n / divisor)
-        if digit != 0 { started = 1 }
-        if started != 0 { emit_zscii(u16(digit + 48)) }
-        else if divisor == 1 { emit_zscii(48) }
-        n = n % divisor
-        divisor = divisor / 10
+    number_writer.init(&number_bytes, 5)
+    number_value.value = n
+    number_value.write_to(&number_writer)
+    var i: u16 = 0
+    while i < number_writer.len {
+        emit_zscii(u16(number_bytes[i]))
+        i = i + 1
     }
 }
 // The A2 alphabet is data in the Z3 specification. Generate its decoder at
