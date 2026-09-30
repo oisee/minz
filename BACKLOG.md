@@ -3,6 +3,8 @@
 Дата: **2026-09-19**. База: **`f51171a5`**, `master`, после `git fetch origin` совпадает с `origin/master`.
 Это текущая очередь решений и работ; старые планы сохраняют исторические детали. Расширенный [аудит MinZ, gpuforce, Z80/6502 optimizer и архивов](reports/2026-09-19-Ecosystem-Audit-RU.md) содержит свежие проверки и ограничения.
 
+Свежий [глубокий технический аудит](reports/2026-09-19-Deep-Technical-Audit-RU.md) уточняет приоритеты: GPU witness race, aliases, dense indexing, reader contracts и AY register semantics. Исправления ещё не внесены.
+
 ## Где проект сейчас
 
 **Основная перспектива — надёжный Nanz/C → MIR2 → Z80 с измеряемой оптимизацией и удобным полным циклом compile → assemble → execute.** Общий IR, PFCCO (выбор соглашений вызова), compile-time asserts и готовые инструменты дают сильную основу. Главный ограничитель сейчас — достоверность проверок и корректность исполнения, а не количество языков.
@@ -80,7 +82,9 @@ MinZ
 │   ├── [ ] G4 [P2 F U3 H] Oracle: swap cycles, PFCCO encoding, CFG prepasses, отчёт ошибок
 │   ├── [ ] G5 [P2 E U3 H] LIR: честное имя алгоритма, conflict retry, запрет invalid output
 │   ├── [ ] G6 [P3 E U2 ?] EXX batch spill / новые tiers: один измеряемый прототип
-│   └── [ ] G7 [P0 Q U5 V] Z80T v2: count validation и limits до загрузки
+│   ├── [ ] G7 [P0 Q U5 V] ENRT/Z80T: полная проверка записи, domains, count и limits
+│   ├── [ ] G8 [P0 F U5 V] GPU: согласованная пара cost/assignment и host rescore
+│   └── [ ] G9 [P0 F U5 V] Stable shape IDs: sparse indexing, worker-independent order
 └── H. Отложенное расширение — P3, U1–U2
     ├── [ ] H1 [P3 E U2 ?] Новые языки/ISA/GPU targets только с владельцем и E2E-сценарием
     ├── [ ] H2 [P3 F U2 H] Новый TUI/View DSL после устойчивого E2
@@ -101,7 +105,7 @@ MinZ
 | B3 | Сначала минимальные repro чтения patch slot и рекурсивного call graph. **Done:** оптимизации учитывают эффекты; небезопасные SMC-преобразования отклонены/отключены; тесты покрывают рекурсию, writable code и сохранение значения после patch. После A4. |
 | B4 | Начать с screen block-argument mismatch и arena/pointer repro из Open_Bugs_RCA, сверить текущий статус. **Done:** verifier после CFG transforms; MZA+execution для loops/pointers/struct methods; нет invalid IX/IY instructions и spill в запрещённую память. После A4. |
 | B5 | Инвентаризировать TODO/default ветки LLVM/GPU. **Done:** непокрытая операция сообщает target/function/op и даёт nonzero; поддержанные примеры продолжают работать. Не приравнивать это к полной поддержке backend. |
-| C1 | Разобрать 3 наблюдаемых теста: pruning API, imports или неверное ожидание syntax. **Done:** документированное поведение, минимальные regression tests и отдельный сквозной пример; не удерживать неиспользуемые функции только ради старого теста. |
+| C1 | Глубокий аудит: Lanz/Lizp CLI imports + Z80 asserts PASS. Разобрать 3 наблюдаемых unit failures: pruning API, imports или неверное ожидание syntax. **Done:** документированное поведение, минимальные regression tests и отдельный сквозной пример; не удерживать неиспользуемые функции только ради старого теста. |
 | C2 | Repro `records.pas`, `hello.plm`, `sum_array.plm` на PBQP. **Done:** результат MZA+execution корректен либо неподдерживаемая конструкция получает явную ошибку. После A3; связать с B1/B4. |
 | C3 | Приоритизировать arithmetic widths/signedness, arrays/pointers, calls и structs; проверить исторические `import_test.c`, `struct_promote.c`. **Done:** versioned support matrix и dual-run regressions, без декларации «весь C23». После A4/B2. |
 | C4 | Для каждого frontend/target показать отдельные стадии и ссылки на команды/fixtures. **Done:** генерация assembly не считается run, skip не считается pass; ObjC/C маршрут обозначен явно. После A3. |
@@ -120,11 +124,11 @@ MinZ
 | F3 | Измерить iterator back-edge и LUT alignment, затем по одному преобразованию. **Done:** execution equivalence и выигрыш с учётом padding/code size; нет обещанного процента до замера. После B4/F1. |
 | F4 | Проверить, какие таблицы доступны production consumers после удаления VIR; переносить правило туда, где константа ещё в IR. **Done:** ненулевые measured hits, корректные flags/carry, ablation. После D1/F1. |
 | G1 | Сверить фактические imports с ADR-0043 и вынести shared code отдельным пакетом. **Done:** таблицы/описание ISA не тянут solver; production/tool builds и tests сохраняются. |
-| G2 | Формализовать register/subregister overlap, legality и модель стоимости Go/GPU/SMT. **Done:** конфликтующие B/BC и H/HL назначения отвергаются; устаревшие таблицы маркированы; generator validation до включения в production. |
+| G2 | В полном проверенном 4v-файле 32 211/123 453 feasible assignments имеют physical aliases; GPU H/HL repro принят. Формализовать overlap, legality и модель стоимости Go/GPU/SMT; сохранить mixed-width guard consumer. **Done:** конфликтующие B/BC и H/HL назначения отвергаются; устаревшие таблицы маркированы; generator validation до включения в production. |
 | G3 | Конвертер формата после уже внедрённого header rejection; held-out программы и независимая проверка. **Done:** hash/version/counts, hit/miss/reject/fallback counters, корректность Z80 и ограниченная формулировка optimality. После G1/G2/D1/F1. |
 | G4 | Отдельный oracle backlog: cyclic moves/GCD, PFCCO formulation или reuse production contracts, одинаковые CFG prepasses. **Done:** sat/unsat/error/timeout различимы, отчёт cost/constraints воспроизводим. Более короткий output сам по себе не доказывает корректность. |
 | G5 | Проверить retry/label stubs на текущем LIR; сначала запретить invalid output, затем сравнить heuristic/search. **Done:** противоречие даёт диагностируемый failure/fallback, название соответствует механизму, есть ablation. После G2/A4. |
-| G7 | Repro header count=2/body=1 принят loader без ошибки. **Done:** mismatch/truncation/invalid dimensions дают error, размер и память ограничены до allocation; regression test для Z80T v2 отдельно от уже исправленного ENRT.
+| G7 | Repro header count=2/body=1 принят loader без ошибки; ENRT с отсутствующими flags/metrics тоже принят. Invalid location IDs и interference bits не отвергаются. **Done:** mismatch/truncation/invalid dimensions дают error, размер и память ограничены до allocation; regression test для Z80T v2 отдельно от уже исправленного ENRT.
 | G6 | Один EXX batch-state prototype с call/interrupt constraints. **Done:** реальная pressure workload выигрывает, safety predicates проверяются. После G2/F1; при отсутствии выигрыша остановить эксперимент. |
 | H1 | До реализации указать пользователя, maintainer, минимальный test corpus и стоимость поддержки. **Допуск:** базовый correctness milestone закрыт; новый target имеет execute gate. |
 | H2 | Сначала получить устойчивый E2 и список повторяющихся пользовательских проблем. **Допуск:** DSL решает подтверждённую проблему, не маскирует backend/runtime failure. |
@@ -189,12 +193,14 @@ MinZ
 │   ├── [ ] J1 [P0 F U5 V] AudioMixer lifecycle: отмена → join → close, audio test failures
 │   ├── [ ] J2 [P1 Q U4 V] Машинная fixture matrix вместо противоречивого 10/12
 │   ├── [ ] J3 [P1 F U4 H] First-divergence: disco08 / take5 / Beautiful Agony
-│   └── [ ] J4 [P2 E U3 H] Atlas/search и PSG→WAV после parity/lifecycle gates
+│   ├── [ ] J4 [P2 E U3 H] Atlas/search и PSG→WAV после parity/lifecycle gates
+│   └── [ ] J5 [P1 Q U4 V] Reg7 не сбрасывает envelope selection reg8/9/10
 └── K. Общие артефакты и superoptimization — Z80/6502/архивы
     ├── [ ] K1 [P1 Q U5 V] Реестр producer → format → verifier → consumer
     ├── [ ] K2 [P1 F U5 V] Различать exhaustive / sampled / unverified rules
     ├── [ ] K3 [P2 E U4 H] Одна peephole family в production с hit count и ablation
-    └── [ ] K4 [P2 Q U3 V] Отобрать полезные archive fixtures/stashes по patch-id
+    ├── [ ] K4 [P2 Q U3 V] Отобрать полезные archive fixtures/stashes по patch-id
+    └── [ ] K5 [P0 Q U5 V] Converter: error/timeout/unknown отдельно от infeasible
 ```
 
 | ID | Первый шаг и критерий готовности |
@@ -212,3 +218,17 @@ MinZ
 | K4 | Начать с archive README и существующей research/pfcco-paper-v2. **Done:** маленький список уникальных fixtures/текстов с provenance; уже присутствующие LIR hardening patches повторно не переносить. |
 
 Внутри экосистемы **J1 — P0 для audio**, а **G7 — P0 для table consumers**; это не утверждение, что данные пути используются production CLI. Быстрый параллельный по смыслу результат: I1/K1/J2. Фундамент: J1/I2/K2. Новые GPU-прогоны — после фиксации модели и критериев приёмки.
+
+
+## Корректировки после глубокого аудита: обязательные gates GPU-трека
+
+| ID | Новое свидетельство | Критерий готовности |
+|---|---|---|
+| G8 | GPU вернул 12/80 несогласованных cost/assignment pairs на маленьких задачах с известным optimum; результат scheduling-dependent | Pair reduction либо второй witness pass, host feasibility/cost rescore, deterministic tie-break; regression stress без mismatch |
+| G9 | При одном worker 160/162 позиций feed не соответствуют consumer index; реальный dense record 1549 содержит 6v вместо ожидаемых 3v | Shape ID проходит generator→server→converter→consumer; format хранит ordering/filter/domain version; sparse subset не используется как full positional table |
+| K5 | Actual converter принял server parse error как `0xFF` infeasible | Tagged result type, failed/partial job не публикуется как полная таблица; negative controls проверяют status propagation |
+| J5 | Перестановка reg7/reg8 writes меняет 4390/4410 sync samples; repeat того же порядка совпадает | Сохранение независимых register fields, order-invariance tests, deterministic synchronous render |
+
+Последовательность для новых GPU-артефактов: **K5/G7 → G8 → G9 → G2 → независимая проверка → G3 integration/coverage**. Aliases и schema проектировать совместно; полную перегенерацию начинать только после всех model/identity gates. Эти P0 относятся к experimental artifact pipeline; ordinary PBQP compiler не зависит от VIR.
+
+Положительные результаты глубокого прохода: 16 focused MIR2 tests PASS; обе cross-language CLI programs PASS с Z80 asserts; Che cascade compile+assemble PASS; sync AY выдаёт ненулевой повторяемый звук. Поэтому C1 — triage контракта unit tests, I2 — доведение существующего decoder до bit-exact replay, J1 — отдельный async lifecycle, а не переписывание всей подсистемы.

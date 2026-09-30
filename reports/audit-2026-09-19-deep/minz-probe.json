@@ -1,0 +1,64 @@
+{
+  "ENRT_missing_flags_metrics": {
+    "accepted": true,
+    "first": {
+      "Cost": 8,
+      "Assignment": "AAI=",
+      "Flags": 0,
+      "PatternCosts": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    "records": 1
+  },
+  "ENRT_valid_infeasible": {
+    "accepted": true,
+    "first": {
+      "Cost": -1,
+      "Assignment": null,
+      "Flags": 0,
+      "PatternCosts": null
+    },
+    "records": 1
+  },
+  "Z80T_count_mismatch": {
+    "accepted": true,
+    "first": {
+      "Cost": -1,
+      "Assignment": null,
+      "Flags": 0,
+      "PatternCosts": null
+    },
+    "records": 1
+  },
+  "Z80T_invalid_location": {
+    "accepted": true,
+    "first": {
+      "Cost": 8,
+      "Assignment": "//4=",
+      "Flags": 0,
+      "PatternCosts": null
+    },
+    "records": 1
+  },
+  "entry_bytes": 64,
+  "invalid_mask_index": {
+    "error": "\u003cnil\u003e",
+    "index": 2
+  },
+  "valid_shape_index": {
+    "error": "\u003cnil\u003e",
+    "index": 2
+  }
+}

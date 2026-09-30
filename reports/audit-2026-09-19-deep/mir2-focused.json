@@ -1,0 +1,22 @@
+{
+  "pass": [
+    "TestContractScale_Mini",
+    "TestContractScale_Middle",
+    "TestContractScale_Long",
+    "TestContractScale_Stress",
+    "TestContractOptimize_ConfirmsDoubleChoice",
+    "TestContractOptimize_PreservesOutput",
+    "TestContractOptimize_PointerFuncPreservesPointer",
+    "TestContractOptimize_CostReduction",
+    "TestContractOptimize_BeforeAfterComparison",
+    "TestE2E_Div8",
+    "TestE2E_Div16",
+    "TestE2E_Mod8",
+    "TestE2E_DivMod_Combined",
+    "TestShowcase_SMCCounter",
+    "TestVMSMCCounter",
+    "TestZ80CodegenSMCCounter"
+  ],
+  "fail": [],
+  "skip": []
+}

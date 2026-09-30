@@ -1,0 +1,42 @@
+{
+  "file": "enriched_4v.enr",
+  "sha256": "7b49113c8a885e4fbe6bf0154ff11fbf88426f0d3daacc7ac019408dd4617a58",
+  "bytes": 4104402,
+  "header_count": 156506,
+  "stats": {
+    "records": 156506,
+    "feasible": 123453,
+    "u8_feasible": 12010,
+    "infeasible": 33053,
+    "physical_alias": 32211
+  },
+  "first_counterexamples": {
+    "physical_alias": {
+      "index": 37,
+      "widths": [
+        16,
+        8
+      ],
+      "domains": [
+        [
+          9
+        ],
+        [
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      ],
+      "interference_mask": 1,
+      "assignment": [
+        9,
+        6
+      ],
+      "cost": 12
+    }
+  }
+}

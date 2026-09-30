@@ -4,6 +4,8 @@
 
 ## Top Off The Press
 
+- [Deep technical audit (2026-09-19, RU)](reports/2026-09-19-Deep-Technical-Audit-RU.md) — GPU counterexamples, full 4v-table validation, indexing, WFC, AY, and reproducible probes.
+
 - [Ecosystem audit: MinZ, GPU brute force, WFC, PRNG and AY (2026-09-19, RU)](reports/2026-09-19-Ecosystem-Audit-RU.md) — current-code checks, artifact inventory, and findings.
 
 - [Current project status and ranked backlog (2026-09-19, RU)](BACKLOG.md) — tracks, quick wins, foundational work, dependencies, and release gates.

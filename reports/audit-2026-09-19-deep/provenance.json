@@ -1,0 +1,36 @@
+{
+  "date": "2026-09-19",
+  "repositories": {
+    "minz": {
+      "head": "7178a528e4848d3f3144d9cc6814039efdd4de8b",
+      "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "z80-optimizer": {
+      "head": "7701e474705b0a2d58364764870ff98d3c6390b7",
+      "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "gpuforce": {
+      "head": "622109c75657d6930a79ff1ed54178215ddc9f10",
+      "tracked_diff_sha256": "7fc0f0f1d3b06096d361cdf4edf879ecae458ae3790c46b9de94773c0537eeb7"
+    },
+    "6502-optimizer": {
+      "head": "c643bb9074c5e5743016691a80466238d8199030",
+      "tracked_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "source_sha256": {
+    "minz/minzc/pkg/vir/enriched_reader.go": "3e6943c5ab1f50979e3aec8fb56617411ee1bf7d6dfd716117db65945762105a",
+    "minz/minzc/pkg/vir/enriched_index.go": "278fbc7b77546f0a3af2187baf589c1e9bafba7e900ab394a6090a2ce55e0056",
+    "minz/minzc/pkg/vir/regalloc_table.go": "60055e63eeaf2a9211ba62f378a66057796d7d0b98e309b28d714c7837c089db",
+    "minz/minzc/pkg/lir/wfc.go": "0e8f55d4ced694ab37fba4440375dc3c555e9bba528262bc4bcf7f2ce2bf6ff1",
+    "minz/minzc/pkg/lir/pipeline.go": "fcfd88bc27f2e0ce7cf1c490245610bf7a7758bcfb21fe0c38ae8713ad70b144",
+    "z80-optimizer/cuda/z80_regalloc.cu": "16ddfc0cc043feb09c254d11be9e877a77938e52d2ca9a162bde21e8fcb00f5d",
+    "z80-optimizer/cmd/gen6v-ix-feed/main.go": "f92677b1e25e6dd2888975cd2db487abac2f02fae7638ddb0bb1489a35036c82",
+    "z80-optimizer/cmd/build-ix-table/main.go": "b6685843e86fd412f2498861baaa96fd13d3ca27894296d81faf7622219096de",
+    "z80-optimizer/pkg/search/verifier.go": "86719f12087cf5a0c6676f9b60326ad7ec71f03eb74442a04b0e1409fd4c78f2",
+    "z80-optimizer/pkg/enr/enr.go": "9210f00a810507ffdcf44c1b2d418b430360c716e7af8255e1f6954d5b837f64",
+    "gpuforce/pkg/ayumi/render.go": "090bc0296094084eaef670951e0d47dabff2b9d5168aa4afde076b64e4c7fadc",
+    "gpuforce/pkg/ayumi/orchestrator.go": "a88147b7644aaa7d0d9563d1575d8dd52180d01355a74709d9c97042685328bb",
+    "gpuforce/cuda/prng_budget_search.cu": "927a5222f97d185fb28a24d66a695319e1dbb36a53c02e967f16fd158cd26170"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "file": "ix_expanded_6v_dense.bin",
+  "header_count": 298669842,
+  "full_2_to_6_count": 17475150762,
+  "entry_struct_bytes": 64,
+  "entry_array_bytes": 19114869888,
+  "first_feasible_records": [
+    {
+      "record_index": 1549,
+      "record_nVregs": 6,
+      "consumer_expected_nVregs": 3,
+      "assignment": [
+        9,
+        0,
+        2,
+        3,
+        4,
+        0
+      ],
+      "cost": 64
+    },
+    {
+      "record_index": 1552,
+      "record_nVregs": 6,
+      "consumer_expected_nVregs": 3,
+      "assignment": [
+        9,
+        0,
+        2,
+        3,
+        4,
+        2
+      ],
+      "cost": 64
+    },
+    {
+      "record_index": 1555,
+      "record_nVregs": 6,
+      "consumer_expected_nVregs": 3,
+      "assignment": [
+        9,
+        0,
+        2,
+        1,
+        6,
+        3
+      ],
+      "cost": 64
+    }
+  ]
+}

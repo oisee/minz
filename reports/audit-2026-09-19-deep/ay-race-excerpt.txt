@@ -1,0 +1,39 @@
+==================
+WARNING: DATA RACE
+Write at 0x00c00040e000 by goroutine 18:
+  github.com/oisee/z80-optimizer/pkg/ayumi.(*AudioMixer).collectSamples()
+      /home/alice/dev/gpuforce/pkg/ayumi/orchestrator.go:142 +0x237
+  github.com/oisee/z80-optimizer/pkg/ayumi.(*AudioMixer).Start.gowrap1()
+      /home/alice/dev/gpuforce/pkg/ayumi/orchestrator.go:112 +0x79
+
+Previous write at 0x00c00040e000 by goroutine 19:
+  github.com/oisee/z80-optimizer/pkg/ayumi.(*AudioMixer).collectSamples()
+      /home/alice/dev/gpuforce/pkg/ayumi/orchestrator.go:142 +0x237
+  github.com/oisee/z80-optimizer/pkg/ayumi.(*AudioMixer).Start.gowrap1()
+      /home/alice/dev/gpuforce/pkg/ayumi/orchestrator.go:112 +0x79
+
+Goroutine 18 (running) created at:
+  github.com/oisee/z80-optimizer/pkg/ayumi.(*AudioMixer).Start()
+      /home/alice/dev/gpuforce/pkg/ayumi/orchestrator.go:112 +0xdd
+  github.com/oisee/z80-optimizer/pkg/ayumi.(*AyumiOrchestrator).Start.gowrap2()
+      /home/alice/dev/gpuforce/pkg/ayumi/orchestrator.go:34 +0x33
+
+Goroutine 19 (running) created at:
+  github.com/oisee/z80-optimizer/pkg/ayumi.(*AudioMixer).Start()
+      /home/alice/dev/gpuforce/pkg/ayumi/orchestrator.go:112 +0xdd
+  github.com/oisee/z80-optimizer/pkg/ayumi.(*AyumiOrchestrator).Start.gowrap2()
+      /home/alice/dev/gpuforce/pkg/ayumi/orchestrator.go:34 +0x33
+==================
+
+==================
+panic: send on closed channel
+
+goroutine 10 [running]:
+github.com/oisee/z80-optimizer/pkg/ayumi.(*AudioMixer).AddSample(...)
+	/home/alice/dev/gpuforce/pkg/ayumi/orchestrator.go:130
+github.com/oisee/z80-optimizer/pkg/ayumi.(*AyumiOrchestrator).routeSamples(0xc000014230, 0xc0003f0008)
+	/home/alice/dev/gpuforce/pkg/ayumi/orchestrator.go:56 +0x2ca
+created by github.com/oisee/z80-optimizer/pkg/ayumi.(*AyumiOrchestrator).Start in goroutine 7
+	/home/alice/dev/gpuforce/pkg/ayumi/orchestrator.go:30 +0x54
+FAIL	github.com/oisee/z80-optimizer/pkg/ayumi	0.032s
+FAIL

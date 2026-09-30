@@ -1,0 +1,10 @@
+{
+  "input": {
+    "cost": -1,
+    "assignment": [],
+    "error": "parse error"
+  },
+  "exit": 0,
+  "stderr": "Done: 1 entries (feasible=0.0%, infeasible=1) in 0.0s \u2192 /tmp/minz-deep-error-table.bin (0.0 MB)\n",
+  "binary_hex": "5a383054020000000603050100000000000000ff"
+}

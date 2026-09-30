@@ -1,0 +1,5 @@
+{"cost": 8, "assignment": [5, 9], "searchSpace": 1, "feasible": 1}
+{"cost": 8, "assignment": [6, 9], "searchSpace": 1, "feasible": 1}
+{"cost": 8, "assignment": [1, 7], "searchSpace": 1, "feasible": 1}
+{"cost": -1, "assignment": [], "searchSpace": 1, "feasible": 0}
+{"cost": 8, "assignment": [0, 9], "searchSpace": 1, "feasible": 1}
