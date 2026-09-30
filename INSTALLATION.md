@@ -17,7 +17,7 @@ Run a compile-and-assemble smoke test from `minzc/`:
 ./mza -o fibonacci.bin fibonacci.a80
 ```
 
-`make test` runs the same smoke test and cleans up its output. `go test -short -timeout 5m ./pkg/mir2/... ./pkg/z80asm/... ./pkg/c89/... ./pkg/codegen/... ./pkg/parser/... ./pkg/pipeline/...` runs the current PR test set.
+`make test` runs the same smoke test and cleans up its output. `go test -short -timeout 5m ./pkg/mir2/... ./pkg/z80asm/... ./pkg/c89/... ./pkg/codegen/... ./pkg/parser/... ./pkg/pipeline/... ./pkg/plm/...` runs the current PR test set.
 
 The two optional submodules contain external PL/M corpus material and ZVDB examples. Fetch them only if you need those inputs:
 
@@ -25,5 +25,7 @@ The two optional submodules contain external PL/M corpus material and ZVDB examp
 cd ..
 git submodule update --init corpus/intel80tools examples/zvdb-minz
 ```
+
+The PL/M corpus test uses `corpus/intel80tools` when present. Set `MINZ_PLM_CORPUS_DIR` to use another checkout.
 
 See [README.md](README.md) for language examples and [BACKLOG.md](BACKLOG.md) for the current support and test status.

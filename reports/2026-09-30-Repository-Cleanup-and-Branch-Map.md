@@ -40,7 +40,7 @@ main
 └── main-archive           pre-trim snapshot of historical material
 ```
 
-`corpus/intel80tools` and `examples/zvdb-minz` were gitlinks with no `.gitmodules`, so `git submodule status` failed. Both upstream repositories and the pinned commit objects exist. Restoring `.gitmodules` repairs the mapping without removing either optional input. The PL/M corpus test currently hard-codes `/Users/alice/dev/minz-ts/corpus`; it skips on other machines and should use a repository-relative path or an environment variable.
+`corpus/intel80tools` and `examples/zvdb-minz` were gitlinks with no `.gitmodules`, so `git submodule status` failed. Both upstream repositories and the pinned commit objects exist. Restoring `.gitmodules` repairs the mapping without removing either optional input. The PL/M corpus test now uses the repository-relative submodule by default and accepts `MINZ_PLM_CORPUS_DIR` for another checkout.
 
 The root `archive/` contained 1,833 tracked paths and `docs/_archive_2025/` contained 250. No active source import depends on them. Only one active report mentions the historical docs directory as a factual location; active references to `archive/` are mostly old cleanup notes, ignores, or comments. Both trees, the stale 2025 `CONTEXT.md`, the old README copy, the unreferenced root `book/` draft, and the machine-specific `minzc/test_no_tree_sitter.sh` were removed from `main`; all remain reachable through `main-archive`. The separate `docs/book/` remains the live book collection.
 
@@ -50,7 +50,7 @@ A simple scan of relative Markdown links in 444 non-archive documentation files 
 
 The last CI run on `main` failed during setup: Go 1.20/1.21 conflicted with the current Go module, root npm cache/install expected a lockfile and package that are not tracked, and `golangci-lint@latest` rejected the old config. The old Makefile smoke target referenced a missing `hello_clean.minz`; `test-quick` and `test-all` piped test output through filters and could return success on a failing `go test`.
 
-The new `CI / PR gate` uses the module's Go toolchain, builds `mz`, `mza`, and `mze`, runs the locally green MIR2/Z80 assembler/C89/codegen/parser/pipeline packages, then compiles and assembles `examples/fibonacci.minz`. The Makefile smoke fixture and exit codes are fixed. This is a **narrow, honest gate**, not a claim that the full suite passes: ABAP, Nanz, VIR, and z80testing have known failures in the broader short run and remain tracked in `BACKLOG.md`.
+The new `CI / PR gate` uses the module's Go toolchain, builds `mz`, `mza`, and `mze`, runs the locally green MIR2/Z80 assembler/C89/codegen/parser/pipeline/PL-M packages, then compiles and assembles `examples/fibonacci.minz`. The Makefile smoke fixture and exit codes are fixed. This is a **narrow, honest gate**, not a claim that the full suite passes: ABAP, Nanz, VIR, and z80testing have known failures in the broader short run and remain tracked in `BACKLOG.md`.
 
 The first clean GitHub run of the gate [passed on `dc67880a`](https://github.com/oisee/minz/actions/runs/36756578785). A final run is required after any later documentation-only commit before setting the check as mandatory.
 
@@ -62,7 +62,7 @@ The model is the active [open-abap-core PR workflow](https://github.com/open-aba
 
 1. **P0 / quick win:** confirm `CI / PR gate` succeeds on a clean GitHub runner; then make it the required `main` check. A failing run needs a code/config fix before protection.
 2. **P0 / foundational:** re-run the broad short suite in a clean checkout, assign owners to ABAP/Nanz/VIR/z80testing failures, and keep their status visible. Add corrected packages to the required gate only after they pass reproducibly.
-3. **P1 / quick win:** make the optional PL/M corpus test portable and document how to initialize the two submodules.
+3. **P1 / quick win (done):** make the optional PL/M corpus test portable and document how to initialize the two submodules.
 4. **P1 / foundational:** audit and repair 2026 active-doc links, beginning with top-level status pages and `book/` references; build a parser-aware link checker before making it blocking.
 5. **P1 / foundational:** modernize release, benchmark, and security workflows; separate release tests from PR tests and verify tag builds in a dry run.
 6. **P2 / review:** resolve the six unique side branches, then delete the four patch-equivalent ones after a final owner check. Do not merge stale branches wholesale.
