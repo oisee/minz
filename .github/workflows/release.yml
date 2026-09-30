@@ -212,28 +212,28 @@ jobs:
         
         # Create usage instructions
         cat > release-temp/USAGE.txt << EOF
-MinZ v0.9.7 - Z80 Code Generation Revolution
-==========================================
+        MinZ v0.9.7 - Z80 Code Generation Revolution
+        ==========================================
 
-Quick Start:
-1. Add minzc to your PATH or use with full path
-2. Compile a MinZ program:
-   ./minzc program.minz -O --enable-smc
+        Quick Start:
+        1. Add minzc to your PATH or use with full path
+        2. Compile a MinZ program:
+           ./minzc program.minz -O --enable-smc
 
-Key Features:
-- 15-20% code size reduction for comparison-heavy programs
-- Advanced Z80 assembly peephole optimization  
-- Multi-backend support (Z80, 6502, WebAssembly, C99)
-- Direct MIR code generation
-- Comprehensive testing infrastructure
+        Key Features:
+        - 15-20% code size reduction for comparison-heavy programs
+        - Advanced Z80 assembly peephole optimization
+        - Multi-backend support (Z80, 6502, WebAssembly, C99)
+        - Direct MIR code generation
+        - Comprehensive testing infrastructure
 
-For more information:
-- README.md - Complete project overview
-- RELEASE_NOTES_v0.9.7.md - What's new in this version
-- examples/ - Sample MinZ programs
+        For more information:
+        - README.md - Complete project overview
+        - RELEASE_NOTES_v0.9.7.md - What's new in this version
+        - examples/ - Sample MinZ programs
 
-GitHub: https://github.com/your-org/minz-ts
-EOF
+        GitHub: https://github.com/your-org/minz-ts
+        EOF
         
         # Create archive
         if [[ "${{ matrix.goos }}" == "windows" ]]; then
@@ -297,133 +297,133 @@ EOF
     - name: Generate comprehensive release notes
       run: |
         cat > RELEASE_BODY.md << 'EOF'
-# MinZ ${VERSION#v} - Z80 Code Generation Revolution
+        # MinZ ${VERSION#v} - Z80 Code Generation Revolution
 
-## 🚀 Major Improvements
+        ## 🚀 Major Improvements
 
-### Revolutionary Z80 Code Generation Optimizations
-This release delivers **15-20% code size reduction** for comparison-heavy programs through advanced optimization techniques:
+        ### Revolutionary Z80 Code Generation Optimizations
+        This release delivers **15-20% code size reduction** for comparison-heavy programs through advanced optimization techniques:
 
-- **Smart Assembly Peephole Optimization**: 10+ optimization patterns for common Z80 instruction sequences
-- **Intelligent Comparison Generation**: Eliminates redundant register moves and optimizes subtraction patterns  
-- **Enhanced Register Allocation**: Hierarchical allocation with shadow register utilization
-- **Instruction Pattern Recognition**: Automatic conversion of inefficient patterns to optimal Z80 code
+        - **Smart Assembly Peephole Optimization**: 10+ optimization patterns for common Z80 instruction sequences
+        - **Intelligent Comparison Generation**: Eliminates redundant register moves and optimizes subtraction patterns
+        - **Enhanced Register Allocation**: Hierarchical allocation with shadow register utilization
+        - **Instruction Pattern Recognition**: Automatic conversion of inefficient patterns to optimal Z80 code
 
-### Multi-Backend Infrastructure Maturity
-- **Production-Ready Z80 Backend**: Comprehensive optimization for ZX Spectrum, MSX, Amstrad CPC
-- **Feature-Complete 6502 Backend**: Commodore 64, NES, Apple II support
-- **WebAssembly Backend**: Modern web deployment capability
-- **C99 Backend**: Portable C code generation for any platform
-- **LLVM IR Backend**: Experimental support for LLVM toolchain integration
+        ### Multi-Backend Infrastructure Maturity
+        - **Production-Ready Z80 Backend**: Comprehensive optimization for ZX Spectrum, MSX, Amstrad CPC
+        - **Feature-Complete 6502 Backend**: Commodore 64, NES, Apple II support
+        - **WebAssembly Backend**: Modern web deployment capability
+        - **C99 Backend**: Portable C code generation for any platform
+        - **LLVM IR Backend**: Experimental support for LLVM toolchain integration
 
-## ✨ New Features
+        ## ✨ New Features
 
-### Direct MIR Code Generation
-```minz
-// Write MIR (Machine-Independent Representation) directly
-@mir[[[
-    r1 = load_const 42
-    r2 = load_var "x"
-    r3 = add r1, r2
-    store_var "result", r3
-]]]
-```
+        ### Direct MIR Code Generation
+        ```minz
+        // Write MIR (Machine-Independent Representation) directly
+        @mir[[[
+            r1 = load_const 42
+            r2 = load_var "x"
+            r3 = add r1, r2
+            store_var "result", r3
+        ]]]
+        ```
 
-### Enhanced Metaprogramming System
-- **@minz[[[]]]** compile-time execution blocks (designed)
-- **@if** conditional compilation improvements
-- Better integration with existing @print and @emit systems
+        ### Enhanced Metaprogramming System
+        - **@minz[[[]]]** compile-time execution blocks (designed)
+        - **@if** conditional compilation improvements
+        - Better integration with existing @print and @emit systems
 
-### Comprehensive Testing Infrastructure
-- **148 example programs** automatically tested
-- End-to-end testing pipeline with cycle-accurate verification
-- Performance regression testing
-- Cross-platform build validation
+        ### Comprehensive Testing Infrastructure
+        - **148 example programs** automatically tested
+        - End-to-end testing pipeline with cycle-accurate verification
+        - Performance regression testing
+        - Cross-platform build validation
 
-## 📈 Performance Verified
+        ## 📈 Performance Verified
 
-**All optimizations verified through comprehensive benchmarking:**
-- Cycle-accurate Z80 emulation testing
-- Real-world program analysis
-- Performance regression prevention
-- Memory usage optimization validation
+        **All optimizations verified through comprehensive benchmarking:**
+        - Cycle-accurate Z80 emulation testing
+        - Real-world program analysis
+        - Performance regression prevention
+        - Memory usage optimization validation
 
-**Proven Results:**
-- 15-20% smaller binaries for comparison-heavy programs
-- Faster execution through better instruction selection
-- Reduced memory usage via eliminated redundant operations
-- Better cache utilization on target platforms
+        **Proven Results:**
+        - 15-20% smaller binaries for comparison-heavy programs
+        - Faster execution through better instruction selection
+        - Reduced memory usage via eliminated redundant operations
+        - Better cache utilization on target platforms
 
-## 📦 Installation
+        ## 📦 Installation
 
-### Quick Installation
-Download the appropriate binary for your platform below, extract the archive, and add the `minzc` binary to your PATH.
+        ### Quick Installation
+        Download the appropriate binary for your platform below, extract the archive, and add the `minzc` binary to your PATH.
 
-### Supported Platforms
-- **macOS**: Intel (x86_64) and Apple Silicon (arm64)
-- **Linux**: x86_64 and ARM64
-- **Windows**: x86_64
+        ### Supported Platforms
+        - **macOS**: Intel (x86_64) and Apple Silicon (arm64)
+        - **Linux**: x86_64 and ARM64
+        - **Windows**: x86_64
 
-### Build from Source
-```bash
-git clone https://github.com/your-org/minz-ts
-cd minz-ts/minzc
-go build cmd/minzc/main.go
-```
+        ### Build from Source
+        ```bash
+        git clone https://github.com/your-org/minz-ts
+        cd minz-ts/minzc
+        go build cmd/minzc/main.go
+        ```
 
-## 🎯 Usage Examples
+        ## 🎯 Usage Examples
 
-### Basic Compilation
-```bash
-# Compile with all optimizations
-minzc program.minz -O --enable-smc
+        ### Basic Compilation
+        ```bash
+        # Compile with all optimizations
+        minzc program.minz -O --enable-smc
 
-# Multi-backend support
-minzc program.minz -b 6502 -O        # Commodore 64
-minzc program.minz -b wasm -O         # WebAssembly
-minzc program.minz -b c -o prog.c     # C99 output
-```
+        # Multi-backend support
+        minzc program.minz -b 6502 -O        # Commodore 64
+        minzc program.minz -b wasm -O         # WebAssembly
+        minzc program.minz -b c -o prog.c     # C99 output
+        ```
 
-### Advanced Features
-```minz
-// Modern syntax with zero-cost abstractions
-fun fibonacci(n: u8) -> u16 {
-    if n <= 1 { return n as u16; }
-    return fibonacci(n-1) + fibonacci(n-2);
-}
+        ### Advanced Features
+        ```minz
+        // Modern syntax with zero-cost abstractions
+        fun fibonacci(n: u8) -> u16 {
+            if n <= 1 { return n as u16; }
+            return fibonacci(n-1) + fibonacci(n-2);
+        }
 
-// Self-modifying code optimization
-fun optimized_loop(count: u8) -> u8 @smc {
-    // Parameters patched directly into instructions!
-    for i in 0..count {
-        // Ultra-efficient Z80 code generation
-    }
-    return count;
-}
-```
+        // Self-modifying code optimization
+        fun optimized_loop(count: u8) -> u8 @smc {
+            // Parameters patched directly into instructions!
+            for i in 0..count {
+                // Ultra-efficient Z80 code generation
+            }
+            return count;
+        }
+        ```
 
-## 🔧 Breaking Changes
-**None!** This release is fully backward compatible with v0.9.5.
+        ## 🔧 Breaking Changes
+        **None!** This release is fully backward compatible with v0.9.5.
 
-## 🐛 Bug Fixes
-- Fixed peephole optimization for `LD L,E; LD H,D; EX DE,HL` patterns
-- Corrected Z80 comparison and subtraction code generation
-- Improved backend harmonization and infrastructure stability
-- Enhanced parser robustness and error reporting
+        ## 🐛 Bug Fixes
+        - Fixed peephole optimization for `LD L,E; LD H,D; EX DE,HL` patterns
+        - Corrected Z80 comparison and subtraction code generation
+        - Improved backend harmonization and infrastructure stability
+        - Enhanced parser robustness and error reporting
 
-## 📚 Documentation
-Complete documentation included in the release package:
-- Language reference and syntax guide
-- Compiler architecture documentation
-- Optimization strategy guides
-- Platform-specific programming notes
+        ## 📚 Documentation
+        Complete documentation included in the release package:
+        - Language reference and syntax guide
+        - Compiler architecture documentation
+        - Optimization strategy guides
+        - Platform-specific programming notes
 
----
+        ---
 
-**Full Changelog**: https://github.com/your-org/minz-ts/compare/v0.9.5...${VERSION}
+        **Full Changelog**: https://github.com/your-org/minz-ts/compare/v0.9.5...${VERSION}
 
-**Development**: This release represents months of optimization work, comprehensive testing, and infrastructure improvements. The Z80 code generation improvements alone deliver measurable performance gains for real-world programs.
-EOF
+        **Development**: This release represents months of optimization work, comprehensive testing, and infrastructure improvements. The Z80 code generation improvements alone deliver measurable performance gains for real-world programs.
+        EOF
         
     - name: Create Release
       uses: softprops/action-gh-release@v1
