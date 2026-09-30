@@ -2,7 +2,7 @@
 // variables, calls and text decoding run in Nanz on MIR2, not in a Go host.
 // Run from this directory: mzv -H zvm.nanz
 @extern fun file_read(path: ^u8, buf: ^u8) -> u16
-@extern fun tui_read_line(buf: ^u8, maxlen: u8) -> u8
+@extern fun tui_read_line_or_eof(buf: ^u8, maxlen: u8) -> u8
 
 global story: [u8; 4096]
 global input: [u8; 80]
@@ -10,6 +10,7 @@ global local_bytes: [u8; 512]
 global ret_pc_lo: [u8; 16]
 global ret_pc_hi: [u8; 16]
 global ret_store: [u8; 16]
+global ret_sp: [u8; 16]
 global stack_bytes: [u8; 256]
 global pc: u16 = 0
 global story_size: u16 = 0
@@ -19,6 +20,8 @@ global sp: u8 = 0
 global running: u8 = 1
 global steps: u16 = 0
 global zc: u8 = 0
+global random_state: u16 = 1
+global story_verified: u8 = 0
 
 fun byte_at(addr: u16) -> u8 { return story[addr] }
 fun word_at(addr: u16) -> u16 {
@@ -91,10 +94,11 @@ fun finish(value: u16) {
     }
     let store: u8 = ret_store[frame]
     pc = u16(ret_pc_lo[frame]) + u16(ret_pc_hi[frame]) * 256
+    sp = ret_sp[frame]
     frame = frame - 1
     write_var(store, value)
 }
-fun enter(packed: u16, store: u8, argc: u8, a1: u16, a2: u16) {
+fun enter(packed: u16, store: u8, argc: u8, a1: u16, a2: u16, a3: u16) {
     if packed == 0 {
         write_var(store, 0)
         return
@@ -103,6 +107,7 @@ fun enter(packed: u16, store: u8, argc: u8, a1: u16, a2: u16) {
     ret_pc_lo[frame] = u8(pc)
     ret_pc_hi[frame] = u8(pc / 256)
     ret_store[frame] = store
+    ret_sp[frame] = sp
     pc = packed * 2
     let count: u8 = next_byte()
     var i: u8 = 1
@@ -112,6 +117,7 @@ fun enter(packed: u16, store: u8, argc: u8, a1: u16, a2: u16) {
     }
     if argc > 0 { put_local(u16(frame) * 16 + 1, a1) }
     if argc > 1 { put_local(u16(frame) * 16 + 2, a2) }
+    if argc > 2 { put_local(u16(frame) * 16 + 3, a3) }
 }
 fun branch(test: u8) {
     let b: u8 = next_byte()
@@ -126,10 +132,162 @@ fun branch(test: u8) {
         else { pc = pc + offset - 2 }
     }
 }
+fun signed_less(a: u16, b: u16) -> u8 {
+    if (a xor 32768) < (b xor 32768) { return 1 }
+    return 0
+}
+fun magnitude(value: u16) -> u16 {
+    if value >= 32768 { return 0 - value }
+    return value
+}
+fun signed_div(a: u16, b: u16) -> u16 {
+    if b == 0 { return 0 }
+    let q: u16 = magnitude(a) / magnitude(b)
+    if (a >= 32768) != (b >= 32768) { return 0 - q }
+    return q
+}
+fun signed_mod(a: u16, b: u16) -> u16 {
+    if b == 0 { return 0 }
+    let r: u16 = magnitude(a) % magnitude(b)
+    if a >= 32768 { return 0 - r }
+    return r
+}
+fun random_number(range: u16) -> u16 {
+    if range >= 32768 {
+        random_state = 0 - range
+        return 0
+    }
+    if range == 0 {
+        random_state = 1
+        return 0
+    }
+    let limit: u16 = 65535 - ((65535 % range + 1) % range)
+    var sample: u16 = 0
+    while true {
+        random_state = random_state * 25173 + 13849
+        sample = random_state
+        if sample <= limit { break }
+    }
+    return sample % range + 1
+}
+fun verify_story() -> u8 {
+    let length: u16 = word_at(26) * 2
+    if length > story_size { return 0 }
+    var checksum: u16 = 0
+    var at: u16 = 64
+    while at < length {
+        checksum = checksum + u16(story[at])
+        at = at + 1
+    }
+    if checksum == word_at(28) { return 1 }
+    return 0
+}
+fun object_at(number: u16) -> u16 {
+    if number == 0 { return 0 }
+    return word_at(10) + 62 + (number - 1) * 9
+}
+fun object_parent(number: u16) -> u16 {
+    if number == 0 { return 0 }
+    return u16(story[object_at(number) + 4])
+}
+fun object_sibling(number: u16) -> u16 {
+    if number == 0 { return 0 }
+    return u16(story[object_at(number) + 5])
+}
+fun object_child(number: u16) -> u16 {
+    if number == 0 { return 0 }
+    return u16(story[object_at(number) + 6])
+}
+fun remove_object(number: u16) {
+    let parent: u16 = object_parent(number)
+    if parent == 0 { return }
+    let sibling: u8 = u8(object_sibling(number))
+    if object_child(parent) == number {
+        story[object_at(parent) + 6] = sibling
+    } else {
+        var previous: u16 = object_child(parent)
+        while previous != 0 {
+            if object_sibling(previous) == number {
+                story[object_at(previous) + 5] = sibling
+                break
+            }
+            previous = object_sibling(previous)
+        }
+    }
+    story[object_at(number) + 4] = 0
+    story[object_at(number) + 5] = 0
+}
+fun insert_object(number: u16, parent: u16) {
+    remove_object(number)
+    story[object_at(number) + 4] = u8(parent)
+    story[object_at(number) + 5] = u8(object_child(parent))
+    story[object_at(parent) + 6] = u8(number)
+}
+fun attribute_address(number: u16, attribute: u16) -> u16 {
+    return object_at(number) + attribute / 8
+}
+fun attribute_mask(attribute: u16) -> u8 {
+    return u8(128 >> (attribute & 7))
+}
+fun property_list_at(number: u16) -> u16 {
+    let table: u16 = word_at(object_at(number) + 7)
+    return table + 1 + u16(story[table]) * 2
+}
+fun property_at(number: u16, property: u16) -> u16 {
+    var at: u16 = property_list_at(number)
+    while story[at] != 0 {
+        let header: u8 = story[at]
+        if u16(header & 31) == property { return at + 1 }
+        at = at + 2 + u16(header / 32)
+    }
+    return 0
+}
+fun property_length(data: u16) -> u16 {
+    if data == 0 { return 0 }
+    return u16(story[data - 1] / 32) + 1
+}
+fun property_value(number: u16, property: u16) -> u16 {
+    let data: u16 = property_at(number, property)
+    if data == 0 { return word_at(word_at(10) + (property - 1) * 2) }
+    if property_length(data) == 1 { return u16(story[data]) }
+    return word_at(data)
+}
+fun next_property(number: u16, property: u16) -> u16 {
+    if property == 0 { return u16(story[property_list_at(number)] & 31) }
+    let data: u16 = property_at(number, property)
+    if data == 0 { return 0 }
+    return u16(story[data + property_length(data)] & 31)
+}
+fun put_property(number: u16, property: u16, value: u16) {
+    let data: u16 = property_at(number, property)
+    if data == 0 {
+        running = 0
+        return
+    }
+    if property_length(data) == 1 { story[data] = u8(value) }
+    else { put_word(data, value) }
+}
 fun put_zscii(ch: u16) {
     if ch == 13 { @print_char(10) }
     else if ch >= 32 {
         if ch < 127 { @print_char(u8(ch)) }
+    }
+}
+fun print_num(value: u16) {
+    var n: u16 = value
+    if n >= 32768 {
+        @print_char(45)
+        n = 0 - n
+    }
+    var divisor: u16 = 10000
+    var started: u8 = 0
+    while divisor > 0 {
+        let digit: u8 = u8(n / divisor)
+        if digit != 0 { started = 1 }
+        if started != 0 { @print_char(digit + 48) }
+        else if divisor == 1 { @print_char(48) }
+        n = n % divisor
+        divisor = divisor / 10
     }
 }
 // The A2 alphabet is data in the Z3 specification. Generate its decoder at
@@ -228,32 +386,74 @@ fun operand(kind: u8) -> u16 {
     if kind == 1 { return u16(next_byte()) }
     return read_var(next_byte())
 }
+fun zchar_at(start: u8, length: u8, index: u8) -> u8 {
+    var pos: u8 = 0
+    var encoded: u8 = 0
+    while pos < length {
+        let ch: u8 = input[start + pos]
+        if ch >= 97 {
+            if ch <= 122 {
+                if encoded == index { return ch - 91 }
+                encoded = encoded + 1
+            } else {
+                if encoded == index { return 5 }
+                encoded = encoded + 1
+                if encoded == index { return 6 }
+                encoded = encoded + 1
+                if encoded == index { return ch / 32 }
+                encoded = encoded + 1
+                if encoded == index { return ch & 31 }
+                encoded = encoded + 1
+            }
+        } else {
+            var code: u8 = 0
+            var z: u8 = 8
+            while z < 32 {
+                if symbol(z) == ch { code = z }
+                z = z + 1
+            }
+            if encoded == index { return 5 }
+            encoded = encoded + 1
+            if code == 0 {
+                if encoded == index { return 6 }
+                encoded = encoded + 1
+                if encoded == index { return ch / 32 }
+                encoded = encoded + 1
+                if encoded == index { return ch & 31 }
+                encoded = encoded + 1
+            } else {
+                if encoded == index { return code }
+                encoded = encoded + 1
+            }
+        }
+        pos = pos + 1
+    }
+    return 5
+}
 fun word_code(start: u8, length: u8, half: u8) -> u16 {
     var result: u16 = 0
     var j: u8 = 0
     while j < 3 {
-        let k: u8 = half * 3 + j
-        var z: u8 = 5
-        if k < length {
-            var ch: u8 = input[start + k]
-            if ch >= 65 {
-                if ch <= 90 { ch = ch + 32 }
-            }
-            if ch >= 97 {
-                if ch <= 122 { z = ch - 91 }
-            }
-        }
-        result = result * 32 + u16(z)
+        result = result * 32 + u16(zchar_at(start, length, half * 3 + j))
         j = j + 1
     }
     if half == 1 { result = result + 32768 }
     return result
 }
+fun is_separator(ch: u8) -> u8 {
+    let dict: u16 = word_at(8)
+    var i: u16 = 0
+    while i < u16(story[dict]) {
+        if story[dict + 1 + i] == ch { return 1 }
+        i = i + 1
+    }
+    return 0
+}
 fun dictionary_lookup(start: u8, length: u8) -> u16 {
     let dict: u16 = word_at(8)
     let separators: u8 = story[dict]
     let stride: u8 = story[dict + u16(separators) + 1]
-    let entries: u16 = word_at(dict + u16(separators) + 2)
+    let entries: u16 = magnitude(word_at(dict + u16(separators) + 2))
     let base: u16 = dict + u16(separators) + 4
     let first: u16 = word_code(start, length, 0)
     let second: u16 = word_code(start, length, 1)
@@ -268,14 +468,19 @@ fun dictionary_lookup(start: u8, length: u8) -> u16 {
     return 0
 }
 fun read_input(text: u16, parse: u16) {
-    let n: u8 = tui_read_line(&input, story[text])
-    if n == 0 {
+    let n: u8 = tui_read_line_or_eof(&input, story[text])
+    if n == 255 {
         running = 0
         return
     }
     var i: u8 = 0
     while i < n {
-        story[text + u16(i) + 1] = input[i]
+        var ch: u8 = input[i]
+        if ch >= 65 {
+            if ch <= 90 { ch = ch + 32 }
+        }
+        input[i] = ch
+        story[text + u16(i) + 1] = ch
         i = i + 1
     }
     story[text + u16(n) + 1] = 0
@@ -286,9 +491,13 @@ fun read_input(text: u16, parse: u16) {
         if input[i] == 32 { i = i + 1 }
         else {
             let start: u8 = i
-            while i < n {
-                if input[i] == 32 { break }
-                i = i + 1
+            if is_separator(input[i]) != 0 { i = i + 1 }
+            else {
+                while i < n {
+                    if input[i] == 32 { break }
+                    if is_separator(input[i]) != 0 { break }
+                    i = i + 1
+                }
             }
             let length: u8 = i - start
             let entry: u16 = parse + 2 + u16(words) * 4
@@ -311,6 +520,22 @@ fun fail_opcode(form: u8, op: u8) {
     @print_u8(u8(pc))
     @print_char(10)
     running = 0
+}
+fun restart_story() {
+    let transcript: u8 = story[17] & 3
+    story_size = file_read(c"zork-west-demo.z3", &story)
+    if story_size == 0 {
+        running = 0
+        return
+    }
+    story[17] = (story[17] & 252) | transcript
+    story[1] = (story[1] & 15) | 16
+    globals_at = word_at(12)
+    pc = word_at(6)
+    frame = 0
+    sp = 0
+    steps = 0
+    random_state = 1
 }
 fun step() {
     let code: u8 = next_byte()
@@ -367,15 +592,41 @@ fun step() {
             @print_char(10)
             finish(1)
         }
+        else if op == 4 { }
+        else if op == 7 { restart_story() }
+        else if op == 13 { branch(story_verified) }
+        else if op == 8 { finish(read_var(0)) }
+        else if op == 9 { read_var(0) }
         else if op == 10 { running = 0 }
         else if op == 11 { @print_char(10) }
+        else if op == 12 { }
         else { fail_opcode(form, op) }
     } else if form == 1 {
         if op == 0 { if a == 0 { branch(1) } else { branch(0) } }
+        else if op == 1 {
+            let value: u16 = object_sibling(a)
+            write_var(next_byte(), value)
+            if value == 0 { branch(0) }
+            else { branch(1) }
+        }
+        else if op == 2 {
+            let value: u16 = object_child(a)
+            write_var(next_byte(), value)
+            if value == 0 { branch(0) }
+            else { branch(1) }
+        }
+        else if op == 3 { write_var(next_byte(), object_parent(a)) }
+        else if op == 4 { write_var(next_byte(), property_length(a)) }
         else if op == 5 { overwrite_var(u8(a), peek_var(u8(a)) + 1) }
+        else if op == 6 { overwrite_var(u8(a), peek_var(u8(a)) - 1) }
+        else if op == 7 { print_text(a) }
+        else if op == 9 { remove_object(a) }
+        else if op == 10 { print_text(word_at(object_at(a) + 7) + 1) }
         else if op == 11 { finish(a) }
         else if op == 12 { pc = pc + a - 2 }
+        else if op == 13 { print_text(a * 2) }
         else if op == 14 { write_var(next_byte(), peek_var(u8(a))) }
+        else if op == 15 { write_var(next_byte(), a xor 65535) }
         else { fail_opcode(form, op) }
     } else if form == 2 {
         if op == 1 {
@@ -385,16 +636,64 @@ fun step() {
             if count > 3 { if a == d { equal = 1 } }
             branch(equal)
         }
+        else if op == 2 { branch(signed_less(a, b)) }
+        else if op == 3 { branch(signed_less(b, a)) }
+        else if op == 4 {
+            let value: u16 = peek_var(u8(a)) - 1
+            overwrite_var(u8(a), value)
+            branch(signed_less(value, b))
+        }
+        else if op == 5 {
+            let value: u16 = peek_var(u8(a)) + 1
+            overwrite_var(u8(a), value)
+            branch(signed_less(b, value))
+        }
+        else if op == 6 {
+            if object_parent(a) == b { branch(1) }
+            else { branch(0) }
+        }
+        else if op == 7 {
+            if (a & b) == b { branch(1) }
+            else { branch(0) }
+        }
+        else if op == 8 { write_var(next_byte(), a | b) }
+        else if op == 9 { write_var(next_byte(), a & b) }
+        else if op == 10 {
+            if (story[attribute_address(a, b)] & attribute_mask(b)) != 0 { branch(1) }
+            else { branch(0) }
+        }
+        else if op == 11 {
+            let addr: u16 = attribute_address(a, b)
+            story[addr] = story[addr] | attribute_mask(b)
+        }
+        else if op == 12 {
+            let addr: u16 = attribute_address(a, b)
+            story[addr] = story[addr] & (attribute_mask(b) xor 255)
+        }
         else if op == 13 { overwrite_var(u8(a), b) }
+        else if op == 14 { insert_object(a, b) }
         else if op == 15 { write_var(next_byte(), word_at(a + b * 2)) }
         else if op == 16 { write_var(next_byte(), u16(byte_at(a + b))) }
+        else if op == 17 { write_var(next_byte(), property_value(a, b)) }
+        else if op == 18 { write_var(next_byte(), property_at(a, b)) }
+        else if op == 19 { write_var(next_byte(), next_property(a, b)) }
         else if op == 20 { write_var(next_byte(), a + b) }
+        else if op == 21 { write_var(next_byte(), a - b) }
+        else if op == 22 { write_var(next_byte(), a * b) }
+        else if op == 23 { write_var(next_byte(), signed_div(a, b)) }
+        else if op == 24 { write_var(next_byte(), signed_mod(a, b)) }
         else { fail_opcode(form, op) }
     } else {
-        if op == 0 { enter(a, next_byte(), count - 1, b, c) }
+        if op == 0 { enter(a, next_byte(), count - 1, b, c, d) }
         else if op == 1 { put_word(a + b * 2, c) }
         else if op == 2 { story[a + b] = u8(c) }
+        else if op == 3 { put_property(a, b, c) }
         else if op == 4 { read_input(a, b) }
+        else if op == 5 { put_zscii(a) }
+        else if op == 6 { print_num(a) }
+        else if op == 7 { write_var(next_byte(), random_number(a)) }
+        else if op == 8 { write_var(0, a) }
+        else if op == 9 { overwrite_var(u8(a), read_var(0)) }
         else { fail_opcode(form, op) }
     }
 }
@@ -411,8 +710,10 @@ fun main() {
     }
     globals_at = word_at(12)
     pc = word_at(6)
+    story_verified = verify_story()
+    story[1] = (story[1] & 15) | 16
     while running != 0 {
-        if steps >= 10000 {
+        if steps >= 60000 {
             @print("Z3 step budget exceeded\n")
             running = 0
         }

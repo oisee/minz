@@ -13,6 +13,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -188,41 +189,56 @@ func registerTUIHosts(vm *mir2.VM, headless bool, trace bool) {
 		}
 	}
 
-	vm.Hosts["tui_read_line"] = func(args []mir2.Value) ([]mir2.Value, error) {
-		bufPtr := args[0].I
-		maxLen := int(args[1].I)
+	readLine := func(eofValue int64) mir2.HostFunc {
+		return func(args []mir2.Value) ([]mir2.Value, error) {
+			bufPtr := args[0].I
+			maxLen := int(args[1].I)
 
-		if headless {
-			// The stdin goroutine owns os.Stdin. Reading it here would race that
-			// goroutine and a fresh bufio.Reader could swallow later lines.
-			var line []byte
-			for {
-				b, ok := <-stdinForTUI
-				if !ok || b == '\n' {
-					break
+			if headless {
+				// The stdin goroutine owns os.Stdin. Reading it here would race that
+				// goroutine and a fresh bufio.Reader could swallow later lines.
+				var line []byte
+				eof := false
+				for {
+					b, ok := <-stdinForTUI
+					if !ok {
+						eof = true
+						break
+					}
+					if b == '\n' {
+						break
+					}
+					if b != '\r' && len(line) < maxLen {
+						line = append(line, b)
+					}
 				}
-				if b != '\r' && len(line) < maxLen {
-					line = append(line, b)
+				data := append(line, 0)
+				vm.WriteHeapBytes(bufPtr, data)
+				if eof && len(line) == 0 {
+					return []mir2.Value{{I: eofValue}}, nil
 				}
+				return []mir2.Value{{I: int64(len(line))}}, nil
 			}
-			data := append(line, 0)
+
+			fmt.Fprint(out, "\033[?25h") // show cursor
+			reader := bufio.NewReader(os.Stdin)
+			line, err := reader.ReadString('\n')
+			line = strings.TrimRight(line, "\r\n")
+			fmt.Fprint(out, "\033[?25l") // hide cursor
+
+			if len(line) > maxLen {
+				line = line[:maxLen]
+			}
+			data := append([]byte(line), 0)
 			vm.WriteHeapBytes(bufPtr, data)
+			if err == io.EOF && len(line) == 0 {
+				return []mir2.Value{{I: eofValue}}, nil
+			}
 			return []mir2.Value{{I: int64(len(line))}}, nil
 		}
-
-		fmt.Fprint(out, "\033[?25h") // show cursor
-		reader := bufio.NewReader(os.Stdin)
-		line, _ := reader.ReadString('\n')
-		line = strings.TrimRight(line, "\r\n")
-		fmt.Fprint(out, "\033[?25l") // hide cursor
-
-		if len(line) > maxLen {
-			line = line[:maxLen]
-		}
-		data := append([]byte(line), 0)
-		vm.WriteHeapBytes(bufPtr, data)
-		return []mir2.Value{{I: int64(len(line))}}, nil
 	}
+	vm.Hosts["tui_read_line"] = readLine(0)
+	vm.Hosts["tui_read_line_or_eof"] = readLine(255)
 
 	if trace {
 		fmt.Fprintf(os.Stderr, "mzv: TUI host functions registered (%dx%d)\n", termW, termH)
