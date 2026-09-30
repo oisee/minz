@@ -119,7 +119,7 @@ func (p *printer) global(g mir2.Global) {
 		case *mir2.ArrayTy:
 			if g.InitString && ty.Elem == mir2.TyU8 {
 				if value, ok := printableCString(g.Init); ok {
-					p.write(" = \"")
+						p.write(" = c\"")
 					p.write(value)
 					p.write("\"")
 					break

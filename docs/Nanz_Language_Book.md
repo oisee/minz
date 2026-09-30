@@ -209,10 +209,10 @@ global counter: u8
 global vram: u8 at(0x4000)
 global table: [u8; 4] = [1, 2, 4, 8]
 global lut: [u8; 256]
-global save_path: [u8; 13] = "zvm-save.dat"
+global save_path: [u8; 13] = c"zvm-save.dat"
 ```
 
-Globals are emitted in the `.a80` output's data section. Array globals with `= [...]` initializers get a `DB` directive. A string initializer for `[u8; N]` (plain or `c"..."`) copies the bytes into the global itself, appends a NUL byte, and zero-fills any remaining capacity. The compiler rejects strings that do not fit, including the terminator. This keeps a host-visible path in low memory even when a later global array is larger than 64 KiB.
+Globals are emitted in the `.a80` output's data section. Array globals with `= [...]` initializers get a `DB` directive. A string initializer for `[u8; N]` (plain or `c"..."`) copies the bytes into the global itself, appends a NUL byte, and zero-fills any remaining capacity. Use `c"..."` to make this C-string representation explicit; a plain string in an expression uses a u8 length prefix instead. The compiler rejects strings that do not fit, including the terminator. This keeps a host-visible path in low memory even when a later global array is larger than 64 KiB.
 
 ### 2.7 Literals
 

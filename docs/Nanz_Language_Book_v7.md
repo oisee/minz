@@ -239,11 +239,11 @@ This catches a whole class of bugs that would be silent in C.
 global counter: u8 = 0
 global screen: [u8; 6912] at(0x4000)   // hardware-mapped ZX Spectrum VRAM
 global palette: Color at(0xFF00)        // peripheral mapped at fixed address
-global save_path: [u8; 13] = "zvm-save.dat"  // NUL-terminated in-place bytes
+global save_path: [u8; 13] = c"zvm-save.dat"  // NUL-terminated in-place bytes
 ```
 
 The `at(addr)` clause maps the global to a specific Z80 address — no pointer arithmetic needed.
-For `[u8; N]` globals, a plain or `c"..."` string initializes the array itself. The compiler includes the NUL terminator in its capacity check and pads unused bytes with zero. This avoids a separate pointer to the string pool when an external host needs the array address.
+For `[u8; N]` globals, a plain or `c"..."` string initializes the array itself. Prefer `c"..."` to show that the resulting bytes are NUL-terminated; a plain string in an expression uses a u8 length prefix instead. The compiler includes the NUL terminator in its capacity check and pads unused bytes with zero. This avoids a separate pointer to the string pool when an external host needs the array address.
 
 ### 2.5 Control Flow
 
