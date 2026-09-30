@@ -9,17 +9,17 @@ import (
 	"github.com/minz/minzc/pkg/plm"
 )
 
-// corpusDir is the path to cloned PL/M source files for corpus testing.
-// Adjust if your corpus lives elsewhere.
-const corpusDir = "/Users/alice/dev/minz-ts/corpus"
-
 // TestCorpus_Parse runs the PL/M parser against every *.plm / *.PLM / *.pl1
 // file found under corpusDir. It reports parse errors but does NOT fail the
 // test — the goal is to surface which constructs are still unsupported, not
 // to gate CI on a corpus we don't control.
 func TestCorpus_Parse(t *testing.T) {
+	corpusDir := os.Getenv("MINZ_PLM_CORPUS_DIR")
+	if corpusDir == "" {
+		corpusDir = filepath.Join("..", "..", "..", "corpus", "intel80tools")
+	}
 	if _, err := os.Stat(corpusDir); os.IsNotExist(err) {
-		t.Skipf("corpus directory %q not found — run:\n  git clone https://github.com/ogdenpm/intel80tools %s/intel80tools", corpusDir, corpusDir)
+		t.Skipf("corpus directory %q not found; run git submodule update --init corpus/intel80tools or set MINZ_PLM_CORPUS_DIR", corpusDir)
 	}
 
 	var files []string

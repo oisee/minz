@@ -33,7 +33,7 @@ jobs:
           go build -o "$RUNNER_TEMP/mza" ./cmd/mza
           go build -o "$RUNNER_TEMP/mze" ./cmd/mze
       - name: Run stable compiler and toolchain tests
-        run: go test -short -timeout 5m ./pkg/mir2/... ./pkg/z80asm/... ./pkg/c89/... ./pkg/codegen/... ./pkg/parser/... ./pkg/pipeline/...
+        run: go test -short -timeout 5m ./pkg/mir2/... ./pkg/z80asm/... ./pkg/c89/... ./pkg/codegen/... ./pkg/parser/... ./pkg/pipeline/... ./pkg/plm/...
       - name: Compile and assemble a program
         run: |
           "$RUNNER_TEMP/mz" ../examples/fibonacci.minz -o "$RUNNER_TEMP/fibonacci.a80"
