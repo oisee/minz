@@ -10,10 +10,10 @@
 @extern fun file_read_line(path: ^u8, buf: ^u8, maxlen: u8, offset: ^u8) -> u16
 @extern fun tui_read_line_or_eof(buf: ^u8, maxlen: u8) -> u8
 
-global story_path: [u8; 18]
-global save_path: [u8; 13]
-global transcript_path: [u8; 19]
-global command_path: [u8; 17]
+global story_path: [u8; 18] = "zork-west-demo.z3"
+global save_path: [u8; 13] = "zvm-save.dat"
+global transcript_path: [u8; 19] = "zvm-transcript.txt"
+global command_path: [u8; 17] = "zvm-commands.txt"
 global command_offset: [u8; 4]
 global snapshot: [u8; 9018]
 global input: [u8; 256]
@@ -44,76 +44,6 @@ global stream3_table_hi: [u8; 16]
 // Keep the large story allocation last: host-visible pointers are currently
 // 16-bit in the Nanz/MIR2 ABI, although array indices can be u32.
 global story: [u8; 131072]
-
-fun setup_story_path() {
-    story_path[0] = 122
-    story_path[1] = 111
-    story_path[2] = 114
-    story_path[3] = 107
-    story_path[4] = 45
-    story_path[5] = 119
-    story_path[6] = 101
-    story_path[7] = 115
-    story_path[8] = 116
-    story_path[9] = 45
-    story_path[10] = 100
-    story_path[11] = 101
-    story_path[12] = 109
-    story_path[13] = 111
-    story_path[14] = 46
-    story_path[15] = 122
-    story_path[16] = 51
-    story_path[17] = 0
-    save_path[0] = 122
-    save_path[1] = 118
-    save_path[2] = 109
-    save_path[3] = 45
-    save_path[4] = 115
-    save_path[5] = 97
-    save_path[6] = 118
-    save_path[7] = 101
-    save_path[8] = 46
-    save_path[9] = 100
-    save_path[10] = 97
-    save_path[11] = 116
-    save_path[12] = 0
-    transcript_path[0] = 122
-    transcript_path[1] = 118
-    transcript_path[2] = 109
-    transcript_path[3] = 45
-    transcript_path[4] = 116
-    transcript_path[5] = 114
-    transcript_path[6] = 97
-    transcript_path[7] = 110
-    transcript_path[8] = 115
-    transcript_path[9] = 99
-    transcript_path[10] = 114
-    transcript_path[11] = 105
-    transcript_path[12] = 112
-    transcript_path[13] = 116
-    transcript_path[14] = 46
-    transcript_path[15] = 116
-    transcript_path[16] = 120
-    transcript_path[17] = 116
-    transcript_path[18] = 0
-    command_path[0] = 122
-    command_path[1] = 118
-    command_path[2] = 109
-    command_path[3] = 45
-    command_path[4] = 99
-    command_path[5] = 111
-    command_path[6] = 109
-    command_path[7] = 109
-    command_path[8] = 97
-    command_path[9] = 110
-    command_path[10] = 100
-    command_path[11] = 115
-    command_path[12] = 46
-    command_path[13] = 116
-    command_path[14] = 120
-    command_path[15] = 116
-    command_path[16] = 0
-}
 
 fun byte_at(addr: u16) -> u8 { return story[addr] }
 fun code_byte_at(addr: u32) -> u8 { return story[addr] }
@@ -419,25 +349,31 @@ fun emit_zscii(ch: u16) {
 }
 fun put_zscii(ch: u16) { emit_zscii(ch) }
 fun output_stream(number: u16, table: u16) {
-    if number == 1 { screen_enabled = 1 }
-    else if number == 65535 { screen_enabled = 0 }
-    else if number == 2 { story[17] = story[17] | 1 }
-    else if number == 65534 { story[17] = story[17] & 254 }
-    else if number == 3 {
-        if stream3_depth >= 16 {
-            running = 0
-            return
-        }
-        stream3_table_lo[stream3_depth] = u8(table)
-        stream3_table_hi[stream3_depth] = u8(table / 256)
-        stream3_depth = stream3_depth + 1
-        put_word(table, 0)
+    switch number {
+        case 1:
+            screen_enabled = 1
+        case 65535:
+            screen_enabled = 0
+        case 2:
+            story[17] = story[17] | 1
+        case 65534:
+            story[17] = story[17] & 254
+        case 3:
+            if stream3_depth >= 16 {
+                running = 0
+                return
+            }
+            stream3_table_lo[stream3_depth] = u8(table)
+            stream3_table_hi[stream3_depth] = u8(table / 256)
+            stream3_depth = stream3_depth + 1
+            put_word(table, 0)
+        case 65533:
+            if stream3_depth > 0 { stream3_depth = stream3_depth - 1 }
+        case 4:
+            record_commands = 1
+        case 65532:
+            record_commands = 0
     }
-    else if number == 65533 {
-        if stream3_depth > 0 { stream3_depth = stream3_depth - 1 }
-    }
-    else if number == 4 { record_commands = 1 }
-    else if number == 65532 { record_commands = 0 }
 }
 fun print_num(value: u16) {
     var n: u16 = value
@@ -1220,7 +1156,6 @@ fun step() {
 }
 
 fun main() {
-    setup_story_path()
     let capacity: u32 = 131072
     story_size = file_read_bounded(&story_path, &story, capacity)
     if story_size == 0 {

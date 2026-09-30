@@ -51,12 +51,13 @@ const (
 
 // Global is a module-level variable or constant.
 type Global struct {
-	Name    string       // linker symbol name
-	Ty      Ty
-	Init    []byte       // initial bytes; len must equal ByteWidth(Ty) or len(Init)==0 means zeroed
-	IsConst bool         // true = read-only (placed in ROM on Z80)
-	At      *uint16      // if non-nil: variable is placed at this absolute address (EQU / AT)
-	Storage StorageClass // how the global's data is stored; default StorageNormal
+	Name       string // linker symbol name
+	Ty         Ty
+	Init       []byte       // initial bytes; shorter initializers are zero-padded to ByteWidth(Ty)
+	InitString bool         // source used a byte-array string literal; preserve it when printing Nanz
+	IsConst    bool         // true = read-only (placed in ROM on Z80)
+	At         *uint16      // if non-nil: variable is placed at this absolute address (EQU / AT)
+	Storage    StorageClass // how the global's data is stored; default StorageNormal
 
 	// VtableSyms holds function names for vtable globals (ObjC dynamic dispatch).
 	// Each entry is a mangled function name whose address occupies one ptr-width slot.

@@ -6,6 +6,8 @@ The ZIL source and text are an adaptation of the [MIT-licensed Zork I source](ht
 
 The committed `zork-west-demo.z3` is 2,378 bytes (SHA-256 `916d31de9303c9084f275bf6e4e07536e4752988573b06833c23e7768a54e532`). Its header says version 3; dynamic memory ends at offset `0x02ce` and high memory starts at `0x05a7`. The experimental [Z3 interpreter in Nanz](zvm.nanz) runs this story on `mzv`. It covers the CZECH v0.8 Z3 assertion corpus, including arithmetic, objects, properties, indirect variables, text, random, and verification. Its `@z3_symbols` and `@z3_unicode_table` metafunctions turn declarative Z3 glyph mappings into typed decoders at compile time; the runtime interpreter remains ordinary Nanz. File and terminal operations remain host I/O boundaries. This is not yet a complete Z3 interpreter or a Spectrum release.
 
+The four file paths are now initialized directly from Nanz string literals into byte-array globals. `output_stream` uses `switch` for its side effects; `match` is better suited to value-producing enum/ADT expressions, while interfaces and `impl` would add no useful polymorphism to this single interpreter backend.
+
 To run the checked transcript from a MinZ checkout:
 
 ```sh
