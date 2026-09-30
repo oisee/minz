@@ -13,6 +13,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
@@ -54,14 +55,14 @@ func registerTUIHosts(vm *mir2.VM, headless bool, trace bool) {
 
 	// ── Cursor positioning ──────────────────────────────────────────
 	vm.Hosts["tui_goto"] = func(args []mir2.Value) ([]mir2.Value, error) {
-x, y := int(args[0].I), int(args[1].I)
+		x, y := int(args[0].I), int(args[1].I)
 		fmt.Fprintf(out, "\033[%d;%dH", y+1, x+1) // ANSI is 1-based
 		return nil, nil
 	}
 
 	// ── Color ───────────────────────────────────────────────────────
 	vm.Hosts["tui_color"] = func(args []mir2.Value) ([]mir2.Value, error) {
-fg, bg, bright := int(args[0].I), int(args[1].I), int(args[2].I)
+		fg, bg, bright := int(args[0].I), int(args[1].I), int(args[2].I)
 		fgCode := 30 + fg
 		bgCode := 40 + bg
 		if bright != 0 {
@@ -73,18 +74,18 @@ fg, bg, bright := int(args[0].I), int(args[1].I), int(args[2].I)
 	}
 
 	vm.Hosts["tui_reset"] = func(_ []mir2.Value) ([]mir2.Value, error) {
-fmt.Fprintf(out, "\033[0m")
+		fmt.Fprintf(out, "\033[0m")
 		return nil, nil
 	}
 
 	// ── Screen operations ───────────────────────────────────────────
 	vm.Hosts["tui_clear"] = func(_ []mir2.Value) ([]mir2.Value, error) {
-fmt.Fprintf(out, "\033[2J\033[H")
+		fmt.Fprintf(out, "\033[2J\033[H")
 		return nil, nil
 	}
 
 	vm.Hosts["tui_putch"] = func(args []mir2.Value) ([]mir2.Value, error) {
-ch := byte(args[0].I)
+		ch := byte(args[0].I)
 		if s, ok := boxChars[ch]; ok {
 			fmt.Fprint(out, s)
 		} else {
@@ -94,7 +95,7 @@ ch := byte(args[0].I)
 	}
 
 	vm.Hosts["tui_puts"] = func(args []mir2.Value) ([]mir2.Value, error) {
-if len(args) > 0 {
+		if len(args) > 0 {
 			s := readStr(args[0].I)
 			fmt.Fprint(out, s)
 		}
@@ -188,38 +189,56 @@ if len(args) > 0 {
 		}
 	}
 
-	vm.Hosts["tui_read_line"] = func(args []mir2.Value) ([]mir2.Value, error) {
-bufPtr := args[0].I
-		maxLen := int(args[1].I)
+	readLine := func(eofValue int64) mir2.HostFunc {
+		return func(args []mir2.Value) ([]mir2.Value, error) {
+			bufPtr := args[0].I
+			maxLen := int(args[1].I)
 
-		if headless {
+			if headless {
+				// The stdin goroutine owns os.Stdin. Reading it here would race that
+				// goroutine and a fresh bufio.Reader could swallow later lines.
+				var line []byte
+				eof := false
+				for {
+					b, ok := <-stdinForTUI
+					if !ok {
+						eof = true
+						break
+					}
+					if b == '\n' {
+						break
+					}
+					if b != '\r' && len(line) < maxLen {
+						line = append(line, b)
+					}
+				}
+				data := append(line, 0)
+				vm.WriteHeapBytes(bufPtr, data)
+				if eof && len(line) == 0 {
+					return []mir2.Value{{I: eofValue}}, nil
+				}
+				return []mir2.Value{{I: int64(len(line))}}, nil
+			}
+
+			fmt.Fprint(out, "\033[?25h") // show cursor
 			reader := bufio.NewReader(os.Stdin)
 			line, err := reader.ReadString('\n')
-			if err != nil && len(line) == 0 {
-				return []mir2.Value{{I: 0}}, nil
-			}
 			line = strings.TrimRight(line, "\r\n")
+			fmt.Fprint(out, "\033[?25l") // hide cursor
+
 			if len(line) > maxLen {
 				line = line[:maxLen]
 			}
 			data := append([]byte(line), 0)
 			vm.WriteHeapBytes(bufPtr, data)
+			if err == io.EOF && len(line) == 0 {
+				return []mir2.Value{{I: eofValue}}, nil
+			}
 			return []mir2.Value{{I: int64(len(line))}}, nil
 		}
-
-		fmt.Fprint(out, "\033[?25h") // show cursor
-		reader := bufio.NewReader(os.Stdin)
-		line, _ := reader.ReadString('\n')
-		line = strings.TrimRight(line, "\r\n")
-		fmt.Fprint(out, "\033[?25l") // hide cursor
-
-		if len(line) > maxLen {
-			line = line[:maxLen]
-		}
-		data := append([]byte(line), 0)
-		vm.WriteHeapBytes(bufPtr, data)
-		return []mir2.Value{{I: int64(len(line))}}, nil
 	}
+	vm.Hosts["tui_read_line"] = readLine(0)
+	vm.Hosts["tui_read_line_or_eof"] = readLine(255)
 
 	if trace {
 		fmt.Fprintf(os.Stderr, "mzv: TUI host functions registered (%dx%d)\n", termW, termH)

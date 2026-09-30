@@ -2,6 +2,8 @@
 
 **Актуализация 2026-09-30:** главная ветка переименована в `main`; снимок до уборки сохранён в `main-archive` на `7cee4aae`. [Карта веток, ссылок, субмодулей и CI](reports/2026-09-30-Repository-Cleanup-and-Branch-Map.md) описывает изменения после исходного аудита ниже. A1/A2 выполнены: `PR gate` прошёл [в PR #20](https://github.com/oisee/minz/pull/20), `main` защищён обязательными PR и актуальной проверкой. Пять устаревших workflow удалены; до пересборки автоматизирован только CI/PR gate. Полный набор тестов остаётся отдельной открытой задачей A3/A5.
 
+**Релиз и Z-machine:** [проверка зрелости Nanz и инвентаризация артефактов](reports/2026-09-30-Release-and-ZMachine-Maturity-RU.md) добавляет трек J. Это экспериментальный E2E gate после A3/A4/C3, а не условие ближайшего correctness release.
+
 Дата: **2026-09-19**. База: **`f51171a5`**, `master`, после `git fetch origin` совпадает с `origin/master`.
 Это текущая очередь решений и работ; старые планы сохраняют исторические детали. Расширенный [аудит MinZ, gpuforce, Z80/6502 optimizer и архивов](reports/2026-09-19-Ecosystem-Audit-RU.md) содержит свежие проверки и ограничения.
 
@@ -59,7 +61,7 @@ MinZ
 ├── C. Frontends и контракт языков — P1, U4
 │   ├── [ ] C1 [P1 Q U4 V] Разобрать imports Lanz/Lizp и bit-accessor factcheck
 │   ├── [ ] C2 [P1 F U4 H] Pascal records и PL/M PTR: минимальные assemble+run repro
-│   ├── [ ] C3 [P1 F U4 H] Nanz/C: поддерживаемая семантика и регрессионный corpus
+│   ├── [ ] C3 [P1 F U4 H] Nanz/C: поддерживаемая семантика и регрессионный corpus; исправить `u16` arrays и `&&` в MIR2 VM
 │   ├── [ ] C4 [P1 Q U3 V] Развести parse / lower / compile / assemble / run по языкам
 │   └── [ ] C5 [P2 F U3 H] Frill/Lizp/ABAP/ObjC: по одному сквозному сценарию
 ├── D. Воспроизводимость и готовый toolchain — P1, U5
@@ -89,11 +91,38 @@ MinZ
 │   ├── [ ] G7 [P0 Q U5 V] ENRT/Z80T: полная проверка записи, domains, count и limits
 │   ├── [ ] G8 [P0 F U5 V] GPU: согласованная пара cost/assignment и host rescore
 │   └── [ ] G9 [P0 F U5 V] Stable shape IDs: sparse indexing, worker-independent order
-└── H. Отложенное расширение — P3, U1–U2
-    ├── [ ] H1 [P3 E U2 ?] Новые языки/ISA/GPU targets только с владельцем и E2E-сценарием
-    ├── [ ] H2 [P3 F U2 H] Новый TUI/View DSL после устойчивого E2
-    └── [ ] H3 [P3 E U1 ?] Совместный module-wide solver после выигрыша локальных моделей
+├── H. Отложенное расширение — P3, U1–U2
+│   ├── [ ] H1 [P3 E U2 ?] Новые языки/ISA/GPU targets только с владельцем и E2E-сценарием
+│   ├── [ ] H2 [P3 F U2 H] Новый TUI/View DSL после устойчивого E2
+│   └── [ ] H3 [P3 E U1 ?] Совместный module-wide solver после выигрыша локальных моделей
+└── J. Z-machine v3 как сквозной тест зрелости Nanz — P1/P2, U4
+    ├── [ ] J1 [P1 Q U4 V] Зафиксировать story, тестовые истории, трассу и эталон
+    ├── [x] J2a [P1 Q U4 V] West of House: Nanz core в mzv, полный transcript и CI smoke
+    ├── [ ] J2b [P1 F U4 ?] Независимые opcode/state fixtures, больше Z3 и диагностика unsupported
+    ├── [x] J2c [P1 Q U4 V] Полный CZECH v0.8 Z3: 349 assertions, 0 failures, 19 print cases достигнуты
+    ├── [ ] J2d [P1 F U4 ?] Полный Z3: save/restore, потоки, I/O, story до 128K и oracle для print cases
+    ├── [ ] J3 [P2 F U3 ?] Позже: тот же core через MZA + Z80, сравнение трасс/состояния
+    ├── [ ] J4 [P2 F U4 V] Spectrum 128K: банкование, память, I/O и формат поставки
+    └── [ ] J5 [P2 E U3 ?] Zork I startup/LOOK/команды, затем отдельный demo-артефакт
 ```
+
+### Трек J: порядок и приёмка
+
+1. **J1 — быстрый фундамент для сравнения.** Пинованный Z-machine v3 story hash и лицензия; маленькие независимые test stories; ожидаемые output, память, стек, PC и ветвления. Эталон запускается отдельно от MinZ. Не использовать старый CP/M Zork в `mze` как доказательство Nanz-компиляции.
+2. **J2 — семантика.** [West of House](examples/zmachine/zork-west-demo/README.md) уже проходит через Nanz core и `mzv`: полный детерминированный transcript сверяется в CI. Следующий шаг — отдельные opcode/state fixtures и расширение покрытия v3. Go host используется только для загрузки файла и терминального ввода; декодер и интерпретатор написаны на Nanz.
+3. **J3 — отложенный Z80-путь.** По текущему приоритету пользователя сначала закрываем J2d и полный проверяемый Z3-suite на `mzv`; к `mz` → `mza` → `mze`/`mzx` вернёмся после этого. Тогда трасса и конечное состояние должны совпасть с J2 и эталоном; wrong-code превращается в минимальный Nanz regression для A4/B/C.
+4. **J4 — платформа.** Отдельный 128K memory layout и banked story reader, бюджет ROM/RAM/stack и загрузчик; тест на границе 16K страниц. Текущий `mza` создаёт 48K SNA, а headless `mzx --tap` ещё не устанавливает tape trap: готовность TAP не предполагается.
+5. **J5 — тяжёлый сценарий.** Воспроизводимо собранный MIT Zork I v3 проходит старт, `LOOK` и короткий детерминированный transcript на `mzv` и Spectrum; лимиты памяти и времени измерены. Только после этого решать, класть ли отдельный `zvm-zx` demo в релиз. `mzv` остаётся host-инструментом.
+
+J1 можно начать параллельно с текущими P0-задачами; первый работающий J2a уже есть, а J2b и J3 зависят от A3/A4/C3. J4/J5 не блокируют узкий релиз D5. Подробные evidence, зависимость от 128K и состав пакетов — в связанном отчёте.
+
+Первый J1 fixture: [MIT Zork I «West of House» micro-demo](examples/zmachine/zork-west-demo/README.md), Z3 story 2 378 байт с исходником и воспроизводимой сборкой. `mzv` исполняет его через Nanz core; независимый opcode/state oracle и trace schema ещё не готовы. Spectrum-интерпретатора пока нет.
+
+**Найдено при J2a (C3):** минимальный `global vals: [u16; 4]` с `vals[1] = 1695` в `mzv` читается как `0:159` вместо `6:159`; `if x >= 32 && x < 127` в функции даёт `mir2.VM: cannot resolve symbol "x"`. В Z3 core оба случая обойдены байтовым хранением и вложенными `if`; исправление frontend/MIR2 и отдельные регрессии остаются задачей C3. Для headless `mzv` также устранён выход всего процесса на EOF stdin и потеря строк из-за двух конкурирующих читателей; девятикомандный transcript проверяет этот путь.
+
+[Проверка внешнего Z3-корпуса](reports/2026-09-30-ZMachine-V3-Test-Corpus-RU.md): CZECH v3 — 10 752 байта и группы opcode с возможностью пропуска; готовая MIT-игра Dark Pit — 27 490 байт. Для J1/J3 сначала маленькие fixtures и CZECH, затем игра как интеграционный тест. CZECH распространяется под собственной разрешительной лицензией, поэтому пока только pinned external input, без копии в репозитории.
+
+**J2c (2026-09-30):** `czech-smoke.sh` проверяет SHA-256 внешнего Z3 story и прогоняет весь CZECH на Nanz/`mzv`: 368 tests, 349 passed, 0 failed, 19 print cases; ключевые строки печати сверяются автоматически, остальные ещё не имеют отдельного oracle. Dark Pit (27 490 байт) загружается, отвечает на `look`/`inventory` и перезапускается. Это не закрывает J2d: отсутствуют persistent save/restore, output/input streams, полноценная экранная модель и загрузка историй до максимума Z3 128K. Общий `go test -short ./pkg/nanz` остаётся красным на bit accessor, Lanz/Lizp imports и Z80 showcase; `pkg/pipeline`, мета-функции и Z3 smoke зелёные.
 
 ## Карточки: первый шаг, зависимости, критерий готовности
 

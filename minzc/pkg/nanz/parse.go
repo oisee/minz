@@ -949,6 +949,14 @@ func (p *parser) parseModule() (*hir.Module, error) {
 					m.Funcs = append(m.Funcs, generated.Funcs...)
 					m.Globals = append(m.Globals, generated.Globals...)
 					m.Structs = append(m.Structs, generated.Structs...)
+					// Generated declarations are visible to source parsed after the
+					// metafunction invocation, just like built-in @screen output.
+					for _, f := range generated.Funcs {
+						p.funcSigs[f.Name] = f.RetTy
+					}
+					for _, g := range generated.Globals {
+						p.globalTypes[g.Name] = g.Ty
+					}
 					for _, s := range generated.Structs {
 						p.structs[s.Name] = s
 					}

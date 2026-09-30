@@ -29,6 +29,7 @@ var knownFailures = map[string]string{
 	"tetris":               "asm: tetris v1 needs clobber save/restore (WIP)",
 	"tetris_v2":            "asm: tetris v2 needs clobber save/restore (WIP)",
 	"plasma":               "asm: new example, not yet verified",
+	"zvm":                  "mzv-only Z3 interpreter; Z80 port is deferred",
 	// Import tests need module search path
 	"ex23_import_unqualified": "compile: import needs module search path",
 	"ex24_import_qualified":   "compile: import needs module search path",

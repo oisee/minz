@@ -27,11 +27,12 @@ jobs:
         with:
           go-version-file: minzc/go.mod
           cache-dependency-path: minzc/go.sum
-      - name: Build compiler, assembler and emulator
+      - name: Build compiler, assembler and emulators
         run: |
           go build -o "$RUNNER_TEMP/mz" ./cmd/minzc
           go build -o "$RUNNER_TEMP/mza" ./cmd/mza
           go build -o "$RUNNER_TEMP/mze" ./cmd/mze
+          go build -o "$RUNNER_TEMP/mzv" ./cmd/mzv
       - name: Run stable compiler and toolchain tests
         run: go test -short -timeout 5m ./pkg/mir2/... ./pkg/z80asm/... ./pkg/c89/... ./pkg/codegen/... ./pkg/parser/... ./pkg/pipeline/... ./pkg/plm/...
       - name: Compile and assemble a program
@@ -39,3 +40,7 @@ jobs:
           "$RUNNER_TEMP/mz" ../examples/fibonacci.minz -o "$RUNNER_TEMP/fibonacci.a80"
           "$RUNNER_TEMP/mza" -o "$RUNNER_TEMP/fibonacci.bin" "$RUNNER_TEMP/fibonacci.a80"
           test -s "$RUNNER_TEMP/fibonacci.bin"
+      - name: Run Z3 story through Nanz on mzv
+        run: |
+          go test ./pkg/nanz -run '^TestUserMetafunction' -count=1
+          ../examples/zmachine/zork-west-demo/smoke.sh "$RUNNER_TEMP/mzv"
