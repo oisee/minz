@@ -1,0 +1,38 @@
+// Typed values compose into flat bytes, with no runtime interface object.
+import text.print
+
+global output: [u8; 32]
+global writer: BufWriter
+global text: CText
+global dec: Dec16
+global small: Dec8
+
+fun main() -> u16 {
+    writer.init(&output, 32)
+    text.ptr = c"score="
+    text.write_to(&writer)
+    dec.value = 65535
+    dec.write_to(&writer)
+    text.ptr = c" u8="
+    text.write_to(&writer)
+    small.value = 175
+    small.write_to(&writer)
+    writer.finish_c()
+    return writer.len
+}
+
+fun probe_zero() -> u16 {
+    writer.init(&output, 4)
+    small.value = 0
+    small.write_to(&writer)
+    writer.finish_c()
+    return writer.len
+}
+
+fun probe_overflow() -> u8 {
+    writer.init(&output, 3)
+    dec.value = 1000
+    dec.write_to(&writer)
+    writer.finish_c()
+    return writer.overflow
+}

@@ -1,0 +1,81 @@
+// Typed formatting into a caller-owned byte buffer.
+// Printable is a compile-time contract: each write_to call resolves to a
+// concrete function, and the output is just bytes in BufWriter.buf.
+
+struct BufWriter {
+    buf: ^u8
+    len: u16
+    cap: u16
+    overflow: u8
+}
+
+fun BufWriter.init(self: ^BufWriter, buf: ^u8, cap: u16) {
+    self.buf = buf
+    self.len = 0
+    self.cap = cap
+    self.overflow = 0
+}
+
+fun BufWriter.put(self: ^BufWriter, byte: u8) {
+    if self.len < self.cap {
+        self.buf[self.len] = byte
+        self.len = self.len + 1
+    } else {
+        self.overflow = 1
+    }
+}
+
+// Reserve one byte for NUL if the buffer is later passed to a C-style API.
+fun BufWriter.finish_c(self: ^BufWriter) -> u8 {
+    if self.len >= self.cap {
+        self.overflow = 1
+        return 0
+    }
+    self.buf[self.len] = 0
+    return 1
+}
+
+interface Printable {
+    write_to
+}
+
+struct CText { ptr: ^u8 }
+struct Dec8 { value: u8 }
+struct Dec16 { value: u16 }
+
+impl Printable for CText {
+    fun write_to(self, out: ^BufWriter) {
+        var i: u16 = 0
+        while self.ptr[i] != 0 {
+            BufWriter_put(out, self.ptr[i])
+            i = i + 1
+        }
+    }
+}
+
+impl Printable for Dec8 {
+    fun write_to(self, out: ^BufWriter) {
+        write_decimal(out, u16(self.value))
+    }
+}
+
+impl Printable for Dec16 {
+    fun write_to(self, out: ^BufWriter) {
+        write_decimal(out, self.value)
+    }
+}
+
+fun write_decimal(out: ^BufWriter, value: u16) {
+    var divisor: u16 = 10000
+    var started: u8 = 0
+    while divisor > 0 {
+        let digit: u8 = u8(value / divisor)
+        if digit != 0 { started = 1 }
+        if started != 0 | divisor == 1 {
+            BufWriter_put(out, 48 + digit)
+            started = 1
+        }
+        value = value % divisor
+        divisor = divisor / 10
+    }
+}

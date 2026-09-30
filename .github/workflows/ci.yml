@@ -52,7 +52,7 @@ jobs:
           test -s "$RUNNER_TEMP/fibonacci.bin"
       - name: Run Nanz language regression tests
         id: metafunctions
-        run: go test ./pkg/nanz -run '^Test(UserMetafunction|GlobalStringByteArrayInitializer)' -count=1
+        run: go test ./pkg/nanz -run '^Test(UserMetafunction|GlobalStringByteArrayInitializer|TypedPrintLibrary)' -count=1
       - name: Run Z3 demo through Nanz on mzv
         id: z3_demo
         run: ../examples/zmachine/zork-west-demo/smoke.sh "$RUNNER_TEMP/mzv"
