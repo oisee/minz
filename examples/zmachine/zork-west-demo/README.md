@@ -16,6 +16,15 @@ go build -o /tmp/minz-mzv ./cmd/mzv
 
 The smoke compares [transcript.in](transcript.in) against [transcript.out](transcript.out). The same commands were run in `dfrotz` 2.44; game text and state changes agree, aside from Frotz's status line and line wrapping. `mzv` currently needs `-H` for this reproducible piped-input run. The core uses byte arrays for 16-bit Z-machine locals and return addresses because the present Nanz/MIR2 VM truncates `u16` array elements; this is tracked under C3 in the backlog.
 
+To play the included demo interactively after building `mzv`:
+
+```sh
+cd examples/zmachine/zork-west-demo
+/tmp/minz-mzv -H zvm.nanz
+```
+
+Try `look`, `open mailbox`, `take leaflet`, `read leaflet`, `inventory`, and `quit`. For a separately built MIT Zork I v3 story, copy `zvm.nanz` and the story into a persistent directory, naming the story `zork-west-demo.z3`, then run `mzv -H /path/to/directory/zvm.nanz`. Save, transcript, and command files are written beside that Nanz source.
+
 For the external CZECH v0.8 Z3 assertion corpus, build the pinned `czech.inf` as described in the [test-corpus report](../../../reports/2026-09-30-ZMachine-V3-Test-Corpus-RU.md), then run `bash ../examples/zmachine/zork-west-demo/czech-smoke.sh /tmp/minz-mzv /path/to/czech.z3 /path/to/dfrotz` from `minzc`. The script verifies the story hash and all 349 assertions. With Frotz supplied, it also compares the text of all 19 print cases, while reporting the remaining blank-line differences. CZECH is not copied into this repository. The [small MIT Z3 fixtures](../z3-fixtures/README.md) cover memory output, nested streams, transcript, command recording/playback, save/restore and a routine near the 128 KiB address limit.
 
 The external [MIT Zork I](https://github.com/historicalsource/zork1) build of 86,928 bytes (SHA-256 `66e54935b47bf9d76e05bc97ba42844ae8e7294a0625bc08c9cac206f4b68b51`) passes `full-zork-smoke.sh`: `LOOK`, `OPEN MAILBOX`, `TAKE LEAFLET`, `READ LEAFLET`, `INVENTORY`, `QUIT`, plus `save → restore`. With Frotz supplied as a third argument, the six-command game text matches after excluding Frotz's status lines. Its binary is not included here. The Nanz interpreter loads up to 128 KiB on `mzv`; its PC uses a 32-bit value and saves the 17 needed address bits in three bytes per return frame. Save files use the interpreter's private format in `zvm-save.dat` beside the Nanz source; they are checked against the story release, serial, and checksum. This format is not Quetzal. Transcript and command files are `zvm-transcript.txt` and `zvm-commands.txt` in the same directory.
