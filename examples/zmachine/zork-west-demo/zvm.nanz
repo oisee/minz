@@ -1,0 +1,411 @@
+// Experimental Z-machine v3 core. The story is data; instruction decoding,
+// variables, calls and text decoding run in Nanz on MIR2, not in a Go host.
+// Run from this directory: mzv -H zvm.nanz
+@extern fun file_read(path: ^u8, buf: ^u8) -> u16
+@extern fun tui_read_line(buf: ^u8, maxlen: u8) -> u8
+
+global story: [u8; 4096]
+global input: [u8; 80]
+global local_bytes: [u8; 512]
+global ret_pc_lo: [u8; 16]
+global ret_pc_hi: [u8; 16]
+global ret_store: [u8; 16]
+global stack_bytes: [u8; 256]
+global pc: u16 = 0
+global story_size: u16 = 0
+global globals_at: u16 = 0
+global frame: u8 = 0
+global sp: u8 = 0
+global running: u8 = 1
+global steps: u16 = 0
+global zc: u8 = 0
+
+fun byte_at(addr: u16) -> u8 { return story[addr] }
+fun word_at(addr: u16) -> u16 {
+    return u16(story[addr]) * 256 + u16(story[addr + 1])
+}
+fun put_word(addr: u16, value: u16) {
+    story[addr] = u8(value / 256)
+    story[addr + 1] = u8(value)
+}
+fun local_at(slot: u16) -> u16 {
+    return u16(local_bytes[slot * 2]) + u16(local_bytes[slot * 2 + 1]) * 256
+}
+fun put_local(slot: u16, value: u16) {
+    local_bytes[slot * 2] = u8(value)
+    local_bytes[slot * 2 + 1] = u8(value / 256)
+}
+fun stack_at(slot: u8) -> u16 {
+    return u16(stack_bytes[u16(slot) * 2]) + u16(stack_bytes[u16(slot) * 2 + 1]) * 256
+}
+fun put_stack(slot: u8, value: u16) {
+    stack_bytes[u16(slot) * 2] = u8(value)
+    stack_bytes[u16(slot) * 2 + 1] = u8(value / 256)
+}
+fun next_byte() -> u8 {
+    let b: u8 = byte_at(pc)
+    pc = pc + 1
+    return b
+}
+fun next_word() -> u16 {
+    let w: u16 = word_at(pc)
+    pc = pc + 2
+    return w
+}
+fun read_var(n: u8) -> u16 {
+    if n == 0 {
+        if sp == 0 { return 0 }
+        sp = sp - 1
+        return stack_at(sp)
+    }
+    if n < 16 { return local_at(u16(frame) * 16 + u16(n)) }
+    return word_at(globals_at + u16(n - 16) * 2)
+}
+fun peek_var(n: u8) -> u16 {
+    if n == 0 {
+        if sp == 0 { return 0 }
+        return stack_at(sp - 1)
+    }
+    if n < 16 { return local_at(u16(frame) * 16 + u16(n)) }
+    return word_at(globals_at + u16(n - 16) * 2)
+}
+fun write_var(n: u8, value: u16) {
+    if n == 0 {
+        put_stack(sp, value)
+        sp = sp + 1
+    } else if n < 16 {
+        put_local(u16(frame) * 16 + u16(n), value)
+    } else {
+        put_word(globals_at + u16(n - 16) * 2, value)
+    }
+}
+fun overwrite_var(n: u8, value: u16) {
+    if n == 0 {
+        if sp > 0 { put_stack(sp - 1, value) }
+    } else { write_var(n, value) }
+}
+fun finish(value: u16) {
+    if frame == 0 {
+        running = 0
+        return
+    }
+    let store: u8 = ret_store[frame]
+    pc = u16(ret_pc_lo[frame]) + u16(ret_pc_hi[frame]) * 256
+    frame = frame - 1
+    write_var(store, value)
+}
+fun enter(packed: u16, store: u8, argc: u8, a1: u16, a2: u16) {
+    if packed == 0 {
+        write_var(store, 0)
+        return
+    }
+    frame = frame + 1
+    ret_pc_lo[frame] = u8(pc)
+    ret_pc_hi[frame] = u8(pc / 256)
+    ret_store[frame] = store
+    pc = packed * 2
+    let count: u8 = next_byte()
+    var i: u8 = 1
+    while i <= count {
+        put_local(u16(frame) * 16 + u16(i), next_word())
+        i = i + 1
+    }
+    if argc > 0 { put_local(u16(frame) * 16 + 1, a1) }
+    if argc > 1 { put_local(u16(frame) * 16 + 2, a2) }
+}
+fun branch(test: u8) {
+    let b: u8 = next_byte()
+    var offset: u16 = u16(b & 63)
+    if (b & 64) == 0 {
+        offset = offset * 256 + u16(next_byte())
+        if offset >= 8192 { offset = offset + 49152 }
+    }
+    if ((b & 128) != 0) == (test != 0) {
+        if offset == 0 { finish(0) }
+        else if offset == 1 { finish(1) }
+        else { pc = pc + offset - 2 }
+    }
+}
+fun put_zscii(ch: u16) {
+    if ch == 13 { @print_char(10) }
+    else if ch >= 32 {
+        if ch < 127 { @print_char(u8(ch)) }
+    }
+}
+fun symbol(z: u8) -> u8 {
+    if z >= 8 {
+        if z <= 17 { return z + 40 }
+    }
+    if z == 18 { return 46 }
+    if z == 19 { return 44 }
+    if z == 20 { return 33 }
+    if z == 21 { return 63 }
+    if z == 22 { return 95 }
+    if z == 23 { return 35 }
+    if z == 24 { return 39 }
+    if z == 25 { return 34 }
+    if z == 26 { return 47 }
+    if z == 27 { return 92 }
+    if z == 28 { return 45 }
+    if z == 29 { return 58 }
+    if z == 30 { return 40 }
+    return 41
+}
+fun print_text(addr: u16) -> u16 {
+    var at: u16 = addr
+    var shift: u8 = 0
+    var abbrev: u8 = 0
+    var escape: u8 = 0
+    var high: u16 = 0
+    var done: u8 = 0
+    while done == 0 {
+        let w: u16 = word_at(at)
+        at = at + 2
+        if (w & 32768) != 0 { done = 1 }
+        var part: u8 = 0
+        while part < 3 {
+            if part == 0 { zc = u8((w / 1024) & 31) }
+            else if part == 1 { zc = u8((w / 32) & 31) }
+            else { zc = u8(w & 31) }
+            if abbrev != 0 {
+                let table: u16 = word_at(24)
+                print_text(word_at(table + (u16(abbrev - 1) * 32 + u16(zc)) * 2) * 2)
+                abbrev = 0
+            } else if escape == 1 {
+                high = u16(zc) * 32
+                escape = 2
+            } else if escape == 2 {
+                put_zscii(high + u16(zc))
+                escape = 0
+                shift = 0
+            } else if zc == 0 {
+                put_zscii(32)
+                shift = 0
+            }
+            else if zc <= 3 {
+                abbrev = zc
+                shift = 0
+            }
+            else if zc == 4 { shift = 1 }
+            else if zc == 5 { shift = 2 }
+            else if shift == 2 {
+                if zc == 6 { escape = 1 }
+                else if zc == 7 {
+                    put_zscii(13)
+                    shift = 0
+                }
+                else {
+                    put_zscii(u16(symbol(zc)))
+                    shift = 0
+                }
+            }
+            else {
+                if shift == 0 { put_zscii(u16(zc) + 91) }
+                else if shift == 1 { put_zscii(u16(zc) + 59) }
+                shift = 0
+            }
+            part = part + 1
+        }
+    }
+    return at
+}
+
+fun operand(kind: u8) -> u16 {
+    if kind == 0 { return next_word() }
+    if kind == 1 { return u16(next_byte()) }
+    return read_var(next_byte())
+}
+fun word_code(start: u8, length: u8, half: u8) -> u16 {
+    var result: u16 = 0
+    var j: u8 = 0
+    while j < 3 {
+        let k: u8 = half * 3 + j
+        var z: u8 = 5
+        if k < length {
+            var ch: u8 = input[start + k]
+            if ch >= 65 {
+                if ch <= 90 { ch = ch + 32 }
+            }
+            if ch >= 97 {
+                if ch <= 122 { z = ch - 91 }
+            }
+        }
+        result = result * 32 + u16(z)
+        j = j + 1
+    }
+    if half == 1 { result = result + 32768 }
+    return result
+}
+fun dictionary_lookup(start: u8, length: u8) -> u16 {
+    let dict: u16 = word_at(8)
+    let separators: u8 = story[dict]
+    let stride: u8 = story[dict + u16(separators) + 1]
+    let entries: u16 = word_at(dict + u16(separators) + 2)
+    let base: u16 = dict + u16(separators) + 4
+    let first: u16 = word_code(start, length, 0)
+    let second: u16 = word_code(start, length, 1)
+    var i: u16 = 0
+    while i < entries {
+        let at: u16 = base + i * u16(stride)
+        if word_at(at) == first {
+            if word_at(at + 2) == second { return at }
+        }
+        i = i + 1
+    }
+    return 0
+}
+fun read_input(text: u16, parse: u16) {
+    let n: u8 = tui_read_line(&input, story[text])
+    if n == 0 {
+        running = 0
+        return
+    }
+    var i: u8 = 0
+    while i < n {
+        story[text + u16(i) + 1] = input[i]
+        i = i + 1
+    }
+    story[text + u16(n) + 1] = 0
+    i = 0
+    var words: u8 = 0
+    while i < n {
+        if words >= story[parse] { break }
+        if input[i] == 32 { i = i + 1 }
+        else {
+            let start: u8 = i
+            while i < n {
+                if input[i] == 32 { break }
+                i = i + 1
+            }
+            let length: u8 = i - start
+            let entry: u16 = parse + 2 + u16(words) * 4
+            put_word(entry, dictionary_lookup(start, length))
+            story[entry + 2] = length
+            story[entry + 3] = start + 1
+            words = words + 1
+        }
+    }
+    story[parse + 1] = words
+}
+fun fail_opcode(form: u8, op: u8) {
+    @print("Unsupported Z3 opcode form=")
+    @print_u8(form)
+    @print(" opcode=")
+    @print_u8(op)
+    @print(" pc=")
+    @print_u8(u8(pc / 256))
+    @print(":")
+    @print_u8(u8(pc))
+    @print_char(10)
+    running = 0
+}
+fun step() {
+    let code: u8 = next_byte()
+    var form: u8 = 0
+    var op: u8 = 0
+    var count: u8 = 0
+    var a: u16 = 0
+    var b: u16 = 0
+    var c: u16 = 0
+    var d: u16 = 0
+    if code < 128 {
+        form = 2
+        op = code & 31
+        if (code & 64) == 0 { a = u16(next_byte()) }
+        else { a = read_var(next_byte()) }
+        if (code & 32) == 0 { b = u16(next_byte()) }
+        else { b = read_var(next_byte()) }
+        count = 2
+    } else if code < 176 {
+        form = 1
+        op = code & 15
+        let kind: u8 = (code / 16) & 3
+        if kind != 3 {
+            a = operand(kind)
+            count = 1
+        }
+    } else if code < 192 {
+        form = 0
+        op = code & 15
+    } else {
+        if code < 224 { form = 2 } else { form = 3 }
+        op = code & 31
+        let types: u8 = next_byte()
+        var j: u8 = 0
+        while j < 4 {
+            let kind: u8 = (types >> (6 - j * 2)) & 3
+            if kind != 3 {
+                let value: u16 = operand(kind)
+                if j == 0 { a = value }
+                else if j == 1 { b = value }
+                else if j == 2 { c = value }
+                else { d = value }
+                count = count + 1
+            }
+            j = j + 1
+        }
+    }
+    if form == 0 {
+        if op == 0 { finish(1) }
+        else if op == 1 { finish(0) }
+        else if op == 2 { pc = print_text(pc) }
+        else if op == 3 {
+            pc = print_text(pc)
+            @print_char(10)
+            finish(1)
+        }
+        else if op == 10 { running = 0 }
+        else if op == 11 { @print_char(10) }
+        else { fail_opcode(form, op) }
+    } else if form == 1 {
+        if op == 0 { if a == 0 { branch(1) } else { branch(0) } }
+        else if op == 5 { overwrite_var(u8(a), peek_var(u8(a)) + 1) }
+        else if op == 11 { finish(a) }
+        else if op == 12 { pc = pc + a - 2 }
+        else if op == 14 { write_var(next_byte(), peek_var(u8(a))) }
+        else { fail_opcode(form, op) }
+    } else if form == 2 {
+        if op == 1 {
+            var equal: u8 = 0
+            if a == b { equal = 1 }
+            if count > 2 { if a == c { equal = 1 } }
+            if count > 3 { if a == d { equal = 1 } }
+            branch(equal)
+        }
+        else if op == 13 { overwrite_var(u8(a), b) }
+        else if op == 15 { write_var(next_byte(), word_at(a + b * 2)) }
+        else if op == 16 { write_var(next_byte(), u16(byte_at(a + b))) }
+        else if op == 20 { write_var(next_byte(), a + b) }
+        else { fail_opcode(form, op) }
+    } else {
+        if op == 0 { enter(a, next_byte(), count - 1, b, c) }
+        else if op == 1 { put_word(a + b * 2, c) }
+        else if op == 2 { story[a + b] = u8(c) }
+        else if op == 4 { read_input(a, b) }
+        else { fail_opcode(form, op) }
+    }
+}
+
+fun main() {
+    story_size = file_read(c"zork-west-demo.z3", &story)
+    if story_size == 0 {
+        @print("Z3 load failed\n")
+        return
+    }
+    if story[0] != 3 {
+        @print("Z3 load failed\n")
+        return
+    }
+    globals_at = word_at(12)
+    pc = word_at(6)
+    while running != 0 {
+        if steps >= 10000 {
+            @print("Z3 step budget exceeded\n")
+            running = 0
+        }
+        else {
+            step()
+            steps = steps + 1
+        }
+    }
+}

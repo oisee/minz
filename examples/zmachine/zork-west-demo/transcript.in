@@ -1,0 +1,9 @@
+read leaflet
+open mailbox
+read leaflet
+take leaflet
+inventory
+go north
+go west
+close mailbox
+quit

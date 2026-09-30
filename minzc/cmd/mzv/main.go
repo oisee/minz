@@ -5,9 +5,10 @@
 // primitives. Renders the attribute screen as a 32×24 ANSI color grid.
 //
 // Supported frontends (by file extension):
-//   .nanz  Nanz        .c/.m  C89/ObjC     .lanz  Lanz
-//   .lizp  Lizp        .plm   PL/M         .pas   Pascal
-//   .abap  ABAP        .hir   HIR (raw)
+//
+//	.nanz  Nanz        .c/.m  C89/ObjC     .lanz  Lanz
+//	.lizp  Lizp        .plm   PL/M         .pas   Pascal
+//	.abap  ABAP        .hir   HIR (raw)
 //
 // Usage:
 //
@@ -29,8 +30,8 @@ import (
 	"database/sql"
 
 	"github.com/minz/minzc/pkg/abap"
-	"github.com/minz/minzc/pkg/frill"
 	"github.com/minz/minzc/pkg/c89"
+	"github.com/minz/minzc/pkg/frill"
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/lanz"
 	"github.com/minz/minzc/pkg/lizp"
@@ -40,8 +41,8 @@ import (
 	"github.com/minz/minzc/pkg/plm"
 
 	flag "github.com/spf13/pflag"
-	_ "modernc.org/sqlite"
 	"golang.org/x/term"
+	_ "modernc.org/sqlite"
 )
 
 func main() {
@@ -144,16 +145,28 @@ func main() {
 			buf := make([]byte, 1)
 			for {
 				if _, err := os.Stdin.Read(buf); err != nil {
+					if *headless {
+						close(stdinCh)
+						return
+					}
 					exitCleanly()
 					return
 				}
 				b := buf[0]
 				if b == 4 { // Ctrl+D = exit MZV
+					if *headless {
+						close(stdinCh)
+						return
+					}
 					exitCleanly()
 					return
 				}
 				if b == 3 { // Ctrl+C = pass to program (copy in some terminals)
 					// fall through to stdinCh
+				}
+				if *headless {
+					stdinCh <- b // piped transcripts must not lose bytes
+					continue
 				}
 				select {
 				case stdinCh <- b:

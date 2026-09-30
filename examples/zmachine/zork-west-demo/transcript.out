@@ -1,0 +1,18 @@
+ZORK I: West of House demo
+Type HELP for commands.
+
+West of House
+You are standing in an open field west of a white house, with a boarded front door. There is a small mailbox here.
+> You cannot see a leaflet here.
+> Opening the small mailbox reveals a leaflet.
+> WELCOME TO ZORK! ZORK is a game of adventure, danger, and low cunning.
+> Taken.
+> You have a leaflet.
+> North of House
+You face the north side of a white house. The windows are boarded up.
+> West of House
+You are standing in an open field west of a white house, with a boarded front door. There is a small mailbox here.
+The mailbox is open.
+You are carrying a leaflet.
+> The mailbox is closed.
+> Goodbye.

@@ -2,9 +2,19 @@
 
 This is a **2,378-byte Z-machine v3 story**, not the full Zork I game. It keeps a tiny, playable opening scene: four sides of the house, the mailbox, and the leaflet. Commands include `LOOK`, `OPEN MAILBOX`, `TAKE LEAFLET`, `READ LEAFLET`, `INVENTORY`, directions, and `QUIT`. It has a deliberately small custom parser; the original Zork parser, objects, puzzles, and save/restore are not included.
 
-The ZIL source and text are an adaptation of the [MIT-licensed Zork I source](https://github.com/historicalsource/zork1/tree/97b7b3d68c075dd9af7da499c3e9690ada3471fd) at commit `97b7b3d68c075dd9af7da499c3e9690ada3471fd`. The full license is in [LICENSE-ZORK1.txt](LICENSE-ZORK1.txt). This demo does not include ZILF libraries or a Z-machine interpreter. It does not grant trademark rights to Zork branding.
+The ZIL source and text are an adaptation of the [MIT-licensed Zork I source](https://github.com/historicalsource/zork1/tree/97b7b3d68c075dd9af7da499c3e9690ada3471fd) at commit `97b7b3d68c075dd9af7da499c3e9690ada3471fd`. The full license is in [LICENSE-ZORK1.txt](LICENSE-ZORK1.txt). The Nanz interpreter is a separate experimental implementation in this directory; ZILF libraries are not included. This demo does not grant trademark rights to Zork branding.
 
-The committed `zork-west-demo.z3` is 2,378 bytes (SHA-256 `916d31de9303c9084f275bf6e4e07536e4752988573b06833c23e7768a54e532`). Its header says version 3; dynamic memory ends at offset `0x02ce` and high memory starts at `0x05a7`. The story is small enough to leave ample space in a 48K Spectrum address space, but a complete **Nanz Z-machine interpreter + display/input + loader** does not exist yet and must be measured separately. This file is a fixture for J1–J3 in [BACKLOG.md](../../../BACKLOG.md), not a working Spectrum release.
+The committed `zork-west-demo.z3` is 2,378 bytes (SHA-256 `916d31de9303c9084f275bf6e4e07536e4752988573b06833c23e7768a54e532`). Its header says version 3; dynamic memory ends at offset `0x02ce` and high memory starts at `0x05a7`. The experimental [Z3 interpreter in Nanz](zvm.nanz) runs this story on `mzv`. It implements the opcodes used by this demo, packed text, dictionary lookup, variables, branches and calls. The core instruction loop and story semantics are in Nanz; `file_read` and `tui_read_line` are the host I/O boundary. It is not a general Z3 interpreter or a Spectrum release.
+
+To run the checked transcript from a MinZ checkout:
+
+```sh
+cd minzc
+go build -o /tmp/minz-mzv ./cmd/mzv
+../examples/zmachine/zork-west-demo/smoke.sh /tmp/minz-mzv
+```
+
+The smoke compares [transcript.in](transcript.in) against [transcript.out](transcript.out). The same commands were run in `dfrotz` 2.44; game text and state changes agree, aside from Frotz's status line and line wrapping. `mzv` currently needs `-H` for this reproducible piped-input run. The core uses byte arrays for 16-bit Z-machine locals and return addresses because the present Nanz/MIR2 VM truncates `u16` array elements; this is tracked under C3 in the backlog.
 
 To rebuild, use the pinned [ZILF/ZAPF 1.9.0 Linux x64 toolchain](https://github.com/taradinoc/zilf/releases/tag/1.9) (archive SHA-256 `06ff0e59eff6e6896fd9ce71d16c100365abbc537cf030f2bd31beb9384d0155`). Set `ZILF` and `ZAPF` to absolute executable paths, then run:
 
