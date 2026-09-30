@@ -52,15 +52,15 @@ The last CI run on `main` failed during setup: Go 1.20/1.21 conflicted with the 
 
 The new `CI / PR gate` uses the module's Go toolchain, builds `mz`, `mza`, and `mze`, runs the locally green MIR2/Z80 assembler/C89/codegen/parser/pipeline/PL-M packages, then compiles and assembles `examples/fibonacci.minz`. The Makefile smoke fixture and exit codes are fixed. This is a **narrow, honest gate**, not a claim that the full suite passes: ABAP, Nanz, VIR, and z80testing have known failures in the broader short run and remain tracked in `BACKLOG.md`.
 
-The first clean GitHub run of the gate [passed on `dc67880a`](https://github.com/oisee/minz/actions/runs/36756578785). A final run is required after any later documentation-only commit before setting the check as mandatory.
+The gate passed on a clean [push of `dc67880a`](https://github.com/oisee/minz/actions/runs/36756578785), in [PR #20](https://github.com/oisee/minz/actions/runs/36757411603), and on the resulting [merge commit `b6bb7656`](https://github.com/oisee/minz/actions/runs/36757547256).
 
 The duplicate `Build and Release MinZ` workflow is retained for tags/manual invocation but removed from PR and branch-push triggers; it still needs release-path modernization. Benchmark and security workflows remain available manually, with security also scheduled, while their old PR configurations are repaired. `release.yml` remains the separate tag/manual release workflow; two unindented heredoc bodies that made its YAML invalid were corrected. These workflows are not evidence of a green release pipeline.
 
-The model is the active [open-abap-core PR workflow](https://github.com/open-abap/open-abap-core/blob/main/.github/workflows/test.yml): a small mandatory unit check, with broader integration/performance work explicitly separate. Here, the build/assemble smoke is included in the mandatory gate because it has a verified clean local path. Protect `main` only after the new PR gate succeeds on GitHub and choose exactly its stable check name as required. Enable required PR reviews, block force pushes and deletions, and require up-to-date branches if the repository's collaboration pattern warrants it.
+The model is the active [open-abap-core PR workflow](https://github.com/open-abap/open-abap-core/blob/main/.github/workflows/test.yml): a small mandatory unit check, with broader integration/performance work explicitly separate. Here, the build/assemble smoke is included in the mandatory gate because it has a verified clean local path. `main` now requires a PR and the up-to-date `PR gate` check, including for administrators; force pushes and branch deletion are disabled. The rule requires zero approving reviews so a solo maintainer can merge a green PR. Add a review requirement when another maintainer is available.
 
 ## Ranked follow-up
 
-1. **P0 / quick win:** confirm `CI / PR gate` succeeds on a clean GitHub runner; then make it the required `main` check. A failing run needs a code/config fix before protection.
+1. **P0 / quick win (done):** `CI / PR gate` succeeded on push, PR, and merge; it is now the required `main` check.
 2. **P0 / foundational:** re-run the broad short suite in a clean checkout, assign owners to ABAP/Nanz/VIR/z80testing failures, and keep their status visible. Add corrected packages to the required gate only after they pass reproducibly.
 3. **P1 / quick win (done):** make the optional PL/M corpus test portable and document how to initialize the two submodules.
 4. **P1 / foundational:** audit and repair 2026 active-doc links, beginning with top-level status pages and `book/` references; build a parser-aware link checker before making it blocking.
