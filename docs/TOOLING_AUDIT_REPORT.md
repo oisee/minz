@@ -2,6 +2,8 @@
 
 Generated: 2025-07-29
 
+Historical snapshot: its workflow inventory is superseded by the [2026-09-30 repository map](../reports/2026-09-30-Repository-Cleanup-and-Branch-Map.md). Only `.github/workflows/ci.yml` remains active after the 2026 cleanup.
+
 ## Executive Summary
 
 This audit identifies all tools, utilities, and integrations in the MinZ ecosystem to assess their current status and update needs for v0.4.2. The MinZ project includes a tree-sitter parser, Go-based compiler, VS Code extension, and various build/test tools.
