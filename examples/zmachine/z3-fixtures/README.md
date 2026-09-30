@@ -7,6 +7,7 @@ These original MIT-licensed stories exercise Z3 behavior missing from CZECH v0.8
 | `stream3` | ZSCII newline in a memory table and nested memory streams |
 | `transcript` | Output stream 2 selected and deselected |
 | `unicode` | Default Z3 ZSCII extra characters rendered as UTF-8 on screen and in transcript |
+| `unicode_input` | UTF-8 keyboard input and recorded command playback converted to lower-case ZSCII bytes |
 | `command_stream` | Output stream 4 records a command; input stream 1 replays it and falls back to keyboard at EOF |
 | `save_restore` | Dynamic memory and PC resume at the save branch; another story release cannot restore the save |
 | `high_memory.py` | Generates a 131,070-byte story whose routine and Z-text lie near the 128 KiB limit |

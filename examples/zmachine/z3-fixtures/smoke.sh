@@ -39,6 +39,13 @@ diff -u "$fixture_dir/command_stream.out" "$tmp_dir/command_stream.out"
 printf 'a\n' > "$tmp_dir/command_stream.expected"
 cmp "$tmp_dir/command_stream.expected" "$tmp_dir/zvm-commands.txt"
 
+cp "$fixture_dir/unicode_input.z3" "$tmp_dir/zork-west-demo.z3"
+rm "$tmp_dir/zvm-commands.txt"
+printf 'Äéœ\n' | "$vm" -H "$tmp_dir/zvm.nanz" > "$tmp_dir/unicode_input.out"
+diff -u "$fixture_dir/unicode_input.out" "$tmp_dir/unicode_input.out"
+printf 'Äéœ\n' > "$tmp_dir/unicode_input.expected"
+cmp "$tmp_dir/unicode_input.expected" "$tmp_dir/zvm-commands.txt"
+
 cp "$fixture_dir/save_restore.z3" "$tmp_dir/zork-west-demo.z3"
 printf 's\nr\nq\n' | "$vm" -H "$tmp_dir/zvm.nanz" > "$tmp_dir/save_restore.out"
 diff -u "$fixture_dir/save_restore.out" "$tmp_dir/save_restore.out"

@@ -502,6 +502,28 @@ fun @z3_unicode_table() -> void {
     }
     emit(c"return 63")
     emit(c"}")
+    emit(c"fun z3_from_unicode(ch: u16) -> u8 {")
+    for i in 0..block_len() {
+        if str_eq(node_keyword(i), c"glyph") == 1 {
+            let code: u16 = node_arg_int(i, 0)
+            let unicode: u16 = node_arg_int(i, 1)
+            emit(str_concat(c"if ch == ", str_concat(str_from_int(unicode),
+                str_concat(c" { return ", str_concat(str_from_int(code), c" }")))))
+        }
+    }
+    emit(c"return 63")
+    emit(c"}")
+    emit(c"fun z3_lower(ch: u8) -> u8 {")
+    for i in 0..block_len() {
+        if str_eq(node_keyword(i), c"lower") == 1 {
+            let upper: u8 = node_arg_int(i, 0)
+            let lower: u8 = node_arg_int(i, 1)
+            emit(str_concat(c"if ch == ", str_concat(str_from_int(upper),
+                str_concat(c" { return ", str_concat(str_from_int(lower), c" }")))))
+        }
+    }
+    emit(c"return ch")
+    emit(c"}")
 }
 @z3_unicode_table() {
     glyph 155 228
@@ -573,6 +595,38 @@ fun @z3_unicode_table() -> void {
     glyph 221 338
     glyph 222 161
     glyph 223 191
+    // Upper-case accented letters are folded before dictionary lookup.
+    lower 158 155
+    lower 159 156
+    lower 160 157
+    lower 167 164
+    lower 168 165
+    lower 175 169
+    lower 176 170
+    lower 177 171
+    lower 178 172
+    lower 179 173
+    lower 180 174
+    lower 186 181
+    lower 187 182
+    lower 188 183
+    lower 189 184
+    lower 190 185
+    lower 196 191
+    lower 197 192
+    lower 198 193
+    lower 199 194
+    lower 200 195
+    lower 202 201
+    lower 204 203
+    lower 208 205
+    lower 209 206
+    lower 210 207
+    lower 212 211
+    lower 214 213
+    lower 217 215
+    lower 218 216
+    lower 221 220
 }
 fun print_text(addr: u32) -> u32 {
     var at: u32 = addr
@@ -719,6 +773,54 @@ fun dictionary_lookup(start: u8, length: u8) -> u16 {
     }
     return 0
 }
+// Convert UTF-8 input in place before Z3 text buffering/tokenisation.
+fun decode_input_utf8(length: u8) -> u8 {
+    var src: u16 = 0
+    var dst: u16 = 0
+    while src < u16(length) {
+        let lead: u8 = input[src]
+        var code: u16 = u16(lead)
+        if lead >= 194 {
+            if lead <= 223 {
+                if src + 1 < u16(length) {
+                    let tail: u8 = input[src + 1]
+                    if tail >= 128 {
+                        if tail < 192 {
+                            code = u16(lead & 31) * 64 + u16(tail & 63)
+                            src = src + 1
+                        }
+                    }
+                }
+            }
+            else if lead <= 239 {
+                if src + 2 < u16(length) {
+                    let middle: u8 = input[src + 1]
+                    let tail: u8 = input[src + 2]
+                    if middle >= 128 {
+                        if middle < 192 {
+                            if tail >= 128 {
+                                if tail < 192 {
+                                    let decoded: u16 = u16(lead & 15) * 4096 + u16(middle & 63) * 64 + u16(tail & 63)
+                                    if decoded >= 2048 {
+                                        code = decoded
+                                        src = src + 2
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        src = src + 1
+        var ch: u8 = 63
+        if code < 128 { ch = u8(code) }
+        else { ch = z3_lower(z3_from_unicode(code)) }
+        input[dst] = ch
+        dst = dst + 1
+    }
+    return u8(dst)
+}
 fun read_input(text: u16, parse: u16) {
     var n: u8 = 0
     var from_playback: u8 = 0
@@ -753,6 +855,7 @@ fun read_input(text: u16, parse: u16) {
             file_append_byte(&command_path, 10)
         }
     }
+    n = decode_input_utf8(n)
     var i: u8 = 0
     while i < n {
         var ch: u8 = input[i]

@@ -1,0 +1,24 @@
+! SPDX-License-Identifier: MIT
+! UTF-8 keyboard bytes and command playback become lower-case Z3 ZSCII.
+Array text -> 40;
+Array parse -> 10;
+[ Check;
+    if (text->1 == 155 && text->2 == 170 && text->3 == 220 && text->4 == 0)
+        print "ok^";
+    else
+        print "bad^";
+];
+[ Main;
+    text->0 = 38;
+    parse->0 = 2;
+    @output_stream 4;
+    @sread text parse;
+    @output_stream -4;
+    print "keyboard:";
+    Check();
+    @input_stream 1;
+    @sread text parse;
+    print "playback:";
+    Check();
+    quit;
+];
