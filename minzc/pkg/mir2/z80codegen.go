@@ -5500,6 +5500,39 @@ func (g *z80cg) genExt(inst *Inst) {
 	src := g.loc(inst.Src[0])
 	srcW := inst.SrcTy.Width()
 	dstW := inst.Ty.Width()
+	if inst.SrcTy == TyBool && dstW == 8 && src == "F" {
+		// A comparison in F is a predicate, not a byte. Materialize its
+		// actual condition as 0/1; carry alone is wrong for GE/LE/EQ.
+		cc := g.condCode(g.fn, inst.Src[0])
+		idx := g.trampIdx
+		g.trampIdx++
+		trueLabel := fmt.Sprintf(".bool_true_%d", idx)
+		falseLabel := fmt.Sprintf(".bool_false_%d", idx)
+		doneLabel := fmt.Sprintf(".bool_done_%d", idx)
+		switch cc {
+		case "CLE":
+			g.emitf("    JP C, %s", trueLabel)
+			g.emitf("    JP Z, %s", trueLabel)
+		case "CGT":
+			g.emitf("    JP Z, %s", falseLabel)
+			g.emitf("    JP C, %s", falseLabel)
+			g.emitf("    JP %s", trueLabel)
+		default:
+			g.emitf("    JP %s, %s", cc, trueLabel)
+		}
+		g.emitf("%s:", falseLabel)
+		g.emit("    LD A, 0")
+		g.emitf("    JP %s", doneLabel)
+		g.emitf("%s:", trueLabel)
+		g.emit("    LD A, 1")
+		g.emitf("%s:", doneLabel)
+		if dst != "A" {
+			g.emitLD8(dst, "A")
+		}
+		g.invalidate("A")
+		g.pendingFlagReg = NoReg
+		return
+	}
 
 	if srcW == 8 && dstW == 16 {
 		// Zero-extend u8 → u16.
@@ -5861,7 +5894,7 @@ func (g *z80cg) genCmp(inst *Inst) {
 		inst.Cond == CmpLe || inst.Cond == CmpUle
 	if isGtOrLe {
 		rhsIsZero := false
-		if cv, ok := g.constVals[inst.Src[1]]; ok && cv == 0 {
+		if cv, ok := g.constVals[inst.Src[1]]; ok && cv == 0 && !isSignedOrdering(inst) {
 			rhsIsZero = true
 		}
 		if !rhsIsZero {
@@ -5876,6 +5909,7 @@ func (g *z80cg) genCmp(inst *Inst) {
 					g.emitLDA(rhs)
 				}
 				g.emit8ALU("CP", lhs)
+				g.normalizeSignedCmp(inst)
 				g.cmpSwapped[inst.Dst] = true
 				g.pendingFlagReg = inst.Dst
 				return
@@ -5901,12 +5935,13 @@ func (g *z80cg) genCmp(inst *Inst) {
 		}
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
-		if cv == 0 {
+		if cv == 0 && !isSignedOrdering(inst) {
 			g.emit("    AND A") // AND A ≡ CP 0 for all flags; 1B/4T vs 2B/7T
 			g.cmpAndZero[inst.Dst] = true
 		} else {
 			g.emitf("    CP %d", cv&0xFF)
 		}
+		g.normalizeSignedCmp(inst)
 		// CP/AND A does not modify A; aliases remain valid.
 		g.pendingFlagReg = inst.Dst
 		return
@@ -5925,6 +5960,7 @@ func (g *z80cg) genCmp(inst *Inst) {
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
 		g.emit8ALU("CP", lhs)
+		g.normalizeSignedCmp(inst)
 		g.cmpSwapped[inst.Dst] = true
 		swappedCond := inst.Cond.Swap()
 		if swappedCond == CmpGt || swappedCond == CmpUgt ||
@@ -5944,8 +5980,8 @@ func (g *z80cg) genCmp(inst *Inst) {
 	// lives in A and lhs is somewhere else (e.g. B), emitLDA would overwrite
 	// r.  The IAR abs_diff pattern depends on this: r must survive to the
 	// return path after the comparison.
-	subCmpFused := (inst.Cond == CmpLt || inst.Cond == CmpUlt ||
-		inst.Cond == CmpGe || inst.Cond == CmpUge) &&
+	subCmpFused := ((inst.Cond == CmpUlt || inst.Cond == CmpUge) ||
+		((inst.Cond == CmpLt || inst.Cond == CmpGe) && !isSignedOrdering(inst))) &&
 		g.lastFlagsLhs == lhs && g.lastFlagsRhs == rhs
 	if subCmpFused {
 		// Flags valid from preceding SUB — skip both LD A and CP.
@@ -5959,6 +5995,7 @@ func (g *z80cg) genCmp(inst *Inst) {
 	// may require two jumps (CmpGt/CmpLe) to handle the equality case.
 	if rhs == "A" && !g.holdsValue("A", lhs) {
 		g.emit8ALU("CP", lhs)
+		g.normalizeSignedCmp(inst)
 		g.cmpSwapped[inst.Dst] = true
 		swappedCond := inst.Cond.Swap()
 		if swappedCond == CmpGt || swappedCond == CmpUgt ||
@@ -5976,8 +6013,40 @@ func (g *z80cg) genCmp(inst *Inst) {
 	g.lastFlagsLhs = ""
 	g.lastFlagsRhs = ""
 	g.emit8ALU("CP", rhs)
+	g.normalizeSignedCmp(inst)
 	// CP does not modify A; aliases remain valid.
 	g.pendingFlagReg = inst.Dst
+}
+
+func isSignedOrdering(inst *Inst) bool {
+	if inst.SrcTy == nil || !IsSigned(inst.SrcTy) {
+		return false
+	}
+	c := inst.Cond
+	return c == CmpLt || c == CmpLe || c == CmpGt || c == CmpGe
+}
+
+// Z80 CP/SBC sets S and P/V for signed subtraction, but its carry is an
+// unsigned borrow. Convert S xor V to carry while preserving Z (needed for
+// <= and >). SCF/CCF preserve S, Z and P/V and do not change A or HL.
+func (g *z80cg) normalizeSignedCmp(inst *Inst) {
+	if !isSignedOrdering(inst) {
+		return
+	}
+	idx := g.trampIdx
+	g.trampIdx++
+	g.emitf("    JP M, .scmp_neg_%d", idx)
+	g.emitf("    JP PE, .scmp_true_%d", idx)
+	g.emitf("    JP .scmp_false_%d", idx)
+	g.emitf(".scmp_neg_%d:", idx)
+	g.emitf("    JP PO, .scmp_true_%d", idx)
+	g.emitf(".scmp_false_%d:", idx)
+	g.emit("    SCF")
+	g.emit("    CCF")
+	g.emitf("    JP .scmp_done_%d", idx)
+	g.emitf(".scmp_true_%d:", idx)
+	g.emit("    SCF")
+	g.emitf(".scmp_done_%d:", idx)
 }
 
 // ── Calls ─────────────────────────────────────────────────────────────────────
@@ -7655,8 +7724,8 @@ func (g *z80cg) promote8toPair(r string) string {
 //	C flag set   → lhs < rhs (CmpUlt / CmpUge after negation)
 //	Z flag set   → lhs == rhs
 //
-// Signed comparisons (CmpLt/CmpGt on i16) require S⊕V which needs two
-// conditional jumps — marked as TODO.
+// Signed comparisons with an explicit signed SrcTy normalize S⊕V to carry
+// after restoring HL, so the branch/materialization paths share one contract.
 func (g *z80cg) genCmp16(inst *Inst) {
 	lhs := g.loc(inst.Src[0])
 	rhs := g.loc(inst.Src[1])
@@ -7848,6 +7917,7 @@ func (g *z80cg) genCmp16(inst *Inst) {
 	} else {
 		g.invalidate("HL")
 	}
+	g.normalizeSignedCmp(inst)
 }
 
 // genCmp32 emits a non-destructive 32-bit unsigned comparison (lhs vs rhs)
