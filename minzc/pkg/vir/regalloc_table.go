@@ -187,7 +187,11 @@ func (t *RegAllocTable) LookupByKey(key string) (*RegAllocEntry, bool) {
 func (t *RegAllocTable) Size() int {
 	t.mu.RLock()
 	defer t.mu.RUnlock()
-	return len(t.entries)
+	n := len(t.entries)
+	for _, bt := range t.binaryTables {
+		n += len(bt.Entries)
+	}
+	return n
 }
 
 // Save writes the table to a JSON file.
@@ -263,63 +267,41 @@ func (t *RegAllocTable) loadDefaults() {
 		t.LoadEnriched(p)
 	}
 
-	// Auto-load enriched binary tables. Search order: relative paths first (portable),
-	// then absolute paths for known dev-machine layouts.
+	// Auto-load only the small 4v table. The 5v/6v files need several GB of
+	// expanded memory; loading them as a side effect of a table lookup can OOM
+	// an otherwise small compilation. Opt in with VIR_REGALLOC_BINARY instead.
 	for _, p := range []string{
 		"../data/enriched_4v.z80t",
 		"data/enriched_4v.z80t",
+		"../data/enriched_4v.enr",
+		"data/enriched_4v.enr",
 		os.ExpandEnv("$HOME/dev/minz-vir/data/enriched_4v.z80t"),
 		os.ExpandEnv("$HOME/dev/z80-optimizer/data/enriched_4v.z80t"),
+		os.ExpandEnv("$HOME/dev/z80-optimizer/data/enriched_4v.enr"),
 	} {
-		bt, err := LoadEnrichedBinary(p)
-		if err != nil {
-			continue
+		if err := t.LoadBinary(p); err == nil {
+			break
 		}
-		total, feasible, _ := bt.Stats()
-		t.binaryTables = append(t.binaryTables, bt)
-		fmt.Fprintf(os.Stderr, "[regalloc] loaded %d enriched binary entries (%d feasible) from %s\n",
-			total, feasible, p)
-		break
 	}
-	// Auto-load 5v table (merged_ix_5v.bin: Z80T v2, includes IXH/IXL locs, +12% coverage).
-	for _, p := range []string{
-		"../data/merged_ix_5v.bin",
-		"data/merged_ix_5v.bin",
-		os.ExpandEnv("$HOME/dev/minz-vir/data/merged_ix_5v.bin"),
-		os.ExpandEnv("$HOME/dev/z80-optimizer/data/merged_ix_5v.bin"),
-		"../data/enriched_5v.z80t",
-		"data/enriched_5v.z80t",
-		os.ExpandEnv("$HOME/dev/minz-vir/data/enriched_5v.z80t"),
-		os.ExpandEnv("$HOME/dev/z80-optimizer/data/enriched_5v.z80t"),
-	} {
-		bt, err := LoadEnrichedBinary(p)
-		if err != nil {
-			continue
+	if p := os.Getenv("VIR_REGALLOC_BINARY"); p != "" {
+		if err := t.LoadBinary(p); err != nil {
+			fmt.Fprintf(os.Stderr, "[regalloc] cannot load %s: %v\n", p, err)
 		}
-		total, feasible, _ := bt.Stats()
-		t.binaryTables = append(t.binaryTables, bt)
-		fmt.Fprintf(os.Stderr, "[regalloc] loaded %d enriched binary entries (%d feasible) from %s\n",
-			total, feasible, p)
-		break
 	}
-	// Auto-load 6v table (ix_expanded_6v_dense.bin: Z80T v2, 298.7M entries, GPU-brute-force).
-	// Requires ~20GB RAM. Skipped gracefully on systems with insufficient memory.
-	for _, p := range []string{
-		"../data/ix_expanded_6v_dense.bin",
-		"data/ix_expanded_6v_dense.bin",
-		os.ExpandEnv("$HOME/dev/minz-vir/data/ix_expanded_6v_dense.bin"),
-		os.ExpandEnv("$HOME/dev/z80-optimizer/data/ix_expanded_6v_dense.bin"),
-	} {
-		bt, err := LoadEnrichedBinary(p)
-		if err != nil {
-			continue
-		}
-		total, feasible, _ := bt.Stats()
-		t.binaryTables = append(t.binaryTables, bt)
-		fmt.Fprintf(os.Stderr, "[regalloc] loaded %d enriched binary entries (%d feasible) from %s\n",
-			total, feasible, p)
-		break
+}
+
+// LoadBinary adds an ENRT v1 or Z80T v2 allocation table. Large files can
+// require much more memory than their on-disk size; callers opt in explicitly.
+func (t *RegAllocTable) LoadBinary(path string) error {
+	bt, err := LoadEnrichedBinary(path)
+	if err != nil {
+		return err
 	}
+	t.mu.Lock()
+	t.binaryTables = append(t.binaryTables, bt)
+	t.mu.Unlock()
+	fmt.Fprintf(os.Stderr, "[regalloc] loaded %d binary entries from %s\n", len(bt.Entries), path)
+	return nil
 }
 
 // LoadExhaustive loads entries from the exhaustive enumeration format.
@@ -1149,12 +1131,12 @@ func ComputeEnrichedSignature(ops []VIROp, desc *MachineDesc) EnrichedSignature 
 // EnrichedGapInfo describes why a function misses the enriched table
 // and whether IX/IY-expanded loc sets would help.
 type EnrichedGapInfo struct {
-	FuncName      string
-	NVregs        int
-	HasCall       bool   // function contains OpCall
-	CallLiveVregs int    // vregs live across a CALL
-	MissReason    string // "too_many_vregs", "no_table", "shape_ok", "call_pressure"
-	WouldBenefitIX bool  // true if IX-expanded locSets would help
+	FuncName       string
+	NVregs         int
+	HasCall        bool   // function contains OpCall
+	CallLiveVregs  int    // vregs live across a CALL
+	MissReason     string // "too_many_vregs", "no_table", "shape_ok", "call_pressure"
+	WouldBenefitIX bool   // true if IX-expanded locSets would help
 }
 
 // AnalyzeEnrichedGap diagnoses whether a function could benefit from

@@ -73,12 +73,30 @@ func LoadEnrichedBinary(path string) (*EnrichedBinaryTable, error) {
 	// Simpler than ENRT — no flags or metrics. Includes IX-half locs (+12% coverage).
 	if isZ80T && version == 2 {
 		var nLocSets8, nLocSets16, maxVregs uint8
-		binary.Read(f, binary.LittleEndian, &nLocSets8)
-		binary.Read(f, binary.LittleEndian, &nLocSets16)
-		binary.Read(f, binary.LittleEndian, &maxVregs)
+		if err := binary.Read(f, binary.LittleEndian, &nLocSets8); err != nil {
+			return nil, fmt.Errorf("Z80T v2 read nLocSets8: %w", err)
+		}
+		if err := binary.Read(f, binary.LittleEndian, &nLocSets16); err != nil {
+			return nil, fmt.Errorf("Z80T v2 read nLocSets16: %w", err)
+		}
+		if err := binary.Read(f, binary.LittleEndian, &maxVregs); err != nil {
+			return nil, fmt.Errorf("Z80T v2 read maxVregs: %w", err)
+		}
 		var nEntries uint64
 		if err := binary.Read(f, binary.LittleEndian, &nEntries); err != nil {
 			return nil, fmt.Errorf("Z80T v2 read n_entries: %w", err)
+		}
+		if (nLocSets8 != 4 && nLocSets8 != 6) || nLocSets16 != 3 || maxVregs < 2 || maxVregs > 6 || nEntries == 0 || nEntries > uint64(int(^uint(0)>>1)) {
+			return nil, fmt.Errorf("Z80T v2 invalid header: %d entries, maxVregs=%d", nEntries, maxVregs)
+		}
+		// Dense 6v tables enumerate only selected interference graphs. Their
+		// record index is not the full-enumeration index used by Lookup.
+		var expected uint64
+		for nv := 2; nv <= int(maxVregs); nv++ {
+			expected += uint64(countShapesWithLocSets(nv, int(nLocSets8), int(nLocSets16)))
+		}
+		if nEntries != expected {
+			return nil, fmt.Errorf("Z80T v2 partial enumeration: header has %d records, full index requires %d", nEntries, expected)
 		}
 		// Read remaining file data in one shot — avoids 60M individual ReadFull calls.
 		data, err := io.ReadAll(f)
@@ -91,12 +109,18 @@ func LoadEnrichedBinary(path string) (*EnrichedBinaryTable, error) {
 		entries := make([]EnrichedEntry, 0, nEntries)
 		pos := 0
 		for pos < len(data) {
+			if uint64(len(entries)) >= nEntries {
+				return nil, fmt.Errorf("Z80T v2 record count exceeds header (%d)", nEntries)
+			}
 			marker := data[pos]
 			pos++
 			if marker == 0xFF {
 				entries = append(entries, EnrichedEntry{Cost: -1})
 			} else {
 				nv := int(marker)
+				if nv == 0 || nv > mv {
+					return nil, fmt.Errorf("Z80T v2 invalid nVregs=%d at record %d", nv, len(entries))
+				}
 				if pos+2+nv > len(data) {
 					return nil, fmt.Errorf("Z80T v2 truncated at record %d", len(entries))
 				}
@@ -107,6 +131,9 @@ func LoadEnrichedBinary(path string) (*EnrichedBinaryTable, error) {
 				pos += nv
 				entries = append(entries, EnrichedEntry{Cost: cost, Assignment: assignArena[base : base+nv]})
 			}
+		}
+		if uint64(len(entries)) != nEntries {
+			return nil, fmt.Errorf("Z80T v2 record count mismatch: header declares %d, parsed %d", nEntries, len(entries))
 		}
 		return &EnrichedBinaryTable{
 			Entries:    entries,
