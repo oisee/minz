@@ -23,6 +23,7 @@ import (
 //   - No OpPatchSlot physical encoding (treated as a mutable slot variable)
 //   - Pointer arithmetic uses a flat []byte heap; no OS-level memory
 //   - No concurrency
+//
 // PortIO is the interface for I/O port access, shared across all runtimes
 // (MZV VM, MZE Z80 emulator, MZX ZX Spectrum). One harness, all platforms.
 type PortIO interface {
@@ -459,10 +460,12 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		}
 		result = truncate(Value{I: int64(uint64(a.I) / uint64(b.I))}, ty)
 	case OpSDiv:
-		if b.I == 0 {
+		lhs := signExtend(a, ty.Width()).I
+		rhs := signExtend(b, ty.Width()).I
+		if rhs == 0 {
 			return fmt.Errorf("signed division by zero")
 		}
-		result = truncate(Value{I: a.I / b.I}, ty)
+		result = truncate(Value{I: lhs / rhs}, ty)
 	case OpMod:
 		if b.I == 0 {
 			return fmt.Errorf("mod by zero")
@@ -477,14 +480,14 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 	case OpXor:
 		result = Value{I: a.I ^ b.I}
 	case OpShl:
-		shift := uint(b.I) & 63
+		shift := uint(b.I)
 		result = truncate(Value{I: a.I << shift}, ty)
 	case OpShr:
-		shift := uint(b.I) & 63
+		shift := uint(b.I)
 		result = truncate(Value{I: int64(uint64(a.I) >> shift)}, ty)
 	case OpSar:
-		shift := uint(b.I) & 63
-		result = truncate(Value{I: a.I >> shift}, ty)
+		shift := uint(b.I)
+		result = truncate(Value{I: signExtend(a, ty.Width()).I >> shift}, ty)
 
 	// ── Unary ───────────────────────────────────────────────────────────────
 	case OpNeg:

@@ -71,6 +71,9 @@ P3  Origin trace and broader semantics                 separate investment
 P1 is the first semantic maturity claim: agreement for a *named scalar
 subset*, not correctness of MIR2 in general. The evaluator must not use
 `FoldConstants`, `tryFoldInst`, VM arithmetic helpers or rewrite predicates.
+The first admitted byte slice and its exact coverage are recorded in
+[`mir2-scalar-contract.md`](mir2-scalar-contract.md); wider and effectful
+operations remain outside that claim.
 The comparator must state what it observes. For P1 pure scalars, values and
 traps suffice; later memory/CFG cases need memory, output, effects and
 termination observations. A timeout or unsupported operation is **unknown**,

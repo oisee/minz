@@ -8,7 +8,7 @@ func collectKnownConsts(f *Func) map[Reg]int64 {
 	for _, b := range f.Blocks {
 		for _, inst := range b.Insts {
 			if inst.Op == OpConst {
-				m[inst.Dst] = inst.Imm
+				m[inst.Dst] = maskToWidth(inst.Imm, inst.Ty)
 			}
 		}
 	}
@@ -44,11 +44,14 @@ func FoldConstants(f *Func) bool {
 				continue
 			}
 			b.Insts[i] = &Inst{
-				Op:  OpConst,
-				Dst: inst.Dst,
-				Imm: folded,
-				Ty:  inst.Ty,
-				Cls: inst.Cls,
+				Op:      OpConst,
+				Dst:     inst.Dst,
+				Imm:     folded,
+				Ty:      inst.Ty,
+				Cls:     inst.Cls,
+				ClsHard: inst.ClsHard,
+				SrcFile: inst.SrcFile,
+				SrcLine: inst.SrcLine,
 			}
 			consts[inst.Dst] = folded
 			changed = true
@@ -140,10 +143,15 @@ func tryFoldInst(inst *Inst, consts map[Reg]int64) (int64, bool) {
 		// Unsigned division.
 		return maskToWidth(int64(uint64(src0)/uint64(src1)), inst.Ty), true
 	case OpSDiv:
-		if !ok0 || !ok1 || src1 == 0 {
+		if !ok0 || !ok1 {
 			return 0, false
 		}
-		return maskToWidth(src0/src1, inst.Ty), true
+		w := inst.Ty.Width()
+		lhs, rhs := signExtend(Value{I: src0}, w).I, signExtend(Value{I: src1}, w).I
+		if rhs == 0 {
+			return 0, false
+		}
+		return maskToWidth(lhs/rhs, inst.Ty), true
 	case OpMod:
 		if !ok0 || !ok1 || src1 == 0 {
 			return 0, false
@@ -180,14 +188,20 @@ func tryFoldInst(inst *Inst, consts map[Reg]int64) (int64, bool) {
 		if !ok0 || !ok1 {
 			return 0, false
 		}
-		return maskToWidth(src0>>uint(src1), inst.Ty), true
+		lhs := signExtend(Value{I: src0}, inst.Ty.Width()).I
+		return maskToWidth(lhs>>uint(src1), inst.Ty), true
 
 	// ── Comparison ────────────────────────────────────────────────────────────
 	case OpCmp:
 		if !ok0 || !ok1 {
 			return 0, false
 		}
-		return foldCmpCond(inst.Cond, src0, src1), true
+		// Synthetic carry predicates depend on an earlier subtraction and its
+		// operand width. Do not silently turn an unknown condition into false.
+		if inst.Cond > CmpUge {
+			return 0, false
+		}
+		return foldCmpCond(inst.Cond, src0, src1, inst.SrcTy), true
 	}
 	return 0, false
 }
@@ -206,7 +220,13 @@ func maskToWidth(v int64, ty Ty) int64 {
 }
 
 // foldCmpCond evaluates a comparison at compile time.
-func foldCmpCond(cond CmpCond, lhs, rhs int64) int64 {
+func foldCmpCond(cond CmpCond, lhs, rhs int64, srcTy Ty) int64 {
+	signedLHS, signedRHS := lhs, rhs
+	if srcTy != nil {
+		w := srcTy.Width()
+		signedLHS = signExtend(Value{I: lhs}, w).I
+		signedRHS = signExtend(Value{I: rhs}, w).I
+	}
 	var result bool
 	switch cond {
 	case CmpEq:
@@ -214,13 +234,13 @@ func foldCmpCond(cond CmpCond, lhs, rhs int64) int64 {
 	case CmpNe:
 		result = lhs != rhs
 	case CmpLt:
-		result = lhs < rhs // signed
+		result = signedLHS < signedRHS
 	case CmpLe:
-		result = lhs <= rhs
+		result = signedLHS <= signedRHS
 	case CmpGt:
-		result = lhs > rhs
+		result = signedLHS > signedRHS
 	case CmpGe:
-		result = lhs >= rhs
+		result = signedLHS >= signedRHS
 	case CmpUlt:
 		result = uint64(lhs) < uint64(rhs)
 	case CmpUle:
