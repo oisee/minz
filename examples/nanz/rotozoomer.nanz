@@ -1,6 +1,6 @@
 // Nanz rotozoomer for the MIR2 canvas host.
 // Each pixel samples a 16x16 repeating texture through a fixed-point
-// rotation/zoom matrix. Eight frames vary both angle and scale.
+// rotation/zoom matrix. Thirty-two frames make one full, seamless turn.
 // Run from repository root: mkdir -p build && minzc/mzv --headless examples/nanz/rotozoomer.nanz
 
 @extern fun canvas_init(w: u16, h: u16, mode: u16) -> u16
@@ -31,16 +31,17 @@ fun texture(tx: i16, ty: i16) -> u16 {
     return 1
 }
 
-// [u, v] = [u0, v0] + [a*x + b*y, -b*x + a*y].
+// [u, v] = [18432, 18432] + [a*(x-128) + b*(y-96),
+//                            -b*(x-128) + a*(y-96)].
 // a/256 and b/256 determine scale and angle. Row and pixel recurrences
 // keep multiply and divide out of the hot transform loop.
-fun draw_frame(a: i16, b: i16, shift: i16) -> void {
+fun draw_frame(a: i16, b: i16) -> void {
     canvas_init(256, 192, 0)
     palette()
 
     var y: i16 = 0
-    var u_row: i16 = 1000 + shift
-    var v_row: i16 = 14000 + shift
+    var u_row: i16 = 18432 - a * 128 - b * 96
+    var v_row: i16 = 18432 + b * 128 - a * 96
     while y < 192 {
         var x: i16 = 0
         var u: i16 = u_row
@@ -60,29 +61,77 @@ fun draw_frame(a: i16, b: i16, shift: i16) -> void {
 }
 
 fun axis_a(frame: u8) -> i16 {
-    if frame == 0 { return 74 }
-    if frame == 1 { return 70 }
-    if frame == 2 { return 62 }
-    if frame == 3 { return 53 }
-    if frame == 4 { return 46 }
-    if frame == 5 { return 50 }
-    if frame == 6 { return 59 }
+    if frame == 0 { return 70 }
+    if frame == 1 { return 68 }
+    if frame == 2 { return 64 }
+    if frame == 3 { return 57 }
+    if frame == 4 { return 47 }
+    if frame == 5 { return 36 }
+    if frame == 6 { return 24 }
+    if frame == 7 { return 12 }
+    if frame == 8 { return 0 }
+    if frame == 9 { return -11 }
+    if frame == 10 { return -20 }
+    if frame == 11 { return -29 }
+    if frame == 12 { return -35 }
+    if frame == 13 { return -40 }
+    if frame == 14 { return -43 }
+    if frame == 15 { return -45 }
+    if frame == 16 { return -46 }
+    if frame == 17 { return -45 }
+    if frame == 18 { return -43 }
+    if frame == 19 { return -40 }
+    if frame == 20 { return -35 }
+    if frame == 21 { return -29 }
+    if frame == 22 { return -20 }
+    if frame == 23 { return -11 }
+    if frame == 24 { return 0 }
+    if frame == 25 { return 12 }
+    if frame == 26 { return 24 }
+    if frame == 27 { return 36 }
+    if frame == 28 { return 47 }
+    if frame == 29 { return 57 }
+    if frame == 30 { return 64 }
     return 68
 }
 
 fun axis_b(frame: u8) -> i16 {
     if frame == 0 { return 0 }
-    if frame == 1 { return 15 }
-    if frame == 2 { return 30 }
-    if frame == 3 { return 43 }
-    if frame == 4 { return 52 }
-    if frame == 5 { return 40 }
-    if frame == 6 { return 27 }
-    return 13
+    if frame == 1 { return 14 }
+    if frame == 2 { return 26 }
+    if frame == 3 { return 38 }
+    if frame == 4 { return 47 }
+    if frame == 5 { return 54 }
+    if frame == 6 { return 58 }
+    if frame == 7 { return 59 }
+    if frame == 8 { return 58 }
+    if frame == 9 { return 55 }
+    if frame == 10 { return 49 }
+    if frame == 11 { return 43 }
+    if frame == 12 { return 35 }
+    if frame == 13 { return 27 }
+    if frame == 14 { return 18 }
+    if frame == 15 { return 9 }
+    if frame == 16 { return 0 }
+    if frame == 17 { return -9 }
+    if frame == 18 { return -18 }
+    if frame == 19 { return -27 }
+    if frame == 20 { return -35 }
+    if frame == 21 { return -43 }
+    if frame == 22 { return -49 }
+    if frame == 23 { return -55 }
+    if frame == 24 { return -58 }
+    if frame == 25 { return -59 }
+    if frame == 26 { return -58 }
+    if frame == 27 { return -54 }
+    if frame == 28 { return -47 }
+    if frame == 29 { return -38 }
+    if frame == 30 { return -26 }
+    return -14
 }
 
 // Literal C strings are VM heap pointers. The canvas host currently reads
-// paths from that heap, so the eight destinations are written explicitly.
+// paths from that heap, so the destinations are written explicitly.
 fun save_frame(frame: u8) -> void {
     if frame == 0 { canvas_save(c"build/rotozoom-0.png") return }
     if frame == 1 { canvas_save(c"build/rotozoom-1.png") return }
@@ -91,17 +140,41 @@ fun save_frame(frame: u8) -> void {
     if frame == 4 { canvas_save(c"build/rotozoom-4.png") return }
     if frame == 5 { canvas_save(c"build/rotozoom-5.png") return }
     if frame == 6 { canvas_save(c"build/rotozoom-6.png") return }
-    canvas_save(c"build/rotozoom-7.png")
+    if frame == 7 { canvas_save(c"build/rotozoom-7.png") return }
+    if frame == 8 { canvas_save(c"build/rotozoom-8.png") return }
+    if frame == 9 { canvas_save(c"build/rotozoom-9.png") return }
+    if frame == 10 { canvas_save(c"build/rotozoom-10.png") return }
+    if frame == 11 { canvas_save(c"build/rotozoom-11.png") return }
+    if frame == 12 { canvas_save(c"build/rotozoom-12.png") return }
+    if frame == 13 { canvas_save(c"build/rotozoom-13.png") return }
+    if frame == 14 { canvas_save(c"build/rotozoom-14.png") return }
+    if frame == 15 { canvas_save(c"build/rotozoom-15.png") return }
+    if frame == 16 { canvas_save(c"build/rotozoom-16.png") return }
+    if frame == 17 { canvas_save(c"build/rotozoom-17.png") return }
+    if frame == 18 { canvas_save(c"build/rotozoom-18.png") return }
+    if frame == 19 { canvas_save(c"build/rotozoom-19.png") return }
+    if frame == 20 { canvas_save(c"build/rotozoom-20.png") return }
+    if frame == 21 { canvas_save(c"build/rotozoom-21.png") return }
+    if frame == 22 { canvas_save(c"build/rotozoom-22.png") return }
+    if frame == 23 { canvas_save(c"build/rotozoom-23.png") return }
+    if frame == 24 { canvas_save(c"build/rotozoom-24.png") return }
+    if frame == 25 { canvas_save(c"build/rotozoom-25.png") return }
+    if frame == 26 { canvas_save(c"build/rotozoom-26.png") return }
+    if frame == 27 { canvas_save(c"build/rotozoom-27.png") return }
+    if frame == 28 { canvas_save(c"build/rotozoom-28.png") return }
+    if frame == 29 { canvas_save(c"build/rotozoom-29.png") return }
+    if frame == 30 { canvas_save(c"build/rotozoom-30.png") return }
+    canvas_save(c"build/rotozoom-31.png")
 }
 
 fun render_frame(frame: u8) -> void {
-    let phase: i16 = frame
-    draw_frame(axis_a(frame), axis_b(frame), phase * 128)
+    let phase: u8 = frame % 32
+    draw_frame(axis_a(phase), axis_b(phase))
 }
 
 fun main() -> void {
     var frame: u8 = 0
-    while frame < 8 {
+    while frame < 32 {
         render_frame(frame)
         save_frame(frame)
         frame = frame + 1
