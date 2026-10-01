@@ -1,8 +1,7 @@
 package mir2
 
-// BranchEquiv eliminates conditional branches that are provably redundant by
-// running both the original and a patched (branch-removed) version of the
-// function through the VM on boundary inputs.
+// BranchEquiv eliminates redundant equality branches in pure functions with
+// at most two u8 parameters. This is the input domain the VM check exhausts.
 //
 // # Target pattern
 //
@@ -23,14 +22,15 @@ package mir2
 // Both paths in @diff return 0 when a==b, so the @zero shortcut is dead code.
 // Removing the BrIf saves 10T + 3 bytes on Z80 (JP Z omitted).
 //
-// # Proof method
+// # Check method
 //
-// For all u8 values v (0..255), run original(v, v) and patched(v, v) through
-// the VM.  If results always match, the branch is provably redundant.
+// Run original and patched functions on every input satisfying the equality.
+// This establishes agreement under the MIR2 VM semantics for the admitted
+// domain; it is not an independent proof of those semantics.
 func BranchEquiv(m *Module, f *Func) bool {
-	// Skip functions that contain calls — they may have side effects or be
-	// too expensive to test-execute (e.g. canvas rendering loops).
-	if funcHasCalls(f) {
+	// The comparator observes returns only. Reject memory, calls, I/O, asm,
+	// patches and any future opcode until its effects are explicitly handled.
+	if !beqAdmittedPureU8(f) {
 		return false
 	}
 	vm := NewVM(m)
@@ -51,6 +51,9 @@ func BranchEquiv(m *Module, f *Func) bool {
 		// Determine how to generate boundary inputs where CmpEq holds.
 		gen := beqMakeBoundaryGen(f, cmpInst)
 		if gen == nil {
+			continue
+		}
+		if gen.rhsIdx < 0 && (gen.rhsConst < 0 || gen.rhsConst > 255) {
 			continue
 		}
 
@@ -158,8 +161,8 @@ func beqFindDef(f *Func, r Reg) *Inst {
 // from origBrif) and the patched function (blk.Term == patchedJmp) produce
 // identical outputs for all boundary inputs where lhs == rhs.
 //
-// For u8 params we test all 256 values exhaustively.
-// For other param types we test a representative sample.
+// The caller admits only pure functions with at most two u8 parameters, so
+// these inputs exhaust the equality boundary under the VM's u8 domain.
 func beqTestEquivalent(
 	f *Func,
 	blk *Block,
@@ -193,93 +196,71 @@ func beqTestEquivalent(
 
 // beqBoundaryInputs returns argument vectors that satisfy the equality condition.
 //
-// For param-vs-param (rhsIdx >= 0): iterate v over 0..255 (u8 exhaustive),
-// setting args[lhsIdx] = args[rhsIdx] = v, other params get a representative
-// spread of values.
+// For param-vs-param (rhsIdx >= 0): iterate v over 0..255 and set both
+// equality operands to v. Admission guarantees there are no other params.
 //
-// For param-vs-const: fix lhs param = rhsConst, sweep all other params over
-// 256 values so the proof covers non-zero secondary arguments.
+// For param-vs-const: fix lhs param = rhsConst and sweep the one optional
+// other u8 param over 0..255.
 func beqBoundaryInputs(gen *beqBoundaryGen) [][]Value {
 	n := gen.nParams
 
 	if gen.rhsIdx < 0 {
-		// Param-vs-const: fix the equality-constrained param, sweep others.
-		// For each other param, test 256 values (u8 exhaustive).
-		// If no other params, test the single boundary point.
-		var otherIdxs []int
+		other := -1
 		for i := 0; i < n; i++ {
 			if i != gen.lhsIdx {
-				otherIdxs = append(otherIdxs, i)
+				other = i
 			}
 		}
-		if len(otherIdxs) == 0 {
+		if other < 0 {
 			args := make([]Value, n)
 			args[gen.lhsIdx] = Value{I: gen.rhsConst}
 			return [][]Value{args}
 		}
-		// Sweep each other param over 256 values individually, PLUS a cross
-		// product of representative values for all other params to catch
-		// interactions (e.g., a*b where one-at-a-time with 0 is always 0).
-		var inputs [][]Value
-		reps := []int64{0, 1, 2, 127, 255} // representative values
-		// Individual sweeps.
-		for _, oi := range otherIdxs {
-			for v := 0; v < 256; v++ {
-				args := make([]Value, n)
-				args[gen.lhsIdx] = Value{I: gen.rhsConst}
-				args[oi] = Value{I: int64(v)}
-				inputs = append(inputs, args)
-			}
-		}
-		// Cross-product of representatives for all other params.
-		if len(otherIdxs) >= 2 {
-			for _, v0 := range reps {
-				for _, v1 := range reps {
-					args := make([]Value, n)
-					args[gen.lhsIdx] = Value{I: gen.rhsConst}
-					args[otherIdxs[0]] = Value{I: v0}
-					args[otherIdxs[1]] = Value{I: v1}
-					inputs = append(inputs, args)
-				}
-			}
+		inputs := make([][]Value, 0, 256)
+		for v := 0; v < 256; v++ {
+			args := make([]Value, n)
+			args[gen.lhsIdx] = Value{I: gen.rhsConst}
+			args[other] = Value{I: int64(v)}
+			inputs = append(inputs, args)
 		}
 		return inputs
 	}
 
-	// Param-vs-param: test all 256 u8 values, sweep other params similarly.
-	var inputs [][]Value
+	inputs := make([][]Value, 0, 256)
 	for v := 0; v < 256; v++ {
 		args := make([]Value, n)
 		args[gen.lhsIdx] = Value{I: int64(v)}
 		args[gen.rhsIdx] = Value{I: int64(v)}
 		inputs = append(inputs, args)
 	}
-	// Also sweep other params (if any) with lhs==rhs held at a representative value.
-	for i := 0; i < n; i++ {
-		if i == gen.lhsIdx || i == gen.rhsIdx {
-			continue
-		}
-		for v := 0; v < 256; v++ {
-			args := make([]Value, n)
-			args[gen.lhsIdx] = Value{I: 42}
-			args[gen.rhsIdx] = Value{I: 42}
-			args[i] = Value{I: int64(v)}
-			inputs = append(inputs, args)
-		}
-	}
 	return inputs
 }
 
-// funcHasCalls reports whether f contains any OpCall or OpCallIndirect instructions.
-func funcHasCalls(f *Func) bool {
+// beqAdmittedPureU8 limits the return-only comparison to a finite, fully
+// enumerated input domain and instructions without observable effects.
+func beqAdmittedPureU8(f *Func) bool {
+	if len(f.Contract.Params) == 0 || len(f.Contract.Params) > 2 {
+		return false
+	}
+	for _, p := range f.Contract.Params {
+		if p.Ty != TyU8 {
+			return false
+		}
+	}
 	for _, blk := range f.Blocks {
 		for _, inst := range blk.Insts {
-			if inst.Op == OpCall || inst.Op == OpCallIndirect {
-				return true
+			switch inst.Op {
+			case OpConst, OpMove, OpAdd, OpSub, OpMul, OpDiv, OpSDiv,
+				OpMod, OpAnd, OpOr, OpXor, OpShl, OpShr, OpSar,
+				OpBitGet, OpBitSet, OpBitReset, OpNeg, OpNot,
+				OpExt, OpSext, OpTrunc, OpCmp:
+				// Pure scalar operations, including ones that may trap in the VM.
+			default:
+				return false
 			}
 		}
 	}
-	return false
+	return true
 }
 
 // beqResultsEqual compares two return-value slices for equality.
