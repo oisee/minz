@@ -18,7 +18,7 @@ go build -o /tmp/minz-mzv ./cmd/mzv
 ../examples/zmachine/zork-west-demo/smoke.sh /tmp/minz-mzv
 ```
 
-The smoke compares [transcript.in](transcript.in) against [transcript.out](transcript.out). The same commands were run in `dfrotz` 2.44; game text and state changes agree, aside from Frotz's status line and line wrapping. `mzv` currently needs `-H` for this reproducible piped-input run. Z-machine locals now use a typed `[u16; 2048]` array; save/restore serializes it in the original little-endian byte layout. The operand stack and return addresses still use byte arrays, so this is a first measured simplification rather than a full storage rewrite.
+The smoke compares [transcript.in](transcript.in) against [transcript.out](transcript.out). The same commands were run in `dfrotz` 2.44; game text and state changes agree, aside from Frotz's status line and line wrapping. `mzv` currently needs `-H` for this reproducible piped-input run. Z-machine locals and operand stack now use typed `[u16; 2048]` arrays; save/restore serializes them in the original little-endian byte layout. Return addresses remain split across byte arrays to carry the 17-bit PC.
 
 To play the included demo interactively after building `mzv`:
 

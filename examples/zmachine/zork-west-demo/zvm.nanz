@@ -29,7 +29,7 @@ global ret_pc_bank: [u8; 128]
 global ret_store: [u8; 128]
 global ret_sp_lo: [u8; 128]
 global ret_sp_hi: [u8; 128]
-global stack_bytes: [u8; 4096]
+global stack_words: [u16; 2048]
 global pc: u32 = 0
 global story_size: u32 = 0
 global globals_at: u16 = 0
@@ -69,11 +69,10 @@ fun put_local(slot: u16, value: u16) {
     local_words[slot] = value
 }
 fun stack_at(slot: u16) -> u16 {
-    return u16(stack_bytes[slot * 2]) + u16(stack_bytes[slot * 2 + 1]) * 256
+    return stack_words[slot]
 }
 fun put_stack(slot: u16, value: u16) {
-    stack_bytes[slot * 2] = u8(value)
-    stack_bytes[slot * 2 + 1] = u8(value / 256)
+    stack_words[slot] = value
 }
 fun next_byte() -> u8 {
     let b: u8 = code_byte_at(pc)
@@ -936,8 +935,11 @@ fun save_state() -> u8 {
         i = i + 1
     }
     i = 0
-    while i < 4096 {
-        snapshot[4922 + i] = stack_bytes[i]
+    while i < 2048 {
+        let offset: u16 = i * 2
+        let value: u16 = stack_words[i]
+        snapshot[4922 + offset] = u8(value)
+        snapshot[4923 + offset] = u8(value / 256)
         i = i + 1
     }
     return file_write_pair(&save_path, &snapshot, 9018, &story, word_at(14))
@@ -972,8 +974,9 @@ fun restore_state() -> u8 {
         i = i + 1
     }
     i = 0
-    while i < 4096 {
-        stack_bytes[i] = snapshot[4922 + i]
+    while i < 2048 {
+        let offset: u16 = i * 2
+        stack_words[i] = u16(snapshot[4922 + offset]) + u16(snapshot[4923 + offset]) * 256
         i = i + 1
     }
     return 1
