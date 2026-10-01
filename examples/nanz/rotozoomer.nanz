@@ -1,0 +1,112 @@
+// Nanz rotozoomer for the MIR2 canvas host.
+// Each pixel samples a 16x16 repeating texture through a fixed-point
+// rotation/zoom matrix. Eight frames vary both angle and scale.
+// Run from repository root: mkdir -p build && minzc/mzv --headless examples/nanz/rotozoomer.nanz
+
+@extern fun canvas_init(w: u16, h: u16, mode: u16) -> u16
+@extern fun canvas_pixel(x: i16, y: i16, color: u16) -> u16
+@extern fun canvas_palette(index: u16, r: u16, g: u16, b: u16) -> u16
+@extern fun canvas_save(path: ^u8) -> u16
+
+fun palette() -> void {
+    canvas_palette(0, 8, 9, 30)
+    canvas_palette(1, 27, 41, 83)
+    canvas_palette(2, 27, 123, 137)
+    canvas_palette(3, 229, 64, 117)
+    canvas_palette(4, 255, 166, 95)
+    canvas_palette(5, 255, 240, 178)
+}
+
+fun abs16(n: i16) -> i16 {
+    if n < 0 { return 0 - n }
+    return n
+}
+
+fun texture(tx: i16, ty: i16) -> u16 {
+    let d: i16 = abs16(tx - 8) + abs16(ty - 8)
+    if d < 3 { return 5 }
+    if d < 6 { return 4 }
+    if ((tx / 4) + (ty / 4)) % 2 == 0 { return 3 }
+    if ((tx xor ty) & 2) == 0 { return 2 }
+    return 1
+}
+
+// [u, v] = [u0, v0] + [a*x + b*y, -b*x + a*y].
+// a/256 and b/256 determine scale and angle. Row and pixel recurrences
+// keep multiply and divide out of the hot transform loop.
+fun draw_frame(a: i16, b: i16, shift: i16) -> void {
+    canvas_init(256, 192, 0)
+    palette()
+
+    var y: i16 = 0
+    var u_row: i16 = 1000 + shift
+    var v_row: i16 = 14000 + shift
+    while y < 192 {
+        var x: i16 = 0
+        var u: i16 = u_row
+        var v: i16 = v_row
+        while x < 256 {
+            let tx: i16 = (u / 256) % 16
+            let ty: i16 = (v / 256) % 16
+            canvas_pixel(x, y, texture(tx, ty))
+            u = u + a
+            v = v - b
+            x = x + 1
+        }
+        u_row = u_row + b
+        v_row = v_row + a
+        y = y + 1
+    }
+}
+
+fun axis_a(frame: u8) -> i16 {
+    if frame == 0 { return 74 }
+    if frame == 1 { return 70 }
+    if frame == 2 { return 62 }
+    if frame == 3 { return 53 }
+    if frame == 4 { return 46 }
+    if frame == 5 { return 50 }
+    if frame == 6 { return 59 }
+    return 68
+}
+
+fun axis_b(frame: u8) -> i16 {
+    if frame == 0 { return 0 }
+    if frame == 1 { return 15 }
+    if frame == 2 { return 30 }
+    if frame == 3 { return 43 }
+    if frame == 4 { return 52 }
+    if frame == 5 { return 40 }
+    if frame == 6 { return 27 }
+    return 13
+}
+
+// Literal C strings are VM heap pointers. The canvas host currently reads
+// paths from that heap, so the eight destinations are written explicitly.
+fun save_frame(frame: u8) -> void {
+    if frame == 0 { canvas_save(c"build/rotozoom-0.png") return }
+    if frame == 1 { canvas_save(c"build/rotozoom-1.png") return }
+    if frame == 2 { canvas_save(c"build/rotozoom-2.png") return }
+    if frame == 3 { canvas_save(c"build/rotozoom-3.png") return }
+    if frame == 4 { canvas_save(c"build/rotozoom-4.png") return }
+    if frame == 5 { canvas_save(c"build/rotozoom-5.png") return }
+    if frame == 6 { canvas_save(c"build/rotozoom-6.png") return }
+    canvas_save(c"build/rotozoom-7.png")
+}
+
+fun render_frame(frame: u8) -> void {
+    let phase: i16 = frame
+    draw_frame(axis_a(frame), axis_b(frame), phase * 128)
+}
+
+fun main() -> void {
+    var frame: u8 = 0
+    while frame < 8 {
+        render_frame(frame)
+        save_frame(frame)
+        frame = frame + 1
+    }
+}
+
+assert texture(8, 8) == 5 via mir2
+assert texture(0, 0) == 3 via mir2

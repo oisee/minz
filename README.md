@@ -26,12 +26,12 @@ The emulator prints `Hello!`. The [Nanz source](examples/nanz/hello_cpm.nanz) is
 
 ## What you can make
 
-| ObjC plasma | Nanz canvas | ObjC XOR pattern |
+| ObjC plasma | Nanz canvas | Nanz rotozoomer |
 | :---: | :---: | :---: |
-| <img src="media/plasma.png" width="240" alt="Plasma rendered by the MIR2 VM"> | <img src="media/canvas_house.png" width="240" alt="House drawn by Nanz canvas functions"> | <img src="media/xor.png" width="240" alt="XOR pattern rendered by the MIR2 VM"> |
-| [ObjC source](examples/objc/plasma.m) | [Nanz source](examples/nanz/canvas_house.nanz) | [ObjC source](examples/objc/plasma.m) |
+| <img src="media/plasma.png" width="240" alt="Plasma rendered by the MIR2 VM"> | <img src="media/canvas_house.png" width="240" alt="House drawn by Nanz canvas functions"> | <img src="media/rotozoomer.gif" width="240" alt="Animated Nanz rotozoomer"> |
+| [ObjC source](examples/objc/plasma.m) | [Nanz source](examples/nanz/canvas_house.nanz) | [Nanz source](examples/nanz/rotozoomer.nanz) |
 
-All three images are current MIR2 VM canvas renders. Reproduce the Nanz image with `make -C minzc mzv && mkdir -p build && minzc/mzv --headless examples/nanz/canvas_house.nanz`. The ObjC source has no `main`; `cd minzc && go test ./pkg/c89 ./pkg/nanz -run '^(TestPlasmaRender|TestCanvasImplShowcase)$' -count=1` invokes its effects and compares all three renders with the committed PNGs. The CP/M example above exercises the Z80 path. [Verification details and limits](reports/2026-10-01-README-Gallery-Verification-RU.md).
+These images are current MIR2 VM canvas renders. Build `mzv` with `make -C minzc mzv`, then run `python3 scripts/build_rotozoomer_gif.py` to regenerate the GIF (requires Pillow). Run `cd minzc && go test ./pkg/c89 ./pkg/nanz -run '^(TestPlasmaRender|TestCanvasImplShowcase|TestRotozoomerGallery)$' -count=1` to compare the gallery with the current source. The CP/M example above exercises the Z80 path. [Gallery verification](reports/2026-10-01-README-Gallery-Verification-RU.md) · [Rotozoomer details](reports/2026-10-01-Nanz-Rotozoomer-RU.md).
 
 ## Explore
 

@@ -10,7 +10,7 @@
 | `zsql_mara_zx.abap` | `mzv --headless` печатает текст с командами SQL, но исходник содержит только `WRITE` заранее записанного транскрипта. Текущий Z80-прогон через `mze --profile` дал повреждённый экран, отличный от `media/zsql_mara_zx_spectrum.png`. Настоящий клиент `examples/nanz/zsql.nanz` сейчас не проходит сборку из-за неопределённых `sql__sqlite__*` меток. | Картинка не доказывает работу SQL или воспроизводимый экран; убрана с фасада. |
 | `media/mzv_sphere_minz.png` → `fun/raymarcher.nanz` | PNG относится к старому `.minz`-пути и старой форме CLI. Текущий `mzv --headless fun/raymarcher.nanz` завершается `unknown function normalize`; Z80-ассемблер тоже отвергает его текущий output. | Связь картинки с указанным текущим исходником не подтверждена; убрана с фасада. |
 
-## Нынешняя галерея
+## Галерея на момент этой проверки
 
 `media/plasma.png` и `media/xor.png` воспроизводятся из `examples/objc/plasma.m` через `TestPlasmaRender`. `media/canvas_house.png` воспроизводится из `examples/nanz/canvas_house.nanz`: исходник непосредственно запускается через `mzv --headless`, а `TestCanvasImplShowcase` читает тот же файл. Оба теста сравнивают декодированные пиксели с PNG в репозитории, а не только успешность исполнения.
 
@@ -25,3 +25,5 @@ cmp build/canvas_house.png media/canvas_house.png
 ```
 
 Отдельный quick start в корневом README компилирует и исполняет `examples/nanz/hello_cpm.nanz` на Z80-эмуляторе и печатает `Hello!`. Галерея подтверждает возможности MIR2 VM и двух frontend, а не готовность этих графических программ к ZX Spectrum backend. Для `fun/` есть отдельный [build audit](../fun/README.md).
+
+Позже ObjC XOR на фасаде заменён [Nanz-ротозумером](2026-10-01-Nanz-Rotozoomer-RU.md); проверка плазмы и Nanz-сцены осталась действующей.
