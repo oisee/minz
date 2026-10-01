@@ -5101,6 +5101,9 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 	case tokPipe:
 		// |params| expr  or  |params| { stmts }  — non-capturing lambda
 		return p.parseLambda()
+	case tokPipePipe:
+		// At the start of an expression, || introduces a zero-argument lambda.
+		return p.parseLambda()
 
 	case tokAt:
 		// @print(expr), @print_nl(), @print_u8(expr), @ptr(T, addr)
@@ -5338,10 +5341,14 @@ func (p *parser) resolveCall(base hir.Expr, args []hir.Expr) (hir.Expr, error) {
 	// Indirect call: local variable → function pointer.
 	if name != "" && callTy == mir2.TyVoid && !p.isKnownFunc(name) {
 		if _, isLocal := p.varTypes[name]; isLocal {
+			retTy := p.varTypes[name]
+			if retTy == nil || retTy == mir2.TyVoid {
+				retTy = mir2.TyU8
+			}
 			return &hir.CallIndirectExpr{
 				FnPtr: &hir.VarRefExpr{Name: name, Ty: mir2.TyPtr},
 				Args:  args,
-				Ty:    mir2.TyU8,
+				Ty:    retTy,
 			}, nil
 		}
 		return &hir.CallExpr{Fn: name, Args: args, Ty: callTy}, nil
@@ -5365,13 +5372,16 @@ func paramTysFromFunc(f *hir.Func) []mir2.Ty {
 //	lambda = '|' [param (',' param)*] '|' ('{' stmt* '}' | expr)
 //	param  = IDENT [':' type]
 func (p *parser) parseLambda() (hir.Expr, error) {
-	if _, err := p.l.eat(tokPipe); err != nil {
+	emptyParams := p.l.is(tokPipePipe)
+	if emptyParams {
+		p.l.next()
+	} else if _, err := p.l.eat(tokPipe); err != nil {
 		return nil, err
 	}
 
 	// Parse parameter list: |x: u8, y: u8|  or  |x, y|  or  ||
 	var params []hir.Param
-	for !p.l.is(tokPipe) && !p.l.is(tokEOF) {
+	for !emptyParams && !p.l.is(tokPipe) && !p.l.is(tokEOF) {
 		pname, err := p.l.eat(tokIdent)
 		if err != nil {
 			return nil, fmt.Errorf("line %d: lambda: expected parameter name: %w", pname.line, err)
@@ -5392,8 +5402,10 @@ func (p *parser) parseLambda() (hir.Expr, error) {
 			p.l.next()
 		}
 	}
-	if _, err := p.l.eat(tokPipe); err != nil {
-		return nil, fmt.Errorf("lambda: expected closing '|': %w", err)
+	if !emptyParams {
+		if _, err := p.l.eat(tokPipe); err != nil {
+			return nil, fmt.Errorf("lambda: expected closing '|': %w", err)
+		}
 	}
 
 	// Parse body: block { ... } or single expression → implicit return
