@@ -1932,6 +1932,8 @@ func (l *lowerer) lowerBinExpr(ex *BinExpr) mir2.Reg {
 	switch ex.Op {
 	case "==", "!=", "<", "<=", ">", ">=":
 		return l.lowerCond(ex)
+	case "&&", "||":
+		return l.lowerLogical(ex)
 	}
 
 	ty := ex.Ty
@@ -1977,6 +1979,34 @@ func (l *lowerer) lowerBinExpr(ex *BinExpr) mir2.Reg {
 	}
 }
 
+// lowerLogical preserves short-circuit evaluation and yields a canonical bool.
+// The false/true blocks keep flag registers out of the join's block argument.
+func (l *lowerer) lowerLogical(ex *BinExpr) mir2.Reg {
+	rhsLabel := l.fresh("logic_rhs")
+	trueLabel := l.fresh("logic_true")
+	falseLabel := l.fresh("logic_false")
+	joinLabel := l.fresh("logic_join")
+
+	left := l.lowerCond(ex.L)
+	if ex.Op == "&&" {
+		l.bld.BrIf(left, rhsLabel, nil, falseLabel, nil)
+	} else {
+		l.bld.BrIf(left, trueLabel, nil, rhsLabel, nil)
+	}
+	l.bld.SwitchToNewBlock(rhsLabel)
+	right := l.lowerCond(ex.R)
+	l.bld.BrIf(right, trueLabel, nil, falseLabel, nil)
+
+	l.bld.SwitchToNewBlock(trueLabel)
+	one := l.bld.Const(1, mir2.TyBool, mir2.ClassGeneral)
+	l.bld.Jmp(joinLabel, one)
+	l.bld.SwitchToNewBlock(falseLabel)
+	zero := l.bld.Const(0, mir2.TyBool, mir2.ClassGeneral)
+	l.bld.Jmp(joinLabel, zero)
+	join := l.bld.SwitchToNewBlock(joinLabel)
+	return l.bld.BlockParam(join, mir2.TyBool, mir2.ClassGeneral)
+}
+
 // lowerUnaryExpr lowers a unary expression.
 func (l *lowerer) lowerUnaryExpr(ex *UnaryExpr) mir2.Reg {
 	xReg := l.lowerExpr(ex.X)
@@ -2008,6 +2038,9 @@ func (l *lowerer) lowerUnaryExpr(ex *UnaryExpr) mir2.Reg {
 // Eq/Ne are sign-agnostic (bit patterns match regardless of interpretation).
 func (l *lowerer) lowerCond(e Expr) mir2.Reg {
 	if bin, ok := e.(*BinExpr); ok {
+		if bin.Op == "&&" || bin.Op == "||" {
+			return l.lowerLogical(bin)
+		}
 		var cmp mir2.CmpCond
 		signed := mir2.IsSigned(bin.L.ExprTy())
 		switch bin.Op {
