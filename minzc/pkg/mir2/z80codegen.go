@@ -792,6 +792,10 @@ type z80cg struct {
 	// Cleared at every CALL (the call clobbers volatile state).
 	physOverride map[Reg]string
 
+	// liveness gives cross-block live-out sets so that block-local
+	// physOverride relocations can be undone for values a successor reads.
+	liveness *LivenessResult
+
 	// trampolines: small glue blocks emitted after main function body that
 	// perform block-argument parallel copies then jump to the real target.
 	// Needed for BrIf edges where the non-fall-through path requires copies.
@@ -1479,6 +1483,7 @@ func (g *z80cg) genFunc(f *Func) {
 	}
 	g.holdsPhys = make(map[string]string)
 	g.physOverride = make(map[Reg]string)
+	g.liveness = ComputeLiveness(f)
 	g.trampolines = g.trampolines[:0]
 	g.trampIdx = 0
 	g.smcPatchers = g.smcPatchers[:0]
@@ -3904,6 +3909,9 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		//   ADD: commutative → just ADD A, lhs.
 		//   SUB: A = lhs - A → NEG first (A = -A), then ADD A, lhs.
 		if rhs == "A" && lhs != "A" {
+			// The result overwrites A, which holds rhs: save rhs if it is
+			// still live (gcd's b = b - a keeps a live in A for the loop).
+			g.saveAccOperandIfLive(inst.Src[1], inst)
 			g.invalidate("A") // A about to hold a new result
 			switch mnem {
 			case "ADD":
@@ -3931,11 +3939,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			// instruction (used by a later inst or terminator), save it to a scratch
 			// register. The ALU op will overwrite A with the result.
 			// Example: fib's r6=sub(r0,1) where r0 is still needed for r9=sub(r0,2).
-			if inst.Src[0] != inst.Dst && g.isVregLiveAfter(inst.Src[0], inst) {
-				scratch := g.pickScratch8(inst)
-				g.emitf("    LD %s, A    ; save r%d before ALU overwrite", scratch, inst.Src[0])
-				g.physOverride[inst.Src[0]] = scratch
-			}
+			g.saveAccOperandIfLive(inst.Src[0], inst)
 			// A == lhs already — skip LD A, lhs.
 			g.invalidate("A")
 			// Use immediate form if rhs is a known constant.
@@ -3954,6 +3958,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		}
 		if isCommutative && g.holdsValue("A", rhs) {
 			// A == rhs, commutative swap: emit OP A, lhs instead.
+			g.saveAccOperandIfLive(inst.Src[1], inst)
 			g.invalidate("A")
 			// Use immediate form if lhs is a known constant.
 			if cv, ok := g.constVals[inst.Src[0]]; ok {
@@ -6683,6 +6688,53 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 	g.setCopy(dst, src)
 }
 
+// restoreLiveOutOverrides moves every relocated vreg that is live out of the
+// current block, or read by its terminator, back to its allocated register
+// before the terminator. A
+// relocation (physOverride) is block-local: successors, and blocks laid out
+// after this one, read the allocator's location. Without this, a value saved
+// to a scratch register in one branch (gcd's else arm) was read from that
+// scratch on paths that never wrote it.
+func (g *z80cg) restoreLiveOutOverrides(f *Func, t Term) {
+	if g.liveness == nil || len(g.physOverride) == 0 {
+		return
+	}
+	liveOut := g.liveness.LiveOutOf(f, g.curBlock)
+	if liveOut == nil {
+		return
+	}
+	// Terminator operands count too: jmp @head(%r3, …) passes r3 to the param
+	// that is r3 itself after coalescing, and the parallel copy skips it as an
+	// identity move, so r3 must already sit in its allocated register.
+	usedByTerm := map[Reg]bool{}
+	for _, r := range t.termUses() {
+		usedByTerm[r] = true
+	}
+	regs := make([]Reg, 0, len(g.physOverride))
+	for r := range g.physOverride {
+		if liveOut.Has(r) || usedByTerm[r] {
+			regs = append(regs, r)
+		}
+	}
+	sort.Slice(regs, func(i, j int) bool { return regs[i] < regs[j] })
+	for _, r := range regs {
+		scratch := g.physOverride[r]
+		canonLoc := g.ar.Loc(r)
+		delete(g.physOverride, r)
+		if canonLoc.Kind != LocReg && canonLoc.Kind != LocIXY8 {
+			continue
+		}
+		if canon := canonLoc.Name; canon != "" && canon != scratch {
+			width := 8
+			if canon == "HL" || canon == "DE" || canon == "BC" {
+				width = 16
+			}
+			g.emitMov(canon, scratch, width)
+			g.comment(fmt.Sprintf("restore live-out r%d from scratch", r))
+		}
+	}
+}
+
 // ── Terminators ───────────────────────────────────────────────────────────────
 
 func (g *z80cg) genTerm(f *Func, t Term) {
@@ -6728,6 +6780,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 			}
 		}
 	}
+	g.restoreLiveOutOverrides(f, t)
 
 	switch t := t.(type) {
 	case *TermRet:
@@ -8511,6 +8564,18 @@ func (g *z80cg) saveABeforeOverwrite(inst *Inst) {
 
 // isVregLiveAfter checks if vreg is used by any instruction after target in the
 // current block, or by the block's terminator.
+// saveAccOperandIfLive copies the operand vreg held in A to a scratch
+// register when an 8-bit ALU result is about to overwrite A and the operand is
+// still used after inst. Later reads of the vreg are redirected via physOverride.
+func (g *z80cg) saveAccOperandIfLive(src Reg, inst *Inst) {
+	if src == NoReg || src == inst.Dst || !g.isVregLiveAfter(src, inst) {
+		return
+	}
+	scratch := g.pickScratch8(inst)
+	g.emitf("    LD %s, A    ; save r%d before ALU overwrite", scratch, src)
+	g.physOverride[src] = scratch
+}
+
 func (g *z80cg) isVregLiveAfter(vreg Reg, target *Inst) bool {
 	if g.curBlock == nil || vreg == NoReg {
 		return false

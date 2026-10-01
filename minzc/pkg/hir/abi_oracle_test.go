@@ -13,7 +13,11 @@ import (
 
 func compileProductionHIRFixture(t *testing.T, hm *hir.Module) hirZ80Fixture {
 	t.Helper()
-	opts := pipeline.DefaultOptions()
+	return compileHIRFixtureWithOptions(t, hm, pipeline.DefaultOptions())
+}
+
+func compileHIRFixtureWithOptions(t *testing.T, hm *hir.Module, opts pipeline.Options) hirZ80Fixture {
+	t.Helper()
 	opts.AssertMode = "none"
 	steps, err := pipeline.CompileHIRSteps(hm, opts)
 	if err != nil {
@@ -64,6 +68,12 @@ func runHIRZ80(t *testing.T, fixture hirZ80Fixture, name string, args []int64) (
 	if err != nil {
 		return 0, err
 	}
+	return hirReturnValue(f, regs)
+}
+
+// hirReturnValue reads the single contract return from post-call registers.
+func hirReturnValue(f *mir2.Func, regs emulator.Registers) (int64, error) {
+	name := f.Name
 	ret := f.Contract.Returns[0]
 	if ret.Class == mir2.ClassFlag {
 		value, err := readZ80Flag(regs.F, ret.FlagCond)

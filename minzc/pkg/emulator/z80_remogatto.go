@@ -9,15 +9,16 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/remogatto/z80"
 )
 
 // RemogattoZ80 wraps the remogatto/z80 emulator for full instruction coverage
 type RemogattoZ80 struct {
-	cpu      *z80.Z80
-	memory   *Memory
-	ports    *Ports
+	cpu    *z80.Z80
+	memory *Memory
+	ports  *Ports
 
 	// State tracking
 	cycles   int
@@ -42,8 +43,8 @@ type RemogattoZ80 struct {
 	Profiler *Profiler
 
 	// WarnOnHalt prints a warning when HALT is executed with interrupts disabled
-	WarnOnHalt  bool
-	haltWarned  bool
+	WarnOnHalt bool
+	haltWarned bool
 
 	// T-state trap: one-shot breakpoint at exact T-state count
 	tstateTrapTarget int64
@@ -56,7 +57,7 @@ type RemogattoZ80 struct {
 // RSTRegisters provides access to CPU registers for RST handlers
 type RSTRegisters struct {
 	A, B, C, D, E, H, L byte
-	HL                   uint16
+	HL                  uint16
 }
 
 // Memory implements z80.MemoryAccessor interface
@@ -64,7 +65,7 @@ type Memory struct {
 	data       [65536]byte
 	romEnd     uint16
 	smcTracker func(addr uint16, oldVal, newVal byte) // Optional SMC tracking
-	profiler   *Profiler                               // Optional profiler hooks
+	profiler   *Profiler                              // Optional profiler hooks
 }
 
 func NewMemory() *Memory {
@@ -114,10 +115,10 @@ func (m *Memory) WriteByteInternal(address uint16, value byte) {
 	m.WriteByte(address, value)
 }
 
-func (m *Memory) ContendRead(address uint16, time int)                        {}
-func (m *Memory) ContendReadNoMreq(address uint16, time int)                  {}
-func (m *Memory) ContendReadNoMreq_loop(address uint16, time int, count uint) {}
-func (m *Memory) ContendWriteNoMreq(address uint16, time int)                 {}
+func (m *Memory) ContendRead(address uint16, time int)                         {}
+func (m *Memory) ContendReadNoMreq(address uint16, time int)                   {}
+func (m *Memory) ContendReadNoMreq_loop(address uint16, time int, count uint)  {}
+func (m *Memory) ContendWriteNoMreq(address uint16, time int)                  {}
 func (m *Memory) ContendWriteNoMreq_loop(address uint16, time int, count uint) {}
 
 // Additional methods required by MemoryAccessor
@@ -484,6 +485,55 @@ func (z *RemogattoZ80) GetRegisters() Registers {
 		SP: z.cpu.SP(),
 		PC: z.cpu.PC(),
 	}
+}
+
+// SetRegisters loads the main register file (A, F, BC, DE, HL, IX, IY, SP, PC).
+// Shadow registers, I/R and interrupt state are left untouched.
+func (z *RemogattoZ80) SetRegisters(r Registers) {
+	z.cpu.A, z.cpu.F = r.A, r.F
+	z.cpu.B, z.cpu.C = uint8(r.BC>>8), uint8(r.BC)
+	z.cpu.D, z.cpu.E = uint8(r.DE>>8), uint8(r.DE)
+	z.cpu.H, z.cpu.L = uint8(r.HL>>8), uint8(r.HL)
+	z.cpu.IXH, z.cpu.IXL = uint8(r.IX>>8), uint8(r.IX)
+	z.cpu.IYH, z.cpu.IYL = uint8(r.IY>>8), uint8(r.IY)
+	z.cpu.SetSP(r.SP)
+	z.cpu.SetPC(r.PC)
+}
+
+// SetRegister8 sets one 8-bit register by its assembler name
+// (A F B C D E H L IXH IXL IYH IYL), case-insensitive.
+func (z *RemogattoZ80) SetRegister8(name string, v uint8) error {
+	var r *uint8
+	switch strings.ToUpper(name) {
+	case "A":
+		r = &z.cpu.A
+	case "F":
+		r = &z.cpu.F
+	case "B":
+		r = &z.cpu.B
+	case "C":
+		r = &z.cpu.C
+	case "D":
+		r = &z.cpu.D
+	case "E":
+		r = &z.cpu.E
+	case "H":
+		r = &z.cpu.H
+	case "L":
+		r = &z.cpu.L
+	case "IXH":
+		r = &z.cpu.IXH
+	case "IXL":
+		r = &z.cpu.IXL
+	case "IYH":
+		r = &z.cpu.IYH
+	case "IYL":
+		r = &z.cpu.IYL
+	default:
+		return fmt.Errorf("unknown 8-bit register %q", name)
+	}
+	*r = v
+	return nil
 }
 
 // SetPC sets the program counter
