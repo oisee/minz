@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/pipeline"
 )
@@ -146,18 +147,27 @@ fun field_offset() -> u8 {
 	}
 }
 
-func TestFactcheck_BitAccessorSyntaxRejected(t *testing.T) {
+func TestFactcheck_BitAccessorSyntax(t *testing.T) {
 	src := `
 fun set_bit(v: u8) -> u8 {
     v.7 = 1
     return v
 }
 `
-	_, err := nanz.Parse(src, "bit_accessor_test")
-	if err == nil {
-		t.Fatal("expected parse error for v.7 = 1")
+	m, err := nanz.Parse(src, "bit_accessor_test")
+	if err != nil {
+		t.Fatal(err)
 	}
-	t.Logf("got expected error: %v", err)
+	vm := mir2.NewVM(hir.LowerModule(m))
+	for _, input := range []int64{0, 127, 128} {
+		got, err := vm.Call("set_bit", []mir2.Value{{I: input}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(got) != 1 || got[0].I != input|128 {
+			t.Fatalf("set_bit(%d) = %v, want %d", input, got, input|128)
+		}
+	}
 }
 
 func TestFactcheck_AsmImportRejected(t *testing.T) {

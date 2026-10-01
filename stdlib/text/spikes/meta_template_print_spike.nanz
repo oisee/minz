@@ -1,0 +1,41 @@
+// User-defined @print parses the template at compile time and emits direct
+// formatter calls into main. #{value} is decimal; :show calls an object's
+// Printable implementation; :text prints an existing C string; :char a byte.
+import text.print
+import text.template_print
+
+struct Game { moves: u16 }
+global game: Game
+global output: [u8; 64]
+global writer: BufWriter
+global text_value: CText
+global number_value: Dec16
+
+impl Printable for Game {
+    fun write_to(self, out: ^BufWriter) {
+        text_value.ptr = c"Game("
+        text_value.write_to(out)
+        number_value.value = self.moves
+        number_value.write_to(out)
+        text_value.ptr = c")"
+        text_value.write_to(out)
+    }
+}
+
+fun flush_stdout() {
+    var i: u16 = 0
+    while i < writer.len {
+        @print_char(output[i])
+        i = i + 1
+    }
+}
+
+fun main() -> u16 {
+    let score: u16 = 65535
+    game.moves = 7
+    writer.init(&output, 64)
+    @print("score=#{score} game=#{game:show}\n")
+    writer.finish_c()
+    flush_stdout()
+    return writer.len
+}

@@ -1,0 +1,48 @@
+// A compile-time formatting spike: the metafunction builds one concrete
+// formatter sequence from a declarative list. No runtime format parser.
+
+fun @make_report() -> void {
+    emit(c"import text.print")
+    emit(c"struct Game { score: u16, moves: u16 }")
+    emit(c"global output: [u8; 48]")
+    emit(c"global writer: BufWriter")
+    emit(c"global text_value: CText")
+    emit(c"global number_value: Dec16")
+    emit(c"fun render_report(game: ^Game) -> u16 {")
+    emit(c"    writer.init(&output, 48)")
+
+    var i: u8 = 0
+    while i < block_len() {
+        let kind: ^u8 = node_keyword(i)
+        let value: ^u8 = node_arg_str(i, 0)
+        if str_eq(kind, c"text") == 1 {
+            let quoted: ^u8 = str_concat(str_chr(34), str_concat(value, str_chr(34)))
+            emit(str_concat(c"    text_value.ptr = c", quoted))
+            emit(c"    text_value.write_to(&writer)")
+        }
+        if str_eq(kind, c"decimal") == 1 {
+            emit(str_concat(c"    number_value.value = ", value))
+            emit(c"    number_value.write_to(&writer)")
+        }
+        i = i + 1
+    }
+
+    emit(c"    writer.finish_c()")
+    emit(c"    return writer.len")
+    emit(c"}")
+}
+
+@make_report() {
+    text "score="
+    decimal "game.score"
+    text " moves="
+    decimal "game.moves"
+}
+
+global game: Game
+
+fun main() -> u16 {
+    game.score = 65535
+    game.moves = 7
+    return render_report(&game)
+}

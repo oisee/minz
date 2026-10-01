@@ -1,0 +1,62 @@
+// Compile-time template formatting into caller-provided writer/formatter globals.
+// See META_FORMAT_SPIKE.md for the current convention and limitations.
+fun @print(template: ^u8) -> void {
+    var i: u16 = 0
+    var literal: ^u8 = c""
+    while template[i] != 0 {
+        if template[i] == 35 {
+            if template[i + 1] == 123 {
+                if str_eq(literal, c"") == 0 {
+                    emit(str_concat(c"text_value.ptr = ", str_quote_c(literal)))
+                    emit(c"text_value.write_to(&writer)")
+                    literal = c""
+                }
+                i = i + 2
+                var expression: ^u8 = c""
+                while template[i] != 0 {
+                    if template[i] == 125 { break }
+                    if template[i] == 58 { break }
+                    expression = str_concat(expression, str_chr(template[i]))
+                    i = i + 1
+                }
+                if str_eq(expression, c"") == 1 {
+                    meta_error(c"empty print expression")
+                }
+                var spec: ^u8 = c"dec"
+                if template[i] == 58 {
+                    i = i + 1
+                    spec = c""
+                    while template[i] != 0 {
+                        if template[i] == 125 { break }
+                        spec = str_concat(spec, str_chr(template[i]))
+                        i = i + 1
+                    }
+                }
+                if template[i] != 125 {
+                    meta_error(c"unclosed print expression")
+                }
+                if str_eq(spec, c"dec") == 1 {
+                    emit(str_concat(c"number_value.value = u16(", str_concat(expression, c")")))
+                    emit(c"number_value.write_to(&writer)")
+                } else if str_eq(spec, c"text") == 1 {
+                    emit(str_concat(c"text_value.ptr = ", expression))
+                    emit(c"text_value.write_to(&writer)")
+                } else if str_eq(spec, c"show") == 1 {
+                    emit(str_concat(expression, c".write_to(&writer)"))
+                } else if str_eq(spec, c"char") == 1 {
+                    emit(str_concat(c"writer.put(u8(", str_concat(expression, c"))")))
+                } else {
+                    meta_error(c"unknown print format specifier")
+                }
+                i = i + 1
+                continue
+            }
+        }
+        literal = str_concat(literal, str_chr(template[i]))
+        i = i + 1
+    }
+    if str_eq(literal, c"") == 0 {
+        emit(str_concat(c"text_value.ptr = ", str_quote_c(literal)))
+        emit(c"text_value.write_to(&writer)")
+    }
+}

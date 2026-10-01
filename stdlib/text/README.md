@@ -18,3 +18,5 @@ fun main() {
 ```
 
 `BufWriter.put` stops at capacity and sets `overflow`; `finish_c` needs one free byte and reports failure if the buffer is full. `CText` reads an existing NUL-terminated string, while decimal values write ASCII digits. The buffer can then be passed to a platform-specific output function. See [`typed_print.nanz`](../../examples/nanz/typed_print.nanz) for a complete example. The test checks exact VM bytes, bounds, imported UFCS dispatch, and valid Z80 assembly.
+
+For compile-time formatting with user-defined metafunctions, see the [formatting spike](META_FORMAT_SPIKE.md). The experimental `text.template_print` module provides `@print("score=#{score} game=#{game:show}")`; the spike documents its current caller conventions and API limits.

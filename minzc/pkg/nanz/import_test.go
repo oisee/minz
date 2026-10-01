@@ -269,7 +269,7 @@ assert inc_wrap(9) == 10
 	// Verify functions were imported
 	found := 0
 	for _, f := range m.Funcs {
-		if f.Name == "lanzmath$lanz_double" || f.Name == "lanzmath$lanz_inc" {
+		if f.Name == "lanzmath__lanz_double" || f.Name == "lanzmath__lanz_inc" {
 			found++
 		}
 	}
@@ -322,7 +322,7 @@ assert inc_wrap(9) == 10
 	// Verify functions were imported
 	found := 0
 	for _, f := range m.Funcs {
-		if f.Name == "lispmath$lizp_double" || f.Name == "lispmath$lizp_inc" {
+		if f.Name == "lispmath__lizp_double" || f.Name == "lispmath__lizp_inc" {
 			found++
 		}
 	}
