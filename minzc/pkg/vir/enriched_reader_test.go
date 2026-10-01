@@ -27,6 +27,104 @@ func u32le(v uint32) []byte {
 	return b
 }
 
+func u64le(v uint64) []byte {
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b, v)
+	return b
+}
+
+func TestBinaryOnlyTableCountsAsAvailable(t *testing.T) {
+	p := writeTable(t, "enrt_one.bin",
+		[]byte("ENRT"), u32le(1), u32le(1),
+		[]byte{4, 0, 0, 0}, []byte{1, 7, 0, 3, 0, 0},
+	)
+	var table RegAllocTable
+	table.Init()
+	if err := table.LoadBinary(p); err != nil {
+		t.Fatal(err)
+	}
+	if got := table.Size(); got != 1 {
+		t.Fatalf("binary-only Size()=%d, want 1", got)
+	}
+}
+
+func TestBinaryOnlyTableLookup(t *testing.T) {
+	ops := []VIROp{
+		{Op: OpConst, Dst: 1, Width: 8},
+		{Op: OpConst, Dst: 2, Width: 8},
+		{Op: OpAdd, Dst: 3, Src: [2]int{1, 2}, Width: 8},
+	}
+	shape, vregs, err := VIRToEnrichedShape(ops, Z80)
+	if err != nil {
+		t.Fatal(err)
+	}
+	idx, err := EnrichedIndexOfWithLocSets(*shape, 3, 4, 3)
+	if err != nil {
+		t.Fatal(err)
+	}
+	entries := make([]EnrichedEntry, idx+1)
+	entries[idx] = EnrichedEntry{Cost: 7, Assignment: []byte{1, 2, 0}}
+	var table RegAllocTable
+	table.Init()
+	table.binaryTables = []*EnrichedBinaryTable{{Entries: entries, MaxVregs: 3, NLocSets8: 4, NLocSets16: 3}}
+	if table.Size() == 0 {
+		t.Fatal("binary-only table invisible to lookup gate")
+	}
+	allocation, cost, ok := table.Lookup(ops, Z80)
+	if !ok || cost != 7 || len(allocation) != 3 || allocation[vregs[0]] != 1 || allocation[vregs[1]] != 2 || allocation[vregs[2]] != 0 {
+		t.Fatalf("lookup got allocation=%v cost=%d ok=%v", allocation, cost, ok)
+	}
+}
+
+func TestZ80Tv2RejectsPartialEnumerationBeforeReadingBody(t *testing.T) {
+	p := writeTable(t, "dense_6v.bin",
+		[]byte("Z80T"), u32le(2), []byte{6, 3, 6}, u64le(298669842),
+	)
+	_, err := LoadEnrichedBinary(p)
+	if err == nil || !strings.Contains(err.Error(), "partial enumeration") {
+		t.Fatalf("expected partial-enumeration rejection, got %v", err)
+	}
+}
+
+func TestZ80Tv2RejectsTruncatedRecords(t *testing.T) {
+	p := writeTable(t, "z80t_short.bin",
+		[]byte("Z80T"), u32le(2), []byte{6, 3, 2}, u64le(162),
+		[]byte{0xFF},
+	)
+	_, err := LoadEnrichedBinary(p)
+	if err == nil || !strings.Contains(err.Error(), "count mismatch") {
+		t.Fatalf("expected count mismatch, got %v", err)
+	}
+}
+
+// Set VIR_REGALLOC_FIXTURE to an external ENRT 4v table for a local smoke test.
+// CI needs no multi-megabyte fixture.
+func TestExternalRegAlloc4vFixture(t *testing.T) {
+	p := os.Getenv("VIR_REGALLOC_FIXTURE")
+	if p == "" {
+		t.Skip("VIR_REGALLOC_FIXTURE not set")
+	}
+	var table RegAllocTable
+	table.Init()
+	if err := table.LoadBinary(p); err != nil {
+		t.Fatal(err)
+	}
+	if got := table.Size(); got != 156506 {
+		t.Fatalf("4v table has %d entries, want 156506", got)
+	}
+	if table.binaryTables[0].MaxVregs != 4 {
+		t.Fatalf("4v table has maxVregs=%d", table.binaryTables[0].MaxVregs)
+	}
+	ops := []VIROp{
+		{Op: OpConst, Dst: 1, Width: 8},
+		{Op: OpConst, Dst: 2, Width: 8},
+		{Op: OpAdd, Dst: 3, Src: [2]int{1, 2}, Width: 8},
+	}
+	if assignment, _, ok := table.Lookup(ops, Z80); !ok || len(assignment) != 3 {
+		t.Fatalf("real 4v lookup missed simple 3-vreg shape: allocation=%v, ok=%v", assignment, ok)
+	}
+}
+
 // TestLoadEnrichedBinary_RejectsZ80Tv1 pins the defect that motivated this
 // validation. A Z80T v1 file carries no count/maxVregs/nMetrics/reserved
 // header, so parsing one with the ENRT v1 record layout desynchronises on the
