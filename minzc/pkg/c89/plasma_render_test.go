@@ -2,8 +2,10 @@ package c89_test
 
 import (
 	"encoding/binary"
+	"image/png"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 
 	"github.com/minz/minzc/pkg/hir"
@@ -50,8 +52,8 @@ func TestPlasmaRender(t *testing.T) {
 	}
 	t.Logf("canvas: %dx%d", ref.C.W, ref.C.H)
 
-	outDir := filepath.Join("..", "..", "..", "examples", "objc", "output")
-	os.MkdirAll(outDir, 0755)
+	outDir := t.TempDir()
+	goldenDir := filepath.Join("..", "..", "..", "examples", "objc", "output")
 
 	// Render each effect by calling ClassName_render(self, t).
 	// Struct layout: __vtable(2) + field1(2) + field2(2)
@@ -70,7 +72,7 @@ func TestPlasmaRender(t *testing.T) {
 	for _, eff := range effects {
 		// Allocate object on heap: [vtable:u16][field1:u16][field2:u16]
 		obj := make([]byte, 6)
-		binary.LittleEndian.PutUint16(obj[0:], 0)                   // __vtable (unused for static)
+		binary.LittleEndian.PutUint16(obj[0:], 0) // __vtable (unused for static)
 		binary.LittleEndian.PutUint16(obj[2:], uint16(eff.field1))
 		binary.LittleEndian.PutUint16(obj[4:], uint16(eff.field2))
 		self := vm.AllocHeap(obj)
@@ -84,7 +86,28 @@ func TestPlasmaRender(t *testing.T) {
 		if err := ref.C.SavePNG(pngPath); err != nil {
 			t.Fatalf("SavePNG %s: %v", eff.name, err)
 		}
+		gotFile, err := os.Open(pngPath)
+		if err != nil {
+			t.Fatal(err)
+		}
+		got, err := png.Decode(gotFile)
+		gotFile.Close()
+		if err != nil {
+			t.Fatal(err)
+		}
+		wantFile, err := os.Open(filepath.Join(goldenDir, eff.name+".png"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		want, err := png.Decode(wantFile)
+		wantFile.Close()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !reflect.DeepEqual(got, want) {
+			t.Fatalf("%s render differs from committed PNG", eff.name)
+		}
 		info, _ := os.Stat(pngPath)
-		t.Logf("  %s → %s (%d bytes)", eff.name, pngPath, info.Size())
+		t.Logf("  %s matches committed PNG (%d bytes)", eff.name, info.Size())
 	}
 }
