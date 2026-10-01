@@ -1,15 +1,16 @@
-// sha256.nanz — SHA-256 hash on Z80 via u32 arithmetic
+// sha256.nanz — arithmetic building blocks for a future SHA-256 implementation
 //
 // Demonstrates u32 operations: XOR, AND, ADD with carry propagation.
-// Uses DEHL convention from u32_ops.json (D=MSB, L=LSB).
+// This is not a complete hash: there is no message schedule, compression
+// round loop, padding, or digest API. The helpers use u16 pairs.
 // Reminder: in Nanz ^ = pointer deref, use `xor` keyword for bitwise XOR!
 //
 // HOW TO RUN:
 //   mz fun/sha256.nanz --asserts mir2           # 6 asserts, all pass
 //   mz fun/sha256.nanz -o build/sha.a80         # compile to Z80 asm
-//   mza build/sha.a80 -o build/sha256.bin       # assemble → 808 bytes!
+//   mza build/sha.a80 -o build/sha256.bin       # assemble helpers
 
-// ── u32 helpers (will map to GPU-optimal sequences) ─────────
+// ── u32 helpers ───────────────────────────────────────────────
 
 // u32 stored as two u16: hi (upper 16 bits), lo (lower 16 bits)
 // On Z80: hi=DE, lo=HL in DEHL convention

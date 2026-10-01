@@ -152,8 +152,5 @@ assert smiley_pixel 0 0 == 0
 assert smiley_pixel 3 2 == 0
 assert smiley_pixel 2 2 == 1
 
-(* Canvas rendering requires: mzv examples/frill/graphics.frl *)
-
-(* Rendering at Z80 runtime — too expensive for compile-time VM *)
-(* Pattern functions above are fully verified via 30+ asserts *)
-let main (x : u8) : IO u8 = render 0
+(* This showcase exposes pure pattern functions; it does not draw a canvas. *)
+let main (x : u8) : IO u8 = composite x 0
