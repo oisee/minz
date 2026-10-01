@@ -52,6 +52,12 @@ cp "$fixture_dir/save_restore.z3" "$tmp_dir/zork-west-demo.z3"
 printf 's\nr\nq\n' | "$vm" -H "$tmp_dir/zvm.nanz" > "$tmp_dir/save_restore.out"
 diff -u "$fixture_dir/save_restore.out" "$tmp_dir/save_restore.out"
 test -s "$tmp_dir/zvm-save.dat"
+expected_save_sha=d592d2a29adffbc1f448a6ae4bf74705feab597094e10a3bf6aec2c328152cc2
+actual_save_sha=$(sha256sum "$tmp_dir/zvm-save.dat" | cut -d ' ' -f 1)
+if [ "$actual_save_sha" != "$expected_save_sha" ]; then
+    echo "save format changed: $actual_save_sha" >&2
+    exit 1
+fi
 
 # A save from a different release must fail before replacing dynamic memory.
 python3 - "$tmp_dir/zork-west-demo.z3" <<'PY'
