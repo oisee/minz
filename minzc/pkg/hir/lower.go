@@ -1756,6 +1756,13 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 		return l.bld.Call(fnName, args, ex.Ty, cls, mir2.CallAttrs{})
 
 	case *CallIndirectExpr:
+		// A local name bound to a known lambda/partial application has a
+		// compile-time target. Call it directly; no runtime closure is needed.
+		if vr, ok := ex.FnPtr.(*VarRefExpr); ok {
+			if fnName, found := l.fnAliases[vr.Name]; found {
+				return l.lowerExpr(&CallExpr{Fn: fnName, Args: ex.Args, Ty: ex.Ty})
+			}
+		}
 		fnPtrReg := l.lowerExpr(ex.FnPtr)
 		args := make([]mir2.Reg, len(ex.Args))
 		for i, a := range ex.Args {
