@@ -2533,7 +2533,11 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	if b.Label != "entry" {
 		g.emitf(".%s_%s:", sanitizeIdent(f.Name), sanitizeIdent(b.Label))
 	}
-	clear(g.holdsPhys)  // all register aliases unknown at block entry
+	clear(g.holdsPhys) // all register aliases unknown at block entry
+	// Relocations are block-local: the previous block restored everything a
+	// successor reads (restoreLiveOutOverrides), and blocks are laid out in an
+	// order unrelated to control flow, so nothing may leak into this one.
+	clear(g.physOverride)
 	g.lastFlagsLhs = "" // flags state unknown at block entry
 	g.lastFlagsRhs = ""
 	g.blockT = 0 // reset per-block T-state accumulator
@@ -2615,6 +2619,7 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	}
 
 	if peep.bodyLbl != "" {
+		g.restoreLiveOutOverrides(f, b.Term)
 		g.emitf("    DJNZ %s", peep.bodyLbl)
 		// Exit path after DJNZ falls through (B=0).
 		// Use the check block's Else edge copies.

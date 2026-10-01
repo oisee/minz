@@ -12,9 +12,11 @@ import (
 	"github.com/minz/minzc/pkg/z80asm"
 )
 
-// judgeCycleBudget bounds one call. A correct gcd(1,255) needs ~15k T-states;
-// anything that runs past the budget is a non-terminating miscompile.
-const judgeCycleBudget = 2_000_000
+// judgeStepBudget bounds one call in executed instructions. A correct
+// gcd(1,255) needs ~1.3k; anything past the budget is a non-terminating
+// miscompile. RemogattoZ80.MaxCycles cannot be used: its T-state counter does
+// not advance (contention callbacks are stubs), so Run never hits the limit.
+const judgeStepBudget = 200_000
 
 // u8Judge runs a two-argument u8 function on the Z80 for every input pair in
 // a domain. The program is assembled once; per input the image is reloaded
@@ -66,8 +68,11 @@ func (j *u8Judge) run(z *emulator.RemogattoZ80, a, b uint8) (int64, error) {
 			return 0, err
 		}
 	}
-	if err := z.Run(); err != nil {
-		return 0, err
+	for steps := 0; !z.IsHalted(); steps++ {
+		if steps >= judgeStepBudget {
+			return 0, fmt.Errorf("no HALT within %d instructions", judgeStepBudget)
+		}
+		z.Step()
 	}
 	return hirReturnValue(j.fn, z.GetRegisters())
 }
@@ -81,7 +86,6 @@ type judgeMismatch struct {
 // sweep compares every (a,b) in the domain against an independent Go model.
 func (j *u8Judge) sweep(domain func(a, b uint8) bool, model func(a, b uint8) int64) (checked int, bad []judgeMismatch) {
 	z := emulator.NewRemogattoZ80()
-	z.MaxCycles = judgeCycleBudget
 	for a := 0; a < 256; a++ {
 		for b := 0; b < 256; b++ {
 			if !domain(uint8(a), uint8(b)) {
@@ -199,5 +203,13 @@ func TestExhaustiveJudgeNegativeControls(t *testing.T) {
 	mutated.asm = subFix.asm[:start+ret] + "    INC A\n" + subFix.asm[start+ret:]
 	if _, bad := newU8Judge(t, mutated, "sub8", false).sweep(asymmetric, minus); len(bad) == 0 {
 		t.Fatal("negative control failed: mutated sub8 matched a - b everywhere")
+	}
+
+	// Control 3: a body that never returns must be reported, not hang.
+	hanging := subFix
+	hanging.asm = strings.Replace(subFix.asm, "\nsub8:\n", "\nsub8:\n.sub8_hang:\n    JR .sub8_hang\n", 1)
+	tiny := func(a, b uint8) bool { return a >= 1 && a <= 2 && b >= 1 && b <= 2 && a != b }
+	if checked, bad := newU8Judge(t, hanging, "sub8", false).sweep(tiny, minus); len(bad) != checked || checked == 0 {
+		t.Fatalf("negative control failed: hanging sub8 reported %d/%d", len(bad), checked)
 	}
 }
