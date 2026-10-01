@@ -5503,33 +5503,10 @@ func (g *z80cg) genExt(inst *Inst) {
 	if inst.SrcTy == TyBool && dstW == 8 && src == "F" {
 		// A comparison in F is a predicate, not a byte. Materialize its
 		// actual condition as 0/1; carry alone is wrong for GE/LE/EQ.
-		cc := g.condCode(g.fn, inst.Src[0])
-		idx := g.trampIdx
-		g.trampIdx++
-		trueLabel := fmt.Sprintf(".bool_true_%d", idx)
-		falseLabel := fmt.Sprintf(".bool_false_%d", idx)
-		doneLabel := fmt.Sprintf(".bool_done_%d", idx)
-		switch cc {
-		case "CLE":
-			g.emitf("    JP C, %s", trueLabel)
-			g.emitf("    JP Z, %s", trueLabel)
-		case "CGT":
-			g.emitf("    JP Z, %s", falseLabel)
-			g.emitf("    JP C, %s", falseLabel)
-			g.emitf("    JP %s", trueLabel)
-		default:
-			g.emitf("    JP %s, %s", cc, trueLabel)
-		}
-		g.emitf("%s:", falseLabel)
-		g.emit("    LD A, 0")
-		g.emitf("    JP %s", doneLabel)
-		g.emitf("%s:", trueLabel)
-		g.emit("    LD A, 1")
-		g.emitf("%s:", doneLabel)
+		g.emitFlagPredicateByte(g.condCode(g.fn, inst.Src[0]))
 		if dst != "A" {
 			g.emitLD8(dst, "A")
 		}
-		g.invalidate("A")
 		g.pendingFlagReg = NoReg
 		return
 	}
@@ -5553,6 +5530,34 @@ func (g *z80cg) genExt(inst *Inst) {
 	}
 	// Fallback.
 	g.comment(fmt.Sprintf("TODO: ext %s→%s %s→%s", inst.SrcTy, inst.Ty, src, dst))
+}
+
+// emitFlagPredicateByte writes a canonical 0/1 bool to A from the current
+// condition flags, including two-test predicates (C or Z, NC and NZ).
+func (g *z80cg) emitFlagPredicateByte(cc string) {
+	idx := g.trampIdx
+	g.trampIdx++
+	trueLabel := fmt.Sprintf(".bool_true_%d", idx)
+	falseLabel := fmt.Sprintf(".bool_false_%d", idx)
+	doneLabel := fmt.Sprintf(".bool_done_%d", idx)
+	switch cc {
+	case "CLE":
+		g.emitf("    JP C, %s", trueLabel)
+		g.emitf("    JP Z, %s", trueLabel)
+	case "CGT":
+		g.emitf("    JP Z, %s", falseLabel)
+		g.emitf("    JP C, %s", falseLabel)
+		g.emitf("    JP %s", trueLabel)
+	default:
+		g.emitf("    JP %s, %s", cc, trueLabel)
+	}
+	g.emitf("%s:", falseLabel)
+	g.emit("    LD A, 0")
+	g.emitf("    JP %s", doneLabel)
+	g.emitf("%s:", trueLabel)
+	g.emit("    LD A, 1")
+	g.emitf("%s:", doneLabel)
+	g.invalidate("A")
 }
 
 func (g *z80cg) genSext(inst *Inst) {
@@ -6735,7 +6740,16 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		// parallel copy resolution.  Sequential moves are incorrect when two return
 		// values share the same physical register after constant folding/PBQP
 		// (e.g. both [acc]=A), causing write-after-write clobber.
-		g.emitParallelCopy(g.buildReturnCopies(t.Vals))
+		if len(t.Vals) == 1 && len(f.Contract.Returns) == 1 &&
+			f.Contract.Returns[0].Ty == TyBool &&
+			f.Contract.Returns[0].Class != ClassFlag && g.loc(t.Vals[0]) == "F" {
+			g.emitFlagPredicateByte(g.condCode(f, t.Vals[0]))
+			if dst := canonicalReturnLoc(f.Contract.Returns[0].Class, TyBool); dst != "A" {
+				g.emitLD8(dst, "A")
+			}
+		} else {
+			g.emitParallelCopy(g.buildReturnCopies(t.Vals))
+		}
 		// main() is the program entry point: use XOR A / DI / HALT instead of
 		// RET so mze/mzx can detect program termination cleanly.  XOR A zeroes
 		// A for a clean exit code 0.

@@ -2,7 +2,6 @@ package hir_test
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/minz/minzc/pkg/hir"
@@ -113,33 +112,20 @@ func TestSyntheticHIRLoweringOracle(t *testing.T) {
 		})
 	}
 
-	// Start the next boundary with the same HIR corpus: VM versus assembled Z80
-	// for two byte-sized shapes. The wider cases remain VM-only until their ABI
-	// and emulator harness are covered independently.
-	asm := compileHIR(t, module)
+	// Reuse the same HIR corpus on assembled Z80. The bootstrap and observed
+	// return follow the lowered contract plus the actual register allocation.
+	fixture := compileHIRFixture(t, module)
 	for _, tc := range trials {
-		if tc.fn != "nested_u8" && tc.fn != "signed_less" {
+		if tc.fn != "nested_u8" && tc.fn != "signed_less" &&
+			tc.fn != "wide_add" && tc.fn != "abs_diff" {
 			continue
 		}
 		t.Run("z80/"+fmt.Sprintf("%s/%v", tc.fn, tc.args), func(t *testing.T) {
-			// Pin this bootstrap to the allocator's printed ABI. R2.2 will
-			// replace the per-function locations with a contract-driven runner.
-			arg0 := "B"
-			wantABI := "a: u8 = B, b: u8 = C"
-			if tc.fn == "signed_less" {
-				arg0 = "A"
-				wantABI = "a: i8 = A, b: i8 = C"
-			}
-			if !strings.Contains(asm, wantABI) {
-				t.Fatalf("test bootstrap ABI changed; update it:\n%s", asm)
-			}
-			boot := fmt.Sprintf("    ORG 0x%04X\n    LD SP, 0xFF00\n    LD %s, %d\n    LD C, %d\n    CALL %s\n    DI\n    HALT\n",
-				testLoadAddr, arg0, tc.args[0], tc.args[1], tc.fn)
-			got, _, err := runZ80(t, boot+asm)
+			got, err := runHIRZ80(t, fixture, tc.fn, tc.args)
 			if err != nil {
 				t.Fatal(err)
 			}
-			if int64(got) != tc.want {
+			if got != tc.want {
 				t.Fatalf("Z80 got %d, oracle %d", got, tc.want)
 			}
 		})
