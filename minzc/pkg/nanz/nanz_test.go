@@ -79,6 +79,26 @@ func TestParse(t *testing.T) {
 	}
 }
 
+func TestWideIntegerLiteralInference(t *testing.T) {
+	m, err := nanz.Parse(`fun main() {
+    let byte = 255
+    let word = 65535
+    let three = 65536
+    let four = 16777216
+}`, "wide_literals")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []mir2.Ty{mir2.TyU8, mir2.TyU16, mir2.TyU24, mir2.TyU32}
+	for i, ty := range want {
+		decl := m.Funcs[0].Body.Body[i].(*hir.VarDeclStmt)
+		lit := decl.Init.(*hir.IntLitExpr)
+		if decl.Ty != ty || lit.Ty != ty {
+			t.Errorf("literal %d: declaration %v, literal %v; want %v", lit.Val, decl.Ty, lit.Ty, ty)
+		}
+	}
+}
+
 func TestGlobalStringByteArrayInitializer(t *testing.T) {
 	src := `global path: [u8; 9] = "save.dat"
 global escaped: [u8; 6] = c"a\nb"
