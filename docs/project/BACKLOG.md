@@ -1,13 +1,13 @@
 # MinZ — статус и дерево бэклога
 
-**Актуализация 2026-09-30:** главная ветка переименована в `main`; снимок до уборки сохранён в `main-archive` на `7cee4aae`. [Карта веток, ссылок, субмодулей и CI](reports/2026-09-30-Repository-Cleanup-and-Branch-Map.md) описывает изменения после исходного аудита ниже. A1/A2 выполнены: `PR gate` прошёл [в PR #20](https://github.com/oisee/minz/pull/20), `main` защищён обязательными PR и актуальной проверкой. Пять устаревших workflow удалены; до пересборки автоматизирован только CI/PR gate. Полный набор тестов остаётся отдельной открытой задачей A3/A5.
+**Актуализация 2026-09-30:** главная ветка переименована в `main`; снимок до уборки сохранён в `main-archive` на `7cee4aae`. [Карта веток, ссылок, субмодулей и CI](../../reports/2026-09-30-Repository-Cleanup-and-Branch-Map.md) описывает изменения после исходного аудита ниже. A1/A2 выполнены: `PR gate` прошёл [в PR #20](https://github.com/oisee/minz/pull/20), `main` защищён обязательными PR и актуальной проверкой. Пять устаревших workflow удалены; до пересборки автоматизирован только CI/PR gate. Полный набор тестов остаётся отдельной открытой задачей A3/A5.
 
-**Релиз и Z-machine:** [проверка зрелости Nanz и инвентаризация артефактов](reports/2026-09-30-Release-and-ZMachine-Maturity-RU.md) добавляет трек J. Это экспериментальный E2E gate после A3/A4/C3, а не условие ближайшего correctness release.
+**Релиз и Z-machine:** [проверка зрелости Nanz и инвентаризация артефактов](../../reports/2026-09-30-Release-and-ZMachine-Maturity-RU.md) добавляет трек J. Это экспериментальный E2E gate после A3/A4/C3, а не условие ближайшего correctness release.
 
 Дата: **2026-09-19**. База: **`f51171a5`**, `master`, после `git fetch origin` совпадает с `origin/master`.
-Это текущая очередь решений и работ; старые планы сохраняют исторические детали. Расширенный [аудит MinZ, gpuforce, Z80/6502 optimizer и архивов](reports/2026-09-19-Ecosystem-Audit-RU.md) содержит свежие проверки и ограничения.
+Это текущая очередь решений и работ; старые планы сохраняют исторические детали. Расширенный [аудит MinZ, gpuforce, Z80/6502 optimizer и архивов](../../reports/2026-09-19-Ecosystem-Audit-RU.md) содержит свежие проверки и ограничения.
 
-Свежий [глубокий технический аудит](reports/2026-09-19-Deep-Technical-Audit-RU.md) уточняет приоритеты: GPU witness race, aliases, dense indexing, reader contracts и AY register semantics. Исправления ещё не внесены.
+Свежий [глубокий технический аудит](../../reports/2026-09-19-Deep-Technical-Audit-RU.md) уточняет приоритеты: GPU witness race, aliases, dense indexing, reader contracts и AY register semantics. Исправления ещё не внесены.
 
 ## Где проект сейчас
 
@@ -15,12 +15,12 @@
 
 | Область | Где смотреть | Состояние и перспектива |
 |---|---|---|
-| Production-компилятор | [CLI](minzc/cmd/minzc/main.go), [pipeline](minzc/pkg/pipeline/pipeline.go), [MIR2](minzc/pkg/mir2) | PBQP + Z80 codegen; PFCCO остаётся на production-пути. Лучший кандидат на ближайший correctness release. |
-| Языки | [Nanz](minzc/pkg/nanz), [C](minzc/pkg/c89), [Frill](minzc/pkg/frill), [Lizp](minzc/pkg/lizp), [Lanz](minzc/pkg/lanz), [Pascal](minzc/pkg/pascal), [PL/M](minzc/pkg/plm), [ABAP](minzc/pkg/abap) | Широкая поверхность, неодинаковая готовность. Nanz/C — предлагаемый поддерживаемый минимум; остальные получают явную матрицу возможностей. |
-| Инструменты и runtime | [cmd](minzc/cmd), [stdlib](stdlib), [примеры](examples), [fun](fun) | MZA, MZE, MZV, MZX, debugger/LSP и платформенные библиотеки уже имеют код; наличие команды не доказывает готовность сценария. |
-| Исследования | [VIR](minzc/pkg/vir), [LIR](minzc/pkg/lir), [oracle](minzc/cmd/vir-oracle), [research](research) | VIR убран из production, `--vir` удалён. Offline oracle и таблицы сохранены; LIR экспериментальный. Физическое разделение shared-кода и solver ещё отдельная задача. |
-| Другие targets | [LLVM](minzc/pkg/mir2llvm), [GPU](minzc/pkg/mir2gpu), `minzc/pkg/mir2{c,go,qbe,wasm}` | Рассматривать по отдельным возможностям: генерация, сборка, исполнение, asserts. В LLVM/GPU найдены ветки, выдающие TODO вместо ошибки. |
-| Документация и поставка | [README](README.md), [STATUS](STATUS.md), [snapshot](COMPILER_SNAPSHOT.md), [CI](.github/workflows/ci.yml) | Статусы расходятся; STATUS/snapshot датированы 2025. CI всё ещё требует Go 1.20/1.21, root npm и отсутствующие `deps/build` в minzc Makefile при Go 1.24 в модуле. |
+| Production-компилятор | [CLI](../../minzc/cmd/minzc/main.go), [pipeline](../../minzc/pkg/pipeline/pipeline.go), [MIR2](../../minzc/pkg/mir2) | PBQP + Z80 codegen; PFCCO остаётся на production-пути. Лучший кандидат на ближайший correctness release. |
+| Языки | [Nanz](../../minzc/pkg/nanz), [C](../../minzc/pkg/c89), [Frill](../../minzc/pkg/frill), [Lizp](../../minzc/pkg/lizp), [Lanz](../../minzc/pkg/lanz), [Pascal](../../minzc/pkg/pascal), [PL/M](../../minzc/pkg/plm), [ABAP](../../minzc/pkg/abap) | Широкая поверхность, неодинаковая готовность. Nanz/C — предлагаемый поддерживаемый минимум; остальные получают явную матрицу возможностей. |
+| Инструменты и runtime | [cmd](../../minzc/cmd), [stdlib](../../stdlib), [примеры](../../examples), [fun](../../fun) | MZA, MZE, MZV, MZX, debugger/LSP и платформенные библиотеки уже имеют код; наличие команды не доказывает готовность сценария. |
+| Исследования | [VIR](../../minzc/pkg/vir), [LIR](../../minzc/pkg/lir), [oracle](../../minzc/cmd/vir-oracle), [research](../../research) | VIR убран из production, `--vir` удалён. Offline oracle и таблицы сохранены; LIR экспериментальный. Физическое разделение shared-кода и solver ещё отдельная задача. |
+| Другие targets | [LLVM](../../minzc/pkg/mir2llvm), [GPU](../../minzc/pkg/mir2gpu), `minzc/pkg/mir2{c,go,qbe,wasm}` | Рассматривать по отдельным возможностям: генерация, сборка, исполнение, asserts. В LLVM/GPU найдены ветки, выдающие TODO вместо ошибки. |
+| Документация и поставка | [README](../../README.md), [STATUS](../_archive/root-legacy/STATUS.md), [snapshot](../_archive/root-legacy/COMPILER_SNAPSHOT.md), [CI](../../.github/workflows/ci.yml) | Статусы расходятся; STATUS/snapshot датированы 2025. CI всё ещё требует Go 1.20/1.21, root npm и отсутствующие `deps/build` в minzc Makefile при Go 1.24 в модуле. |
 
 ### Что проверено в этой сессии
 
@@ -31,7 +31,7 @@
 - Рабочее дерево содержит пользовательские untracked-файлы. Showcase сканирует файловую систему, поэтому они влияют на набор тестов. Текущий прогон **не является чистым release baseline**; эти файлы не входят в данный коммит.
 - Полный `test-all`, GPU execution, интерактивные demos и сравнение с SDCC в этой сессии не выполнялись.
 
-Августовские **37/39 C Z80 asserts**, **28/30 ABAP assemble**, **59/129 MinZ parse** — исторические измерения, а не сегодняшние результаты. Сентябрьский [аудит](reports/2026-09-16-Compiler-State-Audit.md) прямо указывает старую базу `77f8ed19`: его дефекты сначала перепроверять на текущем production-пути.
+Августовские **37/39 C Z80 asserts**, **28/30 ABAP assemble**, **59/129 MinZ parse** — исторические измерения, а не сегодняшние результаты. Сентябрьский [аудит](../../reports/2026-09-16-Compiler-State-Audit.md) прямо указывает старую базу `77f8ed19`: его дефекты сначала перепроверять на текущем production-пути.
 
 ## Как читать приоритеты
 
@@ -110,20 +110,20 @@ MinZ
 ### Трек J: порядок и приёмка
 
 1. **J1 — быстрый фундамент для сравнения.** Пинованный Z-machine v3 story hash и лицензия; маленькие независимые test stories; ожидаемые output, память, стек, PC и ветвления. Эталон запускается отдельно от MinZ. Не использовать старый CP/M Zork в `mze` как доказательство Nanz-компиляции.
-2. **J2 — семантика.** [West of House](examples/zmachine/zork-west-demo/README.md) уже проходит через Nanz core и `mzv`: полный детерминированный transcript сверяется в CI. Следующий шаг — отдельные opcode/state fixtures и расширение покрытия v3. Go host используется только для загрузки файла и терминального ввода; декодер и интерпретатор написаны на Nanz.
+2. **J2 — семантика.** [West of House](../../examples/zmachine/zork-west-demo/README.md) уже проходит через Nanz core и `mzv`: полный детерминированный transcript сверяется в CI. Следующий шаг — отдельные opcode/state fixtures и расширение покрытия v3. Go host используется только для загрузки файла и терминального ввода; декодер и интерпретатор написаны на Nanz.
 3. **J3 — отложенный Z80-путь.** По текущему приоритету пользователя сначала закрываем J2d и полный проверяемый Z3-suite на `mzv`; к `mz` → `mza` → `mze`/`mzx` вернёмся после этого. Тогда трасса и конечное состояние должны совпасть с J2 и эталоном; wrong-code превращается в минимальный Nanz regression для A4/B/C.
 4. **J4 — платформа.** Отдельный 128K memory layout и banked story reader, бюджет ROM/RAM/stack и загрузчик; тест на границе 16K страниц. Текущий `mza` создаёт 48K SNA, а headless `mzx --tap` ещё не устанавливает tape trap: готовность TAP не предполагается.
 5. **J5 — тяжёлый сценарий.** Воспроизводимо собранный MIT Zork I v3 проходит старт, `LOOK` и короткий детерминированный transcript на `mzv` и Spectrum; лимиты памяти и времени измерены. Только после этого решать, класть ли отдельный `zvm-zx` demo в релиз. `mzv` остаётся host-инструментом.
 
 J1 можно начать параллельно с текущими P0-задачами; первый работающий J2a уже есть, а J2b и J3 зависят от A3/A4/C3. J4/J5 не блокируют узкий релиз D5. Подробные evidence, зависимость от 128K и состав пакетов — в связанном отчёте.
 
-Первый J1 fixture: [MIT Zork I «West of House» micro-demo](examples/zmachine/zork-west-demo/README.md), Z3 story 2 378 байт с исходником и воспроизводимой сборкой. `mzv` исполняет его через Nanz core; независимый opcode/state oracle и trace schema ещё не готовы. Spectrum-интерпретатора пока нет.
+Первый J1 fixture: [MIT Zork I «West of House» micro-demo](../../examples/zmachine/zork-west-demo/README.md), Z3 story 2 378 байт с исходником и воспроизводимой сборкой. `mzv` исполняет его через Nanz core; независимый opcode/state oracle и trace schema ещё не готовы. Spectrum-интерпретатора пока нет.
 
 **Найдено при J2a (C3):** минимальный `global vals: [u16; 4]` с `vals[1] = 1695` в `mzv` читается как `0:159` вместо `6:159`; `if x >= 32 && x < 127` в функции даёт `mir2.VM: cannot resolve symbol "x"`. В Z3 core оба случая обойдены байтовым хранением и вложенными `if`; исправление frontend/MIR2 и отдельные регрессии остаются задачей C3. Для headless `mzv` также устранён выход всего процесса на EOF stdin и потеря строк из-за двух конкурирующих читателей; девятикомандный transcript проверяет этот путь.
 
-[Проверка внешнего Z3-корпуса](reports/2026-09-30-ZMachine-V3-Test-Corpus-RU.md): CZECH v3 — 10 752 байта и группы opcode с возможностью пропуска; готовая MIT-игра Dark Pit — 27 490 байт. Для J1/J3 сначала маленькие fixtures и CZECH, затем игра как интеграционный тест. CZECH распространяется под собственной разрешительной лицензией, поэтому пока только pinned external input, без копии в репозитории.
+[Проверка внешнего Z3-корпуса](../../reports/2026-09-30-ZMachine-V3-Test-Corpus-RU.md): CZECH v3 — 10 752 байта и группы opcode с возможностью пропуска; готовая MIT-игра Dark Pit — 27 490 байт. Для J1/J3 сначала маленькие fixtures и CZECH, затем игра как интеграционный тест. CZECH распространяется под собственной разрешительной лицензией, поэтому пока только pinned external input, без копии в репозитории.
 
-**J2c/J2e (2026-09-30):** `czech-smoke.sh` проверяет SHA-256 внешнего Z3 story: 368 tests, 349 passed, 0 failed, 19 print cases. С Frotz сверяется текст всех print cases, кроме отличий в расположении пустых строк. [MIT fixtures](examples/zmachine/z3-fixtures/README.md) отдельно проверяют вложенный memory stream, transcript, запись/воспроизведение команд, persistent save/restore с проверкой идентичности story, дополнительные символы ZSCII с UTF-8 выводом и вызов процедуры у границы 128K. Полный MIT Zork I 86 928 байт проходит шесть команд `LOOK → OPEN MAILBOX → TAKE LEAFLET → READ LEAFLET → INVENTORY → QUIT` с совпадением игрового текста с Frotz, а также `save → restore`; Dark Pit 27 490 байт — старт, `look`/`inventory` и `restart`. J2d остаётся открытым: экран/status, sound, ошибки на границах и более длинный gameplay пока не доказаны; UTF-8 ввод дополнительных символов проверен отдельным fixture. Общий `go test -short ./pkg/nanz` остаётся красным на bit accessor, Lanz/Lizp imports и Z80 showcase; `pkg/pipeline`, мета-функции и Z3 smoke зелёные.
+**J2c/J2e (2026-09-30):** `czech-smoke.sh` проверяет SHA-256 внешнего Z3 story: 368 tests, 349 passed, 0 failed, 19 print cases. С Frotz сверяется текст всех print cases, кроме отличий в расположении пустых строк. [MIT fixtures](../../examples/zmachine/z3-fixtures/README.md) отдельно проверяют вложенный memory stream, transcript, запись/воспроизведение команд, persistent save/restore с проверкой идентичности story, дополнительные символы ZSCII с UTF-8 выводом и вызов процедуры у границы 128K. Полный MIT Zork I 86 928 байт проходит шесть команд `LOOK → OPEN MAILBOX → TAKE LEAFLET → READ LEAFLET → INVENTORY → QUIT` с совпадением игрового текста с Frotz, а также `save → restore`; Dark Pit 27 490 байт — старт, `look`/`inventory` и `restart`. J2d остаётся открытым: экран/status, sound, ошибки на границах и более длинный gameplay пока не доказаны; UTF-8 ввод дополнительных символов проверен отдельным fixture. Общий `go test -short ./pkg/nanz` остаётся красным на bit accessor, Lanz/Lizp imports и Z80 showcase; `pkg/pipeline`, мета-функции и Z3 smoke зелёные.
 
 ## Карточки: первый шаг, зависимости, критерий готовности
 
@@ -210,7 +210,7 @@ J1 можно начать параллельно с текущими P0-зад�
 - `bd4f98cc`: short guards, test-quick, увеличенный timeout, ratcheting parse floor. Достоверный exit code, полный corpus gate и CI этим не закрыты.
 - `f51171a5`: обновлены build-команды и inventory в CLAUDE; другие status-файлы всё ещё требуют D2.
 
-Подробная предыстория: [ремедиация](docs/Codegen_Remediation_Roadmap.md), [innovation agenda](docs/Innovation_Agenda.md), [ADR-0043](docs/adr/0043-vir-demoted-to-offline-oracle.md), [августовский seed](contexts/2026-08-21-seed-sprint1-continue.md), [IRC/TUI seed](contexts/2026-04-09-seed-irc-tui-runtime.md), [Open Bugs RCA](docs/Open_Bugs_RCA.md).
+Подробная предыстория: [ремедиация](../Codegen_Remediation_Roadmap.md), [innovation agenda](../Innovation_Agenda.md), [ADR-0043](../adr/0043-vir-demoted-to-offline-oracle.md), [августовский seed](../../contexts/2026-08-21-seed-sprint1-continue.md), [IRC/TUI seed](../../contexts/2026-04-09-seed-irc-tui-runtime.md), [Open Bugs RCA](../Open_Bugs_RCA.md).
 
 Правило обновления: закрывать пункт ссылкой на commit и проверку; историческую находку сначала воспроизводить на указанном backend; менять оценки после первого repro; не переносить failures в skips ради зелёного отчёта.
 

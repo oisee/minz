@@ -32,7 +32,7 @@
 - [ ] `minz-docs-0.2.0.pdf` - Complete language reference
 - [ ] `minz-tutorial.pdf` - Getting started guide
 - [ ] `minz-examples.zip` - All example programs
-- [ ] `CHANGELOG.md` - Version changes
+- [ ] `docs/CHANGELOG.md` - Version changes
 - [ ] `API_REFERENCE.md` - Compiler API docs
 
 ### 6. Development Kit

@@ -153,3 +153,6 @@ research/paper-a/data/exhaustive_4v_complete.jsonl
 # Test-run artifacts (rewritten by every `go test ./pkg/...`)
 minzc/pkg/z80testing/tsmc_benchmark_report.txt
 minzc/tests/corpus/results/summary.json
+# Personal editor and AI assistant configuration stays local.
+/.claude/
+/.vscode/

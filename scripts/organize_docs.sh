@@ -5,6 +5,7 @@
 # Format: YYYY-MM-DD-NNN-Topic.md
 
 set -e
+cd "$(dirname "$0")/.."
 
 # Colors for output
 GREEN='\033[0;32m'

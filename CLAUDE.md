@@ -112,7 +112,7 @@ trusted until it is fixed or removed.
 
 ## 🎓 Quick Start for AI Colleagues
 
-- **[MinZ Crash Course for AI Colleagues](AI_COLLEAGUES_MINZ_CRASH_COURSE.md)** - Complete training
+- **[MinZ Crash Course for AI Colleagues](docs/_archive/root-legacy/AI_COLLEAGUES_MINZ_CRASH_COURSE.md)** - Historical training material
 - **[GenPlan.md](docs/GenPlan.md)** - Development plan & roadmap
 - **[Open Bugs & RCA](docs/Open_Bugs_RCA.md)** - Known issues with root cause analysis
 
@@ -122,7 +122,7 @@ trusted until it is fixed or removed.
 - **[LIR_Backend_Reference.md](docs/LIR_Backend_Reference.md)** - Quick reference: pipeline, DSLs, data structures
 - **VIR Backend** (`pkg/vir/`) - Z3 unified solver: joint isel+regalloc, PFCCO, inline runtime — see §5 in Current Priorities
 - **[INTERNAL_ARCHITECTURE.md](minzc/docs/INTERNAL_ARCHITECTURE.md)** - Complete compiler internals
-- **[COMPILER_SNAPSHOT.md](COMPILER_SNAPSHOT.md)** - Current state tracking
+- **[COMPILER_SNAPSHOT.md](docs/_archive/root-legacy/COMPILER_SNAPSHOT.md)** - Historical snapshot; use dated reports for current evidence
 - **[149_World_Class_Multi_Level_Optimization_Guide.md](https://github.com/oisee/minz/blob/main-archive/docs/_archive_2025/2025-08-07-149-World_Class_Multi_Level_Optimization_Guide.md)** - Historical optimization strategy
 - **[Report 097: Rewrite Triad](reports/2026-03-19-097-Rewrite-Triad-Infrastructure.md)** - ISLE+Grace+Datalog declarative optimization engines (infrastructure, not yet in pipeline)
 - **[Report 111: GPU Regalloc Table](reports/2026-03-24-111-GPU-Precomputed-Regalloc-Table.md)** - Precomputed register allocation from CUDA brute-force (61 entries, O(1) lookup)
