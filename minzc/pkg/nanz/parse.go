@@ -541,6 +541,7 @@ type parser struct {
 	pipes           map[string][]pipeStep       // pipe/trans name → stages
 	lambdaHintTy    mir2.Ty                     // type hint for untyped lambda params (set by chain context)
 	metaFuncs       map[string]string           // @name → full Nanz source of metafunction
+	metaExpandDepth int                         // guard recursive statement-position expansion
 	// ADT (algebraic data types) — enums with payload variants
 	adts         map[string]*nanzADT     // type name → ADT definition
 	adtCtors     map[string]*nanzADTCtor // constructor name → ctor (for match + expr)
@@ -1444,6 +1445,7 @@ func (p *parser) parseImport() error {
 
 	// Dispatch to the right parser based on file extension.
 	var imported *hir.Module
+	var importedMetaFuncs map[string]string
 	ext := filepath.Ext(filePath)
 	switch ext {
 	case ".lanz":
@@ -1464,7 +1466,9 @@ func (p *parser) parseImport() error {
 			childOpts.Loaded[k] = v
 		}
 		childOpts.Loaded[absPath] = true
-		imported, err = ParseWithOpts(string(src), modPath, childOpts)
+		child := &parser{l: newLexer(string(src)), name: modPath, opts: childOpts}
+		imported, err = child.parseModule()
+		importedMetaFuncs = child.metaFuncs
 	}
 	if err != nil {
 		return fmt.Errorf("line %d: import %s: %w", line, modPath, err)
@@ -1474,6 +1478,30 @@ func (p *parser) parseImport() error {
 	// Module prefix for name mangling: "tui.render" → "tui__render__"
 	// Uses __ instead of $ for Z80 assembler label compatibility.
 	modPrefix := strings.ReplaceAll(modPath, ".", "__") + "__"
+
+	// Metafunctions are compile-time declarations, so they have no HIR symbol
+	// to mangle. Expose only the names selected by this import. Invocation is
+	// expanded by the caller's parser and resolves its runtime names there.
+	for name, source := range importedMetaFuncs {
+		localName := ""
+		if globImport {
+			localName = name
+		}
+		for _, sym := range selected {
+			if sym.name == name {
+				localName = sym.name
+				if sym.alias != "" {
+					localName = sym.alias
+				}
+			}
+		}
+		if localName != "" {
+			if _, exists := p.metaFuncs[localName]; exists {
+				return fmt.Errorf("line %d: import %s: duplicate metafunction @%s", line, modPath, localName)
+			}
+			p.metaFuncs[localName] = strings.Replace(source, "\nfun "+name, "\nfun "+localName, 1)
+		}
+	}
 
 	// Build name mapping: original → mangled (for all symbols in imported module)
 	nameMap := make(map[string]string)
@@ -2944,6 +2972,14 @@ func isCheckOrPropagate(s hir.Stmt) bool {
 
 func (p *parser) parseStmt() (hir.Stmt, error) {
 	t := p.l.peek()
+	if t.kind == tokAt {
+		name := p.l.peekN(1)
+		if name.kind == tokIdent {
+			if metaSrc, ok := p.metaFuncs[name.val]; ok {
+				return p.parseMetaStmt(metaSrc, name.val)
+			}
+		}
+	}
 
 	switch {
 	case t.kind == tokIdent && t.val == "var":
@@ -2976,6 +3012,74 @@ func (p *parser) parseStmt() (hir.Stmt, error) {
 		// expr (= expr)? — assignment or bare call
 		return p.parseExprStmt()
 	}
+}
+
+// parseMetaStmt expands a user metafunction in the caller's lexical scope.
+// The compile-time function emits Nanz statements; parsing those statements
+// with this parser lets normal name/type resolution see local variables.
+func (p *parser) parseMetaStmt(metaSrc, name string) (hir.Stmt, error) {
+	callLine := p.l.peek().line
+	if p.metaExpandDepth >= 32 {
+		return nil, fmt.Errorf("line %d: @%s: metafunction expansion limit reached", callLine, name)
+	}
+	p.l.next() // @
+	p.l.next() // name
+	var scalarArgs []string
+	if p.l.is(tokLParen) {
+		p.l.next()
+		for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
+			arg := p.l.next()
+			if arg.kind != tokString && arg.kind != tokInt {
+				return nil, fmt.Errorf("line %d: @%s: compile-time arguments must be string or integer literals", arg.line, name)
+			}
+			value := arg.val
+			if arg.kind == tokString {
+				if idx := strings.IndexByte(value, 0); idx >= 0 {
+					value = value[idx+1:]
+				}
+				value = processStringEscapes(value)
+			}
+			scalarArgs = append(scalarArgs, value)
+			if !p.l.is(tokRParen) {
+				if _, err := p.l.eat(tokComma); err != nil {
+					return nil, fmt.Errorf("line %d: @%s: %w", callLine, name, err)
+				}
+			}
+		}
+		if _, err := p.l.eat(tokRParen); err != nil {
+			return nil, fmt.Errorf("line %d: @%s: %w", callLine, name, err)
+		}
+	}
+	var block []metaBlockNode
+	if p.l.is(tokLBrace) {
+		var err error
+		block, err = parseMetaBlock(p.l)
+		if err != nil {
+			return nil, fmt.Errorf("line %d: @%s block: %w", callLine, name, err)
+		}
+	}
+	emitted, err := p.executeMetaInvocation(metaSrc, name, scalarArgs, block)
+	if err != nil {
+		return nil, fmt.Errorf("line %d: @%s: %w", callLine, name, err)
+	}
+	if strings.TrimSpace(emitted) == "" {
+		return &hir.Block{}, nil
+	}
+	outer := p.l
+	p.l = newLexer("{\n" + emitted + "\n}")
+	p.metaExpandDepth++
+	defer func() {
+		p.metaExpandDepth--
+		p.l = outer
+	}()
+	stmts, err := p.parseBlock()
+	if err != nil {
+		return nil, fmt.Errorf("line %d: @%s: emitted statements: %w\n--- generated ---\n%s", callLine, name, err, emitted)
+	}
+	if !p.l.is(tokEOF) {
+		return nil, fmt.Errorf("line %d: @%s: emitted extra tokens after statements", callLine, name)
+	}
+	return stmts, nil
 }
 
 // parseLetDecl parses:
@@ -5513,6 +5617,8 @@ func (p *parser) captureMetaFuncSource(name string) (string, error) {
 	sb.WriteString("@extern fun str_from_int(n: u16) -> ^u8\n")
 	sb.WriteString("@extern fun str_eq(a: ^u8, b: ^u8) -> u8\n")
 	sb.WriteString("@extern fun str_chr(code: u8) -> ^u8\n")
+	sb.WriteString("@extern fun str_quote_c(s: ^u8) -> ^u8\n")
+	sb.WriteString("@extern fun meta_error(message: ^u8) -> void\n")
 	sb.WriteString("@extern fun block_nodes() -> ^u8\n")
 	sb.WriteString("@extern fun emit_tui_puts(s: ^u8) -> void\n")
 	sb.WriteString("@extern fun emit_tui_goto(x: u8, y: u8) -> void\n")

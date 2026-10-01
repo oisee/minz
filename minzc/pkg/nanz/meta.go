@@ -284,6 +284,37 @@ func (mr *metaRuntime) registerHosts(vm *mir2.VM, block []metaBlockNode) {
 		}
 		return []mir2.Value{{I: 0}}, nil
 	}
+
+	// Quote a compile-time string for generated Nanz source.
+	vm.Hosts["str_quote_c"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		s := mr.readCString(args[0].I)
+		var b strings.Builder
+		b.WriteString("c\"")
+		for _, ch := range []byte(s) {
+			switch ch {
+			case '\\':
+				b.WriteString("\\\\")
+			case '"':
+				b.WriteString("\\\"")
+			case '\n':
+				b.WriteString("\\n")
+			case '\r':
+				b.WriteString("\\r")
+			case '\t':
+				b.WriteString("\\t")
+			default:
+				if ch < 32 || ch == 127 {
+					return nil, fmt.Errorf("str_quote_c: unsupported control byte %d", ch)
+				}
+				b.WriteByte(ch)
+			}
+		}
+		b.WriteByte('"')
+		return []mir2.Value{mr.allocString(b.String())}, nil
+	}
+	vm.Hosts["meta_error"] = func(args []mir2.Value) ([]mir2.Value, error) {
+		return nil, fmt.Errorf("%s", mr.readCString(args[0].I))
+	}
 }
 
 // allocString writes a NUL-terminated string to the VM heap.
