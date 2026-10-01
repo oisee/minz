@@ -4862,6 +4862,12 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		if v > 255 || v < 0 {
 			ty = mir2.TyU16
 		}
+		if v > 65535 {
+			ty = mir2.TyU24
+		}
+		if v > 16777215 {
+			ty = mir2.TyU32
+		}
 		return &hir.IntLitExpr{Val: v, Ty: ty}, nil
 
 	case tokIdent:

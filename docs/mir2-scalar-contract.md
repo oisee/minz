@@ -33,3 +33,9 @@ The gate says nothing yet about wider types, other operations, memory or I/O,
 loops, nonconstant propagation, or native code generation. Those remain
 unknown in this oracle, even when other tests exercise them. A raw/folded VM
 match alone is not counted as independent evidence.
+
+Normalizing constants also exposed a frontend defect in the Z3 smoke test:
+Nanz had typed `131072` as `u16`, so the previous folder accidentally moved
+its untruncated immediate into a `u32` capacity argument. Nanz now infers
+`u24`/`u32` for larger positive literals. The Z3 demo and fixture smoke tests
+exercise that integration path; they are not part of the byte-oracle claim.
