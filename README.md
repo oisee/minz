@@ -6,7 +6,7 @@
 
 MinZ is an experimental compiler toolchain for writing programs for Z80 machines with modern language features. **Nanz** is its main source language; Frill, C, Pascal, ABAP and other frontends also feed the shared HIR → MIR2 pipeline. The repository includes a Z80 assembler and emulators, so a small program can go from source to execution here.
 
-The project is active research: examples and targets have different levels of maturity. Start with a runnable program below; use the [ranked backlog](docs/project/BACKLOG.md) and [dated technical audit](reports/2026-09-19-Deep-Technical-Audit-RU.md) for measured status.
+The project is active research: examples and targets have different levels of maturity. Start with a runnable program below; use the [current handover](docs/project/HANDOVER-2026-10-01.md), [ranked backlog](docs/project/BACKLOG.md), and [dated technical audit](reports/2026-09-19-Deep-Technical-Audit-RU.md) for measured status.
 
 ## Run a program
 
