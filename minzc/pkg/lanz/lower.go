@@ -28,14 +28,17 @@ func CompileNodes(nodes []Node, name string) (*hir.Module, error) {
 type compiler struct {
 	name     string
 	funcs    map[string]*hir.Func // compiled functions, for return type lookup
-	lambdaID int                   // counter for generating unique lambda names
-	module   *hir.Module           // current module (for appending lambdas)
+	globals  map[string]mir2.Ty
+	locals   map[string]mir2.Ty
+	lambdaID int         // counter for generating unique lambda names
+	module   *hir.Module // current module (for appending lambdas)
 }
 
 func (c *compiler) compileModule(nodes []Node) (*hir.Module, error) {
 	m := &hir.Module{Name: c.name}
 	c.module = m
 	c.funcs = make(map[string]*hir.Func)
+	c.globals = make(map[string]mir2.Ty)
 	for _, n := range nodes {
 		if !n.IsList() || len(n.List) == 0 {
 			return nil, fmt.Errorf("line %d: expected top-level form, got atom %q", n.Line, n.Atom)
@@ -64,6 +67,7 @@ func (c *compiler) compileModule(nodes []Node) (*hir.Module, error) {
 				return nil, err
 			}
 			m.Globals = append(m.Globals, g)
+			c.globals[g.Name] = g.Ty
 		case "struct":
 			st, err := c.compileStruct(n)
 			if err != nil {
@@ -97,6 +101,11 @@ func (c *compiler) compileFunc(n Node) (*hir.Func, error) {
 		return nil, fmt.Errorf("line %d: fun %s: %w", n.Line, name.Atom, err)
 	}
 	retTy := resolveType(n.List[3].Atom)
+	c.locals = make(map[string]mir2.Ty)
+	for _, p := range params {
+		c.locals[p.Name] = p.Ty
+	}
+	defer func() { c.locals = nil }()
 
 	var body []hir.Stmt
 	for _, s := range n.List[4:] {
@@ -362,6 +371,7 @@ func (c *compiler) compileVar(n Node) (hir.Stmt, error) {
 		}
 		st.Init = init
 	}
+	c.locals[name] = ty
 	return st, nil
 }
 
@@ -688,6 +698,12 @@ func (c *compiler) compileAtomExpr(n Node) (hir.Expr, error) {
 		return &hir.IntLitExpr{Val: v, Ty: ty}, nil
 	}
 	// Variable reference
+	if ty, ok := c.locals[s]; ok {
+		return &hir.VarRefExpr{Name: s, Ty: ty}, nil
+	}
+	if ty, ok := c.globals[s]; ok {
+		return &hir.VarRefExpr{Name: s, Ty: ty}, nil
+	}
 	return &hir.VarRefExpr{Name: s, Ty: mir2.TyU8}, nil
 }
 
@@ -707,6 +723,9 @@ func (c *compiler) compileBinExpr(n Node) (hir.Expr, error) {
 	ty := l.ExprTy()
 	if op == "==" || op == "!=" || op == "<" || op == "<=" || op == ">" || op == ">=" {
 		ty = mir2.TyBool
+	} else if op != "<<" && op != ">>" && mir2.IsInt(ty) && mir2.IsInt(r.ExprTy()) && r.ExprTy().Width() > ty.Width() {
+		// A small literal on the left must not narrow a wider right operand.
+		ty = r.ExprTy()
 	}
 	return &hir.BinExpr{Op: op, L: l, R: r, Ty: ty}, nil
 }
@@ -816,6 +835,12 @@ func (c *compiler) compileLambda(n Node) (hir.Expr, error) {
 		return nil, fmt.Errorf("line %d: lambda: %w", n.Line, err)
 	}
 	retTy := resolveType(n.List[2].Atom)
+	outerLocals := c.locals
+	c.locals = make(map[string]mir2.Ty)
+	for _, p := range params {
+		c.locals[p.Name] = p.Ty
+	}
+	defer func() { c.locals = outerLocals }()
 
 	var body []hir.Stmt
 	for _, s := range n.List[3:] {
@@ -857,7 +882,14 @@ func (c *compiler) compileLetIn(n Node) (hir.Expr, error) {
 	if err != nil {
 		return nil, fmt.Errorf("line %d: let-in: init: %w", n.Line, err)
 	}
+	previous, hadPrevious := c.locals[name]
+	c.locals[name] = ty
 	body, err := c.compileExpr(n.List[4])
+	if hadPrevious {
+		c.locals[name] = previous
+	} else {
+		delete(c.locals, name)
+	}
 	if err != nil {
 		return nil, fmt.Errorf("line %d: let-in: body: %w", n.Line, err)
 	}

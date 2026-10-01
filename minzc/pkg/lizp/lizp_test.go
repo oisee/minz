@@ -3,8 +3,39 @@ package lizp
 import (
 	"testing"
 
+	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/pipeline"
 )
+
+func TestU16ThroughHIRAndMIR2(t *testing.T) {
+	src := `(defglobal base u16 1000)
+(defun add16 ((a u16) (b u16)) -> u16 (return (+ a b)))
+(defun local16 () -> u16 (let ((n u16 1000)) (return (+ n base))))`
+	m, err := Compile(src, "wide")
+	if err != nil {
+		t.Fatal(err)
+	}
+	vm := mir2.NewVM(hir.LowerModule(m))
+	for _, tc := range []struct {
+		name string
+		args []mir2.Value
+		want int64
+	}{
+		{"add16", []mir2.Value{{I: 1000}, {I: 700}}, 1700},
+		{"local16", nil, 2000},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := vm.Call(tc.name, tc.args)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(got) != 1 || got[0].I != tc.want {
+				t.Fatalf("got %v, want %d", got, tc.want)
+			}
+		})
+	}
+}
 
 func TestCompileMinimal(t *testing.T) {
 	src := `(defun main () -> void (return))`
