@@ -25,7 +25,7 @@ def main() -> None:
         parser.error("build mzv first: make -C minzc mzv")
 
     (ROOT / "build").mkdir(exist_ok=True)
-    frame_paths = [ROOT / "build" / f"rotozoom-{i}.png" for i in range(8)]
+    frame_paths = [ROOT / "build" / f"rotozoom-{i}.png" for i in range(32)]
     for path in frame_paths:
         path.unlink(missing_ok=True)
     subprocess.run(
@@ -41,21 +41,19 @@ def main() -> None:
                 raise ValueError(f"unexpected frame size: {path}: {im.size}")
             frames.append(im.convert("RGB"))
 
-    # Ping-pong without repeating either endpoint at the turn.
-    loop = frames + frames[-2:0:-1]
     output = args.output if args.output.is_absolute() else ROOT / args.output
     output.parent.mkdir(parents=True, exist_ok=True)
-    loop[0].save(
+    frames[0].save(
         output,
         format="GIF",
         save_all=True,
-        append_images=loop[1:],
-        duration=120,
+        append_images=frames[1:],
+        duration=160,
         loop=0,
         disposal=2,
         optimize=False,
     )
-    print(f"Saved {len(loop)} frames to {output}")
+    print(f"Saved {len(frames)} frames to {output}")
 
 
 if __name__ == "__main__":

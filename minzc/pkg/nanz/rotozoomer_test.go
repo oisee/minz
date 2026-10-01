@@ -22,8 +22,7 @@ func TestRotozoomerGallery(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	vm := mir2.NewVM(hir.LowerModule(hm))
-	canvas := mir2.RegisterCanvasHosts(vm)
+	module := hir.LowerModule(hm)
 
 	file, err := os.Open("../../../media/rotozoomer.gif")
 	if err != nil {
@@ -34,11 +33,22 @@ func TestRotozoomerGallery(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(animation.Image) != 14 {
-		t.Fatalf("GIF has %d frames, want 14", len(animation.Image))
+	if len(animation.Image) != 32 {
+		t.Fatalf("GIF has %d frames, want 32", len(animation.Image))
+	}
+	if animation.LoopCount != 0 {
+		t.Fatalf("GIF loop count is %d, want infinite (0)", animation.LoopCount)
+	}
+	for frame, delay := range animation.Delay {
+		if delay != 16 {
+			t.Fatalf("frame %d delay is %d centiseconds, want 16", frame, delay)
+		}
 	}
 
-	for _, frame := range []int64{0, 3, 7} {
+	// Frame 32 must equal frame 0: the source wraps its phase instead of bouncing.
+	for _, frame := range []int64{0, 7, 16, 24, 31, 32} {
+		vm := mir2.NewVM(module)
+		canvas := mir2.RegisterCanvasHosts(vm)
 		if _, err := vm.Call("render_frame", []mir2.Value{{I: frame}}); err != nil {
 			t.Fatalf("frame %d: %v", frame, err)
 		}
@@ -55,7 +65,7 @@ func TestRotozoomerGallery(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		want := animation.Image[frame]
+		want := animation.Image[frame%32]
 		if got.Bounds() != want.Bounds() {
 			t.Fatalf("frame %d bounds: got %v, want %v", frame, got.Bounds(), want.Bounds())
 		}
