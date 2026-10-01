@@ -14,7 +14,7 @@ minz-ts/
 ├── CLAUDE.md          # AI assistant guide (never numbered)
 ├── docs/              # All numbered documentation (001-999)
 ├── inbox/             # Drop new docs here for auto-numbering
-└── organize_docs.sh   # Auto-numbering script
+└── scripts/organize_docs.sh   # Auto-numbering script
 ```
 
 ### Documentation Workflow
@@ -24,7 +24,7 @@ minz-ts/
    - Place it in the `inbox/` folder
    
 2. **Auto-Numbering**
-   - Run `./organize_docs.sh`
+   - Run `./scripts/organize_docs.sh`
    - Script finds the next available number
    - Moves and renames: `inbox/My_New_Feature_Guide.md` → `docs/165_My_New_Feature_Guide.md`
 
@@ -82,12 +82,12 @@ By number ranges (convention):
 ```bash
 # Add a new design document
 echo "# New Design" > inbox/Iterator_Design_v2.md
-./organize_docs.sh
+./scripts/organize_docs.sh
 # Creates: docs/165_Iterator_Design_v2.md
 
 # Add multiple docs
 cp *.md inbox/
-./organize_docs.sh
+./scripts/organize_docs.sh
 # Numbers them all sequentially
 ```
 
@@ -110,4 +110,4 @@ cp *.md inbox/
 
 ---
 
-*Use `./organize_docs.sh` to maintain documentation consistency!*
+*Use `./scripts/organize_docs.sh` to maintain documentation consistency!*

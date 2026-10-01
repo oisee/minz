@@ -1,7 +1,7 @@
 # Глубокий технический аудит MinZ / GPU-search / WFC / PRNG / AY
 
 **Дата:** 2026-09-19. **MinZ:** `7178a528`; compiler sources совпадают с `f51171a5`.
-**Связанные документы:** [первый обзор](2026-09-19-Ecosystem-Audit-RU.md), [бэклог](../BACKLOG.md), [протокол и воспроизведение](audit-2026-09-19-deep/README.md), [provenance](audit-2026-09-19-deep/provenance.json).
+**Связанные документы:** [первый обзор](2026-09-19-Ecosystem-Audit-RU.md), [бэклог](../docs/project/BACKLOG.md), [протокол и воспроизведение](audit-2026-09-19-deep/README.md), [provenance](audit-2026-09-19-deep/provenance.json).
 
 ## 1. Главный вывод
 

@@ -1,0 +1,20 @@
+// Minimal Nanz program for the README quick start. CP/M BDOS function 2
+// prints the character in E. The compiler passes a u8 argument in A here.
+fun putch(c: u8) -> void {
+    asm {
+        LD E, A
+        LD C, 2
+        CALL 5
+    }
+}
+
+fun main() -> void {
+    putch(72)  // H
+    putch(101) // e
+    putch(108) // l
+    putch(108) // l
+    putch(111) // o
+    putch(33)  // !
+    putch(13)  // CR
+    putch(10)  // LF
+}

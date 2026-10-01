@@ -189,7 +189,7 @@ Nice to have, not blocking.
 **Effort:** 2-3 days
 
 ### 14. Generic Types
-**Status:** 🟢 PARKED - See [ADR-002](docs/ADR_002_Generics_Parked_Crystal_Interfaces.md)
+**Status:** 🟢 PARKED - See [ADR-002](../../ADR_002_Generics_Parked_Crystal_Interfaces.md)
 **Decision:** Use Crystal-style `Type(T)` + Zero-Cost Interfaces instead of Rust `<T>`
 **Alternative:** Function overloading + @define macros (already working!)
 
@@ -317,10 +317,10 @@ Native Go parser replaces tree-sitter. No external dependencies.
 
 ## 🔗 Key Documents
 
-- [Claims Verification Report](reports/2025-12-17-001-claims-verification.md)
-- [Complete Language Specification](docs/230_MinZ_Complete_Language_Specification.md)
-- [Internal Architecture](minzc/docs/INTERNAL_ARCHITECTURE.md)
-- [CTIE Implementation](docs/178_CTIE_Working_Announcement.md)
+- Claims Verification Report (historical target unavailable)
+- Complete Language Specification (historical target unavailable)
+- [Internal Architecture](../../../minzc/docs/INTERNAL_ARCHITECTURE.md)
+- CTIE Implementation (historical target unavailable)
 
 ---
 

@@ -287,7 +287,7 @@ Extract duplicated code between headless emulator and ZX Spectrum emulator:
 ### Project Documentation
 - [CLAUDE.md](../CLAUDE.md) — AI colleague instructions and project overview
 - [INTERNAL_ARCHITECTURE.md](../minzc/docs/INTERNAL_ARCHITECTURE.md) — Compiler internals
-- [COMPILER_SNAPSHOT.md](../COMPILER_SNAPSHOT.md) — Current state tracking
+- [COMPILER_SNAPSHOT.md](_archive/root-legacy/COMPILER_SNAPSHOT.md) — historical snapshot
 
 ### Archived Plans
 Historical plans that informed this document are in [`docs/_archive_plans/`](_archive_plans/).

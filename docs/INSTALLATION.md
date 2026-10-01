@@ -28,4 +28,4 @@ git submodule update --init corpus/intel80tools examples/zvdb-minz
 
 The PL/M corpus test uses `corpus/intel80tools` when present. Set `MINZ_PLM_CORPUS_DIR` to use another checkout.
 
-See [README.md](README.md) for language examples and [BACKLOG.md](BACKLOG.md) for the current support and test status.
+See [README.md](../README.md) for language examples and [BACKLOG.md](project/BACKLOG.md) for the current support and test status.
