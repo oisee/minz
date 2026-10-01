@@ -108,3 +108,51 @@ The coverage report should list admitted and unknown types, operations,
 passes and observations with denominators. Wider symbolic, memory and
 termination proofs can follow when a specific failing or high-value case
 justifies them.
+
+## Adjacent arithmetic track: semantics before Z80 optimality
+
+The `gpuforce`/`z80-optimizer` arithmetic work is relevant, but its two claims
+must be kept apart. A typed arithmetic identity concerns MIR2 values and can
+support this gate. A fastest Z80 instruction sequence depends on register
+layout, incoming flags, clobbers, ABI and a stated cost/search model; it is a
+later backend gate. The [GPU artifact audit](../reports/2026-08-21-118-GPU-Superoptimizer-Artifacts-Audit.md)
+already reproduced carry-dependent multiply code and found that some supposedly
+exhaustive rule checks use sampled states for three or more extra live
+registers. A table's `verified` or `proven_optimal` field is therefore a lead
+to recheck, not a portable certificate.
+
+Current artifact map (local `gpuforce` checkout, 2026-10-01):
+
+| Width | Existing lead | Current boundary |
+| --- | --- | --- |
+| `u8` | multiply/divide/modulo tables and branchless idioms | input coverage exists, but ambient carry/register assumptions need independent replay |
+| `i8`, `u16`, `i16` | signed/absolute-value idioms and partial 16-bit library | selected operations, not a complete arithmetic algebra |
+| `u24`, `i24` | no matching arithmetic table found | useful MIR2 width; backend search remains open |
+| `u32`, `i32` | `u32_ops.json` has DEHL operations and `HLH'L'`/`EXX` examples | partial library; MinZ's `GetU32OpsTable` has no caller and its shadow-register zone is not wired |
+| `u64`, `i64` | no matching table or MIR2 primitive type found | future type-system and lowering decision, not current proof scope |
+
+```text
+A0  Artifact manifest and replay                     quick win, Z80 evidence
+    ├─ Pin source revision, table hash, ISA/model version and search pool.
+    ├─ State input width, live registers, flags, clobbers and cost objective.
+    └─ Replay one useful u8 family on an independent Z80 emulator, including
+       both incoming carry states and nonzero scratch registers.
+
+A1  Typed arithmetic obligations                    MIR2 foundation
+    ├─ Extend the independent oracle operation by operation to 16/24/32 bits.
+    ├─ Record overflow, signed division, shifts and trap semantics per width.
+    └─ Use exhaustive checks where finite and practical; otherwise use
+       boundary cases plus a solver or independent implementation, labeled
+       as narrower evidence.
+
+A2  Register-convention experiment                  later Z80 track
+    ├─ Compare DEHL, HLIX and HLH'L' on the same real functions.
+    ├─ Include EXX entry/exit, spills, calls and shadow-bank interference.
+    └─ Admit a table entry only after end-to-end assembly/emulator checks,
+       measured hits and an ablation against the existing code generator.
+```
+
+No blanket "optimal math for every integer width" claim follows from the
+current artifacts. Even a complete search proves a minimum only within its
+instruction pool, register convention and cost function. This track should
+not delay HIR/MIR2/MZV semantic checks while native codegen is deferred.
