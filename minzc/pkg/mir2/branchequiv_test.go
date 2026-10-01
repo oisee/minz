@@ -157,6 +157,64 @@ func TestBranchEquiv_Idempotent(t *testing.T) {
 	}
 }
 
+// A return-only VM comparison cannot observe the store on the equality path.
+func TestBranchEquiv_RejectsEffects(t *testing.T) {
+	m := &mir2.Module{Name: "branchequiv_effect"}
+	f := m.AddFunc("store_on_equal")
+	f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+	b := mir2.NewBuilder(f)
+	b.SwitchToNewBlock("entry")
+	x := b.Param("x", mir2.TyU8, mir2.ClassAcc)
+	zero := b.Const(0, mir2.TyU8, mir2.ClassGeneral)
+	eq := b.Cmp(mir2.CmpEq, x, zero, mir2.ClassFlag, false)
+	b.BrIf(eq, "write", nil, "skip", nil)
+	b.SwitchToNewBlock("write")
+	ptr := b.Const(1, mir2.TyPtr, mir2.ClassGeneral)
+	one := b.Const(1, mir2.TyU8, mir2.ClassGeneral)
+	b.Store(ptr, one, mir2.TyU8)
+	b.Ret(zero)
+	b.SwitchToNewBlock("skip")
+	b.Ret(zero)
+
+	if mir2.BranchEquiv(m, f) || countBrIf(f) != 1 {
+		t.Fatal("return-only check must refuse a function with stores")
+	}
+}
+
+func TestBranchEquiv_RejectsUnexhaustedDomains(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		tys  []mir2.Ty
+	}{
+		{"u16", []mir2.Ty{mir2.TyU16}},
+		{"three_u8", []mir2.Ty{mir2.TyU8, mir2.TyU8, mir2.TyU8}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			m := &mir2.Module{Name: tc.name}
+			f := m.AddFunc("unchecked_domain")
+			f.Contract.Returns = []mir2.Return{{Ty: mir2.TyU8, Class: mir2.ClassAcc}}
+			b := mir2.NewBuilder(f)
+			b.SwitchToNewBlock("entry")
+			var params []mir2.Reg
+			for _, ty := range tc.tys {
+				params = append(params, b.Param("p", ty, mir2.ClassGeneral))
+			}
+			zero := b.Const(0, tc.tys[0], mir2.ClassGeneral)
+			eq := b.Cmp(mir2.CmpEq, params[0], zero, mir2.ClassFlag, false)
+			b.BrIf(eq, "yes", nil, "no", nil)
+			b.SwitchToNewBlock("yes")
+			result := b.Const(0, mir2.TyU8, mir2.ClassAcc)
+			b.Ret(result)
+			b.SwitchToNewBlock("no")
+			b.Ret(result)
+
+			if mir2.BranchEquiv(m, f) || countBrIf(f) != 1 {
+				t.Fatal("return-only check must refuse a non-exhausted input domain")
+			}
+		})
+	}
+}
+
 // countBrIf returns the number of *TermBrIf terminators in f.
 func countBrIf(f *mir2.Func) int {
 	n := 0

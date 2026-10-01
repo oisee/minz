@@ -1,143 +1,107 @@
-# MIR2 verification and traceability: a proposed maturity gate
+# MIR2 maturity: semantic evidence first, traceability when useful
 
-Status: proposal, 2026-10-01. Scope: source/frontends → HIR → MIR2 → MZV;
-register allocation and native backends are separate gates.
+Status: scoped proposal, 2026-10-01. Scope: HIR → MIR2 → MZV. Native backends
+are a separate gate.
 
-## Why this gate
+## Verdict and evidence
 
-`mir2.Verify` checks structural invariants, not semantic equivalence. The MIR2
-VM executes programs, but a before/after comparison on the same VM shares its
-semantics and blind spots. `pipeline.FuncTrace` counts optimisation passes and
-Grace records firings by rule name; neither identifies the exact input,
-output, source construct, or guard for one application. `Inst` has `SrcFile`
-and `SrcLine`, but lowering does not populate them, and replacements in
-`SimplifyIdentities` construct new instructions without copying them. The
-current trace cannot answer why a particular instruction exists.
+An orthogonal semantic check is worth building. A mandatory source-to-every-IR
+instruction trace is not yet worth its cost. `mir2.Verify` checks structure,
+not meaning; running both versions in the same MIR2 VM can miss a bug shared
+by the VM and optimizer. Conversely, provenance explains a result but does not
+establish that a rewrite preserves behavior.
 
-The sibling ABAP work offers two useful patterns. Verified lift (V) declares
-each recipe's observable behaviour and explicit obligations, records evidence
-from independent execution paths, and treats an unknown guard as a refusal to
-rewrite. DSL L1–L3 carries a generated line through template line, typed model
-node and rule line; it hashes the model, rejects stale output and tests that a
-targeted mutation changes only the lines attributed to that node. The lesson
-for MinZ is to keep *semantic evidence* and *origin trace* as two linked
-records. Neither is a substitute for the other.
+The sibling ABAP project's V track offers the useful pattern: state a rule's
+obligations, compare independent before/after paths, and refuse a rewrite when
+a guard is unknown. Its DSL L1–L3 track shows how a rule line can be carried
+through a typed model and template to generated lines, with mutation tests for
+attribution. Those are distinct goals for MinZ too. The first one can be small;
+the second requires frontend and HIR source data that does not yet exist.
 
-## What the gate must say
+Two current findings make the first goal concrete:
 
-For each admitted frontend feature and each enabled MIR2 rewrite:
+- `BranchEquiv` compared only integer returns under MIR2 VM samples. Its old
+  generator sampled wider types and extra parameters, and calls were its only
+  side-effect exclusion. A store, patch, or output could differ while returns
+  matched. It is now limited to pure functions with at most two `u8` inputs,
+  whose equality boundary is fully enumerated. This is agreement under VM
+  semantics for that admitted domain, not an independent semantic proof.
+- A probe found `i8 CmpLt(255,1)` yielding `1` before constant folding and
+  `0` after; `u8 Shl(1,64)` yielded `1` before and `0` after. It also found
+  common-mode wrong answers: `i8 Sar(128,1)` yielded `64` in both paths, and
+  `i8 SDiv(255,2)` yielded `127` in both, rather than signed results. These
+  are candidate contract/implementation bugs to reproduce in committed tests
+  before changing semantics. The same-VM comparison alone cannot catch them.
 
-1. A typed, independently specified subset has defined values, width,
-   signedness, overflow, traps and effects. Unsupported operations are
-   reported as **unknown**, never counted as a pass.
-2. A rewrite has a stable rule ID, typed match, guard, declared effects and
-   an evidence profile. Pure `u8` rules can be exhaustively enumerated against
-   an independent bit-vector evaluator; wider/CFG/memory rules need explicit
-   boundary generators and, where feasible, SMT or another interpreter.
-3. A program-level comparator observes returns, globals/heap bytes, writes,
-   output, traps and termination within a fuel limit. The claimed equivalence
-   declares which observations apply. Before/after agreement in MZV is useful
-   differential evidence, not a mathematical proof.
-4. Every MIR2 instruction and terminator can be traced to a source span or a
-   generated origin. An optimisation event records its rule ID, matched IR
-   IDs, guard facts, produced IR IDs and removed IR IDs. The trace survives
-   subsequent rewrites and can be queried from final IR back to the source.
-5. Tests contain negative controls: a deliberately wrong rewrite or mutated
-   guard must fail the independent oracle; a wrong source/rule attribution
-   must fail a trace assertion. An optimisation disabled by a failed guard
-   leaves the IR unchanged.
-
-The evidence profile is a matrix, not one maturity number:
-
-| Evidence | First use | Claim it supports |
-| --- | --- | --- |
-| `Verify` + typed rule guard | every pass | structurally valid, admitted rewrite |
-| independent bit-vector oracle, exhaustive `u8` | pure scalar rules | equivalent for all `u8` inputs under the declared model |
-| before/after MZV + generated boundaries | CFG, memory, calls | no counterexample in the recorded corpus |
-| frontend-to-HIR/MIR2 comparison | Nanz, Lanz, Lizp, C89, PL/M | agreed semantics for the admitted shared subset |
-| mutation controls | every rule family | tests detect representative wrong results and traces |
-
-The independent evaluator must not call MIR2's `FoldConstants`,
-`tryFoldInst`, VM arithmetic helpers or rewrite predicates. Its specification
-and code should be small enough to review as a second implementation.
-
-## Origin record
-
-Keep the human-readable trace in a sidecar so normal MIR2 dumps remain
-stable. Give each source node and MIR2 node a stable ID within one compilation;
-do not use block index or register number as durable identity because passes
-renumber and delete them. One event could look like:
-
-```json
-{
-  "rule": "mir2.identity.add-zero.v1",
-  "input": ["ir:42", "ir:43"],
-  "guard": {"rhs": "u8(0)", "effects": "pure"},
-  "output": ["ir:57"],
-  "origin": {
-    "file": "examples/nanz/demo.nanz", "line": 12, "column": 9,
-    "generated_by": ["meta:print@line:10"]
-  }
-}
-```
-
-For a generated instruction, preserve both the macro definition span and
-call-site span. A source span alone cannot explain `@print` expansion. An
-inlined instruction may have several source parents; a folded instruction
-may depend on several input values. Record a small origin DAG, not a single
-mutable `SrcLine`. An `explain` command should walk that DAG and report the
-source construct, macro expansion and ordered rewrite events. It must say
-`origin unknown` if a pass loses the trail.
-
-## First vertical slice and ranking
+## Ranked work
 
 ```text
-P0  MIR2 scalar contract                         quick win + foundation
-    ├─ Freeze u8/u16 signedness, wrapping, shifts, division/trap semantics.
-    ├─ Independent bit-vector evaluator for pure scalar expressions.
-    ├─ Exhaustive u8 checks for add-zero, mul-one, sub-zero and constant fold.
-    └─ Mutation controls: add-one-as-identity and wrong signed shift fail.
+P0  Constrain unsafe rewrites                         immediate safety fix
+    ├─ BranchEquiv: admit only pure, fully enumerated u8 domains (done).
+    ├─ Negative tests for effects, wider types, extra parameters (done).
+    └─ Audit other VM-sampled rewrites for observations and coverage.
 
-P1  Origin spine                                 foundation
-    ├─ Source span + stable node IDs through Nanz → HIR → MIR2.
-    ├─ Macro call-site and definition spans, beginning with @print.
-    ├─ Preserve/compose origins in identity, const-fold and DSE passes.
-    └─ JSON sidecar and `mzv explain <function>:<ir-id>` query.
+P1  Independent scalar oracle                         foundation + high value
+    ├─ Write the u8/i8 contract for compare, shifts, signed division,
+    │  overflow and traps; mark unspecified cases unknown.
+    ├─ Implement a small evaluator independent of MIR2 VM and constprop.
+    ├─ Compare raw VM, folded VM and oracle: exhaustive small domains
+    │  where feasible, plus signed and shift-count boundaries.
+    ├─ Include a deliberately wrong fold as a negative control.
+    ├─ Fix confirmed divergences and gate the relevant MZV passes in CI.
+    └─ Publish an admitted/unknown coverage table by operation and type.
 
-P2  Rewrite evidence                             high value
-    ├─ Stable rule IDs and guard/result events for Go and Grace passes.
-    ├─ Before/after VM comparator over results, memory, effects and traps.
-    ├─ Boundary corpus for CFG, block arguments and aliases.
-    └─ CI gates for evidence coverage and trace completeness.
+P2  Local rewrite diagnostics                          useful after P1
+    ├─ On a failed check, report function, pass/rule, operands and
+    │  compact before/after MIR2 snippets.
+    ├─ Add per-application events to the Go passes MZV actually runs,
+    │  starting with FoldConstants and SimplifyIdentities.
+    └─ Carry source line where already available; say unknown otherwise.
 
-P3  Orthogonal frontend corpus                   maturity milestone
-    ├─ One shared typed subset through Nanz and at least one independent
-    │  frontend (Lanz is the likely first candidate).
-    ├─ Compare both against the reference semantics and each other at MIR2.
-    └─ Add Z3 story microfixtures as consumer tests, not as the sole oracle.
-
-Later  SMT for larger finite scalar domains; memory/alias and termination
-       proofs; native backend comparison when that track resumes.
+P3  Origin trace and broader semantics                 separate investment
+    ├─ Add source spans to frontend tokens and HIR nodes, including
+    │  meta-function call site and definition when needed.
+    ├─ Define IDs and origin composition across lowering and rewrites.
+    ├─ Build a queryable sidecar only for a demonstrated diagnostic need.
+    ├─ Extend semantic cases to CFG, memory, effects and other frontends
+    │  with explicit observation contracts and independent references.
+    └─ Add Grace rule events when Grace is on the MZV execution path.
 ```
 
-Completion of P0–P2 means we can explain and challenge *each application* of
-the admitted rewrite families. It does not establish correctness of arbitrary
-programs or every frontend. The coverage report must name admitted and
-uncovered operations, passes, frontends and observations, with denominators.
+P1 is the first semantic maturity claim: agreement for a *named scalar
+subset*, not correctness of MIR2 in general. The evaluator must not use
+`FoldConstants`, `tryFoldInst`, VM arithmetic helpers or rewrite predicates.
+The comparator must state what it observes. For P1 pure scalars, values and
+traps suffice; later memory/CFG cases need memory, output, effects and
+termination observations. A timeout or unsupported operation is **unknown**,
+never a pass.
 
-## Existing seams to use
+## Why trace is later
 
-- `minzc/pkg/mir2/verify.go`: structural verifier; extend checks only for
-  invariants it can establish. Do not call semantic equivalence `Verify`.
-- `minzc/pkg/mir2/inst.go`: source fields exist but have no producer yet.
-- `minzc/pkg/mir2/constprop.go`: first rewrite family, including replacements
-  that currently discard `SrcFile`/`SrcLine`.
-- `minzc/pkg/rewrite/grace/grace.go`: rule result reports counts; add optional
-  per-application events at the rule action boundary.
-- `minzc/pkg/pipeline/pipeline.go` and `minzc/cmd/mzv/main.go`: optimisation
-  schedules are separate today; the evidence harness should run the actual
-  MZV schedule and expose the schedule version/hash.
+`Inst` has `SrcFile` and `SrcLine`, but lowering does not populate them and
+`SimplifyIdentities` replacements can drop them. Nanz tokens currently carry
+a line, while HIR expressions and statements lack source spans. A reliable
+source → HIR → MIR2 → rewrite → final-IR origin graph would require changes
+across all these layers. It is valuable for explaining a real miscompile,
+especially one involving `@print`, but should not block the scalar semantic
+gate. A first failure report can name the function, pass and local IR without
+pretending to know its source origin.
 
-The first implementation PR should contain the independent scalar oracle,
-exhaustive tests and one mutation control. It should not introduce a general
-rule language or claim proof for memory/CFG rewrites.
+The MZV command runs its own Go-pass schedule. `pipeline.FuncTrace` counts
+passes, and Grace has per-rule counts, but Grace is not on the MZV command's
+current optimization path. Instrument the executed path first. Keep structural
+`Verify` as a separate invariant check; never label it semantic verification.
+
+## Evidence required for a completed slice
+
+| Slice | Claim | Countercheck |
+| --- | --- | --- |
+| P0 `BranchEquiv` | Same MIR2 VM returns for every admitted equality input | Effects/wider-domain negative tests refuse rewrite |
+| P1 scalar | Raw and optimized MIR2 agree with independent typed oracle for named operations and inputs | Wrong-fold mutation fails; shared-VM signed cases fail before fixes |
+| P2 diagnostics | A failing case identifies its pass and local transformation | Injected bad fold points to the intended application |
+| P3 origin | Final node maps to actual source and rewrite chain | Source/rule mutation changes only attributed descendants |
+
+The coverage report should list admitted and unknown types, operations,
+passes and observations with denominators. Wider symbolic, memory and
+termination proofs can follow when a specific failing or high-value case
+justifies them.
