@@ -44,6 +44,7 @@ type Steps struct {
 	MIR2Raw    string                  // MIR2 module dump before optimisation passes
 	MIR2Opt    string                  // MIR2 module dump after DSE + ReorderBlocks
 	MIR2Module *mir2.Module            // MIR2 module (for LLVM/WASM/ABAP emit)
+	Allocation *mir2.AllocResult       // physical locations used by Z80 codegen
 	Assembly   string                  // Final .a80 text
 	LIRResults []lir.ConvergenceResult // LIR convergence check results (if LIRCheck enabled)
 	Traces     map[string]*FuncTrace   // per-function compilation trace (keyed by func name)
@@ -312,6 +313,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		}
 		combined.Spilled = append(combined.Spilled, ar.Spilled...)
 	}
+	s.Allocation = combined
 
 	// MIR2 VM assertion checks (skip "z80"-only asserts).
 	if opt.AssertMode != "z80" && opt.AssertMode != "none" {

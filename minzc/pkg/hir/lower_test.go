@@ -17,6 +17,16 @@ const testLoadAddr = 0x8000
 
 // compileHIR: HIR → MIR2 → DSE → alloc → Z80 assembly string.
 func compileHIR(t *testing.T, hm *hir.Module) string {
+	return compileHIRFixture(t, hm).asm
+}
+
+type hirZ80Fixture struct {
+	module *mir2.Module
+	alloc  *mir2.AllocResult
+	asm    string
+}
+
+func compileHIRFixture(t *testing.T, hm *hir.Module) hirZ80Fixture {
 	t.Helper()
 	m := hir.LowerModule(hm)
 
@@ -35,16 +45,21 @@ func compileHIR(t *testing.T, hm *hir.Module) string {
 			combined.Locs[r] = loc
 		}
 	}
-	return mir2.Z80Codegen(m, combined)
+	return hirZ80Fixture{module: m, alloc: combined, asm: mir2.Z80Codegen(m, combined)}
 }
 
 // runZ80 assembles and runs; returns (A, HL, error).
 func runZ80(t *testing.T, src string) (a uint8, hl uint16, err error) {
+	regs, err := runZ80Registers(t, src)
+	return regs.A, regs.HL, err
+}
+
+func runZ80Registers(t *testing.T, src string) (emulator.Registers, error) {
 	t.Helper()
 	asm := z80asm.NewAssembler()
 	res, asmErr := asm.AssembleString(src)
 	if asmErr != nil {
-		return 0, 0, fmt.Errorf("assemble: %w", asmErr)
+		return emulator.Registers{}, fmt.Errorf("assemble: %w", asmErr)
 	}
 	if len(res.Errors) > 0 {
 		var sb strings.Builder
@@ -52,18 +67,17 @@ func runZ80(t *testing.T, src string) (a uint8, hl uint16, err error) {
 			sb.WriteString(e.Error())
 			sb.WriteByte('\n')
 		}
-		return 0, 0, fmt.Errorf("assemble errors:\n%s", sb.String())
+		return emulator.Registers{}, fmt.Errorf("assemble errors:\n%s", sb.String())
 	}
 	z80 := emulator.NewRemogattoZ80()
 	if loadErr := z80.LoadMemory(testLoadAddr, res.Binary); loadErr != nil {
-		return 0, 0, fmt.Errorf("load memory: %w", loadErr)
+		return emulator.Registers{}, fmt.Errorf("load memory: %w", loadErr)
 	}
 	z80.SetPC(testLoadAddr)
 	if runErr := z80.Run(); runErr != nil {
-		return 0, 0, fmt.Errorf("run: %w", runErr)
+		return emulator.Registers{}, fmt.Errorf("run: %w", runErr)
 	}
-	regs := z80.GetRegisters()
-	return regs.A, regs.HL, nil
+	return z80.GetRegisters(), nil
 }
 
 func boot1(fn string, a int) string {
@@ -553,7 +567,10 @@ func TestHIRIndex(t *testing.T) {
 			testLoadAddr, idx, fn)
 	}
 
-	cases := []struct{ i int; want uint8 }{
+	cases := []struct {
+		i    int
+		want uint8
+	}{
 		{0, 10}, {1, 20}, {2, 30}, {3, 40}, {4, 50},
 	}
 	for _, tc := range cases {
@@ -685,7 +702,7 @@ func TestNestedStructFieldAccess(t *testing.T) {
 			X: &hir.FieldExpr{
 				X:      hir.Addr("obj"),
 				Field:  "inner",
-				Offset: 1, // pad is 1 byte
+				Offset: 1,       // pad is 1 byte
 				Ty:     innerTy, // embedded struct → address, not load
 			},
 			Field:  "y",

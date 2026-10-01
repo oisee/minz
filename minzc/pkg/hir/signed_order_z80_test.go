@@ -2,7 +2,6 @@ package hir_test
 
 import (
 	"fmt"
-	"strings"
 	"testing"
 
 	"github.com/minz/minzc/pkg/hir"
@@ -32,8 +31,7 @@ func TestSignedOrderingVMAndZ80(t *testing.T) {
 					if err := mir2.Verify(m); err != nil {
 						t.Fatal(err)
 					}
-					asm := compileHIR(t, hm)
-					assertSignedOrderABI(t, asm, width)
+					fixture := compileHIRFixture(t, hm)
 					for _, a := range values {
 						for _, b := range values {
 							left, right := int64(int8(a)), int64(int8(b))
@@ -63,16 +61,9 @@ func TestSignedOrderingVMAndZ80(t *testing.T) {
 							if err != nil || len(vm) != 1 || vm[0].I != want {
 								t.Fatalf("VM %d %s %d: got %v, err %v, want %d", left, op, right, vm, err, want)
 							}
-							boot := fmt.Sprintf("    ORG 0x%04X\n    LD SP, 0xFF00\n", testLoadAddr)
-							if width == 8 {
-								boot += fmt.Sprintf("    LD A, %d\n    LD C, %d\n", a, b)
-							} else {
-								boot += fmt.Sprintf("    LD HL, %d\n    LD DE, %d\n", a, b)
-							}
-							boot += "    CALL signed_order\n    DI\n    HALT\n"
-							got, _, err := runZ80(t, boot+asm)
-							if err != nil || int64(got) != want {
-								t.Fatalf("Z80 %d %s %d: got %d, err %v, want %d\n%s", left, op, right, got, err, want, asm)
+							got, err := runHIRZ80(t, fixture, fn.Name, []int64{int64(a), int64(b)})
+							if err != nil || got != want {
+								t.Fatalf("Z80 %d %s %d: got %d, err %v, want %d\n%s", left, op, right, got, err, want, fixture.asm)
 							}
 						}
 					}
@@ -94,18 +85,16 @@ func TestSignedOrderingStoredBoolZ80(t *testing.T) {
 		),
 	}
 	hm := &hir.Module{Name: "signed_bool_oracle", Funcs: []*hir.Func{fn}}
-	asm := compileHIR(t, hm)
-	assertSignedOrderABI(t, asm, 8)
+	fixture := compileHIRFixture(t, hm)
 	for _, tc := range []struct {
 		a, b uint8
 		want uint8
 	}{
 		{0, 128, 0}, {128, 0, 1}, {127, 128, 0}, {128, 127, 1}, {255, 0, 1}, {0, 0, 0},
 	} {
-		boot := fmt.Sprintf("    ORG 0x%04X\n    LD SP, 0xFF00\n    LD A, %d\n    LD C, %d\n    CALL stored_signed_bool\n    DI\n    HALT\n", testLoadAddr, tc.a, tc.b)
-		got, _, err := runZ80(t, boot+asm)
-		if err != nil || got != tc.want {
-			t.Fatalf("stored bool (%d,%d): got %d, err %v, want %d\n%s", tc.a, tc.b, got, err, tc.want, asm)
+		got, err := runHIRZ80(t, fixture, fn.Name, []int64{int64(tc.a), int64(tc.b)})
+		if err != nil || got != int64(tc.want) {
+			t.Fatalf("stored bool (%d,%d): got %d, err %v, want %d\n%s", tc.a, tc.b, got, err, tc.want, fixture.asm)
 		}
 	}
 }
@@ -125,14 +114,7 @@ func TestSignedOrderingAgainstZeroZ80(t *testing.T) {
 				fn := &hir.Func{Name: "against_zero", Params: []hir.Param{{Name: "a", Ty: tc.ty}}, RetTy: mir2.TyU8,
 					Body: hir.Blk(hir.If(cmp, hir.Blk(hir.Ret(hir.U8(1))), hir.Blk(hir.Ret(hir.U8(0)))))}
 				hm := &hir.Module{Name: "signed_zero_oracle", Funcs: []*hir.Func{fn}}
-				asm := compileHIR(t, hm)
-				reg := "A"
-				if tc.width == 16 {
-					reg = "HL"
-				}
-				if !strings.Contains(asm, fmt.Sprintf("a: i%d = %s", tc.width, reg)) {
-					t.Fatalf("signed zero test ABI changed; update bootstrap:\n%s", asm)
-				}
+				fixture := compileHIRFixture(t, hm)
 				for _, value := range tc.values {
 					signed := int64(int8(value))
 					if tc.width == 16 {
@@ -157,10 +139,9 @@ func TestSignedOrderingAgainstZeroZ80(t *testing.T) {
 							want = 1
 						}
 					}
-					boot := fmt.Sprintf("    ORG 0x%04X\n    LD SP, 0xFF00\n    LD %s, %d\n    CALL against_zero\n    DI\n    HALT\n", testLoadAddr, reg, value)
-					got, _, err := runZ80(t, boot+asm)
-					if err != nil || got != want {
-						t.Fatalf("%d %s 0: got %d, err %v, want %d\n%s", signed, op, got, err, want, asm)
+					got, err := runHIRZ80(t, fixture, fn.Name, []int64{int64(value)})
+					if err != nil || got != int64(want) {
+						t.Fatalf("%d %s 0: got %d, err %v, want %d\n%s", signed, op, got, err, want, fixture.asm)
 					}
 				}
 			})
@@ -186,8 +167,7 @@ func TestSignedOrderingMaterializedBoolZ80(t *testing.T) {
 				if err := mir2.Verify(m); err != nil {
 					t.Fatal(err)
 				}
-				asm := compileHIR(t, hm)
-				assertSignedOrderABI(t, asm, width)
+				fixture := compileHIRFixture(t, hm)
 				for _, a := range values {
 					for _, b := range values {
 						left, right := int64(int8(a)), int64(int8(b))
@@ -217,31 +197,13 @@ func TestSignedOrderingMaterializedBoolZ80(t *testing.T) {
 						if err != nil || len(vm) != 1 || vm[0].I != want {
 							t.Fatalf("VM %d %s %d: got %v, err %v, want %d", left, op, right, vm, err, want)
 						}
-						boot := fmt.Sprintf("    ORG 0x%04X\n    LD SP, 0xFF00\n", testLoadAddr)
-						if width == 8 {
-							boot += fmt.Sprintf("    LD A, %d\n    LD C, %d\n", a, b)
-						} else {
-							boot += fmt.Sprintf("    LD HL, %d\n    LD DE, %d\n", a, b)
-						}
-						boot += "    CALL signed_bool_value\n    DI\n    HALT\n"
-						got, _, err := runZ80(t, boot+asm)
-						if err != nil || int64(got) != want {
-							t.Fatalf("Z80 %d %s %d: got %d, err %v, want %d\n%s", left, op, right, got, err, want, asm)
+						got, err := runHIRZ80(t, fixture, fn.Name, []int64{int64(a), int64(b)})
+						if err != nil || got != want {
+							t.Fatalf("Z80 %d %s %d: got %d, err %v, want %d\n%s", left, op, right, got, err, want, fixture.asm)
 						}
 					}
 				}
 			})
 		}
-	}
-}
-
-func assertSignedOrderABI(t *testing.T, asm string, width int) {
-	t.Helper()
-	want := "a: i8 = A, b: i8 = C"
-	if width == 16 {
-		want = "a: i16 = HL, b: i16 = DE"
-	}
-	if !strings.Contains(asm, want) {
-		t.Fatalf("signed comparison test ABI changed; update bootstrap:\n%s", asm)
 	}
 }
