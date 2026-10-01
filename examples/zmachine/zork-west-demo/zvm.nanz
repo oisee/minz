@@ -22,7 +22,7 @@ global number_value: Dec16
 global command_offset: [u8; 4]
 global snapshot: [u8; 9018]
 global input: [u8; 256]
-global local_bytes: [u8; 4096]
+global local_words: [u16; 2048]
 global ret_pc_lo: [u8; 128]
 global ret_pc_hi: [u8; 128]
 global ret_pc_bank: [u8; 128]
@@ -63,11 +63,10 @@ fun put_word(addr: u16, value: u16) {
     story[addr + 1] = u8(value)
 }
 fun local_at(slot: u16) -> u16 {
-    return u16(local_bytes[slot * 2]) + u16(local_bytes[slot * 2 + 1]) * 256
+    return local_words[slot]
 }
 fun put_local(slot: u16, value: u16) {
-    local_bytes[slot * 2] = u8(value)
-    local_bytes[slot * 2 + 1] = u8(value / 256)
+    local_words[slot] = value
 }
 fun stack_at(slot: u16) -> u16 {
     return u16(stack_bytes[slot * 2]) + u16(stack_bytes[slot * 2 + 1]) * 256
@@ -919,8 +918,11 @@ fun save_state() -> u8 {
         i = i + 1
     }
     i = 0
-    while i < 4096 {
-        snapshot[58 + i] = local_bytes[i]
+    while i < 2048 {
+        let offset: u16 = i * 2
+        let value: u16 = local_words[i]
+        snapshot[58 + offset] = u8(value)
+        snapshot[59 + offset] = u8(value / 256)
         i = i + 1
     }
     i = 0
@@ -954,8 +956,9 @@ fun restore_state() -> u8 {
     frame = snapshot[19]
     sp = u16(snapshot[20]) + u16(snapshot[21]) * 256
     var i: u16 = 0
-    while i < 4096 {
-        local_bytes[i] = snapshot[58 + i]
+    while i < 2048 {
+        let offset: u16 = i * 2
+        local_words[i] = u16(snapshot[58 + offset]) + u16(snapshot[59 + offset]) * 256
         i = i + 1
     }
     i = 0
