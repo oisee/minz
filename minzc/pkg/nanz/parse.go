@@ -531,6 +531,7 @@ type parser struct {
 	globalTypes          map[string]mir2.Ty               // module-level: global varname → type (persistent)
 	globalInterfaceTypes map[string]string                // module-level: global varname → interface name
 	varTypes             map[string]mir2.Ty               // current function scope: varname → type (reset per func)
+	localArrayElems      map[string]mir2.Ty               // local array name → element type
 	varInterfaceTypes    map[string]string                // current function scope: varname → interface name
 	varPtrElem           map[string]*mir2.StructTy        // current function scope: varname → pointed-to struct (for ^Struct params)
 	methodTable          map[string]map[string]methodInfo // structName → methodName → info
@@ -704,6 +705,7 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	p.globalTypes = make(map[string]mir2.Ty)
 	p.globalInterfaceTypes = make(map[string]string)
 	p.varTypes = make(map[string]mir2.Ty)
+	p.localArrayElems = make(map[string]mir2.Ty)
 	p.varInterfaceTypes = make(map[string]string)
 	p.varPtrElem = make(map[string]*mir2.StructTy)
 	p.uninitVars = make(map[string]int)
@@ -2184,6 +2186,7 @@ func (p *parser) parseImplBlock() ([]*hir.Func, error) {
 
 		// Set up per-function scope for field access on self
 		p.varTypes = make(map[string]mir2.Ty)
+		p.localArrayElems = make(map[string]mir2.Ty)
 		p.varPtrElem = make(map[string]*mir2.StructTy)
 		p.varInterfaceTypes = make(map[string]string)
 		if st, ok := p.structs[typeName]; ok {
@@ -2583,6 +2586,7 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 	// save and restore only the param entries.
 	savedEnumTypes := p.varEnumType
 	p.varTypes = make(map[string]mir2.Ty)
+	p.localArrayElems = make(map[string]mir2.Ty)
 	p.varInterfaceTypes = make(map[string]string)
 	p.varPtrElem = make(map[string]*mir2.StructTy)
 	p.varEnumType = make(map[string]string)
@@ -3156,6 +3160,7 @@ func (p *parser) parseLetDecl() (hir.Stmt, error) {
 				Init:     &hir.AddrOfExpr{Sym: mangledName},
 			}
 			p.varTypes[nameTok.val] = at.Elem
+			p.localArrayElems[nameTok.val] = at.Elem
 			if p.uninitVars != nil {
 				delete(p.uninitVars, nameTok.val)
 			}
@@ -3209,6 +3214,7 @@ func (p *parser) parseLetDecl() (hir.Stmt, error) {
 		d.Ty = at.Elem
 		d.ArrayLen = at.Len
 		p.varTypes[nameTok.val] = at.Elem
+		p.localArrayElems[nameTok.val] = at.Elem
 	} else {
 		d.Ty = ty
 		d.Init = init
@@ -3312,6 +3318,7 @@ func (p *parser) parseVarDecl() (hir.Stmt, error) {
 		d.Ty = at.Elem
 		d.ArrayLen = at.Len
 		p.varTypes[nameTok.val] = at.Elem
+		p.localArrayElems[nameTok.val] = at.Elem
 	} else {
 		d.Ty = ty
 		p.varTypes[nameTok.val] = ty
@@ -4597,7 +4604,15 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 			if _, err := p.l.eat(tokRBrack); err != nil {
 				return nil, err
 			}
-			base = &hir.IndexExpr{Base: base, Idx: idx, ElemTy: mir2.TyU8}
+			elemTy := mir2.Ty(mir2.TyU8)
+			if arrayTy, ok := p.exprTy(base).(*mir2.ArrayTy); ok {
+				elemTy = arrayTy.Elem
+			} else if vr, ok := base.(*hir.VarRefExpr); ok {
+				if localElem, found := p.localArrayElems[vr.Name]; found {
+					elemTy = localElem
+				}
+			}
+			base = &hir.IndexExpr{Base: base, Idx: idx, ElemTy: elemTy}
 		case tokDot:
 			// Qualified module access: mod.func(args) or mod.sub.func(args)
 			// base.field    — struct field access
