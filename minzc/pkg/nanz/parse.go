@@ -111,7 +111,9 @@ const (
 	tokSlash      // /
 	tokPercent    // %
 	tokAmp        // &
+	tokAmpAmp     // &&
 	tokPipe       // |
+	tokPipePipe   // ||
 	tokCaret      // ^ (also used as pointer dereference)
 	tokTilde      // ~
 	tokLtLt       // <<
@@ -224,6 +226,14 @@ func (l *lexer) tokenize() {
 			continue
 		case ch == '=' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '>':
 			l.emit(tokFatArrow, "=>", line)
+			l.pos += 2
+			continue
+		case ch == '&' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '&':
+			l.emit(tokAmpAmp, "&&", line)
+			l.pos += 2
+			continue
+		case ch == '|' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '|':
+			l.emit(tokPipePipe, "||", line)
 			l.pos += 2
 			continue
 		}
@@ -4397,23 +4407,25 @@ type binop struct {
 }
 
 var binops = map[tokKind]binop{
-	tokPipe: {"|", 1},
+	tokPipePipe: {"||", 1},
+	tokAmpAmp:   {"&&", 2},
+	tokPipe:     {"|", 3},
 	// XOR uses the `xor` keyword operator (see parseBinary), not ^.
 	// ^ is reserved exclusively for postfix pointer dereference.
-	tokAmp:     {"&", 3},
-	tokEqEq:    {"==", 4},
-	tokBangEq:  {"!=", 4},
-	tokLt:      {"<", 5},
-	tokLtEq:    {"<=", 5},
-	tokGt:      {">", 5},
-	tokGtEq:    {">=", 5},
-	tokLtLt:    {"<<", 6},
-	tokGtGt:    {">>", 6},
-	tokPlus:    {"+", 7},
-	tokMinus:   {"-", 7},
-	tokStar:    {"*", 8},
-	tokSlash:   {"/", 8},
-	tokPercent: {"%", 8},
+	tokAmp:     {"&", 5},
+	tokEqEq:    {"==", 6},
+	tokBangEq:  {"!=", 6},
+	tokLt:      {"<", 7},
+	tokLtEq:    {"<=", 7},
+	tokGt:      {">", 7},
+	tokGtEq:    {">=", 7},
+	tokLtLt:    {"<<", 8},
+	tokGtGt:    {">>", 8},
+	tokPlus:    {"+", 9},
+	tokMinus:   {"-", 9},
+	tokStar:    {"*", 10},
+	tokSlash:   {"/", 10},
+	tokPercent: {"%", 10},
 }
 
 func (p *parser) parseBinary(minPrec int) (hir.Expr, error) {
@@ -4471,10 +4483,10 @@ func (p *parser) parseBinary(minPrec int) (hir.Expr, error) {
 			}
 			continue
 		}
-		// `xor`/`XOR` keyword operator — bitwise XOR (precedence 2, between | and &).
-		if t.kind == tokIdent && (t.val == "xor" || t.val == "XOR") && minPrec < 2 {
+		// `xor`/`XOR` keyword operator — bitwise XOR (precedence 4, between | and &).
+		if t.kind == tokIdent && (t.val == "xor" || t.val == "XOR") && minPrec < 4 {
 			p.l.next()
-			rhs, err := p.parseBinary(2)
+			rhs, err := p.parseBinary(4)
 			if err != nil {
 				return nil, err
 			}
@@ -5469,7 +5481,7 @@ func matchOpOverload(ovs []opOverload, lTy, rTy mir2.Ty) (opOverload, bool) {
 
 func resultTy(l, r mir2.Ty, op string) mir2.Ty {
 	switch op {
-	case "==", "!=", "<", "<=", ">", ">=":
+	case "==", "!=", "<", "<=", ">", ">=", "&&", "||":
 		return mir2.TyBool
 	}
 	if l == mir2.TyU16 || r == mir2.TyU16 {
