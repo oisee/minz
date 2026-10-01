@@ -339,13 +339,13 @@ func LIRCodegenFunc(f *mir2.Func, m *mir2.Module, hints ...AllocHints) (string, 
 		return "", fmt.Errorf("multi-block control flow without block params (needs PBQP)")
 	}
 
-	// Try multi-block path for functions with block params.
-	if len(f.Blocks) > 1 && hasBlockParams(f) {
-		asm, err := lirCodegenMultiBlock(f, desc, m)
-		if err == nil {
-			return asm, nil
-		}
-		// Fallback to flat on failure.
+	// Multi-block functions go to PBQP. lirCodegenMultiBlock emits wrong code
+	// without reporting an error (gcd returns 1 for gcd(12,8)), so it stays
+	// off until it passes the exhaustive judge (pkg/hir exhaustive_judge_test).
+	// The flat path is no fallback either: it concatenates the blocks and
+	// drops control flow.
+	if len(f.Blocks) > 1 {
+		return "", fmt.Errorf("multi-block LIR disabled until judged (needs PBQP)")
 	}
 
 	return lirCodegenFlat(f, desc, m, h)
@@ -1186,9 +1186,9 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 			fmt.Printf("[Z80-VALIDATE] %s: %d errors, retrying (attempt %d/%d)\n",
 				f.Name, len(errs), attempt+1, maxRetries)
 		} else {
-			// Final attempt failed — log and emit anyway (warn-only).
+			// Final attempt failed: invalid Z80 must not be emitted.
 			LogValidationErrors(f.Name, asm, errs)
-			return asm, nil
+			return "", fmt.Errorf("lir %s: %d invalid instructions after %d attempts", f.Name, len(errs), maxRetries+1)
 		}
 	}
 

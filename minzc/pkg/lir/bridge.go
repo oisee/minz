@@ -989,13 +989,13 @@ func translateMul(inst *mir2.Inst, desc *MachineDesc) []MIROp {
 
 // translateCall converts an OpCall/OpCallIndirect into a sequence of LIR MIROps:
 // argument setup moves (one per arg) + the call itself.
-// Returns nil, nil if the call can't be lowered (e.g. indirect call, missing module).
+// Returns an error if the call can't be lowered (e.g. missing module).
 func translateCall(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]MIROp, error) {
 	if inst.Op == mir2.OpCallIndirect {
 		return translateCallIndirect(inst, desc)
 	}
 	if mod == nil {
-		return nil, nil // can't look up callee without module
+		return nil, fmt.Errorf("lir: call to %s without module", inst.Sym)
 	}
 
 	callee := mod.FuncByName(inst.Sym)
@@ -1132,6 +1132,12 @@ func translateCallIndirect(inst *mir2.Inst, desc *MachineDesc) ([]MIROp, error) 
 }
 
 // translateInst converts one MIR2 instruction to a LIR MIROp.
+// unsupportedOp reports a MIR2 op the LIR bridge cannot lower. Callers
+// propagate it, and the pipeline then uses PBQP code for the function.
+func unsupportedOp(inst *mir2.Inst) error {
+	return fmt.Errorf("lir: unsupported op %s", inst.Op)
+}
+
 func translateInst(inst *mir2.Inst, desc *MachineDesc) (*MIROp, error) {
 	if inst.Dst == mir2.NoReg && inst.Op != mir2.OpStore {
 		return nil, nil // skip side-effect-free instructions with no result
@@ -1225,13 +1231,10 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc) (*MIROp, error) {
 	case mir2.OpStore:
 		op.Op = OpStore
 		op.Dst = -1
-	case mir2.OpNeg:
-		// neg(x) → sub(0, x): emit const 0 + sub
-		// For now, skip — isel doesn't have a neg pattern yet
-		return nil, nil
-	case mir2.OpNot:
-		// bitwise complement — skip for now
-		return nil, nil
+	case mir2.OpNeg, mir2.OpNot:
+		// No neg/cpl pattern in isel yet. Dropping the op silently produced
+		// wrong code; report it so the function falls back to PBQP.
+		return nil, unsupportedOp(inst)
 	case mir2.OpTrunc:
 		// Truncation u16→u8: extract low byte. On Z80 this means the src
 		// must be in a pair (HL/DE/BC) and the result takes the low byte (L/E/C).
@@ -1261,23 +1264,10 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc) (*MIROp, error) {
 		op.Src = [2]int{-1, -1}
 		op.Sym = SanitizeAsmLabel(inst.Sym)
 		op.Width = 16 // addresses are always 16-bit on Z80
-	case mir2.OpCall, mir2.OpCallIndirect:
-		// Calls: skip for now (need calling convention support)
-		return nil, nil
-	case mir2.OpPush, mir2.OpPop:
-		// Stack ops: skip (handled by regalloc)
-		return nil, nil
-	case mir2.OpPatchSlot, mir2.OpLoadPatched, mir2.OpPatch:
-		// SMC: skip (target-specific)
-		return nil, nil
-	case mir2.OpAsm:
-		// Inline assembly: skip
-		return nil, nil
-	case mir2.OpAlloca:
-		// Stack alloc: skip
-		return nil, nil
 	default:
-		return nil, nil
+		// Calls are lowered by translateCall before reaching here. Stack ops,
+		// SMC, inline asm, alloca and anything unknown have no LIR lowering.
+		return nil, unsupportedOp(inst)
 	}
 
 	return op, nil
