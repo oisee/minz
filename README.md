@@ -26,12 +26,12 @@ The emulator prints `Hello!`. The [Nanz source](examples/nanz/hello_cpm.nanz) is
 
 ## What you can make
 
-| Graphics | Programs on classic machines | Language experiments |
+| ObjC plasma | Nanz canvas | ObjC XOR pattern |
 | :---: | :---: | :---: |
-| <img src="media/plasma.png" width="240" alt="Colorful plasma pattern"> | <img src="media/zsql_mara_zx_spectrum.png" width="240" alt="SQL table on a ZX Spectrum screen"> | <img src="media/mzv_sphere_minz.png" width="240" alt="Raymarched sphere preview"> |
-| [Plasma in ObjC](examples/objc/plasma.m) | [ZSQL on ZX Spectrum](examples/abap/zsql_mara_zx.abap) | [Raymarching experiments](fun/raymarcher.nanz) |
+| <img src="media/plasma.png" width="240" alt="Plasma rendered by the MIR2 VM"> | <img src="media/canvas_house.png" width="240" alt="House drawn by Nanz canvas functions"> | <img src="media/xor.png" width="240" alt="XOR pattern rendered by the MIR2 VM"> |
+| [ObjC source](examples/objc/plasma.m) | [Nanz source](examples/nanz/canvas_house.nanz) | [ObjC source](examples/objc/plasma.m) |
 
-These are examples of different frontends and execution paths, not a claim that every demo builds or runs on every target. The [fun build check](fun/check.sh) records current assembly blockers.
+All three images are current MIR2 VM canvas renders. Reproduce the Nanz image with `make -C minzc mzv && mkdir -p build && minzc/mzv --headless examples/nanz/canvas_house.nanz`. The ObjC source has no `main`; `cd minzc && go test ./pkg/c89 ./pkg/nanz -run '^(TestPlasmaRender|TestCanvasImplShowcase)$' -count=1` invokes its effects and compares all three renders with the committed PNGs. The CP/M example above exercises the Z80 path. [Verification details and limits](reports/2026-10-01-README-Gallery-Verification-RU.md).
 
 ## Explore
 
