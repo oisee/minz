@@ -43,7 +43,7 @@ jobs:
           go build -o "$RUNNER_TEMP/mzv" ./cmd/mzv
       - name: Run stable compiler and toolchain tests
         id: stable
-        run: go test -short -timeout 5m ./pkg/mir2/... ./pkg/z80asm/... ./pkg/c89/... ./pkg/codegen/... ./pkg/parser/... ./pkg/pipeline/... ./pkg/plm/... ./pkg/lanz/... ./pkg/lizp/...
+        run: go test -short -timeout 5m ./pkg/hir/... ./pkg/mir2/... ./pkg/z80asm/... ./pkg/c89/... ./pkg/codegen/... ./pkg/parser/... ./pkg/pipeline/... ./pkg/plm/... ./pkg/lanz/... ./pkg/lizp/...
       - name: Compile and assemble a program
         id: assemble
         run: |

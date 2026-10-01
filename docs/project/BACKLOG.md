@@ -57,7 +57,8 @@ MinZ
 │   ├── [ ] B2 [P0 F U5 H] ABI/parallel copies, div/mod, live values через CALL
 │   ├── [ ] B3 [P0 F U5 ?] SMC: side effects, recursion/reentrancy, RAM/ROM eligibility
 │   ├── [ ] B4 [P1 F U4 H] CFG/block arguments, pointers/structs, IX/IY legality, spills
-│   └── [ ] B5 [P1 Q U4 V] Unsupported op/terminator должен завершаться ошибкой
+│   ├── [ ] B5 [P1 Q U4 V] Unsupported op/terminator должен завершаться ошибкой
+│   └── [ ] B6 [P0 F U5 V] Signed i8 ordering: MIR2 VM ↔ Z80 mismatch на границе знака
 ├── C. Frontends и контракт языков — P1, U4
 │   ├── [ ] C1 [P1 Q U4 V] Разобрать imports Lanz/Lizp и bit-accessor factcheck
 │   ├── [ ] C2 [P1 F U4 H] Pascal records и PL/M PTR: минимальные assemble+run repro
@@ -146,6 +147,7 @@ J1 можно начать параллельно с текущими P0-зад�
 | B3 | Сначала минимальные repro чтения patch slot и рекурсивного call graph. **Done:** оптимизации учитывают эффекты; небезопасные SMC-преобразования отклонены/отключены; тесты покрывают рекурсию, writable code и сохранение значения после patch. После A4. |
 | B4 | Начать с screen block-argument mismatch и arena/pointer repro из Open_Bugs_RCA, сверить текущий статус. **Done:** verifier после CFG transforms; MZA+execution для loops/pointers/struct methods; нет invalid IX/IY instructions и spill в запрещённую память. После A4. |
 | B5 | Инвентаризировать TODO/default ветки LLVM/GPU. **Done:** непокрытая операция сообщает target/function/op и даёт nonzero; поддержанные примеры продолжают работать. Не приравнивать это к полной поддержке backend. |
+| B6 | Синтетический HIR repro `signed_less(i8 a, i8 b)` возвращает 0 для `(0,-128)` в MIR2 VM, но Z80 возвращает 1: codegen выдаёт `CP C; JRS NC` и трактует signed `CmpLt` как carry. Исправить MIR2→Z80 comparison/branch mapping с тестами `i8` и `i16` на знаковых границах, включая `<=`, `>`, `>=`, materialized bool и branch. **Done:** тот же HIR oracle проходит MIR2 VM и Z80 для всех граничных пар; другие compare contracts не ломаются. [Репорт](../../reports/2026-10-01-HIR-MIR2-Synthetic-Oracle-RU.md). |
 | C1 | Глубокий аудит: Lanz/Lizp CLI imports + Z80 asserts PASS. Разобрать 3 наблюдаемых unit failures: pruning API, imports или неверное ожидание syntax. **Done:** документированное поведение, минимальные regression tests и отдельный сквозной пример; не удерживать неиспользуемые функции только ради старого теста. |
 | C2 | Repro `records.pas`, `hello.plm`, `sum_array.plm` на PBQP. **Done:** результат MZA+execution корректен либо неподдерживаемая конструкция получает явную ошибку. После A3; связать с B1/B4. |
 | C3 | Приоритизировать arithmetic widths/signedness, arrays/pointers, calls и structs; проверить исторические `import_test.c`, `struct_promote.c`. **Done:** versioned support matrix и dual-run regressions, без декларации «весь C23». После A4/B2. |
