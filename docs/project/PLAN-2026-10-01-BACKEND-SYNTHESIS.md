@@ -14,7 +14,7 @@
 minz backend synthesis
 ├─ M1 «Судья видит»                                          ← ночной спайк 2026-10-01
 │  ├─ J  судья (MIR2 VM ≡ Z80 per function)
-│  │  ├─ must   J0 исчерпывающий u8×u8 прогон production-Z80 против независимой Go-модели;
+│  │  ├─ must   J0 исчерпывающий прогон по области определения (u8×u8, для gcd a,b≥1) против Go-модели;
 │  │  │         ABI из Contract/Alloc, бюджет тактов (зависание = FAIL), сброс RAM между входами
 │  │  ├─ must   J1 отрицательные контроли: перепутанный ABI + намеренно испорченный ASM ловятся
 │  │  ├─ should J2 прогон по малому tracked корпусу 2-арг. u8 leaf-функций, отчёт pass/fail
@@ -24,8 +24,8 @@ minz backend synthesis
 │  │  ├─ should P1 isVregLiveAfter опирается на LivenessResult (живость через границы блоков)
 │  │  └─ should P2 pickScratch8 учитывает терминатор и live-out
 │  ├─ L  LIR не врёт
-│  │  ├─ must   L0 молчаливые drop в bridge.translateInst → ошибка → PBQP fallback
-│  │  ├─ must   L1 «emit anyway» после 3 неудачных валидаций → ошибка → fallback
+│  │  ├─ must   L0 молчаливые drop (translateInst, translateCall без модуля) → ошибка → PBQP fallback
+│  │  ├─ must   L1 «emit anyway» после 4 неудачных попыток валидации → ошибка → fallback
 │  │  └─ should L2 пересчёт LIR native/fallback/wrong под судьёй
 │  └─ D  документы
 │     ├─ must   D0 метаанализ + этот план в main
