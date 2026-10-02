@@ -3621,8 +3621,8 @@ func (g *z80cg) genInst(inst *Inst) {
 		// the offset when base and off share a register like DE).
 		if off != offPair {
 			if len(off) == 1 { // 8-bit: zero-extend into pair
-				g.pushWord(off)
-				g.emitf("    POP %s", offPair)
+				g.emitLD8(lowByte(offPair), off)
+				g.emitf("    LD %s, 0", highByte(offPair))
 			} else {
 				g.emitMov(offPair, off, 16)
 			}
@@ -3812,14 +3812,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 	w := inst.Ty.Width()
 
 	if w == 16 {
-		scratch := []string{"AF"}
-		if mnem == "ADD" || mnem == "SUB" {
-			scratch = append(scratch, "HL", "DE")
-		}
-		if isSpill(lhs) || isSpill(rhs) {
-			scratch = append(scratch, "HL", "BC")
-		}
-		defer g.saveLiveScratch(inst, scratch...)()
+		defer g.saveWrittenScratch(inst)()
 	}
 
 	if w >= 24 {
@@ -3837,12 +3830,6 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			rhsReg = inst.Src[0]
 		}
 		if mnem == "SUB" && ((rhs == dst && lhs != dst) || (rhs == "HL" && lhs != "HL")) {
-			if dst != "HL" {
-				g.emit("    PUSH HL")
-			}
-			if dst != "DE" {
-				g.emit("    PUSH DE")
-			}
 			g.pushWord(lhs)
 			g.pushWord(rhs)
 			g.emit("    POP DE")
@@ -3850,12 +3837,6 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			g.emit("    OR A")
 			g.emit("    SBC HL, DE")
 			g.emitMov(dst, "HL", 16)
-			if dst != "DE" {
-				g.emit("    POP DE")
-			}
-			if dst != "HL" {
-				g.emit("    POP HL")
-			}
 			g.invalidate(dst)
 			return
 		}
@@ -5415,12 +5396,12 @@ func (g *z80cg) genMul32(inst *Inst) {
 
 func (g *z80cg) genDivMod(inst *Inst) {
 	w := inst.Ty.Width()
-	defer g.saveLiveScratch(inst, "AF", "HL", "DE", "BC")()
+	defer g.saveWrittenScratch(inst)()
 
 	// Positive powers of two have cheap unsigned and signed implementations.
 	if k, ok := g.constVals[inst.Src[1]]; ok && k > 0 && k&(k-1) == 0 && w <= 16 && ((inst.Op != OpSDiv && inst.Op != OpSMod) || k < int64(1)<<(w-1)) {
 		signed := inst.Op == OpSDiv || inst.Op == OpSMod
-		if signed && g.nonNegative(inst.Src[0], make(map[Reg]bool)) {
+		if signed && g.nonNegative(inst.Src[0], w, make(map[Reg]bool)) {
 			signed = false
 		}
 		g.genPow2DivMod(inst, k, signed)
@@ -8069,7 +8050,7 @@ func (g *z80cg) promote8toPair(r string) string {
 func (g *z80cg) genCmp16(inst *Inst) {
 	lhs := g.loc(inst.Src[0])
 	rhs := g.loc(inst.Src[1])
-	defer g.saveLiveScratch(inst, "HL", "DE", "BC")()
+	defer g.saveWrittenScratch(inst)()
 
 	// CmpGt/CmpLe traditionally swap operands so SBC HL,rr gives the C flag
 	// directly.  However, when lhs=HL and rhs=DE (common case), the swap
@@ -8183,12 +8164,9 @@ func (g *z80cg) genCmp16(inst *Inst) {
 		}
 	}
 
-	// Track whether we used EX DE,HL to put lhs into HL.  If so, after
-	// PUSH/SBC/POP we must EX DE,HL again to restore the allocator's
-	// expected physical layout (HL=original_rhs, DE=original_lhs).
-	// EX DE,HL does NOT affect any flags, so carry is preserved.
-	// True when we moved orig_rhs(HL) to DE and loaded orig_lhs into HL.
-	// After PUSH/SBC/POP the allocator expects HL=orig_rhs again.
+	// Restore the original operand orientation after SBC. The wrapper
+	// restores any live values overwritten by staging or subtraction.
+
 	swappedDE := origRhs == "HL" && origLhs != "HL"
 
 	// SBC HL, rr requires rhs to be a 16-bit register pair (BC/DE/HL/SP).
@@ -8221,48 +8199,15 @@ func (g *z80cg) genCmp16(inst *Inst) {
 		rhs = "BC"
 	}
 
-	// lhs is now in HL.  SBC HL, rr clobbers HL; we need to restore it
-	// for the taken/not-taken branches that use the original operands.
-	//
-	// Optimisation 1 (flags-only): if lhs is NOT used after this comparison
-	// (only the flags matter), skip the restore entirely.  This saves:
-	//   −1 instruction (ADD HL,rr) for eq/ne/signed comparisons
-	//   −2 instructions (PUSH HL + POP HL) for unsigned comparisons
-	//
-	// Optimisation 2: for signed/eq/ne, ADD HL,rr restores HL without
-	// clobbering S, Z, or P/V flags (only CF and H are affected).
-	// This saves 1B + 10T vs PUSH/POP.
-	needsCF := inst.Cond == CmpUlt || inst.Cond == CmpUge ||
-		inst.Cond == CmpUgt || inst.Cond == CmpUle
+	// The selected-sequence wrapper preserves HL only when its original
+	// value is live. POP restores it without disturbing comparison flags.
+	g.emit("    OR A")
+	g.emitSBCHL(rhs)
 
-	// Flags-only: Grace rule marks CMP as FlagsOnly when LHS is provably dead
-	// (using global liveness analysis at MIR2 level). Skip HL restore.
-	if inst.FlagsOnly {
-		g.emit("    OR A")
-		g.emitSBCHL(rhs)
-	} else if needsCF {
-		g.emit("    PUSH HL") // save lhs (2B, 21T — need CF preserved)
-		g.emit("    OR A")
-		g.emitSBCHL(rhs)
-		g.emit("    POP HL") // restore lhs
-	} else {
-		g.emit("    OR A")
-		g.emitSBCHL(rhs)
-		// Restore lhs via ADD HL, rhs (−1B, −10T; S/Z/PV safe).
-		if rhs == "IX" || rhs == "IY" {
-			g.emit("    PUSH DE")
-			g.emitMov("DE", rhs, 16)
-			g.emit("    ADD HL, DE")
-			g.emit("    POP DE")
-		} else {
-			g.emitADDHL(rhs)
-		}
-	}
 	if swappedDE {
-		// Restore physical registers to allocator-expected layout:
-		//   before compare: HL=orig_rhs, DE=orig_lhs
-		//   after EX+PUSH/SBC/POP:  HL=orig_lhs, DE=orig_rhs
-		//   after this EX:          HL=orig_rhs, DE=orig_lhs  ✓
+		// EX leaves the comparison flags intact; live originals are restored
+		// by the wrapper after signed-flag normalization.
+
 		g.emit("    EX DE, HL")
 		g.invalidate("HL")
 		g.invalidate("DE")
@@ -9083,16 +9028,16 @@ func (g *z80cg) pushWord(src string) {
 	g.invalidate("HL")
 }
 
-// Only use proofs that survive promotion: unsigned parameters/constants,
+// Only use proofs that survive same-width signed casts: narrower unsigned parameters,
 // zero extension from a narrower width, and copies of a proven value.
-func (g *z80cg) nonNegative(r Reg, seen map[Reg]bool) bool {
+func (g *z80cg) nonNegative(r Reg, width int, seen map[Reg]bool) bool {
 	if seen[r] {
 		return false
 	}
 	seen[r] = true
 	for _, p := range g.fn.Contract.Params {
 		if p.Reg == r {
-			return p.Ty.Width() < 16 && !IsSigned(p.Ty)
+			return p.Ty.Width() < width && !IsSigned(p.Ty)
 		}
 	}
 	for _, b := range g.fn.Blocks {
@@ -9102,11 +9047,11 @@ func (g *z80cg) nonNegative(r Reg, seen map[Reg]bool) bool {
 			}
 			switch i.Op {
 			case OpExt:
-				return i.SrcTy != nil && i.Ty != nil && i.SrcTy.Width() < i.Ty.Width()
+				return i.SrcTy != nil && i.Ty != nil && i.SrcTy.Width() < i.Ty.Width() && i.SrcTy.Width() < width
 			case OpConst:
-				return i.Imm >= 0 && i.Imm < (int64(1)<<(i.Ty.Width()-1))
+				return i.Imm >= 0 && i.Imm < (int64(1)<<(width-1))
 			case OpMove:
-				return g.nonNegative(i.Src[0], seen)
+				return g.nonNegative(i.Src[0], width, seen)
 			}
 		}
 	}
@@ -9229,16 +9174,8 @@ func (g *z80cg) genPow2DivMod(inst *Inst, k int64, signed bool) {
 // Arithmetic helpers use fixed scratch registers beyond their allocated dst.
 // Preserve any unrelated live values there, including byte halves of pairs.
 func (g *z80cg) saveLiveScratch(inst *Inst, pairs ...string) func() {
-	live := g.regsLiveAfterInst(inst)
-	if g.liveness != nil && g.curBlock != nil {
-		if out := g.liveness.LiveOutOf(g.fn, g.curBlock); out != nil {
-			for r := range g.ar.Locs {
-				if out.Has(r) {
-					live[r] = true
-				}
-			}
-		}
-	}
+	live := g.scratchLiveAfter(inst)
+
 	dst := g.loc(inst.Dst)
 	accPair := "BC"
 	if dst == "BC" || dst == "B" || dst == "C" {
@@ -9308,4 +9245,137 @@ func (g *z80cg) emitKnownFlagCopy(dst string, width int) bool {
 	g.invalidate("A")
 	g.invalidate(dst)
 	return true
+}
+
+// scratchLiveAfter walks backwards from live-out, killing later definitions.
+// A value first defined after inst does not occupy its allocation yet.
+func (g *z80cg) scratchLiveAfter(inst *Inst) map[Reg]bool {
+	live := make(map[Reg]bool)
+	if g.curBlock == nil {
+		return live
+	}
+	if g.liveness != nil {
+		out := g.liveness.LiveOutOf(g.fn, g.curBlock)
+		for r := range g.ar.Locs {
+			if out != nil && out.Has(r) {
+				live[r] = true
+			}
+		}
+	}
+	if g.curBlock.Term != nil {
+		for _, r := range g.curBlock.Term.termUses() {
+			live[r] = true
+		}
+	}
+	for i := len(g.curBlock.Insts) - 1; i >= 0; i-- {
+		next := g.curBlock.Insts[i]
+		if next == inst {
+			break
+		}
+		delete(live, next.Dst)
+		for _, r := range next.ExtraRets {
+			delete(live, r)
+		}
+		for _, r := range next.Uses() {
+			if r != NoReg {
+				live[r] = true
+			}
+		}
+	}
+	return live
+}
+
+// Buffer the selected sequence so preservation follows its physical writes,
+// rather than a worst-case list for the MIR opcode. Flags are intentionally
+// excluded: comparison flags must survive restoration of the accumulator.
+func (g *z80cg) saveWrittenScratch(inst *Inst) func() {
+	outer := g.sb
+	var body strings.Builder
+	g.sb = &body
+	live := g.scratchLiveAfter(inst)
+	locs := make(map[Reg]string)
+	for r := range live {
+		locs[r] = g.loc(r)
+	}
+	return func() {
+		g.sb = outer
+		writes := scratchSequenceWrites(body.String())
+		var pairs []string
+		for _, pair := range []string{"AF", "HL", "DE", "BC", "IX", "IY"} {
+			for r, loc := range locs {
+				if r == inst.Dst {
+					continue
+				}
+				if (loc == pair && (writes[highByte(pair)] || writes[lowByte(pair)])) ||
+					(parentPair(loc) == pair && writes[loc]) {
+					pairs = append(pairs, pair)
+					break
+				}
+			}
+		}
+		restore := g.saveLiveScratch(inst, pairs...)
+		g.sb.WriteString(body.String())
+		restore()
+	}
+}
+
+// These helpers emit only ordinary scalar Z80 instructions. Unknown operations
+// conservatively write all registers, so adding a sequence cannot omit a save.
+func scratchSequenceWrites(asm string) map[string]bool {
+	writes := make(map[string]bool)
+	mark := func(r string) {
+		if r == "AF" {
+			writes["A"] = true
+		} else if isPairReg(r) {
+			writes[highByte(r)], writes[lowByte(r)] = true, true
+		} else if isSimpleReg(r) || isIXYReg(r) {
+			if r != "F" {
+				writes[r] = true
+			}
+		}
+	}
+	for _, line := range strings.Split(asm, "\n") {
+		line = strings.TrimSpace(strings.SplitN(line, ";", 2)[0])
+		fields := strings.Fields(line)
+		if len(fields) == 0 || strings.HasSuffix(line, ":") {
+			continue
+		}
+		op := fields[0]
+		args := strings.Split(strings.TrimSpace(strings.TrimPrefix(line, op)), ",")
+		for i := range args {
+			args[i] = strings.TrimSpace(args[i])
+		}
+		switch op {
+		case "LD", "POP", "INC", "DEC", "SLA", "SRA", "SRL", "RL", "RR", "RLC", "RRC":
+			mark(args[0])
+		case "SET", "RES":
+			if len(args) > 1 {
+				mark(args[1])
+			}
+		case "ADD", "ADC", "SBC":
+			if len(args) > 1 {
+				mark(args[0])
+			} else {
+				mark("A")
+			}
+		case "AND", "OR":
+			if args[0] != "A" {
+				mark("A")
+			}
+		case "SUB", "XOR", "NEG", "RLA", "RRA", "RLCA", "RRCA", "CPL":
+			mark("A")
+		case "EX":
+			for _, r := range args {
+				mark(r)
+			}
+		case "CP", "BIT", "PUSH", "JP", "JR", "SCF", "CCF", "NOP":
+		case "DJNZ":
+			mark("B")
+		default:
+			for _, r := range []string{"AF", "HL", "DE", "BC", "IX", "IY"} {
+				mark(r)
+			}
+		}
+	}
+	return writes
 }
