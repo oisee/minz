@@ -161,7 +161,13 @@ func (g *z80cg) loc(r Reg) string {
 // Format: _spill_{funcName}_r{regNum}
 // The label is emitted in the data section at end of function.
 func (g *z80cg) spillLabel(r Reg) string {
-	return fmt.Sprintf("_spill_%s_r%d", sanitizeIdent(g.fn.Name), int(r))
+	return Z80SpillLabel(g.fn.Name, r)
+}
+
+// Z80SpillLabel names the storage used by production codegen for a spilled
+// virtual register. Assertion bootstraps must initialize this same storage.
+func Z80SpillLabel(funcName string, r Reg) string {
+	return fmt.Sprintf("_spill_%s_r%d", sanitizeIdent(funcName), int(r))
 }
 
 // spillWidth returns the byte width of a spilled register (1, 2, or 3 for eZ80).

@@ -10,8 +10,17 @@ if [[ -z $changed_go ]]; then
     printf 'No changed Go source files; Go lint skipped.\n' > "$REPORT_DIR/lint.log"
     status=0
 else
+    # Lint changed packages only. Running ./pkg/... also type-checks optional
+    # graphics packages unrelated to a compiler PR and creates false failures.
+    declare -A changed_packages=()
+    while IFS= read -r path; do
+        relative=${path#minzc/}
+        package_dir=${relative%/*}
+        changed_packages["./$package_dir/..."]=1
+    done <<< "$changed_go"
+    mapfile -t lint_targets < <(printf '%s\n' "${!changed_packages[@]}" | LC_ALL=C sort)
     set +e
-    (cd minzc && golangci-lint run --new-from-rev="$BASE_SHA" --show-stats=false --output.json.path stdout --output.text.path /dev/null ./pkg/... ./cmd/...) > "$REPORT_DIR/lint.json" 2> "$REPORT_DIR/lint.log"
+    (cd minzc && golangci-lint run --new-from-rev="$BASE_SHA" --show-stats=false --output.json.path stdout --output.text.path /dev/null "${lint_targets[@]}") > "$REPORT_DIR/lint.json" 2> "$REPORT_DIR/lint.log"
     status=$?
     set -e
 fi
