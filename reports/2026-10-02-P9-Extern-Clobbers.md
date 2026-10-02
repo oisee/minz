@@ -113,3 +113,41 @@ Both corpus runners exited 0. A mutation audit separately disables declared
 clobbers, argument-write accounting, pair overlap, safe pickup scratch selection,
 unresolved-call saves, and extern ABI lowering. Each mutation must make its
 specific regression test fail with exit 1, then the original source is restored.
+
+## FIX1: ambiguous symbols and diagnostics
+
+MIR2 calls carry a symbol name (`Inst.Sym`), not an exact function identity.
+Code generation now resolves an ABI only for a unique name. Duplicate names
+fall back to conservative saves; an extern with MIR2 blocks cannot narrow
+clobbers either. Nanz rejects extern/body name collisions in either declaration
+order and conflicting extern redeclarations, including overloaded parameter
+types, register ABI, return types, address, and clobber contracts. Existing
+ordinary operator overloads do not establish overload semantics for unmangled
+extern symbols. Identical extern redeclarations remain accepted for imports;
+parameter names do not affect signature equality.
+
+Malformed extern attributes now show both supported clobber syntax forms.
+An extra comma in a register list reports an empty clobber register entry.
+The language book explains untracked shadow registers, I and R, and why AF'
+is rejected. This report now follows the date-prefixed reports convention.
+
+New regressions cover both critic scenarios, declaration order, additional
+contract/ABI conflicts, ambiguous MIR2 callees with executable clobber stubs,
+externs with blocks, malformed syntax, and empty register entries. Restoring
+pre-fix implementation files made each of four regression groups fail with
+exit 1; the mutation audit exited 0. Logs: `/tmp/p9-fix1-mutations.log`.
+
+Required gates ran sequentially with `set -o pipefail`,
+`GOCACHE=/tmp/minz-go-cache`, and `GOFLAGS=-buildvcs=false`:
+
+- `go build ./pkg/... ./cmd/...`: exit 0.
+- `go test ./pkg/hir ./pkg/mir2 ./pkg/nanz -count=1 -skip '^TestShowcaseCompileAssemble$'`: exit 0.
+- `go test -short ./pkg/pipeline/... ./pkg/c89/... -count=1`: exit 0.
+
+Critic probes reran using a compiler rebuilt from this worktree, original
+sources and stubs, and the supplied assembler/emulator. p1 compiles/assembles
+with exit 0 and returns A=10; p2 and unannotated control p2c compile/assemble
+with exit 0 and return A=55. Emulator process exits equal those return values.
+p3 rejects overloaded externs with compile exit 1. p4 and its unannotated
+control p4m reject extern/body collisions with compile exit 1. The probe audit
+exited 0; artifacts and full command logs: `/tmp/p9-fix1-critic/`.

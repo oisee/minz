@@ -58,3 +58,50 @@ func TestExternClobbersRejectUnknown(t *testing.T) {
 		}
 	}
 }
+
+func TestExternRedeclarationConflicts(t *testing.T) {
+	for _, tc := range []struct{ name, source, want string }{
+		{"body after extern", `@extern(clobbers: "") fun g(a: u8) -> u8
+fun g(a: u8) -> u8 { return a + 2 }
+fun main() -> u8 { return g(1) + 12 }`, "shares a name with a function body"},
+		{"extern after body", `fun g(a: u8) -> u8 { return a }
+@extern(clobbers: "") fun g(a: u8) -> u8`, "shares a name with a function body"},
+		{"extern overload", `@extern(clobbers: "") fun f(a: u8) -> void
+@extern fun f(a: u16) -> void
+fun main() -> void { f(0x1234) }`, "conflicting @extern redeclarations"},
+		{"contract", `@extern(clobbers: "") fun f()
+@extern(clobbers: "C") fun f()`, "conflicting @extern redeclarations"},
+		{"address", `@extern(0x10) fun f()
+@extern(0x18) fun f()`, "conflicting @extern redeclarations"},
+		{"return", `@extern fun f() -> u8
+@extern fun f() -> u16`, "conflicting @extern redeclarations"},
+		{"parameter ABI", `@extern fun f(@z80_a a: u8)
+@extern fun f(@z80_c a: u8)`, "conflicting @extern redeclarations"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := nanz.Parse(tc.source, "test")
+			if err == nil || !strings.Contains(err.Error(), tc.want) {
+				t.Fatalf("want %q, got %v", tc.want, err)
+			}
+		})
+	}
+	// Repeated imports may supply identical declarations with different parameter names.
+	if _, err := nanz.Parse("@extern fun f(a: u8)\n@extern fun f(b: u8)", "test"); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestExternClobberSyntaxDiagnostics(t *testing.T) {
+	for _, attr := range []string{`@extern(clobbers "A")`, `@extern(0x10 clobbers: "A")`, `@extern(clobbers: A)`, `@extern(writes: "A")`} {
+		_, err := nanz.Parse(attr+" fun f()", "test")
+		if err == nil || !strings.Contains(err.Error(), `@extern(clobbers: "A, HL")`) || !strings.Contains(err.Error(), `@extern(0x1234, clobbers: "...")`) || strings.Contains(err.Error(), "token kind") {
+			t.Errorf("%s: got %v", attr, err)
+		}
+	}
+	for _, regs := range []string{"A,", ",HL", "A,,HL", "A, ,HL"} {
+		_, err := nanz.Parse(`@extern(clobbers: "`+regs+`") fun f()`, "test")
+		if err == nil || !strings.Contains(err.Error(), "empty clobber register entry") {
+			t.Errorf("%q: got %v", regs, err)
+		}
+	}
+}

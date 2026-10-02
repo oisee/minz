@@ -136,3 +136,34 @@ func TestUnresolvedExternCallPreservesLiveValues(t *testing.T) {
 		t.Fatalf("unresolved call lost live C: %+v", regs)
 	}
 }
+
+func TestExternAmbiguousCalleeSaves(t *testing.T) {
+	for _, compiled := range []bool{false, true} {
+		g, inst, _ := externCallFixture("C", []string{})
+		other := g.mod.AddFunc("ext")
+		other.Attrs.IsExtern = !compiled
+		if compiled {
+			other.Blocks = []*Block{{Label: "entry"}}
+		}
+		g.genCall(inst)
+		asm := g.sb.String()
+		if !strings.Contains(asm, "PUSH BC") {
+			t.Fatalf("ambiguous callee must save live C: %s", asm)
+		}
+		regs := runExternJudge(t, "ORG 0x8000\nLD C, 42\n"+asm+"LD A, C\nHALT\next:\nLD C, 99\nRET\n")
+		if regs.A != 42 {
+			t.Fatalf("live C corrupted: A=%d", regs.A)
+		}
+	}
+}
+
+func TestExternWithBodyStaysConservative(t *testing.T) {
+	g, inst, ext := externCallFixture("C", []string{})
+	ext.Blocks = []*Block{{Label: "entry"}}
+	if got := computeClobbers(ext, g.ar); !reflect.DeepEqual(got, allZ80Clobbers) {
+		t.Fatalf("extern with body narrowed writes: %v", got)
+	}
+	if got := g.callerSavePairs(inst, ext); !reflect.DeepEqual(got, []string{"BC"}) {
+		t.Fatalf("extern with body did not save live C: %v", got)
+	}
+}

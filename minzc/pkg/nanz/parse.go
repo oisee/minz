@@ -42,6 +42,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"sort"
 	"strconv"
 	"strings"
@@ -805,19 +806,22 @@ func (p *parser) parseModule() (*hir.Module, error) {
 					}
 					if needClobbers {
 						if err := p.l.eatIdent("clobbers"); err != nil {
-							return nil, err
+							return nil, fmt.Errorf("line %d: expected @extern(clobbers: \"A, HL\") or @extern(0x1234, clobbers: \"...\")", t.line)
 						}
 						if _, err := p.l.eat(tokColon); err != nil {
-							return nil, err
+							return nil, fmt.Errorf("line %d: expected @extern(clobbers: \"A, HL\") or @extern(0x1234, clobbers: \"...\")", t.line)
 						}
 						regs, err := p.l.eat(tokString)
 						if err != nil {
-							return nil, err
+							return nil, fmt.Errorf("line %d: expected @extern(clobbers: \"A, HL\") or @extern(0x1234, clobbers: \"...\")", t.line)
 						}
 						externClobbers = []string{}
 						if strings.TrimSpace(regs.val) != "" {
 							for _, name := range strings.Split(regs.val, ",") {
 								name = strings.ToUpper(strings.TrimSpace(name))
+								if name == "" {
+									return nil, fmt.Errorf("line %d: empty clobber register entry; omit extra commas (use clobbers: \"\" to preserve all registers)", regs.line)
+								}
 								if !mir2.ValidZ80Clobber(name) {
 									return nil, fmt.Errorf("line %d: unknown or unsupported clobber register %q", regs.line, name)
 								}
@@ -826,7 +830,7 @@ func (p *parser) parseModule() (*hir.Module, error) {
 						}
 					}
 					if _, err := p.l.eat(tokRParen); err != nil {
-						return nil, err
+						return nil, fmt.Errorf("line %d: expected @extern(clobbers: \"A, HL\") or @extern(0x1234, clobbers: \"...\")", t.line)
 					}
 				}
 				if err := p.l.eatIdent("fun"); err != nil {
@@ -1056,6 +1060,34 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	m.Funcs = append(m.Funcs, p.lambdas...)
 	// Append auto-generated helpers (__tag, __payload, match payload wrappers).
 	m.Funcs = append(m.Funcs, p.autoFuncs...)
+
+	// Extern symbols have one ABI; ordinary function overloads do not define
+	// overload semantics for host/assembly symbols. Validate after imports and
+	// generated helpers have been merged as well as local declarations.
+	byName := make(map[string][]*hir.Func)
+	for _, f := range m.Funcs {
+		for _, prev := range byName[f.Name] {
+			if !prev.IsExtern && !f.IsExtern {
+				continue
+			}
+			if !prev.IsExtern || !f.IsExtern || prev.Body != nil || f.Body != nil {
+				return nil, fmt.Errorf("@extern %q shares a name with a function body", f.Name)
+			}
+			same := reflect.DeepEqual(prev.RetTy, f.RetTy) && reflect.DeepEqual(prev.RetTys, f.RetTys) &&
+				prev.ExternAddr == f.ExternAddr && reflect.DeepEqual(prev.ExternClobbers, f.ExternClobbers) && len(prev.Params) == len(f.Params)
+			if same {
+				for i, param := range prev.Params {
+					if !reflect.DeepEqual(param.Ty, f.Params[i].Ty) || param.RegClass != f.Params[i].RegClass || param.SMC != f.Params[i].SMC {
+						same = false
+					}
+				}
+			}
+			if !same {
+				return nil, fmt.Errorf("conflicting @extern redeclarations for %q; extern overloads are unsupported", f.Name)
+			}
+		}
+		byName[f.Name] = append(byName[f.Name], f)
+	}
 
 	// Fix forward-referenced call types: any CallExpr with Ty==TyVoid whose
 	// target function actually returns a value needs its Ty patched.  This

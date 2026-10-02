@@ -160,7 +160,17 @@ func (g *z80cg) genCall(inst *Inst) {
 			callee.Contract.Returns = []Return{{Ty: inst.Ty, Class: ClassAcc}}
 		}
 	} else if g.mod != nil {
-		callee = g.mod.FuncByName(inst.Sym)
+		// Calls carry a symbol, not a function identity. Ambiguous names cannot
+		// supply either an ABI or a preservation guarantee.
+		for _, f := range g.mod.Funcs {
+			if f.Name == inst.Sym {
+				if callee != nil {
+					callee = nil
+					break
+				}
+				callee = f
+			}
+		}
 	}
 
 	// Save live caller values before argument copies, including reused args.
@@ -624,7 +634,7 @@ func (g *z80cg) callerSavePairs(inst *Inst, callee *Func) []string {
 	// The declaration describes the callee, not the argument shuffle. Include
 	// its destination writes as well. Complex copies can use implicit scratch
 	// registers; retain the conservative contract for those call sites.
-	if callee != nil && callee.Attrs.IsExtern && callee.Contract.ExternClobbers != nil {
+	if callee != nil && callee.Attrs.IsExtern && len(callee.Blocks) == 0 && callee.Contract.ExternClobbers != nil {
 		moves := 0
 		for i, arg := range inst.Args {
 			if i >= len(callee.Contract.Params) {
@@ -900,7 +910,7 @@ var allZ80Clobbers = []string{"A", "B", "BC", "C", "D", "DE", "E", "F", "H", "HL
 
 // computeClobbers returns a conservative sorted superset of emitted writes.
 func computeClobbers(f *Func, ar *AllocResult) []string {
-	if f != nil && f.Attrs.IsExtern && f.Contract.ExternClobbers != nil {
+	if f != nil && f.Attrs.IsExtern && len(f.Blocks) == 0 && f.Contract.ExternClobbers != nil {
 		var names []string
 		for _, name := range f.Contract.ExternClobbers {
 			// Other frontends must not accidentally turn invalid contracts into

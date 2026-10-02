@@ -1180,6 +1180,18 @@ registers. Names are case insensitive; supported names are `A`, `F`, `B`, `C`,
 and `IYL`. Pair and half-register overlaps are respected. Unknown names and
 unsupported registers such as `SP` produce a compile error.
 
+`AF'`, the EXX shadow registers (`BC'`, `DE'`, `HL'`), `I`, and `R` are
+untracked by these declarations: the allocator and caller-save machinery do not
+model their liveness or preservation. `AF'` is rejected because accepting it
+would imply a preservation guarantee that caller-save cannot enforce; `AF` names
+only the primary accumulator and flags.
+
+Extern symbols have one ABI. An `@extern` cannot share a name with a function
+body, and conflicting extern redeclarations (including parameter types, ABI,
+address, return types, or clobber contracts) are rejected. Extern overloads are
+unsupported. Identical declarations may be repeated, for example by imports;
+ambiguous names retain conservative caller saves.
+
 The declaration is a contract the implementer must keep, including writes by
 nested calls. Declaring fewer writes than the implementation makes can silently
 corrupt live caller values; there is no runtime contract check. Return registers
