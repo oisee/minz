@@ -2,11 +2,13 @@ package hir_test
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/lir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/pipeline"
 	"github.com/minz/minzc/pkg/z80asm"
@@ -156,12 +158,33 @@ func positiveArgs(a, b uint8) bool { return a >= 1 && b >= 1 }
 func TestExhaustiveJudgeGCD(t *testing.T) {
 	grace := pipeline.DefaultOptions()
 	grace.UseGrace = true
+	lirOpts := pipeline.DefaultOptions()
+	lirOpts.UseLIR = true
+	lirOpts.LIRCheck = true
 	for _, variant := range []struct {
 		name string
 		opts pipeline.Options
-	}{{"default", pipeline.DefaultOptions()}, {"grace", grace}} {
+	}{{"default", pipeline.DefaultOptions()}, {"grace", grace}, {"lir", lirOpts}} {
 		t.Run(variant.name, func(t *testing.T) {
-			fixture := compileHIRFixtureWithOptions(t, &hir.Module{Name: "judge_gcd", Funcs: []*hir.Func{gcdHIR()}}, variant.opts)
+			steps, err := pipeline.CompileHIRSteps(&hir.Module{Name: "judge_gcd", Funcs: []*hir.Func{gcdHIR()}}, variant.opts)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if variant.opts.UseLIR {
+				trace := steps.Traces["gcd"]
+				if trace == nil || !strings.Contains(trace.Backend, "PBQP (lir disabled)") {
+					t.Fatalf("gcd must use PBQP with native LIR disabled, got trace %+v", trace)
+				}
+				if len(steps.LIRResults) < 3 {
+					t.Fatalf("LIRCheck must still check gcd on all three machines: %+v", steps.LIRResults)
+				}
+				for _, result := range steps.LIRResults[:3] {
+					if strings.Contains(result.Error, "disabled") {
+						t.Fatalf("codegen guard leaked into convergence: %+v", result)
+					}
+				}
+			}
+			fixture := hirZ80Fixture{module: steps.MIR2Module, alloc: steps.Allocation, asm: steps.Assembly}
 			checked, bad := newU8Judge(t, fixture, "gcd", false).sweep(positiveArgs, gcdModel)
 			if checked != 255*255 {
 				t.Fatalf("judge checked %d inputs, want %d", checked, 255*255)
@@ -170,6 +193,40 @@ func TestExhaustiveJudgeGCD(t *testing.T) {
 				t.Fatalf("production Z80 gcd: %d/%d mismatches:%s\n%s", len(bad), checked, describeMismatches(bad), fixture.asm)
 			}
 		})
+	}
+}
+
+// TestExhaustiveJudgeGCDMultiBlockKnownRed keeps the disabled backend measurable.
+// The default skip records the sweep measured on 2026-10-02.
+// MINZ_RUN_KNOWN_RED=1 makes mismatches fail for work on the multi-block backend.
+func TestExhaustiveJudgeGCDMultiBlockKnownRed(t *testing.T) {
+	// Documented measurements from 2026-10-02; opt in to remeasure.
+	const measuredMismatches, measuredInputs, measuredTimeouts = 64_952, 65_025, 763
+	if os.Getenv("MINZ_RUN_KNOWN_RED") != "1" {
+		t.Skipf("2026-10-02: multi-block LIR gcd: %d/%d mismatches, %d timeouts; set MINZ_RUN_KNOWN_RED=1 to remeasure", measuredMismatches, measuredInputs, measuredTimeouts)
+	}
+	fixture := compileProductionHIRFixture(t, &hir.Module{Name: "judge_gcd", Funcs: []*hir.Func{gcdHIR()}})
+	// Use the production contract and allocation for the ABI bootstrap; the
+	// backend must honor those same inputs and return convention. The research
+	// hook bypasses the production allowlist to measure raw native LIR.
+	var err error
+	fixture.asm, err = lir.LIRCodegenMultiBlockForResearch(fixture.module.FuncByName("gcd"), fixture.module)
+	if err != nil {
+		t.Fatal(err)
+	}
+	checked, bad := newU8Judge(t, fixture, "gcd", false).sweep(positiveArgs, gcdModel)
+	if checked != 255*255 {
+		t.Fatalf("judge checked %d inputs, want %d", checked, 255*255)
+	}
+	timeouts := 0
+	for _, mismatch := range bad {
+		if mismatch.err != nil && strings.Contains(mismatch.err.Error(), "no HALT") {
+			timeouts++
+		}
+	}
+	if len(bad) > 0 {
+		message := fmt.Sprintf("multi-block LIR gcd: %d/%d mismatches, %d timeouts:%s", len(bad), checked, timeouts, describeMismatches(bad))
+		t.Fatal(message)
 	}
 }
 
@@ -211,5 +268,208 @@ func TestExhaustiveJudgeNegativeControls(t *testing.T) {
 	tiny := func(a, b uint8) bool { return a >= 1 && a <= 2 && b >= 1 && b <= 2 && a != b }
 	if checked, bad := newU8Judge(t, hanging, "sub8", false).sweep(tiny, minus); len(bad) != checked || checked == 0 {
 		t.Fatalf("negative control failed: hanging sub8 reported %d/%d", len(bad), checked)
+	}
+}
+
+// TestExhaustiveJudgeLIRSingleBlock executes production PBQP with --lir
+// and verifies that native LIR remains disabled. Direct research is separate.
+func TestExhaustiveJudgeLIRSingleBlock(t *testing.T) {
+	for _, tc := range []struct {
+		name, op string
+		ret      mir2.Ty
+		model    func(uint8, uint8) int64
+	}{
+		{"lt", "<", mir2.TyBool, func(a, b uint8) int64 {
+			if a < b {
+				return 1
+			}
+			return 0
+		}},
+		{"eq", "==", mir2.TyBool, func(a, b uint8) int64 {
+			if a == b {
+				return 1
+			}
+			return 0
+		}},
+		{"sub8", "-", mir2.TyU8, func(a, b uint8) int64 { return int64(a - b) }},
+		{"add8", "+", mir2.TyU8, func(a, b uint8) int64 { return int64(a + b) }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			f := &hir.Func{Name: tc.name, Params: []hir.Param{{Name: "a", Ty: mir2.TyU8}, {Name: "b", Ty: mir2.TyU8}}, RetTy: tc.ret,
+				Body: hir.Blk(hir.Ret(&hir.BinExpr{Op: tc.op, L: hir.Var("a", mir2.TyU8), R: hir.Var("b", mir2.TyU8), Ty: tc.ret}))}
+			opts := pipeline.DefaultOptions()
+			opts.UseLIR = true
+			steps, err := pipeline.CompileHIRSteps(&hir.Module{Name: "judge_leaf", Funcs: []*hir.Func{f}}, opts)
+			if err != nil {
+				t.Fatal(err)
+			}
+			trace := steps.Traces[tc.name]
+			if trace == nil || trace.Backend != "PBQP (lir disabled)" {
+				t.Errorf("want disabled LIR provenance, got %+v", trace)
+			}
+			fixture := hirZ80Fixture{module: steps.MIR2Module, alloc: steps.Allocation, asm: steps.Assembly}
+			checked, bad := newU8Judge(t, fixture, tc.name, false).sweep(func(a, b uint8) bool { return true }, tc.model)
+			if checked != 65536 || len(bad) > 0 {
+				t.Fatalf("%d/%d mismatches:%s\n%s", len(bad), checked, describeMismatches(bad), fixture.asm)
+			}
+		})
+	}
+}
+
+// Word fallback judges assemble once and exhaust the u16 domain for >>3;
+// add32 checks fallback provenance and MIR2 semantics: the current PBQP u32
+// ABI spills to memory and produces unassemblable code, so it cannot yet be
+// judged on Z80. Keep that limitation explicit instead of altering the ABI.
+func TestExhaustiveJudgeLIRWideFallback(t *testing.T) {
+	for _, name := range []string{"shr16", "add32"} {
+		t.Run(name, func(t *testing.T) {
+			ty := mir2.TyU16
+			op := ">>"
+			rhs := hir.Expr(&hir.IntLitExpr{Val: 3, Ty: mir2.TyU16})
+			params := []hir.Param{{Name: "a", Ty: ty}}
+			if name == "add32" {
+				ty = mir2.TyU32
+				op = "+"
+				params = []hir.Param{{Name: "a", Ty: ty}, {Name: "b", Ty: ty}}
+				rhs = hir.Var("b", ty)
+			}
+			f := &hir.Func{Name: name, Params: params, RetTy: ty, Body: hir.Blk(hir.Ret(&hir.BinExpr{Op: op, L: hir.Var("a", ty), R: rhs, Ty: ty}))}
+			opts := pipeline.DefaultOptions()
+			opts.UseLIR = true
+			steps, err := pipeline.CompileHIRSteps(&hir.Module{Name: "judge_wide", Funcs: []*hir.Func{f}}, opts)
+			if err != nil {
+				t.Fatal(err)
+			}
+			trace := steps.Traces[name]
+			if trace == nil || !strings.Contains(trace.Backend, "PBQP (lir disabled)") {
+				t.Errorf("want disabled LIR trace, got %+v", trace)
+			}
+			mf := steps.MIR2Module.FuncByName(name)
+			if len(mf.Blocks) != 1 {
+				t.Fatalf("fixture must be single block, got %d", len(mf.Blocks))
+			}
+			if name == "add32" {
+				vm := mir2.NewVM(steps.MIR2Module)
+				for a := int64(0); a < 256; a++ {
+					for b := int64(0); b < 256; b++ {
+						got, err := vm.Call(name, []mir2.Value{{I: a}, {I: b}})
+						if err != nil || len(got) != 1 || got[0].I != a+b {
+							t.Fatalf("MIR2 add32(%d,%d): %v, %v", a, b, got, err)
+						}
+					}
+				}
+				boundaries := []int64{0, 1, 0xFFFE, 0xFFFF, 0x10000, 0x10001, 0x7FFFFFFF, 0x80000000, 0xFFFFFFFE, 0xFFFFFFFF}
+				for _, a := range boundaries {
+					for _, b := range boundaries {
+						got, err := vm.Call(name, []mir2.Value{{I: a}, {I: b}})
+						want := int64(uint32(a + b))
+						if err != nil || len(got) != 1 || got[0].I != want {
+							t.Fatalf("MIR2 add32(%d,%d): %v, %v; want %d", a, b, got, err, want)
+						}
+					}
+				}
+				// PBQP cannot assemble this production u32 ABI yet. A future
+				// repair must replace this source-VM check with a Z80 judge.
+				res, err := z80asm.NewAssembler().AssembleString(steps.Assembly)
+				if err != nil || len(res.Errors) > 0 {
+					plainOpts := pipeline.DefaultOptions()
+					plain, plainErr := pipeline.CompileHIRSteps(&hir.Module{Name: "judge_wide", Funcs: []*hir.Func{f}}, plainOpts)
+					if plainErr != nil {
+						t.Fatal(plainErr)
+					}
+					plainRes, plainErr := z80asm.NewAssembler().AssembleString(plain.Assembly)
+					if len(plainRes.Errors) == 0 || len(plainRes.Errors) != len(res.Errors) {
+						t.Fatalf("known PBQP u32 record requires equal nonzero assembly error counts: --lir %d, plain %d (%v)", len(res.Errors), len(plainRes.Errors), plainErr)
+					}
+					// Re-measured on deterministic origin/main ed55c1c7.
+					const knownAssemblyErrors = 18 // 2026-10-02, both modes
+					if len(plainRes.Errors) != knownAssemblyErrors {
+						t.Fatalf("known PBQP u32 assembly error count changed: got %d, recorded %d; re-measure both modes", len(plainRes.Errors), knownAssemblyErrors)
+					}
+					t.Skipf("2026-10-02: 65,636 MIR2 sums checked; known PBQP u32 Z80 assembly errors: --lir %d, plain %d: %v %v", len(res.Errors), len(plainRes.Errors), plainErr, plainRes.Errors)
+				}
+				t.Fatal("production u32 now assembles: replace this skip with a real judge")
+			}
+			boot := fmt.Sprintf("    ORG 0x%04X\n    CALL %s\n    DI\n    HALT\n", testLoadAddr, name)
+			res, err := z80asm.NewAssembler().AssembleString(boot + steps.Assembly)
+			if err != nil || len(res.Errors) > 0 {
+				t.Fatalf("assemble: %v %v", err, res.Errors)
+			}
+			z := emulator.NewRemogattoZ80()
+			bad := 0
+			checked := 0
+			for input := 0; input < 65536; input++ {
+				args := []uint16{uint16(input)}
+				want := uint16(input >> 3)
+				z.Reset()
+				if err := z.LoadMemory(testLoadAddr, res.Binary); err != nil {
+					t.Fatal(err)
+				}
+				regs := emulator.Registers{SP: 0xFF00, PC: testLoadAddr}
+				for i, p := range mf.Contract.Params {
+					loc := steps.Allocation.Locs[p.Reg]
+					switch loc.Name {
+					case "HL":
+						regs.HL = args[i]
+					case "DE":
+						regs.DE = args[i]
+					case "BC":
+						regs.BC = args[i]
+					default:
+						t.Fatalf("unexpected word ABI: %+v", loc)
+					}
+				}
+				z.SetRegisters(regs)
+				n := 0
+				for ; !z.IsHalted() && n < judgeStepBudget; n++ {
+					z.Step()
+				}
+				got, err := hirReturnValue(mf, z.GetRegisters())
+				checked++
+				if err != nil || n == judgeStepBudget || got != int64(want) {
+					bad++
+					if bad <= 5 {
+						t.Logf("args %v: got %d want %d err %v", args, got, want, err)
+					}
+				}
+			}
+			if bad > 0 {
+				t.Fatalf("%d/%d mismatches\n%s", bad, checked, steps.Assembly)
+			}
+		})
+	}
+}
+
+// The Z80 selector emits one SLA/SRL regardless of the supplied count.
+// Production --lir uses PBQP for both counts; direct native tests cover one.
+func TestExhaustiveJudgeLIRByteShifts(t *testing.T) {
+	for _, op := range []string{"<<", ">>"} {
+		for _, count := range []int64{1, 3} {
+			t.Run(fmt.Sprintf("%s/%d", op, count), func(t *testing.T) {
+				f := &hir.Func{Name: "shift8", Params: []hir.Param{{Name: "a", Ty: mir2.TyU8}}, RetTy: mir2.TyU8,
+					Body: hir.Blk(hir.Ret(&hir.BinExpr{Op: op, L: hir.Var("a", mir2.TyU8), R: &hir.IntLitExpr{Val: count, Ty: mir2.TyU8}, Ty: mir2.TyU8}))}
+				opts := pipeline.DefaultOptions()
+				opts.UseLIR = true
+				steps, err := pipeline.CompileHIRSteps(&hir.Module{Name: "judge_shift", Funcs: []*hir.Func{f}}, opts)
+				if err != nil {
+					t.Fatal(err)
+				}
+				trace := steps.Traces["shift8"]
+				if trace == nil || trace.Backend != "PBQP (lir disabled)" {
+					t.Errorf("unexpected shift provenance: %+v", trace)
+				}
+				fixture := hirZ80Fixture{module: steps.MIR2Module, alloc: steps.Allocation, asm: steps.Assembly}
+				for a := 0; a < 256; a++ {
+					want := uint8(a) >> count
+					if op == "<<" {
+						want = uint8(a) << count
+					}
+					got, err := runHIRZ80(t, fixture, "shift8", []int64{int64(a)})
+					if err != nil || got != int64(want) {
+						t.Fatalf("%d %s %d: got %d want %d err %v\n%s", a, op, count, got, want, err, steps.Assembly)
+					}
+				}
+			})
+		}
 	}
 }

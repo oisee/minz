@@ -28,7 +28,8 @@ import (
 )
 
 // UseZ3 enables Z3 SMT-based optimal register allocation instead of WFC.
-// Set via --z3 flag. Z3 finds provably optimal assignments but takes ~100ms
+// Set directly by research callers; --z3 has no effect while native emission
+// is disabled. Z3 finds provably optimal assignments but takes ~100ms
 // per function vs ~1ms for WFC.
 var UseZ3 bool
 
@@ -328,33 +329,44 @@ func LIRCodegenFunc(f *mir2.Func, m *mir2.Module, hints ...AllocHints) (string, 
 		h = hints[0]
 	}
 
-	// Multi-block functions without block params can't be handled correctly
-	// by either LIR path:
-	// - Flat path flattens all blocks, losing control flow (branches dropped,
-	//   instructions from different blocks execute unconditionally)
-	// - Multi-block WFC has cross-block liveness bugs (destructive patterns
-	//   like XOR A chosen when A is live in later blocks)
-	// Bail to PBQP fallback for these functions.
-	if len(f.Blocks) > 1 && !hasBlockParams(f) && hasNonTrivialBranch(f) {
-		return "", fmt.Errorf("multi-block control flow without block params (needs PBQP)")
+	// Multi-block functions go to PBQP. lirCodegenMultiBlock emits wrong code
+	// without reporting an error (gcd returns 1 for gcd(12,8)), so it stays
+	// off until it passes the exhaustive judge (pkg/hir exhaustive_judge_test).
+	// The flat path is no fallback either: it concatenates the blocks and
+	// drops control flow.
+	if len(f.Blocks) > 1 {
+		return "", fmt.Errorf("multi-block LIR disabled until it passes the judge")
 	}
 
-	// Try multi-block path for functions with block params.
-	if len(f.Blocks) > 1 && hasBlockParams(f) {
-		asm, err := lirCodegenMultiBlock(f, desc, m)
-		if err == nil {
-			return asm, nil
+	for _, p := range f.Contract.Params {
+		if p.Ty != nil && p.Ty.Width() > 16 {
+			return "", fmt.Errorf("lir: parameter value width %d exceeds 16 bits", p.Ty.Width())
 		}
-		// Fallback to flat on failure.
 	}
-
+	for _, r := range f.Contract.Returns {
+		if r.Ty != nil && r.Ty.Width() > 16 {
+			return "", fmt.Errorf("lir: return value width %d exceeds 16 bits", r.Ty.Width())
+		}
+	}
 	return lirCodegenFlat(f, desc, m, h)
+}
+
+// LIRCodegenMultiBlockForResearch measures raw native LIR, bypassing both
+// the production multi-block guard and the opcode/width allowlist.
+// Test/research only: this path is known to miscompile and must pass the
+// exhaustive judge before it can be enabled in production.
+func LIRCodegenMultiBlockForResearch(f *mir2.Func, m *mir2.Module) (string, error) {
+	return lirCodegenMultiBlockWithPolicy(f, Z80, m, loweringPolicy{rawResearch: true})
 }
 
 // lirCodegenMultiBlock emits per-block labels, instructions, and terminators.
 func lirCodegenMultiBlock(f *mir2.Func, desc *MachineDesc, m *mir2.Module) (string, error) {
+	return lirCodegenMultiBlockWithPolicy(f, desc, m, loweringPolicy{})
+}
+
+func lirCodegenMultiBlockWithPolicy(f *mir2.Func, desc *MachineDesc, m *mir2.Module, policy loweringPolicy) (string, error) {
 	// Use e-graph bridge for multi-variant lowering.
-	prog, blockOps, _, err := LowerMIR2ProgWithEGraph(f, desc, m)
+	prog, blockOps, _, err := lowerMIR2ProgWithEGraph(f, desc, m, policy)
 	if err != nil {
 		return "", fmt.Errorf("lower %s: %w", f.Name, err)
 	}
@@ -910,7 +922,7 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 	// without an explicit move, WFC never sees %r2 and can't save it across CALLs.
 	for _, b := range f.Blocks {
 		if ret, ok := b.Term.(*mir2.TermRet); ok {
-			for _, v := range ret.Vals {
+			for ri, v := range ret.Vals {
 				if v == mir2.NoReg {
 					continue
 				}
@@ -925,11 +937,28 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 				if !produced {
 					// Emit a move to self — this materializes the vreg in the LIR stream
 					// so WFC tracks it and emitInstsWithCallSpills can save it.
+					width := 0
+					for _, p := range f.Contract.Params {
+						if p.Reg == v && p.Ty != nil {
+							width = p.Ty.Width()
+							break
+						}
+					}
+					if width == 0 {
+						return "", fmt.Errorf("lir: unknown type for return vreg %d", v)
+					}
+					if width < 8 {
+						width = 8
+					}
+					if width > 16 {
+						return "", fmt.Errorf("lir: return value width %d exceeds 16 bits", width)
+					}
+					if ri >= len(f.Contract.Returns) {
+						return "", fmt.Errorf("lir: missing return contract")
+					}
 					allOps = append(allOps, MIROp{
-						Op:    OpMove,
-						Dst:   int(v),
-						Src:   [2]int{int(v), -1},
-						Width: 8, // TODO: infer from contract
+						Op: OpMove, Dst: int(v), Src: [2]int{int(v), -1}, Width: width,
+						DstAllowed: regClassToLocSet(desc, f.Contract.Returns[ri].Class, width),
 					})
 				}
 			}
@@ -948,6 +977,21 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 
 	// Extract function params as block params so isel+WFC know about them.
 	params := ContractParamsToBlockParams(f, desc)
+
+	// Parameter locations are the caller-visible ABI, not allocation preferences.
+	// A broad contract class must not let WFC move an incoming parameter without
+	// a setup move. Seed isel from the production allocation so it inserts one.
+	if len(hints) > 0 && hints[0] != nil {
+		for i := range params {
+			if phys, ok := hints[0][params[i].VReg]; ok {
+				if phys < 0 || phys >= len(desc.Locs) {
+					return "", fmt.Errorf("lir: invalid parameter location %d", phys)
+				}
+				params[i].Allowed = LocSet(0).Set(phys)
+				params[i].Phys = phys
+			}
+		}
+	}
 
 	// Isel with param pre-seeding
 	sel, err := SelectBlockInstructions(desc, combResult.Ops, params)
@@ -1186,9 +1230,9 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 			fmt.Printf("[Z80-VALIDATE] %s: %d errors, retrying (attempt %d/%d)\n",
 				f.Name, len(errs), attempt+1, maxRetries)
 		} else {
-			// Final attempt failed — log and emit anyway (warn-only).
+			// Final attempt failed: invalid Z80 must not be emitted.
 			LogValidationErrors(f.Name, asm, errs)
-			return asm, nil
+			return "", fmt.Errorf("lir %s: %d invalid instructions after %d attempts", f.Name, len(errs), maxRetries+1)
 		}
 	}
 

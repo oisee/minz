@@ -10,9 +10,9 @@
 #   bash ../scripts/validate_corpus.sh [--lir=false]
 #
 # Options:
-#   --lir=false   Force PBQP path only (skip LIR)
-#   --lir=true    Force LIR+PBQP hybrid (default)
-#   --both        Run both paths and compare
+#   --lir=false   Compile with PBQP
+#   --lir=true    Compile with PBQP (native LIR disabled)
+#   --both        Run both flag settings; both currently compile with PBQP
 
 set -euo pipefail
 
@@ -56,15 +56,16 @@ case "$MODE" in
         count_errors "--lir=false"
         ;;
     --lir=true|--lir)
-        echo "=== LIR + PBQP hybrid (default) ==="
-        count_errors ""
+        echo "=== PBQP with --lir (native LIR disabled) ==="
+        count_errors "--lir"
         ;;
     --both)
+        echo "Both flag settings currently compile with PBQP; native LIR emission is disabled."
         echo "=== PBQP only (--lir=false) ==="
         count_errors "--lir=false"
         echo ""
-        echo "=== LIR + PBQP hybrid (default) ==="
-        count_errors ""
+        echo "=== PBQP with --lir (native LIR disabled) ==="
+        count_errors "--lir"
         ;;
     *)
         echo "Usage: $0 [--lir=false|--lir=true|--both]"
