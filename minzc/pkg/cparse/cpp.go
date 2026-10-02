@@ -1276,7 +1276,7 @@ func (c *cpp) macro(t Token, nm string) *Macro {
 	case "__DATE__":
 		nmt := t
 		t.Ch = rune(STRINGLITERAL)
-		t.Set(t.Sep(), []byte(time.Now().Format("\"Jan _2 2006\"")))
+		t.Set(t.Sep(), []byte(sourceDate().Format("\"Jan _2 2006\"")))
 		m, err := newMacro(nmt, nil, []cppToken{{Token: t}}, 0, -1, false)
 		if err != nil {
 			c.eh("%v", errorf("", err))
@@ -1288,7 +1288,7 @@ func (c *cpp) macro(t Token, nm string) *Macro {
 	case "__TIME__":
 		nmt := t
 		t.Ch = rune(STRINGLITERAL)
-		t.Set(t.Sep(), []byte(time.Now().Format("\"15:04:05\"")))
+		t.Set(t.Sep(), []byte(sourceDate().Format("\"15:04:05\"")))
 		m, err := newMacro(nmt, nil, []cppToken{{Token: t}}, 0, -1, false)
 		m.IsConst = false
 		m.val = nil
@@ -2985,4 +2985,15 @@ func (c *cpp) group(src Source) (group, error) {
 	g := p.group(false)
 	c.groups[src.Name] = g
 	return g, nil
+}
+
+// sourceDate gives clock macros a reproducible UTC timestamp. With no
+// SOURCE_DATE_EPOCH, use the Unix epoch rather than the compilation wall clock.
+// Explicit #define overrides still follow the normal macro lookup rules.
+func sourceDate() time.Time {
+	epoch, err := strconv.ParseInt(os.Getenv("SOURCE_DATE_EPOCH"), 10, 64)
+	if err != nil || epoch < 0 {
+		epoch = 0
+	}
+	return time.Unix(epoch, 0).UTC()
 }

@@ -44,6 +44,7 @@ func BuildCallGraph(m *Module) *CallGraph {
 	// Scan all OpCall instructions.
 	for _, f := range m.Funcs {
 		counts := make(map[string]int)
+		var callees []string
 		for _, b := range f.Blocks {
 			for _, inst := range b.Insts {
 				if inst.Op != OpCall {
@@ -53,10 +54,16 @@ func BuildCallGraph(m *Module) *CallGraph {
 				if inst.Sym == "" || inst.Sym[0] == '@' {
 					continue
 				}
+				if counts[inst.Sym] == 0 {
+					callees = append(callees, inst.Sym)
+				}
 				counts[inst.Sym]++
 			}
 		}
-		for callee, n := range counts {
+		// Preserve first call-site order; small maps most often visited the
+		// first inserted callee first, and PFCCO consumes this edge order.
+		for _, callee := range callees {
+			n := counts[callee]
 			cg.Edges[f.Name] = append(cg.Edges[f.Name], CallEdge{Callee: callee, Count: n})
 			cg.Callers[callee] = append(cg.Callers[callee], f.Name)
 		}

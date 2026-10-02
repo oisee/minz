@@ -2860,6 +2860,7 @@ func (p *parser) findImplementors(ifaceName, methodName string) []string {
 			}
 		}
 	}
+	sort.Strings(result)
 	return result
 }
 

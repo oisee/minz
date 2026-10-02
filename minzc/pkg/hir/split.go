@@ -19,6 +19,7 @@ package hir
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/minz/minzc/pkg/mir2"
@@ -32,10 +33,11 @@ const PressureThreshold = 8
 
 // PressureThresholdForSlots returns a target-appropriate threshold based on
 // how many register slots the allocator can use.
-//   7 GPR only:      threshold = 8  (L1, conservative)
-//   11 (+ IXY):      threshold = 12 (L1+L2)
-//   18 (+ shadow):   threshold = 14 (L1+L2+L3)
-//   38 (+ TSMC/mem): threshold = 20 (L1+L2+L3+L4)
+//
+//	7 GPR only:      threshold = 8  (L1, conservative)
+//	11 (+ IXY):      threshold = 12 (L1+L2)
+//	18 (+ shadow):   threshold = 14 (L1+L2+L3)
+//	38 (+ TSMC/mem): threshold = 20 (L1+L2+L3+L4)
 func PressureThresholdForSlots(nSlots int) int {
 	switch {
 	case nSlots >= 30:
@@ -56,11 +58,11 @@ const MaxInterfaceWidth = 6
 
 // SplitResult describes one split that was applied.
 type SplitResult struct {
-	OrigFunc  string // original function name
-	SubFunc   string // generated sub-function name
-	Inputs    int    // number of input parameters
-	Outputs   int    // number of return values
-	Pressure  int    // estimated max live vars in the sub-function
+	OrigFunc string // original function name
+	SubFunc  string // generated sub-function name
+	Inputs   int    // number of input parameters
+	Outputs  int    // number of return values
+	Pressure int    // estimated max live vars in the sub-function
 }
 
 // SplitHighPressure analyzes all functions in the module and splits
@@ -340,6 +342,10 @@ func FindSplitPoints(f *Func, pressure []int) []splitCandidate {
 				inputs = append(inputs, v)
 			}
 		}
+
+		// Use the same lexical variable order as HIR loop lowering so the
+		// generated sub-function ABI is independent of map iteration.
+		sort.Strings(inputs)
 
 		// Outputs: defined after AND used after the split region.
 		// (For simplicity, outputs = vars modified in bottom half that

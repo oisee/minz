@@ -94,7 +94,7 @@ func (mp *MacroProcessor) ExpandMacro(name string, args []string) ([]string, err
 	
 	var expanded []string
 	for _, line := range macro.Body {
-		expandedLine := mp.substituteLine(line, argMap, localBase)
+		expandedLine := mp.substituteLine(line, macro.Parameters, argMap, localBase)
 		
 		// Handle nested macro calls
 		if mp.isMacroCall(expandedLine) {
@@ -112,11 +112,12 @@ func (mp *MacroProcessor) ExpandMacro(name string, args []string) ([]string, err
 }
 
 // substituteLine replaces parameters and local labels in a line
-func (mp *MacroProcessor) substituteLine(line string, args map[string]string, localBase int) string {
+func (mp *MacroProcessor) substituteLine(line string, params []string, args map[string]string, localBase int) string {
 	result := line
 	
-	// Replace parameters
-	for param, value := range args {
+	// Replace parameters in declaration order, the usual small-map order.
+	for _, param := range params {
+		value := args[param]
 		// Replace with word boundaries to avoid partial replacements
 		result = mp.replaceParameter(result, param, value)
 	}

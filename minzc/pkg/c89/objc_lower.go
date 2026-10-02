@@ -9,9 +9,10 @@
 //	@protocol P                  → defines vtable layout + conformance check
 //
 // Method name mangling: ClassName_selectorFlattened
-//   -(int)value           → Foo_value
-//   -(int)add:(int)x      → Foo_add
-//   -(int)addX:(int)x andY:(int)y → Foo_addX_andY
+//
+//	-(int)value           → Foo_value
+//	-(int)add:(int)x      → Foo_add
+//	-(int)addX:(int)x andY:(int)y → Foo_addX_andY
 package c89
 
 import (
@@ -32,6 +33,7 @@ type objcClassInfo struct {
 	protocols []string               // protocol names from <Proto1, Proto2>
 	ivars     []mir2.StructField     // instance variables (own only, not inherited)
 	methods   map[string]*objcMethod // selector → method info (includes inherited)
+	selectors []string               // declaration order, inherited methods first
 }
 
 // objcProtocolInfo stores parsed @protocol data for conformance checking
@@ -76,7 +78,9 @@ func (l *lowerer) lowerObjCInterface(iface *cc.ObjCInterfaceDecl) error {
 				mst.Fields = append(mst.Fields, parentSt.Fields...)
 			}
 			// Inherit parent method signatures (child can override later).
-			for sel, pm := range parentInfo.methods {
+			for _, sel := range parentInfo.selectors {
+				pm := parentInfo.methods[sel]
+				info.selectors = append(info.selectors, sel)
 				info.methods[sel] = &objcMethod{
 					mangledName: objcMangleName(className, sel),
 					retTy:       pm.retTy,
@@ -127,6 +131,9 @@ func (l *lowerer) lowerObjCInterface(iface *cc.ObjCInterfaceDecl) error {
 				})
 			}
 		}
+		if info.methods[sel] == nil {
+			info.selectors = append(info.selectors, sel)
+		}
 		info.methods[sel] = &objcMethod{
 			mangledName: mangled,
 			retTy:       retTy,
@@ -166,7 +173,10 @@ func (l *lowerer) lowerObjCImplementation(impl *cc.ObjCImplementationDecl) error
 	}
 
 	// Generate trampolines for inherited methods not overridden.
-	for sel, m := range info.methods {
+	// Follow declaration order, preserving the usual first-inserted method
+	// order and making trampoline emission independent of Go map iteration.
+	for _, sel := range info.selectors {
+		m := info.methods[sel]
 		if m.inherited && !definedMethods[sel] {
 			trampoline := l.generateInheritedTrampoline(className, info, sel, m)
 			if trampoline != nil {
@@ -242,6 +252,7 @@ func (l *lowerer) lowerObjCMethod(className string, info *objcClassInfo, md *cc.
 
 	// Register method info if not already from @interface.
 	if info.methods[sel] == nil {
+		info.selectors = append(info.selectors, sel)
 		info.methods[sel] = &objcMethod{
 			mangledName: mangled,
 			retTy:       retTy,
@@ -721,7 +732,8 @@ func (l *lowerer) generateObjCAssertWrappers(src string) {
 			// Multi-keyword selector: assert uses "containsX(50,50)" but method is "containsX:y:".
 			// Match by first keyword prefix + compatible arg count.
 			prefix := oa.methodName + ":"
-			for sel, m := range info.methods {
+			for _, sel := range info.selectors {
+				m := info.methods[sel]
 				if strings.HasPrefix(sel, prefix) && len(m.params) == len(oa.args) {
 					method = m
 					break

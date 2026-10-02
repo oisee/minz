@@ -76,13 +76,20 @@ func PromoteStructReturns(m *hir.Module) {
 
 // ── Struct index ─────────────────────────────────────────────────────────────
 
-// structIndex maps struct names to their mir2.StructTy.
-type structIndex map[string]*mir2.StructTy
+// structIndex keeps declarations in source order. Ambiguous field-name
+// matches retain the first declaration, the usual small-map traversal choice.
+type structIndex []*mir2.StructTy
 
 func buildStructIndex(m *hir.Module) structIndex {
-	idx := make(structIndex, len(m.Structs))
+	idx := make(structIndex, 0, len(m.Structs))
+	positions := make(map[string]int)
 	for _, st := range m.Structs {
-		idx[st.Name] = st
+		if pos, ok := positions[st.Name]; ok {
+			idx[pos] = st // preserve the old index's last definition for this name
+		} else {
+			positions[st.Name] = len(idx)
+			idx = append(idx, st)
+		}
 	}
 	return idx
 }
@@ -123,9 +130,9 @@ func isScalarTy(ty mir2.Ty) bool {
 
 // promotionInfo holds the analysis result for one struct-returning function.
 type promotionInfo struct {
-	st        *mir2.StructTy // the struct type being returned
-	fieldTys  []mir2.Ty      // field types (== RetTys after promotion)
-	fieldMap  map[string]int // field name → position in tuple
+	st       *mir2.StructTy // the struct type being returned
+	fieldTys []mir2.Ty      // field types (== RetTys after promotion)
+	fieldMap map[string]int // field name → position in tuple
 }
 
 func findEligibleFunctions(m *hir.Module, idx structIndex) map[string]*promotionInfo {
