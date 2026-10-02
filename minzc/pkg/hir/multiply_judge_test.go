@@ -24,73 +24,24 @@ func multiplyHIR(name string, ty mir2.Ty, k int64, variable bool) *hir.Func {
 // Exercise the default production allocator, assembly passes, runtime and CPU
 // against Go wrapping arithmetic, with a fresh image for every input.
 func TestProductionMultiplyJudge(t *testing.T) {
+	t.Parallel()
 	for _, ty := range []mir2.Ty{mir2.TyU8, mir2.TyU16} {
 		for _, k := range []int64{0, 1, 2, 3, 5, 7, 10, 16, 100, 255, 256, 1000} {
 			t.Run(fmt.Sprintf("u%d_k%d", ty.Width(), k), func(t *testing.T) {
-				fixture := compileProductionHIRFixture(t, &hir.Module{Name: "multiply", Funcs: []*hir.Func{multiplyHIR("mul", ty, k, false)}})
-				fn := fixture.module.FuncByName("mul")
-				loc := fixture.alloc.Locs[fn.Contract.Params[0].Reg]
-				boot := fmt.Sprintf(" ORG 0x%04X\n CALL mul\n DI\n HALT\n", testLoadAddr)
-				res, err := z80asm.NewAssembler().AssembleString(boot + fixture.asm)
-				if err != nil || len(res.Errors) > 0 {
-					t.Fatalf("assemble: %v %v\n%s", err, res.Errors, fixture.asm)
-				}
-				z := emulator.NewRemogattoZ80()
-				limit, mask := 256, int64(255)
+				var cases [][]int64
+				mask := int64(255)
 				if ty.Width() == 16 {
-					limit, mask = 65536, 65535
-				}
-				checked, bad := 0, 0
-				for x := 0; x < limit; x++ {
-					if ty.Width() == 16 && x > 1023 && x%257 != 0 {
-						continue
+					mask = 65535
+					for _, x := range u16MultiplySample() {
+						cases = append(cases, []int64{x})
 					}
-					z.Reset()
-					if err := z.LoadMemory(testLoadAddr, res.Binary); err != nil {
-						t.Fatal(err)
-					}
-					regs := emulator.Registers{SP: 0xFF00, PC: testLoadAddr}
-					if ty.Width() == 8 {
-						z.SetRegisters(regs)
-						if err := z.SetRegister8(loc.Name, uint8(x)); err != nil {
-							t.Fatal(err)
-						}
-					} else {
-						switch loc.Name {
-						case "HL":
-							regs.HL = uint16(x)
-						case "DE":
-							regs.DE = uint16(x)
-						case "BC":
-							regs.BC = uint16(x)
-						case "IX":
-							regs.IX = uint16(x)
-						case "IY":
-							regs.IY = uint16(x)
-						default:
-							t.Fatalf("unsupported argument %+v", loc)
-						}
-						z.SetRegisters(regs)
-					}
-					for steps := 0; !z.IsHalted(); steps++ {
-						if steps >= judgeStepBudget {
-							t.Fatal("instruction budget exhausted")
-						}
-						z.Step()
-					}
-					got, err := hirReturnValue(fn, z.GetRegisters())
-					want := (int64(x) * k) & mask
-					checked++
-					if err != nil || got != want {
-						bad++
-						if bad <= 5 {
-							t.Errorf("x=%d: got %d want %d err=%v", x, got, want, err)
-						}
+				} else {
+					for x := int64(0); x < 256; x++ {
+						cases = append(cases, []int64{x})
 					}
 				}
-				if bad > 0 {
-					t.Fatalf("%d/%d mismatches\n%s", bad, checked, fixture.asm)
-				}
+				judgeMultiplyCases(t, multiplyHIR("mul", ty, k, false), cases,
+					func(args []int64) int64 { return args[0] * k & mask })
 			})
 		}
 	}
@@ -126,12 +77,14 @@ func judgeMultiplyCases(t *testing.T, f *hir.Func, cases [][]int64, model func([
 	if err != nil || len(res.Errors) > 0 {
 		t.Fatalf("assemble: %v %v\n%s", err, res.Errors, fixture.asm)
 	}
-	z := emulator.NewRemogattoZ80()
-	bad := 0
-	for _, args := range cases {
+	gotValues := make([]int64, len(cases))
+	errors := make([]error, len(cases))
+	judgeWorkers(len(cases), res.Binary, func(z *emulator.RemogattoZ80, image []byte, caseIndex int) {
+		args := cases[caseIndex]
 		z.Reset()
-		if err := z.LoadMemory(testLoadAddr, res.Binary); err != nil {
-			t.Fatal(err)
+		if err := z.LoadMemory(testLoadAddr, image); err != nil {
+			errors[caseIndex] = err
+			return
 		}
 		regs := emulator.Registers{SP: 0xFF00, PC: testLoadAddr}
 		for i, p := range fn.Contract.Params {
@@ -152,24 +105,31 @@ func judgeMultiplyCases(t *testing.T, f *hir.Func, cases [][]int64, model func([
 			case "IY":
 				regs.IY = v
 			default:
-				t.Fatalf("unsupported argument %s", loc)
+				errors[caseIndex] = fmt.Errorf("unsupported argument %s", loc)
+				return
 			}
 		}
 		z.SetRegisters(regs)
 		for i, p := range fn.Contract.Params {
 			if p.Ty.Width() <= 8 {
 				if err := z.SetRegister8(fixture.alloc.Locs[p.Reg].Name, uint8(args[i])); err != nil {
-					t.Fatal(err)
+					errors[caseIndex] = err
+					return
 				}
 			}
 		}
 		for steps := 0; !z.IsHalted(); steps++ {
 			if steps >= judgeStepBudget {
-				t.Fatalf("instruction budget exhausted: %v\n%s", args, fixture.asm)
+				errors[caseIndex] = fmt.Errorf("instruction budget exhausted: %v", args)
+				return
 			}
 			z.Step()
 		}
-		got, err := hirReturnValue(fn, z.GetRegisters())
+		gotValues[caseIndex], errors[caseIndex] = hirReturnValue(fn, z.GetRegisters())
+	})
+	bad := 0
+	for i, args := range cases {
+		got, err := gotValues[i], errors[i]
 		want := model(args)
 		if err != nil || got != want {
 			bad++
@@ -184,6 +144,7 @@ func judgeMultiplyCases(t *testing.T, f *hir.Func, cases [][]int64, model func([
 }
 
 func TestProductionMultiplyLiveJudge(t *testing.T) {
+	t.Parallel()
 	for _, ty := range []mir2.Ty{mir2.TyU8, mir2.TyU16} {
 		for _, k := range []int64{3, 13, 37, 1000} {
 			t.Run(fmt.Sprintf("u%d_k%d", ty.Width(), k), func(t *testing.T) {
@@ -242,6 +203,7 @@ func TestProductionMultiplyLiveJudge(t *testing.T) {
 }
 
 func TestProductionBitwiseConstantJudge(t *testing.T) {
+	t.Parallel()
 	for _, op := range []string{"&", "|", "^"} {
 		for _, k := range []int64{0, 1, 255, 256, 0x0f0f, 0x8080, 0xfffe, 65535} {
 			t.Run(fmt.Sprintf("%s_k%d", op, k), func(t *testing.T) {
@@ -268,6 +230,7 @@ func TestProductionBitwiseConstantJudge(t *testing.T) {
 
 // Keep multiply inputs and results live across other ALU operations and calls.
 func TestProductionMultiplyAccumulatorJudge(t *testing.T) {
+	t.Parallel()
 	ty := mir2.TyU8
 	v := func(n string) hir.Expr { return hir.Var(n, ty) }
 	bin := func(op string, l, r hir.Expr) hir.Expr { return &hir.BinExpr{Op: op, L: l, R: r, Ty: ty} }
@@ -327,6 +290,7 @@ func TestProductionMultiplyAccumulatorJudge(t *testing.T) {
 }
 
 func TestProductionMultiplySignedWideningJudge(t *testing.T) {
+	t.Parallel()
 	for _, k := range []int64{0, 2, 3, 7, 10, 100, 255, 256, 1000, -7} {
 		t.Run(fmt.Sprintf("k%d", k), func(t *testing.T) {
 			f := &hir.Func{Name: "signed_mul", Params: []hir.Param{{Name: "a", Ty: mir2.TyI8}}, RetTy: mir2.TyI16,

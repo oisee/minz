@@ -8,6 +8,7 @@ import (
 )
 
 func TestFix2SignedSameWidthCast(t *testing.T) {
+	t.Parallel()
 	for _, tc := range []struct {
 		op string
 		k  int
