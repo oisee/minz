@@ -133,3 +133,19 @@ fun max_byte(a: u8, b: u8) -> u8 {
 		t.Error("expected i32.gt_u for unsigned comparison")
 	}
 }
+
+func TestMissingSandboxFunctionIsSkippedWithoutReceipt(t *testing.T) {
+	hm, err := nanz.Parse("fun answer() -> u8 { return 42 }\n", "test.nanz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := hir.LowerModule(hm)
+	hm.AssertStats = &hir.AssertStats{}
+	hm.Sandboxes = append(hm.Sandboxes, hir.Sandbox{Name: "missing", Asserts: []hir.Assert{{FuncName: "missing", Via: "wasm"}}})
+	if err := RunAsserts(hm, m, false); err != nil {
+		t.Fatal(err)
+	}
+	if hm.AssertStats.Executed != 0 {
+		t.Fatal("skipped sandbox assertion reported as executed")
+	}
+}

@@ -319,7 +319,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	s.Allocation = combined
 
 	// MIR2 VM assertion checks (skip "z80"-only asserts).
-	if opt.AssertMode != "z80" && opt.AssertMode != "none" && opt.AssertMode != "wasm" && opt.AssertMode != "llvm" {
+	if opt.AssertMode != "z80" && opt.AssertMode != "none" {
 		if err := RunAssertsMIR2(hm, m); err != nil {
 			return s, err
 		}

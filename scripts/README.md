@@ -50,7 +50,9 @@ runs them, skipping when Python 3 is unavailable.
 The initial 500-program findings are recorded in [fuzz_findings.md](fuzz_findings.md).
 
 The compiler is the authority for inventory (`--list-asserts`, JSON lines) and
-execution (`ASSERTS: executed=N passed=P failed=F` on stderr). A successful
+execution (`--assert-receipt` enables `ASSERTS: executed=N passed=P failed=F`
+on stderr). Default compilation prints no receipt; judge scripts request it
+explicitly. A successful
 isolated check requires exit 0 and exactly one receipt with executed=passed=1,
 failed=0. Sandboxes run together and require executed=passed=their member count.
 `--assert-lines` selects frontend-parsed assertions, including multiline forms.
@@ -103,6 +105,18 @@ frontends and directories outside the assertion corpus:
 python3 scripts/compile_sweep.py --baseline /tmp/main-mz --candidate /tmp/branch-mz -j 16 --json /tmp/default-sweep.json
 ```
 
-This compares exit codes and stdout/stderr, removing only judge execution
-receipts from stderr. It reports every difference and exits 1 on differences;
-intended assertion exposures must be audited separately.
+This compares exit codes and exact stdout/stderr bytes without filtering.
+Each source uses a fresh temporary output directory, reused at the same path
+for the baseline and candidate. All generated files (assembly, binary and other
+emitted files) are compared byte-for-byte, including file presence. JSON reports
+the number of emitted files compared and their sizes and SHA-256 digests.
+The script reports every difference and exits 1 on differences.
+
+For CI timing, `--no-controls` runs the positive checks alone;
+`--controls-only --mz /tmp/branch-mz` runs negative controls alone.
+`--runs N` repeats positive checks and controls N times. Each backend report
+includes `wall_seconds`; use `-j 4` to measure CI-sized passes.
+
+Explicit `--asserts wasm` and `--asserts llvm` retain MIR2 checks for MIR2
+assertions. WASM sandbox assertions referencing absent exports are skipped,
+as on main, and skipped assertions are not counted in execution receipts.

@@ -86,6 +86,7 @@ var (
 	assertControlLine int
 	assertLinesSet    bool
 	assertControlSet  bool
+	assertReceipt     bool   // --assert-receipt enables judge execution reporting
 	assertMode        string // --asserts mir|z80|all|none — select which assert backends run
 	assertForce       string // --asserts-force mir|z80 — force ALL asserts to run on this backend
 
@@ -189,7 +190,7 @@ Platform Independence Guide:
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		}
-		if cliAssertStats != nil {
+		if assertReceipt && cliAssertStats != nil {
 			fmt.Fprintf(os.Stderr, "ASSERTS: executed=%d passed=%d failed=%d\n", cliAssertStats.Executed, cliAssertStats.Passed, cliAssertStats.Failed)
 		}
 		if err != nil {
@@ -241,6 +242,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&useZ3, "z3", false, "use Z3 SMT solver (no effect: native LIR emission disabled)")
 	rootCmd.Flags().BoolVar(&optSize, "Osize", false, "optimize for code size: Grace reroll (repeated CALLs → DJNZ loop + data table)")
 	rootCmd.Flags().BoolVar(&useGrace, "grace", false, "run all Grace MIR2 passes before VIR lowering (DSE, CondRetSink, BlockMerge, etc.)")
+	rootCmd.Flags().BoolVar(&assertReceipt, "assert-receipt", false, "print assertion execution counts to stderr for judge tools")
 	rootCmd.Flags().BoolVar(&listAsserts, "list-asserts", false, "list frontend assertions as JSON lines without executing")
 	rootCmd.Flags().StringVar(&assertLines, "assert-lines", "", "run only assertions at these comma-separated source lines")
 	rootCmd.Flags().IntVar(&assertControlLine, "assert-control-line", 0, "mutate the expected value at this source line (judge negative control)")

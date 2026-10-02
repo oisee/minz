@@ -2,7 +2,7 @@
 """Compiler-owned assertion matrix. See scripts/README.md for the protocol.
 
 Baseline and candidate binaries must support --list-asserts, --assert-lines,
---assert-control-line and the final ASSERTS execution receipt. Older compilers
+--assert-control-line, --assert-receipt and the final ASSERTS execution receipt. Older compilers
 must be instrumented: an exit-zero invocation without a receipt never passes.
 """
 import argparse
@@ -52,7 +52,7 @@ def enumerate_asserts(root, files, globs, mz, jobs=1, timeout=30, errors=None):
 
 
 def run_compiler(mz, path, timeout, cwd=None, lines=None, expected=1, control=None, backend='z80'):
-    cmd = [mz, str(path), '--asserts-force', backend, '-o', '/dev/null']
+    cmd = [mz, str(path), '--assert-receipt', '--asserts-force', backend, '-o', '/dev/null']
     if lines is not None:
         cmd += ['--assert-lines', ','.join(map(str, lines))]
     if control is not None:
@@ -100,7 +100,7 @@ def inventory_changes(before, after):
              if b[k]['expression'] != c[k]['expression']])
 
 
-def matrix(root, globs, compilers, jobs, runs, timeout, controls=False, roots=None, backend='z80'):
+def matrix(root, globs, compilers, jobs, runs, timeout, controls=False, roots=None, backend='z80', controls_only=False):
     roots = roots or {label: root for label in compilers}
     listing_errors = {label: {} for label in compilers}
     inventories = {label: enumerate_asserts(roots[label], tracked(roots[label]), globs, mz, jobs, timeout, listing_errors[label])
@@ -145,14 +145,19 @@ def matrix(root, globs, compilers, jobs, runs, timeout, controls=False, roots=No
                 path.unlink()
                 path.write_text((roots[label] / unit['file']).read_text())
                 lines = [a['line'] for a in members]
-                result[label] = outcomes([run_compiler(mz, path, timeout, mirror, lines, len(members), backend=backend) for _ in range(runs)])
+                if not controls_only:
+                    result[label] = outcomes([run_compiler(mz, path, timeout, mirror, lines, len(members), backend=backend) for _ in range(runs)])
                 if controls and label in ('candidate', 'compiler'):
                     result['controls'] = []
                     for line in dict.fromkeys(a['line'] for a in members):
-                        attempt = run_compiler(mz, path, timeout, mirror, lines, len(members), line, backend=backend)
-                        result['controls'].append({'line': line, 'unexpected_pass': attempt['exit_code'] == 0, **attempt})
+                        for _ in range(runs):
+                            attempt = run_compiler(mz, path, timeout, mirror, lines, len(members), line, backend=backend)
+                            result['controls'].append({'line': line, 'unexpected_pass': attempt['exit_code'] == 0, **attempt})
                 path.unlink()
                 path.symlink_to(roots[label] / unit['file'])
+            if controls_only:
+                result['classification'] = 'controls'
+                return result
             if len(compilers) == 2:
                 if 'baseline' not in result:
                     category = 'added'
@@ -177,6 +182,7 @@ def matrix(root, globs, compilers, jobs, runs, timeout, controls=False, roots=No
     summary['new_listing_errors'] = sorted(set(listing_errors.get('candidate', listing_errors.get('compiler', {}))) -
                                            set(listing_errors.get('baseline', {})))
     summary['units'] = len(results)
+    summary['controls_only'] = controls_only
     summary['asserts'] = {label: len(items) for label, items in inventories.items()}
     summary['controls_unexpected_pass'] = sum(c['unexpected_pass'] for r in results for c in r.get('controls', []))
     summary['controls_checked'] = sum(len(r.get('controls', [])) for r in results)
@@ -255,6 +261,8 @@ def exit_code(report, comparison, allow=False):
     s = report['summary']
     if not all(s['asserts'].values()):
         return 2
+    if s.get('controls_only'):
+        return int(bool(s['new_listing_errors'] or s['controls_unexpected_pass']))
     if comparison and not any(r.get('baseline', {}).get('pass') for r in report['results']):
         return 2
     if s.get('new_listing_errors') or s['controls_unexpected_pass'] or s.get('flaky', 0) or s.get('known_failure_issues', 0):
@@ -287,7 +295,10 @@ def main():
     p.add_argument('--allow-assert-changes', action='store_true')
     p.add_argument('--controls', action=argparse.BooleanOptionalAction, default=True,
                    help='negative controls, enabled by default; --no-controls skips them')
+    p.add_argument('--controls-only', action='store_true', help='run only negative controls (requires --mz); --runs repeats controls too')
     args = p.parse_args()
+    if args.controls_only and (not args.mz or not args.controls):
+        p.error('--controls-only requires --mz and controls enabled')
     if args.timeout <= 0:
         p.error('--timeout must be positive')
     comparison = bool(args.baseline and args.candidate and not args.mz)
@@ -317,9 +328,10 @@ def main():
             codes = []
             for backend in (('z80', 'mir2') if args.backend == 'both' else (args.backend,)):
                 start = time.monotonic()
-                report = matrix(root, globs, compilers, args.j, args.runs, args.timeout, args.controls, roots, backend)
-                apply_known_failures(report, [e for e in entries if e.get('backend', 'z80') == backend],
-                                     'candidate' if comparison else 'compiler')
+                report = matrix(root, globs, compilers, args.j, args.runs, args.timeout, args.controls, roots, backend, args.controls_only)
+                if not args.controls_only:
+                    apply_known_failures(report, [e for e in entries if e.get('backend', 'z80') == backend],
+                                         'candidate' if comparison else 'compiler')
                 report['summary']['wall_seconds'] = round(time.monotonic() - start, 3)
                 report['summary']['backend'] = backend
                 reports[backend] = report
@@ -329,7 +341,7 @@ def main():
                     for r in report['results']:
                         if r.get('known_failure') or r['classification'] in ('newly fail', 'flaky') or r.get('changed_failure') or (r['classification'] == 'added' and not r['candidate']['pass']):
                             print(f'{backend}: {r["file"]}:{r["line"]}: {r.get("known_failure", r["classification"])}: {r.get("candidate", {}).get("runs", [{}])[0].get("error", "")}')
-                for issue in report['known_failure_issues']:
+                for issue in report.get('known_failure_issues', []):
                     print(f'{backend}: {issue["file"]}:{issue["line"]}: {issue["status"]}', file=sys.stderr)
         output = {'version': 2, 'passes': reports} if args.backend == 'both' else report
         if args.json:

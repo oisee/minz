@@ -3,6 +3,7 @@ package pipeline
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/minz/minzc/pkg/c89"
@@ -50,6 +51,22 @@ func TestProductionDeterminism(t *testing.T) {
 				} else if steps.Assembly != want {
 					t.Fatalf("run %d differs from run 0 (%d vs %d assembly bytes)", run, len(steps.Assembly), len(want))
 				}
+			}
+		})
+	}
+}
+
+// Explicit optional backends retain the MIR2 checks for via mir2 assertions.
+func TestOptionalBackendRetainsMIR2Assertions(t *testing.T) {
+	for _, mode := range []string{"wasm", "llvm"} {
+		t.Run(mode, func(t *testing.T) {
+			hm, err := nanz.Parse("fun answer() -> u8 { return 42 }\nassert answer() == 43 via mir2\n", "test.nanz")
+			if err != nil {
+				t.Fatal(err)
+			}
+			_, err = CompileHIRSteps(hm, Options{AssertMode: mode})
+			if err == nil || !strings.Contains(err.Error(), "[mir2]") {
+				t.Fatalf("expected MIR2 failure, got %v", err)
 			}
 		})
 	}

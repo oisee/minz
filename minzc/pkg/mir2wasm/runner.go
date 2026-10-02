@@ -64,6 +64,9 @@ func RunAsserts(hm *hir.Module, m *mir2.Module, force bool) error {
 	}
 	for _, sb := range hm.Sandboxes {
 		for _, a := range sb.Asserts {
+			if mod.ExportedFunction(a.FuncName) == nil {
+				continue // Preserve sandbox behavior; skipped assertions earn no receipt.
+			}
 			if !force && a.Via != "" && a.Via != "wasm" {
 				continue
 			}
