@@ -903,9 +903,60 @@ func checkAssertZ80Result(z *emulator.RemogattoZ80, a hir.Assert,
 	}
 
 	if len(a.ExpectedMulti) > 0 {
-		if got != a.ExpectedMulti[0] {
-			return fmt.Errorf("line %d: assert %q [z80]: return[0] got %d, want %d",
-				a.Line, a.Source, got, a.ExpectedMulti[0])
+		if len(mf.Contract.Returns) < len(a.ExpectedMulti) {
+			return fmt.Errorf("line %d: assert %q [z80]: function returned %d values, want %d",
+				a.Line, a.Source, len(mf.Contract.Returns), len(a.ExpectedMulti))
+		}
+		for i, want := range a.ExpectedMulti {
+			ret := mf.Contract.Returns[i]
+			var value int64
+			switch mir2.ReturnLocation(ret.Class, ret.Ty) {
+			case "A":
+				value = int64(regs.A)
+			case "B":
+				value = int64(regs.BC >> 8)
+			case "C":
+				value = int64(regs.BC & 255)
+			case "D":
+				value = int64(regs.DE >> 8)
+			case "E":
+				value = int64(regs.DE & 255)
+			case "H":
+				value = int64(regs.HL >> 8)
+			case "L":
+				value = int64(regs.HL & 255)
+			case "HL":
+				value = int64(regs.HL)
+			case "DE":
+				value = int64(regs.DE)
+			case "IX":
+				value = int64(regs.IX)
+			case "IY":
+				value = int64(regs.IY)
+			case "F":
+				truth := false
+				switch ret.FlagCond {
+				case mir2.CmpEq:
+					truth = regs.F&0x40 != 0
+				case mir2.CmpNe:
+					truth = regs.F&0x40 == 0
+				case mir2.CmpLt:
+					truth = regs.F&1 != 0
+				case mir2.CmpGe:
+					truth = regs.F&1 == 0
+				default:
+					return fmt.Errorf("unsupported tuple return flag condition %v", ret.FlagCond)
+				}
+				if truth {
+					value = 1
+				}
+			default:
+				return fmt.Errorf("unsupported tuple return location")
+			}
+			if value != want {
+				return fmt.Errorf("line %d: assert %q [z80]: return[%d] got %d, want %d",
+					a.Line, a.Source, i, value, want)
+			}
 		}
 	} else {
 		if got != a.Expected {

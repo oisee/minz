@@ -11,6 +11,7 @@ from unittest.mock import patch, Mock
 
 import assert_matrix as matrix
 import fuzz_diff as fuzz
+import compile_sweep
 
 
 class MatrixTests(unittest.TestCase):
@@ -54,7 +55,9 @@ sys.exit(int(fail))
             self.assertEqual(matrix.exit_code(report,True),1)
             p=subprocess.run([sys.executable,matrix.__file__,'--root',str(root),'--mz',fake,'--glob','*.nanz','--no-controls'],capture_output=True,text=True)
             self.assertEqual(p.returncode,1)
-            self.assertEqual(json.loads(p.stdout)['version'],1)
+            self.assertEqual(json.loads(p.stdout)['version'],2)
+            both=subprocess.run([sys.executable,matrix.__file__,'--root',str(root),'--mz',fake,'--glob','*.nanz','--no-controls'],capture_output=True,text=True)
+            self.assertEqual(set(json.loads(both.stdout)['passes']), {'z80','mir2'})
             before=[dict(file='x',line=1,kind='top-level',expression='a'),dict(file='x',line=2,kind='top-level',expression='b')]
             after=[dict(file='x',line=1,kind='top-level',expression='c'),dict(file='x',line=3,kind='top-level',expression='d')]
             removed,added,changed=matrix.inventory_changes(before,after)
@@ -81,7 +84,7 @@ sys.exit(int(fail))
         return report, entry
 
     def test_known_failure_exact_match_and_gate_modes(self):
-        for category in ('added', 'newly fail', 'fail both'):
+        for category in ('added', 'fail both'):
             with self.subTest(category=category):
                 report, entry = self.known_report(classification=category, expression=' assert   answer() == 43 ')
                 matrix.apply_known_failures(report, [entry], 'candidate')
@@ -100,6 +103,34 @@ sys.exit(int(fail))
         report['results'] = [unit]
         matrix.apply_known_failures(report, [entry], 'compiler')
         self.assertEqual(matrix.exit_code(report, False), 0)
+
+    def test_second_pass_catches_mir2_only_regression(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp); self.fixture(root); baseline=self.fake(root)
+            candidate=root/'candidate'
+            candidate.write_text(Path(baseline).read_text().replace("fail = '== 43' in s",
+                "fail = '== 43' in s or sys.argv[sys.argv.index('--asserts-force')+1] == 'mir2'"))
+            candidate.chmod(0o755)
+            command=[sys.executable,matrix.__file__,'--root',str(root),
+                     '--baseline-root',str(root),'--baseline',baseline,'--candidate',str(candidate),
+                     '--glob','*.nanz','--no-controls']
+            z80=subprocess.run(command+['--backend','z80'],capture_output=True,text=True)
+            self.assertEqual(z80.returncode,0,z80.stderr)
+            both=subprocess.run(command+['--json',str(root/'report.json')],capture_output=True,text=True)
+            self.assertEqual(both.returncode,1,both.stderr)
+            reports=json.loads((root/'report.json').read_text())['passes']
+            self.assertEqual(reports['z80']['summary']['newly fail'],0)
+            self.assertEqual(reports['mir2']['summary']['newly fail'],1)
+
+    def test_known_failure_never_exempts_newly_failing(self):
+        report, entry = self.known_report(classification='newly fail')
+        matrix.apply_known_failures(report, [entry], 'candidate')
+        self.assertEqual(len(report['known_failure_issues']), 1)
+        self.assertEqual(report['known_failure_issues'][0]['status'], 'known failure cannot exempt regression')
+        self.assertEqual(matrix.exit_code(report, True), 1)
+        report['results'][1]['known_failure'] = 'known failure'
+        report['summary']['known_failure_issues'] = 0
+        self.assertEqual(matrix.exit_code(report, True), 1)
 
     def test_known_failure_fixed_changed_and_missing(self):
         cases = [([{'pass': True, 'error': ''}], 'known failure fixed — remove the entry'),
@@ -137,7 +168,7 @@ sys.exit(int(fail))
             self.assertEqual(matrix.load_known_failures(known, ['*.nanz']), [entry])
             self.assertEqual(matrix.load_known_failures(known, ['*.c']), [])
             command = [sys.executable, matrix.__file__, '--root', str(root), '--mz', fake,
-                       '--glob', '*.nanz', '--known-failures', str(known)]
+                       '--glob', '*.nanz', '--backend', 'z80', '--known-failures', str(known)]
             proc = subprocess.run(command, capture_output=True, text=True)
             self.assertEqual(proc.returncode, 0, proc.stderr)
             self.assertEqual(json.loads(proc.stdout)['summary']['known failures'], 1)
@@ -177,6 +208,47 @@ sys.exit(int(fail))
                 report=matrix.matrix(before,['*.nanz'],{'compiler':fake},1,1,5)
             self.assertEqual(len(report['results']),1)
             self.assertEqual(run.call_args.args[4:6],([2,3],2))
+
+    def test_listing_failures_are_audited(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp); self.fixture(root); fake=self.fake(root)
+            (root/'broken.pas').write_text('invalid')
+            subprocess.run(['git','-C',str(root),'add','.'],check=True)
+            fake_path=Path(fake)
+            fake_path.write_text(fake_path.read_text().replace("p = pathlib.Path(sys.argv[1])", "p = pathlib.Path(sys.argv[1])\nif p.suffix == '.pas':\n print('error: parse', file=sys.stderr)\n sys.exit(1)"))
+            report=matrix.matrix(root,['*.nanz','*.pas'],{'baseline':fake,'candidate':fake},1,1,5)
+            self.assertEqual(report['summary']['listing_errors']['candidate'], {'broken.pas':'error: parse'})
+            self.assertEqual(report['summary']['new_listing_errors'], [])
+            self.assertEqual(matrix.exit_code(report,True),0)
+            report['summary']['new_listing_errors']=['broken.pas']
+            self.assertEqual(matrix.exit_code(report,True),1)
+
+    def test_default_compile_sweep_detects_line_zero_mutation(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp); self.fixture(root)
+            (root/'examples').mkdir()
+            (root/'examples'/'case.pas').write_text('program fixture;')
+            subprocess.run(['git','-C',str(root),'add','.'],check=True)
+            good=dict(exit_code=0,stdout='',stderr='')
+            bad=dict(exit_code=1,stdout='',stderr='got 0, want 4294967296')
+            with patch.object(compile_sweep,'compile_one',side_effect=[good,bad]):
+                report=compile_sweep.sweep(root,'before','after',1)
+            self.assertEqual(len(report['exit_changes']),1)
+            self.assertEqual(report['exit_changes'][0]['file'],'examples/case.pas')
+
+    def test_all_frontend_globs_and_line_zero_units(self):
+        for ext in ('pas', 'plm', 'abap', 'frl', 'lanz', 'lizp', 'm'):
+            self.assertTrue(any(matrix.fnmatch.fnmatchcase(f'examples/{ext}/case.{ext}', g)
+                                for g in matrix.DEFAULT_GLOBS))
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp); self.fixture(root); fake=self.fake(root)
+            members=[dict(file='case.nanz',line=0,kind='top-level',expression='x',via='mir2') for _ in range(2)]
+            with patch.object(matrix,'enumerate_asserts',return_value=members), patch.object(matrix,'run_compiler',return_value={'pass':True,'exit_code':1}) as run:
+                report=matrix.matrix(root,['*.nanz'],{'compiler':fake},1,1,5,True,backend='mir2')
+            self.assertEqual(len(report['results']),1)
+            self.assertEqual(run.call_count,2)
+            self.assertEqual(run.call_args.kwargs['backend'],'mir2')
+            self.assertEqual(run.call_args.args[4:7],([0,0],2,0))
 
     def test_unexecuted_audit_counts_asserts(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -245,8 +317,14 @@ sys.exit(int(fail))
             self.assertTrue(matrix.run_compiler(mz,path,30,lines=[2])['pass'])
             self.assertFalse(matrix.run_compiler(mz,path,30,lines=[2],control=2)['pass'])
             path.write_text('fun pair() -> (u8, u8) { return (42, 43) }\nassert pair() == (42, 43) via mir2\n')
-            self.assertTrue(matrix.run_compiler(mz,path,30,backend='mir2')['pass'])
-            self.assertFalse(matrix.run_compiler(mz,path,30,control=2,backend='mir2')['pass'])
+            for backend in ('mir2', 'z80'):
+                self.assertTrue(matrix.run_compiler(mz,path,30,backend=backend)['pass'])
+                self.assertFalse(matrix.run_compiler(mz,path,30,control=2,backend=backend)['pass'])
+            path.write_text(path.read_text().replace('(42, 43) via', '(42, 44) via'))
+            for backend in ('mir2', 'z80'):
+                result=matrix.run_compiler(mz,path,30,backend=backend)
+                self.assertFalse(result['pass'])
+                self.assertIn('return[1] got 43, want 44', result['error'])
             for seed in (56,399):
                 repro=root / f'scripts/testdata/fuzz_diff/seed-{seed}.nanz'
                 mir=matrix.run_compiler(mz,repro,30,backend='mir2')
@@ -255,6 +333,20 @@ sys.exit(int(fail))
                 want=15014 if seed==56 else 17814
                 self.assertIn(f'got {want},',mir['error'])
                 self.assertIn(f'got {want},',z80['error'])
+            for name in ('examples/pascal/assert_test.pas', 'examples/pascal/logic_test.pas',
+                         'examples/pascal/math_test.pas', 'examples/pascal/recursive_test.pas',
+                         'examples/plm/assert_test.plm', 'examples/nanz/assert_test.plm'):
+                proc=subprocess.run([mz,str(root/name),'-o','/dev/null'],capture_output=True,text=True)
+                self.assertEqual(proc.returncode,0,proc.stderr)
+                listing=subprocess.run([mz,str(root/name),'--list-asserts'],capture_output=True,text=True)
+                items=[json.loads(line) for line in listing.stdout.splitlines()]
+                self.assertTrue(items)
+                proc=subprocess.run([mz,str(root/name),'--assert-control-line','0','-o','/dev/null'],capture_output=True,text=True)
+                self.assertNotEqual(proc.returncode,0)
+                self.assertRegex(proc.stderr, r'want 4294967[0-9]+')
+                proc=subprocess.run([mz,str(root/name),'--assert-lines','','-o','/dev/null'],capture_output=True,text=True)
+                self.assertEqual(proc.returncode,0,proc.stderr)
+                self.assertIn('ASSERTS: executed=0 passed=0 failed=0',proc.stderr)
             path=Path(temp)/'case.c'
             path.write_text('unsigned char answer(void) { return 42; }\n// assert answer() == 42 via z80 // comment\n')
             self.assertTrue(matrix.run_compiler(mz,path,30)['pass'])

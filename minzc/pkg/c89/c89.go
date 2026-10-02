@@ -439,14 +439,13 @@ func preprocessEmbed(src, baseDir string) string {
 			return "/* #embed: empty */"
 		}
 
+		// Keep the expansion on its original line so assertion listing and compiler
+		// diagnostics retain source line numbers.
 		// Convert to comma-separated hex bytes
 		var sb strings.Builder
 		for i, b := range data {
 			if i > 0 {
 				sb.WriteByte(',')
-				if i%16 == 0 {
-					sb.WriteByte('\n')
-				}
 			}
 			fmt.Fprintf(&sb, "0x%02X", b)
 		}

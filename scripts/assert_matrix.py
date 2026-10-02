@@ -16,8 +16,10 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
 
-DEFAULT_GLOBS = ['examples/nanz/*.nanz', 'examples/c89/**/*.c', 'examples/c/*.c']
+DEFAULT_GLOBS = ['examples/nanz/*.nanz', 'examples/c89/**/*.c', 'examples/c/*.c'] + [
+    f'examples/**/*.{ext}' for ext in ('pas', 'plm', 'abap', 'frl', 'lanz', 'lizp', 'm')]
 RECEIPT = re.compile(r'^ASSERTS: executed=(\d+) passed=(\d+) failed=(\d+)$', re.M)
 
 
@@ -25,12 +27,15 @@ def tracked(root):
     return subprocess.check_output(['git', '-C', str(root), 'ls-files', '-z']).decode().split('\0')[:-1]
 
 
-def enumerate_asserts(root, files, globs, mz, jobs=1, timeout=30):
+def enumerate_asserts(root, files, globs, mz, jobs=1, timeout=30, errors=None):
     selected = {str(p.relative_to(root)) for g in globs for p in root.glob(g) if p.is_file()}
     def listing(name):
         p = subprocess.run([mz, name, '--list-asserts'], cwd=root,
                            env=dict(os.environ, SOURCE_DATE_EPOCH='0'), capture_output=True,
                            text=True, timeout=timeout)
+        if p.returncode and errors is not None:
+            errors[name] = p.stderr.strip()
+            return []
         if p.returncode:
             raise RuntimeError(f'{name}: enumeration failed: {p.stderr.strip()}')
         result = []
@@ -95,9 +100,10 @@ def inventory_changes(before, after):
              if b[k]['expression'] != c[k]['expression']])
 
 
-def matrix(root, globs, compilers, jobs, runs, timeout, controls=False, roots=None):
+def matrix(root, globs, compilers, jobs, runs, timeout, controls=False, roots=None, backend='z80'):
     roots = roots or {label: root for label in compilers}
-    inventories = {label: enumerate_asserts(roots[label], tracked(roots[label]), globs, mz, jobs, timeout)
+    listing_errors = {label: {} for label in compilers}
+    inventories = {label: enumerate_asserts(roots[label], tracked(roots[label]), globs, mz, jobs, timeout, listing_errors[label])
                    for label, mz in compilers.items()}
     # A sandbox is a unit: its assertions retain source order and shared state.
     units = {}
@@ -130,7 +136,7 @@ def matrix(root, globs, compilers, jobs, runs, timeout, controls=False, roots=No
                         candidate_members = unit['members'].get('candidate', [])
                         result['baseline_inventory_probe'] = run_compiler(
                             mz, mirror / unit['file'], timeout, mirror,
-                            [a['line'] for a in candidate_members], len(candidate_members))
+                            [a['line'] for a in candidate_members], len(candidate_members), backend=backend)
                     continue
                 mirror = local.mirrors[label]
                 path = mirror / unit['file']
@@ -139,12 +145,12 @@ def matrix(root, globs, compilers, jobs, runs, timeout, controls=False, roots=No
                 path.unlink()
                 path.write_text((roots[label] / unit['file']).read_text())
                 lines = [a['line'] for a in members]
-                result[label] = outcomes([run_compiler(mz, path, timeout, mirror, lines, len(members)) for _ in range(runs)])
+                result[label] = outcomes([run_compiler(mz, path, timeout, mirror, lines, len(members), backend=backend) for _ in range(runs)])
                 if controls and label in ('candidate', 'compiler'):
                     result['controls'] = []
-                    for a in members:
-                        attempt = run_compiler(mz, path, timeout, mirror, lines, len(members), a['line'])
-                        result['controls'].append({'line': a['line'], 'unexpected_pass': attempt['exit_code'] == 0, **attempt})
+                    for line in dict.fromkeys(a['line'] for a in members):
+                        attempt = run_compiler(mz, path, timeout, mirror, lines, len(members), line, backend=backend)
+                        result['controls'].append({'line': line, 'unexpected_pass': attempt['exit_code'] == 0, **attempt})
                 path.unlink()
                 path.symlink_to(roots[label] / unit['file'])
             if len(compilers) == 2:
@@ -167,6 +173,9 @@ def matrix(root, globs, compilers, jobs, runs, timeout, controls=False, roots=No
     summary = {category: sum(r['classification'] == category for r in results)
                for category in (['pass both', 'newly pass', 'newly fail', 'fail both', 'flaky']
                                 if len(compilers) == 2 else ['pass', 'fail', 'flaky'])}
+    summary['listing_errors'] = listing_errors
+    summary['new_listing_errors'] = sorted(set(listing_errors.get('candidate', listing_errors.get('compiler', {}))) -
+                                           set(listing_errors.get('baseline', {})))
     summary['units'] = len(results)
     summary['asserts'] = {label: len(items) for label, items in inventories.items()}
     summary['controls_unexpected_pass'] = sum(c['unexpected_pass'] for r in results for c in r.get('controls', []))
@@ -195,7 +204,7 @@ def load_known_failures(path, globs):
     for entry in entries:
         if not all(k in entry for k in ('file', 'line', 'expression', 'error', 'reason', 'date')):
             raise ValueError(f'invalid known failure: {entry}')
-        if (not isinstance(entry['line'], int) or entry['line'] < 1 or
+        if (not isinstance(entry['line'], int) or entry['line'] < 0 or
                 any(not isinstance(entry[k], str) or not entry[k] for k in
                     ('file', 'expression', 'error', 'reason', 'date')) or
                 entry['expression'] != normalize_expression(entry['expression'])):
@@ -221,6 +230,8 @@ def apply_known_failures(report, entries, label):
             attempts = result[label]['runs']
             if result[label]['pass']:
                 status = 'known failure fixed — remove the entry'
+            elif label == 'candidate' and result['classification'] not in ('fail both', 'added'):
+                status = 'known failure cannot exempt regression'
             elif all(not a['pass'] and a.get('error') == entry['error'] for a in attempts):
                 status = 'known failure'
             else:
@@ -246,12 +257,12 @@ def exit_code(report, comparison, allow=False):
         return 2
     if comparison and not any(r.get('baseline', {}).get('pass') for r in report['results']):
         return 2
-    if s['controls_unexpected_pass'] or s.get('flaky', 0) or s.get('known_failure_issues', 0):
+    if s.get('new_listing_errors') or s['controls_unexpected_pass'] or s.get('flaky', 0) or s.get('known_failure_issues', 0):
         return 1
     if comparison:
-        return int(any(r.get('known_failure') != 'known failure' and
-                       (r['classification'] == 'newly fail' or
-                        (r['classification'] == 'added' and not r['candidate']['pass']))
+        return int(any(r['classification'] == 'newly fail' for r in report['results']) or
+                   any(r.get('known_failure') != 'known failure' and
+                       (r['classification'] == 'added' and not r['candidate']['pass'])
                        for r in report['results']) or
                    (not allow and bool(s['removed'] or s['changed'])))
     return int(any(r['classification'] == 'fail' and r.get('known_failure') != 'known failure'
@@ -269,6 +280,8 @@ def main():
     p.add_argument('--runs', type=positive, default=1)
     p.add_argument('--timeout', type=float, default=30)
     p.add_argument('--json', type=Path)
+    p.add_argument('--backend', choices=('both', 'z80', 'mir2'), default='both',
+                   help='run and report Z80 and MIR2 separately by default')
     p.add_argument('--known-failures', type=Path,
                    default=Path(__file__).with_name('assert_known_failures.json'))
     p.add_argument('--allow-assert-changes', action='store_true')
@@ -300,18 +313,30 @@ def main():
                 roots['candidate'] = (args.candidate_root or root).resolve()
             globs = args.glob or DEFAULT_GLOBS
             entries = load_known_failures(args.known_failures, globs)
-            report = matrix(root, globs, compilers, args.j, args.runs, args.timeout, args.controls, roots)
-            apply_known_failures(report, entries, 'candidate' if comparison else 'compiler')
+            reports = {}
+            codes = []
+            for backend in (('z80', 'mir2') if args.backend == 'both' else (args.backend,)):
+                start = time.monotonic()
+                report = matrix(root, globs, compilers, args.j, args.runs, args.timeout, args.controls, roots, backend)
+                apply_known_failures(report, [e for e in entries if e.get('backend', 'z80') == backend],
+                                     'candidate' if comparison else 'compiler')
+                report['summary']['wall_seconds'] = round(time.monotonic() - start, 3)
+                report['summary']['backend'] = backend
+                reports[backend] = report
+                codes.append(exit_code(report, comparison, args.allow_assert_changes))
+                if comparison:
+                    print(json.dumps(report['summary'], indent=2))
+                    for r in report['results']:
+                        if r.get('known_failure') or r['classification'] in ('newly fail', 'flaky') or r.get('changed_failure') or (r['classification'] == 'added' and not r['candidate']['pass']):
+                            print(f'{backend}: {r["file"]}:{r["line"]}: {r.get("known_failure", r["classification"])}: {r.get("candidate", {}).get("runs", [{}])[0].get("error", "")}')
+                for issue in report['known_failure_issues']:
+                    print(f'{backend}: {issue["file"]}:{issue["line"]}: {issue["status"]}', file=sys.stderr)
+        output = {'version': 2, 'passes': reports} if args.backend == 'both' else report
         if args.json:
-            args.json.write_text(json.dumps(report, indent=2) + '\n')
-        print(json.dumps(report, indent=2) if not comparison else json.dumps(report['summary'], indent=2))
-        if comparison:
-            for r in report['results']:
-                if r.get('known_failure') or r['classification'] in ('newly fail', 'flaky') or r.get('changed_failure') or (r['classification'] == 'added' and not r['candidate']['pass']):
-                    print(f'{r["file"]}:{r["line"]}: {r.get("known_failure", r["classification"])}: {r.get("candidate", {}).get("runs", [{}])[0].get("error", "")}')
-        for issue in report['known_failure_issues']:
-            print(f'{issue["file"]}:{issue["line"]}: {issue["status"]}', file=sys.stderr)
-        return exit_code(report, comparison, args.allow_assert_changes)
+            args.json.write_text(json.dumps(output, indent=2) + '\n')
+        if not comparison:
+            print(json.dumps(output, indent=2))
+        return max(codes)
     except Exception as e:
         print(f'tool error: {e}', file=sys.stderr)
         return 2

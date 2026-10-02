@@ -84,6 +84,8 @@ var (
 	listAsserts       bool
 	assertLines       string
 	assertControlLine int
+	assertLinesSet    bool
+	assertControlSet  bool
 	assertMode        string // --asserts mir|z80|all|none — select which assert backends run
 	assertForce       string // --asserts-force mir|z80 — force ALL asserts to run on this backend
 
@@ -149,6 +151,8 @@ Platform Independence Guide:
   docs/150_Platform_Independence_Achievement.md`,
 	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		assertLinesSet = cmd.Flags().Changed("assert-lines")
+		assertControlSet = cmd.Flags().Changed("assert-control-line")
 		if useZ3 {
 			fmt.Fprintln(os.Stderr, "note: --z3 has no effect: native LIR emission disabled")
 		}
@@ -933,22 +937,7 @@ func compileViaHIR(sourceFile string) error {
 		}
 	}
 	filter := func(as []hir.Assert) []hir.Assert {
-		var out []hir.Assert
-		for _, a := range as {
-			if assertLines != "" && !selected[a.Line] {
-				continue
-			}
-			if a.Line == assertControlLine {
-				if len(a.ExpectedMulti) > 0 {
-					a.ExpectedMulti = append([]int64(nil), a.ExpectedMulti...)
-					a.ExpectedMulti[0] ^= 1 << 32
-				} else {
-					a.Expected ^= 1 << 32
-				}
-			}
-			out = append(out, a)
-		}
-		return out
+		return filterJudgeAsserts(as, selected, assertLinesSet, assertControlLine, assertControlSet)
 	}
 	hirMod.Asserts = filter(hirMod.Asserts)
 	for i := range hirMod.Sandboxes {

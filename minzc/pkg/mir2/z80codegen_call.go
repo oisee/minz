@@ -460,6 +460,11 @@ func (g *z80cg) emitCallArgs(args []Reg, params []Param) {
 
 }
 
+// ReturnLocation exposes the physical return ABI to execution judges.
+func ReturnLocation(cls RegClass, ty Ty) string {
+	return canonicalReturnLoc(cls, ty)
+}
+
 // canonicalReturnLoc returns the physical register name where a return value of
 // the given class and type must reside on function exit (calling convention).
 func canonicalReturnLoc(cls RegClass, ty Ty) string {
