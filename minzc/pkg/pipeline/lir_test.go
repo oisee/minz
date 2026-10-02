@@ -1,6 +1,7 @@
 package pipeline
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -165,7 +166,7 @@ func TestLIR_CodegenOutput(t *testing.T) {
 		t.Fatal(err)
 	}
 	trace := steps.Traces["double_val"]
-	if trace == nil || !strings.Contains(trace.Backend, "PBQP-fallback") {
+	if trace == nil || !strings.Contains(trace.Backend, "PBQP (lir disabled)") {
 		t.Fatalf("want fallback provenance: %+v", trace)
 	}
 	if !strings.Contains(steps.Assembly, "double_val:") || !strings.Contains(steps.Assembly, "RET") {
@@ -270,5 +271,65 @@ func runFrontendCorpus(t *testing.T, lang, dir, glob string, compile func(string
 	}
 	for _, s := range failSummary {
 		t.Logf("  %s", s)
+	}
+}
+
+// Native LIR must never enter production emission, even for allowlisted
+// compositions or a module whose PBQP functions need runtime routines.
+func TestLIRDisabledWholeModule(t *testing.T) {
+	for _, src := range []string{
+		`fun add(a: u8, b: u8) -> u8 { return a + b }`,
+		`fun sub(a: u8, b: u8) -> u8 { return a - b }
+		fun mul(a: u8, b: u8) -> u8 { return a * b }`,
+		`fun choose(a: u8, b: u8) -> u8 { if a < b { return a } return b }
+		fun identity(a: u8) -> u8 { return a }`,
+	} {
+		t.Run(src, func(t *testing.T) {
+			compile := func(useLIR bool) Steps {
+				hm, err := nanz.Parse(src, "disabled.nanz")
+				if err != nil {
+					t.Fatal(err)
+				}
+				opts := DefaultOptions()
+				opts.UseLIR = useLIR
+				s, err := CompileHIRSteps(hm, opts)
+				if err != nil {
+					t.Fatal(err)
+				}
+				return s
+			}
+			plain := compile(false)
+			reader, writer, err := os.Pipe()
+			if err != nil {
+				t.Fatal(err)
+			}
+			savedStderr := os.Stderr
+			os.Stderr = writer
+			var disabled Steps
+			func() {
+				defer func() { os.Stderr = savedStderr; writer.Close() }()
+				disabled = compile(true)
+			}()
+			diagnostic, err := io.ReadAll(reader)
+			reader.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+			wantDiagnostic := "lir: native LIR codegen disabled (wrong code found by exhaustive judges); module compiled with PBQP\n"
+			if string(diagnostic) != wantDiagnostic {
+				t.Fatalf("want one disabled diagnostic, got %q", diagnostic)
+			}
+			for name, tr := range disabled.Traces {
+				if tr.Backend != "PBQP (lir disabled)" || tr.BackendErr != "" {
+					t.Fatalf("%s: want disabled provenance: %+v", name, tr)
+				}
+			}
+			if len(disabled.LIRResults) != 0 {
+				t.Fatal("production invoked LIR research codegen")
+			}
+			if disabled.Assembly != plain.Assembly {
+				t.Fatalf("--lir must emit byte-identical PBQP assembly\nplain:\n%s\n--lir:\n%s", plain.Assembly, disabled.Assembly)
+			}
+		})
 	}
 }

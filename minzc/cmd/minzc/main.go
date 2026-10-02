@@ -216,7 +216,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&ctieDebug, "ctie-debug", false, "show CTIE optimization decisions and statistics")
 	rootCmd.Flags().BoolVar(&compileTrace, "compile-trace", false, "show all optimization decisions and transformations")
 	rootCmd.Flags().StringVar(&superoptRules, "superopt-rules", "", "path to z80-optimizer rules.json[.gz] for superoptimizer peephole pass")
-	rootCmd.Flags().BoolVar(&useLIR, "lir", false, "use LIR backend (ISLE+WFC+PBQP) for code generation (legacy)")
+	rootCmd.Flags().BoolVar(&useLIR, "lir", false, "native LIR disabled; compile whole module with PBQP")
 	rootCmd.Flags().BoolVar(&useZ3, "z3", false, "use Z3 SMT solver for optimal register allocation (slower, provably optimal)")
 	rootCmd.Flags().BoolVar(&optSize, "Osize", false, "optimize for code size: Grace reroll (repeated CALLs → DJNZ loop + data table)")
 	rootCmd.Flags().BoolVar(&useGrace, "grace", false, "run all Grace MIR2 passes before VIR lowering (DSE, CondRetSink, BlockMerge, etc.)")
@@ -884,7 +884,7 @@ func compileViaHIR(sourceFile string) error {
 	steps, err := pipeline.CompileHIRSteps(hirMod, pipeline.Options{
 		ContractOpt:     true,
 		AnnotateTStates: annotateTStates,
-		UseLIR:          useLIR, // --lir selects the LIR backend; default is PBQP
+		UseLIR:          useLIR, // --lir reports disabled native LIR; emission uses PBQP
 		OptSize:         optSize,           // --Osize enables Grace reroll
 		UseGrace:        useGrace,          // --grace enables full Grace MIR2 pass suite
 		Backend:         backend,

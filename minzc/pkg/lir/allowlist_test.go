@@ -52,7 +52,7 @@ func TestBridgeAllowlist(t *testing.T) {
 }
 
 // Positive evidence for constants: all byte constants execute through the
-// production LIRCodegenFunc. Byte MIR2 moves remain off: B(1) returned 0
+// research LIRCodegenFunc. Byte MIR2 moves remain off: B(1) returned 0
 // with a selected "trunc HL→L (alias)" instruction on 2026-10-02.
 func judgeNativeConstants(t *testing.T) {
 	run := func(asm, reg string, input int) {

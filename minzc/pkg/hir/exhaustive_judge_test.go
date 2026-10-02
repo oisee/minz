@@ -172,8 +172,8 @@ func TestExhaustiveJudgeGCD(t *testing.T) {
 			}
 			if variant.opts.UseLIR {
 				trace := steps.Traces["gcd"]
-				if trace == nil || !strings.Contains(trace.Backend, "PBQP-fallback") {
-					t.Fatalf("gcd must fall back to PBQP, got trace %+v", trace)
+				if trace == nil || !strings.Contains(trace.Backend, "PBQP (lir disabled)") {
+					t.Fatalf("gcd must use PBQP with native LIR disabled, got trace %+v", trace)
 				}
 				if len(steps.LIRResults) < 3 {
 					t.Fatalf("LIRCheck must still check gcd on all three machines: %+v", steps.LIRResults)
@@ -270,28 +270,28 @@ func TestExhaustiveJudgeNegativeControls(t *testing.T) {
 	}
 }
 
-// TestExhaustiveJudgeLIRSingleBlock checks backend provenance as well as the
-// executed result: fallback must not conceal regressions in native arithmetic.
+// TestExhaustiveJudgeLIRSingleBlock executes production PBQP with --lir
+// and verifies that native LIR remains disabled. Direct research is separate.
 func TestExhaustiveJudgeLIRSingleBlock(t *testing.T) {
 	for _, tc := range []struct {
-		name, op, backend string
-		ret               mir2.Ty
-		model             func(uint8, uint8) int64
+		name, op string
+		ret      mir2.Ty
+		model    func(uint8, uint8) int64
 	}{
-		{"lt", "<", "PBQP-fallback", mir2.TyBool, func(a, b uint8) int64 {
+		{"lt", "<", mir2.TyBool, func(a, b uint8) int64 {
 			if a < b {
 				return 1
 			}
 			return 0
 		}},
-		{"eq", "==", "PBQP-fallback", mir2.TyBool, func(a, b uint8) int64 {
+		{"eq", "==", mir2.TyBool, func(a, b uint8) int64 {
 			if a == b {
 				return 1
 			}
 			return 0
 		}},
-		{"sub8", "-", "LIR", mir2.TyU8, func(a, b uint8) int64 { return int64(a - b) }},
-		{"add8", "+", "LIR", mir2.TyU8, func(a, b uint8) int64 { return int64(a + b) }},
+		{"sub8", "-", mir2.TyU8, func(a, b uint8) int64 { return int64(a - b) }},
+		{"add8", "+", mir2.TyU8, func(a, b uint8) int64 { return int64(a + b) }},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			f := &hir.Func{Name: tc.name, Params: []hir.Param{{Name: "a", Ty: mir2.TyU8}, {Name: "b", Ty: mir2.TyU8}}, RetTy: tc.ret,
@@ -303,8 +303,8 @@ func TestExhaustiveJudgeLIRSingleBlock(t *testing.T) {
 				t.Fatal(err)
 			}
 			trace := steps.Traces[tc.name]
-			if trace == nil || (tc.backend == "LIR" && trace.Backend != "LIR") || (tc.backend != "LIR" && (!strings.Contains(trace.Backend, tc.backend) || trace.BackendErr == "")) {
-				t.Errorf("want %s provenance, got %+v", tc.backend, trace)
+			if trace == nil || trace.Backend != "PBQP (lir disabled)" {
+				t.Errorf("want disabled LIR provenance, got %+v", trace)
 			}
 			fixture := hirZ80Fixture{module: steps.MIR2Module, alloc: steps.Allocation, asm: steps.Assembly}
 			checked, bad := newU8Judge(t, fixture, tc.name, false).sweep(func(a, b uint8) bool { return true }, tc.model)
@@ -340,8 +340,8 @@ func TestExhaustiveJudgeLIRWideFallback(t *testing.T) {
 				t.Fatal(err)
 			}
 			trace := steps.Traces[name]
-			if trace == nil || !strings.Contains(trace.Backend, "PBQP-fallback") || trace.BackendErr == "" {
-				t.Errorf("want fallback trace, got %+v", trace)
+			if trace == nil || !strings.Contains(trace.Backend, "PBQP (lir disabled)") {
+				t.Errorf("want disabled LIR trace, got %+v", trace)
 			}
 			mf := steps.MIR2Module.FuncByName(name)
 			if len(mf.Blocks) != 1 {
@@ -371,7 +371,16 @@ func TestExhaustiveJudgeLIRWideFallback(t *testing.T) {
 				// repair must replace this source-VM check with a Z80 judge.
 				res, err := z80asm.NewAssembler().AssembleString(steps.Assembly)
 				if err != nil || len(res.Errors) > 0 {
-					t.Skipf("fallback provenance and 65,636 MIR2 sums checked; PBQP u32 Z80 judge blocked by assembly errors: %v %v", err, res.Errors)
+					plainOpts := pipeline.DefaultOptions()
+					plain, plainErr := pipeline.CompileHIRSteps(&hir.Module{Name: "judge_wide", Funcs: []*hir.Func{f}}, plainOpts)
+					if plainErr != nil {
+						t.Fatal(plainErr)
+					}
+					plainRes, plainErr := z80asm.NewAssembler().AssembleString(plain.Assembly)
+					if len(plainRes.Errors) == 0 || len(plainRes.Errors) != len(res.Errors) {
+						t.Fatalf("known PBQP u32 record requires equal nonzero assembly error counts: --lir %d, plain %d (%v)", len(res.Errors), len(plainRes.Errors), plainErr)
+					}
+					t.Skipf("65,636 MIR2 sums checked; known PBQP u32 Z80 assembly errors: %v %v", plainErr, plainRes.Errors)
 				}
 				t.Fatal("production u32 now assembles: replace this skip with a real judge")
 			}
@@ -426,7 +435,7 @@ func TestExhaustiveJudgeLIRWideFallback(t *testing.T) {
 }
 
 // The Z80 selector emits one SLA/SRL regardless of the supplied count.
-// Counts above one must fall back; count one must stay correct and native.
+// Production --lir uses PBQP for both counts; direct native tests cover one.
 func TestExhaustiveJudgeLIRByteShifts(t *testing.T) {
 	for _, op := range []string{"<<", ">>"} {
 		for _, count := range []int64{1, 3} {
@@ -440,7 +449,7 @@ func TestExhaustiveJudgeLIRByteShifts(t *testing.T) {
 					t.Fatal(err)
 				}
 				trace := steps.Traces["shift8"]
-				if trace == nil || (count == 1 && trace.Backend != "LIR") || (count != 1 && (!strings.Contains(trace.Backend, "PBQP-fallback") || trace.BackendErr == "")) {
+				if trace == nil || trace.Backend != "PBQP (lir disabled)" {
 					t.Errorf("unexpected shift provenance: %+v", trace)
 				}
 				fixture := hirZ80Fixture{module: steps.MIR2Module, alloc: steps.Allocation, asm: steps.Assembly}

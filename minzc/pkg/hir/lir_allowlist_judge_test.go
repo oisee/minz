@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/lir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/pipeline"
 	"github.com/minz/minzc/pkg/z80asm"
@@ -13,7 +14,7 @@ import (
 
 // Assemble once and reset memory for each case, using the production allocation
 // for parameters and the production return contract for results.
-func sweepLIRFallback(t *testing.T, funcs []*hir.Func, name string, cases int, inputs func(int) []int64, model func([]int64) int64, useLIR bool) (int, string) {
+func sweepCodegenJudge(t *testing.T, funcs []*hir.Func, name string, cases int, inputs func(int) []int64, model func([]int64) int64, useLIR bool, research ...bool) (int, string) {
 	t.Helper()
 	opts := pipeline.DefaultOptions()
 	opts.UseLIR = useLIR
@@ -22,8 +23,15 @@ func sweepLIRFallback(t *testing.T, funcs []*hir.Func, name string, cases int, i
 		t.Fatal(err)
 	}
 	trace := steps.Traces[name]
-	if useLIR && (trace == nil || !strings.Contains(trace.Backend, "PBQP-fallback") || trace.BackendErr == "") {
-		t.Fatalf("%s must fall back, got %+v", name, trace)
+	if useLIR && (trace == nil || !strings.Contains(trace.Backend, "PBQP (lir disabled)")) {
+		t.Fatalf("%s must report native LIR disabled, got %+v", name, trace)
+	}
+	if len(research) > 0 && research[0] {
+		steps.Assembly, err = lir.LIRCodegenFunc(steps.MIR2Module.FuncByName(name), steps.MIR2Module, researchHints(steps))
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Logf("direct native LIR assembly:\n%s", steps.Assembly)
 	}
 	mf := steps.MIR2Module.FuncByName(name)
 	if len(mf.Blocks) != 1 {
@@ -178,14 +186,13 @@ func TestExhaustiveJudgeLIRAllowlistFallback(t *testing.T) {
 	}, true})
 	for _, tc := range fixtures {
 		t.Run(tc.name, func(t *testing.T) {
-			bad, first := sweepLIRFallback(t, tc.funcs, tc.name, tc.count, tc.inputs, tc.model, true)
+			bad, first := sweepCodegenJudge(t, tc.funcs, tc.name, tc.count, tc.inputs, tc.model, true)
 			if tc.known {
-				// These are production PBQP defects, outside this bridge fix.
-				// Check fallback provenance above even when execution is skipped.
-				// ext2 varies with allocation: measured both zero and 65,280
-				// mismatches on 2026-10-02, so a lucky run cannot retire it.
-				plainBad, plainFirst := sweepLIRFallback(t, tc.funcs, tc.name, tc.count, tc.inputs, tc.model, false)
-				t.Skipf("known production PBQP %s: hybrid %d/%d mismatches (%s); plain PBQP %d/%d (%s)", tc.name, bad, tc.count, first, plainBad, tc.count, plainFirst)
+				plainBad, plainFirst := sweepCodegenJudge(t, tc.funcs, tc.name, tc.count, tc.inputs, tc.model, false)
+				if plainBad == 0 || bad != plainBad {
+					t.Fatalf("known PBQP record requires equal nonzero counts: --lir %d, plain %d; %s / %s", bad, plainBad, first, plainFirst)
+				}
+				t.Skipf("2026-10-02: known production PBQP %s: %d/%d mismatches (%s)", tc.name, plainBad, tc.count, plainFirst)
 			}
 			if bad != 0 {
 				t.Fatalf("%d/%d mismatches: %s", bad, tc.count, first)
