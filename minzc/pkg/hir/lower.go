@@ -482,7 +482,7 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 	if f.IsExtern {
 		mf.Attrs.IsExtern = true
 		mf.Attrs.ExternAddr = f.ExternAddr
-		return
+		mf.Contract.ExternClobbers = f.ExternClobbers
 	}
 
 	// Set return type(s).
@@ -495,6 +495,18 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 	} else if f.RetTy != mir2.TyVoid {
 		cls := classForRet(f.RetTy)
 		mf.Contract.Returns = []mir2.Return{{Ty: f.RetTy, Class: cls}}
+	}
+
+	if f.IsExtern {
+		bld := mir2.NewBuilder(mf)
+		for i, p := range f.Params {
+			cls := classForParam(p.Ty, i)
+			if p.RegClass != 0 {
+				cls = p.RegClass
+			}
+			bld.Param(p.Name, p.Ty, cls)
+		}
+		return
 	}
 
 	bld := mir2.NewBuilder(mf)

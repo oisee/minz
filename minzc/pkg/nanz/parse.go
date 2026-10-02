@@ -784,19 +784,47 @@ func (p *parser) parseModule() (*hir.Module, error) {
 			attr := p.l.peek()
 			if attr.kind == tokIdent && attr.val == "extern" {
 				p.l.next()
-				// Optional address: @extern(0xNNNN) fun ...
+				// Optional address and explicit physical clobber contract.
 				var externAddr uint16
+				var externClobbers []string
 				if p.l.is(tokLParen) {
 					p.l.next()
-					addrTok, err := p.l.eat(tokInt)
-					if err != nil {
-						return nil, fmt.Errorf("line %d: expected address in @extern(...)", attr.line)
+					needClobbers := true
+					if p.l.is(tokInt) {
+						addrTok := p.l.next()
+						addr64, err := strconv.ParseUint(addrTok.val, 0, 16)
+						if err != nil {
+							return nil, fmt.Errorf("line %d: invalid address %q: %v", addrTok.line, addrTok.val, err)
+						}
+						externAddr = uint16(addr64)
+						if p.l.is(tokComma) {
+							p.l.next()
+						} else {
+							needClobbers = false
+						}
 					}
-					addr64, err := strconv.ParseUint(addrTok.val, 0, 16)
-					if err != nil {
-						return nil, fmt.Errorf("line %d: invalid address %q: %v", addrTok.line, addrTok.val, err)
+					if needClobbers {
+						if err := p.l.eatIdent("clobbers"); err != nil {
+							return nil, err
+						}
+						if _, err := p.l.eat(tokColon); err != nil {
+							return nil, err
+						}
+						regs, err := p.l.eat(tokString)
+						if err != nil {
+							return nil, err
+						}
+						externClobbers = []string{}
+						if strings.TrimSpace(regs.val) != "" {
+							for _, name := range strings.Split(regs.val, ",") {
+								name = strings.ToUpper(strings.TrimSpace(name))
+								if !mir2.ValidZ80Clobber(name) {
+									return nil, fmt.Errorf("line %d: unknown or unsupported clobber register %q", regs.line, name)
+								}
+								externClobbers = append(externClobbers, name)
+							}
+						}
 					}
-					externAddr = uint16(addr64)
 					if _, err := p.l.eat(tokRParen); err != nil {
 						return nil, err
 					}
@@ -809,6 +837,7 @@ func (p *parser) parseModule() (*hir.Module, error) {
 					return nil, err
 				}
 				f.ExternAddr = externAddr
+				f.ExternClobbers = externClobbers
 				m.Funcs = append(m.Funcs, f)
 			} else if attr.kind == tokIdent && attr.val == "screen" && p.metaFuncs["screen"] == "" {
 				// Built-in @screen metafunction (only if no user-defined @screen)

@@ -124,14 +124,15 @@ func (m *Module) FuncByName(name string) *Func {
 
 // Func is a HIR function.
 type Func struct {
-	Name       string
-	Params     []Param
-	RetTy      mir2.Ty   // mir2.TyVoid for void functions (single-return)
-	RetTys     []mir2.Ty // non-empty → multiple return values (overrides RetTy)
-	Body       *Block    // nil for extern
-	IsExtern   bool
-	ExternAddr uint16 // non-zero → @extern(addr) — call via CALL/RST to fixed address
-	IsIO       bool   // true = effectful (IO); false = pure (compile-time safe)
+	Name           string
+	Params         []Param
+	RetTy          mir2.Ty   // mir2.TyVoid for void functions (single-return)
+	RetTys         []mir2.Ty // non-empty → multiple return values (overrides RetTy)
+	Body           *Block    // nil for extern
+	ExternClobbers []string  // nil = unknown; non-nil = explicit Z80 write contract
+	IsExtern       bool
+	ExternAddr     uint16 // non-zero → @extern(addr) — call via CALL/RST to fixed address
+	IsIO           bool   // true = effectful (IO); false = pure (compile-time safe)
 }
 
 // Param is a typed, named function parameter.

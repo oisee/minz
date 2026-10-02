@@ -3,6 +3,8 @@ package mir2
 import (
 	"slices"
 	"strings"
+
+	"github.com/minz/minzc/pkg/z80spec"
 )
 
 // ── Calls ─────────────────────────────────────────────────────────────────────
@@ -163,7 +165,7 @@ func (g *z80cg) genCall(inst *Inst) {
 
 	// Save live caller values before argument copies, including reused args.
 	var callerSavePairs []string
-	if callee != nil && inst != g.tailCallInst {
+	if inst != g.tailCallInst {
 		callerSavePairs = g.callerSavePairs(inst, callee)
 		for _, pair := range callerSavePairs {
 			g.emitf("    PUSH %s", pair)
@@ -239,7 +241,13 @@ func (g *z80cg) genCall(inst *Inst) {
 		}
 		results = append(results, parallelCopy{srcName: canonicalReturnLoc(cls, ty), dstName: g.loc(r), ty: ty})
 	}
-	g.pickupCallResults(results, callerSavePairs, flagResult)
+	var protected []string
+	for r := range g.regsLiveAfterInst(inst) {
+		if r != inst.Dst && !slices.Contains(inst.ExtraRets, r) {
+			protected = append(protected, g.loc(r))
+		}
+	}
+	g.pickupCallResults(results, callerSavePairs, flagResult, protected...)
 
 	// CALL and argument setup invalidate cached physical contents, including
 	// registers used only as scratch by the emitted callee/runtime sequences.
@@ -270,7 +278,7 @@ func (g *z80cg) genCall(inst *Inst) {
 
 // pickupCallResults never stores into code. Most calls need only parallel
 // moves; overlapping destinations use a short-lived, reentrant stack frame.
-func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagResult bool) {
+func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagResult bool, protected ...string) {
 	savedPair := map[string]bool{}
 	for _, p := range saved {
 		savedPair[p] = true
@@ -295,14 +303,14 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 		}
 		return
 	}
-
-	// A byte result can use a pair that is absent from the restore list.
-	// This scratch lifetime ends at pickup, so later allocation cannot reuse
-	// it while an override remains live.
+	// A byte result can use an unsaved pair only when its scratch byte does
+	// not hold a live value preserved by a narrow extern contract.
 	if !flagResult && len(results) == 1 && results[0].ty.Width() <= 8 && regToPairMap[results[0].dstName] != "" {
 		r := results[0]
 		for _, scratch := range []string{"E", "H", "L", "D", "B", "C"} {
-			if !savedPair[regToPairMap[scratch]] {
+			if !savedPair[regToPairMap[scratch]] && !slices.ContainsFunc(protected, func(name string) bool {
+				return z80spec.Overlaps(name, scratch)
+			}) {
 				g.emitLD8(scratch, r.srcName)
 				for i := len(saved) - 1; i >= 0; i-- {
 					g.emitf("    POP %s", saved[i])
@@ -606,16 +614,42 @@ func isRecursive(f *Func) bool {
 // caller that remain live after the call, including arguments reused later.
 // The call results are excluded because their definitions begin after CALL.
 func (g *z80cg) callerSavePairs(inst *Inst, callee *Func) []string {
-	if callee == nil {
-		return nil
-	}
-
-	// The emitter uses implicit scratch registers, runtime helpers and nested
-	// calls. Preserve every live physical register conservatively until a
-	// post-emission write-set analysis can prove a smaller clobber contract.
+	// Unknown and compiled callees remain conservative. Only an explicit
+	// extern implementation contract can narrow the callee's write set.
 	clobberedRegs := map[string]bool{}
 	for _, name := range computeClobbers(callee, g.ar) {
 		clobberedRegs[name] = true
+	}
+
+	// The declaration describes the callee, not the argument shuffle. Include
+	// its destination writes as well. Complex copies can use implicit scratch
+	// registers; retain the conservative contract for those call sites.
+	if callee != nil && callee.Attrs.IsExtern && callee.Contract.ExternClobbers != nil {
+		moves := 0
+		for i, arg := range inst.Args {
+			if i >= len(callee.Contract.Params) {
+				break
+			}
+			p := callee.Contract.Params[i]
+			dst := canonicalReturnLoc(p.Class, p.Ty)
+			if loc, ok := g.ar.Locs[p.Reg]; ok && loc.Name != "" {
+				dst = physName(loc)
+			}
+			src := g.loc(arg)
+			if src == dst {
+				continue
+			}
+			moves++
+			clobberedRegs[dst] = true
+			if isSpill(src) || src == "F" || dst == "F" {
+				moves += 2 // implicit ALU/spill scratch
+			}
+		}
+		if moves > 1 || len(inst.ExtraRets) > 0 {
+			for _, name := range allZ80Clobbers {
+				clobberedRegs[name] = true
+			}
+		}
 	}
 
 	// Compute which virtual regs are live AFTER this call instruction.
@@ -650,8 +684,11 @@ func (g *z80cg) callerSavePairs(inst *Inst, callee *Func) []string {
 		if isSpill(locName) {
 			continue // spilled to memory — not a register
 		}
-		if clobberedRegs[locName] {
-			livePhys[locName] = true
+		for name := range clobberedRegs {
+			if z80spec.Overlaps(name, locName) {
+				livePhys[locName] = true
+				break
+			}
 		}
 	}
 
@@ -852,12 +889,37 @@ func classPhysRegs(cls RegClass) []string {
 	return nil
 }
 
+// ValidZ80Clobber reports whether a register is supported by caller-save.
+// SP, PC, special and shadow registers cannot be preserved by this ABI.
+func ValidZ80Clobber(name string) bool {
+	_, ok := regToPairMap[name]
+	return ok
+}
+
+var allZ80Clobbers = []string{"A", "B", "BC", "C", "D", "DE", "E", "F", "H", "HL", "IX", "IXH", "IXL", "IY", "IYH", "IYL", "L"}
+
 // computeClobbers returns a conservative sorted superset of emitted writes.
 func computeClobbers(f *Func, ar *AllocResult) []string {
+	if f != nil && f.Attrs.IsExtern && f.Contract.ExternClobbers != nil {
+		var names []string
+		for _, name := range f.Contract.ExternClobbers {
+			// Other frontends must not accidentally turn invalid contracts into
+			// preservation guarantees.
+			if !ValidZ80Clobber(name) {
+				return allZ80Clobbers
+			}
+			names = append(names, name)
+		}
+		// Outputs are writes even when omitted from the declaration.
+		for _, ret := range f.Contract.Returns {
+			names = append(names, canonicalReturnLoc(ret.Class, ret.Ty))
+		}
+		sortStrings(names)
+		return slices.Compact(names)
+	}
 	// Allocation destinations omit implicit writes by ALU lowering, parallel
-	// copies, caller saves, runtime helpers and transitive calls. ABI-owned
-	// registers are also clobbered: ownership does not imply preservation.
-	return []string{"A", "B", "BC", "C", "D", "DE", "E", "F", "H", "HL", "IX", "IXH", "IXL", "IY", "IYH", "IYL", "L"}
+	// copies, runtime helpers and transitive calls. Keep the default conservative.
+	return allZ80Clobbers
 }
 
 func sortStrings(ss []string) {
