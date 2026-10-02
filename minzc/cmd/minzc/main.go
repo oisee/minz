@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/minz/minzc/pkg/abap"
 	"github.com/minz/minzc/pkg/ast"
@@ -23,6 +24,7 @@ import (
 	"github.com/minz/minzc/pkg/parser"
 	"github.com/minz/minzc/pkg/c89"
 	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/mir2c"
 	"github.com/minz/minzc/pkg/mir2gpu"  // GPU backends: CUDA, OpenCL, Vulkan, Metal
 	"github.com/minz/minzc/pkg/mir2llvm"
 	"github.com/minz/minzc/pkg/mir2wasm"
@@ -867,7 +869,7 @@ func compileViaHIR(sourceFile string) error {
 		return compileToGPU(hirMod, gpuBackend, sourceFile)
 	}
 
-	// Run all pipeline stages (always, cheaply; we may want any step).
+	// Lower and optimise MIR2; emit Z80 only when the requested product needs it.
 	// --asserts-force overrides all 'via' annotations
 	am := assertMode
 	if assertForce != "" {
@@ -878,14 +880,31 @@ func compileViaHIR(sourceFile string) error {
 		}
 	}
 
+	// An explicit output requests assembly/binary unless an intermediate or C
+	// product was selected. With no output, MIR2-only checks need no assembly.
+	skipZ80 := false
+	switch emitFormat {
+	case "lanz", "hir", "mir2", "mir2-raw", "llvm", "wasm", "cuda", "opencl", "vulkan", "metal":
+		skipZ80 = true
+	}
+	if backend == "c" || gpuRun != "" {
+		skipZ80 = true
+	}
+	assertsOnly := am == "mir2" || am == "wasm" || am == "llvm" ||
+		((am == "" || am == "all") && (len(hirMod.Asserts) > 0 || len(hirMod.Sandboxes) > 0) && !pipeline.NeedsZ80Asserts(hirMod, am))
+	if outputFile == "" && assertsOnly {
+		skipZ80 = true
+	}
+
 	steps, err := pipeline.CompileHIRSteps(hirMod, pipeline.Options{
 		ContractOpt:     true,
 		AnnotateTStates: annotateTStates,
-		UseLIR:          useLIR, // --lir reports disabled native LIR; emission uses PBQP
-		OptSize:         optSize,           // --Osize enables Grace reroll
-		UseGrace:        useGrace,          // --grace enables full Grace MIR2 pass suite
+		UseLIR:          useLIR,   // --lir reports disabled native LIR; emission uses PBQP
+		OptSize:         optSize,  // --Osize enables Grace reroll
+		UseGrace:        useGrace, // --grace enables full Grace MIR2 pass suite
 		Backend:         backend,
 		AssertMode:      am,
+		SkipZ80Emission: skipZ80,
 	})
 	if err != nil {
 		return fmt.Errorf("HIR compile: %w", err)
@@ -1013,6 +1032,23 @@ func compileViaHIR(sourceFile string) error {
 		return nil
 	}
 
+	if backend == "c" {
+		text, err := mir2c.Compile(steps.MIR2Module)
+		if err != nil {
+			return fmt.Errorf("C compile: %w", err)
+		}
+		out := outputFile
+		if out == "" {
+			out = strings.TrimSuffix(sourceFile, ext) + ".c"
+			if out == sourceFile {
+				out = strings.TrimSuffix(sourceFile, ext) + ".generated.c"
+			}
+		}
+		return os.WriteFile(out, []byte(text), 0644)
+	}
+	if steps.Assembly == "" {
+		return nil
+	}
 	asmSrc := steps.Assembly
 
 	// Determine output path
