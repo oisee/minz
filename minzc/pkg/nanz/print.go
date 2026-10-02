@@ -119,7 +119,7 @@ func (p *printer) global(g mir2.Global) {
 		case *mir2.ArrayTy:
 			if g.InitString && ty.Elem == mir2.TyU8 {
 				if value, ok := printableCString(g.Init); ok {
-						p.write(" = c\"")
+					p.write(" = c\"")
 					p.write(value)
 					p.write("\"")
 					break
@@ -178,7 +178,21 @@ func (p *printer) writeInitBytes(data []byte, ty mir2.Ty) {
 
 func (p *printer) function(f *hir.Func) {
 	if f.IsExtern {
-		p.write("@extern ")
+		p.write("@extern")
+		if f.ExternAddr != 0 || f.ExternClobbers != nil {
+			p.write("(")
+			if f.ExternAddr != 0 {
+				p.writef("0x%04X", f.ExternAddr)
+				if f.ExternClobbers != nil {
+					p.write(", ")
+				}
+			}
+			if f.ExternClobbers != nil {
+				p.writef("clobbers: %q", strings.Join(f.ExternClobbers, ", "))
+			}
+			p.write(")")
+		}
+		p.write(" ")
 	}
 	p.write("fun ")
 	p.write(f.Name)

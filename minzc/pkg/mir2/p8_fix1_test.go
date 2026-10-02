@@ -41,7 +41,7 @@ func testConstBlockParamSpill(t *testing.T, ty mir2.Ty, value int64) {
 		f.Contract.Returns = nil
 		b.Ret()
 		ar := &mir2.AllocResult{Locs: map[mir2.Reg]mir2.PhysLoc{p: {Kind: mir2.LocMem}, x: {Kind: mir2.LocDWord, Name: "DE"}}}
-		code := mir2.Z80Codegen(m, ar)
+		code := mustZ80Asm(mir2.Z80Codegen(m, ar))
 		for i := 0; i < mir2.ByteWidth(ty); i++ {
 			// Poison every byte so an omitted store cannot pass via zero-initialised data.
 			pre := "ORG 0x8000\nLD SP,0xFF00\nLD A,255\n"
@@ -57,7 +57,7 @@ func testConstBlockParamSpill(t *testing.T, ty mir2.Ty, value int64) {
 		r := b.Move(p, ty, class)
 		b.Ret(r)
 		ar := &mir2.AllocResult{Locs: map[mir2.Reg]mir2.PhysLoc{p: {Kind: mir2.LocMem}, x: {Kind: mir2.LocReg, Name: "DE"}, r: {Kind: mir2.LocReg, Name: "HL"}}}
-		asm := fmt.Sprintf("ORG 0x8000\nLD SP,0xFF00\nLD HL,0xFFFF\nLD (_spill_arith_r%d),HL\nCALL arith\nDI\nHALT\n", p) + mir2.Z80Codegen(m, ar)
+		asm := fmt.Sprintf("ORG 0x8000\nLD SP,0xFF00\nLD HL,0xFFFF\nLD (_spill_arith_r%d),HL\nCALL arith\nDI\nHALT\n", p) + mustZ80Asm(mir2.Z80Codegen(m, ar))
 		if got := fix1Execute(t, asm).HL; got != uint16(value) {
 			t.Fatalf("got %x want %x\n%s", got, value, asm)
 		}
@@ -79,7 +79,7 @@ func TestP8AddressSpillIsWord(t *testing.T) {
 				if explicit {
 					ar.Spilled = []mir2.Reg{r}
 				}
-				asm := mir2.Z80Codegen(m, ar)
+				asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 				slot := fmt.Sprintf("_spill_arith_r%d:", r)
 				if !strings.Contains(asm, slot+" DW 0") && !strings.Contains(asm, slot+" DB 0, 0\n") {
 					t.Fatalf("expected two-byte slot\n%s", asm)

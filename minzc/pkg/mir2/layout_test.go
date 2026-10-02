@@ -198,7 +198,7 @@ func TestLayoutFibonacciHotPathFallThrough(t *testing.T) {
 
 	lr := mir2.ComputeLiveness(f)
 	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 
 	t.Log("\n" + asm)
 

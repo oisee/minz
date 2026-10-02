@@ -224,7 +224,7 @@ func compilePBQP(t *testing.T, src, name string) (int, string) {
 		ct := mir2.Z80CostTable{}
 		alloc = mir2.Allocate(f, lr, ct)
 	}
-	asm := mir2.Z80Codegen(m, alloc, mir2.Z80CodegenOptions{})
+	asm := mustZ80Asm(mir2.Z80Codegen(m, alloc, mir2.Z80CodegenOptions{}))
 	return countInstructions(asm), asm
 }
 

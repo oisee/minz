@@ -55,7 +55,7 @@ func TestFix1WordOverlap(t *testing.T) {
 						case mir2.OpXor:
 							want = x ^ y
 						}
-						asm := "ORG 0x8000\nLD SP,0xFF00\nLD BC,4660\nLD DE,17767\nLD HL,35243\nCALL arith\nDI\nHALT\n" + mir2.Z80Codegen(m, alloc)
+						asm := "ORG 0x8000\nLD SP,0xFF00\nLD BC,4660\nLD DE,17767\nLD HL,35243\nCALL arith\nDI\nHALT\n" + mustZ80Asm(mir2.Z80Codegen(m, alloc))
 						r := fix1Execute(t, asm)
 						if r.HL != want {
 							t.Fatalf("%s %s,%s -> %s got %x want %x\n%s", op, lhs, rhs, dst, r.HL, want, asm)
@@ -88,7 +88,7 @@ func TestFix1SignedSpillOperands(t *testing.T) {
 				} else {
 					setup += fmt.Sprintf("LD %s,2\n", loc.Name)
 				}
-				asm := "ORG 0x8000\nLD SP,0xFF00\n" + setup + "CALL arith\nDI\nHALT\n" + mir2.Z80Codegen(m, alloc)
+				asm := "ORG 0x8000\nLD SP,0xFF00\n" + setup + "CALL arith\nDI\nHALT\n" + mustZ80Asm(mir2.Z80Codegen(m, alloc))
 				got := fix1Execute(t, asm).HL
 				want := uint16(65533)
 				if op == mir2.OpSMod {
@@ -115,7 +115,7 @@ func TestFix1PointerOverlap(t *testing.T) {
 	out := b.PtrAdd(base, off, mir2.ClassPointer)
 	b.Ret(out)
 	alloc := &mir2.AllocResult{Locs: map[mir2.Reg]mir2.PhysLoc{base: {Kind: mir2.LocReg, Name: "BC"}, off: {Kind: mir2.LocReg, Name: "HL"}, out: {Kind: mir2.LocReg, Name: "HL"}}}
-	asm := "ORG 0x8000\nLD SP,0xFF00\nLD BC,4660\nLD HL,5\nCALL arith\nDI\nHALT\n" + mir2.Z80Codegen(m, alloc)
+	asm := "ORG 0x8000\nLD SP,0xFF00\nLD BC,4660\nLD HL,5\nCALL arith\nDI\nHALT\n" + mustZ80Asm(mir2.Z80Codegen(m, alloc))
 	if got := fix1Execute(t, asm).HL; got != 4665 {
 		t.Fatalf("base+offset got %d want 4665\n%s", got, asm)
 	}
@@ -144,7 +144,7 @@ func TestFix1NarrowWordCompare(t *testing.T) {
 		b.Ret(zero)
 		alloc := &mir2.AllocResult{Locs: map[mir2.Reg]mir2.PhysLoc{a: {Kind: mir2.LocReg, Name: "D"}, w: {Kind: mir2.LocReg, Name: "HL"}, c: {Kind: mir2.LocReg, Name: "F"}, one: {Kind: mir2.LocReg, Name: "A"}, zero: {Kind: mir2.LocReg, Name: "A"}}}
 		for _, word := range []int{254, 255, 256, 300, 65535} {
-			asm := fmt.Sprintf("ORG 0x8000\nLD SP,0xFF00\nLD D,255\nLD HL,%d\nCALL arith\nDI\nHALT\n", word) + mir2.Z80Codegen(m, alloc)
+			asm := fmt.Sprintf("ORG 0x8000\nLD SP,0xFF00\nLD D,255\nLD HL,%d\nCALL arith\nDI\nHALT\n", word) + mustZ80Asm(mir2.Z80Codegen(m, alloc))
 			want := uint8(0)
 			if word > 255 {
 				want = 1
@@ -169,7 +169,7 @@ func TestFix1ByteResultWithLiveA(t *testing.T) {
 	out := b.Add(a, div, mir2.TyU8, mir2.ClassAcc)
 	b.Ret(out)
 	alloc := &mir2.AllocResult{Locs: map[mir2.Reg]mir2.PhysLoc{x: {Kind: mir2.LocReg, Name: "B"}, a: {Kind: mir2.LocReg, Name: "A"}, two: {Kind: mir2.LocReg, Name: "D"}, div: {Kind: mir2.LocReg, Name: "C"}, out: {Kind: mir2.LocReg, Name: "A"}}}
-	asm := "ORG 0x8000\nLD SP,0xFF00\nLD B,10\nLD A,7\nCALL arith\nDI\nHALT\n" + mir2.Z80Codegen(m, alloc)
+	asm := "ORG 0x8000\nLD SP,0xFF00\nLD B,10\nLD A,7\nCALL arith\nDI\nHALT\n" + mustZ80Asm(mir2.Z80Codegen(m, alloc))
 	if got := fix1Execute(t, asm).A; got != 12 {
 		t.Fatalf("10/2+7: got %d want 12\n%s", got, asm)
 	}
@@ -189,7 +189,7 @@ func TestFix1BitPredicateConstantOverlap(t *testing.T) {
 	b.Ret(out)
 	alloc := &mir2.AllocResult{Locs: map[mir2.Reg]mir2.PhysLoc{x: {Kind: mir2.LocReg, Name: "HL"}, one: {Kind: mir2.LocReg, Name: "BC"}, masked: {Kind: mir2.LocReg, Name: "DE"}, zero: {Kind: mir2.LocReg, Name: "HL"}, out: {Kind: mir2.LocReg, Name: "F"}}}
 	for _, v := range []int{0, 1, 2, 7, 255, 256, 257} {
-		asm := fmt.Sprintf("ORG 0x8000\nLD SP,0xFF00\nLD HL,%d\nCALL arith\nDI\nHALT\n", v) + mir2.Z80Codegen(m, alloc)
+		asm := fmt.Sprintf("ORG 0x8000\nLD SP,0xFF00\nLD HL,%d\nCALL arith\nDI\nHALT\n", v) + mustZ80Asm(mir2.Z80Codegen(m, alloc))
 		want := uint8(0)
 		if v%2 == 0 {
 			want = 1

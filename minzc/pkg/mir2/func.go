@@ -21,9 +21,10 @@ type Func struct {
 // instead of physical register names.  Backends map classes to physical
 // resources for each target.
 type Contract struct {
-	Params   []Param  // ordered parameter slots
-	Returns  []Return // ordered return value slots (multi-return = len > 1)
-	Clobbers ClassSet // register classes modified by this function (caller-save)
+	Params         []Param  // ordered parameter slots
+	Returns        []Return // ordered return value slots (multi-return = len > 1)
+	ExternClobbers []string // nil = unknown; non-nil = declared physical Z80 writes
+	Clobbers       ClassSet // register classes modified by this function (caller-save)
 }
 
 // Param is one parameter: a named, typed, class-constrained value that arrives

@@ -223,7 +223,7 @@ func TestContractOptimize_PreservesOutput(t *testing.T) {
 			ar.Locs[r] = loc
 		}
 	}
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Logf("double_sum assembly after contract optimisation:\n%s", asm)
 
 	cases := [][3]int{{1, 2, 6}, {3, 4, 14}, {0, 5, 10}, {63, 64, 254}}
@@ -496,7 +496,7 @@ func TestContractOptimize_BeforeAfterComparison(t *testing.T) {
 				ar.Locs[r] = loc
 			}
 		}
-		return mir2.Z80Codegen(m, ar)
+		return mustZ80Asm(mir2.Z80Codegen(m, ar))
 	}
 
 	// ── WITHOUT contract optimisation ────────────────────────────────────────

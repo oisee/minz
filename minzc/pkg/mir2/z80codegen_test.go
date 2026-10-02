@@ -19,7 +19,7 @@ func TestZ80CodegenFibonacci(t *testing.T) {
 	for _, f := range m.Funcs {
 		lr := mir2.ComputeLiveness(f)
 		ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
-		asm = mir2.Z80Codegen(m, ar)
+		asm = mustZ80Asm(mir2.Z80Codegen(m, ar))
 	}
 
 	t.Log("\n" + asm)
@@ -56,7 +56,7 @@ func TestZ80CodegenSMCCounter(t *testing.T) {
 
 	lr := mir2.ComputeLiveness(f)
 	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 
 	t.Log("\n" + asm)
 
@@ -84,7 +84,7 @@ func TestZ80CodegenExt(t *testing.T) {
 
 	lr := mir2.ComputeLiveness(f)
 	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 
 	t.Log("\n" + asm)
 
@@ -122,7 +122,7 @@ func TestZ80Codegen_IXPointer(t *testing.T) {
 		loaded: {Kind: mir2.LocReg, Name: "A"},
 	}}
 
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	if !strings.Contains(asm, "(IX+0)") {
@@ -152,7 +152,7 @@ func TestZ80Codegen_IX16bitLoadStore(t *testing.T) {
 		loaded: {Kind: mir2.LocReg, Name: "HL"},
 	}}
 
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	// Should use (IX+0) and (IX+1) — no INC/DEC IX.
@@ -187,7 +187,7 @@ func TestZ80Codegen_IXYHalvesAreFirstClassForMoves(t *testing.T) {
 		retv: {Kind: mir2.LocReg, Name: "A"},
 	}}
 
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	fnAsm := extractFuncAsm(asm, "half_moves")
@@ -226,7 +226,7 @@ func TestZ80Codegen_IXYHalvesCompareAsNormal8BitRegs(t *testing.T) {
 		z:    {Kind: mir2.LocReg, Name: "A"},
 	}}
 
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	fnAsm := extractFuncAsm(asm, "half_cmp_zero")
@@ -272,7 +272,7 @@ func TestZ80Codegen_IXAllocUnderPressure(t *testing.T) {
 
 	lr := mir2.ComputeLiveness(f)
 	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	// Verify at least one of the four pointers is in IX or IY — the allocator
@@ -454,7 +454,7 @@ func TestBitStorePattern_RES_IX(t *testing.T) {
 	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
 	ar.Locs[ptr] = mir2.PhysLoc{Kind: mir2.LocIXY, Name: "IX"}
 
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	fnAsm := extractFuncAsm(asm, "reset_bit2")
@@ -483,7 +483,7 @@ func TestBitStorePattern_SET_U16_IXHighByte(t *testing.T) {
 	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
 	ar.Locs[ptr] = mir2.PhysLoc{Kind: mir2.LocIXY, Name: "IX"}
 
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	fnAsm := extractFuncAsm(asm, "set_bit10")
@@ -561,7 +561,7 @@ func TestBitRegPattern_SET_U8_B(t *testing.T) {
 	ar.Locs[val] = mir2.PhysLoc{Kind: mir2.LocReg, Name: "B"}
 	ar.Locs[next] = mir2.PhysLoc{Kind: mir2.LocReg, Name: "B"}
 
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	fnAsm := extractFuncAsm(asm, "set_bit5_reg")
@@ -591,7 +591,7 @@ func TestBitRegPattern_DirectBitReset_U8_IXL(t *testing.T) {
 	ar.Locs[val] = mir2.PhysLoc{Kind: mir2.LocIXY8, Name: "IXL"}
 	ar.Locs[next] = mir2.PhysLoc{Kind: mir2.LocIXY8, Name: "IXL"}
 
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	fnAsm := extractFuncAsm(asm, "reset_bit2_direct")
@@ -622,7 +622,7 @@ func TestBitRegPattern_RES_U8_IXL(t *testing.T) {
 	ar.Locs[val] = mir2.PhysLoc{Kind: mir2.LocIXY8, Name: "IXL"}
 	ar.Locs[next] = mir2.PhysLoc{Kind: mir2.LocIXY8, Name: "IXL"}
 
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	fnAsm := extractFuncAsm(asm, "reset_bit1_reg")
@@ -660,7 +660,7 @@ func TestBitCmpPattern_DirectBitGet_U16_IXRegPair(t *testing.T) {
 	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
 	ar.Locs[val] = mir2.PhysLoc{Kind: mir2.LocIXY, Name: "IX"}
 
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	fnAsm := extractFuncAsm(asm, "test_bit11_direct")
@@ -687,7 +687,7 @@ func TestBitRegPattern_SET_U16_IXHigh(t *testing.T) {
 	ar.Locs[val] = mir2.PhysLoc{Kind: mir2.LocIXY, Name: "IX"}
 	ar.Locs[next] = mir2.PhysLoc{Kind: mir2.LocIXY, Name: "IX"}
 
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	fnAsm := extractFuncAsm(asm, "set_bit14_reg")
@@ -714,7 +714,7 @@ func TestBitRegPattern_RES_U16_IYLow(t *testing.T) {
 	ar.Locs[val] = mir2.PhysLoc{Kind: mir2.LocIXY, Name: "IY"}
 	ar.Locs[next] = mir2.PhysLoc{Kind: mir2.LocIXY, Name: "IY"}
 
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	fnAsm := extractFuncAsm(asm, "reset_bit3_reg")
@@ -850,7 +850,7 @@ func TestBitCmpPattern_ShiftedBitRead_U16_IXRegPair(t *testing.T) {
 	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
 	ar.Locs[val] = mir2.PhysLoc{Kind: mir2.LocIXY, Name: "IX"}
 
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	fnAsm := extractFuncAsm(asm, "test_bit13")
@@ -1154,7 +1154,7 @@ func TestDWord_Const(t *testing.T) {
 
 	lr := mir2.ComputeLiveness(f)
 	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	// EXX must appear (for hi16 load).
@@ -1187,7 +1187,7 @@ func TestDWord_Add32(t *testing.T) {
 
 	lr := mir2.ComputeLiveness(f)
 	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	// Must use EXX (for shadow bank access).
@@ -1220,7 +1220,7 @@ func TestDWord_Sub32(t *testing.T) {
 
 	lr := mir2.ComputeLiveness(f)
 	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	if !strings.Contains(asm, "EXX") {

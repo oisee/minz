@@ -124,10 +124,92 @@ type Z80CodegenOptions struct {
 	AnnotateTStates bool
 }
 
+// ValidateZ80Symbols rejects distinct functions/data that emit the same symbol.
+// Calls resolve by symbol, so uniqueness is required before using a callee ABI.
+func ValidateZ80Symbols(m *Module) error {
+	seen := make(map[string]string)
+	// Runtime names and internal namespaces are reserved even when unused.
+	for _, name := range []string{"__mul8", "__mul16", "__call_ix"} {
+		seen[name] = "compiler runtime"
+	}
+	for i := 0; i <= 7; i++ {
+		seen[fmt.Sprintf("__rotate_%d", i)] = "compiler runtime"
+	}
+	add := func(name string) error {
+		sym := sanitizeIdent(name)
+		for _, prefix := range []string{"_mir2_str_", "_spill_", "_tsmc_"} {
+			if strings.HasPrefix(sym, prefix) {
+				return fmt.Errorf("reserved Z80 symbol %q: %q", sym, name)
+			}
+		}
+		if prev, ok := seen[sym]; ok {
+			return fmt.Errorf("ambiguous Z80 symbol %q: %q and %q", sym, prev, name)
+		}
+		seen[sym] = name
+		return nil
+	}
+	reserve := func(sym, owner string) error {
+		if prev, ok := seen[sym]; ok {
+			return fmt.Errorf("ambiguous Z80 symbol %q: %q and %q", sym, prev, owner)
+		}
+		seen[sym] = owner
+		return nil
+	}
+	for _, f := range m.Funcs {
+		for _, b := range f.Blocks {
+			for _, inst := range b.Insts {
+				if inst.Op == OpPatchSlot && inst.Sym != "" {
+					parts := strings.SplitN(inst.Sym, "$", 2)
+					patcher := inst.Sym
+					if len(parts) == 2 {
+						patcher = parts[0] + "_set_" + parts[1]
+					}
+					for _, sym := range []string{patcher, inst.Sym + "$imm"} {
+						if err := reserve(sym, "generated patch slot for "+f.Name); err != nil {
+							return err
+						}
+					}
+				}
+			}
+		}
+	}
+	for _, g := range m.Globals {
+		if st, ok := g.Ty.(*StructTy); ok && ByteWidth(g.Ty) != 0 {
+			off := 0
+			for _, field := range st.Fields {
+				sym := sanitizeIdent(g.Name) + "__" + field.Name
+				if field.Name == "" {
+					sym = fmt.Sprintf("%s__off%d", sanitizeIdent(g.Name), off)
+				}
+				if err := reserve(sym, "generated field for "+g.Name); err != nil {
+					return err
+				}
+				off += ByteWidth(field.Ty)
+			}
+		}
+	}
+
+	for _, f := range m.Funcs {
+		if err := add(f.Name); err != nil {
+			return err
+		}
+	}
+	for _, g := range m.Globals {
+		if err := add(g.Name); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // Z80Codegen generates Z80 assembly for the entire module.
 // An optional Z80CodegenOptions value may be passed as the third argument;
 // callers that don't need options can omit it entirely.
-func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) string {
+// Invalid symbols return an error and no assembly.
+func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, error) {
+	if err := ValidateZ80Symbols(m); err != nil {
+		return "", err
+	}
 	var opt Z80CodegenOptions
 	if len(opts) > 0 {
 		opt = opts[0]
@@ -153,6 +235,9 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) string {
 	for _, f := range funcs {
 		startLen := sb.Len()
 		cg.genFunc(f)
+		if cg.err != nil {
+			return "", cg.err
+		}
 		sb.WriteByte('\n')
 		// Z80 validation: catch invalid instructions at compile time.
 		funcAsm := sb.String()[startLen:]
@@ -291,12 +376,13 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) string {
 		result += sled.String()
 	}
 
-	return result
+	return result, nil
 }
 
 // ── Internal codegen state ────────────────────────────────────────────────────
 
 type z80cg struct {
+	err            error // first emission error, returned by Z80Codegen
 	ar             *AllocResult
 	sb             *strings.Builder
 	mod            *Module                    // parent module (for callee contract lookup at call sites)

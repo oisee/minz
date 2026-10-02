@@ -1165,6 +1165,46 @@ The compiler emits:
 
 The `@z80_*` annotations override PBQP for those parameters.
 
+Externs may also declare which physical Z80 registers their implementation writes:
+
+```nanz
+@extern(clobbers: "A, HL, F") fun device_read(addr: u16) -> u8
+@extern(0x1234, clobbers: "A, BC, DE, HL, F") fun rom_entry() -> u8
+@extern(clobbers: "") fun preserve_all() -> void
+```
+
+Without `clobbers`, calls conservatively clobber every allocatable register.
+An empty string explicitly promises preservation of all registers except return
+registers. Names are case insensitive; supported names are `A`, `F`, `B`, `C`,
+`D`, `E`, `H`, `L`, `AF`, `BC`, `DE`, `HL`, `IX`, `IY`, `IXH`, `IXL`, `IYH`,
+and `IYL`. Pair and half-register overlaps are respected. Unknown names and
+unsupported registers such as `SP` produce a compile error.
+
+`AF'`, the EXX shadow registers (`BC'`, `DE'`, `HL'`), `I`, and `R` are
+untracked by these declarations: the allocator and caller-save machinery do not
+model their liveness or preservation. `AF'` is rejected because accepting it
+would imply a preservation guarantee that caller-save cannot enforce; `AF` names
+only the primary accumulator and flags.
+
+Extern symbols have one ABI. An `@extern` cannot share a name with a function
+body, and conflicting extern redeclarations (including parameter types, ABI,
+address, return types, or clobber contracts) are rejected. Extern overloads are
+unsupported. Identical declarations may be repeated, for example by imports;
+ambiguous names retain conservative caller saves.
+
+The declaration is a contract the implementer must keep, including writes by
+nested calls. Declaring fewer writes than the implementation makes can silently
+corrupt live caller values; there is no runtime contract check. Return registers
+are always treated as writes. Caller argument setup is accounted for separately;
+complex shuffles retain conservative saves. These declarations apply to real
+externs, not compiler intrinsics.
+
+`peek` and `poke` in the self-hosting examples are MZV host functions (see
+`cmd/mzv/file_host.go`), not inline Z80 intrinsics. Their names alone do not prove
+any Z80 preservation guarantee, so their declarations remain unannotated.
+Likewise, disassembler ROM/BDOS profiles describe consumed arguments rather than
+authoritative preserved-register sets; they are insufficient to narrow calls.
+
 ### 10.4 The ABI Is Not Fixed
 
 Unlike traditional languages, Nanz does not have a fixed calling convention. You can observe the chosen convention in the generated assembly comment:

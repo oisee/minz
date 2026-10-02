@@ -336,12 +336,19 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 				tr.Backend = "PBQP"
 			}
 		}
+		if err := mir2.ValidateZ80Symbols(m); err != nil {
+			return s, err
+		}
 		if err := mir2.ValidateZ80IndirectCalls(m); err != nil {
 			return s, err
 		}
-		s.Assembly = mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{
+		var codegenErr error
+		s.Assembly, codegenErr = mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{
 			AnnotateTStates: opt.AnnotateTStates,
 		})
+		if codegenErr != nil {
+			return s, codegenErr
+		}
 
 		// Emit stubs for @extern functions not already defined in the assembly.
 		// Ensure CALL targets for extern functions resolve.
@@ -524,7 +531,13 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	if err := mir2.ValidateZ80IndirectCalls(m); err != nil {
 		return "", err
 	}
-	asm := mir2.Z80Codegen(m, combined)
+	if err := mir2.ValidateZ80Symbols(m); err != nil {
+		return "", err
+	}
+	asm, err := mir2.Z80Codegen(m, combined)
+	if err != nil {
+		return "", err
+	}
 
 	// Z80 binary assertion checks (skip "mir2"-only asserts).
 	if err := RunAssertsZ80(hm, m, combined, asm); err != nil {

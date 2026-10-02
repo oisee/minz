@@ -137,7 +137,7 @@ func TestZ80Codegen_SubThroughBlockParamNoSpill(t *testing.T) {
 	ct := mir2.Z80CostTable{}
 	lr := mir2.ComputeLiveness(f)
 	ar := mir2.PBQPAllocate(f, lr, ct)
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 
 	t.Logf("Z80 output:\n%s", asm)
 

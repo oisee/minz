@@ -437,7 +437,7 @@ func compileModule(t *testing.T, m *mir2.Module) string {
 			combined.Locs[r] = loc
 		}
 	}
-	return mir2.Z80Codegen(m, combined)
+	return mustZ80Asm(mir2.Z80Codegen(m, combined))
 }
 
 // compileOptModule runs the full optimization pass (CondRetSink + fusionSubCmpInBlock)
@@ -469,7 +469,7 @@ func compileOptModule(t *testing.T, m *mir2.Module) string {
 			combined.Locs[r] = loc
 		}
 	}
-	return mir2.Z80Codegen(m, combined)
+	return mustZ80Asm(mir2.Z80Codegen(m, combined))
 }
 
 const testLoadAddr = 0x8000
@@ -1149,7 +1149,7 @@ func TestMax2PipelineZ80(t *testing.T) {
 	for r, loc := range ar.Locs {
 		combined.Locs[r] = loc
 	}
-	asm := mir2.Z80Codegen(m, combined)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, combined))
 	t.Log("\n" + asm)
 
 	cases := []struct{ a, b, want int }{
@@ -1227,7 +1227,7 @@ func TestGcdCondRetZ80(t *testing.T) {
 	for r, loc := range ar.Locs {
 		combined.Locs[r] = loc
 	}
-	asm := mir2.Z80Codegen(m, combined)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, combined))
 	t.Log("\n" + asm)
 
 	// The critical test: gcd(12, 0) must return 12, not 0

@@ -515,7 +515,20 @@ func (p *parser) parseModule() (*hir.Module, error) {
 				return nil, err
 			}
 			if imported != nil {
-				mod.Funcs = append(mod.Funcs, imported.Funcs...)
+				// Imports share a namespace. Keep the first binding, matching
+				// the existing first-definition resolution of imported libraries.
+				for _, f := range imported.Funcs {
+					found := false
+					for _, existing := range mod.Funcs {
+						if existing.Name == f.Name {
+							found = true
+							break
+						}
+					}
+					if !found {
+						mod.Funcs = append(mod.Funcs, f)
+					}
+				}
 				mod.Structs = append(mod.Structs, imported.Structs...)
 				mod.Strings = append(mod.Strings, imported.Strings...)
 				mod.StrKinds = append(mod.StrKinds, imported.StrKinds...)
@@ -929,6 +942,9 @@ func (p *parser) parseImport() (*hir.Module, error) {
 	// Register imported function arities and IO status.
 	// Functions with asm blocks or extern linkage are IO by default.
 	for _, f := range child.Funcs {
+		if _, exists := p.arities[f.Name]; exists {
+			continue
+		}
 		p.arities[f.Name] = len(f.Params)
 		if f.IsIO || f.IsExtern || hasAsmBlock(f) {
 			p.ioFuncs[f.Name] = true
@@ -1177,8 +1193,10 @@ func (p *parser) parseLet() (*hir.Func, error) {
 	// let inc = add 1  →  inc becomes __partial_N with its params
 	if len(fn.Params) == 0 && len(letStmts) == 0 && len(whereStmts) == 0 {
 		if vr, ok := body.(*hir.VarRefExpr); ok {
-			for _, af := range p.autoFuncs {
+			for i, af := range p.autoFuncs {
 				if af.Name == vr.Name {
+					// Transfer ownership to the top-level declaration.
+					p.autoFuncs = append(p.autoFuncs[:i], p.autoFuncs[i+1:]...)
 					// Adopt: rename partial to fn.Name
 					af.Name = fn.Name
 					p.arities[fn.Name] = len(af.Params)

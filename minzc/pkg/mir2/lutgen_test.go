@@ -79,7 +79,7 @@ func TestLUTGen_LookupBodyCodegen(t *testing.T) {
 	mir2.DeadStoreElim(f)
 	lr := mir2.ComputeLiveness(f)
 	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	// Body must reference the LUT, not do arithmetic.
@@ -131,7 +131,7 @@ func TestLUTGen_PageAlignedFastPath(t *testing.T) {
 	mir2.DeadStoreElim(f)
 	lr := mir2.ComputeLiveness(f)
 	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	// Fast path uses LD L, not ADD HL, DE.

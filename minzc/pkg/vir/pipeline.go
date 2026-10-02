@@ -183,9 +183,11 @@ func CodegenModule(m *mir2.Module, opts SolverOptions) (string, []FuncResult) {
 			// generate PBQP ASM for this function as safety net.
 			if opts.PBQPAlloc != nil {
 				// Generate full PBQP module, extract this function's ASM
-				fullPBQP := mir2.Z80Codegen(m, opts.PBQPAlloc)
+				fullPBQP, codegenErr := mir2.Z80Codegen(m, opts.PBQPAlloc)
 				pbqpASM := extractFuncFromASM(fullPBQP, f.Name)
-				if pbqpASM != "" {
+				if codegenErr != nil {
+					r.Error = codegenErr.Error()
+				} else if pbqpASM != "" {
 					r.OK = true
 					r.ASM = pbqpASM
 					sb.WriteString("; VIR→PBQP fallback for " + f.Name + "\n")
