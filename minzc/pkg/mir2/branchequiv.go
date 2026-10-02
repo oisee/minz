@@ -250,7 +250,7 @@ func beqAdmittedPureU8(f *Func) bool {
 	for _, blk := range f.Blocks {
 		for _, inst := range blk.Insts {
 			switch inst.Op {
-			case OpConst, OpMove, OpAdd, OpSub, OpMul, OpDiv, OpSDiv,
+			case OpConst, OpMove, OpAdd, OpSub, OpMul, OpDiv, OpSDiv, OpSMod,
 				OpMod, OpAnd, OpOr, OpXor, OpShl, OpShr, OpSar,
 				OpBitGet, OpBitSet, OpBitReset, OpNeg, OpNot,
 				OpExt, OpSext, OpTrunc, OpCmp:

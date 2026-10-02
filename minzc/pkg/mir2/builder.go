@@ -108,7 +108,11 @@ func (b *Builder) Move(src Reg, ty Ty, cls RegClass) Reg {
 // BinOp emits any OpAdd…OpSar instruction.
 func (b *Builder) BinOp(op Op, lhs, rhs Reg, ty Ty, cls RegClass) Reg {
 	r := b.reg()
-	b.emit(inst2(op, r, lhs, rhs, ty, cls))
+	i := inst2(op, r, lhs, rhs, ty, cls)
+	if op == OpSar || op == OpSDiv || op == OpSMod {
+		i.SrcTy = ty
+	}
+	b.emit(i)
 	return r
 }
 
@@ -117,6 +121,7 @@ func (b *Builder) Sub(l, r Reg, ty Ty, cls RegClass) Reg  { return b.BinOp(OpSub
 func (b *Builder) Mul(l, r Reg, ty Ty, cls RegClass) Reg  { return b.BinOp(OpMul, l, r, ty, cls) }
 func (b *Builder) Div(l, r Reg, ty Ty, cls RegClass) Reg  { return b.BinOp(OpDiv, l, r, ty, cls) }
 func (b *Builder) SDiv(l, r Reg, ty Ty, cls RegClass) Reg { return b.BinOp(OpSDiv, l, r, ty, cls) }
+func (b *Builder) SMod(l, r Reg, ty Ty, cls RegClass) Reg { return b.BinOp(OpSMod, l, r, ty, cls) }
 func (b *Builder) Mod(l, r Reg, ty Ty, cls RegClass) Reg  { return b.BinOp(OpMod, l, r, ty, cls) }
 func (b *Builder) And(l, r Reg, ty Ty, cls RegClass) Reg  { return b.BinOp(OpAnd, l, r, ty, cls) }
 func (b *Builder) Or(l, r Reg, ty Ty, cls RegClass) Reg   { return b.BinOp(OpOr, l, r, ty, cls) }

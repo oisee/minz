@@ -30,6 +30,9 @@ import (
 
 // Compile translates a MIR2 module to LLVM IR text (.ll format).
 func Compile(m *mir2.Module) (string, error) {
+	if err := mir2.RejectUnsupportedOps(m, "mir2llvm", mir2.OpSMod); err != nil {
+		return "", err
+	}
 	g := &gen{sb: &strings.Builder{}, mod: m}
 	g.emitModule()
 	return g.sb.String(), nil

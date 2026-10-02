@@ -1,0 +1,42 @@
+// Explicit widening mirrors C integer promotions.
+fun add(a: u8,b: u8) -> u8 { return (((a as i16)+(b as i16)) as u8) }
+fun byte_add(a: u8,b: u8) -> u8 { return (((a as i16)+(b as i16)) as u8) }
+fun add8(a: u8,b: u8) -> u8 { return (((a as i16)+(b as i16)) as u8) }
+fun add_bytes(a: u8,b: u8) -> u8 { return (((a as i16)+(b as i16)) as u8) }
+fun swap_nibbles(a: u8) -> u8 { let hi: u8 = a >> 4
+let lo: u8 = (a << 4) & 255
+return (((hi as i16) | (lo as i16)) as u8) }
+fun popcount4(a: u8) -> u8 { return (((a & 1) + ((a >> 1) & 1) + ((a >> 2) & 1) + ((a >> 3) & 1))) }
+fun test_ld_word(lo: u8,hi: u8) -> u16 { return ((lo as u16) | ((hi as u16) << 8)) }
+fun promoted_mod(a: u8) -> u8 { return (((a as i16) % 2) as u8) }
+fun pressure(a: i16,b: i16,c: i16,d: i16) -> i16 {
+ let x: i16 = a+b
+let y: i16 = c-d
+let z: i16 = a-d
+let w: i16 = b+c
+ return x/y + z%w
+}
+assert add(3,4) == 7 via mir2
+assert byte_add(200,55) == 255 via mir2
+assert add8(200,55) == 255 via mir2
+assert add_bytes(100,42) == 142 via mir2
+assert swap_nibbles(18) == 33 via mir2
+assert popcount4(0) == 0 via mir2
+assert popcount4(5) == 2 via mir2
+assert popcount4(15) == 4 via mir2
+assert test_ld_word(52,18) == 4660 via mir2
+assert test_ld_word(255,255) == 65535 via mir2
+assert promoted_mod(255) == 1 via mir2
+assert pressure(20,4,10,2) == 7 via mir2
+assert add(3,4) == 7 via z80
+assert byte_add(200,55) == 255 via z80
+assert add8(200,55) == 255 via z80
+assert add_bytes(100,42) == 142 via z80
+assert swap_nibbles(18) == 33 via z80
+assert popcount4(0) == 0 via z80
+assert popcount4(5) == 2 via z80
+assert popcount4(15) == 4 via z80
+assert test_ld_word(52,18) == 4660 via z80
+assert test_ld_word(255,255) == 65535 via z80
+assert promoted_mod(255) == 1 via z80
+assert pressure(20,4,10,2) == 7 via z80

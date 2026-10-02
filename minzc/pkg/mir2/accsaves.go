@@ -166,7 +166,7 @@ func insertAccSavesBlock(f *Func, blk *Block, ar *AllocResult) {
 // instClobbersA returns true if the instruction will overwrite A.
 func instClobbersA(inst *Inst, ar *AllocResult) bool {
 	switch inst.Op {
-	case OpAdd, OpSub, OpMul, OpDiv, OpSDiv, OpMod,
+	case OpAdd, OpSub, OpMul, OpDiv, OpSDiv, OpSMod, OpMod,
 		OpAnd, OpOr, OpXor, OpShl, OpShr, OpSar,
 		OpNeg, OpNot:
 		// 8-bit ALU always uses A as working register on Z80

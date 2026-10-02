@@ -18,6 +18,7 @@ const (
 	OpMul            // mul  %a, %b : ty  (unsigned)
 	OpDiv            // div  %a, %b : ty  (unsigned)
 	OpSDiv           // sdiv %a, %b : ty  (signed)
+	OpSMod           // signed remainder (sign of dividend)
 	OpMod            // mod  %a, %b : ty  (unsigned remainder)
 
 	// ── Binary bitwise ─────────────────────────────────────────────────────────
@@ -144,7 +145,7 @@ func (op Op) String() string {
 }
 
 var opNames = [opCount]string{
-	OpAdd: "add", OpSub: "sub", OpMul: "mul", OpDiv: "div", OpSDiv: "sdiv", OpMod: "mod",
+	OpAdd: "add", OpSub: "sub", OpMul: "mul", OpDiv: "div", OpSDiv: "sdiv", OpSMod: "smod", OpMod: "mod",
 	OpAnd: "and", OpOr: "or", OpXor: "xor", OpShl: "shl", OpShr: "shr", OpSar: "sar",
 	OpBitGet: "bit_get", OpBitSet: "bit_set", OpBitReset: "bit_reset",
 	OpNeg: "neg", OpNot: "not", OpExt: "ext", OpSext: "sext", OpTrunc: "trunc",

@@ -176,7 +176,7 @@ func BuildInterferenceGraph(f *Func, lr *LivenessResult) *InterferenceGraph {
 			if inst.Dst != NoReg && inst.Ty != nil && inst.Ty.Width() <= 8 &&
 				inst.Cls != ClassAcc {
 				switch inst.Op {
-				case OpAdd, OpSub, OpAnd, OpOr, OpXor, OpMul, OpDiv, OpMod:
+				case OpAdd, OpSub, OpAnd, OpOr, OpXor, OpMul, OpDiv, OpSDiv, OpSMod, OpMod:
 					// Every live ClassAcc reg must not share A with this inst's dst.
 					// We model this by ensuring they interfere with dst
 					// (already done above). But we also need to prevent any

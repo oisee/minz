@@ -5,17 +5,21 @@
 //
 // Primary use: correctness oracle for MIR2 semantics.
 // If a program produces the same result when run via:
+//
 //   (a) MIR2 → Z80 codegen → MZE emulator, and
 //   (b) MIR2 → QBE → native binary
+//
 // then the MIR2 IR and HIR→MIR2 lowering are correct.
 // Any divergence points directly at the Z80 codegen.
 //
 // Type mapping
+//
 //   TyBool, TyU8, TyI8, TyU16, TyI16  →  w  (QBE 32-bit word)
 //   TyPtr                               →  l  (QBE 64-bit long, native ptr)
 //   TyVoid                              →  (no type, omitted)
 //
 // Block params → phi nodes
+//
 //   MIR2 uses block arguments (Cranelift-style).
 //   QBE uses phi nodes (SSA-style).
 //   We build a predecessor map per function and emit phi nodes at block entry.
@@ -220,8 +224,12 @@ func (g *gen) emitInst(inst *mir2.Inst) {
 		defNarrow("mul", reg(a), reg(b2))
 	case mir2.OpDiv:
 		def("udiv", reg(a), reg(b2))
-	case mir2.OpSDiv:
-		def("div", reg(a), reg(b2))
+	case mir2.OpSDiv, mir2.OpSMod:
+		op := "div"
+		if inst.Op == mir2.OpSMod {
+			op = "rem"
+		}
+		defNarrow(op, g.signedReg(a, inst.Ty), g.signedReg(b2, inst.Ty))
 	case mir2.OpMod:
 		def("urem", reg(a), reg(b2))
 
@@ -237,7 +245,7 @@ func (g *gen) emitInst(inst *mir2.Inst) {
 	case mir2.OpShr:
 		def("shr", reg(a), reg(b2))
 	case mir2.OpSar:
-		def("sar", reg(a), reg(b2))
+		defNarrow("sar", g.signedReg(a, inst.SrcTy), reg(b2))
 
 	// Unary
 	case mir2.OpNeg:
@@ -769,4 +777,20 @@ func byteWidth(ty mir2.Ty) int {
 		return 1
 	}
 	return bits / 8
+}
+
+// QBE stores narrow integers in w registers as bit patterns. Signed operators
+// must extend the sign to the machine width before consuming those patterns.
+func (g *gen) signedReg(r mir2.Reg, ty mir2.Ty) string {
+	bits := typeBits(ty)
+	if bits >= 32 {
+		return fmt.Sprintf("%%r%d", r)
+	}
+	tmp := g.freshTmp()
+	op := "extsh"
+	if bits == 8 {
+		op = "extsb"
+	}
+	g.printf("\t%s =w %s %s\n", tmp, op, fmt.Sprintf("%%r%d", r))
+	return tmp
 }

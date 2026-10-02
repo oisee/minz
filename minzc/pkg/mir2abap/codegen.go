@@ -29,6 +29,9 @@ func abapSym(name string) string {
 
 // Compile translates a MIR2 module to an ABAP REPORT.
 func Compile(m *mir2.Module) (string, error) {
+	if err := mir2.RejectUnsupportedOps(m, "mir2abap", mir2.OpSDiv, mir2.OpSMod); err != nil {
+		return "", err
+	}
 	g := &gen{sb: &strings.Builder{}, mod: m}
 	g.emitModule()
 	return g.sb.String(), nil
