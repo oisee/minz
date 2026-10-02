@@ -6,7 +6,6 @@ import (
 	"go/token"
 	"path/filepath"
 	"reflect"
-	"runtime"
 	"strconv"
 	"strings"
 	"testing"
@@ -183,8 +182,7 @@ func TestOverlapProperties(t *testing.T) {
 // the production definitions without linkname, copied tables or production edits.
 func initializer(t *testing.T, file, name string) *ast.CompositeLit {
 	t.Helper()
-	_, here, _, _ := runtime.Caller(0)
-	f, err := parser.ParseFile(token.NewFileSet(), filepath.Join(filepath.Dir(here), "..", "vir", file), nil, 0)
+	f, err := parser.ParseFile(token.NewFileSet(), filepath.Join("..", "vir", file), nil, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -315,8 +313,13 @@ func TestMIR2KnownAliasGaps(t *testing.T) {
 		"IY": {"IYH", "IYL"}, "IYH": {"IY"}, "IYL": {"IY"},
 		"B'": {"BC32"}, "C'": {"BC32"}, "D'": {"DE32"}, "E'": {"DE32"}, "H'": {"HL32"}, "L'": {"HL32"},
 	}
+	visited := map[string]bool{}
 	for _, a := range mir2.Z80PhysLocs {
-		spec, _ := mir2loc.From(a)
+		spec, valid := mir2loc.From(a)
+		if !valid {
+			t.Fatalf("unmapped MIR2 location: %+v", a)
+		}
+		visited[spec.Name] = true
 		t.Run(spec.Name, func(t *testing.T) {
 			aliases := mir2.PhysicalAliasesForTest(a)
 			got := map[mir2.PhysLoc]bool{}
@@ -325,8 +328,11 @@ func TestMIR2KnownAliasGaps(t *testing.T) {
 					t.Errorf("duplicate alias %+v", b)
 				}
 				got[b] = true
-				if _, ok := mir2loc.From(b); !ok {
+				other, ok := mir2loc.From(b)
+				if !ok {
 					t.Errorf("unmapped alias %+v", b)
+				} else if a == b || !z80spec.Overlaps(spec.Name, other.Name) {
+					t.Errorf("unexpected alias %s -> %s", spec.Name, other.Name)
 				}
 			}
 			for _, b := range mir2.Z80PhysLocs {
@@ -344,6 +350,16 @@ func TestMIR2KnownAliasGaps(t *testing.T) {
 				}
 			}
 		})
+	}
+	for name, targets := range known {
+		if !visited[name] {
+			t.Errorf("known-gap key no longer visited: %s", name)
+		}
+		for _, target := range targets {
+			if !visited[target] {
+				t.Errorf("known-gap target no longer visited: %s -> %s", name, target)
+			}
+		}
 	}
 }
 
@@ -373,5 +389,86 @@ func TestLIRKnownEmptyAliasGaps(t *testing.T) {
 				t.Errorf("LIR %s -> %s: alias %v spec %v known %v", a.Name, b.Name, a.Alias.Has(j), want, isKnown)
 			}
 		}
+	}
+}
+
+func TestDocumentedWidthsAndKinds(t *testing.T) {
+	for _, ns := range []struct {
+		name      string
+		flagWidth int
+		hlIndex   bool
+	}{
+		{"LIR", lir.Z80.Locs[13].Width, lir.Z80.Locs[9].Kind == lir.LocIndex},
+		{"VIR", vir.Z80.Locs[13].Width, vir.Z80.Locs[9].Kind == vir.LocIndex},
+	} {
+		if ns.flagWidth != 1 || z80spec.Width("F") != 8 {
+			t.Errorf("%s F width disagreement changed", ns.name)
+		}
+		hl, _ := z80spec.Lookup("HL")
+		if !ns.hlIndex || hl.Kind != z80spec.Pair16 {
+			t.Errorf("%s HL kind disagreement changed", ns.name)
+		}
+	}
+	for i := 14; i <= 17; i++ {
+		loc, _ := z80spec.FromLIR(i)
+		if lir.Z80.Locs[i].Kind != lir.LocIndex || vir.Z80.Locs[i].Kind != vir.LocIXHalf || loc.Kind != z80spec.IndexHalf {
+			t.Errorf("index-half kind disagreement changed: %s", loc.Name)
+		}
+	}
+	for _, tc := range []struct {
+		name string
+		bits int
+		kind z80spec.Kind
+	}{
+		{"SP", 16, z80spec.StackPointer}, {"I", 8, z80spec.Special8},
+		{"R", 8, z80spec.Refresh}, {"PC", 16, z80spec.ProgramCounter},
+	} {
+		loc, ok := z80spec.Lookup(tc.name)
+		if !ok || loc.Bits != tc.bits || loc.Kind != tc.kind {
+			t.Errorf("location %s: %+v", tc.name, loc)
+		}
+	}
+}
+
+func TestContainmentAndAliases(t *testing.T) {
+	for _, a := range z80spec.Locations() {
+		seen := map[string]bool{}
+		for _, alias := range z80spec.Aliases(a.Name) {
+			if seen[alias.Name] {
+				t.Errorf("duplicate alias %s", alias.Name)
+			}
+			seen[alias.Name] = true
+		}
+		for _, b := range z80spec.Locations() {
+			if seen[b.Name] != z80spec.Overlaps(a.Name, b.Name) {
+				t.Errorf("aliases %s/%s", a.Name, b.Name)
+			}
+			if z80spec.Contains(a.Name, b.Name) && (!seen[b.Name] || a.Bits < b.Bits) {
+				t.Errorf("containment %s/%s", a.Name, b.Name)
+			}
+		}
+		if !z80spec.Contains(a.Name, a.Name) {
+			t.Errorf("containment not reflexive: %s", a.Name)
+		}
+		if hi, lo, ok := z80spec.Halves(a.Name); ok {
+			for _, half := range []string{hi, lo} {
+				if !z80spec.Contains(a.Name, half) || z80spec.Contains(half, a.Name) {
+					t.Errorf("directional containment %s/%s", a.Name, half)
+				}
+			}
+		}
+	}
+	for _, pair := range []string{"BC", "DE", "HL"} {
+		if !z80spec.Contains(pair+"32", pair) || !z80spec.Contains(pair+"32", pair+"'") || z80spec.Contains(pair, pair+"32") {
+			t.Errorf("DWord containment %s", pair)
+		}
+	}
+	if z80spec.Contains("BC", "DE") || z80spec.Contains("unknown", "unknown") || z80spec.Contains("BC", "unknown") || z80spec.Contains("unknown", "BC") || len(z80spec.Aliases("unknown")) != 0 {
+		t.Error("invalid containment/aliases")
+	}
+	aliases := z80spec.Aliases("BC")
+	aliases[0].Name = "changed"
+	if z80spec.Aliases("BC")[0].Name == "changed" {
+		t.Error("aliases returned shared storage")
 	}
 }

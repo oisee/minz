@@ -2,27 +2,32 @@
 
 `z80spec` is an independent description of storage, with no compiler or emulator
 imports. No production allocator uses it in this slice. `Locations` returns a
-copy; `Lookup`, `Width`, `Overlaps`, `Halves` (high, low), and `Parent` operate on
+copy; `Lookup`, `Width`, `Overlaps`, `Aliases`, `Contains`, `Halves` (high, low), and `Parent` operate on
 case-sensitive canonical names. Unknown names do not overlap and have width zero.
-Overlap is physical containment, not instruction-prefix compatibility.
+Lookup uses a name-to-index map, including for overlap queries. `Aliases` returns
+all overlapping locations (including self) in table order. `Contains(outer, inner)`
+is directional and reflexive for known names; unknown names are never contained.
+Overlap describes shared physical storage, not instruction-prefix compatibility.
 
-The table contains the primary bytes A/B/C/D/E/H/L/F, BC/DE/HL/AF, SP, IX/IY and
+The table contains the primary bytes A/B/C/D/E/H/L/F, BC/DE/HL/AF, SP, I/R/PC, IX/IY and
 all four index halves; shadow bytes and pairs; tsmc0–7, mem0–3 and stk0–3; generic
 MIR2 `mem`/`stack` sentinels; GPU `gpu_mem`; and BC32/DE32/HL32. DWord composites
 contain the main and shadow pair, and overlap both pairs and all four bytes.
 `Halves`/`Parent` describe sixteen-bit pair/byte containment only. SP has no
-modelled halves. F is physically eight bits, even though IR flag values are
+modelled halves and has its own StackPointer kind. I is Special8; R is Refresh
+(eight bits stored, with a seven-bit incrementing counter and preserved top bit);
+PC is ProgramCounter. F is physically eight bits, even though IR flag values are
 one-bit booleans. Independent byte-storage masks suffice here because each
-modelled overlap covers entire bytes; the package does not model individual flags.
+modelled overlap covers entire bytes; named flag bits are deferred to S1.
 
 ## Namespace views
 
 | Namespace | Mapping | Locations without a counterpart |
 | --- | --- | --- |
-| LIR | 0–36; canonical names unchanged | stk0–3, generic mem/stack, gpu_mem, AF, shadow pairs, F', DWord composites |
-| VIR | 0–40; `_vir_mem0`–`_vir_mem3` become mem0–3 | generic mem/stack, gpu_mem, AF, shadow pairs, F', DWord composites |
-| GPU | 0–9 = A–L, BC/DE/HL; 10–13 = IXH/IXL/IYH/IYL; 14 = gpu_mem | SP, IX/IY, F, all shadow/SMC/numbered spill/stack locations, generic MIR2 sentinels, AF, DWord composites |
-| MIR2 | `mir2loc.From`/`To`, preserving Kind and Name; LocDWord BC/DE/HL become BC32/DE32/HL32 | SP, AF, shadow pairs, F', all SMC/numbered spill/stack slots, gpu_mem |
+| LIR | 0–36; canonical names unchanged | I/R/PC, stk0–3, generic mem/stack, gpu_mem, AF, shadow pairs, F', DWord composites |
+| VIR | 0–40; `_vir_mem0`–`_vir_mem3` become mem0–3 | I/R/PC, generic mem/stack, gpu_mem, AF, shadow pairs, F', DWord composites |
+| GPU | 0–9 = A–L, BC/DE/HL; 10–13 = IXH/IXL/IYH/IYL; 14 = gpu_mem | I/R/PC, SP, IX/IY, F, all shadow/SMC/numbered spill/stack locations, generic MIR2 sentinels, AF, DWord composites |
+| MIR2 | `mir2loc.From`/`To`, preserving Kind and Name; LocDWord BC/DE/HL become BC32/DE32/HL32 | I/R/PC, SP, AF, shadow pairs, F', all SMC/numbered spill/stack slots, gpu_mem |
 
 LIR and VIR indices 0–32 agree. At 33–36 only spelling differs. VIR adds stk0–3
 at 37–40. GPU's production reverse table returns -1 for its spill sentinel;
@@ -85,10 +90,14 @@ All 37 LIR Alias fields are empty. Fifteen locations therefore lack a total of
 20 directed containment edges; the other 22 locations have no non-self overlaps
 within that namespace. VIR's three declared BC/DE/HL aliases agree exactly.
 MIR2 has 14 missing directed edges (eight index edges and six shadow-to-DWord
-edges); all other edges among Z80PhysLocs agree.
+edges); all other edges agree. Every returned alias is checked, even outside Z80PhysLocs,
+and every known-gap key and target must remain in Z80PhysLocs. The width/kind
+disagreements above are also enforced by assertions.
 
-The emulator cross-check uses RemogattoZ80's FUSE-verified core via SetRegisters,
-GetRegisters and SetRegister8 for BC/DE/HL/IX/IY/AF, including both half writes
-and preservation of the opposite half loaded through a pair write. Its public
-wrapper does not expose shadow-byte setters/getters, so shadow containment is
-covered by spec properties and the DWord comparison, not this emulator check.
+The emulator cross-check executes LD, PUSH/POP, EXX and EX AF,AF' through
+RemogattoZ80's FUSE-verified core. It checks pair-to-half instruction reads,
+half-to-pair instruction writes, AF stack byte order, and preservation of both
+shadow banks for BC/DE/HL/AF. LD I,A / LD A,I and LD R,A / LD A,R check the
+special registers, including R's seven-bit rollover and preserved top bit.
+Instruction execution also checks PC advancement. Wrapper getters only observe
+instruction results; they do not establish the containment relation themselves.

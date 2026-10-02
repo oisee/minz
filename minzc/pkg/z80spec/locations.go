@@ -17,6 +17,10 @@ const (
 	MemorySlot
 	StackSlot
 	DWordPair
+	StackPointer
+	Special8
+	Refresh // Eight bits stored; only the low seven increment on instruction fetch.
+	ProgramCounter
 )
 
 // Location is an immutable table entry returned by value. Names are case sensitive.
@@ -34,6 +38,13 @@ type entry struct {
 }
 
 var table = buildTable()
+var nameIndex = func() map[string]int {
+	result := make(map[string]int, len(table))
+	for i, e := range table {
+		result[e.Name] = i
+	}
+	return result
+}()
 
 func buildTable() []entry {
 	var result []entry
@@ -49,7 +60,10 @@ func buildTable() []entry {
 	for _, name := range []string{"IXH", "IXL", "IYH", "IYL"} {
 		add(name, 8, IndexHalf)
 	}
-	add("SP", 16, Index)
+	add("SP", 16, StackPointer)
+	add("I", 8, Special8)
+	add("R", 8, Refresh)
+	add("PC", 16, ProgramCounter)
 	for _, name := range []string{"B'", "C'", "D'", "E'", "H'", "L'", "A'", "F'"} {
 		add(name, 8, Shadow)
 	}
@@ -96,12 +110,11 @@ func Locations() []Location {
 }
 
 func find(name string) (entry, bool) {
-	for _, e := range table {
-		if e.Name == name {
-			return e, true
-		}
+	i, ok := nameIndex[name]
+	if !ok {
+		return entry{}, false
 	}
-	return entry{}, false
+	return table[i], true
 }
 
 // Lookup returns a canonical location, or false for an unknown name.
@@ -136,4 +149,28 @@ func Parent(half string) (string, bool) {
 		}
 	}
 	return "", false
+}
+
+// Aliases returns all locations overlapping name, including name itself, in
+// table order. Unknown names return nil. The returned slice is independent.
+func Aliases(name string) []Location {
+	e, ok := find(name)
+	if !ok {
+		return nil
+	}
+	var result []Location
+	for _, other := range table {
+		if e.storage&other.storage != 0 {
+			result = append(result, other.Location)
+		}
+	}
+	return result
+}
+
+// Contains reports whether every physical bit of inner belongs to outer.
+// Containment is reflexive for known locations and false for unknown names.
+func Contains(outer, inner string) bool {
+	x, ok := find(outer)
+	y, other := find(inner)
+	return ok && other && x.storage&y.storage == y.storage
 }
