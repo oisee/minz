@@ -255,8 +255,8 @@ def minimize(src, args, check):
 
 
 def differential_status(mir, z80):
-    if mismatch(mir): return 'MIR2 != oracle'
     if re.search(r'(?i)assembl|invalid instruction|unknown instruction', z80['error']): return 'assembly failure'
+    if mismatch(mir): return 'MIR2 != oracle'
     if mir['pass'] and mismatch(z80): return 'Z80 != MIR2'
     if mir['pass'] and z80['pass']: return 'pass'
     return 'compiler error'
@@ -306,6 +306,8 @@ def main():
     p.add_argument('--timeout', type=float, default=30)
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--no-reduce', action='store_true', help='save full reproducers and skip deletion reduction for fast triage')
+    p.add_argument('--fail-on', choices=('all', 'backend'), default='all',
+                   help='all: fail on any finding (default); backend: fail only on Z80/MIR2 mismatches and assembly failures; report all findings')
     a = p.parse_args()
     if a.timeout <= 0:
         p.error('--timeout must be positive')
@@ -319,7 +321,9 @@ def main():
     for r in results:
         if r['status'] != 'pass':
             print(f'seed {r["seed"]}: {r["status"]}: {r["error"]}')
-    return int(any(r['status'] != 'pass' for r in results))
+    blocking = {'Z80 != MIR2', 'assembly failure'}
+    return int(any(r['status'] != 'pass' if a.fail_on == 'all' else r['status'] in blocking
+                   for r in results))
 
 
 if __name__ == '__main__':

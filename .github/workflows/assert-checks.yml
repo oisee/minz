@@ -1,0 +1,106 @@
+name: Compiler checks
+
+on:
+  workflow_call:
+    inputs:
+      candidate:
+        type: string
+        required: true
+      base:
+        type: string
+        required: true
+      nightly:
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  compilers:
+    name: Build judge compilers
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      controls: ${{ steps.metadata.outputs.controls }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.candidate }}
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: minzc/go.mod
+          cache-dependency-path: minzc/go.sum
+      - name: Choose baseline and controls
+        id: metadata
+        env:
+          BASE_REV: ${{ inputs.base }}
+          NIGHTLY: ${{ inputs.nightly }}
+        run: bash scripts/ci/metadata.sh
+      - name: Cache baseline compiler
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/judge-bin/baseline-mz
+          key: baseline-mz-${{ runner.os }}-${{ runner.arch }}-${{ steps.metadata.outputs.base }}-${{ hashFiles('minzc/go.sum') }}
+      - name: Build head and baseline
+        env:
+          BASE_SHA: ${{ steps.metadata.outputs.base }}
+          CI_BIN: ${{ runner.temp }}/judge-bin
+        run: bash scripts/ci/build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: judge-compilers
+          path: |
+            ${{ runner.temp }}/judge-bin/*-mz
+            ${{ runner.temp }}/judge-bin/base.tar.gz
+          retention-days: 2
+
+  checks:
+    name: ${{ inputs.nightly && matrix.job == 'fuzz' && 'Long fuzz' || matrix.name }}
+    needs: compilers
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    continue-on-error: ${{ inputs.nightly || matrix.job == 'sweep' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - job: matrix
+            name: Assert matrix
+          - job: judges
+            name: Judge self-tests
+          - job: sweep
+            name: Default output sweep
+          - job: fuzz
+            name: Short fuzz
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.candidate }}
+      - uses: actions/setup-go@v5
+        if: matrix.job == 'judges'
+        with:
+          go-version-file: minzc/go.mod
+          cache-dependency-path: minzc/go.sum
+      - uses: actions/download-artifact@v4
+        with:
+          name: judge-compilers
+          path: ${{ runner.temp }}/judge-bin
+      - name: Run judge
+        env:
+          CI_BIN: ${{ runner.temp }}/judge-bin
+          REPORT_DIR: ${{ runner.temp }}/reports/${{ matrix.job }}
+          CONTROLS: ${{ needs.compilers.outputs.controls }}
+          RUNS: ${{ inputs.nightly && '2' || '1' }}
+          FUZZ_COUNT: ${{ inputs.nightly && '10000' || '3000' }}
+          NIGHTLY: ${{ inputs.nightly }}
+        run: bash scripts/ci/run.sh '${{ matrix.job }}'
+      - name: Upload report and reproducers
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compiler-${{ matrix.job }}-report
+          path: ${{ runner.temp }}/reports/${{ matrix.job }}/
+          if-no-files-found: warn
+          retention-days: 14

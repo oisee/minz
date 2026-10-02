@@ -1,0 +1,22 @@
+name: Nightly compiler audit
+
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-compiler-audit
+  cancel-in-progress: false
+
+jobs:
+  compiler_checks:
+    name: Nightly compiler checks
+    uses: ./.github/workflows/assert-checks.yml
+    with:
+      candidate: ${{ github.sha }}
+      base: HEAD~1
+      nightly: true

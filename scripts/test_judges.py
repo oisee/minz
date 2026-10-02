@@ -449,6 +449,25 @@ sys.exit(int(fail))
 
 
 class FuzzTests(unittest.TestCase):
+    def test_cli_exit_policy_preserves_findings(self):
+        statuses = ('pass', 'MIR2 != oracle', 'Z80 != MIR2',
+                    'assembly failure', 'compiler error', 'oracle error')
+        with tempfile.TemporaryDirectory() as temp:
+            for policy in ('all', 'backend'):
+                for status in statuses:
+                    with self.subTest(policy=policy, status=status):
+                        finding = {'seed': 56, 'status': status, 'error': 'diagnostic'}
+                        argv = ['fuzz_diff.py', '--mz', 'mz', '--seed', '56', '--count', '1',
+                                '--output', temp, '--fail-on', policy]
+                        with patch.object(sys, 'argv', argv), patch.object(fuzz, 'fuzz_one', return_value=finding) as run, patch('builtins.print') as log:
+                            code = fuzz.main()
+                        expected = status != 'pass' if policy == 'all' else status in ('Z80 != MIR2', 'assembly failure')
+                        self.assertEqual(code, int(expected))
+                        self.assertEqual(run.call_args.args[0], 56)
+                        self.assertEqual(json.loads((Path(temp) / 'results.json').read_text()), [finding])
+                        if status != 'pass':
+                            log.assert_any_call(f'seed 56: {status}: diagnostic')
+
     def test_tool_exception_exit(self):
         with tempfile.TemporaryDirectory() as temp:
             proc=subprocess.run([sys.executable,fuzz.__file__,'--mz',str(Path(temp)/'missing'),'--count','1','--output',temp],capture_output=True,text=True)
@@ -482,6 +501,7 @@ class FuzzTests(unittest.TestCase):
         self.assertEqual(fuzz.differential_status(wrong, wrong), 'MIR2 != oracle')
         self.assertEqual(fuzz.differential_status(passed, wrong), 'Z80 != MIR2')
         self.assertEqual(fuzz.differential_status(passed, {'pass':False,'error':'assembly failed'}), 'assembly failure')
+        self.assertEqual(fuzz.differential_status(wrong, {'pass':False,'error':'assembly failed'}), 'assembly failure')
         self.assertEqual(fuzz.differential_status(passed, passed), 'pass')
 
     def test_seed_and_parallel_oracle(self):

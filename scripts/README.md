@@ -41,7 +41,11 @@ failure, and `seed-N.original.nanz`. This is a local deletion minimum. `--no-red
 fast smoke triage without deletion reduction. Syntax,
 compiler, assembly, timeout and oracle errors are counted separately; compiler failures
 save `seed-N.error.nanz`. `results.json` records all seeds and diagnostics.
-Exit status is 1 if any program fails or cannot be checked. `--timeout` bounds
+By default exit status is 1 if any program fails or cannot be checked.
+`--fail-on backend` exits 1 only for Z80/MIR2 mismatches and assembly failures;
+all findings still appear in logs, JSON and reproducers. Tool exceptions exit 2
+under either policy. Assembly failures take precedence even when MIR2 also
+disagrees with the oracle. `--timeout` bounds
 each compiler invocation, including reduction attempts.
 
 Run self-tests with `python3 scripts/test_judges.py`; `go test ./pkg/hir` also
@@ -135,3 +139,93 @@ errors include `call error:`; top-level messages are unchanged.
 Run `python3 scripts/test_assert_mutants.py` to build M4 (checks only element 0)
 and M5 (skips element 0) in temporary copies, and verify that the tuple fixture's
 matrix exits nonzero on both Z80 and MIR2 for each mutant.
+
+## CI checks
+
+The existing required **PR gate** keeps its name and Go/toolchain checks.
+The `Compiler checks` reusable workflow builds `mz` from the PR head (not the
+merge ref) and `github.event.pull_request.base.sha`, then runs these jobs on
+PRs and pushes to main:
+
+- **Assert matrix** compares separate baseline/head inventories on both Z80
+  and MIR2. It preserves `assert_matrix.py`'s exit status, including newly
+  failing, removed/changed assertions, unexpectedly passing controls, and
+  known-failure audit errors. JSON, logs and summaries are uploaded even on
+  failure; the log and step summary include the newly failing locations.
+- **Judge self-tests** sets `JUDGE_MZ` to the candidate and runs
+  `test_judges.py`. When controls are enabled it also builds and checks the
+  two tuple mutants with `test_assert_mutants.py`.
+- **Default output sweep** compares exact default diagnostics and generated
+  files. It is advisory (`continue-on-error`), because the sweep has no
+  allowlist and PRs can intentionally change output. Its raw exit status and
+  differences remain in the report.
+- **Short fuzz** checks fixed seeds 0–2999 with `--no-reduce`. The fuzzer has
+  no baseline mode, so this gate checks the candidate alone with
+  `--fail-on backend`: Z80/MIR2 mismatches and assembly failures block the PR.
+  MIR2/Python-oracle disagreements and other findings remain in the job summary
+  and artifacts without failing the PR. No seeds are skipped. Tool exceptions
+  still fail the job. Full reproducers and JSON are artifacts.
+
+Workers default to `nproc`. Baseline binaries are cached by full base SHA plus
+candidate `minzc/go.sum` hash, OS and architecture; no fallback cache keys are
+used. Both binaries and the exact base archive are passed to the jobs within
+that workflow run. These new checks are not made required by workflow code;
+Alice can configure branch protection separately.
+
+Positive checks normally use `--no-controls`. A plain `git diff` against the
+base enables controls and tuple mutant tests for changes under `scripts/`,
+`minzc/cmd/minzc/`, `minzc/pkg/pipeline/`, or assertion-parsing frontend
+packages (`nanz`, `c89`, `pascal`, `plm`, `abap`, `frill`, `lanz`, `lizp`).
+It also covers `hir/hir.go`, `hir/assert*.go`, and the assertion-executing
+`mir2wasm/runner.go` and `mir2llvm/runner.go`. Deleted and renamed paths count.
+The exact filter is in `scripts/ci/metadata.sh`; extend it when assertion
+handling moves. `--no-controls` alone cannot catch a weakened checker.
+
+**Nightly compiler audit** runs at 03:17 UTC and supports `workflow_dispatch`.
+It compares main with `HEAD~1`, always enables controls, repeats the matrix
+with `--runs 2`, runs both mutant tests, and fuzzes seeds 0–9999 using the
+fuzzer's default `--fail-on all` policy. Judge jobs
+are report-only; artifacts include their raw statuses and summaries. Build or
+infrastructure failures remain visible as workflow failures.
+
+**Advisory Go lint** runs only on PRs from the `minzc/` module using pinned
+`golangci-lint v2.13.2` (built with Go 1.26.8). Its minimal configuration
+runs govet, staticcheck, errcheck, ineffassign and unused with
+`--new-from-rev=<PR base SHA>` over `./pkg/... ./cmd/...`. This scope
+excludes the intentionally invalid scratch programs in `minzc/scripts/analysis`
+that cannot be package-loaded. `gofmt -l` checks only changed Go files.
+Warnings are GitHub annotations; JSON, tool errors and counts are artifacts.
+The job uses `continue-on-error`, so lint never blocks the PR.
+
+To reproduce all jobs sequentially with timings and retained logs:
+
+```sh
+# Install tools to a writable directory using Go 1.26.8.
+GOBIN=/tmp/minz-ci-tools go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.12
+GOBIN=/tmp/minz-ci-tools go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.13.2
+PATH=/tmp/minz-ci-tools:$PATH BASE_REV=origin/main JOBS=4 CONTROLS=true \
+  bash scripts/ci/simulate.sh
+```
+
+`BASE_REV` must support assertion inventory, selection and execution receipts;
+older pre-J2a binaries cannot be used for a valid comparison. Use a synthetic
+base at current `origin/main` to test CI wiring. The script prints its temporary
+report directory and each raw exit code; advisory sweep/lint failures do not
+change its final status. `CONTROLS` overrides the committed-path filter when
+simulating uncommitted changes. For a nightly simulation also set
+`NIGHTLY=true RUNS=2 FUZZ_COUNT=10000 BASE_REV=HEAD~1`. To rerun one job, set
+`CI_BIN` to the printed compiler directory, `REPORT_DIR` to a writable output
+directory, and run `bash scripts/ci/run.sh matrix` (or `judges`, `sweep`, `fuzz`).
+`MATRIX_ROOT` selects a disposable checkout; `MATRIX_GLOB` narrows a matrix
+run for a regression fixture. CI leaves both unset and audits the full corpus.
+
+To verify that the CI matrix wrapper rejects a codegen regression after building
+both compilers:
+
+```sh
+CI_BIN=/tmp/minz-ci.YOUR_RUN JOBS=4 bash scripts/ci/check-regression.sh
+```
+
+This creates a tracked fixture and compiler copy under `/tmp`, requires exit 0
+from the original compiler, substitutes OR for XOR in the copy, then requires
+matrix exit 1 with a newly failing Z80 assertion and unchanged MIR2 results.
