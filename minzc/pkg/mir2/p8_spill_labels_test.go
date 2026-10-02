@@ -16,7 +16,7 @@ func TestP8OrphanSpillDefinition(t *testing.T) {
 	out := b.Add(a, x, TyU8, ClassAcc)
 	b.Ret(out)
 	ar := &AllocResult{Locs: map[Reg]PhysLoc{a: {Kind: LocReg, Name: "A"}, x: {Kind: LocMem}, out: {Kind: LocReg, Name: "A"}}}
-	asm := Z80Codegen(m, ar)
+	asm := mustZ80Asm(Z80Codegen(m, ar))
 	res, err := z80asm.NewAssembler().AssembleString(asm)
 	if err != nil || len(res.Errors) > 0 {
 		t.Fatalf("%v %v\n%s", err, res.Errors, asm)

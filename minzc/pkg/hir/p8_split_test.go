@@ -43,7 +43,11 @@ func TestP8SplitReturnDependency(t *testing.T) {
 	// Use distinct parameter locations so this tests the forwarding caller
 	// rather than the codegen's identity-function EQU alias optimization.
 	ar.Locs[param] = mir2.PhysLoc{Kind: mir2.LocReg, Name: "BC"}
-	asm := fmt.Sprintf("ORG 0x8000\nLD SP,0xFF00\nLD %s,1234\nCALL compute\nDI\nHALT\n", ar.Loc(param).Name) + mir2.Z80Codegen(mm, ar)
+	code, cgErr := mir2.Z80Codegen(mm, ar)
+	if cgErr != nil {
+		t.Fatalf("codegen: %v", cgErr)
+	}
+	asm := fmt.Sprintf("ORG 0x8000\nLD SP,0xFF00\nLD %s,1234\nCALL compute\nDI\nHALT\n", ar.Loc(param).Name) + code
 	res, e := z80asm.NewAssembler().AssembleString(asm)
 	if e != nil || len(res.Errors) > 0 {
 		t.Fatalf("assemble %v %v\n%s", e, res.Errors, asm)
