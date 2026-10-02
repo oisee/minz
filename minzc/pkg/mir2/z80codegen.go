@@ -1280,7 +1280,7 @@ func (g *z80cg) emitSBCHL(rhs string) {
 
 // isSpill returns true if the operand is a LocMem spill (named _spill_ label or legacy $F0xx).
 func isSpill(s string) bool {
-	return strings.HasPrefix(s, "$") || strings.HasPrefix(s, "_spill_")
+	return strings.HasPrefix(s, "$") || strings.HasPrefix(s, "_spill_") || strings.HasPrefix(s, "._call_result_")
 }
 
 // loadSpill8 loads an 8-bit spill value into the target register.
@@ -6492,49 +6492,20 @@ func (g *z80cg) genCall(inst *Inst) {
 		callee = g.mod.FuncByName(inst.Sym)
 	}
 
-	// ── Save A across CALL if needed ─────────────────────────────────────
-	// A is always clobbered by CALL (return value). If A holds a vreg that
-	// is live after the call AND is not a call arg or result, save it to a
-	// scratch register. Can't use PUSH AF/POP AF because POP AF would
-	// overwrite the return value.
-	var accSavedTo string // scratch register holding saved A value
-	if callee != nil {
-		accSavedTo, _ = g.saveAccAcrossCall(inst, callee)
+	// Preserve live caller values before argument setup: parallel copies can
+	// overwrite them just as the callee can. Arguments may themselves be live.
+	var callerSavePairs []string
+	if callee != nil && inst != g.tailCallInst {
+		g.saveAccAcrossCall(inst, callee)
 	}
-
-	// Emit argument setup (parallel copy) when we have explicit Args and the
-	// callee's contract is known.  This covers cases where the current physical
-	// locations of the argument registers differ from the callee's expected
-	// parameter locations (e.g. phi in C must move to A for the second CALL).
-	if len(inst.Args) > 0 && callee != nil && len(callee.Contract.Params) > 0 {
-		g.emitCallArgs(inst.Args, callee.Contract.Params)
-	}
-
-	// ── Caller-save: PUSH registers that the callee clobbers ─────────────
-	// Compute which physical registers the callee will destroy, then save
-	// any that are currently allocated to virtual regs in the caller.
-	var callerSavePairs []string // pairs to PUSH before / POP after CALL
-	if callee != nil {
+	if callee != nil && inst != g.tailCallInst {
 		callerSavePairs = g.callerSavePairs(inst, callee)
-		// If we saved A to a scratch in a PUSH'd pair, ensure that pair is included.
-		if accSavedTo != "" {
-			pair := regToPairMap[accSavedTo]
-			if pair != "" {
-				found := false
-				for _, p := range callerSavePairs {
-					if p == pair {
-						found = true
-						break
-					}
-				}
-				if !found {
-					callerSavePairs = append(callerSavePairs, pair)
-				}
-			}
-		}
 		for _, pair := range callerSavePairs {
 			g.emitf("    PUSH %s", pair)
 		}
+	}
+	if len(inst.Args) > 0 && callee != nil {
+		g.emitCallArgs(inst.Args, callee.Contract.Params)
 	}
 
 	// Tail call optimisation: if this is the tail call instruction detected by
@@ -6561,42 +6532,55 @@ func (g *z80cg) genCall(inst *Inst) {
 		g.emitf("    CALL %s", sym)
 	}
 
-	// ── Caller-save: POP in reverse order ────────────────────────────────
+	// Pick up the ABI result before restoring a pair that may contain it.
+	// An inline temporary is used only when restoration overlaps the result;
+	// its lifetime begins after CALL and ends before any subsequent call.
+	retPhys, dstPhys, width := "", "", 0
+	if inst.Dst != NoReg && callee != nil && len(callee.Contract.Returns) > 0 {
+		ret := callee.Contract.Returns[0]
+		if ret.Class != ClassFlag {
+			retPhys = canonicalReturnLoc(ret.Class, ret.Ty)
+			dstPhys = g.loc(inst.Dst)
+			width = ret.Ty.Width()
+		}
+	}
+	resultSaved := ""
+	for _, pair := range callerSavePairs {
+		if retPhys != "" && (pair == retPhys || regToPairMap[retPhys] == pair || (retPhys == "A" && pair == "AF")) {
+			resultSaved = fmt.Sprintf("._call_result_%s_%d", sanitizeIdent(g.fn.Name), g.trampIdx)
+			g.trampIdx++
+			g.emitMov(resultSaved, retPhys, width)
+			break
+		}
+	}
 	for i := len(callerSavePairs) - 1; i >= 0; i-- {
 		g.emitf("    POP %s", callerSavePairs[i])
 	}
-
-	// The CALL clobbers A and F (volatile registers on Z80).  Remove physOverride
-	// entries for any virtual register that was relocated into A or F by
-	// emitCallArgs — those locations are no longer valid after the call.
-	// Non-volatile relocations (B/C/D/E/H/L) remain valid.
-	for r, phys := range g.physOverride {
-		if phys == "A" || phys == "F" {
-			delete(g.physOverride, r)
+	if retPhys != "" {
+		if resultSaved != "" {
+			if width <= 8 {
+				g.emitLD8(dstPhys, resultSaved)
+			} else {
+				g.emitMov(dstPhys, resultSaved, width)
+			}
+			g.emitf("    JP %s_end", resultSaved)
+			g.emitf("%s:", resultSaved)
+			g.emitf("    DS %d", (width+7)/8)
+			g.emitf("%s_end:", resultSaved)
+		} else {
+			g.emitMov(dstPhys, retPhys, width)
 		}
 	}
-
-	// After CALL: A holds the return value (for u8 returns).
-	// Record this so materializePendingAcc saves it before next ALU overwrite.
-	if inst.Dst != NoReg {
-		retLoc := g.ar.Loc(inst.Dst)
-		if retLoc.Kind == LocReg && retLoc.Name == "A" {
-			g.setCopy("A", "A")
-			g.pendingAccReg = inst.Dst
-		}
-		// Also handle case where CALL result is u8 but allocated elsewhere
-		// (still arrives in A from callee's RET convention).
-		if retLoc.Name != "A" && callee != nil && len(callee.Contract.Returns) > 0 {
-			ret := callee.Contract.Returns[0]
-			if ret.Class == ClassAcc || (ret.Ty != nil && ret.Ty.Width() <= 8 && ret.Class != ClassFlag) {
-				// Result IS in A (callee returns u8 in A), but allocation chose a
-				// different physical 8-bit location. Materialize it immediately so
-				// subsequent ALU ops don't consume a stale allocated register.
-				g.emitMov(retLoc.Name, "A", 8)
-				g.comment(fmt.Sprintf("CALL result r%d materialized A->%s", inst.Dst, retLoc.Name))
-				g.pendingAccReg = NoReg
-			}
-		}
+	// CALL and argument setup invalidate cached physical contents, including
+	// registers used only as scratch by the emitted callee/runtime sequences.
+	g.invalidate("A")
+	g.invalidate("F")
+	for _, name := range []string{"B", "C", "D", "E", "H", "L", "IX", "IY"} {
+		g.invalidate(name)
+	}
+	g.pendingAccReg = NoReg
+	if dstPhys == "A" {
+		g.pendingAccReg = inst.Dst
 	}
 
 	// Flag-return ABI: if the callee returns ClassFlag, the result is in the CPU
@@ -6643,9 +6627,8 @@ func (g *z80cg) genCall(inst *Inst) {
 // locations expected by the callee's parameter contract and uses emitParallelCopy
 // to resolve any cycles (e.g. A→B, C→A).
 //
-// As a side effect it updates physOverride so that loc(r) returns the new
-// physical location for any virtual register that was moved by the copy.
-// physOverride is cleared after the CALL by genCall.
+// Argument locations are transient. Caller values keep their original locations
+// after caller-save restoration, so argument setup does not change physOverride.
 func (g *z80cg) emitCallArgs(args []Reg, params []Param) {
 	var copies []parallelCopy
 	for i, arg := range args {
@@ -6673,19 +6656,6 @@ func (g *z80cg) emitCallArgs(args []Reg, params []Param) {
 	}
 	g.emitParallelCopy(copies)
 
-	// Update physOverride for each argument that was relocated.
-	// After any parallel copy sequence, each source arg ends up at its declared
-	// destination physical location — regardless of chain/cycle resolution order.
-	for i, arg := range args {
-		if i >= len(params) {
-			break
-		}
-		srcPhys := g.loc(arg)
-		dstPhys := canonicalReturnLoc(params[i].Class, params[i].Ty)
-		if srcPhys != dstPhys {
-			g.physOverride[arg] = dstPhys
-		}
-	}
 }
 
 // ── 32-bit DWord helpers ──────────────────────────────────────────────────────
@@ -7483,6 +7453,39 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 				}
 			}
 
+			if cycleRegs[scratch] {
+				// All seven byte registers are occupied. Snapshot the pending
+				// sources on the stack; shadow AF protects the main accumulator.
+				var pending []int
+				for i := range moves {
+					if moves[i].done {
+						continue
+					}
+					pending = append(pending, i)
+					if moves[i].src != "A" {
+						g.emit("    EX AF, AF'")
+						g.emitLD8("A", moves[i].src)
+					}
+					g.emit("    PUSH AF")
+					if moves[i].src != "A" {
+						g.emit("    EX AF, AF'")
+					}
+				}
+				for j := len(pending) - 1; j >= 0; j-- {
+					i := pending[j]
+					if moves[i].dst != "A" {
+						g.emit("    EX AF, AF'")
+					}
+					g.emit("    POP AF")
+					if moves[i].dst != "A" {
+						g.emitLD8(moves[i].dst, "A")
+						g.emit("    EX AF, AF'")
+					}
+					moves[i].done = true
+				}
+				continue
+			}
+
 			firstDst := m.dst
 			if m.src != scratch {
 				g.emitSingleCopy(m.src, scratch, m.ty)
@@ -7508,24 +7511,24 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 				g.emitSingleCopy(scratch, firstDst, m.ty)
 			}
 		} else {
-			// u16 cycle: use stack.
-			// If m.src is a LocMem spill slot ($Fxxx), PUSH is invalid.
-			// Save the LocMem value into the destination first (it will be
-			// overwritten by the cycle walk anyway), then push that pair.
+			// Walk backwards around a word cycle, just as for byte cycles.
+			// Saving src frees src, not dst: BC->HL, HL->DE, DE->BC
+			// becomes PUSH BC; BC=DE; DE=HL; POP HL.
 			if isSpill(m.src) {
-				g.loadSpill16(m.dst, m.src)   // load LocMem into dest pair
-				g.emitf("    PUSH %s", m.dst) // save that value on stack
+				g.emit("    PUSH HL")
+				g.loadSpill16("HL", m.src)
+				g.emit("    EX (SP), HL")
 			} else {
 				g.emitf("    PUSH %s", m.src)
 			}
 			m.done = true
-			cur := m.dst
+			cur := m.src
 			for {
 				found := false
 				for i := range moves {
-					if !moves[i].done && moves[i].src == cur {
+					if !moves[i].done && moves[i].dst == cur {
 						g.emitSingleCopy(moves[i].src, moves[i].dst, moves[i].ty)
-						cur = moves[i].dst
+						cur = moves[i].src
 						moves[i].done = true
 						found = true
 						break
@@ -7535,12 +7538,12 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 					break
 				}
 			}
-			if isSpill(cur) {
-				// POP into LocMem: pop to HL then store.
+			if isSpill(m.dst) {
+				g.emit("    EX (SP), HL")
+				g.storeSpill16(m.dst, "HL")
 				g.emit("    POP HL")
-				g.storeSpill16(cur, "HL")
 			} else {
-				g.emitf("    POP %s", cur)
+				g.emitf("    POP %s", m.dst)
 			}
 		}
 	}
@@ -8493,7 +8496,7 @@ func funcAnnotation(f *Func, ar *AllocResult) string {
 		sb.WriteString(" [recursive]")
 	}
 
-	// Clobber set: all Dst phys locs that aren't param or return locs.
+	// Conservative clobber contract, including implicit emitter/runtime writes.
 	clobbers := computeClobbers(f, ar)
 	if len(clobbers) > 0 {
 		sb.WriteString(" ; clobbers: ")
@@ -8564,55 +8567,31 @@ func isRecursive(f *Func) bool {
 // around a CALL to protect live values from the callee's clobbers.
 //
 // Strategy: compute the callee's clobber set (physical reg names), then check
-// which pairs (BC, DE, HL) contain registers allocated to virtual regs in the
-// caller that are NOT arguments or the result of this call.
-// AF is not saved because A is volatile and always clobbered by calls.
+// which pushable pairs contain registers allocated to virtual regs in the
+// caller that remain live after the call, including arguments reused later.
+// The call results are excluded because their definitions begin after CALL.
 func (g *z80cg) callerSavePairs(inst *Inst, callee *Func) []string {
 	if callee == nil {
 		return nil
 	}
 
-	// Get callee's clobbered registers (cached).
-	// Self-recursive calls: treat ALL GPR as clobbered — the recursive
-	// invocation uses the same scratch registers (H, D, E from
-	// materializePendingAcc / save-before-overwrite) that aren't in the
-	// static clobber set.
-	clobberedRegs, ok := g.clobberCache[inst.Sym]
-	if !ok {
-		clobberedRegs = make(map[string]bool)
-		if callee.Name == g.fn.Name {
-			// Self-recursive: all GPR clobbered
-			for _, r := range []string{"A", "B", "C", "D", "E", "H", "L", "F"} {
-				clobberedRegs[r] = true
-			}
-		} else {
-			for _, name := range computeClobbers(callee, g.ar) {
-				clobberedRegs[name] = true
-			}
-		}
-		if g.clobberCache == nil {
-			g.clobberCache = make(map[string]map[string]bool)
-		}
-		g.clobberCache[inst.Sym] = clobberedRegs
-	}
-	if len(clobberedRegs) == 0 {
-		return nil
+	// The emitter uses implicit scratch registers, runtime helpers and nested
+	// calls. Preserve every live physical register conservatively until a
+	// post-emission write-set analysis can prove a smaller clobber contract.
+	clobberedRegs := map[string]bool{}
+	for _, name := range computeClobbers(callee, g.ar) {
+		clobberedRegs[name] = true
 	}
 
 	// Compute which virtual regs are live AFTER this call instruction.
 	// A reg is live-across-call if it's used by any instruction after the call
 	// in the same block, or by the block's terminator, or by a successor block
-	// (approximated by checking all remaining uses in the function — conservative
-	// but much tighter than "all allocated regs").
+	// using backward CFG liveness and instruction uses/definitions.
 	liveAfter := g.regsLiveAfterInst(inst)
 
 	// Collect physical regs that are (a) clobbered by callee and (b) hold a
-	// value that is live after the call. Exclude call args and result regs
-	// since they're consumed/produced by the call itself.
+	// value that is live after the call. Exclude result definitions only.
 	excluded := make(map[Reg]bool)
-	for _, a := range inst.Args {
-		excluded[a] = true
-	}
 	if inst.Dst != NoReg {
 		excluded[inst.Dst] = true
 	}
@@ -8650,9 +8629,9 @@ func (g *z80cg) callerSavePairs(inst *Inst, callee *Func) []string {
 		}
 	}
 
-	// Return in stable order: BC, DE, HL.
+	// Return in stable order.
 	var result []string
-	for _, pair := range []string{"BC", "DE", "HL"} {
+	for _, pair := range []string{"AF", "BC", "DE", "HL", "IX", "IY"} {
 		if pairNeeded[pair] {
 			result = append(result, pair)
 		}
@@ -8662,75 +8641,58 @@ func (g *z80cg) callerSavePairs(inst *Inst, callee *Func) []string {
 
 // regToPairMap maps individual Z80 registers to their PUSH-able pair.
 var regToPairMap = map[string]string{
+	"A": "AF", "F": "AF", "AF": "AF",
+	"BC": "BC", "DE": "DE", "HL": "HL", "IX": "IX", "IY": "IY",
+	"IXH": "IX", "IXL": "IX", "IYH": "IY", "IYL": "IY",
 	"B": "BC", "C": "BC",
 	"D": "DE", "E": "DE",
 	"H": "HL", "L": "HL",
 }
 
 // saveAccAcrossCall saves A to a scratch register if A holds a vreg that is
-// live after the CALL but is not a call arg or result. Returns the scratch
+// live after the CALL, including a reused call argument. Returns the scratch
 // register name and the vreg that was saved, or ("", NoReg) if no save needed.
 //
 // A cannot use PUSH AF/POP AF because POP would overwrite the return value.
 // Instead, we save A to a GPR (D or E) that will be preserved via PUSH/POP.
 func (g *z80cg) saveAccAcrossCall(inst *Inst, callee *Func) (string, Reg) {
-	// Find which vreg is allocated to A AND still live after the call.
-	// Skip vregs that are already saved via physOverride (e.g., save-before-overwrite
-	// already moved the value to a scratch register).
-	liveInA := NoReg
-	liveAfter := g.regsLiveAfterInst(inst)
-	for _, r := range slices.Sorted(maps.Keys(liveAfter)) {
-		// If already saved via physOverride, the value is not in A anymore
-		if _, overridden := g.physOverride[r]; overridden {
+	live := g.regsLiveAfterInst(inst)
+	delete(live, inst.Dst)
+	for _, r := range inst.ExtraRets {
+		delete(live, r)
+	}
+	used := map[string]bool{}
+	mark := func(name string) {
+		used[name] = true
+		if isPairReg(name) {
+			used[highByte(name)] = true
+			used[lowByte(name)] = true
+		}
+	}
+	for r := range live {
+		mark(g.loc(r))
+	}
+	for _, r := range inst.Args {
+		mark(g.loc(r))
+	}
+	if inst.Dst != NoReg {
+		mark(g.loc(inst.Dst))
+	}
+	for _, r := range slices.Sorted(maps.Keys(live)) {
+		if g.loc(r) != "A" {
 			continue
 		}
-		loc := g.ar.Locs[r]
-		if loc.Kind != LocReg || loc.Name != "A" {
-			continue
-		}
-		// Exclude call args and result — they're consumed/produced by the call
-		excluded := false
-		for _, a := range inst.Args {
-			if a == r {
-				excluded = true
+		for _, scratch := range []string{"D", "E", "H", "L", "B", "C"} {
+			if !used[scratch] {
+				g.emitf("    LD %s, A    ; save A (r%d) across CALL", scratch, r)
+				g.physOverride[r] = scratch
+				return scratch, r
 			}
-		}
-		if inst.Dst == r {
-			excluded = true
-		}
-		if excluded {
-			continue
-		}
-		liveInA = r
-		break
-	}
-	if liveInA == NoReg {
-		return "", NoReg
-	}
-
-	// Pick a scratch register for the save. Prefer D or E (likely to be PUSH'd).
-	// Avoid registers used by call args.
-	argLocs := make(map[string]bool)
-	for _, a := range inst.Args {
-		loc := g.ar.Locs[a]
-		if loc.Kind == LocReg {
-			argLocs[loc.Name] = true
-		}
-	}
-	for _, scratch := range []string{"D", "E", "B", "C", "H", "L"} {
-		if !argLocs[scratch] {
-			g.emitf("    LD %s, A    ; save A (r%d) across CALL", scratch, liveInA)
-			g.physOverride[liveInA] = scratch
-			return scratch, liveInA
 		}
 	}
 	return "", NoReg
 }
 
-// regsLiveAfterInst returns the set of virtual registers that are used after
-// the given instruction within the current block (including the terminator).
-// This is a lightweight local liveness check — no full dataflow, but sufficient
-// for caller-save elimination since most calls are followed by uses in the same block.
 // saveABeforeOverwrite checks if A currently holds a vreg that is still live
 // after the current instruction. If so, saves it to a scratch register.
 // Used before emitLDA in ALU paths to prevent clobbering live values.
@@ -8845,42 +8807,33 @@ func (g *z80cg) isVregLiveAfter(vreg Reg, target *Inst) bool {
 	return false
 }
 
+// regsLiveAfterInst includes successor and loop-backedge uses via CFG liveness.
 func (g *z80cg) regsLiveAfterInst(target *Inst) map[Reg]bool {
 	live := make(map[Reg]bool)
 	if g.curBlock == nil {
 		return live
 	}
-	// Track which vregs are redefined between target and their use.
-	// A vreg that is redefined (Dst) before its next use is NOT live-across.
-	redefined := make(map[Reg]bool)
-	found := false
-	for _, inst := range g.curBlock.Insts {
-		if inst == target {
-			found = true
-			continue
-		}
-		if !found {
-			continue
-		}
-		// Collect uses (only if not yet redefined since target).
-		for _, s := range inst.Src {
-			if s != NoReg && !redefined[s] {
-				live[s] = true
-			}
-		}
-		for _, a := range inst.Args {
-			if a != NoReg && !redefined[a] {
-				live[a] = true
-			}
-		}
-		// Track redefinitions.
-		if inst.Dst != NoReg {
-			redefined[inst.Dst] = true
+	lr := ComputeLiveness(g.fn)
+	if out := lr.LiveOutOf(g.fn, g.curBlock); out != nil {
+		for _, r := range out.Slice() {
+			live[r] = true
 		}
 	}
-	// Collect terminator uses.
 	if g.curBlock.Term != nil {
 		for _, r := range g.curBlock.Term.termUses() {
+			live[r] = true
+		}
+	}
+	for i := len(g.curBlock.Insts) - 1; i >= 0; i-- {
+		inst := g.curBlock.Insts[i]
+		if inst == target {
+			break
+		}
+		delete(live, inst.Dst)
+		for _, r := range inst.ExtraRets {
+			delete(live, r)
+		}
+		for _, r := range inst.Uses() {
 			if r != NoReg {
 				live[r] = true
 			}
@@ -8908,62 +8861,12 @@ func classPhysRegs(cls RegClass) []string {
 	return nil
 }
 
-// computeClobbers returns the sorted list of physical register names written by f
-// that are not in f's parameter or return register set.
+// computeClobbers returns a conservative sorted superset of emitted writes.
 func computeClobbers(f *Func, ar *AllocResult) []string {
-	// Collect param and return phys names (these are "owned" by the ABI).
-	owned := make(map[string]bool)
-	for _, p := range f.Contract.Params {
-		if loc := ar.Loc(p.Reg); loc.Name != "" {
-			owned[loc.Name] = true
-		}
-	}
-	for _, r := range f.Contract.Returns {
-		if reg := classToRegName(r.Class, r.Ty); reg != "" {
-			owned[reg] = true
-		}
-	}
-
-	// Collect Dst phys locs from all instructions.
-	seen := make(map[string]bool)
-	for _, b := range f.Blocks {
-		for _, p := range b.Params {
-			if loc := ar.Loc(p.Dst); loc.Name != "" && !owned[loc.Name] {
-				seen[loc.Name] = true
-			}
-		}
-		for _, inst := range b.Insts {
-			if inst.Dst != NoReg {
-				if loc := ar.Loc(inst.Dst); loc.Name != "" && !owned[loc.Name] {
-					seen[loc.Name] = true
-				}
-			}
-			// ExtraRets on OpCall are callee-provided return values, not
-			// registers independently clobbered by the caller.  Counting them
-			// as clobbers of the *caller* is wrong (e.g. "larger" calling
-			// "minmax" would wrongly show "clobbers: BC" for DE/BC extra returns).
-			if inst.Op != OpCall {
-				for _, er := range inst.ExtraRets {
-					if er != NoReg {
-						if loc := ar.Loc(er); loc.Name != "" && !owned[loc.Name] {
-							seen[loc.Name] = true
-						}
-					}
-				}
-			}
-		}
-	}
-
-	if len(seen) == 0 {
-		return nil
-	}
-	// Sort for determinism.
-	out := make([]string, 0, len(seen))
-	for name := range seen {
-		out = append(out, name)
-	}
-	sortStrings(out)
-	return out
+	// Allocation destinations omit implicit writes by ALU lowering, parallel
+	// copies, caller saves, runtime helpers and transitive calls. ABI-owned
+	// registers are also clobbered: ownership does not imply preservation.
+	return []string{"A", "B", "BC", "C", "D", "DE", "E", "F", "H", "HL", "IX", "IXH", "IXL", "IY", "IYH", "IYL", "L"}
 }
 
 func sortStrings(ss []string) {
