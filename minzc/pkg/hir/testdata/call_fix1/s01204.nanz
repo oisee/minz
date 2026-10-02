@@ -1,0 +1,31 @@
+fun h1(p0: u16) -> u8 {
+  if (p0 as u8) < (p0 as u8) {
+    return (p0 as u8)
+  }
+  return h0(p0, (p0 as u8), p0)
+}
+fun entry(a: u16, b: u8) -> u16 {
+  let v4: u16 = h2(b)
+  let v5: u16 = a
+  let v6: u8 = ((v4 as u8) | h0(v4, b, 0))
+  let res: u16 = a xor (v6 as u16) xor v5 xor v4 xor (b as u16)
+  return res
+}
+fun h2(p0: u8) -> u16 {
+  let l2: u16 = 2
+  let l3: u16 = l2
+  if l3 < l2 {
+    return l2
+  }
+  return l3
+}
+fun h0(p0: u16, p1: u8, p2: u16) -> u8 {
+  let l0: u16 = ((p1 as u16) | (p0 - p0))
+  let l1: u16 = l0
+  if p1 < p1 {
+    return p1
+  }
+  return p1
+}
+assert entry(64050, 118) == 2 via z80
+assert entry(49290, 55) == 2 via z80

@@ -159,7 +159,7 @@ func TestExhaustiveJudgeLIRAllowlistFallback(t *testing.T) {
 		return &hir.CallExpr{Fn: name, Args: args, Ty: ty}
 	}
 	fc := fn("fc", []mir2.Ty{u8, u8}, u8, bin("+", bin("+", call("call_sub", []hir.Expr{v("a", u8), v("b", u8)}, u8), call("call_sub", []hir.Expr{v("b", u8), v("a", u8)}, u8), u8), v("a", u8), u8))
-	fixtures = append(fixtures, fixture{"fc", []*hir.Func{sub, fc}, 65536, pair, func(a []int64) int64 { return a[0] }, 65280})
+	fixtures = append(fixtures, fixture{"fc", []*hir.Func{sub, fc}, 65536, pair, func(a []int64) int64 { return a[0] }, 0})
 	mn := fn("mn", []mir2.Ty{u8, u8, u8}, u8, v("c", u8))
 	mn.Body = hir.Blk(hir.If(bin("<", v("a", u8), v("b", u8), mir2.TyBool), hir.Blk(hir.Ret(bin("-", v("c", u8), v("a", u8), u8))), nil), hir.Ret(bin("-", v("c", u8), v("b", u8), u8)))
 	c1 := fn("h_c1", []mir2.Ty{u8, u8, u8}, u8, call("mn", []hir.Expr{v("c", u8), v("a", u8), v("b", u8)}, u8))
@@ -179,10 +179,10 @@ func TestExhaustiveJudgeLIRAllowlistFallback(t *testing.T) {
 			d = -d
 		}
 		return (d + a[1]) & 65535
-	}, 65536})
+	}, 0})
 	// Re-measured on deterministic origin/main ed55c1c7, 2026-10-02:
 	// mul16_10, ext2 and h_c1 now require zero mismatches in both modes.
-	// fc and h_c4 retain exact nonzero PBQP counts below.
+	// P7 call preservation also fixes fc and h_c4; both now require zero.
 	for _, tc := range fixtures {
 		t.Run(tc.name, func(t *testing.T) {
 			bad, first := sweepCodegenJudge(t, tc.funcs, tc.name, tc.count, tc.inputs, tc.model, true)

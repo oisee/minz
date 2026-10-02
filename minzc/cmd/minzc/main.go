@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/minz/minzc/pkg/abap"
 	"github.com/minz/minzc/pkg/ast"
@@ -23,6 +24,7 @@ import (
 	"github.com/minz/minzc/pkg/parser"
 	"github.com/minz/minzc/pkg/c89"
 	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/mir2c"
 	"github.com/minz/minzc/pkg/mir2gpu"  // GPU backends: CUDA, OpenCL, Vulkan, Metal
 	"github.com/minz/minzc/pkg/mir2llvm"
 	"github.com/minz/minzc/pkg/mir2wasm"
@@ -52,6 +54,7 @@ var (
 	tasReplay    string
 	backend      string
 	target       string  // Target platform (zxspectrum, cpm, etc.)
+	forceOutput  bool    // --force: overwrite implicit generated C output
 	outputFormat string  // Output format (code, sna, tap) — independent of target
 	listBackends bool
 	visualizeMIR string // Output file for MIR visualization
@@ -210,6 +213,7 @@ func init() {
 	rootCmd.Flags().StringVarP(&backend, "backend", "b", defaultBackend, "target backend (z80, ez80)")
 	rootCmd.Flags().StringVarP(&target, "target", "t", "zxspectrum", "target platform (zxspectrum, cpm, msx, cpc, amstrad)")
 	rootCmd.Flags().StringVarP(&outputFormat, "format", "f", "", "output format: code (raw binary, default), sna, tap")
+	rootCmd.Flags().BoolVar(&forceOutput, "force", false, "overwrite existing implicit .generated.c output")
 	rootCmd.Flags().BoolVar(&listBackends, "list-backends", false, "list available backends")
 	rootCmd.Flags().StringVar(&visualizeMIR, "viz", "", "generate MIR visualization in DOT format")
 	rootCmd.Flags().BoolVar(&dumpAST, "dump-ast", false, "dump AST in JSON format to stdout")
@@ -867,7 +871,7 @@ func compileViaHIR(sourceFile string) error {
 		return compileToGPU(hirMod, gpuBackend, sourceFile)
 	}
 
-	// Run all pipeline stages (always, cheaply; we may want any step).
+	// Lower and optimise MIR2; emit Z80 only when the requested product needs it.
 	// --asserts-force overrides all 'via' annotations
 	am := assertMode
 	if assertForce != "" {
@@ -878,15 +882,37 @@ func compileViaHIR(sourceFile string) error {
 		}
 	}
 
-	steps, err := pipeline.CompileHIRSteps(hirMod, pipeline.Options{
+	// An explicit output requests assembly/binary unless an intermediate or C
+	// product was selected. Default compilation still emits assembly.
+	skipZ80 := false
+	switch emitFormat {
+	case "lanz", "hir", "mir2", "mir2-raw", "llvm", "wasm", "cuda", "opencl", "vulkan", "metal":
+		skipZ80 = true
+	}
+	if backend == "c" || gpuRun != "" {
+		skipZ80 = true
+	}
+	mir2Only := am == "mir2" ||
+		((am == "" || am == "all") && (len(hirMod.Asserts) > 0 || len(hirMod.Sandboxes) > 0) && !pipeline.NeedsZ80Asserts(hirMod, am))
+
+	opts := pipeline.Options{
 		ContractOpt:     true,
 		AnnotateTStates: annotateTStates,
-		UseLIR:          useLIR, // --lir reports disabled native LIR; emission uses PBQP
-		OptSize:         optSize,           // --Osize enables Grace reroll
-		UseGrace:        useGrace,          // --grace enables full Grace MIR2 pass suite
+		UseLIR:          useLIR,   // --lir reports disabled native LIR; emission uses PBQP
+		OptSize:         optSize,  // --Osize enables Grace reroll
+		UseGrace:        useGrace, // --grace enables full Grace MIR2 pass suite
 		Backend:         backend,
 		AssertMode:      am,
-	})
+		SkipZ80Emission: skipZ80,
+	}
+	steps, err := pipeline.CompileHIRSteps(hirMod, opts)
+	if err != nil && !skipZ80 && outputFile == "" && mir2Only && steps.MIR2Module != nil {
+		if abiErr := mir2.ValidateZ80IndirectCalls(steps.MIR2Module); abiErr != nil && err.Error() == abiErr.Error() {
+			fmt.Fprintf(os.Stderr, "warning: Z80 output skipped because of the unsupported indirect-call ABI: %v\n", abiErr)
+			opts.SkipZ80Emission = true
+			steps, err = pipeline.CompileHIRSteps(hirMod, opts)
+		}
+	}
 	if err != nil {
 		return fmt.Errorf("HIR compile: %w", err)
 	}
@@ -1013,6 +1039,37 @@ func compileViaHIR(sourceFile string) error {
 		return nil
 	}
 
+	if backend == "c" {
+		text, err := mir2c.Compile(steps.MIR2Module)
+		if err != nil {
+			return fmt.Errorf("C compile: %w", err)
+		}
+		out := outputFile
+		if out != "" {
+			return os.WriteFile(out, []byte(text), 0644)
+		}
+		out = strings.TrimSuffix(sourceFile, ext) + ".generated.c"
+		flags := os.O_WRONLY | os.O_CREATE | os.O_EXCL
+		if forceOutput {
+			flags = os.O_WRONLY | os.O_CREATE | os.O_TRUNC
+		}
+		file, err := os.OpenFile(out, flags, 0644)
+		if os.IsExist(err) {
+			return fmt.Errorf("%s already exists; use --force or an explicit -o to overwrite", out)
+		}
+		if err != nil {
+			return fmt.Errorf("write %s: %w", out, err)
+		}
+		_, writeErr := file.WriteString(text)
+		closeErr := file.Close()
+		if writeErr != nil {
+			return fmt.Errorf("write %s: %w", out, writeErr)
+		}
+		return closeErr
+	}
+	if steps.Assembly == "" {
+		return nil
+	}
 	asmSrc := steps.Assembly
 
 	// Determine output path

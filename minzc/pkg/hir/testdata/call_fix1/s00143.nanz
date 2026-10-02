@@ -1,0 +1,22 @@
+fun entry(a: u16, b: u8) -> u16 {
+  let v1: u8 = (b + h0(9))
+  let v2: u8 = b
+  let v3: u16 = a
+  let res: u16 = v3 xor a xor (v2 as u16) xor (b as u16) xor (v1 as u16)
+  return res
+}
+fun h1(p0: u16, p1: u16) -> u8 {
+  let l0: u16 = p1
+  if 255 < 3 {
+    return 9
+  }
+  return 100
+}
+fun h0(p0: u8) -> u8 {
+  if p0 < p0 {
+    return 252
+  }
+  return p0
+}
+assert entry(8503, 151) == 160 via z80
+assert entry(15830, 145) == 154 via z80
