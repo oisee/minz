@@ -207,7 +207,8 @@ func TestExhaustiveJudgeGCDMultiBlockKnownRed(t *testing.T) {
 	}
 	fixture := compileProductionHIRFixture(t, &hir.Module{Name: "judge_gcd", Funcs: []*hir.Func{gcdHIR()}})
 	// Use the production contract and allocation for the ABI bootstrap; the
-	// backend must honor those same inputs and return convention.
+	// backend must honor those same inputs and return convention. The research
+	// hook bypasses the production allowlist to measure raw native LIR.
 	var err error
 	fixture.asm, err = lir.LIRCodegenMultiBlockForResearch(fixture.module.FuncByName("gcd"), fixture.module)
 	if err != nil {

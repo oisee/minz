@@ -655,6 +655,10 @@ func LowerMIR2ProgWithOps(f *mir2.Func, desc *MachineDesc, mod *mir2.Module) (*P
 // bridge for multi-variant lowering. Each block gets an EGraph alongside
 // the flattened (cheapest) MIROps.
 func LowerMIR2ProgWithEGraph(f *mir2.Func, desc *MachineDesc, mod *mir2.Module) (*Prog, [][]MIROp, []*EGraph, error) {
+	return lowerMIR2ProgWithEGraph(f, desc, mod, loweringPolicy{})
+}
+
+func lowerMIR2ProgWithEGraph(f *mir2.Func, desc *MachineDesc, mod *mir2.Module, policy loweringPolicy) (*Prog, [][]MIROp, []*EGraph, error) {
 	prog := &Prog{
 		Name:   f.Name,
 		Blocks: make([]Block, 0, len(f.Blocks)),
@@ -684,7 +688,7 @@ func LowerMIR2ProgWithEGraph(f *mir2.Func, desc *MachineDesc, mod *mir2.Module) 
 			})
 		}
 
-		eg, ops, err := LowerMIR2BlockEGraph(mb, desc, mod)
+		eg, ops, err := lowerMIR2BlockEGraph(mb, desc, mod, policy)
 		if err != nil {
 			return nil, nil, nil, err
 		}
@@ -909,9 +913,14 @@ func mulHasConstOperand(inst *mir2.Inst, block *mir2.Block) bool {
 
 // translateMul rejects multiplication until a native Z80 judge proves it.
 func translateMul(inst *mir2.Inst, desc *MachineDesc) ([]MIROp, error) {
-	if err := checkAllowedInst(inst); err != nil {
+	return translateMulWithPolicy(inst, desc, loweringPolicy{})
+}
+
+func translateMulWithPolicy(inst *mir2.Inst, desc *MachineDesc, policy loweringPolicy) ([]MIROp, error) {
+	if err := policy.checkInst(inst); err != nil {
 		return nil, err
 	}
+	// No native multiply lowering remains, even on the raw research path.
 	return nil, unsupportedOp(inst)
 }
 
@@ -919,11 +928,15 @@ func translateMul(inst *mir2.Inst, desc *MachineDesc) ([]MIROp, error) {
 // argument setup moves (one per arg) + the call itself.
 // Returns an error if the call can't be lowered (e.g. missing module).
 func translateCall(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]MIROp, error) {
-	if err := checkAllowedInst(inst); err != nil {
+	return translateCallWithPolicy(inst, desc, mod, loweringPolicy{})
+}
+
+func translateCallWithPolicy(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module, policy loweringPolicy) ([]MIROp, error) {
+	if err := policy.checkInst(inst); err != nil {
 		return nil, err
 	}
 	if inst.Op == mir2.OpCallIndirect {
-		return translateCallIndirect(inst, desc)
+		return translateCallIndirectWithPolicy(inst, desc, policy)
 	}
 	if mod == nil {
 		return nil, fmt.Errorf("lir: call to %s without module", inst.Sym)
@@ -996,7 +1009,11 @@ func translateCall(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]MIRO
 // On Z80: move function pointer to HL, move args to standard ABI regs,
 // then CALL __call_hl (which does JP (HL)).
 func translateCallIndirect(inst *mir2.Inst, desc *MachineDesc) ([]MIROp, error) {
-	if err := checkAllowedInst(inst); err != nil {
+	return translateCallIndirectWithPolicy(inst, desc, loweringPolicy{})
+}
+
+func translateCallIndirectWithPolicy(inst *mir2.Inst, desc *MachineDesc, policy loweringPolicy) ([]MIROp, error) {
+	if err := policy.checkInst(inst); err != nil {
 		return nil, err
 	}
 	var ops []MIROp
@@ -1124,6 +1141,24 @@ var allowedPairs = map[opWidth]bool{
 	{mir2.OpShr, 8}:   true, // TestExhaustiveJudgeLIRByteShifts/>> /1.
 }
 
+// loweringPolicy keeps the raw research path explicit and local to one call.
+// Production entry points always use the zero value (the allowlist).
+type loweringPolicy struct{ rawResearch bool }
+
+func (p loweringPolicy) checkInst(inst *mir2.Inst) error {
+	if p.rawResearch {
+		return nil
+	}
+	return checkAllowedInst(inst)
+}
+
+func (p loweringPolicy) checkBlock(b *mir2.Block) error {
+	if p.rawResearch {
+		return nil
+	}
+	return checkAllowedBlock(b)
+}
+
 func checkAllowedInst(inst *mir2.Inst) error {
 	width := 8
 	if inst.Ty != nil && inst.Ty.Width() > width {
@@ -1171,7 +1206,11 @@ func checkAllowedBlock(b *mir2.Block) error {
 }
 
 func translateInst(inst *mir2.Inst, desc *MachineDesc) (*MIROp, error) {
-	if err := checkAllowedInst(inst); err != nil {
+	return translateInstWithPolicy(inst, desc, loweringPolicy{})
+}
+
+func translateInstWithPolicy(inst *mir2.Inst, desc *MachineDesc, policy loweringPolicy) (*MIROp, error) {
+	if err := policy.checkInst(inst); err != nil {
 		return nil, err
 	}
 	if inst.Dst == mir2.NoReg && inst.Op != mir2.OpStore {

@@ -28,7 +28,8 @@ import (
 )
 
 // UseZ3 enables Z3 SMT-based optimal register allocation instead of WFC.
-// Set via --z3 flag. Z3 finds provably optimal assignments but takes ~100ms
+// Set directly by research callers; --z3 has no effect while native emission
+// is disabled. Z3 finds provably optimal assignments but takes ~100ms
 // per function vs ~1ms for WFC.
 var UseZ3 bool
 
@@ -350,17 +351,22 @@ func LIRCodegenFunc(f *mir2.Func, m *mir2.Module, hints ...AllocHints) (string, 
 	return lirCodegenFlat(f, desc, m, h)
 }
 
-// LIRCodegenMultiBlockForResearch bypasses the production multi-block guard.
+// LIRCodegenMultiBlockForResearch measures raw native LIR, bypassing both
+// the production multi-block guard and the opcode/width allowlist.
 // Test/research only: this path is known to miscompile and must pass the
 // exhaustive judge before it can be enabled in production.
 func LIRCodegenMultiBlockForResearch(f *mir2.Func, m *mir2.Module) (string, error) {
-	return lirCodegenMultiBlock(f, Z80, m)
+	return lirCodegenMultiBlockWithPolicy(f, Z80, m, loweringPolicy{rawResearch: true})
 }
 
 // lirCodegenMultiBlock emits per-block labels, instructions, and terminators.
 func lirCodegenMultiBlock(f *mir2.Func, desc *MachineDesc, m *mir2.Module) (string, error) {
+	return lirCodegenMultiBlockWithPolicy(f, desc, m, loweringPolicy{})
+}
+
+func lirCodegenMultiBlockWithPolicy(f *mir2.Func, desc *MachineDesc, m *mir2.Module, policy loweringPolicy) (string, error) {
 	// Use e-graph bridge for multi-variant lowering.
-	prog, blockOps, _, err := LowerMIR2ProgWithEGraph(f, desc, m)
+	prog, blockOps, _, err := lowerMIR2ProgWithEGraph(f, desc, m, policy)
 	if err != nil {
 		return "", fmt.Errorf("lower %s: %w", f.Name, err)
 	}

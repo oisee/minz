@@ -5,6 +5,7 @@ import (
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/z80asm"
+	"strings"
 	"testing"
 )
 
@@ -95,4 +96,37 @@ func judgeNativeConstants(t *testing.T) {
 			t.Fatalf("unjudged move from %s accepted", reg)
 		}
 	}
+}
+
+// A comparison returned as a value is outside the production allowlist.
+// Research must reach the raw backend, without changing production policy.
+func TestResearchCodegenBypassesAllowlist(t *testing.T) {
+	f := &mir2.Func{Name: "raw_cmp", Contract: mir2.Contract{
+		Params:  []mir2.Param{{Reg: 1, Ty: mir2.TyU8, Class: mir2.ClassAcc}, {Reg: 2, Ty: mir2.TyU8, Class: mir2.ClassGeneral}},
+		Returns: []mir2.Return{{Ty: mir2.TyBool, Class: mir2.ClassAcc}},
+	}, Blocks: []*mir2.Block{{Label: "entry", Insts: []*mir2.Inst{{
+		Op: mir2.OpCmp, Dst: 3, Src: [2]mir2.Reg{1, 2}, Ty: mir2.TyU8, Cond: mir2.CmpUlt,
+	}}, Term: &mir2.TermRet{Vals: []mir2.Reg{3}}}}}
+	checkProduction := func() {
+		t.Helper()
+		if _, err := LIRCodegenFunc(f, nil); err == nil || !strings.Contains(err.Error(), "unsupported op cmp") {
+			t.Fatalf("production must reject comparison values through the allowlist: %v", err)
+		}
+	}
+	checkProduction()
+	asm, err := LIRCodegenMultiBlockForResearch(f, nil)
+	if err != nil {
+		t.Fatalf("research must bypass the allowlist: %v", err)
+	}
+	if !strings.Contains(asm, "raw_cmp:") || !strings.Contains(asm, "CP ") {
+		t.Fatalf("research must emit native comparison assembly:\n%s", asm)
+	}
+	checkProduction()
+	// CmpNe also exercises bypassing the instruction-level condition allowlist.
+	f.Blocks[0].Insts[0].Cond = mir2.CmpNe
+	checkProduction()
+	if _, err := LIRCodegenMultiBlockForResearch(f, nil); err != nil {
+		t.Fatalf("research must bypass the instruction allowlist: %v", err)
+	}
+	checkProduction()
 }

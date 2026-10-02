@@ -22,7 +22,6 @@ import (
 	"github.com/minz/minzc/pkg/optimizer"
 	"github.com/minz/minzc/pkg/parser"
 	"github.com/minz/minzc/pkg/c89"
-	"github.com/minz/minzc/pkg/lir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/mir2gpu"  // GPU backends: CUDA, OpenCL, Vulkan, Metal
 	"github.com/minz/minzc/pkg/mir2llvm"
@@ -71,8 +70,8 @@ var (
 	pgoDebug     bool    // Debug PGO decisions
 
 	// Backend selection
-	useLIR       bool    // Use LIR backend (ISLE+WFC+PBQP)
-	useZ3        bool    // Use Z3 SMT solver for optimal regalloc (legacy, use --vir instead)
+	useLIR       bool    // Report disabled native LIR; compile with PBQP
+	useZ3        bool    // No effect while native LIR emission is disabled
 	optSize      bool    // -Osize: optimize for code size (Grace reroll, DJNZ loops)
 	useGrace     bool    // --grace: run all Grace MIR2 passes before VIR lowering
 
@@ -142,6 +141,9 @@ Platform Independence Guide:
   docs/150_Platform_Independence_Achievement.md`,
 	Args:  cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		if useZ3 {
+			fmt.Fprintln(os.Stderr, "note: --z3 has no effect: native LIR emission disabled")
+		}
 		// Handle version flags
 		if showVersion {
 			fmt.Println(version.GetVersion())
@@ -217,7 +219,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&compileTrace, "compile-trace", false, "show all optimization decisions and transformations")
 	rootCmd.Flags().StringVar(&superoptRules, "superopt-rules", "", "path to z80-optimizer rules.json[.gz] for superoptimizer peephole pass")
 	rootCmd.Flags().BoolVar(&useLIR, "lir", false, "native LIR disabled; compile whole module with PBQP")
-	rootCmd.Flags().BoolVar(&useZ3, "z3", false, "use Z3 SMT solver for optimal register allocation (slower, provably optimal)")
+	rootCmd.Flags().BoolVar(&useZ3, "z3", false, "use Z3 SMT solver (no effect: native LIR emission disabled)")
 	rootCmd.Flags().BoolVar(&optSize, "Osize", false, "optimize for code size: Grace reroll (repeated CALLs → DJNZ loop + data table)")
 	rootCmd.Flags().BoolVar(&useGrace, "grace", false, "run all Grace MIR2 passes before VIR lowering (DSE, CondRetSink, BlockMerge, etc.)")
 	rootCmd.Flags().StringVar(&assertMode, "asserts", "", "assert backend: mir2, z80, wasm, llvm, all (default), none")
@@ -866,11 +868,6 @@ func compileViaHIR(sourceFile string) error {
 	}
 
 	// Run all pipeline stages (always, cheaply; we may want any step).
-	// Wire Z3 flag to LIR package.
-	if useZ3 {
-		lir.UseZ3 = true
-	}
-
 	// --asserts-force overrides all 'via' annotations
 	am := assertMode
 	if assertForce != "" {
