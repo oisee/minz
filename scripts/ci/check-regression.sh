@@ -44,3 +44,25 @@ assert passes['z80']['summary']['newly fail'] > 0
 assert passes['mir2']['summary']['newly fail'] == 0
 print('Unmodified exit 0; XOR→OR mutant exit 1; Z80 regression detected; MIR2 unchanged.')
 PY
+
+# Existing direct-call findings do not establish mutation sensitivity. Require
+# a seed judged correctly by the original to become a Z80-only wrong value.
+for build in green red; do
+  compiler="$original_bin/candidate-mz"
+  [[ $build == red ]] && compiler="$CI_BIN/candidate-mz"
+  raw=0
+  python3 scripts/fuzz_diff.py --mz "$compiler" --mode direct-call --seed 0 \
+    --count 300 -j "$JOBS" --no-reduce --output "$CI_BIN/fuzz-$build" \
+    > "$CI_BIN/fuzz-$build.log" 2>&1 || raw=$?
+  printf 'Direct-call %s: raw exit %s\n' "$build" "$raw"
+  [[ $raw == 0 || $raw == 1 ]] || exit "$raw"
+done
+python3 - "$CI_BIN" <<'PYTEST'
+import json, pathlib, sys
+root = pathlib.Path(sys.argv[1])
+original = {r['seed']: r for r in json.loads((root / 'fuzz-green/results.json').read_text())}
+mutant = json.loads((root / 'fuzz-red/results.json').read_text())
+caught = [r['seed'] for r in mutant if original[r['seed']]['status'] == 'pass' and r['status'] == 'Z80 != MIR2']
+assert caught, 'Direct-call fuzz must detect a new XOR-to-OR wrong value'
+print(f'Direct-call XOR→OR mutant caught at {len(caught)} previously passing seeds: {caught}')
+PYTEST

@@ -117,8 +117,8 @@ jobs:
     name: Compiler checks
     uses: ./.github/workflows/assert-checks.yml
     with:
-      candidate: ${{ github.event.pull_request.head.sha || github.sha }}
-      base: ${{ github.event.pull_request.base.sha || 'HEAD~1' }}
+      candidate: ${{ github.sha }}
+      base: HEAD^1
 
   advisory_lint:
     name: Advisory Go lint
@@ -129,17 +129,24 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.sha }}
           fetch-depth: 0
       - uses: actions/setup-go@v5
         with:
           go-version: '1.26.8'
           cache-dependency-path: minzc/go.sum
+      - name: Cache pinned golangci-lint binary
+        id: lint-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/go/bin/golangci-lint
+          key: golangci-lint-${{ runner.os }}-${{ runner.arch }}-v2.13.2-go1.26.8
       - name: Install pinned golangci-lint
+        if: steps.lint-cache.outputs.cache-hit != 'true'
         run: go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.13.2
       - name: Report new lint issues and changed-file formatting
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          BASE_SHA: HEAD^1
           REPORT_DIR: ${{ runner.temp }}/lint-report
         run: bash scripts/ci/lint.sh
       - uses: actions/upload-artifact@v4

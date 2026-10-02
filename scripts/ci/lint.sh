@@ -25,7 +25,7 @@ for issue in issues:
     print(f'::warning file=minzc/{pos["Filename"]},line={pos["Line"]},col={pos["Column"]}::{name}: {text}')
 # gofmt checks whole changed files, including unchanged lines, but never old files.
 paths = subprocess.check_output(['git', 'diff', '--name-only', '--diff-filter=ACMR', '-z',
-                                 os.environ['BASE_SHA'], 'HEAD', '--', 'minzc/**/*.go']).split(b'\0')
+                                 os.environ['BASE_SHA'], 'HEAD', '--', ':(glob)minzc/**/*.go']).split(b'\0')
 format_issues = 0
 for path in paths:
     if not path:
@@ -36,7 +36,9 @@ for path in paths:
         format_issues += 1
         print(f'::warning file={name},line=1::gofmt: run gofmt on this changed file')
 summary = f'### Advisory lint\n\nExit {sys.argv[2]}; wall {sys.argv[3]}s; new issues {len(issues)}: {counts}; gofmt files {format_issues}.\n'
-summary += '\n```text\n' + '\n'.join((root / 'lint.log').read_text().splitlines()[-50:]) + '\n```\n'
+summary += '\n```text\n' + '\n'.join(line[:1024] for line in (root / 'lint.log').read_text().splitlines()[-50:]) + '\n```\n'
+if len(summary.encode('utf-8')) > 64 * 1024:
+    summary = summary.encode('utf-8')[:64 * 1024].decode('utf-8', errors='ignore') + '\n[Truncated; see artifact.]\n'
 (root / 'summary.md').write_text(summary)
 print(summary)
 with open(os.environ.get('GITHUB_STEP_SUMMARY', os.devnull), 'a') as out:

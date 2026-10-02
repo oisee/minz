@@ -42,11 +42,23 @@ fast smoke triage without deletion reduction. Syntax,
 compiler, assembly, timeout and oracle errors are counted separately; compiler failures
 save `seed-N.error.nanz`. `results.json` records all seeds and diagnostics.
 By default exit status is 1 if any program fails or cannot be checked.
-`--fail-on backend` exits 1 only for Z80/MIR2 mismatches and assembly failures;
+`--fail-on backend` exits 1 for Z80/MIR2 mismatches, assembly failures, and
+compiler errors (including crashes, timeouts, and missing or zero-count receipts).
+It also fails if fewer than 95% of seeds pass both backends;
 all findings still appear in logs, JSON and reproducers. Tool exceptions exit 2
 under either policy. Assembly failures take precedence even when MIR2 also
 disagrees with the oracle. `--timeout` bounds
 each compiler invocation, including reduction attempts.
+
+The default `--mode folded` asserts `g()`, a wrapper calling `f` with constant
+arguments. This exercises mostly constant-folded code and does **not** test Z80
+codegen of `f`. Use `--mode direct-call` to assert `f(args)` directly: the
+parameterized function runs in the Z80 harness. Direct mode names that function
+`fuzz_entry` to avoid the assembler’s `F` register token and retains the wrapper
+as an emission root. It does not repair the known argument-loading failures. This mode currently exposes
+compiler/backend findings and is report-only in CI. It becomes blocking once
+these findings are fixed in a follow-up. Seeds and inputs are identical across
+modes; reduction preserves the selected mode.
 
 Run self-tests with `python3 scripts/test_judges.py`; `go test ./pkg/hir` also
 runs them, skipping when Python 3 is unavailable.
@@ -143,11 +155,13 @@ matrix exits nonzero on both Z80 and MIR2 for each mutant.
 ## CI checks
 
 The existing required **PR gate** keeps its name and Go/toolchain checks.
-The `Compiler checks` reusable workflow builds `mz` from the PR head (not the
-merge ref) and `github.event.pull_request.base.sha`, then runs these jobs on
-PRs and pushes to main:
+The `Compiler checks` reusable workflow builds the candidate `mz` from
+`github.sha` (the
+`refs/pull/N/merge` commit, the same tree tested by **PR gate**) and the baseline
+from that merge commit’s first parent (`HEAD^1`, the current base tip), then
+runs these jobs on PRs and pushes to main:
 
-- **Assert matrix** compares separate baseline/head inventories on both Z80
+- **Assert matrix** compares separate baseline/merge inventories on both Z80
   and MIR2. It preserves `assert_matrix.py`'s exit status, including newly
   failing, removed/changed assertions, unexpectedly passing controls, and
   known-failure audit errors. JSON, logs and summaries are uploaded even on
@@ -161,15 +175,24 @@ PRs and pushes to main:
   differences remain in the report.
 - **Short fuzz** checks fixed seeds 0–2999 with `--no-reduce`. The fuzzer has
   no baseline mode, so this gate checks the candidate alone with
-  `--fail-on backend`: Z80/MIR2 mismatches and assembly failures block the PR.
-  MIR2/Python-oracle disagreements and other findings remain in the job summary
-  and artifacts without failing the PR. No seeds are skipped. Tool exceptions
+  `--fail-on backend`: Z80/MIR2 mismatches, assembly failures and compiler errors
+  block the PR, as does a passing-seed rate below 95%. MIR2/Python-oracle
+  disagreements remain in summaries and artifacts; they can also trip the floor.
+  This uses the mostly constant-folded mode described above. No seeds are skipped.
+  Tool exceptions
   still fail the job. Full reproducers and JSON are artifacts.
+- **Direct-call fuzz findings** runs the same seeds with `--mode direct-call`
+  and `--fail-on all`. It reports counts and finding classes in the summary,
+  retains the raw exit code, and returns success for findings pending fixes.
+  Tool exceptions still fail this report-only job.
 
-Workers default to `nproc`. Baseline binaries are cached by full base SHA plus
-candidate `minzc/go.sum` hash, OS and architecture; no fallback cache keys are
-used. Both binaries and the exact base archive are passed to the jobs within
-that workflow run. These new checks are not made required by workflow code;
+Workers default to `nproc`. Baseline binaries are built fresh; there is no
+baseline compiler cache to save from PR runs. Both binaries and the exact base
+archive are passed to jobs within the run, with 7-day artifact retention.
+Push-to-main comparisons use `HEAD^1` versus `HEAD`. Metadata uses the exact
+same parent-to-candidate diff as the matrix. Step summaries cap individual
+text and total output at about 64 KiB per job; full details stay in artifacts.
+These new checks are not made required by workflow code;
 Alice can configure branch protection separately.
 
 Positive checks normally use `--no-controls`. A plain `git diff` against the
@@ -177,21 +200,29 @@ base enables controls and tuple mutant tests for changes under `scripts/`,
 `minzc/cmd/minzc/`, `minzc/pkg/pipeline/`, or assertion-parsing frontend
 packages (`nanz`, `c89`, `pascal`, `plm`, `abap`, `frill`, `lanz`, `lizp`).
 It also covers `hir/hir.go`, `hir/assert*.go`, and the assertion-executing
-`mir2wasm/runner.go` and `mir2llvm/runner.go`. Deleted and renamed paths count.
+`mir2wasm/runner.go`, `mir2llvm/runner.go` and `mir2gpu/runner.go`.
+The filter also includes `minzc/pkg/emulator/**`, `minzc/pkg/mir2/vm*.go`,
+`minzc/pkg/z80asm/**`, `minzc/go.mod`, `minzc/go.sum`, and
+`.github/workflows/**`. Receipt printing is in `minzc/cmd/minzc/main.go`;
+assert execution is in the pipeline and these backend runners (verified by
+searching receipt and assertion executor definitions). Deleted and renamed
+paths count.
 The exact filter is in `scripts/ci/metadata.sh`; extend it when assertion
 handling moves. `--no-controls` alone cannot catch a weakened checker.
 
 **Nightly compiler audit** runs at 03:17 UTC and supports `workflow_dispatch`.
 It compares main with `HEAD~1`, always enables controls, repeats the matrix
 with `--runs 2`, runs both mutant tests, and fuzzes seeds 0–9999 using the
-fuzzer's default `--fail-on all` policy. Judge jobs
-are report-only; artifacts include their raw statuses and summaries. Build or
-infrastructure failures remain visible as workflow failures.
+fuzzer's `--fail-on all` policy, plus direct-call seeds 0–9999 report-only.
+Matrix, self-test, sweep and folded-fuzz failures make nightly jobs red;
+there is no blanket nightly `continue-on-error`. Direct-call findings retain
+raw statuses and summaries while their report-only job succeeds.
 
-**Advisory Go lint** runs only on PRs from the `minzc/` module using pinned
+**Advisory Go lint** runs only on PRs from the `minzc/` module using a cached,
+pinned
 `golangci-lint v2.13.2` (built with Go 1.26.8). Its minimal configuration
 runs govet, staticcheck, errcheck, ineffassign and unused with
-`--new-from-rev=<PR base SHA>` over `./pkg/... ./cmd/...`. This scope
+`--new-from-rev=<merge first parent>` over `./pkg/... ./cmd/...`. This scope
 excludes the intentionally invalid scratch programs in `minzc/scripts/analysis`
 that cannot be package-loaded. `gofmt -l` checks only changed Go files.
 Warnings are GitHub annotations; JSON, tool errors and counts are artifacts.
@@ -215,7 +246,7 @@ change its final status. `CONTROLS` overrides the committed-path filter when
 simulating uncommitted changes. For a nightly simulation also set
 `NIGHTLY=true RUNS=2 FUZZ_COUNT=10000 BASE_REV=HEAD~1`. To rerun one job, set
 `CI_BIN` to the printed compiler directory, `REPORT_DIR` to a writable output
-directory, and run `bash scripts/ci/run.sh matrix` (or `judges`, `sweep`, `fuzz`).
+directory, and run `bash scripts/ci/run.sh matrix` (or `judges`, `sweep`, `fuzz`, `fuzz-direct`).
 `MATRIX_ROOT` selects a disposable checkout; `MATRIX_GLOB` narrows a matrix
 run for a regression fixture. CI leaves both unset and audits the full corpus.
 
@@ -229,3 +260,6 @@ CI_BIN=/tmp/minz-ci.YOUR_RUN JOBS=4 bash scripts/ci/check-regression.sh
 This creates a tracked fixture and compiler copy under `/tmp`, requires exit 0
 from the original compiler, substitutes OR for XOR in the copy, then requires
 matrix exit 1 with a newly failing Z80 assertion and unchanged MIR2 results.
+It also compares 300 direct-call seeds and requires a passing seed to become a
+Z80/MIR2 mismatch under the XOR→OR mutant; pre-existing findings cannot satisfy
+that check. CI filter/summary tests run with `python3 scripts/test_ci.py`.

@@ -62,3 +62,47 @@ reduced 56/399 fixtures, real compiler integration tests also verify that
 forced MIR2 and Z80 return identical wrong values (15014 and 17814).
 The old wrong-value count described only completed Z80 evaluations; it
 must not be interpreted as the count of Z80 codegen discrepancies.
+
+## CI direct-call verification (C2 FIX1)
+
+Compiler tree: current main `04e0ba172fbfbb3af08153d66607ab6874faeeba`. This CI change does
+not change compiler behavior. At four workers, the PR direct-call job ran
+seeds 0–2999 without reduction: raw fuzzer exit 1, report-only wrapper exit 0,
+wall 69 seconds. The requested seeds 0–999 subset produced:
+
+| Primary class | Seeds |
+| --- | ---: |
+| Pass | 28 |
+| Z80≠MIR2 (MIR2 agrees with oracle) | 73 |
+| Assembly failure | 835 |
+| Compiler/execution error | 59 |
+| MIR2≠oracle | 5 |
+| Oracle interpreter error | 0 |
+
+All 835 assembly diagnostics name invalid `LD` operands. Seed 1 reproduces
+`assemble errors: line 4: unknown instruction or invalid operands: LD`.
+The 59 compiler/execution errors are classified separately from wrong values;
+for example, seeds 37, 53 and 57 report `run: execution limit exceeded`.
+Assembly errors retain precedence over simultaneous MIR2/oracle findings;
+both backend results remain in JSON.
+
+Direct mode asserts the parameterized function instead of the folded `g()`
+wrapper. Its entry symbol is `fuzz_entry`: a probe of the original symbol `f`
+also failed with invalid `CALL`, because `F` is an assembler register token.
+The wrapper remains as an emission root; inputs and function bodies retain
+the seeded generator's semantics. The seed-1 argument-loading failure remains.
+
+For all 3000 seeds: 89 pass, 207 Z80≠MIR2, 2494 assembly failures,
+196 compiler/execution errors, 14 MIR2≠oracle, zero oracle errors. Local full
+results, reproducers, summaries and the first-1000 JSON subset are retained
+under `/tmp/C2-fix/reports/fuzz-direct/`. Regenerate with:
+
+```sh
+python3 scripts/fuzz_diff.py --mz /tmp/mz --mode direct-call --seed 0 --count 1000 -j 4 --no-reduce --output /tmp/direct-call-findings
+```
+
+The disposable XOR→OR codegen mutant becomes a new Z80≠MIR2 mismatch at
+10 previously passing direct-call seeds in 0–299: 20, 28, 76, 85, 97, 164,
+189, 202, 229 and 257. The matrix wrapper also rejects the mutant. These
+mutation checks require new wrong values; existing assembly/execution findings
+cannot satisfy them. Direct-call CI stays report-only until findings are fixed.

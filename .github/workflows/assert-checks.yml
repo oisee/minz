@@ -38,12 +38,7 @@ jobs:
           BASE_REV: ${{ inputs.base }}
           NIGHTLY: ${{ inputs.nightly }}
         run: bash scripts/ci/metadata.sh
-      - name: Cache baseline compiler
-        uses: actions/cache@v4
-        with:
-          path: ${{ runner.temp }}/judge-bin/baseline-mz
-          key: baseline-mz-${{ runner.os }}-${{ runner.arch }}-${{ steps.metadata.outputs.base }}-${{ hashFiles('minzc/go.sum') }}
-      - name: Build head and baseline
+      - name: Build candidate and baseline
         env:
           BASE_SHA: ${{ steps.metadata.outputs.base }}
           CI_BIN: ${{ runner.temp }}/judge-bin
@@ -54,14 +49,14 @@ jobs:
           path: |
             ${{ runner.temp }}/judge-bin/*-mz
             ${{ runner.temp }}/judge-bin/base.tar.gz
-          retention-days: 2
+          retention-days: 7
 
   checks:
     name: ${{ inputs.nightly && matrix.job == 'fuzz' && 'Long fuzz' || matrix.name }}
     needs: compilers
     runs-on: ubuntu-latest
     timeout-minutes: 40
-    continue-on-error: ${{ inputs.nightly || matrix.job == 'sweep' }}
+    continue-on-error: ${{ !inputs.nightly && matrix.job == 'sweep' }}
     strategy:
       fail-fast: false
       matrix:
@@ -74,6 +69,8 @@ jobs:
             name: Default output sweep
           - job: fuzz
             name: Short fuzz
+          - job: fuzz-direct
+            name: Direct-call fuzz findings
     steps:
       - uses: actions/checkout@v4
         with:

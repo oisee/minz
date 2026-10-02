@@ -23,11 +23,13 @@ run_gate() {
   local start=$SECONDS status=0
   "$@" > "$CI_BIN/$name.log" 2>&1 || status=$?
   printf '%s: exit %s, wall %ss (log: %s)\n' "$name" "$status" "$((SECONDS-start))" "$CI_BIN/$name.log" | tee -a "$CI_BIN/timings.txt"
-  if [[ $name != sweep && $name != lint && $status != 0 ]]; then failed=1; fi
+  if [[ $status != 0 && $name != lint ]]; then
+    if [[ $name != sweep || ${NIGHTLY:-false} == true ]]; then failed=1; fi
+  fi
 }
 run_gate actionlint actionlint .github/workflows/*.yml
 run_gate build bash scripts/ci/build.sh
-for job in matrix judges sweep fuzz; do
+for job in matrix judges sweep fuzz fuzz-direct; do
   export REPORT_DIR="$CI_BIN/reports/$job"
   run_gate "$job" bash scripts/ci/run.sh "$job"
 done

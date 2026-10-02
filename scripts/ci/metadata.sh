@@ -11,7 +11,9 @@ else
   changed=$(git diff --no-renames --name-only "$base" HEAD)
   while IFS= read -r path; do
     case "$path" in
-      scripts/* | minzc/cmd/minzc/* | minzc/pkg/pipeline/* | \
+      .github/workflows/* | minzc/go.mod | minzc/go.sum | \
+      minzc/pkg/emulator/* | minzc/pkg/z80asm/* | minzc/pkg/mir2/vm*.go | \
+      minzc/pkg/mir2gpu/runner.go | scripts/* | minzc/cmd/minzc/* | minzc/pkg/pipeline/* | \
       minzc/pkg/nanz/* | minzc/pkg/c89/* | minzc/pkg/pascal/* | \
       minzc/pkg/plm/* | minzc/pkg/abap/* | minzc/pkg/frill/* | \
       minzc/pkg/lanz/* | minzc/pkg/lizp/* | minzc/pkg/hir/hir.go | \
