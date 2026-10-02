@@ -1,6 +1,7 @@
 // binary.go — Encode WASM binary format directly from MIR2.
 //
 // WASM binary format (MVP):
+//
 //   magic:   0x00 0x61 0x73 0x6D  (\0asm)
 //   version: 0x01 0x00 0x00 0x00
 //   sections: type, function, export, code, memory, data
@@ -18,6 +19,9 @@ import (
 // CompileBinary translates a MIR2 module to WASM binary format.
 // Returns raw .wasm bytes that can be loaded by any WASM runtime.
 func CompileBinary(m *mir2.Module) ([]byte, error) {
+	if err := mir2.RejectUnsupportedOps(m, "mir2wasm binary", mir2.OpSDiv, mir2.OpSMod); err != nil {
+		return nil, err
+	}
 	e := &encoder{mod: m}
 	return e.encode()
 }

@@ -328,6 +328,8 @@ func (g *gen) emitInst(f *mir2.Func, inst *mir2.Inst) {
 		def(fmt.Sprintf("r%d / r%d", a, b))
 	case mir2.OpSDiv:
 		def(fmt.Sprintf("%s / %s", signed(a, inst.Ty), signed(b, inst.Ty)))
+	case mir2.OpSMod:
+		def(fmt.Sprintf("%s %% %s", signed(a, inst.Ty), signed(b, inst.Ty)))
 	case mir2.OpMod:
 		def(fmt.Sprintf("r%d %% r%d", a, b))
 

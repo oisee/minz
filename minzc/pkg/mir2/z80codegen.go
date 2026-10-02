@@ -1398,7 +1398,7 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 					// must be in a register and cannot be folded.
 					// Note: inst.Ty is bool (the result), so check the constant
 					// value and its allocation to determine operand width.
-					if src == inst.Src[1] && cv >= 0 && cv <= 0xFF {
+					if src == inst.Src[1] && cv >= 0 && cv <= 0xFF && (inst.SrcTy == nil || inst.SrcTy.Width() <= 8) {
 						// Also verify lhs is in an 8-bit register (not a pair).
 						lhsLoc := physName(inst.Src[0])
 						if lhsLoc == "A" || lhsLoc == "B" || lhsLoc == "C" ||
@@ -1413,6 +1413,11 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 						physName(inst.Src[0]) == physName(inst.Dst) &&
 						inst.Ty.Width() <= 16 && !isSpill(physName(inst.Dst)) &&
 						physName(inst.Dst) != "F" {
+						foldedUses[src]++
+					}
+				case OpDiv, OpSDiv, OpMod, OpSMod:
+					signed := inst.Op == OpSDiv || inst.Op == OpSMod
+					if src == inst.Src[1] && cv > 0 && cv&(cv-1) == 0 && inst.Ty.Width() <= 16 && (!signed || cv < int64(1)<<(inst.Ty.Width()-1)) {
 						foldedUses[src]++
 					}
 				case OpAnd, OpOr, OpXor:
@@ -1962,13 +1967,15 @@ func (g *z80cg) scanBitCmpPatterns(b *Block) {
 		if inst.Op != OpCmp || (inst.Cond != CmpEq && inst.Cond != CmpNe) {
 			continue
 		}
-		testReg := NoReg
+		testReg, zeroReg := NoReg, NoReg
 		if rhsInst, ok := defInst[inst.Src[1]]; ok && rhsInst.Op == OpConst && rhsInst.Imm == 0 {
 			testReg = inst.Src[0]
+			zeroReg = inst.Src[1]
 		} else if lhsInst, ok := defInst[inst.Src[0]]; ok && lhsInst.Op == OpConst && lhsInst.Imm == 0 {
 			testReg = inst.Src[1]
+			zeroReg = inst.Src[0]
 		}
-		if testReg == NoReg {
+		if testReg == NoReg || useCount[zeroReg] != 1 {
 			continue
 		}
 
@@ -2003,6 +2010,7 @@ func (g *z80cg) scanBitCmpPatterns(b *Block) {
 		}
 		if matched {
 			g.bitCmpPat[inst.Dst] = pat
+			g.bitCmpSkip[zeroReg] = true
 			for _, r := range skipRegs {
 				g.bitCmpSkip[r] = true
 			}
@@ -2061,6 +2069,7 @@ func (g *z80cg) scanBitCmpPatterns(b *Block) {
 
 		if matched {
 			g.bitCmpPat[inst.Dst] = pat
+			g.bitCmpSkip[zeroReg] = true
 			for _, r := range skipRegs {
 				g.bitCmpSkip[r] = true
 			}
@@ -3604,7 +3613,7 @@ func (g *z80cg) genInst(inst *Inst) {
 		// Choose DE; fall back to BC if DE is the base (moving base to HL would
 		// clobber DE, so the offset must already be safe there) or same as dst.
 		offPair := "DE"
-		if base == "DE" || off == "HL" {
+		if base == "DE" {
 			offPair = "BC"
 		}
 
@@ -3612,8 +3621,8 @@ func (g *z80cg) genInst(inst *Inst) {
 		// the offset when base and off share a register like DE).
 		if off != offPair {
 			if len(off) == 1 { // 8-bit: zero-extend into pair
-				g.emitf("    LD %s, 0", offPair)
-				g.emitf("    LD %s, %s", lowByte(offPair), off)
+				g.pushWord(off)
+				g.emitf("    POP %s", offPair)
 			} else {
 				g.emitMov(offPair, off, 16)
 			}
@@ -3799,11 +3808,57 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 	dst := g.loc(inst.Dst)
 	lhs := g.loc(inst.Src[0])
 	rhs := g.loc(inst.Src[1])
+	rhsReg := inst.Src[1]
 	w := inst.Ty.Width()
+
+	if w == 16 {
+		scratch := []string{"AF"}
+		if mnem == "ADD" || mnem == "SUB" {
+			scratch = append(scratch, "HL", "DE")
+		}
+		if isSpill(lhs) || isSpill(rhs) {
+			scratch = append(scratch, "HL", "BC")
+		}
+		defer g.saveLiveScratch(inst, scratch...)()
+	}
 
 	if w >= 24 {
 		g.genBinOp32(mnem, dst, lhs, rhs)
 		return
+	}
+
+	// Word operations also use HL as a working destination. Preserve a rhs
+	// there before copying lhs, regardless of the allocated result location.
+	if w == 16 {
+		rhsValue, rhsConstant := g.constVals[rhsReg]
+		inPlaceUnit := rhsConstant && rhsValue == 1 && lhs == dst
+		if (mnem == "ADD" && rhs == "HL" && !inPlaceUnit) || ((mnem == "AND" || mnem == "OR" || mnem == "XOR") && rhs == dst && !rhsConstant) {
+			lhs, rhs = rhs, lhs
+			rhsReg = inst.Src[0]
+		}
+		if mnem == "SUB" && ((rhs == dst && lhs != dst) || (rhs == "HL" && lhs != "HL")) {
+			if dst != "HL" {
+				g.emit("    PUSH HL")
+			}
+			if dst != "DE" {
+				g.emit("    PUSH DE")
+			}
+			g.pushWord(lhs)
+			g.pushWord(rhs)
+			g.emit("    POP DE")
+			g.emit("    POP HL")
+			g.emit("    OR A")
+			g.emit("    SBC HL, DE")
+			g.emitMov(dst, "HL", 16)
+			if dst != "DE" {
+				g.emit("    POP DE")
+			}
+			if dst != "HL" {
+				g.emit("    POP HL")
+			}
+			g.invalidate(dst)
+			return
+		}
 	}
 
 	if w <= 8 {
@@ -4063,7 +4118,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		}
 
 		// 16-bit peephole: INC/DEC rr when adding/subtracting 1 in-place.
-		if lhs == dst && !isSpill(dst) && dst != "F" {
+		if rhsReg == inst.Src[1] && lhs == dst && !isSpill(dst) && dst != "F" {
 			if cv, ok := g.constVals[inst.Src[1]]; ok {
 				if mnem == "ADD" && cv == 1 {
 					g.emitf("    INC %s", dst)
@@ -4095,6 +4150,8 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 					g.emit("    EX DE, HL")
 					if rhs == "HL" {
 						adjustedRhs = "DE" // what was HL is now in DE after EX
+					} else if rhs == "DE" {
+						adjustedRhs = "HL"
 					}
 					if adjustedRhs == "IX" || adjustedRhs == "IY" {
 						g.emit("    PUSH BC")
@@ -4215,7 +4272,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				if rhs == "HL" {
 					adjustedRhs = "DE" // old HL is now in DE
 				} else if rhs == "DE" {
-					adjustedRhs = "DE" // SBC HL,DE = lhs-lhs = 0 (self-sub)
+					adjustedRhs = "HL" // self-subtraction after EX: lhs is now HL
 				}
 				g.emit("    EX DE, HL")
 				g.emitSBCHL(adjustedRhs)
@@ -4244,34 +4301,26 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			}
 			g.invalidate(dst)
 		case "OR", "AND", "XOR":
-			// Z80 has no 16-bit OR/AND/XOR directly; operate byte-by-byte.
-			// Strategy: load each byte pair through A.
-			// If lhs != dst, move lhs into dst first.
 			if lhs != dst {
 				g.emitMov(dst, lhs, w)
 			}
-			hi := highByte(dst)
-			lo := lowByte(dst)
-			hi_rhs := highByte(rhs)
-			lo_rhs := lowByte(rhs)
-			// High byte: A = dst_hi OP rhs_hi → dst_hi
-			g.emitLDA(hi)
-			if cv, ok := g.constVals[inst.Src[1]]; ok {
-				g.emitf("    %s %d", mnem, (cv>>8)&0xFF)
-			} else {
-				g.emit8ALU(mnem, hi_rhs)
+			hi, lo := highByte(dst), lowByte(dst)
+			imm, constant := g.constVals[rhsReg]
+			for _, part := range []struct {
+				dst, src string
+				shift    uint
+			}{{hi, highByte(rhs), 8}, {lo, lowByte(rhs), 0}} {
+				g.emitLDA(part.dst)
+				if constant {
+					g.emit8ALUImm(mnem, imm>>part.shift)
+				} else {
+					g.emit8ALU(mnem, part.src)
+				}
+				g.invalidate("A")
+				g.emitLD8(part.dst, "A")
 			}
-			g.emitLD8(hi, "A")
-			// Low byte: A = dst_lo OP rhs_lo → dst_lo
-			g.emitLDA(lo)
-			if cv, ok := g.constVals[inst.Src[1]]; ok {
-				g.emitf("    %s %d", mnem, cv&0xFF)
-			} else {
-				g.emit8ALU(mnem, lo_rhs)
-			}
-			g.emitLD8(lo, "A")
-			g.invalidate("A")
 			g.invalidate(dst)
+
 		default:
 			g.comment(fmt.Sprintf("TODO: 16-bit %s %s, %s → %s", mnem, lhs, rhs, dst))
 		}
@@ -5366,90 +5415,16 @@ func (g *z80cg) genMul32(inst *Inst) {
 
 func (g *z80cg) genDivMod(inst *Inst) {
 	w := inst.Ty.Width()
+	defer g.saveLiveScratch(inst, "AF", "HL", "DE", "BC")()
 
-	// Strength reduction: power-of-2 div → shift, mod → AND mask
-	if rhs := g.loc(inst.Src[1]); rhs != "" {
-		k, isConst := g.constVals[inst.Src[1]]
-		if isConst && inst.Op != OpSDiv && inst.Op != OpSMod && k > 0 && k&(k-1) == 0 {
-			dst := g.loc(inst.Dst)
-			lhs := g.loc(inst.Src[0])
-			// For 8-bit ops on pair regs, use low byte
-			lhsA := lhs
-			if isPairReg(lhs) {
-				lhsA = lowByte(lhs)
-			}
-			dstA := dst
-			if isPairReg(dst) {
-				dstA = lowByte(dst)
-			}
-			if inst.Op == OpMod && w <= 8 {
-				mask := k - 1
-				g.comment(fmt.Sprintf("mod%d → AND $%02X (strength reduced)", k, mask))
-				if lhsA != "A" {
-					g.emitf("    LD A, %s", lhsA)
-				}
-				g.emitf("    AND %d", mask)
-				if dstA != "A" {
-					g.emitf("    LD %s, A", dstA)
-				}
-				if isPairReg(dst) {
-					g.emitf("    LD %s, 0", highByte(dst))
-				}
-				return
-			}
-			if inst.Op == OpMod && w > 8 {
-				// u16 mod power-of-2: AND mask on L, zero H
-				mask := k - 1
-				g.comment(fmt.Sprintf("mod%d → AND $%02X (u16 strength reduced)", k, mask))
-				if lhs != "HL" && isPairReg(lhs) {
-					g.emitf("    LD H, %s", highByte(lhs))
-					g.emitf("    LD L, %s", lowByte(lhs))
-				}
-				g.emit("    LD A, L")
-				g.emitf("    AND %d", mask)
-				g.emit("    LD L, A")
-				g.emit("    LD H, 0")
-				if dst != "HL" && isPairReg(dst) {
-					g.emitf("    LD %s, H", highByte(dst))
-					g.emitf("    LD %s, L", lowByte(dst))
-				}
-				return
-			}
-			shift := 0
-			for v := k; v > 1; v >>= 1 {
-				shift++
-			}
-			g.comment(fmt.Sprintf("div%d → SHR %d (strength reduced)", k, shift))
-			if w <= 8 {
-				if lhsA != "A" {
-					g.emitf("    LD A, %s", lhsA)
-				}
-				for i := 0; i < shift; i++ {
-					g.emit("    SRL A")
-				}
-				if dstA != "A" {
-					g.emitf("    LD %s, A", dstA)
-				}
-				if isPairReg(dst) {
-					g.emitf("    LD %s, 0", highByte(dst))
-				}
-				return
-			} else {
-				if lhs != "HL" && isPairReg(lhs) {
-					g.emitf("    LD H, %s", highByte(lhs))
-					g.emitf("    LD L, %s", lowByte(lhs))
-				}
-				for i := 0; i < shift; i++ {
-					g.emit("    SRL H")
-					g.emit("    RR L")
-				}
-				if dst != "HL" && isPairReg(dst) {
-					g.emitf("    LD %s, H", highByte(dst))
-					g.emitf("    LD %s, L", lowByte(dst))
-				}
-			}
-			return
+	// Positive powers of two have cheap unsigned and signed implementations.
+	if k, ok := g.constVals[inst.Src[1]]; ok && k > 0 && k&(k-1) == 0 && w <= 16 && ((inst.Op != OpSDiv && inst.Op != OpSMod) || k < int64(1)<<(w-1)) {
+		signed := inst.Op == OpSDiv || inst.Op == OpSMod
+		if signed && g.nonNegative(inst.Src[0], make(map[Reg]bool)) {
+			signed = false
 		}
+		g.genPow2DivMod(inst, k, signed)
+		return
 	}
 
 	if w <= 8 {
@@ -5614,50 +5589,15 @@ func (g *z80cg) genDivMod16(inst *Inst) {
 	wantMod := inst.Op == OpMod || inst.Op == OpSMod
 	isSigned := inst.Op == OpSDiv || inst.Op == OpSMod
 
-	if isSigned {
-		// Stage pairs on the stack so parallel assignments cannot destroy rhs.
-		g.emitf("    PUSH %s", lhs)
-		g.emitf("    PUSH %s", rhs)
-		g.emit("    POP DE")
-		g.emit("    POP HL")
-	} else {
-		// Setup: HL = dividend, DE = divisor.
-		if lhs == "HL" {
-			// already in HL
-		} else if isIXY(lhs) {
-			g.emitf("    PUSH %s", lhs)
-			g.emit("    POP HL")
-			g.invalidate("HL")
-		} else if isIXYReg(lhs) {
-			g.emitMovViaAltA("L", lhs)
-			g.emit("    LD H, 0")
-			g.invalidate("HL")
-		} else if isSpill(lhs) {
-			g.loadSpill16("HL", lhs)
-			g.invalidate("HL")
-		} else {
-			g.emitf("    LD H, %s", highByte(lhs))
-			g.emitLD8("L", lowByte(lhs))
-		}
-		if rhs != "DE" {
-			if isSpill(rhs) {
-				g.loadSpill16("DE", rhs)
-			} else if isIXY(rhs) {
-				g.emitf("    LD D, %s", highByte(rhs))
-				g.emitf("    LD E, %s", lowByte(rhs))
-			} else if isIXYReg(rhs) {
-				g.emitMovViaAltA("E", rhs)
-				g.emit("    LD D, 0")
-			} else if isPairReg(rhs) {
-				g.emitf("    LD D, %s", highByte(rhs))
-				g.emitf("    LD E, %s", lowByte(rhs))
-			} else {
-				g.emitLD8("E", rhs)
-				g.emit("    LD D, 0")
-			}
-		}
+	// Stage both inputs without changing any source register, including spills
+	// and index halves. The unsigned path needs the same parallel-move safety.
+	g.pushWord(lhs)
+	g.pushWord(rhs)
+	g.emit("    POP DE")
+	g.emit("    POP HL")
+	g.invalidate("DE")
+	g.invalidate("HL")
 
-	}
 	if isSigned {
 		g.emit("    LD A, H")
 		if !wantMod {
@@ -6213,7 +6153,9 @@ func (g *z80cg) genCmp(inst *Inst) {
 
 	// 16-bit comparison: one or both operands are register pairs (HL/DE/BC/…).
 	// Z80 only supports SBC HL, rr for 16-bit flag-setting subtraction.
-	if isPairReg(lhs) || isPairReg(rhs) {
+	cv, immediate := g.constVals[inst.Src[1]]
+	byteImmediate := immediate && cv >= 0 && cv <= 255 && !isPairReg(lhs) && (isSimpleReg(lhs) || isIXYReg(lhs)) && lhs != "F" && (inst.SrcTy == nil || inst.SrcTy.Width() <= 8)
+	if isPairReg(lhs) || (isPairReg(rhs) && !byteImmediate) {
 		g.genCmp16(inst)
 		return
 	}
@@ -6818,6 +6760,9 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 	}
 
 	if src == "F" {
+		if g.emitKnownFlagCopy(dst, widthBits) {
+			return
+		}
 		// Materialise a flag result into a register.
 		// Uses the SBC A,A trick for C-flag convention: A = 0xFF (carry set = true)
 		// or 0x00 (carry clear = false).  Works for CmpLt/CmpUlt/CmpGe/CmpUge.
@@ -7119,7 +7064,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		// values share the same physical register after constant folding/PBQP
 		// (e.g. both [acc]=A), causing write-after-write clobber.
 		if len(t.Vals) == 1 && len(f.Contract.Returns) == 1 &&
-			f.Contract.Returns[0].Ty == TyBool &&
+			(f.Contract.Returns[0].Ty == TyBool || (f.Contract.Returns[0].Ty.Width() <= 8 && collectRegInfo(f)[t.Vals[0]].Ty == TyBool)) &&
 			f.Contract.Returns[0].Class != ClassFlag && g.loc(t.Vals[0]) == "F" {
 			g.emitFlagPredicateByte(g.condCode(f, t.Vals[0]))
 			if dst := canonicalReturnLoc(f.Contract.Returns[0].Class, TyBool); dst != "A" {
@@ -7646,6 +7591,9 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 	// F register: cannot be accessed directly. Materialise flag→register or
 	// register→flag via the same logic as emitMov.
 	if src == "F" {
+		if g.emitKnownFlagCopy(dst, ty.Width()) {
+			return
+		}
 		// Flag → register: SBC A,A materialises carry into A (0xFF/0x00).
 		if dst == "A" {
 			g.emit("    SBC A, A")
@@ -8121,6 +8069,7 @@ func (g *z80cg) promote8toPair(r string) string {
 func (g *z80cg) genCmp16(inst *Inst) {
 	lhs := g.loc(inst.Src[0])
 	rhs := g.loc(inst.Src[1])
+	defer g.saveLiveScratch(inst, "HL", "DE", "BC")()
 
 	// CmpGt/CmpLe traditionally swap operands so SBC HL,rr gives the C flag
 	// directly.  However, when lhs=HL and rhs=DE (common case), the swap
@@ -8143,6 +8092,17 @@ func (g *z80cg) genCmp16(inst *Inst) {
 		}
 	}
 
+	// A byte lhs must not be extended into HL while rhs still lives there.
+	// Stage both values before changing either register (also covers D/E).
+	if rhs == "HL" && (isIXYReg(lhs) || (isSimpleReg(lhs) && !isPairReg(lhs) && lhs != "F")) {
+		g.pushWord(lhs)
+		g.pushWord(rhs)
+		g.emit("    POP DE")
+		g.emit("    POP HL")
+		g.invalidate("DE")
+		g.invalidate("HL")
+		lhs, rhs = "HL", "DE"
+	}
 	// Guard: materialise F or 8-bit operands to proper 16-bit regs.
 	if lhs == "F" {
 		g.emit("    SBC A, A") // materialise flag to A
@@ -8310,6 +8270,7 @@ func (g *z80cg) genCmp16(inst *Inst) {
 		g.invalidate("HL")
 	}
 	g.normalizeSignedCmp(inst)
+	g.pendingFlagReg = inst.Dst
 }
 
 // genCmp32 emits a non-destructive 32-bit unsigned comparison (lhs vs rhs)
@@ -9100,4 +9061,251 @@ func emitStringLiteral(sb *strings.Builder, data []byte) {
 
 func isPrintableASCII(b byte) bool {
 	return b >= 0x20 && b <= 0x7E
+}
+
+// pushWord stages a value while preserving all register operands and flags.
+// EX (SP),HL restores HL and leaves the loaded word on the stack.
+func (g *z80cg) pushWord(src string) {
+	if isPairReg(src) || isIXY(src) {
+		g.emitf("    PUSH %s", src)
+		return
+	}
+	g.emit("    PUSH HL")
+	if isSpill(src) {
+		g.loadSpill16("HL", src)
+	} else {
+		g.emit("    PUSH AF")
+		g.emitLD8("L", src)
+		g.emit("    LD H, 0")
+		g.emit("    POP AF")
+	}
+	g.emit("    EX (SP), HL")
+	g.invalidate("HL")
+}
+
+// Only use proofs that survive promotion: unsigned parameters/constants,
+// zero extension from a narrower width, and copies of a proven value.
+func (g *z80cg) nonNegative(r Reg, seen map[Reg]bool) bool {
+	if seen[r] {
+		return false
+	}
+	seen[r] = true
+	for _, p := range g.fn.Contract.Params {
+		if p.Reg == r {
+			return p.Ty.Width() < 16 && !IsSigned(p.Ty)
+		}
+	}
+	for _, b := range g.fn.Blocks {
+		for _, i := range b.Insts {
+			if i.Dst != r {
+				continue
+			}
+			switch i.Op {
+			case OpExt:
+				return i.SrcTy != nil && i.Ty != nil && i.SrcTy.Width() < i.Ty.Width()
+			case OpConst:
+				return i.Imm >= 0 && i.Imm < (int64(1)<<(i.Ty.Width()-1))
+			case OpMove:
+				return g.nonNegative(i.Src[0], seen)
+			}
+		}
+	}
+	return false
+}
+
+func (g *z80cg) genPow2DivMod(inst *Inst, k int64, signed bool) {
+	dst, lhs := g.loc(inst.Dst), g.loc(inst.Src[0])
+	w := inst.Ty.Width()
+	wantMod := inst.Op == OpMod || inst.Op == OpSMod
+	if !signed && !wantMod && w <= 8 && !isSpill(dst) && !isIXY(dst) {
+		if isPairReg(lhs) {
+			lhs = lowByte(lhs)
+		}
+		g.emitLDA(lhs)
+		for v := k; v > 1; v >>= 1 {
+			g.emit("    SRL A")
+		}
+		if isPairReg(dst) {
+			g.emitLD8(lowByte(dst), "A")
+			g.emitf("    LD %s, 0", highByte(dst))
+		} else {
+			g.emitLD8(dst, "A")
+		}
+		g.invalidate("A")
+		g.invalidate(dst)
+		return
+	}
+
+	if !signed && wantMod && k <= 256 && !isIXY(dst) && !isSpill(dst) {
+
+		if isPairReg(lhs) {
+			lhs = lowByte(lhs)
+		}
+		g.emitLDA(lhs)
+		g.emitf("    AND %d", k-1)
+		if isPairReg(dst) {
+			g.emitLD8(lowByte(dst), "A")
+			g.emitf("    LD %s, 0", highByte(dst))
+		} else {
+			g.emitLD8(dst, "A")
+		}
+
+		g.invalidate("A")
+		g.invalidate(dst)
+		return
+	}
+	// HL is temporary unless it is the result. AF holds the original sign.
+
+	if lhs != "HL" {
+		g.pushWord(lhs)
+		g.emit("    POP HL")
+	}
+	idx := g.trampIdx
+	g.trampIdx++
+	negate := func() {
+		g.emit("    XOR A")
+		g.emit("    SUB L")
+		g.emit("    LD L, A")
+		if w == 16 {
+			g.emit("    SBC A, A")
+			g.emit("    SUB H")
+			g.emit("    LD H, A")
+		}
+	}
+	if signed {
+		hi := "H"
+		if w <= 8 {
+			hi = "L"
+		}
+		g.emitf("    LD A, %s", hi)
+		g.emit("    PUSH AF")
+		g.emitf("    BIT 7, %s", hi)
+		g.emitf("    JR Z, .pow2_abs_%d", idx)
+		negate()
+		g.emitf(".pow2_abs_%d:", idx)
+	}
+	if wantMod {
+		mask := k - 1
+		g.emit("    LD A, L")
+		g.emitf("    AND %d", mask&255)
+		g.emit("    LD L, A")
+		if w == 16 {
+			if mask < 256 {
+				g.emit("    LD H, 0")
+			} else {
+				g.emit("    LD A, H")
+				g.emitf("    AND %d", (mask>>8)&255)
+				g.emit("    LD H, A")
+			}
+		}
+	} else {
+		for v := k; v > 1; v >>= 1 {
+			if w == 16 {
+				g.emit("    SRL H")
+				g.emit("    RR L")
+			} else {
+				g.emit("    SRL L")
+			}
+		}
+	}
+	if signed {
+		g.emit("    POP AF")
+		g.emit("    OR A")
+		g.emitf("    JP P, .pow2_done_%d", idx)
+		negate()
+		g.emitf(".pow2_done_%d:", idx)
+	}
+	if w <= 8 {
+		g.emitMov(dst, "L", w)
+	} else {
+		g.emitMov(dst, "HL", w)
+	}
+
+	g.invalidate("A")
+	g.invalidate(dst)
+	g.invalidate("HL")
+}
+
+// Arithmetic helpers use fixed scratch registers beyond their allocated dst.
+// Preserve any unrelated live values there, including byte halves of pairs.
+func (g *z80cg) saveLiveScratch(inst *Inst, pairs ...string) func() {
+	live := g.regsLiveAfterInst(inst)
+	if g.liveness != nil && g.curBlock != nil {
+		if out := g.liveness.LiveOutOf(g.fn, g.curBlock); out != nil {
+			for r := range g.ar.Locs {
+				if out.Has(r) {
+					live[r] = true
+				}
+			}
+		}
+	}
+	dst := g.loc(inst.Dst)
+	accPair := "BC"
+	if dst == "BC" || dst == "B" || dst == "C" {
+		accPair = "HL"
+	}
+	saved := []string{}
+	for _, pair := range pairs {
+		overlaps := func(loc string) bool {
+			return loc == pair || loc == highByte(pair) || loc == lowByte(pair) || (pair == "AF" && (loc == "A"))
+		}
+		if overlaps(dst) {
+			continue
+		}
+		needed := false
+		for r := range live {
+			if r != inst.Dst && overlaps(g.loc(r)) {
+				needed = true
+				break
+			}
+		}
+		if needed {
+			if pair == "AF" {
+				g.emitf("    PUSH %s", accPair)
+			}
+			g.emitf("    PUSH %s", pair)
+			saved = append(saved, pair)
+		}
+	}
+	return func() {
+		for i := len(saved) - 1; i >= 0; i-- {
+			if saved[i] == "AF" {
+				g.emitf("    POP %s", accPair)
+				g.emitf("    LD A, %s", highByte(accPair))
+				g.emitf("    POP %s", accPair)
+				g.invalidate("A")
+			} else {
+				g.emitf("    POP %s", saved[i])
+				g.invalidate(saved[i])
+			}
+		}
+	}
+}
+
+// Comparisons can encode their result in Z, carry, or a two-flag predicate.
+// A scalar copy must use that predicate, and must preserve a live A when
+// writing another register (e.g. a short-circuit condition's block argument).
+func (g *z80cg) emitKnownFlagCopy(dst string, width int) bool {
+	if g.pendingFlagReg == NoReg {
+		return false
+	}
+	pair := "BC"
+	if dst == "BC" || dst == "B" || dst == "C" {
+		pair = "HL"
+	}
+	if dst != "A" {
+		g.emitf("    PUSH %s", pair)
+		g.emit("    PUSH AF")
+	}
+	g.emitFlagPredicateByte(g.condCode(g.fn, g.pendingFlagReg))
+	g.emitMov(dst, "A", width)
+	if dst != "A" {
+		g.emitf("    POP %s", pair)
+		g.emitf("    LD A, %s", highByte(pair))
+		g.emitf("    POP %s", pair)
+		g.invalidate(pair)
+	}
+	g.invalidate("A")
+	g.invalidate(dst)
+	return true
 }

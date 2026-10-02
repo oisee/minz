@@ -108,7 +108,11 @@ func (b *Builder) Move(src Reg, ty Ty, cls RegClass) Reg {
 // BinOp emits any OpAdd…OpSar instruction.
 func (b *Builder) BinOp(op Op, lhs, rhs Reg, ty Ty, cls RegClass) Reg {
 	r := b.reg()
-	b.emit(inst2(op, r, lhs, rhs, ty, cls))
+	i := inst2(op, r, lhs, rhs, ty, cls)
+	if op == OpSar || op == OpSDiv || op == OpSMod {
+		i.SrcTy = ty
+	}
+	b.emit(i)
 	return r
 }
 

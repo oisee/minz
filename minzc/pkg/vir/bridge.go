@@ -28,6 +28,9 @@ func LowerBlock(b *mir2.Block, desc *MachineDesc, mod *mir2.Module, fn ...*mir2.
 	}
 
 	for _, inst := range b.Insts {
+		if inst.Op == mir2.OpSDiv || inst.Op == mir2.OpSMod {
+			return nil, fmt.Errorf("vir: unsupported %s in %s", inst.Op, b.Label)
+		}
 		// Strength reduce div/mod by power-of-2 BEFORE translation
 		if (inst.Op == mir2.OpDiv || inst.Op == mir2.OpSDiv) && inst.Imm == 0 {
 			if k, ok := mirConsts[inst.Src[1]]; ok && k > 0 && isPow2(k) {

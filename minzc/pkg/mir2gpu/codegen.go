@@ -108,6 +108,9 @@ type CompileOptions struct {
 
 // Compile translates a MIR2 module to GPU compute shader source code.
 func Compile(m *mir2.Module, opts CompileOptions) (string, error) {
+	if err := mir2.RejectUnsupportedOps(m, "mir2gpu", mir2.OpSDiv, mir2.OpSMod); err != nil {
+		return "", err
+	}
 	spec, ok := specs[opts.Backend]
 	if !ok {
 		return "", fmt.Errorf("unknown backend: %d", opts.Backend)

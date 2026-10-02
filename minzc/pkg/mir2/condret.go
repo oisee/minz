@@ -67,6 +67,11 @@ func CondRetSink(f *Func) bool {
 		if condIsCarryBased(f, brif.Cond) && anyFlagClobberer(elseBlock.Insts) {
 			continue
 		}
+		// Arithmetic may overwrite the comparison flags. Only a single
+		// matching subtraction can be reordered and fused with the condition.
+		if !hoistedConditionFlagsSafe(blk, brif.Cond, elseBlock.Insts) {
+			continue
+		}
 		// Hoist instructions from @else into the current block.
 		blk.Insts = append(blk.Insts, elseBlock.Insts...)
 		// Replace BrIf with TermCondRet.
@@ -323,4 +328,33 @@ func anyFlagClobberer(insts []*Inst) bool {
 		}
 	}
 	return false
+}
+
+func hoistedConditionFlagsSafe(blk *Block, cond Reg, insts []*Inst) bool {
+	var cmp *Inst
+	for _, i := range blk.Insts {
+		if i.Op == OpCmp && i.Dst == cond {
+			cmp = i
+			break
+		}
+	}
+	if cmp == nil {
+		return true
+	}
+	var clobber *Inst
+	for _, i := range insts {
+		switch i.Op {
+		case OpConst, OpMove, OpAddrOf, OpLoad, OpTrunc:
+			continue
+		default:
+			if clobber != nil {
+				return false
+			}
+			clobber = i
+		}
+	}
+	if clobber == nil {
+		return true
+	}
+	return clobber.Op == OpSub && (cmp.Cond == CmpLt || cmp.Cond == CmpUlt) && clobber.Src[0] == cmp.Src[0] && clobber.Src[1] == cmp.Src[1]
 }
