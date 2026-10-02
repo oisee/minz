@@ -317,7 +317,9 @@ func TestExhaustiveJudgeLIRSingleBlock(t *testing.T) {
 }
 
 // Word fallback judges assemble once and exhaust the u16 domain for >>3;
-// add32 checks 65,636 sums on both MIR2 and the production Z80 ABI, including
+// This judge writes memory arguments directly to callee spill slots; it does
+// not test the caller/callee memory-parameter ABI (which currently mismatches).
+// add32 checks 65,636 sums on MIR2 and Z80 arithmetic, including
 // carries between main and shadow register banks.
 func TestExhaustiveJudgeLIRWideFallback(t *testing.T) {
 	for _, name := range []string{"shr16", "add32"} {

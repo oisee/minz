@@ -329,6 +329,7 @@ type z80cg struct {
 	// overriding the static allocator assignment g.ar.Loc(r).Name.
 	// Cleared at every CALL (the call clobbers volatile state).
 	physOverride map[Reg]string
+	regInfo      map[Reg]RegInfo
 
 	// liveness gives cross-block live-out sets so that block-local
 	// physOverride relocations can be undone for values a successor reads.
@@ -579,6 +580,7 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 
 func (g *z80cg) genFunc(f *Func) {
 	g.fn = f
+	g.regInfo = collectRegInfo(f)
 	g.cmpSwapped = make(map[Reg]bool)
 	g.cmpAndZero = make(map[Reg]bool)
 	g.cmpNeedsTwo = make(map[Reg]bool)
@@ -676,7 +678,7 @@ func (g *z80cg) genFunc(f *Func) {
 	// 1. Emit from g.ar.Spilled for vregs in collectRegInfo (known width)
 	// 2. Scan emitted asm for any _spill_ refs still missing a definition
 	//    (catches vregs not in Spilled or filtered by TSMC/regInfo)
-	regInfo := collectRegInfo(f)
+	regInfo := g.regInfo
 	emittedSpills := make(map[string]bool)
 	var spillCount int
 	for _, r := range g.ar.Spilled {
@@ -699,7 +701,7 @@ func (g *z80cg) genFunc(f *Func) {
 			}
 			w := 1
 			if info, ok := regInfo[r]; ok {
-				w = (info.Ty.Width() + 7) / 8
+				w = z80SpillBytes(info.Ty)
 			}
 			slabel := g.spillLabel(r)
 			emittedSpills[slabel] = true
@@ -764,7 +766,7 @@ func (g *z80cg) genFunc(f *Func) {
 			var r int
 			if _, err := fmt.Sscanf(slabel[len(prefix):], "%d", &r); err == nil {
 				if info, ok := regInfo[Reg(r)]; ok {
-					w = (info.Ty.Width() + 7) / 8
+					w = z80SpillBytes(info.Ty)
 				}
 			}
 			g.emitf("%s: DB %s", slabel, strings.TrimSuffix(strings.Repeat("0, ", w), ", "))

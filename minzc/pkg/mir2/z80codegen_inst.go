@@ -73,7 +73,7 @@ func (g *z80cg) genInst(inst *Inst) {
 		}
 		if !g.deadConsts[inst.Dst] {
 			w := inst.Ty.Width()
-			if w >= 24 {
+			if isZ80WideInt(inst.Ty) {
 				// 24/32-bit constant via shadow pair.
 				//   LD rr, lo16   (10T)
 				//   EXX           (4T)
@@ -133,7 +133,7 @@ func (g *z80cg) genInst(inst *Inst) {
 		if dst == src {
 			return // no-op
 		}
-		g.emitMov(dst, src, inst.Ty.Width())
+		g.emitMov(dst, src, 8*z80SpillBytes(inst.Ty))
 
 	case OpAdd:
 		g.lastFlagsLhs = ""
