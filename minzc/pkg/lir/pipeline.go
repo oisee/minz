@@ -328,27 +328,23 @@ func LIRCodegenFunc(f *mir2.Func, m *mir2.Module, hints ...AllocHints) (string, 
 		h = hints[0]
 	}
 
-	// Multi-block functions without block params can't be handled correctly
-	// by either LIR path:
-	// - Flat path flattens all blocks, losing control flow (branches dropped,
-	//   instructions from different blocks execute unconditionally)
-	// - Multi-block WFC has cross-block liveness bugs (destructive patterns
-	//   like XOR A chosen when A is live in later blocks)
-	// Bail to PBQP fallback for these functions.
-	if len(f.Blocks) > 1 && !hasBlockParams(f) && hasNonTrivialBranch(f) {
-		return "", fmt.Errorf("multi-block control flow without block params (needs PBQP)")
-	}
-
 	// Multi-block functions go to PBQP. lirCodegenMultiBlock emits wrong code
 	// without reporting an error (gcd returns 1 for gcd(12,8)), so it stays
 	// off until it passes the exhaustive judge (pkg/hir exhaustive_judge_test).
 	// The flat path is no fallback either: it concatenates the blocks and
 	// drops control flow.
 	if len(f.Blocks) > 1 {
-		return "", fmt.Errorf("multi-block LIR disabled until judged (needs PBQP)")
+		return "", fmt.Errorf("multi-block LIR disabled until it passes the judge")
 	}
 
 	return lirCodegenFlat(f, desc, m, h)
+}
+
+// LIRCodegenMultiBlockForResearch bypasses the production multi-block guard.
+// Test/research only: this path is known to miscompile and must pass the
+// exhaustive judge before it can be enabled in production.
+func LIRCodegenMultiBlockForResearch(f *mir2.Func, m *mir2.Module) (string, error) {
+	return lirCodegenMultiBlock(f, Z80, m)
 }
 
 // lirCodegenMultiBlock emits per-block labels, instructions, and terminators.

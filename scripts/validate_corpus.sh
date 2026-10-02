@@ -11,7 +11,7 @@
 #
 # Options:
 #   --lir=false   Force PBQP path only (skip LIR)
-#   --lir=true    Force LIR+PBQP hybrid (default)
+#   --lir=true    Force LIR+PBQP hybrid (--lir)
 #   --both        Run both paths and compare
 
 set -euo pipefail
@@ -56,15 +56,15 @@ case "$MODE" in
         count_errors "--lir=false"
         ;;
     --lir=true|--lir)
-        echo "=== LIR + PBQP hybrid (default) ==="
-        count_errors ""
+        echo "=== LIR + PBQP hybrid (--lir) ==="
+        count_errors "--lir"
         ;;
     --both)
         echo "=== PBQP only (--lir=false) ==="
         count_errors "--lir=false"
         echo ""
-        echo "=== LIR + PBQP hybrid (default) ==="
-        count_errors ""
+        echo "=== LIR + PBQP hybrid (--lir) ==="
+        count_errors "--lir"
         ;;
     *)
         echo "Usage: $0 [--lir=false|--lir=true|--both]"

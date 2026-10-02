@@ -2,11 +2,13 @@ package hir_test
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/lir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/pipeline"
 	"github.com/minz/minzc/pkg/z80asm"
@@ -156,12 +158,33 @@ func positiveArgs(a, b uint8) bool { return a >= 1 && b >= 1 }
 func TestExhaustiveJudgeGCD(t *testing.T) {
 	grace := pipeline.DefaultOptions()
 	grace.UseGrace = true
+	lirOpts := pipeline.DefaultOptions()
+	lirOpts.UseLIR = true
+	lirOpts.LIRCheck = true
 	for _, variant := range []struct {
 		name string
 		opts pipeline.Options
-	}{{"default", pipeline.DefaultOptions()}, {"grace", grace}} {
+	}{{"default", pipeline.DefaultOptions()}, {"grace", grace}, {"lir", lirOpts}} {
 		t.Run(variant.name, func(t *testing.T) {
-			fixture := compileHIRFixtureWithOptions(t, &hir.Module{Name: "judge_gcd", Funcs: []*hir.Func{gcdHIR()}}, variant.opts)
+			steps, err := pipeline.CompileHIRSteps(&hir.Module{Name: "judge_gcd", Funcs: []*hir.Func{gcdHIR()}}, variant.opts)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if variant.opts.UseLIR {
+				trace := steps.Traces["gcd"]
+				if trace == nil || !strings.Contains(trace.Backend, "PBQP-fallback") {
+					t.Fatalf("gcd must fall back to PBQP, got trace %+v", trace)
+				}
+				if len(steps.LIRResults) < 3 {
+					t.Fatalf("LIRCheck must still check gcd on all three machines: %+v", steps.LIRResults)
+				}
+				for _, result := range steps.LIRResults[:3] {
+					if strings.Contains(result.Error, "disabled") {
+						t.Fatalf("codegen guard leaked into convergence: %+v", result)
+					}
+				}
+			}
+			fixture := hirZ80Fixture{module: steps.MIR2Module, alloc: steps.Allocation, asm: steps.Assembly}
 			checked, bad := newU8Judge(t, fixture, "gcd", false).sweep(positiveArgs, gcdModel)
 			if checked != 255*255 {
 				t.Fatalf("judge checked %d inputs, want %d", checked, 255*255)
@@ -170,6 +193,37 @@ func TestExhaustiveJudgeGCD(t *testing.T) {
 				t.Fatalf("production Z80 gcd: %d/%d mismatches:%s\n%s", len(bad), checked, describeMismatches(bad), fixture.asm)
 			}
 		})
+	}
+}
+
+// TestExhaustiveJudgeGCDMultiBlockKnownRed keeps the disabled backend measurable.
+// The full sweep runs even when skipped, so the skip reports current evidence.
+// MINZ_RUN_KNOWN_RED=1 makes mismatches fail for work on the multi-block backend.
+func TestExhaustiveJudgeGCDMultiBlockKnownRed(t *testing.T) {
+	fixture := compileProductionHIRFixture(t, &hir.Module{Name: "judge_gcd", Funcs: []*hir.Func{gcdHIR()}})
+	// Use the production contract and allocation for the ABI bootstrap; the
+	// backend must honor those same inputs and return convention.
+	var err error
+	fixture.asm, err = lir.LIRCodegenMultiBlockForResearch(fixture.module.FuncByName("gcd"), fixture.module)
+	if err != nil {
+		t.Fatal(err)
+	}
+	checked, bad := newU8Judge(t, fixture, "gcd", false).sweep(positiveArgs, gcdModel)
+	if checked != 255*255 {
+		t.Fatalf("judge checked %d inputs, want %d", checked, 255*255)
+	}
+	timeouts := 0
+	for _, mismatch := range bad {
+		if mismatch.err != nil && strings.Contains(mismatch.err.Error(), "no HALT") {
+			timeouts++
+		}
+	}
+	if len(bad) > 0 {
+		message := fmt.Sprintf("multi-block LIR gcd: %d/%d mismatches, %d timeouts:%s", len(bad), checked, timeouts, describeMismatches(bad))
+		if os.Getenv("MINZ_RUN_KNOWN_RED") != "1" {
+			t.Skip(message)
+		}
+		t.Fatal(message)
 	}
 }
 
