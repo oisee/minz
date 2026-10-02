@@ -319,7 +319,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	s.Allocation = combined
 
 	// MIR2 VM assertion checks (skip "z80"-only asserts).
-	if opt.AssertMode != "z80" && opt.AssertMode != "none" {
+	if opt.AssertMode != "z80" && opt.AssertMode != "none" && opt.AssertMode != "wasm" && opt.AssertMode != "llvm" {
 		if err := RunAssertsMIR2(hm, m); err != nil {
 			return s, err
 		}
@@ -383,7 +383,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		}
 
 		// Z80 binary assertion checks (skip for eZ80 — different encoding).
-		if opt.Backend != "ez80" && opt.AssertMode != "mir2" && opt.AssertMode != "none" && opt.AssertMode != "wasm" {
+		if opt.Backend != "ez80" && opt.AssertMode != "mir2" && opt.AssertMode != "none" && opt.AssertMode != "wasm" && opt.AssertMode != "llvm" {
 			if err := RunAssertsZ80(hm, m, combined, s.Assembly); err != nil {
 				return s, err
 			}
@@ -551,7 +551,7 @@ func RunAssertsMIR2(hm *hir.Module, m *mir2.Module) error {
 		}
 		vm := mir2.NewVM(m)
 		prepareVM(vm)
-		if err := runOneAssertMIR2(vm, a); err != nil {
+		if err := hm.RecordAssert(runOneAssertMIR2(vm, a)); err != nil {
 			return err
 		}
 	}
@@ -563,7 +563,7 @@ func RunAssertsMIR2(hm *hir.Module, m *mir2.Module) error {
 			if a.Via == "z80" {
 				continue
 			}
-			if err := runOneAssertMIR2(vm, a); err != nil {
+			if err := hm.RecordAssert(runOneAssertMIR2(vm, a)); err != nil {
 				return fmt.Errorf("sandbox %q: %w", sb.Name, err)
 			}
 		}
@@ -670,7 +670,7 @@ func RunAssertsZ80(hm *hir.Module, m *mir2.Module, ar *mir2.AllocResult, asmSrc 
 			continue
 		}
 		z := emulator.NewRemogattoZ80()
-		if err := runOneAssertZ80(z, a, mir2Funcs, hirFuncs, ar, asmSrc); err != nil {
+		if err := hm.RecordAssert(runOneAssertZ80(z, a, mir2Funcs, hirFuncs, ar, asmSrc)); err != nil {
 			return err
 		}
 	}
@@ -685,7 +685,7 @@ func RunAssertsZ80(hm *hir.Module, m *mir2.Module, ar *mir2.AllocResult, asmSrc 
 			if a.Via == "mir2" {
 				continue
 			}
-			if err := runOneAssertZ80Sandbox(z, a, mir2Funcs, hirFuncs, ar, asmSrc, first); err != nil {
+			if err := hm.RecordAssert(runOneAssertZ80Sandbox(z, a, mir2Funcs, hirFuncs, ar, asmSrc, first)); err != nil {
 				return fmt.Errorf("sandbox %q: %w", sb.Name, err)
 			}
 			first = false

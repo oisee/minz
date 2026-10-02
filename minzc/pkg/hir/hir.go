@@ -96,17 +96,18 @@ func TargetFromString(s string) uint8 {
 
 // Module is the top-level HIR unit.
 type Module struct {
-	Name       string
-	Target     uint8 // platform target (TargetCPM, TargetZXSpectrum, etc.)
-	Funcs      []*Func
-	Globals    []mir2.Global     // reuse mir2.Global directly
-	Structs    []*mir2.StructTy  // named struct type declarations
-	Interfaces []*InterfaceDecl  // interface declarations (zero-cost, monomorphised)
-	Strings    []string          // interned string literals (index = position)
-	StrKinds   []mir2.StringKind // encoding per string (SString/LString/CString)
-	Warnings   []string          // use-before-init and other diagnostic warnings
-	Asserts    []Assert          // top-level compile-time assertions (each gets fresh VM)
-	Sandboxes  []Sandbox         // grouped assertions (shared VM per sandbox)
+	AssertStats *AssertStats // optional invocation-local execution accounting
+	Name        string
+	Target      uint8 // platform target (TargetCPM, TargetZXSpectrum, etc.)
+	Funcs       []*Func
+	Globals     []mir2.Global     // reuse mir2.Global directly
+	Structs     []*mir2.StructTy  // named struct type declarations
+	Interfaces  []*InterfaceDecl  // interface declarations (zero-cost, monomorphised)
+	Strings     []string          // interned string literals (index = position)
+	StrKinds    []mir2.StringKind // encoding per string (SString/LString/CString)
+	Warnings    []string          // use-before-init and other diagnostic warnings
+	Asserts     []Assert          // top-level compile-time assertions (each gets fresh VM)
+	Sandboxes   []Sandbox         // grouped assertions (shared VM per sandbox)
 }
 
 // FuncByName returns the first HIR function with the given name, or nil.
@@ -674,4 +675,19 @@ func GEP(base Expr, steps ...GEPStep) Expr {
 	}
 	flush() // emit trailing field
 	return cur
+}
+
+// AssertStats counts backend checks actually attempted, including failed checks.
+type AssertStats struct{ Executed, Passed, Failed int }
+
+func (m *Module) RecordAssert(err error) error {
+	if m.AssertStats != nil {
+		m.AssertStats.Executed++
+		if err == nil {
+			m.AssertStats.Passed++
+		} else {
+			m.AssertStats.Failed++
+		}
+	}
+	return err
 }

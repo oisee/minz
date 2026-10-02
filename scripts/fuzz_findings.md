@@ -11,7 +11,11 @@ outside this task.
 | 56 | 15015 / 15271 | 15014 / 15270 | [seed-56.nanz](testdata/fuzz_diff/seed-56.nanz) |
 | 399 | 456 / 712 | 17814 / 18070 | [seed-399.nanz](testdata/fuzz_diff/seed-399.nanz) |
 
-Both reduced programs disagree by 256. Seed 56 contains `(255 + 3)`
+Both reduced programs disagree by 256. Forcing MIR2 on the reduced
+reproducers returns the same values as Z80: seed 56 returns 15014 and seed 399
+returns 17814. These are MIR2≠oracle findings, not evidence of Z80≠MIR2.
+The frontend/HIR literal typing or the oracle semantics need investigation:
+the Python oracle defaults literal-only subexpressions to 16 bits. Seed 56 contains `(255 + 3)`
 inside a u16 expression; seed 399 contains `(2 - 100)`. These are observed
 wrong-value failures against the prototype's Python reference semantics;
 the likely area to investigate is the width of nested literal arithmetic.
@@ -25,3 +29,36 @@ Assembly failures (first invalid instruction):
 - `SBC` (4 seeds): 118, 144, 270, 411.
 
 All failures can be regenerated with the command above; `results.json` includes each full first diagnostic.
+
+## Compiler-stage verification (FIX1)
+
+Local `origin/main`: `e0fabc22473881d3967f2944744f965966c56c10`, built
+with reporting/selection instrumentation while retaining its codegen and
+assert recognition/force behavior. Command:
+
+```sh
+python3 scripts/fuzz_diff.py --mz /tmp/j2a-fix1-main-mz --seed 0 --count 500 -j 16 --no-reduce --output /tmp/j2a-fix1-fuzz-triage
+```
+
+Exit 1, wall 17.07 seconds. Primary classes: 250 pass, 5 MIR2≠oracle,
+0 Z80≠MIR2, 245 assembly failure, 0 other compiler/oracle errors. MIR2/oracle
+discrepancies take precedence over assembly failures in the primary class;
+three seeds have both findings, so total observed Z80 assembly failures are
+248. Full sources and both backend diagnostics are saved in the output.
+`--no-reduce` deliberately saves full reproducers for this smoke; it makes
+no claim that these newly recorded programs are minimal.
+
+| Seed | MIR2 got / oracle | Z80 result |
+| --- | --- | --- |
+| 56 | 15015 / 15271 | Same wrong value |
+| 200 | 0 / 45640 | Assembly failure: LD |
+| 235 | 0 / 54048 | Assembly failure: LD |
+| 399 | 456 / 712 | Same wrong value |
+| 498 | 0 / 6026 | Assembly failure: LD |
+
+The additional MIR2 discrepancies at 200, 235 and 498 were previously
+hidden by assembly failures; their cause is not established. For the saved
+reduced 56/399 fixtures, real compiler integration tests also verify that
+forced MIR2 and Z80 return identical wrong values (15014 and 17814).
+The old wrong-value count described only completed Z80 evaluations; it
+must not be interpreted as the count of Z80 codegen discrepancies.

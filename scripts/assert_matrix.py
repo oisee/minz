@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
-"""Isolated corpus judge (Python standard library only).
+"""Compiler-owned assertion matrix. See scripts/README.md for the protocol.
 
-python3 scripts/assert_matrix.py --mz /path/to/mz [-j 16] [--runs 3]
-python3 scripts/assert_matrix.py --baseline /path/main --candidate /path/branch
-Use --glob (repeatable) to replace defaults; --root selects a repository.
-Each worker has a temporary mirror of tracked files, preserving relative imports
-and includes. Only the selected source is replaced; other assertion lines are
-blanked, preserving line numbers. A repeated assertion passes only if all runs
-pass. Comparison exits 1 for regressions; single mode exits 1 for any failure.
+Baseline and candidate binaries must support --list-asserts, --assert-lines,
+--assert-control-line and the final ASSERTS execution receipt. Older compilers
+must be instrumented: an exit-zero invocation without a receipt never passes.
 """
 import argparse
 import concurrent.futures
@@ -16,52 +12,60 @@ import os
 from pathlib import Path
 import re
 import subprocess
+import sys
 import tempfile
 import threading
 
 DEFAULT_GLOBS = ['examples/nanz/*.nanz', 'examples/c89/**/*.c', 'examples/c/*.c']
-NANZ_ASSERT = re.compile(r'^\s*assert\s+')
-C_ASSERT = re.compile(r'^\s*//\s*assert\s+')
-
-
-def is_assert(source, suffix):
-    return (NANZ_ASSERT if suffix == '.nanz' else C_ASSERT).match(source)
+RECEIPT = re.compile(r'^ASSERTS: executed=(\d+) passed=(\d+) failed=(\d+)$', re.M)
 
 
 def tracked(root):
     return subprocess.check_output(['git', '-C', str(root), 'ls-files', '-z']).decode().split('\0')[:-1]
 
 
-def enumerate_asserts(root, files, globs):
+def enumerate_asserts(root, files, globs, mz, jobs=1, timeout=30):
     selected = {str(p.relative_to(root)) for g in globs for p in root.glob(g) if p.is_file()}
-    out = []
-    for name in sorted(files):
-        if name not in selected:
-            continue
-        for line, source in enumerate((root / name).read_text().splitlines(), 1):
-            if is_assert(source, Path(name).suffix):
-                out.append({'file': name, 'line': line, 'assert': source.strip()})
-    return out
+    def listing(name):
+        p = subprocess.run([mz, name, '--list-asserts'], cwd=root,
+                           env=dict(os.environ, SOURCE_DATE_EPOCH='0'), capture_output=True,
+                           text=True, timeout=timeout)
+        if p.returncode:
+            raise RuntimeError(f'{name}: enumeration failed: {p.stderr.strip()}')
+        result = []
+        for line in p.stdout.splitlines():
+            a = json.loads(line)
+            if not all(k in a for k in ('file', 'line', 'expression', 'via', 'kind')):
+                raise RuntimeError(f'{name}: invalid listing: {a}')
+            a['file'] = name
+            a['assert'] = a['expression']
+            result.append(a)
+        return result
+    with concurrent.futures.ThreadPoolExecutor(max_workers=jobs) as pool:
+        return [a for group in pool.map(listing, sorted(set(files) & selected)) for a in group]
 
 
-def isolate(source, line, suffix='.nanz'):
-    return ''.join('\n' if is_assert(s, suffix) and i != line else s
-                   for i, s in enumerate(source.splitlines(keepends=True), 1))
-
-
-def run_compiler(mz, path, timeout, cwd=None):
+def run_compiler(mz, path, timeout, cwd=None, lines=None, expected=1, control=None, backend='z80'):
+    cmd = [mz, str(path), '--asserts-force', backend, '-o', '/dev/null']
+    if lines is not None:
+        cmd += ['--assert-lines', ','.join(map(str, lines))]
+    if control is not None:
+        cmd += ['--assert-control-line', str(control)]
     try:
-        p = subprocess.run([mz, str(path), '--asserts-force', 'z80', '-o', '/dev/null'],
-                           cwd=cwd, env=dict(os.environ, SOURCE_DATE_EPOCH='0'),
-                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        p = subprocess.run(cmd, cwd=cwd, env=dict(os.environ, SOURCE_DATE_EPOCH='0'),
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                            text=True, errors='replace', timeout=timeout)
-        lines = p.stdout.splitlines()
-        error = next((s.strip() for s in lines if re.search(r'error|fail|panic', s, re.I)), lines[0] if lines else '')
-        return {'pass': p.returncode == 0, 'exit_code': p.returncode, 'error': error if p.returncode else ''}
+        output = p.stdout + p.stderr
+        receipts = RECEIPT.findall(p.stderr)
+        counts = dict(zip(('executed', 'passed', 'failed'), map(int, receipts[-1]))) if receipts else {}
+        passed = p.returncode == 0 and len(receipts) == 1 and counts == {'executed': expected, 'passed': expected, 'failed': 0}
+        error = next((s.strip() for s in output.splitlines() if re.search(r'error|fail|panic', s, re.I) and not s.startswith('ASSERTS:')), '')
+        if not passed and not error:
+            error = f'invalid execution receipt: expected {expected}, got {counts}'
+        return {'pass': passed, 'exit_code': p.returncode, 'error': error if not passed else '', **counts,
+                'unchecked': p.returncode == 0 and not passed}
     except subprocess.TimeoutExpired:
         return {'pass': False, 'exit_code': None, 'error': f'timeout after {timeout:g}s'}
-    except OSError as e:
-        return {'pass': False, 'exit_code': None, 'error': str(e)}
 
 
 def classify(baseline, candidate):
@@ -69,33 +73,115 @@ def classify(baseline, candidate):
             (True, False): 'newly fail', (False, False): 'fail both'}[baseline, candidate]
 
 
-def matrix(root, globs, compilers, jobs, runs, timeout):
-    files = tracked(root)
-    assertions = enumerate_asserts(root, files, globs)
+def outcomes(attempts):
+    return {'pass': all(a['pass'] for a in attempts),
+            'flaky': len({a['pass'] for a in attempts}) > 1, 'runs': attempts}
+
+
+def inventory_changes(before, after):
+    def indexed(items):
+        out, occurrences = {}, {}
+        for a in items:
+            key = (a['file'], a['line'], a['kind'])
+            occurrence = occurrences.get(key, 0)
+            occurrences[key] = occurrence + 1
+            out[(*key, occurrence)] = a
+        return out
+    b, c = indexed(before), indexed(after)
+    return ([b[k] for k in sorted(b.keys() - c.keys())],
+            [c[k] for k in sorted(c.keys() - b.keys())],
+            [{'baseline': b[k], 'candidate': c[k]} for k in sorted(b.keys() & c.keys())
+             if b[k]['expression'] != c[k]['expression']])
+
+
+def matrix(root, globs, compilers, jobs, runs, timeout, controls=False, roots=None):
+    roots = roots or {label: root for label in compilers}
+    inventories = {label: enumerate_asserts(roots[label], tracked(roots[label]), globs, mz, jobs, timeout)
+                   for label, mz in compilers.items()}
+    # A sandbox is a unit: its assertions retain source order and shared state.
+    units = {}
+    for label, assertions in inventories.items():
+        for a in assertions:
+            key = (a['file'], a['line'] if a['kind'] == 'top-level' else a['kind'])
+            unit = units.setdefault(key, {'file': a['file'], 'line': a['line'], 'kind': a['kind'], 'assert': a['expression'], 'members': {}})
+            unit['members'].setdefault(label, []).append(a)
     local = threading.local()
     with tempfile.TemporaryDirectory(prefix='assert-matrix-') as temp:
-        def work(item):
-            if not hasattr(local, 'mirror'):
-                local.mirror = Path(temp) / str(threading.get_ident())
-                for name in files:
-                    dest = local.mirror / name
-                    dest.parent.mkdir(parents=True, exist_ok=True)
-                    dest.symlink_to(root / name)
-            dest = local.mirror / item['file']
-            dest.unlink()
-            dest.write_text(isolate((root / item['file']).read_text(), item['line'], dest.suffix))
-            result = dict(item)
+        def work(unit):
+            if not hasattr(local, 'mirrors'):
+                local.mirrors = {}
+                for label in compilers:
+                    mirror = Path(temp) / str(threading.get_ident()) / label
+                    for name in tracked(roots[label]):
+                        dest = mirror / name
+                        dest.parent.mkdir(parents=True, exist_ok=True)
+                        dest.symlink_to(roots[label] / name)
+                    local.mirrors[label] = mirror
+            result = dict(unit)
             for label, mz in compilers.items():
-                attempts = [run_compiler(mz, dest, timeout, local.mirror) for _ in range(runs)]
-                result[label] = {'pass': all(a['pass'] for a in attempts), 'runs': attempts}
-            # Restore the source so a later assertion's imports see the original.
-            dest.unlink()
-            dest.symlink_to(root / item['file'])
+                members = unit['members'].get(label, [])
+                if not members:
+                    # Audit candidate-only directives on the old compiler when
+                    # that source already existed in the baseline checkout.
+                    # They remain "added" in inventory comparison.
+                    if label == 'baseline' and (roots[label] / unit['file']).is_file():
+                        mirror = local.mirrors[label]
+                        candidate_members = unit['members'].get('candidate', [])
+                        result['baseline_inventory_probe'] = run_compiler(
+                            mz, mirror / unit['file'], timeout, mirror,
+                            [a['line'] for a in candidate_members], len(candidate_members))
+                    continue
+                mirror = local.mirrors[label]
+                path = mirror / unit['file']
+                # Copy the source; compiler filtering also handles multiline and
+                # boolean assertions without a second parser in this script.
+                path.unlink()
+                path.write_text((roots[label] / unit['file']).read_text())
+                lines = [a['line'] for a in members]
+                result[label] = outcomes([run_compiler(mz, path, timeout, mirror, lines, len(members)) for _ in range(runs)])
+                if controls and label in ('candidate', 'compiler'):
+                    result['controls'] = []
+                    for a in members:
+                        attempt = run_compiler(mz, path, timeout, mirror, lines, len(members), a['line'])
+                        result['controls'].append({'line': a['line'], 'unexpected_pass': attempt['exit_code'] == 0, **attempt})
+                path.unlink()
+                path.symlink_to(roots[label] / unit['file'])
             if len(compilers) == 2:
-                result['classification'] = classify(result['baseline']['pass'], result['candidate']['pass'])
+                if 'baseline' not in result:
+                    category = 'added'
+                elif 'candidate' not in result:
+                    category = 'removed'
+                elif result['baseline']['flaky'] or result['candidate']['flaky']:
+                    category = 'flaky'
+                else:
+                    category = classify(result['baseline']['pass'], result['candidate']['pass'])
+                result['classification'] = category
+                if category == 'fail both':
+                    result['changed_failure'] = result['baseline']['runs'][0]['error'] != result['candidate']['runs'][0]['error']
+            else:
+                result['classification'] = 'flaky' if result['compiler']['flaky'] else 'pass' if result['compiler']['pass'] else 'fail'
             return result
         with concurrent.futures.ThreadPoolExecutor(max_workers=jobs) as pool:
-            return list(pool.map(work, assertions))
+            results = list(pool.map(work, units.values()))
+    summary = {category: sum(r['classification'] == category for r in results)
+               for category in (['pass both', 'newly pass', 'newly fail', 'fail both', 'flaky']
+                                if len(compilers) == 2 else ['pass', 'fail', 'flaky'])}
+    summary['units'] = len(results)
+    summary['asserts'] = {label: len(items) for label, items in inventories.items()}
+    summary['controls_unexpected_pass'] = sum(c['unexpected_pass'] for r in results for c in r.get('controls', []))
+    summary['controls_checked'] = sum(len(r.get('controls', [])) for r in results)
+    summary['previously_passing_unexecuted'] = sum(
+        len(r['members'].get('baseline', r['members'].get('candidate', [])))
+        for r in results if any(a.get('unchecked', False) and a.get('executed', 0) == 0
+                               for a in r.get('baseline', {}).get('runs', []) +
+                               ([r['baseline_inventory_probe']] if 'baseline_inventory_probe' in r else [])))
+    summary['added_failures'] = sum(r['classification'] == 'added' and not r.get('candidate', {}).get('pass', False) for r in results)
+    summary['changed_failures'] = sum(r.get('changed_failure', False) for r in results)
+    if len(compilers) == 2:
+        removed, added, changed = inventory_changes(inventories['baseline'], inventories['candidate'])
+        summary.update(removed=removed, added=added, changed=changed,
+                       removed_count=len(removed), added_count=len(added), changed_count=len(changed))
+    return {'version': 1, 'summary': summary, 'results': results}
 
 
 def positive(value):
@@ -105,39 +191,69 @@ def positive(value):
     return n
 
 
+def exit_code(report, comparison, allow=False):
+    s = report['summary']
+    if not all(s['asserts'].values()):
+        return 2
+    if comparison and not any(r.get('baseline', {}).get('pass') for r in report['results']):
+        return 2
+    if s['controls_unexpected_pass'] or s.get('flaky', 0):
+        return 1
+    if comparison:
+        return int(bool(s.get('newly fail', 0) or s['added_failures'] or (not allow and (s['removed'] or s['changed']))))
+    return int(bool(s.get('fail', 0)))
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--root', type=Path, default=Path(__file__).resolve().parents[1])
+    p.add_argument('--baseline-root', type=Path, help='baseline checkout (default: origin/main archive)')
+    p.add_argument('--candidate-root', type=Path)
     p.add_argument('--glob', action='append')
-    p.add_argument('--mz')
-    p.add_argument('--baseline')
-    p.add_argument('--candidate')
+    p.add_argument('--mz'); p.add_argument('--baseline'); p.add_argument('--candidate')
     p.add_argument('-j', type=positive, default=os.cpu_count() or 1)
     p.add_argument('--runs', type=positive, default=1)
     p.add_argument('--timeout', type=float, default=30)
-    p.add_argument('--json', type=Path, help='also save complete comparison results')
+    p.add_argument('--json', type=Path)
+    p.add_argument('--allow-assert-changes', action='store_true')
+    p.add_argument('--controls', action=argparse.BooleanOptionalAction, default=True,
+                   help='negative controls, enabled by default; --no-controls skips them')
     args = p.parse_args()
     if args.timeout <= 0:
         p.error('--timeout must be positive')
+    comparison = bool(args.baseline and args.candidate and not args.mz)
     if args.mz and not (args.baseline or args.candidate):
         compilers = {'compiler': str(Path(args.mz).resolve())}
-    elif args.baseline and args.candidate and not args.mz:
+    elif comparison:
         compilers = {k: str(Path(v).resolve()) for k, v in [('baseline', args.baseline), ('candidate', args.candidate)]}
     else:
         p.error('provide --mz OR both --baseline and --candidate')
-    results = matrix(args.root.resolve(), args.glob or DEFAULT_GLOBS, compilers, args.j, args.runs, args.timeout)
-    if args.json:
-        args.json.write_text(json.dumps(results, indent=2) + '\n')
-    if 'compiler' in compilers:
-        print(json.dumps(results, indent=2))
-        return int(any(not r['compiler']['pass'] for r in results))
-    for category in ['pass both', 'newly pass', 'newly fail', 'fail both']:
-        print(f'{category:12} {sum(r["classification"] == category for r in results):6}')
-    for r in results:
-        if r['classification'] == 'newly fail':
-            err = next(a['error'] for a in r['candidate']['runs'] if not a['pass'])
-            print(f'{r["file"]}:{r["line"]}: {r["assert"]}\n  {err}')
-    return int(any(r['classification'] == 'newly fail' for r in results))
+    try:
+        with tempfile.TemporaryDirectory(prefix='assert-baseline-') as temp:
+            root = args.root.resolve()
+            roots = {label: root for label in compilers}
+            if comparison:
+                if args.baseline_root:
+                    roots['baseline'] = args.baseline_root.resolve()
+                else:
+                    archive = subprocess.check_output(['git', '-C', str(root), 'archive', 'origin/main'])
+                    subprocess.run(['tar', '-x', '-C', temp], input=archive, check=True)
+                    subprocess.run(['git', 'init', '-q', temp], check=True)
+                    subprocess.run(['git', '-C', temp, 'add', '.'], check=True)
+                    roots['baseline'] = Path(temp)
+                roots['candidate'] = (args.candidate_root or root).resolve()
+            report = matrix(root, args.glob or DEFAULT_GLOBS, compilers, args.j, args.runs, args.timeout, args.controls, roots)
+        if args.json:
+            args.json.write_text(json.dumps(report, indent=2) + '\n')
+        print(json.dumps(report, indent=2) if not comparison else json.dumps(report['summary'], indent=2))
+        if comparison:
+            for r in report['results']:
+                if r['classification'] in ('newly fail', 'flaky') or r.get('changed_failure') or (r['classification'] == 'added' and not r['candidate']['pass']):
+                    print(f'{r["file"]}:{r["line"]}: {r["classification"]}: {r.get("candidate", {}).get("runs", [{}])[0].get("error", "")}')
+        return exit_code(report, comparison, args.allow_assert_changes)
+    except Exception as e:
+        print(f'tool error: {e}', file=sys.stderr)
+        return 2
 
 
 if __name__ == '__main__':

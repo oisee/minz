@@ -12,17 +12,15 @@ python3 scripts/assert_matrix.py --baseline /tmp/main-mz --candidate /tmp/branch
 
 The default corpus is tracked `examples/nanz/*.nanz`, `examples/c89/**/*.c`,
 and `examples/c/*.c`. Repeat `--glob` to choose another corpus and use `--root`
-for another checkout. Each assert is compiled alone with `--asserts-force z80`,
+for another checkout. Each top-level assert (or whole sandbox) is compiled with `--asserts-force z80`,
 a 30 second timeout (`--timeout`), and `SOURCE_DATE_EPOCH=0`. Workers have
 separate temporary mirrors of tracked files; relative includes/imports resolve
-in the same directory layout. Other assertion lines in the selected source
-are replaced by blank lines. The original files are never modified.
+in the same directory layout. The compiler selects parsed assertions with `--assert-lines`, preserving source line numbers. The original files are never modified.
 
-Single mode prints JSON and exits 1 for any failure. Comparison prints counts
-for pass both / newly pass / newly fail / fail both and lists regression
-locations with their first diagnostic. It exits 1 only for newly failing
-assertions. `--runs K` repeats each compiler invocation; an assertion passes
-only when every repetition passes. Default parallelism is the CPU count.
+Single mode prints versioned JSON and exits 1 for failures. Comparison prints
+counts and regression locations. `--runs K` repeats each invocation; mixed
+outcomes are flaky. Default parallelism is the CPU count. Detailed exit rules
+and the compiler protocol appear below.
 
 ## Differential fuzzing
 
@@ -34,12 +32,13 @@ This ports the `fuzz2.py` prototype's existing subset: wrapping u8/u16
 arithmetic, bitwise operations, division/remainder, casts, helper calls,
 comparisons, branches, and bounded loops. Each program seed fixes both the
 source and inputs regardless of scheduling. A Python interpreter computes
-an assertion checked by the production Z80 compiler/emulator.
+an assertion checked by both the production MIR2 VM and Z80 emulator.
 
 Wrong-value failures produce `seed-N.nanz`, reduced until no complete helper
 function, control block or individual statement can be deleted while preserving a wrong-value
-failure, and `seed-N.original.nanz`. This is a local deletion minimum. Syntax,
-compiler, timeout and oracle errors are counted separately; compiler failures
+failure, and `seed-N.original.nanz`. This is a local deletion minimum. `--no-reduce` saves full reproducers for
+fast smoke triage without deletion reduction. Syntax,
+compiler, assembly, timeout and oracle errors are counted separately; compiler failures
 save `seed-N.error.nanz`. `results.json` records all seeds and diagnostics.
 Exit status is 1 if any program fails or cannot be checked. `--timeout` bounds
 each compiler invocation, including reduction attempts.
@@ -48,3 +47,27 @@ Run self-tests with `python3 scripts/test_judges.py`; `go test ./pkg/hir` also
 runs them, skipping when Python 3 is unavailable.
 
 The initial 500-program findings are recorded in [fuzz_findings.md](fuzz_findings.md).
+
+The compiler is the authority for inventory (`--list-asserts`, JSON lines) and
+execution (`ASSERTS: executed=N passed=P failed=F` on stderr). A successful
+isolated check requires exit 0 and exactly one receipt with executed=passed=1,
+failed=0. Sandboxes run together and require executed=passed=their member count.
+`--assert-lines` selects frontend-parsed assertions, including multiline forms.
+Negative controls are enabled by default (`--controls`; skip with
+`--no-controls`). For each assertion, a copied source is parsed and its expected
+HIR value is mutated by `--assert-control-line`; flipping bit 32 puts the value
+outside the Z80 return range. Any control exiting 0 fails the gate.
+
+Comparison inventories come from separate checkouts and their respective
+compilers. `--baseline-root` supplies a checkout; its default is an archive of
+local `origin/main`. `--candidate-root` defaults to `--root`. Old binaries need
+reporting/selection instrumentation before comparison; missing receipts never
+pass. Failing candidate-only assertions also fail the gate. Removed or changed expressions fail unless `--allow-assert-changes` is
+set. Added assertions and changed first diagnostics for failures on both sides
+are reported. Mixed repeated outcomes are flaky and exit 1. JSON is an object
+with version=1, summary, and results. Zero inventory, baseline passing no units,
+enumeration failures and Python exceptions exit 2.
+
+The fuzzer now runs forced MIR2 and Z80 separately. It distinguishes
+MIR2≠oracle, Z80≠MIR2 (MIR2 must first agree with the oracle), and assembly
+failures. Reduced reproducers must retain their original failure class.

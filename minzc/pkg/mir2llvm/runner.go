@@ -92,6 +92,16 @@ func RunAsserts(hm *hir.Module, m *mir2.Module, force bool) error {
 	err = cmd.Run()
 	output := stdout.String()
 
+	// Count only checks reported by the runner.
+	for _, line := range strings.Split(output, "\n") {
+		if strings.HasPrefix(line, "PASS:") {
+			hm.RecordAssert(nil)
+		}
+		if strings.HasPrefix(line, "FAIL:") {
+			hm.RecordAssert(fmt.Errorf("%s", line))
+		}
+	}
+
 	// Parse output for failures
 	for _, line := range strings.Split(output, "\n") {
 		if strings.HasPrefix(line, "FAIL:") {

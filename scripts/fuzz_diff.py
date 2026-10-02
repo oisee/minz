@@ -254,7 +254,24 @@ def minimize(src, args, check):
     return with_assert(src, args)
 
 
-def fuzz_one(seed, mz, timeout, output):
+def differential_status(mir, z80):
+    if mismatch(mir): return 'MIR2 != oracle'
+    if re.search(r'(?i)assembl|invalid instruction|unknown instruction', z80['error']): return 'assembly failure'
+    if mir['pass'] and mismatch(z80): return 'Z80 != MIR2'
+    if mir['pass'] and z80['pass']: return 'pass'
+    return 'compiler error'
+
+
+def reduction_check(text, status, check):
+    mir = check(text, 'mir2')
+    if status == 'MIR2 != oracle':
+        return mir
+    if not mir['pass']:
+        return {'pass': False, 'error': 'MIR2 no longer agrees with oracle'}
+    return check(text)
+
+
+def fuzz_one(seed, mz, timeout, output, reduce=True):
     src, args = generated(seed)
     try:
         program = with_assert(src, args)
@@ -262,18 +279,22 @@ def fuzz_one(seed, mz, timeout, output):
         return {'seed': seed, 'status': 'oracle error', 'error': str(e)}
     with tempfile.TemporaryDirectory(prefix='fuzz-diff-') as temp:
         path = Path(temp) / 'case.nanz'
-        def check(text):
+        def check(text, backend='z80'):
             path.write_text(text)
-            return run_compiler(mz, path, timeout)
-        result = check(program)
-        status = 'pass' if result['pass'] else 'mismatch' if mismatch(result) else 'compiler error'
-        if status == 'mismatch':
-            reduced = minimize(src, args, check)
+            return run_compiler(mz, path, timeout, backend=backend)
+        mir = check(program, 'mir2')
+        z80 = check(program)
+        status = differential_status(mir, z80)
+        result = mir if status == 'MIR2 != oracle' else z80
+        if status in ('MIR2 != oracle', 'Z80 != MIR2'):
+            def reduce_check(text):
+                return reduction_check(text, status, check)
+            reduced = minimize(src, args, reduce_check) if reduce else program
             (output / f'seed-{seed}.nanz').write_text(reduced)
             (output / f'seed-{seed}.original.nanz').write_text(program)
-        elif status == 'compiler error':
+        elif status in ('compiler error', 'assembly failure'):
             (output / f'seed-{seed}.error.nanz').write_text(program)
-        return {'seed': seed, 'status': status, 'error': result['error']}
+        return {'seed': seed, 'status': status, 'error': result['error'], 'mir2': mir, 'z80': z80}
 
 
 def main():
@@ -284,15 +305,16 @@ def main():
     p.add_argument('-j', type=positive, default=os.cpu_count() or 1)
     p.add_argument('--timeout', type=float, default=30)
     p.add_argument('--output', type=Path, required=True)
+    p.add_argument('--no-reduce', action='store_true', help='save full reproducers and skip deletion reduction for fast triage')
     a = p.parse_args()
     if a.timeout <= 0:
         p.error('--timeout must be positive')
     a.output.mkdir(parents=True, exist_ok=True)
     mz = str(Path(a.mz).resolve())
     with concurrent.futures.ThreadPoolExecutor(max_workers=a.j) as pool:
-        results = list(pool.map(lambda seed: fuzz_one(seed, mz, a.timeout, a.output), range(a.seed, a.seed+a.count)))
+        results = list(pool.map(lambda seed: fuzz_one(seed, mz, a.timeout, a.output, not a.no_reduce), range(a.seed, a.seed+a.count)))
     (a.output / 'results.json').write_text(json.dumps(results, indent=2) + '\n')
-    for status in ['pass', 'mismatch', 'compiler error', 'oracle error']:
+    for status in ['pass', 'MIR2 != oracle', 'Z80 != MIR2', 'assembly failure', 'compiler error', 'oracle error']:
         print(f'{status}: {sum(r["status"] == status for r in results)}')
     for r in results:
         if r['status'] != 'pass':
@@ -301,4 +323,8 @@ def main():
 
 
 if __name__ == '__main__':
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except Exception as e:
+        print(f'tool error: {e}', file=sys.stderr)
+        raise SystemExit(2)

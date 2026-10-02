@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 
 	"github.com/minz/minzc/pkg/abap"
@@ -18,16 +19,16 @@ import (
 	"github.com/minz/minzc/pkg/lanz"
 	"github.com/minz/minzc/pkg/lizp"
 	// "github.com/minz/minzc/pkg/mir" — MIR1 deprecated, archived to pkg/_archive/mir1_deprecated
+	"github.com/minz/minzc/pkg/c89"
+	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/mir2c"
+	"github.com/minz/minzc/pkg/mir2gpu" // GPU backends: CUDA, OpenCL, Vulkan, Metal
+	"github.com/minz/minzc/pkg/mir2llvm"
+	"github.com/minz/minzc/pkg/mir2wasm"
 	"github.com/minz/minzc/pkg/module"
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/optimizer"
 	"github.com/minz/minzc/pkg/parser"
-	"github.com/minz/minzc/pkg/c89"
-	"github.com/minz/minzc/pkg/mir2"
-	"github.com/minz/minzc/pkg/mir2c"
-	"github.com/minz/minzc/pkg/mir2gpu"  // GPU backends: CUDA, OpenCL, Vulkan, Metal
-	"github.com/minz/minzc/pkg/mir2llvm"
-	"github.com/minz/minzc/pkg/mir2wasm"
 	"github.com/minz/minzc/pkg/pascal"
 	"github.com/minz/minzc/pkg/pipeline"
 	"github.com/minz/minzc/pkg/plm"
@@ -39,62 +40,66 @@ import (
 )
 
 var (
-	outputFile   string
-	disableOptimize  bool  // Disable ALL optimizations (enabled by default)
-	disableIROpt     bool  // Disable IR/MIR-level optimizations only
-	disableReroll    bool  // Disable loop reroll optimization only
-	disableAsmOpt    bool  // Disable assembly-level peephole only
+	cliAssertStats    *hir.AssertStats
+	outputFile        string
+	disableOptimize   bool // Disable ALL optimizations (enabled by default)
+	disableIROpt      bool // Disable IR/MIR-level optimizations only
+	disableReroll     bool // Disable loop reroll optimization only
+	disableAsmOpt     bool // Disable assembly-level peephole only
 	disableCodegenOpt bool // Disable codegen-level constant tracking
-	debug            bool
-	disableSMC       bool  // Disable self-modifying code (enabled by default)
-	enableTAS    bool
-	disableCTIE  bool   // Disable Compile-Time Interface Execution (enabled by default)
-	ctieDebug    bool   // Debug CTIE decisions
-	tasFile      string
-	tasReplay    string
-	backend      string
-	target       string  // Target platform (zxspectrum, cpm, etc.)
-	forceOutput  bool    // --force: overwrite implicit generated C output
-	outputFormat string  // Output format (code, sna, tap) — independent of target
-	listBackends bool
-	visualizeMIR string // Output file for MIR visualization
-	showVersion  bool
-	showVersionFull bool
-	dumpAST      bool   // Dump AST in JSON format
-	dumpMIR      bool   // Dump MIR to stdout
-	
-	compileTrace bool    // Structured compilation trace output
+	debug             bool
+	disableSMC        bool // Disable self-modifying code (enabled by default)
+	enableTAS         bool
+	disableCTIE       bool // Disable Compile-Time Interface Execution (enabled by default)
+	ctieDebug         bool // Debug CTIE decisions
+	tasFile           string
+	tasReplay         string
+	backend           string
+	target            string // Target platform (zxspectrum, cpm, etc.)
+	forceOutput       bool   // --force: overwrite implicit generated C output
+	outputFormat      string // Output format (code, sna, tap) — independent of target
+	listBackends      bool
+	visualizeMIR      string // Output file for MIR visualization
+	showVersion       bool
+	showVersionFull   bool
+	dumpAST           bool // Dump AST in JSON format
+	dumpMIR           bool // Dump MIR to stdout
+
+	compileTrace bool // Structured compilation trace output
 
 	// Superoptimizer
-	superoptRules string  // Path to z80-optimizer rules.json[.gz]
+	superoptRules string // Path to z80-optimizer rules.json[.gz]
 
 	// PGO (Profile-Guided Optimization) - Quick Win flags
-	pgoProfile   string  // Path to .tas profile file for PGO compilation
-	pgoDebug     bool    // Debug PGO decisions
+	pgoProfile string // Path to .tas profile file for PGO compilation
+	pgoDebug   bool   // Debug PGO decisions
 
 	// Backend selection
-	useLIR       bool    // Report disabled native LIR; compile with PBQP
-	useZ3        bool    // No effect while native LIR emission is disabled
-	optSize      bool    // -Osize: optimize for code size (Grace reroll, DJNZ loops)
-	useGrace     bool    // --grace: run all Grace MIR2 passes before VIR lowering
+	useLIR   bool // Report disabled native LIR; compile with PBQP
+	useZ3    bool // No effect while native LIR emission is disabled
+	optSize  bool // -Osize: optimize for code size (Grace reroll, DJNZ loops)
+	useGrace bool // --grace: run all Grace MIR2 passes before VIR lowering
 
 	// Assert control
-	assertMode   string  // --asserts mir|z80|all|none — select which assert backends run
-	assertForce  string  // --asserts-force mir|z80 — force ALL asserts to run on this backend
+	listAsserts       bool
+	assertLines       string
+	assertControlLine int
+	assertMode        string // --asserts mir|z80|all|none — select which assert backends run
+	assertForce       string // --asserts-force mir|z80 — force ALL asserts to run on this backend
 
 	// Debug info
-	emitSLD      bool    // Emit SLD file for DeZog source-level debugging
+	emitSLD         bool // Emit SLD file for DeZog source-level debugging
 	annotateTStates bool // Annotate each instruction with its Z80 T-state cost
 
 	// Transpiler flags
-	emitFormat   string  // emit format: "nanz" (HIR pretty-printed as Nanz source), "mir2-raw", "mir2"
-	gpuRun       string  // --gpu-run cuda|opencl|vulkan|all — compile+run on GPU
+	emitFormat string // emit format: "nanz" (HIR pretty-printed as Nanz source), "mir2-raw", "mir2"
+	gpuRun     string // --gpu-run cuda|opencl|vulkan|all — compile+run on GPU
 )
 
 var rootCmd = &cobra.Command{
 	Use:   "mz [source file]",
 	Short: "MinZ Multi-Platform Compiler " + version.GetVersion(),
-	Long:  `MinZ - Modern Programming Language for Retro Platforms
+	Long: `MinZ - Modern Programming Language for Retro Platforms
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Write once, run on Z80 retro platforms!
 
@@ -142,7 +147,7 @@ For documentation and examples, see:
   
 Platform Independence Guide:
   docs/150_Platform_Independence_Achievement.md`,
-	Args:  cobra.MaximumNArgs(1),
+	Args: cobra.MaximumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		if useZ3 {
 			fmt.Fprintln(os.Stderr, "note: --z3 has no effect: native LIR emission disabled")
@@ -152,12 +157,12 @@ Platform Independence Guide:
 			fmt.Println(version.GetVersion())
 			return
 		}
-		
+
 		if showVersionFull {
 			fmt.Println(version.GetFullVersion())
 			return
 		}
-		
+
 		// Handle --list-backends flag
 		if listBackends {
 			backends := codegen.ListBackends()
@@ -167,17 +172,23 @@ Platform Independence Guide:
 			}
 			return
 		}
-		
+
 		// Require source file if not listing backends
 		if len(args) == 0 {
 			// Show help when called without arguments (like Go compiler)
 			cmd.Help()
 			os.Exit(0)
 		}
-		
+
 		sourceFile := args[0]
-		if err := compile(sourceFile); err != nil {
+		err := compile(sourceFile)
+		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		}
+		if cliAssertStats != nil {
+			fmt.Fprintf(os.Stderr, "ASSERTS: executed=%d passed=%d failed=%d\n", cliAssertStats.Executed, cliAssertStats.Passed, cliAssertStats.Failed)
+		}
+		if err != nil {
 			os.Exit(1)
 		}
 	},
@@ -189,11 +200,11 @@ func init() {
 	if defaultBackend == "" {
 		defaultBackend = "z80"
 	}
-	
+
 	// Version flags
 	rootCmd.Flags().BoolVarP(&showVersion, "version", "v", false, "show version")
 	rootCmd.Flags().BoolVar(&showVersionFull, "version-full", false, "show full version info")
-	
+
 	// Compilation flags
 	rootCmd.Flags().StringVarP(&outputFile, "output", "o", "", "output file (default: input.<ext> based on backend)")
 	rootCmd.Flags().BoolVar(&disableOptimize, "disable-optimize", false, "disable optimizations (enabled by default)")
@@ -206,7 +217,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&enableTAS, "tas", false, "enable TAS debugging with time-travel and cycle-perfect recording")
 	rootCmd.Flags().StringVar(&tasFile, "tas-record", "", "record execution to TAS file for perfect replay")
 	rootCmd.Flags().StringVar(&tasReplay, "tas-replay", "", "replay execution from TAS file")
-	
+
 	// PGO flags (Quick Win integration)
 	rootCmd.Flags().StringVar(&pgoProfile, "pgo", "", "use profile-guided optimization with .tas profile file")
 	rootCmd.Flags().BoolVar(&pgoDebug, "pgo-debug", false, "show PGO optimization decisions and hot/cold analysis")
@@ -226,6 +237,9 @@ func init() {
 	rootCmd.Flags().BoolVar(&useZ3, "z3", false, "use Z3 SMT solver (no effect: native LIR emission disabled)")
 	rootCmd.Flags().BoolVar(&optSize, "Osize", false, "optimize for code size: Grace reroll (repeated CALLs → DJNZ loop + data table)")
 	rootCmd.Flags().BoolVar(&useGrace, "grace", false, "run all Grace MIR2 passes before VIR lowering (DSE, CondRetSink, BlockMerge, etc.)")
+	rootCmd.Flags().BoolVar(&listAsserts, "list-asserts", false, "list frontend assertions as JSON lines without executing")
+	rootCmd.Flags().StringVar(&assertLines, "assert-lines", "", "run only assertions at these comma-separated source lines")
+	rootCmd.Flags().IntVar(&assertControlLine, "assert-control-line", 0, "mutate the expected value at this source line (judge negative control)")
 	rootCmd.Flags().StringVar(&assertMode, "asserts", "", "assert backend: mir2, z80, wasm, llvm, all (default), none")
 	rootCmd.Flags().StringVar(&assertForce, "asserts-force", "", "force ALL asserts to run on this backend (mir2, z80, wasm, or llvm), ignoring 'via' annotations")
 	rootCmd.Flags().BoolVar(&emitSLD, "emit-sld", false, "emit SLD file for DeZog source-level debugging")
@@ -246,7 +260,7 @@ func compile(sourceFile string) error {
 	if debug {
 		fmt.Printf("Compiling %s...\n", sourceFile)
 	}
-	
+
 	// Check if input is a MIR file
 	if filepath.Ext(sourceFile) == ".mir" {
 		return compileFromMIR(sourceFile)
@@ -272,7 +286,7 @@ func compile(sourceFile string) error {
 
 	// Find project root (directory containing the source file or its parent)
 	projectRoot := filepath.Dir(sourceFile)
-	
+
 	// Create module manager
 	_ = module.NewModuleManager(projectRoot)
 
@@ -326,7 +340,7 @@ func compile(sourceFile string) error {
 	if err != nil {
 		return fmt.Errorf("semantic error: %w", err)
 	}
-	
+
 	// Debug: Print string count
 	if os.Getenv("DEBUG") != "" && irModule != nil {
 		fmt.Printf("DEBUG: Module has %d strings after analysis\n", len(irModule.Strings))
@@ -335,11 +349,11 @@ func compile(sourceFile string) error {
 		}
 	}
 	defer analyzer.Close()
-	
+
 	// Get the backend to check if it supports SMC
 	backendInstance := codegen.GetBackend(backend, nil)
 	supportsSMC := backendInstance != nil && backendInstance.SupportsFeature(codegen.FeatureSelfModifyingCode)
-	
+
 	// Enable SMC only for functions that explicitly need it (UsesTrueSMC or IsSMCDefault).
 	// ADR-0010: register-first is the default — do NOT force SMC on all functions.
 	if supportsSMC && !disableSMC {
@@ -372,11 +386,11 @@ func compile(sourceFile string) error {
 		if err := ctieEngine.Process(); err != nil {
 			return fmt.Errorf("CTIE error: %w", err)
 		}
-		
+
 		if ctieDebug || debug {
 			stats := ctieEngine.GetStatistics()
 			if stats.FunctionsExecuted > 0 {
-				fmt.Printf("CTIE: Executed %d functions at compile-time, eliminated %d bytes\n", 
+				fmt.Printf("CTIE: Executed %d functions at compile-time, eliminated %d bytes\n",
 					stats.FunctionsExecuted, stats.BytesEliminated)
 			}
 		}
@@ -384,7 +398,7 @@ func compile(sourceFile string) error {
 
 	// Run optimization passes (enabled by default)
 	if !disableOptimize && !disableIROpt {
-		level := optimizer.OptLevelFull  // Full optimization by default
+		level := optimizer.OptLevelFull // Full optimization by default
 
 		opt := optimizer.NewOptimizerWithOpts(level, optimizer.OptimizerOptions{
 			EnableTrueSMC: !disableSMC,
@@ -404,9 +418,9 @@ func compile(sourceFile string) error {
 			// Load profile from TAS file (simplified mock data for now)
 			profile := make(map[string]interface{})
 			profile["executions"] = map[uint16]uint64{
-				0x8000: 1000,  // hot_function entry - very hot
-				0x8010: 1000,  // main function - hot
-				0x8020: 10,    // print routine - warm
+				0x8000: 1000, // hot_function entry - very hot
+				0x8010: 1000, // main function - hot
+				0x8020: 10,   // print routine - warm
 			}
 			profile["hot_threshold"] = uint64(100)
 
@@ -477,20 +491,20 @@ func compile(sourceFile string) error {
 		tmpName := tmpFile.Name()
 		tmpFile.Close()
 		defer os.Remove(tmpName)
-		
+
 		if err := saveIRModule(irModule, tmpName); err != nil {
 			return fmt.Errorf("failed to format MIR: %w", err)
 		}
-		
+
 		content, err := os.ReadFile(tmpName)
 		if err != nil {
 			return fmt.Errorf("failed to read MIR: %w", err)
 		}
-		
+
 		fmt.Print(string(content))
 		return nil // Exit after dumping MIR
 	}
-	
+
 	// Save IR to .mir file
 	mirFile := outputFile[:len(outputFile)-len(filepath.Ext(outputFile))] + ".mir"
 	if err := saveIRModule(irModule, mirFile); err != nil {
@@ -514,7 +528,7 @@ func compile(sourceFile string) error {
 	if err != nil {
 		return fmt.Errorf("code generation error: %w", err)
 	}
-	
+
 	// Write output file
 	if err := os.WriteFile(outputFile, []byte(generatedCode), 0644); err != nil {
 		return fmt.Errorf("failed to write output file: %w", err)
@@ -546,7 +560,7 @@ func compile(sourceFile string) error {
 		}
 		fmt.Println("TAS debugging enabled - use 'mzr --tas' to debug with time-travel")
 	}
-	
+
 	// Handle TAS recording/replay
 	if tasFile != "" {
 		fmt.Printf("TAS recording enabled - output will be saved to %s\n", tasFile)
@@ -574,16 +588,16 @@ func compileFromMIR(mirFile string) error {
 // All compilation now goes through HIR → MIR (was MIR2) → LIR → Z80.
 func compileFromMIR_deprecated(mirFile string) error {
 	fmt.Printf("Compiling from MIR: %s...\n", mirFile)
-	
+
 	// Import the MIR parser
 	mirParser := mir.ParseMIRFile
-	
+
 	// Parse the MIR file
 	irModule, err := mirParser(mirFile)
 	if err != nil {
 		return fmt.Errorf("MIR parse error: %w", err)
 	}
-	
+
 	// Debug: Print module info
 	if debug {
 		fmt.Printf("Loaded MIR module: %s\n", irModule.Name)
@@ -592,11 +606,11 @@ func compileFromMIR_deprecated(mirFile string) error {
 			fmt.Printf("  - %s (%d instructions)\n", fn.Name, len(fn.Instructions))
 		}
 	}
-	
+
 	// Get the backend to check if it supports SMC
 	backendInstance := codegen.GetBackend(backend, nil)
 	supportsSMC := backendInstance != nil && backendInstance.SupportsFeature(codegen.FeatureSelfModifyingCode)
-	
+
 	// Enable SMC only for functions that explicitly need it (UsesTrueSMC or IsSMCDefault).
 	// ADR-0010: register-first is the default — do NOT force SMC on all functions.
 	if supportsSMC && !disableSMC {
@@ -715,6 +729,11 @@ func compileFromMIR_deprecated(mirFile string) error {
 // assembleFile assembles a .a80/.asm/.z80 file using the built-in z80asm assembler.
 // This enables a one-tool workflow: mz source.minz -> mz output.a80 -> binary
 func compileViaHIR(sourceFile string) error {
+	stats := &hir.AssertStats{}
+	if !listAsserts {
+		cliAssertStats = stats
+	}
+
 	src, err := os.ReadFile(sourceFile)
 	if err != nil {
 		return fmt.Errorf("read %s: %w", sourceFile, err)
@@ -782,6 +801,13 @@ func compileViaHIR(sourceFile string) error {
 			return fmt.Errorf("Pascal compile: %w", err)
 		}
 	case ".c", ".m":
+		if listAsserts && ext == ".c" {
+			hirMod, err = c89.ListAsserts(string(src))
+			if err != nil {
+				return err
+			}
+			break
+		}
 		absPath, _ := filepath.Abs(sourceFile)
 		hirMod, err = c89.CompileWithOpts(string(src), filepath.Base(sourceFile), c89.CompileOpts{
 			BaseDir:      filepath.Dir(absPath),
@@ -862,6 +888,73 @@ func compileViaHIR(sourceFile string) error {
 		return fmt.Errorf("unsupported extension for HIR pipeline: %s", ext)
 	}
 
+	if listAsserts {
+		enc := json.NewEncoder(os.Stdout)
+		emit := func(a hir.Assert, kind string) error {
+			// Expression comes from the frontend; annotations are separate metadata.
+			expression := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(a.Source), "//"))
+			if i := strings.Index(expression, "//"); i >= 0 {
+				expression = strings.TrimSpace(expression[:i])
+			}
+			if i := strings.LastIndex(expression, " via "); i >= 0 {
+				expression = expression[:i]
+			}
+			return enc.Encode(struct {
+				File       string `json:"file"`
+				Line       int    `json:"line"`
+				Expression string `json:"expression"`
+				Via        string `json:"via"`
+				Kind       string `json:"kind"`
+			}{sourceFile, a.Line, expression, a.Via, kind})
+		}
+		for _, a := range hirMod.Asserts {
+			if err := emit(a, "top-level"); err != nil {
+				return err
+			}
+		}
+		for _, sb := range hirMod.Sandboxes {
+			for _, a := range sb.Asserts {
+				if err := emit(a, sb.Name); err != nil {
+					return err
+				}
+			}
+		}
+		return nil
+	}
+	hirMod.AssertStats = stats
+	selected := map[int]bool{}
+	if assertLines != "" {
+		for _, value := range strings.Split(assertLines, ",") {
+			line, err := strconv.Atoi(value)
+			if err != nil {
+				return err
+			}
+			selected[line] = true
+		}
+	}
+	filter := func(as []hir.Assert) []hir.Assert {
+		var out []hir.Assert
+		for _, a := range as {
+			if assertLines != "" && !selected[a.Line] {
+				continue
+			}
+			if a.Line == assertControlLine {
+				if len(a.ExpectedMulti) > 0 {
+					a.ExpectedMulti = append([]int64(nil), a.ExpectedMulti...)
+					a.ExpectedMulti[0] ^= 1 << 32
+				} else {
+					a.Expected ^= 1 << 32
+				}
+			}
+			out = append(out, a)
+		}
+		return out
+	}
+	hirMod.Asserts = filter(hirMod.Asserts)
+	for i := range hirMod.Sandboxes {
+		hirMod.Sandboxes[i].Asserts = filter(hirMod.Sandboxes[i].Asserts)
+	}
+
 	// Set target platform so @target() intrinsic resolves correctly.
 	hirMod.Target = hir.TargetFromString(target)
 
@@ -879,6 +972,11 @@ func compileViaHIR(sourceFile string) error {
 		// Force all asserts to specified backend by rewriting Via
 		for i := range hirMod.Asserts {
 			hirMod.Asserts[i].Via = ""
+		}
+		for i := range hirMod.Sandboxes {
+			for j := range hirMod.Sandboxes[i].Asserts {
+				hirMod.Sandboxes[i].Asserts[j].Via = ""
+			}
 		}
 	}
 
@@ -1360,7 +1458,7 @@ func saveIRModule(module *ir.Module, filename string) error {
 				fmt.Fprintf(file, "         %s\n", ann.String())
 			}
 			fmt.Fprintf(file, "    %3d: ", i)
-			
+
 			// Format instruction based on opcode
 			switch inst.Op {
 			case ir.OpLoadConst:
