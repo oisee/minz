@@ -694,11 +694,17 @@ func RunAssertsZ80(hm *hir.Module, m *mir2.Module, ar *mir2.AllocResult, asmSrc 
 	for _, sb := range hm.Sandboxes {
 		z := emulator.NewRemogattoZ80()
 		first := true
+		trampolineBytes := 64
+		for _, a := range sb.Asserts {
+			if mf := mir2Funcs[a.FuncName]; mf != nil {
+				trampolineBytes = max(trampolineBytes, trampolineSize(a, mf, ar))
+			}
+		}
 		for _, a := range sb.Asserts {
 			if a.Via == "mir2" {
 				continue
 			}
-			if err := hm.RecordAssert(runOneAssertZ80Sandbox(z, a, mir2Funcs, hirFuncs, ar, asmSrc, first)); err != nil {
+			if err := hm.RecordAssert(runOneAssertZ80Sandbox(z, a, mir2Funcs, hirFuncs, ar, asmSrc, trampolineBytes, first)); err != nil {
 				return fmt.Errorf("sandbox %q: %w", sb.Name, err)
 			}
 			first = false
@@ -746,30 +752,22 @@ func runOneAssertZ80(z *emulator.RemogattoZ80, a hir.Assert,
 	return checkAssertZ80Result(z, a, mf, hirFuncs)
 }
 
-// sandboxTrampolineSize is the fixed size of the trampoline region in sandbox mode.
-// All trampolines are padded to this size so the code section starts at a stable
-// address, keeping globals at fixed offsets across re-assemblies.
-const sandboxTrampolineSize = 64 // bytes — enough for LD SP + 8 args + CALL + DI + HALT
-
 // runOneAssertZ80Sandbox runs a single assert on a shared emulator (sandbox).
-// Uses a fixed-size NOP-padded trampoline so the code section (and globals)
-// always lives at the same addresses.  On first call, loads everything.
+// Uses a NOP-padded trampoline sized for every assert in the sandbox so the
+// code section (and globals) always lives at the same addresses.
 // On subsequent calls, only overwrites the trampoline region — globals persist.
 func runOneAssertZ80Sandbox(z *emulator.RemogattoZ80, a hir.Assert,
 	mir2Funcs map[string]*mir2.Func, hirFuncs map[string]*hir.Func,
-	ar *mir2.AllocResult, asmSrc string, first bool) error {
+	ar *mir2.AllocResult, asmSrc string, trampolineBytes int, first bool) error {
 
 	mf := mir2Funcs[a.FuncName]
 	if mf == nil {
 		return fmt.Errorf("line %d: assert %q [z80]: function %q not found in MIR2", a.Line, a.Source, a.FuncName)
 	}
 
-	// Build a fixed-size trampoline: bootstrap + NOP padding to sandboxTrampolineSize.
+	// Build a fixed-size trampoline: bootstrap + NOP padding to trampolineBytes.
 	boot := buildAssertBootstrap(assertLoadAddr, a, mf, ar)
-	padCount := sandboxTrampolineSize - trampolineSize(a, mf, ar)
-	if padCount < 0 {
-		padCount = 0
-	}
+	padCount := trampolineBytes - trampolineSize(a, mf, ar)
 	nops := ""
 	for i := 0; i < padCount; i++ {
 		nops += "    NOP\n"
@@ -795,7 +793,7 @@ func runOneAssertZ80Sandbox(z *emulator.RemogattoZ80, a hir.Assert,
 		}
 	} else {
 		// Only overwrite the trampoline region — code is identical, globals persist.
-		for i := 0; i < sandboxTrampolineSize && i < len(res.Binary); i++ {
+		for i := 0; i < trampolineBytes && i < len(res.Binary); i++ {
 			z.SetMemory(uint16(assertLoadAddr+i), res.Binary[i])
 		}
 	}
@@ -814,78 +812,103 @@ func buildAssertBootstrap(org int, a hir.Assert, mf *mir2.Func, ar *mir2.AllocRe
 	var boot strings.Builder
 	fmt.Fprintf(&boot, "    ORG 0x%04X\n", org)
 	boot.WriteString("    LD SP, 0xFF00\n")
+	// Initialize spill slots before registers: the byte stores use A, which may
+	// itself hold another argument at the call boundary.
 	for i, arg := range a.Args {
 		if i >= len(mf.Contract.Params) {
 			break
 		}
 		param := mf.Contract.Params[i]
-		// Try PBQP alloc first (matches PBQP codegen and LIR with hints).
-		// If PBQP doesn't have this param, fall back to contract class
-		// (matches LIR WFC which assigns from contract classes).
-		locName := ""
-		if ar != nil {
-			if loc, ok := ar.Locs[param.Reg]; ok {
-				locName = loc.Name
-			}
-		}
-		if locName == "" {
-			// Use PFCCO contract class as register name.
-			switch param.Class {
-			case mir2.ClassAcc:
-				locName = "A"
-			case mir2.ClassGeneral, mir2.ClassCounter:
-				locName = "B" // default general = B on Z80
-			case mir2.ClassRegC:
-				locName = "C"
-			case mir2.ClassRegD:
-				locName = "D"
-			case mir2.ClassRegE:
-				locName = "E"
-			case mir2.ClassRegH:
-				locName = "H"
-			case mir2.ClassRegL:
-				locName = "L"
-			case mir2.ClassPointer:
-				locName = "HL"
-			case mir2.ClassIndex:
-				locName = "DE"
-			case mir2.ClassPair:
-				locName = "BC"
-			}
-		}
-		if locName == "" {
+		loc := assertParamLocation(param, ar)
+		if loc.Kind != mir2.LocMem {
 			continue
 		}
-		fmt.Fprintf(&boot, "    LD %s, %d\n", locName, arg)
+		label := mir2.Z80SpillLabel(mf.Name, param.Reg)
+		for b := range max(1, (param.Ty.Width()+7)/8) {
+			suffix := ""
+			if b > 0 {
+				suffix = fmt.Sprintf("+%d", b)
+			}
+			fmt.Fprintf(&boot, "    LD A, %d\n    LD (%s%s), A\n", (uint64(arg)>>(8*b))&0xff, label, suffix)
+		}
+	}
+	for i, arg := range a.Args {
+		if i >= len(mf.Contract.Params) {
+			break
+		}
+		param := mf.Contract.Params[i]
+		loc := assertParamLocation(param, ar)
+		if loc.Kind == mir2.LocMem || loc.Name == "" {
+			continue
+		}
+		fmt.Fprintf(&boot, "    LD %s, %d\n", loc.Name, arg)
 	}
 	fmt.Fprintf(&boot, "    CALL %s\n", a.FuncName)
 	boot.WriteString("    DI\n    HALT\n")
 	return boot.String()
 }
 
-// trampolineSize estimates the byte size of the trampoline bootstrap.
-// LD SP,nn (3) + per-arg LD r,n (2) or LD rr,nn (3) + CALL nn (3) + DI (1) + HALT (1).
+// assertParamLocation uses the production allocation when available. The
+// contract class is the fallback for backends that do not publish locations.
+func assertParamLocation(param mir2.Param, ar *mir2.AllocResult) mir2.PhysLoc {
+	if ar != nil {
+		if loc, ok := ar.Locs[param.Reg]; ok {
+			return loc
+		}
+	}
+	name := ""
+	switch param.Class {
+	case mir2.ClassAcc:
+		name = "A"
+	case mir2.ClassGeneral, mir2.ClassCounter:
+		name = "B"
+	case mir2.ClassRegC:
+		name = "C"
+	case mir2.ClassRegD:
+		name = "D"
+	case mir2.ClassRegE:
+		name = "E"
+	case mir2.ClassRegH:
+		name = "H"
+	case mir2.ClassRegL:
+		name = "L"
+	case mir2.ClassPointer:
+		name = "HL"
+	case mir2.ClassIndex:
+		name = "DE"
+	case mir2.ClassPair:
+		name = "BC"
+	}
+	return mir2.PhysLoc{Kind: mir2.LocReg, Name: name}
+}
+
+// trampolineSize counts the emitted instruction bytes exactly, so sandbox
+// trampolines keep their shared code and data at a stable address.
 func trampolineSize(a hir.Assert, mf *mir2.Func, ar *mir2.AllocResult) int {
-	size := 3 // LD SP, 0xFF00
+	size := 8 // LD SP,nn + CALL nn + DI + HALT
 	for i := range a.Args {
 		if i >= len(mf.Contract.Params) {
 			break
 		}
 		param := mf.Contract.Params[i]
-		loc, ok := ar.Locs[param.Reg]
-		if !ok {
+		loc := assertParamLocation(param, ar)
+		if loc.Kind == mir2.LocMem {
+			size += 5 * max(1, (param.Ty.Width()+7)/8) // LD A,n + LD (nn),A per byte
 			continue
 		}
 		switch loc.Name {
-		case "HL", "DE", "BC", "IX", "IY":
-			size += 3 // LD rr, nn
+		case "HL", "DE", "BC", "SP":
+			size += 3
+		case "IX", "IY":
+			size += 4
+		case "IXH", "IXL", "IYH", "IYL":
+			size += 3
+		case "":
+			// No instruction emitted.
 		default:
-			size += 2 // LD r, n
+			size += 2
 		}
 	}
-	size += 3 // CALL nn
-	size += 1 // DI
-	size += 1 // HALT
 	return size
 }
 
