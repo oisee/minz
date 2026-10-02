@@ -1276,7 +1276,12 @@ func (c *cpp) macro(t Token, nm string) *Macro {
 	case "__DATE__":
 		nmt := t
 		t.Ch = rune(STRINGLITERAL)
-		t.Set(t.Sep(), []byte(time.Now().Format("\"Jan _2 2006\"")))
+		date, err := sourceDate()
+		if err != nil {
+			c.eh("%v", errorf("", err))
+			return nil
+		}
+		t.Set(t.Sep(), []byte(date.Format("\"Jan _2 2006\"")))
 		m, err := newMacro(nmt, nil, []cppToken{{Token: t}}, 0, -1, false)
 		if err != nil {
 			c.eh("%v", errorf("", err))
@@ -1288,7 +1293,12 @@ func (c *cpp) macro(t Token, nm string) *Macro {
 	case "__TIME__":
 		nmt := t
 		t.Ch = rune(STRINGLITERAL)
-		t.Set(t.Sep(), []byte(time.Now().Format("\"15:04:05\"")))
+		date, err := sourceDate()
+		if err != nil {
+			c.eh("%v", errorf("", err))
+			return nil
+		}
+		t.Set(t.Sep(), []byte(date.Format("\"15:04:05\"")))
 		m, err := newMacro(nmt, nil, []cppToken{{Token: t}}, 0, -1, false)
 		m.IsConst = false
 		m.val = nil
@@ -2985,4 +2995,18 @@ func (c *cpp) group(src Source) (group, error) {
 	g := p.group(false)
 	c.groups[src.Name] = g
 	return g, nil
+}
+
+// sourceDate follows GCC clock macro semantics: local wall time unless
+// SOURCE_DATE_EPOCH is set, in which case use a validated UTC timestamp.
+func sourceDate() (time.Time, error) {
+	value, set := os.LookupEnv("SOURCE_DATE_EPOCH")
+	if !set {
+		return time.Now(), nil
+	}
+	epoch, err := strconv.ParseInt(value, 10, 64)
+	if err != nil || epoch < 0 || epoch > 253402300799 {
+		return time.Time{}, fmt.Errorf("SOURCE_DATE_EPOCH must be an integer between 0 and 253402300799, got %q", value)
+	}
+	return time.Unix(epoch, 0).UTC(), nil
 }

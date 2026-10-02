@@ -1,0 +1,1739 @@
+file,line,assert_index,expression,branch_exit,main_1_exit,main_2_exit,main_3_exit
+examples/_archive/aspirational/metaprogramming.minz,102,1,assert_sprite_valid(5);,1,1,1,1
+examples/abap/forms.abap,7,1,"* assert gcd(48, 18) == 6 via mir2",1,1,1,1
+examples/abap/forms.abap,8,2,"* assert gcd(100, 75) == 25 via mir2",1,1,1,1
+examples/abap/forms.abap,9,3,"* assert gcd(7, 13) == 1 via mir2",1,1,1,1
+examples/abap/function_test.abap,25,1,"* assert z_add(3, 4) == 7 via mir2",0,0,0,0
+examples/abap/function_test.abap,26,2,"* assert z_add(0, 0) == 0 via mir2",0,0,0,0
+examples/abap/function_test.abap,27,3,"* assert z_add(100, 55) == 155 via mir2",0,0,0,0
+examples/abap/function_test.abap,28,4,* assert z_double(21) == 42 via mir2,0,0,0,0
+examples/abap/function_test.abap,29,5,* assert z_double(0) == 0 via mir2,0,0,0,0
+examples/abap/function_test.abap,30,6,"* assert z_mul(6, 7) == 42 via mir2",0,0,0,0
+examples/abap/function_test.abap,31,7,"* assert z_mul(0, 255) == 0 via mir2",0,0,0,0
+examples/abap/name_test.abap,27,1,"* assert add(3, 4) == 7 via mir2",0,0,0,0
+examples/abap/name_test.abap,28,2,"* assert add(0, 0) == 0 via mir2",0,0,0,0
+examples/abap/name_test.abap,29,3,"* assert add(100, 55) == 155 via mir2",0,0,0,0
+examples/abap/name_test.abap,32,4,"* assert lcl_calc_add(3, 4) == 7 via mir2",0,0,0,0
+examples/abap/name_test.abap,33,5,"* assert lcl_calc_sub(10, 3) == 7 via mir2",0,0,0,0
+examples/abap/name_test.abap,34,6,"* assert lcl_calc_sub(5, 5) == 0 via mir2",0,0,0,0
+examples/abap/oop_assert.abap,38,1,"* assert lcl_math_add(3, 4) == 7 via mir2",0,0,0,0
+examples/abap/oop_assert.abap,39,2,"* assert lcl_math_add(0, 0) == 0 via mir2",0,0,0,0
+examples/abap/oop_assert.abap,40,3,"* assert lcl_math_mul(6, 7) == 42 via mir2",0,0,0,0
+examples/abap/oop_assert.abap,41,4,"* assert lcl_math_mul(0, 255) == 0 via mir2",0,0,0,0
+examples/abap/oop_assert.abap,42,5,* assert lcl_math_double(21) == 42 via mir2,0,0,0,0
+examples/abap/oop_assert.abap,43,6,* assert lcl_math_double(0) == 0 via mir2,0,0,0,0
+examples/abap/oop_assert.abap,44,7,* assert lcl_math_triple(10) == 30 via mir2,0,0,0,0
+examples/abap/oop_assert.abap,45,8,* assert lcl_math_triple(0) == 0 via mir2,0,0,0,0
+examples/abap/oop_assert.abap,46,9,* assert lcl_math_negate(0) == 0 via mir2,0,0,0,0
+examples/abap/oop_assert.abap,47,10,* assert lcl_math_identity(42) == 42 via mir2,0,0,0,0
+examples/abap/oop_assert.abap,48,11,* assert lcl_math_identity(0) == 0 via mir2,0,0,0,0
+examples/abap/oop_assert.abap,65,12,* assert lcl_bits_shl1(1) == 2 via mir2,0,0,0,0
+examples/abap/oop_assert.abap,66,13,* assert lcl_bits_shl1(64) == 128 via mir2,0,0,0,0
+examples/abap/oop_assert.abap,67,14,"* assert lcl_bits_diff(10, 3) == 7 via mir2",0,0,0,0
+examples/abap/oop_assert.abap,68,15,"* assert lcl_bits_diff(100, 100) == 0 via mir2",0,0,0,0
+examples/c/array_desig.c,45,1,// assert test_positional() == 30 via mir2,0,0,0,0
+examples/c/array_desig.c,46,2,// assert test_designated() == 42 via mir2,0,0,0,0
+examples/c/array_desig.c,47,3,// assert test_designated_last() == 99 via mir2,0,0,0,0
+examples/c/array_desig.c,48,4,// assert test_zeros() == 0 via mir2,0,0,0,0
+examples/c/array_desig.c,49,5,// assert test_mixed() == 99 via mir2,0,0,0,0
+examples/c/array_desig.c,50,6,"// assert test_sparse_sum() == 60 via mir2  // z80: got 144, sparse array init bug",0,0,0,0
+examples/c/c11_anon_struct.c,62,1,"// assert pair_first() == 42 via mir2  // z80: got 0, anonymous struct offset bug",0,0,0,0
+examples/c/c11_anon_struct.c,63,2,// assert pair_second() == 99 via mir2  // z80: same bug,0,0,0,0
+examples/c/c11_anon_struct.c,64,3,// assert reg_low() == 0x34 via mir2,1,1,1,1
+examples/c/c11_anon_struct.c,65,4,// assert reg_high() == 0x12 via mir2,1,1,1,1
+examples/c/c11_anon_struct.c,66,5,// assert test_alignof() == 1 via mir2,0,0,0,0
+examples/c/c11_anon_struct.c,67,6,// assert test_typeof(21) == 42 via mir2,0,0,0,0
+examples/c/c11_features.c,56,1,// assert vec3_sum() == 60 via mir2,1,1,1,1
+examples/c/c11_features.c,57,2,// assert compound_lit() == 30 via mir2,1,1,1,1
+examples/c/c11_features.c,58,3,"// assert mixed_decls(10, 20) == 60 via mir2",1,1,1,1
+examples/c/c11_features.c,59,4,"// assert mixed_decls(60, 60) == 100 via mir2",0,0,0,0
+examples/c/c11_features.c,60,5,// assert loop_sum(5) == 5 via mir2,0,0,0,0
+examples/c/c11_features.c,61,6,// assert loop_sum(0) == 0 via mir2,0,0,0,0
+examples/c/c11_features.c,62,7,"// assert is_between(50, 10, 100) == 1 via mir2",1,1,1,1
+examples/c/c11_features.c,63,8,"// assert is_between(5, 10, 100) == 0 via mir2",0,0,0,0
+examples/c/c11_features.c,64,9,// assert test_inline(21) == 42 via mir2,0,0,0,0
+examples/c/c23_attributes.c,51,1,// assert allocate(10) == 10 via mir2,0,0,0,0
+examples/c/c23_attributes.c,52,2,// assert allocate(0) == 1 via mir2,0,0,0,0
+examples/c/c23_attributes.c,53,3,"// assert add_old(10, 20) == 30 via mir2",0,0,0,0
+examples/c/c23_attributes.c,54,4,"// assert add_v2(10, 20) == 30 via mir2",0,0,0,0
+examples/c/c23_attributes.c,55,5,// assert classify(0) == 0 via mir2,0,0,0,0
+examples/c/c23_attributes.c,56,6,// assert classify(5) == 1 via mir2,1,1,1,1
+examples/c/c23_attributes.c,57,7,// assert classify(50) == 2 via mir2,1,1,1,1
+examples/c/c23_attributes.c,58,8,// assert helper(21) == 42 via mir2,0,0,0,0
+examples/c/c23_attributes.c,59,9,"// assert safe_div(100, 10) == 10 via mir2",1,1,1,1
+examples/c/c23_bitint.c,53,1,// assert get_flag() == 1 via mir2,0,0,0,0
+examples/c/c23_bitint.c,54,2,// assert get_nibble() == 15 via mir2,0,0,0,0
+examples/c/c23_bitint.c,55,3,"// assert add_bytes(100, 42) == 142 via mir2",0,0,0,0
+examples/c/c23_bitint.c,56,4,// assert get_word() == 1000 via mir2,0,0,0,0
+examples/c/c23_bitint.c,57,5,// assert nibble_add() == 8 via mir2,0,0,0,0
+examples/c/c23_bitint.c,60,6,// assert size_bit1() == 1 via mir2,0,0,0,0
+examples/c/c23_bitint.c,61,7,// assert size_bit4() == 1 via mir2,0,0,0,0
+examples/c/c23_bitint.c,62,8,// assert size_bit8() == 1 via mir2,0,0,0,0
+examples/c/c23_bitint.c,63,9,// assert size_bit16() == 2 via mir2,0,0,0,0
+examples/c/c23_bitint.c,66,10,// assert get_red(0xF800) == 31 via mir2,0,0,0,0
+examples/c/c23_bitint.c,67,11,// assert get_green(0x07E0) == 63 via mir2,0,0,0,0
+examples/c/c23_bitint.c,68,12,// assert get_blue(0x001F) == 31 via mir2,0,0,0,0
+examples/c/c23_constexpr_enum.c,63,1,// assert get_buffer_size() == 32 via mir2,0,0,0,0
+examples/c/c23_constexpr_enum.c,64,2,// assert get_max_players() == 4 via mir2,0,0,0,0
+examples/c/c23_constexpr_enum.c,65,3,// assert get_tile_pixels() == 64 via mir2,0,0,0,0
+examples/c/c23_constexpr_enum.c,68,4,// assert color_value(0) == 0 via mir2,0,0,0,0
+examples/c/c23_constexpr_enum.c,69,5,// assert color_value(2) == 2 via mir2,0,0,0,0
+examples/c/c23_constexpr_enum.c,70,6,// assert next_color(0) == 1 via mir2,0,0,0,0
+examples/c/c23_constexpr_enum.c,71,7,// assert next_color(3) == 0 via mir2,0,0,0,0
+examples/c/c23_constexpr_enum.c,72,8,// assert is_primary(0) == 1 via mir2,1,1,1,1
+examples/c/c23_constexpr_enum.c,73,9,// assert is_primary(3) == 0 via mir2,0,0,0,0
+examples/c/c23_constexpr_enum.c,76,10,// assert status_is_error(0) == 0 via mir2,0,0,0,0
+examples/c/c23_constexpr_enum.c,77,11,// assert status_is_error(1) == 1 via mir2,1,1,1,1
+examples/c/c23_constexpr_enum.c,78,12,// assert status_is_error(100) == 1 via mir2,1,1,1,1
+examples/c/c23_constexpr_enum.c,81,13,// assert palette_total() == 4 via mir2,0,0,0,0
+examples/c/c23_constexpr_enum.c,82,14,// assert primary_count() == 3 via mir2,0,0,0,0
+examples/c/c23_constexpr_enum.c,85,15,"// assert has_flag(5, 1) == 1 via mir2",1,1,1,1
+examples/c/c23_constexpr_enum.c,86,16,"// assert has_flag(5, 2) == 0 via mir2",0,0,0,0
+examples/c/c23_constexpr_enum.c,87,17,// assert combine_flags() == 5 via mir2,0,0,0,0
+examples/c/c23_constexpr_enum.c,90,18,// assert size_color() == 1 via mir2,0,0,0,0
+examples/c/c23_constexpr_enum.c,91,19,// assert size_flags() == 1 via mir2,0,0,0,0
+examples/c/c23_constexpr_enum.c,92,20,// assert size_status() == 2 via mir2,0,0,0,0
+examples/c/c23_digit_sep.c,33,1,// assert thousand() == 1000 via mir2,0,0,0,0
+examples/c/c23_digit_sep.c,34,2,// assert two_fifty_five() == 255 via mir2,0,0,0,0
+examples/c/c23_digit_sep.c,35,3,// assert hex_ffff() == 0xFFFF via mir2,0,0,0,0
+examples/c/c23_digit_sep.c,36,4,// assert hex_ab() == 0xAB via mir2,0,0,0,0
+examples/c/c23_digit_sep.c,37,5,// assert bin_aa() == 0xAA via mir2,0,0,0,0
+examples/c/c23_digit_sep.c,38,6,// assert bin_0f() == 0x0F via mir2,0,0,0,0
+examples/c/c23_digit_sep.c,39,7,// assert char_a() == 65 via mir2,0,0,0,0
+examples/c/c23_digit_sep.c,40,8,// assert char_zero() == 48 via mir2,0,0,0,0
+examples/c/c23_digit_sep.c,41,9,// assert mixed() == 10 via mir2,0,0,0,0
+examples/c/c23_embed.c,51,1,// assert first_byte() == 0x48 via mir2,0,0,0,0
+examples/c/c23_embed.c,52,2,// assert last_byte() == 0x21 via mir2,0,0,0,0
+examples/c/c23_embed.c,53,3,// assert data_size() == 6 via mir2,0,0,0,0
+examples/c/c23_embed.c,54,4,// assert square(0) == 0 via mir2,0,0,0,0
+examples/c/c23_embed.c,55,5,// assert square(3) == 9 via mir2,1,1,1,1
+examples/c/c23_embed.c,56,6,// assert square(10) == 100 via mir2,1,1,1,1
+examples/c/c23_embed.c,57,7,// assert square(15) == 225 via mir2,1,1,1,1
+examples/c/c23_embed.c,58,8,// assert popcount4(0) == 0 via mir2,0,0,0,0
+examples/c/c23_embed.c,59,9,// assert popcount4(5) == 2 via mir2,0,0,0,0
+examples/c/c23_embed.c,60,10,// assert popcount4(15) == 4 via mir2,0,0,0,0
+examples/c/c23_misc.c,69,1,// assert test_auto_int() == 42 via mir2,0,0,0,0
+examples/c/c23_misc.c,70,2,"// assert test_auto_expr(10, 20) == 30 via mir2",0,0,0,0
+examples/c/c23_misc.c,73,3,// assert test_typeof(21) == 42 via mir2,0,0,0,0
+examples/c/c23_misc.c,74,4,// assert test_typeof_expr() == 20 via mir2,0,0,0,0
+examples/c/c23_misc.c,77,5,// assert screen_width() == 32 via mir2,0,0,0,0
+examples/c/c23_misc.c,78,6,// assert screen_height() == 24 via mir2,0,0,0,0
+examples/c/c23_misc.c,81,7,// assert test_nullptr() == 1 via mir2,0,0,0,0
+examples/c/c23_misc.c,84,8,// assert test_bool_keyword(5) == 1 via mir2,1,1,1,1
+examples/c/c23_misc.c,85,9,// assert test_bool_keyword(0) == 0 via mir2,0,0,0,0
+examples/c/c23_misc.c,88,10,// assert test_nested(10) == 12 via mir2,1,1,1,1
+examples/c/c23_misc.c,91,11,// assert test_constexpr_expr() == 142 via mir2,1,1,1,1
+examples/c/c23_preview.c,32,1,// assert is_zero(0) == 1 via mir2,1,1,1,1
+examples/c/c23_preview.c,33,2,// assert is_zero(5) == 0 via mir2,0,0,0,0
+examples/c/c23_preview.c,34,3,"// assert xor_bool(1, 0) == 1 via mir2",1,1,1,1
+examples/c/c23_preview.c,35,4,"// assert xor_bool(1, 1) == 0 via mir2",0,0,0,0
+examples/c/c23_preview.c,36,5,"// assert xor_bool(0, 0) == 0 via mir2",0,0,0,0
+examples/c/c23_preview.c,37,6,"// assert clamp(50, 10, 100) == 50 via mir2",0,0,0,0
+examples/c/c23_preview.c,38,7,"// assert clamp(5, 10, 100) == 10 via mir2",0,0,0,0
+examples/c/c23_preview.c,39,8,"// assert clamp(200, 10, 100) == 100 via mir2",0,0,0,0
+examples/c/c23_preview.c,40,9,// assert sign(42) == 1 via mir2,0,0,0,0
+examples/c/c23_preview.c,41,10,// assert sign(0) == 0 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,62,1,// assert popcount_0() == 0 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,63,2,// assert popcount_1() == 1 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,64,3,// assert popcount_ff() == 8 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,65,4,// assert popcount_aa() == 4 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,66,5,// assert popcount_55() == 4 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,69,6,// assert clz_0() == 8 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,70,7,// assert clz_1() == 7 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,71,8,// assert clz_80() == 0 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,72,9,// assert clz_0f() == 4 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,73,10,// assert clz_40() == 1 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,76,11,// assert ctz_0() == 8 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,77,12,// assert ctz_1() == 0 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,78,13,// assert ctz_80() == 7 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,79,14,// assert ctz_10() == 4 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,82,15,// assert hsb_0() == 0 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,83,16,// assert hsb_1() == 1 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,84,17,// assert hsb_64() == 1 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,85,18,// assert hsb_3() == 0 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,88,19,// assert bw_0() == 0 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,89,20,// assert bw_1() == 1 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,90,21,// assert bw_7() == 3 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,91,22,// assert bw_8() == 4 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,92,23,// assert bw_ff() == 8 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,95,24,// assert bc_0() == 1 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,96,25,// assert bc_1() == 1 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,97,26,// assert bc_3() == 4 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,98,27,// assert bc_5() == 8 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,101,28,// assert bf_0() == 0 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,102,29,// assert bf_1() == 1 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,103,30,// assert bf_5() == 4 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,104,31,// assert bf_7() == 4 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,107,32,// assert cz_0() == 8 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,108,33,// assert cz_ff() == 0 via mir2,0,0,0,0
+examples/c/c23_stdbit.c,109,34,// assert cz_aa() == 4 via mir2,0,0,0,0
+examples/c/c99_bitops.c,57,1,"// assert shl(1, 0) == 1 via mir2",1,1,1,1
+examples/c/c99_bitops.c,58,2,"// assert shl(1, 3) == 8 via mir2",1,1,1,1
+examples/c/c99_bitops.c,59,3,"// assert shl(1, 7) == 128 via mir2",1,1,1,1
+examples/c/c99_bitops.c,60,4,"// assert shr(128, 7) == 1 via mir2",1,1,1,1
+examples/c/c99_bitops.c,61,5,"// assert shr(255, 4) == 15 via mir2",1,1,1,1
+examples/c/c99_bitops.c,62,6,"// assert band(0xAA, 0x55) == 0 via mir2",0,0,0,0
+examples/c/c99_bitops.c,63,7,"// assert band(0xFF, 0x0F) == 15 via mir2",0,0,0,0
+examples/c/c99_bitops.c,64,8,"// assert bor(0xA0, 0x05) == 0xA5 via mir2",0,0,0,0
+examples/c/c99_bitops.c,65,9,"// assert bxor(0xFF, 0xFF) == 0 via mir2",0,0,0,0
+examples/c/c99_bitops.c,66,10,"// assert bxor(0xAA, 0x55) == 0xFF via mir2",0,0,0,0
+examples/c/c99_bitops.c,67,11,// assert bnot(0) == 255 via mir2,0,0,0,0
+examples/c/c99_bitops.c,68,12,// assert bnot(0xFF) == 0 via mir2,1,1,1,1
+examples/c/c99_bitops.c,69,13,"// assert isolate_bit(0x80, 7) == 1 via mir2",1,1,1,1
+examples/c/c99_bitops.c,70,14,"// assert isolate_bit(0x80, 6) == 0 via mir2",0,0,0,0
+examples/c/c99_bitops.c,71,15,"// assert set_bit(0, 3) == 8 via mir2",1,1,1,1
+examples/c/c99_bitops.c,72,16,"// assert clear_bit(0xFF, 0) == 0xFE via mir2",1,1,1,1
+examples/c/c99_bitops.c,73,17,"// assert toggle_bit(0, 5) == 32 via mir2",1,1,1,1
+examples/c/c99_bitops.c,74,18,"// assert toggle_bit(32, 5) == 0 via mir2",0,0,0,0
+examples/c/c99_bitops.c,77,19,// assert popcount8(0) == 0 via mir2,0,0,0,0
+examples/c/c99_bitops.c,78,20,// assert popcount8(0xFF) == 8 via mir2,1,1,1,1
+examples/c/c99_bitops.c,79,21,// assert popcount8(0xAA) == 4 via mir2,1,1,1,1
+examples/c/c99_bitops.c,80,22,// assert is_power_of_2(1) == 1 via mir2,1,1,1,1
+examples/c/c99_bitops.c,81,23,// assert is_power_of_2(64) == 1 via mir2,1,1,1,1
+examples/c/c99_bitops.c,82,24,// assert is_power_of_2(0) == 0 via mir2,0,0,0,0
+examples/c/c99_bitops.c,83,25,// assert is_power_of_2(3) == 0 via mir2,0,0,0,0
+examples/c/c99_bitops.c,84,26,// assert high_nibble(0xAB) == 10 via mir2,0,0,0,0
+examples/c/c99_bitops.c,85,27,// assert low_nibble(0xAB) == 11 via mir2,0,0,0,0
+examples/c/c99_control_flow.c,95,1,// assert classify(0) == 0 via mir2,0,0,0,0
+examples/c/c99_control_flow.c,96,2,// assert classify(5) == 1 via mir2,1,1,1,1
+examples/c/c99_control_flow.c,97,3,// assert classify(50) == 2 via mir2,1,1,1,1
+examples/c/c99_control_flow.c,98,4,// assert classify(200) == 3 via mir2,1,1,1,1
+examples/c/c99_control_flow.c,102,5,// assert count_down(5) == 15 via mir2,0,0,0,0
+examples/c/c99_control_flow.c,103,6,// assert count_down(0) == 0 via mir2,0,0,0,0
+examples/c/c99_control_flow.c,104,7,// assert factorial(5) == 120 via mir2,1,1,1,1
+examples/c/c99_control_flow.c,105,8,// assert factorial(1) == 1 via mir2,1,1,1,1
+examples/c/c99_control_flow.c,106,9,// assert digits(0) == 1 via mir2,1,1,1,1
+examples/c/c99_control_flow.c,107,10,// assert digits(9) == 1 via mir2,1,1,1,1
+examples/c/c99_control_flow.c,108,11,// assert digits(99) == 2 via mir2,1,1,1,1
+examples/c/c99_control_flow.c,109,12,// assert digits(100) == 3 via mir2,1,1,1,1
+examples/c/c99_control_flow.c,110,13,// assert mul_table_sum(3) == 9 via mir2,1,1,1,1
+examples/c/c99_control_flow.c,111,14,"// assert find_first_even(3, 5, 8) == 8 via mir2",0,0,0,0
+examples/c/c99_control_flow.c,112,15,"// assert find_first_even(2, 5, 8) == 2 via mir2",0,0,0,0
+examples/c/c99_control_flow.c,113,16,// assert sign(42) == 1 via mir2,0,0,0,0
+examples/c/c99_control_flow.c,114,17,// assert sign(0) == 0 via mir2,0,0,0,0
+examples/c/c99_control_flow.c,115,18,// assert first_divisor(12) == 2 via mir2,1,1,1,1
+examples/c/c99_control_flow.c,116,19,// assert first_divisor(7) == 7 via mir2,1,1,1,1
+examples/c/c99_control_flow.c,117,20,// assert test_goto(5) == 0 via mir2,1,1,1,1
+examples/c/c99_control_flow.c,118,21,// assert test_goto(20) == 1 via mir2,0,0,0,0
+examples/c/c99_ctype.c,19,1,// assert test_isdigit(48) == 1 via mir2,1,1,1,1
+examples/c/c99_ctype.c,20,2,// assert test_isdigit(65) == 0 via mir2,0,0,0,0
+examples/c/c99_ctype.c,21,3,// assert test_isalpha(65) == 1 via mir2,1,1,1,1
+examples/c/c99_ctype.c,22,4,// assert test_isalpha(48) == 0 via mir2,0,0,0,0
+examples/c/c99_ctype.c,23,5,// assert test_isalnum(65) == 1 via mir2,1,1,1,1
+examples/c/c99_ctype.c,24,6,// assert test_isalnum(48) == 1 via mir2,1,1,1,1
+examples/c/c99_ctype.c,25,7,// assert test_isalnum(32) == 0 via mir2,0,0,0,0
+examples/c/c99_ctype.c,26,8,// assert test_isspace(32) == 1 via mir2,0,0,0,0
+examples/c/c99_ctype.c,27,9,// assert test_isspace(65) == 0 via mir2,1,1,1,1
+examples/c/c99_ctype.c,28,10,// assert test_isupper(65) == 1 via mir2,1,1,1,1
+examples/c/c99_ctype.c,29,11,// assert test_isupper(97) == 0 via mir2,0,0,0,0
+examples/c/c99_ctype.c,30,12,// assert test_islower(97) == 1 via mir2,1,1,1,1
+examples/c/c99_ctype.c,31,13,// assert test_islower(65) == 0 via mir2,0,0,0,0
+examples/c/c99_ctype.c,32,14,// assert test_toupper(97) == 65 via mir2,1,1,1,1
+examples/c/c99_ctype.c,33,15,// assert test_toupper(65) == 65 via mir2,1,1,1,1
+examples/c/c99_ctype.c,34,16,// assert test_tolower(65) == 97 via mir2,1,1,1,1
+examples/c/c99_ctype.c,35,17,// assert test_tolower(97) == 97 via mir2,1,1,1,1
+examples/c/c99_enum_typedef.c,54,1,// assert opposite(0) == 2 via mir2,0,0,0,0
+examples/c/c99_enum_typedef.c,55,2,// assert opposite(1) == 3 via mir2,0,0,0,0
+examples/c/c99_enum_typedef.c,56,3,// assert opposite(2) == 0 via mir2,0,0,0,0
+examples/c/c99_enum_typedef.c,57,4,// assert is_vertical(0) == 1 via mir2,1,1,1,1
+examples/c/c99_enum_typedef.c,58,5,// assert is_vertical(1) == 0 via mir2,1,1,1,1
+examples/c/c99_enum_typedef.c,59,6,// assert next_state(0) == 1 via mir2,1,1,1,1
+examples/c/c99_enum_typedef.c,60,7,// assert next_state(2) == 0 via mir2,0,0,0,0
+examples/c/c99_enum_typedef.c,61,8,"// assert byte_add(100, 42) == 142 via mir2",0,0,0,0
+examples/c/c99_enum_typedef.c,62,9,// assert word_lo(0x1234) == 0x34 via mir2,0,0,0,0
+examples/c/c99_enum_typedef.c,63,10,// assert word_hi(0x1234) == 0x12 via mir2,0,0,0,0
+examples/c/c99_enum_typedef.c,64,11,// assert test_counter() == 3 via mir2,0,0,0,0
+examples/c/c99_enum_typedef.c,65,12,// assert size_u8() == 1 via mir2,0,0,0,0
+examples/c/c99_enum_typedef.c,66,13,// assert size_u16() == 2 via mir2,0,0,0,0
+examples/c/c99_enum_typedef.c,67,14,// assert size_ptr() == 2 via mir2,0,0,0,0
+examples/c/c99_enum_typedef.c,68,15,// assert size_enum() == 2 via mir2,0,0,0,0
+examples/c/c99_math8.c,50,1,"// assert add8(100, 50) == 150 via mir2",0,0,0,0
+examples/c/c99_math8.c,51,2,"// assert add8(200, 100) == 300 via mir2",1,1,1,1
+examples/c/c99_math8.c,52,3,"// assert sub8(100, 30) == 70 via mir2",0,0,0,0
+examples/c/c99_math8.c,53,4,"// assert mul8(7, 6) == 42 via mir2",0,0,0,0
+examples/c/c99_math8.c,54,5,"// assert mul8(16, 16) == 256 via mir2",1,1,1,1
+examples/c/c99_math8.c,55,6,"// assert div8(100, 10) == 10 via mir2",0,0,0,0
+examples/c/c99_math8.c,56,7,"// assert div8(255, 1) == 255 via mir2",0,0,0,0
+examples/c/c99_math8.c,57,8,"// assert mod8(17, 5) == 2 via mir2",0,0,0,0
+examples/c/c99_math8.c,58,9,"// assert mod8(100, 10) == 0 via mir2",0,0,0,0
+examples/c/c99_math8.c,59,10,"// assert abs_diff(10, 3) == 7 via mir2",0,0,0,0
+examples/c/c99_math8.c,60,11,"// assert abs_diff(3, 10) == 7 via mir2",0,0,0,0
+examples/c/c99_math8.c,61,12,"// assert abs_diff(5, 5) == 0 via mir2",0,0,0,0
+examples/c/c99_math8.c,62,13,"// assert min8(10, 20) == 10 via mir2",0,0,0,0
+examples/c/c99_math8.c,63,14,"// assert min8(20, 10) == 10 via mir2",0,0,0,0
+examples/c/c99_math8.c,64,15,"// assert max8(10, 20) == 20 via mir2",0,0,0,0
+examples/c/c99_math8.c,65,16,"// assert max8(20, 10) == 20 via mir2",0,0,0,0
+examples/c/c99_math8.c,66,17,"// assert clamp8(50, 10, 100) == 50 via mir2",0,0,0,0
+examples/c/c99_math8.c,67,18,"// assert clamp8(5, 10, 100) == 10 via mir2",0,0,0,0
+examples/c/c99_math8.c,68,19,"// assert clamp8(200, 10, 100) == 100 via mir2",0,0,0,0
+examples/c/c99_math8.c,69,20,"// assert gcd8(12, 8) == 4 via mir2",1,1,1,1
+examples/c/c99_math8.c,70,21,"// assert gcd8(7, 13) == 1 via mir2",1,1,1,1
+examples/c/c99_math8.c,71,22,"// assert gcd8(100, 25) == 25 via mir2",1,1,1,1
+examples/c/c99_math8.c,72,23,// assert is_even(0) == 1 via mir2,1,1,1,1
+examples/c/c99_math8.c,73,24,// assert is_even(42) == 1 via mir2,1,1,1,1
+examples/c/c99_math8.c,74,25,// assert is_even(7) == 0 via mir2,0,0,0,0
+examples/c/c99_math8.c,75,26,// assert double_it(21) == 42 via mir2,0,0,0,0
+examples/c/c99_math8.c,76,27,// assert halve_it(84) == 42 via mir2,0,0,0,0
+examples/c/c99_math8.c,77,28,"// assert saturating_add(200, 100) == 255 via mir2",0,0,0,0
+examples/c/c99_math8.c,78,29,"// assert saturating_add(100, 50) == 150 via mir2",1,0,0,1
+examples/c/c99_math8.c,79,30,"// assert average(10, 20) == 15 via mir2",0,0,0,0
+examples/c/c99_math8.c,80,31,"// assert average(0, 255) == 127 via mir2",0,0,0,0
+examples/c/c99_pointers.c,67,1,// assert deref_test() == 42 via z80,1,1,1,1
+examples/c/c99_pointers.c,68,2,// assert write_via_ptr() == 99 via z80,1,1,1,1
+examples/c/c99_pointers.c,69,3,// assert array_via_ptr() == 30 via z80,1,1,1,1
+examples/c/c99_pointers.c,70,4,// assert ptr_index() == 40 via z80,1,1,1,1
+examples/c/c99_pointers.c,71,5,// assert swap_test() == 20 via z80,1,1,1,1
+examples/c/c99_pointers.c,72,6,// assert ptr_size() == 2 via z80,1,1,1,1
+examples/c/c99_pointers.c,73,7,// assert test_fptr() == 42 via z80,1,1,1,1
+examples/c/c99_pointers.c,74,8,// assert test_fptr2() == 42 via z80,1,1,1,1
+examples/c/c99_stdbool.c,34,1,// assert is_even(4) == 1 via mir2,1,1,1,1
+examples/c/c99_stdbool.c,35,2,// assert is_even(7) == 0 via mir2,0,0,0,0
+examples/c/c99_stdbool.c,36,3,// assert is_positive(10) == 1 via mir2,1,1,1,1
+examples/c/c99_stdbool.c,37,4,// assert is_positive(0) == 0 via mir2,0,0,0,0
+examples/c/c99_stdbool.c,38,5,// assert bool_to_int(1) == 42 via mir2,0,0,0,0
+examples/c/c99_stdbool.c,39,6,// assert bool_to_int(0) == 0 via mir2,0,0,0,0
+examples/c/c99_stdbool.c,40,7,"// assert both_true(1, 1) == 1 via mir2",0,0,0,0
+examples/c/c99_stdbool.c,41,8,"// assert both_true(1, 0) == 0 via mir2",0,0,0,0
+examples/c/c99_stdbool.c,42,9,"// assert either_true(0, 1) == 1 via mir2",0,0,0,0
+examples/c/c99_stdbool.c,43,10,"// assert either_true(0, 0) == 0 via mir2",0,0,0,0
+examples/c/c99_stdbool.c,44,11,// assert negate(0) == 1 via mir2,1,1,1,1
+examples/c/c99_stdbool.c,45,12,// assert negate(1) == 0 via mir2,0,0,0,0
+examples/c/c99_structs.c,95,1,// assert point_x() == 10 via mir2,1,1,1,1
+examples/c/c99_structs.c,96,2,// assert point_y() == 20 via mir2,1,1,1,1
+examples/c/c99_structs.c,97,3,// assert color_green() == 20 via mir2,1,1,1,1
+examples/c/c99_structs.c,98,4,// assert compound_point() == 42 via mir2,1,1,1,1
+examples/c/c99_structs.c,99,5,// assert manhattan() == 15 via mir2,1,1,1,1
+examples/c/c99_structs.c,100,6,// assert entity_x() == 42 via mir2,1,1,1,1
+examples/c/c99_structs.c,101,7,// assert entity_id() == 7 via mir2,1,1,1,1
+examples/c/c99_structs.c,102,8,// assert vec3_z() == 30 via mir2,1,1,1,1
+examples/c/c99_structs.c,103,9,// assert vec3_sum() == 60 via mir2,1,1,1,1
+examples/c/c99_structs.c,104,10,// assert test_return_struct() == 42 via mir2,0,0,0,0
+examples/c/c_edge_cases.c,22,1,// assert identity(0) == 0 via mir2,0,0,0,0
+examples/c/c_edge_cases.c,23,2,// assert identity(42) == 42 via mir2,0,0,0,0
+examples/c/c_edge_cases.c,24,3,// assert identity(255) == 255 via mir2,0,0,0,0
+examples/c/c_edge_cases.c,25,4,// assert zero(42) == 0 via mir2,0,0,0,0
+examples/c/c_edge_cases.c,26,5,// assert zero(0) == 0 via mir2,0,0,0,0
+examples/c/c_edge_cases.c,27,6,"// assert add(3, 4) == 7 via mir2",0,0,0,0
+examples/c/c_edge_cases.c,28,7,"// assert add(200, 55) == 255 via mir2",0,0,0,0
+examples/c/c_edge_cases.c,29,8,"// assert add(0, 0) == 0 via mir2",0,0,0,0
+examples/c/c_edge_cases.c,30,9,"// assert sub(10, 3) == 7 via mir2",0,0,0,0
+examples/c/c_edge_cases.c,31,10,"// assert sub(10, 10) == 0 via mir2",0,0,0,0
+examples/c/c_edge_cases.c,32,11,"// assert mul(6, 7) == 42 via mir2",0,0,0,0
+examples/c/c_edge_cases.c,33,12,"// assert mul(0, 255) == 0 via mir2",0,0,0,0
+examples/c/c_edge_cases.c,34,13,"// assert mul(15, 17) == 255 via mir2",0,0,0,0
+examples/c/c_edge_cases.c,35,14,// assert shl1(1) == 2 via mir2,0,0,0,0
+examples/c/c_edge_cases.c,36,15,// assert shl1(64) == 128 via mir2,0,0,0,0
+examples/c/c_edge_cases.c,37,16,// assert shl1(128) == 0 via mir2,0,0,0,0
+examples/c/c_edge_cases.c,38,17,// assert shr1(2) == 1 via mir2,0,0,0,0
+examples/c/c_edge_cases.c,39,18,// assert shr1(128) == 64 via mir2,0,0,0,0
+examples/c/c_edge_cases.c,40,19,// assert shr1(1) == 0 via mir2,0,0,0,0
+examples/c/c_edge_cases.c,41,20,// assert negate(1) == 255 via mir2,0,0,0,0
+examples/c/c_edge_cases.c,42,21,// assert negate(0) == 0 via mir2,0,0,0,0
+examples/c/c_edge_cases.c,43,22,// assert complement(0) == 255 via mir2,0,0,0,0
+examples/c/c_edge_cases.c,44,23,// assert complement(255) == 0 via mir2,1,1,1,1
+examples/c/c_edge_cases.c,45,24,// assert complement(170) == 85 via mir2,1,1,1,1
+examples/c/c_edge_cases.c,46,25,"// assert band(255, 0) == 0 via mir2",0,0,0,0
+examples/c/c_edge_cases.c,47,26,"// assert band(170, 85) == 0 via mir2",0,0,0,0
+examples/c/c_edge_cases.c,48,27,"// assert band(255, 255) == 255 via mir2",0,0,0,0
+examples/c/c_edge_cases.c,49,28,"// assert bor(0, 0) == 0 via mir2",0,0,0,0
+examples/c/c_edge_cases.c,50,29,"// assert bor(170, 85) == 255 via mir2",0,0,0,0
+examples/c/c_edge_cases.c,51,30,"// assert bxor(255, 255) == 0 via mir2",0,0,0,0
+examples/c/c_edge_cases.c,52,31,"// assert bxor(170, 85) == 255 via mir2",0,0,0,0
+examples/c/c_edge_cases.c,53,32,// assert double_inc(5) == 11 via mir2,1,1,0,1
+examples/c/c_edge_cases.c,54,33,// assert triple(10) == 30 via mir2,0,0,0,0
+examples/c/c_edge_cases.c,55,34,// assert square(5) == 25 via mir2,0,0,0,0
+examples/c/c_edge_cases.c,56,35,// assert square(0) == 0 via mir2,0,0,0,0
+examples/c/c_edge_cases.c,57,36,// assert square(15) == 225 via mir2,0,0,0,0
+examples/c/mul_const.c,3,1,// assert m10(7) == 70 via mir2,0,0,0,0
+examples/c/mul_const.c,4,2,// assert m10(7) == 70 via z80,0,0,0,0
+examples/c/mul_const.c,5,3,// assert m10(1000) == 10000 via mir2,0,0,0,0
+examples/c/mul_const.c,6,4,// assert m10(1000) == 10000 via z80,0,0,0,0
+examples/c89/assert_test.c,27,1,// assert twice(5) == 10,0,0,0,0
+examples/c89/assert_test.c,28,2,// assert twice(0) == 0,0,0,0,0
+examples/c89/assert_test.c,29,3,"// assert add(3, 4) == 7",0,0,0,0
+examples/c89/assert_test.c,30,4,"// assert add(0, 0) == 0",0,0,0,0
+examples/c89/assert_test.c,31,5,"// assert max(3, 7) == 7",0,0,0,0
+examples/c89/assert_test.c,32,6,"// assert max(7, 3) == 7",0,0,0,0
+examples/c89/assert_test.c,33,7,"// assert max(5, 5) == 5",0,0,0,0
+examples/c89/assert_test.c,34,8,"// assert abs_diff(10, 3) == 7",0,0,0,0
+examples/c89/assert_test.c,35,9,"// assert abs_diff(3, 10) == 7",0,0,0,0
+examples/c89/assert_test.c,36,10,"// assert abs_diff(5, 5) == 0",0,0,0,0
+examples/c89/assert_test.c,37,11,"// assert clamp8(50, 10, 100) == 50",0,0,0,0
+examples/c89/assert_test.c,38,12,"// assert clamp8(5, 10, 100) == 10",0,0,0,0
+examples/c89/assert_test.c,39,13,"// assert clamp8(200, 10, 100) == 100",0,0,0,0
+examples/c89/bench_extended.c,191,1,// assert twice(5) == 10 via mir2,0,0,0,0
+examples/c89/bench_extended.c,192,2,"// assert add(3, 4) == 7 via mir2",0,0,0,0
+examples/c89/bench_extended.c,193,3,"// assert add8(100, 50) == 150 via mir2",0,0,0,0
+examples/c89/bench_extended.c,194,4,"// assert sub8(100, 30) == 70 via mir2",0,0,0,0
+examples/c89/bench_extended.c,195,5,"// assert max(3, 7) == 7 via mir2",0,0,0,0
+examples/c89/bench_extended.c,196,6,"// assert max(7, 3) == 7 via mir2",0,0,0,0
+examples/c89/bench_extended.c,197,7,"// assert min(3, 7) == 3 via mir2",0,0,0,0
+examples/c89/bench_extended.c,198,8,"// assert max8(100, 200) == 200 via mir2",0,0,0,0
+examples/c89/bench_extended.c,199,9,"// assert min8(100, 200) == 100 via mir2",0,0,0,0
+examples/c89/bench_extended.c,200,10,"// assert abs_diff(10, 3) == 7 via mir2",0,0,0,0
+examples/c89/bench_extended.c,201,11,"// assert abs_diff(3, 10) == 7 via mir2",0,0,0,0
+examples/c89/bench_extended.c,202,12,"// assert clamp8(50, 10, 100) == 50 via mir2",0,0,0,0
+examples/c89/bench_extended.c,203,13,"// assert clamp8(5, 10, 100) == 10 via mir2",0,0,0,0
+examples/c89/bench_extended.c,204,14,"// assert clamp8(200, 10, 100) == 100 via mir2",0,0,0,0
+examples/c89/bench_extended.c,205,15,"// assert in_range(50, 10, 100) == 1 via mir2",0,0,0,0
+examples/c89/bench_extended.c,206,16,"// assert in_range(5, 10, 100) == 0 via mir2",0,0,0,0
+examples/c89/bench_extended.c,207,17,// assert high_nibble(0xAB) == 10 via mir2,0,0,0,0
+examples/c89/bench_extended.c,208,18,// assert low_nibble(0xAB) == 11 via mir2,0,0,0,0
+examples/c89/bench_extended.c,209,19,// assert is_digit(48) == 1 via mir2,0,0,0,0
+examples/c89/bench_extended.c,210,20,// assert is_digit(65) == 0 via mir2,1,1,1,1
+examples/c89/bench_extended.c,211,21,// assert hex_digit(0) == 48 via mir2,1,1,1,1
+examples/c89/bench_extended.c,212,22,// assert hex_digit(10) == 65 via mir2,1,1,1,1
+examples/c89/bench_extended.c,213,23,// assert to_upper(97) == 65 via mir2,1,1,1,1
+examples/c89/bench_extended.c,214,24,// assert to_lower(65) == 97 via mir2,1,1,1,1
+examples/c89/bench_extended.c,215,25,// assert count_ones(0) == 0 via mir2,0,0,0,0
+examples/c89/bench_extended.c,216,26,// assert count_ones(0xFF) == 8 via mir2,1,1,1,1
+examples/c89/bench_extended.c,217,27,// assert sum_to(10) == 45 via mir2,0,0,0,0
+examples/c89/bitops.c,43,1,// assert high_nibble(0xAB) == 10 via mir2,0,0,0,0
+examples/c89/bitops.c,44,2,// assert low_nibble(0xAB) == 11 via mir2,0,0,0,0
+examples/c89/bitops.c,45,3,// assert swap_nibbles(0x12) == 33 via mir2,0,0,0,0
+examples/c89/bitops.c,46,4,// assert bit_count(0) == 0 via mir2,0,0,0,0
+examples/c89/bitops.c,47,5,// assert bit_count(0xFF) == 8 via mir2,1,1,1,1
+examples/c89/bitops.c,48,6,// assert bit_count(0x0F) == 4 via mir2,1,1,1,1
+examples/c89/c99_c11.c,6,1,// assert square(7) == 49 via mir2,0,0,0,0
+examples/c89/c99_c11.c,9,2,// assert cube(3) == 27 via mir2,0,0,0,0
+examples/c89/c99_c11.c,15,3,// assert is_positive(5) == 1 via mir2,1,1,1,1
+examples/c89/c99_c11.c,16,4,// assert is_positive(0) == 0 via mir2,0,0,0,0
+examples/c89/c99_c11.c,23,5,// assert bool_normalize(42) == 1 via mir2,1,1,1,1
+examples/c89/c99_c11.c,24,6,// assert bool_normalize(0) == 0 via mir2,0,0,0,0
+examples/c89/c99_c11.c,48,7,// assert test_desig_local() == 60 via mir2,1,1,1,1
+examples/c89/c99_c11.c,54,8,// assert test_compound_expr() == 99 via mir2,0,0,0,0
+examples/c89/c99_c11.c,64,9,// assert test_for_decl() == 10 via mir2,1,1,1,1
+examples/c89/c99_c11.c,73,10,// assert test_mixed_decls() == 12 via mir2,0,0,0,0
+examples/c89/c99_c11.c,78,11,// assert test_comments() == 1 via mir2,0,0,0,0
+examples/c89/c99_c11.c,85,12,// assert test_generic_int() == 1 via mir2,0,0,0,0
+examples/c89/c99_c11.c,91,13,// assert test_generic_long() == 2 via mir2,0,0,0,0
+examples/c89/c99_c11.c,97,14,// assert test_generic_default() == 3 via mir2,0,0,0,0
+examples/c89/c99_compound.c,109,1,// assert compound_add(5) == 15 via mir2,0,0,0,0
+examples/c89/c99_compound.c,110,2,// assert compound_sub(10) == 7 via mir2,0,0,0,0
+examples/c89/c99_compound.c,111,3,// assert compound_mul(3) == 12 via mir2,0,0,0,0
+examples/c89/c99_compound.c,112,4,// assert compound_div(15) == 5 via mir2,0,0,0,0
+examples/c89/c99_compound.c,113,5,// assert compound_div(10) == 3 via mir2,0,0,0,0
+examples/c89/c99_compound.c,114,6,// assert compound_mod(15) == 1 via mir2,0,0,0,0
+examples/c89/c99_compound.c,115,7,// assert compound_mod(6) == 6 via mir2,0,0,0,0
+examples/c89/c99_compound.c,116,8,// assert compound_and(0xAB) == 0x0B via mir2,0,0,0,0
+examples/c89/c99_compound.c,117,9,// assert compound_or(0x01) == 0x81 via mir2,0,0,0,0
+examples/c89/c99_compound.c,118,10,// assert compound_xor(0xAA) == 0x55 via mir2,0,0,0,0
+examples/c89/c99_compound.c,119,11,// assert compound_shl(3) == 12 via mir2,0,0,0,0
+examples/c89/c99_compound.c,120,12,// assert compound_shr(10) == 5 via mir2,0,0,0,0
+examples/c89/c99_compound.c,121,13,// assert post_inc(5) == 7 via mir2,0,0,0,0
+examples/c89/c99_compound.c,122,14,// assert post_dec(5) == 4 via mir2,0,0,0,0
+examples/c89/c99_compound.c,123,15,// assert pre_inc(5) == 8 via mir2,0,0,0,0
+examples/c89/c99_compound.c,124,16,// assert pre_dec(5) == 3 via mir2,0,0,0,0
+examples/c89/c99_compound.c,125,17,// assert truncate(0x1234) == 0x34 via mir2,0,0,0,0
+examples/c89/c99_compound.c,126,18,// assert lnot(0) == 1 via mir2,1,1,1,1
+examples/c89/c99_compound.c,127,19,// assert lnot(5) == 0 via mir2,0,0,0,0
+examples/c89/c99_compound.c,128,20,// assert bnot(0) == 255 via mir2,0,0,0,0
+examples/c89/c99_compound.c,129,21,// assert bnot(0xAA) == 0x55 via mir2,1,1,1,1
+examples/c89/c99_control.c,43,1,// assert count_bits(0) == 0 via mir2,0,0,0,0
+examples/c89/c99_control.c,44,2,// assert count_bits(1) == 1 via mir2,1,1,1,1
+examples/c89/c99_control.c,45,3,// assert count_bits(255) == 8 via mir2,1,1,1,1
+examples/c89/c99_control.c,46,4,// assert count_bits(170) == 4 via mir2,1,1,1,1
+examples/c89/c99_control.c,47,5,// assert find_msb(0) == 0 via mir2,0,0,0,0
+examples/c89/c99_control.c,48,6,// assert find_msb(1) == 1 via mir2,1,1,1,1
+examples/c89/c99_control.c,49,7,// assert find_msb(128) == 8 via mir2,1,1,1,1
+examples/c89/c99_control.c,50,8,// assert find_msb(7) == 3 via mir2,1,1,1,1
+examples/c89/c99_control.c,51,9,"// assert abs_diff(10, 3) == 7 via mir2",0,0,0,0
+examples/c89/c99_control.c,52,10,"// assert abs_diff(3, 10) == 7 via mir2",0,0,0,0
+examples/c89/c99_control.c,53,11,"// assert abs_diff(5, 5) == 0 via mir2",0,0,0,0
+examples/c89/c99_control.c,54,12,"// assert clamp(50, 10, 100) == 50 via mir2",0,0,0,0
+examples/c89/c99_control.c,55,13,"// assert clamp(5, 10, 100) == 10 via mir2",0,0,0,0
+examples/c89/c99_control.c,56,14,"// assert clamp(200, 10, 100) == 100 via mir2",0,0,0,0
+examples/c89/c99_control.c,57,15,"// assert max_of_first_n(3, 7, 5) == 7 via mir2",0,0,0,0
+examples/c89/c99_control.c,58,16,"// assert max_of_first_n(9, 2, 4) == 9 via mir2",0,0,0,0
+examples/c89/c99_control.c,59,17,"// assert max_of_first_n(1, 2, 8) == 8 via mir2",1,1,1,1
+examples/c89/c99_designated.c,15,1,// assert desig_basic_a() == 10 via mir2,0,0,0,0
+examples/c89/c99_designated.c,16,2,// assert desig_basic_b() == 20 via mir2,0,0,0,0
+examples/c89/c99_designated.c,25,3,// assert desig_rev_a() == 3 via mir2,0,0,0,0
+examples/c89/c99_designated.c,26,4,// assert desig_rev_b() == 7 via mir2,0,0,0,0
+examples/c89/c99_designated.c,35,5,// assert desig_mixed_a() == 5 via mir2,0,0,0,0
+examples/c89/c99_designated.c,36,6,// assert desig_mixed_b() == 15 via mir2,0,0,0,0
+examples/c89/c99_designated.c,48,7,// assert desig_triple_x() == 1 via mir2,0,0,0,0
+examples/c89/c99_designated.c,49,8,// assert desig_triple_y() == 50 via mir2,0,0,0,0
+examples/c89/c99_designated.c,50,9,// assert desig_triple_z() == 100 via mir2,0,0,0,0
+examples/c89/c99_preproc.c,67,1,// assert square(5) == 25 via mir2,0,0,0,0
+examples/c89/c99_preproc.c,68,2,// assert square(0) == 0 via mir2,0,0,0,0
+examples/c89/c99_preproc.c,69,3,// assert square(3) == 9 via mir2,0,0,0,0
+examples/c89/c99_preproc.c,70,4,"// assert min_of(3, 7) == 3 via mir2",0,0,0,0
+examples/c89/c99_preproc.c,71,5,"// assert min_of(10, 2) == 2 via mir2",0,0,0,0
+examples/c89/c99_preproc.c,72,6,"// assert max_of(3, 7) == 7 via mir2",0,0,0,0
+examples/c89/c99_preproc.c,73,7,"// assert max_of(10, 2) == 10 via mir2",0,0,0,0
+examples/c89/c99_preproc.c,74,8,"// assert clamped(50, 10, 100) == 50 via mir2",0,0,0,0
+examples/c89/c99_preproc.c,75,9,"// assert clamped(5, 10, 100) == 10 via mir2",1,1,1,1
+examples/c89/c99_preproc.c,76,10,"// assert clamped(200, 10, 100) == 100 via mir2",0,0,0,0
+examples/c89/c99_preproc.c,77,11,"// assert set_bit(0, 3) == 8 via mir2",1,1,1,1
+examples/c89/c99_preproc.c,78,12,"// assert set_bit(1, 7) == 129 via mir2",1,1,1,1
+examples/c89/c99_preproc.c,79,13,"// assert clr_bit(255, 0) == 254 via mir2",1,1,1,1
+examples/c89/c99_preproc.c,80,14,"// assert clr_bit(255, 7) == 127 via mir2",1,1,1,1
+examples/c89/c99_preproc.c,81,15,"// assert tst_bit(128, 7) == 1 via mir2",1,1,1,1
+examples/c89/c99_preproc.c,82,16,"// assert tst_bit(128, 0) == 0 via mir2",0,0,0,0
+examples/c89/c99_preproc.c,83,17,// assert get_platform() == 1 via mir2,0,0,0,0
+examples/c89/c99_preproc.c,84,18,// assert get_compiler() == 1 via mir2,0,0,0,0
+examples/c89/c99_preproc.c,85,19,// assert get_max_val() == 255 via mir2,0,0,0,0
+examples/c89/c99_types.c,63,1,// assert double_it(5) == 10 via mir2,0,0,0,0
+examples/c89/c99_types.c,64,2,// assert double_it(0) == 0 via mir2,0,0,0,0
+examples/c89/c99_types.c,65,3,// assert widen(10) == 30 via mir2,0,0,0,0
+examples/c89/c99_types.c,66,4,// assert widen(0) == 0 via mir2,0,0,0,0
+examples/c89/c99_types.c,67,5,// assert color_val(0) == 0 via mir2,0,0,0,0
+examples/c89/c99_types.c,68,6,// assert color_val(1) == 1 via mir2,0,0,0,0
+examples/c89/c99_types.c,69,7,// assert color_val(2) == 2 via mir2,0,0,0,0
+examples/c89/c99_types.c,70,8,// assert color_val(3) == 255 via mir2,0,0,0,0
+examples/c89/c99_types.c,71,9,// assert dir_opposite(0) == 2 via mir2,0,0,0,0
+examples/c89/c99_types.c,72,10,// assert dir_opposite(2) == 0 via mir2,0,0,0,0
+examples/c89/c99_types.c,73,11,// assert dir_opposite(1) == 3 via mir2,0,0,0,0
+examples/c89/c99_types.c,74,12,// assert dir_opposite(3) == 1 via mir2,0,0,0,0
+examples/c89/c99_types.c,75,13,// assert is_positive(5) == 1 via mir2,1,1,1,1
+examples/c89/c99_types.c,76,14,// assert is_positive(0) == 0 via mir2,0,0,0,0
+examples/c89/c99_types.c,77,15,"// assert sum_range(0, 5) == 10 via mir2",1,1,1,1
+examples/c89/c99_types.c,78,16,"// assert sum_range(1, 4) == 6 via mir2",1,1,1,1
+examples/c89/c99_types.c,79,17,"// assert byte_add(3, 7) == 10 via mir2",0,0,0,0
+examples/c89/c99_types.c,80,18,"// assert byte_add(0, 0) == 0 via mir2",0,0,0,0
+examples/c89/cast_test.c,7,1,// assert test_cast_to_char() == 44 via mir2,0,0,0,0
+examples/c89/cast_test.c,13,2,// assert test_cast_to_int() == 65 via mir2,0,0,0,0
+examples/c89/cast_test.c,19,3,// assert test_cast_noop() == 42 via mir2,0,0,0,0
+examples/c89/cast_test.c,25,4,// assert test_cast_unsigned() == 200 via mir2,0,0,0,0
+examples/c89/compound_lit.c,14,1,// assert test_div_q() == 3 via mir2,0,0,0,0
+examples/c89/compound_lit.c,20,2,// assert test_div_r() == 1 via mir2,0,0,0,0
+examples/c89/compound_lit.c,31,3,// assert test_pair_q() == 7 via mir2,0,0,0,0
+examples/c89/compound_lit.c,37,4,// assert test_pair_r() == 2 via mir2,0,0,0,0
+examples/c89/compound_lit.c,43,5,// assert test_scalar() == 42 via mir2,0,0,0,0
+examples/c89/constfold_showcase.c,45,1,// assert fib10() == 55 via mir2,0,0,0,0
+examples/c89/constfold_showcase.c,46,2,// assert sum10() == 45 via mir2,0,0,0,0
+examples/c89/constfold_showcase.c,47,3,// assert fact6() == 720 via mir2,0,0,0,0
+examples/c89/cpm_io.c,47,1,// assert hex_char(0) == 48 via mir2,1,1,1,1
+examples/c89/cpm_io.c,48,2,// assert hex_char(9) == 57 via mir2,1,1,1,1
+examples/c89/cpm_io.c,49,3,// assert hex_char(10) == 65 via mir2,1,1,1,1
+examples/c89/cpm_io.c,50,4,// assert hex_char(15) == 70 via mir2,1,1,1,1
+examples/c89/cpm_io.c,51,5,// assert hex_hi(0xAB) == 65 via mir2,1,1,1,1
+examples/c89/cpm_io.c,52,6,// assert hex_lo(0xAB) == 66 via mir2,1,1,1,1
+examples/c89/cpm_io.c,53,7,// assert is_printable(65) == 1 via mir2,1,1,1,1
+examples/c89/cpm_io.c,54,8,// assert is_printable(10) == 0 via mir2,0,0,0,0
+examples/c89/cpm_io.c,55,9,// assert to_upper(97) == 65 via mir2,1,1,1,1
+examples/c89/cpm_io.c,56,10,// assert to_upper(65) == 65 via mir2,1,1,1,1
+examples/c89/cpm_io.c,57,11,// assert to_lower(65) == 97 via mir2,1,1,1,1
+examples/c89/cpm_io.c,58,12,// assert count_digits(5) == 1 via mir2,0,0,0,0
+examples/c89/cpm_io.c,59,13,// assert count_digits(42) == 2 via mir2,0,0,0,0
+examples/c89/cpm_io.c,60,14,// assert count_digits(999) == 3 via mir2,0,0,0,0
+examples/c89/dowhile_break.c,121,1,// assert count_down(1) == 1 via mir2,1,1,1,1
+examples/c89/dowhile_break.c,122,2,// assert count_down(5) == 5 via mir2,1,1,1,1
+examples/c89/dowhile_break.c,123,3,// assert count_down(10) == 10 via mir2,1,1,1,1
+examples/c89/dowhile_break.c,125,4,"// assert chain_length(2, 3, 4, 0) == 4 via mir2",1,1,1,1
+examples/c89/dowhile_break.c,126,5,"// assert chain_length(2, 3, 0, 0) == 3 via mir2",1,1,1,1
+examples/c89/dowhile_break.c,127,6,"// assert chain_length(0, 0, 0, 0) == 1 via mir2",0,0,0,0
+examples/c89/dowhile_break.c,128,7,"// assert chain_length(2, 3, 4, 5) == 5 via mir2",1,1,1,1
+examples/c89/dowhile_break.c,130,8,// assert early_break(0) == 0 via mir2,0,0,0,0
+examples/c89/dowhile_break.c,131,9,// assert early_break(3) == 6 via mir2,1,1,1,1
+examples/c89/dowhile_break.c,132,10,// assert early_break(1) == 1 via mir2,1,1,1,1
+examples/c89/dowhile_break.c,134,11,"// assert nested_dowhile(3, 4) == 12 via mir2",1,1,1,1
+examples/c89/dowhile_break.c,135,12,"// assert nested_dowhile(2, 2) == 4 via mir2",1,1,1,1
+examples/c89/dowhile_break.c,136,13,"// assert nested_dowhile(1, 5) == 5 via mir2",1,1,1,1
+examples/c89/dowhile_break.c,138,14,// assert skip_odds(6) == 12 via mir2,1,1,1,1
+examples/c89/dowhile_break.c,139,15,// assert skip_odds(4) == 6 via mir2,1,1,1,1
+examples/c89/dowhile_break.c,141,16,// assert state_machine(10) == 99 via mir2,1,1,1,1
+examples/c89/dowhile_break.c,142,17,// assert state_machine(0) == 99 via mir2,1,1,1,1
+examples/c89/dowhile_break.c,144,18,"// assert find_threshold(100, 250) == 50 via mir2",1,1,1,1
+examples/c89/dowhile_break.c,145,19,"// assert find_threshold(0, 210) == 50 via mir2",1,1,1,1
+examples/c89/enum_test.c,8,1,// assert test_enum_values() == 3 via mir2,0,0,0,0
+examples/c89/enum_test.c,15,2,// assert test_enum_explicit() == 60 via mir2,0,0,0,0
+examples/c89/enum_test.c,21,3,// assert test_enum_var() == 2 via mir2,0,0,0,0
+examples/c89/enum_test.c,27,4,// assert test_enum_compare() == 1 via mir2,1,1,1,1
+examples/c89/enum_test.c,39,5,// assert test_enum_switch() == 30 via mir2,1,1,1,1
+examples/c89/fatfs_constructs.c,12,1,// assert test_inc_stmt() == 13 via mir2,0,0,0,0
+examples/c89/fatfs_constructs.c,20,2,// assert test_dec_stmt() == 8 via mir2,0,0,0,0
+examples/c89/fatfs_constructs.c,28,3,// assert test_preinc_stmt() == 7 via mir2,0,0,0,0
+examples/c89/fatfs_constructs.c,38,4,// assert test_inc_for() == 10 via mir2,1,1,1,1
+examples/c89/fatfs_constructs.c,46,5,// assert test_preinc_expr() == 22 via mir2,0,0,0,0
+examples/c89/fatfs_constructs.c,53,6,// assert test_predec_expr() == 18 via mir2,0,0,0,0
+examples/c89/fatfs_constructs.c,61,7,// assert test_postinc_expr() == 21 via mir2,0,0,0,0
+examples/c89/fatfs_constructs.c,68,8,// assert test_postdec_expr() == 19 via mir2,0,0,0,0
+examples/c89/fatfs_constructs.c,77,9,// assert test_chained_assign() == 84 via mir2,0,0,0,0
+examples/c89/fatfs_constructs.c,85,10,// assert test_ternary_assign() == 100 via mir2,0,0,0,0
+examples/c89/fatfs_constructs.c,100,11,// assert test_switch_multi() == 30 via mir2,1,1,1,1
+examples/c89/fatfs_constructs.c,109,12,// assert test_struct_fields() == 1025 via mir2,1,1,1,1
+examples/c89/fatfs_constructs.c,116,13,// assert test_bitmask() == 255 via mir2,0,0,0,0
+examples/c89/fatfs_constructs.c,124,14,// assert test_bitset() == 20 via mir2,0,0,0,0
+examples/c89/fatfs_constructs.c,132,15,// assert test_unsigned_cmp() == 1 via mir2,0,0,0,0
+examples/c89/fatfs_constructs.c,146,16,// assert test_sequential_assign() == 84 via mir2,0,0,0,0
+examples/c89/fatfs_constructs.c,154,17,// assert test_compound_add() == 15 via mir2,0,0,0,0
+examples/c89/fatfs_constructs.c,161,18,// assert test_compound_or() == 255 via mir2,0,0,0,0
+examples/c89/fatfs_constructs.c,168,19,// assert test_compound_and() == 15 via mir2,0,0,0,0
+examples/c89/fatfs_constructs.c,175,20,// assert test_compound_shift() == 16 via mir2,0,0,0,0
+examples/c89/fatfs_constructs.c,185,21,// assert test_nested_fatfs() == 106 via mir2,1,1,1,1
+examples/c89/fatfs_constructs.c,192,22,// assert test_cast_widen() == 512 via mir2,0,0,0,0
+examples/c89/fatfs_constructs.c,198,23,// assert test_cast_narrow() == 300 via mir2,0,0,0,0
+examples/c89/fatfs_constructs.c,208,24,// assert test_logical_short_circuit() == 1 via mir2,0,0,0,0
+examples/c89/fatfs_lowlevel.c,175,1,"// assert test_ld_word(0x34, 0x12) == 0x1234 via mir2",1,1,1,1
+examples/c89/fatfs_lowlevel.c,176,2,"// assert test_ld_word(0x00, 0x00) == 0 via mir2",0,0,0,0
+examples/c89/fatfs_lowlevel.c,177,3,"// assert test_ld_word(0xFF, 0xFF) == 0xFFFF via mir2",0,0,0,0
+examples/c89/fatfs_lowlevel.c,178,4,"// assert test_ld_word(0x01, 0x00) == 1 via mir2",1,1,1,1
+examples/c89/fatfs_lowlevel.c,181,5,// assert test_st_ld_roundtrip(0x1234) == 0x1234 via mir2,1,1,1,1
+examples/c89/fatfs_lowlevel.c,182,6,// assert test_st_ld_roundtrip(0xABCD) == 0xABCD via mir2,1,1,1,1
+examples/c89/fatfs_lowlevel.c,183,7,// assert test_st_ld_roundtrip(0) == 0 via mir2,0,0,0,0
+examples/c89/fatfs_lowlevel.c,186,8,// assert classify_fat12(0) == 0 via mir2,0,0,0,0
+examples/c89/fatfs_lowlevel.c,187,9,// assert classify_fat12(1) == 1 via mir2,0,0,0,0
+examples/c89/fatfs_lowlevel.c,188,10,// assert classify_fat12(100) == 2 via mir2,0,0,0,0
+examples/c89/fatfs_lowlevel.c,189,11,// assert classify_fat12(0xFF8) == 3 via mir2,0,0,0,0
+examples/c89/fatfs_lowlevel.c,190,12,// assert classify_fat12(0xFFF) == 3 via mir2,0,0,0,0
+examples/c89/fatfs_lowlevel.c,191,13,// assert classify_fat12(0xFF0) == 4 via mir2,0,0,0,0
+examples/c89/fatfs_lowlevel.c,194,14,// assert is_deleted(0xE5) == 1 via mir2,0,0,0,0
+examples/c89/fatfs_lowlevel.c,195,15,// assert is_deleted(0x00) == 2 via mir2,1,1,1,1
+examples/c89/fatfs_lowlevel.c,196,16,// assert is_deleted(0x41) == 0 via mir2,1,1,1,1
+examples/c89/fatfs_lowlevel.c,199,17,"// assert clst2sect_simple(100, 2, 4) == 100 via mir2",1,1,1,1
+examples/c89/fatfs_lowlevel.c,200,18,"// assert clst2sect_simple(100, 3, 4) == 104 via mir2",1,1,1,1
+examples/c89/fatfs_lowlevel.c,201,19,"// assert clst2sect_simple(100, 10, 4) == 132 via mir2",1,1,1,1
+examples/c89/fatfs_lowlevel.c,202,20,"// assert clst2sect_simple(100, 0, 4) == 0 via mir2",0,0,0,0
+examples/c89/fatfs_lowlevel.c,203,21,"// assert clst2sect_simple(100, 1, 4) == 0 via mir2",1,1,1,1
+examples/c89/fatfs_lowlevel.c,206,22,// assert test_sfn_hello() == 241 via mir2,1,1,1,1
+examples/c89/fatfs_lowlevel.c,209,23,// assert test_fat12_entry(0) == 0xFF8 via mir2,1,1,1,1
+examples/c89/fatfs_lowlevel.c,210,24,// assert test_fat12_entry(2) == 3 via mir2,1,1,1,1
+examples/c89/fatfs_lowlevel.c,211,25,// assert test_fat12_entry(3) == 4 via mir2,1,1,1,1
+examples/c89/fatfs_lowlevel.c,212,26,// assert test_fat12_entry(4) == 0xFFF via mir2,1,1,1,1
+examples/c89/fatfs_lowlevel.c,215,27,"// assert test_follow_chain(2, 10) == 3 via mir2",1,1,1,1
+examples/c89/fatfs_lowlevel.c,216,28,"// assert test_follow_chain(4, 10) == 1 via mir2",1,1,1,1
+examples/c89/fatfs_lowlevel.c,219,29,// assert test_bpb_bytes_per_sect() == 512 via mir2,1,1,1,1
+examples/c89/fatfs_lowlevel.c,220,30,// assert test_bpb_spc() == 1 via mir2,0,0,0,0
+examples/c89/fatfs_lowlevel.c,221,31,// assert test_bpb_rsvd() == 1 via mir2,1,1,1,1
+examples/c89/fatfs_lowlevel.c,224,32,// assert dbc_1st(65) == 0 via mir2,0,0,0,0
+examples/c89/fatfs_lowlevel.c,225,33,// assert dbc_2nd(65) == 0 via mir2,0,0,0,0
+examples/c89/flex_array.c,12,1,// assert test_sizeof_flex() == 2 via mir2,0,0,0,0
+examples/c89/func_ptr.c,13,1,// assert test_basic_fp() == 7 via mir2,1,1,1,1
+examples/c89/func_ptr.c,23,2,// assert test_reassign_fp() == 20 via mir2,1,1,1,1
+examples/c89/func_ptr.c,30,3,// assert test_addr_of_func() == 13 via mir2,1,1,1,1
+examples/c89/func_ptr.c,37,4,// assert test_unary_fp() == 42 via mir2,1,1,1,1
+examples/c89/func_ptr.c,47,5,// assert test_callback() == 20 via mir2,1,1,1,1
+examples/c89/func_ptr.c,52,6,// assert test_callback_negate() == 65529 via mir2,1,1,1,1
+examples/c89/game_helpers.c,58,1,// assert bcd_inc(0x00) == 1 via mir2,1,1,1,1
+examples/c89/game_helpers.c,59,2,// assert bcd_inc(0x09) == 16 via mir2,1,1,1,1
+examples/c89/game_helpers.c,60,3,// assert bcd_inc(0x19) == 32 via mir2,1,1,1,1
+examples/c89/game_helpers.c,61,4,"// assert tile_index(0, 0) == 0 via mir2",0,0,0,0
+examples/c89/game_helpers.c,62,5,"// assert tile_index(1, 0) == 1 via mir2",0,0,0,0
+examples/c89/game_helpers.c,63,6,"// assert tile_index(0, 1) == 32 via mir2",0,0,0,0
+examples/c89/game_helpers.c,64,7,"// assert tile_index(31, 7) == 255 via mir2",0,0,0,0
+examples/c89/game_helpers.c,65,8,"// assert manhattan(0, 0, 3, 4) == 7 via mir2",0,0,0,0
+examples/c89/game_helpers.c,66,9,"// assert manhattan(10, 10, 10, 10) == 0 via mir2",0,0,0,0
+examples/c89/game_helpers.c,67,10,"// assert next_frame(0, 4) == 1 via mir2",1,1,1,1
+examples/c89/game_helpers.c,68,11,"// assert next_frame(3, 4) == 0 via mir2",0,0,0,0
+examples/c89/game_helpers.c,69,12,"// assert advance_state(0, 0) == 0 via mir2",1,1,1,1
+examples/c89/game_helpers.c,70,13,"// assert advance_state(0, 1) == 1 via mir2",0,0,0,0
+examples/c89/game_helpers.c,71,14,"// assert advance_state(2, 0) == 0 via mir2",1,1,1,1
+examples/c89/goto_test.c,11,1,// assert test_skip() == 1 via mir2,0,0,0,0
+examples/c89/goto_test.c,20,2,// assert test_cleanup(5) == 10 via mir2,0,0,0,0
+examples/c89/goto_test.c,21,3,// assert test_cleanup(-1) == 0xFFFF via mir2,0,0,0,0
+examples/c89/import_test.c,13,1,"// assert sum_of_squares(3, 4) == 25 via mir2",1,1,1,1
+examples/c89/import_test.c,14,2,"// assert sum_of_squares(0, 5) == 25 via mir2",1,1,1,1
+examples/c89/import_test.c,15,3,"// assert clamped(50, 10, 100) == 50 via mir2",1,1,1,1
+examples/c89/import_test.c,16,4,"// assert clamped(5, 10, 100) == 10 via mir2",1,1,1,1
+examples/c89/import_test.c,17,5,"// assert clamped(200, 10, 100) == 100 via mir2",1,1,1,1
+examples/c89/import_test.c,18,6,// assert cube(3) == 27 via mir2,1,1,1,1
+examples/c89/import_test.c,19,7,// assert cube(5) == 125 via mir2,1,1,1,1
+examples/c89/include_test/main.c,11,1,// assert test_local_include() == 30 via mir2,0,0,0,0
+examples/c89/include_test/main.c,18,2,// assert test_sizeof_size_t() == 2 via mir2,0,0,0,0
+examples/c89/include_test/main.c,24,3,// assert test_stdint_sizes() == 7 via mir2,0,0,0,0
+examples/c89/include_test/main.c,30,4,// assert test_int_max() == 32767 via mir2,0,0,0,0
+examples/c89/logical.c,26,1,// assert is_printable(65) == 1 via mir2,1,1,1,1
+examples/c89/logical.c,27,2,// assert is_printable(10) == 0 via mir2,0,0,0,0
+examples/c89/logical.c,28,3,// assert is_printable(32) == 1 via mir2,1,1,1,1
+examples/c89/logical.c,29,4,// assert is_printable(127) == 0 via mir2,0,0,0,0
+examples/c89/logical.c,30,5,// assert is_alpha(65) == 1 via mir2,1,1,1,1
+examples/c89/logical.c,31,6,// assert is_alpha(97) == 1 via mir2,1,1,1,1
+examples/c89/logical.c,32,7,// assert is_alpha(48) == 0 via mir2,0,0,0,0
+examples/c89/logical.c,33,8,// assert is_alpha(32) == 0 via mir2,0,0,0,0
+examples/c89/logical.c,34,9,// assert is_alnum(48) == 1 via mir2,1,1,1,1
+examples/c89/logical.c,35,10,// assert is_alnum(65) == 1 via mir2,1,1,1,1
+examples/c89/logical.c,36,11,// assert is_alnum(32) == 0 via mir2,0,0,0,0
+examples/c89/logical.c,37,12,// assert is_even(4) == 1 via mir2,1,1,1,1
+examples/c89/logical.c,38,13,// assert is_even(7) == 0 via mir2,0,0,0,0
+examples/c89/logical.c,39,14,// assert is_even(0) == 1 via mir2,1,1,1,1
+examples/c89/logical.c,40,15,// assert mod10(0) == 0 via mir2,0,0,0,0
+examples/c89/logical.c,41,16,// assert mod10(7) == 7 via mir2,1,1,1,1
+examples/c89/logical.c,42,17,// assert mod10(15) == 5 via mir2,1,1,1,1
+examples/c89/logical.c,43,18,// assert mod10(99) == 9 via mir2,1,1,1,1
+examples/c89/math16.c,58,1,// assert abs16(5) == 5 via mir2,0,0,0,0
+examples/c89/math16.c,59,2,// assert abs16(-5) == 5 via mir2,0,0,0,0
+examples/c89/math16.c,60,3,"// assert min16(3, 7) == 3 via mir2",0,0,0,0
+examples/c89/math16.c,61,4,"// assert max16(3, 7) == 7 via mir2",0,0,0,0
+examples/c89/math16.c,62,5,"// assert clamp16(50, 10, 100) == 50 via mir2",0,0,0,0
+examples/c89/math16.c,63,6,"// assert clamp16(5, 10, 100) == 10 via mir2",0,0,0,0
+examples/c89/math16.c,64,7,"// assert clamp16(200, 10, 100) == 100 via mir2",0,0,0,0
+examples/c89/math16.c,65,8,// assert factorial(5) == 120 via mir2,1,1,1,1
+examples/c89/math16.c,66,9,// assert factorial(1) == 1 via mir2,0,0,0,0
+examples/c89/math16.c,67,10,"// assert sum_range(1, 10) == 55 via mir2",1,1,1,1
+examples/c89/math8.c,30,1,"// assert min8(3, 7) == 3 via mir2",0,0,0,0
+examples/c89/math8.c,31,2,"// assert min8(7, 3) == 3 via mir2",0,0,0,0
+examples/c89/math8.c,32,3,"// assert max8(3, 7) == 7 via mir2",0,0,0,0
+examples/c89/math8.c,33,4,"// assert abs_diff(10, 3) == 7 via mir2",0,0,0,0
+examples/c89/math8.c,34,5,"// assert abs_diff(3, 10) == 7 via mir2",0,0,0,0
+examples/c89/math8.c,35,6,"// assert abs_diff(5, 5) == 0 via mir2",0,0,0,0
+examples/c89/math8.c,36,7,"// assert clamp8(50, 10, 100) == 50 via mir2",0,0,0,0
+examples/c89/math8.c,37,8,"// assert clamp8(5, 10, 100) == 10 via mir2",0,0,0,0
+examples/c89/math8.c,38,9,"// assert clamp8(200, 10, 100) == 100 via mir2",0,0,0,0
+examples/c89/math8.c,39,10,"// assert saturate_add(100, 100) == 200 via mir2",0,0,0,0
+examples/c89/math8.c,40,11,"// assert saturate_add(200, 200) == 255 via mir2",0,0,0,0
+examples/c89/minmax_pair.c,26,1,"// assert smaller(10, 20) == 10 via mir2",0,0,0,0
+examples/c89/minmax_pair.c,27,2,"// assert smaller(20, 10) == 10 via mir2",0,0,0,0
+examples/c89/minmax_pair.c,28,3,"// assert larger(10, 20) == 20 via mir2",0,0,0,0
+examples/c89/minmax_pair.c,29,4,"// assert larger(20, 10) == 20 via mir2",0,0,0,0
+examples/c89/minmax_pair.c,30,5,"// assert smaller(5, 5) == 5 via mir2",0,0,0,0
+examples/c89/minmax_pair.c,31,6,"// assert larger(5, 5) == 5 via mir2",0,0,0,0
+examples/c89/nested_struct.c,11,1,// assert test_point() == 30 via mir2,1,1,1,1
+examples/c89/nested_struct.c,18,2,// assert test_rect_width() == 100 via mir2,1,1,1,1
+examples/c89/nested_struct.c,24,3,// assert test_rect_height() == 50 via mir2,1,1,1,1
+examples/c89/nested_struct.c,31,4,// assert test_nested_x() == 10 via mir2,1,1,1,1
+examples/c89/nested_struct.c,37,5,// assert test_nested_y() == 20 via mir2,1,1,1,1
+examples/c89/nested_struct.c,44,6,// assert test_nested_all() == 37 via mir2,1,1,1,1
+examples/c89/sizeof_test.c,6,1,// assert test_sizeof_int() == 2 via mir2,0,0,0,0
+examples/c89/sizeof_test.c,11,2,// assert test_sizeof_char() == 1 via mir2,0,0,0,0
+examples/c89/sizeof_test.c,16,3,// assert test_sizeof_long() == 4 via mir2,0,0,0,0
+examples/c89/sizeof_test.c,21,4,// assert test_sizeof_ptr() == 2 via mir2,0,0,0,0
+examples/c89/sizeof_test.c,27,5,// assert test_sizeof_expr() == 2 via mir2,0,0,0,0
+examples/c89/sizeof_test.c,34,6,// assert test_sizeof_struct() == 4 via mir2,0,0,0,0
+examples/c89/static_local.c,15,1,// assert test_counter() == 3 via mir2,0,0,0,0
+examples/c89/static_local.c,36,2,// assert test_independent() == 20 via mir2,0,1,0,0
+examples/c89/struct_promote.c,59,1,// assert direct_init() == 13,1,1,1,1
+examples/c89/struct_promote.c,60,2,"// assert use_outparam(17, 5) == 5",1,1,1,1
+examples/c89/struct_promote.c,61,3,"// assert use_ptrreturn(10, 20) == 30",1,1,1,1
+examples/c89/switch.c,58,1,// assert day_type(0) == 0 via mir2,0,0,0,0
+examples/c89/switch.c,59,2,// assert day_type(1) == 1 via mir2,1,1,1,1
+examples/c89/switch.c,60,3,// assert day_type(5) == 1 via mir2,1,1,1,1
+examples/c89/switch.c,61,4,// assert day_type(6) == 0 via mir2,0,0,0,0
+examples/c89/switch.c,62,5,// assert day_type(7) == 2 via mir2,1,1,1,1
+examples/c89/switch.c,63,6,// assert hex_val(48) == 0 via mir2,0,0,0,0
+examples/c89/switch.c,64,7,// assert hex_val(57) == 9 via mir2,1,1,1,1
+examples/c89/switch.c,65,8,// assert hex_val(65) == 10 via mir2,1,1,1,1
+examples/c89/switch.c,66,9,// assert hex_val(70) == 15 via mir2,1,1,1,1
+examples/c89/switch.c,67,10,// assert hex_val(97) == 10 via mir2,1,1,1,1
+examples/c89/switch.c,68,11,// assert hex_val(32) == 255 via mir2,1,1,1,1
+examples/c89/switch.c,69,12,// assert token_type(40) == 1 via mir2,0,0,0,0
+examples/c89/switch.c,70,13,// assert token_type(43) == 2 via mir2,1,1,1,1
+examples/c89/switch.c,71,14,// assert token_type(61) == 3 via mir2,1,1,1,1
+examples/c89/switch.c,72,15,// assert token_type(59) == 4 via mir2,1,1,1,1
+examples/c89/switch.c,73,16,// assert token_type(32) == 0 via mir2,1,1,1,1
+examples/c89/ternary.c,6,1,// assert test_ternary_true() == 42 via mir2,0,0,0,0
+examples/c89/ternary.c,11,2,// assert test_ternary_false() == 99 via mir2,0,0,0,0
+examples/c89/ternary.c,17,3,// assert test_ternary_expr() == 11 via mir2,0,0,0,0
+examples/c89/ternary.c,23,4,// assert test_ternary_nested() == 20 via mir2,1,1,1,1
+examples/c89/ternary.c,29,5,// assert test_comma_basic() == 42 via mir2,0,0,0,0
+examples/c89/ternary.c,37,6,// assert test_comma_side_effect() == 15 via mir2,0,0,0,0
+examples/c89/typeof_test.c,8,1,// assert test_typeof_basic() == 43 via mir2,0,0,0,0
+examples/c89/typeof_test.c,15,2,// assert test_typeof_long() == 234 via mir2,0,0,0,0
+examples/c89/union_test.c,10,1,// assert test_union_type() == 42 via mir2,0,0,0,0
+examples/frill/basics.frl,38,1,(* assertions — verified via MIR2 VM *),0,0,0,0
+examples/frill/basics.frl,39,2,assert add 3 5 == 8,0,0,0,0
+examples/frill/basics.frl,40,3,assert sub 10 3 == 7,0,0,0,0
+examples/frill/basics.frl,41,4,assert double 6 == 12,0,0,0,0
+examples/frill/basics.frl,42,5,assert square 5 == 25,0,0,0,0
+examples/frill/basics.frl,43,6,assert max 10 20 == 20,0,0,0,0
+examples/frill/basics.frl,44,7,assert min 10 20 == 10,0,0,0,0
+examples/frill/basics.frl,45,8,assert abs_diff 10 3 == 7,0,0,0,0
+examples/frill/basics.frl,46,9,assert abs_diff 3 10 == 7,0,0,0,0
+examples/frill/basics.frl,47,10,assert clamp 5 0 10 == 5,0,0,0,0
+examples/frill/basics.frl,48,11,assert clamp 15 0 10 == 10,1,1,1,1
+examples/frill/basics.frl,49,12,assert collatz_step 6 == 3,1,1,1,1
+examples/frill/basics.frl,50,13,assert collatz_step 5 == 16,1,1,1,1
+examples/frill/basics.frl,51,14,assert collatz_step 1 == 1,0,0,0,0
+examples/frill/basics.frl,52,15,assert is_weekend 5 == 1,0,0,0,0
+examples/frill/basics.frl,53,16,assert is_weekend 6 == 1,0,0,0,0
+examples/frill/basics.frl,54,17,assert is_weekend 0 == 0,0,0,0,0
+examples/frill/basics.frl,55,18,assert pipeline_demo 3 == 49,0,0,0,0
+examples/frill/basics.frl,56,19,assert complex 4 == 12,0,0,0,0
+examples/frill/basics.frl,72,20,assert factorial 0 == 1,0,0,0,0
+examples/frill/basics.frl,73,21,assert factorial 5 == 120,0,0,0,0
+examples/frill/basics.frl,74,22,assert fibonacci 0 == 0,0,0,0,0
+examples/frill/basics.frl,75,23,assert fibonacci 7 == 13,0,0,0,0
+examples/frill/basics.frl,76,24,assert gcd 12 8 == 4,1,1,1,1
+examples/frill/basics.frl,77,25,assert gcd 15 10 == 5,1,1,1,1
+examples/frill/calculator.frl,23,1,assert chain_add 3 5 == 8,0,0,0,0
+examples/frill/calculator.frl,24,2,assert chain_sub 10 3 == 7,0,0,0,0
+examples/frill/calculator.frl,25,3,assert chain_mul 4 5 == 20,0,0,0,0
+examples/frill/calculator.frl,26,4,assert calc_pow 2 8 == 0,1,1,1,1
+examples/frill/calculator.frl,27,5,assert calc_pow 2 4 == 16,1,1,1,1
+examples/frill/calculator.frl,28,6,assert calc_pow 3 3 == 27,1,1,1,1
+examples/frill/calculator.frl,29,7,assert calc_fact 5 == 120,0,0,0,0
+examples/frill/calculator.frl,30,8,assert calc_gcd 12 8 == 4,0,0,0,0
+examples/frill/calculator.frl,31,9,assert fib_sq 5 == 25,0,0,0,0
+examples/frill/calculator.frl,32,10,assert fib_sq 7 == 169,0,0,0,0
+examples/frill/expr_eval.frl,60,1,assert pack 11 0 == 2816,0,0,0,0
+examples/frill/expr_eval.frl,61,2,assert unpack_val 2816 == 11,0,0,0,0
+examples/frill/expr_eval.frl,62,3,assert unpack_pos 2816 == 0,0,0,0,0
+examples/frill/expr_eval.frl,65,4,"assert eval ""5"" == 5",1,1,1,1
+examples/frill/expr_eval.frl,66,5,"assert eval ""42"" == 42",1,1,1,1
+examples/frill/expr_eval.frl,67,6,"assert eval ""0"" == 0",1,1,1,1
+examples/frill/expr_eval.frl,70,7,"assert eval ""3+4"" == 7",1,1,1,1
+examples/frill/expr_eval.frl,71,8,"assert eval ""1+2+3"" == 6",1,1,1,1
+examples/frill/expr_eval.frl,74,9,"assert eval ""10-3"" == 7",1,1,1,1
+examples/frill/expr_eval.frl,77,10,"assert eval ""3*4"" == 12",1,1,1,1
+examples/frill/expr_eval.frl,80,11,"assert eval ""3+4*2"" == 11",1,1,1,1
+examples/frill/expr_eval.frl,81,12,"assert eval ""2*3+4"" == 10",1,1,1,1
+examples/frill/expr_eval.frl,84,13,"assert eval ""2*(3+4)"" == 14",1,1,1,1
+examples/frill/expr_eval.frl,85,14,"assert eval ""(1+2)*3"" == 9",1,1,1,1
+examples/frill/expr_eval.frl,88,15,"assert eval "" 3 + 4 "" == 7",1,1,1,1
+examples/frill/functional_demo.frl,7,1,assert bool_not 0 == 1,1,1,1,1
+examples/frill/functional_demo.frl,8,2,assert bool_not 1 == 0,1,1,1,1
+examples/frill/functional_demo.frl,9,3,assert bool_and 1 1 == 1,1,1,1,1
+examples/frill/functional_demo.frl,10,4,assert bool_and 1 0 == 0,1,1,1,1
+examples/frill/functional_demo.frl,11,5,assert bool_and 0 1 == 0,1,1,1,1
+examples/frill/functional_demo.frl,12,6,assert bool_or 0 0 == 0,1,1,1,1
+examples/frill/functional_demo.frl,13,7,assert bool_or 1 0 == 1,1,1,1,1
+examples/frill/functional_demo.frl,14,8,assert bool_or 0 1 == 1,1,1,1,1
+examples/frill/functional_demo.frl,17,9,assert is_zero 0 == 1,1,1,1,1
+examples/frill/functional_demo.frl,18,10,assert is_zero 5 == 0,1,1,1,1
+examples/frill/functional_demo.frl,19,11,assert is_even 4 == 1,1,1,1,1
+examples/frill/functional_demo.frl,20,12,assert is_odd 3 == 1,1,1,1,1
+examples/frill/functional_demo.frl,29,13,assert fold_sum 0 == 0,1,1,1,1
+examples/frill/functional_demo.frl,30,14,assert fold_sum 5 == 15,1,1,1,1
+examples/frill/functional_demo.frl,31,15,assert fold_sum 10 == 55,1,1,1,1
+examples/frill/functional_demo.frl,34,16,assert count_even 1 == 1,1,1,1,1
+examples/frill/functional_demo.frl,35,17,assert count_even 4 == 2,1,1,1,1
+examples/frill/functional_demo.frl,36,18,assert count_even 6 == 3,1,1,1,1
+examples/frill/functional_demo.frl,40,19,assert transform 3 == 49,1,1,1,1
+examples/frill/functional_demo.frl,44,20,assert classify 4 == 1,1,1,1,1
+examples/frill/functional_demo.frl,45,21,assert classify 5 == 0,1,1,1,1
+examples/frill/game.frl,34,1,assert is_alive 50 == 1,0,0,0,0
+examples/frill/game.frl,35,2,assert is_alive 0 == 0,0,0,0,0
+examples/frill/game.frl,36,3,assert add_score 100 50 == 150,0,0,0,0
+examples/frill/game.frl,37,4,assert combo_bonus 0 == 0,0,0,0,0
+examples/frill/game.frl,38,5,assert combo_bonus 3 == 50,0,0,0,0
+examples/frill/game.frl,39,6,assert combo_bonus 5 == 100,0,0,0,0
+examples/frill/game.frl,40,7,assert manhattan 0 0 3 4 == 7,1,1,1,1
+examples/frill/game.frl,41,8,assert item_value Sword == 50,0,0,0,0
+examples/frill/game.frl,42,9,assert item_value Key == 0,0,0,0,0
+examples/frill/graphics.frl,22,1,assert color_index Black == 0,1,1,1,1
+examples/frill/graphics.frl,23,2,assert color_index White == 7,1,1,1,1
+examples/frill/graphics.frl,24,3,assert color_index Cyan == 5,1,1,1,1
+examples/frill/graphics.frl,33,4,assert sierpinski 0 0 == 1,1,1,1,1
+examples/frill/graphics.frl,34,5,assert sierpinski 1 1 == 0,1,1,1,1
+examples/frill/graphics.frl,35,6,assert sierpinski 2 0 == 1,1,1,1,1
+examples/frill/graphics.frl,36,7,assert sierpinski 3 3 == 0,1,1,1,1
+examples/frill/graphics.frl,37,8,assert sierpinski 4 0 == 1,1,1,1,1
+examples/frill/graphics.frl,38,9,assert sierpinski 0 7 == 1,1,1,1,1
+examples/frill/graphics.frl,39,10,assert sierpinski 7 0 == 1,1,1,1,1
+examples/frill/graphics.frl,47,11,assert xor_tex 0 0 == 0,1,1,1,1
+examples/frill/graphics.frl,48,12,assert xor_tex 3 5 == 6,1,1,1,1
+examples/frill/graphics.frl,49,13,assert xor_tex 7 7 == 0,1,1,1,1
+examples/frill/graphics.frl,50,14,assert xor_tex 15 15 == 0,1,1,1,1
+examples/frill/graphics.frl,51,15,assert xor_tex 255 0 == 7,1,1,1,1
+examples/frill/graphics.frl,60,16,assert checker 0 0 8 == 1,1,1,1,1
+examples/frill/graphics.frl,61,17,assert checker 8 0 8 == 0,1,1,1,1
+examples/frill/graphics.frl,62,18,assert checker 16 0 8 == 1,1,1,1,1
+examples/frill/graphics.frl,63,19,assert checker 0 8 8 == 0,1,1,1,1
+examples/frill/graphics.frl,64,20,assert checker 8 8 8 == 1,1,1,1,1
+examples/frill/graphics.frl,75,21,assert diamond 16 16 16 16 8 == 1,1,1,1,1
+examples/frill/graphics.frl,76,22,assert diamond 0 0 16 16 8 == 0,1,1,1,1
+examples/frill/graphics.frl,77,23,assert diamond 16 12 16 16 8 == 1,1,1,1,1
+examples/frill/graphics.frl,78,24,assert diamond 16 8 16 16 8 == 0,1,1,1,1
+examples/frill/graphics.frl,89,25,assert rings 16 16 16 16 == 0,1,1,1,1
+examples/frill/graphics.frl,90,26,assert rings 20 16 16 16 == 1,1,1,1,1
+examples/frill/graphics.frl,105,27,assert composite 0 0 == 5,1,1,1,1
+examples/frill/graphics.frl,106,28,assert composite 1 1 == 0,1,1,1,1
+examples/frill/graphics.frl,107,29,assert composite 32 0 == 0,1,1,1,1
+examples/frill/graphics.frl,108,30,assert composite 35 5 == 6,1,1,1,1
+examples/frill/graphics.frl,109,31,assert composite 0 32 == 6,1,1,1,1
+examples/frill/graphics.frl,110,32,assert composite 8 32 == 1,1,1,1,1
+examples/frill/graphics.frl,142,33,assert pow2_lut 0 == 1,1,1,1,1
+examples/frill/graphics.frl,143,34,assert pow2_lut 7 == 128,1,1,1,1
+examples/frill/graphics.frl,145,35,assert smiley_row 0 == 60,1,1,1,1
+examples/frill/graphics.frl,146,36,assert smiley_pixel 2 0 == 1,1,1,1,1
+examples/frill/graphics.frl,147,37,assert smiley_pixel 0 0 == 0,1,1,1,1
+examples/frill/graphics.frl,148,38,assert smiley_pixel 3 2 == 0,1,1,1,1
+examples/frill/graphics.frl,149,39,assert smiley_pixel 2 2 == 1,1,1,1,1
+examples/frill/math.frl,61,1,assert gcd 12 8 == 4,0,0,0,0
+examples/frill/math.frl,62,2,assert gcd 15 10 == 5,0,0,0,0
+examples/frill/math.frl,63,3,assert gcd 7 13 == 1,0,0,0,0
+examples/frill/math.frl,64,4,assert lcm 4 6 == 12,0,0,0,0
+examples/frill/math.frl,65,5,assert pow 2 0 == 1,0,0,0,0
+examples/frill/math.frl,66,6,assert pow 2 4 == 16,1,1,1,1
+examples/frill/math.frl,67,7,assert pow 3 3 == 27,1,1,1,1
+examples/frill/math.frl,68,8,assert is_prime 2 == 1,0,0,0,0
+examples/frill/math.frl,69,9,assert is_prime 7 == 1,0,0,0,0
+examples/frill/math.frl,70,10,assert is_prime 9 == 0,0,0,0,0
+examples/frill/math.frl,71,11,assert is_prime 13 == 1,1,1,1,1
+examples/frill/math.frl,72,12,assert fib 7 == 13,0,0,0,0
+examples/frill/math.frl,73,13,assert fact 5 == 120,0,0,0,0
+examples/frill/math.frl,74,14,assert sum_to 10 == 55,0,0,0,0
+examples/frill/math.frl,75,15,assert collatz 6 == 3,1,1,1,1
+examples/frill/math.frl,76,16,assert collatz 5 == 16,1,1,1,1
+examples/frill/math.frl,77,17,assert digital_root 38 == 2,1,1,1,1
+examples/frill/math.frl,78,18,assert digital_root 99 == 9,1,1,1,1
+examples/frill/math.frl,79,19,assert transform 4 == 25,0,0,0,0
+examples/frill/minigame.frl,116,1,assert entity_char 0 == 64,0,0,0,0
+examples/frill/minigame.frl,117,2,assert entity_char 1 == 35,0,0,0,0
+examples/frill/minigame.frl,118,3,assert entity_char 2 == 42,0,0,0,0
+examples/frill/minigame.frl,119,4,assert entity_char 3 == 36,0,0,0,0
+examples/frill/minigame.frl,120,5,assert entity_char 4 == 219,0,0,0,0
+examples/frill/minigame.frl,121,6,assert is_solid 0 == 0,0,0,0,0
+examples/frill/minigame.frl,122,7,assert is_solid 1 == 1,0,0,0,0
+examples/frill/minigame.frl,123,8,assert is_solid 4 == 1,0,0,0,0
+examples/frill/minigame.frl,124,9,assert is_collectible 3 == 1,0,0,0,0
+examples/frill/minigame.frl,125,10,assert is_collectible 1 == 0,0,0,0,0
+examples/frill/minigame.frl,126,11,assert score_for 1 == 50,0,0,0,0
+examples/frill/minigame.frl,127,12,assert score_for 3 == 10,0,0,0,0
+examples/frill/minigame.frl,130,13,assert clamp 50 10 100 == 50,0,0,0,0
+examples/frill/minigame.frl,131,14,assert clamp 5 10 100 == 10,1,1,1,1
+examples/frill/minigame.frl,132,15,assert abs_diff 10 3 == 7,0,0,0,0
+examples/frill/minigame.frl,133,16,assert abs_diff 3 10 == 7,0,0,0,0
+examples/frill/minigame.frl,134,17,assert manhattan 10 10 20 20 == 20,1,1,1,1
+examples/frill/minigame.frl,135,18,assert manhattan 5 5 5 5 == 0,0,0,0,0
+examples/frill/minigame.frl,138,19,assert overlaps 10 5 12 5 == 1,0,0,0,0
+examples/frill/minigame.frl,139,20,assert overlaps 10 5 20 5 == 0,0,0,0,0
+examples/frill/minigame.frl,142,21,assert combo_mult 0 == 1,0,0,0,0
+examples/frill/minigame.frl,143,22,assert combo_mult 3 == 2,0,0,0,0
+examples/frill/minigame.frl,144,23,assert combo_mult 5 == 4,0,0,0,0
+examples/frill/minigame.frl,145,24,assert apply_score 10 5 == 40,1,1,1,1
+examples/frill/minigame.frl,146,25,assert apply_score 50 1 == 50,1,1,1,1
+examples/frill/minigame.frl,149,26,assert take_dmg 100 30 == 70,0,0,0,0
+examples/frill/minigame.frl,150,27,assert take_dmg 10 50 == 0,0,0,0,0
+examples/frill/minigame.frl,151,28,assert heal 50 30 100 == 80,0,0,0,0
+examples/frill/minigame.frl,152,29,assert heal 90 30 100 == 100,0,0,0,0
+examples/frill/minigame.frl,153,30,assert is_dead 0 == 1,0,0,0,0
+examples/frill/minigame.frl,154,31,assert is_dead 50 == 0,0,0,0,0
+examples/frill/minigame.frl,157,32,assert tick_score 5 == 11,0,0,0,0
+examples/frill/minigame.frl,158,33,assert tick_score 0 == 1,0,0,0,0
+examples/frill/music.frl,98,1,assert note_delay C == 133,0,0,0,0
+examples/frill/music.frl,99,2,assert note_delay E == 106,0,0,0,0
+examples/frill/music.frl,100,3,assert note_delay G == 89,0,0,0,0
+examples/frill/music.frl,101,4,assert note_delay A == 79,0,0,0,0
+examples/frill/music.frl,102,5,assert note_delay B == 71,0,0,0,0
+examples/frill/music.frl,103,6,assert note_delay Rest == 0,0,0,0,0
+examples/frill/music.frl,107,7,assert encode C 4 == 4,0,0,0,0
+examples/frill/music.frl,108,8,assert encode E 4 == 68,0,0,0,0
+examples/frill/music.frl,109,9,assert encode G 8 == 120,0,0,0,0
+examples/frill/music.frl,110,10,assert decode_note 4 == 0,0,0,0,0
+examples/frill/music.frl,111,11,assert decode_dur 4 == 4,0,0,0,0
+examples/frill/music.frl,112,12,assert decode_note 68 == 4,0,0,0,0
+examples/frill/music.frl,113,13,assert decode_dur 68 == 4,0,0,0,0
+examples/frill/music.frl,114,14,assert decode_note 120 == 7,0,0,0,0
+examples/frill/music.frl,115,15,assert decode_dur 120 == 8,0,0,0,0
+examples/frill/music.frl,122,16,assert roundtrip_note 5 3 == 5,0,0,0,0
+examples/frill/music.frl,123,17,assert roundtrip_dur 5 3 == 3,0,0,0,0
+examples/frill/music.frl,124,18,assert roundtrip_note 0 4 == 0,0,0,0,0
+examples/frill/music.frl,125,19,assert roundtrip_dur 0 4 == 4,0,0,0,0
+examples/frill/music.frl,128,20,assert transpose_note C 0 == 0,1,1,1,1
+examples/frill/music.frl,129,21,assert transpose_note C 2 == 2,1,1,1,1
+examples/frill/music.frl,130,22,assert transpose_note A 3 == 0,1,1,1,1
+examples/frill/music.frl,131,23,assert transpose_note Rest 5 == 12,0,0,0,0
+examples/frill/music.frl,150,24,assert q C == 4,0,0,0,0
+examples/frill/music.frl,151,25,assert q G == 116,0,0,0,0
+examples/frill/music.frl,152,26,assert h G == 120,1,1,1,1
+examples/frill/music.frl,153,27,assert q A == 148,0,0,0,0
+examples/frill/music.frl,157,28,assert delay_decreasing C D == 1,0,0,0,0
+examples/frill/music.frl,158,29,assert delay_decreasing D E == 1,0,0,0,0
+examples/frill/music.frl,159,30,assert delay_decreasing E F == 1,0,0,0,0
+examples/frill/music.frl,160,31,assert delay_decreasing F G == 1,0,0,0,0
+examples/frill/music.frl,161,32,assert delay_decreasing G A == 1,0,0,0,0
+examples/frill/music.frl,162,33,assert delay_decreasing A B == 1,0,0,0,0
+examples/frill/parser_combinator.frl,148,1,assert is_digit 48 == 1,0,0,0,0
+examples/frill/parser_combinator.frl,149,2,assert is_digit 57 == 1,0,0,0,0
+examples/frill/parser_combinator.frl,150,3,assert is_digit 65 == 0,0,0,0,0
+examples/frill/parser_combinator.frl,151,4,assert is_alpha 65 == 1,0,0,0,0
+examples/frill/parser_combinator.frl,152,5,assert is_alpha 122 == 1,0,0,0,0
+examples/frill/parser_combinator.frl,153,6,assert is_alpha 48 == 0,0,0,0,0
+examples/frill/parser_combinator.frl,154,7,assert is_alnum 65 == 1,1,1,1,1
+examples/frill/parser_combinator.frl,155,8,assert is_alnum 48 == 1,0,0,0,0
+examples/frill/parser_combinator.frl,156,9,assert is_alnum 32 == 0,0,0,0,0
+examples/frill/parser_combinator.frl,157,10,assert is_space 32 == 1,0,0,0,0
+examples/frill/parser_combinator.frl,158,11,assert is_space 65 == 0,0,0,0,0
+examples/frill/parser_combinator.frl,159,12,assert to_lower 65 == 97,0,0,0,0
+examples/frill/parser_combinator.frl,160,13,assert to_lower 97 == 97,0,0,0,0
+examples/frill/parser_combinator.frl,161,14,assert to_upper 97 == 65,0,0,0,0
+examples/frill/parser_combinator.frl,162,15,assert to_upper 65 == 65,0,0,0,0
+examples/frill/parser_combinator.frl,165,16,assert parse_digit 48 == 0,1,1,1,1
+examples/frill/parser_combinator.frl,166,17,assert parse_digit 57 == 9,1,1,1,1
+examples/frill/parser_combinator.frl,167,18,assert parse_digit 65 == 255,0,0,0,0
+examples/frill/parser_combinator.frl,168,19,assert parse_hex 48 == 0,1,1,1,1
+examples/frill/parser_combinator.frl,169,20,assert parse_hex 65 == 10,1,1,1,1
+examples/frill/parser_combinator.frl,170,21,assert parse_hex 102 == 15,1,1,1,1
+examples/frill/parser_combinator.frl,171,22,assert parse_two_digits 52 50 == 42,1,1,1,1
+examples/frill/parser_combinator.frl,172,23,assert parse_two_digits 48 48 == 0,1,1,1,1
+examples/frill/parser_combinator.frl,173,24,assert parse_two_digits 57 57 == 99,1,1,1,1
+examples/frill/parser_combinator.frl,174,25,assert parse_hex_byte 70 70 == 255,0,0,0,0
+examples/frill/parser_combinator.frl,175,26,assert parse_hex_byte 48 48 == 0,1,1,1,1
+examples/frill/parser_combinator.frl,176,27,assert parse_hex_byte 65 66 == 171,1,1,1,1
+examples/frill/parser_combinator.frl,179,28,assert classify_token 48 == 0,0,0,0,0
+examples/frill/parser_combinator.frl,180,29,assert classify_token 65 == 1,1,1,1,1
+examples/frill/parser_combinator.frl,181,30,assert classify_token 43 == 2,1,1,1,1
+examples/frill/parser_combinator.frl,182,31,assert classify_token 40 == 3,1,1,1,1
+examples/frill/parser_combinator.frl,183,32,assert classify_token 41 == 4,1,1,1,1
+examples/frill/parser_combinator.frl,184,33,assert classify_token 33 == 5,0,0,0,0
+examples/frill/parser_combinator.frl,187,34,assert precedence 43 == 1,0,0,0,0
+examples/frill/parser_combinator.frl,188,35,assert precedence 42 == 2,0,0,0,0
+examples/frill/parser_combinator.frl,189,36,assert is_left_assoc 43 == 1,0,0,0,0
+examples/frill/parser_combinator.frl,190,37,assert is_left_assoc 33 == 0,0,0,0,0
+examples/frill/parser_combinator.frl,193,38,assert eval_op 3 43 4 == 7,0,0,0,0
+examples/frill/parser_combinator.frl,194,39,assert eval_op 10 45 3 == 7,0,0,0,0
+examples/frill/parser_combinator.frl,195,40,assert eval_op 6 42 7 == 42,0,0,0,0
+examples/frill/parser_combinator.frl,196,41,assert eval_op 100 47 10 == 10,1,1,1,1
+examples/frill/parser_combinator.frl,197,42,assert eval_op 10 47 0 == 0,0,0,0,0
+examples/frill/parser_combinator.frl,200,43,assert char_eq_ci 65 97 == 1,0,0,0,0
+examples/frill/parser_combinator.frl,201,44,assert char_eq_ci 65 65 == 1,0,0,0,0
+examples/frill/parser_combinator.frl,202,45,assert char_eq_ci 65 66 == 0,0,0,0,0
+examples/frill/pipe.frl,16,1,assert double 5 == 10,0,0,0,0
+examples/frill/pipe.frl,17,2,assert inc 10 == 11,0,0,0,0
+examples/frill/pipe.frl,18,3,assert dec 10 == 9,0,0,0,0
+examples/frill/pipe.frl,19,4,assert sq 5 == 25,0,0,0,0
+examples/frill/pipe.frl,21,5,assert pipe_dbl_inc 5 == 11,0,0,0,0
+examples/frill/pipe.frl,22,6,assert pipe_inc_dbl 5 == 12,0,0,0,0
+examples/frill/pipe.frl,23,7,assert pipe_triple 5 == 10,0,0,0,0
+examples/frill/pipe.frl,25,8,assert dbl_then_inc 5 == 11,0,0,0,0
+examples/frill/pipe.frl,26,9,assert inc_then_dbl 5 == 12,0,0,0,0
+examples/frill/pipe.frl,29,10,assert 5 |> double == 10,0,0,0,0
+examples/frill/pipe.frl,30,11,assert 5 |> double |> inc == 11,0,0,0,0
+examples/frill/showcase.frl,14,1,assert add 3 5 == 8,0,0,0,0
+examples/frill/showcase.frl,15,2,assert sub 10 3 == 7,0,0,0,0
+examples/frill/showcase.frl,16,3,assert mul 4 5 == 20,0,0,0,0
+examples/frill/showcase.frl,17,4,assert double 7 == 14,0,0,0,0
+examples/frill/showcase.frl,18,5,assert square 5 == 25,0,0,0,0
+examples/frill/showcase.frl,19,6,assert inc 99 == 100,0,0,0,0
+examples/frill/showcase.frl,30,7,assert max 10 20 == 20,0,0,0,0
+examples/frill/showcase.frl,31,8,assert max 30 5 == 30,0,0,0,0
+examples/frill/showcase.frl,32,9,assert min 10 20 == 10,0,0,0,0
+examples/frill/showcase.frl,33,10,assert abs_diff 10 3 == 7,0,0,0,0
+examples/frill/showcase.frl,34,11,assert abs_diff 3 10 == 7,0,0,0,0
+examples/frill/showcase.frl,35,12,assert sign 0 == 0,0,0,0,0
+examples/frill/showcase.frl,36,13,assert sign 42 == 1,0,0,0,0
+examples/frill/showcase.frl,47,14,assert factorial 0 == 1,0,0,0,0
+examples/frill/showcase.frl,48,15,assert factorial 5 == 120,0,0,0,0
+examples/frill/showcase.frl,49,16,assert fib 7 == 13,0,0,0,0
+examples/frill/showcase.frl,50,17,assert gcd 12 8 == 4,1,1,1,1
+examples/frill/showcase.frl,51,18,assert gcd 7 13 == 1,1,1,1,1
+examples/frill/showcase.frl,52,19,assert sum_to 10 == 55,0,0,0,0
+examples/frill/showcase.frl,69,20,assert hyp2 3 4 == 25,0,0,0,0
+examples/frill/showcase.frl,70,21,assert complex 4 == 12,0,0,0,0
+examples/frill/showcase.frl,79,22,assert tri 5 == 15,0,0,0,0
+examples/frill/showcase.frl,80,23,assert tri 10 == 55,0,0,0,0
+examples/frill/showcase.frl,90,24,assert pipe1 3 == 7,0,0,0,0
+examples/frill/showcase.frl,91,25,assert pipe2 5 == 15,0,0,0,0
+examples/frill/showcase.frl,92,26,assert pipe3 4 == 25,0,0,0,0
+examples/frill/showcase.frl,102,27,assert lam1 5 == 6,0,0,0,0
+examples/frill/showcase.frl,103,28,assert lam2 4 == 16,0,0,0,0
+examples/frill/showcase.frl,104,29,assert lam3 3 == 16,0,0,0,0
+examples/frill/showcase.frl,114,30,assert inc2 5 == 6,0,0,0,0
+examples/frill/showcase.frl,115,31,assert add10 20 == 30,0,0,0,0
+examples/frill/showcase.frl,116,32,assert curry_test 4 == 15,0,0,0,0
+examples/frill/showcase.frl,138,33,assert is_red Red == 1,0,0,0,0
+examples/frill/showcase.frl,139,34,assert is_red Blue == 0,0,0,0,0
+examples/frill/showcase.frl,140,35,assert is_weekend Sat == 1,0,0,0,0
+examples/frill/showcase.frl,141,36,assert is_weekend Mon == 0,0,0,0,0
+examples/frill/showcase.frl,155,37,assert classify 0 == 0,0,0,0,0
+examples/frill/showcase.frl,156,38,assert classify 5 == 1,0,0,0,0
+examples/frill/showcase.frl,157,39,assert classify 50 == 2,0,0,0,0
+examples/frill/showcase.frl,158,40,assert classify 200 == 3,0,0,0,0
+examples/frill/showcase.frl,167,41,assert hex_test 0 == 255,0,0,0,0
+examples/frill/showcase.frl,168,42,assert section_test 5 == 15,0,0,0,0
+examples/frill/showcase.frl,185,43,assert power_of_2 0 == 1,0,0,0,0
+examples/frill/showcase.frl,186,44,assert power_of_2 4 == 16,0,0,0,0
+examples/frill/showcase.frl,187,45,assert collatz 6 == 3,1,1,1,1
+examples/frill/showcase.frl,188,46,assert collatz 5 == 16,1,1,1,1
+examples/frill/showcase.frl,189,47,assert digital_root 38 == 2,1,1,1,1
+examples/frill/showcase.frl,190,48,assert digital_root 99 == 9,1,1,1,1
+examples/frill/state_machine.frl,104,1,assert next_light 0 == 2,0,0,0,0
+examples/frill/state_machine.frl,105,2,assert next_light 1 == 0,0,0,0,0
+examples/frill/state_machine.frl,106,3,assert next_light 2 == 1,0,0,0,0
+examples/frill/state_machine.frl,109,4,assert light_duration 0 == 30,0,0,0,0
+examples/frill/state_machine.frl,110,5,assert light_duration 1 == 5,0,0,0,0
+examples/frill/state_machine.frl,111,6,assert light_duration 2 == 25,0,0,0,0
+examples/frill/state_machine.frl,114,7,assert light_color 0 == 2,0,0,0,0
+examples/frill/state_machine.frl,115,8,assert light_color 1 == 6,0,0,0,0
+examples/frill/state_machine.frl,116,9,assert light_color 2 == 4,0,0,0,0
+examples/frill/state_machine.frl,119,10,assert can_cross 0 == 0,0,0,0,0
+examples/frill/state_machine.frl,120,11,assert can_cross 1 == 0,0,0,0,0
+examples/frill/state_machine.frl,121,12,assert can_cross 2 == 1,0,0,0,0
+examples/frill/state_machine.frl,124,13,assert door_action 0 42 == 1,0,0,0,0
+examples/frill/state_machine.frl,126,14,assert door_action 0 99 == 3,0,0,0,0
+examples/frill/state_machine.frl,128,15,assert door_action 1 0 == 2,0,0,0,0
+examples/frill/state_machine.frl,130,16,assert door_action 2 0 == 0,0,0,0,0
+examples/frill/state_machine.frl,132,17,assert door_action 3 42 == 0,0,0,0,0
+examples/frill/state_machine.frl,134,18,assert is_safe 0 == 1,0,0,0,0
+examples/frill/state_machine.frl,135,19,assert is_safe 1 == 1,0,0,0,0
+examples/frill/state_machine.frl,136,20,assert is_safe 2 == 0,0,0,0,0
+examples/frill/state_machine.frl,137,21,assert is_safe 3 == 0,0,0,0,0
+examples/frill/state_machine.frl,140,22,assert char_speed 0 == 0,0,0,0,0
+examples/frill/state_machine.frl,141,23,assert char_speed 1 == 2,0,0,0,0
+examples/frill/state_machine.frl,142,24,assert char_speed 2 == 1,0,0,0,0
+examples/frill/state_machine.frl,143,25,assert char_speed 3 == 3,0,0,0,0
+examples/frill/state_machine.frl,144,26,assert char_speed 4 == 0,0,0,0,0
+examples/frill/state_machine.frl,145,27,assert is_alive 0 == 1,0,0,0,0
+examples/frill/state_machine.frl,146,28,assert is_alive 4 == 0,0,0,0,0
+examples/frill/state_machine.frl,147,29,assert can_jump 0 == 1,0,0,0,0
+examples/frill/state_machine.frl,148,30,assert can_jump 1 == 1,0,0,0,0
+examples/frill/state_machine.frl,149,31,assert can_jump 2 == 0,0,0,0,0
+examples/frill/state_machine.frl,150,32,assert can_jump 4 == 0,0,0,0,0
+examples/frill/stdlib_demo.frl,14,1,assert factorial 5 == 120,0,0,0,0
+examples/frill/stdlib_demo.frl,15,2,assert gcd 12 8 == 4,0,0,0,0
+examples/frill/stdlib_demo.frl,16,3,assert lcm 4 6 == 12,0,0,0,0
+examples/frill/stdlib_demo.frl,17,4,assert is_prime 7 == 1,0,0,0,0
+examples/frill/stdlib_demo.frl,18,5,assert is_prime 9 == 0,0,0,0,0
+examples/frill/stdlib_demo.frl,19,6,assert fib 7 == 13,0,0,0,0
+examples/frill/stdlib_demo.frl,20,7,assert pow 2 4 == 16,1,1,1,1
+examples/frill/stdlib_demo.frl,21,8,assert sum_to 10 == 55,0,0,0,0
+examples/frill/stdlib_demo.frl,22,9,assert transform 3 == 49,0,0,0,0
+examples/frill/stdlib_demo.frl,23,10,assert process 2 == 36,0,0,0,0
+examples/frill/stdlib_demo.frl,24,11,assert manhattan 0 0 3 4 == 7,1,1,1,1
+examples/frill/stdlib_demo.frl,25,12,assert digital_root 99 == 9,1,1,1,1
+examples/frill/stress_test.frl,17,1,assert id 0 == 0,1,1,1,1
+examples/frill/stress_test.frl,18,2,assert id 255 == 255,1,1,1,1
+examples/frill/stress_test.frl,19,3,assert poly_double 0 == 0,1,1,1,1
+examples/frill/stress_test.frl,20,4,assert poly_double 50 == 100,1,1,1,1
+examples/frill/stress_test.frl,21,5,assert poly_double 127 == 254,1,1,1,1
+examples/frill/stress_test.frl,22,6,assert poly_max 0 0 == 0,1,1,1,1
+examples/frill/stress_test.frl,23,7,assert poly_max 1 255 == 255,1,1,1,1
+examples/frill/stress_test.frl,24,8,assert poly_min 1 255 == 1,1,1,1,1
+examples/frill/stress_test.frl,25,9,assert poly_clamp 50 10 200 == 50,1,1,1,1
+examples/frill/stress_test.frl,26,10,assert poly_clamp 5 10 200 == 10,1,1,1,1
+examples/frill/stress_test.frl,27,11,assert poly_clamp 250 10 200 == 200,1,1,1,1
+examples/frill/stress_test.frl,49,12,assert classify 200 == 100,1,1,1,1
+examples/frill/stress_test.frl,50,13,assert classify 50 == 100,1,1,1,1
+examples/frill/stress_test.frl,51,14,assert classify 0 == 0,1,1,1,1
+examples/frill/stress_test.frl,52,15,assert nested_let 5 == 9,1,1,1,1
+examples/frill/stress_test.frl,53,16,assert nested_let 0 == 255,1,1,1,1
+examples/frill/stress_test.frl,54,17,assert let_in_both 20 == 20,1,1,1,1
+examples/frill/stress_test.frl,55,18,assert let_in_both 5 == 15,1,1,1,1
+examples/frill/stress_test.frl,56,19,assert let_in_both 10 == 0,1,1,1,1
+examples/frill/stress_test.frl,67,20,assert mul256 1 == 256,1,1,1,1
+examples/frill/stress_test.frl,68,21,assert mul256 5 == 1280,1,1,1,1
+examples/frill/stress_test.frl,69,22,assert pack 10 20 == 2580,1,1,1,1
+examples/frill/stress_test.frl,70,23,assert hi 2580 == 10,1,1,1,1
+examples/frill/stress_test.frl,71,24,assert lo 2580 == 20,1,1,1,1
+examples/frill/stress_test.frl,72,25,assert hi 0 == 0,1,1,1,1
+examples/frill/stress_test.frl,73,26,assert lo 255 == 255,1,1,1,1
+examples/frill/stress_test.frl,87,27,"assert char_at ""ABCDE"" 0 == 65",1,1,1,1
+examples/frill/stress_test.frl,88,28,"assert char_at ""ABCDE"" 4 == 69",1,1,1,1
+examples/frill/stress_test.frl,89,29,"assert char_at ""Hello"" 0 == 72",1,1,1,1
+examples/frill/stress_test.frl,90,30,"assert str_len ""Hello"" == 5",1,1,1,1
+examples/frill/stress_test.frl,91,31,"assert str_len """" == 0",1,1,1,1
+examples/frill/stress_test.frl,92,32,"assert str_len ""A"" == 1",1,1,1,1
+examples/frill/stress_test.frl,93,33,"assert str_len ""ABCDEFGHIJ"" == 10",1,1,1,1
+examples/frill/stress_test.frl,99,34,assert is_digit 48 == 1,1,1,1,1
+examples/frill/stress_test.frl,100,35,assert is_digit 57 == 1,1,1,1,1
+examples/frill/stress_test.frl,101,36,assert is_digit 47 == 0,1,1,1,1
+examples/frill/stress_test.frl,102,37,assert is_digit 58 == 0,1,1,1,1
+examples/frill/stress_test.frl,103,38,assert is_alpha 65 == 1,1,1,1,1
+examples/frill/stress_test.frl,104,39,assert is_alpha 122 == 1,1,1,1,1
+examples/frill/stress_test.frl,105,40,assert is_alpha 64 == 0,1,1,1,1
+examples/frill/stress_test.frl,106,41,assert is_space 32 == 1,1,1,1,1
+examples/frill/stress_test.frl,107,42,assert is_space 9 == 1,1,1,1,1
+examples/frill/stress_test.frl,108,43,assert is_space 65 == 0,1,1,1,1
+examples/frill/stress_test.frl,110,44,"assert read_int ""0"" 0 == 0",1,1,1,1
+examples/frill/stress_test.frl,111,45,"assert read_int ""255"" 0 == 255",1,1,1,1
+examples/frill/stress_test.frl,112,46,"assert read_int ""42"" 0 == 42",1,1,1,1
+examples/frill/stress_test.frl,113,47,"assert read_int_len ""12345"" 0 == 5",1,1,1,1
+examples/frill/stress_test.frl,114,48,"assert read_int_len ""abc"" 0 == 0",1,1,1,1
+examples/frill/stress_test.frl,116,49,"assert next_token ""42"" 0 == 1",1,1,1,1
+examples/frill/stress_test.frl,117,50,"assert next_token ""abc"" 0 == 2",1,1,1,1
+examples/frill/stress_test.frl,118,51,"assert next_token ""+"" 0 == 3",1,1,1,1
+examples/frill/stress_test.frl,119,52,"assert next_token ""-"" 0 == 4",1,1,1,1
+examples/frill/stress_test.frl,120,53,"assert next_token ""*"" 0 == 5",1,1,1,1
+examples/frill/stress_test.frl,122,54,"assert skip_spaces ""  hi"" 0 == 2",1,1,1,1
+examples/frill/stress_test.frl,123,55,"assert skip_spaces ""hi"" 0 == 0",1,1,1,1
+examples/frill/stress_test.frl,124,56,"assert skip_token ""42+3"" 0 == 2",1,1,1,1
+examples/frill/stress_test.frl,125,57,"assert skip_token ""abc+3"" 0 == 3",1,1,1,1
+examples/frill/stress_test.frl,138,58,assert dispatch 1 10 20 == 30,1,1,1,1
+examples/frill/stress_test.frl,139,59,assert dispatch 2 20 5 == 15,1,1,1,1
+examples/frill/stress_test.frl,140,60,assert dispatch 3 4 5 == 20,1,1,1,1
+examples/frill/stress_test.frl,141,61,assert dispatch 4 100 10 == 10,1,1,1,1
+examples/frill/stress_test.frl,142,62,assert dispatch 0 99 99 == 0,1,1,1,1
+examples/frill/stress_test.frl,143,63,assert dispatch 5 99 99 == 0,1,1,1,1
+examples/frill/stress_test.frl,167,64,assert count_up 0 == 0,1,1,1,1
+examples/frill/stress_test.frl,168,65,assert count_up 1 == 0,1,1,1,1
+examples/frill/stress_test.frl,169,66,assert count_up 5 == 10,1,1,1,1
+examples/frill/stress_test.frl,170,67,assert count_up 10 == 45,1,1,1,1
+examples/frill/stress_test.frl,171,68,assert pow2 0 == 1,1,1,1,1
+examples/frill/stress_test.frl,172,69,assert pow2 1 == 2,1,1,1,1
+examples/frill/stress_test.frl,173,70,assert pow2 4 == 16,1,1,1,1
+examples/frill/stress_test.frl,174,71,assert pow2 7 == 128,1,1,1,1
+examples/frill/stress_test.frl,190,72,assert ack 0 0 == 1,1,1,1,1
+examples/frill/stress_test.frl,191,73,assert ack 1 1 == 3,1,1,1,1
+examples/frill/stress_test.frl,192,74,assert ack 2 2 == 7,1,1,1,1
+examples/frill/stress_test.frl,193,75,assert ack 3 1 == 13,1,1,1,1
+examples/frill/stress_test.frl,194,76,assert collatz_steps 1 == 0,1,1,1,1
+examples/frill/stress_test.frl,195,77,assert collatz_steps 2 == 1,1,1,1,1
+examples/frill/stress_test.frl,196,78,assert collatz_steps 4 == 2,1,1,1,1
+examples/frill/stress_test.frl,197,79,assert collatz_steps 6 == 8,1,1,1,1
+examples/frill/stress_test.frl,213,80,assert pipe1 5 == 6,1,1,1,1
+examples/frill/stress_test.frl,214,81,assert pipe2 5 == 10,1,1,1,1
+examples/frill/stress_test.frl,215,82,assert pipe3 5 == 12,1,1,1,1
+examples/frill/stress_test.frl,216,83,assert pipe4 3 == 7,1,1,1,1
+examples/frill/stress_test.frl,217,84,assert pipe5 2 == 5,1,1,1,1
+examples/frill/stress_test.frl,227,85,"assert first_byte ""\x41"" == 65",1,1,1,1
+examples/frill/stress_test.frl,228,86,"assert first_byte ""\x00"" == 0",1,1,1,1
+examples/frill/stress_test.frl,229,87,"assert first_byte ""\xFF"" == 255",1,1,1,1
+examples/frill/stress_test.frl,230,88,"assert first_byte ""\x30"" == 48",1,1,1,1
+examples/nanz/08_arena_allocator.nanz,202,1,assert test_alloc_sequence() == 0 via mir2,1,1,1,1
+examples/nanz/08_arena_allocator.nanz,203,2,assert test_oom() == 0 via mir2,1,1,1,1
+examples/nanz/08_arena_allocator.nanz,204,3,assert test_small_allocs() == 0 via mir2,1,1,1,1
+examples/nanz/08_arena_allocator.nanz,205,4,assert test_sizeof() == 0 via mir2,0,0,0,0
+examples/nanz/08_arena_allocator.nanz,206,5,assert test_split() == 0 via mir2,1,1,1,1
+examples/nanz/08_arena_allocator.nanz,207,6,assert test_typed_alloc() == 0 via mir2,1,1,1,1
+examples/nanz/08_arena_allocator.nanz,227,7,assert init_frame() == 0x3F00 via mir2,0,0,0,0
+examples/nanz/08_arena_allocator.nanz,228,8,assert alloc_and_check(0xC000) == 0 via mir2,0,0,0,0
+examples/nanz/08_arena_allocator.nanz,229,9,assert alloc_and_check(0xC040) == 0 via mir2,0,0,0,0
+examples/nanz/08_arena_allocator.nanz,230,10,assert alloc_and_check(0xC080) == 0 via mir2,0,0,0,0
+examples/nanz/08_arena_allocator.nanz,231,11,assert get_remaining() == 15936 via mir2,0,0,0,0
+examples/nanz/09_function_pointers.nanz,26,1,assert test_apply_double() == 10 via mir2,1,1,1,1
+examples/nanz/09_function_pointers.nanz,27,2,// assert test_apply_triple() == 12 via mir2  // TODO: VM address resolution order,0,0,0,0
+examples/nanz/10_adt_option.nanz,58,1,assert test_unwrap_some() == 42,0,0,0,0
+examples/nanz/10_adt_option.nanz,59,2,assert test_unwrap_none() == 77,0,0,0,0
+examples/nanz/10_adt_option.nanz,60,3,assert test_is_some() == 1,0,0,0,0
+examples/nanz/10_adt_option.nanz,61,4,assert test_is_none() == 0,0,0,0,0
+examples/nanz/10_adt_option.nanz,62,5,assert test_safe_div_ok() == 3,0,0,0,0
+examples/nanz/11_match_expression.nanz,33,1,assert color_code(0) == 5,0,0,0,0
+examples/nanz/11_match_expression.nanz,34,2,assert color_code(1) == 10,0,0,0,0
+examples/nanz/11_match_expression.nanz,35,3,assert color_code(2) == 15,0,0,0,0
+examples/nanz/11_match_expression.nanz,36,4,assert shape_sides(0) == 0,0,0,0,0
+examples/nanz/11_match_expression.nanz,37,5,assert shape_sides(1) == 4,0,0,0,0
+examples/nanz/11_match_expression.nanz,38,6,assert shape_sides(2) == 3,0,0,0,0
+examples/nanz/11_match_expression.nanz,39,7,assert is_warm(0) == 1,0,0,0,0
+examples/nanz/11_match_expression.nanz,40,8,assert is_warm(1) == 0,0,0,0,0
+examples/nanz/11_match_expression.nanz,41,9,assert is_warm(2) == 0,0,0,0,0
+examples/nanz/12_state_machine.nanz,53,1,"assert next_state(0, 1) == 1",0,0,0,0
+examples/nanz/12_state_machine.nanz,54,2,"assert next_state(0, 2) == 2",0,0,0,0
+examples/nanz/12_state_machine.nanz,55,3,"assert next_state(0, 3) == 3",0,0,0,0
+examples/nanz/12_state_machine.nanz,56,4,"assert next_state(0, 0) == 0",0,0,0,0
+examples/nanz/12_state_machine.nanz,58,5,"assert next_state(1, 0) == 0",0,0,0,0
+examples/nanz/12_state_machine.nanz,59,6,"assert next_state(1, 2) == 2",0,0,0,0
+examples/nanz/12_state_machine.nanz,60,7,"assert next_state(1, 3) == 3",0,0,0,0
+examples/nanz/12_state_machine.nanz,62,8,"assert next_state(3, 1) == 3",0,0,0,0
+examples/nanz/12_state_machine.nanz,63,9,"assert next_state(3, 0) == 3",0,0,0,0
+examples/nanz/12_state_machine.nanz,65,10,assert is_alive(0) == 1,0,0,0,0
+examples/nanz/12_state_machine.nanz,66,11,assert is_alive(3) == 0,0,0,0,0
+examples/nanz/12_state_machine.nanz,67,12,assert state_speed(1) == 2,0,0,0,0
+examples/nanz/12_state_machine.nanz,68,13,assert state_speed(2) == 4,0,0,0,0
+examples/nanz/13_result_error.nanz,52,1,assert test_add_ok_tag() == 0,0,0,0,0
+examples/nanz/13_result_error.nanz,53,2,assert test_add_ok_val() == 30,0,0,0,0
+examples/nanz/13_result_error.nanz,54,3,assert test_add_overflow_tag() == 1,0,0,0,0
+examples/nanz/13_result_error.nanz,55,4,assert test_add_overflow_code() == 1,0,0,0,0
+examples/nanz/13_result_error.nanz,56,5,assert test_is_ok_pass() == 1,0,0,0,0
+examples/nanz/13_result_error.nanz,57,6,assert test_is_ok_fail() == 0,0,0,0,0
+examples/nanz/14_error_propagation.nanz,97,1,"// assert safe_div(10, 2) == 5 via z80",0,0,0,0
+examples/nanz/14_error_propagation.nanz,100,2,"// assert safe_add(200, 50) == 250 via z80",0,0,0,0
+examples/nanz/14_error_propagation.nanz,103,3,"// assert safe_sub(10, 3) == 7 via z80",0,0,0,0
+examples/nanz/14_error_propagation.nanz,106,4,"// assert chain(10, 2) == 10 via z80",0,0,0,0
+examples/nanz/17_bool_retflag.nanz,92,1,// assert is_zero_b(0) == 1,0,0,0,0
+examples/nanz/17_bool_retflag.nanz,93,2,// assert is_zero_b(1) == 0,0,0,0,0
+examples/nanz/17_bool_retflag.nanz,94,3,// assert is_ten_b(10) == 1,0,0,0,0
+examples/nanz/17_bool_retflag.nanz,95,4,"// assert eq_b(5, 5) == 1",0,0,0,0
+examples/nanz/17_bool_retflag.nanz,96,5,// assert is_small_b(0) == 1,0,0,0,0
+examples/nanz/17_bool_retflag.nanz,97,6,"// assert lt_b(3, 7) == 1",0,0,0,0
+examples/nanz/17_bool_retflag.nanz,98,7,// assert is_big_b(201) == 1,0,0,0,0
+examples/nanz/17_bool_retflag.nanz,99,8,"// assert gt_b(7, 3) == 1",0,0,0,0
+examples/nanz/17_bool_retflag.nanz,100,9,// assert is_digit_b(48) == 1,0,0,0,0
+examples/nanz/17_bool_retflag.nanz,101,10,// assert is_upper_b(65) == 1,0,0,0,0
+examples/nanz/17_bool_retflag.nanz,107,11,assert is_zero(0) == 1,0,0,0,0
+examples/nanz/17_bool_retflag.nanz,108,12,assert is_zero(1) == 0,0,0,0,0
+examples/nanz/17_bool_retflag.nanz,109,13,assert is_small(0) == 1,0,0,0,0
+examples/nanz/17_bool_retflag.nanz,110,14,assert is_small(10) == 0,0,0,0,0
+examples/nanz/17_bool_retflag.nanz,111,15,assert is_digit(48) == 1,0,0,0,0
+examples/nanz/17_bool_retflag.nanz,112,16,assert is_digit(65) == 0,0,0,0,0
+examples/nanz/18_tail_recursion.nanz,48,1,assert fib(0) == 0 via mir2,0,0,0,0
+examples/nanz/18_tail_recursion.nanz,49,2,assert fib(1) == 1 via mir2,1,1,1,1
+examples/nanz/18_tail_recursion.nanz,50,3,assert fib(2) == 1 via mir2,1,1,1,1
+examples/nanz/18_tail_recursion.nanz,51,4,assert fib(5) == 5 via mir2,1,1,1,1
+examples/nanz/18_tail_recursion.nanz,52,5,assert fib(7) == 13 via mir2,1,1,1,1
+examples/nanz/18_tail_recursion.nanz,53,6,assert fib(10) == 55 via mir2,1,1,1,1
+examples/nanz/18_tail_recursion.nanz,55,7,assert fact(0) == 1 via mir2,0,0,0,0
+examples/nanz/18_tail_recursion.nanz,56,8,assert fact(1) == 1 via mir2,0,0,0,0
+examples/nanz/18_tail_recursion.nanz,57,9,assert fact(3) == 6 via mir2,0,0,0,0
+examples/nanz/18_tail_recursion.nanz,58,10,assert fact(5) == 120 via mir2,0,0,0,0
+examples/nanz/18_tail_recursion.nanz,60,11,assert sum_to(0) == 0 via mir2,0,0,0,0
+examples/nanz/18_tail_recursion.nanz,61,12,assert sum_to(1) == 1 via mir2,0,0,0,0
+examples/nanz/18_tail_recursion.nanz,62,13,assert sum_to(10) == 55 via mir2,0,0,0,0
+examples/nanz/18_tail_recursion.nanz,64,14,assert pow2(0) == 1 via mir2,0,0,0,0
+examples/nanz/18_tail_recursion.nanz,65,15,assert pow2(1) == 2 via mir2,1,1,1,1
+examples/nanz/18_tail_recursion.nanz,66,16,assert pow2(4) == 16 via mir2,1,1,1,1
+examples/nanz/18_tail_recursion.nanz,67,17,assert pow2(7) == 128 via mir2,1,1,1,1
+examples/nanz/20_strref_test.nanz,59,1,assert test_eq() == 1,0,0,0,0
+examples/nanz/20_strref_test.nanz,60,2,assert test_neq() == 0,0,0,0,0
+examples/nanz/20_strref_test.nanz,61,3,assert test_hash_eq() == 1,0,0,0,0
+examples/nanz/20_strref_test.nanz,62,4,assert test_hash_neq() == 1,0,0,0,0
+examples/nanz/20_strref_test.nanz,63,5,assert test_hash_nz() == 1,0,0,0,0
+examples/nanz/20_strref_test.nanz,64,6,assert test_hash_order() == 1,0,0,0,0
+examples/nanz/21_hashmap_test.nanz,155,1,assert test_put_get() == 1 via mir2,1,1,1,1
+examples/nanz/21_hashmap_test.nanz,156,2,assert test_missing() == 1 via mir2,1,1,1,1
+examples/nanz/21_hashmap_test.nanz,157,3,assert test_overwrite() == 1 via mir2,1,1,1,1
+examples/nanz/21_hashmap_test.nanz,158,4,assert test_two_keys() == 1 via mir2,1,1,1,1
+examples/nanz/21_hashmap_test.nanz,159,5,assert test_has() == 1 via mir2,1,1,1,1
+examples/nanz/21_hashmap_test.nanz,160,6,assert test_count() == 1 via mir2,1,1,1,1
+examples/nanz/21_hashmap_test.nanz,161,7,assert test_zero_key() == 1 via mir2,1,1,1,1
+examples/nanz/21_hashmap_test.nanz,162,8,assert test_many() == 1 via mir2,1,1,1,1
+examples/nanz/30_stream_test.nanz,40,1,assert test_basic_write() == 2 via mir2,1,1,1,1
+examples/nanz/30_stream_test.nanz,53,2,assert test_cap_write() == 3 via mir2,1,1,1,1
+examples/nanz/30_stream_test.nanz,63,3,assert test_first_byte() == 42 via mir2,1,1,1,1
+examples/nanz/30_stream_test.nanz,75,4,assert test_seq_bytes() == 20 via mir2,1,1,1,1
+examples/nanz/50_impl_showcase.nanz,81,1,assert test_circle_area() == 75 via mir2,0,0,0,0
+examples/nanz/50_impl_showcase.nanz,82,2,assert test_circle_perim() == 24 via mir2,0,0,0,0
+examples/nanz/50_impl_showcase.nanz,83,3,assert test_rect_area() == 50 via mir2,0,0,0,0
+examples/nanz/50_impl_showcase.nanz,84,4,assert test_rect_perim() == 22 via mir2,0,0,0,0
+examples/nanz/assert_test.nanz,16,1,assert double(0) == 0,0,0,0,0
+examples/nanz/assert_test.nanz,17,2,assert double(5) == 10,0,0,0,0
+examples/nanz/assert_test.nanz,18,3,assert double(127) == 254,0,0,0,0
+examples/nanz/assert_test.nanz,20,4,"assert add(3, 4) == 7",0,0,0,0
+examples/nanz/assert_test.nanz,21,5,"assert add(0, 0) == 0",0,0,0,0
+examples/nanz/assert_test.nanz,22,6,"assert add(100, 55) == 155",0,0,0,0
+examples/nanz/assert_test.nanz,24,7,"assert max_byte(10, 20) == 20",0,0,0,0
+examples/nanz/assert_test.nanz,25,8,"assert max_byte(99, 1) == 99",0,0,0,0
+examples/nanz/assert_test.nanz,26,9,"assert max_byte(42, 42) == 42",0,0,0,0
+examples/nanz/canvas_house.nanz,129,1,assert draw_scene() == 0 via mir2,0,0,0,0
+examples/nanz/hello_cpm_fib.nanz,46,1,assert fib(7) == 13,0,0,0,0
+examples/nanz/hello_cpm_fib.nanz,47,2,"assert gcd(12, 8) == 4",1,1,1,1
+examples/nanz/mul16_gpu_test.nanz,23,1,assert mul_by_3(100) == 300 via mir2,0,0,0,0
+examples/nanz/mul16_gpu_test.nanz,24,2,assert mul_by_3(100) == 300 via z80,0,0,0,0
+examples/nanz/mul16_gpu_test.nanz,25,3,assert mul_by_10(50) == 500 via mir2,0,0,0,0
+examples/nanz/mul16_gpu_test.nanz,26,4,assert mul_by_10(50) == 500 via z80,0,0,0,0
+examples/nanz/mul16_gpu_test.nanz,27,5,assert mul_by_100(6) == 600 via mir2,0,0,0,0
+examples/nanz/mul16_gpu_test.nanz,28,6,assert mul_by_100(6) == 600 via z80,0,0,0,0
+examples/nanz/mul16_gpu_test.nanz,29,7,assert mul_by_7(1000) == 7000 via mir2,0,0,0,0
+examples/nanz/mul16_gpu_test.nanz,30,8,assert mul_by_7(1000) == 7000 via z80,0,0,0,0
+examples/nanz/mul16_gpu_test.nanz,31,9,assert mul_by_255(2) == 510 via mir2,0,0,0,0
+examples/nanz/mul16_gpu_test.nanz,32,10,assert mul_by_255(2) == 510 via z80,0,0,0,0
+examples/nanz/mul_const.nanz,3,1,assert m10(7) == 70 via mir2,0,0,0,0
+examples/nanz/mul_const.nanz,4,2,assert m10(7) == 70 via z80,0,0,0,0
+examples/nanz/mul_const.nanz,5,3,assert m10(1000) == 10000 via mir2,0,0,0,0
+examples/nanz/mul_const.nanz,6,4,assert m10(1000) == 10000 via z80,0,0,0,0
+examples/nanz/rotozoomer.nanz,184,1,"assert texture(8, 8) == 5 via mir2",1,1,1,1
+examples/nanz/rotozoomer.nanz,185,2,"assert texture(0, 0) == 3 via mir2",1,1,1,1
+examples/nanz/self_lanz_parser.nanz,259,1,assert is_space(32) == 1 via mir2,1,1,1,1
+examples/nanz/self_lanz_parser.nanz,260,2,assert is_digit(48) == 1 via mir2,1,1,1,1
+examples/nanz/self_lanz_parser.nanz,261,3,assert is_atom_char(97) == 1 via mir2,1,1,1,1
+examples/nanz/self_lanz_parser.nanz,262,4,assert is_atom_char(40) == 0 via mir2,1,1,1,1
+examples/nanz/self_parser.nanz,718,1,assert is_digit(48) == 1 via mir2,1,1,1,1
+examples/nanz/self_parser.nanz,719,2,assert is_alpha(65) == 1 via mir2,1,1,1,1
+examples/nanz/self_parser.nanz,720,3,assert is_space(32) == 1 via mir2,1,1,1,1
+examples/nanz/self_tokenizer.nanz,537,1,assert is_digit(48) == 1 via mir2,0,0,0,0
+examples/nanz/self_tokenizer.nanz,538,2,assert is_digit(65) == 0 via mir2,0,0,0,0
+examples/nanz/self_tokenizer.nanz,539,3,assert is_alpha(65) == 1 via mir2,0,0,0,0
+examples/nanz/self_tokenizer.nanz,540,4,assert is_alpha(95) == 1 via mir2,0,0,0,0
+examples/nanz/self_tokenizer.nanz,541,5,assert is_space(32) == 1 via mir2,0,0,0,0
+examples/nanz/self_tokenizer.nanz,542,6,assert is_space(65) == 0 via mir2,0,0,0,0
+examples/nanz/sha256.nanz,160,1,assert test_add32() == 2 via mir2,0,0,0,0
+examples/nanz/sha256.nanz,161,2,assert test_add32_carry() == 1 via mir2,0,0,0,0
+examples/nanz/sha256.nanz,162,3,assert test_xor() == 65535 via mir2,0,0,0,0
+examples/nanz/sha256.nanz,163,4,assert test_and() == 3855 via mir2,0,0,0,0
+examples/nanz/sha256.nanz,164,5,assert test_not() == 65280 via mir2,0,0,0,0
+examples/nanz/sha256.nanz,165,6,assert test_ch() == 4660 via mir2,0,0,0,0
+examples/nanz/widemath.nanz,217,1,"assert area(10, 20) == 200 via mir2",1,1,1,1
+examples/nanz/widemath.nanz,218,2,"assert area(200, 200) == 40000 via mir2",1,1,1,1
+examples/nanz/widemath.nanz,219,3,assert big_area() == 40000 via mir2,0,0,0,0
+examples/nanz/widemath.nanz,222,4,assert abs8(-5) == 5 via mir2,0,0,0,0
+examples/nanz/widemath.nanz,223,5,assert abs8(5) == 5 via mir2,0,0,0,0
+examples/nanz/widemath.nanz,224,6,assert abs8(0) == 0 via mir2,0,0,0,0
+examples/nanz/widemath.nanz,225,7,assert sign8(-42) == 255 via mir2    // -1 as u8 = 255,0,0,0,0
+examples/nanz/widemath.nanz,226,8,assert sign8(0) == 0 via mir2,0,0,0,0
+examples/nanz/widemath.nanz,227,9,assert sign8(42) == 1 via mir2,0,0,0,0
+examples/nanz/widemath.nanz,228,10,"assert min8(3, 7) == 3 via mir2",0,0,0,0
+examples/nanz/widemath.nanz,229,11,"assert min8(7, 3) == 3 via mir2",0,0,0,0
+examples/nanz/widemath.nanz,230,12,"assert max8(3, 7) == 7 via mir2",0,0,0,0
+examples/nanz/widemath.nanz,231,13,"assert max8(7, 3) == 7 via mir2",0,0,0,0
+examples/nanz/widemath.nanz,232,14,"assert clamp8(1, 10, 200) == 10 via mir2",0,0,0,0
+examples/nanz/widemath.nanz,233,15,"assert clamp8(50, 10, 200) == 50 via mir2",0,0,0,0
+examples/nanz/widemath.nanz,234,16,"assert clamp8(250, 10, 200) == 200 via mir2",0,0,0,0
+examples/nanz/widemath.nanz,235,17,"assert abs_diff8(10, 3) == 7 via mir2",0,0,0,0
+examples/nanz/widemath.nanz,236,18,"assert abs_diff8(3, 10) == 7 via mir2",0,0,0,0
+examples/nanz/widemath.nanz,239,19,"assert sat_add8(200, 100) == 255 via mir2",0,0,0,0
+examples/nanz/widemath.nanz,240,20,"assert sat_add8(100, 50) == 150 via mir2",0,0,0,0
+examples/nanz/widemath.nanz,241,21,"assert sat_sub8(10, 3) == 7 via mir2",0,0,0,0
+examples/nanz/widemath.nanz,242,22,"assert sat_sub8(3, 10) == 0 via mir2",0,0,0,0
+examples/nanz/widemath.nanz,245,23,"assert min16(100, 50000) == 100 via mir2",0,0,0,0
+examples/nanz/widemath.nanz,246,24,"assert max16(100, 50000) == 50000 via mir2",0,0,0,0
+examples/nanz/widemath.nanz,247,25,"assert clamp16(5, 100, 60000) == 100 via mir2",0,0,0,0
+examples/nanz/widemath.nanz,248,26,"assert abs_diff16(50000, 30000) == 20000 via mir2",0,0,0,0
+examples/nanz/widemath.nanz,249,27,"assert sat_sub16(100, 50000) == 0 via mir2",0,0,0,0
+examples/nanz/widemath.nanz,252,28,"assert pixel_distance(10, 20, 13, 24) == 12 via mir2",1,1,1,1
+examples/nanz/widemath.nanz,253,29,"assert brightness_blend(0, 255, 128) == 127 via mir2",1,1,1,1
+examples/nanz/widemath.nanz,256,30,"assert newtype_area(10, 20) == 200 via mir2",1,1,1,1
+examples/nanz/widemath.nanz,257,31,"assert newtype_area(200, 200) == 40000 via mir2",1,1,1,1
+examples/objc/canvas_shapes.m,105,1,"// assert-objc Circle{cx:0, cy:0, radius:10, color:0}.area() == 300",1,1,1,1
+examples/objc/canvas_shapes.m,106,2,"// assert-objc Rect{x:0, y:0, w:20, h:10, color:0}.area() == 200",1,1,1,1
+examples/objc/canvas_shapes.m,107,3,"// assert-objc FilledRect{x:0, y:0, w:5, h:8, color:0}.area() == 40",1,1,1,1
+examples/objc/canvas_shapes.m,111,4,"// assert-objc-dyn Shape Circle{cx:0, cy:0, radius:7, color:0}.area() == 147",1,1,1,1
+examples/objc/canvas_shapes.m,112,5,"// assert-objc-dyn Shape Rect{x:0, y:0, w:12, h:3, color:0}.area() == 36",1,1,1,1
+examples/objc/canvas_shapes.m,113,6,"// assert-objc-dyn Shape FilledRect{x:0, y:0, w:6, h:6, color:0}.area() == 36",1,1,1,1
+examples/objc/counter.m,38,1,// assert get_value(42) == 42,0,0,0,0
+examples/objc/counter.m,39,2,"// assert add_and_return(10, 5) == 15",0,0,0,0
+examples/objc/counter.m,42,3,// assert-objc Counter{count:0}.value() == 0,0,0,0,0
+examples/objc/counter.m,43,4,// assert-objc Counter{count:42}.value() == 42,1,1,1,1
+examples/objc/counter.m,44,5,// assert-objc Counter{count:10}.addAndReturn(5) == 15,1,1,1,1
+examples/objc/dynamic.m,39,1,// assert-objc Circle{radius:5}.area() == 25,0,0,0,0
+examples/objc/dynamic.m,40,2,// assert-objc Circle{radius:3}.draw() == 1,0,0,0,0
+examples/objc/dynamic.m,41,3,"// assert-objc Rect{w:4, h:6}.area() == 24",1,1,1,1
+examples/objc/dynamic.m,42,4,"// assert-objc Rect{w:4, h:6}.draw() == 2",0,0,0,0
+examples/objc/dynamic.m,45,5,// assert-objc-dyn Drawable Circle{radius:7}.area() == 49,1,1,1,1
+examples/objc/dynamic.m,46,6,// assert-objc-dyn Drawable Circle{radius:0}.draw() == 1,1,1,1,1
+examples/objc/dynamic.m,47,7,"// assert-objc-dyn Drawable Rect{w:3, h:5}.area() == 15",1,1,1,1
+examples/objc/dynamic.m,48,8,"// assert-objc-dyn Drawable Rect{w:3, h:5}.draw() == 2",1,1,1,1
+examples/objc/foundation.m,238,1,// assert identity(1) == 1 via mir2,0,0,0,0
+examples/objc/foundation.m,241,2,// assert-objc NSNumber{_value:42}.intValue() == 42,1,1,1,1
+examples/objc/foundation.m,242,3,// assert-objc NSNumber{_value:10}.isEqualToNumber(10) == 1,1,1,1,1
+examples/objc/foundation.m,243,4,// assert-objc NSNumber{_value:10}.isEqualToNumber(20) == 0,1,1,1,1
+examples/objc/foundation.m,244,5,// assert-objc NSNumber{_value:5}.compare(10) == 0xFFFF,1,1,1,1
+examples/objc/foundation.m,247,6,"// assert-objc NSPoint{x:10, y:20}.x() == 10",1,1,1,1
+examples/objc/foundation.m,248,7,"// assert-objc NSPoint{x:10, y:20}.y() == 20",1,1,1,1
+examples/objc/foundation.m,249,8,"// assert-objc NSPoint{x:3, y:4}.distanceSquaredTo(0, 0) == 25",1,1,1,1
+examples/objc/foundation.m,250,9,"// assert-objc NSPoint{x:5, y:5}.isEqual(5, 5) == 1",1,1,1,1
+examples/objc/foundation.m,251,10,"// assert-objc NSPoint{x:5, y:5}.isEqual(5, 6) == 0",1,1,1,1
+examples/objc/foundation.m,254,11,"// assert-objc NSSize{width:10, height:20}.area() == 200",1,1,1,1
+examples/objc/foundation.m,255,12,"// assert-objc NSSize{width:3, height:7}.width() == 3",1,1,1,1
+examples/objc/foundation.m,258,13,"// assert-objc NSRect{x:0, y:0, width:100, height:50}.area() == 5000",1,1,1,1
+examples/objc/foundation.m,259,14,"// assert-objc NSRect{x:10, y:20, width:100, height:50}.maxX() == 110",1,1,1,1
+examples/objc/foundation.m,260,15,"// assert-objc NSRect{x:10, y:20, width:100, height:50}.maxY() == 70",1,1,1,1
+examples/objc/foundation.m,261,16,"// assert-objc NSRect{x:0, y:0, width:100, height:100}.containsX(50, 50) == 1",1,1,1,1
+examples/objc/foundation.m,262,17,"// assert-objc NSRect{x:0, y:0, width:100, height:100}.containsX(150, 50) == 0",0,0,0,0
+examples/objc/foundation.m,265,18,"// assert-objc NSColor{red:255, green:0, blue:0}.red() == 255",1,1,1,1
+examples/objc/foundation.m,266,19,"// assert-objc NSColor{red:60, green:120, blue:180}.brightness() == 120",1,1,1,1
+examples/objc/foundation.m,269,20,"// assert-objc NSRange{location:5, length:10}.maxRange() == 15",1,1,1,1
+examples/objc/foundation.m,270,21,"// assert-objc NSRange{location:5, length:10}.containsIndex(7) == 1",1,1,1,1
+examples/objc/foundation.m,271,22,"// assert-objc NSRange{location:5, length:10}.containsIndex(20) == 0",1,1,1,1
+examples/objc/game_ecs.m,88,1,"// assert add(1, 2) == 3 via mir2",0,0,0,0
+examples/objc/game_ecs.m,91,2,"// assert-objc Entity{hp:100, maxHp:100, x:5, y:10, vx:1, vy:2, type:0}.hp() == 100",1,1,1,1
+examples/objc/game_ecs.m,92,3,"// assert-objc Entity{hp:100, maxHp:100, x:5, y:10, vx:1, vy:2, type:0}.x() == 5",1,1,1,1
+examples/objc/game_ecs.m,93,4,"// assert-objc Entity{hp:100, maxHp:100, x:5, y:10, vx:1, vy:2, type:0}.y() == 10",1,1,1,1
+examples/objc/game_ecs.m,96,5,"// assert-objc Entity{hp:100, maxHp:100, x:0, y:0, vx:0, vy:0, type:0}.isAlive() == 1",1,1,1,1
+examples/objc/game_ecs.m,97,6,"// assert-objc Entity{hp:0, maxHp:100, x:0, y:0, vx:0, vy:0, type:0}.isAlive() == 0",0,0,0,0
+examples/objc/game_ecs.m,98,7,"// assert-objc Entity{hp:0, maxHp:100, x:0, y:0, vx:0, vy:0, type:0}.isDead() == 1",0,0,0,0
+examples/objc/game_ecs.m,101,8,"// assert-objc Entity{hp:50, maxHp:100, x:0, y:0, vx:0, vy:0, type:0}.hpPercent() == 50",1,1,1,1
+examples/objc/game_ecs.m,102,9,"// assert-objc Entity{hp:100, maxHp:100, x:0, y:0, vx:0, vy:0, type:0}.hpPercent() == 100",1,1,1,1
+examples/objc/game_ecs.m,105,10,"// assert-objc Entity{hp:0, maxHp:0, x:3, y:4, vx:0, vy:0, type:0}.distanceTo(0, 0) == 7",1,1,1,1
+examples/objc/game_ecs.m,106,11,"// assert-objc Entity{hp:0, maxHp:0, x:10, y:10, vx:0, vy:0, type:0}.distanceTo(10, 10) == 0",1,1,1,1
+examples/objc/inherit.m,33,1,// assert identity(1) == 1 via mir2,0,0,0,0
+examples/objc/inherit.m,36,2,"// assert-objc Shape{x:10, y:20}.getX() == 10",1,1,1,1
+examples/objc/inherit.m,37,3,"// assert-objc Shape{x:10, y:20}.sum() == 30",1,1,1,1
+examples/objc/inherit.m,38,4,"// assert-objc Circle{x:5, y:7, radius:3}.getX() == 5",1,1,1,1
+examples/objc/inherit.m,39,5,"// assert-objc Circle{x:5, y:7, radius:3}.getY() == 7",1,1,1,1
+examples/objc/inherit.m,40,6,"// assert-objc Circle{x:5, y:7, radius:3}.sum() == 12",1,1,1,1
+examples/objc/inherit.m,41,7,"// assert-objc Circle{x:0, y:0, radius:10}.getRadius() == 10",1,1,1,1
+examples/objc/inherit.m,42,8,"// assert-objc Circle{x:0, y:0, radius:4}.area() == 48",1,1,1,1
+examples/objc/math_objc.m,105,1,// assert double_it(21) == 42 via mir2,0,0,0,0
+examples/objc/math_objc.m,106,2,// assert triple_it(10) == 30 via mir2,1,1,1,1
+examples/objc/math_objc.m,111,3,"// assert-objc Point{x:3, y:4}.x() == 3",1,1,1,1
+examples/objc/math_objc.m,112,4,"// assert-objc Point{x:3, y:4}.y() == 4",1,1,1,1
+examples/objc/math_objc.m,113,5,"// assert-objc Point{x:3, y:4}.manhattan() == 7",1,1,1,1
+examples/objc/math_objc.m,114,6,"// assert-objc Point{x:0, y:0}.manhattan() == 0",0,0,0,0
+examples/objc/math_objc.m,115,7,"// assert-objc Point{x:2, y:3}.dot(4, 5) == 23",1,1,1,1
+examples/objc/math_objc.m,118,8,"// assert-objc Color{r:100, g:100, b:100}.brightness() == 100",1,1,1,1
+examples/objc/math_objc.m,119,9,"// assert-objc Color{r:255, g:0, b:0}.brightness() == 85",1,1,1,1
+examples/objc/math_objc.m,120,10,"// assert-objc Color{r:50, g:50, b:50}.isGray() == 1",1,1,1,1
+examples/objc/math_objc.m,121,11,"// assert-objc Color{r:50, g:51, b:50}.isGray() == 0",1,1,1,1
+examples/objc/message.m,32,1,"// assert add_wrap(3, 7) == 10",0,0,0,0
+examples/objc/message.m,35,2,// assert-objc Calc{acc:0}.result() == 0,0,0,0,0
+examples/objc/message.m,36,3,// assert-objc Calc{acc:100}.result() == 100,1,1,1,1
+examples/objc/message.m,37,4,// assert-objc Calc{acc:10}.addAndGet(5) == 15,1,1,1,1
+examples/objc/message.m,38,5,// assert-objc Calc{acc:0}.addAndGet(42) == 42,1,1,1,1
+examples/objc/pipeline.m,112,1,// assert identity(1) == 1 via mir2,0,0,0,0
+examples/objc/pipeline.m,115,2,"// assert-objc Vec3{x:2, y:3, z:4}.sum() == 9",1,1,1,1
+examples/objc/pipeline.m,116,3,"// assert-objc Vec3{x:1, y:2, z:3}.x() == 1",1,1,1,1
+examples/objc/pipeline.m,119,4,"// assert-objc Vec3{x:1, y:2, z:3}.scaleAndSum(2) == 12",1,1,1,1
+examples/objc/pipeline.m,122,5,"// assert-objc Vec3{x:1, y:2, z:3}.translateAndSum(10) == 16",1,1,1,1
+examples/objc/pipeline.m,125,6,"// assert-objc Config{width:0, height:0, color:0}.area() == 0",0,0,0,0
+examples/objc/pipeline.m,128,7,"// assert-objc Config{width:0, height:0, color:0}.setAndArea(8) == 80",1,1,1,1
+examples/objc/plasma.m,184,1,// assert isin(0) == 0 via mir2,1,1,1,1
+examples/objc/plasma.m,185,2,// assert isin(32) == 64 via mir2,1,1,1,1
+examples/objc/plasma.m,186,3,// assert isin(64) == 127 via mir2,1,1,1,1
+examples/objc/plasma.m,187,4,// assert isin(128) == 0 via mir2,1,1,1,1
+examples/objc/plasma.m,188,5,// assert isin(192) == 0xFF81 via mir2,1,1,1,1
+examples/objc/plasma.m,191,6,"// assert-objc Plasma{scale:8, speed:1}.render(0) == 0",1,1,1,1
+examples/objc/plasma.m,192,7,"// assert-objc Diamond{spacing:4, dummy:0}.render(0) == 0",1,1,1,1
+examples/objc/plasma.m,193,8,"// assert-objc XorPattern{shift:0, dummy:0}.render(0) == 0",1,1,1,1
+examples/objc/plasma.m,196,9,"// assert-objc-dyn Effect Plasma{scale:8, speed:1}.render(0) == 0",1,1,1,1
+examples/objc/plasma.m,197,10,"// assert-objc-dyn Effect Diamond{spacing:4, dummy:0}.render(0) == 0",1,1,1,1
+examples/objc/plasma.m,198,11,"// assert-objc-dyn Effect XorPattern{shift:0, dummy:0}.render(0) == 0",1,1,1,1
+examples/objc/simple.m,21,1,// assert identity(7) == 7,0,0,0,0
+examples/objc/simple.m,23,2,// assert-objc Box{value:0}.get() == 0,0,0,0,0
+examples/objc/simple.m,24,3,// assert-objc Box{value:99}.get() == 99,1,1,1,1
+examples/objc/simple.m,25,4,// assert-objc Box{value:10}.addN(5) == 15,1,1,1,1
+examples/pascal/assert_test.pas,14,1,assert Double(21) = 42;,0,0,0,0
+examples/pascal/assert_test.pas,15,2,assert AddOne(5) = 6;,0,0,0,0
+examples/pascal/logic_test.pas,31,1,assert MulBy3(0) = 0;,0,0,0,0
+examples/pascal/logic_test.pas,32,2,assert MulBy3(1) = 3;,0,0,0,0
+examples/pascal/logic_test.pas,33,3,assert MulBy3(10) = 30;,0,0,0,0
+examples/pascal/logic_test.pas,34,4,assert MulBy3(85) = 255;,0,0,0,0
+examples/pascal/logic_test.pas,35,5,assert MulBy5(0) = 0;,0,0,0,0
+examples/pascal/logic_test.pas,36,6,assert MulBy5(1) = 5;,0,0,0,0
+examples/pascal/logic_test.pas,37,7,assert MulBy5(10) = 50;,0,0,0,0
+examples/pascal/logic_test.pas,38,8,assert MulBy5(51) = 255;,0,0,0,0
+examples/pascal/logic_test.pas,39,9,"assert Add3(1, 2, 3) = 6;",0,0,0,0
+examples/pascal/logic_test.pas,40,10,"assert Add3(0, 0, 0) = 0;",0,0,0,0
+examples/pascal/logic_test.pas,41,11,"assert Add3(100, 100, 55) = 255;",0,0,0,0
+examples/pascal/logic_test.pas,42,12,"assert Diff(10, 3) = 7;",0,0,0,0
+examples/pascal/logic_test.pas,43,13,"assert Diff(255, 255) = 0;",0,0,0,0
+examples/pascal/logic_test.pas,44,14,"assert Diff(100, 0) = 100;",0,0,0,0
+examples/pascal/math_test.pas,61,1,assert Double(0) = 0;,0,0,0,0
+examples/pascal/math_test.pas,62,2,assert Double(21) = 42;,0,0,0,0
+examples/pascal/math_test.pas,63,3,assert Double(100) = 200;,0,0,0,0
+examples/pascal/math_test.pas,64,4,assert AddOne(0) = 1;,0,0,0,0
+examples/pascal/math_test.pas,65,5,assert AddOne(5) = 6;,0,0,0,0
+examples/pascal/math_test.pas,66,6,assert AddOne(254) = 255;,0,0,0,0
+examples/pascal/math_test.pas,67,7,assert Square(0) = 0;,0,0,0,0
+examples/pascal/math_test.pas,68,8,assert Square(1) = 1;,0,0,0,0
+examples/pascal/math_test.pas,69,9,assert Square(5) = 25;,0,0,0,0
+examples/pascal/math_test.pas,70,10,assert Square(10) = 100;,0,0,0,0
+examples/pascal/math_test.pas,71,11,assert Triple(0) = 0;,0,0,0,0
+examples/pascal/math_test.pas,72,12,assert Triple(3) = 9;,0,0,0,0
+examples/pascal/math_test.pas,73,13,assert Triple(10) = 30;,0,0,0,0
+examples/pascal/math_test.pas,76,14,"assert Max(3, 7) = 7;",0,0,0,0
+examples/pascal/math_test.pas,77,15,"assert Max(10, 2) = 10;",0,0,0,0
+examples/pascal/math_test.pas,78,16,"assert Max(5, 5) = 5;",0,0,0,0
+examples/pascal/math_test.pas,79,17,"assert Min(3, 7) = 3;",0,0,0,0
+examples/pascal/math_test.pas,80,18,"assert Min(10, 2) = 2;",0,0,0,0
+examples/pascal/math_test.pas,81,19,assert IsEven(0) = 1;,0,0,0,0
+examples/pascal/math_test.pas,82,20,assert IsEven(4) = 1;,0,0,0,0
+examples/pascal/math_test.pas,83,21,assert IsEven(7) = 0;,0,0,0,0
+examples/pascal/math_test.pas,84,22,"assert AbsDiff(10, 3) = 7;",0,0,0,0
+examples/pascal/math_test.pas,85,23,"assert AbsDiff(3, 10) = 7;",0,0,0,0
+examples/pascal/math_test.pas,86,24,"assert AbsDiff(5, 5) = 0;",0,0,0,0
+examples/pascal/recursive_test.pas,57,1,assert Identity(0) = 0;,0,0,0,0
+examples/pascal/recursive_test.pas,58,2,assert Identity(42) = 42;,0,0,0,0
+examples/pascal/recursive_test.pas,59,3,assert Identity(255) = 255;,0,0,0,0
+examples/pascal/recursive_test.pas,60,4,assert Zero(42) = 0;,0,0,0,0
+examples/pascal/recursive_test.pas,61,5,assert Zero(0) = 0;,0,0,0,0
+examples/pascal/recursive_test.pas,62,6,assert Inc2(0) = 2;,0,0,0,0
+examples/pascal/recursive_test.pas,63,7,assert Inc2(10) = 12;,0,0,0,0
+examples/pascal/recursive_test.pas,64,8,assert Dec2(10) = 8;,0,0,0,0
+examples/pascal/recursive_test.pas,65,9,assert Dec2(2) = 0;,0,0,0,0
+examples/pascal/recursive_test.pas,66,10,assert Negate(1) = 255;,0,0,0,0
+examples/pascal/recursive_test.pas,67,11,assert Negate(0) = 0;,0,0,0,0
+examples/pascal/recursive_test.pas,68,12,assert IsPositive(1) = 1;,0,0,0,0
+examples/pascal/recursive_test.pas,69,13,assert IsPositive(42) = 1;,0,0,0,0
+examples/pascal/recursive_test.pas,70,14,assert IsPositive(0) = 0;,0,0,0,0
+examples/pascal/recursive_test.pas,73,15,assert Fact(0) = 1;,0,0,0,0
+examples/pascal/recursive_test.pas,74,16,assert Fact(1) = 1;,0,0,0,0
+examples/pascal/recursive_test.pas,75,17,assert Fact(5) = 120;,0,0,0,0
+examples/pascal/recursive_test.pas,76,18,assert SumTo(0) = 0;,0,0,0,0
+examples/pascal/recursive_test.pas,77,19,assert SumTo(10) = 55;,0,0,0,0
+examples/pascal/string_test.pas,43,1,assert IsDigit(48) = 1;,0,0,0,0
+examples/pascal/string_test.pas,44,2,assert IsDigit(65) = 0;,0,0,0,0
+examples/pascal/string_test.pas,45,3,assert IsUpper(65) = 1;,0,0,0,0
+examples/pascal/string_test.pas,46,4,assert IsUpper(97) = 0;,0,0,0,0
+examples/pascal/string_test.pas,47,5,assert IsLower(97) = 1;,0,0,0,0
+examples/pascal/string_test.pas,48,6,assert IsLower(65) = 0;,0,0,0,0
+examples/tests/asm_caller_callee.nanz,12,1,assert test_ab() == 30 via z80,0,0,0,0
+examples/tests/asm_caller_callee.nanz,20,2,assert test_ac() == 40 via z80,0,0,0,0
+examples/tests/asm_caller_callee.nanz,28,3,assert test_abc() == 60 via z80,1,1,1,1
+examples/tests/asm_caller_callee.nanz,36,4,assert test_diff() == 70 via z80,0,0,0,0
+examples/tests/asm_caller_callee.nanz,44,5,assert test_add16() == 3000 via z80,0,0,0,0
+examples/tests/asm_caller_callee.nanz,52,6,assert test_mixed() == 0x4020 via z80,0,0,0,0
+examples/tests/asm_caller_callee.nanz,61,7,assert test_chain() == 40 via z80,0,0,0,0
+examples/tests/asm_caller_callee.nanz,67,8,assert test_multi1() == 6 via z80,1,1,1,1
+examples/tests/asm_caller_callee.nanz,68,9,assert test_multi2() == 0 via z80,0,0,0,0
+examples/tests/asm_calling_convention.nanz,12,1,assert ident_a(0x42) == 0x42 via z80,0,0,0,0
+examples/tests/asm_calling_convention.nanz,13,2,assert ident_a(0) == 0 via z80,0,0,0,0
+examples/tests/asm_calling_convention.nanz,14,3,assert ident_a(0xFF) == 0xFF via z80,0,0,0,0
+examples/tests/asm_calling_convention.nanz,22,4,assert read_b(0x55) == 0x55 via z80,0,0,0,0
+examples/tests/asm_calling_convention.nanz,23,5,assert read_b(0) == 0 via z80,0,0,0,0
+examples/tests/asm_calling_convention.nanz,24,6,assert read_b(0xFF) == 0xFF via z80,0,0,0,0
+examples/tests/asm_calling_convention.nanz,32,7,assert read_c(0xAA) == 0xAA via z80,0,0,0,0
+examples/tests/asm_calling_convention.nanz,33,8,assert read_c(0) == 0 via z80,0,0,0,0
+examples/tests/asm_calling_convention.nanz,34,9,assert read_c(0xFF) == 0xFF via z80,0,0,0,0
+examples/tests/asm_calling_convention.nanz,42,10,"assert add_ab(10, 20) == 30 via z80",0,0,0,0
+examples/tests/asm_calling_convention.nanz,43,11,"assert add_ab(0, 0) == 0 via z80",0,0,0,0
+examples/tests/asm_calling_convention.nanz,44,12,"assert add_ab(0xFF, 1) == 0 via z80",0,0,0,0
+examples/tests/asm_calling_convention.nanz,45,13,"assert add_ab(1, 0) == 1 via z80",0,0,0,0
+examples/tests/asm_calling_convention.nanz,46,14,"assert add_ab(0, 1) == 1 via z80",0,0,0,0
+examples/tests/asm_calling_convention.nanz,47,15,"assert add_ab(0x11, 0x22) == 0x33 via z80",0,0,0,0
+examples/tests/asm_calling_convention.nanz,59,16,"assert add_bc(10, 20) == 30 via z80",0,0,0,0
+examples/tests/asm_calling_convention.nanz,60,17,"assert add_bc(0xFF, 1) == 0 via z80",0,0,0,0
+examples/tests/asm_calling_convention.nanz,62,18,"assert diff_bc(100, 30) == 70 via z80",0,0,0,0
+examples/tests/asm_calling_convention.nanz,63,19,"assert diff_bc(50, 10) == 40 via z80",0,0,0,0
+examples/tests/asm_calling_convention.nanz,71,20,"assert triple_abc(10, 20, 30) == 60 via z80",0,0,0,0
+examples/tests/asm_calling_convention.nanz,72,21,"assert triple_abc(1, 2, 3) == 6 via z80",0,0,0,0
+examples/tests/asm_calling_convention.nanz,73,22,"assert triple_abc(0, 0, 0) == 0 via z80",0,0,0,0
+examples/tests/asm_calling_convention.nanz,81,23,assert ident_hl(0x1234) == 0x1234 via z80,0,0,0,0
+examples/tests/asm_calling_convention.nanz,82,24,assert ident_hl(0) == 0 via z80,0,0,0,0
+examples/tests/asm_calling_convention.nanz,83,25,assert ident_hl(0xFFFF) == 0xFFFF via z80,0,0,0,0
+examples/tests/asm_calling_convention.nanz,91,26,assert ident_de(0xABCD) == 0xABCD via z80,0,0,0,0
+examples/tests/asm_calling_convention.nanz,92,27,assert ident_de(0) == 0 via z80,0,0,0,0
+examples/tests/asm_calling_convention.nanz,100,28,"assert add16(0x1000, 0x0234) == 0x1234 via z80",0,0,0,0
+examples/tests/asm_calling_convention.nanz,101,29,"assert add16(0, 0) == 0 via z80",0,0,0,0
+examples/tests/asm_calling_convention.nanz,102,30,"assert add16(0xFFF0, 0x0010) == 0 via z80",0,0,0,0
+examples/tests/asm_calling_convention.nanz,110,31,"assert ptr_offset(0x4000, 0) == 0x4000 via z80",0,0,0,0
+examples/tests/asm_calling_convention.nanz,111,32,"assert ptr_offset(0x4000, 0x20) == 0x4020 via z80",0,0,0,0
+examples/tests/asm_calling_convention.nanz,112,33,"assert ptr_offset(0x5800, 0xFF) == 0x58FF via z80",0,0,0,0
+examples/tests/asm_calling_convention.nanz,129,34,assert poke_peek_test() == 0x42 via z80,0,0,0,0
+examples/tests/asm_calling_convention.nanz,137,35,assert swap_bytes(0x1234) == 0x3412 via z80,0,0,0,0
+examples/tests/asm_calling_convention.nanz,138,36,assert swap_bytes(0x00FF) == 0xFF00 via z80,0,0,0,0
+examples/tests/asm_calling_convention.nanz,139,37,assert swap_bytes(0xABCD) == 0xCDAB via z80,0,0,0,0
+examples/tests/asm_calling_convention.nanz,151,38,"assert screen_addr(0, 0, 0) == 0x4000 via z80",0,0,0,0
+examples/tests/asm_calling_convention.nanz,152,39,"assert screen_addr(1, 0, 0) == 0x4001 via z80",0,0,0,0
+examples/tests/asm_calling_convention.nanz,153,40,"assert screen_addr(0, 0, 1) == 0x4100 via z80",0,0,0,0
+examples/tests/asm_calling_convention.nanz,154,41,"assert screen_addr(0, 1, 0) == 0x4020 via z80",0,0,0,0
+examples/tests/asm_calling_convention.nanz,155,42,"assert screen_addr(0, 8, 0) == 0x4800 via z80",0,0,0,0
+examples/tests/asm_calling_convention.nanz,156,43,"assert screen_addr(15, 12, 3) == 0x4B8F via z80",0,0,0,0
+examples/tests/asm_calling_convention.nanz,157,44,"assert screen_addr(31, 23, 7) == 0x57FF via z80",0,0,0,0
+examples/tests/asm_register_permutations.nanz,19,1,assert pin_a(0x11) == 0x11 via z80,0,0,0,0
+examples/tests/asm_register_permutations.nanz,20,2,assert pin_b(0x22) == 0x22 via z80,0,0,0,0
+examples/tests/asm_register_permutations.nanz,21,3,assert pin_c(0x33) == 0x33 via z80,0,0,0,0
+examples/tests/asm_register_permutations.nanz,22,4,assert pin_d(0x44) == 0x44 via z80,0,0,0,0
+examples/tests/asm_register_permutations.nanz,23,5,assert pin_e(0x55) == 0x55 via z80,0,0,0,0
+examples/tests/asm_register_permutations.nanz,24,6,assert pin_h(0x66) == 0x66 via z80,0,0,0,0
+examples/tests/asm_register_permutations.nanz,25,7,assert pin_l(0x77) == 0x77 via z80,0,0,0,0
+examples/tests/asm_register_permutations.nanz,34,8,assert pin_hl(0xBEEF) == 0xBEEF via z80,0,0,0,0
+examples/tests/asm_register_permutations.nanz,35,9,assert pin_de(0xCAFE) == 0xCAFE via z80,0,0,0,0
+examples/tests/asm_register_permutations.nanz,45,10,"assert sub_ab(100, 30) == 70 via z80",0,0,0,0
+examples/tests/asm_register_permutations.nanz,51,11,"assert sub_bc(100, 30) == 70 via z80",0,0,0,0
+examples/tests/asm_register_permutations.nanz,57,12,"assert sub_de(100, 30) == 70 via z80",0,0,0,0
+examples/tests/asm_register_permutations.nanz,63,13,"assert sub_hl(100, 30) == 70 via z80",0,0,0,0
+examples/tests/asm_register_permutations.nanz,69,14,"assert mix_be(10, 5) == 25 via z80",0,0,0,0
+examples/tests/asm_register_permutations.nanz,75,15,"assert xor_al(0xFF, 0x0F) == 0xF0 via z80",0,0,0,0
+examples/tests/asm_register_permutations.nanz,85,16,"assert abc_mix(0x10, 0x20, 0xFF) == 0xCF via z80",0,0,0,0
+examples/tests/asm_register_permutations.nanz,91,17,"assert del_sum(10, 20, 30) == 60 via z80",0,0,0,0
+examples/tests/asm_register_permutations.nanz,97,18,"assert bdh_sum(11, 22, 33) == 66 via z80",0,0,0,0
+examples/tests/asm_register_permutations.nanz,103,19,"assert cel_sum(11, 22, 33) == 66 via z80",0,0,0,0
+examples/tests/asm_register_permutations.nanz,124,20,"assert abcd_weighted(1, 2, 3, 4) == 26 via z80",0,0,0,0
+examples/tests/asm_register_permutations.nanz,130,21,"assert bcde_sum(10, 20, 30, 40) == 100 via z80",0,0,0,0
+examples/tests/asm_register_permutations.nanz,145,22,"assert advance(0x4000, 32) == 0x4020 via z80",0,0,0,0
+examples/tests/asm_register_permutations.nanz,146,23,"assert advance(0xC000, 0xFF) == 0xC0FF via z80",0,0,0,0
+examples/tests/asm_register_permutations.nanz,162,24,"assert rotate_abc(0x11, 0x22, 0x33) == 0x2211 via z80",0,0,0,0
+examples/tests/asm_register_permutations.nanz,168,25,"assert build_hl(0xAB, 0xCD) == 0xABCD via z80",0,0,0,0
+examples/tests/asm_register_permutations.nanz,169,26,"assert build_hl(0x00, 0xFF) == 0x00FF via z80",0,0,0,0
+examples/tests/asm_register_permutations.nanz,175,27,"assert passthru_hl(0xDE, 0xAD) == 0xDEAD via z80",0,0,0,0
+examples/tests/asm_register_permutations.nanz,176,28,"assert passthru_hl(0xBE, 0xEF) == 0xBEEF via z80",0,0,0,0
+examples/tests/asm_register_permutations.nanz,190,29,"assert screen_addr(0, 0, 0) == 0x4000 via z80",0,0,0,0
+examples/tests/asm_register_permutations.nanz,191,30,"assert screen_addr(1, 0, 0) == 0x4001 via z80",0,0,0,0
+examples/tests/asm_register_permutations.nanz,192,31,"assert screen_addr(0, 0, 1) == 0x4100 via z80",0,0,0,0
+examples/tests/asm_register_permutations.nanz,193,32,"assert screen_addr(0, 1, 0) == 0x4020 via z80",0,0,0,0
+examples/tests/asm_register_permutations.nanz,194,33,"assert screen_addr(0, 8, 0) == 0x4800 via z80",0,0,0,0
+examples/tests/asm_register_permutations.nanz,195,34,"assert screen_addr(15, 12, 3) == 0x4B8F via z80",0,0,0,0
+examples/tests/asm_register_permutations.nanz,196,35,"assert screen_addr(31, 23, 7) == 0x57FF via z80",0,0,0,0
+examples/tests/fib_parallel_copy.nanz,14,1,assert fib(0) == 0 via z80,0,0,0,0
+examples/tests/fib_parallel_copy.nanz,15,2,assert fib(1) == 1 via z80,0,0,0,0
+examples/tests/fib_parallel_copy.nanz,16,3,assert fib(2) == 1 via z80,0,0,0,0
+examples/tests/fib_parallel_copy.nanz,17,4,assert fib(3) == 2 via z80,1,1,1,1
+examples/tests/fib_parallel_copy.nanz,18,5,assert fib(4) == 3 via z80,1,1,1,1
+examples/tests/fib_parallel_copy.nanz,19,6,assert fib(5) == 5 via z80,1,1,1,1
+examples/tests/fib_parallel_copy.nanz,20,7,assert fib(6) == 8 via z80,1,1,1,1
+examples/tests/fib_parallel_copy.nanz,21,8,assert fib(7) == 13 via z80,1,1,1,1
+examples/tests/mul8_strength_reduction.nanz,22,1,assert mul0(42) == 0 via mir2,0,0,0,0
+examples/tests/mul8_strength_reduction.nanz,23,2,assert mul1(7) == 7 via mir2,0,0,0,0
+examples/tests/mul8_strength_reduction.nanz,24,3,assert mul2(5) == 10 via mir2,0,0,0,0
+examples/tests/mul8_strength_reduction.nanz,25,4,assert mul3(5) == 15 via mir2,0,0,0,0
+examples/tests/mul8_strength_reduction.nanz,26,5,assert mul4(5) == 20 via mir2,0,0,0,0
+examples/tests/mul8_strength_reduction.nanz,27,6,assert mul5(5) == 25 via mir2,0,0,0,0
+examples/tests/mul8_strength_reduction.nanz,28,7,assert mul6(5) == 30 via mir2,0,0,0,0
+examples/tests/mul8_strength_reduction.nanz,29,8,assert mul7(5) == 35 via mir2,0,0,0,0
+examples/tests/mul8_strength_reduction.nanz,30,9,assert mul8(5) == 40 via mir2,0,0,0,0
+examples/tests/mul8_strength_reduction.nanz,31,10,assert mul9(5) == 45 via mir2,0,0,0,0
+examples/tests/mul8_strength_reduction.nanz,32,11,assert mul10(5) == 50 via mir2,0,0,0,0
+examples/tests/mul8_strength_reduction.nanz,33,12,assert mul12(5) == 60 via mir2,0,0,0,0
+examples/tests/mul8_strength_reduction.nanz,34,13,assert mul15(5) == 75 via mir2,0,0,0,0
+examples/tests/mul8_strength_reduction.nanz,35,14,assert mul16(5) == 80 via mir2,0,0,0,0
+examples/tests/mul8_strength_reduction.nanz,38,15,"assert board_idx(0, 0) == 0 via mir2",0,0,0,0
+examples/tests/mul8_strength_reduction.nanz,39,16,"assert board_idx(9, 0) == 9 via mir2",0,0,0,0
+examples/tests/mul8_strength_reduction.nanz,40,17,"assert board_idx(0, 1) == 10 via mir2",0,0,0,0
+examples/tests/mul8_strength_reduction.nanz,41,18,"assert board_idx(5, 3) == 35 via mir2",0,0,0,0
+examples/tests/mul8_strength_reduction.nanz,42,19,"assert board_idx(9, 19) == 199 via mir2",0,0,0,0
+examples/tests/mul8_strength_reduction.nanz,45,20,assert mul10(26) == 4 via mir2,0,0,0,0
+examples/tests/nanz_advantage_showcase.nanz,11,1,assert pipeline_demo() == 49 via mir2,0,0,0,0
+examples/tests/nanz_advantage_showcase.nanz,18,2,assert sum_all() == 150 via mir2,0,0,0,0
+examples/tests/nanz_advantage_showcase.nanz,25,3,assert sum_plus_offset() == 155 via mir2,0,0,0,0
+examples/tests/nanz_advantage_showcase.nanz,44,4,assert fib8() == 21 via mir2,0,0,0,0
+examples/tests/nanz_advantage_showcase.nanz,45,5,assert fib12() == 144 via mir2,0,0,0,0
+examples/tests/nanz_advantage_showcase.nanz,56,6,assert opposite(Direction.UP) == 1 via mir2,0,0,0,0
+examples/tests/nanz_advantage_showcase.nanz,57,7,assert opposite(Direction.LEFT) == 3 via mir2,0,0,0,0
+examples/tests/nanz_advantage_showcase.nanz,61,8,"assert board_idx(5, 3) == 35 via mir2",0,0,0,0
+examples/tests/nanz_advantage_showcase.nanz,62,9,"assert board_idx(9, 19) == 199 via mir2",0,0,0,0
+examples/tests/pipe_fold_mul_combos.nanz,11,1,assert pipe1() == 11 via mir2,0,0,0,0
+examples/tests/pipe_fold_mul_combos.nanz,12,2,assert pipe2() == 24 via mir2,0,0,0,0
+examples/tests/pipe_fold_mul_combos.nanz,13,3,assert pipe3() == 4 via mir2,0,0,0,0
+examples/tests/pipe_fold_mul_combos.nanz,20,4,assert sum_data() == 10 via mir2,0,0,0,0
+examples/tests/pipe_fold_mul_combos.nanz,21,5,assert sum_from_100() == 110 via mir2,0,0,0,0
+examples/tests/pipe_fold_mul_combos.nanz,28,6,assert sum_let() == 10 via mir2,0,0,0,0
+examples/tests/pipe_fold_mul_combos.nanz,32,7,"assert board_idx(0, 0) == 0 via mir2",0,0,0,0
+examples/tests/pipe_fold_mul_combos.nanz,33,8,"assert board_idx(9, 0) == 9 via mir2",0,0,0,0
+examples/tests/pipe_fold_mul_combos.nanz,34,9,"assert board_idx(0, 1) == 10 via mir2",0,0,0,0
+examples/tests/pipe_fold_mul_combos.nanz,35,10,"assert board_idx(5, 3) == 35 via mir2",0,0,0,0
+examples/tests/pipe_fold_mul_combos.nanz,36,11,"assert board_idx(9, 19) == 199 via mir2",0,0,0,0
+examples/tests/z80_compute_verify.nanz,15,1,"assert add8(10, 20) == 30 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,16,2,"assert add8(0, 0) == 0 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,17,3,"assert add8(255, 1) == 0 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,18,4,"assert add8(100, 155) == 255 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,19,5,"assert sub8(100, 30) == 70 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,20,6,"assert sub8(0, 1) == 255 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,21,7,"assert sub8(50, 50) == 0 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,22,8,assert mul2(21) == 42 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,23,9,assert mul2(0) == 0 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,24,10,assert mul2(128) == 0 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,25,11,assert mul3(10) == 30 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,26,12,assert mul3(0) == 0 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,27,13,assert mul3(85) == 255 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,28,14,assert shl1(1) == 2 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,29,15,assert shl1(64) == 128 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,30,16,assert shl1(128) == 0 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,31,17,assert shr1(128) == 64 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,32,18,assert shr1(1) == 0 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,33,19,assert shr1(255) == 127 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,41,20,"assert band(0xFF, 0x0F) == 0x0F via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,42,21,"assert band(0xAA, 0x55) == 0x00 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,43,22,"assert band(0xFF, 0xFF) == 0xFF via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,44,23,"assert bor(0xF0, 0x0F) == 0xFF via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,45,24,"assert bor(0, 0) == 0 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,46,25,"assert bor(0x80, 0x01) == 0x81 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,71,26,"assert max8(10, 20) == 20 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,72,27,"assert max8(99, 1) == 99 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,73,28,"assert max8(42, 42) == 42 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,74,29,"assert max8(0, 255) == 255 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,75,30,"assert min8(10, 20) == 10 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,76,31,"assert min8(0, 255) == 0 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,77,32,"assert min8(42, 42) == 42 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,78,33,"assert clamp(50, 10, 100) == 50 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,79,34,"assert clamp(5, 10, 100) == 10 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,80,35,"assert clamp(200, 10, 100) == 100 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,81,36,"assert clamp(10, 10, 100) == 10 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,82,37,"assert clamp(100, 10, 100) == 100 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,83,38,"assert abs_diff(100, 30) == 70 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,84,39,"assert abs_diff(30, 100) == 70 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,85,40,"assert abs_diff(42, 42) == 0 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,86,41,"assert abs_diff(0, 255) == 255 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,93,42,"assert add16(1000, 2000) == 3000 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,94,43,"assert add16(0, 0) == 0 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,95,44,"assert add16(0xFFFF, 1) == 0 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,96,45,"assert add16(0x8000, 0x8000) == 0 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,97,46,"assert sub16(5000, 3000) == 2000 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,98,47,"assert sub16(0, 1) == 0xFFFF via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,99,48,"assert sub16(0x1234, 0x1234) == 0 via z80",0,0,0,0
+examples/tests/z80_compute_verify.nanz,128,49,assert sum_to(0) == 0 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,129,50,assert sum_to(1) == 1 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,130,51,assert sum_to(10) == 55 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,131,52,assert count_bits(0) == 0 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,133,53,// assert count_bits(1) == 1 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,134,54,// assert count_bits(0xFF) == 8 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,135,55,// assert count_bits(0xAA) == 4 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,136,56,assert is_power_of_2(0) == 0 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,137,57,assert is_power_of_2(1) == 1 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,139,58,// assert is_power_of_2(2) == 1 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,140,59,// assert is_power_of_2(128) == 1 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,141,60,// assert is_power_of_2(3) == 0 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,149,61,assert double_it(21) == 42 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,150,62,assert quad(5) == 20 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,151,63,assert quad(0) == 0 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,152,64,assert quad(1) == 4 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,153,65,assert compose(10) == 50 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,154,66,assert compose(1) == 5 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,155,67,assert compose(0) == 0 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,161,68,assert widen(0) == 0 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,162,69,assert widen(255) == 255 via z80,0,0,0,0
+examples/tests/z80_compute_verify.nanz,163,70,assert widen(42) == 42 via z80,0,0,0,0
+examples/zx/plasma.nanz,69,1,"assert color_to_attr_s(201, 0, 0) == 0x42    // r>200 → bright(0x40)|red(0x02)",0,0,0,0
+examples/zx/plasma.nanz,70,2,"assert color_to_attr_s(0, 201, 0) == 0x44    // g>200 → bright(0x40)|green(0x04)",0,0,0,1
+examples/zx/plasma.nanz,71,3,"assert color_to_attr_s(0, 0, 201) == 0x41    // b>200 → bright(0x40)|blue(0x01)",0,0,0,0
+examples/zx/plasma.nanz,72,4,"assert color_to_attr_s(201, 201, 201) == 0x47 // all>200 → bright white",0,0,0,0
+examples/zx/plasma.nanz,73,5,"assert color_to_attr_s(200, 200, 200) == 0x07 // exactly 200 (not >200) → dim white",1,1,1,1
+examples/zx/plasma.nanz,74,6,"assert color_to_attr_s(0, 0, 0) == 0          // all zero → dim black",1,1,1,1
+examples/zx/tetris_mir2_test.nanz,63,1,"assert piece_dx(0, 0, 0) == 0",0,0,0,0
+examples/zx/tetris_mir2_test.nanz,64,2,"assert piece_dx(0, 0, 1) == 1",0,0,0,0
+examples/zx/tetris_mir2_test.nanz,65,3,"assert piece_dx(0, 0, 2) == 2",0,0,0,0
+examples/zx/tetris_mir2_test.nanz,66,4,"assert piece_dx(0, 0, 3) == 3",0,0,0,0
+examples/zx/tetris_mir2_test.nanz,67,5,"assert piece_dy(0, 0, 0) == 0",0,0,0,0
+examples/zx/tetris_mir2_test.nanz,68,6,"assert piece_dy(0, 0, 1) == 0",0,0,0,0
+examples/zx/tetris_mir2_test.nanz,71,7,"assert piece_dx(1, 0, 0) == 0",0,0,0,0
+examples/zx/tetris_mir2_test.nanz,72,8,"assert piece_dx(1, 0, 1) == 1",0,0,0,0
+examples/zx/tetris_mir2_test.nanz,73,9,"assert piece_dy(1, 0, 2) == 1",0,0,0,0
+examples/zx/tetris_mir2_test.nanz,74,10,"assert piece_dy(1, 0, 3) == 1",0,0,0,0
+examples/zx/tetris_mir2_test.nanz,77,11,assert piece_color(0) == 40,0,0,0,0
+examples/zx/tetris_mir2_test.nanz,78,12,assert piece_color(1) == 48,0,0,0,0
+examples/zx/tetris_mir2_test.nanz,79,13,assert piece_color(6) == 8,0,0,0,0
+examples/zx/tetris_mir2_test.nanz,80,14,assert color_attr(0) == 0,0,0,0,0
+examples/zx/tetris_mir2_test.nanz,81,15,assert color_attr(1) == 40,0,0,0,0
+examples/zx/tetris_mir2_test.nanz,82,16,assert color_attr(7) == 8,0,0,0,0
+examples/zx/tetris_mir2_test.nanz,85,17,"assert board_get(0, 0) == 0",0,0,0,0
+examples/zx/tetris_mir2_test.nanz,86,18,"assert board_get(5, 5) == 0",0,0,0,0

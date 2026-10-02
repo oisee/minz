@@ -2,7 +2,9 @@ package mir2
 
 import (
 	"fmt"
+	"maps"
 	"math/bits"
+	"slices"
 	"sort"
 	"strings"
 
@@ -4437,9 +4439,11 @@ func (g *z80cg) genBinOp32(mnem, dst, lhs, rhs string) {
 // that will be needed AFTER the current instruction.  If so, it relocates
 // A's value to a scratch register (via physOverride) so the ALU can use A freely.
 func (g *z80cg) saveAccIfLive(inst *Inst) {
-	// Find which virtual reg currently lives in A.
+	// Find which virtual reg currently lives in A. Prefer the lowest ID
+	// on ties, matching definition order and the allocator tie-break.
 	var accReg Reg
-	for r, loc := range g.ar.Locs {
+	for _, r := range slices.Sorted(maps.Keys(g.ar.Locs)) {
+		loc := g.ar.Locs[r]
 		if loc.Kind == LocReg && loc.Name == "A" {
 			accReg = r
 			break
@@ -8675,7 +8679,7 @@ func (g *z80cg) saveAccAcrossCall(inst *Inst, callee *Func) (string, Reg) {
 	// already moved the value to a scratch register).
 	liveInA := NoReg
 	liveAfter := g.regsLiveAfterInst(inst)
-	for r := range liveAfter {
+	for _, r := range slices.Sorted(maps.Keys(liveAfter)) {
 		// If already saved via physOverride, the value is not in A anymore
 		if _, overridden := g.physOverride[r]; overridden {
 			continue
@@ -8734,6 +8738,7 @@ func (g *z80cg) saveABeforeOverwrite(inst *Inst) {
 	if g.curBlock == nil {
 		return
 	}
+	// Ties between entry parameters prefer the lowest virtual register ID.
 	// Find the vreg MOST RECENTLY defined in A, but only considering
 	// definitions BEFORE the current instruction. Only that vreg's
 	// value is actually in A right now.
@@ -8770,7 +8775,7 @@ func (g *z80cg) saveABeforeOverwrite(inst *Inst) {
 				defIdx = -1
 			}
 		}
-		if defIdx > bestIdx {
+		if defIdx > bestIdx || (defIdx == bestIdx && defIdx > -2 && r < bestReg) {
 			bestIdx = defIdx
 			bestReg = r
 		}

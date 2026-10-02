@@ -1,6 +1,9 @@
 package mir2
 
-import "fmt"
+import (
+	"fmt"
+	"slices"
+)
 
 // TSMC Spill — Self-Modifying Code register spill optimization.
 //
@@ -138,6 +141,8 @@ func scanTSMCSpillPairs(f *Func, ar *AllocResult) []tsmcSpillPair {
 		}
 	}
 
+	// Patch emission follows virtual register definition order.
+	slices.SortFunc(result, func(a, b tsmcSpillPair) int { return int(a.reg) - int(b.reg) })
 	return result
 }
 

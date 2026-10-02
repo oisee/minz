@@ -42,7 +42,10 @@ package mir2
 // Z80 functions (≤15 live regs), the interference graph is a tree or
 // near-tree, so R0/R1 alone solve ≥90% of nodes optimally.
 
-import "slices"
+import (
+	"maps"
+	"slices"
+)
 
 // regState holds the per-virtual-register data used by the PBQP solver:
 // the register's class/type info and a mutable cost vector indexed by allLocs.
@@ -188,9 +191,9 @@ func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 	}
 
 	// Phase 6e: PBQP affinity nudges — applied before solver to bias allocation.
-	applyLUTAffinityNudge(f, states, allLocs)          // LUT index → C/E (BC★/DE★ 14T path)
-	applyMul16DEAffinityNudge(f, states, allLocs)      // mul16 rhs → DE (skip LD D/E setup, 8T)
-	applyDJNZCounterAffinityNudge(f, states, allLocs)  // DJNZ counter → B (skip LD B,r, 4T)
+	applyLUTAffinityNudge(f, states, allLocs)         // LUT index → C/E (BC★/DE★ 14T path)
+	applyMul16DEAffinityNudge(f, states, allLocs)     // mul16 rhs → DE (skip LD D/E setup, 8T)
+	applyDJNZCounterAffinityNudge(f, states, allLocs) // DJNZ counter → B (skip LD B,r, 4T)
 
 	result := &AllocResult{Locs: make(map[Reg]PhysLoc)}
 
@@ -215,7 +218,10 @@ func PBQPAllocate(f *Func, lr *LivenessResult, ct CostTable) *AllocResult {
 	changed := true
 	for changed {
 		changed = false
-		for r := range states {
+		// Visit virtual registers in definition order (ascending IDs), matching
+		// the existing RN tie-break and the usual small-map insertion order.
+		// R1 mutates its neighbour, so map order here changes the solution.
+		for _, r := range slices.Sorted(maps.Keys(states)) {
 			if assigned[r] >= 0 {
 				continue
 			}

@@ -113,50 +113,44 @@ func (mp *MacroProcessor) ExpandMacro(name string, args []string) ([]string, err
 
 // substituteLine replaces parameters and local labels in a line
 func (mp *MacroProcessor) substituteLine(line string, args map[string]string, localBase int) string {
-	result := line
-	
-	// Replace parameters
-	for param, value := range args {
-		// Replace with word boundaries to avoid partial replacements
-		result = mp.replaceParameter(result, param, value)
-	}
-	
-	// Replace local labels (.label becomes .L<localBase>_label)
-	result = mp.replaceLocalLabels(result, localBase)
-	
-	// Handle special macro directives
-	result = mp.handleSpecialDirectives(result, args)
-	
-	return result
-}
-
-// replaceParameter replaces a parameter with its value
-func (mp *MacroProcessor) replaceParameter(line, param, value string) string {
-	// Use special markers to ensure word boundaries
-	patterns := []string{
-		"{" + param + "}",           // {param} style
-		"%" + param,                  // %param style
-		"&" + param,                  // &param style (string substitution)
-	}
-	
-	result := line
-	for _, pattern := range patterns {
-		result = strings.ReplaceAll(result, pattern, value)
-	}
-	
-	// Also replace bare parameter names if they're standalone
-	words := strings.Fields(result)
-	for i, word := range words {
-		if word == param || strings.TrimSuffix(word, ",") == param {
-			suffix := ""
-			if strings.HasSuffix(word, ",") {
-				suffix = ","
+	// Scan only the original body: inserted argument text is never rescanned.
+	var out strings.Builder
+	for i := 0; i < len(line); {
+		start := i
+		marker := byte(0)
+		if line[i] == '{' || line[i] == '%' || line[i] == '&' {
+			marker = line[i]
+			i++
+		}
+		nameStart := i
+		for i < len(line) && macroIdentifierByte(line[i]) {
+			i++
+		}
+		if i == nameStart {
+			out.WriteByte(line[start])
+			i = start + 1
+			continue
+		}
+		end := i
+		if marker == '{' {
+			if i >= len(line) || line[i] != '}' {
+				out.WriteString(line[start:end])
+				continue
 			}
-			words[i] = value + suffix
+			i++
+		}
+		if value, ok := args[line[nameStart:end]]; ok {
+			out.WriteString(value)
+		} else {
+			out.WriteString(line[start:i])
 		}
 	}
-	
-	return strings.Join(words, " ")
+	result := mp.replaceLocalLabels(out.String(), localBase)
+	return mp.handleSpecialDirectives(result, args)
+}
+
+func macroIdentifierByte(ch byte) bool {
+	return ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z' || ch >= '0' && ch <= '9' || ch == '_' || ch == '.' || ch == '$' || ch == '?'
 }
 
 // replaceLocalLabels converts local labels to unique global labels

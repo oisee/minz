@@ -480,7 +480,7 @@ type funcLow struct {
 	tmpCount     int // counter for temporary variable names
 
 	// ObjC: set when lowering a method inside @implementation.
-	objcClass  *objcClassInfo
+	objcClass     *objcClassInfo
 	objcLocals    map[string]string // varName → className (for typed receivers)
 	objcProtoVars map[string]string // varName → protocolName (for id<Proto> dynamic dispatch)
 
@@ -783,7 +783,7 @@ func (fl *funcLow) lowerSwitch(ss *cc.SelectionStatement) ([]hir.Stmt, error) {
 	cs := ss.Statement.CompoundStatement
 
 	var curBody []hir.Stmt
-	var curVal hir.Expr   // nil = not yet in a case
+	var curVal hir.Expr // nil = not yet in a case
 	isDefault := false
 	inCase := false
 
@@ -1092,8 +1092,8 @@ func (r *exprResult) toStmt() hir.Stmt {
 	return nil
 }
 
-func wrapExpr(e hir.Expr) *exprResult       { return &exprResult{expr: e} }
-func wrapAssign(t, v hir.Expr) *exprResult   { return &exprResult{target: t, val: v} }
+func wrapExpr(e hir.Expr) *exprResult      { return &exprResult{expr: e} }
+func wrapAssign(t, v hir.Expr) *exprResult { return &exprResult{target: t, val: v} }
 
 // lowerExprAsExpr is a convenience that returns hir.Expr.
 // If the expression has a side-effect (e.g. ++x, a=b=c), the side-effect
@@ -1754,7 +1754,7 @@ func (fl *funcLow) lowerBinaryOp(left, right cc.ExpressionNode, caseVal interfac
 		switch op {
 		case "-", "/", "%", "&", "|", "^": // safe: result fits in u8
 			mty = lty
-		// "+", "*" — do NOT narrow, overflow loses information
+			// "+", "*" — do NOT narrow, overflow loses information
 		}
 	}
 	// Shifts: narrow based on LEFT operand only (shift count type is irrelevant).
@@ -1814,7 +1814,9 @@ func (l *lowerer) resolveStructType(t cc.Type) *mir2.StructTy {
 		}
 		// Last resort: try all known structs by field count/layout match.
 		nf := st.NumFields()
-		for _, mst := range l.structs {
+		// Declaration order keeps the usual first-inserted fallback while
+		// making ties between compatible layouts reproducible.
+		for _, mst := range l.hm.Structs {
 			if len(mst.Fields) == nf {
 				return mst
 			}
@@ -1832,7 +1834,9 @@ func (l *lowerer) resolveStructType(t cc.Type) *mir2.StructTy {
 			}
 		}
 		nf := ut.NumFields()
-		for _, mst := range l.structs {
+		// Declaration order keeps the usual first-inserted fallback while
+		// making ties between compatible layouts reproducible.
+		for _, mst := range l.hm.Structs {
 			if mst.IsUnion && len(mst.Fields) == nf {
 				return mst
 			}
