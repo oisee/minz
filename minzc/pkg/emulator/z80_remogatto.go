@@ -50,7 +50,7 @@ type RemogattoZ80 struct {
 	tstateTrapTarget int64
 	tstateTrapCB     func(cycles int64)
 
-	// Execution limit (0 = default 10M)
+	// Execution limit per Run call (0 = default 10M, negative = unlimited)
 	MaxCycles int
 }
 
@@ -69,6 +69,8 @@ type Memory struct {
 	profiler   *Profiler                              // Optional profiler hooks
 }
 
+// NewMemory creates ROM-protected memory. Timing is disabled until its CPU is
+// wired, as in NewRemogattoZ80; standalone access is safe and untimed.
 func NewMemory() *Memory {
 	return &Memory{
 		romEnd: 0x4000, // Default ROM boundary (ZX Spectrum)
@@ -178,6 +180,8 @@ type Ports struct {
 	stderrOut  io.Writer
 }
 
+// NewPorts creates I/O ports with captured output. Timing is disabled until its
+// CPU is wired, as in NewRemogattoZ80; standalone access is safe and untimed.
 func NewPorts(output *[]byte) *Ports {
 	return &Ports{
 		output: output,
@@ -375,6 +379,7 @@ func (z *RemogattoZ80) SetTStateTrap(target int64, cb func(int64)) {
 
 // Run executes instructions until a termination condition
 func (z *RemogattoZ80) Run() error {
+	start := z.cycles
 	prof := z.Profiler // local copy for zero-cost nil check
 	maxCycles := z.MaxCycles
 	if maxCycles == 0 {
@@ -491,7 +496,7 @@ func (z *RemogattoZ80) Run() error {
 		}
 
 		// Safety: limit execution
-		if z.cycles > maxCycles {
+		if maxCycles > 0 && z.cycles-start > maxCycles {
 			return fmt.Errorf("execution limit exceeded")
 		}
 	}

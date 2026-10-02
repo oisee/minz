@@ -182,14 +182,14 @@ func (z *RemogattoZ80WithScreen) SetBDOSHandler(handler func(function byte, de u
 	z.RemogattoZ80.SetBDOSHandler(handler)
 }
 
-// ReadMemory reads a byte from memory
+// ReadMemory reads a byte for the host without advancing CPU time.
 func (z *RemogattoZ80WithScreen) ReadMemory(addr uint16) byte {
-	return z.RemogattoZ80.memory.ReadByte(addr)
+	return z.RemogattoZ80.memory.readByte(addr)
 }
 
-// WriteMemory writes a byte to memory
+// WriteMemory writes a byte for the host without advancing CPU time.
 func (z *RemogattoZ80WithScreen) WriteMemory(addr uint16, val byte) {
-	z.RemogattoZ80.memory.WriteByte(addr, val)
+	z.RemogattoZ80.memory.writeByte(addr, val)
 }
 
 // SetROMEnd changes the ROM protection boundary. Set to 0 for all-RAM platforms.

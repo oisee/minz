@@ -14,8 +14,8 @@ import (
 
 // judgeStepBudget bounds one call in executed instructions. A correct
 // gcd(1,255) needs ~1.3k; anything past the budget is a non-terminating
-// miscompile. RemogattoZ80.MaxCycles cannot be used: its T-state counter does
-// not advance (contention callbacks are stubs), so Run never hits the limit.
+// miscompile. RemogattoZ80 now advances its T-state counter and enforces
+// MaxCycles; this judge keeps an instruction budget independent of timing.
 const judgeStepBudget = 200_000
 
 // u8Judge runs a two-argument u8 function on the Z80 for every input pair in
