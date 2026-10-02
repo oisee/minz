@@ -317,9 +317,8 @@ func TestExhaustiveJudgeLIRSingleBlock(t *testing.T) {
 }
 
 // Word fallback judges assemble once and exhaust the u16 domain for >>3;
-// add32 checks fallback provenance and MIR2 semantics: the current PBQP u32
-// ABI spills to memory and produces unassemblable code, so it cannot yet be
-// judged on Z80. Keep that limitation explicit instead of altering the ABI.
+// add32 checks 65,636 sums on both MIR2 and the production Z80 ABI, including
+// carries between main and shadow register banks.
 func TestExhaustiveJudgeLIRWideFallback(t *testing.T) {
 	for _, name := range []string{"shr16", "add32"} {
 		t.Run(name, func(t *testing.T) {
@@ -368,27 +367,63 @@ func TestExhaustiveJudgeLIRWideFallback(t *testing.T) {
 						}
 					}
 				}
-				// PBQP cannot assemble this production u32 ABI yet. A future
-				// repair must replace this source-VM check with a Z80 judge.
-				res, err := z80asm.NewAssembler().AssembleString(steps.Assembly)
-				if err != nil || len(res.Errors) > 0 {
-					plainOpts := pipeline.DefaultOptions()
-					plain, plainErr := pipeline.CompileHIRSteps(&hir.Module{Name: "judge_wide", Funcs: []*hir.Func{f}}, plainOpts)
-					if plainErr != nil {
-						t.Fatal(plainErr)
+				// The production ABI now assembles; exercise both register banks
+				// and named memory parameters against the MIR2 boundary oracle.
+				var boot strings.Builder
+				fmt.Fprintf(&boot, "ORG 0x%04X\nLD SP,0xFF00\n", testLoadAddr)
+				var inputs [2]string
+				for i, p := range mf.Contract.Params {
+					loc := steps.Allocation.Locs[p.Reg]
+					if loc.Kind == mir2.LocMem {
+						inputs[i] = fmt.Sprintf("_spill_%s_r%d", name, p.Reg)
+					} else {
+						inputs[i] = fmt.Sprintf("judge_arg%d", i)
+						fmt.Fprintf(&boot, "LD %s,(%s)\nEXX\nLD %s,(%s+2)\nEXX\n", loc.Name, inputs[i], loc.Name, inputs[i])
 					}
-					plainRes, plainErr := z80asm.NewAssembler().AssembleString(plain.Assembly)
-					if len(plainRes.Errors) == 0 || len(plainRes.Errors) != len(res.Errors) {
-						t.Fatalf("known PBQP u32 record requires equal nonzero assembly error counts: --lir %d, plain %d (%v)", len(res.Errors), len(plainRes.Errors), plainErr)
-					}
-					// Re-measured on deterministic origin/main ed55c1c7.
-					const knownAssemblyErrors = 18 // 2026-10-02, both modes
-					if len(plainRes.Errors) != knownAssemblyErrors {
-						t.Fatalf("known PBQP u32 assembly error count changed: got %d, recorded %d; re-measure both modes", len(plainRes.Errors), knownAssemblyErrors)
-					}
-					t.Skipf("2026-10-02: 65,636 MIR2 sums checked; known PBQP u32 Z80 assembly errors: --lir %d, plain %d: %v %v", len(res.Errors), len(plainRes.Errors), plainErr, plainRes.Errors)
 				}
-				t.Fatal("production u32 now assembles: replace this skip with a real judge")
+				fmt.Fprintf(&boot, "CALL %s\nPUSH HL\nEXX\nPUSH HL\nEXX\nPOP BC\nPOP HL\nDI\nHALT\njudge_arg0: DB 0,0,0,0\njudge_arg1: DB 0,0,0,0\n", name)
+				res, err := z80asm.NewAssembler().AssembleString(boot.String() + steps.Assembly)
+				if err != nil || len(res.Errors) > 0 {
+					t.Fatalf("assemble: %v %v", err, res.Errors)
+				}
+				z := emulator.NewRemogattoZ80()
+				check := func(a, b int64) {
+					t.Helper()
+					z.Reset()
+					z.LoadMemory(testLoadAddr, res.Binary)
+					for i, v := range []int64{a, b} {
+						addr, ok := res.Symbols[inputs[i]]
+						if !ok {
+							t.Fatalf("undefined parameter slot %s", inputs[i])
+						}
+						for j := 0; j < 4; j++ {
+							z.SetMemory(uint16(addr+j), byte(uint32(v)>>uint(j*8)))
+						}
+					}
+					z.SetRegisters(emulator.Registers{SP: 0xFF00, PC: testLoadAddr})
+					for n := 0; !z.IsHalted(); n++ {
+						if n >= judgeStepBudget {
+							t.Fatal("no HALT")
+						}
+						z.Step()
+					}
+					r := z.GetRegisters()
+					got := uint32(r.HL) | uint32(r.BC)<<16
+					if got != uint32(a+b) {
+						t.Fatalf("Z80 add32(%x,%x)=%x want %x", a, b, got, uint32(a+b))
+					}
+				}
+				for a := int64(0); a < 256; a++ {
+					for b := int64(0); b < 256; b++ {
+						check(a, b)
+					}
+				}
+				for _, a := range boundaries {
+					for _, b := range boundaries {
+						check(a, b)
+					}
+				}
+				return
 			}
 			boot := fmt.Sprintf("    ORG 0x%04X\n    CALL %s\n    DI\n    HALT\n", testLoadAddr, name)
 			res, err := z80asm.NewAssembler().AssembleString(boot + steps.Assembly)

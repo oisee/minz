@@ -333,6 +333,15 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 	if src == dst {
 		return
 	}
+	if ty.Width() >= 24 {
+		g.emitMov32(dst, src)
+		if ty.Width() == 24 && isPairReg(dst) {
+			g.emit("    EXX")
+			g.emitLD8(highByte(dst), "0")
+			g.emit("    EXX")
+		}
+		return
+	}
 	// F register: cannot be accessed directly. Materialise flag→register or
 	// register→flag via the same logic as emitMov.
 	if src == "F" {

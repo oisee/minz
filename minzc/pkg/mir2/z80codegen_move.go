@@ -416,7 +416,7 @@ func (g *z80cg) genExt(inst *Inst) {
 				g.emitLD8(lo, src)
 			}
 		}
-		g.emitf("    LD %s, 0", hi)
+		g.emitLD8(hi, "0")
 		return
 	}
 	// Fallback.
@@ -527,6 +527,33 @@ func (g *z80cg) isDWord(r Reg) bool {
 // After EXX, src refers to the shadow-bank value (src_hi).
 func (g *z80cg) emitMov32(dst, src string) {
 	if dst == src {
+		return
+	}
+	if isSpill(src) && isSpill(dst) {
+		g.emit("    PUSH HL")
+		g.emit("    EXX")
+		g.emit("    PUSH HL")
+		g.emit("    EXX")
+		g.emitMov32("HL", src)
+		g.emitMov32(dst, "HL")
+		g.emit("    EXX")
+		g.emit("    POP HL")
+		g.emit("    EXX")
+		g.emit("    POP HL")
+		return
+	}
+	if isSpill(src) && isPairReg(dst) {
+		g.emitf("    LD %s, (%s)", dst, src)
+		g.emit("    EXX")
+		g.emitf("    LD %s, (%s+2)", dst, src)
+		g.emit("    EXX")
+		return
+	}
+	if isSpill(dst) && isPairReg(src) {
+		g.emitf("    LD (%s), %s", dst, src)
+		g.emit("    EXX")
+		g.emitf("    LD (%s+2), %s", dst, src)
+		g.emit("    EXX")
 		return
 	}
 	g.emitf("    PUSH %s", src) // save main src_lo
@@ -726,6 +753,11 @@ func (g *z80cg) emitMov(dst, src string, widthBits int) {
 		}
 		// register pair → LocMem spill slot: use LD (nn), rr.
 		if isSpill(dst) {
+			if !isPairReg(src) {
+				g.emitLD8(dst, src)
+				g.emitLD8(highByte(dst), "0")
+				break
+			}
 			g.emitf("    LD (%s), %s", dst, src)
 			break
 		}
@@ -805,6 +837,9 @@ func lowByte(rr string) string {
 
 // highByte returns the high-byte name of a 16-bit register.
 func highByte(rr string) string {
+	if isSpill(rr) {
+		return rr + "+1"
+	}
 	switch rr {
 	case "HL":
 		return "H"

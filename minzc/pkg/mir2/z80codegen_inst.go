@@ -47,6 +47,10 @@ func (g *z80cg) genInst(inst *Inst) {
 
 	dst := g.loc(inst.Dst)
 
+	if g.genWideSpills(inst) {
+		return
+	}
+
 	switch inst.Op {
 	case OpConst:
 		// Only record as constant if the Dst is NOT a block parameter.
@@ -84,6 +88,13 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.emit("    EXX")
 			} else if isSpill(dst) {
 				// LocMem spill destination.
+				// Loading an immediate for a spill must preserve unrelated live
+				// values in the staging register.
+				if w <= 8 {
+					g.emit("    PUSH AF")
+				} else {
+					g.emit("    PUSH HL")
+				}
 				// TSMC: if eligible, patch reload sites instead of memory store.
 				if pair := g.tsmcSpillPairFor(inst.Dst); pair != nil {
 					if w <= 8 {
@@ -107,11 +118,11 @@ func (g *z80cg) genInst(inst *Inst) {
 						g.invalidate("HL")
 					}
 				}
-			} else if isSpill(dst) {
-				g.emit("    EX AF, AF'")
-				g.emitf("    LD A, %d", inst.Imm&0xFF)
-				g.emitf("    LD (%s), A", dst)
-				g.emit("    EX AF, AF'")
+				if w <= 8 {
+					g.emit("    POP AF")
+				} else {
+					g.emit("    POP HL")
+				}
 			} else {
 				g.emitf("    LD %s, %d", dst, inst.Imm)
 			}
@@ -896,7 +907,13 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.lastFlagsRhs = ""
 		cc := cmpCondCode(inst.Cond)
 		g.comment(fmt.Sprintf("genCallCond: CALL %s, %s", cc, inst.Sym))
-		g.emitf("    CALL %s, %s", cc, inst.Sym)
+		// Use the regular call lowering for intrinsics, fixed addresses, and
+		// sanitized symbols. Intrinsics have no callable assembly label.
+		skip := fmt.Sprintf(".%s_callcond%d", sanitizeIdent(g.fn.Name), g.trampIdx)
+		g.trampIdx++
+		g.emitf("    JRS %s, %s", invertCC(cc), skip)
+		g.genCall(inst)
+		g.emitf("%s:", skip)
 		clear(g.holdsPhys) // calls clobber all volatile registers
 
 	case OpIn8:

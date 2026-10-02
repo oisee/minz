@@ -98,6 +98,11 @@ func splitRecursive(m *Module, f *Func, results *[]SplitResult, depth int) []*Fu
 	}
 	// Guard: don't re-split if last stmt is already a split call.
 	if len(f.Body.Body) > 0 {
+		if rs, ok := f.Body.Body[len(f.Body.Body)-1].(*ReturnStmt); ok {
+			if ce, ok := rs.Val.(*CallExpr); ok && strings.Contains(ce.Fn, "$split_") {
+				return nil
+			}
+		}
 		if es, ok := f.Body.Body[len(f.Body.Body)-1].(*ExprStmt); ok {
 			if ce, ok := es.Expr.(*CallExpr); ok {
 				if strings.Contains(ce.Fn, "$split_") {
@@ -285,6 +290,10 @@ func (s splitCandidate) interfaceWidth() int {
 
 // FindSplitPoints returns viable split candidates for a function.
 func FindSplitPoints(f *Func, pressure []int) []splitCandidate {
+	// Multi-result calls need tuple forwarding; leave those functions intact.
+	if len(f.RetTys) > 1 {
+		return nil
+	}
 	stmts := f.Body.Body
 	if len(stmts) < 4 {
 		return nil
@@ -400,7 +409,8 @@ func ApplySplit(m *Module, f *Func, c splitCandidate) *Func {
 	sub := &Func{
 		Name:   subName,
 		Params: params,
-		RetTy:  mir2.TyVoid,
+		RetTy:  f.RetTy,
+		RetTys: append([]mir2.Ty(nil), f.RetTys...),
 		Body:   subBody,
 	}
 
@@ -417,13 +427,19 @@ func ApplySplit(m *Module, f *Func, c splitCandidate) *Func {
 	callExpr := &CallExpr{
 		Fn:   subName,
 		Args: args,
-		Ty:   mir2.TyVoid,
+		Ty:   f.RetTy,
+	}
+	if len(f.RetTys) == 1 {
+		callExpr.Ty = f.RetTys[0]
 	}
 
 	// New body = top half + call statement.
 	newBody := make([]Stmt, c.splitAt+2)
 	copy(newBody, stmts[:c.splitAt+1])
 	newBody[c.splitAt+1] = &ExprStmt{Expr: callExpr}
+	if countReturns(f) != 0 {
+		newBody[c.splitAt+1] = &ReturnStmt{Val: callExpr}
+	}
 	f.Body.Body = newBody
 
 	return sub
@@ -434,6 +450,36 @@ func ApplySplit(m *Module, f *Func, c splitCandidate) *Func {
 // collectVarRefs walks a statement and collects variable references and definitions.
 func collectVarRefs(s Stmt, refs, defs map[string]bool) {
 	switch s := s.(type) {
+	case *Block:
+		for _, inner := range s.Body {
+			collectVarRefs(inner, refs, defs)
+		}
+	case *StoreStmt:
+		collectExprRefs(s.Ptr, refs)
+		collectExprRefs(s.Val, refs)
+	case *SwitchStmt:
+		collectExprRefs(s.Val, refs)
+		for _, c := range s.Cases {
+			collectVarRefs(c.Body, refs, defs)
+		}
+		if s.Default != nil {
+			collectVarRefs(s.Default, refs, defs)
+		}
+	case *ForEachStmt:
+		defs[s.Var] = true
+		collectExprRefs(s.Ptr, refs)
+		collectExprRefs(s.Start, refs)
+		collectExprRefs(s.Len, refs)
+		if s.Body != nil {
+			collectVarRefs(s.Body, refs, defs)
+		}
+	case *AsmStmt:
+		for _, in := range s.Ins {
+			refs[in.Name] = true
+		}
+		for _, out := range s.Outs {
+			defs[out.Name] = true
+		}
 	case *VarDeclStmt:
 		defs[s.Name] = true
 		if s.Init != nil {
@@ -446,6 +492,7 @@ func collectVarRefs(s Stmt, refs, defs map[string]bool) {
 		collectExprRefs(s.Target, refs)
 		collectExprRefs(s.Val, refs)
 	case *ReturnStmt:
+		collectExprRefs(s.Val, refs)
 		for _, v := range s.Vals {
 			collectExprRefs(v, refs)
 		}
@@ -496,6 +543,34 @@ func collectExprRefs(e Expr, refs map[string]bool) {
 		return
 	}
 	switch e := e.(type) {
+	case *CondExpr:
+		collectExprRefs(e.Cond, refs)
+		collectExprRefs(e.Then, refs)
+		collectExprRefs(e.Else, refs)
+	case *LoadExpr:
+		collectExprRefs(e.Ptr, refs)
+	case *BitExpr:
+		collectExprRefs(e.X, refs)
+	case *CallIndirectExpr:
+		collectExprRefs(e.FnPtr, refs)
+		for _, a := range e.Args {
+			collectExprRefs(a, refs)
+		}
+	case *StructLitExpr:
+		for _, f := range e.Fields {
+			collectExprRefs(f.Val, refs)
+		}
+	case *RangeSourceExpr:
+		collectExprRefs(e.Lo, refs)
+		collectExprRefs(e.Hi, refs)
+	case *LetInExpr:
+		collectExprRefs(e.Init, refs)
+		bodyRefs := make(map[string]bool)
+		collectExprRefs(e.Body, bodyRefs)
+		delete(bodyRefs, e.Name)
+		for v := range bodyRefs {
+			refs[v] = true
+		}
 	case *VarRefExpr:
 		refs[e.Name] = true
 	case *CallExpr:
