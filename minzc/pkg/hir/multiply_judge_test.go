@@ -115,9 +115,9 @@ func u16MultiplySample() []int64 {
 }
 
 // Assemble once, then bootstrap the actual production ABI for each input.
-func judgeMultiplyCases(t *testing.T, f *hir.Func, cases [][]int64, model func([]int64) int64) {
+func judgeMultiplyCases(t *testing.T, f *hir.Func, cases [][]int64, model func([]int64) int64, callees ...*hir.Func) {
 	t.Helper()
-	fixture := compileProductionHIRFixture(t, &hir.Module{Name: "multiply_live", Funcs: []*hir.Func{f}})
+	fixture := compileProductionHIRFixture(t, &hir.Module{Name: "multiply_live", Funcs: append(callees, f)})
 	if strings.Count(fixture.asm, "\n__mul8:\n") > 1 {
 		t.Fatalf("duplicate multiply runtime label\n%s", fixture.asm)
 	}
@@ -264,4 +264,93 @@ func TestProductionBitwiseConstantJudge(t *testing.T) {
 			})
 		}
 	}
+}
+
+// Keep multiply inputs and results live across other ALU operations and calls.
+func TestProductionMultiplyAccumulatorJudge(t *testing.T) {
+	ty := mir2.TyU8
+	v := func(n string) hir.Expr { return hir.Var(n, ty) }
+	bin := func(op string, l, r hir.Expr) hir.Expr { return &hir.BinExpr{Op: op, L: l, R: r, Ty: ty} }
+	params := func(names ...string) []hir.Param {
+		var ps []hir.Param
+		for _, n := range names {
+			ps = append(ps, hir.Param{Name: n, Ty: ty})
+		}
+		return ps
+	}
+	gee := &hir.Func{Name: "gee", Params: params("x"), RetTy: ty, Body: hir.Blk(hir.Ret(bin("+", v("x"), &hir.IntLitExpr{Val: 1, Ty: ty})))}
+	for _, probe := range []string{"m10", "m12", "m17", "m18"} {
+		t.Run(probe, func(t *testing.T) {
+			f := &hir.Func{Name: "foo", RetTy: ty}
+			var callees []*hir.Func
+			var cases [][]int64
+			var model func([]int64) int64
+			switch probe {
+			case "m10":
+				f.Params = params("a", "b")
+				f.Body = hir.Blk(hir.Ret(bin("+", hir.Call("gee", ty, bin("*", v("a"), v("b"))), v("a"))))
+				callees = []*hir.Func{gee}
+				cases = [][]int64{{3, 5}}
+				model = func(a []int64) int64 { return (a[0]*a[1] + 1 + a[0]) & 255 }
+			case "m12":
+				f.Params = params("a", "b", "c", "d", "e")
+				f.Body = hir.Blk(hir.Ret(bin("+", bin("+", bin("+", bin("+", bin("*", v("a"), v("b")), bin("*", v("c"), v("d"))), v("e")), v("a")), v("c"))))
+				cases = [][]int64{{2, 3, 4, 5, 6}}
+				model = func(a []int64) int64 { return (a[0]*a[1] + a[2]*a[3] + a[4] + a[0] + a[2]) & 255 }
+			case "m17", "m18":
+				f.Params = params("x", "y", "z", "q")
+				product := bin("*", v("a"), v("b"))
+				if probe == "m17" {
+					product = bin("+", product, v("a"))
+				}
+				callees = []*hir.Func{{Name: "mulk", Params: params("a", "b"), RetTy: ty, Body: hir.Blk(hir.Ret(product))}}
+				r := hir.Call("mulk", ty, v("x"), v("y"))
+				if probe == "m17" {
+					f.Body = hir.Blk(hir.Ret(bin("+", bin("+", bin("+", bin("+", r, v("z")), v("x")), v("y")), v("q"))))
+					model = func(a []int64) int64 { return (a[0]*a[1] + a[0] + a[2] + a[0] + a[1] + a[3]) & 255 }
+				} else {
+					f.Body = hir.Blk(hir.Ret(bin("+", bin("+", bin("+", r, hir.Call("mulk", ty, v("z"), v("q"))), v("x")), v("z"))))
+					model = func(a []int64) int64 { return (a[0]*a[1] + a[2]*a[3] + a[0] + a[2]) & 255 }
+				}
+				cases = [][]int64{{3, 5, 7, 11}}
+			}
+			// Sweep one input as well as the critic's concrete counterexample.
+			seed := append([]int64(nil), cases[0]...)
+			for x := int64(0); x < 256; x++ {
+				a := append([]int64(nil), seed...)
+				a[0] = x
+				cases = append(cases, a)
+			}
+			judgeMultiplyCases(t, f, cases, model, callees...)
+		})
+	}
+}
+
+func TestProductionMultiplySignedWideningJudge(t *testing.T) {
+	for _, k := range []int64{0, 2, 3, 7, 10, 100, 255, 256, 1000, -7} {
+		t.Run(fmt.Sprintf("k%d", k), func(t *testing.T) {
+			f := &hir.Func{Name: "signed_mul", Params: []hir.Param{{Name: "a", Ty: mir2.TyI8}}, RetTy: mir2.TyI16,
+				Body: hir.Blk(&hir.VarDeclStmt{Name: "w", Ty: mir2.TyI16, Init: hir.Var("a", mir2.TyI8)}, hir.Ret(&hir.BinExpr{Op: "*", L: hir.Var("w", mir2.TyI16), R: &hir.IntLitExpr{Val: k, Ty: mir2.TyI16}, Ty: mir2.TyI16}))}
+			var cases [][]int64
+			for x := int64(-128); x < 128; x++ {
+				cases = append(cases, []int64{x})
+			}
+			judgeMultiplyCases(t, f, cases, func(a []int64) int64 { return (a[0] * k) & 65535 })
+		})
+	}
+	t.Run("s03", func(t *testing.T) {
+		f := &hir.Func{Name: "signed_variable", Params: []hir.Param{{Name: "a", Ty: mir2.TyI8}, {Name: "k", Ty: mir2.TyI16}}, RetTy: mir2.TyI16,
+			Body: hir.Blk(&hir.VarDeclStmt{Name: "w", Ty: mir2.TyI16, Init: hir.Var("a", mir2.TyI8)}, hir.Ret(&hir.BinExpr{Op: "*", L: hir.Var("w", mir2.TyI16), R: hir.Var("k", mir2.TyI16), Ty: mir2.TyI16}))}
+		cases := [][]int64{{-3, 7}}
+		for x := int64(-128); x < 128; x++ {
+			for _, k := range []int64{-7, 3, 100, 1000} {
+				cases = append(cases, []int64{x, k})
+			}
+		}
+		judgeMultiplyCases(t, f, cases, func(a []int64) int64 { return (a[0] * a[1]) & 65535 })
+		t.Run("byte_rhs", func(t *testing.T) {
+			f.Body = hir.Blk(hir.Ret(&hir.BinExpr{Op: "*", L: hir.Var("k", mir2.TyI16), R: hir.Var("a", mir2.TyI8), Ty: mir2.TyI16}))
+			judgeMultiplyCases(t, f, cases, func(a []int64) int64 { return (a[0] * a[1]) & 65535 })
+		})
+	})
 }

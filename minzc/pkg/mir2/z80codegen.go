@@ -4731,6 +4731,13 @@ func (g *z80cg) genMul(inst *Inst) {
 			break
 		}
 	}
+	// Every byte multiply path must replace the old accumulator identity.
+	defer func() {
+		g.pendingAccReg = NoReg
+		if dst == "A" {
+			g.pendingAccReg = inst.Dst
+		}
+	}()
 	lhs = g.loc(inst.Src[0])
 	cv, isConst := g.constVals[inst.Src[1]]
 
@@ -4923,6 +4930,21 @@ func (g *z80cg) genMul16(inst *Inst) {
 	lhs := g.loc(inst.Src[0])
 
 	cv, isConst := g.constVals[inst.Src[1]]
+	regInfo := collectRegInfo(g.fn)
+	// Widen byte operands according to their source type. Preserve A and its
+	// flags: either may still hold a live value (including the other operand).
+	extendByte := func(src Reg, low, high string) {
+		if IsSigned(regInfo[src].Ty) {
+			g.emit("    PUSH AF")
+			g.emitLD8("A", low)
+			g.emit("    RLA")
+			g.emit("    SBC A, A")
+			g.emitLD8(high, "A")
+			g.emit("    POP AF")
+		} else {
+			g.emitf("    LD %s, 0", high)
+		}
+	}
 
 	// 16-bit multiply needs HL for ADD HL,rr.
 	// If HL contains a live value that isn't lhs or dst, save it.
@@ -4941,14 +4963,13 @@ func (g *z80cg) genMul16(inst *Inst) {
 			g.emitf("    PUSH %s", lhs)
 			g.emit("    POP HL")
 		} else if isIXYReg(lhs) {
-			// IXH/IXL/IYH/IYL: 8-bit half-reg, zero-extend to HL.
+			// IXH/IXL/IYH/IYL: widen the byte to HL.
 			g.emitMovViaAltA("L", lhs)
-			g.emit("    LD H, 0")
+			extendByte(inst.Src[0], "L", "H")
 		} else if isSimpleReg(lhs) && !isPairReg(lhs) {
-			// A byte operand promoted by the expression must be zero-extended,
-			// not copied into both halves of the multiplicand.
+			// Widen a byte operand promoted by the expression.
 			g.emitLD8("L", lhs)
-			g.emit("    LD H, 0")
+			extendByte(inst.Src[0], "L", "H")
 		} else if isSpill(lhs) {
 			g.loadSpill16("HL", lhs)
 		} else {
@@ -5072,13 +5093,13 @@ func (g *z80cg) genMul16(inst *Inst) {
 			g.emitf("    LD D, %s", highByte(rhs))
 			g.emitf("    LD E, %s", lowByte(rhs))
 		} else if isIXYReg(rhs) {
-			// IXH/IXL half-reg: zero-extend to DE.
+			// IXH/IXL half-reg: widen to DE.
 			g.emitMovViaAltA("E", rhs)
-			g.emit("    LD D, 0")
+			extendByte(inst.Src[1], "E", "D")
 		} else {
-			// 8-bit rhs: zero-extend into DE.
+			// 8-bit rhs: widen into DE.
 			g.emitf("    LD E, %s", rhs)
-			g.emit("    LD D, 0")
+			extendByte(inst.Src[1], "E", "D")
 		}
 		g.invalidate("DE")
 	}
@@ -8631,6 +8652,9 @@ func (g *z80cg) saveAccOperandIfLive(src Reg, inst *Inst) {
 	scratch := g.pickScratch8(inst)
 	g.emitf("    LD %s, A    ; save r%d before ALU overwrite", scratch, src)
 	g.physOverride[src] = scratch
+	if g.pendingAccReg == src {
+		g.pendingAccReg = NoReg
+	}
 }
 
 func (g *z80cg) isVregLiveAfter(vreg Reg, target *Inst) bool {
