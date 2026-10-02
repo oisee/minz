@@ -51,12 +51,12 @@ def enumerate_asserts(root, files, globs, mz, jobs=1, timeout=30, errors=None):
         return [a for group in pool.map(listing, sorted(set(files) & selected)) for a in group]
 
 
-def run_compiler(mz, path, timeout, cwd=None, lines=None, expected=1, control=None, backend='z80'):
+def run_compiler(mz, path, timeout, cwd=None, lines=None, expected=1, control=None, backend='z80', control_element=0):
     cmd = [mz, str(path), '--assert-receipt', '--asserts-force', backend, '-o', '/dev/null']
     if lines is not None:
         cmd += ['--assert-lines', ','.join(map(str, lines))]
     if control is not None:
-        cmd += ['--assert-control-line', str(control)]
+        cmd += ['--assert-control-line', str(control), '--assert-control-element', str(control_element)]
     try:
         p = subprocess.run(cmd, cwd=cwd, env=dict(os.environ, SOURCE_DATE_EPOCH='0'),
                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -149,10 +149,14 @@ def matrix(root, globs, compilers, jobs, runs, timeout, controls=False, roots=No
                     result[label] = outcomes([run_compiler(mz, path, timeout, mirror, lines, len(members), backend=backend) for _ in range(runs)])
                 if controls and label in ('candidate', 'compiler'):
                     result['controls'] = []
-                    for line in dict.fromkeys(a['line'] for a in members):
+                    targets = dict.fromkeys((a['line'], element) for a in members
+                                            for element in range(max(1, a.get('tuple_elements', 0))))
+                    for line, element in targets:
                         for _ in range(runs):
-                            attempt = run_compiler(mz, path, timeout, mirror, lines, len(members), line, backend=backend)
-                            result['controls'].append({'line': line, 'unexpected_pass': attempt['exit_code'] == 0, **attempt})
+                            attempt = run_compiler(mz, path, timeout, mirror, lines, len(members), line,
+                                                   backend=backend, control_element=element)
+                            result['controls'].append({'line': line, 'element': element,
+                                                       'unexpected_pass': attempt['exit_code'] == 0, **attempt})
                 path.unlink()
                 path.symlink_to(roots[label] / unit['file'])
             if controls_only:

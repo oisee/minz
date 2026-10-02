@@ -58,8 +58,10 @@ failed=0. Sandboxes run together and require executed=passed=their member count.
 `--assert-lines` selects frontend-parsed assertions, including multiline forms.
 Negative controls are enabled by default (`--controls`; skip with
 `--no-controls`). For each assertion, a copied source is parsed and its expected
-HIR value is mutated by `--assert-control-line`; flipping bit 32 of the last tuple element (or the scalar) puts the value
-outside the Z80 return range. Any control exiting 0 fails the gate.
+HIR value is mutated by `--assert-control-line` and zero-based
+`--assert-control-element`. One control per tuple element flips bit 32 of
+exactly that element (or the scalar), putting it outside the Z80 return range.
+Any control exiting 0 fails the gate.
 
 Comparison inventories come from separate checkouts and their respective
 compilers. `--baseline-root` supplies a checkout; its default is an archive of
@@ -120,3 +122,16 @@ includes `wall_seconds`; use `-j 4` to measure CI-sized passes.
 Explicit `--asserts wasm` and `--asserts llvm` retain MIR2 checks for MIR2
 assertions. WASM sandbox assertions referencing absent exports are skipped,
 as on main, and skipped assertions are not counted in execution receipts.
+
+`--no-controls` cannot detect a weakened assertion checker when all positive
+expectations still pass. CI must run controls at least whenever assertion,
+pipeline, or judge script code changes, and nightly. Tuple arity is supplied by
+`--list-asserts` as `tuple_elements`; every element receives its own control.
+
+WASM sandbox assertions retain main's acceptance of an empty return result.
+Their error messages still include the source line (main omitted it), and call
+errors include `call error:`; top-level messages are unchanged.
+
+Run `python3 scripts/test_assert_mutants.py` to build M4 (checks only element 0)
+and M5 (skips element 0) in temporary copies, and verify that the tuple fixture's
+matrix exits nonzero on both Z80 and MIR2 for each mutant.

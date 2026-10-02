@@ -41,6 +41,19 @@ sys.exit(int(fail))
         subprocess.run(['git','init','-q',str(root)],check=True)
         subprocess.run(['git','-C',str(root),'add','.'],check=True)
 
+    def test_tuple_controls_cover_each_element_and_repeat(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)
+            self.fixture(root)
+            members=[dict(file='case.nanz', line=2, expression='assert pair() == (1, 2, 3)',
+                          via='mir2', kind='top-level', tuple_elements=3)]
+            with patch.object(matrix, 'enumerate_asserts', return_value=members), \
+                 patch.object(matrix, 'run_compiler', return_value={'pass':False, 'exit_code':1}) as run:
+                report=matrix.matrix(root,['*.nanz'],{'compiler':'mz'},1,2,5,True,controls_only=True)
+            self.assertEqual(report['summary']['controls_checked'],6)
+            self.assertEqual([c['element'] for c in report['results'][0]['controls']],[0,0,1,1,2,2])
+            self.assertEqual([call.kwargs['control_element'] for call in run.call_args_list],[0,0,1,1,2,2])
+
     def test_matrix_controls_json_and_inventory(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp); self.fixture(root); fake=self.fake(root)
@@ -372,9 +385,21 @@ sys.exit(int(fail))
             self.assertTrue(matrix.run_compiler(mz,path,30,lines=[2])['pass'])
             self.assertFalse(matrix.run_compiler(mz,path,30,lines=[2],control=2)['pass'])
             path.write_text('fun pair() -> (u8, u8) { return (42, 43) }\nassert pair() == (42, 43) via mir2\n')
+            listing=subprocess.run([mz,str(path),'--list-asserts'],capture_output=True,text=True)
+            self.assertEqual(listing.returncode,0,listing.stderr)
+            self.assertEqual(json.loads(listing.stdout)['tuple_elements'],2)
+            for element in (-1,2):
+                proc=subprocess.run([mz,str(path),'--assert-control-line','2',
+                                     '--assert-control-element',str(element),'-o','/dev/null'],
+                                    capture_output=True,text=True)
+                self.assertNotEqual(proc.returncode,0)
+                self.assertIn('out of range',proc.stderr)
             for backend in ('mir2', 'z80'):
                 self.assertTrue(matrix.run_compiler(mz,path,30,backend=backend)['pass'])
-                self.assertFalse(matrix.run_compiler(mz,path,30,control=2,backend=backend)['pass'])
+                for element in (0,1):
+                    result=matrix.run_compiler(mz,path,30,control=2,backend=backend,control_element=element)
+                    self.assertFalse(result['pass'])
+                    self.assertIn(f'return[{element}]', result['error'])
             path.write_text(path.read_text().replace('(42, 43) via', '(42, 44) via'))
             for backend in ('mir2', 'z80'):
                 result=matrix.run_compiler(mz,path,30,backend=backend)

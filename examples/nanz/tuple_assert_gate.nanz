@@ -10,6 +10,6 @@ fun divmod(a: u8, b: u8) -> (u8, u8) {
 }
 assert divmod(17, 5) == (3, 2) via mir2
 assert divmod(17, 5) == (3, 2) via z80
-// Same quotient, different remainder: controls mutate only the last value.
+// Same quotient, different remainder: controls must check each value independently.
 assert divmod(19, 5) == (3, 4) via mir2
 assert divmod(19, 5) == (3, 4) via z80

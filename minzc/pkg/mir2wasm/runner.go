@@ -32,7 +32,7 @@ func RunAsserts(hm *hir.Module, m *mir2.Module, force bool) error {
 	}
 	defer mod.Close(ctx)
 
-	check := func(a hir.Assert) error {
+	check := func(a hir.Assert, sandbox bool) error {
 		fn := mod.ExportedFunction(a.FuncName)
 		if fn == nil {
 			return fmt.Errorf("line %d: assert %q [wasm]: function %q not exported", a.Line, a.Source, a.FuncName)
@@ -46,6 +46,9 @@ func RunAsserts(hm *hir.Module, m *mir2.Module, force bool) error {
 			return fmt.Errorf("line %d: assert %q [wasm]: call error: %w", a.Line, a.Source, err)
 		}
 		if len(results) == 0 {
+			if sandbox {
+				return nil
+			}
 			return fmt.Errorf("line %d: assert %q [wasm]: no return value", a.Line, a.Source)
 		}
 		got := int64(results[0]) & 0xFF
@@ -58,7 +61,7 @@ func RunAsserts(hm *hir.Module, m *mir2.Module, force bool) error {
 		if !force && a.Via != "" && a.Via != "wasm" {
 			continue
 		}
-		if err := hm.RecordAssert(check(a)); err != nil {
+		if err := hm.RecordAssert(check(a, false)); err != nil {
 			return err
 		}
 	}
@@ -70,7 +73,7 @@ func RunAsserts(hm *hir.Module, m *mir2.Module, force bool) error {
 			if !force && a.Via != "" && a.Via != "wasm" {
 				continue
 			}
-			if err := hm.RecordAssert(check(a)); err != nil {
+			if err := hm.RecordAssert(check(a, true)); err != nil {
 				return fmt.Errorf("sandbox %q: %w", sb.Name, err)
 			}
 		}

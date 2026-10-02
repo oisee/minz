@@ -71,3 +71,21 @@ func TestOptionalBackendRetainsMIR2Assertions(t *testing.T) {
 		})
 	}
 }
+
+func TestLLVMModeRetainsZ80Assertions(t *testing.T) {
+	hm, err := nanz.Parse("fun answer() -> u8 { return 42 }\nassert answer() == 43 via z80\n", "test.nanz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	hm.AssertStats = &hir.AssertStats{}
+	steps, err := CompileHIRSteps(hm, Options{AssertMode: "llvm"})
+	if steps.Assembly == "" {
+		t.Fatal("expected emitted Z80 assembly")
+	}
+	if err == nil || !strings.Contains(err.Error(), "[z80]") {
+		t.Fatalf("expected Z80 failure before LLVM, got %v", err)
+	}
+	if *hm.AssertStats != (hir.AssertStats{Executed: 1, Failed: 1}) {
+		t.Fatalf("stats=%+v", hm.AssertStats)
+	}
+}

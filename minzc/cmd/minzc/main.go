@@ -81,14 +81,15 @@ var (
 	useGrace bool // --grace: run all Grace MIR2 passes before VIR lowering
 
 	// Assert control
-	listAsserts       bool
-	assertLines       string
-	assertControlLine int
-	assertLinesSet    bool
-	assertControlSet  bool
-	assertReceipt     bool   // --assert-receipt enables judge execution reporting
-	assertMode        string // --asserts mir|z80|all|none — select which assert backends run
-	assertForce       string // --asserts-force mir|z80 — force ALL asserts to run on this backend
+	listAsserts          bool
+	assertLines          string
+	assertControlLine    int
+	assertControlElement int
+	assertLinesSet       bool
+	assertControlSet     bool
+	assertReceipt        bool   // --assert-receipt enables judge execution reporting
+	assertMode           string // --asserts mir|z80|all|none — select which assert backends run
+	assertForce          string // --asserts-force mir|z80 — force ALL asserts to run on this backend
 
 	// Debug info
 	emitSLD         bool // Emit SLD file for DeZog source-level debugging
@@ -245,6 +246,7 @@ func init() {
 	rootCmd.Flags().BoolVar(&assertReceipt, "assert-receipt", false, "print assertion execution counts to stderr for judge tools")
 	rootCmd.Flags().BoolVar(&listAsserts, "list-asserts", false, "list frontend assertions as JSON lines without executing")
 	rootCmd.Flags().StringVar(&assertLines, "assert-lines", "", "run only assertions at these comma-separated source lines")
+	rootCmd.Flags().IntVar(&assertControlElement, "assert-control-element", 0, "tuple element to perturb (zero-based judge negative control)")
 	rootCmd.Flags().IntVar(&assertControlLine, "assert-control-line", 0, "mutate the expected value at this source line (judge negative control)")
 	rootCmd.Flags().StringVar(&assertMode, "asserts", "", "assert backend: mir2, z80, wasm, llvm, all (default), none")
 	rootCmd.Flags().StringVar(&assertForce, "asserts-force", "", "force ALL asserts to run on this backend (mir2, z80, wasm, or llvm), ignoring 'via' annotations")
@@ -906,12 +908,13 @@ func compileViaHIR(sourceFile string) error {
 				expression = expression[:i]
 			}
 			return enc.Encode(struct {
-				File       string `json:"file"`
-				Line       int    `json:"line"`
-				Expression string `json:"expression"`
-				Via        string `json:"via"`
-				Kind       string `json:"kind"`
-			}{sourceFile, a.Line, expression, a.Via, kind})
+				File          string `json:"file"`
+				Line          int    `json:"line"`
+				Expression    string `json:"expression"`
+				Via           string `json:"via"`
+				Kind          string `json:"kind"`
+				TupleElements int    `json:"tuple_elements,omitempty"`
+			}{sourceFile, a.Line, expression, a.Via, kind, len(a.ExpectedMulti)})
 		}
 		for _, a := range hirMod.Asserts {
 			if err := emit(a, "top-level"); err != nil {
@@ -938,8 +941,33 @@ func compileViaHIR(sourceFile string) error {
 			selected[line] = true
 		}
 	}
+	if assertControlSet {
+		validate := func(as []hir.Assert) error {
+			for _, a := range as {
+				if a.Line != assertControlLine || (assertLinesSet && !selected[a.Line]) {
+					continue
+				}
+				size := len(a.ExpectedMulti)
+				if size == 0 {
+					size = 1
+				}
+				if assertControlElement < 0 || assertControlElement >= size {
+					return fmt.Errorf("assert control element %d out of range at line %d", assertControlElement, a.Line)
+				}
+			}
+			return nil
+		}
+		if err := validate(hirMod.Asserts); err != nil {
+			return err
+		}
+		for _, sb := range hirMod.Sandboxes {
+			if err := validate(sb.Asserts); err != nil {
+				return err
+			}
+		}
+	}
 	filter := func(as []hir.Assert) []hir.Assert {
-		return filterJudgeAsserts(as, selected, assertLinesSet, assertControlLine, assertControlSet)
+		return filterJudgeAsserts(as, selected, assertLinesSet, assertControlLine, assertControlSet, assertControlElement)
 	}
 	hirMod.Asserts = filter(hirMod.Asserts)
 	for i := range hirMod.Sandboxes {

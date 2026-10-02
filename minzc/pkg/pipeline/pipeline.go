@@ -383,7 +383,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		}
 
 		// Z80 binary assertion checks (skip for eZ80 — different encoding).
-		if opt.Backend != "ez80" && opt.AssertMode != "mir2" && opt.AssertMode != "none" && opt.AssertMode != "wasm" && opt.AssertMode != "llvm" {
+		if opt.Backend != "ez80" && opt.AssertMode != "mir2" && opt.AssertMode != "none" && opt.AssertMode != "wasm" {
 			if err := RunAssertsZ80(hm, m, combined, s.Assembly); err != nil {
 				return s, err
 			}
