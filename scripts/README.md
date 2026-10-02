@@ -71,3 +71,16 @@ enumeration failures and Python exceptions exit 2.
 The fuzzer now runs forced MIR2 and Z80 separately. It distinguishes
 MIR2≠oracle, Z80≠MIR2 (MIR2 must first agree with the oracle), and assembly
 failures. Reduced reproducers must retain their original failure class.
+
+Known Z80 failures are recorded in `scripts/assert_known_failures.json` (override
+with `--known-failures PATH`). Each entry identifies a whole execution unit by
+file, first line and whitespace-normalized expression; for a sandbox, join all
+member expressions in source order with spaces. Entries include the exact full
+first-error line, reason and date. Every candidate run must fail with that exact
+line to report `known failure` and exempt the unit from the failure gate.
+A passing entry fails with `known failure fixed — remove the entry`; a changed
+diagnostic fails with `known failure changed`; a missing or changed assertion
+also fails. Negative controls, flaky runs and inventory checks still apply.
+Restricted `--glob` runs audit only entries whose file matches those globs.
+Summary classifications retain raw outcomes and also count known failures and
+stale entries; JSON results retain the full diagnostics.

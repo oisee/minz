@@ -65,6 +65,92 @@ sys.exit(int(fail))
             self.assertEqual(matrix.exit_code(report,True),1)
             self.assertEqual(matrix.exit_code(report,True,True),0)
 
+    def known_report(self, candidate=None, classification='added', expression='assert answer() == 43'):
+        failed = {'pass': False, 'error': 'error: assertion failed'}
+        member = dict(file='case.nanz', line=3, expression=expression)
+        unit = dict(file='case.nanz', line=3, members={'candidate': [member]},
+                    baseline=matrix.outcomes([{'pass': True}]),
+                    candidate=matrix.outcomes(candidate or [failed]), classification=classification)
+        passed = dict(file='case.nanz', line=2, members={'candidate': []},
+                      baseline=matrix.outcomes([{'pass': True}]),
+                      candidate=matrix.outcomes([{'pass': True}]), classification='pass both')
+        report = {'results': [passed, unit], 'summary': dict(asserts={'baseline': 1, 'candidate': 2},
+                  controls_unexpected_pass=0, flaky=0, removed=[], changed=[], added_failures=1)}
+        entry = dict(file='case.nanz', line=3, expression='assert answer() == 43',
+                     error='error: assertion failed', reason='fixture failure', date='2026-10-02')
+        return report, entry
+
+    def test_known_failure_exact_match_and_gate_modes(self):
+        for category in ('added', 'newly fail', 'fail both'):
+            with self.subTest(category=category):
+                report, entry = self.known_report(classification=category, expression=' assert   answer() == 43 ')
+                matrix.apply_known_failures(report, [entry], 'candidate')
+                self.assertEqual(report['results'][1]['known_failure'], 'known failure')
+                self.assertEqual(report['summary']['known failures'], 1)
+                self.assertEqual(matrix.exit_code(report, True), 0)
+                report['summary']['controls_unexpected_pass'] = 1
+                self.assertEqual(matrix.exit_code(report, True), 1)
+                report['summary'].update(controls_unexpected_pass=0, flaky=1)
+                self.assertEqual(matrix.exit_code(report, True), 1)
+        report, entry = self.known_report()
+        unit = report['results'][1]
+        unit['compiler'] = unit.pop('candidate')
+        unit['members']['compiler'] = unit['members'].pop('candidate')
+        unit['classification'] = 'fail'
+        report['results'] = [unit]
+        matrix.apply_known_failures(report, [entry], 'compiler')
+        self.assertEqual(matrix.exit_code(report, False), 0)
+
+    def test_known_failure_fixed_changed_and_missing(self):
+        cases = [([{'pass': True, 'error': ''}], 'known failure fixed — remove the entry'),
+                 ([{'pass': False, 'error': 'error: assertion failed extra'}], 'known failure changed'),
+                 ([{'pass': False, 'error': 'error: assertion failed'},
+                   {'pass': False, 'error': 'other error'}], 'known failure changed'),
+                 ([{'pass': False, 'error': 'error: assertion failed'},
+                   {'pass': True, 'error': ''}], 'known failure changed')]
+        for attempts, status in cases:
+            with self.subTest(status=status, attempts=attempts):
+                report, entry = self.known_report(candidate=attempts)
+                matrix.apply_known_failures(report, [entry], 'candidate')
+                self.assertEqual(report['known_failure_issues'][0]['status'], status)
+                self.assertEqual(matrix.exit_code(report, True, True), 1)
+        for field, value in [('file', 'other.nanz'), ('line', 4), ('expression', 'different')]:
+            with self.subTest(field=field):
+                report, entry = self.known_report()
+                entry[field] = value
+                matrix.apply_known_failures(report, [entry], 'candidate')
+                self.assertEqual(report['known_failure_issues'][0]['status'], 'known failure assert no longer exists')
+                self.assertEqual(matrix.exit_code(report, True, True), 1)
+        # A sandbox waiver must cover its complete member expression sequence.
+        report, entry = self.known_report()
+        report['results'][1]['members']['candidate'].append(dict(expression='assert other() == 0'))
+        matrix.apply_known_failures(report, [entry], 'candidate')
+        self.assertEqual(matrix.exit_code(report, True), 1)
+
+    def test_known_failure_loading_and_cli(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp); self.fixture(root); fake = self.fake(root)
+            _, entry = self.known_report()
+            entry['expression'] += ' via z80'
+            known = root / 'known.json'
+            known.write_text(json.dumps([entry]))
+            self.assertEqual(matrix.load_known_failures(known, ['*.nanz']), [entry])
+            self.assertEqual(matrix.load_known_failures(known, ['*.c']), [])
+            command = [sys.executable, matrix.__file__, '--root', str(root), '--mz', fake,
+                       '--glob', '*.nanz', '--known-failures', str(known)]
+            proc = subprocess.run(command, capture_output=True, text=True)
+            self.assertEqual(proc.returncode, 0, proc.stderr)
+            self.assertEqual(json.loads(proc.stdout)['summary']['known failures'], 1)
+            (root/'case.nanz').write_text((root/'case.nanz').read_text().replace('== 43', '== 44'))
+            proc = subprocess.run(command, capture_output=True, text=True)
+            self.assertEqual(proc.returncode, 1)
+            self.assertIn('known failure assert no longer exists', proc.stderr)
+            for entries in ([entry, entry], [{**entry, 'expression': 'unnormalized  expression'}],
+                            [{k: v for k, v in entry.items() if k != 'reason'}]):
+                known.write_text(json.dumps(entries))
+                with self.assertRaises(ValueError):
+                    matrix.load_known_failures(known, ['*.nanz'])
+
     def test_separate_trees_and_sandbox_units(self):
         with tempfile.TemporaryDirectory() as temp:
             parent=Path(temp); before=parent/'before'; after=parent/'after'

@@ -7,6 +7,7 @@ must be instrumented: an exit-zero invocation without a receipt never passes.
 """
 import argparse
 import concurrent.futures
+import fnmatch
 import json
 import os
 from pathlib import Path
@@ -184,6 +185,54 @@ def matrix(root, globs, compilers, jobs, runs, timeout, controls=False, roots=No
     return {'version': 1, 'summary': summary, 'results': results}
 
 
+def normalize_expression(expression):
+    return ' '.join(expression.split())
+
+
+def load_known_failures(path, globs):
+    entries = json.loads(path.read_text())
+    seen = set()
+    for entry in entries:
+        if not all(k in entry for k in ('file', 'line', 'expression', 'error', 'reason', 'date')):
+            raise ValueError(f'invalid known failure: {entry}')
+        if (not isinstance(entry['line'], int) or entry['line'] < 1 or
+                any(not isinstance(entry[k], str) or not entry[k] for k in
+                    ('file', 'expression', 'error', 'reason', 'date')) or
+                entry['expression'] != normalize_expression(entry['expression'])):
+            raise ValueError(f'invalid known failure: {entry}')
+        key = (entry['file'], entry['line'], entry['expression'])
+        if key in seen:
+            raise ValueError(f'duplicate known failure: {key}')
+        seen.add(key)
+    # A deliberately restricted corpus only audits entries in that corpus.
+    return [e for e in entries if any(fnmatch.fnmatchcase(e['file'], g) for g in globs)]
+
+
+def apply_known_failures(report, entries, label):
+    issues = []
+    for entry in entries:
+        matches = [r for r in report['results'] if r['file'] == entry['file'] and
+                   r['line'] == entry['line'] and label in r and
+                   normalize_expression(' '.join(a['expression'] for a in r['members'][label])) == entry['expression']]
+        if len(matches) != 1:
+            status = 'known failure assert no longer exists'
+        else:
+            result = matches[0]
+            attempts = result[label]['runs']
+            if result[label]['pass']:
+                status = 'known failure fixed — remove the entry'
+            elif all(not a['pass'] and a.get('error') == entry['error'] for a in attempts):
+                status = 'known failure'
+            else:
+                status = 'known failure changed'
+            result['known_failure'] = status
+        if status != 'known failure':
+            issues.append({**entry, 'status': status})
+    report['known_failure_issues'] = issues
+    report['summary']['known failures'] = sum(r.get('known_failure') == 'known failure' for r in report['results'])
+    report['summary']['known_failure_issues'] = len(issues)
+
+
 def positive(value):
     n = int(value)
     if n < 1:
@@ -197,11 +246,16 @@ def exit_code(report, comparison, allow=False):
         return 2
     if comparison and not any(r.get('baseline', {}).get('pass') for r in report['results']):
         return 2
-    if s['controls_unexpected_pass'] or s.get('flaky', 0):
+    if s['controls_unexpected_pass'] or s.get('flaky', 0) or s.get('known_failure_issues', 0):
         return 1
     if comparison:
-        return int(bool(s.get('newly fail', 0) or s['added_failures'] or (not allow and (s['removed'] or s['changed']))))
-    return int(bool(s.get('fail', 0)))
+        return int(any(r.get('known_failure') != 'known failure' and
+                       (r['classification'] == 'newly fail' or
+                        (r['classification'] == 'added' and not r['candidate']['pass']))
+                       for r in report['results']) or
+                   (not allow and bool(s['removed'] or s['changed'])))
+    return int(any(r['classification'] == 'fail' and r.get('known_failure') != 'known failure'
+                   for r in report['results']))
 
 
 def main():
@@ -215,6 +269,8 @@ def main():
     p.add_argument('--runs', type=positive, default=1)
     p.add_argument('--timeout', type=float, default=30)
     p.add_argument('--json', type=Path)
+    p.add_argument('--known-failures', type=Path,
+                   default=Path(__file__).with_name('assert_known_failures.json'))
     p.add_argument('--allow-assert-changes', action='store_true')
     p.add_argument('--controls', action=argparse.BooleanOptionalAction, default=True,
                    help='negative controls, enabled by default; --no-controls skips them')
@@ -242,14 +298,19 @@ def main():
                     subprocess.run(['git', '-C', temp, 'add', '.'], check=True)
                     roots['baseline'] = Path(temp)
                 roots['candidate'] = (args.candidate_root or root).resolve()
-            report = matrix(root, args.glob or DEFAULT_GLOBS, compilers, args.j, args.runs, args.timeout, args.controls, roots)
+            globs = args.glob or DEFAULT_GLOBS
+            entries = load_known_failures(args.known_failures, globs)
+            report = matrix(root, globs, compilers, args.j, args.runs, args.timeout, args.controls, roots)
+            apply_known_failures(report, entries, 'candidate' if comparison else 'compiler')
         if args.json:
             args.json.write_text(json.dumps(report, indent=2) + '\n')
         print(json.dumps(report, indent=2) if not comparison else json.dumps(report['summary'], indent=2))
         if comparison:
             for r in report['results']:
-                if r['classification'] in ('newly fail', 'flaky') or r.get('changed_failure') or (r['classification'] == 'added' and not r['candidate']['pass']):
-                    print(f'{r["file"]}:{r["line"]}: {r["classification"]}: {r.get("candidate", {}).get("runs", [{}])[0].get("error", "")}')
+                if r.get('known_failure') or r['classification'] in ('newly fail', 'flaky') or r.get('changed_failure') or (r['classification'] == 'added' and not r['candidate']['pass']):
+                    print(f'{r["file"]}:{r["line"]}: {r.get("known_failure", r["classification"])}: {r.get("candidate", {}).get("runs", [{}])[0].get("error", "")}')
+        for issue in report['known_failure_issues']:
+            print(f'{issue["file"]}:{issue["line"]}: {issue["status"]}', file=sys.stderr)
         return exit_code(report, comparison, args.allow_assert_changes)
     except Exception as e:
         print(f'tool error: {e}', file=sys.stderr)
