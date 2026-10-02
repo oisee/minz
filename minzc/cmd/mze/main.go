@@ -125,9 +125,7 @@ SUPPORTED PLATFORMS (-t/--target):
 		}
 
 		// --- Execution limit from timeout ---
-		if timeout > 0 {
-			z80.RemogattoZ80.MaxCycles = int(timeout)
-		}
+		setExecutionLimit(z80.RemogattoZ80, timeout)
 
 		// --- Profiler ---
 		var prof *emulator.Profiler
@@ -812,6 +810,14 @@ func setupAgonMOS(z80 *emulator.RemogattoZ80WithScreen) {
 			return regs, true
 		}
 	})
+}
+
+// setExecutionLimit translates the CLI's zero timeout into an unlimited Run.
+func setExecutionLimit(cpu *emulator.RemogattoZ80, timeout uint) {
+	cpu.MaxCycles = -1
+	if timeout > 0 {
+		cpu.MaxCycles = int(timeout)
+	}
 }
 
 func init() {

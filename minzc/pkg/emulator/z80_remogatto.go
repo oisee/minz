@@ -50,7 +50,7 @@ type RemogattoZ80 struct {
 	tstateTrapTarget int64
 	tstateTrapCB     func(cycles int64)
 
-	// Execution limit (0 = default 10M)
+	// Execution limit per Run call (0 = default 10M, negative = unlimited)
 	MaxCycles int
 }
 
@@ -62,12 +62,15 @@ type RSTRegisters struct {
 
 // Memory implements z80.MemoryAccessor interface
 type Memory struct {
+	cpu        *z80.Z80
 	data       [65536]byte
 	romEnd     uint16
 	smcTracker func(addr uint16, oldVal, newVal byte) // Optional SMC tracking
 	profiler   *Profiler                              // Optional profiler hooks
 }
 
+// NewMemory creates ROM-protected memory. Timing is disabled until its CPU is
+// wired, as in NewRemogattoZ80; standalone access is safe and untimed.
 func NewMemory() *Memory {
 	return &Memory{
 		romEnd: 0x4000, // Default ROM boundary (ZX Spectrum)
@@ -82,6 +85,11 @@ func (m *Memory) SetROMEnd(addr uint16) {
 }
 
 func (m *Memory) ReadByte(address uint16) byte {
+	m.addTstates(3)
+	return m.readByte(address)
+}
+
+func (m *Memory) readByte(address uint16) byte {
 	if m.profiler != nil {
 		m.profiler.OnMemRead(address)
 	}
@@ -89,6 +97,11 @@ func (m *Memory) ReadByte(address uint16) byte {
 }
 
 func (m *Memory) WriteByte(address uint16, value byte) {
+	m.addTstates(3)
+	m.writeByte(address, value)
+}
+
+func (m *Memory) writeByte(address uint16, value byte) {
 	if address < m.romEnd {
 		return // ROM protection
 	}
@@ -112,25 +125,36 @@ func (m *Memory) ReadByteInternal(address uint16) byte {
 }
 
 func (m *Memory) WriteByteInternal(address uint16, value byte) {
-	m.WriteByte(address, value)
+	m.writeByte(address, value)
 }
 
-func (m *Memory) ContendRead(address uint16, time int)                         {}
-func (m *Memory) ContendReadNoMreq(address uint16, time int)                   {}
-func (m *Memory) ContendReadNoMreq_loop(address uint16, time int, count uint)  {}
-func (m *Memory) ContendWriteNoMreq(address uint16, time int)                  {}
-func (m *Memory) ContendWriteNoMreq_loop(address uint16, time int, count uint) {}
+// Standalone accessors have no CPU clock until attached by the constructor.
+func (m *Memory) addTstates(time int) {
+	if m.cpu != nil {
+		m.cpu.Tstates += time
+	}
+}
+
+func (m *Memory) ContendRead(address uint16, time int)       { m.addTstates(time) }
+func (m *Memory) ContendReadNoMreq(address uint16, time int) { m.addTstates(time) }
+func (m *Memory) ContendReadNoMreq_loop(address uint16, time int, count uint) {
+	m.addTstates(time * int(count))
+}
+func (m *Memory) ContendWriteNoMreq(address uint16, time int) { m.addTstates(time) }
+func (m *Memory) ContendWriteNoMreq_loop(address uint16, time int, count uint) {
+	m.addTstates(time * int(count))
+}
 
 // Additional methods required by MemoryAccessor
 func (m *Memory) Read(address uint16) byte {
-	return m.ReadByte(address)
+	return m.readByte(address)
 }
 
 func (m *Memory) Write(address uint16, value byte, protectROM bool) {
 	if protectROM && address < m.romEnd {
 		return
 	}
-	m.WriteByte(address, value)
+	m.writeByte(address, value)
 }
 
 func (m *Memory) Data() []byte {
@@ -139,6 +163,7 @@ func (m *Memory) Data() []byte {
 
 // Ports implements z80.PortAccessor interface
 type Ports struct {
+	cpu     *z80.Z80
 	ioRead  func(port uint16) byte
 	ioWrite func(port uint16, value byte)
 	output  *[]byte
@@ -155,6 +180,8 @@ type Ports struct {
 	stderrOut  io.Writer
 }
 
+// NewPorts creates I/O ports with captured output. Timing is disabled until its
+// CPU is wired, as in NewRemogattoZ80; standalone access is safe and untimed.
 func NewPorts(output *[]byte) *Ports {
 	return &Ports{
 		output: output,
@@ -193,6 +220,12 @@ func (p *Ports) SetStderrPort(port byte, writer io.Writer) {
 }
 
 func (p *Ports) ReadPort(address uint16) byte {
+	p.addTstates(1)
+	defer p.addTstates(3)
+	return p.readPort(address)
+}
+
+func (p *Ports) readPort(address uint16) byte {
 	if p.profiler != nil {
 		p.profiler.OnIORead(address)
 	}
@@ -222,6 +255,12 @@ func (p *Ports) ReadPort(address uint16) byte {
 }
 
 func (p *Ports) WritePort(address uint16, b byte) {
+	p.addTstates(1)
+	defer p.addTstates(3)
+	p.writePort(address, b)
+}
+
+func (p *Ports) writePort(address uint16, b byte) {
 	if p.profiler != nil {
 		p.profiler.OnIOWrite(address)
 	}
@@ -253,13 +292,20 @@ func (p *Ports) WritePort(address uint16, b byte) {
 }
 
 func (p *Ports) ReadPortInternal(address uint16, contend bool) byte {
-	return p.ReadPort(address)
+	return p.readPort(address)
 }
 
 func (p *Ports) WritePortInternal(address uint16, b byte, contend bool) {
-	p.WritePort(address, b)
+	p.writePort(address, b)
 }
 
+func (p *Ports) addTstates(time int) {
+	if p.cpu != nil {
+		p.cpu.Tstates += time
+	}
+}
+
+// Port timing is charged by ReadPort/WritePort, matching the FUSE reference.
 func (p *Ports) ContendPortPreio(address uint16)  {}
 func (p *Ports) ContendPortPostio(address uint16) {}
 
@@ -269,6 +315,8 @@ func NewRemogattoZ80() *RemogattoZ80 {
 	output := make([]byte, 0)
 	ports := NewPorts(&output)
 	cpu := z80.NewZ80(memory, ports)
+	memory.cpu = cpu
+	ports.cpu = cpu
 
 	return &RemogattoZ80{
 		cpu:          cpu,
@@ -305,9 +353,10 @@ func (z *RemogattoZ80) LoadMemory(address uint16, data []byte) error {
 // Undefined ED-prefix opcodes cause panics in the remogatto/z80 library;
 // we treat them as NOP with 8 T-states (matching MZX behavior).
 func (z *RemogattoZ80) safeDoOpcode() {
+	oldCycles := z.cpu.Tstates
 	defer func() {
 		if r := recover(); r != nil {
-			z.cpu.Tstates += 8 // Treat undefined opcode as NOP
+			z.cpu.Tstates = oldCycles + 8 // Include any opcode fetch time already charged
 		}
 	}()
 	z.cpu.DoOpcode()
@@ -330,6 +379,7 @@ func (z *RemogattoZ80) SetTStateTrap(target int64, cb func(int64)) {
 
 // Run executes instructions until a termination condition
 func (z *RemogattoZ80) Run() error {
+	start := z.cycles
 	prof := z.Profiler // local copy for zero-cost nil check
 	maxCycles := z.MaxCycles
 	if maxCycles == 0 {
@@ -399,8 +449,9 @@ func (z *RemogattoZ80) Run() error {
 		}
 
 		// Execute one instruction (with panic recovery for undefined opcodes)
+		oldCycles := z.cpu.Tstates
 		z.safeDoOpcode()
-		z.cycles += int(z.cpu.Tstates)
+		z.cycles += z.cpu.Tstates - oldCycles
 
 		// Profiler: track SP changes (stack push/pop detection)
 		if prof != nil {
@@ -445,7 +496,7 @@ func (z *RemogattoZ80) Run() error {
 		}
 
 		// Safety: limit execution
-		if z.cycles > maxCycles {
+		if maxCycles > 0 && z.cycles-start > maxCycles {
 			return fmt.Errorf("execution limit exceeded")
 		}
 	}
