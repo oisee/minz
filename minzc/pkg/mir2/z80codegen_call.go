@@ -186,7 +186,7 @@ func (g *z80cg) genCall(inst *Inst) error {
 		g.pushWord(g.loc(inst.Src[0]))
 	}
 	if len(inst.Args) > 0 && callee != nil {
-		g.emitCallArgs(inst.Args, callee.Contract.Params)
+		g.emitCallArgs(inst.Args, callee)
 	}
 	if indirect {
 		g.emit("    POP IX")
@@ -449,27 +449,34 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 //
 // Argument locations are transient. Caller values keep their original locations
 // after caller-save restoration, so argument setup does not change physOverride.
-func (g *z80cg) emitCallArgs(args []Reg, params []Param) {
+func (g *z80cg) emitCallArgs(args []Reg, callee *Func) {
 	var copies []parallelCopy
 	for i, arg := range args {
-		if i >= len(params) {
+		if i >= len(callee.Contract.Params) {
 			break
 		}
+		param := callee.Contract.Params[i]
 		srcPhys := g.loc(arg)
 		// Use the callee's actual allocated register for the param if available
 		// (from PBQP). Fall back to canonical class-based location otherwise.
 		dstPhys := ""
-		if loc, ok := g.ar.Locs[params[i].Reg]; ok && loc.Name != "" {
-			dstPhys = physName(loc)
+		if loc, ok := g.ar.Locs[param.Reg]; ok && loc.Name != "" {
+			if loc.Kind == LocMem && callee.Name != "" && len(callee.Blocks) > 0 {
+				// Production codegen reads the callee's named spill slot, not
+				// the allocator's provisional $F0xx offset.
+				dstPhys = Z80SpillLabel(callee.Name, param.Reg)
+			} else {
+				dstPhys = physName(loc)
+			}
 		}
 		if dstPhys == "" {
-			dstPhys = canonicalReturnLoc(params[i].Class, params[i].Ty)
+			dstPhys = canonicalReturnLoc(param.Class, param.Ty)
 		}
 		// Always include in copies — even no-ops (src==dst). This ensures the
 		// parallel copy scratch picker knows ALL live arg registers and won't
 		// clobber them when resolving cycles (e.g. B↔C using A as scratch
 		// when A holds arg0).
-		copies = append(copies, parallelCopy{srcName: srcPhys, dstName: dstPhys, ty: params[i].Ty})
+		copies = append(copies, parallelCopy{srcName: srcPhys, dstName: dstPhys, ty: param.Ty})
 	}
 	if len(copies) == 0 {
 		return
