@@ -309,3 +309,13 @@ min/median/max of the five **whole-corpus totals**, not summed per-input bounds.
 | `examples/nanz/zsql.nanz` | 5 | 1 | — | — |
 | `examples/nanz/zsql_zx.nanz` | 2 | 1 | — | — |
 | `examples/nanz/zsql_zx_real.nanz` | 2 | 1 | — | — |
+
+## Update after rebase onto PR #58 (2026-10-02)
+
+PR #58 fixed the 16-bit add destination/operand overlap that the frozen
+allocation exposed. After rebasing this branch onto it, both previously
+regressed asserts pass in isolation with `--asserts-force z80`:
+`c99_math8.c:78 saturating_add(100,50) == 150` and
+`c_edge_cases.c:53 double_inc(5) == 11`. The production determinism tests
+still pass, and five repeated compilations of c99_math8.c, c_edge_cases.c,
+self_tokenizer.nanz and 08_arena_allocator.nanz each produce one assembly.
