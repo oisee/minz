@@ -115,6 +115,9 @@ jobs:
 
   compiler_checks:
     name: Compiler checks
+    # Required on the PR merge tree; repeating the same expensive matrix on
+    # main immediately after merge doubles runner use and queues the next PR.
+    if: github.event_name == 'pull_request'
     uses: ./.github/workflows/assert-checks.yml
     with:
       candidate: ${{ github.sha }}
