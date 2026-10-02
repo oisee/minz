@@ -4,10 +4,17 @@ set -euo pipefail
 mkdir -p "$REPORT_DIR"
 export GOLANGCI_LINT_CACHE=${GOLANGCI_LINT_CACHE:-/tmp/minz-golangci-cache}
 start=$SECONDS
-set +e
-(cd minzc && golangci-lint run --new-from-rev="$BASE_SHA" --show-stats=false ./pkg/... ./cmd/...) > "$REPORT_DIR/lint.json" 2> "$REPORT_DIR/lint.log"
-status=$?
-set -e
+changed_go=$(git diff --name-only --diff-filter=ACMR "$BASE_SHA" HEAD -- ':(glob)minzc/**/*.go')
+if [[ -z $changed_go ]]; then
+    printf '{"Issues": []}\n' > "$REPORT_DIR/lint.json"
+    printf 'No changed Go source files; Go lint skipped.\n' > "$REPORT_DIR/lint.log"
+    status=0
+else
+    set +e
+    (cd minzc && golangci-lint run --new-from-rev="$BASE_SHA" --show-stats=false --output.json.path stdout --output.text.path /dev/null ./pkg/... ./cmd/...) > "$REPORT_DIR/lint.json" 2> "$REPORT_DIR/lint.log"
+    status=$?
+    set -e
+fi
 python3 - "$REPORT_DIR" "$status" "$((SECONDS-start))" <<'PY'
 import json, os, pathlib, subprocess, sys
 root = pathlib.Path(sys.argv[1])
