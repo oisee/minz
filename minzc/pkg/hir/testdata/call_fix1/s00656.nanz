@@ -1,0 +1,36 @@
+fun entry(a: u16, b: u8) -> u16 {
+  let v4: u16 = (a + a)
+  let v5: u8 = (b & h1(b, b))
+  let res: u16 = (v5 as u16) xor (b as u16) xor a xor v4
+  return res
+}
+fun h0(p0: u8, p1: u8) -> u16 {
+  if (p0 as u16) < (p0 as u16) {
+    return ((2 + (p0 as u16)) - (p1 as u16))
+  }
+  return (((p1 as u16) & (p0 as u16)) | 5441)
+}
+fun h2(p0: u16, p1: u8, p2: u8) -> u16 {
+  let l1: u8 = (p1 * p1)
+  let l2: u16 = p0
+  if l2 < l2 {
+    return l2
+  }
+  return 17186
+}
+fun h1(p0: u8, p1: u8) -> u8 {
+  let l0: u16 = h0(209, 243)
+  if p1 < p1 {
+    return (p1 xor (63 + p0))
+  }
+  return (p1 | p1)
+}
+fun h3(p0: u8, p1: u16, p2: u16) -> u16 {
+  let l3: u8 = h1(p0, p0)
+  if 50395 < p1 {
+    return ((p1 * p2) + (p2 & p2))
+  }
+  return h2(h0(p0, p0), p0, (p2 as u8))
+}
+assert entry(53403, 52) == 29101 via z80
+assert entry(16296, 109) == 16632 via z80

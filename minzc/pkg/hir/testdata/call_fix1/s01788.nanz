@@ -1,0 +1,24 @@
+fun h1(p0: u16, p1: u16) -> u16 {
+  let l0: u8 = h0((p0 as u8))
+  let l1: u8 = h0(l0)
+  if 61122 < 9 {
+    return (l1 as u16)
+  }
+  return p0
+}
+fun h0(p0: u8) -> u8 {
+  if 252 < 9 {
+    return (p0 | (p0 + 244))
+  }
+  return (p0 & (p0 % (p0 | 1)))
+}
+fun entry(a: u16, b: u8) -> u16 {
+  let v2: u16 = a
+  let v3: u8 = b
+  let v4: u16 = h1(a, (b as u16))
+  let v5: u16 = h1(a, a)
+  let res: u16 = v4 xor (v3 as u16) xor a xor v2 xor (b as u16) xor v5
+  return res
+}
+assert entry(34530, 10) == 0 via z80
+assert entry(17927, 134) == 0 via z80

@@ -1,0 +1,52 @@
+// Tail-recursive algorithms — O(n), single stack frame
+// Tail call: last operation is CALL → optimizable to JP (no stack growth)
+//
+// Currently PBQP fallback on Z80 (VIR timeout on recursion).
+// Z80 asserts blocked by CALL clobber bug — use mir2 only.
+
+// Fibonacci with accumulator
+fun fib_tail(n: u8, a: u8, b: u8) -> u8 {
+    if n == 0 { return a }
+    return fib_tail(n - 1, b, a + b)
+}
+
+fun fib(n: u8) -> u8 {
+    return fib_tail(n, 0, 1)
+}
+
+// Factorial with accumulator
+fun fact_tail(n: u8, acc: u8) -> u8 {
+    if n <= 1 { return acc }
+    return fact_tail(n - 1, acc * n)
+}
+
+fun fact(n: u8) -> u8 {
+    return fact_tail(n, 1)
+}
+
+// Sum 1..n with accumulator
+fun sum_tail(n: u8, acc: u8) -> u8 {
+    if n == 0 { return acc }
+    return sum_tail(n - 1, acc + n)
+}
+
+fun sum_to(n: u8) -> u8 {
+    return sum_tail(n, 0)
+}
+
+// Power of 2 with accumulator
+fun pow2_tail(n: u8, acc: u8) -> u8 {
+    if n == 0 { return acc }
+    return pow2_tail(n - 1, acc + acc)
+}
+
+fun pow2(n: u8) -> u8 {
+    return pow2_tail(n, 1)
+}
+
+// mir2 asserts (Z80 blocked by CALL clobber — uncomment when fixed)
+
+
+
+assert fact(3) == 6 via z80
+assert fact(5) == 120 via z80

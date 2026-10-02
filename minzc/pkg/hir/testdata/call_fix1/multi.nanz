@@ -1,0 +1,12 @@
+fun mm(a: u16, b: u16) -> (u16, u16) {
+  if a < b { return (a, b) }
+  return (b, a)
+}
+fun entry(x: u16, y: u16, z: u16, w: u8) -> u16 {
+  let k: u16 = x xor z
+  let j: u16 = y + z
+  let (lo, hi) = mm(x, y)
+  let r: u16 = (lo xor 3) + (hi xor 5) + (k xor 7) + j + (w as u16)
+  return r
+}
+assert entry(10, 3, 100, 9) == 232 via z80

@@ -331,6 +331,9 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 			tr.Backend = "PBQP"
 		}
 	}
+	if err := mir2.ValidateZ80IndirectCalls(m); err != nil {
+		return s, err
+	}
 	s.Assembly = mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{
 		AnnotateTStates: opt.AnnotateTStates,
 	})
@@ -492,6 +495,9 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	}
 
 	// Z80 assembly text.
+	if err := mir2.ValidateZ80IndirectCalls(m); err != nil {
+		return "", err
+	}
 	asm := mir2.Z80Codegen(m, combined)
 
 	// Z80 binary assertion checks (skip "mir2"-only asserts).

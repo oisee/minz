@@ -1,0 +1,6 @@
+fun entry(a: u16, b: u16) -> u16 {
+  let square: u16 = a * a
+  return square + a + b
+}
+assert entry(17, 9) == 315 via z80
+assert entry(257, 513) == 1283 via z80

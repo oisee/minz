@@ -622,6 +622,17 @@ func physicalAliases(loc PhysLoc) []PhysLoc {
 			}
 		}
 	}
-	// For non-LocReg non-LocDWord locs (shadow, IXY, etc.), no pair overlap applies.
+	if loc.Kind == LocIXY && (loc.Name == "IX" || loc.Name == "IY") {
+		return []PhysLoc{{Kind: LocIXY8, Name: loc.Name + "H"}, {Kind: LocIXY8, Name: loc.Name + "L"}}
+	}
+	if loc.Kind == LocIXY8 {
+		switch loc.Name {
+		case "IXH", "IXL":
+			return []PhysLoc{{Kind: LocIXY, Name: "IX"}}
+		case "IYH", "IYL":
+			return []PhysLoc{{Kind: LocIXY, Name: "IY"}}
+		}
+	}
+	// Other location kinds have no additional pair overlap.
 	return nil
 }

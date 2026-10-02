@@ -1,0 +1,16 @@
+type Transform = fun(u8) -> u8
+fun twist(x: u8) -> u8 {
+  let y: u8 = x xor 90
+  if y < 50 { return y + 7 }
+  return y - 3
+}
+fun apply(f: Transform, x: u8, k: u16, j: u8) -> u16 {
+  let m: u16 = k xor 4660
+  let r: u8 = f(x)
+  let s: u16 = m + (j as u16) + (r as u16) + k
+  return s
+}
+fun go(x: u8, k: u16, j: u8) -> u16 {
+  return apply(twist, x, k, j)
+}
+assert go(3, 1000, 9) == 5667 via z80

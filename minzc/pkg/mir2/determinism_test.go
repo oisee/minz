@@ -41,7 +41,11 @@ func TestAccumulatorSelectionDeterministic(t *testing.T) {
 				case "alu":
 					g.saveAccIfLive(inst)
 				case "call":
-					g.saveAccAcrossCall(inst, nil)
+					pairs := g.callerSavePairs(inst, &Func{})
+					if !reflect.DeepEqual(pairs, []string{"AF"}) || len(g.physOverride) != 0 {
+						t.Fatalf("unstable caller saves: %v; overrides: %v", pairs, g.physOverride)
+					}
+					continue
 				case "overwrite":
 					g.saveABeforeOverwrite(inst)
 				}
