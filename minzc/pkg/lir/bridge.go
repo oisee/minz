@@ -30,7 +30,26 @@ type LowerResult struct {
 func LowerMIR2Block(b *mir2.Block, desc *MachineDesc, mod *mir2.Module, funcParamVRegs ...[]int) ([]MIROp, error) {
 	var ops []MIROp
 
+	constants := make(map[mir2.Reg]int64)
 	for _, inst := range b.Insts {
+		if err := checkValueWidths(inst); err != nil {
+			return nil, fmt.Errorf("block %s: %w", b.Label, err)
+		}
+		if inst.Op == mir2.OpCmp && !compareOnlyFeedsCondRet(b, inst) {
+			return nil, fmt.Errorf("block %s: %w", b.Label, unsupportedOp(inst))
+		}
+		if inst.Op == mir2.OpShl || inst.Op == mir2.OpShr {
+			count, constant := constants[inst.Src[1]]
+			if inst.Ty == nil || inst.Ty.Width() > 8 || !constant || count != 1 {
+				return nil, fmt.Errorf("block %s: %w (only 8-bit shifts by constant 1 supported)", b.Label, unsupportedOp(inst))
+			}
+		}
+		if inst.Dst != mir2.NoReg {
+			delete(constants, inst.Dst)
+			if inst.Op == mir2.OpConst {
+				constants[inst.Dst] = inst.Imm
+			}
+		}
 		if inst.Op == mir2.OpCall || inst.Op == mir2.OpCallIndirect {
 			callOps, err := translateCall(inst, desc, mod)
 			if err != nil {
@@ -1138,9 +1157,55 @@ func unsupportedOp(inst *mir2.Inst) error {
 	return fmt.Errorf("lir: unsupported op %s", inst.Op)
 }
 
+// compareOnlyFeedsCondRet permits flag comparisons only when the block's
+// sentinel is their sole consumer. MIROp cannot represent a boolean predicate.
+func compareOnlyFeedsCondRet(b *mir2.Block, inst *mir2.Inst) bool {
+	if inst.Op != mir2.OpCmp || inst.Dst == mir2.NoReg {
+		return false
+	}
+	cr, ok := b.Term.(*mir2.TermCondRet)
+	if !ok || cr.Cond != inst.Dst || len(cr.Vals) == 0 {
+		return false
+	}
+	for _, other := range b.Insts {
+		for _, use := range other.Uses() {
+			if use == inst.Dst {
+				return false
+			}
+		}
+	}
+	for _, uses := range [][]mir2.Reg{cr.Vals, cr.ThenArgs} {
+		for _, use := range uses {
+			if use == inst.Dst {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func checkValueWidths(inst *mir2.Inst) error {
+	for _, ty := range []mir2.Ty{inst.Ty, inst.SrcTy} {
+		if ty != nil && ty.Width() > 16 {
+			return fmt.Errorf("%w: value width %d exceeds 16 bits", unsupportedOp(inst), ty.Width())
+		}
+	}
+	return nil
+}
+
 func translateInst(inst *mir2.Inst, desc *MachineDesc) (*MIROp, error) {
 	if inst.Dst == mir2.NoReg && inst.Op != mir2.OpStore {
-		return nil, nil // skip side-effect-free instructions with no result
+		// Only explicitly pure operations may disappear. Unknown operations
+		// and destinationless effects (asm, patch, push/pop, I/O) must fail.
+		switch inst.Op {
+		case mir2.OpConst, mir2.OpMove, mir2.OpAdd, mir2.OpSub, mir2.OpAnd,
+			mir2.OpOr, mir2.OpXor, mir2.OpNeg, mir2.OpNot, mir2.OpTrunc,
+			mir2.OpExt, mir2.OpSext, mir2.OpAddrOf, mir2.OpField,
+			mir2.OpPtrAdd, mir2.OpPtrBump:
+			return nil, nil
+		default:
+			return nil, unsupportedOp(inst)
+		}
 	}
 
 	width := 8
@@ -1155,15 +1220,8 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc) (*MIROp, error) {
 	if width < 8 {
 		width = 8
 	}
-	// Cap width to max register width. Struct types may report their full
-	// byte size (e.g. Arena = 32 bits) but the register holds a pointer (16 bits).
-	// On Z80/CISC, max register width is 16.
-	maxWidth := desc.WordSize
-	if maxWidth < 16 {
-		maxWidth = 16
-	}
-	if width > maxWidth {
-		width = maxWidth
+	if err := checkValueWidths(inst); err != nil {
+		return nil, err
 	}
 
 	// Mask immediate to width to prevent overflow (CP 4294967295 → CP 255).
@@ -1211,7 +1269,7 @@ func translateInst(inst *mir2.Inst, desc *MachineDesc) (*MIROp, error) {
 		op.Op = OpXor
 	case mir2.OpShl:
 		op.Op = OpShl
-	case mir2.OpShr, mir2.OpSar:
+	case mir2.OpShr:
 		op.Op = OpShr
 	case mir2.OpCmp:
 		// CmpSubCarry: carry flag already set by preceding SUB — no instruction needed.

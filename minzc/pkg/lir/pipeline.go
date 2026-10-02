@@ -337,6 +337,16 @@ func LIRCodegenFunc(f *mir2.Func, m *mir2.Module, hints ...AllocHints) (string, 
 		return "", fmt.Errorf("multi-block LIR disabled until it passes the judge")
 	}
 
+	for _, p := range f.Contract.Params {
+		if p.Ty != nil && p.Ty.Width() > 16 {
+			return "", fmt.Errorf("lir: parameter value width %d exceeds 16 bits", p.Ty.Width())
+		}
+	}
+	for _, r := range f.Contract.Returns {
+		if r.Ty != nil && r.Ty.Width() > 16 {
+			return "", fmt.Errorf("lir: return value width %d exceeds 16 bits", r.Ty.Width())
+		}
+	}
 	return lirCodegenFlat(f, desc, m, h)
 }
 
@@ -906,7 +916,7 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 	// without an explicit move, WFC never sees %r2 and can't save it across CALLs.
 	for _, b := range f.Blocks {
 		if ret, ok := b.Term.(*mir2.TermRet); ok {
-			for _, v := range ret.Vals {
+			for ri, v := range ret.Vals {
 				if v == mir2.NoReg {
 					continue
 				}
@@ -921,11 +931,28 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 				if !produced {
 					// Emit a move to self — this materializes the vreg in the LIR stream
 					// so WFC tracks it and emitInstsWithCallSpills can save it.
+					width := 0
+					for _, p := range f.Contract.Params {
+						if p.Reg == v && p.Ty != nil {
+							width = p.Ty.Width()
+							break
+						}
+					}
+					if width == 0 {
+						return "", fmt.Errorf("lir: unknown type for return vreg %d", v)
+					}
+					if width < 8 {
+						width = 8
+					}
+					if width > 16 {
+						return "", fmt.Errorf("lir: return value width %d exceeds 16 bits", width)
+					}
+					if ri >= len(f.Contract.Returns) {
+						return "", fmt.Errorf("lir: missing return contract")
+					}
 					allOps = append(allOps, MIROp{
-						Op:    OpMove,
-						Dst:   int(v),
-						Src:   [2]int{int(v), -1},
-						Width: 8, // TODO: infer from contract
+						Op: OpMove, Dst: int(v), Src: [2]int{int(v), -1}, Width: width,
+						DstAllowed: regClassToLocSet(desc, f.Contract.Returns[ri].Class, width),
 					})
 				}
 			}
@@ -944,6 +971,21 @@ func lirCodegenFlat(f *mir2.Func, desc *MachineDesc, m *mir2.Module, hints ...Al
 
 	// Extract function params as block params so isel+WFC know about them.
 	params := ContractParamsToBlockParams(f, desc)
+
+	// Parameter locations are the caller-visible ABI, not allocation preferences.
+	// A broad contract class must not let WFC move an incoming parameter without
+	// a setup move. Seed isel from the production allocation so it inserts one.
+	if len(hints) > 0 && hints[0] != nil {
+		for i := range params {
+			if phys, ok := hints[0][params[i].VReg]; ok {
+				if phys < 0 || phys >= len(desc.Locs) {
+					return "", fmt.Errorf("lir: invalid parameter location %d", phys)
+				}
+				params[i].Allowed = LocSet(0).Set(phys)
+				params[i].Phys = phys
+			}
+		}
+	}
 
 	// Isel with param pre-seeding
 	sel, err := SelectBlockInstructions(desc, combResult.Ops, params)
