@@ -170,7 +170,13 @@ loses argument setup, result pickup, or a fixed address. A preservation decision
 cannot discard the rest of a callee's ABI.
 
 `hir/lower.go` now gives externs a **Params contract**, fixing extern argument
-passing in general, not only declared-clobber calls. The critic's single extern
+passing for small arities, not only declared-clobber calls. **Known gap:** each
+extern parameter class maps straight to one fixed register, so signatures with
+several parameters of the same class collide (e.g. `(u16, u16, u16)` -> HL, DE,
+DE; four `u8` -> A, C, B, C; `canvas_line` in `examples/frill/graphics.frl`) and
+the call site silently loses an argument. origin/main set up no extern arguments
+at all, so this is not a regression; distinct-register assignment for externs is
+a follow-up. The critic's single extern
 `ps1` returns 3 on origin/main and 6 on this branch with the same `ADD A,C; RET`
 stub. This changes the extern ABI for other frontends using HIR lowering: callers
 now copy arguments into the contract registers and pick up the declared return.

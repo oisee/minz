@@ -914,7 +914,9 @@ func (g *z80cg) genInst(inst *Inst) {
 		skip := fmt.Sprintf(".%s_callcond%d", sanitizeIdent(g.fn.Name), g.trampIdx)
 		g.trampIdx++
 		g.emitf("    JRS %s, %s", invertCC(cc), skip)
-		g.genCall(inst)
+		if err := g.genCall(inst); err != nil && g.err == nil {
+			g.err = err
+		}
 		g.emitf("%s:", skip)
 		clear(g.holdsPhys) // calls clobber all volatile registers
 
