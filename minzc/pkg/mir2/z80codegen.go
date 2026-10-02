@@ -6652,7 +6652,8 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 			continue
 		}
 		if r.ty.Width() <= 8 {
-			if p != "" {
+			// Indexed memory cannot load IY halves directly; use A as scratch.
+			if p != "" && p != "IY" {
 				g.emitf("    LD %s, (IX+%d)", r.dstName, byteOffset(r.srcName))
 			} else {
 				g.emitf("    LD A, (IX+%d)", byteOffset(r.srcName))
