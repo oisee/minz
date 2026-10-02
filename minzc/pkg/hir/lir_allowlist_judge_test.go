@@ -107,31 +107,27 @@ func TestExhaustiveJudgeLIRAllowlistFallback(t *testing.T) {
 		return &hir.Func{Name: name, Params: ps, RetTy: ret, Body: hir.Blk(hir.Ret(expr))}
 	}
 	type fixture struct {
-		name   string
-		funcs  []*hir.Func
-		count  int
-		inputs func(int) []int64
-		model  func([]int64) int64
-		known  bool
+		name     string
+		funcs    []*hir.Func
+		count    int
+		inputs   func(int) []int64
+		model    func([]int64) int64
+		knownBad int
 	}
 	pair := func(i int) []int64 { return []int64{int64(i >> 8), int64(i & 255)} }
 	unary := func(i int) []int64 { return []int64{int64(i)} }
 	fixtures := []fixture{}
 	add := func(name string, tys []mir2.Ty, ret mir2.Ty, expr hir.Expr, count int, in func(int) []int64, model func([]int64) int64) {
-		fixtures = append(fixtures, fixture{name, []*hir.Func{fn(name, tys, ret, expr)}, count, in, model, false})
+		fixtures = append(fixtures, fixture{name, []*hir.Func{fn(name, tys, ret, expr)}, count, in, model, 0})
 	}
 	add("mul8", []mir2.Ty{u8, u8}, u8, bin("*", v("a", u8), v("b", u8), u8), 65536, pair, func(a []int64) int64 { return (a[0] * a[1]) & 255 })
 	add("mul3", []mir2.Ty{u8}, u8, bin("*", v("a", u8), k(3, u8), u8), 256, unary, func(a []int64) int64 { return (a[0] * 3) & 255 })
 	for _, factor := range []int64{2, 3, 10} {
 		name := fmt.Sprintf("mul16_%d", factor)
 		add(name, []mir2.Ty{u16}, u16, bin("*", v("a", u16), k(factor, u16), u16), 65536, unary, func(a []int64) int64 { return (a[0] * factor) & 65535 })
-		if factor == 10 {
-			fixtures[len(fixtures)-1].known = true
-		}
 	}
 	add("ext", []mir2.Ty{u8}, u16, cast(v("a", u8), u16), 256, unary, func(a []int64) int64 { return a[0] })
 	add("ext2", []mir2.Ty{u8, u8}, u16, bin("+", cast(v("a", u8), u16), cast(v("b", u8), u16), u16), 65536, pair, func(a []int64) int64 { return a[0] + a[1] })
-	fixtures[len(fixtures)-1].known = true // PBQP ext2 was measured at 65,280/65,536 mismatches; allocation can change between runs.
 	add("trunc", []mir2.Ty{u16}, u8, cast(v("a", u16), u8), 65536, unary, func(a []int64) int64 { return a[0] & 255 })
 	for _, op := range []string{"&", "|", "^"} {
 		for _, ty := range []mir2.Ty{u8, u16} {
@@ -163,7 +159,7 @@ func TestExhaustiveJudgeLIRAllowlistFallback(t *testing.T) {
 		return &hir.CallExpr{Fn: name, Args: args, Ty: ty}
 	}
 	fc := fn("fc", []mir2.Ty{u8, u8}, u8, bin("+", bin("+", call("call_sub", []hir.Expr{v("a", u8), v("b", u8)}, u8), call("call_sub", []hir.Expr{v("b", u8), v("a", u8)}, u8), u8), v("a", u8), u8))
-	fixtures = append(fixtures, fixture{"fc", []*hir.Func{sub, fc}, 65536, pair, func(a []int64) int64 { return a[0] }, true})
+	fixtures = append(fixtures, fixture{"fc", []*hir.Func{sub, fc}, 65536, pair, func(a []int64) int64 { return a[0] }, 65280})
 	mn := fn("mn", []mir2.Ty{u8, u8, u8}, u8, v("c", u8))
 	mn.Body = hir.Blk(hir.If(bin("<", v("a", u8), v("b", u8), mir2.TyBool), hir.Blk(hir.Ret(bin("-", v("c", u8), v("a", u8), u8))), nil), hir.Ret(bin("-", v("c", u8), v("b", u8), u8)))
 	c1 := fn("h_c1", []mir2.Ty{u8, u8, u8}, u8, call("mn", []hir.Expr{v("c", u8), v("a", u8), v("b", u8)}, u8))
@@ -173,7 +169,7 @@ func TestExhaustiveJudgeLIRAllowlistFallback(t *testing.T) {
 			m = a[2]
 		}
 		return (a[1] - m) & 255
-	}, true})
+	}, 0})
 	w := fn("w", []mir2.Ty{u16, u16}, u16, v("a", u16))
 	w.Body = hir.Blk(hir.If(bin("<", v("a", u16), v("b", u16), mir2.TyBool), hir.Blk(hir.Ret(bin("-", v("b", u16), v("a", u16), u16))), nil), hir.Ret(bin("-", v("a", u16), v("b", u16), u16)))
 	c4 := fn("h_c4", []mir2.Ty{u16, u16}, u16, bin("+", call("w", []hir.Expr{v("a", u16), k(1000, u16)}, u16), v("b", u16), u16))
@@ -183,19 +179,26 @@ func TestExhaustiveJudgeLIRAllowlistFallback(t *testing.T) {
 			d = -d
 		}
 		return (d + a[1]) & 65535
-	}, true})
+	}, 65536})
+	// Re-measured on deterministic origin/main ed55c1c7, 2026-10-02:
+	// mul16_10, ext2 and h_c1 now require zero mismatches in both modes.
+	// fc and h_c4 retain exact nonzero PBQP counts below.
 	for _, tc := range fixtures {
 		t.Run(tc.name, func(t *testing.T) {
 			bad, first := sweepCodegenJudge(t, tc.funcs, tc.name, tc.count, tc.inputs, tc.model, true)
-			if tc.known {
-				plainBad, plainFirst := sweepCodegenJudge(t, tc.funcs, tc.name, tc.count, tc.inputs, tc.model, false)
+			plainBad, plainFirst := sweepCodegenJudge(t, tc.funcs, tc.name, tc.count, tc.inputs, tc.model, false)
+			t.Logf("--lir %d/%d, plain %d/%d mismatches", bad, tc.count, plainBad, tc.count)
+			if tc.knownBad > 0 {
 				if plainBad == 0 || bad != plainBad {
 					t.Fatalf("known PBQP record requires equal nonzero counts: --lir %d, plain %d; %s / %s", bad, plainBad, first, plainFirst)
 				}
+				if plainBad != tc.knownBad {
+					t.Fatalf("known PBQP count changed: got %d, recorded %d; re-measure both modes", plainBad, tc.knownBad)
+				}
 				t.Skipf("2026-10-02: known production PBQP %s: %d/%d mismatches (%s)", tc.name, plainBad, tc.count, plainFirst)
 			}
-			if bad != 0 {
-				t.Fatalf("%d/%d mismatches: %s", bad, tc.count, first)
+			if bad != 0 || plainBad != 0 {
+				t.Fatalf("--lir %d/%d, plain %d/%d mismatches: %s / %s", bad, tc.count, plainBad, tc.count, first, plainFirst)
 			}
 		})
 	}

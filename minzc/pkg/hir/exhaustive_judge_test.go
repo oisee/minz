@@ -380,7 +380,12 @@ func TestExhaustiveJudgeLIRWideFallback(t *testing.T) {
 					if len(plainRes.Errors) == 0 || len(plainRes.Errors) != len(res.Errors) {
 						t.Fatalf("known PBQP u32 record requires equal nonzero assembly error counts: --lir %d, plain %d (%v)", len(res.Errors), len(plainRes.Errors), plainErr)
 					}
-					t.Skipf("65,636 MIR2 sums checked; known PBQP u32 Z80 assembly errors: %v %v", plainErr, plainRes.Errors)
+					// Re-measured on deterministic origin/main ed55c1c7.
+					const knownAssemblyErrors = 18 // 2026-10-02, both modes
+					if len(plainRes.Errors) != knownAssemblyErrors {
+						t.Fatalf("known PBQP u32 assembly error count changed: got %d, recorded %d; re-measure both modes", len(plainRes.Errors), knownAssemblyErrors)
+					}
+					t.Skipf("2026-10-02: 65,636 MIR2 sums checked; known PBQP u32 Z80 assembly errors: --lir %d, plain %d: %v %v", len(res.Errors), len(plainRes.Errors), plainErr, plainRes.Errors)
 				}
 				t.Fatal("production u32 now assembles: replace this skip with a real judge")
 			}
