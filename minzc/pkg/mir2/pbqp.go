@@ -63,7 +63,7 @@ func nodeCosts(f *Func, info map[Reg]RegInfo, ct CostTable, locs []PhysLoc) map[
 	for _, b := range f.Blocks {
 		for _, inst := range b.Insts {
 			switch inst.Op {
-			case OpAdd, OpSub, OpMul, OpDiv, OpMod,
+			case OpAdd, OpSub, OpMul, OpDiv, OpSDiv, OpSMod, OpMod,
 				OpShl, OpShr, OpSar, OpExt, OpSext, OpTrunc:
 				if inst.Dst != NoReg {
 					aluUsed[inst.Dst] = true

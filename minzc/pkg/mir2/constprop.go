@@ -152,6 +152,16 @@ func tryFoldInst(inst *Inst, consts map[Reg]int64) (int64, bool) {
 			return 0, false
 		}
 		return maskToWidth(lhs/rhs, inst.Ty), true
+	case OpSMod:
+		if !ok0 || !ok1 {
+			return 0, false
+		}
+		lhs := signExtend(Value{I: src0}, inst.Ty.Width()).I
+		rhs := signExtend(Value{I: src1}, inst.Ty.Width()).I
+		if rhs == 0 {
+			return 0, false
+		}
+		return maskToWidth(lhs%rhs, inst.Ty), true
 	case OpMod:
 		if !ok0 || !ok1 || src1 == 0 {
 			return 0, false

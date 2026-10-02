@@ -41,7 +41,7 @@ func DeadStoreElim(f *Func) {
 func isDSEPure(op Op) bool {
 	switch op {
 	case OpConst, OpMove,
-		OpAdd, OpSub, OpMul, OpDiv, OpSDiv, OpMod,
+		OpAdd, OpSub, OpMul, OpDiv, OpSDiv, OpSMod, OpMod,
 		OpAnd, OpOr, OpXor, OpShl, OpShr, OpSar,
 		OpNeg, OpNot, OpExt, OpSext, OpTrunc,
 		OpCmp,

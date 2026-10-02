@@ -1659,19 +1659,24 @@ func (l *lowerer) lowerSwitch(st *SwitchStmt) {
 
 // ── Expression lowering ───────────────────────────────────────────────────────
 
-// lowerExpr lowers a HIR expression and returns the virtual register holding
-// lowerExprAs lowers e, but if e is an integer literal with a narrower type
-// than wantTy, emits the constant with wantTy instead.  This handles patterns
-// like "0 - r" where r:u16 — the parser types the literal 0 as u8 but the
-// arithmetic must be 16-bit.
+// lowerExprAs promotes narrow literals and sign-extends signed operands
+// to the expression width. This also handles C integer promotions.
 func (l *lowerer) lowerExprAs(e Expr, wantTy mir2.Ty) mir2.Reg {
 	if lit, ok := e.(*IntLitExpr); ok && lit.Ty != wantTy && lit.Ty.Width() < wantTy.Width() {
 		return l.bld.Const(lit.Val, wantTy, classForExpr(wantTy))
 	}
-	return l.lowerExpr(e)
+	src := l.lowerExpr(e)
+	srcTy := e.ExprTy()
+	if mir2.IsInt(srcTy) && mir2.IsInt(wantTy) && srcTy.Width() < wantTy.Width() {
+		if mir2.IsSigned(srcTy) {
+			return l.bld.Sext(src, srcTy, wantTy, classForExpr(wantTy))
+		}
+		return l.bld.Ext(src, srcTy, wantTy, classForExpr(wantTy))
+	}
+	return src
 }
 
-// the result.
+// lowerExpr lowers an expression to the register holding its value.
 func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 	switch ex := e.(type) {
 
@@ -1819,6 +1824,9 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 		sw, dw := srcTy.Width(), dstTy.Width()
 		switch {
 		case dw > sw:
+			if mir2.IsSigned(srcTy) {
+				return l.bld.Sext(src, srcTy, dstTy, classForExpr(dstTy))
+			}
 			return l.bld.Ext(src, srcTy, dstTy, classForExpr(dstTy))
 		case dw < sw:
 			return l.bld.Trunc(src, srcTy, dstTy, classForExpr(dstTy))
@@ -1968,8 +1976,14 @@ func (l *lowerer) lowerBinExpr(ex *BinExpr) mir2.Reg {
 	case "*":
 		return l.bld.Mul(lReg, rReg, ty, cls)
 	case "/":
+		if mir2.IsSigned(ty) {
+			return l.bld.SDiv(lReg, rReg, ty, cls)
+		}
 		return l.bld.Div(lReg, rReg, ty, cls)
 	case "%":
+		if mir2.IsSigned(ty) {
+			return l.bld.SMod(lReg, rReg, ty, cls)
+		}
 		return l.bld.Mod(lReg, rReg, ty, cls)
 	case "&":
 		return l.bld.And(lReg, rReg, ty, cls)
@@ -1980,6 +1994,9 @@ func (l *lowerer) lowerBinExpr(ex *BinExpr) mir2.Reg {
 	case "<<":
 		return l.bld.Shl(lReg, rReg, ty, cls)
 	case ">>":
+		if mir2.IsSigned(ex.L.ExprTy()) {
+			return l.bld.Sar(lReg, rReg, ty, cls)
+		}
 		return l.bld.Shr(lReg, rReg, ty, cls)
 	default:
 		panic(fmt.Sprintf("hir/lower: unhandled binary op %q", ex.Op))

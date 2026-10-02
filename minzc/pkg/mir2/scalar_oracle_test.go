@@ -45,9 +45,12 @@ func scalarOracle(tc scalarCase) (uint8, bool) {
 		return uint8(uint64(a) >> uint(b)), false
 	case mir2.OpSar:
 		return uint8(int64(int8(a)) >> uint(b)), false
-	case mir2.OpSDiv:
+	case mir2.OpSDiv, mir2.OpSMod:
 		if b == 0 {
 			return 0, true
+		}
+		if tc.op == mir2.OpSMod {
+			return uint8(int32(int8(a)) % int32(int8(b))), false
 		}
 		return uint8(int32(int8(a)) / int32(int8(b))), false
 	default:
@@ -132,6 +135,7 @@ func TestScalarOracleShiftsAndSignedDivision(t *testing.T) {
 			}
 			checkScalarCase(t, scalarCase{op: mir2.OpSar, aty: mir2.TyI8, a: uint8(a), b: uint8(count)})
 			checkScalarCase(t, scalarCase{op: mir2.OpSDiv, aty: mir2.TyI8, a: uint8(a), b: uint8(count)})
+			checkScalarCase(t, scalarCase{op: mir2.OpSMod, aty: mir2.TyI8, a: uint8(a), b: uint8(count)})
 		}
 	}
 }

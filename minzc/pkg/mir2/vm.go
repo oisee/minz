@@ -466,6 +466,13 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 			return fmt.Errorf("signed division by zero")
 		}
 		result = truncate(Value{I: lhs / rhs}, ty)
+	case OpSMod:
+		lhs := signExtend(a, ty.Width()).I
+		rhs := signExtend(b, ty.Width()).I
+		if rhs == 0 {
+			return fmt.Errorf("signed remainder by zero")
+		}
+		result = truncate(Value{I: lhs % rhs}, ty)
 	case OpMod:
 		if b.I == 0 {
 			return fmt.Errorf("mod by zero")

@@ -696,9 +696,8 @@ func elimJrToRet(lines []string) []string {
 		}
 	}
 
-	// Pass 3b: check for DJNZ fall-through — if a DJNZ instruction immediately
-	// precedes a label+RET (ignoring blanks/comments), the label is an implicit
-	// fall-through target and must not be removed.
+	// Pass 3b: keep RET when the preceding instruction can fall through.
+	// Arithmetic sign correction, DJNZ and conditional branches all need it.
 	for i := 0; i < len(out); i++ {
 		t := strings.TrimSpace(out[i])
 		if strings.HasSuffix(t, ":") {
@@ -710,7 +709,10 @@ func elimJrToRet(lines []string) []string {
 					if prev == "" || strings.HasPrefix(prev, ";") {
 						continue
 					}
-					if strings.HasPrefix(prev, "DJNZ ") {
+					if prev != "RET" &&
+						!(strings.HasPrefix(prev, "JP ") && !strings.Contains(prev, ",")) &&
+						!(strings.HasPrefix(prev, "JR ") && !strings.Contains(prev, ",")) &&
+						!(strings.HasPrefix(prev, "JRS ") && !strings.Contains(prev, ",")) {
 						labelRefs[label]++ // implicit fall-through reference
 					}
 					break
@@ -2777,7 +2779,7 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.lastFlagsRhs = ""
 		g.genMul(inst)
 
-	case OpDiv, OpSDiv, OpMod:
+	case OpDiv, OpSDiv, OpSMod, OpMod:
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
 		g.genDivMod(inst)
@@ -4547,6 +4549,11 @@ func (g *z80cg) emit8ALUImm(mnem string, imm int64) {
 // ── Shifts ────────────────────────────────────────────────────────────────────
 
 func (g *z80cg) genShift(mnem string, inst *Inst) {
+	if _, constant := g.constVals[inst.Src[1]]; !constant {
+		g.genVariableShift(mnem, inst)
+		return
+	}
+
 	w := inst.Ty.Width()
 	if w >= 24 {
 		g.genShift32(mnem, inst)
@@ -4558,7 +4565,7 @@ func (g *z80cg) genShift(mnem string, inst *Inst) {
 		g.emitMov(dst, src, w)
 	}
 	// Shift count in Src[1] — Z80 shifts are always by 1 per instruction.
-	// For constant counts, emit N copies.  Variable shifts → TODO.
+	// Constant counts emit N copies; variable counts use genVariableShift.
 	// IMPORTANT: count=0 must emit zero shifts (identity), not default to 1.
 	count := int64(1)
 	if cv, ok := g.constVals[inst.Src[1]]; ok {
@@ -4613,6 +4620,94 @@ func (g *z80cg) genShift(mnem string, inst *Inst) {
 	g.invalidate(dst) // shift modifies dst
 }
 
+// genVariableShift uses a saved scratch pair for the counter. Loading it
+// before moving the value also handles count registers overlapping the result.
+func (g *z80cg) genVariableShift(mnem string, inst *Inst) {
+	dst, src := g.loc(inst.Dst), g.loc(inst.Src[0])
+	w := inst.Ty.Width()
+	pair, counter := "", ""
+	for _, p := range []string{"BC", "DE", "HL"} {
+		overlaps := func(loc string) bool { return loc == p || loc == highByte(p) || loc == lowByte(p) }
+		if !overlaps(dst) && !overlaps(src) && !(isIXY(dst) && p == "HL") {
+			pair = p
+			counter = highByte(p)
+			break
+		}
+	}
+	if pair == "" {
+		panic("no scratch pair for variable shift")
+	}
+	g.emitf("    PUSH %s", pair)
+	g.emitLD8(counter, lowByte(g.loc(inst.Src[1])))
+	if dst != src {
+		g.emitMov(dst, src, w)
+	}
+	shiftDst := dst
+	if isIXY(dst) {
+		g.emit("    PUSH HL")
+		g.emitMov("HL", dst, 16)
+		shiftDst = "HL"
+	}
+	if isIXYReg(dst) {
+		g.emit("    PUSH AF")
+		g.emitLDA(dst)
+		shiftDst = "A"
+	}
+	idx := g.trampIdx
+	g.trampIdx++
+	// INC/DEC test zero without touching the shifted value or accumulator.
+	g.emitf("    INC %s", counter)
+	g.emitf("    DEC %s", counter)
+	g.emitf("    JR Z, .shift_done_%d", idx)
+	g.emitf(".shift_loop_%d:", idx)
+	if w >= 24 {
+		hi, lo := highByte(shiftDst), lowByte(shiftDst)
+		if mnem == "SLA" {
+			g.emitf("    SLA %s", lo)
+			g.emitf("    RL %s", hi)
+			g.emit("    EXX")
+			g.emitf("    RL %s", lo)
+			g.emitf("    RL %s", hi)
+			g.emit("    EXX")
+		} else {
+			g.emit("    EXX")
+			if w == 24 {
+				g.emitf("    %s %s", mnem, lo)
+			} else {
+				g.emitf("    %s %s", mnem, hi)
+				g.emitf("    RR %s", lo)
+			}
+			g.emit("    EXX")
+			g.emitf("    RR %s", hi)
+			g.emitf("    RR %s", lo)
+		}
+	} else if w == 16 {
+		hi, lo := highByte(shiftDst), lowByte(shiftDst)
+		if mnem == "SLA" {
+			g.emitf("    SLA %s", lo)
+			g.emitf("    RL %s", hi)
+		} else {
+			g.emitf("    %s %s", mnem, hi)
+			g.emitf("    RR %s", lo)
+		}
+	} else {
+		g.emitf("    %s %s", mnem, shiftDst)
+	}
+	g.emitf("    DEC %s", counter)
+	g.emitf("    JR NZ, .shift_loop_%d", idx)
+	g.emitf(".shift_done_%d:", idx)
+	if isIXY(dst) {
+		g.emitMov(dst, "HL", 16)
+		g.emit("    POP HL")
+	}
+	if isIXYReg(dst) {
+		g.emitLD8(dst, "A")
+		g.emit("    POP AF")
+	}
+	g.emitf("    POP %s", pair)
+	g.invalidate(dst)
+}
+
 // genShift32 emits 24/32-bit shifts via the EXX shadow-pair technique.
 //
 // SHL by 1 (logical left):
@@ -4642,7 +4737,7 @@ func (g *z80cg) genShift32(mnem string, inst *Inst) {
 	}
 
 	count := int64(1)
-	if cv, ok := g.constVals[inst.Src[1]]; ok && cv > 0 {
+	if cv, ok := g.constVals[inst.Src[1]]; ok {
 		count = cv
 	}
 
@@ -4650,7 +4745,7 @@ func (g *z80cg) genShift32(mnem string, inst *Inst) {
 	lo := lowByte(dst)  // e.g. "L"
 
 	switch mnem {
-	case "SHL":
+	case "SLA":
 		// Left shift: ADD HL,HL / EXX / ADC HL,HL / EXX  (× count)
 		// Z80 only supports ADD HL,HL — not ADD DE,DE or ADD BC,BC.
 		// Route through HL if needed.
@@ -4667,22 +4762,30 @@ func (g *z80cg) genShift32(mnem string, inst *Inst) {
 			g.emitMov(dst, "HL", 16)
 			g.invalidate("HL")
 		}
-	case "SHR":
+	case "SRL":
 		// Logical right shift: EXX / SRL H / RR L / EXX / RR H / RR L  (× count)
 		for i := int64(0); i < count; i++ {
 			g.emit("    EXX")
-			g.emitf("    SRL %s", hi)
-			g.emitf("    RR  %s", lo)
+			if inst.Ty.Width() == 24 {
+				g.emitf("    SRL %s", lo)
+			} else {
+				g.emitf("    SRL %s", hi)
+				g.emitf("    RR  %s", lo)
+			}
 			g.emit("    EXX")
 			g.emitf("    RR  %s", hi)
 			g.emitf("    RR  %s", lo)
 		}
-	case "SAR":
+	case "SRA":
 		// Arithmetic right shift: sign bit preserved via SRA on high byte.
 		for i := int64(0); i < count; i++ {
 			g.emit("    EXX")
-			g.emitf("    SRA %s", hi)
-			g.emitf("    RR  %s", lo)
+			if inst.Ty.Width() == 24 {
+				g.emitf("    SRA %s", lo)
+			} else {
+				g.emitf("    SRA %s", hi)
+				g.emitf("    RR  %s", lo)
+			}
 			g.emit("    EXX")
 			g.emitf("    RR  %s", hi)
 			g.emitf("    RR  %s", lo)
@@ -5267,7 +5370,7 @@ func (g *z80cg) genDivMod(inst *Inst) {
 	// Strength reduction: power-of-2 div → shift, mod → AND mask
 	if rhs := g.loc(inst.Src[1]); rhs != "" {
 		k, isConst := g.constVals[inst.Src[1]]
-		if isConst && k > 0 && k&(k-1) == 0 {
+		if isConst && inst.Op != OpSDiv && inst.Op != OpSMod && k > 0 && k&(k-1) == 0 {
 			dst := g.loc(inst.Dst)
 			lhs := g.loc(inst.Src[0])
 			// For 8-bit ops on pair regs, use low byte
@@ -5376,34 +5479,69 @@ func (g *z80cg) genDivMod8(inst *Inst) {
 	idx := g.trampIdx
 	g.trampIdx++
 
-	isSigned := inst.Op == OpSDiv
-	wantMod := inst.Op == OpMod
+	isSigned := inst.Op == OpSDiv || inst.Op == OpSMod
+	wantMod := inst.Op == OpMod || inst.Op == OpSMod
 
 	if isSigned {
-		g.comment("signed 8-bit div: treating as unsigned (TODO: sign fixup)")
-	}
+		// Stage both operands before assigning B/C, including swapped allocations.
+		g.emit("    PUSH AF")
+		g.emitLDA(lowByte(lhs))
+		g.emit("    PUSH AF")
+		if lowByte(rhs) == "A" {
+			// Original A is the divisor; loading the dividend must not replace it.
+			g.emit("    POP BC") // B = staged dividend
+			g.emit("    POP AF") // A = original divisor
+			g.emit("    LD C, A")
+		} else {
+			g.emitLDA(lowByte(rhs))
+			g.emit("    LD C, A")
+			g.emit("    POP AF")
+			g.emit("    LD B, A")
+			g.emit("    POP AF")
+		}
+	} else {
+		// Setup: B = dividend, C = divisor.
+		// Width guard: lhs/rhs might be a 16-bit pair (const allocated to HL/DE).
+		if lhs == "B" {
+			// already there
+		} else if isPairReg(lhs) {
+			g.emitf("    LD B, %s", lowByte(lhs))
+		} else if isSpill(lhs) {
+			g.loadSpill8("B", lhs)
+		} else if lhs == "A" {
+			g.emit("    LD B, A")
+		} else {
+			g.emitf("    LD B, %s", lhs)
+		}
+		if rhs == "C" {
+			// already there
+		} else if isPairReg(rhs) {
+			g.emitf("    LD C, %s", lowByte(rhs))
+		} else if isSpill(rhs) {
+			g.loadSpill8("C", rhs)
+		} else {
+			g.emitf("    LD C, %s", rhs)
+		}
 
-	// Setup: B = dividend, C = divisor.
-	// Width guard: lhs/rhs might be a 16-bit pair (const allocated to HL/DE).
-	if lhs == "B" {
-		// already there
-	} else if isPairReg(lhs) {
-		g.emitf("    LD B, %s", lowByte(lhs))
-	} else if isSpill(lhs) {
-		g.loadSpill8("B", lhs)
-	} else if lhs == "A" {
-		g.emit("    LD B, A")
-	} else {
-		g.emitf("    LD B, %s", lhs)
 	}
-	if rhs == "C" {
-		// already there
-	} else if isPairReg(rhs) {
-		g.emitf("    LD C, %s", lowByte(rhs))
-	} else if isSpill(rhs) {
-		g.loadSpill8("C", rhs)
-	} else {
-		g.emitf("    LD C, %s", rhs)
+	if isSigned {
+		g.emit("    LD A, B")
+		if !wantMod {
+			g.emit("    XOR C")
+		}
+		g.emit("    PUSH AF") // result sign, separate from division workspace
+		g.emit("    BIT 7, B")
+		g.emitf("    JR Z, .div8_abs_l_%d", idx)
+		g.emit("    LD A, B")
+		g.emit("    NEG")
+		g.emit("    LD B, A")
+		g.emitf(".div8_abs_l_%d:", idx)
+		g.emit("    BIT 7, C")
+		g.emitf("    JR Z, .div8_abs_r_%d", idx)
+		g.emit("    LD A, C")
+		g.emit("    NEG")
+		g.emit("    LD C, A")
+		g.emitf(".div8_abs_r_%d:", idx)
 	}
 
 	g.emit("    XOR A")   // clear accumulator (remainder workspace)
@@ -5419,6 +5557,19 @@ func (g *z80cg) genDivMod8(inst *Inst) {
 	g.emit("    DEC D")
 	g.emitf("    JR NZ, .div8_%d", idx)
 	// Result: B = quotient, A = remainder.
+
+	if isSigned {
+		if wantMod {
+			g.emit("    LD B, A")
+		}
+		g.emit("    POP AF")
+		g.emit("    BIT 7, A")
+		g.emit("    LD A, B")
+		g.emitf("    JR Z, .div8_sign_%d", idx)
+		g.emit("    NEG")
+		g.emitf(".div8_sign_%d:", idx)
+		g.emit("    LD B, A")
+	}
 
 	if wantMod {
 		if dst != "A" {
@@ -5460,46 +5611,70 @@ func (g *z80cg) genDivMod16(inst *Inst) {
 	idx := g.trampIdx
 	g.trampIdx++
 
-	wantMod := inst.Op == OpMod
-	isSigned := inst.Op == OpSDiv
+	wantMod := inst.Op == OpMod || inst.Op == OpSMod
+	isSigned := inst.Op == OpSDiv || inst.Op == OpSMod
 
 	if isSigned {
-		g.comment("signed 16-bit div: treating as unsigned (TODO: sign fixup)")
-	}
-
-	// Setup: HL = dividend, DE = divisor.
-	if lhs == "HL" {
-		// already in HL
-	} else if isIXY(lhs) {
+		// Stage pairs on the stack so parallel assignments cannot destroy rhs.
 		g.emitf("    PUSH %s", lhs)
+		g.emitf("    PUSH %s", rhs)
+		g.emit("    POP DE")
 		g.emit("    POP HL")
-		g.invalidate("HL")
-	} else if isIXYReg(lhs) {
-		g.emitMovViaAltA("L", lhs)
-		g.emit("    LD H, 0")
-		g.invalidate("HL")
-	} else if isSpill(lhs) {
-		g.loadSpill16("HL", lhs)
-		g.invalidate("HL")
 	} else {
-		g.emitf("    LD H, %s", highByte(lhs))
-		g.emitLD8("L", lowByte(lhs))
-	}
-	if rhs != "DE" {
-		if isSpill(rhs) {
-			g.loadSpill16("DE", rhs)
-		} else if isIXY(rhs) {
-			g.emitf("    LD D, %s", highByte(rhs))
-			g.emitf("    LD E, %s", lowByte(rhs))
-		} else if isIXYReg(rhs) {
-			g.emitMovViaAltA("E", rhs)
-			g.emit("    LD D, 0")
-		} else if isPairReg(rhs) {
-			g.emitf("    LD D, %s", highByte(rhs))
-			g.emitf("    LD E, %s", lowByte(rhs))
+		// Setup: HL = dividend, DE = divisor.
+		if lhs == "HL" {
+			// already in HL
+		} else if isIXY(lhs) {
+			g.emitf("    PUSH %s", lhs)
+			g.emit("    POP HL")
+			g.invalidate("HL")
+		} else if isIXYReg(lhs) {
+			g.emitMovViaAltA("L", lhs)
+			g.emit("    LD H, 0")
+			g.invalidate("HL")
+		} else if isSpill(lhs) {
+			g.loadSpill16("HL", lhs)
+			g.invalidate("HL")
 		} else {
-			g.emitLD8("E", rhs)
-			g.emit("    LD D, 0")
+			g.emitf("    LD H, %s", highByte(lhs))
+			g.emitLD8("L", lowByte(lhs))
+		}
+		if rhs != "DE" {
+			if isSpill(rhs) {
+				g.loadSpill16("DE", rhs)
+			} else if isIXY(rhs) {
+				g.emitf("    LD D, %s", highByte(rhs))
+				g.emitf("    LD E, %s", lowByte(rhs))
+			} else if isIXYReg(rhs) {
+				g.emitMovViaAltA("E", rhs)
+				g.emit("    LD D, 0")
+			} else if isPairReg(rhs) {
+				g.emitf("    LD D, %s", highByte(rhs))
+				g.emitf("    LD E, %s", lowByte(rhs))
+			} else {
+				g.emitLD8("E", rhs)
+				g.emit("    LD D, 0")
+			}
+		}
+
+	}
+	if isSigned {
+		g.emit("    LD A, H")
+		if !wantMod {
+			g.emit("    XOR D")
+		}
+		g.emit("    PUSH AF")
+		for _, pair := range []string{"HL", "DE"} {
+			hi, lo := highByte(pair), lowByte(pair)
+			g.emitf("    BIT 7, %s", hi)
+			g.emitf("    JR Z, .div16_abs_%s_%d", pair, idx)
+			g.emit("    XOR A")
+			g.emitf("    SUB %s", lo)
+			g.emitf("    LD %s, A", lo)
+			g.emit("    SBC A, A")
+			g.emitf("    SUB %s", hi)
+			g.emitf("    LD %s, A", hi)
+			g.emitf(".div16_abs_%s_%d:", pair, idx)
 		}
 	}
 
@@ -5534,6 +5709,23 @@ func (g *z80cg) genDivMod16(inst *Inst) {
 
 	g.emitf(".div16_done_%d:", idx)
 	// Result: HL = quotient, BC = remainder.
+	if isSigned {
+		hi, lo := "H", "L"
+		if wantMod {
+			hi, lo = "B", "C"
+		}
+		g.emit("    POP AF")
+		g.emit("    BIT 7, A")
+		g.emitf("    JR Z, .div16_sign_%d", idx)
+		g.emit("    XOR A")
+		g.emitf("    SUB %s", lo)
+		g.emitf("    LD %s, A", lo)
+		g.emit("    SBC A, A")
+		g.emitf("    SUB %s", hi)
+		g.emitf("    LD %s, A", hi)
+		g.emitf(".div16_sign_%d:", idx)
+	}
+
 	if wantMod {
 		// Want remainder (BC) → move to dst.
 		if dst == "HL" {
@@ -5644,10 +5836,65 @@ func (g *z80cg) emitFlagPredicateByte(cc string) {
 }
 
 func (g *z80cg) genSext(inst *Inst) {
+	// Sign extension uses A as scratch, but the narrow source may remain live.
+	g.emit("    PUSH AF")
+	g.genSextValue(inst)
+	g.emit("    POP AF")
+	g.invalidate("A")
+	g.invalidate(g.loc(inst.Dst))
+}
+
+func (g *z80cg) genSextValue(inst *Inst) {
 	dst := g.loc(inst.Dst)
 	src := g.loc(inst.Src[0])
 	srcW := inst.SrcTy.Width()
 	dstW := inst.Ty.Width()
+
+	if srcW == 24 && dstW == 32 {
+		if src != dst {
+			g.emitMov32(dst, src)
+		}
+		g.emit("    EXX")
+		g.emitLDA(lowByte(dst))
+		g.emit("    RLCA")
+		g.emit("    SBC A, A")
+		g.emitLD8(highByte(dst), "A")
+		g.emit("    EXX")
+		g.invalidate("A")
+		g.invalidate(dst)
+		return
+	}
+
+	if dstW >= 24 && (srcW == 8 || srcW == 16) {
+		hi, lo := highByte(dst), lowByte(dst)
+		if srcW == 8 {
+			if src != "A" {
+				g.emitLDA(src)
+			}
+			g.emitLD8(lo, "A")
+			g.emit("    RLCA")
+			g.emit("    SBC A, A")
+			g.emitLD8(hi, "A")
+		} else {
+			if src != dst {
+				g.emitMov(dst, src, 16)
+			}
+			g.emitLDA(hi)
+			g.emit("    RLCA")
+			g.emit("    SBC A, A")
+		}
+		g.emit("    EXX")
+		g.emitLD8(lo, "A")
+		if dstW == 24 {
+			g.emitf("    LD %s, 0", hi)
+		} else {
+			g.emitLD8(hi, "A")
+		}
+		g.emit("    EXX")
+		g.invalidate("A")
+		g.invalidate(dst)
+		return
+	}
 
 	if srcW == 8 && dstW == 16 {
 		// Sign-extend u8 → u16 via A.

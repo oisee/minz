@@ -26,7 +26,7 @@ func propagateClassHints(f *Func, info map[Reg]RegInfo) {
 	for _, b := range f.Blocks {
 		for _, inst := range b.Insts {
 			switch inst.Op {
-			case OpAdd, OpSub, OpMul, OpDiv, OpMod, OpShl, OpShr, OpSar,
+			case OpAdd, OpSub, OpMul, OpDiv, OpSDiv, OpSMod, OpMod, OpShl, OpShr, OpSar,
 				OpExt, OpSext, OpTrunc:
 				if inst.Dst != NoReg {
 					aluRegs[inst.Dst] = true
