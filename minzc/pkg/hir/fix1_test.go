@@ -3,18 +3,17 @@ package hir_test
 import (
 	"fmt"
 	"github.com/minz/minzc/pkg/c89"
-	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/pipeline"
-	"github.com/minz/minzc/pkg/z80asm"
 	"os"
 	"strings"
 	"testing"
 )
 
 func TestFix1PromotedBytes(t *testing.T) {
+	t.Parallel()
 	for _, op := range []string{"+", "-", "&", "|", "^", "%"} {
 		t.Run(op, func(t *testing.T) {
 			a, b := hir.Var("a", mir2.TyU8), hir.Var("b", mir2.TyU8)
@@ -51,6 +50,7 @@ func TestFix1PromotedBytes(t *testing.T) {
 // Sample both word operands at boundaries and every 257th bit pattern.
 // Inputs are set directly after assembly so the judge reuses one binary.
 func TestFix1SignedWordJudge(t *testing.T) {
+	t.Parallel()
 	samples := []uint16{0, 1, 2, 127, 128, 255, 256, 32767, 32768, 32769, 65534, 65535}
 	for v := 0; v < 65536; v += 257 {
 		samples = append(samples, uint16(v))
@@ -59,60 +59,27 @@ func TestFix1SignedWordJudge(t *testing.T) {
 		f := signedBinary("arith", op, mir2.TyI16)
 		f.Params[1].Ty = mir2.TyI16
 		f.Body = hir.Blk(hir.Ret(&hir.BinExpr{Op: op, L: hir.Var("a", mir2.TyI16), R: hir.Var("b", mir2.TyI16), Ty: mir2.TyI16}))
-		fix := compileProductionHIRFixture(t, &hir.Module{Name: "words", Funcs: []*hir.Func{f}})
-		fn := fix.module.FuncByName("arith")
-		res, err := z80asm.NewAssembler().AssembleString("ORG 0x8000\nCALL arith\nDI\nHALT\n" + fix.asm)
-		if err != nil || len(res.Errors) > 0 {
-			t.Fatalf("%v %v\n%s", err, res.Errors, fix.asm)
-		}
-		z := emulator.NewRemogattoZ80()
+		var cases [][]int64
 		for _, a := range samples {
 			for _, b := range samples {
-				if b == 0 {
-					continue
-				}
-				z.Reset()
-				if err := z.LoadMemory(0x8000, res.Binary); err != nil {
-					t.Fatal(err)
-				}
-				r := emulator.Registers{PC: 0x8000, SP: 0xFF00}
-				for i, v := range []uint16{a, b} {
-					switch fix.alloc.Locs[fn.Contract.Params[i].Reg].Name {
-					case "HL":
-						r.HL = v
-					case "DE":
-						r.DE = v
-					case "BC":
-						r.BC = v
-					case "IX":
-						r.IX = v
-					case "IY":
-						r.IY = v
-					default:
-						t.Fatal("unexpected parameter allocation")
-					}
-				}
-				z.SetRegisters(r)
-				for steps := 0; !z.IsHalted(); steps++ {
-					if steps >= judgeStepBudget {
-						t.Fatal("no HALT")
-					}
-					z.Step()
-				}
-				got, err := hirReturnValue(fn, z.GetRegisters())
-				want := int32(int16(a)) / int32(int16(b))
-				if op == "%" {
-					want = int32(int16(a)) % int32(int16(b))
-				}
-				if err != nil || uint16(got) != uint16(want) {
-					t.Fatalf("%d %s %d got %d %v want %d\n%s", int16(a), op, int16(b), got, err, uint16(want), fix.asm)
+				if b != 0 {
+					cases = append(cases, []int64{int64(a), int64(b)})
 				}
 			}
 		}
+		judgeMultiplyCases(t, f, cases, func(args []int64) int64 {
+			a, b := int32(int16(args[0])), int32(int16(args[1]))
+			want := a / b
+			if op == "%" {
+				want = a % b
+			}
+			return int64(uint16(want))
+		})
 	}
 }
 
 func TestFix1FrontendAsserts(t *testing.T) {
+	t.Parallel()
 	for _, lang := range []string{"c", "nanz"} {
 		path := "../../../examples/" + lang + "/promoted_arithmetic." + lang
 		src, err := os.ReadFile(path)
@@ -168,6 +135,7 @@ func TestFix1FrontendAsserts(t *testing.T) {
 }
 
 func TestFix1PowerOfTwo(t *testing.T) {
+	t.Parallel()
 	for _, ty := range []mir2.Ty{mir2.TyI8, mir2.TyI16} {
 		for _, op := range []string{"/", "%"} {
 			for _, k := range []int64{1, 2, 16, 256} {
@@ -199,6 +167,7 @@ func TestFix1PowerOfTwo(t *testing.T) {
 }
 
 func TestFix1PromotedShortcut(t *testing.T) {
+	t.Parallel()
 	// Proved non-negative dividends retain the small mask after C promotion.
 	f := &hir.Func{Name: "arith", Params: []hir.Param{{Name: "a", Ty: mir2.TyU8}}, RetTy: mir2.TyU8, Body: hir.Blk(hir.Ret(&hir.CastExpr{X: &hir.BinExpr{Op: "%", L: hir.Var("a", mir2.TyU8), R: &hir.IntLitExpr{Val: 2, Ty: mir2.TyI16}, Ty: mir2.TyI16}, Ty: mir2.TyU8}))}
 	fix := compileProductionHIRFixture(t, &hir.Module{Name: "promoted_mod", Funcs: []*hir.Func{f}})
@@ -214,6 +183,7 @@ func TestFix1PromotedShortcut(t *testing.T) {
 }
 
 func TestFix1CorpusBoundaries(t *testing.T) {
+	t.Parallel()
 	src := `unsigned char color(unsigned short c) {return (c+1)%4;}
  unsigned char state(unsigned char s) {return (s+1)%3;}
  unsigned short sector(unsigned short start,unsigned short clst,unsigned char n) {
@@ -243,6 +213,7 @@ func TestFix1CorpusBoundaries(t *testing.T) {
 }
 
 func TestFix1SaturatingAddJudge(t *testing.T) {
+	t.Parallel()
 	hm, err := nanz.Parse(`fun arith(a: u8,b: u8) -> u8 {
  let wa: u16 = a
  let wb: u16 = b
@@ -267,6 +238,7 @@ func TestFix1SaturatingAddJudge(t *testing.T) {
 }
 
 func TestFix1ComparisonValues(t *testing.T) {
+	t.Parallel()
 	src := `unsigned char primary(unsigned short c) {return c<=2;}
  unsigned char deleted(unsigned char b) {if(b==0xE5)return 1;if(b==0)return 2;return 0;}
  unsigned char hex(unsigned char c) {if(c>='0'&&c<='9')return c-'0';return 255;}
@@ -296,6 +268,7 @@ func TestFix1ComparisonValues(t *testing.T) {
 }
 
 func TestFix1PromotedBitPredicate(t *testing.T) {
+	t.Parallel()
 	hm, err := c89.Compile("unsigned char arith(unsigned char a,unsigned char b){return (a&1)==0;}", "even.c")
 	if err != nil {
 		t.Fatal(err)

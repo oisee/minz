@@ -3,7 +3,9 @@ package hir_test
 import (
 	"fmt"
 	"os"
+	"runtime"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/minz/minzc/pkg/emulator"
@@ -87,20 +89,29 @@ type judgeMismatch struct {
 
 // sweep compares every (a,b) in the domain against an independent Go model.
 func (j *u8Judge) sweep(domain func(a, b uint8) bool, model func(a, b uint8) int64) (checked int, bad []judgeMismatch) {
-	z := emulator.NewRemogattoZ80()
+	type pair struct{ a, b uint8 }
+	var inputs []pair
 	for a := 0; a < 256; a++ {
 		for b := 0; b < 256; b++ {
-			if !domain(uint8(a), uint8(b)) {
-				continue
-			}
-			checked++
-			want := model(uint8(a), uint8(b))
-			got, err := j.run(z, uint8(a), uint8(b))
-			if err != nil || got != want {
-				bad = append(bad, judgeMismatch{uint8(a), uint8(b), got, want, err})
+			if domain(uint8(a), uint8(b)) {
+				inputs = append(inputs, pair{uint8(a), uint8(b)})
 			}
 		}
 	}
+	results := make([]judgeMismatch, len(inputs))
+	judgeWorkers(len(inputs), j.image, func(z *emulator.RemogattoZ80, image []byte, i int) {
+		worker := *j
+		worker.image = image
+		p := inputs[i]
+		got, err := worker.run(z, p.a, p.b)
+		results[i] = judgeMismatch{p.a, p.b, got, model(p.a, p.b), err}
+	})
+	for _, result := range results {
+		if result.err != nil || result.got != result.want {
+			bad = append(bad, result)
+		}
+	}
+	checked = len(inputs)
 	return checked, bad
 }
 
@@ -156,6 +167,7 @@ func positiveArgs(a, b uint8) bool { return a >= 1 && b >= 1 }
 // The Grace variant lays the CFG out differently (the else arm jumps straight
 // to the loop head), which exposed relocations leaking across blocks.
 func TestExhaustiveJudgeGCD(t *testing.T) {
+	t.Parallel()
 	grace := pipeline.DefaultOptions()
 	grace.UseGrace = true
 	lirOpts := pipeline.DefaultOptions()
@@ -205,6 +217,7 @@ func TestExhaustiveJudgeGCDMultiBlockKnownRed(t *testing.T) {
 	if os.Getenv("MINZ_RUN_KNOWN_RED") != "1" {
 		t.Skipf("2026-10-02: multi-block LIR gcd: %d/%d mismatches, %d timeouts; set MINZ_RUN_KNOWN_RED=1 to remeasure", measuredMismatches, measuredInputs, measuredTimeouts)
 	}
+	t.Parallel()
 	fixture := compileProductionHIRFixture(t, &hir.Module{Name: "judge_gcd", Funcs: []*hir.Func{gcdHIR()}})
 	// Use the production contract and allocation for the ABI bootstrap; the
 	// backend must honor those same inputs and return convention. The research
@@ -233,6 +246,7 @@ func TestExhaustiveJudgeGCDMultiBlockKnownRed(t *testing.T) {
 // TestExhaustiveJudgeNegativeControls proves the judge can fail: a swapped
 // ABI bootstrap and a mutated function body must both be reported.
 func TestExhaustiveJudgeNegativeControls(t *testing.T) {
+	t.Parallel()
 	asymmetric := func(a, b uint8) bool { return a >= 1 && b >= 1 && a != b }
 	minus := func(a, b uint8) int64 { return int64(a - b) }
 
@@ -274,6 +288,7 @@ func TestExhaustiveJudgeNegativeControls(t *testing.T) {
 // TestExhaustiveJudgeLIRSingleBlock executes production PBQP with --lir
 // and verifies that native LIR remains disabled. Direct research is separate.
 func TestExhaustiveJudgeLIRSingleBlock(t *testing.T) {
+	t.Parallel()
 	for _, tc := range []struct {
 		name, op string
 		ret      mir2.Ty
@@ -322,6 +337,7 @@ func TestExhaustiveJudgeLIRSingleBlock(t *testing.T) {
 // add32 checks 65,636 sums on MIR2 and Z80 arithmetic, including
 // carries between main and shadow register banks.
 func TestExhaustiveJudgeLIRWideFallback(t *testing.T) {
+	t.Parallel()
 	for _, name := range []string{"shr16", "add32"} {
 		t.Run(name, func(t *testing.T) {
 			ty := mir2.TyU16
@@ -427,51 +443,11 @@ func TestExhaustiveJudgeLIRWideFallback(t *testing.T) {
 				}
 				return
 			}
-			boot := fmt.Sprintf("    ORG 0x%04X\n    CALL %s\n    DI\n    HALT\n", testLoadAddr, name)
-			res, err := z80asm.NewAssembler().AssembleString(boot + steps.Assembly)
-			if err != nil || len(res.Errors) > 0 {
-				t.Fatalf("assemble: %v %v", err, res.Errors)
-			}
-			z := emulator.NewRemogattoZ80()
-			bad := 0
-			checked := 0
-			for input := 0; input < 65536; input++ {
-				args := []uint16{uint16(input)}
-				want := uint16(input >> 3)
-				z.Reset()
-				if err := z.LoadMemory(testLoadAddr, res.Binary); err != nil {
-					t.Fatal(err)
-				}
-				regs := emulator.Registers{SP: 0xFF00, PC: testLoadAddr}
-				for i, p := range mf.Contract.Params {
-					loc := steps.Allocation.Locs[p.Reg]
-					switch loc.Name {
-					case "HL":
-						regs.HL = args[i]
-					case "DE":
-						regs.DE = args[i]
-					case "BC":
-						regs.BC = args[i]
-					default:
-						t.Fatalf("unexpected word ABI: %+v", loc)
-					}
-				}
-				z.SetRegisters(regs)
-				n := 0
-				for ; !z.IsHalted() && n < judgeStepBudget; n++ {
-					z.Step()
-				}
-				got, err := hirReturnValue(mf, z.GetRegisters())
-				checked++
-				if err != nil || n == judgeStepBudget || got != int64(want) {
-					bad++
-					if bad <= 5 {
-						t.Logf("args %v: got %d want %d err %v", args, got, want, err)
-					}
-				}
-			}
+			bad, first := sweepCodegenJudge(t, []*hir.Func{f}, name, 65536,
+				func(i int) []int64 { return []int64{int64(i)} },
+				func(args []int64) int64 { return args[0] >> 3 }, true)
 			if bad > 0 {
-				t.Fatalf("%d/%d mismatches\n%s", bad, checked, steps.Assembly)
+				t.Fatalf("%d/65536 mismatches: %s\n%s", bad, first, steps.Assembly)
 			}
 		})
 	}
@@ -480,6 +456,7 @@ func TestExhaustiveJudgeLIRWideFallback(t *testing.T) {
 // The Z80 selector emits one SLA/SRL regardless of the supplied count.
 // Production --lir uses PBQP for both counts; direct native tests cover one.
 func TestExhaustiveJudgeLIRByteShifts(t *testing.T) {
+	t.Parallel()
 	for _, op := range []string{"<<", ">>"} {
 		for _, count := range []int64{1, 3} {
 			t.Run(fmt.Sprintf("%s/%d", op, count), func(t *testing.T) {
@@ -495,18 +472,94 @@ func TestExhaustiveJudgeLIRByteShifts(t *testing.T) {
 				if trace == nil || trace.Backend != "PBQP (lir disabled)" {
 					t.Errorf("unexpected shift provenance: %+v", trace)
 				}
-				fixture := hirZ80Fixture{module: steps.MIR2Module, alloc: steps.Allocation, asm: steps.Assembly}
-				for a := 0; a < 256; a++ {
-					want := uint8(a) >> count
-					if op == "<<" {
-						want = uint8(a) << count
-					}
-					got, err := runHIRZ80(t, fixture, "shift8", []int64{int64(a)})
-					if err != nil || got != int64(want) {
-						t.Fatalf("%d %s %d: got %d want %d err %v\n%s", a, op, count, got, want, err, steps.Assembly)
-					}
+				bad, first := sweepCodegenJudge(t, []*hir.Func{f}, "shift8", 256,
+					func(i int) []int64 { return []int64{int64(i)} },
+					func(args []int64) int64 {
+						if op == "<<" {
+							return int64(uint8(args[0]) << count)
+						}
+						return int64(uint8(args[0]) >> count)
+					}, true)
+				if bad > 0 {
+					t.Fatalf("%d/256 mismatches: %s\n%s", bad, first, steps.Assembly)
 				}
 			})
+		}
+	}
+}
+
+// judgeWorkers owns one CPU and image per worker. Index-addressed results in
+// callers preserve input ordering regardless of goroutine scheduling.
+func judgeWorkers(n int, image []byte, run func(*emulator.RemogattoZ80, []byte, int)) {
+	workers := min(runtime.GOMAXPROCS(0), n)
+	var wg sync.WaitGroup
+	for w := 0; w < workers; w++ {
+		wg.Add(1)
+		go func(w int) {
+			defer wg.Done()
+			z := emulator.NewRemogattoZ80()
+			privateImage := append([]byte(nil), image...)
+			for i := w; i < n; i += workers {
+				run(z, privateImage, i)
+			}
+		}(w)
+	}
+	wg.Wait()
+}
+
+func TestJudgeWorkersOwnState(t *testing.T) {
+	t.Parallel()
+	image := []byte{1, 2, 3}
+	results := make([]int, 257)
+	var mu sync.Mutex
+	owners := make(map[*emulator.RemogattoZ80]*byte)
+	judgeWorkers(len(results), image, func(z *emulator.RemogattoZ80, private []byte, i int) {
+		mu.Lock()
+		if prior, ok := owners[z]; ok && prior != &private[0] {
+			t.Error("worker changed its image")
+		}
+		for cpu, ptr := range owners {
+			if cpu != z && ptr == &private[0] {
+				t.Error("workers share an image")
+			}
+		}
+		owners[z] = &private[0]
+		mu.Unlock()
+		private[0]++
+		results[i] = i + 1
+	})
+	if image[0] != 1 {
+		t.Fatal("worker mutated source image")
+	}
+	for i, value := range results {
+		if value != i+1 {
+			t.Fatalf("input %d executed incorrectly: %d", i, value)
+		}
+	}
+	judgeWorkers(0, nil, func(*emulator.RemogattoZ80, []byte, int) { t.Error("empty domain executed") })
+}
+
+func TestJudgeMismatchOrdering(t *testing.T) {
+	t.Parallel()
+	f := &hir.Func{
+		Name: "sub8", Params: []hir.Param{{Name: "a", Ty: mir2.TyU8}, {Name: "b", Ty: mir2.TyU8}}, RetTy: mir2.TyU8,
+		Body: hir.Blk(hir.Ret(&hir.BinExpr{Op: "-", L: hir.Var("a", mir2.TyU8), R: hir.Var("b", mir2.TyU8), Ty: mir2.TyU8})),
+	}
+	fixture := compileProductionHIRFixture(t, &hir.Module{Name: "ordered_judge", Funcs: []*hir.Func{f}})
+	j := newU8Judge(t, fixture, "sub8", true)
+	domain := func(a, b uint8) bool { return a < 16 && b < 16 }
+	model := func(a, b uint8) int64 { return int64(a - b) }
+	checked, first := j.sweep(domain, model)
+	_, second := j.sweep(domain, model)
+	if checked != 256 || len(first) == 0 || len(first) != len(second) {
+		t.Fatal("incorrect mismatch count")
+	}
+	for i, result := range first {
+		if result != second[i] {
+			t.Fatalf("nondeterministic result at %d", i)
+		}
+		if i > 0 && int(first[i-1].a)*256+int(first[i-1].b) >= int(result.a)*256+int(result.b) {
+			t.Fatal("results are not in input order")
 		}
 	}
 }

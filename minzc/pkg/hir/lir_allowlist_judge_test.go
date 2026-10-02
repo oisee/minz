@@ -42,14 +42,22 @@ func sweepCodegenJudge(t *testing.T, funcs []*hir.Func, name string, cases int, 
 	if err != nil || len(res.Errors) > 0 {
 		t.Fatalf("assemble: %v %v", err, res.Errors)
 	}
-	z := emulator.NewRemogattoZ80()
-	bad := 0
-	first := ""
-	for i := 0; i < cases; i++ {
+	// Validate the ABI before starting workers: Fatal must run on the test goroutine.
+	for _, p := range mf.Contract.Params {
+		if p.Ty.Width() == 16 {
+			loc := steps.Allocation.Locs[p.Reg]
+			if loc.Name != "HL" && loc.Name != "DE" && loc.Name != "BC" {
+				t.Fatalf("word ABI: %+v", loc)
+			}
+		}
+	}
+	results := make([]string, cases)
+	judgeWorkers(cases, res.Binary, func(z *emulator.RemogattoZ80, image []byte, i int) {
 		args := inputs(i)
 		z.Reset()
-		if err := z.LoadMemory(testLoadAddr, res.Binary); err != nil {
-			t.Fatal(err)
+		if err := z.LoadMemory(testLoadAddr, image); err != nil {
+			results[i] = fmt.Sprintf("load image: %v", err)
+			return
 		}
 		regs := emulator.Registers{PC: testLoadAddr, SP: 0xFF00}
 		for k, p := range mf.Contract.Params {
@@ -64,15 +72,14 @@ func sweepCodegenJudge(t *testing.T, funcs []*hir.Func, name string, cases int, 
 				regs.DE = uint16(args[k])
 			case "BC":
 				regs.BC = uint16(args[k])
-			default:
-				t.Fatalf("word ABI: %+v", loc)
 			}
 		}
 		z.SetRegisters(regs)
 		for k, p := range mf.Contract.Params {
 			if p.Ty.Width() == 8 {
 				if err := z.SetRegister8(steps.Allocation.Locs[p.Reg].Name, uint8(args[k])); err != nil {
-					t.Fatal(err)
+					results[i] = fmt.Sprintf("byte ABI: %v", err)
+					return
 				}
 			}
 		}
@@ -83,17 +90,23 @@ func sweepCodegenJudge(t *testing.T, funcs []*hir.Func, name string, cases int, 
 		got, err := hirReturnValue(mf, z.GetRegisters())
 		want := model(args)
 		if err != nil || n == judgeStepBudget || got != want {
+			results[i] = fmt.Sprintf("%s%v got %d want %d err %v steps %d", name, args, got, want, err, n)
+		}
+	})
+	bad, first := 0, ""
+	for _, result := range results {
+		if result != "" {
 			bad++
 			if first == "" {
-				first = fmt.Sprintf("%s%v got %d want %d err %v steps %d", name, args, got, want, err, n)
+				first = result
 			}
 		}
 	}
-
 	return bad, first
 }
 
 func TestExhaustiveJudgeLIRAllowlistFallback(t *testing.T) {
+	t.Parallel()
 	u8, u16 := mir2.TyU8, mir2.TyU16
 	v := func(n string, ty mir2.Ty) hir.Expr { return hir.Var(n, ty) }
 	k := func(n int64, ty mir2.Ty) hir.Expr { return &hir.IntLitExpr{Val: n, Ty: ty} }
@@ -201,5 +214,26 @@ func TestExhaustiveJudgeLIRAllowlistFallback(t *testing.T) {
 				t.Fatalf("--lir %d/%d, plain %d/%d mismatches: %s / %s", bad, tc.count, plainBad, tc.count, first, plainFirst)
 			}
 		})
+	}
+}
+
+func TestCodegenJudgeMismatchOrdering(t *testing.T) {
+	t.Parallel()
+	f := &hir.Func{
+		Name: "identity", Params: []hir.Param{{Name: "a", Ty: mir2.TyU8}}, RetTy: mir2.TyU8,
+		Body: hir.Blk(hir.Ret(hir.Var("a", mir2.TyU8))),
+	}
+	inputs := func(i int) []int64 { return []int64{int64(i)} }
+	// Every case deliberately disagrees, so the first diagnostic must always
+	// refer to input zero even when a later worker finishes first.
+	model := func(args []int64) int64 { return args[0] + 1 }
+	bad, first := sweepCodegenJudge(t, []*hir.Func{f}, "identity", 256, inputs, model, true)
+	secondBad, second := sweepCodegenJudge(t, []*hir.Func{f}, "identity", 256, inputs, model, true)
+	if bad != 256 || secondBad != bad || first != second || !strings.HasPrefix(first, "identity[0] got 0 want 1 err <nil>") {
+		t.Fatalf("unordered mismatches: %d %q / %d %q", bad, first, secondBad, second)
+	}
+	bad, first = sweepCodegenJudge(t, []*hir.Func{f}, "identity", 0, inputs, model, true)
+	if bad != 0 || first != "" {
+		t.Fatalf("empty domain: %d %q", bad, first)
 	}
 }

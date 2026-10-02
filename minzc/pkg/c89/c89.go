@@ -210,7 +210,11 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 	}
 
 	// Parse comment-based asserts and sandboxes.
-	l.hm.Asserts, l.hm.Sandboxes = parseCommentDirectives(src)
+	directives, err := ListAsserts(src)
+	if err != nil {
+		return nil, err
+	}
+	l.hm.Asserts, l.hm.Sandboxes = directives.Asserts, directives.Sandboxes
 
 	// Parse and generate ObjC assert wrappers.
 	l.generateObjCAssertWrappers(src)
@@ -220,8 +224,10 @@ func CompileWithOpts(src, name string, opts CompileOpts) (*hir.Module, error) {
 }
 
 // assertRe matches: // assert fn(1, 2, 0xAB) == 42 [via mir2|z80]
+var assertStartRe = regexp.MustCompile(`^\s*//\s*assert(?:\s|$)`)
+
 var assertRe = regexp.MustCompile(
-	`//\s*assert\s+(\w+)\s*\(([^)]*)\)\s*==\s*(-?(?:0[xX][0-9a-fA-F]+|\d+))(?:\s+via\s+(mir2|z80))?\s*$`,
+	`//\s*assert\s+(\w+)\s*\(([^)]*)\)\s*==\s*(-?(?:0[xX][0-9a-fA-F]+|\d+))(?:\s+via\s+(mir2|z80))?\s*(?://.*)?$`,
 )
 
 // objcAssertRe matches: // assert-objc Counter{count:42}.value(5) == 42
@@ -258,13 +264,16 @@ func parseAssertLine(line string, lineNo int) (hir.Assert, bool) {
 			s = strings.TrimSpace(s)
 			v, err := strconv.ParseInt(s, 0, 64) // base 0: auto-detect 0x, 0b, octal
 			if err != nil {
-				continue
+				return hir.Assert{}, false
 			}
 			args = append(args, v)
 		}
 	}
 
-	expected, _ := strconv.ParseInt(expectedStr, 0, 64) // base 0: auto-detect hex
+	expected, err := strconv.ParseInt(expectedStr, 0, 64)
+	if err != nil {
+		return hir.Assert{}, false
+	}
 	return hir.Assert{
 		FuncName: funcName,
 		Args:     args,
@@ -430,17 +439,32 @@ func preprocessEmbed(src, baseDir string) string {
 			return "/* #embed: empty */"
 		}
 
+		// Keep the expansion on its original line so assertion listing and compiler
+		// diagnostics retain source line numbers.
 		// Convert to comma-separated hex bytes
 		var sb strings.Builder
 		for i, b := range data {
 			if i > 0 {
 				sb.WriteByte(',')
-				if i%16 == 0 {
-					sb.WriteByte('\n')
-				}
 			}
 			fmt.Fprintf(&sb, "0x%02X", b)
 		}
 		return sb.String()
 	})
+}
+
+// ListAsserts recognizes C assertion directives without requiring headers or
+// lowering functions. This shares the production frontend parser and validation.
+func ListAsserts(src string) (*hir.Module, error) {
+	m := &hir.Module{}
+	m.Asserts, m.Sandboxes = parseCommentDirectives(src)
+	for i, line := range strings.Split(src, "\n") {
+		if assertStartRe.MatchString(line) {
+			if _, ok := parseAssertLine(line, i+1); !ok {
+				return nil, fmt.Errorf("line %d: malformed // assert directive", i+1)
+			}
+		}
+	}
+
+	return m, nil
 }

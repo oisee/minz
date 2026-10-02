@@ -32,70 +32,49 @@ func RunAsserts(hm *hir.Module, m *mir2.Module, force bool) error {
 	}
 	defer mod.Close(ctx)
 
-	// Run each assert
-	for _, a := range hm.Asserts {
-		if !force && a.Via != "" && a.Via != "wasm" {
-			continue // skip non-wasm asserts unless forced
-		}
-
+	check := func(a hir.Assert, sandbox bool) error {
 		fn := mod.ExportedFunction(a.FuncName)
 		if fn == nil {
-			return fmt.Errorf("line %d: assert %q [wasm]: function %q not exported",
-				a.Line, a.Source, a.FuncName)
+			return fmt.Errorf("line %d: assert %q [wasm]: function %q not exported", a.Line, a.Source, a.FuncName)
 		}
-
-		// Prepare arguments
 		args := make([]uint64, len(a.Args))
 		for i, v := range a.Args {
 			args[i] = uint64(v)
 		}
-
 		results, err := fn.Call(ctx, args...)
 		if err != nil {
-			return fmt.Errorf("line %d: assert %q [wasm]: call error: %w",
-				a.Line, a.Source, err)
+			return fmt.Errorf("line %d: assert %q [wasm]: call error: %w", a.Line, a.Source, err)
 		}
-
 		if len(results) == 0 {
-			return fmt.Errorf("line %d: assert %q [wasm]: no return value",
-				a.Line, a.Source)
+			if sandbox {
+				return nil
+			}
+			return fmt.Errorf("line %d: assert %q [wasm]: no return value", a.Line, a.Source)
 		}
-
-		got := int64(results[0])
-		// Mask to expected width (u8 = 0xFF, u16 = 0xFFFF)
-		got = got & 0xFF // default u8 mask
-		// TODO: use function return type to determine mask width
-
+		got := int64(results[0]) & 0xFF
 		if got != a.Expected {
-			return fmt.Errorf("line %d: assert %q [wasm]: got %d, want %d",
-				a.Line, a.Source, got, a.Expected)
+			return fmt.Errorf("line %d: assert %q [wasm]: got %d, want %d", a.Line, a.Source, got, a.Expected)
+		}
+		return nil
+	}
+	for _, a := range hm.Asserts {
+		if !force && a.Via != "" && a.Via != "wasm" {
+			continue
+		}
+		if err := hm.RecordAssert(check(a, false)); err != nil {
+			return err
 		}
 	}
-
-	// Sandbox asserts
 	for _, sb := range hm.Sandboxes {
 		for _, a := range sb.Asserts {
+			if mod.ExportedFunction(a.FuncName) == nil {
+				continue // Preserve sandbox behavior; skipped assertions earn no receipt.
+			}
 			if !force && a.Via != "" && a.Via != "wasm" {
 				continue
 			}
-			fn := mod.ExportedFunction(a.FuncName)
-			if fn == nil {
-				continue // skip missing functions in sandbox
-			}
-			args := make([]uint64, len(a.Args))
-			for i, v := range a.Args {
-				args[i] = uint64(v)
-			}
-			results, err := fn.Call(ctx, args...)
-			if err != nil {
-				return fmt.Errorf("sandbox %q: assert %q [wasm]: %w", sb.Name, a.Source, err)
-			}
-			if len(results) > 0 {
-				got := int64(results[0]) & 0xFF
-				if got != a.Expected {
-					return fmt.Errorf("sandbox %q: assert %q [wasm]: got %d, want %d",
-						sb.Name, a.Source, got, a.Expected)
-				}
+			if err := hm.RecordAssert(check(a, true)); err != nil {
+				return fmt.Errorf("sandbox %q: %w", sb.Name, err)
 			}
 		}
 	}

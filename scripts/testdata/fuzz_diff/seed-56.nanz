@@ -1,0 +1,13 @@
+fun h0(p0: u16) -> u16 {
+return (p0)
+}
+fun f(a: u16, b: u16, c: u16) -> u16 {
+let d: u8 = ((a as u8) xor (c as u8))
+var v0: u16 = a
+var v1: u16 = (b xor c)
+let t3: u16 = a
+let t7: u16 = ((255 + 3) - h0(t3))
+return ((c xor 1) + (a xor 38) + (t3 xor 75) + (v0 xor 112) + (t7 xor 149) + (b xor 186) + ((d as u16) xor 223) + (v1 xor 260))
+}
+fun g() -> u16 { return f(22112, 212, 17936) }
+assert g() == 15270 via z80

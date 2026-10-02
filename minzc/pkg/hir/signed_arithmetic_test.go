@@ -13,6 +13,7 @@ func signedBinary(name, op string, ty mir2.Ty) *hir.Func {
 }
 
 func TestExhaustiveJudgeSignedShift(t *testing.T) {
+	t.Parallel()
 	fixture := compileProductionHIRFixture(t, &hir.Module{Name: "signed_shift", Funcs: []*hir.Func{signedBinary("sar8", ">>", mir2.TyI8), signedBinary("shr8", ">>", mir2.TyU8)}})
 	for _, name := range []string{"sar8", "shr8"} {
 		model := func(a, b uint8) int64 {
@@ -29,6 +30,7 @@ func TestExhaustiveJudgeSignedShift(t *testing.T) {
 }
 
 func TestSignedShiftWideVM(t *testing.T) {
+	t.Parallel()
 	// The byte judge cannot accept word parameters. Sample every 257th word
 	// plus sign boundaries, in raw and folded MIR2, against Go int16 shifts.
 	for _, ty := range []mir2.Ty{mir2.TyI16, mir2.TyI24, mir2.TyI32} {
@@ -57,6 +59,7 @@ func TestSignedShiftWideVM(t *testing.T) {
 }
 
 func TestSignedArithmeticLowering(t *testing.T) {
+	t.Parallel()
 	i8 := mir2.TyI8
 	for _, op := range []string{"/", "%"} {
 		t.Run(op, func(t *testing.T) {
@@ -82,6 +85,7 @@ func TestSignedArithmeticLowering(t *testing.T) {
 }
 
 func TestSignedWidening(t *testing.T) {
+	t.Parallel()
 	for _, dst := range []mir2.Ty{mir2.TyI16, mir2.TyU16, mir2.TyI24, mir2.TyI32} {
 		f := &hir.Func{Name: "widen", Params: []hir.Param{{Name: "a", Ty: mir2.TyI8}}, RetTy: dst, Body: hir.Blk(hir.Ret(&hir.CastExpr{X: hir.Var("a", mir2.TyI8), Ty: dst}))}
 		m := hir.LowerModule(&hir.Module{Name: "widen", Funcs: []*hir.Func{f}})
@@ -96,6 +100,7 @@ func TestSignedWidening(t *testing.T) {
 }
 
 func TestSignedProductionDualRun(t *testing.T) {
+	t.Parallel()
 	for _, tc := range []struct {
 		name, op string
 		a, b     int64
@@ -121,6 +126,7 @@ func TestSignedProductionDualRun(t *testing.T) {
 }
 
 func TestExhaustiveJudgeSignedDivMod(t *testing.T) {
+	t.Parallel()
 	for _, op := range []string{"/", "%"} {
 		t.Run(op, func(t *testing.T) {
 			f := signedBinary("arith", op, mir2.TyI8)
@@ -141,6 +147,7 @@ func TestExhaustiveJudgeSignedDivMod(t *testing.T) {
 }
 
 func TestSignedPromotedArithmetic(t *testing.T) {
+	t.Parallel()
 	// C promotes an i8 operand to int before division by an int literal.
 	f := &hir.Func{Name: "promoted", Params: []hir.Param{{Name: "a", Ty: mir2.TyI8}}, RetTy: mir2.TyI16, Body: hir.Blk(hir.Ret(&hir.BinExpr{Op: "/", L: hir.Var("a", mir2.TyI8), R: &hir.IntLitExpr{Val: 2, Ty: mir2.TyI16}, Ty: mir2.TyI16}))}
 	m := hir.LowerModule(&hir.Module{Name: "promotion", Funcs: []*hir.Func{f}})
@@ -151,6 +158,7 @@ func TestSignedPromotedArithmetic(t *testing.T) {
 }
 
 func TestPromotedUnsignedModuloZ80(t *testing.T) {
+	t.Parallel()
 	f := &hir.Func{Name: "promoted", Params: []hir.Param{{Name: "a", Ty: mir2.TyU8}}, RetTy: mir2.TyI16, Body: hir.Blk(hir.Ret(&hir.BinExpr{Op: "%", L: hir.Var("a", mir2.TyU8), R: &hir.IntLitExpr{Val: 3, Ty: mir2.TyI16}, Ty: mir2.TyI16}))}
 	fixture := compileProductionHIRFixture(t, &hir.Module{Name: "promotion", Funcs: []*hir.Func{f}})
 	got, err := runHIRZ80(t, fixture, "promoted", []int64{1})
@@ -160,6 +168,7 @@ func TestPromotedUnsignedModuloZ80(t *testing.T) {
 }
 
 func TestSignedWideningLiveAccumulator(t *testing.T) {
+	t.Parallel()
 	a := hir.Var("a", mir2.TyI8)
 	f := &hir.Func{Name: "widen_live", Params: []hir.Param{{Name: "a", Ty: mir2.TyI8}}, RetTy: mir2.TyI16,
 		Body: hir.Blk(hir.Decl("wide", mir2.TyI16, &hir.CastExpr{X: a, Ty: mir2.TyI16}),

@@ -587,3 +587,22 @@ func TestCorpus_ObjCExamples(t *testing.T) {
 		})
 	}
 }
+
+func TestEmbedPreservesAssertLines(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "data.bin"), make([]byte, 65), 0600); err != nil {
+		t.Fatal(err)
+	}
+	src := "unsigned char data[] = {\n#embed \"data.bin\"\n};\nunsigned char answer(void) { return 42; }\n// assert answer() == 42\n"
+	listing, err := ListAsserts(src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	compiled, err := CompileWithOpts(src, "embed.c", CompileOpts{BaseDir: dir})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(compiled.Asserts) != 1 || compiled.Asserts[0].Line != listing.Asserts[0].Line || compiled.Asserts[0].Line != 5 {
+		t.Fatalf("listing=%+v compiled=%+v", listing.Asserts, compiled.Asserts)
+	}
+}
