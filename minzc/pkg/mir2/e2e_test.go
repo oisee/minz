@@ -33,7 +33,7 @@ func TestE2EFibonacciZ80(t *testing.T) {
 	for _, f := range m.Funcs {
 		lr := mir2.ComputeLiveness(f)
 		ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
-		fibAsm = mir2.Z80Codegen(m, ar)
+		fibAsm = mustZ80Asm(mir2.Z80Codegen(m, ar))
 	}
 
 	t.Logf("generated assembly:\n%s", fibAsm)
@@ -225,7 +225,7 @@ func TestE2EFlagReturn(t *testing.T) {
 			ar.Locs[r] = loc
 		}
 	}
-	fullAsm = mir2.Z80Codegen(m, ar)
+	fullAsm = mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Logf("flag-return assembly:\n%s", fullAsm)
 
 	// ── Verify: isLess uses C flag (no AND A / CP 0 in body) ─────────────────

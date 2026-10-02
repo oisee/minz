@@ -11,7 +11,7 @@ import (
 func runWideZ80(t *testing.T, m *mir2.Module, alloc *mir2.AllocResult, value uint32, count uint8) uint32 {
 	t.Helper()
 	boot := fmt.Sprintf("ORG 0x8000\nLD SP, 0xFF00\nEXX\nLD HL, %d\nEXX\nLD HL, %d\nLD A, %d\nLD C, %d\nCALL wide\nEXX\nPUSH HL\nEXX\nPOP DE\nDI\nHALT\n", value>>16, value&65535, value&255, count)
-	asm := boot + mir2.Z80Codegen(m, alloc)
+	asm := boot + mustZ80Asm(mir2.Z80Codegen(m, alloc))
 	res, err := z80asm.NewAssembler().AssembleString(asm)
 	if err != nil || len(res.Errors) > 0 {
 		t.Fatalf("assemble %v %v\n%s", err, res.Errors, asm)

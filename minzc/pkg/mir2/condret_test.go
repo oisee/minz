@@ -165,7 +165,7 @@ func TestCondRetSink_Z80Assembly(t *testing.T) {
 		combined.Locs[r] = loc
 	}
 
-	asm := mir2.Z80Codegen(m, combined)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, combined))
 	t.Logf("Z80 output:\n%s", asm)
 
 	// Must contain a conditional RET (RET C or RET NC or similar).

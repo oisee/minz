@@ -46,7 +46,7 @@ func compileHIR(t *testing.T, hm *hir.Module) string {
 			combined.Locs[r] = loc
 		}
 	}
-	return mir2.Z80Codegen(m, combined)
+	return mustZ80Asm(mir2.Z80Codegen(m, combined))
 }
 
 // runZ80 assembles src and runs it; returns (A, HL, err).

@@ -177,7 +177,7 @@ func TestPBQP_FourPointers_NoSpill(t *testing.T) {
 
 	lr := mir2.ComputeLiveness(f)
 	ar := mir2.PBQPAllocate(f, lr, mir2.Z80CostTable{})
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	if len(ar.Spilled) != 0 {

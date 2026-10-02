@@ -59,7 +59,7 @@ func compileOnly(m *mir2.Module) string {
 			ar.Locs[r] = loc
 		}
 	}
-	return mir2.Z80Codegen(m, ar)
+	return mustZ80Asm(mir2.Z80Codegen(m, ar))
 }
 
 // compileWithOpt runs contract opt then allocates and generates assembly.
@@ -74,7 +74,7 @@ func compileWithOpt(m *mir2.Module) (string, mir2.ContractSet) {
 			ar.Locs[r] = loc
 		}
 	}
-	return mir2.Z80Codegen(m, ar), cs
+	return mustZ80Asm(mir2.Z80Codegen(m, ar)), cs
 }
 
 // countLDA counts "LD A," lines in assembly (adapter moves into A).
@@ -434,7 +434,7 @@ func TestCoalescing_EliminatesMove(t *testing.T) {
 	ct := mir2.Z80CostTable{}
 	lr := mir2.ComputeLiveness(f)
 	ar := mir2.Allocate(f, lr, ct)
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Logf("assembly:\n%s", asm)
 
 	// Coalescing: r2 should land at the same loc as r1 (A).

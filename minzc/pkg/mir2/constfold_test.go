@@ -30,7 +30,7 @@ func TestFoldConst_BinaryArith(t *testing.T) {
 
 	lr := mir2.ComputeLiveness(f)
 	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	if !strings.Contains(asm, "LD A, 13") {
@@ -58,7 +58,7 @@ func TestFoldConst_Chain(t *testing.T) {
 
 	lr := mir2.ComputeLiveness(f)
 	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	if !strings.Contains(asm, "LD A, 7") {
@@ -83,7 +83,7 @@ func TestFoldConst_Bitwise(t *testing.T) {
 
 	lr := mir2.ComputeLiveness(f)
 	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 
 	if !strings.Contains(asm, "LD A, 136") {
 		t.Errorf("expected LD A, 136 (0xCC & 0xAA folded); got:\n%s", asm)
@@ -162,7 +162,7 @@ func TestFoldConst_WithPropagation(t *testing.T) {
 
 	lr := mir2.ComputeLiveness(f)
 	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	if !strings.Contains(asm, "LD A, 22") {

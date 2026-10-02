@@ -227,3 +227,109 @@ the supplied origin/main compiler and the rebuilt branch compiler: 63 compile
 successfully on each, zero changed compile statuses, runner exit 0. The shared
 failure is `hello_cpm_fib.nanz`'s known Z80 gcd assertion. Logs and JSON:
 `/tmp/p9-fix2-sweep/`, `/tmp/p9-fix2-sweep.log`.
+
+## FIX3: Frill registration, reserved helpers, and codegen errors
+
+Frill transfers an adopted curried/composed helper out of `autoFuncs` into its
+single top-level declaration. Imports keep the first function binding, including
+its arity and IO status. This preserves main's first-definition behavior for
+shared library names: `functional_demo.frl` imports both functional and math
+libraries, which repeat `max`, `min`, `clamp`, `is_even`, and `is_odd`. In
+particular, the two `clamp` bodies differ syntactically. Removing duplicate
+frontend registrations allows `functional_demo.frl`, `pipe.frl`, `showcase.frl`,
+and `stdlib_demo.frl` to compile and assemble with strict symbol validation.
+Their MIR2 assertions pass. Local conflicting definitions still reach the strict
+codegen validation; no assembly-label deduplication was restored.
+
+`ValidateZ80Symbols` reserves `__mul8`, `__mul16`, `__call_ix`, all eight
+`__rotate_N` entries, and the `_mir2_str_`, `_spill_`, and `_tsmc_` generated
+namespaces. It also reserves actual struct-field EQU aliases and named SMC slot
+patchers/aliases using their emission spelling. Functions and globals cannot
+claim these names, even when a helper is unused. Both critic multiply repros,
+`pm.nanz` and the unannotated `pm0.nanz`, are rejected. A preservation contract
+cannot redefine the compiler's multiplication implementation.
+
+`Z80Codegen` now returns `(string, error)` and no assembly on validation errors.
+`genCall` returns an ambiguity error; the emitter propagates its first call error.
+Both pipeline entry points and VIR's PBQP fallback consume these errors. The
+VIR regression forces the fallback with a missing solver executable and checks
+that colliding emitted symbols produce failed `FuncResult`s instead of a panic.
+Success-only test callers unwrap results through package-local test helpers.
+
+### Cross-frontend extern ABI effects
+
+The critic's original cross-frontend sweep records **27 changed generated
+assembly files** from the extern Params/return contract work. This extends beyond
+clobber narrowing: Nanz, ABAP, PL/M, and Frill callers now obey HIR extern
+parameter and return contracts. After stripping comments, 25 of those outputs
+still differ; `02_sum_array_idiomatic.nanz` and `tui_commander_l3.nanz` have only
+trace/comment changes in that snapshot. None change compile/assemble status.
+The original comparison is in critic-P9c's `sw-main/` and `sw-branch/`.
+
+For example, `tui_demo.nanz` now emits `LD E,C; LD D,0` before
+`CALL sel_register_int`, placing the default value into the extern's DE parameter.
+`examples/abap/hello_input.abap` gains argument setup and saves around extern
+calls; `examples/plm/hello.plm` likewise changes its external-call ABI code.
+External implementations must follow these Params/return contracts, as well as
+any declared clobbers.
+
+**Known pre-existing C issue:** C prototypes are not HIR `@extern` declarations.
+The critic's `pc.c` declares `ext(a,b)` and calls `ext(x,x)` through `twice`.
+Both origin/main and this branch emit `JP ext` without setting up `b`. Retaining
+HIR extern contracts does not repair this separate C prototype lowering issue.
+This is not a FIX3 regression.
+
+### Full corpus status comparison
+
+Baseline remains origin/main `6b8fc396`; fetch/rebase reported the branch current.
+The rebuilt branch compiler and the critic's main compiler were run with
+`--asserts none`, followed by the same assembler. The sweep recursively includes
+all 510 `.nanz`, `.c`, `.abap`, `.pas`, `.plm`, `.frl`, `.lanz`, `.lizp`, and
+`.minz` sources under `examples`, including archived/invalid examples. Both C
+directories and root MinZ examples are covered; Lanz has one source outside a
+dedicated `examples/lanz` directory.
+
+| Measurement | origin/main | FIX3 branch |
+|---|---:|---:|
+| Sources | 510 | 510 |
+| Compile successes | 296 | 296 |
+| Assemble successes | 233 | 233 |
+| Total assembled bytes | 133,714 | 134,283 |
+
+Zero compile/assemble status changes and zero regressions; sweep exit 0.
+The +569-byte aggregate includes the extern ABI repairs and removal of duplicate
+Frill helper bodies. Logs, per-file assembly/binaries, and JSON:
+`/tmp/p9-fix3-sweep/`, `/tmp/p9-fix3-sweep.log`; runner:
+`/tmp/p9-fix3-sweep.py`.
+
+The isolated assertion harness inspects all 82 Nanz/Frill sources in those two
+example directories, resolves stdlib imports, disables assertions during normal
+compilation, then runs each top-level assert separately with Via cleared on Z80
+(the `--asserts-force z80` semantics). Sandbox checks retain each shared-state
+prefix and also clear Via. Both versions run **3,737 checks: 2,801 pass and 936
+fail**, with **zero newly failing checks**. This includes exhaustive Frill
+properties originally intended for MIR2; forcing Z80 exposes existing failures.
+`examples/frill/hello.frl` has the same pre-existing parse failure on both and
+cannot run its assertions. Both runner exits and the comparison exit are 0.
+Data/logs: `/tmp/p9-fix3-{main,branch}-asserts.{json,log}`; runner:
+`/tmp/p9-fix3-asserts.go`.
+
+Seven independently disabled fixes each make their regression test fail with
+exit 1: helper ownership, import merging, reserved runtime namespaces, generated
+aliases, codegen error returns, call error returns, and VIR error propagation.
+The source is restored after each mutation. Audit exit 0; log and runner:
+`/tmp/p9-fix3-mutations.log`, `/tmp/p9-fix3-mutations.py`.
+
+Final gates ran one at a time with `set -o pipefail`,
+`GOCACHE=/tmp/minz-go-cache`, and `GOFLAGS=-buildvcs=false`:
+
+- `go build ./pkg/... ./cmd/...`: exit 0.
+- `go test ./pkg/hir ./pkg/mir2 ./pkg/nanz ./pkg/frill -count=1 -skip '^TestShowcaseCompileAssemble$'`: exit 0.
+- `go test -short ./pkg/pipeline/... ./pkg/c89/... -count=1`: exit 0.
+- Restored-source VIR fallback regression: exit 0.
+
+Logs: `/tmp/p9-fix3-{build,core,pipeline,vir}-final.log`.
+The original critic `pm` and `pm0` probes both reject the reserved helper with
+compile exit 1. `pc.c` compiles with exit 0 on both compilers and retains the
+same missing second-argument setup. Probe audit exit 0; artifacts and log:
+`/tmp/p9-fix3-probes/`, `/tmp/p9-fix3-probes.log`.

@@ -148,12 +148,9 @@ func TestExternAmbiguousCalleeRejected(t *testing.T) {
 			if err := ValidateZ80Symbols(g.mod); err == nil {
 				t.Fatal("accepted ambiguous emitted symbol")
 			}
-			defer func() {
-				if recover() == nil {
-					t.Fatal("ambiguous call did not fail")
-				}
-			}()
-			g.genCall(inst)
+			if err := g.genCall(inst); err == nil {
+				t.Fatal("ambiguous call did not fail")
+			}
 		})
 	}
 }
@@ -191,12 +188,9 @@ func TestZ80EmittedSymbolUniqueness(t *testing.T) {
 			if err := ValidateZ80Symbols(m); err == nil {
 				t.Fatal("accepted colliding symbol")
 			}
-			defer func() {
-				if recover() == nil {
-					t.Fatal("codegen emitted colliding labels")
-				}
-			}()
-			Z80Codegen(m, &AllocResult{})
+			if asm, err := Z80Codegen(m, &AllocResult{}); err == nil || asm != "" {
+				t.Fatalf("codegen = %q, %v", asm, err)
+			}
 		})
 	}
 }

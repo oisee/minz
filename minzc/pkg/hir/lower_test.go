@@ -45,7 +45,7 @@ func compileHIRFixture(t *testing.T, hm *hir.Module) hirZ80Fixture {
 			combined.Locs[r] = loc
 		}
 	}
-	return hirZ80Fixture{module: m, alloc: combined, asm: mir2.Z80Codegen(m, combined)}
+	return hirZ80Fixture{module: m, alloc: combined, asm: mustZ80Asm(mir2.Z80Codegen(m, combined))}
 }
 
 // runZ80 assembles and runs; returns (A, HL, error).

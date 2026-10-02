@@ -897,7 +897,9 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
 		g.comment(fmt.Sprintf("genCall: %s dst=%v", inst.Sym, inst.Dst))
-		g.genCall(inst)
+		if err := g.genCall(inst); err != nil && g.err == nil {
+			g.err = err
+		}
 
 	case OpCallCond:
 		// Conditional CALL: the condition flag is already set by a preceding CP/AND.

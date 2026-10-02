@@ -42,7 +42,7 @@ func TestConstProp_SinglePredecessor(t *testing.T) {
 	// The Add instruction should use that constant reg, not p directly.
 	lr := mir2.ComputeLiveness(f)
 	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	// The Add instruction should resolve to "ADD A, A" (42+1 doesn't fold,
@@ -94,7 +94,7 @@ func TestConstProp_BothBranchesConst(t *testing.T) {
 	mir2.DeadStoreElim(f) // clean up dead uses of original p
 	lr := mir2.ComputeLiveness(f)
 	ar := mir2.Allocate(f, lr, mir2.Z80CostTable{})
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	// join block should now materialise 7 (not receive p from predecessor).

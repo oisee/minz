@@ -180,7 +180,7 @@ func TestABIRunnerFlagReturn(t *testing.T) {
 		t.Fatal(err)
 	}
 	allocation := mir2.PBQPAllocate(f, mir2.ComputeLiveness(f), mir2.Z80CostTable{})
-	fixture := hirZ80Fixture{module: m, alloc: allocation, asm: mir2.Z80Codegen(m, allocation)}
+	fixture := hirZ80Fixture{module: m, alloc: allocation, asm: mustZ80Asm(mir2.Z80Codegen(m, allocation))}
 	for _, tc := range []struct {
 		a, b uint8
 		want int64

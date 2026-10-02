@@ -28,7 +28,7 @@ func compileDual(t *testing.T, m *mir2.Module) (z80asm, m6502asm string) {
 			z80combined.Locs[r] = loc
 		}
 	}
-	z80asm = mir2.Z80Codegen(m, z80combined)
+	z80asm = mustZ80Asm(mir2.Z80Codegen(m, z80combined))
 
 	// 6502
 	m6502combined := &mir2.AllocResult{Locs: make(map[mir2.Reg]mir2.PhysLoc)}

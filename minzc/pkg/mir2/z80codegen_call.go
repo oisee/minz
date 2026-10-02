@@ -10,7 +10,7 @@ import (
 
 // ── Calls ─────────────────────────────────────────────────────────────────────
 
-func (g *z80cg) genCall(inst *Inst) {
+func (g *z80cg) genCall(inst *Inst) error {
 	clear(g.holdsPhys) // calls clobber all volatile registers
 
 	// ── Built-in intrinsics (inlined, no CALL emitted) ────────────────────────
@@ -32,26 +32,26 @@ func (g *z80cg) genCall(inst *Inst) {
 		// A, F, HL clobbered — invalidate holdsPhys entries for these.
 		g.invalidate("A")
 		g.invalidate("HL")
-		return
+		return nil
 
 	case "@mir.io.print.u8":
 		// Emit single OUT ($23), A.  The value must already be in A.
 		g.emit("    OUT (0x23), A")
 		g.invalidate("A")
-		return
+		return nil
 
 	case "@mir.io.print.char":
 		// Print ASCII character in A via OUT ($23).
 		g.emit("    OUT (0x23), A")
 		g.invalidate("A")
-		return
+		return nil
 
 	case "@mir.io.print.nl":
 		// Emit newline (\n = 0x0A) via OUT ($23), A.
 		g.emit("    LD A, 0x0A")
 		g.emit("    OUT (0x23), A")
 		g.invalidate("A")
-		return
+		return nil
 
 	case "@mir.io.print.dec":
 		// Print u8 value in A as decimal ASCII digits via OUT ($23).
@@ -105,19 +105,19 @@ func (g *z80cg) genCall(inst *Inst) {
 		g.invalidate("B")
 		g.invalidate("C")
 		g.invalidate("D")
-		return
+		return nil
 
 	case "@mir.io.console.log":
 		// console_log(n: u8) — OUT ($23), A  (mze/mzx stdout port)
 		g.emit("    OUT (0x23), A")
 		g.invalidate("A")
-		return
+		return nil
 
 	case "@mir.io.console.err":
 		// console_err(n: u8) — OUT ($25), A  (mze/mzx stderr port)
 		g.emit("    OUT (0x25), A")
 		g.invalidate("A")
-		return
+		return nil
 
 	case "@error":
 		// @error(N) — set carry flag, error code in A, return.
@@ -125,7 +125,7 @@ func (g *z80cg) genCall(inst *Inst) {
 		g.emit("    SCF") // CY = 1 (error)
 		g.emit("    RET") // return to caller with CY set + A = code
 		g.invalidate("A")
-		return
+		return nil
 
 	case "@check":
 		// @check — jump to error handler if carry set.
@@ -138,13 +138,13 @@ func (g *z80cg) genCall(inst *Inst) {
 		// For simple propagation, emit RET:
 		g.emit("    RET") // propagate error (CY + A intact)
 		g.emitf(".check_ok_%d:", idx)
-		return
+		return nil
 
 	case "@propagate":
 		// @propagate — conditional return on carry. 1 byte, 5T.
 		// If CY=1 (error from previous call), return immediately.
 		g.emit("    RET C")
-		return
+		return nil
 	}
 
 	sym := sanitizeIdent(inst.Sym)
@@ -165,7 +165,7 @@ func (g *z80cg) genCall(inst *Inst) {
 		for _, f := range g.mod.Funcs {
 			if sanitizeIdent(f.Name) == sym {
 				if callee != nil {
-					panic(fmt.Errorf("ambiguous Z80 callee %q", sym))
+					return fmt.Errorf("ambiguous Z80 callee %q", sym)
 				}
 				callee = f
 			}
@@ -200,7 +200,7 @@ func (g *z80cg) genCall(inst *Inst) {
 		} else {
 			g.emitf("    JP %s", sym)
 		}
-		return // genTerm will skip RET
+		return nil // genTerm will skip RET
 	}
 
 	// Check if callee has a fixed address (ExternAddr)
@@ -283,6 +283,7 @@ func (g *z80cg) genCall(inst *Inst) {
 		}
 	}
 
+	return nil
 }
 
 // pickupCallResults never stores into code. Most calls need only parallel

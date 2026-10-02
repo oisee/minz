@@ -110,7 +110,7 @@ func TestConstCallElim_PureDouble(t *testing.T) {
 
 	lr := mir2.ComputeLiveness(caller)
 	ar := mir2.Allocate(caller, lr, mir2.Z80CostTable{})
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	// caller should now be just: LD A, 84; RET (no CALL double)
@@ -165,7 +165,7 @@ func TestConstCallElim_FibonacciConstArg(t *testing.T) {
 	mir2.DeadStoreElim(caller)
 	lr := mir2.ComputeLiveness(caller)
 	ar := mir2.Allocate(caller, lr, mir2.Z80CostTable{})
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	if strings.Contains(asm, "CALL fibonacci") {
@@ -204,7 +204,7 @@ func TestConstCallElim_ChainedCalls(t *testing.T) {
 
 	lr := mir2.ComputeLiveness(caller)
 	ar := mir2.Allocate(caller, lr, mir2.Z80CostTable{})
-	asm := mir2.Z80Codegen(m, ar)
+	asm := mustZ80Asm(mir2.Z80Codegen(m, ar))
 	t.Log("\n" + asm)
 
 	if strings.Contains(asm, "CALL double") {
