@@ -251,7 +251,7 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) string {
 	}
 
 	// Emit __mul8 runtime: A = A * B (unsigned 8-bit multiply).
-	// Algorithm: add-and-shift, 8 iterations. Clobbers A, B, C, F.
+	// Algorithm: add-and-shift, 8 iterations. Clobbers A, B, C, D, E, F.
 	if cg.needsMul8 {
 		sb.WriteString("\n; runtime: 8-bit multiply A*B → A (~80T)\n")
 		sb.WriteString("__mul8:\n")
@@ -1408,12 +1408,14 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 				case OpAdd, OpSub:
 					// INC/DEC: fires when rhs==1 and the op is in-place (lhs phys == dst phys).
 					if src == inst.Src[1] && cv == 1 &&
-						physName(inst.Src[0]) == physName(inst.Dst) {
+						physName(inst.Src[0]) == physName(inst.Dst) &&
+						inst.Ty.Width() <= 16 && !isSpill(physName(inst.Dst)) &&
+						physName(inst.Dst) != "F" {
 						foldedUses[src]++
 					}
 				case OpAnd, OpOr, OpXor:
-					// AND/OR/XOR immediate peephole: always emits "AND n" etc., no register needed.
-					if src == inst.Src[1] {
+					// The 8/16-bit paths emit immediate bytes; wider paths read registers.
+					if src == inst.Src[1] && inst.Ty.Width() <= 16 {
 						foldedUses[src]++
 					}
 				case OpStore:
@@ -1428,8 +1430,8 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 						foldedUses[src]++
 					}
 				case OpShl, OpShr, OpSar:
-					// genShift always shifts by 1 and completely ignores Src[1].
-					// Any constant passed as the shift count is effectively dead.
+					// genShift/genShift32 consume the constant count directly
+					// when emitting the repeated single-bit shifts.
 					if src == inst.Src[1] {
 						foldedUses[src]++
 					}
@@ -4252,11 +4254,19 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			lo_rhs := lowByte(rhs)
 			// High byte: A = dst_hi OP rhs_hi → dst_hi
 			g.emitLDA(hi)
-			g.emit8ALU(mnem, hi_rhs)
+			if cv, ok := g.constVals[inst.Src[1]]; ok {
+				g.emitf("    %s %d", mnem, (cv>>8)&0xFF)
+			} else {
+				g.emit8ALU(mnem, hi_rhs)
+			}
 			g.emitLD8(hi, "A")
 			// Low byte: A = dst_lo OP rhs_lo → dst_lo
 			g.emitLDA(lo)
-			g.emit8ALU(mnem, lo_rhs)
+			if cv, ok := g.constVals[inst.Src[1]]; ok {
+				g.emitf("    %s %d", mnem, cv&0xFF)
+			} else {
+				g.emit8ALU(mnem, lo_rhs)
+			}
 			g.emitLD8(lo, "A")
 			g.invalidate("A")
 			g.invalidate(dst)
@@ -4701,6 +4711,27 @@ func (g *z80cg) genMul(inst *Inst) {
 		return
 	}
 
+	// Preserve the accumulator value used after this multiply, including a
+	// loop block parameter. Relocate before saving runtime scratch pairs.
+	for r := range g.regsLiveAfterInst(inst) {
+		if r == inst.Dst || g.loc(r) != "A" {
+			continue
+		}
+		// regsLiveAfterInst includes terminator uses defined later in this
+		// block; those values are not in A yet.
+		definedLater := false
+		for _, later := range g.curBlock.Insts[g.curInstIdx+1:] {
+			if later.Dst == r {
+				definedLater = true
+				break
+			}
+		}
+		if !definedLater {
+			g.saveAccOperandIfLive(r, inst)
+			break
+		}
+	}
+	lhs = g.loc(inst.Src[0])
 	cv, isConst := g.constVals[inst.Src[1]]
 
 	if isConst {
@@ -4828,6 +4859,10 @@ func (g *z80cg) genMul(inst *Inst) {
 	}
 
 	// General constant or variable multiply: use runtime __mul8 routine.
+	// __mul8 clobbers A/B/C/D/E/F. Save pairs before ABI setup so
+	// live operands (including a multiplier in B) survive the call.
+	g.emit("    PUSH BC")
+	g.emit("    PUSH DE")
 	// __mul8(A=multiplicand, B=multiplier) → A=product (~80T).
 	if !g.holdsValue("A", lhs) {
 		g.emitLDA(lhs)
@@ -4847,9 +4882,10 @@ func (g *z80cg) genMul(inst *Inst) {
 		}
 	}
 	g.emit("    CALL __mul8")
+	g.emit("    POP DE")
+	g.emit("    POP BC")
 	g.needsMul8 = true
 	g.invalidate("A")
-	g.invalidate("B")
 	g.invalidate("F")
 	if dst != "A" {
 		g.emitLD8(dst, "A")
@@ -4907,6 +4943,11 @@ func (g *z80cg) genMul16(inst *Inst) {
 		} else if isIXYReg(lhs) {
 			// IXH/IXL/IYH/IYL: 8-bit half-reg, zero-extend to HL.
 			g.emitMovViaAltA("L", lhs)
+			g.emit("    LD H, 0")
+		} else if isSimpleReg(lhs) && !isPairReg(lhs) {
+			// A byte operand promoted by the expression must be zero-extended,
+			// not copied into both halves of the multiplicand.
+			g.emitLD8("L", lhs)
 			g.emit("    LD H, 0")
 		} else if isSpill(lhs) {
 			g.loadSpill16("HL", lhs)
@@ -4970,6 +5011,7 @@ func (g *z80cg) genMul16(inst *Inst) {
 		}
 		// Small multiples via PUSH/POP BC save + shift sequences.
 		if cv == 3 || cv == 5 || cv == 6 || cv == 9 {
+			g.emit("    PUSH BC") // preserve values live across the scratch pair
 			g.emit("    PUSH HL") // save x → BC
 			g.emit("    POP BC")  // BC = x (17T)
 			switch cv {
@@ -4992,6 +5034,7 @@ func (g *z80cg) genMul16(inst *Inst) {
 				g.emit("    ADD HL, HL")
 				g.emit("    ADD HL, BC")
 			}
+			g.emit("    POP BC")
 			mul16Epilogue()
 			return
 		}

@@ -2,6 +2,7 @@ package hir_test
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/minz/minzc/pkg/emulator"
@@ -100,4 +101,167 @@ func TestProductionMultiplyJudge(t *testing.T) {
 			t.Fatalf("%d checked, %d mismatches:%s\n%s", checked, len(bad), describeMismatches(bad), fixture.asm)
 		}
 	})
+}
+
+// The sample contains 1,276 values, including both byte boundaries and 65535.
+func u16MultiplySample() []int64 {
+	var xs []int64
+	for x := 0; x < 65536; x++ {
+		if x <= 1023 || x%257 == 0 {
+			xs = append(xs, int64(x))
+		}
+	}
+	return xs
+}
+
+// Assemble once, then bootstrap the actual production ABI for each input.
+func judgeMultiplyCases(t *testing.T, f *hir.Func, cases [][]int64, model func([]int64) int64) {
+	t.Helper()
+	fixture := compileProductionHIRFixture(t, &hir.Module{Name: "multiply_live", Funcs: []*hir.Func{f}})
+	if strings.Count(fixture.asm, "\n__mul8:\n") > 1 {
+		t.Fatalf("duplicate multiply runtime label\n%s", fixture.asm)
+	}
+	fn := fixture.module.FuncByName(f.Name)
+	res, err := z80asm.NewAssembler().AssembleString(fmt.Sprintf(" ORG 0x%04X\n CALL %s\n DI\n HALT\n", testLoadAddr, f.Name) + fixture.asm)
+	if err != nil || len(res.Errors) > 0 {
+		t.Fatalf("assemble: %v %v\n%s", err, res.Errors, fixture.asm)
+	}
+	z := emulator.NewRemogattoZ80()
+	bad := 0
+	for _, args := range cases {
+		z.Reset()
+		if err := z.LoadMemory(testLoadAddr, res.Binary); err != nil {
+			t.Fatal(err)
+		}
+		regs := emulator.Registers{SP: 0xFF00, PC: testLoadAddr}
+		for i, p := range fn.Contract.Params {
+			if p.Ty.Width() <= 8 {
+				continue
+			}
+			v := uint16(args[i])
+			loc := fixture.alloc.Locs[p.Reg].Name
+			switch loc {
+			case "HL":
+				regs.HL = v
+			case "DE":
+				regs.DE = v
+			case "BC":
+				regs.BC = v
+			case "IX":
+				regs.IX = v
+			case "IY":
+				regs.IY = v
+			default:
+				t.Fatalf("unsupported argument %s", loc)
+			}
+		}
+		z.SetRegisters(regs)
+		for i, p := range fn.Contract.Params {
+			if p.Ty.Width() <= 8 {
+				if err := z.SetRegister8(fixture.alloc.Locs[p.Reg].Name, uint8(args[i])); err != nil {
+					t.Fatal(err)
+				}
+			}
+		}
+		for steps := 0; !z.IsHalted(); steps++ {
+			if steps >= judgeStepBudget {
+				t.Fatalf("instruction budget exhausted: %v\n%s", args, fixture.asm)
+			}
+			z.Step()
+		}
+		got, err := hirReturnValue(fn, z.GetRegisters())
+		want := model(args)
+		if err != nil || got != want {
+			bad++
+			if bad <= 5 {
+				t.Errorf("args=%v got=%d want=%d err=%v", args, got, want, err)
+			}
+		}
+	}
+	if bad > 0 {
+		t.Fatalf("%d/%d mismatches\n%s", bad, len(cases), fixture.asm)
+	}
+}
+
+func TestProductionMultiplyLiveJudge(t *testing.T) {
+	for _, ty := range []mir2.Ty{mir2.TyU8, mir2.TyU16} {
+		for _, k := range []int64{3, 13, 37, 1000} {
+			t.Run(fmt.Sprintf("u%d_k%d", ty.Width(), k), func(t *testing.T) {
+				bin := func(op string, l, r hir.Expr) hir.Expr { return &hir.BinExpr{Op: op, L: l, R: r, Ty: ty} }
+				f := &hir.Func{Name: "live", Params: []hir.Param{{Name: "a", Ty: ty}, {Name: "b", Ty: ty}, {Name: "c", Ty: ty}}, RetTy: ty, Body: hir.Blk(hir.Ret(bin("+", bin("+", bin("*", hir.Var("a", ty), &hir.IntLitExpr{Val: k, Ty: ty}), hir.Var("b", ty)), hir.Var("c", ty))))}
+				xs := u16MultiplySample()
+				mask := int64(65535)
+				if ty.Width() == 8 {
+					xs = xs[:256]
+					mask = 255
+				}
+				var cases [][]int64
+				for _, x := range xs {
+					for _, bc := range [][2]int64{{3, 4}, {255, 128}, {300, 65535}} {
+						cases = append(cases, []int64{x, bc[0] & mask, bc[1] & mask})
+					}
+				}
+				judgeMultiplyCases(t, f, cases, func(a []int64) int64 { return (a[0]*k + a[1] + a[2]) & mask })
+			})
+		}
+	}
+	t.Run("u8_loop", func(t *testing.T) {
+		ty := mir2.TyU8
+		v := func(n string) hir.Expr { return hir.Var(n, ty) }
+		lit := func(n int64) hir.Expr { return &hir.IntLitExpr{Val: n, Ty: ty} }
+		bin := func(op string, l, r hir.Expr) hir.Expr { return &hir.BinExpr{Op: op, L: l, R: r, Ty: ty} }
+		f := &hir.Func{Name: "loop", Params: []hir.Param{{Name: "n", Ty: ty}}, RetTy: ty, Body: hir.Blk(&hir.VarDeclStmt{Name: "s", Ty: ty, Init: lit(0)}, &hir.VarDeclStmt{Name: "i", Ty: ty, Init: lit(0)}, hir.While(&hir.BinExpr{Op: "<", L: v("i"), R: v("n"), Ty: mir2.TyBool}, hir.Blk(hir.Assign(v("s"), bin("+", v("s"), bin("*", v("i"), lit(13)))), hir.Assign(v("i"), bin("+", v("i"), lit(1))))), hir.Ret(v("s")))}
+		var cases [][]int64
+		for n := int64(0); n < 256; n++ {
+			cases = append(cases, []int64{n})
+		}
+		judgeMultiplyCases(t, f, cases, func(a []int64) int64 { return (13 * a[0] * (a[0] - 1) / 2) & 255 })
+	})
+	for _, k := range []int64{3, 10, 1000} {
+		t.Run(fmt.Sprintf("u8_widened_k%d", k), func(t *testing.T) {
+			f := multiplyHIR("wide_mul", mir2.TyU16, k, false)
+			f.Params[0].Ty = mir2.TyU8
+			f.Body = hir.Blk(hir.Ret(&hir.BinExpr{Op: "*", L: hir.Var("x", mir2.TyU8), R: &hir.IntLitExpr{Val: k, Ty: mir2.TyU16}, Ty: mir2.TyU16}))
+			var cases [][]int64
+			for x := int64(0); x < 256; x++ {
+				cases = append(cases, []int64{x})
+			}
+			judgeMultiplyCases(t, f, cases, func(a []int64) int64 { return (a[0] * k) & 65535 })
+		})
+	}
+
+	t.Run("u16_variable", func(t *testing.T) {
+		var cases [][]int64
+		for _, x := range u16MultiplySample() {
+			for _, y := range []int64{0, 1, 2, 13, 255, 256, 1000, 32768, 65535} {
+				cases = append(cases, []int64{x, y})
+			}
+		}
+		judgeMultiplyCases(t, multiplyHIR("mul", mir2.TyU16, 0, true), cases, func(a []int64) int64 { return (a[0] * a[1]) & 65535 })
+	})
+}
+
+func TestProductionBitwiseConstantJudge(t *testing.T) {
+	for _, op := range []string{"&", "|", "^"} {
+		for _, k := range []int64{0, 1, 255, 256, 0x0f0f, 0x8080, 0xfffe, 65535} {
+			t.Run(fmt.Sprintf("%s_k%d", op, k), func(t *testing.T) {
+				ty := mir2.TyU16
+				f := &hir.Func{Name: "bits", Params: []hir.Param{{Name: "x", Ty: ty}}, RetTy: ty, Body: hir.Blk(hir.Ret(&hir.BinExpr{Op: op, L: hir.Var("x", ty), R: &hir.IntLitExpr{Val: k, Ty: ty}, Ty: ty}))}
+				var cases [][]int64
+				for _, x := range u16MultiplySample() {
+					cases = append(cases, []int64{x})
+				}
+				judgeMultiplyCases(t, f, cases, func(a []int64) int64 {
+					switch op {
+					case "&":
+						return a[0] & k
+					case "|":
+						return a[0] | k
+					default:
+						return a[0] ^ k
+					}
+				})
+			})
+		}
+	}
 }
