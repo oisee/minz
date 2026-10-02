@@ -209,18 +209,30 @@ def generated(seed):
     return src, args
 
 
-def with_assert(src, args):
+def with_assert(src, args, mode="folded"):
+    """Direct calls keep f parameterized when Z80 executes the assertion."""
     val = Interp(src).call('f', args)
-    return src + f'\nfun g() -> u16 {{ return f({args[0]}, {args[1]}, {args[2]}) }}\nassert g() == {val} via z80\n'
+    # Keep the existing wrapper as an emission root in both modes; only the
+    # assertion target changes, so direct-call executes f rather than folded g.
+    wrapper = f'\nfun g() -> u16 {{ return f({args[0]}, {args[1]}, {args[2]}) }}\n'
+    target = f'f({args[0]}, {args[1]}, {args[2]})' if mode == 'direct-call' else 'g()'
+    program = src + wrapper + f'assert {target} == {val} via z80\n'
+    # The assembler treats F as the flags register, making CALL f invalid.
+    # Use an unambiguous symbol so direct mode reaches the function body.
+    return re.sub(r'\bf(?=\()', 'fuzz_entry', program) if mode == 'direct-call' else program
 
 
 def mismatch(result):
     # Syntax/codegen errors and timeouts are reported separately, never used
     # as evidence that a reduced program still reproduces a wrong value.
+    if 'exit_code' in result and (result['exit_code'] != 1 or
+                                  result.get('executed') != 1 or
+                                  result.get('passed') != 0 or result.get('failed') != 1):
+        return False
     return not result['pass'] and bool(re.search(r'(?i)\bgot\s+-?(?:0x[0-9a-f]+|\d+)[,\s]+(?:want|expected)\b', result['error']))
 
 
-def minimize(src, args, check):
+def minimize(src, args, check, mode="folded"):
     """Greedy deletion: 1-minimal over complete helper functions, control blocks and lines.
 
     Recompute the oracle for each reduction and accept only wrong-value
@@ -244,19 +256,21 @@ def minimize(src, args, check):
                 candidates.append(''.join(lines[:i] + lines[i+1:]))
         for candidate in candidates:
             try:
-                program = with_assert(candidate, args)
+                program = with_assert(candidate, args, mode)
             except Exception:
                 continue
             if mismatch(check(program)):
                 src = candidate
                 changed = True
                 break
-    return with_assert(src, args)
+    return with_assert(src, args, mode)
 
 
 def differential_status(mir, z80):
-    if mismatch(mir): return 'MIR2 != oracle'
     if re.search(r'(?i)assembl|invalid instruction|unknown instruction', z80['error']): return 'assembly failure'
+    # An unjudged backend must not be hidden by the other backend's wrong value.
+    if any(not r['pass'] and not mismatch(r) for r in (mir, z80)): return 'compiler error'
+    if mismatch(mir): return 'MIR2 != oracle'
     if mir['pass'] and mismatch(z80): return 'Z80 != MIR2'
     if mir['pass'] and z80['pass']: return 'pass'
     return 'compiler error'
@@ -271,10 +285,10 @@ def reduction_check(text, status, check):
     return check(text)
 
 
-def fuzz_one(seed, mz, timeout, output, reduce=True):
+def fuzz_one(seed, mz, timeout, output, reduce=True, mode="folded"):
     src, args = generated(seed)
     try:
-        program = with_assert(src, args)
+        program = with_assert(src, args, mode)
     except Exception as e:
         return {'seed': seed, 'status': 'oracle error', 'error': str(e)}
     with tempfile.TemporaryDirectory(prefix='fuzz-diff-') as temp:
@@ -285,11 +299,11 @@ def fuzz_one(seed, mz, timeout, output, reduce=True):
         mir = check(program, 'mir2')
         z80 = check(program)
         status = differential_status(mir, z80)
-        result = mir if status == 'MIR2 != oracle' else z80
+        result = mir if status == 'MIR2 != oracle' or (status == 'compiler error' and not mir['pass'] and not mismatch(mir)) else z80
         if status in ('MIR2 != oracle', 'Z80 != MIR2'):
             def reduce_check(text):
                 return reduction_check(text, status, check)
-            reduced = minimize(src, args, reduce_check) if reduce else program
+            reduced = minimize(src, args, reduce_check, mode) if reduce else program
             (output / f'seed-{seed}.nanz').write_text(reduced)
             (output / f'seed-{seed}.original.nanz').write_text(program)
         elif status in ('compiler error', 'assembly failure'):
@@ -306,20 +320,29 @@ def main():
     p.add_argument('--timeout', type=float, default=30)
     p.add_argument('--output', type=Path, required=True)
     p.add_argument('--no-reduce', action='store_true', help='save full reproducers and skip deletion reduction for fast triage')
+    p.add_argument('--fail-on', choices=('all', 'backend'), default='all',
+                   help='all: fail on any finding (default); backend: fail on backend/compiler failures or less than 95%% passing seeds; report all findings')
+    p.add_argument('--mode', choices=('folded', 'direct-call'), default='folded',
+                   help='folded: assert a constant-foldable wrapper; direct-call: execute f with assertion arguments')
     a = p.parse_args()
     if a.timeout <= 0:
         p.error('--timeout must be positive')
     a.output.mkdir(parents=True, exist_ok=True)
     mz = str(Path(a.mz).resolve())
     with concurrent.futures.ThreadPoolExecutor(max_workers=a.j) as pool:
-        results = list(pool.map(lambda seed: fuzz_one(seed, mz, a.timeout, a.output, not a.no_reduce), range(a.seed, a.seed+a.count)))
+        results = list(pool.map(lambda seed: fuzz_one(seed, mz, a.timeout, a.output, not a.no_reduce, a.mode), range(a.seed, a.seed+a.count)))
     (a.output / 'results.json').write_text(json.dumps(results, indent=2) + '\n')
     for status in ['pass', 'MIR2 != oracle', 'Z80 != MIR2', 'assembly failure', 'compiler error', 'oracle error']:
         print(f'{status}: {sum(r["status"] == status for r in results)}')
     for r in results:
         if r['status'] != 'pass':
             print(f'seed {r["seed"]}: {r["status"]}: {r["error"]}')
-    return int(any(r['status'] != 'pass' for r in results))
+    passes = sum(r['status'] == 'pass' for r in results)
+    floor_failed = passes * 100 < len(results) * 95
+    print(f'Passing seeds: {passes}/{len(results)}; minimum 95%; mode: {a.mode}')
+    blocking = {'Z80 != MIR2', 'assembly failure', 'compiler error'}
+    return int(floor_failed or any(r['status'] != 'pass' if a.fail_on == 'all' else r['status'] in blocking
+                   for r in results))
 
 
 if __name__ == '__main__':

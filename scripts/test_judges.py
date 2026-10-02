@@ -449,6 +449,58 @@ sys.exit(int(fail))
 
 
 class FuzzTests(unittest.TestCase):
+    def test_cli_exit_policy_preserves_findings(self):
+        statuses = ('pass', 'MIR2 != oracle', 'Z80 != MIR2',
+                    'assembly failure', 'compiler error', 'oracle error')
+        with tempfile.TemporaryDirectory() as temp:
+            for policy in ('all', 'backend'):
+                for status in statuses:
+                    with self.subTest(policy=policy, status=status):
+                        finding = {'seed': 56, 'status': status, 'error': 'diagnostic'}
+                        argv = ['fuzz_diff.py', '--mz', 'mz', '--seed', '56', '--count', '1',
+                                '--output', temp, '--fail-on', policy]
+                        with patch.object(sys, 'argv', argv), patch.object(fuzz, 'fuzz_one', return_value=finding) as run, patch('builtins.print') as log:
+                            code = fuzz.main()
+                        expected = status != 'pass'  # Single failing seed also violates the 95% floor.
+                        self.assertEqual(code, int(expected))
+                        self.assertEqual(run.call_args.args[0], 56)
+                        self.assertEqual(json.loads((Path(temp) / 'results.json').read_text()), [finding])
+                        if status != 'pass':
+                            log.assert_any_call(f'seed 56: {status}: diagnostic')
+
+    def test_backend_floor_and_compiler_errors(self):
+        with tempfile.TemporaryDirectory() as temp:
+            for bad, count, expected in [('MIR2 != oracle', 1, 0),
+                                         ('oracle error', 1, 0),
+                                         ('MIR2 != oracle', 2, 1),
+                                         ('compiler error', 1, 1)]:
+                results = ([{'seed': i, 'status': bad, 'error': 'diagnostic'} for i in range(count)] +
+                           [{'seed': i, 'status': 'pass', 'error': ''} for i in range(count, 20)])
+                argv = ['fuzz_diff.py', '--mz', 'mz', '--count', '20', '--output', temp, '--fail-on', 'backend']
+                with patch.object(sys, 'argv', argv), patch.object(fuzz, 'fuzz_one', side_effect=results), patch('builtins.print'):
+                    self.assertEqual(fuzz.main(), expected)
+            passed = {'pass': True, 'error': ''}
+            wrong = {'pass': False, 'error': 'got 1, want 2'}
+            for error in ('crash', 'timeout after 1s', 'missing execution receipt',
+                          'ASSERTS: executed=0 passed=0 failed=0'):
+                unjudged = {'pass': False, 'error': error}
+                self.assertEqual(fuzz.differential_status(passed, unjudged), 'compiler error')
+                self.assertEqual(fuzz.differential_status(unjudged, passed), 'compiler error')
+                self.assertEqual(fuzz.differential_status(wrong, unjudged), 'compiler error')
+            # A wrong-value-looking diagnostic cannot excuse a crash or absent receipt.
+            for fields in ({'exit_code': -11}, {'exit_code': None}, {'exit_code': 1},
+                           {'exit_code': 1, 'executed': 0, 'passed': 0, 'failed': 0}):
+                unjudged = dict(wrong, **fields)
+                self.assertEqual(fuzz.differential_status(unjudged, passed), 'compiler error')
+
+    def test_direct_call_generation_and_reduction(self):
+        src, args = fuzz.generated(1)
+        program = fuzz.with_assert(src, args, 'direct-call')
+        self.assertNotIn('assert g()', program)
+        self.assertIn(f'assert fuzz_entry({args[0]}, {args[1]}, {args[2]}) ==', program)
+        reduced = fuzz.minimize(src, args, lambda text: {'pass': True, 'error': ''}, 'direct-call')
+        self.assertEqual(program, reduced)
+
     def test_tool_exception_exit(self):
         with tempfile.TemporaryDirectory() as temp:
             proc=subprocess.run([sys.executable,fuzz.__file__,'--mz',str(Path(temp)/'missing'),'--count','1','--output',temp],capture_output=True,text=True)
@@ -482,15 +534,17 @@ class FuzzTests(unittest.TestCase):
         self.assertEqual(fuzz.differential_status(wrong, wrong), 'MIR2 != oracle')
         self.assertEqual(fuzz.differential_status(passed, wrong), 'Z80 != MIR2')
         self.assertEqual(fuzz.differential_status(passed, {'pass':False,'error':'assembly failed'}), 'assembly failure')
+        self.assertEqual(fuzz.differential_status(wrong, {'pass':False,'error':'assembly failed'}), 'assembly failure')
         self.assertEqual(fuzz.differential_status(passed, passed), 'pass')
 
     def test_seed_and_parallel_oracle(self):
         seeds = range(30)
-        sequential = [fuzz.with_assert(*fuzz.generated(s)) for s in seeds]
-        with concurrent.futures.ThreadPoolExecutor(4) as pool:
-            parallel = list(pool.map(lambda s: fuzz.with_assert(*fuzz.generated(s)), seeds))
-        self.assertEqual(sequential, parallel)
-        self.assertNotEqual(sequential[0], sequential[1])
+        for mode in ('folded', 'direct-call'):
+            sequential = [fuzz.with_assert(*fuzz.generated(s), mode) for s in seeds]
+            with concurrent.futures.ThreadPoolExecutor(4) as pool:
+                parallel = list(pool.map(lambda s: fuzz.with_assert(*fuzz.generated(s), mode), seeds))
+            self.assertEqual(sequential, parallel)
+            self.assertNotEqual(sequential[0], sequential[1])
 
     def test_interpreter(self):
         src = '''fun f(a: u16, b: u16, c: u16) -> u16 {
