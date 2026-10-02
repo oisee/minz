@@ -124,10 +124,38 @@ type Z80CodegenOptions struct {
 	AnnotateTStates bool
 }
 
+// ValidateZ80Symbols rejects distinct functions/data that emit the same symbol.
+// Calls resolve by symbol, so uniqueness is required before using a callee ABI.
+func ValidateZ80Symbols(m *Module) error {
+	seen := make(map[string]string)
+	add := func(name string) error {
+		sym := sanitizeIdent(name)
+		if prev, ok := seen[sym]; ok {
+			return fmt.Errorf("ambiguous Z80 symbol %q: %q and %q", sym, prev, name)
+		}
+		seen[sym] = name
+		return nil
+	}
+	for _, f := range m.Funcs {
+		if err := add(f.Name); err != nil {
+			return err
+		}
+	}
+	for _, g := range m.Globals {
+		if err := add(g.Name); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // Z80Codegen generates Z80 assembly for the entire module.
 // An optional Z80CodegenOptions value may be passed as the third argument;
 // callers that don't need options can omit it entirely.
 func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) string {
+	if err := ValidateZ80Symbols(m); err != nil {
+		panic(err)
+	}
 	var opt Z80CodegenOptions
 	if len(opts) > 0 {
 		opt = opts[0]

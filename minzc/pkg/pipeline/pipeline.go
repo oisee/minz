@@ -336,6 +336,9 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 				tr.Backend = "PBQP"
 			}
 		}
+		if err := mir2.ValidateZ80Symbols(m); err != nil {
+			return s, err
+		}
 		if err := mir2.ValidateZ80IndirectCalls(m); err != nil {
 			return s, err
 		}
@@ -522,6 +525,9 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 
 	// Z80 assembly text.
 	if err := mir2.ValidateZ80IndirectCalls(m); err != nil {
+		return "", err
+	}
+	if err := mir2.ValidateZ80Symbols(m); err != nil {
 		return "", err
 	}
 	asm := mir2.Z80Codegen(m, combined)

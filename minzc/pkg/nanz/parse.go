@@ -1065,7 +1065,9 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	// overload semantics for host/assembly symbols. Validate after imports and
 	// generated helpers have been merged as well as local declarations.
 	byName := make(map[string][]*hir.Func)
+	unique := make([]*hir.Func, 0, len(m.Funcs))
 	for _, f := range m.Funcs {
+		duplicate := false
 		for _, prev := range byName[f.Name] {
 			if !prev.IsExtern && !f.IsExtern {
 				continue
@@ -1074,7 +1076,7 @@ func (p *parser) parseModule() (*hir.Module, error) {
 				return nil, fmt.Errorf("@extern %q shares a name with a function body", f.Name)
 			}
 			same := reflect.DeepEqual(prev.RetTy, f.RetTy) && reflect.DeepEqual(prev.RetTys, f.RetTys) &&
-				prev.ExternAddr == f.ExternAddr && reflect.DeepEqual(prev.ExternClobbers, f.ExternClobbers) && len(prev.Params) == len(f.Params)
+				prev.ExternAddr == f.ExternAddr && sameClobberSet(prev.ExternClobbers, f.ExternClobbers) && len(prev.Params) == len(f.Params)
 			if same {
 				for i, param := range prev.Params {
 					if !reflect.DeepEqual(param.Ty, f.Params[i].Ty) || param.RegClass != f.Params[i].RegClass || param.SMC != f.Params[i].SMC {
@@ -1085,9 +1087,14 @@ func (p *parser) parseModule() (*hir.Module, error) {
 			if !same {
 				return nil, fmt.Errorf("conflicting @extern redeclarations for %q; extern overloads are unsupported", f.Name)
 			}
+			duplicate = true
 		}
-		byName[f.Name] = append(byName[f.Name], f)
+		if !duplicate {
+			byName[f.Name] = append(byName[f.Name], f)
+			unique = append(unique, f)
+		}
 	}
+	m.Funcs = unique
 
 	// Fix forward-referenced call types: any CallExpr with Ty==TyVoid whose
 	// target function actually returns a value needs its Ty patched.  This
@@ -1097,6 +1104,21 @@ func (p *parser) parseModule() (*hir.Module, error) {
 
 	m.Warnings = p.warnings
 	return m, nil
+}
+
+// Preserve nil (unknown clobbers) versus an explicitly empty preservation contract.
+func sameClobberSet(a, b []string) bool {
+	if (a == nil) != (b == nil) {
+		return false
+	}
+	set := func(regs []string) map[string]bool {
+		out := make(map[string]bool)
+		for _, r := range regs {
+			out[strings.ToUpper(strings.TrimSpace(r))] = true
+		}
+		return out
+	}
+	return reflect.DeepEqual(set(a), set(b))
 }
 
 // fixForwardCallTypes walks all functions and patches CallExpr nodes whose Ty

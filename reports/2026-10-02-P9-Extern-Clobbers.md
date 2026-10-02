@@ -151,3 +151,79 @@ with exit 0 and return A=55. Emulator process exits equal those return values.
 p3 rejects overloaded externs with compile exit 1. p4 and its unannotated
 control p4m reject extern/body collisions with compile exit 1. The probe audit
 exited 0; artifacts and full command logs: `/tmp/p9-fix1-critic/`.
+
+## FIX2: retain extern ABIs and validate emitted symbols
+
+Identical bodyless extern redeclarations now produce exactly one `Module.Funcs`
+entry after local declarations, imports, and generated helpers are merged.
+Parameter names do not affect equivalence. Clobbers compare as sets, ignoring
+order and repeated register entries, while nil (unknown writes) remains distinct
+from an explicitly empty contract. Conflicting declarations still fail.
+
+Z80 symbol validation uses the emitter's `sanitizeIdent`, including register-name
+prefixing (`f` becomes `v_f`) and generated-name punctuation (`x$split_1` becomes
+`x_split_1`). Both pipeline entry points report collisions before emission.
+Function/function and function/global collisions fail rather than reaching label
+deduplication. Direct codegen also rejects invalid modules. Call resolution uses
+emitted symbols and fails on ambiguity; it never substitutes a nil callee and
+loses argument setup, result pickup, or a fixed address. A preservation decision
+cannot discard the rest of a callee's ABI.
+
+`hir/lower.go` now gives externs a **Params contract**, fixing extern argument
+passing in general, not only declared-clobber calls. The critic's single extern
+`ps1` returns 3 on origin/main and 6 on this branch with the same `ADD A,C; RET`
+stub. This changes the extern ABI for other frontends using HIR lowering: callers
+now copy arguments into the contract registers and pick up the declared return.
+External implementations must obey those parameter/return contracts as well as
+any declared clobbers.
+
+The optional removal of empty labels for bodyless externs without an address is
+**deferred for corpus compatibility**. `self_lanz_parser.nanz` still calls the
+unprovided Z80 host symbols `peek` and `poke`; its current output assembles with
+exit 0, but deleting those two labels makes the same assembler fail with exit 1
+and undefined-symbol diagnostics. The pipeline's `emitExternStubs` can also
+reintroduce missing labels with RET stubs, so removing codegen labels alone would
+not establish a reliable unresolved-extern error. Existing empty labels may still
+fall through if no external implementation is supplied; they are not valid
+implementations. Changing this behavior requires an explicit linking/stub policy
+and corpus migration. No preservation guarantee is inferred from those labels.
+Evidence: `/tmp/p9-fix2-critic/{with,no}-extern-labels.log`.
+
+Regression tests execute repeated declarations (`ps`), fixed-address tail calls
+(`pt`), and two imported declarations (`pe`), expecting A=6. Address tests also
+require `JP 0x1234` and reject `JP ext`. Further tests reject the `f`/`v_f`
+collision (`pv`), generated split-name and global collisions, and ambiguous
+MIR2 callees. Disabling deduplication, clobber-set comparison, emitted-symbol
+validation, and ambiguous-call rejection separately makes the corresponding
+regression fail (exit 1 for each); audit exit 0. Restored-source focused tests
+exit 0. Log: `/tmp/p9-fix2-mutations.log`.
+
+Required gates ran sequentially with `set -o pipefail`,
+`GOCACHE=/tmp/minz-go-cache`, and `GOFLAGS=-buildvcs=false`:
+
+- `go build ./pkg/... ./cmd/...`: exit 0.
+- `go test ./pkg/hir ./pkg/mir2 ./pkg/nanz -count=1 -skip '^TestShowcaseCompileAssemble$'`: exit 0.
+- `go test -short ./pkg/pipeline/... ./pkg/c89/... -count=1`: exit 0.
+
+Rebuilt compiler and original critic sources/assembler/emulator:
+
+| Suite | Repro | Result |
+|---|---|---|
+| critic-P9 | p1 | A=10 |
+| critic-P9 | p2, p2c | A=55 each |
+| critic-P9 | p3 | compile exit 1, conflicting externs |
+| critic-P9 | p4, p4m | compile exit 1, extern/body collisions |
+| critic-P9b | ps, ps1 | A=6 each |
+| critic-P9b | pt, pe | A=6 each, fixed address retained |
+| critic-P9b | pv | compile exit 1, ambiguous emitted symbol |
+
+Successful repros compile and assemble with exit 0; emulator exit codes equal A.
+For pt/pe the harness redirects literal `0x1234` to a supplied assembly stub,
+after first verifying the original assembly's literal address and absence of
+`JP ext`. Probe audit exit 0, artifacts: `/tmp/p9-fix2-critic/`.
+
+The critic-style sweep covers all 64 top-level `examples/nanz/*.nanz` files with
+the supplied origin/main compiler and the rebuilt branch compiler: 63 compile
+successfully on each, zero changed compile statuses, runner exit 0. The shared
+failure is `hello_cpm_fib.nanz`'s known Z80 gcd assertion. Logs and JSON:
+`/tmp/p9-fix2-sweep/`, `/tmp/p9-fix2-sweep.log`.

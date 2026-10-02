@@ -1,6 +1,7 @@
 package mir2
 
 import (
+	"fmt"
 	"slices"
 	"strings"
 
@@ -160,13 +161,11 @@ func (g *z80cg) genCall(inst *Inst) {
 			callee.Contract.Returns = []Return{{Ty: inst.Ty, Class: ClassAcc}}
 		}
 	} else if g.mod != nil {
-		// Calls carry a symbol, not a function identity. Ambiguous names cannot
-		// supply either an ABI or a preservation guarantee.
+		// Resolve on emitted symbols. Never discard an ABI to handle ambiguity.
 		for _, f := range g.mod.Funcs {
-			if f.Name == inst.Sym {
+			if sanitizeIdent(f.Name) == sym {
 				if callee != nil {
-					callee = nil
-					break
+					panic(fmt.Errorf("ambiguous Z80 callee %q", sym))
 				}
 				callee = f
 			}

@@ -137,23 +137,24 @@ func TestUnresolvedExternCallPreservesLiveValues(t *testing.T) {
 	}
 }
 
-func TestExternAmbiguousCalleeSaves(t *testing.T) {
-	for _, compiled := range []bool{false, true} {
-		g, inst, _ := externCallFixture("C", []string{})
-		other := g.mod.AddFunc("ext")
-		other.Attrs.IsExtern = !compiled
-		if compiled {
-			other.Blocks = []*Block{{Label: "entry"}}
-		}
-		g.genCall(inst)
-		asm := g.sb.String()
-		if !strings.Contains(asm, "PUSH BC") {
-			t.Fatalf("ambiguous callee must save live C: %s", asm)
-		}
-		regs := runExternJudge(t, "ORG 0x8000\nLD C, 42\n"+asm+"LD A, C\nHALT\next:\nLD C, 99\nRET\n")
-		if regs.A != 42 {
-			t.Fatalf("live C corrupted: A=%d", regs.A)
-		}
+func TestExternAmbiguousCalleeRejected(t *testing.T) {
+	for _, name := range []string{"ext", "e$t"} {
+		t.Run(name, func(t *testing.T) {
+			g, inst, ext := externCallFixture("C", []string{})
+			if name == "e$t" {
+				ext.Name, inst.Sym = "e_t", "e_t"
+			}
+			g.mod.AddFunc(name)
+			if err := ValidateZ80Symbols(g.mod); err == nil {
+				t.Fatal("accepted ambiguous emitted symbol")
+			}
+			defer func() {
+				if recover() == nil {
+					t.Fatal("ambiguous call did not fail")
+				}
+			}()
+			g.genCall(inst)
+		})
 	}
 }
 
@@ -165,5 +166,37 @@ func TestExternWithBodyStaysConservative(t *testing.T) {
 	}
 	if got := g.callerSavePairs(inst, ext); !reflect.DeepEqual(got, []string{"BC"}) {
 		t.Fatalf("extern with body did not save live C: %v", got)
+	}
+}
+
+func TestZ80EmittedSymbolUniqueness(t *testing.T) {
+	for _, tc := range []struct {
+		name, first, second string
+		global              bool
+	}{
+		{"register rename", "f", "v_f", false},
+		{"generated split", "x$split_1", "x_split_1", false},
+		{"extern versus data", "ext", "ext", true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			m := &Module{}
+			f := m.AddFunc(tc.first)
+			f.Attrs.IsExtern = true
+			f.Contract.ExternClobbers = []string{}
+			if tc.global {
+				m.Globals = append(m.Globals, Global{Name: tc.second})
+			} else {
+				m.AddFunc(tc.second)
+			}
+			if err := ValidateZ80Symbols(m); err == nil {
+				t.Fatal("accepted colliding symbol")
+			}
+			defer func() {
+				if recover() == nil {
+					t.Fatal("codegen emitted colliding labels")
+				}
+			}()
+			Z80Codegen(m, &AllocResult{})
+		})
 	}
 }
