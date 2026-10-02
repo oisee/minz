@@ -49,7 +49,7 @@ func (g *z80cg) emitSBCHL(rhs string) {
 	} else if isSimpleReg(rhs) && !isPairReg(rhs) {
 		// 8-bit operand: promote to pair via promote8toPair.
 		pair := g.promote8toPair(rhs)
-		g.emitf("    SBC HL, %s", pair)
+		g.emitSBCHL(pair)
 	} else {
 		g.emitf("    SBC HL, %s", rhs)
 	}
@@ -213,12 +213,12 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			g.invalidate("A") // A about to hold a new result
 			switch mnem {
 			case "ADD":
-				g.emitf("    ADD A, %s", lhs)
+				g.emit8ALU("ADD", lhs)
 			case "AND", "OR", "XOR":
 				g.emit8ALU(mnem, lhs)
 			case "SUB":
 				g.emit("    NEG")
-				g.emitf("    ADD A, %s", lhs)
+				g.emit8ALU("ADD", lhs)
 			default:
 				g.comment(fmt.Sprintf("TODO: 8-bit %s %s, A → %s with A as rhs", mnem, lhs, dst))
 				g.emitLDA(lhs)
@@ -819,6 +819,22 @@ func (g *z80cg) emit8ALUImm(mnem string, imm int64) {
 // ── Shifts ────────────────────────────────────────────────────────────────────
 
 func (g *z80cg) genShift(mnem string, inst *Inst) {
+	if dst := g.loc(inst.Dst); isSpill(dst) && inst.Ty.Width() <= 16 {
+		// Z80 shifts accept registers or indirect memory, never absolute
+		// spill labels. Stage the result without disturbing a live HL/A.
+		pair, scratch := "HL", "HL"
+		if inst.Ty.Width() <= 8 {
+			pair, scratch = "AF", "A"
+		}
+		g.emitf("    PUSH %s", pair)
+		g.physOverride[inst.Dst] = scratch
+		g.genShift(mnem, inst)
+		delete(g.physOverride, inst.Dst)
+		g.emitMov(dst, scratch, inst.Ty.Width())
+		g.emitf("    POP %s", pair)
+		g.invalidate(scratch)
+		return
+	}
 	if _, constant := g.constVals[inst.Src[1]]; !constant {
 		g.genVariableShift(mnem, inst)
 		return

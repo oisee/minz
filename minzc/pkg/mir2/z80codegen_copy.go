@@ -1,5 +1,7 @@
 package mir2
 
+import "fmt"
+
 // parallelCopy is a single register-to-register move in a parallel copy sequence.
 type parallelCopy struct {
 	srcName string
@@ -316,8 +318,14 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 			}
 		} else if isSpill(c.dstName) {
 			g.emit("    EX AF, AF'")
-			g.emitf("    LD A, %d", c.immVal&0xFF)
-			g.emitf("    LD (%s), A", c.dstName)
+			for i := 0; i < z80SpillBytes(c.ty); i++ {
+				g.emitf("    LD A, %d", (c.immVal>>(8*i))&0xFF)
+				addr := c.dstName
+				if i > 0 {
+					addr += fmt.Sprintf("+%d", i)
+				}
+				g.emitf("    LD (%s), A", addr)
+			}
 			g.emit("    EX AF, AF'")
 		} else if c.ty.Width() <= 8 {
 			g.emitf("    LD %s, %d", c.dstName, c.immVal&0xFF)
@@ -331,6 +339,15 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 // For 16-bit, this emits two LD instructions (not EX DE,HL which is a swap).
 func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 	if src == dst {
+		return
+	}
+	if isZ80WideInt(ty) {
+		g.emitMov32(dst, src)
+		if ty.Width() == 24 && isPairReg(dst) {
+			g.emit("    EXX")
+			g.emitLD8(highByte(dst), "0")
+			g.emit("    EXX")
+		}
 		return
 	}
 	// F register: cannot be accessed directly. Materialise flag→register or

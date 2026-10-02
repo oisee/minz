@@ -329,6 +329,7 @@ type z80cg struct {
 	// overriding the static allocator assignment g.ar.Loc(r).Name.
 	// Cleared at every CALL (the call clobbers volatile state).
 	physOverride map[Reg]string
+	regInfo      map[Reg]RegInfo
 
 	// liveness gives cross-block live-out sets so that block-local
 	// physOverride relocations can be undone for values a successor reads.
@@ -579,6 +580,7 @@ func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
 
 func (g *z80cg) genFunc(f *Func) {
 	g.fn = f
+	g.regInfo = collectRegInfo(f)
 	g.cmpSwapped = make(map[Reg]bool)
 	g.cmpAndZero = make(map[Reg]bool)
 	g.cmpNeedsTwo = make(map[Reg]bool)
@@ -664,6 +666,10 @@ func (g *z80cg) genFunc(f *Func) {
 		g.emitf("    RET")
 	}
 
+	// Redirect orphaned TSMC stores before collecting spill references: the
+	// rewrite can introduce new spill slots that must also be defined.
+	fixOrphanedTSMCStores(g.sb, label)
+
 	// Emit named spill data section — one label per spilled register.
 	// DB for 8-bit, DW for 16-bit. Labels resolve forward references
 	// from LD (label),A / LD A,(label) throughout the function.
@@ -672,7 +678,7 @@ func (g *z80cg) genFunc(f *Func) {
 	// 1. Emit from g.ar.Spilled for vregs in collectRegInfo (known width)
 	// 2. Scan emitted asm for any _spill_ refs still missing a definition
 	//    (catches vregs not in Spilled or filtered by TSMC/regInfo)
-	regInfo := collectRegInfo(f)
+	regInfo := g.regInfo
 	emittedSpills := make(map[string]bool)
 	var spillCount int
 	for _, r := range g.ar.Spilled {
@@ -695,7 +701,7 @@ func (g *z80cg) genFunc(f *Func) {
 			}
 			w := 1
 			if info, ok := regInfo[r]; ok {
-				w = (info.Ty.Width() + 7) / 8
+				w = z80SpillBytes(info.Ty)
 			}
 			slabel := g.spillLabel(r)
 			emittedSpills[slabel] = true
@@ -707,7 +713,7 @@ func (g *z80cg) genFunc(f *Func) {
 			case 3:
 				g.emitf("%s: DB 0, 0, 0", slabel) // eZ80 24-bit
 			default:
-				g.emitf("%s: DB 0", slabel)
+				g.emitf("%s: DB %s", slabel, strings.TrimSuffix(strings.Repeat("0, ", w), ", "))
 			}
 		}
 	}
@@ -755,15 +761,18 @@ func (g *z80cg) genFunc(f *Func) {
 	if len(missingSpills) > 0 {
 		g.emitf("; — extra spill slots for %s (%d rescued)", label, len(missingSpills))
 		for _, slabel := range missingSpills {
-			// Default to DW (16-bit) — most missing spills are ptr/u16 regs
-			g.emitf("%s: DW 0", slabel)
+			// Preserve the full storage width, including main/shadow words.
+			w := 2
+			var r int
+			if _, err := fmt.Sscanf(slabel[len(prefix):], "%d", &r); err == nil {
+				if info, ok := regInfo[Reg(r)]; ok {
+					w = z80SpillBytes(info.Ty)
+				}
+			}
+			g.emitf("%s: DB %s", slabel, strings.TrimSuffix(strings.Repeat("0, ", w), ", "))
 		}
 	}
 
-	// Pass 3: fix orphaned TSMC stores — when a _tsmc_ label is referenced
-	// (by store patches) but never defined (no reload instruction), redirect
-	// the stores to the corresponding _spill_ label so data flows correctly.
-	fixOrphanedTSMCStores(g.sb, label)
 }
 
 // ── Block ─────────────────────────────────────────────────────────────────────
