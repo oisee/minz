@@ -13,6 +13,7 @@ import (
 // Parse afresh on every iteration: lowering mutates HIR, and map iteration
 // must vary in the frontend as well as in allocation and code generation.
 func TestProductionDeterminism(t *testing.T) {
+	t.Setenv("SOURCE_DATE_EPOCH", "946684801")
 	for _, input := range []string{
 		"nanz/self_tokenizer.nanz", "nanz/01_sum_array.nanz",
 		"nanz/09_function_pointers.nanz", "nanz/08_arena_allocator.nanz",

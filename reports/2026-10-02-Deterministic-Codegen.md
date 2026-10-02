@@ -1,6 +1,11 @@
 # P5: deterministic production code generation
 
-Baseline: `origin/main` at `7063d30bdf087eb6992b76cea7ea717efba6a1ef`.
+Original measurement baseline: `origin/main` at `7063d30bdf087eb6992b76cea7ea717efba6a1ef`.
+FIX1 rebased this branch onto `origin/main` at
+`d0104ab5428d827b23c0df4d71c73b804bd9a140` (emulator cycles and multiply/constant fixes).
+The corpus sizes and hash counts below are historical measurements against the
+original baseline; they were not remeasured after this rebase.
+
 Branch: `fix/P5-deterministic-codegen`. Measurements use the default Z80
 backend, fresh compiler processes, and `--asserts none` for assembly generation.
 
@@ -11,7 +16,71 @@ backend, fresh compiler processes, and `--asserts none` for assembly generation.
 - Both compile 123 inputs on all five runs. `examples/c89/fatfs/diskio.c` fails on both because its platform/storage headers are missing.
 - 110 inputs assemble successfully on every run on both versions, using each version's `cmd/mza` with raw binary output. The other 14 are excluded consistently; their rows below show a dash for sizes.
 - Main total assembled bytes per corpus run: [60165, 60137, 60162, 60121, 60196]. Main **min/median/max: 60,121/60,162/60,196**. Branch: **60,388 bytes**, identical in all five runs (226 bytes above main's median).
-- `--asserts all -o /dev/null` was run on **835 tracked compiler inputs** under `examples/`, including archives, all language frontends, MIR and assembler inputs. Both versions exit successfully for **236**, and fail for **599**. **No assertion-outcome changes** after normalizing checkout paths and assembly line numbers. Five failure messages in the 124-file corpus move to different assembly line numbers; the failing operation stays the same.
+- The original `--asserts all -o /dev/null` comparison covered 835 tracked inputs (236 successful exits and 599 failures on both versions). **The previous claim of no assertion-outcome changes was wrong.** File-level exit codes and the first failure hide later assertions. The isolated assertion comparison below supersedes that claim.
+
+## Isolated assertion comparison after FIX1 rebase
+
+The earlier file-level comparison was insufficient: a failing assertion stops
+execution, hiding later outcomes. Following the critic's `one.sh` approach,
+we blanked every other assertion candidate in each source (preserving line
+numbers), kept the isolated file beside its original to preserve includes,
+and invoked `--asserts-force z80 -o /dev/null` in fresh processes. Source
+annotations saying `via mir2` were deliberately forced onto Z80. Each candidate
+ran once on the deterministic branch and three times on rebased main, with
+`SOURCE_DATE_EPOCH=946684801` explicitly set. This covered **1,738 candidates**:
+the critic's 1,729 jobs plus nine additional tracked candidates, including the
+new C/Nanz multiply examples. No run timed out (60-second limit).
+
+The complete per-candidate exit codes and expressions are in
+[the assertion CSV](2026-10-02-Deterministic-Codegen-asserts.csv).
+Of these, 1,165 succeeded on both compilers in every run; 569 failed on both
+in every run; four had differing outcomes, listed below. These are compilation
+exit outcomes: syntax errors, unsupported archived inputs, imported assertions,
+and Frill property checks can prevent reaching the isolated candidate. Such
+failures are not counted as proof that the selected assertion itself failed.
+The four differences below each have a diagnostic naming the selected assertion.
+
+| Isolated source assertion | Main passes / 3 | Branch passes / 1 | Failing result |
+| --- | ---: | ---: | --- |
+| `examples/c/c99_math8.c:78` — `saturating_add(100,50) == 150` | 2 | 0 | Branch gets 200 instead of 150 |
+| `examples/c/c_edge_cases.c:53` — `double_inc(5) == 11` | 1 | 0 | Branch gets 20 instead of 11 |
+| `examples/zx/plasma.nanz:70` — `color_to_attr_s(0,201,0) == 0x44` | 2 | 1 | One main run gets 4 instead of 68 |
+| `examples/c89/static_local.c:36` — `test_independent() == 20` | 2 | 1 | One main run gets 0 instead of 20 |
+
+Thus `saturating_add(100,50)` changed from mostly passing in this main sample
+to consistently failing with the branch's frozen allocation. `double_inc`
+also freezes a failing choice; main passed 1/3 in both this sweep and a separate
+targeted check. The critic's earlier sample passed 3/3 for saturating_add and
+1/3 for double_inc. Three nondeterministic main runs cannot establish the
+underlying pass frequency. Conversely, plasma's color assertion and the
+independent static counters now consistently pass on the branch while main
+remains intermittent in this sample.
+
+**Fixing determinism freezes one allocation; that frozen choice exposes the
+known 16-bit add `dst == rhs` bug in the two failing C assertions.** In
+`saturating_add`, the branch emits `LD H,D; LD L,E; ADD HL,HL`, overwriting the
+right operand and computing `2a`. This is wrong code, even though it is now
+reproducible. The add fix belongs to a separate branch. FIX1 does not tune the
+allocator tie-break or claim to fix that add bug.
+
+For completeness, the critic also found the following reverse changes with
+the original baseline. All remain successful on this branch, but all three
+updated-main runs passed them too, so they are **not observed differences in
+the rebased comparison**:
+
+| Source assertion | Original critic main passes / 3 | Rebased main passes / 3 | Branch passes / 1 |
+| --- | ---: | ---: | ---: |
+| `examples/frill/showcase.frl:114` — `inc2 5 == 6` | 1 | 3 | 1 |
+| `examples/c/c99_math8.c:79` — `average(10,20) == 15` | 1 | 3 | 1 |
+| `examples/c/c23_constexpr_enum.c:71` — `next_color(3) == 0` | 2 | 3 | 1 |
+| `examples/c/c99_enum_typedef.c:55` — `opposite(1) == 3` | 1 | 3 | 1 |
+| `examples/c89/static_local.c:15` — `test_counter() == 3` | 2 | 3 | 1 |
+
+Full diagnostics: `/tmp/p5-fix-{asserts,extra-asserts}.jsonl`; runner:
+`/tmp/p5-fix-asserts.py`; supplemental C diagnostic sample:
+`/tmp/p5-fix-target-asserts.jsonl`. The original critic observations are in
+its `ares.txt`. Assembly confirming the frozen add sequence is in
+`/tmp/p5-fix-saturating.a80`.
 
 ## Ordering audit and choices
 
@@ -31,8 +100,8 @@ Z80 assembler. It also checked goroutines and time/random calls.
 | PBQP allocation | R0/R1 reduction mutates neighbours while ranging states | Ascending virtual register ID, matching the existing RN final tie-break |
 | TSMC spilling | Pair map changes patch-store emission order | Ascending spilled register ID |
 | Z80 accumulator saves | Map-first A value and equal definition-index candidates | Lowest virtual register ID; latest-definition priority is retained |
-| C clock macros | `__DATE__` / `__TIME__` read compilation wall clock | UTC `SOURCE_DATE_EPOCH`, default Unix epoch; malformed/negative values also use epoch |
-| Assembler macros | Serial parameter replacement ranges a map | Parameter declaration order, retaining existing serial substitution semantics |
+| C clock macros | `__DATE__` / `__TIME__` read compilation wall clock | UTC timestamp when `SOURCE_DATE_EPOCH` is set; local wall clock when unset; malformed or out-of-range values return an error |
+| Assembler macros | Serial parameter replacement ranges a map | Simultaneous substitution in one scan of the original body, matching whole identifiers; argument text is never rescanned |
 
 Ordering policies preserve the common first-inserted traversal for small maps
 where declaration order exists. A 1,000-run baseline PBQP tie sample (two
@@ -82,21 +151,31 @@ Revert-check logs are in `/tmp/p5-revert-*.log`, restoration logs in
 
 ## Required gates
 
-All gates run sequentially from `minzc` with `set -o pipefail`,
+FIX1 gates run sequentially from `minzc` after rebasing, with `set -o pipefail`,
 `GOCACHE=/tmp/minz-go-cache` and `GOFLAGS=-buildvcs=false`.
 
 | Command | Exit | Result |
 | --- | --- | --- |
 | `go build ./pkg/... ./cmd/...` | 0 | Passed |
-| `go test ./pkg/hir ./pkg/mir2 ./pkg/pipeline -count=1` | 1 | HIR and MIR2 pass; existing `TestGraceVerify` failures below |
+| `go test ./pkg/hir ./pkg/mir2 ./pkg/pipeline ./pkg/cparse ./pkg/z80asm -count=1` | 1 | HIR and MIR2 pass; existing `TestGraceVerify` failures below |
 | `go test -short ./pkg/c89/... -count=1` | 0 | Passed |
 | `go test ./pkg/nanz -skip '^TestShowcaseCompileAssemble$' -count=1` | 0 | Passed |
 
-Untouched main reproduces all five final `TestGraceVerify` failures:
+Updated main reproduces the same four `TestGraceVerify` failures:
 `18_tail_recursion.nanz` (MIR2 fib assertion), `hello_cpm_fib.nanz` (Z80 gcd),
-`mul16_gpu_test.nanz` (Z80 multiply), and `screen_customer.nanz` /
-`screen_report.nanz` (Grace-path split branch argument count). This optional
-Grace gate failure is not introduced by the determinism changes.
+`screen_customer.nanz` /
+`screen_report.nanz` (Grace-path split branch argument count). The old multiply failure disappears after the rebase. These optional
+Grace gate failures are not introduced by the determinism changes.
+Logs: `/tmp/p5-fix-gate-{build,core,c89,nanz}.log` and
+`/tmp/p5-fix-main-grace.log`.
+
+FIX1 clock/macro regressions fail with the implementations reverted (exit 1)
+and pass after restoring them (exit 0): `/tmp/p5-fix-revert-red.log`,
+`/tmp/p5-fix-restored-green.log`. `TestProductionDeterminism` explicitly sets
+`SOURCE_DATE_EPOCH=946684801`; all seven inputs pass 20 runs on the branch,
+while updated main fails for tokenizer, arena, and ObjC inheritance
+(`/tmp/p5-fix-main-determinism.log`). Reproducibility for programs using C
+clock macros requires setting `SOURCE_DATE_EPOCH`.
 
 ## Per-input corpus measurements
 
