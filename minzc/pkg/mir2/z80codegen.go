@@ -4687,7 +4687,7 @@ func (g *z80cg) genShift32(mnem string, inst *Inst) {
 
 // genMul emits 8-bit unsigned multiply via shift-and-add.
 // Power-of-2 constants use N×(ADD A,A); small constants use LD tmp,A + adds.
-// Variable or large constants fall back to a software-loop comment (TODO).
+// Variable or large constants use the __mul8 runtime.
 func (g *z80cg) genMul(inst *Inst) {
 	dst := g.loc(inst.Dst)
 	lhs := g.loc(inst.Src[0])
@@ -4833,7 +4833,11 @@ func (g *z80cg) genMul(inst *Inst) {
 		g.emitLDA(lhs)
 	}
 	rhs := g.loc(inst.Src[1])
-	if rhs != "B" {
+	if isConst {
+		// Constant loads are suppressed by deadConstsForFunc for OpMul.
+		// The runtime fallback must materialise its multiplier itself.
+		g.emitf("    LD B, %d", cv&0xFF)
+	} else if rhs != "B" {
 		if isPairReg(rhs) {
 			g.emitf("    LD B, %s", lowByte(rhs))
 		} else if isSpill(rhs) {
@@ -5009,7 +5013,12 @@ func (g *z80cg) genMul16(inst *Inst) {
 	g.emit("    PUSH DE") // preserve D and E across multiply
 	// Load multiplier into DE BEFORE overwriting BC with the multiplicand.
 	// (rhs may be in C/B/BC which gets clobbered by LD B,H; LD C,L below.)
-	if rhs != "DE" {
+	if isConst {
+		// OpMul constants have no physical load (deadConstsForFunc).
+		// Strength reduction consumes cv directly; so must this fallback.
+		g.emitf("    LD DE, %d", cv&0xFFFF)
+		g.invalidate("DE")
+	} else if rhs != "DE" {
 		if isSpill(rhs) {
 			g.loadSpill16("DE", rhs)
 		} else if isIXY(rhs) {
