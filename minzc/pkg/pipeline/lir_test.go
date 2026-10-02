@@ -3,6 +3,7 @@ package pipeline
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/minz/minzc/pkg/c89"
@@ -126,17 +127,17 @@ func TestLIR_SingleFunc(t *testing.T) {
 		}
 	}
 
-	// Verify at least one machine passes
-	anyPass := false
+	// C int is u16 on Z80, outside the judged bridge allowlist. LIRCheck
+	// still runs all three machines and reports unsupported lowering honestly.
+	if len(steps.LIRResults) != 3 {
+		t.Fatalf("want all three convergence results, got %+v", steps.LIRResults)
+	}
 	for _, r := range steps.LIRResults {
-		if r.Match && r.Error == "" {
-			anyPass = true
-			break
+		if !strings.Contains(r.Error, "unsupported op add") {
+			t.Fatalf("word arithmetic must be rejected: %+v", r)
 		}
 	}
-	if !anyPass {
-		t.Error("no machine passed for simple add function")
-	}
+
 }
 
 // TestLIR_CodegenOutput tests that LIR produces readable Z80 assembly.
@@ -152,12 +153,25 @@ func TestLIR_CodegenOutput(t *testing.T) {
 		t.Fatal("no functions")
 	}
 
-	asm, err := lir.LIRCodegenFunc(m.Funcs[0], m)
+	// C integer promotion introduces u16 operations even for this byte
+	// signature. The raw bridge must reject them; production falls back.
+	if _, err := lir.LIRCodegenFunc(m.Funcs[0], m); err == nil {
+		t.Fatal("unjudged promoted C arithmetic accepted")
+	}
+	opts := DefaultOptions()
+	opts.UseLIR = true
+	steps, err := CompileHIRSteps(hm, opts)
 	if err != nil {
 		t.Fatal(err)
 	}
+	trace := steps.Traces["double_val"]
+	if trace == nil || !strings.Contains(trace.Backend, "PBQP-fallback") {
+		t.Fatalf("want fallback provenance: %+v", trace)
+	}
+	if !strings.Contains(steps.Assembly, "double_val:") || !strings.Contains(steps.Assembly, "RET") {
+		t.Fatalf("missing readable fallback assembly: %s", steps.Assembly)
+	}
 
-	t.Logf("LIR Z80 assembly:\n%s", asm)
 }
 
 // ── Multi-frontend corpus tests ──────────────────────────────────────────────

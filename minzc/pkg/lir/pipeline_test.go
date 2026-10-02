@@ -52,10 +52,10 @@ func TestPipeline_HIRToLIR(t *testing.T) {
 				Body: &hir.Block{Body: []hir.Stmt{
 					&hir.ReturnStmt{
 						Val: &hir.BinExpr{
-							Op:  "+",
-							L:   &hir.VarRefExpr{Name: "a", Ty: mir2.TyU8},
-							R:   &hir.VarRefExpr{Name: "b", Ty: mir2.TyU8},
-							Ty:  mir2.TyU8,
+							Op: "+",
+							L:  &hir.VarRefExpr{Name: "a", Ty: mir2.TyU8},
+							R:  &hir.VarRefExpr{Name: "b", Ty: mir2.TyU8},
+							Ty: mir2.TyU8,
 						},
 					},
 				}},
@@ -170,17 +170,10 @@ func TestLIRCodegen_OpCall(t *testing.T) {
 	// Use result to prevent DCE
 	mb.Ret(result)
 
-	asm, err := LIRCodegenFunc(caller, m)
-	if err != nil {
-		t.Fatal(err)
+	if _, err := LIRCodegenFunc(caller, m); err == nil {
+		t.Fatal("calls must fall back until their ABI and live registers pass the judge")
 	}
 
-	t.Logf("generated assembly:\n%s", asm)
-
-	// Tail call: last call before RET becomes JP.
-	if !strings.Contains(asm, "CALL double") && !strings.Contains(asm, "JP double") {
-		t.Errorf("expected CALL/JP double in output, got:\n%s", asm)
-	}
 }
 
 // TestPipeline_Z80Patterns verifies the Z80 machine descriptor.

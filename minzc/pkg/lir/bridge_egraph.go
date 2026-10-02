@@ -5,9 +5,10 @@
 // cheapest valid form.
 //
 // Width-mismatch cases (the #1 source of LIR errors) get multiple variants:
-//   OpMove u16→u8: {trunc via L, trunc via E, trunc via C}
-//   OpMove u8→u16: {zext via HL, zext via DE, zext via BC}
-//   OpCmp flag→A:  {SBC A,A, JR+SCF+SBC}
+//
+//	OpMove u16→u8: {trunc via L, trunc via E, trunc via C}
+//	OpMove u8→u16: {zext via HL, zext via DE, zext via BC}
+//	OpCmp flag→A:  {SBC A,A, JR+SCF+SBC}
 package lir
 
 import (
@@ -20,6 +21,9 @@ import (
 // Each MIR2 instruction becomes an EClass with 1+ variants.
 // Returns both the EGraph and the flattened ops (cheapest per class).
 func LowerMIR2BlockEGraph(b *mir2.Block, desc *MachineDesc, mod *mir2.Module) (*EGraph, []MIROp, error) {
+	if err := checkAllowedBlock(b); err != nil {
+		return nil, nil, err
+	}
 	eg := NewEGraph()
 
 	for _, inst := range b.Insts {
@@ -35,7 +39,10 @@ func LowerMIR2BlockEGraph(b *mir2.Block, desc *MachineDesc, mod *mir2.Module) (*
 			continue
 		}
 		if inst.Op == mir2.OpMul {
-			mulOps := translateMul(inst, desc)
+			mulOps, err := translateMul(inst, desc)
+			if err != nil {
+				return nil, nil, err
+			}
 			if mulOps != nil {
 				eg.SingleClass(mulOps, 80, "mul_runtime")
 				continue
@@ -82,6 +89,9 @@ func LowerMIR2BlockEGraph(b *mir2.Block, desc *MachineDesc, mod *mir2.Module) (*
 // Returns the variants for this instruction. Most instructions have 1 variant;
 // width-mismatches and flag materialization have 2-3.
 func TranslateInstEGraph(inst *mir2.Inst, desc *MachineDesc) []EVariant {
+	if checkAllowedInst(inst) != nil {
+		return nil
+	}
 	switch {
 	// ── Truncation: u16 → u8 ────────────────────────────────────────
 	case inst.Op == mir2.OpTrunc:
@@ -149,7 +159,7 @@ func truncVariants(inst *mir2.Inst, desc *MachineDesc) []EVariant {
 				DstAllowed: gpr8, SrcAllowed: [2]LocSet{gpr8},
 			}},
 			Cost: 4,
-			Tag: "trunc_nop",
+			Tag:  "trunc_nop",
 		},
 		// Variant B: src is 16-bit pair → use trunc patterns (LD A, L etc.)
 		// Leave SrcAllowed open to pairs so isel picks trunc_hl_a / trunc_de_a etc.
@@ -159,7 +169,7 @@ func truncVariants(inst *mir2.Inst, desc *MachineDesc) []EVariant {
 				DstAllowed: gpr8, SrcAllowed: [2]LocSet{pairs},
 			}},
 			Cost: 4,
-			Tag: "trunc_pair",
+			Tag:  "trunc_pair",
 		},
 	}
 }

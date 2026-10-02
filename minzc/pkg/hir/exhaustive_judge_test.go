@@ -357,13 +357,23 @@ func TestExhaustiveJudgeLIRWideFallback(t *testing.T) {
 						}
 					}
 				}
+				boundaries := []int64{0, 1, 0xFFFE, 0xFFFF, 0x10000, 0x10001, 0x7FFFFFFF, 0x80000000, 0xFFFFFFFE, 0xFFFFFFFF}
+				for _, a := range boundaries {
+					for _, b := range boundaries {
+						got, err := vm.Call(name, []mir2.Value{{I: a}, {I: b}})
+						want := int64(uint32(a + b))
+						if err != nil || len(got) != 1 || got[0].I != want {
+							t.Fatalf("MIR2 add32(%d,%d): %v, %v; want %d", a, b, got, err, want)
+						}
+					}
+				}
 				// PBQP cannot assemble this production u32 ABI yet. A future
 				// repair must replace this source-VM check with a Z80 judge.
 				res, err := z80asm.NewAssembler().AssembleString(steps.Assembly)
 				if err != nil || len(res.Errors) > 0 {
-					t.Skipf("fallback provenance and 65,536 MIR2 sums checked; PBQP u32 Z80 judge blocked by assembly errors: %v %v", err, res.Errors)
+					t.Skipf("fallback provenance and 65,636 MIR2 sums checked; PBQP u32 Z80 judge blocked by assembly errors: %v %v", err, res.Errors)
 				}
-				return
+				t.Fatal("production u32 now assembles: replace this skip with a real judge")
 			}
 			boot := fmt.Sprintf("    ORG 0x%04X\n    CALL %s\n    DI\n    HALT\n", testLoadAddr, name)
 			res, err := z80asm.NewAssembler().AssembleString(boot + steps.Assembly)

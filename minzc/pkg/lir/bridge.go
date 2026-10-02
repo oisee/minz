@@ -30,26 +30,10 @@ type LowerResult struct {
 func LowerMIR2Block(b *mir2.Block, desc *MachineDesc, mod *mir2.Module, funcParamVRegs ...[]int) ([]MIROp, error) {
 	var ops []MIROp
 
-	constants := make(map[mir2.Reg]int64)
+	if err := checkAllowedBlock(b); err != nil {
+		return nil, err
+	}
 	for _, inst := range b.Insts {
-		if err := checkValueWidths(inst); err != nil {
-			return nil, fmt.Errorf("block %s: %w", b.Label, err)
-		}
-		if inst.Op == mir2.OpCmp && !compareOnlyFeedsCondRet(b, inst) {
-			return nil, fmt.Errorf("block %s: %w", b.Label, unsupportedOp(inst))
-		}
-		if inst.Op == mir2.OpShl || inst.Op == mir2.OpShr {
-			count, constant := constants[inst.Src[1]]
-			if inst.Ty == nil || inst.Ty.Width() > 8 || !constant || count != 1 {
-				return nil, fmt.Errorf("block %s: %w (only 8-bit shifts by constant 1 supported)", b.Label, unsupportedOp(inst))
-			}
-		}
-		if inst.Dst != mir2.NoReg {
-			delete(constants, inst.Dst)
-			if inst.Op == mir2.OpConst {
-				constants[inst.Dst] = inst.Imm
-			}
-		}
 		if inst.Op == mir2.OpCall || inst.Op == mir2.OpCallIndirect {
 			callOps, err := translateCall(inst, desc, mod)
 			if err != nil {
@@ -63,7 +47,10 @@ func LowerMIR2Block(b *mir2.Block, desc *MachineDesc, mod *mir2.Module, funcPara
 		// at the MIROp level. Any OpMul that reaches here is variable×variable
 		// or a const multiply that ISLE didn't handle.
 		if inst.Op == mir2.OpMul {
-			mulOps := translateMul(inst, desc)
+			mulOps, err := translateMul(inst, desc)
+			if err != nil {
+				return nil, err
+			}
 			if mulOps != nil {
 				ops = append(ops, mulOps...)
 				continue
@@ -313,22 +300,22 @@ func insertSaveBeforeOverwrite(ops []MIROp, desc *MachineDesc) []MIROp {
 					srcVReg = renamed
 				}
 				// DstAllowed excludes the accumulator — the save must go
-			// to a different register so it survives the destructive ALU op.
-			saveDst := desc.LocsOfWidth(op.Width)
-			if saveDst.IsEmpty() {
-				saveDst = desc.LocsOfWidth(8)
-			}
-			// For 8-bit ops, exclude A (accumulator, ALU destination).
-			// For 16-bit ops, exclude HL (16-bit ALU destination).
-			if op.Width <= 8 {
-				if aIdx := desc.LocByName("A"); aIdx >= 0 {
-					saveDst = saveDst.Clear(aIdx)
+				// to a different register so it survives the destructive ALU op.
+				saveDst := desc.LocsOfWidth(op.Width)
+				if saveDst.IsEmpty() {
+					saveDst = desc.LocsOfWidth(8)
 				}
-			} else {
-				if hlIdx := desc.LocByName("HL"); hlIdx >= 0 {
-					saveDst = saveDst.Clear(hlIdx)
+				// For 8-bit ops, exclude A (accumulator, ALU destination).
+				// For 16-bit ops, exclude HL (16-bit ALU destination).
+				if op.Width <= 8 {
+					if aIdx := desc.LocByName("A"); aIdx >= 0 {
+						saveDst = saveDst.Clear(aIdx)
+					}
+				} else {
+					if hlIdx := desc.LocByName("HL"); hlIdx >= 0 {
+						saveDst = saveDst.Clear(hlIdx)
+					}
 				}
-			}
 				result = append(result, MIROp{
 					Op:         OpMove,
 					Dst:        sv.saveVReg,
@@ -468,10 +455,10 @@ func insertCallSpills(ops []MIROp, desc *MachineDesc, paramVRegs []int) []MIROp 
 				spillVReg := nextSpillVReg
 				nextSpillVReg++
 				result = append(result, MIROp{
-					Op:    OpMove,
-					Dst:   spillVReg,
-					Src:   [2]int{vreg, -1},
-					Width: 8,
+					Op:         OpMove,
+					Dst:        spillVReg,
+					Src:        [2]int{vreg, -1},
+					Width:      8,
 					DstAllowed: desc.SpillLocs(),
 				})
 				spillMap[vreg] = spillVReg
@@ -852,10 +839,10 @@ func translateTerm(t mir2.Term, desc *MachineDesc) (Term, error) {
 		// For now: treat as TermBranch comparing Lhs < Rhs.
 		// The bridge caller will handle the split.
 		return Term{
-			Kind: TermBranch,
-			Cond: regToOp(tt.Lhs),
+			Kind:    TermBranch,
+			Cond:    regToOp(tt.Lhs),
 			Targets: []string{tt.Lt, tt.Gt},
-			Args: [][]Operand{regsToOps(tt.LtArgs), regsToOps(tt.GtArgs)},
+			Args:    [][]Operand{regsToOps(tt.LtArgs), regsToOps(tt.GtArgs)},
 		}, nil
 
 	case *mir2.TermDJNZ:
@@ -920,96 +907,21 @@ func mulHasConstOperand(inst *mir2.Inst, block *mir2.Block) bool {
 	return false
 }
 
-// translateMul converts a non-constant OpMul into a CALL to a runtime
-// multiply routine (__mul8 or __mul16). Returns nil if the multiply
-// might be reducible by ISLE (has a constant operand).
-func translateMul(inst *mir2.Inst, desc *MachineDesc) []MIROp {
-	// Check if either source is a constant — ISLE combining will handle those.
-	// We only need runtime CALL for variable × variable.
-	// At bridge level we can't easily check if src is const, so we always
-	// emit the CALL. ISLE combining runs BEFORE isel and will have already
-	// reduced const multiplies to shifts/adds — those won't reach here
-	// because the MIR2 OpMul will have been rewritten.
-	// Actually, ISLE works on MIROps not MIR2 — so the OpMul MIROp is
-	// what ISLE sees. If ISLE reduces it, the MIROp changes to OpAdd/OpShl.
-	// If ISLE doesn't reduce it (variable×variable), it stays OpMul and
-	// isel fails. So we should always convert OpMul to a CALL here,
-	// and let ISLE handle the const cases upstream.
-
-	width := 8
-	if inst.Ty != nil {
-		if w := inst.Ty.Width(); w > 0 {
-			width = w
-		}
+// translateMul rejects multiplication until a native Z80 judge proves it.
+func translateMul(inst *mir2.Inst, desc *MachineDesc) ([]MIROp, error) {
+	if err := checkAllowedInst(inst); err != nil {
+		return nil, err
 	}
-	if width < 8 {
-		width = 8
-	}
-
-	var ops []MIROp
-
-	if width <= 8 {
-		// __mul8(a: u8 = A, b: u8 = B) -> u8 = A
-		// Arg 0: src0 → A
-		ops = append(ops, MIROp{
-			Op:         OpMove,
-			Dst:        7000, // synthetic vreg for arg0
-			Src:        [2]int{int(inst.Src[0]), -1},
-			Width:      8,
-			DstAllowed: desc.LocSetByNames("A"),
-		})
-		// Arg 1: src1 → B (or any non-A GPR)
-		nonA := desc.LocsOfWidth(8)
-		if aIdx := desc.LocByName("A"); aIdx >= 0 {
-			nonA = nonA.Clear(aIdx)
-		}
-		ops = append(ops, MIROp{
-			Op:         OpMove,
-			Dst:        7001,
-			Src:        [2]int{int(inst.Src[1]), -1},
-			Width:      8,
-			DstAllowed: nonA,
-		})
-		// CALL __mul8
-		ops = append(ops, MIROp{
-			Op:    OpCall,
-			Dst:   int(inst.Dst),
-			Src:   [2]int{-1, -1},
-			Width: 8,
-			Sym:   "__mul8",
-		})
-	} else {
-		// __mul16(a: u16 = HL, b: u16 = DE) -> u16 = HL
-		ops = append(ops, MIROp{
-			Op:         OpMove,
-			Dst:        7000,
-			Src:        [2]int{int(inst.Src[0]), -1},
-			Width:      16,
-			DstAllowed: desc.LocSetByNames("HL"),
-		})
-		ops = append(ops, MIROp{
-			Op:         OpMove,
-			Dst:        7001,
-			Src:        [2]int{int(inst.Src[1]), -1},
-			Width:      16,
-			DstAllowed: desc.LocSetByNames("DE"),
-		})
-		ops = append(ops, MIROp{
-			Op:    OpCall,
-			Dst:   int(inst.Dst),
-			Src:   [2]int{-1, -1},
-			Width: 16,
-			Sym:   "__mul16",
-		})
-	}
-
-	return ops
+	return nil, unsupportedOp(inst)
 }
 
 // translateCall converts an OpCall/OpCallIndirect into a sequence of LIR MIROps:
 // argument setup moves (one per arg) + the call itself.
 // Returns an error if the call can't be lowered (e.g. missing module).
 func translateCall(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]MIROp, error) {
+	if err := checkAllowedInst(inst); err != nil {
+		return nil, err
+	}
 	if inst.Op == mir2.OpCallIndirect {
 		return translateCallIndirect(inst, desc)
 	}
@@ -1084,6 +996,9 @@ func translateCall(inst *mir2.Inst, desc *MachineDesc, mod *mir2.Module) ([]MIRO
 // On Z80: move function pointer to HL, move args to standard ABI regs,
 // then CALL __call_hl (which does JP (HL)).
 func translateCallIndirect(inst *mir2.Inst, desc *MachineDesc) ([]MIROp, error) {
+	if err := checkAllowedInst(inst); err != nil {
+		return nil, err
+	}
 	var ops []MIROp
 
 	// Move function pointer (Src[0]) to HL for indirect call.
@@ -1193,7 +1108,72 @@ func checkValueWidths(inst *mir2.Inst) error {
 	return nil
 }
 
+// allowedPairs is the complete bridge allowlist. New entries require a native
+// Backend==LIR Z80 judge; selector support alone is not evidence of correctness.
+type opWidth struct {
+	op    mir2.Op
+	width int
+}
+
+var allowedPairs = map[opWidth]bool{
+	{mir2.OpConst, 8}: true, // TestBridgeAllowlist/NativeConstants (all byte constants).
+	{mir2.OpAdd, 8}:   true, // TestExhaustiveJudgeLIRSingleBlock/add8.
+	{mir2.OpSub, 8}:   true, // TestExhaustiveJudgeLIRSingleBlock/sub8.
+	{mir2.OpCmp, 8}:   true, // TestBridgeCompareCondRetOnly (eq, ult; production multi-block guard).
+	{mir2.OpShl, 8}:   true, // TestExhaustiveJudgeLIRByteShifts/<< /1.
+	{mir2.OpShr, 8}:   true, // TestExhaustiveJudgeLIRByteShifts/>> /1.
+}
+
+func checkAllowedInst(inst *mir2.Inst) error {
+	width := 8
+	if inst.Ty != nil && inst.Ty.Width() > width {
+		width = inst.Ty.Width()
+	}
+	if inst.SrcTy != nil && inst.SrcTy.Width() > width {
+		width = inst.SrcTy.Width()
+	}
+	if !allowedPairs[opWidth{inst.Op, width}] {
+		return unsupportedOp(inst)
+	}
+	if inst.Op == mir2.OpCmp && inst.Cond != mir2.CmpEq && inst.Cond != mir2.CmpUlt {
+		return unsupportedOp(inst)
+	}
+	// Width-changing moves and flag materialization need their own judges.
+	if inst.Op == mir2.OpMove && inst.SrcTy != nil && inst.Ty != nil && inst.SrcTy.Width() != inst.Ty.Width() {
+		return unsupportedOp(inst)
+	}
+	return nil
+}
+
+func checkAllowedBlock(b *mir2.Block) error {
+	constants := make(map[mir2.Reg]int64)
+	for _, inst := range b.Insts {
+		if err := checkAllowedInst(inst); err != nil {
+			return fmt.Errorf("block %s: %w", b.Label, err)
+		}
+		if inst.Op == mir2.OpCmp && !compareOnlyFeedsCondRet(b, inst) {
+			return fmt.Errorf("block %s: %w", b.Label, unsupportedOp(inst))
+		}
+		if inst.Op == mir2.OpShl || inst.Op == mir2.OpShr {
+			count, constant := constants[inst.Src[1]]
+			if inst.Ty == nil || inst.Ty.Width() > 8 || !constant || count != 1 {
+				return fmt.Errorf("block %s: %w (only 8-bit shifts by constant 1 supported)", b.Label, unsupportedOp(inst))
+			}
+		}
+		if inst.Dst != mir2.NoReg {
+			delete(constants, inst.Dst)
+			if inst.Op == mir2.OpConst {
+				constants[inst.Dst] = inst.Imm
+			}
+		}
+	}
+	return nil
+}
+
 func translateInst(inst *mir2.Inst, desc *MachineDesc) (*MIROp, error) {
+	if err := checkAllowedInst(inst); err != nil {
+		return nil, err
+	}
 	if inst.Dst == mir2.NoReg && inst.Op != mir2.OpStore {
 		// Only explicitly pure operations may disappear. Unknown operations
 		// and destinationless effects (asm, patch, push/pop, I/O) must fail.
