@@ -1,0 +1,43 @@
+=== RUN   TestLoopProfileCompatibilityAndRefusals
+    profile_compat_test.go:61: {"compatibility":{"schema":"minz.loop-profile-compatibility/v1","context":{"compiler_id":"test-compiler-1","semantics_id":"mir2-vm-1","target_id":"z80-cpm-1","workload_sha256":"ee8b2832997d5902e312b2900f543d35c88687c97eb9f2dba4dd4ac42363921d","hosts_sha256":"b9b5b248e747dead8b9b17ac59bdcc520d5294f6ea1b96f911fa0fd872b78d5e","dependencies":{"compat.nanz":"5f2f31ab3082047be225e141350c06d1c40cf201410450da3003de76846bac76","external.bin":"64451ff981aa92887b070762e97302df00a0ab97a853c323394b0a9cfaf46fae"}},"hir_sha256":"d0b7e4287cb4199e616908868301b794e917044ca8ee66aa77ddda595cd94d8c","origins_sha256":"3d4f1e0011987f38ac80408dfbb97892594b02570d38dd225f3ab634d610d55b"},"schema":"minz.input-hir-loop-observations/v2","stage":"unoptimised-mir2-vm","sites":{"schema":"minz.hir-loop-sites/v1","stage":"input-hir","sites":[{"id":"64c4fef12c4f43c2257b0637e2c3c41674359989273fa2ae531acd4e47135599","function":"test","kind":"while","ordinal":0,"hir_path":"body/s0","origin":{"unit":"compat.nanz","byte_offset":37,"line":2,"byte_column":21,"source_sha256":"5f2f31ab3082047be225e141350c06d1c40cf201410450da3003de76846bac76"}}],"unmapped_loops":0},"counts":[{"site_id":"64c4fef12c4f43c2257b0637e2c3c41674359989273fa2ae531acd4e47135599","entries":1,"body_entries":3}],"completed_calls":1,"failed_calls":0}
+=== RUN   TestLoopProfileCompatibilityAndRefusals/compiler
+=== RUN   TestLoopProfileCompatibilityAndRefusals/semantics
+=== RUN   TestLoopProfileCompatibilityAndRefusals/target
+=== RUN   TestLoopProfileCompatibilityAndRefusals/workload
+=== RUN   TestLoopProfileCompatibilityAndRefusals/hosts
+=== RUN   TestLoopProfileCompatibilityAndRefusals/dependency
+=== RUN   TestLoopProfileCompatibilityAndRefusals/old-schema
+=== RUN   TestLoopProfileCompatibilityAndRefusals/wrong-stage
+=== RUN   TestLoopProfileCompatibilityAndRefusals/no-key
+=== RUN   TestLoopProfileCompatibilityAndRefusals/failed
+=== RUN   TestLoopProfileCompatibilityAndRefusals/empty
+=== RUN   TestLoopProfileCompatibilityAndRefusals/missing-count
+=== RUN   TestLoopProfileCompatibilityAndRefusals/duplicate-count
+=== RUN   TestLoopProfileCompatibilityAndRefusals/unknown-site
+=== RUN   TestLoopProfileCompatibilityAndRefusals/impossible-count
+=== RUN   TestLoopProfileCompatibilityAndRefusals/unmapped
+=== RUN   TestLoopProfileCompatibilityAndRefusals/source-hash
+--- PASS: TestLoopProfileCompatibilityAndRefusals (0.03s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/compiler (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/semantics (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/target (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/workload (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/hosts (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/dependency (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/old-schema (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/wrong-stage (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/no-key (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/failed (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/empty (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/missing-count (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/duplicate-count (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/unknown-site (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/impossible-count (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/unmapped (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/source-hash (0.00s)
+=== RUN   TestLoopFreeDependencyProfileInvalidation
+--- PASS: TestLoopFreeDependencyProfileInvalidation (0.00s)
+=== RUN   TestImportedProfileOrigins
+--- PASS: TestImportedProfileOrigins (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/nanz	0.036s

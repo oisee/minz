@@ -14,12 +14,13 @@ type LoopCounts struct {
 }
 
 type LoopProfile struct {
-	Schema         string       `json:"schema"`
-	Stage          string       `json:"stage"`
-	Sites          *LoopSiteMap `json:"sites"`
-	Counts         []LoopCounts `json:"counts"`
-	CompletedCalls uint64       `json:"completed_calls"`
-	FailedCalls    uint64       `json:"failed_calls"`
+	Compatibility  *ProfileCompatibility `json:"compatibility"`
+	Schema         string                `json:"schema"`
+	Stage          string                `json:"stage"`
+	Sites          *LoopSiteMap          `json:"sites"`
+	Counts         []LoopCounts          `json:"counts"`
+	CompletedCalls uint64                `json:"completed_calls"`
+	FailedCalls    uint64                `json:"failed_calls"`
 }
 
 // LoopProfiler executes a private instrumented copy of input HIR on MIR2 VM.
@@ -27,6 +28,7 @@ type LoopProfile struct {
 // not legality evidence or a reusable optimisation profile.
 type LoopProfiler struct {
 	VM                *mir2.VM
+	compatibility     *ProfileCompatibility
 	sites             *LoopSiteMap
 	counts            []LoopCounts
 	completed, failed uint64
@@ -169,6 +171,21 @@ func NewLoopProfiler(m *Module) (*LoopProfiler, error) {
 	return p, nil
 }
 
+// NewLoopProfilerWithContext attaches a conservative compatibility key. The
+// harness must retain the declared hosts/workload/VM semantics during collection.
+func NewLoopProfilerWithContext(m *Module, c ProfileContext) (*LoopProfiler, error) {
+	key, err := BuildProfileCompatibility(m, c)
+	if err != nil {
+		return nil, err
+	}
+	p, err := NewLoopProfiler(m)
+	if err != nil {
+		return nil, err
+	}
+	p.compatibility = key
+	return p, nil
+}
+
 // Call accumulates events across calls, retaining partial counts on errors.
 func (p *LoopProfiler) Call(name string, args []mir2.Value) ([]mir2.Value, error) {
 	result, err := p.VM.Call(name, args)
@@ -181,9 +198,18 @@ func (p *LoopProfiler) Call(name string, args []mir2.Value) ([]mir2.Value, error
 }
 
 // Snapshot returns an independent copy, including source hashes. It deliberately
-// has no loader: dependency, target and semantic compatibility are not established.
+// snapshots without an explicit context are diagnostic-only and refuse loading.
 func (p *LoopProfiler) Snapshot() LoopProfile {
 	sites := *p.sites
 	sites.Sites = append([]LoopSite{}, p.sites.Sites...)
-	return LoopProfile{Schema: "minz.input-hir-loop-observations/v1", Stage: "unoptimised-mir2-vm", Sites: &sites, Counts: append([]LoopCounts{}, p.counts...), CompletedCalls: p.completed, FailedCalls: p.failed}
+	var key *ProfileCompatibility
+	if p.compatibility != nil {
+		c := *p.compatibility
+		c.Context.Dependencies = map[string]string{}
+		for n, h := range p.compatibility.Context.Dependencies {
+			c.Context.Dependencies[n] = h
+		}
+		key = &c
+	}
+	return LoopProfile{Compatibility: key, Schema: "minz.input-hir-loop-observations/v2", Stage: "unoptimised-mir2-vm", Sites: &sites, Counts: append([]LoopCounts{}, p.counts...), CompletedCalls: p.completed, FailedCalls: p.failed}
 }

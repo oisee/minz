@@ -25,3 +25,7 @@
 Это collector наблюдений input HIR, ещё не профиль выбора оптимизаций. Instrumentation расходует VM gas и меняет `StepsExecuted`; эти величины нельзя сравнивать с обычной программой как ускорение. Не реализованы гистограммы trips, guard hits/misses, lineage через Grace/splitting/fusion, полный dependency/semantic/target fingerprint и refusing loader. Snapshots нельзя переиспользовать для оптимизации только по site ID/source hash.
 
 Следующий шаг — определить полный ключ совместимости и loader, который отвергает неизвестную schema/stage, неполные или устаревшие данные; после этого связывать профиль с cost policy, сохраняя независимые legality guards/proofs.
+
+## Продолжение: совместимость
+
+Добавлен [ключ совместимости и refusing loader](grace-pgo-compatibility.md). Snapshot schema теперь v2; collector с явным ProfileContext может создавать загружаемые наблюдения. Обычный `NewLoopProfiler` сохраняет диагностический режим с `compatibility:null`; loader его отклоняет. Production по-прежнему не выбирает rewrites по профилю.

@@ -112,3 +112,5 @@ pointer-walk, оставляя invariant-base. На sum_array выбирает 3
 ## Input-HIR profiling foundation (10 октября)
 
 [Карта исходных мест](grace-pgo-sites.md) и [отдельный VM collector](grace-pgo-collector.md) сохраняют source identity, entries/body entries и признак failed calls. Production pipeline не принимает эти наблюдения как профиль оптимизаций. Следом: compatibility fingerprint/refusing loader, затем lineage и cost policy; legality остаётся отдельной проверкой.
+
+[Ключ совместимости и refusing loader](grace-pgo-compatibility.md) теперь сверяют typed HIR, origins и объявленный harness context; malformed/partial/stale наблюдения отклоняются. Следующий срез — автоматическая identity/dependency manifest и lineage перед cost policy.
