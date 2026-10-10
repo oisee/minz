@@ -96,19 +96,21 @@ func TargetFromString(s string) uint8 {
 
 // Module is the top-level HIR unit.
 type Module struct {
-	SourceLocations map[Stmt]SourceLocation `json:"-"` // optional frontend origins; not semantic evidence
-	AssertStats     *AssertStats            // optional invocation-local execution accounting
-	Name            string
-	Target          uint8 // platform target (TargetCPM, TargetZXSpectrum, etc.)
-	Funcs           []*Func
-	Globals         []mir2.Global     // reuse mir2.Global directly
-	Structs         []*mir2.StructTy  // named struct type declarations
-	Interfaces      []*InterfaceDecl  // interface declarations (zero-cost, monomorphised)
-	Strings         []string          // interned string literals (index = position)
-	StrKinds        []mir2.StringKind // encoding per string (SString/LString/CString)
-	Warnings        []string          // use-before-init and other diagnostic warnings
-	Asserts         []Assert          // top-level compile-time assertions (each gets fresh VM)
-	Sandboxes       []Sandbox         // grouped assertions (shared VM per sandbox)
+	SourceUnits         map[string]string       `json:"-"` // hashes of actual frontend inputs, including loop-free units
+	SourceUnitsComplete bool                    `json:"-"` // frontend recorded its transitive source dependencies
+	SourceLocations     map[Stmt]SourceLocation `json:"-"` // optional frontend origins; not semantic evidence
+	AssertStats         *AssertStats            // optional invocation-local execution accounting
+	Name                string
+	Target              uint8 // platform target (TargetCPM, TargetZXSpectrum, etc.)
+	Funcs               []*Func
+	Globals             []mir2.Global     // reuse mir2.Global directly
+	Structs             []*mir2.StructTy  // named struct type declarations
+	Interfaces          []*InterfaceDecl  // interface declarations (zero-cost, monomorphised)
+	Strings             []string          // interned string literals (index = position)
+	StrKinds            []mir2.StringKind // encoding per string (SString/LString/CString)
+	Warnings            []string          // use-before-init and other diagnostic warnings
+	Asserts             []Assert          // top-level compile-time assertions (each gets fresh VM)
+	Sandboxes           []Sandbox         // grouped assertions (shared VM per sandbox)
 }
 
 // FuncByName returns the first HIR function with the given name, or nil.

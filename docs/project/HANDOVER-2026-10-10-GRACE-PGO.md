@@ -15,3 +15,7 @@ Sites checkout `/tmp/minz-grace-report-site`, builder `/tmp/build-grace-report-s
 ## Следующий срез завершён: compatibility/loader
 
 `profile_compat.go`: typed HIR fingerprint + all attached origins + explicit ProfileContext, schema v2, bounded strict JSON refusing loader. Без контекста snapshots диагностические и не загружаются. Harness IDs/dependency manifest объявляет вызывающий код, не auto-attestation; подробные границы в `docs/grace-pgo-compatibility.md`. Production PGO не включён. Directed tests (including imported origins и loop-free body edits) проходят; пять пакетов зелёные, showcase остаётся 32/0 новых. Следующая очередь: автоматически формировать harness identity/dependencies, затем lineage/guard events и cost policy.
+
+## Срез automatic context
+
+Nanz SourceUnits/SourceUnitsComplete записывает реальные input hashes и объединяет transitive imports/generated inputs. Mixed frontend imports помечены incomplete; API отказывает вместо заявления полноты. BuildAutomaticProfileContext хеширует текущий executable и переданные workload/hosts/resource bytes, module Target + explicit model. BuildProfileCompatibility проверяет все SourceUnits. Подробнее `docs/grace-pgo-context.md`. Следом controlled execution harness, lineage/guard events; production cost policy пока не подключена.

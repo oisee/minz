@@ -62,6 +62,8 @@ func BuildProfileCompatibility(m *Module, c ProfileContext) (*ProfileCompatibili
 	}
 	semantic := *m
 	semantic.SourceLocations = nil
+	semantic.SourceUnits = nil
+	semantic.SourceUnitsComplete = false
 	semantic.AssertStats = nil
 	semantic.Warnings = nil
 	semantic.Asserts = nil
@@ -74,6 +76,11 @@ func BuildProfileCompatibility(m *Module, c ProfileContext) (*ProfileCompatibili
 	// Include all attached statement origins, not just loops. Sort encoded pairs
 	// so allocation address and map iteration order never affect the fingerprint.
 	origins := []string{}
+	for unit, hash := range m.SourceUnits {
+		if !validSHA256(hash) || c.Dependencies[unit] != hash {
+			return nil, fmt.Errorf("loop profile: missing or stale source unit %q", unit)
+		}
+	}
 	for stmt, loc := range m.SourceLocations {
 		if loc.Unit == "" || loc.ByteOffset < 0 || loc.Line < 1 || loc.Column < 1 || !validSHA256(loc.SourceSHA256) {
 			return nil, fmt.Errorf("loop profile: invalid source origin")

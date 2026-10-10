@@ -702,6 +702,8 @@ func isOpToken(k tokKind) bool {
 func (p *parser) parseModule() (*hir.Module, error) {
 	m := &hir.Module{Name: p.name, SourceLocations: make(map[hir.Stmt]hir.SourceLocation)}
 	p.sourceSHA256 = fmt.Sprintf("%x", sha256.Sum256(p.l.src))
+	m.SourceUnits = map[string]string{p.name: p.sourceSHA256}
+	m.SourceUnitsComplete = true
 	p.module = m
 	p.structs = make(map[string]*mir2.StructTy)
 	p.interfaces = make(map[string]*hir.InterfaceDecl)
@@ -894,6 +896,9 @@ func (p *parser) parseModule() (*hir.Module, error) {
 					if err != nil {
 						return nil, fmt.Errorf("line %d: @screen: generated code error: %w\n--- generated ---\n%s", attr.line, err, emitted)
 					}
+					if err := mergeSourceUnits(m, generated); err != nil {
+						return nil, err
+					}
 					strOffset := len(m.Strings)
 					if len(generated.Strings) > 0 {
 						m.Strings = append(m.Strings, generated.Strings...)
@@ -988,6 +993,9 @@ func (p *parser) parseModule() (*hir.Module, error) {
 					}
 					// Merge strings: remap @mir2.str.N references in generated code
 					// to account for strings already in the parent module.
+					if err := mergeSourceUnits(m, generated); err != nil {
+						return nil, err
+					}
 					strOffset := len(m.Strings)
 					if len(generated.Strings) > 0 {
 						m.Strings = append(m.Strings, generated.Strings...)
@@ -1640,6 +1648,12 @@ func (p *parser) parseImport() error {
 		return fmt.Errorf("line %d: import %s: %w", line, modPath, err)
 	}
 
+	if imported.SourceUnits == nil {
+		imported.SourceUnits = map[string]string{modPath: fmt.Sprintf("%x", sha256.Sum256(src))}
+	}
+	if err := mergeSourceUnits(p.module, imported); err != nil {
+		return err
+	}
 	for node, origin := range imported.SourceLocations {
 		p.module.SourceLocations[node] = origin
 	}
@@ -6160,4 +6174,20 @@ func pointerDerefType(ty mir2.Ty) mir2.Ty {
 		return elem
 	}
 	return mir2.TyU8
+}
+
+// Source units are keyed by the same logical names used for statement origins.
+// Ambiguous reuse of a name refuses parsing rather than losing a dependency.
+func mergeSourceUnits(dst, src *hir.Module) error {
+	if dst.SourceUnits == nil {
+		dst.SourceUnits = map[string]string{}
+	}
+	for unit, hash := range src.SourceUnits {
+		if old, ok := dst.SourceUnits[unit]; ok && old != hash {
+			return fmt.Errorf("conflicting source unit %q", unit)
+		}
+		dst.SourceUnits[unit] = hash
+	}
+	dst.SourceUnitsComplete = dst.SourceUnitsComplete && src.SourceUnitsComplete
+	return nil
 }

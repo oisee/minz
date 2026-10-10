@@ -1,0 +1,55 @@
+=== RUN   TestLoopProfileCompatibilityAndRefusals
+    profile_compat_test.go:61: {"compatibility":{"schema":"minz.loop-profile-compatibility/v1","context":{"compiler_id":"test-compiler-1","semantics_id":"mir2-vm-1","target_id":"z80-cpm-1","workload_sha256":"ee8b2832997d5902e312b2900f543d35c88687c97eb9f2dba4dd4ac42363921d","hosts_sha256":"b9b5b248e747dead8b9b17ac59bdcc520d5294f6ea1b96f911fa0fd872b78d5e","dependencies":{"compat.nanz":"5f2f31ab3082047be225e141350c06d1c40cf201410450da3003de76846bac76","external.bin":"64451ff981aa92887b070762e97302df00a0ab97a853c323394b0a9cfaf46fae"}},"hir_sha256":"81a9b56bf804749b372504fb6e9ab610bbf5215313f810145cee871de29e098c","origins_sha256":"3d4f1e0011987f38ac80408dfbb97892594b02570d38dd225f3ab634d610d55b"},"schema":"minz.input-hir-loop-observations/v2","stage":"unoptimised-mir2-vm","sites":{"schema":"minz.hir-loop-sites/v1","stage":"input-hir","sites":[{"id":"64c4fef12c4f43c2257b0637e2c3c41674359989273fa2ae531acd4e47135599","function":"test","kind":"while","ordinal":0,"hir_path":"body/s0","origin":{"unit":"compat.nanz","byte_offset":37,"line":2,"byte_column":21,"source_sha256":"5f2f31ab3082047be225e141350c06d1c40cf201410450da3003de76846bac76"}}],"unmapped_loops":0},"counts":[{"site_id":"64c4fef12c4f43c2257b0637e2c3c41674359989273fa2ae531acd4e47135599","entries":1,"body_entries":3}],"completed_calls":1,"failed_calls":0}
+=== RUN   TestLoopProfileCompatibilityAndRefusals/compiler
+=== RUN   TestLoopProfileCompatibilityAndRefusals/semantics
+=== RUN   TestLoopProfileCompatibilityAndRefusals/target
+=== RUN   TestLoopProfileCompatibilityAndRefusals/workload
+=== RUN   TestLoopProfileCompatibilityAndRefusals/hosts
+=== RUN   TestLoopProfileCompatibilityAndRefusals/dependency
+=== RUN   TestLoopProfileCompatibilityAndRefusals/old-schema
+=== RUN   TestLoopProfileCompatibilityAndRefusals/wrong-stage
+=== RUN   TestLoopProfileCompatibilityAndRefusals/no-key
+=== RUN   TestLoopProfileCompatibilityAndRefusals/failed
+=== RUN   TestLoopProfileCompatibilityAndRefusals/empty
+=== RUN   TestLoopProfileCompatibilityAndRefusals/missing-count
+=== RUN   TestLoopProfileCompatibilityAndRefusals/duplicate-count
+=== RUN   TestLoopProfileCompatibilityAndRefusals/unknown-site
+=== RUN   TestLoopProfileCompatibilityAndRefusals/impossible-count
+=== RUN   TestLoopProfileCompatibilityAndRefusals/unmapped
+=== RUN   TestLoopProfileCompatibilityAndRefusals/source-hash
+--- PASS: TestLoopProfileCompatibilityAndRefusals (0.03s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/compiler (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/semantics (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/target (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/workload (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/hosts (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/dependency (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/old-schema (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/wrong-stage (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/no-key (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/failed (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/empty (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/missing-count (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/duplicate-count (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/unknown-site (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/impossible-count (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/unmapped (0.00s)
+    --- PASS: TestLoopProfileCompatibilityAndRefusals/source-hash (0.00s)
+=== RUN   TestLoopFreeDependencyProfileInvalidation
+--- PASS: TestLoopFreeDependencyProfileInvalidation (0.00s)
+=== RUN   TestImportedProfileOrigins
+--- PASS: TestImportedProfileOrigins (0.00s)
+=== RUN   TestAutomaticProfileContext
+    profile_context_test.go:75: {"compiler_id":"executable-sha256:a34d067f5a29a5b66b018405a37c78c49f8066c26c7e0c45bc78dc2614fbab02","semantics_id":"minz.unoptimised-mir2-vm-loop-events/v1","target_id":"module-target:0/model:cpm-z80-v1","workload_sha256":"f5683f297fdf694bd1f0c0fba27484717f2a4de24a26bdc6da146ae79529f61e","hosts_sha256":"93c7775c635f46fed18ced97733ed47d1c0b0dff37f5f34a2c74cbf1c36f6cb0","dependencies":{"helper":"5e6a1cb8504b1d182350658d25521f996d9d24aed1eb8eaa37b1a7d38a573980","main.nanz":"d28538fca95907675b0a7b9ddc98569cbfd659902cd39dbc48745de7d3434c40","story.bin":"039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81"}}
+--- PASS: TestAutomaticProfileContext (0.06s)
+=== RUN   TestInputLoopProfileCountsAndSemantics
+    profile_test.go:68: {"compatibility":null,"schema":"minz.input-hir-loop-observations/v2","stage":"unoptimised-mir2-vm","sites":{"schema":"minz.hir-loop-sites/v1","stage":"input-hir","sites":[{"id":"fdb6035f186fb3ff4a00bad3578b46dc1ff4b5bf5d0671ba041211d8edc70ad9","function":"test","kind":"while","ordinal":0,"hir_path":"body/s1","origin":{"unit":"profile.nanz","byte_offset":52,"line":4,"byte_column":2,"source_sha256":"b1eb95b1f42ca51548eec2c77f3f231ff7c724e802a348b6641d68a7225d258b"}}],"unmapped_loops":0},"counts":[{"site_id":"fdb6035f186fb3ff4a00bad3578b46dc1ff4b5bf5d0671ba041211d8edc70ad9","entries":5,"body_entries":12}],"completed_calls":5,"failed_calls":0}
+--- PASS: TestInputLoopProfileCountsAndSemantics (0.00s)
+=== RUN   TestNestedLoopProfile
+--- PASS: TestNestedLoopProfile (0.00s)
+=== RUN   TestRangeAndEachLoopProfile
+--- PASS: TestRangeAndEachLoopProfile (0.00s)
+=== RUN   TestLoopProfileMissingOriginsAndHostCollision
+--- PASS: TestLoopProfileMissingOriginsAndHostCollision (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/nanz	0.098s

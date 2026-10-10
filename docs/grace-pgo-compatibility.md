@@ -25,3 +25,7 @@ JSON ограничен 8 MiB. Отклоняются неизвестные п�
 ## Дальше
 
 Автоматический сбор dependency manifest и identity реального harness; lineage через Grace/splitting/fusion; trip distributions и guard outcomes; затем cost policy. Эта версия не связывает raw VM event counts с Z80 T-states, не разрешает reuse между workload/target и не включает PGO по умолчанию. Проверки legality/guard/proof остаются независимыми.
+
+## Продолжение
+
+[Автоматический context builder](grace-pgo-context.md) теперь хеширует executable, зарегистрированные inputs и полный Nanz source manifest. Ручной ProfileContext API сохранён; исполнение hosts/workload по descriptor ещё не контролируется автоматически.

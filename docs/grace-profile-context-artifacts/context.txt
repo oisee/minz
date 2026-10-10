@@ -1,0 +1,11 @@
+=== RUN   TestAutomaticProfileContext
+    profile_context_test.go:75: {"compiler_id":"executable-sha256:036911a13702c6d30b8a3594e2e99c29b693968847f69e1ff71d4087ce2c65c4","semantics_id":"minz.unoptimised-mir2-vm-loop-events/v1","target_id":"module-target:0/model:cpm-z80-v1","workload_sha256":"f5683f297fdf694bd1f0c0fba27484717f2a4de24a26bdc6da146ae79529f61e","hosts_sha256":"93c7775c635f46fed18ced97733ed47d1c0b0dff37f5f34a2c74cbf1c36f6cb0","dependencies":{"helper":"5e6a1cb8504b1d182350658d25521f996d9d24aed1eb8eaa37b1a7d38a573980","main.nanz":"d28538fca95907675b0a7b9ddc98569cbfd659902cd39dbc48745de7d3434c40","story.bin":"039058c6f2c0cb492c533b0a4d14ef77cc0f78abccced5287d84a1a2011cfb81"}}
+--- PASS: TestAutomaticProfileContext (0.06s)
+=== RUN   TestManifestForDeclarationOnlyAndMixedInputs
+=== RUN   TestManifestForDeclarationOnlyAndMixedInputs/constants.nanz
+=== RUN   TestManifestForDeclarationOnlyAndMixedInputs/constants.lanz
+--- PASS: TestManifestForDeclarationOnlyAndMixedInputs (0.01s)
+    --- PASS: TestManifestForDeclarationOnlyAndMixedInputs/constants.nanz (0.01s)
+    --- PASS: TestManifestForDeclarationOnlyAndMixedInputs/constants.lanz (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/nanz	0.071s
