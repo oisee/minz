@@ -85,6 +85,9 @@ func LowerModule(hm *Module) *mir2.Module {
 // Such functions are capture-lambdas that must be inlined rather than lowered
 // as standalone MIR2 functions.
 func hasFreeVars(f *Func, globalNames, funcNames map[string]bool) bool {
+	if len(f.Captures) > 0 {
+		return true
+	}
 	if f.Body == nil {
 		return false
 	}
@@ -3194,7 +3197,7 @@ func renameExpr(e Expr, from, to string) Expr {
 		for i, a := range ex.Args {
 			args[i] = renameExpr(a, from, to)
 		}
-		return &CallIndirectExpr{FnPtr: renameExpr(ex.FnPtr, from, to), Args: args, Ty: ex.Ty}
+		return &CallIndirectExpr{FnPtr: renameExpr(ex.FnPtr, from, to), Args: args, Ty: ex.Ty, Signature: ex.Signature}
 	case *LoadExpr:
 		return &LoadExpr{Ptr: renameExpr(ex.Ptr, from, to), Ty: ex.Ty}
 	case *IndexExpr:

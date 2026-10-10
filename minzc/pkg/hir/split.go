@@ -93,7 +93,7 @@ const maxSplitDepth = 3
 // splitRecursive splits a function if needed, then recursively splits
 // the resulting sub-functions if they still exceed the threshold.
 func splitRecursive(m *Module, f *Func, results *[]SplitResult, depth int) []*Func {
-	if f.Body == nil || f.IsExtern || len(f.Body.Body) < 4 || depth > maxSplitDepth {
+	if f.Body == nil || f.IsExtern || len(f.Captures) > 0 || len(f.Body.Body) < 4 || depth > maxSplitDepth {
 		return nil
 	}
 	// Guard: don't re-split if last stmt is already a split call.

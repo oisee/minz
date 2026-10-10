@@ -26,12 +26,13 @@ func CompileNodes(nodes []Node, name string) (*hir.Module, error) {
 }
 
 type compiler struct {
-	name     string
-	funcs    map[string]*hir.Func // compiled functions, for return type lookup
-	globals  map[string]mir2.Ty
-	locals   map[string]mir2.Ty
-	lambdaID int         // counter for generating unique lambda names
-	module   *hir.Module // current module (for appending lambdas)
+	name         string
+	funcs        map[string]*hir.Func // compiled functions, for return type lookup
+	globals      map[string]mir2.Ty
+	locals       map[string]mir2.Ty
+	lambdaScopes map[*hir.Func]map[string]mir2.Ty
+	lambdaID     int         // counter for generating unique lambda names
+	module       *hir.Module // current module (for appending lambdas)
 }
 
 func (c *compiler) compileModule(nodes []Node) (*hir.Module, error) {
@@ -82,6 +83,13 @@ func (c *compiler) compileModule(nodes []Node) (*hir.Module, error) {
 			m.Asserts = append(m.Asserts, a)
 		default:
 			return nil, fmt.Errorf("line %d: unknown top-level form %q", head.Line, head.Atom)
+		}
+	}
+	for _, f := range m.Funcs {
+		if outer, ok := c.lambdaScopes[f]; ok {
+			if err := hir.InferCaptures(m, f, outer); err != nil {
+				return nil, err
+			}
 		}
 	}
 	return m, nil
@@ -837,6 +845,9 @@ func (c *compiler) compileLambda(n Node) (hir.Expr, error) {
 	retTy := resolveType(n.List[2].Atom)
 	outerLocals := c.locals
 	c.locals = make(map[string]mir2.Ty)
+	for n, ty := range outerLocals {
+		c.locals[n] = ty
+	}
 	for _, p := range params {
 		c.locals[p.Name] = p.Ty
 	}
@@ -859,9 +870,15 @@ func (c *compiler) compileLambda(n Node) (hir.Expr, error) {
 		Params: params,
 		RetTy:  retTy,
 	}
-	if len(body) > 0 {
-		f.Body = &hir.Block{Body: body}
+	f.Body = &hir.Block{Body: body}
+	if c.lambdaScopes == nil {
+		c.lambdaScopes = map[*hir.Func]map[string]mir2.Ty{}
 	}
+	outer := map[string]mir2.Ty{}
+	for n, ty := range outerLocals {
+		outer[n] = ty
+	}
+	c.lambdaScopes[f] = outer
 	c.module.Funcs = append(c.module.Funcs, f)
 	c.funcs[name] = f
 

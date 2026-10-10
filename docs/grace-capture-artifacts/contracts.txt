@@ -1,0 +1,20 @@
+=== RUN   TestLambdaNameDoesNotAuthorizeUnknownReferences
+--- PASS: TestLambdaNameDoesNotAuthorizeUnknownReferences (0.00s)
+=== RUN   TestExplicitCaptureContract
+--- PASS: TestExplicitCaptureContract (0.00s)
+=== RUN   TestAliasAndIndirectSignatureContract
+--- PASS: TestAliasAndIndirectSignatureContract (0.00s)
+=== RUN   TestExplicitRawIndirectSignatureRejectsWrongArguments
+--- PASS: TestExplicitRawIndirectSignatureRejectsWrongArguments (0.00s)
+=== RUN   TestTypedCallArgumentsRejectDifferentPointees
+--- PASS: TestTypedCallArgumentsRejectDifferentPointees (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/hir	0.010s
+=== RUN   TestLambdaCaptureMetadata
+--- PASS: TestLambdaCaptureMetadata (0.00s)
+=== RUN   TestLambdaUnknownReferenceRejected
+--- PASS: TestLambdaUnknownReferenceRejected (0.00s)
+=== RUN   TestPartialApplicationCapturesBoundVariable
+--- PASS: TestPartialApplicationCapturesBoundVariable (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/nanz	0.011s

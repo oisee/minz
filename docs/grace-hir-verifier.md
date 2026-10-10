@@ -1,5 +1,8 @@
 # HIR verification before Grace and lowering
 
+
+Обновление: [явные captures и callable contracts](grace-capture-contracts.md) реализованы; исключение по имени lambda_ удалено. Старый перечень ограничений ниже — снимок первого этапа.
+
 10 октября 2026. Продолжение [типизированных указателей](grace-typed-pointers.md).
 
 Добавлен `hir.Verify`: некорректный HIR отклоняется до формирования фактов Grace, дампа и lowering. После каждого переписывания Grace проверяет HIR, затем MIR2; при ошибке действие восстанавливает исходный узел или список операторов. Оба production-входа (`CompileHIRWithOptions`, `CompileHIRSteps`) проверяют вход и результат HIR-splitting.

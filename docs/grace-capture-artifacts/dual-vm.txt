@@ -1,0 +1,30 @@
+=== RUN   TestCaptureAndCallableContractVMZ80
+=== RUN   TestCaptureAndCallableContractVMZ80/captured_iterator/grace=false
+    capture_contract_test.go:45: T_states=213 code_bytes=21
+=== RUN   TestCaptureAndCallableContractVMZ80/captured_iterator/grace=true
+    capture_contract_test.go:45: T_states=213 code_bytes=21
+=== RUN   TestCaptureAndCallableContractVMZ80/alias_call/grace=false
+    capture_contract_test.go:45: T_states=14 code_bytes=2
+=== RUN   TestCaptureAndCallableContractVMZ80/alias_call/grace=true
+    capture_contract_test.go:45: T_states=14 code_bytes=2
+=== RUN   TestCaptureAndCallableContractVMZ80/alias_chain/grace=false
+    capture_contract_test.go:45: T_states=14 code_bytes=2
+=== RUN   TestCaptureAndCallableContractVMZ80/alias_chain/grace=true
+    capture_contract_test.go:45: T_states=14 code_bytes=2
+=== RUN   TestCaptureAndCallableContractVMZ80/wide_alias/grace=false
+    capture_contract_test.go:45: T_states=31 code_bytes=5
+=== RUN   TestCaptureAndCallableContractVMZ80/wide_alias/grace=true
+    capture_contract_test.go:45: T_states=31 code_bytes=5
+--- PASS: TestCaptureAndCallableContractVMZ80 (0.01s)
+    --- PASS: TestCaptureAndCallableContractVMZ80/captured_iterator/grace=false (0.00s)
+    --- PASS: TestCaptureAndCallableContractVMZ80/captured_iterator/grace=true (0.00s)
+    --- PASS: TestCaptureAndCallableContractVMZ80/alias_call/grace=false (0.00s)
+    --- PASS: TestCaptureAndCallableContractVMZ80/alias_call/grace=true (0.00s)
+    --- PASS: TestCaptureAndCallableContractVMZ80/alias_chain/grace=false (0.00s)
+    --- PASS: TestCaptureAndCallableContractVMZ80/alias_chain/grace=true (0.00s)
+    --- PASS: TestCaptureAndCallableContractVMZ80/wide_alias/grace=false (0.00s)
+    --- PASS: TestCaptureAndCallableContractVMZ80/wide_alias/grace=true (0.00s)
+=== RUN   TestUnsupportedCapturedDirectCallRejectedBeforeLowering
+--- PASS: TestUnsupportedCapturedDirectCallRejectedBeforeLowering (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.014s

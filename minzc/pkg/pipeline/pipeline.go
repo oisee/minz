@@ -138,7 +138,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	var s Steps
 	s.Traces = make(map[string]*FuncTrace)
 
-	if err := hir.Verify(hm); err != nil {
+	if err := hir.ResolveCallSignatures(hm); err != nil {
 		return s, err
 	}
 
@@ -162,7 +162,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		}
 	}
 
-	if err := hir.Verify(hm); err != nil {
+	if err := hir.ResolveCallSignatures(hm); err != nil {
 		return s, err
 	}
 	// Lower HIR → MIR2 (raw, before optimisation).
@@ -460,7 +460,7 @@ func CompileHIR(hm *hir.Module) (string, error) {
 // CompileHIRWithOptions runs the HIR→MIR2→Z80 pipeline with explicit options.
 // Use this to compare output with/without specific optimisation passes.
 func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
-	if err := hir.Verify(hm); err != nil {
+	if err := hir.ResolveCallSignatures(hm); err != nil {
 		return "", err
 	}
 	if opts.UseHIRGrace {
@@ -471,7 +471,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	// Great Autorefactor: split high-pressure functions.
 	hir.SplitHighPressure(hm)
 
-	if err := hir.Verify(hm); err != nil {
+	if err := hir.ResolveCallSignatures(hm); err != nil {
 		return "", err
 	}
 	// Lower HIR → MIR2.

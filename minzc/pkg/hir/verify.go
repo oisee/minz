@@ -11,11 +11,17 @@ import (
 // Verify checks the structural and resolved-type contract consumed by lowering.
 // Numeric width conversions and legacy integer addresses are intentionally legal.
 // It does not prove equivalence, closure capture safety, or all-paths return.
-func Verify(m *Module) error {
+func Verify(m *Module) error { return verifyHIRModule(m, false) }
+
+// ResolveCallSignatures verifies HIR and records signatures for statically
+// resolved indirect calls. Unknown raw pointers remain explicitly unresolved.
+func ResolveCallSignatures(m *Module) error { return verifyHIRModule(m, true) }
+
+func verifyHIRModule(m *Module, annotate bool) error {
 	if m == nil {
 		return fmt.Errorf("HIR: nil module")
 	}
-	v := &hirVerifier{funcs: map[string]*Func{}, globals: map[string]bool{}, active: map[any]bool{}}
+	v := &hirVerifier{funcs: map[string]*Func{}, globals: map[string]bool{}, active: map[any]bool{}, aliases: map[string]*Func{}, annotateCalls: annotate}
 	for _, g := range m.Globals {
 		if g.Name == "" || v.globals[g.Name] || nilHIR(g.Ty) {
 			return fmt.Errorf("HIR: invalid or duplicate global %q", g.Name)
@@ -50,6 +56,13 @@ func Verify(m *Module) error {
 			}
 			env[p.Name] = p.Ty
 		}
+		for _, c := range f.Captures {
+			if c.Name == "" || env[c.Name] != nil || nilHIR(c.Ty) || c.Ty == mir2.TyVoid || v.globals[c.Name] || v.funcs[c.Name] != nil {
+				return v.fail("invalid or duplicate capture %q", c.Name)
+			}
+			env[c.Name] = c.Ty
+		}
+		v.aliases = map[string]*Func{}
 		if f.IsExtern {
 			continue
 		}
@@ -66,12 +79,16 @@ func Verify(m *Module) error {
 }
 
 type hirVerifier struct {
-	funcs   map[string]*Func
-	globals map[string]bool
-	fn      *Func
-	labels  map[string]bool
-	gotos   []string
-	active  map[any]bool
+	funcs         map[string]*Func
+	globals       map[string]bool
+	fn            *Func
+	labels        map[string]bool
+	gotos         []string
+	active        map[any]bool
+	aliases       map[string]*Func
+	captureOuter  map[string]mir2.Ty
+	collected     map[string]mir2.Ty
+	annotateCalls bool
 }
 
 func nilHIR(x any) bool {
@@ -103,6 +120,12 @@ func (v *hirVerifier) block(b *Block, outer map[string]mir2.Ty, loops int) error
 	}
 	defer delete(v.active, b)
 	env := copyHIRScope(outer)
+	oldAliases := v.aliases
+	v.aliases = map[string]*Func{}
+	for n, f := range oldAliases {
+		v.aliases[n] = f
+	}
+	defer func() { v.aliases = oldAliases }()
 	for i, s := range b.Body {
 		if err := v.stmt(s, env, loops); err != nil {
 			return fmt.Errorf("statement %d: %w", i, err)
@@ -146,6 +169,12 @@ func assignableHIR(dst, src mir2.Ty) bool {
 	}
 	if mir2.IsPointer(dst) && mir2.IsInt(src) || mir2.IsInt(dst) && mir2.IsPointer(src) {
 		return true
+	}
+	if mir2.IsPointer(dst) {
+		switch src.(type) {
+		case *mir2.StructTy, *mir2.ArrayTy:
+			return true
+		}
 	}
 	// Struct expressions are lowered as addresses; HIR does not yet distinguish
 	// address-valued struct locals from aggregate values.
@@ -236,6 +265,11 @@ func (v *hirVerifier) stmt(s Stmt, env map[string]mir2.Ty, loops int) error {
 				}
 			}
 		}
+		if f := v.functionValue(s.Init); f != nil {
+			v.aliases[s.Name] = f
+		} else {
+			delete(v.aliases, s.Name)
+		}
 		ty := s.Ty
 		if s.ArrayLen > 0 {
 			if nilHIR(ty) {
@@ -245,6 +279,9 @@ func (v *hirVerifier) stmt(s Stmt, env map[string]mir2.Ty, loops int) error {
 		}
 		return v.bind(env, s.Name, ty)
 	case *AssignStmt:
+		if vr, ok := s.Target.(*VarRefExpr); ok && v.aliases[vr.Name] != nil {
+			return v.fail("reassignment of callable alias %q is unsupported", vr.Name)
+		}
 		switch s.Target.(type) {
 		case *VarRefExpr, *DerefExpr, *FieldExpr, *IndexExpr, *BitExpr:
 		default:
@@ -252,6 +289,10 @@ func (v *hirVerifier) stmt(s Stmt, env map[string]mir2.Ty, loops int) error {
 		}
 		// Nanz permits implicit local declaration by assignment. Read the RHS
 		// before introducing the binding, so x = x + 1 cannot create itself.
+		if vr, ok := s.Target.(*VarRefExpr); ok && env[vr.Name] == nil && v.captureOuter[vr.Name] != nil {
+			env[vr.Name] = v.captureOuter[vr.Name]
+			v.collected[vr.Name] = env[vr.Name]
+		}
 		if vr, ok := s.Target.(*VarRefExpr); ok && env[vr.Name] == nil && !v.globals[vr.Name] {
 			if err := v.valueAs(s.Val, vr.Ty, env); err != nil {
 				return err
@@ -273,6 +314,12 @@ func (v *hirVerifier) stmt(s Stmt, env map[string]mir2.Ty, loops int) error {
 			return v.exprs(env, s.Vals...)
 		}
 		if s.Val != nil {
+			if f := v.functionValue(s.Val); f != nil && len(f.Captures) > 0 && v.captureOuter == nil {
+				return v.fail("capturing callable %s cannot escape through return", f.Name)
+			}
+			if v.captureOuter != nil {
+				return v.expr(s.Val, env)
+			}
 			return v.valueAs(s.Val, v.fn.RetTy, env)
 		}
 	case *TupleLetStmt:
@@ -411,10 +458,14 @@ func (v *hirVerifier) expr(e Expr, env map[string]mir2.Ty) error {
 			return v.fail("variable %s type %s, declared %s", e.Name, e.Ty, ty)
 		}
 		if env[e.Name] == nil && !v.globals[e.Name] && v.funcs[e.Name] == nil {
-			// Lifted capture lambdas have no explicit capture list in today's HIR.
-			if !strings.HasPrefix(v.fn.Name, "lambda_") {
+			if ty := v.captureOuter[e.Name]; ty != nil {
+				v.collected[e.Name] = ty
+			} else {
 				return v.fail("unknown variable %q", e.Name)
 			}
+		}
+		if f := v.funcs[e.Name]; f != nil {
+			return v.checkCaptureUse(f, env)
 		}
 	case *BinExpr:
 		if !strings.Contains(" + - * / % & | ^ << >> == != < <= > >= && || ", " "+e.Op+" ") {
@@ -443,12 +494,51 @@ func (v *hirVerifier) expr(e Expr, env map[string]mir2.Ty) error {
 				return v.fail("call %s return type %s, declared %s", e.Fn, e.Ty, f.RetTy)
 			}
 		}
-		return v.exprs(env, e.Args...)
+		if err := v.exprs(env, e.Args...); err != nil {
+			return err
+		}
+		f := v.funcs[e.Fn]
+		if f == nil {
+			f = v.aliases[e.Fn]
+		}
+		if f != nil {
+			if len(f.Captures) > 0 && v.captureOuter == nil {
+				return v.fail("capturing callable %s requires an inlined iterator context", f.Name)
+			}
+			if err := v.checkCaptureUse(f, env); err != nil {
+				return err
+			}
+			return v.checkSignature(f.Signature(), e.Args, e.Ty, env)
+		}
+		return nil
 	case *CallIndirectExpr:
 		if err := v.expr(e.FnPtr, env); err != nil {
 			return err
 		}
-		return v.exprs(env, e.Args...)
+		if err := v.exprs(env, e.Args...); err != nil {
+			return err
+		}
+		sig := e.Signature
+		if f := v.functionValue(e.FnPtr); f != nil {
+			if len(f.Captures) > 0 && v.captureOuter == nil {
+				return v.fail("capturing callable %s requires an inlined iterator context", f.Name)
+			}
+			resolved := f.Signature()
+			if sig != nil && !sameHIRSignature(sig, resolved) {
+				return v.fail("indirect call signature disagrees with target %s", f.Name)
+			}
+			if v.annotateCalls {
+				e.Signature = resolved
+			}
+			sig = resolved
+			if err := v.checkCaptureUse(f, env); err != nil {
+				return err
+			}
+		}
+		if sig != nil {
+			return v.checkSignature(sig, e.Args, e.Ty, env)
+		}
+		return nil
 	case *FieldExpr:
 		if e.Offset < 0 {
 			return v.fail("negative field offset")
@@ -470,6 +560,9 @@ func (v *hirVerifier) expr(e Expr, env map[string]mir2.Ty) error {
 		}
 		if e.Sym == "" {
 			return v.fail("empty address symbol")
+		}
+		if f := v.funcs[e.Sym]; f != nil {
+			return v.checkCaptureUse(f, env)
 		}
 	case *LoadExpr:
 		return v.pointee(e.Ptr, e.Ty, env)

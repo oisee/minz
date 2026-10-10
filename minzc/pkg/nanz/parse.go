@@ -520,14 +520,15 @@ type nanzADTCtor struct {
 }
 
 type parser struct {
-	l           *lexer
-	name        string
-	opts        ParseOpts
-	module      *hir.Module // current module being built (set in parseModule)
-	structs     map[string]*mir2.StructTy
-	interfaces  map[string]*hir.InterfaceDecl // interface name → declaration
-	lambdas     []*hir.Func                   // anonymous functions generated from |params| body syntax
-	lambdaCount int
+	l            *lexer
+	name         string
+	opts         ParseOpts
+	module       *hir.Module // current module being built (set in parseModule)
+	structs      map[string]*mir2.StructTy
+	interfaces   map[string]*hir.InterfaceDecl // interface name → declaration
+	lambdas      []*hir.Func                   // anonymous functions generated from |params| body syntax
+	lambdaCount  int
+	lambdaScopes map[*hir.Func]map[string]mir2.Ty
 	// Week 1: UFCS + struct methods + operator overloading
 	globalTypes          map[string]mir2.Ty               // module-level: global varname → type (persistent)
 	globalInterfaceTypes map[string]string                // module-level: global varname → interface name
@@ -1101,6 +1102,13 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	// happens when function A calls function B that is declared later in the
 	// file — at parse time B's signature wasn't in funcSigs yet.
 	p.fixForwardCallTypes(m)
+	for _, f := range p.lambdas {
+		if outer, ok := p.lambdaScopes[f]; ok {
+			if err := hir.InferCaptures(m, f, outer); err != nil {
+				return nil, err
+			}
+		}
+	}
 
 	m.Warnings = p.warnings
 	return m, nil
@@ -5492,14 +5500,16 @@ func (p *parser) resolveCall(base hir.Expr, args []hir.Expr) (hir.Expr, error) {
 			}
 			lambdaName := fmt.Sprintf("lambda_%d", p.lambdaCount)
 			p.lambdaCount++
-			p.lambdas = append(p.lambdas, &hir.Func{
-				Name:   lambdaName,
-				Params: lambdaParams,
-				RetTy:  retTy,
-				Body: &hir.Block{Body: []hir.Stmt{
-					&hir.ReturnStmt{Val: &hir.CallExpr{Fn: name, Args: args, Ty: retTy}},
-				}},
-			})
+			f := &hir.Func{Name: lambdaName, Params: lambdaParams, RetTy: retTy, Body: hir.Blk(&hir.ReturnStmt{Val: &hir.CallExpr{Fn: name, Args: args, Ty: retTy}})}
+			p.lambdas = append(p.lambdas, f)
+			if p.lambdaScopes == nil {
+				p.lambdaScopes = map[*hir.Func]map[string]mir2.Ty{}
+			}
+			outer := map[string]mir2.Ty{}
+			for n, ty := range p.varTypes {
+				outer[n] = ty
+			}
+			p.lambdaScopes[f] = outer
 			return &hir.VarRefExpr{Name: lambdaName, Ty: retTy}, nil
 		}
 	}
@@ -5619,12 +5629,16 @@ func (p *parser) parseLambda() (hir.Expr, error) {
 	// Generate a unique name and register the anonymous function.
 	name := fmt.Sprintf("lambda_%d", p.lambdaCount)
 	p.lambdaCount++
-	p.lambdas = append(p.lambdas, &hir.Func{
-		Name:   name,
-		Params: params,
-		RetTy:  retTy,
-		Body:   body,
-	})
+	f := &hir.Func{Name: name, Params: params, RetTy: retTy, Body: body}
+	p.lambdas = append(p.lambdas, f)
+	if p.lambdaScopes == nil {
+		p.lambdaScopes = map[*hir.Func]map[string]mir2.Ty{}
+	}
+	outer := map[string]mir2.Ty{}
+	for n, ty := range savedVars {
+		outer[n] = ty
+	}
+	p.lambdaScopes[f] = outer
 
 	return &hir.VarRefExpr{Name: name, Ty: retTy}, nil
 }

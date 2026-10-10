@@ -1,6 +1,9 @@
 # План развития Grace в основном пути MinZ
 
 
+Обновление: [captures и callable contracts](grace-capture-contracts.md) — явные лексические зависимости и проверяемые сигнатуры известных calls/aliases. PGO всё ещё не реализован; сохранение всех внешних артефактов локально включено.
+
+
 Обновление: [fold correctness](grace-fold-correctness.md) — сохранены эффекты callback и стадии map/filter; исправлена Z80-запись с живым A. Countdown range соответствует книге языка, прежняя оценка его суммы как бага исправлена.
 
 

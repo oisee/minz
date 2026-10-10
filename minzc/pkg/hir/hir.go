@@ -126,6 +126,7 @@ func (m *Module) FuncByName(name string) *Func {
 type Func struct {
 	Name           string
 	Params         []Param
+	Captures       []Param   // explicit lexical dependencies; not ABI parameters
 	RetTy          mir2.Ty   // mir2.TyVoid for void functions (single-return)
 	RetTys         []mir2.Ty // non-empty → multiple return values (overrides RetTy)
 	Body           *Block    // nil for extern
@@ -397,11 +398,32 @@ type CallExpr struct {
 func (*CallExpr) hirExpr()          {}
 func (e *CallExpr) ExprTy() mir2.Ty { return e.Ty }
 
+// CallSignature is independent of address representation and calling convention.
+// Nil at a call site means the frontend has not resolved its callable type.
+type CallSignature struct {
+	Params  []mir2.Ty
+	Returns []mir2.Ty
+}
+
+func (f *Func) Signature() *CallSignature {
+	s := &CallSignature{}
+	for _, p := range f.Params {
+		s.Params = append(s.Params, p.Ty)
+	}
+	if len(f.RetTys) > 0 {
+		s.Returns = append(s.Returns, f.RetTys...)
+	} else if f.RetTy != mir2.TyVoid {
+		s.Returns = []mir2.Ty{f.RetTy}
+	}
+	return s
+}
+
 // CallIndirectExpr is an indirect function call through a pointer.
 type CallIndirectExpr struct {
-	FnPtr Expr // expression yielding the function pointer
-	Args  []Expr
-	Ty    mir2.Ty // return type
+	Signature *CallSignature // optional resolved callable contract
+	FnPtr     Expr           // expression yielding the function pointer
+	Args      []Expr
+	Ty        mir2.Ty // return type
 }
 
 func (*CallIndirectExpr) hirExpr()          {}
