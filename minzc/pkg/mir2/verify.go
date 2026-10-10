@@ -31,6 +31,14 @@ type blockInfo struct {
 }
 
 func verifyFunc(f *Func) error {
+	for label, origin := range f.LoopOrigins {
+		if f.BlockByLabel(label) == nil {
+			return fmt.Errorf("loop origin references missing block @%s", label)
+		}
+		if origin.SiteID == "" || origin.Role == "" {
+			return fmt.Errorf("block @%s: loop origin requires site ID and role", label)
+		}
+	}
 	if f.Attrs.IsExtern {
 		return nil
 	}

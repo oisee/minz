@@ -72,6 +72,9 @@ func CondRetSink(f *Func) bool {
 		if !hoistedConditionFlagsSafe(blk, brif.Cond, elseBlock.Insts) {
 			continue
 		}
+		if !f.TransferLoopOrigin(elseBlock.Label, blk.Label) {
+			continue
+		}
 		// Hoist instructions from @else into the current block.
 		blk.Insts = append(blk.Insts, elseBlock.Insts...)
 		// Replace BrIf with TermCondRet.

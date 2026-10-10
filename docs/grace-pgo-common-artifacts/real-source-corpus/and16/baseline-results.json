@@ -1,0 +1,89 @@
+{
+  "compatibility": {
+    "schema": "minz.loop-profile-compatibility/v1",
+    "context": {
+      "compiler_id": "executable-sha256:7e14140fd861124edd34c1db9ed9d95783c50e5ef46677ddcb658b366f2b60a5",
+      "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+      "target_id": "module-target:0/model:cpm-z80-v1",
+      "workload_sha256": "3747f06e59c474aded61fcb17fccb3fd46ae861b71e05b3a101f764a87e81a0e",
+      "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+      "dependencies": {
+        "../../../examples/nanz/sha256.nanz": "6a19378d623d83ad05f99b271b19daa94013f1ea069318e7210f230fd5248540"
+      }
+    },
+    "hir_sha256": "f6815adb4e93c26c721afa348ce7c40cca95e3d083062c7ed6c74edcabb04527",
+    "origins_sha256": "6a0866481a7fbfe8228b188bc6910e9c72fe6a5e74e45b48310a0048e788c7ca"
+  },
+  "binary_sha256": "87fa491c0cf64b37fd331ba1f6c1044d3619923c004a2dffb4b6b483fd90e0eb",
+  "bootstrap_sha256": [
+    "d4facb220d641fe89903e738c2a6b63aea0452d63d5eb5dfd6ba61b982c2316e",
+    "baca7b8463db2cd2c285ea068db0340bb63f6adae86161cc1dd5ceb7d27300db",
+    "2e0b500f5b13c3ca186d329005fff2903fc0a0ed927b8a67337b46ca78f519bb",
+    "ee5486d76e27ce597ee8088567d801735be2827e46512a73d33514f0ca4f40f3",
+    "07c04ee0ba0c59d6d1a91e6f4c2059acaba44e657b6c4ad03e7ded2413a92279",
+    "fa50af46911c2af06b1c428cb08cf7a53cf4ef6719a58c2d516479fb25ab3a59"
+  ],
+  "invocations": [
+    {
+      "function": "and16",
+      "t_states": 574,
+      "results": [
+        {
+          "I": 0
+        }
+      ]
+    },
+    {
+      "function": "and16",
+      "t_states": 574,
+      "results": [
+        {
+          "I": 65535
+        }
+      ]
+    },
+    {
+      "function": "and16",
+      "t_states": 574,
+      "results": [
+        {
+          "I": 0
+        }
+      ]
+    },
+    {
+      "function": "and16",
+      "t_states": 574,
+      "results": [
+        {
+          "I": 3855
+        }
+      ]
+    },
+    {
+      "function": "and16",
+      "t_states": 574,
+      "results": [
+        {
+          "I": 516
+        }
+      ]
+    },
+    {
+      "function": "and16",
+      "t_states": 574,
+      "results": [
+        {
+          "I": 0
+        }
+      ]
+    }
+  ],
+  "globals": {},
+  "resources": {},
+  "resource_addresses": {},
+  "global_addresses": {},
+  "bootstrap_t_states": 306,
+  "total_t_states": 3444,
+  "executed_steps": 462
+}

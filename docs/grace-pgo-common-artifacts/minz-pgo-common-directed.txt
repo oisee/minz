@@ -1,0 +1,2 @@
+ok  	github.com/minz/minzc/pkg/pipeline	3.400s
+ok  	github.com/minz/minzc/cmd/minzc	0.780s

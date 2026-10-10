@@ -1,0 +1,16 @@
+{
+  "expected": [
+    0,
+    1,
+    7,
+    1,
+    8
+  ],
+  "failures": [
+    "direct target: Z80 profile workload: compiled parameter type mismatch",
+    "measurement: measure profile variant sets: candidate 0 target workload: Z80 profile workload: compiled parameter type mismatch"
+  ],
+  "known_rejection": true,
+  "max_memory": 65536,
+  "max_steps": 1000000
+}

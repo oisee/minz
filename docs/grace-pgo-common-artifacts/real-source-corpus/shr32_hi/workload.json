@@ -1,0 +1,934 @@
+{
+  "schema": "minz.profile-workload/v1",
+  "target_model": "cpm-z80-v1",
+  "max_steps": 1000000,
+  "max_memory": 65536,
+  "resources": {},
+  "globals": null,
+  "calls": [
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 0
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 0
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 0
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 7
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 0
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 15
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 0
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 16
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 0
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 17
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 0
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 31
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 0
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 32
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 0
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 33
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 0
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 63
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 0
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 255
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 0
+        },
+        {
+          "value": 1
+        },
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 0
+        },
+        {
+          "value": 1
+        },
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 0
+        },
+        {
+          "value": 1
+        },
+        {
+          "value": 7
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 0
+        },
+        {
+          "value": 1
+        },
+        {
+          "value": 15
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 0
+        },
+        {
+          "value": 1
+        },
+        {
+          "value": 16
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 0
+        },
+        {
+          "value": 1
+        },
+        {
+          "value": 17
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 0
+        },
+        {
+          "value": 1
+        },
+        {
+          "value": 31
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 0
+        },
+        {
+          "value": 1
+        },
+        {
+          "value": 32
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 0
+        },
+        {
+          "value": 1
+        },
+        {
+          "value": 33
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 0
+        },
+        {
+          "value": 1
+        },
+        {
+          "value": 63
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 0
+        },
+        {
+          "value": 1
+        },
+        {
+          "value": 255
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 1
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 1
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 1
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 7
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 1
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 15
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 1
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 16
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 1
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 17
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 1
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 31
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 1
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 32
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 1
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 33
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 1
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 63
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 1
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 255
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 32768
+        },
+        {
+          "value": 32769
+        },
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 32768
+        },
+        {
+          "value": 32769
+        },
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 32768
+        },
+        {
+          "value": 32769
+        },
+        {
+          "value": 7
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 32768
+        },
+        {
+          "value": 32769
+        },
+        {
+          "value": 15
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 32768
+        },
+        {
+          "value": 32769
+        },
+        {
+          "value": 16
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 32768
+        },
+        {
+          "value": 32769
+        },
+        {
+          "value": 17
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 32768
+        },
+        {
+          "value": 32769
+        },
+        {
+          "value": 31
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 32768
+        },
+        {
+          "value": 32769
+        },
+        {
+          "value": 32
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 32768
+        },
+        {
+          "value": 32769
+        },
+        {
+          "value": 33
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 32768
+        },
+        {
+          "value": 32769
+        },
+        {
+          "value": 63
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 32768
+        },
+        {
+          "value": 32769
+        },
+        {
+          "value": 255
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 65535
+        },
+        {
+          "value": 65535
+        },
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 65535
+        },
+        {
+          "value": 65535
+        },
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 65535
+        },
+        {
+          "value": 65535
+        },
+        {
+          "value": 7
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 65535
+        },
+        {
+          "value": 65535
+        },
+        {
+          "value": 15
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 65535
+        },
+        {
+          "value": 65535
+        },
+        {
+          "value": 16
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 65535
+        },
+        {
+          "value": 65535
+        },
+        {
+          "value": 17
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 65535
+        },
+        {
+          "value": 65535
+        },
+        {
+          "value": 31
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 65535
+        },
+        {
+          "value": 65535
+        },
+        {
+          "value": 32
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 65535
+        },
+        {
+          "value": 65535
+        },
+        {
+          "value": 33
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 65535
+        },
+        {
+          "value": 65535
+        },
+        {
+          "value": 63
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 65535
+        },
+        {
+          "value": 65535
+        },
+        {
+          "value": 255
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 27145
+        },
+        {
+          "value": 58983
+        },
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 27145
+        },
+        {
+          "value": 58983
+        },
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 27145
+        },
+        {
+          "value": 58983
+        },
+        {
+          "value": 7
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 27145
+        },
+        {
+          "value": 58983
+        },
+        {
+          "value": 15
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 27145
+        },
+        {
+          "value": 58983
+        },
+        {
+          "value": 16
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 27145
+        },
+        {
+          "value": 58983
+        },
+        {
+          "value": 17
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 27145
+        },
+        {
+          "value": 58983
+        },
+        {
+          "value": 31
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 27145
+        },
+        {
+          "value": 58983
+        },
+        {
+          "value": 32
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 27145
+        },
+        {
+          "value": 58983
+        },
+        {
+          "value": 33
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 27145
+        },
+        {
+          "value": 58983
+        },
+        {
+          "value": 63
+        }
+      ]
+    },
+    {
+      "function": "shr32_hi",
+      "arguments": [
+        {
+          "value": 27145
+        },
+        {
+          "value": 58983
+        },
+        {
+          "value": 255
+        }
+      ]
+    }
+  ]
+}

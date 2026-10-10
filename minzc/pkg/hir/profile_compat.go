@@ -64,6 +64,7 @@ func BuildProfileCompatibility(m *Module, c ProfileContext) (*ProfileCompatibili
 	semantic.SourceLocations = nil
 	semantic.LoopLineage = nil
 	semantic.PointerWalkPolicy = nil
+	semantic.GraceRulePolicy = nil
 	semantic.SourceUnits = nil
 	semantic.SourceUnitsComplete = false
 	semantic.AssertStats = nil

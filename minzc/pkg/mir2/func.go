@@ -1,18 +1,17 @@
 package mir2
 
-// Func is a MIR2 function.
-//
-// A function is a list of basic blocks. The first block is the entry.
-// Virtual register numbering is monotonically increasing.  When created via
-// Module.AddFunc the counter is module-wide (all funcs share unique IDs).
+// LoopOrigin attributes a block to a source loop site. It is not a proof of
+// loop shape, bounds, or the legality of an optimization.
 type LoopOrigin struct {
 	SiteID string `json:"site_id"`
 	Role   string `json:"role"`
 	Rule   string `json:"rule,omitempty"`
 }
 
+// Func is a MIR2 function. The first block is the entry. Register numbering is
+// monotonically increasing (module-wide when created via Module.AddFunc).
 type Func struct {
-	LoopOrigins map[string]LoopOrigin // raw lowering body labels; passes may remove labels
+	LoopOrigins map[string]LoopOrigin // attribution of existing block labels
 	Name        string
 	Contract    Contract  // calling ABI in target-independent terms
 	Attrs       FuncAttrs // boolean property flags

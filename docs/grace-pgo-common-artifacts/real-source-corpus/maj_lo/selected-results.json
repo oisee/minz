@@ -1,0 +1,89 @@
+{
+  "compatibility": {
+    "schema": "minz.loop-profile-compatibility/v1",
+    "context": {
+      "compiler_id": "executable-sha256:7e14140fd861124edd34c1db9ed9d95783c50e5ef46677ddcb658b366f2b60a5",
+      "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+      "target_id": "module-target:0/model:cpm-z80-v1",
+      "workload_sha256": "97c72bc17996e2d7077cc1ef8410c9032107f663ee061f5b445f6c3d7a27a8fd",
+      "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+      "dependencies": {
+        "../../../examples/nanz/sha256.nanz": "6a19378d623d83ad05f99b271b19daa94013f1ea069318e7210f230fd5248540"
+      }
+    },
+    "hir_sha256": "f6815adb4e93c26c721afa348ce7c40cca95e3d083062c7ed6c74edcabb04527",
+    "origins_sha256": "6a0866481a7fbfe8228b188bc6910e9c72fe6a5e74e45b48310a0048e788c7ca"
+  },
+  "binary_sha256": "87fa491c0cf64b37fd331ba1f6c1044d3619923c004a2dffb4b6b483fd90e0eb",
+  "bootstrap_sha256": [
+    "1a70a71cadcf4caa1698e28e2adbcb396bf6b104b69fc0c78d7f02a86f0bf994",
+    "18e31235286b6940dd2801db2421e3ab8845bb5d81a546ba169f35a21e44bd19",
+    "393a834a283734170d48a13800f0de49e30c49da7a4a68e120e065912bc2754f",
+    "44117d6b0349a50e879036cf0f44a565f0ca060e2e9cb9ed90a0c5b700a27322",
+    "b28b2d023fbef643dc55abbfaa0318ce4db229b96ad0cab27e6fa481dde4b210",
+    "935cfe0bb1f5139e590ba536a9dd1762722eff6f4434bc98bf525c92cdc6862e"
+  ],
+  "invocations": [
+    {
+      "function": "maj_lo",
+      "t_states": 3265,
+      "results": [
+        {
+          "I": 0
+        }
+      ]
+    },
+    {
+      "function": "maj_lo",
+      "t_states": 3265,
+      "results": [
+        {
+          "I": 65535
+        }
+      ]
+    },
+    {
+      "function": "maj_lo",
+      "t_states": 3265,
+      "results": [
+        {
+          "I": 43690
+        }
+      ]
+    },
+    {
+      "function": "maj_lo",
+      "t_states": 3265,
+      "results": [
+        {
+          "I": 24415
+        }
+      ]
+    },
+    {
+      "function": "maj_lo",
+      "t_states": 3265,
+      "results": [
+        {
+          "I": 4732
+        }
+      ]
+    },
+    {
+      "function": "maj_lo",
+      "t_states": 3265,
+      "results": [
+        {
+          "I": 1
+        }
+      ]
+    }
+  ],
+  "globals": {},
+  "resources": {},
+  "resource_addresses": {},
+  "global_addresses": {},
+  "bootstrap_t_states": 342,
+  "total_t_states": 19590,
+  "executed_steps": 2454
+}

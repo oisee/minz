@@ -69,6 +69,7 @@ func SplitJoinRet(f *Func) bool {
 					retLabel := freshJoinRetLabel(f, joinBlk.Label+"_ret_then")
 					retBlk := &Block{Label: retLabel, Term: &TermRet{Vals: []Reg{t.ThenArgs[0]}}}
 					f.Blocks = append(f.Blocks, retBlk)
+					f.TransferLoopOrigin(joinBlk.Label, retLabel)
 					t.Then = retLabel
 					t.ThenArgs = nil
 					changed = true
@@ -77,6 +78,7 @@ func SplitJoinRet(f *Func) bool {
 					retLabel := freshJoinRetLabel(f, joinBlk.Label+"_ret_else")
 					retBlk := &Block{Label: retLabel, Term: &TermRet{Vals: []Reg{t.ElseArgs[0]}}}
 					f.Blocks = append(f.Blocks, retBlk)
+					f.TransferLoopOrigin(joinBlk.Label, retLabel)
 					t.Else = retLabel
 					t.ElseArgs = nil
 					changed = true
@@ -86,6 +88,9 @@ func SplitJoinRet(f *Func) bool {
 
 		// Replace TermJmp predecessors with TermRet.
 		for _, p := range preds {
+			if !f.TransferLoopOrigin(joinBlk.Label, p.block.Label) {
+				continue
+			}
 			p.block.Term = &TermRet{Vals: []Reg{p.arg}}
 			changed = true
 		}

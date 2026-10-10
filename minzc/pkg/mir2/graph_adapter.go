@@ -178,12 +178,7 @@ func (g *funcMutGraph) HoistInsts(srcLabel, dstLabel string) {
 }
 
 func (g *funcMutGraph) RemoveBlock(label string) {
-	for i, b := range g.f.Blocks {
-		if b.Label == label {
-			g.f.Blocks = append(g.f.Blocks[:i], g.f.Blocks[i+1:]...)
-			return
-		}
-	}
+	g.f.removeBlock(label)
 }
 
 func (g *funcMutGraph) SetTerm(blockLabel string, termKind string, targets []string) {

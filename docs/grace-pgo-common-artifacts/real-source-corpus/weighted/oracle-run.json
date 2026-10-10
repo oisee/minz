@@ -1,0 +1,80 @@
+{
+  "profile": {
+    "guards": [],
+    "compatibility": {
+      "schema": "minz.loop-profile-compatibility/v1",
+      "context": {
+        "compiler_id": "executable-sha256:7e14140fd861124edd34c1db9ed9d95783c50e5ef46677ddcb658b366f2b60a5",
+        "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+        "target_id": "module-target:0/model:cpm-z80-v1",
+        "workload_sha256": "59f69ba7699625488ecb0d8271b64e6915132254496c0cd1206b89a2adc541a7",
+        "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+        "dependencies": {
+          "../../../examples/nanz/06_pbqp_weighted.nanz": "d09334848a213973143c24f5ac165081d24c175693995febf40e552bb5ae66c5"
+        }
+      },
+      "hir_sha256": "03391adea391af0e60b57c85fa2bde5e7280e71ed609187eac3b4504930752cd",
+      "origins_sha256": "0ee9d9268121dd428fe645ed2a81f7af565e17077f4d0096f3894e303914b749"
+    },
+    "schema": "minz.input-hir-loop-observations/v4",
+    "stage": "unoptimised-mir2-vm",
+    "sites": {
+      "schema": "minz.hir-loop-sites/v1",
+      "stage": "input-hir",
+      "sites": [],
+      "unmapped_loops": 0
+    },
+    "counts": [],
+    "completed_calls": 9,
+    "failed_calls": 0
+  },
+  "results": [
+    [
+      {
+        "I": 1
+      }
+    ],
+    [
+      {
+        "I": 11
+      }
+    ],
+    [
+      {
+        "I": 247
+      }
+    ],
+    [
+      {
+        "I": 1
+      }
+    ],
+    [
+      {
+        "I": 247
+      }
+    ],
+    [
+      {
+        "I": 251
+      }
+    ],
+    [
+      {
+        "I": 5
+      }
+    ],
+    [
+      {
+        "I": 255
+      }
+    ],
+    [
+      {
+        "I": 9
+      }
+    ]
+  ],
+  "globals": {},
+  "resources": {}
+}

@@ -15,11 +15,13 @@ import (
 	"github.com/minz/minzc/pkg/z80asm"
 )
 
-// Z80ProfileInvocationEvidence measures entry through RET, excluding bootstrap.
+// Z80ProfileInvocationEvidence measures entry through RET, excluding bootstrap,
+// and owns the declared memory observed at that return.
 type Z80ProfileInvocationEvidence struct {
-	Function string       `json:"function"`
-	TStates  int64        `json:"t_states"`
-	Results  []mir2.Value `json:"results"`
+	Function string                    `json:"function"`
+	TStates  int64                     `json:"t_states"`
+	Results  []mir2.Value              `json:"results"`
+	Snapshot hir.ProfileMemorySnapshot `json:"snapshot"`
 }
 
 // Z80ProfileWorkloadEvidence exists only after the complete execution agrees with
@@ -56,12 +58,14 @@ const (
 // are unsupported. Resources are opaque byte buffers, not pointer tables.
 // The supplied expected run is a caller-owned VM oracle, not an attestation;
 // callers must obtain it from RunLoopProfile for the same input HIR/workload.
+// A complete memory snapshot is required for every call, including void calls;
+// legacy final-state-only oracles are refused.
 // Any failure, including bounds or oracle mismatch, returns nil evidence.
 func RunZ80ProfileWorkload(steps Steps, source *hir.Module, workload hir.ProfileWorkload, expected hir.ProfileRun) (*Z80ProfileWorkloadEvidence, error) {
 	fail := func(err error) (*Z80ProfileWorkloadEvidence, error) {
 		return nil, fmt.Errorf("Z80 profile workload: %w", err)
 	}
-	if source == nil || source.PointerWalkPolicy != nil || source.LoopLineage != nil || steps.MIR2Module == nil || steps.Allocation == nil || strings.TrimSpace(steps.Assembly) == "" {
+	if source == nil || source.PointerWalkPolicy != nil || source.LoopLineage != nil || source.GraceRulePolicy != nil || steps.MIR2Module == nil || steps.Allocation == nil || strings.TrimSpace(steps.Assembly) == "" {
 		return fail(fmt.Errorf("requires unmodified input HIR and compiled Z80 steps/allocation"))
 	}
 	owned, err := json.Marshal(workload)
@@ -100,6 +104,9 @@ func RunZ80ProfileWorkload(steps Steps, source *hir.Module, workload hir.Profile
 	}
 	if profile.FailedCalls != 0 || profile.CompletedCalls != uint64(len(workload.Calls)) || len(expected.Results) != len(workload.Calls) {
 		return fail(fmt.Errorf("incomplete oracle run"))
+	}
+	if len(expected.Snapshots) != len(workload.Calls) {
+		return fail(fmt.Errorf("incomplete oracle invocation snapshots"))
 	}
 	for _, module := range []*mir2.Module{hir.LowerModule(source), steps.MIR2Module} {
 		for _, g := range module.Globals {
@@ -248,6 +255,28 @@ func RunZ80ProfileWorkload(steps Steps, source *hir.Module, workload hir.Profile
 	}
 	if used > workload.MaxMemory {
 		return fail(fmt.Errorf("program/resources/bootstrap/stack exceed memory limit"))
+	}
+	// Require complete declared state at every boundary, even when there are no
+	// globals/resources. Never substitute final memory for a missing snapshot.
+	for ci, snapshot := range expected.Snapshots {
+		if snapshot.Globals == nil || len(snapshot.Globals) != len(source.Globals) {
+			return fail(fmt.Errorf("invocation %d: oracle snapshot global set mismatch", ci))
+		}
+		for _, g := range source.Globals {
+			want, ok := snapshot.Globals[g.Name]
+			if !ok || len(want) != len(expected.Globals[g.Name]) {
+				return fail(fmt.Errorf("invocation %d: oracle snapshot global bounds mismatch: %s", ci, g.Name))
+			}
+		}
+		if snapshot.Resources == nil || len(snapshot.Resources) != len(names) {
+			return fail(fmt.Errorf("invocation %d: oracle snapshot resource set mismatch", ci))
+		}
+		for _, name := range names {
+			want, ok := snapshot.Resources[name]
+			if !ok || want == nil || len(want) != len(workload.Resources[name]) {
+				return fail(fmt.Errorf("invocation %d: oracle snapshot resource bounds mismatch: %s", ci, name))
+			}
+		}
 	}
 	// Resolve actual production symbols without moving the shared program.
 	var equ strings.Builder
@@ -422,7 +451,26 @@ func RunZ80ProfileWorkload(steps Steps, source *hir.Module, workload hir.Profile
 				return fail(fmt.Errorf("noninteger oracle result unsupported"))
 			}
 		}
-		out.Invocations = append(out.Invocations, Z80ProfileInvocationEvidence{Function: call.Function, TStates: out.TotalTStates - start, Results: results})
+		snapshot := hir.ProfileMemorySnapshot{Globals: map[string][]byte{}, Resources: map[string][]byte{}}
+		for _, g := range source.Globals {
+			addr := out.GlobalAddresses[g.Name]
+			want := expected.Snapshots[ci].Globals[g.Name]
+			got := append([]byte{}, z.Memory()[addr:addr+len(want)]...)
+			if !bytes.Equal(got, want) {
+				return fail(fmt.Errorf("invocation %d @%s: global mismatch: %s got %v want %v", ci, call.Function, g.Name, got, want))
+			}
+			snapshot.Globals[g.Name] = got
+		}
+		for _, name := range names {
+			addr := out.ResourceAddresses[name]
+			want := expected.Snapshots[ci].Resources[name]
+			got := append([]byte{}, z.Memory()[addr:addr+len(want)]...)
+			if !bytes.Equal(got, want) {
+				return fail(fmt.Errorf("invocation %d @%s: resource mismatch: %s got %v want %v", ci, call.Function, name, got, want))
+			}
+			snapshot.Resources[name] = got
+		}
+		out.Invocations = append(out.Invocations, Z80ProfileInvocationEvidence{Function: call.Function, TStates: out.TotalTStates - start, Results: results, Snapshot: snapshot})
 		for addr := 0; addr < 65536; addr++ {
 			if prof.ReadCount[addr] > 0 && !readable[addr] {
 				return fail(fmt.Errorf("read outside declared bounds at %04x", addr))

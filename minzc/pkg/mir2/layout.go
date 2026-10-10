@@ -44,6 +44,8 @@ func EliminateDeadBlocks(f *Func) {
 	for i, b := range f.Blocks {
 		if reachable[i] {
 			live = append(live, b)
+		} else {
+			delete(f.LoopOrigins, b.Label)
 		}
 	}
 	f.Blocks = live
@@ -158,8 +160,8 @@ func isColdBlock(b *Block) bool {
 var coldKeywords = []string{
 	"exit", "error", "err", "fail",
 	"cold", "slow", "unlikely",
-	"base",  // early-exit (e.g. fibonacci base case n<=1)
+	"base", // early-exit (e.g. fibonacci base case n<=1)
 	"end", "done",
-	"ret",    // explicit return block
+	"ret", // explicit return block
 	"abort", "panic",
 }

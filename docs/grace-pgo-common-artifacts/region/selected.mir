@@ -1,0 +1,27 @@
+; MIR2 module: region.nanz
+fun @region_match(%r1: ptr [pointer], %r2: u16 [index], %r3: ptr [pointer], %r4: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r5 = const 0 : u8 [general]
+    %r6 = add %r1, %r2 : u16 [pointer]
+    jmp @loop_head1(%r6, %r5, %r4, %r3)
+  block @loop_head1(%r7: u16 [pointer], %r8: u8 [general], %r9: u8 [general], %r10: ptr [general]):
+    %r11 = cmp.ult %r8, %r9 : bool [flag]
+    %r26 = const 1 : u8 [general]
+    cond_ret %r11, [%r26], @loop_body2()
+  block @loop_body2:
+    %r12 = ext %r8 : u8 -> u16 [pointer]
+    %r13 = add %r7, %r12 : u16 [pointer]
+    %r14 = load %r13 : u8 [general]
+    %r15 = ext %r8 : u8 -> u16 [index]
+    %r16 = ptr_add %r10, %r15 : ptr [pointer]
+    %r17 = load %r16 : u8 [general]
+    %r18 = cmp.ne %r14, %r17 : bool [flag]
+    br_if %r18, @if_then4(), @if_join5()
+  block @if_then4:
+    %r19 = const 0 : u8 [general]
+    ret %r19
+  block @if_join5:
+    %r20 = const 1 : u8 [general]
+    %r21 = add %r8, %r20 : u8 [general]
+    jmp @loop_head1(%r7, %r21, %r9, %r10)
+

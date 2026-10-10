@@ -1,0 +1,20 @@
+{
+  "error": "measure profile variant sets: candidate 0 target workload: Z80 profile workload: compiled parameter type mismatch",
+  "options": {
+    "ProfileSelection": null,
+    "CollectHIRSites": false,
+    "ContractOpt": false,
+    "AnnotateTStates": false,
+    "LIRCheck": false,
+    "UseLIR": false,
+    "UseGrace": false,
+    "GraceStats": null,
+    "UseHIRGrace": true,
+    "OptSize": false,
+    "Backend": "",
+    "AssertMode": "none",
+    "SkipZ80Emission": false
+  },
+  "status": "rejected",
+  "target_error": "Z80 profile workload: compiled parameter type mismatch"
+}

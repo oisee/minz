@@ -1,0 +1,89 @@
+{
+  "compatibility": {
+    "schema": "minz.loop-profile-compatibility/v1",
+    "context": {
+      "compiler_id": "executable-sha256:7e14140fd861124edd34c1db9ed9d95783c50e5ef46677ddcb658b366f2b60a5",
+      "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+      "target_id": "module-target:0/model:cpm-z80-v1",
+      "workload_sha256": "cbc527d012af605e94c4ba982e0442d931c0be692fbf67519a5adb2ea05df35a",
+      "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+      "dependencies": {
+        "../../../examples/nanz/sha256.nanz": "6a19378d623d83ad05f99b271b19daa94013f1ea069318e7210f230fd5248540"
+      }
+    },
+    "hir_sha256": "f6815adb4e93c26c721afa348ce7c40cca95e3d083062c7ed6c74edcabb04527",
+    "origins_sha256": "6a0866481a7fbfe8228b188bc6910e9c72fe6a5e74e45b48310a0048e788c7ca"
+  },
+  "binary_sha256": "87fa491c0cf64b37fd331ba1f6c1044d3619923c004a2dffb4b6b483fd90e0eb",
+  "bootstrap_sha256": [
+    "65fc15116e5285c8a9a6b142ec9de7669b719a9bae45c5f78a526314d3dc031f",
+    "33a167ce0de430261aa5a93e6a12fde6a4f1e270bb6a46a9130096544ee3eed8",
+    "5b78f869a02489a76964bb93bcedb1ffc8e796d6209c0b2f57dcfd1b2b83e221",
+    "45a1ecc7639f8f057b7601ccd4f1219dc4d4ee48ba15cbc3b8e50d2c3401f633",
+    "4d5d2d7d30920fe3b108c43d04ae978aeaf21bc2a10ca9223f26260f5b112d22",
+    "a891d32472ff5f827a5b2489c8f3c9333762fd499b3c8a33b6c1f951c9f4cfa3"
+  ],
+  "invocations": [
+    {
+      "function": "xor16",
+      "t_states": 503,
+      "results": [
+        {
+          "I": 0
+        }
+      ]
+    },
+    {
+      "function": "xor16",
+      "t_states": 503,
+      "results": [
+        {
+          "I": 0
+        }
+      ]
+    },
+    {
+      "function": "xor16",
+      "t_states": 503,
+      "results": [
+        {
+          "I": 65535
+        }
+      ]
+    },
+    {
+      "function": "xor16",
+      "t_states": 503,
+      "results": [
+        {
+          "I": 61680
+        }
+      ]
+    },
+    {
+      "function": "xor16",
+      "t_states": 503,
+      "results": [
+        {
+          "I": 47609
+        }
+      ]
+    },
+    {
+      "function": "xor16",
+      "t_states": 503,
+      "results": [
+        {
+          "I": 32769
+        }
+      ]
+    }
+  ],
+  "globals": {},
+  "resources": {},
+  "resource_addresses": {},
+  "global_addresses": {},
+  "bootstrap_t_states": 282,
+  "total_t_states": 3018,
+  "executed_steps": 426
+}

@@ -1,0 +1,112 @@
+{
+  "schema": "minz.profile-workload/v1",
+  "target_model": "cpm-z80-v1",
+  "max_steps": 1000000,
+  "max_memory": 65536,
+  "resources": {},
+  "globals": null,
+  "calls": [
+    {
+      "function": "add32_lo",
+      "arguments": [
+        {
+          "value": 0
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "add32_lo",
+      "arguments": [
+        {
+          "value": 0
+        },
+        {
+          "value": 1
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "function": "add32_lo",
+      "arguments": [
+        {
+          "value": 0
+        },
+        {
+          "value": 65535
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "function": "add32_lo",
+      "arguments": [
+        {
+          "value": 65535
+        },
+        {
+          "value": 65535
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "function": "add32_lo",
+      "arguments": [
+        {
+          "value": 65535
+        },
+        {
+          "value": 65535
+        },
+        {
+          "value": 65535
+        },
+        {
+          "value": 65535
+        }
+      ]
+    },
+    {
+      "function": "add32_lo",
+      "arguments": [
+        {
+          "value": 4660
+        },
+        {
+          "value": 43981
+        },
+        {
+          "value": 22136
+        },
+        {
+          "value": 61185
+        }
+      ]
+    }
+  ]
+}

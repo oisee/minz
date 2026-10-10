@@ -70,7 +70,7 @@ func MeasureLoopCostModel(factory func() (*hir.Module, error), function string, 
 		if m == nil {
 			return fail(fmt.Errorf("nil factory module"))
 		}
-		if m.PointerWalkPolicy != nil || m.LoopLineage != nil {
+		if m.PointerWalkPolicy != nil || m.LoopLineage != nil || m.GraceRulePolicy != nil {
 			return fail(fmt.Errorf("factory must return input HIR without policy/lineage"))
 		}
 		if err := jointCheckFreshHIR(m, seen); err != nil {
@@ -105,7 +105,7 @@ func MeasureLoopCostModel(factory func() (*hir.Module, error), function string, 
 		if err != nil {
 			return fail(err)
 		}
-		if !jointEqual(current, key) || m.PointerWalkPolicy != nil || m.LoopLineage != nil {
+		if !jointEqual(current, key) || m.PointerWalkPolicy != nil || m.LoopLineage != nil || m.GraceRulePolicy != nil {
 			return fail(fmt.Errorf("factory mutated previous HIR/source"))
 		}
 	}

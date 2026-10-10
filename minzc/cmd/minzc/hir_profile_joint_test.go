@@ -54,7 +54,7 @@ fun run()->u8 {
 	if err := json.Unmarshal(data, &e); err != nil {
 		t.Fatal(err)
 	}
-	if len(e.Candidates) != 2 {
+	if len(e.Candidates) != 4 {
 		t.Fatalf("candidates=%d", len(e.Candidates))
 	}
 	bin, err := os.ReadFile(outputFile)

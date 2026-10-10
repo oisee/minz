@@ -119,7 +119,7 @@ func prepareHIRProfileJoint(m *hir.Module, factory func() (*hir.Module, error), 
 	if err != nil {
 		return nil, err
 	}
-	result, err := pipeline.MeasureProfileVariantSets(factory, observations, workload, options, 4)
+	result, err := pipeline.MeasureGraceVariantSets(factory, observations, workload, options, 4)
 	if err != nil {
 		return nil, err
 	}

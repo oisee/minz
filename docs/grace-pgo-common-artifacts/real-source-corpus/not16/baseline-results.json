@@ -1,0 +1,89 @@
+{
+  "compatibility": {
+    "schema": "minz.loop-profile-compatibility/v1",
+    "context": {
+      "compiler_id": "executable-sha256:7e14140fd861124edd34c1db9ed9d95783c50e5ef46677ddcb658b366f2b60a5",
+      "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+      "target_id": "module-target:0/model:cpm-z80-v1",
+      "workload_sha256": "c188ac15de061032e3f5cf73653acecb560be205cb858f453a2227ad1509dd9f",
+      "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+      "dependencies": {
+        "../../../examples/nanz/sha256.nanz": "6a19378d623d83ad05f99b271b19daa94013f1ea069318e7210f230fd5248540"
+      }
+    },
+    "hir_sha256": "f6815adb4e93c26c721afa348ce7c40cca95e3d083062c7ed6c74edcabb04527",
+    "origins_sha256": "6a0866481a7fbfe8228b188bc6910e9c72fe6a5e74e45b48310a0048e788c7ca"
+  },
+  "binary_sha256": "87fa491c0cf64b37fd331ba1f6c1044d3619923c004a2dffb4b6b483fd90e0eb",
+  "bootstrap_sha256": [
+    "af135afe2bb4b5a0f8ecb4b9f8809c761c60846719ba0a602036930c1b453c2a",
+    "8f2529b4eba0e349a359b7ddd05b4e7d1f5ebc088d3f77dbf2e05144f497e481",
+    "149f7167500748957d3dc200ad67984703aa301e6a764c6bbd965081d439e2df",
+    "0dd32ba6dbf496bb9098534dd6299f2545592d0f1c07ef9304da00b7f92fa680",
+    "1e2b59f76aa649b48051890317717c6ddf58fcd20e71f863d58f5536acdf3c0a",
+    "932ff050af579873bb7ea89159202e991384b11448be2005f085b2cee394c3a3"
+  ],
+  "invocations": [
+    {
+      "function": "not16",
+      "t_states": 288,
+      "results": [
+        {
+          "I": 65535
+        }
+      ]
+    },
+    {
+      "function": "not16",
+      "t_states": 288,
+      "results": [
+        {
+          "I": 0
+        }
+      ]
+    },
+    {
+      "function": "not16",
+      "t_states": 288,
+      "results": [
+        {
+          "I": 255
+        }
+      ]
+    },
+    {
+      "function": "not16",
+      "t_states": 288,
+      "results": [
+        {
+          "I": 240
+        }
+      ]
+    },
+    {
+      "function": "not16",
+      "t_states": 288,
+      "results": [
+        {
+          "I": 60875
+        }
+      ]
+    },
+    {
+      "function": "not16",
+      "t_states": 288,
+      "results": [
+        {
+          "I": 32767
+        }
+      ]
+    }
+  ],
+  "globals": {},
+  "resources": {},
+  "resource_addresses": {},
+  "global_addresses": {},
+  "bootstrap_t_states": 222,
+  "total_t_states": 1728,
+  "executed_steps": 264
+}

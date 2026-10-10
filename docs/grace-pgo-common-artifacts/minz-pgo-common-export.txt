@@ -1,0 +1,4 @@
+=== RUN   TestMeasuredCommonGraceArtifacts
+--- PASS: TestMeasuredCommonGraceArtifacts (0.10s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.111s

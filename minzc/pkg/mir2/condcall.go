@@ -114,6 +114,9 @@ func FoldConditionalCalls(f *Func) int {
 				continue
 			}
 
+			if !f.TransferLoopOrigin(callBlockLabel, b.Label) {
+				continue
+			}
 			// Match! Create OpCallCond and rewrite.
 			condCall := &Inst{
 				Op:   OpCallCond,

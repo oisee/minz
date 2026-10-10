@@ -1,0 +1,9 @@
+fun region_match(buf: ^u8, offset: u16, target: ^u8, len: u8) -> u8 {
+ var i: u8 = 0
+ while i < len {
+  let p: ^u8 = buf + offset + i
+  if p^ != target[i] { return 0 }
+  i = i + 1
+ }
+ return 1
+}

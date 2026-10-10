@@ -61,7 +61,7 @@ func RunGraceWithOptions(m *Module, options GraceOptions) (*grace.RuleResult, er
 		graph := newHIRGraceGraph(m)
 		reg := grace.NewPredicateRegistry()
 		reg.RegisterPredicate("hir-has-constant-if", func(_ rewrite.IRGraph, bindings grace.BlockBindings, _ []string) bool {
-			return graph.err == nil && graph.candidate(bindings["b"]) >= 0
+			return (m.GraceRulePolicy == nil || m.GraceRulePolicy["hir-constant-if"]) && graph.err == nil && graph.candidate(bindings["b"]) >= 0
 		})
 		reg.RegisterAction("hirSelectBranch", func(_ rewrite.IRGraphMut, bindings grace.BlockBindings) bool {
 			label := bindings["b"]
@@ -88,7 +88,7 @@ func RunGraceWithOptions(m *Module, options GraceOptions) (*grace.RuleResult, er
 			return true
 		})
 		reg.RegisterPredicate("hir-has-invariant-base", func(_ rewrite.IRGraph, bindings grace.BlockBindings, _ []string) bool {
-			return graph.err == nil && len(graph.facts.DB.Query("hir-invariant-base", bindings["b"])) != 0
+			return (m.GraceRulePolicy == nil || m.GraceRulePolicy["hir-invariant-base"]) && graph.err == nil && len(graph.facts.DB.Query("hir-invariant-base", bindings["b"])) != 0
 		})
 		reg.RegisterAction("hirHoistBase", func(_ rewrite.IRGraphMut, bindings grace.BlockBindings) bool {
 			h := graph.hoist(bindings["b"])

@@ -1,0 +1,18 @@
+{
+  "expected": [
+    1,
+    0,
+    2,
+    1,
+    128,
+    127,
+    129,
+    128,
+    0,
+    255
+  ],
+  "failures": null,
+  "known_rejection": false,
+  "max_memory": 65536,
+  "max_steps": 1000000
+}

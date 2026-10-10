@@ -282,6 +282,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 				// Example: fib — after first CALL, A=fib(n-1) is needed later but
 				// computing n-2 requires loading n (from scratch) into A.
 				g.saveABeforeOverwrite(inst)
+				g.saveAccIfLive(inst)
 				g.emitLDA(lhs)
 			}
 			switch mnem {

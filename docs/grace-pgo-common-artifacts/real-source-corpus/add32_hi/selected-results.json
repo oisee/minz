@@ -1,0 +1,89 @@
+{
+  "compatibility": {
+    "schema": "minz.loop-profile-compatibility/v1",
+    "context": {
+      "compiler_id": "executable-sha256:7e14140fd861124edd34c1db9ed9d95783c50e5ef46677ddcb658b366f2b60a5",
+      "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+      "target_id": "module-target:0/model:cpm-z80-v1",
+      "workload_sha256": "271d7ca21bc6f824da4997a7cd7149a506b5962f704a56676201f1c4090f2b18",
+      "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+      "dependencies": {
+        "../../../examples/nanz/sha256.nanz": "6a19378d623d83ad05f99b271b19daa94013f1ea069318e7210f230fd5248540"
+      }
+    },
+    "hir_sha256": "f6815adb4e93c26c721afa348ce7c40cca95e3d083062c7ed6c74edcabb04527",
+    "origins_sha256": "6a0866481a7fbfe8228b188bc6910e9c72fe6a5e74e45b48310a0048e788c7ca"
+  },
+  "binary_sha256": "87fa491c0cf64b37fd331ba1f6c1044d3619923c004a2dffb4b6b483fd90e0eb",
+  "bootstrap_sha256": [
+    "53c19c51ef4f81e57b0b62cf4a530566bc9654b91479a44af28910ce4f64f520",
+    "b4cb86592f880ce95fc982a95dd3cdbfedfdbdd496778efb85dc6b6c6d3109a8",
+    "7886d01a393dd1179e41b6427e70ec7900571e018752603d00a0ea8d65e65e4c",
+    "302e01cb29b4944ea0757ed99798ad799c52db254d028fdb771ac2709e034672",
+    "c764b2d8667db79c86b95e47a3eba943f2278effab5507feb9f80b4179e0ceb2",
+    "1aee0ab00311d264aee690d1d79ae3912544a57c9526070360802ea5300850b5"
+  ],
+  "invocations": [
+    {
+      "function": "add32_hi",
+      "t_states": 277,
+      "results": [
+        {
+          "I": 0
+        }
+      ]
+    },
+    {
+      "function": "add32_hi",
+      "t_states": 277,
+      "results": [
+        {
+          "I": 0
+        }
+      ]
+    },
+    {
+      "function": "add32_hi",
+      "t_states": 267,
+      "results": [
+        {
+          "I": 1
+        }
+      ]
+    },
+    {
+      "function": "add32_hi",
+      "t_states": 267,
+      "results": [
+        {
+          "I": 0
+        }
+      ]
+    },
+    {
+      "function": "add32_hi",
+      "t_states": 267,
+      "results": [
+        {
+          "I": 65535
+        }
+      ]
+    },
+    {
+      "function": "add32_hi",
+      "t_states": 267,
+      "results": [
+        {
+          "I": 26797
+        }
+      ]
+    }
+  ],
+  "globals": {},
+  "resources": {},
+  "resource_addresses": {},
+  "global_addresses": {},
+  "bootstrap_t_states": 426,
+  "total_t_states": 1622,
+  "executed_steps": 204
+}

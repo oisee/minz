@@ -24,13 +24,16 @@ type ProfileVariantSetResult struct {
 }
 
 type ProfileVariantSetCandidate struct {
-	Decisions    []hir.ProfileDecision       `json:"decisions"`
-	Binary       []byte                      `json:"binary"`
-	BinarySHA256 string                      `json:"binary_sha256"`
-	ModuleBytes  int                         `json:"module_bytes"`
-	TotalTStates int64                       `json:"total_t_states"`
-	RawRun       *hir.ProfileRun             `json:"raw_run"`
-	Run          *Z80ProfileWorkloadEvidence `json:"run"`
+	HIR              string                      `json:"hir"`
+	Lineage          []hir.LoopLineageRecord     `json:"lineage"`
+	CommonGraceRules bool                        `json:"common_grace_rules"`
+	Decisions        []hir.ProfileDecision       `json:"decisions"`
+	Binary           []byte                      `json:"binary"`
+	BinarySHA256     string                      `json:"binary_sha256"`
+	ModuleBytes      int                         `json:"module_bytes"`
+	TotalTStates     int64                       `json:"total_t_states"`
+	RawRun           *hir.ProfileRun             `json:"raw_run"`
+	Run              *Z80ProfileWorkloadEvidence `json:"run"`
 }
 
 // SHA256 is the digest of JSON with that field omitted, binding every candidate,
@@ -50,13 +53,26 @@ type ProfileVariantSetEvidence struct {
 }
 
 // MeasureProfileVariantSets exhaustively measures at most four observed eligible
-// sites (16 sets). Independent linear models are neither required nor consulted.
+// sites (16 sets), with common HIR rules enabled in every candidate.
+// This is a pointer-only comparison; use MeasureGraceVariantSets for a baseline
+// with all HIR Grace rules disabled. Independent linear models are neither required nor consulted.
 // Strict profile loading and fresh equivalent factory inputs precede compilation.
 // Ordinary ApplyProfileDecisions legality and sticky policy apply to every set.
 // Every candidate must agree with the raw oracle and pass actual target execution
 // before the best whole-workload speed (or whole-module size) is selected. Strict
 // improvement is required: the all-original candidate wins ties with original.
 func MeasureProfileVariantSets(factory func() (*hir.Module, error), observations []byte, workload hir.ProfileWorkload, options Options, maxSites int) (*ProfileVariantSetResult, error) {
+	return measureProfileVariantSets(factory, observations, workload, options, maxSites, false)
+}
+
+// MeasureGraceVariantSets also compares structural constant-if/invariant-base
+// rules disabled versus enabled. Every combination is measured; the baseline
+// has all HIR Grace rules disabled. With four pointer sites, at most 32 sets.
+func MeasureGraceVariantSets(factory func() (*hir.Module, error), observations []byte, workload hir.ProfileWorkload, options Options, maxSites int) (*ProfileVariantSetResult, error) {
+	return measureProfileVariantSets(factory, observations, workload, options, maxSites, true)
+}
+
+func measureProfileVariantSets(factory func() (*hir.Module, error), observations []byte, workload hir.ProfileWorkload, options Options, maxSites int, commonChoices bool) (*ProfileVariantSetResult, error) {
 	fail := func(err error) (*ProfileVariantSetResult, error) {
 		return nil, fmt.Errorf("measure profile variant sets: %w", err)
 	}
@@ -85,7 +101,7 @@ func MeasureProfileVariantSets(factory func() (*hir.Module, error), observations
 		if err != nil {
 			return nil, err
 		}
-		if m == nil || m.PointerWalkPolicy != nil || m.LoopLineage != nil {
+		if m == nil || m.PointerWalkPolicy != nil || m.LoopLineage != nil || m.GraceRulePolicy != nil {
 			return nil, fmt.Errorf("factory must return fresh input HIR without policy/lineage")
 		}
 		if err := jointCheckFreshHIR(m, seen); err != nil {
@@ -134,7 +150,11 @@ func MeasureProfileVariantSets(factory func() (*hir.Module, error), observations
 		return fail(fmt.Errorf("%d observed eligible sites exceed cap %d (maximum 4 sites/16 sets)", len(eligible), maxSites))
 	}
 	// Preflight all factory inputs before any compilation or execution.
-	modules := make([]*hir.Module, 1<<len(eligible))
+	candidateCount := 1 << len(eligible)
+	if commonChoices {
+		candidateCount *= 2
+	}
+	modules := make([]*hir.Module, candidateCount)
 	for i := range modules {
 		modules[i], err = fresh()
 		if err != nil {
@@ -151,7 +171,7 @@ func MeasureProfileVariantSets(factory func() (*hir.Module, error), observations
 		if err != nil {
 			return fail(err)
 		}
-		if !jointEqual(k, key) || m.PointerWalkPolicy != nil || m.LoopLineage != nil {
+		if !jointEqual(k, key) || m.PointerWalkPolicy != nil || m.LoopLineage != nil || m.GraceRulePolicy != nil {
 			return fail(fmt.Errorf("factory mutated previously returned HIR/source"))
 		}
 	}
@@ -167,6 +187,10 @@ func MeasureProfileVariantSets(factory func() (*hir.Module, error), observations
 	e.Options.GraceStats = nil
 	compiled := make([]Steps, len(modules))
 	for mask, m := range modules {
+		commonEnabled := !commonChoices || mask >= (1<<len(eligible))
+		if commonChoices {
+			m.GraceRulePolicy = map[string]bool{"hir-constant-if": commonEnabled, "hir-invariant-base": commonEnabled}
+		}
 		choices := map[string]bool{}
 		for j, id := range eligible {
 			choices[id] = mask&(1<<(len(eligible)-1-j)) != 0
@@ -182,6 +206,19 @@ func MeasureProfileVariantSets(factory func() (*hir.Module, error), observations
 		if err := hir.ApplyProfileDecisions(m, decisions); err != nil {
 			return fail(err)
 		}
+		lineage := hir.CurrentLoopLineage(m)
+		applied := map[string]bool{}
+		for _, l := range lineage {
+			if l.Lineage.Role == "fast" && l.Lineage.Rule == "hir-guarded-pointer-walk" {
+				applied[l.Lineage.SiteID] = true
+			}
+		}
+		for id, requested := range choices {
+			if requested != applied[id] {
+				return fail(fmt.Errorf("candidate %d requested pointer choice was not realized for %s", mask, id))
+			}
+		}
+		hirDump := m.Dump()
 		raw, err := jointRunRaw(m, workload)
 		if err != nil {
 			return fail(fmt.Errorf("candidate %d raw VM: %w", mask, err))
@@ -221,7 +258,7 @@ func MeasureProfileVariantSets(factory func() (*hir.Module, error), observations
 			}
 			total += invocation.TStates
 		}
-		e.Candidates = append(e.Candidates, ProfileVariantSetCandidate{TotalTStates: total, Decisions: decisions, Binary: assembled.Binary, BinarySHA256: digest, ModuleBytes: len(assembled.Binary), RawRun: raw, Run: run})
+		e.Candidates = append(e.Candidates, ProfileVariantSetCandidate{HIR: hirDump, Lineage: lineage, CommonGraceRules: commonEnabled, TotalTStates: total, Decisions: decisions, Binary: assembled.Binary, BinarySHA256: digest, ModuleBytes: len(assembled.Binary), RawRun: raw, Run: run})
 		compiled[mask] = steps
 	}
 	for i := 1; i < len(e.Candidates); i++ {
@@ -251,7 +288,7 @@ func jointEqual(a, b any) bool {
 	return ex == nil && ey == nil && bytes.Equal(x, y)
 }
 func jointSameState(a, b *hir.ProfileRun) bool {
-	return jointEqual(a.Results, b.Results) && jointEqual(a.Globals, b.Globals) && jointEqual(a.Resources, b.Resources)
+	return jointEqual(a.Snapshots, b.Snapshots) && jointEqual(a.Results, b.Results) && jointEqual(a.Globals, b.Globals) && jointEqual(a.Resources, b.Resources)
 }
 func jointSortedCounts(in []hir.LoopCounts) []hir.LoopCounts {
 	out := make([]hir.LoopCounts, len(in))
@@ -384,7 +421,7 @@ func jointRunRaw(m *hir.Module, w hir.ProfileWorkload) (*hir.ProfileRun, error) 
 		addresses[name] = vm.AllocHeap(b).I
 		used += int64(len(b))
 	}
-	out := &hir.ProfileRun{Results: [][]mir2.Value{}, Globals: map[string][]byte{}, Resources: map[string][]byte{}}
+	out := &hir.ProfileRun{Snapshots: []hir.ProfileMemorySnapshot{}, Results: [][]mir2.Value{}, Globals: map[string][]byte{}, Resources: map[string][]byte{}}
 	for _, call := range w.Calls {
 		args := make([]mir2.Value, len(call.Arguments))
 		for i, a := range call.Arguments {
@@ -399,6 +436,18 @@ func jointRunRaw(m *hir.Module, w hir.ProfileWorkload) (*hir.ProfileRun, error) 
 			return nil, err
 		}
 		out.Results = append(out.Results, r)
+		snapshot := hir.ProfileMemorySnapshot{Globals: map[string][]byte{}, Resources: map[string][]byte{}}
+		for _, g := range m.Globals {
+			size := mir2.ByteWidth(g.Ty)
+			if len(g.Init) > size {
+				size = len(g.Init)
+			}
+			snapshot.Globals[g.Name] = append([]byte{}, vm.ReadHeap(vm.GlobalAddr(g.Name), size)...)
+		}
+		for _, name := range names {
+			snapshot.Resources[name] = append([]byte{}, vm.ReadHeap(addresses[name], len(w.Resources[name]))...)
+		}
+		out.Snapshots = append(out.Snapshots, snapshot)
 	}
 	for _, g := range m.Globals {
 		size := mir2.ByteWidth(g.Ty)

@@ -1,0 +1,129 @@
+{
+  "compatibility": {
+    "schema": "minz.loop-profile-compatibility/v1",
+    "context": {
+      "compiler_id": "executable-sha256:7e14140fd861124edd34c1db9ed9d95783c50e5ef46677ddcb658b366f2b60a5",
+      "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+      "target_id": "module-target:0/model:cpm-z80-v1",
+      "workload_sha256": "f2fdd68bdff9fc0ebb97541cd2adf03a147ccc957e5418a6c3e24684990c0128",
+      "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+      "dependencies": {
+        "../../../examples/nanz/grace_hir_constant_if.nanz": "0d13c6f83931f48898ccbe7b8767790bcc826552c4dcb19b40ec97d1ea50272f"
+      }
+    },
+    "hir_sha256": "73682217950a0c76a46f55f268f3ffd03669a1b94f6eaf229509c91e21dbe889",
+    "origins_sha256": "6fe3c83d39c3b28a210592f00ad166f85f6a3275c312adc2be239c25db9bb64c"
+  },
+  "binary_sha256": "301cfa70b62508fc98ec132dd26cb56b112a26b7f4a3963deb26f1804242212f",
+  "bootstrap_sha256": [
+    "33a0f191c642b0e35a9e80221dabefc33005d5513448005ba25a25f77ac72014",
+    "8f88c534d12ce606e395b9c631ed12705d3f2d4b63466b4780a153a7c9ed6300",
+    "bd7d7fb923207f8d7eca7bc4cdce905c728290a61042d934ee15b6d7c907a4d6",
+    "b3fbc22a2c9308c0ea2e69529da3c197260e20a8fbd5d8186f80bfcfe06ac5ec",
+    "0ae40d51f8ea6550ab9fac020a116e987bdc789aefeaf12cec162cfc826e5748",
+    "bc3b77fa36e30b8c968e656d835be6d45b71965bd31b932a314314e091360e96",
+    "75ba9cd53551a3be9160e3b5dfc6f80bc762e7878bc0bdf5e8b4a10aa7293f4c",
+    "7651b5c7da7440120902e7ba3aa1072b3ad80fa5ca6c4018afdbfab140197d71",
+    "b7f6ea8b026dddd64a1debdb69e281ed307b54e72e88cea630c997c67e7dcf14",
+    "cb9cd357935546c7699fb8a2d3101bcb7249cbc2635a1eb5d2f39c5075e59dff"
+  ],
+  "invocations": [
+    {
+      "function": "wrap",
+      "t_states": 14,
+      "results": [
+        {
+          "I": 1
+        }
+      ]
+    },
+    {
+      "function": "choose",
+      "t_states": 10,
+      "results": [
+        {
+          "I": 0
+        }
+      ]
+    },
+    {
+      "function": "wrap",
+      "t_states": 14,
+      "results": [
+        {
+          "I": 2
+        }
+      ]
+    },
+    {
+      "function": "choose",
+      "t_states": 10,
+      "results": [
+        {
+          "I": 1
+        }
+      ]
+    },
+    {
+      "function": "wrap",
+      "t_states": 14,
+      "results": [
+        {
+          "I": 128
+        }
+      ]
+    },
+    {
+      "function": "choose",
+      "t_states": 10,
+      "results": [
+        {
+          "I": 127
+        }
+      ]
+    },
+    {
+      "function": "wrap",
+      "t_states": 14,
+      "results": [
+        {
+          "I": 129
+        }
+      ]
+    },
+    {
+      "function": "choose",
+      "t_states": 10,
+      "results": [
+        {
+          "I": 128
+        }
+      ]
+    },
+    {
+      "function": "wrap",
+      "t_states": 14,
+      "results": [
+        {
+          "I": 0
+        }
+      ]
+    },
+    {
+      "function": "choose",
+      "t_states": 10,
+      "results": [
+        {
+          "I": 255
+        }
+      ]
+    }
+  ],
+  "globals": {},
+  "resources": {},
+  "resource_addresses": {},
+  "global_addresses": {},
+  "bootstrap_t_states": 340,
+  "total_t_states": 120,
+  "executed_steps": 45
+}

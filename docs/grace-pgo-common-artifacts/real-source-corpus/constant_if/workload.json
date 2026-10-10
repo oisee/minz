@@ -1,0 +1,90 @@
+{
+  "schema": "minz.profile-workload/v1",
+  "target_model": "cpm-z80-v1",
+  "max_steps": 1000000,
+  "max_memory": 65536,
+  "resources": {},
+  "globals": null,
+  "calls": [
+    {
+      "function": "wrap",
+      "arguments": [
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "choose",
+      "arguments": [
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "wrap",
+      "arguments": [
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "function": "choose",
+      "arguments": [
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "function": "wrap",
+      "arguments": [
+        {
+          "value": 127
+        }
+      ]
+    },
+    {
+      "function": "choose",
+      "arguments": [
+        {
+          "value": 127
+        }
+      ]
+    },
+    {
+      "function": "wrap",
+      "arguments": [
+        {
+          "value": 128
+        }
+      ]
+    },
+    {
+      "function": "choose",
+      "arguments": [
+        {
+          "value": 128
+        }
+      ]
+    },
+    {
+      "function": "wrap",
+      "arguments": [
+        {
+          "value": 255
+        }
+      ]
+    },
+    {
+      "function": "choose",
+      "arguments": [
+        {
+          "value": 255
+        }
+      ]
+    }
+  ]
+}

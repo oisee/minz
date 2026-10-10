@@ -1,0 +1,58 @@
+{
+  "schema": "minz.profile-workload/v1",
+  "target_model": "cpm-z80-v1",
+  "max_steps": 1000000,
+  "max_memory": 65536,
+  "resources": {},
+  "globals": null,
+  "calls": [
+    {
+      "function": "not16",
+      "arguments": [
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "not16",
+      "arguments": [
+        {
+          "value": 65535
+        }
+      ]
+    },
+    {
+      "function": "not16",
+      "arguments": [
+        {
+          "value": 65280
+        }
+      ]
+    },
+    {
+      "function": "not16",
+      "arguments": [
+        {
+          "value": 65295
+        }
+      ]
+    },
+    {
+      "function": "not16",
+      "arguments": [
+        {
+          "value": 4660
+        }
+      ]
+    },
+    {
+      "function": "not16",
+      "arguments": [
+        {
+          "value": 32768
+        }
+      ]
+    }
+  ]
+}

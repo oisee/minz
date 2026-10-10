@@ -448,6 +448,10 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 			return false
 		}
 
+		if !f.TransferLoopOrigin(elseLabel, curLabel) {
+			return false
+		}
+
 		// Hoist instructions
 		curBlock.Insts = append(curBlock.Insts, elseBlock.Insts...)
 
@@ -486,6 +490,9 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 			switch t := b.Term.(type) {
 			case *TermJmp:
 				if t.Target == joinBlk.Label && len(t.Args) == 1 {
+					if !f.TransferLoopOrigin(joinBlk.Label, b.Label) {
+						continue
+					}
 					b.Term = &TermRet{Vals: []Reg{t.Args[0]}}
 					changed = true
 				}
@@ -494,6 +501,7 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 					retLabel := freshJoinRetLabel(f, joinBlk.Label+"_ret_then")
 					retBlk := &Block{Label: retLabel, Term: &TermRet{Vals: []Reg{t.ThenArgs[0]}}}
 					f.Blocks = append(f.Blocks, retBlk)
+					f.TransferLoopOrigin(joinBlk.Label, retLabel)
 					t.Then = retLabel
 					t.ThenArgs = nil
 					changed = true
@@ -502,6 +510,7 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 					retLabel := freshJoinRetLabel(f, joinBlk.Label+"_ret_else")
 					retBlk := &Block{Label: retLabel, Term: &TermRet{Vals: []Reg{t.ElseArgs[0]}}}
 					f.Blocks = append(f.Blocks, retBlk)
+					f.TransferLoopOrigin(joinBlk.Label, retLabel)
 					t.Else = retLabel
 					t.ElseArgs = nil
 					changed = true
@@ -934,12 +943,7 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 			}
 		}
 		if changed {
-			for i, b := range f.Blocks {
-				if b.Label == label {
-					f.Blocks = append(f.Blocks[:i], f.Blocks[i+1:]...)
-					break
-				}
-			}
+			f.removeBlock(label)
 		}
 		return changed
 	})
@@ -953,15 +957,13 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		if pred == nil || succ == nil {
 			return false
 		}
+		if !f.TransferLoopOrigin(sLabel, pLabel) {
+			return false
+		}
 		pred.Insts = append(pred.Insts, succ.Insts...)
 		pred.Term = succ.Term
 		// Remove successor block
-		for i, b := range f.Blocks {
-			if b.Label == sLabel {
-				f.Blocks = append(f.Blocks[:i], f.Blocks[i+1:]...)
-				break
-			}
-		}
+		f.removeBlock(sLabel)
 		return true
 	})
 
@@ -1130,6 +1132,8 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		newBlocks = append(newBlocks, loopBlock)
 		newBlocks = append(newBlocks, f.Blocks[1:]...)
 		f.Blocks = newBlocks
+		f.TransferLoopOrigin(entry.Label, loopLabel)
+		delete(f.LoopOrigins, entry.Label)
 
 		// Replace the tail call with JMP to loop head
 		blk.Insts = blk.Insts[:len(blk.Insts)-1]
@@ -1265,10 +1269,16 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		//   lt → brif.Else (a < b)
 		//   gt → brif.Then (a > b)
 
+		if !f.canTransferLoopOrigin(bodyLabel, headLabel) {
+			return false
+		}
+
 		// Create a new return block for the eq case
-		retLabel := headLabel + "_ret_eq"
+		retLabel := freshJoinRetLabel(f, headLabel+"_ret_eq")
 		retBlk := &Block{Label: retLabel, Term: &TermRet{Vals: cr.Vals}}
 		f.Blocks = append(f.Blocks, retBlk)
+		f.TransferLoopOrigin(headLabel, retLabel)
+		f.TransferLoopOrigin(bodyLabel, headLabel)
 
 		// Remove the cmp instruction from head (br_if2 does the comparison)
 		head.Insts = append(head.Insts[:cmpIdx], head.Insts[cmpIdx+1:]...)
@@ -1373,12 +1383,7 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		}
 
 		if changed {
-			for i, b := range f.Blocks {
-				if b.Label == label {
-					f.Blocks = append(f.Blocks[:i], f.Blocks[i+1:]...)
-					break
-				}
-			}
+			f.removeBlock(label)
 		}
 		return changed
 	})
@@ -1491,7 +1496,7 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		prevBodyLabel := bodyLabel
 		for i := 1; i < maxIters; i++ {
 			// Duplicate CMP + BrIf block
-			newCmpLabel := fmt.Sprintf("unroll_cmp%d", i)
+			newCmpLabel := freshJoinRetLabel(f, fmt.Sprintf("unroll_cmp%d", i))
 			newCmpBlk := &Block{Label: newCmpLabel}
 			for _, inst := range head.Insts {
 				dup := *inst
@@ -1500,7 +1505,7 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 			}
 
 			// Duplicate SUB block
-			newSubLabel := fmt.Sprintf("unroll_sub%d", i)
+			newSubLabel := freshJoinRetLabel(f, fmt.Sprintf("unroll_sub%d", i))
 			newSubBlk := &Block{Label: newSubLabel}
 			dupSub := *sub
 			dupSub.Dst = f.AllocReg()
@@ -1520,6 +1525,8 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 			newSubBlk.Term = &TermJmp{Target: exitLabel, Args: brif.ElseArgs}
 
 			f.Blocks = append(f.Blocks, newCmpBlk, newSubBlk)
+			f.TransferLoopOrigin(headLabel, newCmpLabel)
+			f.TransferLoopOrigin(bodyLabel, newSubLabel)
 
 			// Wire previous body → this CMP block
 			prevBody := f.BlockByLabel(prevBodyLabel)
@@ -1712,6 +1719,9 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 			Cond: findCondForReg(curBlock, brif.Cond),
 		}
 
+		if !f.TransferLoopOrigin(callLabel, curLabel) {
+			return false
+		}
 		curBlock.Insts = append(curBlock.Insts, condCall)
 		curBlock.Term = &TermJmp{Target: brif.Else, Args: brif.ElseArgs}
 

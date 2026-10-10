@@ -34,11 +34,20 @@ type ProfileWorkload struct {
 	Calls       []ProfileInvocation `json:"calls"`
 }
 
-type ProfileRun struct {
-	Profile   LoopProfile       `json:"profile"`
-	Results   [][]mir2.Value    `json:"results"`
+// ProfileMemorySnapshot owns declared memory at one successful invocation return.
+// Snapshots are ordered like Results, including calls returning void. Empty maps
+// are serialized explicitly so missing boundary observations cannot pass as empty.
+type ProfileMemorySnapshot struct {
 	Globals   map[string][]byte `json:"globals"`
 	Resources map[string][]byte `json:"resources"`
+}
+
+type ProfileRun struct {
+	Profile   LoopProfile             `json:"profile"`
+	Results   [][]mir2.Value          `json:"results"`
+	Snapshots []ProfileMemorySnapshot `json:"snapshots"`
+	Globals   map[string][]byte       `json:"globals"`
+	Resources map[string][]byte       `json:"resources"`
 }
 
 // prepareProfileWorkload owns a JSON copy: the bytes hashed are the bytes run.
@@ -156,19 +165,25 @@ func RunLoopProfile(m *Module, w ProfileWorkload) (*ProfileRun, error) {
 		addresses[name] = p.VM.AllocHeap(bytes).I
 		used += int64(len(bytes))
 	}
-	out := &ProfileRun{Results: [][]mir2.Value{}, Globals: map[string][]byte{}, Resources: map[string][]byte{}}
-	finish := func() {
-		out.Profile = p.Snapshot()
+	out := &ProfileRun{Results: [][]mir2.Value{}, Snapshots: []ProfileMemorySnapshot{}}
+	snapshotMemory := func() ProfileMemorySnapshot {
+		snapshot := ProfileMemorySnapshot{Globals: map[string][]byte{}, Resources: map[string][]byte{}}
 		for _, g := range m.Globals {
 			size := mir2.ByteWidth(g.Ty)
 			if len(g.Init) > size {
 				size = len(g.Init)
 			}
-			out.Globals[g.Name] = p.VM.ReadHeap(p.VM.GlobalAddr(g.Name), size)
+			snapshot.Globals[g.Name] = p.VM.ReadHeap(p.VM.GlobalAddr(g.Name), size)
 		}
 		for _, name := range names {
-			out.Resources[name] = p.VM.ReadHeap(addresses[name], len(owned.Resources[name]))
+			snapshot.Resources[name] = p.VM.ReadHeap(addresses[name], len(owned.Resources[name]))
 		}
+		return snapshot
+	}
+	finish := func() {
+		out.Profile = p.Snapshot()
+		final := snapshotMemory()
+		out.Globals, out.Resources = final.Globals, final.Resources
 	}
 	for _, call := range owned.Calls {
 		args := make([]mir2.Value, len(call.Arguments))
@@ -185,6 +200,7 @@ func RunLoopProfile(m *Module, w ProfileWorkload) (*ProfileRun, error) {
 			return out, fmt.Errorf("loop profile: invocation %d @%s: %w", len(out.Results), call.Function, err)
 		}
 		out.Results = append(out.Results, result)
+		out.Snapshots = append(out.Snapshots, snapshotMemory())
 	}
 	finish()
 	return out, nil

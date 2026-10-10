@@ -1,0 +1,5 @@
+ok  	github.com/minz/minzc/pkg/hir	9.275s
+ok  	github.com/minz/minzc/pkg/mir2	4.794s
+ok  	github.com/minz/minzc/pkg/nanz	1.938s
+ok  	github.com/minz/minzc/pkg/pipeline	105.362s
+ok  	github.com/minz/minzc/pkg/lanz	0.018s

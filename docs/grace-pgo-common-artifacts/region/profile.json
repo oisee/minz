@@ -1,0 +1,52 @@
+{
+  "guards": [],
+  "compatibility": {
+    "schema": "minz.loop-profile-compatibility/v1",
+    "context": {
+      "compiler_id": "executable-sha256:ac1a65f500981dca5a3b9c1fd068bece26f97cb64641d5d541bf5736a52b6ac4",
+      "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+      "target_id": "module-target:0/model:cpm-z80-v1",
+      "workload_sha256": "09fd859e503f10ac1cb8515c8aeabceca711e8f5e68576e3bda52818c647505f",
+      "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+      "dependencies": {
+        "buf": "7fcf2d767d72f7f4cc85d9cf2bd26e7f9305b5a22afbf31c3489b4f50885198f",
+        "region.nanz": "e7dd8be05c6816ba53c6bed01125b7c7df864ac194a6eebc5a75912fbb3cc90f",
+        "target": "74f81fe167d99b4cb41d6d0ccda82278caee9f3e2f25d5e5a3936ff3dcec60d0"
+      }
+    },
+    "hir_sha256": "103671c03c4e8b515c4b957f9aad11083bfb1bcbe38e31641bce8749078b2334",
+    "origins_sha256": "6030ee31400afb7b701604c8ce478d43dd6035f93768d2b6697cb1dce36b5a58"
+  },
+  "schema": "minz.input-hir-loop-observations/v4",
+  "stage": "unoptimised-mir2-vm",
+  "sites": {
+    "schema": "minz.hir-loop-sites/v1",
+    "stage": "input-hir",
+    "sites": [
+      {
+        "id": "d4dfafb1a84941c1a61f3aca0f565acebe0c4539aeaee2944073e203dd927d1e",
+        "function": "region_match",
+        "kind": "while",
+        "ordinal": 0,
+        "hir_path": "body/s1",
+        "origin": {
+          "unit": "region.nanz",
+          "byte_offset": 86,
+          "line": 3,
+          "byte_column": 2,
+          "source_sha256": "e7dd8be05c6816ba53c6bed01125b7c7df864ac194a6eebc5a75912fbb3cc90f"
+        }
+      }
+    ],
+    "unmapped_loops": 0
+  },
+  "counts": [
+    {
+      "site_id": "d4dfafb1a84941c1a61f3aca0f565acebe0c4539aeaee2944073e203dd927d1e",
+      "entries": 3,
+      "body_entries": 6
+    }
+  ],
+  "completed_calls": 3,
+  "failed_calls": 0
+}
