@@ -1,0 +1,7 @@
+ok  	github.com/minz/minzc/pkg/mir2	4.454s
+ok  	github.com/minz/minzc/pkg/hir	7.948s
+?   	github.com/minz/minzc/pkg/rewrite	[no test files]
+ok  	github.com/minz/minzc/pkg/rewrite/datalog	0.002s
+ok  	github.com/minz/minzc/pkg/rewrite/grace	0.002s
+ok  	github.com/minz/minzc/pkg/rewrite/isle	0.002s
+ok  	github.com/minz/minzc/pkg/rewrite/sexpr	0.002s

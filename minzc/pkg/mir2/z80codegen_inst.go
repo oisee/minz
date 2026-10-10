@@ -987,6 +987,20 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.lastFlagsRhs = ""
 		base := g.loc(inst.Src[0])
 		off := g.loc(inst.Src[1])
+		// ADD uses HL as scratch even when the base/result live elsewhere.
+		// Preserve any unrelated live-through HL value (e.g. a loop offset).
+		preserveHL := false
+		if dst != "HL" && g.ptrAddPushHL != inst.Dst {
+			for r := range g.regsLiveAfterInst(inst) {
+				if r != inst.Dst && g.loc(r) == "HL" {
+					preserveHL = true
+					break
+				}
+			}
+		}
+		if preserveHL {
+			g.emit("    PUSH HL")
+		}
 
 		// PUSH HL to preserve the base ptr before the ADD clobbers it.
 		if g.ptrAddPushHL == inst.Dst {
@@ -1043,6 +1057,9 @@ func (g *z80cg) genInst(inst *Inst) {
 			}
 		}
 		g.invalidate(dst)
+		if preserveHL {
+			g.emit("    POP HL")
+		}
 
 	case OpField, OpPtrBump:
 		// Advance pointer by compile-time byte offset.

@@ -1,0 +1,143 @@
+=== RUN   TestForEachZ80PreservesAccumulatorAcrossFilter
+--- PASS: TestForEachZ80PreservesAccumulatorAcrossFilter (0.04s)
+=== RUN   TestGraceZ80MeasuredExamples
+=== RUN   TestGraceZ80MeasuredExamples/sum_array/n0
+    grace_z80_measure_test.go:96: HIR Grace: T-states 69 -> 189 (+173.9%); bytes 38 -> 85
+=== RUN   TestGraceZ80MeasuredExamples/sum_array/n1
+    grace_z80_measure_test.go:96: HIR Grace: T-states 210 -> 278 (+32.4%); bytes 38 -> 85
+=== RUN   TestGraceZ80MeasuredExamples/sum_array/n5
+    grace_z80_measure_test.go:96: HIR Grace: T-states 774 -> 634 (-18.1%); bytes 38 -> 85
+=== RUN   TestGraceZ80MeasuredExamples/sum_array/n16
+    grace_z80_measure_test.go:96: HIR Grace: T-states 2325 -> 1613 (-30.6%); bytes 38 -> 85
+=== RUN   TestGraceZ80MeasuredExamples/sum_array/n64
+    grace_z80_measure_test.go:96: HIR Grace: T-states 9093 -> 5885 (-35.3%); bytes 38 -> 85
+=== RUN   TestGraceZ80MeasuredExamples/sum_array/n200
+    grace_z80_measure_test.go:96: HIR Grace: T-states 28269 -> 17989 (-36.4%); bytes 38 -> 85
+=== RUN   TestGraceZ80MeasuredExamples/sum_array/n255
+    grace_z80_measure_test.go:96: HIR Grace: T-states 36024 -> 22884 (-36.5%); bytes 38 -> 85
+=== RUN   TestGraceZ80MeasuredExamples/region_match/n0
+    grace_z80_measure_test.go:96: HIR Grace: T-states 176 -> 64 (-63.6%); bytes 97 -> 52
+=== RUN   TestGraceZ80MeasuredExamples/region_match/n1
+    grace_z80_measure_test.go:96: HIR Grace: T-states 583 -> 299 (-48.7%); bytes 97 -> 52
+=== RUN   TestGraceZ80MeasuredExamples/region_match/n5
+    grace_z80_measure_test.go:96: HIR Grace: T-states 2211 -> 1239 (-44.0%); bytes 97 -> 52
+=== RUN   TestGraceZ80MeasuredExamples/region_match/n16
+    grace_z80_measure_test.go:96: HIR Grace: T-states 6688 -> 3824 (-42.8%); bytes 97 -> 52
+=== RUN   TestGraceZ80MeasuredExamples/region_match/n64
+    grace_z80_measure_test.go:96: HIR Grace: T-states 26224 -> 15104 (-42.4%); bytes 97 -> 52
+=== RUN   TestGraceZ80MeasuredExamples/region_match/n200
+    grace_z80_measure_test.go:96: HIR Grace: T-states 81576 -> 47064 (-42.3%); bytes 97 -> 52
+=== RUN   TestGraceZ80MeasuredExamples/region_match/n255
+    grace_z80_measure_test.go:96: HIR Grace: T-states 103961 -> 59989 (-42.3%); bytes 97 -> 52
+--- PASS: TestGraceZ80MeasuredExamples (0.21s)
+    --- PASS: TestGraceZ80MeasuredExamples/sum_array/n0 (0.01s)
+    --- PASS: TestGraceZ80MeasuredExamples/sum_array/n1 (0.01s)
+    --- PASS: TestGraceZ80MeasuredExamples/sum_array/n5 (0.01s)
+    --- PASS: TestGraceZ80MeasuredExamples/sum_array/n16 (0.01s)
+    --- PASS: TestGraceZ80MeasuredExamples/sum_array/n64 (0.01s)
+    --- PASS: TestGraceZ80MeasuredExamples/sum_array/n200 (0.01s)
+    --- PASS: TestGraceZ80MeasuredExamples/sum_array/n255 (0.01s)
+    --- PASS: TestGraceZ80MeasuredExamples/region_match/n0 (0.02s)
+    --- PASS: TestGraceZ80MeasuredExamples/region_match/n1 (0.02s)
+    --- PASS: TestGraceZ80MeasuredExamples/region_match/n5 (0.02s)
+    --- PASS: TestGraceZ80MeasuredExamples/region_match/n16 (0.02s)
+    --- PASS: TestGraceZ80MeasuredExamples/region_match/n64 (0.02s)
+    --- PASS: TestGraceZ80MeasuredExamples/region_match/n200 (0.02s)
+    --- PASS: TestGraceZ80MeasuredExamples/region_match/n255 (0.02s)
+=== RUN   TestHIRGraceRealCorpusCandidates
+    hir_grace_hoist_test.go:45: irc_client: functions=49 calls=80 loops=22 invariant-base rewrites=1
+--- PASS: TestHIRGraceRealCorpusCandidates (0.01s)
+=== RUN   TestHIRGraceInvariantBaseDifferential
+=== RUN   TestHIRGraceInvariantBaseDifferential/final=false/mirGrace=false
+    hir_grace_hoist_test.go:101: 200-byte matching region VM instructions: 2203 -> 2004
+=== RUN   TestHIRGraceInvariantBaseDifferential/final=false/mirGrace=true
+    hir_grace_hoist_test.go:101: 200-byte matching region VM instructions: 2203 -> 2004
+=== RUN   TestHIRGraceInvariantBaseDifferential/final=true/mirGrace=false
+    hir_grace_hoist_test.go:101: 200-byte matching region VM instructions: 2403 -> 2204
+=== RUN   TestHIRGraceInvariantBaseDifferential/final=true/mirGrace=true
+    hir_grace_hoist_test.go:101: 200-byte matching region VM instructions: 2403 -> 2204
+--- PASS: TestHIRGraceInvariantBaseDifferential (0.03s)
+    --- PASS: TestHIRGraceInvariantBaseDifferential/final=false/mirGrace=false (0.01s)
+    --- PASS: TestHIRGraceInvariantBaseDifferential/final=false/mirGrace=true (0.01s)
+    --- PASS: TestHIRGraceInvariantBaseDifferential/final=true/mirGrace=false (0.01s)
+    --- PASS: TestHIRGraceInvariantBaseDifferential/final=true/mirGrace=true (0.01s)
+=== RUN   TestHIRGraceInvariantBaseMutationGuard
+--- PASS: TestHIRGraceInvariantBaseMutationGuard (0.00s)
+=== RUN   TestHIRGraceCapturedIteratorGuard
+--- PASS: TestHIRGraceCapturedIteratorGuard (0.00s)
+=== RUN   TestHIRGraceConstantIfCapturedIteratorGuard
+--- PASS: TestHIRGraceConstantIfCapturedIteratorGuard (0.00s)
+=== RUN   TestHIRGraceInvariantBaseFreshnessAndBudget
+--- PASS: TestHIRGraceInvariantBaseFreshnessAndBudget (0.00s)
+=== RUN   TestHIRGraceMeasurements
+    hir_grace_measure_test.go:93: raw: blocks 6 -> 2; instructions 10 -> 2; VM steps over 512 calls 2048 -> 512
+    hir_grace_measure_test.go:93: optimized: blocks 4 -> 2; instructions 2 -> 2; VM steps over 512 calls 512 -> 512
+    hir_grace_measure_test.go:93: optimized_mir_grace: blocks 2 -> 2; instructions 2 -> 2; VM steps over 512 calls 512 -> 512
+--- PASS: TestHIRGraceMeasurements (0.00s)
+=== RUN   TestHIRGracePointerWalkRealSourceAndFacts
+--- PASS: TestHIRGracePointerWalkRealSourceAndFacts (0.00s)
+=== RUN   TestHIRGracePointerWalkDifferential
+=== RUN   TestHIRGracePointerWalkDifferential/raw/tuple=false
+=== RUN   TestHIRGracePointerWalkDifferential/optimized/tuple=false
+=== RUN   TestHIRGracePointerWalkDifferential/optimized_mir_grace/tuple=false
+=== RUN   TestHIRGracePointerWalkDifferential/raw/tuple=true
+=== RUN   TestHIRGracePointerWalkDifferential/optimized/tuple=true
+=== RUN   TestHIRGracePointerWalkDifferential/optimized_mir_grace/tuple=true
+--- PASS: TestHIRGracePointerWalkDifferential (2.55s)
+    --- PASS: TestHIRGracePointerWalkDifferential/raw/tuple=false (0.42s)
+    --- PASS: TestHIRGracePointerWalkDifferential/optimized/tuple=false (0.43s)
+    --- PASS: TestHIRGracePointerWalkDifferential/optimized_mir_grace/tuple=false (0.42s)
+    --- PASS: TestHIRGracePointerWalkDifferential/raw/tuple=true (0.42s)
+    --- PASS: TestHIRGracePointerWalkDifferential/optimized/tuple=true (0.43s)
+    --- PASS: TestHIRGracePointerWalkDifferential/optimized_mir_grace/tuple=true (0.43s)
+=== RUN   TestHIRGracePointerWalkMeasurements
+    hir_grace_pointer_walk_test.go:170: raw MIR shape: blocks 4 -> 10; instructions 9 -> 22
+    hir_grace_pointer_walk_test.go:174: raw n=0 VM instructions 3 -> 11
+    hir_grace_pointer_walk_test.go:174: raw n=1 VM instructions 10 -> 16
+    hir_grace_pointer_walk_test.go:174: raw n=5 VM instructions 38 -> 36
+    hir_grace_pointer_walk_test.go:174: raw n=16 VM instructions 115 -> 91
+    hir_grace_pointer_walk_test.go:174: raw n=64 VM instructions 451 -> 331
+    hir_grace_pointer_walk_test.go:174: raw n=255 VM instructions 1788 -> 1286
+    hir_grace_pointer_walk_test.go:170: optimized MIR shape: blocks 3 -> 9; instructions 9 -> 21
+    hir_grace_pointer_walk_test.go:174: optimized n=0 VM instructions 3 -> 10
+    hir_grace_pointer_walk_test.go:174: optimized n=1 VM instructions 10 -> 15
+    hir_grace_pointer_walk_test.go:174: optimized n=5 VM instructions 38 -> 35
+    hir_grace_pointer_walk_test.go:174: optimized n=16 VM instructions 115 -> 90
+    hir_grace_pointer_walk_test.go:174: optimized n=64 VM instructions 451 -> 330
+    hir_grace_pointer_walk_test.go:174: optimized n=255 VM instructions 1788 -> 1285
+    hir_grace_pointer_walk_test.go:170: optimized_mir_grace MIR shape: blocks 3 -> 6; instructions 9 -> 21
+    hir_grace_pointer_walk_test.go:174: optimized_mir_grace n=0 VM instructions 3 -> 10
+    hir_grace_pointer_walk_test.go:174: optimized_mir_grace n=1 VM instructions 10 -> 15
+    hir_grace_pointer_walk_test.go:174: optimized_mir_grace n=5 VM instructions 38 -> 35
+    hir_grace_pointer_walk_test.go:174: optimized_mir_grace n=16 VM instructions 115 -> 90
+    hir_grace_pointer_walk_test.go:174: optimized_mir_grace n=64 VM instructions 451 -> 330
+    hir_grace_pointer_walk_test.go:174: optimized_mir_grace n=255 VM instructions 1788 -> 1285
+--- PASS: TestHIRGracePointerWalkMeasurements (0.01s)
+=== RUN   TestHIRGracePointerWalkGuards
+=== RUN   TestHIRGracePointerWalkGuards/global_collision
+=== RUN   TestHIRGracePointerWalkGuards/stride
+=== RUN   TestHIRGracePointerWalkGuards/nonzero_start
+=== RUN   TestHIRGracePointerWalkGuards/changed_bound
+=== RUN   TestHIRGracePointerWalkGuards/binding
+--- PASS: TestHIRGracePointerWalkGuards (0.00s)
+    --- PASS: TestHIRGracePointerWalkGuards/global_collision (0.00s)
+    --- PASS: TestHIRGracePointerWalkGuards/stride (0.00s)
+    --- PASS: TestHIRGracePointerWalkGuards/nonzero_start (0.00s)
+    --- PASS: TestHIRGracePointerWalkGuards/changed_bound (0.00s)
+    --- PASS: TestHIRGracePointerWalkGuards/binding (0.00s)
+=== RUN   TestHIRGracePointerWalkAssertions
+--- PASS: TestHIRGracePointerWalkAssertions (0.08s)
+=== RUN   TestForEachPreheaderConstantsAndContinue
+--- PASS: TestForEachPreheaderConstantsAndContinue (0.00s)
+=== RUN   TestHIRGraceMIR2Assertions
+--- PASS: TestHIRGraceMIR2Assertions (0.00s)
+=== RUN   TestLIRDisabledWholeModule
+=== RUN   TestLIRDisabledWholeModule/fun_add(a:_u8,_b:_u8)_->_u8_{_return_a_+_b_}
+=== RUN   TestLIRDisabledWholeModule/fun_sub(a:_u8,_b:_u8)_->_u8_{_return_a_-_b_}___fun_mul(a:_u8,_b:_u8)_->_u8_{_return_a_*_b_}
+=== RUN   TestLIRDisabledWholeModule/fun_choose(a:_u8,_b:_u8)_->_u8_{_if_a_<_b_{_return_a_}_return_b_}___fun_identity(a:_u8)_->_u8_{_return_a_}
+--- PASS: TestLIRDisabledWholeModule (0.00s)
+    --- PASS: TestLIRDisabledWholeModule/fun_add(a:_u8,_b:_u8)_->_u8_{_return_a_+_b_} (0.00s)
+    --- PASS: TestLIRDisabledWholeModule/fun_sub(a:_u8,_b:_u8)_->_u8_{_return_a_-_b_}___fun_mul(a:_u8,_b:_u8)_->_u8_{_return_a_*_b_} (0.00s)
+    --- PASS: TestLIRDisabledWholeModule/fun_choose(a:_u8,_b:_u8)_->_u8_{_if_a_<_b_{_return_a_}_return_b_}___fun_identity(a:_u8)_->_u8_{_return_a_} (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.951s

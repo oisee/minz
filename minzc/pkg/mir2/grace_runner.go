@@ -1993,9 +1993,9 @@ func RunGracePasses(f *Func, stats *GraceStats) bool {
 
 	// Run shape-fact-driven passes after declarative Grace rules.
 
-	// Phase 1: True pointer threading — rewrite indexed loops to carry walking pointers.
-	var ptStats PointerThreadingStats
-	ptChanged := ApplyPointerThreading(f, &ptStats)
+	// Pointer threading remains a research API until index/address no-wrap
+	// preconditions are proved. Carrying a pointer does not preserve a narrow
+	// index wrapping independently of the pointer (e.g. u8 255 -> 0).
 
 	// Phase 2: PtrAdd CSE — deduplicate remaining repeated ptr_add in loop bodies.
 	var pwStats PointerWalkStats
@@ -2004,12 +2004,9 @@ func RunGracePasses(f *Func, stats *GraceStats) bool {
 	if stats != nil {
 		stats.mu.Lock()
 		stats.Funcs++
-		stats.Total += result.Applied + ptStats.PtrAddsRemoved + pwStats.PtrAddsDeduped
+		stats.Total += result.Applied + pwStats.PtrAddsDeduped
 		for name, count := range result.ByRule {
 			stats.ByRule[name] += count
-		}
-		if ptStats.LoopsThreaded > 0 {
-			stats.ByRule["ptr-threading"] += ptStats.LoopsThreaded
 		}
 		if pwStats.PtrAddsDeduped > 0 {
 			stats.ByRule["ptr-add-cse"] += pwStats.PtrAddsDeduped
@@ -2017,7 +2014,7 @@ func RunGracePasses(f *Func, stats *GraceStats) bool {
 		stats.mu.Unlock()
 	}
 
-	return result.Applied > 0 || ptChanged || pwChanged
+	return result.Applied > 0 || pwChanged
 }
 
 // RunGraceCondRetSink runs only the cond-ret-sink Grace rule.
@@ -2114,16 +2111,16 @@ func valueKeyDepth(r Reg, f *Func, depth int) string {
 				if inner == "" {
 					return ""
 				}
-				return fmt.Sprintf("ext(%s)", inner)
+				return fmt.Sprintf("%s:%v:%v(%s)", inst.Op, inst.SrcTy, inst.Ty, inner)
 			case OpPtrAdd:
 				k0 := valueKeyDepth(inst.Src[0], f, depth-1)
 				k1 := valueKeyDepth(inst.Src[1], f, depth-1)
 				if k0 == "" || k1 == "" {
 					return ""
 				}
-				return fmt.Sprintf("ptr_add(%s,%s)", k0, k1)
+				return fmt.Sprintf("ptr_add:%v(%s,%s)", inst.Ty, k0, k1)
 			case OpConst:
-				return fmt.Sprintf("const(%d)", inst.Imm)
+				return fmt.Sprintf("const:%v(%d)", inst.Ty, maskToWidth(inst.Imm, inst.Ty))
 			default:
 				return fmt.Sprintf("r%d", r)
 			}

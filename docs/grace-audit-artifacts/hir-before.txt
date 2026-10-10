@@ -1,0 +1,43 @@
+each-return PANIC mir2: block @fe_body2 is already sealed
+each-break PANIC mir2: block @fe_body2 is already sealed
+each-cond-break VERIFY mir2: func @probe: block @if_then5: branch to @fe_exit4 supplies 1 args but block has 3 params
+each-cond-break VM [] mir2.VM: block @fe_exit4 expects 3 params, got 1 args
+; MIR2 module: 
+global @data : [3]u8
+
+fun @probe() -> u8 [acc]
+  block @entry:
+    %r1 = const 0 : u8 [general]
+    %r2 = addr_of @data : ptr [pointer]
+    %r3 = const 0 : u8 [general]
+    %r4 = ptr_add %r2, %r3 : ptr [pointer]
+    %r5 = const 3 : u8 [general]
+    %r6 = const 0 : u8 [acc]
+    %r7 = const 1 : u8 [counter]
+    jmp @fe_head1(%r4, %r5, %r1)
+  block @fe_head1(%r8: ptr [pointer], %r9: u8 [counter], %r10: u8 [general]):
+    %r11 = cmp.ne %r9, %r6 : bool [flag]
+    br_if %r11, @fe_body2(), @fe_exit4(%r8, %r9, %r10)
+  block @fe_body2:
+    %r12 = load %r8 : u8 [general]
+    %r13 = const 1 : u8 [general]
+    %r14 = add %r10, %r13 : u8 [general]
+    %r15 = const 2 : u8 [general]
+    %r16 = cmp.eq %r12, %r15 : bool [flag]
+    br_if %r16, @if_then5(), @if_join6()
+  block @if_then5:
+    jmp @fe_exit4(%r14)
+  block @if_join6:
+    jmp @fe_cont3(%r14)
+  block @fe_cont3(%r17: u8 [general]):
+    %r18 = ptr_bump %r8, +1 : ptr [pointer]
+    %r19 = sub %r9, %r7 : u8 [counter]
+    jmp @fe_head1(%r18, %r19, %r17)
+  block @fe_exit4(%r20: ptr [pointer], %r21: u8 [counter], %r22: u8 [general]):
+    ret %r22
+
+
+each-continue PANIC mir2: block @fe_body2 is already sealed
+while-return PANIC mir2: block @loop_body2 is already sealed
+while-break PANIC mir2: block @loop_body2 is already sealed
+range-continue PANIC mir2: block @loop_body3 is already sealed

@@ -114,7 +114,7 @@ func TestFoldConst_Cmp(t *testing.T) {
 	}
 	// The folded cond (Const(1)) is now a known constant.
 	// Further: BrIf(Const(1)) → codegen always takes the "yes" branch.
-	// (Branch-on-constant elimination is a future pass; for now just verify folding happened.)
+	// (FoldConstants also eliminates the now-constant branch.)
 }
 
 func TestFoldConst_NoFoldNonConst(t *testing.T) {

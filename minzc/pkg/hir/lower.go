@@ -246,9 +246,11 @@ func exprHasFreeRef(e Expr, bound, globals, funcs map[string]bool) bool {
 
 // loopCtx holds the context needed for break/continue inside a loop.
 type loopCtx struct {
-	headLabel string   // continue → jump here (with headMutated args)
-	exitLabel string   // break    → jump here (with exitMutated args)
-	mutated   []string // loop-carried variable names (same set for both)
+	headLabel    string     // continue → jump here (with headMutated args)
+	exitLabel    string     // break    → jump here (with exitMutated args)
+	mutated      []string   // loop-carried variable names (same set for both)
+	exitPrefix   []mir2.Reg // ForEach exit also receives its pointer and counter
+	continueStep Stmt       // ForRange advances its induction variable before continue
 }
 
 type lowerer struct {
@@ -1098,12 +1100,15 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 
 	case *BreakStmt:
 		ctx := l.curLoop()
-		args := l.collectArgs(ctx.mutated)
+		args := append(append([]mir2.Reg{}, ctx.exitPrefix...), l.collectArgs(ctx.mutated)...)
 		l.bld.Jmp(ctx.exitLabel, args...)
 		return true // break is a terminator
 
 	case *ContinueStmt:
 		ctx := l.curLoop()
+		if ctx.continueStep != nil {
+			l.lowerStmt(ctx.continueStep)
+		}
 		args := l.collectArgs(ctx.mutated)
 		l.bld.Jmp(ctx.headLabel, args...)
 		return true // continue is a terminator
@@ -1316,6 +1321,11 @@ func (l *lowerer) lowerIf(st *IfStmt) bool {
 // params to prevent A/other registers from being clobbered and lost between
 // loop-head visits.
 func (l *lowerer) lowerWhile(st *WhileStmt) {
+	l.lowerWhileWithContinue(st, nil)
+}
+
+// A desugared range loop must run its increment even when the body continues.
+func (l *lowerer) lowerWhileWithContinue(st *WhileStmt, continueStep Stmt) {
 	envBefore := cloneMap(l.env)
 
 	// Collect ALL env vars used (read or written) anywhere in the loop.
@@ -1358,13 +1368,15 @@ func (l *lowerer) lowerWhile(st *WhileStmt) {
 	// ── loop_body ──
 	l.bld.SwitchToNewBlock(bodyLabel)
 	l.env = cloneMap(headEnv) // body directly uses head's vregs
-	l.pushLoop(loopCtx{headLabel: headLabel, exitLabel: exitLabel, mutated: mutated})
-	l.lowerBlock(st.Body)
+	l.pushLoop(loopCtx{headLabel: headLabel, exitLabel: exitLabel, mutated: mutated, continueStep: continueStep})
+	terminated := l.lowerBlock(st.Body)
 	l.popLoop()
 	l.inLoopContext = prevInLoopCtx
-	// Back-edge: jump to head with updated values.
-	backArgs := l.collectArgs(mutated)
-	l.bld.Jmp(headLabel, backArgs...)
+	// A return, break or continue already sealed the current body block.
+	if !terminated {
+		backArgs := l.collectArgs(mutated)
+		l.bld.Jmp(headLabel, backArgs...)
+	}
 
 	// ── loop_exit ──
 	exit := l.bld.SwitchToNewBlock(exitLabel)
@@ -1400,14 +1412,16 @@ func (l *lowerer) lowerForRange(st *ForRangeStmt) {
 
 	// Synthesise a WhileStmt: while v < hi { body; v = v + 1 }
 	one := &IntLitExpr{Val: 1, Ty: ty}
-	whileBody := &Block{Body: append(st.Body.Body, &AssignStmt{
+	increment := &AssignStmt{
 		Target: &VarRefExpr{Name: st.Var, Ty: ty},
 		Val:    &BinExpr{Op: "+", L: &VarRefExpr{Name: st.Var, Ty: ty}, R: one, Ty: ty},
-	})}
-	l.lowerWhile(&WhileStmt{
+	}
+	// Copy the slice: lowering must not overwrite the source HIR backing array.
+	whileBody := &Block{Body: append(append([]Stmt{}, st.Body.Body...), increment)}
+	l.lowerWhileWithContinue(&WhileStmt{
 		Cond: &BinExpr{Op: "<", L: &VarRefExpr{Name: st.Var, Ty: ty}, R: &VarRefExpr{Name: endName, Ty: ty}, Ty: mir2.TyBool},
 		Body: whileBody,
-	})
+	}, increment)
 }
 
 // lowerForEach lowers a ForEachStmt.
@@ -1519,13 +1533,13 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 	// ContinueStmt jumps to fe_cont (not fe_head) so ptr/cnt are advanced first.
 	prevInLoopCtx2 := l.inLoopContext
 	l.inLoopContext = true
-	l.pushLoop(loopCtx{headLabel: contLabel, exitLabel: exitLabel, mutated: mutated})
-	l.lowerBlock(st.Body)
+	l.pushLoop(loopCtx{headLabel: contLabel, exitLabel: exitLabel, mutated: mutated, exitPrefix: []mir2.Reg{headPtr, headCnt}})
+	terminated := l.lowerBlock(st.Body)
 	l.popLoop()
 	l.inLoopContext = prevInLoopCtx2
 
 	// mapInPlace: store the (possibly transformed) element value back to ptr.
-	if st.MutateInPlace {
+	if st.MutateInPlace && !terminated {
 		if finalVal, ok := l.env[st.Var]; ok {
 			l.bld.Store(headPtr, finalVal, st.ElemTy)
 		}
@@ -1534,8 +1548,10 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 	// Continue needs an increment trampoline; retain it for other control
 	// transfers too. Ordinary fall-through bodies increment directly.
 	if needsTrampoline {
-		// Fall-through from body → fe_cont with current mutated values.
-		l.bld.Jmp(contLabel, l.collectArgs(mutated)...)
+		// Only fall-through reaches the trampoline through this edge.
+		if !terminated {
+			l.bld.Jmp(contLabel, l.collectArgs(mutated)...)
+		}
 
 		// ── fe_cont(mutated...) — advance ptr/cnt, back-edge to fe_head ──
 		// This is the target for ContinueStmt inside the body, as well as the

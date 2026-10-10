@@ -27,6 +27,7 @@ func collectKnownConsts(f *Func) map[Reg]int64 {
 //   - Binary:  OpAdd, OpSub, OpMul, OpDiv, OpSDiv, OpMod
 //     OpAnd, OpOr, OpXor, OpShl, OpShr, OpSar
 //   - Compare: OpCmp (all conditions, signed and unsigned)
+//   - Branch: TermBrIf and TermCondRet with known conditions
 //
 // Returns true if any instruction was folded.  Callers should follow with
 // DeadStoreElim to remove the now-unused original operand definitions.
@@ -54,6 +55,43 @@ func FoldConstants(f *Func) bool {
 				SrcLine: inst.SrcLine,
 			}
 			consts[inst.Dst] = folded
+			changed = true
+		}
+	}
+	if foldConstantBranches(f, consts) {
+		EliminateDeadBlocks(f)
+		changed = true
+	}
+	return changed
+}
+
+// foldConstantBranches preserves the selected edge's arguments. CondRet
+// returns on zero, the opposite of its continuation edge.
+func foldConstantBranches(f *Func, consts map[Reg]int64) bool {
+	changed := false
+	for _, b := range f.Blocks {
+		switch term := b.Term.(type) {
+		case *TermBrIf:
+			value, known := consts[term.Cond]
+			if !known {
+				continue
+			}
+			if value != 0 {
+				b.Term = &TermJmp{Target: term.Then, Args: append([]Reg(nil), term.ThenArgs...)}
+			} else {
+				b.Term = &TermJmp{Target: term.Else, Args: append([]Reg(nil), term.ElseArgs...)}
+			}
+			changed = true
+		case *TermCondRet:
+			value, known := consts[term.Cond]
+			if !known {
+				continue
+			}
+			if value == 0 {
+				b.Term = &TermRet{Vals: append([]Reg(nil), term.Vals...)}
+			} else {
+				b.Term = &TermJmp{Target: term.Then, Args: append([]Reg(nil), term.ThenArgs...)}
+			}
 			changed = true
 		}
 	}
@@ -345,9 +383,12 @@ func PropagateConstants(f *Func) bool {
 			if !ok {
 				continue
 			}
+			// Block entry truncates every incoming value to the parameter's
+			// width. Propagate that value, not the predecessor's wider value.
+			cv = maskToWidth(cv, param.Ty)
 			allSame := true
 			for _, s := range srcs[1:] {
-				if v, ok2 := consts[s]; !ok2 || v != cv {
+				if v, ok2 := consts[s]; !ok2 || maskToWidth(v, param.Ty) != cv {
 					allSame = false
 					break
 				}

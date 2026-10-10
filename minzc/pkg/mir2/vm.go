@@ -619,7 +619,7 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 	case OpLoad:
 		offset := int(a.I)
 		width := ByteWidth(ty)
-		if offset < 0 || offset+width > len(vm.heap) {
+		if !vm.heapRangeValid(a.I, width) {
 			return fmt.Errorf("load: out-of-bounds address %d (heap size %d)", offset, len(vm.heap))
 		}
 		var v int64
@@ -633,7 +633,7 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		offset := int(a.I)
 		val := b.I
 		width := ByteWidth(ty)
-		if offset < 0 || offset+width > len(vm.heap) {
+		if !vm.heapRangeValid(a.I, width) {
 			return fmt.Errorf("store: out-of-bounds address %d (heap size %d)", offset, len(vm.heap))
 		}
 		for i := 0; i < width; i++ {
@@ -661,7 +661,7 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		// a = slot (heap offset), ty = value type
 		offset := int(a.I)
 		width := ByteWidth(ty)
-		if offset < 0 || offset+width > len(vm.heap) {
+		if !vm.heapRangeValid(a.I, width) {
 			return fmt.Errorf("load_patched: out-of-bounds slot %d", offset)
 		}
 		var v int64
@@ -679,7 +679,7 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		if ty != nil {
 			width = ByteWidth(ty)
 		}
-		if offset < 0 || offset+width > len(vm.heap) {
+		if !vm.heapRangeValid(a.I, width) {
 			return fmt.Errorf("patch: out-of-bounds slot %d", offset)
 		}
 		for i := 0; i < width; i++ {
@@ -1016,4 +1016,9 @@ func (vm *VM) registerBuiltinHosts() {
 		copy(vm.heap[dst:], vm.heap[src:src+n])
 		return nil, nil
 	}
+}
+
+// heapRangeValid checks before integer narrowing or address addition.
+func (vm *VM) heapRangeValid(address int64, width int) bool {
+	return address >= 0 && width >= 0 && width <= len(vm.heap) && address <= int64(len(vm.heap)-width)
 }

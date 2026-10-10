@@ -7,15 +7,20 @@ package mir2
 // another (e.g. a constant that fed only a dead CP instruction).
 //
 // Ops considered pure (safe to delete when result is unused):
-//   OpConst, OpMove, OpAdd/Sub/Mul/Div/SDig/Mod, OpAnd/Or/Xor/Shl/Shr/Sar,
-//   OpNeg, OpNot, OpExt, OpSext, OpTrunc, OpCmp,
-//   OpAddrOf, OpField, OpPtrBump.
+//
+//	OpConst, OpMove, OpAdd/Sub/Mul, OpAnd/Or/Xor/Shl/Shr/Sar,
+//	OpNeg, OpNot, OpExt, OpSext, OpTrunc, OpCmp,
+//	OpAddrOf, OpField, OpPtrBump.
 //
 // Ops NOT deleted even if result unused:
-//   OpStore, OpPatch, OpCall, OpCallIndirect, OpAsm — observable side effects.
-//   OpLoad — may be volatile (I/O mapped memory on Z80).
-//   OpAlloca — changes the stack frame layout.
-//   OpPatchSlot, OpLoadPatched — SMC slot lifecycle.
+//
+//	OpStore, OpPatch, OpCall, OpCallIndirect, OpAsm — observable side effects.
+//	OpLoad — may be volatile (I/O mapped memory on Z80).
+//	OpAlloca — changes the stack frame layout.
+//	OpPatchSlot, OpLoadPatched — SMC slot lifecycle.
+//	OpDiv, OpSDiv, OpMod, OpSMod — may trap on a zero divisor. A dead
+//	  result does not make the operation unobservable. Proven constant
+//	  nonzero divisions can still be folded before this pass.
 func DeadStoreElim(f *Func) {
 	for {
 		uses := countRegUses(f)
@@ -41,7 +46,7 @@ func DeadStoreElim(f *Func) {
 func isDSEPure(op Op) bool {
 	switch op {
 	case OpConst, OpMove,
-		OpAdd, OpSub, OpMul, OpDiv, OpSDiv, OpSMod, OpMod,
+		OpAdd, OpSub, OpMul,
 		OpAnd, OpOr, OpXor, OpShl, OpShr, OpSar,
 		OpNeg, OpNot, OpExt, OpSext, OpTrunc,
 		OpCmp,
