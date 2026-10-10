@@ -228,6 +228,10 @@ func init() {
 	// PGO flags (Quick Win integration)
 	rootCmd.Flags().StringVar(&pgoProfile, "pgo", "", "use profile-guided optimization with .tas profile file")
 	rootCmd.Flags().BoolVar(&pgoDebug, "pgo-debug", false, "show PGO optimization decisions and hot/cold analysis")
+	registerHIRProfileFlags(rootCmd)
+	rootCmd.Flags().StringVar(&hirProfileAutoDirectory, "hir-profile-auto", "", "collect, measure full u8 sum domain and compile; save evidence in directory")
+	rootCmd.Flags().StringVar(&hirProfileAutoFunction, "hir-profile-function", "", "exact sum function to measure with --hir-profile-auto")
+	rootCmd.Flags().StringVar(&hirProfileAutoWorkload, "hir-profile-auto-workload", "", "controlled workload JSON for --hir-profile-auto")
 	rootCmd.Flags().StringVarP(&backend, "backend", "b", defaultBackend, "target backend (z80, ez80)")
 	rootCmd.Flags().StringVarP(&target, "target", "t", "zxspectrum", "target platform (zxspectrum, cpm, msx, cpc, amstrad)")
 	rootCmd.Flags().StringVarP(&outputFormat, "format", "f", "", "output format: code (raw binary, default), sna, tap")
@@ -266,6 +270,12 @@ func main() {
 }
 
 func compile(sourceFile string) error {
+	if err := validateHIRProfileAuto(sourceFile); err != nil {
+		return err
+	}
+	if err := validateHIRProfileFlags(sourceFile); err != nil {
+		return err
+	}
 	// Silent by default (like Go compiler)
 	if debug {
 		fmt.Printf("Compiling %s...\n", sourceFile)
@@ -739,6 +749,12 @@ func compileFromMIR_deprecated(mirFile string) error {
 // assembleFile assembles a .a80/.asm/.z80 file using the built-in z80asm assembler.
 // This enables a one-tool workflow: mz source.minz -> mz output.a80 -> binary
 func compileViaHIR(sourceFile string) error {
+	if err := validateHIRProfileAuto(sourceFile); err != nil {
+		return err
+	}
+	if err := validateHIRProfileFlags(sourceFile); err != nil {
+		return err
+	}
 	stats := &hir.AssertStats{}
 	if !listAsserts {
 		cliAssertStats = stats
@@ -978,6 +994,9 @@ func compileViaHIR(sourceFile string) error {
 
 	// Set target platform so @target() intrinsic resolves correctly.
 	hirMod.Target = hir.TargetFromString(target)
+	if hirProfile.collect != "" {
+		return collectHIRProfile(hirMod)
+	}
 
 	// ── GPU backend path ───────────────────────────────────────────────────
 	// -b cuda|opencl|vulkan|metal → HIR → MIR2 → mir2gpu → write output
@@ -1025,6 +1044,27 @@ func compileViaHIR(sourceFile string) error {
 		AssertMode:      am,
 		SkipZ80Emission: skipZ80,
 	}
+	if hirProfile.profile != "" {
+		selection, err := loadHIRProfileSelection()
+		if err != nil {
+			return err
+		}
+		opts.ProfileSelection = selection
+	}
+	if hirProfileAutoDirectory != "" {
+		factory := func() (*hir.Module, error) {
+			m, err := nanz.ParseWithOpts(string(src), sourceFile, nanz.ParseOpts{BaseDir: baseDir, StdlibDir: stdlibDir})
+			if err != nil {
+				return nil, err
+			}
+			m.Target = hir.TargetFromString(target)
+			return m, nil
+		}
+		opts.ProfileSelection, err = prepareHIRProfileAuto(hirMod, factory, opts)
+		if err != nil {
+			return err
+		}
+	}
 	steps, err := pipeline.CompileHIRSteps(hirMod, opts)
 	if err != nil && !skipZ80 && outputFile == "" && mir2Only && steps.MIR2Module != nil {
 		if abiErr := mir2.ValidateZ80IndirectCalls(steps.MIR2Module); abiErr != nil && err.Error() == abiErr.Error() {
@@ -1035,6 +1075,22 @@ func compileViaHIR(sourceFile string) error {
 	}
 	if err != nil {
 		return fmt.Errorf("HIR compile: %w", err)
+	}
+	if hirProfile.decisions != "" {
+		if err := writeHIRProfileJSON(hirProfile.decisions, steps.ProfileDecisions); err != nil {
+			return err
+		}
+	}
+
+	if hirProfileAutoDirectory != "" {
+		for name, data := range map[string]string{"input.hir": steps.HIR, "raw.mir": steps.MIR2Raw, "optimized.mir": steps.MIR2Opt, "selected.a80": steps.Assembly} {
+			if err := os.WriteFile(filepath.Join(hirProfileAutoDirectory, name), []byte(data), 0644); err != nil {
+				return err
+			}
+		}
+		if err := writeHIRProfileJSON(filepath.Join(hirProfileAutoDirectory, "decisions.json"), steps.ProfileDecisions); err != nil {
+			return err
+		}
 	}
 
 	// --emit=lanz  → HIR as Lanz S-expressions
@@ -1218,6 +1274,18 @@ func compileViaHIR(sourceFile string) error {
 	asmTarget := target
 	if backend == "ez80" {
 		asmTarget = "agon" // eZ80 backend always targets Agon Light 2
+	}
+	// Profile evidence measures the default assembler at the explicit all-RAM
+	// origin. Reuse that exact configuration, including compact binary layout.
+	if opts.ProfileSelection != nil {
+		r, err := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + asmSrc)
+		if err != nil {
+			return err
+		}
+		if len(r.Errors) != 0 {
+			return fmt.Errorf("profile assembly: %v", r.Errors)
+		}
+		return os.WriteFile(out, r.Binary, 0644)
 	}
 	bin, errs := pipeline.Assemble(asmSrc, asmTarget)
 	if len(errs) > 0 {
