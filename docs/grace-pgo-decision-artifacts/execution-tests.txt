@@ -1,0 +1,23 @@
+=== RUN   TestProfileGuidedSumVMZ80
+    profile_guided_sum_test.go:133: original n=0 result=0 T-states=69 module_bytes=128
+    profile_guided_sum_test.go:133: original n=1 result=1 T-states=210 module_bytes=128
+    profile_guided_sum_test.go:133: original n=5 result=15 T-states=774 module_bytes=128
+    profile_guided_sum_test.go:133: original n=16 result=136 T-states=2325 module_bytes=128
+    profile_guided_sum_test.go:133: original n=64 result=32 T-states=9093 module_bytes=128
+    profile_guided_sum_test.go:133: original n=255 result=128 T-states=36024 module_bytes=128
+    profile_guided_sum_test.go:133: pointer-walk n=0 result=0 T-states=189 module_bytes=177
+    profile_guided_sum_test.go:133: pointer-walk n=1 result=1 T-states=278 module_bytes=177
+    profile_guided_sum_test.go:133: pointer-walk n=5 result=15 T-states=634 module_bytes=177
+    profile_guided_sum_test.go:133: pointer-walk n=16 result=136 T-states=1613 module_bytes=177
+    profile_guided_sum_test.go:133: pointer-walk n=64 result=32 T-states=5885 module_bytes=177
+    profile_guided_sum_test.go:133: pointer-walk n=255 result=128 T-states=22884 module_bytes=177
+    profile_guided_sum_test.go:133: selected n=0 result=0 T-states=189 module_bytes=177
+    profile_guided_sum_test.go:133: selected n=1 result=1 T-states=278 module_bytes=177
+    profile_guided_sum_test.go:133: selected n=5 result=15 T-states=634 module_bytes=177
+    profile_guided_sum_test.go:133: selected n=16 result=136 T-states=1613 module_bytes=177
+    profile_guided_sum_test.go:133: selected n=64 result=32 T-states=5885 module_bytes=177
+    profile_guided_sum_test.go:133: selected n=255 result=128 T-states=22884 module_bytes=177
+    profile_guided_sum_test.go:164: totals=map[original:48495 pointer-walk:31483 selected:31483] decisions=[{SiteID:413717c0664c475bf9c67ee592bac740dccdcf0b002c75bd2dfb19155938ed2f Variant:pointer-walk Reason:lower measured workload T-states OriginalTStates:48495 PointerTStates:31483 Model:{Function:sum_array HIRSHA256:3b021437a0423ed4166ebdcbc91314d3d45fb9cd6ac08232db65bff17eab7071 TargetID:module-target:0/model:cpm-z80-v1 EvidenceID:sum-array-z80-all-six-lengths-v1 OriginalBytes:128 PointerBytes:177 OriginalEntry:69 OriginalIteration:141 FastEntry:189 FastIteration:89}}]
+--- PASS: TestProfileGuidedSumVMZ80 (0.26s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.266s

@@ -1,0 +1,21 @@
+[
+  {
+    "site_id": "413717c0664c475bf9c67ee592bac740dccdcf0b002c75bd2dfb19155938ed2f",
+    "variant": "original",
+    "reason": "smaller measured code",
+    "original_t_states": "48495",
+    "pointer_t_states": "31483",
+    "model": {
+      "function": "sum_array",
+      "hir_sha256": "3b021437a0423ed4166ebdcbc91314d3d45fb9cd6ac08232db65bff17eab7071",
+      "target_id": "module-target:0/model:cpm-z80-v1",
+      "evidence_id": "sum-array-z80-all-six-lengths-v1",
+      "original_bytes": 128,
+      "pointer_bytes": 177,
+      "original_entry_t_states": 69,
+      "original_iteration_t_states": 141,
+      "fast_entry_t_states": 189,
+      "fast_iteration_t_states": 89
+    }
+  }
+]

@@ -118,3 +118,5 @@ pointer-walk, оставляя invariant-base. На sum_array выбирает 3
 [Автоматический context builder](grace-pgo-context.md) использует executable SHA256 и Nanz source manifest, включая loop-free imports. Следующая очередь: controlled execution harness и lineage/guard events до cost policy.
 
 [Контролируемый VM harness](grace-pgo-harness.md) выполняет ordered calls, initial globals/resources и limits из хешируемого workload. Следующая очередь: site lineage и guard events, затем cost policy.
+
+[Первое профильное решение на реальном sum_array](grace-pgo-decision.md): full workload 48495→31483 T-states, +49 module bytes; short/size выбирают original. VM + assembled Z80 + oracle проходят для 0/1/5/16/64/255. Общая PGO инфраструктура opt-in; следующие этапы — fallback/full-domain model и CLI/pipeline registration, corpus и MIR lineage.

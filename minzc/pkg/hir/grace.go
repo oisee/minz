@@ -24,8 +24,9 @@ var gracePointerWalkRule string
 // OptimizeForSize excludes versioned pointer loops, which duplicate the body.
 // It does not promise globally minimal machine code.
 type GraceOptions struct {
-	MaxRewrites     int
-	OptimizeForSize bool
+	MaxRewrites      int
+	OptimizeForSize  bool
+	PointerWalkSites map[string]bool // nil: default; non-nil: only attributed selected sites
 }
 
 // RunGrace rewrites HIR in place, before lowering. maxRewrites is a module-wide
@@ -101,15 +102,33 @@ func RunGraceWithOptions(m *Module, options GraceOptions) (*grace.RuleResult, er
 			body = append(body, Decl(h.name, h.expr.Ty, h.expr))
 			body = append(body, &loop)
 			block.Body = append(body, old[h.index+1:]...)
+			if origin, ok := m.LoopLineage[h.loop]; ok {
+				origin.Role = "invariant-base"
+				origin.Rule = "hir-invariant-base"
+				m.LoopLineage[&loop] = origin
+			}
 			if err := verifyGraceModule(m); err != nil {
 				block.Body = old
+				delete(m.LoopLineage, &loop)
 				graph.err = fmt.Errorf("HIR Grace hir-invariant-base: %w", err)
 				return false
 			}
 			return true
 		})
 		reg.RegisterPredicate("hir-has-guarded-pointer-walk", func(_ rewrite.IRGraph, bindings grace.BlockBindings, _ []string) bool {
-			return !options.OptimizeForSize && graph.err == nil && len(graph.facts.DB.Query("hir-guarded-pointer-walk", bindings["b"])) != 0
+			if options.OptimizeForSize || graph.err != nil || len(graph.facts.DB.Query("hir-guarded-pointer-walk", bindings["b"])) == 0 {
+				return false
+			}
+			if options.PointerWalkSites != nil {
+				b := graph.byLabel[bindings["b"]]
+				plan := findGracePointerWalk(b.owner, b.block, graph.globals)
+				if plan == nil {
+					return false
+				}
+				origin, ok := m.LoopLineage[plan.loop]
+				return ok && options.PointerWalkSites[origin.SiteID]
+			}
+			return true
 		})
 		reg.RegisterAction("hirGuardPointerWalk", func(_ rewrite.IRGraphMut, bindings grace.BlockBindings) bool {
 			if graph.err != nil {
@@ -124,9 +143,26 @@ func RunGraceWithOptions(m *Module, options GraceOptions) (*grace.RuleResult, er
 				return false
 			}
 			original := b.block.Body[2]
-			b.block.Body[2] = p.versionedLoop()
+			versioned := p.versionedLoop()
+			b.block.Body[2] = versioned
+			if origin, ok := m.LoopLineage[p.loop]; ok {
+				fast := origin
+				fast.Role = "fast"
+				fast.Rule = "hir-guarded-pointer-walk"
+				fallback := origin
+				fallback.Role = "fallback"
+				fallback.Rule = fast.Rule
+				m.LoopLineage[versioned.Then.Body[0]] = fast
+				m.LoopLineage[p.loop] = fallback
+			}
 			if err := verifyGraceModule(m); err != nil {
 				b.block.Body[2] = original
+				delete(m.LoopLineage, versioned.Then.Body[0])
+				if origin, ok := m.LoopLineage[p.loop]; ok {
+					origin.Role = "original"
+					origin.Rule = ""
+					m.LoopLineage[p.loop] = origin
+				}
 				graph.err = fmt.Errorf("HIR Grace hir-guarded-pointer-walk: %w", err)
 				return false
 			}

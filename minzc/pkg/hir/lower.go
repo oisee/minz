@@ -75,7 +75,7 @@ func LowerModule(hm *Module) *mir2.Module {
 		if hasFreeVars(f, globalNames, funcNames) {
 			continue
 		}
-		lowerFuncWithFuncNames(m, f, funcNames, hirFuncs)
+		lowerFuncWithFuncNames(m, f, funcNames, hirFuncs, hm.LoopLineage)
 	}
 	return m
 }
@@ -257,11 +257,12 @@ type loopCtx struct {
 }
 
 type lowerer struct {
-	hf     *Func
-	m      *mir2.Module
-	mf     *mir2.Func
-	bld    *mir2.Builder
-	target uint8 // platform target from hir.Module.Target
+	lineage map[Stmt]LoopLineage
+	hf      *Func
+	m       *mir2.Module
+	mf      *mir2.Func
+	bld     *mir2.Builder
+	target  uint8 // platform target from hir.Module.Target
 
 	// env maps variable names to their current virtual register.
 	// envTy maps variable names to their type (stable: set once, never changed).
@@ -482,7 +483,7 @@ func lowerFunc(m *mir2.Module, f *Func) {
 	lowerFuncWithFuncNames(m, f, nil, nil)
 }
 
-func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, hirFuncs map[string]*Func) {
+func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, hirFuncs map[string]*Func, lineage ...map[Stmt]LoopLineage) {
 	mf := m.AddFunc(f.Name)
 	if f.IsExtern {
 		mf.Attrs.IsExtern = true
@@ -529,6 +530,12 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 		localArrays:  make(map[string]bool),
 	}
 
+	if len(lineage) > 0 {
+		l.lineage = map[Stmt]LoopLineage{}
+		for node, origin := range lineage[0] {
+			l.lineage[node] = origin
+		}
+	}
 	bld.SwitchToNewBlock("entry")
 
 	// Bind parameters to virtual registers.
@@ -1352,6 +1359,12 @@ func (l *lowerer) lowerWhileWithContinue(st *WhileStmt, continueStep Stmt) {
 
 	// ── loop_head ──
 	head := l.bld.SwitchToNewBlock(headLabel)
+	if source, ok := l.lineage[st]; ok {
+		if l.mf.LoopOrigins == nil {
+			l.mf.LoopOrigins = map[string]mir2.LoopOrigin{}
+		}
+		l.mf.LoopOrigins[bodyLabel] = mir2.LoopOrigin{SiteID: source.SiteID, Role: source.Role, Rule: source.Rule}
+	}
 	headEnv := cloneMap(envBefore)
 	for _, name := range mutated {
 		ty := l.envTy[name]
@@ -1421,10 +1434,14 @@ func (l *lowerer) lowerForRange(st *ForRangeStmt) {
 	}
 	// Copy the slice: lowering must not overwrite the source HIR backing array.
 	whileBody := &Block{Body: append(append([]Stmt{}, st.Body.Body...), increment)}
-	l.lowerWhileWithContinue(&WhileStmt{
+	synthetic := &WhileStmt{
 		Cond: &BinExpr{Op: "<", L: &VarRefExpr{Name: st.Var, Ty: ty}, R: &VarRefExpr{Name: endName, Ty: ty}, Ty: mir2.TyBool},
 		Body: whileBody,
-	}, increment)
+	}
+	if origin, ok := l.lineage[st]; ok {
+		l.lineage[synthetic] = origin
+	}
+	l.lowerWhileWithContinue(synthetic, increment)
 }
 
 // lowerForEach lowers a ForEachStmt.
@@ -1505,6 +1522,12 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 
 	// ── fe_head(ptr, cnt, mutated...) ──
 	head := l.bld.SwitchToNewBlock(headLabel)
+	if source, ok := l.lineage[st]; ok {
+		if l.mf.LoopOrigins == nil {
+			l.mf.LoopOrigins = map[string]mir2.LoopOrigin{}
+		}
+		l.mf.LoopOrigins[bodyLabel] = mir2.LoopOrigin{SiteID: source.SiteID, Role: source.Role, Rule: source.Rule}
+	}
 	headPtr := l.bld.BlockParam(head, mir2.TyPtr, mir2.ClassPointer) // HL
 	headCnt := l.bld.BlockParam(head, mir2.TyU8, mir2.ClassCounter)  // B → DJNZ
 	headEnv := cloneMap(envBefore)

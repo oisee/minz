@@ -96,6 +96,7 @@ func TargetFromString(s string) uint8 {
 
 // Module is the top-level HIR unit.
 type Module struct {
+	LoopLineage         map[Stmt]LoopLineage    `json:"-"` // attribution after explicit seeding
 	SourceUnits         map[string]string       `json:"-"` // hashes of actual frontend inputs, including loop-free units
 	SourceUnitsComplete bool                    `json:"-"` // frontend recorded its transitive source dependencies
 	SourceLocations     map[Stmt]SourceLocation `json:"-"` // optional frontend origins; not semantic evidence

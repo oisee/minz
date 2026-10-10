@@ -5,11 +5,18 @@ package mir2
 // A function is a list of basic blocks. The first block is the entry.
 // Virtual register numbering is monotonically increasing.  When created via
 // Module.AddFunc the counter is module-wide (all funcs share unique IDs).
+type LoopOrigin struct {
+	SiteID string `json:"site_id"`
+	Role   string `json:"role"`
+	Rule   string `json:"rule,omitempty"`
+}
+
 type Func struct {
-	Name     string
-	Contract Contract  // calling ABI in target-independent terms
-	Attrs    FuncAttrs // boolean property flags
-	Blocks   []*Block  // first block = entry (label conventionally "entry")
+	LoopOrigins map[string]LoopOrigin // raw lowering body labels; passes may remove labels
+	Name        string
+	Contract    Contract  // calling ABI in target-independent terms
+	Attrs       FuncAttrs // boolean property flags
+	Blocks      []*Block  // first block = entry (label conventionally "entry")
 
 	nextReg Reg     // next available virtual register
 	mod     *Module // parent module; non-nil when created via AddFunc

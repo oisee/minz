@@ -62,6 +62,7 @@ func BuildProfileCompatibility(m *Module, c ProfileContext) (*ProfileCompatibili
 	}
 	semantic := *m
 	semantic.SourceLocations = nil
+	semantic.LoopLineage = nil
 	semantic.SourceUnits = nil
 	semantic.SourceUnitsComplete = false
 	semantic.AssertStats = nil
@@ -209,7 +210,7 @@ func LoadLoopProfile(r io.Reader, m *Module, c ProfileContext) (*LoopProfile, er
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return nil, err
 	}
-	for _, k := range []string{"schema", "stage", "compatibility", "sites", "counts", "completed_calls", "failed_calls"} {
+	for _, k := range []string{"schema", "stage", "compatibility", "sites", "counts", "guards", "completed_calls", "failed_calls"} {
 		value, ok := raw[k]
 		if !ok || bytes.Equal(bytes.TrimSpace(value), []byte("null")) {
 			return nil, fmt.Errorf("loop profile: missing %s", k)
@@ -227,13 +228,25 @@ func LoadLoopProfile(r io.Reader, m *Module, c ProfileContext) (*LoopProfile, er
 			}
 		}
 	}
+	var guardRows []map[string]json.RawMessage
+	if err := json.Unmarshal(raw["guards"], &guardRows); err != nil {
+		return nil, err
+	}
+	for _, row := range guardRows {
+		for _, k := range []string{"site_id", "fast_entries", "fallback_entries", "fast_body_entries", "fallback_body_entries"} {
+			v, ok := row[k]
+			if !ok || bytes.Equal(bytes.TrimSpace(v), []byte("null")) {
+				return nil, fmt.Errorf("loop profile: missing guard %s", k)
+			}
+		}
+	}
 	var p LoopProfile
 	dec = json.NewDecoder(bytes.NewReader(data))
 	dec.DisallowUnknownFields()
 	if err := dec.Decode(&p); err != nil {
 		return nil, fmt.Errorf("loop profile: %w", err)
 	}
-	if p.Schema != "minz.input-hir-loop-observations/v2" || p.Stage != "unoptimised-mir2-vm" {
+	if p.Schema != "minz.input-hir-loop-observations/v3" || p.Stage != "unoptimised-mir2-vm" {
 		return nil, fmt.Errorf("loop profile: unsupported schema or stage")
 	}
 	equalJSON := func(a, b any) bool { x, _ := json.Marshal(a); y, _ := json.Marshal(b); return bytes.Equal(x, y) }
@@ -261,6 +274,38 @@ func LoadLoopProfile(r io.Reader, m *Module, c ProfileContext) (*LoopProfile, er
 		seen[count.SiteID] = true
 		if count.Entries == 0 && count.BodyEntries != 0 {
 			return nil, fmt.Errorf("loop profile: body entries without loop entry")
+		}
+	}
+	counts := map[string]LoopCounts{}
+	for _, count := range p.Counts {
+		counts[count.SiteID] = count
+	}
+	eligible := map[string]bool{}
+	reserved := map[string]bool{}
+	for _, global := range m.Globals {
+		reserved[global.Name] = true
+	}
+	for _, f := range m.Funcs {
+		if plan := findGracePointerWalk(f, f.Body, reserved); plan != nil {
+			for _, site := range sites.Sites {
+				if site.Function == f.Name && site.HIRPath == "body/s2" {
+					eligible[site.ID] = true
+				}
+			}
+		}
+	}
+	guardSeen := map[string]bool{}
+	for _, g := range p.Guards {
+		count, ok := counts[g.SiteID]
+		if !ok || !eligible[g.SiteID] || guardSeen[g.SiteID] {
+			return nil, fmt.Errorf("loop profile: unknown or duplicate guard site")
+		}
+		guardSeen[g.SiteID] = true
+		if g.FastEntries > count.Entries || g.FallbackEntries != count.Entries-g.FastEntries || g.FastBodyEntries > count.BodyEntries || g.FallbackBodyEntries != count.BodyEntries-g.FastBodyEntries {
+			return nil, fmt.Errorf("loop profile: incomplete or inconsistent guard observations")
+		}
+		if (g.FastEntries == 0 && g.FastBodyEntries != 0) || (g.FallbackEntries == 0 && g.FallbackBodyEntries != 0) {
+			return nil, fmt.Errorf("loop profile: guard iterations without entry")
 		}
 	}
 	sort.Slice(p.Counts, func(i, j int) bool { return p.Counts[i].SiteID < p.Counts[j].SiteID })

@@ -13,7 +13,16 @@ type LoopCounts struct {
 	BodyEntries uint64 `json:"body_entries"`
 }
 
+type GuardCounts struct {
+	SiteID              string `json:"site_id"`
+	FastEntries         uint64 `json:"fast_entries"`
+	FallbackEntries     uint64 `json:"fallback_entries"`
+	FastBodyEntries     uint64 `json:"fast_body_entries"`
+	FallbackBodyEntries uint64 `json:"fallback_body_entries"`
+}
+
 type LoopProfile struct {
+	Guards         []GuardCounts         `json:"guards"`
 	Compatibility  *ProfileCompatibility `json:"compatibility"`
 	Schema         string                `json:"schema"`
 	Stage          string                `json:"stage"`
@@ -30,6 +39,9 @@ type LoopProfiler struct {
 	VM                *mir2.VM
 	compatibility     *ProfileCompatibility
 	profileHooks      map[string]mir2.HostFunc
+	guards            []GuardCounts
+	guardFunctions    map[string]int
+	guardParameters   map[string][2]int
 	sites             *LoopSiteMap
 	counts            []LoopCounts
 	completed, failed uint64
@@ -42,7 +54,31 @@ func NewLoopProfiler(m *Module) (*LoopProfiler, error) {
 	if err != nil {
 		return nil, err
 	}
-	p := &LoopProfiler{sites: sites, counts: make([]LoopCounts, len(sites.Sites))}
+	p := &LoopProfiler{sites: sites, counts: make([]LoopCounts, len(sites.Sites)), guards: []GuardCounts{}, guardFunctions: map[string]int{}, guardParameters: map[string][2]int{}}
+	reserved := map[string]bool{}
+	for _, g := range m.Globals {
+		reserved[g.Name] = true
+	}
+	for _, f := range m.Funcs {
+		if plan := findGracePointerWalk(f, f.Body, reserved); plan != nil {
+			for _, site := range sites.Sites {
+				if site.Function == f.Name && site.HIRPath == "body/s2" {
+					p.guardFunctions[f.Name] = len(p.guards)
+					p.guards = append(p.guards, GuardCounts{SiteID: site.ID})
+					indices := [2]int{}
+					for i, param := range f.Params {
+						if param.Name == plan.base {
+							indices[0] = i
+						}
+						if param.Name == plan.bound {
+							indices[1] = i
+						}
+					}
+					p.guardParameters[f.Name] = indices
+				}
+			}
+		}
+	}
 	byPath := map[string]map[string]int{}
 	for i, s := range sites.Sites {
 		p.counts[i].SiteID = s.ID
@@ -191,6 +227,20 @@ func NewLoopProfilerWithContext(m *Module, c ProfileContext) (*LoopProfiler, err
 // Call accumulates events across calls, retaining partial counts on errors.
 func (p *LoopProfiler) Call(name string, args []mir2.Value) ([]mir2.Value, error) {
 	result, err := p.VM.Call(name, args)
+	if err == nil {
+		if index, ok := p.guardFunctions[name]; ok {
+			params := p.guardParameters[name]
+			base := uint64(args[params[0]].I) & 65535
+			n := uint64(args[params[1]].I) & 255
+			if base <= 65535-n {
+				p.guards[index].FastEntries++
+				p.guards[index].FastBodyEntries += n
+			} else {
+				p.guards[index].FallbackEntries++
+				p.guards[index].FallbackBodyEntries += n
+			}
+		}
+	}
 	if err != nil {
 		p.failed++
 	} else {
@@ -213,5 +263,5 @@ func (p *LoopProfiler) Snapshot() LoopProfile {
 		}
 		key = &c
 	}
-	return LoopProfile{Compatibility: key, Schema: "minz.input-hir-loop-observations/v2", Stage: "unoptimised-mir2-vm", Sites: &sites, Counts: append([]LoopCounts{}, p.counts...), CompletedCalls: p.completed, FailedCalls: p.failed}
+	return LoopProfile{Guards: append([]GuardCounts{}, p.guards...), Compatibility: key, Schema: "minz.input-hir-loop-observations/v3", Stage: "unoptimised-mir2-vm", Sites: &sites, Counts: append([]LoopCounts{}, p.counts...), CompletedCalls: p.completed, FailedCalls: p.failed}
 }
