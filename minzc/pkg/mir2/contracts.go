@@ -54,10 +54,13 @@ type ContractChoice struct {
 // multi-pass convergence.
 //
 // Pass 0: bottom-up topo order (callees before callers) — same as before.
-//         No incoming cost (callers not yet decided).
+//
+//	No incoming cost (callers not yet decided).
+//
 // Pass 1+: re-evaluate every function with incomingEdgeCost included so that
-//          callees with multiple callers can "pull back" an EX DE,HL from
-//          N call sites into the callee body when N×moveCost > bodyMoveCost.
+//
+//	callees with multiple callers can "pull back" an EX DE,HL from
+//	N call sites into the callee body when N×moveCost > bodyMoveCost.
 //
 // Callers should call ApplyContracts(m, cs) before running Allocate.
 func OptimizeContracts(m *Module, ct CostTable) ContractSet {
@@ -322,6 +325,9 @@ func plausibleClasses(ty Ty, current RegClass) []RegClass {
 	if current == ClassFlag {
 		return []RegClass{ClassFlag} // flag-return is fixed
 	}
+	if IsPointer(ty) {
+		return []RegClass{ClassPointer, ClassIndex}
+	}
 	switch ty {
 	case TyU8, TyI8, TyBool:
 		return []RegClass{ClassAcc, ClassCounter, ClassGeneral}
@@ -537,7 +543,7 @@ func inferNaturalClassSeen(f *Func, r Reg, m *Module, seen map[Reg]bool) RegClas
 				// ClassPointer inference when r is both a comparison rhs AND
 				// the source of a move that feeds a TermCondRet return slot.
 				if len(src) > 1 && src[1] == r {
-					if inst.Ty == TyU16 || inst.Ty == TyI16 || inst.Ty == TyPtr {
+					if inst.Ty == TyU16 || inst.Ty == TyI16 || IsPointer(inst.Ty) {
 						return ClassIndex
 					}
 					return ClassGeneral
@@ -612,7 +618,7 @@ func inferNaturalRetClass(f *Func, ret Return) RegClass {
 		return ClassFlag
 	}
 	// For 16-bit returns (pointers), it's typically ClassPointer.
-	if ret.Ty == TyPtr || ret.Ty == TyU16 || ret.Ty == TyI16 {
+	if IsPointer(ret.Ty) || ret.Ty == TyU16 || ret.Ty == TyI16 {
 		return ClassPointer
 	}
 	// 8-bit: ALU results land in A → ClassAcc.

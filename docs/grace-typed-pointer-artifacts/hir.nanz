@@ -1,0 +1,4 @@
+fun write(p: ^u16) -> u16 {
+    p[1] = 22136
+    return p[1]
+}

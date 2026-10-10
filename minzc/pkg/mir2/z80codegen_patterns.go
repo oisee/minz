@@ -816,12 +816,19 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 // arrange for PUSH HL before the ADD and POP HL after the subsequent load.
 //
 // Sets g.ptrAddPushHL = ptr_add.Dst  when the pattern fires; cleared by the
-// OpLoad codegen after it emits the POP HL.
+// OpLoad/OpStore codegen after it emits the POP HL.
 func (g *z80cg) scanPtrAddBase(b *Block) {
 	g.ptrAddPushHL = NoReg
 
+	uses := countRegUses(g.fn)
 	for idx, inst := range b.Insts {
-		if inst.Op != OpPtrAdd {
+		if inst.Op != OpPtrAdd || idx+1 >= len(b.Insts) {
+			continue
+		}
+		consumer := b.Insts[idx+1]
+		// A delayed save must have an immediate, single-use consumer that
+		// restores the stack before any subsequent pointer calculation.
+		if (consumer.Op != OpLoad && consumer.Op != OpStore) || consumer.Src[0] != inst.Dst || uses[inst.Dst] != 1 {
 			continue
 		}
 		baseReg := inst.Src[0]

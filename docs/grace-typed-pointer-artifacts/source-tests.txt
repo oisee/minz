@@ -1,0 +1,34 @@
+=== RUN   TestRawPointerBoundaryVMZ80
+=== RUN   TestRawPointerBoundaryVMZ80/advance
+=== RUN   TestRawPointerBoundaryVMZ80/load8
+=== RUN   TestRawPointerBoundaryVMZ80/load16
+=== RUN   TestRawPointerBoundaryVMZ80/store16
+--- PASS: TestRawPointerBoundaryVMZ80 (0.01s)
+    --- PASS: TestRawPointerBoundaryVMZ80/advance (0.00s)
+    --- PASS: TestRawPointerBoundaryVMZ80/load8 (0.00s)
+    --- PASS: TestRawPointerBoundaryVMZ80/load16 (0.00s)
+    --- PASS: TestRawPointerBoundaryVMZ80/store16 (0.00s)
+=== RUN   TestScalarPointerSourceVMZ80
+=== RUN   TestScalarPointerSourceVMZ80/local
+=== RUN   TestScalarPointerSourceVMZ80/offset
+=== RUN   TestScalarPointerSourceVMZ80/signed
+=== RUN   TestScalarPointerSourceVMZ80/relay
+=== RUN   TestScalarPointerSourceVMZ80/forward
+=== RUN   TestScalarPointerSourceVMZ80/direct_forward
+=== RUN   TestScalarPointerSourceVMZ80/write
+=== RUN   TestScalarPointerSourceVMZ80/element_address
+=== RUN   TestScalarPointerSourceVMZ80/global_address
+=== RUN   TestScalarPointerSourceVMZ80/alias
+--- PASS: TestScalarPointerSourceVMZ80 (0.03s)
+    --- PASS: TestScalarPointerSourceVMZ80/local (0.00s)
+    --- PASS: TestScalarPointerSourceVMZ80/offset (0.00s)
+    --- PASS: TestScalarPointerSourceVMZ80/signed (0.00s)
+    --- PASS: TestScalarPointerSourceVMZ80/relay (0.00s)
+    --- PASS: TestScalarPointerSourceVMZ80/forward (0.00s)
+    --- PASS: TestScalarPointerSourceVMZ80/direct_forward (0.00s)
+    --- PASS: TestScalarPointerSourceVMZ80/write (0.00s)
+    --- PASS: TestScalarPointerSourceVMZ80/element_address (0.00s)
+    --- PASS: TestScalarPointerSourceVMZ80/global_address (0.00s)
+    --- PASS: TestScalarPointerSourceVMZ80/alias (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.042s

@@ -432,12 +432,18 @@ func (*BitExpr) ExprTy() mir2.Ty { return mir2.TyU8 }
 // AddrOfExpr takes the address of either a named symbol or an addressable
 // expression such as a field/index lvalue.
 type AddrOfExpr struct {
-	Sym string // global/function/string symbol name
-	X   Expr   // optional addressable expression
+	Sym string  // global/function/string symbol name
+	X   Expr    // optional addressable expression
+	Ty  mir2.Ty // optional pointee-preserving pointer type; nil is legacy byte pointer
 }
 
-func (*AddrOfExpr) hirExpr()        {}
-func (*AddrOfExpr) ExprTy() mir2.Ty { return mir2.TyPtr }
+func (*AddrOfExpr) hirExpr() {}
+func (e *AddrOfExpr) ExprTy() mir2.Ty {
+	if e.Ty != nil {
+		return e.Ty
+	}
+	return mir2.TyPtr
+}
 
 // LoadExpr dereferences a pointer: *Ptr
 type LoadExpr struct {

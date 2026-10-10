@@ -628,6 +628,12 @@ func (g *z80cg) genInst(inst *Inst) {
 		}
 
 	case OpStore:
+		if g.ptrAddPushHL == inst.Src[0] {
+			defer func() {
+				g.emit("    POP HL         ; restore base ptr after store")
+				g.ptrAddPushHL = NoReg
+			}()
+		}
 		addrReg := inst.Src[0]
 		if info, ok := g.globalFieldStore[addrReg]; ok && inst.Ty.Width() == 8 {
 			if info.hlChain {
@@ -1015,6 +1021,20 @@ func (g *z80cg) genInst(inst *Inst) {
 			offPair = "BC"
 		}
 
+		preserveOffsetPair := false
+		if off != offPair {
+			for r := range g.regsLiveAfterInst(inst) {
+				loc := g.loc(r)
+				if r != inst.Dst && (loc == offPair || loc == lowByte(offPair) || loc == highByte(offPair)) {
+					preserveOffsetPair = true
+					break
+				}
+			}
+		}
+		if preserveOffsetPair {
+			g.emitf("    PUSH %s", offPair)
+		}
+
 		// Place offset into offPair BEFORE moving the base (avoids clobbering
 		// the offset when base and off share a register like DE).
 		if off != offPair {
@@ -1057,6 +1077,10 @@ func (g *z80cg) genInst(inst *Inst) {
 			}
 		}
 		g.invalidate(dst)
+		if preserveOffsetPair {
+			g.emitf("    POP %s", offPair)
+			g.invalidate(offPair)
+		}
 		if preserveHL {
 			g.emit("    POP HL")
 		}

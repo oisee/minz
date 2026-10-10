@@ -542,7 +542,7 @@ func canonicalReturnLoc(cls RegClass, ty Ty) string {
 // standard callable ABI (used by function pointers / indirect calls).
 // Matches classForParam in hir/lower.go.
 func standardParamClass(ty Ty, pos int) RegClass {
-	if ty == TyPtr {
+	if IsPointer(ty) {
 		return ClassPointer
 	}
 	if ty.Width() > 8 {

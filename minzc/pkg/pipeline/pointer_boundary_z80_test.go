@@ -1,7 +1,6 @@
 package pipeline
 
 import (
-	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
 	"testing"
 )
@@ -22,7 +21,7 @@ func TestRawPointerBoundaryVMZ80(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			for _, grace := range []bool{false, true} {
-				h := pointerBoundaryHIR(t, c.name, c.source)
+				h := graceMeasureParse(t, c.source)
 				s, err := CompileHIRSteps(h, Options{UseHIRGrace: grace, UseGrace: grace})
 				if err != nil {
 					t.Fatal(err)
@@ -40,26 +39,8 @@ func TestRawPointerBoundaryVMZ80(t *testing.T) {
 				}
 
 				// Independent native run, with distinct bytes at both ends of memory.
-				measureGraceZ80HIR(t, pointerBoundaryHIR(t, c.name, c.source), c.name, Options{UseHIRGrace: grace, UseGrace: grace}, []int64{65535}, map[uint16]byte{65535: 0x12, 0: 0x34}, c.want)
+				measureGraceZ80HIR(t, graceMeasureParse(t, c.source), c.name, Options{UseHIRGrace: grace, UseGrace: grace}, []int64{65535}, map[uint16]byte{65535: 0x12, 0: 0x34}, c.want)
 			}
 		})
 	}
-}
-
-// The current Nanz parser erases scalar pointee types (^u16 dereferences as
-// u8). Exercise explicitly typed HIR until that independent frontend gap is
-// resolved; do not let it silently weaken this backend conformance check.
-func pointerBoundaryHIR(t *testing.T, name, source string) *hir.Module {
-	h := graceMeasureParse(t, source)
-	if name == "load16" || name == "store16" {
-		for _, stmt := range h.Funcs[0].Body.Body {
-			switch s := stmt.(type) {
-			case *hir.ReturnStmt:
-				s.Val.(*hir.LoadExpr).Ty = mir2.TyU16
-			case *hir.AssignStmt:
-				s.Target.(*hir.DerefExpr).Ty = mir2.TyU16
-			}
-		}
-	}
-	return h
 }

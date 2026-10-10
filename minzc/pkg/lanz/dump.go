@@ -296,6 +296,9 @@ func dumpExpr(sb *strings.Builder, e hir.Expr) {
 }
 
 func tyStr(ty mir2.Ty) string {
+	if mir2.IsPointer(ty) {
+		return "ptr"
+	}
 	switch ty {
 	case mir2.TyU8:
 		return "u8"

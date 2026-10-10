@@ -1,0 +1,74 @@
+=== RUN   TestGraceZ80MeasuredExamples
+=== RUN   TestGraceZ80MeasuredExamples/sum_array/n0
+    grace_z80_measure_test.go:104: HIR Grace: T-states 69 -> 189 (+173.9%); bytes 38 -> 85
+=== RUN   TestGraceZ80MeasuredExamples/sum_array/n1
+    grace_z80_measure_test.go:104: HIR Grace: T-states 210 -> 278 (+32.4%); bytes 38 -> 85
+=== RUN   TestGraceZ80MeasuredExamples/sum_array/n5
+    grace_z80_measure_test.go:104: HIR Grace: T-states 774 -> 634 (-18.1%); bytes 38 -> 85
+=== RUN   TestGraceZ80MeasuredExamples/sum_array/n16
+    grace_z80_measure_test.go:104: HIR Grace: T-states 2325 -> 1613 (-30.6%); bytes 38 -> 85
+=== RUN   TestGraceZ80MeasuredExamples/sum_array/n64
+    grace_z80_measure_test.go:104: HIR Grace: T-states 9093 -> 5885 (-35.3%); bytes 38 -> 85
+=== RUN   TestGraceZ80MeasuredExamples/sum_array/n200
+    grace_z80_measure_test.go:104: HIR Grace: T-states 28269 -> 17989 (-36.4%); bytes 38 -> 85
+=== RUN   TestGraceZ80MeasuredExamples/sum_array/n255
+    grace_z80_measure_test.go:104: HIR Grace: T-states 36024 -> 22884 (-36.5%); bytes 38 -> 85
+=== RUN   TestGraceZ80MeasuredExamples/region_match/n0
+    grace_z80_measure_test.go:104: HIR Grace: T-states 176 -> 64 (-63.6%); bytes 97 -> 52
+=== RUN   TestGraceZ80MeasuredExamples/region_match/n1
+    grace_z80_measure_test.go:104: HIR Grace: T-states 583 -> 299 (-48.7%); bytes 97 -> 52
+=== RUN   TestGraceZ80MeasuredExamples/region_match/n5
+    grace_z80_measure_test.go:104: HIR Grace: T-states 2211 -> 1239 (-44.0%); bytes 97 -> 52
+=== RUN   TestGraceZ80MeasuredExamples/region_match/n16
+    grace_z80_measure_test.go:104: HIR Grace: T-states 6688 -> 3824 (-42.8%); bytes 97 -> 52
+=== RUN   TestGraceZ80MeasuredExamples/region_match/n64
+    grace_z80_measure_test.go:104: HIR Grace: T-states 26224 -> 15104 (-42.4%); bytes 97 -> 52
+=== RUN   TestGraceZ80MeasuredExamples/region_match/n200
+    grace_z80_measure_test.go:104: HIR Grace: T-states 81576 -> 47064 (-42.3%); bytes 97 -> 52
+=== RUN   TestGraceZ80MeasuredExamples/region_match/n255
+    grace_z80_measure_test.go:104: HIR Grace: T-states 103961 -> 59989 (-42.3%); bytes 97 -> 52
+--- PASS: TestGraceZ80MeasuredExamples (0.17s)
+    --- PASS: TestGraceZ80MeasuredExamples/sum_array/n0 (0.01s)
+    --- PASS: TestGraceZ80MeasuredExamples/sum_array/n1 (0.01s)
+    --- PASS: TestGraceZ80MeasuredExamples/sum_array/n5 (0.01s)
+    --- PASS: TestGraceZ80MeasuredExamples/sum_array/n16 (0.01s)
+    --- PASS: TestGraceZ80MeasuredExamples/sum_array/n64 (0.01s)
+    --- PASS: TestGraceZ80MeasuredExamples/sum_array/n200 (0.01s)
+    --- PASS: TestGraceZ80MeasuredExamples/sum_array/n255 (0.01s)
+    --- PASS: TestGraceZ80MeasuredExamples/region_match/n0 (0.01s)
+    --- PASS: TestGraceZ80MeasuredExamples/region_match/n1 (0.01s)
+    --- PASS: TestGraceZ80MeasuredExamples/region_match/n5 (0.02s)
+    --- PASS: TestGraceZ80MeasuredExamples/region_match/n16 (0.02s)
+    --- PASS: TestGraceZ80MeasuredExamples/region_match/n64 (0.02s)
+    --- PASS: TestGraceZ80MeasuredExamples/region_match/n200 (0.02s)
+    --- PASS: TestGraceZ80MeasuredExamples/region_match/n255 (0.01s)
+=== RUN   TestRawPointerBoundaryVMZ80
+=== RUN   TestRawPointerBoundaryVMZ80/advance
+=== RUN   TestRawPointerBoundaryVMZ80/load8
+=== RUN   TestRawPointerBoundaryVMZ80/load16
+=== RUN   TestRawPointerBoundaryVMZ80/store16
+--- PASS: TestRawPointerBoundaryVMZ80 (0.01s)
+    --- PASS: TestRawPointerBoundaryVMZ80/advance (0.00s)
+    --- PASS: TestRawPointerBoundaryVMZ80/load8 (0.00s)
+    --- PASS: TestRawPointerBoundaryVMZ80/load16 (0.00s)
+    --- PASS: TestRawPointerBoundaryVMZ80/store16 (0.00s)
+=== RUN   TestScalarPointerSourceVMZ80
+=== RUN   TestScalarPointerSourceVMZ80/local
+=== RUN   TestScalarPointerSourceVMZ80/offset
+=== RUN   TestScalarPointerSourceVMZ80/signed
+=== RUN   TestScalarPointerSourceVMZ80/relay
+=== RUN   TestScalarPointerSourceVMZ80/forward
+=== RUN   TestScalarPointerSourceVMZ80/direct_forward
+=== RUN   TestScalarPointerSourceVMZ80/write
+=== RUN   TestScalarPointerSourceVMZ80/alias
+--- PASS: TestScalarPointerSourceVMZ80 (0.04s)
+    --- PASS: TestScalarPointerSourceVMZ80/local (0.01s)
+    --- PASS: TestScalarPointerSourceVMZ80/offset (0.00s)
+    --- PASS: TestScalarPointerSourceVMZ80/signed (0.00s)
+    --- PASS: TestScalarPointerSourceVMZ80/relay (0.01s)
+    --- PASS: TestScalarPointerSourceVMZ80/forward (0.01s)
+    --- PASS: TestScalarPointerSourceVMZ80/direct_forward (0.00s)
+    --- PASS: TestScalarPointerSourceVMZ80/write (0.01s)
+    --- PASS: TestScalarPointerSourceVMZ80/alias (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.236s

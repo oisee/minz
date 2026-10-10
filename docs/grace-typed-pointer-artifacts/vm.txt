@@ -1,0 +1,2 @@
+result: 0x5678
+written bytes at 0x4002: 78 56

@@ -1,7 +1,8 @@
 # ADR-0045: Target-width raw pointer semantics
 
 Status: VM target-width wrap implemented; 16-bit Z80 boundary conformance tested.
-Target data-layout selection, frontend pointee types and C/QBE migration remain open.
+Scalar frontend pointee types are now preserved; see [source conformance](../grace-typed-pointers.md).
+Target data-layout selection and C/QBE memory-model migration remain open.
 See [implementation evidence](../grace-gap-closure.md).
 Date: 2026-10-10.
 

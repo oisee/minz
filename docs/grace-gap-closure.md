@@ -1,5 +1,7 @@
 # Grace: pointer conformance and corpus gap closure
 
+**Update:** [Scalar pointer types from source through VM/Z80](grace-typed-pointers.md) are now implemented and checked. The earlier status below is retained as a snapshot.
+
 2026-10-10. Branch `feat/grace-hir-vm`, follow-up to the HIR/MIR audit.
 
 ## Result

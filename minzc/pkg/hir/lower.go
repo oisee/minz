@@ -576,7 +576,7 @@ func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, 
 //	pos 1 → ClassGeneral (C/D/E)
 //	pos 2 → ClassCounter (B) — common for a count/length 3rd arg
 func classForParam(ty mir2.Ty, pos int) mir2.RegClass {
-	if ty == mir2.TyPtr {
+	if mir2.IsPointer(ty) {
 		return mir2.ClassPointer
 	}
 	if _, isStruct := ty.(*mir2.StructTy); isStruct {
@@ -603,7 +603,7 @@ func classForParam(ty mir2.Ty, pos int) mir2.RegClass {
 
 // classForRet chooses the return class for a single-return function.
 func classForRet(ty mir2.Ty) mir2.RegClass {
-	if ty == mir2.TyU16 || ty == mir2.TyI16 {
+	if mir2.IsPointer(ty) || ty == mir2.TyU16 || ty == mir2.TyI16 {
 		return mir2.ClassPointer // HL
 	}
 	return mir2.ClassAcc // A
@@ -692,7 +692,7 @@ func (l *lowerer) lowerExprForRet(e Expr) mir2.Reg {
 // Explicit "must be in A" values (function return values, call returns) still
 // use ClassAcc via classForRet; parameters use classForParam.
 func classForExpr(ty mir2.Ty) mir2.RegClass {
-	if ty == mir2.TyU16 || ty == mir2.TyI16 {
+	if (mir2.IsPointer(ty) && mir2.PointerElem(ty) != mir2.TyU8) || ty == mir2.TyU16 || ty == mir2.TyI16 {
 		return mir2.ClassPointer
 	}
 	return mir2.ClassGeneral
@@ -704,7 +704,7 @@ func classForExpr(ty mir2.Ty) mir2.RegClass {
 // 16-bit variants write to HL → ClassPointer.
 // Other ops (MUL, shifts) are not pure A-writes → ClassGeneral.
 func classForALUResult(op string, ty mir2.Ty) mir2.RegClass {
-	if ty == mir2.TyU16 || ty == mir2.TyI16 {
+	if (mir2.IsPointer(ty) && mir2.PointerElem(ty) != mir2.TyU8) || ty == mir2.TyU16 || ty == mir2.TyI16 {
 		return mir2.ClassPointer
 	}
 	switch op {
@@ -716,7 +716,7 @@ func classForALUResult(op string, ty mir2.Ty) mir2.RegClass {
 
 // classForLoop chooses a good class for a loop-carried variable.
 func classForLoop(ty mir2.Ty, _ string) mir2.RegClass {
-	if ty == mir2.TyU16 || ty == mir2.TyI16 {
+	if (mir2.IsPointer(ty) && mir2.PointerElem(ty) != mir2.TyU8) || ty == mir2.TyU16 || ty == mir2.TyI16 {
 		return mir2.ClassPointer
 	}
 	// ClassGeneral keeps loop vars out of A (which comparisons need).

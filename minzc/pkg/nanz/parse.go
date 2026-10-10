@@ -1127,6 +1127,10 @@ func sameClobberSet(a, b []string) bool {
 // signature isn't in funcSigs during the first parse of A.
 func (p *parser) fixForwardCallTypes(m *hir.Module) {
 	for _, f := range m.Funcs {
+		p.varTypes = make(map[string]mir2.Ty)
+		for _, param := range f.Params {
+			p.varTypes[param.Name] = param.Ty
+		}
 		if f.Body != nil {
 			p.fixBlockCallTypes(f.Body)
 		}
@@ -1146,7 +1150,12 @@ func (p *parser) fixStmtCallTypes(s hir.Stmt) {
 	switch st := s.(type) {
 	case *hir.VarDeclStmt:
 		p.fixExprCallTypes(st.Init)
+		if (st.Ty == nil || st.Ty == mir2.TyVoid) && st.Init != nil {
+			st.Ty = st.Init.ExprTy()
+		}
+		p.varTypes[st.Name] = st.Ty
 	case *hir.AssignStmt:
+		p.fixExprCallTypes(st.Target)
 		p.fixExprCallTypes(st.Val)
 	case *hir.ReturnStmt:
 		p.fixExprCallTypes(st.Val)
@@ -1179,6 +1188,12 @@ func (p *parser) fixExprCallTypes(e hir.Expr) {
 		return
 	}
 	switch ex := e.(type) {
+	case *hir.VarRefExpr:
+		if ex.Ty == nil || ex.Ty == mir2.TyVoid {
+			if ty := p.varTypes[ex.Name]; ty != nil {
+				ex.Ty = ty
+			}
+		}
 	case *hir.CallExpr:
 		if ex.Ty == mir2.TyVoid {
 			if sig, ok := p.funcSigs[ex.Fn]; ok && sig != mir2.TyVoid {
@@ -1191,19 +1206,39 @@ func (p *parser) fixExprCallTypes(e hir.Expr) {
 	case *hir.BinExpr:
 		p.fixExprCallTypes(ex.L)
 		p.fixExprCallTypes(ex.R)
+		if ex.Ty == nil || ex.Ty == mir2.TyVoid {
+			ex.Ty = resultTy(ex.L.ExprTy(), ex.R.ExprTy(), ex.Op)
+		}
 	case *hir.UnaryExpr:
 		p.fixExprCallTypes(ex.X)
 	case *hir.CastExpr:
 		p.fixExprCallTypes(ex.X)
+	case *hir.AddrOfExpr:
+		if ex.X != nil {
+			p.fixExprCallTypes(ex.X)
+			ex.Ty = mir2.PointerTo(ex.X.ExprTy())
+		}
 	case *hir.FieldExpr:
 		p.fixExprCallTypes(ex.X)
 	case *hir.LoadExpr:
+		unresolved := ex.Ptr.ExprTy() == nil || ex.Ptr.ExprTy() == mir2.TyVoid
 		p.fixExprCallTypes(ex.Ptr)
+		if unresolved {
+			ex.Ty = pointerDerefType(ex.Ptr.ExprTy())
+		}
 	case *hir.DerefExpr:
+		unresolved := ex.Ptr.ExprTy() == nil || ex.Ptr.ExprTy() == mir2.TyVoid
 		p.fixExprCallTypes(ex.Ptr)
+		if unresolved {
+			ex.Ty = pointerDerefType(ex.Ptr.ExprTy())
+		}
 	case *hir.IndexExpr:
+		unresolved := ex.Base.ExprTy() == nil || ex.Base.ExprTy() == mir2.TyVoid
 		p.fixExprCallTypes(ex.Base)
 		p.fixExprCallTypes(ex.Idx)
+		if unresolved {
+			ex.ElemTy = pointerDerefType(ex.Base.ExprTy())
+		}
 	case *hir.CondExpr:
 		p.fixExprCallTypes(ex.Cond)
 		p.fixExprCallTypes(ex.Then)
@@ -2719,14 +2754,22 @@ func (p *parser) parseType() (mir2.Ty, error) {
 	// ^T — pointer to T
 	if t.kind == tokCaret {
 		p.l.next()
-		// Consume inner type if present (^u8, ^u16, ^Point…).
-		// MIR2 TyPtr is untyped — we parse and discard the element type.
+		// Preserve scalar pointee types through HIR expressions and calls.
+		// Struct pointers retain the existing separate receiver metadata.
+		elem := mir2.Ty(mir2.TyU8)
 		if !p.l.is(tokEOF) && !p.l.is(tokComma) && !p.l.is(tokRParen) &&
 			!p.l.is(tokLBrace) && !p.l.is(tokRBrace) && !p.l.is(tokSemi) &&
 			!p.l.is(tokEq) && !p.l.is(tokArrow) {
-			_, _ = p.parseType()
+			var err error
+			elem, err = p.parseType()
+			if err != nil {
+				return nil, err
+			}
 		}
-		return mir2.TyPtr, nil
+		if _, structElem := elem.(*mir2.StructTy); structElem {
+			return mir2.TyPtr, nil
+		}
+		return mir2.PointerTo(elem), nil
 	}
 
 	// [T; N] — array
@@ -2909,13 +2952,23 @@ func (p *parser) parseParamType() (mir2.Ty, string, *mir2.StructTy, error) {
 				elemSt = st
 			}
 		}
-		// Consume inner type
+		elem := mir2.Ty(mir2.TyU8)
 		if !p.l.is(tokEOF) && !p.l.is(tokComma) && !p.l.is(tokRParen) &&
 			!p.l.is(tokLBrace) && !p.l.is(tokRBrace) && !p.l.is(tokSemi) &&
 			!p.l.is(tokEq) && !p.l.is(tokArrow) {
-			_, _ = p.parseType()
+			var err error
+			elem, err = p.parseType()
+			if err != nil {
+				return nil, "", nil, err
+			}
 		}
-		return mir2.TyPtr, "", elemSt, nil
+		if resolved, ok := elem.(*mir2.StructTy); ok {
+			elemSt = resolved
+		}
+		if elemSt != nil {
+			return mir2.TyPtr, "", elemSt, nil
+		}
+		return mir2.PointerTo(elem), "", nil, nil
 	}
 	ty, err := p.parseType()
 	return ty, "", nil, err
@@ -3753,7 +3806,7 @@ func (p *parser) parsePostfixNoBrack(base hir.Expr) (hir.Expr, error) {
 				isStructPtr = p.varPtrElem[vr.Name] != nil
 			}
 			if !isStructPtr {
-				base = &hir.LoadExpr{Ptr: base, Ty: mir2.TyU8}
+				base = &hir.LoadExpr{Ptr: base, Ty: pointerDerefType(base.ExprTy())}
 			}
 		case tokDot:
 			p.l.next()
@@ -4644,9 +4697,23 @@ func (p *parser) parseUnary() (hir.Expr, error) {
 		}
 		switch target := target.(type) {
 		case *hir.VarRefExpr:
-			return &hir.AddrOfExpr{Sym: target.Name}, nil
+			ty := p.exprTy(target)
+			if elem := p.localArrayElems[target.Name]; elem != nil {
+				ty = elem
+			}
+			if array, ok := ty.(*mir2.ArrayTy); ok {
+				ty = array.Elem
+			}
+			pointer := mir2.PointerTo(ty)
+			if p.funcSigs[target.Name] != nil {
+				pointer = mir2.TyPtr
+			}
+			if _, structValue := ty.(*mir2.StructTy); structValue {
+				pointer = mir2.TyPtr
+			}
+			return &hir.AddrOfExpr{Sym: target.Name, Ty: pointer}, nil
 		case *hir.FieldExpr, *hir.IndexExpr:
-			return &hir.AddrOfExpr{X: target}, nil
+			return &hir.AddrOfExpr{X: target, Ty: mir2.PointerTo(p.exprTy(target))}, nil
 		default:
 			return nil, fmt.Errorf("line %d: &: expected addressable name, field, or index", t.line)
 		}
@@ -4675,7 +4742,7 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 				isStructPtr = p.varPtrElem[vr.Name] != nil
 			}
 			if !isStructPtr {
-				base = &hir.LoadExpr{Ptr: base, Ty: mir2.TyU8}
+				base = &hir.LoadExpr{Ptr: base, Ty: pointerDerefType(base.ExprTy())}
 			}
 			// else: `self^` on ^Struct — keep base as-is; subsequent .field handles it
 		case tokLBrack:
@@ -4688,7 +4755,7 @@ func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 			if _, err := p.l.eat(tokRBrack); err != nil {
 				return nil, err
 			}
-			elemTy := mir2.Ty(mir2.TyU8)
+			elemTy := pointerDerefType(base.ExprTy())
 			if arrayTy, ok := p.exprTy(base).(*mir2.ArrayTy); ok {
 				elemTy = arrayTy.Elem
 			} else if vr, ok := base.(*hir.VarRefExpr); ok {
@@ -5595,11 +5662,20 @@ func resultTy(l, r mir2.Ty, op string) mir2.Ty {
 	case "==", "!=", "<", "<=", ">", ">=", "&&", "||":
 		return mir2.TyBool
 	}
+	if mir2.IsPointer(l) && mir2.PointerElem(l) != mir2.TyU8 {
+		return l
+	}
+	if mir2.IsPointer(r) && mir2.PointerElem(r) != mir2.TyU8 {
+		return r
+	}
 	if l == mir2.TyU16 || r == mir2.TyU16 {
 		return mir2.TyU16
 	}
-	if l == mir2.TyPtr || r == mir2.TyPtr {
-		return mir2.TyPtr
+	if mir2.IsPointer(l) {
+		return l
+	}
+	if mir2.IsPointer(r) {
+		return r
 	}
 	return l
 }
@@ -6004,4 +6080,11 @@ func rewriteExpr(expr hir.Expr, nameMap map[string]string) {
 		rewriteExpr(e.Then, nameMap)
 		rewriteExpr(e.Else, nameMap)
 	}
+}
+
+func pointerDerefType(ty mir2.Ty) mir2.Ty {
+	if elem := mir2.PointerElem(ty); elem != nil {
+		return elem
+	}
+	return mir2.TyU8
 }

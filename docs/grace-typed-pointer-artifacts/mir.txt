@@ -1,0 +1,12 @@
+; MIR2 module: typed-pointer.nanz
+fun @write(%r1: ^u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    %r2 = const 22136 : u16 [pointer]
+    %r3 = const 2 : u16 [acc]
+    %r4 = ptr_add %r1, %r3 : ptr [pointer]
+    store %r4, %r2 : u16
+    %r5 = const 2 : u16 [index]
+    %r6 = ptr_add %r1, %r5 : ptr [pointer]
+    %r7 = load %r6 : u16 [pointer]
+    ret %r7
+

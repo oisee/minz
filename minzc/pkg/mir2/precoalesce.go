@@ -61,7 +61,7 @@ func propagateClassHints(f *Func, info map[Reg]RegInfo) {
 					continue
 				}
 				// Only upgrade scalar ints; bool/ptr/u16 have their own classes.
-				if ri.Ty == TyBool || ri.Ty == TyPtr ||
+				if ri.Ty == TyBool || IsPointer(ri.Ty) ||
 					ri.Ty == TyU16 || ri.Ty == TyI16 {
 					continue
 				}

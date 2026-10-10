@@ -1,0 +1,223 @@
+[Z80-VALIDATE] get_pos: 4 invalid instruction(s)
+  line 9: >>> LD A, ? <<<
+  line 19: >>> ADD A, ? <<<
+[Z80-VALIDATE] get_len: 4 invalid instruction(s)
+  line 9: >>> LD A, ? <<<
+  line 19: >>> ADD A, ? <<<
+[Z80-VALIDATE] next_token: 10 invalid instruction(s)
+  line 18: >>> LD A, ? <<<
+  line 28: >>> LD A, ? <<<
+  line 38: >>> LD A, ? <<<
+  line 50: >>> LD A, ? <<<
+  line 57: >>> LD A, ? <<<
+[Z80-VALIDATE] main: 2 invalid instruction(s)
+  line 8: >>> LD (D), A <<<
+[Z80-VALIDATE] try_rotate: 2 invalid instruction(s)
+  line 5: >>> LD D, (H) <<<
+[Z80-VALIDATE] spawn_piece: 2 invalid instruction(s)
+  line 5: >>> LD E, (E) <<<
+[Z80-VALIDATE] draw_info: 3 invalid instruction(s)
+  line 5: >>> LD D, (D) <<<
+[Z80-VALIDATE] WriteU8: 1 invalid instruction(s)
+  line 24: >>> JR C, .wu8_ones <<<
+[Z80-VALIDATE] main: 8 invalid instruction(s)
+  line 14: >>> LD E, (C)     ; lo <<<
+  line 16: >>> LD D, (C)     ; hi <<<
+  line 18: >>> LD L, (C)     ; lo <<<
+  line 20: >>> LD H, (C)     ; hi <<<
+[Z80-VALIDATE] MANHATTAN: 48 invalid instruction(s)
+  line 3: >>> LD L, (A)     ; lo <<<
+  line 5: >>> LD H, (A)     ; hi <<<
+  line 7: >>> LD E, (C)     ; lo <<<
+  line 9: >>> LD D, (C)     ; hi <<<
+  line 19: >>> LD L, (A)     ; lo <<<
+  line 21: >>> LD H, (A)     ; hi <<<
+  line 23: >>> LD E, (C)     ; lo <<<
+  line 25: >>> LD D, (C)     ; hi <<<
+  line 31: >>> LD L, (A)     ; lo <<<
+  line 33: >>> LD H, (A)     ; hi <<<
+  line 35: >>> LD E, (C)     ; lo <<<
+  line 37: >>> LD D, (C)     ; hi <<<
+  line 47: >>> LD L, (A)     ; lo <<<
+  line 49: >>> LD H, (A)     ; hi <<<
+  line 51: >>> LD E, (C)     ; lo <<<
+  line 53: >>> LD D, (C)     ; hi <<<
+  line 62: >>> LD L, (C)     ; lo <<<
+  line 64: >>> LD H, (C)     ; hi <<<
+  line 66: >>> LD E, (A)     ; lo <<<
+  line 68: >>> LD D, (A)     ; hi <<<
+  line 74: >>> LD L, (C)     ; lo <<<
+  line 76: >>> LD H, (C)     ; hi <<<
+  line 78: >>> LD E, (A)     ; lo <<<
+  line 80: >>> LD D, (A)     ; hi <<<
+[Z80-VALIDATE] POINTSUM: 8 invalid instruction(s)
+  line 3: >>> LD E, (A)     ; lo <<<
+  line 5: >>> LD D, (A)     ; hi <<<
+  line 7: >>> LD L, (A)     ; lo <<<
+  line 9: >>> LD H, (A)     ; hi <<<
+[Z80-VALIDATE] WriteU8: 1 invalid instruction(s)
+  line 24: >>> JR C, .wu8_ones <<<
+[Z80-VALIDATE] PRINTMSG: 4 invalid instruction(s)
+  line 8: >>> LD C, ? <<<
+  line 20: >>> LD C, ? <<<
+[Z80-VALIDATE] SUM_ARRAY: 2 invalid instruction(s)
+  line 25: >>> ADD A, ? <<<
+--- FAIL: TestShowcaseCompileAssemble (5.66s)
+    showcase_test.go:86: Found 188 showcase files
+    --- FAIL: TestShowcaseCompileAssemble/ex19_assert_forms.nanz (0.07s)
+        showcase_test.go:126: pipeline: line 115: assert "assert minmax(3, 7) == (3, 7)" [z80]: return[0] got 7, want 3
+    --- FAIL: TestShowcaseCompileAssemble/hello_zx.nanz (0.00s)
+        showcase_test.go:120: frontend .nanz: line 14: import zx.console: module not found (searched , )
+    --- FAIL: TestShowcaseCompileAssemble/hello_world.nanz (0.00s)
+        showcase_test.go:120: frontend .nanz: line 7: import stdlib.agon.mos: module not found (searched , )
+    --- FAIL: TestShowcaseCompileAssemble/nc_agon.nanz (0.00s)
+        showcase_test.go:120: frontend .nanz: line 6: import agon.tui_render: module not found (searched , )
+    --- FAIL: TestShowcaseCompileAssemble/tui_demo.nanz (0.00s)
+        showcase_test.go:120: frontend .nanz: line 6: import agon.tui_render: module not found (searched , )
+    --- FAIL: TestShowcaseCompileAssemble/tui_hello.nanz (0.00s)
+        showcase_test.go:120: frontend .nanz: line 6: import agon.tui_render: module not found (searched , )
+    --- FAIL: TestShowcaseCompileAssemble/crypto.lizp (0.01s)
+        showcase_test.go:126: pipeline: line 26: assert "assert caesar_encrypt(65, 3) == 68" [z80]: got 65, want 68
+    --- FAIL: TestShowcaseCompileAssemble/dsp.lizp (0.00s)
+        showcase_test.go:126: pipeline: line 20: assert "assert sawtooth(0, 10) == 0" [mir2]: got 25, want 0
+    --- FAIL: TestShowcaseCompileAssemble/scheme_r5rs.lizp (0.03s)
+        showcase_test.go:126: pipeline: line 56: assert "assert fact_loop(5) == 120" [z80]: got 6, want 120
+    --- FAIL: TestShowcaseCompileAssemble/self_tokenizer.lizp (0.04s)
+        showcase_test.go:126: pipeline: line 156: assert "assert is_ws(32) == 1" [z80]: assemble errors: line 143: unknown instruction or invalid operands: LD
+    --- FAIL: TestShowcaseCompileAssemble/51_impl_cpm_demo.nanz (0.01s)
+        showcase_test.go:137: asm error: line 10: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 10: unknown instruction or invalid operands: LD
+        showcase_test.go:139: assembly produced 2 errors
+    --- FAIL: TestShowcaseCompileAssemble/irc_client.nanz (0.00s)
+        showcase_test.go:120: frontend .nanz: line 10: import tui.render: module not found (searched , )
+    --- FAIL: TestShowcaseCompileAssemble/meta_screen.nanz (0.00s)
+        showcase_test.go:120: frontend .nanz: line 9: import tui.render: module not found (searched , )
+    --- FAIL: TestShowcaseCompileAssemble/promoted_arithmetic.nanz (0.10s)
+        showcase_test.go:126: pipeline: line 39: assert "assert test_ld_word(52, 18) == 4660 via z80" [z80]: got 4626, want 4660
+    --- FAIL: TestShowcaseCompileAssemble/sap_mara_cpm.nanz (0.00s)
+        showcase_test.go:120: frontend .nanz: line 6: import tui.render: module not found (searched , )
+    --- FAIL: TestShowcaseCompileAssemble/screen_alv.nanz (0.00s)
+        showcase_test.go:120: frontend .nanz: line 8: import tui.render: module not found (searched , )
+    --- FAIL: TestShowcaseCompileAssemble/screen_declarative.nanz (0.00s)
+        showcase_test.go:120: frontend .nanz: line 12: import tui.render: module not found (searched , )
+    --- FAIL: TestShowcaseCompileAssemble/sql_test6.nanz (0.00s)
+        showcase_test.go:120: frontend .nanz: line 1: import tui.render: module not found (searched , )
+    --- FAIL: TestShowcaseCompileAssemble/sqlite_test.nanz (0.00s)
+        showcase_test.go:120: frontend .nanz: line 6: import tui.render: module not found (searched , )
+    --- FAIL: TestShowcaseCompileAssemble/test_irc_minimal.nanz (0.00s)
+        showcase_test.go:120: frontend .nanz: line 1: import tui.render: module not found (searched , )
+    --- FAIL: TestShowcaseCompileAssemble/tetris_cpm.nanz (0.00s)
+        showcase_test.go:120: frontend .nanz: line 9: import tui.render: module not found (searched , )
+    --- FAIL: TestShowcaseCompileAssemble/tetris_tui.nanz (0.52s)
+        showcase_test.go:137: asm error: line 1055: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 1238: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 1770: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 1055: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 1238: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 1770: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 1055: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 1238: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 1770: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 1055: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 1238: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 1770: unknown instruction or invalid operands: LD
+        showcase_test.go:139: assembly produced 12 errors
+    --- FAIL: TestShowcaseCompileAssemble/typed_print.nanz (0.00s)
+        showcase_test.go:120: frontend .nanz: line 2: import text.print: module not found (searched , )
+    --- FAIL: TestShowcaseCompileAssemble/zsql.nanz (0.00s)
+        showcase_test.go:120: frontend .nanz: line 12: import sql.sqlite: module not found (searched , )
+    --- FAIL: TestShowcaseCompileAssemble/zsql_zx.nanz (0.00s)
+        showcase_test.go:120: frontend .nanz: line 9: import sql.sqlite: module not found (searched , )
+    --- FAIL: TestShowcaseCompileAssemble/zsql_zx_real.nanz (0.00s)
+        showcase_test.go:120: frontend .nanz: line 12: import sql.sqlite: module not found (searched , )
+    --- FAIL: TestShowcaseCompileAssemble/bubble_sort.pas (0.04s)
+        showcase_test.go:137: asm error: line 254: unknown instruction or invalid operands: JR
+        showcase_test.go:137: asm error: line 254: unknown instruction or invalid operands: JR
+        showcase_test.go:139: assembly produced 2 errors
+    --- FAIL: TestShowcaseCompileAssemble/records.pas (0.02s)
+        showcase_test.go:137: asm error: line 16: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 18: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 20: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 22: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 33: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 35: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 37: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 39: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 49: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 51: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 53: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 55: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 61: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 63: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 65: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 67: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 77: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 79: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 81: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 83: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 92: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 94: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 96: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 98: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 104: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 106: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 108: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 110: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 119: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 121: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 123: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 125: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 16: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 18: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 20: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 22: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 33: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 35: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 37: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 39: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 49: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 51: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 53: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 55: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 61: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 63: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 65: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 67: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 77: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 79: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 81: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 83: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 92: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 94: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 96: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 98: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 104: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 106: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 108: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 110: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 119: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 121: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 123: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 125: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 178: unknown instruction or invalid operands: JR
+        showcase_test.go:139: assembly produced 65 errors
+    --- FAIL: TestShowcaseCompileAssemble/hello.plm (0.00s)
+        showcase_test.go:137: asm error: line 14: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 26: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 12: unknown instruction or invalid operands: CALL
+        showcase_test.go:137: asm error: line 14: unknown instruction or invalid operands: LD
+        showcase_test.go:137: asm error: line 24: unknown instruction or invalid operands: CALL
+        showcase_test.go:137: asm error: line 26: unknown instruction or invalid operands: LD
+        showcase_test.go:139: assembly produced 6 errors
+    --- FAIL: TestShowcaseCompileAssemble/sum_array.plm (0.00s)
+        showcase_test.go:137: asm error: line 27: unknown instruction or invalid operands: ADD
+        showcase_test.go:137: asm error: line 23: unknown instruction or invalid operands: CALL
+        showcase_test.go:137: asm error: line 27: unknown instruction or invalid operands: ADD
+        showcase_test.go:139: assembly produced 3 errors
+    --- FAIL: TestShowcaseCompileAssemble/asm_caller_callee.nanz (0.02s)
+        showcase_test.go:126: pipeline: line 28: assert "assert test_abc() == 60 via z80" [z80]: got 70, want 60
+    --- FAIL: TestShowcaseCompileAssemble/console_demo.nanz (0.00s)
+        showcase_test.go:120: frontend .nanz: line 8: import zx.console: module not found (searched , )
+FAIL
+FAIL	github.com/minz/minzc/pkg/nanz	5.664s
+FAIL

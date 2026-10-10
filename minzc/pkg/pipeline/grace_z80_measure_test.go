@@ -53,19 +53,21 @@ func measureGraceZ80HIR(t *testing.T, h *hir.Module, name string, options Option
 		}
 		z.Step()
 	}
+	entrySP := z.GetSP()
+	returnPC := uint16(z.GetMemory(entrySP)) | uint16(z.GetMemory(entrySP+1))<<8
 	start := z.GetCycles()
 	for i := 0; ; i++ {
 		if i > 100000 {
-			t.Fatal("function did not return")
+			t.Fatalf("function did not return: PC=%04x SP=%04x wantPC=%04x SP=%04x\n%s\n%s", z.GetPC(), z.GetSP(), returnPC, entrySP+2, s.MIR2Opt, s.Assembly)
 		}
 		z.Step()
-		if z.GetPC() < uint16(pc) {
+		if z.GetPC() == returnPC && z.GetSP() == entrySP+2 {
 			break
 		}
 	}
 	cycles := z.GetCycles() - start
-	if err := checkAssertZ80Result(z, a, f, map[string]*hir.Func{name: h.Funcs[0]}); err != nil {
-		t.Fatal(err)
+	if err := checkAssertZ80Result(z, a, f, map[string]*hir.Func{name: h.FuncByName(name)}); err != nil {
+		t.Fatalf("%v\n%s", err, s.Assembly)
 	}
 	size, err := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + s.Assembly)
 	if err != nil || len(size.Errors) > 0 {

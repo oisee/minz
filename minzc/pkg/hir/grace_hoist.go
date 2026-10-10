@@ -128,13 +128,13 @@ func findGraceHoist(f *Func, b *Block, globals map[string]bool) *graceHoist {
 		var candidate *BinExpr
 		check := func(e Expr) {
 			x, ok := e.(*BinExpr)
-			if !ok || candidate != nil || x.Op != "+" || (x.Ty != mir2.TyU16 && x.Ty != mir2.TyPtr) || !leaf(x.L) || !leaf(x.R) {
+			if !ok || candidate != nil || x.Op != "+" || (x.Ty != mir2.TyU16 && !mir2.IsPointer(x.Ty)) || !leaf(x.L) || !leaf(x.R) {
 				return
 			}
 			// Require a pointer parameter: this first rule targets address bases.
 			l, lok := x.L.(*VarRefExpr)
 			r, rok := x.R.(*VarRefExpr)
-			if (lok && l.Ty == mir2.TyPtr) || (rok && r.Ty == mir2.TyPtr) {
+			if (lok && mir2.IsPointer(l.Ty)) || (rok && mir2.IsPointer(r.Ty)) {
 				candidate = x
 			}
 		}
