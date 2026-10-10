@@ -1,0 +1,62 @@
+; MIR2 module: examples/nanz/01_sum_array.nanz
+string @mir2.str.0 = "sum = "
+global @arr : [5]u8
+
+fun @sum_array(%r1: ptr [pointer], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = const 0 : u8 [general]
+    %r4 = const 0 : u8 [general]
+    jmp @loop_head1(%r4, %r2, %r1, %r3)
+  block @loop_head1(%r5: u8 [general], %r6: u8 [general], %r7: ptr [general], %r8: u8 [general]):
+    %r9 = cmp.ult %r5, %r6 : bool [flag]
+    br_if %r9, @loop_body2(), @loop_exit3(%r5, %r6, %r7, %r8)
+  block @loop_body2:
+    %r10 = ext %r5 : u8 -> u16 [index]
+    %r11 = ptr_add %r7, %r10 : ptr [pointer]
+    %r12 = load %r11 : u8 [general]
+    %r13 = add %r8, %r12 : u8 [general]
+    %r14 = const 1 : u8 [general]
+    %r15 = add %r5, %r14 : u8 [general]
+    jmp @loop_head1(%r15, %r6, %r7, %r13)
+  block @loop_exit3(%r16: u8 [general], %r17: u8 [general], %r18: ptr [general], %r19: u8 [general]):
+    ret %r19
+
+fun @main()
+  block @entry:
+    %r20 = const 1 : u8 [general]
+    %r21 = addr_of @arr : ptr [pointer]
+    %r22 = const 0 : u8 [general]
+    %r23 = ptr_add %r21, %r22 : ptr [pointer]
+    store %r23, %r20 : u8
+    %r24 = const 2 : u8 [general]
+    %r25 = addr_of @arr : ptr [pointer]
+    %r26 = const 1 : u8 [general]
+    %r27 = ptr_add %r25, %r26 : ptr [pointer]
+    store %r27, %r24 : u8
+    %r28 = const 3 : u8 [general]
+    %r29 = addr_of @arr : ptr [pointer]
+    %r30 = const 2 : u8 [general]
+    %r31 = ptr_add %r29, %r30 : ptr [pointer]
+    store %r31, %r28 : u8
+    %r32 = const 4 : u8 [general]
+    %r33 = addr_of @arr : ptr [pointer]
+    %r34 = const 3 : u8 [general]
+    %r35 = ptr_add %r33, %r34 : ptr [pointer]
+    store %r35, %r32 : u8
+    %r36 = const 5 : u8 [general]
+    %r37 = addr_of @arr : ptr [pointer]
+    %r38 = const 4 : u8 [general]
+    %r39 = ptr_add %r37, %r38 : ptr [pointer]
+    store %r39, %r36 : u8
+    %r40 = addr_of @arr : ptr [pointer]
+    %r41 = move %r40 : ptr [pointer]
+    %r42 = const 5 : u8 [general]
+    %r43 = call @sum_array(%r41, %r42) : u8 [acc]
+    %r44 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r45 = move %r44 : ptr [pointer]
+    call @@mir.io.print.str(%r45)
+    %r46 = move %r43 : u8 [acc]
+    call @@mir.io.print.u8(%r46)
+    call @@mir.io.print.nl()
+    ret void
+
