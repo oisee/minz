@@ -1,0 +1,91 @@
+{
+  "schema": "minz.profile-workload/v1",
+  "target_model": "cpm-z80-v1",
+  "max_steps": 1000000,
+  "max_memory": 65536,
+  "resources": {},
+  "globals": {
+    "arena": "NBJ4Vg==",
+    "frame": "NBJ4Vg==",
+    "level": "NBJ4Vg==",
+    "perm": "NBJ4Vg=="
+  },
+  "calls": [
+    {
+      "function": "test_sizeof",
+      "arguments": []
+    },
+    {
+      "function": "test_alloc_sequence",
+      "arguments": []
+    },
+    {
+      "function": "test_oom",
+      "arguments": []
+    },
+    {
+      "function": "test_small_allocs",
+      "arguments": []
+    },
+    {
+      "function": "test_split",
+      "arguments": []
+    },
+    {
+      "function": "test_typed_alloc",
+      "arguments": []
+    },
+    {
+      "function": "init_frame",
+      "arguments": []
+    },
+    {
+      "function": "alloc_and_check",
+      "arguments": [
+        {
+          "value": 49152
+        }
+      ]
+    },
+    {
+      "function": "get_remaining",
+      "arguments": []
+    },
+    {
+      "function": "alloc_and_check",
+      "arguments": [
+        {
+          "value": 49216
+        }
+      ]
+    },
+    {
+      "function": "get_remaining",
+      "arguments": []
+    },
+    {
+      "function": "alloc_and_check",
+      "arguments": [
+        {
+          "value": 49281
+        }
+      ]
+    },
+    {
+      "function": "get_remaining",
+      "arguments": []
+    },
+    {
+      "function": "alloc_and_check",
+      "arguments": [
+        {
+          "value": 49344
+        }
+      ]
+    },
+    {
+      "function": "get_remaining",
+      "arguments": []
+    }
+  ]
+}

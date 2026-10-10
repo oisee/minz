@@ -1,0 +1,18 @@
+[
+  {
+    "binary_sha256": "e83315a464f6e8ff7abc24db2dd9cd6ec6c5843fbddad3d9c9313fdd9414f4fc",
+    "candidate": 0,
+    "common_grace_rules": false,
+    "executed_steps": 2400,
+    "module_bytes": 106,
+    "total_t_states": 17490
+  },
+  {
+    "binary_sha256": "e83315a464f6e8ff7abc24db2dd9cd6ec6c5843fbddad3d9c9313fdd9414f4fc",
+    "candidate": 1,
+    "common_grace_rules": true,
+    "executed_steps": 2400,
+    "module_bytes": 106,
+    "total_t_states": 17490
+  }
+]

@@ -1,0 +1,37 @@
+{
+  "exact_data_access": true,
+  "schema": "minz.profile-workload/v1",
+  "target_model": "cpm-z80-v1",
+  "max_steps": 100000,
+  "max_memory": 65536,
+  "resources": {
+    "array": "AQIDBAU="
+  },
+  "globals": {
+    "calls": "CQ=="
+  },
+  "calls": [
+    {
+      "function": "caller",
+      "arguments": [
+        {
+          "resource": "array"
+        },
+        {
+          "value": 5
+        }
+      ]
+    },
+    {
+      "function": "caller",
+      "arguments": [
+        {
+          "resource": "array"
+        },
+        {
+          "value": 5
+        }
+      ]
+    }
+  ]
+}

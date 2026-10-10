@@ -1,0 +1,21 @@
+{
+  "__mul8": 32878,
+  "__mul8.__mul8_loop": 32882,
+  "__mul8.__mul8_noadd": 32891,
+  "fact": 32828,
+  "fact_tail": 32795,
+  "fact_tail.fact_tail_if_join2": 32805,
+  "fact_tail.fact_tail_if_then1": 32803,
+  "fib": 32785,
+  "fib_tail": 32768,
+  "fib_tail.fib_tail_if_join2": 32773,
+  "fib_tail.fib_tail_if_then1": 32771,
+  "pow2": 32872,
+  "pow2_tail": 32858,
+  "pow2_tail.pow2_tail_if_join2": 32863,
+  "pow2_tail.pow2_tail_if_then1": 32861,
+  "sum_tail": 32834,
+  "sum_tail.sum_tail_if_join2": 32839,
+  "sum_tail.sum_tail_if_then1": 32837,
+  "sum_to": 32852
+}

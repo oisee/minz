@@ -1,0 +1,22 @@
+=== RUN   TestProfileCompleteSourcePrograms
+=== RUN   TestProfileCompleteSourcePrograms/arena
+    profile_program_test.go:177: 15 calls: baseline 14300T/1193B common 14300T/1193B selected 0; artifacts /tmp/minz-grace-pgo-resume/docs/grace-pgo-program-artifacts/arena
+=== RUN   TestProfileCompleteSourcePrograms/state-machine
+    profile_program_test.go:177: 1032 calls: baseline 85005T/99B common 85005T/99B selected 0; artifacts /tmp/minz-grace-pgo-resume/docs/grace-pgo-program-artifacts/state-machine
+=== RUN   TestProfileCompleteSourcePrograms/option
+    profile_program_test.go:177: 86 calls: baseline 31447T/234B common 31447T/234B selected 0; artifacts /tmp/minz-grace-pgo-resume/docs/grace-pgo-program-artifacts/option
+=== RUN   TestProfileCompleteSourcePrograms/result
+    profile_program_test.go:177: 87 calls: baseline 17490T/106B common 17490T/106B selected 0; artifacts /tmp/minz-grace-pgo-resume/docs/grace-pgo-program-artifacts/result
+=== RUN   TestProfileCompleteSourcePrograms/recursion
+    profile_program_test.go:177: 44 calls: baseline 329000T/129B common 329000T/129B selected 0; artifacts /tmp/minz-grace-pgo-resume/docs/grace-pgo-program-artifacts/recursion
+--- PASS: TestProfileCompleteSourcePrograms (5.09s)
+    --- PASS: TestProfileCompleteSourcePrograms/arena (0.99s)
+    --- PASS: TestProfileCompleteSourcePrograms/state-machine (2.69s)
+    --- PASS: TestProfileCompleteSourcePrograms/option (0.49s)
+    --- PASS: TestProfileCompleteSourcePrograms/result (0.50s)
+    --- PASS: TestProfileCompleteSourcePrograms/recursion (0.43s)
+=== RUN   TestProfileCompleteSourceProgramsArena
+    profile_program_test.go:184: 15 calls: baseline 14300T/1193B common 14300T/1193B selected 0; artifacts /tmp/minz-grace-pgo-resume/docs/grace-pgo-program-artifacts/arena
+--- PASS: TestProfileCompleteSourceProgramsArena (1.17s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	6.276s

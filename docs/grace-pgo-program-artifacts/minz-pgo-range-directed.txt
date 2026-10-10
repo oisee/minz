@@ -1,0 +1,17 @@
+=== RUN   TestProfileRealSourceCorpusPopcount
+    profile_corpus_test.go:150: 04_lut_popcount.nanz: 256 calls, one baseline, 7168 T-states, 512 module bytes; artifacts /tmp/minz-pgo-range-final/real-source-corpus/popcount
+--- PASS: TestProfileRealSourceCorpusPopcount (0.26s)
+=== RUN   TestProfileRangedScalarBoundsAndABI
+=== RUN   TestProfileRangedScalarBoundsAndABI/E
+=== RUN   TestProfileRangedScalarBoundsAndABI/F
+=== RUN   TestProfileRangedScalarBoundsAndABI/K
+=== RUN   TestProfileRangedScalarBoundsAndABI/L
+=== RUN   TestProfileRangedScalarBoundsAndABI/ŀ
+--- PASS: TestProfileRangedScalarBoundsAndABI (0.09s)
+    --- PASS: TestProfileRangedScalarBoundsAndABI/E (0.02s)
+    --- PASS: TestProfileRangedScalarBoundsAndABI/F (0.03s)
+    --- PASS: TestProfileRangedScalarBoundsAndABI/K (0.02s)
+    --- PASS: TestProfileRangedScalarBoundsAndABI/L (0.01s)
+    --- PASS: TestProfileRangedScalarBoundsAndABI/ŀ (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.354s

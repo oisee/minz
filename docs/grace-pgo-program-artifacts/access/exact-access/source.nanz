@@ -1,0 +1,21 @@
+global calls:u8=0
+fun left_sum(ptr:^u8,n:u8)->u8 {
+ var s:u8=0
+ var i:u8=0
+ while i<n {s=s+ptr[i]
+ i=i+1}
+ return s
+}
+fun right_sum(ptr:^u8,n:u8)->u8 {
+ var s:u8=0
+ var i:u8=0
+ while i<n {s=s+ptr[i]
+ i=i+1}
+ return s
+}
+fun caller(ptr:^u8,n:u8)->u8 {
+ var a:u8=left_sum(ptr,n)
+ var b:u8=right_sum(ptr,n)
+ calls=calls+1
+ return a+b
+}

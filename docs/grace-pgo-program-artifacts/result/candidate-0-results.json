@@ -1,0 +1,1247 @@
+{
+  "compatibility": {
+    "schema": "minz.loop-profile-compatibility/v1",
+    "context": {
+      "compiler_id": "executable-sha256:4a97c904405d6eed68092332b9ddd76f8685e873b034df511b2b3e312003aca6",
+      "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+      "target_id": "module-target:0/model:cpm-z80-v1",
+      "workload_sha256": "7cc8b606efb5d4b7124e5516d7218cf26aa6918dd040ce44a80906e6f4e6e0f8",
+      "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+      "dependencies": {
+        "../../../examples/nanz/13_result_error.nanz": "4721bf61952713a54d53f64748cd4503f92d0d26ce73ff9240bd4e562183650c"
+      }
+    },
+    "hir_sha256": "5a332b204e92284e9f8c5c2678c9691f15eedd05590940ce6fd6df766edfe2e5",
+    "origins_sha256": "088fb199ee3f96a03b6ca7b1e7e90d47a35fe6d9e33251646d18df78f7a2f570"
+  },
+  "binary_sha256": "e83315a464f6e8ff7abc24db2dd9cd6ec6c5843fbddad3d9c9313fdd9414f4fc",
+  "bootstrap_sha256": [
+    "fc12f6fe7cca7b7e4068aa763d0b8457f77a3d3e477300633eada32a4c9458a0",
+    "357f9a09033b29ccba3ab5378ea70c208eb05dad1ec35398c9652436d179cff4",
+    "4a677e530301b729a0486e29442ef4676b6eb66b0f7e3024ef3e440470436788",
+    "6cd2b1355c38120f4a97343dc20c25fb5caa4d913bbed974047ff3f8ccb359ae",
+    "1ee0bade7e1d8042cbda4e496c95c0bf2b53db59920e4b6ba952201187ff448b",
+    "984979f1024a3bf78b470ce1ce539752ae9fdaafa55bd8c3e9d6ab32589b9ee5",
+    "a58400ba30cf8df55f991e1d576beca6616f1e407f7eab1134cf6e932f6f23db",
+    "b0a2eb34967c1d0773cebd4bf6fcafc4cf7d93c7d86c265d38e824ad964359dc",
+    "7e6c473cb68325e4ae6d0056d78bae49c9ecd75ef1b51e08ff6601392cdc632a",
+    "89670d5888979b4137402c4b2b0bd60d0d2c0b5de0655bd38e9bc20b5e16f6d2",
+    "09670ce5e7817f50ea33f21bc5432eef5e4e04e78ecfb7f2d8fd6e281c914012",
+    "aa5ebd42e7cb7931ed01937023879ad50326b9f12c56f3a7d333f4ce619c0405",
+    "74470ee338a94e998a4aee28e070d4ccdaa74c90306fc7cbda1cc539537f55f1",
+    "4cdf4077f96e28f3b5ede961114beba167a756cf3a04a89697f2ea02e5994f68",
+    "764511efd49e9287070232686c56f114911186cd4d6105ccc94dd6820601b19d",
+    "57de22a2d22bfac7f03067a19afa753c82e29db4f7feda24350cccd7ba7569df",
+    "2e122d3ab0f522e446d3cf78a57ff19e3eb0007feeb2f4c5f2c41203467fe9fa",
+    "a214784a4e414da84f715a9c4f64206d73e4e43dd135ab9d967d1eace19f70d5",
+    "5ece75df1ed1fabe5af844215c656d130eafa69a79c5a80fc55d560a556af893",
+    "91ac7ca50028bdf78055600c4e9ba4b609cbe0a0ab976718bbfca2670c26dd59",
+    "b580016277f64798fa3712c0d6137d7cfbdfdb97335279212d9541c5ee06d23b",
+    "ed32822e85e58460042ef42aca20b10814d9dce64b9e8ba8adf866150778d971",
+    "498caf102f1b15ba447007e3386035cd45b375423b26eb7622caef54d449715d",
+    "96ddbc945588d76602b260ce9a9fa4f6600778280a2c1e058c14c72d64b5a079",
+    "47f8e0014281c709bed9c797e24010543b1151a4a686b27421d96d8d3daf9d1f",
+    "2fedc046bdf9f6d88d8de79effb3d847de2234a8d5a57b552d7f2e8ed46b3437",
+    "4dcaba8a9188fb74fe69690a397b62c3c56928bc4031816be84b070610fc1369",
+    "bbb4ad5397ed561b39fac1455eab409ec475c3656d6f04548460898d92cf0285",
+    "84297a328c42a1037069deba1e1d8d1c5ab8037e1e05a72eea929498ac1cbd03",
+    "603500de0035c0852c08887a1d387fa147b66c63916399f0800b1ec1164df394",
+    "caa41a2d1a7bf3c1e4c9236776ca8abfec914c959f1754bf7c2a1b40983310dc",
+    "79b8948caa1c6b339070edb29bbf971e1ab39a88a8ca01c88eeb2ccbedd7f7cf",
+    "936a55dc7f804c0cfb11d2ffac1ac59f5cf27e426d76fb0b719a73e540434fd1",
+    "0c0739b7d16471ba2551b952206ea3827c18cf43563e313e1f40d36ea7b1c9d3",
+    "b982847145cc284830b629fa65fc4a70fbec9031a1b03eb691c7453ea14a7cb1",
+    "6340fe73e7e65dd4b933aeaf4de19689d4e277d2dd63c801a2e5c81f5adf075b",
+    "c2829acb3a498c3d559c5c9e1862479e9bbdb36f4b5e94f4e533790aa069fdf0",
+    "770cd5d6382d2c0d8e987634d6cc2b6e620b1a22146e589ecc3873c58edcec48",
+    "f35a9645fc359cba178124fbc2db7b485f54d1ea107116afa163e6f7ceeca850",
+    "d91d4b4269956aeecd9b4d66a529e58ce6a836f448b4b5a7f7e2897a2e707fce",
+    "01190a8bce5a0b3d15f5926d4f002bd68a15218b47d9f128830dac17ac80845b",
+    "5ec62addce76c0267ba85db4da333a6f0673965c27638cab15e69d1c69af28bc",
+    "99234e343e4f369115c1810312aa62d45f46e09f7e500443ae7d34e4029eacdc",
+    "8f1fe44caebd0eae7052bbcf82b92be3c5e522bf71075fb0eaade258709d1f6a",
+    "a09b8fb5924cef31fad1757382ababa7b3f465111d06fa8d42209eff03610b44",
+    "6c789c6c44f1f0de31d2b47ef767c08a475238a61897bd1039ffa948464e31f9",
+    "3a2cf9bd0fa073a2484f70834c37b8b100e8b727f4da6d7d1d87a2d41b477c10",
+    "45c7f71db0ae6d6919b60e7babb6a6ae1105cafb5891d4fe158d35a33db81858",
+    "5ccfd7c4008ad36e5ca45ca80fb33d76671518b4f017434ef34492caf133e047",
+    "65027955efa66d67db9ddc3f0ce74049e45b65bb44fffa6b7ea0fdb6da351a47",
+    "397836a4499f2e61ee297fbde2f581310224a94f174357f01201741909635695",
+    "051993b593ed8f591fbf4c570e8c1d47c5a26453b941e24a6cb9390fcd004f04",
+    "af7922aac5a404f8e88e409ca89e3d9dcee9379fdf53fe6369fcbff27989840f",
+    "7fe47e4cbe4e6145e2b37ce0910392cda732ad8749d182b8435f5a21fac93652",
+    "b3c6038b2e044d4e731c302f87af2327f20f61daebeebb99c9ef7c27a51be8ab",
+    "5db2b254b929314274862ab5126027aac8997e465ddf1f126aec37a2301b503b",
+    "c00d1d2d4df069cde0d81f099b0862dbe5d06fef56f0b3eb527c9b5deea7e586",
+    "2b0fe154c746f124991564e7b1fa48c621bff112174a87167ac0565e57ff88db",
+    "55a15e73006c3a18ee955db6c04d37af94783021ae21caeac77677e1afaa5b1d",
+    "f4753047670944394c67098a7740b9552a77ec0a8d21360681543f2345a10023",
+    "05f3380d01d342f7955dcbdff76645c4f61484b733ef00925207b3ab871ec2dd",
+    "9046e21d5c04401ee461e50ed38a4ab0ca550806d0aeb0a3fffbfff29a4aaee0",
+    "0d8b779638d7fb289e28a201874f61d3e964b9c6394ec856a0f3e41535f8af04",
+    "62baffea9618271b42a03b0efe85137e4bf741744c8c0259567d91c93fcee40b",
+    "f5f9a5651c12e30527505a31e0aa7659bc89cf96a3765428b6c50f2f1f944ce6",
+    "546e95eac82b581cf157944674606d244df9b2907f58b638a0876c2c2eb0abea",
+    "fe6c39f6cf073d1bf99ac6df908acdc393a4788ef69f6afc773ef7aedf5a0b50",
+    "b60afc4e529d98910025d03d14a24dff4d12b1453952b5ca5f9cb6567d1e350c",
+    "e9f117649a0d624d9665bd27bc621c7ce2665837097f25c83bc9e6ceca3603de",
+    "7f8db9b5bb2c6d501324827a668fab98de0a5c6e3613115cb23a714b09bed0af",
+    "4dd9086a42e007cd66a5e1bea82ef237b32a7b8f8d95bc7ad8dd005582663169",
+    "5a82c83bb49719a6fea4b7116fe585572b8526b3d601707fb7c921d568c115d9",
+    "8d74e655044078493b4b01b6c9281fa2482efeadeee73ddbd8ce636244a26d21",
+    "2d8c08e767900d4a2dc2b08f6adf9612b673a99dc0914ba3129d57dd7c1d7db0",
+    "d42dcf9450618651d17c004d477c43dc2843fd2c7984714d26c75384deeac0bc",
+    "fe8b66aef58630c9725d39f83cc84b136e352b1eb43dd3357fd841c4c41ce414",
+    "8746e265068636bdd194164996411b3893401a220b9d3ba645cec487ab31fe3f",
+    "7a354e11429859c7c2f56d944b9177055e1e04b8b2be9794a8edb6459b0157eb",
+    "05d4700b3e3631013d0fc70f12db63eafdf023941ace347f11b74cc8204cf613",
+    "7667306c0cf56f6392f2051eb54b8fc91c5da3a9f86aada7e07e6eca4f99fa3b",
+    "1c8a6d4fbc119a37386374836e0dd4b05b6909a1011ed637e44c1c4c0c2df8a8",
+    "d0909b5003a034a73596950cf3e016c3655399e77be603ce212d2d0cce94114d",
+    "9fa4a9ac92ee7ff82d2b6e624d3ca96f5b4ba75b0eb56896cb0eb40bb8dc8df8",
+    "ceccc59fa8a8a061a6793b6e156742fa4f26cbdb09d03cc25e776daeb7fb764a",
+    "f0bef36ece0c6e2df809d58a4cd8f4cb292b199a7b060d701767082f7cb5fa2b",
+    "0f915facc52bbf08b6f3c7913305250a77fff0305da3844e4e34868f6e5fd1bf",
+    "0a676ffc727b92e5e9355bfc1516712a2a3ba279c9230c12251d112e0098a04f"
+  ],
+  "invocations": [
+    {
+      "function": "test_add_ok_tag",
+      "t_states": 17,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "test_add_ok_val",
+      "t_states": 17,
+      "results": [
+        {
+          "I": 30
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "test_add_overflow_tag",
+      "t_states": 17,
+      "results": [
+        {
+          "I": 1
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "test_add_overflow_code",
+      "t_states": 17,
+      "results": [
+        {
+          "I": 1
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "test_is_ok_pass",
+      "t_states": 17,
+      "results": [
+        {
+          "I": 1
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "test_is_ok_fail",
+      "t_states": 17,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 1
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 2
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 3
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 15
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 127
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 128
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 254
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 255
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 1
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 2
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 3
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 4
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 16
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 128
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 129
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 255
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 208,
+      "results": [
+        {
+          "I": 257
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 2
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 3
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 4
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 5
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 17
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 129
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 130
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 208,
+      "results": [
+        {
+          "I": 257
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 208,
+      "results": [
+        {
+          "I": 257
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 3
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 4
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 5
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 6
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 18
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 130
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 131
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 208,
+      "results": [
+        {
+          "I": 257
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 208,
+      "results": [
+        {
+          "I": 257
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 15
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 16
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 17
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 18
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 30
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 142
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 143
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 208,
+      "results": [
+        {
+          "I": 257
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 208,
+      "results": [
+        {
+          "I": 257
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 127
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 128
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 129
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 130
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 142
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 254
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 255
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 208,
+      "results": [
+        {
+          "I": 257
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 208,
+      "results": [
+        {
+          "I": 257
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 128
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 129
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 130
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 131
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 143
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 255
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 208,
+      "results": [
+        {
+          "I": 257
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 208,
+      "results": [
+        {
+          "I": 257
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 208,
+      "results": [
+        {
+          "I": 257
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 254
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 255
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 208,
+      "results": [
+        {
+          "I": 257
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 208,
+      "results": [
+        {
+          "I": 257
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 208,
+      "results": [
+        {
+          "I": 257
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 208,
+      "results": [
+        {
+          "I": 257
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 208,
+      "results": [
+        {
+          "I": 257
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 208,
+      "results": [
+        {
+          "I": 257
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 208,
+      "results": [
+        {
+          "I": 257
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 218,
+      "results": [
+        {
+          "I": 255
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 208,
+      "results": [
+        {
+          "I": 257
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 208,
+      "results": [
+        {
+          "I": 257
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 208,
+      "results": [
+        {
+          "I": 257
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 208,
+      "results": [
+        {
+          "I": 257
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 208,
+      "results": [
+        {
+          "I": 257
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 208,
+      "results": [
+        {
+          "I": 257
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 208,
+      "results": [
+        {
+          "I": 257
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "function": "safe_add",
+      "t_states": 208,
+      "results": [
+        {
+          "I": 257
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    }
+  ],
+  "globals": {},
+  "resources": {},
+  "resource_addresses": {},
+  "global_addresses": {},
+  "bootstrap_t_states": 3483,
+  "total_t_states": 17490,
+  "executed_steps": 2400
+}

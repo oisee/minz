@@ -1,0 +1,39 @@
+; HIR module: ../../../examples/nanz/13_result_error.nanz
+fun @safe_add(a: u8, b: u8) -> u16
+  var sum: u16 = (cast((a:u8)):u16 + cast((b:u8)):u16):u16
+  if ((sum:u16) > 255:u8):bool
+    return (256:u16 + cast(1:u8):u16):u16
+  return (0:u16 + cast(((a:u8) + (b:u8)):u8):u16):u16
+
+fun @is_ok(r: u16) -> u8
+  if (call @__tag((r:u16)):u8 == 0:u8):bool
+    return 1:u8
+  return 0:u8
+
+fun @unwrap(r: u16) -> u8
+  return call @__payload((r:u16)):u8
+
+fun @test_add_ok_tag() -> u8
+  return call @__tag(call @safe_add(10:u8, 20:u8):u16):u8
+
+fun @test_add_ok_val() -> u8
+  return call @__payload(call @safe_add(10:u8, 20:u8):u16):u8
+
+fun @test_add_overflow_tag() -> u8
+  return call @__tag(call @safe_add(200:u8, 200:u8):u16):u8
+
+fun @test_add_overflow_code() -> u8
+  return call @__payload(call @safe_add(200:u8, 200:u8):u16):u8
+
+fun @test_is_ok_pass() -> u8
+  return call @is_ok(call @safe_add(10:u8, 20:u8):u16):u8
+
+fun @test_is_ok_fail() -> u8
+  return call @is_ok(call @safe_add(200:u8, 200:u8):u16):u8
+
+fun @__tag(x: u16) -> u8
+  return cast(((x:u16) / 256:u16):u16):u8
+
+fun @__payload(x: u16) -> u8
+  return cast(((x:u16) % 256:u16):u16):u8
+

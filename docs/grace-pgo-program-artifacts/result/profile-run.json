@@ -1,0 +1,820 @@
+{
+  "profile": {
+    "guards": [],
+    "compatibility": {
+      "schema": "minz.loop-profile-compatibility/v1",
+      "context": {
+        "compiler_id": "executable-sha256:4a97c904405d6eed68092332b9ddd76f8685e873b034df511b2b3e312003aca6",
+        "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+        "target_id": "module-target:0/model:cpm-z80-v1",
+        "workload_sha256": "7cc8b606efb5d4b7124e5516d7218cf26aa6918dd040ce44a80906e6f4e6e0f8",
+        "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+        "dependencies": {
+          "../../../examples/nanz/13_result_error.nanz": "4721bf61952713a54d53f64748cd4503f92d0d26ce73ff9240bd4e562183650c"
+        }
+      },
+      "hir_sha256": "5a332b204e92284e9f8c5c2678c9691f15eedd05590940ce6fd6df766edfe2e5",
+      "origins_sha256": "088fb199ee3f96a03b6ca7b1e7e90d47a35fe6d9e33251646d18df78f7a2f570"
+    },
+    "schema": "minz.input-hir-loop-observations/v4",
+    "stage": "unoptimised-mir2-vm",
+    "sites": {
+      "schema": "minz.hir-loop-sites/v1",
+      "stage": "input-hir",
+      "sites": [],
+      "unmapped_loops": 0
+    },
+    "counts": [],
+    "completed_calls": 87,
+    "failed_calls": 0
+  },
+  "results": [
+    [
+      {
+        "I": 0
+      }
+    ],
+    [
+      {
+        "I": 30
+      }
+    ],
+    [
+      {
+        "I": 1
+      }
+    ],
+    [
+      {
+        "I": 1
+      }
+    ],
+    [
+      {
+        "I": 1
+      }
+    ],
+    [
+      {
+        "I": 0
+      }
+    ],
+    [
+      {
+        "I": 0
+      }
+    ],
+    [
+      {
+        "I": 1
+      }
+    ],
+    [
+      {
+        "I": 2
+      }
+    ],
+    [
+      {
+        "I": 3
+      }
+    ],
+    [
+      {
+        "I": 15
+      }
+    ],
+    [
+      {
+        "I": 127
+      }
+    ],
+    [
+      {
+        "I": 128
+      }
+    ],
+    [
+      {
+        "I": 254
+      }
+    ],
+    [
+      {
+        "I": 255
+      }
+    ],
+    [
+      {
+        "I": 1
+      }
+    ],
+    [
+      {
+        "I": 2
+      }
+    ],
+    [
+      {
+        "I": 3
+      }
+    ],
+    [
+      {
+        "I": 4
+      }
+    ],
+    [
+      {
+        "I": 16
+      }
+    ],
+    [
+      {
+        "I": 128
+      }
+    ],
+    [
+      {
+        "I": 129
+      }
+    ],
+    [
+      {
+        "I": 255
+      }
+    ],
+    [
+      {
+        "I": 257
+      }
+    ],
+    [
+      {
+        "I": 2
+      }
+    ],
+    [
+      {
+        "I": 3
+      }
+    ],
+    [
+      {
+        "I": 4
+      }
+    ],
+    [
+      {
+        "I": 5
+      }
+    ],
+    [
+      {
+        "I": 17
+      }
+    ],
+    [
+      {
+        "I": 129
+      }
+    ],
+    [
+      {
+        "I": 130
+      }
+    ],
+    [
+      {
+        "I": 257
+      }
+    ],
+    [
+      {
+        "I": 257
+      }
+    ],
+    [
+      {
+        "I": 3
+      }
+    ],
+    [
+      {
+        "I": 4
+      }
+    ],
+    [
+      {
+        "I": 5
+      }
+    ],
+    [
+      {
+        "I": 6
+      }
+    ],
+    [
+      {
+        "I": 18
+      }
+    ],
+    [
+      {
+        "I": 130
+      }
+    ],
+    [
+      {
+        "I": 131
+      }
+    ],
+    [
+      {
+        "I": 257
+      }
+    ],
+    [
+      {
+        "I": 257
+      }
+    ],
+    [
+      {
+        "I": 15
+      }
+    ],
+    [
+      {
+        "I": 16
+      }
+    ],
+    [
+      {
+        "I": 17
+      }
+    ],
+    [
+      {
+        "I": 18
+      }
+    ],
+    [
+      {
+        "I": 30
+      }
+    ],
+    [
+      {
+        "I": 142
+      }
+    ],
+    [
+      {
+        "I": 143
+      }
+    ],
+    [
+      {
+        "I": 257
+      }
+    ],
+    [
+      {
+        "I": 257
+      }
+    ],
+    [
+      {
+        "I": 127
+      }
+    ],
+    [
+      {
+        "I": 128
+      }
+    ],
+    [
+      {
+        "I": 129
+      }
+    ],
+    [
+      {
+        "I": 130
+      }
+    ],
+    [
+      {
+        "I": 142
+      }
+    ],
+    [
+      {
+        "I": 254
+      }
+    ],
+    [
+      {
+        "I": 255
+      }
+    ],
+    [
+      {
+        "I": 257
+      }
+    ],
+    [
+      {
+        "I": 257
+      }
+    ],
+    [
+      {
+        "I": 128
+      }
+    ],
+    [
+      {
+        "I": 129
+      }
+    ],
+    [
+      {
+        "I": 130
+      }
+    ],
+    [
+      {
+        "I": 131
+      }
+    ],
+    [
+      {
+        "I": 143
+      }
+    ],
+    [
+      {
+        "I": 255
+      }
+    ],
+    [
+      {
+        "I": 257
+      }
+    ],
+    [
+      {
+        "I": 257
+      }
+    ],
+    [
+      {
+        "I": 257
+      }
+    ],
+    [
+      {
+        "I": 254
+      }
+    ],
+    [
+      {
+        "I": 255
+      }
+    ],
+    [
+      {
+        "I": 257
+      }
+    ],
+    [
+      {
+        "I": 257
+      }
+    ],
+    [
+      {
+        "I": 257
+      }
+    ],
+    [
+      {
+        "I": 257
+      }
+    ],
+    [
+      {
+        "I": 257
+      }
+    ],
+    [
+      {
+        "I": 257
+      }
+    ],
+    [
+      {
+        "I": 257
+      }
+    ],
+    [
+      {
+        "I": 255
+      }
+    ],
+    [
+      {
+        "I": 257
+      }
+    ],
+    [
+      {
+        "I": 257
+      }
+    ],
+    [
+      {
+        "I": 257
+      }
+    ],
+    [
+      {
+        "I": 257
+      }
+    ],
+    [
+      {
+        "I": 257
+      }
+    ],
+    [
+      {
+        "I": 257
+      }
+    ],
+    [
+      {
+        "I": 257
+      }
+    ],
+    [
+      {
+        "I": 257
+      }
+    ]
+  ],
+  "snapshots": [
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    }
+  ],
+  "globals": {},
+  "resources": {}
+}

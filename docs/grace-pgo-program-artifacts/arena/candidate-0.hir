@@ -1,0 +1,143 @@
+; HIR module: ../../../examples/nanz/08_arena_allocator.nanz
+struct @Arena { ptr: u16, end: u16 }
+struct @Enemy { x: u8, y: u8, hp: u8, sprite: u8 }
+struct @Vec2 { x: u16, y: u16 }
+global @arena : Arena
+global @perm : Arena
+global @level : Arena
+global @frame : Arena
+
+fun @Arena_init(self: ptr, base: u16, size: u16)
+  ((self:ptr)).ptr[+0]:u16 = (base:u16)
+  ((self:ptr)).end[+2]:u16 = ((base:u16) + (size:u16)):u16
+
+fun @Arena_alloc(self: ptr, n: u16) -> u16
+  var result: u16 = ((self:ptr)).ptr[+0]:u16
+  var next: u16 = ((result:u16) + (n:u16)):u16
+  if ((next:u16) > ((self:ptr)).end[+2]:u16):bool
+    return 0:u8
+  ((self:ptr)).ptr[+0]:u16 = (next:u16)
+  return (result:u16)
+
+fun @Arena_reset(self: ptr, base: u16)
+  ((self:ptr)).ptr[+0]:u16 = (base:u16)
+
+fun @Arena_used(self: ptr, base: u16) -> u16
+  return (((self:ptr)).ptr[+0]:u16 - (base:u16)):u16
+
+fun @Arena_remaining(self: ptr) -> u16
+  return (((self:ptr)).end[+2]:u16 - ((self:ptr)).ptr[+0]:u16):u16
+
+fun @arena_split(a: ptr, start: u16, size: u16) -> u16
+  call @Arena_init((a:ptr), (start:u16), (size:u16)):void
+  return ((start:u16) + (size:u16)):u16
+
+fun @test_alloc_sequence() -> u16
+  call @Arena_init((arena:Arena), 49152:u16, 16128:u16):void
+  var a: u16 = call @Arena_alloc((arena:Arena), 256:u16):u16
+  var b: u16 = call @Arena_alloc((arena:Arena), 256:u16):u16
+  var c: u16 = call @Arena_alloc((arena:Arena), 256:u16):u16
+  if ((a:u16) != 49152:u16):bool
+    return 1:u8
+  if ((b:u16) != 49408:u16):bool
+    return 2:u8
+  if ((c:u16) != 49664:u16):bool
+    return 3:u8
+  call @Arena_reset((arena:Arena), 49152:u16):void
+  var d: u16 = call @Arena_alloc((arena:Arena), 100:u8):u16
+  if ((d:u16) != 49152:u16):bool
+    return 5:u8
+  if (call @Arena_used((arena:Arena), 49152:u16):u16 != 100:u8):bool
+    return 6:u8
+  return 0:u8
+
+fun @test_oom() -> u16
+  call @Arena_init((arena:Arena), 49152:u16, 16:u8):void
+  var a: u16 = call @Arena_alloc((arena:Arena), 8:u8):u16
+  if ((a:u16) == 0:u8):bool
+    return 1:u8
+  var b: u16 = call @Arena_alloc((arena:Arena), 8:u8):u16
+  if ((b:u16) == 0:u8):bool
+    return 2:u8
+  var c: u16 = call @Arena_alloc((arena:Arena), 1:u8):u16
+  if ((c:u16) != 0:u8):bool
+    return 3:u8
+  return 0:u8
+
+fun @test_small_allocs() -> u16
+  call @Arena_init((arena:Arena), 49152:u16, 1024:u16):void
+  var p1: u16 = call @Arena_alloc((arena:Arena), 1:u8):u16
+  var p2: u16 = call @Arena_alloc((arena:Arena), 1:u8):u16
+  var p3: u16 = call @Arena_alloc((arena:Arena), 2:u8):u16
+  if ((p1:u16) != 49152:u16):bool
+    return 1:u8
+  if ((p2:u16) != 49153:u16):bool
+    return 2:u8
+  if ((p3:u16) != 49154:u16):bool
+    return 3:u8
+  if (call @Arena_remaining((arena:Arena)):u16 != 1020:u16):bool
+    return 4:u8
+  return 0:u8
+
+fun @test_sizeof() -> u16
+  if (4:u8 != 4:u8):bool
+    return 1:u8
+  return 0:u8
+
+fun @test_split() -> u16
+  var next: u16 = call @arena_split(addr @perm:ptr, 49152:u16, 256:u16):u16
+  if ((next:u16) != 49408:u16):bool
+    return 1:u8
+  var next2: u16 = call @arena_split(addr @level:ptr, (next:u16), 2048:u16):u16
+  if ((next2:u16) != 51456:u16):bool
+    return 2:u8
+  var next3: u16 = call @arena_split(addr @frame:ptr, (next2:u16), 1024:u16):u16
+  if ((next3:u16) != 52480:u16):bool
+    return 3:u8
+  var p1: u16 = call @Arena_alloc((perm:Arena), 4:u8):u16
+  var l1: u16 = call @Arena_alloc((level:Arena), 100:u8):u16
+  var f1: u16 = call @Arena_alloc((frame:Arena), 32:u8):u16
+  if ((p1:u16) != 49152:u16):bool
+    return 4:u8
+  if ((l1:u16) != 49408:u16):bool
+    return 5:u8
+  if ((f1:u16) != 51456:u16):bool
+    return 6:u8
+  call @Arena_reset((frame:Arena), 51456:u16):void
+  var f2: u16 = call @Arena_alloc((frame:Arena), 16:u8):u16
+  if ((f2:u16) != 51456:u16):bool
+    return 7:u8
+  var p2: u16 = call @Arena_alloc((perm:Arena), 4:u8):u16
+  if ((p2:u16) != 49156:u16):bool
+    return 8:u8
+  var l2: u16 = call @Arena_alloc((level:Arena), 100:u8):u16
+  if ((l2:u16) != 49508:u16):bool
+    return 9:u8
+  return 0:u8
+
+fun @test_typed_alloc() -> u16
+  call @Arena_init((arena:Arena), 49152:u16, 4096:u16):void
+  var e1: u16 = call @Arena_alloc((arena:Arena), 4:u8):u16
+  var e2: u16 = call @Arena_alloc((arena:Arena), 4:u8):u16
+  var v1: u16 = call @Arena_alloc((arena:Arena), 4:u8):u16
+  if ((e1:u16) != 49152:u16):bool
+    return 1:u8
+  if ((e2:u16) != 49156:u16):bool
+    return 2:u8
+  if ((v1:u16) != 49160:u16):bool
+    return 3:u8
+  return 0:u8
+
+fun @init_frame() -> u16
+  call @Arena_init((arena:Arena), 49152:u16, 16128:u16):void
+  return call @Arena_remaining((arena:Arena)):u16
+
+fun @alloc_and_check(expected: u16) -> u16
+  var p: u16 = call @Arena_alloc((arena:Arena), 64:u8):u16
+  if ((p:u16) != (expected:u16)):bool
+    return 1:u8
+  return 0:u8
+
+fun @get_remaining() -> u16
+  return call @Arena_remaining((arena:Arena)):u16
+

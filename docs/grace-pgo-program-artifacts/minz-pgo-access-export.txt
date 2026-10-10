@@ -1,0 +1,8 @@
+=== RUN   TestJointExactDataAccessRejectsZeroTripRead
+--- PASS: TestJointExactDataAccessRejectsZeroTripRead (0.24s)
+=== RUN   TestJointExactDataAccessPersistentCaller
+--- PASS: TestJointExactDataAccessPersistentCaller (0.57s)
+=== RUN   TestJointExactDataAccessStoreLoad
+--- PASS: TestJointExactDataAccessStoreLoad (0.10s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.921s

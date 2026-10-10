@@ -1,0 +1,36 @@
+=== RUN   TestProfileCompleteSourcePrograms
+=== RUN   TestProfileCompleteSourcePrograms/state-machine
+    profile_program_test.go:177: 1032 calls: baseline 85005T/99B common 85005T/99B selected 0; artifacts /tmp/TestProfileCompleteSourceProgramsstate-machine4163656193/001/state-machine
+=== RUN   TestProfileCompleteSourcePrograms/option
+    profile_program_test.go:177: 86 calls: baseline 31447T/234B common 31447T/234B selected 0; artifacts /tmp/TestProfileCompleteSourceProgramsoption545710365/001/option
+=== RUN   TestProfileCompleteSourcePrograms/result
+    profile_program_test.go:177: 87 calls: baseline 17490T/106B common 17490T/106B selected 0; artifacts /tmp/TestProfileCompleteSourceProgramsresult1144309075/001/result
+=== RUN   TestProfileCompleteSourcePrograms/recursion
+    profile_program_test.go:177: 44 calls: baseline 329000T/129B common 329000T/129B selected 0; artifacts /tmp/TestProfileCompleteSourceProgramsrecursion830437341/001/recursion
+--- PASS: TestProfileCompleteSourcePrograms (3.78s)
+    --- PASS: TestProfileCompleteSourcePrograms/state-machine (2.23s)
+    --- PASS: TestProfileCompleteSourcePrograms/option (0.53s)
+    --- PASS: TestProfileCompleteSourcePrograms/result (0.53s)
+    --- PASS: TestProfileCompleteSourcePrograms/recursion (0.48s)
+=== RUN   TestProfileCompleteSourceProgramsArenaKnownFailure
+    profile_program_test.go:184: KNOWN FAILURE: 15 raw calls and all snapshots verified; both assembled policies rejected: Z80 profile workload: invocation 2: line 0: assert "" [z80]: return[0] got 3, want 0; artifacts /tmp/TestProfileCompleteSourceProgramsArenaKnownFailure3566050887/001/arena
+--- PASS: TestProfileCompleteSourceProgramsArenaKnownFailure (0.72s)
+=== RUN   TestProfileCompleteSourcePrograms
+=== RUN   TestProfileCompleteSourcePrograms/state-machine
+    profile_program_test.go:177: 1032 calls: baseline 85005T/99B common 85005T/99B selected 0; artifacts /tmp/TestProfileCompleteSourceProgramsstate-machine3233838053/001/state-machine
+=== RUN   TestProfileCompleteSourcePrograms/option
+    profile_program_test.go:177: 86 calls: baseline 31447T/234B common 31447T/234B selected 0; artifacts /tmp/TestProfileCompleteSourceProgramsoption876188802/001/option
+=== RUN   TestProfileCompleteSourcePrograms/result
+    profile_program_test.go:177: 87 calls: baseline 17490T/106B common 17490T/106B selected 0; artifacts /tmp/TestProfileCompleteSourceProgramsresult2861089906/001/result
+=== RUN   TestProfileCompleteSourcePrograms/recursion
+    profile_program_test.go:177: 44 calls: baseline 329000T/129B common 329000T/129B selected 0; artifacts /tmp/TestProfileCompleteSourceProgramsrecursion1998256367/001/recursion
+--- PASS: TestProfileCompleteSourcePrograms (3.14s)
+    --- PASS: TestProfileCompleteSourcePrograms/state-machine (2.14s)
+    --- PASS: TestProfileCompleteSourcePrograms/option (0.38s)
+    --- PASS: TestProfileCompleteSourcePrograms/result (0.34s)
+    --- PASS: TestProfileCompleteSourcePrograms/recursion (0.28s)
+=== RUN   TestProfileCompleteSourceProgramsArenaKnownFailure
+    profile_program_test.go:184: KNOWN FAILURE: 15 raw calls and all snapshots verified; both assembled policies rejected: Z80 profile workload: invocation 2: line 0: assert "" [z80]: return[0] got 3, want 0; artifacts /tmp/TestProfileCompleteSourceProgramsArenaKnownFailure1982584092/001/arena
+--- PASS: TestProfileCompleteSourceProgramsArenaKnownFailure (0.49s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	8.143s

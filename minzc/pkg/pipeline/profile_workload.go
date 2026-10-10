@@ -18,10 +18,11 @@ import (
 // Z80ProfileInvocationEvidence measures entry through RET, excluding bootstrap,
 // and owns the declared memory observed at that return.
 type Z80ProfileInvocationEvidence struct {
-	Function string                    `json:"function"`
-	TStates  int64                     `json:"t_states"`
-	Results  []mir2.Value              `json:"results"`
-	Snapshot hir.ProfileMemorySnapshot `json:"snapshot"`
+	Access   *hir.ProfileAccessSnapshot `json:"access,omitempty"`
+	Function string                     `json:"function"`
+	TStates  int64                      `json:"t_states"`
+	Results  []mir2.Value               `json:"results"`
+	Snapshot hir.ProfileMemorySnapshot  `json:"snapshot"`
 }
 
 // Z80ProfileWorkloadEvidence exists only after the complete execution agrees with
@@ -104,6 +105,9 @@ func RunZ80ProfileWorkload(steps Steps, source *hir.Module, workload hir.Profile
 	}
 	if profile.FailedCalls != 0 || profile.CompletedCalls != uint64(len(workload.Calls)) || len(expected.Results) != len(workload.Calls) {
 		return fail(fmt.Errorf("incomplete oracle run"))
+	}
+	if workload.ExactDataAccess && len(expected.Accesses) != len(workload.Calls) {
+		return fail(fmt.Errorf("incomplete oracle access snapshots"))
 	}
 	if len(expected.Snapshots) != len(workload.Calls) {
 		return fail(fmt.Errorf("incomplete oracle invocation snapshots"))
@@ -309,7 +313,15 @@ func RunZ80ProfileWorkload(steps Steps, source *hir.Module, workload hir.Profile
 		a := hir.Assert{FuncName: call.Function, Via: "z80"}
 		for i, arg := range call.Arguments {
 			ty := hf.Params[i].Ty
-			if mf.Contract.Params[i].Ty != ty {
+			compiledTy := mf.Contract.Params[i].Ty
+			if ranged, ok := ty.(*mir2.RangedTy); ok {
+				// LUTGen erases only the range refinement; physical scalar ABI
+				// remains the declared base. The workload retains source bounds.
+				if compiledTy != ranged.Base && !reflect.DeepEqual(compiledTy, ranged) {
+					return fail(fmt.Errorf("compiled parameter type mismatch"))
+				}
+				ty = ranged.Base
+			} else if compiledTy != ty {
 				return fail(fmt.Errorf("compiled parameter type mismatch"))
 			}
 			loc := assertParamLocation(mf.Contract.Params[i], steps.Allocation)
@@ -427,6 +439,11 @@ func RunZ80ProfileWorkload(steps Steps, source *hir.Module, workload hir.Profile
 		if int(ret) < workloadBootstrap || int(ret) >= workloadBootstrap+len(boots[ci]) {
 			return fail(fmt.Errorf("bootstrap return address invalid"))
 		}
+		var beforeReads, beforeWrites [65536]uint32
+		if workload.ExactDataAccess {
+			beforeReads = prof.ReadCount
+			beforeWrites = prof.WriteCount
+		}
 		start := out.TotalTStates
 		for {
 			if err := step(false, 0); err != nil {
@@ -470,7 +487,29 @@ func RunZ80ProfileWorkload(steps Steps, source *hir.Module, workload hir.Profile
 			}
 			snapshot.Resources[name] = got
 		}
-		out.Invocations = append(out.Invocations, Z80ProfileInvocationEvidence{Function: call.Function, TStates: out.TotalTStates - start, Results: results, Snapshot: snapshot})
+		var access *hir.ProfileAccessSnapshot
+		if workload.ExactDataAccess {
+			observed := hir.ProfileAccessSnapshot{Globals: map[string]hir.ProfileByteAccess{}, Resources: map[string]hir.ProfileByteAccess{}}
+			measure := func(address, size int) hir.ProfileByteAccess {
+				a := hir.ProfileByteAccess{Reads: make([]uint64, size), Writes: make([]uint64, size)}
+				for i := 0; i < size; i++ {
+					a.Reads[i] = uint64(prof.ReadCount[address+i] - beforeReads[address+i])
+					a.Writes[i] = uint64(prof.WriteCount[address+i] - beforeWrites[address+i])
+				}
+				return a
+			}
+			for _, g := range source.Globals {
+				observed.Globals[g.Name] = measure(out.GlobalAddresses[g.Name], max(mir2.ByteWidth(g.Ty), len(g.Init)))
+			}
+			for _, name := range names {
+				observed.Resources[name] = measure(out.ResourceAddresses[name], len(workload.Resources[name]))
+			}
+			if !jointEqual(observed, expected.Accesses[ci]) {
+				return fail(fmt.Errorf("invocation %d @%s: exact data access mismatch", ci, call.Function))
+			}
+			access = &observed
+		}
+		out.Invocations = append(out.Invocations, Z80ProfileInvocationEvidence{Access: access, Function: call.Function, TStates: out.TotalTStates - start, Results: results, Snapshot: snapshot})
 		for addr := 0; addr < 65536; addr++ {
 			if prof.ReadCount[addr] > 0 && !readable[addr] {
 				return fail(fmt.Errorf("read outside declared bounds at %04x", addr))

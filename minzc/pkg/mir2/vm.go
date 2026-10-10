@@ -44,6 +44,14 @@ type VM struct {
 	// Console ($23), network ($30), control ($31) — all through one interface.
 	Ports PortIO
 
+	// ObserveDataAccess optionally receives each byte actually read by OpLoad or
+	// written by OpStore, in execution order (low byte first). Nil disables
+	// observation. The callback cannot fail and should not mutate or reenter VM.
+	// This is raw MIR2 data traffic, not a universal target memory trace: heap
+	// setup/snapshots, host functions (including memcpy/memset), OpPatchSlot,
+	// OpPatch, OpLoadPatched, ASM, ports, and instruction fetches are excluded.
+	ObserveDataAccess func(VMDataAccess)
+
 	// Execution limits (protect against infinite loops in comptime code).
 	MaxSteps  int64 // 0 = unlimited (not recommended for comptime)
 	MaxMemory int   // heap byte limit; 0 = 64 KB default
@@ -57,6 +65,16 @@ type VM struct {
 	// globalSyms maps module global names to their heap offsets.
 	// Populated by NewVM from Module.Globals.
 	globalSyms map[string]int64
+}
+
+// VMDataAccess is one executed OpLoad/OpStore byte access. Addr is the actual
+// VM heap offset after pointer-width wrapping, not a relocated Z80 address.
+// Value is the byte read or written. Repeated/overlapping accesses produce
+// separate events; a rejected out-of-bounds instruction produces none.
+type VMDataAccess struct {
+	Op    Op // OpLoad (read) or OpStore (write)
+	Addr  int64
+	Value byte
 }
 
 // StepsExecuted returns the cumulative instruction steps charged by
@@ -662,8 +680,17 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 			return fmt.Errorf("load: out-of-bounds address %d (heap size %d)", offset, len(vm.heap))
 		}
 		var v int64
-		for i := 0; i < width; i++ {
-			v |= int64(vm.heap[int((uint64(a.I)+uint64(i))&mask)]) << (8 * i)
+		if observe := vm.ObserveDataAccess; observe != nil {
+			for i := 0; i < width; i++ {
+				addr := int64((uint64(a.I) + uint64(i)) & mask)
+				value := vm.heap[int(addr)]
+				v |= int64(value) << (8 * i)
+				observe(VMDataAccess{Op: OpLoad, Addr: addr, Value: value})
+			}
+		} else {
+			for i := 0; i < width; i++ {
+				v |= int64(vm.heap[int((uint64(a.I)+uint64(i))&mask)]) << (8 * i)
+			}
 		}
 		result = truncate(Value{I: v}, ty)
 
@@ -676,8 +703,17 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		if !vm.wrappedHeapRangeValid(a.I, width, mask) {
 			return fmt.Errorf("store: out-of-bounds address %d (heap size %d)", offset, len(vm.heap))
 		}
-		for i := 0; i < width; i++ {
-			vm.heap[int((uint64(a.I)+uint64(i))&mask)] = byte(val >> (8 * i))
+		if observe := vm.ObserveDataAccess; observe != nil {
+			for i := 0; i < width; i++ {
+				addr := int64((uint64(a.I) + uint64(i)) & mask)
+				value := byte(val >> (8 * i))
+				vm.heap[int(addr)] = value
+				observe(VMDataAccess{Op: OpStore, Addr: addr, Value: value})
+			}
+		} else {
+			for i := 0; i < width; i++ {
+				vm.heap[int((uint64(a.I)+uint64(i))&mask)] = byte(val >> (8 * i))
+			}
 		}
 		return nil // no Dst
 

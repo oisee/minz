@@ -1,0 +1,20 @@
+=== RUN   TestProfileCompleteSourcePrograms
+=== RUN   TestProfileCompleteSourcePrograms/arena
+    profile_program_test.go:154: measurement: measure profile variant sets: candidate 0 target workload: Z80 profile workload: invocation 1: line 0: assert "" [z80]: return[0] got 1, want 0; direct: [candidate 0: Z80 profile workload: invocation 1: line 0: assert "" [z80]: return[0] got 1, want 0 candidate 1: Z80 profile workload: invocation 1: line 0: assert "" [z80]: return[0] got 1, want 0]; artifacts /tmp/minz-grace-pgo-resume/docs/grace-pgo-program-artifacts/arena
+=== RUN   TestProfileCompleteSourcePrograms/state-machine
+    profile_program_test.go:154: 1032 calls: baseline 85005T/99B common 85005T/99B selected 0; artifacts /tmp/minz-grace-pgo-resume/docs/grace-pgo-program-artifacts/state-machine
+=== RUN   TestProfileCompleteSourcePrograms/option
+    profile_program_test.go:154: 5 calls: baseline 85T/234B common 85T/234B selected 0; artifacts /tmp/minz-grace-pgo-resume/docs/grace-pgo-program-artifacts/option
+=== RUN   TestProfileCompleteSourcePrograms/result
+    profile_program_test.go:154: 6 calls: baseline 102T/106B common 102T/106B selected 0; artifacts /tmp/minz-grace-pgo-resume/docs/grace-pgo-program-artifacts/result
+=== RUN   TestProfileCompleteSourcePrograms/recursion
+    profile_program_test.go:154: 36 calls: baseline 51190T/129B common 51190T/129B selected 0; artifacts /tmp/minz-grace-pgo-resume/docs/grace-pgo-program-artifacts/recursion
+--- FAIL: TestProfileCompleteSourcePrograms (2.84s)
+    --- FAIL: TestProfileCompleteSourcePrograms/arena (0.56s)
+    --- PASS: TestProfileCompleteSourcePrograms/state-machine (1.73s)
+    --- PASS: TestProfileCompleteSourcePrograms/option (0.18s)
+    --- PASS: TestProfileCompleteSourcePrograms/result (0.16s)
+    --- PASS: TestProfileCompleteSourcePrograms/recursion (0.21s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	2.843s
+FAIL

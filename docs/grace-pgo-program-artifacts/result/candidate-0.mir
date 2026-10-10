@@ -1,0 +1,78 @@
+; MIR2 module: ../../../examples/nanz/13_result_error.nanz
+fun @safe_add(%r1: u8 [acc], %r2: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r3 = ext %r1 : u8 -> u16 [pointer]
+    %r4 = ext %r2 : u8 -> u16 [pointer]
+    %r5 = add %r3, %r4 : u16 [pointer]
+    %r6 = const 255 : u8 [general]
+    %r7 = cmp.ugt %r5, %r6 : bool [flag]
+    br_if %r7, @if_then1(), @if_join2()
+  block @if_then1:
+    %r11 = const 257 : u16 [pointer]
+    ret %r11
+  block @if_join2:
+    %r13 = add %r1, %r2 : u8 [acc]
+    %r14 = ext %r13 : u8 -> u16 [pointer]
+    %r15 = move %r14 : u16 [pointer]
+    ret %r15
+
+fun @is_ok(%r16: u16 [pointer]) -> u8 [acc]
+  block @entry:
+    %r17 = call @__tag(%r16) : u8 [acc]
+    %r18 = const 0 : u8 [general]
+    %r19 = cmp.eq %r17, %r18 : bool [flag]
+    %r21 = const 0 : u8 [general]
+    cond_ret %r19, [%r21], @if_then1()
+  block @if_then1:
+    %r20 = const 1 : u8 [general]
+    ret %r20
+
+fun @unwrap(%r22: u16 [pointer]) -> u8 [acc]
+  block @entry:
+    %r23 = call @__payload(%r22) : u8 [acc]
+    ret %r23
+
+fun @test_add_ok_tag() -> u8 [acc]
+  block @entry:
+    %r28 = const 0 : u8 [acc]
+    ret %r28
+
+fun @test_add_ok_val() -> u8 [acc]
+  block @entry:
+    %r33 = const 30 : u8 [acc]
+    ret %r33
+
+fun @test_add_overflow_tag() -> u8 [acc]
+  block @entry:
+    %r38 = const 1 : u8 [acc]
+    ret %r38
+
+fun @test_add_overflow_code() -> u8 [acc]
+  block @entry:
+    %r43 = const 1 : u8 [acc]
+    ret %r43
+
+fun @test_is_ok_pass() -> u8 [acc]
+  block @entry:
+    %r48 = const 1 : u8 [acc]
+    ret %r48
+
+fun @test_is_ok_fail() -> u8 [acc]
+  block @entry:
+    %r53 = const 0 : u8 [acc]
+    ret %r53
+
+fun @__tag(%r54: u16 [pointer]) -> u8 [acc]
+  block @entry:
+    %r55 = const 256 : u16 [pointer]
+    %r56 = div %r54, %r55 : u16 [pointer]
+    %r57 = trunc %r56 : u16 -> u8 [general]
+    ret %r57
+
+fun @__payload(%r58: u16 [pointer]) -> u8 [acc]
+  block @entry:
+    %r59 = const 256 : u16 [pointer]
+    %r60 = mod %r58, %r59 : u16 [pointer]
+    %r61 = trunc %r60 : u16 -> u8 [general]
+    ret %r61
+

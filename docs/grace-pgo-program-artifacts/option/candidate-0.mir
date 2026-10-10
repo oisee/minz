@@ -1,0 +1,110 @@
+; MIR2 module: ../../../examples/nanz/10_adt_option.nanz
+fun @unwrap_or(%r1: u16 [pointer], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = call @__tag(%r1) : u8 [acc]
+    %r4 = const 1 : u8 [general]
+    %r5 = cmp.eq %r3, %r4 : bool [flag]
+    br_if %r5, @cret_then1(), @cret_else2()
+  block @cret_then1:
+    %r6 = call @__payload(%r1) : u8 [acc]
+    %r7 = move %r6 : u8 [acc]
+    %r8 = call @__mpay_0(%r7) : u8 [acc]
+    ret %r8
+  block @cret_else2:
+    %r9 = call @__tag(%r1) : u8 [acc]
+    %r10 = const 0 : u8 [general]
+    %r11 = cmp.eq %r9, %r10 : bool [flag]
+    %r12 = const 0 : u8 [general]
+    cond_ret %r11, [%r12], @cond_then3()
+  block @cond_then3:
+    ret %r2
+
+fun @is_some(%r14: u16 [pointer]) -> u8 [acc]
+  block @entry:
+    %r15 = call @__tag(%r14) : u8 [acc]
+    %r16 = const 1 : u8 [general]
+    %r17 = cmp.eq %r15, %r16 : bool [flag]
+    br_if %r17, @cret_then1(), @cret_else2()
+  block @cret_then1:
+    %r18 = call @__payload(%r14) : u8 [acc]
+    %r19 = move %r18 : u8 [acc]
+    %r20 = call @__mpay_1(%r19) : u8 [acc]
+    ret %r20
+  block @cret_else2:
+    %r21 = call @__tag(%r14) : u8 [acc]
+    %r22 = const 0 : u8 [general]
+    %r23 = cmp.eq %r21, %r22 : bool [flag]
+    br_if %r23, @cond_then3(), @cond_else4()
+  block @cond_then3:
+    %r24 = const 0 : u8 [general]
+    jmp @cond_join5()
+  block @cond_join5:
+    %r27 = const 0 : u8 [general]
+    ret %r27
+  block @cond_else4:
+    %r25 = const 0 : u8 [general]
+    jmp @cond_join5()
+
+fun @safe_div(%r27: u8 [acc], %r28: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r29 = const 0 : u8 [general]
+    %r30 = cmp.eq %r28, %r29 : bool [flag]
+    br_if %r30, @if_then1(), @if_join2()
+  block @if_then1:
+    %r31 = const 0 : u16 [pointer]
+    ret %r31
+  block @if_join2:
+    %r32 = div %r27, %r28 : u8 [general]
+    %r33 = const 256 : u16 [pointer]
+    %r34 = ext %r32 : u8 -> u16 [pointer]
+    %r35 = add %r33, %r34 : u16 [pointer]
+    ret %r35
+
+fun @test_unwrap_some() -> u8 [acc]
+  block @entry:
+    %r41 = const 42 : u8 [acc]
+    ret %r41
+
+fun @test_unwrap_none() -> u8 [acc]
+  block @entry:
+    %r44 = const 77 : u8 [acc]
+    ret %r44
+
+fun @test_is_some() -> u8 [acc]
+  block @entry:
+    %r49 = const 1 : u8 [acc]
+    ret %r49
+
+fun @test_is_none() -> u8 [acc]
+  block @entry:
+    %r51 = const 0 : u8 [acc]
+    ret %r51
+
+fun @test_safe_div_ok() -> u8 [acc]
+  block @entry:
+    %r57 = const 3 : u8 [acc]
+    ret %r57
+
+fun @__tag(%r58: u16 [pointer]) -> u8 [acc]
+  block @entry:
+    %r59 = const 256 : u16 [pointer]
+    %r60 = div %r58, %r59 : u16 [pointer]
+    %r61 = trunc %r60 : u16 -> u8 [general]
+    ret %r61
+
+fun @__payload(%r62: u16 [pointer]) -> u8 [acc]
+  block @entry:
+    %r63 = const 256 : u16 [pointer]
+    %r64 = mod %r62, %r63 : u16 [pointer]
+    %r65 = trunc %r64 : u16 -> u8 [general]
+    ret %r65
+
+fun @__mpay_0(%r66: u8 [acc]) -> u8 [acc]
+  block @entry:
+    ret %r66
+
+fun @__mpay_1(%r67: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r68 = const 1 : u8 [general]
+    ret %r68
+

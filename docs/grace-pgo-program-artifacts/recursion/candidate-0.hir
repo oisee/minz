@@ -1,0 +1,33 @@
+; HIR module: ../../../examples/nanz/18_tail_recursion.nanz
+fun @fib_tail(n: u8, a: u8, b: u8) -> u8
+  if ((n:u8) == 0:u8):bool
+    return (a:u8)
+  return call @fib_tail(((n:u8) - 1:u8):u8, (b:u8), ((a:u8) + (b:u8)):u8):u8
+
+fun @fib(n: u8) -> u8
+  return call @fib_tail((n:u8), 0:u8, 1:u8):u8
+
+fun @fact_tail(n: u8, acc: u8) -> u8
+  if ((n:u8) <= 1:u8):bool
+    return (acc:u8)
+  return call @fact_tail(((n:u8) - 1:u8):u8, ((acc:u8) * (n:u8)):u8):u8
+
+fun @fact(n: u8) -> u8
+  return call @fact_tail((n:u8), 1:u8):u8
+
+fun @sum_tail(n: u8, acc: u8) -> u8
+  if ((n:u8) == 0:u8):bool
+    return (acc:u8)
+  return call @sum_tail(((n:u8) - 1:u8):u8, ((acc:u8) + (n:u8)):u8):u8
+
+fun @sum_to(n: u8) -> u8
+  return call @sum_tail((n:u8), 0:u8):u8
+
+fun @pow2_tail(n: u8, acc: u8) -> u8
+  if ((n:u8) == 0:u8):bool
+    return (acc:u8)
+  return call @pow2_tail(((n:u8) - 1:u8):u8, ((acc:u8) + (acc:u8)):u8):u8
+
+fun @pow2(n: u8) -> u8
+  return call @pow2_tail((n:u8), 1:u8):u8
+

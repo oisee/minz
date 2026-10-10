@@ -1,0 +1,103 @@
+; MIR2 module: ../../../examples/nanz/12_state_machine.nanz
+fun @next_state(%r1: u8 [acc], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = const 0 : u8 [general]
+    %r4 = cmp.eq %r1, %r3 : bool [flag]
+    br_if %r4, @if_then1(), @if_join2()
+  block @if_then1:
+    %r5 = const 1 : u8 [general]
+    %r6 = cmp.eq %r2, %r5 : bool [flag]
+    br_if %r6, @cret_then3(), @cret_else4()
+  block @cret_then3:
+    %r7 = const 1 : u8 [general]
+    ret %r7
+  block @cret_else4:
+    %r8 = const 2 : u8 [general]
+    %r9 = cmp.eq %r2, %r8 : bool [flag]
+    br_if %r9, @cond_then5(), @cond_else6()
+  block @cond_then5:
+    %r10 = const 2 : u8 [general]
+    ret %r10
+  block @cond_else6:
+    %r11 = const 3 : u8 [general]
+    %r12 = cmp.eq %r2, %r11 : bool [flag]
+    %r14 = const 0 : u8 [general]
+    cond_ret %r12, [%r14], @cond_then8()
+  block @cond_then8:
+    %r13 = const 3 : u8 [general]
+    ret %r13
+  block @if_join2:
+    %r17 = const 1 : u8 [general]
+    %r18 = cmp.eq %r1, %r17 : bool [flag]
+    br_if %r18, @if_then11(), @if_join12()
+  block @if_then11:
+    %r19 = const 0 : u8 [general]
+    %r20 = cmp.eq %r2, %r19 : bool [flag]
+    br_if %r20, @cret_then13(), @cret_else14()
+  block @cret_then13:
+    %r21 = const 0 : u8 [general]
+    ret %r21
+  block @cret_else14:
+    %r22 = const 2 : u8 [general]
+    %r23 = cmp.eq %r2, %r22 : bool [flag]
+    br_if %r23, @cond_then15(), @cond_else16()
+  block @cond_then15:
+    %r24 = const 2 : u8 [general]
+    ret %r24
+  block @cond_else16:
+    %r25 = const 3 : u8 [general]
+    %r26 = cmp.eq %r2, %r25 : bool [flag]
+    %r28 = const 1 : u8 [general]
+    cond_ret %r26, [%r28], @cond_then18()
+  block @cond_then18:
+    %r27 = const 3 : u8 [general]
+    ret %r27
+  block @if_join12:
+    %r31 = const 2 : u8 [general]
+    %r32 = cmp.eq %r1, %r31 : bool [flag]
+    %r37 = const 3 : u8 [general]
+    cond_ret %r32, [%r37], @if_then21()
+  block @if_then21:
+    %r33 = const 3 : u8 [general]
+    %r34 = cmp.eq %r2, %r33 : bool [flag]
+    %r36 = const 0 : u8 [general]
+    cond_ret %r34, [%r36], @cret_then23()
+  block @cret_then23:
+    %r35 = const 3 : u8 [general]
+    ret %r35
+
+fun @is_alive(%r38: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r39 = const 3 : u8 [general]
+    %r40 = cmp.eq %r38, %r39 : bool [flag]
+    %r42 = const 1 : u8 [general]
+    cond_ret %r40, [%r42], @cret_then1()
+  block @cret_then1:
+    %r41 = const 0 : u8 [general]
+    ret %r41
+
+fun @state_speed(%r43: u8 [acc]) -> u8 [acc]
+  block @entry:
+    jmp @cret_else2()
+  block @cret_else2:
+    %r47 = const 1 : u8 [general]
+    %r48 = cmp.eq %r43, %r47 : bool [flag]
+    br_if %r48, @cond_then3(), @cond_else4()
+  block @cond_then3:
+    %r49 = const 2 : u8 [general]
+    ret %r49
+  block @cond_else4:
+    %r50 = const 2 : u8 [general]
+    %r51 = cmp.eq %r43, %r50 : bool [flag]
+    br_if %r51, @cond_then6(), @cond_else7()
+  block @cond_then6:
+    %r52 = const 4 : u8 [general]
+    ret %r52
+  block @cond_else7:
+    jmp @cond_else10()
+  block @cond_join11:
+    %r60 = const 0 : u8 [general]
+    ret %r60
+  block @cond_else10:
+    jmp @cond_join11()
+

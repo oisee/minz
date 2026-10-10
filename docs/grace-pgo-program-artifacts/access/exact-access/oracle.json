@@ -1,0 +1,187 @@
+{
+  "accesses": [
+    {
+      "globals": {
+        "calls": {
+          "reads": [
+            1
+          ],
+          "writes": [
+            1
+          ]
+        }
+      },
+      "resources": {
+        "array": {
+          "reads": [
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "writes": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    },
+    {
+      "globals": {
+        "calls": {
+          "reads": [
+            1
+          ],
+          "writes": [
+            1
+          ]
+        }
+      },
+      "resources": {
+        "array": {
+          "reads": [
+            2,
+            2,
+            2,
+            2,
+            2
+          ],
+          "writes": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    }
+  ],
+  "profile": {
+    "guards": [
+      {
+        "site_id": "e7408e9c26c756b6c596d82f30ff098b9b4af1907f799372ce17ea465e81257b",
+        "equal_entries": 0,
+        "fast_entries": 2,
+        "fallback_entries": 0,
+        "fast_body_entries": 10,
+        "fallback_body_entries": 0
+      },
+      {
+        "site_id": "3fd93efe40dfbf6e8f902bed1473e6b441623605eb75a51c8f064ac2372a3f76",
+        "equal_entries": 0,
+        "fast_entries": 2,
+        "fallback_entries": 0,
+        "fast_body_entries": 10,
+        "fallback_body_entries": 0
+      }
+    ],
+    "compatibility": {
+      "schema": "minz.loop-profile-compatibility/v1",
+      "context": {
+        "compiler_id": "executable-sha256:906029f72a7c7af1ca60c1eda5fdd8ccc8a5de56eca761736aee7839e15f2f2e",
+        "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+        "target_id": "module-target:0/model:cpm-z80-v1",
+        "workload_sha256": "51f65292537324e0b01fec6f328f846de9204cc4ff965f82ecbacca5320a1ea3",
+        "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+        "dependencies": {
+          "array": "74f81fe167d99b4cb41d6d0ccda82278caee9f3e2f25d5e5a3936ff3dcec60d0",
+          "joint.nanz": "48d1a1002f7760975693092f33759b90df94282855af434b3a25b23ae0361610"
+        }
+      },
+      "hir_sha256": "bccac5d7315ea00773e1dcf7deafe66e0f3952f37da0c28f536e91c7509cd3c0",
+      "origins_sha256": "e12c9e2fbe78b08bca08a87e5dbf75ab4e68d82b9d855c1b054496cef1c6aa01"
+    },
+    "schema": "minz.input-hir-loop-observations/v4",
+    "stage": "unoptimised-mir2-vm",
+    "sites": {
+      "schema": "minz.hir-loop-sites/v1",
+      "stage": "input-hir",
+      "sites": [
+        {
+          "id": "3fd93efe40dfbf6e8f902bed1473e6b441623605eb75a51c8f064ac2372a3f76",
+          "function": "right_sum",
+          "kind": "while",
+          "ordinal": 0,
+          "hir_path": "body/s2",
+          "origin": {
+            "unit": "joint.nanz",
+            "byte_offset": 177,
+            "line": 12,
+            "byte_column": 2,
+            "source_sha256": "48d1a1002f7760975693092f33759b90df94282855af434b3a25b23ae0361610"
+          }
+        },
+        {
+          "id": "e7408e9c26c756b6c596d82f30ff098b9b4af1907f799372ce17ea465e81257b",
+          "function": "left_sum",
+          "kind": "while",
+          "ordinal": 0,
+          "hir_path": "body/s2",
+          "origin": {
+            "unit": "joint.nanz",
+            "byte_offset": 76,
+            "line": 5,
+            "byte_column": 2,
+            "source_sha256": "48d1a1002f7760975693092f33759b90df94282855af434b3a25b23ae0361610"
+          }
+        }
+      ],
+      "unmapped_loops": 0
+    },
+    "counts": [
+      {
+        "site_id": "3fd93efe40dfbf6e8f902bed1473e6b441623605eb75a51c8f064ac2372a3f76",
+        "entries": 2,
+        "body_entries": 10
+      },
+      {
+        "site_id": "e7408e9c26c756b6c596d82f30ff098b9b4af1907f799372ce17ea465e81257b",
+        "entries": 2,
+        "body_entries": 10
+      }
+    ],
+    "completed_calls": 2,
+    "failed_calls": 0
+  },
+  "results": [
+    [
+      {
+        "I": 30
+      }
+    ],
+    [
+      {
+        "I": 30
+      }
+    ]
+  ],
+  "snapshots": [
+    {
+      "globals": {
+        "calls": "Cg=="
+      },
+      "resources": {
+        "array": "AQIDBAU="
+      }
+    },
+    {
+      "globals": {
+        "calls": "Cw=="
+      },
+      "resources": {
+        "array": "AQIDBAU="
+      }
+    }
+  ],
+  "globals": {
+    "calls": "Cw=="
+  },
+  "resources": {
+    "array": "AQIDBAU="
+  }
+}

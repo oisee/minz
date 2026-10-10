@@ -1,0 +1,19 @@
+=== RUN   TestProfileCompleteSourcePrograms
+=== RUN   TestProfileCompleteSourcePrograms/state-machine
+    profile_program_test.go:177: 1032 calls: baseline 85005T/99B common 85005T/99B selected 0; artifacts /tmp/minz-grace-pgo-resume/docs/grace-pgo-program-artifacts/state-machine
+=== RUN   TestProfileCompleteSourcePrograms/option
+    profile_program_test.go:177: 86 calls: baseline 31447T/234B common 31447T/234B selected 0; artifacts /tmp/minz-grace-pgo-resume/docs/grace-pgo-program-artifacts/option
+=== RUN   TestProfileCompleteSourcePrograms/result
+    profile_program_test.go:177: 87 calls: baseline 17490T/106B common 17490T/106B selected 0; artifacts /tmp/minz-grace-pgo-resume/docs/grace-pgo-program-artifacts/result
+=== RUN   TestProfileCompleteSourcePrograms/recursion
+    profile_program_test.go:177: 44 calls: baseline 329000T/129B common 329000T/129B selected 0; artifacts /tmp/minz-grace-pgo-resume/docs/grace-pgo-program-artifacts/recursion
+--- PASS: TestProfileCompleteSourcePrograms (3.46s)
+    --- PASS: TestProfileCompleteSourcePrograms/state-machine (2.12s)
+    --- PASS: TestProfileCompleteSourcePrograms/option (0.44s)
+    --- PASS: TestProfileCompleteSourcePrograms/result (0.47s)
+    --- PASS: TestProfileCompleteSourcePrograms/recursion (0.43s)
+=== RUN   TestProfileCompleteSourceProgramsArenaKnownFailure
+    profile_program_test.go:184: KNOWN FAILURE: 15 raw calls and all snapshots verified; both assembled policies rejected: Z80 profile workload: invocation 2: line 0: assert "" [z80]: return[0] got 3, want 0; artifacts /tmp/minz-grace-pgo-resume/docs/grace-pgo-program-artifacts/arena
+--- PASS: TestProfileCompleteSourceProgramsArenaKnownFailure (0.56s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	4.030s

@@ -1,0 +1,324 @@
+{
+  "compatibility": {
+    "schema": "minz.loop-profile-compatibility/v1",
+    "context": {
+      "compiler_id": "executable-sha256:4a97c904405d6eed68092332b9ddd76f8685e873b034df511b2b3e312003aca6",
+      "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+      "target_id": "module-target:0/model:cpm-z80-v1",
+      "workload_sha256": "2059b52a1ce3080c2f3520cb4cdd66927f6100ade0d6b0dae52f25c774fed884",
+      "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+      "dependencies": {
+        "../../../examples/nanz/08_arena_allocator.nanz": "ae1ff790c63064bb30bb27aa3529f847f5981de841ce816c868249c9bb85107e"
+      }
+    },
+    "hir_sha256": "577a5ed3489f6c65740b9f633bf66f8fe34316d739dd0d1793b40235e1cd8fbe",
+    "origins_sha256": "ac57d0fc9d1e42ad80371ae05aec1ee0ca466ab57e0664b275ac42dedae30648"
+  },
+  "binary_sha256": "350b336474e4a35c818e8a5cad95daf5a8f280b08c95358fc9f893ba97158b52",
+  "bootstrap_sha256": [
+    "4cb8173f6a04e8283e375516dc34b55be96e11975b295f741197dbf4cdb74e96",
+    "eca31679496367abb93b3dad9d48794ddc8a9c3e78a74e8650e439af4a4ac3b7",
+    "53cee57c4010cb49da5ad0f80b8d34c188f31a1e5d1ae84da3a998fa2b8c4ea8",
+    "d0331d3882bb1009d19177d45c3a2251bfbadd7f18ec57508804e3805e105928",
+    "59c8537109190e4784753badad96c60be228670282eba6b768bfbd20b48d5a81",
+    "6a8dd644a6bfc019d998fe6342decb8c7c5db33b892b23772d7c5953a52c4f34",
+    "8695217401c8d531cb4644abbee4891c9cc40668b2e3b2e1e36aef0d582a9240",
+    "22adc4bfaa24eb7d9b99efd6bcf7586f89f234140c8707591e5bdc993322a035",
+    "49b2e5aeb9ea10948493447d4b12d633db3e099964e198e12a930f4381e66ff1",
+    "33b75aa2ad0c3a46d07bf8f0d10f89dc544ce862ef9975b140d735b650509e89",
+    "49b2e5aeb9ea10948493447d4b12d633db3e099964e198e12a930f4381e66ff1",
+    "817f3608f7df80c1661a57e1e7c19790e3baf728907fd304a7dfb868feeb8a06",
+    "49b2e5aeb9ea10948493447d4b12d633db3e099964e198e12a930f4381e66ff1",
+    "a8a6e9b23a47e587dd7e96c534e703784ad410b70ad47e42aa7e56d8b9eea7e9",
+    "49b2e5aeb9ea10948493447d4b12d633db3e099964e198e12a930f4381e66ff1"
+  ],
+  "invocations": [
+    {
+      "function": "test_sizeof",
+      "t_states": 28,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "arena": "NBJ4Vg==",
+          "frame": "NBJ4Vg==",
+          "level": "NBJ4Vg==",
+          "perm": "NBJ4Vg=="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "function": "test_alloc_sequence",
+      "t_states": 2206,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "arena": "ZMAA/w==",
+          "frame": "NBJ4Vg==",
+          "level": "NBJ4Vg==",
+          "perm": "NBJ4Vg=="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "function": "test_oom",
+      "t_states": 1449,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "arena": "EMAQwA==",
+          "frame": "NBJ4Vg==",
+          "level": "NBJ4Vg==",
+          "perm": "NBJ4Vg=="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "function": "test_small_allocs",
+      "t_states": 1899,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "arena": "BMAAxA==",
+          "frame": "NBJ4Vg==",
+          "level": "NBJ4Vg==",
+          "perm": "NBJ4Vg=="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "function": "test_split",
+      "t_states": 3896,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "arena": "BMAAxA==",
+          "frame": "EMkAzQ==",
+          "level": "yMEAyQ==",
+          "perm": "CMAAwQ=="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "function": "test_typed_alloc",
+      "t_states": 1611,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "arena": "DMAA0A==",
+          "frame": "EMkAzQ==",
+          "level": "yMEAyQ==",
+          "perm": "CMAAwQ=="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "function": "init_frame",
+      "t_states": 375,
+      "results": [
+        {
+          "I": 16128
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "arena": "AMAA/w==",
+          "frame": "EMkAzQ==",
+          "level": "yMEAyQ==",
+          "perm": "CMAAwQ=="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "function": "alloc_and_check",
+      "t_states": 465,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "arena": "QMAA/w==",
+          "frame": "EMkAzQ==",
+          "level": "yMEAyQ==",
+          "perm": "CMAAwQ=="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "function": "get_remaining",
+      "t_states": 241,
+      "results": [
+        {
+          "I": 16064
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "arena": "QMAA/w==",
+          "frame": "EMkAzQ==",
+          "level": "yMEAyQ==",
+          "perm": "CMAAwQ=="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "function": "alloc_and_check",
+      "t_states": 465,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "arena": "gMAA/w==",
+          "frame": "EMkAzQ==",
+          "level": "yMEAyQ==",
+          "perm": "CMAAwQ=="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "function": "get_remaining",
+      "t_states": 241,
+      "results": [
+        {
+          "I": 16000
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "arena": "gMAA/w==",
+          "frame": "EMkAzQ==",
+          "level": "yMEAyQ==",
+          "perm": "CMAAwQ=="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "function": "alloc_and_check",
+      "t_states": 477,
+      "results": [
+        {
+          "I": 1
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "arena": "wMAA/w==",
+          "frame": "EMkAzQ==",
+          "level": "yMEAyQ==",
+          "perm": "CMAAwQ=="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "function": "get_remaining",
+      "t_states": 241,
+      "results": [
+        {
+          "I": 15936
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "arena": "wMAA/w==",
+          "frame": "EMkAzQ==",
+          "level": "yMEAyQ==",
+          "perm": "CMAAwQ=="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "function": "alloc_and_check",
+      "t_states": 465,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "arena": "AMEA/w==",
+          "frame": "EMkAzQ==",
+          "level": "yMEAyQ==",
+          "perm": "CMAAwQ=="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "function": "get_remaining",
+      "t_states": 241,
+      "results": [
+        {
+          "I": 15872
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "arena": "AMEA/w==",
+          "frame": "EMkAzQ==",
+          "level": "yMEAyQ==",
+          "perm": "CMAAwQ=="
+        },
+        "resources": {}
+      }
+    }
+  ],
+  "globals": {
+    "arena": "AMEA/w==",
+    "frame": "EMkAzQ==",
+    "level": "yMEAyQ==",
+    "perm": "CMAAwQ=="
+  },
+  "resources": {},
+  "resource_addresses": {},
+  "global_addresses": {
+    "arena": 33945,
+    "frame": 33957,
+    "level": 33953,
+    "perm": 33949
+  },
+  "bootstrap_t_states": 445,
+  "total_t_states": 14300,
+  "executed_steps": 1647
+}

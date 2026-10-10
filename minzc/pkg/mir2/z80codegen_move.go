@@ -900,7 +900,11 @@ func (g *z80cg) promote8toPair(r string) string {
 		return "BC"
 	}
 	pair := parentPair(r)
+	if r != lowByte(pair) {
+		g.emitLD8(lowByte(pair), r)
+	}
 	g.emitf("    LD %s, 0", highByte(pair))
+	g.invalidate(pair)
 	return pair
 }
 

@@ -25,13 +25,14 @@ type ProfileInvocation struct {
 // MaxSteps is cumulative, including instrumentation; MaxMemory includes initial
 // globals/function symbols and input resources. Custom hosts/ports/ASM are absent.
 type ProfileWorkload struct {
-	Schema      string              `json:"schema"`
-	TargetModel string              `json:"target_model"`
-	MaxSteps    int64               `json:"max_steps"`
-	MaxMemory   int                 `json:"max_memory"`
-	Resources   map[string][]byte   `json:"resources"`
-	Globals     map[string][]byte   `json:"globals"`
-	Calls       []ProfileInvocation `json:"calls"`
+	ExactDataAccess bool                `json:"exact_data_access,omitempty"`
+	Schema          string              `json:"schema"`
+	TargetModel     string              `json:"target_model"`
+	MaxSteps        int64               `json:"max_steps"`
+	MaxMemory       int                 `json:"max_memory"`
+	Resources       map[string][]byte   `json:"resources"`
+	Globals         map[string][]byte   `json:"globals"`
+	Calls           []ProfileInvocation `json:"calls"`
 }
 
 // ProfileMemorySnapshot owns declared memory at one successful invocation return.
@@ -43,6 +44,7 @@ type ProfileMemorySnapshot struct {
 }
 
 type ProfileRun struct {
+	Accesses  []ProfileAccessSnapshot `json:"accesses,omitempty"`
 	Profile   LoopProfile             `json:"profile"`
 	Results   [][]mir2.Value          `json:"results"`
 	Snapshots []ProfileMemorySnapshot `json:"snapshots"`
@@ -98,6 +100,11 @@ func prepareProfileWorkload(m *Module, w ProfileWorkload) (ProfileWorkload, Prof
 				return owned, context, fmt.Errorf("loop profile: SMC invocation unsupported")
 			}
 			if arg.Value != nil {
+				if ranged, ok := fn.Params[i].Ty.(*mir2.RangedTy); ok {
+					if *arg.Value < ranged.Lo || *arg.Value >= ranged.Hi {
+						return owned, context, fmt.Errorf("loop profile: argument outside declared range")
+					}
+				}
 				if arg.Resource != "" || arg.Offset != 0 {
 					return owned, context, fmt.Errorf("loop profile: ambiguous argument")
 				}
@@ -166,6 +173,12 @@ func RunLoopProfile(m *Module, w ProfileWorkload) (*ProfileRun, error) {
 		used += int64(len(bytes))
 	}
 	out := &ProfileRun{Results: [][]mir2.Value{}, Snapshots: []ProfileMemorySnapshot{}}
+	var accesses *ProfileAccessRecorder
+	if owned.ExactDataAccess {
+		accesses = NewProfileAccessRecorder(m, p.VM, owned, addresses)
+		p.VM.ObserveDataAccess = accesses.Observe
+	}
+
 	snapshotMemory := func() ProfileMemorySnapshot {
 		snapshot := ProfileMemorySnapshot{Globals: map[string][]byte{}, Resources: map[string][]byte{}}
 		for _, g := range m.Globals {
@@ -194,6 +207,9 @@ func RunLoopProfile(m *Module, w ProfileWorkload) (*ProfileRun, error) {
 				args[i].I = addresses[arg.Resource] + int64(arg.Offset)
 			}
 		}
+		if accesses != nil {
+			accesses.Reset()
+		}
 		result, err := p.Call(call.Function, args)
 		if err != nil {
 			finish()
@@ -201,6 +217,15 @@ func RunLoopProfile(m *Module, w ProfileWorkload) (*ProfileRun, error) {
 		}
 		out.Results = append(out.Results, result)
 		out.Snapshots = append(out.Snapshots, snapshotMemory())
+		if accesses != nil {
+			a, err := accesses.Snapshot()
+			if err != nil {
+				// No successful profile envelope may escape after access
+				// validation fails, even though the VM call itself completed.
+				return nil, err
+			}
+			out.Accesses = append(out.Accesses, a)
+		}
 	}
 	finish()
 	return out, nil

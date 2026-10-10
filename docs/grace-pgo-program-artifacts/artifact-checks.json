@@ -1,0 +1,32 @@
+[
+  {
+    "case": "arena",
+    "source_byte_identical": true,
+    "source_sha256": "ae1ff790c63064bb30bb27aa3529f847f5981de841ce816c868249c9bb85107e",
+    "candidate_binary_lengths_and_sha256_verified": true
+  },
+  {
+    "case": "option",
+    "source_byte_identical": true,
+    "source_sha256": "0387f5a0f616e6cd5f0d9b432131593326cf81c807a28d4ce36859664a6edb30",
+    "candidate_binary_lengths_and_sha256_verified": true
+  },
+  {
+    "case": "recursion",
+    "source_byte_identical": true,
+    "source_sha256": "e88d580c3ce9499cdea28a05794e6c6146f88a0e67967d148933b17c969e9540",
+    "candidate_binary_lengths_and_sha256_verified": true
+  },
+  {
+    "case": "result",
+    "source_byte_identical": true,
+    "source_sha256": "4721bf61952713a54d53f64748cd4503f92d0d26ce73ff9240bd4e562183650c",
+    "candidate_binary_lengths_and_sha256_verified": true
+  },
+  {
+    "case": "state-machine",
+    "source_byte_identical": true,
+    "source_sha256": "e786b92e809a12eb3d8bdc98d75481c88d92c17be7139d51f76db34b85ec8838",
+    "candidate_binary_lengths_and_sha256_verified": true
+  }
+]

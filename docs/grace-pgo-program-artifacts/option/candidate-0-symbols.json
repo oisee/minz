@@ -1,0 +1,21 @@
+{
+  "is_some": 32862,
+  "is_some.is_some_cond_else4": 32953,
+  "is_some.is_some_cond_join5": 32950,
+  "is_some.is_some_cond_then3": 32950,
+  "is_some.is_some_cret_else2": 32911,
+  "is_some.is_some_cret_then1": 32902,
+  "safe_div": 32955,
+  "safe_div.div8_0": 32967,
+  "safe_div.div8_skip_0": 32975,
+  "safe_div.safe_div_if_join2": 32962,
+  "safe_div.safe_div_if_then1": 32958,
+  "test_is_none": 32996,
+  "test_is_some": 32993,
+  "test_safe_div_ok": 32999,
+  "test_unwrap_none": 32990,
+  "test_unwrap_some": 32987,
+  "unwrap_or": 32768,
+  "unwrap_or.unwrap_or_cret_else2": 32820,
+  "unwrap_or.unwrap_or_cret_then1": 32812
+}

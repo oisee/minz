@@ -1,0 +1,1427 @@
+{
+  "schema": "minz.joint-profile-variant-sets/v1",
+  "compatibility": {
+    "schema": "minz.loop-profile-compatibility/v1",
+    "context": {
+      "compiler_id": "executable-sha256:4a97c904405d6eed68092332b9ddd76f8685e873b034df511b2b3e312003aca6",
+      "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+      "target_id": "module-target:0/model:cpm-z80-v1",
+      "workload_sha256": "2059b52a1ce3080c2f3520cb4cdd66927f6100ade0d6b0dae52f25c774fed884",
+      "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+      "dependencies": {
+        "../../../examples/nanz/08_arena_allocator.nanz": "ae1ff790c63064bb30bb27aa3529f847f5981de841ce816c868249c9bb85107e"
+      }
+    },
+    "hir_sha256": "577a5ed3489f6c65740b9f633bf66f8fe34316d739dd0d1793b40235e1cd8fbe",
+    "origins_sha256": "ac57d0fc9d1e42ad80371ae05aec1ee0ca466ab57e0664b275ac42dedae30648"
+  },
+  "compilation_id": "6dfa40a5225aad0195b4fff38ffff8ebcfd525e4270cb05e5aa34628e3470a24",
+  "options": {
+    "ProfileSelection": null,
+    "CollectHIRSites": false,
+    "ContractOpt": false,
+    "AnnotateTStates": false,
+    "LIRCheck": false,
+    "UseLIR": false,
+    "UseGrace": false,
+    "GraceStats": null,
+    "UseHIRGrace": true,
+    "OptSize": false,
+    "Backend": "",
+    "AssertMode": "none",
+    "SkipZ80Emission": false
+  },
+  "assembler_mode": "default",
+  "max_sites": 4,
+  "eligible_sites": [],
+  "oracle": {
+    "profile": {
+      "guards": [],
+      "compatibility": {
+        "schema": "minz.loop-profile-compatibility/v1",
+        "context": {
+          "compiler_id": "executable-sha256:4a97c904405d6eed68092332b9ddd76f8685e873b034df511b2b3e312003aca6",
+          "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+          "target_id": "module-target:0/model:cpm-z80-v1",
+          "workload_sha256": "2059b52a1ce3080c2f3520cb4cdd66927f6100ade0d6b0dae52f25c774fed884",
+          "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+          "dependencies": {
+            "../../../examples/nanz/08_arena_allocator.nanz": "ae1ff790c63064bb30bb27aa3529f847f5981de841ce816c868249c9bb85107e"
+          }
+        },
+        "hir_sha256": "577a5ed3489f6c65740b9f633bf66f8fe34316d739dd0d1793b40235e1cd8fbe",
+        "origins_sha256": "ac57d0fc9d1e42ad80371ae05aec1ee0ca466ab57e0664b275ac42dedae30648"
+      },
+      "schema": "minz.input-hir-loop-observations/v4",
+      "stage": "unoptimised-mir2-vm",
+      "sites": {
+        "schema": "minz.hir-loop-sites/v1",
+        "stage": "input-hir",
+        "sites": [],
+        "unmapped_loops": 0
+      },
+      "counts": [],
+      "completed_calls": 15,
+      "failed_calls": 0
+    },
+    "results": [
+      [
+        {
+          "I": 0
+        }
+      ],
+      [
+        {
+          "I": 0
+        }
+      ],
+      [
+        {
+          "I": 0
+        }
+      ],
+      [
+        {
+          "I": 0
+        }
+      ],
+      [
+        {
+          "I": 0
+        }
+      ],
+      [
+        {
+          "I": 0
+        }
+      ],
+      [
+        {
+          "I": 16128
+        }
+      ],
+      [
+        {
+          "I": 0
+        }
+      ],
+      [
+        {
+          "I": 16064
+        }
+      ],
+      [
+        {
+          "I": 0
+        }
+      ],
+      [
+        {
+          "I": 16000
+        }
+      ],
+      [
+        {
+          "I": 1
+        }
+      ],
+      [
+        {
+          "I": 15936
+        }
+      ],
+      [
+        {
+          "I": 0
+        }
+      ],
+      [
+        {
+          "I": 15872
+        }
+      ]
+    ],
+    "snapshots": [
+      {
+        "globals": {
+          "arena": "NBJ4Vg==",
+          "frame": "NBJ4Vg==",
+          "level": "NBJ4Vg==",
+          "perm": "NBJ4Vg=="
+        },
+        "resources": {}
+      },
+      {
+        "globals": {
+          "arena": "ZMAA/w==",
+          "frame": "NBJ4Vg==",
+          "level": "NBJ4Vg==",
+          "perm": "NBJ4Vg=="
+        },
+        "resources": {}
+      },
+      {
+        "globals": {
+          "arena": "EMAQwA==",
+          "frame": "NBJ4Vg==",
+          "level": "NBJ4Vg==",
+          "perm": "NBJ4Vg=="
+        },
+        "resources": {}
+      },
+      {
+        "globals": {
+          "arena": "BMAAxA==",
+          "frame": "NBJ4Vg==",
+          "level": "NBJ4Vg==",
+          "perm": "NBJ4Vg=="
+        },
+        "resources": {}
+      },
+      {
+        "globals": {
+          "arena": "BMAAxA==",
+          "frame": "EMkAzQ==",
+          "level": "yMEAyQ==",
+          "perm": "CMAAwQ=="
+        },
+        "resources": {}
+      },
+      {
+        "globals": {
+          "arena": "DMAA0A==",
+          "frame": "EMkAzQ==",
+          "level": "yMEAyQ==",
+          "perm": "CMAAwQ=="
+        },
+        "resources": {}
+      },
+      {
+        "globals": {
+          "arena": "AMAA/w==",
+          "frame": "EMkAzQ==",
+          "level": "yMEAyQ==",
+          "perm": "CMAAwQ=="
+        },
+        "resources": {}
+      },
+      {
+        "globals": {
+          "arena": "QMAA/w==",
+          "frame": "EMkAzQ==",
+          "level": "yMEAyQ==",
+          "perm": "CMAAwQ=="
+        },
+        "resources": {}
+      },
+      {
+        "globals": {
+          "arena": "QMAA/w==",
+          "frame": "EMkAzQ==",
+          "level": "yMEAyQ==",
+          "perm": "CMAAwQ=="
+        },
+        "resources": {}
+      },
+      {
+        "globals": {
+          "arena": "gMAA/w==",
+          "frame": "EMkAzQ==",
+          "level": "yMEAyQ==",
+          "perm": "CMAAwQ=="
+        },
+        "resources": {}
+      },
+      {
+        "globals": {
+          "arena": "gMAA/w==",
+          "frame": "EMkAzQ==",
+          "level": "yMEAyQ==",
+          "perm": "CMAAwQ=="
+        },
+        "resources": {}
+      },
+      {
+        "globals": {
+          "arena": "wMAA/w==",
+          "frame": "EMkAzQ==",
+          "level": "yMEAyQ==",
+          "perm": "CMAAwQ=="
+        },
+        "resources": {}
+      },
+      {
+        "globals": {
+          "arena": "wMAA/w==",
+          "frame": "EMkAzQ==",
+          "level": "yMEAyQ==",
+          "perm": "CMAAwQ=="
+        },
+        "resources": {}
+      },
+      {
+        "globals": {
+          "arena": "AMEA/w==",
+          "frame": "EMkAzQ==",
+          "level": "yMEAyQ==",
+          "perm": "CMAAwQ=="
+        },
+        "resources": {}
+      },
+      {
+        "globals": {
+          "arena": "AMEA/w==",
+          "frame": "EMkAzQ==",
+          "level": "yMEAyQ==",
+          "perm": "CMAAwQ=="
+        },
+        "resources": {}
+      }
+    ],
+    "globals": {
+      "arena": "AMEA/w==",
+      "frame": "EMkAzQ==",
+      "level": "yMEAyQ==",
+      "perm": "CMAAwQ=="
+    },
+    "resources": {}
+  },
+  "candidates": [
+    {
+      "hir": "; HIR module: ../../../examples/nanz/08_arena_allocator.nanz\nstruct @Arena { ptr: u16, end: u16 }\nstruct @Enemy { x: u8, y: u8, hp: u8, sprite: u8 }\nstruct @Vec2 { x: u16, y: u16 }\nglobal @arena : Arena\nglobal @perm : Arena\nglobal @level : Arena\nglobal @frame : Arena\n\nfun @Arena_init(self: ptr, base: u16, size: u16)\n  ((self:ptr)).ptr[+0]:u16 = (base:u16)\n  ((self:ptr)).end[+2]:u16 = ((base:u16) + (size:u16)):u16\n\nfun @Arena_alloc(self: ptr, n: u16) -\u003e u16\n  var result: u16 = ((self:ptr)).ptr[+0]:u16\n  var next: u16 = ((result:u16) + (n:u16)):u16\n  if ((next:u16) \u003e ((self:ptr)).end[+2]:u16):bool\n    return 0:u8\n  ((self:ptr)).ptr[+0]:u16 = (next:u16)\n  return (result:u16)\n\nfun @Arena_reset(self: ptr, base: u16)\n  ((self:ptr)).ptr[+0]:u16 = (base:u16)\n\nfun @Arena_used(self: ptr, base: u16) -\u003e u16\n  return (((self:ptr)).ptr[+0]:u16 - (base:u16)):u16\n\nfun @Arena_remaining(self: ptr) -\u003e u16\n  return (((self:ptr)).end[+2]:u16 - ((self:ptr)).ptr[+0]:u16):u16\n\nfun @arena_split(a: ptr, start: u16, size: u16) -\u003e u16\n  call @Arena_init((a:ptr), (start:u16), (size:u16)):void\n  return ((start:u16) + (size:u16)):u16\n\nfun @test_alloc_sequence() -\u003e u16\n  call @Arena_init((arena:Arena), 49152:u16, 16128:u16):void\n  var a: u16 = call @Arena_alloc((arena:Arena), 256:u16):u16\n  var b: u16 = call @Arena_alloc((arena:Arena), 256:u16):u16\n  var c: u16 = call @Arena_alloc((arena:Arena), 256:u16):u16\n  if ((a:u16) != 49152:u16):bool\n    return 1:u8\n  if ((b:u16) != 49408:u16):bool\n    return 2:u8\n  if ((c:u16) != 49664:u16):bool\n    return 3:u8\n  call @Arena_reset((arena:Arena), 49152:u16):void\n  var d: u16 = call @Arena_alloc((arena:Arena), 100:u8):u16\n  if ((d:u16) != 49152:u16):bool\n    return 5:u8\n  if (call @Arena_used((arena:Arena), 49152:u16):u16 != 100:u8):bool\n    return 6:u8\n  return 0:u8\n\nfun @test_oom() -\u003e u16\n  call @Arena_init((arena:Arena), 49152:u16, 16:u8):void\n  var a: u16 = call @Arena_alloc((arena:Arena), 8:u8):u16\n  if ((a:u16) == 0:u8):bool\n    return 1:u8\n  var b: u16 = call @Arena_alloc((arena:Arena), 8:u8):u16\n  if ((b:u16) == 0:u8):bool\n    return 2:u8\n  var c: u16 = call @Arena_alloc((arena:Arena), 1:u8):u16\n  if ((c:u16) != 0:u8):bool\n    return 3:u8\n  return 0:u8\n\nfun @test_small_allocs() -\u003e u16\n  call @Arena_init((arena:Arena), 49152:u16, 1024:u16):void\n  var p1: u16 = call @Arena_alloc((arena:Arena), 1:u8):u16\n  var p2: u16 = call @Arena_alloc((arena:Arena), 1:u8):u16\n  var p3: u16 = call @Arena_alloc((arena:Arena), 2:u8):u16\n  if ((p1:u16) != 49152:u16):bool\n    return 1:u8\n  if ((p2:u16) != 49153:u16):bool\n    return 2:u8\n  if ((p3:u16) != 49154:u16):bool\n    return 3:u8\n  if (call @Arena_remaining((arena:Arena)):u16 != 1020:u16):bool\n    return 4:u8\n  return 0:u8\n\nfun @test_sizeof() -\u003e u16\n  if (4:u8 != 4:u8):bool\n    return 1:u8\n  return 0:u8\n\nfun @test_split() -\u003e u16\n  var next: u16 = call @arena_split(addr @perm:ptr, 49152:u16, 256:u16):u16\n  if ((next:u16) != 49408:u16):bool\n    return 1:u8\n  var next2: u16 = call @arena_split(addr @level:ptr, (next:u16), 2048:u16):u16\n  if ((next2:u16) != 51456:u16):bool\n    return 2:u8\n  var next3: u16 = call @arena_split(addr @frame:ptr, (next2:u16), 1024:u16):u16\n  if ((next3:u16) != 52480:u16):bool\n    return 3:u8\n  var p1: u16 = call @Arena_alloc((perm:Arena), 4:u8):u16\n  var l1: u16 = call @Arena_alloc((level:Arena), 100:u8):u16\n  var f1: u16 = call @Arena_alloc((frame:Arena), 32:u8):u16\n  if ((p1:u16) != 49152:u16):bool\n    return 4:u8\n  if ((l1:u16) != 49408:u16):bool\n    return 5:u8\n  if ((f1:u16) != 51456:u16):bool\n    return 6:u8\n  call @Arena_reset((frame:Arena), 51456:u16):void\n  var f2: u16 = call @Arena_alloc((frame:Arena), 16:u8):u16\n  if ((f2:u16) != 51456:u16):bool\n    return 7:u8\n  var p2: u16 = call @Arena_alloc((perm:Arena), 4:u8):u16\n  if ((p2:u16) != 49156:u16):bool\n    return 8:u8\n  var l2: u16 = call @Arena_alloc((level:Arena), 100:u8):u16\n  if ((l2:u16) != 49508:u16):bool\n    return 9:u8\n  return 0:u8\n\nfun @test_typed_alloc() -\u003e u16\n  call @Arena_init((arena:Arena), 49152:u16, 4096:u16):void\n  var e1: u16 = call @Arena_alloc((arena:Arena), 4:u8):u16\n  var e2: u16 = call @Arena_alloc((arena:Arena), 4:u8):u16\n  var v1: u16 = call @Arena_alloc((arena:Arena), 4:u8):u16\n  if ((e1:u16) != 49152:u16):bool\n    return 1:u8\n  if ((e2:u16) != 49156:u16):bool\n    return 2:u8\n  if ((v1:u16) != 49160:u16):bool\n    return 3:u8\n  return 0:u8\n\nfun @init_frame() -\u003e u16\n  call @Arena_init((arena:Arena), 49152:u16, 16128:u16):void\n  return call @Arena_remaining((arena:Arena)):u16\n\nfun @alloc_and_check(expected: u16) -\u003e u16\n  var p: u16 = call @Arena_alloc((arena:Arena), 64:u8):u16\n  if ((p:u16) != (expected:u16)):bool\n    return 1:u8\n  return 0:u8\n\nfun @get_remaining() -\u003e u16\n  return call @Arena_remaining((arena:Arena)):u16\n\n",
+      "lineage": [],
+      "common_grace_rules": false,
+      "decisions": [],
+      "binary": "cSNwK+XF4RlUXeEjI3MjcivJXiNWK+ViawnlweHl3eHdI90j9d1+APXdfgHdZ/Hdb/Hl3eXht+1C4TAGPgBvJgDJcSNwK2JryXMjcivJ9X71I35n8W/xt+1SyVRdExP1GvUTGlfxX/H1fvUjfmfxb/HV5dHht+1SyQjdfXcIIwjdfHcIK+Xd5eEZ5cHhIyNxI3Ar3eXhGckhmYQRAMABAD9zI3Ir5esJ6+EjI3MjcishmYQRAAFCS80SgBGZhAEAAeVia80SgFRd4QGZhN0hAAHV5WBp3UTdTc0SgOXd4eHRAQDAt+1CKAY+AW8mAMkhAMHrt+1S6ygGPgJvJgDJIQDCVF3d5eG37VLrKAY+A28mAMkhmYQRAMBzI3IrIZmEDmQGAM0SgFRdIQDA67ftUusoBj4FbyYAyREAwCqZhLftUg5kBgC37UI+ACAEbyYAyT4GbyYAySGZhBEAwAYQcyNyK+XrSAYACevhIyNzI3IrIZmEDggGAM0SgA4ABgC37UIgBj4BbyYAySGZhA4IBgDNEoAOAAYAt+1CIAY+Am8mAMkhmYQOAQYAzRKADgAGALftQj4AIARvJgDJPgNvJgDJIZmEEQDAAQAEcyNyK+XrCevhIyNzI3IrIZmEDgEGAM0SgBGZhA4B5WJrBgDNEoBUXeEBmYQ+AtXlYGlPBgDNEoDl3eHh0QEAwLftQigGPgFvJgDJIQHA67ftUusoBj4CbyYAySECwFRd3eXht+1S6ygGPgNvJgDJIZmEVF0TE/Ua9RMaV/Ff8fV+9SN+Z/Fv8dXl0eG37VJUXSH8A+u37VLrPgAgBG8mAMk+BG8mAMk+AG8mAMkhnYQRAMABAAHdYt1rUFnNeYBETSEAwVRdYGm37VLrKAY+AW8mAMkhoYQRAAjdYN1pzXmARE0hAMlUXWBpt+1S6ygGPgJvJgDJIaWEEQAE3WDdac15gFRdIQDN67ftUusoBj4DbyYAySGdhA4EBgDNEoARoYQOZOViawYAzRKAVF3hAaWEPiDV5WBpTwYAzRKA5d3h4dEBAMC37UIoBj4EbyYAySEAweu37VLrKAY+BW8mAMkhAMlUXd3l4bftUusoBj4GbyYAySGlhBEAyXMjcishpYQOEAYAzRKAVF0hAMnrt+1S6ygGPgdvJgDJIZ2EDgQGAM0SgFRdIQTA67ftUusoBj4IbyYAySGhhA5kBgDNEoBUXSFkweu37VLrPgAgBG8mAMk+CW8mAMkhmYQRAMABABBzI3Ir5esJ6+EjI3MjcishmYQOBAYAzRKAEZmEDgTlYmsGAM0SgFRd4QGZhD4E1eVgaU8GAM0SgOXd4eHRAQDAt+1CKAY+AW8mAMkhBMDrt+1S6ygGPgJvJgDJIQjAVF3d5eG37VLrPgAgBG8mAMk+A28mAMkhmYQRAMABAD9zI3Ir5esJ6+EjI3MjcishmYRUXRMT9Rr1ExpX8V/x9X71I35n8W/x1eXR4bftUskhmYQOQNUGAM0SgNG37VI+ACAEbyYAyT4BbyYAySGZhFRdExP1GvUTGlfxX/H1fvUjfmfxb/HV5dHht+1SyQAAAAAAAAAAAAAAAAAAAAA=",
+      "binary_sha256": "350b336474e4a35c818e8a5cad95daf5a8f280b08c95358fc9f893ba97158b52",
+      "module_bytes": 1193,
+      "total_t_states": 14300,
+      "raw_run": {
+        "profile": {
+          "guards": null,
+          "compatibility": null,
+          "schema": "",
+          "stage": "",
+          "sites": null,
+          "counts": null,
+          "completed_calls": 0,
+          "failed_calls": 0
+        },
+        "results": [
+          [
+            {
+              "I": 0
+            }
+          ],
+          [
+            {
+              "I": 0
+            }
+          ],
+          [
+            {
+              "I": 0
+            }
+          ],
+          [
+            {
+              "I": 0
+            }
+          ],
+          [
+            {
+              "I": 0
+            }
+          ],
+          [
+            {
+              "I": 0
+            }
+          ],
+          [
+            {
+              "I": 16128
+            }
+          ],
+          [
+            {
+              "I": 0
+            }
+          ],
+          [
+            {
+              "I": 16064
+            }
+          ],
+          [
+            {
+              "I": 0
+            }
+          ],
+          [
+            {
+              "I": 16000
+            }
+          ],
+          [
+            {
+              "I": 1
+            }
+          ],
+          [
+            {
+              "I": 15936
+            }
+          ],
+          [
+            {
+              "I": 0
+            }
+          ],
+          [
+            {
+              "I": 15872
+            }
+          ]
+        ],
+        "snapshots": [
+          {
+            "globals": {
+              "arena": "NBJ4Vg==",
+              "frame": "NBJ4Vg==",
+              "level": "NBJ4Vg==",
+              "perm": "NBJ4Vg=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "ZMAA/w==",
+              "frame": "NBJ4Vg==",
+              "level": "NBJ4Vg==",
+              "perm": "NBJ4Vg=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "EMAQwA==",
+              "frame": "NBJ4Vg==",
+              "level": "NBJ4Vg==",
+              "perm": "NBJ4Vg=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "BMAAxA==",
+              "frame": "NBJ4Vg==",
+              "level": "NBJ4Vg==",
+              "perm": "NBJ4Vg=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "BMAAxA==",
+              "frame": "EMkAzQ==",
+              "level": "yMEAyQ==",
+              "perm": "CMAAwQ=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "DMAA0A==",
+              "frame": "EMkAzQ==",
+              "level": "yMEAyQ==",
+              "perm": "CMAAwQ=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "AMAA/w==",
+              "frame": "EMkAzQ==",
+              "level": "yMEAyQ==",
+              "perm": "CMAAwQ=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "QMAA/w==",
+              "frame": "EMkAzQ==",
+              "level": "yMEAyQ==",
+              "perm": "CMAAwQ=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "QMAA/w==",
+              "frame": "EMkAzQ==",
+              "level": "yMEAyQ==",
+              "perm": "CMAAwQ=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "gMAA/w==",
+              "frame": "EMkAzQ==",
+              "level": "yMEAyQ==",
+              "perm": "CMAAwQ=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "gMAA/w==",
+              "frame": "EMkAzQ==",
+              "level": "yMEAyQ==",
+              "perm": "CMAAwQ=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "wMAA/w==",
+              "frame": "EMkAzQ==",
+              "level": "yMEAyQ==",
+              "perm": "CMAAwQ=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "wMAA/w==",
+              "frame": "EMkAzQ==",
+              "level": "yMEAyQ==",
+              "perm": "CMAAwQ=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "AMEA/w==",
+              "frame": "EMkAzQ==",
+              "level": "yMEAyQ==",
+              "perm": "CMAAwQ=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "AMEA/w==",
+              "frame": "EMkAzQ==",
+              "level": "yMEAyQ==",
+              "perm": "CMAAwQ=="
+            },
+            "resources": {}
+          }
+        ],
+        "globals": {
+          "arena": "AMEA/w==",
+          "frame": "EMkAzQ==",
+          "level": "yMEAyQ==",
+          "perm": "CMAAwQ=="
+        },
+        "resources": {}
+      },
+      "run": {
+        "compatibility": {
+          "schema": "minz.loop-profile-compatibility/v1",
+          "context": {
+            "compiler_id": "executable-sha256:4a97c904405d6eed68092332b9ddd76f8685e873b034df511b2b3e312003aca6",
+            "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+            "target_id": "module-target:0/model:cpm-z80-v1",
+            "workload_sha256": "2059b52a1ce3080c2f3520cb4cdd66927f6100ade0d6b0dae52f25c774fed884",
+            "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+            "dependencies": {
+              "../../../examples/nanz/08_arena_allocator.nanz": "ae1ff790c63064bb30bb27aa3529f847f5981de841ce816c868249c9bb85107e"
+            }
+          },
+          "hir_sha256": "577a5ed3489f6c65740b9f633bf66f8fe34316d739dd0d1793b40235e1cd8fbe",
+          "origins_sha256": "ac57d0fc9d1e42ad80371ae05aec1ee0ca466ab57e0664b275ac42dedae30648"
+        },
+        "binary_sha256": "350b336474e4a35c818e8a5cad95daf5a8f280b08c95358fc9f893ba97158b52",
+        "bootstrap_sha256": [
+          "4cb8173f6a04e8283e375516dc34b55be96e11975b295f741197dbf4cdb74e96",
+          "eca31679496367abb93b3dad9d48794ddc8a9c3e78a74e8650e439af4a4ac3b7",
+          "53cee57c4010cb49da5ad0f80b8d34c188f31a1e5d1ae84da3a998fa2b8c4ea8",
+          "d0331d3882bb1009d19177d45c3a2251bfbadd7f18ec57508804e3805e105928",
+          "59c8537109190e4784753badad96c60be228670282eba6b768bfbd20b48d5a81",
+          "6a8dd644a6bfc019d998fe6342decb8c7c5db33b892b23772d7c5953a52c4f34",
+          "8695217401c8d531cb4644abbee4891c9cc40668b2e3b2e1e36aef0d582a9240",
+          "22adc4bfaa24eb7d9b99efd6bcf7586f89f234140c8707591e5bdc993322a035",
+          "49b2e5aeb9ea10948493447d4b12d633db3e099964e198e12a930f4381e66ff1",
+          "33b75aa2ad0c3a46d07bf8f0d10f89dc544ce862ef9975b140d735b650509e89",
+          "49b2e5aeb9ea10948493447d4b12d633db3e099964e198e12a930f4381e66ff1",
+          "817f3608f7df80c1661a57e1e7c19790e3baf728907fd304a7dfb868feeb8a06",
+          "49b2e5aeb9ea10948493447d4b12d633db3e099964e198e12a930f4381e66ff1",
+          "a8a6e9b23a47e587dd7e96c534e703784ad410b70ad47e42aa7e56d8b9eea7e9",
+          "49b2e5aeb9ea10948493447d4b12d633db3e099964e198e12a930f4381e66ff1"
+        ],
+        "invocations": [
+          {
+            "function": "test_sizeof",
+            "t_states": 28,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "NBJ4Vg==",
+                "frame": "NBJ4Vg==",
+                "level": "NBJ4Vg==",
+                "perm": "NBJ4Vg=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "test_alloc_sequence",
+            "t_states": 2206,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "ZMAA/w==",
+                "frame": "NBJ4Vg==",
+                "level": "NBJ4Vg==",
+                "perm": "NBJ4Vg=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "test_oom",
+            "t_states": 1449,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "EMAQwA==",
+                "frame": "NBJ4Vg==",
+                "level": "NBJ4Vg==",
+                "perm": "NBJ4Vg=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "test_small_allocs",
+            "t_states": 1899,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "BMAAxA==",
+                "frame": "NBJ4Vg==",
+                "level": "NBJ4Vg==",
+                "perm": "NBJ4Vg=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "test_split",
+            "t_states": 3896,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "BMAAxA==",
+                "frame": "EMkAzQ==",
+                "level": "yMEAyQ==",
+                "perm": "CMAAwQ=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "test_typed_alloc",
+            "t_states": 1611,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "DMAA0A==",
+                "frame": "EMkAzQ==",
+                "level": "yMEAyQ==",
+                "perm": "CMAAwQ=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "init_frame",
+            "t_states": 375,
+            "results": [
+              {
+                "I": 16128
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "AMAA/w==",
+                "frame": "EMkAzQ==",
+                "level": "yMEAyQ==",
+                "perm": "CMAAwQ=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "alloc_and_check",
+            "t_states": 465,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "QMAA/w==",
+                "frame": "EMkAzQ==",
+                "level": "yMEAyQ==",
+                "perm": "CMAAwQ=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "get_remaining",
+            "t_states": 241,
+            "results": [
+              {
+                "I": 16064
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "QMAA/w==",
+                "frame": "EMkAzQ==",
+                "level": "yMEAyQ==",
+                "perm": "CMAAwQ=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "alloc_and_check",
+            "t_states": 465,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "gMAA/w==",
+                "frame": "EMkAzQ==",
+                "level": "yMEAyQ==",
+                "perm": "CMAAwQ=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "get_remaining",
+            "t_states": 241,
+            "results": [
+              {
+                "I": 16000
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "gMAA/w==",
+                "frame": "EMkAzQ==",
+                "level": "yMEAyQ==",
+                "perm": "CMAAwQ=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "alloc_and_check",
+            "t_states": 477,
+            "results": [
+              {
+                "I": 1
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "wMAA/w==",
+                "frame": "EMkAzQ==",
+                "level": "yMEAyQ==",
+                "perm": "CMAAwQ=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "get_remaining",
+            "t_states": 241,
+            "results": [
+              {
+                "I": 15936
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "wMAA/w==",
+                "frame": "EMkAzQ==",
+                "level": "yMEAyQ==",
+                "perm": "CMAAwQ=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "alloc_and_check",
+            "t_states": 465,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "AMEA/w==",
+                "frame": "EMkAzQ==",
+                "level": "yMEAyQ==",
+                "perm": "CMAAwQ=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "get_remaining",
+            "t_states": 241,
+            "results": [
+              {
+                "I": 15872
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "AMEA/w==",
+                "frame": "EMkAzQ==",
+                "level": "yMEAyQ==",
+                "perm": "CMAAwQ=="
+              },
+              "resources": {}
+            }
+          }
+        ],
+        "globals": {
+          "arena": "AMEA/w==",
+          "frame": "EMkAzQ==",
+          "level": "yMEAyQ==",
+          "perm": "CMAAwQ=="
+        },
+        "resources": {},
+        "resource_addresses": {},
+        "global_addresses": {
+          "arena": 33945,
+          "frame": 33957,
+          "level": 33953,
+          "perm": 33949
+        },
+        "bootstrap_t_states": 445,
+        "total_t_states": 14300,
+        "executed_steps": 1647
+      }
+    },
+    {
+      "hir": "; HIR module: ../../../examples/nanz/08_arena_allocator.nanz\nstruct @Arena { ptr: u16, end: u16 }\nstruct @Enemy { x: u8, y: u8, hp: u8, sprite: u8 }\nstruct @Vec2 { x: u16, y: u16 }\nglobal @arena : Arena\nglobal @perm : Arena\nglobal @level : Arena\nglobal @frame : Arena\n\nfun @Arena_init(self: ptr, base: u16, size: u16)\n  ((self:ptr)).ptr[+0]:u16 = (base:u16)\n  ((self:ptr)).end[+2]:u16 = ((base:u16) + (size:u16)):u16\n\nfun @Arena_alloc(self: ptr, n: u16) -\u003e u16\n  var result: u16 = ((self:ptr)).ptr[+0]:u16\n  var next: u16 = ((result:u16) + (n:u16)):u16\n  if ((next:u16) \u003e ((self:ptr)).end[+2]:u16):bool\n    return 0:u8\n  ((self:ptr)).ptr[+0]:u16 = (next:u16)\n  return (result:u16)\n\nfun @Arena_reset(self: ptr, base: u16)\n  ((self:ptr)).ptr[+0]:u16 = (base:u16)\n\nfun @Arena_used(self: ptr, base: u16) -\u003e u16\n  return (((self:ptr)).ptr[+0]:u16 - (base:u16)):u16\n\nfun @Arena_remaining(self: ptr) -\u003e u16\n  return (((self:ptr)).end[+2]:u16 - ((self:ptr)).ptr[+0]:u16):u16\n\nfun @arena_split(a: ptr, start: u16, size: u16) -\u003e u16\n  call @Arena_init((a:ptr), (start:u16), (size:u16)):void\n  return ((start:u16) + (size:u16)):u16\n\nfun @test_alloc_sequence() -\u003e u16\n  call @Arena_init((arena:Arena), 49152:u16, 16128:u16):void\n  var a: u16 = call @Arena_alloc((arena:Arena), 256:u16):u16\n  var b: u16 = call @Arena_alloc((arena:Arena), 256:u16):u16\n  var c: u16 = call @Arena_alloc((arena:Arena), 256:u16):u16\n  if ((a:u16) != 49152:u16):bool\n    return 1:u8\n  if ((b:u16) != 49408:u16):bool\n    return 2:u8\n  if ((c:u16) != 49664:u16):bool\n    return 3:u8\n  call @Arena_reset((arena:Arena), 49152:u16):void\n  var d: u16 = call @Arena_alloc((arena:Arena), 100:u8):u16\n  if ((d:u16) != 49152:u16):bool\n    return 5:u8\n  if (call @Arena_used((arena:Arena), 49152:u16):u16 != 100:u8):bool\n    return 6:u8\n  return 0:u8\n\nfun @test_oom() -\u003e u16\n  call @Arena_init((arena:Arena), 49152:u16, 16:u8):void\n  var a: u16 = call @Arena_alloc((arena:Arena), 8:u8):u16\n  if ((a:u16) == 0:u8):bool\n    return 1:u8\n  var b: u16 = call @Arena_alloc((arena:Arena), 8:u8):u16\n  if ((b:u16) == 0:u8):bool\n    return 2:u8\n  var c: u16 = call @Arena_alloc((arena:Arena), 1:u8):u16\n  if ((c:u16) != 0:u8):bool\n    return 3:u8\n  return 0:u8\n\nfun @test_small_allocs() -\u003e u16\n  call @Arena_init((arena:Arena), 49152:u16, 1024:u16):void\n  var p1: u16 = call @Arena_alloc((arena:Arena), 1:u8):u16\n  var p2: u16 = call @Arena_alloc((arena:Arena), 1:u8):u16\n  var p3: u16 = call @Arena_alloc((arena:Arena), 2:u8):u16\n  if ((p1:u16) != 49152:u16):bool\n    return 1:u8\n  if ((p2:u16) != 49153:u16):bool\n    return 2:u8\n  if ((p3:u16) != 49154:u16):bool\n    return 3:u8\n  if (call @Arena_remaining((arena:Arena)):u16 != 1020:u16):bool\n    return 4:u8\n  return 0:u8\n\nfun @test_sizeof() -\u003e u16\n  if (4:u8 != 4:u8):bool\n    return 1:u8\n  return 0:u8\n\nfun @test_split() -\u003e u16\n  var next: u16 = call @arena_split(addr @perm:ptr, 49152:u16, 256:u16):u16\n  if ((next:u16) != 49408:u16):bool\n    return 1:u8\n  var next2: u16 = call @arena_split(addr @level:ptr, (next:u16), 2048:u16):u16\n  if ((next2:u16) != 51456:u16):bool\n    return 2:u8\n  var next3: u16 = call @arena_split(addr @frame:ptr, (next2:u16), 1024:u16):u16\n  if ((next3:u16) != 52480:u16):bool\n    return 3:u8\n  var p1: u16 = call @Arena_alloc((perm:Arena), 4:u8):u16\n  var l1: u16 = call @Arena_alloc((level:Arena), 100:u8):u16\n  var f1: u16 = call @Arena_alloc((frame:Arena), 32:u8):u16\n  if ((p1:u16) != 49152:u16):bool\n    return 4:u8\n  if ((l1:u16) != 49408:u16):bool\n    return 5:u8\n  if ((f1:u16) != 51456:u16):bool\n    return 6:u8\n  call @Arena_reset((frame:Arena), 51456:u16):void\n  var f2: u16 = call @Arena_alloc((frame:Arena), 16:u8):u16\n  if ((f2:u16) != 51456:u16):bool\n    return 7:u8\n  var p2: u16 = call @Arena_alloc((perm:Arena), 4:u8):u16\n  if ((p2:u16) != 49156:u16):bool\n    return 8:u8\n  var l2: u16 = call @Arena_alloc((level:Arena), 100:u8):u16\n  if ((l2:u16) != 49508:u16):bool\n    return 9:u8\n  return 0:u8\n\nfun @test_typed_alloc() -\u003e u16\n  call @Arena_init((arena:Arena), 49152:u16, 4096:u16):void\n  var e1: u16 = call @Arena_alloc((arena:Arena), 4:u8):u16\n  var e2: u16 = call @Arena_alloc((arena:Arena), 4:u8):u16\n  var v1: u16 = call @Arena_alloc((arena:Arena), 4:u8):u16\n  if ((e1:u16) != 49152:u16):bool\n    return 1:u8\n  if ((e2:u16) != 49156:u16):bool\n    return 2:u8\n  if ((v1:u16) != 49160:u16):bool\n    return 3:u8\n  return 0:u8\n\nfun @init_frame() -\u003e u16\n  call @Arena_init((arena:Arena), 49152:u16, 16128:u16):void\n  return call @Arena_remaining((arena:Arena)):u16\n\nfun @alloc_and_check(expected: u16) -\u003e u16\n  var p: u16 = call @Arena_alloc((arena:Arena), 64:u8):u16\n  if ((p:u16) != (expected:u16)):bool\n    return 1:u8\n  return 0:u8\n\nfun @get_remaining() -\u003e u16\n  return call @Arena_remaining((arena:Arena)):u16\n\n",
+      "lineage": [],
+      "common_grace_rules": true,
+      "decisions": [],
+      "binary": "cSNwK+XF4RlUXeEjI3MjcivJXiNWK+ViawnlweHl3eHdI90j9d1+APXdfgHdZ/Hdb/Hl3eXht+1C4TAGPgBvJgDJcSNwK2JryXMjcivJ9X71I35n8W/xt+1SyVRdExP1GvUTGlfxX/H1fvUjfmfxb/HV5dHht+1SyQjdfXcIIwjdfHcIK+Xd5eEZ5cHhIyNxI3Ar3eXhGckhmYQRAMABAD9zI3Ir5esJ6+EjI3MjcishmYQRAAFCS80SgBGZhAEAAeVia80SgFRd4QGZhN0hAAHV5WBp3UTdTc0SgOXd4eHRAQDAt+1CKAY+AW8mAMkhAMHrt+1S6ygGPgJvJgDJIQDCVF3d5eG37VLrKAY+A28mAMkhmYQRAMBzI3IrIZmEDmQGAM0SgFRdIQDA67ftUusoBj4FbyYAyREAwCqZhLftUg5kBgC37UI+ACAEbyYAyT4GbyYAySGZhBEAwAYQcyNyK+XrSAYACevhIyNzI3IrIZmEDggGAM0SgA4ABgC37UIgBj4BbyYAySGZhA4IBgDNEoAOAAYAt+1CIAY+Am8mAMkhmYQOAQYAzRKADgAGALftQj4AIARvJgDJPgNvJgDJIZmEEQDAAQAEcyNyK+XrCevhIyNzI3IrIZmEDgEGAM0SgBGZhA4B5WJrBgDNEoBUXeEBmYQ+AtXlYGlPBgDNEoDl3eHh0QEAwLftQigGPgFvJgDJIQHA67ftUusoBj4CbyYAySECwFRd3eXht+1S6ygGPgNvJgDJIZmEVF0TE/Ua9RMaV/Ff8fV+9SN+Z/Fv8dXl0eG37VJUXSH8A+u37VLrPgAgBG8mAMk+BG8mAMk+AG8mAMkhnYQRAMABAAHdYt1rUFnNeYBETSEAwVRdYGm37VLrKAY+AW8mAMkhoYQRAAjdYN1pzXmARE0hAMlUXWBpt+1S6ygGPgJvJgDJIaWEEQAE3WDdac15gFRdIQDN67ftUusoBj4DbyYAySGdhA4EBgDNEoARoYQOZOViawYAzRKAVF3hAaWEPiDV5WBpTwYAzRKA5d3h4dEBAMC37UIoBj4EbyYAySEAweu37VLrKAY+BW8mAMkhAMlUXd3l4bftUusoBj4GbyYAySGlhBEAyXMjcishpYQOEAYAzRKAVF0hAMnrt+1S6ygGPgdvJgDJIZ2EDgQGAM0SgFRdIQTA67ftUusoBj4IbyYAySGhhA5kBgDNEoBUXSFkweu37VLrPgAgBG8mAMk+CW8mAMkhmYQRAMABABBzI3Ir5esJ6+EjI3MjcishmYQOBAYAzRKAEZmEDgTlYmsGAM0SgFRd4QGZhD4E1eVgaU8GAM0SgOXd4eHRAQDAt+1CKAY+AW8mAMkhBMDrt+1S6ygGPgJvJgDJIQjAVF3d5eG37VLrPgAgBG8mAMk+A28mAMkhmYQRAMABAD9zI3Ir5esJ6+EjI3MjcishmYRUXRMT9Rr1ExpX8V/x9X71I35n8W/x1eXR4bftUskhmYQOQNUGAM0SgNG37VI+ACAEbyYAyT4BbyYAySGZhFRdExP1GvUTGlfxX/H1fvUjfmfxb/HV5dHht+1SyQAAAAAAAAAAAAAAAAAAAAA=",
+      "binary_sha256": "350b336474e4a35c818e8a5cad95daf5a8f280b08c95358fc9f893ba97158b52",
+      "module_bytes": 1193,
+      "total_t_states": 14300,
+      "raw_run": {
+        "profile": {
+          "guards": null,
+          "compatibility": null,
+          "schema": "",
+          "stage": "",
+          "sites": null,
+          "counts": null,
+          "completed_calls": 0,
+          "failed_calls": 0
+        },
+        "results": [
+          [
+            {
+              "I": 0
+            }
+          ],
+          [
+            {
+              "I": 0
+            }
+          ],
+          [
+            {
+              "I": 0
+            }
+          ],
+          [
+            {
+              "I": 0
+            }
+          ],
+          [
+            {
+              "I": 0
+            }
+          ],
+          [
+            {
+              "I": 0
+            }
+          ],
+          [
+            {
+              "I": 16128
+            }
+          ],
+          [
+            {
+              "I": 0
+            }
+          ],
+          [
+            {
+              "I": 16064
+            }
+          ],
+          [
+            {
+              "I": 0
+            }
+          ],
+          [
+            {
+              "I": 16000
+            }
+          ],
+          [
+            {
+              "I": 1
+            }
+          ],
+          [
+            {
+              "I": 15936
+            }
+          ],
+          [
+            {
+              "I": 0
+            }
+          ],
+          [
+            {
+              "I": 15872
+            }
+          ]
+        ],
+        "snapshots": [
+          {
+            "globals": {
+              "arena": "NBJ4Vg==",
+              "frame": "NBJ4Vg==",
+              "level": "NBJ4Vg==",
+              "perm": "NBJ4Vg=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "ZMAA/w==",
+              "frame": "NBJ4Vg==",
+              "level": "NBJ4Vg==",
+              "perm": "NBJ4Vg=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "EMAQwA==",
+              "frame": "NBJ4Vg==",
+              "level": "NBJ4Vg==",
+              "perm": "NBJ4Vg=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "BMAAxA==",
+              "frame": "NBJ4Vg==",
+              "level": "NBJ4Vg==",
+              "perm": "NBJ4Vg=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "BMAAxA==",
+              "frame": "EMkAzQ==",
+              "level": "yMEAyQ==",
+              "perm": "CMAAwQ=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "DMAA0A==",
+              "frame": "EMkAzQ==",
+              "level": "yMEAyQ==",
+              "perm": "CMAAwQ=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "AMAA/w==",
+              "frame": "EMkAzQ==",
+              "level": "yMEAyQ==",
+              "perm": "CMAAwQ=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "QMAA/w==",
+              "frame": "EMkAzQ==",
+              "level": "yMEAyQ==",
+              "perm": "CMAAwQ=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "QMAA/w==",
+              "frame": "EMkAzQ==",
+              "level": "yMEAyQ==",
+              "perm": "CMAAwQ=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "gMAA/w==",
+              "frame": "EMkAzQ==",
+              "level": "yMEAyQ==",
+              "perm": "CMAAwQ=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "gMAA/w==",
+              "frame": "EMkAzQ==",
+              "level": "yMEAyQ==",
+              "perm": "CMAAwQ=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "wMAA/w==",
+              "frame": "EMkAzQ==",
+              "level": "yMEAyQ==",
+              "perm": "CMAAwQ=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "wMAA/w==",
+              "frame": "EMkAzQ==",
+              "level": "yMEAyQ==",
+              "perm": "CMAAwQ=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "AMEA/w==",
+              "frame": "EMkAzQ==",
+              "level": "yMEAyQ==",
+              "perm": "CMAAwQ=="
+            },
+            "resources": {}
+          },
+          {
+            "globals": {
+              "arena": "AMEA/w==",
+              "frame": "EMkAzQ==",
+              "level": "yMEAyQ==",
+              "perm": "CMAAwQ=="
+            },
+            "resources": {}
+          }
+        ],
+        "globals": {
+          "arena": "AMEA/w==",
+          "frame": "EMkAzQ==",
+          "level": "yMEAyQ==",
+          "perm": "CMAAwQ=="
+        },
+        "resources": {}
+      },
+      "run": {
+        "compatibility": {
+          "schema": "minz.loop-profile-compatibility/v1",
+          "context": {
+            "compiler_id": "executable-sha256:4a97c904405d6eed68092332b9ddd76f8685e873b034df511b2b3e312003aca6",
+            "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+            "target_id": "module-target:0/model:cpm-z80-v1",
+            "workload_sha256": "2059b52a1ce3080c2f3520cb4cdd66927f6100ade0d6b0dae52f25c774fed884",
+            "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+            "dependencies": {
+              "../../../examples/nanz/08_arena_allocator.nanz": "ae1ff790c63064bb30bb27aa3529f847f5981de841ce816c868249c9bb85107e"
+            }
+          },
+          "hir_sha256": "577a5ed3489f6c65740b9f633bf66f8fe34316d739dd0d1793b40235e1cd8fbe",
+          "origins_sha256": "ac57d0fc9d1e42ad80371ae05aec1ee0ca466ab57e0664b275ac42dedae30648"
+        },
+        "binary_sha256": "350b336474e4a35c818e8a5cad95daf5a8f280b08c95358fc9f893ba97158b52",
+        "bootstrap_sha256": [
+          "4cb8173f6a04e8283e375516dc34b55be96e11975b295f741197dbf4cdb74e96",
+          "eca31679496367abb93b3dad9d48794ddc8a9c3e78a74e8650e439af4a4ac3b7",
+          "53cee57c4010cb49da5ad0f80b8d34c188f31a1e5d1ae84da3a998fa2b8c4ea8",
+          "d0331d3882bb1009d19177d45c3a2251bfbadd7f18ec57508804e3805e105928",
+          "59c8537109190e4784753badad96c60be228670282eba6b768bfbd20b48d5a81",
+          "6a8dd644a6bfc019d998fe6342decb8c7c5db33b892b23772d7c5953a52c4f34",
+          "8695217401c8d531cb4644abbee4891c9cc40668b2e3b2e1e36aef0d582a9240",
+          "22adc4bfaa24eb7d9b99efd6bcf7586f89f234140c8707591e5bdc993322a035",
+          "49b2e5aeb9ea10948493447d4b12d633db3e099964e198e12a930f4381e66ff1",
+          "33b75aa2ad0c3a46d07bf8f0d10f89dc544ce862ef9975b140d735b650509e89",
+          "49b2e5aeb9ea10948493447d4b12d633db3e099964e198e12a930f4381e66ff1",
+          "817f3608f7df80c1661a57e1e7c19790e3baf728907fd304a7dfb868feeb8a06",
+          "49b2e5aeb9ea10948493447d4b12d633db3e099964e198e12a930f4381e66ff1",
+          "a8a6e9b23a47e587dd7e96c534e703784ad410b70ad47e42aa7e56d8b9eea7e9",
+          "49b2e5aeb9ea10948493447d4b12d633db3e099964e198e12a930f4381e66ff1"
+        ],
+        "invocations": [
+          {
+            "function": "test_sizeof",
+            "t_states": 28,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "NBJ4Vg==",
+                "frame": "NBJ4Vg==",
+                "level": "NBJ4Vg==",
+                "perm": "NBJ4Vg=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "test_alloc_sequence",
+            "t_states": 2206,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "ZMAA/w==",
+                "frame": "NBJ4Vg==",
+                "level": "NBJ4Vg==",
+                "perm": "NBJ4Vg=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "test_oom",
+            "t_states": 1449,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "EMAQwA==",
+                "frame": "NBJ4Vg==",
+                "level": "NBJ4Vg==",
+                "perm": "NBJ4Vg=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "test_small_allocs",
+            "t_states": 1899,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "BMAAxA==",
+                "frame": "NBJ4Vg==",
+                "level": "NBJ4Vg==",
+                "perm": "NBJ4Vg=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "test_split",
+            "t_states": 3896,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "BMAAxA==",
+                "frame": "EMkAzQ==",
+                "level": "yMEAyQ==",
+                "perm": "CMAAwQ=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "test_typed_alloc",
+            "t_states": 1611,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "DMAA0A==",
+                "frame": "EMkAzQ==",
+                "level": "yMEAyQ==",
+                "perm": "CMAAwQ=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "init_frame",
+            "t_states": 375,
+            "results": [
+              {
+                "I": 16128
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "AMAA/w==",
+                "frame": "EMkAzQ==",
+                "level": "yMEAyQ==",
+                "perm": "CMAAwQ=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "alloc_and_check",
+            "t_states": 465,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "QMAA/w==",
+                "frame": "EMkAzQ==",
+                "level": "yMEAyQ==",
+                "perm": "CMAAwQ=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "get_remaining",
+            "t_states": 241,
+            "results": [
+              {
+                "I": 16064
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "QMAA/w==",
+                "frame": "EMkAzQ==",
+                "level": "yMEAyQ==",
+                "perm": "CMAAwQ=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "alloc_and_check",
+            "t_states": 465,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "gMAA/w==",
+                "frame": "EMkAzQ==",
+                "level": "yMEAyQ==",
+                "perm": "CMAAwQ=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "get_remaining",
+            "t_states": 241,
+            "results": [
+              {
+                "I": 16000
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "gMAA/w==",
+                "frame": "EMkAzQ==",
+                "level": "yMEAyQ==",
+                "perm": "CMAAwQ=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "alloc_and_check",
+            "t_states": 477,
+            "results": [
+              {
+                "I": 1
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "wMAA/w==",
+                "frame": "EMkAzQ==",
+                "level": "yMEAyQ==",
+                "perm": "CMAAwQ=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "get_remaining",
+            "t_states": 241,
+            "results": [
+              {
+                "I": 15936
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "wMAA/w==",
+                "frame": "EMkAzQ==",
+                "level": "yMEAyQ==",
+                "perm": "CMAAwQ=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "alloc_and_check",
+            "t_states": 465,
+            "results": [
+              {
+                "I": 0
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "AMEA/w==",
+                "frame": "EMkAzQ==",
+                "level": "yMEAyQ==",
+                "perm": "CMAAwQ=="
+              },
+              "resources": {}
+            }
+          },
+          {
+            "function": "get_remaining",
+            "t_states": 241,
+            "results": [
+              {
+                "I": 15872
+              }
+            ],
+            "snapshot": {
+              "globals": {
+                "arena": "AMEA/w==",
+                "frame": "EMkAzQ==",
+                "level": "yMEAyQ==",
+                "perm": "CMAAwQ=="
+              },
+              "resources": {}
+            }
+          }
+        ],
+        "globals": {
+          "arena": "AMEA/w==",
+          "frame": "EMkAzQ==",
+          "level": "yMEAyQ==",
+          "perm": "CMAAwQ=="
+        },
+        "resources": {},
+        "resource_addresses": {},
+        "global_addresses": {
+          "arena": 33945,
+          "frame": 33957,
+          "level": 33953,
+          "perm": 33949
+        },
+        "bootstrap_t_states": 445,
+        "total_t_states": 14300,
+        "executed_steps": 1647
+      }
+    }
+  ],
+  "selected": 0,
+  "sha256": "620c6d1e7c9fcd8c297bee92ae0d508aa6317799946c7cb2e30133b6c8747532"
+}

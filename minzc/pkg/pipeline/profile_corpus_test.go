@@ -132,22 +132,25 @@ func profileCorpusCheck(call hir.ProfileInvocation, values []mir2.Value, want in
 }
 
 func TestProfileRealSourceCorpus(t *testing.T) {
-	for _, c := range profileCorpusCases()[1:] { // Popcount's explicit rejection is tested below.
-		t.Run(c.name, func(t *testing.T) { profileCorpusRun(t, c, false) })
+	for _, c := range profileCorpusCases()[1:] { // Full-domain popcount is tested separately below.
+		t.Run(c.name, func(t *testing.T) { profileCorpusRun(t, c) })
 	}
 }
 
-// The range annotation survives in source HIR but the compiled contract is u8.
-// The production target harness rejects this mismatch before executing calls.
-// Keep this visible and reproducible without altering the original source or
-// pretending the rejected workload provides Z80 correctness/performance evidence.
-// Once supported, move popcount into the compatible corpus; this test must fail
-// if the rejection changes or disappears, so it cannot mask a different defect.
-func TestProfileRealSourceCorpusPopcountKnownRejection(t *testing.T) {
-	profileCorpusRun(t, profileCorpusCases()[0], true)
+// The full annotated byte domain must survive LUTGen and target ABI lowering.
+func TestProfileRealSourceCorpusPopcount(t *testing.T) {
+	c := profileCorpusCases()[0]
+	c.workload.Calls = nil
+	c.expected = nil
+	for x := int64(0); x < 256; x++ {
+		v := x
+		c.workload.Calls = append(c.workload.Calls, hir.ProfileInvocation{Function: "popcount", Arguments: []hir.ProfileArgument{{Value: &v}}})
+		c.expected = append(c.expected, int64(bits.OnesCount8(uint8(x))))
+	}
+	profileCorpusRun(t, c)
 }
 
-func profileCorpusRun(t *testing.T, c profileCorpusCase, knownRejection bool) {
+func profileCorpusRun(t *testing.T, c profileCorpusCase) {
 	t.Helper()
 
 	sourcePath := filepath.Join("..", "..", "..", "examples", "nanz", c.source)
@@ -292,18 +295,7 @@ func profileCorpusRun(t *testing.T, c profileCorpusCase, knownRejection bool) {
 		}
 		t.Logf("%s: %d calls, one baseline, %d T-states, %d module bytes; artifacts %s", c.source, len(c.expected), total, candidate.ModuleBytes, dir)
 	}
-	profileCorpusWrite(t, dir, "results.json", map[string]any{"failures": failures, "expected": c.expected, "max_steps": c.workload.MaxSteps, "max_memory": c.workload.MaxMemory, "known_rejection": knownRejection})
-	if knownRejection {
-		want := []string{
-			"direct target: Z80 profile workload: compiled parameter type mismatch",
-			"measurement: measure profile variant sets: candidate 0 target workload: Z80 profile workload: compiled parameter type mismatch",
-		}
-		if !reflect.DeepEqual(failures, want) || target != nil || result != nil {
-			t.Fatalf("known rejection changed: %v; artifacts %s", failures, dir)
-		}
-		t.Logf("KNOWN FAILURE: %s popcount(0,1,127,128,255), raw oracle correct; production target and measurement reject annotated parameter: %v; artifacts %s", c.source, targetErr, dir)
-		return
-	}
+	profileCorpusWrite(t, dir, "results.json", map[string]any{"failures": failures, "expected": c.expected, "max_steps": c.workload.MaxSteps, "max_memory": c.workload.MaxMemory})
 	if len(failures) > 0 {
 		t.Fatalf("corpus failures: %v; artifacts %s", failures, dir)
 	}

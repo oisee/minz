@@ -456,6 +456,13 @@ func (g *z80cg) genInst(inst *Inst) {
 				break
 			}
 		}
+		// Word loads may need A to bridge indirect/prefix restrictions. Keep
+		// live accumulator values and flags intact without borrowing a pair.
+		preserveWordAF := w == 16 && (dst == ptr || isSpill(dst) || ptr == "BC" || ptr == "DE" ||
+			isIXY(dst) || (isIXY(ptr) && dst == "HL"))
+		if preserveWordAF {
+			g.emit("    PUSH AF          ; preserve word-load scratch")
+		}
 		if w == 24 {
 			// 24-bit load (3 bytes little-endian) into DWord shadow pair.
 			// Shadow H' (high byte of hi16) is always zero for u24 semantics.
@@ -529,6 +536,23 @@ func (g *z80cg) genInst(inst *Inst) {
 			} else {
 				g.emitf("    LD %s, %s", dst, ptrIndirect(ptr, 0))
 			}
+		} else if dst == ptr && isPairReg(ptr) {
+			// Read both bytes before changing either byte of the address pair.
+			// Staging the low byte on the stack works for HL/BC/DE and IX/IY,
+			// including prefix restrictions, without clobbering another live pair.
+			g.emitf("    LD A, %s     ; lo", ptrIndirect(ptr, 0))
+			g.emit("    PUSH AF          ; stage low byte before replacing address")
+			if isIXY(ptr) {
+				g.emitf("    LD A, %s     ; hi", ptrIndirect(ptr, 1))
+			} else {
+				g.emitf("    INC %s", ptr)
+				g.emitf("    LD A, (%s)     ; hi", ptr)
+			}
+			g.emitLD8(highByte(dst), "A")
+			g.emit("    POP AF")
+			g.emitLD8(lowByte(dst), "A")
+			g.invalidate(dst)
+			g.invalidate("A")
 		} else if isIXY(ptr) {
 			// 16-bit load via IX/IY: use displacement addressing.
 			lo := lowByte(dst)
@@ -576,32 +600,12 @@ func (g *z80cg) genInst(inst *Inst) {
 			// 16-bit load via HL/DE/BC: INC/DEC trick — little-endian
 			if ptr == "BC" || ptr == "DE" {
 				// BC/DE indirect: only LD A,(rr) is valid — both bytes must go through A.
-				// Also handles self-pointer (dst==ptr) since LD D,(DE) is invalid.
-				if dst == ptr {
-					// Self-pointer: can't write lo byte before reading hi (corrupts ptr).
-					// LD A,(DE) / INC DE / PUSH AF / LD A,(DE) / LD D,A / POP AF / LD E,A
-					g.emitf("    LD A, (%s)     ; lo", ptr)
-					g.emitf("    INC %s", ptr)
-					g.emit("    PUSH AF")
-					g.emitf("    LD A, (%s)     ; hi", ptr)
-					g.emitf("    LD %s, A", highByte(dst))
-					g.emit("    POP AF")
-					g.emitf("    LD %s, A       ; lo", lowByte(dst))
-				} else {
-					g.emitf("    LD A, (%s)     ; lo", ptr)
-					g.emitf("    LD %s, A", lowByte(dst))
-					g.emitf("    INC %s", ptr)
-					g.emitf("    LD A, (%s)     ; hi", ptr)
-					g.emitf("    LD %s, A", highByte(dst))
-					g.emitf("    DEC %s", ptr)
-				}
-				g.invalidate("A")
-			} else if dst == ptr {
-				// Self-pointer with HL: LD L,(HL) corrupts address. Use A as scratch.
 				g.emitf("    LD A, (%s)     ; lo", ptr)
+				g.emitf("    LD %s, A", lowByte(dst))
 				g.emitf("    INC %s", ptr)
-				g.emitf("    LD %s, (%s)     ; hi", highByte(dst), ptr)
-				g.emitf("    LD %s, A       ; lo", lowByte(dst))
+				g.emitf("    LD A, (%s)     ; hi", ptr)
+				g.emitf("    LD %s, A", highByte(dst))
+				g.emitf("    DEC %s", ptr)
 				g.invalidate("A")
 			} else if isIXYReg(lowByte(dst)) || isIXYReg(highByte(dst)) {
 				// DD/FD prefix conflict: LD IXL,(HL) impossible.
@@ -619,6 +623,10 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.emitf("    LD %s, (%s)     ; hi", highByte(dst), ptr)
 				g.emitf("    DEC %s", ptr)
 			}
+		}
+
+		if preserveWordAF {
+			g.emit("    POP AF           ; restore word-load scratch")
 		}
 
 		// POP HL to restore the base ptr that was saved by OpPtrAdd (scanPtrAddBase).

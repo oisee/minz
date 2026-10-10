@@ -1,0 +1,40 @@
+; HIR module: ../../../examples/nanz/10_adt_option.nanz
+fun @unwrap_or(opt: u16, def: u8) -> u8
+  return (if (call @__tag((opt:u16)):u8 == 1:u8):bool then call @__mpay_0(call @__payload((opt:u16)):u8):u8 else (if (call @__tag((opt:u16)):u8 == 0:u8):bool then (def:u8) else 0:u8):u8):u8
+
+fun @is_some(opt: u16) -> u8
+  return (if (call @__tag((opt:u16)):u8 == 1:u8):bool then call @__mpay_1(call @__payload((opt:u16)):u8):u8 else (if (call @__tag((opt:u16)):u8 == 0:u8):bool then 0:u8 else 0:u8):u8):u8
+
+fun @safe_div(a: u8, b: u8) -> u16
+  if ((b:u8) == 0:u8):bool
+    return 0:u16
+  var q: u8 = ((a:u8) / (b:u8)):u8
+  return (256:u16 + cast((q:u8)):u16):u16
+
+fun @test_unwrap_some() -> u8
+  return call @unwrap_or((256:u16 + cast(42:u8):u16):u16, 0:u8):u8
+
+fun @test_unwrap_none() -> u8
+  return call @unwrap_or(0:u16, 77:u8):u8
+
+fun @test_is_some() -> u8
+  return call @is_some((256:u16 + cast(99:u8):u16):u16):u8
+
+fun @test_is_none() -> u8
+  return call @is_some(0:u16):u8
+
+fun @test_safe_div_ok() -> u8
+  return call @unwrap_or(call @safe_div(10:u8, 3:u8):u16, 255:u8):u8
+
+fun @__tag(x: u16) -> u8
+  return cast(((x:u16) / 256:u16):u16):u8
+
+fun @__payload(x: u16) -> u8
+  return cast(((x:u16) % 256:u16):u16):u8
+
+fun @__mpay_0(val: u8) -> u8
+  return (val:u8)
+
+fun @__mpay_1(_: u8) -> u8
+  return 1:u8
+

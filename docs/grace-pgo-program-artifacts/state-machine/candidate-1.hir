@@ -1,0 +1,16 @@
+; HIR module: ../../../examples/nanz/12_state_machine.nanz
+fun @next_state(s: u8, input: u8) -> u8
+  if ((s:u8) == 0:u8):bool
+    return (if ((input:u8) == 1:u8):bool then 1:u8 else (if ((input:u8) == 2:u8):bool then 2:u8 else (if ((input:u8) == 3:u8):bool then 3:u8 else 0:u8):u8):u8):u8
+  if ((s:u8) == 1:u8):bool
+    return (if ((input:u8) == 0:u8):bool then 0:u8 else (if ((input:u8) == 2:u8):bool then 2:u8 else (if ((input:u8) == 3:u8):bool then 3:u8 else 1:u8):u8):u8):u8
+  if ((s:u8) == 2:u8):bool
+    return (if ((input:u8) == 3:u8):bool then 3:u8 else 0:u8):u8
+  return 3:u8
+
+fun @is_alive(s: u8) -> u8
+  return (if ((s:u8) == 3:u8):bool then 0:u8 else 1:u8):u8
+
+fun @state_speed(s: u8) -> u8
+  return (if ((s:u8) == 0:u8):bool then 0:u8 else (if ((s:u8) == 1:u8):bool then 2:u8 else (if ((s:u8) == 2:u8):bool then 4:u8 else (if ((s:u8) == 3:u8):bool then 0:u8 else 0:u8):u8):u8):u8):u8
+

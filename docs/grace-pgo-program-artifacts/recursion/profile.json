@@ -1,0 +1,29 @@
+{
+  "guards": [],
+  "compatibility": {
+    "schema": "minz.loop-profile-compatibility/v1",
+    "context": {
+      "compiler_id": "executable-sha256:4a97c904405d6eed68092332b9ddd76f8685e873b034df511b2b3e312003aca6",
+      "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+      "target_id": "module-target:0/model:cpm-z80-v1",
+      "workload_sha256": "2ee32f3ddea62b28835ccfa46fa3ee9b3ef0be53d582d5e6e1348f285c9ac431",
+      "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+      "dependencies": {
+        "../../../examples/nanz/18_tail_recursion.nanz": "e88d580c3ce9499cdea28a05794e6c6146f88a0e67967d148933b17c969e9540"
+      }
+    },
+    "hir_sha256": "4ca9d50fb6ee66cd8120dde52b60ed798214674d0c39618d1e5fe44f610e06bb",
+    "origins_sha256": "30daf5c519638c92cf044383a30e4b75384be59700e53314cf7164b2fdef61cd"
+  },
+  "schema": "minz.input-hir-loop-observations/v4",
+  "stage": "unoptimised-mir2-vm",
+  "sites": {
+    "schema": "minz.hir-loop-sites/v1",
+    "stage": "input-hir",
+    "sites": [],
+    "unmapped_loops": 0
+  },
+  "counts": [],
+  "completed_calls": 44,
+  "failed_calls": 0
+}

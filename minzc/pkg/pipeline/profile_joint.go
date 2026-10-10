@@ -288,7 +288,7 @@ func jointEqual(a, b any) bool {
 	return ex == nil && ey == nil && bytes.Equal(x, y)
 }
 func jointSameState(a, b *hir.ProfileRun) bool {
-	return jointEqual(a.Snapshots, b.Snapshots) && jointEqual(a.Results, b.Results) && jointEqual(a.Globals, b.Globals) && jointEqual(a.Resources, b.Resources)
+	return jointEqual(a.Accesses, b.Accesses) && jointEqual(a.Snapshots, b.Snapshots) && jointEqual(a.Results, b.Results) && jointEqual(a.Globals, b.Globals) && jointEqual(a.Resources, b.Resources)
 }
 func jointSortedCounts(in []hir.LoopCounts) []hir.LoopCounts {
 	out := make([]hir.LoopCounts, len(in))
@@ -422,6 +422,12 @@ func jointRunRaw(m *hir.Module, w hir.ProfileWorkload) (*hir.ProfileRun, error) 
 		used += int64(len(b))
 	}
 	out := &hir.ProfileRun{Snapshots: []hir.ProfileMemorySnapshot{}, Results: [][]mir2.Value{}, Globals: map[string][]byte{}, Resources: map[string][]byte{}}
+	var accesses *hir.ProfileAccessRecorder
+	if w.ExactDataAccess {
+		accesses = hir.NewProfileAccessRecorder(m, vm, w, addresses)
+		vm.ObserveDataAccess = accesses.Observe
+	}
+
 	for _, call := range w.Calls {
 		args := make([]mir2.Value, len(call.Arguments))
 		for i, a := range call.Arguments {
@@ -430,6 +436,9 @@ func jointRunRaw(m *hir.Module, w hir.ProfileWorkload) (*hir.ProfileRun, error) 
 			} else {
 				args[i].I = addresses[a.Resource] + int64(a.Offset)
 			}
+		}
+		if accesses != nil {
+			accesses.Reset()
 		}
 		r, err := vm.Call(call.Function, args)
 		if err != nil {
@@ -448,6 +457,13 @@ func jointRunRaw(m *hir.Module, w hir.ProfileWorkload) (*hir.ProfileRun, error) 
 			snapshot.Resources[name] = append([]byte{}, vm.ReadHeap(addresses[name], len(w.Resources[name]))...)
 		}
 		out.Snapshots = append(out.Snapshots, snapshot)
+		if accesses != nil {
+			a, err := accesses.Snapshot()
+			if err != nil {
+				return nil, err
+			}
+			out.Accesses = append(out.Accesses, a)
+		}
 	}
 	for _, g := range m.Globals {
 		size := mir2.ByteWidth(g.Ty)
