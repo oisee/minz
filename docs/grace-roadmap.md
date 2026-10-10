@@ -1,5 +1,8 @@
 # План развития Grace в основном пути MinZ
 
+
+Обновление: добавлен [HIR-верификатор](grace-hir-verifier.md) и исправлены типы fold/reduce непосредственно в return. PGO остаётся следующим отдельным этапом.
+
 **Update:** [Scalar pointer types from source through VM/Z80](grace-typed-pointers.md) are now implemented and checked. The earlier status below is retained as a snapshot.
 
 Текущий результат: [закрытие пробелов](grace-gap-closure.md), корпус **52/52**. Арифметика указателей VM и граничные доступы Z80 согласованы для проверенных случаев; усилен MIR-верификатор. Следующие задачи — элементные типы указателей во фронтенде, проверка HIR и повторный замер pointer-walk перед снятием guard. LLM-less PGO описан в [ADR-0046](adr/0046-optimisation-policy-and-certificates.md), сборщик профиля пока не реализован.

@@ -1,0 +1,66 @@
+=== RUN   TestVerifyRejectsMalformedHIR
+=== RUN   TestVerifyRejectsMalformedHIR/nil_module
+=== RUN   TestVerifyRejectsMalformedHIR/nil_function
+=== RUN   TestVerifyRejectsMalformedHIR/typed_nil
+=== RUN   TestVerifyRejectsMalformedHIR/expression_cycle
+=== RUN   TestVerifyRejectsMalformedHIR/block_cycle
+=== RUN   TestVerifyRejectsMalformedHIR/unknown_variable
+=== RUN   TestVerifyRejectsMalformedHIR/sibling_scope
+=== RUN   TestVerifyRejectsMalformedHIR/missing_type
+=== RUN   TestVerifyRejectsMalformedHIR/bad_lvalue
+=== RUN   TestVerifyRejectsMalformedHIR/break
+=== RUN   TestVerifyRejectsMalformedHIR/continue
+=== RUN   TestVerifyRejectsMalformedHIR/unknown_label
+=== RUN   TestVerifyRejectsMalformedHIR/duplicate_label
+=== RUN   TestVerifyRejectsMalformedHIR/missing_then
+=== RUN   TestVerifyRejectsMalformedHIR/bad_tuple
+=== RUN   TestVerifyRejectsMalformedHIR/bad_return_arity
+=== RUN   TestVerifyRejectsMalformedHIR/bad_address
+=== RUN   TestVerifyRejectsMalformedHIR/wrong_pointee
+=== RUN   TestVerifyRejectsMalformedHIR/self-binding
+=== RUN   TestVerifyRejectsMalformedHIR/forged_pointer_type
+=== RUN   TestVerifyRejectsMalformedHIR/wrong_indexed_pointee
+=== RUN   TestVerifyRejectsMalformedHIR/partial_typed_store
+=== RUN   TestVerifyRejectsMalformedHIR/bad_call_arity
+=== RUN   TestVerifyRejectsMalformedHIR/bad_call_type
+=== RUN   TestVerifyRejectsMalformedHIR/bad_bit
+--- PASS: TestVerifyRejectsMalformedHIR (0.00s)
+    --- PASS: TestVerifyRejectsMalformedHIR/nil_module (0.00s)
+    --- PASS: TestVerifyRejectsMalformedHIR/nil_function (0.00s)
+    --- PASS: TestVerifyRejectsMalformedHIR/typed_nil (0.00s)
+    --- PASS: TestVerifyRejectsMalformedHIR/expression_cycle (0.00s)
+    --- PASS: TestVerifyRejectsMalformedHIR/block_cycle (0.00s)
+    --- PASS: TestVerifyRejectsMalformedHIR/unknown_variable (0.00s)
+    --- PASS: TestVerifyRejectsMalformedHIR/sibling_scope (0.00s)
+    --- PASS: TestVerifyRejectsMalformedHIR/missing_type (0.00s)
+    --- PASS: TestVerifyRejectsMalformedHIR/bad_lvalue (0.00s)
+    --- PASS: TestVerifyRejectsMalformedHIR/break (0.00s)
+    --- PASS: TestVerifyRejectsMalformedHIR/continue (0.00s)
+    --- PASS: TestVerifyRejectsMalformedHIR/unknown_label (0.00s)
+    --- PASS: TestVerifyRejectsMalformedHIR/duplicate_label (0.00s)
+    --- PASS: TestVerifyRejectsMalformedHIR/missing_then (0.00s)
+    --- PASS: TestVerifyRejectsMalformedHIR/bad_tuple (0.00s)
+    --- PASS: TestVerifyRejectsMalformedHIR/bad_return_arity (0.00s)
+    --- PASS: TestVerifyRejectsMalformedHIR/bad_address (0.00s)
+    --- PASS: TestVerifyRejectsMalformedHIR/wrong_pointee (0.00s)
+    --- PASS: TestVerifyRejectsMalformedHIR/self-binding (0.00s)
+    --- PASS: TestVerifyRejectsMalformedHIR/forged_pointer_type (0.00s)
+    --- PASS: TestVerifyRejectsMalformedHIR/wrong_indexed_pointee (0.00s)
+    --- PASS: TestVerifyRejectsMalformedHIR/partial_typed_store (0.00s)
+    --- PASS: TestVerifyRejectsMalformedHIR/bad_call_arity (0.00s)
+    --- PASS: TestVerifyRejectsMalformedHIR/bad_call_type (0.00s)
+    --- PASS: TestVerifyRejectsMalformedHIR/bad_bit (0.00s)
+=== RUN   TestVerifyValidHIRCompatibility
+--- PASS: TestVerifyValidHIRCompatibility (0.00s)
+=== RUN   TestGraceRejectsBadInputBeforeMutation
+--- PASS: TestGraceRejectsBadInputBeforeMutation (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/hir	0.008s
+=== RUN   TestCompileHIRRejectsBeforeDumpAndLowering
+--- PASS: TestCompileHIRRejectsBeforeDumpAndLowering (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.007s
+=== RUN   TestFoldReturnCarriesAccumulatorType
+--- PASS: TestFoldReturnCarriesAccumulatorType (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/nanz	0.009s

@@ -4,7 +4,6 @@ import (
 	_ "embed"
 	"fmt"
 
-	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/rewrite"
 	"github.com/minz/minzc/pkg/rewrite/grace"
 )
@@ -31,8 +30,8 @@ type GraceOptions struct {
 
 // RunGrace rewrites HIR in place, before lowering. maxRewrites is a module-wide
 // budget; zero uses 100, negative is invalid. Each firing rebuilds the structural
-// view and verifies lowered MIR2. This is structural validation, not a proof of
-// equivalence: differential VM tests remain necessary. HIR has no verifier yet.
+// view and verifies HIR followed by lowered MIR2. This is structural validation,
+// not a proof of equivalence: differential VM tests remain necessary.
 func RunGrace(m *Module, maxRewrites int) (*grace.RuleResult, error) {
 	return RunGraceWithOptions(m, GraceOptions{MaxRewrites: maxRewrites})
 }
@@ -46,6 +45,9 @@ func RunGraceWithOptions(m *Module, options GraceOptions) (*grace.RuleResult, er
 	}
 	if maxRewrites == 0 {
 		maxRewrites = 100
+	}
+	if err := Verify(m); err != nil {
+		return result, err
 	}
 	rules, err := grace.ParseRules(graceConstantIfRule + "\n" + graceInvariantBaseRule + "\n" + gracePointerWalkRule)
 	if err != nil {
@@ -73,7 +75,7 @@ func RunGraceWithOptions(m *Module, options GraceOptions) (*grace.RuleResult, er
 				selected = Blk()
 			}
 			block.Body[i] = selected // keep a structured block, never flatten
-			if err := mir2.Verify(LowerModule(m)); err != nil {
+			if err := verifyGraceModule(m); err != nil {
 				block.Body[i] = st
 				// Save the error outside Grace's bool-only action interface.
 				graph.err = fmt.Errorf("HIR Grace hir-constant-if: %w", err)
@@ -99,7 +101,7 @@ func RunGraceWithOptions(m *Module, options GraceOptions) (*grace.RuleResult, er
 			body = append(body, Decl(h.name, h.expr.Ty, h.expr))
 			body = append(body, &loop)
 			block.Body = append(body, old[h.index+1:]...)
-			if err := mir2.Verify(LowerModule(m)); err != nil {
+			if err := verifyGraceModule(m); err != nil {
 				block.Body = old
 				graph.err = fmt.Errorf("HIR Grace hir-invariant-base: %w", err)
 				return false
@@ -123,7 +125,7 @@ func RunGraceWithOptions(m *Module, options GraceOptions) (*grace.RuleResult, er
 			}
 			original := b.block.Body[2]
 			b.block.Body[2] = p.versionedLoop()
-			if err := mir2.Verify(LowerModule(m)); err != nil {
+			if err := verifyGraceModule(m); err != nil {
 				b.block.Body[2] = original
 				graph.err = fmt.Errorf("HIR Grace hir-guarded-pointer-walk: %w", err)
 				return false

@@ -1126,6 +1126,12 @@ func sameClobberSet(a, b []string) bool {
 // forward references: when fun A (line 100) calls fun B (line 200), B's
 // signature isn't in funcSigs during the first parse of A.
 func (p *parser) fixForwardCallTypes(m *hir.Module) {
+	// Lifted lambda signatures are available only after the module is assembled.
+	for _, f := range m.Funcs {
+		if f.RetTy != nil {
+			p.funcSigs[f.Name] = f.RetTy
+		}
+	}
 	for _, f := range m.Funcs {
 		p.varTypes = make(map[string]mir2.Ty)
 		for _, param := range f.Params {
@@ -1202,6 +1208,22 @@ func (p *parser) fixExprCallTypes(e hir.Expr) {
 		}
 		for _, a := range ex.Args {
 			p.fixExprCallTypes(a)
+		}
+		// Fold lowering produces the callback's accumulator type, even when the
+		// chain occurs directly in a return rather than in a let binding.
+		if ex.Ty == mir2.TyVoid && (ex.Fn == "fold" || ex.Fn == "reduce") && len(ex.Args) >= 3 {
+			name := ""
+			switch cb := ex.Args[2].(type) {
+			case *hir.VarRefExpr:
+				name = cb.Name
+			case *hir.AddrOfExpr:
+				name = cb.Sym
+			}
+			if sig := p.funcSigs[name]; sig != nil && sig != mir2.TyVoid {
+				ex.Ty = sig
+			} else {
+				ex.Ty = mir2.TyU8
+			}
 		}
 	case *hir.BinExpr:
 		p.fixExprCallTypes(ex.L)
@@ -5558,6 +5580,18 @@ func (p *parser) parseLambda() (hir.Expr, error) {
 			return nil, fmt.Errorf("lambda: expected closing '|': %w", err)
 		}
 	}
+
+	// Parameters shadow the surrounding scope while parsing the lambda body.
+	// Keep captured names visible, then restore the outer type environment.
+	savedVars := p.varTypes
+	p.varTypes = make(map[string]mir2.Ty, len(savedVars)+len(params))
+	for n, ty := range savedVars {
+		p.varTypes[n] = ty
+	}
+	for _, param := range params {
+		p.varTypes[param.Name] = param.Ty
+	}
+	defer func() { p.varTypes = savedVars }()
 
 	// Parse body: block { ... } or single expression → implicit return
 	var body *hir.Block

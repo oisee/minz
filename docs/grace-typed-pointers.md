@@ -1,5 +1,8 @@
 # Scalar pointer types: source → HIR → MIR → VM/Z80
 
+
+Обновление: [HIR-верификатор перед Grace и lowering](grace-hir-verifier.md) реализован; ограничения и проверки описаны отдельно.
+
 2026-10-10, branch `feat/grace-hir-vm`. Follow-up to [gap closure](grace-gap-closure.md).
 
 ## What changed
