@@ -1,0 +1,29 @@
+; MIR2 module: docs/grace-hir-vm-artifacts/region-source.nanz
+fun @region_match(%r1: ptr [pointer], %r2: u16 [index], %r3: ptr [pointer], %r4: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r5 = const 0 : u8 [general]
+    jmp @loop_head1(%r1, %r5, %r4, %r2, %r3)
+  block @loop_head1(%r6: ptr [general], %r7: u8 [general], %r8: u8 [general], %r9: u16 [pointer], %r10: ptr [general]):
+    %r11 = cmp.ult %r7, %r8 : bool [flag]
+    br_if %r11, @loop_body2(), @loop_exit3(%r6, %r7, %r8, %r9, %r10)
+  block @loop_body2:
+    %r12 = add %r6, %r9 : u16 [pointer]
+    %r13 = ext %r7 : u8 -> u16 [pointer]
+    %r14 = add %r12, %r13 : u16 [pointer]
+    %r15 = load %r14 : u8 [general]
+    %r16 = ext %r7 : u8 -> u16 [index]
+    %r17 = ptr_add %r10, %r16 : ptr [pointer]
+    %r18 = load %r17 : u8 [general]
+    %r19 = cmp.ne %r15, %r18 : bool [flag]
+    br_if %r19, @if_then4(), @if_join5()
+  block @if_then4:
+    %r20 = const 0 : u8 [general]
+    ret %r20
+  block @if_join5:
+    %r21 = const 1 : u8 [general]
+    %r22 = add %r7, %r21 : u8 [general]
+    jmp @loop_head1(%r6, %r22, %r8, %r9, %r10)
+  block @loop_exit3(%r23: ptr [general], %r24: u8 [general], %r25: u8 [general], %r26: u16 [pointer], %r27: ptr [general]):
+    %r28 = const 1 : u8 [general]
+    ret %r28
+

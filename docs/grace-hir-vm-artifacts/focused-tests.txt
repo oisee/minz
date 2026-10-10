@@ -1,0 +1,3 @@
+ok  	github.com/minz/minzc/pkg/hir	0.029s
+ok  	github.com/minz/minzc/pkg/pipeline	0.027s
+ok  	github.com/minz/minzc/pkg/mir2	0.013s [no tests to run]

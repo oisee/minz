@@ -59,6 +59,12 @@ type VM struct {
 	globalSyms map[string]int64
 }
 
+// StepsExecuted returns the cumulative instruction steps charged by
+// this VM, including steps across successive calls. This is VM work, not target
+// CPU cycles. Terminators are not charged by the current VM; a step rejected by
+// the gas limit is also included.
+func (vm *VM) StepsExecuted() int64 { return vm.steps }
+
 // GlobalAddr returns the heap offset for a named global, or -1 if not found.
 func (vm *VM) GlobalAddr(name string) int64 {
 	if off, ok := vm.globalSyms[name]; ok {

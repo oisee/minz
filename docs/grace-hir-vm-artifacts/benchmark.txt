@@ -1,0 +1,46 @@
+goos: linux
+goarch: amd64
+pkg: github.com/minz/minzc/pkg/pipeline
+cpu: AMD Ryzen 7 5800X 8-Core Processor             
+BenchmarkHIRGraceCompile/lower         	    2000	      5867 ns/op	    7504 B/op	      91 allocs/op
+BenchmarkHIRGraceCompile/lower         	    2000	      5807 ns/op	    7504 B/op	      91 allocs/op
+BenchmarkHIRGraceCompile/lower         	    2000	      5774 ns/op	    7504 B/op	      91 allocs/op
+BenchmarkHIRGraceCompile/lower         	    2000	      5997 ns/op	    7504 B/op	      91 allocs/op
+BenchmarkHIRGraceCompile/lower         	    2000	      5783 ns/op	    7504 B/op	      91 allocs/op
+BenchmarkHIRGraceCompile/grace_lower   	    2000	     41974 ns/op	   33265 B/op	     583 allocs/op
+BenchmarkHIRGraceCompile/grace_lower   	    2000	     41981 ns/op	   33265 B/op	     583 allocs/op
+BenchmarkHIRGraceCompile/grace_lower   	    2000	     41913 ns/op	   33265 B/op	     583 allocs/op
+BenchmarkHIRGraceCompile/grace_lower   	    2000	     41846 ns/op	   33265 B/op	     583 allocs/op
+BenchmarkHIRGraceCompile/grace_lower   	    2000	     41763 ns/op	   33265 B/op	     583 allocs/op
+BenchmarkHIRGraceCompile/pipeline      	    2000	    139566 ns/op	  148785 B/op	    1361 allocs/op
+BenchmarkHIRGraceCompile/pipeline      	    2000	    137707 ns/op	  148784 B/op	    1361 allocs/op
+BenchmarkHIRGraceCompile/pipeline      	    2000	    137179 ns/op	  148784 B/op	    1361 allocs/op
+BenchmarkHIRGraceCompile/pipeline      	    2000	    137330 ns/op	  148784 B/op	    1361 allocs/op
+BenchmarkHIRGraceCompile/pipeline      	    2000	    138379 ns/op	  148784 B/op	    1361 allocs/op
+BenchmarkHIRGraceCompile/grace_pipeline         	    2000	    144900 ns/op	  147603 B/op	    1523 allocs/op
+BenchmarkHIRGraceCompile/grace_pipeline         	    2000	    145268 ns/op	  147602 B/op	    1523 allocs/op
+BenchmarkHIRGraceCompile/grace_pipeline         	    2000	    145180 ns/op	  147603 B/op	    1523 allocs/op
+BenchmarkHIRGraceCompile/grace_pipeline         	    2000	    144738 ns/op	  147602 B/op	    1523 allocs/op
+BenchmarkHIRGraceCompile/grace_pipeline         	    2000	    144208 ns/op	  147602 B/op	    1523 allocs/op
+BenchmarkHIRGraceVM/raw                         	    2000	    225765 ns/op	         4.000 steps/call	  624664 B/op	    2576 allocs/op
+BenchmarkHIRGraceVM/raw                         	    2000	    217547 ns/op	         4.000 steps/call	  624664 B/op	    2576 allocs/op
+BenchmarkHIRGraceVM/raw                         	    2000	    217385 ns/op	         4.000 steps/call	  624664 B/op	    2576 allocs/op
+BenchmarkHIRGraceVM/raw                         	    2000	    218005 ns/op	         4.000 steps/call	  624664 B/op	    2576 allocs/op
+BenchmarkHIRGraceVM/raw                         	    2000	    217616 ns/op	         4.000 steps/call	  624664 B/op	    2576 allocs/op
+BenchmarkHIRGraceVM/raw_grace                   	    2000	    173125 ns/op	         1.000 steps/call	  624664 B/op	    2576 allocs/op
+BenchmarkHIRGraceVM/raw_grace                   	    2000	    173480 ns/op	         1.000 steps/call	  624664 B/op	    2576 allocs/op
+BenchmarkHIRGraceVM/raw_grace                   	    2000	    173206 ns/op	         1.000 steps/call	  624664 B/op	    2576 allocs/op
+BenchmarkHIRGraceVM/raw_grace                   	    2000	    173351 ns/op	         1.000 steps/call	  624664 B/op	    2576 allocs/op
+BenchmarkHIRGraceVM/raw_grace                   	    2000	    172610 ns/op	         1.000 steps/call	  624664 B/op	    2576 allocs/op
+BenchmarkHIRGraceVM/optimized                   	    2000	    190347 ns/op	         2.500 steps/call	  624664 B/op	    2576 allocs/op
+BenchmarkHIRGraceVM/optimized                   	    2000	    190878 ns/op	         2.500 steps/call	  624664 B/op	    2576 allocs/op
+BenchmarkHIRGraceVM/optimized                   	    2000	    190768 ns/op	         2.500 steps/call	  624664 B/op	    2576 allocs/op
+BenchmarkHIRGraceVM/optimized                   	    2000	    191099 ns/op	         2.500 steps/call	  624664 B/op	    2576 allocs/op
+BenchmarkHIRGraceVM/optimized                   	    2000	    191480 ns/op	         2.500 steps/call	  624664 B/op	    2576 allocs/op
+BenchmarkHIRGraceVM/optimized_grace             	    2000	    173412 ns/op	         1.000 steps/call	  624664 B/op	    2576 allocs/op
+BenchmarkHIRGraceVM/optimized_grace             	    2000	    173960 ns/op	         1.000 steps/call	  624664 B/op	    2576 allocs/op
+BenchmarkHIRGraceVM/optimized_grace             	    2000	    173515 ns/op	         1.000 steps/call	  624664 B/op	    2576 allocs/op
+BenchmarkHIRGraceVM/optimized_grace             	    2000	    173273 ns/op	         1.000 steps/call	  624664 B/op	    2576 allocs/op
+BenchmarkHIRGraceVM/optimized_grace             	    2000	    173986 ns/op	         1.000 steps/call	  624664 B/op	    2576 allocs/op
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	11.846s

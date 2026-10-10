@@ -1,0 +1,16 @@
+goos: linux
+goarch: amd64
+pkg: github.com/minz/minzc/pkg/pipeline
+cpu: AMD Ryzen 7 5800X 8-Core Processor             
+BenchmarkHIRGraceInvariantBaseVM/hir=false         	    2000	     75213 ns/op	   10848 B/op	     205 allocs/op
+BenchmarkHIRGraceInvariantBaseVM/hir=false         	    2000	     76355 ns/op	   10848 B/op	     205 allocs/op
+BenchmarkHIRGraceInvariantBaseVM/hir=false         	    2000	     86764 ns/op	   10848 B/op	     205 allocs/op
+BenchmarkHIRGraceInvariantBaseVM/hir=false         	    2000	     75575 ns/op	   10848 B/op	     205 allocs/op
+BenchmarkHIRGraceInvariantBaseVM/hir=false         	    2000	     74973 ns/op	   10848 B/op	     205 allocs/op
+BenchmarkHIRGraceInvariantBaseVM/hir=true          	    2000	     66591 ns/op	    7632 B/op	     205 allocs/op
+BenchmarkHIRGraceInvariantBaseVM/hir=true          	    2000	     66765 ns/op	    7632 B/op	     205 allocs/op
+BenchmarkHIRGraceInvariantBaseVM/hir=true          	    2000	     66961 ns/op	    7632 B/op	     205 allocs/op
+BenchmarkHIRGraceInvariantBaseVM/hir=true          	    2000	     66680 ns/op	    7632 B/op	     205 allocs/op
+BenchmarkHIRGraceInvariantBaseVM/hir=true          	    2000	     67011 ns/op	    7632 B/op	     205 allocs/op
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.590s

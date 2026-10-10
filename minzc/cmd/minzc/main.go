@@ -75,10 +75,11 @@ var (
 	pgoDebug   bool   // Debug PGO decisions
 
 	// Backend selection
-	useLIR   bool // Report disabled native LIR; compile with PBQP
-	useZ3    bool // No effect while native LIR emission is disabled
-	optSize  bool // -Osize: optimize for code size (Grace reroll, DJNZ loops)
-	useGrace bool // --grace: run all Grace MIR2 passes before VIR lowering
+	useLIR      bool // Report disabled native LIR; compile with PBQP
+	useZ3       bool // No effect while native LIR emission is disabled
+	optSize     bool // -Osize: optimize for code size (Grace reroll, DJNZ loops)
+	useGrace    bool // --grace: run all Grace MIR2 passes before VIR lowering
+	useHIRGrace bool // --hir-grace: run structural Grace rules before HIR lowering
 
 	// Assert control
 	listAsserts          bool
@@ -239,10 +240,11 @@ func init() {
 	rootCmd.Flags().BoolVar(&ctieDebug, "ctie-debug", false, "show CTIE optimization decisions and statistics")
 	rootCmd.Flags().BoolVar(&compileTrace, "compile-trace", false, "show all optimization decisions and transformations")
 	rootCmd.Flags().StringVar(&superoptRules, "superopt-rules", "", "path to z80-optimizer rules.json[.gz] for superoptimizer peephole pass")
-	rootCmd.Flags().BoolVar(&useLIR, "lir", false, "native LIR disabled; compile whole module with PBQP")
+	rootCmd.Flags().BoolVar(&useLIR, "lir", false, "deprecated LIR backend (native emission disabled; uses PBQP)")
 	rootCmd.Flags().BoolVar(&useZ3, "z3", false, "use Z3 SMT solver (no effect: native LIR emission disabled)")
 	rootCmd.Flags().BoolVar(&optSize, "Osize", false, "optimize for code size: Grace reroll (repeated CALLs → DJNZ loop + data table)")
 	rootCmd.Flags().BoolVar(&useGrace, "grace", false, "run all Grace MIR2 passes before VIR lowering (DSE, CondRetSink, BlockMerge, etc.)")
+	rootCmd.Flags().BoolVar(&useHIRGrace, "hir-grace", false, "run structural Grace HIR rules before lowering (experimental)")
 	rootCmd.Flags().BoolVar(&assertReceipt, "assert-receipt", false, "print assertion execution counts to stderr for judge tools")
 	rootCmd.Flags().BoolVar(&listAsserts, "list-asserts", false, "list frontend assertions as JSON lines without executing")
 	rootCmd.Flags().StringVar(&assertLines, "assert-lines", "", "run only assertions at these comma-separated source lines")
@@ -1018,6 +1020,7 @@ func compileViaHIR(sourceFile string) error {
 		UseLIR:          useLIR,   // --lir reports disabled native LIR; emission uses PBQP
 		OptSize:         optSize,  // --Osize enables Grace reroll
 		UseGrace:        useGrace, // --grace enables full Grace MIR2 pass suite
+		UseHIRGrace:     useHIRGrace,
 		Backend:         backend,
 		AssertMode:      am,
 		SkipZ80Emission: skipZ80,

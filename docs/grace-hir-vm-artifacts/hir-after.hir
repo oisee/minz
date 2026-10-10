@@ -1,0 +1,7 @@
+; HIR module: ../examples/nanz/grace_hir_constant_if.nanz
+fun @wrap(x: u8) -> u8
+  return ((x:u8) + 1:u8):u8
+
+fun @choose(x: u8) -> u8
+  return (x:u8)
+

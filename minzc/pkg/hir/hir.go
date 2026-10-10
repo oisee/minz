@@ -19,7 +19,7 @@
 //   - No virtual register numbers (variables are named)
 //   - Structured control flow (not basic blocks)
 //   - Types reuse mir2.Ty (both are target-neutral)
-//   - No optimizer passes — optimizations happen at MIR2 level
+//   - Structured rewrites can run before lowering (RunGrace, SplitHighPressure)
 package hir
 
 import "github.com/minz/minzc/pkg/mir2"

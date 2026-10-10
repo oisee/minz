@@ -1,5 +1,12 @@
 # LIR Backend Architecture: How Three Solvers Cooperate to Generate Z80 Code
 
+> **Deprecated native backend (2026-10-10).** Research architecture;
+> native LIR emission is disabled. Production uses HIR → MIR2 → PBQP/codegen.
+> Useful components are queued for transfer:
+> [decision](adr/0044-lir-retirement-and-rule-migration.md),
+> [backlog](lir-retirement-backlog.md).
+
+
 > From MIR2 to Z80 assembly in six stages, using ISLE term rewriting, Wave Function Collapse, and PBQP hints — with Z80-specific innovations no existing compiler has.
 
 ---

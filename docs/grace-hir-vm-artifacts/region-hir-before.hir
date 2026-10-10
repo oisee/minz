@@ -1,0 +1,10 @@
+; HIR module: docs/grace-hir-vm-artifacts/region-source.nanz
+fun @region_match(buf: ptr, offset: u16, target: ptr, len: u8) -> u8
+  var i: u8 = 0:u8
+  while ((i:u8) < (len:u8)):bool
+    var p: ptr = (((buf:ptr) + (offset:u16)):u16 + (i:u8)):u16
+    if (load((p:ptr)):u8 != ((target:ptr))[(i:u8)]:u8):bool
+      return 0:u8
+    (i:u8) = ((i:u8) + 1:u8):u8
+  return 1:u8
+

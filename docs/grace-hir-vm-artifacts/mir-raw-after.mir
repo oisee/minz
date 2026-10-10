@@ -1,0 +1,11 @@
+; MIR2 module: ../examples/nanz/grace_hir_constant_if.nanz
+fun @wrap(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = const 1 : u8 [general]
+    %r3 = add %r1, %r2 : u8 [acc]
+    ret %r3
+
+fun @choose(%r4: u8 [acc]) -> u8 [acc]
+  block @entry:
+    ret %r4
+

@@ -103,6 +103,9 @@ type Options struct {
 	// GraceStats (if non-nil) collects per-rule application counts.
 	UseGrace   bool
 	GraceStats *mir2.GraceStats
+	// UseHIRGrace runs structural HIR rules before splitting and lowering.
+	// Independent of UseGrace, which controls MIR2 rules.
+	UseHIRGrace bool
 	// OptSize enables size optimizations (Grace reroll: repeated CALLs → DJNZ loop).
 	// Trades ~4T/iteration for code size reduction. Use for ROM-constrained targets.
 	OptSize bool
@@ -136,6 +139,12 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 
 	// Capture HIR before lowering.
 	s.HIR = hm.Dump()
+	if opt.UseHIRGrace {
+		if _, err := hir.RunGrace(hm, 0); err != nil {
+			return s, err
+		}
+		s.HIR = hm.Dump()
+	}
 
 	// Great Autorefactor: split high-pressure functions before lowering.
 	// Each sub-function gets independent PBQP allocation → fewer spills.
@@ -443,6 +452,11 @@ func CompileHIR(hm *hir.Module) (string, error) {
 // CompileHIRWithOptions runs the HIR→MIR2→Z80 pipeline with explicit options.
 // Use this to compare output with/without specific optimisation passes.
 func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
+	if opts.UseHIRGrace {
+		if _, err := hir.RunGrace(hm, 0); err != nil {
+			return "", err
+		}
+	}
 	// Great Autorefactor: split high-pressure functions.
 	hir.SplitHighPressure(hm)
 

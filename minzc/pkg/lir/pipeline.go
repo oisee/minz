@@ -1,5 +1,9 @@
 // pipeline.go — Integration entry point: MIR2 → LIR pipeline.
 //
+// Deprecated: native LIR is a research/reference backend. Production uses
+// HIR → MIR2 → PBQP/codegen. Useful transforms are queued for migration in
+// docs/lir-retirement-backlog.md (ADR-0044). Retain explicit research checks.
+//
 // This wires the LIR backend into the existing compiler pipeline.
 // Two modes:
 //
