@@ -73,6 +73,16 @@ func countRegUses(f *Func) map[Reg]int {
 			}
 		}
 	}
+	// DJNZ supplies the body counter implicitly. Its first block parameter
+	// must remain present even when no instruction reads it directly.
+	for _, b := range f.Blocks {
+		if t, ok := b.Term.(*TermDJNZ); ok {
+			if body := f.BlockByLabel(t.Body); body != nil && len(body.Params) > 0 {
+				uses[body.Params[0].Dst]++
+			}
+		}
+	}
+
 	return uses
 }
 

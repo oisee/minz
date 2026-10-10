@@ -1,0 +1,37 @@
+=== RUN   TestRangeForEachStageOrderVMZ80
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_then_map/n=0/grace=false
+--- FAIL: TestRangeForEachStageOrderVMZ80 (0.00s)
+    --- FAIL: TestRangeForEachStageOrderVMZ80/filter_then_map/n=0/grace=false (0.00s)
+panic: hir/lower: unhandled expression type *hir.RangeSourceExpr [recovered, repanicked]
+
+goroutine 8 [running]:
+testing.tRunner.func1.2({0xab7c40, 0x12920ef37280})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:1974 +0x232
+testing.tRunner.func1()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:1977 +0x349
+panic({0xab7c40?, 0x12920ef37280?})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/panic.go:860 +0x13a
+github.com/minz/minzc/pkg/hir.(*lowerer).lowerExpr(0x12920efc9af0?, {0xbc1d20?, 0x12920efc0540?})
+	/tmp/minz-grace-hir-vm/minzc/pkg/hir/lower.go:1901 +0xe0e
+github.com/minz/minzc/pkg/hir.(*lowerer).lowerExpr(0x12920efc9af0, {0xbc1d70?, 0x12920ef676c0})
+	/tmp/minz-grace-hir-vm/minzc/pkg/hir/lower.go:1792 +0xe9d
+github.com/minz/minzc/pkg/hir.(*lowerer).lowerExpr(0x12920efc9af0, {0xbc1d70?, 0x12920ef67700})
+	/tmp/minz-grace-hir-vm/minzc/pkg/hir/lower.go:1792 +0xe9d
+github.com/minz/minzc/pkg/hir.(*lowerer).lowerExpr(0x12920efc9af0, {0xbc1d70?, 0x12920ef67780})
+	/tmp/minz-grace-hir-vm/minzc/pkg/hir/lower.go:1792 +0xe9d
+github.com/minz/minzc/pkg/hir.(*lowerer).lowerStmt(0x12920efc9af0, {0xbc01a0?, 0x12920ef371d0})
+	/tmp/minz-grace-hir-vm/minzc/pkg/hir/lower.go:984 +0x865
+github.com/minz/minzc/pkg/hir.(*lowerer).lowerBlock(0x12920efc9af0, 0x12920efc9a90?)
+	/tmp/minz-grace-hir-vm/minzc/pkg/hir/lower.go:746 +0x97
+github.com/minz/minzc/pkg/hir.lowerFuncWithFuncNames(0x12920ed5d180, 0x12920ef1f950, 0x12920efc0db0, 0x12920efc0de0)
+	/tmp/minz-grace-hir-vm/minzc/pkg/hir/lower.go:567 +0xcb3
+github.com/minz/minzc/pkg/hir.LowerModule(0x12920ef6c500)
+	/tmp/minz-grace-hir-vm/minzc/pkg/hir/lower.go:78 +0x5b0
+github.com/minz/minzc/pkg/pipeline.TestRangeForEachStageOrderVMZ80.func1(0x12920ecf2b48)
+	/tmp/minz-grace-hir-vm/minzc/pkg/pipeline/iterator_stage_semantics_test.go:75 +0x125
+testing.tRunner(0x12920ecf2b48, 0x12920ef6f7d0)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2036 +0xea
+created by testing.(*T).Run in goroutine 7
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2101 +0x4c5
+FAIL	github.com/minz/minzc/pkg/pipeline	0.008s
+FAIL

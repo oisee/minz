@@ -1,0 +1,150 @@
+=== RUN   TestRangeForEachStageOrderVMZ80
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_then_map/n=0/grace=false
+    iterator_stage_semantics_test.go:84: result=0 T_states=144 code_bytes=129
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_then_map/n=0/grace=true
+    iterator_stage_semantics_test.go:84: result=0 T_states=144 code_bytes=129
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_then_map/n=1/grace=false
+    iterator_stage_semantics_test.go:84: result=0 T_states=185 code_bytes=129
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_then_map/n=1/grace=true
+    iterator_stage_semantics_test.go:84: result=0 T_states=185 code_bytes=129
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_then_map/n=5/grace=false
+    iterator_stage_semantics_test.go:84: result=63 T_states=781 code_bytes=129
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_then_map/n=5/grace=true
+    iterator_stage_semantics_test.go:84: result=63 T_states=781 code_bytes=129
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_then_map/n=255/grace=false
+    iterator_stage_semantics_test.go:84: result=74 T_states=45781 code_bytes=129
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_then_map/n=255/grace=true
+    iterator_stage_semantics_test.go:84: result=74 T_states=45781 code_bytes=129
+=== RUN   TestRangeForEachStageOrderVMZ80/map_then_filter/n=0/grace=false
+    iterator_stage_semantics_test.go:84: result=0 T_states=144 code_bytes=130
+=== RUN   TestRangeForEachStageOrderVMZ80/map_then_filter/n=0/grace=true
+    iterator_stage_semantics_test.go:84: result=0 T_states=144 code_bytes=130
+=== RUN   TestRangeForEachStageOrderVMZ80/map_then_filter/n=1/grace=false
+    iterator_stage_semantics_test.go:84: result=16 T_states=322 code_bytes=130
+=== RUN   TestRangeForEachStageOrderVMZ80/map_then_filter/n=1/grace=true
+    iterator_stage_semantics_test.go:84: result=16 T_states=322 code_bytes=130
+=== RUN   TestRangeForEachStageOrderVMZ80/map_then_filter/n=5/grace=false
+    iterator_stage_semantics_test.go:84: result=98 T_states=1054 code_bytes=130
+=== RUN   TestRangeForEachStageOrderVMZ80/map_then_filter/n=5/grace=true
+    iterator_stage_semantics_test.go:84: result=98 T_states=1054 code_bytes=130
+=== RUN   TestRangeForEachStageOrderVMZ80/map_then_filter/n=255/grace=false
+    iterator_stage_semantics_test.go:84: result=109 T_states=46821 code_bytes=130
+=== RUN   TestRangeForEachStageOrderVMZ80/map_then_filter/n=255/grace=true
+    iterator_stage_semantics_test.go:84: result=109 T_states=46821 code_bytes=130
+=== RUN   TestRangeForEachStageOrderVMZ80/two_filters/n=0/grace=false
+    iterator_stage_semantics_test.go:84: result=0 T_states=144 code_bytes=136
+=== RUN   TestRangeForEachStageOrderVMZ80/two_filters/n=0/grace=true
+    iterator_stage_semantics_test.go:84: result=0 T_states=144 code_bytes=136
+=== RUN   TestRangeForEachStageOrderVMZ80/two_filters/n=1/grace=false
+    iterator_stage_semantics_test.go:84: result=0 T_states=185 code_bytes=136
+=== RUN   TestRangeForEachStageOrderVMZ80/two_filters/n=1/grace=true
+    iterator_stage_semantics_test.go:84: result=0 T_states=185 code_bytes=136
+=== RUN   TestRangeForEachStageOrderVMZ80/two_filters/n=5/grace=false
+    iterator_stage_semantics_test.go:84: result=55 T_states=909 code_bytes=136
+=== RUN   TestRangeForEachStageOrderVMZ80/two_filters/n=5/grace=true
+    iterator_stage_semantics_test.go:84: result=55 T_states=909 code_bytes=136
+=== RUN   TestRangeForEachStageOrderVMZ80/two_filters/n=255/grace=false
+    iterator_stage_semantics_test.go:84: result=215 T_states=60409 code_bytes=136
+=== RUN   TestRangeForEachStageOrderVMZ80/two_filters/n=255/grace=true
+    iterator_stage_semantics_test.go:84: result=215 T_states=60409 code_bytes=136
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_none/n=0/grace=false
+    iterator_stage_semantics_test.go:84: result=0 T_states=110 code_bytes=102
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_none/n=0/grace=true
+    iterator_stage_semantics_test.go:84: result=0 T_states=110 code_bytes=102
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_none/n=1/grace=false
+    iterator_stage_semantics_test.go:84: result=0 T_states=3428 code_bytes=102
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_none/n=1/grace=true
+    iterator_stage_semantics_test.go:84: result=0 T_states=3428 code_bytes=102
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_none/n=5/grace=false
+    iterator_stage_semantics_test.go:84: result=0 T_states=3428 code_bytes=102
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_none/n=5/grace=true
+    iterator_stage_semantics_test.go:84: result=0 T_states=3428 code_bytes=102
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_none/n=255/grace=false
+    iterator_stage_semantics_test.go:84: result=0 T_states=3428 code_bytes=102
+=== RUN   TestRangeForEachStageOrderVMZ80/filter_none/n=255/grace=true
+    iterator_stage_semantics_test.go:84: result=0 T_states=3428 code_bytes=102
+--- PASS: TestRangeForEachStageOrderVMZ80 (0.37s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_then_map/n=0/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_then_map/n=0/grace=true (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_then_map/n=1/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_then_map/n=1/grace=true (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_then_map/n=5/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_then_map/n=5/grace=true (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_then_map/n=255/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_then_map/n=255/grace=true (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/map_then_filter/n=0/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/map_then_filter/n=0/grace=true (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/map_then_filter/n=1/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/map_then_filter/n=1/grace=true (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/map_then_filter/n=5/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/map_then_filter/n=5/grace=true (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/map_then_filter/n=255/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/map_then_filter/n=255/grace=true (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/two_filters/n=0/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/two_filters/n=0/grace=true (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/two_filters/n=1/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/two_filters/n=1/grace=true (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/two_filters/n=5/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/two_filters/n=5/grace=true (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/two_filters/n=255/grace=false (0.02s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/two_filters/n=255/grace=true (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_none/n=0/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_none/n=0/grace=true (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_none/n=1/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_none/n=1/grace=true (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_none/n=5/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_none/n=5/grace=true (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_none/n=255/grace=false (0.01s)
+    --- PASS: TestRangeForEachStageOrderVMZ80/filter_none/n=255/grace=true (0.01s)
+=== RUN   TestRangeForEachCapturedStagesVMZ80
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=false/n=0/grace=false
+    iterator_stage_semantics_test.go:131: result=0 T_states=76 code_bytes=41
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=false/n=0/grace=true
+    iterator_stage_semantics_test.go:131: result=0 T_states=76 code_bytes=41
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=false/n=1/grace=false
+    iterator_stage_semantics_test.go:131: result=0 T_states=125 code_bytes=41
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=false/n=1/grace=true
+    iterator_stage_semantics_test.go:131: result=0 T_states=125 code_bytes=41
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=false/n=5/grace=false
+    iterator_stage_semantics_test.go:131: result=15 T_states=346 code_bytes=41
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=false/n=5/grace=true
+    iterator_stage_semantics_test.go:131: result=15 T_states=346 code_bytes=41
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=false/n=255/grace=false
+    iterator_stage_semantics_test.go:131: result=122 T_states=15346 code_bytes=41
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=false/n=255/grace=true
+    iterator_stage_semantics_test.go:131: result=122 T_states=15346 code_bytes=41
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=true/n=0/grace=false
+    iterator_stage_semantics_test.go:131: result=0 T_states=76 code_bytes=41
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=true/n=0/grace=true
+    iterator_stage_semantics_test.go:131: result=0 T_states=76 code_bytes=41
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=true/n=1/grace=false
+    iterator_stage_semantics_test.go:131: result=0 T_states=125 code_bytes=41
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=true/n=1/grace=true
+    iterator_stage_semantics_test.go:131: result=0 T_states=125 code_bytes=41
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=true/n=5/grace=false
+    iterator_stage_semantics_test.go:131: result=15 T_states=346 code_bytes=41
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=true/n=5/grace=true
+    iterator_stage_semantics_test.go:131: result=15 T_states=346 code_bytes=41
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=true/n=255/grace=false
+    iterator_stage_semantics_test.go:131: result=122 T_states=15346 code_bytes=41
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=true/n=255/grace=true
+    iterator_stage_semantics_test.go:131: result=122 T_states=15346 code_bytes=41
+--- PASS: TestRangeForEachCapturedStagesVMZ80 (0.10s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=false/n=0/grace=false (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=false/n=0/grace=true (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=false/n=1/grace=false (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=false/n=1/grace=true (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=false/n=5/grace=false (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=false/n=5/grace=true (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=false/n=255/grace=false (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=false/n=255/grace=true (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=true/n=0/grace=false (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=true/n=0/grace=true (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=true/n=1/grace=false (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=true/n=1/grace=true (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=true/n=5/grace=false (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=true/n=5/grace=true (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=true/n=255/grace=false (0.01s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=true/n=255/grace=true (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.469s

@@ -693,37 +693,17 @@ func (g *z80cg) genBinOp32(mnem, dst, lhs, rhs string) {
 // that will be needed AFTER the current instruction.  If so, it relocates
 // A's value to a scratch register (via physOverride) so the ALU can use A freely.
 func (g *z80cg) saveAccIfLive(inst *Inst) {
-	// Find which virtual reg currently lives in A. Prefer the lowest ID
-	// on ties, matching definition order and the allocator tie-break.
-	var accReg Reg
-	for _, r := range slices.Sorted(maps.Keys(g.ar.Locs)) {
-		loc := g.ar.Locs[r]
-		if loc.Kind == LocReg && loc.Name == "A" {
-			accReg = r
-			break
-		}
-	}
-	if accReg == NoReg {
-		return
-	}
-	// Check if physOverride already moved it away.
-	if p, ok := g.physOverride[accReg]; ok && p != "A" {
-		return
-	}
-	// Skip if this instruction defines or uses accReg (it'll be handled normally).
-	if accReg == inst.Dst || accReg == inst.Src[0] || accReg == inst.Src[1] {
-		return
-	}
-	// Check if accReg is used after this instruction in the block.
+	// Several non-overlapping vregs can share A. Select a value that is live
+	// here, not the lowest allocated ID (which may be a long-dead parameter).
 	live := g.regsLiveAfterInst(inst)
-	if !live[accReg] {
-		return
+	for _, r := range slices.Sorted(maps.Keys(live)) {
+		if r == inst.Dst || r == inst.Src[0] || r == inst.Src[1] || g.loc(r) != "A" {
+			continue
+		}
+		scratch := g.pickScratch8(inst)
+		g.emitf("    LD %s, A    ; preserve live r%d before ALU scratch", scratch, r)
+		g.physOverride[r] = scratch
 	}
-	// accReg is live in A and will be clobbered — save to scratch.
-	// Pick a scratch register that isn't used by this instruction.
-	scratch := g.pickScratch8(inst)
-	g.emitf("    LD %s, A", scratch)
-	g.physOverride[accReg] = scratch
 }
 
 // reorderAccMoves swaps consecutive instruction pairs where a move→A is followed

@@ -2627,30 +2627,9 @@ func (l *lowerer) recognizeIterChain(expr Expr) (iterChain, bool) {
 		return iterChain{}, false
 	}
 
-	// Detect range-source form (2 args).
-	if len(call.Args) == 2 {
-		if rs, ok2 := call.Args[0].(*RangeSourceExpr); ok2 {
-			cbName := l.resolveFunc(call.Args[1])
-			if cbName == "" {
-				return iterChain{}, false
-			}
-			elemTy := mir2.Ty(mir2.TyU8)
-			if cbFn, ok3 := l.hirFuncs[cbName]; ok3 && len(cbFn.Params) > 0 {
-				elemTy = cbFn.Params[0].Ty
-			}
-			return iterChain{
-				cbName:   cbName,
-				mutate:   isMutate,
-				elemTy:   elemTy,
-				isRange:  true,
-				rangeLo:  rs.Lo,
-				rangeHi:  rs.Hi,
-				rangeRev: rs.Rev,
-			}, true
-		}
-	}
-
-	if len(call.Args) != 3 {
+	// Unwrap stages before distinguishing range and memory sources. A range
+	// chain has two terminal arguments even when map/filter wrap its source.
+	if len(call.Args) != 2 && len(call.Args) != 3 {
 		return iterChain{}, false
 	}
 
@@ -2660,7 +2639,6 @@ func (l *lowerer) recognizeIterChain(expr Expr) (iterChain, bool) {
 	}
 
 	chain := iterChain{
-		len:    call.Args[2],
 		cbName: cbName,
 		mutate: isMutate,
 		elemTy: mir2.TyU8, // default; refined from callback param below
@@ -2691,7 +2669,19 @@ func (l *lowerer) recognizeIterChain(expr Expr) (iterChain, bool) {
 	for i, j := 0, len(chain.stages)-1; i < j; i, j = i+1, j-1 {
 		chain.stages[i], chain.stages[j] = chain.stages[j], chain.stages[i]
 	}
-	chain.ptr = src
+	if rs, ok := src.(*RangeSourceExpr); ok {
+		// mapInPlace requires storage; range values have no address to mutate.
+		if chain.mutate || len(call.Args) != 2 {
+			return iterChain{}, false
+		}
+		chain.isRange = true
+		chain.rangeLo, chain.rangeHi, chain.rangeRev = rs.Lo, rs.Hi, rs.Rev
+	} else {
+		if len(call.Args) != 3 {
+			return iterChain{}, false
+		}
+		chain.ptr, chain.len = src, call.Args[2]
+	}
 	return chain, true
 }
 
@@ -2944,38 +2934,33 @@ func (l *lowerer) lowerRangeForEach(chain iterChain) {
 	l.lowerRangeLoop(chain, elemVar, elemTy, bodyStmts)
 }
 
-// prependStageStmts injects map/filter stage transformations before the main
-// loop body (used by lowerRangeForEach where composition into a single
-// expression isn't possible).
+// prependStageStmts preserves stage order and filter short-circuiting without
+// ContinueStmt: continue would jump over a range loop's implicit DJNZ decrement.
 func (l *lowerer) prependStageStmts(stages []iterStage, elemVar string, elemTy mir2.Ty, body []Stmt) []Stmt {
-	if len(stages) == 0 {
-		return body
-	}
-	var prefix []Stmt
-	for _, stage := range stages {
-		if stage.kind == "map" {
-			mapFn := l.hirFuncs[stage.fn]
-			if mapFn != nil && mapFn.Body != nil && len(mapFn.Params) >= 1 {
-				if ret := extractReturnExpr(mapFn.Body); ret != nil {
-					mapExpr := renameExpr(ret, mapFn.Params[0].Name, elemVar)
-					prefix = append(prefix, &AssignStmt{
-						Target: &VarRefExpr{Name: elemVar, Ty: elemTy},
-						Val:    mapExpr,
-					})
-					continue
-				}
+	for i := len(stages) - 1; i >= 0; i-- {
+		stage := stages[i]
+		ty := elemTy
+		if stage.kind == "filter" {
+			ty = mir2.TyBool
+		}
+		var value Expr
+		if fn := l.hirFuncs[stage.fn]; fn != nil && len(fn.Params) == 1 {
+			if ret := extractReturnExpr(fn.Body); ret != nil {
+				value = renameExpr(ret, fn.Params[0].Name, elemVar)
 			}
-			prefix = append(prefix, &AssignStmt{
-				Target: &VarRefExpr{Name: elemVar, Ty: elemTy},
-				Val: &CallExpr{
-					Fn:   stage.fn,
-					Args: []Expr{&VarRefExpr{Name: elemVar, Ty: elemTy}},
-					Ty:   elemTy,
-				},
-			})
+		}
+		if value == nil {
+			value = &CallExpr{Fn: stage.fn, Args: []Expr{&VarRefExpr{Name: elemVar, Ty: elemTy}}, Ty: ty}
+		}
+		switch stage.kind {
+		case "map":
+			assign := &AssignStmt{Target: &VarRefExpr{Name: elemVar, Ty: elemTy}, Val: value}
+			body = append([]Stmt{assign}, body...)
+		case "filter":
+			body = []Stmt{&IfStmt{Cond: value, Then: &Block{Body: body}}}
 		}
 	}
-	return append(prefix, body...)
+	return body
 }
 
 // lowerRangeFold lowers range(lo..hi).fold(init, cb) to a DJNZ accumulator loop.
@@ -3121,11 +3106,11 @@ func (l *lowerer) lowerRangeLoop(chain iterChain, elemVar string, elemTy mir2.Ty
 	// Element = current B value.
 	l.bind(elemVar, bodyCnt, elemTy)
 
-	// DJNZ loops have no CmpNe/AND A comparison — A is free for ALU results.
-	// Don't set inLoopContext, so lowerBinExpr uses classForALUResult (ClassAcc)
-	// rather than classForExpr (ClassGeneral), keeping acc in A without spills.
+	// A fold owns its accumulator in A. A forEach body may have several
+	// independently live values (including stage results and captures); use
+	// ordinary loop expression classes rather than forcing all ALU results to A.
 	prevInLoop := l.inLoopContext
-	l.inLoopContext = false
+	l.inLoopContext = !chain.isFold
 	l.pushLoop(loopCtx{headLabel: bodyLabel, exitLabel: exitLabel, mutated: mutated})
 	l.lowerBlock(syntheticBody)
 	l.popLoop()

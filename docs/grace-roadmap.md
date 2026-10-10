@@ -1,5 +1,7 @@
 # План развития Grace в основном пути MinZ
 
+Обновление: [iterator stages](grace-iterator-stages.md) — range/filter/map/forEach, корректные DJNZ-рёбра и сохранение живого A; 48 сквозных вариантов VM/Z80.
+
 
 Обновление: [captures и callable contracts](grace-capture-contracts.md) — явные лексические зависимости и проверяемые сигнатуры известных calls/aliases. PGO всё ещё не реализован; сохранение всех внешних артефактов локально включено.
 
