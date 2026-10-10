@@ -115,12 +115,42 @@ func signExtend(v Value, srcBits int) Value {
 
 // frame is one activation record on the call stack.
 type frame struct {
-	fn   *Func
-	vals map[Reg]Value // virtual register file for this call
+	fn            *Func
+	vals          map[Reg]Value // virtual register file for this call
+	pointerWidths map[Reg]int   // only non-default pointer widths
 }
 
 func newFrame(fn *Func) *frame {
-	return &frame{fn: fn, vals: make(map[Reg]Value, 32)}
+	fr := &frame{fn: fn, vals: make(map[Reg]Value, 32)}
+	record := func(r Reg, ty Ty) {
+		if p, ok := ty.(*ptrTy); ok && p.width != 16 {
+			if fr.pointerWidths == nil {
+				fr.pointerWidths = make(map[Reg]int)
+			}
+			fr.pointerWidths[r] = p.width
+		}
+	}
+	for _, p := range fn.Contract.Params {
+		record(p.Reg, p.Ty)
+	}
+	for _, b := range fn.Blocks {
+		for _, p := range b.Params {
+			record(p.Dst, p.Ty)
+		}
+		for _, i := range b.Insts {
+			record(i.Dst, i.Ty)
+			if i.Op == OpCall && fn.mod != nil {
+				if callee := fn.mod.FuncByName(i.Sym); callee != nil {
+					for n, r := range i.ExtraRets {
+						if n+1 < len(callee.Contract.Returns) {
+							record(r, callee.Contract.Returns[n+1].Ty)
+						}
+					}
+				}
+			}
+		}
+	}
+	return fr
 }
 
 func (fr *frame) get(r Reg) Value {
@@ -605,26 +635,35 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		result = Value{I: offset}
 
 	case OpField:
-		// Advance pointer by compile-time byte offset (struct field access).
-		result = Value{I: a.I + inst.Imm}
+		// Keep the legacy SoA256 encoding consistent with native Z80.
+		if inst.Imm == -1 {
+			result = truncate(Value{I: (a.I &^ 255) | ((a.I + 1) & 255)}, ty)
+		} else {
+			result = truncate(Value{I: a.I + inst.Imm}, ty)
+		}
 
 	case OpPtrAdd:
 		// Advance pointer by runtime offset: ptr + offset.
-		result = Value{I: a.I + b.I}
+		result = truncate(Value{I: a.I + b.I}, ty)
 
 	case OpPtrBump:
-		// Advance iterator pointer by compile-time stride.
-		result = Value{I: a.I + inst.Imm}
+		// The legacy -1 encoding means SoA256 low-byte advance.
+		if inst.Imm == -1 {
+			result = truncate(Value{I: (a.I &^ 255) | ((a.I + 1) & 255)}, ty)
+		} else {
+			result = truncate(Value{I: a.I + inst.Imm}, ty)
+		}
 
 	case OpLoad:
 		offset := int(a.I)
 		width := ByteWidth(ty)
-		if !vm.heapRangeValid(a.I, width) {
+		mask := fr.pointerMask(inst.Src[0])
+		if !vm.wrappedHeapRangeValid(a.I, width, mask) {
 			return fmt.Errorf("load: out-of-bounds address %d (heap size %d)", offset, len(vm.heap))
 		}
 		var v int64
 		for i := 0; i < width; i++ {
-			v |= int64(vm.heap[offset+i]) << (8 * i)
+			v |= int64(vm.heap[int((uint64(a.I)+uint64(i))&mask)]) << (8 * i)
 		}
 		result = truncate(Value{I: v}, ty)
 
@@ -633,11 +672,12 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		offset := int(a.I)
 		val := b.I
 		width := ByteWidth(ty)
-		if !vm.heapRangeValid(a.I, width) {
+		mask := fr.pointerMask(inst.Src[0])
+		if !vm.wrappedHeapRangeValid(a.I, width, mask) {
 			return fmt.Errorf("store: out-of-bounds address %d (heap size %d)", offset, len(vm.heap))
 		}
 		for i := 0; i < width; i++ {
-			vm.heap[offset+i] = byte(val >> (8 * i))
+			vm.heap[int((uint64(a.I)+uint64(i))&mask)] = byte(val >> (8 * i))
 		}
 		return nil // no Dst
 
@@ -661,12 +701,13 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		// a = slot (heap offset), ty = value type
 		offset := int(a.I)
 		width := ByteWidth(ty)
-		if !vm.heapRangeValid(a.I, width) {
+		mask := fr.pointerMask(inst.Src[0])
+		if !vm.wrappedHeapRangeValid(a.I, width, mask) {
 			return fmt.Errorf("load_patched: out-of-bounds slot %d", offset)
 		}
 		var v int64
 		for i := 0; i < width; i++ {
-			v |= int64(vm.heap[offset+i]) << (8 * i)
+			v |= int64(vm.heap[int((uint64(a.I)+uint64(i))&mask)]) << (8 * i)
 		}
 		result = truncate(Value{I: v}, ty)
 
@@ -679,11 +720,12 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		if ty != nil {
 			width = ByteWidth(ty)
 		}
-		if !vm.heapRangeValid(a.I, width) {
+		mask := fr.pointerMask(inst.Src[0])
+		if !vm.wrappedHeapRangeValid(a.I, width, mask) {
 			return fmt.Errorf("patch: out-of-bounds slot %d", offset)
 		}
 		for i := 0; i < width; i++ {
-			vm.heap[offset+i] = byte(val >> (8 * i))
+			vm.heap[int((uint64(a.I)+uint64(i))&mask)] = byte(val >> (8 * i))
 		}
 		return nil // no Dst
 
@@ -694,7 +736,11 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 			return err
 		}
 		if inst.Dst != NoReg && len(rets) > 0 {
-			fr.set(inst.Dst, rets[0])
+			if _, pointer := inst.Ty.(*ptrTy); pointer {
+				fr.set(inst.Dst, truncate(rets[0], inst.Ty))
+			} else {
+				fr.set(inst.Dst, rets[0])
+			}
 		}
 		// Capture extra return values (positions 1, 2, …).
 		for i, r := range inst.ExtraRets {
@@ -727,7 +773,11 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 			return err
 		}
 		if inst.Dst != NoReg && len(rets) > 0 {
-			fr.set(inst.Dst, rets[0])
+			if _, pointer := inst.Ty.(*ptrTy); pointer {
+				fr.set(inst.Dst, truncate(rets[0], inst.Ty))
+			} else {
+				fr.set(inst.Dst, rets[0])
+			}
 		}
 		return nil
 
@@ -773,6 +823,9 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		return fmt.Errorf("mir2.VM: unhandled opcode %s", inst.Op)
 	}
 
+	if _, pointer := inst.Ty.(*ptrTy); pointer {
+		result = truncate(result, inst.Ty)
+	}
 	fr.set(inst.Dst, result)
 	return nil
 }
@@ -1018,7 +1071,25 @@ func (vm *VM) registerBuiltinHosts() {
 	}
 }
 
-// heapRangeValid checks before integer narrowing or address addition.
-func (vm *VM) heapRangeValid(address int64, width int) bool {
-	return address >= 0 && width >= 0 && width <= len(vm.heap) && address <= int64(len(vm.heap)-width)
+func (fr *frame) pointerMask(r Reg) uint64 {
+	bits := fr.pointerWidths[r]
+	if bits == 0 {
+		bits = 16
+	}
+	if bits >= 64 {
+		return ^uint64(0)
+	}
+	return (uint64(1) << uint(bits)) - 1
+}
+func (vm *VM) wrappedHeapRangeValid(address int64, width int, mask uint64) bool {
+	if address < 0 || width < 0 {
+		return false
+	}
+	for i := 0; i < width; i++ {
+		addr := (uint64(address) + uint64(i)) & mask
+		if addr >= uint64(len(vm.heap)) {
+			return false
+		}
+	}
+	return true
 }

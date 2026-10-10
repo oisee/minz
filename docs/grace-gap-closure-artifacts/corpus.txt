@@ -1,0 +1,13 @@
+=== RUN   TestGraceVerify
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+    grace_convergence_test.go:146: 
+        === Grace Verification ===
+    grace_convergence_test.go:147: Files: 52, Pass: 52, Fail: 0
+    grace_convergence_test.go:149: Rate: 100.0%
+--- PASS: TestGraceVerify (3.23s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	3.239s

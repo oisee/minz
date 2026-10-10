@@ -14,8 +14,12 @@ import (
 // CALL, DI and HALT. Size includes function code and generated spill storage.
 func measureGraceZ80(t *testing.T, src, name string, enabled bool, args []int64, memory map[uint16]byte, want int64) (int, int) {
 	t.Helper()
-	h := graceMeasureParse(t, src)
-	s, err := CompileHIRSteps(h, Options{UseHIRGrace: enabled})
+	return measureGraceZ80HIR(t, graceMeasureParse(t, src), name, Options{UseHIRGrace: enabled}, args, memory, want)
+}
+
+func measureGraceZ80HIR(t *testing.T, h *hir.Module, name string, options Options, args []int64, memory map[uint16]byte, want int64) (int, int) {
+	t.Helper()
+	s, err := CompileHIRSteps(h, options)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -33,7 +37,9 @@ func measureGraceZ80(t *testing.T, src, name string, enabled bool, args []int64,
 	if !ok {
 		t.Fatalf("function symbol missing: %v", r.Symbols)
 	}
-	z := emulator.NewRemogattoZ80()
+	platform := emulator.NewRemogattoZ80WithScreen()
+	platform.SetROMEnd(0) // CPU conformance fixture uses an all-RAM address space.
+	z := platform.RemogattoZ80
 	if err := z.LoadMemory(assertLoadAddr, r.Binary); err != nil {
 		t.Fatal(err)
 	}

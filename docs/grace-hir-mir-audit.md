@@ -1,5 +1,7 @@
 # HIR/MIR audit and Z80 measurements
 
+**Update:** [Pointer conformance and gap closure](grace-gap-closure.md): the corpus now passes 52/52; pointer wrap and SSA dominance checks are implemented. This document below retains the earlier audit snapshot.
+
 2026-10-10, branch `feat/grace-hir-vm`. This is a focused correctness audit,
 not a proof that HIR, MIR or the backend contain no bugs. Scope: loop control,
 constant propagation/folding, dead results, pointer rewrites, VM memory checks

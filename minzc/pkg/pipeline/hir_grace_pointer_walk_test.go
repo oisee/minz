@@ -128,7 +128,7 @@ func TestHIRGracePointerWalkDifferential(t *testing.T) {
 							var sum uint8
 							bad := int64(-1)
 							for i := int64(0); i < count; i++ {
-								addr := p + i
+								addr := int64(uint16(p + i))
 								if addr >= int64(size) {
 									bad = addr
 									break

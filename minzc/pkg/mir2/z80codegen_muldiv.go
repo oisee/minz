@@ -603,28 +603,18 @@ func (g *z80cg) genDivMod8(inst *Inst) {
 			g.emit("    POP AF")
 		}
 	} else {
-		// Setup: B = dividend, C = divisor.
-		// Width guard: lhs/rhs might be a 16-bit pair (const allocated to HL/DE).
-		if lhs == "B" {
-			// already there
-		} else if isPairReg(lhs) {
-			g.emitf("    LD B, %s", lowByte(lhs))
-		} else if isSpill(lhs) {
-			g.loadSpill8("B", lhs)
-		} else if lhs == "A" {
-			g.emit("    LD B, A")
-		} else {
-			g.emitf("    LD B, %s", lhs)
+		// Assign the division workspace simultaneously: the divisor may be
+		// in B, so loading the dividend into B first would overwrite it.
+		if isPairReg(lhs) {
+			lhs = lowByte(lhs)
 		}
-		if rhs == "C" {
-			// already there
-		} else if isPairReg(rhs) {
-			g.emitf("    LD C, %s", lowByte(rhs))
-		} else if isSpill(rhs) {
-			g.loadSpill8("C", rhs)
-		} else {
-			g.emitf("    LD C, %s", rhs)
+		if isPairReg(rhs) {
+			rhs = lowByte(rhs)
 		}
+		g.emitParallelCopy([]parallelCopy{
+			{srcName: lhs, dstName: "B", ty: TyU8},
+			{srcName: rhs, dstName: "C", ty: TyU8},
+		})
 
 	}
 	if isSigned {

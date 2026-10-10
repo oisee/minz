@@ -1,6 +1,8 @@
 # ADR-0045: Target-width raw pointer semantics
 
-Status: Proposed; VM/backend conformance migration not implemented.
+Status: VM target-width wrap implemented; 16-bit Z80 boundary conformance tested.
+Target data-layout selection, frontend pointee types and C/QBE migration remain open.
+See [implementation evidence](../grace-gap-closure.md).
 Date: 2026-10-10.
 
 ## Problem
@@ -11,7 +13,7 @@ instructions store int64 sums while moves and block/function arguments truncate.
 An optimization changing copies or CFG can therefore change observed addresses.
 Z80 wraps arithmetic and multi-byte accesses; VM accesses contiguous heap offsets.
 
-## Proposed contract
+## Target-memory contract
 
 For target-address raw pointers of width W:
 
@@ -45,4 +47,6 @@ inconsistent implementation behavior.
   for MIR threading (u8 index wrap is independent of pointer wrap).
 - Re-measure code bytes/T-states and compilation overhead after guard removal.
 
-Until migration is complete, preserve tested VM behavior and retain guards.
+The VM now implements items 1–3 for typed MIR pointers (16/24-bit tests).
+The legacy SoA −1 encoding matches Z80 in VM; C/QBE remain unresolved.
+Retain HIR guards pending expanded conformance and profitability measurements.

@@ -23,13 +23,13 @@ package mir2
 //   - Lowering to parallel copies is localised: one place per outgoing edge
 //   - VM interpreter: branch args ≡ "push these values then jump"
 //   - CFG rewrites never need to update phi operands in other blocks
-//   - Verifier checks are uniform: arity + type match per edge
+//   - Edge arity checks are uniform; numeric conversions follow the VM contract
 //
 // Invariants (enforced by Verify):
 //   - Label is unique within the parent Func.
 //   - Term is non-nil before the function is verified.
 //   - Every Reg referenced in Insts/Term is either a Param reg, a
-//     function-level param reg, or the Dst of an earlier instruction.
+//     function-level param reg, or a dominating instruction result.
 type Block struct {
 	Label  string       // unique identifier; branch target in terminators
 	Params []BlockParam // formal block arguments (define registers on entry)

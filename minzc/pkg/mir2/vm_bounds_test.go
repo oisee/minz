@@ -12,9 +12,10 @@ func TestVMMemoryBoundsWithoutOverflow(t *testing.T) {
 			f := m.AddFunc("bounds")
 			b := NewBuilder(f)
 			b.SwitchToNewBlock("entry")
-			zero := b.Const(0, TyPtr, ClassPointer)
+			zero := b.Const(0, PtrFor(64), ClassPointer)
+			delta := b.Const(addr, PtrFor(64), ClassGeneral)
 			p := f.AllocReg()
-			f.Blocks[0].Insts = append(f.Blocks[0].Insts, &Inst{Op: OpField, Dst: p, Src: [2]Reg{zero}, Imm: addr, Ty: TyPtr})
+			f.Blocks[0].Insts = append(f.Blocks[0].Insts, &Inst{Op: OpPtrAdd, Dst: p, Src: [2]Reg{zero, delta}, Ty: PtrFor(64)})
 			v := b.Const(0x1234, TyU16, ClassGeneral)
 			dst := NoReg
 			if op == OpLoad || op == OpLoadPatched {

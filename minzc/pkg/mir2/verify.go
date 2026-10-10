@@ -10,10 +10,11 @@ import "fmt"
 //   - Block labels are unique within each function.
 //   - Every block is sealed (has a terminator).
 //   - Every Reg referenced in instructions/terminators is a param or a
-//     previous Dst (forward-reference check; dominance not verified here).
+//     dominating definition (independent of block layout).
 //   - Side-effecting ops (OpStore, OpPatch) have Dst == NoReg.
 //   - Branch targets exist within the function.
-//   - Block-argument arity and types match target block params.
+//   - Block-argument arity matches target block params. Numeric edge conversions
+//     retain the VM contract; strict type checking is not performed here.
 //   - [host] calls appear only inside [comptime] functions.
 func Verify(m *Module) error {
 	for _, f := range m.Funcs {
@@ -46,28 +47,76 @@ func verifyFunc(f *Func) error {
 		blockMap[b.Label] = blockInfo{params: b.Params}
 	}
 
-	// Seed defined-register set with function params.
-	defined := map[Reg]bool{NoReg: true}
+	// Collect definitions first: block layout is not execution order.
+	defs := make(map[Reg]regDefinition)
+	define := func(r Reg, block *Block, position int) error {
+		if r == NoReg {
+			return nil
+		}
+		if _, exists := defs[r]; exists {
+			return fmt.Errorf("duplicate definition of %%r%d", r)
+		}
+		defs[r] = regDefinition{block: block, position: position}
+		return nil
+	}
 	for _, p := range f.Contract.Params {
-		defined[p.Reg] = true
+		if err := define(p.Reg, nil, -1); err != nil {
+			return err
+		}
+	}
+	for _, b := range f.Blocks {
+		if b.Term == nil {
+			return fmt.Errorf("block @%s has no terminator", b.Label)
+		}
+		if err := verifyTermArgs(b.Label, b.Term, blockMap); err != nil {
+			return err
+		}
+		for _, p := range b.Params {
+			if err := define(p.Dst, b, -1); err != nil {
+				return err
+			}
+		}
+		for i, inst := range b.Insts {
+			if err := define(inst.Dst, b, i); err != nil {
+				return err
+			}
+			for _, r := range inst.ExtraRets {
+				if err := define(r, b, i); err != nil {
+					return err
+				}
+			}
+		}
+	}
+	dominators := reachableDominators(f)
+	checkUse := func(r Reg, block *Block, position int) error {
+		if r == NoReg {
+			return nil
+		}
+		d, exists := defs[r]
+		if !exists {
+			return fmt.Errorf("use of undefined %%r%d", r)
+		}
+		if d.block == nil {
+			return nil
+		} // function parameter
+		if d.block == block {
+			if d.position >= position {
+				return fmt.Errorf("use of %%r%d before its definition", r)
+			}
+		} else if dom, reachable := dominators[block.Label]; reachable && !dom[d.block.Label] {
+			return fmt.Errorf("definition of %%r%d in @%s does not dominate its use", r, d.block.Label)
+		}
+		// Cross-block dominance is vacuous in unreachable blocks, but undefined
+		// registers and local forward uses are still rejected there.
+		return nil
 	}
 
 	for _, blk := range f.Blocks {
-		if blk.Term == nil {
-			return fmt.Errorf("block @%s has no terminator", blk.Label)
-		}
-
-		// Block params define registers at entry.
-		for _, p := range blk.Params {
-			defined[p.Dst] = true
-		}
-
 		for ii, inst := range blk.Insts {
 			// Check all uses are defined.
 			for _, u := range inst.Uses() {
-				if !defined[u] {
-					return fmt.Errorf("block @%s inst[%d] (%s): use of undefined %%r%d",
-						blk.Label, ii, inst.Op, u)
+				if err := checkUse(u, blk, ii); err != nil {
+					return fmt.Errorf("block @%s inst[%d] (%s): %w", blk.Label, ii, inst.Op, err)
 				}
 			}
 
@@ -82,28 +131,15 @@ func verifyFunc(f *Func) error {
 				return fmt.Errorf("block @%s inst[%d]: [host] call in non-comptime function",
 					blk.Label, ii)
 			}
-
-			if inst.Dst != NoReg {
-				defined[inst.Dst] = true
-			}
-			for _, r := range inst.ExtraRets {
-				if r != NoReg {
-					defined[r] = true
-				}
-			}
 		}
 
 		// Check terminator uses.
 		for _, u := range blk.Term.termUses() {
-			if !defined[u] {
-				return fmt.Errorf("block @%s terminator: use of undefined %%r%d", blk.Label, u)
+			if err := checkUse(u, blk, len(blk.Insts)); err != nil {
+				return fmt.Errorf("block @%s terminator: %w", blk.Label, err)
 			}
 		}
 
-		// Check branch targets and block-argument arity.
-		if err := verifyTermArgs(blk.Label, blk.Term, blockMap); err != nil {
-			return err
-		}
 	}
 	return nil
 }
@@ -156,4 +192,71 @@ func verifyTermArgs(fromLabel string, term Term, blockMap map[string]blockInfo) 
 		return check(t.Then, t.ThenArgs)
 	}
 	return nil // TermRet / TermUnreachable have no targets
+}
+
+// regDefinition records an SSA definition; nil block denotes a function input.
+type regDefinition struct {
+	block    *Block
+	position int
+}
+
+func reachableDominators(f *Func) map[string]map[string]bool {
+	blocks := make(map[string]*Block, len(f.Blocks))
+	for _, b := range f.Blocks {
+		blocks[b.Label] = b
+	}
+	entry := f.Blocks[0].Label
+	reachable := map[string]bool{entry: true}
+	queue := []string{entry}
+	preds := make(map[string][]string)
+	for len(queue) > 0 {
+		label := queue[0]
+		queue = queue[1:]
+		for _, next := range blocks[label].Successors() {
+			preds[next] = append(preds[next], label)
+			if !reachable[next] {
+				reachable[next] = true
+				queue = append(queue, next)
+			}
+		}
+	}
+	dom := make(map[string]map[string]bool, len(reachable))
+	for label := range reachable {
+		dom[label] = map[string]bool{label: true}
+		if label != entry {
+			for other := range reachable {
+				dom[label][other] = true
+			}
+		}
+	}
+	changed := true
+	for changed {
+		changed = false
+		for label := range reachable {
+			if label == entry {
+				continue
+			}
+			next := map[string]bool{label: true}
+			for candidate := range dom[label] {
+				if candidate == label {
+					continue
+				}
+				all := true
+				for _, pred := range preds[label] {
+					if !dom[pred][candidate] {
+						all = false
+						break
+					}
+				}
+				if all {
+					next[candidate] = true
+				}
+			}
+			if len(next) != len(dom[label]) {
+				dom[label] = next
+				changed = true
+			}
+		}
+	}
+	return dom
 }

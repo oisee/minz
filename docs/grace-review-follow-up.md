@@ -1,5 +1,7 @@
 # Grace: review follow-up and blockers
 
+**Update:** [Pointer conformance and gap closure](grace-gap-closure.md): the corpus now passes 52/52; pointer wrap and SSA dominance checks are implemented. This document below retains the earlier audit snapshot.
+
 2026-10-10. Review applies to the measured experiments and ADR-0044 migration.
 This records priorities and verified observations; it does not change language
 semantics or claim the tasks below are implemented.
