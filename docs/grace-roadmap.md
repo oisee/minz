@@ -108,3 +108,7 @@ LLM предлагает проверяемое доказательство и�
 а не доказательство эквивалентности. Сбор/загрузчик сертификатов ещё не реализован.
 Первый шаг политики уже работает: `--hir-grace --Osize` исключает versioned
 pointer-walk, оставляя invariant-base. На sum_array выбирает 38 вместо 85 байт.
+
+## Input-HIR profiling foundation (10 октября)
+
+[Карта исходных мест](grace-pgo-sites.md) и [отдельный VM collector](grace-pgo-collector.md) сохраняют source identity, entries/body entries и признак failed calls. Production pipeline не принимает эти наблюдения как профиль оптимизаций. Следом: compatibility fingerprint/refusing loader, затем lineage и cost policy; legality остаётся отдельной проверкой.

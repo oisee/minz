@@ -1,0 +1,22 @@
+package main
+import (
+ "os"
+ "encoding/json"
+ "github.com/minz/minzc/pkg/nanz"
+ "github.com/minz/minzc/pkg/hir"
+ "github.com/minz/minzc/pkg/mir2"
+)
+func main(){
+ src,err:=os.ReadFile("../examples/nanz/01_sum_array.nanz");if err!=nil {panic(err)}
+ m,err:=nanz.Parse(string(src),"examples/nanz/01_sum_array.nanz");if err!=nil {panic(err)}
+ p,err:=hir.NewLoopProfiler(m);if err!=nil {panic(err)}
+ addr:=p.VM.AllocHeap(make([]byte,255)).I
+ values:=make([]byte,255);for i:=range values {values[i]=byte(i+1)}
+ p.VM.WriteHeapBytes(addr,values)
+ for _,n:=range []int64{0,1,5,16,64,255} {
+  result,err:=p.Call("sum_array",[]mir2.Value{{I:addr},{I:n}});if err!=nil {panic(err)}
+  want:=n*(n+1)/2&255;if len(result)!=1 || result[0].I!=want {panic("wrong sum")}
+ }
+ out,err:=json.MarshalIndent(p.Snapshot(),"","  ");if err!=nil {panic(err)}
+ os.Stdout.Write(append(out,'\n'))
+}

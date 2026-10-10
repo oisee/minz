@@ -57,3 +57,7 @@ Nanz statement
 - Refusing loader и cost policy для size/T-states. Профиль влияет на profitability; legality продолжает проверяться независимо.
 
 Исходный SHA намеренно консервативен: любое изменение unit меняет его версию. Стабильные declaration IDs и declaration-level invalidation пока отсутствуют. API карты не является security boundary и не разрешает оптимизацию на основании пользовательских origins.
+
+## Продолжение
+
+Первый collector input-HIR наблюдений реализован отдельным opt-in API, без переноса через Grace или изменения production pipeline: [события, пример и ограничения](grace-pgo-collector.md).
