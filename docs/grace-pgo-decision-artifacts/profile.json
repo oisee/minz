@@ -2,6 +2,7 @@
   "guards": [
     {
       "site_id": "413717c0664c475bf9c67ee592bac740dccdcf0b002c75bd2dfb19155938ed2f",
+      "equal_entries": 0,
       "fast_entries": 6,
       "fallback_entries": 0,
       "fast_body_entries": 341,
@@ -11,7 +12,7 @@
   "compatibility": {
     "schema": "minz.loop-profile-compatibility/v1",
     "context": {
-      "compiler_id": "executable-sha256:0946c7ce4f1ba6706280569da00dadfa465bc14f70271b207610cadba172fb13",
+      "compiler_id": "executable-sha256:b2e4587169ac95bc9a027f831d28eca5e8e538001569b70e032f0a62b6b8b09e",
       "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
       "target_id": "module-target:0/model:cpm-z80-v1",
       "workload_sha256": "686c16264b544bbdb2766096889c6090176f2d29bdf20a9c4408cf4da2067194",
@@ -21,10 +22,10 @@
         "examples/nanz/01_sum_array.nanz": "fa0ad7d685c31aeb52b91b323bcef46e5c86c0e4390b2fd41ecd69ecfef58694"
       }
     },
-    "hir_sha256": "3b021437a0423ed4166ebdcbc91314d3d45fb9cd6ac08232db65bff17eab7071",
+    "hir_sha256": "841de22223d798ba69092c748228a2a3df8805b5d515c34b566f6e61579ce252",
     "origins_sha256": "eeabd328e92b12b724db07627bd793a2c25220a5da6f51a769cca5060c12f265"
   },
-  "schema": "minz.input-hir-loop-observations/v3",
+  "schema": "minz.input-hir-loop-observations/v4",
   "stage": "unoptimised-mir2-vm",
   "sites": {
     "schema": "minz.hir-loop-sites/v1",

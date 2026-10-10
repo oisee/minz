@@ -1,0 +1,8 @@
+=== RUN   TestSumProfileCostFullU8Domain
+    profile_cost_domain_test.go:100: fallback n=1 original=210 pointer=349 overhead=139
+    profile_cost_domain_test.go:100: fallback n=2 original=351 pointer=490 overhead=139
+    profile_cost_domain_test.go:100: fallback n=255 original=36024 pointer=36163 overhead=139
+    profile_cost_domain_test.go:116: Verified 1022 address/length scenarios on original and pointer VM + assembled Z80
+--- PASS: TestSumProfileCostFullU8Domain (30.25s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	30.260s

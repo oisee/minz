@@ -39,6 +39,9 @@ func RunGrace(m *Module, maxRewrites int) (*grace.RuleResult, error) {
 
 // RunGraceWithOptions applies structural rules under the given budget and policy.
 func RunGraceWithOptions(m *Module, options GraceOptions) (*grace.RuleResult, error) {
+	if options.PointerWalkSites == nil && m != nil {
+		options.PointerWalkSites = m.PointerWalkPolicy
+	}
 	maxRewrites := options.MaxRewrites
 	result := &grace.RuleResult{ByRule: make(map[string]int)}
 	if m == nil || maxRewrites < 0 {

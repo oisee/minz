@@ -1,6 +1,8 @@
 package hir
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"math/big"
@@ -10,33 +12,40 @@ import (
 // Linear costs must be validated for the supported domain by assembled execution.
 // Cost models never establish rewrite legality. EvidenceID names saved measurements.
 type LoopCostModel struct {
+	CompilerID        string `json:"compiler_id"`
+	SemanticsID       string `json:"semantics_id"`
 	Function          string `json:"function"`
 	HIRSHA256         string `json:"hir_sha256"`
 	TargetID          string `json:"target_id"`
+	CompilationID     string `json:"compilation_id"`
 	EvidenceID        string `json:"evidence_id"`
 	OriginalBytes     uint64 `json:"original_bytes"`
 	PointerBytes      uint64 `json:"pointer_bytes"`
 	OriginalEntry     uint64 `json:"original_entry_t_states"`
 	OriginalIteration uint64 `json:"original_iteration_t_states"`
+	EqualEntryExtra   uint64 `json:"equal_entry_extra_t_states"`
 	FastEntry         uint64 `json:"fast_entry_t_states"`
+	FallbackEntry     uint64 `json:"fallback_entry_t_states"`
+	FallbackIteration uint64 `json:"fallback_iteration_t_states"`
+	FallbackMeasured  bool   `json:"fallback_measured"`
 	FastIteration     uint64 `json:"fast_iteration_t_states"`
 }
 
 type ProfileDecision struct {
-	SiteID          string        `json:"site_id"`
-	Variant         string        `json:"variant"`
-	Reason          string        `json:"reason"`
-	OriginalTStates string        `json:"original_t_states"`
-	PointerTStates  string        `json:"pointer_t_states,omitempty"`
-	Model           LoopCostModel `json:"model"`
+	Compatibility   *ProfileCompatibility `json:"compatibility"`
+	SiteID          string                `json:"site_id"`
+	Variant         string                `json:"variant"`
+	Reason          string                `json:"reason"`
+	OriginalTStates string                `json:"original_t_states"`
+	PointerTStates  string                `json:"pointer_t_states,omitempty"`
+	Model           LoopCostModel         `json:"model"`
 }
 
 // SelectLoopVariants loads/refuses a profile against current HIR/context before
-// estimating cost. The initial measured model covers all-fast sum idioms; guard
-// misses or missing coverage conservatively retain original until fallback costs
-// are measured. Size mode retains smaller code; speed compares total T-states.
+// estimating cost. Guard misses require explicitly measured fallback costs;
+// missing coverage conservatively retains original. Size mode retains smaller code; speed compares total T-states.
 func SelectLoopVariants(r io.Reader, m *Module, c ProfileContext, model LoopCostModel, size bool) ([]ProfileDecision, error) {
-	if model.TargetID != c.TargetID || model.EvidenceID == "" || model.OriginalBytes == 0 || model.PointerBytes == 0 {
+	if model.CompilerID != c.CompilerID || model.SemanticsID != c.SemanticsID || model.TargetID != c.TargetID || model.EvidenceID == "" || model.OriginalBytes == 0 || model.PointerBytes == 0 {
 		return nil, fmt.Errorf("loop policy: missing or incompatible cost model")
 	}
 	profile, err := LoadLoopProfile(r, m, c)
@@ -61,10 +70,18 @@ func SelectLoopVariants(r io.Reader, m *Module, c ProfileContext, model LoopCost
 	}
 	out := []ProfileDecision{}
 	for _, count := range profile.Counts {
-		d := ProfileDecision{SiteID: count.SiteID, Variant: "original", Reason: "no complete measured guard coverage", Model: model, OriginalTStates: total(count.Entries, count.BodyEntries, model.OriginalEntry, model.OriginalIteration)}
+		d := ProfileDecision{Compatibility: profile.Compatibility, SiteID: count.SiteID, Variant: "original", Reason: "no complete measured guard coverage", Model: model, OriginalTStates: ""}
+		if siteFunctions[count.SiteID] == model.Function {
+			d.OriginalTStates = total(count.Entries, count.BodyEntries, model.OriginalEntry, model.OriginalIteration)
+		}
 		g, ok := guards[count.SiteID]
-		if ok && siteFunctions[count.SiteID] == model.Function && g.FallbackEntries == 0 && g.FastEntries == count.Entries && g.FastBodyEntries == count.BodyEntries && count.Entries > 0 {
+		if ok && siteFunctions[count.SiteID] == model.Function && (g.FallbackEntries == 0 || model.FallbackMeasured) && g.FastEntries <= count.Entries && g.FallbackEntries == count.Entries-g.FastEntries && g.FastBodyEntries <= count.BodyEntries && g.FallbackBodyEntries == count.BodyEntries-g.FastBodyEntries && count.Entries > 0 {
 			d.PointerTStates = total(g.FastEntries, g.FastBodyEntries, model.FastEntry, model.FastIteration)
+			fast, _ := new(big.Int).SetString(d.PointerTStates, 10)
+			fallback, _ := new(big.Int).SetString(total(g.FallbackEntries, g.FallbackBodyEntries, model.FallbackEntry, model.FallbackIteration), 10)
+			fast.Add(fast, fallback)
+			fast.Add(fast, new(big.Int).Mul(new(big.Int).SetUint64(g.EqualEntries), new(big.Int).SetUint64(model.EqualEntryExtra)))
+			d.PointerTStates = fast.String()
 			if size {
 				d.Reason = "smaller measured code"
 				if model.PointerBytes < model.OriginalBytes {
@@ -93,6 +110,21 @@ func ApplyProfileDecisions(m *Module, decisions []ProfileDecision) error {
 	if err != nil {
 		return err
 	}
+	// Recheck full source/dependency and typed-HIR compatibility at application.
+	for _, decision := range decisions {
+		if decision.Compatibility == nil {
+			return fmt.Errorf("loop policy: missing decision compatibility")
+		}
+		current, err := BuildProfileCompatibility(m, decision.Compatibility.Context)
+		if err != nil {
+			return err
+		}
+		a, _ := json.Marshal(current)
+		b, _ := json.Marshal(decision.Compatibility)
+		if !bytes.Equal(a, b) {
+			return fmt.Errorf("loop policy: decision refers to stale HIR or source units")
+		}
+	}
 	known := map[string]bool{}
 	for _, site := range sites.Sites {
 		known[site.ID] = true
@@ -109,6 +141,7 @@ func ApplyProfileDecisions(m *Module, decisions []ProfileDecision) error {
 	if err := SeedLoopLineage(m); err != nil {
 		return err
 	}
+	m.PointerWalkPolicy = selected
 	_, err = RunGraceWithOptions(m, GraceOptions{PointerWalkSites: selected})
 	return err
 }

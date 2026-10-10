@@ -1446,7 +1446,7 @@ func (l *lowerer) lowerForRange(st *ForRangeStmt) {
 
 // lowerForEach lowers a ForEachStmt.
 //
-// MIR2 structure (ptr → HL, counter → B for DJNZ):
+// MIR2 structure (ptr → HL, u8 counter → B for DJNZ, wide counter → pair):
 //
 //	entry:
 //	    ptr0 = lower(Ptr) + Start * stride
@@ -1494,11 +1494,20 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 	}
 	// Compute element count.
 	cntReg := l.lowerExpr(st.Len)
+	cntTy := st.Len.ExprTy()
+	cntClass := mir2.ClassCounter
+	zeroClass := mir2.ClassAcc
+	if cntTy.Width() > mir2.TyU8.Width() {
+		// ClassCounter targets the byte register B. Wide lengths need a pair,
+		// preferably DE so the element pointer can remain in HL.
+		cntClass = mir2.ClassIndex
+		zeroClass = cntClass
+	}
 
 	// Literal operands are loop-invariant. Define them once in the preheader;
 	// recreating them in head/continue wastes two VM instructions per element.
-	zero8 := l.bld.Const(0, mir2.TyU8, mir2.ClassAcc)
-	one := l.bld.Const(1, mir2.TyU8, mir2.ClassCounter)
+	zero := l.bld.Const(0, cntTy, zeroClass)
+	one := l.bld.Const(1, cntTy, cntClass)
 
 	// Collect user env vars used/mutated in the body (for block params).
 	allUsed := map[string]bool{}
@@ -1529,7 +1538,7 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 		l.mf.LoopOrigins[bodyLabel] = mir2.LoopOrigin{SiteID: source.SiteID, Role: source.Role, Rule: source.Rule}
 	}
 	headPtr := l.bld.BlockParam(head, mir2.TyPtr, mir2.ClassPointer) // HL
-	headCnt := l.bld.BlockParam(head, mir2.TyU8, mir2.ClassCounter)  // B → DJNZ
+	headCnt := l.bld.BlockParam(head, cntTy, cntClass)
 	headEnv := cloneMap(envBefore)
 	for _, name := range mutated {
 		ty := l.envTy[name]
@@ -1539,7 +1548,7 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 	l.env = headEnv
 
 	// brif (cnt != 0) → body, else → exit
-	cond := l.bld.Cmp(mir2.CmpNe, headCnt, zero8, mir2.ClassFlag, false)
+	cond := l.bld.Cmp(mir2.CmpNe, headCnt, zero, mir2.ClassFlag, false)
 	exitArgs := append([]mir2.Reg{headPtr, headCnt}, l.collectArgs(mutated)...)
 	l.bld.BrIf(cond, bodyLabel, nil, exitLabel, exitArgs)
 
@@ -1594,7 +1603,7 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 	}
 
 	ptrNext := l.bld.PtrBump(headPtr, stride, mir2.ClassPointer)
-	cntNext := l.bld.Sub(headCnt, one, mir2.TyU8, mir2.ClassCounter)
+	cntNext := l.bld.Sub(headCnt, one, cntTy, cntClass)
 
 	backArgs := append([]mir2.Reg{ptrNext, cntNext}, l.collectArgs(mutated)...)
 	l.bld.Jmp(headLabel, backArgs...)
@@ -1602,7 +1611,7 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 	// ── fe_exit(ptr, cnt, mutated...) ──
 	exit := l.bld.SwitchToNewBlock(exitLabel)
 	l.bld.BlockParam(exit, mir2.TyPtr, mir2.ClassPointer) // discard ptr
-	l.bld.BlockParam(exit, mir2.TyU8, mir2.ClassCounter)  // discard cnt
+	l.bld.BlockParam(exit, cntTy, cntClass)               // discard cnt
 	exitEnv := cloneMap(envBefore)
 	for _, name := range mutated {
 		ty := l.envTy[name]

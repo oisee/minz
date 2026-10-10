@@ -46,6 +46,15 @@ func measureProfileZ80(t *testing.T, h *hir.Module, name string, options Options
 		}
 		z.Step()
 	}
+	for addr := range memory {
+		if int(addr) >= assertLoadAddr && int(addr) < assertLoadAddr+len(r.Binary) {
+			t.Fatalf("input overlaps assembled code: %04x", addr)
+		}
+		if addr >= 0xFDF0 && addr < 0xFF00 {
+			t.Fatalf("input overlaps reserved bootstrap stack: %04x", addr)
+		}
+	}
+	visited := map[uint16]bool{}
 	entrySP := z.GetSP()
 	returnPC := uint16(z.GetMemory(entrySP)) | uint16(z.GetMemory(entrySP+1))<<8
 	start := z.GetCycles()
@@ -53,12 +62,24 @@ func measureProfileZ80(t *testing.T, h *hir.Module, name string, options Options
 		if i > 100000 {
 			t.Fatalf("function did not return: PC=%04x SP=%04x wantPC=%04x SP=%04x\n%s\n%s", z.GetPC(), z.GetSP(), returnPC, entrySP+2, s.MIR2Opt, s.Assembly)
 		}
+		visited[z.GetPC()] = true
 		z.Step()
 		if z.GetPC() == returnPC && z.GetSP() == entrySP+2 {
 			break
 		}
 	}
 	cycles := z.GetCycles() - start
+	// Observe actual branch targets, independent of the returned sum.
+	for symbol, address := range r.Symbols {
+		lower := strings.ToLower(symbol)
+		if strings.Contains(lower, "sum_array_if_then") || strings.Contains(lower, "sum_array_if_else") {
+			fast := args[0] <= 65535-args[1]
+			shouldVisit := (fast && strings.Contains(lower, "if_then")) || (!fast && strings.Contains(lower, "if_else"))
+			if visited[uint16(address)] != shouldVisit {
+				t.Fatalf("guard branch mismatch: %s fast=%v visited=%v", symbol, fast, visited[uint16(address)])
+			}
+		}
+	}
 	for addr, v := range memory {
 		if z.GetMemory(addr) != v {
 			t.Fatalf("Z80 input memory changed at %04x", addr)

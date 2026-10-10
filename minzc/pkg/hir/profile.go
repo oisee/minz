@@ -15,6 +15,7 @@ type LoopCounts struct {
 
 type GuardCounts struct {
 	SiteID              string `json:"site_id"`
+	EqualEntries        uint64 `json:"equal_entries"`
 	FastEntries         uint64 `json:"fast_entries"`
 	FallbackEntries     uint64 `json:"fallback_entries"`
 	FastBodyEntries     uint64 `json:"fast_body_entries"`
@@ -42,6 +43,7 @@ type LoopProfiler struct {
 	guards            []GuardCounts
 	guardFunctions    map[string]int
 	guardParameters   map[string][2]int
+	guardNames        map[int][2]string
 	sites             *LoopSiteMap
 	counts            []LoopCounts
 	completed, failed uint64
@@ -54,7 +56,7 @@ func NewLoopProfiler(m *Module) (*LoopProfiler, error) {
 	if err != nil {
 		return nil, err
 	}
-	p := &LoopProfiler{sites: sites, counts: make([]LoopCounts, len(sites.Sites)), guards: []GuardCounts{}, guardFunctions: map[string]int{}, guardParameters: map[string][2]int{}}
+	p := &LoopProfiler{sites: sites, counts: make([]LoopCounts, len(sites.Sites)), guards: []GuardCounts{}, guardFunctions: map[string]int{}, guardParameters: map[string][2]int{}, guardNames: map[int][2]string{}}
 	reserved := map[string]bool{}
 	for _, g := range m.Globals {
 		reserved[g.Name] = true
@@ -75,6 +77,11 @@ func NewLoopProfiler(m *Module) (*LoopProfiler, error) {
 						}
 					}
 					p.guardParameters[f.Name] = indices
+					for i, s := range sites.Sites {
+						if s.ID == site.ID {
+							p.guardNames[i] = [2]string{plan.base, plan.bound}
+						}
+					}
 				}
 			}
 		}
@@ -121,7 +128,11 @@ func NewLoopProfiler(m *Module) (*LoopProfiler, error) {
 	hooks := map[string]mir2.HostFunc{}
 	eventStmt := func(i int, event string) Stmt {
 		name := fmt.Sprintf("%s%d_%s", prefix, i, event)
-		return &ExprStmt{Expr: &CallExpr{Fn: name, Ty: mir2.TyVoid}}
+		args := []Expr{}
+		if names, ok := p.guardNames[i]; ok && event == "entry" {
+			args = []Expr{Var(names[0], mir2.TyPtr), Var(names[1], mir2.TyU8)}
+		}
+		return &ExprStmt{Expr: &CallExpr{Fn: name, Ty: mir2.TyVoid, Args: args}}
 	}
 	var cloneBlock func(*Block, string, map[string]int) *Block
 	cloneBlock = func(b *Block, path string, paths map[string]int) *Block {
@@ -183,10 +194,29 @@ func NewLoopProfiler(m *Module) (*LoopProfiler, error) {
 	for i := range sites.Sites {
 		for _, event := range []string{"entry", "body"} {
 			name := fmt.Sprintf("%s%d_%s", prefix, i, event)
-			copyModule.Funcs = append(copyModule.Funcs, &Func{Name: name, IsExtern: true, RetTy: mir2.TyVoid})
-			hooks[name] = func(_ []mir2.Value) ([]mir2.Value, error) {
+			params := []Param{}
+			if _, ok := p.guardNames[i]; ok && event == "entry" {
+				params = []Param{{Name: "base", Ty: mir2.TyPtr}, {Name: "bound", Ty: mir2.TyU8}}
+			}
+			copyModule.Funcs = append(copyModule.Funcs, &Func{Name: name, IsExtern: true, RetTy: mir2.TyVoid, Params: params})
+			hooks[name] = func(args []mir2.Value) ([]mir2.Value, error) {
 				if event == "entry" {
 					p.counts[i].Entries++
+					if _, ok := p.guardNames[i]; ok {
+						guardIndex := p.guardFunctions[sites.Sites[i].Function]
+						base := uint64(args[0].I) & 65535
+						n := uint64(args[1].I) & 255
+						if base <= 65535-n {
+							p.guards[guardIndex].FastEntries++
+							p.guards[guardIndex].FastBodyEntries += n
+							if base == 65535-n {
+								p.guards[guardIndex].EqualEntries++
+							}
+						} else {
+							p.guards[guardIndex].FallbackEntries++
+							p.guards[guardIndex].FallbackBodyEntries += n
+						}
+					}
 				} else {
 					p.counts[i].BodyEntries++
 				}
@@ -227,20 +257,6 @@ func NewLoopProfilerWithContext(m *Module, c ProfileContext) (*LoopProfiler, err
 // Call accumulates events across calls, retaining partial counts on errors.
 func (p *LoopProfiler) Call(name string, args []mir2.Value) ([]mir2.Value, error) {
 	result, err := p.VM.Call(name, args)
-	if err == nil {
-		if index, ok := p.guardFunctions[name]; ok {
-			params := p.guardParameters[name]
-			base := uint64(args[params[0]].I) & 65535
-			n := uint64(args[params[1]].I) & 255
-			if base <= 65535-n {
-				p.guards[index].FastEntries++
-				p.guards[index].FastBodyEntries += n
-			} else {
-				p.guards[index].FallbackEntries++
-				p.guards[index].FallbackBodyEntries += n
-			}
-		}
-	}
 	if err != nil {
 		p.failed++
 	} else {
@@ -263,5 +279,5 @@ func (p *LoopProfiler) Snapshot() LoopProfile {
 		}
 		key = &c
 	}
-	return LoopProfile{Guards: append([]GuardCounts{}, p.guards...), Compatibility: key, Schema: "minz.input-hir-loop-observations/v3", Stage: "unoptimised-mir2-vm", Sites: &sites, Counts: append([]LoopCounts{}, p.counts...), CompletedCalls: p.completed, FailedCalls: p.failed}
+	return LoopProfile{Guards: append([]GuardCounts{}, p.guards...), Compatibility: key, Schema: "minz.input-hir-loop-observations/v4", Stage: "unoptimised-mir2-vm", Sites: &sites, Counts: append([]LoopCounts{}, p.counts...), CompletedCalls: p.completed, FailedCalls: p.failed}
 }

@@ -1,0 +1,94 @@
+=== RUN   TestForEachWideCountSourceVMZ80
+=== RUN   TestForEachWideCountSourceVMZ80/count/n0
+=== RUN   TestForEachWideCountSourceVMZ80/count/n0/source_vm
+=== RUN   TestForEachWideCountSourceVMZ80/count/n0/assembled_z80
+=== RUN   TestForEachWideCountSourceVMZ80/count/n1
+=== RUN   TestForEachWideCountSourceVMZ80/count/n1/source_vm
+=== RUN   TestForEachWideCountSourceVMZ80/count/n1/assembled_z80
+=== RUN   TestForEachWideCountSourceVMZ80/count/n255
+=== RUN   TestForEachWideCountSourceVMZ80/count/n255/source_vm
+=== RUN   TestForEachWideCountSourceVMZ80/count/n255/assembled_z80
+=== RUN   TestForEachWideCountSourceVMZ80/count/n256
+=== RUN   TestForEachWideCountSourceVMZ80/count/n256/source_vm
+=== RUN   TestForEachWideCountSourceVMZ80/count/n256/assembled_z80
+=== RUN   TestForEachWideCountSourceVMZ80/count/n300
+=== RUN   TestForEachWideCountSourceVMZ80/count/n300/source_vm
+=== RUN   TestForEachWideCountSourceVMZ80/count/n300/assembled_z80
+=== RUN   TestForEachWideCountSourceVMZ80/continue/n0
+=== RUN   TestForEachWideCountSourceVMZ80/continue/n0/source_vm
+=== RUN   TestForEachWideCountSourceVMZ80/continue/n0/assembled_z80
+=== RUN   TestForEachWideCountSourceVMZ80/continue/n1
+=== RUN   TestForEachWideCountSourceVMZ80/continue/n1/source_vm
+=== RUN   TestForEachWideCountSourceVMZ80/continue/n1/assembled_z80
+=== RUN   TestForEachWideCountSourceVMZ80/continue/n255
+=== RUN   TestForEachWideCountSourceVMZ80/continue/n255/source_vm
+=== RUN   TestForEachWideCountSourceVMZ80/continue/n255/assembled_z80
+=== RUN   TestForEachWideCountSourceVMZ80/continue/n256
+=== RUN   TestForEachWideCountSourceVMZ80/continue/n256/source_vm
+=== RUN   TestForEachWideCountSourceVMZ80/continue/n256/assembled_z80
+=== RUN   TestForEachWideCountSourceVMZ80/continue/n300
+=== RUN   TestForEachWideCountSourceVMZ80/continue/n300/source_vm
+=== RUN   TestForEachWideCountSourceVMZ80/continue/n300/assembled_z80
+=== RUN   TestForEachWideCountSourceVMZ80/break/n0
+=== RUN   TestForEachWideCountSourceVMZ80/break/n0/source_vm
+=== RUN   TestForEachWideCountSourceVMZ80/break/n0/assembled_z80
+=== RUN   TestForEachWideCountSourceVMZ80/break/n1
+=== RUN   TestForEachWideCountSourceVMZ80/break/n1/source_vm
+=== RUN   TestForEachWideCountSourceVMZ80/break/n1/assembled_z80
+=== RUN   TestForEachWideCountSourceVMZ80/break/n255
+=== RUN   TestForEachWideCountSourceVMZ80/break/n255/source_vm
+=== RUN   TestForEachWideCountSourceVMZ80/break/n255/assembled_z80
+=== RUN   TestForEachWideCountSourceVMZ80/break/n256
+=== RUN   TestForEachWideCountSourceVMZ80/break/n256/source_vm
+=== RUN   TestForEachWideCountSourceVMZ80/break/n256/assembled_z80
+=== RUN   TestForEachWideCountSourceVMZ80/break/n300
+=== RUN   TestForEachWideCountSourceVMZ80/break/n300/source_vm
+=== RUN   TestForEachWideCountSourceVMZ80/break/n300/assembled_z80
+--- PASS: TestForEachWideCountSourceVMZ80 (0.04s)
+    --- PASS: TestForEachWideCountSourceVMZ80/count/n0 (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/count/n0/source_vm (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/count/n0/assembled_z80 (0.00s)
+    --- PASS: TestForEachWideCountSourceVMZ80/count/n1 (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/count/n1/source_vm (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/count/n1/assembled_z80 (0.00s)
+    --- PASS: TestForEachWideCountSourceVMZ80/count/n255 (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/count/n255/source_vm (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/count/n255/assembled_z80 (0.00s)
+    --- PASS: TestForEachWideCountSourceVMZ80/count/n256 (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/count/n256/source_vm (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/count/n256/assembled_z80 (0.00s)
+    --- PASS: TestForEachWideCountSourceVMZ80/count/n300 (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/count/n300/source_vm (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/count/n300/assembled_z80 (0.00s)
+    --- PASS: TestForEachWideCountSourceVMZ80/continue/n0 (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/continue/n0/source_vm (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/continue/n0/assembled_z80 (0.00s)
+    --- PASS: TestForEachWideCountSourceVMZ80/continue/n1 (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/continue/n1/source_vm (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/continue/n1/assembled_z80 (0.00s)
+    --- PASS: TestForEachWideCountSourceVMZ80/continue/n255 (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/continue/n255/source_vm (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/continue/n255/assembled_z80 (0.00s)
+    --- PASS: TestForEachWideCountSourceVMZ80/continue/n256 (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/continue/n256/source_vm (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/continue/n256/assembled_z80 (0.00s)
+    --- PASS: TestForEachWideCountSourceVMZ80/continue/n300 (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/continue/n300/source_vm (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/continue/n300/assembled_z80 (0.00s)
+    --- PASS: TestForEachWideCountSourceVMZ80/break/n0 (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/break/n0/source_vm (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/break/n0/assembled_z80 (0.00s)
+    --- PASS: TestForEachWideCountSourceVMZ80/break/n1 (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/break/n1/source_vm (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/break/n1/assembled_z80 (0.00s)
+    --- PASS: TestForEachWideCountSourceVMZ80/break/n255 (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/break/n255/source_vm (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/break/n255/assembled_z80 (0.00s)
+    --- PASS: TestForEachWideCountSourceVMZ80/break/n256 (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/break/n256/source_vm (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/break/n256/assembled_z80 (0.00s)
+    --- PASS: TestForEachWideCountSourceVMZ80/break/n300 (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/break/n300/source_vm (0.00s)
+        --- PASS: TestForEachWideCountSourceVMZ80/break/n300/assembled_z80 (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.048s

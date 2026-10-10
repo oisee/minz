@@ -40,15 +40,16 @@ type Result struct {
 
 // Steps holds the intermediate outputs of each pipeline stage.
 type Steps struct {
-	HIRLoopSites *hir.LoopSiteMap        // optional input-HIR origins, before Grace/splitting
-	HIR          string                  // HIR structural dump (hir.Module.Dump())
-	MIR2Raw      string                  // MIR2 module dump before optimisation passes
-	MIR2Opt      string                  // MIR2 module dump after DSE + ReorderBlocks
-	MIR2Module   *mir2.Module            // MIR2 module (for LLVM/WASM/ABAP emit)
-	Allocation   *mir2.AllocResult       // physical locations used by Z80 codegen
-	Assembly     string                  // Final .a80 text
-	LIRResults   []lir.ConvergenceResult // LIR convergence check results (if LIRCheck enabled)
-	Traces       map[string]*FuncTrace   // per-function compilation trace (keyed by func name)
+	ProfileDecisions []hir.ProfileDecision
+	HIRLoopSites     *hir.LoopSiteMap        // optional input-HIR origins, before Grace/splitting
+	HIR              string                  // HIR structural dump (hir.Module.Dump())
+	MIR2Raw          string                  // MIR2 module dump before optimisation passes
+	MIR2Opt          string                  // MIR2 module dump after DSE + ReorderBlocks
+	MIR2Module       *mir2.Module            // MIR2 module (for LLVM/WASM/ABAP emit)
+	Allocation       *mir2.AllocResult       // physical locations used by Z80 codegen
+	Assembly         string                  // Final .a80 text
+	LIRResults       []lir.ConvergenceResult // LIR convergence check results (if LIRCheck enabled)
+	Traces           map[string]*FuncTrace   // per-function compilation trace (keyed by func name)
 }
 
 // FuncTrace records the full compilation provenance for one function.
@@ -86,7 +87,8 @@ type FuncTrace struct {
 
 // Options configures optional pipeline passes.
 type Options struct {
-	CollectHIRSites bool // diagnostic loop sites; does not enable PGO
+	ProfileSelection *ProfileSelection // opt-in refusing PGO input
+	CollectHIRSites  bool              // diagnostic loop sites; does not enable PGO
 	// ContractOpt enables Phase 5b interprocedural contract optimisation.
 	// Default true — only disable for A/B comparison or debugging.
 	ContractOpt bool
@@ -150,6 +152,13 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		if err != nil {
 			return s, err
 		}
+	}
+	if opt.ProfileSelection != nil {
+		decisions, err := applyPipelineProfile(hm, opt)
+		if err != nil {
+			return s, err
+		}
+		s.ProfileDecisions = decisions
 	}
 	// Capture HIR before lowering.
 	s.HIR = hm.Dump()
@@ -471,6 +480,11 @@ func CompileHIR(hm *hir.Module) (string, error) {
 func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	if err := hir.ResolveCallSignatures(hm); err != nil {
 		return "", err
+	}
+	if opts.ProfileSelection != nil {
+		if _, err := applyPipelineProfile(hm, opts); err != nil {
+			return "", err
+		}
 	}
 	if opts.UseHIRGrace {
 		if _, err := hir.RunGraceWithOptions(hm, hir.GraceOptions{OptimizeForSize: opts.OptSize}); err != nil {

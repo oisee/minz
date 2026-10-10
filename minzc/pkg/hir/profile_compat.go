@@ -63,6 +63,7 @@ func BuildProfileCompatibility(m *Module, c ProfileContext) (*ProfileCompatibili
 	semantic := *m
 	semantic.SourceLocations = nil
 	semantic.LoopLineage = nil
+	semantic.PointerWalkPolicy = nil
 	semantic.SourceUnits = nil
 	semantic.SourceUnitsComplete = false
 	semantic.AssertStats = nil
@@ -233,7 +234,7 @@ func LoadLoopProfile(r io.Reader, m *Module, c ProfileContext) (*LoopProfile, er
 		return nil, err
 	}
 	for _, row := range guardRows {
-		for _, k := range []string{"site_id", "fast_entries", "fallback_entries", "fast_body_entries", "fallback_body_entries"} {
+		for _, k := range []string{"site_id", "equal_entries", "fast_entries", "fallback_entries", "fast_body_entries", "fallback_body_entries"} {
 			v, ok := row[k]
 			if !ok || bytes.Equal(bytes.TrimSpace(v), []byte("null")) {
 				return nil, fmt.Errorf("loop profile: missing guard %s", k)
@@ -246,7 +247,7 @@ func LoadLoopProfile(r io.Reader, m *Module, c ProfileContext) (*LoopProfile, er
 	if err := dec.Decode(&p); err != nil {
 		return nil, fmt.Errorf("loop profile: %w", err)
 	}
-	if p.Schema != "minz.input-hir-loop-observations/v3" || p.Stage != "unoptimised-mir2-vm" {
+	if p.Schema != "minz.input-hir-loop-observations/v4" || p.Stage != "unoptimised-mir2-vm" {
 		return nil, fmt.Errorf("loop profile: unsupported schema or stage")
 	}
 	equalJSON := func(a, b any) bool { x, _ := json.Marshal(a); y, _ := json.Marshal(b); return bytes.Equal(x, y) }
@@ -301,7 +302,7 @@ func LoadLoopProfile(r io.Reader, m *Module, c ProfileContext) (*LoopProfile, er
 			return nil, fmt.Errorf("loop profile: unknown or duplicate guard site")
 		}
 		guardSeen[g.SiteID] = true
-		if g.FastEntries > count.Entries || g.FallbackEntries != count.Entries-g.FastEntries || g.FastBodyEntries > count.BodyEntries || g.FallbackBodyEntries != count.BodyEntries-g.FastBodyEntries {
+		if g.EqualEntries > g.FastEntries || g.FastEntries > count.Entries || g.FallbackEntries != count.Entries-g.FastEntries || g.FastBodyEntries > count.BodyEntries || g.FallbackBodyEntries != count.BodyEntries-g.FastBodyEntries {
 			return nil, fmt.Errorf("loop profile: incomplete or inconsistent guard observations")
 		}
 		if (g.FastEntries == 0 && g.FastBodyEntries != 0) || (g.FallbackEntries == 0 && g.FallbackBodyEntries != 0) {

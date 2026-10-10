@@ -47,7 +47,7 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 		t.Fatal(e)
 	}
 	profileJSON, _ := json.MarshalIndent(profileRun.Profile, "", "  ")
-	model := hir.LoopCostModel{Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-all-six-lengths-v1", OriginalBytes: 128, PointerBytes: 177, OriginalEntry: 69, OriginalIteration: 141, FastEntry: 189, FastIteration: 89}
+	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-all-six-lengths-v1", OriginalBytes: 128, PointerBytes: 177, OriginalEntry: 69, OriginalIteration: 141, EqualEntryExtra: 7, FastEntry: 189, FastIteration: 89, FallbackEntry: 208, FallbackIteration: 141, FallbackMeasured: true}
 	decisions, e := hir.SelectLoopVariants(bytes.NewReader(profileJSON), input, context, model, false)
 	if e != nil {
 		t.Fatal(e)
@@ -66,6 +66,42 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 	untouched := parse()
 	if e := hir.ApplyProfileDecisions(untouched, badDecision); e == nil || untouched.LoopLineage != nil {
 		t.Fatal("invalid decision mutated input")
+	}
+	// Source edits retaining site positions still expire saved decisions.
+	sourceEdited := parse()
+	for node, origin := range sourceEdited.SourceLocations {
+		origin.SourceSHA256 = fmt.Sprintf("%064x", 1)
+		sourceEdited.SourceLocations[node] = origin
+	}
+	sourceEdited.SourceUnits["examples/nanz/01_sum_array.nanz"] = fmt.Sprintf("%064x", 1)
+	if e := hir.ApplyProfileDecisions(sourceEdited, decisions); e == nil {
+		t.Fatal("stale source decision accepted")
+	}
+	pipelineOptions := Options{UseHIRGrace: true, AssertMode: "none"}
+	config, e := ProfileCompilationID(pipelineOptions, "default")
+	if e != nil {
+		t.Fatal(e)
+	}
+	pipelineModel := model
+	pipelineModel.CompilationID = config
+	pipelineOptions.ProfileSelection = &ProfileSelection{Observations: profileJSON, Workload: workload, Model: pipelineModel, AssemblerMode: "default"}
+	compiled, e := CompileHIRSteps(parse(), pipelineOptions)
+	if e != nil {
+		t.Fatal(e)
+	}
+	if len(compiled.ProfileDecisions) != 1 || compiled.ProfileDecisions[0].Variant != "pointer-walk" {
+		t.Fatal(compiled.ProfileDecisions)
+	}
+	wrongOptions := pipelineOptions
+	wrongOptions.OptSize = true
+	if _, e := CompileHIRSteps(parse(), wrongOptions); e == nil {
+		t.Fatal("different compilation settings accepted")
+	}
+	if _, e := ProfileCompilationID(pipelineOptions, "speed"); e == nil {
+		t.Fatal("unmeasured assembler mode accepted")
+	}
+	for _, n := range []int64{0, 1, 5, 16, 64, 255} {
+		measureProfileZ80(t, parse(), "sum_array", pipelineOptions, []int64{0x4000, n}, memory, n*(n+1)/2&255, "")
 	}
 	output := os.Getenv("MINZ_PGO_ARTIFACT_DIR")
 	writeJSON := func(name string, value any) {
@@ -173,5 +209,46 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 		t.Fatalf("size=%v %v", sizeDecisions, e)
 	}
 	writeJSON("size-decision.json", sizeDecisions)
+	// Execute both sides of the profitability boundary, including retained original.
+	for _, n := range []int64{0, 1, 2, 3} {
+		one := workload
+		one.Calls = []hir.ProfileInvocation{{Function: "sum_array", Arguments: []hir.ProfileArgument{{Resource: "array"}, literal(n)}}}
+		run, e := hir.RunLoopProfile(parse(), one)
+		if e != nil {
+			t.Fatal(e)
+		}
+		c, e := hir.BuildWorkloadProfileContext(parse(), one)
+		if e != nil {
+			t.Fatal(e)
+		}
+		data, _ := json.Marshal(run.Profile)
+		for _, size := range []bool{false, true} {
+			d, e := hir.SelectLoopVariants(bytes.NewReader(data), parse(), c, model, size)
+			if e != nil {
+				t.Fatal(e)
+			}
+			expectedVariant := "original"
+			if n >= 3 && !size {
+				expectedVariant = "pointer-walk"
+			}
+			if d[0].Variant != expectedVariant {
+				t.Fatal(d)
+			}
+			h := parse()
+			if e := hir.ApplyProfileDecisions(h, d); e != nil {
+				t.Fatal(e)
+			}
+			cycles, codeBytes := measureProfileZ80(t, h, "sum_array", Options{UseHIRGrace: true, AssertMode: "none"}, []int64{0x4000, n}, memory, n*(n+1)/2&255, "")
+			wantCycles := 69 + 141*int(n)
+			wantBytes := 128
+			if expectedVariant == "pointer-walk" {
+				wantCycles = 189 + 89*int(n)
+				wantBytes = 177
+			}
+			if cycles != wantCycles || codeBytes != wantBytes {
+				t.Fatalf("retained decision not executed correctly: n=%d size=%v cycles=%d bytes=%d", n, size, cycles, codeBytes)
+			}
+		}
+	}
 	t.Logf("totals=%v decisions=%+v", totals, decisions)
 }
