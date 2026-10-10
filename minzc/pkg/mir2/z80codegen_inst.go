@@ -683,10 +683,24 @@ func (g *z80cg) genInst(inst *Inst) {
 					//   LD A, val           ; 4T (omitted when val is already A)
 					//   LD (sym__field), A  ; 13T
 					val := g.loc(inst.Src[1])
+					preserveA := false
 					if val != "A" {
+						for r := range g.regsLiveAfterInst(inst) {
+							if r != inst.Src[1] && g.loc(r) == "A" {
+								preserveA = true
+								break
+							}
+						}
+						if preserveA {
+							g.emit("    PUSH AF    ; preserve live A across direct store")
+						}
 						g.emitLDA(val)
 					}
 					g.emitf("    LD (%s), A", lbl)
+					if preserveA {
+						g.emit("    POP AF")
+						g.invalidate("A")
+					}
 				}
 			}
 			break

@@ -1,0 +1,100 @@
+=== RUN   TestFoldEffectsAndStageOrderVMZ80
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/callback_prefix/n=0/grace=false
+    fold_semantics_test.go:109: code_bytes=67 T_states=144
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/callback_prefix/n=0/grace=true
+    fold_semantics_test.go:109: code_bytes=67 T_states=144
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/callback_prefix/n=1/grace=false
+    fold_semantics_test.go:109: code_bytes=67 T_states=290
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/callback_prefix/n=1/grace=true
+    fold_semantics_test.go:109: code_bytes=67 T_states=290
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/callback_prefix/n=5/grace=false
+    fold_semantics_test.go:109: code_bytes=67 T_states=906
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/callback_prefix/n=5/grace=true
+    fold_semantics_test.go:109: code_bytes=67 T_states=906
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/callback_prefix/n=255/grace=false
+    fold_semantics_test.go:109: code_bytes=67 T_states=39406
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/callback_prefix/n=255/grace=true
+    fold_semantics_test.go:109: code_bytes=67 T_states=39406
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/acc_only_callback/n=5/grace=false
+    fold_semantics_test.go:109: code_bytes=66 T_states=886
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/acc_only_callback/n=5/grace=true
+    fold_semantics_test.go:109: code_bytes=66 T_states=886
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/callback_local/n=5/grace=false
+    fold_semantics_test.go:109: code_bytes=40 T_states=298
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/callback_local/n=5/grace=true
+    fold_semantics_test.go:109: code_bytes=40 T_states=298
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/counter_order/n=0/grace=false
+    fold_semantics_test.go:109: code_bytes=32 T_states=55
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/counter_order/n=0/grace=true
+    fold_semantics_test.go:109: code_bytes=32 T_states=55
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/counter_order/n=1/grace=false
+    fold_semantics_test.go:109: code_bytes=32 T_states=96
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/counter_order/n=1/grace=true
+    fold_semantics_test.go:109: code_bytes=32 T_states=96
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/counter_order/n=5/grace=false
+    fold_semantics_test.go:109: code_bytes=32 T_states=228
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/counter_order/n=5/grace=true
+    fold_semantics_test.go:109: code_bytes=32 T_states=228
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/counter_order/n=255/grace=false
+    fold_semantics_test.go:109: code_bytes=32 T_states=8478
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/counter_order/n=255/grace=true
+    fold_semantics_test.go:109: code_bytes=32 T_states=8478
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/filter_then_map/n=5/grace=false
+    fold_semantics_test.go:109: code_bytes=106 T_states=978
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/filter_then_map/n=5/grace=true
+    fold_semantics_test.go:109: code_bytes=106 T_states=978
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/map_then_filter/n=5/grace=false
+    fold_semantics_test.go:109: code_bytes=106 T_states=1318
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/map_then_filter/n=5/grace=true
+    fold_semantics_test.go:109: code_bytes=106 T_states=1318
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/two_filters/n=5/grace=false
+    fold_semantics_test.go:109: code_bytes=123 T_states=1118
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/two_filters/n=5/grace=true
+    fold_semantics_test.go:109: code_bytes=123 T_states=1118
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/filter_none/n=5/grace=false
+    fold_semantics_test.go:109: code_bytes=36 T_states=303
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/filter_none/n=5/grace=true
+    fold_semantics_test.go:109: code_bytes=36 T_states=303
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/empty/n=5/grace=false
+    fold_semantics_test.go:109: code_bytes=34 T_states=58
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/empty/n=5/grace=true
+    fold_semantics_test.go:109: code_bytes=34 T_states=58
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/memory_stages/n=5/grace=false
+    fold_semantics_test.go:109: code_bytes=146 T_states=2000
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/memory_stages/n=5/grace=true
+    fold_semantics_test.go:109: code_bytes=146 T_states=2000
+--- PASS: TestFoldEffectsAndStageOrderVMZ80 (0.22s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/callback_prefix/n=0/grace=false (0.03s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/callback_prefix/n=0/grace=true (0.04s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/callback_prefix/n=1/grace=false (0.01s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/callback_prefix/n=1/grace=true (0.00s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/callback_prefix/n=5/grace=false (0.01s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/callback_prefix/n=5/grace=true (0.00s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/callback_prefix/n=255/grace=false (0.00s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/callback_prefix/n=255/grace=true (0.00s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/acc_only_callback/n=5/grace=false (0.00s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/acc_only_callback/n=5/grace=true (0.00s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/callback_local/n=5/grace=false (0.00s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/callback_local/n=5/grace=true (0.00s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/counter_order/n=0/grace=false (0.00s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/counter_order/n=0/grace=true (0.00s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/counter_order/n=1/grace=false (0.00s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/counter_order/n=1/grace=true (0.00s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/counter_order/n=5/grace=false (0.00s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/counter_order/n=5/grace=true (0.00s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/counter_order/n=255/grace=false (0.00s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/counter_order/n=255/grace=true (0.00s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/filter_then_map/n=5/grace=false (0.01s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/filter_then_map/n=5/grace=true (0.01s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/map_then_filter/n=5/grace=false (0.01s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/map_then_filter/n=5/grace=true (0.01s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/two_filters/n=5/grace=false (0.01s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/two_filters/n=5/grace=true (0.01s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/filter_none/n=5/grace=false (0.00s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/filter_none/n=5/grace=true (0.00s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/empty/n=5/grace=false (0.01s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/empty/n=5/grace=true (0.01s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/memory_stages/n=5/grace=false (0.01s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/memory_stages/n=5/grace=true (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.231s

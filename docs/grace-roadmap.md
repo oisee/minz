@@ -1,6 +1,9 @@
 # План развития Grace в основном пути MinZ
 
 
+Обновление: [fold correctness](grace-fold-correctness.md) — сохранены эффекты callback и стадии map/filter; исправлена Z80-запись с живым A. Countdown range соответствует книге языка, прежняя оценка его суммы как бага исправлена.
+
+
 Обновление: добавлен [HIR-верификатор](grace-hir-verifier.md) и исправлены типы fold/reduce непосредственно в return. PGO остаётся следующим отдельным этапом.
 
 **Update:** [Scalar pointer types from source through VM/Z80](grace-typed-pointers.md) are now implemented and checked. The earlier status below is retained as a snapshot.

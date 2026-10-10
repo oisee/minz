@@ -5157,8 +5157,7 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 			if _, err2 := p.l.eat(tokRParen); err2 != nil {
 				return nil, err2
 			}
-			// Detect back-counting: if lo is an ident/var and hi is literal 0,
-			// or hi < lo literally — set Rev=true.
+			// Detect the range(n..0) countdown spelling by its literal zero endpoint.
 			rev := false
 			if lit, ok2 := hi.(*hir.IntLitExpr); ok2 && lit.Val == 0 {
 				rev = true

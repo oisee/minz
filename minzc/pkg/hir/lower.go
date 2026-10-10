@@ -2870,14 +2870,11 @@ func (l *lowerer) lowerFusedFold(chain iterChain) mir2.Reg {
 	}
 	if bodyExpr == nil {
 		// Complex or unknown callback — emit a call.
-		bodyExpr = &CallExpr{
-			Fn: chain.cbName,
-			Args: []Expr{
-				&VarRefExpr{Name: accVar, Ty: accTy},
-				&VarRefExpr{Name: elemVar, Ty: elemTy},
-			},
-			Ty: accTy,
+		args := []Expr{&VarRefExpr{Name: accVar, Ty: accTy}, &VarRefExpr{Name: elemVar, Ty: elemTy}}
+		if cbFn != nil && len(cbFn.Params) == 1 {
+			args = args[:1]
 		}
+		bodyExpr = &CallExpr{Fn: chain.cbName, Args: args, Ty: accTy}
 	}
 	bodyStmts := []Stmt{
 		&AssignStmt{
@@ -2885,6 +2882,8 @@ func (l *lowerer) lowerFusedFold(chain iterChain) mir2.Reg {
 			Val:    bodyExpr,
 		},
 	}
+
+	bodyStmts = foldStageBody(chain.stages, elemVar, elemTy, bodyStmts)
 
 	// 3. Run the ForEachStmt — lowerForEach threads __fold_acc__ via block params.
 	forEach := &ForEachStmt{
@@ -2906,18 +2905,11 @@ func (l *lowerer) lowerFusedFold(chain iterChain) mir2.Reg {
 // range(lo..hi).forEach(cb)   — pure DJNZ loop, no memory access
 // range(lo..hi).fold(init,cb) — DJNZ accumulator loop, result in register
 //
-// Back-counting range(hi..lo) (Rev=true):
-//   B = lo (the starting value), counts down to 0 via DJNZ directly.
-//   Element value = B (current counter). DJNZ is the ONLY branch instruction.
+// The range source exposes a countdown, not a conventional half-open interval:
+// range(0..n) and range(n..0) both yield n, n-1, ..., 1. Other forward
+// bounds give count = hi-lo; the element is the counter, not lo+offset.
+// See Nanz Language Book, chapter 6. lowerRangeLoop emits TermDJNZ directly.
 //
-// Forward-counting range(lo..hi) (Rev=false):
-//   Count = hi - lo (or just hi when lo==0).
-//   B = count, counts down. Element value = lo + (count_init - B) if needed.
-//   If element is unused ("_"), generates identical code to back-counting.
-//
-// Implementation: desugars to a ForRangeStmt so the existing lowerForRange
-// path generates the DJNZ loop and threads captured vars as block params.
-
 // lowerRangeForEach lowers range(lo..hi).forEach(cb) to a counter-only loop.
 func (l *lowerer) lowerRangeForEach(chain iterChain) {
 	const elemVar = "__iter_elem__"
@@ -3009,41 +3001,38 @@ func (l *lowerer) lowerRangeFold(chain iterChain) mir2.Reg {
 		}
 	}
 	if bodyExpr == nil {
-		bodyExpr = &CallExpr{
-			Fn: chain.cbName,
-			Args: []Expr{
-				&VarRefExpr{Name: accVar, Ty: accTy},
-				&VarRefExpr{Name: elemVar, Ty: elemTy},
-			},
-			Ty: accTy,
+		args := []Expr{&VarRefExpr{Name: accVar, Ty: accTy}, &VarRefExpr{Name: elemVar, Ty: elemTy}}
+		if cbFn != nil && len(cbFn.Params) == 1 {
+			args = args[:1]
 		}
+		bodyExpr = &CallExpr{Fn: chain.cbName, Args: args, Ty: accTy}
 	}
-	// Apply map stages as CALL-based transformations before the fold.
-	// Using CALL (not inline) avoids register class conflicts: the CALL
-	// boundary gives the allocator proper save/restore semantics.
-	var stageStmts []Stmt
-	for _, stage := range chain.stages {
-		if stage.kind != "map" {
-			continue
-		}
-		stageStmts = append(stageStmts, &AssignStmt{
-			Target: &VarRefExpr{Name: elemVar, Ty: elemTy},
-			Val: &CallExpr{
-				Fn:   stage.fn,
-				Args: []Expr{&VarRefExpr{Name: elemVar, Ty: elemTy}},
-				Ty:   elemTy,
-			},
-		})
-	}
-
-	foldAssign := &AssignStmt{
-		Target: &VarRefExpr{Name: accVar, Ty: accTy},
-		Val:    bodyExpr,
-	}
-	bodyStmts := append(stageStmts, foldAssign)
+	// Keep stage order and filter short-circuiting. Calls preserve callback
+	// prefixes; predicates guard the remaining pipeline without continue,
+	// which would bypass the range loop's implicit DJNZ decrement.
+	foldAssign := &AssignStmt{Target: &VarRefExpr{Name: accVar, Ty: accTy}, Val: bodyExpr}
+	bodyStmts := foldStageBody(chain.stages, elemVar, elemTy, []Stmt{foldAssign})
 
 	l.lowerRangeLoop(chain, elemVar, elemTy, bodyStmts)
 	return l.env[accVar]
+}
+
+// foldStageBody preserves map/filter order and skips the remaining stages and
+// terminal fold when a filter fails. Build from the end to nest the suffix.
+func foldStageBody(stages []iterStage, elemVar string, elemTy mir2.Ty, body []Stmt) []Stmt {
+	for i := len(stages) - 1; i >= 0; i-- {
+		stage := stages[i]
+		value := &VarRefExpr{Name: elemVar, Ty: elemTy}
+		switch stage.kind {
+		case "map":
+			assign := &AssignStmt{Target: value, Val: &CallExpr{Fn: stage.fn, Args: []Expr{value}, Ty: elemTy}}
+			body = append([]Stmt{assign}, body...)
+		case "filter":
+			pred := &CallExpr{Fn: stage.fn, Args: []Expr{value}, Ty: mir2.TyBool}
+			body = []Stmt{&IfStmt{Cond: pred, Then: &Block{Body: body}}}
+		}
+	}
+	return body
 }
 
 // lowerRangeLoop emits a counter-only DJNZ loop for range(lo..hi) sources.
@@ -3161,13 +3150,13 @@ func (l *lowerer) lowerRangeLoop(chain iterChain, elemVar string, elemTy mir2.Ty
 	l.env = exitEnv
 }
 
-// extractReturnExpr extracts the return value from the last statement of a block.
-// Returns nil if the block is complex (not a simple single return expression).
+// extractReturnExpr extracts a single-return expression only when it is the
+// entire body. Dropping a prefix can erase effects, local bindings or control flow.
 func extractReturnExpr(body *Block) Expr {
-	if body == nil || len(body.Body) == 0 {
+	if body == nil || len(body.Body) != 1 {
 		return nil
 	}
-	if rs, ok := body.Body[len(body.Body)-1].(*ReturnStmt); ok && rs.Val != nil {
+	if rs, ok := body.Body[0].(*ReturnStmt); ok && rs.Val != nil {
 		return rs.Val
 	}
 	return nil

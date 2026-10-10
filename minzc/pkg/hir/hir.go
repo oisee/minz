@@ -518,8 +518,8 @@ func (*StructLitExpr) ExprTy() mir2.Ty { return mir2.TyPtr }
 
 // RangeSourceExpr is produced by range(lo..hi) / range(hi..lo).
 // It is a pure counter source — no memory pointer, no Load.
-// Rev=true means hi < lo in source (e.g. range(n..0)): counts from Lo down to Hi+1.
-// When used as an iterator source the element value equals the current counter value.
+// Elements are count..1: forward count is Hi-Lo; Rev selects Lo for range(n..0).
+// This is the countdown contract in Nanz Language Book chapter 6, not Lo..Hi-1.
 type RangeSourceExpr struct {
 	Lo, Hi Expr
 	Rev    bool // true when written as range(hi..lo), i.e. counting down

@@ -1,0 +1,567 @@
+=== RUN   TestFoldEffectsAndStageOrderVMZ80
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/callback_prefix/grace=false
+    fold_semantics_test.go:85: raw VM got=[{15}] want=95 err=<nil>
+        ; MIR2 module: grace_measure.nanz
+        global @hits : u8
+        
+        fun @callback(%r1: u8 [acc], %r2: u8 [general]) -> u8 [acc]
+          block @entry:
+            %r3 = addr_of @hits : ptr [pointer]
+            %r4 = load %r3 : u8 [general]
+            %r5 = const 1 : u8 [general]
+            %r6 = add %r4, %r5 : u8 [acc]
+            %r7 = addr_of @hits : ptr [pointer]
+            store %r7, %r6 : u8
+            %r8 = add %r1, %r2 : u8 [acc]
+            ret %r8
+        
+        fun @test(%r9: u8 [acc]) -> u8 [acc]
+          block @entry:
+            %r10 = const 0 : u8 [general]
+            %r11 = addr_of @hits : ptr [pointer]
+            store %r11, %r10 : u8
+            %r12 = const 0 : u8 [general]
+            %r13 = const 0 : u8 [general]
+            %r14 = const 0 : u8 [acc]
+            %r15 = cmp.ne %r9, %r14 : bool [flag]
+            br_if %r15, @rng_body1(%r9, %r12), @rng_exit2(%r12)
+          block @rng_body1(%r16: u8 [counter], %r17: u8 [acc]):
+            %r18 = add %r17, %r16 : u8 [acc]
+            djnz %r16, @rng_body1(%r18), @rng_exit2(%r18)
+          block @rng_exit2(%r19: u8 [acc]):
+            %r20 = addr_of @hits : ptr [pointer]
+            %r21 = load %r20 : u8 [general]
+            %r22 = const 16 : u8 [general]
+            %r23 = mul %r21, %r22 : u8 [general]
+            %r24 = add %r19, %r23 : u8 [acc]
+            ret %r24
+        
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/callback_prefix/grace=true
+    fold_semantics_test.go:85: raw VM got=[{15}] want=95 err=<nil>
+        ; MIR2 module: grace_measure.nanz
+        global @hits : u8
+        
+        fun @callback(%r1: u8 [acc], %r2: u8 [general]) -> u8 [acc]
+          block @entry:
+            %r3 = addr_of @hits : ptr [pointer]
+            %r4 = load %r3 : u8 [general]
+            %r5 = const 1 : u8 [general]
+            %r6 = add %r4, %r5 : u8 [acc]
+            %r7 = addr_of @hits : ptr [pointer]
+            store %r7, %r6 : u8
+            %r8 = add %r1, %r2 : u8 [acc]
+            ret %r8
+        
+        fun @test(%r9: u8 [acc]) -> u8 [acc]
+          block @entry:
+            %r10 = const 0 : u8 [general]
+            %r11 = addr_of @hits : ptr [pointer]
+            store %r11, %r10 : u8
+            %r12 = const 0 : u8 [general]
+            %r13 = const 0 : u8 [general]
+            %r14 = const 0 : u8 [acc]
+            %r15 = cmp.ne %r9, %r14 : bool [flag]
+            br_if %r15, @rng_body1(%r9, %r12), @rng_exit2(%r12)
+          block @rng_body1(%r16: u8 [counter], %r17: u8 [acc]):
+            %r18 = add %r17, %r16 : u8 [acc]
+            djnz %r16, @rng_body1(%r18), @rng_exit2(%r18)
+          block @rng_exit2(%r19: u8 [acc]):
+            %r20 = addr_of @hits : ptr [pointer]
+            %r21 = load %r20 : u8 [general]
+            %r22 = const 16 : u8 [general]
+            %r23 = mul %r21, %r22 : u8 [general]
+            %r24 = add %r19, %r23 : u8 [acc]
+            ret %r24
+        
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/counter_order/grace=false
+    fold_semantics_test.go:88: code_bytes=32 T_states=228
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/counter_order/grace=true
+    fold_semantics_test.go:88: code_bytes=32 T_states=228
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/filter_then_map/grace=false
+    fold_semantics_test.go:85: raw VM got=[{100}] want=63 err=<nil>
+        ; MIR2 module: grace_measure.nanz
+        global @hits : u8
+        
+        fun @keep(%r1: u8 [acc]) -> bool [acc]
+          block @entry:
+            %r2 = const 2 : u8 [general]
+            %r3 = cmp.ugt %r1, %r2 : bool [flag]
+            ret %r3
+        
+        fun @mapper(%r4: u8 [acc]) -> u8 [acc]
+          block @entry:
+            %r5 = addr_of @hits : ptr [pointer]
+            %r6 = load %r5 : u8 [general]
+            %r7 = const 1 : u8 [general]
+            %r8 = add %r6, %r7 : u8 [acc]
+            %r9 = addr_of @hits : ptr [pointer]
+            store %r9, %r8 : u8
+            %r10 = const 1 : u8 [general]
+            %r11 = add %r4, %r10 : u8 [acc]
+            ret %r11
+        
+        fun @callback(%r12: u8 [acc], %r13: u8 [general]) -> u8 [acc]
+          block @entry:
+            %r14 = add %r12, %r13 : u8 [acc]
+            ret %r14
+        
+        fun @test(%r15: u8 [acc]) -> u8 [acc]
+          block @entry:
+            %r16 = const 0 : u8 [general]
+            %r17 = addr_of @hits : ptr [pointer]
+            store %r17, %r16 : u8
+            %r18 = const 0 : u8 [general]
+            %r19 = const 0 : u8 [general]
+            %r20 = const 0 : u8 [acc]
+            %r21 = cmp.ne %r15, %r20 : bool [flag]
+            br_if %r21, @rng_body1(%r15, %r18), @rng_exit2(%r18)
+          block @rng_body1(%r22: u8 [counter], %r23: u8 [acc]):
+            %r24 = move %r22 : u8 [acc]
+            %r25 = call @mapper(%r24) : u8 [acc]
+            %r26 = add %r23, %r25 : u8 [acc]
+            djnz %r22, @rng_body1(%r26), @rng_exit2(%r26)
+          block @rng_exit2(%r27: u8 [acc]):
+            %r28 = addr_of @hits : ptr [pointer]
+            %r29 = load %r28 : u8 [general]
+            %r30 = const 16 : u8 [general]
+            %r31 = mul %r29, %r30 : u8 [general]
+            %r32 = add %r27, %r31 : u8 [acc]
+            ret %r32
+        
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/filter_then_map/grace=true
+    fold_semantics_test.go:85: raw VM got=[{100}] want=63 err=<nil>
+        ; MIR2 module: grace_measure.nanz
+        global @hits : u8
+        
+        fun @keep(%r1: u8 [acc]) -> bool [acc]
+          block @entry:
+            %r2 = const 2 : u8 [general]
+            %r3 = cmp.ugt %r1, %r2 : bool [flag]
+            ret %r3
+        
+        fun @mapper(%r4: u8 [acc]) -> u8 [acc]
+          block @entry:
+            %r5 = addr_of @hits : ptr [pointer]
+            %r6 = load %r5 : u8 [general]
+            %r7 = const 1 : u8 [general]
+            %r8 = add %r6, %r7 : u8 [acc]
+            %r9 = addr_of @hits : ptr [pointer]
+            store %r9, %r8 : u8
+            %r10 = const 1 : u8 [general]
+            %r11 = add %r4, %r10 : u8 [acc]
+            ret %r11
+        
+        fun @callback(%r12: u8 [acc], %r13: u8 [general]) -> u8 [acc]
+          block @entry:
+            %r14 = add %r12, %r13 : u8 [acc]
+            ret %r14
+        
+        fun @test(%r15: u8 [acc]) -> u8 [acc]
+          block @entry:
+            %r16 = const 0 : u8 [general]
+            %r17 = addr_of @hits : ptr [pointer]
+            store %r17, %r16 : u8
+            %r18 = const 0 : u8 [general]
+            %r19 = const 0 : u8 [general]
+            %r20 = const 0 : u8 [acc]
+            %r21 = cmp.ne %r15, %r20 : bool [flag]
+            br_if %r21, @rng_body1(%r15, %r18), @rng_exit2(%r18)
+          block @rng_body1(%r22: u8 [counter], %r23: u8 [acc]):
+            %r24 = move %r22 : u8 [acc]
+            %r25 = call @mapper(%r24) : u8 [acc]
+            %r26 = add %r23, %r25 : u8 [acc]
+            djnz %r22, @rng_body1(%r26), @rng_exit2(%r26)
+          block @rng_exit2(%r27: u8 [acc]):
+            %r28 = addr_of @hits : ptr [pointer]
+            %r29 = load %r28 : u8 [general]
+            %r30 = const 16 : u8 [general]
+            %r31 = mul %r29, %r30 : u8 [general]
+            %r32 = add %r27, %r31 : u8 [acc]
+            ret %r32
+        
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/map_then_filter/grace=false
+    fold_semantics_test.go:85: raw VM got=[{100}] want=95 err=<nil>
+        ; MIR2 module: grace_measure.nanz
+        global @hits : u8
+        
+        fun @keep(%r1: u8 [acc]) -> bool [acc]
+          block @entry:
+            %r2 = const 3 : u8 [general]
+            %r3 = cmp.ugt %r1, %r2 : bool [flag]
+            ret %r3
+        
+        fun @mapper(%r4: u8 [acc]) -> u8 [acc]
+          block @entry:
+            %r5 = addr_of @hits : ptr [pointer]
+            %r6 = load %r5 : u8 [general]
+            %r7 = const 1 : u8 [general]
+            %r8 = add %r6, %r7 : u8 [acc]
+            %r9 = addr_of @hits : ptr [pointer]
+            store %r9, %r8 : u8
+            %r10 = const 1 : u8 [general]
+            %r11 = add %r4, %r10 : u8 [acc]
+            ret %r11
+        
+        fun @callback(%r12: u8 [acc], %r13: u8 [general]) -> u8 [acc]
+          block @entry:
+            %r14 = add %r12, %r13 : u8 [acc]
+            ret %r14
+        
+        fun @test(%r15: u8 [acc]) -> u8 [acc]
+          block @entry:
+            %r16 = const 0 : u8 [general]
+            %r17 = addr_of @hits : ptr [pointer]
+            store %r17, %r16 : u8
+            %r18 = const 0 : u8 [general]
+            %r19 = const 0 : u8 [general]
+            %r20 = const 0 : u8 [acc]
+            %r21 = cmp.ne %r15, %r20 : bool [flag]
+            br_if %r21, @rng_body1(%r15, %r18), @rng_exit2(%r18)
+          block @rng_body1(%r22: u8 [counter], %r23: u8 [acc]):
+            %r24 = move %r22 : u8 [acc]
+            %r25 = call @mapper(%r24) : u8 [acc]
+            %r26 = add %r23, %r25 : u8 [acc]
+            djnz %r22, @rng_body1(%r26), @rng_exit2(%r26)
+          block @rng_exit2(%r27: u8 [acc]):
+            %r28 = addr_of @hits : ptr [pointer]
+            %r29 = load %r28 : u8 [general]
+            %r30 = const 16 : u8 [general]
+            %r31 = mul %r29, %r30 : u8 [general]
+            %r32 = add %r27, %r31 : u8 [acc]
+            ret %r32
+        
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/map_then_filter/grace=true
+    fold_semantics_test.go:85: raw VM got=[{100}] want=95 err=<nil>
+        ; MIR2 module: grace_measure.nanz
+        global @hits : u8
+        
+        fun @keep(%r1: u8 [acc]) -> bool [acc]
+          block @entry:
+            %r2 = const 3 : u8 [general]
+            %r3 = cmp.ugt %r1, %r2 : bool [flag]
+            ret %r3
+        
+        fun @mapper(%r4: u8 [acc]) -> u8 [acc]
+          block @entry:
+            %r5 = addr_of @hits : ptr [pointer]
+            %r6 = load %r5 : u8 [general]
+            %r7 = const 1 : u8 [general]
+            %r8 = add %r6, %r7 : u8 [acc]
+            %r9 = addr_of @hits : ptr [pointer]
+            store %r9, %r8 : u8
+            %r10 = const 1 : u8 [general]
+            %r11 = add %r4, %r10 : u8 [acc]
+            ret %r11
+        
+        fun @callback(%r12: u8 [acc], %r13: u8 [general]) -> u8 [acc]
+          block @entry:
+            %r14 = add %r12, %r13 : u8 [acc]
+            ret %r14
+        
+        fun @test(%r15: u8 [acc]) -> u8 [acc]
+          block @entry:
+            %r16 = const 0 : u8 [general]
+            %r17 = addr_of @hits : ptr [pointer]
+            store %r17, %r16 : u8
+            %r18 = const 0 : u8 [general]
+            %r19 = const 0 : u8 [general]
+            %r20 = const 0 : u8 [acc]
+            %r21 = cmp.ne %r15, %r20 : bool [flag]
+            br_if %r21, @rng_body1(%r15, %r18), @rng_exit2(%r18)
+          block @rng_body1(%r22: u8 [counter], %r23: u8 [acc]):
+            %r24 = move %r22 : u8 [acc]
+            %r25 = call @mapper(%r24) : u8 [acc]
+            %r26 = add %r23, %r25 : u8 [acc]
+            djnz %r22, @rng_body1(%r26), @rng_exit2(%r26)
+          block @rng_exit2(%r27: u8 [acc]):
+            %r28 = addr_of @hits : ptr [pointer]
+            %r29 = load %r28 : u8 [general]
+            %r30 = const 16 : u8 [general]
+            %r31 = mul %r29, %r30 : u8 [general]
+            %r32 = add %r27, %r31 : u8 [acc]
+            ret %r32
+        
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/two_filters/grace=false
+    fold_semantics_test.go:85: raw VM got=[{15}] want=55 err=<nil>
+        ; MIR2 module: grace_measure.nanz
+        global @hits : u8
+        
+        fun @keep(%r1: u8 [acc]) -> bool [acc]
+          block @entry:
+            %r2 = const 2 : u8 [general]
+            %r3 = cmp.ugt %r1, %r2 : bool [flag]
+            ret %r3
+        
+        fun @predicate(%r4: u8 [acc]) -> bool [acc]
+          block @entry:
+            %r5 = addr_of @hits : ptr [pointer]
+            %r6 = load %r5 : u8 [general]
+            %r7 = const 1 : u8 [general]
+            %r8 = add %r6, %r7 : u8 [acc]
+            %r9 = addr_of @hits : ptr [pointer]
+            store %r9, %r8 : u8
+            %r10 = const 5 : u8 [general]
+            %r11 = cmp.ult %r4, %r10 : bool [flag]
+            ret %r11
+        
+        fun @callback(%r12: u8 [acc], %r13: u8 [general]) -> u8 [acc]
+          block @entry:
+            %r14 = add %r12, %r13 : u8 [acc]
+            ret %r14
+        
+        fun @test(%r15: u8 [acc]) -> u8 [acc]
+          block @entry:
+            %r16 = const 0 : u8 [general]
+            %r17 = addr_of @hits : ptr [pointer]
+            store %r17, %r16 : u8
+            %r18 = const 0 : u8 [general]
+            %r19 = const 0 : u8 [general]
+            %r20 = const 0 : u8 [acc]
+            %r21 = cmp.ne %r15, %r20 : bool [flag]
+            br_if %r21, @rng_body1(%r15, %r18), @rng_exit2(%r18)
+          block @rng_body1(%r22: u8 [counter], %r23: u8 [acc]):
+            %r24 = add %r23, %r22 : u8 [acc]
+            djnz %r22, @rng_body1(%r24), @rng_exit2(%r24)
+          block @rng_exit2(%r25: u8 [acc]):
+            %r26 = addr_of @hits : ptr [pointer]
+            %r27 = load %r26 : u8 [general]
+            %r28 = const 16 : u8 [general]
+            %r29 = mul %r27, %r28 : u8 [general]
+            %r30 = add %r25, %r29 : u8 [acc]
+            ret %r30
+        
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/two_filters/grace=true
+    fold_semantics_test.go:85: raw VM got=[{15}] want=55 err=<nil>
+        ; MIR2 module: grace_measure.nanz
+        global @hits : u8
+        
+        fun @keep(%r1: u8 [acc]) -> bool [acc]
+          block @entry:
+            %r2 = const 2 : u8 [general]
+            %r3 = cmp.ugt %r1, %r2 : bool [flag]
+            ret %r3
+        
+        fun @predicate(%r4: u8 [acc]) -> bool [acc]
+          block @entry:
+            %r5 = addr_of @hits : ptr [pointer]
+            %r6 = load %r5 : u8 [general]
+            %r7 = const 1 : u8 [general]
+            %r8 = add %r6, %r7 : u8 [acc]
+            %r9 = addr_of @hits : ptr [pointer]
+            store %r9, %r8 : u8
+            %r10 = const 5 : u8 [general]
+            %r11 = cmp.ult %r4, %r10 : bool [flag]
+            ret %r11
+        
+        fun @callback(%r12: u8 [acc], %r13: u8 [general]) -> u8 [acc]
+          block @entry:
+            %r14 = add %r12, %r13 : u8 [acc]
+            ret %r14
+        
+        fun @test(%r15: u8 [acc]) -> u8 [acc]
+          block @entry:
+            %r16 = const 0 : u8 [general]
+            %r17 = addr_of @hits : ptr [pointer]
+            store %r17, %r16 : u8
+            %r18 = const 0 : u8 [general]
+            %r19 = const 0 : u8 [general]
+            %r20 = const 0 : u8 [acc]
+            %r21 = cmp.ne %r15, %r20 : bool [flag]
+            br_if %r21, @rng_body1(%r15, %r18), @rng_exit2(%r18)
+          block @rng_body1(%r22: u8 [counter], %r23: u8 [acc]):
+            %r24 = add %r23, %r22 : u8 [acc]
+            djnz %r22, @rng_body1(%r24), @rng_exit2(%r24)
+          block @rng_exit2(%r25: u8 [acc]):
+            %r26 = addr_of @hits : ptr [pointer]
+            %r27 = load %r26 : u8 [general]
+            %r28 = const 16 : u8 [general]
+            %r29 = mul %r27, %r28 : u8 [general]
+            %r30 = add %r25, %r29 : u8 [acc]
+            ret %r30
+        
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/filter_none/grace=false
+    fold_semantics_test.go:85: raw VM got=[{22}] want=7 err=<nil>
+        ; MIR2 module: grace_measure.nanz
+        fun @keep(%r1: u8 [acc]) -> bool [acc]
+          block @entry:
+            %r2 = const 0 : bool [general]
+            ret %r2
+        
+        fun @callback(%r3: u8 [acc], %r4: u8 [general]) -> u8 [acc]
+          block @entry:
+            %r5 = add %r3, %r4 : u8 [acc]
+            ret %r5
+        
+        fun @test(%r6: u8 [acc]) -> u8 [acc]
+          block @entry:
+            %r7 = const 7 : u8 [general]
+            %r8 = const 0 : u8 [general]
+            %r9 = const 0 : u8 [acc]
+            %r10 = cmp.ne %r6, %r9 : bool [flag]
+            br_if %r10, @rng_body1(%r6, %r7), @rng_exit2(%r7)
+          block @rng_body1(%r11: u8 [counter], %r12: u8 [acc]):
+            %r13 = add %r12, %r11 : u8 [acc]
+            djnz %r11, @rng_body1(%r13), @rng_exit2(%r13)
+          block @rng_exit2(%r14: u8 [acc]):
+            ret %r14
+        
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/filter_none/grace=true
+    fold_semantics_test.go:85: raw VM got=[{22}] want=7 err=<nil>
+        ; MIR2 module: grace_measure.nanz
+        fun @keep(%r1: u8 [acc]) -> bool [acc]
+          block @entry:
+            %r2 = const 0 : bool [general]
+            ret %r2
+        
+        fun @callback(%r3: u8 [acc], %r4: u8 [general]) -> u8 [acc]
+          block @entry:
+            %r5 = add %r3, %r4 : u8 [acc]
+            ret %r5
+        
+        fun @test(%r6: u8 [acc]) -> u8 [acc]
+          block @entry:
+            %r7 = const 7 : u8 [general]
+            %r8 = const 0 : u8 [general]
+            %r9 = const 0 : u8 [acc]
+            %r10 = cmp.ne %r6, %r9 : bool [flag]
+            br_if %r10, @rng_body1(%r6, %r7), @rng_exit2(%r7)
+          block @rng_body1(%r11: u8 [counter], %r12: u8 [acc]):
+            %r13 = add %r12, %r11 : u8 [acc]
+            djnz %r11, @rng_body1(%r13), @rng_exit2(%r13)
+          block @rng_exit2(%r14: u8 [acc]):
+            ret %r14
+        
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/memory_stages/grace=false
+    fold_semantics_test.go:85: raw VM got=[{15}] want=63 err=<nil>
+        ; MIR2 module: grace_measure.nanz
+        global @data : [5]u8
+        global @hits : u8
+        
+        fun @keep(%r1: u8 [acc]) -> bool [acc]
+          block @entry:
+            %r2 = const 2 : u8 [general]
+            %r3 = cmp.ugt %r1, %r2 : bool [flag]
+            ret %r3
+        
+        fun @mapper(%r4: u8 [acc]) -> u8 [acc]
+          block @entry:
+            %r5 = addr_of @hits : ptr [pointer]
+            %r6 = load %r5 : u8 [general]
+            %r7 = const 1 : u8 [general]
+            %r8 = add %r6, %r7 : u8 [acc]
+            %r9 = addr_of @hits : ptr [pointer]
+            store %r9, %r8 : u8
+            %r10 = const 1 : u8 [general]
+            %r11 = add %r4, %r10 : u8 [acc]
+            ret %r11
+        
+        fun @callback(%r12: u8 [acc], %r13: u8 [general]) -> u8 [acc]
+          block @entry:
+            %r14 = add %r12, %r13 : u8 [acc]
+            ret %r14
+        
+        fun @test(%r15: u8 [acc]) -> u8 [acc]
+          block @entry:
+            %r16 = const 0 : u8 [general]
+            %r17 = addr_of @hits : ptr [pointer]
+            store %r17, %r16 : u8
+            %r18 = const 0 : u8 [general]
+            %r19 = addr_of @data : ptr [pointer]
+            %r20 = const 0 : u8 [general]
+            %r21 = ptr_add %r19, %r20 : ptr [pointer]
+            %r22 = const 0 : u8 [acc]
+            %r23 = const 1 : u8 [counter]
+            jmp @fe_head1(%r21, %r15, %r18)
+          block @fe_head1(%r24: ptr [pointer], %r25: u8 [counter], %r26: u8 [general]):
+            %r27 = cmp.ne %r25, %r22 : bool [flag]
+            br_if %r27, @fe_body2(), @fe_exit4(%r24, %r25, %r26)
+          block @fe_body2:
+            %r28 = load %r24 : u8 [general]
+            %r29 = add %r26, %r28 : u8 [general]
+            %r30 = ptr_bump %r24, +1 : ptr [pointer]
+            %r31 = sub %r25, %r23 : u8 [counter]
+            jmp @fe_head1(%r30, %r31, %r29)
+          block @fe_exit4(%r32: ptr [pointer], %r33: u8 [counter], %r34: u8 [general]):
+            %r35 = addr_of @hits : ptr [pointer]
+            %r36 = load %r35 : u8 [general]
+            %r37 = const 16 : u8 [general]
+            %r38 = mul %r36, %r37 : u8 [general]
+            %r39 = add %r34, %r38 : u8 [acc]
+            ret %r39
+        
+=== RUN   TestFoldEffectsAndStageOrderVMZ80/memory_stages/grace=true
+    fold_semantics_test.go:85: raw VM got=[{15}] want=63 err=<nil>
+        ; MIR2 module: grace_measure.nanz
+        global @data : [5]u8
+        global @hits : u8
+        
+        fun @keep(%r1: u8 [acc]) -> bool [acc]
+          block @entry:
+            %r2 = const 2 : u8 [general]
+            %r3 = cmp.ugt %r1, %r2 : bool [flag]
+            ret %r3
+        
+        fun @mapper(%r4: u8 [acc]) -> u8 [acc]
+          block @entry:
+            %r5 = addr_of @hits : ptr [pointer]
+            %r6 = load %r5 : u8 [general]
+            %r7 = const 1 : u8 [general]
+            %r8 = add %r6, %r7 : u8 [acc]
+            %r9 = addr_of @hits : ptr [pointer]
+            store %r9, %r8 : u8
+            %r10 = const 1 : u8 [general]
+            %r11 = add %r4, %r10 : u8 [acc]
+            ret %r11
+        
+        fun @callback(%r12: u8 [acc], %r13: u8 [general]) -> u8 [acc]
+          block @entry:
+            %r14 = add %r12, %r13 : u8 [acc]
+            ret %r14
+        
+        fun @test(%r15: u8 [acc]) -> u8 [acc]
+          block @entry:
+            %r16 = const 0 : u8 [general]
+            %r17 = addr_of @hits : ptr [pointer]
+            store %r17, %r16 : u8
+            %r18 = const 0 : u8 [general]
+            %r19 = addr_of @data : ptr [pointer]
+            %r20 = const 0 : u8 [general]
+            %r21 = ptr_add %r19, %r20 : ptr [pointer]
+            %r22 = const 0 : u8 [acc]
+            %r23 = const 1 : u8 [counter]
+            jmp @fe_head1(%r21, %r15, %r18)
+          block @fe_head1(%r24: ptr [pointer], %r25: u8 [counter], %r26: u8 [general]):
+            %r27 = cmp.ne %r25, %r22 : bool [flag]
+            br_if %r27, @fe_body2(), @fe_exit4(%r24, %r25, %r26)
+          block @fe_body2:
+            %r28 = load %r24 : u8 [general]
+            %r29 = add %r26, %r28 : u8 [general]
+            %r30 = ptr_bump %r24, +1 : ptr [pointer]
+            %r31 = sub %r25, %r23 : u8 [counter]
+            jmp @fe_head1(%r30, %r31, %r29)
+          block @fe_exit4(%r32: ptr [pointer], %r33: u8 [counter], %r34: u8 [general]):
+            %r35 = addr_of @hits : ptr [pointer]
+            %r36 = load %r35 : u8 [general]
+            %r37 = const 16 : u8 [general]
+            %r38 = mul %r36, %r37 : u8 [general]
+            %r39 = add %r34, %r38 : u8 [acc]
+            ret %r39
+        
+--- FAIL: TestFoldEffectsAndStageOrderVMZ80 (0.01s)
+    --- FAIL: TestFoldEffectsAndStageOrderVMZ80/callback_prefix/grace=false (0.00s)
+    --- FAIL: TestFoldEffectsAndStageOrderVMZ80/callback_prefix/grace=true (0.00s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/counter_order/grace=false (0.00s)
+    --- PASS: TestFoldEffectsAndStageOrderVMZ80/counter_order/grace=true (0.00s)
+    --- FAIL: TestFoldEffectsAndStageOrderVMZ80/filter_then_map/grace=false (0.00s)
+    --- FAIL: TestFoldEffectsAndStageOrderVMZ80/filter_then_map/grace=true (0.00s)
+    --- FAIL: TestFoldEffectsAndStageOrderVMZ80/map_then_filter/grace=false (0.00s)
+    --- FAIL: TestFoldEffectsAndStageOrderVMZ80/map_then_filter/grace=true (0.00s)
+    --- FAIL: TestFoldEffectsAndStageOrderVMZ80/two_filters/grace=false (0.00s)
+    --- FAIL: TestFoldEffectsAndStageOrderVMZ80/two_filters/grace=true (0.00s)
+    --- FAIL: TestFoldEffectsAndStageOrderVMZ80/filter_none/grace=false (0.00s)
+    --- FAIL: TestFoldEffectsAndStageOrderVMZ80/filter_none/grace=true (0.00s)
+    --- FAIL: TestFoldEffectsAndStageOrderVMZ80/memory_stages/grace=false (0.00s)
+    --- FAIL: TestFoldEffectsAndStageOrderVMZ80/memory_stages/grace=true (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.017s
+FAIL
