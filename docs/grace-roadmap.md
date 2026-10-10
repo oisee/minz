@@ -81,3 +81,13 @@ constant propagation, DSE traps, pointer CSE, bounds checks VM и Z80 scratch HL
 Константные ветвления теперь сворачивает обычный MIR. Получены проверенные
 Z80 T-states/bytes для sum_array и region_match. Контракт указателей остаётся
 предложением ADR-0045; его миграция и удаление HIR guard ещё не выполнены.
+
+## Цели оптимизации и сертификаты
+
+[ADR-0046](adr/0046-optimisation-policy-and-certificates.md): legality отдельно
+от profitability; профиль выбирает ставку, guard/proof разрешает преобразование.
+LLM предлагает проверяемое доказательство или guard, но не выдаёт разрешение
+самим фактом своего участия. Source maps обеспечивают идентичность и lineage,
+а не доказательство эквивалентности. Сбор/загрузчик сертификатов ещё не реализован.
+Первый шаг политики уже работает: `--hir-grace --Osize` исключает versioned
+pointer-walk, оставляя invariant-base. На sum_array выбирает 38 вместо 85 байт.

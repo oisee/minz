@@ -21,11 +21,25 @@ var graceInvariantBaseRule string
 //go:embed rules/pointer_walk.grace
 var gracePointerWalkRule string
 
+// GraceOptions selects the rewrite budget and conservative size policy.
+// OptimizeForSize excludes versioned pointer loops, which duplicate the body.
+// It does not promise globally minimal machine code.
+type GraceOptions struct {
+	MaxRewrites     int
+	OptimizeForSize bool
+}
+
 // RunGrace rewrites HIR in place, before lowering. maxRewrites is a module-wide
 // budget; zero uses 100, negative is invalid. Each firing rebuilds the structural
 // view and verifies lowered MIR2. This is structural validation, not a proof of
 // equivalence: differential VM tests remain necessary. HIR has no verifier yet.
 func RunGrace(m *Module, maxRewrites int) (*grace.RuleResult, error) {
+	return RunGraceWithOptions(m, GraceOptions{MaxRewrites: maxRewrites})
+}
+
+// RunGraceWithOptions applies structural rules under the given budget and policy.
+func RunGraceWithOptions(m *Module, options GraceOptions) (*grace.RuleResult, error) {
+	maxRewrites := options.MaxRewrites
 	result := &grace.RuleResult{ByRule: make(map[string]int)}
 	if m == nil || maxRewrites < 0 {
 		return result, fmt.Errorf("HIR Grace: invalid module or rewrite budget")
@@ -93,7 +107,7 @@ func RunGrace(m *Module, maxRewrites int) (*grace.RuleResult, error) {
 			return true
 		})
 		reg.RegisterPredicate("hir-has-guarded-pointer-walk", func(_ rewrite.IRGraph, bindings grace.BlockBindings, _ []string) bool {
-			return graph.err == nil && len(graph.facts.DB.Query("hir-guarded-pointer-walk", bindings["b"])) != 0
+			return !options.OptimizeForSize && graph.err == nil && len(graph.facts.DB.Query("hir-guarded-pointer-walk", bindings["b"])) != 0
 		})
 		reg.RegisterAction("hirGuardPointerWalk", func(_ rewrite.IRGraphMut, bindings grace.BlockBindings) bool {
 			if graph.err != nil {

@@ -106,7 +106,8 @@ type Options struct {
 	// UseHIRGrace runs structural HIR rules before splitting and lowering.
 	// Independent of UseGrace, which controls MIR2 rules.
 	UseHIRGrace bool
-	// OptSize enables size optimizations (Grace reroll: repeated CALLs → DJNZ loop).
+	// OptSize enables size optimizations (Grace reroll: repeated CALLs → DJNZ loop)
+	// and excludes HIR Grace's code-growing versioned pointer-walk.
 	// Trades ~4T/iteration for code size reduction. Use for ROM-constrained targets.
 	OptSize bool
 	// Backend selects the codegen backend: "z80" (default), "ez80".
@@ -140,7 +141,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	// Capture HIR before lowering.
 	s.HIR = hm.Dump()
 	if opt.UseHIRGrace {
-		if _, err := hir.RunGrace(hm, 0); err != nil {
+		if _, err := hir.RunGraceWithOptions(hm, hir.GraceOptions{OptimizeForSize: opt.OptSize}); err != nil {
 			return s, err
 		}
 		s.HIR = hm.Dump()
@@ -453,7 +454,7 @@ func CompileHIR(hm *hir.Module) (string, error) {
 // Use this to compare output with/without specific optimisation passes.
 func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	if opts.UseHIRGrace {
-		if _, err := hir.RunGrace(hm, 0); err != nil {
+		if _, err := hir.RunGraceWithOptions(hm, hir.GraceOptions{OptimizeForSize: opts.OptSize}); err != nil {
 			return "", err
 		}
 	}
