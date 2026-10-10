@@ -7,7 +7,7 @@ semantics or claim the tasks below are implemented.
 | ID | Priority | Task | Acceptance |
 |---|---|---|---|
 | SEM-PTR | P0 | Specify pointer arithmetic and dereference semantics | Decide wrap/trap/UB, pointer width, one-past values, multi-byte access and VM heap bounds separately; boundary conformance tests for VM and Z80 |
-| Z80-FE | P0 | Fix ordinary ForEach with static global address | Reproduce `got 2, want 1` from the retained probe; independent oracle, parameter/global pointers, zero/one/multiple iterations, continue and main backend regressions |
+| Z80-FE | P0, fix implemented | Preserve live accumulator across filter comparison | Global-address regression passes for lengths 0–4, three data sets, filtered/unfiltered, MIR Grace off/on; parameter-pointer filter coverage remains to add |
 | MIR-CBR | P1 | Fold constant `br_if` / `cond_ret` | Audit existing passes; preserve selected edge arguments / return values, post-inline/propagation cases, independent VM oracle and Z80 measurements |
 | Z80-COST | P1 | Measure sum_array and region_match | Same source, inputs, memory, harness and compiler flags; assembled code bytes and emulator T-states; separate guard/fallback and short/long inputs |
 | VM-ALLOC | P1 | Explain invariant-base allocation delta | Isolated benchmark with allocations and allocation profile; attribute bytes to call frames, block edges or other sites before changing VM |
@@ -36,6 +36,14 @@ pointer-walk retains setup costs and needs measurements on short loops.
   The probe fails on clean `4743cb7c` as well as the experimental branch.
   Source-level sum_array assertions with a pointer parameter passed; they do
   not cover this global-address case or establish general ForEach correctness.
+  Follow-up root cause: only the filtered (`continue`) variant failed. CMP
+  replaced a live-through sum in A with the element; the next ADD computed
+  element+element. `saveAccForCondRet` now uses CFG liveness instead of scanning
+  only current block/function parameters and immediate successors.
+  `pkg/pipeline/foreach_z80_test.go` has 60 Z80 assertions plus VM checks.
+  With data `[3,2,5,7]`, filtered length 1 gives `got 6, want 3` on clean
+  `4743cb7c`, and passes after the fix. This fixes the reproduced case, without
+  asserting correctness of all ForEach/control-flow variants.
 - Existing `TestGraceVerify` failures: `18_tail_recursion`, `hello_cpm_fib`,
   `screen_customer`, `screen_report`. See
   [corpus output](grace-pointer-walk-artifacts/corpus-tests.txt).

@@ -168,106 +168,24 @@ func (g *z80cg) materializePendingAcc(upcomingInst *Inst) {
 	g.pendingAccReg = NoReg
 }
 
-// saveAccForCondRet saves A to a scratch register if a CMP is about to load a
-// different vreg into A and there is a live vreg in A that the terminator or a
-// successor block still needs.
-//
-// Originally this only covered TermCondRet (abs_val fix). Expanded to also
-// cover TermBrIf: gcd(a,b) has CmpEq(b,0) that loads b into A, clobbering a
-// which the then-branch returns.
+// saveAccForCondRet preserves a live accumulator before CMP replaces A.
+// CFG liveness includes values carried through blocks without block parameters.
 func (g *z80cg) saveAccForCondRet(cmpInst *Inst) {
-	if g.fn == nil || g.curBlock == nil {
+	if g.fn == nil || g.curBlock == nil || g.loc(cmpInst.Src[0]) == "A" {
 		return
 	}
-	term := g.curBlock.Term
-	if term == nil {
-		return
-	}
-
-	// Check if CMP will load a different vreg into A (clobbering current A value).
-	lhs := g.loc(cmpInst.Src[0])
-	if lhs == "A" {
-		return // lhs already in A, no clobber
-	}
-
-	// Collect all vregs that the terminator and successor blocks need.
-	// If any of them is currently in A, save A before the CMP clobbers it.
-	liveInA := g.findVregInA()
-	if liveInA == NoReg {
-		return // nothing in A worth saving
-	}
-
-	needed := false
-	switch t := term.(type) {
-	case *TermCondRet:
-		for _, v := range t.Vals {
-			if v == liveInA {
-				needed = true
-				break
-			}
+	for r := range g.regsLiveAfterInst(cmpInst) {
+		if r == cmpInst.Dst || g.loc(r) != "A" {
+			continue
 		}
-		if !needed {
-			// Check if the Then successor needs it
-			needed = g.vregUsedInBlock(liveInA, t.Then)
-		}
-	case *TermBrIf:
-		// Check if either successor uses the vreg in A
-		needed = g.vregUsedInBlock(liveInA, t.Then) || g.vregUsedInBlock(liveInA, t.Else)
-	case *TermBrIf2:
-		needed = g.vregUsedInBlock(liveInA, t.Eq) ||
-			g.vregUsedInBlock(liveInA, t.Lt) ||
-			g.vregUsedInBlock(liveInA, t.Gt)
-	}
-
-	if needed {
 		scratch := g.pickScratch8(cmpInst)
-		g.emitf("    LD %s, A    ; save ret val before CMP", scratch)
-		g.physOverride[liveInA] = scratch
-	}
-}
-
-// findVregInA returns the vreg currently mapped to A, or NoReg if none.
-func (g *z80cg) findVregInA() Reg {
-	if g.fn == nil {
-		return NoReg
-	}
-	// Check block params first (they're live-through the block)
-	for _, bp := range g.curBlock.Params {
-		if g.loc(bp.Dst) == "A" {
-			return bp.Dst
+		g.emitf("    LD %s, A    ; preserve live accumulator before CMP", scratch)
+		g.physOverride[r] = scratch
+		if g.pendingAccReg == r {
+			g.pendingAccReg = NoReg
 		}
+		return
 	}
-	// Check function params that might still be in A
-	for _, cp := range g.fn.Contract.Params {
-		if g.loc(cp.Reg) == "A" {
-			return cp.Reg
-		}
-	}
-	return NoReg
-}
-
-// vregUsedInBlock checks if vreg is used in the instructions or terminator
-// of the block with the given label.
-func (g *z80cg) vregUsedInBlock(vreg Reg, label string) bool {
-	blk := g.fn.BlockByLabel(label)
-	if blk == nil {
-		return false
-	}
-	for _, inst := range blk.Insts {
-		for _, r := range inst.Uses() {
-			if r == vreg {
-				return true
-			}
-		}
-	}
-	if blk.Term != nil {
-		for _, r := range blk.Term.termUses() {
-			if r == vreg {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 func (g *z80cg) genCmp(inst *Inst) {
@@ -281,10 +199,8 @@ func (g *z80cg) genCmp(inst *Inst) {
 	// 1. Materialize any live ClassFlag register whose carry would be overwritten.
 	// 2. Save any live ClassAcc register whose A value would be overwritten by
 	//    the "LD A, imm" used to set up the CP operand.
-	// 3. Save A if the block ends with TermCondRet and A holds a return value
-	//    that would be clobbered by loading the CMP operand (ADR-0041 fix).
-	// Both are saved to "D" (scratch) via physOverride; the OR-from-flag handler
-	// in genBinOp will then read them from "D" instead of from "F"/"A".
+	// 3. Preserve A values live through this block or needed by later instructions.
+	// Relocated values use a free scratch register through physOverride.
 	g.materializePendingFlag(inst)
 	g.materializePendingAcc(inst)
 	g.saveAccForCondRet(inst)
