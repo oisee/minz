@@ -1,0 +1,66 @@
+goos: linux
+goarch: amd64
+pkg: github.com/minz/minzc/pkg/pipeline
+cpu: AMD Ryzen 7 5800X 8-Core Processor             
+BenchmarkHIRGracePointerWalkVM/n=0/hir=false         	   20000	       513.8 ns/op	    1232 B/op	       5 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=0/hir=false         	   20000	       467.6 ns/op	    1232 B/op	       5 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=0/hir=false         	   20000	       506.5 ns/op	    1232 B/op	       5 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=0/hir=false         	   20000	       522.0 ns/op	    1232 B/op	       5 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=0/hir=false         	   20000	       509.4 ns/op	    1232 B/op	       5 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=0/hir=true          	   20000	       699.2 ns/op	    1232 B/op	       6 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=0/hir=true          	   20000	       703.3 ns/op	    1232 B/op	       6 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=0/hir=true          	   20000	       702.2 ns/op	    1232 B/op	       6 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=0/hir=true          	   20000	       698.8 ns/op	    1232 B/op	       6 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=0/hir=true          	   20000	       699.9 ns/op	    1232 B/op	       6 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=1/hir=false         	   20000	       781.9 ns/op	    1264 B/op	       6 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=1/hir=false         	   20000	       771.2 ns/op	    1264 B/op	       6 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=1/hir=false         	   20000	       770.4 ns/op	    1264 B/op	       6 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=1/hir=false         	   20000	       776.7 ns/op	    1264 B/op	       6 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=1/hir=false         	   20000	       766.9 ns/op	    1264 B/op	       6 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=1/hir=true          	   20000	       905.1 ns/op	    1256 B/op	       7 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=1/hir=true          	   20000	       905.7 ns/op	    1256 B/op	       7 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=1/hir=true          	   20000	       900.2 ns/op	    1256 B/op	       7 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=1/hir=true          	   20000	       901.4 ns/op	    1256 B/op	       7 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=1/hir=true          	   20000	       904.5 ns/op	    1256 B/op	       7 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=5/hir=false         	   20000	      1796 ns/op	    1392 B/op	      10 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=5/hir=false         	   20000	      1785 ns/op	    1392 B/op	      10 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=5/hir=false         	   20000	      1772 ns/op	    1392 B/op	      10 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=5/hir=false         	   20000	      1770 ns/op	    1392 B/op	      10 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=5/hir=false         	   20000	      1778 ns/op	    1392 B/op	      10 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=5/hir=true          	   20000	      1709 ns/op	    1352 B/op	      11 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=5/hir=true          	   20000	      1724 ns/op	    1352 B/op	      11 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=5/hir=true          	   20000	      1739 ns/op	    1352 B/op	      11 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=5/hir=true          	   20000	      1770 ns/op	    1352 B/op	      11 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=5/hir=true          	   20000	      1738 ns/op	    1352 B/op	      11 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=16/hir=false        	   20000	      4784 ns/op	    1744 B/op	      21 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=16/hir=false        	   20000	      4560 ns/op	    1744 B/op	      21 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=16/hir=false        	   20000	      4586 ns/op	    1744 B/op	      21 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=16/hir=false        	   20000	      4550 ns/op	    1744 B/op	      21 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=16/hir=false        	   20000	      4569 ns/op	    1744 B/op	      21 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=16/hir=true         	   20000	      3947 ns/op	    1616 B/op	      22 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=16/hir=true         	   20000	      3997 ns/op	    1616 B/op	      22 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=16/hir=true         	   20000	      3961 ns/op	    1616 B/op	      22 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=16/hir=true         	   20000	      3952 ns/op	    1616 B/op	      22 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=16/hir=true         	   20000	      3951 ns/op	    1616 B/op	      22 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=64/hir=false        	   20000	     16519 ns/op	    3280 B/op	      69 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=64/hir=false        	   20000	     16364 ns/op	    3280 B/op	      69 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=64/hir=false        	   20000	     16318 ns/op	    3280 B/op	      69 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=64/hir=false        	   20000	     16543 ns/op	    3280 B/op	      69 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=64/hir=false        	   20000	     16611 ns/op	    3280 B/op	      69 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=64/hir=true         	   20000	     13682 ns/op	    2768 B/op	      70 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=64/hir=true         	   20000	     13571 ns/op	    2768 B/op	      70 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=64/hir=true         	   20000	     13484 ns/op	    2768 B/op	      70 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=64/hir=true         	   20000	     13460 ns/op	    2768 B/op	      70 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=64/hir=true         	   20000	     13428 ns/op	    2768 B/op	      70 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=255/hir=false       	   20000	     64540 ns/op	    9392 B/op	     260 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=255/hir=false       	   20000	     64327 ns/op	    9392 B/op	     260 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=255/hir=false       	   20000	     65142 ns/op	    9392 B/op	     260 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=255/hir=false       	   20000	     64433 ns/op	    9392 B/op	     260 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=255/hir=false       	   20000	     63926 ns/op	    9392 B/op	     260 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=255/hir=true        	   20000	     51492 ns/op	    7352 B/op	     261 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=255/hir=true        	   20000	     51437 ns/op	    7352 B/op	     261 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=255/hir=true        	   20000	     51892 ns/op	    7352 B/op	     261 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=255/hir=true        	   20000	     51533 ns/op	    7352 B/op	     261 allocs/op
+BenchmarkHIRGracePointerWalkVM/n=255/hir=true        	   20000	     51912 ns/op	    7352 B/op	     261 allocs/op
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	16.226s

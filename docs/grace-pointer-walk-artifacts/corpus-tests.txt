@@ -1,0 +1,19 @@
+=== RUN   TestGraceVerify
+    grace_convergence_test.go:139: FAIL 18_tail_recursion.nanz: line 49: assert "assert fib(1) == 1 via mir2" [mir2]: got 0, want 1
+    grace_convergence_test.go:139: FAIL hello_cpm_fib.nanz: line 47: assert "assert gcd(12, 8) == 4" [z80]: got 8, want 4
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+    grace_convergence_test.go:139: FAIL screen_customer.nanz: MIR2 verify: mir2: func @_scr_atoi: block @entry: branch to @loop_head1 supplies 2 args but block has 3 params
+    grace_convergence_test.go:139: FAIL screen_report.nanz: MIR2 verify: mir2: func @_scr_atoi: block @entry: branch to @loop_head1 supplies 2 args but block has 3 params
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+    grace_convergence_test.go:146: 
+        === Grace Verification ===
+    grace_convergence_test.go:147: Files: 52, Pass: 48, Fail: 4
+    grace_convergence_test.go:149: Rate: 92.3%
+    grace_convergence_test.go:153: 4 files failed Grace path verification
+--- FAIL: TestGraceVerify (1.79s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	1.798s
+FAIL

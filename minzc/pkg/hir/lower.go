@@ -1431,6 +1431,15 @@ func (l *lowerer) lowerForRange(st *ForRangeStmt) {
 //	    [continue]
 func (l *lowerer) lowerForEach(st *ForEachStmt) {
 	envBefore := cloneMap(l.env)
+	needsTrampoline := false
+	walkGraceBlocks(st.Body, "", func(_ string, b *Block) {
+		for _, s := range b.Body {
+			switch s.(type) {
+			case *ContinueStmt, *BreakStmt, *ReturnStmt, *GotoStmt, *LabelStmt:
+				needsTrampoline = true
+			}
+		}
+	})
 	stride := int64(mir2.ByteWidth(st.ElemTy))
 	if st.ElemStride > 0 {
 		stride = int64(st.ElemStride)
@@ -1451,6 +1460,11 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 	}
 	// Compute element count.
 	cntReg := l.lowerExpr(st.Len)
+
+	// Literal operands are loop-invariant. Define them once in the preheader;
+	// recreating them in head/continue wastes two VM instructions per element.
+	zero8 := l.bld.Const(0, mir2.TyU8, mir2.ClassAcc)
+	one := l.bld.Const(1, mir2.TyU8, mir2.ClassCounter)
 
 	// Collect user env vars used/mutated in the body (for block params).
 	allUsed := map[string]bool{}
@@ -1485,7 +1499,6 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 	l.env = headEnv
 
 	// brif (cnt != 0) → body, else → exit
-	zero8 := l.bld.Const(0, mir2.TyU8, mir2.ClassAcc)
 	cond := l.bld.Cmp(mir2.CmpNe, headCnt, zero8, mir2.ClassFlag, false)
 	exitArgs := append([]mir2.Reg{headPtr, headCnt}, l.collectArgs(mutated)...)
 	l.bld.BrIf(cond, bodyLabel, nil, exitLabel, exitArgs)
@@ -1518,24 +1531,27 @@ func (l *lowerer) lowerForEach(st *ForEachStmt) {
 		}
 	}
 
-	// Fall-through from body → fe_cont with current mutated values.
-	l.bld.Jmp(contLabel, l.collectArgs(mutated)...)
+	// Continue needs an increment trampoline; retain it for other control
+	// transfers too. Ordinary fall-through bodies increment directly.
+	if needsTrampoline {
+		// Fall-through from body → fe_cont with current mutated values.
+		l.bld.Jmp(contLabel, l.collectArgs(mutated)...)
 
-	// ── fe_cont(mutated...) — advance ptr/cnt, back-edge to fe_head ──
-	// This is the target for ContinueStmt inside the body, as well as the
-	// normal fall-through path. It advances ptr/cnt (using headPtr/headCnt
-	// which dominate this block) and loops back.
-	cont := l.bld.SwitchToNewBlock(contLabel)
-	contEnv := cloneMap(headEnv)
-	for _, name := range mutated {
-		ty := l.envTy[name]
-		r := l.bld.BlockParam(cont, ty, classForExpr(ty))
-		contEnv[name] = r
+		// ── fe_cont(mutated...) — advance ptr/cnt, back-edge to fe_head ──
+		// This is the target for ContinueStmt inside the body, as well as the
+		// normal fall-through path. It advances ptr/cnt (using headPtr/headCnt
+		// which dominate this block) and loops back.
+		cont := l.bld.SwitchToNewBlock(contLabel)
+		contEnv := cloneMap(headEnv)
+		for _, name := range mutated {
+			ty := l.envTy[name]
+			r := l.bld.BlockParam(cont, ty, classForExpr(ty))
+			contEnv[name] = r
+		}
+		l.env = contEnv
 	}
-	l.env = contEnv
 
 	ptrNext := l.bld.PtrBump(headPtr, stride, mir2.ClassPointer)
-	one := l.bld.Const(1, mir2.TyU8, mir2.ClassCounter)
 	cntNext := l.bld.Sub(headCnt, one, mir2.TyU8, mir2.ClassCounter)
 
 	backArgs := append([]mir2.Reg{ptrNext, cntNext}, l.collectArgs(mutated)...)

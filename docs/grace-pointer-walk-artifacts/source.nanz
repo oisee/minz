@@ -1,0 +1,9 @@
+fun sum_array(ptr: ^u8, n: u8) -> u8 {
+ var s: u8 = 0
+ var i: u8 = 0
+ while i < n {
+  s = s + ptr[i]
+  i = i + 1
+ }
+ return s
+}

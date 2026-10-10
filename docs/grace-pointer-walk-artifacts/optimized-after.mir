@@ -1,0 +1,42 @@
+; MIR2 module: docs/grace-pointer-walk-artifacts/source.nanz
+fun @sum_array(%r1: ptr [pointer], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = const 0 : u8 [general]
+    %r4 = const 0 : u8 [general]
+    %r5 = const 65535 : u16 [pointer]
+    %r6 = ext %r2 : u8 -> u16 [pointer]
+    %r7 = sub %r5, %r6 : u16 [pointer]
+    %r8 = cmp.ule %r1, %r7 : bool [flag]
+    br_if %r8, @if_then1(), @if_else3()
+  block @if_then1:
+    %r10 = move %r1 : ptr [pointer]
+    %r11 = const 0 : u8 [acc]
+    %r12 = const 1 : u8 [counter]
+    jmp @fe_head4(%r10, %r2, %r3)
+  block @fe_head4(%r13: ptr [pointer], %r14: u8 [counter], %r15: u8 [general]):
+    %r16 = cmp.ne %r14, %r11 : bool [flag]
+    br_if %r16, @fe_body5(), @fe_exit7(%r15)
+  block @fe_body5:
+    %r17 = load %r13 : u8 [general]
+    %r18 = add %r15, %r17 : u8 [general]
+    %r19 = ptr_bump %r13, +1 : ptr [pointer]
+    %r20 = sub %r14, %r12 : u8 [counter]
+    jmp @fe_head4(%r19, %r20, %r18)
+  block @fe_exit7(%r23: u8 [general]):
+    ret %r23
+  block @if_else3:
+    jmp @loop_head8(%r4, %r2, %r1, %r3)
+  block @loop_head8(%r24: u8 [general], %r25: u8 [general], %r26: ptr [general], %r27: u8 [general]):
+    %r28 = cmp.ult %r24, %r25 : bool [flag]
+    br_if %r28, @loop_body9(), @loop_exit10(%r24, %r27)
+  block @loop_body9:
+    %r29 = ext %r24 : u8 -> u16 [index]
+    %r30 = ptr_add %r26, %r29 : ptr [pointer]
+    %r31 = load %r30 : u8 [general]
+    %r32 = add %r27, %r31 : u8 [general]
+    %r33 = const 1 : u8 [general]
+    %r34 = add %r24, %r33 : u8 [general]
+    jmp @loop_head8(%r34, %r25, %r26, %r32)
+  block @loop_exit10(%r35: u8 [general], %r38: u8 [general]):
+    ret %r38
+

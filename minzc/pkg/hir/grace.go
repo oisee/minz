@@ -18,6 +18,9 @@ var graceConstantIfRule string
 //go:embed rules/invariant_base.grace
 var graceInvariantBaseRule string
 
+//go:embed rules/pointer_walk.grace
+var gracePointerWalkRule string
+
 // RunGrace rewrites HIR in place, before lowering. maxRewrites is a module-wide
 // budget; zero uses 100, negative is invalid. Each firing rebuilds the structural
 // view and verifies lowered MIR2. This is structural validation, not a proof of
@@ -30,7 +33,7 @@ func RunGrace(m *Module, maxRewrites int) (*grace.RuleResult, error) {
 	if maxRewrites == 0 {
 		maxRewrites = 100
 	}
-	rules, err := grace.ParseRules(graceConstantIfRule + "\n" + graceInvariantBaseRule)
+	rules, err := grace.ParseRules(graceConstantIfRule + "\n" + graceInvariantBaseRule + "\n" + gracePointerWalkRule)
 	if err != nil {
 		return result, err
 	}
@@ -85,6 +88,30 @@ func RunGrace(m *Module, maxRewrites int) (*grace.RuleResult, error) {
 			if err := mir2.Verify(LowerModule(m)); err != nil {
 				block.Body = old
 				graph.err = fmt.Errorf("HIR Grace hir-invariant-base: %w", err)
+				return false
+			}
+			return true
+		})
+		reg.RegisterPredicate("hir-has-guarded-pointer-walk", func(_ rewrite.IRGraph, bindings grace.BlockBindings, _ []string) bool {
+			return graph.err == nil && len(graph.facts.DB.Query("hir-guarded-pointer-walk", bindings["b"])) != 0
+		})
+		reg.RegisterAction("hirGuardPointerWalk", func(_ rewrite.IRGraphMut, bindings grace.BlockBindings) bool {
+			if graph.err != nil {
+				return false
+			}
+			b := graph.byLabel[bindings["b"]]
+			if b == nil {
+				return false
+			}
+			p := findGracePointerWalk(b.owner, b.block, graph.globals)
+			if p == nil {
+				return false
+			}
+			original := b.block.Body[2]
+			b.block.Body[2] = p.versionedLoop()
+			if err := mir2.Verify(LowerModule(m)); err != nil {
+				b.block.Body[2] = original
+				graph.err = fmt.Errorf("HIR Grace hir-guarded-pointer-walk: %w", err)
 				return false
 			}
 			return true

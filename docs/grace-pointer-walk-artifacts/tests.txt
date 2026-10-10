@@ -1,0 +1,57 @@
+=== RUN   TestHIRGracePointerWalkRealSourceAndFacts
+--- PASS: TestHIRGracePointerWalkRealSourceAndFacts (0.00s)
+=== RUN   TestHIRGracePointerWalkDifferential
+=== RUN   TestHIRGracePointerWalkDifferential/raw/tuple=false
+=== RUN   TestHIRGracePointerWalkDifferential/optimized/tuple=false
+=== RUN   TestHIRGracePointerWalkDifferential/optimized_mir_grace/tuple=false
+=== RUN   TestHIRGracePointerWalkDifferential/raw/tuple=true
+=== RUN   TestHIRGracePointerWalkDifferential/optimized/tuple=true
+=== RUN   TestHIRGracePointerWalkDifferential/optimized_mir_grace/tuple=true
+--- PASS: TestHIRGracePointerWalkDifferential (2.42s)
+    --- PASS: TestHIRGracePointerWalkDifferential/raw/tuple=false (0.36s)
+    --- PASS: TestHIRGracePointerWalkDifferential/optimized/tuple=false (0.38s)
+    --- PASS: TestHIRGracePointerWalkDifferential/optimized_mir_grace/tuple=false (0.41s)
+    --- PASS: TestHIRGracePointerWalkDifferential/raw/tuple=true (0.42s)
+    --- PASS: TestHIRGracePointerWalkDifferential/optimized/tuple=true (0.42s)
+    --- PASS: TestHIRGracePointerWalkDifferential/optimized_mir_grace/tuple=true (0.42s)
+=== RUN   TestHIRGracePointerWalkMeasurements
+    hir_grace_pointer_walk_test.go:170: raw MIR shape: blocks 4 -> 10; instructions 9 -> 22
+    hir_grace_pointer_walk_test.go:174: raw n=0 VM instructions 3 -> 11
+    hir_grace_pointer_walk_test.go:174: raw n=1 VM instructions 10 -> 16
+    hir_grace_pointer_walk_test.go:174: raw n=5 VM instructions 38 -> 36
+    hir_grace_pointer_walk_test.go:174: raw n=16 VM instructions 115 -> 91
+    hir_grace_pointer_walk_test.go:174: raw n=64 VM instructions 451 -> 331
+    hir_grace_pointer_walk_test.go:174: raw n=255 VM instructions 1788 -> 1286
+    hir_grace_pointer_walk_test.go:170: optimized MIR shape: blocks 3 -> 9; instructions 9 -> 21
+    hir_grace_pointer_walk_test.go:174: optimized n=0 VM instructions 3 -> 10
+    hir_grace_pointer_walk_test.go:174: optimized n=1 VM instructions 10 -> 15
+    hir_grace_pointer_walk_test.go:174: optimized n=5 VM instructions 38 -> 35
+    hir_grace_pointer_walk_test.go:174: optimized n=16 VM instructions 115 -> 90
+    hir_grace_pointer_walk_test.go:174: optimized n=64 VM instructions 451 -> 330
+    hir_grace_pointer_walk_test.go:174: optimized n=255 VM instructions 1788 -> 1285
+    hir_grace_pointer_walk_test.go:170: optimized_mir_grace MIR shape: blocks 3 -> 6; instructions 9 -> 21
+    hir_grace_pointer_walk_test.go:174: optimized_mir_grace n=0 VM instructions 3 -> 10
+    hir_grace_pointer_walk_test.go:174: optimized_mir_grace n=1 VM instructions 10 -> 15
+    hir_grace_pointer_walk_test.go:174: optimized_mir_grace n=5 VM instructions 38 -> 35
+    hir_grace_pointer_walk_test.go:174: optimized_mir_grace n=16 VM instructions 115 -> 90
+    hir_grace_pointer_walk_test.go:174: optimized_mir_grace n=64 VM instructions 451 -> 330
+    hir_grace_pointer_walk_test.go:174: optimized_mir_grace n=255 VM instructions 1788 -> 1285
+--- PASS: TestHIRGracePointerWalkMeasurements (0.01s)
+=== RUN   TestHIRGracePointerWalkGuards
+=== RUN   TestHIRGracePointerWalkGuards/stride
+=== RUN   TestHIRGracePointerWalkGuards/nonzero_start
+=== RUN   TestHIRGracePointerWalkGuards/changed_bound
+=== RUN   TestHIRGracePointerWalkGuards/binding
+=== RUN   TestHIRGracePointerWalkGuards/global_collision
+--- PASS: TestHIRGracePointerWalkGuards (0.00s)
+    --- PASS: TestHIRGracePointerWalkGuards/stride (0.00s)
+    --- PASS: TestHIRGracePointerWalkGuards/nonzero_start (0.00s)
+    --- PASS: TestHIRGracePointerWalkGuards/changed_bound (0.00s)
+    --- PASS: TestHIRGracePointerWalkGuards/binding (0.00s)
+    --- PASS: TestHIRGracePointerWalkGuards/global_collision (0.00s)
+=== RUN   TestHIRGracePointerWalkAssertions
+--- PASS: TestHIRGracePointerWalkAssertions (0.08s)
+=== RUN   TestForEachPreheaderConstantsAndContinue
+--- PASS: TestForEachPreheaderConstantsAndContinue (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.518s

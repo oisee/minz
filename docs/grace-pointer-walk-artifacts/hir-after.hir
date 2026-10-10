@@ -1,0 +1,14 @@
+; HIR module: docs/grace-pointer-walk-artifacts/source.nanz
+fun @sum_array(ptr: ptr, n: u8) -> u8
+  var s: u8 = 0:u8
+  var i: u8 = 0:u8
+  if (cast((ptr:ptr)):u16 <= (65535:u16 - cast((n:u8)):u16):u16):bool
+    foreach __grace_element_0: u8 in *((ptr:ptr))[0..(n:u8)]
+      (s:u8) = ((s:u8) + (__grace_element_0:u8)):u8
+    (i:u8) = (n:u8)
+  else
+    while ((i:u8) < (n:u8)):bool
+      (s:u8) = ((s:u8) + ((ptr:ptr))[(i:u8)]:u8):u8
+      (i:u8) = ((i:u8) + 1:u8):u8
+  return (s:u8)
+

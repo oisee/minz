@@ -2,8 +2,9 @@ package hir
 
 import (
 	"fmt"
-	"github.com/minz/minzc/pkg/mir2"
 	"sort"
+
+	"github.com/minz/minzc/pkg/mir2"
 
 	"github.com/minz/minzc/pkg/rewrite/datalog"
 )
@@ -30,8 +31,9 @@ type FunctionFacts struct {
 // Facts belongs to one HIR snapshot. Recompute it after any rewrite; it does
 // not annotate or alter the HIR, and IsIO=false never establishes purity.
 type Facts struct {
-	Functions []FunctionFacts
-	DB        *datalog.FactDB
+	Functions    []FunctionFacts
+	DB           *datalog.FactDB
+	PointerWalks []PointerWalkFact
 }
 
 // AnalyzeFacts derives direct effects and propagates callees' summaries to a
@@ -201,6 +203,12 @@ func AnalyzeFacts(m *Module) *Facts {
 	}
 	for i, f := range m.Funcs {
 		walkGraceBlocks(f.Body, fmt.Sprintf("f%d", i), func(path string, b *Block) {
+			if p := findGracePointerWalk(f, b, reserved); p != nil {
+				out.PointerWalks = append(out.PointerWalks, PointerWalkFact{Function: f.Name, Site: path + "/s2", Index: p.index, Bound: p.bound, Base: p.base, IndexMinimum: 0, IndexMaximum: 254, Stride: 1, AddressMaximum: 65535})
+				out.DB.Add("hir-index-range", path+"/s2", p.index, "0", p.bound, "exclusive")
+				out.DB.Add("hir-address-nowrap-guard", path+"/s2", p.base, p.bound, "1", "65535")
+				out.DB.Add("hir-guarded-pointer-walk", path)
+			}
 			if findGraceHoist(f, b, reserved) != nil {
 				out.DB.Add("hir-invariant-base", path)
 			}

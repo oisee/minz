@@ -489,7 +489,7 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 				}
 			case *TermBrIf:
 				if t.Then == joinBlk.Label && len(t.ThenArgs) == 1 {
-					retLabel := joinBlk.Label + "_ret_then"
+					retLabel := freshJoinRetLabel(f, joinBlk.Label + "_ret_then")
 					retBlk := &Block{Label: retLabel, Term: &TermRet{Vals: []Reg{t.ThenArgs[0]}}}
 					f.Blocks = append(f.Blocks, retBlk)
 					t.Then = retLabel
@@ -497,7 +497,7 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 					changed = true
 				}
 				if t.Else == joinBlk.Label && len(t.ElseArgs) == 1 {
-					retLabel := joinBlk.Label + "_ret_else"
+					retLabel := freshJoinRetLabel(f, joinBlk.Label + "_ret_else")
 					retBlk := &Block{Label: retLabel, Term: &TermRet{Vals: []Reg{t.ElseArgs[0]}}}
 					f.Blocks = append(f.Blocks, retBlk)
 					t.Else = retLabel

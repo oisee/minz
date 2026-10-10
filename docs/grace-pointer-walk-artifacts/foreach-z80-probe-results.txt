@@ -1,0 +1,4 @@
+Extra native ForEach probe with static global address and filtered continue.
+Both clean baseline 4743cb7c and current implementation fail the same Z80 assertion n=1: got2 want1.
+Current source-level sum_array fixture with pointer parameter passes three Z80 asserts (n=0,1,5) in all four HIR/MIR Grace combinations.
+This is a pre-existing backend limitation, not evidence for general Z80 correctness or cycle speedup.
