@@ -1,0 +1,21 @@
+{
+  "schema": "minz.hir-loop-sites/v1",
+  "stage": "input-hir",
+  "sites": [
+    {
+      "id": "413717c0664c475bf9c67ee592bac740dccdcf0b002c75bd2dfb19155938ed2f",
+      "function": "sum_array",
+      "kind": "while",
+      "ordinal": 0,
+      "hir_path": "body/s2",
+      "origin": {
+        "unit": "examples/nanz/01_sum_array.nanz",
+        "byte_offset": 281,
+        "line": 10,
+        "byte_column": 5,
+        "source_sha256": "fa0ad7d685c31aeb52b91b323bcef46e5c86c0e4390b2fd41ecd69ecfef58694"
+      }
+    }
+  ],
+  "unmapped_loops": 0
+}

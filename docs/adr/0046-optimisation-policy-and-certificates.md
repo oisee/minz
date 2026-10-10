@@ -1,7 +1,8 @@
 # ADR-0046: Optimisation goals and checked evidence
 
 Status: Proposed architecture. Conservative HIR size gate implemented;
-certificate loader, profiler and semantic site mapping not implemented.
+input-HIR loop source mapping implemented for Nanz; certificate loader, profiler
+and cross-pass semantic lineage not implemented.
 Date: 2026-10-10.
 
 ## Legality and profitability
@@ -120,8 +121,10 @@ justification.
 
 1. Complete pointer conformance from ADR-0045 and verifier contracts. Keep current
    guards until semantics agree.
-2. Add stable HIR sites and lineage through splitting/inlining/lowering. MIR Inst
-   has SrcFile/SrcLine, but HIR statements/expressions lack a common source identity.
+2. Input-HIR structured loop origins are implemented for Nanz (see
+   [PGO sites](../grace-pgo-sites.md)). Add expression sites and lineage through
+   splitting/inlining/lowering. MIR Inst
+   has SrcFile/SrcLine, but expression sites and cross-pass source identity remain incomplete.
    The abapiti site mechanism discussed by the user is not present in this checkout.
 3. Add an LLM-less VM/Z80 event collector; first pilot: loop length and guard
    hit/miss distributions for sum_array, keyed to source/build.

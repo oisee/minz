@@ -40,14 +40,15 @@ type Result struct {
 
 // Steps holds the intermediate outputs of each pipeline stage.
 type Steps struct {
-	HIR        string                  // HIR structural dump (hir.Module.Dump())
-	MIR2Raw    string                  // MIR2 module dump before optimisation passes
-	MIR2Opt    string                  // MIR2 module dump after DSE + ReorderBlocks
-	MIR2Module *mir2.Module            // MIR2 module (for LLVM/WASM/ABAP emit)
-	Allocation *mir2.AllocResult       // physical locations used by Z80 codegen
-	Assembly   string                  // Final .a80 text
-	LIRResults []lir.ConvergenceResult // LIR convergence check results (if LIRCheck enabled)
-	Traces     map[string]*FuncTrace   // per-function compilation trace (keyed by func name)
+	HIRLoopSites *hir.LoopSiteMap        // optional input-HIR origins, before Grace/splitting
+	HIR          string                  // HIR structural dump (hir.Module.Dump())
+	MIR2Raw      string                  // MIR2 module dump before optimisation passes
+	MIR2Opt      string                  // MIR2 module dump after DSE + ReorderBlocks
+	MIR2Module   *mir2.Module            // MIR2 module (for LLVM/WASM/ABAP emit)
+	Allocation   *mir2.AllocResult       // physical locations used by Z80 codegen
+	Assembly     string                  // Final .a80 text
+	LIRResults   []lir.ConvergenceResult // LIR convergence check results (if LIRCheck enabled)
+	Traces       map[string]*FuncTrace   // per-function compilation trace (keyed by func name)
 }
 
 // FuncTrace records the full compilation provenance for one function.
@@ -85,6 +86,7 @@ type FuncTrace struct {
 
 // Options configures optional pipeline passes.
 type Options struct {
+	CollectHIRSites bool // diagnostic loop sites; does not enable PGO
 	// ContractOpt enables Phase 5b interprocedural contract optimisation.
 	// Default true — only disable for A/B comparison or debugging.
 	ContractOpt bool
@@ -142,6 +144,13 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		return s, err
 	}
 
+	if opt.CollectHIRSites {
+		var err error
+		s.HIRLoopSites, err = hir.BuildLoopSiteMap(hm)
+		if err != nil {
+			return s, err
+		}
+	}
 	// Capture HIR before lowering.
 	s.HIR = hm.Dump()
 	if opt.UseHIRGrace {

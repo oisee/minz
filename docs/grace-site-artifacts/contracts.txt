@@ -1,0 +1,52 @@
+=== RUN   TestLoopSourceSiteIdentity
+--- PASS: TestLoopSourceSiteIdentity (0.00s)
+=== RUN   TestImportedLoopSourceSites
+--- PASS: TestImportedLoopSourceSites (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/nanz	0.006s
+=== RUN   TestInputHIRLoopSitesAreOptional
+    hir_sites_test.go:29: grace=false input-sites={
+          "schema": "minz.hir-loop-sites/v1",
+          "stage": "input-hir",
+          "sites": [
+            {
+              "id": "07e3a6e16f1392d2f39b8564b11978c946406c6652b80ed5e536eee93e1df3e5",
+              "function": "sum_array",
+              "kind": "while",
+              "ordinal": 0,
+              "hir_path": "body/s2",
+              "origin": {
+                "unit": "grace_measure.nanz",
+                "byte_offset": 70,
+                "line": 4,
+                "byte_column": 2,
+                "source_sha256": "2d12468027187dd0d377ced1daa14ceab34203710efd022a09bd0c96b9779722"
+              }
+            }
+          ],
+          "unmapped_loops": 0
+        }
+    hir_sites_test.go:29: grace=true input-sites={
+          "schema": "minz.hir-loop-sites/v1",
+          "stage": "input-hir",
+          "sites": [
+            {
+              "id": "07e3a6e16f1392d2f39b8564b11978c946406c6652b80ed5e536eee93e1df3e5",
+              "function": "sum_array",
+              "kind": "while",
+              "ordinal": 0,
+              "hir_path": "body/s2",
+              "origin": {
+                "unit": "grace_measure.nanz",
+                "byte_offset": 70,
+                "line": 4,
+                "byte_column": 2,
+                "source_sha256": "2d12468027187dd0d377ced1daa14ceab34203710efd022a09bd0c96b9779722"
+              }
+            }
+          ],
+          "unmapped_loops": 0
+        }
+--- PASS: TestInputHIRLoopSitesAreOptional (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.008s

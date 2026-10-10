@@ -1,5 +1,7 @@
 # План развития Grace в основном пути MinZ
 
+Обновление: [первый слой PGO sites](grace-pgo-sites.md) — исходные structured loops Nanz с координатами и SHA256; карта до Grace/splitting. Collector, lineage и loader ещё не реализованы.
+
 Обновление: [iterator stages](grace-iterator-stages.md) — range/filter/map/forEach, корректные DJNZ-рёбра и сохранение живого A; 48 сквозных вариантов VM/Z80.
 
 

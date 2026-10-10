@@ -39,6 +39,7 @@ package nanz
 //	lambda      = '|' (IDENT [':' type])* '|' (expr | '{' stmt* '}')
 
 import (
+	"crypto/sha256"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -126,18 +127,20 @@ const (
 )
 
 type token struct {
-	kind tokKind
-	val  string
-	line int
-	pos  int // byte offset in source where this token starts
+	kind  tokKind
+	val   string
+	line  int
+	pos   int // legacy lexer position (identifiers/numbers record their end)
+	start int // exact first source byte, used by source-site metadata
 }
 
 type lexer struct {
-	src    []byte
-	pos    int
-	line   int
-	tokens []token
-	cur    int
+	tokenStart int
+	src        []byte
+	pos        int
+	line       int
+	tokens     []token
+	cur        int
 }
 
 func newLexer(src string) *lexer {
@@ -182,6 +185,7 @@ func (l *lexer) tokenize() {
 			continue
 		}
 
+		l.tokenStart = l.pos
 		line := l.line
 		// Multi-char tokens
 		switch {
@@ -399,7 +403,7 @@ func (l *lexer) tokenize() {
 }
 
 func (l *lexer) emit(k tokKind, v string, line int) {
-	l.tokens = append(l.tokens, token{kind: k, val: v, line: line, pos: l.pos})
+	l.tokens = append(l.tokens, token{kind: k, val: v, line: line, pos: l.pos, start: l.tokenStart})
 }
 
 func (l *lexer) peek() token {
@@ -520,6 +524,7 @@ type nanzADTCtor struct {
 }
 
 type parser struct {
+	sourceSHA256 string
 	l            *lexer
 	name         string
 	opts         ParseOpts
@@ -695,7 +700,8 @@ func isOpToken(k tokKind) bool {
 }
 
 func (p *parser) parseModule() (*hir.Module, error) {
-	m := &hir.Module{Name: p.name}
+	m := &hir.Module{Name: p.name, SourceLocations: make(map[hir.Stmt]hir.SourceLocation)}
+	p.sourceSHA256 = fmt.Sprintf("%x", sha256.Sum256(p.l.src))
 	p.module = m
 	p.structs = make(map[string]*mir2.StructTy)
 	p.interfaces = make(map[string]*hir.InterfaceDecl)
@@ -1634,6 +1640,9 @@ func (p *parser) parseImport() error {
 		return fmt.Errorf("line %d: import %s: %w", line, modPath, err)
 	}
 
+	for node, origin := range imported.SourceLocations {
+		p.module.SourceLocations[node] = origin
+	}
 	// Merge imported module into current module.
 	// Module prefix for name mangling: "tui.render" → "tui__render__"
 	// Uses __ instead of $ for Z80 assembler label compatibility.
@@ -3151,8 +3160,25 @@ func isCheckOrPropagate(s hir.Stmt) bool {
 	return c.Fn == "@check" || c.Fn == "@propagate"
 }
 
-func (p *parser) parseStmt() (hir.Stmt, error) {
+func (p *parser) parseStmt() (stmt hir.Stmt, err error) {
 	t := p.l.peek()
+	// Metafunction expansions use a temporary lexer; do not assign generated
+	// statements an invented position in the caller's original source.
+	record := p.metaExpandDepth == 0
+	lex := p.l
+	defer func() {
+		if err != nil || stmt == nil || !record || p.module == nil {
+			return
+		}
+		lineStart := t.start
+		for lineStart > 0 && lex.src[lineStart-1] != '\n' {
+			lineStart--
+		}
+		p.module.SourceLocations[stmt] = hir.SourceLocation{
+			Unit: p.name, ByteOffset: t.start, Line: t.line, Column: t.start - lineStart + 1,
+			SourceSHA256: p.sourceSHA256,
+		}
+	}()
 	if t.kind == tokAt {
 		name := p.l.peekN(1)
 		if name.kind == tokIdent {
