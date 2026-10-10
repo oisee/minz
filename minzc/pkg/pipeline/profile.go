@@ -9,16 +9,19 @@ import (
 )
 
 // ProfileSelection supplies observations, workload and independently measured
-// model. Context is recomputed from current executable, HIR and workload.
+// models. Model and Models are mutually exclusive. Context is recomputed from
+// current executable, HIR and workload.
 type ProfileSelection struct {
 	Observations  []byte
 	Workload      hir.ProfileWorkload
+	Models        []hir.LoopCostModel
 	Model         hir.LoopCostModel
 	AssemblerMode string
 }
 
 // ProfileCompilationID keys pipeline options and assembler mode. Trace sinks and
-// profile bytes are excluded. Only measured default JRS policy is supported.
+// the entire ProfileSelection request are excluded. Only measured default JRS
+// policy is supported.
 func ProfileCompilationID(options Options, mode string) (string, error) {
 	if mode != "default" {
 		return "", fmt.Errorf("PGO: unsupported assembler configuration")
@@ -40,14 +43,28 @@ func applyPipelineProfile(m *hir.Module, options Options) ([]hir.ProfileDecision
 	if err != nil {
 		return nil, err
 	}
-	if config != request.Model.CompilationID {
-		return nil, fmt.Errorf("PGO: measured compilation configuration mismatch")
+	models := request.Models
+	if models != nil && request.Model != (hir.LoopCostModel{}) {
+		return nil, fmt.Errorf("PGO: Model and Models are mutually exclusive")
+	}
+	if models == nil {
+		models = []hir.LoopCostModel{request.Model}
+	}
+	for _, model := range models {
+		if config != model.CompilationID {
+			return nil, fmt.Errorf("PGO: measured compilation configuration mismatch")
+		}
 	}
 	context, err := hir.BuildWorkloadProfileContext(m, request.Workload)
 	if err != nil {
 		return nil, err
 	}
-	decisions, err := hir.SelectLoopVariants(bytes.NewReader(request.Observations), m, context, request.Model, options.OptSize)
+	var decisions []hir.ProfileDecision
+	if request.Models == nil {
+		decisions, err = hir.SelectLoopVariants(bytes.NewReader(request.Observations), m, context, request.Model, options.OptSize)
+	} else {
+		decisions, err = hir.SelectLoopVariantsWithModels(bytes.NewReader(request.Observations), m, context, models, options.OptSize)
+	}
 	if err != nil {
 		return nil, err
 	}

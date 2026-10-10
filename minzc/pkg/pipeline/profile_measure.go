@@ -42,9 +42,10 @@ type LoopCostEvidence struct {
 	Rows           []LoopCostRow             `json:"rows"`
 }
 
-// MeasureLoopCostModel measures only the single guarded scalar u8 sum idiom
-// recognized by the HIR profiler. Factories must produce independent equivalent
-// input HIR. Each variant is compiled once using the supplied options and default
+// MeasureLoopCostModel measures one guarded scalar u8 sum idiom
+// recognized by the HIR profiler, keeping every other site original.
+// Independent models do not validate simultaneous rewrites of multiple sites.
+// Factories must produce independent equivalent input HIR. Each variant is compiled once using the supplied options and default
 // Z80 assembler. All 1022 cases must agree with an independent sum oracle, raw
 // MIR2 VM, actual Z80 memory and guard branches, and a fitted linear cost model.
 func MeasureLoopCostModel(factory func() (*hir.Module, error), function string, workload hir.ProfileWorkload, options Options) (hir.LoopCostModel, *LoopCostEvidence, error) {
@@ -153,8 +154,26 @@ func MeasureLoopCostModel(factory func() (*hir.Module, error), function string, 
 		return fail(err)
 	}
 	snapshot := p.Snapshot()
-	if snapshot.Sites.UnmappedLoops != 0 || len(snapshot.Sites.Sites) != 1 || len(snapshot.Guards) != 1 || snapshot.Sites.Sites[0].Function != function || snapshot.Guards[0].SiteID != snapshot.Sites.Sites[0].ID {
-		return fail(fmt.Errorf("requires exactly one eligible mapped guarded sum site"))
+	if snapshot.Sites.UnmappedLoops != 0 {
+		return fail(fmt.Errorf("requires mapped input sites"))
+	}
+	var selectedSite string
+	for _, site := range snapshot.Sites.Sites {
+		if site.Function == function {
+			if selectedSite != "" {
+				return fail(fmt.Errorf("requires one loop in measured function"))
+			}
+			selectedSite = site.ID
+		}
+	}
+	eligible := false
+	for _, guard := range snapshot.Guards {
+		if guard.SiteID == selectedSite {
+			eligible = true
+		}
+	}
+	if selectedSite == "" || !eligible {
+		return fail(fmt.Errorf("requires eligible mapped guarded sum site"))
 	}
 	f := modules[0].FuncByName(function)
 	if f == nil || len(f.Params) != 2 || len(f.Captures) != 0 || f.RetTy != mir2.TyU8 || len(f.RetTys) != 0 || f.Params[0].Ty != mir2.TyPtr || f.Params[1].Ty != mir2.TyU8 || f.Params[0].SMC || f.Params[1].SMC {
@@ -173,13 +192,21 @@ func MeasureLoopCostModel(factory func() (*hir.Module, error), function string, 
 	if !ok || ref.Name != decl.Name || ref.Ty != mir2.TyU8 {
 		return fail(fmt.Errorf("requires exact accumulator return"))
 	}
-	site := snapshot.Guards[0].SiteID
+	site := selectedSite
 	evidence := &LoopCostEvidence{Schema: "minz.measured-u8-sum/v1", Compatibility: key, Function: function, SiteID: site, CompilationID: config, Options: options, AssemblerMode: "default", Rows: []LoopCostRow{}}
 	evidence.Options.GraceStats = nil
 	variants := make([]measuredLoopVariant, 2)
 	for i, variant := range []string{"original", "pointer-walk"} {
 		m := modules[i+1]
-		if err := hir.ApplyProfileDecisions(m, []hir.ProfileDecision{{Compatibility: key, SiteID: site, Variant: variant}}); err != nil {
+		decisions := make([]hir.ProfileDecision, 0, len(snapshot.Sites.Sites))
+		for _, inputSite := range snapshot.Sites.Sites {
+			choice := "original"
+			if inputSite.ID == site {
+				choice = variant
+			}
+			decisions = append(decisions, hir.ProfileDecision{Compatibility: key, SiteID: inputSite.ID, Variant: choice})
+		}
+		if err := hir.ApplyProfileDecisions(m, decisions); err != nil {
 			return fail(err)
 		}
 		raw := hir.LowerModule(m)

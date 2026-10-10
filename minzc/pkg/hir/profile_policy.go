@@ -45,16 +45,44 @@ type ProfileDecision struct {
 // estimating cost. Guard misses require explicitly measured fallback costs;
 // missing coverage conservatively retains original. Size mode retains smaller code; speed compares total T-states.
 func SelectLoopVariants(r io.Reader, m *Module, c ProfileContext, model LoopCostModel, size bool) ([]ProfileDecision, error) {
-	if model.CompilerID != c.CompilerID || model.SemanticsID != c.SemanticsID || model.TargetID != c.TargetID || model.EvidenceID == "" || model.OriginalBytes == 0 || model.PointerBytes == 0 {
-		return nil, fmt.Errorf("loop policy: missing or incompatible cost model")
+	decisions, err := SelectLoopVariantsWithModels(r, m, c, []LoopCostModel{model}, size)
+	// Retain the single-model API's attribution on unrelated original decisions.
+	for i := range decisions {
+		if decisions[i].Model.Function == "" {
+			decisions[i].Model = model
+		}
+	}
+	return decisions, err
+}
+
+// SelectLoopVariantsWithModels loads one fully compatible profile and matches
+// unique measured models by function. Uncovered functions retain original with
+// no model or invented cost totals. All model identities are checked before
+// producing decisions; compilation configuration is checked by the pipeline.
+// Independent models permit at most one pointer rewrite; simultaneous choices
+// require a future joint variant-set measurement contract.
+func SelectLoopVariantsWithModels(r io.Reader, m *Module, c ProfileContext, models []LoopCostModel, size bool) ([]ProfileDecision, error) {
+	if len(models) == 0 {
+		return nil, fmt.Errorf("loop policy: missing cost models")
 	}
 	profile, err := LoadLoopProfile(r, m, c)
 	if err != nil {
 		return nil, err
 	}
-	if model.Function == "" || model.HIRSHA256 != profile.Compatibility.HIRSHA256 {
-		return nil, fmt.Errorf("loop policy: model does not cover current typed HIR")
+	byFunction := map[string]LoopCostModel{}
+	for _, model := range models {
+		if model.CompilerID != c.CompilerID || model.SemanticsID != c.SemanticsID || model.TargetID != c.TargetID || model.EvidenceID == "" || model.OriginalBytes == 0 || model.PointerBytes == 0 {
+			return nil, fmt.Errorf("loop policy: missing or incompatible cost model")
+		}
+		if model.Function == "" || m.FuncByName(model.Function) == nil || model.HIRSHA256 != profile.Compatibility.HIRSHA256 {
+			return nil, fmt.Errorf("loop policy: model does not cover current typed HIR")
+		}
+		if _, exists := byFunction[model.Function]; exists {
+			return nil, fmt.Errorf("loop policy: duplicate cost model for function %q", model.Function)
+		}
+		byFunction[model.Function] = model
 	}
+
 	siteFunctions := map[string]string{}
 	for _, site := range profile.Sites.Sites {
 		siteFunctions[site.ID] = site.Function
@@ -70,12 +98,13 @@ func SelectLoopVariants(r io.Reader, m *Module, c ProfileContext, model LoopCost
 	}
 	out := []ProfileDecision{}
 	for _, count := range profile.Counts {
+		model, covered := byFunction[siteFunctions[count.SiteID]]
 		d := ProfileDecision{Compatibility: profile.Compatibility, SiteID: count.SiteID, Variant: "original", Reason: "no complete measured guard coverage", Model: model, OriginalTStates: ""}
-		if siteFunctions[count.SiteID] == model.Function {
+		if covered {
 			d.OriginalTStates = total(count.Entries, count.BodyEntries, model.OriginalEntry, model.OriginalIteration)
 		}
 		g, ok := guards[count.SiteID]
-		if ok && siteFunctions[count.SiteID] == model.Function && (g.FallbackEntries == 0 || model.FallbackMeasured) && g.FastEntries <= count.Entries && g.FallbackEntries == count.Entries-g.FastEntries && g.FastBodyEntries <= count.BodyEntries && g.FallbackBodyEntries == count.BodyEntries-g.FastBodyEntries && count.Entries > 0 {
+		if ok && covered && (g.FallbackEntries == 0 || model.FallbackMeasured) && g.FastEntries <= count.Entries && g.FallbackEntries == count.Entries-g.FastEntries && g.FastBodyEntries <= count.BodyEntries && g.FallbackBodyEntries == count.BodyEntries-g.FastBodyEntries && count.Entries > 0 {
 			d.PointerTStates = total(g.FastEntries, g.FastBodyEntries, model.FastEntry, model.FastIteration)
 			fast, _ := new(big.Int).SetString(d.PointerTStates, 10)
 			fallback, _ := new(big.Int).SetString(total(g.FallbackEntries, g.FallbackBodyEntries, model.FallbackEntry, model.FallbackIteration), 10)
@@ -99,6 +128,15 @@ func SelectLoopVariants(r io.Reader, m *Module, c ProfileContext, model LoopCost
 			}
 		}
 		out = append(out, d)
+	}
+	selectedCount := 0
+	for _, decision := range out {
+		if decision.Variant == "pointer-walk" {
+			selectedCount++
+		}
+	}
+	if selectedCount > 1 {
+		return nil, fmt.Errorf("loop policy: simultaneous pointer-walk choices require jointly measured evidence")
 	}
 	return out, nil
 }

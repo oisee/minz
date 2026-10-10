@@ -166,17 +166,6 @@ func TestMeasureLoopCostModelRefusals(t *testing.T) {
 		h.FuncByName("sum_array").Body.Body[3].(*hir.ReturnStmt).Val = hir.U8(0)
 		return h, nil
 	}, "sum_array", w, Options{})
-	check("multiple sites", func() (*hir.Module, error) {
-		h, _ := factory()
-		other, _ := factory()
-		f := other.FuncByName("sum_array")
-		f.Name = "other_sum"
-		h.Funcs = append(h.Funcs, f)
-		for s, l := range other.SourceLocations {
-			h.SourceLocations[s] = l
-		}
-		return h, nil
-	}, "sum_array", w, Options{})
 	check("sticky input", func() (*hir.Module, error) { h, _ := factory(); h.PointerWalkPolicy = map[string]bool{}; return h, nil }, "sum_array", w, Options{})
 	check("source manifest missing", func() (*hir.Module, error) { h, _ := factory(); h.SourceUnitsComplete = false; return h, nil }, "sum_array", w, Options{})
 	bad := w

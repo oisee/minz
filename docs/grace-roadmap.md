@@ -1,3 +1,5 @@
+Обновление: [воспроизводимый CLI PGO](grace-pgo-cli.md) (`92b581e3`) — automatic measured model, 1022 VM/Z80 scenarios, collection/selection и saved evidence. Exact одиночный u8 sum slice завершён; general corpus/multi-function/MIR lineage впереди. Старые обновления ниже — история этапов.
+
 # План развития Grace в основном пути MinZ
 
 Обновление: [первый слой PGO sites](grace-pgo-sites.md) — исходные structured loops Nanz с координатами и SHA256; карта до Grace/splitting. Collector, lineage и loader ещё не реализованы.
