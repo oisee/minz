@@ -2842,7 +2842,7 @@ func (l *lowerer) lowerFusedForEach(chain iterChain) {
 			paramName = cbFn.Params[0].Name
 		}
 		for _, s := range cbFn.Body.Body {
-			renamed := renameStmt(s, paramName, elemVar)
+			renamed := renameStmt(s, paramName, elemVar, l.lineage)
 			// ReturnStmt inside an inlined forEach callback = end of iteration body
 			// (not return from the outer function). Skip it.
 			if _, isRet := renamed.(*ReturnStmt); isRet {
@@ -2950,7 +2950,7 @@ func (l *lowerer) lowerRangeForEach(chain iterChain) {
 			if _, isRet := st.(*ReturnStmt); isRet {
 				continue
 			}
-			bodyStmts = append(bodyStmts, renameStmt(st, paramName, elemVar))
+			bodyStmts = append(bodyStmts, renameStmt(st, paramName, elemVar, l.lineage))
 		}
 	} else {
 		bodyStmts = []Stmt{&ExprStmt{Expr: &CallExpr{
@@ -3245,7 +3245,16 @@ func renameExpr(e Expr, from, to string) Expr {
 }
 
 // renameStmt deep-copies a statement, renaming variables as in renameExpr.
-func renameStmt(s Stmt, from, to string) Stmt {
+func renameStmt(s Stmt, from, to string, lineage ...map[Stmt]LoopLineage) (renamed Stmt) {
+	// Each inlined copy retains its original site attribution. The lowerer owns
+	// this map; adding clone nodes must not mutate the input module metadata.
+	defer func() {
+		if len(lineage) > 0 && lineage[0] != nil && renamed != nil {
+			if origin, ok := lineage[0][s]; ok {
+				lineage[0][renamed] = origin
+			}
+		}
+	}()
 	if s == nil {
 		return nil
 	}
@@ -3265,11 +3274,11 @@ func renameStmt(s Stmt, from, to string) Stmt {
 	case *IfStmt:
 		var els *Block
 		if st.Else != nil {
-			els = renameBlock(st.Else, from, to)
+			els = renameBlock(st.Else, from, to, lineage...)
 		}
-		return &IfStmt{Cond: renameExpr(st.Cond, from, to), Then: renameBlock(st.Then, from, to), Else: els}
+		return &IfStmt{Cond: renameExpr(st.Cond, from, to), Then: renameBlock(st.Then, from, to, lineage...), Else: els}
 	case *Block:
-		return renameBlock(st, from, to)
+		return renameBlock(st, from, to, lineage...)
 	case *BreakStmt:
 		return &BreakStmt{}
 	case *ContinueStmt:
@@ -3281,20 +3290,44 @@ func renameStmt(s Stmt, from, to string) Stmt {
 	case *StoreStmt:
 		return &StoreStmt{Ptr: renameExpr(st.Ptr, from, to), Val: renameExpr(st.Val, from, to)}
 	case *WhileStmt:
-		return &WhileStmt{Cond: renameExpr(st.Cond, from, to), Body: renameBlock(st.Body, from, to)}
+		return &WhileStmt{Cond: renameExpr(st.Cond, from, to), Body: renameBlock(st.Body, from, to, lineage...)}
+	case *ForRangeStmt:
+		c := *st
+		c.Start = renameExpr(st.Start, from, to)
+		c.End = renameExpr(st.End, from, to)
+		c.Body = renameBlock(st.Body, from, to, lineage...)
+		return &c
+	case *ForEachStmt:
+		c := *st
+		c.Ptr = renameExpr(st.Ptr, from, to)
+		c.Start = renameExpr(st.Start, from, to)
+		c.Len = renameExpr(st.Len, from, to)
+		c.Body = renameBlock(st.Body, from, to, lineage...)
+		return &c
+	case *SwitchStmt:
+		c := *st
+		c.Val = renameExpr(st.Val, from, to)
+		c.Cases = make([]*SwitchCase, len(st.Cases))
+		for i := range c.Cases {
+			cc := *st.Cases[i]
+			cc.Body = renameBlock(st.Cases[i].Body, from, to, lineage...)
+			c.Cases[i] = &cc
+		}
+		c.Default = renameBlock(st.Default, from, to, lineage...)
+		return &c
 	default:
 		return s
 	}
 }
 
 // renameBlock deep-copies a block, renaming variables.
-func renameBlock(b *Block, from, to string) *Block {
+func renameBlock(b *Block, from, to string, lineage ...map[Stmt]LoopLineage) *Block {
 	if b == nil {
 		return nil
 	}
 	stmts := make([]Stmt, len(b.Body))
 	for i, s := range b.Body {
-		stmts[i] = renameStmt(s, from, to)
+		stmts[i] = renameStmt(s, from, to, lineage...)
 	}
 	return &Block{Body: stmts}
 }
