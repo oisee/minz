@@ -1,0 +1,18 @@
+{
+  "schema": "minz.profile-workload/v1",
+  "target_model": "cpm-z80-v1",
+  "max_steps": 100000,
+  "max_memory": 65536,
+  "resources": null,
+  "globals": null,
+  "calls": [
+    {
+      "function": "run",
+      "arguments": null
+    },
+    {
+      "function": "run",
+      "arguments": null
+    }
+  ]
+}

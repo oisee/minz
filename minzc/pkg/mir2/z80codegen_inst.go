@@ -126,6 +126,10 @@ func (g *z80cg) genInst(inst *Inst) {
 			} else {
 				g.emitf("    LD %s, %d", dst, inst.Imm)
 			}
+			// An immediate replaces the destination's value, including any
+			// tracked copy in A. Otherwise a later ALU op can skip LD A,dst
+			// using an alias established before this constant was loaded.
+			g.invalidate(dst)
 		}
 
 	case OpMove:

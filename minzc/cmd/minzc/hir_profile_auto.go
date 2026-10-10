@@ -11,10 +11,11 @@ import (
 )
 
 var hirProfileAutoDirectory, hirProfileAutoFunction, hirProfileAutoWorkload string
+var hirProfileJoint bool
 
 func validateHIRProfileAuto(source string) error {
 	if hirProfileAutoDirectory == "" {
-		if hirProfileAutoFunction != "" || hirProfileAutoWorkload != "" {
+		if hirProfileJoint || hirProfileAutoFunction != "" || hirProfileAutoWorkload != "" {
 			return fmt.Errorf("HIR profile auto: --hir-profile-auto directory is required")
 		}
 		return nil
@@ -22,8 +23,11 @@ func validateHIRProfileAuto(source string) error {
 	if hirProfile != (hirProfileFlags{}) {
 		return fmt.Errorf("HIR profile auto: separate collection/application flags cannot be combined")
 	}
-	if hirProfileAutoFunction == "" || hirProfileAutoWorkload == "" {
+	if (!hirProfileJoint && hirProfileAutoFunction == "") || hirProfileAutoWorkload == "" {
 		return fmt.Errorf("HIR profile auto: --hir-profile-function and --hir-profile-auto-workload are required")
+	}
+	if hirProfileJoint && hirProfileAutoFunction != "" {
+		return fmt.Errorf("HIR profile joint: function restriction is incompatible with joint search")
 	}
 	if filepath.Ext(source) != ".nanz" || backend != "z80" || emitFormat != "" || gpuRun != "" || listAsserts || pgoProfile != "" || pgoDebug {
 		return fmt.Errorf("HIR profile auto: requires Nanz source and default Z80 output")
@@ -49,7 +53,7 @@ func validateHIRProfileAuto(source string) error {
 		}
 	}
 	// Never let an artifact overwrite its own source, workload or compiled product.
-	for _, name := range []string{"workload.json", "profile.json", "run.json", "model.json", "evidence.json", "decisions.json", "input.hir", "raw.mir", "optimized.mir", "selected.a80"} {
+	for _, name := range []string{"workload.json", "profile.json", "run.json", "model.json", "evidence.json", "decisions.json", "input.hir", "raw.mir", "optimized.mir", "selected.a80", "joint-evidence.json", "selected.bin"} {
 		dest, _ := filepath.Abs(filepath.Join(hirProfileAutoDirectory, name))
 		for _, input := range []string{source, hirProfileAutoWorkload, outputFile} {
 			if input == "" {
@@ -100,4 +104,35 @@ func prepareHIRProfileAuto(m *hir.Module, factory func() (*hir.Module, error), o
 		}
 	}
 	return &pipeline.ProfileSelection{Observations: observations, Workload: workload, Model: model, AssemblerMode: "default"}, nil
+}
+
+func prepareHIRProfileJoint(m *hir.Module, factory func() (*hir.Module, error), options pipeline.Options) (*pipeline.ProfileVariantSetResult, error) {
+	var workload hir.ProfileWorkload
+	if err := decodeHIRProfileJSON(hirProfileAutoWorkload, hirWorkloadJSONLimit, &workload); err != nil {
+		return nil, err
+	}
+	run, err := hir.RunLoopProfile(m, workload)
+	if err != nil {
+		return nil, err
+	}
+	observations, err := json.Marshal(run.Profile)
+	if err != nil {
+		return nil, err
+	}
+	result, err := pipeline.MeasureProfileVariantSets(factory, observations, workload, options, 4)
+	if err != nil {
+		return nil, err
+	}
+	if err := os.MkdirAll(hirProfileAutoDirectory, 0755); err != nil {
+		return nil, err
+	}
+	for name, value := range map[string]any{"workload.json": workload, "profile.json": run.Profile, "run.json": run, "joint-evidence.json": result.Evidence, "decisions.json": result.Decisions} {
+		if err := writeHIRProfileJSON(filepath.Join(hirProfileAutoDirectory, name), value); err != nil {
+			return nil, err
+		}
+	}
+	if err := os.WriteFile(filepath.Join(hirProfileAutoDirectory, "selected.bin"), result.Binary, 0644); err != nil {
+		return nil, err
+	}
+	return result, nil
 }

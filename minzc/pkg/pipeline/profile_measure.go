@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"strings"
 
 	"github.com/minz/minzc/pkg/emulator"
@@ -74,60 +73,8 @@ func MeasureLoopCostModel(factory func() (*hir.Module, error), function string, 
 		if m.PointerWalkPolicy != nil || m.LoopLineage != nil {
 			return fail(fmt.Errorf("factory must return input HIR without policy/lineage"))
 		}
-		current := map[uintptr]bool{}
-		traversed := map[uintptr]bool{}
-		var walk func(reflect.Value)
-		walk = func(v reflect.Value) {
-			if !v.IsValid() {
-				return
-			}
-			if v.Kind() == reflect.Interface {
-				if !v.IsNil() {
-					walk(v.Elem())
-				}
-				return
-			}
-			if v.Kind() == reflect.Pointer {
-				if v.IsNil() {
-					return
-				}
-				if traversed[v.Pointer()] {
-					return
-				}
-				traversed[v.Pointer()] = true
-				ast := false
-				switch v.Interface().(type) {
-				case *hir.Module, *hir.Func, hir.Stmt, hir.Expr:
-					ast = true
-				}
-				if ast {
-					if current[v.Pointer()] {
-						return
-					}
-					current[v.Pointer()] = true
-				}
-				walk(v.Elem())
-				return
-			}
-			switch v.Kind() {
-			case reflect.Struct:
-				for j := 0; j < v.NumField(); j++ {
-					if v.Field(j).CanInterface() {
-						walk(v.Field(j))
-					}
-				}
-			case reflect.Slice, reflect.Array:
-				for j := 0; j < v.Len(); j++ {
-					walk(v.Index(j))
-				}
-			}
-		}
-		walk(reflect.ValueOf(m))
-		for p := range current {
-			if seen[p] {
-				return fail(fmt.Errorf("factory returned shared HIR nodes"))
-			}
-			seen[p] = true
+		if err := jointCheckFreshHIR(m, seen); err != nil {
+			return fail(err)
 		}
 		c, e := hir.BuildWorkloadProfileContext(m, workload)
 		if e != nil {
@@ -148,6 +95,19 @@ func MeasureLoopCostModel(factory func() (*hir.Module, error), function string, 
 			}
 		}
 		modules[i] = m
+	}
+	for _, m := range modules {
+		c, err := hir.BuildWorkloadProfileContext(m, workload)
+		if err != nil {
+			return fail(err)
+		}
+		current, err := hir.BuildProfileCompatibility(m, c)
+		if err != nil {
+			return fail(err)
+		}
+		if !jointEqual(current, key) || m.PointerWalkPolicy != nil || m.LoopLineage != nil {
+			return fail(fmt.Errorf("factory mutated previous HIR/source"))
+		}
 	}
 	p, err := hir.NewLoopProfiler(modules[0])
 	if err != nil {
@@ -357,6 +317,8 @@ func measureLoopExecution(v measuredLoopVariant, name string, args []int64, memo
 	sp := z.GetSP()
 	returnPC := uint16(z.GetMemory(sp)) | uint16(z.GetMemory(sp+1))<<8
 	start := z.GetCycles()
+	access := emulator.NewProfiler()
+	z.SetProfiler(access)
 	visited := map[uint16]bool{}
 	for i := 0; ; i++ {
 		if i >= 100000 {
@@ -369,6 +331,29 @@ func measureLoopExecution(v measuredLoopVariant, name string, args []int64, memo
 		}
 	}
 	cycles := z.GetCycles() - start
+	z.SetProfiler(nil)
+	// In this exact sum function each input byte is read exactly once. Opcode
+	// fetches/operands reside in assembled code; stack access is a separate ABI
+	// region. Catch extra reads, zero-trip reads and writes even when final bytes
+	// happen to equal their initial values.
+	for address := 0; address < 65536; address++ {
+		addr := uint16(address)
+		_, input := memory[addr]
+		if input {
+			if access.ReadCount[addr] != 1 || access.WriteCount[addr] != 0 {
+				return 0, fmt.Errorf("input access mismatch at %04x: reads=%d writes=%d", addr, access.ReadCount[addr], access.WriteCount[addr])
+			}
+			continue
+		}
+		code := address >= assertLoadAddr && address < assertLoadAddr+len(r.Binary)
+		stack := address >= 0xFDF0 && address < 0xFF00
+		if !code && !stack && (access.ReadCount[addr] != 0 || access.WriteCount[addr] != 0) {
+			return 0, fmt.Errorf("unexpected data access at %04x: reads=%d writes=%d", addr, access.ReadCount[addr], access.WriteCount[addr])
+		}
+		if code && access.WriteCount[addr] != 0 {
+			return 0, fmt.Errorf("unexpected code write at %04x", addr)
+		}
+	}
 	if pointer {
 		then, otherwise := false, false
 		for symbol, address := range r.Symbols {

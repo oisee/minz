@@ -1,0 +1,837 @@
+{
+  "schema": "minz.joint-profile-variant-sets/v1",
+  "compatibility": {
+    "schema": "minz.loop-profile-compatibility/v1",
+    "context": {
+      "compiler_id": "executable-sha256:404378f7f090a3e1482e3d80aa77cb57c02de7786873ec97ded26d210a3c3ce3",
+      "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+      "target_id": "module-target:1/model:cpm-z80-v1",
+      "workload_sha256": "6bea256aa78514d842a920ac17b0ac283655c12a65946218b957480fdac31180",
+      "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+      "dependencies": {
+        "/tmp/minz-pgo-joint-caller-artifacts/caller.nanz": "fe4447b9ba38a3a1a1f2c26147ad200e7c1848d774032fcdc7535bdb30f4210d"
+      }
+    },
+    "hir_sha256": "671ceb3400b048f0bb7fcbd00f40af0023cd459ef2bfbb04b8e8851f00131f07",
+    "origins_sha256": "d197eda3f0b5892a1d098ea2ce48eddc882dc244ac85050e22b1650d728eee43"
+  },
+  "compilation_id": "7ec751afedb6a025259f20dc48d83573412d3b8c6fbbbc53cb2418b93cda19ab",
+  "options": {
+    "ProfileSelection": null,
+    "CollectHIRSites": false,
+    "ContractOpt": true,
+    "AnnotateTStates": false,
+    "LIRCheck": false,
+    "UseLIR": false,
+    "UseGrace": false,
+    "GraceStats": null,
+    "UseHIRGrace": true,
+    "OptSize": false,
+    "Backend": "z80",
+    "AssertMode": "none",
+    "SkipZ80Emission": false
+  },
+  "assembler_mode": "default",
+  "max_sites": 4,
+  "eligible_sites": [
+    "7df456bd7d3d3f6319ec3e67fd47dcc5424dedee97cacdeb0910adac68dadd4c",
+    "f93623c63e079505b61812dc9bdf351cacd3c5131fd63d3bf941e24a1c955548"
+  ],
+  "oracle": {
+    "profile": {
+      "guards": [
+        {
+          "site_id": "7df456bd7d3d3f6319ec3e67fd47dcc5424dedee97cacdeb0910adac68dadd4c",
+          "equal_entries": 0,
+          "fast_entries": 2,
+          "fallback_entries": 0,
+          "fast_body_entries": 2,
+          "fallback_body_entries": 0
+        },
+        {
+          "site_id": "f93623c63e079505b61812dc9bdf351cacd3c5131fd63d3bf941e24a1c955548",
+          "equal_entries": 0,
+          "fast_entries": 2,
+          "fallback_entries": 0,
+          "fast_body_entries": 10,
+          "fallback_body_entries": 0
+        }
+      ],
+      "compatibility": {
+        "schema": "minz.loop-profile-compatibility/v1",
+        "context": {
+          "compiler_id": "executable-sha256:404378f7f090a3e1482e3d80aa77cb57c02de7786873ec97ded26d210a3c3ce3",
+          "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+          "target_id": "module-target:1/model:cpm-z80-v1",
+          "workload_sha256": "6bea256aa78514d842a920ac17b0ac283655c12a65946218b957480fdac31180",
+          "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+          "dependencies": {
+            "/tmp/minz-pgo-joint-caller-artifacts/caller.nanz": "fe4447b9ba38a3a1a1f2c26147ad200e7c1848d774032fcdc7535bdb30f4210d"
+          }
+        },
+        "hir_sha256": "671ceb3400b048f0bb7fcbd00f40af0023cd459ef2bfbb04b8e8851f00131f07",
+        "origins_sha256": "d197eda3f0b5892a1d098ea2ce48eddc882dc244ac85050e22b1650d728eee43"
+      },
+      "schema": "minz.input-hir-loop-observations/v4",
+      "stage": "unoptimised-mir2-vm",
+      "sites": {
+        "schema": "minz.hir-loop-sites/v1",
+        "stage": "input-hir",
+        "sites": [
+          {
+            "id": "7df456bd7d3d3f6319ec3e67fd47dcc5424dedee97cacdeb0910adac68dadd4c",
+            "function": "small_sum",
+            "kind": "while",
+            "ordinal": 0,
+            "hir_path": "body/s2",
+            "origin": {
+              "unit": "/tmp/minz-pgo-joint-caller-artifacts/caller.nanz",
+              "byte_offset": 107,
+              "line": 6,
+              "byte_column": 2,
+              "source_sha256": "fe4447b9ba38a3a1a1f2c26147ad200e7c1848d774032fcdc7535bdb30f4210d"
+            }
+          },
+          {
+            "id": "f93623c63e079505b61812dc9bdf351cacd3c5131fd63d3bf941e24a1c955548",
+            "function": "big_sum",
+            "kind": "while",
+            "ordinal": 0,
+            "hir_path": "body/s2",
+            "origin": {
+              "unit": "/tmp/minz-pgo-joint-caller-artifacts/caller.nanz",
+              "byte_offset": 206,
+              "line": 13,
+              "byte_column": 2,
+              "source_sha256": "fe4447b9ba38a3a1a1f2c26147ad200e7c1848d774032fcdc7535bdb30f4210d"
+            }
+          }
+        ],
+        "unmapped_loops": 0
+      },
+      "counts": [
+        {
+          "site_id": "7df456bd7d3d3f6319ec3e67fd47dcc5424dedee97cacdeb0910adac68dadd4c",
+          "entries": 2,
+          "body_entries": 2
+        },
+        {
+          "site_id": "f93623c63e079505b61812dc9bdf351cacd3c5131fd63d3bf941e24a1c955548",
+          "entries": 2,
+          "body_entries": 10
+        }
+      ],
+      "completed_calls": 2,
+      "failed_calls": 0
+    },
+    "results": [
+      [
+        {
+          "I": 16
+        }
+      ],
+      [
+        {
+          "I": 16
+        }
+      ]
+    ],
+    "globals": {
+      "data": "AQIDBAU=",
+      "output": "EA=="
+    },
+    "resources": {}
+  },
+  "candidates": [
+    {
+      "decisions": [
+        {
+          "compatibility": {
+            "schema": "minz.loop-profile-compatibility/v1",
+            "context": {
+              "compiler_id": "executable-sha256:404378f7f090a3e1482e3d80aa77cb57c02de7786873ec97ded26d210a3c3ce3",
+              "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+              "target_id": "module-target:1/model:cpm-z80-v1",
+              "workload_sha256": "6bea256aa78514d842a920ac17b0ac283655c12a65946218b957480fdac31180",
+              "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+              "dependencies": {
+                "/tmp/minz-pgo-joint-caller-artifacts/caller.nanz": "fe4447b9ba38a3a1a1f2c26147ad200e7c1848d774032fcdc7535bdb30f4210d"
+              }
+            },
+            "hir_sha256": "671ceb3400b048f0bb7fcbd00f40af0023cd459ef2bfbb04b8e8851f00131f07",
+            "origins_sha256": "d197eda3f0b5892a1d098ea2ce48eddc882dc244ac85050e22b1650d728eee43"
+          },
+          "site_id": "7df456bd7d3d3f6319ec3e67fd47dcc5424dedee97cacdeb0910adac68dadd4c",
+          "variant": "original",
+          "reason": "jointly measured variant set",
+          "original_t_states": "",
+          "model": {
+            "compiler_id": "",
+            "semantics_id": "",
+            "function": "",
+            "hir_sha256": "",
+            "target_id": "",
+            "compilation_id": "",
+            "evidence_id": "",
+            "original_bytes": 0,
+            "pointer_bytes": 0,
+            "original_entry_t_states": 0,
+            "original_iteration_t_states": 0,
+            "equal_entry_extra_t_states": 0,
+            "fast_entry_t_states": 0,
+            "fallback_entry_t_states": 0,
+            "fallback_iteration_t_states": 0,
+            "fallback_measured": false,
+            "fast_iteration_t_states": 0
+          }
+        },
+        {
+          "compatibility": {
+            "schema": "minz.loop-profile-compatibility/v1",
+            "context": {
+              "compiler_id": "executable-sha256:404378f7f090a3e1482e3d80aa77cb57c02de7786873ec97ded26d210a3c3ce3",
+              "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+              "target_id": "module-target:1/model:cpm-z80-v1",
+              "workload_sha256": "6bea256aa78514d842a920ac17b0ac283655c12a65946218b957480fdac31180",
+              "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+              "dependencies": {
+                "/tmp/minz-pgo-joint-caller-artifacts/caller.nanz": "fe4447b9ba38a3a1a1f2c26147ad200e7c1848d774032fcdc7535bdb30f4210d"
+              }
+            },
+            "hir_sha256": "671ceb3400b048f0bb7fcbd00f40af0023cd459ef2bfbb04b8e8851f00131f07",
+            "origins_sha256": "d197eda3f0b5892a1d098ea2ce48eddc882dc244ac85050e22b1650d728eee43"
+          },
+          "site_id": "f93623c63e079505b61812dc9bdf351cacd3c5131fd63d3bf941e24a1c955548",
+          "variant": "original",
+          "reason": "jointly measured variant set",
+          "original_t_states": "",
+          "model": {
+            "compiler_id": "",
+            "semantics_id": "",
+            "function": "",
+            "hir_sha256": "",
+            "target_id": "",
+            "compilation_id": "",
+            "evidence_id": "",
+            "original_bytes": 0,
+            "pointer_bytes": 0,
+            "original_entry_t_states": 0,
+            "original_iteration_t_states": 0,
+            "equal_entry_extra_t_states": 0,
+            "fast_entry_t_states": 0,
+            "fallback_entry_t_states": 0,
+            "fallback_iteration_t_states": 0,
+            "fallback_measured": false,
+            "fast_iteration_t_states": 0
+          }
+        }
+      ],
+      "binary": "PgDdJgDdaURNX9183b170N1cFgDF4RlWghYBX918xgFXe91iGOM+AN0mAN1pRE1f3XzdvXvQ3VwWAMXhGVaCFgFf3XzGAVd73WIY4yFngA4BzQCAIWeADgX1zSaAR/GAMmyAOmyAyQECAwQFAA==",
+      "binary_sha256": "d0cf88abf642a343d9de16c33559eef560721a7ea3ab401c661e390980331a1f",
+      "module_bytes": 109,
+      "total_t_states": 2234,
+      "raw_run": {
+        "profile": {
+          "guards": null,
+          "compatibility": null,
+          "schema": "",
+          "stage": "",
+          "sites": null,
+          "counts": null,
+          "completed_calls": 0,
+          "failed_calls": 0
+        },
+        "results": [
+          [
+            {
+              "I": 16
+            }
+          ],
+          [
+            {
+              "I": 16
+            }
+          ]
+        ],
+        "globals": {
+          "data": "AQIDBAU=",
+          "output": "EA=="
+        },
+        "resources": {}
+      },
+      "run": {
+        "compatibility": {
+          "schema": "minz.loop-profile-compatibility/v1",
+          "context": {
+            "compiler_id": "executable-sha256:404378f7f090a3e1482e3d80aa77cb57c02de7786873ec97ded26d210a3c3ce3",
+            "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+            "target_id": "module-target:1/model:cpm-z80-v1",
+            "workload_sha256": "6bea256aa78514d842a920ac17b0ac283655c12a65946218b957480fdac31180",
+            "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+            "dependencies": {
+              "/tmp/minz-pgo-joint-caller-artifacts/caller.nanz": "fe4447b9ba38a3a1a1f2c26147ad200e7c1848d774032fcdc7535bdb30f4210d"
+            }
+          },
+          "hir_sha256": "671ceb3400b048f0bb7fcbd00f40af0023cd459ef2bfbb04b8e8851f00131f07",
+          "origins_sha256": "d197eda3f0b5892a1d098ea2ce48eddc882dc244ac85050e22b1650d728eee43"
+        },
+        "binary_sha256": "d0cf88abf642a343d9de16c33559eef560721a7ea3ab401c661e390980331a1f",
+        "bootstrap_sha256": [
+          "63dc2514229ac26e1965d153eb5a110ea7b9e3d64a85f450ece9a2b3f24cdcae",
+          "63dc2514229ac26e1965d153eb5a110ea7b9e3d64a85f450ece9a2b3f24cdcae"
+        ],
+        "invocations": [
+          {
+            "function": "run",
+            "t_states": 1117,
+            "results": [
+              {
+                "I": 16
+              }
+            ]
+          },
+          {
+            "function": "run",
+            "t_states": 1117,
+            "results": [
+              {
+                "I": 16
+              }
+            ]
+          }
+        ],
+        "globals": {
+          "data": "AQIDBAU=",
+          "output": "EA=="
+        },
+        "resources": {},
+        "resource_addresses": {},
+        "global_addresses": {
+          "data": 32871,
+          "output": 32876
+        },
+        "bootstrap_t_states": 54,
+        "total_t_states": 2234,
+        "executed_steps": 310
+      }
+    },
+    {
+      "decisions": [
+        {
+          "compatibility": {
+            "schema": "minz.loop-profile-compatibility/v1",
+            "context": {
+              "compiler_id": "executable-sha256:404378f7f090a3e1482e3d80aa77cb57c02de7786873ec97ded26d210a3c3ce3",
+              "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+              "target_id": "module-target:1/model:cpm-z80-v1",
+              "workload_sha256": "6bea256aa78514d842a920ac17b0ac283655c12a65946218b957480fdac31180",
+              "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+              "dependencies": {
+                "/tmp/minz-pgo-joint-caller-artifacts/caller.nanz": "fe4447b9ba38a3a1a1f2c26147ad200e7c1848d774032fcdc7535bdb30f4210d"
+              }
+            },
+            "hir_sha256": "671ceb3400b048f0bb7fcbd00f40af0023cd459ef2bfbb04b8e8851f00131f07",
+            "origins_sha256": "d197eda3f0b5892a1d098ea2ce48eddc882dc244ac85050e22b1650d728eee43"
+          },
+          "site_id": "7df456bd7d3d3f6319ec3e67fd47dcc5424dedee97cacdeb0910adac68dadd4c",
+          "variant": "original",
+          "reason": "jointly measured variant set",
+          "original_t_states": "",
+          "model": {
+            "compiler_id": "",
+            "semantics_id": "",
+            "function": "",
+            "hir_sha256": "",
+            "target_id": "",
+            "compilation_id": "",
+            "evidence_id": "",
+            "original_bytes": 0,
+            "pointer_bytes": 0,
+            "original_entry_t_states": 0,
+            "original_iteration_t_states": 0,
+            "equal_entry_extra_t_states": 0,
+            "fast_entry_t_states": 0,
+            "fallback_entry_t_states": 0,
+            "fallback_iteration_t_states": 0,
+            "fallback_measured": false,
+            "fast_iteration_t_states": 0
+          }
+        },
+        {
+          "compatibility": {
+            "schema": "minz.loop-profile-compatibility/v1",
+            "context": {
+              "compiler_id": "executable-sha256:404378f7f090a3e1482e3d80aa77cb57c02de7786873ec97ded26d210a3c3ce3",
+              "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+              "target_id": "module-target:1/model:cpm-z80-v1",
+              "workload_sha256": "6bea256aa78514d842a920ac17b0ac283655c12a65946218b957480fdac31180",
+              "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+              "dependencies": {
+                "/tmp/minz-pgo-joint-caller-artifacts/caller.nanz": "fe4447b9ba38a3a1a1f2c26147ad200e7c1848d774032fcdc7535bdb30f4210d"
+              }
+            },
+            "hir_sha256": "671ceb3400b048f0bb7fcbd00f40af0023cd459ef2bfbb04b8e8851f00131f07",
+            "origins_sha256": "d197eda3f0b5892a1d098ea2ce48eddc882dc244ac85050e22b1650d728eee43"
+          },
+          "site_id": "f93623c63e079505b61812dc9bdf351cacd3c5131fd63d3bf941e24a1c955548",
+          "variant": "pointer-walk",
+          "reason": "jointly measured variant set",
+          "original_t_states": "",
+          "model": {
+            "compiler_id": "",
+            "semantics_id": "",
+            "function": "",
+            "hir_sha256": "",
+            "target_id": "",
+            "compilation_id": "",
+            "evidence_id": "",
+            "original_bytes": 0,
+            "pointer_bytes": 0,
+            "original_entry_t_states": 0,
+            "original_iteration_t_states": 0,
+            "equal_entry_extra_t_states": 0,
+            "fast_entry_t_states": 0,
+            "fallback_entry_t_states": 0,
+            "fallback_iteration_t_states": 0,
+            "fallback_measured": false,
+            "fast_iteration_t_states": 0
+          }
+        }
+      ],
+      "binary": "PgDdJgDdaURNX9183b170N1cFgDF4RlWghYBX918xgFXe91iGOM+AN0uABH//91MBgDlt+vtQuvhR+W37VLheDgEKAIYFhYBX918p3vIXoMjX9181gFHe91gGOxETV/dfd28e9DdXRYAxeEZVoIWAV/dfcYBV3vdahjjIZiADgHNAIAhmIAOBfXdYc0mgEfxgDKdgDqdgMkBAgMEBQA=",
+      "binary_sha256": "bdb0ed038acd8bd62612e90c2e59b5836e9fdc1080168d505f003436f427a331",
+      "module_bytes": 158,
+      "total_t_states": 1970,
+      "raw_run": {
+        "profile": {
+          "guards": null,
+          "compatibility": null,
+          "schema": "",
+          "stage": "",
+          "sites": null,
+          "counts": null,
+          "completed_calls": 0,
+          "failed_calls": 0
+        },
+        "results": [
+          [
+            {
+              "I": 16
+            }
+          ],
+          [
+            {
+              "I": 16
+            }
+          ]
+        ],
+        "globals": {
+          "data": "AQIDBAU=",
+          "output": "EA=="
+        },
+        "resources": {}
+      },
+      "run": {
+        "compatibility": {
+          "schema": "minz.loop-profile-compatibility/v1",
+          "context": {
+            "compiler_id": "executable-sha256:404378f7f090a3e1482e3d80aa77cb57c02de7786873ec97ded26d210a3c3ce3",
+            "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+            "target_id": "module-target:1/model:cpm-z80-v1",
+            "workload_sha256": "6bea256aa78514d842a920ac17b0ac283655c12a65946218b957480fdac31180",
+            "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+            "dependencies": {
+              "/tmp/minz-pgo-joint-caller-artifacts/caller.nanz": "fe4447b9ba38a3a1a1f2c26147ad200e7c1848d774032fcdc7535bdb30f4210d"
+            }
+          },
+          "hir_sha256": "671ceb3400b048f0bb7fcbd00f40af0023cd459ef2bfbb04b8e8851f00131f07",
+          "origins_sha256": "d197eda3f0b5892a1d098ea2ce48eddc882dc244ac85050e22b1650d728eee43"
+        },
+        "binary_sha256": "bdb0ed038acd8bd62612e90c2e59b5836e9fdc1080168d505f003436f427a331",
+        "bootstrap_sha256": [
+          "b600b7434cedb7044fb2a11704b929c10d72278486da2b2f0f222ca2c5db2157",
+          "b600b7434cedb7044fb2a11704b929c10d72278486da2b2f0f222ca2c5db2157"
+        ],
+        "invocations": [
+          {
+            "function": "run",
+            "t_states": 985,
+            "results": [
+              {
+                "I": 16
+              }
+            ]
+          },
+          {
+            "function": "run",
+            "t_states": 985,
+            "results": [
+              {
+                "I": 16
+              }
+            ]
+          }
+        ],
+        "globals": {
+          "data": "AQIDBAU=",
+          "output": "EA=="
+        },
+        "resources": {},
+        "resource_addresses": {},
+        "global_addresses": {
+          "data": 32920,
+          "output": 32925
+        },
+        "bootstrap_t_states": 54,
+        "total_t_states": 1970,
+        "executed_steps": 290
+      }
+    },
+    {
+      "decisions": [
+        {
+          "compatibility": {
+            "schema": "minz.loop-profile-compatibility/v1",
+            "context": {
+              "compiler_id": "executable-sha256:404378f7f090a3e1482e3d80aa77cb57c02de7786873ec97ded26d210a3c3ce3",
+              "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+              "target_id": "module-target:1/model:cpm-z80-v1",
+              "workload_sha256": "6bea256aa78514d842a920ac17b0ac283655c12a65946218b957480fdac31180",
+              "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+              "dependencies": {
+                "/tmp/minz-pgo-joint-caller-artifacts/caller.nanz": "fe4447b9ba38a3a1a1f2c26147ad200e7c1848d774032fcdc7535bdb30f4210d"
+              }
+            },
+            "hir_sha256": "671ceb3400b048f0bb7fcbd00f40af0023cd459ef2bfbb04b8e8851f00131f07",
+            "origins_sha256": "d197eda3f0b5892a1d098ea2ce48eddc882dc244ac85050e22b1650d728eee43"
+          },
+          "site_id": "7df456bd7d3d3f6319ec3e67fd47dcc5424dedee97cacdeb0910adac68dadd4c",
+          "variant": "pointer-walk",
+          "reason": "jointly measured variant set",
+          "original_t_states": "",
+          "model": {
+            "compiler_id": "",
+            "semantics_id": "",
+            "function": "",
+            "hir_sha256": "",
+            "target_id": "",
+            "compilation_id": "",
+            "evidence_id": "",
+            "original_bytes": 0,
+            "pointer_bytes": 0,
+            "original_entry_t_states": 0,
+            "original_iteration_t_states": 0,
+            "equal_entry_extra_t_states": 0,
+            "fast_entry_t_states": 0,
+            "fallback_entry_t_states": 0,
+            "fallback_iteration_t_states": 0,
+            "fallback_measured": false,
+            "fast_iteration_t_states": 0
+          }
+        },
+        {
+          "compatibility": {
+            "schema": "minz.loop-profile-compatibility/v1",
+            "context": {
+              "compiler_id": "executable-sha256:404378f7f090a3e1482e3d80aa77cb57c02de7786873ec97ded26d210a3c3ce3",
+              "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+              "target_id": "module-target:1/model:cpm-z80-v1",
+              "workload_sha256": "6bea256aa78514d842a920ac17b0ac283655c12a65946218b957480fdac31180",
+              "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+              "dependencies": {
+                "/tmp/minz-pgo-joint-caller-artifacts/caller.nanz": "fe4447b9ba38a3a1a1f2c26147ad200e7c1848d774032fcdc7535bdb30f4210d"
+              }
+            },
+            "hir_sha256": "671ceb3400b048f0bb7fcbd00f40af0023cd459ef2bfbb04b8e8851f00131f07",
+            "origins_sha256": "d197eda3f0b5892a1d098ea2ce48eddc882dc244ac85050e22b1650d728eee43"
+          },
+          "site_id": "f93623c63e079505b61812dc9bdf351cacd3c5131fd63d3bf941e24a1c955548",
+          "variant": "original",
+          "reason": "jointly measured variant set",
+          "original_t_states": "",
+          "model": {
+            "compiler_id": "",
+            "semantics_id": "",
+            "function": "",
+            "hir_sha256": "",
+            "target_id": "",
+            "compilation_id": "",
+            "evidence_id": "",
+            "original_bytes": 0,
+            "pointer_bytes": 0,
+            "original_entry_t_states": 0,
+            "original_iteration_t_states": 0,
+            "equal_entry_extra_t_states": 0,
+            "fast_entry_t_states": 0,
+            "fallback_entry_t_states": 0,
+            "fallback_iteration_t_states": 0,
+            "fallback_measured": false,
+            "fast_iteration_t_states": 0
+          }
+        }
+      ],
+      "binary": "PgDdLgAR///dTAYA5bfr7ULr4Uflt+1S4Xg4BCgCGBYWAV/dfKd7yF6DI1/dfNYBR3vdYBjsRE1f3X3dvHvQ3V0WAMXhGVaCFgFf3X3GAVd73WoY4z4A3SYA3WlETV/dfN29e9DdXBYAxeEZVoIWAV/dfMYBV3vdYhjjIZiADgHdYc0AgCGYgA4F9c1VgEfxgDKdgDqdgMkBAgMEBQA=",
+      "binary_sha256": "8e9417f7496d017d2878e236ca0916bb713654fbed3382ae0fa5a204194fa3d5",
+      "module_bytes": 158,
+      "total_t_states": 2386,
+      "raw_run": {
+        "profile": {
+          "guards": null,
+          "compatibility": null,
+          "schema": "",
+          "stage": "",
+          "sites": null,
+          "counts": null,
+          "completed_calls": 0,
+          "failed_calls": 0
+        },
+        "results": [
+          [
+            {
+              "I": 16
+            }
+          ],
+          [
+            {
+              "I": 16
+            }
+          ]
+        ],
+        "globals": {
+          "data": "AQIDBAU=",
+          "output": "EA=="
+        },
+        "resources": {}
+      },
+      "run": {
+        "compatibility": {
+          "schema": "minz.loop-profile-compatibility/v1",
+          "context": {
+            "compiler_id": "executable-sha256:404378f7f090a3e1482e3d80aa77cb57c02de7786873ec97ded26d210a3c3ce3",
+            "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+            "target_id": "module-target:1/model:cpm-z80-v1",
+            "workload_sha256": "6bea256aa78514d842a920ac17b0ac283655c12a65946218b957480fdac31180",
+            "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+            "dependencies": {
+              "/tmp/minz-pgo-joint-caller-artifacts/caller.nanz": "fe4447b9ba38a3a1a1f2c26147ad200e7c1848d774032fcdc7535bdb30f4210d"
+            }
+          },
+          "hir_sha256": "671ceb3400b048f0bb7fcbd00f40af0023cd459ef2bfbb04b8e8851f00131f07",
+          "origins_sha256": "d197eda3f0b5892a1d098ea2ce48eddc882dc244ac85050e22b1650d728eee43"
+        },
+        "binary_sha256": "8e9417f7496d017d2878e236ca0916bb713654fbed3382ae0fa5a204194fa3d5",
+        "bootstrap_sha256": [
+          "b600b7434cedb7044fb2a11704b929c10d72278486da2b2f0f222ca2c5db2157",
+          "b600b7434cedb7044fb2a11704b929c10d72278486da2b2f0f222ca2c5db2157"
+        ],
+        "invocations": [
+          {
+            "function": "run",
+            "t_states": 1193,
+            "results": [
+              {
+                "I": 16
+              }
+            ]
+          },
+          {
+            "function": "run",
+            "t_states": 1193,
+            "results": [
+              {
+                "I": 16
+              }
+            ]
+          }
+        ],
+        "globals": {
+          "data": "AQIDBAU=",
+          "output": "EA=="
+        },
+        "resources": {},
+        "resource_addresses": {},
+        "global_addresses": {
+          "data": 32920,
+          "output": 32925
+        },
+        "bootstrap_t_states": 54,
+        "total_t_states": 2386,
+        "executed_steps": 330
+      }
+    },
+    {
+      "decisions": [
+        {
+          "compatibility": {
+            "schema": "minz.loop-profile-compatibility/v1",
+            "context": {
+              "compiler_id": "executable-sha256:404378f7f090a3e1482e3d80aa77cb57c02de7786873ec97ded26d210a3c3ce3",
+              "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+              "target_id": "module-target:1/model:cpm-z80-v1",
+              "workload_sha256": "6bea256aa78514d842a920ac17b0ac283655c12a65946218b957480fdac31180",
+              "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+              "dependencies": {
+                "/tmp/minz-pgo-joint-caller-artifacts/caller.nanz": "fe4447b9ba38a3a1a1f2c26147ad200e7c1848d774032fcdc7535bdb30f4210d"
+              }
+            },
+            "hir_sha256": "671ceb3400b048f0bb7fcbd00f40af0023cd459ef2bfbb04b8e8851f00131f07",
+            "origins_sha256": "d197eda3f0b5892a1d098ea2ce48eddc882dc244ac85050e22b1650d728eee43"
+          },
+          "site_id": "7df456bd7d3d3f6319ec3e67fd47dcc5424dedee97cacdeb0910adac68dadd4c",
+          "variant": "pointer-walk",
+          "reason": "jointly measured variant set",
+          "original_t_states": "",
+          "model": {
+            "compiler_id": "",
+            "semantics_id": "",
+            "function": "",
+            "hir_sha256": "",
+            "target_id": "",
+            "compilation_id": "",
+            "evidence_id": "",
+            "original_bytes": 0,
+            "pointer_bytes": 0,
+            "original_entry_t_states": 0,
+            "original_iteration_t_states": 0,
+            "equal_entry_extra_t_states": 0,
+            "fast_entry_t_states": 0,
+            "fallback_entry_t_states": 0,
+            "fallback_iteration_t_states": 0,
+            "fallback_measured": false,
+            "fast_iteration_t_states": 0
+          }
+        },
+        {
+          "compatibility": {
+            "schema": "minz.loop-profile-compatibility/v1",
+            "context": {
+              "compiler_id": "executable-sha256:404378f7f090a3e1482e3d80aa77cb57c02de7786873ec97ded26d210a3c3ce3",
+              "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+              "target_id": "module-target:1/model:cpm-z80-v1",
+              "workload_sha256": "6bea256aa78514d842a920ac17b0ac283655c12a65946218b957480fdac31180",
+              "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+              "dependencies": {
+                "/tmp/minz-pgo-joint-caller-artifacts/caller.nanz": "fe4447b9ba38a3a1a1f2c26147ad200e7c1848d774032fcdc7535bdb30f4210d"
+              }
+            },
+            "hir_sha256": "671ceb3400b048f0bb7fcbd00f40af0023cd459ef2bfbb04b8e8851f00131f07",
+            "origins_sha256": "d197eda3f0b5892a1d098ea2ce48eddc882dc244ac85050e22b1650d728eee43"
+          },
+          "site_id": "f93623c63e079505b61812dc9bdf351cacd3c5131fd63d3bf941e24a1c955548",
+          "variant": "pointer-walk",
+          "reason": "jointly measured variant set",
+          "original_t_states": "",
+          "model": {
+            "compiler_id": "",
+            "semantics_id": "",
+            "function": "",
+            "hir_sha256": "",
+            "target_id": "",
+            "compilation_id": "",
+            "evidence_id": "",
+            "original_bytes": 0,
+            "pointer_bytes": 0,
+            "original_entry_t_states": 0,
+            "original_iteration_t_states": 0,
+            "equal_entry_extra_t_states": 0,
+            "fast_entry_t_states": 0,
+            "fallback_entry_t_states": 0,
+            "fallback_iteration_t_states": 0,
+            "fallback_measured": false,
+            "fast_iteration_t_states": 0
+          }
+        }
+      ],
+      "binary": "PgDdLgAR///dTAYA5bfr7ULr4Uflt+1S4Xg4BCgCGBYWAV/dfKd7yF6DI1/dfNYBR3vdYBjsRE1f3X3dvHvQ3V0WAMXhGVaCFgFf3X3GAVd73WoY4z4A3S4AEf//3UwGAOW36+1C6+FH5bftUuF4OAQoAhgWFgFf3Xyne8hegyNf3XzWAUd73WAY7ERNX9193bx70N1dFgDF4RlWghYBX919xgFXe91qGOMhyYAOAd1hzQCAIcmADgX13WHNVYBH8YAyzoA6zoDJAQIDBAUA",
+      "binary_sha256": "46e63e11bc0b8313649aee32ad7634f9e4776918c6385d59b2bfa7aa4e8dd77f",
+      "module_bytes": 207,
+      "total_t_states": 2122,
+      "raw_run": {
+        "profile": {
+          "guards": null,
+          "compatibility": null,
+          "schema": "",
+          "stage": "",
+          "sites": null,
+          "counts": null,
+          "completed_calls": 0,
+          "failed_calls": 0
+        },
+        "results": [
+          [
+            {
+              "I": 16
+            }
+          ],
+          [
+            {
+              "I": 16
+            }
+          ]
+        ],
+        "globals": {
+          "data": "AQIDBAU=",
+          "output": "EA=="
+        },
+        "resources": {}
+      },
+      "run": {
+        "compatibility": {
+          "schema": "minz.loop-profile-compatibility/v1",
+          "context": {
+            "compiler_id": "executable-sha256:404378f7f090a3e1482e3d80aa77cb57c02de7786873ec97ded26d210a3c3ce3",
+            "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+            "target_id": "module-target:1/model:cpm-z80-v1",
+            "workload_sha256": "6bea256aa78514d842a920ac17b0ac283655c12a65946218b957480fdac31180",
+            "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+            "dependencies": {
+              "/tmp/minz-pgo-joint-caller-artifacts/caller.nanz": "fe4447b9ba38a3a1a1f2c26147ad200e7c1848d774032fcdc7535bdb30f4210d"
+            }
+          },
+          "hir_sha256": "671ceb3400b048f0bb7fcbd00f40af0023cd459ef2bfbb04b8e8851f00131f07",
+          "origins_sha256": "d197eda3f0b5892a1d098ea2ce48eddc882dc244ac85050e22b1650d728eee43"
+        },
+        "binary_sha256": "46e63e11bc0b8313649aee32ad7634f9e4776918c6385d59b2bfa7aa4e8dd77f",
+        "bootstrap_sha256": [
+          "6c12f0e4872ed7533f9e2cb31bd80a86429ef3ae2c178b82bda0ca79552f0479",
+          "6c12f0e4872ed7533f9e2cb31bd80a86429ef3ae2c178b82bda0ca79552f0479"
+        ],
+        "invocations": [
+          {
+            "function": "run",
+            "t_states": 1061,
+            "results": [
+              {
+                "I": 16
+              }
+            ]
+          },
+          {
+            "function": "run",
+            "t_states": 1061,
+            "results": [
+              {
+                "I": 16
+              }
+            ]
+          }
+        ],
+        "globals": {
+          "data": "AQIDBAU=",
+          "output": "EA=="
+        },
+        "resources": {},
+        "resource_addresses": {},
+        "global_addresses": {
+          "data": 32969,
+          "output": 32974
+        },
+        "bootstrap_t_states": 54,
+        "total_t_states": 2122,
+        "executed_steps": 310
+      }
+    }
+  ],
+  "selected": 1,
+  "sha256": "24f3b0bbff13dde75b1cd13353f2f364776b13dc5b315e46bd971bdcc41d7865"
+}

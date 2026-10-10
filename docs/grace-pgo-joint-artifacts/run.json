@@ -1,0 +1,105 @@
+{
+  "profile": {
+    "guards": [
+      {
+        "site_id": "7df456bd7d3d3f6319ec3e67fd47dcc5424dedee97cacdeb0910adac68dadd4c",
+        "equal_entries": 0,
+        "fast_entries": 2,
+        "fallback_entries": 0,
+        "fast_body_entries": 2,
+        "fallback_body_entries": 0
+      },
+      {
+        "site_id": "f93623c63e079505b61812dc9bdf351cacd3c5131fd63d3bf941e24a1c955548",
+        "equal_entries": 0,
+        "fast_entries": 2,
+        "fallback_entries": 0,
+        "fast_body_entries": 10,
+        "fallback_body_entries": 0
+      }
+    ],
+    "compatibility": {
+      "schema": "minz.loop-profile-compatibility/v1",
+      "context": {
+        "compiler_id": "executable-sha256:404378f7f090a3e1482e3d80aa77cb57c02de7786873ec97ded26d210a3c3ce3",
+        "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+        "target_id": "module-target:1/model:cpm-z80-v1",
+        "workload_sha256": "6bea256aa78514d842a920ac17b0ac283655c12a65946218b957480fdac31180",
+        "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+        "dependencies": {
+          "/tmp/minz-pgo-joint-caller-artifacts/caller.nanz": "fe4447b9ba38a3a1a1f2c26147ad200e7c1848d774032fcdc7535bdb30f4210d"
+        }
+      },
+      "hir_sha256": "671ceb3400b048f0bb7fcbd00f40af0023cd459ef2bfbb04b8e8851f00131f07",
+      "origins_sha256": "d197eda3f0b5892a1d098ea2ce48eddc882dc244ac85050e22b1650d728eee43"
+    },
+    "schema": "minz.input-hir-loop-observations/v4",
+    "stage": "unoptimised-mir2-vm",
+    "sites": {
+      "schema": "minz.hir-loop-sites/v1",
+      "stage": "input-hir",
+      "sites": [
+        {
+          "id": "7df456bd7d3d3f6319ec3e67fd47dcc5424dedee97cacdeb0910adac68dadd4c",
+          "function": "small_sum",
+          "kind": "while",
+          "ordinal": 0,
+          "hir_path": "body/s2",
+          "origin": {
+            "unit": "/tmp/minz-pgo-joint-caller-artifacts/caller.nanz",
+            "byte_offset": 107,
+            "line": 6,
+            "byte_column": 2,
+            "source_sha256": "fe4447b9ba38a3a1a1f2c26147ad200e7c1848d774032fcdc7535bdb30f4210d"
+          }
+        },
+        {
+          "id": "f93623c63e079505b61812dc9bdf351cacd3c5131fd63d3bf941e24a1c955548",
+          "function": "big_sum",
+          "kind": "while",
+          "ordinal": 0,
+          "hir_path": "body/s2",
+          "origin": {
+            "unit": "/tmp/minz-pgo-joint-caller-artifacts/caller.nanz",
+            "byte_offset": 206,
+            "line": 13,
+            "byte_column": 2,
+            "source_sha256": "fe4447b9ba38a3a1a1f2c26147ad200e7c1848d774032fcdc7535bdb30f4210d"
+          }
+        }
+      ],
+      "unmapped_loops": 0
+    },
+    "counts": [
+      {
+        "site_id": "7df456bd7d3d3f6319ec3e67fd47dcc5424dedee97cacdeb0910adac68dadd4c",
+        "entries": 2,
+        "body_entries": 2
+      },
+      {
+        "site_id": "f93623c63e079505b61812dc9bdf351cacd3c5131fd63d3bf941e24a1c955548",
+        "entries": 2,
+        "body_entries": 10
+      }
+    ],
+    "completed_calls": 2,
+    "failed_calls": 0
+  },
+  "results": [
+    [
+      {
+        "I": 16
+      }
+    ],
+    [
+      {
+        "I": 16
+      }
+    ]
+  ],
+  "globals": {
+    "data": "AQIDBAU=",
+    "output": "EA=="
+  },
+  "resources": {}
+}

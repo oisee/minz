@@ -1,0 +1,79 @@
+; MIR2 module: /tmp/minz-pgo-joint-caller-artifacts/caller.nanz
+global @data : [5]u8
+global @output : u8
+
+fun @small_sum(%r1: ptr [pointer], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = const 0 : u8 [general]
+    %r4 = const 0 : u8 [general]
+    jmp @loop_head1(%r4, %r2, %r1, %r3)
+  block @loop_head1(%r5: u8 [general], %r6: u8 [general], %r7: ptr [general], %r8: u8 [general]):
+    %r9 = cmp.ult %r5, %r6 : bool [flag]
+    cond_ret %r9, [%r8], @loop_body2()
+  block @loop_body2:
+    %r10 = ext %r5 : u8 -> u16 [index]
+    %r11 = ptr_add %r7, %r10 : ptr [pointer]
+    %r12 = load %r11 : u8 [general]
+    %r13 = add %r8, %r12 : u8 [general]
+    %r14 = const 1 : u8 [general]
+    %r15 = add %r5, %r14 : u8 [general]
+    jmp @loop_head1(%r15, %r6, %r7, %r13)
+
+fun @big_sum(%r20: ptr [pointer], %r21: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r22 = const 0 : u8 [general]
+    %r23 = const 0 : u8 [general]
+    %r24 = const 65535 : u16 [pointer]
+    %r25 = ext %r21 : u8 -> u16 [pointer]
+    %r26 = sub %r24, %r25 : u16 [pointer]
+    %r27 = cmp.ule %r20, %r26 : bool [flag]
+    br_if %r27, @if_then1(), @if_else3()
+  block @if_then1:
+    %r29 = move %r20 : ptr [pointer]
+    %r30 = const 0 : u8 [acc]
+    %r31 = const 1 : u8 [counter]
+    jmp @fe_head4(%r29, %r21, %r22)
+  block @fe_head4(%r32: ptr [pointer], %r33: u8 [counter], %r34: u8 [general]):
+    %r35 = cmp.ne %r33, %r30 : bool [flag]
+    br_if %r35, @fe_body5(), @fe_exit7(%r34)
+  block @fe_body5:
+    %r36 = load %r32 : u8 [general]
+    %r37 = add %r34, %r36 : u8 [general]
+    %r38 = ptr_bump %r32, +1 : ptr [pointer]
+    %r39 = sub %r33, %r31 : u8 [counter]
+    jmp @fe_head4(%r38, %r39, %r37)
+  block @fe_exit7(%r42: u8 [general]):
+    ret %r42
+  block @if_else3:
+    jmp @loop_head8(%r23, %r21, %r20, %r22)
+  block @loop_head8(%r43: u8 [general], %r44: u8 [general], %r45: ptr [general], %r46: u8 [general]):
+    %r47 = cmp.ult %r43, %r44 : bool [flag]
+    br_if %r47, @loop_body9(), @loop_exit10(%r43, %r46)
+  block @loop_body9:
+    %r48 = ext %r43 : u8 -> u16 [index]
+    %r49 = ptr_add %r45, %r48 : ptr [pointer]
+    %r50 = load %r49 : u8 [general]
+    %r51 = add %r46, %r50 : u8 [general]
+    %r52 = const 1 : u8 [general]
+    %r53 = add %r43, %r52 : u8 [general]
+    jmp @loop_head8(%r53, %r44, %r45, %r51)
+  block @loop_exit10(%r54: u8 [general], %r57: u8 [general]):
+    ret %r57
+
+fun @run() -> u8 [acc]
+  block @entry:
+    %r60 = addr_of @data : ptr [pointer]
+    %r61 = move %r60 : ptr [pointer]
+    %r62 = const 1 : u8 [general]
+    %r63 = call @small_sum(%r61, %r62) : u8 [acc]
+    %r64 = addr_of @data : ptr [pointer]
+    %r65 = move %r64 : ptr [pointer]
+    %r66 = const 5 : u8 [general]
+    %r67 = call @big_sum(%r65, %r66) : u8 [acc]
+    %r68 = add %r63, %r67 : u8 [acc]
+    %r69 = addr_of @output : ptr [pointer]
+    store %r69, %r68 : u8
+    %r70 = addr_of @output : ptr [pointer]
+    %r71 = load %r70 : u8 [general]
+    ret %r71
+

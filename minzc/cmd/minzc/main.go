@@ -229,6 +229,7 @@ func init() {
 	rootCmd.Flags().StringVar(&pgoProfile, "pgo", "", "use profile-guided optimization with .tas profile file")
 	rootCmd.Flags().BoolVar(&pgoDebug, "pgo-debug", false, "show PGO optimization decisions and hot/cold analysis")
 	registerHIRProfileFlags(rootCmd)
+	rootCmd.Flags().BoolVar(&hirProfileJoint, "hir-profile-joint", false, "measure candidate combinations on full VM/Z80 workload with --hir-profile-auto")
 	rootCmd.Flags().StringVar(&hirProfileAutoDirectory, "hir-profile-auto", "", "collect, measure full u8 sum domain and compile; save evidence in directory")
 	rootCmd.Flags().StringVar(&hirProfileAutoFunction, "hir-profile-function", "", "exact sum function to measure with --hir-profile-auto")
 	rootCmd.Flags().StringVar(&hirProfileAutoWorkload, "hir-profile-auto-workload", "", "controlled workload JSON for --hir-profile-auto")
@@ -1051,6 +1052,8 @@ func compileViaHIR(sourceFile string) error {
 		}
 		opts.ProfileSelection = selection
 	}
+	var steps pipeline.Steps
+	jointCompiled := false
 	if hirProfileAutoDirectory != "" {
 		factory := func() (*hir.Module, error) {
 			m, err := nanz.ParseWithOpts(string(src), sourceFile, nanz.ParseOpts{BaseDir: baseDir, StdlibDir: stdlibDir})
@@ -1060,12 +1063,24 @@ func compileViaHIR(sourceFile string) error {
 			m.Target = hir.TargetFromString(target)
 			return m, nil
 		}
-		opts.ProfileSelection, err = prepareHIRProfileAuto(hirMod, factory, opts)
-		if err != nil {
-			return err
+		if hirProfileJoint {
+			result, jointErr := prepareHIRProfileJoint(hirMod, factory, opts)
+			if jointErr != nil {
+				return jointErr
+			}
+			steps = result.Steps
+			steps.ProfileDecisions = result.Decisions
+			jointCompiled = true
+		} else {
+			opts.ProfileSelection, err = prepareHIRProfileAuto(hirMod, factory, opts)
+			if err != nil {
+				return err
+			}
 		}
 	}
-	steps, err := pipeline.CompileHIRSteps(hirMod, opts)
+	if !jointCompiled {
+		steps, err = pipeline.CompileHIRSteps(hirMod, opts)
+	}
 	if err != nil && !skipZ80 && outputFile == "" && mir2Only && steps.MIR2Module != nil {
 		if abiErr := mir2.ValidateZ80IndirectCalls(steps.MIR2Module); abiErr != nil && err.Error() == abiErr.Error() {
 			fmt.Fprintf(os.Stderr, "warning: Z80 output skipped because of the unsupported indirect-call ABI: %v\n", abiErr)
@@ -1277,7 +1292,7 @@ func compileViaHIR(sourceFile string) error {
 	}
 	// Profile evidence measures the default assembler at the explicit all-RAM
 	// origin. Reuse that exact configuration, including compact binary layout.
-	if opts.ProfileSelection != nil {
+	if opts.ProfileSelection != nil || jointCompiled {
 		r, err := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + asmSrc)
 		if err != nil {
 			return err

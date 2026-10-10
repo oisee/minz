@@ -1,0 +1,8 @@
+=== RUN   TestJointOrdinaryCallerAllCombinations
+    profile_joint_caller_test.go:35: candidate0: bytes=109 cycles=2234 decisions=[{0xaed08f86240 8a51bb2786d8c73e05d4c59e62cec0cd883afafa7fd233e4d5a82f6ec562d3a2 original jointly measured variant set   {       0 0 0 0 0 0 0 0 false 0}} {0xaed08f86240 aa893140d05b88201299c748539eb5aa42f7cfb0be39f177d16cceae7d4ab75e original jointly measured variant set   {       0 0 0 0 0 0 0 0 false 0}}]
+    profile_joint_caller_test.go:35: candidate1: bytes=158 cycles=2386 decisions=[{0xaed08f86240 8a51bb2786d8c73e05d4c59e62cec0cd883afafa7fd233e4d5a82f6ec562d3a2 original jointly measured variant set   {       0 0 0 0 0 0 0 0 false 0}} {0xaed08f86240 aa893140d05b88201299c748539eb5aa42f7cfb0be39f177d16cceae7d4ab75e pointer-walk jointly measured variant set   {       0 0 0 0 0 0 0 0 false 0}}]
+    profile_joint_caller_test.go:35: candidate2: bytes=158 cycles=1970 decisions=[{0xaed08f86240 8a51bb2786d8c73e05d4c59e62cec0cd883afafa7fd233e4d5a82f6ec562d3a2 pointer-walk jointly measured variant set   {       0 0 0 0 0 0 0 0 false 0}} {0xaed08f86240 aa893140d05b88201299c748539eb5aa42f7cfb0be39f177d16cceae7d4ab75e original jointly measured variant set   {       0 0 0 0 0 0 0 0 false 0}}]
+    profile_joint_caller_test.go:35: candidate3: bytes=207 cycles=2122 decisions=[{0xaed08f86240 8a51bb2786d8c73e05d4c59e62cec0cd883afafa7fd233e4d5a82f6ec562d3a2 pointer-walk jointly measured variant set   {       0 0 0 0 0 0 0 0 false 0}} {0xaed08f86240 aa893140d05b88201299c748539eb5aa42f7cfb0be39f177d16cceae7d4ab75e pointer-walk jointly measured variant set   {       0 0 0 0 0 0 0 0 false 0}}]
+--- PASS: TestJointOrdinaryCallerAllCombinations (0.21s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.214s

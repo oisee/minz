@@ -1,3 +1,5 @@
+Обновление: [совместные варианты и caller workload](grace-pgo-joint.md) — до16 наборов, actual VM/Z80 results/global/resource checks, −11.82% на двухфункциональном caller. Shared RAM и codegen constant-alias исправление подтверждены tests.
+
 Обновление: [воспроизводимый CLI PGO](grace-pgo-cli.md) (`92b581e3`) — automatic measured model, 1022 VM/Z80 scenarios, collection/selection и saved evidence. Exact одиночный u8 sum slice завершён; general corpus/multi-function/MIR lineage впереди. Старые обновления ниже — история этапов.
 
 # План развития Grace в основном пути MinZ

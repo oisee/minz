@@ -1,0 +1,31 @@
+; HIR module: /tmp/minz-pgo-joint-caller-artifacts/caller.nanz
+global @data : [5]u8
+global @output : u8
+
+fun @small_sum(ptr: ptr, n: u8) -> u8
+  var s: u8 = 0:u8
+  var i: u8 = 0:u8
+  while ((i:u8) < (n:u8)):bool
+    (s:u8) = ((s:u8) + ((ptr:ptr))[(i:u8)]:u8):u8
+    (i:u8) = ((i:u8) + 1:u8):u8
+  return (s:u8)
+
+fun @big_sum(ptr: ptr, n: u8) -> u8
+  var s: u8 = 0:u8
+  var i: u8 = 0:u8
+  if (cast((ptr:ptr)):u16 <= (65535:u16 - cast((n:u8)):u16):u16):bool
+    foreach __grace_element_0: u8 in *((ptr:ptr))[0..(n:u8)]
+      (s:u8) = ((s:u8) + (__grace_element_0:u8)):u8
+    (i:u8) = (n:u8)
+  else
+    while ((i:u8) < (n:u8)):bool
+      (s:u8) = ((s:u8) + ((ptr:ptr))[(i:u8)]:u8):u8
+      (i:u8) = ((i:u8) + 1:u8):u8
+  return (s:u8)
+
+fun @run() -> u8
+  var first: u8 = call @small_sum(addr @data:ptr, 1:u8):u8
+  var second: u8 = call @big_sum(addr @data:ptr, 5:u8):u8
+  (output:u8) = ((first:u8) + (second:u8)):u8
+  return (output:u8)
+
