@@ -29,6 +29,7 @@ type LoopProfile struct {
 type LoopProfiler struct {
 	VM                *mir2.VM
 	compatibility     *ProfileCompatibility
+	profileHooks      map[string]mir2.HostFunc
 	sites             *LoopSiteMap
 	counts            []LoopCounts
 	completed, failed uint64
@@ -164,6 +165,7 @@ func NewLoopProfiler(m *Module) (*LoopProfiler, error) {
 	if err := mir2.Verify(lowered); err != nil {
 		return nil, err
 	}
+	p.profileHooks = hooks
 	p.VM = mir2.NewVM(lowered)
 	for name, hook := range hooks {
 		p.VM.Hosts[name] = hook

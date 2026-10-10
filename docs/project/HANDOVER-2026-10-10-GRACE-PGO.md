@@ -19,3 +19,7 @@ Sites checkout `/tmp/minz-grace-report-site`, builder `/tmp/build-grace-report-s
 ## Срез automatic context
 
 Nanz SourceUnits/SourceUnitsComplete записывает реальные input hashes и объединяет transitive imports/generated inputs. Mixed frontend imports помечены incomplete; API отказывает вместо заявления полноты. BuildAutomaticProfileContext хеширует текущий executable и переданные workload/hosts/resource bytes, module Target + explicit model. BuildProfileCompatibility проверяет все SourceUnits. Подробнее `docs/grace-pgo-context.md`. Следом controlled execution harness, lineage/guard events; production cost policy пока не подключена.
+
+## Срез controlled harness
+
+RunLoopProfile/BuildWorkloadProfileContext (profile_run.go) строят context из owned workload copy и исполняют exactly declared calls/initial state/limits. Resource pointers symbolic; globals exact-sized; no external hosts, no ASM/ports; fixed internal collector hooks. Runtime failures возвращают partial snapshot with failed calls, setup errors — nil. Реальный sum_array снова 6/341, sums oracle. Directed tests проверяют results/final memory/shared globals, input immutability, loader invalidation order/memory/gas/resources/globals, refusals. Следом lineage и guard events; production PGO не включён. Документ docs/grace-pgo-harness.md.

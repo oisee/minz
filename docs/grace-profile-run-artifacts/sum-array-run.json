@@ -1,0 +1,90 @@
+{
+  "profile": {
+    "compatibility": {
+      "schema": "minz.loop-profile-compatibility/v1",
+      "context": {
+        "compiler_id": "executable-sha256:cfcc9bbcba3e854c9abfd3b3d179d7602b78c1cc5eabc7c32dc33e6820d15408",
+        "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+        "target_id": "module-target:0/model:cpm-z80-v1",
+        "workload_sha256": "686c16264b544bbdb2766096889c6090176f2d29bdf20a9c4408cf4da2067194",
+        "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+        "dependencies": {
+          "array": "929351ec9c272028c6c70f92a33c69059639c1ef81d7baea0650552d39730266",
+          "examples/nanz/01_sum_array.nanz": "fa0ad7d685c31aeb52b91b323bcef46e5c86c0e4390b2fd41ecd69ecfef58694"
+        }
+      },
+      "hir_sha256": "3e9aaeef3575daec4012c84e81673d3b986082adc8c01a02739e6b71ebe83db7",
+      "origins_sha256": "eeabd328e92b12b724db07627bd793a2c25220a5da6f51a769cca5060c12f265"
+    },
+    "schema": "minz.input-hir-loop-observations/v2",
+    "stage": "unoptimised-mir2-vm",
+    "sites": {
+      "schema": "minz.hir-loop-sites/v1",
+      "stage": "input-hir",
+      "sites": [
+        {
+          "id": "413717c0664c475bf9c67ee592bac740dccdcf0b002c75bd2dfb19155938ed2f",
+          "function": "sum_array",
+          "kind": "while",
+          "ordinal": 0,
+          "hir_path": "body/s2",
+          "origin": {
+            "unit": "examples/nanz/01_sum_array.nanz",
+            "byte_offset": 281,
+            "line": 10,
+            "byte_column": 5,
+            "source_sha256": "fa0ad7d685c31aeb52b91b323bcef46e5c86c0e4390b2fd41ecd69ecfef58694"
+          }
+        }
+      ],
+      "unmapped_loops": 0
+    },
+    "counts": [
+      {
+        "site_id": "413717c0664c475bf9c67ee592bac740dccdcf0b002c75bd2dfb19155938ed2f",
+        "entries": 6,
+        "body_entries": 341
+      }
+    ],
+    "completed_calls": 6,
+    "failed_calls": 0
+  },
+  "results": [
+    [
+      {
+        "I": 0
+      }
+    ],
+    [
+      {
+        "I": 1
+      }
+    ],
+    [
+      {
+        "I": 15
+      }
+    ],
+    [
+      {
+        "I": 136
+      }
+    ],
+    [
+      {
+        "I": 32
+      }
+    ],
+    [
+      {
+        "I": 128
+      }
+    ]
+  ],
+  "globals": {
+    "arr": "AAAAAAA="
+  },
+  "resources": {
+    "array": "AQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyAhIiMkJSYnKCkqKywtLi8wMTIzNDU2Nzg5Ojs8PT4/QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xdXl9gYWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXp7fH1+f4CBgoOEhYaHiImKi4yNjo+QkZKTlJWWl5iZmpucnZ6foKGio6SlpqeoqaqrrK2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHS09TV1tfY2drb3N3e3+Dh4uPk5ebn6Onq6+zt7u/w8fLz9PX29/j5+vv8/f7/"
+  }
+}

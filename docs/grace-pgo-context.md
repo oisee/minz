@@ -28,3 +28,7 @@ Resources — уже прочитанные байты, не пути к фай�
 [Directed tests](grace-profile-context-artifacts/contracts.txt): независимый SHA256 executable, deterministic context/roundtrip, imported helper без loops (comment-only edit), stale workload/hosts/resource/target, resource/source collision, incomplete manifest. Предыдущие collector/loader tests также проходят. [Пакеты](grace-profile-context-artifacts/packages.txt) HIR/MIR2/Nanz/pipeline/Lanz проходят; [showcase](grace-profile-context-artifacts/showcase.txt) — прежние 32 failures, новых нет.
 
 Production PGO не включён. Следом — контролируемый harness для выполнения объявленных inputs, lineage через HIR rewrites/lowering и guard outcomes. Затем можно связывать наблюдения с cost policy; raw VM counts не измеряют Z80 T-states, а совместимость не доказывает legality.
+
+## Продолжение
+
+[Контролируемый harness](grace-pgo-harness.md) теперь выполняет те же declared workload bytes, из которых строится context, с fixed no-external-hosts режимом. Обычный automatic context API остаётся доступен для custom harness.

@@ -1,0 +1,592 @@
+=== RUN   TestShowcaseCompileAssemble
+    showcase_test.go:86: Found 188 showcase files
+=== RUN   TestShowcaseCompileAssemble/ex1_struct.nanz
+    showcase_test.go:156: OK: 811 bytes asm, 24 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex2_ufcs.nanz
+    showcase_test.go:156: OK: 818 bytes asm, 35 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex3_iface.nanz
+    showcase_test.go:156: OK: 482 bytes asm, 9 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex3b_iface_param.nanz
+    showcase_test.go:156: OK: 319 bytes asm, 6 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex4a_abs_diff.nanz
+    showcase_test.go:156: OK: 255 bytes asm, 6 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex4a_abs_diff_iar.nanz
+    showcase_test.go:94: known failure: compile: IAR-style function not supported
+=== RUN   TestShowcaseCompileAssemble/ex4b_abs_diff_u16.nanz
+    showcase_test.go:156: OK: 314 bytes asm, 11 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex5_lut.nanz
+    showcase_test.go:156: OK: 1027 bytes asm, 512 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex6_foreach.nanz
+    showcase_test.go:156: OK: 1359 bytes asm, 69 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex7_mapinplace.nanz
+    showcase_test.go:156: OK: 553 bytes asm, 24 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex8_gcd.nanz
+    showcase_test.go:156: OK: 511 bytes asm, 19 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex0_test_struct.nanz
+    showcase_test.go:156: OK: 818 bytes asm, 35 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex10a_fib_rec.nanz
+    showcase_test.go:156: OK: 564 bytes asm, 38 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex10b_fib_iter.nanz
+    showcase_test.go:156: OK: 617 bytes asm, 40 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex10c_fib_fold.nanz
+    showcase_test.go:156: OK: 398 bytes asm, 23 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex11_minmax_multiret.nanz
+    showcase_test.go:156: OK: 890 bytes asm, 28 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex12_assert.nanz
+    showcase_test.go:156: OK: 730 bytes asm, 21 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex13_multiret_assert.nanz
+    showcase_test.go:156: OK: 888 bytes asm, 28 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex14_fold_assert.nanz
+    showcase_test.go:94: known failure: compile: fold assertion not wired in showcase context
+=== RUN   TestShowcaseCompileAssemble/ex15_smc_sprite.nanz
+    showcase_test.go:156: OK: 960 bytes asm, 42 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex16_hello_mze.nanz
+    showcase_test.go:156: OK: 2599 bytes asm, 235 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex17_asm_block.nanz
+    showcase_test.go:156: OK: 811 bytes asm, 49 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex18_user_console_io.nanz
+    showcase_test.go:156: OK: 1448 bytes asm, 81 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex9a_factorial_rec.nanz
+    showcase_test.go:156: OK: 857 bytes asm, 54 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex9b_factorial_fold.nanz
+    showcase_test.go:156: OK: 1233 bytes asm, 68 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex10a_fib_rec.nanz#01
+    showcase_test.go:156: OK: 564 bytes asm, 38 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex10b_fib_iter.nanz#01
+    showcase_test.go:156: OK: 617 bytes asm, 40 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex10c_fib_fold.nanz#01
+    showcase_test.go:156: OK: 398 bytes asm, 23 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex11_minmax_multiret.nanz#01
+    showcase_test.go:156: OK: 890 bytes asm, 28 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex12_assert.nanz#01
+    showcase_test.go:156: OK: 730 bytes asm, 21 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex13_multiret_assert.nanz#01
+    showcase_test.go:156: OK: 888 bytes asm, 28 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex14_fold_assert.nanz#01
+    showcase_test.go:94: known failure: compile: fold assertion not wired in showcase context
+=== RUN   TestShowcaseCompileAssemble/ex15_smc_sprite.nanz#01
+    showcase_test.go:156: OK: 960 bytes asm, 42 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex16_hello_mze.nanz#01
+    showcase_test.go:156: OK: 2599 bytes asm, 235 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex17_asm_block.nanz#01
+    showcase_test.go:156: OK: 811 bytes asm, 49 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex18_user_console_io.nanz#01
+    showcase_test.go:156: OK: 1448 bytes asm, 81 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex19_assert_forms.nanz
+    showcase_test.go:126: pipeline: line 115: assert "assert minmax(3, 7) == (3, 7)" [z80]: return[0] got 7, want 3
+=== RUN   TestShowcaseCompileAssemble/ex1_struct.nanz#01
+    showcase_test.go:156: OK: 811 bytes asm, 24 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex2_ufcs.nanz#01
+    showcase_test.go:156: OK: 818 bytes asm, 35 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex3_iface.nanz#01
+    showcase_test.go:156: OK: 482 bytes asm, 9 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex3b_iface_param.nanz#01
+    showcase_test.go:156: OK: 319 bytes asm, 6 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex4a_abs_diff.nanz#01
+    showcase_test.go:156: OK: 255 bytes asm, 6 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex4b_abs_diff_u16.nanz#01
+    showcase_test.go:156: OK: 314 bytes asm, 11 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex5_lut.nanz#01
+    showcase_test.go:156: OK: 1027 bytes asm, 512 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex6_foreach.nanz#01
+    showcase_test.go:156: OK: 1359 bytes asm, 69 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex7_mapinplace.nanz#01
+    showcase_test.go:156: OK: 553 bytes asm, 24 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex8_gcd.nanz#01
+    showcase_test.go:156: OK: 511 bytes asm, 19 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex9a_factorial_rec.nanz#01
+    showcase_test.go:156: OK: 857 bytes asm, 54 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex9b_factorial_fold.nanz#01
+    showcase_test.go:156: OK: 1233 bytes asm, 68 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex20_arena_allocator.nanz
+    showcase_test.go:94: known failure: asm: BUG-008 arena codegen (LD IXL, (IX+d))
+=== RUN   TestShowcaseCompileAssemble/ex21_enum.nanz
+    showcase_test.go:156: OK: 451 bytes asm, 7 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex22_type_alias.nanz
+    showcase_test.go:156: OK: 337 bytes asm, 3 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex23_import_unqualified.nanz
+    showcase_test.go:94: known failure: compile: import needs module search path
+=== RUN   TestShowcaseCompileAssemble/ex24_import_qualified.nanz
+    showcase_test.go:94: known failure: compile: import needs module search path
+=== RUN   TestShowcaseCompileAssemble/ex25_import_alias_glob.nanz
+    showcase_test.go:94: known failure: compile: import needs module search path
+=== RUN   TestShowcaseCompileAssemble/ex26_enum_assert.nanz
+    showcase_test.go:156: OK: 317 bytes asm, 3 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex27_strings.nanz
+    showcase_test.go:156: OK: 1331 bytes asm, 154 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex28_pipe.nanz
+    showcase_test.go:156: OK: 819 bytes asm, 32 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ops.nanz
+    showcase_test.go:156: OK: 492 bytes asm, 9 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex29_lanz.lanz
+    showcase_test.go:156: OK: 901 bytes asm, 31 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex30_ptr_cast.nanz
+    showcase_test.go:156: OK: 498 bytes asm, 14 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex31_asm_ret_clob.nanz
+    showcase_test.go:156: OK: 538 bytes asm, 13 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex32_value_pipe.nanz
+    showcase_test.go:156: OK: 712 bytes asm, 12 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex33_lambda_inference.nanz
+    showcase_test.go:156: OK: 492 bytes asm, 16 bytes binary
+=== RUN   TestShowcaseCompileAssemble/ex34_tetris.nanz
+    showcase_test.go:94: known failure: asm: tetris needs clobber save/restore (WIP)
+=== RUN   TestShowcaseCompileAssemble/hello_zx.nanz
+    showcase_test.go:120: frontend .nanz: line 14: import zx.console: module not found (searched , )
+=== RUN   TestShowcaseCompileAssemble/sap_report_zx.nanz
+    showcase_test.go:156: OK: 22804 bytes asm, 1823 bytes binary
+=== RUN   TestShowcaseCompileAssemble/zsql_mara_color_zx.nanz
+    showcase_test.go:156: OK: 6569 bytes asm, 952 bytes binary
+=== RUN   TestShowcaseCompileAssemble/hello_agon.nanz
+    showcase_test.go:156: OK: 1087 bytes asm, 112 bytes binary
+=== RUN   TestShowcaseCompileAssemble/hello_world.nanz
+    showcase_test.go:120: frontend .nanz: line 7: import stdlib.agon.mos: module not found (searched , )
+=== RUN   TestShowcaseCompileAssemble/nc_agon.nanz
+    showcase_test.go:120: frontend .nanz: line 6: import agon.tui_render: module not found (searched , )
+=== RUN   TestShowcaseCompileAssemble/tui_demo.nanz
+    showcase_test.go:120: frontend .nanz: line 6: import agon.tui_render: module not found (searched , )
+=== RUN   TestShowcaseCompileAssemble/tui_hello.nanz
+    showcase_test.go:120: frontend .nanz: line 6: import agon.tui_render: module not found (searched , )
+=== RUN   TestShowcaseCompileAssemble/assert_test.lanz
+    showcase_test.go:156: OK: 577 bytes asm, 12 bytes binary
+=== RUN   TestShowcaseCompileAssemble/assert_test.lizp
+    showcase_test.go:156: OK: 577 bytes asm, 12 bytes binary
+=== RUN   TestShowcaseCompileAssemble/cond_test.lizp
+    showcase_test.go:94: known failure: asm: lizp codegen produces instructions MZA can't encode yet
+=== RUN   TestShowcaseCompileAssemble/crypto.lizp
+    showcase_test.go:126: pipeline: line 26: assert "assert caesar_encrypt(65, 3) == 68" [z80]: got 65, want 68
+=== RUN   TestShowcaseCompileAssemble/dsp.lizp
+    showcase_test.go:126: pipeline: line 20: assert "assert sawtooth(0, 10) == 0" [mir2]: got 25, want 0
+=== RUN   TestShowcaseCompileAssemble/factorial.lizp
+    showcase_test.go:94: known failure: asm: lizp codegen produces instructions MZA can't encode yet
+=== RUN   TestShowcaseCompileAssemble/functional.lizp
+    showcase_test.go:156: OK: 2652 bytes asm, 117 bytes binary
+=== RUN   TestShowcaseCompileAssemble/game_of_life.lizp
+    showcase_test.go:156: OK: 1332 bytes asm, 64 bytes binary
+=== RUN   TestShowcaseCompileAssemble/hello.lizp
+    showcase_test.go:156: OK: 154 bytes asm, 3 bytes binary
+=== RUN   TestShowcaseCompileAssemble/scheme_r5rs.lizp
+    showcase_test.go:126: pipeline: line 56: assert "assert fact_loop(5) == 120" [z80]: got 6, want 120
+=== RUN   TestShowcaseCompileAssemble/scheme_test.lizp
+    showcase_test.go:156: OK: 2824 bytes asm, 132 bytes binary
+=== RUN   TestShowcaseCompileAssemble/self_tokenizer.lizp
+    showcase_test.go:126: pipeline: statement 0: HIR get_pos: void binary operand or result
+=== RUN   TestShowcaseCompileAssemble/showcase.lizp
+    showcase_test.go:94: known failure: asm: lizp codegen produces instructions MZA can't encode yet
+=== RUN   TestShowcaseCompileAssemble/zx_checkerboard.lizp
+    showcase_test.go:94: known failure: asm: lizp codegen produces instructions MZA can't encode yet
+=== RUN   TestShowcaseCompileAssemble/zx_rainbow.lizp
+    showcase_test.go:94: known failure: asm: lizp codegen produces instructions MZA can't encode yet
+=== RUN   TestShowcaseCompileAssemble/01_sum_array.nanz
+    showcase_test.go:94: known failure: asm: PLM codegen produces instructions MZA can't encode yet
+=== RUN   TestShowcaseCompileAssemble/01_sum_array.plm
+    showcase_test.go:94: known failure: asm: PLM codegen produces instructions MZA can't encode yet
+=== RUN   TestShowcaseCompileAssemble/01_sum_plm_origin.plm
+    showcase_test.go:94: known failure: asm: PLM codegen produces instructions MZA can't encode yet
+=== RUN   TestShowcaseCompileAssemble/02_sum_array_idiomatic.nanz
+    showcase_test.go:156: OK: 1410 bytes asm, 59 bytes binary
+=== RUN   TestShowcaseCompileAssemble/03_filter_map_chain.nanz
+    showcase_test.go:156: OK: 2099 bytes asm, 86 bytes binary
+=== RUN   TestShowcaseCompileAssemble/04_lut_popcount.nanz
+    showcase_test.go:156: OK: 1027 bytes asm, 512 bytes binary
+=== RUN   TestShowcaseCompileAssemble/05_four_pointers.nanz
+    showcase_test.go:156: OK: 640 bytes asm, 48 bytes binary
+=== RUN   TestShowcaseCompileAssemble/06_pbqp_weighted.nanz
+    showcase_test.go:156: OK: 398 bytes asm, 20 bytes binary
+=== RUN   TestShowcaseCompileAssemble/07_ix_load_store.nanz
+    showcase_test.go:156: OK: 1235 bytes asm, 87 bytes binary
+=== RUN   TestShowcaseCompileAssemble/08_arena_allocator.nanz
+    showcase_test.go:94: known failure: asm: BUG-008 arena codegen (LD IXL, (IX+d))
+=== RUN   TestShowcaseCompileAssemble/09_function_pointers.nanz
+    showcase_test.go:156: OK: 1123 bytes asm, 42 bytes binary
+=== RUN   TestShowcaseCompileAssemble/10_adt_option.nanz
+    showcase_test.go:156: OK: 2989 bytes asm, 234 bytes binary
+=== RUN   TestShowcaseCompileAssemble/11_match_expression.nanz
+    showcase_test.go:156: OK: 1001 bytes asm, 43 bytes binary
+=== RUN   TestShowcaseCompileAssemble/12_state_machine.nanz
+    showcase_test.go:156: OK: 1891 bytes asm, 99 bytes binary
+=== RUN   TestShowcaseCompileAssemble/13_result_error.nanz
+    showcase_test.go:156: OK: 2157 bytes asm, 110 bytes binary
+=== RUN   TestShowcaseCompileAssemble/14_error_propagation.nanz
+    showcase_test.go:156: OK: 3119 bytes asm, 148 bytes binary
+=== RUN   TestShowcaseCompileAssemble/15_error_enforcement.nanz
+    showcase_test.go:156: OK: 2495 bytes asm, 119 bytes binary
+=== RUN   TestShowcaseCompileAssemble/16_rotate_sled.nanz
+    showcase_test.go:156: OK: 1594 bytes asm, 48 bytes binary
+=== RUN   TestShowcaseCompileAssemble/17_bool_retflag.nanz
+    showcase_test.go:156: OK: 3516 bytes asm, 172 bytes binary
+=== RUN   TestShowcaseCompileAssemble/18_tail_recursion.nanz
+    showcase_test.go:156: OK: 2832 bytes asm, 131 bytes binary
+=== RUN   TestShowcaseCompileAssemble/20_strref_test.nanz
+    showcase_test.go:156: OK: 1656 bytes asm, 45 bytes binary
+=== RUN   TestShowcaseCompileAssemble/21_hashmap_test.nanz
+    showcase_test.go:156: OK: 12154 bytes asm, 1017 bytes binary
+=== RUN   TestShowcaseCompileAssemble/30_stream_test.nanz
+    showcase_test.go:156: OK: 5332 bytes asm, 410 bytes binary
+=== RUN   TestShowcaseCompileAssemble/50_impl_showcase.nanz
+    showcase_test.go:156: OK: 3502 bytes asm, 225 bytes binary
+=== RUN   TestShowcaseCompileAssemble/51_impl_cpm_demo.nanz
+[Z80-VALIDATE] main: 2 invalid instruction(s)
+  line 8: >>> LD (D), A <<<
+    showcase_test.go:137: asm error: line 10: unknown instruction or invalid operands: LD
+    showcase_test.go:137: asm error: line 10: unknown instruction or invalid operands: LD
+    showcase_test.go:139: assembly produced 2 errors
+=== RUN   TestShowcaseCompileAssemble/abap_screen.nanz
+    showcase_test.go:156: OK: 21783 bytes asm, 1671 bytes binary
+=== RUN   TestShowcaseCompileAssemble/assert_test.nanz
+    showcase_test.go:156: OK: 577 bytes asm, 12 bytes binary
+=== RUN   TestShowcaseCompileAssemble/assert_test.plm
+    showcase_test.go:156: OK: 581 bytes asm, 12 bytes binary
+=== RUN   TestShowcaseCompileAssemble/canvas_house.nanz
+    showcase_test.go:156: OK: 13499 bytes asm, 963 bytes binary
+=== RUN   TestShowcaseCompileAssemble/grace_hir_constant_if.nanz
+    showcase_test.go:156: OK: 325 bytes asm, 3 bytes binary
+=== RUN   TestShowcaseCompileAssemble/hello_cpm.nanz
+    showcase_test.go:156: OK: 727 bytes asm, 47 bytes binary
+=== RUN   TestShowcaseCompileAssemble/hello_cpm_fib.nanz
+    showcase_test.go:156: OK: 3685 bytes asm, 269 bytes binary
+=== RUN   TestShowcaseCompileAssemble/irc_client.nanz
+    showcase_test.go:120: frontend .nanz: line 10: import tui.render: module not found (searched , )
+=== RUN   TestShowcaseCompileAssemble/meta_screen.nanz
+    showcase_test.go:120: frontend .nanz: line 9: import tui.render: module not found (searched , )
+=== RUN   TestShowcaseCompileAssemble/mul16_gpu_test.nanz
+    showcase_test.go:156: OK: 2290 bytes asm, 135 bytes binary
+=== RUN   TestShowcaseCompileAssemble/mul_const.nanz
+    showcase_test.go:156: OK: 505 bytes asm, 32 bytes binary
+=== RUN   TestShowcaseCompileAssemble/nc.nanz
+    showcase_test.go:94: known failure: compile: import needs module search path (fs.fat12)
+=== RUN   TestShowcaseCompileAssemble/promoted_arithmetic.nanz
+    showcase_test.go:126: pipeline: line 39: assert "assert test_ld_word(52, 18) == 4660 via z80" [z80]: got 4626, want 4660
+=== RUN   TestShowcaseCompileAssemble/rotozoomer.nanz
+    showcase_test.go:156: OK: 27519 bytes asm, 2739 bytes binary
+=== RUN   TestShowcaseCompileAssemble/sap_mara_cpm.nanz
+    showcase_test.go:120: frontend .nanz: line 6: import tui.render: module not found (searched , )
+=== RUN   TestShowcaseCompileAssemble/sap_mara_demo.nanz
+    showcase_test.go:156: OK: 14559 bytes asm, 2389 bytes binary
+=== RUN   TestShowcaseCompileAssemble/screen_alv.nanz
+    showcase_test.go:120: frontend .nanz: line 8: import tui.render: module not found (searched , )
+=== RUN   TestShowcaseCompileAssemble/screen_customer.nanz
+    showcase_test.go:156: OK: 27916 bytes asm, 2208 bytes binary
+=== RUN   TestShowcaseCompileAssemble/screen_declarative.nanz
+    showcase_test.go:120: frontend .nanz: line 12: import tui.render: module not found (searched , )
+=== RUN   TestShowcaseCompileAssemble/screen_report.nanz
+    showcase_test.go:156: OK: 40219 bytes asm, 3923 bytes binary
+=== RUN   TestShowcaseCompileAssemble/self_lanz_parser.nanz
+    showcase_test.go:156: OK: 27440 bytes asm, 2163 bytes binary
+=== RUN   TestShowcaseCompileAssemble/self_parser.nanz
+    showcase_test.go:156: OK: 77332 bytes asm, 5882 bytes binary
+=== RUN   TestShowcaseCompileAssemble/self_tokenizer.nanz
+    showcase_test.go:156: OK: 65434 bytes asm, 5121 bytes binary
+=== RUN   TestShowcaseCompileAssemble/sha256.nanz
+    showcase_test.go:156: OK: 6732 bytes asm, 550 bytes binary
+=== RUN   TestShowcaseCompileAssemble/signed_arithmetic.nanz
+    showcase_test.go:156: OK: 3564 bytes asm, 221 bytes binary
+=== RUN   TestShowcaseCompileAssemble/sql_test6.nanz
+    showcase_test.go:120: frontend .nanz: line 1: import tui.render: module not found (searched , )
+=== RUN   TestShowcaseCompileAssemble/sqlite_demo.nanz
+    showcase_test.go:156: OK: 4545 bytes asm, 587 bytes binary
+=== RUN   TestShowcaseCompileAssemble/sqlite_test.nanz
+    showcase_test.go:120: frontend .nanz: line 6: import tui.render: module not found (searched , )
+=== RUN   TestShowcaseCompileAssemble/test_irc_minimal.nanz
+    showcase_test.go:120: frontend .nanz: line 1: import tui.render: module not found (searched , )
+=== RUN   TestShowcaseCompileAssemble/tetris_cpm.nanz
+    showcase_test.go:120: frontend .nanz: line 9: import tui.render: module not found (searched , )
+=== RUN   TestShowcaseCompileAssemble/tetris_tui.nanz
+[Z80-VALIDATE] try_rotate: 2 invalid instruction(s)
+  line 5: >>> LD D, (H) <<<
+[Z80-VALIDATE] spawn_piece: 2 invalid instruction(s)
+  line 5: >>> LD E, (E) <<<
+[Z80-VALIDATE] draw_info: 3 invalid instruction(s)
+  line 5: >>> LD D, (D) <<<
+    showcase_test.go:137: asm error: line 1065: unknown instruction or invalid operands: LD
+    showcase_test.go:137: asm error: line 1248: unknown instruction or invalid operands: LD
+    showcase_test.go:137: asm error: line 1780: unknown instruction or invalid operands: LD
+    showcase_test.go:137: asm error: line 1065: unknown instruction or invalid operands: LD
+    showcase_test.go:137: asm error: line 1248: unknown instruction or invalid operands: LD
+    showcase_test.go:137: asm error: line 1780: unknown instruction or invalid operands: LD
+    showcase_test.go:137: asm error: line 1065: unknown instruction or invalid operands: LD
+    showcase_test.go:137: asm error: line 1248: unknown instruction or invalid operands: LD
+    showcase_test.go:137: asm error: line 1780: unknown instruction or invalid operands: LD
+    showcase_test.go:137: asm error: line 1065: unknown instruction or invalid operands: LD
+    showcase_test.go:137: asm error: line 1248: unknown instruction or invalid operands: LD
+    showcase_test.go:137: asm error: line 1780: unknown instruction or invalid operands: LD
+    showcase_test.go:139: assembly produced 12 errors
+=== RUN   TestShowcaseCompileAssemble/tiny.nanz
+    showcase_test.go:156: OK: 492 bytes asm, 9 bytes binary
+=== RUN   TestShowcaseCompileAssemble/tui_commander.nanz
+    showcase_test.go:156: OK: 13926 bytes asm, 1274 bytes binary
+=== RUN   TestShowcaseCompileAssemble/tui_commander_l3.nanz
+    showcase_test.go:156: OK: 4252 bytes asm, 407 bytes binary
+=== RUN   TestShowcaseCompileAssemble/tui_cpm.nanz
+    showcase_test.go:156: OK: 7115 bytes asm, 618 bytes binary
+=== RUN   TestShowcaseCompileAssemble/tui_demo.nanz#01
+    showcase_test.go:156: OK: 897 bytes asm, 31 bytes binary
+=== RUN   TestShowcaseCompileAssemble/tui_screen.nanz
+    showcase_test.go:156: OK: 5858 bytes asm, 482 bytes binary
+=== RUN   TestShowcaseCompileAssemble/tui_zx.nanz
+    showcase_test.go:156: OK: 5498 bytes asm, 576 bytes binary
+=== RUN   TestShowcaseCompileAssemble/tuple_assert_gate.nanz
+    showcase_test.go:156: OK: 422 bytes asm, 17 bytes binary
+=== RUN   TestShowcaseCompileAssemble/typed_print.nanz
+    showcase_test.go:120: frontend .nanz: line 2: import text.print: module not found (searched , )
+=== RUN   TestShowcaseCompileAssemble/widemath.nanz
+    showcase_test.go:156: OK: 11593 bytes asm, 696 bytes binary
+=== RUN   TestShowcaseCompileAssemble/zsql.nanz
+    showcase_test.go:120: frontend .nanz: line 12: import sql.sqlite: module not found (searched , )
+=== RUN   TestShowcaseCompileAssemble/zsql_zx.nanz
+    showcase_test.go:120: frontend .nanz: line 9: import sql.sqlite: module not found (searched , )
+=== RUN   TestShowcaseCompileAssemble/zsql_zx_real.nanz
+    showcase_test.go:120: frontend .nanz: line 12: import sql.sqlite: module not found (searched , )
+=== RUN   TestShowcaseCompileAssemble/outparam_swap.nanz
+    showcase_test.go:156: OK: 456 bytes asm, 6 bytes binary
+=== RUN   TestShowcaseCompileAssemble/assert_test.pas
+    showcase_test.go:156: OK: 435 bytes asm, 7 bytes binary
+=== RUN   TestShowcaseCompileAssemble/bubble_sort.pas
+    showcase_test.go:126: pipeline: statement 0: HIR INITARRAY: non-address type u8
+=== RUN   TestShowcaseCompileAssemble/casetest.pas
+    showcase_test.go:94: known failure: asm: Pascal case codegen not fully wired
+=== RUN   TestShowcaseCompileAssemble/factorial.pas
+    showcase_test.go:94: known failure: asm: lizp codegen produces instructions MZA can't encode yet
+=== RUN   TestShowcaseCompileAssemble/hello.pas
+    showcase_test.go:156: OK: 661 bytes asm, 58 bytes binary
+=== RUN   TestShowcaseCompileAssemble/logic_test.pas
+    showcase_test.go:156: OK: 954 bytes asm, 21 bytes binary
+=== RUN   TestShowcaseCompileAssemble/math_test.pas
+    showcase_test.go:156: OK: 1949 bytes asm, 72 bytes binary
+=== RUN   TestShowcaseCompileAssemble/records.pas
+    showcase_test.go:126: pipeline: HIR MANHATTAN: invalid or duplicate parameter "A"
+=== RUN   TestShowcaseCompileAssemble/recursive_test.pas
+    showcase_test.go:156: OK: 2160 bytes asm, 98 bytes binary
+=== RUN   TestShowcaseCompileAssemble/sieve.pas
+    showcase_test.go:94: known failure: asm: Pascal array codegen not fully wired
+=== RUN   TestShowcaseCompileAssemble/string_test.pas
+    showcase_test.go:156: OK: 1415 bytes asm, 72 bytes binary
+=== RUN   TestShowcaseCompileAssemble/abs_diff_fib.plm
+    showcase_test.go:156: OK: 786 bytes asm, 34 bytes binary
+=== RUN   TestShowcaseCompileAssemble/assert_test.plm#01
+    showcase_test.go:156: OK: 581 bytes asm, 12 bytes binary
+=== RUN   TestShowcaseCompileAssemble/hello.plm
+    showcase_test.go:126: pipeline: statement 1: HIR PRINTMSG: value type void incompatible with u8
+=== RUN   TestShowcaseCompileAssemble/showcase.plm
+    showcase_test.go:94: known failure: asm: lizp codegen produces instructions MZA can't encode yet
+=== RUN   TestShowcaseCompileAssemble/sum_array.plm
+    showcase_test.go:126: pipeline: statement 4: statement 0: HIR SUM_ARRAY: void binary operand or result
+=== RUN   TestShowcaseCompileAssemble/asm_caller_callee.nanz
+    showcase_test.go:126: pipeline: line 28: assert "assert test_abc() == 60 via z80" [z80]: got 70, want 60
+=== RUN   TestShowcaseCompileAssemble/asm_calling_convention.nanz
+    showcase_test.go:156: OK: 2778 bytes asm, 68 bytes binary
+=== RUN   TestShowcaseCompileAssemble/asm_register_permutations.nanz
+    showcase_test.go:156: OK: 4868 bytes asm, 107 bytes binary
+=== RUN   TestShowcaseCompileAssemble/divmod10_test.nanz
+    showcase_test.go:156: OK: 752 bytes asm, 40 bytes binary
+=== RUN   TestShowcaseCompileAssemble/fib_parallel_copy.nanz
+    showcase_test.go:156: OK: 483 bytes asm, 22 bytes binary
+=== RUN   TestShowcaseCompileAssemble/mul8_strength_reduction.nanz
+    showcase_test.go:156: OK: 2709 bytes asm, 73 bytes binary
+=== RUN   TestShowcaseCompileAssemble/nanz_advantage_showcase.nanz
+    showcase_test.go:156: OK: 4048 bytes asm, 195 bytes binary
+=== RUN   TestShowcaseCompileAssemble/pipe_fold_mul_combos.nanz
+    showcase_test.go:156: OK: 2947 bytes asm, 138 bytes binary
+=== RUN   TestShowcaseCompileAssemble/z80_compute_verify.nanz
+    showcase_test.go:156: OK: 4579 bytes asm, 151 bytes binary
+=== RUN   TestShowcaseCompileAssemble/zvm.nanz
+    showcase_test.go:94: known failure: mzv-only Z3 interpreter; Z80 port is deferred
+=== RUN   TestShowcaseCompileAssemble/console_demo.nanz
+    showcase_test.go:120: frontend .nanz: line 8: import zx.console: module not found (searched , )
+=== RUN   TestShowcaseCompileAssemble/plasma.nanz
+    showcase_test.go:94: known failure: asm: new example, not yet verified
+=== RUN   TestShowcaseCompileAssemble/tetris.nanz
+    showcase_test.go:94: known failure: asm: tetris v1 needs clobber save/restore (WIP)
+=== RUN   TestShowcaseCompileAssemble/tetris_mir2_test.nanz
+    showcase_test.go:156: OK: 3370 bytes asm, 534 bytes binary
+--- FAIL: TestShowcaseCompileAssemble (4.07s)
+    --- PASS: TestShowcaseCompileAssemble/ex1_struct.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex2_ufcs.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex3_iface.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex3b_iface_param.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex4a_abs_diff.nanz (0.00s)
+    --- SKIP: TestShowcaseCompileAssemble/ex4a_abs_diff_iar.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex4b_abs_diff_u16.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex5_lut.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex6_foreach.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex7_mapinplace.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex8_gcd.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex0_test_struct.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex10a_fib_rec.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex10b_fib_iter.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex10c_fib_fold.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex11_minmax_multiret.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex12_assert.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/ex13_multiret_assert.nanz (0.01s)
+    --- SKIP: TestShowcaseCompileAssemble/ex14_fold_assert.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex15_smc_sprite.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex16_hello_mze.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex17_asm_block.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex18_user_console_io.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex9a_factorial_rec.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex9b_factorial_fold.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex10a_fib_rec.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex10b_fib_iter.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex10c_fib_fold.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex11_minmax_multiret.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex12_assert.nanz#01 (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/ex13_multiret_assert.nanz#01 (0.01s)
+    --- SKIP: TestShowcaseCompileAssemble/ex14_fold_assert.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex15_smc_sprite.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex16_hello_mze.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex17_asm_block.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex18_user_console_io.nanz#01 (0.00s)
+    --- FAIL: TestShowcaseCompileAssemble/ex19_assert_forms.nanz (0.04s)
+    --- PASS: TestShowcaseCompileAssemble/ex1_struct.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex2_ufcs.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex3_iface.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex3b_iface_param.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex4a_abs_diff.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex4b_abs_diff_u16.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex5_lut.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex6_foreach.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex7_mapinplace.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex8_gcd.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex9a_factorial_rec.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex9b_factorial_fold.nanz#01 (0.00s)
+    --- SKIP: TestShowcaseCompileAssemble/ex20_arena_allocator.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex21_enum.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex22_type_alias.nanz (0.00s)
+    --- SKIP: TestShowcaseCompileAssemble/ex23_import_unqualified.nanz (0.00s)
+    --- SKIP: TestShowcaseCompileAssemble/ex24_import_qualified.nanz (0.00s)
+    --- SKIP: TestShowcaseCompileAssemble/ex25_import_alias_glob.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex26_enum_assert.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex27_strings.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex28_pipe.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ops.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex29_lanz.lanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex30_ptr_cast.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex31_asm_ret_clob.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex32_value_pipe.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex33_lambda_inference.nanz (0.01s)
+    --- SKIP: TestShowcaseCompileAssemble/ex34_tetris.nanz (0.00s)
+    --- FAIL: TestShowcaseCompileAssemble/hello_zx.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/sap_report_zx.nanz (0.35s)
+    --- PASS: TestShowcaseCompileAssemble/zsql_mara_color_zx.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/hello_agon.nanz (0.00s)
+    --- FAIL: TestShowcaseCompileAssemble/hello_world.nanz (0.00s)
+    --- FAIL: TestShowcaseCompileAssemble/nc_agon.nanz (0.00s)
+    --- FAIL: TestShowcaseCompileAssemble/tui_demo.nanz (0.00s)
+    --- FAIL: TestShowcaseCompileAssemble/tui_hello.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/assert_test.lanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/assert_test.lizp (0.00s)
+    --- SKIP: TestShowcaseCompileAssemble/cond_test.lizp (0.00s)
+    --- FAIL: TestShowcaseCompileAssemble/crypto.lizp (0.01s)
+    --- FAIL: TestShowcaseCompileAssemble/dsp.lizp (0.00s)
+    --- SKIP: TestShowcaseCompileAssemble/factorial.lizp (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/functional.lizp (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/game_of_life.lizp (0.02s)
+    --- PASS: TestShowcaseCompileAssemble/hello.lizp (0.00s)
+    --- FAIL: TestShowcaseCompileAssemble/scheme_r5rs.lizp (0.02s)
+    --- PASS: TestShowcaseCompileAssemble/scheme_test.lizp (0.04s)
+    --- FAIL: TestShowcaseCompileAssemble/self_tokenizer.lizp (0.00s)
+    --- SKIP: TestShowcaseCompileAssemble/showcase.lizp (0.00s)
+    --- SKIP: TestShowcaseCompileAssemble/zx_checkerboard.lizp (0.00s)
+    --- SKIP: TestShowcaseCompileAssemble/zx_rainbow.lizp (0.00s)
+    --- SKIP: TestShowcaseCompileAssemble/01_sum_array.nanz (0.00s)
+    --- SKIP: TestShowcaseCompileAssemble/01_sum_array.plm (0.00s)
+    --- SKIP: TestShowcaseCompileAssemble/01_sum_plm_origin.plm (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/02_sum_array_idiomatic.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/03_filter_map_chain.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/04_lut_popcount.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/05_four_pointers.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/06_pbqp_weighted.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/07_ix_load_store.nanz (0.00s)
+    --- SKIP: TestShowcaseCompileAssemble/08_arena_allocator.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/09_function_pointers.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/10_adt_option.nanz (0.02s)
+    --- PASS: TestShowcaseCompileAssemble/11_match_expression.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/12_state_machine.nanz (0.03s)
+    --- PASS: TestShowcaseCompileAssemble/13_result_error.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/14_error_propagation.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/15_error_enforcement.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/16_rotate_sled.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/17_bool_retflag.nanz (0.02s)
+    --- PASS: TestShowcaseCompileAssemble/18_tail_recursion.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/20_strref_test.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/21_hashmap_test.nanz (0.05s)
+    --- PASS: TestShowcaseCompileAssemble/30_stream_test.nanz (0.02s)
+    --- PASS: TestShowcaseCompileAssemble/50_impl_showcase.nanz (0.01s)
+    --- FAIL: TestShowcaseCompileAssemble/51_impl_cpm_demo.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/abap_screen.nanz (0.07s)
+    --- PASS: TestShowcaseCompileAssemble/assert_test.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/assert_test.plm (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/canvas_house.nanz (0.04s)
+    --- PASS: TestShowcaseCompileAssemble/grace_hir_constant_if.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/hello_cpm.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/hello_cpm_fib.nanz (0.02s)
+    --- FAIL: TestShowcaseCompileAssemble/irc_client.nanz (0.00s)
+    --- FAIL: TestShowcaseCompileAssemble/meta_screen.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/mul16_gpu_test.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/mul_const.nanz (0.00s)
+    --- SKIP: TestShowcaseCompileAssemble/nc.nanz (0.00s)
+    --- FAIL: TestShowcaseCompileAssemble/promoted_arithmetic.nanz (0.06s)
+    --- PASS: TestShowcaseCompileAssemble/rotozoomer.nanz (0.12s)
+    --- FAIL: TestShowcaseCompileAssemble/sap_mara_cpm.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/sap_mara_demo.nanz (0.03s)
+    --- FAIL: TestShowcaseCompileAssemble/screen_alv.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/screen_customer.nanz (0.10s)
+    --- FAIL: TestShowcaseCompileAssemble/screen_declarative.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/screen_report.nanz (0.14s)
+    --- PASS: TestShowcaseCompileAssemble/self_lanz_parser.nanz (0.12s)
+    --- PASS: TestShowcaseCompileAssemble/self_parser.nanz (0.56s)
+    --- PASS: TestShowcaseCompileAssemble/self_tokenizer.nanz (0.42s)
+    --- PASS: TestShowcaseCompileAssemble/sha256.nanz (0.03s)
+    --- PASS: TestShowcaseCompileAssemble/signed_arithmetic.nanz (0.07s)
+    --- FAIL: TestShowcaseCompileAssemble/sql_test6.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/sqlite_demo.nanz (0.01s)
+    --- FAIL: TestShowcaseCompileAssemble/sqlite_test.nanz (0.00s)
+    --- FAIL: TestShowcaseCompileAssemble/test_irc_minimal.nanz (0.00s)
+    --- FAIL: TestShowcaseCompileAssemble/tetris_cpm.nanz (0.00s)
+    --- FAIL: TestShowcaseCompileAssemble/tetris_tui.nanz (0.56s)
+    --- PASS: TestShowcaseCompileAssemble/tiny.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/tui_commander.nanz (0.06s)
+    --- PASS: TestShowcaseCompileAssemble/tui_commander_l3.nanz (0.02s)
+    --- PASS: TestShowcaseCompileAssemble/tui_cpm.nanz (0.02s)
+    --- PASS: TestShowcaseCompileAssemble/tui_demo.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/tui_screen.nanz (0.03s)
+    --- PASS: TestShowcaseCompileAssemble/tui_zx.nanz (0.02s)
+    --- PASS: TestShowcaseCompileAssemble/tuple_assert_gate.nanz (0.01s)
+    --- FAIL: TestShowcaseCompileAssemble/typed_print.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/widemath.nanz (0.05s)
+    --- FAIL: TestShowcaseCompileAssemble/zsql.nanz (0.00s)
+    --- FAIL: TestShowcaseCompileAssemble/zsql_zx.nanz (0.00s)
+    --- FAIL: TestShowcaseCompileAssemble/zsql_zx_real.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/outparam_swap.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/assert_test.pas (0.00s)
+    --- FAIL: TestShowcaseCompileAssemble/bubble_sort.pas (0.00s)
+    --- SKIP: TestShowcaseCompileAssemble/casetest.pas (0.00s)
+    --- SKIP: TestShowcaseCompileAssemble/factorial.pas (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/hello.pas (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/logic_test.pas (0.02s)
+    --- PASS: TestShowcaseCompileAssemble/math_test.pas (0.08s)
+    --- FAIL: TestShowcaseCompileAssemble/records.pas (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/recursive_test.pas (0.06s)
+    --- SKIP: TestShowcaseCompileAssemble/sieve.pas (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/string_test.pas (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/abs_diff_fib.plm (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/assert_test.plm#01 (0.01s)
+    --- FAIL: TestShowcaseCompileAssemble/hello.plm (0.00s)
+    --- SKIP: TestShowcaseCompileAssemble/showcase.plm (0.00s)
+    --- FAIL: TestShowcaseCompileAssemble/sum_array.plm (0.00s)
+    --- FAIL: TestShowcaseCompileAssemble/asm_caller_callee.nanz (0.02s)
+    --- PASS: TestShowcaseCompileAssemble/asm_calling_convention.nanz (0.08s)
+    --- PASS: TestShowcaseCompileAssemble/asm_register_permutations.nanz (0.08s)
+    --- PASS: TestShowcaseCompileAssemble/divmod10_test.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/fib_parallel_copy.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/mul8_strength_reduction.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/nanz_advantage_showcase.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/pipe_fold_mul_combos.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/z80_compute_verify.nanz (0.18s)
+    --- SKIP: TestShowcaseCompileAssemble/zvm.nanz (0.00s)
+    --- FAIL: TestShowcaseCompileAssemble/console_demo.nanz (0.00s)
+    --- SKIP: TestShowcaseCompileAssemble/plasma.nanz (0.00s)
+    --- SKIP: TestShowcaseCompileAssemble/tetris.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/tetris_mir2_test.nanz (0.05s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/nanz	4.077s
+FAIL

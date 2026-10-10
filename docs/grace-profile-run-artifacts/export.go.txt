@@ -1,0 +1,18 @@
+package main
+import (
+ "encoding/json"
+ "os"
+ "github.com/minz/minzc/pkg/hir"
+ "github.com/minz/minzc/pkg/nanz"
+)
+func main(){
+ src,err:=os.ReadFile("../examples/nanz/01_sum_array.nanz");if err!=nil {panic(err)}
+ m,err:=nanz.Parse(string(src),"examples/nanz/01_sum_array.nanz");if err!=nil {panic(err)}
+ data:=make([]byte,255);for i:=range data {data[i]=byte(i+1)}
+ w:=hir.ProfileWorkload{Schema:"minz.profile-workload/v1",TargetModel:"cpm-z80-v1",MaxSteps:100000,MaxMemory:65536,Resources:map[string][]byte{"array":data},Calls:[]hir.ProfileInvocation{}}
+ for _,n:=range []int64{0,1,5,16,64,255} {value:=n;w.Calls=append(w.Calls,hir.ProfileInvocation{Function:"sum_array",Arguments:[]hir.ProfileArgument{{Resource:"array"},{Value:&value}}})}
+ out,err:=hir.RunLoopProfile(m,w);if err!=nil {panic(err)}
+ for i,n:=range []int64{0,1,5,16,64,255} {if out.Results[i][0].I!=(n*(n+1)/2)&255 {panic("sum oracle failed")}}
+ encoded,err:=json.MarshalIndent(out,"","  ");if err!=nil {panic(err)}
+ os.Stdout.Write(append(encoded,'\n'))
+}

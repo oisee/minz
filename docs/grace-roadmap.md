@@ -116,3 +116,5 @@ pointer-walk, оставляя invariant-base. На sum_array выбирает 3
 [Ключ совместимости и refusing loader](grace-pgo-compatibility.md) теперь сверяют typed HIR, origins и объявленный harness context; malformed/partial/stale наблюдения отклоняются. Следующий срез — автоматическая identity/dependency manifest и lineage перед cost policy.
 
 [Автоматический context builder](grace-pgo-context.md) использует executable SHA256 и Nanz source manifest, включая loop-free imports. Следующая очередь: controlled execution harness и lineage/guard events до cost policy.
+
+[Контролируемый VM harness](grace-pgo-harness.md) выполняет ordered calls, initial globals/resources и limits из хешируемого workload. Следующая очередь: site lineage и guard events, затем cost policy.
