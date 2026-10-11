@@ -160,6 +160,10 @@ func HoistInvariantAddresses(f *Func) bool {
 			switch i.Op {
 			case OpConst:
 				return true
+			case OpAddrOf:
+				// Unknown/string/dynamic symbols may fail resolution in VM;
+				// only an existing module global is a total address constant.
+				return f.mod != nil && invariantGlobalSymbol(f.mod, i.Sym)
 			case OpAdd, OpPtrAdd, OpMove, OpExt:
 			default:
 				return false
@@ -184,49 +188,80 @@ func HoistInvariantAddresses(f *Func) bool {
 				enable(src)
 			}
 		}
+		// Modular address addition: (invariant + index) + invariantBase
+		// becomes (invariantBase + invariant) + index. Only rewrite an
+		// address DAG whose original sum has one exclusive use.
+		uses := countRegUses(f)
+		for _, b := range f.Blocks {
+			if !loop[b.Label] {
+				continue
+			}
+			for _, i := range b.Insts {
+				if !needed[i.Dst] || i.Op != OpPtrAdd || i.ClsHard || i.Ty == nil || i.Ty.Width() != 16 {
+					continue
+				}
+				base, indexSum := i.Src[0], instDefs[i.Src[1]]
+				if !canHoist(base) || indexSum == nil || defs[indexSum.Dst] == nil || !loop[defs[indexSum.Dst].Label] || indexSum.Op != OpAdd || indexSum.ClsHard || indexSum.Ty == nil || indexSum.Ty.Width() != 16 || uses[indexSum.Dst] != 1 {
+					continue
+				}
+				invariantPart, variable := indexSum.Src[0], indexSum.Src[1]
+				if !canHoist(invariantPart) || canHoist(variable) {
+					continue
+				}
+				indexSum.Op = OpPtrAdd
+				indexSum.Ty = i.Ty
+				indexSum.Src = [2]Reg{base, invariantPart}
+				i.Src = [2]Reg{indexSum.Dst, variable}
+				changed = true
+			}
+		}
 		for r, i := range instDefs {
 			if needed[r] && (i.Op == OpAdd || i.Op == OpPtrAdd) && canHoist(r) {
 				enable(r)
 			}
 		}
-		for _, b := range f.Blocks {
-			if !loop[b.Label] {
-				continue
-			}
-			out := b.Insts[:0]
-			for _, i := range b.Insts {
-				if !eligible[i.Dst] || i.ClsHard || i.Ty == nil || i.Ty.Width() != 16 {
-					out = append(out, i)
+		for progress := true; progress; {
+			progress = false
+			for _, b := range f.Blocks {
+				if !loop[b.Label] {
 					continue
 				}
-				switch i.Op {
-				case OpConst, OpAdd, OpPtrAdd, OpMove, OpExt:
-				default:
-					out = append(out, i)
-					continue
-				}
-				pure := true
-				for _, r := range i.Uses() {
-					if _, ok := invariant[r]; !ok {
-						pure = false
+				out := b.Insts[:0]
+				for _, i := range b.Insts {
+					if !eligible[i.Dst] || i.ClsHard || i.Ty == nil || i.Ty.Width() != 16 {
+						out = append(out, i)
+						continue
 					}
-				}
-				if !pure {
-					out = append(out, i)
-					continue
-				}
-				copyInst := *i
-				for n, r := range copyInst.Src {
-					if r != NoReg {
-						copyInst.Src[n] = invariant[r]
+					switch i.Op {
+					case OpConst, OpAddrOf, OpAdd, OpPtrAdd, OpMove, OpExt:
+					default:
+						out = append(out, i)
+						continue
 					}
+					pure := true
+					for _, r := range i.Uses() {
+						if _, ok := invariant[r]; !ok {
+							pure = false
+						}
+					}
+					if !pure {
+						out = append(out, i)
+						continue
+					}
+					copyInst := *i
+					for n, r := range copyInst.Src {
+						if r != NoReg {
+							copyInst.Src[n] = invariant[r]
+						}
+					}
+					pre.Insts = append(pre.Insts, &copyInst)
+					invariant[i.Dst] = i.Dst
+					defs[i.Dst] = pre
+					changed = true
+					progress = true
 				}
-				pre.Insts = append(pre.Insts, &copyInst)
-				invariant[i.Dst] = i.Dst
-				defs[i.Dst] = pre
-				changed = true
+				b.Insts = out
 			}
-			b.Insts = out
 		}
 	}
 	return changed
@@ -258,4 +293,13 @@ func invariantEdgeArgs(t Term, target string) ([]Reg, bool) {
 		}
 	}
 	return nil, false
+}
+
+func invariantGlobalSymbol(m *Module, name string) bool {
+	for _, g := range m.Globals {
+		if g.Name == name && g.Storage == StorageNormal {
+			return true
+		}
+	}
+	return false
 }
