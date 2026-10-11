@@ -1,0 +1,1 @@
+PASS independent24 raw/native fullstate/events; 6 fresh sourcecount profiles, typed preproof/sidecar/allocation/MIR/BIN binding, actual objective/selected bytes; 5 classified refusals/no output

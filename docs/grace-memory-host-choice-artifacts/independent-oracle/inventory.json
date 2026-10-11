@@ -1,0 +1,91 @@
+{
+  "base": "9fda572a",
+  "workloads": "81c20f7c",
+  "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+  "files": [
+    {
+      "path": "docs/grace-memory-host-choice-oracle/FINAL-AUDIT.md",
+      "sha256": "5fcb4b0049fb43256c388da64c373fc09c4564eb4089000639842dee603529b1"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/PLAN.md",
+      "sha256": "8a13831644d71fbe8c73d50e1ddb73d4a7f573bb7223f6458b1f67b1cf4f2208"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/audit_cli_pack.py",
+      "sha256": "2153e737b5a9404da38875f3e47baedb94228a1d6266bbee9ef0267208fcb64a"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/audit_raw_profiles.py",
+      "sha256": "c39b3e92f4df6b4d2ccdc5b80e2e7bf9fc436dbe20d0032856a25f0eb325e5c8"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/expected.json.gz",
+      "sha256": "721a02af176c4c7b5f2cdf2213e69f55d11f17629013cf69ef0187d8e07cf748"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/final-cli-audit.json",
+      "sha256": "9e7b2ee59de3a294438e519d002bdd188fba338eb7058f9792d7a813ade7946f"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/final-cli-audit.txt",
+      "sha256": "cd59d8ace572c89a16997344b91852ae02c95158d2eaf62e65fbe220b08fb875"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/model/audit_profile.py",
+      "sha256": "50814a6c4b56c341836bf58803cf14cb23918e74d92973b0bfb04d0217a37531"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/model/verify_corpus.py",
+      "sha256": "133ca68609f7b7c326efbfc55c91b5fbe2269555051f6aebd5b9817a7b8165ed"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/model-review.txt",
+      "sha256": "faaf438182b4a137ee95e25e96a4418193b3898566b5b9bba183a39c2d179326"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/model_choices.py",
+      "sha256": "6609764d284742030db2dad86974b70b485f9d23e145173a4c237eb6dfa520ed"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/raw-audit.json",
+      "sha256": "81d075804858614b9d4818450b20582faaf5acac4012c3e49a4732cd04667cc6"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/raw-audit.txt",
+      "sha256": "f69941d65558fcfe474e287f5a7ff0d947ab82700cb8cc65402fa86c17d37ba1"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/workloads/destination-tail-denial.json",
+      "sha256": "3f62cee980987bdc8ac8d272a11080ff4cda60f88dc31b4846655f3819b9eef6"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/workloads/first-equal.json",
+      "sha256": "63c8150fb26d185691578e9523cd441a6b45b776c6ef765c2d8d1033b7577192"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/workloads/first-mismatch.json",
+      "sha256": "6b808a7761fef4e6aa84a19da66e36fde9572f5387a436b0ec35d3ef920c52ed"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/workloads/instruction-budget.json",
+      "sha256": "0e85276dd185e47a959d81e4fa336573a192efc245ec172fe4cd33693dad7739"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/workloads/read-only-header-denial.json",
+      "sha256": "2198fe2871da54731c9aff8cad243742d4ca75397beb8762c0e2673acb3ae3e1"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/workloads/source-tail-denial.json",
+      "sha256": "010508ae1005a94f2dd87c7cd2cebf94a1a7b94306fac28334883b3052d372b2"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/workloads/unobserved-append.json",
+      "sha256": "088a00010cd455568db02ec40ed1d4f9510b69d60c30309d1387772416ac7df5"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/workloads/zero-body.json",
+      "sha256": "c8da8c3ab15ddf69bfc7b6d9205ab603403505e13b81b273b2d97f4a0c66f8d3"
+    }
+  ]
+}

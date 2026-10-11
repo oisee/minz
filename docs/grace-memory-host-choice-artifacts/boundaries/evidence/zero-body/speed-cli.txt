@@ -1,0 +1,9 @@
+Closed memory-host speed selected mask1: 763T / 2212B; evidence /home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-choice-boundaries-evidence/zero-body/speed
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag

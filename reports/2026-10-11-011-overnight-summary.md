@@ -259,3 +259,10 @@ unobservedsites/typedhostfailure/gas; independentoracle иnativeplan
 
 Офлайн Sites44 проверена:12094 файла,54 страницы,0 потерянных ссылок
 и внешних зависимостей; все публикационныеархивы читаются.
+
+Choice/refusal этап закрыт:24candidate/6successfulCLI/5refusals прошли
+независимыйaudit. Speedarenaonly763/1587/1564T дляzero/equal/mismatch,
+sizeappend2076B; это реальнаясменавыбора относительноlargecorpus.
+5refusals exit1 безoutputdirectory; typedprefix/gas/unobserved различаются.
+Source/compiler/exe неизменны. Пакетсохранён; итоговыйкоммит ипубликация
+готовятся. Suppliedfailedprofile CLI отдельно не запускался.

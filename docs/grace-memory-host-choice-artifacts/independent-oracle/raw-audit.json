@@ -1,0 +1,454 @@
+{
+  "destination-tail-denial": {
+    "completed_calls": 1,
+    "failed_calls": 1,
+    "last_failure": {
+      "kind": "undeclared",
+      "address": 36866,
+      "write": true
+    },
+    "last_events": [
+      {
+        "kind": "write",
+        "address": 36864,
+        "value": 2
+      },
+      {
+        "kind": "read",
+        "address": 49152,
+        "value": 97
+      },
+      {
+        "kind": "write",
+        "address": 36865,
+        "value": 97
+      },
+      {
+        "kind": "read",
+        "address": 49153,
+        "value": 98
+      }
+    ],
+    "counts": {
+      "intern_region/body/s1": [
+        1,
+        0
+      ],
+      "skip_ws/body/s1/then/s0": [
+        0,
+        0
+      ],
+      "main/body/s2": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s8/then/s2": [
+        0,
+        0
+      ],
+      "region_match/body/s1": [
+        1,
+        0
+      ],
+      "skip_ws/body/s0": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s5": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s3/then/s7": [
+        0,
+        0
+      ],
+      "intern_region/body/s5": [
+        1,
+        2
+      ],
+      "print_node/body/s4/then/s3": [
+        0,
+        0
+      ],
+      "print_str/body/s2": [
+        0,
+        0
+      ]
+    }
+  },
+  "first-equal": {
+    "completed_calls": 2,
+    "failed_calls": 0,
+    "last_failure": null,
+    "last_events": [
+      {
+        "kind": "write",
+        "address": 36864,
+        "value": 0
+      }
+    ],
+    "counts": {
+      "intern_region/body/s1": [
+        1,
+        0
+      ],
+      "skip_ws/body/s1/then/s0": [
+        0,
+        0
+      ],
+      "main/body/s2": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s8/then/s2": [
+        0,
+        0
+      ],
+      "region_match/body/s1": [
+        1,
+        1
+      ],
+      "skip_ws/body/s0": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s5": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s3/then/s7": [
+        0,
+        0
+      ],
+      "intern_region/body/s5": [
+        1,
+        0
+      ],
+      "print_node/body/s4/then/s3": [
+        0,
+        0
+      ],
+      "print_str/body/s2": [
+        0,
+        0
+      ]
+    }
+  },
+  "first-mismatch": {
+    "completed_calls": 2,
+    "failed_calls": 0,
+    "last_failure": null,
+    "last_events": [
+      {
+        "kind": "write",
+        "address": 36864,
+        "value": 0
+      }
+    ],
+    "counts": {
+      "intern_region/body/s1": [
+        1,
+        0
+      ],
+      "skip_ws/body/s1/then/s0": [
+        0,
+        0
+      ],
+      "main/body/s2": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s8/then/s2": [
+        0,
+        0
+      ],
+      "region_match/body/s1": [
+        1,
+        1
+      ],
+      "skip_ws/body/s0": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s5": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s3/then/s7": [
+        0,
+        0
+      ],
+      "intern_region/body/s5": [
+        1,
+        0
+      ],
+      "print_node/body/s4/then/s3": [
+        0,
+        0
+      ],
+      "print_str/body/s2": [
+        0,
+        0
+      ]
+    }
+  },
+  "instruction-budget": {
+    "classification": "infrastructure-gas",
+    "semantic_denial": false,
+    "completed_calls": 0
+  },
+  "read-only-header-denial": {
+    "completed_calls": 1,
+    "failed_calls": 1,
+    "last_failure": {
+      "kind": "read-only",
+      "address": 36864,
+      "write": true
+    },
+    "last_events": [],
+    "counts": {
+      "intern_region/body/s1": [
+        1,
+        0
+      ],
+      "skip_ws/body/s1/then/s0": [
+        0,
+        0
+      ],
+      "main/body/s2": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s8/then/s2": [
+        0,
+        0
+      ],
+      "region_match/body/s1": [
+        1,
+        0
+      ],
+      "skip_ws/body/s0": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s5": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s3/then/s7": [
+        0,
+        0
+      ],
+      "intern_region/body/s5": [
+        0,
+        0
+      ],
+      "print_node/body/s4/then/s3": [
+        0,
+        0
+      ],
+      "print_str/body/s2": [
+        0,
+        0
+      ]
+    }
+  },
+  "source-tail-denial": {
+    "completed_calls": 1,
+    "failed_calls": 1,
+    "last_failure": {
+      "kind": "undeclared",
+      "address": 49153,
+      "write": false
+    },
+    "last_events": [
+      {
+        "kind": "write",
+        "address": 36864,
+        "value": 2
+      },
+      {
+        "kind": "read",
+        "address": 49152,
+        "value": 97
+      },
+      {
+        "kind": "write",
+        "address": 36865,
+        "value": 97
+      }
+    ],
+    "counts": {
+      "intern_region/body/s1": [
+        1,
+        0
+      ],
+      "skip_ws/body/s1/then/s0": [
+        0,
+        0
+      ],
+      "main/body/s2": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s8/then/s2": [
+        0,
+        0
+      ],
+      "region_match/body/s1": [
+        1,
+        0
+      ],
+      "skip_ws/body/s0": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s5": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s3/then/s7": [
+        0,
+        0
+      ],
+      "intern_region/body/s5": [
+        1,
+        2
+      ],
+      "print_node/body/s4/then/s3": [
+        0,
+        0
+      ],
+      "print_str/body/s2": [
+        0,
+        0
+      ]
+    }
+  },
+  "unobserved-append": {
+    "completed_calls": 2,
+    "failed_calls": 0,
+    "last_failure": null,
+    "last_events": [
+      {
+        "kind": "read",
+        "address": 36864,
+        "value": 1
+      },
+      {
+        "kind": "read",
+        "address": 36865,
+        "value": 97
+      },
+      {
+        "kind": "read",
+        "address": 49152,
+        "value": 97
+      }
+    ],
+    "counts": {
+      "intern_region/body/s1": [
+        1,
+        1
+      ],
+      "skip_ws/body/s1/then/s0": [
+        0,
+        0
+      ],
+      "main/body/s2": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s8/then/s2": [
+        0,
+        0
+      ],
+      "region_match/body/s1": [
+        2,
+        2
+      ],
+      "skip_ws/body/s0": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s5": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s3/then/s7": [
+        0,
+        0
+      ],
+      "intern_region/body/s5": [
+        0,
+        0
+      ],
+      "print_node/body/s4/then/s3": [
+        0,
+        0
+      ],
+      "print_str/body/s2": [
+        0,
+        0
+      ]
+    }
+  },
+  "zero-body": {
+    "completed_calls": 2,
+    "failed_calls": 0,
+    "last_failure": null,
+    "last_events": [
+      {
+        "kind": "write",
+        "address": 36864,
+        "value": 0
+      }
+    ],
+    "counts": {
+      "intern_region/body/s1": [
+        1,
+        0
+      ],
+      "skip_ws/body/s1/then/s0": [
+        0,
+        0
+      ],
+      "main/body/s2": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s8/then/s2": [
+        0,
+        0
+      ],
+      "region_match/body/s1": [
+        1,
+        0
+      ],
+      "skip_ws/body/s0": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s5": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s3/then/s7": [
+        0,
+        0
+      ],
+      "intern_region/body/s5": [
+        1,
+        0
+      ],
+      "print_node/body/s4/then/s3": [
+        0,
+        0
+      ],
+      "print_str/body/s2": [
+        0,
+        0
+      ]
+    }
+  }
+}
