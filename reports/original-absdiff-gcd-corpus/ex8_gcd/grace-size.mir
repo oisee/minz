@@ -1,0 +1,15 @@
+; MIR2 module: reports/showcase-src/2026-03-10/ex8_gcd.nanz
+fun @gcd(%r1: u8 [general], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    jmp @loop_head1(%r1, %r2)
+  block @loop_head1(%r3: u8 [general], %r4: u8 [general]):
+    br_if2 %r3, %r4, @loop_head1_ret_eq(), @if_else6(), @if_then4()
+  block @if_then4:
+    %r5 = sub %r3, %r4 : u8 [general]
+    jmp @loop_head1(%r5, %r4)
+  block @if_else6:
+    %r6 = sub %r4, %r3 : u8 [general]
+    jmp @loop_head1(%r3, %r6)
+  block @loop_head1_ret_eq:
+    ret %r3
+

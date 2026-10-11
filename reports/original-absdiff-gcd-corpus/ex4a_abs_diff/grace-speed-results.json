@@ -1,0 +1,13 @@
+{
+  "allowed_spill_bytes": {},
+  "entries": {
+    "abs_diff": 65536
+  },
+  "mixed_zero_nonreturn_controls": 0,
+  "module_bytes": 5,
+  "source_sha256": "d200af0eb58a60d00262b54224da749ecb07a25ec15638ba03e4bf3f308ccf90",
+  "stack_depths": {
+    "abs_diff": 2
+  },
+  "terminating_workload_tstates": 2488832
+}

@@ -1,0 +1,10 @@
+; MIR2 module: reports/showcase-src/2026-03-10/ex4b_abs_diff_u16.nanz
+fun @abs_diff_u16(%r1: u16 [pointer], %r2: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r3 = sub %r1, %r2 : u16 [pointer]
+    %r4 = cmp.sub_carry %r3, %r2 : bool [flag]
+    cond_ret %r4, [%r3], @if_then1()
+  block @if_then1:
+    %r5 = neg %r3 : u16 [pointer]
+    ret %r5
+

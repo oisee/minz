@@ -1,0 +1,13 @@
+{
+  "allowed_spill_bytes": {},
+  "entries": {
+    "gcd": 65026
+  },
+  "mixed_zero_nonreturn_controls": 510,
+  "module_bytes": 15,
+  "source_sha256": "88747063a59526e797061cf828911c417e661723efb3b614715f2d2109977832",
+  "stack_depths": {
+    "gcd": 2
+  },
+  "terminating_workload_tstates": 58563703
+}

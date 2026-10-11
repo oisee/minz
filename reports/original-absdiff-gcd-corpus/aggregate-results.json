@@ -1,0 +1,132 @@
+{
+  "total_returning_native_calls": 588882,
+  "mixed_zero_native_controls": 1530,
+  "rows": [
+    {
+      "artifact": "ex4a_abs_diff/grace-size-results.json",
+      "allowed_spill_bytes": {},
+      "entries": {
+        "abs_diff": 65536
+      },
+      "mixed_zero_nonreturn_controls": 0,
+      "module_bytes": 5,
+      "source_sha256": "d200af0eb58a60d00262b54224da749ecb07a25ec15638ba03e4bf3f308ccf90",
+      "stack_depths": {
+        "abs_diff": 2
+      },
+      "terminating_workload_tstates": 2488832
+    },
+    {
+      "artifact": "ex4a_abs_diff/grace-speed-results.json",
+      "allowed_spill_bytes": {},
+      "entries": {
+        "abs_diff": 65536
+      },
+      "mixed_zero_nonreturn_controls": 0,
+      "module_bytes": 5,
+      "source_sha256": "d200af0eb58a60d00262b54224da749ecb07a25ec15638ba03e4bf3f308ccf90",
+      "stack_depths": {
+        "abs_diff": 2
+      },
+      "terminating_workload_tstates": 2488832
+    },
+    {
+      "artifact": "ex4a_abs_diff/ordinary-results.json",
+      "allowed_spill_bytes": {},
+      "entries": {
+        "abs_diff": 65536
+      },
+      "mixed_zero_nonreturn_controls": 0,
+      "module_bytes": 5,
+      "source_sha256": "d200af0eb58a60d00262b54224da749ecb07a25ec15638ba03e4bf3f308ccf90",
+      "stack_depths": {
+        "abs_diff": 2
+      },
+      "terminating_workload_tstates": 2488832
+    },
+    {
+      "artifact": "ex4b_abs_diff_u16/grace-size-results.json",
+      "allowed_spill_bytes": {},
+      "entries": {
+        "abs_diff_u16": 65732
+      },
+      "mixed_zero_nonreturn_controls": 0,
+      "module_bytes": 11,
+      "source_sha256": "9ef0622b17529e2989b36a749291ee50f6facfbff17f7818c7c001e4348ffbca",
+      "stack_depths": {
+        "abs_diff_u16": 2
+      },
+      "terminating_workload_tstates": 4005872
+    },
+    {
+      "artifact": "ex4b_abs_diff_u16/grace-speed-results.json",
+      "allowed_spill_bytes": {},
+      "entries": {
+        "abs_diff_u16": 65732
+      },
+      "mixed_zero_nonreturn_controls": 0,
+      "module_bytes": 11,
+      "source_sha256": "9ef0622b17529e2989b36a749291ee50f6facfbff17f7818c7c001e4348ffbca",
+      "stack_depths": {
+        "abs_diff_u16": 2
+      },
+      "terminating_workload_tstates": 4005872
+    },
+    {
+      "artifact": "ex4b_abs_diff_u16/ordinary-results.json",
+      "allowed_spill_bytes": {},
+      "entries": {
+        "abs_diff_u16": 65732
+      },
+      "mixed_zero_nonreturn_controls": 0,
+      "module_bytes": 11,
+      "source_sha256": "9ef0622b17529e2989b36a749291ee50f6facfbff17f7818c7c001e4348ffbca",
+      "stack_depths": {
+        "abs_diff_u16": 2
+      },
+      "terminating_workload_tstates": 4005872
+    },
+    {
+      "artifact": "ex8_gcd/grace-size-results.json",
+      "allowed_spill_bytes": {},
+      "entries": {
+        "gcd": 65026
+      },
+      "mixed_zero_nonreturn_controls": 510,
+      "module_bytes": 15,
+      "source_sha256": "88747063a59526e797061cf828911c417e661723efb3b614715f2d2109977832",
+      "stack_depths": {
+        "gcd": 2
+      },
+      "terminating_workload_tstates": 58563703
+    },
+    {
+      "artifact": "ex8_gcd/grace-speed-results.json",
+      "allowed_spill_bytes": {},
+      "entries": {
+        "gcd": 65026
+      },
+      "mixed_zero_nonreturn_controls": 510,
+      "module_bytes": 15,
+      "source_sha256": "88747063a59526e797061cf828911c417e661723efb3b614715f2d2109977832",
+      "stack_depths": {
+        "gcd": 2
+      },
+      "terminating_workload_tstates": 58563703
+    },
+    {
+      "artifact": "ex8_gcd/ordinary-results.json",
+      "allowed_spill_bytes": {},
+      "entries": {
+        "gcd": 65026
+      },
+      "mixed_zero_nonreturn_controls": 510,
+      "module_bytes": 21,
+      "source_sha256": "88747063a59526e797061cf828911c417e661723efb3b614715f2d2109977832",
+      "stack_depths": {
+        "gcd": 2
+      },
+      "terminating_workload_tstates": 96153077
+    }
+  ]
+}
