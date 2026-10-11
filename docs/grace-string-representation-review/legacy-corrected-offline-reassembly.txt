@@ -1,0 +1,16 @@
+PASS offline assembly s
+PASS offline assembly c
+PASS offline assembly l
+PASS offline assembly utf8
+PASS offline assembly empty_s
+PASS offline assembly empty_c
+PASS offline assembly empty_l
+PASS offline assembly nul_s
+PASS offline assembly nul_c
+PASS offline assembly nul_l
+PASS offline assembly s255
+PASS offline assembly l256
+PASS offline assembly storage-s
+PASS offline assembly storage-c
+PASS offline assembly storage-l
+PASS all15 saved ASM→BIN byte equality; no CPU
