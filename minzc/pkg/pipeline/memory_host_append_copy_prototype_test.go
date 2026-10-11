@@ -10,6 +10,7 @@ import (
 )
 
 func TestMemoryHostAppendCopyPrototypeShape(t *testing.T) {
+	original, _ := memoryHostParserFixture(t)
 	source, w := memoryHostParserFixture(t)
 	f := source.FuncByName("intern_region")
 	loop := f.Body.Body[5]
@@ -20,6 +21,9 @@ func TestMemoryHostAppendCopyPrototypeShape(t *testing.T) {
 	}
 	if f.Body.Body[7] != loop || source.SourceLocations[loop] != origin || !reflect.DeepEqual(units, source.SourceUnits) {
 		t.Fatal("loop source identity changed")
+	}
+	if e := hir.ValidateMemoryHostAppendCopyHoist(original, source, w); e != nil {
+		t.Fatal(e)
 	}
 	if e := hir.Verify(source); e != nil {
 		t.Fatal(e)
@@ -34,6 +38,9 @@ func TestMemoryHostAppendCopyPrototypeOriginal30(t *testing.T) {
 		t.Fatal(e)
 	}
 	afterHIR := shape.Dump()
+	if e := hir.ValidateMemoryHostAppendCopyHoist(source, shape, w); e != nil {
+		t.Fatal(e)
+	}
 	originalFactory := func() (*hir.Module, error) { m, _ := memoryHostParserFixture(t); return m, nil }
 	original, e := RunZ80MemoryHostBaseline(originalFactory, w)
 	if e != nil {

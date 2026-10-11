@@ -1,0 +1,40 @@
+=== RUN   TestMemoryHostAppendCopyTargetDomain
+=== RUN   TestMemoryHostAppendCopyTargetDomain/successful16
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostAppendCopyTargetDomain/header_readonly
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostAppendCopyTargetDomain/first_source_denied
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostAppendCopyTargetDomain/tail_source_denied
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostAppendCopyTargetDomain/first_destination_readonly
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostAppendCopyTargetDomain/tail_destination_wrap_denied
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+--- PASS: TestMemoryHostAppendCopyTargetDomain (13.45s)
+    --- PASS: TestMemoryHostAppendCopyTargetDomain/successful16 (2.59s)
+    --- PASS: TestMemoryHostAppendCopyTargetDomain/header_readonly (2.40s)
+    --- PASS: TestMemoryHostAppendCopyTargetDomain/first_source_denied (2.27s)
+    --- PASS: TestMemoryHostAppendCopyTargetDomain/tail_source_denied (2.07s)
+    --- PASS: TestMemoryHostAppendCopyTargetDomain/first_destination_readonly (1.93s)
+    --- PASS: TestMemoryHostAppendCopyTargetDomain/tail_destination_wrap_denied (2.18s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	13.458s
