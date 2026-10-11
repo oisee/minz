@@ -715,6 +715,54 @@ func MemoryHostGlobalOrigins(m *mir2.Module) map[*mir2.Inst]mir2.GlobalMemoryOri
 					w := mir2.ByteWidth(i.Ty)
 					if ok && p.symbol != "" && p.offset >= 0 && w > 0 && w <= 2 && p.offset <= int64(memoryHostMIRGlobalSize(m, p.symbol)-w) {
 						out[i] = mir2.GlobalMemoryOrigin{Symbol: p.symbol, Offset: int(p.offset), Width: w, Write: i.Op == mir2.OpStore, Function: f.Name, Block: b.Label, Instruction: ii}
+						// Origin callbacks inherit only independently proven matching addresses.
+						if i.SequentialBytes && len(i.SequentialByteOrigins) == 2 {
+							for j, o := range i.SequentialByteOrigins {
+								if o == nil || o.Op != i.Op || o.Ty != mir2.TyU8 || o.SequentialBytes || len(o.SequentialByteOrigins) != 0 {
+									continue
+								}
+								// Evaluate only pure retained address DAG, rooted in independently
+								// proved current symbolic values. Metadata cannot introduce a symbol.
+								addressDefs := map[mir2.Reg]*mir2.Inst{}
+								for _, d := range i.SequentialAddressDefs {
+									if d != nil {
+										addressDefs[d.Dst] = d
+									}
+								}
+								var resolve func(mir2.Reg, map[mir2.Reg]bool) (value, bool)
+								resolve = func(r mir2.Reg, seen map[mir2.Reg]bool) (value, bool) {
+									if v, ok := current[r]; ok {
+										return v, true
+									}
+									if seen[r] {
+										return value{}, false
+									}
+									seen[r] = true
+									d := addressDefs[r]
+									if d == nil || d.SequentialBytes {
+										return value{}, false
+									}
+									switch d.Op {
+									case mir2.OpConst:
+										return value{constant: true, number: d.Imm}, true
+									case mir2.OpMove:
+										return resolve(d.Src[0], seen)
+									case mir2.OpPtrAdd:
+										a, ok := resolve(d.Src[0], seen)
+										c, cok := resolve(d.Src[1], seen)
+										if ok && cok && a.symbol != "" && c.constant && c.number >= 0 && c.number <= 65535 && a.offset <= 65535-c.number {
+											a.offset += c.number
+											return a, true
+										}
+									}
+									return value{}, false
+								}
+								q, qok := resolve(o.Src[0], map[mir2.Reg]bool{})
+								if qok && q.symbol == p.symbol && q.offset == p.offset+int64(j) {
+									out[o] = mir2.GlobalMemoryOrigin{Symbol: q.symbol, Offset: int(q.offset), Width: 1, Write: o.Op == mir2.OpStore, Function: f.Name, Block: b.Label, Instruction: ii}
+								}
+							}
+						}
 					}
 				}
 				if i.Dst == mir2.NoReg {

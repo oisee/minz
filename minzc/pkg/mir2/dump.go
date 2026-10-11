@@ -221,6 +221,9 @@ func DumpInst(inst *Inst) string {
 		}
 	}
 
+	if inst.SequentialBytes {
+		sb.WriteString(" [sequential-bytes]")
+	}
 	return sb.String()
 }
 

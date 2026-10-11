@@ -97,6 +97,9 @@ func isTrivialFunc(f *Func, maxSize int) bool {
 		return false
 	}
 	for _, inst := range entry.Insts {
+		if inst.SequentialBytes {
+			return false
+		} // retain byte-origin callback identity across function boundaries
 		switch inst.Op {
 		case OpCall, OpCallIndirect,
 			OpPatch, OpPatchSlot, OpLoadPatched,

@@ -103,6 +103,8 @@ type Options struct {
 	ContractStrategy string `json:",omitempty"`
 	// AnnotateTStates adds T-state cost comments to every Z80 instruction line.
 	AnnotateTStates bool
+	// FuseByteWords opts into effect-safe sequential little-endian byte fusion.
+	FuseByteWords bool `json:",omitempty"`
 	// UseGrace replaces hand-coded optimization passes with declarative Grace rules.
 	// GraceStats (if non-nil) collects per-rule application counts.
 	UseGrace   bool
@@ -293,6 +295,9 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 			if mir2.FuseAbsDiff(f) {
 				tr.FuseAbsDiff++
 			}
+		}
+		if opt.FuseByteWords {
+			mir2.FuseSequentialByteWords(f)
 		}
 		// Re-count cond_ret after optimization (CondRetSink creates them)
 		tr.CondRets = 0
@@ -550,6 +555,9 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 			mir2.EliminateDeadBlocks(f)
 		}
 		mir2.FuseAbsDiff(f)
+		if opts.FuseByteWords {
+			mir2.FuseSequentialByteWords(f)
+		}
 	}
 
 	// Structural verification.

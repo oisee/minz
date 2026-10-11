@@ -81,8 +81,9 @@ var (
 	checkedLocalSolver            string // Z3 executable for offline generation
 	checkedLocalTablePath         string // --checked-local-table: admitted leaf OptSize candidates
 	optSize                       bool   // -Osize: optimize for code size (Grace reroll, DJNZ loops)
-	useGrace                      bool   // --grace: run all Grace MIR2 passes before VIR lowering
-	useHIRGrace                   bool   // --hir-grace: run structural Grace rules before HIR lowering
+	fuseByteWords                 bool
+	useGrace                      bool // --grace: run all Grace MIR2 passes before VIR lowering
+	useHIRGrace                   bool // --hir-grace: run structural Grace rules before HIR lowering
 
 	// Assert control
 	listAsserts          bool
@@ -269,6 +270,7 @@ func init() {
 	rootCmd.Flags().StringVar(&checkedLocalTablePath, "checked-local-table", "", "use checked local register table for smaller leaf Z80 functions (requires --Osize)")
 	rootCmd.Flags().BoolVar(&optSize, "Osize", false, "optimize for code size: Grace reroll; skip HIR Grace's versioned pointer loops")
 	rootCmd.Flags().BoolVar(&useGrace, "grace", false, "run all Grace MIR2 passes before VIR lowering (DSE, CondRetSink, BlockMerge, etc.)")
+	rootCmd.Flags().BoolVar(&fuseByteWords, "fuse-byte-words", false, "fuse consecutive little-endian byte accesses with sequential fault semantics (experimental)")
 	rootCmd.Flags().BoolVar(&useHIRGrace, "hir-grace", false, "run structural Grace HIR rules before lowering (experimental)")
 	rootCmd.Flags().BoolVar(&assertReceipt, "assert-receipt", false, "print assertion execution counts to stderr for judge tools")
 	rootCmd.Flags().BoolVar(&listAsserts, "list-asserts", false, "list frontend assertions as JSON lines without executing")
@@ -1082,7 +1084,8 @@ func compileViaHIR(sourceFile string) error {
 		ContractStrategy:      contractStrategy,
 		ContractOpt:           true,
 		AnnotateTStates:       annotateTStates,
-		OptSize:               optSize,  // --Osize enables Grace reroll
+		OptSize:               optSize, // --Osize enables Grace reroll
+		FuseByteWords:         fuseByteWords,
 		UseGrace:              useGrace, // --grace enables full Grace MIR2 pass suite
 		UseHIRGrace:           useHIRGrace,
 		Backend:               backend,

@@ -1,0 +1,134 @@
+MinZ - Modern Programming Language for Retro Platforms
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Write once, run on Z80 retro platforms!
+
+BACKEND:
+  z80     - Z80 assembly (default, production)
+
+TARGET PLATFORMS:
+  zxspectrum - ZX Spectrum (default)
+  cpm        - CP/M systems
+  msx        - MSX computers
+  cpc        - Amstrad CPC
+  amstrad    - Amstrad PCW
+  agon       - Agon Light 2
+
+LANGUAGE FEATURES:
+  Zero-cost abstractions, function overloading, lambda expressions,
+  pattern matching, error propagation, interfaces & traits,
+  metaprogramming (@minz), self-modifying code, inline assembly,
+  iterator chains
+
+EXAMPLES:
+  mz hello.nanz                      # Compile for ZX Spectrum
+  mz hello.nanz -t cpm               # Target CP/M systems
+  mz hello.nanz -t msx               # MSX build
+  mz demo.nanz --disable-smc         # Disable self-modifying code
+  mz --list-backends                 # List all backends
+
+OPTIMIZATION FLAGS:
+  --disable-optimize  Disable optimizations (enabled by default)
+  --disable-smc       Disable self-modifying code (enabled by default, Z80 only)
+
+DEBUGGING:
+  -d, --debug         Show compilation details
+  --compile-trace     Show all optimization decisions and transformations
+  --dump-ast          Output AST in JSON format
+  --viz file.dot      Generate MIR visualization
+
+CHARACTER LITERALS IN ASSEMBLY:
+  asm { LD A, 'H' }   # Single quotes
+  asm { LD A, "H" }   # Double quotes  
+  asm { LD A, '\n' }  # Escape sequences
+
+For documentation and examples, see:
+  https://github.com/minz-lang/minzc
+  
+Platform Independence Guide:
+  docs/150_Platform_Independence_Achievement.md
+
+Usage:
+  mz [source file] [flags]
+
+Flags:
+      --Osize                                            optimize for code size: Grace reroll; skip HIR Grace's versioned pointer loops
+      --annotate-tstates                                 annotate each Z80 instruction with its T-state cost
+      --assert-control-element int                       tuple element to perturb (zero-based judge negative control)
+      --assert-control-line int                          mutate the expected value at this source line (judge negative control)
+      --assert-lines string                              run only assertions at these comma-separated source lines
+      --assert-receipt                                   print assertion execution counts to stderr for judge tools
+      --asserts string                                   assert backend: mir2, z80, wasm, llvm, all (default), none
+      --asserts-force string                             force ALL asserts to run on this backend (mir2, z80, wasm, or llvm), ignoring 'via' annotations
+  -b, --backend string                                   target backend (z80, ez80) (default "z80")
+      --checked-local-solver string                      Z3 executable for offline local table generation (default "z3")
+      --checked-local-table string                       use checked local register table for smaller leaf Z80 functions (requires --Osize)
+      --compile-trace                                    show all optimization decisions and transformations
+      --contract-strategy string                         interprocedural contracts: greedy (default) or experimental pbqp
+      --ctie-debug                                       show CTIE optimization decisions and statistics
+  -d, --debug                                            enable debug output
+      --disable-asm-opt                                  disable assembly-level peephole optimizations
+      --disable-codegen-opt                              disable codegen-level optimizations (constant tracking)
+      --disable-ctie                                     disable Compile-Time Interface Execution (enabled by default - functions execute at compile-time)
+      --disable-ir-opt                                   disable IR/MIR-level optimizations (DCE, constant folding, inlining)
+      --disable-optimize                                 disable optimizations (enabled by default)
+      --disable-reroll                                   disable loop reroll optimization (putchar sequence merging)
+      --disable-smc                                      disable all self-modifying code optimizations (enabled by default)
+      --dump-ast                                         dump AST in JSON format to stdout
+      --dump-mir                                         dump MIR (intermediate representation) to stdout
+      --emit string                                      emit format: nanz, hir, lanz, mir2-raw, mir2, llvm, wasm, cuda, opencl, vulkan, metal
+      --emit-sld                                         emit SLD file for DeZog source-level debugging
+      --force                                            overwrite existing implicit .generated.c output
+  -f, --format string                                    output format: code (raw binary, default), sna, tap
+      --fuse-byte-words                                  fuse consecutive little-endian byte accesses with sequential fault semantics (experimental)
+      --generate-checked-local-table string              generate admitted leaf register table offline (requires --Osize)
+      --gpu-run string                                   compile and run on GPU: cuda, opencl, vulkan, all
+      --grace                                            run all Grace MIR2 passes before VIR lowering (DSE, CondRetSink, BlockMerge, etc.)
+  -h, --help                                             help for mz
+      --hir-grace                                        run structural Grace HIR rules before lowering (experimental)
+      --hir-profile string                               compile using HIR profile JSON and an external measured cost model
+      --hir-profile-auto string                          collect, measure full u8 sum domain and compile; save evidence in directory
+      --hir-profile-auto-workload string                 controlled workload JSON for --hir-profile-auto
+      --hir-profile-collect string                       run controlled workload and write HIR profile JSON (no compilation)
+      --hir-profile-compiler-modes                       measure ContractOpt/MIR Grace modes on controlled workload; requires --hir-profile-auto
+      --hir-profile-compiler-modes-replay string         run saved winning compiler-mode artifact on a new workload; requires same compiler executable
+      --hir-profile-decisions string                     required decisions JSON output for --hir-profile
+      --hir-profile-forward-copy-sites                   Measure exact forward byte-copy sites with --hir-profile-joint (up to 16 variants)
+      --hir-profile-function string                      exact sum function to measure with --hir-profile-auto
+      --hir-profile-independent-rules                    measure constant-if and invariant-base independently with --hir-profile-joint
+      --hir-profile-invariant-sites                      measure scalar invariant-base choices by source site with --hir-profile-joint
+      --hir-profile-joint                                measure candidate combinations on full VM/Z80 workload with --hir-profile-auto
+      --hir-profile-joint-sites                          Jointly measure pointer-walk, scalar source-site hoists and constant-if (up to 32 variants)
+      --hir-profile-mixed-copy-region-sites              Measure exact copy and byte-region choices with --hir-profile-joint (up to 16 variants)
+      --hir-profile-mixed-copy-weighted-sites            Measure exact copy and weighted checksum choices with --hir-profile-joint (up to 16 variants)
+      --hir-profile-model string                         externally measured LoopCostModel JSON required with --hir-profile
+      --hir-profile-ordered-byte-functions               Measure exact ordered-byte helper functions with --hir-profile-joint (up to 16 variants)
+      --hir-profile-ordered-byte-rw-functions            Measure exact ordered-byte read/write helpers with --hir-profile-joint (up to 16 variants)
+      --hir-profile-region-compare-sites                 Measure exact byte-region comparison sites with --hir-profile-joint (up to 16 variants)
+      --hir-profile-run-result string                    optional controlled run result JSON for --hir-profile-collect
+      --hir-profile-site-rules                           Cross constant-if choices with --hir-profile-invariant-sites (up to 32 measured variants)
+      --hir-profile-weighted-sites                       Permit verified weighted checksum composition with --hir-profile-joint-sites
+      --hir-profile-workload string                      controlled workload JSON required for HIR profile collection/application
+      --list-asserts                                     list frontend assertions as JSON lines without executing
+      --list-backends                                    list available backends
+      --memory-host-arena-append string                  measure four closed memory-host variants; save bounded-workload native artifacts in directory
+      --memory-host-arena-append-policy string           measure four closed variants at one explicit comparison policy; save v2 artifacts
+      --memory-host-arena-append-search string           measure eight closed policy/mask variants; save search artifacts
+      --memory-host-association string                   optional whole same-executable policy-aware association v2 JSON
+      --memory-host-compare-policy string                required policy: legacy or preserve-speed
+      --memory-host-profile string                       optional same-executable closed source profile JSON; otherwise collect before replay
+      --memory-host-search-legacy-association string     paired whole Legacy policy-v2 association input
+      --memory-host-search-preserve-association string   paired whole PreserveForSpeed policy-v2 association input
+      --memory-host-workload string                      strict closed byte-host workload JSON
+  -o, --output string                                    output file (default: input.<ext> based on backend)
+      --pgo string                                       use profile-guided optimization with .tas profile file
+      --pgo-debug                                        show PGO optimization decisions and hot/cold analysis
+      --runtime string                                   explicit application runtime: cpm (console and byte-memory ABI, proven resident 256-byte stack)
+      --runtime-stack int                                explicit guarded CP/M stack bytes (even 64..16384; enables recursive calls)
+      --superopt-rules string                            path to z80-optimizer rules.json[.gz] for superoptimizer peephole pass
+  -t, --target string                                    target platform (zxspectrum, cpm, msx, cpc, amstrad) (default "zxspectrum")
+      --tas                                              enable TAS debugging with time-travel and cycle-perfect recording
+      --tas-record string                                record execution to TAS file for perfect replay
+      --tas-replay string                                replay execution from TAS file
+  -v, --version                                          show version
+      --version-full                                     show full version info
+      --viz string                                       generate MIR visualization in DOT format
