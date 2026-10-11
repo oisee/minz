@@ -1,0 +1,84 @@
+{
+  "status": "first collect complete, independent audit pending",
+  "executable_sha256": "9ec48c5f2eaa42e786be9adddc0b824c374d5c39a599a8d2dd0ef3181a2b65d1",
+  "decision": {
+    "source_name": "../examples/nanz/self_lanz_parser.nanz",
+    "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+    "schema": "minz.memory-host-arena-append-policy-search-cli-decision/v1",
+    "goal": "speed",
+    "selected": {
+      "policy": 1,
+      "mask": 3
+    },
+    "choices": {
+      "arena_peel": true,
+      "append_hoist": true
+    },
+    "search_sha256": "17d93f354be7a48c0c2ed28357aacd8cbb91bca12c186c723289bbd7298478c5",
+    "association_sha256": [
+      "bdc771e80b4504f361b236d0843d91c93b96d51aece86df9bcd8f72f4a069cf5",
+      "01b8680d4d4aa67b0d512c1f58647dc399dca94c1fbec63b62f0475ca04cee68"
+    ],
+    "binary_sha256": "e27bcef5adc5db0cb598bd32c0b0c9984bd032553cfbb7e6f48bf4057e51acdd",
+    "t_states": 1233170,
+    "bytes": 2490
+  },
+  "candidates": [
+    {
+      "policy": 0,
+      "mask": 0,
+      "t_states": 1291565,
+      "bytes": 2388,
+      "call_spill_stages": 10
+    },
+    {
+      "policy": 0,
+      "mask": 1,
+      "t_states": 1291406,
+      "bytes": 2509,
+      "call_spill_stages": 10
+    },
+    {
+      "policy": 0,
+      "mask": 2,
+      "t_states": 1236250,
+      "bytes": 2368,
+      "call_spill_stages": 10
+    },
+    {
+      "policy": 0,
+      "mask": 3,
+      "t_states": 1236091,
+      "bytes": 2489,
+      "call_spill_stages": 10
+    },
+    {
+      "policy": 1,
+      "mask": 0,
+      "t_states": 1288644,
+      "bytes": 2389,
+      "call_spill_stages": 10
+    },
+    {
+      "policy": 1,
+      "mask": 1,
+      "t_states": 1288485,
+      "bytes": 2510,
+      "call_spill_stages": 10
+    },
+    {
+      "policy": 1,
+      "mask": 2,
+      "t_states": 1233329,
+      "bytes": 2369,
+      "call_spill_stages": 10
+    },
+    {
+      "policy": 1,
+      "mask": 3,
+      "t_states": 1233170,
+      "bytes": 2490,
+      "call_spill_stages": 10
+    }
+  ]
+}
