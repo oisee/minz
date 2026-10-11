@@ -1,5 +1,9 @@
 [
   {
+    "path": "ALLOCATED-PRINT-RETRY-REVIEW.md",
+    "sha256": "ed59128dff6a975a13842c7da2405e14f9f7cd069451d9ec47465d3bcd51d575"
+  },
+  {
     "path": "B989-SOURCE-REVIEW.md",
     "sha256": "b0ea5b33d2e90398f9869bd0ca30f85c86d6c0e62cdc06415ef95157f0658ed1"
   },
@@ -30,6 +34,10 @@
   {
     "path": "REVIEW-GATE.md",
     "sha256": "0af04f566acc1143a25062d4759ab29335375b66db5e7250eacf48a7c287c0a3"
+  },
+  {
+    "path": "allocated-print-reviewed-inventory.json",
+    "sha256": "cde291615c2b09486b276c8e117ef9f12fbf6bb769d9f33b42f0e9a5eb67b470"
   },
   {
     "path": "c9c3-reviewed-inventory.json",
