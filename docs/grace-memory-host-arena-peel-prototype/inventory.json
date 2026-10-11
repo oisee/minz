@@ -31,8 +31,8 @@
   },
   {
     "path": "verify_target_domain.py",
-    "bytes": 1909,
-    "sha256": "a436638d5bf3c4237256ae6031c366da9475a104424d83cea8524c0393dedb1e"
+    "bytes": 2255,
+    "sha256": "2b47d86cbf355f8cdbb0fdddd81bd05b4050e208c87963d52457dc299849714f"
   },
   {
     "path": "measurement-first.txt",
@@ -63,6 +63,11 @@
     "path": "comparison.json.gz",
     "bytes": 1397,
     "sha256": "24e5478b00ccecab1616d01466e7cf902f6ba5bf5a322bd118088272ce4c9be8"
+  },
+  {
+    "path": "target-domain-test-build.txt",
+    "bytes": 65,
+    "sha256": "71c71268c390ab5c7f0ae90247d8638042cbd3367af9ba551dc54fae69815c32"
   },
   {
     "path": "README.md",
