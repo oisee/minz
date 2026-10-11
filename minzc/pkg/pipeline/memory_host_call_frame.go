@@ -102,6 +102,7 @@ func resolveMemoryHostCallFrames(a *z80asm.Result, assembly string, descriptors 
 			restores[p] = base + 2 + 2*(len(d.CallerSaved)-1-j)
 		}
 		writes := map[int]bool{}
+		transfers := map[int]int{}
 		reads := map[int]bool{}
 		for _, o := range snapshots {
 			reads[o] = true
@@ -124,7 +125,9 @@ func resolveMemoryHostCallFrames(a *z80asm.Result, assembly string, descriptors 
 				}
 				if patch {
 					writes[dest] = true
+					transfers[dest] = so
 					writes[dest+1] = true
+					transfers[dest+1] = so + 1
 				}
 			} else {
 				if r.Source == sp || r.Destination == dp {
@@ -133,15 +136,16 @@ func resolveMemoryHostCallFrames(a *z80asm.Result, assembly string, descriptors 
 				if snapshotHigh(r.Source) {
 					so++
 				}
-				_ = so
 				if patch {
 					if snapshotHigh(r.Destination) {
 						dest++
 					}
 					writes[dest] = true
+					transfers[dest] = so
 				}
 				if r.Destination == "A" && !pairseen["AF"] {
 					writes[snapshots["AF"]+1] = true
+					transfers[snapshots["AF"]+1] = so
 				}
 			}
 		}
@@ -207,12 +211,17 @@ func resolveMemoryHostCallFrames(a *z80asm.Result, assembly string, descriptors 
 		delta := 0
 		retired := 0
 		steps := []memoryHostSnapshotStep{}
+		scratchOrigin := -1
+		completedTransfers := map[int]bool{}
 		for j, l := range lines {
 			code := l.Bytes
 			s := memoryHostSnapshotStep{Index: j, Delta: delta, AnchorDelta: anchorDelta, Slot: -1, Anchor: j == anchorIndex}
 			if _, ok := snapshotPushPair(code); ok {
 				delta -= 2
 			} else if snapshotPop(code) {
+				if code[len(code)-1] == 0xf1 {
+					scratchOrigin = -1
+				}
 				delta += 2
 			} else if len(code) == 1 && code[0] == 0x33 {
 				if delta != anchorDelta+retired || retired >= base {
@@ -238,12 +247,28 @@ func resolveMemoryHostCallFrames(a *z80asm.Result, assembly string, descriptors 
 				if s.Write && code[1] != 0x77 {
 					return nil, nil, fmt.Errorf("snapshot store scratch must be A")
 				}
+				if s.Write {
+					source, ok := transfers[s.Slot]
+					if !ok || source != scratchOrigin || completedTransfers[s.Slot] {
+						return nil, nil, fmt.Errorf("snapshot transfer differs from typed result")
+					}
+					completedTransfers[s.Slot] = true
+				} else if code[1] == 0x7e {
+					scratchOrigin = s.Slot
+				}
+
 			} else if len(code) == 1 && code[0] >= 0x40 && code[0] <= 0x7f && code[0] != 0x76 && code[0]&7 != 6 && (code[0]>>3)&7 != 6 {
 				// Register-only moves may bridge an indexed source to a returned register.
+				if (code[0]>>3)&7 == 7 {
+					scratchOrigin = -1
+				}
 			} else {
 				return nil, nil, fmt.Errorf("unsupported snapshot instruction %x", code)
 			}
 			steps = append(steps, s)
+		}
+		if len(completedTransfers) != len(transfers) {
+			return nil, nil, fmt.Errorf("missing typed snapshot transfer")
 		}
 		if retired != base || delta != 2*len(d.CallerSaved) {
 			return nil, nil, fmt.Errorf("unclosed snapshot geometry")

@@ -31,6 +31,7 @@ type MemoryHostTargetEvidence struct {
 	AllocationSHA256  string                        `json:"allocation_sha256"`
 	FinalMIRDump      string                        `json:"final_mir_dump_diagnostic"`
 	CallFrames        []MemoryHostResolvedCallFrame `json:"call_frames"`
+	CallFramesSHA256  string                        `json:"call_frames_sha256"`
 	AllocationJSON    json.RawMessage               `json:"allocation_diagnostic"`
 }
 
@@ -251,6 +252,11 @@ func runZ80MemoryHostWorkload(steps Steps, source *hir.Module, w hir.MemoryHostW
 	}
 	m.snapshots = snapshotSteps
 	out.CallFrames = resolvedFrames
+	framePayload, e := json.Marshal(resolvedFrames)
+	if e != nil {
+		return fail(e)
+	}
+	out.CallFramesSHA256 = fmt.Sprintf("%x", sha256.Sum256(framePayload))
 	m.protected = protected
 	out.Accesses = resolved
 	sidecar, _ := json.Marshal(resolved)
