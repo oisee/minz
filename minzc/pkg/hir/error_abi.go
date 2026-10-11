@@ -88,8 +88,16 @@ func ResolveErrorABI(m *Module) error {
 						if c != root {
 							validation = fmt.Errorf("%s: error intrinsic requires standalone statement", f.Name)
 						}
-						if c.Fn == "@error" && len(c.Args) != 1 {
-							validation = fmt.Errorf("%s: @error requires one code", f.Name)
+						if c.Fn == "@error" {
+							if len(c.Args) != 1 || c.Args[0] == nil {
+								validation = fmt.Errorf("%s: @error requires one u8 code", f.Name)
+							} else if c.Args[0].ExprTy() != mir2.TyU8 {
+								validation = fmt.Errorf("%s: @error code must be u8; use an explicit conversion", f.Name)
+							} else if literal, ok := c.Args[0].(*IntLitExpr); ok && (literal.Val < 0 || literal.Val > 255) {
+								validation = fmt.Errorf("%s: @error literal code must be 0..255", f.Name)
+							}
+						} else if len(c.Args) != 0 {
+							validation = fmt.Errorf("%s: %s takes no arguments", f.Name, c.Fn)
 						}
 						return
 					}
