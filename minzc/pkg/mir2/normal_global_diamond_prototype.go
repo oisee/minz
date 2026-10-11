@@ -16,7 +16,7 @@ func ReuseNormalGlobalDiamondLoads(m *Module) (int, error) {
 	}
 	globals := map[string]bool{}
 	for _, g := range m.Globals {
-		if g.Ty == TyU16 && g.At == nil && g.Storage == StorageNormal {
+		if g.Ty == TyU16 && g.At == nil && g.Storage == StorageNormal && !g.InitString && len(g.VtableSyms) == 0 && len(g.Init) <= 2 {
 			globals[g.Name] = true
 		}
 	}
@@ -61,21 +61,65 @@ func ReuseNormalGlobalDiamondLoads(m *Module) (int, error) {
 			}
 			return a.Sym
 		}
+		types := map[Reg]Ty{}
+		for _, p := range f.Contract.Params {
+			types[p.Reg] = p.Ty
+		}
+		for _, block := range f.Blocks {
+			for _, p := range block.Params {
+				types[p.Dst] = p.Ty
+			}
+			for _, i := range block.Insts {
+				if i.Dst != NoReg {
+					types[i.Dst] = i.Ty
+				}
+			}
+		}
+		integer := func(ty Ty) bool { return ty == TyU8 || ty == TyU16 || ty == TyI8 || ty == TyI16 || ty == TyBool }
 		pure := func(i *Inst) bool {
 			if i.Op == OpLoad {
 				return symbol(i) != ""
 			}
-			if i.Asm != nil || len(i.Args) != 0 || len(i.ExtraRets) != 0 || len(i.ExtraRetClasses) != 0 || len(i.ExtraRetTys) != 0 || i.CallAttr != (CallAttrs{}) {
+			if i.Dst == NoReg {
 				return false
 			}
+			clean := Inst{Op: i.Op, Dst: i.Dst, Ty: i.Ty, Cls: i.Cls, ClsHard: i.ClsHard, SrcLine: i.SrcLine, SrcFile: i.SrcFile}
 			switch i.Op {
-			case OpConst, OpMove, OpAdd, OpSub, OpMul, OpAnd, OpOr, OpXor, OpShl, OpShr, OpSar, OpNeg, OpNot, OpExt, OpSext, OpTrunc, OpCmp:
-				return true
 			case OpAddrOf:
-				return globals[i.Sym] && i.Ty == TyPtr
+				if !globals[i.Sym] || i.Ty != TyPtr {
+					return false
+				}
+				clean.Sym = i.Sym
+			case OpConst:
+				if !integer(i.Ty) {
+					return false
+				}
+				clean.Imm = i.Imm
+			case OpMove:
+				if !integer(i.Ty) || types[i.Src[0]] != i.Ty || i.Src[1] != NoReg {
+					return false
+				}
+				clean.Src = i.Src
+			case OpCmp:
+				left, right := types[i.Src[0]], types[i.Src[1]]
+				if i.Ty != TyBool || !integer(left) || left != right || i.Cond > CmpGe {
+					return false
+				}
+				if i.SrcTy != nil && i.SrcTy != left {
+					return false
+				}
+				clean.Src = i.Src
+				clean.SrcTy = i.SrcTy
+				clean.Cond = i.Cond
+			default:
+				return false
 			}
-			return false
+			return reflect.DeepEqual(*i, clean)
 		}
+		if types[br.Cond] != TyBool {
+			continue
+		}
+
 		seen := map[string]bool{}
 		for _, label := range []string{br.Then, br.Else} {
 			if seen[label] {
@@ -160,7 +204,7 @@ func normalDiamondShape(m *Module) error {
 		globals[g.Name] = true
 	}
 	for _, f := range m.Funcs {
-		if f == nil || fn[f.Name] {
+		if f == nil || fn[f.Name] || globals[f.Name] {
 			return fmt.Errorf("normal global diamond: malformed function")
 		}
 		fn[f.Name] = true

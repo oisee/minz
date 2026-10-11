@@ -1,0 +1,14 @@
+[
+  {
+    "path": "minzc/pkg/mir2/normal_global_diamond_prototype.go",
+    "sha256": "c639e61d625eb8c5c1f740e5b873bb28c78e10c756de96ba6d764c363ca9fa91"
+  },
+  {
+    "path": "minzc/pkg/mir2/normal_global_diamond_prototype_test.go",
+    "sha256": "b4e332d541155e63ae2f3d80ac4ef1c6a2e03e0e61421b93690b80be840d7079"
+  },
+  {
+    "path": "docs/grace-normal-global-diamond-prototype/README.md",
+    "sha256": "b4544b1369135e61feea4bce7fe07b1a23d43d7c322669f1566bed03a717d313"
+  }
+]
