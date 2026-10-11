@@ -1,0 +1,11 @@
+{
+  "status": "succeeded",
+  "source_commit": "5df44c59f75644a4d51037a8186a98db05438fdc",
+  "compiler_checkpoint": "047f0681",
+  "deployment_id": "appgdep_6acc12a52330819187cb81b7f07272a7",
+  "version_id": "appgprj_6aca41311f188191b08d000f04498106~appgver_b11080cdd7508191a8b55bbdc6f19890",
+  "url": "https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site",
+  "local_share_copy_status": "copy/hash process running session1994; completeness not yet claimed",
+  "archive": "/home/alice/dev/minz-artifacts/grace-reports/2026-10-11/minz-site-v68-reduced.tar.gz",
+  "archive_note": "Hosted tuple archive excludes retained test executable; full repository/share packet preserves it. Initial package rejected expandedlimit; reduced requiredassets package deployed."
+}
