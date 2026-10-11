@@ -1,0 +1,57 @@
+diff --git a/minzc/pkg/pipeline/memory_host_target.go b/minzc/pkg/pipeline/memory_host_target.go
+index 34ab79f1..e3f485b3 100644
+--- a/minzc/pkg/pipeline/memory_host_target.go
++++ b/minzc/pkg/pipeline/memory_host_target.go
+@@ -65,7 +65,7 @@ func runZ80MemoryHostWorkload(steps Steps, source *hir.Module, w hir.MemoryHostW
+ 	origins := hir.MemoryHostGlobalOrigins(steps.MIR2Module)
+ 	records := []mir2.NativeMemoryAccess{}
+ 	frames := []mir2.NativeCallFrameSnapshot{}
+-	captured, e := mir2.Z80Codegen(steps.MIR2Module, steps.Allocation, mir2.Z80CodegenOptions{NativeMemoryAccessOrigins: origins, NativeMemoryAccesses: &records, NativeCallFrames: &frames})
++	captured, e := mir2.Z80Codegen(steps.MIR2Module, steps.Allocation, mir2.Z80CodegenOptions{NativeMemoryAccessOrigins: origins, NativeMemoryAccesses: &records, NativeCallFrames: &frames, UnsignedPairComparePolicy: steps.UnsignedPairComparePolicy})
+ 	if e != nil {
+ 		return fail(e)
+ 	}
+diff --git a/minzc/pkg/pipeline/pipeline.go b/minzc/pkg/pipeline/pipeline.go
+index 621d5e7b..2b2bc677 100644
+--- a/minzc/pkg/pipeline/pipeline.go
++++ b/minzc/pkg/pipeline/pipeline.go
+@@ -40,6 +40,7 @@ type Result struct {
+ 
+ // Steps holds the intermediate outputs of each pipeline stage.
+ type Steps struct {
++	UnsignedPairComparePolicy mir2.UnsignedPairComparePolicy // resolved codegen choice; regenerate from this value
+ 	ProfileDecisions []hir.ProfileDecision
+ 	HIRLoopSites     *hir.LoopSiteMap        // optional input-HIR origins, before Grace/splitting
+ 	HIR              string                  // HIR structural dump (hir.Module.Dump())
+@@ -87,6 +88,9 @@ type FuncTrace struct {
+ 
+ // Options configures optional pipeline passes.
+ type Options struct {
++	// UnsignedPairComparePolicy is explicit and defaults to legacy. The speed
++	// strategy may grow code and is incompatible with OptSize.
++	UnsignedPairComparePolicy mir2.UnsignedPairComparePolicy
+ 	ProfileSelection *ProfileSelection // opt-in refusing PGO input
+ 	CollectHIRSites  bool              // diagnostic loop sites; does not enable PGO
+ 	// ContractOpt enables Phase 5b interprocedural contract optimisation.
+@@ -140,6 +144,13 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
+ 		opt = opts[0]
+ 	}
+ 	var s Steps
++	if opt.UnsignedPairComparePolicy != mir2.UnsignedPairCompareLegacy && opt.UnsignedPairComparePolicy != mir2.UnsignedPairComparePreserveForSpeed {
++		return s, fmt.Errorf("unsupported unsigned pair compare policy %d", opt.UnsignedPairComparePolicy)
++	}
++	if opt.UnsignedPairComparePolicy == mir2.UnsignedPairComparePreserveForSpeed && (opt.OptSize || opt.Backend != "" && opt.Backend != "z80") {
++		return s, fmt.Errorf("unsigned pair compare speed policy requires Z80 without OptSize")
++	}
++	s.UnsignedPairComparePolicy = opt.UnsignedPairComparePolicy
+ 	s.Traces = make(map[string]*FuncTrace)
+ 
+ 	if err := hir.ResolveCallSignatures(hm); err != nil {
+@@ -379,6 +390,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
+ 		}
+ 		var codegenErr error
+ 		s.Assembly, codegenErr = mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{
++			UnsignedPairComparePolicy: s.UnsignedPairComparePolicy,
+ 			AnnotateTStates: opt.AnnotateTStates,
+ 		})
+ 		if codegenErr != nil {

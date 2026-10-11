@@ -220,6 +220,9 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 	if len(opts) > 0 {
 		opt = opts[0]
 	}
+	if opt.UnsignedPairComparePolicy != UnsignedPairCompareLegacy && opt.UnsignedPairComparePolicy != UnsignedPairComparePreserveForSpeed {
+		return "", fmt.Errorf("unsupported unsigned pair compare policy %d", opt.UnsignedPairComparePolicy)
+	}
 	if err := validateNativeMemoryOrigins(m, opt.NativeMemoryAccessOrigins, opt.NativeMemoryAccesses); err != nil {
 		return "", err
 	}
