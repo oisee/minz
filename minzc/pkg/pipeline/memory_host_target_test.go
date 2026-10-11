@@ -15,9 +15,14 @@ import (
 
 func memoryHostParserFixture(t *testing.T) (*hir.Module, hir.MemoryHostWorkload) {
 	t.Helper()
-	source, e := os.ReadFile("../../../examples/nanz/self_lanz_parser.nanz")
+	// This fixture replays the frozen 0e92689 source experiment. Current exact
+	// example/main behavior has separate baseline and whole-main tests.
+	source, e := os.ReadFile("../../../docs/grace-parser-prospective-heldout/artifacts/source.nanz")
 	if e != nil {
 		t.Fatal(e)
+	}
+	if fmt.Sprintf("%x", sha256.Sum256(source)) != "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526" {
+		t.Fatal("historical source identity")
 	}
 	m, e := nanz.Parse(string(source), "../../../examples/nanz/self_lanz_parser.nanz")
 	if e != nil {
@@ -79,7 +84,7 @@ func TestMemoryHostOriginalSelfLanzTarget(t *testing.T) {
 	if fmt.Sprintf("%x", sha256.Sum256([]byte(target.FinalMIRDump))) != target.MIRSHA256 || fmt.Sprintf("%x", sha256.Sum256(target.AllocationJSON)) != target.AllocationSHA256 {
 		t.Fatal("diagnostic payload hash mismatch")
 	}
-	if target.TotalTStates != 1291565 || target.BinarySHA256 != "a9f98a344c5e39cfe6bbb7a94fe84b6222c262ec863be2ba227e90672a875a73" {
+	if target.TotalTStates != 1269009 || target.BinarySHA256 != "27a7c8ea7b77725ee5f61e9f4be625bd1b582b1b03e1013021e0ab3766ee8545" {
 		t.Fatal("reference native cycle/binary drift", target.TotalTStates, target.BinarySHA256)
 	}
 	if dir := os.Getenv("MINZ_MEMORY_HOST_ARTIFACTS"); dir != "" {

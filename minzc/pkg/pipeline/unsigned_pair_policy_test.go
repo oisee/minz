@@ -188,7 +188,7 @@ func TestUnsignedPairPolicyOriginalParserExport(t *testing.T) {
 	if e = json.Unmarshal(b, &reference); e != nil {
 		t.Fatal(e)
 	}
-	source, e := os.ReadFile("../../../examples/nanz/self_lanz_parser.nanz")
+	source, e := os.ReadFile("../../../docs/grace-parser-prospective-heldout/artifacts/source.nanz")
 	if e != nil {
 		t.Fatal(e)
 	}

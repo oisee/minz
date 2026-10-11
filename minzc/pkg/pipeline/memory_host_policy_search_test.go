@@ -327,7 +327,7 @@ func policySearchExport(t *testing.T, dir string, short bool) {
 	if refs == "" {
 		t.Fatal("prior public baseline references required")
 	}
-	source, err := os.ReadFile("../../../examples/nanz/self_lanz_parser.nanz")
+	source, err := os.ReadFile("../../../docs/grace-parser-prospective-heldout/artifacts/source.nanz")
 	if err != nil {
 		t.Fatal(err)
 	}

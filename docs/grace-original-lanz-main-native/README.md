@@ -52,3 +52,11 @@ MINZ_SHOWCASE_ORACLE_CATALOG=/absolute/catalog.json go test ./pkg/nanz -run '^Te
 ```
 
 Focused main+baseline PASS за 3.108 s. Полный showcase/pipeline этим этапом не запускался. В `port23/` и `cpm-bdos2/`: exactsource, fullASM/BIN, stdout, capture и независимый oracle. JSON gzip без потери. `manifest.json` хранит SHA256 всех payloads, кроме себя. `before.txt` фиксирует реальный old-source failure.
+
+## Сохранение frozen provenance после исправления текущего исходника
+
+Source fix меняет SHA текущего примера. Исторический prospective freeze остаётся SHA `0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526`; его snapshot уже сохранён в `docs/grace-parser-prospective-heldout/artifacts/source.nanz`. Исторические `TestParserProspectiveHeldout`, shared memory-host fixture, policy export/reference tests теперь читают **этот неизменяемый snapshot**, сохраняя прежний declared SourceName и workload. Freeze, старые manifests и capture outputs не изменены. Новые exact current-source baseline/main tests продолжают читать `examples/nanz/self_lanz_parser.nanz`. Каталог явно помечает prospective relation как historical snapshot, не выдаёт его за proof нового SHA.
+
+Аудит также нашёл три давно устаревших hardcoded backend references: 1 291 565 T / `a9f98...`. При нынешнем компиляторе на **том же frozen source** независимый full-state/events oracle подтверждает 1 269 009 T / 2364 B, SHA `27a7c8ea7b77725ee5f61e9f4be625bd1b582b1b03e1013021e0ab3766ee8545`. Это не следствие CString main fix. Current fixed-cost assertions обновлены по реальному запуску; прежние evidence не изменены. Target/factory/association rerun PASS 3.338 s; их exact source/ASM/BIN/observations сохранены в `frozen-source-current-backend/` с SHA. Export helper теперь сохраняет правильный frozen source вместо текущего файла рядом со старым evidence.
+
+Prospective rerun PASS 21.732 s: heldout baseline 2 141 572 T / 2364 B, selected mask2 2 093 170 T / 2344 B, прежние binary SHA. Нагрузки/выбор и independent model не переписаны. Три optional export tests остались с прежними явными environment gates; их skips не выдаются за исполненные export searches. `historical-rerun.txt` сохраняет первоначальное обнаружение stale-reference failure, последующие успешные проверки — `historical-reference-rerun.txt` и `prospective-preserved.txt`.
