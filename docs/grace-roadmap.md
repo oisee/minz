@@ -1,3 +1,13 @@
+Актуальное состояние 11 октября: [сводная страница](grace-current-state.md).
+CLI поиска policy × mask и [перенос фиксированного выбора](grace-memory-host-transfer.md)
+закрыты и опубликованы в Sites 58. Последующий [строковый этап](grace-string-representation.md)
+в работе: Steps native 15/15, legacy native 11/15, исправление времени жизни
+сохранённого аккумулятора и рекурсивных spill homes ещё не закрыто.
+После этого — полный Self-Lanz main с явным CP/M adapter и проверенной
+плоской COM-картой. Физическое железо остаётся дальнейшим уровнем проверки.
+Ниже сохранена история этапов; её прежние «следующие шаги» относятся
+к моменту соответствующего отчёта.
+
 Обновление 11 октября: [живой HL при global store](grace-global-hl.md) — сохраняются HL/H/L перед прямой записью константы byte.12 source и4 machine случая прошли; полный pipeline/CLI и бюджетная сверка зелёные. Hashmap прежний123708 T /965 B; tokenizer speed2174363 T /4820 B, size2240918 T /4305 B. Исходный SelfLanz30 сохраняет baseline1221494 T /2091 B. Следующий этап — отдельный production memory-host baseline contract, затем host-aware PGO certificate.
 
 Обновление 11 октября: [bool extension в Z80](grace-bool-extension.md) — исправлены bool→u8/u16, pending predicates и повторные использования.608 machine cases,14 source assertions, полный pipeline/CLI и бюджетная сверка прошли; новых showcase падений нет. Все16 PGO кандидатов реальных программ перепроверены, выбранные бинарники прежние. Следом — сохранение живого HL при direct global store; затем явный memory-host contract и arena-first certificate для исходного SelfLanz PGO.
