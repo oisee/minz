@@ -1,3 +1,5 @@
+Обновление11октября: [constant-if вместе с per-source-loop scalar hoist](grace-pgo-site-rules.md) — до32 измеренных комбинаций, источник→HIR/MIR→assembler→Z80, полный checksum30calls с independent return/snapshot/exact byte-access oracle. Collector/refusing compatibility loader, persistent caller workloads и измеренный выбор уже реализованы; прежние статусы ниже сохранены как история. Следующий шаг — совместный bounded поиск pointer/scalar choices с проверкой непересекающихся source sites, затем расширение proof и поиск выигрыша на более широком program corpus.
+
 Обновление: [совместные варианты и caller workload](grace-pgo-joint.md) — до16 наборов, actual VM/Z80 results/global/resource checks, −11.82% на двухфункциональном caller. Shared RAM и codegen constant-alias исправление подтверждены tests.
 
 Обновление: [воспроизводимый CLI PGO](grace-pgo-cli.md) (`92b581e3`) — automatic measured model, 1022 VM/Z80 scenarios, collection/selection и saved evidence. Exact одиночный u8 sum slice завершён; general corpus/multi-function/MIR lineage впереди. Старые обновления ниже — история этапов.

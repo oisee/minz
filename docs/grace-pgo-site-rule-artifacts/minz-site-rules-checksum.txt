@@ -1,0 +1,6 @@
+=== RUN   TestInvariantSiteRulesRealChecksum
+    profile_invariant_site_rules_test.go:288: checksum sizefalse selected1 1166563T/168B -> 475239T/116B
+    profile_invariant_site_rules_test.go:288: checksum sizetrue selected1 1166563T/168B -> 475239T/116B
+--- PASS: TestInvariantSiteRulesRealChecksum (1.36s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.376s

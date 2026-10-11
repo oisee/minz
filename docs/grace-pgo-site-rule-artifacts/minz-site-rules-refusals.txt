@@ -1,0 +1,4 @@
+=== RUN   TestInvariantSiteRulesRefusals
+--- PASS: TestInvariantSiteRulesRefusals (0.35s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.360s

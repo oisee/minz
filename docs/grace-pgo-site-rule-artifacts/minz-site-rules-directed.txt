@@ -1,0 +1,6 @@
+=== RUN   TestInvariantSiteRulesMeasuredChoices
+    profile_invariant_site_rules_test.go:99: sizefalse winner3 baseline155625T/131B selected45989T/63B
+    profile_invariant_site_rules_test.go:99: sizetrue winner3 baseline155625T/131B selected45989T/63B
+--- PASS: TestInvariantSiteRulesMeasuredChoices (1.14s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.154s

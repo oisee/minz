@@ -1,0 +1,620 @@
+{
+  "exact_data_access": true,
+  "schema": "minz.profile-workload/v1",
+  "target_model": "cpm-z80-v1",
+  "max_steps": 2000000,
+  "max_memory": 65536,
+  "resources": {
+    "alternating": "AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8A/wD/AP8ApQ==",
+    "ff": "////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////pQ==",
+    "mismatch": "CjBVep/E6Q4zWH2ix+wRtluApcrvFDleg6jN8hc8YYar0PUaP2SJrtP4HUJnjLHW+yBFao+02f4jSG2St9wBJktwlbrfBClOc5i94gcsUXabwOUKL1R5nsPoDTJXfKHG6xA1Wn+kye4TOF2Cp8zxFjtgharP9Bk+Y4it0vccQWaLsNX6H0RpjrPY/SJHbJG22wAlSm+Uud4DKE1yl7zhBitQdZq/5AkuU3idwucMMVZ7oMXqDzRZfqPI7RI3XIGmy/AVOl+Eqc7zGD1ih6zR9htAZYqv1PkeQ2iNstf8IUZrkLXa/yRJbpO43QInTHGWu+AFKk90mb7jCC1Sd5w+pQ==",
+    "ramp": "CzBVep/E6Q4zWH2ix+wRNluApcrvFDleg6jN8hc8YYar0PUaP2SJrtP4HUJnjLHW+yBFao+02f4jSG2St9wBJktwlbrfBClOc5i94gcsUXabwOUKL1R5nsPoDTJXfKHG6xA1Wn+kye4TOF2Cp8zxFjtgharP9Bk+Y4it0vccQWaLsNX6H0RpjrPY/SJHbJG22wAlSm+Uud4DKE1yl7zhBitQdZq/5AkuU3idwucMMVZ7oMXqDzRZfqPI7RI3XIGmy/AVOl+Eqc7zGD1ih6zR9htAZYqv1PkeQ2iNstf8IUZrkLXa/yRJbpO43QInTHGWu+AFKk90mb7jCC1Sd5zBpQ==",
+    "zero": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAApQ=="
+  },
+  "globals": {
+    "checksum_calls": "+g==",
+    "checksum_last": "NBI="
+  },
+  "calls": [
+    {
+      "function": "weighted_checksum",
+      "arguments": [
+        {
+          "resource": "zero"
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 65535
+        },
+        {
+          "value": 2
+        },
+        {
+          "value": 65500
+        }
+      ]
+    },
+    {
+      "function": "weighted_checksum",
+      "arguments": [
+        {
+          "resource": "zero"
+        },
+        {
+          "value": 1
+        },
+        {
+          "value": 65535
+        },
+        {
+          "value": 2
+        },
+        {
+          "value": 65500
+        }
+      ]
+    },
+    {
+      "function": "weighted_checksum",
+      "arguments": [
+        {
+          "resource": "zero"
+        },
+        {
+          "value": 5
+        },
+        {
+          "value": 65535
+        },
+        {
+          "value": 2
+        },
+        {
+          "value": 65500
+        }
+      ]
+    },
+    {
+      "function": "weighted_checksum",
+      "arguments": [
+        {
+          "resource": "zero"
+        },
+        {
+          "value": 16
+        },
+        {
+          "value": 65535
+        },
+        {
+          "value": 2
+        },
+        {
+          "value": 65500
+        }
+      ]
+    },
+    {
+      "function": "weighted_checksum",
+      "arguments": [
+        {
+          "resource": "zero"
+        },
+        {
+          "value": 64
+        },
+        {
+          "value": 65535
+        },
+        {
+          "value": 2
+        },
+        {
+          "value": 65500
+        }
+      ]
+    },
+    {
+      "function": "weighted_checksum",
+      "arguments": [
+        {
+          "resource": "zero"
+        },
+        {
+          "value": 255
+        },
+        {
+          "value": 65535
+        },
+        {
+          "value": 2
+        },
+        {
+          "value": 65500
+        }
+      ]
+    },
+    {
+      "function": "checksum_packet",
+      "arguments": [
+        {
+          "resource": "ff"
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 32768
+        },
+        {
+          "value": 32768
+        },
+        {
+          "value": 65507
+        }
+      ]
+    },
+    {
+      "function": "checksum_packet",
+      "arguments": [
+        {
+          "resource": "ff"
+        },
+        {
+          "value": 1
+        },
+        {
+          "value": 32768
+        },
+        {
+          "value": 32768
+        },
+        {
+          "value": 65507
+        }
+      ]
+    },
+    {
+      "function": "checksum_packet",
+      "arguments": [
+        {
+          "resource": "ff"
+        },
+        {
+          "value": 5
+        },
+        {
+          "value": 32768
+        },
+        {
+          "value": 32768
+        },
+        {
+          "value": 65507
+        }
+      ]
+    },
+    {
+      "function": "checksum_packet",
+      "arguments": [
+        {
+          "resource": "ff"
+        },
+        {
+          "value": 16
+        },
+        {
+          "value": 32768
+        },
+        {
+          "value": 32768
+        },
+        {
+          "value": 65507
+        }
+      ]
+    },
+    {
+      "function": "checksum_packet",
+      "arguments": [
+        {
+          "resource": "ff"
+        },
+        {
+          "value": 64
+        },
+        {
+          "value": 32768
+        },
+        {
+          "value": 32768
+        },
+        {
+          "value": 65507
+        }
+      ]
+    },
+    {
+      "function": "checksum_packet",
+      "arguments": [
+        {
+          "resource": "ff"
+        },
+        {
+          "value": 255
+        },
+        {
+          "value": 32768
+        },
+        {
+          "value": 32768
+        },
+        {
+          "value": 65507
+        }
+      ]
+    },
+    {
+      "function": "checksum_packet",
+      "arguments": [
+        {
+          "resource": "ramp"
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 257
+        },
+        {
+          "value": 65514
+        }
+      ]
+    },
+    {
+      "function": "checksum_packet",
+      "arguments": [
+        {
+          "resource": "ramp"
+        },
+        {
+          "value": 1
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 257
+        },
+        {
+          "value": 65514
+        }
+      ]
+    },
+    {
+      "function": "checksum_packet",
+      "arguments": [
+        {
+          "resource": "ramp"
+        },
+        {
+          "value": 5
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 257
+        },
+        {
+          "value": 65514
+        }
+      ]
+    },
+    {
+      "function": "checksum_packet",
+      "arguments": [
+        {
+          "resource": "ramp"
+        },
+        {
+          "value": 16
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 257
+        },
+        {
+          "value": 65514
+        }
+      ]
+    },
+    {
+      "function": "checksum_packet",
+      "arguments": [
+        {
+          "resource": "ramp"
+        },
+        {
+          "value": 64
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 257
+        },
+        {
+          "value": 65514
+        }
+      ]
+    },
+    {
+      "function": "checksum_packet",
+      "arguments": [
+        {
+          "resource": "ramp"
+        },
+        {
+          "value": 255
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 257
+        },
+        {
+          "value": 65514
+        }
+      ]
+    },
+    {
+      "function": "checksum_packet",
+      "arguments": [
+        {
+          "resource": "alternating"
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 65530
+        },
+        {
+          "value": 17
+        },
+        {
+          "value": 65521
+        }
+      ]
+    },
+    {
+      "function": "checksum_packet",
+      "arguments": [
+        {
+          "resource": "alternating"
+        },
+        {
+          "value": 1
+        },
+        {
+          "value": 65530
+        },
+        {
+          "value": 17
+        },
+        {
+          "value": 65521
+        }
+      ]
+    },
+    {
+      "function": "checksum_packet",
+      "arguments": [
+        {
+          "resource": "alternating"
+        },
+        {
+          "value": 5
+        },
+        {
+          "value": 65530
+        },
+        {
+          "value": 17
+        },
+        {
+          "value": 65521
+        }
+      ]
+    },
+    {
+      "function": "checksum_packet",
+      "arguments": [
+        {
+          "resource": "alternating"
+        },
+        {
+          "value": 16
+        },
+        {
+          "value": 65530
+        },
+        {
+          "value": 17
+        },
+        {
+          "value": 65521
+        }
+      ]
+    },
+    {
+      "function": "checksum_packet",
+      "arguments": [
+        {
+          "resource": "alternating"
+        },
+        {
+          "value": 64
+        },
+        {
+          "value": 65530
+        },
+        {
+          "value": 17
+        },
+        {
+          "value": 65521
+        }
+      ]
+    },
+    {
+      "function": "checksum_packet",
+      "arguments": [
+        {
+          "resource": "alternating"
+        },
+        {
+          "value": 255
+        },
+        {
+          "value": 65530
+        },
+        {
+          "value": 17
+        },
+        {
+          "value": 65521
+        }
+      ]
+    },
+    {
+      "function": "checksum_packet",
+      "arguments": [
+        {
+          "resource": "mismatch"
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 12345
+        },
+        {
+          "value": 54321
+        },
+        {
+          "value": 65528
+        }
+      ]
+    },
+    {
+      "function": "checksum_packet",
+      "arguments": [
+        {
+          "resource": "mismatch"
+        },
+        {
+          "value": 1
+        },
+        {
+          "value": 12345
+        },
+        {
+          "value": 54321
+        },
+        {
+          "value": 65528
+        }
+      ]
+    },
+    {
+      "function": "checksum_packet",
+      "arguments": [
+        {
+          "resource": "mismatch"
+        },
+        {
+          "value": 5
+        },
+        {
+          "value": 12345
+        },
+        {
+          "value": 54321
+        },
+        {
+          "value": 65528
+        }
+      ]
+    },
+    {
+      "function": "checksum_packet",
+      "arguments": [
+        {
+          "resource": "mismatch"
+        },
+        {
+          "value": 16
+        },
+        {
+          "value": 12345
+        },
+        {
+          "value": 54321
+        },
+        {
+          "value": 65528
+        }
+      ]
+    },
+    {
+      "function": "checksum_packet",
+      "arguments": [
+        {
+          "resource": "mismatch"
+        },
+        {
+          "value": 64
+        },
+        {
+          "value": 12345
+        },
+        {
+          "value": 54321
+        },
+        {
+          "value": 65528
+        }
+      ]
+    },
+    {
+      "function": "checksum_packet",
+      "arguments": [
+        {
+          "resource": "mismatch"
+        },
+        {
+          "value": 255
+        },
+        {
+          "value": 12345
+        },
+        {
+          "value": 54321
+        },
+        {
+          "value": 65528
+        }
+      ]
+    }
+  ]
+}

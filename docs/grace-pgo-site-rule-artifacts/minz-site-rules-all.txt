@@ -1,0 +1,12 @@
+=== RUN   TestInvariantSiteRulesMeasuredChoices
+    profile_invariant_site_rules_test.go:99: sizefalse winner3 baseline155625T/131B selected45989T/63B
+    profile_invariant_site_rules_test.go:99: sizetrue winner3 baseline155625T/131B selected45989T/63B
+--- PASS: TestInvariantSiteRulesMeasuredChoices (0.84s)
+=== RUN   TestInvariantSiteRulesBudgetRefusal
+--- PASS: TestInvariantSiteRulesBudgetRefusal (18.01s)
+=== RUN   TestInvariantSiteRulesConditionalCandidates
+--- PASS: TestInvariantSiteRulesConditionalCandidates (1.24s)
+=== RUN   TestInvariantSiteRulesBoundary
+--- PASS: TestInvariantSiteRulesBoundary (2.60s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	22.698s

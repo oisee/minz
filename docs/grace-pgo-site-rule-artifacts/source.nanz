@@ -1,0 +1,16 @@
+fun first(a:u16,b:u16,n:u8)->u16 {
+ var s:u16=0
+ var i:u8=0
+ while i<n { s=s+(a+b)
+ i=i+1 }
+ return s
+}
+fun second(a:u16,b:u16,n:u8)->u16 {
+ var s:u16=0
+ var i:u8=0
+ while i<n { s=s+(a+b)
+ i=i+1 }
+ return s
+}
+fun idle()->u16 { return 7 }
+fun choose(x:u16)->u16 { if true { return x+1 } else {return 9} }

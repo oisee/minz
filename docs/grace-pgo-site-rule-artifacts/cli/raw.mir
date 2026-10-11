@@ -1,0 +1,47 @@
+; MIR2 module: /tmp/minz-grace-pgo-resume/examples/nanz/grace_weighted_checksum.nanz
+global @checksum_calls : u8
+global @checksum_last : u16
+
+fun @weighted_checksum(%r1: ptr [pointer], %r2: u8 [general], %r3: u16 [index], %r4: u16 [index], %r5: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r6 = const 0 : u8 [general]
+    %r7 = add %r3, %r4 : u16 [pointer]
+    jmp @loop_head1(%r7, %r6, %r2, %r1, %r5)
+  block @loop_head1(%r8: u16 [pointer], %r9: u8 [general], %r10: u8 [general], %r11: ptr [general], %r12: u16 [pointer]):
+    %r13 = cmp.ult %r9, %r10 : bool [flag]
+    br_if %r13, @loop_body2(), @loop_exit3(%r8, %r9, %r10, %r11, %r12)
+  block @loop_body2:
+    %r14 = add %r12, %r8 : u16 [pointer]
+    %r15 = ext %r9 : u8 -> u16 [index]
+    %r16 = ptr_add %r11, %r15 : ptr [pointer]
+    %r17 = load %r16 : u8 [general]
+    %r18 = ext %r17 : u8 -> u16 [pointer]
+    %r19 = add %r14, %r18 : u16 [pointer]
+    %r20 = const 1 : u8 [general]
+    %r21 = add %r9, %r20 : u8 [general]
+    jmp @loop_head1(%r8, %r21, %r10, %r11, %r19)
+  block @loop_exit3(%r22: u16 [pointer], %r23: u8 [general], %r24: u8 [general], %r25: ptr [general], %r26: u16 [pointer]):
+    ret %r26
+
+fun @record_checksum(%r27: u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    %r28 = addr_of @checksum_calls : ptr [pointer]
+    %r29 = load %r28 : u8 [general]
+    %r30 = const 1 : u8 [general]
+    %r31 = add %r29, %r30 : u8 [acc]
+    %r32 = addr_of @checksum_calls : ptr [pointer]
+    store %r32, %r31 : u8
+    %r33 = addr_of @checksum_last : ptr [pointer]
+    store %r33, %r27 : u16
+    ret %r27
+
+fun @checksum_packet(%r34: ptr [pointer], %r35: u8 [general], %r36: u16 [index], %r37: u16 [index], %r38: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r39 = move %r34 : ptr [pointer]
+    %r40 = move %r36 : u16 [index]
+    %r41 = move %r37 : u16 [index]
+    %r42 = move %r38 : u16 [index]
+    %r43 = call @weighted_checksum(%r39, %r35, %r40, %r41, %r42) : u16 [pointer]
+    %r44 = call @record_checksum(%r43) : u16 [pointer]
+    ret %r44
+

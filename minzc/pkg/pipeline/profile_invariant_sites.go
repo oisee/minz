@@ -53,6 +53,18 @@ type InvariantSiteVariantSetEvidence struct {
 // invocation costs (or module bytes for OptSize) choose the retained winner;
 // strict improvement is required, so the all-original baseline wins ties.
 func MeasureInvariantSiteVariantSets(factory func() (*hir.Module, error), observations []byte, workload hir.ProfileWorkload, options Options, maxSites int) (*InvariantSiteVariantSetResult, error) {
+	return measureInvariantSiteVariantSets(factory, observations, workload, options, maxSites, false)
+}
+
+// MeasureInvariantSiteRuleVariantSets crosses per-source-loop scalar hoists with
+// constant-if off/on. At most four sites give 32 measured candidates. Pointer
+// choices remain original; incomplete first-pass requests fail closed, including
+// requests deleted or starved by constant-if. The v1 API remains unchanged.
+func MeasureInvariantSiteRuleVariantSets(factory func() (*hir.Module, error), observations []byte, workload hir.ProfileWorkload, options Options, maxSites int) (*InvariantSiteVariantSetResult, error) {
+	return measureInvariantSiteVariantSets(factory, observations, workload, options, maxSites, true)
+}
+
+func measureInvariantSiteVariantSets(factory func() (*hir.Module, error), observations []byte, workload hir.ProfileWorkload, options Options, maxSites int, independentRules bool) (*InvariantSiteVariantSetResult, error) {
 	fail := func(err error) (*InvariantSiteVariantSetResult, error) {
 		return nil, fmt.Errorf("measure invariant site variant sets: %w", err)
 	}
@@ -140,6 +152,9 @@ func MeasureInvariantSiteVariantSets(factory func() (*hir.Module, error), observ
 	}
 	// Preflight all factory inputs before any compilation or execution.
 	candidateCount := 1 << len(eligible)
+	if independentRules {
+		candidateCount *= 2
+	}
 	modules := make([]*hir.Module, candidateCount)
 	for i := range modules {
 		modules[i], err = fresh()
@@ -170,10 +185,14 @@ func MeasureInvariantSiteVariantSets(factory func() (*hir.Module, error), observ
 		return fail(fmt.Errorf("observations do not match actual controlled workload"))
 	}
 	e := &InvariantSiteVariantSetEvidence{Schema: "minz.invariant-site-variant-sets/v1", Compatibility: key, CompilationID: config, Options: options, AssemblerMode: "default", MaxSites: maxSites, EligibleSites: eligible, Oracle: oracle, Candidates: []InvariantSiteVariantSetCandidate{}}
+	if independentRules {
+		e.Schema = "minz.invariant-site-rule-variant-sets/v2"
+	}
 	e.Options.GraceStats = nil
 	compiled := make([]Steps, len(modules))
 	for mask, m := range modules {
-		m.GraceRulePolicy = map[string]bool{"hir-constant-if": false, "hir-invariant-base": true}
+		constantIf := independentRules && mask >= 1<<len(eligible)
+		m.GraceRulePolicy = map[string]bool{"hir-constant-if": constantIf, "hir-invariant-base": true}
 		choices := map[string]bool{}
 		for j, id := range eligible {
 			choices[id] = mask&(1<<(len(eligible)-1-j)) != 0
@@ -239,7 +258,7 @@ func MeasureInvariantSiteVariantSets(factory func() (*hir.Module, error), observ
 			}
 			total += invocation.TStates
 		}
-		e.Candidates = append(e.Candidates, InvariantSiteVariantSetCandidate{RequestedSitePolicy: choices, ProfileVariantSetCandidate: ProfileVariantSetCandidate{HIR: hirDump, Lineage: lineage, FinalHIR: finalHIR, FinalLineage: finalLineage, FinalRawRun: finalRaw, RulePolicy: map[string]bool{"hir-constant-if": false, "hir-invariant-base": true}, CommonGraceRules: false, TotalTStates: total, Decisions: decisions, Binary: assembled.Binary, BinarySHA256: digest, ModuleBytes: len(assembled.Binary), RawRun: raw, Run: run}})
+		e.Candidates = append(e.Candidates, InvariantSiteVariantSetCandidate{RequestedSitePolicy: choices, ProfileVariantSetCandidate: ProfileVariantSetCandidate{HIR: hirDump, Lineage: lineage, FinalHIR: finalHIR, FinalLineage: finalLineage, FinalRawRun: finalRaw, RulePolicy: map[string]bool{"hir-constant-if": constantIf, "hir-invariant-base": true}, CommonGraceRules: false, TotalTStates: total, Decisions: decisions, Binary: assembled.Binary, BinarySHA256: digest, ModuleBytes: len(assembled.Binary), RawRun: raw, Run: run}})
 		compiled[mask] = steps
 	}
 	for i := 1; i < len(e.Candidates); i++ {
