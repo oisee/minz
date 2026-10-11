@@ -1,0 +1,94 @@
+=== RUN   TestFATDirectoryWriteNativeState
+[HIR-SPLIT] write_fat12 → write_fat12$split_5 (3 inputs, pressure 9)
+[HIR-SPLIT] fat_cache_put → fat_cache_put$split_2 (2 inputs, pressure 9)
+[HIR-SPLIT] find_file → find_file$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] get_file_size → get_file_size$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] file_read → file_read$split_4 (1 inputs, pressure 9)
+[HIR-SPLIT] file_write_data → file_write_data$split_3 (2 inputs, pressure 11)
+[HIR-SPLIT] update_dir_size → update_dir_size$split_3 (0 inputs, pressure 10)
+[HIR-SPLIT] delete_file → delete_file$split_6 (0 inputs, pressure 9)
+[HIR-SPLIT] overwrite_file → overwrite_file$split_8 (0 inputs, pressure 14)
+[HIR-SPLIT] count_dir_entries → count_dir_entries$split_4 (1 inputs, pressure 11)
+[HIR-SPLIT] get_dir_entry → get_dir_entry$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] get_dir_entry_full → get_dir_entry_full$split_4 (0 inputs, pressure 14)
+=== RUN   TestFATDirectoryWriteNativeState/default/slot0
+    fat_directory_native_test.go:225: default slot0 13574T 9694B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/default/slot1
+    fat_directory_native_test.go:225: default slot1 13574T 9694B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/default/slot5
+    fat_directory_native_test.go:225: default slot5 13574T 9694B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/default/slot15
+    fat_directory_native_test.go:225: default slot15 13574T 9694B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/default/slot16
+    fat_directory_native_test.go:225: default slot16 13574T 9694B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/default/slot255
+    fat_directory_native_test.go:225: default slot255 13574T 9694B rawVM/finalVM/native512+64KiB/SP PASS
+[HIR-SPLIT] write_fat12 → write_fat12$split_5 (3 inputs, pressure 9)
+[HIR-SPLIT] fat_cache_put → fat_cache_put$split_2 (2 inputs, pressure 9)
+[HIR-SPLIT] find_file → find_file$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] get_file_size → get_file_size$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] file_read → file_read$split_4 (1 inputs, pressure 9)
+[HIR-SPLIT] file_write_data → file_write_data$split_3 (2 inputs, pressure 11)
+[HIR-SPLIT] update_dir_size → update_dir_size$split_3 (0 inputs, pressure 10)
+[HIR-SPLIT] delete_file → delete_file$split_6 (0 inputs, pressure 9)
+[HIR-SPLIT] overwrite_file → overwrite_file$split_8 (0 inputs, pressure 14)
+[HIR-SPLIT] count_dir_entries → count_dir_entries$split_4 (1 inputs, pressure 11)
+[HIR-SPLIT] get_dir_entry → get_dir_entry$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] get_dir_entry_full → get_dir_entry_full$split_4 (0 inputs, pressure 14)
+=== RUN   TestFATDirectoryWriteNativeState/grace-size/slot0
+    fat_directory_native_test.go:225: grace-size slot0 13574T 9871B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/grace-size/slot1
+    fat_directory_native_test.go:225: grace-size slot1 13574T 9871B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/grace-size/slot5
+    fat_directory_native_test.go:225: grace-size slot5 13574T 9871B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/grace-size/slot15
+    fat_directory_native_test.go:225: grace-size slot15 13574T 9871B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/grace-size/slot16
+    fat_directory_native_test.go:225: grace-size slot16 13574T 9871B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/grace-size/slot255
+    fat_directory_native_test.go:225: grace-size slot255 13574T 9871B rawVM/finalVM/native512+64KiB/SP PASS
+[HIR-SPLIT] write_fat12 → write_fat12$split_5 (3 inputs, pressure 9)
+[HIR-SPLIT] fat_cache_put → fat_cache_put$split_2 (2 inputs, pressure 9)
+[HIR-SPLIT] find_file → find_file$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] get_file_size → get_file_size$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] file_read → file_read$split_4 (1 inputs, pressure 9)
+[HIR-SPLIT] file_write_data → file_write_data$split_3 (2 inputs, pressure 11)
+[HIR-SPLIT] update_dir_size → update_dir_size$split_3 (0 inputs, pressure 10)
+[HIR-SPLIT] delete_file → delete_file$split_6 (0 inputs, pressure 9)
+[HIR-SPLIT] overwrite_file → overwrite_file$split_8 (0 inputs, pressure 14)
+[HIR-SPLIT] count_dir_entries → count_dir_entries$split_4 (1 inputs, pressure 11)
+[HIR-SPLIT] get_dir_entry → get_dir_entry$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] get_dir_entry_full → get_dir_entry_full$split_4 (0 inputs, pressure 14)
+=== RUN   TestFATDirectoryWriteNativeState/grace-speed/slot0
+    fat_directory_native_test.go:225: grace-speed slot0 10948T 9887B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/grace-speed/slot1
+    fat_directory_native_test.go:225: grace-speed slot1 10948T 9887B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/grace-speed/slot5
+    fat_directory_native_test.go:225: grace-speed slot5 10948T 9887B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/grace-speed/slot15
+    fat_directory_native_test.go:225: grace-speed slot15 10948T 9887B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/grace-speed/slot16
+    fat_directory_native_test.go:225: grace-speed slot16 10948T 9887B rawVM/finalVM/native512+64KiB/SP PASS
+=== RUN   TestFATDirectoryWriteNativeState/grace-speed/slot255
+    fat_directory_native_test.go:225: grace-speed slot255 10948T 9887B rawVM/finalVM/native512+64KiB/SP PASS
+--- PASS: TestFATDirectoryWriteNativeState (11.58s)
+    --- PASS: TestFATDirectoryWriteNativeState/default/slot0 (0.51s)
+    --- PASS: TestFATDirectoryWriteNativeState/default/slot1 (0.48s)
+    --- PASS: TestFATDirectoryWriteNativeState/default/slot5 (0.50s)
+    --- PASS: TestFATDirectoryWriteNativeState/default/slot15 (0.45s)
+    --- PASS: TestFATDirectoryWriteNativeState/default/slot16 (0.51s)
+    --- PASS: TestFATDirectoryWriteNativeState/default/slot255 (0.53s)
+    --- PASS: TestFATDirectoryWriteNativeState/grace-size/slot0 (0.43s)
+    --- PASS: TestFATDirectoryWriteNativeState/grace-size/slot1 (0.43s)
+    --- PASS: TestFATDirectoryWriteNativeState/grace-size/slot5 (0.42s)
+    --- PASS: TestFATDirectoryWriteNativeState/grace-size/slot15 (0.43s)
+    --- PASS: TestFATDirectoryWriteNativeState/grace-size/slot16 (0.38s)
+    --- PASS: TestFATDirectoryWriteNativeState/grace-size/slot255 (0.39s)
+    --- PASS: TestFATDirectoryWriteNativeState/grace-speed/slot0 (0.42s)
+    --- PASS: TestFATDirectoryWriteNativeState/grace-speed/slot1 (0.35s)
+    --- PASS: TestFATDirectoryWriteNativeState/grace-speed/slot5 (0.42s)
+    --- PASS: TestFATDirectoryWriteNativeState/grace-speed/slot15 (0.27s)
+    --- PASS: TestFATDirectoryWriteNativeState/grace-speed/slot16 (0.25s)
+    --- PASS: TestFATDirectoryWriteNativeState/grace-speed/slot255 (0.38s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	11.595s
