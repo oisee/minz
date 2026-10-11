@@ -1,0 +1,81 @@
+{
+  "assembled_binary_sha256": "b554cc65a2274cd34f0030c71ed0da0630183385f2b72c82c6bbb59da34788fc",
+  "entries": {
+    "eq_b": {
+      "Calls": 65536,
+      "TotalT": 4453888,
+      "MinSP": 61422
+    },
+    "gt_b": {
+      "Calls": 65536,
+      "TotalT": 5109248,
+      "MinSP": 61422
+    },
+    "is_big_b": {
+      "Calls": 256,
+      "TotalT": 20726,
+      "MinSP": 61422
+    },
+    "is_digit": {
+      "Calls": 256,
+      "TotalT": 21819,
+      "MinSP": 61422
+    },
+    "is_digit_b": {
+      "Calls": 256,
+      "TotalT": 22843,
+      "MinSP": 61422
+    },
+    "is_small": {
+      "Calls": 256,
+      "TotalT": 13422,
+      "MinSP": 61422
+    },
+    "is_small_b": {
+      "Calls": 256,
+      "TotalT": 18076,
+      "MinSP": 61422
+    },
+    "is_ten_b": {
+      "Calls": 256,
+      "TotalT": 18166,
+      "MinSP": 61422
+    },
+    "is_upper_b": {
+      "Calls": 256,
+      "TotalT": 22143,
+      "MinSP": 61422
+    },
+    "is_zero": {
+      "Calls": 256,
+      "TotalT": 12555,
+      "MinSP": 61422
+    },
+    "is_zero_b": {
+      "Calls": 256,
+      "TotalT": 17398,
+      "MinSP": 61422
+    },
+    "lt_b": {
+      "Calls": 65536,
+      "TotalT": 4130048,
+      "MinSP": 61422
+    }
+  },
+  "native_calls": 198912,
+  "options": {
+    "ProfileSelection": null,
+    "CollectHIRSites": false,
+    "ContractOpt": true,
+    "AnnotateTStates": false,
+    "UseGrace": true,
+    "GraceStats": null,
+    "UseHIRGrace": false,
+    "OptSize": true,
+    "Backend": "",
+    "AssertMode": "",
+    "SkipZ80Emission": false
+  },
+  "source_assertions_retained": 6,
+  "source_sha256": "95896d353dfdd27b523890cb7f1526b7ebe9d659eed0cfc461433e95f616bce7"
+}
