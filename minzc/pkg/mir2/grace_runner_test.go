@@ -103,7 +103,7 @@ func TestGraceRunner_DSE(t *testing.T) {
 func TestGraceRunner_CondRetSink(t *testing.T) {
 	// Build the classic cond-ret-sink pattern:
 	// entry: br_if %cond, @then, @else
-	// else: sub %r3-%r1; ret %result
+	// else: sub %r1-%r3; ret %result (same operands allow carry fusion)
 	f := &Func{Name: "test_condret", nextReg: 100}
 	entry := &Block{
 		Label: "entry",
@@ -123,7 +123,7 @@ func TestGraceRunner_CondRetSink(t *testing.T) {
 	els := &Block{
 		Label: "else",
 		Insts: []*Inst{
-			{Op: OpSub, Dst: Reg(4), Src: [2]Reg{Reg(3), Reg(1)}, Ty: TyU8},
+			{Op: OpSub, Dst: Reg(4), Src: [2]Reg{Reg(1), Reg(3)}, Ty: TyU8},
 		},
 		Term: &TermRet{Vals: []Reg{Reg(4)}},
 	}

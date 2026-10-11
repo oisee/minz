@@ -1,0 +1,634 @@
+{
+  "files": [
+    {
+      "path": "reports/2026-10-11-068-grace-condret-flags-safety.md",
+      "bytes": 2013,
+      "sha256": "7049a8be0ef32833e326384c525f543ae3d0013e9d6c9e44653afe07bd9388c4"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-proof/before.txt",
+      "bytes": 247,
+      "sha256": "108278c491f54d4f99332736d3673a725e5d0f0e94921aa53565ab7c401e6e3a"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-proof/memory-bit-512.txt",
+      "bytes": 146,
+      "sha256": "6db788d1ffa898d35ec2e8aff431d3a8ebcbbf7bc9d4cdbde1f8fcbea2070873"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-proof/native-vm-768.txt",
+      "bytes": 174,
+      "sha256": "f2911c6a6b7f91238ca489fd2e150ac6fa38bdc10bb4d1344cdff2edd6956e92"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-proof/full-mir2.txt",
+      "bytes": 44,
+      "sha256": "577af196d69201adf77e8c7935b2503d78104948d11ab58285d15ee1757a25e3"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-proof/original-packed-108.txt",
+      "bytes": 17786,
+      "sha256": "50f6a81b3a7cdc47472e1c8b0dfd8bb0856fc289d346f861c45b6f5efabcac69"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/training-1-write_fat12.json",
+      "bytes": 379,
+      "sha256": "1698793d2402983f1f96e1d50ecad499812d2fc61744639e1b7cf5cd9ac86168"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/heldout-0-read_fat12.json",
+      "bytes": 376,
+      "sha256": "4644c384ecefcd3271bd0c574748ab459cdac07db1eae784615c058226eb8026"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/training-2-write_fat12.json",
+      "bytes": 381,
+      "sha256": "a3ea383a1af7aa35fadfb5a37c413b6a005e62c4665beb0d40e3d821f3df392a"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/heldout-2-write_fat16.json",
+      "bytes": 377,
+      "sha256": "b95a0044bea58a863ef1ff63e6fc42c6bdb4029097fc7f12a0cca8bef419f554"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/heldout-1-write_fat12.json",
+      "bytes": 381,
+      "sha256": "a6dbf62ce3bead70a01214aa8b509f3660034ae4d0cdd4b7c4cc8631219aefa3"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/training-1-read_fat16.json",
+      "bytes": 380,
+      "sha256": "076e86d7e3cdcc689e9bd2a44cba2f65f7d4b5e43f455a4020cc0cdba4646a25"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/training-1-write_fat16.json",
+      "bytes": 379,
+      "sha256": "be02b7ad116db998e0bd0ccfcd3104a81eb899da021d234e5b7049408979a535"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/training-0-write_fat12.json",
+      "bytes": 378,
+      "sha256": "5d06aaf8534d7cf8fe04691299a938848a7c8b90bef560833bcc61a1f991a644"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/heldout-5-write_fat12.json",
+      "bytes": 381,
+      "sha256": "413fdca25a6e217ab213e30a62b8288ec3d328aa17f0227f6b79f9db4aec97a6"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/heldout-1-read_fat16.json",
+      "bytes": 382,
+      "sha256": "ee0c7f8b7a178132ea3febb5163cdec5ece7bb94e0bba4aa62224092d3f1194e"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/heldout-2-write_fat12.json",
+      "bytes": 377,
+      "sha256": "843e93dcb452508f0075fdcae8d1184a86bc3e0770052c887b1f79c71e20df6d"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/final.mir",
+      "bytes": 81376,
+      "sha256": "5137acb8d3147f2de31b64b646e2fce9e705bbc011f522184ca5815b5bde4a89"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/heldout-5-write_fat16.json",
+      "bytes": 382,
+      "sha256": "2a8de969daa8cf419b0ff5f6aa7f74ff7a76177f514d2115add100e10447a9bb"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/heldout-3-read_fat12.json",
+      "bytes": 378,
+      "sha256": "b9cd065dd16d57624df06268420f23420d71f51cf9a2c84870c1a353a589aa00"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/target.a80",
+      "bytes": 129813,
+      "sha256": "e515de92f1e54d1dfc9717578ce94d71389400763ecd570fd72e4929dc50bd1a"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/heldout-4-read_fat16.json",
+      "bytes": 378,
+      "sha256": "75cd33f71ff242ff7abfe2c7a8956252c4b2d504b63049e330c1c15e8c407d0d"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/heldout-0-read_fat16.json",
+      "bytes": 377,
+      "sha256": "b028c82f48f947afb3002582c53e4bf14fda58ec40fb6dff0f0949ac0cca4dc4"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/heldout-2-read_fat16.json",
+      "bytes": 378,
+      "sha256": "064fa7b0fd5325a7417ce82714583fbf8e019d6d9cb07bceade85e92cc98ffe7"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/target.bin",
+      "bytes": 9866,
+      "sha256": "0df94aaaff0405e93be2fa5cfeb7c90f932d0d71f88c658c4f60cede795881c9"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/training-0-read_fat12.json",
+      "bytes": 378,
+      "sha256": "2d12f65b662f29ef726aadf2904b50d0ceeb4f8ab467563217381c417b65ee48"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/training-1-read_fat12.json",
+      "bytes": 379,
+      "sha256": "ab131af5479366cf1682ef84b6dfc4212871922d8ee52f199d5ef38964e20f1b"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/heldout-4-write_fat12.json",
+      "bytes": 374,
+      "sha256": "30220e0d13e43fde81d684a8c99142d9bea5070d8ba47271effa73d12469ab72"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/heldout-1-read_fat12.json",
+      "bytes": 381,
+      "sha256": "66fdfa581cf0e2c01d3946bed9248a4a07f7ba43315e49e993540df65234508e"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/heldout-4-write_fat16.json",
+      "bytes": 374,
+      "sha256": "d5319295833d8b88b1f6e1a8929aea10efdd4ad461224b570bcf251312a51597"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/training-0-write_fat16.json",
+      "bytes": 375,
+      "sha256": "0320d2d016394a5b2c152a280dcada20ff5513336dea377d74b2944348128fb9"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/training-2-write_fat16.json",
+      "bytes": 382,
+      "sha256": "cb8a5e770ba8ff7b2a5fbbf79b6ad88ad9ca101fba0e715ec06a6dd4f88bfe70"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/heldout-3-read_fat16.json",
+      "bytes": 379,
+      "sha256": "8bd4f1c6b8f91b96411878a80b9eb7cdafef179c63789397e340beed4647e878"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/heldout-5-read_fat16.json",
+      "bytes": 382,
+      "sha256": "ec8ef709fd87603e2d5bfe19f832ffd37544b0b031fda3de59087788212d07c7"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/heldout-3-write_fat16.json",
+      "bytes": 379,
+      "sha256": "7fd1d282566937cfe49dc7961c79824ebaabc45b137d6f4161da322e038d1a07"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/training-2-read_fat16.json",
+      "bytes": 382,
+      "sha256": "3226c7ba55e96514aceff40525a43fc3a97a5456f46e0d6e2123da507020c854"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/training-2-read_fat12.json",
+      "bytes": 381,
+      "sha256": "bb1c560ce43dcbfe3ccab562b4c4e39dea93d210f0b1822c6c6e8ce7eea47181"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/training-0-read_fat16.json",
+      "bytes": 376,
+      "sha256": "1ac71ef6220ff199972498df69e1c17dfb94797c006c486312fda2825fd05c07"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/heldout-0-write_fat12.json",
+      "bytes": 372,
+      "sha256": "643b1503f40a5ae1fb34fb23a5516723467e612af446c768256b48dfeacca1cc"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/heldout-2-read_fat12.json",
+      "bytes": 377,
+      "sha256": "a5aa3f174f8e37547199fe73b5196c65cd1df3b3935c9413bbed276835e72c90"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/heldout-0-write_fat16.json",
+      "bytes": 373,
+      "sha256": "f0ff737f33bed74be6ebf8cbc8fd422f0d7de7b311473e8c82aff808f1abbf7e"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/heldout-1-write_fat16.json",
+      "bytes": 382,
+      "sha256": "fb81f5c2240877b8e01f837cbfeaaeb09adf79f39757901bb3edf7aa20cebed9"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/allocation.json",
+      "bytes": 104977,
+      "sha256": "50107a29b64981b37410648d5e2c2d0201df4dc89bea1046df941c37522aa0e4"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/heldout-5-read_fat12.json",
+      "bytes": 381,
+      "sha256": "5fbafa882e3067189fa3eb42569672742940ab5f37954b9ceb76b81017af3f2d"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/heldout-4-read_fat12.json",
+      "bytes": 377,
+      "sha256": "cf5fedee839b965f952c2040d41e5a60c1fe60e93cf9a3909cdadd978c31e8c4"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-size/heldout-3-write_fat12.json",
+      "bytes": 378,
+      "sha256": "9277229f823eb4345186c5c786f80c75f56c4ed388c5a97a345069ec5b2ac06e"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/training-1-write_fat12.json",
+      "bytes": 379,
+      "sha256": "82994e233a115cde21b2c35d358e7f611d93aa25d338837221ceef5d73f4ad0a"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/heldout-0-read_fat12.json",
+      "bytes": 376,
+      "sha256": "1d16f5d4fe0251f5a3e8d8bb17002993f638eb5a6764700b5c063a7fabe28dc8"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/training-2-write_fat12.json",
+      "bytes": 381,
+      "sha256": "2641ce11cb0f7505b2185b37fcea6c8e66d585fbca868d6ddb3bf00f86ff59ef"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/heldout-2-write_fat16.json",
+      "bytes": 377,
+      "sha256": "8e5144b9ccf01e0fc324ca7b3bd5e1520cc331dc4100d5ba178dbf8d1efd4eff"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/heldout-1-write_fat12.json",
+      "bytes": 381,
+      "sha256": "12ba10421d3198bcc1c069d8b838182dc6022e1936203b397344e7455ad9e0ed"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/training-1-read_fat16.json",
+      "bytes": 380,
+      "sha256": "438879a3576c9ab6370b710f13b81e1acf82b35bb28a0cd170fdbdd94d735001"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/training-1-write_fat16.json",
+      "bytes": 379,
+      "sha256": "f8ccd1fb0a06041f96a9451088a5037eb101880dffcf9a617caa0bc4061af51b"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/training-0-write_fat12.json",
+      "bytes": 378,
+      "sha256": "e1b8808224582c0536cd6a9d7db782bb64068516ff83aa61c8c572c977d679d8"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/heldout-5-write_fat12.json",
+      "bytes": 381,
+      "sha256": "7e31a8950b89efff58b643aa9335e9568072df1653533c05741013fc29ced145"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/heldout-1-read_fat16.json",
+      "bytes": 382,
+      "sha256": "9a5630803cdec8e1a18096368ffec1388f8136d7119943a62a9667cbd1b0ec7f"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/heldout-2-write_fat12.json",
+      "bytes": 377,
+      "sha256": "889a798739a998cbd513c1c63adfc83014e7c44f1bfae336e15fbf208c85717d"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/final.mir",
+      "bytes": 81392,
+      "sha256": "4aa5839a495761a364daf7d8823c339f86ac6ed2f0da28aecc685de374e33a07"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/heldout-5-write_fat16.json",
+      "bytes": 382,
+      "sha256": "55ee48bae25e8af8891c8d94806c25639eb2fc3b001063bfa8f29639e873a8e5"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/heldout-3-read_fat12.json",
+      "bytes": 378,
+      "sha256": "4fbb7734777ba71f39e65354f4dc3273213c50faabd02cb4ffc8d6f655926aaf"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/target.a80",
+      "bytes": 129879,
+      "sha256": "75b7032b05e84aa39c165dd22bfbf92eea7a027fd0b3fa00b53156c5bd8588ce"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/heldout-4-read_fat16.json",
+      "bytes": 378,
+      "sha256": "5c8b7f52534aff80c92c47c7b042918e1760689bd4a61c03498185b106fc501d"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/heldout-0-read_fat16.json",
+      "bytes": 377,
+      "sha256": "e77b2f02a5238640eeb2f6aae93a8602275e4031a288fd4262ba54394a814b4c"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/heldout-2-read_fat16.json",
+      "bytes": 378,
+      "sha256": "9b67d589d7a39993398c4375c23bf8f1dbb860e1012d69f662e58d55397128e4"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/target.bin",
+      "bytes": 9882,
+      "sha256": "cf9d5a46321d43c783a6ce99b1c8097f638340c476586910447d06c797ec0509"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/training-0-read_fat12.json",
+      "bytes": 378,
+      "sha256": "4178a6ea1b479337e5e8aa5fb2d28561cee9d874eed53bb79f9b504ba57bdb0f"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/training-1-read_fat12.json",
+      "bytes": 379,
+      "sha256": "0dba63c06c46522c50be2430bbb75d326e891e626c5bad3b985556eabd48a012"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/heldout-4-write_fat12.json",
+      "bytes": 374,
+      "sha256": "f56f1229630fa23c4515d7de7721492c1b0d978a803b38b4bd1817b4a3674eee"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/heldout-1-read_fat12.json",
+      "bytes": 381,
+      "sha256": "8302ed6a06eecde00afbcff1f928b7f2225497a9741dd0d62046a23f34910eef"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/heldout-4-write_fat16.json",
+      "bytes": 374,
+      "sha256": "b9ec9d88a02e30746cb20da6586f27ced719cd01f062d5a59c44b51c138785fc"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/training-0-write_fat16.json",
+      "bytes": 375,
+      "sha256": "ac68b122aaeea30d58e8339141d606803a2b8634c1013a24f384b17f1e6eceb9"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/training-2-write_fat16.json",
+      "bytes": 382,
+      "sha256": "6bdd20043ddd40d3648ba196dc7a863878c0af1ac51458a852b0c3cb413c231e"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/heldout-3-read_fat16.json",
+      "bytes": 379,
+      "sha256": "63569f4e13259490d9e176628ba69373a33d22f35dfa1d304e73f6575a9463a5"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/heldout-5-read_fat16.json",
+      "bytes": 382,
+      "sha256": "562b8a9002f6426fe0e43ebc94555f981a76e9725dffd98fa58acdbd23147a35"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/heldout-3-write_fat16.json",
+      "bytes": 379,
+      "sha256": "b9fa3edf1c745295aac1e1766081bfe9984e3dc7b273df17fd9d5070f51b88dc"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/training-2-read_fat16.json",
+      "bytes": 382,
+      "sha256": "d5316b11c89cbca2a00908ac656050de9ccef2f98ee30e9ab69a7e30395c74bd"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/training-2-read_fat12.json",
+      "bytes": 381,
+      "sha256": "3e0dc54aa507a50a637d30e1ad4cee7a3cdc81cfd336f446c4ebe69e170f0a7d"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/training-0-read_fat16.json",
+      "bytes": 376,
+      "sha256": "d7ac2833362da0321eeaa6dfb1b27e1c0d8c05556f57a86b62947fe8a2c6feaf"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/heldout-0-write_fat12.json",
+      "bytes": 372,
+      "sha256": "01470f6d555adbc86784b806bc59e4d1778bc6470a9c32a364ec0a77f4deec3f"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/heldout-2-read_fat12.json",
+      "bytes": 377,
+      "sha256": "ec326c67166828a9d32cff2a09eecedc959bea982f0eddbc585b01e6254912a5"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/heldout-0-write_fat16.json",
+      "bytes": 373,
+      "sha256": "124bc49bb17878942a0ce8002f891d9abefd3c7dddb7a12133777acfba09446a"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/heldout-1-write_fat16.json",
+      "bytes": 382,
+      "sha256": "98a4c1d97a4500c5d8a2db515031f778b6201ae3649ec753a0a4387edb866cd9"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/allocation.json",
+      "bytes": 104987,
+      "sha256": "9f68863741a5fe3497817674b0795fd0e88223607b639eddcfda55dfa71b3d5f"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/heldout-5-read_fat12.json",
+      "bytes": 381,
+      "sha256": "1d710f6f03fd92e3c9f040c2970223106f433dd56db15de7460b7840c0b3cdac"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/heldout-4-read_fat12.json",
+      "bytes": 377,
+      "sha256": "ac676cde89164eac339805d9d668257efe501972daadcfa9202c8fd154b4a8ed"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/grace-speed/heldout-3-write_fat12.json",
+      "bytes": 378,
+      "sha256": "04aa3a026777036c674f0ce5810be00050251c0dfce36541e490a2f922f3bf6f"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/training-1-write_fat12.json",
+      "bytes": 379,
+      "sha256": "3e4e895ed445c2d508404dab9e8d3d537bdcdb3c29f6ef96edf3537da867268f"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/heldout-0-read_fat12.json",
+      "bytes": 376,
+      "sha256": "ad7adf3432e3e5bf5a607f12647b3552c763c3bd8a39a6690d1904209279488e"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/training-2-write_fat12.json",
+      "bytes": 381,
+      "sha256": "af0e8f1044b97369089b4e13f9dbc26676096e042effa0c45125362419d04c25"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/heldout-2-write_fat16.json",
+      "bytes": 377,
+      "sha256": "a3e123f32632b3f9bebeaafd5ee11ef27c2787c828cdd93ac7c6679323e6914b"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/heldout-1-write_fat12.json",
+      "bytes": 381,
+      "sha256": "4f0fc4fae41beb60cdd8abcd21c72d222e13541ccebf294a96d26694ed2aa399"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/training-1-read_fat16.json",
+      "bytes": 380,
+      "sha256": "1a937de9a4198e8185ee8f9d6273ad37e7c86e16288ccf53017ae767d5783d9c"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/training-1-write_fat16.json",
+      "bytes": 379,
+      "sha256": "4d2e1bb080e7d28ab8a465038133aaa3e8456f2e552b266efa8c6f5462afae01"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/training-0-write_fat12.json",
+      "bytes": 378,
+      "sha256": "8c7108cb6ac46405c9067f6a84814f27866b827b966d868f4e7bbede7d4673b9"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/heldout-5-write_fat12.json",
+      "bytes": 381,
+      "sha256": "37eeb54dc8e73cbcd0100c258deeb03240608389286e7ec9c4d4995e3b37e0fd"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/heldout-1-read_fat16.json",
+      "bytes": 382,
+      "sha256": "a81f98c9306a890581b9d661697303411cc9f337f034fc71da26a17cf32a0079"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/heldout-2-write_fat12.json",
+      "bytes": 377,
+      "sha256": "a288b06750e5ab182f23d4b148b9ecfdf6a2649f8dfa3af367156392de142981"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/final.mir",
+      "bytes": 82661,
+      "sha256": "6252d68506667b8d3f23a3ddb03ce0ecbddf74dff66d41d26cb5ebcdc160f136"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/heldout-5-write_fat16.json",
+      "bytes": 382,
+      "sha256": "743f09671c693430857de0183f3bee1960c6c505527913b5a0cff6ad4fe51791"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/heldout-3-read_fat12.json",
+      "bytes": 378,
+      "sha256": "9dea8d014209e87785c1716c76de3e967091e1d4152ee7b8bb4b3425829e3162"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/target.a80",
+      "bytes": 129304,
+      "sha256": "27ee8a762a579bd7f839bec3ef6add9bea55e440d9729ef511a453d7102f9a3f"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/heldout-4-read_fat16.json",
+      "bytes": 378,
+      "sha256": "cbcaa8afdc755f46a9279eadf9e50b9aed8f6eedc5458e9bcbd5d0a9a5f8d1a4"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/heldout-0-read_fat16.json",
+      "bytes": 377,
+      "sha256": "56b9fe3212b747422e44b991e7daf329f69a8ea57bb58ecbcb70561dd1e3ed91"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/heldout-2-read_fat16.json",
+      "bytes": 378,
+      "sha256": "df8f5115b56b2a9ddf1c88e195b552a6415a8be78c958723743489b25d67ab15"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/target.bin",
+      "bytes": 9689,
+      "sha256": "ce9389f904ecf6149f814484a116de4c3a33fb92cc6a63b78a7c9b77029e3d26"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/training-0-read_fat12.json",
+      "bytes": 378,
+      "sha256": "4e4b77587e9608af32f5246cb8af0642e4b99786d50c9ef8aa2dd4d7be0e4831"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/training-1-read_fat12.json",
+      "bytes": 379,
+      "sha256": "4182c299fb3af63428f77ba827525af48bca342e3692973cd54060034223bfe7"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/heldout-4-write_fat12.json",
+      "bytes": 374,
+      "sha256": "d2fa6a60bc598b6fca3891a8e7b831fe423c55765aeb28254aed27f922f20151"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/heldout-1-read_fat12.json",
+      "bytes": 381,
+      "sha256": "17ef7ff9621aad308f4f439b379c80a47ee22d1bfff026aba2ce6af11739f1a4"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/heldout-4-write_fat16.json",
+      "bytes": 374,
+      "sha256": "731169f262871b4ab1827642aecf52f7d66cb3e72ace4454f2c9b35256a25152"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/training-0-write_fat16.json",
+      "bytes": 375,
+      "sha256": "0e32aa81f448a0701c5109a163011e2d2771ed5edfd275b6c1494e9552c7d757"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/training-2-write_fat16.json",
+      "bytes": 382,
+      "sha256": "43139462bee9c1b602f9d33dffea026c6be8873833095de83c867bf66321104d"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/heldout-3-read_fat16.json",
+      "bytes": 379,
+      "sha256": "767891c41f4c0f50a4dd2a1df22c3903653bb45ad27228cecdfa1af28a356156"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/heldout-5-read_fat16.json",
+      "bytes": 382,
+      "sha256": "edc993345b3e952cf37c45cffbda1cc730d7306a8d087a5e1479d66f7e441b85"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/heldout-3-write_fat16.json",
+      "bytes": 379,
+      "sha256": "399603e4668b3f166913362d8fc14e48a41cbd2ab122b9b998e3d1a67c2c7c2d"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/training-2-read_fat16.json",
+      "bytes": 382,
+      "sha256": "7becfd1dbcd699fc25195b20012494ff4c8b20fd4ab0fbb72990f274f1b1ba31"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/training-2-read_fat12.json",
+      "bytes": 381,
+      "sha256": "052b8aaedd1975c70f95661b06c9c4346aab92ba53b6cf59b49f62a1a6c76b5a"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/training-0-read_fat16.json",
+      "bytes": 376,
+      "sha256": "4f0ff7f623fb06dadc94e1ba659770e5b51c2986ab16f45caca88f333670c66e"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/heldout-0-write_fat12.json",
+      "bytes": 372,
+      "sha256": "e0d8752e7f54193e40dfa864b517c7ef815565b42aa1d845a7971c9497bab920"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/heldout-2-read_fat12.json",
+      "bytes": 377,
+      "sha256": "27566e27e39abd6d5415e8ff58c9268b46944a5e2fa12abdeb7422543ae4e60d"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/heldout-0-write_fat16.json",
+      "bytes": 373,
+      "sha256": "93cd254adc03fd4d8c0e507bbeea3d44eeaf2e22a94f55e692b2eda46ea788ab"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/heldout-1-write_fat16.json",
+      "bytes": 382,
+      "sha256": "228fd5fe6749c8d19e287ddb1e59ac6eb91b7c6e1d1fb2ff8e9e7200c0122060"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/allocation.json",
+      "bytes": 104199,
+      "sha256": "c0fb9e4d2ffc23dc055da0136b85a3d0d62638673c31c3562148d414246ed6f1"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/heldout-5-read_fat12.json",
+      "bytes": 381,
+      "sha256": "a290742836c45f43a4ecea32eaa653cb7d1496be33abae45efdb7bdb85147fd4"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/heldout-4-read_fat12.json",
+      "bytes": 377,
+      "sha256": "d8296bd5c8f2116c490bedc00b92c64f3bed75adb18e186921da540823b5452c"
+    },
+    {
+      "path": "reports/fat-packed-prospective/flags-fixed/native/default/heldout-3-write_fat12.json",
+      "bytes": 378,
+      "sha256": "2fef6b8eb325814acbd447d0718e883b1e49ee60ecfecab8ef89bae2fc6c4d3a"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+=== RUN   TestGraceCondRetRejectsFlagClobberingHoistNative
+    grace_condret_flags_native_test.go:55: Grace admitted bit hoist
+--- FAIL: TestGraceCondRetRejectsFlagClobberingHoistNative (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/mir2	0.007s
+FAIL

@@ -1,0 +1,22 @@
+{
+  "binary_bytes": 9866,
+  "case": {
+    "Cluster": 9,
+    "Base": 17408,
+    "Value": 3445
+  },
+  "final_word": 3445,
+  "initial_word": 14363,
+  "native_reads": [
+    0,
+    0
+  ],
+  "native_writes": [
+    1,
+    1
+  ],
+  "result": 14363,
+  "same_frozen_binary": "0df94aaaff0405e93be2fa5cfeb7c90f932d0d71f88c658c4f60cede795881c9",
+  "t_states": 138,
+  "target_address": 17426
+}
