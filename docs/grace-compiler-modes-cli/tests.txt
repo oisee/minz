@@ -1,0 +1,55 @@
+=== RUN   TestHIRProfileJointCallerCompilation
+--- PASS: TestHIRProfileJointCallerCompilation (0.76s)
+=== RUN   TestCompilerModeCLIPathsAndFlags
+=== RUN   TestCompilerModeCLIPathsAndFlags/missing-workload
+=== RUN   TestCompilerModeCLIPathsAndFlags/joint
+=== RUN   TestCompilerModeCLIPathsAndFlags/other-output
+=== RUN   TestCompilerModeCLIPathsAndFlags/hir-grace
+=== RUN   TestCompilerModeCLIPathsAndFlags/alias-input
+=== RUN   TestCompilerModeCLIPathsAndFlags/hardlink-input
+--- PASS: TestCompilerModeCLIPathsAndFlags (0.01s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/missing-workload (0.00s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/joint (0.00s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/other-output (0.00s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/hir-grace (0.00s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/alias-input (0.00s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/hardlink-input (0.01s)
+=== RUN   TestCompilerModeCLIActualSelectedArtifacts
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts814597631/002/evidence
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts814597631/003/evidence
+[compiler-modes] size selected mode 0: 2605 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts814597631/004/evidence
+[compiler-modes] size selected mode 0: 2605 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts814597631/005/evidence
+--- PASS: TestCompilerModeCLIActualSelectedArtifacts (3.39s)
+=== RUN   TestCompilerModeCLIImportedSource
+[compiler-modes] speed selected mode 0: 24 T / 10 B; artifacts /tmp/TestCompilerModeCLIImportedSource3532281535/001/evidence
+--- PASS: TestCompilerModeCLIImportedSource (0.76s)
+=== RUN   TestCompilerModeCLIImportedOutputAlias
+--- PASS: TestCompilerModeCLIImportedOutputAlias (0.01s)
+=== RUN   TestHIRProfileFlagValidation
+=== RUN   TestHIRProfileFlagValidation/missing_mode
+=== RUN   TestHIRProfileFlagValidation/both_modes
+=== RUN   TestHIRProfileFlagValidation/missing_workload
+=== RUN   TestHIRProfileFlagValidation/collect_model
+=== RUN   TestHIRProfileFlagValidation/collect_output
+=== RUN   TestHIRProfileFlagValidation/apply_missing_model
+=== RUN   TestHIRProfileFlagValidation/apply_run
+=== RUN   TestHIRProfileFlagValidation/legacy
+=== RUN   TestHIRProfileFlagValidation/backend
+=== RUN   TestHIRProfileFlagValidation/emit
+=== RUN   TestHIRProfileFlagValidation/disabled
+=== RUN   TestHIRProfileFlagValidation/collision
+--- PASS: TestHIRProfileFlagValidation (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/missing_mode (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/both_modes (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/missing_workload (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/collect_model (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/collect_output (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/apply_missing_model (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/apply_run (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/legacy (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/backend (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/emit (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/disabled (0.00s)
+    --- PASS: TestHIRProfileFlagValidation/collision (0.00s)
+PASS
+ok  	github.com/minz/minzc/cmd/minzc	4.947s
