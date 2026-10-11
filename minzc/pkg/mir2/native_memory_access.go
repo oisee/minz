@@ -149,3 +149,48 @@ func (g *z80cg) emitNativeSpill(symbol string, offset, bytes int, write bool, s 
 func (g *z80cg) emitNativeSpillf(symbol string, offset, bytes int, write bool, format string, args ...any) {
 	g.emitNativeSpill(symbol, offset, bytes, write, fmt.Sprintf(format, args...))
 }
+
+// Provisional TSMC markers transport known generated spill identity through the
+// existing orphan-store rewrite. Actual code patching is never authorized.
+func (g *z80cg) emitNativeTSMCSpill(pair *tsmcSpillPair, label string, offset int, format string, args ...any) {
+	if g.nativeMemorySink == nil {
+		g.emitf(format, args...)
+		return
+	}
+	before := len(*g.nativeMemorySink)
+	g.emitNativeSpill(g.spillLabel(pair.reg), offset, 1, true, fmt.Sprintf(format, args...))
+	if len(*g.nativeMemorySink) > before {
+		r := &(*g.nativeMemorySink)[before]
+		r.StorageKind = "orphan-tsmc-spill"
+		g.nativeOrphanLabels[r.ID] = label
+	}
+}
+func (g *z80cg) resolveNativeOrphanSpills(assembly string) error {
+	for i := range *g.nativeMemorySink {
+		r := &(*g.nativeMemorySink)[i]
+		if r.StorageKind != "orphan-tsmc-spill" {
+			continue
+		}
+		label := g.nativeOrphanLabels[r.ID]
+		if label == "" {
+			return fmt.Errorf("native memory access: missing provisional spill identity")
+		}
+		if strings.Contains(assembly, label+":") {
+			return fmt.Errorf("native memory access: executable TSMC spill unsupported")
+		}
+		text := fmt.Sprintf("LD (%s+%d), A", label, r.ByteOffset+1)
+		marker := "@minz-memory-access:" + r.ID
+		found := false
+		for _, line := range strings.Split(assembly, "\n") {
+			if strings.Contains(line, marker) && strings.Contains(line, text) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return fmt.Errorf("native memory access: orphan spill operation changed")
+		}
+		r.StorageKind = "spill"
+	}
+	return nil
+}
