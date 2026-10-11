@@ -1,0 +1,578 @@
+[
+  {
+    "corpus": "short-reuse",
+    "goal": "speed",
+    "selected_old": 2,
+    "selected_new": 2,
+    "masks": [
+      {
+        "mask": 0,
+        "old_T": 330515,
+        "new_T": 329597,
+        "delta_T": -918,
+        "old_B": 2000,
+        "new_B": 2001,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 461
+          }
+        ]
+      },
+      {
+        "mask": 1,
+        "old_T": 331075,
+        "new_T": 330157,
+        "delta_T": -918,
+        "old_B": 2121,
+        "new_B": 2122,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 546
+          }
+        ]
+      },
+      {
+        "mask": 2,
+        "old_T": 327008,
+        "new_T": 326090,
+        "delta_T": -918,
+        "old_B": 1978,
+        "new_B": 1979,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 461
+          }
+        ]
+      },
+      {
+        "mask": 3,
+        "old_T": 327568,
+        "new_T": 326650,
+        "delta_T": -918,
+        "old_B": 2099,
+        "new_B": 2100,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 546
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "corpus": "short-reuse",
+    "goal": "size",
+    "selected_old": 2,
+    "selected_new": 2,
+    "masks": [
+      {
+        "mask": 0,
+        "old_T": 330515,
+        "new_T": 329597,
+        "delta_T": -918,
+        "old_B": 2000,
+        "new_B": 2001,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 461
+          }
+        ]
+      },
+      {
+        "mask": 1,
+        "old_T": 331075,
+        "new_T": 330157,
+        "delta_T": -918,
+        "old_B": 2121,
+        "new_B": 2122,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 546
+          }
+        ]
+      },
+      {
+        "mask": 2,
+        "old_T": 327008,
+        "new_T": 326090,
+        "delta_T": -918,
+        "old_B": 1978,
+        "new_B": 1979,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 461
+          }
+        ]
+      },
+      {
+        "mask": 3,
+        "old_T": 327568,
+        "new_T": 326650,
+        "delta_T": -918,
+        "old_B": 2099,
+        "new_B": 2100,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 546
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "corpus": "long-atoms",
+    "goal": "speed",
+    "selected_old": 2,
+    "selected_new": 2,
+    "masks": [
+      {
+        "mask": 0,
+        "old_T": 4110605,
+        "new_T": 4110217,
+        "delta_T": -388,
+        "old_B": 2000,
+        "new_B": 2001,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 461
+          }
+        ]
+      },
+      {
+        "mask": 1,
+        "old_T": 4110877,
+        "new_T": 4110489,
+        "delta_T": -388,
+        "old_B": 2121,
+        "new_B": 2122,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 546
+          }
+        ]
+      },
+      {
+        "mask": 2,
+        "old_T": 3968942,
+        "new_T": 3968554,
+        "delta_T": -388,
+        "old_B": 1978,
+        "new_B": 1979,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 461
+          }
+        ]
+      },
+      {
+        "mask": 3,
+        "old_T": 3969214,
+        "new_T": 3968826,
+        "delta_T": -388,
+        "old_B": 2099,
+        "new_B": 2100,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 546
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "corpus": "long-atoms",
+    "goal": "size",
+    "selected_old": 2,
+    "selected_new": 2,
+    "masks": [
+      {
+        "mask": 0,
+        "old_T": 4110605,
+        "new_T": 4110217,
+        "delta_T": -388,
+        "old_B": 2000,
+        "new_B": 2001,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 461
+          }
+        ]
+      },
+      {
+        "mask": 1,
+        "old_T": 4110877,
+        "new_T": 4110489,
+        "delta_T": -388,
+        "old_B": 2121,
+        "new_B": 2122,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 546
+          }
+        ]
+      },
+      {
+        "mask": 2,
+        "old_T": 3968942,
+        "new_T": 3968554,
+        "delta_T": -388,
+        "old_B": 1978,
+        "new_B": 1979,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 461
+          }
+        ]
+      },
+      {
+        "mask": 3,
+        "old_T": 3969214,
+        "new_T": 3968826,
+        "delta_T": -388,
+        "old_B": 2099,
+        "new_B": 2100,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 546
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "corpus": "nested-mixed",
+    "goal": "speed",
+    "selected_old": 2,
+    "selected_new": 2,
+    "masks": [
+      {
+        "mask": 0,
+        "old_T": 1297899,
+        "new_T": 1286305,
+        "delta_T": -11594,
+        "old_B": 2000,
+        "new_B": 2001,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 461
+          }
+        ]
+      },
+      {
+        "mask": 1,
+        "old_T": 1299550,
+        "new_T": 1287956,
+        "delta_T": -11594,
+        "old_B": 2121,
+        "new_B": 2122,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 546
+          }
+        ]
+      },
+      {
+        "mask": 2,
+        "old_T": 1281762,
+        "new_T": 1270168,
+        "delta_T": -11594,
+        "old_B": 1978,
+        "new_B": 1979,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 461
+          }
+        ]
+      },
+      {
+        "mask": 3,
+        "old_T": 1283413,
+        "new_T": 1271819,
+        "delta_T": -11594,
+        "old_B": 2099,
+        "new_B": 2100,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 546
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "corpus": "nested-mixed",
+    "goal": "size",
+    "selected_old": 2,
+    "selected_new": 2,
+    "masks": [
+      {
+        "mask": 0,
+        "old_T": 1297899,
+        "new_T": 1286305,
+        "delta_T": -11594,
+        "old_B": 2000,
+        "new_B": 2001,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 461
+          }
+        ]
+      },
+      {
+        "mask": 1,
+        "old_T": 1299550,
+        "new_T": 1287956,
+        "delta_T": -11594,
+        "old_B": 2121,
+        "new_B": 2122,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 546
+          }
+        ]
+      },
+      {
+        "mask": 2,
+        "old_T": 1281762,
+        "new_T": 1270168,
+        "delta_T": -11594,
+        "old_B": 1978,
+        "new_B": 1979,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 461
+          }
+        ]
+      },
+      {
+        "mask": 3,
+        "old_T": 1283413,
+        "new_T": 1271819,
+        "delta_T": -11594,
+        "old_B": 2099,
+        "new_B": 2100,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 546
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "corpus": "fresh-dominant",
+    "goal": "speed",
+    "selected_old": 2,
+    "selected_new": 2,
+    "masks": [
+      {
+        "mask": 0,
+        "old_T": 789462,
+        "new_T": 786526,
+        "delta_T": -2936,
+        "old_B": 2000,
+        "new_B": 2001,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 461
+          }
+        ]
+      },
+      {
+        "mask": 1,
+        "old_T": 789510,
+        "new_T": 786574,
+        "delta_T": -2936,
+        "old_B": 2121,
+        "new_B": 2122,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 546
+          }
+        ]
+      },
+      {
+        "mask": 2,
+        "old_T": 699845,
+        "new_T": 696909,
+        "delta_T": -2936,
+        "old_B": 1978,
+        "new_B": 1979,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 461
+          }
+        ]
+      },
+      {
+        "mask": 3,
+        "old_T": 699893,
+        "new_T": 696957,
+        "delta_T": -2936,
+        "old_B": 2099,
+        "new_B": 2100,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 546
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "corpus": "fresh-dominant",
+    "goal": "size",
+    "selected_old": 2,
+    "selected_new": 2,
+    "masks": [
+      {
+        "mask": 0,
+        "old_T": 789462,
+        "new_T": 786526,
+        "delta_T": -2936,
+        "old_B": 2000,
+        "new_B": 2001,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 461
+          }
+        ]
+      },
+      {
+        "mask": 1,
+        "old_T": 789510,
+        "new_T": 786574,
+        "delta_T": -2936,
+        "old_B": 2121,
+        "new_B": 2122,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 546
+          }
+        ]
+      },
+      {
+        "mask": 2,
+        "old_T": 699845,
+        "new_T": 696909,
+        "delta_T": -2936,
+        "old_B": 1978,
+        "new_B": 1979,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 461
+          }
+        ]
+      },
+      {
+        "mask": 3,
+        "old_T": 699893,
+        "new_T": 696957,
+        "delta_T": -2936,
+        "old_B": 2099,
+        "new_B": 2100,
+        "static_emission_sites": [
+          {
+            "function": "intern_region",
+            "lhs": "HL",
+            "rhs": "BC",
+            "asm_line": 546
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,7 @@
+Executed from /home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc.
+Executable /home/alice/dev/minz-artifacts/grace-checkpoints/minzc-memory-host-policy-cli-production
+Source ../examples/nanz/self_lanz_parser.nanz
+Common -b z80 -t cpm --memory-host-compare-policy preserve-speed --memory-host-workload /home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-cli-production-evidence/workload.json
+Speed --memory-host-arena-append-policy /home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-cli-production-evidence/speed
+Size --Osize --memory-host-arena-append-policy /home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-cli-production-evidence/size
+Fresh whole v2 association per invocation; no old executable profile reused.

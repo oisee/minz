@@ -1,0 +1,3592 @@
+{
+  "schema": "minz.policy-corpus-independent-input-audit/v1",
+  "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+  "executable_sha256": null,
+  "scope": "same immutable prior inputs; independent exact-source successful semantics/capacity/counters; future executable must be bound after integration; no CPU",
+  "workloads": [
+    {
+      "name": "short-reuse",
+      "sha256": "e2346a6baceb18257ff2dd04e2a26b38ec5755edff8ea3d4ed17870f49d26646",
+      "bytes": 26592,
+      "calls": 12,
+      "ordered_events": 963,
+      "maximum_node_used_bytes": 48,
+      "maximum_persistent_string_used_bytes": 23,
+      "node_capacity": 4096,
+      "string_capacity": 8192,
+      "independent_counts": {
+        "skip_ws/body/s0": [
+          57,
+          13
+        ],
+        "skip_ws/body/s1/then/s0": [
+          1,
+          5
+        ],
+        "region_match/body/s1": [
+          35,
+          114
+        ],
+        "intern_region/body/s1": [
+          25,
+          50
+        ],
+        "intern_region/body/s5": [
+          4,
+          19
+        ],
+        "parse_sexpr/body/s3/then/s7": [
+          6,
+          13
+        ],
+        "parse_sexpr/body/s5": [
+          25,
+          119
+        ],
+        "parse_sexpr/body/s8/then/s2": [
+          0,
+          0
+        ],
+        "main/body/s2": [
+          0,
+          0
+        ],
+        "print_str/body/s2": [
+          0,
+          0
+        ],
+        "print_node/body/s4/then/s3": [
+          0,
+          0
+        ]
+      },
+      "per_invocation": [
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 28,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              0,
+              0
+            ],
+            "intern_region/body/s1": [
+              1,
+              0
+            ],
+            "intern_region/body/s5": [
+              1,
+              5
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              5
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 5,
+            "pos": 5,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 36870,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 26,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              0,
+              0
+            ],
+            "intern_region/body/s1": [
+              1,
+              1
+            ],
+            "intern_region/body/s5": [
+              1,
+              4
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              4
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 4,
+            "pos": 4,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 36875,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 32,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              1,
+              1
+            ],
+            "intern_region/body/s1": [
+              1,
+              2
+            ],
+            "intern_region/body/s5": [
+              1,
+              5
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              5
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 5,
+            "pos": 5,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 36881,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 28,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              1,
+              5
+            ],
+            "intern_region/body/s1": [
+              1,
+              1
+            ],
+            "intern_region/body/s5": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              5
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 5,
+            "pos": 5,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 36881,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32776
+            }
+          ],
+          "ordered_events": 120,
+          "counts": {
+            "skip_ws/body/s0": [
+              8,
+              2
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              4,
+              15
+            ],
+            "intern_region/body/s1": [
+              3,
+              6
+            ],
+            "intern_region/body/s5": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              1,
+              2
+            ],
+            "parse_sexpr/body/s5": [
+              3,
+              14
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 18,
+            "pos": 18,
+            "node_arena": 32768,
+            "node_bump": 32800,
+            "str_arena": 36864,
+            "str_bump": 36881,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32776
+            }
+          ],
+          "ordered_events": 173,
+          "counts": {
+            "skip_ws/body/s0": [
+              13,
+              3
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              5,
+              20
+            ],
+            "intern_region/body/s1": [
+              4,
+              7
+            ],
+            "intern_region/body/s5": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              2,
+              3
+            ],
+            "parse_sexpr/body/s5": [
+              4,
+              19
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 26,
+            "pos": 26,
+            "node_arena": 32768,
+            "node_bump": 32816,
+            "str_arena": 36864,
+            "str_bump": 36881,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32776
+            }
+          ],
+          "ordered_events": 129,
+          "counts": {
+            "skip_ws/body/s0": [
+              9,
+              2
+            ],
+            "skip_ws/body/s1/then/s0": [
+              1,
+              5
+            ],
+            "region_match/body/s1": [
+              3,
+              14
+            ],
+            "intern_region/body/s1": [
+              3,
+              4
+            ],
+            "intern_region/body/s5": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              1,
+              2
+            ],
+            "parse_sexpr/body/s5": [
+              3,
+              14
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 24,
+            "pos": 24,
+            "node_arena": 32768,
+            "node_bump": 32800,
+            "str_arena": 36864,
+            "str_bump": 36881,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 35,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              2,
+              2
+            ],
+            "intern_region/body/s1": [
+              1,
+              3
+            ],
+            "intern_region/body/s5": [
+              1,
+              5
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              5
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 5,
+            "pos": 5,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 36887,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32776
+            }
+          ],
+          "ordered_events": 166,
+          "counts": {
+            "skip_ws/body/s0": [
+              10,
+              3
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              8,
+              23
+            ],
+            "intern_region/body/s1": [
+              4,
+              11
+            ],
+            "intern_region/body/s5": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              1,
+              3
+            ],
+            "parse_sexpr/body/s5": [
+              4,
+              19
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 24,
+            "pos": 24,
+            "node_arena": 32768,
+            "node_bump": 32808,
+            "str_arena": 36864,
+            "str_bump": 36887,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32776
+            }
+          ],
+          "ordered_events": 163,
+          "counts": {
+            "skip_ws/body/s0": [
+              10,
+              3
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              7,
+              22
+            ],
+            "intern_region/body/s1": [
+              4,
+              10
+            ],
+            "intern_region/body/s5": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              1,
+              3
+            ],
+            "parse_sexpr/body/s5": [
+              4,
+              19
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 24,
+            "pos": 24,
+            "node_arena": 32768,
+            "node_bump": 32808,
+            "str_arena": 36864,
+            "str_bump": 36887,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 28,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              1,
+              5
+            ],
+            "intern_region/body/s1": [
+              1,
+              1
+            ],
+            "intern_region/body/s5": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              5
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 5,
+            "pos": 5,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 36887,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 35,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              3,
+              7
+            ],
+            "intern_region/body/s1": [
+              1,
+              4
+            ],
+            "intern_region/body/s5": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              5
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 5,
+            "pos": 5,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 36887,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        }
+      ],
+      "final_globals": {
+        "src_buf": 49152,
+        "src_len": 5,
+        "pos": 5,
+        "node_arena": 32768,
+        "node_bump": 32776,
+        "str_arena": 36864,
+        "str_bump": 36887,
+        "SEXP_ATOM": 1,
+        "SEXP_LIST": 2,
+        "SEXP_INT": 3
+      }
+    },
+    {
+      "name": "long-atoms",
+      "sha256": "32bd3ddb1d051e1d97d60ba794f55eb12016666f0f713e933fdd214266d179cf",
+      "bytes": 28942,
+      "calls": 9,
+      "ordered_events": 9576,
+      "maximum_node_used_bytes": 24,
+      "maximum_persistent_string_used_bytes": 723,
+      "node_capacity": 4096,
+      "string_capacity": 8192,
+      "independent_counts": {
+        "skip_ws/body/s0": [
+          19,
+          2
+        ],
+        "skip_ws/body/s1/then/s0": [
+          0,
+          0
+        ],
+        "region_match/body/s1": [
+          17,
+          2646
+        ],
+        "intern_region/body/s1": [
+          11,
+          17
+        ],
+        "intern_region/body/s5": [
+          3,
+          720
+        ],
+        "parse_sexpr/body/s3/then/s7": [
+          2,
+          2
+        ],
+        "parse_sexpr/body/s5": [
+          11,
+          2640
+        ],
+        "parse_sexpr/body/s8/then/s2": [
+          0,
+          0
+        ],
+        "main/body/s2": [
+          0,
+          0
+        ],
+        "print_str/body/s2": [
+          0,
+          0
+        ],
+        "print_node/body/s4/then/s3": [
+          0,
+          0
+        ]
+      },
+      "per_invocation": [
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 733,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              0,
+              0
+            ],
+            "intern_region/body/s1": [
+              1,
+              0
+            ],
+            "intern_region/body/s5": [
+              1,
+              240
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              240
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 240,
+            "pos": 240,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 37105,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 1214,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              1,
+              240
+            ],
+            "intern_region/body/s1": [
+              1,
+              1
+            ],
+            "intern_region/body/s5": [
+              1,
+              240
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              240
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 240,
+            "pos": 240,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 37346,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 739,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              2,
+              2
+            ],
+            "intern_region/body/s1": [
+              1,
+              2
+            ],
+            "intern_region/body/s5": [
+              1,
+              240
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              240
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 240,
+            "pos": 240,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 37587,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 733,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              1,
+              240
+            ],
+            "intern_region/body/s1": [
+              1,
+              1
+            ],
+            "intern_region/body/s5": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              240
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 240,
+            "pos": 240,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 37587,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32776
+            }
+          ],
+          "ordered_events": 1973,
+          "counts": {
+            "skip_ws/body/s0": [
+              6,
+              1
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              3,
+              720
+            ],
+            "intern_region/body/s1": [
+              2,
+              3
+            ],
+            "intern_region/body/s5": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              1,
+              1
+            ],
+            "parse_sexpr/body/s5": [
+              2,
+              480
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 483,
+            "pos": 483,
+            "node_arena": 32768,
+            "node_bump": 32792,
+            "str_arena": 36864,
+            "str_bump": 37587,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 739,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              3,
+              242
+            ],
+            "intern_region/body/s1": [
+              1,
+              3
+            ],
+            "intern_region/body/s5": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              240
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 240,
+            "pos": 240,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 37587,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 1214,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              2,
+              480
+            ],
+            "intern_region/body/s1": [
+              1,
+              2
+            ],
+            "intern_region/body/s5": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              240
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 240,
+            "pos": 240,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 37587,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32776
+            }
+          ],
+          "ordered_events": 1498,
+          "counts": {
+            "skip_ws/body/s0": [
+              6,
+              1
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              4,
+              482
+            ],
+            "intern_region/body/s1": [
+              2,
+              4
+            ],
+            "intern_region/body/s5": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              1,
+              1
+            ],
+            "parse_sexpr/body/s5": [
+              2,
+              480
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 483,
+            "pos": 483,
+            "node_arena": 32768,
+            "node_bump": 32792,
+            "str_arena": 36864,
+            "str_bump": 37587,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 733,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              1,
+              240
+            ],
+            "intern_region/body/s1": [
+              1,
+              1
+            ],
+            "intern_region/body/s5": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              240
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 240,
+            "pos": 240,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 37587,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        }
+      ],
+      "final_globals": {
+        "src_buf": 49152,
+        "src_len": 240,
+        "pos": 240,
+        "node_arena": 32768,
+        "node_bump": 32776,
+        "str_arena": 36864,
+        "str_bump": 37587,
+        "SEXP_ATOM": 1,
+        "SEXP_LIST": 2,
+        "SEXP_INT": 3
+      }
+    },
+    {
+      "name": "nested-mixed",
+      "sha256": "f31e6321618c174902b712dacc3c8ee6dc7f5d61fda8b928fae9b8c5b6225d32",
+      "bytes": 25982,
+      "calls": 9,
+      "ordered_events": 4150,
+      "maximum_node_used_bytes": 144,
+      "maximum_persistent_string_used_bytes": 117,
+      "node_capacity": 4096,
+      "string_capacity": 8192,
+      "independent_counts": {
+        "skip_ws/body/s0": [
+          315,
+          84
+        ],
+        "skip_ws/body/s1/then/s0": [
+          1,
+          9
+        ],
+        "region_match/body/s1": [
+          157,
+          226
+        ],
+        "intern_region/body/s1": [
+          83,
+          655
+        ],
+        "intern_region/body/s5": [
+          27,
+          90
+        ],
+        "parse_sexpr/body/s3/then/s7": [
+          45,
+          84
+        ],
+        "parse_sexpr/body/s5": [
+          91,
+          232
+        ],
+        "parse_sexpr/body/s8/then/s2": [
+          8,
+          19
+        ],
+        "main/body/s2": [
+          0,
+          0
+        ],
+        "print_str/body/s2": [
+          0,
+          0
+        ],
+        "print_node/body/s4/then/s3": [
+          0,
+          0
+        ]
+      },
+      "per_invocation": [
+        {
+          "results": [
+            {
+              "I": 32776
+            }
+          ],
+          "ordered_events": 438,
+          "counts": {
+            "skip_ws/body/s0": [
+              39,
+              10
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              9,
+              11
+            ],
+            "intern_region/body/s1": [
+              11,
+              37
+            ],
+            "intern_region/body/s5": [
+              7,
+              17
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              6,
+              10
+            ],
+            "parse_sexpr/body/s5": [
+              11,
+              23
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 45,
+            "pos": 45,
+            "node_arena": 32768,
+            "node_bump": 32904,
+            "str_arena": 36864,
+            "str_bump": 36888,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32776
+            }
+          ],
+          "ordered_events": 450,
+          "counts": {
+            "skip_ws/body/s0": [
+              39,
+              10
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              16,
+              26
+            ],
+            "intern_region/body/s1": [
+              11,
+              50
+            ],
+            "intern_region/body/s5": [
+              2,
+              4
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              6,
+              10
+            ],
+            "parse_sexpr/body/s5": [
+              11,
+              23
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 45,
+            "pos": 45,
+            "node_arena": 32768,
+            "node_bump": 32904,
+            "str_arena": 36864,
+            "str_bump": 36894,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32776
+            }
+          ],
+          "ordered_events": 553,
+          "counts": {
+            "skip_ws/body/s0": [
+              41,
+              11
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              21,
+              25
+            ],
+            "intern_region/body/s1": [
+              10,
+              85
+            ],
+            "intern_region/body/s5": [
+              5,
+              21
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              6,
+              11
+            ],
+            "parse_sexpr/body/s5": [
+              12,
+              33
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              2,
+              3
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 56,
+            "pos": 56,
+            "node_arena": 32768,
+            "node_bump": 32912,
+            "str_arena": 36864,
+            "str_bump": 36920,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32776
+            }
+          ],
+          "ordered_events": 533,
+          "counts": {
+            "skip_ws/body/s0": [
+              40,
+              10
+            ],
+            "skip_ws/body/s1/then/s0": [
+              1,
+              9
+            ],
+            "region_match/body/s1": [
+              31,
+              43
+            ],
+            "intern_region/body/s1": [
+              11,
+              85
+            ],
+            "intern_region/body/s5": [
+              1,
+              1
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              6,
+              10
+            ],
+            "parse_sexpr/body/s5": [
+              11,
+              23
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 55,
+            "pos": 55,
+            "node_arena": 32768,
+            "node_bump": 32904,
+            "str_arena": 36864,
+            "str_bump": 36922,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32776
+            }
+          ],
+          "ordered_events": 455,
+          "counts": {
+            "skip_ws/body/s0": [
+              26,
+              8
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              11,
+              13
+            ],
+            "intern_region/body/s1": [
+              6,
+              105
+            ],
+            "intern_region/body/s5": [
+              6,
+              24
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              3,
+              8
+            ],
+            "parse_sexpr/body/s5": [
+              9,
+              35
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              3,
+              11
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 49,
+            "pos": 49,
+            "node_arena": 32768,
+            "node_bump": 32864,
+            "str_arena": 36864,
+            "str_bump": 36952,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32776
+            }
+          ],
+          "ordered_events": 429,
+          "counts": {
+            "skip_ws/body/s0": [
+              34,
+              9
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              21,
+              26
+            ],
+            "intern_region/body/s1": [
+              10,
+              72
+            ],
+            "intern_region/body/s5": [
+              2,
+              4
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              5,
+              9
+            ],
+            "parse_sexpr/body/s5": [
+              10,
+              17
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 36,
+            "pos": 36,
+            "node_arena": 32768,
+            "node_bump": 32888,
+            "str_arena": 36864,
+            "str_bump": 36958,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32776
+            }
+          ],
+          "ordered_events": 374,
+          "counts": {
+            "skip_ws/body/s0": [
+              32,
+              10
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              11,
+              26
+            ],
+            "intern_region/body/s1": [
+              7,
+              30
+            ],
+            "intern_region/body/s5": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              3,
+              10
+            ],
+            "parse_sexpr/body/s5": [
+              9,
+              24
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              2,
+              2
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 44,
+            "pos": 44,
+            "node_arena": 32768,
+            "node_bump": 32880,
+            "str_arena": 36864,
+            "str_bump": 36958,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32776
+            }
+          ],
+          "ordered_events": 480,
+          "counts": {
+            "skip_ws/body/s0": [
+              25,
+              6
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              21,
+              28
+            ],
+            "intern_region/body/s1": [
+              6,
+              147
+            ],
+            "intern_region/body/s5": [
+              4,
+              19
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              4,
+              6
+            ],
+            "parse_sexpr/body/s5": [
+              7,
+              31
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              1,
+              3
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 45,
+            "pos": 45,
+            "node_arena": 32768,
+            "node_bump": 32856,
+            "str_arena": 36864,
+            "str_bump": 36981,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32776
+            }
+          ],
+          "ordered_events": 438,
+          "counts": {
+            "skip_ws/body/s0": [
+              39,
+              10
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              16,
+              28
+            ],
+            "intern_region/body/s1": [
+              11,
+              44
+            ],
+            "intern_region/body/s5": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              6,
+              10
+            ],
+            "parse_sexpr/body/s5": [
+              11,
+              23
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 45,
+            "pos": 45,
+            "node_arena": 32768,
+            "node_bump": 32904,
+            "str_arena": 36864,
+            "str_bump": 36981,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        }
+      ],
+      "final_globals": {
+        "src_buf": 49152,
+        "src_len": 45,
+        "pos": 45,
+        "node_arena": 32768,
+        "node_bump": 32904,
+        "str_arena": 36864,
+        "str_bump": 36981,
+        "SEXP_ATOM": 1,
+        "SEXP_LIST": 2,
+        "SEXP_INT": 3
+      }
+    },
+    {
+      "name": "fresh-dominant",
+      "sha256": "a38d789e7ec875f3006654643bbfd37ad1bf0ae0b80004c5615bc72f0b2785d0",
+      "bytes": 29640,
+      "calls": 20,
+      "ordered_events": 1876,
+      "maximum_node_used_bytes": 8,
+      "maximum_persistent_string_used_bytes": 477,
+      "node_capacity": 4096,
+      "string_capacity": 8192,
+      "independent_counts": {
+        "skip_ws/body/s0": [
+          20,
+          0
+        ],
+        "skip_ws/body/s1/then/s0": [
+          0,
+          0
+        ],
+        "region_match/body/s1": [
+          3,
+          32
+        ],
+        "intern_region/body/s1": [
+          20,
+          143
+        ],
+        "intern_region/body/s5": [
+          17,
+          460
+        ],
+        "parse_sexpr/body/s3/then/s7": [
+          0,
+          0
+        ],
+        "parse_sexpr/body/s5": [
+          20,
+          492
+        ],
+        "parse_sexpr/body/s8/then/s2": [
+          0,
+          0
+        ],
+        "main/body/s2": [
+          0,
+          0
+        ],
+        "print_str/body/s2": [
+          0,
+          0
+        ],
+        "print_node/body/s4/then/s3": [
+          0,
+          0
+        ]
+      },
+      "per_invocation": [
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 25,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              0,
+              0
+            ],
+            "intern_region/body/s1": [
+              1,
+              0
+            ],
+            "intern_region/body/s5": [
+              1,
+              4
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              4
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 4,
+            "pos": 4,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 36869,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 25,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              1,
+              4
+            ],
+            "intern_region/body/s1": [
+              1,
+              1
+            ],
+            "intern_region/body/s5": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              4
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 4,
+            "pos": 4,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 36869,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 77,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              0,
+              0
+            ],
+            "intern_region/body/s1": [
+              1,
+              1
+            ],
+            "intern_region/body/s5": [
+              1,
+              21
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              21
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 21,
+            "pos": 21,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 36891,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 81,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              0,
+              0
+            ],
+            "intern_region/body/s1": [
+              1,
+              2
+            ],
+            "intern_region/body/s5": [
+              1,
+              22
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              22
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 22,
+            "pos": 22,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 36914,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 85,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              0,
+              0
+            ],
+            "intern_region/body/s1": [
+              1,
+              3
+            ],
+            "intern_region/body/s5": [
+              1,
+              23
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              23
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 23,
+            "pos": 23,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 36938,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 89,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              0,
+              0
+            ],
+            "intern_region/body/s1": [
+              1,
+              4
+            ],
+            "intern_region/body/s5": [
+              1,
+              24
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              24
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 24,
+            "pos": 24,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 36963,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 93,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              0,
+              0
+            ],
+            "intern_region/body/s1": [
+              1,
+              5
+            ],
+            "intern_region/body/s5": [
+              1,
+              25
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              25
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 25,
+            "pos": 25,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 36989,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 97,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              0,
+              0
+            ],
+            "intern_region/body/s1": [
+              1,
+              6
+            ],
+            "intern_region/body/s5": [
+              1,
+              26
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              26
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 26,
+            "pos": 26,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 37016,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 101,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              0,
+              0
+            ],
+            "intern_region/body/s1": [
+              1,
+              7
+            ],
+            "intern_region/body/s5": [
+              1,
+              27
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              27
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 27,
+            "pos": 27,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 37044,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 105,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              0,
+              0
+            ],
+            "intern_region/body/s1": [
+              1,
+              8
+            ],
+            "intern_region/body/s5": [
+              1,
+              28
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              28
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 28,
+            "pos": 28,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 37073,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 109,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              0,
+              0
+            ],
+            "intern_region/body/s1": [
+              1,
+              9
+            ],
+            "intern_region/body/s5": [
+              1,
+              29
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              29
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 29,
+            "pos": 29,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 37103,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 113,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              0,
+              0
+            ],
+            "intern_region/body/s1": [
+              1,
+              10
+            ],
+            "intern_region/body/s5": [
+              1,
+              30
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              30
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 30,
+            "pos": 30,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 37134,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 117,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              0,
+              0
+            ],
+            "intern_region/body/s1": [
+              1,
+              11
+            ],
+            "intern_region/body/s5": [
+              1,
+              31
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              31
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 31,
+            "pos": 31,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 37166,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 121,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              0,
+              0
+            ],
+            "intern_region/body/s1": [
+              1,
+              12
+            ],
+            "intern_region/body/s5": [
+              1,
+              32
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              32
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 32,
+            "pos": 32,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 37199,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 125,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              0,
+              0
+            ],
+            "intern_region/body/s1": [
+              1,
+              13
+            ],
+            "intern_region/body/s5": [
+              1,
+              33
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              33
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 33,
+            "pos": 33,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 37233,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 129,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              0,
+              0
+            ],
+            "intern_region/body/s1": [
+              1,
+              14
+            ],
+            "intern_region/body/s5": [
+              1,
+              34
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              34
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 34,
+            "pos": 34,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 37268,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 133,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              0,
+              0
+            ],
+            "intern_region/body/s1": [
+              1,
+              15
+            ],
+            "intern_region/body/s5": [
+              1,
+              35
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              35
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 35,
+            "pos": 35,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 37304,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 137,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              0,
+              0
+            ],
+            "intern_region/body/s1": [
+              1,
+              16
+            ],
+            "intern_region/body/s5": [
+              1,
+              36
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              36
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 36,
+            "pos": 36,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 37341,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 25,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              1,
+              4
+            ],
+            "intern_region/body/s1": [
+              1,
+              1
+            ],
+            "intern_region/body/s5": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              4
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 4,
+            "pos": 4,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 37341,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        },
+        {
+          "results": [
+            {
+              "I": 32768
+            }
+          ],
+          "ordered_events": 89,
+          "counts": {
+            "skip_ws/body/s0": [
+              1,
+              0
+            ],
+            "skip_ws/body/s1/then/s0": [
+              0,
+              0
+            ],
+            "region_match/body/s1": [
+              1,
+              24
+            ],
+            "intern_region/body/s1": [
+              1,
+              5
+            ],
+            "intern_region/body/s5": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s3/then/s7": [
+              0,
+              0
+            ],
+            "parse_sexpr/body/s5": [
+              1,
+              24
+            ],
+            "parse_sexpr/body/s8/then/s2": [
+              0,
+              0
+            ],
+            "main/body/s2": [
+              0,
+              0
+            ],
+            "print_str/body/s2": [
+              0,
+              0
+            ],
+            "print_node/body/s4/then/s3": [
+              0,
+              0
+            ]
+          },
+          "globals": {
+            "src_buf": 49152,
+            "src_len": 24,
+            "pos": 24,
+            "node_arena": 32768,
+            "node_bump": 32776,
+            "str_arena": 36864,
+            "str_bump": 37341,
+            "SEXP_ATOM": 1,
+            "SEXP_LIST": 2,
+            "SEXP_INT": 3
+          }
+        }
+      ],
+      "final_globals": {
+        "src_buf": 49152,
+        "src_len": 24,
+        "pos": 24,
+        "node_arena": 32768,
+        "node_bump": 32776,
+        "str_arena": 36864,
+        "str_bump": 37341,
+        "SEXP_ATOM": 1,
+        "SEXP_LIST": 2,
+        "SEXP_INT": 3
+      }
+    }
+  ]
+}

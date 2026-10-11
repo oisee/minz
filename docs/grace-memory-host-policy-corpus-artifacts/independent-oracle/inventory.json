@@ -1,0 +1,64 @@
+{
+  "files": [
+    {
+      "path": "FINAL-AUDIT.md",
+      "sha256": "ce4a8853ca414b2fe57f5d2a5086922546aaf796a3292e9277bd2a59c3c19828"
+    },
+    {
+      "path": "README.md",
+      "sha256": "4f01664c5e893f838e9be55736739fd32d320ea2fedf45e73683e2e818973225"
+    },
+    {
+      "path": "audit_cli.py",
+      "sha256": "694c332fda56f9ddba68ccd5d8540817e834776aed958709afbcbd10a466beb7"
+    },
+    {
+      "path": "audit_inputs.py",
+      "sha256": "f699deea6f9d1214f83f5211c5d54b281841fb8db1198f2cb87918422c77f4b3"
+    },
+    {
+      "path": "audit_outputs.py",
+      "sha256": "39739056393337694299e256c1f9438997ef4c4734fd0eb78c416fdf79daef38"
+    },
+    {
+      "path": "comparison.json",
+      "sha256": "15f476a96e256b28445b4880c6001adc6eeba64b766e1830baf9d44e35bcca01"
+    },
+    {
+      "path": "final-cli-audit.json",
+      "sha256": "80e1c2ebd72dfe848698b8fd392665d5659767a4fe949ac0060032e0299f5ea9"
+    },
+    {
+      "path": "input-audit.json",
+      "sha256": "7dea0d1d67d557857150a32a8953fd4d94cbca306fb634e9a4b0b38edc692b56"
+    },
+    {
+      "path": "model/audit_profile.py",
+      "sha256": "50814a6c4b56c341836bf58803cf14cb23918e74d92973b0bfb04d0217a37531"
+    },
+    {
+      "path": "model/verify_corpus.py",
+      "sha256": "133ca68609f7b7c326efbfc55c91b5fbe2269555051f6aebd5b9817a7b8165ed"
+    },
+    {
+      "path": "source.nanz",
+      "sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+    },
+    {
+      "path": "workloads/fresh-dominant.json",
+      "sha256": "a38d789e7ec875f3006654643bbfd37ad1bf0ae0b80004c5615bc72f0b2785d0"
+    },
+    {
+      "path": "workloads/long-atoms.json",
+      "sha256": "32bd3ddb1d051e1d97d60ba794f55eb12016666f0f713e933fdd214266d179cf"
+    },
+    {
+      "path": "workloads/nested-mixed.json",
+      "sha256": "f31e6321618c174902b712dacc3c8ee6dc7f5d61fda8b928fae9b8c5b6225d32"
+    },
+    {
+      "path": "workloads/short-reuse.json",
+      "sha256": "e2346a6baceb18257ff2dd04e2a26b38ec5755edff8ea3d4ed17870f49d26646"
+    }
+  ]
+}

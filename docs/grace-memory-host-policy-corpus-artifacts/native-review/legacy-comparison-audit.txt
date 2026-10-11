@@ -1,0 +1,8 @@
+PASS exacthistoricalcontext/source/state/profile; one static internHLBC site; same-mask deltas short-reuse speed [-918, -918, -918, -918]
+PASS exacthistoricalcontext/source/state/profile; one static internHLBC site; same-mask deltas short-reuse size [-918, -918, -918, -918]
+PASS exacthistoricalcontext/source/state/profile; one static internHLBC site; same-mask deltas long-atoms speed [-388, -388, -388, -388]
+PASS exacthistoricalcontext/source/state/profile; one static internHLBC site; same-mask deltas long-atoms size [-388, -388, -388, -388]
+PASS exacthistoricalcontext/source/state/profile; one static internHLBC site; same-mask deltas nested-mixed speed [-11594, -11594, -11594, -11594]
+PASS exacthistoricalcontext/source/state/profile; one static internHLBC site; same-mask deltas nested-mixed size [-11594, -11594, -11594, -11594]
+PASS exacthistoricalcontext/source/state/profile; one static internHLBC site; same-mask deltas fresh-dominant speed [-2936, -2936, -2936, -2936]
+PASS exacthistoricalcontext/source/state/profile; one static internHLBC site; same-mask deltas fresh-dominant size [-2936, -2936, -2936, -2936]
