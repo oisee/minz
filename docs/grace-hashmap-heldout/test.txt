@@ -1,0 +1,5 @@
+=== RUN   TestHashmapMeasuredTrainingAndUnseenWorkload
+    profile_hashmap_heldout_test.go:211: speed selected3 training 25378→23136T 981→962B; heldout 255642→236938T calls48
+    profile_hashmap_heldout_test.go:211: size selected3 training 25378→23136T 981→962B; heldout 255642→236938T calls48
+--- PASS: TestHashmapMeasuredTrainingAndUnseenWorkload (3.25s)
+PASS

@@ -1,0 +1,173 @@
+{
+  "base_commit": "02d25d9a",
+  "files": {
+    "REPORT.md": {
+      "bytes": 4871,
+      "sha256": "56ade41bfaa9b0d418b28ea7a2f5b29659c74ae627466b0a0c39f19e82fab219"
+    },
+    "audit.py": {
+      "bytes": 3807,
+      "sha256": "ee2cdce328694de2f4a69d99be6bb0f23316a257d0c5d589f4c9bc523d2b6af0"
+    },
+    "heldout-independent-oracle.json": {
+      "bytes": 157404,
+      "sha256": "24c8ac3a6d2dd58dbbced645cb14cc1fb21502c07d21a9371ec6e2442b528623"
+    },
+    "heldout-raw.json": {
+      "bytes": 158924,
+      "sha256": "12d87ab51abfce69d8a2c3f6a26fbdc6591d06b6ae00a7f047758e60f8ab0a0e"
+    },
+    "heldout-workload.json": {
+      "bytes": 6570,
+      "sha256": "84a0106725f8b44899d6bc86f77c25a321d87d5d291be8566f9959275bd48ca0"
+    },
+    "identity.json": {
+      "bytes": 497,
+      "sha256": "307c0f3d65f5a54f6806e143e8410c8d2ff8a4b575ddbde8c63e889c0fdfd01a"
+    },
+    "independent-host-oracle.go.txt": {
+      "bytes": 8987,
+      "sha256": "6e8766a1ee107548ddef9fc799c4db221c4b1959eda6add686cef9572d7e37fd"
+    },
+    "independent-python-audit.txt": {
+      "bytes": 211,
+      "sha256": "4453be20d1a64b704bd5f7a254eb7b11c3dd181c41aefd94ceac63a98f1a57ba"
+    },
+    "size-baseline.a80": {
+      "bytes": 13459,
+      "sha256": "90f16d3e80248a5cdcd1393954a5c4b99b0b63ea9c0e089c345d91a82a57eecc"
+    },
+    "size-baseline.bin": {
+      "bytes": 981,
+      "sha256": "b57337b458826e7d5d9d5e5e228946b25e4f5e8197e9d7d48cf799cdd953b623"
+    },
+    "size-candidate0.bin": {
+      "bytes": 981,
+      "sha256": "b57337b458826e7d5d9d5e5e228946b25e4f5e8197e9d7d48cf799cdd953b623"
+    },
+    "size-candidate1.bin": {
+      "bytes": 966,
+      "sha256": "c271b382646affd5fbf2cc89de803cf6e5f049c9c9d29de5560b49ab7eb6a386"
+    },
+    "size-candidate2.bin": {
+      "bytes": 977,
+      "sha256": "011edf4f287af9accb5e258bc33bb4ad4ee2ff149fe39444af230fc493c64cec"
+    },
+    "size-candidate3.bin": {
+      "bytes": 962,
+      "sha256": "a342139fe502d735ea4eb3cadec4703196f7ec16de5369d478d58054ffa12898"
+    },
+    "size-heldout-baseline.json": {
+      "bytes": 184905,
+      "sha256": "a8f9b9078177e94d406f9d37595df17a53f6aff99eacadce4ae874fc9c142485"
+    },
+    "size-heldout-selected.json": {
+      "bytes": 184898,
+      "sha256": "7a95d009e4c282550f3519872f945b7c5f9b0981a926dd810cbd3ec8112df2a2"
+    },
+    "size-selected-allocation.json": {
+      "bytes": 16840,
+      "sha256": "ea77847efeb85ab844124da60700bcebc8758f36ff168329c2cd001f7df0a4e9"
+    },
+    "size-selected.a80": {
+      "bytes": 13321,
+      "sha256": "a2931cd1f1e0788192981f9df4f6858ca8c1173976b9bc2e44b11cf8c5f44006"
+    },
+    "size-selected.bin": {
+      "bytes": 962,
+      "sha256": "a342139fe502d735ea4eb3cadec4703196f7ec16de5369d478d58054ffa12898"
+    },
+    "size-selected.mir2": {
+      "bytes": 12422,
+      "sha256": "71c03e67a1f0e88c84846d9da9109d24470beadfb903721a90523671ec562f98"
+    },
+    "size-selection.json": {
+      "bytes": 973652,
+      "sha256": "99c29db3939d4b792e0159831ca18d8fde094523e3022dada20e68ad0211f87a"
+    },
+    "size-summary.json": {
+      "bytes": 340,
+      "sha256": "30fb1ed346834f0b288e248448e9aeb4915a19f640df5fa234cf27d9f994e6ff"
+    },
+    "source.nanz": {
+      "bytes": 3463,
+      "sha256": "2caa7c16db7371f6f1ef6eecfa8c767e58d9d961c5bdfdbfccda1fb6e613c3f8"
+    },
+    "speed-baseline.a80": {
+      "bytes": 13459,
+      "sha256": "90f16d3e80248a5cdcd1393954a5c4b99b0b63ea9c0e089c345d91a82a57eecc"
+    },
+    "speed-baseline.bin": {
+      "bytes": 981,
+      "sha256": "b57337b458826e7d5d9d5e5e228946b25e4f5e8197e9d7d48cf799cdd953b623"
+    },
+    "speed-candidate0.bin": {
+      "bytes": 981,
+      "sha256": "b57337b458826e7d5d9d5e5e228946b25e4f5e8197e9d7d48cf799cdd953b623"
+    },
+    "speed-candidate1.bin": {
+      "bytes": 966,
+      "sha256": "c271b382646affd5fbf2cc89de803cf6e5f049c9c9d29de5560b49ab7eb6a386"
+    },
+    "speed-candidate2.bin": {
+      "bytes": 977,
+      "sha256": "011edf4f287af9accb5e258bc33bb4ad4ee2ff149fe39444af230fc493c64cec"
+    },
+    "speed-candidate3.bin": {
+      "bytes": 962,
+      "sha256": "a342139fe502d735ea4eb3cadec4703196f7ec16de5369d478d58054ffa12898"
+    },
+    "speed-heldout-baseline.json": {
+      "bytes": 184905,
+      "sha256": "a8f9b9078177e94d406f9d37595df17a53f6aff99eacadce4ae874fc9c142485"
+    },
+    "speed-heldout-selected.json": {
+      "bytes": 184898,
+      "sha256": "7a95d009e4c282550f3519872f945b7c5f9b0981a926dd810cbd3ec8112df2a2"
+    },
+    "speed-selected-allocation.json": {
+      "bytes": 16840,
+      "sha256": "ea77847efeb85ab844124da60700bcebc8758f36ff168329c2cd001f7df0a4e9"
+    },
+    "speed-selected.a80": {
+      "bytes": 13321,
+      "sha256": "a2931cd1f1e0788192981f9df4f6858ca8c1173976b9bc2e44b11cf8c5f44006"
+    },
+    "speed-selected.bin": {
+      "bytes": 962,
+      "sha256": "a342139fe502d735ea4eb3cadec4703196f7ec16de5369d478d58054ffa12898"
+    },
+    "speed-selected.mir2": {
+      "bytes": 12422,
+      "sha256": "71c03e67a1f0e88c84846d9da9109d24470beadfb903721a90523671ec562f98"
+    },
+    "speed-selection.json": {
+      "bytes": 973653,
+      "sha256": "93ca64ac31eb8fb907788fc9e0814529203c9d3ebbc860c5e8b24a45e14e6bee"
+    },
+    "speed-summary.json": {
+      "bytes": 340,
+      "sha256": "30fb1ed346834f0b288e248448e9aeb4915a19f640df5fa234cf27d9f994e6ff"
+    },
+    "test.txt": {
+      "bytes": 374,
+      "sha256": "ed80a5b936a136c61717e099637328cc67e2da205c708f139ea47bd108b3a8db"
+    },
+    "training-independent-oracle.json": {
+      "bytes": 49167,
+      "sha256": "8408a6ae19e778c11a9cea47aef00944de41510931031c637ba4621002676da0"
+    },
+    "training-profile.json": {
+      "bytes": 3000,
+      "sha256": "1c0d42578569469f464fcfcd2ef2b924f3bb0c8e58f71353fcad34aee42f8090"
+    },
+    "training-raw.json": {
+      "bytes": 52036,
+      "sha256": "b34940717ee3c53580756dc7940f1ccb04c6d7d09544fe1f4df8d6f4842205ad"
+    },
+    "training-workload.json": {
+      "bytes": 2116,
+      "sha256": "5a34c1fb6b0da6f970baa04f5a526cad3f40e133fb8f1e1ccf0dd07528c6d098"
+    }
+  }
+}
