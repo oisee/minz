@@ -1,0 +1,541 @@
+{
+  "AssertStats": null,
+  "Name": "literal-width.nanz",
+  "Target": 0,
+  "Funcs": [
+    {
+      "FallibleCY": false,
+      "Name": "make",
+      "Params": [
+        {
+          "Name": "x",
+          "Ty": {},
+          "RegClass": 0,
+          "SMC": false
+        }
+      ],
+      "Captures": null,
+      "RetTy": {
+        "Name": "S",
+        "Fields": [
+          {
+            "Name": "v",
+            "Ty": {}
+          }
+        ],
+        "IsUnion": false
+      },
+      "RetTys": null,
+      "Body": {
+        "Body": [
+          {
+            "Name": "r",
+            "Ty": {
+              "Name": "S",
+              "Fields": [
+                {
+                  "Name": "v",
+                  "Ty": {}
+                }
+              ],
+              "IsUnion": false
+            },
+            "ArrayLen": 0,
+            "Init": {
+              "St": {
+                "Name": "S",
+                "Fields": [
+                  {
+                    "Name": "v",
+                    "Ty": {}
+                  }
+                ],
+                "IsUnion": false
+              },
+              "Fields": [
+                {
+                  "Name": "v",
+                  "Val": {
+                    "Name": "x",
+                    "Ty": {}
+                  }
+                }
+              ]
+            },
+            "Initial": null,
+            "At": null
+          },
+          {
+            "Cond": {
+              "Op": "==",
+              "L": {
+                "Name": "x",
+                "Ty": {}
+              },
+              "R": {
+                "Val": 0,
+                "Ty": {}
+              },
+              "Ty": {}
+            },
+            "Then": {
+              "Body": [
+                {
+                  "Target": {
+                    "X": {
+                      "Name": "r",
+                      "Ty": {
+                        "Name": "S",
+                        "Fields": [
+                          {
+                            "Name": "v",
+                            "Ty": {}
+                          }
+                        ],
+                        "IsUnion": false
+                      }
+                    },
+                    "Field": "v",
+                    "Offset": 0,
+                    "Ty": {}
+                  },
+                  "Val": {
+                    "Val": 0,
+                    "Ty": {}
+                  }
+                }
+              ]
+            },
+            "Else": {
+              "Body": [
+                {
+                  "Target": {
+                    "X": {
+                      "Name": "r",
+                      "Ty": {
+                        "Name": "S",
+                        "Fields": [
+                          {
+                            "Name": "v",
+                            "Ty": {}
+                          }
+                        ],
+                        "IsUnion": false
+                      }
+                    },
+                    "Field": "v",
+                    "Offset": 0,
+                    "Ty": {}
+                  },
+                  "Val": {
+                    "Name": "x",
+                    "Ty": {}
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "Val": {
+              "Name": "r",
+              "Ty": {
+                "Name": "S",
+                "Fields": [
+                  {
+                    "Name": "v",
+                    "Ty": {}
+                  }
+                ],
+                "IsUnion": false
+              }
+            },
+            "Vals": null
+          }
+        ]
+      },
+      "ExternClobbers": null,
+      "IsExtern": false,
+      "ExternAddr": 0,
+      "IsIO": false
+    },
+    {
+      "FallibleCY": false,
+      "Name": "overwrite",
+      "Params": [
+        {
+          "Name": "y",
+          "Ty": {},
+          "RegClass": 0,
+          "SMC": false
+        }
+      ],
+      "Captures": null,
+      "RetTy": {},
+      "RetTys": null,
+      "Body": {
+        "Body": [
+          {
+            "Name": "b",
+            "Ty": {
+              "Name": "S",
+              "Fields": [
+                {
+                  "Name": "v",
+                  "Ty": {}
+                }
+              ],
+              "IsUnion": false
+            },
+            "ArrayLen": 0,
+            "Init": {
+              "St": {
+                "Name": "S",
+                "Fields": [
+                  {
+                    "Name": "v",
+                    "Ty": {}
+                  }
+                ],
+                "IsUnion": false
+              },
+              "Fields": [
+                {
+                  "Name": "v",
+                  "Val": {
+                    "Name": "y",
+                    "Ty": {}
+                  }
+                }
+              ]
+            },
+            "Initial": null,
+            "At": null
+          },
+          {
+            "Target": {
+              "Name": "witness",
+              "Ty": {}
+            },
+            "Val": {
+              "X": {
+                "Name": "b",
+                "Ty": {
+                  "Name": "S",
+                  "Fields": [
+                    {
+                      "Name": "v",
+                      "Ty": {}
+                    }
+                  ],
+                  "IsUnion": false
+                }
+              },
+              "Field": "v",
+              "Offset": 0,
+              "Ty": {}
+            }
+          },
+          {
+            "Val": {
+              "X": {
+                "Name": "b",
+                "Ty": {
+                  "Name": "S",
+                  "Fields": [
+                    {
+                      "Name": "v",
+                      "Ty": {}
+                    }
+                  ],
+                  "IsUnion": false
+                }
+              },
+              "Field": "v",
+              "Offset": 0,
+              "Ty": {}
+            },
+            "Vals": null
+          }
+        ]
+      },
+      "ExternClobbers": null,
+      "IsExtern": false,
+      "ExternAddr": 0,
+      "IsIO": false
+    },
+    {
+      "FallibleCY": false,
+      "Name": "delayed",
+      "Params": [
+        {
+          "Name": "x",
+          "Ty": {},
+          "RegClass": 0,
+          "SMC": false
+        },
+        {
+          "Name": "y",
+          "Ty": {},
+          "RegClass": 0,
+          "SMC": false
+        }
+      ],
+      "Captures": null,
+      "RetTy": {},
+      "RetTys": null,
+      "Body": {
+        "Body": [
+          {
+            "Name": "a",
+            "Ty": {
+              "Name": "S",
+              "Fields": [
+                {
+                  "Name": "v",
+                  "Ty": {}
+                }
+              ],
+              "IsUnion": false
+            },
+            "ArrayLen": 0,
+            "Init": {
+              "Fn": "make",
+              "Args": [
+                {
+                  "Name": "x",
+                  "Ty": {}
+                }
+              ],
+              "Ty": {
+                "Name": "S",
+                "Fields": [
+                  {
+                    "Name": "v",
+                    "Ty": {}
+                  }
+                ],
+                "IsUnion": false
+              }
+            },
+            "Initial": null,
+            "At": null
+          },
+          {
+            "Name": "noise",
+            "Ty": {},
+            "ArrayLen": 0,
+            "Init": {
+              "Fn": "overwrite",
+              "Args": [
+                {
+                  "Name": "y",
+                  "Ty": {}
+                }
+              ],
+              "Ty": {}
+            },
+            "Initial": null,
+            "At": null
+          },
+          {
+            "Val": {
+              "X": {
+                "Name": "a",
+                "Ty": {
+                  "Name": "S",
+                  "Fields": [
+                    {
+                      "Name": "v",
+                      "Ty": {}
+                    }
+                  ],
+                  "IsUnion": false
+                }
+              },
+              "Field": "v",
+              "Offset": 0,
+              "Ty": {}
+            },
+            "Vals": null
+          }
+        ]
+      },
+      "ExternClobbers": null,
+      "IsExtern": false,
+      "ExternAddr": 0,
+      "IsIO": false
+    },
+    {
+      "FallibleCY": false,
+      "Name": "two_returns",
+      "Params": [
+        {
+          "Name": "x",
+          "Ty": {},
+          "RegClass": 0,
+          "SMC": false
+        },
+        {
+          "Name": "y",
+          "Ty": {},
+          "RegClass": 0,
+          "SMC": false
+        }
+      ],
+      "Captures": null,
+      "RetTy": {},
+      "RetTys": null,
+      "Body": {
+        "Body": [
+          {
+            "Name": "a",
+            "Ty": {
+              "Name": "S",
+              "Fields": [
+                {
+                  "Name": "v",
+                  "Ty": {}
+                }
+              ],
+              "IsUnion": false
+            },
+            "ArrayLen": 0,
+            "Init": {
+              "Fn": "make",
+              "Args": [
+                {
+                  "Name": "x",
+                  "Ty": {}
+                }
+              ],
+              "Ty": {
+                "Name": "S",
+                "Fields": [
+                  {
+                    "Name": "v",
+                    "Ty": {}
+                  }
+                ],
+                "IsUnion": false
+              }
+            },
+            "Initial": null,
+            "At": null
+          },
+          {
+            "Name": "b",
+            "Ty": {
+              "Name": "S",
+              "Fields": [
+                {
+                  "Name": "v",
+                  "Ty": {}
+                }
+              ],
+              "IsUnion": false
+            },
+            "ArrayLen": 0,
+            "Init": {
+              "Fn": "make",
+              "Args": [
+                {
+                  "Name": "y",
+                  "Ty": {}
+                }
+              ],
+              "Ty": {
+                "Name": "S",
+                "Fields": [
+                  {
+                    "Name": "v",
+                    "Ty": {}
+                  }
+                ],
+                "IsUnion": false
+              }
+            },
+            "Initial": null,
+            "At": null
+          },
+          {
+            "Val": {
+              "Op": "+",
+              "L": {
+                "X": {
+                  "Name": "a",
+                  "Ty": {
+                    "Name": "S",
+                    "Fields": [
+                      {
+                        "Name": "v",
+                        "Ty": {}
+                      }
+                    ],
+                    "IsUnion": false
+                  }
+                },
+                "Field": "v",
+                "Offset": 0,
+                "Ty": {}
+              },
+              "R": {
+                "X": {
+                  "Name": "b",
+                  "Ty": {
+                    "Name": "S",
+                    "Fields": [
+                      {
+                        "Name": "v",
+                        "Ty": {}
+                      }
+                    ],
+                    "IsUnion": false
+                  }
+                },
+                "Field": "v",
+                "Offset": 0,
+                "Ty": {}
+              },
+              "Ty": {}
+            },
+            "Vals": null
+          }
+        ]
+      },
+      "ExternClobbers": null,
+      "IsExtern": false,
+      "ExternAddr": 0,
+      "IsIO": false
+    }
+  ],
+  "Globals": [
+    {
+      "Name": "witness",
+      "Ty": {},
+      "Init": "AA==",
+      "InitString": false,
+      "IsConst": false,
+      "At": null,
+      "Storage": 0,
+      "VtableSyms": null
+    }
+  ],
+  "Structs": [
+    {
+      "Name": "S",
+      "Fields": [
+        {
+          "Name": "v",
+          "Ty": {}
+        }
+      ],
+      "IsUnion": false
+    }
+  ],
+  "Interfaces": null,
+  "Strings": null,
+  "StrKinds": null,
+  "Warnings": null,
+  "Asserts": null,
+  "Sandboxes": null
+}

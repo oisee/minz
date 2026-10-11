@@ -1,0 +1,50 @@
+; MIR2 module: literal-width.nanz
+global @witness : u8
+
+fun @make(%r1: u8 [acc]) -> S [acc]
+  block @entry:
+    %r2 = alloca 1 : ptr
+    store %r2, %r1 : u8
+    %r3 = const 0 : u8 [general]
+    %r4 = cmp.eq %r1, %r3 : bool [flag]
+    br_if %r4, @if_then1(), @if_else3()
+  block @if_then1:
+    %r5 = const 0 : u8 [general]
+    store %r2, %r5 : u8
+    jmp @if_join2()
+  block @if_join2:
+    ret %r2
+  block @if_else3:
+    store %r2, %r1 : u8
+    jmp @if_join2()
+
+fun @overwrite(%r6: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r7 = alloca 1 : ptr
+    store %r7, %r6 : u8
+    %r8 = load %r7 : u8 [general]
+    %r9 = addr_of @witness : ptr [pointer]
+    store %r9, %r8 : u8
+    %r10 = load %r7 : u8 [acc]
+    ret %r10
+
+fun @delayed(%r11: u8 [acc], %r12: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r13 = move %r11 : u8 [acc]
+    %r14 = call @make(%r13) : S [acc]
+    %r15 = move %r12 : u8 [acc]
+    %r16 = call @overwrite(%r15) : u8 [acc]
+    %r17 = load %r14 : u8 [acc]
+    ret %r17
+
+fun @two_returns(%r18: u8 [acc], %r19: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r20 = move %r18 : u8 [acc]
+    %r21 = call @make(%r20) : S [acc]
+    %r22 = move %r19 : u8 [acc]
+    %r23 = call @make(%r22) : S [acc]
+    %r24 = load %r21 : u8 [general]
+    %r25 = load %r23 : u8 [general]
+    %r26 = add %r24, %r25 : u8 [acc]
+    ret %r26
+

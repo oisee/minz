@@ -1,0 +1,4 @@
+=== RUN   TestAggregateAddressClassesNative
+--- PASS: TestAggregateAddressClassesNative (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.014s

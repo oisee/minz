@@ -1,0 +1,125 @@
+package pipeline
+
+import (
+	"encoding/json"
+	"github.com/minz/minzc/pkg/emulator"
+	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/nanz"
+	"github.com/minz/minzc/pkg/z80asm"
+	"os"
+	"path/filepath"
+	"testing"
+)
+
+func TestStructReturnLifetimeAudit(t *testing.T) {
+	data, e := os.ReadFile("../../../reports/struct-return-lifetime/source-call.nanz")
+	if e != nil {
+		t.Fatal(e)
+	}
+	text := string(data)
+	save := func(mode, name string, v any) {
+		dir := "../../../reports/struct-return-lifetime/" + mode
+		os.MkdirAll(dir, 0755)
+		var b []byte
+		switch x := v.(type) {
+		case string:
+			b = []byte(x)
+		case []byte:
+			b = x
+		default:
+			b, _ = json.MarshalIndent(v, "", "  ")
+		}
+		if e := os.WriteFile(filepath.Join(dir, name), b, 0644); e != nil {
+			t.Fatal(e)
+		}
+	}
+
+	source, e := nanz.Parse(text, "literal-width.nanz")
+	if e != nil {
+		t.Fatal(e)
+	}
+	for mi, mode := range []Options{{ContractOpt: true, AssertMode: "none"}, {ContractOpt: true, UseGrace: true, AssertMode: "none"}, {ContractOpt: true, UseGrace: true, OptSize: true, AssertMode: "none"}} {
+		m, e := nanz.Parse(text, "literal-width.nanz")
+		if e != nil {
+			t.Fatal(e)
+		}
+		steps, e := CompileHIRSteps(m, mode)
+		if e != nil {
+			t.Fatal(e)
+		}
+		label := []string{"default", "grace-speed", "grace-size"}[mi]
+		save(label, "source-hir.json", source)
+		save(label, "raw.mir", hir.LowerModule(source).Dump())
+		save(label, "final.mir", steps.MIR2Module.Dump())
+		save(label, "target.a80", steps.Assembly)
+		save(label, "allocation.json", steps.Allocation)
+		program, e := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + steps.Assembly)
+		if e != nil || len(program.Errors) > 0 {
+			t.Fatal(e, program.Errors)
+		}
+		save(label, "target.bin", program.Binary)
+		z := emulator.NewRemogattoZ80()
+		z.LoadMemory(0x8000, program.Binary)
+		var results []map[string]any
+		for _, pair := range [][2]uint16{{0, 1}, {1, 2}, {17, 83}, {128, 255}, {255, 0}} {
+			x, y := pair[0], pair[1]
+			for _, c := range []struct {
+				name string
+				want uint16
+			}{{"delayed", x}, {"two_returns", uint16(byte(x + y))}} {
+
+				args := []mir2.Value{{I: int64(x)}, {I: int64(y)}}
+				for _, mod := range []*mir2.Module{hir.LowerModule(source), steps.MIR2Module} {
+					v, e := mir2.NewVM(mod).Call(c.name, args)
+					if e != nil || len(v) != 1 || v[0].I != int64(c.want) {
+						t.Fatal("literal width VM", c, x, v, e)
+					}
+				}
+				f := steps.MIR2Module.FuncByName(c.name)
+				regs := emulator.Registers{PC: uint16(program.Symbols[c.name]), SP: 0xeff0}
+				for pi, param := range f.Contract.Params {
+					arg := []uint16{x, y}[pi]
+					loc := assertParamLocation(param, steps.Allocation)
+					switch loc.Name {
+					case "A":
+						regs.A = byte(arg)
+					case "C":
+						regs.BC = regs.BC&0xff00 | arg
+					case "D":
+						regs.DE = regs.DE&255 | arg<<8
+					case "E":
+						regs.DE = regs.DE&0xff00 | arg
+					case "B":
+						regs.BC = regs.BC&255 | arg<<8
+					default:
+						t.Fatal(loc)
+					}
+				}
+
+				z.Memory()[0xeff0] = 0
+				z.Memory()[0xeff1] = 0x70
+				z.SetRegisters(regs)
+				done := false
+				for n := 0; n < 10000; n++ {
+					if z.GetPC() == 0x7000 && z.GetSP() == 0xeff2 {
+						done = true
+						break
+					}
+					z.Step()
+				}
+				if !done {
+					t.Fatal("native frame", c, x)
+				}
+				got := z.GetRegisters().A
+				result := map[string]any{"entry": c.name, "x": x, "y": y, "want": c.want, "native": got, "returned_sp": z.GetSP()}
+				results = append(results, result)
+				if int64(got) != int64(c.want) {
+					t.Logf("COUNTEREXAMPLE %s %v", label, result)
+				}
+
+			}
+		}
+		save(label, "results.json", results)
+	}
+}
