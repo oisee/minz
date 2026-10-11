@@ -197,7 +197,10 @@ func (g *z80cg) genCall(inst *Inst) error {
 
 	// Save live caller values before argument copies, including reused args.
 	var callerSavePairs []string
+	var callerSaveHomes []callSpillHome
 	if inst != g.tailCallInst {
+		callerSaveHomes = g.callerSaveSpillHomes(inst)
+		g.pushCallSpillHomes(callerSaveHomes)
 		callerSavePairs = g.callerSavePairs(inst, callee)
 		for _, pair := range callerSavePairs {
 			g.emitf("    PUSH %s", pair)
@@ -280,6 +283,7 @@ func (g *z80cg) genCall(inst *Inst) error {
 		}
 	}
 	g.pickupCallResults(results, callerSavePairs, flagResult, protected...)
+	g.popCallSpillHomes(callerSaveHomes)
 
 	// CALL and argument setup invalidate cached physical contents, including
 	// registers used only as scratch by the emitted callee/runtime sequences.

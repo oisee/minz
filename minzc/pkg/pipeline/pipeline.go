@@ -587,7 +587,9 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 
 	// Insert explicit A-register saves before destructive ops.
 	for _, f := range m.Funcs {
-		mir2.InsertAccSaves(f, combined)
+		if err := mir2.InsertAccSaves(f, combined); err != nil {
+			return "", err
+		}
 	}
 
 	// Z80 assembly text.
