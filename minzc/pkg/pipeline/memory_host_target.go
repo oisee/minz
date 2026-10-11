@@ -257,6 +257,11 @@ func runZ80MemoryHostWorkload(steps Steps, source *hir.Module, w hir.MemoryHostW
 	if e != nil {
 		return fail(e)
 	}
+	for pc := range callSpillSteps {
+		if _, overlaps := snapshotSteps[pc]; overlaps {
+			return fail(fmt.Errorf("native snapshot recipe overlap"))
+		}
+	}
 	m.callSpills = callSpillSteps
 	out.CallSpills = resolvedCallSpills
 	callSpillPayload, e := json.Marshal(resolvedCallSpills)

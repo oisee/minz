@@ -12,6 +12,7 @@ import (
 type callSpillHome struct {
 	symbol string
 	width  int
+	call   *Inst
 }
 
 func (g *z80cg) callerSaveSpillHomes(inst *Inst) []callSpillHome {
@@ -39,13 +40,14 @@ func (g *z80cg) callerSaveSpillHomes(inst *Inst) []callSpillHome {
 			g.err = fmt.Errorf("caller spill save: unsupported width %d for r%d", width, r)
 			continue
 		}
-		homes = append(homes, callSpillHome{g.spillLabel(r), width})
+		homes = append(homes, callSpillHome{symbol: g.spillLabel(r), width: width, call: inst})
 	}
 	return homes
 }
 
 func (g *z80cg) pushCallSpillHomes(homes []callSpillHome) {
 	for _, h := range homes {
+		g.beginNativeCallSpill(h, "save")
 		g.emit("    PUSH HL")
 		if h.width == 2 {
 			g.emitNativeSpill(h.symbol, 0, 2, false, fmt.Sprintf("    LD HL, (%s)", h.symbol))
@@ -57,12 +59,14 @@ func (g *z80cg) pushCallSpillHomes(homes []callSpillHome) {
 		}
 		// Replace the saved HL word with the home snapshot while restoring HL.
 		g.emit("    EX (SP), HL")
+		g.endNativeCallSpill()
 	}
 }
 
 func (g *z80cg) popCallSpillHomes(homes []callSpillHome) {
 	for i := len(homes) - 1; i >= 0; i-- {
 		h := homes[i]
+		g.beginNativeCallSpill(h, "restore")
 		// Retain the already-picked-up result HL on the stack during restoration.
 		g.emit("    EX (SP), HL")
 		if h.width == 2 {
@@ -74,5 +78,6 @@ func (g *z80cg) popCallSpillHomes(homes []callSpillHome) {
 			g.emit("    POP AF")
 		}
 		g.emit("    POP HL")
+		g.endNativeCallSpill()
 	}
 }
