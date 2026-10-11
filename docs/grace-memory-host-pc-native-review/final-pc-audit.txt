@@ -1,0 +1,3 @@
+PASS original exactpriorBIN/ASM/allnativehash/percallfullstate/T/steps; 1287 instructionPCs, 17 exclusivephysicalspans; EQUalias/adapters+rawunowned preserved; 1221494 T 127538 steps; 2A LDHLnn16T standard
+PASS both exactpriorBIN/ASM/allnativehash/percallfullstate/T/steps; 1359 instructionPCs, 17 exclusivephysicalspans; EQUalias/adapters+rawunowned preserved; 1147025 T 119303 steps; 2A LDHLnn16T standard
+No CPU replay; derivedexclusiveprojection separate fromobservedledger; noHIRlineage/inclusivecallchain claim
