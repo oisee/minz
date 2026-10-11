@@ -46,6 +46,13 @@ func MeasureMemoryHostArenaAppendWithOptions(factory func() (*hir.Module, error)
 		return nil, e
 	}
 	payload := append([]byte{}, serialized...)
+	preflight, e := decodePolicyAssociation(payload)
+	if e != nil {
+		return nil, e
+	}
+	if e = validatePolicyAssociationEnvelope(preflight, ownedOptions); e != nil {
+		return nil, e
+	}
 	seen := map[uintptr]bool{}
 	retained := []*hir.Module{}
 	privateRoots := []any{}
