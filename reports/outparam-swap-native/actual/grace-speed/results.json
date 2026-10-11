@@ -1,0 +1,22 @@
+{
+  "allowed_spill_bytes": {},
+  "calls": {
+    "main": 1,
+    "swap": 65536,
+    "use_swap": 65536
+  },
+  "execution_sha256": "f67d3d13b512e91071e003f3a774bedc3b717084a150ddb761a5e72ee6c52316",
+  "module_bytes": 6,
+  "raw_and_final_vm_data_effects": 0,
+  "source_sha256": "557ec2d0ca09991b12edf50f86b8673803ab97bce2381476c22a2d246ad70fdf",
+  "stack_depths": {
+    "main": 2,
+    "swap": 2,
+    "use_swap": 2
+  },
+  "t_states_including_CALL": {
+    "main": 34,
+    "swap": 1769472,
+    "use_swap": 2031616
+  }
+}

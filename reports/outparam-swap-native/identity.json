@@ -1,0 +1,7 @@
+{
+  "base_commit": "ad092573",
+  "freeze_commit": "b67a4fe8",
+  "source_sha256": "557ec2d0ca09991b12edf50f86b8673803ab97bce2381476c22a2d246ad70fdf",
+  "executable_sha256": "c0866dfb937c14b392212272aefd644d40d2e18023920be5c150a461d1e3f310",
+  "command": "from minzc/pkg/pipeline: MINZ_OUTPARAM_SWAP_ARTIFACTS=<packet>/actual <frozen-exe> -test.run ^TestOriginalOutparamSwapNative$ -test.count=1 -test.v"
+}
