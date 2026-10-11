@@ -1,0 +1,8 @@
+global a:u32
+global b:u32
+global result:u32
+fun mutate()->u32 { b=b+65539
+return b }
+fun execute(){let x:u32=a
+let y:u32=mutate()
+result=(x xor y)+x}

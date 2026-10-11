@@ -19,6 +19,8 @@ func TestU32ActualOperationsNative(t *testing.T) {
 		name, expr string
 		want       func(uint32, uint32) uint32
 	}{
+		{"dynamic_shl", "a<<b", func(a, b uint32) uint32 { return a << b }},
+		{"dynamic_shr", "a>>b", func(a, b uint32) uint32 { return a >> b }},
 		{"callxor", "", func(a, b uint32) uint32 { return (a ^ (b + 65539)) + a }},
 		{"add", "a+b", func(a, b uint32) uint32 { return a + b }},
 		{"sub", "a-b", func(a, b uint32) uint32 { return a - b }},
@@ -33,7 +35,7 @@ func TestU32ActualOperationsNative(t *testing.T) {
 	}
 	// Book v7 §§3.2,3.4 specify u32 width and modular arithmetic.
 	// Constant shifts/derived rotations additionally compare both VM stages.
-	values := []uint32{0, 1, 2, 0xff, 0x100, 0xffff, 0x10000, 0x10001, 0x7fffffff, 0x80000000, 0xfffffffe, 0xffffffff, 0x12345678, 0xabcdef01}
+	values := []uint32{0, 1, 2, 31, 32, 33, 63, 64, 257, 0xff, 0x100, 0xffff, 0x10000, 0x10001, 0x7fffffff, 0x80000000, 0xfffffffe, 0xffffffff, 0x12345678, 0xabcdef01}
 	for bit := 0; bit < 32; bit++ {
 		values = append(values, uint32(1)<<bit, ^(uint32(1) << bit))
 	}

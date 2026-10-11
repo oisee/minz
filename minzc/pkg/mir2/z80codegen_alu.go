@@ -975,7 +975,43 @@ func (g *z80cg) genVariableShift(mnem string, inst *Inst) {
 		panic("no scratch pair for variable shift")
 	}
 	g.emitf("    PUSH %s", pair)
-	g.emitLD8(counter, lowByte(g.loc(inst.Src[1])))
+	// Saturate the entire count at the result width before taking its byte.
+	// Inspect before writing counter: its high byte may alias the count itself.
+	g.emit("    PUSH AF")
+	idx := g.trampIdx
+	g.trampIdx++
+	countLoc := g.loc(inst.Src[1])
+	countWidth := 8
+	if info, ok := g.regInfo[inst.Src[1]]; ok && info.Ty != nil {
+		countWidth = info.Ty.Width()
+	}
+	for byteIndex := 1; byteIndex < (countWidth+7)/8; byteIndex++ {
+		part := highByte(countLoc)
+		shadow := byteIndex >= 2 && !isSpill(countLoc)
+		if isSpill(countLoc) {
+			part = fmt.Sprintf("%s+%d", countLoc, byteIndex)
+		} else if byteIndex == 2 {
+			part = lowByte(countLoc)
+		}
+		if shadow {
+			g.emit("    EXX")
+		}
+		g.emitLDA(part)
+		if shadow {
+			g.emit("    EXX")
+		}
+		g.emit("    OR A")
+		g.emitf("    JP NZ, .shift_count_large_%d", idx)
+	}
+	g.emitLDA(lowByte(countLoc))
+	g.emitf("    CP %d", w)
+	g.emitf("    JR C, .shift_count_ready_%d", idx)
+	g.emitf(".shift_count_large_%d:", idx)
+	g.emitf("    LD A, %d", w)
+	g.emitf(".shift_count_ready_%d:", idx)
+	g.emitf("    LD %s, A", counter)
+	g.emit("    POP AF")
+	g.invalidate("A")
 	if dst != src {
 		g.emitMov(dst, src, w)
 	}
@@ -990,8 +1026,6 @@ func (g *z80cg) genVariableShift(mnem string, inst *Inst) {
 		g.emitLDA(dst)
 		shiftDst = "A"
 	}
-	idx := g.trampIdx
-	g.trampIdx++
 	// INC/DEC test zero without touching the shifted value or accumulator.
 	g.emitf("    INC %s", counter)
 	g.emitf("    DEC %s", counter)
