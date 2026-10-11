@@ -385,6 +385,9 @@ func pfccoSolve(nodes []pfccoNode, edges []pfccoEdge) []int {
 					}
 					if bestI < InfCost {
 						nbCosts[j] += bestI
+					} else {
+						// No eliminated-node choice can satisfy this neighbor.
+						nbCosts[j] = InfCost
 					}
 				}
 

@@ -32,3 +32,12 @@ func TestPFCCOR1RestoresAccumulatedCosts(t *testing.T) {
 		t.Fatalf("assignment %v cost %d; exhaustive optimum %d", got, c, best)
 	}
 }
+
+func TestPFCCOR1RejectsIncompatibleNeighborChoice(t *testing.T) {
+	nodes := []pfccoNode{{costs: []int{0}}, {costs: []int{0, 1}}}
+	edges := []pfccoEdge{{callerIdx: 0, calleeIdx: 1, costMatrix: [][]int{{InfCost, 0}}}}
+	got := pfccoSolve(nodes, edges)
+	if got[0] != 0 || got[1] != 1 {
+		t.Fatalf("incompatible assignment %v; want [0 1]", got)
+	}
+}
