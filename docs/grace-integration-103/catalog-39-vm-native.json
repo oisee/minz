@@ -1414,12 +1414,15 @@
       "source_imports": [],
       "source_assertions": 17,
       "assertion_scope": "unexecuted source expectations",
-      "native_behavior": "pending-independent-oracle",
-      "workload": "",
-      "independent_model": "",
-      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "native_behavior": "bounded-independent-vm-native",
+      "workload": "docs/grace-tail-catalog-reconcile/",
+      "independent_model": "Frozen arithmetic prospective host models/tail-recursion baseline heldout",
+      "external_requirement_or_remaining_work": "Bounded original entry evidence only; inspect referenced packet for exact wrappers/modes/input coverage.",
       "entry_structure_not_execution_claim": "callable-subroutines; workload required",
-      "reviewed_evidence": [],
+      "reviewed_evidence": [
+        "docs/grace-tail-catalog-reconcile/manifest.json",
+        "docs/grace-original-fib-iter.md"
+      ],
       "test_source_references_not_execution_claim": [
         "minzc/pkg/pipeline/arithmetic_heldout_test.go:18",
         "minzc/pkg/pipeline/profile_program_test.go:153"
@@ -5455,12 +5458,15 @@
       "source_imports": [],
       "source_assertions": 0,
       "assertion_scope": "unexecuted source expectations",
-      "native_behavior": "pending-independent-oracle",
-      "workload": "",
-      "independent_model": "",
-      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "native_behavior": "bounded-independent-vm-native",
+      "workload": "docs/grace-original-fib-iter/",
+      "independent_model": "Book v7 unsigned u16 Fibonacci recurrence/all256bytecounts",
+      "external_requirement_or_remaining_work": "Bounded original entry evidence only; inspect referenced packet for exact wrappers/modes/input coverage.",
       "entry_structure_not_execution_claim": "callable-subroutines; workload required",
-      "reviewed_evidence": [],
+      "reviewed_evidence": [
+        "docs/grace-original-fib-iter/manifest.json",
+        "docs/grace-original-fib-iter.md"
+      ],
       "test_source_references_not_execution_claim": []
     },
     {
