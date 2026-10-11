@@ -1,0 +1,9 @@
+=== RUN   TestLocalWordMultiplyBoundsAndBinding
+--- PASS: TestLocalWordMultiplyBoundsAndBinding (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.008s
+=== RUN   TestCheckedActualWordMultiplication
+    checked_word_mul_test.go:18: set VIR_TEST_Z3 for offline local solver integration
+--- SKIP: TestCheckedActualWordMultiplication (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.007s

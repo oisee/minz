@@ -1,0 +1,18 @@
+=== RUN   TestCheckedActualWordMultiplication
+    checked_word_mul_test.go:67: admitted but not selected mul_by_3 PBQP
+    checked_word_mul_test.go:85: admitted raw candidate mul_by_3 82T
+    checked_word_mul_test.go:100: mul_by_3 all65536 74→74T module112→63B
+    checked_word_mul_test.go:67: admitted but not selected mul_by_10 PBQP
+    checked_word_mul_test.go:85: admitted raw candidate mul_by_10 104T
+    checked_word_mul_test.go:100: mul_by_10 all65536 96→96T module112→63B
+    checked_word_mul_test.go:85: admitted raw candidate mul_by_100 148T
+    checked_word_mul_test.go:100: mul_by_100 all65536 1085→148T module112→63B
+    checked_word_mul_test.go:85: admitted raw candidate mul_by_7 104T
+    checked_word_mul_test.go:100: mul_by_7 all65536 1085→104T module112→63B
+    checked_word_mul_test.go:85: admitted raw candidate mul_by_255 214T
+    checked_word_mul_test.go:100: mul_by_255 all65536 1115→214T module112→63B
+    checked_word_mul_test.go:98: external native caller retains x all65536 1144→163T
+    checked_word_mul_test.go:100: mul_by_7 all65536 1085→104T module149→75B
+--- PASS: TestCheckedActualWordMultiplication (1.67s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.681s

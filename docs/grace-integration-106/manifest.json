@@ -1,0 +1,29 @@
+{
+  "files": [
+    {
+      "path": "docs/grace-integration-106/word-mul-root-vir.txt",
+      "bytes": 42,
+      "sha256": "8c00528f5a2e1b4a9dc24fc0b06c1abb2936ac32a9877392d3177c937c37ce23"
+    },
+    {
+      "path": "docs/grace-integration-106/parser-hashmap-current-root.txt",
+      "bytes": 1123,
+      "sha256": "b7e25e41755b976daff64036df5bbd94be54a6ea602ce7c2d9f93e783e991a13"
+    },
+    {
+      "path": "docs/grace-integration-106/word-mul-root-native.txt",
+      "bytes": 1219,
+      "sha256": "95fbd8b57cbf917eb3f81ff97ce76b8e736816e1e82e43d0ba75cf6467a1ad67"
+    },
+    {
+      "path": "docs/grace-integration-106/word-mul-root.txt",
+      "bytes": 389,
+      "sha256": "86614e7627d7c8c822fbd0fd9b21c2e0880ad1559b550da890c04beaf9a951f3"
+    },
+    {
+      "path": "docs/grace-integration-106/README.md",
+      "bytes": 2219,
+      "sha256": "13426ffbc7b6c33b9cc48febc5229f209dc7f3c8b10b64c2639f4796e5eec478"
+    }
+  ]
+}
