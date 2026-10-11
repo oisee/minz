@@ -1,0 +1,11 @@
+=== RUN   TestCallSpillRestorePreservesResults
+--- PASS: TestCallSpillRestorePreservesResults (0.00s)
+=== RUN   TestMutualAndIndirectCallSpill
+=== RUN   TestMutualAndIndirectCallSpill/mutual-byte
+=== RUN   TestMutualAndIndirectCallSpill/mutual-word
+=== RUN   TestMutualAndIndirectCallSpill/indirect-byte
+--- PASS: TestMutualAndIndirectCallSpill (0.01s)
+    --- PASS: TestMutualAndIndirectCallSpill/mutual-byte (0.00s)
+    --- PASS: TestMutualAndIndirectCallSpill/mutual-word (0.00s)
+    --- PASS: TestMutualAndIndirectCallSpill/indirect-byte (0.00s)
+PASS

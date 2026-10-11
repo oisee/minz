@@ -1,0 +1,7 @@
+=== RUN   TestRecursiveCallSpill
+=== RUN   TestRecursiveCallSpill/false
+=== RUN   TestRecursiveCallSpill/true
+--- PASS: TestRecursiveCallSpill (0.01s)
+    --- PASS: TestRecursiveCallSpill/false (0.01s)
+    --- PASS: TestRecursiveCallSpill/true (0.00s)
+PASS
