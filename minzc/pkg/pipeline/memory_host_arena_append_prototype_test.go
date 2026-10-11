@@ -11,6 +11,7 @@ import (
 
 func TestMemoryHostArenaAppendConstruction(t *testing.T) {
 	for mask := 0; mask < 4; mask++ {
+		original, _ := memoryHostParserFixture(t)
 		source, w := memoryHostParserFixture(t)
 		units := source.SourceUnits
 		arenaLoop := source.FuncByName("region_match").Body.Body[1]
@@ -30,6 +31,14 @@ func TestMemoryHostArenaAppendConstruction(t *testing.T) {
 		if source.FuncByName("region_match").Body.Body[ap] != arenaLoop || source.FuncByName("intern_region").Body.Body[cp] != appendLoop || source.SourceLocations[arenaLoop] != arenaOrigin || source.SourceLocations[appendLoop] != appendOrigin || !reflect.DeepEqual(units, source.SourceUnits) {
 			t.Fatal("sourceidentity changed", mask)
 		}
+		if e := hir.ValidateMemoryHostArenaAppendChoices(original, source, w, hir.MemoryHostArenaAppendChoices{ArenaPeel: mask&1 != 0, AppendHoist: mask&2 != 0}); e != nil {
+			t.Fatal(mask, e)
+		}
+		if mask == 3 {
+			if hir.ValidateMemoryHostArenaPeel(original, source, w) == nil || hir.ValidateMemoryHostAppendCopyHoist(original, source, w) == nil {
+				t.Fatal("individualproofacceptedcombineddelta")
+			}
+		}
 		if e := hir.Verify(source); e != nil {
 			t.Fatal(mask, e)
 		}
@@ -44,7 +53,11 @@ func TestMemoryHostArenaAppendPrototypeOriginal30(t *testing.T) {
 	for mask := 0; mask < 4; mask++ {
 		factory := func() (*hir.Module, error) {
 			m, _ := memoryHostParserFixture(t)
+			original, _ := memoryHostParserFixture(t)
 			if e := constructMemoryHostArenaAppend(m, w, mask&1 != 0, mask&2 != 0); e != nil {
+				return nil, e
+			}
+			if e := hir.ValidateMemoryHostArenaAppendChoices(original, m, w, hir.MemoryHostArenaAppendChoices{ArenaPeel: mask&1 != 0, AppendHoist: mask&2 != 0}); e != nil {
 				return nil, e
 			}
 			return m, nil
@@ -68,6 +81,13 @@ func TestMemoryHostArenaAppendPrototypeOriginal30(t *testing.T) {
 			names := []string{"original", "arena", "append", "both"}
 			p := filepath.Join(d, names[mask])
 			if e := os.MkdirAll(p, 0755); e != nil {
+				t.Fatal(e)
+			}
+			shape, _ := memoryHostParserFixture(t)
+			if e := constructMemoryHostArenaAppend(shape, w, mask&1 != 0, mask&2 != 0); e != nil {
+				t.Fatal(e)
+			}
+			if e := os.WriteFile(filepath.Join(p, "input.hir"), []byte(shape.Dump()), 0644); e != nil {
 				t.Fatal(e)
 			}
 			b, e := json.MarshalIndent(evidence, "", "  ")
