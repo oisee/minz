@@ -1,0 +1,12 @@
+=== RUN   TestBytePackUsesCurrentOverridesWithoutAccScratch
+=== RUN   TestBytePackUsesCurrentOverridesWithoutAccScratch/pending-acc
+=== RUN   TestBytePackUsesCurrentOverridesWithoutAccScratch/relocated-low
+=== RUN   TestBytePackUsesCurrentOverridesWithoutAccScratch/relocated-high
+=== RUN   TestBytePackUsesCurrentOverridesWithoutAccScratch/spill-low
+--- PASS: TestBytePackUsesCurrentOverridesWithoutAccScratch (0.00s)
+    --- PASS: TestBytePackUsesCurrentOverridesWithoutAccScratch/pending-acc (0.00s)
+    --- PASS: TestBytePackUsesCurrentOverridesWithoutAccScratch/relocated-low (0.00s)
+    --- PASS: TestBytePackUsesCurrentOverridesWithoutAccScratch/relocated-high (0.00s)
+    --- PASS: TestBytePackUsesCurrentOverridesWithoutAccScratch/spill-low (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.007s

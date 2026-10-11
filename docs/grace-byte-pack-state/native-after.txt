@@ -1,0 +1,4 @@
+=== RUN   TestBytePackImplicitConditionNative
+--- PASS: TestBytePackImplicitConditionNative (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.010s
