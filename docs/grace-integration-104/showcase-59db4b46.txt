@@ -1,0 +1,977 @@
+=== RUN   TestShowcaseCompileAssemble
+    showcase_test.go:60: Found 194 showcase files
+=== RUN   TestShowcaseCompileAssemble/ex1_struct.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-10/ex1_struct.nanz
+    showcase_test.go:166: OK: 811 bytes asm, 24 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-10/ex1_struct.nanz","Case":"TestShowcaseCompileAssemble/ex1_struct.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex2_ufcs.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-10/ex2_ufcs.nanz
+    showcase_test.go:166: OK: 818 bytes asm, 35 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-10/ex2_ufcs.nanz","Case":"TestShowcaseCompileAssemble/ex2_ufcs.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex3_iface.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-10/ex3_iface.nanz
+    showcase_test.go:166: OK: 482 bytes asm, 9 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-10/ex3_iface.nanz","Case":"TestShowcaseCompileAssemble/ex3_iface.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex3b_iface_param.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-10/ex3b_iface_param.nanz
+    showcase_test.go:166: OK: 319 bytes asm, 6 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-10/ex3b_iface_param.nanz","Case":"TestShowcaseCompileAssemble/ex3b_iface_param.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex4a_abs_diff.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-10/ex4a_abs_diff.nanz
+    showcase_test.go:166: OK: 255 bytes asm, 6 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-10/ex4a_abs_diff.nanz","Case":"TestShowcaseCompileAssemble/ex4a_abs_diff.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex4a_abs_diff_iar.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-10/ex4a_abs_diff_iar.nanz
+    showcase_test.go:166: OK: 530 bytes asm, 31 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-10/ex4a_abs_diff_iar.nanz","Case":"TestShowcaseCompileAssemble/ex4a_abs_diff_iar.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex4b_abs_diff_u16.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-10/ex4b_abs_diff_u16.nanz
+    showcase_test.go:166: OK: 314 bytes asm, 11 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-10/ex4b_abs_diff_u16.nanz","Case":"TestShowcaseCompileAssemble/ex4b_abs_diff_u16.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex5_lut.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-10/ex5_lut.nanz
+    showcase_test.go:166: OK: 1027 bytes asm, 512 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-10/ex5_lut.nanz","Case":"TestShowcaseCompileAssemble/ex5_lut.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex6_foreach.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-10/ex6_foreach.nanz
+    showcase_test.go:166: OK: 1253 bytes asm, 69 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-10/ex6_foreach.nanz","Case":"TestShowcaseCompileAssemble/ex6_foreach.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex7_mapinplace.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-10/ex7_mapinplace.nanz
+    showcase_test.go:166: OK: 534 bytes asm, 26 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-10/ex7_mapinplace.nanz","Case":"TestShowcaseCompileAssemble/ex7_mapinplace.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex8_gcd.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-10/ex8_gcd.nanz
+    showcase_test.go:166: OK: 512 bytes asm, 19 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-10/ex8_gcd.nanz","Case":"TestShowcaseCompileAssemble/ex8_gcd.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex0_test_struct.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-11/ex0_test_struct.nanz
+    showcase_test.go:166: OK: 818 bytes asm, 35 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-11/ex0_test_struct.nanz","Case":"TestShowcaseCompileAssemble/ex0_test_struct.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex10a_fib_rec.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-11/ex10a_fib_rec.nanz
+    showcase_test.go:166: OK: 808 bytes asm, 57 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-11/ex10a_fib_rec.nanz","Case":"TestShowcaseCompileAssemble/ex10a_fib_rec.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex10b_fib_iter.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-11/ex10b_fib_iter.nanz
+    showcase_test.go:166: OK: 551 bytes asm, 32 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-11/ex10b_fib_iter.nanz","Case":"TestShowcaseCompileAssemble/ex10b_fib_iter.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex10c_fib_fold.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-11/ex10c_fib_fold.nanz
+    showcase_test.go:166: OK: 374 bytes asm, 19 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-11/ex10c_fib_fold.nanz","Case":"TestShowcaseCompileAssemble/ex10c_fib_fold.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex11_minmax_multiret.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-11/ex11_minmax_multiret.nanz
+    showcase_test.go:166: OK: 890 bytes asm, 28 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-11/ex11_minmax_multiret.nanz","Case":"TestShowcaseCompileAssemble/ex11_minmax_multiret.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex12_assert.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-11/ex12_assert.nanz
+    showcase_test.go:166: OK: 718 bytes asm, 20 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-11/ex12_assert.nanz","Case":"TestShowcaseCompileAssemble/ex12_assert.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex13_multiret_assert.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-11/ex13_multiret_assert.nanz
+    showcase_test.go:166: OK: 888 bytes asm, 28 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-11/ex13_multiret_assert.nanz","Case":"TestShowcaseCompileAssemble/ex13_multiret_assert.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex14_fold_assert.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-11/ex14_fold_assert.nanz
+    showcase_test.go:166: OK: 3092 bytes asm, 177 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-11/ex14_fold_assert.nanz","Case":"TestShowcaseCompileAssemble/ex14_fold_assert.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex15_smc_sprite.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-11/ex15_smc_sprite.nanz
+    showcase_test.go:166: OK: 960 bytes asm, 42 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-11/ex15_smc_sprite.nanz","Case":"TestShowcaseCompileAssemble/ex15_smc_sprite.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex16_hello_mze.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-11/ex16_hello_mze.nanz
+    showcase_test.go:166: OK: 3711 bytes asm, 309 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-11/ex16_hello_mze.nanz","Case":"TestShowcaseCompileAssemble/ex16_hello_mze.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex17_asm_block.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-11/ex17_asm_block.nanz
+    showcase_test.go:166: OK: 1034 bytes asm, 64 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-11/ex17_asm_block.nanz","Case":"TestShowcaseCompileAssemble/ex17_asm_block.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex18_user_console_io.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-11/ex18_user_console_io.nanz
+    showcase_test.go:166: OK: 1671 bytes asm, 96 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-11/ex18_user_console_io.nanz","Case":"TestShowcaseCompileAssemble/ex18_user_console_io.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex9a_factorial_rec.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-11/ex9a_factorial_rec.nanz
+    showcase_test.go:166: OK: 857 bytes asm, 54 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-11/ex9a_factorial_rec.nanz","Case":"TestShowcaseCompileAssemble/ex9a_factorial_rec.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex9b_factorial_fold.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-11/ex9b_factorial_fold.nanz
+    showcase_test.go:166: OK: 1153 bytes asm, 67 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-11/ex9b_factorial_fold.nanz","Case":"TestShowcaseCompileAssemble/ex9b_factorial_fold.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex10a_fib_rec.nanz#01
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-13/ex10a_fib_rec.nanz
+    showcase_test.go:166: OK: 808 bytes asm, 57 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-13/ex10a_fib_rec.nanz","Case":"TestShowcaseCompileAssemble/ex10a_fib_rec.nanz#01","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex10b_fib_iter.nanz#01
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-13/ex10b_fib_iter.nanz
+    showcase_test.go:166: OK: 551 bytes asm, 32 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-13/ex10b_fib_iter.nanz","Case":"TestShowcaseCompileAssemble/ex10b_fib_iter.nanz#01","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex10c_fib_fold.nanz#01
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-13/ex10c_fib_fold.nanz
+    showcase_test.go:166: OK: 374 bytes asm, 19 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-13/ex10c_fib_fold.nanz","Case":"TestShowcaseCompileAssemble/ex10c_fib_fold.nanz#01","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex11_minmax_multiret.nanz#01
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-13/ex11_minmax_multiret.nanz
+    showcase_test.go:166: OK: 890 bytes asm, 28 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-13/ex11_minmax_multiret.nanz","Case":"TestShowcaseCompileAssemble/ex11_minmax_multiret.nanz#01","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex12_assert.nanz#01
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-13/ex12_assert.nanz
+    showcase_test.go:166: OK: 718 bytes asm, 20 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-13/ex12_assert.nanz","Case":"TestShowcaseCompileAssemble/ex12_assert.nanz#01","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex13_multiret_assert.nanz#01
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-13/ex13_multiret_assert.nanz
+    showcase_test.go:166: OK: 888 bytes asm, 28 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-13/ex13_multiret_assert.nanz","Case":"TestShowcaseCompileAssemble/ex13_multiret_assert.nanz#01","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex14_fold_assert.nanz#01
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-13/ex14_fold_assert.nanz
+    showcase_test.go:166: OK: 3092 bytes asm, 177 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-13/ex14_fold_assert.nanz","Case":"TestShowcaseCompileAssemble/ex14_fold_assert.nanz#01","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex15_smc_sprite.nanz#01
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-13/ex15_smc_sprite.nanz
+    showcase_test.go:166: OK: 960 bytes asm, 42 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-13/ex15_smc_sprite.nanz","Case":"TestShowcaseCompileAssemble/ex15_smc_sprite.nanz#01","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex16_hello_mze.nanz#01
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-13/ex16_hello_mze.nanz
+    showcase_test.go:166: OK: 3711 bytes asm, 309 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-13/ex16_hello_mze.nanz","Case":"TestShowcaseCompileAssemble/ex16_hello_mze.nanz#01","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex17_asm_block.nanz#01
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-13/ex17_asm_block.nanz
+    showcase_test.go:166: OK: 1034 bytes asm, 64 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-13/ex17_asm_block.nanz","Case":"TestShowcaseCompileAssemble/ex17_asm_block.nanz#01","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex18_user_console_io.nanz#01
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-13/ex18_user_console_io.nanz
+    showcase_test.go:166: OK: 1671 bytes asm, 96 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-13/ex18_user_console_io.nanz","Case":"TestShowcaseCompileAssemble/ex18_user_console_io.nanz#01","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex19_assert_forms.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-13/ex19_assert_forms.nanz
+    showcase_test.go:166: OK: 4080 bytes asm, 203 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-13/ex19_assert_forms.nanz","Case":"TestShowcaseCompileAssemble/ex19_assert_forms.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex1_struct.nanz#01
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-13/ex1_struct.nanz
+    showcase_test.go:166: OK: 811 bytes asm, 24 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-13/ex1_struct.nanz","Case":"TestShowcaseCompileAssemble/ex1_struct.nanz#01","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex2_ufcs.nanz#01
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-13/ex2_ufcs.nanz
+    showcase_test.go:166: OK: 818 bytes asm, 35 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-13/ex2_ufcs.nanz","Case":"TestShowcaseCompileAssemble/ex2_ufcs.nanz#01","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex3_iface.nanz#01
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-13/ex3_iface.nanz
+    showcase_test.go:166: OK: 482 bytes asm, 9 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-13/ex3_iface.nanz","Case":"TestShowcaseCompileAssemble/ex3_iface.nanz#01","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex3b_iface_param.nanz#01
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-13/ex3b_iface_param.nanz
+    showcase_test.go:166: OK: 319 bytes asm, 6 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-13/ex3b_iface_param.nanz","Case":"TestShowcaseCompileAssemble/ex3b_iface_param.nanz#01","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex4a_abs_diff.nanz#01
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-13/ex4a_abs_diff.nanz
+    showcase_test.go:166: OK: 255 bytes asm, 6 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-13/ex4a_abs_diff.nanz","Case":"TestShowcaseCompileAssemble/ex4a_abs_diff.nanz#01","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex4b_abs_diff_u16.nanz#01
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-13/ex4b_abs_diff_u16.nanz
+    showcase_test.go:166: OK: 314 bytes asm, 11 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-13/ex4b_abs_diff_u16.nanz","Case":"TestShowcaseCompileAssemble/ex4b_abs_diff_u16.nanz#01","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex5_lut.nanz#01
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-13/ex5_lut.nanz
+    showcase_test.go:166: OK: 1027 bytes asm, 512 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-13/ex5_lut.nanz","Case":"TestShowcaseCompileAssemble/ex5_lut.nanz#01","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex6_foreach.nanz#01
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-13/ex6_foreach.nanz
+    showcase_test.go:166: OK: 1253 bytes asm, 69 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-13/ex6_foreach.nanz","Case":"TestShowcaseCompileAssemble/ex6_foreach.nanz#01","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex7_mapinplace.nanz#01
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-13/ex7_mapinplace.nanz
+    showcase_test.go:166: OK: 534 bytes asm, 26 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-13/ex7_mapinplace.nanz","Case":"TestShowcaseCompileAssemble/ex7_mapinplace.nanz#01","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex8_gcd.nanz#01
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-13/ex8_gcd.nanz
+    showcase_test.go:166: OK: 512 bytes asm, 19 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-13/ex8_gcd.nanz","Case":"TestShowcaseCompileAssemble/ex8_gcd.nanz#01","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex9a_factorial_rec.nanz#01
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-13/ex9a_factorial_rec.nanz
+    showcase_test.go:166: OK: 857 bytes asm, 54 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-13/ex9a_factorial_rec.nanz","Case":"TestShowcaseCompileAssemble/ex9a_factorial_rec.nanz#01","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex9b_factorial_fold.nanz#01
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-13/ex9b_factorial_fold.nanz
+    showcase_test.go:166: OK: 1153 bytes asm, 67 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-13/ex9b_factorial_fold.nanz","Case":"TestShowcaseCompileAssemble/ex9b_factorial_fold.nanz#01","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex20_arena_allocator.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-14/ex20_arena_allocator.nanz
+    showcase_test.go:166: OK: 7315 bytes asm, 464 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-14/ex20_arena_allocator.nanz","Case":"TestShowcaseCompileAssemble/ex20_arena_allocator.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex21_enum.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-14/ex21_enum.nanz
+    showcase_test.go:166: OK: 451 bytes asm, 7 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-14/ex21_enum.nanz","Case":"TestShowcaseCompileAssemble/ex21_enum.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex22_type_alias.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-14/ex22_type_alias.nanz
+    showcase_test.go:166: OK: 337 bytes asm, 3 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-14/ex22_type_alias.nanz","Case":"TestShowcaseCompileAssemble/ex22_type_alias.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex23_import_unqualified.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-14/ex23_import_unqualified.nanz
+    showcase_test.go:166: OK: 184 bytes asm, 3 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-14/ex23_import_unqualified.nanz","Case":"TestShowcaseCompileAssemble/ex23_import_unqualified.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex24_import_qualified.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-14/ex24_import_qualified.nanz
+    showcase_test.go:166: OK: 165 bytes asm, 3 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-14/ex24_import_qualified.nanz","Case":"TestShowcaseCompileAssemble/ex24_import_qualified.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex25_import_alias_glob.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-14/ex25_import_alias_glob.nanz
+    showcase_test.go:166: OK: 165 bytes asm, 3 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-14/ex25_import_alias_glob.nanz","Case":"TestShowcaseCompileAssemble/ex25_import_alias_glob.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex26_enum_assert.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-14/ex26_enum_assert.nanz
+    showcase_test.go:166: OK: 317 bytes asm, 3 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-14/ex26_enum_assert.nanz","Case":"TestShowcaseCompileAssemble/ex26_enum_assert.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex27_strings.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-14/ex27_strings.nanz
+    showcase_test.go:166: OK: 2165 bytes asm, 203 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-14/ex27_strings.nanz","Case":"TestShowcaseCompileAssemble/ex27_strings.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex28_pipe.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-14/ex28_pipe.nanz
+    showcase_test.go:166: OK: 879 bytes asm, 38 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-14/ex28_pipe.nanz","Case":"TestShowcaseCompileAssemble/ex28_pipe.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ops.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-14/mathlib/ops.nanz
+    showcase_test.go:166: OK: 492 bytes asm, 9 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-14/mathlib/ops.nanz","Case":"TestShowcaseCompileAssemble/ops.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex29_lanz.lanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-15/ex29_lanz.lanz
+    showcase_test.go:166: OK: 876 bytes asm, 30 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-15/ex29_lanz.lanz","Case":"TestShowcaseCompileAssemble/ex29_lanz.lanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex30_ptr_cast.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-15/ex30_ptr_cast.nanz
+    showcase_test.go:166: OK: 498 bytes asm, 14 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-15/ex30_ptr_cast.nanz","Case":"TestShowcaseCompileAssemble/ex30_ptr_cast.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex31_asm_ret_clob.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-15/ex31_asm_ret_clob.nanz
+    showcase_test.go:166: OK: 538 bytes asm, 13 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-15/ex31_asm_ret_clob.nanz","Case":"TestShowcaseCompileAssemble/ex31_asm_ret_clob.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex32_value_pipe.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-15/ex32_value_pipe.nanz
+    showcase_test.go:166: OK: 712 bytes asm, 12 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-15/ex32_value_pipe.nanz","Case":"TestShowcaseCompileAssemble/ex32_value_pipe.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex33_lambda_inference.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-15/ex33_lambda_inference.nanz
+    showcase_test.go:166: OK: 522 bytes asm, 19 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-15/ex33_lambda_inference.nanz","Case":"TestShowcaseCompileAssemble/ex33_lambda_inference.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/ex34_tetris.nanz
+    showcase_test.go:83: SOURCE_PATH reports/showcase-src/2026-03-15/ex34_tetris.nanz
+    showcase_test.go:166: OK: 70755 bytes asm, 5070 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"reports/showcase-src/2026-03-15/ex34_tetris.nanz","Case":"TestShowcaseCompileAssemble/ex34_tetris.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/hello_zx.nanz
+    showcase_test.go:83: SOURCE_PATH examples/abap/hello_zx.nanz
+    showcase_test.go:166: OK: 43340 bytes asm, 2579 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/abap/hello_zx.nanz","Case":"TestShowcaseCompileAssemble/hello_zx.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/sap_report_zx.nanz
+    showcase_test.go:83: SOURCE_PATH examples/abap/sap_report_zx.nanz
+    showcase_test.go:166: OK: 25234 bytes asm, 2103 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/abap/sap_report_zx.nanz","Case":"TestShowcaseCompileAssemble/sap_report_zx.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/zsql_mara_color_zx.nanz
+    showcase_test.go:83: SOURCE_PATH examples/abap/zsql_mara_color_zx.nanz
+    showcase_test.go:166: OK: 6569 bytes asm, 952 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/abap/zsql_mara_color_zx.nanz","Case":"TestShowcaseCompileAssemble/zsql_mara_color_zx.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/hello_agon.nanz
+    showcase_test.go:83: SOURCE_PATH examples/agon/hello_agon.nanz
+    showcase_test.go:166: OK: 1087 bytes asm, 112 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/agon/hello_agon.nanz","Case":"TestShowcaseCompileAssemble/hello_agon.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/hello_world.nanz
+    showcase_test.go:83: SOURCE_PATH examples/agon/hello_world.nanz
+    showcase_test.go:166: OK: 2174 bytes asm, 183 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/agon/hello_world.nanz","Case":"TestShowcaseCompileAssemble/hello_world.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/nc_agon.nanz
+    showcase_test.go:83: SOURCE_PATH examples/agon/nc_agon.nanz
+    showcase_test.go:166: OK: 30311 bytes asm, 1704 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/agon/nc_agon.nanz","Case":"TestShowcaseCompileAssemble/nc_agon.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/tui_demo.nanz
+    showcase_test.go:83: SOURCE_PATH examples/agon/tui_demo.nanz
+    showcase_test.go:166: OK: 23927 bytes asm, 1226 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/agon/tui_demo.nanz","Case":"TestShowcaseCompileAssemble/tui_demo.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/tui_hello.nanz
+    showcase_test.go:83: SOURCE_PATH examples/agon/tui_hello.nanz
+    showcase_test.go:166: OK: 20917 bytes asm, 968 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/agon/tui_hello.nanz","Case":"TestShowcaseCompileAssemble/tui_hello.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/assert_test.lanz
+    showcase_test.go:83: SOURCE_PATH examples/lizp/assert_test.lanz
+    showcase_test.go:166: OK: 577 bytes asm, 12 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/lizp/assert_test.lanz","Case":"TestShowcaseCompileAssemble/assert_test.lanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/assert_test.lizp
+    showcase_test.go:83: SOURCE_PATH examples/lizp/assert_test.lizp
+    showcase_test.go:166: OK: 577 bytes asm, 12 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/lizp/assert_test.lizp","Case":"TestShowcaseCompileAssemble/assert_test.lizp","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/cond_test.lizp
+    showcase_test.go:83: SOURCE_PATH examples/lizp/cond_test.lizp
+    showcase_test.go:166: OK: 1205 bytes asm, 78 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/lizp/cond_test.lizp","Case":"TestShowcaseCompileAssemble/cond_test.lizp","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/crypto.lizp
+    showcase_test.go:83: SOURCE_PATH examples/lizp/crypto.lizp
+    showcase_test.go:166: OK: 2170 bytes asm, 99 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/lizp/crypto.lizp","Case":"TestShowcaseCompileAssemble/crypto.lizp","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/dsp.lizp
+    showcase_test.go:83: SOURCE_PATH examples/lizp/dsp.lizp
+    showcase_test.go:166: OK: 2144 bytes asm, 117 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/lizp/dsp.lizp","Case":"TestShowcaseCompileAssemble/dsp.lizp","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/factorial.lizp
+    showcase_test.go:83: SOURCE_PATH examples/lizp/factorial.lizp
+    showcase_test.go:166: OK: 1047 bytes asm, 73 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/lizp/factorial.lizp","Case":"TestShowcaseCompileAssemble/factorial.lizp","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/functional.lizp
+    showcase_test.go:83: SOURCE_PATH examples/lizp/functional.lizp
+    showcase_test.go:166: OK: 2698 bytes asm, 121 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/lizp/functional.lizp","Case":"TestShowcaseCompileAssemble/functional.lizp","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/game_of_life.lizp
+    showcase_test.go:83: SOURCE_PATH examples/lizp/game_of_life.lizp
+    showcase_test.go:166: OK: 1313 bytes asm, 64 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/lizp/game_of_life.lizp","Case":"TestShowcaseCompileAssemble/game_of_life.lizp","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/hello.lizp
+    showcase_test.go:83: SOURCE_PATH examples/lizp/hello.lizp
+    showcase_test.go:166: OK: 154 bytes asm, 3 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/lizp/hello.lizp","Case":"TestShowcaseCompileAssemble/hello.lizp","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/scheme_r5rs.lizp
+    showcase_test.go:83: SOURCE_PATH examples/lizp/scheme_r5rs.lizp
+    showcase_test.go:166: OK: 4080 bytes asm, 189 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/lizp/scheme_r5rs.lizp","Case":"TestShowcaseCompileAssemble/scheme_r5rs.lizp","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/scheme_test.lizp
+    showcase_test.go:83: SOURCE_PATH examples/lizp/scheme_test.lizp
+    showcase_test.go:166: OK: 2867 bytes asm, 137 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/lizp/scheme_test.lizp","Case":"TestShowcaseCompileAssemble/scheme_test.lizp","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/self_tokenizer.lizp
+    showcase_test.go:83: SOURCE_PATH examples/lizp/self_tokenizer.lizp
+    showcase_test.go:166: OK: 11647 bytes asm, 733 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/lizp/self_tokenizer.lizp","Case":"TestShowcaseCompileAssemble/self_tokenizer.lizp","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/showcase.lizp
+    showcase_test.go:83: SOURCE_PATH examples/lizp/showcase.lizp
+    showcase_test.go:166: OK: 2937 bytes asm, 183 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/lizp/showcase.lizp","Case":"TestShowcaseCompileAssemble/showcase.lizp","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/zx_checkerboard.lizp
+    showcase_test.go:83: SOURCE_PATH examples/lizp/zx_checkerboard.lizp
+    showcase_test.go:166: OK: 2588 bytes asm, 157 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/lizp/zx_checkerboard.lizp","Case":"TestShowcaseCompileAssemble/zx_checkerboard.lizp","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/zx_rainbow.lizp
+    showcase_test.go:83: SOURCE_PATH examples/lizp/zx_rainbow.lizp
+    showcase_test.go:166: OK: 1931 bytes asm, 118 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/lizp/zx_rainbow.lizp","Case":"TestShowcaseCompileAssemble/zx_rainbow.lizp","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/01_sum_array.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/01_sum_array.nanz
+    showcase_test.go:166: OK: 2562 bytes asm, 205 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/01_sum_array.nanz","Case":"TestShowcaseCompileAssemble/01_sum_array.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/01_sum_array.plm
+    showcase_test.go:83: SOURCE_PATH examples/nanz/01_sum_array.plm
+    showcase_test.go:166: OK: 684 bytes asm, 32 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/01_sum_array.plm","Case":"TestShowcaseCompileAssemble/01_sum_array.plm","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/01_sum_plm_origin.plm
+    showcase_test.go:83: SOURCE_PATH examples/nanz/01_sum_plm_origin.plm
+    showcase_test.go:166: OK: 684 bytes asm, 32 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/01_sum_plm_origin.plm","Case":"TestShowcaseCompileAssemble/01_sum_plm_origin.plm","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/02_sum_array_idiomatic.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/02_sum_array_idiomatic.nanz
+    showcase_test.go:166: OK: 1317 bytes asm, 62 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/02_sum_array_idiomatic.nanz","Case":"TestShowcaseCompileAssemble/02_sum_array_idiomatic.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/03_filter_map_chain.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/03_filter_map_chain.nanz
+    showcase_test.go:166: OK: 2004 bytes asm, 84 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/03_filter_map_chain.nanz","Case":"TestShowcaseCompileAssemble/03_filter_map_chain.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/04_lut_popcount.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/04_lut_popcount.nanz
+    showcase_test.go:166: OK: 1027 bytes asm, 512 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/04_lut_popcount.nanz","Case":"TestShowcaseCompileAssemble/04_lut_popcount.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/05_four_pointers.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/05_four_pointers.nanz
+    showcase_test.go:166: OK: 737 bytes asm, 50 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/05_four_pointers.nanz","Case":"TestShowcaseCompileAssemble/05_four_pointers.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/06_pbqp_weighted.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/06_pbqp_weighted.nanz
+    showcase_test.go:166: OK: 398 bytes asm, 20 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/06_pbqp_weighted.nanz","Case":"TestShowcaseCompileAssemble/06_pbqp_weighted.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/07_ix_load_store.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/07_ix_load_store.nanz
+    showcase_test.go:166: OK: 1429 bytes asm, 91 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/07_ix_load_store.nanz","Case":"TestShowcaseCompileAssemble/07_ix_load_store.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/08_arena_allocator.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/08_arena_allocator.nanz
+    showcase_test.go:166: OK: 16869 bytes asm, 1193 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/08_arena_allocator.nanz","Case":"TestShowcaseCompileAssemble/08_arena_allocator.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/09_function_pointers.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/09_function_pointers.nanz
+    showcase_test.go:166: OK: 1015 bytes asm, 32 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/09_function_pointers.nanz","Case":"TestShowcaseCompileAssemble/09_function_pointers.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/10_adt_option.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/10_adt_option.nanz
+    showcase_test.go:166: OK: 2477 bytes asm, 118 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/10_adt_option.nanz","Case":"TestShowcaseCompileAssemble/10_adt_option.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/11_match_expression.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/11_match_expression.nanz
+    showcase_test.go:166: OK: 1001 bytes asm, 43 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/11_match_expression.nanz","Case":"TestShowcaseCompileAssemble/11_match_expression.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/12_state_machine.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/12_state_machine.nanz
+    showcase_test.go:166: OK: 1891 bytes asm, 99 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/12_state_machine.nanz","Case":"TestShowcaseCompileAssemble/12_state_machine.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/13_result_error.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/13_result_error.nanz
+    showcase_test.go:166: OK: 2029 bytes asm, 81 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/13_result_error.nanz","Case":"TestShowcaseCompileAssemble/13_result_error.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/14_error_propagation.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/14_error_propagation.nanz
+    showcase_test.go:166: OK: 4635 bytes asm, 292 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/14_error_propagation.nanz","Case":"TestShowcaseCompileAssemble/14_error_propagation.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/15_error_enforcement.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/15_error_enforcement.nanz
+    showcase_test.go:166: OK: 3391 bytes asm, 210 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/15_error_enforcement.nanz","Case":"TestShowcaseCompileAssemble/15_error_enforcement.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/16_rotate_sled.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/16_rotate_sled.nanz
+    showcase_test.go:166: OK: 3028 bytes asm, 192 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/16_rotate_sled.nanz","Case":"TestShowcaseCompileAssemble/16_rotate_sled.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/17_bool_retflag.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/17_bool_retflag.nanz
+    showcase_test.go:166: OK: 3516 bytes asm, 172 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/17_bool_retflag.nanz","Case":"TestShowcaseCompileAssemble/17_bool_retflag.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/18_tail_recursion.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/18_tail_recursion.nanz
+    showcase_test.go:166: OK: 3269 bytes asm, 163 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/18_tail_recursion.nanz","Case":"TestShowcaseCompileAssemble/18_tail_recursion.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/20_strref_test.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/20_strref_test.nanz
+    showcase_test.go:166: OK: 1656 bytes asm, 45 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/20_strref_test.nanz","Case":"TestShowcaseCompileAssemble/20_strref_test.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/21_hashmap_test.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/21_hashmap_test.nanz
+    showcase_test.go:166: OK: 12121 bytes asm, 989 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/21_hashmap_test.nanz","Case":"TestShowcaseCompileAssemble/21_hashmap_test.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/30_stream_test.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/30_stream_test.nanz
+    showcase_test.go:166: OK: 5645 bytes asm, 417 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/30_stream_test.nanz","Case":"TestShowcaseCompileAssemble/30_stream_test.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/50_impl_showcase.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/50_impl_showcase.nanz
+    showcase_test.go:166: OK: 4396 bytes asm, 254 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/50_impl_showcase.nanz","Case":"TestShowcaseCompileAssemble/50_impl_showcase.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/51_impl_cpm_demo.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/51_impl_cpm_demo.nanz
+    showcase_test.go:166: OK: 3916 bytes asm, 256 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/51_impl_cpm_demo.nanz","Case":"TestShowcaseCompileAssemble/51_impl_cpm_demo.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/abap_screen.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/abap_screen.nanz
+    showcase_test.go:166: OK: 22434 bytes asm, 1712 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/abap_screen.nanz","Case":"TestShowcaseCompileAssemble/abap_screen.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/assert_test.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/assert_test.nanz
+    showcase_test.go:166: OK: 577 bytes asm, 12 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/assert_test.nanz","Case":"TestShowcaseCompileAssemble/assert_test.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/assert_test.plm
+    showcase_test.go:83: SOURCE_PATH examples/nanz/assert_test.plm
+    showcase_test.go:166: OK: 581 bytes asm, 12 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/assert_test.plm","Case":"TestShowcaseCompileAssemble/assert_test.plm","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/canvas_house.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/canvas_house.nanz
+    showcase_test.go:166: OK: 18217 bytes asm, 1123 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/canvas_house.nanz","Case":"TestShowcaseCompileAssemble/canvas_house.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/cpm_leaf_console.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/cpm_leaf_console.nanz
+    showcase_test.go:166: OK: 3490 bytes asm, 225 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/cpm_leaf_console.nanz","Case":"TestShowcaseCompileAssemble/cpm_leaf_console.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/grace_hir_constant_if.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/grace_hir_constant_if.nanz
+    showcase_test.go:166: OK: 325 bytes asm, 3 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/grace_hir_constant_if.nanz","Case":"TestShowcaseCompileAssemble/grace_hir_constant_if.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/grace_intern_checked.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/grace_intern_checked.nanz
+    showcase_test.go:166: OK: 9412 bytes asm, 661 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/grace_intern_checked.nanz","Case":"TestShowcaseCompileAssemble/grace_intern_checked.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/grace_seeded_sum.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/grace_seeded_sum.nanz
+    showcase_test.go:166: OK: 1172 bytes asm, 62 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/grace_seeded_sum.nanz","Case":"TestShowcaseCompileAssemble/grace_seeded_sum.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/grace_tokenizer_checked.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/grace_tokenizer_checked.nanz
+    showcase_test.go:166: OK: 56082 bytes asm, 4255 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/grace_tokenizer_checked.nanz","Case":"TestShowcaseCompileAssemble/grace_tokenizer_checked.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/grace_weighted_checksum.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/grace_weighted_checksum.nanz
+    showcase_test.go:166: OK: 2736 bytes asm, 168 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/grace_weighted_checksum.nanz","Case":"TestShowcaseCompileAssemble/grace_weighted_checksum.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/hello_cpm.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/hello_cpm.nanz
+    showcase_test.go:166: OK: 727 bytes asm, 47 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/hello_cpm.nanz","Case":"TestShowcaseCompileAssemble/hello_cpm.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/hello_cpm_fib.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/hello_cpm_fib.nanz
+    showcase_test.go:166: OK: 3979 bytes asm, 291 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/hello_cpm_fib.nanz","Case":"TestShowcaseCompileAssemble/hello_cpm_fib.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/irc_client.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/irc_client.nanz
+    showcase_test.go:166: OK: 58614 bytes asm, 4553 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/irc_client.nanz","Case":"TestShowcaseCompileAssemble/irc_client.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/meta_screen.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/meta_screen.nanz
+    showcase_test.go:166: OK: 19934 bytes asm, 1213 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/meta_screen.nanz","Case":"TestShowcaseCompileAssemble/meta_screen.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/mul16_gpu_test.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/mul16_gpu_test.nanz
+    showcase_test.go:166: OK: 2024 bytes asm, 112 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/mul16_gpu_test.nanz","Case":"TestShowcaseCompileAssemble/mul16_gpu_test.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/mul_const.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/mul_const.nanz
+    showcase_test.go:166: OK: 263 bytes asm, 9 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/mul_const.nanz","Case":"TestShowcaseCompileAssemble/mul_const.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/nc.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/nc.nanz
+    showcase_test.go:166: OK: 156489 bytes asm, 12435 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/nc.nanz","Case":"TestShowcaseCompileAssemble/nc.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/pfcco_weighted_packet.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/pfcco_weighted_packet.nanz
+    showcase_test.go:166: OK: 1005 bytes asm, 52 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/pfcco_weighted_packet.nanz","Case":"TestShowcaseCompileAssemble/pfcco_weighted_packet.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/promoted_arithmetic.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/promoted_arithmetic.nanz
+    showcase_test.go:166: OK: 4576 bytes asm, 330 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/promoted_arithmetic.nanz","Case":"TestShowcaseCompileAssemble/promoted_arithmetic.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/rotozoomer.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/rotozoomer.nanz
+    showcase_test.go:166: OK: 28189 bytes asm, 2751 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/rotozoomer.nanz","Case":"TestShowcaseCompileAssemble/rotozoomer.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/sap_mara_cpm.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/sap_mara_cpm.nanz
+    showcase_test.go:166: OK: 30800 bytes asm, 2900 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/sap_mara_cpm.nanz","Case":"TestShowcaseCompileAssemble/sap_mara_cpm.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/sap_mara_demo.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/sap_mara_demo.nanz
+    showcase_test.go:166: OK: 26427 bytes asm, 3358 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/sap_mara_demo.nanz","Case":"TestShowcaseCompileAssemble/sap_mara_demo.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/screen_alv.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/screen_alv.nanz
+    showcase_test.go:166: OK: 54285 bytes asm, 3793 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/screen_alv.nanz","Case":"TestShowcaseCompileAssemble/screen_alv.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/screen_customer.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/screen_customer.nanz
+    showcase_test.go:166: OK: 28216 bytes asm, 2204 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/screen_customer.nanz","Case":"TestShowcaseCompileAssemble/screen_customer.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/screen_declarative.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/screen_declarative.nanz
+    showcase_test.go:166: OK: 43751 bytes asm, 2865 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/screen_declarative.nanz","Case":"TestShowcaseCompileAssemble/screen_declarative.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/screen_report.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/screen_report.nanz
+    showcase_test.go:166: OK: 40618 bytes asm, 3922 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/screen_report.nanz","Case":"TestShowcaseCompileAssemble/screen_report.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/self_lanz_parser.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/self_lanz_parser.nanz
+    showcase_test.go:166: OK: 32620 bytes asm, 2470 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/self_lanz_parser.nanz","Case":"TestShowcaseCompileAssemble/self_lanz_parser.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/self_parser.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/self_parser.nanz
+    showcase_test.go:166: OK: 103593 bytes asm, 7548 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/self_parser.nanz","Case":"TestShowcaseCompileAssemble/self_parser.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/self_tokenizer.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/self_tokenizer.nanz
+    showcase_test.go:166: OK: 78412 bytes asm, 5731 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/self_tokenizer.nanz","Case":"TestShowcaseCompileAssemble/self_tokenizer.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/sha256.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/sha256.nanz
+    showcase_test.go:166: OK: 6348 bytes asm, 406 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/sha256.nanz","Case":"TestShowcaseCompileAssemble/sha256.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/signed_arithmetic.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/signed_arithmetic.nanz
+    showcase_test.go:166: OK: 3564 bytes asm, 221 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/signed_arithmetic.nanz","Case":"TestShowcaseCompileAssemble/signed_arithmetic.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/sql_test6.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/sql_test6.nanz
+    showcase_test.go:166: OK: 24377 bytes asm, 1707 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/sql_test6.nanz","Case":"TestShowcaseCompileAssemble/sql_test6.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/sqlite_demo.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/sqlite_demo.nanz
+    showcase_test.go:166: OK: 6549 bytes asm, 789 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/sqlite_demo.nanz","Case":"TestShowcaseCompileAssemble/sqlite_demo.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/sqlite_test.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/sqlite_test.nanz
+    showcase_test.go:166: OK: 26232 bytes asm, 1988 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/sqlite_test.nanz","Case":"TestShowcaseCompileAssemble/sqlite_test.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/test_irc_minimal.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/test_irc_minimal.nanz
+    showcase_test.go:166: OK: 3743 bytes asm, 263 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/test_irc_minimal.nanz","Case":"TestShowcaseCompileAssemble/test_irc_minimal.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/tetris_cpm.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/tetris_cpm.nanz
+    showcase_test.go:166: OK: 66765 bytes asm, 4806 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/tetris_cpm.nanz","Case":"TestShowcaseCompileAssemble/tetris_cpm.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/tetris_tui.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/tetris_tui.nanz
+    showcase_test.go:166: OK: 51126 bytes asm, 4192 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/tetris_tui.nanz","Case":"TestShowcaseCompileAssemble/tetris_tui.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/tiny.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/tiny.nanz
+    showcase_test.go:166: OK: 492 bytes asm, 9 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/tiny.nanz","Case":"TestShowcaseCompileAssemble/tiny.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/tui_commander.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/tui_commander.nanz
+    showcase_test.go:166: OK: 13914 bytes asm, 1273 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/tui_commander.nanz","Case":"TestShowcaseCompileAssemble/tui_commander.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/tui_commander_l3.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/tui_commander_l3.nanz
+    showcase_test.go:166: OK: 4252 bytes asm, 407 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/tui_commander_l3.nanz","Case":"TestShowcaseCompileAssemble/tui_commander_l3.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/tui_cpm.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/tui_cpm.nanz
+    showcase_test.go:166: OK: 7146 bytes asm, 619 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/tui_cpm.nanz","Case":"TestShowcaseCompileAssemble/tui_cpm.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/tui_demo.nanz#01
+    showcase_test.go:83: SOURCE_PATH examples/nanz/tui_demo.nanz
+    showcase_test.go:166: OK: 1375 bytes asm, 79 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/tui_demo.nanz","Case":"TestShowcaseCompileAssemble/tui_demo.nanz#01","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/tui_screen.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/tui_screen.nanz
+    showcase_test.go:166: OK: 6164 bytes asm, 507 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/tui_screen.nanz","Case":"TestShowcaseCompileAssemble/tui_screen.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/tui_zx.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/tui_zx.nanz
+    showcase_test.go:166: OK: 5498 bytes asm, 576 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/tui_zx.nanz","Case":"TestShowcaseCompileAssemble/tui_zx.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/tuple_assert_gate.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/tuple_assert_gate.nanz
+    showcase_test.go:166: OK: 459 bytes asm, 19 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/tuple_assert_gate.nanz","Case":"TestShowcaseCompileAssemble/tuple_assert_gate.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/typed_print.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/typed_print.nanz
+    showcase_test.go:166: OK: 14412 bytes asm, 911 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/typed_print.nanz","Case":"TestShowcaseCompileAssemble/typed_print.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/widemath.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/widemath.nanz
+    showcase_test.go:166: OK: 11405 bytes asm, 610 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/widemath.nanz","Case":"TestShowcaseCompileAssemble/widemath.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/zsql.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/zsql.nanz
+[Z80-VALIDATE] terminate: 1 invalid instruction(s)
+  line 3: >>> LD HL, _inbuf+2 <<<
+    showcase_test.go:166: OK: 19330 bytes asm, 1568 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/zsql.nanz","Case":"TestShowcaseCompileAssemble/zsql.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/zsql_zx.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/zsql_zx.nanz
+    showcase_test.go:166: OK: 21731 bytes asm, 2127 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/zsql_zx.nanz","Case":"TestShowcaseCompileAssemble/zsql_zx.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/zsql_zx_real.nanz
+    showcase_test.go:83: SOURCE_PATH examples/nanz/zsql_zx_real.nanz
+    showcase_test.go:166: OK: 13971 bytes asm, 1145 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/nanz/zsql_zx_real.nanz","Case":"TestShowcaseCompileAssemble/zsql_zx_real.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/outparam_swap.nanz
+    showcase_test.go:83: SOURCE_PATH examples/paper/outparam_swap.nanz
+    showcase_test.go:166: OK: 456 bytes asm, 6 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/paper/outparam_swap.nanz","Case":"TestShowcaseCompileAssemble/outparam_swap.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/assert_test.pas
+    showcase_test.go:83: SOURCE_PATH examples/pascal/assert_test.pas
+    showcase_test.go:166: OK: 435 bytes asm, 7 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/pascal/assert_test.pas","Case":"TestShowcaseCompileAssemble/assert_test.pas","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/bubble_sort.pas
+    showcase_test.go:83: SOURCE_PATH examples/pascal/bubble_sort.pas
+    showcase_test.go:166: OK: 5965 bytes asm, 494 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/pascal/bubble_sort.pas","Case":"TestShowcaseCompileAssemble/bubble_sort.pas","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/casetest.pas
+    showcase_test.go:83: SOURCE_PATH examples/pascal/casetest.pas
+    showcase_test.go:166: OK: 1815 bytes asm, 140 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/pascal/casetest.pas","Case":"TestShowcaseCompileAssemble/casetest.pas","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/factorial.pas
+    showcase_test.go:83: SOURCE_PATH examples/pascal/factorial.pas
+    showcase_test.go:166: OK: 2931 bytes asm, 242 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/pascal/factorial.pas","Case":"TestShowcaseCompileAssemble/factorial.pas","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/hello.pas
+    showcase_test.go:83: SOURCE_PATH examples/pascal/hello.pas
+    showcase_test.go:166: OK: 661 bytes asm, 58 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/pascal/hello.pas","Case":"TestShowcaseCompileAssemble/hello.pas","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/logic_test.pas
+    showcase_test.go:83: SOURCE_PATH examples/pascal/logic_test.pas
+    showcase_test.go:166: OK: 954 bytes asm, 21 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/pascal/logic_test.pas","Case":"TestShowcaseCompileAssemble/logic_test.pas","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/math_test.pas
+    showcase_test.go:83: SOURCE_PATH examples/pascal/math_test.pas
+    showcase_test.go:166: OK: 1990 bytes asm, 75 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/pascal/math_test.pas","Case":"TestShowcaseCompileAssemble/math_test.pas","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/records.pas
+    showcase_test.go:83: SOURCE_PATH examples/pascal/records.pas
+    showcase_test.go:166: OK: 3250 bytes asm, 207 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/pascal/records.pas","Case":"TestShowcaseCompileAssemble/records.pas","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/recursive_test.pas
+    showcase_test.go:83: SOURCE_PATH examples/pascal/recursive_test.pas
+    showcase_test.go:166: OK: 2307 bytes asm, 109 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/pascal/recursive_test.pas","Case":"TestShowcaseCompileAssemble/recursive_test.pas","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/sieve.pas
+    showcase_test.go:83: SOURCE_PATH examples/pascal/sieve.pas
+    showcase_test.go:166: OK: 5502 bytes asm, 520 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/pascal/sieve.pas","Case":"TestShowcaseCompileAssemble/sieve.pas","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/string_test.pas
+    showcase_test.go:83: SOURCE_PATH examples/pascal/string_test.pas
+    showcase_test.go:166: OK: 1415 bytes asm, 72 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/pascal/string_test.pas","Case":"TestShowcaseCompileAssemble/string_test.pas","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/abs_diff_fib.plm
+    showcase_test.go:83: SOURCE_PATH examples/plm/abs_diff_fib.plm
+    showcase_test.go:166: OK: 786 bytes asm, 34 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/plm/abs_diff_fib.plm","Case":"TestShowcaseCompileAssemble/abs_diff_fib.plm","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/assert_test.plm#01
+    showcase_test.go:83: SOURCE_PATH examples/plm/assert_test.plm
+    showcase_test.go:166: OK: 581 bytes asm, 12 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/plm/assert_test.plm","Case":"TestShowcaseCompileAssemble/assert_test.plm#01","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/hello.plm
+    showcase_test.go:83: SOURCE_PATH examples/plm/hello.plm
+    showcase_test.go:166: OK: 611 bytes asm, 21 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/plm/hello.plm","Case":"TestShowcaseCompileAssemble/hello.plm","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/showcase.plm
+    showcase_test.go:83: SOURCE_PATH examples/plm/showcase.plm
+    showcase_test.go:166: OK: 2666 bytes asm, 98 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/plm/showcase.plm","Case":"TestShowcaseCompileAssemble/showcase.plm","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/sum_array.plm
+    showcase_test.go:83: SOURCE_PATH examples/plm/sum_array.plm
+    showcase_test.go:166: OK: 684 bytes asm, 32 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/plm/sum_array.plm","Case":"TestShowcaseCompileAssemble/sum_array.plm","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/asm_caller_callee.nanz
+    showcase_test.go:83: SOURCE_PATH examples/tests/asm_caller_callee.nanz
+    showcase_test.go:166: OK: 3627 bytes asm, 131 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/tests/asm_caller_callee.nanz","Case":"TestShowcaseCompileAssemble/asm_caller_callee.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/asm_calling_convention.nanz
+    showcase_test.go:83: SOURCE_PATH examples/tests/asm_calling_convention.nanz
+    showcase_test.go:166: OK: 2778 bytes asm, 68 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/tests/asm_calling_convention.nanz","Case":"TestShowcaseCompileAssemble/asm_calling_convention.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/asm_register_permutations.nanz
+    showcase_test.go:83: SOURCE_PATH examples/tests/asm_register_permutations.nanz
+    showcase_test.go:166: OK: 4868 bytes asm, 107 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/tests/asm_register_permutations.nanz","Case":"TestShowcaseCompileAssemble/asm_register_permutations.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/divmod10_test.nanz
+    showcase_test.go:83: SOURCE_PATH examples/tests/divmod10_test.nanz
+    showcase_test.go:166: OK: 752 bytes asm, 40 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/tests/divmod10_test.nanz","Case":"TestShowcaseCompileAssemble/divmod10_test.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/fib_parallel_copy.nanz
+    showcase_test.go:83: SOURCE_PATH examples/tests/fib_parallel_copy.nanz
+    showcase_test.go:166: OK: 483 bytes asm, 22 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/tests/fib_parallel_copy.nanz","Case":"TestShowcaseCompileAssemble/fib_parallel_copy.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/mul8_strength_reduction.nanz
+    showcase_test.go:83: SOURCE_PATH examples/tests/mul8_strength_reduction.nanz
+    showcase_test.go:166: OK: 2709 bytes asm, 73 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/tests/mul8_strength_reduction.nanz","Case":"TestShowcaseCompileAssemble/mul8_strength_reduction.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/nanz_advantage_showcase.nanz
+    showcase_test.go:83: SOURCE_PATH examples/tests/nanz_advantage_showcase.nanz
+    showcase_test.go:166: OK: 3511 bytes asm, 169 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/tests/nanz_advantage_showcase.nanz","Case":"TestShowcaseCompileAssemble/nanz_advantage_showcase.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/pipe_fold_mul_combos.nanz
+    showcase_test.go:83: SOURCE_PATH examples/tests/pipe_fold_mul_combos.nanz
+    showcase_test.go:166: OK: 2493 bytes asm, 107 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/tests/pipe_fold_mul_combos.nanz","Case":"TestShowcaseCompileAssemble/pipe_fold_mul_combos.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/z80_compute_verify.nanz
+    showcase_test.go:83: SOURCE_PATH examples/tests/z80_compute_verify.nanz
+    showcase_test.go:166: OK: 4792 bytes asm, 151 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/tests/z80_compute_verify.nanz","Case":"TestShowcaseCompileAssemble/z80_compute_verify.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/zvm.nanz
+    showcase_test.go:83: SOURCE_PATH examples/zmachine/zork-west-demo/zvm.nanz
+    showcase_test.go:85: known failure: host-only ZVM: story[131072] exceeds ordinary Z80 16-bit address space; native u32 spills are supported
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/zmachine/zork-west-demo/zvm.nanz","Case":"TestShowcaseCompileAssemble/zvm.nanz","Status":"SKIP","Stage":"skip"}
+=== RUN   TestShowcaseCompileAssemble/console_demo.nanz
+    showcase_test.go:83: SOURCE_PATH examples/zx/console_demo.nanz
+    showcase_test.go:166: OK: 40005 bytes asm, 2338 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/zx/console_demo.nanz","Case":"TestShowcaseCompileAssemble/console_demo.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/plasma.nanz
+    showcase_test.go:83: SOURCE_PATH examples/zx/plasma.nanz
+    showcase_test.go:166: OK: 16859 bytes asm, 1555 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/zx/plasma.nanz","Case":"TestShowcaseCompileAssemble/plasma.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/tetris.nanz
+    showcase_test.go:83: SOURCE_PATH examples/zx/tetris.nanz
+    showcase_test.go:166: OK: 61499 bytes asm, 4678 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/zx/tetris.nanz","Case":"TestShowcaseCompileAssemble/tetris.nanz","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/tetris_mir2_test.nanz
+    showcase_test.go:83: SOURCE_PATH examples/zx/tetris_mir2_test.nanz
+    showcase_test.go:166: OK: 3370 bytes asm, 534 bytes binary
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/zx/tetris_mir2_test.nanz","Case":"TestShowcaseCompileAssemble/tetris_mir2_test.nanz","Status":"PASS","Stage":"complete"}
+--- PASS: TestShowcaseCompileAssemble (9.08s)
+    --- PASS: TestShowcaseCompileAssemble/ex1_struct.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex2_ufcs.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex3_iface.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex3b_iface_param.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex4a_abs_diff.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex4a_abs_diff_iar.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex4b_abs_diff_u16.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex5_lut.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex6_foreach.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex7_mapinplace.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex8_gcd.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex0_test_struct.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex10a_fib_rec.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex10b_fib_iter.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex10c_fib_fold.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex11_minmax_multiret.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex12_assert.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex13_multiret_assert.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex14_fold_assert.nanz (0.03s)
+    --- PASS: TestShowcaseCompileAssemble/ex15_smc_sprite.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex16_hello_mze.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/ex17_asm_block.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex18_user_console_io.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex9a_factorial_rec.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex9b_factorial_fold.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex10a_fib_rec.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex10b_fib_iter.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex10c_fib_fold.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex11_minmax_multiret.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex12_assert.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex13_multiret_assert.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex14_fold_assert.nanz#01 (0.03s)
+    --- PASS: TestShowcaseCompileAssemble/ex15_smc_sprite.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex16_hello_mze.nanz#01 (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/ex17_asm_block.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex18_user_console_io.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex19_assert_forms.nanz (0.07s)
+    --- PASS: TestShowcaseCompileAssemble/ex1_struct.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex2_ufcs.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex3_iface.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex3b_iface_param.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex4a_abs_diff.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex4b_abs_diff_u16.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex5_lut.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex6_foreach.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex7_mapinplace.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex8_gcd.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex9a_factorial_rec.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex9b_factorial_fold.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex20_arena_allocator.nanz (0.02s)
+    --- PASS: TestShowcaseCompileAssemble/ex21_enum.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex22_type_alias.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex23_import_unqualified.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex24_import_qualified.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex25_import_alias_glob.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex26_enum_assert.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex27_strings.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex28_pipe.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ops.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex29_lanz.lanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex30_ptr_cast.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex31_asm_ret_clob.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex32_value_pipe.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex33_lambda_inference.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/ex34_tetris.nanz (0.56s)
+    --- PASS: TestShowcaseCompileAssemble/hello_zx.nanz (0.13s)
+    --- PASS: TestShowcaseCompileAssemble/sap_report_zx.nanz (0.42s)
+    --- PASS: TestShowcaseCompileAssemble/zsql_mara_color_zx.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/hello_agon.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/hello_world.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/nc_agon.nanz (0.08s)
+    --- PASS: TestShowcaseCompileAssemble/tui_demo.nanz (0.05s)
+    --- PASS: TestShowcaseCompileAssemble/tui_hello.nanz (0.04s)
+    --- PASS: TestShowcaseCompileAssemble/assert_test.lanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/assert_test.lizp (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/cond_test.lizp (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/crypto.lizp (0.02s)
+    --- PASS: TestShowcaseCompileAssemble/dsp.lizp (0.02s)
+    --- PASS: TestShowcaseCompileAssemble/factorial.lizp (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/functional.lizp (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/game_of_life.lizp (0.02s)
+    --- PASS: TestShowcaseCompileAssemble/hello.lizp (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/scheme_r5rs.lizp (0.08s)
+    --- PASS: TestShowcaseCompileAssemble/scheme_test.lizp (0.05s)
+    --- PASS: TestShowcaseCompileAssemble/self_tokenizer.lizp (0.10s)
+    --- PASS: TestShowcaseCompileAssemble/showcase.lizp (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/zx_checkerboard.lizp (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/zx_rainbow.lizp (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/01_sum_array.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/01_sum_array.plm (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/01_sum_plm_origin.plm (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/02_sum_array_idiomatic.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/03_filter_map_chain.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/04_lut_popcount.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/05_four_pointers.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/06_pbqp_weighted.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/07_ix_load_store.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/08_arena_allocator.nanz (0.06s)
+    --- PASS: TestShowcaseCompileAssemble/09_function_pointers.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/10_adt_option.nanz (0.02s)
+    --- PASS: TestShowcaseCompileAssemble/11_match_expression.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/12_state_machine.nanz (0.03s)
+    --- PASS: TestShowcaseCompileAssemble/13_result_error.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/14_error_propagation.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/15_error_enforcement.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/16_rotate_sled.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/17_bool_retflag.nanz (0.02s)
+    --- PASS: TestShowcaseCompileAssemble/18_tail_recursion.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/20_strref_test.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/21_hashmap_test.nanz (0.05s)
+    --- PASS: TestShowcaseCompileAssemble/30_stream_test.nanz (0.02s)
+    --- PASS: TestShowcaseCompileAssemble/50_impl_showcase.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/51_impl_cpm_demo.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/abap_screen.nanz (0.08s)
+    --- PASS: TestShowcaseCompileAssemble/assert_test.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/assert_test.plm (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/canvas_house.nanz (0.04s)
+    --- PASS: TestShowcaseCompileAssemble/cpm_leaf_console.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/grace_hir_constant_if.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/grace_intern_checked.nanz (0.03s)
+    --- PASS: TestShowcaseCompileAssemble/grace_seeded_sum.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/grace_tokenizer_checked.nanz (0.35s)
+    --- PASS: TestShowcaseCompileAssemble/grace_weighted_checksum.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/hello_cpm.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/hello_cpm_fib.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/irc_client.nanz (0.24s)
+    --- PASS: TestShowcaseCompileAssemble/meta_screen.nanz (0.05s)
+    --- PASS: TestShowcaseCompileAssemble/mul16_gpu_test.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/mul_const.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/nc.nanz (0.94s)
+    --- PASS: TestShowcaseCompileAssemble/pfcco_weighted_packet.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/promoted_arithmetic.nanz (0.08s)
+    --- PASS: TestShowcaseCompileAssemble/rotozoomer.nanz (0.13s)
+    --- PASS: TestShowcaseCompileAssemble/sap_mara_cpm.nanz (0.07s)
+    --- PASS: TestShowcaseCompileAssemble/sap_mara_demo.nanz (0.11s)
+    --- PASS: TestShowcaseCompileAssemble/screen_alv.nanz (0.23s)
+    --- PASS: TestShowcaseCompileAssemble/screen_customer.nanz (0.11s)
+    --- PASS: TestShowcaseCompileAssemble/screen_declarative.nanz (0.17s)
+    --- PASS: TestShowcaseCompileAssemble/screen_report.nanz (0.18s)
+    --- PASS: TestShowcaseCompileAssemble/self_lanz_parser.nanz (0.16s)
+    --- PASS: TestShowcaseCompileAssemble/self_parser.nanz (0.77s)
+    --- PASS: TestShowcaseCompileAssemble/self_tokenizer.nanz (0.58s)
+    --- PASS: TestShowcaseCompileAssemble/sha256.nanz (0.02s)
+    --- PASS: TestShowcaseCompileAssemble/signed_arithmetic.nanz (0.06s)
+    --- PASS: TestShowcaseCompileAssemble/sql_test6.nanz (0.06s)
+    --- PASS: TestShowcaseCompileAssemble/sqlite_demo.nanz (0.02s)
+    --- PASS: TestShowcaseCompileAssemble/sqlite_test.nanz (0.06s)
+    --- PASS: TestShowcaseCompileAssemble/test_irc_minimal.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/tetris_cpm.nanz (0.32s)
+    --- PASS: TestShowcaseCompileAssemble/tetris_tui.nanz (0.35s)
+    --- PASS: TestShowcaseCompileAssemble/tiny.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/tui_commander.nanz (0.04s)
+    --- PASS: TestShowcaseCompileAssemble/tui_commander_l3.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/tui_cpm.nanz (0.02s)
+    --- PASS: TestShowcaseCompileAssemble/tui_demo.nanz#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/tui_screen.nanz (0.02s)
+    --- PASS: TestShowcaseCompileAssemble/tui_zx.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/tuple_assert_gate.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/typed_print.nanz (0.04s)
+    --- PASS: TestShowcaseCompileAssemble/widemath.nanz (0.03s)
+    --- PASS: TestShowcaseCompileAssemble/zsql.nanz (0.03s)
+    --- PASS: TestShowcaseCompileAssemble/zsql_zx.nanz (0.06s)
+    --- PASS: TestShowcaseCompileAssemble/zsql_zx_real.nanz (0.03s)
+    --- PASS: TestShowcaseCompileAssemble/outparam_swap.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/assert_test.pas (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/bubble_sort.pas (0.04s)
+    --- PASS: TestShowcaseCompileAssemble/casetest.pas (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/factorial.pas (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/hello.pas (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/logic_test.pas (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/math_test.pas (0.03s)
+    --- PASS: TestShowcaseCompileAssemble/records.pas (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/recursive_test.pas (0.03s)
+    --- PASS: TestShowcaseCompileAssemble/sieve.pas (0.02s)
+    --- PASS: TestShowcaseCompileAssemble/string_test.pas (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/abs_diff_fib.plm (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/assert_test.plm#01 (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/hello.plm (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/showcase.plm (0.03s)
+    --- PASS: TestShowcaseCompileAssemble/sum_array.plm (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/asm_caller_callee.nanz (0.03s)
+    --- PASS: TestShowcaseCompileAssemble/asm_calling_convention.nanz (0.06s)
+    --- PASS: TestShowcaseCompileAssemble/asm_register_permutations.nanz (0.08s)
+    --- PASS: TestShowcaseCompileAssemble/divmod10_test.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/fib_parallel_copy.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/mul8_strength_reduction.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/nanz_advantage_showcase.nanz (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/pipe_fold_mul_combos.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/z80_compute_verify.nanz (0.18s)
+    --- SKIP: TestShowcaseCompileAssemble/zvm.nanz (0.00s)
+    --- PASS: TestShowcaseCompileAssemble/console_demo.nanz (0.13s)
+    --- PASS: TestShowcaseCompileAssemble/plasma.nanz (0.20s)
+    --- PASS: TestShowcaseCompileAssemble/tetris.nanz (0.40s)
+    --- PASS: TestShowcaseCompileAssemble/tetris_mir2_test.nanz (0.05s)
+PASS
+ok  	github.com/minz/minzc/pkg/nanz	9.093s

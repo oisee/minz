@@ -1,0 +1,19 @@
+{
+  "files": [
+    {
+      "path": "docs/grace-integration-104/showcase-59db4b46.txt",
+      "bytes": 86968,
+      "sha256": "3ca06aa9a344884eb7c5d420f5806a46052e5747a56e5d8278c4c232a99a2cb0"
+    },
+    {
+      "path": "docs/grace-integration-104/hir-nanz-59db4b46.txt",
+      "bytes": 87,
+      "sha256": "8969b066e172053c3724ddc5c17a75a0262adcd97688008e5686dda6c5efb294"
+    },
+    {
+      "path": "docs/grace-integration-104/README.md",
+      "bytes": 2209,
+      "sha256": "b48178cc62498403c3edd81b1e806be19708a23cc545d3929a88227090e85408"
+    }
+  ]
+}
