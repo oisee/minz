@@ -9,6 +9,7 @@ import (
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/pipeline"
 	"github.com/spf13/cobra"
+	"io"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -288,11 +289,20 @@ func checkMemoryHostCLIKeys(value any, ty reflect.Type) error {
 	return nil
 }
 func decodeMemoryHostCLIWorkload(path string, out *hir.MemoryHostWorkload) error {
-	if e := decodeHIRProfileJSON(path, hirWorkloadJSONLimit, out); e != nil {
-		return e
-	}
 	b, e := readHIRProfileBytes(path, hirWorkloadJSONLimit)
 	if e != nil {
+		return e
+	}
+	duplicate := json.NewDecoder(bytes.NewReader(b))
+	if e = checkHIRProfileJSON(duplicate, 0); e != nil {
+		return e
+	}
+	if _, e = duplicate.Token(); e != io.EOF {
+		return fmt.Errorf("memory host CLI: trailing workload JSON")
+	}
+	typed := json.NewDecoder(bytes.NewReader(b))
+	typed.DisallowUnknownFields()
+	if e = typed.Decode(out); e != nil {
 		return e
 	}
 	var value any
