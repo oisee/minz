@@ -1,0 +1,26 @@
+; MIR2 module: u32_or
+global @narrow : u16
+global @wide : u32
+global @result_lr : u32
+global @result_rl : u32
+
+fun @compute()
+  block @entry:
+    %r1 = addr_of @narrow : ptr [pointer]
+    %r2 = load %r1 : u16 [pointer]
+    %r3 = ext %r2 : u16 -> u32 [general]
+    %r4 = addr_of @wide : ptr [pointer]
+    %r5 = load %r4 : u32 [general]
+    %r6 = or %r3, %r5 : u32 [acc]
+    %r7 = addr_of @result_lr : ptr [pointer]
+    store %r7, %r6 : u32
+    %r8 = addr_of @wide : ptr [pointer]
+    %r9 = load %r8 : u32 [general]
+    %r10 = addr_of @narrow : ptr [pointer]
+    %r11 = load %r10 : u16 [pointer]
+    %r12 = ext %r11 : u16 -> u32 [general]
+    %r13 = or %r9, %r12 : u32 [acc]
+    %r14 = addr_of @result_rl : ptr [pointer]
+    store %r14, %r13 : u32
+    ret void
+

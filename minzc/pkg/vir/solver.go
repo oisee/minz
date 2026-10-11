@@ -6,7 +6,7 @@
 //
 // Architecture:
 //
-//	Z3 solver (primary): encodes joint isel+regalloc as SMT, provably optimal.
+//	Z3 research solver: joint isel+regalloc SMT over a fixed schedule and cost model.
 //	WFC solver (future):  fast greedy approximation, validated against Z3.
 //
 // For each VIROp the solver sees:
@@ -15,7 +15,8 @@
 //   - ALL spill tier options (L1-L7)
 //   - ALL inter-instruction constraints (interference, clobbers, aliasing)
 //
-// One decision. No phase boundaries. No information loss.
+// Optimality is limited to the encoded schedule, locations, constraints and cost.
+// This research path is not the ordinary compiler backend (ADR-0043/0047).
 package vir
 
 import (

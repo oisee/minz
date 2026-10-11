@@ -1,0 +1,4 @@
+=== RUN   TestHIRProfileAutoMeasuredCompilation
+--- PASS: TestHIRProfileAutoMeasuredCompilation (19.14s)
+PASS
+ok  	github.com/minz/minzc/cmd/minzc	19.153s

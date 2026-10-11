@@ -1,0 +1,14 @@
+ORG 32768
+    PUSH AF
+    LD (_spill_ext_r2), HL
+    LD A, (_spill_ext_r2+1)
+    RLCA
+    SBC A, A
+    EXX
+    LD (_spill_ext_r2), A
+    LD (_spill_ext_r2+1), A
+    EXX
+    POP AF
+RET
+_spill_ext_r1 EQU 24576
+_spill_ext_r2 EQU 24592

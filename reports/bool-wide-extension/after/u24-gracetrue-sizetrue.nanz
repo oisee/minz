@@ -1,0 +1,8 @@
+global input:u8
+global result:u24
+global again:u24
+global other:u8
+fun embed(){let b:bool=input==0
+result=u24(b)
+other=input+1
+again=u24(b)}

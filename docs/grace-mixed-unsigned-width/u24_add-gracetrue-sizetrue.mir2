@@ -1,0 +1,26 @@
+; MIR2 module: u24_add
+global @narrow : u16
+global @wide : u24
+global @result_lr : u24
+global @result_rl : u24
+
+fun @compute()
+  block @entry:
+    %r1 = addr_of @narrow : ptr [pointer]
+    %r2 = load %r1 : u16 [pointer]
+    %r3 = ext %r2 : u16 -> u24 [general]
+    %r4 = addr_of @wide : ptr [pointer]
+    %r5 = load %r4 : u24 [general]
+    %r6 = add %r3, %r5 : u24 [acc]
+    %r7 = addr_of @result_lr : ptr [pointer]
+    store %r7, %r6 : u24
+    %r8 = addr_of @wide : ptr [pointer]
+    %r9 = load %r8 : u24 [general]
+    %r10 = addr_of @narrow : ptr [pointer]
+    %r11 = load %r10 : u16 [pointer]
+    %r12 = ext %r11 : u16 -> u24 [general]
+    %r13 = add %r9, %r12 : u24 [acc]
+    %r14 = addr_of @result_rl : ptr [pointer]
+    store %r14, %r13 : u24
+    ret void
+

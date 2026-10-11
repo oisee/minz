@@ -1,0 +1,7 @@
+# Интеграция135: свежий core и публикация v67
+
+Полные пакеты checkpoint c69e350e: **HIR PASS26,371 с; MIR2 PASS48,688 с; Nanz PASS15,599 с; VIR PASS2,360 с**. [Точный лог](core.txt). Проверка включает unsigned widening, full-width comparisons и предыдущие исправления. Полный CLI того же checkpoint выполняется отдельно. Fullpipeline a7954042 также ещё жив; новый core не объявляет весь pipeline PASS. Сохранены точные исполняемые gate binaries и hashes в compiler-checkpoints на шаре.
+
+[Приватная сводка v67](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/current-state.html) опубликована, native Sites вернул succeeded. [Точная публикация](site-v67.json). Она отражает b1adbf09, до последующего unsigned extension. Сайт проверен:79 HTML страниц, ни одной потерянной локальной HTML-ссылки. Pascal hosted archive содержит исходник, workloads, решения, ASM/BIN/MIR и логи; frozen test executable сохранён полностью локально и на шаре, вне hosted subset из-за лимита Sites. Original manifest scope явно описан в hosted-scope.txt. Старые страницы и артефакты сохранены. Копирование всей новой статической версии в локальные и share directories идёт отдельным проверяемым процессом; его completion manifest появится только после SHA всех файлов.
+
+Общая цель остаётся открытой. Следующая конкретная находка в неизменённом widemath: abs16(0x8000) raw VM даёт0 вместо32768; расследуется frontend typing, baseline заморожен до изменений. Это новая проверка корректности исходного корпуса, а не новый заявленный optimization gain.

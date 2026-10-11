@@ -1,0 +1,20 @@
+--- FAIL: TestSignedExtensionNative (0.00s)
+    --- FAIL: TestSignedExtensionNative/16_32_HL__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:182: value=0 got=a5a50000 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                PUSH AF
+                LD (_spill_ext_r2), HL
+                LD A, (_spill_ext_r2+1)
+                RLCA
+                SBC A, A
+                EXX
+                LD (_spill_ext_r2), A
+                LD (_spill_ext_r2+1), A
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+FAIL
+FAIL	github.com/minz/minzc/pkg/mir2	0.011s
+FAIL

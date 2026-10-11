@@ -1,0 +1,9 @@
+    PUSH AF
+    LD A, (_spill_ext_r1)
+    PUSH AF
+    RLCA
+    SBC A, A
+    LD B, A
+    POP AF
+    LD C, A
+    POP AF

@@ -1,0 +1,4 @@
+global input:i24
+global result:i32
+fun convert(x:i24)->i32 {return i32(x)}
+fun embed(){result=convert(input)}

@@ -4,9 +4,11 @@
 // VIR instructions use Z80-flavored opcodes but virtual registers — no pattern
 // or physical register has been chosen yet.
 //
-// The unified solver (Z3 primary, WFC fast-path) converts VIR → PIR in one
-// pass, simultaneously selecting instruction patterns AND physical registers.
-// This eliminates the 5-layer pipeline that created exponential edge cases.
+// The research solver converts VIR → PIR, jointly choosing instruction patterns
+// and physical registers for a fixed operation schedule. Z3 is an offline
+// dependency; WFC remains a future research option, not an implemented fast path.
+// Ordinary compilation uses the MIR2 → Z80 path and validated table candidates.
+// See ADR-0043 and ADR-0047 for the current boundary and model limitations.
 //
 // Architecture:
 //

@@ -1,0 +1,96 @@
+; MIR2 module: promoted_arithmetic.nanz
+fun @add(%r1: u8 [acc], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = ext %r1 : u8 -> i16 [pointer]
+    %r4 = ext %r2 : u8 -> i16 [pointer]
+    %r5 = add %r3, %r4 : i16 [pointer]
+    %r6 = trunc %r5 : i16 -> u8 [general]
+    ret %r6
+
+fun @byte_add(%r7: u8 [acc], %r8: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r9 = ext %r7 : u8 -> i16 [pointer]
+    %r10 = ext %r8 : u8 -> i16 [pointer]
+    %r11 = add %r9, %r10 : i16 [pointer]
+    %r12 = trunc %r11 : i16 -> u8 [general]
+    ret %r12
+
+fun @add8(%r13: u8 [acc], %r14: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r15 = ext %r13 : u8 -> i16 [pointer]
+    %r16 = ext %r14 : u8 -> i16 [pointer]
+    %r17 = add %r15, %r16 : i16 [pointer]
+    %r18 = trunc %r17 : i16 -> u8 [general]
+    ret %r18
+
+fun @add_bytes(%r19: u8 [acc], %r20: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r21 = ext %r19 : u8 -> i16 [pointer]
+    %r22 = ext %r20 : u8 -> i16 [pointer]
+    %r23 = add %r21, %r22 : i16 [pointer]
+    %r24 = trunc %r23 : i16 -> u8 [general]
+    ret %r24
+
+fun @swap_nibbles(%r25: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r26 = const 4 : u8 [general]
+    %r27 = shr %r25, %r26 : u8 [general]
+    %r28 = const 4 : u8 [general]
+    %r29 = shl %r25, %r28 : u8 [general]
+    %r30 = const 255 : u8 [general]
+    %r31 = and %r29, %r30 : u8 [acc]
+    %r32 = ext %r27 : u8 -> i16 [pointer]
+    %r33 = ext %r31 : u8 -> i16 [pointer]
+    %r34 = or %r32, %r33 : i16 [pointer]
+    %r35 = trunc %r34 : i16 -> u8 [general]
+    ret %r35
+
+fun @popcount4(%r36: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r37 = const 1 : u8 [general]
+    %r38 = and %r36, %r37 : u8 [acc]
+    %r39 = const 1 : u8 [general]
+    %r40 = shr %r36, %r39 : u8 [general]
+    %r41 = const 1 : u8 [general]
+    %r42 = and %r40, %r41 : u8 [acc]
+    %r43 = add %r38, %r42 : u8 [acc]
+    %r44 = const 2 : u8 [general]
+    %r45 = shr %r36, %r44 : u8 [general]
+    %r46 = const 1 : u8 [general]
+    %r47 = and %r45, %r46 : u8 [acc]
+    %r48 = add %r43, %r47 : u8 [acc]
+    %r49 = const 3 : u8 [general]
+    %r50 = shr %r36, %r49 : u8 [general]
+    %r51 = const 1 : u8 [general]
+    %r52 = and %r50, %r51 : u8 [acc]
+    %r53 = add %r48, %r52 : u8 [acc]
+    ret %r53
+
+fun @test_ld_word(%r54: u8 [acc], %r55: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r56 = ext %r54 : u8 -> u16 [pointer]
+    %r57 = ext %r55 : u8 -> u16 [pointer]
+    %r58 = const 8 : u16 [pointer]
+    %r59 = shl %r57, %r58 : u16 [pointer]
+    %r60 = or %r56, %r59 : u16 [pointer]
+    ret %r60
+
+fun @promoted_mod(%r61: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r62 = ext %r61 : u8 -> i16 [pointer]
+    %r63 = const 2 : i16 [pointer]
+    %r64 = smod %r62, %r63 : i16 [pointer]
+    %r65 = trunc %r64 : i16 -> u8 [general]
+    ret %r65
+
+fun @pressure(%r66: i16 [pointer], %r67: i16 [index], %r68: i16 [index], %r69: i16 [index]) -> i16 [pointer]
+  block @entry:
+    %r70 = add %r66, %r67 : i16 [pointer]
+    %r71 = sub %r68, %r69 : i16 [pointer]
+    %r72 = sub %r66, %r69 : i16 [pointer]
+    %r73 = add %r67, %r68 : i16 [pointer]
+    %r74 = sdiv %r70, %r71 : i16 [pointer]
+    %r75 = smod %r72, %r73 : i16 [pointer]
+    %r76 = add %r74, %r75 : i16 [pointer]
+    ret %r76
+

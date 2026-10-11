@@ -1,0 +1,3 @@
+Run from minzc/pkg/pipeline:
+PROMOTED_COMPLETE_EXPORT=/absolute/output /absolute/path/pipeline.test -test.run ^TestOriginalPromotedArithmeticComplete$ -test.count=1 -test.v
+Go 1.26.8. Frozen compiler base561dab36 plus this test.

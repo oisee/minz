@@ -1,0 +1,6 @@
+global narrow:u16
+ global wide:u32
+ global result_lr:u32
+ global result_rl:u32
+ fun compute() {result_lr=narrow | wide
+ result_rl=wide | narrow}
