@@ -28,6 +28,25 @@ type MemoryHostBaselineEvidence struct {
 // builtins. Direct native memory permission traps and execution limits refuse
 // attestation as infrastructure errors.
 func RunZ80MemoryHostBaseline(factory func() (*hir.Module, error), workload hir.MemoryHostWorkload) (*MemoryHostBaselineEvidence, error) {
+	return runZ80MemoryHostBaseline(factory, workload, MemoryHostBaselineOptions{})
+}
+
+// RunZ80MemoryHostBaselineWithOptions owns and validates the typed compiler
+// choices before invoking the source factory. The published v1 wrapper remains
+// Legacy; this v2 entry makes the measured backend policy explicit.
+func RunZ80MemoryHostBaselineWithOptions(factory func() (*hir.Module, error), workload hir.MemoryHostWorkload, options MemoryHostBaselineOptions) (*MemoryHostBaselineEvidenceV2, error) {
+	owned := options
+	if _, err := resolveUnsignedPairComparePolicy(Options{UnsignedPairComparePolicy: owned.UnsignedPairComparePolicy}); err != nil {
+		return nil, err
+	}
+	baseline, err := runZ80MemoryHostBaseline(factory, workload, owned)
+	if err != nil {
+		return nil, err
+	}
+	return &MemoryHostBaselineEvidenceV2{Schema: "minz.memory-host-baseline/v2", CompileOptions: owned, Baseline: baseline}, nil
+}
+
+func runZ80MemoryHostBaseline(factory func() (*hir.Module, error), workload hir.MemoryHostWorkload, compileOptions MemoryHostBaselineOptions) (*MemoryHostBaselineEvidence, error) {
 	fail := func(e error) (*MemoryHostBaselineEvidence, error) {
 		return nil, fmt.Errorf("memory host baseline: %w", e)
 	}
@@ -109,7 +128,7 @@ func RunZ80MemoryHostBaseline(factory func() (*hir.Module, error), workload hir.
 	}
 	// Compile the candidate only after capturing its immutable input identity.
 	// The source remains retained and must stay unchanged through code generation.
-	steps, e := CompileHIRSteps(candidate, Options{AssertMode: "none"})
+	steps, e := CompileHIRSteps(candidate, Options{AssertMode: "none", UnsignedPairComparePolicy: compileOptions.UnsignedPairComparePolicy})
 	if e != nil {
 		return fail(e)
 	}

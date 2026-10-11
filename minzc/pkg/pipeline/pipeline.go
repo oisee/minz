@@ -40,16 +40,17 @@ type Result struct {
 
 // Steps holds the intermediate outputs of each pipeline stage.
 type Steps struct {
-	ProfileDecisions []hir.ProfileDecision
-	HIRLoopSites     *hir.LoopSiteMap        // optional input-HIR origins, before Grace/splitting
-	HIR              string                  // HIR structural dump (hir.Module.Dump())
-	MIR2Raw          string                  // MIR2 module dump before optimisation passes
-	MIR2Opt          string                  // MIR2 module dump after DSE + ReorderBlocks
-	MIR2Module       *mir2.Module            // MIR2 module (for LLVM/WASM/ABAP emit)
-	Allocation       *mir2.AllocResult       // physical locations used by Z80 codegen
-	Assembly         string                  // Final .a80 text
-	LIRResults       []lir.ConvergenceResult // LIR convergence check results (if LIRCheck enabled)
-	Traces           map[string]*FuncTrace   // per-function compilation trace (keyed by func name)
+	UnsignedPairComparePolicy mir2.UnsignedPairComparePolicy // resolved policy replayed by native re-codegen
+	ProfileDecisions          []hir.ProfileDecision
+	HIRLoopSites              *hir.LoopSiteMap        // optional input-HIR origins, before Grace/splitting
+	HIR                       string                  // HIR structural dump (hir.Module.Dump())
+	MIR2Raw                   string                  // MIR2 module dump before optimisation passes
+	MIR2Opt                   string                  // MIR2 module dump after DSE + ReorderBlocks
+	MIR2Module                *mir2.Module            // MIR2 module (for LLVM/WASM/ABAP emit)
+	Allocation                *mir2.AllocResult       // physical locations used by Z80 codegen
+	Assembly                  string                  // Final .a80 text
+	LIRResults                []lir.ConvergenceResult // LIR convergence check results (if LIRCheck enabled)
+	Traces                    map[string]*FuncTrace   // per-function compilation trace (keyed by func name)
 }
 
 // FuncTrace records the full compilation provenance for one function.
@@ -87,8 +88,9 @@ type FuncTrace struct {
 
 // Options configures optional pipeline passes.
 type Options struct {
-	ProfileSelection *ProfileSelection // opt-in refusing PGO input
-	CollectHIRSites  bool              // diagnostic loop sites; does not enable PGO
+	UnsignedPairComparePolicy mir2.UnsignedPairComparePolicy // explicit opt-in; zero preserves Legacy
+	ProfileSelection          *ProfileSelection              // opt-in refusing PGO input
+	CollectHIRSites           bool                           // diagnostic loop sites; does not enable PGO
 	// ContractOpt enables Phase 5b interprocedural contract optimisation.
 	// Default true — only disable for A/B comparison or debugging.
 	ContractOpt bool
@@ -140,6 +142,11 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		opt = opts[0]
 	}
 	var s Steps
+	policy, err := resolveUnsignedPairComparePolicy(opt)
+	if err != nil {
+		return s, err
+	}
+	s.UnsignedPairComparePolicy = policy
 	s.Traces = make(map[string]*FuncTrace)
 
 	if err := hir.ResolveCallSignatures(hm); err != nil {
@@ -379,7 +386,8 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		}
 		var codegenErr error
 		s.Assembly, codegenErr = mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{
-			AnnotateTStates: opt.AnnotateTStates,
+			AnnotateTStates:           opt.AnnotateTStates,
+			UnsignedPairComparePolicy: s.UnsignedPairComparePolicy,
 		})
 		if codegenErr != nil {
 			return s, codegenErr
@@ -478,6 +486,10 @@ func CompileHIR(hm *hir.Module) (string, error) {
 // CompileHIRWithOptions runs the HIR→MIR2→Z80 pipeline with explicit options.
 // Use this to compare output with/without specific optimisation passes.
 func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
+	policy, err := resolveUnsignedPairComparePolicy(opts)
+	if err != nil {
+		return "", err
+	}
 	if err := hir.ResolveCallSignatures(hm); err != nil {
 		return "", err
 	}
@@ -585,7 +597,7 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	if err := mir2.ValidateZ80Symbols(m); err != nil {
 		return "", err
 	}
-	asm, err := mir2.Z80Codegen(m, combined)
+	asm, err := mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{UnsignedPairComparePolicy: policy})
 	if err != nil {
 		return "", err
 	}

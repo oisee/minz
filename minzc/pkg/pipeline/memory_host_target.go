@@ -65,7 +65,7 @@ func runZ80MemoryHostWorkload(steps Steps, source *hir.Module, w hir.MemoryHostW
 	origins := hir.MemoryHostGlobalOrigins(steps.MIR2Module)
 	records := []mir2.NativeMemoryAccess{}
 	frames := []mir2.NativeCallFrameSnapshot{}
-	captured, e := mir2.Z80Codegen(steps.MIR2Module, steps.Allocation, mir2.Z80CodegenOptions{NativeMemoryAccessOrigins: origins, NativeMemoryAccesses: &records, NativeCallFrames: &frames})
+	captured, e := mir2.Z80Codegen(steps.MIR2Module, steps.Allocation, mir2.Z80CodegenOptions{NativeMemoryAccessOrigins: origins, NativeMemoryAccesses: &records, NativeCallFrames: &frames, UnsignedPairComparePolicy: steps.UnsignedPairComparePolicy})
 	if e != nil {
 		return fail(e)
 	}
