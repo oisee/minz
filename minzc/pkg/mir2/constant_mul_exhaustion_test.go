@@ -11,7 +11,7 @@ import (
 
 // Width oracle: Nanz Language Book v7 §3.1 u8; multiplication truncates modulo256.
 func TestConstantByteMulExhaustedScratchNative(t *testing.T) {
-	for _, coeff := range []int{3, 5, 6, 7, 9, 10, 12, 15} {
+	for _, coeff := range []int{3, 5, 6, 7, 9, 10, 11, 12, 15} {
 		for _, keepA := range []bool{false, true} {
 			t.Run(fmt.Sprintf("coeff%d-liveA%v", coeff, keepA), func(t *testing.T) {
 				m := &Module{}

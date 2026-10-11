@@ -93,12 +93,16 @@ func TestOriginalPlasmaAttributeMul11(t *testing.T) {
 	h := parse()
 	rawVM := mir2.NewVM(hir.LowerModule(h))
 	rawVM.MaxSteps = 10000000
+	rawMemory := append([]byte(nil), rawVM.ReadHeap(0, int(rawVM.AllocHeap(nil).I))...)
 	var rawResults [][]mir2.Value
 	for i, c := range w.Calls {
 		want := model(byte(*c.Arguments[0].Value), byte(*c.Arguments[1].Value))
 		r, e := rawVM.Call("plasma_attr", []mir2.Value{{I: *c.Arguments[0].Value}, {I: *c.Arguments[1].Value}})
 		if e != nil || len(r) != 1 || r[0].I != want {
 			t.Fatal("raw independent model", i, r, want, e)
+		}
+		if !bytes.Equal(rawVM.ReadHeap(0, len(rawMemory)), rawMemory) {
+			t.Fatal("raw VM unexpected writes", i)
 		}
 		rawResults = append(rawResults, r)
 	}
@@ -116,6 +120,7 @@ func TestOriginalPlasmaAttributeMul11(t *testing.T) {
 	save("target.bin", a.Binary)
 	finalVM := mir2.NewVM(s.MIR2Module)
 	finalVM.MaxSteps = 10000000
+	finalMemory := append([]byte(nil), finalVM.ReadHeap(0, int(finalVM.AllocHeap(nil).I))...)
 	mem := &memoryHostZ80Memory{}
 	copy(mem.data[0x8000:], a.Binary)
 	cpu := z80.NewZ80(mem, memoryHostNoPorts{})
@@ -128,6 +133,9 @@ func TestOriginalPlasmaAttributeMul11(t *testing.T) {
 		r, e := finalVM.Call("plasma_attr", args)
 		if e != nil || !reflect.DeepEqual(r, rawResults[i]) {
 			t.Fatal("final VM", i, r, e)
+		}
+		if !bytes.Equal(finalVM.ReadHeap(0, len(finalMemory)), finalMemory) {
+			t.Fatal("final VM unexpected writes", i)
 		}
 		before := mem.data
 		mem.data[0xeff0], mem.data[0xeff1] = 0, 3

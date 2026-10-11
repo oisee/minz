@@ -1,0 +1,386 @@
+; MIR2 module: ../../../examples/zx/plasma.nanz
+global const @glsl_sin_lut : [256]u8@align(256)
+global const @dither_pattern_lut : [256]u8@align(256)
+
+fun @Vec2_dot(%r1: Vec2 [pointer], %r2: Vec2 [pointer]) -> u8 [acc]
+  block @entry:
+    %r3 = load %r1 : u8 [general]
+    %r4 = load %r2 : u8 [general]
+    %r5 = mul %r3, %r4 : u8 [general]
+    %r6 = field %r1, +1 : ptr [pointer]
+    %r7 = load %r6 : u8 [general]
+    %r8 = field %r2, +1 : ptr [pointer]
+    %r9 = load %r8 : u8 [general]
+    %r10 = mul %r7, %r9 : u8 [general]
+    %r11 = add %r5, %r10 : u8 [acc]
+    ret %r11
+
+fun @Vec2_length(%r12: Vec2 [pointer]) -> u8 [acc]
+  block @entry:
+    %r13 = load %r12 : u8 [general]
+    %r14 = const 127 : u8 [general]
+    %r15 = cmp.ugt %r13, %r14 : bool [flag]
+    br_if %r15, @cond_then1(), @cond_else2()
+  block @cond_then1:
+    %r16 = const 255 : u8 [general]
+    %r17 = load %r12 : u8 [general]
+    %r18 = sub %r16, %r17 : u8 [acc]
+    jmp @cond_join3(%r18)
+  block @cond_join3(%r19: u8 [general]):
+    %r20 = field %r12, +1 : ptr [pointer]
+    %r21 = load %r20 : u8 [general]
+    %r22 = const 127 : u8 [general]
+    %r23 = cmp.ugt %r21, %r22 : bool [flag]
+    br_if %r23, @cond_then4(), @cond_else5()
+  block @cond_then4:
+    %r24 = const 255 : u8 [general]
+    %r25 = field %r12, +1 : ptr [pointer]
+    %r26 = load %r25 : u8 [general]
+    %r27 = sub %r24, %r26 : u8 [acc]
+    jmp @cond_join6(%r27)
+  block @cond_join6(%r28: u8 [general]):
+    %r29 = add %r19, %r28 : u8 [acc]
+    ret %r29
+  block @cond_else5:
+    %r30 = field %r12, +1 : ptr [pointer]
+    %r31 = load %r30 : u8 [general]
+    jmp @cond_join6(%r31)
+  block @cond_else2:
+    %r32 = load %r12 : u8 [general]
+    jmp @cond_join3(%r32)
+
+fun @Color_to_attr(%r33: Color [pointer]) -> u8 [acc]
+  block @entry:
+    %r34 = load %r33 : u8 [general]
+    %r35 = const 127 : u8 [general]
+    %r36 = cmp.ugt %r34, %r35 : bool [flag]
+    br_if %r36, @cond_then1(), @cond_else2()
+  block @cond_then1:
+    %r37 = const 1 : u8 [general]
+    jmp @cond_join3(%r37)
+  block @cond_join3(%r37: u8 [general]):
+    %r39 = field %r33, +1 : ptr [pointer]
+    %r40 = load %r39 : u8 [general]
+    %r41 = const 127 : u8 [general]
+    %r42 = cmp.ugt %r40, %r41 : bool [flag]
+    br_if %r42, @cond_then4(), @cond_else5()
+  block @cond_then4:
+    %r43 = const 1 : u8 [general]
+    jmp @cond_join6(%r43)
+  block @cond_join6(%r43: u8 [general]):
+    %r45 = field %r33, +2 : ptr [pointer]
+    %r46 = load %r45 : u8 [general]
+    %r47 = const 127 : u8 [general]
+    %r48 = cmp.ugt %r46, %r47 : bool [flag]
+    br_if %r48, @cond_then7(), @cond_else8()
+  block @cond_then7:
+    %r49 = const 1 : u8 [general]
+    jmp @cond_join9(%r49)
+  block @cond_join9(%r49: u8 [general]):
+    %r51 = const 2 : u8 [general]
+    %r52 = shl %r43, %r51 : u8 [general]
+    %r53 = const 1 : u8 [general]
+    %r54 = shl %r37, %r53 : u8 [general]
+    %r55 = or %r52, %r54 : u8 [acc]
+    %r56 = or %r55, %r49 : u8 [acc]
+    %r57 = load %r33 : u8 [general]
+    %r58 = const 200 : u8 [general]
+    %r59 = cmp.ugt %r57, %r58 : bool [flag]
+    %r60 = field %r33, +1 : ptr [pointer]
+    %r61 = load %r60 : u8 [general]
+    %r62 = const 200 : u8 [general]
+    %r63 = cmp.ugt %r61, %r62 : bool [flag]
+    %r64 = or %r59, %r63 : bool [acc]
+    %r65 = field %r33, +2 : ptr [pointer]
+    %r66 = load %r65 : u8 [general]
+    %r67 = const 200 : u8 [general]
+    %r68 = cmp.ugt %r66, %r67 : bool [flag]
+    %r69 = or %r64, %r68 : bool [acc]
+    %r70 = const 0 : bool [general]
+    %r71 = cmp.ne %r69, %r70 : bool [flag]
+    br_if %r71, @cond_then10(), @cond_else11()
+  block @cond_then10:
+    %r72 = const 64 : u8 [general]
+    jmp @cond_join12(%r72)
+  block @cond_join12(%r72: u8 [general]):
+    %r74 = or %r72, %r56 : u8 [acc]
+    ret %r74
+  block @cond_else11:
+    %r75 = const 0 : u8 [general]
+    jmp @cond_join12(%r75)
+  block @cond_else8:
+    %r76 = const 0 : u8 [general]
+    jmp @cond_join9(%r76)
+  block @cond_else5:
+    %r77 = const 0 : u8 [general]
+    jmp @cond_join6(%r77)
+  block @cond_else2:
+    %r78 = const 0 : u8 [general]
+    jmp @cond_join3(%r78)
+
+fun @color_to_attr_s(%r79: u8 [acc], %r80: u8 [general], %r81: u8 [counter]) -> u8 [acc]
+  block @entry:
+    %r82 = const 127 : u8 [general]
+    %r83 = cmp.ugt %r79, %r82 : bool [flag]
+    br_if %r83, @cond_then1(), @cond_else2()
+  block @cond_then1:
+    %r84 = const 1 : u8 [general]
+    jmp @cond_join3(%r84)
+  block @cond_join3(%r84: u8 [general]):
+    %r86 = const 127 : u8 [general]
+    %r87 = cmp.ugt %r80, %r86 : bool [flag]
+    br_if %r87, @cond_then4(), @cond_else5()
+  block @cond_then4:
+    %r88 = const 1 : u8 [general]
+    jmp @cond_join6(%r88)
+  block @cond_join6(%r88: u8 [general]):
+    %r90 = const 127 : u8 [general]
+    %r91 = cmp.ugt %r81, %r90 : bool [flag]
+    br_if %r91, @cond_then7(), @cond_else8()
+  block @cond_then7:
+    %r92 = const 1 : u8 [general]
+    jmp @cond_join9(%r92)
+  block @cond_join9(%r92: u8 [general]):
+    %r94 = const 2 : u8 [general]
+    %r95 = shl %r88, %r94 : u8 [general]
+    %r96 = const 1 : u8 [general]
+    %r97 = shl %r84, %r96 : u8 [general]
+    %r98 = or %r95, %r97 : u8 [acc]
+    %r99 = or %r98, %r92 : u8 [acc]
+    %r100 = const 200 : u8 [general]
+    %r101 = cmp.ugt %r79, %r100 : bool [flag]
+    %r102 = const 200 : u8 [general]
+    %r103 = cmp.ugt %r80, %r102 : bool [flag]
+    %r104 = or %r101, %r103 : bool [acc]
+    %r105 = const 200 : u8 [general]
+    %r106 = cmp.ugt %r81, %r105 : bool [flag]
+    %r107 = or %r104, %r106 : bool [acc]
+    %r108 = const 0 : bool [general]
+    %r109 = cmp.ne %r107, %r108 : bool [flag]
+    br_if %r109, @cond_then10(), @cond_else11()
+  block @cond_then10:
+    %r110 = const 64 : u8 [general]
+    jmp @cond_join12(%r110)
+  block @cond_join12(%r110: u8 [general]):
+    %r112 = or %r110, %r99 : u8 [acc]
+    ret %r112
+  block @cond_else11:
+    %r113 = const 0 : u8 [general]
+    jmp @cond_join12(%r113)
+  block @cond_else8:
+    %r114 = const 0 : u8 [general]
+    jmp @cond_join9(%r114)
+  block @cond_else5:
+    %r115 = const 0 : u8 [general]
+    jmp @cond_join6(%r115)
+  block @cond_else2:
+    %r116 = const 0 : u8 [general]
+    jmp @cond_join3(%r116)
+
+fun @glsl_sin(%r328: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r329 = ext %r328 : u8 -> u16 [index]
+    %r330 = addr_of @glsl_sin_lut : ptr [pointer]
+    %r331 = ptr_add %r330, %r329 : ptr [pointer]
+    %r332 = load %r331 : u8 [acc]
+    ret %r332
+
+fun @glsl_cos(%r152: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r153 = const 64 : u8 [general]
+    %r154 = add %r152, %r153 : u8 [acc]
+    %r155 = move %r154 : u8 [acc]
+    %r156 = call @glsl_sin(%r155) : u8 [acc]
+    ret %r156
+
+fun @dither_pattern(%r333: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r334 = ext %r333 : u8 -> u16 [index]
+    %r335 = addr_of @dither_pattern_lut : ptr [pointer]
+    %r336 = ptr_add %r335, %r334 : ptr [pointer]
+    %r337 = load %r336 : u8 [acc]
+    ret %r337
+
+fun @zx_screen_addr(%r183: u8 [acc], %r184: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r185 = const 64 : u8 [general]
+    %r186 = const 6 : u8 [general]
+    %r187 = shr %r184, %r186 : u8 [general]
+    %r188 = const 8 : u8 [general]
+    %r189 = mul %r187, %r188 : u8 [general]
+    %r190 = add %r185, %r189 : u8 [acc]
+    %r191 = const 7 : u8 [general]
+    %r192 = and %r184, %r191 : u8 [acc]
+    %r193 = add %r190, %r192 : u8 [acc]
+    %r194 = const 3 : u8 [general]
+    %r195 = shr %r184, %r194 : u8 [general]
+    %r196 = const 7 : u8 [general]
+    %r197 = and %r195, %r196 : u8 [acc]
+    %r198 = const 32 : u8 [general]
+    %r199 = mul %r197, %r198 : u8 [general]
+    %r200 = const 31 : u8 [general]
+    %r201 = and %r183, %r200 : u8 [acc]
+    %r202 = add %r199, %r201 : u8 [acc]
+    %r203 = ext %r193 : u8 -> u16 [pointer]
+    %r204 = const 256 : u16 [pointer]
+    %r205 = mul %r203, %r204 : u16 [pointer]
+    %r206 = ext %r202 : u8 -> u16 [pointer]
+    %r207 = add %r205, %r206 : u16 [pointer]
+    ret %r207
+
+fun @zx_attr_addr(%r208: u8 [acc], %r209: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r210 = const 22528 : u16 [pointer]
+    %r211 = ext %r209 : u8 -> u16 [pointer]
+    %r212 = const 32 : u16 [pointer]
+    %r213 = mul %r211, %r212 : u16 [pointer]
+    %r214 = add %r210, %r213 : u16 [pointer]
+    %r215 = ext %r208 : u8 -> u16 [pointer]
+    %r216 = add %r214, %r215 : u16 [pointer]
+    ret %r216
+
+fun @zx_poke(%r217: u16 [pointer], %r218: u8 [general])
+  block @entry:
+    asm "LD (HL), A"
+    ret void
+
+fun @PlasmaShader_sample(%r219: PlasmaShader [pointer], %r220: Vec2 [pointer]) -> u8 [acc]
+  block @entry:
+    %r221 = load %r220 : u8 [general]
+    %r222 = move %r221 : u8 [acc]
+    %r223 = call @glsl_sin(%r222) : u8 [acc]
+    %r224 = field %r220, +1 : ptr [pointer]
+    %r225 = load %r224 : u8 [general]
+    %r226 = const 43 : u8 [general]
+    %r227 = add %r225, %r226 : u8 [acc]
+    %r228 = move %r227 : u8 [acc]
+    %r229 = call @glsl_sin(%r228) : u8 [acc]
+    %r230 = load %r220 : u8 [general]
+    %r231 = const 1 : u8 [general]
+    %r232 = shr %r230, %r231 : u8 [general]
+    %r233 = field %r220, +1 : ptr [pointer]
+    %r234 = load %r233 : u8 [general]
+    %r235 = const 1 : u8 [general]
+    %r236 = shr %r234, %r235 : u8 [general]
+    %r237 = add %r232, %r236 : u8 [acc]
+    %r238 = load %r219 : u8 [general]
+    %r239 = add %r237, %r238 : u8 [acc]
+    %r240 = move %r239 : u8 [acc]
+    %r241 = call @glsl_sin(%r240) : u8 [acc]
+    %r242 = add %r223, %r229 : u8 [acc]
+    %r243 = add %r242, %r241 : u8 [acc]
+    ret %r243
+
+fun @plasma_sample(%r244: u8 [acc], %r245: u8 [general], %r246: u8 [counter]) -> u8 [acc]
+  block @entry:
+    %r247 = move %r244 : u8 [acc]
+    %r248 = call @glsl_sin(%r247) : u8 [acc]
+    %r249 = const 43 : u8 [general]
+    %r250 = add %r245, %r249 : u8 [acc]
+    %r251 = move %r250 : u8 [acc]
+    %r252 = call @glsl_sin(%r251) : u8 [acc]
+    %r253 = const 1 : u8 [general]
+    %r254 = shr %r244, %r253 : u8 [general]
+    %r255 = const 1 : u8 [general]
+    %r256 = shr %r245, %r255 : u8 [general]
+    %r257 = add %r254, %r256 : u8 [acc]
+    %r258 = add %r257, %r246 : u8 [acc]
+    %r259 = move %r258 : u8 [acc]
+    %r260 = call @glsl_sin(%r259) : u8 [acc]
+    %r261 = add %r248, %r252 : u8 [acc]
+    %r262 = add %r261, %r260 : u8 [acc]
+    ret %r262
+
+fun @plasma_attr(%r263: u8 [acc], %r264: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r265 = const 8 : u8 [general]
+    %r266 = mul %r263, %r265 : u8 [general]
+    %r267 = const 11 : u8 [general]
+    %r268 = mul %r264, %r267 : u8 [general]
+    %r269 = move %r266 : u8 [acc]
+    %r270 = call @glsl_sin(%r269) : u8 [acc]
+    %r271 = move %r268 : u8 [acc]
+    %r272 = call @glsl_cos(%r271) : u8 [acc]
+    %r273 = add %r270, %r272 : u8 [acc]
+    %r274 = const 5 : u8 [general]
+    %r275 = shr %r273, %r274 : u8 [general]
+    %r276 = const 210 : u8 [general]
+    %r277 = cmp.ugt %r273, %r276 : bool [flag]
+    br_if %r277, @cond_then1(), @cond_else2()
+  block @cond_then1:
+    %r278 = const 64 : u8 [general]
+    jmp @cond_join3(%r278)
+  block @cond_join3(%r278: u8 [general]):
+    %r280 = or %r278, %r275 : u8 [acc]
+    ret %r280
+  block @cond_else2:
+    %r281 = const 0 : u8 [general]
+    jmp @cond_join3(%r281)
+
+fun @render(%r282: u8 [acc])
+  block @entry:
+    %r283 = const 0 : u8 [general]
+    jmp @loop_head1(%r282, %r283)
+  block @loop_head1(%r284: u8 [general], %r283: u8 [general]):
+    %r286 = const 192 : u8 [general]
+    %r287 = cmp.ult %r283, %r286 : bool [flag]
+    br_if %r287, @loop_body2(), @loop_exit3()
+  block @loop_body2:
+    %r288 = const 0 : u8 [general]
+    jmp @loop_head4(%r284, %r288, %r283)
+  block @loop_head4(%r284: u8 [general], %r288: u8 [general], %r283: u8 [general]):
+    %r292 = const 32 : u8 [general]
+    %r293 = cmp.ult %r288, %r292 : bool [flag]
+    br_if %r293, @loop_body5(), @loop_exit6(%r284, %r283)
+  block @loop_body5:
+    %r294 = const 8 : u8 [general]
+    %r295 = mul %r288, %r294 : u8 [general]
+    %r296 = move %r295 : u8 [acc]
+    %r297 = move %r284 : u8 [counter]
+    %r298 = call @plasma_sample(%r296, %r283, %r297) : u8 [acc]
+    %r299 = move %r298 : u8 [acc]
+    %r300 = call @dither_pattern(%r299) : u8 [acc]
+    %r301 = move %r288 : u8 [acc]
+    %r302 = call @zx_screen_addr(%r301, %r283) : u16 [pointer]
+    call @zx_poke(%r302, %r300)
+    %r303 = const 1 : u8 [general]
+    %r304 = add %r288, %r303 : u8 [general]
+    jmp @loop_head4(%r284, %r304, %r283)
+  block @loop_exit6(%r305: u8 [general], %r306: u8 [general]):
+    %r307 = const 1 : u8 [general]
+    %r308 = add %r306, %r307 : u8 [general]
+    jmp @loop_head1(%r305, %r308)
+  block @loop_exit3:
+    %r309 = const 0 : u8 [general]
+    jmp @loop_head7(%r309)
+  block @loop_head7(%r309: u8 [general]):
+    %r311 = const 24 : u8 [general]
+    %r312 = cmp.ult %r309, %r311 : bool [flag]
+    cond_ret %r312, [], @loop_body8()
+  block @loop_body8:
+    %r313 = const 0 : u8 [general]
+    jmp @loop_head10(%r313, %r309)
+  block @loop_head10(%r313: u8 [general], %r309: u8 [general]):
+    %r316 = const 32 : u8 [general]
+    %r317 = cmp.ult %r313, %r316 : bool [flag]
+    br_if %r317, @loop_body11(), @loop_exit12(%r309)
+  block @loop_body11:
+    %r318 = move %r313 : u8 [acc]
+    %r319 = call @zx_attr_addr(%r318, %r309) : u16 [pointer]
+    %r320 = move %r313 : u8 [acc]
+    %r321 = call @plasma_attr(%r320, %r309) : u8 [acc]
+    call @zx_poke(%r319, %r321)
+    %r322 = const 1 : u8 [general]
+    %r323 = add %r313, %r322 : u8 [general]
+    jmp @loop_head10(%r323, %r309)
+  block @loop_exit12(%r324: u8 [general]):
+    %r325 = const 1 : u8 [general]
+    %r326 = add %r324, %r325 : u8 [general]
+    jmp @loop_head7(%r326)
+
+fun @main()
+  block @entry:
+    %r327 = const 0 : u8 [acc]
+    call @render(%r327)
+    ret void
+

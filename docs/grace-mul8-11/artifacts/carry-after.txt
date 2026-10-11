@@ -1,0 +1,4 @@
+=== RUN   TestMul11LivePredicateNative
+--- PASS: TestMul11LivePredicateNative (0.05s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.053s

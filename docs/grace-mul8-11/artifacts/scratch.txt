@@ -1,0 +1,8 @@
+=== RUN   TestConstantByteMulExhaustedScratchNative
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff11-liveAfalse
+=== RUN   TestConstantByteMulExhaustedScratchNative/coeff11-liveAtrue
+--- PASS: TestConstantByteMulExhaustedScratchNative (0.25s)
+    --- PASS: TestConstantByteMulExhaustedScratchNative/coeff11-liveAfalse (0.15s)
+    --- PASS: TestConstantByteMulExhaustedScratchNative/coeff11-liveAtrue (0.10s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.263s

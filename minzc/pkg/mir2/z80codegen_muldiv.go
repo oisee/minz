@@ -98,7 +98,7 @@ func (g *z80cg) genMul(inst *Inst) {
 		// x*3  = x + x*2;  x*5  = x + x*4;   x*6 = x*2 + x*4
 		// x*7  = x*8 - x;  x*9  = x + x*8;   x*10 = x*2 + x*8
 		// x*12 = x*4 + x*8; x*15 = x*16 - x
-		if cv == 3 || cv == 5 || cv == 6 || cv == 7 || cv == 9 || cv == 10 || cv == 12 || cv == 15 {
+		if cv == 3 || cv == 5 || cv == 6 || cv == 7 || cv == 9 || cv == 10 || cv == 11 || cv == 12 || cv == 15 {
 			if !g.holdsValue("A", lhs) {
 				g.emitLDA(lhs)
 			}
@@ -136,6 +136,13 @@ func (g *z80cg) genMul(inst *Inst) {
 				g.emit("    ADD A, A")
 				g.emit("    ADD A, A")        // A  = x*8
 				g.emitf("    ADD A, %s", tmp) // A  = x*10
+			case 11: // ((x*2 + x)*2)*2 - x; one scratch, no incoming carry.
+				g.emitf("    LD %s, A", tmp)
+				g.emit("    ADD A, A")
+				g.emitf("    ADD A, %s", tmp)
+				g.emit("    ADD A, A")
+				g.emit("    ADD A, A")
+				g.emitf("    SUB %s", tmp)
 			case 12: // x*4 + x*8
 				g.emit("    ADD A, A")
 				g.emit("    ADD A, A")        // A  = x*4
