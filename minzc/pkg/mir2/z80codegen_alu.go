@@ -206,7 +206,9 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 		// Loading lhs into A would destroy the rhs value.
 		//   ADD: commutative → just ADD A, lhs.
 		//   SUB: A = lhs - A → NEG first (A = -A), then ADD A, lhs.
-		if rhs == "A" && lhs != "A" {
+		// Folded constants need not reside in their allocated register. In
+		// particular A may still hold lhs when a constant RHS is allocated A.
+		if rhs == "A" && lhs != "A" && (!rhsIsConst || !g.deadConsts[inst.Src[1]]) {
 			// The result overwrites A, which holds rhs: save rhs if it is
 			// still live (gcd's b = b - a keeps a live in A for the loop).
 			g.saveAccOperandIfLive(inst.Src[1], inst)
@@ -256,7 +258,7 @@ func (g *z80cg) genBinOp(mnem string, inst *Inst) {
 			}
 			return
 		}
-		if isCommutative && g.holdsValue("A", rhs) {
+		if isCommutative && !rhsIsConst && g.holdsValue("A", rhs) {
 			// A == rhs, commutative swap: emit OP A, lhs instead.
 			g.saveAccOperandIfLive(inst.Src[1], inst)
 			g.invalidate("A")
