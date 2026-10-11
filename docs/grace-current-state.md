@@ -4,6 +4,22 @@
 «Production path» в исследовательских отчётах означает основной путь этой
 ветки; это не утверждение, что изменения вошли в GitHub main.
 
+## Актуальный checkpoint: корпус и проверки
+
+Накопленный каталог [204](grace-integration-204/README.md) сохраняет все 194 точных пути: **133 independent/bounded VM/native**, два отдельных bounded native SMC, два pending семантических пробела. Остальные имеют явные ASM/runtime/Agon/CPM/host ограничения. Архивные SHA-идентичные копии считаются путями, не новыми независимыми приложениями.
+
+Root повтор новых семейств: assert полный clamp byte Cartesian PASS111,521 с; SMC/hello PASS0,347 с; Tetris/advantage PASS7,670 с; arena20 PASS0,683 с; строки/указатели/fib-pipe PASS1,522 с. Семантические границы, исходные qualifiers и реальные ASM/BIN/ABI сохранены. Physical SMC не приравнен к VM PatchSlot.
+
+Старый полный pipeline cfaa7777 завершился FAIL с восемью top-level failures: семь устаревших timing/reference ожиданий и Manhattan observer. Их поздние исправления и независимые повторы сохранены в [200](grace-integration-200/README.md), [201](grace-integration-201/README.md), [202](grace-integration-202/README.md). Новый retained полный pipeline **29df08bb** ещё выполняется; текущий полный PASS не заявляется.
+
+Последние terminal полные gates: CLI11105fb3 PASS, MIR2 9e8ce601 PASS, HIR/Nanz/VIR8f2fcab6 PASS. Эти checkpoints явно предшествуют поздним test-only корпусным пакетам. [CLI195](grace-integration-195/README.md), [MIR187](grace-integration-187/README.md), [HIR/Nanz/VIR191](grace-integration-191/README.md).
+
+Pending: Lizp cond_test не имеет определённой документированной политики implicit return; решение Alice запрошено, compiler не переписан наугад. PL/M Hello расследуется: top-level executable module statements и case-preserving address literals требуют исправления; исходный пустой PRINTCHAR не подменяется тайной runtime intrinsic.
+
+[Общий обзор языков, слоёв и новых возможностей](https://github.com/oisee/minz/pull/74) опубликован как docs-only PR в main и вынесен в README этой ветки PR. Auto-merge ждёт CI. Это не интеграция исследовательского compiler в main. Сайт v68 старше текущего отчёта; актуальные доказательства лежат в compiler-docs/compiler-reports на `/mnt/safe/minz/grace/2026-10-11/`.
+
+Ниже сохранена история предыдущих checkpoints; её цифры относятся к датированному состоянию, а не заменяют актуальную сводку.
+
 ## Сводка последнего проверенного состояния
 
 Последние code checkpoints: caller-owned struct ABI и owning locals `bbe17da0`,
