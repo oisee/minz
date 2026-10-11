@@ -204,11 +204,31 @@ func (g *z80cg) genCall(inst *Inst) error {
 
 	// Save live caller values before argument copies, including reused args.
 	var callerSavePairs []string
+	var callerSaveShadowPairs []string
 	var callerSaveHomes []callSpillHome
 	if inst != g.tailCallInst {
 		callerSaveHomes = g.callerSaveSpillHomes(inst)
 		g.pushCallSpillHomes(callerSaveHomes)
 		callerSavePairs = g.callerSavePairs(inst, callee)
+		liveAfterCall := g.regsLiveAfterInst(inst)
+		for _, pair := range callerSavePairs {
+			for r := range liveAfterCall {
+				if r == inst.Dst || slices.Contains(inst.ExtraRets, r) {
+					continue
+				}
+				if info, ok := g.regInfo[r]; ok && isZ80WideInt(info.Ty) && g.loc(r) == pair {
+					callerSaveShadowPairs = append(callerSaveShadowPairs, pair)
+					break
+				}
+			}
+		}
+		if len(callerSaveShadowPairs) != 0 {
+			g.emit("    EXX")
+			for _, pair := range callerSaveShadowPairs {
+				g.emitf("    PUSH %s", pair)
+			}
+			g.emit("    EXX")
+		}
 		for _, pair := range callerSavePairs {
 			g.emitf("    PUSH %s", pair)
 		}
@@ -290,6 +310,13 @@ func (g *z80cg) genCall(inst *Inst) error {
 		}
 	}
 	g.pickupCallResults(results, callerSavePairs, flagResult, protected...)
+	if len(callerSaveShadowPairs) != 0 {
+		g.emit("    EXX")
+		for i := len(callerSaveShadowPairs) - 1; i >= 0; i-- {
+			g.emitf("    POP %s", callerSaveShadowPairs[i])
+		}
+		g.emit("    EXX")
+	}
 	g.popCallSpillHomes(callerSaveHomes)
 
 	// CALL and argument setup invalidate cached physical contents, including

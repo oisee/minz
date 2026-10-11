@@ -1,0 +1,1418 @@
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/HL/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/HL/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/HL/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/HL/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/HL/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/HL/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/HL/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/DE/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/DE/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/DE/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/DE/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/DE/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/DE/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/DE/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/BC/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/BC/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/BC/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/BC/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/BC/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/BC/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/BC/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/spill/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/spill/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/spill/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/spill/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/spill/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/spill/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/spill/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/HL/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/HL/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/HL/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/HL/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/HL/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/HL/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/HL/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/DE/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/DE/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/DE/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/DE/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/DE/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/DE/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/DE/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/BC/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/BC/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/BC/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/BC/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/BC/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/BC/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/BC/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/spill/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/spill/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/spill/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/spill/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/spill/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/spill/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/spill/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/HL/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/HL/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/HL/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/HL/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/HL/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/HL/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/HL/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/DE/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/DE/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/DE/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/DE/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/DE/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/DE/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/DE/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/BC/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/BC/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/BC/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/BC/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/BC/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/BC/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/BC/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/spill/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/spill/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/spill/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/spill/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/spill/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/spill/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/spill/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/HL/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/HL/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/HL/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/HL/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/HL/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/HL/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/HL/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/DE/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/DE/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/DE/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/DE/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/DE/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/DE/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/DE/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/BC/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/BC/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/BC/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/BC/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/BC/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/BC/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/BC/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/spill/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/spill/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/spill/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/spill/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/spill/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/spill/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/spill/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/HL/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/HL/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/HL/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/HL/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/HL/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/HL/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/HL/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/DE/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/DE/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/DE/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/DE/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/DE/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/DE/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/DE/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/BC/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/BC/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/BC/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/BC/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/BC/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/BC/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/BC/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/spill/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/spill/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/spill/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/spill/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/spill/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/spill/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/spill/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/HL/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/HL/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/HL/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/HL/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/HL/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/HL/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/HL/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/DE/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/DE/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/DE/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/DE/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/DE/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/DE/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/DE/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/BC/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/BC/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/BC/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/BC/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/BC/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/BC/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/BC/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/spill/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/spill/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/spill/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/spill/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/spill/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/spill/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/spill/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/HL/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/HL/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/HL/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/HL/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/HL/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/HL/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/HL/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/DE/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/DE/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/DE/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/DE/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/DE/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/DE/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/DE/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/BC/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/BC/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/BC/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/BC/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/BC/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/BC/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/BC/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/spill/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/spill/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/spill/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/spill/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/spill/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/spill/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/spill/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/HL/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/HL/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/HL/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/HL/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/HL/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/HL/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/HL/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/DE/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/DE/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/DE/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/DE/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/DE/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/DE/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/DE/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/BC/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/BC/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/BC/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/BC/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/BC/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/BC/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/BC/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/spill/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/spill/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/spill/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/spill/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/spill/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/spill/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/spill/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/HL/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/HL/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/HL/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/HL/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/HL/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/HL/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/HL/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/DE/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/DE/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/DE/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/DE/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/DE/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/DE/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/DE/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/BC/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/BC/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/BC/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/BC/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/BC/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/BC/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/BC/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/spill/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/spill/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/spill/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/spill/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/spill/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/spill/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/spill/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/HL/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/HL/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/HL/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/HL/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/HL/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/HL/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/HL/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/DE/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/DE/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/DE/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/DE/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/DE/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/DE/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/DE/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/BC/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/BC/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/BC/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/BC/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/BC/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/BC/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/BC/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/spill/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/spill/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/spill/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/spill/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/spill/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/spill/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/spill/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/HL/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/HL/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/HL/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/HL/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/HL/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/HL/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/HL/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/DE/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/DE/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/DE/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/DE/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/DE/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/DE/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/DE/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/BC/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/BC/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/BC/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/BC/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/BC/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/BC/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/BC/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/spill/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/spill/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/spill/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/spill/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/spill/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/spill/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/spill/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/HL/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/HL/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/HL/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/HL/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/HL/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/HL/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/HL/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/DE/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/DE/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/DE/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/DE/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/DE/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/DE/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/DE/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/BC/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/BC/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/BC/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/BC/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/BC/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/BC/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/BC/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/spill/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/spill/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/spill/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/spill/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/spill/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/spill/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/spill/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/HL/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/HL/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/HL/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/HL/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/HL/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/HL/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/HL/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/DE/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/DE/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/DE/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/DE/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/DE/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/DE/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/DE/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/BC/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/BC/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/BC/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/BC/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/BC/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/BC/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/BC/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/spill/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/spill/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/spill/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/spill/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/spill/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/spill/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/spill/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/HL/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/HL/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/HL/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/HL/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/HL/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/HL/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/HL/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/DE/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/DE/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/DE/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/DE/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/DE/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/DE/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/DE/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/BC/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/BC/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/BC/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/BC/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/BC/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/BC/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/BC/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/spill/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/spill/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/spill/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/spill/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/spill/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/spill/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/spill/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/HL/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/HL/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/HL/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/HL/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/HL/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/HL/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/HL/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/DE/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/DE/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/DE/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/DE/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/DE/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/DE/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/DE/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/BC/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/BC/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/BC/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/BC/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/BC/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/BC/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/BC/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/spill/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/spill/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/spill/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/spill/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/spill/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/spill/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/spill/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/HL/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/HL/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/HL/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/HL/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/HL/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/HL/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/HL/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/DE/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/DE/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/DE/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/DE/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/DE/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/DE/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/DE/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/BC/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/BC/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/BC/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/BC/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/BC/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/BC/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/BC/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/spill/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/spill/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/spill/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/spill/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/spill/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/spill/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/spill/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/HL/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/HL/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/HL/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/HL/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/HL/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/HL/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/HL/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/DE/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/DE/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/DE/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/DE/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/DE/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/DE/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/DE/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/BC/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/BC/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/BC/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/BC/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/BC/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/BC/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/BC/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/spill/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/spill/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/spill/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/spill/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/spill/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/spill/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/spill/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/HL/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/HL/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/HL/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/HL/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/HL/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/HL/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/HL/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/DE/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/DE/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/DE/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/DE/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/DE/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/DE/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/DE/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/BC/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/BC/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/BC/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/BC/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/BC/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/BC/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/BC/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/spill/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/spill/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/spill/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/spill/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/spill/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/spill/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/spill/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/HL/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/HL/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/HL/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/HL/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/HL/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/HL/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/HL/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/DE/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/DE/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/DE/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/DE/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/DE/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/DE/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/DE/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/BC/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/BC/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/BC/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/BC/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/BC/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/BC/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/BC/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/spill/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/spill/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/spill/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/spill/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/spill/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/spill/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/spill/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/HL/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/HL/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/HL/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/HL/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/HL/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/HL/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/HL/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/DE/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/DE/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/DE/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/DE/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/DE/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/DE/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/DE/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/BC/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/BC/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/BC/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/BC/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/BC/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/BC/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/BC/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/spill/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/spill/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/spill/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/spill/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/spill/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/spill/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/spill/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/HL/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/HL/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/HL/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/HL/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/HL/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/HL/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/HL/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/DE/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/DE/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/DE/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/DE/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/DE/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/DE/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/DE/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/BC/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/BC/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/BC/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/BC/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/BC/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/BC/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/BC/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/spill/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/spill/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/spill/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/spill/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/spill/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/spill/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/spill/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/HL/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/HL/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/HL/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/HL/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/HL/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/HL/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/HL/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/DE/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/DE/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/DE/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/DE/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/DE/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/DE/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/DE/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/BC/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/BC/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/BC/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/BC/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/BC/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/BC/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/BC/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/spill/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/spill/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/spill/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/spill/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/spill/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/spill/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/spill/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/HL/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/HL/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/HL/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/HL/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/HL/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/HL/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/HL/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/DE/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/DE/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/DE/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/DE/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/DE/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/DE/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/DE/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/BC/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/BC/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/BC/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/BC/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/BC/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/BC/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/BC/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/spill/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/spill/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/spill/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/spill/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/spill/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/spill/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/spill/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/HL/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/HL/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/HL/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/HL/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/HL/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/HL/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/HL/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/DE/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/DE/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/DE/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/DE/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/DE/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/DE/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/DE/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/BC/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/BC/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/BC/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/BC/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/BC/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/BC/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/BC/ffffffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/spill/00000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/spill/00000001
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/spill/0000ffff
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/spill/00010000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/spill/12345678
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/spill/80000000
+=== RUN   TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/spill/ffffffff
+=== NAME  TestZ80WideMemoryPointerBanksAndSpills
+    z80codegen_wide_memory_test.go:132: 672 independent VM+Z80 memory checks PASS (including 0xffff wrap); native SP=fff0
+--- PASS: TestZ80WideMemoryPointerBanksAndSpills (1.06s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/HL/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/HL/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/HL/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/HL/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/HL/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/HL/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/HL/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/DE/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/DE/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/DE/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/DE/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/DE/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/DE/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/DE/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/BC/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/BC/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/BC/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/BC/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/BC/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/BC/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/BC/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/spill/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/spill/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/spill/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/spill/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/spill/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/spill/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/HL/spill/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/HL/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/HL/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/HL/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/HL/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/HL/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/HL/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/HL/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/DE/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/DE/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/DE/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/DE/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/DE/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/DE/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/DE/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/BC/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/BC/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/BC/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/BC/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/BC/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/BC/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/BC/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/spill/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/spill/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/spill/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/spill/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/spill/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/spill/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/DE/spill/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/HL/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/HL/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/HL/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/HL/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/HL/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/HL/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/HL/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/DE/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/DE/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/DE/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/DE/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/DE/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/DE/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/DE/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/BC/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/BC/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/BC/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/BC/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/BC/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/BC/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/BC/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/spill/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/spill/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/spill/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/spill/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/spill/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/spill/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/BC/spill/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/HL/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/HL/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/HL/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/HL/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/HL/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/HL/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/HL/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/DE/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/DE/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/DE/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/DE/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/DE/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/DE/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/DE/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/BC/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/BC/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/BC/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/BC/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/BC/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/BC/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/BC/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/spill/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/spill/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/spill/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/spill/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/spill/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/spill/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IX/spill/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/HL/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/HL/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/HL/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/HL/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/HL/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/HL/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/HL/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/DE/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/DE/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/DE/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/DE/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/DE/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/DE/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/DE/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/BC/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/BC/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/BC/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/BC/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/BC/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/BC/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/BC/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/spill/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/spill/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/spill/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/spill/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/spill/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/spill/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/IY/spill/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/HL/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/HL/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/HL/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/HL/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/HL/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/HL/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/HL/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/DE/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/DE/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/DE/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/DE/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/DE/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/DE/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/DE/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/BC/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/BC/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/BC/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/BC/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/BC/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/BC/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/BC/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/spill/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/spill/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/spill/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/spill/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/spill/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/spill/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u24/spill/spill/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/HL/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/HL/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/HL/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/HL/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/HL/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/HL/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/HL/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/DE/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/DE/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/DE/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/DE/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/DE/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/DE/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/DE/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/BC/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/BC/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/BC/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/BC/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/BC/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/BC/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/BC/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/spill/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/spill/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/spill/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/spill/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/spill/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/spill/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/HL/spill/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/HL/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/HL/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/HL/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/HL/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/HL/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/HL/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/HL/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/DE/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/DE/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/DE/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/DE/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/DE/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/DE/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/DE/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/BC/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/BC/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/BC/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/BC/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/BC/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/BC/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/BC/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/spill/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/spill/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/spill/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/spill/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/spill/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/spill/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/DE/spill/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/HL/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/HL/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/HL/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/HL/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/HL/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/HL/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/HL/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/DE/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/DE/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/DE/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/DE/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/DE/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/DE/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/DE/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/BC/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/BC/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/BC/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/BC/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/BC/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/BC/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/BC/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/spill/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/spill/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/spill/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/spill/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/spill/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/spill/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/BC/spill/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/HL/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/HL/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/HL/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/HL/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/HL/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/HL/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/HL/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/DE/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/DE/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/DE/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/DE/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/DE/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/DE/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/DE/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/BC/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/BC/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/BC/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/BC/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/BC/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/BC/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/BC/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/spill/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/spill/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/spill/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/spill/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/spill/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/spill/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IX/spill/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/HL/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/HL/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/HL/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/HL/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/HL/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/HL/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/HL/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/DE/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/DE/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/DE/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/DE/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/DE/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/DE/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/DE/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/BC/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/BC/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/BC/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/BC/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/BC/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/BC/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/BC/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/spill/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/spill/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/spill/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/spill/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/spill/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/spill/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/IY/spill/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/HL/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/HL/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/HL/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/HL/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/HL/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/HL/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/HL/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/DE/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/DE/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/DE/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/DE/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/DE/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/DE/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/DE/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/BC/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/BC/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/BC/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/BC/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/BC/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/BC/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/BC/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/spill/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/spill/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/spill/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/spill/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/spill/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/spill/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/6000/u32/spill/spill/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/HL/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/HL/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/HL/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/HL/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/HL/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/HL/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/HL/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/DE/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/DE/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/DE/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/DE/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/DE/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/DE/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/DE/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/BC/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/BC/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/BC/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/BC/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/BC/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/BC/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/BC/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/spill/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/spill/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/spill/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/spill/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/spill/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/spill/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/HL/spill/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/HL/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/HL/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/HL/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/HL/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/HL/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/HL/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/HL/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/DE/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/DE/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/DE/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/DE/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/DE/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/DE/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/DE/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/BC/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/BC/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/BC/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/BC/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/BC/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/BC/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/BC/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/spill/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/spill/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/spill/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/spill/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/spill/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/spill/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/DE/spill/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/HL/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/HL/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/HL/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/HL/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/HL/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/HL/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/HL/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/DE/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/DE/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/DE/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/DE/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/DE/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/DE/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/DE/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/BC/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/BC/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/BC/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/BC/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/BC/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/BC/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/BC/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/spill/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/spill/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/spill/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/spill/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/spill/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/spill/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/BC/spill/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/HL/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/HL/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/HL/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/HL/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/HL/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/HL/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/HL/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/DE/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/DE/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/DE/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/DE/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/DE/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/DE/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/DE/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/BC/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/BC/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/BC/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/BC/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/BC/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/BC/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/BC/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/spill/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/spill/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/spill/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/spill/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/spill/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/spill/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IX/spill/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/HL/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/HL/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/HL/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/HL/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/HL/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/HL/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/HL/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/DE/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/DE/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/DE/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/DE/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/DE/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/DE/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/DE/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/BC/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/BC/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/BC/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/BC/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/BC/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/BC/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/BC/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/spill/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/spill/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/spill/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/spill/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/spill/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/spill/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/IY/spill/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/HL/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/HL/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/HL/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/HL/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/HL/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/HL/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/HL/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/DE/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/DE/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/DE/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/DE/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/DE/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/DE/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/DE/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/BC/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/BC/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/BC/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/BC/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/BC/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/BC/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/BC/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/spill/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/spill/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/spill/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/spill/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/spill/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/spill/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u24/spill/spill/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/HL/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/HL/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/HL/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/HL/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/HL/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/HL/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/HL/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/DE/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/DE/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/DE/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/DE/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/DE/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/DE/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/DE/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/BC/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/BC/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/BC/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/BC/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/BC/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/BC/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/BC/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/spill/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/spill/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/spill/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/spill/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/spill/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/spill/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/HL/spill/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/HL/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/HL/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/HL/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/HL/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/HL/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/HL/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/HL/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/DE/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/DE/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/DE/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/DE/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/DE/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/DE/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/DE/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/BC/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/BC/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/BC/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/BC/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/BC/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/BC/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/BC/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/spill/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/spill/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/spill/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/spill/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/spill/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/spill/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/DE/spill/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/HL/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/HL/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/HL/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/HL/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/HL/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/HL/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/HL/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/DE/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/DE/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/DE/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/DE/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/DE/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/DE/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/DE/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/BC/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/BC/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/BC/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/BC/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/BC/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/BC/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/BC/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/spill/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/spill/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/spill/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/spill/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/spill/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/spill/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/BC/spill/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/HL/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/HL/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/HL/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/HL/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/HL/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/HL/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/HL/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/DE/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/DE/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/DE/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/DE/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/DE/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/DE/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/DE/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/BC/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/BC/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/BC/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/BC/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/BC/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/BC/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/BC/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/spill/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/spill/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/spill/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/spill/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/spill/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/spill/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IX/spill/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/HL/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/HL/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/HL/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/HL/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/HL/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/HL/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/HL/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/DE/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/DE/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/DE/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/DE/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/DE/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/DE/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/DE/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/BC/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/BC/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/BC/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/BC/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/BC/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/BC/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/BC/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/spill/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/spill/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/spill/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/spill/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/spill/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/spill/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/IY/spill/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/HL/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/HL/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/HL/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/HL/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/HL/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/HL/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/HL/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/DE/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/DE/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/DE/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/DE/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/DE/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/DE/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/DE/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/BC/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/BC/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/BC/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/BC/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/BC/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/BC/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/BC/ffffffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/spill/00000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/spill/00000001 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/spill/0000ffff (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/spill/00010000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/spill/12345678 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/spill/80000000 (0.00s)
+    --- PASS: TestZ80WideMemoryPointerBanksAndSpills/ffff/u32/spill/spill/ffffffff (0.00s)
+=== RUN   TestZ80U32CallerSpillSnapshot
+=== RUN   TestZ80U32CallerSpillSnapshot/spill/00000000
+=== RUN   TestZ80U32CallerSpillSnapshot/spill/00000001
+=== RUN   TestZ80U32CallerSpillSnapshot/spill/0000ffff
+=== RUN   TestZ80U32CallerSpillSnapshot/spill/00010000
+=== RUN   TestZ80U32CallerSpillSnapshot/spill/7fffffff
+=== RUN   TestZ80U32CallerSpillSnapshot/spill/80000000
+=== RUN   TestZ80U32CallerSpillSnapshot/spill/fffffffe
+=== RUN   TestZ80U32CallerSpillSnapshot/spill/ffffffff
+=== RUN   TestZ80U32CallerSpillSnapshot/HL/00000000
+=== RUN   TestZ80U32CallerSpillSnapshot/HL/00000001
+=== RUN   TestZ80U32CallerSpillSnapshot/HL/0000ffff
+=== RUN   TestZ80U32CallerSpillSnapshot/HL/00010000
+=== RUN   TestZ80U32CallerSpillSnapshot/HL/7fffffff
+=== RUN   TestZ80U32CallerSpillSnapshot/HL/80000000
+=== RUN   TestZ80U32CallerSpillSnapshot/HL/fffffffe
+=== RUN   TestZ80U32CallerSpillSnapshot/HL/ffffffff
+=== RUN   TestZ80U32CallerSpillSnapshot/DE/00000000
+=== RUN   TestZ80U32CallerSpillSnapshot/DE/00000001
+=== RUN   TestZ80U32CallerSpillSnapshot/DE/0000ffff
+=== RUN   TestZ80U32CallerSpillSnapshot/DE/00010000
+=== RUN   TestZ80U32CallerSpillSnapshot/DE/7fffffff
+=== RUN   TestZ80U32CallerSpillSnapshot/DE/80000000
+=== RUN   TestZ80U32CallerSpillSnapshot/DE/fffffffe
+=== RUN   TestZ80U32CallerSpillSnapshot/DE/ffffffff
+=== RUN   TestZ80U32CallerSpillSnapshot/BC/00000000
+=== RUN   TestZ80U32CallerSpillSnapshot/BC/00000001
+=== RUN   TestZ80U32CallerSpillSnapshot/BC/0000ffff
+=== RUN   TestZ80U32CallerSpillSnapshot/BC/00010000
+=== RUN   TestZ80U32CallerSpillSnapshot/BC/7fffffff
+=== RUN   TestZ80U32CallerSpillSnapshot/BC/80000000
+=== RUN   TestZ80U32CallerSpillSnapshot/BC/fffffffe
+=== RUN   TestZ80U32CallerSpillSnapshot/BC/ffffffff
+=== NAME  TestZ80U32CallerSpillSnapshot
+    z80codegen_wide_memory_test.go:186: 32 modulo-2^32 VM+Z80 caller checks PASS: spill/HL/DE/BC; both banks clobbered; native SP=fff0
+--- PASS: TestZ80U32CallerSpillSnapshot (0.13s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/spill/00000000 (0.01s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/spill/00000001 (0.01s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/spill/0000ffff (0.01s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/spill/00010000 (0.01s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/spill/7fffffff (0.01s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/spill/80000000 (0.01s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/spill/fffffffe (0.01s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/spill/ffffffff (0.01s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/HL/00000000 (0.00s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/HL/00000001 (0.00s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/HL/0000ffff (0.00s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/HL/00010000 (0.00s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/HL/7fffffff (0.00s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/HL/80000000 (0.00s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/HL/fffffffe (0.00s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/HL/ffffffff (0.00s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/DE/00000000 (0.00s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/DE/00000001 (0.00s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/DE/0000ffff (0.00s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/DE/00010000 (0.00s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/DE/7fffffff (0.00s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/DE/80000000 (0.00s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/DE/fffffffe (0.00s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/DE/ffffffff (0.00s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/BC/00000000 (0.00s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/BC/00000001 (0.00s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/BC/0000ffff (0.00s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/BC/00010000 (0.00s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/BC/7fffffff (0.00s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/BC/80000000 (0.00s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/BC/fffffffe (0.00s)
+    --- PASS: TestZ80U32CallerSpillSnapshot/BC/ffffffff (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	1.201s

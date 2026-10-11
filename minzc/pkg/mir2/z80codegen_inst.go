@@ -58,6 +58,9 @@ func (g *z80cg) genInst(inst *Inst) {
 
 	dst := g.loc(inst.Dst)
 
+	if g.genWideMemory(inst) {
+		return
+	}
 	if g.genWideSpills(inst) {
 		return
 	}

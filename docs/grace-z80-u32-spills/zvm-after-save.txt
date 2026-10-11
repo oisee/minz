@@ -1,0 +1,195 @@
+=== RUN   TestShowcaseCompileAssemble
+    showcase_test.go:61: Found 192 showcase files
+=== RUN   TestShowcaseCompileAssemble/zvm.nanz
+    showcase_test.go:84: SOURCE_PATH examples/zmachine/zork-west-demo/zvm.nanz
+[Z80-VALIDATE] main: 36 invalid instruction(s)
+  line 59: >>> LD _spill_main_r3330, (HL)     ; byte0 lo_lo <<<
+  line 61: >>> LD _spill_main_r3330+1, (HL)     ; byte1 lo_hi <<<
+  line 64: >>> LD _spill_main_r3330, (HL)     ; byte2 hi_lo (shadow) <<<
+  line 66: >>> LD _spill_main_r3330+1, (HL)     ; byte3 hi_hi (shadow) <<<
+  line 173: >>> LD _spill_main_r3368, (HL)     ; byte0 lo_lo <<<
+  line 175: >>> LD _spill_main_r3368+1, (HL)     ; byte1 lo_hi <<<
+  line 178: >>> LD _spill_main_r3368, (HL)     ; byte2 hi_lo (shadow) <<<
+  line 180: >>> LD _spill_main_r3368+1, (HL)     ; byte3 hi_hi (shadow) <<<
+  line 223: >>> LD _spill_main_r3376, (HL)     ; byte0 lo_lo <<<
+  line 225: >>> LD _spill_main_r3376+1, (HL)     ; byte1 lo_hi <<<
+  line 228: >>> LD _spill_main_r3376, (HL)     ; byte2 hi_lo (shadow) <<<
+  line 230: >>> LD _spill_main_r3376+1, (HL)     ; byte3 hi_hi (shadow) <<<
+  line 46: >>> LD (HL), _spill_main_r3327     ; byte0 lo_lo <<<
+  line 48: >>> LD (HL), _spill_main_r3327+1     ; byte1 lo_hi <<<
+  line 51: >>> LD (HL), _spill_main_r3327     ; byte2 hi_lo (shadow) <<<
+  line 53: >>> LD (HL), _spill_main_r3327+1     ; byte3 hi_hi (shadow) <<<
+  line 137: >>> LD (HL), _spill_main_r3348     ; byte0 lo_lo <<<
+  line 139: >>> LD (HL), _spill_main_r3348+1     ; byte1 lo_hi <<<
+  line 142: >>> LD (HL), _spill_main_r3348     ; byte2 hi_lo (shadow) <<<
+  line 144: >>> LD (HL), _spill_main_r3348+1     ; byte3 hi_hi (shadow) <<<
+  line 298: >>> LD (HL), _spill_main_r3378     ; byte0 lo_lo <<<
+  line 300: >>> LD (HL), _spill_main_r3378+1     ; byte1 lo_hi <<<
+  line 303: >>> LD (HL), _spill_main_r3378     ; byte2 hi_lo (shadow) <<<
+  line 305: >>> LD (HL), _spill_main_r3378+1     ; byte3 hi_hi (shadow) <<<
+[Z80-VALIDATE] next_byte: 20 invalid instruction(s)
+  line 4: >>> LD _spill_next_byte_r157, (HL)     ; byte0 lo_lo <<<
+  line 6: >>> LD _spill_next_byte_r157+1, (HL)     ; byte1 lo_hi <<<
+  line 9: >>> LD _spill_next_byte_r157, (HL)     ; byte2 hi_lo (shadow) <<<
+  line 11: >>> LD _spill_next_byte_r157+1, (HL)     ; byte3 hi_hi (shadow) <<<
+  line 35: >>> LD _spill_next_byte_r160, (HL)     ; byte0 lo_lo <<<
+  line 37: >>> LD _spill_next_byte_r160+1, (HL)     ; byte1 lo_hi <<<
+  line 40: >>> LD _spill_next_byte_r160, (HL)     ; byte2 hi_lo (shadow) <<<
+  line 42: >>> LD _spill_next_byte_r160+1, (HL)     ; byte3 hi_hi (shadow) <<<
+  line 110: >>> LD (HL), _spill_next_byte_r162     ; byte0 lo_lo <<<
+  line 112: >>> LD (HL), _spill_next_byte_r162+1     ; byte1 lo_hi <<<
+  line 115: >>> LD (HL), _spill_next_byte_r162     ; byte2 hi_lo (shadow) <<<
+  line 117: >>> LD (HL), _spill_next_byte_r162+1     ; byte3 hi_hi (shadow) <<<
+[Z80-VALIDATE] next_word: 20 invalid instruction(s)
+  line 4: >>> LD _spill_next_word_r165, (HL)     ; byte0 lo_lo <<<
+  line 6: >>> LD _spill_next_word_r165+1, (HL)     ; byte1 lo_hi <<<
+  line 9: >>> LD _spill_next_word_r165, (HL)     ; byte2 hi_lo (shadow) <<<
+  line 11: >>> LD _spill_next_word_r165+1, (HL)     ; byte3 hi_hi (shadow) <<<
+  line 37: >>> LD _spill_next_word_r168, (HL)     ; byte0 lo_lo <<<
+  line 39: >>> LD _spill_next_word_r168+1, (HL)     ; byte1 lo_hi <<<
+  line 42: >>> LD _spill_next_word_r168, (HL)     ; byte2 hi_lo (shadow) <<<
+  line 44: >>> LD _spill_next_word_r168+1, (HL)     ; byte3 hi_hi (shadow) <<<
+  line 112: >>> LD (HL), _spill_next_word_r170     ; byte0 lo_lo <<<
+  line 114: >>> LD (HL), _spill_next_word_r170+1     ; byte1 lo_hi <<<
+  line 117: >>> LD (HL), _spill_next_word_r170     ; byte2 hi_lo (shadow) <<<
+  line 119: >>> LD (HL), _spill_next_word_r170+1     ; byte3 hi_hi (shadow) <<<
+[Z80-VALIDATE] finish: 20 invalid instruction(s)
+  line 78: >>> LD (DE), L     ; byte0 lo_lo <<<
+  line 80: >>> LD (DE), H     ; byte1 lo_hi <<<
+  line 83: >>> LD (DE), L     ; byte2 hi_lo (shadow) <<<
+  line 85: >>> LD (DE), H     ; byte3 hi_hi (shadow) <<<
+  line 232: >>> LD _spill_finish_r352, (HL)     ; byte0 lo_lo <<<
+  line 234: >>> LD _spill_finish_r352+1, (HL)     ; byte1 lo_hi <<<
+  line 237: >>> LD _spill_finish_r352, (HL)     ; byte2 hi_lo (shadow) <<<
+  line 239: >>> LD _spill_finish_r352+1, (HL)     ; byte3 hi_hi (shadow) <<<
+  line 291: >>> LD (HL), _spill_finish_r353     ; byte0 lo_lo <<<
+  line 293: >>> LD (HL), _spill_finish_r353+1     ; byte1 lo_hi <<<
+  line 296: >>> LD (HL), _spill_finish_r353     ; byte2 hi_lo (shadow) <<<
+  line 298: >>> LD (HL), _spill_finish_r353+1     ; byte3 hi_hi (shadow) <<<
+[Z80-VALIDATE] enter: 44 invalid instruction(s)
+  line 51: >>> LD _spill_enter_r399, (BC)     ; byte0 lo_lo <<<
+  line 53: >>> LD _spill_enter_r399+1, (BC)     ; byte1 lo_hi <<<
+  line 56: >>> LD _spill_enter_r399, (BC)     ; byte2 hi_lo (shadow) <<<
+  line 58: >>> LD _spill_enter_r399+1, (BC)     ; byte3 hi_hi (shadow) <<<
+  line 97: >>> LD _spill_enter_r406, (BC)     ; byte0 lo_lo <<<
+  line 99: >>> LD _spill_enter_r406+1, (BC)     ; byte1 lo_hi <<<
+  line 102: >>> LD _spill_enter_r406, (BC)     ; byte2 hi_lo (shadow) <<<
+  line 104: >>> LD _spill_enter_r406+1, (BC)     ; byte3 hi_hi (shadow) <<<
+  line 140: >>> LD _spill_enter_r415, (BC)     ; byte0 lo_lo <<<
+  line 142: >>> LD _spill_enter_r415+1, (BC)     ; byte1 lo_hi <<<
+  line 145: >>> LD _spill_enter_r415, (BC)     ; byte2 hi_lo (shadow) <<<
+  line 147: >>> LD _spill_enter_r415+1, (BC)     ; byte3 hi_hi (shadow) <<<
+  line 474: >>> LD (HL), _spill_enter_r445     ; byte0 lo_lo <<<
+  line 476: >>> LD (HL), _spill_enter_r445+1     ; byte1 lo_hi <<<
+  line 479: >>> LD (HL), _spill_enter_r445     ; byte2 hi_lo (shadow) <<<
+  line 481: >>> LD (HL), _spill_enter_r445+1     ; byte3 hi_hi (shadow) <<<
+[Z80-VALIDATE] branch: 40 invalid instruction(s)
+  line 105: >>> LD _spill_branch_r534, (DE)     ; byte0 lo_lo <<<
+  line 107: >>> LD _spill_branch_r534+1, (DE)     ; byte1 lo_hi <<<
+  line 110: >>> LD _spill_branch_r534, (DE)     ; byte2 hi_lo (shadow) <<<
+  line 112: >>> LD _spill_branch_r534+1, (DE)     ; byte3 hi_hi (shadow) <<<
+  line 257: >>> LD _spill_branch_r541, (HL)     ; byte0 lo_lo <<<
+  line 259: >>> LD _spill_branch_r541+1, (HL)     ; byte1 lo_hi <<<
+  line 262: >>> LD _spill_branch_r541, (HL)     ; byte2 hi_lo (shadow) <<<
+  line 264: >>> LD _spill_branch_r541+1, (HL)     ; byte3 hi_hi (shadow) <<<
+  line 241: >>> LD (HL), _spill_branch_r538     ; byte0 lo_lo <<<
+  line 243: >>> LD (HL), _spill_branch_r538+1     ; byte1 lo_hi <<<
+  line 246: >>> LD (HL), _spill_branch_r538     ; byte2 hi_lo (shadow) <<<
+  line 248: >>> LD (HL), _spill_branch_r538+1     ; byte3 hi_hi (shadow) <<<
+  line 392: >>> LD (HL), _spill_branch_r545     ; byte0 lo_lo <<<
+  line 394: >>> LD (HL), _spill_branch_r545+1     ; byte1 lo_hi <<<
+  line 397: >>> LD (HL), _spill_branch_r545     ; byte2 hi_lo (shadow) <<<
+  line 399: >>> LD (HL), _spill_branch_r545+1     ; byte3 hi_hi (shadow) <<<
+[Z80-VALIDATE] verify_story: 12 invalid instruction(s)
+  line 80: >>> LD _spill_verify_story_r628, (HL)     ; byte0 lo_lo <<<
+  line 82: >>> LD _spill_verify_story_r628+1, (HL)     ; byte1 lo_hi <<<
+  line 85: >>> LD _spill_verify_story_r628, (HL)     ; byte2 hi_lo (shadow) <<<
+  line 87: >>> LD _spill_verify_story_r628+1, (HL)     ; byte3 hi_hi (shadow) <<<
+[Z80-VALIDATE] fail_opcode: 24 invalid instruction(s)
+  line 101: >>> LD _spill_fail_opcode_r2319, (HL)     ; byte0 lo_lo <<<
+  line 103: >>> LD _spill_fail_opcode_r2319+1, (HL)     ; byte1 lo_hi <<<
+  line 106: >>> LD _spill_fail_opcode_r2319, (HL)     ; byte2 hi_lo (shadow) <<<
+  line 108: >>> LD _spill_fail_opcode_r2319+1, (HL)     ; byte3 hi_hi (shadow) <<<
+  line 319: >>> LD _spill_fail_opcode_r2325, (HL)     ; byte0 lo_lo <<<
+  line 321: >>> LD _spill_fail_opcode_r2325+1, (HL)     ; byte1 lo_hi <<<
+  line 324: >>> LD _spill_fail_opcode_r2325, (HL)     ; byte2 hi_lo (shadow) <<<
+  line 326: >>> LD _spill_fail_opcode_r2325+1, (HL)     ; byte3 hi_hi (shadow) <<<
+  line 381: >>> LD _spill_fail_opcode_r2331, (HL)     ; byte0 lo_lo <<<
+  line 383: >>> LD _spill_fail_opcode_r2331+1, (HL)     ; byte1 lo_hi <<<
+  line 386: >>> LD _spill_fail_opcode_r2331, (HL)     ; byte2 hi_lo (shadow) <<<
+  line 388: >>> LD _spill_fail_opcode_r2331+1, (HL)     ; byte3 hi_hi (shadow) <<<
+[Z80-VALIDATE] restart_story: 16 invalid instruction(s)
+  line 71: >>> LD _spill_restart_story_r2350, (HL)     ; byte0 lo_lo <<<
+  line 73: >>> LD _spill_restart_story_r2350+1, (HL)     ; byte1 lo_hi <<<
+  line 76: >>> LD _spill_restart_story_r2350, (HL)     ; byte2 hi_lo (shadow) <<<
+  line 78: >>> LD _spill_restart_story_r2350+1, (HL)     ; byte3 hi_hi (shadow) <<<
+  line 58: >>> LD (HL), _spill_restart_story_r2347     ; byte0 lo_lo <<<
+  line 60: >>> LD (HL), _spill_restart_story_r2347+1     ; byte1 lo_hi <<<
+  line 63: >>> LD (HL), _spill_restart_story_r2347     ; byte2 hi_lo (shadow) <<<
+  line 65: >>> LD (HL), _spill_restart_story_r2347+1     ; byte3 hi_hi (shadow) <<<
+  line 151: >>> LD (HL), _spill_restart_story_r2377     ; byte0 lo_lo <<<
+  line 153: >>> LD (HL), _spill_restart_story_r2377+1     ; byte1 lo_hi <<<
+  line 156: >>> LD (HL), _spill_restart_story_r2377     ; byte2 hi_lo (shadow) <<<
+  line 158: >>> LD (HL), _spill_restart_story_r2377+1     ; byte3 hi_hi (shadow) <<<
+[Z80-VALIDATE] save_state: 36 invalid instruction(s)
+  line 6: >>> LD _spill_save_state_r2469, (HL)     ; byte0 lo_lo <<<
+  line 8: >>> LD _spill_save_state_r2469+1, (HL)     ; byte1 lo_hi <<<
+  line 11: >>> LD _spill_save_state_r2469, (HL)     ; byte2 hi_lo (shadow) <<<
+  line 13: >>> LD _spill_save_state_r2469+1, (HL)     ; byte3 hi_hi (shadow) <<<
+  line 38: >>> LD _spill_save_state_r2475, (HL)     ; byte0 lo_lo <<<
+  line 40: >>> LD _spill_save_state_r2475+1, (HL)     ; byte1 lo_hi <<<
+  line 43: >>> LD _spill_save_state_r2475, (HL)     ; byte2 hi_lo (shadow) <<<
+  line 45: >>> LD _spill_save_state_r2475+1, (HL)     ; byte3 hi_hi (shadow) <<<
+  line 64: >>> LD _spill_save_state_r2483, (HL)     ; byte0 lo_lo <<<
+  line 66: >>> LD _spill_save_state_r2483+1, (HL)     ; byte1 lo_hi <<<
+  line 69: >>> LD _spill_save_state_r2483, (HL)     ; byte2 hi_lo (shadow) <<<
+  line 71: >>> LD _spill_save_state_r2483+1, (HL)     ; byte3 hi_hi (shadow) <<<
+[Z80-VALIDATE] restore_state: 20 invalid instruction(s)
+  line 278: >>> LD _spill_restore_state_r2704, (HL)     ; byte0 lo_lo <<<
+  line 280: >>> LD _spill_restore_state_r2704+1, (HL)     ; byte1 lo_hi <<<
+  line 283: >>> LD _spill_restore_state_r2704, (HL)     ; byte2 hi_lo (shadow) <<<
+  line 285: >>> LD _spill_restore_state_r2704+1, (HL)     ; byte3 hi_hi (shadow) <<<
+  line 337: >>> LD (HL), _spill_restore_state_r2705     ; byte0 lo_lo <<<
+  line 339: >>> LD (HL), _spill_restore_state_r2705+1     ; byte1 lo_hi <<<
+  line 342: >>> LD (HL), _spill_restore_state_r2705     ; byte2 hi_lo (shadow) <<<
+  line 344: >>> LD (HL), _spill_restore_state_r2705+1     ; byte3 hi_hi (shadow) <<<
+[Z80-VALIDATE] step: 112 invalid instruction(s)
+  line 141: >>> LD _spill_step_r2873, (HL)     ; byte0 lo_lo <<<
+  line 143: >>> LD _spill_step_r2873+1, (HL)     ; byte1 lo_hi <<<
+  line 146: >>> LD _spill_step_r2873, (HL)     ; byte2 hi_lo (shadow) <<<
+  line 148: >>> LD _spill_step_r2873+1, (HL)     ; byte3 hi_hi (shadow) <<<
+  line 197: >>> LD _spill_step_r2879, (HL)     ; byte0 lo_lo <<<
+  line 199: >>> LD _spill_step_r2879+1, (HL)     ; byte1 lo_hi <<<
+  line 202: >>> LD _spill_step_r2879, (HL)     ; byte2 hi_lo (shadow) <<<
+  line 204: >>> LD _spill_step_r2879+1, (HL)     ; byte3 hi_hi (shadow) <<<
+  line 808: >>> LD _spill_step_r2990, (DE)     ; byte0 lo_lo <<<
+  line 810: >>> LD _spill_step_r2990+1, (DE)     ; byte1 lo_hi <<<
+  line 813: >>> LD _spill_step_r2990, (DE)     ; byte2 hi_lo (shadow) <<<
+  line 815: >>> LD _spill_step_r2990+1, (DE)     ; byte3 hi_hi (shadow) <<<
+  line 961: >>> LD _spill_step_r2997, (HL)     ; byte0 lo_lo <<<
+  line 963: >>> LD _spill_step_r2997+1, (HL)     ; byte1 lo_hi <<<
+  line 966: >>> LD _spill_step_r2997, (HL)     ; byte2 hi_lo (shadow) <<<
+  line 968: >>> LD _spill_step_r2997+1, (HL)     ; byte3 hi_hi (shadow) <<<
+  line 176: >>> LD (HL), _spill_step_r2874     ; byte0 lo_lo <<<
+  line 178: >>> LD (HL), _spill_step_r2874+1     ; byte1 lo_hi <<<
+  line 181: >>> LD (HL), _spill_step_r2874     ; byte2 hi_lo (shadow) <<<
+  line 183: >>> LD (HL), _spill_step_r2874+1     ; byte3 hi_hi (shadow) <<<
+  line 232: >>> LD (HL), _spill_step_r2880     ; byte0 lo_lo <<<
+  line 234: >>> LD (HL), _spill_step_r2880+1     ; byte1 lo_hi <<<
+  line 237: >>> LD (HL), _spill_step_r2880     ; byte2 hi_lo (shadow) <<<
+  line 239: >>> LD (HL), _spill_step_r2880+1     ; byte3 hi_hi (shadow) <<<
+  line 944: >>> LD (HL), _spill_step_r2994     ; byte0 lo_lo <<<
+  line 946: >>> LD (HL), _spill_step_r2994+1     ; byte1 lo_hi <<<
+  line 949: >>> LD (HL), _spill_step_r2994     ; byte2 hi_lo (shadow) <<<
+  line 951: >>> LD (HL), _spill_step_r2994+1     ; byte3 hi_hi (shadow) <<<
+  line 1096: >>> LD (HL), _spill_step_r3001     ; byte0 lo_lo <<<
+  line 1098: >>> LD (HL), _spill_step_r3001+1     ; byte1 lo_hi <<<
+  line 1101: >>> LD (HL), _spill_step_r3001     ; byte2 hi_lo (shadow) <<<
+  line 1103: >>> LD (HL), _spill_step_r3001+1     ; byte3 hi_hi (shadow) <<<
+    showcase_test.go:142: assemble: parse error: bufio.Scanner: token too long
+    showcase_test.go:82: SHOWCASE_CASE {"Path":"examples/zmachine/zork-west-demo/zvm.nanz","Case":"TestShowcaseCompileAssemble/zvm.nanz","Status":"FAIL","Stage":"assembler"}
+--- FAIL: TestShowcaseCompileAssemble (3.53s)
+    --- FAIL: TestShowcaseCompileAssemble/zvm.nanz (3.53s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/nanz	3.544s
+FAIL

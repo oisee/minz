@@ -1,0 +1,40 @@
+ORG 0x8000
+EXX
+LD HL,0x6200
+LD DE,0x6300
+LD BC,0x6400
+EXX
+LD HL,65535
+    PUSH AF
+    PUSH IX
+    PUSH HL
+    POP IX
+    LD A, (IX+0)
+    LD (_spill_memory_r2), A
+    LD A, (IX+1)
+    LD (_spill_memory_r2+1), A
+    LD A, (IX+2)
+    LD (_spill_memory_r2+2), A
+    LD A, (IX+3)
+    LD (_spill_memory_r2+3), A
+    POP IX
+    POP AF
+LD IY,0x6100
+    PUSH AF
+    PUSH IX
+    PUSH IY
+    POP IX
+    LD A, (_spill_memory_r2)
+    LD (IX+0), A
+    LD A, (_spill_memory_r2+1)
+    LD (IX+1), A
+    LD A, (_spill_memory_r2+2)
+    LD (IX+2), A
+    LD A, (_spill_memory_r2+3)
+    LD (IX+3), A
+    POP IX
+    POP AF
+DI
+HALT
+_spill_memory_r1: DW 0
+_spill_memory_r2: DB 0,0,0,0

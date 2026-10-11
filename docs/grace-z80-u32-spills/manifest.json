@@ -1,0 +1,95 @@
+{
+  "base_commit": "196bb487",
+  "files": [
+    {
+      "path": "caller.txt",
+      "bytes": 43,
+      "sha256": "ab107b6a286973a48c0df78bc7e3aa2a9933b4357e721562ee8c7f4bdbaf7285"
+    },
+    {
+      "path": "focused.txt",
+      "bytes": 112204,
+      "sha256": "6ff5f3e5e7bdcfd0af3e689344c6eccad823d9f3fefe7955177cbb990399c344"
+    },
+    {
+      "path": "memory.txt",
+      "bytes": 43,
+      "sha256": "31ffd7ede6c66c6e6e3d131de6af25634b65c1bb020e5d971014e8d73fa7eed2"
+    },
+    {
+      "path": "mir2-package.txt",
+      "bytes": 43,
+      "sha256": "94f6b21e7c3c13d44a095441e94e907fda2297de7999d7242655489a4425114b"
+    },
+    {
+      "path": "native/TestZ80U32CallerSpillSnapshot-BC-ffffffff.a80",
+      "bytes": 1021,
+      "sha256": "f3fce7c2ea92d6097b9414c8e4cd4559e3ac6d29e6fd47c30e2c5d1fd2421b5d"
+    },
+    {
+      "path": "native/TestZ80U32CallerSpillSnapshot-BC-ffffffff.bin",
+      "bytes": 106,
+      "sha256": "698de49eb7f43190f1edfca6a4f642d799d42b261b7326024b9c0e4e422ceced"
+    },
+    {
+      "path": "native/TestZ80U32CallerSpillSnapshot-DE-ffffffff.a80",
+      "bytes": 1021,
+      "sha256": "9ebe6294499df4f21d87dbd524c75d3756c4ba224444bd7067128f4531ef62ef"
+    },
+    {
+      "path": "native/TestZ80U32CallerSpillSnapshot-DE-ffffffff.bin",
+      "bytes": 106,
+      "sha256": "266af11db82b211a331d32cb590f73c00630ed4faa4f5b08cf049ede4fcb9b9a"
+    },
+    {
+      "path": "native/TestZ80U32CallerSpillSnapshot-HL-ffffffff.a80",
+      "bytes": 959,
+      "sha256": "a96096d3d937b66d89eae9ce5180c48ce307095d60ec11cc9b3b1a14ad038563"
+    },
+    {
+      "path": "native/TestZ80U32CallerSpillSnapshot-HL-ffffffff.bin",
+      "bytes": 100,
+      "sha256": "3241562554a757d527c66ae813cad91dcb1e2e4b5acf2357215fe9a2803dc745"
+    },
+    {
+      "path": "native/TestZ80U32CallerSpillSnapshot-spill-ffffffff.a80",
+      "bytes": 1491,
+      "sha256": "abced8b4557309e037fca7e650acfbf282ff0cf1015ab341c90390b210a98045"
+    },
+    {
+      "path": "native/TestZ80U32CallerSpillSnapshot-spill-ffffffff.bin",
+      "bytes": 148,
+      "sha256": "86c721e2280f9d98ac34dd1b78a95b5a036944e5d790b41a5243aeee3087de84"
+    },
+    {
+      "path": "native/TestZ80WideMemoryPointerBanksAndSpills-ffff-u32-HL-spill-12345678.a80",
+      "bytes": 661,
+      "sha256": "c1554352529f572c17e8bfa9668845c19bfd9ff711a12a4730aefcbeea9b18fd"
+    },
+    {
+      "path": "native/TestZ80WideMemoryPointerBanksAndSpills-ffff-u32-HL-spill-12345678.bin",
+      "bytes": 93,
+      "sha256": "264fd6d069032a54da3f3ebaa13cb6da4ce782984961b48ff260e1009f17e339"
+    },
+    {
+      "path": "production.txt",
+      "bytes": 2968,
+      "sha256": "bc4ca6460f3f31f51930edda721d62b8feea126df4964d260603728b6f0d7058"
+    },
+    {
+      "path": "zvm-after-memory.txt",
+      "bytes": 625,
+      "sha256": "076f399149db56ecaa50ee3d95112f064e39e16396cbf899e5b385adf48bf25c"
+    },
+    {
+      "path": "zvm-after-save.txt",
+      "bytes": 13724,
+      "sha256": "74cf02eaef5a6ee8eac0dbadce7bdd94ee9e80d39c4f7e577fd07282efdfc0a0"
+    },
+    {
+      "path": "zvm-before.txt",
+      "bytes": 7786,
+      "sha256": "7a9f5dbd7035c24068de659cfb9c9072f25b7a2ca0d0e42f10fa6ae071ce8523"
+    }
+  ]
+}
