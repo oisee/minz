@@ -312,6 +312,17 @@ func TestMemoryHostPolicySearchOriginalParserExport(t *testing.T) {
 	if dir == "" {
 		t.Skip("explicit complete policy-mask search artifact export")
 	}
+	policySearchExport(t, dir, false)
+}
+func TestMemoryHostPolicySearchShortCrossoverExport(t *testing.T) {
+	dir := os.Getenv("MINZ_MEMORY_HOST_POLICY_SEARCH_SHORT_ARTIFACTS")
+	if dir == "" {
+		t.Skip("explicit short crossover search artifact export")
+	}
+	policySearchExport(t, dir, true)
+}
+func policySearchExport(t *testing.T, dir string, short bool) {
+	t.Helper()
 	refs := os.Getenv("MINZ_MEMORY_HOST_POLICY_SEARCH_REFERENCE")
 	if refs == "" {
 		t.Fatal("prior public baseline references required")
@@ -321,6 +332,9 @@ func TestMemoryHostPolicySearchOriginalParserExport(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, w := memoryHostParserFixture(t)
+	if short {
+		w = arenaAppendSmallWorkload(t)
+	}
 	parse := func() (*hir.Module, error) {
 		m, err := nanz.Parse(string(source), "../examples/nanz/self_lanz_parser.nanz")
 		if err == nil {
@@ -349,6 +363,11 @@ func TestMemoryHostPolicySearchOriginalParserExport(t *testing.T) {
 			fail(err)
 		}
 		write(fmt.Sprintf("input-policy%d-association-v2.json", policy), b)
+		if !short {
+			if err := policySearchReference(refs, policy, a.Baseline); err != nil {
+				fail(err)
+			}
+		}
 		if policy == 0 {
 			input.Legacy = b
 		} else {
@@ -406,19 +425,43 @@ func TestMemoryHostPolicySearchOriginalParserExport(t *testing.T) {
 	if calls != 48 {
 		t.Fatal("search lifecycle", calls)
 	}
-	for policy, s := range result.Selections {
-		name := []string{"legacy", "preserve-speed"}[policy]
-		b, err := os.ReadFile(filepath.Join(refs, name, "baseline-v2.json"))
-		if err != nil {
-			fail(err)
-		}
-		var ref MemoryHostBaselineEvidenceV2
-		if err = json.Unmarshal(b, &ref); err != nil {
-			fail(err)
-		}
-		got, want := s.Candidates[0].Evidence.Baseline.Target, ref.Baseline.Target
-		if got.BinarySHA256 != want.BinarySHA256 || got.Assembly != want.Assembly || got.AdapterSHA256 != want.AdapterSHA256 || got.TotalTStates != want.TotalTStates || got.ExecutedSteps != want.ExecutedSteps || got.MIRSHA256 != want.MIRSHA256 || got.AllocationSHA256 != want.AllocationSHA256 || got.SidecarSHA256 != want.SidecarSHA256 || got.CallFramesSHA256 != want.CallFramesSHA256 || !reflect.DeepEqual(got.Invocations, want.Invocations) || !reflect.DeepEqual(got.InvocationTStates, want.InvocationTStates) {
-			t.Fatal("original candidate differs from prior public policy baseline", policy)
+	if !short {
+		for policy, s := range result.Selections {
+			if err := policySearchReference(refs, policy, s.Candidates[0].Evidence); err != nil {
+				fail(err)
+			}
 		}
 	}
+}
+func policySearchReference(refs string, policy int, evidence *MemoryHostBaselineEvidenceV2) error {
+	name := []string{"legacy", "preserve-speed"}[policy]
+	b, err := os.ReadFile(filepath.Join(refs, name, "baseline-v2.json"))
+	if err != nil {
+		return err
+	}
+	var ref MemoryHostBaselineEvidenceV2
+	if err = json.Unmarshal(b, &ref); err != nil {
+		return err
+	}
+	opts := MemoryHostBaselineOptions{UnsignedPairComparePolicy: mir2.UnsignedPairComparePolicy(policy)}
+	if ref.Schema != "minz.memory-host-baseline/v2" || ref.CompileOptions != opts || ref.Baseline == nil || evidence.Schema != ref.Schema || evidence.CompileOptions != opts || evidence.Baseline == nil {
+		return fmt.Errorf("reference policy envelope")
+	}
+	if !reflect.DeepEqual(evidence.Baseline.Raw, ref.Baseline.Raw) || !reflect.DeepEqual(evidence.Baseline.Compatibility, ref.Baseline.Compatibility) || !reflect.DeepEqual(evidence.Baseline.FunctionSites, ref.Baseline.FunctionSites) {
+		// Executable identity is expected to differ; compare semantic source
+		// and workload binding after removing only the compiler identifier.
+		gotRaw, wantRaw := *evidence.Baseline.Raw, *ref.Baseline.Raw
+		gotRaw.Context.CompilerID = wantRaw.Context.CompilerID
+		gotCompat, wantCompat := *evidence.Baseline.Compatibility, *ref.Baseline.Compatibility
+		gotCompat.Context.CompilerID = wantCompat.Context.CompilerID
+		gotRaw.Compatibility = &gotCompat
+		if !reflect.DeepEqual(gotRaw, wantRaw) || !reflect.DeepEqual(gotCompat, wantCompat) || !reflect.DeepEqual(evidence.Baseline.FunctionSites, ref.Baseline.FunctionSites) {
+			return fmt.Errorf("reference source/workload identity differs")
+		}
+	}
+	got, want := evidence.Baseline.Target, ref.Baseline.Target
+	if got.BinarySHA256 != want.BinarySHA256 || got.Assembly != want.Assembly || got.AdapterSHA256 != want.AdapterSHA256 || got.TotalTStates != want.TotalTStates || got.ExecutedSteps != want.ExecutedSteps || got.MIRSHA256 != want.MIRSHA256 || got.AllocationSHA256 != want.AllocationSHA256 || got.SidecarSHA256 != want.SidecarSHA256 || got.CallFramesSHA256 != want.CallFramesSHA256 || !reflect.DeepEqual(got.Invocations, want.Invocations) || !reflect.DeepEqual(got.InvocationTStates, want.InvocationTStates) {
+		return fmt.Errorf("original policy%d differs from prior public baseline", policy)
+	}
+	return nil
 }
