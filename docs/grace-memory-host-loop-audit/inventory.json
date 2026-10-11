@@ -1,8 +1,18 @@
 [
   {
+    "path": "IX-SNAPSHOT-REVIEW.md",
+    "bytes": 3083,
+    "sha256": "57fc3852f6127f20b7d8563d5d93a6b7b47e2973be3a56054cc4c068fc05afa7"
+  },
+  {
     "path": "README.md",
-    "bytes": 3933,
-    "sha256": "6fc13e902b1aa0c28a5b3bd2759fafa127f4c919b63078b040ea31f2219fa729"
+    "bytes": 4857,
+    "sha256": "73208e8cc4115d757f6f8b8b54b5780073ffe6df85bfffc6142b9e0de62e2f35"
+  },
+  {
+    "path": "association-audit.txt",
+    "bytes": 2011,
+    "sha256": "45925ad0de525e0339d5734c169bb092629753f130cd2174b6478864d7c275b4"
   },
   {
     "path": "export_sites.go",
@@ -30,6 +40,11 @@
     "sha256": "824dd0418feb5b76aecbb654f3071d59fb5bda28134406a9cd008c79cec09407"
   },
   {
+    "path": "loop-baseline-association.json.gz",
+    "bytes": 82198,
+    "sha256": "ccb719e46fc199fb6e4264aed1be822fa33c5d1a8306655d2aba4c34019e157b"
+  },
+  {
     "path": "source-sites.json",
     "bytes": 5136,
     "sha256": "6b5330f53b3895ea57182c9e4a53d2fa5eb729ca09299c4ee237eb79fc7e2e17"
@@ -38,5 +53,10 @@
     "path": "source.nanz",
     "bytes": 7164,
     "sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+  },
+  {
+    "path": "verify_loop_association.py",
+    "bytes": 7739,
+    "sha256": "8cb8277c756ae0ba9f3cee4e4fdd67d0922067ebca7059cc5aa081fbcda82b28"
   }
 ]
