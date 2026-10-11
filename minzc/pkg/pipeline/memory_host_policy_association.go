@@ -124,6 +124,9 @@ func LoadMemoryHostLoopProfileEvidenceV2(r io.Reader, source *hir.Module, w hir.
 	if _, e := resolveUnsignedPairComparePolicy(Options{UnsignedPairComparePolicy: options.UnsignedPairComparePolicy}); e != nil {
 		return nil, e
 	}
+	if r == nil {
+		return nil, fmt.Errorf("policy association: nil reader")
+	}
 	data, e := io.ReadAll(io.LimitReader(r, MaxMemoryHostPolicyAssociationBytes+1))
 	if e != nil {
 		return nil, e
@@ -135,8 +138,8 @@ func LoadMemoryHostLoopProfileEvidenceV2(r io.Reader, source *hir.Module, w hir.
 	if e != nil {
 		return nil, e
 	}
-	if p.Schema != "minz.memory-host-loop-baseline-association/v2" || p.CompileOptions != options || p.Baseline == nil || p.Baseline.Schema != "minz.memory-host-baseline/v2" || p.Baseline.CompileOptions != options || p.Baseline.Baseline == nil || p.Profile == nil {
-		return nil, fmt.Errorf("policy association: incompatible envelope/policy")
+	if e = validatePolicyAssociationEnvelope(p, options); e != nil {
+		return nil, e
 	}
 	b := p.Baseline.Baseline
 	pb, e := json.Marshal(p.Profile)
@@ -219,6 +222,13 @@ func ReplayMemoryHostLoopProfileEvidenceV2(factory func() (*hir.Module, error), 
 		return nil, e
 	}
 	payload := append([]byte{}, data...)
+	preflight, err := decodePolicyAssociation(payload)
+	if err != nil {
+		return nil, err
+	}
+	if err = validatePolicyAssociationEnvelope(preflight, options); err != nil {
+		return nil, err
+	}
 	seen := map[uintptr]bool{}
 	retained := []*hir.Module{}
 	roots := []any{}
@@ -277,4 +287,11 @@ func ReplayMemoryHostLoopProfileEvidenceV2(factory func() (*hir.Module, error), 
 		return nil, fmt.Errorf("policy association: full envelope differs from fresh closed replay")
 	}
 	return observed, nil
+}
+
+func validatePolicyAssociationEnvelope(p *MemoryHostLoopProfileEvidenceV2, options MemoryHostBaselineOptions) error {
+	if p == nil || p.Schema != "minz.memory-host-loop-baseline-association/v2" || p.CompileOptions != options || p.Baseline == nil || p.Baseline.Schema != "minz.memory-host-baseline/v2" || p.Baseline.CompileOptions != options || p.Baseline.Baseline == nil || p.Profile == nil {
+		return fmt.Errorf("policy association: incompatible envelope/policy")
+	}
+	return nil
 }
