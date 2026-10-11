@@ -1752,6 +1752,11 @@
       "sha256": "6009983ab48da437eea4064fcb209c64ed5cdfe569b71148acf57ccc195b6381"
     },
     {
+      "path": "production-cli-check/manifest.json",
+      "bytes": 33410,
+      "sha256": "cd43bec7434dc2c6595469741f598186eda6086d4c619ef797f7b1309bae4821"
+    },
+    {
       "path": "production-cli-check/minzc-production.gz",
       "bytes": 16348490,
       "sha256": "69bfda5a3019263299f89147a6a69e83cc9b80d6ad9c2f146b6379bbfa1eec3e"
