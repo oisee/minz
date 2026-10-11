@@ -1,0 +1,7 @@
+=== RUN   TestMemoryHostIndexArgumentRegisters
+--- PASS: TestMemoryHostIndexArgumentRegisters (0.01s)
+=== RUN   TestOriginalFourPointerReadAliasVMZ80
+    showcase_four_pointer_oracle_test.go:179: exact original four_ptrs:1792calls+observer/full259RAM/orderedreads/aliases/raw-finalVM/nativeSPcode; 182801 T/22 B SHA 97437b293aa80994a658a47703bffd628bc22ecd184a4083f97c485264f6f4de
+--- PASS: TestOriginalFourPointerReadAliasVMZ80 (0.21s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.224s

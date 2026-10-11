@@ -1,0 +1,7 @@
+@extern fun peek(addr:u16)->u8
+fun oracle_four(a:u16,b:u16,c:u16,d:u16)->u8 {var p:ptr=a
+ var q:ptr=b
+ var r:ptr=c
+ var s:ptr=d
+ return four_ptrs(p,q,r,s)}
+fun oracle_observe(addr:u16)->u8 {return peek(addr)}

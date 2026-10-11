@@ -427,6 +427,10 @@ func memoryHostSetArgument(m *memoryHostZ80Memory, loc mir2.PhysLoc, v int64) er
 	case "BC":
 		m.cpu.B = byte(v >> 8)
 		m.cpu.C = byte(v)
+	case "IX":
+		m.cpu.IXH, m.cpu.IXL = byte(v>>8), byte(v)
+	case "IY":
+		m.cpu.IYH, m.cpu.IYL = byte(v>>8), byte(v)
 	default:
 		return fmt.Errorf("unsupported invocation location %s", loc.Name)
 	}
