@@ -1,0 +1,5 @@
+=== RUN   TestOriginalTypedPrintNativeFullState
+    showcase_typed_print_native_test.go:206: exact typed_print productionstdlib:6 original calls +104 decimal/capacity workloads; all44globalbytes/relocatedpointers/VMorderedwrites/nativePCSPguardsimage; 7341 B SHA41f296b8e4302a2b7470a1277a5d3ae4c0b0b25f136232e23770e47a962f9966
+--- PASS: TestOriginalTypedPrintNativeFullState (0.48s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.486s

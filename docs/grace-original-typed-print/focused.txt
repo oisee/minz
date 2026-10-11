@@ -1,0 +1,11 @@
+=== RUN   TestOriginalTypedPrintNativeFullState
+    showcase_typed_print_native_test.go:234: exact typed_print productionstdlib:6 original/workload calls; all44globalbytes/relocatedpointers/VMorderedwrites/nativePCSPguardsimage; 911 B SHA0c77f48a9a381b613df62767971acc291cb5f12b89145c67e0401485a2bcb20c
+--- PASS: TestOriginalTypedPrintNativeFullState (0.05s)
+=== RUN   TestTypedPrintImportedFormatterBoundaryNative
+    showcase_typed_print_native_test.go:234: exact typed_print productionstdlib:110 original/workload calls; all44globalbytes/relocatedpointers/VMorderedwrites/nativePCSPguardsimage; 7983 B SHAd8b2e0239334f4c7b058306c39e160445e3d1293c4e0108ca1f524aee7762fda
+--- PASS: TestTypedPrintImportedFormatterBoundaryNative (0.64s)
+=== RUN   TestStructMethodPointerAndFieldScratchNative
+    struct_method_field_regression_test.go:55: 48 independent cap+byte results native/VM, formal pointer width and field scratch PASS
+--- PASS: TestStructMethodPointerAndFieldScratchNative (0.18s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.875s

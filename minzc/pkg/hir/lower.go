@@ -1212,10 +1212,10 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 			// Use lowerExprAs to widen integer literals to the callee's type,
 			// then apply the calling-convention class coercion (same as regular CallExpr).
 			paramTy := a.ExprTy()
-			if i < len(calleeParams) {
+			if _, isStruct := a.ExprTy().(*mir2.StructTy); isStruct && i < len(calleeParams) && mir2.IsPointer(calleeParams[i].Ty) {
 				paramTy = calleeParams[i].Ty
 			}
-			r := l.lowerExprAs(a, paramTy)
+			r := l.lowerExpr(a)
 			tgtCls := classForParam(paramTy, i)
 			if tgtCls != classForExpr(paramTy) {
 				r = l.bld.Move(r, paramTy, tgtCls)
@@ -2228,19 +2228,26 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 			fnName = alias
 		}
 
+		var calleeParams []Param
+		if callee := l.hirFuncs[fnName]; callee != nil {
+			calleeParams = callee.Params
+		}
 		args := make([]mir2.Reg, len(ex.Args))
 		for i, a := range ex.Args {
+			// A struct expression is represented by its address when passed to
+			// a concrete method. Its storage width is not the argument width.
+			paramTy := a.ExprTy()
+			if _, isStruct := a.ExprTy().(*mir2.StructTy); isStruct && i < len(calleeParams) && mir2.IsPointer(calleeParams[i].Ty) {
+				paramTy = calleeParams[i].Ty
+			}
 			r := l.lowerExpr(a)
-			// Coerce arg to its calling-convention register class.
-			// E.g. arg[0] must be in ClassAcc (A), but classForExpr returns
-			// ClassGeneral for safety.  Emit an explicit Move so the allocator
-			// puts the value in the right physical register.
-			tgtCls := classForParam(a.ExprTy(), i)
-			if tgtCls != classForExpr(a.ExprTy()) {
-				r = l.bld.Move(r, a.ExprTy(), tgtCls)
+			tgtCls := classForParam(paramTy, i)
+			if tgtCls != classForExpr(paramTy) {
+				r = l.bld.Move(r, paramTy, tgtCls)
 			}
 			args[i] = r
 		}
+
 		if ex.Ty == mir2.TyVoid {
 			l.bld.CallVoid(fnName, args, mir2.CallAttrs{})
 			return mir2.NoReg

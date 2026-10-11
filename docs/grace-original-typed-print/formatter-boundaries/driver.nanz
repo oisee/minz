@@ -1,0 +1,624 @@
+
+fun oracle_decimal_0_0() -> u16 { writer.init(&output,0)
+ dec.value=0
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_0_1() -> u16 { writer.init(&output,1)
+ dec.value=0
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_0_2() -> u16 { writer.init(&output,2)
+ dec.value=0
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_0_3() -> u16 { writer.init(&output,3)
+ dec.value=0
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_0_4() -> u16 { writer.init(&output,4)
+ dec.value=0
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_0_5() -> u16 { writer.init(&output,5)
+ dec.value=0
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_0_6() -> u16 { writer.init(&output,6)
+ dec.value=0
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_0_32() -> u16 { writer.init(&output,32)
+ dec.value=0
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_1_0() -> u16 { writer.init(&output,0)
+ dec.value=1
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_1_1() -> u16 { writer.init(&output,1)
+ dec.value=1
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_1_2() -> u16 { writer.init(&output,2)
+ dec.value=1
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_1_3() -> u16 { writer.init(&output,3)
+ dec.value=1
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_1_4() -> u16 { writer.init(&output,4)
+ dec.value=1
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_1_5() -> u16 { writer.init(&output,5)
+ dec.value=1
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_1_6() -> u16 { writer.init(&output,6)
+ dec.value=1
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_1_32() -> u16 { writer.init(&output,32)
+ dec.value=1
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_9_0() -> u16 { writer.init(&output,0)
+ dec.value=9
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_9_1() -> u16 { writer.init(&output,1)
+ dec.value=9
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_9_2() -> u16 { writer.init(&output,2)
+ dec.value=9
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_9_3() -> u16 { writer.init(&output,3)
+ dec.value=9
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_9_4() -> u16 { writer.init(&output,4)
+ dec.value=9
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_9_5() -> u16 { writer.init(&output,5)
+ dec.value=9
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_9_6() -> u16 { writer.init(&output,6)
+ dec.value=9
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_9_32() -> u16 { writer.init(&output,32)
+ dec.value=9
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_10_0() -> u16 { writer.init(&output,0)
+ dec.value=10
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_10_1() -> u16 { writer.init(&output,1)
+ dec.value=10
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_10_2() -> u16 { writer.init(&output,2)
+ dec.value=10
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_10_3() -> u16 { writer.init(&output,3)
+ dec.value=10
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_10_4() -> u16 { writer.init(&output,4)
+ dec.value=10
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_10_5() -> u16 { writer.init(&output,5)
+ dec.value=10
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_10_6() -> u16 { writer.init(&output,6)
+ dec.value=10
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_10_32() -> u16 { writer.init(&output,32)
+ dec.value=10
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_99_0() -> u16 { writer.init(&output,0)
+ dec.value=99
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_99_1() -> u16 { writer.init(&output,1)
+ dec.value=99
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_99_2() -> u16 { writer.init(&output,2)
+ dec.value=99
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_99_3() -> u16 { writer.init(&output,3)
+ dec.value=99
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_99_4() -> u16 { writer.init(&output,4)
+ dec.value=99
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_99_5() -> u16 { writer.init(&output,5)
+ dec.value=99
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_99_6() -> u16 { writer.init(&output,6)
+ dec.value=99
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_99_32() -> u16 { writer.init(&output,32)
+ dec.value=99
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_100_0() -> u16 { writer.init(&output,0)
+ dec.value=100
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_100_1() -> u16 { writer.init(&output,1)
+ dec.value=100
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_100_2() -> u16 { writer.init(&output,2)
+ dec.value=100
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_100_3() -> u16 { writer.init(&output,3)
+ dec.value=100
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_100_4() -> u16 { writer.init(&output,4)
+ dec.value=100
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_100_5() -> u16 { writer.init(&output,5)
+ dec.value=100
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_100_6() -> u16 { writer.init(&output,6)
+ dec.value=100
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_100_32() -> u16 { writer.init(&output,32)
+ dec.value=100
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_255_0() -> u16 { writer.init(&output,0)
+ dec.value=255
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_255_1() -> u16 { writer.init(&output,1)
+ dec.value=255
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_255_2() -> u16 { writer.init(&output,2)
+ dec.value=255
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_255_3() -> u16 { writer.init(&output,3)
+ dec.value=255
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_255_4() -> u16 { writer.init(&output,4)
+ dec.value=255
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_255_5() -> u16 { writer.init(&output,5)
+ dec.value=255
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_255_6() -> u16 { writer.init(&output,6)
+ dec.value=255
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_255_32() -> u16 { writer.init(&output,32)
+ dec.value=255
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_256_0() -> u16 { writer.init(&output,0)
+ dec.value=256
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_256_1() -> u16 { writer.init(&output,1)
+ dec.value=256
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_256_2() -> u16 { writer.init(&output,2)
+ dec.value=256
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_256_3() -> u16 { writer.init(&output,3)
+ dec.value=256
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_256_4() -> u16 { writer.init(&output,4)
+ dec.value=256
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_256_5() -> u16 { writer.init(&output,5)
+ dec.value=256
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_256_6() -> u16 { writer.init(&output,6)
+ dec.value=256
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_256_32() -> u16 { writer.init(&output,32)
+ dec.value=256
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_999_0() -> u16 { writer.init(&output,0)
+ dec.value=999
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_999_1() -> u16 { writer.init(&output,1)
+ dec.value=999
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_999_2() -> u16 { writer.init(&output,2)
+ dec.value=999
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_999_3() -> u16 { writer.init(&output,3)
+ dec.value=999
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_999_4() -> u16 { writer.init(&output,4)
+ dec.value=999
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_999_5() -> u16 { writer.init(&output,5)
+ dec.value=999
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_999_6() -> u16 { writer.init(&output,6)
+ dec.value=999
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_999_32() -> u16 { writer.init(&output,32)
+ dec.value=999
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_1000_0() -> u16 { writer.init(&output,0)
+ dec.value=1000
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_1000_1() -> u16 { writer.init(&output,1)
+ dec.value=1000
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_1000_2() -> u16 { writer.init(&output,2)
+ dec.value=1000
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_1000_3() -> u16 { writer.init(&output,3)
+ dec.value=1000
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_1000_4() -> u16 { writer.init(&output,4)
+ dec.value=1000
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_1000_5() -> u16 { writer.init(&output,5)
+ dec.value=1000
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_1000_6() -> u16 { writer.init(&output,6)
+ dec.value=1000
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_1000_32() -> u16 { writer.init(&output,32)
+ dec.value=1000
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_32767_0() -> u16 { writer.init(&output,0)
+ dec.value=32767
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_32767_1() -> u16 { writer.init(&output,1)
+ dec.value=32767
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_32767_2() -> u16 { writer.init(&output,2)
+ dec.value=32767
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_32767_3() -> u16 { writer.init(&output,3)
+ dec.value=32767
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_32767_4() -> u16 { writer.init(&output,4)
+ dec.value=32767
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_32767_5() -> u16 { writer.init(&output,5)
+ dec.value=32767
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_32767_6() -> u16 { writer.init(&output,6)
+ dec.value=32767
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_32767_32() -> u16 { writer.init(&output,32)
+ dec.value=32767
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_32768_0() -> u16 { writer.init(&output,0)
+ dec.value=32768
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_32768_1() -> u16 { writer.init(&output,1)
+ dec.value=32768
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_32768_2() -> u16 { writer.init(&output,2)
+ dec.value=32768
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_32768_3() -> u16 { writer.init(&output,3)
+ dec.value=32768
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_32768_4() -> u16 { writer.init(&output,4)
+ dec.value=32768
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_32768_5() -> u16 { writer.init(&output,5)
+ dec.value=32768
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_32768_6() -> u16 { writer.init(&output,6)
+ dec.value=32768
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_32768_32() -> u16 { writer.init(&output,32)
+ dec.value=32768
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_65535_0() -> u16 { writer.init(&output,0)
+ dec.value=65535
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_65535_1() -> u16 { writer.init(&output,1)
+ dec.value=65535
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_65535_2() -> u16 { writer.init(&output,2)
+ dec.value=65535
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_65535_3() -> u16 { writer.init(&output,3)
+ dec.value=65535
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_65535_4() -> u16 { writer.init(&output,4)
+ dec.value=65535
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_65535_5() -> u16 { writer.init(&output,5)
+ dec.value=65535
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_65535_6() -> u16 { writer.init(&output,6)
+ dec.value=65535
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }
+
+fun oracle_decimal_65535_32() -> u16 { writer.init(&output,32)
+ dec.value=65535
+ dec.write_to(&writer)
+ writer.finish_c()
+ return writer.len }

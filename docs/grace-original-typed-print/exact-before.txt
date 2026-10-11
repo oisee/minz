@@ -1,0 +1,7 @@
+=== RUN   TestOriginalTypedPrintNativeFullState
+    showcase_typed_print_native_test.go:176: native main regs{A:0 F:64 BC:6 DE:4 HL:0 IX:1928 IY:12289 SP:61426 PC:768} output=0000000000000000000000000000000000000000000000000000000000000000 writer=68070000040000
+    showcase_typed_print_native_test.go:182: nativecall0main returnedtrue got0 want18
+--- FAIL: TestOriginalTypedPrintNativeFullState (0.06s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.065s
+FAIL
