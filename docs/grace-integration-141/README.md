@@ -1,0 +1,5 @@
+# Интеграция141: CP/M runtime после расширения wide emitters
+
+Checkpoint1292e5b4: выборка pipeline Test.*CPM.*(Stack|Guard|Runtime).* **PASS1,592 с**. [Лог](cpm-runtime.txt). Проверка обоснована новыми временными PUSH/POP в сравнениях и widening: runtime admission анализирует фактически emitted stack paths, а не предполагает старый размер стека. В выборке есть original tokenizer main, guarded tokenizer и original Self-Lanz main с существующими независимыми моделями runtime/output; тест recursive live-spill restoration имеет другое имя и этой выборкой не покрыт. Не заявляется hardware, всеprograms/runtime или новый fullsuite PASS.
+
+Originalwidemath bounded all26 проходит в isolatedbranch, effect/call/spill corrections ещё готовятся к rootintegration. Originalpromoted_arithmetic all9entries предварительно проходит, exactCALL/fullmemory controls усиливаются. Unsignedmixedwidth counterexample rawVM0вместо65536 закрывается отдельно; mixedsignedness specification остаётся самостоятельным вопросом. Pipelinea7954042 подтверждён живым; не перезапускается.
