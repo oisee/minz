@@ -1,6 +1,6 @@
 # Ночной итог Grace / PGO — 11 октября 2026
 
-Актуально на 10:09 UTC. Цель продолжается: выбирать оптимизации по проверенному
+Актуально на 10:15 UTC. Цель продолжается: выбирать оптимизации по проверенному
 профилю, от исходника через HIR/MIR до собранного Z80-бинарника. MIR VM служит
 промежуточным oracle; итоговые варианты исполняются в Z80-эмуляторе с проверкой
 результатов, памяти, порядка host events, размера и T-states. Проверка на
@@ -38,9 +38,10 @@ collection baseline сохранены. Независимые аудиты пр
 
 ## Опубликовано и локально сохранено
 
-Подтверждённая приватная публикация Sites — **версия 53**:
+Подтверждённая приватная публикация Sites — **версия 54**:
 https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/
 
+- [Корпус с policy](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-policy-corpus.html)
 - [Policy-aware selector](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-policy-selector.html)
 - [Явный CLI v2](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-policy-cli.html)
 - [Compare opt-in](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/unsigned-pair-policy.html)
@@ -94,8 +95,12 @@ Actual Speed: mask 3, 1076715 T / 2100 B; actual Size: mask 2, 1076874 T /
 Четыре неизменённых workload, 50 вызовов, 32 кандидата; обе цели выбрали
 append-copy,1979 B. T: 326090 / 3968554 / 1270168 / 696909. Оба независимых
 аудита e02291a7 и22eacb5a прошли: corpus500 иproduction300, всего800native
-наблюдений. Пакет завершается, corpus этап пока не опубликован.
+наблюдений. Пакет684payloads закрыт и pushed81a02384, перенесён и relocatedauditPASS800.
+Corpus опубликован в приватном Sites54; wholeoffline sync ещё выполняется.
 Старые profiles/контексты остаются отдельными аналитическими сравнениями.
+Следующий отдельный policy×mask API план a15b1b52/8d188be7 проходит ревью: две
+независимые whole association, общий ownership всех48callbacks, восемь
+кандидатов, строгий Legacy-first tie. Реализация ещё не запускалась.
 
 ## Сохранение веток и решения
 
