@@ -1,6 +1,6 @@
 # Ночной итог Grace / PGO — 11 октября 2026
 
-Актуально на 09:12 UTC. Цель продолжается: оптимизировать реальные программы
+Актуально на 09:15 UTC. Цель продолжается: оптимизировать реальные программы
 по проверенным профилям, от исходника через HIR/MIR до собранного Z80-бинарника.
 MIR VM служит промежуточным oracle. Итоговые варианты исполняются в
 Z80-эмуляторе: проверяем результаты, память, порядок ресурсных обращений,
@@ -49,9 +49,10 @@ Helper и диагностический hook остаются в отдельн
 
 ## Опубликовано и локально сохранено
 
-Приватный Sites, подтверждённая **версия 50**:
+Приватный Sites, подтверждённая **версия 51**:
 https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/
 
+- [Unsigned compare + reuse](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/unsigned-pair-compare.html)
 - [Отрицательный diamond эксперимент](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/normal-global-diamond.html)
 - [Обновлённый корпус](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/global-word-load-corpus.html)
 - [Direct global word loads](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/global-word-load.html)
@@ -61,7 +62,7 @@ https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/
 Весь сайт, исходники, профили, решения, proof records, ASM/BIN, логи,
 публикационные архивы и Git bundles сохраняются локально:
 [офлайн-главная](../artifacts/grace-reports/2026-10-10-resume/site/index.html).
-Полная копия версии 50 проверена: **14640 файлов, 60 страниц**, все SHA256
+Полная копия версии 50 проверена: **14903 файлов, 61 страница**, все SHA256
 и публикационные архивы PASS. Потерянных ссылок и внешних зависимостей нет.
 
 ## Новый завершённый эксперимент
@@ -70,8 +71,8 @@ https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/
 и два независимых аудита: 90 наблюдений совпали. Compare отдельно:
 1132449 T / 2001 B (−2921 T, +1 B). Reuse + compare:
 **1096139 T / 1998 B** (−39231 T, −2 B, около 3,46%).
-Артефакты e65c7b29 сохранены и pushed; production не менялся. Отчёт 51
-готовится к публикации. Временный executable go test удалён, его context SHA
+Артефакты e65c7b29 сохранены и pushed; production не менялся. Отчёт опубликован в приватном Sites 51; полная офлайн-копия
+проверена по SHA256 и локальным ссылкам. Временный executable go test удалён, его context SHA
 сохранён; ASM/BIN и все доступные артефакты есть локально.
 
 ## Следующий шаг и сохранение работы
