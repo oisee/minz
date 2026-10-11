@@ -190,8 +190,12 @@ func (g *z80cg) genCall(inst *Inst) error {
 		if len(returns) == 0 && inst.Dst != NoReg {
 			returns = []Ty{inst.Ty}
 		}
+		returnClasses, err := CanonicalIndirectReturnClasses(returns)
+		if err != nil {
+			return err
+		}
 		for i, ty := range returns {
-			callee.Contract.Returns = append(callee.Contract.Returns, Return{Ty: ty, Class: standardIndirectReturnClass(ty, i)})
+			callee.Contract.Returns = append(callee.Contract.Returns, Return{Ty: ty, Class: returnClasses[i]})
 		}
 	} else if g.mod != nil {
 		// Resolve on emitted symbols. Never discard an ABI to handle ambiguity.

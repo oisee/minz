@@ -1,0 +1,86 @@
+=== RUN   TestProductionCallFixRound1
+=== RUN   TestProductionCallFixRound1/indirect.nanz
+=== RUN   TestProductionCallFixRound1/multi.nanz
+=== RUN   TestProductionCallFixRound1/multiply_word_live.nanz
+=== RUN   TestProductionCallFixRound1/s00039.nanz
+=== RUN   TestProductionCallFixRound1/s00046.nanz
+=== RUN   TestProductionCallFixRound1/s00143.nanz
+=== RUN   TestProductionCallFixRound1/s00167.nanz
+=== RUN   TestProductionCallFixRound1/s00254.nanz
+=== RUN   TestProductionCallFixRound1/s00360.nanz
+=== RUN   TestProductionCallFixRound1/s00404.nanz
+=== RUN   TestProductionCallFixRound1/s00595.nanz
+=== RUN   TestProductionCallFixRound1/s00656.nanz
+=== RUN   TestProductionCallFixRound1/s00726.nanz
+=== RUN   TestProductionCallFixRound1/s00742.nanz
+=== RUN   TestProductionCallFixRound1/s00766.nanz
+=== RUN   TestProductionCallFixRound1/s00784.nanz
+=== RUN   TestProductionCallFixRound1/s00806.nanz
+=== RUN   TestProductionCallFixRound1/s00852.nanz
+=== RUN   TestProductionCallFixRound1/s00905.nanz
+=== RUN   TestProductionCallFixRound1/s00934.nanz
+=== RUN   TestProductionCallFixRound1/s00963.nanz
+=== RUN   TestProductionCallFixRound1/s00966.nanz
+=== RUN   TestProductionCallFixRound1/s00976.nanz
+=== RUN   TestProductionCallFixRound1/s01034.nanz
+=== RUN   TestProductionCallFixRound1/s01098.nanz
+=== RUN   TestProductionCallFixRound1/s01128.nanz
+=== RUN   TestProductionCallFixRound1/s01176.nanz
+=== RUN   TestProductionCallFixRound1/s01204.nanz
+=== RUN   TestProductionCallFixRound1/s01328.nanz
+=== RUN   TestProductionCallFixRound1/s01435.nanz
+=== RUN   TestProductionCallFixRound1/s01488.nanz
+=== RUN   TestProductionCallFixRound1/s01505.nanz
+=== RUN   TestProductionCallFixRound1/s01608.nanz
+=== RUN   TestProductionCallFixRound1/s01715.nanz
+=== RUN   TestProductionCallFixRound1/s01788.nanz
+=== RUN   TestProductionCallFixRound1/s01858.nanz
+=== RUN   TestProductionCallFixRound1/s01944.nanz
+=== RUN   TestProductionCallFixRound1/s10006.nanz
+=== RUN   TestProductionCallFixRound1/s10635.nanz
+=== RUN   TestProductionCallFixRound1/s10983.nanz
+=== RUN   TestProductionCallFixRound1/tail_multiply.nanz
+--- PASS: TestProductionCallFixRound1 (0.44s)
+    --- PASS: TestProductionCallFixRound1/indirect.nanz (0.00s)
+    --- PASS: TestProductionCallFixRound1/multi.nanz (0.00s)
+    --- PASS: TestProductionCallFixRound1/multiply_word_live.nanz (0.00s)
+    --- PASS: TestProductionCallFixRound1/s00039.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s00046.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s00143.nanz (0.00s)
+    --- PASS: TestProductionCallFixRound1/s00167.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s00254.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s00360.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s00404.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s00595.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s00656.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s00726.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s00742.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s00766.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s00784.nanz (0.02s)
+    --- PASS: TestProductionCallFixRound1/s00806.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s00852.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s00905.nanz (0.02s)
+    --- PASS: TestProductionCallFixRound1/s00934.nanz (0.02s)
+    --- PASS: TestProductionCallFixRound1/s00963.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s00966.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s00976.nanz (0.02s)
+    --- PASS: TestProductionCallFixRound1/s01034.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s01098.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s01128.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s01176.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s01204.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s01328.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s01435.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s01488.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s01505.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s01608.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s01715.nanz (0.02s)
+    --- PASS: TestProductionCallFixRound1/s01788.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s01858.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s01944.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s10006.nanz (0.02s)
+    --- PASS: TestProductionCallFixRound1/s10635.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/s10983.nanz (0.01s)
+    --- PASS: TestProductionCallFixRound1/tail_multiply.nanz (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/hir	0.451s

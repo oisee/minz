@@ -135,3 +135,22 @@ func TestStructReturnCanonicalIndirectSlotsDoNotOverlap(t *testing.T) {
 		t.Fatal("exhausted ABI accepted")
 	}
 }
+
+func TestStructReturnCanonicalReturnSlotsDoNotOverlap(t *testing.T) {
+	for _, tys := range [][]mir2.Ty{{mir2.TyPtr, mir2.TyPtr}, {mir2.TyU8, mir2.TyU8, mir2.TyU8, mir2.TyU8}, {mir2.TyU16, mir2.TyU16, mir2.TyU16}} {
+		classes, e := mir2.CanonicalIndirectReturnClasses(tys)
+		if e != nil {
+			t.Fatal(e)
+		}
+		occupied := map[byte]bool{}
+		for i, cls := range classes {
+			loc := mir2.ReturnLocation(cls, tys[i])
+			for j := range loc {
+				if occupied[loc[j]] {
+					t.Fatal("overlapping return ABI", tys, classes)
+				}
+				occupied[loc[j]] = true
+			}
+		}
+	}
+}
