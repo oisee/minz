@@ -58,6 +58,7 @@ func (g *z80cg) emitSBCHL(rhs string) {
 // ── Binary operations ─────────────────────────────────────────────────────────
 
 func (g *z80cg) genBinOp(mnem string, inst *Inst) {
+	g.materializePendingFlag(inst)
 	if mnem == "OR" && g.genDisjointByteOr(inst) {
 		return
 	}
@@ -851,6 +852,7 @@ func (g *z80cg) emit8ALUImm(mnem string, imm int64) {
 // ── Shifts ────────────────────────────────────────────────────────────────────
 
 func (g *z80cg) genShift(mnem string, inst *Inst) {
+	g.materializePendingFlag(inst)
 	if dst := g.loc(inst.Dst); isSpill(dst) && inst.Ty.Width() <= 16 {
 		// Z80 shifts accept registers or indirect memory, never absolute
 		// spill labels. Stage the result without disturbing a live HL/A.

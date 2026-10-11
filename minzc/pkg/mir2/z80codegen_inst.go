@@ -206,6 +206,7 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.genBinOp("XOR", inst)
 
 	case OpBitGet:
+		g.materializePendingFlag(inst)
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
 		src := g.loc(inst.Src[0])
@@ -289,6 +290,7 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.invalidate(dst)
 
 	case OpNeg:
+		g.materializePendingFlag(inst)
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
 		if inst.Ty.Width() == 16 {

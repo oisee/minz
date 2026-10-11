@@ -1,0 +1,3 @@
+package main
+import("fmt";"github.com/minz/minzc/pkg/nanz";"github.com/minz/minzc/pkg/pipeline";"github.com/minz/minzc/pkg/hir";"github.com/minz/minzc/pkg/mir2")
+func main(){for _,op:=range []string{"x >> 1","x << 1","x + 3","x / 3","~x"}{src:="fun probe(x:u8,y:u8)->u8 {let p:bool=x<y\nlet r:u8="+op+"\nreturn r+u8(p)}\nassert probe(0,1)==1\n";h,e:=nanz.Parse(src,"audit.nanz");if e!=nil{fmt.Println(op,"parse",e);continue};raw:=mir2.NewVM(hir.LowerModule(h));v,e:=raw.Call("probe",[]mir2.Value{{I:0},{I:1}});fmt.Println(op,"raw",v,e);s,e:=pipeline.CompileHIRSteps(h,pipeline.Options{AssertMode:"z80"});fmt.Println(op,"native",e);if e!=nil{fmt.Println(s.Assembly)}}}
