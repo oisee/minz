@@ -1,0 +1,158 @@
+[
+  {
+    "source": "/tmp/minz-bool-ext-backend-fix",
+    "branch": "archive/2026-10-11/bool-ext-backend-fix",
+    "commit": "c21186ee4eb127159b2f62f26fc518d1d9e3d726",
+    "role": "historical experiment; not approved production"
+  },
+  {
+    "source": "/tmp/minz-bool-ext-final",
+    "branch": "archive/2026-10-11/bool-ext-final",
+    "commit": "bee0e1a2d42f7da6f38b12b5796213636d91178b",
+    "role": "historical experiment; not approved production"
+  },
+  {
+    "source": "/tmp/minz-copy-region-composition",
+    "branch": "archive/2026-10-11/copy-region-composition",
+    "commit": "6cac1d4832fd4d816a99eb109120ff257023b442",
+    "role": "historical experiment; not approved production"
+  },
+  {
+    "source": "/tmp/minz-fold-baseline",
+    "branch": "archive/2026-10-11/fold-baseline",
+    "commit": "343954ba466eada26a96d3cb34b70df2cc13fb5b",
+    "role": "historical experiment; not approved production"
+  },
+  {
+    "source": "/tmp/minz-forward-copy",
+    "branch": "archive/2026-10-11/forward-copy",
+    "commit": "1cc85ecf33cba095bbb2d01d6f0c2844fee2a065",
+    "role": "historical experiment; not approved production"
+  },
+  {
+    "source": "/tmp/minz-global-hl-fix",
+    "branch": "archive/2026-10-11/global-hl-fix",
+    "commit": "6d0527e19ad52eda26bf9e4a6297eeec9830d12c",
+    "role": "historical experiment; not approved production"
+  },
+  {
+    "source": "/tmp/minz-grace-baseline",
+    "branch": "archive/2026-10-11/grace-baseline",
+    "commit": "4743cb7c7712a0d76413ddf041d93dbfa604df06",
+    "role": "historical experiment; not approved production"
+  },
+  {
+    "source": "/tmp/minz-grace-hir-vm",
+    "branch": "archive/2026-10-11/grace-hir-vm",
+    "commit": "1c420426ed02d7561e06dba12d3f7dcccb889da3",
+    "role": "historical experiment; not approved production"
+  },
+  {
+    "source": "/tmp/minz-hashmap-backend-probe",
+    "branch": "archive/2026-10-11/hashmap-backend-probe",
+    "commit": "1ce7efb6954b43329c337e0b7f8d539dcf989446",
+    "role": "historical experiment; not approved production"
+  },
+  {
+    "source": "/tmp/minz-hashmap-program-baseline",
+    "branch": "archive/2026-10-11/hashmap-program-baseline",
+    "commit": "06a916242d6779eac3762ad727ec78674456e502",
+    "role": "historical experiment; not approved production"
+  },
+  {
+    "source": "/tmp/minz-hashmap-rd16-prototype",
+    "branch": "archive/2026-10-11/hashmap-rd16-prototype",
+    "commit": "e3e72fcc6919fe0833b84739fd74e4c0fdb64296",
+    "role": "historical experiment; not approved production"
+  },
+  {
+    "source": "/tmp/minz-hashmap-slot-backend-fix",
+    "branch": "archive/2026-10-11/hashmap-slot-backend-fix",
+    "commit": "81d50eb85fe4714f374cb5a71c83cb2a6ca6777a",
+    "role": "historical experiment; not approved production"
+  },
+  {
+    "source": "/tmp/minz-hashmap-slot-prototype",
+    "branch": "archive/2026-10-11/hashmap-slot-prototype",
+    "commit": "56cba68eb72cc5c7c8a3c481689c34d6f7380358",
+    "role": "historical experiment; not approved production"
+  },
+  {
+    "source": "/tmp/minz-hashmap-wr16-prototype",
+    "branch": "archive/2026-10-11/hashmap-wr16-prototype",
+    "commit": "0901efba4935a2e549538adc38cf51eb312c7a43",
+    "role": "historical experiment; not approved production"
+  },
+  {
+    "source": "/tmp/minz-hir-bound-value-fix",
+    "branch": "archive/2026-10-11/hir-bound-value-fix",
+    "commit": "6913a63a8f33afaee2fab39b14cc35b4d2a62bb8",
+    "role": "historical experiment; not approved production"
+  },
+  {
+    "source": "/tmp/minz-hir-goto-fix",
+    "branch": "archive/2026-10-11/hir-goto-fix",
+    "commit": "bf3b428eeaab66dd04bef0f2a442017b21ba51db",
+    "role": "historical experiment; not approved production"
+  },
+  {
+    "source": "/tmp/minz-hir-shadow-current",
+    "branch": "archive/2026-10-11/hir-shadow-current",
+    "commit": "3fcd069594155692c9d421eb41d471f2b858b9ad",
+    "role": "historical experiment; not approved production"
+  },
+  {
+    "source": "/tmp/minz-hir-shadow-fix",
+    "branch": "archive/2026-10-11/hir-shadow-fix",
+    "commit": "71461b573b7a395866ef8a3d096f9a687b27b1ab",
+    "role": "historical experiment; not approved production"
+  },
+  {
+    "source": "/tmp/minz-ordered-byte-rw-contract",
+    "branch": "archive/2026-10-11/ordered-byte-rw-contract",
+    "commit": "b7e182cb88783f3cc917891c3029e4f653ef386d",
+    "role": "historical experiment; not approved production"
+  },
+  {
+    "source": "/tmp/minz-rd16-contract",
+    "branch": "archive/2026-10-11/rd16-contract",
+    "commit": "e0ec385b67b028c0333ed53212dfb80293afb951",
+    "role": "historical experiment; not approved production"
+  },
+  {
+    "source": "/tmp/minz-region-compare-contract",
+    "branch": "archive/2026-10-11/region-compare-contract",
+    "commit": "9e6ab9d7eaf922d93afad9b2fe597443d85980de",
+    "role": "historical experiment; not approved production"
+  },
+  {
+    "source": "/tmp/minz-region-compare-prototype",
+    "branch": "archive/2026-10-11/region-compare-prototype",
+    "commit": "677047d612e028ebdda3c3a8693c4309a65e3bb8",
+    "role": "historical experiment; not approved production"
+  },
+  {
+    "source": "/tmp/minz-self-lanz-baseline",
+    "branch": "archive/2026-10-11/self-lanz-baseline",
+    "commit": "76235ae7174c11f32760144543d2b8c357998f4a",
+    "role": "historical experiment; not approved production"
+  },
+  {
+    "source": "/tmp/minz-tokenizer-program",
+    "branch": "archive/2026-10-11/tokenizer-program",
+    "commit": "62655ddfe58fe5c2ed8066c269ba4928ff301f12",
+    "role": "historical experiment; not approved production"
+  },
+  {
+    "source": "/tmp/minz-typed-pointer-baseline",
+    "branch": "archive/2026-10-11/typed-pointer-baseline",
+    "commit": "1fb9bada455cdc25f511f8f58faec997d2ac3a5f",
+    "role": "historical experiment; not approved production"
+  },
+  {
+    "source": "/tmp/minz-weighted-prototype",
+    "branch": "archive/2026-10-11/weighted-prototype",
+    "commit": "295138c8dd9efd74793c43bfeb7415cf19738dcc",
+    "role": "historical experiment; not approved production"
+  }
+]

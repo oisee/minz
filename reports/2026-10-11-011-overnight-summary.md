@@ -40,8 +40,8 @@ https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/
 - [Сохранение HL](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/global-hl.html)
 
 Полная офлайн копия: `artifacts/grace-reports/2026-10-10-resume/site/index.html`;
-SHA256 манифест рядом. Последняя проверенная копия версии36 содержит7599 файлов,
-46 страниц без потерянных ссылок; версия37 (47 страниц) сохраняется сейчас.
+SHA256 манифест рядом. Версия37 сохранена и проверена:7875 файлов,47 страниц без потерянных
+ссылок и внешних зависимостей; все архивы читаются.
 Все исходники, профили, решения, ASM/BIN, логи и архивы сохраняются локально.
 
 ## Что в работе
@@ -70,3 +70,21 @@ PreallocCoalesce допускает повторные определения: �
 По запросу Alice все нужные ветки и исторические эксперименты сохраняются
 коммитами и push; активные рабочие копии переводятся из /tmp в постоянный каталог.
 Пользовательское изменение minzc/cmd/mzx/BUILD не затронуто.
+
+## Подтверждение сохранения перед продолжением
+
+Ночной итог и завершённые изменения отправлены в GitHub:
+[feat/grace-hir-vm](https://github.com/oisee/minz/tree/feat/grace-hir-vm).
+WIP-контракт памяти сохранён коммитом058458cb и отправлен в
+[feat/grace-memory-host-contract](https://github.com/oisee/minz/tree/feat/grace-memory-host-contract).
+Ещё26 исторических веток отправлены под archive/2026-10-11/; отрицательные
+эксперименты явно остаются историей, не approved production.
+Remote refs сверены с локальными SHA. Первоначальный remote unpack failure
+устранён повторным последовательным push с pack.window=0.
+
+Постоянные активные копии теперь находятся вне /tmp:
+`/home/alice/dev/minz-artifacts/grace-workspaces/compiler`,
+`/home/alice/dev/minz-artifacts/grace-workspaces/memory-host`,
+`/home/alice/dev/minz-artifacts/grace-workspaces/report-site`.
+Полный локальный Git-архив и проверенный bundle28веток находятся в
+`/home/alice/dev/minz-artifacts/grace-checkpoints/`.
