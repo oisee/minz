@@ -43,6 +43,44 @@ func TestMemoryHostPolicySelectorAdmission(t *testing.T) {
 	}
 }
 
+func TestMemoryHostPolicySelectorPreflight(t *testing.T) {
+	w := arenaAppendSmallWorkload(t)
+	options := MemoryHostBaselineOptions{}
+	valid := policySelectorInput(t, w, options)
+	for _, kind := range []string{"malformed", "case", "duplicate", "wrong-policy", "nested-policy", "bare-profile"} {
+		t.Run(kind, func(t *testing.T) {
+			payload := append([]byte{}, valid...)
+			switch kind {
+			case "malformed":
+				payload = []byte("{")
+			case "case":
+				payload = []byte(strings.Replace(string(payload), `"schema":`, `"Schema":`, 1))
+			case "duplicate":
+				payload = append([]byte(`{"schema":"duplicate",`), payload[1:]...)
+			default:
+				var a MemoryHostLoopProfileEvidenceV2
+				json.Unmarshal(payload, &a)
+				if kind == "wrong-policy" {
+					a.CompileOptions.UnsignedPairComparePolicy = 1
+				}
+				if kind == "nested-policy" {
+					a.Baseline.CompileOptions.UnsignedPairComparePolicy = 1
+				}
+				if kind == "bare-profile" {
+					payload, _ = json.Marshal(a.Profile)
+				} else {
+					payload, _ = json.Marshal(a)
+				}
+			}
+			calls := 0
+			factory := func() (*hir.Module, error) { calls++; m, _ := memoryHostParserFixture(t); return m, nil }
+			if e, err := MeasureMemoryHostArenaAppendWithOptions(factory, w, payload, MemoryHostArenaAppendSelectorOptions{Goal: "speed", MaxSites: 2}, options); e != nil || err == nil || calls != 0 {
+				t.Fatal("preflight reached factory", kind, calls, err)
+			}
+		})
+	}
+}
+
 func TestMemoryHostPolicySelectorFixedPolicy(t *testing.T) {
 	w := arenaAppendSmallWorkload(t)
 	for _, policy := range []mir2.UnsignedPairComparePolicy{mir2.UnsignedPairCompareLegacy, mir2.UnsignedPairComparePreserveForSpeed} {
@@ -228,5 +266,25 @@ func TestMemoryHostPolicySelectorProofEnvelope(t *testing.T) {
 				t.Fatal("forged envelope/proof accepted")
 			}
 		})
+	}
+}
+
+func TestMemoryHostPolicySelectorUnobservedAndTies(t *testing.T) {
+	w := arenaAppendSmallWorkload(t)
+	w.Calls = w.Calls[:1]
+	options := MemoryHostBaselineOptions{UnsignedPairComparePolicy: mir2.UnsignedPairComparePreserveForSpeed}
+	b := policySelectorInput(t, w, options)
+	factory := func() (*hir.Module, error) { m, _ := memoryHostParserFixture(t); return m, nil }
+	if e, err := MeasureMemoryHostArenaAppendWithOptions(factory, w, b, MemoryHostArenaAppendSelectorOptions{Goal: "size", MaxSites: 2}, options); e != nil || err == nil || !strings.Contains(err.Error(), "both exact sites") {
+		t.Fatal("unobserved append admitted", err)
+	}
+	a := &MemoryHostTargetEvidence{TotalTStates: 10, Binary: make([]byte, 5)}
+	sameCost := &MemoryHostTargetEvidence{TotalTStates: 10, Binary: make([]byte, 5)}
+	if selectMemoryHostArenaCandidate("speed", a, sameCost) != 0 || selectMemoryHostArenaCandidate("size", a, sameCost) != 0 {
+		t.Fatal("equal primary cost must retain earlier mask")
+	}
+	smaller := &MemoryHostTargetEvidence{TotalTStates: 20, Binary: make([]byte, 4)}
+	if selectMemoryHostArenaCandidate("size", a, smaller) != 1 || selectMemoryHostArenaCandidate("speed", a, smaller) != 0 {
+		t.Fatal("objective primary cost")
 	}
 }
