@@ -838,7 +838,16 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 		return nil // no Dst
 
 	// ── Function calls ────────────────────────────────────────────────────────
-	case OpCall:
+	case OpCall, OpCallCond:
+		if inst.Op == OpCallCond {
+			take, err := conditionalCallTaken(fr, inst)
+			if err != nil {
+				return err
+			}
+			if !take {
+				return nil
+			}
+		}
 		if inst.FallibleCY {
 			fn := vm.Module.FuncByName(inst.Sym)
 			if fn == nil || !fn.Attrs.FallibleCY || len(inst.ExtraRets) != 2 {
@@ -1274,4 +1283,29 @@ func sequentialByteInstruction(inst *Inst, byteIndex int) *Inst {
 		return inst.SequentialByteOrigins[byteIndex]
 	}
 	return inst
+}
+
+// OpCallCond consumes an already computed boolean. Cond is its native flag
+// predicate and may invert the producer when the else-arm was folded.
+func conditionalCallTaken(fr *frame, inst *Inst) (bool, error) {
+	predicate := CmpNe // documented fallback for a non-comparison boolean
+	var producer *Inst
+	for _, b := range fr.fn.Blocks {
+		for _, i := range b.Insts {
+			if i.Dst != NoReg && i.Dst == inst.Src[0] {
+				producer = i
+			}
+		}
+	}
+	if producer != nil && producer.Op == OpCmp {
+		predicate = producer.Cond
+	}
+	take := fr.get(inst.Src[0]).I != 0
+	if inst.Cond == predicate {
+		return take, nil
+	}
+	if inst.Cond == invertCmpCond(predicate) {
+		return !take, nil
+	}
+	return false, fmt.Errorf("mir2.VM: ambiguous conditional call predicate %v for boolean %v", inst.Cond, predicate)
 }
