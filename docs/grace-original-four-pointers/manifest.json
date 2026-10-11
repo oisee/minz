@@ -1,0 +1,22 @@
+{
+  "base_commit": "9b1637ef",
+  "files": {
+    "README.md": "ce51fff2b119b00b3b0b243870483cd20476bbb4c12240981cdbd4b118411230",
+    "after.txt": "402cc836e92983d2be11c43a4dd8ed5c48caa175e7c45d6f3919750b1405c731",
+    "catalog-test.txt": "163171d6292aba1b3ae1c36152ea4c5f5de100f5124bd0569e8f61fb65baaaee",
+    "catalog.json.gz": "0be2b41f3b2301a4b6d153b83f980a537e40e2ef8342ff25f85cd648f1582f80",
+    "checks.txt": "7f5d6f77f979c02cf99465cf48717c4e0afc6fd53eda0aea3018ac498577eace",
+    "final.mir2.gz": "263abc8490461cab93ca8b7b1ce1417f1dd777f26c0ff7c48a47a74305f6a66a",
+    "focused.txt": "36b6c9c431899ec5f11e758485dcb01d36387c986d9b03e5c296792f3fa04e43",
+    "independent-model.json.gz": "04644f7ca54e5c910fcd2108cdf285cc9be056a397525adee0621ce04dc1af0b",
+    "native-error.txt": "5607b4923f03c193d8ed06920ad3350b58bb93f3c8c441c88343a2aa1c4bdad2",
+    "native.json.gz": "6badd5e9c3828f16cc67e0db232ece6d7faff407a81a3b976091346d6933a0e0",
+    "raw.json.gz": "a892ad1799f7989432c97c2f17c56c1ae8fb3e899c214db6523b277810404f97",
+    "runtime-adapter.nanz": "28bf877896bddf6f69c9a49139b3abda40f7a2356f45a8397640f4efada8c860",
+    "source.nanz": "2e9bbd4d3c59ec1fd5b75a69ba05b56e5ce91df91e7790c9ba38774ba9b62fea",
+    "target.a80": "8bd875a3ab704ae353527dc03a090428e89d5b135534d4a89313bdb918436852",
+    "target.bin": "97437b293aa80994a658a47703bffd628bc22ecd184a4083f97c485264f6f4de",
+    "unadapted.a80": "54f99d0f1855157ea7e43c59a3598fc477b4001da5aef42425e504495cc74712",
+    "workload.json.gz": "313fa10d58e1265fa9971cdbf0895a5dca1630e32425adfcf29f39e2b9bdd0b0"
+  }
+}

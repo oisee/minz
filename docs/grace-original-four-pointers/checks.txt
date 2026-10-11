@@ -1,0 +1,6 @@
+=== RUN   TestOriginalFourPointerReadAliasVMZ80
+    showcase_four_pointer_oracle_test.go:173: memory host target: unsupported invocation location IX
+--- FAIL: TestOriginalFourPointerReadAliasVMZ80 (0.11s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.122s
+FAIL
