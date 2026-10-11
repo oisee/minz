@@ -1,0 +1,65 @@
+{
+  "schema": "minz.original-corpus-frozen-domain/v1",
+  "base_commit": "11105fb3",
+  "sources": [
+    {
+      "path": "reports/showcase-src/2026-03-14/ex21_enum.nanz",
+      "sha256": "a02aaa800c41df13c89d4f833bc5aa1f5971b0a3ee1dbd96a707be8413c8e4d4",
+      "models": {
+        "get_default_state": "3",
+        "mix_colors": "5",
+        "identity": "x allu8"
+      }
+    },
+    {
+      "path": "reports/showcase-src/2026-03-14/ex22_type_alias.nanz",
+      "sha256": "fb8fc372fdac128656855ab78db9548fb2c25e46fcf458ce43b0357b8ddd912a",
+      "models": {
+        "damage": "amount everytarget/amountu8",
+        "double_score": "(2*s)&65535 all65536u16"
+      }
+    },
+    {
+      "path": "reports/showcase-src/2026-03-14/ex26_enum_assert.nanz",
+      "sha256": "27628c2d6130d10c430d97f80e58a455cd72cfc2b33ec6d37aae5595e01a703a",
+      "models": {
+        "identity": "x allu8",
+        "add_prio": "(a+b)&255 allu8pairs"
+      }
+    },
+    {
+      "path": "reports/showcase-src/2026-03-15/ex32_value_pipe.nanz",
+      "sha256": "964819c2d6e3247f690256818d80625cd87ba1b4da8e3e91d5e300af4a44a24a",
+      "models": {
+        "double": "(2*x)&255 allu8",
+        "inc": "(x+1)&255 allu8",
+        "add": "(a+b)&255 allu8pairs",
+        "piped": "11",
+        "piped_args": "16"
+      }
+    },
+    {
+      "path": "reports/showcase-src/2026-03-15/ex33_lambda_inference.nanz",
+      "sha256": "6c48b03a21410afc4b346f115839a8488d9cb66308af2842810cb12f9186c94f",
+      "models": {
+        "add_acc": "(acc+x)&255 allu8pairs",
+        "sum_doubled": "sum(2*x forx5,4,3,2,1)&255 =30",
+        "lambda_0": "(2*x)&255 allu8 liftedcallback"
+      }
+    }
+  ],
+  "modes": [
+    "ordinary",
+    "grace-size",
+    "grace-speed"
+  ],
+  "authority": [
+    "Bookv7 \u00a716.1 simpleenum",
+    "\u00a716.5 transparentalias",
+    "\u00a72.16 valuepipe firstarg",
+    "\u00a72.8 lambda and Chapter6 countdownrange",
+    "\u00a73.1 u8/u16 widths"
+  ],
+  "assertions": "all original source assertions retained and RunAsserts VM/native in eachmode",
+  "native": "actualCALLPC/SP/allreturnslots/fullRAM; no sourcehasmain; liftedcallback raw+native iffretained final"
+}
