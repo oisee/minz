@@ -1,0 +1,14 @@
+=== RUN   TestErrorABIRejectsUnsupportedBeforeLowering
+--- PASS: TestErrorABIRejectsUnsupportedBeforeLowering (0.00s)
+=== RUN   TestErrorABIRejectsUnimplementedBackend
+--- PASS: TestErrorABIRejectsUnimplementedBackend (0.00s)
+=== RUN   TestErrorIntrinsicArgumentsRejectedByBothAPIs
+--- PASS: TestErrorIntrinsicArgumentsRejectedByBothAPIs (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.008s
+=== RUN   TestErrorABIVerifyAndSimultaneousOutcomeDefs
+--- PASS: TestErrorABIVerifyAndSimultaneousOutcomeDefs (0.00s)
+=== RUN   TestVerifyRejectsNilContainersBeforeSemanticScan
+--- PASS: TestVerifyRejectsNilContainersBeforeSemanticScan (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.007s

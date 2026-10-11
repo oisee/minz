@@ -1,0 +1,87 @@
+; MIR2 module: ../../../examples/nanz/15_error_enforcement.nanz
+[fallible-cy] fun @safe_div?(%r1: u8 [acc], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = const 0 : u8 [general]
+    %r4 = cmp.eq %r2, %r3 : bool [flag]
+    br_if %r4, @if_then1(), @if_join2()
+  block @if_then1:
+    %r5 = const 1 : u8 [general]
+    error_ret %r5
+  block @if_join2:
+    %r6 = div %r1, %r2 : u8 [general]
+    ret %r6
+
+[fallible-cy] fun @safe_add?(%r7: u8 [acc], %r8: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r9 = ext %r7 : u8 -> u16 [pointer]
+    %r10 = ext %r8 : u8 -> u16 [pointer]
+    %r11 = add %r9, %r10 : u16 [pointer]
+    %r12 = const 255 : u8 [general]
+    %r13 = cmp.ugt %r11, %r12 : bool [flag]
+    br_if %r13, @if_then1(), @if_join2()
+  block @if_then1:
+    %r14 = const 2 : u8 [general]
+    error_ret %r14
+  block @if_join2:
+    %r15 = add %r7, %r8 : u8 [acc]
+    ret %r15
+
+[fallible-cy] fun @compute(%r16: u8 [acc], %r17: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r18 = move %r16 : u8 [acc]
+    %r19 = call @safe_div?(%r18, %r17) : u8 [acc] outcome [%r20, %r21]
+    %r22 = const 0 : bool [general]
+    %r23 = cmp.ne %r20, %r22 : bool [flag]
+    br_if %r23, @error1(), @error_ok2()
+  block @error1:
+    error_ret %r21
+  block @error_ok2:
+    %r24 = move %r19 : u8 [acc]
+    %r25 = const 5 : u8 [general]
+    %r26 = call @safe_add?(%r24, %r25) : u8 [acc] outcome [%r27, %r28]
+    %r29 = const 0 : bool [general]
+    %r30 = cmp.ne %r27, %r29 : bool [flag]
+    br_if %r30, @error3(), @error_ok4()
+  block @error3:
+    error_ret %r28
+  block @error_ok4:
+    ret %r26
+
+[fallible-cy] fun @try_div(%r31: u8 [acc], %r32: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r33 = move %r31 : u8 [acc]
+    %r34 = call @safe_div?(%r33, %r32) : u8 [acc] outcome [%r35, %r36]
+    %r37 = const 0 : bool [general]
+    %r38 = cmp.ne %r35, %r37 : bool [flag]
+    br_if %r38, @error1(), @error_ok2()
+  block @error1:
+    error_ret %r36
+  block @error_ok2:
+    ret %r34
+
+[fallible-cy] fun @main()
+  block @entry:
+    %r39 = const 10 : u8 [acc]
+    %r40 = const 2 : u8 [general]
+    %r41 = call @compute(%r39, %r40) : u8 [acc] outcome [%r42, %r43]
+    %r44 = const 0 : bool [general]
+    %r45 = cmp.ne %r42, %r44 : bool [flag]
+    br_if %r45, @error1(), @error_ok2()
+  block @error1:
+    error_ret %r43
+  block @error_ok2:
+    %r46 = move %r41 : u8 [acc]
+    call @@mir.io.print.u8(%r46)
+    %r47 = const 20 : u8 [acc]
+    %r48 = const 4 : u8 [general]
+    %r49 = call @try_div(%r47, %r48) : u8 [acc] outcome [%r50, %r51]
+    %r52 = const 0 : bool [general]
+    %r53 = cmp.ne %r50, %r52 : bool [flag]
+    br_if %r53, @error3(), @error_ok4()
+  block @error3:
+    error_ret %r51
+  block @error_ok4:
+    %r54 = move %r49 : u8 [acc]
+    call @@mir.io.print.u8(%r54)
+    ret void
+
