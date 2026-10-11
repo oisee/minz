@@ -7,7 +7,9 @@
     "string_bytes": 477,
     "max_node_bytes": 8,
     "max_source_bytes": 36,
-    "prior_workload_exact": true
+    "prior_workload_exact": true,
+    "copied_prior_cli_sha256": "a38d789e7ec875f3006654643bbfd37ad1bf0ae0b80004c5615bc72f0b2785d0",
+    "generator_vs_cli_typed_equal": true
   },
   {
     "corpus": "long-atoms",
@@ -17,7 +19,9 @@
     "string_bytes": 723,
     "max_node_bytes": 24,
     "max_source_bytes": 483,
-    "prior_workload_exact": true
+    "prior_workload_exact": true,
+    "copied_prior_cli_sha256": "32bd3ddb1d051e1d97d60ba794f55eb12016666f0f713e933fdd214266d179cf",
+    "generator_vs_cli_typed_equal": true
   },
   {
     "corpus": "nested-mixed",
@@ -27,7 +31,9 @@
     "string_bytes": 117,
     "max_node_bytes": 144,
     "max_source_bytes": 56,
-    "prior_workload_exact": true
+    "prior_workload_exact": true,
+    "copied_prior_cli_sha256": "f31e6321618c174902b712dacc3c8ee6dc7f5d61fda8b928fae9b8c5b6225d32",
+    "generator_vs_cli_typed_equal": true
   },
   {
     "corpus": "short-reuse",
@@ -37,6 +43,8 @@
     "string_bytes": 23,
     "max_node_bytes": 48,
     "max_source_bytes": 26,
-    "prior_workload_exact": true
+    "prior_workload_exact": true,
+    "copied_prior_cli_sha256": "e2346a6baceb18257ff2dd04e2a26b38ec5755edff8ea3d4ed17870f49d26646",
+    "generator_vs_cli_typed_equal": true
   }
 ]

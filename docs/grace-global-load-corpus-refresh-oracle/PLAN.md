@@ -22,3 +22,7 @@ model; all8 fresh sourceprofile invocation/cumulative11sitecounts; typedpreproof
 source/actual maps+compatibilities, native hashes/ASM/BIN and actual speed/size
 selected decisions. Preserve old/new costs separately and report every workload
 winner, including interactions. No CPU execution is duplicated by this branch.
+
+Owner86e copies prior saved CLI workload bytes exactly; the independently owned
+original generator fixtures have different JSON formatting but identical typed
+objects. input-review.json records both byte hashes; no semantic field changed.

@@ -1,7 +1,7 @@
 [
   {
     "path": "docs/grace-global-load-corpus-refresh-oracle/PLAN.md",
-    "sha256": "3819f3cba543f4d78f84504a66177034b71613f58ab28ffed253e7b63ab1fcae"
+    "sha256": "87df6f4c43e59822dcfa2a474fe0caddaa30b9bc25ccbdbebf55cb9ace80ce1f"
   },
   {
     "path": "docs/grace-global-load-corpus-refresh-oracle/audit_refresh.py",
@@ -9,7 +9,7 @@
   },
   {
     "path": "docs/grace-global-load-corpus-refresh-oracle/input-review.json",
-    "sha256": "dd5d2dcc9e6289072feb5f02a0f606fb0769a3d4c594645c7490f32344f98997"
+    "sha256": "ba33439bf43583a0aeb5763e97167cb540dfffb6326f5f2d9d7dbe586ba3cdc5"
   },
   {
     "path": "docs/grace-global-load-corpus-refresh-oracle/input-review.txt",
