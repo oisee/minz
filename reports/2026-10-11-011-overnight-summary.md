@@ -131,7 +131,7 @@ Broad gate нашёл цикл зависимостей frontend same-package te
 frontend. Test-only исправление перенесено be43274d и pushed; Lanz/Lizp/PLM/Pascal
 в рабочей ветке PASS .012/.012/.020/.011s. Независимая проверка полного HIR неизменна. Новый поиск опубликован в приватном Sites55; пакет292payloads сохранён
 и trackedSHA проверен, relocatedauditsPASS320. Whole offline sync версии55
-выполняется; последний завершённый fullsync54 остаётся17965files65pages.
+TERMINAL PASS:18570files66pages, всеSHA/архивы проверены,0missing/external.
 Следом: завершить gates/пакет и публикацию, затем отдельный явный search CLI.
 
 ## Сохранение веток и решения
