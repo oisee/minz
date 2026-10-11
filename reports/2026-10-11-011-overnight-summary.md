@@ -258,3 +258,12 @@ S/L literal print lowering использует обычные циклы, nativ
 Финальный срез добавляет GC-safe обход рекурсивных типов и atomic
 memory-limit refusal. Native gates готовятся; Z80 успех ещё не заявлен.
 Блокеров Alice нет, цель активна.
+
+## Финальный строковый gate
+
+Код `c9c3e1dc` прошёл два независимых source review и совпадение
+9 SHA; VM raw/optimized, storage и hygiene проверки проходят.
+15 native случаев подготовлены. Первый run ещё не выполнялся: перед ним
+исправляется test-only exporter, чтобы сохранить полный ASM со стартом,
+точный BIN, globals, такты и errors. Проверенные production-файлы
+остаются заморожены; повторных native запусков для упаковки не будет.
