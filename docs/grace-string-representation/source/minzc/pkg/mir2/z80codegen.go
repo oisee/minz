@@ -1,0 +1,1209 @@
+package mir2
+
+import (
+	"fmt"
+	"github.com/minz/minzc/pkg/z80validate"
+	"strings"
+)
+
+func emitDBLine(sb *strings.Builder, data []byte) {
+	sb.WriteString("    DB ")
+	for i, b := range data {
+		if i > 0 {
+			sb.WriteString(", ")
+		}
+		fmt.Fprintf(sb, "%d", b)
+	}
+	sb.WriteByte('\n')
+}
+
+func emitDWLine(sb *strings.Builder, data []byte) {
+	sb.WriteString("    DW ")
+	for i := 0; i+1 < len(data); i += 2 {
+		if i > 0 {
+			sb.WriteString(", ")
+		}
+		w := uint16(data[i]) | (uint16(data[i+1]) << 8)
+		fmt.Fprintf(sb, "%d", w)
+	}
+	sb.WriteByte('\n')
+}
+
+func paddedInitBytes(ty Ty, init []byte) []byte {
+	w := ByteWidth(ty)
+	if len(init) >= w {
+		return init[:w]
+	}
+	buf := make([]byte, w)
+	copy(buf, init)
+	return buf
+}
+
+func emitTypedGlobalData(sb *strings.Builder, ty Ty, init []byte) {
+	init = paddedInitBytes(ty, init)
+	switch t := ty.(type) {
+	case *ArrayTy:
+		if t.Layout != LayoutAoS {
+			emitDBLine(sb, init)
+			return
+		}
+		elemW := ByteWidth(t.Elem)
+		switch elemW {
+		case 0:
+			return
+		case 1:
+			emitDBLine(sb, init)
+		case 2:
+			emitDWLine(sb, init)
+		default:
+			for off := 0; off < len(init); off += elemW {
+				emitTypedGlobalData(sb, t.Elem, init[off:off+elemW])
+			}
+		}
+	case *StructTy:
+		if t.IsUnion {
+			emitDBLine(sb, init)
+			return
+		}
+		off := 0
+		for _, f := range t.Fields {
+			fw := ByteWidth(f.Ty)
+			emitTypedGlobalData(sb, f.Ty, init[off:off+fw])
+			off += fw
+		}
+	default:
+		switch ByteWidth(ty) {
+		case 0:
+			return
+		case 1:
+			emitDBLine(sb, init)
+		case 2:
+			emitDWLine(sb, init)
+		default:
+			emitDBLine(sb, init)
+		}
+	}
+}
+
+// Z80Codegen lowers allocated MIR2 to Z80 assembly text (.a80 format).
+//
+// Prerequisites:
+//   - AllocResult covering every virtual register in the module
+//   - Verified MIR2 module (Verify passed)
+//
+// Output: a string of Z80 assembly ready for MZA.
+// Label format: @funcname_blockname (underscore-joined, no special chars).
+//
+// Supported opcodes (first pass):
+//
+//	OpConst        → LD r, n  /  LD rr, nn
+//	OpMove         → LD r, r  /  EX DE,HL  /  PUSH+POP
+//	OpAdd          → ADD A,r  /  ADD HL,rr
+//	OpSub          → SUB r    /  SBC HL,rr
+//	OpAnd/Or/Xor   → AND/OR/XOR r
+//	OpNeg          → NEG
+//	OpNot          → CPL
+//	OpExt          → LD H,0 / LD L,r  (zero-extend u8→u16 via HL)
+//	OpCmp          → CP r  (result stays in F; ClassFlag)
+//	OpLoad         → LD A,(HL)  /  LD r,(HL)
+//	OpStore        → LD (HL),A  /  LD (HL),r
+//	OpCall         → CALL label
+//	OpPatchSlot    → LD r, 0   (initial value; literal byte patchable)
+//	OpLoadPatched  → LD r, r   (SMC: already patched in stream)
+//	OpPatch        → (comment: SMC patch — no emission in pure assembler)
+//	TermJmp        → JP label
+//	TermBrIf       → JP Z/NZ/C/NC label  (flag-class cond)
+//	TermRet        → RET
+
+// ── Public entry point ────────────────────────────────────────────────────────
+
+// Z80CodegenOptions controls optional codegen features.
+type Z80CodegenOptions struct {
+	// UnsignedPairComparePolicy explicitly selects a register-only
+	// unsigned comparison experiment. Legacy is the zero value; no pipeline enables this draft automatically.
+	UnsignedPairComparePolicy UnsignedPairComparePolicy
+	NativeMemoryAccessOrigins map[*Inst]GlobalMemoryOrigin
+	NativeMemoryAccesses      *[]NativeMemoryAccess
+	NativeCallFrames          *[]NativeCallFrameSnapshot
+	// AnnotateTStates adds T-state cost comments to every instruction line
+	// and emits per-block and per-function totals.  Useful for hand-optimisation.
+	AnnotateTStates bool
+}
+
+// ValidateZ80Symbols rejects distinct functions/data that emit the same symbol.
+// Calls resolve by symbol, so uniqueness is required before using a callee ABI.
+func ValidateZ80Symbols(m *Module) error {
+	seen := make(map[string]string)
+	// Runtime names and internal namespaces are reserved even when unused.
+	for _, name := range []string{"__mul8", "__mul16", "__call_ix"} {
+		seen[name] = "compiler runtime"
+	}
+	for i := 0; i <= 7; i++ {
+		seen[fmt.Sprintf("__rotate_%d", i)] = "compiler runtime"
+	}
+	add := func(name string) error {
+		sym := sanitizeIdent(name)
+		for _, prefix := range []string{"_mir2_str_", "_spill_", "_tsmc_"} {
+			if strings.HasPrefix(sym, prefix) {
+				return fmt.Errorf("reserved Z80 symbol %q: %q", sym, name)
+			}
+		}
+		if prev, ok := seen[sym]; ok {
+			return fmt.Errorf("ambiguous Z80 symbol %q: %q and %q", sym, prev, name)
+		}
+		seen[sym] = name
+		return nil
+	}
+	reserve := func(sym, owner string) error {
+		if prev, ok := seen[sym]; ok {
+			return fmt.Errorf("ambiguous Z80 symbol %q: %q and %q", sym, prev, owner)
+		}
+		seen[sym] = owner
+		return nil
+	}
+	for _, f := range m.Funcs {
+		for _, b := range f.Blocks {
+			for _, inst := range b.Insts {
+				if inst.Op == OpPatchSlot && inst.Sym != "" {
+					parts := strings.SplitN(inst.Sym, "$", 2)
+					patcher := inst.Sym
+					if len(parts) == 2 {
+						patcher = parts[0] + "_set_" + parts[1]
+					}
+					for _, sym := range []string{patcher, inst.Sym + "$imm"} {
+						if err := reserve(sym, "generated patch slot for "+f.Name); err != nil {
+							return err
+						}
+					}
+				}
+			}
+		}
+	}
+	for _, g := range m.Globals {
+		if st, ok := g.Ty.(*StructTy); ok && ByteWidth(g.Ty) != 0 {
+			off := 0
+			for _, field := range st.Fields {
+				sym := sanitizeIdent(g.Name) + "__" + field.Name
+				if field.Name == "" {
+					sym = fmt.Sprintf("%s__off%d", sanitizeIdent(g.Name), off)
+				}
+				if err := reserve(sym, "generated field for "+g.Name); err != nil {
+					return err
+				}
+				off += ByteWidth(field.Ty)
+			}
+		}
+	}
+
+	for _, f := range m.Funcs {
+		if err := add(f.Name); err != nil {
+			return err
+		}
+	}
+	for _, g := range m.Globals {
+		if err := add(g.Name); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Z80Codegen generates Z80 assembly for the entire module.
+// An optional Z80CodegenOptions value may be passed as the third argument;
+// callers that don't need options can omit it entirely.
+// Invalid symbols return an error and no assembly.
+func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, error) {
+	for i := 0; i < m.Strings.Len(); i++ {
+		n, k := len(m.Strings.At(i)), m.Strings.Kind(i)
+		if (k == StrSString && n > 255) || (k == StrLString && n > 65535) {
+			return "", fmt.Errorf("string %d has %d bytes outside representation limit", i, n)
+		}
+		if k != StrSString && k != StrLString && k != StrCString {
+			return "", fmt.Errorf("string %d has invalid kind %d", i, k)
+		}
+	}
+	if err := ValidateZ80Symbols(m); err != nil {
+		return "", err
+	}
+	var opt Z80CodegenOptions
+	if len(opts) > 0 {
+		opt = opts[0]
+	}
+	if opt.UnsignedPairComparePolicy != UnsignedPairCompareLegacy && opt.UnsignedPairComparePolicy != UnsignedPairComparePreserveForSpeed {
+		return "", fmt.Errorf("unsupported unsigned pair compare policy %d", opt.UnsignedPairComparePolicy)
+	}
+	if err := validateNativeMemoryOrigins(m, opt.NativeMemoryAccessOrigins, opt.NativeMemoryAccesses); err != nil {
+		return "", err
+	}
+	if opt.NativeCallFrames != nil {
+		*opt.NativeCallFrames = (*opt.NativeCallFrames)[:0]
+	}
+	var sb strings.Builder
+	cg := &z80cg{unsignedPairComparePolicy: opt.UnsignedPairComparePolicy, ar: ar, sb: &sb, mod: m, annotateT: opt.AnnotateTStates, nativeMemoryOrigins: opt.NativeMemoryAccessOrigins, nativeMemorySink: opt.NativeMemoryAccesses, nativeCallFrameSink: opt.NativeCallFrames, nativeAccessCount: map[*Inst]int{}, nativeOrphanLabels: map[string]string{}}
+
+	sb.WriteString("; generated by MIR2 Z80 codegen\n\n")
+
+	// Emit main first so the binary entry point is at address 0 — no JP needed.
+	funcs := m.Funcs
+	if main := m.FuncByName("main"); main != nil && len(funcs) > 0 && funcs[0].Name != "main" {
+		ordered := make([]*Func, 0, len(funcs))
+		ordered = append(ordered, main)
+		for _, f := range funcs {
+			if f.Name != "main" {
+				ordered = append(ordered, f)
+			}
+		}
+		funcs = ordered
+	}
+
+	for _, f := range funcs {
+		startLen := sb.Len()
+		for fi, original := range m.Funcs {
+			if original == f {
+				cg.nativeFunctionIndex = fi
+				break
+			}
+		}
+		cg.genFunc(f)
+		if cg.err != nil {
+			return "", cg.err
+		}
+		sb.WriteByte('\n')
+		// Z80 validation: catch invalid instructions at compile time.
+		funcAsm := sb.String()[startLen:]
+		if errs := z80validate.Validate(funcAsm); len(errs) > 0 {
+			z80validate.LogErrors(f.Name, errs)
+		}
+	}
+
+	// Emit global variable data sections.
+	if len(m.Globals) > 0 {
+		sb.WriteString("; globals\n")
+		for _, g := range m.Globals {
+			w := ByteWidth(g.Ty)
+			// If Init data is longer than type width, use the actual data length.
+			// This supports variable-length buffers (e.g. ABAP PARAMETERS buffers).
+			if len(g.Init) > w {
+				w = len(g.Init)
+			}
+			if w == 0 {
+				// Zero-size struct: emit the label so address-of references resolve,
+				// but no data bytes — the struct occupies no memory at runtime.
+				sanitized := sanitizeIdent(g.Name)
+				sb.WriteString(sanitized + ":\n")
+				continue
+			}
+			// Page-aligned globals (e.g. LUT tables): emit ALIGN directive first.
+			if at, ok := g.Ty.(*ArrayTy); ok && at.Align > 0 {
+				fmt.Fprintf(&sb, "    ALIGN %d\n", at.Align)
+			}
+			sanitized := sanitizeIdent(g.Name)
+			sb.WriteString(sanitized + ":\n")
+			emitTypedGlobalData(&sb, g.Ty, g.Init)
+			// For struct globals, emit EQU labels for each field so that direct
+			// addressing (LD A,(sym__field)) works without pointer arithmetic.
+			// Format: sanitizeIdent(sym)__fieldName  EQU  sym + byteOffset
+			if st, ok := g.Ty.(*StructTy); ok {
+				off := 0
+				for _, f := range st.Fields {
+					var equLbl string
+					if f.Name != "" {
+						equLbl = sanitized + "__" + f.Name
+					} else {
+						equLbl = fmt.Sprintf("%s__off%d", sanitized, off)
+					}
+					if off == 0 {
+						fmt.Fprintf(&sb, "%s    EQU  %s\n", equLbl, sanitized)
+					} else {
+						fmt.Fprintf(&sb, "%s    EQU  %s + %d\n", equLbl, sanitized, off)
+					}
+					off += ByteWidth(f.Ty)
+				}
+			}
+		}
+	}
+
+	// Emit string pool — encoding depends on StringKind.
+	// Symbol names: @mir2.str.N → mir2_str_N (sanitized for assembler).
+	if m.Strings.Len() > 0 {
+		sb.WriteString("; strings\n")
+		for i := 0; i < m.Strings.Len(); i++ {
+			sym := sanitizeIdent(m.Strings.Symbol(i))
+			s := m.Strings.At(i)
+			kind := m.Strings.Kind(i)
+			sb.WriteString(sym + ":\n")
+
+			switch kind {
+			case StrSString:
+				// SString: [len:u8][bytes...]
+				fmt.Fprintf(&sb, "    DB %d", len(s))
+				if len(s) > 0 {
+					sb.WriteString(", ")
+					emitStringLiteral(&sb, []byte(s))
+				}
+				sb.WriteByte('\n')
+			case StrLString:
+				// LString: [len_lo:u8][len_hi:u8][bytes...]
+				lo := len(s) & 0xFF
+				hi := (len(s) >> 8) & 0xFF
+				fmt.Fprintf(&sb, "    DB %d, %d", lo, hi)
+				if len(s) > 0 {
+					sb.WriteString(", ")
+					emitStringLiteral(&sb, []byte(s))
+				}
+				sb.WriteByte('\n')
+			case StrCString:
+				// CString: [bytes...][0x00] — emit as DB "text", 0
+				sb.WriteString("    DB ")
+				if len(s) > 0 {
+					emitStringLiteral(&sb, []byte(s))
+					sb.WriteString(", ")
+				}
+				sb.WriteString("0\n")
+			}
+		}
+	}
+
+	// Emit runtime trampolines (indirect call support).
+	if cg.needsCallIX {
+		sb.WriteString("\n; runtime: indirect call trampoline\n")
+		sb.WriteString("__call_ix:\n")
+		sb.WriteString("    JP (IX)\n")
+	}
+
+	// Emit __mul8 runtime: A = A * B (unsigned 8-bit multiply).
+	// Algorithm: add-and-shift, 8 iterations. Clobbers A, B, C, D, E, F.
+	if cg.needsMul8 {
+		sb.WriteString("\n; runtime: 8-bit multiply A*B → A (~80T)\n")
+		sb.WriteString("__mul8:\n")
+		sb.WriteString("    LD C, 0\n") // C = result accumulator
+		sb.WriteString("    LD D, 8\n") // D = bit counter
+		sb.WriteString(".__mul8_loop:\n")
+		sb.WriteString("    SRL B\n") // shift multiplier right, LSB → CF
+		sb.WriteString("    JR NC, .__mul8_noadd\n")
+		sb.WriteString("    LD E, A\n") // save A
+		sb.WriteString("    LD A, C\n")
+		sb.WriteString("    ADD A, E\n") // C += multiplicand
+		sb.WriteString("    LD C, A\n")
+		sb.WriteString("    LD A, E\n") // restore A
+		sb.WriteString(".__mul8_noadd:\n")
+		sb.WriteString("    ADD A, A\n") // shift multiplicand left
+		sb.WriteString("    DEC D\n")
+		sb.WriteString("    JR NZ, .__mul8_loop\n")
+		sb.WriteString("    LD A, C\n") // result in A
+		sb.WriteString("    RET\n")
+	}
+
+	// Run peephole pass first (may introduce __rotate_N calls from RLCA folding).
+	result := asmPeepholePass(sb.String())
+
+	// Emit __rotate runtime: multi-entry RLCA sled (barrel shifter).
+	// CALL __rotate_N rotates A left by N bits. 9 bytes shared, zero overhead.
+	// Nibble swap = CALL __rotate_4. No loop, no counter.
+	if cg.needsRotate || strings.Contains(result, "CALL __rotate_") {
+		var sled strings.Builder
+		sled.WriteString("\n; runtime: RLCA sled — multi-entry barrel shifter (9 bytes)\n")
+		sled.WriteString("; CALL __rotate_N rotates A left by N bits (N×4T + 27T)\n")
+		sled.WriteString("__rotate_7:  RLCA\n")
+		sled.WriteString("__rotate_6:  RLCA\n")
+		sled.WriteString("__rotate_5:  RLCA\n")
+		sled.WriteString("__rotate_4:  RLCA    ; nibble swap\n")
+		sled.WriteString("__rotate_3:  RLCA\n")
+		sled.WriteString("__rotate_2:  RLCA\n")
+		sled.WriteString("__rotate_1:  RLCA\n")
+		sled.WriteString("__rotate_0:  RET     ; identity / shared return\n")
+		result += sled.String()
+	}
+
+	if opt.NativeMemoryAccesses != nil {
+		if err := CheckNativeMemoryAccessMarkers(result, *opt.NativeMemoryAccesses); err != nil {
+			return "", err
+		}
+	}
+	if opt.NativeCallFrames != nil {
+		if e := CheckNativeCallFrameMarkers(result, *opt.NativeCallFrames); e != nil {
+			return "", e
+		}
+	}
+	return result, nil
+}
+
+// ── Internal codegen state ────────────────────────────────────────────────────
+
+type z80cg struct {
+	unsignedPairComparePolicy             UnsignedPairComparePolicy
+	nativeCallFrameSink                   *[]NativeCallFrameSnapshot
+	nativeCallFrameActive                 *NativeCallFrameSnapshot
+	nativeMemoryOrigins                   map[*Inst]GlobalMemoryOrigin
+	nativeMemorySink                      *[]NativeMemoryAccess
+	nativeAccessCount                     map[*Inst]int
+	nativeFunctionIndex, nativeBlockIndex int
+	nativeSpillCount                      int
+	nativeOrphanLabels                    map[string]string
+	err                                   error // first emission error, returned by Z80Codegen
+	ar                                    *AllocResult
+	sb                                    *strings.Builder
+	mod                                   *Module                    // parent module (for callee contract lookup at call sites)
+	fn                                    *Func                      // current function
+	blockIdx                              int                        // index of current block in fn.Blocks (for fall-through)
+	cmpSwapped                            map[Reg]bool               // dst reg → operands were swapped in genCmp
+	cmpAndZero                            map[Reg]bool               // dst reg → comparison used AND A (rhs=0), use NZ/Z not NC/C
+	cmpNeedsTwo                           map[Reg]bool               // dst reg → CmpGt/CmpLe with lhs in A, needs two-JP in BrIf
+	callFlags                             map[Reg]CmpCond            // dst reg of OpCall → FlagCond when callee returns ClassFlag
+	clobberCache                          map[string]map[string]bool // func name → set of clobbered phys reg names
+	constVals                             map[Reg]int64              // virtual reg → compile-time constant value (for peepholes)
+	blockParamRegs                        map[Reg]bool               // regs that are block parameters (loop-variant, not const)
+	deadConsts                            map[Reg]bool               // OpConst dsts whose LD is suppressed by DSE
+	needsCallIX                           bool                       // emit __call_ix trampoline (JP (IX)) at end of module
+	needsMul8                             bool                       // emit __mul8 runtime (A*B→A) at end of module
+	needsRotate                           bool                       // emit __rotate RLCA sled (multi-entry barrel shifter)
+	tsmcPairs                             []tsmcSpillPair            // TSMC spill-reload pairs for current function
+	curInstIdx                            int                        // current instruction index within block (for TSMC matching)
+
+	// holdsPhys is a bidirectional alias map for local copy-propagation within a
+	// basic block.  holdsPhys[r] = s means physical register r currently holds the
+	// same value as s (and holdsPhys[s] = r by symmetry).  Used to eliminate
+	// redundant LD instructions: if A ≡ D, we skip "LD A, D" before an ALU op.
+	// The map is cleared at every block boundary and at any CALL.
+	holdsPhys map[string]string
+
+	// physOverride tracks dynamic relocation of virtual registers that happened
+	// as a side-effect of call-argument setup (emitCallArgs parallel copies).
+	// physOverride[r] = "B" means virtual register r is now in physical "B",
+	// overriding the static allocator assignment g.ar.Loc(r).Name.
+	// Cleared at every CALL (the call clobbers volatile state).
+	physOverride map[Reg]string
+	regInfo      map[Reg]RegInfo
+
+	// liveness gives cross-block live-out sets so that block-local
+	// physOverride relocations can be undone for values a successor reads.
+	liveness *LivenessResult
+
+	// trampolines: small glue blocks emitted after main function body that
+	// perform block-argument parallel copies then jump to the real target.
+	// Needed for BrIf edges where the non-fall-through path requires copies.
+	trampolines []trampolineBlock
+	trampIdx    int
+
+	// Page-aligned LUT optimisation (21T vs 39T).
+	// Pre-scanned per block; cleared at each new block.
+	//
+	// lutLoadPat: Load dst → pattern descriptor for page-aligned table accesses.
+	//   When set, emit LD HL,sym + LD L,src8 + LD A,(HL) instead of the
+	//   general Ext+PtrAdd+Load sequence.
+	// lutSkip: virtual regs whose emit is merged into the Load instruction above.
+	//   Affected: Ext(idx16), AddrOf(base), PtrAdd(ptr).
+	lutLoadPat map[Reg]lutLoadPat
+	lutSkip    map[Reg]bool
+
+	// Global struct field direct-addressing optimisation.
+	// Pre-scanned per block; cleared at each new block.
+	//
+	// globalFieldLoad[loadDst]  → info for emitting LD A,(sym__field) / LD (sym__field),A
+	// globalFieldStore[addrReg] → info for emitting LD (sym__field),val
+	// globalFieldSkip[r]        → these intermediate regs are no-ops in genInst
+	//   Affected: AddrOf(base), Field(fptr), and (for stores) the store's addrReg.
+	globalFieldLoad  map[Reg]globalFieldInfo
+	globalFieldStore map[Reg]globalFieldInfo
+	globalFieldSkip  map[Reg]bool
+
+	// bitStorePat maps the stored value reg of a Store to a fused u8/u16 bit-update
+	// on the same memory cell.
+	// bitStoreSkip suppresses the intermediate Load / And / Or regs merged into that Store.
+	bitStorePat  map[Reg]bitStorePat
+	bitStoreSkip map[Reg]bool
+
+	// bitCmpPat maps a cmp result reg to a fused u8/u16 bit-test feeding Z/NZ.
+	// bitCmpSkip suppresses intermediate Load / Shr / And regs merged into that cmp.
+	bitCmpPat  map[Reg]bitCmpPat
+	bitCmpSkip map[Reg]bool
+
+	// globalU16StoreSym[addrReg] = sym: addrReg holds the address of a u16 global.
+	// Enables emitting LD (sym), HL (16T, no A clobber) instead of the
+	// byte-by-byte DE-based sequence (LD A,lo; LD (DE),A; INC DE; LD A,hi; LD (DE),A; DEC DE).
+	globalU16StoreSym map[Reg]string
+
+	// globalU16LoadSym[addrReg] = sym: addrReg holds the address of a u16 global load.
+	// Enables emitting LD HL, (sym) (20T, no A clobber) instead of the
+	// byte-by-byte sequence LD A,(HL)/INC HL/LD H,(HL)/LD L,A that uses A as scratch.
+	globalU16LoadSym map[Reg]string
+
+	// lastFlagsLhs / lastFlagsRhs track the effective operands of the most recent
+	// flags-setting instruction (SUB / CP / AND A) within the current block.
+	// Empty strings mean "unknown / not tracked".
+	// Used by genCmp to suppress a redundant CP when SUB already set the same flags.
+	lastFlagsLhs string // physical location of the lhs (always A at time of emission)
+	lastFlagsRhs string // physical location or immediate string of the rhs
+
+	// curBlock is the block currently being code-generated.
+	// Set at the start of genBlock; used by materializePendingFlag for forward scans.
+	curBlock *Block
+
+	// pendingFlagReg is the ClassFlag virtual register produced by the most
+	// recent genCmp that has not yet been consumed (by OR/AND/brif).
+	// Before any new CP that would clobber F, materializePendingFlag() checks
+	// whether this register is still live and, if so, emits SBC A,A; LD D,A
+	// so the value survives in "D" (via physOverride).
+	pendingFlagReg Reg
+
+	// pendingAccReg is a ClassAcc virtual register currently in A that may be
+	// clobbered by an upcoming "LD A, imm" in a subsequent genCmp.
+	// When genCmp is about to emit "LD A, imm", if pendingAccReg is still live
+	// downstream, it emits LD D,A and reroutes pendingAccReg to "D".
+	pendingAccReg Reg
+
+	// ptrAddPushHL: set by scanPtrAddBase when a ptr_add's base is in HL and
+	// the base virtual is live after the instruction (needs to survive across
+	// the loop body). The value is the ptr_add result virtual (Dst).
+	// OpPtrAdd emits PUSH HL before ADD HL,rr; OpLoad emits POP HL after
+	// the load to restore the saved base ptr.
+	ptrAddPushHL Reg
+
+	// tailCallInst: set by genBlock when the last instruction of a block is an
+	// OpCall whose result feeds directly into TermRet (tail call pattern).
+	// genCall emits JP instead of CALL; genTerm skips RET when this is set.
+	tailCallInst *Inst
+
+	// smcPatchers: synthesised patcher functions for @smc parameters.
+	// Populated during OpPatchSlot codegen when inst.Sym != "".
+	// Flushed after each function body is emitted.
+	smcPatchers []smcPatcherInfo
+
+	// T-state annotation (enabled via Z80CodegenOptions.AnnotateTStates).
+	// annotateT: emit "; NNT" / "; NT/MT" trailing comments on instruction lines.
+	// blockT:    accumulated T-states for the current block (reset at block entry).
+	// fnWorstT:  worst-case T-state sum across all blocks in the current function.
+	annotateT bool
+	blockT    int
+	fnWorstT  int
+}
+
+func (g *z80cg) emit(s string) {
+	s = g.annotateNativeCallFrame(s)
+	if g.annotateT && strings.HasPrefix(s, "    ") && !strings.HasPrefix(s, "    ;") {
+		ts, tsAlt := z80TStates(s)
+		if ts > 0 {
+			g.blockT += ts
+			if tsAlt > 0 {
+				s = fmt.Sprintf("%-40s; %dT/%dT", s, ts, tsAlt)
+			} else {
+				s = fmt.Sprintf("%-40s; %dT", s, ts)
+			}
+		}
+	}
+	g.sb.WriteString(s)
+	g.sb.WriteByte('\n')
+}
+func (g *z80cg) emitf(f string, args ...any) { g.emit(fmt.Sprintf(f, args...)) }
+func (g *z80cg) comment(s string)            { g.emitf("    ; %s", s) }
+
+// ── Function ──────────────────────────────────────────────────────────────────
+
+// computeDeadConsts returns the set of OpConst dsts whose LD can be suppressed
+// because every use of the constant is already handled by a codegen peephole:
+//
+//   - OpCmp with Src[1] being the const → CP imm8 fires (no register needed).
+//   - OpAdd/OpSub with Src[1]==const, value==1, and lhs/dst at the same physical
+//     location → INC/DEC fires (no register needed).
+//
+// Constants with zero uses are also suppressed.
+func computeDeadConsts(f *Func, ar *AllocResult) map[Reg]bool {
+	// Collect all OpConst dsts and their immediate values.
+	constVal := make(map[Reg]int64)
+	for _, b := range f.Blocks {
+		for _, inst := range b.Insts {
+			if inst.Op == OpConst {
+				constVal[inst.Dst] = inst.Imm
+			}
+		}
+	}
+	if len(constVal) == 0 {
+		return nil
+	}
+
+	physName := func(r Reg) string {
+		if loc, ok := ar.Locs[r]; ok {
+			return loc.Name
+		}
+		return ""
+	}
+
+	totalUses := make(map[Reg]int)
+	foldedUses := make(map[Reg]int)
+
+	for _, b := range f.Blocks {
+		for _, inst := range b.Insts {
+			// Call/CallIndirect args live in inst.Args, not inst.Src — count them
+			// as non-peephole uses so their LD is not suppressed.
+			for _, src := range inst.Args {
+				if _, isConst := constVal[src]; isConst {
+					totalUses[src]++
+					// call args are never peephole-foldable
+				}
+			}
+			for _, src := range inst.Src {
+				cv, isConst := constVal[src]
+				if !isConst {
+					continue
+				}
+				totalUses[src]++
+				switch inst.Op {
+				case OpCmp:
+					// CP imm8: fires when rhs (Src[1]) is a known constant
+					// that fits in 8 bits. 16-bit cmp uses SBC HL,DE — rhs
+					// must be in a register and cannot be folded.
+					// Note: inst.Ty is bool (the result), so check the constant
+					// value and its allocation to determine operand width.
+					if src == inst.Src[1] && cv >= 0 && cv <= 0xFF && (inst.SrcTy == nil || inst.SrcTy.Width() <= 8) {
+						// Also verify lhs is in an 8-bit register (not a pair).
+						lhsLoc := physName(inst.Src[0])
+						if lhsLoc == "A" || lhsLoc == "B" || lhsLoc == "C" ||
+							lhsLoc == "D" || lhsLoc == "E" || lhsLoc == "H" || lhsLoc == "L" ||
+							lhsLoc == "IXH" || lhsLoc == "IXL" || lhsLoc == "IYH" || lhsLoc == "IYL" {
+							foldedUses[src]++
+						}
+					}
+				case OpAdd, OpSub:
+					// INC/DEC: fires when rhs==1 and the op is in-place (lhs phys == dst phys).
+					if src == inst.Src[1] && cv == 1 &&
+						physName(inst.Src[0]) == physName(inst.Dst) &&
+						inst.Ty.Width() <= 16 && !isSpill(physName(inst.Dst)) &&
+						physName(inst.Dst) != "F" {
+						foldedUses[src]++
+					}
+				case OpDiv, OpSDiv, OpMod, OpSMod:
+					signed := inst.Op == OpSDiv || inst.Op == OpSMod
+					if src == inst.Src[1] && cv > 0 && cv&(cv-1) == 0 && inst.Ty.Width() <= 16 && (!signed || cv < int64(1)<<(inst.Ty.Width()-1)) {
+						foldedUses[src]++
+					}
+				case OpAnd, OpOr, OpXor:
+					// The 8/16-bit paths emit immediate bytes; wider paths read registers.
+					if src == inst.Src[1] && inst.Ty.Width() <= 16 {
+						foldedUses[src]++
+					}
+				case OpStore:
+					// LD (HL),n / LD (IX+d),n — 8-bit stores can take an immediate
+					// operand directly; no register needed for the value.
+					if src == inst.Src[1] && inst.Ty.Width() <= 8 {
+						foldedUses[src]++
+					}
+				case OpMul:
+					// genMul folds constant Src[1] into shift sequences.
+					if src == inst.Src[1] {
+						foldedUses[src]++
+					}
+				case OpShl, OpShr, OpSar:
+					// genShift/genShift32 consume the constant count directly
+					// when emitting the repeated single-bit shifts.
+					if src == inst.Src[1] {
+						foldedUses[src]++
+					}
+				}
+			}
+		}
+		// Block args in terminators (TermJmp.Args, TermBrIf.*Args, TermRet.Vals)
+		// are general uses — they cannot be peephole-folded.
+		if b.Term != nil {
+			for _, src := range b.Term.termUses() {
+				if _, isConst := constVal[src]; isConst {
+					totalUses[src]++
+					// no foldedUses increment — terminators are never peephole-dead
+				}
+			}
+		}
+	}
+
+	dead := make(map[Reg]bool)
+	for r := range constVal {
+		total := totalUses[r]
+		if total == 0 || total == foldedUses[r] {
+			dead[r] = true
+		}
+	}
+	return dead
+}
+
+func (g *z80cg) genFunc(f *Func) {
+	g.fn = f
+	g.regInfo = collectRegInfo(f)
+	g.cmpSwapped = make(map[Reg]bool)
+	g.cmpAndZero = make(map[Reg]bool)
+	g.cmpNeedsTwo = make(map[Reg]bool)
+	g.callFlags = make(map[Reg]CmpCond)
+	g.constVals = make(map[Reg]int64)
+	// Build set of block-parameter registers: their values change per iteration
+	// (even if PreallocCoalesce merged an OpConst into the same Reg). Excluding
+	// them from constVals prevents the codegen from treating loop counters as
+	// compile-time constants (BUG-014: ADD A, 0 instead of ADD A, D).
+	g.blockParamRegs = make(map[Reg]bool)
+	for _, b := range f.Blocks {
+		for _, p := range b.Params {
+			g.blockParamRegs[p.Dst] = true
+		}
+	}
+	g.deadConsts = computeDeadConsts(f, g.ar)
+	// TSMC spill: scan for spill-reload pairs in non-recursive functions.
+	g.tsmcPairs = nil
+	if !isRecursive(f) {
+		g.tsmcPairs = scanTSMCSpillPairs(f, g.ar)
+	}
+	g.holdsPhys = make(map[string]string)
+	g.physOverride = make(map[Reg]string)
+	g.liveness = ComputeLiveness(f)
+	g.trampolines = g.trampolines[:0]
+	g.trampIdx = 0
+	g.smcPatchers = g.smcPatchers[:0]
+	g.lutLoadPat = make(map[Reg]lutLoadPat)
+	g.lutSkip = make(map[Reg]bool)
+	g.globalFieldLoad = make(map[Reg]globalFieldInfo)
+	g.globalFieldStore = make(map[Reg]globalFieldInfo)
+	g.globalFieldSkip = make(map[Reg]bool)
+	g.bitStorePat = make(map[Reg]bitStorePat)
+	g.bitStoreSkip = make(map[Reg]bool)
+	g.bitCmpPat = make(map[Reg]bitCmpPat)
+	g.bitCmpSkip = make(map[Reg]bool)
+	g.globalU16StoreSym = make(map[Reg]string)
+	g.globalU16LoadSym = make(map[Reg]string)
+	g.fnWorstT = 0
+
+	label := sanitizeIdent(f.Name)
+	g.emitf("; %s", funcAnnotation(f, g.ar))
+	g.emitf("%s:", label)
+
+	for i, b := range f.Blocks {
+		g.blockIdx = i
+		g.nativeBlockIndex = i
+		g.genBlock(f, b)
+	}
+
+	// Emit trampoline blocks: small copy+JR stubs for BrIf edges with block args.
+	// MZA auto-promotes JR→JP if the target is beyond ±127 bytes.
+	for _, tramp := range g.trampolines {
+		g.emitf("%s:", tramp.label)
+		g.emitParallelCopy(tramp.copies)
+		if tramp.isRet {
+			g.emit("    RET")
+		} else {
+			g.emitf("    JRS %s", tramp.target)
+		}
+	}
+
+	// Emit function-level T-state summary (worst-case block = deepest hot path).
+	if g.annotateT && g.fnWorstT > 0 {
+		g.emitf("; — %s worst-case block: %dT", label, g.fnWorstT)
+	}
+
+	// Emit synthesised @smc patcher functions for any named PatchSlots.
+	// Each patcher: draw_player_set_r0(v: u16 in HL) → patches imm16 bytes in draw_player.
+	for _, p := range g.smcPatchers {
+		// Derive patcher name: "funcName$paramName" → "funcName_set_paramName"
+		parts := strings.SplitN(p.sym, "$", 2)
+		patcherName := p.sym // fallback if no $
+		if len(parts) == 2 {
+			patcherName = parts[0] + "_set_" + parts[1]
+		}
+		g.emitf("\n; synthesised @smc patcher — fun %s(v: u16 = HL)", patcherName)
+		g.emitf("; patches imm16 at %s", p.eqLabel)
+		g.emitf("%s:", patcherName)
+		g.emitf("    LD A, L")
+		g.emitf("    LD (%s), A", p.eqLabel)
+		g.emitf("    LD A, H")
+		g.emitf("    LD (%s+1), A", p.eqLabel)
+		g.emitf("    RET")
+	}
+
+	// Redirect orphaned TSMC stores before collecting spill references: the
+	// rewrite can introduce new spill slots that must also be defined.
+	if g.nativeMemorySink != nil {
+		if err := g.resolveNativeOrphanSpills(g.sb.String()); err != nil && g.err == nil {
+			g.err = err
+		}
+	}
+	fixOrphanedTSMCStores(g.sb, label)
+
+	// Emit named spill data section — one label per spilled register.
+	// DB for 8-bit, DW for 16-bit. Labels resolve forward references
+	// from LD (label),A / LD A,(label) throughout the function.
+	//
+	// Two-pass approach:
+	// 1. Emit from g.ar.Spilled for vregs in collectRegInfo (known width)
+	// 2. Scan emitted asm for any _spill_ refs still missing a definition
+	//    (catches vregs not in Spilled or filtered by TSMC/regInfo)
+	regInfo := g.regInfo
+	emittedSpills := make(map[string]bool)
+	var spillCount int
+	for _, r := range g.ar.Spilled {
+		if _, ok := regInfo[r]; !ok {
+			continue // vreg belongs to a different function
+		}
+		if g.isTSMCSpill(r) {
+			continue // TSMC spill uses inline immediate, not data section
+		}
+		spillCount++
+	}
+	if spillCount > 0 {
+		g.emitf("; — spill slots for %s (%d spills)", label, spillCount)
+		for _, r := range g.ar.Spilled {
+			if _, ok := regInfo[r]; !ok {
+				continue
+			}
+			if g.isTSMCSpill(r) {
+				continue
+			}
+			w := 1
+			if info, ok := regInfo[r]; ok {
+				w = z80SpillBytes(info.Ty)
+			}
+			slabel := g.spillLabel(r)
+			emittedSpills[slabel] = true
+			switch w {
+			case 1:
+				g.emitf("%s: DB 0", slabel)
+			case 2:
+				g.emitf("%s: DW 0", slabel)
+			case 3:
+				g.emitf("%s: DB 0, 0, 0", slabel) // eZ80 24-bit
+			default:
+				g.emitf("%s: DB %s", slabel, strings.TrimSuffix(strings.Repeat("0, ", w), ", "))
+			}
+		}
+	}
+
+	// Pass 2: catch any _spill_ references in the emitted asm that were
+	// not covered above (e.g. vregs missing from g.ar.Spilled due to
+	// coalescing or TSMC filtering, but still referenced in codegen).
+	funcAsm := g.sb.String()
+	prefix := "_spill_" + label + "_r"
+	var missingSpills []string
+	for idx := 0; ; {
+		pos := strings.Index(funcAsm[idx:], prefix)
+		if pos < 0 {
+			break
+		}
+		pos += idx
+		// Extract full label: _spill_funcName_rNNN
+		end := pos + len(prefix)
+		for end < len(funcAsm) && funcAsm[end] >= '0' && funcAsm[end] <= '9' {
+			end++
+		}
+		slabel := funcAsm[pos:end]
+		if !emittedSpills[slabel] {
+			emittedSpills[slabel] = true
+			// Determine width from context: 16-bit reg pair load → DW, else DB
+			// Look for "LD rr, (label)" patterns (BC/DE/HL/IX/IY)
+			is16 := false
+			for _, pat := range []string{
+				"LD BC, (" + slabel, "LD DE, (" + slabel, "LD HL, (" + slabel,
+				"LD IX, (" + slabel, "LD IY, (" + slabel,
+				"(" + slabel + "), HL", "(" + slabel + "), DE",
+				"(" + slabel + "), BC", "(" + slabel + "), IX",
+				"(" + slabel + "), IY",
+			} {
+				if strings.Contains(funcAsm, pat) {
+					is16 = true
+					break
+				}
+			}
+			_ = is16
+			missingSpills = append(missingSpills, slabel)
+		}
+		idx = end
+	}
+	if len(missingSpills) > 0 {
+		g.emitf("; — extra spill slots for %s (%d rescued)", label, len(missingSpills))
+		for _, slabel := range missingSpills {
+			// Preserve the full storage width, including main/shadow words.
+			w := 2
+			var r int
+			if _, err := fmt.Sscanf(slabel[len(prefix):], "%d", &r); err == nil {
+				if info, ok := regInfo[Reg(r)]; ok {
+					w = z80SpillBytes(info.Ty)
+				}
+			}
+			g.emitf("%s: DB %s", slabel, strings.TrimSuffix(strings.Repeat("0, ", w), ", "))
+		}
+	}
+
+}
+
+// ── Block ─────────────────────────────────────────────────────────────────────
+
+func (g *z80cg) genBlock(f *Func, b *Block) {
+	if b.Label != "entry" {
+		g.emitf(".%s_%s:", sanitizeIdent(f.Name), sanitizeIdent(b.Label))
+	}
+	clear(g.holdsPhys) // all register aliases unknown at block entry
+	// Relocations are block-local: the previous block restored everything a
+	// successor reads (restoreLiveOutOverrides), and blocks are laid out in an
+	// order unrelated to control flow, so nothing may leak into this one.
+	clear(g.physOverride)
+	g.lastFlagsLhs = "" // flags state unknown at block entry
+	g.lastFlagsRhs = ""
+	g.blockT = 0 // reset per-block T-state accumulator
+	g.curBlock = b
+	g.pendingFlagReg = NoReg
+	g.pendingAccReg = NoReg
+	// If a block param is allocated to A, any compare instruction in this block
+	// would clobber it with "LD A, lhs". Mark it as pending so materializePendingAcc
+	// can save it to a scratch register before the clobber occurs.
+	for _, bp := range b.Params {
+		if bp.Dst != NoReg && g.ar.Loc(bp.Dst).Name == "A" {
+			g.pendingAccReg = bp.Dst
+			break
+		}
+	}
+	// Also check function contract params (entry block has no block params).
+	if g.pendingAccReg == NoReg && b == g.fn.Entry() {
+		for _, cp := range g.fn.Contract.Params {
+			if cp.Reg != NoReg && g.ar.Loc(cp.Reg).Name == "A" {
+				g.pendingAccReg = cp.Reg
+				break
+			}
+		}
+	}
+
+	// Pre-scan: identify page-aligned LUT access patterns so we can merge
+	// Ext + AddrOf + PtrAdd + Load into: LD HL,sym; LD L,src8; LD A,(HL).
+	g.scanLUTPatterns(b)
+
+	// Pre-scan: identify global struct field accesses so we can emit
+	// LD A,(sym__field) / LD (sym__field),A instead of LD HL,sym + INC HL… + LD A,(HL).
+	g.scanGlobalFieldPatterns(b)
+
+	// Pre-scan: detect u8 load-modify-store bit updates so Store can emit
+	// SET/RES directly on memory and skip the intermediate Load/ALU regs.
+	g.scanBitStorePatterns(b)
+
+	// Pre-scan: detect u8 bit-test compares against zero so Cmp can emit BIT.
+	g.scanBitCmpPatterns(b)
+
+	// Pre-scan: detect ptr_add+load patterns where the base (ptr) is in HL
+	// and must survive across the instruction (e.g. in a loop).  Arranges
+	// for PUSH HL / ADD HL,rr / LD dst,(HL) / POP HL to preserve the base.
+	g.scanPtrAddBase(b)
+
+	// Detect DJNZ peephole: DEC B + JP loop_head → DJNZ loop_body.
+	peep := g.detectDJNZPeephole(f, b)
+
+	// Detect tail call: last instruction is OpCall whose result feeds directly
+	// into TermRet. genCall will emit JP instead of CALL; genTerm skips RET.
+	g.tailCallInst = nil
+	if len(b.Insts) > 0 && peep.bodyLbl == "" {
+		last := b.Insts[len(b.Insts)-1]
+		if last.Op == OpCall && !isIntrinsic(last.Sym) {
+			if ret, ok := b.Term.(*TermRet); ok {
+				isTail := len(ret.Vals) == 0 ||
+					(len(ret.Vals) == 1 && ret.Vals[0] == last.Dst)
+				if isTail {
+					g.tailCallInst = last
+				}
+			}
+		}
+	}
+
+	limit := len(b.Insts)
+	if peep.skipLast {
+		limit-- // skip final DEC B; DJNZ handles it
+	}
+
+	// Pre-pass: reorder to avoid A-clobber between call arg setup instructions.
+	// Pattern: OpMove → A (ClassAcc) followed by an 8-bit ALU → nonA that uses
+	// A as scratch.  Swapping them lets the ALU use A freely, then the move
+	// loads A last (right before the call).  Safe when neither depends on the other.
+	reordered := reorderAccMoves(b.Insts[:limit], g.ar)
+
+	for instIdx, inst := range reordered {
+		g.curInstIdx = instIdx
+		g.genInst(inst)
+	}
+
+	if peep.bodyLbl != "" {
+		g.restoreLiveOutOverrides(f, b.Term)
+		g.emitf("    DJNZ %s", peep.bodyLbl)
+		// Exit path after DJNZ falls through (B=0).
+		// Use the check block's Else edge copies.
+		exitCopies := g.buildBlockCopies(f, peep.checkBrif.Else, peep.checkBrif.ElseArgs)
+		g.emitParallelCopy(exitCopies)
+		if !g.isFallThrough(f, peep.checkBrif.Else) || len(exitCopies) != 0 {
+			g.emitf("    JRS %s", blockLabel(f.Name, peep.checkBrif.Else))
+		}
+	} else {
+		g.genTerm(f, b.Term)
+	}
+
+	// Emit per-block T-state total and accumulate into function worst-case.
+	if g.annotateT && g.blockT > 0 {
+		g.emitf("    ; — block %q: %dT", b.Label, g.blockT)
+		if g.blockT > g.fnWorstT {
+			g.fnWorstT = g.blockT
+		}
+	}
+}
+
+// ── Label helpers ─────────────────────────────────────────────────────────────
+
+func blockLabel(funcName, blockLabel string) string {
+	if blockLabel == "entry" {
+		return sanitizeIdent(funcName)
+	}
+	return fmt.Sprintf(".%s_%s", sanitizeIdent(funcName), sanitizeIdent(blockLabel))
+}
+
+// z80ReservedNames are Z80 register names that cannot be used as labels.
+var z80ReservedNames = map[string]bool{
+	"A": true, "B": true, "C": true, "D": true, "E": true, "F": true,
+	"H": true, "L": true, "I": true, "R": true,
+	"AF": true, "BC": true, "DE": true, "HL": true, "SP": true,
+	"IX": true, "IY": true, "IXH": true, "IXL": true, "IYH": true, "IYL": true,
+}
+
+func sanitizeIdent(s string) string {
+	var b strings.Builder
+	for _, c := range s {
+		if (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+			(c >= '0' && c <= '9') || c == '_' {
+			b.WriteRune(c)
+		} else {
+			b.WriteByte('_')
+		}
+	}
+	result := b.String()
+	// Avoid Z80 register name collisions (e.g. Pascal variable "I").
+	if z80ReservedNames[strings.ToUpper(result)] {
+		return "v_" + result
+	}
+	return result
+}
+
+// ── Function annotation comment ───────────────────────────────────────────────
+
+// funcAnnotation builds a one-line ABI summary for a function:
+//
+//	fn name(param0: type = REG, ...) -> ret = REG [recursive] [clobbers: REG, ...]
+//
+// This is emitted as a "; ..." comment immediately before the function label.
+func funcAnnotation(f *Func, ar *AllocResult) string {
+	var sb strings.Builder
+
+	sb.WriteString("fun ")
+	sb.WriteString(f.Name)
+	sb.WriteByte('(')
+	for i, p := range f.Contract.Params {
+		if i > 0 {
+			sb.WriteString(", ")
+		}
+		loc := ar.Loc(p.Reg)
+		sb.WriteString(p.Name)
+		sb.WriteString(": ")
+		if p.Ty != nil {
+			sb.WriteString(p.Ty.String())
+		} else {
+			sb.WriteString("?")
+		}
+		if loc.Name != "" {
+			sb.WriteString(" = ")
+			sb.WriteString(loc.Name)
+		}
+	}
+	sb.WriteByte(')')
+
+	// Return values (class → canonical register name).
+	if len(f.Contract.Returns) == 1 {
+		r := f.Contract.Returns[0]
+		sb.WriteString(" -> ")
+		if r.Ty != nil {
+			sb.WriteString(r.Ty.String())
+		} else {
+			sb.WriteString("?")
+		}
+		if reg := classToRegName(r.Class, r.Ty); reg != "" {
+			sb.WriteString(" = ")
+			sb.WriteString(reg)
+		}
+	} else if len(f.Contract.Returns) > 1 {
+		// For multi-return, the contract optimizer may change Return[i].Class
+		// after lowering (e.g. both u16 slots become ClassPointer).  Use the
+		// actual allocated physical locations from the first TermRet instead,
+		// which reflect what the allocator and codegen actually produce.
+		retLocs := multiReturnLocs(f, ar)
+		sb.WriteString(" -> (")
+		for i, r := range f.Contract.Returns {
+			if i > 0 {
+				sb.WriteString(", ")
+			}
+			if r.Ty != nil {
+				sb.WriteString(r.Ty.String())
+			} else {
+				sb.WriteString("?")
+			}
+			reg := ""
+			if i < len(retLocs) && retLocs[i] != "" {
+				reg = retLocs[i]
+			} else {
+				reg = classToRegName(r.Class, r.Ty)
+			}
+			if reg != "" {
+				sb.WriteString(" = ")
+				sb.WriteString(reg)
+			}
+		}
+		sb.WriteByte(')')
+	}
+
+	// Recursive check: any OpCall instruction that calls f itself?
+	if isRecursive(f) {
+		sb.WriteString(" [recursive]")
+	}
+
+	// Conservative clobber contract, including implicit emitter/runtime writes.
+	clobbers := computeClobbers(f, ar)
+	if len(clobbers) > 0 {
+		sb.WriteString(" ; clobbers: ")
+		for i, name := range clobbers {
+			if i > 0 {
+				sb.WriteString(", ")
+			}
+			sb.WriteString(name)
+		}
+	}
+
+	return sb.String()
+}
+
+// emitStringLiteral writes bytes as a mix of quoted text and numeric escapes.
+// Printable ASCII runs are grouped into "...", non-printable bytes are emitted
+// as individual numeric values. Example: "Hello", 10, "world"
+func emitStringLiteral(sb *strings.Builder, data []byte) {
+	first := true
+	i := 0
+	for i < len(data) {
+		// Collect a run of printable ASCII (0x20-0x7E). A double quote can't be
+		// embedded in DB "...", so it is excluded from the run and emitted as a
+		// byte by the branch below. Excluding it here rather than breaking out
+		// of the inner loop matters: breaking left i unchanged, so the outer
+		// loop re-entered this branch on the same quote and spun forever.
+		if isPrintableASCII(data[i]) && data[i] != '"' {
+			if !first {
+				sb.WriteString(", ")
+			}
+			sb.WriteByte('"')
+			for i < len(data) && isPrintableASCII(data[i]) && data[i] != '"' {
+				sb.WriteByte(data[i])
+				i++
+			}
+			sb.WriteByte('"')
+			first = false
+		} else {
+			if !first {
+				sb.WriteString(", ")
+			}
+			fmt.Fprintf(sb, "%d", data[i])
+			i++
+			first = false
+		}
+	}
+}
+
+func isPrintableASCII(b byte) bool {
+	return b >= 0x20 && b <= 0x7E
+}

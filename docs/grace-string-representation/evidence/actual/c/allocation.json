@@ -1,0 +1,50 @@
+{
+  "Locs": {
+    "1": {
+      "Kind": 0,
+      "Name": "HL",
+      "Offset": 0
+    },
+    "2": {
+      "Kind": 0,
+      "Name": "DE",
+      "Offset": 0
+    },
+    "3": {
+      "Kind": 0,
+      "Name": "HL",
+      "Offset": 0
+    },
+    "4": {
+      "Kind": 0,
+      "Name": "HL",
+      "Offset": 0
+    },
+    "5": {
+      "Kind": 0,
+      "Name": "HL",
+      "Offset": 0
+    },
+    "6": {
+      "Kind": 0,
+      "Name": "HL",
+      "Offset": 0
+    },
+    "7": {
+      "Kind": 0,
+      "Name": "HL",
+      "Offset": 0
+    },
+    "8": {
+      "Kind": 0,
+      "Name": "DE",
+      "Offset": 0
+    },
+    "9": {
+      "Kind": 0,
+      "Name": "HL",
+      "Offset": 0
+    }
+  },
+  "Spilled": null
+}

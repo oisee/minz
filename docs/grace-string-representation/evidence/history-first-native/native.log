@@ -1,0 +1,50 @@
+=== RUN   TestLiteralPrintingNative
+=== RUN   TestLiteralPrintingNative/s
+    string_native_test.go:62: termination PC/SP 107/f000
+=== RUN   TestLiteralPrintingNative/c
+    string_native_test.go:62: termination PC/SP 107/f000
+=== RUN   TestLiteralPrintingNative/l
+    string_native_test.go:62: termination PC/SP 107/f000
+=== RUN   TestLiteralPrintingNative/utf8
+    string_native_test.go:62: termination PC/SP 107/f000
+=== RUN   TestLiteralPrintingNative/empty_s
+    string_native_test.go:62: termination PC/SP 107/f000
+=== RUN   TestLiteralPrintingNative/empty_c
+    string_native_test.go:62: termination PC/SP 107/f000
+=== RUN   TestLiteralPrintingNative/empty_l
+    string_native_test.go:62: termination PC/SP 107/f000
+=== RUN   TestLiteralPrintingNative/nul_s
+    string_native_test.go:62: termination PC/SP 107/f000
+=== RUN   TestLiteralPrintingNative/nul_c
+    string_native_test.go:62: termination PC/SP 107/f000
+=== RUN   TestLiteralPrintingNative/nul_l
+    string_native_test.go:62: termination PC/SP 107/f000
+=== RUN   TestLiteralPrintingNative/s255
+    string_native_test.go:62: termination PC/SP 107/f000
+=== RUN   TestLiteralPrintingNative/l256
+    string_native_test.go:62: termination PC/SP 107/f000
+--- FAIL: TestLiteralPrintingNative (0.03s)
+    --- FAIL: TestLiteralPrintingNative/s (0.00s)
+    --- FAIL: TestLiteralPrintingNative/c (0.00s)
+    --- FAIL: TestLiteralPrintingNative/l (0.00s)
+    --- FAIL: TestLiteralPrintingNative/utf8 (0.00s)
+    --- FAIL: TestLiteralPrintingNative/empty_s (0.00s)
+    --- FAIL: TestLiteralPrintingNative/empty_c (0.00s)
+    --- FAIL: TestLiteralPrintingNative/empty_l (0.00s)
+    --- FAIL: TestLiteralPrintingNative/nul_s (0.00s)
+    --- FAIL: TestLiteralPrintingNative/nul_c (0.00s)
+    --- FAIL: TestLiteralPrintingNative/nul_l (0.00s)
+    --- FAIL: TestLiteralPrintingNative/s255 (0.00s)
+    --- FAIL: TestLiteralPrintingNative/l256 (0.00s)
+=== RUN   TestLiteralStorageNative
+=== RUN   TestLiteralStorageNative/s
+    string_native_test.go:131: termination {2 0 2 0 274 0 0 61440 263}
+=== RUN   TestLiteralStorageNative/c
+    string_native_test.go:131: termination {65 0 65 0 274 0 0 61440 263}
+=== RUN   TestLiteralStorageNative/l
+    string_native_test.go:131: termination {2 0 2 0 274 0 0 61440 263}
+--- FAIL: TestLiteralStorageNative (0.00s)
+    --- FAIL: TestLiteralStorageNative/s (0.00s)
+    --- FAIL: TestLiteralStorageNative/c (0.00s)
+    --- FAIL: TestLiteralStorageNative/l (0.00s)
+FAIL
