@@ -1,0 +1,135 @@
+{
+  "base_commit": "465092b9",
+  "files": [
+    {
+      "path": "catalog-test.txt",
+      "bytes": 726,
+      "sha256": "d7ee0ee9e39a2e66f78feea580d1c059d504c08c7730a06df014442650bdc8d0"
+    },
+    {
+      "path": "catalog.json.gz",
+      "bytes": 42118,
+      "sha256": "481eafcc894b8286f0397528079f7c375d31ddf5a9e85f5814a5e0ba8a8433e7"
+    },
+    {
+      "path": "compiled-source.nanz",
+      "bytes": 399,
+      "sha256": "4e0761da0d8606c43cc449dd59b97f10f8f5c8da967643b44bec186bd8f20d89"
+    },
+    {
+      "path": "focused.txt",
+      "bytes": 853,
+      "sha256": "7e0dbcf500b39158904fd2ebf1e71f3f61019eadefb49ae730e64a47fa60d0da"
+    },
+    {
+      "path": "grace-size-final.mir2.gz",
+      "bytes": 435,
+      "sha256": "1a7233a4fe2404f9788cbba9e4adf51cf1f7ae065b9132730b70a0fdef6faa29"
+    },
+    {
+      "path": "grace-size-native.json.gz",
+      "bytes": 4922,
+      "sha256": "9ffcc251194fc960b296661f4309aa940e4d40a815cf48d32cad677893677078"
+    },
+    {
+      "path": "grace-size-pre-host-link.a80",
+      "bytes": 1380,
+      "sha256": "040c77053dd4b18a197c582a688a3c4c82c942795a422291d38be54f1920d776"
+    },
+    {
+      "path": "grace-size-target.a80",
+      "bytes": 842,
+      "sha256": "8d83c73ab6725b983d4ed0fe54fdb56ee2a7f0ddf67a12a921771130e61767a2"
+    },
+    {
+      "path": "grace-size-target.bin",
+      "bytes": 34,
+      "sha256": "51828b08dc3641b4aa7721aa3b273c2444b844bbe94e38b6b7a66b63c543fe02"
+    },
+    {
+      "path": "grace-speed-final.mir2.gz",
+      "bytes": 436,
+      "sha256": "7b77fece1423dfb84dd7a869c35e0ac7365dc4a8fee7a7791b6df5d2eb471697"
+    },
+    {
+      "path": "grace-speed-native.json.gz",
+      "bytes": 4923,
+      "sha256": "608d4a9233a6383af306cef9ac2c889df5e4c9084ec214dc98a785cc311db32e"
+    },
+    {
+      "path": "grace-speed-pre-host-link.a80",
+      "bytes": 1380,
+      "sha256": "040c77053dd4b18a197c582a688a3c4c82c942795a422291d38be54f1920d776"
+    },
+    {
+      "path": "grace-speed-target.a80",
+      "bytes": 842,
+      "sha256": "8d83c73ab6725b983d4ed0fe54fdb56ee2a7f0ddf67a12a921771130e61767a2"
+    },
+    {
+      "path": "grace-speed-target.bin",
+      "bytes": 34,
+      "sha256": "51828b08dc3641b4aa7721aa3b273c2444b844bbe94e38b6b7a66b63c543fe02"
+    },
+    {
+      "path": "independent-model.json.gz",
+      "bytes": 1263,
+      "sha256": "77a5b4da9d6221044a65873828ceea1ee7d60baf882f01c72b881394d75b67a4"
+    },
+    {
+      "path": "ordinary-final.mir2.gz",
+      "bytes": 433,
+      "sha256": "5b6f45f9a9466569a7837a3e7814b99aadd4fa4de6ee701e856cb8e1d353d236"
+    },
+    {
+      "path": "ordinary-native.json.gz",
+      "bytes": 4920,
+      "sha256": "fb29d8892427276b1884bd5cdf2da69d8f7b652ac8ca3dcf6817eddb5ebe8125"
+    },
+    {
+      "path": "ordinary-pre-host-link.a80",
+      "bytes": 1410,
+      "sha256": "de890fbf043fc9b08a0e7de0d650654da6c650ce56ba5794259b127d1408d829"
+    },
+    {
+      "path": "ordinary-target.a80",
+      "bytes": 842,
+      "sha256": "8d83c73ab6725b983d4ed0fe54fdb56ee2a7f0ddf67a12a921771130e61767a2"
+    },
+    {
+      "path": "ordinary-target.bin",
+      "bytes": 34,
+      "sha256": "51828b08dc3641b4aa7721aa3b273c2444b844bbe94e38b6b7a66b63c543fe02"
+    },
+    {
+      "path": "original-full.mir2.gz",
+      "bytes": 417,
+      "sha256": "36224836815ed613a152fb6c7c69595b69a87018767fccadde92d1628088c442"
+    },
+    {
+      "path": "raw.json.gz",
+      "bytes": 2679,
+      "sha256": "fbb20ebf04bf6aa58301c0d18076c116d4ed5b086dc2502835d781ea822a941e"
+    },
+    {
+      "path": "runtime-adapter.nanz",
+      "bytes": 84,
+      "sha256": "74002c4b922c58f7bd6c39f88f940d8709b8a27f66f457c74ad9e55db5f13be7"
+    },
+    {
+      "path": "source-provenance.json",
+      "bytes": 284,
+      "sha256": "0fba4272167d39f9e11fc82ecb0527015512969aa90907e3272cd520922339c8"
+    },
+    {
+      "path": "source.nanz",
+      "bytes": 314,
+      "sha256": "afb172839734878c9697ecc295e20a62ff1e658bcc7be994c38b1b8962fa9615"
+    },
+    {
+      "path": "workload.json.gz",
+      "bytes": 1136,
+      "sha256": "df4eaba82583b82d846d0c30dcb123775fca1d3c6cd2ff12e3fdbce6decb93a8"
+    }
+  ]
+}

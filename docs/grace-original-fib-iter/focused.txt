@@ -1,0 +1,7 @@
+=== RUN   TestOriginalFibIterAllBytesVMZ80
+    showcase_fib_iter_oracle_test.go:160: exact original fib_iter:all256 n + observer/u16 recurrence/RAMguards/raw-finalVM/nativeSPcode modeordinary; 2415644 T/34 B SHA 51828b08dc3641b4aa7721aa3b273c2444b844bbe94e38b6b7a66b63c543fe02
+    showcase_fib_iter_oracle_test.go:160: exact original fib_iter:all256 n + observer/u16 recurrence/RAMguards/raw-finalVM/nativeSPcode modegrace-speed; 2415644 T/34 B SHA 51828b08dc3641b4aa7721aa3b273c2444b844bbe94e38b6b7a66b63c543fe02
+    showcase_fib_iter_oracle_test.go:160: exact original fib_iter:all256 n + observer/u16 recurrence/RAMguards/raw-finalVM/nativeSPcode modegrace-size; 2415644 T/34 B SHA 51828b08dc3641b4aa7721aa3b273c2444b844bbe94e38b6b7a66b63c543fe02
+--- PASS: TestOriginalFibIterAllBytesVMZ80 (1.22s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.230s
