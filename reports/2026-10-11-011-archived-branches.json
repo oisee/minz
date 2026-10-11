@@ -154,5 +154,11 @@
     "branch": "archive/2026-10-11/weighted-prototype",
     "commit": "295138c8dd9efd74793c43bfeb7415cf19738dcc",
     "role": "historical experiment; not approved production"
+  },
+  {
+    "source": "/tmp/minz-memory-host-contract",
+    "branch": "archive/2026-10-11/memory-host-contract-residual-snapshot",
+    "commit": "461201581ccdc066f959339c745e0391cee2de5d",
+    "role": "historical residual working tree snapshot; not production"
   }
 ]

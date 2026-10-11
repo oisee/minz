@@ -83,6 +83,9 @@ short collect/replay/−o/wrong-policy PASS 47.206 s; старые Legacy про
 Эта сводка и завершённые этапы committed/pushed в
 [feat/grace-hir-vm](https://github.com/oisee/minz/tree/feat/grace-hir-vm).
 Нужные исторические /tmp ветки отправлены в remote `archive/2026-10-11/`;
+повторный аудит обнаружил остаточный незакоммиченный memory-host каталог.
+Он сохранён отдельным архивным snapshot `46120158` и pushed. Все 23
+оставшихся /tmp worktree HEAD входят в сохранённую remote archive историю;
 SHA перечислены в [манифесте](2026-10-11-011-archived-branches.json).
 Все активные рабочие каталоги теперь вне /tmp:
 `/home/alice/dev/minz-artifacts/grace-workspaces/`.
