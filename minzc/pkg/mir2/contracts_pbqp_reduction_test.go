@@ -41,3 +41,28 @@ func TestPFCCOR1RejectsIncompatibleNeighborChoice(t *testing.T) {
 		t.Fatalf("incompatible assignment %v; want [0 1]", got)
 	}
 }
+
+func TestPFCCORejectsInfeasibleAssignments(t *testing.T) {
+	cases := []struct {
+		name  string
+		nodes []pfccoNode
+		edges []pfccoEdge
+	}{
+		{"isolated", []pfccoNode{{costs: []int{InfCost}}}, nil},
+		{"leaf", []pfccoNode{{costs: []int{0}}, {costs: []int{0}}}, []pfccoEdge{{callerIdx: 0, calleeIdx: 1, costMatrix: [][]int{{InfCost}}}}},
+		// An odd cycle of unequal binary choices has no feasible assignment.
+		// RN must reject its greedy result rather than advertise it as valid.
+		{"residual", []pfccoNode{{costs: []int{0, 1}}, {costs: []int{0, 1}}, {costs: []int{0, 1}}}, []pfccoEdge{
+			{callerIdx: 0, calleeIdx: 1, costMatrix: [][]int{{InfCost, 0}, {0, InfCost}}},
+			{callerIdx: 1, calleeIdx: 2, costMatrix: [][]int{{InfCost, 0}, {0, InfCost}}},
+			{callerIdx: 2, calleeIdx: 0, costMatrix: [][]int{{InfCost, 0}, {0, InfCost}}},
+		}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := pfccoSolve(tc.nodes, tc.edges); got != nil {
+				t.Fatalf("infeasible assignment admitted: %v", got)
+			}
+		})
+	}
+}

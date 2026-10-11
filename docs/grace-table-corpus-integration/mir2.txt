@@ -1,0 +1,3 @@
+go test ./pkg/mir2 -count=1
+PASS
+ok github.com/minz/minzc/pkg/mir2 6.061s

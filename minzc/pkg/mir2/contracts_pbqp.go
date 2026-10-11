@@ -13,8 +13,9 @@ package mir2
 //              (how much does the caller pay if its convention is X and
 //               the callee's convention is Y?)
 //
-// The PBQP solver (R0/R1/RN reduction) finds the globally cheapest assignment
-// of conventions to all functions simultaneously, which the greedy DP can miss
+// The PBQP solver uses exact R0/R1 reductions and a greedy RN residual
+// assignment. It considers conventions jointly but does not guarantee a global
+// optimum. Joint choices can improve on the greedy DP
 // on diamond call graphs (A→C, B→C where A and B have conflicting preferences
 // for C's convention).
 //
@@ -49,8 +50,8 @@ type pfccoEdge struct {
 	callCount  int // static number of call sites (weight multiplier)
 }
 
-// OptimizeContractsPBQP finds globally-optimal register classes for all
-// function contracts using PBQP graph reduction on the call graph.
+// OptimizeContractsPBQP selects register classes jointly using PBQP reduction.
+// The residual graph is solved heuristically; optimality is not guaranteed.
 //
 // Drop-in replacement for OptimizeContracts.
 func OptimizeContractsPBQP(m *Module, ct CostTable) ContractSet {
@@ -145,6 +146,16 @@ func OptimizeContractsPBQP(m *Module, ct CostTable) ContractSet {
 
 	// PBQP solve: R0/R1/RN reduction.
 	assignment := pfccoSolve(nodes, edges)
+
+	// Reject the whole proposed set if reduction did not produce a feasible
+	// assignment. Per-function fallback could retain incompatible neighbors.
+	if assignment == nil && len(nodes) != 0 {
+		cs := make(ContractSet, len(m.Funcs))
+		for _, f := range m.Funcs {
+			cs[f.Name] = currentChoice(f)
+		}
+		return cs
+	}
 
 	// Build result.
 	cs := make(ContractSet, len(m.Funcs))
@@ -483,6 +494,18 @@ func pfccoSolve(nodes []pfccoNode, edges []pfccoEdge) []int {
 		assignment[entry.node] = bestChoice
 	}
 
+	// Check the original graph independently of the reduction state. RN can
+	// dead-end, and an all-infinite vector has no admissible minimum.
+	for i, k := range assignment {
+		if k < 0 || k >= len(nodes[i].costs) || nodes[i].costs[k] >= InfCost {
+			return nil
+		}
+	}
+	for _, e := range edges {
+		if e.costMatrix[assignment[e.callerIdx]][assignment[e.calleeIdx]] >= InfCost {
+			return nil
+		}
+	}
 	return assignment
 }
 
