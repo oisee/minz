@@ -25,7 +25,7 @@ for path in sorted(ROOT.glob('*/*')):
    o=run['invocations'][j]
    assert o['results']==result and o['events']==events and o.get('failure')==failure,(path,c['Name'])
    assert o['regions']=={n:base64.b64encode(data).decode() for n,(_,data) in regions.items()}
-   globals=dict(run['invocations'][0]['globals']);globals['src_buf']=base64.b64encode(bytes([c['SourceBase']&255,c['SourceBase']>>8])).decode();assert o['globals']==globals
+   globals={n:base64.b64encode(v.to_bytes(width,'little')).decode() for n,v,width in [('src_buf',0xc000,2),('src_len',0,2),('pos',0,2),('node_arena',0x8000,2),('node_bump',0x8000,2),('str_arena',0x9000,2),('str_bump',0x9000,2),('SEXP_ATOM',1,1),('SEXP_LIST',2,1),('SEXP_INT',3,1)]};globals.update(e['workload'].get('globals') or {});globals.update(e['workload']['calls'][j].get('globals') or {});globals['src_buf']=base64.b64encode(bytes([c['SourceBase']&255,c['SourceBase']>>8])).decode();assert o['globals']==globals
   count+=1
  binary=(path/'target.bin').read_bytes();assert hashlib.sha256(binary).hexdigest()==target['binary_sha256']
  assert target['total_t_states']==sum(target['invocation_t_states'])

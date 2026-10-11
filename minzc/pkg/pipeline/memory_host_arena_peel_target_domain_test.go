@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/mir2"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -93,7 +94,23 @@ func TestMemoryHostArenaPeelTargetDomain(t *testing.T) {
 								t.Fatal("resource changed", n)
 							}
 						}
-						for n, initial := range run.Invocations[0].Globals {
+						fresh, _ := originalFactory()
+						expectedGlobals := map[string][]byte{}
+						for _, global := range fresh.Globals {
+							b := make([]byte, max(mir2.ByteWidth(global.Ty), len(global.Init)))
+							copy(b, global.Init)
+							expectedGlobals[global.Name] = b
+						}
+						for n, b := range w.Globals {
+							expectedGlobals[n] = append([]byte{}, b...)
+						}
+						for n, b := range w.Calls[j].Globals {
+							expectedGlobals[n] = append([]byte{}, b...)
+						}
+						if len(got.Globals) != len(expectedGlobals) {
+							t.Fatal("global namespace changed")
+						}
+						for n, initial := range expectedGlobals {
 							want := initial
 							if n == "src_buf" {
 								want = []byte{byte(c.SourceBase), byte(c.SourceBase >> 8)}
