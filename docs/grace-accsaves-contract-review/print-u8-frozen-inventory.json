@@ -1,0 +1,9 @@
+{
+  "checkpoint": "4d6522d1",
+  "source_sha256": {
+    "minzc/pkg/mir2/z80codegen_call.go": "13f846812331f73379a67bf4b42d6d5d9d0b9669f61fe272c716e7af3553f77a",
+    "minzc/pkg/mir2/z80codegen_print.go": "964a65a66f4c1c66d8e71c8d550f9355012621c85afe8f6527fc4cd90cbc7d06",
+    "minzc/pkg/mir2/z80codegen_print_test.go": "340e44de84b98adc6488ea12a442a442ed06c3448600177ac632d5637575439b",
+    "minzc/pkg/pipeline/decimal_print_e2e_test.go": "7d36c613263f29a6e3cfb92e5ec2338f3103b0c1e1faddf85e66ebd1cea9f20a"
+  }
+}
