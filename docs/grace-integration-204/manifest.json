@@ -1,0 +1,13 @@
+{
+  "README.md": "bd52b471d5515781f58c2a67eadde92dc575e23c5fe813323df2faae8482d779",
+  "catalog-204.txt": "c83bace7eb7e36108f4f689925d6192ab84fa300c1db48411e02af7961c09bfa",
+  "catalog.json": "b686f7430baf2a4636d6e83b9dd7be194d5757761deb6ca5474155a51053e6b4",
+  "counts.json": "40bc12406c80b0532d5fb538eb29997f107fbb905c86cf57a6b2e2c98476e872",
+  "generated-catalog.json": "279eb79482495ed2d98364b3ce5456cae9349f6b2afca919a9d98b65d715095d",
+  "reviewed-updates.json": "254b57fab1b54cfe00591669a2e85490c45e4b132022db6a9aa40e3f0e4880e0",
+  "root-arena20.txt": "711eecad165a6bf7dd5c3fdd13149e905600e1d932b4eddb3a4d130245ab83c8",
+  "root-assert-smc-hello.txt": "58de3e90e8c780f21503e78e3c1ad341b303e970dd63da666f46e744ff467ee2",
+  "root-smc-hello.txt": "3566dc2be775f43473510de7c9e30025cc8b468be07ca03841cb78c5505d94c7",
+  "root-strings-fib.txt": "a9d3d3e0ff7551d3d5a6798a86930a1c02fe7aa7f8ce3bc02fcc10b8b896714c",
+  "root-tetris-advantage.txt": "d0a6552ed8654e2af746a483838cc39cbbdb3c4646cf6cf4afbcae824e7b7444"
+}
