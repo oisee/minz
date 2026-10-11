@@ -1,0 +1,20 @@
+@cur() -> u8 [acc]
+  block @entry:
+    %r48 = addr_of @pos : ptr [pointer]
+    %r49 = load %r48 : u16 [pointer]
+    %r50 = addr_of @src_len : ptr [pointer]
+    %r51 = load %r50 : u16 [pointer]
+    %r52 = cmp.uge %r49, %r51 : bool [flag]
+    br_if %r52, @if_then1(), @if_join2()
+  block @if_then1:
+    %r53 = const 0 : u8 [general]
+    ret %r53
+  block @if_join2:
+    %r54 = addr_of @src_buf : ptr [pointer]
+    %r55 = load %r54 : u16 [pointer]
+    %r56 = addr_of @pos : ptr [pointer]
+    %r57 = load %r56 : u16 [pointer]
+    %r58 = add %r55, %r57 : u16 [pointer]
+    %r59 = call @peek(%r58) : u8 [acc]
+    ret %r59
+
