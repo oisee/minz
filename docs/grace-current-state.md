@@ -12,7 +12,7 @@ CLI evidence assertion `561dab36`. Исторические результаты
 
 | Требование | Что доказано | Что ещё не доказано |
 |---|---|---|
-| Заявленный корпус | Все 194 пути имеют явный статус; 53 independent VM/Z80 paths | 84 ждут независимого оракула, остальные имеют отдельные ASM/runtime/host ограничения; bounded entry не означает всё приложение |
+| Заявленный корпус | Все 194 пути имеют явный статус; 54 independent VM/Z80 paths | 83 ждут независимого оракула, остальные имеют отдельные ASM/runtime/host ограничения; bounded entry не означает всё приложение |
 | PFCCO/PBQP и таблицы | Реальные назначения, moves/saves и native польза на packet/weighted; bounded solver audit | Произвольные calls/CFG/islands и глобальная оптимальность |
 | Автоматический выбор и heldout | Self-Lanz, HashMap и Pascal SORT: training-selected BIN проверен на заранее отложенных входах; packet даёт отдельный PFCCO выигрыш | Остальные runtime/corpus ограничения сохраняются; это не универсальный выигрыш на всех программах |
 | Полное удаление LIR и перенос пользы | Пакет/consumers удалены; shared engines/native тесты сохранены; word ×10/12, byte fusion и K11 перенесены с native пользой | Полнота общих physical constraints/pattern choices требует предметного аудита |
@@ -21,9 +21,10 @@ CLI evidence assertion `561dab36`. Исторические результаты
 Свежий full core `4587e753`: HIR/MIR2/Nanz/VIR **PASS**
 ([пакет144](grace-integration-144/README.md)); включает signed/unsigned/bool widening,
 unsigned promotion и aggregate-address corrections. Новый CLI4587e753 выполняется отдельно.
-Full CLI этого checkpoint завершился **FAIL 351,983 с**: один тест фиксировал
+Исторический full CLI c69e350e завершился **FAIL 351,983 с**: один тест фиксировал
 исторические такты. Проверка исправлена и focused PASS 19,153 с
-([пакет138](grace-integration-138/README.md)); нового full CLI PASS пока нет.
+([пакет138](grace-integration-138/README.md)). Последующий полный CLI4587e753
+**PASS342,878 с** ([пакет147](grace-integration-147/README.md)).
 Fresh showcase после widening **PASS 11,547 с**
 ([пакет140](grace-integration-140/README.md)).
 Полный pipeline `a7954042` подтверждён живым; он предшествует plasma.
@@ -570,3 +571,25 @@ inspection проверяется отдельно; immediateproof не покр
 подтверждён после устранения copy metadata ошибки
 ([пакет139](grace-integration-139/README.md)). Позднейшие исправления имеют
 свежие repo/share пакеты; текущий сайт сохраняет свой более ранний checkpoint.
+
+
+## Контракты вызовов: текущие исправления
+
+Original Lizp functional: все8entries,398595nativecalls втрёхрежимах,
+actualCallIndirect/targettrace и fullRAM/PCSP, rootPASS3,642с
+([пакет148](grace-integration-148/README.md)). Каталог54independentpaths/83pending
+([149](grace-integration-149/README.md)). Original lambdaszero-capture;
+не заявляется новый environmentABI. Knownfunctioncallback mismatchedword/byte
+ABI acceptance исправляетсядоemission, exactbeforepacketсохранён.
+
+Signedcomparison повторяет actualMIRSrcTywidth, unsigned/Eq/Ne не изменены
+([149](grace-integration-149/README.md)). Generalaggregateaddressclasses
+исправлены, но originalnoninline returnedS lifetimeподтверждёнFAIL послеlaterCALL
+([150](grace-integration-150/README.md)). CallerownedbufferABI реализуется
+с publicentry/indirect/multi/recursion/effectguards; preliminaryfrozenfailures
+устранены, полныйrootPASSпока не заявлен.
+
+Currenttablejointmatrix44→20B/238→142T сохранена
+([151](grace-integration-151/README.md)); ordinarytableapplication solver-free.
+BoundedPFCCO/PBQPexhaustivecost controlsPASS
+([152](grace-integration-152/README.md)).
