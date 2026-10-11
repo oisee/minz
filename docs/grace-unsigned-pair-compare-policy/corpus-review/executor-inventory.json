@@ -1,0 +1,14 @@
+[
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-workspaces/memory-host-policy-corpus/docs/grace-memory-host-policy-corpus/PLAN.md",
+    "sha256": "d0ced78b8a0079b23291d4016fa06915533f4519f18a57d24ec7ed5c5d5643c6"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-workspaces/memory-host-policy-corpus/docs/grace-memory-host-policy-corpus/input-inventory.json",
+    "sha256": "e55ed8a2e3d3d5c5c9a58f76928e3a203b7d518509059363fcd3336e702ece6c"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-workspaces/memory-host-policy-corpus/docs/grace-memory-host-policy-corpus/prior-legacy-comparison.json",
+    "sha256": "fdfda8cc74cc0b31f9adb4ababa4b941bbb61cd112e4230ca3524c1e712a2e03"
+  }
+]
