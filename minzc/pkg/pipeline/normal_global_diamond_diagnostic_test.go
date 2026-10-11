@@ -1,12 +1,14 @@
 package pipeline
 
 import (
+	"compress/gzip"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
+	"io"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -65,6 +67,15 @@ func assertNormalDiamondDelta(t *testing.T, m *mir2.Module, apply bool) (string,
 				if f.Name != "cur" || prior.Op != mir2.OpLoad || i.Op != mir2.OpMove || i.Ty != mir2.TyU16 || i.Dst != prior.Dst {
 					t.Fatalf("unexpected actual edit %s %v→%v", f.Name, prior.Op, i.Op)
 				}
+				priorIsPos := false
+				for _, address := range b.Insts {
+					if address.Op == mir2.OpAddrOf && address.Dst == prior.Src[0] && address.Sym == "pos" {
+						priorIsPos = true
+					}
+				}
+				if !priorIsPos {
+					t.Fatal("replaced load was not direct pos")
+				}
 				var expected mir2.Reg
 				for _, entryInst := range f.Entry().Insts {
 					if entryInst.Op == mir2.OpLoad {
@@ -74,6 +85,10 @@ func assertNormalDiamondDelta(t *testing.T, m *mir2.Module, apply bool) (string,
 							}
 						}
 					}
+				}
+				wantMove := mir2.Inst{Op: mir2.OpMove, Dst: prior.Dst, Src: [2]mir2.Reg{expected, mir2.NoReg}, Ty: prior.Ty, Cls: prior.Cls, ClsHard: prior.ClsHard, SrcLine: prior.SrcLine, SrcFile: prior.SrcFile}
+				if !reflect.DeepEqual(*i, wantMove) {
+					t.Fatal("unexpected complete replacement metadata")
 				}
 				if expected == mir2.NoReg || i.Src[0] != expected {
 					t.Fatal("move does not reuse dominating pos")
@@ -122,6 +137,36 @@ func TestNormalDiamondActualNative30(t *testing.T) {
 		t.Fatal("diagnostic hook already installed")
 	}
 	t.Cleanup(func() { normalDiamondExperimentHook = nil })
+	referencePath := os.Getenv("MINZ_NORMAL_DIAMOND_REFERENCE")
+	if referencePath == "" {
+		t.Fatal("explicit current production reference required")
+	}
+	readReference := func() []byte {
+		b, e := os.ReadFile(referencePath)
+		if e == nil {
+			return b
+		}
+		f, e := os.Open(referencePath + ".gz")
+		if e != nil {
+			t.Fatal(e)
+		}
+		defer f.Close()
+		z, e := gzip.NewReader(f)
+		if e != nil {
+			t.Fatal(e)
+		}
+		defer z.Close()
+		b, e = io.ReadAll(z)
+		if e != nil {
+			t.Fatal(e)
+		}
+		return b
+	}
+	var previous MemoryHostBaselineEvidence
+	if e := json.Unmarshal(readReference(), &previous); e != nil {
+		t.Fatal(e)
+	}
+	var original *MemoryHostBaselineEvidence
 	for _, apply := range []bool{false, true} {
 		captures := []map[string]any{}
 		normalDiamondExperimentHook = func(m *mir2.Module) error {
@@ -155,6 +200,20 @@ func TestNormalDiamondActualNative30(t *testing.T) {
 		for n, data := range map[string][]byte{"factory-baseline.json": b, "mir-experiment.json": capture, "source.nanz": source, "target.bin": evidence.Target.Binary, "target.a80": []byte(evidence.Target.Assembly), "final.mir2": []byte(evidence.Target.FinalMIRDump), "allocation.json": evidence.Target.AllocationJSON} {
 			if e = os.WriteFile(filepath.Join(out, n), data, 0644); e != nil {
 				t.Fatal(e)
+			}
+		}
+		if !apply {
+			a, b := evidence.Target, previous.Target
+			if a.BinarySHA256 != b.BinarySHA256 || a.Assembly != b.Assembly || a.AdapterSHA256 != b.AdapterSHA256 || a.TotalTStates != b.TotalTStates || a.ExecutedSteps != b.ExecutedSteps || a.MIRSHA256 != b.MIRSHA256 || a.AllocationSHA256 != b.AllocationSHA256 || a.SidecarSHA256 != b.SidecarSHA256 || a.CallFramesSHA256 != b.CallFramesSHA256 || !reflect.DeepEqual(a.InvocationTStates, b.InvocationTStates) || !reflect.DeepEqual(a.Invocations, b.Invocations) {
+				t.Fatal("original disagrees with current production native reference")
+			}
+			original = evidence
+		} else {
+			if !reflect.DeepEqual(original.Raw, evidence.Raw) || !reflect.DeepEqual(original.Compatibility, evidence.Compatibility) || !reflect.DeepEqual(original.FunctionSites, evidence.FunctionSites) {
+				t.Fatal("original source oracle/binding changed")
+			}
+			if e := arenaSameObservations(original.Target.Invocations, evidence.Target.Invocations); e != nil {
+				t.Fatal("source/reuse state", e)
 			}
 		}
 		t.Logf("%s actual%dT/%dB steps%d BIN%s context%s", name, evidence.Target.TotalTStates, len(evidence.Target.Binary), evidence.Target.ExecutedSteps, evidence.Target.BinarySHA256, evidence.Compatibility.Context.CompilerID)
