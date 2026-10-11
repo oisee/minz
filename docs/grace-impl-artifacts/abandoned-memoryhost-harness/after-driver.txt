@@ -1,0 +1,6 @@
+=== RUN   TestOriginalImplShowcaseVMZ80
+    showcase_impl_oracle_test.go:101: memory host: invocation 0: block @entry: alloca: heap limit reached (65536 bytes)
+--- FAIL: TestOriginalImplShowcaseVMZ80 (0.07s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.077s
+FAIL

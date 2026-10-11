@@ -1,0 +1,6 @@
+=== RUN   TestOriginalImplShowcaseVMZ80
+    showcase_impl_oracle_test.go:101: memory host: statement 1: HIR oracle_circle_area: value type void incompatible with u8
+--- FAIL: TestOriginalImplShowcaseVMZ80 (0.02s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.027s
+FAIL

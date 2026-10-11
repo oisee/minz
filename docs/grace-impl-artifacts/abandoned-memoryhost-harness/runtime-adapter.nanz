@@ -1,0 +1,10 @@
+fun oracle_circle_area(addr:u16)->u8 {var p:^Circle=addr
+ return Circle_area(p)}
+fun oracle_circle_perim(addr:u16)->u8 {var p:^Circle=addr
+ return Circle_perimeter(p)}
+fun oracle_rect_area(addr:u16)->u8 {var p:^Rect=addr
+ return Rect_area(p)}
+fun oracle_rect_perim(addr:u16)->u8 {var p:^Rect=addr
+ return Rect_perimeter(p)}
+@extern fun peek(addr:u16)->u8
+fun oracle_observe(addr:u16)->u8 {return peek(addr)}

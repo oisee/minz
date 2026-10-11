@@ -1,0 +1,145 @@
+{
+  "source_sha256": "18245db1f0fdb215a31dd9daa759546880a802a12b53d5787ad651ca0ecc7bda",
+  "files": [
+    {
+      "path": "docs/grace-impl-artifacts/abandoned-memoryhost-harness/after-driver.txt",
+      "bytes": 265,
+      "sha256": "228da9db2a88c3663f39feb69de72ac6dfb26f034c75d2e03c33a55304008024"
+    },
+    {
+      "path": "docs/grace-impl-artifacts/abandoned-memoryhost-harness/before.txt",
+      "bytes": 270,
+      "sha256": "bbe9fcf3f58a890b57cc04e90a272d1cd43a25086a8c8536d4504a3513c49c37"
+    },
+    {
+      "path": "docs/grace-impl-artifacts/abandoned-memoryhost-harness/compiled-source.nanz",
+      "bytes": 1812,
+      "sha256": "4795ef8b4621d40054a618b4cb7b6f3259090480126cc9d91e5ca48f9a6dc9f2"
+    },
+    {
+      "path": "docs/grace-impl-artifacts/abandoned-memoryhost-harness/original-full.mir2",
+      "bytes": 2649,
+      "sha256": "e510607397b963f8572ed1adc3cf4777a27731faf99b643959a46c28f3224c5c"
+    },
+    {
+      "path": "docs/grace-impl-artifacts/abandoned-memoryhost-harness/raw-error.txt",
+      "bytes": 81,
+      "sha256": "e65bd96bfb51cf8731d11363093c6bcc5ed85771231ab8dc5c2a1f710859b335"
+    },
+    {
+      "path": "docs/grace-impl-artifacts/abandoned-memoryhost-harness/runtime-adapter.nanz",
+      "bytes": 408,
+      "sha256": "bf301b6a92003d7098ee6134593e73a4e15e09ddc21e0157807eed471567c4a8"
+    },
+    {
+      "path": "docs/grace-impl-artifacts/abandoned-memoryhost-harness/source-provenance.json",
+      "bytes": 284,
+      "sha256": "578be22757cacce756000ba59418f88d9ffacfd6510fe93603aa21e29e6b434d"
+    },
+    {
+      "path": "docs/grace-impl-artifacts/complete.txt",
+      "bytes": 658,
+      "sha256": "2b52d4ddb17008b49eab1105f136226e07e34ce156e488d68a0649cdca3c7f51"
+    },
+    {
+      "path": "docs/grace-impl-artifacts/grace-size/allocation.json",
+      "bytes": 3846,
+      "sha256": "1b1a55cfef28821f7a8f4a93f4cd973cfa8634c8ad7dcfefa0be5b8fc42b4c9b"
+    },
+    {
+      "path": "docs/grace-impl-artifacts/grace-size/final.mir2",
+      "bytes": 2603,
+      "sha256": "9ad053131d52bcf17147e35ff5242e8575eb525496aad6aee2566950f687c6bd"
+    },
+    {
+      "path": "docs/grace-impl-artifacts/grace-size/summary.json",
+      "bytes": 142,
+      "sha256": "bc7515fa4b1618c925919b19afbc682b3a732defc324d4a23326c1d325340ced"
+    },
+    {
+      "path": "docs/grace-impl-artifacts/grace-size/target.a80",
+      "bytes": 4982,
+      "sha256": "2bf721cd331adf903aae740223f48011eda56ca34677860f670eb640688cb671"
+    },
+    {
+      "path": "docs/grace-impl-artifacts/grace-size/target.bin",
+      "bytes": 254,
+      "sha256": "7b856426327354a498180f67827b6c0ce03ee16be2a004b905346f3ecb0e054c"
+    },
+    {
+      "path": "docs/grace-impl-artifacts/grace-speed/allocation.json",
+      "bytes": 3846,
+      "sha256": "1b1a55cfef28821f7a8f4a93f4cd973cfa8634c8ad7dcfefa0be5b8fc42b4c9b"
+    },
+    {
+      "path": "docs/grace-impl-artifacts/grace-speed/final.mir2",
+      "bytes": 2603,
+      "sha256": "9ad053131d52bcf17147e35ff5242e8575eb525496aad6aee2566950f687c6bd"
+    },
+    {
+      "path": "docs/grace-impl-artifacts/grace-speed/summary.json",
+      "bytes": 142,
+      "sha256": "bc7515fa4b1618c925919b19afbc682b3a732defc324d4a23326c1d325340ced"
+    },
+    {
+      "path": "docs/grace-impl-artifacts/grace-speed/target.a80",
+      "bytes": 4982,
+      "sha256": "2bf721cd331adf903aae740223f48011eda56ca34677860f670eb640688cb671"
+    },
+    {
+      "path": "docs/grace-impl-artifacts/grace-speed/target.bin",
+      "bytes": 254,
+      "sha256": "7b856426327354a498180f67827b6c0ce03ee16be2a004b905346f3ecb0e054c"
+    },
+    {
+      "path": "docs/grace-impl-artifacts/local-frame.txt",
+      "bytes": 658,
+      "sha256": "76bfdbf6db7f44f3d82000384783dcf52bfe190d560a9f35af46241f97108721"
+    },
+    {
+      "path": "docs/grace-impl-artifacts/ordinary/allocation.json",
+      "bytes": 3846,
+      "sha256": "1b1a55cfef28821f7a8f4a93f4cd973cfa8634c8ad7dcfefa0be5b8fc42b4c9b"
+    },
+    {
+      "path": "docs/grace-impl-artifacts/ordinary/final.mir2",
+      "bytes": 2603,
+      "sha256": "9ad053131d52bcf17147e35ff5242e8575eb525496aad6aee2566950f687c6bd"
+    },
+    {
+      "path": "docs/grace-impl-artifacts/ordinary/summary.json",
+      "bytes": 142,
+      "sha256": "bc7515fa4b1618c925919b19afbc682b3a732defc324d4a23326c1d325340ced"
+    },
+    {
+      "path": "docs/grace-impl-artifacts/ordinary/target.a80",
+      "bytes": 5102,
+      "sha256": "6a3b37db159efee191d8ea20fedd19e185867990ce493702cbabe030d2b81fef"
+    },
+    {
+      "path": "docs/grace-impl-artifacts/ordinary/target.bin",
+      "bytes": 254,
+      "sha256": "7b856426327354a498180f67827b6c0ce03ee16be2a004b905346f3ecb0e054c"
+    },
+    {
+      "path": "docs/grace-impl-artifacts/provenance.json",
+      "bytes": 164,
+      "sha256": "fee527e8ab335bd15aadf058c40f3d96fc32e540743cf36218b2fa15bd51eec4"
+    },
+    {
+      "path": "docs/grace-impl-artifacts/source-freeze.txt",
+      "bytes": 102,
+      "sha256": "9f25e24e71bacd55feb66dea302402a3f1e0fc742fcde82d66e81e3bfdbd3d51"
+    },
+    {
+      "path": "docs/grace-impl-artifacts/source.nanz",
+      "bytes": 1403,
+      "sha256": "18245db1f0fdb215a31dd9daa759546880a802a12b53d5787ad651ca0ecc7bda"
+    },
+    {
+      "path": "docs/grace-impl-artifacts/workload.json",
+      "bytes": 586462,
+      "sha256": "41641ed452d7256c0264fccb43888c05c5013a089bcc8fae96767a6c5a56eedf"
+    }
+  ]
+}
