@@ -1,0 +1,9 @@
+# Private preserve-pair comparison native harness
+
+Three bounded callers are planned after frozen backend and independent review: unchanged original, private comparison enabled, and isolated one-load reuse plus private comparison. Source remains exact SelfLanz SHA0e926. Original must reproduce current dba production1135370T/2000B/BIN1f0f595 including ASM, all native typed hashes and per-call results/state/events/costs.
+
+Backend has a default-false ExperimentalUnsignedPreservePair codegen option, not a pipeline public option. This branch-only serial test will set a private diagnostic bool at both normal CompileHIRSteps codegen and internal native annotation re-codegen. Passing it only to one emission would correctly fail exact baseline binary binding. A separate private nil raw-MIR hook after raw dump enables exact1cur pos-load-to-Move only in combined case; no transformed HIR or user ASM is admitted.
+
+RunZ80MemoryHostBaseline still collects unchanged rawsource oracle before fresh candidate compilation. Native permissions, adapters, memory roots and finite call frame validation remain untouched; sidecars regenerate from actual allocated MIR. Existing baseline evidence containers are diagnostic only for this private experiment, not public selector certificates. Capture exact source/MIR/hook changes and backend option per candidate.
+
+Before any full native runs: backend source and forced-machine tests frozen/reviewed; actual source static MIR match1 and original0; exact option propagation source review; cleanup of private globals on all paths. Then one bounded suite runs each of three callers once. Compare original against saved current production and both candidates against original source/raw/target semantic observations. Preserve negative results and costs without assumed benefit. No default merge or corpus reruns in this task.
