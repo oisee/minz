@@ -215,6 +215,9 @@ func PrepareForValidation(asm string) string {
 
 // CollectBranchTargets extracts label names from JP/CALL/JR/DJNZ/LD instructions.
 func CollectBranchTargets(line string, refs map[string]bool) {
+	if idx := strings.IndexByte(line, ';'); idx >= 0 {
+		line = line[:idx]
+	}
 	upper := strings.ToUpper(strings.TrimSpace(line))
 	if idx := strings.Index(upper, " ;"); idx >= 0 {
 		upper = strings.TrimSpace(upper[:idx])
