@@ -1,0 +1,234 @@
+{
+  "exact_data_access": true,
+  "schema": "minz.profile-workload/v1",
+  "target_model": "cpm-z80-v1",
+  "max_steps": 1000000,
+  "max_memory": 65536,
+  "resources": {
+    "training-0-fat12": "ES5LaIWiv9z5FjNQbYqnxOH+GzhVco+syeYDID1ad5SxzusIJUJffJm20/ANKkdkgZ672PUSL0xphqPA3foXNFFui6jF4v8cOVZzkK3K5wQhPlt4lbLP7AkmQ2B9mrfU8Q4rSGWCn7zZ9hMwTWqHpMHe+xg1Um+MqcbjAB06V3SRrsvoBSI/XHmWs9DtCidEYX6buNXyDyxJZoOgvdr3FDFOa4ilwt/8GTZTcI2qx+QBHjtYdZKvzOkGI0Bdepe00e4LKEVif5y51vMQLUpnhKG+2/gVMk9siabD4P0aN1RxjqvI5QIfPFl2k7DN6gckQV57mLXS7wwpRmOAnbrX9A==",
+    "training-0-fat16": "ES5LaIWiv9z5FjNQbYqnxOH+GzhVco+syeYDID1ad5SxzusIJUJffJm20/ANKkdkgZ672PUSL0xphqPA3foXNFFui6jF4v8cOVZzkK3K5wQhPlt4lbLP7AkmQ2B9mrfU8Q4rSGWCn7zZ9hMwTWqHpMHe+xg1Um+MqcbjAB06V3SRrsvoBSI/XHmWs9DtCidEYX6buNXyDyxJZoOgvdr3FDFOa4ilwt/8GTZTcI2qx+QBHjtYdZKvzOkGI0Bdepe00e4LKEVif5y51vMQLUpnhKG+2/gVMk9siabD4P0aN1RxjqvI5QIfPFl2k7DN6gckQV57mLXS7wwpRmOAnbrX9A==",
+    "training-1-fat12": "ES5LaIWiv9z5FjNQbYqnxOH+GzhVco+syeYDID1ad5SxzusIJUJffJm20/ANKkdkgZ672PUSL0xphqPA3foXNFFui6jF4v8cOVZzkK3K5wQhPlt4lbLP7AkmQ2B9mrfU8Q4rSGWCn7zZ9hMwTWqHpMHe+xg1Um+MqcbjAB06V3SRrsvoBSI/XHmWs9DtCidEYX6buNXyDyxJZoOgvdr3FDFOa4ilwt/8GTZTcI2qx+QBHjtYdZKvzOkGI0Bdepe00e4LKEVif5y51vMQLUpnhKG+2/gVMk9siabD4P0aN1RxjqvI5QIfPFl2k7DN6gckQV57mLXS7wwpRmOAnbrX9A==",
+    "training-1-fat16": "ES5LaIWiv9z5FjNQbYqnxOH+GzhVco+syeYDID1ad5SxzusIJUJffJm20/ANKkdkgZ672PUSL0xphqPA3foXNFFui6jF4v8cOVZzkK3K5wQhPlt4lbLP7AkmQ2B9mrfU8Q4rSGWCn7zZ9hMwTWqHpMHe+xg1Um+MqcbjAB06V3SRrsvoBSI/XHmWs9DtCidEYX6buNXyDyxJZoOgvdr3FDFOa4ilwt/8GTZTcI2qx+QBHjtYdZKvzOkGI0Bdepe00e4LKEVif5y51vMQLUpnhKG+2/gVMk9siabD4P0aN1RxjqvI5QIfPFl2k7DN6gckQV57mLXS7wwpRmOAnbrX9A==",
+    "training-2-fat12": "ES5LaIWiv9z5FjNQbYqnxOH+GzhVco+syeYDID1ad5SxzusIJUJffJm20/ANKkdkgZ672PUSL0xphqPA3foXNFFui6jF4v8cOVZzkK3K5wQhPlt4lbLP7AkmQ2B9mrfU8Q4rSGWCn7zZ9hMwTWqHpMHe+xg1Um+MqcbjAB06V3SRrsvoBSI/XHmWs9DtCidEYX6buNXyDyxJZoOgvdr3FDFOa4ilwt/8GTZTcI2qx+QBHjtYdZKvzOkGI0Bdepe00e4LKEVif5y51vMQLUpnhKG+2/gVMk9siabD4P0aN1RxjqvI5QIfPFl2k7DN6gckQV57mLXS7wwpRmOAnbrX9A==",
+    "training-2-fat16": "ES5LaIWiv9z5FjNQbYqnxOH+GzhVco+syeYDID1ad5SxzusIJUJffJm20/ANKkdkgZ672PUSL0xphqPA3foXNFFui6jF4v8cOVZzkK3K5wQhPlt4lbLP7AkmQ2B9mrfU8Q4rSGWCn7zZ9hMwTWqHpMHe+xg1Um+MqcbjAB06V3SRrsvoBSI/XHmWs9DtCidEYX6buNXyDyxJZoOgvdr3FDFOa4ilwt/8GTZTcI2qx+QBHjtYdZKvzOkGI0Bdepe00e4LKEVif5y51vMQLUpnhKG+2/gVMk9siabD4P0aN1RxjqvI5QIfPFl2k7DN6gckQV57mLXS7wwpRmOAnbrX9A=="
+  },
+  "globals": {},
+  "calls": [
+    {
+      "function": "read_fat12",
+      "arguments": [
+        {
+          "resource": "training-0-fat12"
+        },
+        {
+          "value": 4
+        }
+      ]
+    },
+    {
+      "function": "write_fat12",
+      "arguments": [
+        {
+          "resource": "training-0-fat12"
+        },
+        {
+          "value": 4
+        },
+        {
+          "value": 683
+        }
+      ]
+    },
+    {
+      "function": "read_fat12",
+      "arguments": [
+        {
+          "resource": "training-0-fat12"
+        },
+        {
+          "value": 4
+        }
+      ]
+    },
+    {
+      "function": "read_fat16",
+      "arguments": [
+        {
+          "resource": "training-0-fat16"
+        },
+        {
+          "value": 4
+        }
+      ]
+    },
+    {
+      "function": "write_fat16",
+      "arguments": [
+        {
+          "resource": "training-0-fat16"
+        },
+        {
+          "value": 4
+        },
+        {
+          "value": 683
+        }
+      ]
+    },
+    {
+      "function": "read_fat16",
+      "arguments": [
+        {
+          "resource": "training-0-fat16"
+        },
+        {
+          "value": 4
+        }
+      ]
+    },
+    {
+      "function": "read_fat12",
+      "arguments": [
+        {
+          "resource": "training-1-fat12"
+        },
+        {
+          "value": 9
+        }
+      ]
+    },
+    {
+      "function": "write_fat12",
+      "arguments": [
+        {
+          "resource": "training-1-fat12"
+        },
+        {
+          "value": 9
+        },
+        {
+          "value": 3445
+        }
+      ]
+    },
+    {
+      "function": "read_fat12",
+      "arguments": [
+        {
+          "resource": "training-1-fat12"
+        },
+        {
+          "value": 9
+        }
+      ]
+    },
+    {
+      "function": "read_fat16",
+      "arguments": [
+        {
+          "resource": "training-1-fat16"
+        },
+        {
+          "value": 9
+        }
+      ]
+    },
+    {
+      "function": "write_fat16",
+      "arguments": [
+        {
+          "resource": "training-1-fat16"
+        },
+        {
+          "value": 9
+        },
+        {
+          "value": 3445
+        }
+      ]
+    },
+    {
+      "function": "read_fat16",
+      "arguments": [
+        {
+          "resource": "training-1-fat16"
+        },
+        {
+          "value": 9
+        }
+      ]
+    },
+    {
+      "function": "read_fat12",
+      "arguments": [
+        {
+          "resource": "training-2-fat12"
+        },
+        {
+          "value": 18
+        }
+      ]
+    },
+    {
+      "function": "write_fat12",
+      "arguments": [
+        {
+          "resource": "training-2-fat12"
+        },
+        {
+          "value": 18
+        },
+        {
+          "value": 65535
+        }
+      ]
+    },
+    {
+      "function": "read_fat12",
+      "arguments": [
+        {
+          "resource": "training-2-fat12"
+        },
+        {
+          "value": 18
+        }
+      ]
+    },
+    {
+      "function": "read_fat16",
+      "arguments": [
+        {
+          "resource": "training-2-fat16"
+        },
+        {
+          "value": 18
+        }
+      ]
+    },
+    {
+      "function": "write_fat16",
+      "arguments": [
+        {
+          "resource": "training-2-fat16"
+        },
+        {
+          "value": 18
+        },
+        {
+          "value": 65535
+        }
+      ]
+    },
+    {
+      "function": "read_fat16",
+      "arguments": [
+        {
+          "resource": "training-2-fat16"
+        },
+        {
+          "value": 18
+        }
+      ]
+    }
+  ]
+}

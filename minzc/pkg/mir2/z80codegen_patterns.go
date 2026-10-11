@@ -336,7 +336,7 @@ func (g *z80cg) scanBitCmpPatterns(b *Block) {
 				matched = true
 			}
 		}
-		if matched {
+		if matched && g.canEmitBitCmpPattern(pat) {
 			g.bitCmpPat[inst.Dst] = pat
 			g.bitCmpSkip[zeroReg] = true
 			for _, r := range skipRegs {
@@ -395,7 +395,7 @@ func (g *z80cg) scanBitCmpPatterns(b *Block) {
 			}
 		}
 
-		if matched {
+		if matched && g.canEmitBitCmpPattern(pat) {
 			g.bitCmpPat[inst.Dst] = pat
 			g.bitCmpSkip[zeroReg] = true
 			for _, r := range skipRegs {
@@ -416,6 +416,20 @@ func (g *z80cg) isGlobalPageAligned(sym string) bool {
 		}
 	}
 	return false
+}
+
+// Never skip the original definitions until the selected BIT form can be
+// encoded. genCmp's ordinary fallback requires those AND/shift/zero values.
+func (g *z80cg) canEmitBitCmpPattern(pat bitCmpPat) bool {
+	if pat.useMem {
+		ptr := g.loc(pat.ptrReg)
+		if isSpill(ptr) {
+			ptr = "HL"
+		}
+		return ptr == "HL" && (pat.byteOffset == 0 || pat.byteOffset == 1) || isIXY(ptr) && pat.byteOffset >= 0 && pat.byteOffset <= 127
+	}
+	src := selectBitReg(g.loc(pat.srcReg), pat.byteOffset)
+	return isSimpleReg(src) && !isSpill(src) && !isIXYReg(src)
 }
 
 func (g *z80cg) emitBitMemOp(op string, bit int, ptr string, byteOffset int) bool {
