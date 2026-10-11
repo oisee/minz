@@ -1,0 +1,68 @@
+=== RUN   TestHIRProfileOrderedByteRWValidation
+=== RUN   TestHIRProfileOrderedByteRWValidation/joint
+=== RUN   TestHIRProfileOrderedByteRWValidation/readonly
+=== RUN   TestHIRProfileOrderedByteRWValidation/region
+=== RUN   TestHIRProfileOrderedByteRWValidation/composition
+=== RUN   TestHIRProfileOrderedByteRWValidation/copy
+=== RUN   TestHIRProfileOrderedByteRWValidation/mixed
+=== RUN   TestHIRProfileOrderedByteRWValidation/invariant
+=== RUN   TestHIRProfileOrderedByteRWValidation/site
+=== RUN   TestHIRProfileOrderedByteRWValidation/jointsites
+=== RUN   TestHIRProfileOrderedByteRWValidation/weighted
+=== RUN   TestHIRProfileOrderedByteRWValidation/independent
+=== RUN   TestHIRProfileOrderedByteRWValidation/auto
+=== RUN   TestHIRProfileOrderedByteRWValidation/workload
+=== RUN   TestHIRProfileOrderedByteRWValidation/restriction
+=== RUN   TestHIRProfileOrderedByteRWValidation/separate
+--- PASS: TestHIRProfileOrderedByteRWValidation (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/joint (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/readonly (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/region (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/composition (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/copy (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/mixed (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/invariant (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/site (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/jointsites (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/weighted (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/independent (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/auto (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/workload (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/restriction (0.00s)
+    --- PASS: TestHIRProfileOrderedByteRWValidation/separate (0.00s)
+=== RUN   TestHIRProfileOrderedByteRWCompilation
+    hir_profile_ordered_byte_rw_test.go:209: read/write CLI objective=speed selected3 322T/52B SHAa6dfc2350e2b9f6dcf0630dd5fb8ed785dc5d571bcc4c5b3e680c6955cdb5956
+    hir_profile_ordered_byte_rw_test.go:209: read/write CLI objective=size selected3 322T/52B SHAa6dfc2350e2b9f6dcf0630dd5fb8ed785dc5d571bcc4c5b3e680c6955cdb5956
+--- PASS: TestHIRProfileOrderedByteRWCompilation (0.83s)
+=== RUN   TestHIRProfileOrderedByteValidation
+=== RUN   TestHIRProfileOrderedByteValidation/joint
+=== RUN   TestHIRProfileOrderedByteValidation/region
+=== RUN   TestHIRProfileOrderedByteValidation/composition
+=== RUN   TestHIRProfileOrderedByteValidation/copy
+=== RUN   TestHIRProfileOrderedByteValidation/mixed
+=== RUN   TestHIRProfileOrderedByteValidation/invariant
+=== RUN   TestHIRProfileOrderedByteValidation/site
+=== RUN   TestHIRProfileOrderedByteValidation/jointsites
+=== RUN   TestHIRProfileOrderedByteValidation/weighted
+=== RUN   TestHIRProfileOrderedByteValidation/independent
+=== RUN   TestHIRProfileOrderedByteValidation/auto
+=== RUN   TestHIRProfileOrderedByteValidation/workload
+=== RUN   TestHIRProfileOrderedByteValidation/restriction
+=== RUN   TestHIRProfileOrderedByteValidation/separate
+--- PASS: TestHIRProfileOrderedByteValidation (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/joint (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/region (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/composition (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/copy (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/mixed (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/invariant (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/site (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/jointsites (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/weighted (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/independent (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/auto (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/workload (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/restriction (0.00s)
+    --- PASS: TestHIRProfileOrderedByteValidation/separate (0.00s)
+PASS
+ok  	github.com/minz/minzc/cmd/minzc	0.841s

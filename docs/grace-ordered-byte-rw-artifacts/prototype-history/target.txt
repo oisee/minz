@@ -1,0 +1,5 @@
+=== RUN   TestHashmapWR16PrototypeTargetStoreOrder
+    hashmap_wr16_prototype_test.go:388: actual Z80 exact two ordered stores +fullRAM 360 cases
+--- PASS: TestHashmapWR16PrototypeTargetStoreOrder (2.25s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.259s

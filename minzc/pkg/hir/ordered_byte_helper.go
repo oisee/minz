@@ -36,7 +36,7 @@ func findOrderedByteHelper(f *Func, reserved map[string]bool) *orderedBytePlan {
 	return p
 }
 func orderedByteFresh(m *Module) bool {
-	return m != nil && m.LoopLineage == nil && m.GraceRulePolicy == nil && m.PointerWalkPolicy == nil && m.InvariantBasePolicy == nil && m.ForwardCopyPolicy == nil && m.RegionComparePolicy == nil && m.OrderedBytePolicy == nil
+	return m != nil && m.LoopLineage == nil && m.GraceRulePolicy == nil && m.PointerWalkPolicy == nil && m.InvariantBasePolicy == nil && m.ForwardCopyPolicy == nil && m.RegionComparePolicy == nil && m.OrderedBytePolicy == nil && m.OrderedByteRWPolicy == nil
 }
 func EligibleOrderedByteHelpers(m *Module) ([]string, error) {
 	if !orderedByteFresh(m) {

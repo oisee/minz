@@ -1,0 +1,108 @@
+=== RUN   TestOrderedByteHelperProofChoices
+--- PASS: TestOrderedByteHelperProofChoices (0.01s)
+=== RUN   TestOrderedByteHelperProofForgeries
+=== RUN   TestOrderedByteHelperProofForgeries/unknownfalse
+=== RUN   TestOrderedByteHelperProofForgeries/lowwide
+=== RUN   TestOrderedByteHelperProofForgeries/reverse
+=== RUN   TestOrderedByteHelperProofForgeries/highoffset
+=== RUN   TestOrderedByteHelperProofForgeries/originmissing
+=== RUN   TestOrderedByteHelperProofForgeries/originorphan
+=== RUN   TestOrderedByteHelperProofForgeries/originswap
+=== RUN   TestOrderedByteHelperProofForgeries/lineagemissing
+=== RUN   TestOrderedByteHelperProofForgeries/lineageorphan
+=== RUN   TestOrderedByteHelperProofForgeries/base
+=== RUN   TestOrderedByteHelperProofForgeries/metadata
+=== RUN   TestOrderedByteHelperProofForgeries/ordinarybody
+=== RUN   TestOrderedByteHelperProofForgeries/rule
+--- PASS: TestOrderedByteHelperProofForgeries (0.03s)
+    --- PASS: TestOrderedByteHelperProofForgeries/unknownfalse (0.00s)
+    --- PASS: TestOrderedByteHelperProofForgeries/lowwide (0.00s)
+    --- PASS: TestOrderedByteHelperProofForgeries/reverse (0.00s)
+    --- PASS: TestOrderedByteHelperProofForgeries/highoffset (0.00s)
+    --- PASS: TestOrderedByteHelperProofForgeries/originmissing (0.00s)
+    --- PASS: TestOrderedByteHelperProofForgeries/originorphan (0.00s)
+    --- PASS: TestOrderedByteHelperProofForgeries/originswap (0.00s)
+    --- PASS: TestOrderedByteHelperProofForgeries/lineagemissing (0.00s)
+    --- PASS: TestOrderedByteHelperProofForgeries/lineageorphan (0.00s)
+    --- PASS: TestOrderedByteHelperProofForgeries/base (0.00s)
+    --- PASS: TestOrderedByteHelperProofForgeries/metadata (0.00s)
+    --- PASS: TestOrderedByteHelperProofForgeries/ordinarybody (0.00s)
+    --- PASS: TestOrderedByteHelperProofForgeries/rule (0.00s)
+=== RUN   TestOrderedByteHelperFreshIdentityAndCap
+--- PASS: TestOrderedByteHelperFreshIdentityAndCap (0.01s)
+=== RUN   TestOrderedByteHelperExactFalsePolicy
+--- PASS: TestOrderedByteHelperExactFalsePolicy (0.01s)
+=== RUN   TestOrderedByteHelperSourceInvalidRepresentations
+=== RUN   TestOrderedByteHelperSourceInvalidRepresentations/sharedstmt
+=== RUN   TestOrderedByteHelperSourceInvalidRepresentations/nilfunc
+=== RUN   TestOrderedByteHelperSourceInvalidRepresentations/cycle
+--- PASS: TestOrderedByteHelperSourceInvalidRepresentations (0.00s)
+    --- PASS: TestOrderedByteHelperSourceInvalidRepresentations/sharedstmt (0.00s)
+    --- PASS: TestOrderedByteHelperSourceInvalidRepresentations/nilfunc (0.00s)
+    --- PASS: TestOrderedByteHelperSourceInvalidRepresentations/cycle (0.00s)
+=== RUN   TestOrderedByteHelperContractRawDomain
+    ordered_byte_profile_test.go:293: contract raw ordered-byte oracle 131234 cases per variant
+--- PASS: TestOrderedByteHelperContractRawDomain (0.56s)
+=== RUN   TestOrderedByteHelperStickyPolicyRefusesLegacyApplications
+=== RUN   TestOrderedByteHelperStickyPolicyRefusesLegacyApplications/loop
+=== RUN   TestOrderedByteHelperStickyPolicyRefusesLegacyApplications/copy
+=== RUN   TestOrderedByteHelperStickyPolicyRefusesLegacyApplications/region
+=== RUN   TestOrderedByteHelperStickyPolicyRefusesLegacyApplications/copyregion
+=== RUN   TestOrderedByteHelperStickyPolicyRefusesLegacyApplications/copyweighted
+--- PASS: TestOrderedByteHelperStickyPolicyRefusesLegacyApplications (0.01s)
+    --- PASS: TestOrderedByteHelperStickyPolicyRefusesLegacyApplications/loop (0.00s)
+    --- PASS: TestOrderedByteHelperStickyPolicyRefusesLegacyApplications/copy (0.00s)
+    --- PASS: TestOrderedByteHelperStickyPolicyRefusesLegacyApplications/region (0.00s)
+    --- PASS: TestOrderedByteHelperStickyPolicyRefusesLegacyApplications/copyregion (0.00s)
+    --- PASS: TestOrderedByteHelperStickyPolicyRefusesLegacyApplications/copyweighted (0.00s)
+=== RUN   TestOrderedByteFunctionSiteBindsOriginPaths
+--- PASS: TestOrderedByteFunctionSiteBindsOriginPaths (0.00s)
+=== RUN   TestOrderedByteRWFourChoicesAndReadonlyStrict
+--- PASS: TestOrderedByteRWFourChoicesAndReadonlyStrict (0.04s)
+=== RUN   TestOrderedByteRWWriteForgeries
+=== RUN   TestOrderedByteRWWriteForgeries/wide
+=== RUN   TestOrderedByteRWWriteForgeries/highoffset
+=== RUN   TestOrderedByteRWWriteForgeries/highvalue
+=== RUN   TestOrderedByteRWWriteForgeries/hoistedvalue
+=== RUN   TestOrderedByteRWWriteForgeries/kind
+=== RUN   TestOrderedByteRWWriteForgeries/foreignreadonly
+=== RUN   TestOrderedByteRWWriteForgeries/reverse
+=== RUN   TestOrderedByteRWWriteForgeries/base
+=== RUN   TestOrderedByteRWWriteForgeries/SMC
+=== RUN   TestOrderedByteRWWriteForgeries/originorphan
+=== RUN   TestOrderedByteRWWriteForgeries/ordinary
+=== RUN   TestOrderedByteRWWriteForgeries/missingfalse
+--- PASS: TestOrderedByteRWWriteForgeries (0.07s)
+    --- PASS: TestOrderedByteRWWriteForgeries/wide (0.00s)
+    --- PASS: TestOrderedByteRWWriteForgeries/highoffset (0.00s)
+    --- PASS: TestOrderedByteRWWriteForgeries/highvalue (0.00s)
+    --- PASS: TestOrderedByteRWWriteForgeries/hoistedvalue (0.01s)
+    --- PASS: TestOrderedByteRWWriteForgeries/kind (0.01s)
+    --- PASS: TestOrderedByteRWWriteForgeries/foreignreadonly (0.01s)
+    --- PASS: TestOrderedByteRWWriteForgeries/reverse (0.01s)
+    --- PASS: TestOrderedByteRWWriteForgeries/base (0.01s)
+    --- PASS: TestOrderedByteRWWriteForgeries/SMC (0.01s)
+    --- PASS: TestOrderedByteRWWriteForgeries/originorphan (0.01s)
+    --- PASS: TestOrderedByteRWWriteForgeries/ordinary (0.01s)
+    --- PASS: TestOrderedByteRWWriteForgeries/missingfalse (0.00s)
+=== RUN   TestOrderedByteRWUnknownKindsAndSticky
+--- PASS: TestOrderedByteRWUnknownKindsAndSticky (0.01s)
+=== RUN   TestOrderedByteRWRawStoreDomain
+    ordered_byte_rw_test.go:239: RWcontract orderedstore/partialmemory oracle 132044 casespervariant
+--- PASS: TestOrderedByteRWRawStoreDomain (0.49s)
+=== RUN   TestOrderedByteRWNilEmptyAndLegacyRefusals
+=== RUN   TestOrderedByteRWNilEmptyAndLegacyRefusals/copy
+=== RUN   TestOrderedByteRWNilEmptyAndLegacyRefusals/region
+=== RUN   TestOrderedByteRWNilEmptyAndLegacyRefusals/copyregion
+=== RUN   TestOrderedByteRWNilEmptyAndLegacyRefusals/copyweighted
+=== RUN   TestOrderedByteRWNilEmptyAndLegacyRefusals/loop
+=== RUN   TestOrderedByteRWNilEmptyAndLegacyRefusals/readonly
+--- PASS: TestOrderedByteRWNilEmptyAndLegacyRefusals (0.03s)
+    --- PASS: TestOrderedByteRWNilEmptyAndLegacyRefusals/copy (0.00s)
+    --- PASS: TestOrderedByteRWNilEmptyAndLegacyRefusals/region (0.00s)
+    --- PASS: TestOrderedByteRWNilEmptyAndLegacyRefusals/copyregion (0.00s)
+    --- PASS: TestOrderedByteRWNilEmptyAndLegacyRefusals/copyweighted (0.00s)
+    --- PASS: TestOrderedByteRWNilEmptyAndLegacyRefusals/loop (0.00s)
+    --- PASS: TestOrderedByteRWNilEmptyAndLegacyRefusals/readonly (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/hir	1.267s

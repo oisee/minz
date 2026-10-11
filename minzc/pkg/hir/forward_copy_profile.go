@@ -199,7 +199,7 @@ func validateForwardCopyShape(source, actual *Module, siteID string, enabled boo
 }
 
 func ApplyForwardCopySiteChoices(m *Module, compatibility *ProfileCompatibility, choices map[string]bool) error {
-	if m == nil || compatibility == nil || m.RegionComparePolicy != nil || m.OrderedBytePolicy != nil || m.LoopLineage != nil || m.ForwardCopyPolicy != nil || m.PointerWalkPolicy != nil || m.GraceRulePolicy != nil || m.InvariantBasePolicy != nil {
+	if m == nil || compatibility == nil || m.RegionComparePolicy != nil || m.OrderedBytePolicy != nil || m.OrderedByteRWPolicy != nil || m.LoopLineage != nil || m.ForwardCopyPolicy != nil || m.PointerWalkPolicy != nil || m.GraceRulePolicy != nil || m.InvariantBasePolicy != nil {
 		return fmt.Errorf("forward copy: requires fresh original HIR and compatibility")
 	}
 	current, err := BuildProfileCompatibility(m, compatibility.Context)

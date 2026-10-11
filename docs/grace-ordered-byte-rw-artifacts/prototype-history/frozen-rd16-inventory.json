@@ -1,0 +1,13 @@
+{
+  "minzc/pkg/hir/profile_policy.go": "ca2d5a1654fedd43472beaef077851bedae7f6c4e36f5d108696c6b9443dd295",
+  "minzc/pkg/hir/function_sites.go": "9abf82f0692b03678b2e1da489c21c12549bff5373440696df5d12c9069cc56f",
+  "minzc/pkg/hir/mixed_copy_region.go": "a60cfd03bb714086ae769b007188b5101c19846d0fe3f0bad7e2e3375e47660f",
+  "minzc/pkg/hir/region_compare_profile.go": "bff67f4ad49c7a73acbed4c3792a4536606197ee03a131c43722746b371d5d8d",
+  "minzc/pkg/hir/ordered_byte_profile_test.go": "2cecb0e4b716b557598b3e101f0bb2c393d47efd12891742dbb2ba69556ab702",
+  "minzc/pkg/hir/mixed_copy_weighted.go": "fb1c3611f2a122429506be6cd633c8678d45f8b1d77756b3326eccf251e86f8f",
+  "minzc/pkg/hir/profile_compat.go": "d23bbb085343d105af5b12be90b23765dfa0dc4b130f2ed3de0018db36d2a676",
+  "minzc/pkg/hir/ordered_byte_profile.go": "0ed46eb0d8b2ed7b49e57db25b10be23d65137ad7c00db9d395301c2b8fb5d61",
+  "minzc/pkg/hir/hir.go": "681d16de080ea7aa2ef4bf90b3db96c5f8caf72fabd88d7cf1d1ae141d03521c",
+  "minzc/pkg/hir/forward_copy_profile.go": "3c936109c72c2cfccb66e28cd2b1826ca387e63ea9958da49bbf2c5410c9d569",
+  "minzc/pkg/hir/ordered_byte_helper.go": "f09c53224bf90582e0fb1fd5a3ff0d529198c61e516e6c22a4984f3099848a7e"
+}

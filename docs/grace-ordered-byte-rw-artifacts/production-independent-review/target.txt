@@ -1,0 +1,3 @@
+variant0 harnessbytes44 SHA256990314a838812ad99690fb96fdbc716d8354d8824672f32d9b003be1e84decd8
+variant1 harnessbytes28 SHA256b4402a5725d938b4ad0e441310779c68c068ca9c9f636fc04b5098aabe5b264e
+PASS 360 actualcalls bothvariants: singlebyteperinstruction writes low→high with exactvalue, no extra datareads/writes, fullRAM unchanged except explicit2bytes+stack

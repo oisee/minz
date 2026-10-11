@@ -1,0 +1,5 @@
+=== RUN   TestHashmapWR16PrototypeRawDomain
+    hashmap_wr16_prototype_test.go:269: independent ordered-store/partial-memory oracle 133760 cases per variant
+--- PASS: TestHashmapWR16PrototypeRawDomain (51.84s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	51.854s

@@ -1,0 +1,110 @@
+=== RUN   TestOrderedByteRWOriginalHashmapMeasured
+    profile_ordered_byte_rw_test.go:118: ordered byte read/write hashmap size=false candidate0 133994T/984B
+    profile_ordered_byte_rw_test.go:118: ordered byte read/write hashmap size=false candidate1 131022T/969B
+    profile_ordered_byte_rw_test.go:118: ordered byte read/write hashmap size=false candidate2 126680T/980B
+    profile_ordered_byte_rw_test.go:118: ordered byte read/write hashmap size=false candidate3 123708T/965B
+    profile_ordered_byte_rw_test.go:118: ordered byte read/write hashmap size=true candidate0 133994T/984B
+    profile_ordered_byte_rw_test.go:118: ordered byte read/write hashmap size=true candidate1 131022T/969B
+    profile_ordered_byte_rw_test.go:118: ordered byte read/write hashmap size=true candidate2 126680T/980B
+    profile_ordered_byte_rw_test.go:118: ordered byte read/write hashmap size=true candidate3 123708T/965B
+--- PASS: TestOrderedByteRWOriginalHashmapMeasured (2.06s)
+=== RUN   TestOrderedByteRWCapAndUnobserved
+--- PASS: TestOrderedByteRWCapAndUnobserved (2.81s)
+=== RUN   TestOrderedByteRWUnknownKindRequests
+--- PASS: TestOrderedByteRWUnknownKindRequests (0.02s)
+=== RUN   TestOrderedByteRWRejectsPriorPolicy
+=== RUN   TestOrderedByteRWRejectsPriorPolicy/rw
+=== RUN   TestOrderedByteRWRejectsPriorPolicy/readonly
+=== RUN   TestOrderedByteRWRejectsPriorPolicy/copy
+=== RUN   TestOrderedByteRWRejectsPriorPolicy/region
+=== RUN   TestOrderedByteRWRejectsPriorPolicy/pointer
+=== RUN   TestOrderedByteRWRejectsPriorPolicy/invariant
+=== RUN   TestOrderedByteRWRejectsPriorPolicy/rules
+=== RUN   TestOrderedByteRWRejectsPriorPolicy/lineage
+--- PASS: TestOrderedByteRWRejectsPriorPolicy (0.01s)
+    --- PASS: TestOrderedByteRWRejectsPriorPolicy/rw (0.00s)
+    --- PASS: TestOrderedByteRWRejectsPriorPolicy/readonly (0.00s)
+    --- PASS: TestOrderedByteRWRejectsPriorPolicy/copy (0.00s)
+    --- PASS: TestOrderedByteRWRejectsPriorPolicy/region (0.00s)
+    --- PASS: TestOrderedByteRWRejectsPriorPolicy/pointer (0.00s)
+    --- PASS: TestOrderedByteRWRejectsPriorPolicy/invariant (0.00s)
+    --- PASS: TestOrderedByteRWRejectsPriorPolicy/rules (0.00s)
+    --- PASS: TestOrderedByteRWRejectsPriorPolicy/lineage (0.00s)
+=== RUN   TestOlderProfileAPIsRejectOrderedByteRWPolicy
+=== RUN   TestOlderProfileAPIsRejectOrderedByteRWPolicy/readonly
+=== RUN   TestOlderProfileAPIsRejectOrderedByteRWPolicy/sum_model
+=== RUN   TestOlderProfileAPIsRejectOrderedByteRWPolicy/pointer
+=== RUN   TestOlderProfileAPIsRejectOrderedByteRWPolicy/grace
+=== RUN   TestOlderProfileAPIsRejectOrderedByteRWPolicy/grace_rules
+=== RUN   TestOlderProfileAPIsRejectOrderedByteRWPolicy/invariant
+=== RUN   TestOlderProfileAPIsRejectOrderedByteRWPolicy/invariant_rules
+=== RUN   TestOlderProfileAPIsRejectOrderedByteRWPolicy/joint
+=== RUN   TestOlderProfileAPIsRejectOrderedByteRWPolicy/weighted
+=== RUN   TestOlderProfileAPIsRejectOrderedByteRWPolicy/copy
+=== RUN   TestOlderProfileAPIsRejectOrderedByteRWPolicy/region
+=== RUN   TestOlderProfileAPIsRejectOrderedByteRWPolicy/mixed_weighted
+=== RUN   TestOlderProfileAPIsRejectOrderedByteRWPolicy/copy_region
+--- PASS: TestOlderProfileAPIsRejectOrderedByteRWPolicy (0.01s)
+    --- PASS: TestOlderProfileAPIsRejectOrderedByteRWPolicy/readonly (0.00s)
+    --- PASS: TestOlderProfileAPIsRejectOrderedByteRWPolicy/sum_model (0.00s)
+    --- PASS: TestOlderProfileAPIsRejectOrderedByteRWPolicy/pointer (0.00s)
+    --- PASS: TestOlderProfileAPIsRejectOrderedByteRWPolicy/grace (0.00s)
+    --- PASS: TestOlderProfileAPIsRejectOrderedByteRWPolicy/grace_rules (0.00s)
+    --- PASS: TestOlderProfileAPIsRejectOrderedByteRWPolicy/invariant (0.00s)
+    --- PASS: TestOlderProfileAPIsRejectOrderedByteRWPolicy/invariant_rules (0.00s)
+    --- PASS: TestOlderProfileAPIsRejectOrderedByteRWPolicy/joint (0.00s)
+    --- PASS: TestOlderProfileAPIsRejectOrderedByteRWPolicy/weighted (0.00s)
+    --- PASS: TestOlderProfileAPIsRejectOrderedByteRWPolicy/copy (0.00s)
+    --- PASS: TestOlderProfileAPIsRejectOrderedByteRWPolicy/region (0.00s)
+    --- PASS: TestOlderProfileAPIsRejectOrderedByteRWPolicy/mixed_weighted (0.00s)
+    --- PASS: TestOlderProfileAPIsRejectOrderedByteRWPolicy/copy_region (0.00s)
+=== RUN   TestOrderedByteRWFactoryCannotLaunderOrigins
+=== RUN   TestOrderedByteRWFactoryCannotLaunderOrigins/fresh_and_prior
+=== RUN   TestOrderedByteRWFactoryCannotLaunderOrigins/prior_only
+--- PASS: TestOrderedByteRWFactoryCannotLaunderOrigins (0.06s)
+    --- PASS: TestOrderedByteRWFactoryCannotLaunderOrigins/fresh_and_prior (0.02s)
+    --- PASS: TestOrderedByteRWFactoryCannotLaunderOrigins/prior_only (0.04s)
+=== RUN   TestOrderedByteRWEqualCostPrefersFewerChanges
+--- PASS: TestOrderedByteRWEqualCostPrefersFewerChanges (0.00s)
+=== RUN   TestOrderedByteRWFactoryRefusals
+=== RUN   TestOrderedByteRWFactoryRefusals/nil
+=== RUN   TestOrderedByteRWFactoryRefusals/shared
+=== RUN   TestOrderedByteRWFactoryRefusals/shared_ast
+=== RUN   TestOrderedByteRWFactoryRefusals/ordered_policy
+=== RUN   TestOrderedByteRWFactoryRefusals/region_policy
+=== RUN   TestOrderedByteRWFactoryRefusals/copy_policy
+=== RUN   TestOrderedByteRWFactoryRefusals/pointer_policy
+=== RUN   TestOrderedByteRWFactoryRefusals/invariant_policy
+=== RUN   TestOrderedByteRWFactoryRefusals/grace_policy
+=== RUN   TestOrderedByteRWFactoryRefusals/lineage
+=== RUN   TestOrderedByteRWFactoryRefusals/mutated_prior
+=== RUN   TestOrderedByteRWFactoryRefusals/source_changed
+=== RUN   TestOrderedByteRWFactoryRefusals/helper_type_changed
+=== RUN   TestOrderedByteRWFactoryRefusals/retained_body_changed
+=== RUN   TestOrderedByteRWFactoryRefusals/workload_changed
+=== RUN   TestOrderedByteRWFactoryRefusals/forged_call_count
+=== RUN   TestOrderedByteRWFactoryRefusals/cap
+=== RUN   TestOrderedByteRWFactoryRefusals/backend
+=== RUN   TestOrderedByteRWFactoryRefusals/skip
+--- PASS: TestOrderedByteRWFactoryRefusals (0.35s)
+    --- PASS: TestOrderedByteRWFactoryRefusals/nil (0.00s)
+    --- PASS: TestOrderedByteRWFactoryRefusals/shared (0.01s)
+    --- PASS: TestOrderedByteRWFactoryRefusals/shared_ast (0.02s)
+    --- PASS: TestOrderedByteRWFactoryRefusals/ordered_policy (0.00s)
+    --- PASS: TestOrderedByteRWFactoryRefusals/region_policy (0.00s)
+    --- PASS: TestOrderedByteRWFactoryRefusals/copy_policy (0.00s)
+    --- PASS: TestOrderedByteRWFactoryRefusals/pointer_policy (0.00s)
+    --- PASS: TestOrderedByteRWFactoryRefusals/invariant_policy (0.00s)
+    --- PASS: TestOrderedByteRWFactoryRefusals/grace_policy (0.00s)
+    --- PASS: TestOrderedByteRWFactoryRefusals/lineage (0.00s)
+    --- PASS: TestOrderedByteRWFactoryRefusals/mutated_prior (0.05s)
+    --- PASS: TestOrderedByteRWFactoryRefusals/source_changed (0.01s)
+    --- PASS: TestOrderedByteRWFactoryRefusals/helper_type_changed (0.02s)
+    --- PASS: TestOrderedByteRWFactoryRefusals/retained_body_changed (0.08s)
+    --- PASS: TestOrderedByteRWFactoryRefusals/workload_changed (0.02s)
+    --- PASS: TestOrderedByteRWFactoryRefusals/forged_call_count (0.13s)
+    --- PASS: TestOrderedByteRWFactoryRefusals/cap (0.00s)
+    --- PASS: TestOrderedByteRWFactoryRefusals/backend (0.00s)
+    --- PASS: TestOrderedByteRWFactoryRefusals/skip (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	5.330s

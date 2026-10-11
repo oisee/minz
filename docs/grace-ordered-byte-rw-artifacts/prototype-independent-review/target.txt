@@ -1,0 +1,1 @@
+PASS 360 actualcalls bothvariants: singlebyteperinstruction writes low→high with exactvalue, no extra datareads/writes, fullRAM unchanged except explicit2bytes+stack

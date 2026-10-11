@@ -1,0 +1,5 @@
+=== RUN   TestHashmapWR16PrototypeProgram
+    hashmap_wr16_prototype_test.go:189: rd16+wr16 candidate persistent hashmap36 calls 126680T/980B
+--- PASS: TestHashmapWR16PrototypeProgram (0.28s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.287s

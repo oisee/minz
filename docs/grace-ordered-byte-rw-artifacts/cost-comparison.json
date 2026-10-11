@@ -1,0 +1,29 @@
+{
+  "read_only_binary_exact_previous_stage": true,
+  "actual_cli_candidates": [
+    {
+      "label": "original",
+      "t_states": 133994,
+      "bytes": 984,
+      "binary_sha256": "0390aa22f7b028216e55bca731f3ca1bb4e91ab06e70ddead41e756235034860"
+    },
+    {
+      "label": "read-u16-le",
+      "t_states": 126680,
+      "bytes": 980,
+      "binary_sha256": "31e686b05d328346cd092ee65a310c111de010c53c775d3c3cd8b92ccd016f11"
+    },
+    {
+      "label": "write-u16-le",
+      "t_states": 131022,
+      "bytes": 969,
+      "binary_sha256": "a839465972fd5bcb42021c1d1fb376dfbbd89d0cba81670d5f4154d1818b5130"
+    },
+    {
+      "label": "read-u16-le+write-u16-le",
+      "t_states": 123708,
+      "bytes": 965,
+      "binary_sha256": "514b51a2cf0e26d8cb3f0ccfdb46122872c4860631b447cf8703a9b7d01325df"
+    }
+  ]
+}

@@ -72,7 +72,7 @@ func MeasureForwardCopySiteVariantSets(factory func() (*hir.Module, error), obse
 	retained := []*hir.Module{}
 	var key *hir.ProfileCompatibility
 	clean := func(m *hir.Module) bool {
-		return m != nil && m.OrderedBytePolicy == nil && m.RegionComparePolicy == nil && m.ForwardCopyPolicy == nil && m.PointerWalkPolicy == nil && m.GraceRulePolicy == nil && m.InvariantBasePolicy == nil && m.LoopLineage == nil
+		return m != nil && m.OrderedByteRWPolicy == nil && m.OrderedBytePolicy == nil && m.RegionComparePolicy == nil && m.ForwardCopyPolicy == nil && m.PointerWalkPolicy == nil && m.GraceRulePolicy == nil && m.InvariantBasePolicy == nil && m.LoopLineage == nil
 	}
 	fresh := func() (*hir.Module, error) {
 		m, err := factory()

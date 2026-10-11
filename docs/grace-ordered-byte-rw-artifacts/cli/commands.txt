@@ -1,0 +1,4 @@
+cwd: /tmp/minz-ordered-byte-rw-contract/minzc
+GOCACHE=/tmp/minz-grace-gocache /home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/bin/go build -buildvcs=false -o /tmp/minzc-ordered-byte-rw ./cmd/minzc
+/tmp/minzc-ordered-byte-rw ../examples/nanz/21_hashmap_test.nanz --hir-grace --hir-profile-joint --hir-profile-ordered-byte-rw-functions --hir-profile-auto /tmp/minz-ordered-byte-rw-cli-evidence/speed --hir-profile-auto-workload /tmp/minz-ordered-byte-cli-workload.json -o /tmp/minz-ordered-byte-rw-cli-evidence/speed.a80 > /tmp/minz-ordered-byte-rw-speed-cli.txt 2>&1
+/tmp/minzc-ordered-byte-rw ../examples/nanz/21_hashmap_test.nanz --hir-grace --Osize --hir-profile-joint --hir-profile-ordered-byte-rw-functions --hir-profile-auto /tmp/minz-ordered-byte-rw-cli-evidence/size --hir-profile-auto-workload /tmp/minz-ordered-byte-cli-workload.json -o /tmp/minz-ordered-byte-rw-cli-evidence/size.a80 > /tmp/minz-ordered-byte-rw-size-cli.txt 2>&1

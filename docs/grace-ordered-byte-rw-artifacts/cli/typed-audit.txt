@@ -1,0 +1,66 @@
+[
+  {
+    "binary_sha256": "0390aa22f7b028216e55bca731f3ca1bb4e91ab06e70ddead41e756235034860",
+    "bytes": 984,
+    "candidate": 0,
+    "evidence_sha256": "557d1a8dcced1c8d8e21e44f0d38eb359a3e3850d1935ffe0e132bd38f9a3ec3",
+    "mode": "speed",
+    "t_states": 133994
+  },
+  {
+    "binary_sha256": "31e686b05d328346cd092ee65a310c111de010c53c775d3c3cd8b92ccd016f11",
+    "bytes": 980,
+    "candidate": 1,
+    "evidence_sha256": "557d1a8dcced1c8d8e21e44f0d38eb359a3e3850d1935ffe0e132bd38f9a3ec3",
+    "mode": "speed",
+    "t_states": 126680
+  },
+  {
+    "binary_sha256": "a839465972fd5bcb42021c1d1fb376dfbbd89d0cba81670d5f4154d1818b5130",
+    "bytes": 969,
+    "candidate": 2,
+    "evidence_sha256": "557d1a8dcced1c8d8e21e44f0d38eb359a3e3850d1935ffe0e132bd38f9a3ec3",
+    "mode": "speed",
+    "t_states": 131022
+  },
+  {
+    "binary_sha256": "514b51a2cf0e26d8cb3f0ccfdb46122872c4860631b447cf8703a9b7d01325df",
+    "bytes": 965,
+    "candidate": 3,
+    "evidence_sha256": "557d1a8dcced1c8d8e21e44f0d38eb359a3e3850d1935ffe0e132bd38f9a3ec3",
+    "mode": "speed",
+    "t_states": 123708
+  },
+  {
+    "binary_sha256": "0390aa22f7b028216e55bca731f3ca1bb4e91ab06e70ddead41e756235034860",
+    "bytes": 984,
+    "candidate": 0,
+    "evidence_sha256": "44566e3d46ffc9cbebaf4dc944dedc41add33214ce33cd7f15b09c7f48431374",
+    "mode": "size",
+    "t_states": 133994
+  },
+  {
+    "binary_sha256": "31e686b05d328346cd092ee65a310c111de010c53c775d3c3cd8b92ccd016f11",
+    "bytes": 980,
+    "candidate": 1,
+    "evidence_sha256": "44566e3d46ffc9cbebaf4dc944dedc41add33214ce33cd7f15b09c7f48431374",
+    "mode": "size",
+    "t_states": 126680
+  },
+  {
+    "binary_sha256": "a839465972fd5bcb42021c1d1fb376dfbbd89d0cba81670d5f4154d1818b5130",
+    "bytes": 969,
+    "candidate": 2,
+    "evidence_sha256": "44566e3d46ffc9cbebaf4dc944dedc41add33214ce33cd7f15b09c7f48431374",
+    "mode": "size",
+    "t_states": 131022
+  },
+  {
+    "binary_sha256": "514b51a2cf0e26d8cb3f0ccfdb46122872c4860631b447cf8703a9b7d01325df",
+    "bytes": 965,
+    "candidate": 3,
+    "evidence_sha256": "44566e3d46ffc9cbebaf4dc944dedc41add33214ce33cd7f15b09c7f48431374",
+    "mode": "size",
+    "t_states": 123708
+  }
+]
