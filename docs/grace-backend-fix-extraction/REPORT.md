@@ -33,3 +33,9 @@ a02 call-spill certificates remain a separate dependent runtime PR only if the c
 ## Verification policy for eventual extraction
 
 First run the meaningful tests above on unchanged refreshed main to retain the demonstrated failures, then run each extracted patch's focused gates. Full MIR/pipeline/Nanz/C89/CLI suites and showcase comparison follow the combined source freeze. Existing research pass logs prove the donor behavior, not that an unbuilt patch against main is correct. Backend emission changes also require actual assembler/native smoke and appropriate default CLI budget identity checks. No such new tests were run for this inventory.
+
+## Materialized extraction and later correctness donors
+
+The register identity group now has a concrete standalone branch against main4743cb7c: `fix/upstream-module-reg-identity`, head78671c49, [draft PR71](https://github.com/oisee/minz/pull/71). Unchanged main plus new tests fails (DE pointer entry overwritten by D; illegal LD A,(D)); the four-line fix passes full MIR2 and assembled/native all256byte inputs with code/guard/PC/SP checks. Main has not been merged. Evidence in the branch reports/upstream-module-reg-identity; copied to the share. Other groups above remain extraction proposals, not already built main patches.
+
+Later production-path donors to add to the correctness queue: BIT pattern admission13d2acc0, indexed word shift liveHL3054481f, native localframe cleanup a8f7b4b5. Frame restoration has CFG/conditional-return/tail-call dependencies; extract its complete depth proof and focused regressions, not a blind sum of all function allocations. Grace cond-ret flags6616f083 fixes the optional Grace action, so it is a research-path followup rather than an ordinary-main backend donor. Do not mix table import, profile admission, or selector ownership fixes into standalone backend PRs.
