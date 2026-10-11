@@ -186,6 +186,12 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	// Lower HIR → MIR2 (raw, before optimisation).
 	m := hir.LowerModule(hm)
 	s.MIR2Raw = m.Dump()
+	// Isolated experiment only: the nil hook is never part of ordinary admission.
+	if normalDiamondExperimentHook != nil {
+		if err := normalDiamondExperimentHook(m); err != nil {
+			return s, err
+		}
+	}
 
 	// Initialize per-function traces.
 	for _, f := range m.Funcs {

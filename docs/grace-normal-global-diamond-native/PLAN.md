@@ -1,0 +1,7 @@
+# Isolated native load-reuse experiment
+
+Base63fc46af, unchanged originalSelfLanzSHA0e926. Exact helper files copied from reviewed2731b6c6 (production7bac). Only this branch has a private nil compilation hook immediately after raw MIR dump. It executes before optimization/contracts/allocation; serial tests install/reset it with t.Cleanup. No public options, arbitrary ASM, transformed HIR factory or permissions changes.
+
+The public closed baseline computes its raw source oracle before compiling a fresh source copy. This test-only hook changes that compiled MIR, explicitly outside the production baseline contract. Exported factory-baseline.json is an internal diagnostic container with unchanged source compatibility, not a public selector certificate. mir-experiment.json binds owned pre/post dumps and exact helper count. The static guard verifies one changed instruction in cur only, replacing the repeated u16 load with a Move from dominating pos; all other instructions remain unchanged.
+
+First static source matching/Verify only, with no CPU. After exact hook review, run two full30 native callers: original source compiler and private MIR reuse. Compare full host oracle/state/events and original raw binding; regenerate native roots/allocation from actual MIR normally. Preserve all typed payloads/source/MIR/ASM/BIN/context and measured costs. No profitability assumption and no parent integration.
