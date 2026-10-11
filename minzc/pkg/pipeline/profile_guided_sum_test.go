@@ -47,7 +47,7 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 		t.Fatal(e)
 	}
 	profileJSON, _ := json.MarshalIndent(profileRun.Profile, "", "  ")
-	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-all-six-lengths-string-repair-v2", OriginalBytes: 147, PointerBytes: 202, OriginalEntry: 69, OriginalIteration: 141, EqualEntryExtra: 7, FastEntry: 210, FastIteration: 37, FastZeroEntry: 212, FastZeroMeasured: true, FallbackEntry: 231, FallbackIteration: 143, FallbackMeasured: true}
+	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-all-six-lengths-decimal-print-v3", OriginalBytes: 195, PointerBytes: 250, OriginalEntry: 69, OriginalIteration: 141, EqualEntryExtra: 7, FastEntry: 210, FastIteration: 37, FastZeroEntry: 212, FastZeroMeasured: true, FallbackEntry: 231, FallbackIteration: 143, FallbackMeasured: true}
 	decisions, e := hir.SelectLoopVariants(bytes.NewReader(profileJSON), input, context, model, false)
 	if e != nil {
 		t.Fatal(e)
