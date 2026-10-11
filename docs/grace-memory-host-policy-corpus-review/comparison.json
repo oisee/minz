@@ -1,0 +1,170 @@
+{
+  "schema": "minz.fixed-policy-corpus-historical-comparison/v1",
+  "current_executable_sha256": "393af1d821477b991a0bf452f00c79bd6d77368c3cff9cde64faa1ee1b130808",
+  "historical_legacy_executable_sha256": "dba34fdc489d4fa00f985bff82952076f8de8f68488999dfe98364af242c9ca5",
+  "source_workload_and_semantic_states_equal": true,
+  "production_native_payload_equals_prior795_except_executable_context": true,
+  "comparisons": [
+    {
+      "corpus": "short-reuse",
+      "mask": 0,
+      "legacy_t": 330515,
+      "preserve_t": 329597,
+      "delta_t": -918,
+      "legacy_bytes": 2000,
+      "preserve_bytes": 2001,
+      "same_machine_binary": false
+    },
+    {
+      "corpus": "short-reuse",
+      "mask": 1,
+      "legacy_t": 331075,
+      "preserve_t": 330157,
+      "delta_t": -918,
+      "legacy_bytes": 2121,
+      "preserve_bytes": 2122,
+      "same_machine_binary": false
+    },
+    {
+      "corpus": "short-reuse",
+      "mask": 2,
+      "legacy_t": 327008,
+      "preserve_t": 326090,
+      "delta_t": -918,
+      "legacy_bytes": 1978,
+      "preserve_bytes": 1979,
+      "same_machine_binary": false
+    },
+    {
+      "corpus": "short-reuse",
+      "mask": 3,
+      "legacy_t": 327568,
+      "preserve_t": 326650,
+      "delta_t": -918,
+      "legacy_bytes": 2099,
+      "preserve_bytes": 2100,
+      "same_machine_binary": false
+    },
+    {
+      "corpus": "long-atoms",
+      "mask": 0,
+      "legacy_t": 4110605,
+      "preserve_t": 4110217,
+      "delta_t": -388,
+      "legacy_bytes": 2000,
+      "preserve_bytes": 2001,
+      "same_machine_binary": false
+    },
+    {
+      "corpus": "long-atoms",
+      "mask": 1,
+      "legacy_t": 4110877,
+      "preserve_t": 4110489,
+      "delta_t": -388,
+      "legacy_bytes": 2121,
+      "preserve_bytes": 2122,
+      "same_machine_binary": false
+    },
+    {
+      "corpus": "long-atoms",
+      "mask": 2,
+      "legacy_t": 3968942,
+      "preserve_t": 3968554,
+      "delta_t": -388,
+      "legacy_bytes": 1978,
+      "preserve_bytes": 1979,
+      "same_machine_binary": false
+    },
+    {
+      "corpus": "long-atoms",
+      "mask": 3,
+      "legacy_t": 3969214,
+      "preserve_t": 3968826,
+      "delta_t": -388,
+      "legacy_bytes": 2099,
+      "preserve_bytes": 2100,
+      "same_machine_binary": false
+    },
+    {
+      "corpus": "nested-mixed",
+      "mask": 0,
+      "legacy_t": 1297899,
+      "preserve_t": 1286305,
+      "delta_t": -11594,
+      "legacy_bytes": 2000,
+      "preserve_bytes": 2001,
+      "same_machine_binary": false
+    },
+    {
+      "corpus": "nested-mixed",
+      "mask": 1,
+      "legacy_t": 1299550,
+      "preserve_t": 1287956,
+      "delta_t": -11594,
+      "legacy_bytes": 2121,
+      "preserve_bytes": 2122,
+      "same_machine_binary": false
+    },
+    {
+      "corpus": "nested-mixed",
+      "mask": 2,
+      "legacy_t": 1281762,
+      "preserve_t": 1270168,
+      "delta_t": -11594,
+      "legacy_bytes": 1978,
+      "preserve_bytes": 1979,
+      "same_machine_binary": false
+    },
+    {
+      "corpus": "nested-mixed",
+      "mask": 3,
+      "legacy_t": 1283413,
+      "preserve_t": 1271819,
+      "delta_t": -11594,
+      "legacy_bytes": 2099,
+      "preserve_bytes": 2100,
+      "same_machine_binary": false
+    },
+    {
+      "corpus": "fresh-dominant",
+      "mask": 0,
+      "legacy_t": 789462,
+      "preserve_t": 786526,
+      "delta_t": -2936,
+      "legacy_bytes": 2000,
+      "preserve_bytes": 2001,
+      "same_machine_binary": false
+    },
+    {
+      "corpus": "fresh-dominant",
+      "mask": 1,
+      "legacy_t": 789510,
+      "preserve_t": 786574,
+      "delta_t": -2936,
+      "legacy_bytes": 2121,
+      "preserve_bytes": 2122,
+      "same_machine_binary": false
+    },
+    {
+      "corpus": "fresh-dominant",
+      "mask": 2,
+      "legacy_t": 699845,
+      "preserve_t": 696909,
+      "delta_t": -2936,
+      "legacy_bytes": 1978,
+      "preserve_bytes": 1979,
+      "same_machine_binary": false
+    },
+    {
+      "corpus": "fresh-dominant",
+      "mask": 3,
+      "legacy_t": 699893,
+      "preserve_t": 696957,
+      "delta_t": -2936,
+      "legacy_bytes": 2099,
+      "preserve_bytes": 2100,
+      "same_machine_binary": false
+    }
+  ],
+  "scope": "saved same-mask Legacy comparison only; old profiles never replay inputs; no dynamic compare counts"
+}
