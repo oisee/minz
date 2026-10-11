@@ -435,3 +435,5 @@ legacy route ещё впереди; общий строковый этап по�
 Все логи/сравнения сохранены с SHA, цель активна.
 
 12:28 UTC: ownerbc12 restoresaccsaves byte-exactbcd, testonlylegacyroute exporter reviewed/integratedecf641e8; exacta623legacy15oneactualrunFAIL4SString s/utf8/nul_s/s255, 11pass includingC/L/storage. ASMproves oldscratchD savecount overlapsliveDEptr andlaterLDD,1 overwritessavebeforeSUB1. Preservationstrategy/lifetimes nowrequiredstagefix, no blindretries. Rootfullpacket387verifiedcopied5f6c0039/pushed; legacyfailureseparatependingpacket. Goalactive.
+
+12:31 UTC: legacy15failure requires actualaccumulator lifetimefix; ownerc414715b boundedfuturepair/defs/canonicalrewrite+namedLocMemfallback frozenisolated, NOTintegrated because recursiveprint_ast hasno-free-byte refusal. Backenddesignactivation-safe callerliveLocMem snapshot/restorebeforeargsetup/afterresultpickup, costd330 requirementsreview. No newCPUretry beforefrozenstrategy+tests. Rootremaining26classified19imports5HIR2resultmismatch/0invalidASM, packet0d200093pushed. WIPsafe-refusal nottreatedgoalcompletion. Goalactive, noAlice blocker.
