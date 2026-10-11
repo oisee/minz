@@ -1,0 +1,95 @@
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/first
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/second
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/swapped
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/unknown
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/bare
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/source
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/unit
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/oversized
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/unrelated-body
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/assert
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/sandbox
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/warnings
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/stats
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/origin
+--- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal (7.66s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/first (0.00s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/second (0.02s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/swapped (0.02s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/unknown (0.05s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/bare (0.03s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/source (0.00s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/unit (0.20s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/oversized (0.03s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/unrelated-body (0.42s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/assert (0.51s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/sandbox (0.50s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/warnings (0.50s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/stats (0.50s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/origin (0.50s)
+=== RUN   TestMemoryHostPolicySearchObservationIdentity
+--- PASS: TestMemoryHostPolicySearchObservationIdentity (0.00s)
+=== RUN   TestMemoryHostPolicySearchLifecycle
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostPolicySearchLifecycle/25
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostPolicySearchLifecycle/48
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+--- PASS: TestMemoryHostPolicySearchLifecycle (314.10s)
+    --- PASS: TestMemoryHostPolicySearchLifecycle/25 (42.68s)
+    --- PASS: TestMemoryHostPolicySearchLifecycle/48 (108.18s)
+PASS
