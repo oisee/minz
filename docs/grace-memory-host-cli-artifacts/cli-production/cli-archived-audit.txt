@@ -1,0 +1,5 @@
+PASS exactsaveddecision/selectednative speed 3
+PASS exactsaveddecision/selectednative size 2
+PASS exactsaveddecision/selectednative small-collect 1
+PASS exactsaveddecision/selectednative small-replay 1
+PASS same-executable provided sourceprofile replay exactselection

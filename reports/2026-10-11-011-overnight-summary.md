@@ -215,3 +215,9 @@ full30 goals иsameexeprofile replay проверяются повторно н�
 и внешних зависимостей; все архивы читаются. CLI isolated852cf иroot1bd955
 сборки сохранены отдельно в permanent checkpoints. FreshrootCLI проверки
 выполняются;301+ локальныхартефактов CLI сохранены.
+
+CLI этап проверен на новой основнойсборке: все5commands/full30goals/
+sameexeprofile/external-o PASS. Independenthost/native/proof auditsPASS.
+Пакетыisolated иproduction раздельны, обеexe сохранены сSHA; freshproduction
+211files сохранены локально. Cmdtests30.102 s PASS. Итоговыйкоммит и
+публикацияготовятся; никакихрешенийAlice илиблокеровнет.

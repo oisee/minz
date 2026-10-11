@@ -1,0 +1,9 @@
+# Authoritative parent native CLI evidence
+
+Fresh parent executable SHA1bd95516f7b1ef1ba56c17822104936e2b73fe8bde5fe7368dd128811009f041 is preserved at grace-checkpoints/minzc-memory-host-cli-production. The isolated executable852cf9a5e47c4440bf1d10b286a6f49f702ab2f5bb1cf7765dd84871b2da6c3a was rebuilt byte-identically and preserved separately at minzc-memory-host-cli-isolated. Prior isolated payloads in ../cli are historical context; these fresh profiles/baselines bind authoritativeparent1bd955.
+
+Five fresh actual native commands completed successfully: originalSelfLanz30 speed and size (allfourcandidate binaries), boundedtwo-call collection, same-executable providedprofile replay and external-o copy. Speedselect3 both1147025T/2197B; size select2 append1150124T/2076B. All8 candidateBINs matchisolated measuredvalues, but executable/profile/typedselection digests correctlydiffer; comparison.json records this explicitly. No staleprofile was reused acrossexecutables.
+
+Independent all8 originalhost/model full30results, ten globals, complete resources andorderedresourceevents plus typednativeSHA audits passed. Typed selection/proof/source-site bindings passed. Smallcollection/replay have exactprofile and complete selection; externalcopiedASM33928bytes matchesselectednative andprevioussmallreplay SHA2fb6a4e4693e905584f0f7f78667b52b33099b968f1ab61356bfbf4d14e8111d. DecisionsSHA binds exactstoredselection.json bytes for eachcommand; selectedASM/BIN aredirectinternalnativeevidence.
+
+Run verify_cli.py and verify_selection.go from minzc with thisdirectoryargument, pluspercandidatehost/typedpayload auditors. Largepayloadsgzip preserveexactbytes mtime0; BINsdirect. This is bounded closedworkload output with internaladapters, not arbitraryexternprogram compilation. Parentproduction was not edited by measurement. Root owns finalmanifest, generalgates and publication.
