@@ -1,0 +1,6 @@
+=== RUN   TestOriginalManhattanNativeModel
+    showcase_manhattan_native_test.go:273: native struct byte default call0 addrefea writes3 reads3 value0 want0
+--- FAIL: TestOriginalManhattanNativeModel (0.09s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.097s
+FAIL

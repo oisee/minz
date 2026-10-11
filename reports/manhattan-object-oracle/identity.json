@@ -1,0 +1,6 @@
+{
+  "base_commit": "50fb0ede",
+  "source_sha256": "1f4349338f02fbe8eaa253bc9033115ebf4bcaace3d675222fcab4c140224567",
+  "executable_sha256": "6543e3409012d5bac1bf528be0596ff645caf7b2fc4ef49c1f2d68af07ab4627",
+  "command": "from minzc/pkg/pipeline: MINZ_MANHATTAN_ARTIFACTS=<packet>/current <frozen-exe> -test.run ^TestOriginalManhattanNativeModel$ -test.count=1 -test.v"
+}
