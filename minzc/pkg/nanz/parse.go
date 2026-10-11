@@ -2934,6 +2934,7 @@ func (p *parser) parseType() (mir2.Ty, error) {
 					}
 				}
 			}
+			sig.ResolveStructReturnABI()
 			p.lastCallable = sig
 			return mir2.TyPtr, nil
 		case "String", "SString", "LString", "CString":

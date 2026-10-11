@@ -410,11 +410,12 @@ type CallExpr struct {
 func (*CallExpr) hirExpr()          {}
 func (e *CallExpr) ExprTy() mir2.Ty { return e.Ty }
 
-// CallSignature is independent of address representation and calling convention.
+// CallSignature keeps source types and the derived aggregate-result ownership ABI.
 // Nil at a call site means the frontend has not resolved its callable type.
 type CallSignature struct {
-	Params  []mir2.Ty
-	Returns []mir2.Ty
+	StructReturnBuffers []mir2.StructReturnBuffer `json:",omitempty"`
+	Params              []mir2.Ty
+	Returns             []mir2.Ty
 }
 
 func (f *Func) Signature() *CallSignature {
@@ -427,7 +428,19 @@ func (f *Func) Signature() *CallSignature {
 	} else if f.RetTy != mir2.TyVoid {
 		s.Returns = []mir2.Ty{f.RetTy}
 	}
+	s.ResolveStructReturnABI()
 	return s
+}
+
+// ResolveStructReturnABI records the ownership convention derived from source types.
+func (s *CallSignature) ResolveStructReturnABI() {
+	s.StructReturnBuffers = nil
+	for ri, ret := range s.Returns {
+		if ty, ok := mir2.BaseOf(ret).(*mir2.StructTy); ok {
+			s.StructReturnBuffers = append(s.StructReturnBuffers, mir2.StructReturnBuffer{ReturnIndex: ri, ParamIndex: len(s.Params) + len(s.StructReturnBuffers), Ty: ty})
+		}
+	}
+
 }
 
 // CallIndirectExpr is an indirect function call through a pointer.

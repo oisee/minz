@@ -65,29 +65,34 @@ return a.v}`
 			for _, name := range []string{"make", "read", "use_local"} {
 				f := s.MIR2Module.FuncByName(name)
 				r := emulator.Registers{PC: uint16(a.Symbols[name]), SP: 0xeff0}
-				loc := assertParamLocation(f.Contract.Params[0], s.Allocation)
-				value := uint16(x)
-				if name == "read" {
-					value = 0xc03d
-					z.Memory()[value] = byte(x)
-				}
-				switch loc.Name {
-				case "A":
-					r.A = byte(value)
-				case "C":
-					r.BC = value
-				case "HL":
-					r.HL = value
-				case "DE":
-					r.DE = value
-				default:
-					if loc.Kind != mir2.LocMem {
-						t.Fatal(loc)
+				for pi, param := range f.Contract.Params {
+					loc := assertParamLocation(param, s.Allocation)
+					value := uint16(x)
+					if pi > 0 {
+						value = 0xc100
 					}
-					slot := a.Symbols[mir2.Z80SpillLabel(f.Name, f.Contract.Params[0].Reg)]
-					z.Memory()[slot] = byte(value)
-					if mir2.NativeSpillWidth(f.Contract.Params[0].Ty) > 1 {
-						z.Memory()[slot+1] = byte(value >> 8)
+					if pi == 0 && name == "read" {
+						value = 0xc03d
+						z.Memory()[value] = byte(x)
+					}
+					switch loc.Name {
+					case "A":
+						r.A = byte(value)
+					case "C":
+						r.BC = value
+					case "HL":
+						r.HL = value
+					case "DE":
+						r.DE = value
+					default:
+						if loc.Kind != mir2.LocMem {
+							t.Fatal(loc)
+						}
+						slot := a.Symbols[mir2.Z80SpillLabel(f.Name, param.Reg)]
+						z.Memory()[slot] = byte(value)
+						if mir2.NativeSpillWidth(param.Ty) > 1 {
+							z.Memory()[slot+1] = byte(value >> 8)
+						}
 					}
 				}
 				z.Memory()[0xeff0] = 0

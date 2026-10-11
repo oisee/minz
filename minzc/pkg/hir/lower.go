@@ -82,6 +82,9 @@ func LowerModule(hm *Module) *mir2.Module {
 		}
 		lowerFuncWithFuncNames(m, f, funcNames, hirFuncs, hm.LoopLineage)
 	}
+	if err := mir2.LowerStructReturnBuffers(m); err != nil {
+		panic(err)
+	}
 	return m
 }
 
@@ -3893,6 +3896,17 @@ func (l *lowerer) emitStructLitFields(lit *StructLitExpr, baseProvider func() mi
 		}
 		if fieldTy == nil {
 			panic(fmt.Sprintf("hir/lower: struct %q has no field %q", lit.St.Name, fi.Name))
+		}
+		if nested, ok := fi.Val.(*StructLitExpr); ok {
+			off := byteOff
+			l.emitStructLitFields(nested, func() mir2.Reg {
+				base := baseProvider()
+				if off == 0 {
+					return base
+				}
+				return l.bld.Field(base, int64(off), mir2.ClassPointer)
+			})
+			continue
 		}
 		val := l.lowerExpr(fi.Val)
 		base := baseProvider()

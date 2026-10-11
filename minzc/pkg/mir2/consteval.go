@@ -88,7 +88,7 @@ func isConstEliminableCall(inst *Inst, m *Module) bool {
 	if callee == nil {
 		return false // external / not defined in this module
 	}
-	if callee.Attrs.IsExtern || callee.Attrs.FallibleCY || inst.FallibleCY {
+	if len(callee.Contract.StructReturnBuffers) > 0 || len(inst.StructReturnBuffers) > 0 || callee.Attrs.IsExtern || callee.Attrs.FallibleCY || inst.FallibleCY {
 		return false
 	}
 	// Recursive functions would loop forever in the VM.
@@ -117,6 +117,9 @@ func funcAccessesGlobals(f *Func, m *Module) bool {
 }
 
 func funcAccessesGlobalsRec(f *Func, m *Module, globalNames, visited map[string]bool) bool {
+	if len(f.Contract.StructReturnBuffers) > 0 {
+		return true
+	}
 	if visited[f.Name] {
 		return false
 	}
