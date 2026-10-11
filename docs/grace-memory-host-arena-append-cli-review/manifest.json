@@ -1,5 +1,9 @@
 {
   "files_sha256": {
-    "PLAN.md": "71d5dd2174bb82b0cf150a322284da7b1ad104d77c16ac5427352ac7ed09acaa"
+    "DRAFT_FINDINGS.md": "5fccba49ff8e0a732dd694f16c6fe96fc061de9e1fb9efdbdf1e24d0e85c74b9",
+    "INPUT-OUTPUT-DESIGN.md": "0134d33698423606c46dafac08f76282f99736026e7a3a0a618faf91f3f316e8",
+    "PLAN.md": "71d5dd2174bb82b0cf150a322284da7b1ad104d77c16ac5427352ac7ed09acaa",
+    "draft-snapshot.json": "8ea1e8811e754f0a861991d3459764c4dd9b4ef564cac0b692e066eec45a70a5",
+    "input-output-inventory.json": "32ef28d115f3325fbea0dee8c91aea54ede5fa39b9f379e5034eaeaaca233baa"
   }
 }
