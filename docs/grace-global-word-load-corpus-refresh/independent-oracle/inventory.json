@@ -1,0 +1,54 @@
+[
+  {
+    "path": "docs/grace-global-load-corpus-refresh-oracle/FINAL-AUDIT.md",
+    "sha256": "b5849b19c852063ced104de3b270814ffc41160b93da7bc06f96f4975a023aa5"
+  },
+  {
+    "path": "docs/grace-global-load-corpus-refresh-oracle/PLAN.md",
+    "sha256": "87df6f4c43e59822dcfa2a474fe0caddaa30b9bc25ccbdbebf55cb9ace80ce1f"
+  },
+  {
+    "path": "docs/grace-global-load-corpus-refresh-oracle/audit_refresh.py",
+    "sha256": "2d74d3404002cfe1b5e0a90e1ab19aae85033de464e8638d6a1332637b5e9cc4"
+  },
+  {
+    "path": "docs/grace-global-load-corpus-refresh-oracle/final-audit.json",
+    "sha256": "7e703bbd1152756062642c42a522af9fcf6ffbc6fa5b3872ca59abb97413fc9e"
+  },
+  {
+    "path": "docs/grace-global-load-corpus-refresh-oracle/final-audit.txt",
+    "sha256": "91083f3fcf3f7e7488a50adf20f1ca7e274c34fbcbf944ef13d79337e4cd4c0d"
+  },
+  {
+    "path": "docs/grace-global-load-corpus-refresh-oracle/input-review.json",
+    "sha256": "ba33439bf43583a0aeb5763e97167cb540dfffb6326f5f2d9d7dbe586ba3cdc5"
+  },
+  {
+    "path": "docs/grace-global-load-corpus-refresh-oracle/input-review.txt",
+    "sha256": "e875d0d80f0fdcd8bc99bb5be9fc4a1e436f35f0798ffd68c74e04ec242aea37"
+  },
+  {
+    "path": "docs/grace-global-load-corpus-refresh-oracle/model/audit_profile.py",
+    "sha256": "50814a6c4b56c341836bf58803cf14cb23918e74d92973b0bfb04d0217a37531"
+  },
+  {
+    "path": "docs/grace-global-load-corpus-refresh-oracle/model/verify_corpus.py",
+    "sha256": "133ca68609f7b7c326efbfc55c91b5fbe2269555051f6aebd5b9817a7b8165ed"
+  },
+  {
+    "path": "docs/grace-global-load-corpus-refresh-oracle/workloads/fresh-dominant.json",
+    "sha256": "8dedd77c5bd8ed3c8a55859a973c9721013467dff0f2e6f54dc338604e866213"
+  },
+  {
+    "path": "docs/grace-global-load-corpus-refresh-oracle/workloads/long-atoms.json",
+    "sha256": "7bb2930fd351516dccc3be1421379ca5c54725799d208a001f9ca53d8c26a102"
+  },
+  {
+    "path": "docs/grace-global-load-corpus-refresh-oracle/workloads/nested-mixed.json",
+    "sha256": "ec3860ad5d2e95d25a8ae4e4666d5024a61197656ac293109982d0b59d0b3c12"
+  },
+  {
+    "path": "docs/grace-global-load-corpus-refresh-oracle/workloads/short-reuse.json",
+    "sha256": "bfe1608ab73d8e077eb7da5994a0e8fda8ed256bdac5eadc7cd9bd589415951d"
+  }
+]

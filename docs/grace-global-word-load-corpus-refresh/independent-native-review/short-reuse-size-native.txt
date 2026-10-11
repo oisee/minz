@@ -1,0 +1,5 @@
+PASS mask00/original: 330515T/2000B SHA=1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941, 73 native accesses, 0 exact A-byte snapshots; full12 raw/native states/events, ABI/changed-function set
+PASS mask01/arena: 331075T/2121B SHA=2b5d02b0ba923a61604512e3b50e76ef3c6aa54b5cc13470c3f620d705a64fae, 75 native accesses, 1 exact A-byte snapshots; full12 raw/native states/events, ABI/changed-function set
+PASS mask10/append: 327008T/1978B SHA=1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975, 72 native accesses, 0 exact A-byte snapshots; full12 raw/native states/events, ABI/changed-function set
+PASS mask11/both: 327568T/2099B SHA=4bdce86bd7a724f34e7eee180e8a6530b07f33cadd39e7a1a93813df6c841c13, 74 native accesses, 1 exact A-byte snapshots; full12 raw/native states/events, ABI/changed-function set
+PASS dynamiccall counts/cost sums/all4 samecontext source native identities. No fixedcost/winner assumption; no CPU replay.
