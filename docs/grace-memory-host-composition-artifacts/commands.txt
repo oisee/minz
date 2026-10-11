@@ -1,5 +1,5 @@
 Permanentcompiler/minzc Go1.26.8, disposableGOCACHE=/tmp/minz-grace-gocache:
-go test ./pkg/pipeline -skip '^TestIndependentGraceRulesBudgetCompetition$' -count=1 (active atcheckpoint)
+go test ./pkg/pipeline -skip '^TestIndependentGraceRulesBudgetCompetition$' -count=1 (PASS569.037s)
 go test ./pkg/hir ./pkg/mir2 ./pkg/nanz ./pkg/c89 -skip '^TestShowcaseCompileAssemble$' -count=1 (PASS22.528/5.758/1.584/5.499s)
 go test ./cmd/minzc -count=1 (PASS20.432s)
 go test ./pkg/nanz -run '^TestShowcaseCompileAssemble$' -count=1 -v (31knownsame failures,0new)

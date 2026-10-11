@@ -44,7 +44,7 @@ native audits. Исходник,10 globals,3 full resources и порядок by
 до compiler preparation. Shared VM/actualdomains предыдущих этапов сохранены.
 
 Шесть новых файлов интегрированы, существующийbackend не изменён. HIR22.528 s, MIR5.758 s, Nanz1.584 s, C895.499 s и CLI20.432 s PASS;
-showcase31same0new. Полный pipeline выполняется; итоговый коммит и
-публикация после его завершения.
+showcase31same0new. Полный pipeline прошёл за569.037 s. Все необходимые общие проверки
+завершены; публикация выполняется после финального коммита.
 
 [Артефакты](grace-memory-host-composition-artifacts/manifest.json).

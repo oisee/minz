@@ -198,3 +198,9 @@ CLI20.432 s PASS; showcase31same0new.236 evidence файлов скопиров�
 проверены по SHA256. Полный pipeline ещё выполняется на frozen6newfiles.
 Следом — отдельный opt-in CLI вход для закрытого memory-host выбора,
 без произвольных extern/assembly и без изменения default path.
+
+Combined production полный pipeline прошёл за569.037 s; всеобщие
+HIR/MIR/Nanz/C89/CLI проверки зелёные, showcase31same0new. Финализируем
+коммит и публикацию. Следующий CLI isolated уже прошёл actualspeed/size и
+same-executable profile replay; независимый аудит8payload иdecisionSHA PASS.
+Осталась проверка внешнего-o иproduction-интеграцияCLI.

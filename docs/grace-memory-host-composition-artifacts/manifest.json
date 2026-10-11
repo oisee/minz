@@ -2,7 +2,7 @@
   "schema": "minz.artifact-sha256/v1",
   "files": {
     "cli-tests.txt": "c74b156743e84a666569a4f15e3593de22fa237a4bcbd8cd780a720bd2791b84",
-    "commands.txt": "dc5a8d6f611d347036939272237e8a32eb2c31f400cf71406a43417125f8ca0e",
+    "commands.txt": "258457b57af2e3a9bd0addc3bfbe8a093c9d66607c6d9418c7e9fbf9beaddca6",
     "default-path-reuse.md": "4b97decaf4e17a4e5631678f454258bda5e7185c656c84efb18958ce98af063e",
     "independent-proof/README.md": "115367790492127c69d5c6d6f51bafb69d0a2a392bdfa0ef3abfe2394deededb",
     "independent-proof/focused.txt": "c92824d4653ec0fdb123161ccd47ae02f176df07ddadaaf18ffeb361b3caa794",
@@ -53,6 +53,7 @@
     "native-review/typed-both.txt": "9e02b8e3958803ee93903520e0625c26fd5988c092ee8dcf3ea39aa91ad90322",
     "native-review/typed-original.txt": "3db262bd27c494dab4d14addd59f82268275b9f4d5cf1ae954ebee48fa723eba",
     "packages-tests.txt": "4b1b16bf8ca0c30de50286fadeb6b32c812692f854358c7cd2e76838f9b24faa",
+    "pipeline-tests.txt": "3800bcd33eb69cff264959223b5fe00023d1f58f93502e1a9f878a8bc2593ef9",
     "production-source-sha256.json": "78e52ab3d41445568b72c2103b2d3ff03fbc817baa7b4532b6c0f21b95a6f2a2",
     "proof-review/README.md": "779c43fb962fcc8e14540819bcf8b4f909b71ed05793146199b9ff5dc7df295d",
     "proof-review/aggregate-proof.go.txt": "b012adcd65b11c0c6dde507a6f69aa7aa500aed3d803f3de36a7ab4baf38f882",
