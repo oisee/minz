@@ -44,9 +44,10 @@ SHA256 `1bd95516f7b1ef1ba56c17822104936e2b73fe8bde5fe7368dd128811009f041`.
 
 ## Опубликовано и сохранено
 
-Приватный Sites, подтверждённая **версия 48**:
+Приватный Sites, подтверждённая **версия 49**:
 https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/
 
+- [Обновлённый корпус](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/global-word-load-corpus.html)
 - [Direct global word loads](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/global-word-load.html)
 - [Стоимость PC и функций](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-pc-cost.html)
 - [Совместный selector](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-composition-selection.html)
@@ -56,7 +57,7 @@ https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/
 - [Смена выбора и отказы](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-choice-boundaries.html)
 
 Весь сайт сохранён офлайн: [локальная главная](../artifacts/grace-reports/2026-10-10-resume/site/index.html).
-Проверены **13193 файла, 57 страниц**, SHA256 всех файлов, читаемость всех
+Проверены **13752 файла, 58 страниц**, SHA256 всех файлов, читаемость всех
 публикационных архивов; потерянных ссылок и внешних зависимостей нет.
 Исходники, профили, решения, proof records, ASM/BIN, логи, обе разные CLI
 сборки и Git bundles сохранены локально.
@@ -99,7 +100,9 @@ Final suite с timeout30m завершился: **1107.431 s PASS**. Отдел�
 artifact-only corpus refresh на dba завершён: все четыре speed-набора
 выбрали append-only вместо прежнего both;32candidate/8profiles/8decisions
 прошли два независимых аудита. Пакет7df6632e перенесён; savedgzip
-проверка после переноса PASS. Полный suite прошёл; corpus отчёт публикуется отдельно.
+проверка после переноса PASS. Полный suite прошёл; corpus отчёт опубликован: Sites49, sourcee173ca14.
+Офлайн-копия49 синхронизируется. Последняя полная проверка версии48:
+13752 файла,58 страниц,SHA256/архивы/локальные ссылки PASS.
 Inputs и планы новых проверок committed/pushed в постоянных ветках.
 Production checkpoint сохраняется как WIP; аудитированные старые этапы
 остаются доступными. Диагностический PC hook в production не переносился.
