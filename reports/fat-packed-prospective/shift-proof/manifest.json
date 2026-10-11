@@ -1,0 +1,249 @@
+{
+  "files": [
+    {
+      "path": "reports/2026-10-11-067-indexed-word-shift-live-hl.md",
+      "sha256": "8ca49c0fa2c0cc2938ec95919cd4d06e7c8becda9d9ef469f0702d41e81c69ff",
+      "bytes": 1758
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-proof/before.txt",
+      "sha256": "e97cd339a43f0c20985335220d797933721c48614e69fb6497be2fc8f48362dc",
+      "bytes": 682
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-proof/original-packed-default-pass-size-fail.txt",
+      "sha256": "81c8c4beb0bce29107bfbafcb43a551d25ff5ac806e19f40213d427f1729cc11",
+      "bytes": 6943
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-proof/native-180.txt",
+      "sha256": "52fd60b37ad07dae8a31d7bc0232321ad1a552f0e852445b6f085b566701921e",
+      "bytes": 160
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-proof/full-mir2.txt",
+      "sha256": "ad26940dfee3a80a81696712ce90bd39e56939c487a0e8da8bd62ea66000997f",
+      "bytes": 44
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/grace-size/final.mir",
+      "sha256": "09260558a2f3e2a44f86d9c9e90b845ed58c06ff22b6163d9df0fd3051425e88",
+      "bytes": 81240
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/grace-size/target.a80",
+      "sha256": "41eb4ab9b2f69f18e16350d3d17c65d3e9d3d77c0f64cb939f420cfd244024e8",
+      "bytes": 129807
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/grace-size/target.bin",
+      "sha256": "031766321149be16fa6858836740a03d98912ca64853b73439465ca80b970101",
+      "bytes": 9867
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/grace-size/allocation.json",
+      "sha256": "51dc796e98abb1b5851b7fd27e3fb3fd51f6ce94abb8fbd4dd80b5167a98bc7a",
+      "bytes": 104977
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/training-1-write_fat12.json",
+      "sha256": "3e4e895ed445c2d508404dab9e8d3d537bdcdb3c29f6ef96edf3537da867268f",
+      "bytes": 379
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/heldout-0-read_fat12.json",
+      "sha256": "ad7adf3432e3e5bf5a607f12647b3552c763c3bd8a39a6690d1904209279488e",
+      "bytes": 376
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/training-2-write_fat12.json",
+      "sha256": "af0e8f1044b97369089b4e13f9dbc26676096e042effa0c45125362419d04c25",
+      "bytes": 381
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/heldout-2-write_fat16.json",
+      "sha256": "a3e123f32632b3f9bebeaafd5ee11ef27c2787c828cdd93ac7c6679323e6914b",
+      "bytes": 377
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/heldout-1-write_fat12.json",
+      "sha256": "4f0fc4fae41beb60cdd8abcd21c72d222e13541ccebf294a96d26694ed2aa399",
+      "bytes": 381
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/training-1-read_fat16.json",
+      "sha256": "1a937de9a4198e8185ee8f9d6273ad37e7c86e16288ccf53017ae767d5783d9c",
+      "bytes": 380
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/training-1-write_fat16.json",
+      "sha256": "4d2e1bb080e7d28ab8a465038133aaa3e8456f2e552b266efa8c6f5462afae01",
+      "bytes": 379
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/training-0-write_fat12.json",
+      "sha256": "8c7108cb6ac46405c9067f6a84814f27866b827b966d868f4e7bbede7d4673b9",
+      "bytes": 378
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/heldout-5-write_fat12.json",
+      "sha256": "37eeb54dc8e73cbcd0100c258deeb03240608389286e7ec9c4d4995e3b37e0fd",
+      "bytes": 381
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/heldout-1-read_fat16.json",
+      "sha256": "a81f98c9306a890581b9d661697303411cc9f337f034fc71da26a17cf32a0079",
+      "bytes": 382
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/heldout-2-write_fat12.json",
+      "sha256": "a288b06750e5ab182f23d4b148b9ecfdf6a2649f8dfa3af367156392de142981",
+      "bytes": 377
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/final.mir",
+      "sha256": "6252d68506667b8d3f23a3ddb03ce0ecbddf74dff66d41d26cb5ebcdc160f136",
+      "bytes": 82661
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/heldout-5-write_fat16.json",
+      "sha256": "743f09671c693430857de0183f3bee1960c6c505527913b5a0cff6ad4fe51791",
+      "bytes": 382
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/heldout-3-read_fat12.json",
+      "sha256": "9dea8d014209e87785c1716c76de3e967091e1d4152ee7b8bb4b3425829e3162",
+      "bytes": 378
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/target.a80",
+      "sha256": "27ee8a762a579bd7f839bec3ef6add9bea55e440d9729ef511a453d7102f9a3f",
+      "bytes": 129304
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/heldout-4-read_fat16.json",
+      "sha256": "cbcaa8afdc755f46a9279eadf9e50b9aed8f6eedc5458e9bcbd5d0a9a5f8d1a4",
+      "bytes": 378
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/heldout-0-read_fat16.json",
+      "sha256": "56b9fe3212b747422e44b991e7daf329f69a8ea57bb58ecbcb70561dd1e3ed91",
+      "bytes": 377
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/heldout-2-read_fat16.json",
+      "sha256": "df8f5115b56b2a9ddf1c88e195b552a6415a8be78c958723743489b25d67ab15",
+      "bytes": 378
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/target.bin",
+      "sha256": "ce9389f904ecf6149f814484a116de4c3a33fb92cc6a63b78a7c9b77029e3d26",
+      "bytes": 9689
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/training-0-read_fat12.json",
+      "sha256": "4e4b77587e9608af32f5246cb8af0642e4b99786d50c9ef8aa2dd4d7be0e4831",
+      "bytes": 378
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/training-1-read_fat12.json",
+      "sha256": "4182c299fb3af63428f77ba827525af48bca342e3692973cd54060034223bfe7",
+      "bytes": 379
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/heldout-4-write_fat12.json",
+      "sha256": "d2fa6a60bc598b6fca3891a8e7b831fe423c55765aeb28254aed27f922f20151",
+      "bytes": 374
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/heldout-1-read_fat12.json",
+      "sha256": "17ef7ff9621aad308f4f439b379c80a47ee22d1bfff026aba2ce6af11739f1a4",
+      "bytes": 381
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/heldout-4-write_fat16.json",
+      "sha256": "731169f262871b4ab1827642aecf52f7d66cb3e72ace4454f2c9b35256a25152",
+      "bytes": 374
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/training-0-write_fat16.json",
+      "sha256": "0e32aa81f448a0701c5109a163011e2d2771ed5edfd275b6c1494e9552c7d757",
+      "bytes": 375
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/training-2-write_fat16.json",
+      "sha256": "43139462bee9c1b602f9d33dffea026c6be8873833095de83c867bf66321104d",
+      "bytes": 382
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/heldout-3-read_fat16.json",
+      "sha256": "767891c41f4c0f50a4dd2a1df22c3903653bb45ad27228cecdfa1af28a356156",
+      "bytes": 379
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/heldout-5-read_fat16.json",
+      "sha256": "edc993345b3e952cf37c45cffbda1cc730d7306a8d087a5e1479d66f7e441b85",
+      "bytes": 382
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/heldout-3-write_fat16.json",
+      "sha256": "399603e4668b3f166913362d8fc14e48a41cbd2ab122b9b998e3d1a67c2c7c2d",
+      "bytes": 379
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/training-2-read_fat16.json",
+      "sha256": "7becfd1dbcd699fc25195b20012494ff4c8b20fd4ab0fbb72990f274f1b1ba31",
+      "bytes": 382
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/training-2-read_fat12.json",
+      "sha256": "052b8aaedd1975c70f95661b06c9c4346aab92ba53b6cf59b49f62a1a6c76b5a",
+      "bytes": 381
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/training-0-read_fat16.json",
+      "sha256": "4f0ff7f623fb06dadc94e1ba659770e5b51c2986ab16f45caca88f333670c66e",
+      "bytes": 376
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/heldout-0-write_fat12.json",
+      "sha256": "e0d8752e7f54193e40dfa864b517c7ef815565b42aa1d845a7971c9497bab920",
+      "bytes": 372
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/heldout-2-read_fat12.json",
+      "sha256": "27566e27e39abd6d5415e8ff58c9268b46944a5e2fa12abdeb7422543ae4e60d",
+      "bytes": 377
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/heldout-0-write_fat16.json",
+      "sha256": "93cd254adc03fd4d8c0e507bbeea3d44eeaf2e22a94f55e692b2eda46ea788ab",
+      "bytes": 373
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/heldout-1-write_fat16.json",
+      "sha256": "228fd5fe6749c8d19e287ddb1e59ac6eb91b7c6e1d1fb2ff8e9e7200c0122060",
+      "bytes": 382
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/allocation.json",
+      "sha256": "c0fb9e4d2ffc23dc055da0136b85a3d0d62638673c31c3562148d414246ed6f1",
+      "bytes": 104199
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/heldout-5-read_fat12.json",
+      "sha256": "a290742836c45f43a4ecea32eaa653cb7d1496be33abae45efdb7bdb85147fd4",
+      "bytes": 381
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/heldout-4-read_fat12.json",
+      "sha256": "d8296bd5c8f2116c490bedc00b92c64f3bed75adb18e186921da540823b5452c",
+      "bytes": 377
+    },
+    {
+      "path": "reports/fat-packed-prospective/shift-fixed/native/default/heldout-3-write_fat12.json",
+      "sha256": "2fef6b8eb325814acbd447d0718e883b1e49ee60ecfecab8ef89bae2fc6c4d3a",
+      "bytes": 378
+    }
+  ]
+}
