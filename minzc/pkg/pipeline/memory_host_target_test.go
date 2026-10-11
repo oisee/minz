@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
 	"os"
 	"path/filepath"
@@ -117,7 +118,8 @@ func TestMemoryHostTargetLayoutRefusals(t *testing.T) {
 			case "oracle":
 				raw.Invocations[1].Results[0].I++
 			case "hostABI":
-				steps.MIR2Module.FuncByName("peek").Contract.Params[0].Class = 0
+				reg := steps.MIR2Module.FuncByName("peek").Contract.Params[0].Reg
+				steps.Allocation.Locs[reg] = mir2.PhysLoc{Kind: mir2.LocReg, Name: "DE"}
 			}
 			if r, e := runZ80MemoryHostWorkload(steps, m, w, *raw); e == nil || r != nil {
 				t.Fatal("unsafe target accepted", name, fmt.Sprint(e))

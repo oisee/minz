@@ -35,6 +35,9 @@ type memoryHostNativeAccess struct {
 	Value   byte   `json:"value"`
 }
 type memoryHostNativeTrap struct{ Message string }
+type memoryHostCPUFailure struct{ Message string }
+
+func (e memoryHostCPUFailure) Error() string { return e.Message }
 
 func (m *memoryHostZ80Memory) begin(pc uint16) {
 	n := m.lengths[pc]
@@ -46,6 +49,17 @@ func (m *memoryHostZ80Memory) begin(pc uint16) {
 	m.frameWrites = nil
 	m.expectedReturn = nil
 	m.expectedSP = nil
+	if memoryHostFrameOpcode(m, pc) {
+		recipe, e := memoryHostMemoryRecipe(m, pc)
+		if e != nil {
+			panic(memoryHostNativeTrap{e.Error()})
+		}
+		for _, v := range recipe {
+			if !m.stack[v.Address] {
+				panic(memoryHostNativeTrap{"stack frame crosses reserved bounds"})
+			}
+		}
+	}
 	m.pending = append([]memoryHostByteRecipe{}, m.protected[pc]...)
 	m.hasProtectedRecipe = len(m.pending) > 0
 	if recipe, e := memoryHostMemoryRecipe(m, pc); e == nil && memoryHostFrameOpcode(m, pc) {
@@ -164,7 +178,7 @@ func memoryHostNativeStep(m *memoryHostZ80Memory) (cycles int, err error) {
 			if trap, ok := r.(memoryHostNativeTrap); ok {
 				err = fmt.Errorf("%s", trap.Message)
 			} else {
-				err = fmt.Errorf("native CPU failure: %v", r)
+				err = memoryHostCPUFailure{fmt.Sprintf("native CPU failure: %v", r)}
 			}
 		}
 	}()

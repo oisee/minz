@@ -3,6 +3,7 @@ package pipeline
 import (
 	"crypto/sha256"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
@@ -287,12 +288,10 @@ func runZ80MemoryHostWorkload(steps Steps, source *hir.Module, w hir.MemoryHostW
 		var runErr error
 		for m.cpu.PC() != w.Layout.ReturnPC {
 			if out.ExecutedSteps >= w.MaxSteps {
-				runErr = fmt.Errorf("instruction limit")
-				break
+				return fail(fmt.Errorf("native instruction limit exceeded"))
 			}
 			if m.cpu.SP() < w.Layout.StackLow || m.cpu.SP() > w.Layout.StackHigh {
-				runErr = fmt.Errorf("stack bounds")
-				break
+				return fail(fmt.Errorf("native stack bounds exceeded"))
 			}
 			for n, kind := range w.Hosts {
 				p, _ := workloadSymbol(a.Symbols, n)
@@ -305,12 +304,16 @@ func runZ80MemoryHostWorkload(steps Steps, source *hir.Module, w hir.MemoryHostW
 				break
 			}
 			_, runErr = memoryHostNativeStep(m)
+			var cpuFailure memoryHostCPUFailure
+			if errors.As(runErr, &cpuFailure) {
+				return fail(runErr)
+			}
 			out.ExecutedSteps++
-			if runErr != nil || m.cpu.Halted {
-				if runErr == nil {
-					runErr = fmt.Errorf("unexpected halt")
-				}
-				break
+			if runErr != nil {
+				return fail(runErr)
+			}
+			if m.cpu.Halted {
+				return fail(fmt.Errorf("unexpected native halt"))
 			}
 		}
 		m.active = false
@@ -327,6 +330,12 @@ func runZ80MemoryHostWorkload(steps Steps, source *hir.Module, w hir.MemoryHostW
 			obs.Regions[n] = append([]byte{}, m.data[int(r.Address):int(r.Address)+len(r.Bytes)]...)
 		}
 		if runErr != nil {
+			var denied *hir.MemoryHostAccessError
+			if !errors.As(runErr, &denied) || !reflect.DeepEqual(denied, expected.Invocations[i].Failure) {
+				return fail(fmt.Errorf("memory denial cause mismatch"))
+			}
+			copied := *denied
+			obs.Failure = &copied
 			obs.Error = runErr.Error()
 		} else if m.cpu.SP() != w.Layout.StackHigh {
 			return fail(fmt.Errorf("return stack mismatch"))

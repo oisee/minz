@@ -127,3 +127,37 @@ func TestMemoryHostUninitializedStackPopRefusal(t *testing.T) {
 		t.Fatal("uninitialized stack pop accepted")
 	}
 }
+
+func TestMemoryHostFrameBoundaryBeforeRegionEffect(t *testing.T) {
+	for _, opcode := range []byte{0xe5, 0xcd, 0xe1} {
+		m := &memoryHostZ80Memory{lengths: map[uint16]int{0x400: 1}, active: true}
+		m.data[0x400] = opcode
+		m.executable[0x400] = true
+		if opcode == 0xcd {
+			m.lengths[0x400] = 3
+		}
+		m.cpu = z80.NewZ80(m, memoryHostNoPorts{})
+		m.cpu.SetPC(0x400)
+		m.cpu.H = 0x12
+		m.cpu.L = 0x34
+		if opcode == 0xe1 {
+			m.cpu.SetSP(0xe002)
+		} else {
+			m.cpu.SetSP(0xe000)
+		}
+		for p := 0xe000; p < 0xe002; p++ {
+			m.stack[p] = true
+			m.readable[p] = true
+			m.writable[p] = true
+		}
+		for _, p := range []uint16{0xdffe, 0xdfff, 0xe002, 0xe003} {
+			m.region[p] = "adjacent"
+			m.readable[p] = true
+			m.writable[p] = true
+			m.data[p] = 99
+		}
+		if _, e := memoryHostNativeStep(m); e == nil || len(m.events) != 0 || m.data[0xdffe] != 99 || m.data[0xdfff] != 99 {
+			t.Fatal("frame touched adjacent region before bounds refusal", opcode, e)
+		}
+	}
+}
