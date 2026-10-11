@@ -1,0 +1,9 @@
+=== RUN   TestLocalTableUnboundEntryParamNative
+    table_boundary_test.go:24: accepted unbound-param miscompile A=100 want8 SP=f000 ASM=; fun entry_param() ; clobbers: F
+        entry_param:
+            INC A
+            RET
+--- FAIL: TestLocalTableUnboundEntryParamNative (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/vir	0.008s
+FAIL

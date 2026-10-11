@@ -159,8 +159,11 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 		{Name: "ld_r_n", Op: OpConst, Width: 8, DstLocs: Z80_GPR8,
 			Template: "LD {dst}, {imm}", Cost: 7, Bytes: 2, Flags: PatImmediate},
 		{Name: "ld_rr_nn", Op: OpConst, Width: 16,
-			DstLocs:  Z80_Pairs.Or(Z80_IX).Or(Z80_IY),
+			DstLocs:  Z80_Pairs,
 			Template: "LD {dst}, {imm}", Cost: 10, Bytes: 3, Flags: PatImmediate},
+
+		// IX/IY immediate loads carry a DD/FD prefix: 14T and 4 bytes.
+		{Name: "ld_index_nn", Op: OpConst, Width: 16, DstLocs: Z80_IX.Or(Z80_IY), Template: "LD {dst}, {imm}", Cost: 14, Bytes: 4, Flags: PatImmediate},
 
 		// ── Constants to IXH (spill-tier storage) ────────────────────
 		{Name: "ld_ixh_n", Op: OpConst, Width: 8, DstLocs: Z80_IXHalves,
@@ -602,7 +605,7 @@ func generateZ80Patterns(m *MachineDesc) []Pattern {
 		{Name: "ld_global_a", Op: OpLoadGlobal, Width: 8,
 			DstLocs:  Z80_A,
 			Template: "LD A, ({imm})", Cost: 13, Bytes: 3,
-			Flags:    PatMemRead | PatImmediate},
+			Flags: PatMemRead | PatImmediate},
 		{Name: "ld_global_hl", Op: OpLoadGlobal, Width: 16,
 			DstLocs:  Z80_HL,
 			Template: "LD HL, ({imm})", Cost: 16, Bytes: 3,

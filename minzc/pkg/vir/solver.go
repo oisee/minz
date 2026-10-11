@@ -19,6 +19,7 @@
 package vir
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -2160,12 +2161,23 @@ func runZ3(smt string, opts SolverOptions) (string, error) {
 	}
 	f.Close()
 
-	// Run z3
-	cmd := exec.Command(opts.Z3Path,
+	// Enforce the host deadline as well as Z3's own timeout argument: a
+	// configured replacement executable must not hang generation indefinitely.
+	timeout := opts.Timeout
+	if timeout <= 0 {
+		timeout = 30 * time.Second
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), timeout+time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, opts.Z3Path,
 		"-T:"+strconv.Itoa(int(opts.Timeout.Seconds())),
 		f.Name())
+	cmd.WaitDelay = time.Second // bound inherited output pipes after process timeout
 	out, err := cmd.CombinedOutput()
 	output := string(out)
+	if ctx.Err() != nil {
+		return "", fmt.Errorf("z3 host deadline exceeded after %v", timeout)
+	}
 
 	// Z3 exits 0 for sat/unsat, non-zero for errors
 	if err != nil {
