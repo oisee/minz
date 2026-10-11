@@ -1,0 +1,32 @@
+{
+  "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+  "new_executable_sha256": "dba34fdc489d4fa00f985bff82952076f8de8f68488999dfe98364af242c9ca5",
+  "prior_executable_sha256": "1bd95516f7b1ef1ba56c17822104936e2b73fe8bde5fe7368dd128811009f041",
+  "workloads": [
+    {
+      "corpus": "short-reuse",
+      "fixture_sha256": "bfe1608ab73d8e077eb7da5994a0e8fda8ed256bdac5eadc7cd9bd589415951d",
+      "calls": 12,
+      "prior_speed_stored_workload_sha256": "e2346a6baceb18257ff2dd04e2a26b38ec5755edff8ea3d4ed17870f49d26646"
+    },
+    {
+      "corpus": "long-atoms",
+      "fixture_sha256": "7bb2930fd351516dccc3be1421379ca5c54725799d208a001f9ca53d8c26a102",
+      "calls": 9,
+      "prior_speed_stored_workload_sha256": "32bd3ddb1d051e1d97d60ba794f55eb12016666f0f713e933fdd214266d179cf"
+    },
+    {
+      "corpus": "nested-mixed",
+      "fixture_sha256": "ec3860ad5d2e95d25a8ae4e4666d5024a61197656ac293109982d0b59d0b3c12",
+      "calls": 9,
+      "prior_speed_stored_workload_sha256": "f31e6321618c174902b712dacc3c8ee6dc7f5d61fda8b928fae9b8c5b6225d32"
+    },
+    {
+      "corpus": "fresh-dominant",
+      "fixture_sha256": "8dedd77c5bd8ed3c8a55859a973c9721013467dff0f2e6f54dc338604e866213",
+      "calls": 20,
+      "prior_speed_stored_workload_sha256": "a38d789e7ec875f3006654643bbfd37ad1bf0ae0b80004c5615bc72f0b2785d0"
+    }
+  ],
+  "cpu_runs_by_reviewer": 0
+}
