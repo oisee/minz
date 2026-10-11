@@ -1,0 +1,27 @@
+[
+  {
+    "path": "README.md",
+    "bytes": 1694,
+    "sha256": "f0097fb635f4e47cad43546365bd06aab2ffbe245fef651a94df63f59c8de4f2"
+  },
+  {
+    "path": "audit.txt",
+    "bytes": 228,
+    "sha256": "0939793c7b28d2f9daa3ed5ec8cdb4a90eba11608628729937fdfe1811aa89c5"
+  },
+  {
+    "path": "factory-baseline.json.gz",
+    "bytes": 48867,
+    "sha256": "c35742e5900082249a56ccdfa64ce5a8eb9b23071a12a0057f4a864d7e95e04d"
+  },
+  {
+    "path": "source.nanz",
+    "bytes": 7164,
+    "sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+  },
+  {
+    "path": "verify_public_host.py",
+    "bytes": 4703,
+    "sha256": "ca77830afe0991c9fb204979706a6846897e8379b815efd74883b903f47244ae"
+  }
+]
