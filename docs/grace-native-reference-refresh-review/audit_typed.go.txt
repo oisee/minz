@@ -1,0 +1,13 @@
+package main
+import("bytes";"crypto/sha256";"encoding/json";"fmt";"os";"path/filepath";"github.com/minz/minzc/pkg/pipeline";"github.com/minz/minzc/pkg/z80asm")
+func hash(b []byte)string{return fmt.Sprintf("%x",sha256.Sum256(b))}
+func read(p string)[]byte{b,e:=os.ReadFile(p);if e!=nil{panic(e)};return b}
+func main(){root:=os.Args[1];for _,name:=range []string{"factory","association","target"}{p:=filepath.Join(root,name);var t pipeline.MemoryHostTargetEvidence;if e:=json.Unmarshal(read(filepath.Join(p,"target.json")),&t);e!=nil{panic(e)}
+ for _,item:=range []struct{value any;expected string}{{t.Accesses,t.SidecarSHA256},{t.CallFrames,t.CallFramesSHA256},{t.CallSpills,t.CallSpillsSHA256}}{data,e:=json.Marshal(item.value);if e!=nil||hash(data)!=item.expected{panic("typed hash")}}
+ if hash(t.Binary)!=t.BinarySHA256||!bytes.Equal(t.Binary,read(filepath.Join(p,"target.bin")))||!bytes.Equal([]byte(t.Assembly),read(filepath.Join(p,"target.a80"))){panic("BIN/ASM embedded mismatch")}
+ if hash([]byte(t.FinalMIRDump))!=t.MIRSHA256||!bytes.Equal([]byte(t.FinalMIRDump),read(filepath.Join(p,"final.mir2"))){panic("MIR hash")}
+ compact:=new(bytes.Buffer);if e:=json.Compact(compact,t.AllocationJSON);e!=nil{panic(e)};if hash(compact.Bytes())!=t.AllocationSHA256||!bytes.Equal(compact.Bytes(),read(filepath.Join(p,"allocation.json"))){panic("allocation hash")}
+ a,e:=z80asm.NewAssembler().AssembleString("ORG 0x0400\n"+t.Assembly);if e!=nil||len(a.Errors)>0||!bytes.Equal(a.Binary,t.Binary){panic("independent ASM/BIN")}
+ if t.TotalTStates!=1291565||len(t.Binary)!=2388||t.BinarySHA256!="a9f98a344c5e39cfe6bbb7a94fe84b6222c262ec863be2ba227e90672a875a73"{panic("reference values")};sum:=int64(0);for _,v:=range t.InvocationTStates{sum+=v};if sum!=t.TotalTStates||len(t.Invocations)!=30{panic("calls/cycles")}
+ fmt.Printf("PASS %s origin0400 exactASM/BIN2388 SHA%s typedsidecar/spills/frames/allocation/MIR %dT30calls\n",name,t.BinarySHA256,t.TotalTStates)
+}}
