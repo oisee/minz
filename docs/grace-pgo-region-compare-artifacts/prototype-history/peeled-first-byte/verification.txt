@@ -1,0 +1,1 @@
+PASS: independent host all30 results/fullresources/all resource reads+writes; global traffic VM/target; binary SHA and exact T/bytes

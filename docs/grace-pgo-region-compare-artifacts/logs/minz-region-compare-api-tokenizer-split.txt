@@ -1,0 +1,12 @@
+=== RUN   TestRegionCompareTypedTokenizerMeasured
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    profile_region_compare_test.go:333: region-only tokenizer size=false candidate0 2270286T/4346B
+    profile_region_compare_test.go:333: region-only tokenizer size=false candidate1 2214152T/4732B
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    profile_region_compare_test.go:333: region-only tokenizer size=true candidate0 2270286T/4346B
+    profile_region_compare_test.go:333: region-only tokenizer size=true candidate1 2214152T/4732B
+--- PASS: TestRegionCompareTypedTokenizerMeasured (5.92s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	5.956s

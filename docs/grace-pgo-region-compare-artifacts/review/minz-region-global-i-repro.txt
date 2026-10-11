@@ -1,0 +1,2 @@
+optimized false result [] error mir2.VM: gas limit reached (10000 steps)
+optimized true result [{1}] error <nil>

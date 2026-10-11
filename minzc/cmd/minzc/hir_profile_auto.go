@@ -19,8 +19,13 @@ var hirProfileJointSites bool
 var hirProfileWeightedSites bool
 var hirProfileForwardCopySites bool
 var hirProfileMixedCopyWeightedSites bool
+var hirProfileRegionCompareSites bool
 
 func validateHIRProfileAuto(source string) error {
+	if hirProfileRegionCompareSites && (!hirProfileJoint || hirProfileForwardCopySites || hirProfileMixedCopyWeightedSites || hirProfileInvariantSites || hirProfileSiteRules || hirProfileJointSites || hirProfileWeightedSites || hirProfileIndependentRules) {
+		return fmt.Errorf("HIR region compare sites: requires --hir-profile-joint and cannot combine with other site or independent rule modes")
+	}
+
 	if hirProfileMixedCopyWeightedSites && (!hirProfileJoint || hirProfileForwardCopySites || hirProfileInvariantSites || hirProfileSiteRules || hirProfileJointSites || hirProfileWeightedSites || hirProfileIndependentRules) {
 		return fmt.Errorf("HIR mixed copy weighted sites: requires --hir-profile-joint and cannot combine with other site or independent rule modes")
 	}
@@ -156,7 +161,16 @@ func prepareHIRProfileJoint(m *hir.Module, factory func() (*hir.Module, error), 
 	var result *pipeline.ProfileVariantSetResult
 	var evidence any
 	var decisions any
-	if hirProfileMixedCopyWeightedSites {
+	if hirProfileRegionCompareSites {
+		region, err := pipeline.MeasureRegionCompareSiteVariantSets(factory, observations, workload, options, 4)
+		if err != nil {
+			return nil, err
+		}
+		result = &pipeline.ProfileVariantSetResult{Steps: region.Steps, Binary: region.Binary}
+		evidence = region.Evidence
+		best := region.Evidence.Candidates[region.Evidence.Selected]
+		decisions = map[string]any{"schema": "minz.region-compare-site-decisions/v1", "compatibility": region.Evidence.Compatibility, "selected": region.Evidence.Selected, "requested_region_compare_sites": best.RequestedSites, "proofs": best.Proofs, "postcompile_proofs": best.FinalProofs, "binary_sha256": best.BinarySHA256, "evidence_sha256": region.Evidence.SHA256}
+	} else if hirProfileMixedCopyWeightedSites {
 		mixed, err := pipeline.MeasureMixedCopyWeightedVariantSets(factory, observations, workload, options, 4)
 		if err != nil {
 			return nil, err

@@ -1,0 +1,24 @@
+=== RUN   TestOlderMeasuredAPIsRefuseRegionPolicy
+=== RUN   TestOlderMeasuredAPIsRefuseRegionPolicy/sum_cost_model
+=== RUN   TestOlderMeasuredAPIsRefuseRegionPolicy/profile
+=== RUN   TestOlderMeasuredAPIsRefuseRegionPolicy/grace
+=== RUN   TestOlderMeasuredAPIsRefuseRegionPolicy/grace_rules
+=== RUN   TestOlderMeasuredAPIsRefuseRegionPolicy/invariant
+=== RUN   TestOlderMeasuredAPIsRefuseRegionPolicy/invariant_rules
+=== RUN   TestOlderMeasuredAPIsRefuseRegionPolicy/joint
+=== RUN   TestOlderMeasuredAPIsRefuseRegionPolicy/weighted
+=== RUN   TestOlderMeasuredAPIsRefuseRegionPolicy/copy
+=== RUN   TestOlderMeasuredAPIsRefuseRegionPolicy/mixed
+--- PASS: TestOlderMeasuredAPIsRefuseRegionPolicy (0.01s)
+    --- PASS: TestOlderMeasuredAPIsRefuseRegionPolicy/sum_cost_model (0.00s)
+    --- PASS: TestOlderMeasuredAPIsRefuseRegionPolicy/profile (0.00s)
+    --- PASS: TestOlderMeasuredAPIsRefuseRegionPolicy/grace (0.00s)
+    --- PASS: TestOlderMeasuredAPIsRefuseRegionPolicy/grace_rules (0.00s)
+    --- PASS: TestOlderMeasuredAPIsRefuseRegionPolicy/invariant (0.00s)
+    --- PASS: TestOlderMeasuredAPIsRefuseRegionPolicy/invariant_rules (0.00s)
+    --- PASS: TestOlderMeasuredAPIsRefuseRegionPolicy/joint (0.00s)
+    --- PASS: TestOlderMeasuredAPIsRefuseRegionPolicy/weighted (0.00s)
+    --- PASS: TestOlderMeasuredAPIsRefuseRegionPolicy/copy (0.00s)
+    --- PASS: TestOlderMeasuredAPIsRefuseRegionPolicy/mixed (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.018s

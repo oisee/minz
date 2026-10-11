@@ -1,0 +1,5 @@
+package main
+import("fmt";"github.com/minz/minzc/pkg/hir";"github.com/minz/minzc/pkg/nanz")
+const src=`fun region_eq(src:^u8,arena:^u8,src_start:u16,arena_ptr:u16,len:u8)->u8 {var i:u8=0 while i<len {if src[src_start+i]!=arena[arena_ptr+1+i] {return 0} i=i+1} return 1}`
+func main(){for _,kind:=range []string{"clean","orphanOrigin","policy"}{a,_:=nanz.Parse(src,"origin.nanz");b,_:=nanz.Parse(src,"origin.nanz");must(hir.SeedLoopLineage(b));b.GraceRulePolicy=map[string]bool{};b.PointerWalkPolicy=map[string]bool{};b.InvariantBasePolicy=map[string]bool{};b.ForwardCopyPolicy=map[string]bool{};ids,e:=hir.EligibleRegionCompareSites(a);must(e);if kind=="orphanOrigin"{extra,_:=nanz.Parse(src,"origin.nanz");loop:=b.FuncByName("region_eq").Body.Body[1];o:=b.SourceLocations[loop];delete(b.SourceLocations,loop);b.SourceLocations[extra.FuncByName("region_eq").Body.Body[1]]=o};if kind=="policy"{b.GraceRulePolicy=map[string]bool{"hir-constant-if":true}};_,e=hir.ValidateRegionCompareChoices(a,b,map[string]bool{ids[0]:false});fmt.Println(kind,"accepted",e==nil,"err",e)}}
+func must(e error){if e!=nil{panic(e)}}

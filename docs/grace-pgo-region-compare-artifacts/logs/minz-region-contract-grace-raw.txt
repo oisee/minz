@@ -1,0 +1,5 @@
+=== RUN   TestRegionCompareContractRawDomain
+    region_compare_test.go:87: independent ordered-read cases 39044
+--- PASS: TestRegionCompareContractRawDomain (14.02s)
+PASS
+ok  	github.com/minz/minzc/pkg/hir	14.033s

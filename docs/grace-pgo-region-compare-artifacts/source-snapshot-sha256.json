@@ -1,0 +1,58 @@
+[
+  {
+    "path": "sources/examples/nanz/grace_tokenizer_checked.nanz",
+    "sha256": "d689844c9ca68d9d352d0ef863fd0c51b3a8166735138fcbfe821790daceff5a"
+  },
+  {
+    "path": "sources/minzc/pkg/hir/forward_copy_profile.go",
+    "sha256": "69ea8ece7f150054b21ad7d4a8e2d2c3f0c0bfd20c37c4b691b2eceac42bb4c3"
+  },
+  {
+    "path": "sources/minzc/pkg/hir/grace.go",
+    "sha256": "b7278a6b383edd0c6858f8c6b8e1831f527d1aa7063ced14fa3d88e623eef235"
+  },
+  {
+    "path": "sources/minzc/pkg/hir/hir.go",
+    "sha256": "1960cfe4d31ccdbccbd49d8e6b8633ed012492c8821b3af709a4cd94f08b5bd2"
+  },
+  {
+    "path": "sources/minzc/pkg/hir/mixed_copy_weighted.go",
+    "sha256": "30d1dff6b3601982574031830015bb1c3e1f06fadc09396c9a2b14177cf4dbf6"
+  },
+  {
+    "path": "sources/minzc/pkg/hir/profile_compat.go",
+    "sha256": "dfee6a2e3b6432df264ae78287e862a8b72b39e04f199a66edc29b8355162a60"
+  },
+  {
+    "path": "sources/minzc/pkg/hir/profile_policy.go",
+    "sha256": "6e81c8c732ffda540b26c61e33bd67d127053d2494cedc9e66811d22ddc2cecb"
+  },
+  {
+    "path": "sources/minzc/pkg/hir/region_compare.go",
+    "sha256": "228400c3906c5df12c280c7f30d246d687de0a9f6d25925eceb62b71f36a1ed5"
+  },
+  {
+    "path": "sources/minzc/pkg/hir/region_compare_profile.go",
+    "sha256": "47c2544330e42c5d1965bb6e67e74ebdba62a5b728b27b16af0a55b57c3acdb6"
+  },
+  {
+    "path": "sources/minzc/pkg/hir/region_compare_split.go",
+    "sha256": "446858bad5e6dec27636d3e0c2d716013d5b9f72a241030e9fb04a0349125593"
+  },
+  {
+    "path": "sources/minzc/pkg/hir/region_compare_test.go",
+    "sha256": "2a8c4237fd46df81938dacf68f3a243ddeca255a0f3f25281cb80b1a9581145c"
+  },
+  {
+    "path": "sources/minzc/pkg/hir/rules/region_compare.grace",
+    "sha256": "09eecf3d2d93f2a6077bf3f127d55d502cc32899c4959c021210d08e1412d9bb"
+  },
+  {
+    "path": "sources/minzc/pkg/pipeline/profile_region_compare.go",
+    "sha256": "ec0140764125bf5cd9fdb16b05bce6b88cb78c56dc7890a2602be771de88bc78"
+  },
+  {
+    "path": "sources/minzc/pkg/pipeline/profile_region_compare_test.go",
+    "sha256": "92422338160f1e338d095fa03b80b166fb765e55baf005815159e607a8956699"
+  }
+]

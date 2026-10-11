@@ -96,6 +96,7 @@ func TargetFromString(s string) uint8 {
 
 // Module is the top-level HIR unit.
 type Module struct {
+	RegionComparePolicy map[string]bool         `json:"-"` // explicit measured region-site allowlist; nil never enables the rule
 	InvariantBasePolicy map[string]bool         `json:"-"` // nil defaults; source-site allowlist requires seeded lineage
 	GraceRulePolicy     map[string]bool         `json:"-"` // nil: defaults; explicit common-rule choices for measured variants
 	ForwardCopyPolicy   map[string]bool         `json:"-"` // explicit measured copy-site allowlist; nil only for manual rule opt-in

@@ -1,0 +1,15 @@
+=== RUN   TestRegionComparePrototypeRaw
+    region_compare_prototype_test.go:86: raw domain 6144
+--- PASS: TestRegionComparePrototypeRaw (1.05s)
+=== RUN   TestRegionComparePrototypeExactRefusals
+=== RUN   TestRegionComparePrototypeExactRefusals/extra_read
+=== RUN   TestRegionComparePrototypeExactRefusals/stride
+=== RUN   TestRegionComparePrototypeExactRefusals/reverse_reads
+=== RUN   TestRegionComparePrototypeExactRefusals/wrong_return
+--- PASS: TestRegionComparePrototypeExactRefusals (0.00s)
+    --- PASS: TestRegionComparePrototypeExactRefusals/extra_read (0.00s)
+    --- PASS: TestRegionComparePrototypeExactRefusals/stride (0.00s)
+    --- PASS: TestRegionComparePrototypeExactRefusals/reverse_reads (0.00s)
+    --- PASS: TestRegionComparePrototypeExactRefusals/wrong_return (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.060s

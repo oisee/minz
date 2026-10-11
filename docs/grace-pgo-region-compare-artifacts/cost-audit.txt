@@ -1,0 +1,2 @@
+PASS region-size-false-evidence.json.gz costs [(2270286, 4346), (2214152, 4732)] selected 1 binary SHA/cost sum/winner/selected binary
+PASS region-size-true-evidence.json.gz costs [(2270286, 4346), (2214152, 4732)] selected 0 binary SHA/cost sum/winner/selected binary

@@ -1,0 +1,4 @@
+package main
+import("fmt";"github.com/minz/minzc/pkg/hir";"github.com/minz/minzc/pkg/mir2";"github.com/minz/minzc/pkg/nanz")
+const source=`fun region_eq(src:^u8,arena:^u8,src_start:u16,arena_ptr:u16,len:u8)->u8 {var i:u8=0 while i<len {if src[src_start+i]!=arena[arena_ptr+1+i] {return 0} i=i+1} return 1}`
+func main(){for _,opt:=range []bool{false,true}{m,_:=nanz.Parse(source,"global-i.nanz");m.Globals=append(m.Globals,mir2.Global{Name:"i",Ty:mir2.TyU8,Init:[]byte{0}});if opt{if e:=hir.ApplyRegionComparePrototype(m,"region_eq");e!=nil{panic(e)}};vm:=mir2.NewVM(hir.LowerModule(m));vm.MaxSteps=10000;vm.EnsureHeap(4096);mem:=make([]byte,4096);for i:=range mem{mem[i]=7};vm.WriteHeapSlice(0,mem);r,e:=vm.Call("region_eq",[]mir2.Value{{I:1024},{I:2048},{I:0},{I:0},{I:2}});fmt.Println("optimized",opt,"result",r,"error",e)}}

@@ -74,7 +74,7 @@ func MeasureMixedCopyWeightedVariantSets(factory func() (*hir.Module, error), ob
 	retained := []*hir.Module{}
 	var key *hir.ProfileCompatibility
 	clean := func(m *hir.Module) bool {
-		return m != nil && m.ForwardCopyPolicy == nil && m.PointerWalkPolicy == nil && m.GraceRulePolicy == nil && m.InvariantBasePolicy == nil && m.LoopLineage == nil
+		return m != nil && m.RegionComparePolicy == nil && m.ForwardCopyPolicy == nil && m.PointerWalkPolicy == nil && m.GraceRulePolicy == nil && m.InvariantBasePolicy == nil && m.LoopLineage == nil
 	}
 	fresh := func() (*hir.Module, error) {
 		m, err := factory()

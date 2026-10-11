@@ -1,0 +1,35 @@
+# Independent region comparison contract review
+
+Read-only review of the old peeled-first-byte prototype and new isolated `/tmp/minz-region-compare-contract` source/proof. No compiler edits by reviewer. Source/proof remains isolated and needs actual assembled-Z80 caller validation before any production acceptance or speed selection.
+
+## Arithmetic and ordered-read contract
+
+For the exact source, comparison i reads `u16(src + u16(src_start+i))` first, then `u16(arena + u16(arena_ptr+1+i))`. Mismatch returns before increment. Byte i ranges 0..len-1 for len 0..255 and cannot overflow on successful source completion. Zero has no loads; one has precisely its first pair. The peeled pair uses these original IndexExpr trees, not precomputed physical addresses; guard/setup happens only after both reads succeeded and matched. Fallback must start i=1 and retain the original loop, with no repeat of byte0. Each successful read and first failing address/order are observable, including aliases and equal physical addresses.
+
+For len>=2, `limit=65535-u16(len)` and `right_limit=limit-1` cannot underflow. Four guards independently bound logical offsets and physical base additions. Left physical end is src+start+len<=65535; right is arena+offset+1+len<=65535. Tail reads are at i1..len-1, final pointer updates are one-past and remain representable. This guard is conservative (rejecting some source-valid boundary cases) but fallback preserves those modular cases. A weaker guard must independently re-prove logical addition wrapping as well as physical wrapping. Hoisting the first right read ahead of the left or executing any guard loads/calls/stores is excluded by the exact tree checks.
+
+The fast branch leaves original local i=1 instead of len. This is safe only because the recognized whole function has no postloop observation of i and ends unconditional return1. Any later read, return i, side effect, callback/capture, global i or externally visible induction update must be excluded or the update made equivalent.
+
+## Concrete found acceptance bug and resolved exclusions
+
+The old prototype accepts a module global named i with its exact local i kernel. HIR Verify accepts the shadow; existing lowerAssign resolves globals before local SSA. Equal len2 original hits gas10000 because local i never advances; peeled fast candidate returns1. Repro `/tmp/minz-region-global-i-repro.go` and `.txt`. New finder rejects every original binding name colliding with module globals/functions, including i; this is necessary until a separate baseline scope/global-resolution fix. Generated pointer/limit/index names must be fresh across source globals, functions, parameters, capture and body declarations. The new exact whole-function finder already rejects extra local declarations and uses a reserved set plus parameter/index bindings.
+
+Full function metadata must be compared, including parameter RegClass/SMC, IsIO, ExternAddr/ExternClobbers, captures, RetTy/RetTys. The new finder refuses nondefault parameter contracts and effect/extern metadata, while validator compares the complete function with only body cleared. Unrelated module bodies/globals/target/sourceunits must remain byte/structurally equal.
+
+## Source attribution and compound proof
+
+Initially the new per-site validator erased whole LoopLineage and scanned only chosen root, so unrelated markers and orphan keys were unbound. Source agent fixed global checking before both enabled and disabled proof exits. Independent `/tmp/minz-region-proof-lineage-repro.go/.txt`: clean disabled proof passes; unreachable orphan, unrelated loop reassigned chosenID, and missing unrelated marker all reject. Every actual loop needs exactly one recognized source marker, generated fast/fallback exactly two markers for one source site, and unrelated loops retain exact original function/path/role/rule. Extra origin entries must not silently invent provenance; origin-bearing old nodes retain exact origin coordinates and source hashes after moving to fallback. The complete multi-choice API must validate every recognized requested/unrequested choice, not certify a single kernel while admitting arbitrary changes to another eligible kernel.
+
+## Independent raw oracle
+
+`/tmp/minz-region-contract-review.go` independently computes sequential modular addresses, result, ordered successful load events, first trap cause/address, and full unchanged memory for both original and old peeled prototype. Every u8 length and every mismatch position/equality are exercised with seven separate/alias/wrap layouts, plus heaps16..32 and first/second/tail traps. Aliases can make an injected mismatch affect earlier positions; the host sequential oracle always computes the actual first mismatch. Initial own shortheap1 case was invalid because VM preallocates function-name tag; it was corrected to16..32. This was a harness issue, not compiler evidence. Final terminal PASS in `/tmp/minz-region-contract-review.txt`: 230,272 full64K cases plus 170 shortheap trap cases, 230,442 total, original/prototype both match independent sequential oracle.
+
+Raw equality does not establish native code generation, ABI, actual traffic attribution or speed. Existing saved full-tokenizer candidate is isolated2,214,152T/4,732B versus original2,270,286T/4,346B; production copy composition and selector are unmeasured here. Those numbers must remain attributed to the historical candidate and exact saved corpus.
+
+## Follow-up native split normalization review
+
+`region_compare_split.go` is now an independent prefix+helper suffix normalizer: exact terminal call naming/cut, helper metadata, typed sorted lexical arguments, unchanged expanded suffix, no extra functions, bounded helper depth. It does not rerun the production splitter. Found initial partial-return acceptance risk: joined-prefix return presence cannot certify a suffix that falls through. Fixed by explicit value-return exit checking for nonvoid helpers; unsupported mixed implicit fallthrough is refused. Own `/tmp/minz-region-split-review.go/.txt` confirms refusal.
+
+Live local arrays were initially accepted as scalar element-type parameters, despite lowerer array-address metadata and potential byte ABI truncation. New checker refuses forwarded arrays/fixed-address declarations and module-function aliases/copies rather than silently dropping their storage metadata. Own small-address VM example happened to return9 both, so it is not presented as demonstrated wrong-code; the unsupported interface is now refused. Actual helpers for the target tokenizer use ordinary scalar/pointer bindings.
+
+Latest complete origin/policy probe `/tmp/minz-region-proof-origin-repro.go` with proper empty policy maps: clean passes; detached identical origin node rejects; enabled unrelated Grace policy rejects. `regionCompareLineage` also rejects orphan/missing/unrelated markers. The full compiled-proof normalization composes through complete choices and preserves original source-bearing nodes; raw semantic oracle alone remains insufficient for native ABI correctness.

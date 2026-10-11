@@ -1,0 +1,9 @@
+global i accepted true err <nil>
+global __region_left accepted false err reserved collision
+global __region_right accepted false err reserved collision
+global __region_elem accepted false err reserved collision
+global __region_limit accepted false err reserved collision
+global __region_right_limit accepted false err reserved collision
+global src accepted true err <nil>
+global arena accepted true err <nil>
+global len accepted true err <nil>
