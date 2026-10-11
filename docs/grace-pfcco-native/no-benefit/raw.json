@@ -1,0 +1,379 @@
+{
+  "accesses": [
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": {
+          "reads": [
+            2,
+            2
+          ],
+          "writes": [
+            2,
+            2
+          ]
+        }
+      },
+      "resources": {}
+    }
+  ],
+  "profile": {
+    "guards": [],
+    "compatibility": {
+      "schema": "minz.loop-profile-compatibility/v1",
+      "context": {
+        "compiler_id": "executable-sha256:9ed2d48fcae4b6a779cb7db236779e18c7d0c17c9ae303c404cb22c936ca3625",
+        "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+        "target_id": "module-target:0/model:cpm-z80-v1",
+        "workload_sha256": "0710e7b0cfded1f836e0493a0fa54f1d107d4de37f78dd9f1cea7b3d054247fb",
+        "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+        "dependencies": {
+          "../../../examples/nanz/pfcco_weighted_packet.nanz": "6e6e8676a5dee639fa8c5532c4790a50c1289f20ab10aba692111834121ba8d7"
+        }
+      },
+      "hir_sha256": "7f5f84c11a4f8b20974711458cb83666ffc82ac8c804b00a253d517122ec45cb",
+      "origins_sha256": "b62fe5aba3aff28265b09a68fa8d38d82148cfaec382997a47638a03d3bc5519"
+    },
+    "schema": "minz.input-hir-loop-observations/v5",
+    "stage": "unoptimised-mir2-vm",
+    "sites": {
+      "schema": "minz.hir-loop-sites/v1",
+      "stage": "input-hir",
+      "sites": [],
+      "unmapped_loops": 0
+    },
+    "counts": [],
+    "completed_calls": 13,
+    "failed_calls": 0
+  },
+  "results": [
+    [
+      {
+        "I": 257
+      }
+    ],
+    [
+      {
+        "I": 2817
+      }
+    ],
+    [
+      {
+        "I": 267
+      }
+    ],
+    [
+      {
+        "I": 2827
+      }
+    ],
+    [
+      {
+        "I": 1531
+      }
+    ],
+    [
+      {
+        "I": 64261
+      }
+    ],
+    [
+      {
+        "I": 503
+      }
+    ],
+    [
+      {
+        "I": 63233
+      }
+    ],
+    [
+      {
+        "I": 63479
+      }
+    ],
+    [
+      {
+        "I": 503
+      }
+    ],
+    [
+      {
+        "I": 63233
+      }
+    ],
+    [
+      {
+        "I": 25947
+      }
+    ],
+    [
+      {
+        "I": 23397
+      }
+    ]
+  ],
+  "snapshots": [
+    {
+      "globals": {
+        "packet_trace": "+v8="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "+/8="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "/P8="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "/v8="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "MQA="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "ZAA="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "YwE="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "YgI="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "YAQ="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "XwU="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "XgY="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "cQY="
+      },
+      "resources": {}
+    },
+    {
+      "globals": {
+        "packet_trace": "hAY="
+      },
+      "resources": {}
+    }
+  ],
+  "globals": {
+    "packet_trace": "hAY="
+  },
+  "resources": {}
+}

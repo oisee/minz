@@ -1,0 +1,24 @@
+// Stateful packet workload built from 06_pbqp_weighted.nanz's accumulator.
+// Both caller arguments remain live across calls. Unsigned values wrap.
+global packet_trace: u16 = 0
+
+fun weighted_call(tag: u8, x: u8) -> u8 {
+    packet_trace = packet_trace + u16(tag)
+    var heavy: u8 = x
+    heavy = heavy + x
+    heavy = heavy + x
+    heavy = heavy + x
+    heavy = heavy + x
+    heavy = heavy + x
+    heavy = heavy + x
+    heavy = heavy + x
+    heavy = heavy + x
+    heavy = heavy + x
+    return heavy + 1
+}
+
+fun weighted_packet(a: u8, b: u8) -> u16 {
+    var first: u8 = weighted_call(a, b)
+    var second: u8 = weighted_call(b, a)
+    return u16(first) * 256 + u16(second)
+}
