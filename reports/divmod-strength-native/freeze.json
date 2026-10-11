@@ -1,0 +1,30 @@
+{
+  "sources": {
+    "divmod10_test": "2c183337ceb6c7df4299d3db49cf0c43065a6aa3641152b5d1dfab85630b1678",
+    "mul8_strength_reduction": "0083244993e5cb7216c3d0a75f806d2219a2c0ae534cdbc5295c596f5858c4e8"
+  },
+  "unary_domain": "all256u8inputs",
+  "div10_model": "floor(n/10)",
+  "mod10_model": "n-10*floor(n/10)",
+  "multipliers": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    12,
+    15,
+    16
+  ],
+  "mul_model": "(x*k) modulo256",
+  "board_idx_domain": "all65536orderedu8(x,y)pairs",
+  "board_model": "(10*y+x) modulo256",
+  "main": "exactfulloriginalmain; sourcepureunusedlocalsmaybeDCE butsourceunchanged",
+  "source_asserts": "all20mul module asserts explicitly executed"
+}
