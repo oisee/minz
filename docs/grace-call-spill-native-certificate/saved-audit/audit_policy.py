@@ -19,6 +19,14 @@ def audit_dir(p):
   q=p/name;e=obj(q/'baseline-v2.json');b=e['baseline'];t=b['target'];binary=base64.b64decode(t['binary']);origin=b['workload']['layout']['code_origin']
   subprocess.run(['/home/alice/dev/minz-artifacts/grace-checkpoints/call-spill-audit-typed',str(q)],check=True)
   assert selection['candidates'][idx]['evidence']==e
+  proof=selection['candidates'][idx]['precompile_proof'];choices={'arena_peel':bool(idx&1),'append_hoist':bool(idx&2)}
+  assert proof['schema']=='minz.exact-memory-host-arena-append-precompile/v1' and proof['choices']==choices==selection['candidates'][idx]['choices']
+  assert proof['source_sites']==selection['source_sites'] and proof['actual_compatibility']==b['compatibility'] and proof['actual_functions']==b['function_sites']
+  orig=selection['association']['baseline']['baseline']
+  assert proof['original_compatibility']==orig['compatibility'] and proof['original_functions']==orig['function_sites']
+  assert set(b['function_sites']['source_units'].values())=={sha((p/'source.nanz').read_bytes())}
+  assert b['workload']==obj(p/'workload.json')
+
   assert e['compile_options']==selection['compile_options']
   assert t['context']['compiler_id']=='executable-sha256:4d818aab4c5bbae1e5e794a7d6c1f9c8d22e1421f651c174fdc908a3f1b3d653'
   sameobs(b['raw']['invocations'],t['invocations'])
