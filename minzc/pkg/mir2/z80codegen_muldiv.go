@@ -941,6 +941,10 @@ func (g *z80cg) genPow2DivMod(inst *Inst, k int64, signed bool) {
 				g.emit("    LD H, A")
 			}
 		}
+	} else if !signed && w == 16 && k == 256 {
+		// Logical division by 256 extracts the original high byte.
+		g.emit("    LD L, H")
+		g.emit("    LD H, 0")
 	} else {
 		for v := k; v > 1; v >>= 1 {
 			if w == 16 {
