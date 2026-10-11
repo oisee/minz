@@ -1,0 +1,9 @@
+{
+  "runtime_checkpoint": "dc4a65dd",
+  "files": {
+    "minzc/pkg/pipeline/memory_host_call_frame.go": "3286d05301ed2bc494f82eb6437c01f525c44fb7543ed7042890d5374c92860a",
+    "minzc/pkg/pipeline/memory_host_z80_memory.go": "010a70efb98bc3d66704c14742232582b5889a47644c09776f1bca2f110494a9",
+    "minzc/pkg/mir2/native_call_frame.go": "06d6ba17282ae06e1ad6c758961456f3dde738b6f48be9d9c99e0e4127d293be",
+    "minzc/pkg/mir2/z80codegen_call.go": "dc4949465efa726f780314dcd5ba6a0a2ee79bc62246d2421f50c8dd12ff7af2"
+  }
+}
