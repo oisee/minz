@@ -1,0 +1,66 @@
+; MIR2 module: reports/showcase-src/2026-03-14/ex27_strings.nanz
+string @mir2.str.0 = "Hello, World!"
+string @mir2.str.1 = "Pascal-style string"
+string @mir2.str.2 = "Long string with u16 prefix"
+string @mir2.str.3 = "This is a\nmulti-line string\nwith triple quotes"
+
+fun @greet()
+  block @entry:
+    %r1 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r2 = move %r1 : ptr [pointer]
+    call @@mir.io.print.str(%r2)
+    ret void
+
+fun @greet_pascal()
+  block @entry:
+    %r3 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r4 = load %r3 : u8 [general]
+    %r5 = const 1 : u16 [pointer]
+    %r6 = add %r3, %r5 : ptr [acc]
+    jmp @loop_head3(%r4, %r6)
+  block @loop_head3(%r7: u8 [general], %r8: ptr [general]):
+    %r9 = const 0 : u8 [general]
+    %r10 = cmp.ne %r7, %r9 : bool [flag]
+    br_if %r10, @loop_body4(), @loop_exit5(%r7, %r8)
+  block @loop_body4:
+    %r11 = load %r8 : u8 [general]
+    %r12 = move %r11 : u8 [acc]
+    call @@mir.io.print.char(%r12)
+    %r13 = const 1 : u16 [pointer]
+    %r14 = add %r8, %r13 : ptr [general]
+    %r15 = const 1 : u8 [general]
+    %r16 = sub %r7, %r15 : u8 [general]
+    jmp @loop_head3(%r16, %r14)
+  block @loop_exit5(%r17: u8 [general], %r18: ptr [general]):
+    ret void
+
+fun @greet_long()
+  block @entry:
+    %r19 = addr_of @@mir2.str.2 : ptr [pointer]
+    %r20 = load %r19 : u16 [pointer]
+    %r21 = const 2 : u16 [pointer]
+    %r22 = add %r19, %r21 : ptr [acc]
+    jmp @loop_head3(%r20, %r22)
+  block @loop_head3(%r23: u16 [pointer], %r24: ptr [general]):
+    %r25 = const 0 : u16 [pointer]
+    %r26 = cmp.ne %r23, %r25 : bool [flag]
+    br_if %r26, @loop_body4(), @loop_exit5(%r23, %r24)
+  block @loop_body4:
+    %r27 = load %r24 : u8 [general]
+    %r28 = move %r27 : u8 [acc]
+    call @@mir.io.print.char(%r28)
+    %r29 = const 1 : u16 [pointer]
+    %r30 = add %r24, %r29 : ptr [general]
+    %r31 = const 1 : u16 [pointer]
+    %r32 = sub %r23, %r31 : u16 [pointer]
+    jmp @loop_head3(%r32, %r30)
+  block @loop_exit5(%r33: u16 [pointer], %r34: ptr [general]):
+    ret void
+
+fun @multiline()
+  block @entry:
+    %r35 = addr_of @@mir2.str.3 : ptr [pointer]
+    %r36 = move %r35 : ptr [pointer]
+    call @@mir.io.print.str(%r36)
+    ret void
+
