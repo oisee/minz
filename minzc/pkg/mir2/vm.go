@@ -1289,16 +1289,14 @@ func sequentialByteInstruction(inst *Inst, byteIndex int) *Inst {
 // predicate and may invert the producer when the else-arm was folded.
 func conditionalCallTaken(fr *frame, inst *Inst) (bool, error) {
 	predicate := CmpNe // documented fallback for a non-comparison boolean
-	var producer *Inst
+	// Use the call's own block, exactly as FoldConditionalCalls does. A
+	// dominating comparison in another block intentionally uses CmpNe fallback.
 	for _, b := range fr.fn.Blocks {
 		for _, i := range b.Insts {
-			if i.Dst != NoReg && i.Dst == inst.Src[0] {
-				producer = i
+			if i == inst {
+				predicate = findCondForReg(b, inst.Src[0])
 			}
 		}
-	}
-	if producer != nil && producer.Op == OpCmp {
-		predicate = producer.Cond
 	}
 	take := fr.get(inst.Src[0]).I != 0
 	if inst.Cond == predicate {

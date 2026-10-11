@@ -73,3 +73,51 @@ func TestVMConditionalCallRejectsUnrelatedPredicate(t *testing.T) {
 		t.Fatal("ambiguous predicate executed", e, calls)
 	}
 }
+
+func TestVMConditionalCallBooleanAndNonlocalComparator(t *testing.T) {
+	for _, nonlocal := range []bool{false, true} {
+		for _, invert := range []bool{false, true} {
+			for _, value := range []int64{0, 1} {
+				m := &Module{}
+				f := m.AddFunc("entry")
+				b := NewBuilder(f)
+				b.SwitchToNewBlock("entry")
+				x := b.Param("condition", TyBool, ClassGeneral)
+				cond := x
+				if nonlocal {
+					zero := b.Const(0, TyBool, ClassGeneral)
+					cond = b.Cmp(CmpEq, x, zero, ClassFlag, false)
+					b.Jmp("callsite")
+					b.SwitchToNewBlock("callsite")
+				}
+				cc := CmpNe
+				if invert {
+					cc = CmpEq
+				}
+				b.Cur.Insts = append(b.Cur.Insts, &Inst{Op: OpCallCond, Src: [2]Reg{cond, NoReg}, Sym: "@observer", Ty: TyVoid, Cond: cc})
+				b.Ret()
+				calls := 0
+				vm := NewVM(m)
+				vm.Hosts["@observer"] = func([]Value) ([]Value, error) { calls++; return nil, nil }
+				_, e := vm.Call("entry", []Value{{I: value}})
+				if e != nil {
+					t.Fatal(e)
+				}
+				want := value != 0
+				if nonlocal {
+					want = !want
+				}
+				if invert {
+					want = !want
+				}
+				n := 0
+				if want {
+					n = 1
+				}
+				if calls != n {
+					t.Fatal(nonlocal, invert, value, calls, n)
+				}
+			}
+		}
+	}
+}
