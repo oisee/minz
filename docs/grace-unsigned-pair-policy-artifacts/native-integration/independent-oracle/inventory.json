@@ -1,0 +1,37 @@
+[
+  {
+    "path": "PUBLIC-AUDIT.md",
+    "sha256": "d6fa7864b5003af53ada64b4fd0d8706bebee3cbad43f81ac308d182c5b69016",
+    "bytes": 1391
+  },
+  {
+    "path": "REVIEW.md",
+    "sha256": "7d4109fba820405119a94d1050ad87f3c0c10130e94bf5759f67521d258566ad",
+    "bytes": 8865
+  },
+  {
+    "path": "audit_public.py",
+    "sha256": "f7d594ca9628eb0dad5da00a41e578573aec17c2c04eaf2394166953e6c5d144",
+    "bytes": 3378
+  },
+  {
+    "path": "model/verify_corpus.py",
+    "sha256": "133ca68609f7b7c326efbfc55c91b5fbe2269555051f6aebd5b9817a7b8165ed",
+    "bytes": 9529
+  },
+  {
+    "path": "public-audit.json",
+    "sha256": "abfd4e97459305718704098d20117ea88bddd5b313abedbd30ff4483effe5fea",
+    "bytes": 1488
+  },
+  {
+    "path": "public-audit.txt",
+    "sha256": "0bfbf84af9463e9d570de7fff4754d7db1123e3b0a506e05de684bab51422652",
+    "bytes": 160
+  },
+  {
+    "path": "review-input.json",
+    "sha256": "d7cb459605a021cdbb5572ea6650b58a2484d55cb85e97f04ea54e5de0dad33e",
+    "bytes": 323
+  }
+]

@@ -1,0 +1,56 @@
+=== RUN   TestUnsignedPairThirdLivePairAndHalfNative
+    unsigned_pair_compare_extended_test.go:110: actual third pair/half preservation and typed returns: 112 cases
+--- PASS: TestUnsignedPairThirdLivePairAndHalfNative (0.00s)
+=== RUN   TestUnsignedPairEligibilityGuards
+=== RUN   TestUnsignedPairEligibilityGuards/A
+=== RUN   TestUnsignedPairEligibilityGuards/AF
+=== RUN   TestUnsignedPairEligibilityGuards/overrideA
+=== RUN   TestUnsignedPairEligibilityGuards/overrideSamePair
+=== RUN   TestUnsignedPairEligibilityGuards/pendingAcc
+=== RUN   TestUnsignedPairEligibilityGuards/pendingFlag
+=== RUN   TestUnsignedPairEligibilityGuards/constantLhs
+=== RUN   TestUnsignedPairEligibilityGuards/constantRhs
+=== RUN   TestUnsignedPairEligibilityGuards/IX
+=== RUN   TestUnsignedPairEligibilityGuards/IY
+=== RUN   TestUnsignedPairEligibilityGuards/spill
+=== RUN   TestUnsignedPairEligibilityGuards/legacy
+=== RUN   TestUnsignedPairEligibilityGuards/unknownPolicy
+=== RUN   TestUnsignedPairEligibilityGuards/signed
+=== RUN   TestUnsignedPairEligibilityGuards/twoTest
+=== RUN   TestUnsignedPairEligibilityGuards/flagsOnly
+=== RUN   TestUnsignedPairEligibilityGuards/sourceI16
+=== RUN   TestUnsignedPairEligibilityGuards/byteSource
+=== RUN   TestUnsignedPairEligibilityGuards/nonFlagDst
+--- PASS: TestUnsignedPairEligibilityGuards (0.00s)
+    --- PASS: TestUnsignedPairEligibilityGuards/A (0.00s)
+    --- PASS: TestUnsignedPairEligibilityGuards/AF (0.00s)
+    --- PASS: TestUnsignedPairEligibilityGuards/overrideA (0.00s)
+    --- PASS: TestUnsignedPairEligibilityGuards/overrideSamePair (0.00s)
+    --- PASS: TestUnsignedPairEligibilityGuards/pendingAcc (0.00s)
+    --- PASS: TestUnsignedPairEligibilityGuards/pendingFlag (0.00s)
+    --- PASS: TestUnsignedPairEligibilityGuards/constantLhs (0.00s)
+    --- PASS: TestUnsignedPairEligibilityGuards/constantRhs (0.00s)
+    --- PASS: TestUnsignedPairEligibilityGuards/IX (0.00s)
+    --- PASS: TestUnsignedPairEligibilityGuards/IY (0.00s)
+    --- PASS: TestUnsignedPairEligibilityGuards/spill (0.00s)
+    --- PASS: TestUnsignedPairEligibilityGuards/legacy (0.00s)
+    --- PASS: TestUnsignedPairEligibilityGuards/unknownPolicy (0.00s)
+    --- PASS: TestUnsignedPairEligibilityGuards/signed (0.00s)
+    --- PASS: TestUnsignedPairEligibilityGuards/twoTest (0.00s)
+    --- PASS: TestUnsignedPairEligibilityGuards/flagsOnly (0.00s)
+    --- PASS: TestUnsignedPairEligibilityGuards/sourceI16 (0.00s)
+    --- PASS: TestUnsignedPairEligibilityGuards/byteSource (0.00s)
+    --- PASS: TestUnsignedPairEligibilityGuards/nonFlagDst (0.00s)
+=== RUN   TestUnsignedPairPolicyLegacyAndUnknownRefusal
+--- PASS: TestUnsignedPairPolicyLegacyAndUnknownRefusal (0.00s)
+=== RUN   TestUnsignedPairRepeatedAfterArithmeticNative
+--- PASS: TestUnsignedPairRepeatedAfterArithmeticNative (0.00s)
+=== RUN   TestExperimentalUnsignedPairCompareNative
+--- PASS: TestExperimentalUnsignedPairCompareNative (0.01s)
+=== RUN   TestExperimentalUnsignedPairCompareFallback
+--- PASS: TestExperimentalUnsignedPairCompareFallback (0.00s)
+=== RUN   TestExperimentalUnsignedPairPendingAndConstantRefusal
+--- PASS: TestExperimentalUnsignedPairPendingAndConstantRefusal (0.00s)
+=== RUN   TestExperimentalUnsignedPairCacheState
+--- PASS: TestExperimentalUnsignedPairCacheState (0.00s)
+PASS

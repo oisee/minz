@@ -1,0 +1,4 @@
+=== RUN   TestUnsignedPairPolicyOriginalParserExport
+    unsigned_pair_policy_test.go:193: open ../../../examples/nanz/self_lanz_parser.nanz: no such file or directory
+--- FAIL: TestUnsignedPairPolicyOriginalParserExport (0.01s)
+FAIL

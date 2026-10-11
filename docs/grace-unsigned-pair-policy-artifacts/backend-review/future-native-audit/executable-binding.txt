@@ -1,0 +1,1 @@
+PASS preserved executable SHA e64597309250ac45b88ac9b31bd2b01c3e3ed05536cea761eb41f6fa9ae9b1a8 equals both public contexts; native payloads exact earlier experimental original/compare hashes, per-call T/steps/state.

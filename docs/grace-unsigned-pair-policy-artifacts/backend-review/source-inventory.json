@@ -1,0 +1,26 @@
+[
+  {
+    "path": "minzc/pkg/mir2/unsigned_pair_compare.go",
+    "sha256": "2fa3a2c744079a692c82beb2a04099d8af12cb04111bf3e57d864ade0cff6fd3"
+  },
+  {
+    "path": "minzc/pkg/mir2/unsigned_pair_compare_extended_test.go",
+    "sha256": "95ddf8547cc12c13c694842ad034cf09961b9bdcdba6b1373b7f6327bedc29f4"
+  },
+  {
+    "path": "minzc/pkg/mir2/unsigned_pair_compare_repeated_test.go",
+    "sha256": "cb01144a84b055e4843464b94ae914d8687784024f526cdc9d41baabb8b135a4"
+  },
+  {
+    "path": "minzc/pkg/mir2/unsigned_pair_compare_test.go",
+    "sha256": "36cd6ffe0a19da1cdc669367ef831605214bc770d1b30f9dc9c80098383ea69c"
+  },
+  {
+    "path": "minzc/pkg/mir2/z80codegen.go",
+    "sha256": "f400d68daea756fc95f6a56c9e7d67a107bd0f0176213fd0083ff1448603752b"
+  },
+  {
+    "path": "minzc/pkg/mir2/z80codegen_cmp.go",
+    "sha256": "c15446b9198741de626e02036fa6446e7200aaaf5545debe34c5bc64860711f6"
+  }
+]

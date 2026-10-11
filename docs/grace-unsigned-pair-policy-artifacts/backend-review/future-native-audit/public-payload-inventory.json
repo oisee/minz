@@ -1,0 +1,62 @@
+[
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/unsigned-pair-policy-evidence/public-baselines/legacy/allocation.json",
+    "bytes": 17418,
+    "sha256": "9af8fdfdeb8d341f6f28097323c96a5b59d1fee911045b363782e8e64e0d8976"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/unsigned-pair-policy-evidence/public-baselines/legacy/baseline-v2.json",
+    "bytes": 2281481,
+    "sha256": "17da077881f763896435d2c0d174735434c3349041727df4a10f3c51618b497b"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/unsigned-pair-policy-evidence/public-baselines/legacy/final.mir2",
+    "bytes": 25214,
+    "sha256": "7c6d066dba853d5612611b53a442e5a355d1480e31d0c0225feff75525fbd913"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/unsigned-pair-policy-evidence/public-baselines/legacy/source.nanz",
+    "bytes": 7164,
+    "sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/unsigned-pair-policy-evidence/public-baselines/legacy/target.a80",
+    "bytes": 29352,
+    "sha256": "50adcc358a40137344cfeed0e6e6130864823a210037f7982187c2bc69fae74f"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/unsigned-pair-policy-evidence/public-baselines/legacy/target.bin",
+    "bytes": 2000,
+    "sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/unsigned-pair-policy-evidence/public-baselines/preserve-speed/allocation.json",
+    "bytes": 17418,
+    "sha256": "9af8fdfdeb8d341f6f28097323c96a5b59d1fee911045b363782e8e64e0d8976"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/unsigned-pair-policy-evidence/public-baselines/preserve-speed/baseline-v2.json",
+    "bytes": 2281526,
+    "sha256": "a9868fc6a6d104817c0341d349e328ceaddc4345e618deadf4f26161dc2c3cff"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/unsigned-pair-policy-evidence/public-baselines/preserve-speed/final.mir2",
+    "bytes": 25214,
+    "sha256": "7c6d066dba853d5612611b53a442e5a355d1480e31d0c0225feff75525fbd913"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/unsigned-pair-policy-evidence/public-baselines/preserve-speed/source.nanz",
+    "bytes": 7164,
+    "sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/unsigned-pair-policy-evidence/public-baselines/preserve-speed/target.a80",
+    "bytes": 29395,
+    "sha256": "6f48757936c6ac0dd7404cfde78aad42c029ee4de7c4694d1bc92262facff081"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/unsigned-pair-policy-evidence/public-baselines/preserve-speed/target.bin",
+    "bytes": 2001,
+    "sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd"
+  }
+]

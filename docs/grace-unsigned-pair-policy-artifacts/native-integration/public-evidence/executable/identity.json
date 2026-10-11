@@ -1,0 +1,7 @@
+{
+  "sha256": "e64597309250ac45b88ac9b31bd2b01c3e3ed05536cea761eb41f6fa9ae9b1a8",
+  "bytes": 22457362,
+  "gzip_mtime": 0,
+  "availability": "exact executed binary preserved; decompress then chmod +x",
+  "build": "go test -c -buildvcs=false"
+}
