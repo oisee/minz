@@ -68,7 +68,7 @@ func MeasureOrderedByteRWFunctionVariantSets(factory func() (*hir.Module, error)
 		return fail(err)
 	}
 	workload = owned
-	seen := map[uintptr]bool{}
+	seen := map[uintptr]any{}
 	retained := []*hir.Module{}
 	var key *hir.ProfileCompatibility
 	var inputSites *hir.FunctionSiteMap

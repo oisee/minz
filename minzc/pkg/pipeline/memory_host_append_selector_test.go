@@ -297,7 +297,7 @@ func TestMemoryHostAppendSelectorCapAndGC(t *testing.T) {
 		t.Fatal("oversizedprofile reached factory")
 	}
 	shared, _ := memoryHostParserFixture(t)
-	seen := map[uintptr]bool{}
+	seen := map[uintptr]any{}
 	roots := []any{}
 	if e := jointCheckFreshHIR(shared, seen); e != nil {
 		t.Fatal(e)

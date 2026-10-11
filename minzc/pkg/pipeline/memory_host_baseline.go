@@ -58,7 +58,7 @@ func runZ80MemoryHostBaseline(factory func() (*hir.Module, error), workload hir.
 	if e != nil {
 		return fail(e)
 	}
-	seen := map[uintptr]bool{}
+	seen := map[uintptr]any{}
 	retained := []*hir.Module{}
 	var compatibility *hir.ProfileCompatibility
 	var sites *hir.FunctionSiteMap

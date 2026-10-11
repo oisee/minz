@@ -68,7 +68,7 @@ func MeasureForwardCopySiteVariantSets(factory func() (*hir.Module, error), obse
 		return fail(err)
 	}
 	workload = owned
-	seen := map[uintptr]bool{}
+	seen := map[uintptr]any{}
 	retained := []*hir.Module{}
 	var key *hir.ProfileCompatibility
 	clean := func(m *hir.Module) bool {

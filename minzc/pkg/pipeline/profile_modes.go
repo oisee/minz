@@ -52,7 +52,7 @@ func MeasureCompilerModeVariants(factory func() (*hir.Module, error), workload h
 		return fail(e)
 	}
 	workload = owned
-	seen := map[uintptr]bool{}
+	seen := map[uintptr]any{}
 	retained := []*hir.Module{}
 	defer func() { runtime.KeepAlive(retained) }()
 	var key *hir.ProfileCompatibility

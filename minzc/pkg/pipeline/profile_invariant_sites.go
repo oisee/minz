@@ -104,7 +104,7 @@ func measureInvariantSiteVariantSets(factory func() (*hir.Module, error), observ
 		return fail(err)
 	}
 	workload = ownedWorkload
-	seen := map[uintptr]bool{}
+	seen := map[uintptr]any{}
 	retained := []*hir.Module{}
 	var key *hir.ProfileCompatibility
 	fresh := func() (*hir.Module, error) {

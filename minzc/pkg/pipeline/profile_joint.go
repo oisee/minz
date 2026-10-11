@@ -105,7 +105,7 @@ func measureProfileVariantSets(factory func() (*hir.Module, error), observations
 		return fail(err)
 	}
 	workload = ownedWorkload
-	seen := map[uintptr]bool{}
+	seen := map[uintptr]any{}
 	retained := []*hir.Module{}
 	var key *hir.ProfileCompatibility
 	fresh := func() (*hir.Module, error) {
@@ -364,8 +364,12 @@ func jointSortedGuards(in []hir.GuardCounts) []hir.GuardCounts {
 
 // Reject shared AST nodes and shared mutable backing storage, including globals
 // and source maps. Canonical immutable MIR type objects may be shared.
-func jointCheckFreshHIR(m *hir.Module, seen map[uintptr]bool) error {
-	current := map[uintptr]bool{}
+// Keep copied pointer/map/slice values alive for the whole operation: compilation
+// can detach nodes from retained modules, and uintptr alone permits GC/address
+// reuse to look like shared ownership. Reflect field values must not be retained
+// directly because they can follow later changes to the original field.
+func jointCheckFreshHIR(m *hir.Module, seen map[uintptr]any) error {
+	current := map[uintptr]any{}
 	traversed := map[uintptr]bool{}
 	var walk func(reflect.Value)
 	walk = func(v reflect.Value) {
@@ -391,14 +395,14 @@ func jointCheckFreshHIR(m *hir.Module, seen map[uintptr]bool) error {
 				return
 			}
 			traversed[p] = true
-			current[p] = true
+			current[p] = v.Interface()
 			walk(v.Elem())
 		case reflect.Map:
 			if v.IsNil() {
 				return
 			}
 			p := v.Pointer()
-			current[p] = true
+			current[p] = v.Interface()
 			if traversed[p] {
 				return
 			}
@@ -410,7 +414,7 @@ func jointCheckFreshHIR(m *hir.Module, seen map[uintptr]bool) error {
 			}
 		case reflect.Slice:
 			if !v.IsNil() && v.Cap() > 0 {
-				current[v.Pointer()] = true
+				current[v.Pointer()] = v.Interface()
 			}
 			for i := 0; i < v.Len(); i++ {
 				walk(v.Index(i))
@@ -429,10 +433,10 @@ func jointCheckFreshHIR(m *hir.Module, seen map[uintptr]bool) error {
 	}
 	walk(reflect.ValueOf(m))
 	for p := range current {
-		if seen[p] {
+		if _, exists := seen[p]; exists {
 			return fmt.Errorf("factory returned shared HIR nodes/storage")
 		}
-		seen[p] = true
+		seen[p] = current[p]
 	}
 	return nil
 }

@@ -99,7 +99,7 @@ func MeasureMemoryHostArenaAppendPolicySearch(factory func() (*hir.Module, error
 			return nil, e
 		}
 	}
-	seen := map[uintptr]bool{}
+	seen := map[uintptr]any{}
 	roots := []any{expected}
 	originals := []*hir.Module{}
 	defer func() { runtime.KeepAlive(roots); runtime.KeepAlive(originals) }()
