@@ -1,0 +1,42 @@
+{
+  "schema": "minz.original-corpus-frozen-domain/v1",
+  "base_commit": "ad092573",
+  "source": "examples/paper/outparam_swap.nanz",
+  "source_sha256": "557ec2d0ca09991b12edf50f86b8673803ab97bce2381476c22a2d246ad70fdf",
+  "authority": [
+    "Nanz Language Book v7 \u00a77.5 multi-return tuple order",
+    "Nanz Language Book v7 \u00a73.1 u8 modular arithmetic",
+    "unchanged source main return use_swap(3,7)"
+  ],
+  "cases": {
+    "swap": {
+      "x": "all0..255",
+      "y": "all0..255",
+      "expect": [
+        "y",
+        "x"
+      ]
+    },
+    "use_swap": {
+      "x": "all0..255",
+      "y": "all0..255",
+      "expect": [
+        "(x+y) mod256"
+      ]
+    },
+    "main": {
+      "args": [],
+      "expect": [
+        10
+      ]
+    }
+  },
+  "modes": [
+    "ordinary",
+    "grace-size",
+    "grace-speed"
+  ],
+  "per_mode_calls": 131073,
+  "native_contract": "real CALL to all three original function symbols, every tuple return ABI slot; main source is u8 return, not HALT; stop actual caller PC and restored SP",
+  "memory": "full65536 pristine outside dynamically observed stack writes and declared spill storage; guard code and inputs"
+}
