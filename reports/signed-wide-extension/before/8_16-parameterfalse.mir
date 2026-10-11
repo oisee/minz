@@ -1,0 +1,13 @@
+; MIR2 module: signed_embedding.nanz
+global @input : i8
+global @result : i16
+
+fun @embed()
+  block @entry:
+    %r1 = addr_of @input : ptr [pointer]
+    %r2 = load %r1 : i8 [general]
+    %r3 = sext %r2 : i8 -> i16 [pointer]
+    %r4 = addr_of @result : ptr [pointer]
+    store %r4, %r3 : i16
+    ret void
+

@@ -1,0 +1,814 @@
+--- FAIL: TestSignedExtensionNative (13.79s)
+    --- FAIL: TestSignedExtensionNative/8_16_B'_HL (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, B'
+                LD L, A
+                RLCA
+                SBC A, A
+                LD H, A
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_16_B'_DE (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, B'
+                LD E, A
+                RLCA
+                SBC A, A
+                LD D, A
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_16_B'_BC (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, B'
+                LD C, A
+                RLCA
+                SBC A, A
+                LD B, A
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_16_B'__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, B'
+                LD (_spill_ext_r2), A
+                RLCA
+                SBC A, A
+                LD (_spill_ext_r2+1), A
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_16_A'_HL (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, A'
+                LD L, A
+                RLCA
+                SBC A, A
+                LD H, A
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_16_A'_DE (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, A'
+                LD E, A
+                RLCA
+                SBC A, A
+                LD D, A
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_16_A'_BC (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, A'
+                LD C, A
+                RLCA
+                SBC A, A
+                LD B, A
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_16_A'__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, A'
+                LD (_spill_ext_r2), A
+                RLCA
+                SBC A, A
+                LD (_spill_ext_r2+1), A
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_24_A__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD (_spill_ext_r2), A
+                RLCA
+                SBC A, A
+                LD (_spill_ext_r2+1), A
+                EXX
+                LD (_spill_ext_r2), A
+                LD _spill_ext_r2+1, 0
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_24_C__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, C
+                LD (_spill_ext_r2), A
+                RLCA
+                SBC A, A
+                LD (_spill_ext_r2+1), A
+                EXX
+                LD (_spill_ext_r2), A
+                LD _spill_ext_r2+1, 0
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_24_H__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, H
+                LD (_spill_ext_r2), A
+                RLCA
+                SBC A, A
+                LD (_spill_ext_r2+1), A
+                EXX
+                LD (_spill_ext_r2), A
+                LD _spill_ext_r2+1, 0
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_24_IXL__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, IXL
+                LD (_spill_ext_r2), A
+                RLCA
+                SBC A, A
+                LD (_spill_ext_r2+1), A
+                EXX
+                LD (_spill_ext_r2), A
+                LD _spill_ext_r2+1, 0
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_24_IYH__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, IYH
+                LD (_spill_ext_r2), A
+                RLCA
+                SBC A, A
+                LD (_spill_ext_r2+1), A
+                EXX
+                LD (_spill_ext_r2), A
+                LD _spill_ext_r2+1, 0
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_24_B'_HL (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, B'
+                LD L, A
+                RLCA
+                SBC A, A
+                LD H, A
+                EXX
+                LD L, A
+                LD H, 0
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_24_B'_DE (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, B'
+                LD E, A
+                RLCA
+                SBC A, A
+                LD D, A
+                EXX
+                LD E, A
+                LD D, 0
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_24_B'_BC (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, B'
+                LD C, A
+                RLCA
+                SBC A, A
+                LD B, A
+                EXX
+                LD C, A
+                LD B, 0
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_24_B'__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, B'
+                LD (_spill_ext_r2), A
+                RLCA
+                SBC A, A
+                LD (_spill_ext_r2+1), A
+                EXX
+                LD (_spill_ext_r2), A
+                LD _spill_ext_r2+1, 0
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_24_A'_HL (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, A'
+                LD L, A
+                RLCA
+                SBC A, A
+                LD H, A
+                EXX
+                LD L, A
+                LD H, 0
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_24_A'_DE (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, A'
+                LD E, A
+                RLCA
+                SBC A, A
+                LD D, A
+                EXX
+                LD E, A
+                LD D, 0
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_24_A'_BC (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, A'
+                LD C, A
+                RLCA
+                SBC A, A
+                LD B, A
+                EXX
+                LD C, A
+                LD B, 0
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_24_A'__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, A'
+                LD (_spill_ext_r2), A
+                RLCA
+                SBC A, A
+                LD (_spill_ext_r2+1), A
+                EXX
+                LD (_spill_ext_r2), A
+                LD _spill_ext_r2+1, 0
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_24__spill_ext_r1__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, (_spill_ext_r1)
+                LD (_spill_ext_r2), A
+                RLCA
+                SBC A, A
+                LD (_spill_ext_r2+1), A
+                EXX
+                LD (_spill_ext_r2), A
+                LD _spill_ext_r2+1, 0
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_32_A__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:164: value=0 got=a5a50000 A/F=0/0 expected 0/0 PC/SP=300/eff2
+            ORG 32768
+                PUSH AF
+                LD (_spill_ext_r2), A
+                RLCA
+                SBC A, A
+                LD (_spill_ext_r2+1), A
+                EXX
+                LD (_spill_ext_r2), A
+                LD (_spill_ext_r2+1), A
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_32_C__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:164: value=0 got=a5a50000 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                PUSH AF
+                LD A, C
+                LD (_spill_ext_r2), A
+                RLCA
+                SBC A, A
+                LD (_spill_ext_r2+1), A
+                EXX
+                LD (_spill_ext_r2), A
+                LD (_spill_ext_r2+1), A
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_32_H__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:164: value=0 got=a5a50000 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                PUSH AF
+                LD A, H
+                LD (_spill_ext_r2), A
+                RLCA
+                SBC A, A
+                LD (_spill_ext_r2+1), A
+                EXX
+                LD (_spill_ext_r2), A
+                LD (_spill_ext_r2+1), A
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_32_IXL__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:164: value=0 got=a5a50000 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                PUSH AF
+                LD A, IXL
+                LD (_spill_ext_r2), A
+                RLCA
+                SBC A, A
+                LD (_spill_ext_r2+1), A
+                EXX
+                LD (_spill_ext_r2), A
+                LD (_spill_ext_r2+1), A
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_32_IYH__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:164: value=0 got=a5a50000 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                PUSH AF
+                LD A, IYH
+                LD (_spill_ext_r2), A
+                RLCA
+                SBC A, A
+                LD (_spill_ext_r2+1), A
+                EXX
+                LD (_spill_ext_r2), A
+                LD (_spill_ext_r2+1), A
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_32_B'_HL (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, B'
+                LD L, A
+                RLCA
+                SBC A, A
+                LD H, A
+                EXX
+                LD L, A
+                LD H, A
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_32_B'_DE (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, B'
+                LD E, A
+                RLCA
+                SBC A, A
+                LD D, A
+                EXX
+                LD E, A
+                LD D, A
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_32_B'_BC (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, B'
+                LD C, A
+                RLCA
+                SBC A, A
+                LD B, A
+                EXX
+                LD C, A
+                LD B, A
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_32_B'__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, B'
+                LD (_spill_ext_r2), A
+                RLCA
+                SBC A, A
+                LD (_spill_ext_r2+1), A
+                EXX
+                LD (_spill_ext_r2), A
+                LD (_spill_ext_r2+1), A
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_32_A'_HL (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, A'
+                LD L, A
+                RLCA
+                SBC A, A
+                LD H, A
+                EXX
+                LD L, A
+                LD H, A
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_32_A'_DE (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, A'
+                LD E, A
+                RLCA
+                SBC A, A
+                LD D, A
+                EXX
+                LD E, A
+                LD D, A
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_32_A'_BC (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, A'
+                LD C, A
+                RLCA
+                SBC A, A
+                LD B, A
+                EXX
+                LD C, A
+                LD B, A
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_32_A'__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD A, A'
+                LD (_spill_ext_r2), A
+                RLCA
+                SBC A, A
+                LD (_spill_ext_r2+1), A
+                EXX
+                LD (_spill_ext_r2), A
+                LD (_spill_ext_r2+1), A
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/8_32__spill_ext_r1__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:164: value=0 got=a5a50000 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                PUSH AF
+                LD A, (_spill_ext_r1)
+                LD (_spill_ext_r2), A
+                RLCA
+                SBC A, A
+                LD (_spill_ext_r2+1), A
+                EXX
+                LD (_spill_ext_r2), A
+                LD (_spill_ext_r2+1), A
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/16_24__spill_ext_r1__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                PUSH HL
+                LD HL, (_spill_ext_r1)
+                LD (_spill_ext_r2), HL
+                POP HL
+                LD A, (_spill_ext_r2+1)
+                RLCA
+                SBC A, A
+                EXX
+                LD (_spill_ext_r2), A
+                LD _spill_ext_r2+1, 0
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/16_24_HL__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD (_spill_ext_r2), HL
+                LD A, (_spill_ext_r2+1)
+                RLCA
+                SBC A, A
+                EXX
+                LD (_spill_ext_r2), A
+                LD _spill_ext_r2+1, 0
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/16_24_DE__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD (_spill_ext_r2), DE
+                LD A, (_spill_ext_r2+1)
+                RLCA
+                SBC A, A
+                EXX
+                LD (_spill_ext_r2), A
+                LD _spill_ext_r2+1, 0
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/16_24_IX__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD (_spill_ext_r2), IX
+                LD A, (_spill_ext_r2+1)
+                RLCA
+                SBC A, A
+                EXX
+                LD (_spill_ext_r2), A
+                LD _spill_ext_r2+1, 0
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/16_24_IY__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:57: assembly <nil>
+            ORG 32768
+                PUSH AF
+                LD (_spill_ext_r2), IY
+                LD A, (_spill_ext_r2+1)
+                RLCA
+                SBC A, A
+                EXX
+                LD (_spill_ext_r2), A
+                LD _spill_ext_r2+1, 0
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/16_32__spill_ext_r1__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:164: value=0 got=a5a50000 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                PUSH AF
+                PUSH HL
+                LD HL, (_spill_ext_r1)
+                LD (_spill_ext_r2), HL
+                POP HL
+                LD A, (_spill_ext_r2+1)
+                RLCA
+                SBC A, A
+                EXX
+                LD (_spill_ext_r2), A
+                LD (_spill_ext_r2+1), A
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/16_32_HL__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:164: value=0 got=a5a50000 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                PUSH AF
+                LD (_spill_ext_r2), HL
+                LD A, (_spill_ext_r2+1)
+                RLCA
+                SBC A, A
+                EXX
+                LD (_spill_ext_r2), A
+                LD (_spill_ext_r2+1), A
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/16_32_DE__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:164: value=0 got=a5a50000 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                PUSH AF
+                LD (_spill_ext_r2), DE
+                LD A, (_spill_ext_r2+1)
+                RLCA
+                SBC A, A
+                EXX
+                LD (_spill_ext_r2), A
+                LD (_spill_ext_r2+1), A
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/16_32_IX__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:164: value=0 got=a5a50000 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                PUSH AF
+                LD (_spill_ext_r2), IX
+                LD A, (_spill_ext_r2+1)
+                RLCA
+                SBC A, A
+                EXX
+                LD (_spill_ext_r2), A
+                LD (_spill_ext_r2+1), A
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/16_32_IY__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:164: value=0 got=a5a50000 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                PUSH AF
+                LD (_spill_ext_r2), IY
+                LD A, (_spill_ext_r2+1)
+                RLCA
+                SBC A, A
+                EXX
+                LD (_spill_ext_r2), A
+                LD (_spill_ext_r2+1), A
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/24_32__spill_ext_r1__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:164: value=0 got=a5000000 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                PUSH AF
+                PUSH HL
+                EXX
+                PUSH HL
+                EXX
+                LD HL, (_spill_ext_r1)
+                EXX
+                LD HL, (_spill_ext_r1+2)
+                EXX
+                LD (_spill_ext_r2), HL
+                EXX
+                LD (_spill_ext_r2+2), HL
+                EXX
+                EXX
+                POP HL
+                EXX
+                POP HL
+                EXX
+                LD A, (_spill_ext_r2)
+                RLCA
+                SBC A, A
+                LD (_spill_ext_r2+1), A
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/24_32_HL__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:164: value=80 got=ff80 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                PUSH AF
+                LD (_spill_ext_r2), HL
+                EXX
+                LD (_spill_ext_r2+2), HL
+                EXX
+                EXX
+                LD A, (_spill_ext_r2)
+                RLCA
+                SBC A, A
+                LD (_spill_ext_r2+1), A
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+    --- FAIL: TestSignedExtensionNative/24_32_DE__spill_ext_r2 (0.00s)
+        signed_extension_native_test.go:164: value=80 got=ff80 A/F=17/0 expected 17/0 PC/SP=300/eff2
+            ORG 32768
+                PUSH AF
+                LD (_spill_ext_r2), DE
+                EXX
+                LD (_spill_ext_r2+2), DE
+                EXX
+                EXX
+                LD A, (_spill_ext_r2)
+                RLCA
+                SBC A, A
+                LD (_spill_ext_r2+1), A
+                EXX
+                POP AF
+            RET
+            _spill_ext_r1 EQU 24576
+            _spill_ext_r2 EQU 24592
+FAIL
+FAIL	github.com/minz/minzc/pkg/mir2	13.799s
+FAIL

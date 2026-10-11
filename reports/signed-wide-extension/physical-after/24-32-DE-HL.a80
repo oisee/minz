@@ -1,0 +1,23 @@
+    PUSH AF
+    LD A, E
+    PUSH AF
+    LD A, D
+    PUSH AF
+    EXX
+    LD A, E
+    EXX
+    PUSH AF
+    RLCA
+    SBC A, A
+    EXX
+    LD H, A
+    EXX
+    POP AF
+    EXX
+    LD L, A
+    EXX
+    POP AF
+    LD H, A
+    POP AF
+    LD L, A
+    POP AF

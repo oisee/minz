@@ -552,77 +552,78 @@ func (g *z80cg) genSext(inst *Inst) {
 	g.invalidate(g.loc(inst.Dst))
 }
 
+// Snapshot every narrow byte before any destination write. This also covers
+// in-place widening, subregister overlap and source bytes in the shadow bank.
+// genSext owns the outer AF save, so both arithmetic flags and live A survive.
 func (g *z80cg) genSextValue(inst *Inst) {
-	dst := g.loc(inst.Dst)
-	src := g.loc(inst.Src[0])
-	srcW := inst.SrcTy.Width()
-	dstW := inst.Ty.Width()
-
-	if srcW == 24 && dstW == 32 {
-		if src != dst {
-			g.emitMov32(dst, src)
-		}
-		g.emit("    EXX")
-		g.emitLDA(lowByte(dst))
-		g.emit("    RLCA")
-		g.emit("    SBC A, A")
-		g.emitLD8(highByte(dst), "A")
-		g.emit("    EXX")
-		g.invalidate("A")
-		g.invalidate(dst)
+	dst, src := g.loc(inst.Dst), g.loc(inst.Src[0])
+	sw, dw := inst.SrcTy.Width(), inst.Ty.Width()
+	if (sw != 8 && sw != 16 && sw != 24) || dw <= sw || dw > 32 {
+		g.err = fmt.Errorf("unsupported sign extension %s to %s", inst.SrcTy, inst.Ty)
 		return
 	}
-
-	if dstW >= 24 && (srcW == 8 || srcW == 16) {
-		hi, lo := highByte(dst), lowByte(dst)
-		if srcW == 8 {
-			if src != "A" {
-				g.emitLDA(src)
+	byteLoc := func(loc string, width, i int) string {
+		if isSpill(loc) {
+			if i == 0 {
+				return loc
 			}
-			g.emitLD8(lo, "A")
-			g.emit("    RLCA")
-			g.emit("    SBC A, A")
-			g.emitLD8(hi, "A")
-		} else {
-			if src != dst {
-				g.emitMov(dst, src, 16)
-			}
-			g.emitLDA(hi)
-			g.emit("    RLCA")
-			g.emit("    SBC A, A")
+			return fmt.Sprintf("%s+%d", loc, i)
 		}
-		g.emit("    EXX")
-		g.emitLD8(lo, "A")
-		if dstW == 24 {
-			g.emitf("    LD %s, 0", hi)
-		} else {
-			g.emitLD8(hi, "A")
+		if width <= 8 {
+			return loc
 		}
-		g.emit("    EXX")
-		g.invalidate("A")
-		g.invalidate(dst)
-		return
+		part := lowByte(loc)
+		if i%2 != 0 {
+			part = highByte(loc)
+		}
+		if i >= 2 {
+			part += "'"
+		}
+		return part
 	}
-
-	if srcW == 8 && dstW == 16 {
-		// Sign-extend u8 → u16 via A.
-		lo := lowByte(dst)
-		hi := highByte(dst)
-		if src != "A" {
-			g.emitLDA(src)
+	load := func(loc string) {
+		if loc == "A'" {
+			g.emit("    EX AF, AF'")
+			g.emit("    PUSH AF")
+			g.emit("    EX AF, AF'")
+			g.emit("    POP AF")
+		} else if strings.HasSuffix(loc, "'") {
+			g.emit("    EXX")
+			g.emitLD8("A", strings.TrimSuffix(loc, "'"))
+			g.emit("    EXX")
+		} else {
+			g.emitLD8("A", loc)
 		}
-		if lo != "A" {
-			g.emitLD8(lo, "A")
-		}
-		// Propagate sign bit into high byte: RLCA; SBC A,A gives 0x00 or 0xFF.
-		g.emit("    RLCA")
-		g.emit("    SBC A, A")
-		if hi != "A" {
-			g.emitLD8(hi, "A")
-		}
-		return
 	}
-	g.comment(fmt.Sprintf("TODO: sext %s→%s %s→%s", inst.SrcTy, inst.Ty, src, dst))
+	store := func(loc string) {
+		if strings.HasSuffix(loc, "'") {
+			g.emit("    EXX")
+			g.emitLD8(strings.TrimSuffix(loc, "'"), "A")
+			g.emit("    EXX")
+		} else {
+			g.emitLD8(loc, "A")
+		}
+	}
+	for i := 0; i < sw/8; i++ {
+		load(byteLoc(src, sw, i))
+		g.emit("    PUSH AF")
+	}
+	// A still holds the highest original source byte; propagate its sign.
+	g.emit("    RLCA")
+	g.emit("    SBC A, A")
+	for i := sw / 8; i < dw/8; i++ {
+		store(byteLoc(dst, dw, i))
+	}
+	// A register-backed i24 reserves four physical bytes, but its unused top
+	// byte is zero, matching constants/loads and the existing DWord contract.
+	if dw == 24 && !isSpill(dst) {
+		g.emit("    LD A, 0")
+		store(byteLoc(dst, dw, 3))
+	}
+	for i := sw/8 - 1; i >= 0; i-- {
+		g.emit("    POP AF")
+		store(byteLoc(dst, dw, i))
+	}
 }
 
 // ── 32-bit DWord helpers ──────────────────────────────────────────────────────
