@@ -1,0 +1,4 @@
+=== RUN   TestBitCmpFallbackNativeIndexedAndSpill
+--- PASS: TestBitCmpFallbackNativeIndexedAndSpill (4.84s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	4.847s

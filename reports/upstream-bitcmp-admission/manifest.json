@@ -1,0 +1,215 @@
+{
+  "base_main": "4743cb7c7712a0d76413ddf041d93dbfa604df06",
+  "files": [
+    {
+      "path": "reports/upstream-bitcmp-admission/IX-shift-false-eq-false.a80",
+      "bytes": 470,
+      "sha256": "30a8c1f1d644fa9d13031a48e6368da684f6ee8a2e2792fecdde2faadfb6fcfd"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/IX-shift-false-eq-false.bin",
+      "bytes": 44,
+      "sha256": "524c4a2732d698ff2d1b2862e225f352dd8413d1b2113d49d33b1f0f36414d91"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/IX-shift-false-eq-true.a80",
+      "bytes": 471,
+      "sha256": "551927e32a97cc28a7accb167aa26cb133ede79def4788b041220bfc50349e9b"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/IX-shift-false-eq-true.bin",
+      "bytes": 44,
+      "sha256": "8050554dddf75b2875f2a930df4064286369b1310f97b2344dea029354a7efa8"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/IX-shift-false.a80",
+      "bytes": 470,
+      "sha256": "30a8c1f1d644fa9d13031a48e6368da684f6ee8a2e2792fecdde2faadfb6fcfd"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/IX-shift-false.bin",
+      "bytes": 44,
+      "sha256": "524c4a2732d698ff2d1b2862e225f352dd8413d1b2113d49d33b1f0f36414d91"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/IX-shift-true-eq-false.a80",
+      "bytes": 661,
+      "sha256": "9211ccd39261afa93558f9a95cbded0471d5f97da0e93975539ae0a677ffe0f1"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/IX-shift-true-eq-false.bin",
+      "bytes": 79,
+      "sha256": "56744eebeb77bc5cc376efe2fcdba75f3a0d339b622a9c2b21794fbbff55d09e"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/IX-shift-true-eq-true.a80",
+      "bytes": 662,
+      "sha256": "290fa71114273ddcbc1706af87a4c70aacc71f908facca32a50c3b54bf8a952c"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/IX-shift-true-eq-true.bin",
+      "bytes": 79,
+      "sha256": "364ff155153481bdcccc8d2d1d99afeefe06cb3992b95ebd9aadf50381b61fb7"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/IX-shift-true.a80",
+      "bytes": 661,
+      "sha256": "9211ccd39261afa93558f9a95cbded0471d5f97da0e93975539ae0a677ffe0f1"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/IX-shift-true.bin",
+      "bytes": 79,
+      "sha256": "56744eebeb77bc5cc376efe2fcdba75f3a0d339b622a9c2b21794fbbff55d09e"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/IY-shift-false-eq-false.a80",
+      "bytes": 470,
+      "sha256": "293cf4f1246b16a1528a3372820be0c384dd7117b6059edad005cb8e507e31b8"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/IY-shift-false-eq-false.bin",
+      "bytes": 44,
+      "sha256": "3b64273f8c0a6c8879531e6b95f798c82607ea60fc9a6e7082b161713fe99c8c"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/IY-shift-false-eq-true.a80",
+      "bytes": 471,
+      "sha256": "effe30f4ef2a8fbf291d46f28916c695be7a762b4e9723916d8a71ade653c695"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/IY-shift-false-eq-true.bin",
+      "bytes": 44,
+      "sha256": "7844431d803e121c2138cc3ffebaecf98d3f4d00817eb06190381bce9f6504bf"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/IY-shift-false.a80",
+      "bytes": 470,
+      "sha256": "293cf4f1246b16a1528a3372820be0c384dd7117b6059edad005cb8e507e31b8"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/IY-shift-false.bin",
+      "bytes": 44,
+      "sha256": "3b64273f8c0a6c8879531e6b95f798c82607ea60fc9a6e7082b161713fe99c8c"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/IY-shift-true-eq-false.a80",
+      "bytes": 661,
+      "sha256": "57fd2578ff40a0d35c74b045880e3dd08cb44a51d6967a5750a1570311678219"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/IY-shift-true-eq-false.bin",
+      "bytes": 79,
+      "sha256": "94370aa4227d802d0ffbc0bc63a5815f1b5ac3d6eebac3e5b669152e151f8d29"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/IY-shift-true-eq-true.a80",
+      "bytes": 662,
+      "sha256": "dba95ae20a724cdc02ac7579ba4102c063e2257af555e01445281eafd2c3bd02"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/IY-shift-true-eq-true.bin",
+      "bytes": 79,
+      "sha256": "58ec93e1ee7a9700366c7ae07849331ddd055a3e3b6ca17193f6eb59ca0afa54"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/IY-shift-true.a80",
+      "bytes": 661,
+      "sha256": "57fd2578ff40a0d35c74b045880e3dd08cb44a51d6967a5750a1570311678219"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/IY-shift-true.bin",
+      "bytes": 79,
+      "sha256": "94370aa4227d802d0ffbc0bc63a5815f1b5ac3d6eebac3e5b669152e151f8d29"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/REPORT.md",
+      "bytes": 2743,
+      "sha256": "7ec222759b3a88774adb12784c44698bd026af686d417988510dd523efbdeaba"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/after.txt",
+      "bytes": 156,
+      "sha256": "957d4e6897b54ed734ac0f147d754facfc623d9c03af32aa59b5260c29934258"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/before.txt",
+      "bytes": 661,
+      "sha256": "e3d0814b3207f3b46a31ee2d31279978bec798036265e529b1c62edd9ef62e73"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/diagnostic.txt",
+      "bytes": 1217,
+      "sha256": "fd87b44ba6816742533ca75d8883e9854975663a6e51d24d8b1c09ee9c88401d"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/full-mir2.txt",
+      "bytes": 43,
+      "sha256": "3e653e60e3aec0400a683c153f544119da7fa2fc4bd22e159a22f4186fd13d97"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/native-pipeline-smoke.txt",
+      "bytes": 320,
+      "sha256": "b72a4f29784bd5397e22113491bc611a3e0c8aebdb58b3f2863f6f7fb4646ec4"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/spill-shift-false-eq-false.a80",
+      "bytes": 582,
+      "sha256": "446c11d4e8b5596e9ccf063a7459d8d275cd8bed7b97b0cfab9c9ea5a062b95a"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/spill-shift-false-eq-false.bin",
+      "bytes": 48,
+      "sha256": "f52837517b81b474dba5e0cef42534c0a50beaad354f046b4a3e542da3baf860"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/spill-shift-false-eq-true.a80",
+      "bytes": 583,
+      "sha256": "e9e5b63c5493a98643e5952c372048cd4240acc4f86d81d0fe92eb88e7e2a2b0"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/spill-shift-false-eq-true.bin",
+      "bytes": 48,
+      "sha256": "64d652c995ac81c82b4d8a19bf923c5a16dc01856d6a91d5a8e8d88f39291c21"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/spill-shift-false.a80",
+      "bytes": 582,
+      "sha256": "446c11d4e8b5596e9ccf063a7459d8d275cd8bed7b97b0cfab9c9ea5a062b95a"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/spill-shift-false.bin",
+      "bytes": 48,
+      "sha256": "f52837517b81b474dba5e0cef42534c0a50beaad354f046b4a3e542da3baf860"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/spill-shift-true-eq-false.a80",
+      "bytes": 768,
+      "sha256": "27a1ace0b00c312e2637f4d86a01b9ce45af1872057c5b53cbad4c648b315d43"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/spill-shift-true-eq-false.bin",
+      "bytes": 83,
+      "sha256": "6a8449602f483c099943e5d58cbd7ae87cab376d39144724b1edef0170f99267"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/spill-shift-true-eq-true.a80",
+      "bytes": 769,
+      "sha256": "3b813a1bbfc0a8f1b0b5c647447d677ec764db54e2c7f0ed237231eb960dbd3a"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/spill-shift-true-eq-true.bin",
+      "bytes": 83,
+      "sha256": "33a1f4e9ebef34f94cc72fd71f59b8f9e055287d3483b14ee43b82bff97aa0fd"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/spill-shift-true.a80",
+      "bytes": 768,
+      "sha256": "27a1ace0b00c312e2637f4d86a01b9ce45af1872057c5b53cbad4c648b315d43"
+    },
+    {
+      "path": "reports/upstream-bitcmp-admission/spill-shift-true.bin",
+      "bytes": 83,
+      "sha256": "6a8449602f483c099943e5d58cbd7ae87cab376d39144724b1edef0170f99267"
+    }
+  ]
+}
