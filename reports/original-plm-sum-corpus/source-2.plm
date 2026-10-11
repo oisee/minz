@@ -1,0 +1,19 @@
+/* Original PL/M-80 style — sum of array, indexed loop */
+M: DO;
+
+/* Sum first N bytes of array pointed to by PTR.
+   Classic indexed access: PTR(I) = *(PTR + I). */
+SUM_ARRAY: PROCEDURE (PTR, N) BYTE;
+    DECLARE PTR WORD;
+    DECLARE N BYTE;
+    DECLARE (S, I) BYTE;
+    S = 0;
+    I = 0;
+    DO WHILE I < N;
+        S = S + PTR(I);
+        I = I + 1;
+    END;
+    RETURN S;
+END SUM_ARRAY;
+
+END M;
