@@ -100,6 +100,63 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 	if len(copies) == 0 {
 		return
 	}
+	// Snapshot wide inputs before any destination write. Word cycle shortcuts
+	// only move the main bank; a DWord edge must also preserve shadow values.
+	// Non-wide moves are resolved while all wide originals are on the stack.
+	var wide, narrow []parallelCopy
+	for _, c := range copies {
+		if c.ty.Width() >= 24 && !c.isImm && c.srcName != c.dstName {
+			wide = append(wide, c)
+		} else {
+			narrow = append(narrow, c)
+		}
+	}
+	if len(wide) > 0 {
+		for _, c := range wide {
+			for bank := 0; bank < 2; bank++ {
+				if isSpill(c.srcName) {
+					g.emit("    PUSH HL")
+					if bank == 0 {
+						g.loadSpill16("HL", c.srcName)
+					} else if c.ty.Width() == 24 {
+						g.emit("    PUSH AF")
+						g.emitLD8("L", c.srcName+"+2")
+						g.emit("    LD H, 0")
+						g.emit("    POP AF")
+					} else {
+						g.loadSpill16("HL", c.srcName+"+2")
+					}
+					g.emit("    EX (SP), HL")
+				} else {
+					g.emitf("    PUSH %s", c.srcName)
+				}
+				g.emit("    EXX")
+			}
+		}
+		g.emitParallelCopy(narrow)
+		for i := len(wide) - 1; i >= 0; i-- {
+			c := wide[i]
+			for bank := 1; bank >= 0; bank-- {
+				g.emit("    EXX")
+				if isSpill(c.dstName) {
+					g.emit("    EX (SP), HL")
+					if bank == 0 {
+						g.storeSpill16(c.dstName, "HL")
+					} else if c.ty.Width() == 24 {
+						g.emit("    PUSH AF")
+						g.emitLD8(c.dstName+"+2", "L")
+						g.emit("    POP AF")
+					} else {
+						g.storeSpill16(c.dstName+"+2", "HL")
+					}
+					g.emit("    POP HL")
+				} else {
+					g.emitf("    POP %s", c.dstName)
+				}
+			}
+		}
+		return
+	}
 	// A pair and either of its halves are the same storage. Resolve mixed
 	// pair/byte shuffles at byte granularity so both dependency ordering and
 	// cycle breaking see the actual registers (e.g. IY->DE, C->IYH).
@@ -382,6 +439,15 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 			g.emit("    EX AF, AF'")
 		} else if c.ty.Width() <= 8 {
 			g.emitf("    LD %s, %d", c.dstName, c.immVal&0xFF)
+		} else if c.ty.Width() >= 24 {
+			g.emitf("    LD %s, %d", c.dstName, c.immVal&0xFFFF)
+			g.emit("    EXX")
+			hiMask := int64(0xFFFF)
+			if c.ty.Width() == 24 {
+				hiMask = 0xFF
+			}
+			g.emitf("    LD %s, %d", c.dstName, (c.immVal>>16)&hiMask)
+			g.emit("    EXX")
 		} else {
 			g.emitf("    LD %s, %d", c.dstName, c.immVal&0xFFFF)
 		}

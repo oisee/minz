@@ -1,0 +1,2 @@
+global ina:u32 global inb:u32 global count:u8 global outx:u32 global outy:u32
+fun swap(){var x:u32=ina var y:u32=inb var i:u8=0 while i<count {let old:u32=x x=y y=old i=i+1} outx=x outy=y}
