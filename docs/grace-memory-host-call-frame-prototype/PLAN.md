@@ -1,0 +1,7 @@
+# Isolated compiler-owned call snapshot capability
+
+Base 65f89589. Original baseline stays unchanged; arena-peel prototype is a separate branch and currently refuses indexed snapshot access before effects. This slice adds optional typed codegen descriptors and exact per-instruction dynamic frame authorization, not a generic stack/indexed-memory permission.
+
+Descriptors bind an entire finite return-pickup sequence (entry, snapshot pushes, IX=SP anchor, explicitly authorized indexed reads/writes, snapshot disposal, caller restores, exit) to compiler-created frame geometry. Every instruction carries a zero-byte operation marker only when optional capture is enabled. Resolver rejects absent/duplicate/orphan markers, noncontiguous PCs, unknown opcodes, bad slot bounds and altered sequence. Native entry must find initialized PUSH-created caller-save pairs, excluding CALL return frames. Active frame checks each exact next PC, IX anchor, SP delta, slot and direction before access. Snapshot LD reads do not consume initialization; writes patch only declared saved-result slots; discarded snapshot bytes are retired.
+
+Default nil capture must emit byte-identical assembly and preserve existing cost. Runtime failures are infrastructure refusals, never semantic host denial. Parent production is untouched. Root owns integration only after independent adversarial review and focused actual tests.
