@@ -3,7 +3,8 @@
 `hir.RunMemoryHostLoopProfile(source, workload)` owns and validates the original
 source-bound memory-host workload, constructs its own instrumented MIR2 VM and
 installs only privately generated zero-argument void counter hooks. Source loops
-must have complete valid input origins; detached origins are refused. Existing
+must have complete valid input origins; detached origins are refused. Sources
+with goto are refused because arbitrary label entries bypass structured counters. Existing
 memory-host baseline and legacy no-host profile APIs retain their contracts.
 
 `minz.memory-host-loop-observations/v1` reports real loop-statement entries and
@@ -21,5 +22,6 @@ accepted. Instrumented VM globals and generated-symbol storage are checked anew.
 
 Current focused checks: zero-trip, recursive deltas, partial denied-read prefix,
 owned inputs, repeatability, changed workload compatibility, missing origins and
-baseline memory/result/access equality. Full original-program and independent
+baseline memory/result/access equality, condition failures, reset deltas, generated
+symbol heap bounds and global-name collisions. Full original-program and independent
 oracle comparison are pending. Parent production has not been changed.

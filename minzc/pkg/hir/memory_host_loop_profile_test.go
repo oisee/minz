@@ -2,6 +2,7 @@ package hir_test
 
 import (
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
 	"reflect"
 	"testing"
@@ -158,5 +159,83 @@ func TestMemoryHostLoopProfileUserHookNamespaceIsNotAuthority(t *testing.T) {
 	b, e := hir.RunMemoryHostLoopProfile(legal, w)
 	if e != nil || len(b.Counts) != len(a.Counts) || b.Counts[0].Entries != a.Counts[0].Entries || b.Counts[0].BodyEntries != a.Counts[0].BodyEntries {
 		t.Fatal("fresh hook namespace failure", e)
+	}
+}
+
+func TestMemoryHostLoopProfileGlobalHookCollision(t *testing.T) {
+	m, e := nanz.Parse(memoryLoopSrc+"\nglobal __minz_loop_profile_0_entry:u8=77\n", "memory-loop.nanz")
+	if e != nil {
+		t.Fatal(e)
+	}
+	_, w := memoryLoopFixture(t)
+	w.Calls = w.Calls[:2]
+	w.Globals = map[string][]byte{"__minz_loop_profile_0_entry": {77}}
+	r, e := hir.RunMemoryHostLoopProfile(m, w)
+	if e != nil || r == nil || r.Counts[0].Entries != 4 || r.Counts[0].BodyEntries != 4 || r.Invocations[1].Observation.Globals["__minz_loop_profile_0_entry"][0] != 77 {
+		t.Fatal("global/hook namespace collision", r, e)
+	}
+}
+
+func TestMemoryHostLoopProfileRefusesGotoCounterBypass(t *testing.T) {
+	m, w := memoryLoopFixture(t)
+	f := m.FuncByName("nested")
+	var body *hir.Block
+	for _, stmt := range f.Body.Body {
+		if loop, ok := stmt.(*hir.WhileStmt); ok {
+			body = loop.Body
+		}
+	}
+	if body == nil {
+		t.Fatal("missing loop")
+	}
+	body.Body = []hir.Stmt{&hir.LabelStmt{Name: "inside"}, &hir.ReturnStmt{Val: hir.U8(7)}}
+	f.Body.Body = append([]hir.Stmt{&hir.GotoStmt{Label: "inside"}}, f.Body.Body...)
+	if e := hir.Verify(m); e != nil {
+		t.Fatal("fixture must be valid HIR", e)
+	}
+	if r, e := hir.RunMemoryHostLoopProfile(m, w); e == nil || r != nil {
+		t.Fatal("inward goto bypass accepted", r, e)
+	}
+}
+
+func TestMemoryHostLoopProfileInstrumentedSymbolExtent(t *testing.T) {
+	m, w := memoryLoopFixture(t)
+	w.Calls = w.Calls[:1]
+	baseEnd := mir2.NewVM(hir.LowerModule(m)).AllocHeap(nil).I
+	w.Regions["ram"] = hir.MemoryHostRegion{Address: uint16(baseEnd + 1), Bytes: []byte{9}, Writable: true}
+	if r, e := hir.RunMemoryHostBaseline(m, w); e != nil || r == nil {
+		t.Fatal("baseline storage fixture", e)
+	}
+	if r, e := hir.RunMemoryHostLoopProfile(m, w); e == nil || r != nil {
+		t.Fatal("instrumented symbols overlapped configured RAM", r, e)
+	}
+}
+func TestMemoryHostLoopProfileConditionFailureAndReset(t *testing.T) {
+	src := `@extern fun peek(addr:u16)->u8
+@extern fun poke(addr:u16,val:u8)->void
+fun condition()->u8{while peek(32769)!=0 {poke(32768,1)} return 7}
+fun visit()->u8{while peek(32768)>0 {poke(32768,peek(32768)-1)} return peek(32768)}
+`
+	m, e := nanz.Parse(src, "memory-condition.nanz")
+	if e != nil {
+		t.Fatal(e)
+	}
+	_, w := memoryLoopFixture(t)
+	w.Calls = []hir.MemoryHostInvocation{{Function: "visit"}, {Function: "visit", Patches: []hir.MemoryHostPatch{{Region: "ram", Clear: true, Bytes: []byte{2}}}}, {Function: "condition"}}
+	w.Regions["ram"] = hir.MemoryHostRegion{Address: 0x8000, Bytes: []byte{1}, Writable: true}
+	r, e := hir.RunMemoryHostLoopProfile(m, w)
+	if e == nil || r == nil || len(r.Invocations) != 3 {
+		t.Fatal(r, e)
+	}
+	for i, s := range r.Sites.Sites {
+		if s.Function == "condition" && (r.Counts[i].Entries != 1 || r.Counts[i].BodyEntries != 0) {
+			t.Fatal("condition failure counted body", r.Counts)
+		}
+		if s.Function == "visit" && (r.Invocations[0].Counts[i].BodyEntries != 1 || r.Invocations[1].Counts[i].BodyEntries != 2) {
+			t.Fatal("reset delta wrong", r.Invocations)
+		}
+	}
+	if r.Invocations[1].Observation.Regions["ram"][0] != 0 || r.Invocations[2].Observation.Failure == nil || len(r.Invocations[2].Observation.Events) != 0 {
+		t.Fatal(r.Invocations)
 	}
 }
