@@ -1,0 +1,64 @@
+; MIR2 module: ../../../examples/pascal/math_test.pas
+fun @DOUBLE(%r1: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r2 = add %r1, %r1 : i16 [pointer]
+    ret %r2
+
+fun @ADDONE(%r3: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r4 = const 1 : u8 [general]
+    %r5 = add %r3, %r4 : u8 [acc]
+    ret %r5
+
+fun @SQUARE(%r6: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r7 = mul %r6, %r6 : u8 [general]
+    ret %r7
+
+fun @TRIPLE(%r8: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r9 = add %r8, %r8 : u8 [acc]
+    %r10 = add %r9, %r8 : u8 [acc]
+    ret %r10
+
+fun @MAX(%r11: u8 [acc], %r12: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r13 = cmp.ugt %r11, %r12 : bool [flag]
+    cond_ret %r13, [%r12], @if_join2_ret_then()
+  block @if_join2_ret_then:
+    ret %r11
+
+fun @MIN(%r14: u8 [acc], %r15: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r16 = cmp.ult %r14, %r15 : bool [flag]
+    cond_ret %r16, [%r15], @if_join2_ret_then()
+  block @if_join2_ret_then:
+    ret %r14
+
+fun @ISEVEN(%r17: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r18 = const 2 : u8 [general]
+    %r19 = mod %r17, %r18 : u8 [general]
+    %r20 = const 0 : u8 [general]
+    %r21 = cmp.eq %r19, %r20 : bool [flag]
+    %r22 = const 0 : u8 [general]
+    cond_ret %r21, [%r22], @if_then1()
+  block @if_then1:
+    %r23 = const 1 : u8 [general]
+    ret %r23
+
+fun @ABSDIFF(%r24: u8 [acc], %r25: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r26 = cmp.ugt %r24, %r25 : bool [flag]
+    br_if %r26, @if_then1(), @if_else3()
+  block @if_then1:
+    %r27 = sub %r24, %r25 : u8 [acc]
+    ret %r27
+  block @if_else3:
+    %r28 = sub %r25, %r24 : u8 [acc]
+    ret %r28
+
+fun @main()
+  block @entry:
+    ret void
+
