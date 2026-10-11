@@ -113,3 +113,19 @@ baseline, веткаfeat/grace-memory-host-profile-association (`a9b1606f`).
 как отказ unsupported IX stack snapshot (`ce37bb32`); отдельная ветка
 feat/memory-host-call-frame добавляет узкий compiler-owned контракт.
 Координатору через Herdr сообщение не доставлено: серверi7 timeout.
+
+## Последнее обновление: source-loop профиль опубликован
+
+Этап2537b1e0 запушен: закрытый source-loop collector связан с native baseline.
+Независимая модель совпала со всеми11 cumulative/per-call счётчиками;
+полный pipeline296.585 s PASS, CLI/packages зелёные, showcase31same0new.
+Приватная версия39:
+https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-loop-baseline.html
+Офлайн8399 файлов,49 страниц,0 потерянных ссылок/внешних зависимостей, архивы читаются.
+
+Продолжается isolated arena-first first-byte peel: полный SelfLanz30
+1218395 T /2212 B против1221494 T /2091 B (−0,254% T,+121 B).
+33 924 raw-domain случая прошли; pre/post whole-module/origins validator
+проверен.14 успешных граничных вызовов и4 prefix-denial workloads сейчас
+проходят actualZ80. Measuredselector и durable production certificate ещё
+следующие задачи; решения Alice не требуются.
