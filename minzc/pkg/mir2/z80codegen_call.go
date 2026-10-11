@@ -25,7 +25,7 @@ func (g *z80cg) genCall(inst *Inst) error {
 		g.emit("    LD A, (HL)")
 		g.emit("    AND A")
 		g.emitf("    JR Z, .print_str_done_%d", idx)
-		g.emit("    OUT (0x23), A")
+		g.emitConsoleA()
 		g.emit("    INC HL")
 		g.emitf("    JR .print_str_%d", idx)
 		g.emitf(".print_str_done_%d:", idx)
@@ -59,14 +59,14 @@ func (g *z80cg) genCall(inst *Inst) error {
 			}
 			g.emitLDA(src)
 		}
-		g.emit("    OUT (0x23), A")
+		g.emitConsoleA()
 		g.invalidate("A")
 		return nil
 
 	case "@mir.io.print.nl":
 		// Emit newline (\n = 0x0A) via OUT ($23), A.
 		g.emit("    LD A, 0x0A")
-		g.emit("    OUT (0x23), A")
+		g.emitConsoleA()
 		g.invalidate("A")
 		return nil
 
@@ -106,7 +106,7 @@ func (g *z80cg) genCall(inst *Inst) error {
 		g.emitf("    OR A")
 		g.emitf("    JR Z, .pdec_t%d", idx)
 		g.emitf("    ADD A, 48") // '0'
-		g.emitf("    OUT (0x23), A")
+		g.emitConsoleA()
 		// Tens digit
 		g.emitf(".pdec_t%d:", idx)
 		g.emitf("    LD D, 0") // D = tens count
@@ -125,12 +125,12 @@ func (g *z80cg) genCall(inst *Inst) error {
 		g.emitf("    JR Z, .pdec_u%d", idx)
 		g.emitf("    LD A, D")
 		g.emitf("    ADD A, 48")
-		g.emitf("    OUT (0x23), A")
+		g.emitConsoleA()
 		// Units digit (always print)
 		g.emitf(".pdec_u%d:", idx)
 		g.emitf("    LD A, C")
 		g.emitf("    ADD A, 48")
-		g.emitf("    OUT (0x23), A")
+		g.emitConsoleA()
 		g.invalidate("A")
 		g.invalidate("B")
 		g.invalidate("C")
@@ -139,7 +139,7 @@ func (g *z80cg) genCall(inst *Inst) error {
 
 	case "@mir.io.console.log":
 		// console_log(n: u8) — OUT ($23), A  (mze/mzx stdout port)
-		g.emit("    OUT (0x23), A")
+		g.emitConsoleA()
 		g.invalidate("A")
 		return nil
 
