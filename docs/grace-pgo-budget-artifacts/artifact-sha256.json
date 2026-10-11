@@ -1,0 +1,84 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 726,
+      "sha256": "c3fdf1c348b213820547822559fce40eb745d8a1f3754e79a404cc7618300399"
+    },
+    {
+      "path": "budget-host-oracle.json",
+      "bytes": 59272,
+      "sha256": "6e58b5b827021020d239a34b71a236101ce3ed4db386849434f8755e14d0cec6"
+    },
+    {
+      "path": "budget-size-evidence.json.gz",
+      "bytes": 202249,
+      "sha256": "07445be0dc21efec1e55615a3a52aab81cdf7a2c53e017f897e0199171810f6c"
+    },
+    {
+      "path": "budget-size-profile.json",
+      "bytes": 2807,
+      "sha256": "3319347561f4cbf756b909ccde10cdce84526074daa6a7a528c1dfe1e898d416"
+    },
+    {
+      "path": "budget-size-selected.a80",
+      "bytes": 8672,
+      "sha256": "3e3474de165b8011fa2353040b67287e3a0c09de0181efafabdee998e5c1f44b"
+    },
+    {
+      "path": "budget-size-selected.bin",
+      "bytes": 232,
+      "sha256": "5564646f95ebd3d9ac2431e7d7fff528fabb3f3c3f1c38454948eed9efd78f9e"
+    },
+    {
+      "path": "budget-size-workload.json",
+      "bytes": 11323,
+      "sha256": "9ef4442eafcbc8f0e48105a1680ad518f057d7aec154b3635b2e461dd03bb6f7"
+    },
+    {
+      "path": "budget-source.nanz",
+      "bytes": 3642,
+      "sha256": "6f010f70157fd5bb7577b8ef671a9cf39c17872ca349cd62755c375e6a0d0e12"
+    },
+    {
+      "path": "budget-speed-evidence.json.gz",
+      "bytes": 202250,
+      "sha256": "bcf4e7ff13ec0480f128ea61c67a48e1ef84b4e55b4c886ad5c60afe054cb4d8"
+    },
+    {
+      "path": "budget-speed-profile.json",
+      "bytes": 2807,
+      "sha256": "3319347561f4cbf756b909ccde10cdce84526074daa6a7a528c1dfe1e898d416"
+    },
+    {
+      "path": "budget-speed-selected.a80",
+      "bytes": 8672,
+      "sha256": "3e3474de165b8011fa2353040b67287e3a0c09de0181efafabdee998e5c1f44b"
+    },
+    {
+      "path": "budget-speed-selected.bin",
+      "bytes": 232,
+      "sha256": "5564646f95ebd3d9ac2431e7d7fff528fabb3f3c3f1c38454948eed9efd78f9e"
+    },
+    {
+      "path": "budget-speed-workload.json",
+      "bytes": 11323,
+      "sha256": "9ef4442eafcbc8f0e48105a1680ad518f057d7aec154b3635b2e461dd03bb6f7"
+    },
+    {
+      "path": "minz-audit-budget-evidence.py",
+      "bytes": 2047,
+      "sha256": "aff34b6a8a954c0f893dbf5720d4b045e1f8c922230fc5e5d003690fdffdb190"
+    },
+    {
+      "path": "minz-pgo-budget-final-tests.txt",
+      "bytes": 1260,
+      "sha256": "11559ec046741e7abf16d335b048bee9157d306ba50f23448acc372616096615"
+    },
+    {
+      "path": "minz-pgo-budget-four-sites.txt",
+      "bytes": 47,
+      "sha256": "bf2ba65443a882e85c6a0b1e002b12ea02e32225bbc9841a565876f68c7829c9"
+    }
+  ]
+}

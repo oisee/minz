@@ -1,0 +1,12 @@
+=== RUN   TestIndependentGraceRulesBudgetCompetition
+    profile_rule_choices_test.go:86: size=false candidate=0 policy=map[hir-constant-if:false hir-invariant-base:false] cost=2103327T/344B
+    profile_rule_choices_test.go:86: size=false candidate=1 policy=map[hir-constant-if:true hir-invariant-base:false] cost=2103327T/344B
+    profile_rule_choices_test.go:86: size=false candidate=2 policy=map[hir-constant-if:false hir-invariant-base:true] cost=858267T/232B
+    profile_rule_choices_test.go:86: size=false candidate=3 policy=map[hir-constant-if:true hir-invariant-base:true] cost=2103327T/344B
+    profile_rule_choices_test.go:86: size=true candidate=0 policy=map[hir-constant-if:false hir-invariant-base:false] cost=2103327T/344B
+    profile_rule_choices_test.go:86: size=true candidate=1 policy=map[hir-constant-if:true hir-invariant-base:false] cost=2103327T/344B
+    profile_rule_choices_test.go:86: size=true candidate=2 policy=map[hir-constant-if:false hir-invariant-base:true] cost=858267T/232B
+    profile_rule_choices_test.go:86: size=true candidate=3 policy=map[hir-constant-if:true hir-invariant-base:true] cost=2103327T/344B
+--- PASS: TestIndependentGraceRulesBudgetCompetition (534.09s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	534.103s

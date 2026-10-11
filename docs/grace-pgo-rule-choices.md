@@ -20,3 +20,9 @@ CLI: `--hir-profile-independent-rules` требует `--hir-profile-joint`, `--
 Speed и size выбирают только invariant-base. Результат равен прежнему bundled победителю: дополнительного ускорения на этом исходнике нет. Независимый host oracle пересчитывает результат и каждый globals/resources snapshot из параметров и байтов; retained binary повторно исполняется. Caller с двумя pointer loops проверяет все 16 комбинаций и persistent counter. Тесты также проверяют cap, forged counts, shared HIR и SHA evidence.
 
 [Артефакты и воспроизведение](grace-pgo-rule-artifacts/README.md). Следующая очередь: workload, где комбинация правил даёт иной измеренный выигрыш, затем более точный выбор по месту с отдельной проверкой происхождения и legality.
+
+## Регрессия конкуренции бюджета
+
+Специальный testdata/grace_rule_budget.nanz содержит два checksum цикла и 200 literal-false ветвлений в невызванной функции. Это намеренный тест бюджета, не новый реальный corpus benchmark. Каждый из двух Grace запусков имеет 100 переписываний; constant-if расходует их раньше hoist. Independent policy может включить invariant-base отдельно. Тест требует strict improvement относительно обеих bundled политик, две фактические hoist lineage после компиляции и независимые byte-access/return/memory oracles для всех 30 вызовов, отдельно speed и size. Speed-прогон: bundled off/on 2103327 T /344 B, invariant-base-only 858267 T /232 B. Финальный speed/size прогон прошёл534.103s; каждый режим выбирает invariant-base-only. [Бюджетные артефакты](grace-pgo-budget-artifacts/README.md) содержат lossless compressed evidence, исходник, oracle и бинарники.
+
+Бюджетный тест намеренно дорогой: каждое срабатывание пересобирает facts и проверяет lowered MIR. Для его отдельного запуска используйте `go test ./pkg/pipeline -run ^TestIndependentGraceRulesBudgetCompetition$ -count=1 -timeout=30m`; workload и критерии не ослабляются ради скорости теста.

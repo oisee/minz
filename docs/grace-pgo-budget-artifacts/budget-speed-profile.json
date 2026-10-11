@@ -1,0 +1,74 @@
+{
+  "guards": [],
+  "compatibility": {
+    "schema": "minz.loop-profile-compatibility/v1",
+    "context": {
+      "compiler_id": "executable-sha256:e763a8b60e4f197b2e69ba78490afad1725b1d748ac6dd02689d956722e2ec5f",
+      "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+      "target_id": "module-target:0/model:cpm-z80-v1",
+      "workload_sha256": "c2e845c4a3c8c0e79056cdaf5603bacd39fd9a62b509bb88528e94022b530639",
+      "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+      "dependencies": {
+        "alternating": "31f045af3774d02af7c8ba47a6ce102a042cd91c15db0cee54684615946aff2f",
+        "ff": "a601fb0d5ab33a2306d7d8be16896d12e9c9037e5e7b0559227d85e33f5e85ae",
+        "mismatch": "9ab8f84577f5ec1d5ca66a3ce53052889b1041ea6c77998f9a9f4a728f72a208",
+        "ramp": "37c09723e453af7a4473059e201b8ebcbc39e26049ed552ef19a5acab8130d6e",
+        "testdata/grace_rule_budget.nanz": "6f010f70157fd5bb7577b8ef671a9cf39c17872ca349cd62755c375e6a0d0e12",
+        "zero": "c9fa15b359ed57a35045306aa8aea60dc46a9777e9fc02e7f61724d739df2753"
+      }
+    },
+    "hir_sha256": "4b297dc52a1748afbc0dc5af0fa3f2bac887e2a82e4b08e9f107088fac7ddd3e",
+    "origins_sha256": "6b115523b003787d45bfef4c3a2134b6dc2086bdc64849a99a78ca1aa37fb51f"
+  },
+  "schema": "minz.input-hir-loop-observations/v4",
+  "stage": "unoptimised-mir2-vm",
+  "sites": {
+    "schema": "minz.hir-loop-sites/v1",
+    "stage": "input-hir",
+    "sites": [
+      {
+        "id": "2fc4cb0f5e5cb44d1493ae9b660a5447084408d814e7398b6999e3cb300a520b",
+        "function": "weighted_checksum_second",
+        "kind": "while",
+        "ordinal": 0,
+        "hir_path": "body/s2",
+        "origin": {
+          "unit": "testdata/grace_rule_budget.nanz",
+          "byte_offset": 3526,
+          "line": 235,
+          "byte_column": 5,
+          "source_sha256": "6f010f70157fd5bb7577b8ef671a9cf39c17872ca349cd62755c375e6a0d0e12"
+        }
+      },
+      {
+        "id": "a8dbf22721abc42b00570dd8dabf69385311ae03ff7933cc1bb0e1ab13a76148",
+        "function": "weighted_checksum",
+        "kind": "while",
+        "ordinal": 0,
+        "hir_path": "body/s2",
+        "origin": {
+          "unit": "testdata/grace_rule_budget.nanz",
+          "byte_offset": 2840,
+          "line": 212,
+          "byte_column": 5,
+          "source_sha256": "6f010f70157fd5bb7577b8ef671a9cf39c17872ca349cd62755c375e6a0d0e12"
+        }
+      }
+    ],
+    "unmapped_loops": 0
+  },
+  "counts": [
+    {
+      "site_id": "2fc4cb0f5e5cb44d1493ae9b660a5447084408d814e7398b6999e3cb300a520b",
+      "entries": 24,
+      "body_entries": 1364
+    },
+    {
+      "site_id": "a8dbf22721abc42b00570dd8dabf69385311ae03ff7933cc1bb0e1ab13a76148",
+      "entries": 30,
+      "body_entries": 1705
+    }
+  ],
+  "completed_calls": 30,
+  "failed_calls": 0
+}

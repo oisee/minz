@@ -77,7 +77,21 @@ func TestIndependentGraceRulesJointCaller(t *testing.T) {
 }
 
 func TestIndependentGraceRulesChecksum(t *testing.T) {
+	testIndependentChecksum(t, false)
+}
+
+func TestIndependentGraceRulesBudgetCompetition(t *testing.T) {
+	// Every Grace rewrite rebuilds facts and verifies lowering. Keep this deliberate
+	// competition regression intact; run with a suitable test timeout on slow hosts.
+	testIndependentChecksum(t, true)
+}
+
+func testIndependentChecksum(t *testing.T, budget bool) {
+	t.Helper()
 	sourcePath := "../../../examples/nanz/grace_weighted_checksum.nanz"
+	if budget {
+		sourcePath = "testdata/grace_rule_budget.nanz"
+	}
 	source, err := os.ReadFile(sourcePath)
 	if err != nil {
 		t.Fatal(err)
@@ -99,8 +113,14 @@ func TestIndependentGraceRulesChecksum(t *testing.T) {
 	for i, c := range w.Calls {
 		a := c.Arguments
 		sum := uint64(*a[4].Value)
-		for _, v := range w.Resources[a[0].Resource][:int(*a[1].Value)] {
-			sum += uint64(*a[2].Value) + uint64(*a[3].Value) + uint64(v)
+		repetitions := 1
+		if budget && c.Function == "checksum_packet" {
+			repetitions = 2
+		}
+		for traversal := 0; traversal < repetitions; traversal++ {
+			for _, v := range w.Resources[a[0].Resource][:int(*a[1].Value)] {
+				sum += uint64(*a[2].Value) + uint64(*a[3].Value) + uint64(v)
+			}
 		}
 		expected[i] = int64(uint16(sum))
 		if c.Function == "checksum_packet" {
@@ -117,6 +137,12 @@ func TestIndependentGraceRulesChecksum(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if budget {
+		if len(raw.Profile.Sites.Sites) != 2 || len(raw.Profile.Guards) != 0 {
+			t.Fatal("fixture sites/guards changed")
+		}
+		checkBudgetAccessOracle(t, raw, w)
+	}
 	p, err := json.Marshal(raw.Profile)
 	if err != nil {
 		t.Fatal(err)
@@ -132,7 +158,11 @@ func TestIndependentGraceRulesChecksum(t *testing.T) {
 			for _, l := range c.Lineage {
 				hoisted = hoisted || l.Lineage.Rule == "hir-invariant-base"
 			}
-			if hoisted != (i&2 != 0) {
+			wantHoisted := i&2 != 0
+			if budget {
+				wantHoisted = i == 2
+			}
+			if hoisted != wantHoisted {
 				t.Fatal("policy was not reflected in actual lineage")
 			}
 			for j, inv := range c.Run.Invocations {
@@ -140,7 +170,43 @@ func TestIndependentGraceRulesChecksum(t *testing.T) {
 					t.Fatal("independent host oracle mismatch", i, j)
 				}
 			}
+			if budget {
+				count := 0
+				for _, l := range c.FinalLineage {
+					if l.Lineage.Rule == "hir-invariant-base" {
+						count++
+					}
+				}
+				wantCount := 0
+				if i == 2 {
+					wantCount = 2
+				}
+				if count != wantCount {
+					t.Fatal("final compiled hoist count", i, count, wantCount)
+				}
+				checkBudgetAccessOracle(t, c.FinalRawRun, w)
+				targetAccess := &hir.ProfileRun{}
+				for _, inv := range c.Run.Invocations {
+					if inv.Access == nil {
+						t.Fatal("target access evidence missing")
+					}
+					targetAccess.Accesses = append(targetAccess.Accesses, *inv.Access)
+				}
+				checkBudgetAccessOracle(t, targetAccess, w)
+			}
 			t.Logf("size=%v candidate=%d policy=%v cost=%dT/%dB", size, i, c.RulePolicy, c.TotalTStates, c.ModuleBytes)
+		}
+		if budget {
+			winner := r.Evidence.Candidates[2]
+			if r.Evidence.Selected != 2 {
+				t.Fatal("mixed policy did not win", r.Evidence.Selected)
+			}
+			for _, i := range []int{0, 3} {
+				c := r.Evidence.Candidates[i]
+				if winner.TotalTStates >= c.TotalTStates || winner.ModuleBytes >= c.ModuleBytes {
+					t.Fatal("mixed policy must strictly beat both bundled policies")
+				}
+			}
 		}
 		replay, err := RunZ80ProfileWorkload(r.Steps, m, w, *raw)
 		if err != nil || !reflect.DeepEqual(replay, r.Evidence.Candidates[r.Evidence.Selected].Run) {
@@ -150,9 +216,24 @@ func TestIndependentGraceRulesChecksum(t *testing.T) {
 			if err = os.MkdirAll(dir, 0755); err != nil {
 				t.Fatal(err)
 			}
+			if budget {
+				if err = os.WriteFile(filepath.Join(dir, "budget-source.nanz"), source, 0644); err != nil {
+					t.Fatal(err)
+				}
+				b, err := json.MarshalIndent(map[string]any{"results": expected, "snapshots": snapshots}, "", "  ")
+				if err != nil {
+					t.Fatal(err)
+				}
+				if err = os.WriteFile(filepath.Join(dir, "budget-host-oracle.json"), b, 0644); err != nil {
+					t.Fatal(err)
+				}
+			}
 			prefix := "speed"
 			if size {
 				prefix = "size"
+			}
+			if budget {
+				prefix = "budget-" + prefix
 			}
 			for name, value := range map[string]any{"evidence": r.Evidence, "workload": w, "profile": raw.Profile} {
 				b, err := json.MarshalIndent(value, "", "  ")
@@ -200,5 +281,93 @@ func TestIndependentGraceRulesRefuseInvalidInputs(t *testing.T) {
 	}
 	if r, err := MeasureGraceRuleVariantSets(func() (*hir.Module, error) { return shared, nil }, p, w, options, 4); err == nil || r != nil {
 		t.Fatal("shared factory accepted")
+	}
+}
+
+// Independent byte counts: source caller traverses twice and records once.
+func checkBudgetAccessOracle(t *testing.T, r *hir.ProfileRun, w hir.ProfileWorkload) {
+	t.Helper()
+	if r == nil || len(r.Accesses) != len(w.Calls) {
+		t.Fatal("missing access evidence")
+	}
+	for j, c := range w.Calls {
+		n := int(*c.Arguments[1].Value)
+		reps := uint64(1)
+		caller := c.Function == "checksum_packet"
+		if caller {
+			reps = 2
+		}
+		snapshot := r.Accesses[j]
+		if len(snapshot.Resources) != len(w.Resources) || len(snapshot.Globals) != 2 {
+			t.Fatal("incomplete access snapshot")
+		}
+		for name, a := range snapshot.Resources {
+			if len(a.Reads) != len(w.Resources[name]) || len(a.Writes) != len(w.Resources[name]) {
+				t.Fatal("resource access widths")
+			}
+			for i, reads := range a.Reads {
+				var want uint64
+				if name == c.Arguments[0].Resource && i < n {
+					want = reps
+				}
+				if reads != want || a.Writes[i] != 0 {
+					t.Fatal("resource access oracle", j, name, i)
+				}
+			}
+		}
+		for name, a := range snapshot.Globals {
+			if len(a.Reads) != len(w.Globals[name]) || len(a.Writes) != len(w.Globals[name]) {
+				t.Fatal("global access widths")
+			}
+			for i, reads := range a.Reads {
+				var rd, wr uint64
+				if caller {
+					wr = 1
+					if name == "checksum_calls" {
+						rd = 1
+					}
+				}
+				if reads != rd || a.Writes[i] != wr {
+					t.Fatal("global access oracle", j, name, i)
+				}
+			}
+		}
+	}
+}
+
+func TestIndependentGraceRulesFourPointerSites(t *testing.T) {
+	source := ""
+	body := ""
+	for i := 0; i < 4; i++ {
+		name := fmt.Sprintf("sum%d", i)
+		source += fmt.Sprintf("fun %s(ptr:^u8,n:u8)->u8 {var s:u8=0\nvar i:u8=0\nwhile i<n {s=s+ptr[i]\ni=i+1}\nreturn s}\n", name)
+		body += fmt.Sprintf("var s%d:u8=%s(ptr,n)\n", i, name)
+	}
+	source += "fun caller(ptr:^u8,n:u8)->u8 {" + body + "return s0+s1+s2+s3}"
+	factory := func() (*hir.Module, error) { return nanz.Parse(source, "four-rule-sites.nanz") }
+	_, w, _ := jointFixture(t)
+	w.Globals = nil
+	w.Calls = w.Calls[:1]
+	m, err := factory()
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, err := hir.RunLoopProfile(m, w)
+	if err != nil {
+		t.Fatal(err)
+	}
+	p, err := json.Marshal(raw.Profile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	r, err := MeasureGraceRuleVariantSets(factory, p, w, Options{AssertMode: "none", UseHIRGrace: true}, 4)
+	if err != nil {
+		t.Fatal(err)
+	}
+	checkIndependentRuleEvidence(t, r, 4, false)
+	for _, c := range r.Evidence.Candidates {
+		if c.Run.Invocations[0].Results[0].I != 60 {
+			t.Fatal("four-site host oracle")
+		}
 	}
 }
