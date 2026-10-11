@@ -1,0 +1,35 @@
+{
+  "Locs": {
+    "1": {
+      "Kind": 0,
+      "Name": "A",
+      "Offset": 0
+    },
+    "2": {
+      "Kind": 0,
+      "Name": "C",
+      "Offset": 0
+    },
+    "3": {
+      "Kind": 0,
+      "Name": "A",
+      "Offset": 0
+    },
+    "4": {
+      "Kind": 0,
+      "Name": "A",
+      "Offset": 0
+    },
+    "5": {
+      "Kind": 0,
+      "Name": "C",
+      "Offset": 0
+    },
+    "6": {
+      "Kind": 0,
+      "Name": "A",
+      "Offset": 0
+    }
+  },
+  "Spilled": null
+}
