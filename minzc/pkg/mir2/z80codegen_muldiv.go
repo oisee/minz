@@ -311,10 +311,10 @@ func (g *z80cg) genMul16(inst *Inst) {
 			return
 		}
 		// Small multiples via PUSH/POP BC save + shift sequences.
-		if cv == 3 || cv == 5 || cv == 6 || cv == 9 {
+		if cv == 3 || cv == 5 || cv == 6 || cv == 9 || cv == 10 || cv == 12 {
 			g.emit("    PUSH BC") // preserve values live across the scratch pair
 			g.emit("    PUSH HL") // save x → BC
-			g.emit("    POP BC")  // BC = x (17T)
+			g.emit("    POP BC")  // BC = x (PUSH HL 11T + POP BC 10T)
 			switch cv {
 			case 3: // x*2 + x
 				g.emit("    ADD HL, HL")
@@ -334,6 +334,16 @@ func (g *z80cg) genMul16(inst *Inst) {
 				g.emit("    ADD HL, HL")
 				g.emit("    ADD HL, HL")
 				g.emit("    ADD HL, BC")
+			case 10: // (x*4 + x)*2; ADD HL,rr is 11T on Z80.
+				g.emit("    ADD HL, HL")
+				g.emit("    ADD HL, HL")
+				g.emit("    ADD HL, BC")
+				g.emit("    ADD HL, HL")
+			case 12: // (x*2 + x)*4.
+				g.emit("    ADD HL, HL")
+				g.emit("    ADD HL, BC")
+				g.emit("    ADD HL, HL")
+				g.emit("    ADD HL, HL")
 			}
 			g.emit("    POP BC")
 			mul16Epilogue()
