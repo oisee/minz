@@ -97,3 +97,11 @@ func TestMemoryHostArenaSourceGraphRetention(t *testing.T) {
 	}
 	runtime.KeepAlive(roots)
 }
+
+func TestMemoryHostArenaSelectorOversizeBeforeFactory(t *testing.T) {
+	called := false
+	factory := func() (*hir.Module, error) { called = true; return nil, nil }
+	if r, e := MeasureMemoryHostArenaPeel(factory, hir.MemoryHostWorkload{}, make([]byte, hir.MaxMemoryHostLoopProfileBytes+1), MemoryHostArenaSelectorOptions{Goal: "speed", MaxSites: 1}); e == nil || r != nil || called {
+		t.Fatal("oversize payload entered factory")
+	}
+}

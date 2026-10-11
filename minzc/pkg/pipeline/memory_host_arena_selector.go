@@ -35,6 +35,9 @@ func MeasureMemoryHostArenaPeel(factory func() (*hir.Module, error), w hir.Memor
 	if factory == nil || o.MaxSites != 1 || (o.Goal != "speed" && o.Goal != "size") {
 		return nil, fmt.Errorf("arena selector: invalid bounded options/factory")
 	}
+	if len(serialized) > hir.MaxMemoryHostLoopProfileBytes {
+		return nil, fmt.Errorf("arena selector: profile size limit")
+	}
 	owned, e := ownMemoryHostWorkload(w)
 	if e != nil {
 		return nil, e
