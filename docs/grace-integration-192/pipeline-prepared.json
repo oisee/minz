@@ -1,0 +1,9 @@
+{
+  "compiler_commit": "9164bb08",
+  "command": "pipeline-9164bb08-full.test -test.count=1 -test.timeout=90m",
+  "required_cwd": "compiler/minzc/pkg/pipeline",
+  "sha256": "ac7074353ea166092b3aca6acece9ced1416c4193ed3819155500c6a754d2b32",
+  "local": "/home/alice/dev/minz-artifacts/grace-checkpoints/pipeline-9164bb08-full.test",
+  "share": "/mnt/safe/minz/grace/2026-10-11/compiler-checkpoints/pipeline-9164bb08-full.test",
+  "status": "prepared; not started; wait for existing pipelinecfaa7777 terminal"
+}
