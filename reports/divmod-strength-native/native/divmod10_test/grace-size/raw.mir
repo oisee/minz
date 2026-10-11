@@ -1,0 +1,23 @@
+; MIR2 module: ../../../examples/tests/divmod10_test.nanz
+fun @div10(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = const 10 : u8 [general]
+    %r3 = div %r1, %r2 : u8 [general]
+    ret %r3
+
+fun @mod10(%r4: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r5 = const 10 : u8 [general]
+    %r6 = mod %r4, %r5 : u8 [general]
+    ret %r6
+
+fun @main()
+  block @entry:
+    %r7 = const 42 : u8 [general]
+    %r8 = move %r7 : u8 [acc]
+    %r9 = call @div10(%r8) : u8 [acc]
+    %r10 = const 42 : u8 [general]
+    %r11 = move %r10 : u8 [acc]
+    %r12 = call @mod10(%r11) : u8 [acc]
+    ret void
+

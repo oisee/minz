@@ -1,0 +1,96 @@
+; MIR2 module: ../../../examples/tests/mul8_strength_reduction.nanz
+fun @mul0(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = const 0 : u8 [general]
+    %r3 = mul %r1, %r2 : u8 [general]
+    ret %r3
+
+fun @mul1(%r4: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r5 = const 1 : u8 [general]
+    %r6 = mul %r4, %r5 : u8 [general]
+    ret %r6
+
+fun @mul2(%r7: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r8 = const 2 : u8 [general]
+    %r9 = mul %r7, %r8 : u8 [general]
+    ret %r9
+
+fun @mul3(%r10: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r11 = const 3 : u8 [general]
+    %r12 = mul %r10, %r11 : u8 [general]
+    ret %r12
+
+fun @mul4(%r13: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r14 = const 4 : u8 [general]
+    %r15 = mul %r13, %r14 : u8 [general]
+    ret %r15
+
+fun @mul5(%r16: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r17 = const 5 : u8 [general]
+    %r18 = mul %r16, %r17 : u8 [general]
+    ret %r18
+
+fun @mul6(%r19: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r20 = const 6 : u8 [general]
+    %r21 = mul %r19, %r20 : u8 [general]
+    ret %r21
+
+fun @mul7(%r22: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r23 = const 7 : u8 [general]
+    %r24 = mul %r22, %r23 : u8 [general]
+    ret %r24
+
+fun @mul8(%r25: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r26 = const 8 : u8 [general]
+    %r27 = mul %r25, %r26 : u8 [general]
+    ret %r27
+
+fun @mul9(%r28: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r29 = const 9 : u8 [general]
+    %r30 = mul %r28, %r29 : u8 [general]
+    ret %r30
+
+fun @mul10(%r31: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r32 = const 10 : u8 [general]
+    %r33 = mul %r31, %r32 : u8 [general]
+    ret %r33
+
+fun @mul12(%r34: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r35 = const 12 : u8 [general]
+    %r36 = mul %r34, %r35 : u8 [general]
+    ret %r36
+
+fun @mul15(%r37: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r38 = const 15 : u8 [general]
+    %r39 = mul %r37, %r38 : u8 [general]
+    ret %r39
+
+fun @mul16(%r40: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r41 = const 16 : u8 [general]
+    %r42 = mul %r40, %r41 : u8 [general]
+    ret %r42
+
+fun @board_idx(%r43: u8 [acc], %r44: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r45 = const 10 : u8 [general]
+    %r46 = mul %r44, %r45 : u8 [general]
+    %r47 = add %r46, %r43 : u8 [acc]
+    ret %r47
+
+fun @main()
+  block @entry:
+    ret void
+

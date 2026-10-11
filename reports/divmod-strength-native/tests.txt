@@ -1,0 +1,10 @@
+=== RUN   TestOriginalNanzDivmodStrengthDomains
+    original_nanz_divmod_strength_native_test.go:233: divmod10_test ordinary 513 native/raw/final independent fullstate PASS
+    original_nanz_divmod_strength_native_test.go:233: divmod10_test grace-size 513 native/raw/final independent fullstate PASS
+    original_nanz_divmod_strength_native_test.go:233: divmod10_test grace-speed 513 native/raw/final independent fullstate PASS
+    original_nanz_divmod_strength_native_test.go:233: mul8_strength_reduction ordinary 69141 native/raw/final independent fullstate PASS
+    original_nanz_divmod_strength_native_test.go:233: mul8_strength_reduction grace-size 69141 native/raw/final independent fullstate PASS
+    original_nanz_divmod_strength_native_test.go:233: mul8_strength_reduction grace-speed 69141 native/raw/final independent fullstate PASS
+--- PASS: TestOriginalNanzDivmodStrengthDomains (2.23s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.236s
