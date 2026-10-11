@@ -373,3 +373,5 @@ Compatibility внутри одного admission boundary теперь вычи
 Полный pipeline3e143f9f теперь terminal PASS2804.368с. Новая заранее frozen packed FAT12 нагрузка выявила native write_fat12 mismatch при raw/finalVM совпадении с независимым oracle; расследуется до выбора оптимизаций. [Пакет094](grace-integration-094/README.md).
 
 Historical ENRT4v record5 теперь покрывает weighted13 SSA values через проверенный2-variable quotient; root all256 helper/caller original и factor9 PASS2.412с. Fresh showcase после lane/context PASS12.711с193/1. [Пакет095](grace-integration-095/README.md).
+
+Первый packed FAT12 BIT-pattern fix интегрирован, root native parity PASS3.553с. Frozen odd write_fat12 остаётся FAIL: сдвиг черезHL затирает живое значение; workload не изменён. [Контекст096](grace-integration-096/README.md).
