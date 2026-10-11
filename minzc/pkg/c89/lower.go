@@ -2,6 +2,7 @@ package c89
 
 import (
 	"fmt"
+	"maps"
 	"strings"
 
 	cc "github.com/minz/minzc/pkg/cparse"
@@ -501,6 +502,17 @@ func (fl *funcLow) drainPending(stmts *[]hir.Stmt) {
 }
 
 func (fl *funcLow) lowerCompound(cs *cc.CompoundStatement) ([]hir.Stmt, error) {
+	oldLocals, oldStatic, oldObjc, oldProto := fl.locals, fl.staticRenames, fl.objcLocals, fl.objcProtoVars
+	fl.locals = maps.Clone(fl.locals)
+	fl.staticRenames = maps.Clone(fl.staticRenames)
+	fl.objcLocals = maps.Clone(fl.objcLocals)
+	fl.objcProtoVars = maps.Clone(fl.objcProtoVars)
+	defer func() {
+		fl.locals = oldLocals
+		fl.staticRenames = oldStatic
+		fl.objcLocals = oldObjc
+		fl.objcProtoVars = oldProto
+	}()
 	if cs == nil {
 		return nil, nil
 	}
@@ -543,6 +555,9 @@ func (fl *funcLow) lowerLocalDecl(d *cc.Declaration) ([]hir.Stmt, error) {
 			continue
 		}
 		ty := fl.low.mapType(decl.Type())
+		if !decl.IsStatic() {
+			delete(fl.staticRenames, name)
+		}
 
 		// static local → emit as mangled global, reference by mangled name.
 		// Skip __func__ (implicitly static, not a real user variable).
@@ -654,7 +669,11 @@ func (fl *funcLow) lowerStmt(s *cc.Statement) ([]hir.Stmt, error) {
 	}
 	switch s.Case {
 	case cc.StatementCompound:
-		return fl.lowerCompound(s.CompoundStatement)
+		body, err := fl.lowerCompound(s.CompoundStatement)
+		if err != nil {
+			return nil, err
+		}
+		return []hir.Stmt{&hir.Block{Body: body}}, nil
 
 	case cc.StatementExpr:
 		return fl.lowerExprStmt(s.ExpressionStatement)
