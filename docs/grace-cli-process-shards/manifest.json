@@ -1,0 +1,65 @@
+{
+  "schema": "minz.artifact-manifest/v1",
+  "files": [
+    {
+      "path": "build.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "discovery.txt",
+      "bytes": 2568,
+      "sha256": "846155cd86aa63d65676449b6f2f6358bcfc0617b5b82e27989f90757125ac04"
+    },
+    {
+      "path": "historical-core-5fe165-full.txt",
+      "bytes": 219,
+      "sha256": "9f35b88f34987ecdc744b6cbbf043339aaeaaaaf7b1604494f25b95339717450"
+    },
+    {
+      "path": "plan.json",
+      "bytes": 6938,
+      "sha256": "d369e7ca6ecaae128fa9cdcc02f6c820f31772c9fa999517a4d6092fe31c8e73"
+    },
+    {
+      "path": "progress.txt",
+      "bytes": 655,
+      "sha256": "3e337c824ac0e7d71387f3e7be8a3f3940d49eb93b7663a5c8f4f0ec50eee61b"
+    },
+    {
+      "path": "shard-0.jsonl.gz",
+      "bytes": 1139,
+      "sha256": "01ce58e0d2179003b494406aef16fd4d8f7727bea38ea5eaf2f8badef6ae2261"
+    },
+    {
+      "path": "shard-0.log",
+      "bytes": 1425,
+      "sha256": "ba2f3ea21b6c874f535b82fcb73763c6d0703762e9fe17e54d473cd2b81a98e9"
+    },
+    {
+      "path": "shard-1.jsonl.gz",
+      "bytes": 1774,
+      "sha256": "023d9baa7421f193ece46c12c194fe2ef3dc87898b5d421cbde400a734ee2ce2"
+    },
+    {
+      "path": "shard-1.log",
+      "bytes": 2924,
+      "sha256": "6abb42625efd19fe0545b1ab4decf4223e3355d02c9767ca03cc10f580bfb453"
+    },
+    {
+      "path": "shard-2.jsonl.gz",
+      "bytes": 11355,
+      "sha256": "8211189cc15a303f4ca2c19fc29d817e6cb8157d08c3d665e7c8adb11650b6dc"
+    },
+    {
+      "path": "shard-2.log",
+      "bytes": 24377,
+      "sha256": "1eeb3311e5b18197b2451cb0020960cf10acc19044ac42b6e4790014c12d1d48"
+    },
+    {
+      "path": "summary.json",
+      "bytes": 20399,
+      "sha256": "eb3eb95156d8eae568c99c63327259c3d9b05e1e1aa2adf6c1ff32754ca23077"
+    }
+  ]
+}

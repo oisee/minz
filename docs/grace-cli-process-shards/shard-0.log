@@ -1,0 +1,25 @@
+=== RUN   TestSearchCLIAdmission
+--- PASS: TestSearchCLIAdmission (0.09s)
+=== RUN   TestSearchCLIPathAliases
+=== RUN   TestSearchCLIPathAliases/input.nanz
+--- PASS: TestSearchCLIPathAliases/input.nanz (0.00s)
+=== RUN   TestSearchCLIPathAliases/input-workload.json
+--- PASS: TestSearchCLIPathAliases/input-workload.json (0.01s)
+=== RUN   TestSearchCLIPathAliases/legacy.json
+--- PASS: TestSearchCLIPathAliases/legacy.json (0.04s)
+=== RUN   TestSearchCLIPathAliases/preserve.json
+--- PASS: TestSearchCLIPathAliases/preserve.json (0.08s)
+--- PASS: TestSearchCLIPathAliases (0.13s)
+=== RUN   TestSearchCLIKnownSourceBeforeCollection
+--- PASS: TestSearchCLIKnownSourceBeforeCollection (0.14s)
+=== RUN   TestSearchCLISuppliedPreflight
+--- PASS: TestSearchCLISuppliedPreflight (0.20s)
+=== RUN   TestSearchCLIOrdinaryRoutesUnaffected
+--- PASS: TestSearchCLIOrdinaryRoutesUnaffected (0.02s)
+=== RUN   TestSearchCLIAssociationCaps
+--- PASS: TestSearchCLIAssociationCaps (0.50s)
+=== RUN   TestSearchCLICollectAndPairedReplay
+Closed memory-host search speed selected policy1/mask1: 701T / 2486B; evidence /tmp/minz-cli-shard-0-aycgfucs/TestSearchCLICollectAndPairedReplay3496400888/001/search-artifacts
+Closed memory-host search size selected policy0/mask2: 796T / 2344B; evidence /tmp/minz-cli-shard-0-aycgfucs/TestSearchCLICollectAndPairedReplay3496400888/001/search-replay
+--- PASS: TestSearchCLICollectAndPairedReplay (270.36s)
+PASS

@@ -1,0 +1,51 @@
+=== RUN   TestMemoryHostCLIValidation
+=== RUN   TestMemoryHostCLIValidation/target
+--- PASS: TestMemoryHostCLIValidation/target (0.00s)
+=== RUN   TestMemoryHostCLIValidation/format
+--- PASS: TestMemoryHostCLIValidation/format (0.00s)
+=== RUN   TestMemoryHostCLIValidation/profilemode
+--- PASS: TestMemoryHostCLIValidation/profilemode (0.00s)
+=== RUN   TestMemoryHostCLIValidation/hirgrace
+--- PASS: TestMemoryHostCLIValidation/hirgrace (0.00s)
+=== RUN   TestMemoryHostCLIValidation/partialflags
+--- PASS: TestMemoryHostCLIValidation/partialflags (0.00s)
+--- PASS: TestMemoryHostCLIValidation (0.01s)
+=== RUN   TestMemoryHostCLIPathAliases
+=== RUN   TestMemoryHostCLIPathAliases/hardlink
+--- PASS: TestMemoryHostCLIPathAliases/hardlink (0.00s)
+=== RUN   TestMemoryHostCLIPathAliases/symlink
+--- PASS: TestMemoryHostCLIPathAliases/symlink (0.00s)
+=== RUN   TestMemoryHostCLIPathAliases/output
+--- PASS: TestMemoryHostCLIPathAliases/output (0.00s)
+--- PASS: TestMemoryHostCLIPathAliases (0.01s)
+=== RUN   TestMemoryHostCLIWorkloadKeys
+--- PASS: TestMemoryHostCLIWorkloadKeys (0.50s)
+=== RUN   TestPolicyCLIAdmission
+--- PASS: TestPolicyCLIAdmission (0.01s)
+=== RUN   TestPolicyCLIPathAliases
+=== RUN   TestPolicyCLIPathAliases/source
+--- PASS: TestPolicyCLIPathAliases/source (0.00s)
+=== RUN   TestPolicyCLIPathAliases/workload
+--- PASS: TestPolicyCLIPathAliases/workload (0.00s)
+=== RUN   TestPolicyCLIPathAliases/association
+--- PASS: TestPolicyCLIPathAliases/association (0.00s)
+=== RUN   TestPolicyCLIPathAliases/output
+--- PASS: TestPolicyCLIPathAliases/output (0.00s)
+--- PASS: TestPolicyCLIPathAliases (0.00s)
+=== RUN   TestPolicyCLICollectReplay
+Closed memory-host policy preserve-speed speed selected mask1: 701T / 2532B; evidence /tmp/minz-cli-shard-1-31smr0cv/TestPolicyCLICollectReplay1933833561/001/policy-artifacts
+Closed memory-host policy preserve-speed speed selected mask1: 701T / 2532B; evidence /tmp/minz-cli-shard-1-31smr0cv/TestPolicyCLICollectReplay1933833561/001/replay
+--- PASS: TestPolicyCLICollectReplay (43.81s)
+=== RUN   TestPolicyCLIMalformedAssociationAndImports
+--- PASS: TestPolicyCLIMalformedAssociationAndImports (0.08s)
+=== RUN   TestPolicyCLILegacyRouteUnchanged
+--- PASS: TestPolicyCLILegacyRouteUnchanged (0.01s)
+=== RUN   TestMemoryHostSelectedOutputExtensions
+--- PASS: TestMemoryHostSelectedOutputExtensions (0.06s)
+=== RUN   TestMemoryHostSelectedOutputBytes
+--- PASS: TestMemoryHostSelectedOutputBytes (0.00s)
+=== RUN   TestMemoryHostLegacySelectedOutputCollectReplay
+Closed memory-host speed selected mask1: 718T / 2531B; evidence /tmp/minz-cli-shard-1-31smr0cv/TestMemoryHostLegacySelectedOutputCollectReplay4215236110/001/legacy-collect
+Closed memory-host speed selected mask1: 718T / 2531B; evidence /tmp/minz-cli-shard-1-31smr0cv/TestMemoryHostLegacySelectedOutputCollectReplay4215236110/001/legacy-replay
+--- PASS: TestMemoryHostLegacySelectedOutputCollectReplay (43.11s)
+PASS
