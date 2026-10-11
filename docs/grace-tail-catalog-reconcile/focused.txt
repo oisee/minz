@@ -1,0 +1,14 @@
+=== RUN   TestArithmeticProspectiveHeldout
+    arithmetic_heldout_test.go:142: speed mask0: 26038 T / 176 B
+    arithmetic_heldout_test.go:142: speed mask1: 26038 T / 176 B
+    arithmetic_heldout_test.go:142: speed mask2: 27354 T / 216 B
+    arithmetic_heldout_test.go:142: speed mask3: 27354 T / 216 B
+    arithmetic_heldout_test.go:163: speed selected0 heldout 480819 T / 176 B
+    arithmetic_heldout_test.go:142: size mask0: 26038 T / 176 B
+    arithmetic_heldout_test.go:142: size mask1: 26038 T / 176 B
+    arithmetic_heldout_test.go:142: size mask2: 27354 T / 216 B
+    arithmetic_heldout_test.go:142: size mask3: 27354 T / 216 B
+    arithmetic_heldout_test.go:163: size selected0 heldout 480819 T / 176 B
+--- PASS: TestArithmeticProspectiveHeldout (1.50s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.507s
