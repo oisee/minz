@@ -1,0 +1,5 @@
+=== RUN   TestOriginalFilterMapOrderedTraceVMZ80
+    showcase_filter_map_oracle_test.go:146: exact original map/filter entries: 84 calls ordered reads/callback writes/full input+trace/rawVM+Z80; 1408236 T/99 B SHA 93b4298eedb9b065e5f1eacceac0cd692a12f156d2e08f711b59da3f3ae2b616
+--- PASS: TestOriginalFilterMapOrderedTraceVMZ80 (0.22s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.232s

@@ -1,0 +1,7 @@
+global oracle_trace_count: u16 = 0
+ @extern fun poke(addr: u16, value: u8) -> void
+ fun process(x: u8) -> void {
+  poke(0xA000 + oracle_trace_count, x)
+  oracle_trace_count = oracle_trace_count + 1
+ }
+ 

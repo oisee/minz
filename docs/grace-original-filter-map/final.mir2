@@ -1,0 +1,68 @@
+; MIR2 module: ../../../examples/nanz/03_filter_map_chain.nanz
+global @oracle_trace_count : u16
+
+fun @filter_map_forEach(%r1: u16 [pointer], %r2: u8 [general], %r3: u8 [counter])
+  block @entry:
+    %r4 = move %r1 : ptr [pointer]
+    %r5 = const 0 : u8 [acc]
+    %r6 = const 1 : u8 [counter]
+    jmp @fe_head1(%r4, %r2, %r3)
+  block @fe_head1(%r4: ptr [pointer], %r8: u8 [counter], %r9: u8 [general]):
+    %r10 = cmp.ne %r8, %r5 : bool [flag]
+    cond_ret %r10, [], @fe_body2()
+  block @fe_body2:
+    %r11 = load %r4 : u8 [general]
+    %r12 = const 2 : u8 [general]
+    %r13 = mul %r11, %r12 : u8 [general]
+    %r14 = cmp.ule %r13, %r9 : bool [flag]
+    br_if %r14, @if_then5(), @if_join6()
+  block @if_then5:
+    jmp @fe_cont3(%r9)
+  block @fe_cont3(%r9: u8 [general]):
+    %r16 = ptr_bump %r4, +1 : ptr [pointer]
+    %r17 = sub %r8, %r6 : u8 [counter]
+    jmp @fe_head1(%r16, %r17, %r9)
+  block @if_join6:
+    %r18 = move %r13 : u8 [acc]
+    call @process(%r18)
+    jmp @fe_cont3(%r9)
+
+fun @filter_map_explicit(%r19: u16 [pointer], %r20: u8 [general], %r21: u8 [counter])
+  block @entry:
+    %r22 = move %r19 : ptr [pointer]
+    %r23 = const 0 : u8 [acc]
+    %r24 = cmp.ne %r20, %r23 : bool [flag]
+    br_if %r24, @fe_body1(%r20, %r22, %r21), @fe_exit2()
+  block @fe_body1(%r25: u8 [counter], %r26: ptr [pointer], %r27: u8 [general]):
+    %r28 = load %r26 : u8 [general]
+    %r29 = const 2 : u8 [general]
+    %r30 = mul %r28, %r29 : u8 [general]
+    %r31 = cmp.ugt %r30, %r27 : bool [flag]
+    br_if %r31, @if_then3(), @if_join4()
+  block @if_then3:
+    %r32 = move %r30 : u8 [acc]
+    call @process(%r32)
+    jmp @if_join4()
+  block @if_join4:
+    %r33 = ptr_bump %r26, +1 : ptr [pointer]
+    djnz %r25, @fe_body1(%r33, %r27), @fe_exit2()
+  block @fe_exit2:
+    ret void
+
+extern fun @poke(%r34: u16 [pointer], %r35: u8 [general])
+
+fun @process(%r36: u8 [acc])
+  block @entry:
+    %r37 = const 40960 : u16 [pointer]
+    %r38 = addr_of @oracle_trace_count : ptr [pointer]
+    %r39 = load %r38 : u16 [pointer]
+    %r40 = add %r37, %r39 : u16 [pointer]
+    call @poke(%r40, %r36)
+    %r41 = addr_of @oracle_trace_count : ptr [pointer]
+    %r42 = load %r41 : u16 [pointer]
+    %r43 = const 1 : u16 [pointer]
+    %r44 = add %r42, %r43 : u16 [pointer]
+    %r45 = addr_of @oracle_trace_count : ptr [pointer]
+    store %r45, %r44 : u16
+    ret void
+
