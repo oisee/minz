@@ -127,27 +127,16 @@ func runZ80MemoryHostWorkload(steps Steps, source *hir.Module, w hir.MemoryHostW
 	if e != nil {
 		return fail(e)
 	}
-	type functionRange struct {
-		name  string
-		start int
-	}
-	ranges := []functionRange{}
+	ranges := []memoryHostFunctionRange{}
 	for _, f := range steps.MIR2Module.Funcs {
 		p, ok := workloadSymbol(a.Symbols, f.Name)
 		if ok {
-			ranges = append(ranges, functionRange{f.Name, p})
+			ranges = append(ranges, memoryHostFunctionRange{f.Name, p})
 		}
 	}
 	sort.Slice(ranges, func(i, j int) bool { return ranges[i].start < ranges[j].start })
 	allowedInstruction := func(p int) bool {
-		name := ""
-		for _, f := range ranges {
-			if f.start > p {
-				break
-			}
-			name = f.name
-		}
-		return reachable[name]
+		return memoryHostReachableInstruction(ranges, reachable, p)
 	}
 	m := &memoryHostZ80Memory{lengths: map[uint16]int{}}
 	copy(m.data[int(a.Origin):], a.Binary)
@@ -442,4 +431,29 @@ func memoryHostSetArgument(m *memoryHostZ80Memory, loc mir2.PhysLoc, v int64) er
 		return fmt.Errorf("unsupported invocation location %s", loc.Name)
 	}
 	return nil
+}
+
+// Equal entry addresses are legitimate assembler aliases (e.g. tail-call EQU).
+// Only the latest entry group owns this PC; reachability does not bleed into
+// a following distinct unreachable function. Instruction lengths still come
+// exclusively from assembled instruction lines, never this range alone.
+type memoryHostFunctionRange struct {
+	name  string
+	start int
+}
+
+func memoryHostReachableInstruction(ranges []memoryHostFunctionRange, reachable map[string]bool, pc int) bool {
+	start := -1
+	allowed := false
+	for _, f := range ranges {
+		if f.start > pc {
+			break
+		}
+		if f.start != start {
+			start = f.start
+			allowed = false
+		}
+		allowed = allowed || reachable[f.name]
+	}
+	return allowed
 }

@@ -1,0 +1,12 @@
+=== RUN   TestMemoryHostReachableAliasAndUnreachableNextFunction
+--- PASS: TestMemoryHostReachableAliasAndUnreachableNextFunction (0.00s)
+=== RUN   TestMemoryHostNativeByteEffects
+--- PASS: TestMemoryHostNativeByteEffects (0.00s)
+=== RUN   TestMemoryHostNativeInvalidSecondBytePrefix
+--- PASS: TestMemoryHostNativeInvalidSecondBytePrefix (0.00s)
+=== RUN   TestMemoryHostNativeCodeDataReadRefusal
+--- PASS: TestMemoryHostNativeCodeDataReadRefusal (0.00s)
+=== RUN   TestMemoryHostNativePrefixAndStack
+--- PASS: TestMemoryHostNativePrefixAndStack (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.022s

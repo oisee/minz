@@ -1,0 +1,5 @@
+--- FAIL: TestOriginalTokenizerFullStateVMZ80 (0.87s)
+    original_tokenizer_native_test.go:234: mir2: func @str_eq: duplicate definition of %r114
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.879s
+FAIL
