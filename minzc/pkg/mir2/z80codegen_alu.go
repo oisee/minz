@@ -1117,21 +1117,21 @@ func (g *z80cg) genShift32(mnem string, inst *Inst) {
 
 	switch mnem {
 	case "SLA":
-		// Left shift: ADD HL,HL / EXX / ADC HL,HL / EXX  (× count)
-		// Z80 only supports ADD HL,HL — not ADD DE,DE or ADD BC,BC.
-		// Route through HL if needed.
-		if dst != "HL" {
-			g.emitMov("HL", dst, 16)
-		}
+		// HL has native word ADD/ADC. Other pairs use a byte carry chain,
+		// keeping both their shadow result and independently live HL intact.
 		for i := int64(0); i < count; i++ {
-			g.emit("    ADD HL, HL")
+			if dst == "HL" {
+				g.emit("    ADD HL, HL")
+				g.emit("    EXX")
+				g.emit("    ADC HL, HL")
+			} else {
+				g.emitf("    SLA %s", lo)
+				g.emitf("    RL %s", hi)
+				g.emit("    EXX")
+				g.emitf("    RL %s", lo)
+				g.emitf("    RL %s", hi)
+			}
 			g.emit("    EXX")
-			g.emit("    ADC HL, HL")
-			g.emit("    EXX")
-		}
-		if dst != "HL" {
-			g.emitMov(dst, "HL", 16)
-			g.invalidate("HL")
 		}
 	case "SRL":
 		// Logical right shift: EXX / SRL H / RR L / EXX / RR H / RR L  (× count)
