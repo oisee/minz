@@ -266,3 +266,11 @@ sizeappend2076B; это реальнаясменавыбора относите�
 5refusals exit1 безoutputdirectory; typedprefix/gas/unobserved различаются.
 Source/compiler/exe неизменны. Пакетсохранён; итоговыйкоммит ипубликация
 готовятся. Suppliedfailedprofile CLI отдельно не запускался.
+
+Choiceboundary99f779cc запушен. Приватная Sites версия45 опубликована:
+https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-choice-boundaries.html
+Офлайн копия обновляется. Следующая missingrouteпроверка suppliedprofile:
+реальный профиль852ctx против1bdexe (staleness), синтетические
+completion/failedsample/counter mutations реального1bdprofile сявной
+пометкой происхождения. Genuinefailedsameexeprofileexport не реализуем
+в этом artifact-only шаге. Цельпродолжается, source/exeunchanged.
