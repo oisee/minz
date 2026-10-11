@@ -738,6 +738,45 @@ func classForLoop(ty mir2.Ty, _ string) mir2.RegClass {
 // lowerBlock lowers a HIR block (list of statements).
 // Returns true if the block already ends with a terminator.
 func (l *lowerer) lowerBlock(blk *Block) bool {
+	// Each lexical declaration hides a binding only for this block. Snapshot
+	// when the declaration executes, so earlier assignments to outer variables
+	// survive. Restore metadata together with the SSA register on every exit.
+	type binding struct {
+		reg                     mir2.Reg
+		ty                      mir2.Ty
+		alias                   string
+		hasReg, hasTy, hasAlias bool
+	}
+	locals := map[string]binding{}
+	save := func(name string) {
+		if _, saved := locals[name]; saved {
+			return
+		}
+		r, rok := l.env[name]
+		ty, tok := l.envTy[name]
+		alias, aok := l.fnAliases[name]
+		locals[name] = binding{r, ty, alias, rok, tok, aok}
+		delete(l.fnAliases, name)
+	}
+	defer func() {
+		for name, b := range locals {
+			if b.hasReg {
+				l.env[name] = b.reg
+			} else {
+				delete(l.env, name)
+			}
+			if b.hasTy {
+				l.envTy[name] = b.ty
+			} else {
+				delete(l.envTy, name)
+			}
+			if b.hasAlias {
+				l.fnAliases[name] = b.alias
+			} else {
+				delete(l.fnAliases, name)
+			}
+		}
+	}()
 	terminated := false
 	for _, s := range blk.Body {
 		if terminated {
@@ -749,6 +788,16 @@ func (l *lowerer) lowerBlock(blk *Block) bool {
 			}
 			// Skip dead code after terminator.
 			continue
+		}
+		switch decl := s.(type) {
+		case *VarDeclStmt:
+			save(decl.Name)
+		case *TupleLetStmt:
+			for _, name := range decl.Names {
+				if name != "_" {
+					save(name)
+				}
+			}
 		}
 		if l.lowerStmt(s) {
 			terminated = true
