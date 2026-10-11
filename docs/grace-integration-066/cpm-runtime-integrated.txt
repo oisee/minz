@@ -1,0 +1,9 @@
+=== RUN   TestContractStrategyCLIAdmission
+--- PASS: TestContractStrategyCLIAdmission (0.00s)
+=== RUN   TestCPMRuntimeOrdinaryCLI
+    cpm_runtime_test.go:101: COM 524 bytes, BDOS chars12, resident stack touched≤19 bytes
+--- PASS: TestCPMRuntimeOrdinaryCLI (0.03s)
+=== RUN   TestCPMRuntimeRejectsUnsupported
+--- PASS: TestCPMRuntimeRejectsUnsupported (0.00s)
+PASS
+ok  	github.com/minz/minzc/cmd/minzc	0.043s

@@ -150,7 +150,7 @@ CompileHIRWithOptions (`5226309a`): на реальном intern workload сов
 
 Изменения находятся в `feat/grace-hir-vm`, не объявлены merged в main.
 Новые отчёты доступны в репозитории и на `/mnt/safe/minz/grace/2026-10-11/`;
-последняя опубликованная версия сайта остаётся Sites 60 и ещё не содержит
+последняя опубликованная версия сайта остаётся Sites 61 и ещё не содержит
 эту новую сводку.
 
 ## Что уже работает
@@ -165,8 +165,8 @@ CompileHIRWithOptions (`5226309a`): на реальном intern workload сов
 | Чистая цель Speed | Минимум реальных тактов, без штрафа за размер | Speed в специальном поиске |
 | Цель Size | Минимум размера BIN | `--Osize` в специальном поиске |
 | Общий invariant address hoist | Ограниченные pure 16-bit DAG, single-latch loop без calls/ASM/ports; interning −1,63% T за +8 B | `--grace`, выключен при `--Osize` |
-| Самостоятельная компиляция Lanz на Z80 | Ещё не завершена | — |
-| Self-Lanz: полный CP/M main | Один вход прошёл существующий MZE BDOS-эмулятор; сохранены полный RAM и вывод | Отдельная COM-сборка |
+| Публичный CP/M runtime | Первый leaf COM прошёл native CALL5-hook проверку; полный parser впереди | `--runtime cpm -t cpm` |
+| Self-Lanz: полный CP/M main | Один вход прошёл явный тестовый BDOS-адаптер; публичный runtime пока leaf | Отдельная тестовая COM-сборка |
 
 ## Свежий полный парсер: collect/replay
 
