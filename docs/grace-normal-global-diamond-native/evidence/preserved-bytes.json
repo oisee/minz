@@ -70,5 +70,11 @@
     "stored": "static/before.mir2.gz",
     "sha256": "2ae4c13b0993140f78bd49cbf5d197c30b5746dd15c40d3d6c66fcb7e4632fed",
     "bytes": 26115
+  },
+  {
+    "source": "assembly.diff",
+    "stored": "assembly.diff.gz",
+    "sha256": "4fd78f2e201581a2e55ec5f00e4975f0afcfeb494ff0c775e95fa116e22632b5",
+    "bytes": 12728
   }
 ]
