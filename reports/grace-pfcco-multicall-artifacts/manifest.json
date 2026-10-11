@@ -1,0 +1,17 @@
+{
+  "base_commit": "2295c93a",
+  "files": {
+    "after-focused.txt": {
+      "bytes": 2169,
+      "sha256": "54b46277dbc45f89deb5710645517ec60e5b5d9b5dac02f63972f2b1f017151b"
+    },
+    "before-native.txt": {
+      "bytes": 2574,
+      "sha256": "04fad78e0090a73ab017a33b63e1ecb27208ed1e70888f03a3fedf33eb9a9bfa"
+    },
+    "full-mir2.txt": {
+      "bytes": 43,
+      "sha256": "79f2c6c71e242c54ed0ebe7522d0698446d52a99d8bcfaa35e332aa38f45b4d9"
+    }
+  }
+}

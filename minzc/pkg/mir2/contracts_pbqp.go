@@ -19,19 +19,12 @@ package mir2
 // on diamond call graphs (A→C, B→C where A and B have conflicting preferences
 // for C's convention).
 //
-// Pass-through chain fix: simple forwarders (single call, no ALU on params)
-// get zero unary cost so edge costs drive the decision. This prevents
-// unaryCostWithMod's bias toward original callee contracts from dominating.
+// Call demands belong to edges; node costs infer only non-call body demands.
+// Z80 A/B/C transfers use instruction costs rather than placement constraints.
+// Static first-use costs still omit call-save pressure and execution frequency;
+// even exact forest reduction does not establish a native-code optimum.
 //
-// Remaining gap: multi-call functions (e.g. double_sum calling double twice)
-// where unaryCostWithMod depends on original (pre-optimization) callee
-// contracts via inferNaturalClass. PBQP picks a different convention than
-// greedy in some cases. Fix: decouple unaryCost from original contracts.
-//
-// Status: NOT the default. Use OptimizeContracts() (greedy) for production.
-//
-// The solver reuses the existing candidateChoices / unaryCostWithMod / classMoveCost
-// helpers from contracts.go.
+// Status: NOT the default. OptimizeContracts remains unchanged.
 
 // pfccoNode is a PBQP node representing one function's convention choice.
 type pfccoNode struct {
@@ -83,18 +76,8 @@ func OptimizeContractsPBQP(m *Module, ct CostTable) ContractSet {
 				choices = []*ContractChoice{currentChoice(f)}
 			}
 			costs = make([]int, len(choices))
-			// For pass-through functions (param only used as call arg, no ALU),
-			// unaryCostWithMod is biased toward the callee's *original* contract
-			// class, not the optimized one. Zero out unary costs and let edge
-			// costs drive the decision — they capture the real adapter cost.
-			if isPassThrough(f) {
-				for i := range costs {
-					costs[i] = 0
-				}
-			} else {
-				for i, ch := range choices {
-					costs[i] = unaryCostWithMod(f, ch, ct, m)
-				}
+			for i, ch := range choices {
+				costs[i] = pfccoBodyUnaryCost(f, ch, ct)
 			}
 		}
 
@@ -170,35 +153,6 @@ func OptimizeContractsPBQP(m *Module, ct CostTable) ContractSet {
 	return cs
 }
 
-// isPassThrough reports whether f is a simple forwarder: single call,
-// params only used as call args, no ALU/load/store on params.
-// Functions with multiple calls or ALU ops on params are NOT pass-through
-// because param class affects spill cost and register pressure.
-func isPassThrough(f *Func) bool {
-	paramRegs := make(map[Reg]bool, len(f.Contract.Params))
-	for _, p := range f.Contract.Params {
-		paramRegs[p.Reg] = true
-	}
-	callCount := 0
-	for _, b := range f.Blocks {
-		for _, inst := range b.Insts {
-			if inst.Op == OpCall {
-				callCount++
-				if callCount > 1 {
-					return false // multiple calls = spill pressure, unary cost matters
-				}
-				continue
-			}
-			for _, s := range inst.Src {
-				if paramRegs[s] {
-					return false
-				}
-			}
-		}
-	}
-	return true
-}
-
 // candidateParamOnlyChoices generates candidate ContractChoices varying only
 // param classes, keeping return classes fixed at their current values.
 // This matches ApplyContracts behavior which never overrides return classes.
@@ -257,6 +211,25 @@ func pfccoEdgeCost(caller *Func, callerCh *ContractChoice, calleeName string, ca
 		}
 	}
 
+	// Forward the candidate convention through SSA copies. Otherwise a call-only
+	// move would reintroduce the original class at the edge after unary removal.
+	for changed := true; changed; {
+		changed = false
+		for _, b := range caller.Blocks {
+			for _, inst := range b.Insts {
+				if inst.Op != OpMove || inst.Src[0] == NoReg {
+					continue
+				}
+				if cls, ok := paramOverride[inst.Src[0]]; ok {
+					if _, known := paramOverride[inst.Dst]; !known {
+						paramOverride[inst.Dst] = cls
+						changed = true
+					}
+				}
+			}
+		}
+	}
+
 	for _, b := range caller.Blocks {
 		for _, inst := range b.Insts {
 			if inst.Op != OpCall || inst.Sym != calleeName {
@@ -276,7 +249,7 @@ func pfccoEdgeCost(caller *Func, callerCh *ContractChoice, calleeName string, ca
 				}
 				wantClass := calleeCh.ParamClasses[ai]
 				if argClass != wantClass {
-					total += classMoveCost(argClass, wantClass, ct)
+					total += pfccoAdapterCost(argClass, wantClass, ct)
 				}
 			}
 		}
@@ -529,4 +502,91 @@ func pfccoMinCostVal(costs []int) int {
 		}
 	}
 	return min
+}
+
+// Call-argument adapters belong to graph edges, including fixed extern callees.
+// Removing calls from demand inference prevents preoptimization callee classes
+// from appearing in both node and edge costs. Fixed return inference remains.
+func pfccoBodyUnaryCost(f *Func, choice *ContractChoice, ct CostTable) int {
+	body := *f
+	body.Blocks = make([]*Block, len(f.Blocks))
+	for i, b := range f.Blocks {
+		copyBlock := *b
+		copyBlock.Insts = nil
+		for _, inst := range b.Insts {
+			if inst.Op != OpCall && !(inst.Op == OpMove && !pfccoHasBodyUse(f, inst.Dst, map[Reg]bool{})) {
+				copyBlock.Insts = append(copyBlock.Insts, inst)
+			}
+		}
+		body.Blocks[i] = &copyBlock
+	}
+	total := 0
+	for i, p := range f.Contract.Params {
+		if i >= len(choice.ParamClasses) {
+			break
+		}
+		// No non-call use means there is no body adapter; graph edges own all
+		// demand. Move chains are retained so ALU/return use is still inferred.
+		if !pfccoHasBodyUse(&body, p.Reg, map[Reg]bool{}) {
+			continue
+		}
+		natural := inferNaturalClass(&body, p.Reg, nil)
+		total += pfccoAdapterCost(choice.ParamClasses[i], natural, ct)
+	}
+	for i, r := range f.Contract.Returns {
+		if i < len(choice.ReturnClasses) {
+			total += classMoveCost(inferNaturalRetClass(f, r), choice.ReturnClasses[i], ct) * countRetSites(f)
+		}
+	}
+	return total
+}
+func pfccoHasBodyUse(f *Func, r Reg, seen map[Reg]bool) bool {
+	if seen[r] {
+		return false
+	}
+	seen[r] = true
+	for _, b := range f.Blocks {
+		for _, i := range b.Insts {
+			for _, s := range i.Src {
+				if s == r {
+					if i.Op == OpMove {
+						if pfccoHasBodyUse(f, i.Dst, seen) {
+							return true
+						}
+					} else {
+						return true
+					}
+				}
+			}
+		}
+		if b.Term != nil {
+			for _, s := range b.Term.termUses() {
+				if s == r {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
+// A hard A/B/C register placement does not prohibit a transfer into it. The
+// existing placement table is retained for all other class pairs; its width,
+// flags and index constraints must not be relaxed by this byte-only repair.
+func pfccoAdapterCost(from, to RegClass, ct CostTable) int {
+	cost := classMoveCost(from, to, ct)
+	if _, ok := ct.(Z80CostTable); !ok {
+		return cost
+	}
+	src, dst := bestLocForClass(from, ct), bestLocForClass(to, ct)
+	isByte := func(l PhysLoc) bool {
+		return l.Kind == LocReg && len(l.Name) == 1 && (l.Name == "A" || l.Name == "B" || l.Name == "C")
+	}
+	if !isByte(src) || !isByte(dst) {
+		return cost
+	}
+	if src == dst {
+		return 0
+	}
+	return 4 // LD r,r: one byte, four T-states, no flags modified.
 }
