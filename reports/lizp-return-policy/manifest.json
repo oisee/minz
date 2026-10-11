@@ -1,0 +1,25 @@
+{
+  "schema": "minz.local-artifact-manifest/v1",
+  "files": [
+    {
+      "path": "REPORT.md",
+      "bytes": 4445,
+      "sha256": "bc751a905b27426d3d966d1746665b2e7915ef8dbee642de4d386d9217415f0a"
+    },
+    {
+      "path": "identity.json",
+      "bytes": 310,
+      "sha256": "9c623c8657608ba9d85d7df26ea1d9064223ce702731be6250a4c81505f2a4a9"
+    },
+    {
+      "path": "observation.txt",
+      "bytes": 350,
+      "sha256": "88f7dd00212f318f1d610ffb2ebf5b60fb6b035ad53ef1001459e695adab56aa"
+    },
+    {
+      "path": "source.lizp",
+      "bytes": 447,
+      "sha256": "50a8ca601da047bde2975df0a833e625efa89d0a08204dfac562f75b4afd4c00"
+    }
+  ]
+}

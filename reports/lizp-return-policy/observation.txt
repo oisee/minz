@@ -1,0 +1,5 @@
+=== RUN   TestOriginalLizpCondMissingReturnObservation
+    original_lizp_lanz_family_native_test.go:368: NOT a behavior PASS: declared u8 classify42 returns no VM result and stale native A42; source language implicit return unresolved
+--- PASS: TestOriginalLizpCondMissingReturnObservation (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.014s
