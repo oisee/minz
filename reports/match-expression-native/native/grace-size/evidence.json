@@ -1,0 +1,36 @@
+{
+  "assembled_binary_sha256": "120b71d183c94ff4460d9c33a77ad62a79335941cda0960ab69a234f226f537b",
+  "entries": {
+    "color_code": {
+      "Calls": 3,
+      "TotalT": 227,
+      "MinSP": 61422
+    },
+    "is_warm": {
+      "Calls": 3,
+      "TotalT": 158,
+      "MinSP": 61422
+    },
+    "shape_sides": {
+      "Calls": 3,
+      "TotalT": 211,
+      "MinSP": 61422
+    }
+  },
+  "native_calls": 9,
+  "options": {
+    "ProfileSelection": null,
+    "CollectHIRSites": false,
+    "ContractOpt": true,
+    "AnnotateTStates": false,
+    "UseGrace": true,
+    "GraceStats": null,
+    "UseHIRGrace": false,
+    "OptSize": true,
+    "Backend": "",
+    "AssertMode": "",
+    "SkipZ80Emission": false
+  },
+  "source_assertions_retained": 9,
+  "source_sha256": "e46d5979e2fe90f6e612bf303542370f58dc3df9e0e5b9822e5142352fe60261"
+}

@@ -1,0 +1,73 @@
+; MIR2 module: ../../../examples/nanz/11_match_expression.nanz
+fun @color_code(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = const 0 : u8 [general]
+    %r3 = cmp.eq %r1, %r2 : bool [flag]
+    br_if %r3, @cret_then1(), @cret_else2()
+  block @cret_then1:
+    %r4 = const 5 : u8 [general]
+    ret %r4
+  block @cret_else2:
+    %r5 = const 1 : u8 [general]
+    %r6 = cmp.eq %r1, %r5 : bool [flag]
+    br_if %r6, @cond_then3(), @cond_else4()
+  block @cond_then3:
+    %r7 = const 10 : u8 [general]
+    jmp @cond_join5(%r7)
+  block @cond_else4:
+    %r8 = const 2 : u8 [general]
+    %r9 = cmp.eq %r1, %r8 : bool [flag]
+    br_if %r9, @cond_then6(), @cond_else7()
+  block @cond_then6:
+    %r10 = const 15 : u8 [general]
+    jmp @cond_join8(%r10)
+  block @cond_else7:
+    %r11 = const 0 : u8 [general]
+    jmp @cond_join8(%r11)
+  block @cond_join8(%r12: u8 [general]):
+    jmp @cond_join5(%r12)
+  block @cond_join5(%r13: u8 [general]):
+    ret %r13
+
+fun @shape_sides(%r14: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r15 = const 0 : u8 [general]
+    %r16 = cmp.eq %r14, %r15 : bool [flag]
+    br_if %r16, @cret_then1(), @cret_else2()
+  block @cret_then1:
+    %r17 = const 0 : u8 [general]
+    ret %r17
+  block @cret_else2:
+    %r18 = const 1 : u8 [general]
+    %r19 = cmp.eq %r14, %r18 : bool [flag]
+    br_if %r19, @cond_then3(), @cond_else4()
+  block @cond_then3:
+    %r20 = const 4 : u8 [general]
+    jmp @cond_join5(%r20)
+  block @cond_else4:
+    %r21 = const 2 : u8 [general]
+    %r22 = cmp.eq %r14, %r21 : bool [flag]
+    br_if %r22, @cond_then6(), @cond_else7()
+  block @cond_then6:
+    %r23 = const 3 : u8 [general]
+    jmp @cond_join8(%r23)
+  block @cond_else7:
+    %r24 = const 0 : u8 [general]
+    jmp @cond_join8(%r24)
+  block @cond_join8(%r25: u8 [general]):
+    jmp @cond_join5(%r25)
+  block @cond_join5(%r26: u8 [general]):
+    ret %r26
+
+fun @is_warm(%r27: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r28 = const 0 : u8 [general]
+    %r29 = cmp.eq %r27, %r28 : bool [flag]
+    br_if %r29, @cret_then1(), @cret_else2()
+  block @cret_then1:
+    %r30 = const 1 : u8 [general]
+    ret %r30
+  block @cret_else2:
+    %r31 = const 0 : u8 [general]
+    ret %r31
+
