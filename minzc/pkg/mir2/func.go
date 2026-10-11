@@ -119,6 +119,10 @@ func (f *Func) NewBlock(label string) *Block {
 // If this Func was created via Module.AddFunc, the module-wide counter is
 // kept in sync so subsequent functions start above this function's regs.
 func (f *Func) AllocReg() Reg {
+	// Other functions and module renumbering can advance the shared counter.
+	if f.mod != nil && f.nextReg < f.mod.nextReg {
+		f.nextReg = f.mod.nextReg
+	}
 	if f.nextReg < 1 {
 		f.nextReg = 1
 	}
