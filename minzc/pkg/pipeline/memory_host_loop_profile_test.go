@@ -32,7 +32,7 @@ func TestMemoryHostLoopAssociationOriginalParser(t *testing.T) {
 	if !found {
 		t.Fatal("region_match absent")
 	}
-	if r.Baseline.Target.TotalTStates != 1221494 || r.Baseline.Target.BinarySHA256 != "fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51" {
+	if r.Baseline.Target.TotalTStates != 1135370 || r.Baseline.Target.BinarySHA256 != "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941" {
 		t.Fatal("instrumentation changed native baseline")
 	}
 	if dir := os.Getenv("MINZ_MEMORY_HOST_LOOP_ARTIFACTS"); dir != "" {

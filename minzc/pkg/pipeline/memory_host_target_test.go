@@ -78,7 +78,7 @@ func TestMemoryHostOriginalSelfLanzTarget(t *testing.T) {
 	if fmt.Sprintf("%x", sha256.Sum256([]byte(target.FinalMIRDump))) != target.MIRSHA256 || fmt.Sprintf("%x", sha256.Sum256(target.AllocationJSON)) != target.AllocationSHA256 {
 		t.Fatal("diagnostic payload hash mismatch")
 	}
-	if target.TotalTStates != 1221494 || target.BinarySHA256 != "fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51" {
+	if target.TotalTStates != 1135370 || target.BinarySHA256 != "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941" {
 		t.Fatal("reference native cycle/binary drift", target.TotalTStates, target.BinarySHA256)
 	}
 	if dir := os.Getenv("MINZ_MEMORY_HOST_ARTIFACTS"); dir != "" {
