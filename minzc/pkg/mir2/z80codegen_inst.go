@@ -378,10 +378,12 @@ func (g *z80cg) genInst(inst *Inst) {
 		// Some byte loads need A as an encoding bridge, even though their
 		// allocated destination is elsewhere. Preserve the accumulator and
 		// flags, including live loop parameters, across that implicit scratch.
+		// BC/DE byte loads use A even for a spilled destination. HL spills
+		// preserve A in their own branch below and must not be saved twice.
 		_, lutLoad := g.lutLoadPat[inst.Dst]
 		loadPtr := g.loc(inst.Src[0])
-		if inst.Ty.Width() <= 8 && dst != "A" && !isSpill(dst) &&
-			(lutLoad || loadPtr == "BC" || loadPtr == "DE" || isIXYReg(dst)) {
+		if inst.Ty.Width() <= 8 && dst != "A" &&
+			((loadPtr == "BC" || loadPtr == "DE") || !isSpill(dst) && (lutLoad || isIXYReg(dst))) {
 			g.emit("    EX AF, AF'      ; preserve byte-load scratch")
 			defer func() {
 				g.emit("    EX AF, AF'      ; restore byte-load scratch")
