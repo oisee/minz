@@ -1,0 +1,5 @@
+# Интеграция145: original Widemath и heldout replay
+
+Все26callables unchangedwidemath прошли rootbounded matrix **PASS1,108 с**,11947 inputs на режим; [лог](widemath-root.txt). Exhaustivecombinedproof root129822cb merge0b11effd: **2 248 035 nativecalls**, raw/finalVM, allbytepairs и allsignedwordunary, preciseW8dataread/writeorder/addresses/fullRAM/PC/SP **PASS57,67 с**. [Полный scope и exactfreeze/before/after](../../reports/2026-10-11-081-widemath-original-native.md). Все89manifestpayloads повторноSHAverified и git-tracked; exactcompilerbinary и packets целиком на share. Localstructreturnedaddress проверяется сразу до следующегоCALL, не заявляется произвольный escaping lifetime.
+
+Fresh replay прежних prospectiveparser/HashMap/PFCCO/Pascalheldout на5f70a9fc **PASS27,886 с** [лог](heldout-root.txt). Это старыеfrozeninputs наcurrentproduction, не новыйblindfreeze. Nativewin claims сохраняют exactselectedBIN/cost в исходныхпакетах. Fullcore4587e753PASS; CLIтогоcheckpointstillrunning; старыйpipelinea7954042live. Новая catalogrowWidemath добавлена вместе с точнымsourceproof, counts будут проверены отдельнымcataloggate. Общая цель не закрыта.
