@@ -64,8 +64,16 @@
     "sha256": "9b33c0a0e9f2a6f842675677129f3ccf21030514581347dbe21097be916b0de4"
   },
   {
+    "path": "packaged-transfer-audit.json",
+    "sha256": "76c925d3208d9cd278ad9527263d722b0b3552eea4977ff5a529e2d05c771c58"
+  },
+  {
     "path": "short-partial-audit.json",
     "sha256": "9714316a396caa07200be79f702c6fd313e71a1361daac99a692ba29589a6b7c"
+  },
+  {
+    "path": "tools/__pycache__/audit_search.cpython-312.pyc",
+    "sha256": "743b830e6ec760c01dfbd24659c2a29566deaeff97a1130bbc2660a44cc2bc90"
   },
   {
     "path": "tools/audit_search.py",
@@ -76,11 +84,19 @@
     "sha256": "683a7cc48710eac700e0d5687b2e6cd2c9ca0950eb5861f8ff9eb80e30f7b638"
   },
   {
+    "path": "tools/model/__pycache__/audit_profile.cpython-312.pyc",
+    "sha256": "679c5c2be8adb03281914f2544f76c65122e4dcb477089a3e242ad3faba35414"
+  },
+  {
+    "path": "tools/model/__pycache__/verify_corpus.cpython-312.pyc",
+    "sha256": "64e52fdd78855866a0b69696bd1feffce0a85bc56def0d73f2e978efe1f46996"
+  },
+  {
     "path": "tools/model/audit_profile.py",
     "sha256": "50814a6c4b56c341836bf58803cf14cb23918e74d92973b0bfb04d0217a37531"
   },
   {
     "path": "tools/model/verify_corpus.py",
-    "sha256": "dd24ae1bfa38924b0b560f55d253084478e160647356f42e9aa23aa833e5b616"
+    "sha256": "dc153bf254a493dd8f642b47d7b15bec7f44c3d72158648b84f3dcc624d5b127"
   }
 ]
