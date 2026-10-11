@@ -1,14 +1,14 @@
 [
   {
     "path": "minzc/pkg/mir2/normal_global_diamond_prototype.go",
-    "sha256": "c639e61d625eb8c5c1f740e5b873bb28c78e10c756de96ba6d764c363ca9fa91"
+    "sha256": "eb98c7c917124c524453ca46ee5bdec1ad4a920b24b81da8fde948bacd120658"
   },
   {
     "path": "minzc/pkg/mir2/normal_global_diamond_prototype_test.go",
-    "sha256": "b4e332d541155e63ae2f3d80ac4ef1c6a2e03e0e61421b93690b80be840d7079"
+    "sha256": "b4e5ed5746f3d3660cd656d6ce6f273f02719d2ee03562b6dcc185febd418063"
   },
   {
     "path": "docs/grace-normal-global-diamond-prototype/README.md",
-    "sha256": "b4544b1369135e61feea4bce7fe07b1a23d43d7c322669f1566bed03a717d313"
+    "sha256": "93d0b4ae92d3d6cb70efd7cb296a1d4077047f0a832cb5e2d3f411e5fa514e73"
   }
 ]

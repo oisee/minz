@@ -102,7 +102,7 @@ func ReuseNormalGlobalDiamondLoads(m *Module) (int, error) {
 				clean.Src = i.Src
 			case OpCmp:
 				left, right := types[i.Src[0]], types[i.Src[1]]
-				if i.Ty != TyBool || !integer(left) || left != right || i.Cond > CmpGe {
+				if i.Ty != TyBool || !integer(left) || left != right || i.Cond > CmpUge {
 					return false
 				}
 				if i.SrcTy != nil && i.SrcTy != left {

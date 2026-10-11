@@ -190,3 +190,27 @@ func TestNormalGlobalDiamondPrototypeCanonicalRefusals(t *testing.T) {
 		})
 	}
 }
+
+func TestNormalGlobalDiamondPrototypeUnsignedGuard(t *testing.T) {
+	for _, limit := range []int64{0, 5, 6, 65535} {
+		m, target := diamondFixture("safe")
+		f := m.Funcs[0]
+		cmp := f.Blocks[0].Insts[len(f.Blocks[0].Insts)-1]
+		cmp.Cond = CmpUge
+		br := f.Blocks[0].Term.(*TermBrIf)
+		br.Then, br.Else = br.Else, br.Then
+		before, _, _ := diamondRun(t, m, limit)
+		n, e := ReuseNormalGlobalDiamondLoads(m)
+		if e != nil || n != 1 || target.Op != OpMove {
+			t.Fatal("actual unsigned guard not recognized", n, e)
+		}
+		after, _, _ := diamondRun(t, m, limit)
+		want := int64(0)
+		if limit > 5 {
+			want = 5
+		}
+		if before != want || after != want {
+			t.Fatal(limit, before, after, want)
+		}
+	}
+}

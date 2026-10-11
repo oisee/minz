@@ -37,3 +37,8 @@ GOCACHE="$CACHE" "$GO" test ./pkg/mir2 -run '^TestNormalGlobalDiamondPrototype' 
 Proof/source independent review requested before actual source caller native
 measurement. The helper is experimental only; no profitability or broad CSE
 claim is made.
+
+Independent review caught applicability guard excluding ordinary unsigned CmpUge.
+Canonical comparisons now allow Eq/Ne/signed and unsigned relational conditions
+only (0..9), while synthetic carry predicates10/11 still refuse. An actual
+CmpUge cur-shaped branch with reversed then/else passes bounds0/5/6/65535.
