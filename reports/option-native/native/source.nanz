@@ -1,0 +1,62 @@
+// ADT Option — safe nullable values on Z80
+//
+// match with payload destructuring: Some(val) => val
+// Zero-cost: compiles to tag check + payload extraction
+//
+// HOW TO RUN:
+//   mz fun/adt_option.nanz --asserts mir2      # 5 asserts, all pass
+//   mz fun/adt_option.nanz -o build/adt.a80    # compile to Z80 asm
+
+enum Option { None, Some(u8) }
+
+// ── Idiomatic match with destructuring ──────────────────────
+
+fun unwrap_or(opt: Option, def: u8) -> u8 {
+    return match opt {
+        Some(val) => val,
+        None      => def,
+    }
+}
+
+fun is_some(opt: Option) -> u8 {
+    return match opt {
+        Some(_) => 1,
+        None    => 0,
+    }
+}
+
+// ── Practical: safe division ────────────────────────────────
+
+fun safe_div(a: u8, b: u8) -> Option {
+    if b == 0 { return None }
+    let q: u8 = a / b
+    return Some(q)
+}
+
+// ── Tests ───────────────────────────────────────────────────
+
+fun test_unwrap_some() -> u8 {
+    return unwrap_or(Some(42), 0)
+}
+
+fun test_unwrap_none() -> u8 {
+    return unwrap_or(None, 77)
+}
+
+fun test_is_some() -> u8 {
+    return is_some(Some(99))
+}
+
+fun test_is_none() -> u8 {
+    return is_some(None)
+}
+
+fun test_safe_div_ok() -> u8 {
+    return unwrap_or(safe_div(10, 3), 255)
+}
+
+assert test_unwrap_some() == 42
+assert test_unwrap_none() == 77
+assert test_is_some() == 1
+assert test_is_none() == 0
+assert test_safe_div_ok() == 3

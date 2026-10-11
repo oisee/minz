@@ -1,0 +1,93 @@
+; MIR2 module: ../../../examples/nanz/10_adt_option.nanz
+fun @unwrap_or(%r1: u16 [pointer], %r2: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r3 = const 256 : u16 [pointer]
+    %r4 = div %r1, %r3 : u16 [pointer]
+    %r5 = trunc %r4 : u16 -> u8 [general]
+    %r6 = const 1 : u8 [general]
+    %r7 = cmp.eq %r5, %r6 : bool [flag]
+    br_if %r7, @cret_then1(), @cret_else2()
+  block @cret_then1:
+    %r8 = const 256 : u16 [pointer]
+    %r9 = mod %r1, %r8 : u16 [pointer]
+    %r10 = trunc %r9 : u16 -> u8 [general]
+    ret %r10
+  block @cret_else2:
+    %r11 = const 256 : u16 [pointer]
+    %r12 = div %r1, %r11 : u16 [pointer]
+    %r13 = trunc %r12 : u16 -> u8 [general]
+    %r14 = const 0 : u8 [general]
+    %r15 = cmp.eq %r13, %r14 : bool [flag]
+    %r16 = const 0 : u8 [general]
+    cond_ret %r15, [%r16], @cond_then3()
+  block @cond_then3:
+    ret %r2
+
+fun @is_some(%r17: u16 [pointer]) -> u8 [acc]
+  block @entry:
+    %r18 = const 256 : u16 [pointer]
+    %r19 = div %r17, %r18 : u16 [pointer]
+    %r20 = trunc %r19 : u16 -> u8 [general]
+    %r21 = const 1 : u8 [general]
+    %r22 = cmp.eq %r20, %r21 : bool [flag]
+    br_if %r22, @cret_then1(), @cret_else2()
+  block @cret_then1:
+    %r23 = const 256 : u16 [pointer]
+    %r24 = mod %r17, %r23 : u16 [pointer]
+    %r25 = const 1 : u8 [general]
+    ret %r25
+  block @cret_else2:
+    %r26 = const 256 : u16 [pointer]
+    %r27 = div %r17, %r26 : u16 [pointer]
+    %r28 = trunc %r27 : u16 -> u8 [general]
+    %r29 = const 0 : u8 [general]
+    %r30 = cmp.eq %r28, %r29 : bool [flag]
+    br_if %r30, @cond_then3(), @cond_else4()
+  block @cond_then3:
+    jmp @cond_join5()
+  block @cond_join5:
+    %r31 = const 0 : u8 [general]
+    ret %r31
+  block @cond_else4:
+    jmp @cond_join5()
+
+fun @safe_div(%r32: u8 [general], %r33: u8 [acc]) -> u16 [pointer]
+  block @entry:
+    %r34 = const 0 : u8 [general]
+    %r35 = cmp.eq %r33, %r34 : bool [flag]
+    br_if %r35, @if_then1(), @if_join2()
+  block @if_then1:
+    %r36 = const 0 : u16 [pointer]
+    ret %r36
+  block @if_join2:
+    %r37 = div %r32, %r33 : u8 [general]
+    %r38 = const 256 : u16 [pointer]
+    %r39 = ext %r37 : u8 -> u16 [pointer]
+    %r40 = add %r38, %r39 : u16 [pointer]
+    ret %r40
+
+fun @test_unwrap_some() -> u8 [acc]
+  block @entry:
+    %r41 = const 42 : u8 [acc]
+    ret %r41
+
+fun @test_unwrap_none() -> u8 [acc]
+  block @entry:
+    %r42 = const 77 : u8 [acc]
+    ret %r42
+
+fun @test_is_some() -> u8 [acc]
+  block @entry:
+    %r43 = const 1 : u8 [acc]
+    ret %r43
+
+fun @test_is_none() -> u8 [acc]
+  block @entry:
+    %r44 = const 0 : u8 [acc]
+    ret %r44
+
+fun @test_safe_div_ok() -> u8 [acc]
+  block @entry:
+    %r45 = const 3 : u8 [acc]
+    ret %r45
+

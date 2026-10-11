@@ -1,0 +1,61 @@
+{
+  "assembled_binary_sha256": "8ddb796961fa9c2c57603ee8815b8b36c7b1eae83955dacc66f11b770705fdd9",
+  "entries": {
+    "is_some": {
+      "Calls": 257,
+      "TotalT": 30855,
+      "MinSP": 61420
+    },
+    "safe_div": {
+      "Calls": 65536,
+      "TotalT": 29851828,
+      "MinSP": 61422
+    },
+    "test_is_none": {
+      "Calls": 1,
+      "TotalT": 44,
+      "MinSP": 61422
+    },
+    "test_is_some": {
+      "Calls": 1,
+      "TotalT": 44,
+      "MinSP": 61422
+    },
+    "test_safe_div_ok": {
+      "Calls": 1,
+      "TotalT": 44,
+      "MinSP": 61422
+    },
+    "test_unwrap_none": {
+      "Calls": 1,
+      "TotalT": 44,
+      "MinSP": 61422
+    },
+    "test_unwrap_some": {
+      "Calls": 1,
+      "TotalT": 44,
+      "MinSP": 61422
+    },
+    "unwrap_or": {
+      "Calls": 65792,
+      "TotalT": 8754944,
+      "MinSP": 61420
+    }
+  },
+  "native_calls": 131590,
+  "options": {
+    "ProfileSelection": null,
+    "CollectHIRSites": false,
+    "ContractOpt": true,
+    "AnnotateTStates": false,
+    "UseGrace": true,
+    "GraceStats": null,
+    "UseHIRGrace": false,
+    "OptSize": false,
+    "Backend": "",
+    "AssertMode": "",
+    "SkipZ80Emission": false
+  },
+  "source_assertions_retained": 5,
+  "source_sha256": "0387f5a0f616e6cd5f0d9b432131593326cf81c807a28d4ce36859664a6edb30"
+}

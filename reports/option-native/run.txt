@@ -1,0 +1,16 @@
+=== RUN   TestOriginalOptionNativeModel
+    showcase_option_native_test.go:277: default {Entry:safe_div Args:[0 0] Expected:0 ExpectedMulti:[0]} 58T native/raw/final model code/SP/RAM PASS
+    showcase_option_native_test.go:277: default {Entry:safe_div Args:[0 1] Expected:256 ExpectedMulti:[256]} 455T native/raw/final model code/SP/RAM PASS
+    showcase_option_native_test.go:277: default {Entry:safe_div Args:[0 2] Expected:256 ExpectedMulti:[256]} 455T native/raw/final model code/SP/RAM PASS
+    showcase_option_native_test.go:281: default 131590 original Option calls PASS; 5 source assertions retained
+    showcase_option_native_test.go:277: grace-size {Entry:safe_div Args:[0 0] Expected:0 ExpectedMulti:[0]} 58T native/raw/final model code/SP/RAM PASS
+    showcase_option_native_test.go:277: grace-size {Entry:safe_div Args:[0 1] Expected:256 ExpectedMulti:[256]} 455T native/raw/final model code/SP/RAM PASS
+    showcase_option_native_test.go:277: grace-size {Entry:safe_div Args:[0 2] Expected:256 ExpectedMulti:[256]} 455T native/raw/final model code/SP/RAM PASS
+    showcase_option_native_test.go:281: grace-size 131590 original Option calls PASS; 5 source assertions retained
+    showcase_option_native_test.go:277: grace-speed {Entry:safe_div Args:[0 0] Expected:0 ExpectedMulti:[0]} 58T native/raw/final model code/SP/RAM PASS
+    showcase_option_native_test.go:277: grace-speed {Entry:safe_div Args:[0 1] Expected:256 ExpectedMulti:[256]} 455T native/raw/final model code/SP/RAM PASS
+    showcase_option_native_test.go:277: grace-speed {Entry:safe_div Args:[0 2] Expected:256 ExpectedMulti:[256]} 455T native/raw/final model code/SP/RAM PASS
+    showcase_option_native_test.go:281: grace-speed 131590 original Option calls PASS; 5 source assertions retained
+--- PASS: TestOriginalOptionNativeModel (22.66s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	22.671s
