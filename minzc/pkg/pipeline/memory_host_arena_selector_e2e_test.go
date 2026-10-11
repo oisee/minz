@@ -89,3 +89,28 @@ func TestMemoryHostArenaSelectorUnobservedRefusal(t *testing.T) {
 		t.Fatal("unobserved arena helper accepted")
 	}
 }
+
+func TestMemoryHostArenaSelectorZeroLengthObjective(t *testing.T) {
+	_, w := memoryHostParserFixture(t)
+	w.Calls = []hir.MemoryHostInvocation{{Function: "region_match", Arguments: []int64{0x8fff, 0, 0}}}
+	serialized := arenaSelectorProfile(t, w)
+	factory := func() (*hir.Module, error) { m, _ := memoryHostParserFixture(t); return m, nil }
+	selected, e := MeasureMemoryHostArenaPeel(factory, w, serialized, MemoryHostArenaSelectorOptions{Goal: "speed", MaxSites: 1})
+	if e != nil {
+		t.Fatal(e)
+	}
+	a, b := selected.Candidates[0].Evidence.Target, selected.Candidates[1].Evidence.Target
+	want := 0
+	if b.TotalTStates < a.TotalTStates {
+		want = 1
+	}
+	if selected.Selected != want {
+		t.Fatal("zero-length actual objective")
+	}
+	for _, candidate := range selected.Candidates {
+		if len(candidate.Evidence.Target.Invocations) != 1 || len(candidate.Evidence.Target.Invocations[0].Events) != 0 || candidate.Evidence.Target.Invocations[0].Results[0].I != 1 {
+			t.Fatal("zero-length speculated host access")
+		}
+	}
+	t.Logf("zero-length actual original%dT peeled%dT selected%d", a.TotalTStates, b.TotalTStates, selected.Selected)
+}
