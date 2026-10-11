@@ -1089,6 +1089,11 @@ func auditLabels(asm string) []string {
 		if trimmed == "" || strings.HasPrefix(trimmed, ";") {
 			continue
 		}
+		// EQU creates a symbol without a colon, including function aliases.
+		fields := strings.Fields(strings.SplitN(trimmed, ";", 2)[0])
+		if len(fields) >= 3 && strings.EqualFold(fields[1], "EQU") && isLabel(fields[0]) {
+			defined[fields[0]] = true
+		}
 		// Label definition: "label:" at start (possibly with indent)
 		if idx := strings.IndexByte(trimmed, ':'); idx > 0 {
 			candidate := trimmed[:idx]
