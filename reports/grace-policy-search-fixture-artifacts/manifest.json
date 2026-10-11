@@ -1,0 +1,17 @@
+{
+  "base_commit": "da7c0684",
+  "files": {
+    "before-policy-search.txt": {
+      "bytes": 1688,
+      "sha256": "b592badd8921326c18f28050b6472b980c79909cb835da5dd2b971efa729cc5b"
+    },
+    "focused.txt": {
+      "bytes": 3921,
+      "sha256": "220cbe9b30d5fa2a7e02ce3a56ceaa41d2f6841fa0eed14fe5743d28d73405e2"
+    },
+    "source-identities.json": {
+      "bytes": 323,
+      "sha256": "dc49d800b177a7fe750cfc64adb16f613beaabc04cd85965ba74020eba9d0854"
+    }
+  }
+}

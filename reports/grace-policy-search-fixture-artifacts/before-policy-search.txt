@@ -1,0 +1,17 @@
+--- FAIL: TestMemoryHostPolicySearchPreflightAndExactOriginal (6.71s)
+    --- FAIL: TestMemoryHostPolicySearchPreflightAndExactOriginal/unrelated-body (0.00s)
+        memory_host_policy_search_test.go:133: modified original unrelated-body 0 policy search: exact original source bytes required
+    --- FAIL: TestMemoryHostPolicySearchPreflightAndExactOriginal/assert (0.00s)
+        memory_host_policy_search_test.go:133: modified original assert 0 policy search: exact original source bytes required
+    --- FAIL: TestMemoryHostPolicySearchPreflightAndExactOriginal/sandbox (0.00s)
+        memory_host_policy_search_test.go:133: modified original sandbox 0 policy search: exact original source bytes required
+    --- FAIL: TestMemoryHostPolicySearchPreflightAndExactOriginal/warnings (0.00s)
+        memory_host_policy_search_test.go:133: modified original warnings 0 policy search: exact original source bytes required
+    --- FAIL: TestMemoryHostPolicySearchPreflightAndExactOriginal/stats (0.00s)
+        memory_host_policy_search_test.go:133: modified original stats 0 policy search: exact original source bytes required
+    --- FAIL: TestMemoryHostPolicySearchPreflightAndExactOriginal/origin (0.00s)
+        memory_host_policy_search_test.go:133: modified original origin 0 policy search: exact original source bytes required
+--- FAIL: TestMemoryHostPolicySearchLifecycle (6.69s)
+    memory_host_policy_search_test.go:161: policy search: exact original source bytes required
+--- FAIL: TestMemoryHostPolicySearchOwnedInputsAndSize (5.89s)
+    memory_host_policy_search_test.go:238: caller input mutation affected owned execution 0 policy search: exact original source bytes required

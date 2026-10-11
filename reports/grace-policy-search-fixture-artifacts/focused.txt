@@ -1,0 +1,56 @@
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/first
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/second
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/swapped
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/unknown
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/bare
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/source
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/unit
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/oversized
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/missing-first
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/missing-second
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/goal
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/sites
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/unrelated-body
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/assert
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/sandbox
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/warnings
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/stats
+=== RUN   TestMemoryHostPolicySearchPreflightAndExactOriginal/origin
+--- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal (8.23s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/first (0.00s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/second (0.03s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/swapped (0.03s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/unknown (0.06s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/bare (0.04s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/source (0.00s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/unit (0.23s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/oversized (0.00s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/missing-first (0.00s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/missing-second (0.00s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/goal (0.00s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/sites (0.00s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/unrelated-body (0.52s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/assert (0.47s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/sandbox (0.52s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/warnings (0.51s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/stats (0.54s)
+    --- PASS: TestMemoryHostPolicySearchPreflightAndExactOriginal/origin (0.45s)
+=== RUN   TestMemoryHostPolicySearchLifecycle
+=== RUN   TestMemoryHostPolicySearchLifecycle/25
+=== RUN   TestMemoryHostPolicySearchLifecycle/48
+--- PASS: TestMemoryHostPolicySearchLifecycle (295.88s)
+    --- PASS: TestMemoryHostPolicySearchLifecycle/25 (43.43s)
+    --- PASS: TestMemoryHostPolicySearchLifecycle/48 (102.38s)
+=== RUN   TestMemoryHostPolicySearchOwnedInputsAndSize
+=== RUN   TestMemoryHostPolicySearchOwnedInputsAndSize/error
+=== RUN   TestMemoryHostPolicySearchOwnedInputsAndSize/failure
+=== RUN   TestMemoryHostPolicySearchOwnedInputsAndSize/choices
+=== RUN   TestMemoryHostPolicySearchOwnedInputsAndSize/policy
+--- PASS: TestMemoryHostPolicySearchOwnedInputsAndSize (115.21s)
+    --- PASS: TestMemoryHostPolicySearchOwnedInputsAndSize/error (0.06s)
+    --- PASS: TestMemoryHostPolicySearchOwnedInputsAndSize/failure (0.04s)
+    --- PASS: TestMemoryHostPolicySearchOwnedInputsAndSize/choices (0.02s)
+    --- PASS: TestMemoryHostPolicySearchOwnedInputsAndSize/policy (0.03s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	419.343s

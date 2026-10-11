@@ -1,6 +1,7 @@
 package pipeline
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"github.com/minz/minzc/pkg/hir"
@@ -16,9 +17,14 @@ import (
 
 func policySearchFixture(t *testing.T) (MemoryHostPolicySearchInputs, hir.MemoryHostWorkload, func() (*hir.Module, error)) {
 	t.Helper()
-	source, err := os.ReadFile("../../../examples/nanz/self_lanz_parser.nanz")
+	// Closed policy-mask evidence admits its frozen source, while the showcase
+	// example evolves independently. Do not relax the production exact-source guard.
+	source, err := os.ReadFile("../../../docs/grace-parser-prospective-heldout/artifacts/source.nanz")
 	if err != nil {
 		t.Fatal(err)
+	}
+	if fmt.Sprintf("%x", sha256.Sum256(source)) != memoryHostSearchSourceSHA {
+		t.Fatal("historical policy search source identity changed")
 	}
 	w := arenaAppendSmallWorkload(t)
 	fresh := func() (*hir.Module, error) {
