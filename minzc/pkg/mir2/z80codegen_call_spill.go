@@ -36,7 +36,7 @@ func (g *z80cg) callerSaveSpillHomes(inst *Inst) []callSpillHome {
 			continue
 		}
 		width := z80SpillBytes(info.Ty)
-		if width != 1 && width != 2 {
+		if width != 1 && width != 2 && width != 3 && width != 4 {
 			g.err = fmt.Errorf("caller spill save: unsupported width %d for r%d", width, r)
 			continue
 		}
@@ -48,17 +48,24 @@ func (g *z80cg) callerSaveSpillHomes(inst *Inst) []callSpillHome {
 func (g *z80cg) pushCallSpillHomes(homes []callSpillHome) {
 	for _, h := range homes {
 		g.beginNativeCallSpill(h, "save")
-		g.emit("    PUSH HL")
-		if h.width == 2 {
-			g.emitNativeSpill(h.symbol, 0, 2, false, fmt.Sprintf("    LD HL, (%s)", h.symbol))
-		} else {
-			g.emit("    PUSH AF")
-			g.emitNativeSpill(h.symbol, 0, 1, false, fmt.Sprintf("    LD A, (%s)", h.symbol))
-			g.emit("    LD L, A")
-			g.emit("    POP AF")
+		// Snapshot each word independently without changing HL or either shadow bank.
+		for offset := 0; offset < h.width; offset += 2 {
+			g.emit("    PUSH HL")
+			width := min(2, h.width-offset)
+			symbol := h.symbol
+			if offset != 0 {
+				symbol += fmt.Sprintf("+%d", offset)
+			}
+			if width == 2 {
+				g.emitNativeSpill(h.symbol, offset, 2, false, fmt.Sprintf("    LD HL, (%s)", symbol))
+			} else {
+				g.emit("    PUSH AF")
+				g.emitNativeSpill(h.symbol, offset, 1, false, fmt.Sprintf("    LD A, (%s)", symbol))
+				g.emit("    LD L, A")
+				g.emit("    POP AF")
+			}
+			g.emit("    EX (SP), HL")
 		}
-		// Replace the saved HL word with the home snapshot while restoring HL.
-		g.emit("    EX (SP), HL")
 		g.endNativeCallSpill()
 	}
 }
@@ -67,17 +74,23 @@ func (g *z80cg) popCallSpillHomes(homes []callSpillHome) {
 	for i := len(homes) - 1; i >= 0; i-- {
 		h := homes[i]
 		g.beginNativeCallSpill(h, "restore")
-		// Retain the already-picked-up result HL on the stack during restoration.
-		g.emit("    EX (SP), HL")
-		if h.width == 2 {
-			g.emitNativeSpill(h.symbol, 0, 2, true, fmt.Sprintf("    LD (%s), HL", h.symbol))
-		} else {
-			g.emit("    PUSH AF")
-			g.emit("    LD A, L")
-			g.emitNativeSpill(h.symbol, 0, 1, true, fmt.Sprintf("    LD (%s), A", h.symbol))
-			g.emit("    POP AF")
+		for offset := ((h.width - 1) / 2) * 2; offset >= 0; offset -= 2 {
+			g.emit("    EX (SP), HL")
+			width := min(2, h.width-offset)
+			symbol := h.symbol
+			if offset != 0 {
+				symbol += fmt.Sprintf("+%d", offset)
+			}
+			if width == 2 {
+				g.emitNativeSpill(h.symbol, offset, 2, true, fmt.Sprintf("    LD (%s), HL", symbol))
+			} else {
+				g.emit("    PUSH AF")
+				g.emit("    LD A, L")
+				g.emitNativeSpill(h.symbol, offset, 1, true, fmt.Sprintf("    LD (%s), A", symbol))
+				g.emit("    POP AF")
+			}
+			g.emit("    POP HL")
 		}
-		g.emit("    POP HL")
 		g.endNativeCallSpill()
 	}
 }

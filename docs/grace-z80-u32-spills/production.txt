@@ -1,0 +1,54 @@
+=== RUN   TestCallSpillLifecycleRefusals
+=== RUN   TestCallSpillLifecycleRefusals/positive
+=== RUN   TestCallSpillLifecycleRefusals/middle
+=== RUN   TestCallSpillLifecycleRefusals/wrong_sp
+=== RUN   TestCallSpillLifecycleRefusals/uninitialized
+=== RUN   TestCallSpillLifecycleRefusals/return_overlap
+=== RUN   TestCallSpillLifecycleRefusals/wrong_call
+=== RUN   TestCallSpillLifecycleRefusals/wrong_depth
+=== RUN   TestCallSpillLifecycleRefusals/wrong_slot
+=== RUN   TestCallSpillLifecycleRefusals/corrupt_value
+=== RUN   TestCallSpillLifecycleRefusals/no_call
+=== RUN   TestCallSpillLifecycleRefusals/no_saved
+--- PASS: TestCallSpillLifecycleRefusals (0.01s)
+    --- PASS: TestCallSpillLifecycleRefusals/positive (0.00s)
+    --- PASS: TestCallSpillLifecycleRefusals/middle (0.00s)
+    --- PASS: TestCallSpillLifecycleRefusals/wrong_sp (0.00s)
+    --- PASS: TestCallSpillLifecycleRefusals/uninitialized (0.00s)
+    --- PASS: TestCallSpillLifecycleRefusals/return_overlap (0.00s)
+    --- PASS: TestCallSpillLifecycleRefusals/wrong_call (0.00s)
+    --- PASS: TestCallSpillLifecycleRefusals/wrong_depth (0.00s)
+    --- PASS: TestCallSpillLifecycleRefusals/wrong_slot (0.00s)
+    --- PASS: TestCallSpillLifecycleRefusals/corrupt_value (0.00s)
+    --- PASS: TestCallSpillLifecycleRefusals/no_call (0.00s)
+    --- PASS: TestCallSpillLifecycleRefusals/no_saved (0.00s)
+=== RUN   TestMemoryHostCallSpillBinding
+=== RUN   TestMemoryHostCallSpillBinding/call-id
+=== RUN   TestMemoryHostCallSpillBinding/wrong-index
+=== RUN   TestMemoryHostCallSpillBinding/result-home
+=== RUN   TestMemoryHostCallSpillBinding/nonlive
+=== RUN   TestMemoryHostCallSpillBinding/wide
+=== RUN   TestMemoryHostCallSpillBinding/marker
+=== RUN   TestMemoryHostCallSpillBinding/opcode
+=== RUN   TestMemoryHostCallSpillBinding/unpaired
+=== RUN   TestMemoryHostCallSpillBinding/allocation
+=== RUN   TestMemoryHostCallSpillBinding/call-binary
+=== RUN   TestMemoryHostCallSpillBinding/call-target
+=== RUN   TestMemoryHostCallSpillBinding/call-marker
+--- PASS: TestMemoryHostCallSpillBinding (0.01s)
+    --- PASS: TestMemoryHostCallSpillBinding/call-id (0.00s)
+    --- PASS: TestMemoryHostCallSpillBinding/wrong-index (0.00s)
+    --- PASS: TestMemoryHostCallSpillBinding/result-home (0.00s)
+    --- PASS: TestMemoryHostCallSpillBinding/nonlive (0.00s)
+    --- PASS: TestMemoryHostCallSpillBinding/wide (0.00s)
+    --- PASS: TestMemoryHostCallSpillBinding/marker (0.00s)
+    --- PASS: TestMemoryHostCallSpillBinding/opcode (0.00s)
+    --- PASS: TestMemoryHostCallSpillBinding/unpaired (0.00s)
+    --- PASS: TestMemoryHostCallSpillBinding/allocation (0.00s)
+    --- PASS: TestMemoryHostCallSpillBinding/call-binary (0.00s)
+    --- PASS: TestMemoryHostCallSpillBinding/call-target (0.00s)
+    --- PASS: TestMemoryHostCallSpillBinding/call-marker (0.00s)
+=== RUN   TestU32MemoryAcrossCallProductionVMZ80
+--- PASS: TestU32MemoryAcrossCallProductionVMZ80 (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.044s

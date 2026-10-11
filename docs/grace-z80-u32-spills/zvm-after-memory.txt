@@ -1,0 +1,11 @@
+=== RUN   TestShowcaseCompileAssemble
+    showcase_test.go:61: Found 192 showcase files
+=== RUN   TestShowcaseCompileAssemble/zvm.nanz
+    showcase_test.go:84: SOURCE_PATH examples/zmachine/zork-west-demo/zvm.nanz
+    showcase_test.go:142: assemble: parse error: bufio.Scanner: token too long
+    showcase_test.go:82: SHOWCASE_CASE {"Path":"examples/zmachine/zork-west-demo/zvm.nanz","Case":"TestShowcaseCompileAssemble/zvm.nanz","Status":"FAIL","Stage":"assembler"}
+--- FAIL: TestShowcaseCompileAssemble (2.94s)
+    --- FAIL: TestShowcaseCompileAssemble/zvm.nanz (2.93s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/nanz	2.945s
+FAIL
