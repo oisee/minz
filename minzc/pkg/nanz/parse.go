@@ -2518,18 +2518,14 @@ func (p *parser) parseInitializer(ty mir2.Ty) ([]byte, error) {
 				return nil, err
 			}
 			if lit, ok := e.(*hir.IntLitExpr); ok {
-				// Emit as 1 or 2 bytes depending on element type
+				// Serialize every byte of the declared integer element.
 				elemTy := ty
 				if at, ok := ty.(*mir2.ArrayTy); ok {
 					elemTy = at.Elem
 				}
-				switch elemTy.Width() {
-				case 8:
-					data = append(data, byte(lit.Val))
-				case 16:
-					data = append(data, byte(lit.Val), byte(lit.Val>>8))
-				default:
-					data = append(data, byte(lit.Val))
+				width := mir2.ByteWidth(elemTy)
+				for i := 0; i < width; i++ {
+					data = append(data, byte(lit.Val>>uint(8*i)))
 				}
 			}
 			if p.l.is(tokComma) {
@@ -2547,11 +2543,13 @@ func (p *parser) parseInitializer(ty mir2.Ty) ([]byte, error) {
 		return nil, err
 	}
 	if lit, ok := e.(*hir.IntLitExpr); ok {
-		switch ty.Width() {
-		case 8:
-			return []byte{byte(lit.Val)}, nil
-		case 16:
-			return []byte{byte(lit.Val), byte(lit.Val >> 8)}, nil
+		width := mir2.ByteWidth(ty)
+		if width >= 1 && width <= 4 {
+			data := make([]byte, width)
+			for i := range data {
+				data[i] = byte(lit.Val >> uint(8*i))
+			}
+			return data, nil
 		}
 	}
 	return nil, nil
