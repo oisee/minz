@@ -8,10 +8,10 @@
   },
   {
     "path": "RESULT.md",
-    "stored_bytes": 2766,
-    "stored_sha256": "395588b94572129ccaa48345c7dad6e22a4c4cdb35548b41573bcd93cf6647fa",
-    "original_bytes": 2766,
-    "original_sha256": "395588b94572129ccaa48345c7dad6e22a4c4cdb35548b41573bcd93cf6647fa"
+    "stored_bytes": 2803,
+    "stored_sha256": "b75351730921aee8c49f8359f4f8aab52de762207441b169f6b2b22b4536fabb",
+    "original_bytes": 2803,
+    "original_sha256": "b75351730921aee8c49f8359f4f8aab52de762207441b169f6b2b22b4536fabb"
   },
   {
     "path": "audit_pack.py",
