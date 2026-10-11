@@ -147,8 +147,16 @@ func LowerStructReturnBuffers(m *Module) error {
 				if inst.Op == OpAddrOf {
 					if target := m.FuncByName(inst.Sym); target != nil {
 						target.Attrs.FixedIndirectABI = true
+						returnTypes := make([]Ty, len(target.Contract.Returns))
+						for i, r := range target.Contract.Returns {
+							returnTypes[i] = r.Ty
+						}
+						returnClasses, err := CanonicalIndirectReturnClasses(returnTypes)
+						if err != nil {
+							return fmt.Errorf("%s: %w", target.Name, err)
+						}
 						for i := range target.Contract.Returns {
-							target.Contract.Returns[i].Class = standardIndirectReturnClass(target.Contract.Returns[i].Ty, i)
+							target.Contract.Returns[i].Class = returnClasses[i]
 						}
 						types := make([]Ty, len(target.Contract.Params))
 						for i, p := range target.Contract.Params {
@@ -324,6 +332,10 @@ func standardIndirectReturnClass(ty Ty, pos int) RegClass {
 // CanonicalIndirectParamClasses preserves each legacy preferred slot when
 // available, then assigns a free nonoverlapping slot deterministically.
 func CanonicalIndirectParamClasses(types []Ty) ([]RegClass, error) {
+	return canonicalIndirectClasses(types, standardParamClass)
+}
+
+func canonicalIndirectClasses(types []Ty, preferred func(Ty, int) RegClass) ([]RegClass, error) {
 	classes := make([]RegClass, len(types))
 	used := map[byte]bool{}
 	overlap := func(name string) bool {
@@ -338,7 +350,7 @@ func CanonicalIndirectParamClasses(types []Ty) ([]RegClass, error) {
 		if z80ValueWidth(ty) > 16 {
 			return nil, fmt.Errorf("indirect parameter wider than sixteen bits unsupported")
 		}
-		choices := []RegClass{standardParamClass(ty, i)}
+		choices := []RegClass{preferred(ty, i)}
 		if z80ValueWidth(ty) > 8 {
 			choices = append(choices, ClassPointer, ClassIndex, ClassIY)
 		} else {
@@ -361,4 +373,8 @@ func CanonicalIndirectParamClasses(types []Ty) ([]RegClass, error) {
 		}
 	}
 	return classes, nil
+}
+
+func CanonicalIndirectReturnClasses(types []Ty) ([]RegClass, error) {
+	return canonicalIndirectClasses(types, standardIndirectReturnClass)
 }

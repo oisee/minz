@@ -1,0 +1,28 @@
+=== RUN   TestStructReturnLifetimeBufferedNative
+--- PASS: TestStructReturnLifetimeBufferedNative (0.02s)
+=== RUN   TestStructReturnNestedAndRecursiveNative
+--- PASS: TestStructReturnNestedAndRecursiveNative (0.30s)
+=== RUN   TestStructReturnMetadataRejectsForgedIndirectABI
+=== RUN   TestStructReturnMetadataRejectsForgedIndirectABI/missing_function_ownership
+=== RUN   TestStructReturnMetadataRejectsForgedIndirectABI/missing_descriptor
+=== RUN   TestStructReturnMetadataRejectsForgedIndirectABI/missing_signature
+=== RUN   TestStructReturnMetadataRejectsForgedIndirectABI/word_is_not_hidden_pointer
+=== RUN   TestStructReturnMetadataRejectsForgedIndirectABI/wrong_return_slot
+=== RUN   TestStructReturnMetadataRejectsForgedIndirectABI/wrong_buffer_index
+--- PASS: TestStructReturnMetadataRejectsForgedIndirectABI (0.00s)
+    --- PASS: TestStructReturnMetadataRejectsForgedIndirectABI/missing_function_ownership (0.00s)
+    --- PASS: TestStructReturnMetadataRejectsForgedIndirectABI/missing_descriptor (0.00s)
+    --- PASS: TestStructReturnMetadataRejectsForgedIndirectABI/missing_signature (0.00s)
+    --- PASS: TestStructReturnMetadataRejectsForgedIndirectABI/word_is_not_hidden_pointer (0.00s)
+    --- PASS: TestStructReturnMetadataRejectsForgedIndirectABI/wrong_return_slot (0.00s)
+    --- PASS: TestStructReturnMetadataRejectsForgedIndirectABI/wrong_buffer_index (0.00s)
+=== RUN   TestStructReturnPublicVMKeepsSourceArguments
+--- PASS: TestStructReturnPublicVMKeepsSourceArguments (0.00s)
+=== RUN   TestStructReturnIndirectTargetRejectsDifferentContract
+--- PASS: TestStructReturnIndirectTargetRejectsDifferentContract (0.00s)
+=== RUN   TestStructReturnCanonicalIndirectSlotsDoNotOverlap
+--- PASS: TestStructReturnCanonicalIndirectSlotsDoNotOverlap (0.00s)
+=== RUN   TestStructReturnCanonicalReturnSlotsDoNotOverlap
+--- PASS: TestStructReturnCanonicalReturnSlotsDoNotOverlap (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.336s
