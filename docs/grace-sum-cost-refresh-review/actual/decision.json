@@ -1,0 +1,46 @@
+[
+  {
+    "compatibility": {
+      "schema": "minz.loop-profile-compatibility/v1",
+      "context": {
+        "compiler_id": "executable-sha256:999b48b5e3952d27915ba80f88b52cd7987616c39b189488f10aada028b16480",
+        "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+        "target_id": "module-target:0/model:cpm-z80-v1",
+        "workload_sha256": "686c16264b544bbdb2766096889c6090176f2d29bdf20a9c4408cf4da2067194",
+        "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+        "dependencies": {
+          "array": "929351ec9c272028c6c70f92a33c69059639c1ef81d7baea0650552d39730266",
+          "examples/nanz/01_sum_array.nanz": "fa0ad7d685c31aeb52b91b323bcef46e5c86c0e4390b2fd41ecd69ecfef58694"
+        }
+      },
+      "hir_sha256": "bc2502a05b343a21a98f9cae9cb31228cabc6ff98d6bbda5cb9483abebec233c",
+      "origins_sha256": "35f44b59c4e3d6d72d770ee606f24f87770a8420890492ee0995458de8c3e163"
+    },
+    "site_id": "413717c0664c475bf9c67ee592bac740dccdcf0b002c75bd2dfb19155938ed2f",
+    "variant": "pointer-walk",
+    "reason": "lower measured workload T-states",
+    "original_t_states": "48495",
+    "pointer_t_states": "13879",
+    "model": {
+      "compiler_id": "executable-sha256:999b48b5e3952d27915ba80f88b52cd7987616c39b189488f10aada028b16480",
+      "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+      "function": "sum_array",
+      "hir_sha256": "bc2502a05b343a21a98f9cae9cb31228cabc6ff98d6bbda5cb9483abebec233c",
+      "target_id": "module-target:0/model:cpm-z80-v1",
+      "compilation_id": "",
+      "evidence_id": "sum-array-z80-all-six-lengths-string-repair-v2",
+      "original_bytes": 147,
+      "pointer_bytes": 202,
+      "original_entry_t_states": 69,
+      "original_iteration_t_states": 141,
+      "equal_entry_extra_t_states": 7,
+      "fast_entry_t_states": 210,
+      "fast_zero_entry_t_states": 212,
+      "fast_zero_measured": true,
+      "fallback_entry_t_states": 231,
+      "fallback_iteration_t_states": 143,
+      "fallback_measured": true,
+      "fast_iteration_t_states": 37
+    }
+  }
+]

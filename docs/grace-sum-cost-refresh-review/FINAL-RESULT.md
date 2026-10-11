@@ -1,0 +1,5 @@
+# Current sum footprint gate result
+
+The one authorized frozen-executable TestProfileGuidedSumVMZ80 run passed in 1.02s, exit0. All eighteen six-length original/directGrace/selected VM and actual Z80 rows agree with independent triangular sums modulo256, preserve resource bytes, and retain the existing exact timing assertions. Original full-module footprint is147B and pointer/selected footprint202B. Timing remains original69+141*n, pointer212 for zero and210+37*n otherwise. Workload totals are48495T versus13879T. Retained short/size choices and boundary executions passed in the same test.
+
+Executable SHA999b48b5e3952d27915ba80f88b52cd7987616c39b189488f10aada028b16480 is retained separately in the checkpoint and recorded before execution. Fresh profile compatibility binds that executable and unchanged source. Historical128/183-byte evidence is unchanged; +19B comes from repaired counted SString printing in main, included in whole-module size but not sum invocation timing. This test-only footprint refresh does not alter production model admission or claim fresh1022-domain measurements. Only this focused gate ran; no other CPU tests were repeated.

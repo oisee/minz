@@ -1,0 +1,95 @@
+; MIR2 module: examples/nanz/01_sum_array.nanz
+string @mir2.str.0 = "sum = "
+global @arr : [5]u8
+
+fun @sum_array(%r1: ptr [pointer], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = const 0 : u8 [general]
+    %r4 = const 0 : u8 [general]
+    %r5 = const 65535 : u16 [pointer]
+    %r6 = ext %r2 : u8 -> u16 [pointer]
+    %r7 = sub %r5, %r6 : u16 [pointer]
+    %r8 = cmp.ule %r1, %r7 : bool [flag]
+    br_if %r8, @if_then1(), @if_else3()
+  block @if_then1:
+    %r10 = move %r1 : ptr [pointer]
+    %r11 = const 0 : u8 [acc]
+    %r12 = cmp.ne %r2, %r11 : bool [flag]
+    br_if %r12, @fe_body4(%r2, %r10, %r3), @fe_exit5(%r3)
+  block @fe_body4(%r13: u8 [counter], %r14: ptr [pointer], %r15: u8 [general]):
+    %r16 = load %r14 : u8 [general]
+    %r17 = add %r15, %r16 : u8 [general]
+    %r18 = ptr_bump %r14, +1 : ptr [pointer]
+    djnz %r13, @fe_body4(%r18, %r17), @fe_exit5(%r17)
+  block @fe_exit5(%r19: u8 [general]):
+    ret %r19
+  block @if_else3:
+    jmp @loop_head6(%r4, %r2, %r1, %r3)
+  block @loop_head6(%r20: u8 [general], %r21: u8 [general], %r22: ptr [general], %r23: u8 [general]):
+    %r24 = cmp.ult %r20, %r21 : bool [flag]
+    br_if %r24, @loop_body7(), @loop_exit8(%r20, %r23)
+  block @loop_body7:
+    %r25 = ext %r20 : u8 -> u16 [index]
+    %r26 = ptr_add %r22, %r25 : ptr [pointer]
+    %r27 = load %r26 : u8 [general]
+    %r28 = add %r23, %r27 : u8 [general]
+    %r29 = const 1 : u8 [general]
+    %r30 = add %r20, %r29 : u8 [general]
+    jmp @loop_head6(%r30, %r21, %r22, %r28)
+  block @loop_exit8(%r31: u8 [general], %r34: u8 [general]):
+    ret %r34
+
+fun @main()
+  block @entry:
+    %r37 = const 1 : u8 [general]
+    %r38 = addr_of @arr : ptr [pointer]
+    %r40 = move %r38 : ptr [pointer]
+    store %r40, %r37 : u8
+    %r41 = const 2 : u8 [general]
+    %r42 = addr_of @arr : ptr [pointer]
+    %r43 = const 1 : u8 [general]
+    %r44 = ptr_add %r42, %r43 : ptr [pointer]
+    store %r44, %r41 : u8
+    %r45 = const 3 : u8 [general]
+    %r46 = addr_of @arr : ptr [pointer]
+    %r47 = const 2 : u8 [general]
+    %r48 = ptr_add %r46, %r47 : ptr [pointer]
+    store %r48, %r45 : u8
+    %r49 = const 4 : u8 [general]
+    %r50 = addr_of @arr : ptr [pointer]
+    %r51 = const 3 : u8 [general]
+    %r52 = ptr_add %r50, %r51 : ptr [pointer]
+    store %r52, %r49 : u8
+    %r53 = const 5 : u8 [general]
+    %r54 = addr_of @arr : ptr [pointer]
+    %r55 = const 4 : u8 [general]
+    %r56 = ptr_add %r54, %r55 : ptr [pointer]
+    store %r56, %r53 : u8
+    %r57 = addr_of @arr : ptr [pointer]
+    %r58 = move %r57 : ptr [pointer]
+    %r59 = const 5 : u8 [general]
+    %r60 = call @sum_array(%r58, %r59) : u8 [acc]
+    %r61 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r62 = load %r61 : u8 [general]
+    %r63 = const 1 : u16 [pointer]
+    %r64 = add %r61, %r63 : ptr [acc]
+    jmp @loop_head3(%r62, %r64)
+  block @loop_head3(%r65: u8 [general], %r66: ptr [general]):
+    %r67 = const 0 : u8 [general]
+    %r68 = cmp.ne %r65, %r67 : bool [flag]
+    br_if %r68, @loop_body4(), @loop_exit5()
+  block @loop_body4:
+    %r69 = load %r66 : u8 [general]
+    %r70 = move %r69 : u8 [acc]
+    call @@mir.io.print.char(%r70)
+    %r71 = const 1 : u16 [pointer]
+    %r72 = add %r66, %r71 : ptr [general]
+    %r73 = const 1 : u8 [general]
+    %r74 = sub %r65, %r73 : u8 [general]
+    jmp @loop_head3(%r74, %r72)
+  block @loop_exit5:
+    %r77 = move %r60 : u8 [acc]
+    call @@mir.io.print.u8(%r77)
+    call @@mir.io.print.nl()
+    ret void
+
