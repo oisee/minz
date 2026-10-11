@@ -184,3 +184,17 @@ Combined selector финальный isolated public E2E прошёл за33.789
 выбираетboth1147025 T /2197 B, sizeappend1150124 T /2076 B. Каждому
 из четырёх вариантов соответствует typed proof;24 factory calls с GC на
 каждом режиме прошли. Независимый аудит пакета и production-интеграция впереди.
+
+Офлайн-копия Sites41 проверена:9700 файлов,51 страница,0 потерянных ссылок
+и внешних зависимостей; архивы читаются.
+
+Combined selector6 новых файлов перенесён в основную permanentветку: весь
+backend неизменён. Независимые аудиты8actualcandidatepayload иtyped
+choices/profile/preproofbindings прошли. Общий pipeline/packages/CLI/showcase
+запущен один раз на замороженномdc4b7010; финальнаяинтеграциявпроверке.
+
+Combined integration: HIR22.528 s, MIR5.758 s, Nanz1.584 s, C895.499 s и
+CLI20.432 s PASS; showcase31same0new.236 evidence файлов скопированы и
+проверены по SHA256. Полный pipeline ещё выполняется на frozen6newfiles.
+Следом — отдельный opt-in CLI вход для закрытого memory-host выбора,
+без произвольных extern/assembly и без изменения default path.

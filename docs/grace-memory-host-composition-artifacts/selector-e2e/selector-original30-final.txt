@@ -1,0 +1,34 @@
+=== RUN   TestMemoryHostArenaAppendSelectorOriginal30
+=== RUN   TestMemoryHostArenaAppendSelectorOriginal30/speed
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_arena_append_selector_test.go:68: speed mask0 1221494T/2091B
+    memory_host_arena_append_selector_test.go:68: speed mask1 1218395T/2212B
+    memory_host_arena_append_selector_test.go:68: speed mask2 1150124T/2076B
+    memory_host_arena_append_selector_test.go:68: speed mask3 1147025T/2197B
+    memory_host_arena_append_selector_test.go:70: selected3 calls24
+=== RUN   TestMemoryHostArenaAppendSelectorOriginal30/size
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_arena_append_selector_test.go:68: size mask0 1221494T/2091B
+    memory_host_arena_append_selector_test.go:68: size mask1 1218395T/2212B
+    memory_host_arena_append_selector_test.go:68: size mask2 1150124T/2076B
+    memory_host_arena_append_selector_test.go:68: size mask3 1147025T/2197B
+    memory_host_arena_append_selector_test.go:70: selected2 calls24
+--- PASS: TestMemoryHostArenaAppendSelectorOriginal30 (33.77s)
+    --- PASS: TestMemoryHostArenaAppendSelectorOriginal30/speed (16.77s)
+    --- PASS: TestMemoryHostArenaAppendSelectorOriginal30/size (16.94s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	33.789s

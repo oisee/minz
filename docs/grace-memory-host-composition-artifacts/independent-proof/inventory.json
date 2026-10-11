@@ -1,0 +1,22 @@
+{
+  "base": "dc4a65dd",
+  "source_commit": "a61fbbb1",
+  "files": [
+    {
+      "path": "pkg/hir/arena_append_proof.go",
+      "sha256": "b012adcd65b11c0c6dde507a6f69aa7aa500aed3d803f3de36a7ab4baf38f882"
+    },
+    {
+      "path": "pkg/hir/arena_append_proof_test.go",
+      "sha256": "bc88744a2fd48e61b53dcb9815e55ff94f3395879fbc6629bf61be92ac204346"
+    },
+    {
+      "path": "docs/grace-memory-host-arena-append-proof/README.md",
+      "sha256": "115367790492127c69d5c6d6f51bafb69d0a2a392bdfa0ef3abfe2394deededb"
+    },
+    {
+      "path": "docs/grace-memory-host-arena-append-proof/focused.txt",
+      "sha256": "c92824d4653ec0fdb123161ccd47ae02f176df07ddadaaf18ffeb361b3caa794"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+# Финальный аудит восьми selector payload
+
+Production owner frozen `dc4b7010`, selector SHA `049e6d5547ab33905673001890e2d9a74b041ec91ef08b6264ff24560f9299c4`. Actual owner gate PASS 33.789s. Независимый saved-only аудит speed/size × original/arena/append/both завершён; VM/Z80 не повторялись.
+
+В отличие от предыдущего prototype, финальный selector экспортирует typed precompile proof для каждого из четырёх кандидатов, включая original mask0. Проверены schema/function, точные choices, два source sites, original/actual compatibility, полные function maps и весь actual loop-site map из 11 узлов. Сохраняются source ID/origin; меняются только arena path s1→s4 и append path s5→s7 при соответствующих true bits. Все остальные loop paths равны original. Precompile record привязан именно к сохранённой baseline данного кандидата, а не к instrumented context.
+
+Profile совпадает с serialized source-profile и association. Проверены суммы per-call counts всех 11 sites, 30 completed invocations, полное равенство instrumented/raw observations с исключением gas steps/диагностического текста. Arena source49entries/59bodies, append13entries/286bodies. Instrumentation semantics отличается явным suffix от baseline; остальные context поля совпадают. Эти counts не заявляются как перенесённые в post-lowering loops.
+
+Все восемь кандидатов прошли отдельный последовательный originalSelfLanz Python host oracle: inputs, 10 globals, три полных региона и ordered byte events на каждом из 30 вызовов. Typed Go-аудит проверил sidecar/frame/alloc/MIR SHA, ASM/BIN bytes и суммы costs. Native descriptor PC/opcode/address/width/direction совпадают с бинарником. Counts90/92/90/92, A-byte snapshot0/1/0/1; каждое snapshot соответствует прежней точной 19-инструкционной AF→A→C форме, без capability expansion.
+
+Оба goals имеют одинаковые измеренные candidate payloads/proofs/profile/context; отличаются только goal/selected. Speed selected3: both1147025T2197B. Size selected2: append1150124T2076B. Original1221494T2091B, arena1218395T2212B. Scope — конечный исходный workload; proof precompile и actual baseline не являются общим post-lowering certificate или эквивалентностью gas/global-read counts.
+
+Скрипты `audit_selector_proofs.py`, `audit_selector_native.py`, `host_oracle.py`, `audit_typed.go.txt` воспроизводят проверку по raw или gz payloads. `selector-payload-inventory.json` фиксирует исходные bytes до упаковки. Для host/native scripts дополнительный аргумент — exact original `examples/nanz/self_lanz_parser.nanz`; SHA файла сверяется с source units. Финальный review закрывает отмеченную в предыдущем prototype отсутствие serialized aggregate record: здесь запись существует и проверена.

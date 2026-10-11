@@ -1,0 +1,48 @@
+=== RUN   TestArenaAppendIndependentReview
+=== RUN   TestArenaAppendIndependentReview/rename_target
+    arena_append_independent_review_test.go:29: memory host: memory host: reachable undefined function "region_match"
+=== RUN   TestArenaAppendIndependentReview/duplicate_target
+    arena_append_independent_review_test.go:29: memory host: HIR: invalid or duplicate function "region_match"
+=== RUN   TestArenaAppendIndependentReview/shared_statement
+    arena_append_independent_review_test.go:29: function sites: detached or invalid provenance
+=== RUN   TestArenaAppendIndependentReview/unrelated_origin
+    arena_append_independent_review_test.go:29: arena append proof: exact union origin path
+=== RUN   TestArenaAppendIndependentReview/origin_on_new_prefix
+    arena_append_independent_review_test.go:29: arena peel proof: exact origin path
+=== RUN   TestArenaAppendIndependentReview/collide_i
+    arena_append_independent_review_test.go:29: arena peel proof: local/global collision
+=== RUN   TestArenaAppendIndependentReview/collide_p
+    arena_append_independent_review_test.go:29: append copy proof: global binding collision
+=== RUN   TestArenaAppendIndependentReview/collide_j
+    arena_append_independent_review_test.go:29: append copy proof: global binding collision
+=== RUN   TestArenaAppendIndependentReview/collide_srcbase
+    arena_append_independent_review_test.go:29: append copy proof: global binding collision
+=== RUN   TestArenaAppendIndependentReview/collide_dstbase
+    arena_append_independent_review_test.go:29: append copy proof: global binding collision
+=== RUN   TestArenaAppendIndependentReview/unknown_host
+    arena_append_independent_review_test.go:29: memory host: surplus host declaration
+=== RUN   TestArenaAppendIndependentReview/nochange_false0
+=== RUN   TestArenaAppendIndependentReview/nochange_false1
+    arena_append_independent_review_test.go:29: arena append proof: unrequested arena change
+=== RUN   TestArenaAppendIndependentReview/nochange_false2
+    arena_append_independent_review_test.go:29: arena append proof: unrequested append change
+=== RUN   TestArenaAppendIndependentReview/nochange_false3
+    arena_append_independent_review_test.go:29: arena append proof: unrequested arena change
+--- PASS: TestArenaAppendIndependentReview (1.80s)
+    --- PASS: TestArenaAppendIndependentReview/rename_target (0.02s)
+    --- PASS: TestArenaAppendIndependentReview/duplicate_target (0.03s)
+    --- PASS: TestArenaAppendIndependentReview/shared_statement (0.06s)
+    --- PASS: TestArenaAppendIndependentReview/unrelated_origin (0.20s)
+    --- PASS: TestArenaAppendIndependentReview/origin_on_new_prefix (0.15s)
+    --- PASS: TestArenaAppendIndependentReview/collide_i (0.16s)
+    --- PASS: TestArenaAppendIndependentReview/collide_p (0.17s)
+    --- PASS: TestArenaAppendIndependentReview/collide_j (0.26s)
+    --- PASS: TestArenaAppendIndependentReview/collide_srcbase (0.20s)
+    --- PASS: TestArenaAppendIndependentReview/collide_dstbase (0.21s)
+    --- PASS: TestArenaAppendIndependentReview/unknown_host (0.00s)
+    --- PASS: TestArenaAppendIndependentReview/nochange_false0 (0.07s)
+    --- PASS: TestArenaAppendIndependentReview/nochange_false1 (0.08s)
+    --- PASS: TestArenaAppendIndependentReview/nochange_false2 (0.09s)
+    --- PASS: TestArenaAppendIndependentReview/nochange_false3 (0.09s)
+PASS
+ok  	github.com/minz/minzc/pkg/hir	1.804s

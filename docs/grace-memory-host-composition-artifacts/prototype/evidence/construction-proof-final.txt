@@ -1,0 +1,4 @@
+=== RUN   TestMemoryHostArenaAppendConstruction
+--- PASS: TestMemoryHostArenaAppendConstruction (0.82s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.832s

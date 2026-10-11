@@ -1,0 +1,10 @@
+{
+  "base": "dc4a65dd",
+  "scope": "read-only finite selector design",
+  "files": [
+    {
+      "path": "docs/grace-memory-host-arena-append-selector-plan/PLAN.md",
+      "sha256": "54f8aabd242988dabfc2e0345703bf2b1fe32fdf680068df98c723246a364745"
+    }
+  ]
+}

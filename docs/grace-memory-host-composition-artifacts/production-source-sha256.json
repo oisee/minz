@@ -1,0 +1,12 @@
+{
+  "base": "20b58f2f60272000b38dad4f15bba28ce9bb5ab6",
+  "source": "dc4b7010a0b30dfe869230f002e3159fdd7f952b",
+  "files": {
+    "minzc/pkg/hir/arena_append_proof.go": "b012adcd65b11c0c6dde507a6f69aa7aa500aed3d803f3de36a7ab4baf38f882",
+    "minzc/pkg/hir/arena_append_proof_test.go": "bc88744a2fd48e61b53dcb9815e55ff94f3395879fbc6629bf61be92ac204346",
+    "minzc/pkg/pipeline/memory_host_arena_append_prototype.go": "c0c4ebce4d253a0550bdb32bc57e739300e8de63bb7024a8d73f806822b233f6",
+    "minzc/pkg/pipeline/memory_host_arena_append_prototype_test.go": "a0637833b8c9ae7e3a7d04c5c1e9d7f77f61e53d2c91e1b96b8582b0b96dd585",
+    "minzc/pkg/pipeline/memory_host_arena_append_selector.go": "049e6d5547ab33905673001890e2d9a74b041ec91ef08b6264ff24560f9299c4",
+    "minzc/pkg/pipeline/memory_host_arena_append_selector_test.go": "141ee4a2dee9dfb8f6bd1b1b7228ce78326845da8a8f468564291858f892296e"
+  }
+}
