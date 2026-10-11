@@ -1,0 +1,370 @@
+[
+  {
+    "corpus": "short-reuse",
+    "goal": "speed",
+    "selected": 2,
+    "new_policy": 1,
+    "new_compiler_id": "executable-sha256:393af1d821477b991a0bf452f00c79bd6d77368c3cff9cde64faa1ee1b130808",
+    "scope": "analytical comparison of historical Legacy same-mask measured costs to fresh policy1; no current Legacy execution or dynamic branch count claim",
+    "candidates": [
+      {
+        "mask": 0,
+        "legacy_t_states": 330515,
+        "new_t_states": 329597,
+        "delta_t_states": -918,
+        "legacy_bytes": 2000,
+        "new_bytes": 2001,
+        "new_binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd"
+      },
+      {
+        "mask": 1,
+        "legacy_t_states": 331075,
+        "new_t_states": 330157,
+        "delta_t_states": -918,
+        "legacy_bytes": 2121,
+        "new_bytes": 2122,
+        "new_binary_sha256": "7cbed996d01495228965970dd379920288378f7d84de4b0743db9a3589cdca53"
+      },
+      {
+        "mask": 2,
+        "legacy_t_states": 327008,
+        "new_t_states": 326090,
+        "delta_t_states": -918,
+        "legacy_bytes": 1978,
+        "new_bytes": 1979,
+        "new_binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835"
+      },
+      {
+        "mask": 3,
+        "legacy_t_states": 327568,
+        "new_t_states": 326650,
+        "delta_t_states": -918,
+        "legacy_bytes": 2099,
+        "new_bytes": 2100,
+        "new_binary_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac"
+      }
+    ]
+  },
+  {
+    "corpus": "short-reuse",
+    "goal": "size",
+    "selected": 2,
+    "new_policy": 1,
+    "new_compiler_id": "executable-sha256:393af1d821477b991a0bf452f00c79bd6d77368c3cff9cde64faa1ee1b130808",
+    "scope": "analytical comparison of historical Legacy same-mask measured costs to fresh policy1; no current Legacy execution or dynamic branch count claim",
+    "candidates": [
+      {
+        "mask": 0,
+        "legacy_t_states": 330515,
+        "new_t_states": 329597,
+        "delta_t_states": -918,
+        "legacy_bytes": 2000,
+        "new_bytes": 2001,
+        "new_binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd"
+      },
+      {
+        "mask": 1,
+        "legacy_t_states": 331075,
+        "new_t_states": 330157,
+        "delta_t_states": -918,
+        "legacy_bytes": 2121,
+        "new_bytes": 2122,
+        "new_binary_sha256": "7cbed996d01495228965970dd379920288378f7d84de4b0743db9a3589cdca53"
+      },
+      {
+        "mask": 2,
+        "legacy_t_states": 327008,
+        "new_t_states": 326090,
+        "delta_t_states": -918,
+        "legacy_bytes": 1978,
+        "new_bytes": 1979,
+        "new_binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835"
+      },
+      {
+        "mask": 3,
+        "legacy_t_states": 327568,
+        "new_t_states": 326650,
+        "delta_t_states": -918,
+        "legacy_bytes": 2099,
+        "new_bytes": 2100,
+        "new_binary_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac"
+      }
+    ]
+  },
+  {
+    "corpus": "long-atoms",
+    "goal": "speed",
+    "selected": 2,
+    "new_policy": 1,
+    "new_compiler_id": "executable-sha256:393af1d821477b991a0bf452f00c79bd6d77368c3cff9cde64faa1ee1b130808",
+    "scope": "analytical comparison of historical Legacy same-mask measured costs to fresh policy1; no current Legacy execution or dynamic branch count claim",
+    "candidates": [
+      {
+        "mask": 0,
+        "legacy_t_states": 4110605,
+        "new_t_states": 4110217,
+        "delta_t_states": -388,
+        "legacy_bytes": 2000,
+        "new_bytes": 2001,
+        "new_binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd"
+      },
+      {
+        "mask": 1,
+        "legacy_t_states": 4110877,
+        "new_t_states": 4110489,
+        "delta_t_states": -388,
+        "legacy_bytes": 2121,
+        "new_bytes": 2122,
+        "new_binary_sha256": "7cbed996d01495228965970dd379920288378f7d84de4b0743db9a3589cdca53"
+      },
+      {
+        "mask": 2,
+        "legacy_t_states": 3968942,
+        "new_t_states": 3968554,
+        "delta_t_states": -388,
+        "legacy_bytes": 1978,
+        "new_bytes": 1979,
+        "new_binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835"
+      },
+      {
+        "mask": 3,
+        "legacy_t_states": 3969214,
+        "new_t_states": 3968826,
+        "delta_t_states": -388,
+        "legacy_bytes": 2099,
+        "new_bytes": 2100,
+        "new_binary_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac"
+      }
+    ]
+  },
+  {
+    "corpus": "long-atoms",
+    "goal": "size",
+    "selected": 2,
+    "new_policy": 1,
+    "new_compiler_id": "executable-sha256:393af1d821477b991a0bf452f00c79bd6d77368c3cff9cde64faa1ee1b130808",
+    "scope": "analytical comparison of historical Legacy same-mask measured costs to fresh policy1; no current Legacy execution or dynamic branch count claim",
+    "candidates": [
+      {
+        "mask": 0,
+        "legacy_t_states": 4110605,
+        "new_t_states": 4110217,
+        "delta_t_states": -388,
+        "legacy_bytes": 2000,
+        "new_bytes": 2001,
+        "new_binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd"
+      },
+      {
+        "mask": 1,
+        "legacy_t_states": 4110877,
+        "new_t_states": 4110489,
+        "delta_t_states": -388,
+        "legacy_bytes": 2121,
+        "new_bytes": 2122,
+        "new_binary_sha256": "7cbed996d01495228965970dd379920288378f7d84de4b0743db9a3589cdca53"
+      },
+      {
+        "mask": 2,
+        "legacy_t_states": 3968942,
+        "new_t_states": 3968554,
+        "delta_t_states": -388,
+        "legacy_bytes": 1978,
+        "new_bytes": 1979,
+        "new_binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835"
+      },
+      {
+        "mask": 3,
+        "legacy_t_states": 3969214,
+        "new_t_states": 3968826,
+        "delta_t_states": -388,
+        "legacy_bytes": 2099,
+        "new_bytes": 2100,
+        "new_binary_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac"
+      }
+    ]
+  },
+  {
+    "corpus": "nested-mixed",
+    "goal": "speed",
+    "selected": 2,
+    "new_policy": 1,
+    "new_compiler_id": "executable-sha256:393af1d821477b991a0bf452f00c79bd6d77368c3cff9cde64faa1ee1b130808",
+    "scope": "analytical comparison of historical Legacy same-mask measured costs to fresh policy1; no current Legacy execution or dynamic branch count claim",
+    "candidates": [
+      {
+        "mask": 0,
+        "legacy_t_states": 1297899,
+        "new_t_states": 1286305,
+        "delta_t_states": -11594,
+        "legacy_bytes": 2000,
+        "new_bytes": 2001,
+        "new_binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd"
+      },
+      {
+        "mask": 1,
+        "legacy_t_states": 1299550,
+        "new_t_states": 1287956,
+        "delta_t_states": -11594,
+        "legacy_bytes": 2121,
+        "new_bytes": 2122,
+        "new_binary_sha256": "7cbed996d01495228965970dd379920288378f7d84de4b0743db9a3589cdca53"
+      },
+      {
+        "mask": 2,
+        "legacy_t_states": 1281762,
+        "new_t_states": 1270168,
+        "delta_t_states": -11594,
+        "legacy_bytes": 1978,
+        "new_bytes": 1979,
+        "new_binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835"
+      },
+      {
+        "mask": 3,
+        "legacy_t_states": 1283413,
+        "new_t_states": 1271819,
+        "delta_t_states": -11594,
+        "legacy_bytes": 2099,
+        "new_bytes": 2100,
+        "new_binary_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac"
+      }
+    ]
+  },
+  {
+    "corpus": "nested-mixed",
+    "goal": "size",
+    "selected": 2,
+    "new_policy": 1,
+    "new_compiler_id": "executable-sha256:393af1d821477b991a0bf452f00c79bd6d77368c3cff9cde64faa1ee1b130808",
+    "scope": "analytical comparison of historical Legacy same-mask measured costs to fresh policy1; no current Legacy execution or dynamic branch count claim",
+    "candidates": [
+      {
+        "mask": 0,
+        "legacy_t_states": 1297899,
+        "new_t_states": 1286305,
+        "delta_t_states": -11594,
+        "legacy_bytes": 2000,
+        "new_bytes": 2001,
+        "new_binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd"
+      },
+      {
+        "mask": 1,
+        "legacy_t_states": 1299550,
+        "new_t_states": 1287956,
+        "delta_t_states": -11594,
+        "legacy_bytes": 2121,
+        "new_bytes": 2122,
+        "new_binary_sha256": "7cbed996d01495228965970dd379920288378f7d84de4b0743db9a3589cdca53"
+      },
+      {
+        "mask": 2,
+        "legacy_t_states": 1281762,
+        "new_t_states": 1270168,
+        "delta_t_states": -11594,
+        "legacy_bytes": 1978,
+        "new_bytes": 1979,
+        "new_binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835"
+      },
+      {
+        "mask": 3,
+        "legacy_t_states": 1283413,
+        "new_t_states": 1271819,
+        "delta_t_states": -11594,
+        "legacy_bytes": 2099,
+        "new_bytes": 2100,
+        "new_binary_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac"
+      }
+    ]
+  },
+  {
+    "corpus": "fresh-dominant",
+    "goal": "speed",
+    "selected": 2,
+    "new_policy": 1,
+    "new_compiler_id": "executable-sha256:393af1d821477b991a0bf452f00c79bd6d77368c3cff9cde64faa1ee1b130808",
+    "scope": "analytical comparison of historical Legacy same-mask measured costs to fresh policy1; no current Legacy execution or dynamic branch count claim",
+    "candidates": [
+      {
+        "mask": 0,
+        "legacy_t_states": 789462,
+        "new_t_states": 786526,
+        "delta_t_states": -2936,
+        "legacy_bytes": 2000,
+        "new_bytes": 2001,
+        "new_binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd"
+      },
+      {
+        "mask": 1,
+        "legacy_t_states": 789510,
+        "new_t_states": 786574,
+        "delta_t_states": -2936,
+        "legacy_bytes": 2121,
+        "new_bytes": 2122,
+        "new_binary_sha256": "7cbed996d01495228965970dd379920288378f7d84de4b0743db9a3589cdca53"
+      },
+      {
+        "mask": 2,
+        "legacy_t_states": 699845,
+        "new_t_states": 696909,
+        "delta_t_states": -2936,
+        "legacy_bytes": 1978,
+        "new_bytes": 1979,
+        "new_binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835"
+      },
+      {
+        "mask": 3,
+        "legacy_t_states": 699893,
+        "new_t_states": 696957,
+        "delta_t_states": -2936,
+        "legacy_bytes": 2099,
+        "new_bytes": 2100,
+        "new_binary_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac"
+      }
+    ]
+  },
+  {
+    "corpus": "fresh-dominant",
+    "goal": "size",
+    "selected": 2,
+    "new_policy": 1,
+    "new_compiler_id": "executable-sha256:393af1d821477b991a0bf452f00c79bd6d77368c3cff9cde64faa1ee1b130808",
+    "scope": "analytical comparison of historical Legacy same-mask measured costs to fresh policy1; no current Legacy execution or dynamic branch count claim",
+    "candidates": [
+      {
+        "mask": 0,
+        "legacy_t_states": 789462,
+        "new_t_states": 786526,
+        "delta_t_states": -2936,
+        "legacy_bytes": 2000,
+        "new_bytes": 2001,
+        "new_binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd"
+      },
+      {
+        "mask": 1,
+        "legacy_t_states": 789510,
+        "new_t_states": 786574,
+        "delta_t_states": -2936,
+        "legacy_bytes": 2121,
+        "new_bytes": 2122,
+        "new_binary_sha256": "7cbed996d01495228965970dd379920288378f7d84de4b0743db9a3589cdca53"
+      },
+      {
+        "mask": 2,
+        "legacy_t_states": 699845,
+        "new_t_states": 696909,
+        "delta_t_states": -2936,
+        "legacy_bytes": 1978,
+        "new_bytes": 1979,
+        "new_binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835"
+      },
+      {
+        "mask": 3,
+        "legacy_t_states": 699893,
+        "new_t_states": 696957,
+        "delta_t_states": -2936,
+        "legacy_bytes": 2099,
+        "new_bytes": 2100,
+        "new_binary_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac"
+      }
+    ]
+  }
+]

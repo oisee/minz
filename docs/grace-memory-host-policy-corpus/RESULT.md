@@ -1,0 +1,5 @@
+Eight fixed PreserveForSpeed CLI goals completed with exit0 using exactroot393af1 executable. Freshcontextassociation/profile/envelope perrun, allfourcandidate masks measured eachgoal. Allfourcorpora selectappend(mask2) for both SpeedandSize. Selectedspeed costs: short-reuse326090T, long-atoms3968554T, nested-mixed1270168T, fresh-dominant696909T; selectedsize1979B for all.
+
+The historical same-mask Legacy comparison shows decreases918/388/11594/2936T respectively, with1additionalbyte eachmask in these workloads. This is analyticalcomparison of separatelysavedmeasurements, not freshLegacyexecution or an additive/generalbranch-distribution claim. Arena penaltiesremainvisible; no universal both-transformprofit.
+
+32candidatepayloads plus8originalcollectionbaselines/400nativecalls are saved, alongwitheightfresh11-counterprofiles anddirectselectedoutputs. Independentfinalauditspending; rootownsbroadergate/publication. No sourceproductioncodechanges inthisartifactstage.
