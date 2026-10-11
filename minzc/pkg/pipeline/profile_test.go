@@ -50,7 +50,9 @@ func TestMultiFunctionProfileVMZ80(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	options := Options{UseHIRGrace: true, AssertMode: "none"}
+	// Preserve this fixture's measured contract-optimized compilation context.
+	// ContractOpt=false now correctly leaves contracts untouched.
+	options := Options{UseHIRGrace: true, AssertMode: "none", ContractOpt: true}
 	config, err := ProfileCompilationID(options, "default")
 	if err != nil {
 		t.Fatal(err)
