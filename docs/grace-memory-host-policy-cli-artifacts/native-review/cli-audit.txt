@@ -1,0 +1,6 @@
+PASS CLI whole-v2/policy/proofs/profile sums/source/current exe/decisions exactsaved bytes {'run': 'speed', 'policy': 1, 'goal': 'speed', 'calls': 30, 'costs': [1132449, 1132290, 1076874, 1076715], 'bytes': [2001, 2122, 1979, 2100], 'selected': 3}
+PASS CLI whole-v2/policy/proofs/profile sums/source/current exe/decisions exactsaved bytes {'run': 'size', 'policy': 1, 'goal': 'size', 'calls': 30, 'costs': [1132449, 1132290, 1076874, 1076715], 'bytes': [2001, 2122, 1979, 2100], 'selected': 2}
+PASS CLI whole-v2/policy/proofs/profile sums/source/current exe/decisions exactsaved bytes {'run': 'small-collect', 'policy': 1, 'goal': 'speed', 'calls': 2, 'costs': [587, 566, 646, 625], 'bytes': [2001, 2122, 1979, 2100], 'selected': 1}
+PASS CLI whole-v2/policy/proofs/profile sums/source/current exe/decisions exactsaved bytes {'run': 'small-replay', 'policy': 1, 'goal': 'speed', 'calls': 2, 'costs': [587, 566, 646, 625], 'bytes': [2001, 2122, 1979, 2100], 'selected': 1}
+PASS CLI whole-v2/policy/proofs/profile sums/source/current exe/decisions exactsaved bytes {'run': 'small-legacy', 'policy': 0, 'goal': 'speed', 'calls': 2, 'costs': [604, 583, 663, 642], 'bytes': [2000, 2121, 1978, 2099], 'selected': 1}
+PASS same-executable supplied association exactbytes/replayed selection; fullspeed/size same4 measured candidates. No CPU replay.

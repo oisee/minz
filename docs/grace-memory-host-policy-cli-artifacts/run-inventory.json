@@ -1,0 +1,47 @@
+[
+  {
+    "run": "speed",
+    "exit_code": 0,
+    "goal": "speed",
+    "policy": 1,
+    "selected": 3,
+    "t_states": 1076715,
+    "bytes": 2100
+  },
+  {
+    "run": "size",
+    "exit_code": 0,
+    "goal": "size",
+    "policy": 1,
+    "selected": 2,
+    "t_states": 1076874,
+    "bytes": 1979
+  },
+  {
+    "run": "small-collect",
+    "exit_code": 0,
+    "goal": "speed",
+    "policy": 1,
+    "selected": 1,
+    "t_states": 566,
+    "bytes": 2122
+  },
+  {
+    "run": "small-replay",
+    "exit_code": 0,
+    "goal": "speed",
+    "policy": 1,
+    "selected": 1,
+    "t_states": 566,
+    "bytes": 2122
+  },
+  {
+    "run": "small-legacy",
+    "exit_code": 0,
+    "goal": "speed",
+    "policy": 0,
+    "selected": 1,
+    "t_states": 583,
+    "bytes": 2121
+  }
+]

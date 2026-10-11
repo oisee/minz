@@ -1,0 +1,17 @@
+[
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-cli-evidence/inputs/small-workload.json",
+    "bytes": 22880,
+    "sha256": "1e6d2b0640ce68ae98014ca93458730a27214f501d5e05ef7950e629d9934968"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-cli-evidence/inputs/source.nanz",
+    "bytes": 7164,
+    "sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+  },
+  {
+    "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-cli-evidence/inputs/full-workload.json",
+    "bytes": 33501,
+    "sha256": "ac7d90cb3501e183a7fc9d45242259551e9cd260db53731704ef0a31ee6f933f"
+  }
+]

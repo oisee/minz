@@ -1,0 +1,5 @@
+Five actual CLI invocations completed with exit0 using the retained795f executable. PreserveForSpeed full30 Speed selectsboth(mask3)1076715T2100B; actualSize selectsappend(mask2)1076874T1979B. Both goals measuredallfourcandidates; GoalSize doesnotenableOptSize. AlloriginalcandidateBINs matchpreviouspolicyAPIevidence.
+
+Shortcollect/suppliedreplay usepolicy1 andselectarena(mask1)566T2122B; suppliedassociationbytes/selectionbytesandrealexternal-oassemblyareidentical. ExplicitsmallLegacyv2policy0 selectsarena583T2121B. Shortzero-bodycasesverifywiring/replay, notcompareactivation.
+
+Everydecisionhashesexactstoredassociationandselectionbytes, andselectedASM/BINaredirectfrommandatoryv2candidate. Native/source/profilecontextsbindtheactualretainedexecutable. Nooldprofileisrelabeled. Both independent finalaudits pass (5d7b4bcf andb639a913). Packaged-data-only source audits also pass allfive runs. Productiongate/publicationbelongtoroot.

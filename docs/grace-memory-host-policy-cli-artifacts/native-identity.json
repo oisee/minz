@@ -1,0 +1,7 @@
+{
+  "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-cli-evidence/minzc-policy-cli",
+  "sha256": "795f69cea3ed2cc2301a0a70aeabd29c70c3f0065273597e59cbdc58fc712c72",
+  "source_head": "6647fe0b",
+  "build": "go build -buildvcs=false",
+  "retained": true
+}

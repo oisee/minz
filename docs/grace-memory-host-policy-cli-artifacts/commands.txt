@@ -1,0 +1,11 @@
+Build from isolated minzc:
+go build -buildvcs=false -o /home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-cli-evidence/minzc-policy-cli ./cmd/minzc
+
+Each invocation runs from isolated minzc and parses unchanged ../examples/nanz/self_lanz_parser.nanz with -b z80 -t cpm.
+Speed: --memory-host-arena-append-policy .../speed --memory-host-compare-policy preserve-speed --memory-host-workload .../inputs/full-workload.json
+Size: --Osize --memory-host-arena-append-policy .../size --memory-host-compare-policy preserve-speed --memory-host-workload .../inputs/full-workload.json
+Small collect: --memory-host-arena-append-policy .../small-collect --memory-host-compare-policy preserve-speed --memory-host-workload .../inputs/small-workload.json
+Small replay: --memory-host-arena-append-policy .../small-replay --memory-host-compare-policy preserve-speed --memory-host-workload .../inputs/small-workload.json --memory-host-association .../small-collect/association-v2.json -o .../external-selected.a80
+Small Legacy: --memory-host-arena-append-policy .../small-legacy --memory-host-compare-policy legacy --memory-host-workload .../inputs/small-workload.json
+All ... prefixes are /home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-cli-evidence.
+No old-executable profile is reused. All associations are collected by the preserved current executable. Small zero-body workload verifies wiring/replay and does not establish compare activation.

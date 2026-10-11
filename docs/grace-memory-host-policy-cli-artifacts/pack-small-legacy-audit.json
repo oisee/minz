@@ -1,0 +1,131 @@
+{
+  "schema": "minz.policy-cli-independent-saved-audit/v1",
+  "directory": "docs/grace-memory-host-policy-cli/evidence/small-legacy",
+  "compile_options": {
+    "unsigned_pair_compare_policy": 0
+  },
+  "goal": "speed",
+  "selected": 1,
+  "executable_sha256": "795f69cea3ed2cc2301a0a70aeabd29c70c3f0065273597e59cbdc58fc712c72",
+  "native_observations": 10,
+  "native": [
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941",
+      "t_states": 604,
+      "bytes": 2000,
+      "str_bump": 32769,
+      "node_bump": 32768
+    },
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941",
+      "t_states": 604,
+      "bytes": 2000,
+      "str_bump": 32769,
+      "node_bump": 32768,
+      "mask": 0
+    },
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "2b5d02b0ba923a61604512e3b50e76ef3c6aa54b5cc13470c3f620d705a64fae",
+      "t_states": 583,
+      "bytes": 2121,
+      "str_bump": 32769,
+      "node_bump": 32768,
+      "mask": 1
+    },
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975",
+      "t_states": 663,
+      "bytes": 1978,
+      "str_bump": 32769,
+      "node_bump": 32768,
+      "mask": 2
+    },
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "4bdce86bd7a724f34e7eee180e8a6530b07f33cadd39e7a1a93813df6c841c13",
+      "t_states": 642,
+      "bytes": 2099,
+      "str_bump": 32769,
+      "node_bump": 32768,
+      "mask": 3
+    }
+  ],
+  "independent_source_counts": {
+    "intern_region/body/s1": [
+      1,
+      0
+    ],
+    "skip_ws/body/s1/then/s0": [
+      0,
+      0
+    ],
+    "main/body/s2": [
+      0,
+      0
+    ],
+    "parse_sexpr/body/s8/then/s2": [
+      0,
+      0
+    ],
+    "region_match/body/s1": [
+      1,
+      0
+    ],
+    "skip_ws/body/s0": [
+      0,
+      0
+    ],
+    "parse_sexpr/body/s5": [
+      0,
+      0
+    ],
+    "parse_sexpr/body/s3/then/s7": [
+      0,
+      0
+    ],
+    "intern_region/body/s5": [
+      1,
+      0
+    ],
+    "print_node/body/s4/then/s3": [
+      0,
+      0
+    ],
+    "print_str/body/s2": [
+      0,
+      0
+    ]
+  },
+  "decision": {
+    "schema": "minz.memory-host-arena-append-cli-decision/v2",
+    "compile_options": {
+      "unsigned_pair_compare_policy": 0
+    },
+    "goal": "speed",
+    "selected": 1,
+    "choices": {
+      "arena_peel": true,
+      "append_hoist": false
+    },
+    "selection_sha256": "9dcf6d728d27fa98ce07da6ade665c0879a34349c45b9716c37dce3f38e8ba58",
+    "association_sha256": "fb9d139aa3b099205fa577d04610c76314a9a4df529af52fafd3f6a3ef59c820",
+    "binary_sha256": "2b5d02b0ba923a61604512e3b50e76ef3c6aa54b5cc13470c3f620d705a64fae",
+    "t_states": 583,
+    "bytes": 2121
+  },
+  "scope": "exact original-source semantic/resource/event and counter oracle plus saved policy/proof/native/file hash bindings; no CPU or new PC counts"
+}

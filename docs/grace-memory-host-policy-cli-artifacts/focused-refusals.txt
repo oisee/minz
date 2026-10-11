@@ -1,0 +1,8 @@
+=== RUN   TestPolicyCLIMalformedAssociationAndImports
+--- PASS: TestPolicyCLIMalformedAssociationAndImports (0.07s)
+=== RUN   TestPolicyCLILegacyRouteUnchanged
+    memory_host_policy_cli_test.go:231: ordinary empty mode changed memory host CLI: --memory-host-arena-append and --memory-host-workload are required
+--- FAIL: TestPolicyCLILegacyRouteUnchanged (0.01s)
+FAIL
+FAIL	github.com/minz/minzc/cmd/minzc	0.090s
+FAIL
