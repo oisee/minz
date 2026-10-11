@@ -67,3 +67,30 @@ MINZ_SEARCH_STAGE_TIMINGS=/absolute/new-directory go test ./pkg/pipeline \
 [Manifest](grace-search-worker-audit/manifest.json) preserves timings, terminal
 PASSlog, cumulative profile text and original pprof. Test is explicitly gated by
 artifact environment; it records timings, never asserts a fragile speed threshold.
+
+## Scoped executable identity: equivalence audit
+
+The current public APIs accept arbitrary factory callbacks between repeated
+identity checks. Initial/final-only executable hashing is **not equivalent**:
+a callback can temporarily replace the executable pathname, expose different
+bytes during an intermediate old identity check, and restore it before the
+final check. A retained descriptor pins the original inode, so hashing that
+descriptor again does not detect a pathname replacement. Reopening the pathname
+at the end detects only persistent replacement, not temporary replacement.
+Stat/inode checks at callback boundaries can detect replacement at those points
+but a size/mtime-only cache still does not establish complete byte equality.
+
+Consequently no global or operation-scoped executable hash cache was added to
+these arbitrary-factory APIs. A trusted source-only internal operation could
+accept a privately initialized immutable compiler fingerprint, retain a descriptor
+and verify full bytes plus path identity at explicit boundaries. That requires
+an explicit narrower contract and tests for replacement/restoration, and cannot
+silently replace existing callback identity semantics. The measured executable
+hash cost is real; this audit does not trade current refusal behavior for speed.
+
+A narrower improvement preserving existing behavior is to reuse the **just
+computed** automatic context inside one identity check, rather than immediately
+rebuilding it in an adjacent helper; it must retain one full executable hash at
+every existing callback/retained-source observation boundary. Further repeated
+HIR compatibility work may be factored only under equally explicit boundaries.
+This packet records that proposal without changing production checks.
