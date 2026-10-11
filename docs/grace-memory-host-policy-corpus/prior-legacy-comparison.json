@@ -1,0 +1,258 @@
+[
+  {
+    "corpus": "short-reuse",
+    "goal": "speed",
+    "scope": "historical Legacy measurement; compare same masks analytically only, not current-executable evidence",
+    "candidates": [
+      {
+        "mask": 0,
+        "t_states": 330515,
+        "bytes": 2000,
+        "binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941"
+      },
+      {
+        "mask": 1,
+        "t_states": 331075,
+        "bytes": 2121,
+        "binary_sha256": "2b5d02b0ba923a61604512e3b50e76ef3c6aa54b5cc13470c3f620d705a64fae"
+      },
+      {
+        "mask": 2,
+        "t_states": 327008,
+        "bytes": 1978,
+        "binary_sha256": "1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975"
+      },
+      {
+        "mask": 3,
+        "t_states": 327568,
+        "bytes": 2099,
+        "binary_sha256": "4bdce86bd7a724f34e7eee180e8a6530b07f33cadd39e7a1a93813df6c841c13"
+      }
+    ],
+    "selected": 2
+  },
+  {
+    "corpus": "short-reuse",
+    "goal": "size",
+    "scope": "historical Legacy measurement; compare same masks analytically only, not current-executable evidence",
+    "candidates": [
+      {
+        "mask": 0,
+        "t_states": 330515,
+        "bytes": 2000,
+        "binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941"
+      },
+      {
+        "mask": 1,
+        "t_states": 331075,
+        "bytes": 2121,
+        "binary_sha256": "2b5d02b0ba923a61604512e3b50e76ef3c6aa54b5cc13470c3f620d705a64fae"
+      },
+      {
+        "mask": 2,
+        "t_states": 327008,
+        "bytes": 1978,
+        "binary_sha256": "1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975"
+      },
+      {
+        "mask": 3,
+        "t_states": 327568,
+        "bytes": 2099,
+        "binary_sha256": "4bdce86bd7a724f34e7eee180e8a6530b07f33cadd39e7a1a93813df6c841c13"
+      }
+    ],
+    "selected": 2
+  },
+  {
+    "corpus": "long-atoms",
+    "goal": "speed",
+    "scope": "historical Legacy measurement; compare same masks analytically only, not current-executable evidence",
+    "candidates": [
+      {
+        "mask": 0,
+        "t_states": 4110605,
+        "bytes": 2000,
+        "binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941"
+      },
+      {
+        "mask": 1,
+        "t_states": 4110877,
+        "bytes": 2121,
+        "binary_sha256": "2b5d02b0ba923a61604512e3b50e76ef3c6aa54b5cc13470c3f620d705a64fae"
+      },
+      {
+        "mask": 2,
+        "t_states": 3968942,
+        "bytes": 1978,
+        "binary_sha256": "1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975"
+      },
+      {
+        "mask": 3,
+        "t_states": 3969214,
+        "bytes": 2099,
+        "binary_sha256": "4bdce86bd7a724f34e7eee180e8a6530b07f33cadd39e7a1a93813df6c841c13"
+      }
+    ],
+    "selected": 2
+  },
+  {
+    "corpus": "long-atoms",
+    "goal": "size",
+    "scope": "historical Legacy measurement; compare same masks analytically only, not current-executable evidence",
+    "candidates": [
+      {
+        "mask": 0,
+        "t_states": 4110605,
+        "bytes": 2000,
+        "binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941"
+      },
+      {
+        "mask": 1,
+        "t_states": 4110877,
+        "bytes": 2121,
+        "binary_sha256": "2b5d02b0ba923a61604512e3b50e76ef3c6aa54b5cc13470c3f620d705a64fae"
+      },
+      {
+        "mask": 2,
+        "t_states": 3968942,
+        "bytes": 1978,
+        "binary_sha256": "1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975"
+      },
+      {
+        "mask": 3,
+        "t_states": 3969214,
+        "bytes": 2099,
+        "binary_sha256": "4bdce86bd7a724f34e7eee180e8a6530b07f33cadd39e7a1a93813df6c841c13"
+      }
+    ],
+    "selected": 2
+  },
+  {
+    "corpus": "nested-mixed",
+    "goal": "speed",
+    "scope": "historical Legacy measurement; compare same masks analytically only, not current-executable evidence",
+    "candidates": [
+      {
+        "mask": 0,
+        "t_states": 1297899,
+        "bytes": 2000,
+        "binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941"
+      },
+      {
+        "mask": 1,
+        "t_states": 1299550,
+        "bytes": 2121,
+        "binary_sha256": "2b5d02b0ba923a61604512e3b50e76ef3c6aa54b5cc13470c3f620d705a64fae"
+      },
+      {
+        "mask": 2,
+        "t_states": 1281762,
+        "bytes": 1978,
+        "binary_sha256": "1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975"
+      },
+      {
+        "mask": 3,
+        "t_states": 1283413,
+        "bytes": 2099,
+        "binary_sha256": "4bdce86bd7a724f34e7eee180e8a6530b07f33cadd39e7a1a93813df6c841c13"
+      }
+    ],
+    "selected": 2
+  },
+  {
+    "corpus": "nested-mixed",
+    "goal": "size",
+    "scope": "historical Legacy measurement; compare same masks analytically only, not current-executable evidence",
+    "candidates": [
+      {
+        "mask": 0,
+        "t_states": 1297899,
+        "bytes": 2000,
+        "binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941"
+      },
+      {
+        "mask": 1,
+        "t_states": 1299550,
+        "bytes": 2121,
+        "binary_sha256": "2b5d02b0ba923a61604512e3b50e76ef3c6aa54b5cc13470c3f620d705a64fae"
+      },
+      {
+        "mask": 2,
+        "t_states": 1281762,
+        "bytes": 1978,
+        "binary_sha256": "1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975"
+      },
+      {
+        "mask": 3,
+        "t_states": 1283413,
+        "bytes": 2099,
+        "binary_sha256": "4bdce86bd7a724f34e7eee180e8a6530b07f33cadd39e7a1a93813df6c841c13"
+      }
+    ],
+    "selected": 2
+  },
+  {
+    "corpus": "fresh-dominant",
+    "goal": "speed",
+    "scope": "historical Legacy measurement; compare same masks analytically only, not current-executable evidence",
+    "candidates": [
+      {
+        "mask": 0,
+        "t_states": 789462,
+        "bytes": 2000,
+        "binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941"
+      },
+      {
+        "mask": 1,
+        "t_states": 789510,
+        "bytes": 2121,
+        "binary_sha256": "2b5d02b0ba923a61604512e3b50e76ef3c6aa54b5cc13470c3f620d705a64fae"
+      },
+      {
+        "mask": 2,
+        "t_states": 699845,
+        "bytes": 1978,
+        "binary_sha256": "1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975"
+      },
+      {
+        "mask": 3,
+        "t_states": 699893,
+        "bytes": 2099,
+        "binary_sha256": "4bdce86bd7a724f34e7eee180e8a6530b07f33cadd39e7a1a93813df6c841c13"
+      }
+    ],
+    "selected": 2
+  },
+  {
+    "corpus": "fresh-dominant",
+    "goal": "size",
+    "scope": "historical Legacy measurement; compare same masks analytically only, not current-executable evidence",
+    "candidates": [
+      {
+        "mask": 0,
+        "t_states": 789462,
+        "bytes": 2000,
+        "binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941"
+      },
+      {
+        "mask": 1,
+        "t_states": 789510,
+        "bytes": 2121,
+        "binary_sha256": "2b5d02b0ba923a61604512e3b50e76ef3c6aa54b5cc13470c3f620d705a64fae"
+      },
+      {
+        "mask": 2,
+        "t_states": 699845,
+        "bytes": 1978,
+        "binary_sha256": "1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975"
+      },
+      {
+        "mask": 3,
+        "t_states": 699893,
+        "bytes": 2099,
+        "binary_sha256": "4bdce86bd7a724f34e7eee180e8a6530b07f33cadd39e7a1a93813df6c841c13"
+      }
+    ],
+    "selected": 2
+  }
+]
