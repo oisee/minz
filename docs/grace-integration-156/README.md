@@ -1,0 +1,5 @@
+# Интеграция 156: повтор frozen heldout после callback/purity fixes
+
+На root checkpoint `f6123e4b` четыре существующие заранее отложенные семейства (Self-Lanz parser, HashMap, packet PFCCO, Pascal SORT) проходят совместный replay: **PASS 37,776 с** ([лог](heldout-root.txt)). Запуск `go test ./pkg/pipeline -run 'TestParserProspectiveHeldout|TestHashmapMeasuredTrainingAndUnseenWorkload|TestPFCCOProspectiveHeldout|TestPascalBubbleSortProspectiveHeldout' -count=1`.
+
+Это повтор прежних frozen training/heldout workloads и проверок выбранных ASM/BIN после двух correctness fixes; новые входы после выбора здесь не объявляются независимым prospective экспериментом. Исторические числа каждого семейства остаются привязанными к исходным retained snapshot. Этот PASS не заменяет общий текущий pipeline gate и не закрывает весь корпус. General struct-return ABI остаётся в отдельной WIP ветке; неправильная передача indirect hidden-buffer аргумента обнаружена независимым аудитом и исправляется владельцем.
