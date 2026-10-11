@@ -1,0 +1,18 @@
+=== RUN   TestMeasuredModesRejectsLateCompiledTypeMutation
+--- PASS: TestMeasuredModesRejectsLateCompiledTypeMutation (0.37s)
+=== RUN   TestMeasuredModeWorkloadsOwnsAllInputsAndTies
+--- PASS: TestMeasuredModeWorkloadsOwnsAllInputsAndTies (1.77s)
+=== RUN   TestMeasuredModeWorkloadsRejectsCrossRunDriftAndFailure
+=== RUN   TestMeasuredModeWorkloadsRejectsCrossRunDriftAndFailure/source
+=== RUN   TestMeasuredModeWorkloadsRejectsCrossRunDriftAndFailure/ABI
+=== RUN   TestMeasuredModeWorkloadsRejectsCrossRunDriftAndFailure/failure
+--- PASS: TestMeasuredModeWorkloadsRejectsCrossRunDriftAndFailure (3.11s)
+    --- PASS: TestMeasuredModeWorkloadsRejectsCrossRunDriftAndFailure/source (1.18s)
+    --- PASS: TestMeasuredModeWorkloadsRejectsCrossRunDriftAndFailure/ABI (1.16s)
+    --- PASS: TestMeasuredModeWorkloadsRejectsCrossRunDriftAndFailure/failure (0.77s)
+=== RUN   TestMeasuredModeWorkloadsRejectsEarlierHIRMutation
+--- PASS: TestMeasuredModeWorkloadsRejectsEarlierHIRMutation (0.77s)
+=== RUN   TestMeasuredModeWorkloadsRejectsEarlierSemanticTypeMutation
+--- PASS: TestMeasuredModeWorkloadsRejectsEarlierSemanticTypeMutation (0.78s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	6.822s

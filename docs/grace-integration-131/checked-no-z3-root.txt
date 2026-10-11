@@ -1,0 +1,13 @@
+=== RUN   TestCheckedLocalTableOrdinaryHIRSelectsSmallerNativeFunction
+    checked_local_tables_test.go:110: ordinary add5 all 256 byte inputs: module 8→6 bytes fixture 56→49 T; result/SP pass
+--- PASS: TestCheckedLocalTableOrdinaryHIRSelectsSmallerNativeFunction (0.07s)
+=== RUN   TestCheckedLocalTableTamperFallsBackAndProfileRefuses
+--- PASS: TestCheckedLocalTableTamperFallsBackAndProfileRefuses (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.086s
+=== RUN   TestCheckedTableCompilerUsesGeneratedLocalCertificate
+[regalloc] loaded 56 exhaustive entries from regalloc_exhaustive.json
+    table_checked_test.go:290: compiler checked hit, no solver: A=12 SP=f000 BIN=3e07c605c9 T=49
+--- PASS: TestCheckedTableCompilerUsesGeneratedLocalCertificate (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.010s
