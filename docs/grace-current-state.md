@@ -20,8 +20,8 @@
   Поддержка native u32 memory/caller/spill уже исправлена и проверена отдельно;
   это не делает host interpreter подходящим для обычного Z80.
   Сборка корпуса не доказывает правильность исполнения. Новый
-  [актуальный каталог](grace-integration-116/catalog-46-vm-native.json) фиксирует все
-  194 точных пути: 46 имеют ограниченное independent VM/native покрытие; новый fib_iter, ранее пропущенная ссылка18tail и исходные local struct вызовы подтверждены отдельно. Новый CP/M demo
+  [актуальный каталог](grace-integration-117/catalog-47-vm-native.json) фиксирует все
+  194 точных пути: 47 имеют ограниченное independent VM/native покрытие; новый fib_iter, ранее пропущенная ссылка18tail и исходные local struct вызовы подтверждены отдельно. Новый CP/M demo
   имеет отдельный native CALL5-hook proof. Все прочие пути сохраняют явные
   pending/ASM/runtime/host ограничения.
 - **Pascal bubble sort: исправлен реальный native miscompile** (`ff11ba69`).
@@ -411,3 +411,7 @@ Root проверки обычных исходников и принудите�
 (MIR2 0,977 с; pipeline 1,106 с). Подтверждённый динамический сдвиг
 `1 << 256` всё ещё неверен на native и исправляется отдельным коммитом.
 [Пакет интеграции](grace-integration-116/README.md).
+
+Оригинальный enum match также прошёл все объявленные значения в трёх
+режимах; [пакет](grace-integration-117/README.md). Полный MIR2 после
+исправления u32 logic: root PASS 16,882 с.

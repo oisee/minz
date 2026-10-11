@@ -1,0 +1,12 @@
+=== RUN   TestShowcaseExecutableOracleCatalog
+    showcase_oracle_catalog_test.go:238: agon-mos-runtime: 5 exact paths
+    showcase_oracle_catalog_test.go:238: bounded-independent-vm-native: 6 exact paths
+    showcase_oracle_catalog_test.go:238: external-runtime-needs-audit: 18 exact paths
+    showcase_oracle_catalog_test.go:238: host-only-memory-model: 1 exact paths
+    showcase_oracle_catalog_test.go:238: inline-asm-target-needs-audit: 32 exact paths
+    showcase_oracle_catalog_test.go:238: pending-independent-oracle: 90 exact paths
+    showcase_oracle_catalog_test.go:238: executed-independent-vm-z80: 41 exact paths
+    showcase_oracle_catalog_test.go:238: executed-native-cpm-runtime: 1 exact paths
+--- PASS: TestShowcaseExecutableOracleCatalog (1.83s)
+PASS
+ok  	github.com/minz/minzc/pkg/nanz	1.834s

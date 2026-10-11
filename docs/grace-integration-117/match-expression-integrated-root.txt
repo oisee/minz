@@ -1,0 +1,16 @@
+=== RUN   TestOriginalMatchExpressionNativeModel
+    showcase_match_expression_native_test.go:257: default {Entry:color_code Args:[0] Expected:5 ExpectedMulti:[5]} 55T native/raw/final model code/SP/RAM PASS
+    showcase_match_expression_native_test.go:257: default {Entry:color_code Args:[1] Expected:10 ExpectedMulti:[10]} 74T native/raw/final model code/SP/RAM PASS
+    showcase_match_expression_native_test.go:257: default {Entry:color_code Args:[2] Expected:15 ExpectedMulti:[15]} 98T native/raw/final model code/SP/RAM PASS
+    showcase_match_expression_native_test.go:261: default 9 original enum-match calls PASS; 9 source assertions retained
+    showcase_match_expression_native_test.go:257: grace-size {Entry:color_code Args:[0] Expected:5 ExpectedMulti:[5]} 55T native/raw/final model code/SP/RAM PASS
+    showcase_match_expression_native_test.go:257: grace-size {Entry:color_code Args:[1] Expected:10 ExpectedMulti:[10]} 74T native/raw/final model code/SP/RAM PASS
+    showcase_match_expression_native_test.go:257: grace-size {Entry:color_code Args:[2] Expected:15 ExpectedMulti:[15]} 98T native/raw/final model code/SP/RAM PASS
+    showcase_match_expression_native_test.go:261: grace-size 9 original enum-match calls PASS; 9 source assertions retained
+    showcase_match_expression_native_test.go:257: grace-speed {Entry:color_code Args:[0] Expected:5 ExpectedMulti:[5]} 55T native/raw/final model code/SP/RAM PASS
+    showcase_match_expression_native_test.go:257: grace-speed {Entry:color_code Args:[1] Expected:10 ExpectedMulti:[10]} 74T native/raw/final model code/SP/RAM PASS
+    showcase_match_expression_native_test.go:257: grace-speed {Entry:color_code Args:[2] Expected:15 ExpectedMulti:[15]} 98T native/raw/final model code/SP/RAM PASS
+    showcase_match_expression_native_test.go:261: grace-speed 9 original enum-match calls PASS; 9 source assertions retained
+--- PASS: TestOriginalMatchExpressionNativeModel (0.03s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.042s
