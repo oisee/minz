@@ -865,7 +865,23 @@ func (g *z80cg) genFunc(f *Func) {
 		// long-lived incoming pointer in a named spill slot. Bridge exactly
 		// once before body code clobbers the incoming physical registers.
 		var copies []parallelCopy
+		used := map[Reg]bool{}
+		for _, block := range f.Blocks {
+			for _, inst := range block.Insts {
+				for _, r := range inst.Uses() {
+					used[r] = true
+				}
+			}
+			if block.Term != nil {
+				for _, r := range block.Term.termUses() {
+					used[r] = true
+				}
+			}
+		}
 		for _, p := range f.Contract.Params {
+			if !used[p.Reg] {
+				continue
+			}
 			copies = append(copies, parallelCopy{srcName: canonicalReturnLoc(p.Class, p.Ty), dstName: g.loc(p.Reg), ty: p.Ty})
 		}
 		g.emitParallelCopy(copies)

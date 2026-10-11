@@ -150,8 +150,16 @@ func LowerStructReturnBuffers(m *Module) error {
 						for i := range target.Contract.Returns {
 							target.Contract.Returns[i].Class = standardIndirectReturnClass(target.Contract.Returns[i].Ty, i)
 						}
+						types := make([]Ty, len(target.Contract.Params))
+						for i, p := range target.Contract.Params {
+							types[i] = p.Ty
+						}
+						classes, err := CanonicalIndirectParamClasses(types)
+						if err != nil {
+							return fmt.Errorf("%s: %w", target.Name, err)
+						}
 						for i := range target.Contract.Params {
-							target.Contract.Params[i].Class = standardParamClass(target.Contract.Params[i].Ty, i)
+							target.Contract.Params[i].Class = classes[i]
 						}
 					}
 				}
@@ -311,4 +319,46 @@ func standardIndirectReturnClass(ty Ty, pos int) RegClass {
 		return ClassCounter
 	}
 	return ClassGeneral
+}
+
+// CanonicalIndirectParamClasses preserves each legacy preferred slot when
+// available, then assigns a free nonoverlapping slot deterministically.
+func CanonicalIndirectParamClasses(types []Ty) ([]RegClass, error) {
+	classes := make([]RegClass, len(types))
+	used := map[byte]bool{}
+	overlap := func(name string) bool {
+		for i := range name {
+			if used[name[i]] {
+				return true
+			}
+		}
+		return false
+	}
+	for i, ty := range types {
+		if z80ValueWidth(ty) > 16 {
+			return nil, fmt.Errorf("indirect parameter wider than sixteen bits unsupported")
+		}
+		choices := []RegClass{standardParamClass(ty, i)}
+		if z80ValueWidth(ty) > 8 {
+			choices = append(choices, ClassPointer, ClassIndex, ClassIY)
+		} else {
+			choices = append(choices, ClassAcc, ClassRegC, ClassCounter, ClassRegE, ClassRegD, ClassRegL, ClassRegH)
+		}
+		found := false
+		for _, cls := range choices {
+			name := canonicalReturnLoc(cls, ty)
+			if !overlap(name) {
+				classes[i] = cls
+				for j := range name {
+					used[name[j]] = true
+				}
+				found = true
+				break
+			}
+		}
+		if !found {
+			return nil, fmt.Errorf("indirect parameter registers exhausted at slot %d", i)
+		}
+	}
+	return classes, nil
 }

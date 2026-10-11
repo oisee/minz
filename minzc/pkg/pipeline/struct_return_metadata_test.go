@@ -79,3 +79,59 @@ return r}`, "struct-public.nanz")
 		t.Fatal("physical hidden argument accepted as public source argument")
 	}
 }
+
+func TestStructReturnIndirectTargetRejectsDifferentContract(t *testing.T) {
+	h, e := nanz.Parse(`struct S {v:u8}
+fun build(x:u8)->S {var r:S=S{v:x}
+if x==0 {r.v=0}
+return r}
+fun invoke(f:fun(u8)->S,x:u8)->u8 {let r:S=f(x)
+return r.v}`, "target-contract.nanz")
+	if e != nil {
+		t.Fatal(e)
+	}
+	m := hir.LowerModule(h)
+	target := m.FuncByName("build")
+	var call *mir2.Inst
+	for _, b := range m.FuncByName("invoke").Blocks {
+		for _, i := range b.Insts {
+			if i.Op == mir2.OpCallIndirect {
+				call = i
+			}
+		}
+	}
+	if e := mir2.ValidateIndirectTargetABI(call, target); e != nil {
+		t.Fatal(e)
+	}
+	target.Attrs.FallibleCY = true
+	if e := mir2.ValidateIndirectTargetABI(call, target); e == nil {
+		t.Fatal("same-width fallible target accepted")
+	}
+	target.Attrs.FallibleCY = false
+	target.Contract.Returns[0].Ty = &mir2.StructTy{Name: "Other", Fields: []mir2.StructField{{Name: "q", Ty: mir2.TyU8}}}
+	if e := mir2.ValidateIndirectTargetABI(call, target); e == nil {
+		t.Fatal("same-size different-layout target accepted")
+	}
+}
+
+func TestStructReturnCanonicalIndirectSlotsDoNotOverlap(t *testing.T) {
+	for _, tys := range [][]mir2.Ty{{mir2.TyU16, mir2.TyPtr}, {mir2.TyPtr, mir2.TyPtr}, {mir2.TyU8, mir2.TyPtr, mir2.TyU16}, {mir2.TyPtr, mir2.TyPtr, mir2.TyPtr}} {
+		classes, e := mir2.CanonicalIndirectParamClasses(tys)
+		if e != nil {
+			t.Fatal(e)
+		}
+		occupied := map[byte]bool{}
+		for i, cls := range classes {
+			loc := mir2.ReturnLocation(cls, tys[i])
+			for j := range loc {
+				if occupied[loc[j]] {
+					t.Fatal("overlapping ABI", tys, classes)
+				}
+				occupied[loc[j]] = true
+			}
+		}
+	}
+	if _, e := mir2.CanonicalIndirectParamClasses([]mir2.Ty{mir2.TyPtr, mir2.TyPtr, mir2.TyPtr, mir2.TyPtr}); e == nil {
+		t.Fatal("exhausted ABI accepted")
+	}
+}
