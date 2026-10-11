@@ -17,3 +17,5 @@ HIR0.009s, MIR2 0.010s, pipeline7.151s. Actual FAT helper native benefit and
 wrap tests rerun here. A new full pipeline runs on a7954042; the previous
 full CLI still runs on708e77c5 and must keep that attribution. No full
 current suite PASS claimed. Source rename MIR2→MIR remains deferred.
+
+Full integrated HIR/MIR2/Nanz subsequently PASS27.587/24.403/13.031s.
