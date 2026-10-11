@@ -1,0 +1,6 @@
+PASS authenticcurrentprofile exactinput/control4typedprecompileproofs/selectedbytes/decisionSHA mask1 763T2212B
+PASS refusal stale-executable incompatible family/source/workload
+PASS refusal synthetic-failed-sample incomplete or failed sample
+PASS refusal synthetic-failed-invocation failed invocation
+PASS refusal synthetic-cumulative-mismatch cumulative count mismatch
+PASS distinctauthenticstaleexeand3syntheticpayloadrefusalcauses/noacceptedselection

@@ -1,0 +1,1 @@
+PASS independent workload-driven SelfLanz {"binary_sha256": "7c244dd469683c8bb1505061c3d9eda5162f3b36219efba1418a240b781f7751", "bytes": 2076, "calls": 2, "node_bump": 32768, "ordered_events": 1, "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526", "str_bump": 32769, "t_states": 948}

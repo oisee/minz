@@ -1,0 +1,37 @@
+[
+  {
+    "case": "valid-current",
+    "exit_code": 0,
+    "expected_cause": null,
+    "output_directory_exists": true,
+    "selected_binary_exists": true
+  },
+  {
+    "case": "stale-executable",
+    "exit_code": 1,
+    "expected_cause": "incompatible family/source/workload",
+    "output_directory_exists": false,
+    "selected_binary_exists": false
+  },
+  {
+    "case": "synthetic-failed-sample",
+    "exit_code": 1,
+    "expected_cause": "incomplete or failed sample",
+    "output_directory_exists": false,
+    "selected_binary_exists": false
+  },
+  {
+    "case": "synthetic-failed-invocation",
+    "exit_code": 1,
+    "expected_cause": "failed invocation",
+    "output_directory_exists": false,
+    "selected_binary_exists": false
+  },
+  {
+    "case": "synthetic-cumulative-mismatch",
+    "exit_code": 1,
+    "expected_cause": "cumulative count mismatch",
+    "output_directory_exists": false,
+    "selected_binary_exists": false
+  }
+]
