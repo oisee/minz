@@ -1,0 +1,7 @@
+=== RUN   TestOriginalSHASplitHelpersVMZ80
+    showcase_sha_split_oracle_test.go:244: exact original15 SHA split helpers/carry/Boolean/shift/not16all65536/raw-finalVM/nativeSPcode modeordinary; 13405265 T/376 B SHA 1284beea5199390f7e5d3b8acaa384b4e030cce63752baaf3b1f4422bd618942
+    showcase_sha_split_oracle_test.go:244: exact original15 SHA split helpers/carry/Boolean/shift/not16all65536/raw-finalVM/nativeSPcode modegrace-speed; 13405265 T/376 B SHA 1284beea5199390f7e5d3b8acaa384b4e030cce63752baaf3b1f4422bd618942
+    showcase_sha_split_oracle_test.go:244: exact original15 SHA split helpers/carry/Boolean/shift/not16all65536/raw-finalVM/nativeSPcode modegrace-size; 13405265 T/376 B SHA 1284beea5199390f7e5d3b8acaa384b4e030cce63752baaf3b1f4422bd618942
+--- PASS: TestOriginalSHASplitHelpersVMZ80 (6.17s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	6.209s

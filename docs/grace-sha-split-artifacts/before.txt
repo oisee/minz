@@ -1,0 +1,6 @@
+=== RUN   TestOriginalSHASplitHelpersVMZ80
+    showcase_sha_split_oracle_test.go:232: final VM call 56029 result [] err mir2.VM: gas limit reached (1000000 steps)
+--- FAIL: TestOriginalSHASplitHelpersVMZ80 (0.70s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.724s
+FAIL

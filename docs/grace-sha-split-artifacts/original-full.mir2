@@ -1,0 +1,211 @@
+; MIR2 module: ../../../examples/nanz/sha256.nanz
+fun @shr32_lo(%r1: u16 [pointer], %r2: u16 [index], %r3: u8 [counter]) -> u16 [pointer]
+  block @entry:
+    %r4 = const 0 : u8 [general]
+    jmp @loop_head1(%r1, %r4, %r3, %r2)
+  block @loop_head1(%r5: u16 [pointer], %r6: u8 [general], %r7: u8 [general], %r8: u16 [pointer]):
+    %r9 = cmp.ult %r6, %r7 : bool [flag]
+    br_if %r9, @loop_body2(), @loop_exit3(%r5, %r6, %r7, %r8)
+  block @loop_body2:
+    %r10 = const 2 : u16 [pointer]
+    %r11 = div %r8, %r10 : u16 [pointer]
+    %r12 = const 2 : u16 [pointer]
+    %r13 = mod %r5, %r12 : u16 [pointer]
+    %r14 = const 1 : u8 [general]
+    %r15 = cmp.eq %r13, %r14 : bool [flag]
+    br_if %r15, @if_then4(), @if_join5(%r11)
+  block @if_then4:
+    %r16 = const 32768 : u16 [pointer]
+    %r17 = add %r11, %r16 : u16 [pointer]
+    jmp @if_join5(%r17)
+  block @if_join5(%r18: u16 [pointer]):
+    %r19 = const 2 : u16 [pointer]
+    %r20 = div %r5, %r19 : u16 [pointer]
+    %r21 = const 1 : u8 [general]
+    %r22 = add %r6, %r21 : u8 [general]
+    jmp @loop_head1(%r20, %r22, %r7, %r18)
+  block @loop_exit3(%r23: u16 [pointer], %r24: u8 [general], %r25: u8 [general], %r26: u16 [pointer]):
+    ret %r26
+
+fun @shr32_hi(%r27: u16 [pointer], %r28: u16 [index], %r29: u8 [counter]) -> u16 [pointer]
+  block @entry:
+    %r30 = const 0 : u8 [general]
+    jmp @loop_head1(%r30, %r29, %r27)
+  block @loop_head1(%r31: u8 [general], %r32: u8 [general], %r33: u16 [pointer]):
+    %r34 = cmp.ult %r31, %r32 : bool [flag]
+    br_if %r34, @loop_body2(), @loop_exit3(%r31, %r32, %r33)
+  block @loop_body2:
+    %r35 = const 2 : u16 [pointer]
+    %r36 = div %r33, %r35 : u16 [pointer]
+    %r37 = const 1 : u8 [general]
+    %r38 = add %r31, %r37 : u8 [general]
+    jmp @loop_head1(%r38, %r32, %r36)
+  block @loop_exit3(%r39: u8 [general], %r40: u8 [general], %r41: u16 [pointer]):
+    ret %r41
+
+fun @add32_lo(%r42: u16 [pointer], %r43: u16 [index], %r44: u16 [index], %r45: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r46 = add %r43, %r45 : u16 [pointer]
+    ret %r46
+
+fun @add32_hi(%r47: u16 [pointer], %r48: u16 [index], %r49: u16 [index], %r50: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r51 = add %r48, %r50 : u16 [pointer]
+    %r52 = const 0 : u8 [general]
+    %r53 = ext %r52 : u8 -> u16 [pointer]
+    %r54 = cmp.ult %r51, %r48 : bool [flag]
+    br_if %r54, @if_then1(), @if_join2(%r53)
+  block @if_then1:
+    %r55 = const 1 : u8 [general]
+    %r56 = ext %r55 : u8 -> u16 [pointer]
+    jmp @if_join2(%r56)
+  block @if_join2(%r57: u16 [pointer]):
+    %r58 = add %r47, %r49 : u16 [pointer]
+    %r59 = add %r58, %r57 : u16 [pointer]
+    ret %r59
+
+fun @xor16(%r60: u16 [pointer], %r61: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r62 = const 256 : u16 [pointer]
+    %r63 = mod %r60, %r62 : u16 [pointer]
+    %r64 = trunc %r63 : u16 -> u8 [general]
+    %r65 = const 256 : u16 [pointer]
+    %r66 = div %r60, %r65 : u16 [pointer]
+    %r67 = trunc %r66 : u16 -> u8 [general]
+    %r68 = const 256 : u16 [pointer]
+    %r69 = mod %r61, %r68 : u16 [pointer]
+    %r70 = trunc %r69 : u16 -> u8 [general]
+    %r71 = const 256 : u16 [pointer]
+    %r72 = div %r61, %r71 : u16 [pointer]
+    %r73 = trunc %r72 : u16 -> u8 [general]
+    %r74 = xor %r64, %r70 : u8 [acc]
+    %r75 = xor %r67, %r73 : u8 [acc]
+    %r76 = ext %r74 : u8 -> u16 [pointer]
+    %r77 = ext %r75 : u8 -> u16 [pointer]
+    %r78 = const 256 : u16 [pointer]
+    %r79 = mul %r77, %r78 : u16 [pointer]
+    %r80 = add %r79, %r76 : u16 [pointer]
+    ret %r80
+
+fun @and16(%r81: u16 [pointer], %r82: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r83 = const 256 : u16 [pointer]
+    %r84 = mod %r81, %r83 : u16 [pointer]
+    %r85 = trunc %r84 : u16 -> u8 [general]
+    %r86 = const 256 : u16 [pointer]
+    %r87 = div %r81, %r86 : u16 [pointer]
+    %r88 = trunc %r87 : u16 -> u8 [general]
+    %r89 = const 256 : u16 [pointer]
+    %r90 = mod %r82, %r89 : u16 [pointer]
+    %r91 = trunc %r90 : u16 -> u8 [general]
+    %r92 = const 256 : u16 [pointer]
+    %r93 = div %r82, %r92 : u16 [pointer]
+    %r94 = trunc %r93 : u16 -> u8 [general]
+    %r95 = and %r85, %r91 : u8 [acc]
+    %r96 = and %r88, %r94 : u8 [acc]
+    %r97 = ext %r95 : u8 -> u16 [pointer]
+    %r98 = ext %r96 : u8 -> u16 [pointer]
+    %r99 = const 256 : u16 [pointer]
+    %r100 = mul %r98, %r99 : u16 [pointer]
+    %r101 = add %r100, %r97 : u16 [pointer]
+    ret %r101
+
+fun @not16(%r102: u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    %r103 = const 256 : u16 [pointer]
+    %r104 = mod %r102, %r103 : u16 [pointer]
+    %r105 = trunc %r104 : u16 -> u8 [general]
+    %r106 = const 256 : u16 [pointer]
+    %r107 = div %r102, %r106 : u16 [pointer]
+    %r108 = trunc %r107 : u16 -> u8 [general]
+    %r109 = const 255 : u8 [general]
+    %r110 = xor %r105, %r109 : u8 [acc]
+    %r111 = const 255 : u8 [general]
+    %r112 = xor %r108, %r111 : u8 [acc]
+    %r113 = ext %r110 : u8 -> u16 [pointer]
+    %r114 = ext %r112 : u8 -> u16 [pointer]
+    %r115 = const 256 : u16 [pointer]
+    %r116 = mul %r114, %r115 : u16 [pointer]
+    %r117 = add %r116, %r113 : u16 [pointer]
+    ret %r117
+
+fun @ch_lo(%r118: u16 [pointer], %r119: u16 [index], %r120: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r121 = move %r119 : u16 [index]
+    %r122 = call @and16(%r118, %r121) : u16 [pointer]
+    %r123 = call @not16(%r118) : u16 [pointer]
+    %r124 = move %r120 : u16 [index]
+    %r125 = call @and16(%r123, %r124) : u16 [pointer]
+    %r126 = move %r125 : u16 [index]
+    %r127 = call @xor16(%r122, %r126) : u16 [pointer]
+    ret %r127
+
+fun @maj_lo(%r128: u16 [pointer], %r129: u16 [index], %r130: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r131 = move %r129 : u16 [index]
+    %r132 = call @and16(%r128, %r131) : u16 [pointer]
+    %r133 = move %r130 : u16 [index]
+    %r134 = call @and16(%r128, %r133) : u16 [pointer]
+    %r135 = move %r134 : u16 [index]
+    %r136 = call @xor16(%r132, %r135) : u16 [pointer]
+    %r137 = move %r130 : u16 [index]
+    %r138 = call @and16(%r129, %r137) : u16 [pointer]
+    %r139 = move %r138 : u16 [index]
+    %r140 = call @xor16(%r136, %r139) : u16 [pointer]
+    ret %r140
+
+fun @test_add32() -> u16 [pointer]
+  block @entry:
+    %r141 = const 0 : u8 [general]
+    %r142 = move %r141 : u8 [acc]
+    %r143 = const 1 : u8 [general]
+    %r144 = const 0 : u8 [general]
+    %r145 = move %r144 : u8 [counter]
+    %r146 = const 1 : u8 [general]
+    %r147 = call @add32_lo(%r142, %r143, %r145, %r146) : u16 [pointer]
+    ret %r147
+
+fun @test_add32_carry() -> u16 [pointer]
+  block @entry:
+    %r148 = const 0 : u8 [general]
+    %r149 = move %r148 : u8 [acc]
+    %r150 = const 65535 : u16 [pointer]
+    %r151 = move %r150 : u16 [index]
+    %r152 = const 0 : u8 [general]
+    %r153 = move %r152 : u8 [counter]
+    %r154 = const 1 : u8 [general]
+    %r155 = call @add32_hi(%r149, %r151, %r153, %r154) : u16 [pointer]
+    ret %r155
+
+fun @test_xor() -> u16 [pointer]
+  block @entry:
+    %r156 = const 65280 : u16 [pointer]
+    %r157 = const 255 : u8 [general]
+    %r158 = call @xor16(%r156, %r157) : u16 [pointer]
+    ret %r158
+
+fun @test_and() -> u16 [pointer]
+  block @entry:
+    %r159 = const 65295 : u16 [pointer]
+    %r160 = const 4095 : u16 [pointer]
+    %r161 = move %r160 : u16 [index]
+    %r162 = call @and16(%r159, %r161) : u16 [pointer]
+    ret %r162
+
+fun @test_not() -> u16 [pointer]
+  block @entry:
+    %r163 = const 255 : u8 [general]
+    %r164 = move %r163 : u8 [acc]
+    %r165 = call @not16(%r164) : u16 [pointer]
+    ret %r165
+
+fun @test_ch() -> u16 [pointer]
+  block @entry:
+    %r166 = const 65535 : u16 [pointer]
+    %r167 = const 4660 : u16 [pointer]
+    %r168 = move %r167 : u16 [index]
+    %r169 = const 22136 : u16 [pointer]
+    %r170 = move %r169 : u16 [index]
+    %r171 = call @ch_lo(%r166, %r168, %r170) : u16 [pointer]
+    ret %r171
+
