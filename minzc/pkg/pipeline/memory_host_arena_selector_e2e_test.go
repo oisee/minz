@@ -7,6 +7,7 @@ import (
 	"github.com/minz/minzc/pkg/hir"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -37,6 +38,11 @@ func TestMemoryHostArenaSelectorOriginal30Objectives(t *testing.T) {
 			if len(selected.Candidates) != 2 {
 				t.Fatal("bounded two-candidate contract")
 			}
+			proof := selected.Candidates[1].PrecompileProof
+			if proof == nil || proof.Schema != "minz.exact-memory-host-arena-peel-precompile/v1" || proof.Function != "region_match" || !reflect.DeepEqual(proof.OriginalCompatibility, selected.Candidates[0].Evidence.Compatibility) || !reflect.DeepEqual(proof.ActualCompatibility, selected.Candidates[1].Evidence.Compatibility) || !reflect.DeepEqual(proof.OriginalFunctions, selected.Candidates[0].Evidence.FunctionSites) || !reflect.DeepEqual(proof.ActualFunctions, selected.Candidates[1].Evidence.FunctionSites) {
+				t.Fatal("precompile proof not bound to measured candidates")
+			}
+
 			a, b := selected.Candidates[0].Evidence.Target, selected.Candidates[1].Evidence.Target
 			want := 0
 			if goal == "speed" && b.TotalTStates < a.TotalTStates || goal == "size" && len(b.Binary) < len(a.Binary) {
