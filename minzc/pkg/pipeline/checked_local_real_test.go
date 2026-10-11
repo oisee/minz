@@ -1,6 +1,7 @@
 package pipeline
 
 import (
+	"bytes"
 	"os"
 	"strconv"
 	"strings"
@@ -51,6 +52,10 @@ func runCheckedRealByte(t *testing.T, asm string, f *mir2.Func, allocation *mir2
 		t.Fatal(err)
 	}
 	r := z.GetRegisters()
+	memory := z.Memory()
+	if !bytes.Equal(memory[bin.Origin:bin.Origin+len(bin.Binary)], bin.Binary) {
+		t.Fatal("native leaf/caller changed compiled code")
+	}
 	ret := mir2.ReturnLocation(f.Contract.Returns[0].Class, f.Contract.Returns[0].Ty)
 	var value byte
 	switch ret {
