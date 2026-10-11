@@ -222,9 +222,14 @@ func TestSearchCLIAssociationCaps(t *testing.T) {
 func TestSearchCLICollectAndPairedReplay(t *testing.T) {
 	source, workload := withSearchCLI(t)
 	retainCallSpillCLIFixture(t, source, "search")
-	b, err := os.ReadFile("../../../examples/nanz/self_lanz_parser.nanz")
+	// This closed eight-candidate experiment admits exactly its frozen source,
+	// not the evolving showcase example. Preserve production source admission.
+	b, err := os.ReadFile("../../../docs/grace-parser-prospective-heldout/artifacts/source.nanz")
 	if err != nil {
 		t.Fatal(err)
+	}
+	if fmt.Sprintf("%x", sha256.Sum256(b)) != "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526" {
+		t.Fatal("historical search source identity changed")
 	}
 	if err = os.WriteFile(source, b, 0644); err != nil {
 		t.Fatal(err)

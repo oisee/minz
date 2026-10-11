@@ -1,0 +1,6 @@
+=== RUN   TestSearchCLICollectAndPairedReplay
+    memory_host_search_cli_test.go:242: memory host search CLI: exact original SelfLanz source required
+--- FAIL: TestSearchCLICollectAndPairedReplay (0.07s)
+FAIL
+FAIL	github.com/minz/minzc/cmd/minzc	0.080s
+FAIL
