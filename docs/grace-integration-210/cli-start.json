@@ -9,5 +9,8 @@
     "-test.count=1",
     "-test.timeout=30m"
   ],
-  "state": "prepared before start; outcome pending"
+  "state": "started; PID confirmed live; terminal outcome pending",
+  "session_id": 75030,
+  "pid": 2429123,
+  "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/cli-31d6abd0-full.txt"
 }
