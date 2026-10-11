@@ -1,0 +1,11 @@
+# Boundary workload source/native admission review
+
+Owner81c20f7c workloadsnapshot reviewed. Unchangedexactsource/CLI1bd/nativepermissions;8finiteworkloads, no codechanges. Independent workloadmodel artifact evaluation7cases saved (instructionbudget deliberatelynotgivenPython-gas claim). Modelreview reuses frozenSelfLanz sourceoracle c967f3d0, no CPU.
+
+zero-body expectedregionlen0return1/noreads, internlen0header0at9000andreturn9000/bump9001. firstequal/mismatch read9001 thenC000, return1/0, thenintern0header0. Bothsitesobservedentriespositive evenzeroappendbody; winnerunknownuntilactual4measurements.
+
+preloadedhit hasstr_bump9002, len1matchingheader/string/source. regioncall+internsearchreturn9000; appendloopnotentered, serializedprofilevalidbutselectorrefusesunobservedappend. No acceptedselectionclaim.
+
+Source-tail denial prefixheader2at9000,readC00097,write9001=97; thenC001readundeclared. Destination-tail addsreadC00198 then9002writeundeclared. ROheaderdenial9000write withnoevents. FailedCalls/typedprefix remainsdiagnostics only, loader/selector refusesfailedprofile andCLI mustnotemitselection/nativeartifacts. Instrumentbudget1 shouldinfrastructure-nilevidence, noCPUsemanticsinferredfromPython model.
+
+Allregionsbounded/disjointfromcompilerstorage/code/stack, args exacttyped. Actualnativecaseadmission ordinarypositive calls only; no arbitraryprotectedpointer/nativepermissionextension. CLIrefusal tests shouldpreservenonzeroexit/errors+absenceofdecisions/selectedfiles. Root/ownerrawprofilegate andactualonce authorized, independentauditdoesnotrepeatCPU.

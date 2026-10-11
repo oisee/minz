@@ -1,5 +1,8 @@
 {
   "files_sha256": {
-    "PLAN.md": "f2c3e46812ef56515cce0910f4ddcc81a91233ed1b9f870a7525d8f83e9830f0"
+    "PLAN.md": "f2c3e46812ef56515cce0910f4ddcc81a91233ed1b9f870a7525d8f83e9830f0",
+    "WORKLOAD_REVIEW.md": "94a548a9ea32d22a9ab87a85713e85175b46f54416c1e14ea64deb9a887f1787",
+    "model-prefixes.json": "693dc2c049bc4af71914dc6b60f4d14f63e5a8caf127690fb253c1aa5f862d0c",
+    "workload-snapshot.json": "03c92e025949f52ae654140c450432cb570fde86b601f6428e51928c3f6d6f32"
   }
 }
