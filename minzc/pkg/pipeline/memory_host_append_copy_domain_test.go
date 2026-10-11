@@ -175,3 +175,68 @@ func TestMemoryHostAppendCopyRawDomain(t *testing.T) {
 		}
 	}
 }
+
+func TestMemoryHostAppendCopyTargetDomain(t *testing.T) {
+	fill := func(n int) []byte {
+		b := make([]byte, n)
+		for j := range b {
+			b[j] = byte(19 + j*37)
+		}
+		return b
+	}
+	successes := []appendDomainCase{}
+	for _, offset := range []int{-1, 0, 1, 2} {
+		for _, n := range []int{0, 1, 2, 255} {
+			successes = append(successes, appendDomainCase{Name: fmt.Sprintf("alias%d_len%d", offset, n), Length: n, Bump: 0x8000, SourceBase: uint16(0x8000 + offset), Regions: map[string]hir.MemoryHostRegion{"shared": {Address: 0x7fff, Bytes: fill(260), Writable: true}}})
+		}
+	}
+	failures := []appendDomainCase{
+		{Name: "header_readonly", Length: 2, Bump: 0x8000, SourceBase: 0x9000, Regions: map[string]hir.MemoryHostRegion{"dest": {Address: 0x8000, Bytes: fill(4)}, "src": {Address: 0x9000, Bytes: fill(4)}}},
+		{Name: "first_source_denied", Length: 2, Bump: 0x8000, SourceBase: 0x9000, Regions: map[string]hir.MemoryHostRegion{"dest": {Address: 0x8000, Bytes: fill(4), Writable: true}}},
+		{Name: "tail_source_denied", Length: 3, Bump: 0x8000, SourceBase: 0xfffe, Regions: map[string]hir.MemoryHostRegion{"dest": {Address: 0x8000, Bytes: fill(4), Writable: true}, "src": {Address: 0xfffe, Bytes: fill(2)}}},
+		{Name: "first_destination_readonly", Length: 2, Bump: 0x8000, SourceBase: 0x9000, Regions: map[string]hir.MemoryHostRegion{"header": {Address: 0x8000, Bytes: fill(1), Writable: true}, "dest": {Address: 0x8001, Bytes: fill(3)}, "src": {Address: 0x9000, Bytes: fill(4)}}},
+		{Name: "tail_destination_wrap_denied", Length: 3, Bump: 0xfffe, SourceBase: 0x9000, Regions: map[string]hir.MemoryHostRegion{"dest": {Address: 0xfffe, Bytes: fill(2), Writable: true}, "src": {Address: 0x9000, Bytes: fill(4)}}},
+	}
+	batches := map[string][]appendDomainCase{"successful16": successes}
+	for _, c := range failures {
+		batches[c.Name] = []appendDomainCase{c}
+	}
+	for _, name := range []string{"successful16", "header_readonly", "first_source_denied", "tail_source_denied", "first_destination_readonly", "tail_destination_wrap_denied"} {
+		t.Run(name, func(t *testing.T) {
+			cases := batches[name]
+			w := appendDomainWorkload(cases)
+			for _, variant := range []string{"original", "variant"} {
+				factory := func() (*hir.Module, error) {
+					m, _ := memoryHostParserFixture(t)
+					if variant == "variant" {
+						if e := hoistMemoryHostAppendBases(m, w); e != nil {
+							return nil, e
+						}
+					}
+					return m, nil
+				}
+				evidence, e := RunZ80MemoryHostBaseline(factory, w)
+				if e != nil {
+					t.Fatal(variant, e)
+				}
+				source, _ := memoryHostParserFixture(t)
+				for j, c := range cases {
+					checkAppendDomainObservation(t, source, w, c, j, evidence.Raw.Invocations[j])
+					checkAppendDomainObservation(t, source, w, c, j, evidence.Target.Invocations[j])
+				}
+				if d := os.Getenv("MINZ_APPEND_COPY_ARTIFACTS"); d != "" {
+					p := filepath.Join(d, "target-domain", name, variant)
+					if e := os.MkdirAll(p, 0755); e != nil {
+						t.Fatal(e)
+					}
+					b, _ := json.MarshalIndent(evidence, "", "  ")
+					for n, b := range map[string][]byte{"factory-baseline.json": b, "target.bin": evidence.Target.Binary, "target.a80": []byte(evidence.Target.Assembly), "allocation.json": evidence.Target.AllocationJSON, "final.mir2": []byte(evidence.Target.FinalMIRDump)} {
+						if e := os.WriteFile(filepath.Join(p, n), b, 0644); e != nil {
+							t.Fatal(e)
+						}
+					}
+				}
+			}
+		})
+	}
+}
