@@ -32,6 +32,8 @@ type MemoryHostTargetEvidence struct {
 	FinalMIRDump      string                        `json:"final_mir_dump_diagnostic"`
 	CallFrames        []MemoryHostResolvedCallFrame `json:"call_frames"`
 	CallFramesSHA256  string                        `json:"call_frames_sha256"`
+	CallSpills        []MemoryHostResolvedCallSpill `json:"call_spills"`
+	CallSpillsSHA256  string                        `json:"call_spills_sha256"`
 	AllocationJSON    json.RawMessage               `json:"allocation_diagnostic"`
 }
 
@@ -65,7 +67,8 @@ func runZ80MemoryHostWorkload(steps Steps, source *hir.Module, w hir.MemoryHostW
 	origins := hir.MemoryHostGlobalOrigins(steps.MIR2Module)
 	records := []mir2.NativeMemoryAccess{}
 	frames := []mir2.NativeCallFrameSnapshot{}
-	captured, e := mir2.Z80Codegen(steps.MIR2Module, steps.Allocation, mir2.Z80CodegenOptions{NativeMemoryAccessOrigins: origins, NativeMemoryAccesses: &records, NativeCallFrames: &frames, UnsignedPairComparePolicy: steps.UnsignedPairComparePolicy})
+	callSpills := []mir2.NativeCallSpillSnapshot{}
+	captured, e := mir2.Z80Codegen(steps.MIR2Module, steps.Allocation, mir2.Z80CodegenOptions{NativeMemoryAccessOrigins: origins, NativeMemoryAccesses: &records, NativeCallFrames: &frames, NativeCallSpills: &callSpills, UnsignedPairComparePolicy: steps.UnsignedPairComparePolicy})
 	if e != nil {
 		return fail(e)
 	}
@@ -250,6 +253,17 @@ func runZ80MemoryHostWorkload(steps Steps, source *hir.Module, w hir.MemoryHostW
 	if e != nil {
 		return fail(e)
 	}
+	callSpillSteps, resolvedCallSpills, e := resolveMemoryHostCallSpills(a, assembly, callSpills, steps.MIR2Module, steps.Allocation)
+	if e != nil {
+		return fail(e)
+	}
+	m.callSpills = callSpillSteps
+	out.CallSpills = resolvedCallSpills
+	callSpillPayload, e := json.Marshal(resolvedCallSpills)
+	if e != nil {
+		return fail(e)
+	}
+	out.CallSpillsSHA256 = fmt.Sprintf("%x", sha256.Sum256(callSpillPayload))
 	m.snapshots = snapshotSteps
 	out.CallFrames = resolvedFrames
 	framePayload, e := json.Marshal(resolvedFrames)
