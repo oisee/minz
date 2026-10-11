@@ -126,6 +126,9 @@ func (t *RegAllocTable) Lookup(ops []VIROp, desc *MachineDesc) (map[int]int, int
 				assignment[vregList[i]] = gpuLocToZ80(int(loc))
 			}
 		}
+		if err := validateTableAssignment(ops, assignment, desc); err != nil {
+			return nil, 0, false
+		}
 		return assignment, binaryEntry.Cost, true
 	}
 
@@ -151,6 +154,9 @@ func (t *RegAllocTable) Lookup(ops []VIROp, desc *MachineDesc) (map[int]int, int
 		}
 	}
 
+	if err := validateTableAssignment(ops, assignment, desc); err != nil {
+		return nil, 0, false
+	}
 	return assignment, entry.Cost, true
 }
 

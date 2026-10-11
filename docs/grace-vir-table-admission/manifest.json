@@ -1,0 +1,17 @@
+{
+  "base_commit": "0717d100",
+  "files": {
+    "REPORT.md": {
+      "bytes": 3623,
+      "sha256": "c4816debfca52cd8242ed44512f54f37ebf6516a3cb5ad441680b12381d2fd81"
+    },
+    "before.txt": {
+      "bytes": 657,
+      "sha256": "53756960b8020404ab8a79aea88bff76752d49f55cbd50bc632cc55793a4e67f"
+    },
+    "final.txt": {
+      "bytes": 3495,
+      "sha256": "55e7e973b39da7755a7441bf9fcc3e4749c82b2b20d7129253ff73d4e63635dc"
+    }
+  }
+}

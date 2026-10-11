@@ -1,0 +1,12 @@
+=== RUN   TestTableRejectsMissingAssignments
+    table_admission_test.go:16: missing ABI/result vreg admitted
+--- FAIL: TestTableRejectsMissingAssignments (0.00s)
+=== RUN   TestTableEmitterRejectsMissingAssignment
+    table_admission_test.go:24: got assembly="; fun add() ; clobbers: F\nadd:\n    LD A, 7\n    LD B, 5\n    ADD A, B\n    RET\n" err=<nil>
+--- FAIL: TestTableEmitterRejectsMissingAssignment (0.00s)
+=== RUN   TestTableCompleteAssignmentAssembles
+    table_admission_test.go:33: Complete assignment emitted assembled binary 3e07060580c9
+--- PASS: TestTableCompleteAssignmentAssembles (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/vir	0.008s
+FAIL
