@@ -1,0 +1,4 @@
+ok  	github.com/minz/minzc/cmd/minzc	324.222s
+ok  	github.com/minz/minzc/pkg/hir	22.871s
+ok  	github.com/minz/minzc/pkg/mir2	5.039s
+ok  	github.com/minz/minzc/pkg/z80validate	0.003s

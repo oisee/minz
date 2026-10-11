@@ -1,0 +1,16 @@
+[
+  {
+    "pid": 1340855,
+    "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/pipeline",
+    "file": "/home/alice/dev/minz-artifacts/grace-checkpoints/certified-parent-executables/pipeline.test-1340855",
+    "sha256": "972d1d5ba32143d8e8e6dc50070ff81091570b24c712552371daab5e748169ee",
+    "source_checkpoint": "71713e09"
+  },
+  {
+    "pid": 1341152,
+    "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/cmd/minzc",
+    "file": "/home/alice/dev/minz-artifacts/grace-checkpoints/certified-parent-executables/minzc.test-1341152",
+    "sha256": "d9d4ebe1971e5f602030ad02494135bc5089dd6e3e80303978e2b3d9696aff02",
+    "source_checkpoint": "71713e09"
+  }
+]
