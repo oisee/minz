@@ -275,14 +275,11 @@ func ReplayMemoryHostLoopProfileEvidenceV2(factory func() (*hir.Module, error), 
 		if i == 2 {
 			continue
 		}
-		_, ctx, e := hir.PrepareMemoryHostWorkload(m, owned)
+		_, _, key, e := hir.PrepareMemoryHostWorkloadCompatibility(m, owned)
 		if e != nil {
 			return nil, e
 		}
-		key, e := hir.BuildProfileCompatibility(m, ctx)
-		if e != nil {
-			return nil, e
-		}
+
 		fs, e := hir.BuildFunctionSiteMap(m)
 		if e != nil {
 			return nil, e

@@ -1,0 +1,40 @@
+{
+  "base_commit": "374f3155",
+  "files": [
+    {
+      "path": "cpu-cumulative.txt",
+      "bytes": 18137,
+      "sha256": "a3ead2f6ce0149ecfa5bdfa62634c9577a1c4803c5843907853e729ac21f1223"
+    },
+    {
+      "path": "cpu.pprof",
+      "bytes": 68502,
+      "sha256": "08956f8a609da1d7dc1dd3a315b2837222569cb4404bb4bc5a605e33f8ede572"
+    },
+    {
+      "path": "equivalence.txt",
+      "bytes": 887,
+      "sha256": "6b62ba966b6550433e9a9857a12af80a6ef98c7bc3bbd26ca9bb96a10bfed446"
+    },
+    {
+      "path": "factory-refusals.txt",
+      "bytes": 5433,
+      "sha256": "86a4bd73785aef8e1d12ede15bc8aada1535871c0a3153080f077fdde639e314"
+    },
+    {
+      "path": "hir-full.txt",
+      "bytes": 43,
+      "sha256": "8466fa5cba916fc2527386ba9f1f1a40c3cf05f2484256b64284691c80f609ad"
+    },
+    {
+      "path": "stages.txt",
+      "bytes": 520,
+      "sha256": "d0e64c4c677a59473bcde467ed269b6b5b3723551ff67ab00fdf371f4e37f7d7"
+    },
+    {
+      "path": "timings.json",
+      "bytes": 287,
+      "sha256": "14eb33e37004084e41f6543544356f06fb2096d6b39e20d4dc62052c81d692c8"
+    }
+  ]
+}

@@ -87,15 +87,11 @@ func MeasureMemoryHostArenaPeel(factory func() (*hir.Module, error), w hir.Memor
 	}
 	excludedCompiled := map[*hir.Module]bool{}
 	identity := func(m *hir.Module) error {
-		_, ctx, e := hir.PrepareMemoryHostWorkload(m, owned)
+		_, _, k, e := hir.PrepareMemoryHostWorkloadCompatibility(m, owned)
 		if e != nil {
 			return e
 		}
-		ctx.SemanticsID += ":" + hir.MemoryHostLoopProfileSemantics
-		k, e := hir.BuildProfileCompatibility(m, ctx)
-		if e != nil {
-			return e
-		}
+		k.Context.SemanticsID += ":" + hir.MemoryHostLoopProfileSemantics
 		if !reflect.DeepEqual(k, loaded.Compatibility) {
 			return fmt.Errorf("arena selector: retained source identity changed")
 		}

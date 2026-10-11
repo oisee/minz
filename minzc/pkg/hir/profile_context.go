@@ -25,46 +25,54 @@ type ProfileInputs struct {
 // no fallback to a Git label or a caller-provided compiler version.
 // It cannot verify that the caller executes the declared workload/hosts unchanged.
 func BuildAutomaticProfileContext(m *Module, in ProfileInputs) (ProfileContext, error) {
+	c, _, err := buildAutomaticProfileContextCompatibility(m, in)
+	return c, err
+}
+
+// One synchronous boundary, no callback or cache: retain the complete key
+// already calculated to validate the automatic context.
+func buildAutomaticProfileContextCompatibility(m *Module, in ProfileInputs) (ProfileContext, *ProfileCompatibility, error) {
 	if m == nil || !m.SourceUnitsComplete || len(m.SourceUnits) == 0 {
-		return ProfileContext{}, fmt.Errorf("loop profile: complete source manifest unavailable")
+		return ProfileContext{}, nil, fmt.Errorf("loop profile: complete source manifest unavailable")
 	}
 	if in.TargetModel == "" {
-		return ProfileContext{}, fmt.Errorf("loop profile: target model missing")
+		return ProfileContext{}, nil, fmt.Errorf("loop profile: target model missing")
 	}
 	path, err := os.Executable()
 	if err != nil {
-		return ProfileContext{}, err
+		return ProfileContext{}, nil, err
 	}
 	executable, err := os.Open(path)
 	if err != nil {
-		return ProfileContext{}, err
+		return ProfileContext{}, nil, err
 	}
 	defer executable.Close()
 	digest := sha256.New()
 	if _, err = io.Copy(digest, executable); err != nil {
-		return ProfileContext{}, err
+		return ProfileContext{}, nil, err
 	}
 	hash := func(b []byte) string { return fmt.Sprintf("%x", sha256.Sum256(b)) }
 	dependencies := map[string]string{}
 	for unit, sha := range m.SourceUnits {
 		if unit == "" || !validSHA256(sha) {
-			return ProfileContext{}, fmt.Errorf("loop profile: invalid source manifest")
+			return ProfileContext{}, nil, fmt.Errorf("loop profile: invalid source manifest")
 		}
 		dependencies[unit] = sha
 	}
 	for name, data := range in.Resources {
 		if name == "" {
-			return ProfileContext{}, fmt.Errorf("loop profile: empty resource name")
+			return ProfileContext{}, nil, fmt.Errorf("loop profile: empty resource name")
 		}
 		if _, ok := dependencies[name]; ok {
-			return ProfileContext{}, fmt.Errorf("loop profile: resource/source name collision %q", name)
+			return ProfileContext{}, nil, fmt.Errorf("loop profile: resource/source name collision %q", name)
 		}
 		dependencies[name] = hash(data)
 	}
 	c := ProfileContext{CompilerID: fmt.Sprintf("executable-sha256:%x", digest.Sum(nil)), SemanticsID: "minz.unoptimised-mir2-vm-loop-events/v2", TargetID: fmt.Sprintf("module-target:%d/model:%s", m.Target, in.TargetModel), WorkloadSHA256: hash(in.Workload), HostsSHA256: hash(in.Hosts), Dependencies: dependencies}
 	// Check source origins against the automatically recorded manifest as well.
-	if _, err := BuildProfileCompatibility(m, c); err != nil {
-		return ProfileContext{}, err
+	key, err := BuildProfileCompatibility(m, c)
+	if err != nil {
+		return ProfileContext{}, nil, err
 	}
-	return c, nil
+	return c, key, nil
 }

@@ -86,15 +86,11 @@ func MeasureMemoryHostArenaAppendWithOptions(factory func() (*hir.Module, error)
 	}
 	excludedCompiled := map[*hir.Module]bool{}
 	identity := func(m *hir.Module) error {
-		_, ctx, e := hir.PrepareMemoryHostWorkload(m, owned)
+		_, _, k, e := hir.PrepareMemoryHostWorkloadCompatibility(m, owned)
 		if e != nil {
 			return e
 		}
-		ctx.SemanticsID += ":" + hir.MemoryHostLoopProfileSemantics
-		k, e := hir.BuildProfileCompatibility(m, ctx)
-		if e != nil {
-			return e
-		}
+		k.Context.SemanticsID += ":" + hir.MemoryHostLoopProfileSemantics
 		if !reflect.DeepEqual(k, loaded.Profile.Compatibility) {
 			return fmt.Errorf("arena append selector: retained source identity changed")
 		}

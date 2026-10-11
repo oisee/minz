@@ -63,11 +63,7 @@ func runZ80MemoryHostBaseline(factory func() (*hir.Module, error), workload hir.
 	var compatibility *hir.ProfileCompatibility
 	var sites *hir.FunctionSiteMap
 	identity := func(m *hir.Module) (*hir.ProfileCompatibility, *hir.FunctionSiteMap, error) {
-		_, ctx, e := hir.PrepareMemoryHostWorkload(m, owned)
-		if e != nil {
-			return nil, nil, e
-		}
-		key, e := hir.BuildProfileCompatibility(m, ctx)
+		_, _, key, e := hir.PrepareMemoryHostWorkloadCompatibility(m, owned)
 		if e != nil {
 			return nil, nil, e
 		}
