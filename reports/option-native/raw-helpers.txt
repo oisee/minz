@@ -1,0 +1,5 @@
+=== RUN   TestOriginalOptionGeneratedHelpersRaw
+    showcase_option_native_test.go:331: 131584 generated helper calls raw VM PASS; final native helpers inlined/pruned
+--- PASS: TestOriginalOptionGeneratedHelpersRaw (0.06s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.067s

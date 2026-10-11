@@ -1,0 +1,124 @@
+{
+  "files": [
+    {
+      "path": "reports/option-native/raw-helpers.txt",
+      "bytes": 275,
+      "sha256": "07125624aeb8707fdc2a180747c377daab3352984564ca7c9fd21d9747a91c19"
+    },
+    {
+      "path": "reports/option-native/run.txt",
+      "bytes": 1877,
+      "sha256": "6b68857ea2b62c178be05e12ac97cee66309b928c24f2aed06d7ab625be8c026"
+    },
+    {
+      "path": "reports/option-native/workload.json",
+      "bytes": 679,
+      "sha256": "81f410d2484c82f2cd2e8adae879b9cc5746f138d12dbc1d5ff5e6bf546a493f"
+    },
+    {
+      "path": "reports/option-native/native/calls.json.gz",
+      "bytes": 750134,
+      "sha256": "d84f54cb6f08112e0ad89811be0d1382c4d4544b6c32d82dedea4f8d55b35e75"
+    },
+    {
+      "path": "reports/option-native/native/source.nanz",
+      "bytes": 1590,
+      "sha256": "0387f5a0f616e6cd5f0d9b432131593326cf81c807a28d4ce36859664a6edb30"
+    },
+    {
+      "path": "reports/option-native/native/grace-size/evidence.json",
+      "bytes": 1292,
+      "sha256": "38a9d5e3ed934efa889939b93bf7d7a871c11a873a0143b9602e38b679dd7fd4"
+    },
+    {
+      "path": "reports/option-native/native/grace-size/raw.mir",
+      "bytes": 3816,
+      "sha256": "e807c0960c5699e832ad410a015c01c0cf0c1114cb9a88035d8b4c9128731c41"
+    },
+    {
+      "path": "reports/option-native/native/grace-size/final.mir",
+      "bytes": 2407,
+      "sha256": "4bf3e0e6ec14aeb2e5d0ce44786683e980b713d3e0de7f1d93f73e5f81adf238"
+    },
+    {
+      "path": "reports/option-native/native/grace-size/target.a80",
+      "bytes": 3244,
+      "sha256": "98ca9e3e165c38a7ec70c1ae40ebdf58c80846d22b2595eef53425fd774b025e"
+    },
+    {
+      "path": "reports/option-native/native/grace-size/target.bin",
+      "bytes": 143,
+      "sha256": "8ddb796961fa9c2c57603ee8815b8b36c7b1eae83955dacc66f11b770705fdd9"
+    },
+    {
+      "path": "reports/option-native/native/grace-size/allocation.json",
+      "bytes": 3112,
+      "sha256": "068ad4cea193a98e7e182fee1235a1f0b4247849456d5f8ab24d8dd11d30158f"
+    },
+    {
+      "path": "reports/option-native/native/grace-speed/evidence.json",
+      "bytes": 1293,
+      "sha256": "281856ab518208256f12bc40c255d03def8cc34cecfa9a09660ccac1ffead75c"
+    },
+    {
+      "path": "reports/option-native/native/grace-speed/raw.mir",
+      "bytes": 3816,
+      "sha256": "e807c0960c5699e832ad410a015c01c0cf0c1114cb9a88035d8b4c9128731c41"
+    },
+    {
+      "path": "reports/option-native/native/grace-speed/final.mir",
+      "bytes": 2407,
+      "sha256": "4bf3e0e6ec14aeb2e5d0ce44786683e980b713d3e0de7f1d93f73e5f81adf238"
+    },
+    {
+      "path": "reports/option-native/native/grace-speed/target.a80",
+      "bytes": 3244,
+      "sha256": "98ca9e3e165c38a7ec70c1ae40ebdf58c80846d22b2595eef53425fd774b025e"
+    },
+    {
+      "path": "reports/option-native/native/grace-speed/target.bin",
+      "bytes": 143,
+      "sha256": "8ddb796961fa9c2c57603ee8815b8b36c7b1eae83955dacc66f11b770705fdd9"
+    },
+    {
+      "path": "reports/option-native/native/grace-speed/allocation.json",
+      "bytes": 3112,
+      "sha256": "068ad4cea193a98e7e182fee1235a1f0b4247849456d5f8ab24d8dd11d30158f"
+    },
+    {
+      "path": "reports/option-native/native/default/evidence.json",
+      "bytes": 1294,
+      "sha256": "c82cf3868374a971e67370d9672411228eab8b2b36333a257fa56891b6b1d21e"
+    },
+    {
+      "path": "reports/option-native/native/default/raw.mir",
+      "bytes": 3816,
+      "sha256": "e807c0960c5699e832ad410a015c01c0cf0c1114cb9a88035d8b4c9128731c41"
+    },
+    {
+      "path": "reports/option-native/native/default/final.mir",
+      "bytes": 2662,
+      "sha256": "4f9f271c309fe959b25c6fadabdacf9924802300e73b7eaf318a86528745cf2c"
+    },
+    {
+      "path": "reports/option-native/native/default/target.a80",
+      "bytes": 3422,
+      "sha256": "ca4aab922e57a3c71c3c002226ef55de04e95313b707d58d3c855698858097d9"
+    },
+    {
+      "path": "reports/option-native/native/default/target.bin",
+      "bytes": 150,
+      "sha256": "c648df5d4b69bb8988dce9222598a139e7d7cb40f7a2b19f0f03185a97f8afe7"
+    },
+    {
+      "path": "reports/option-native/native/default/allocation.json",
+      "bytes": 3331,
+      "sha256": "c1c4928122a4af77f2c7667d3570411709ceb0c4495f3fa0e9d835d86a221a81"
+    },
+    {
+      "path": "reports/2026-10-11-074-original-option-native.md",
+      "bytes": 2378,
+      "sha256": "9fc89a32b848091db3cb8bba6f362d78ca97793433e5b07e2675f5ad13b9f383"
+    }
+  ]
+}
