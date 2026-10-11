@@ -1,0 +1,14 @@
+=== RUN   TestProductionMultiplyAccumulatorJudge
+=== PAUSE TestProductionMultiplyAccumulatorJudge
+=== CONT  TestProductionMultiplyAccumulatorJudge
+=== RUN   TestProductionMultiplyAccumulatorJudge/m10
+=== RUN   TestProductionMultiplyAccumulatorJudge/m12
+=== RUN   TestProductionMultiplyAccumulatorJudge/m17
+=== RUN   TestProductionMultiplyAccumulatorJudge/m18
+--- PASS: TestProductionMultiplyAccumulatorJudge (0.01s)
+    --- PASS: TestProductionMultiplyAccumulatorJudge/m10 (0.00s)
+    --- PASS: TestProductionMultiplyAccumulatorJudge/m12 (0.00s)
+    --- PASS: TestProductionMultiplyAccumulatorJudge/m17 (0.00s)
+    --- PASS: TestProductionMultiplyAccumulatorJudge/m18 (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/hir	0.019s
