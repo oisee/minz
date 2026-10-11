@@ -548,9 +548,13 @@ type parser struct {
 	warnings   []string       // accumulated diagnostic warnings
 	// function return type table — populated as functions are parsed so that
 	// call expressions can get the correct Ty instead of TyVoid.
-	funcSigs        map[string]mir2.Ty
-	funcParamTys    map[string][]mir2.Ty        // function name → param types (for partial application)
-	varEnumType     map[string]string           // variable name → enum name (for exhaustive switch check)
+	funcSigs     map[string]mir2.Ty
+	funcParamTys map[string][]mir2.Ty // function name → param types (for partial application)
+	varEnumType  map[string]string    // variable name → enum name (for exhaustive switch check)
+	// Callable signatures are frontend metadata; the address type stays TyPtr.
+	callableAliases map[string]*hir.CallSignature
+	varCallables    map[string]*hir.CallSignature
+	lastCallable    *hir.CallSignature          // result metadata of the most recent parseType
 	typeAliases     map[string]mir2.Ty          // type X = Y — structural alias
 	enums           map[string]map[string]int64 // enumName → {variantName → value}
 	enumBaseTy      map[string]mir2.Ty          // enumName → base type (default TyU8)
@@ -721,6 +725,8 @@ func (p *parser) parseModule() (*hir.Module, error) {
 	p.varPtrElem = make(map[string]*mir2.StructTy)
 	p.uninitVars = make(map[string]int)
 	p.typeAliases = make(map[string]mir2.Ty)
+	p.callableAliases = make(map[string]*hir.CallSignature)
+	p.varCallables = make(map[string]*hir.CallSignature)
 	p.enums = make(map[string]map[string]int64)
 	p.enumBaseTy = make(map[string]mir2.Ty)
 	p.funcAliases = make(map[string]string)
@@ -1307,6 +1313,9 @@ func (p *parser) parseTypeAlias() error {
 		return fmt.Errorf("line %d: type alias %s: %v", nameTok.line, nameTok.val, err)
 	}
 	p.typeAliases[nameTok.val] = ty
+	if p.lastCallable != nil {
+		p.callableAliases[nameTok.val] = p.lastCallable
+	}
 	return nil
 }
 
@@ -2368,6 +2377,7 @@ func (p *parser) parseImplBlock() ([]*hir.Func, error) {
 
 		// Set up per-function scope for field access on self
 		p.varTypes = make(map[string]mir2.Ty)
+		p.varCallables = make(map[string]*hir.CallSignature)
 		p.localArrayElems = make(map[string]mir2.Ty)
 		p.varPtrElem = make(map[string]*mir2.StructTy)
 		p.varInterfaceTypes = make(map[string]string)
@@ -2607,6 +2617,7 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 	if _, err := p.l.eat(tokLParen); err != nil {
 		return nil, err
 	}
+	paramCallables := map[string]*hir.CallSignature{}
 	var params []hir.Param
 	var paramIfaceNames []string       // parallel to params: interface name or ""
 	var paramPtrElems []*mir2.StructTy // parallel to params: ^Struct elem type or nil
@@ -2679,6 +2690,9 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 		pty, ifaceName, ptrElem, err := p.parseParamType()
 		if err != nil {
 			return nil, err
+		}
+		if p.lastCallable != nil {
+			paramCallables[pname.val] = p.lastCallable
 		}
 		params = append(params, hir.Param{Name: pname.val, Ty: pty, RegClass: regClass, SMC: smcParam})
 		paramIfaceNames = append(paramIfaceNames, ifaceName)
@@ -2766,6 +2780,7 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 	// save and restore only the param entries.
 	savedEnumTypes := p.varEnumType
 	p.varTypes = make(map[string]mir2.Ty)
+	p.varCallables = paramCallables
 	p.localArrayElems = make(map[string]mir2.Ty)
 	p.varInterfaceTypes = make(map[string]string)
 	p.varPtrElem = make(map[string]*mir2.StructTy)
@@ -2811,6 +2826,7 @@ func (p *parser) parseFunDecl(isExtern bool) (*hir.Func, error) {
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 func (p *parser) parseType() (mir2.Ty, error) {
+	p.lastCallable = nil
 	t := p.l.peek()
 
 	// ^T — pointer to T
@@ -2831,6 +2847,7 @@ func (p *parser) parseType() (mir2.Ty, error) {
 		if _, structElem := elem.(*mir2.StructTy); structElem {
 			return mir2.TyPtr, nil
 		}
+		p.lastCallable = nil
 		return mir2.PointerTo(elem), nil
 	}
 
@@ -2855,6 +2872,7 @@ func (p *parser) parseType() (mir2.Ty, error) {
 		if _, err := p.l.eat(tokRBrack); err != nil {
 			return nil, err
 		}
+		p.lastCallable = nil
 		return mir2.NewArray(elemTy, n), nil
 	}
 
@@ -2888,13 +2906,15 @@ func (p *parser) parseType() (mir2.Ty, error) {
 		case "fun", "fn":
 			// Function type: fun(T1, T2) -> R
 			// On Z80, function pointers are just addresses (TyPtr).
-			// Parse and discard param/return types for now.
+			sig := &hir.CallSignature{}
 			if p.l.is(tokLParen) {
 				p.l.next() // consume (
 				for !p.l.is(tokRParen) && !p.l.is(tokEOF) {
-					if _, err := p.parseType(); err != nil {
+					ty, err := p.parseType()
+					if err != nil {
 						return nil, fmt.Errorf("line %d: function type param: %v", t.line, err)
 					}
+					sig.Params = append(sig.Params, ty)
 					if p.l.is(tokComma) {
 						p.l.next()
 					}
@@ -2905,11 +2925,16 @@ func (p *parser) parseType() (mir2.Ty, error) {
 				// Optional -> ReturnType
 				if p.l.is(tokArrow) {
 					p.l.next()
-					if _, err := p.parseType(); err != nil {
+					ty, err := p.parseType()
+					if err != nil {
 						return nil, fmt.Errorf("line %d: function type return: %v", t.line, err)
+					}
+					if ty != mir2.TyVoid {
+						sig.Returns = []mir2.Ty{ty}
 					}
 				}
 			}
+			p.lastCallable = sig
 			return mir2.TyPtr, nil
 		case "String", "SString", "LString", "CString":
 			// All string types are pointers at the MIR2 level.
@@ -2921,6 +2946,7 @@ func (p *parser) parseType() (mir2.Ty, error) {
 		default:
 			// Type alias (structural)
 			if aliased, ok := p.typeAliases[t.val]; ok {
+				p.lastCallable = p.callableAliases[t.val]
 				return aliased, nil
 			}
 			// Enum type → base type (u8)
@@ -2996,6 +3022,7 @@ func (p *parser) parseTypeWithIface() (mir2.Ty, string, error) {
 //   - ^StructName (e.g. ^Acc)        → (TyPtr, "", *StructTy, nil)
 //   - Any other type                 → (ty, "", nil, err)
 func (p *parser) parseParamType() (mir2.Ty, string, *mir2.StructTy, error) {
+	p.lastCallable = nil
 	t := p.l.peek()
 	// Interface name?
 	if t.kind == tokIdent {
@@ -3030,6 +3057,7 @@ func (p *parser) parseParamType() (mir2.Ty, string, *mir2.StructTy, error) {
 		if elemSt != nil {
 			return mir2.TyPtr, "", elemSt, nil
 		}
+		p.lastCallable = nil
 		return mir2.PointerTo(elem), "", nil, nil
 	}
 	ty, err := p.parseType()
@@ -3344,6 +3372,9 @@ func (p *parser) parseLetDecl() (hir.Stmt, error) {
 			}
 		}
 		ty, err = p.parseType()
+		if p.lastCallable != nil {
+			p.varCallables[nameTok.val] = p.lastCallable
+		}
 		if err != nil {
 			return nil, err
 		}
@@ -3523,6 +3554,9 @@ func (p *parser) parseVarDecl() (hir.Stmt, error) {
 		}
 	}
 	ty, err := p.parseType()
+	if p.lastCallable != nil {
+		p.varCallables[nameTok.val] = p.lastCallable
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -5619,14 +5653,22 @@ func (p *parser) resolveCall(base hir.Expr, args []hir.Expr) (hir.Expr, error) {
 	// Indirect call: local variable → function pointer.
 	if name != "" && callTy == mir2.TyVoid && !p.isKnownFunc(name) {
 		if _, isLocal := p.varTypes[name]; isLocal {
+			sig := p.varCallables[name]
 			retTy := p.varTypes[name]
-			if retTy == nil || retTy == mir2.TyVoid {
+			if sig != nil {
+				retTy = mir2.TyVoid
+				if len(sig.Returns) > 0 {
+					retTy = sig.Returns[0]
+				}
+			}
+			if sig == nil && (retTy == nil || retTy == mir2.TyVoid) {
 				retTy = mir2.TyU8
 			}
 			return &hir.CallIndirectExpr{
-				FnPtr: &hir.VarRefExpr{Name: name, Ty: mir2.TyPtr},
-				Args:  args,
-				Ty:    retTy,
+				Signature: sig,
+				FnPtr:     &hir.VarRefExpr{Name: name, Ty: mir2.TyPtr},
+				Args:      args,
+				Ty:        retTy,
 			}, nil
 		}
 		return &hir.CallExpr{Fn: name, Args: args, Ty: callTy}, nil
