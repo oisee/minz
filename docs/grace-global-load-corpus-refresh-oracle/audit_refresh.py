@@ -16,6 +16,8 @@ def raw(p):
 
 def run(root,source):
     root=Path(root);rows=[];summary=[];profiles={}
+    identity=read_json(root/'input-identity.json');assert identity['exe_sha256']=='dba34fdc489d4fa00f985bff82952076f8de8f68488999dfe98364af242c9ca5' and identity['source_sha256']=='0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526'
+    exits=read_json(root/'exit-codes.json');assert set(exits)=={c+'/'+g for c in CORPORA for g in ['speed','size']} and set(exits.values())=={0}
     for corpus in CORPORA:
         profiles[corpus]=None
         for goal in ['speed','size']:
@@ -43,6 +45,11 @@ def run(root,source):
                 proof=c['precompile_proof'];original=s['candidates'][0]['evidence']
                 assert proof['schema']=='minz.exact-memory-host-arena-append-precompile/v1' and proof['choices']==c['choices'] and proof['source_sites']==s['source_sites']
                 assert proof['original_compatibility']==original['compatibility'] and proof['actual_compatibility']==e['compatibility'] and proof['original_functions']==original['function_sites'] and proof['actual_functions']==e['function_sites']
+                assert proof['function']=='region_match+intern_region'
+                for key,fn,oldpath,newpath in [('arena','region_match','body/s1','body/s4'),('append','intern_region','body/s5','body/s7')]:
+                    site=s['source_sites'][key];assert site in s['profile']['sites']['sites'] and site['function']==fn and site['hir_path']==oldpath
+                    found=[a for a in proof['actual_sites']['sites'] if a['id']==site['id']];assert len(found)==1
+                    actual=found[0];assert actual['function']==fn and actual['kind']==site['kind'] and actual['origin']==site['origin'] and actual['hir_path']==(newpath if c['choices']['arena_peel' if key=='arena' else 'append_hoist'] else oldpath)
             minimum=min(range(4),key=lambda i:s['candidates'][i]['evidence']['target']['total_t_states'] if goal=='speed' else len(blob(s['candidates'][i]['evidence']['target']['binary'])))
             assert s['selected']==minimum
             chosen=s['candidates'][minimum];t=chosen['evidence']['target']

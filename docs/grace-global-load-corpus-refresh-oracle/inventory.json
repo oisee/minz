@@ -1,11 +1,23 @@
 [
   {
+    "path": "docs/grace-global-load-corpus-refresh-oracle/FINAL-AUDIT.md",
+    "sha256": "b5849b19c852063ced104de3b270814ffc41160b93da7bc06f96f4975a023aa5"
+  },
+  {
     "path": "docs/grace-global-load-corpus-refresh-oracle/PLAN.md",
     "sha256": "87df6f4c43e59822dcfa2a474fe0caddaa30b9bc25ccbdbebf55cb9ace80ce1f"
   },
   {
     "path": "docs/grace-global-load-corpus-refresh-oracle/audit_refresh.py",
-    "sha256": "8b5d9829e84e3c7ca1fd66a21222848497faf6d4cf720dea0a99faf2ac35af83"
+    "sha256": "2d74d3404002cfe1b5e0a90e1ab19aae85033de464e8638d6a1332637b5e9cc4"
+  },
+  {
+    "path": "docs/grace-global-load-corpus-refresh-oracle/final-audit.json",
+    "sha256": "7e703bbd1152756062642c42a522af9fcf6ffbc6fa5b3872ca59abb97413fc9e"
+  },
+  {
+    "path": "docs/grace-global-load-corpus-refresh-oracle/final-audit.txt",
+    "sha256": "91083f3fcf3f7e7488a50adf20f1ca7e274c34fbcbf944ef13d79337e4cd4c0d"
   },
   {
     "path": "docs/grace-global-load-corpus-refresh-oracle/input-review.json",
