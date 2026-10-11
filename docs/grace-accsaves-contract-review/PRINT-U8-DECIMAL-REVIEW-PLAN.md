@@ -1,0 +1,9 @@
+# Decimal byte output review contract
+
+The existing MIR VM implements both @mir.io.print.u8 and @mir.io.print.dec as decimal ASCII output of uint8(argument). @mir.io.print.char separately emits one raw byte. Existing native print.u8 raw OUT therefore violates the scalar decimal contract; repairing it changes output and code footprint intentionally. This is separate from string storage and the source main CString bug.
+
+Existing decimal repeated-subtraction logic is mathematically correct for0..255: subtract100 counting hundreds B (0..2), then subtract10 counting tens D (0..9), suppress hundreds only when zero, suppress tens only when both B and D are zero, and always emit units C+48. Required independent byte oracle includes0,1,9,10,99,100,101,109,110,199,200,255 and full byte-domain if cheap. Expected bytes must be ASCII str(n&255), no leading zeros/newline. Embedded raw-byte output belongs to print.char only.
+
+Use actual g.loc argument, materialize its low byte before scratch registers change, and preserve any live actual A/F, B/C and D values by full containing AF/BC/DE pairs. Include arguments themselves when reused after output. Current algorithm does not modify H/L; avoid unnecessary HL preservation. PUSH/POP must balance SP and preserve F when a pending predicate survives. Constant/pair/spill/relocated input cases need actual load proof. Clear physical-content caches conservatively after emission; pendingAcc and pendingFlag ownership must remain consistent with restored contents. Do not infer preservation only from static allocation or callee ABI.
+
+Review exact source freeze before bounded native fixture release. Tests should consume saved values after print, including liveA, pendingF, opposite pair halves and a LocMem low byte, so output-only success cannot conceal corruption. No CPU by reviewer and no generic native host/callee permission expansion.
