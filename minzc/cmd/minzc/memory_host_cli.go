@@ -61,7 +61,12 @@ func canonicalMemoryHostCLIPath(path string) (string, error) {
 	}
 }
 func validateMemoryHostCLI(source string) error {
-	p := memoryHostCLI
+	if memoryHostPolicyCLIRequested() {
+		return fmt.Errorf("memory host CLI: policy mode cannot combine with legacy mode")
+	}
+	return validateMemoryHostCLIPaths(source, memoryHostCLI, memoryHostCLIOutputNames())
+}
+func validateMemoryHostCLIPaths(source string, p memoryHostCLIFlags, outputNames []string) error {
 	if p == (memoryHostCLIFlags{}) {
 		return nil
 	}
@@ -89,7 +94,7 @@ func validateMemoryHostCLI(source string) error {
 		inputs = append(inputs, p.Profile)
 	}
 	outputs := []string{}
-	for _, name := range memoryHostCLIOutputNames() {
+	for _, name := range outputNames {
 		outputs = append(outputs, filepath.Join(p.Directory, name))
 	}
 	if outputFile != "" {
