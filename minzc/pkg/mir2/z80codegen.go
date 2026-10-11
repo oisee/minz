@@ -213,6 +213,15 @@ func ValidateZ80Symbols(m *Module) error {
 // callers that don't need options can omit it entirely.
 // Invalid symbols return an error and no assembly.
 func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, error) {
+	for i := 0; i < m.Strings.Len(); i++ {
+		n, k := len(m.Strings.At(i)), m.Strings.Kind(i)
+		if (k == StrSString && n > 255) || (k == StrLString && n > 65535) {
+			return "", fmt.Errorf("string %d has %d bytes outside representation limit", i, n)
+		}
+		if k != StrSString && k != StrLString && k != StrCString {
+			return "", fmt.Errorf("string %d has invalid kind %d", i, k)
+		}
+	}
 	if err := ValidateZ80Symbols(m); err != nil {
 		return "", err
 	}
@@ -327,21 +336,30 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 			switch kind {
 			case StrSString:
 				// SString: [len:u8][bytes...]
-				fmt.Fprintf(&sb, "    DB %d, ", len(s))
-				emitStringLiteral(&sb, []byte(s))
+				fmt.Fprintf(&sb, "    DB %d", len(s))
+				if len(s) > 0 {
+					sb.WriteString(", ")
+					emitStringLiteral(&sb, []byte(s))
+				}
 				sb.WriteByte('\n')
 			case StrLString:
 				// LString: [len_lo:u8][len_hi:u8][bytes...]
 				lo := len(s) & 0xFF
 				hi := (len(s) >> 8) & 0xFF
-				fmt.Fprintf(&sb, "    DB %d, %d, ", lo, hi)
-				emitStringLiteral(&sb, []byte(s))
+				fmt.Fprintf(&sb, "    DB %d, %d", lo, hi)
+				if len(s) > 0 {
+					sb.WriteString(", ")
+					emitStringLiteral(&sb, []byte(s))
+				}
 				sb.WriteByte('\n')
 			case StrCString:
 				// CString: [bytes...][0x00] — emit as DB "text", 0
 				sb.WriteString("    DB ")
-				emitStringLiteral(&sb, []byte(s))
-				sb.WriteString(", 0\n")
+				if len(s) > 0 {
+					emitStringLiteral(&sb, []byte(s))
+					sb.WriteString(", ")
+				}
+				sb.WriteString("0\n")
 			}
 		}
 	}
