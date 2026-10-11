@@ -1,0 +1,18 @@
+{
+  "reviewed_commit": "9d29c7bc95369dea12a52752236204b83f75462d",
+  "review_sha256": "4b5b0d85acef3a3fbf52befe32bf5b525ae67c8aa9fb0ee58ef88ab982d41492",
+  "files": [
+    {
+      "path": "minzc/cmd/minzc/main.go",
+      "sha256": "25e185fcda0c8e05874ed51fc25d51f9090e115e82a498381736b4bd3c82ebaf"
+    },
+    {
+      "path": "minzc/cmd/minzc/memory_host_cli.go",
+      "sha256": "07742ea63e985a0d81de746ea08f9a90456cb28a4aa68333d35d82b25c28c80d"
+    },
+    {
+      "path": "minzc/cmd/minzc/memory_host_cli_test.go",
+      "sha256": "2bade3cb2647d038213d93d5d9fbccdd7272a9e2fb7388d0129829b1aa82132e"
+    }
+  ]
+}

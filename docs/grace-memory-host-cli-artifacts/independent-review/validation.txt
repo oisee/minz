@@ -1,0 +1,24 @@
+=== RUN   TestMemoryHostCLIValidation
+=== RUN   TestMemoryHostCLIValidation/target
+=== RUN   TestMemoryHostCLIValidation/format
+=== RUN   TestMemoryHostCLIValidation/profilemode
+=== RUN   TestMemoryHostCLIValidation/hirgrace
+=== RUN   TestMemoryHostCLIValidation/partialflags
+--- PASS: TestMemoryHostCLIValidation (0.01s)
+    --- PASS: TestMemoryHostCLIValidation/target (0.00s)
+    --- PASS: TestMemoryHostCLIValidation/format (0.00s)
+    --- PASS: TestMemoryHostCLIValidation/profilemode (0.00s)
+    --- PASS: TestMemoryHostCLIValidation/hirgrace (0.00s)
+    --- PASS: TestMemoryHostCLIValidation/partialflags (0.00s)
+=== RUN   TestMemoryHostCLIPathAliases
+=== RUN   TestMemoryHostCLIPathAliases/hardlink
+=== RUN   TestMemoryHostCLIPathAliases/symlink
+=== RUN   TestMemoryHostCLIPathAliases/output
+--- PASS: TestMemoryHostCLIPathAliases (0.02s)
+    --- PASS: TestMemoryHostCLIPathAliases/hardlink (0.00s)
+    --- PASS: TestMemoryHostCLIPathAliases/symlink (0.00s)
+    --- PASS: TestMemoryHostCLIPathAliases/output (0.01s)
+=== RUN   TestMemoryHostCLIWorkloadKeys
+--- PASS: TestMemoryHostCLIWorkloadKeys (0.00s)
+PASS
+ok  	github.com/minz/minzc/cmd/minzc	0.034s

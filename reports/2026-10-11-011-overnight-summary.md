@@ -204,3 +204,14 @@ HIR/MIR/Nanz/C89/CLI проверки зелёные, showcase31same0new. Фин
 коммит и публикацию. Следующий CLI isolated уже прошёл actualspeed/size и
 same-executable profile replay; независимый аудит8payload иdecisionSHA PASS.
 Осталась проверка внешнего-o иproduction-интеграцияCLI.
+
+Combined stagedb8d86ef запушен. Приватная Sites версия42 опубликована:
+https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-composition-selection.html
+Полная офлайн-копия обновляется. CLI3frozenfiles интегрированы; cmd/minzc
+общие тесты30.102 s PASS. Rootnativeexe имеетновый SHA, поэтому freshCLI
+full30 goals иsameexeprofile replay проверяются повторно на этой сборке.
+
+Офлайн Sites42 проверена:10188 файлов,52 страницы,0 потерянных ссылок
+и внешних зависимостей; все архивы читаются. CLI isolated852cf иroot1bd955
+сборки сохранены отдельно в permanent checkpoints. FreshrootCLI проверки
+выполняются;301+ локальныхартефактов CLI сохранены.
