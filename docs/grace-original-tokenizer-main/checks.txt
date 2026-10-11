@@ -1,0 +1,21 @@
+=== RUN   TestOriginalSelfLanzMainNativeFullState
+=== RUN   TestOriginalSelfLanzMainNativeFullState/port23
+    original_lanz_main_test.go:271: exact main 135 stdout bytes all regions/globals/stack guards PASS 204560 T BIN 2410 SHA 3adb9988abe42dbe66b53194ee3307f7be4ea79965cfaffcf2cd456ba39dc47f
+=== RUN   TestOriginalSelfLanzMainNativeFullState/cpm-bdos2
+    original_lanz_main_test.go:271: exact main 135 stdout bytes all regions/globals/stack guards PASS 229769 T BIN 2477 SHA e3792f5020d796e509a223cab661e71fa53552577786ddb78b4d1a7ee559a304
+--- PASS: TestOriginalSelfLanzMainNativeFullState (0.27s)
+    --- PASS: TestOriginalSelfLanzMainNativeFullState/port23 (0.13s)
+    --- PASS: TestOriginalSelfLanzMainNativeFullState/cpm-bdos2 (0.14s)
+=== RUN   TestOriginalTokenizerMainNativeFullState
+=== RUN   TestOriginalTokenizerMainNativeFullState/port23
+    original_tokenizer_main_test.go:269: exact main 146 stdout bytes all regions/globals/stack guards PASS 199102 T BIN 5466 SHA cb7a8da6dd152d5bc97f99d05a7f33c41b53bda6c8accb56b1f7f1144c6f5545
+=== RUN   TestOriginalTokenizerMainNativeFullState/cpm-bdos2
+    original_tokenizer_main_test.go:269: exact main 146 stdout bytes all regions/globals/stack guards PASS 226357 T BIN 5554 SHA 23e4ce4a5546dfe970326cb5e2a1533d9db037aae399aa3dfd613897a033b388
+--- PASS: TestOriginalTokenizerMainNativeFullState (1.07s)
+    --- PASS: TestOriginalTokenizerMainNativeFullState/port23 (0.53s)
+    --- PASS: TestOriginalTokenizerMainNativeFullState/cpm-bdos2 (0.53s)
+=== RUN   TestOriginalTokenizerFullStateVMZ80
+    original_tokenizer_native_test.go:242: original self_tokenizer: init + 30 inputs; full 8192 string/4096 token/4096 source bytes and all 47 globals; 1916274 T/5466 B SHA cb7a8da6dd152d5bc97f99d05a7f33c41b53bda6c8accb56b1f7f1144c6f5545
+--- PASS: TestOriginalTokenizerFullStateVMZ80 (1.79s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	3.142s

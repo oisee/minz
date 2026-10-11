@@ -1,0 +1,10 @@
+=== RUN   TestOriginalTokenizerMainNativeFullState
+=== RUN   TestOriginalTokenizerMainNativeFullState/port23
+    original_tokenizer_main_test.go:269: exact main 146 stdout bytes all regions/globals/stack guards PASS 199102 T BIN 5466 SHA cb7a8da6dd152d5bc97f99d05a7f33c41b53bda6c8accb56b1f7f1144c6f5545
+=== RUN   TestOriginalTokenizerMainNativeFullState/cpm-bdos2
+    original_tokenizer_main_test.go:269: exact main 146 stdout bytes all regions/globals/stack guards PASS 226357 T BIN 5554 SHA 23e4ce4a5546dfe970326cb5e2a1533d9db037aae399aa3dfd613897a033b388
+--- PASS: TestOriginalTokenizerMainNativeFullState (0.97s)
+    --- PASS: TestOriginalTokenizerMainNativeFullState/port23 (0.48s)
+    --- PASS: TestOriginalTokenizerMainNativeFullState/cpm-bdos2 (0.48s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.975s
