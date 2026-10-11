@@ -1,0 +1,100 @@
+; MIR2 module: showcase
+global @counter : u8
+
+fun @zx_poke(%r1: u16 [pointer], %r2: u8 [general])
+  block @entry:
+    store %r1, %r2 : u8
+    ret void
+
+fun @clamp(%r3: u8 [acc], %r4: u8 [general], %r5: u8 [counter]) -> u8 [acc]
+  block @entry:
+    %r6 = cmp.ult %r3, %r4 : bool [flag]
+    br_if %r6, @if_then1(), @if_else3()
+  block @if_then1:
+    ret %r4
+  block @if_else3:
+    %r7 = cmp.ugt %r3, %r5 : bool [flag]
+    cond_ret %r7, [%r3], @if_then4()
+  block @if_then4:
+    ret %r5
+
+fun @attr_addr(%r8: u8 [general], %r9: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r10 = const 22528 : u16 [pointer]
+    %r11 = ext %r9 : u8 -> u16 [pointer]
+    %r12 = const 32 : u16 [pointer]
+    %r13 = mul %r11, %r12 : u16 [pointer]
+    %r14 = ext %r8 : u8 -> u16 [pointer]
+    %r15 = add %r13, %r14 : u16 [pointer]
+    %r16 = add %r10, %r15 : u16 [pointer]
+    ret %r16
+
+fun @make_paper(%r17: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r18 = const 7 : u8 [general]
+    %r19 = and %r17, %r18 : u8 [acc]
+    %r20 = const 3 : u8 [general]
+    %r21 = shl %r19, %r20 : u8 [general]
+    ret %r21
+
+fun @color_for_row(%r22: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r23 = const 0 : u8 [general]
+    %r24 = const 7 : u8 [counter]
+    %r25 = call @clamp(%r22, %r23, %r24) : u8 [acc]
+    %r26 = const 7 : u8 [general]
+    %r27 = and %r25, %r26 : u8 [acc]
+    %r28 = const 3 : u8 [general]
+    %r29 = shl %r27, %r28 : u8 [general]
+    ret %r29
+
+fun @paint_row(%r30: u8 [general], %r31: u8 [general])
+  block @entry:
+    %r32 = const 0 : u8 [general]
+    jmp @loop_head1(%r31, %r32, %r30)
+  block @loop_head1(%r33: u8 [general], %r32: u8 [general], %r35: u8 [general]):
+    %r36 = const 32 : u8 [general]
+    %r37 = cmp.ult %r32, %r36 : bool [flag]
+    cond_ret %r37, [], @loop_body2()
+  block @loop_body2:
+    %r38 = call @attr_addr(%r32, %r35) : u16 [pointer]
+    store %r38, %r33 : u8
+    %r39 = const 1 : u8 [general]
+    %r40 = add %r32, %r39 : u8 [general]
+    jmp @loop_head1(%r33, %r40, %r35)
+
+fun @main()
+  block @entry:
+    %r41 = addr_of @counter : ptr [pointer]
+    %r42 = load %r41 : u8 [general]
+    %r43 = const 1 : u8 [general]
+    %r44 = add %r42, %r43 : u8 [acc]
+    %r45 = addr_of @counter : ptr [pointer]
+    store %r45, %r44 : u8
+    %r46 = addr_of @counter : ptr [pointer]
+    %r47 = load %r46 : u8 [general]
+    %r48 = const 1 : u8 [general]
+    %r49 = add %r47, %r48 : u8 [acc]
+    %r50 = addr_of @counter : ptr [pointer]
+    store %r50, %r49 : u8
+    %r51 = addr_of @counter : ptr [pointer]
+    %r52 = load %r51 : u8 [general]
+    %r53 = const 1 : u8 [general]
+    %r54 = add %r52, %r53 : u8 [acc]
+    %r55 = addr_of @counter : ptr [pointer]
+    store %r55, %r54 : u8
+    %r56 = const 0 : u8 [general]
+    jmp @loop_head1(%r56)
+  block @loop_head1(%r56: u8 [general]):
+    %r58 = const 8 : u8 [general]
+    %r59 = cmp.ult %r56, %r58 : bool [flag]
+    cond_ret %r59, [], @loop_body2()
+  block @loop_body2:
+    %r60 = call @color_for_row(%r56) : u8 [acc]
+    %r61 = const 7 : u8 [general]
+    %r62 = or %r60, %r61 : u8 [general]
+    call @paint_row(%r56, %r62)
+    %r63 = const 1 : u8 [general]
+    %r64 = add %r56, %r63 : u8 [general]
+    jmp @loop_head1(%r64)
+

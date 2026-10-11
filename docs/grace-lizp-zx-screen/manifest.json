@@ -1,0 +1,150 @@
+{
+  "base_commit": "15c257bc",
+  "files": [
+    {
+      "path": "after-macro-before-palette-syntax.txt",
+      "bytes": 1498,
+      "sha256": "691cd622994851b531c1fd62f2d488e8cfe8564f752468715c0372bccbd57cc8"
+    },
+    {
+      "path": "after-poke-before-frontend-fixes.txt",
+      "bytes": 1856,
+      "sha256": "90f331db4308761aa1e70891b47f84cfea68f56c8a645eb126c70ec28ded9960"
+    },
+    {
+      "path": "packages.txt",
+      "bytes": 86,
+      "sha256": "f1ecea777b9d8ff9975ecc232f9d421e5d1d0b54c875e9f8bb61c755d09d6563"
+    },
+    {
+      "path": "screens.txt",
+      "bytes": 1057,
+      "sha256": "0d7e5bfbcc3ffbb87496c3315f89899bf49f6368fcdee534de42c0b7a22d4715"
+    },
+    {
+      "path": "showcase/final.mir2",
+      "bytes": 3171,
+      "sha256": "7536f26cdf814d8490d96a887cad5151f48107dc54ddf623a996c13a88ec1da0"
+    },
+    {
+      "path": "showcase/oracle-screen.bin",
+      "bytes": 6912,
+      "sha256": "da79dd73ff189cadb69be9dd956b053342d994d2330a276b3f7d299101c227a0"
+    },
+    {
+      "path": "showcase/result.txt",
+      "bytes": 39,
+      "sha256": "6a4279043da80e5fc0d7ed321a79ee0ccf0623d9955861dec4be647aa04c7798"
+    },
+    {
+      "path": "showcase/source.lizp",
+      "bytes": 3554,
+      "sha256": "b3ea6ea6c03e94fc882e5cccc561219fb0826dafb4d6d004c62140d217c520e5"
+    },
+    {
+      "path": "showcase/target.a80",
+      "bytes": 3716,
+      "sha256": "e10bd8d662da63066055fedabe1676dfc337ccd695e4a387c1ece634b123082e"
+    },
+    {
+      "path": "showcase/target.bin",
+      "bytes": 179,
+      "sha256": "d4116f8accef38317ecfec69e7241ec187442274eb51f3977d2c47603fc71d8d"
+    },
+    {
+      "path": "showcase/vm-screen.bin",
+      "bytes": 6912,
+      "sha256": "da79dd73ff189cadb69be9dd956b053342d994d2330a276b3f7d299101c227a0"
+    },
+    {
+      "path": "showcase/z80-screen.bin",
+      "bytes": 6912,
+      "sha256": "da79dd73ff189cadb69be9dd956b053342d994d2330a276b3f7d299101c227a0"
+    },
+    {
+      "path": "showcase.txt",
+      "bytes": 1451,
+      "sha256": "afa3468aa55006a223b1c4ba6d00ab94fcf03aa34ca30f006e5d90cd8059e201"
+    },
+    {
+      "path": "zx_checkerboard/final.mir2",
+      "bytes": 4393,
+      "sha256": "08eeba292b9f26d561bade433d12cceffc7be73407e5626bd751d4a358a45b0f"
+    },
+    {
+      "path": "zx_checkerboard/oracle-screen.bin",
+      "bytes": 6912,
+      "sha256": "2203cd8c88688ae383d5a83b0dec89bffc9e1af027c2ab625c1689788197e9ff"
+    },
+    {
+      "path": "zx_checkerboard/result.txt",
+      "bytes": 40,
+      "sha256": "2dcff01e30d024c4427daf209f16698c1a98b05f105684014dc3bb0a6e8eafda"
+    },
+    {
+      "path": "zx_checkerboard/source.lizp",
+      "bytes": 2065,
+      "sha256": "fdae8ac8706e67aad184f98d8c2adb0e65755accd885e6470dedbc9ed376c2ee"
+    },
+    {
+      "path": "zx_checkerboard/target.a80",
+      "bytes": 3232,
+      "sha256": "5c519fe11424e53b6f61f5cb95efda0badc847a0597691028ea0e9306f228f5a"
+    },
+    {
+      "path": "zx_checkerboard/target.bin",
+      "bytes": 158,
+      "sha256": "f564f219cab7c8fdfd1056e94d49afc141278de663546a73c8b1b5cecac75776"
+    },
+    {
+      "path": "zx_checkerboard/vm-screen.bin",
+      "bytes": 6912,
+      "sha256": "2203cd8c88688ae383d5a83b0dec89bffc9e1af027c2ab625c1689788197e9ff"
+    },
+    {
+      "path": "zx_checkerboard/z80-screen.bin",
+      "bytes": 6912,
+      "sha256": "2203cd8c88688ae383d5a83b0dec89bffc9e1af027c2ab625c1689788197e9ff"
+    },
+    {
+      "path": "zx_rainbow/final.mir2",
+      "bytes": 2360,
+      "sha256": "90e99270122352c5495bb2f2511a8a5f4373a6a7441661634bc55aac8de8a7b5"
+    },
+    {
+      "path": "zx_rainbow/oracle-screen.bin",
+      "bytes": 6912,
+      "sha256": "a4f0231e7a9cb18e997bb20cb25393cc5916013cafc6c4d9f6c315ce3712ad69"
+    },
+    {
+      "path": "zx_rainbow/result.txt",
+      "bytes": 40,
+      "sha256": "13cd2fb21c73f13cad1da82a752df72dd1a209be8d8ceee5c03abb782470fcb1"
+    },
+    {
+      "path": "zx_rainbow/source.lizp",
+      "bytes": 2491,
+      "sha256": "02af98cfe116d63b6e7c4c08b52a242a341b97d6c7b81556c3eb4d306d27e069"
+    },
+    {
+      "path": "zx_rainbow/target.a80",
+      "bytes": 2665,
+      "sha256": "36d614940abb5aee860e7ea6a2c735b4718ac743630e9d0a91893d8a397d0530"
+    },
+    {
+      "path": "zx_rainbow/target.bin",
+      "bytes": 118,
+      "sha256": "7ec56cd841f13755b7cb0351e7ed1d9da824ba689e339f7e537971f7ede86147"
+    },
+    {
+      "path": "zx_rainbow/vm-screen.bin",
+      "bytes": 6912,
+      "sha256": "a4f0231e7a9cb18e997bb20cb25393cc5916013cafc6c4d9f6c315ce3712ad69"
+    },
+    {
+      "path": "zx_rainbow/z80-screen.bin",
+      "bytes": 6912,
+      "sha256": "a4f0231e7a9cb18e997bb20cb25393cc5916013cafc6c4d9f6c315ce3712ad69"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+=== RUN   TestShowcaseCompileAssemble
+    showcase_test.go:64: Found 192 showcase files
+=== RUN   TestShowcaseCompileAssemble/showcase.lizp
+    showcase_test.go:87: SOURCE_PATH examples/lizp/showcase.lizp
+    showcase_test.go:149: asm error: line 8: unknown instruction or invalid operands: CALL
+    showcase_test.go:149: asm error: line 12: unknown instruction or invalid operands: CALL
+    showcase_test.go:149: asm error: line 16: unknown instruction or invalid operands: CALL
+    showcase_test.go:149: asm error: line 36: unknown instruction or invalid operands: CALL
+    showcase_test.go:151: assembly produced 4 errors
+    showcase_test.go:85: SHOWCASE_CASE {"Path":"examples/lizp/showcase.lizp","Case":"TestShowcaseCompileAssemble/showcase.lizp","Status":"FAIL","Stage":"assembler"}
+=== RUN   TestShowcaseCompileAssemble/zx_checkerboard.lizp
+    showcase_test.go:87: SOURCE_PATH examples/lizp/zx_checkerboard.lizp
+    showcase_test.go:170: OK: 2588 bytes asm, 157 bytes binary
+    showcase_test.go:85: SHOWCASE_CASE {"Path":"examples/lizp/zx_checkerboard.lizp","Case":"TestShowcaseCompileAssemble/zx_checkerboard.lizp","Status":"PASS","Stage":"complete"}
+=== RUN   TestShowcaseCompileAssemble/zx_rainbow.lizp
+    showcase_test.go:87: SOURCE_PATH examples/lizp/zx_rainbow.lizp
+    showcase_test.go:127: pipeline: statement 2: statement 0: statement 1: HIR main: non-address type u8
+    showcase_test.go:85: SHOWCASE_CASE {"Path":"examples/lizp/zx_rainbow.lizp","Case":"TestShowcaseCompileAssemble/zx_rainbow.lizp","Status":"FAIL","Stage":"pipeline"}
+--- FAIL: TestShowcaseCompileAssemble (0.02s)
+    --- FAIL: TestShowcaseCompileAssemble/showcase.lizp (0.01s)
+    --- PASS: TestShowcaseCompileAssemble/zx_checkerboard.lizp (0.01s)
+    --- FAIL: TestShowcaseCompileAssemble/zx_rainbow.lizp (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/nanz	0.025s
+FAIL

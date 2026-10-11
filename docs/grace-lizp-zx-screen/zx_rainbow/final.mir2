@@ -1,0 +1,78 @@
+; MIR2 module: zx_rainbow
+global @BLACK : u8
+global @BLUE : u8
+global @RED : u8
+global @MAGENTA : u8
+global @GREEN : u8
+global @CYAN : u8
+global @YELLOW : u8
+global @WHITE : u8
+global @RAINBOW_COLORS : [8]u8
+
+fun @zx_poke(%r1: u16 [pointer], %r2: u8 [general])
+  block @entry:
+    store %r1, %r2 : u8
+    ret void
+
+fun @zx_peek(%r3: u16 [pointer]) -> u8 [acc]
+  block @entry:
+    %r4 = load %r3 : u8 [acc]
+    ret %r4
+
+fun @clear_pixels()
+  block @entry:
+    %r5 = const 16384 : u16 [pointer]
+    jmp @loop_head1(%r5)
+  block @loop_head1(%r5: u16 [pointer]):
+    %r7 = const 22528 : u16 [pointer]
+    %r8 = cmp.ult %r5, %r7 : bool [flag]
+    cond_ret %r8, [], @loop_body2()
+  block @loop_body2:
+    %r9 = const 0 : u8 [general]
+    store %r5, %r9 : u8
+    %r10 = const 1 : u16 [pointer]
+    %r11 = add %r5, %r10 : u16 [pointer]
+    jmp @loop_head1(%r11)
+
+fun @main()
+  block @entry:
+    call @clear_pixels()
+    %r12 = const 0 : u8 [general]
+    jmp @loop_head1(%r12)
+  block @loop_head1(%r12: u8 [general]):
+    %r14 = const 24 : u8 [general]
+    %r15 = cmp.ult %r12, %r14 : bool [flag]
+    cond_ret %r15, [], @loop_body2()
+  block @loop_body2:
+    %r16 = const 7 : u8 [general]
+    %r17 = and %r12, %r16 : u8 [general]
+    %r18 = addr_of @RAINBOW_COLORS : ptr [pointer]
+    %r19 = ext %r17 : u8 -> u16 [pointer]
+    %r20 = ptr_add %r18, %r19 : ptr [pointer]
+    %r21 = load %r20 : u8 [general]
+    %r22 = addr_of @WHITE : ptr [pointer]
+    %r23 = load %r22 : u8 [general]
+    %r24 = or %r21, %r23 : u8 [general]
+    %r25 = const 22528 : u16 [pointer]
+    %r26 = ext %r12 : u8 -> u16 [pointer]
+    %r27 = const 32 : u16 [pointer]
+    %r28 = mul %r26, %r27 : u16 [pointer]
+    %r29 = add %r25, %r28 : u16 [pointer]
+    %r30 = const 0 : u8 [general]
+    jmp @loop_head4(%r24, %r29, %r30)
+  block @loop_head4(%r24: u8 [general], %r29: u16 [pointer], %r30: u8 [general]):
+    %r34 = const 32 : u8 [general]
+    %r35 = cmp.ult %r30, %r34 : bool [flag]
+    br_if %r35, @loop_body5(), @loop_exit6()
+  block @loop_body5:
+    %r36 = ext %r30 : u8 -> u16 [pointer]
+    %r37 = add %r29, %r36 : u16 [pointer]
+    store %r37, %r24 : u8
+    %r38 = const 1 : u8 [general]
+    %r39 = add %r30, %r38 : u8 [general]
+    jmp @loop_head4(%r24, %r29, %r39)
+  block @loop_exit6:
+    %r40 = const 1 : u8 [general]
+    %r41 = add %r12, %r40 : u8 [general]
+    jmp @loop_head1(%r41)
+
