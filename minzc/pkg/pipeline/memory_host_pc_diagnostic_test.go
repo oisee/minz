@@ -1,0 +1,211 @@
+package pipeline
+
+import (
+	"bytes"
+	"crypto/sha256"
+	"encoding/json"
+	"fmt"
+	"os"
+	"path/filepath"
+	"sort"
+	"strings"
+	"testing"
+
+	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/z80asm"
+)
+
+type pcOwner struct {
+	Name    string
+	Start   int
+	Adapter bool
+}
+type pcCount struct {
+	PC          uint16
+	Owner       string
+	Instruction []byte
+	Steps       int64
+	TStates     int64
+}
+type pcLedger struct {
+	Listing []z80asm.ListingLine
+	Symbols map[string]int
+	Owners  []pcOwner
+	Aliases map[string]int
+	Calls   []map[uint16]*pcCount
+}
+
+func pcPhysicalOwners(listing []z80asm.ListingLine, symbols map[string]int, names []string, hosts map[string]string) ([]pcOwner, map[string]int, error) {
+	known := map[string]bool{}
+	for _, n := range names {
+		known[n] = true
+	}
+	owners := []pcOwner{}
+	aliases := map[string]int{}
+	seen := map[int]string{}
+	for _, line := range listing {
+		text := strings.TrimSpace(line.SourceLine)
+		if fields := strings.Fields(text); len(fields) >= 3 && strings.EqualFold(fields[1], "EQU") && known[fields[0]] {
+			aliases[fields[0]] = symbols[fields[0]]
+		}
+		if !strings.HasSuffix(text, ":") {
+			continue
+		}
+		name := strings.TrimSuffix(text, ":")
+		if !known[name] {
+			continue
+		}
+		address, ok := symbols[name]
+		if !ok || address != line.Address {
+			return nil, nil, fmt.Errorf("physical entry missing %s", name)
+		}
+		if old, ok := seen[address]; ok {
+			return nil, nil, fmt.Errorf("duplicate physical entries %s/%s", old, name)
+		}
+		seen[address] = name
+		_, adapter := hosts[name]
+		owners = append(owners, pcOwner{name, address, adapter})
+	}
+	sort.Slice(owners, func(i, j int) bool { return owners[i].Start < owners[j].Start })
+	return owners, aliases, nil
+}
+func (p *pcLedger) setup(a *z80asm.Result, names []string, hosts map[string]string) error {
+	var e error
+	p.Owners, p.Aliases, e = pcPhysicalOwners(a.Listing, a.Symbols, names, hosts)
+	p.Listing = a.Listing
+	p.Symbols = a.Symbols
+	return e
+}
+func (p *pcLedger) observe(call int, pc uint16, cycles int, instruction []byte) {
+	for len(p.Calls) <= call {
+		p.Calls = append(p.Calls, map[uint16]*pcCount{})
+	}
+	owner := "unowned"
+	for _, o := range p.Owners {
+		if o.Start > int(pc) {
+			break
+		}
+		owner = o.Name
+		if o.Adapter {
+			owner = "adapter:" + owner
+		}
+	}
+	row := p.Calls[call][pc]
+	if row == nil {
+		row = &pcCount{PC: pc, Owner: owner, Instruction: append([]byte{}, instruction...)}
+		p.Calls[call][pc] = row
+	}
+	if !bytes.Equal(row.Instruction, instruction) {
+		panic("instruction bytes changed")
+	}
+	row.Steps++
+	row.TStates += int64(cycles)
+}
+func (p *pcLedger) verify(e *MemoryHostTargetEvidence) error {
+	if len(p.Calls) != len(e.Invocations) {
+		return fmt.Errorf("invocation cardinality")
+	}
+	var steps, total int64
+	for i, call := range p.Calls {
+		var ns, nt int64
+		for _, row := range call {
+			ns += row.Steps
+			nt += row.TStates
+		}
+		if ns != e.Invocations[i].Steps || nt != e.InvocationTStates[i] {
+			return fmt.Errorf("call %d ledger totals", i)
+		}
+		steps += ns
+		total += nt
+	}
+	if steps != e.ExecutedSteps || total != e.TotalTStates {
+		return fmt.Errorf("whole ledger totals")
+	}
+	return nil
+}
+
+func TestMemoryHostPCDiagnosticOwnerPartition(t *testing.T) {
+	listing := []z80asm.ListingLine{{Address: 100, SourceLine: "main:"}, {Address: 110, SourceLine: "peek:"}, {Address: 120, SourceLine: "node_tag EQU peek"}}
+	owners, aliases, e := pcPhysicalOwners(listing, map[string]int{"main": 100, "peek": 110, "node_tag": 110}, []string{"main", "peek", "node_tag"}, map[string]string{"peek": "read"})
+	if e != nil || len(owners) != 2 || !owners[1].Adapter || aliases["node_tag"] != 110 {
+		t.Fatal(owners, aliases, e)
+	}
+	if _, _, e = pcPhysicalOwners(append(listing, z80asm.ListingLine{Address: 110, SourceLine: "other:"}), map[string]int{"main": 100, "peek": 110, "node_tag": 110, "other": 110}, []string{"main", "peek", "node_tag", "other"}, nil); e == nil {
+		t.Fatal("duplicate emitting entry accepted")
+	}
+	p := &pcLedger{Owners: owners}
+	p.observe(0, 90, 4, []byte{0})
+	p.observe(0, 100, 7, []byte{1})
+	p.observe(0, 110, 10, []byte{2})
+	if p.Calls[0][90].Owner != "unowned" || p.Calls[0][110].Owner != "adapter:peek" {
+		t.Fatal(p.Calls)
+	}
+}
+
+func TestMemoryHostPCDiagnosticOriginalBoth30(t *testing.T) {
+	dir := os.Getenv("MINZ_MEMORY_HOST_PC_ARTIFACTS")
+	if dir == "" {
+		t.Skip("isolated explicit artifact measurement only")
+	}
+	t.Cleanup(func() { memoryHostPCLayoutDiagnostic = nil; memoryHostPCStepDiagnostic = nil })
+	_, w := memoryHostParserFixture(t)
+	for _, mask := range []int{0, 3} {
+		ledger := &pcLedger{}
+		memoryHostPCLayoutDiagnostic = ledger.setup
+		memoryHostPCStepDiagnostic = ledger.observe
+		factory := func() (*hir.Module, error) {
+			m, _ := memoryHostParserFixture(t)
+			original, _ := memoryHostParserFixture(t)
+			if e := constructMemoryHostArenaAppend(m, w, mask&1 != 0, mask&2 != 0); e != nil {
+				return nil, e
+			}
+			if e := hir.ValidateMemoryHostArenaAppendChoices(original, m, w, hir.MemoryHostArenaAppendChoices{ArenaPeel: mask&1 != 0, AppendHoist: mask&2 != 0}); e != nil {
+				return nil, e
+			}
+			return m, nil
+		}
+		evidence, e := RunZ80MemoryHostBaseline(factory, w)
+		memoryHostPCLayoutDiagnostic = nil
+		memoryHostPCStepDiagnostic = nil
+		if e != nil {
+			t.Fatal(e)
+		}
+		if e = ledger.verify(evidence.Target); e != nil {
+			t.Fatal(e)
+		}
+		name := map[int]string{0: "original", 3: "both"}[mask]
+		reference, err := os.ReadFile(filepath.Join(os.Getenv("MINZ_MEMORY_HOST_PC_REFERENCE"), name, "factory-baseline.json"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		var previous MemoryHostBaselineEvidence
+		if err = json.Unmarshal(reference, &previous); err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(previous.Target.Binary, evidence.Target.Binary) || previous.Target.TotalTStates != evidence.Target.TotalTStates || previous.Target.ExecutedSteps != evidence.Target.ExecutedSteps || arenaSameObservations(previous.Target.Invocations, evidence.Target.Invocations) != nil {
+			t.Fatal("saved binary/cost/state drift")
+		}
+		for _, same := range []bool{previous.Target.SidecarSHA256 == evidence.Target.SidecarSHA256, previous.Target.CallFramesSHA256 == evidence.Target.CallFramesSHA256, previous.Target.AllocationSHA256 == evidence.Target.AllocationSHA256, previous.Target.MIRSHA256 == evidence.Target.MIRSHA256} {
+			if !same {
+				t.Fatal("artifact binding drift")
+			}
+		}
+		out := filepath.Join(dir, name)
+		if e = os.MkdirAll(out, 0755); e != nil {
+			t.Fatal(e)
+		}
+		for n, v := range map[string]any{"pc-ledger.json": ledger, "factory-baseline.json": evidence} {
+			b, e := json.MarshalIndent(v, "", "  ")
+			if e != nil {
+				t.Fatal(e)
+			}
+			if e = os.WriteFile(filepath.Join(out, n), b, 0644); e != nil {
+				t.Fatal(e)
+			}
+		}
+		if e = os.WriteFile(filepath.Join(out, "target.bin"), evidence.Target.Binary, 0644); e != nil {
+			t.Fatal(e)
+		}
+		t.Logf("%s %dT steps%d BIN%x", name, evidence.Target.TotalTStates, evidence.Target.ExecutedSteps, sha256.Sum256(evidence.Target.Binary))
+	}
+}

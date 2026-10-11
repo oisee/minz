@@ -120,6 +120,16 @@ func runZ80MemoryHostWorkload(steps Steps, source *hir.Module, w hir.MemoryHostW
 	if len(a.Errors) != 0 || len(a.Binary) == 0 || int(a.Origin)+len(a.Binary) > 65536 {
 		return fail(fmt.Errorf("assembly/layout invalid: %v", a.Errors))
 	}
+	if memoryHostPCLayoutDiagnostic != nil {
+		names := []string{}
+		for _, f := range steps.MIR2Module.Funcs {
+			names = append(names, f.Name)
+		}
+		if e := memoryHostPCLayoutDiagnostic(a, names, w.Hosts); e != nil {
+			return fail(e)
+		}
+	}
+
 	reachable, e := hir.MemoryHostReachableFunctions(steps.MIR2Module, w)
 	if e != nil {
 		return fail(e)
@@ -324,10 +334,20 @@ func runZ80MemoryHostWorkload(steps Steps, source *hir.Module, w hir.MemoryHostW
 			if runErr != nil {
 				break
 			}
-			_, runErr = memoryHostNativeStep(m)
+			instructionPC := m.cpu.PC()
+			var instructionBytes []byte
+			if memoryHostPCStepDiagnostic != nil {
+				length := m.lengths[instructionPC]
+				instructionBytes = append([]byte{}, m.data[int(instructionPC):int(instructionPC)+length]...)
+			}
+			cycles := 0
+			cycles, runErr = memoryHostNativeStep(m)
 			var cpuFailure memoryHostCPUFailure
 			if errors.As(runErr, &cpuFailure) {
 				return fail(runErr)
+			}
+			if runErr == nil && memoryHostPCStepDiagnostic != nil {
+				memoryHostPCStepDiagnostic(i, instructionPC, cycles, instructionBytes)
 			}
 			out.ExecutedSteps++
 			if runErr != nil {
