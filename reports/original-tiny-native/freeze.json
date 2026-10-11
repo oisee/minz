@@ -1,0 +1,16 @@
+{
+  "source": "examples/nanz/tiny.nanz",
+  "sha256": "e1439d8bc257241d93d60dc3e9af0fe6a64a7f55c7f2602284183bcee9d43c90",
+  "domain": {
+    "add": "all65536bytepairs",
+    "double": "all256bytes",
+    "triple": "all256bytes"
+  },
+  "oracle": "u8modularaddition;Double2*x,Triple3*x independent directarithmetic. Bookv7\u00a73.1.",
+  "modes": [
+    "ordinary",
+    "grace-size",
+    "grace-speed"
+  ],
+  "checks": "raw/finalVM andnativeactualCALL PC/SP/code/fullRAM outsideobservedstack/spills"
+}
