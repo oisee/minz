@@ -1,0 +1,50 @@
+; MIR2 module: unsigned_embedding
+global @byte : u8
+global @word : u16
+global @small : u24
+global @a : u32
+global @b : u32
+global @c : u32
+global @d : u24
+global @e : u24
+
+fun @embed()
+  block @entry:
+    %r1 = addr_of @byte : ptr [pointer]
+    %r2 = load %r1 : u8 [general]
+    %r3 = ext %r2 : u8 -> u32 [general]
+    %r4 = addr_of @a : ptr [pointer]
+    store %r4, %r3 : u32
+    %r5 = addr_of @word : ptr [pointer]
+    %r6 = load %r5 : u16 [pointer]
+    %r7 = ext %r6 : u16 -> u32 [general]
+    %r8 = addr_of @b : ptr [pointer]
+    store %r8, %r7 : u32
+    %r9 = addr_of @small : ptr [pointer]
+    %r10 = load %r9 : u24 [general]
+    %r11 = ext %r10 : u24 -> u32 [general]
+    %r12 = addr_of @c : ptr [pointer]
+    store %r12, %r11 : u32
+    %r13 = addr_of @byte : ptr [pointer]
+    %r14 = load %r13 : u8 [general]
+    %r15 = ext %r14 : u8 -> u24 [general]
+    %r16 = addr_of @d : ptr [pointer]
+    store %r16, %r15 : u24
+    %r17 = addr_of @word : ptr [pointer]
+    %r18 = load %r17 : u16 [pointer]
+    %r19 = ext %r18 : u16 -> u24 [general]
+    %r20 = addr_of @e : ptr [pointer]
+    store %r20, %r19 : u24
+    ret void
+
+fun @main(%r21: u8 [acc], %r22: u16 [index], %r23: u24 [counter])
+  block @entry:
+    %r24 = addr_of @byte : ptr [pointer]
+    store %r24, %r21 : u8
+    %r25 = addr_of @word : ptr [pointer]
+    store %r25, %r22 : u16
+    %r26 = addr_of @small : ptr [pointer]
+    store %r26, %r23 : u24
+    call @embed()
+    ret void
+
