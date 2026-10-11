@@ -96,7 +96,9 @@ Actual Speed: mask 3, 1076715 T / 2100 B; actual Size: mask 2, 1076874 T /
 append-copy,1979 B. T: 326090 / 3968554 / 1270168 / 696909. Оба независимых
 аудита e02291a7 и22eacb5a прошли: corpus500 иproduction300, всего800native
 наблюдений. Пакет684payloads закрыт и pushed81a02384, перенесён и relocatedauditPASS800.
-Corpus опубликован в приватном Sites54; wholeoffline sync ещё выполняется.
+Corpus опубликован в приватном Sites54; wholeoffline sync завершён:
+**17965 файлов, 65 страниц**, все SHA/архивы PASS, отсутствующих ссылок и
+внешних зависимостей нет.
 Старые profiles/контексты остаются отдельными аналитическими сравнениями.
 Следующий отдельный policy×mask API план a15b1b52/8d188be7 проходит ревью: две
 независимые whole association, общий ownership всех48callbacks, восемь
