@@ -1,0 +1,6 @@
+=== RUN   TestMeasureProfileVariantSetsRejectsForgedCounts
+--- PASS: TestMeasureProfileVariantSetsRejectsForgedCounts (0.07s)
+=== RUN   TestMeasureProfileVariantSetsFactoryMutatesPrevious
+--- PASS: TestMeasureProfileVariantSetsFactoryMutatesPrevious (0.13s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.208s
