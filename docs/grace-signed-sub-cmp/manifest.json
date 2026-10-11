@@ -1,0 +1,78 @@
+{
+  "base_commit": "33146966",
+  "case_count": 810,
+  "files": {
+    "REPORT.md": {
+      "sha256": "158e4ffe24399a1eb314eef87df7ad93f8bc74dd7fe4746251d02c62544d7025",
+      "bytes": 3032
+    },
+    "after.txt": {
+      "sha256": "4c0e0cad0d35a41ea8d4e826c3c6979fecd3f8f26bef123bc5dbd95480388bf2",
+      "bytes": 2055
+    },
+    "before.txt": {
+      "sha256": "eb947065bca71e1e6eacfdffc6b35d68118770084f9d3d56cefc411950886a14",
+      "bytes": 1725
+    },
+    "boundary-matrix.txt": {
+      "sha256": "58c9796ea42251decd0943be3301aaae7ec4d969ec801ddd29addaa36733ad1b",
+      "bytes": 568
+    },
+    "grace-false/final.mir2": {
+      "sha256": "2c9389c87a7f2462abc776cbedac1dd9e82cebab157479adf32d664a37ad2a7a",
+      "bytes": 1410
+    },
+    "grace-false/oracle.csv": {
+      "sha256": "dc25b1f29a910ac2e26a36526b11395b55fe1bf3558c850eaeb93bb82bbe8b92",
+      "bytes": 8429
+    },
+    "grace-false/raw.mir2": {
+      "sha256": "f48966c27cead05f50a282e3ad953b13a6d64f7ebb88c52d25c923f18d19d287",
+      "bytes": 1502
+    },
+    "grace-false/source.nanz": {
+      "sha256": "ed4cf520916e8fb23ecaf1b6f060705068eb216e61716cce476fb9433c94c7bf",
+      "bytes": 876
+    },
+    "grace-false/target.a80": {
+      "sha256": "b1dd1740abc7c4df7f224d23b6035066a52f0996a8d8ebf951307de3a81e0247",
+      "bytes": 2878
+    },
+    "grace-false/target.bin": {
+      "sha256": "ae3b4a692ef7a9fa21f5bd4de1c700b9800d2df018bebd243b0e2ff15c09cf48",
+      "bytes": 109
+    },
+    "grace-true/final.mir2": {
+      "sha256": "2c9389c87a7f2462abc776cbedac1dd9e82cebab157479adf32d664a37ad2a7a",
+      "bytes": 1410
+    },
+    "grace-true/oracle.csv": {
+      "sha256": "dc25b1f29a910ac2e26a36526b11395b55fe1bf3558c850eaeb93bb82bbe8b92",
+      "bytes": 8429
+    },
+    "grace-true/raw.mir2": {
+      "sha256": "f48966c27cead05f50a282e3ad953b13a6d64f7ebb88c52d25c923f18d19d287",
+      "bytes": 1502
+    },
+    "grace-true/source.nanz": {
+      "sha256": "ed4cf520916e8fb23ecaf1b6f060705068eb216e61716cce476fb9433c94c7bf",
+      "bytes": 876
+    },
+    "grace-true/target.a80": {
+      "sha256": "04fa646c6c28edda36d3a2e765ee62507ab54ccd20950063ac64549ccffd887f",
+      "bytes": 2830
+    },
+    "grace-true/target.bin": {
+      "sha256": "ae3b4a692ef7a9fa21f5bd4de1c700b9800d2df018bebd243b0e2ff15c09cf48",
+      "bytes": 109
+    },
+    "mir2-package.txt": {
+      "sha256": "499455ce9211f21262df9e0d2998e8bbfab8a0980c73836521d8629a92e7cd7a",
+      "bytes": 44
+    },
+    "showcase-signed-abs.txt": {
+      "sha256": "ab5c9480c25db46e2c3570582751f62d8a77962e08bdfe2df4a72b96a3fd798e",
+      "bytes": 377
+    }
+  }
+}

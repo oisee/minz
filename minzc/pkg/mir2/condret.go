@@ -110,7 +110,7 @@ func CondRetSink(f *Func) bool {
 }
 
 // hoistReorderSubBeforeCmp reorders instructions in blk: for each
-// OpCmp(CmpLt/CmpUlt, x, y) that has a later OpSub(x, y) with the same
+// OpCmp(CmpUlt or legacy unsigned CmpLt, x, y) that has a later OpSub(x, y) with the same
 // operands, move the Sub to the position just before the Cmp.
 //
 // After CondRetSink, a hoisted Sub ends up AFTER an existing CmpLt that
@@ -132,7 +132,7 @@ func hoistReorderSubBeforeCmp(blk *Block) {
 		if inst.Op != OpCmp || inst.Dst == NoReg {
 			continue
 		}
-		if inst.Cond != CmpLt && inst.Cond != CmpUlt {
+		if inst.Cond != CmpUlt && (inst.Cond != CmpLt || isSignedOrdering(inst)) {
 			continue
 		}
 		cx, cy := inst.Src[0], inst.Src[1]
@@ -179,7 +179,7 @@ func hoistReorderSubBeforeCmp(blk *Block) {
 // This handles the IAR abs_diff pattern:
 //
 //	r = sub(a, b)           // carry set by subtraction
-//	cmp = CmpGe(a, b)       // same operands — carry already encodes a >= b (NC)
+//	cmp = CmpUge(a, b)      // unsigned operands — carry encodes a >= b (NC)
 //
 // After fusion:
 //
@@ -208,6 +208,16 @@ func fusionSubCmpInBlock(blk *Block) {
 		}
 		if cmp.Src[0] != sub.Src[0] || cmp.Src[1] != sub.Src[1] {
 			continue
+		}
+		// Carry is unsigned borrow. Signed ordering requires S xor V and
+		// cannot be replaced by a synthetic unsigned carry predicate.
+		if isSignedOrdering(cmp) {
+			continue
+		}
+		switch cmp.Cond {
+		case CmpLt, CmpUlt, CmpGe, CmpUge:
+		default:
+			continue // equality and other predicates must retain their operands
 		}
 		// Sub and Cmp reference the same original operands.
 		// Replace Cmp's lhs with the sub result (removes `a` from use set).

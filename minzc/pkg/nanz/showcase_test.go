@@ -20,8 +20,7 @@ import (
 // Each entry is the base filename (without extension).
 var knownFailures = map[string]string{
 	// Nanz compile failures
-	"ex4a_abs_diff_iar": "compile: IAR-style function not supported",
-	"ex14_fold_assert":  "compile: fold assertion not wired in showcase context",
+	"ex14_fold_assert": "compile: fold assertion not wired in showcase context",
 	// Nanz asm failures
 	"ex20_arena_allocator": "asm: BUG-008 arena codegen (LD IXL, (IX+d))",
 	"08_arena_allocator":   "asm: BUG-008 arena codegen (LD IXL, (IX+d))",
