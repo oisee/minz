@@ -11,6 +11,9 @@ import (
 // Power-of-2 constants use N×(ADD A,A); small constants use LD tmp,A + adds.
 // Variable or large constants use the __mul8 runtime.
 func (g *z80cg) genMul(inst *Inst) {
+	// Inline and runtime multiplication both replace physical flags. Capture
+	// a live comparison first; materialization preserves the current A operand.
+	g.materializePendingFlag(inst)
 	dst := g.loc(inst.Dst)
 	lhs := g.loc(inst.Src[0])
 
