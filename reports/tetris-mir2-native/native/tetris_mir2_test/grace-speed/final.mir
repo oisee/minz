@@ -1,0 +1,76 @@
+; MIR2 module: ../../../examples/zx/tetris_mir2_test.nanz
+global @PIECE_DX : [112]u8
+global @PIECE_DY : [112]u8
+global @PIECE_COLORS : [7]u8
+global @CELL_COLORS : [8]u8
+global @board : [200]u8
+
+fun @piece_dx(%r1: u8 [acc], %r2: u8 [general], %r3: u8 [counter]) -> u8 [acc]
+  block @entry:
+    %r4 = addr_of @PIECE_DX : ptr [pointer]
+    %r5 = const 16 : u8 [general]
+    %r6 = mul %r1, %r5 : u8 [general]
+    %r7 = const 4 : u8 [general]
+    %r8 = mul %r2, %r7 : u8 [general]
+    %r9 = add %r6, %r8 : u8 [acc]
+    %r10 = add %r9, %r3 : u8 [acc]
+    %r11 = ext %r10 : u8 -> u16 [index]
+    %r12 = ptr_add %r4, %r11 : ptr [pointer]
+    %r13 = load %r12 : u8 [general]
+    ret %r13
+
+fun @piece_dy(%r14: u8 [acc], %r15: u8 [general], %r16: u8 [counter]) -> u8 [acc]
+  block @entry:
+    %r17 = addr_of @PIECE_DY : ptr [pointer]
+    %r18 = const 16 : u8 [general]
+    %r19 = mul %r14, %r18 : u8 [general]
+    %r20 = const 4 : u8 [general]
+    %r21 = mul %r15, %r20 : u8 [general]
+    %r22 = add %r19, %r21 : u8 [acc]
+    %r23 = add %r22, %r16 : u8 [acc]
+    %r24 = ext %r23 : u8 -> u16 [index]
+    %r25 = ptr_add %r17, %r24 : ptr [pointer]
+    %r26 = load %r25 : u8 [general]
+    ret %r26
+
+fun @piece_color(%r27: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r28 = addr_of @PIECE_COLORS : ptr [pointer]
+    %r29 = ext %r27 : u8 -> u16 [index]
+    %r30 = ptr_add %r28, %r29 : ptr [pointer]
+    %r31 = load %r30 : u8 [general]
+    ret %r31
+
+fun @color_attr(%r32: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r33 = addr_of @CELL_COLORS : ptr [pointer]
+    %r34 = ext %r32 : u8 -> u16 [index]
+    %r35 = ptr_add %r33, %r34 : ptr [pointer]
+    %r36 = load %r35 : u8 [general]
+    ret %r36
+
+fun @board_get(%r37: u8 [acc], %r38: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r39 = addr_of @board : ptr [pointer]
+    %r40 = const 10 : u8 [general]
+    %r41 = mul %r38, %r40 : u8 [general]
+    %r42 = add %r41, %r37 : u8 [acc]
+    %r43 = ext %r42 : u8 -> u16 [index]
+    %r44 = ptr_add %r39, %r43 : ptr [pointer]
+    %r45 = load %r44 : u8 [general]
+    ret %r45
+
+fun @board_set(%r46: u8 [acc], %r47: u8 [general], %r48: u8 [counter])
+  block @entry:
+    %r49 = addr_of @board : ptr [pointer]
+    %r50 = const 10 : u8 [general]
+    %r51 = mul %r47, %r50 : u8 [general]
+    %r52 = add %r51, %r46 : u8 [acc]
+    %r53 = ptr_add %r49, %r52 : ptr [pointer]
+    store %r53, %r48 : u8
+    ret void
+
+fun @main()
+  block @entry:
+    ret void
+

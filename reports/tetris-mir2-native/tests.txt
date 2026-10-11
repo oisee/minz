@@ -1,0 +1,7 @@
+=== RUN   TestOriginalTetrisGeometryAndBoard
+    original_tetris_mir2_native_test.go:261: tetris_mir2_test ordinary 102658 native/raw/final independent fullstate PASS
+    original_tetris_mir2_native_test.go:261: tetris_mir2_test grace-size 102658 native/raw/final independent fullstate PASS
+    original_tetris_mir2_native_test.go:261: tetris_mir2_test grace-speed 102658 native/raw/final independent fullstate PASS
+--- PASS: TestOriginalTetrisGeometryAndBoard (4.77s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	4.783s
