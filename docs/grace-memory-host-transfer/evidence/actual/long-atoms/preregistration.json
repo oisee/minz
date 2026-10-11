@@ -1,0 +1,69 @@
+{
+  "schema": "minz.frozen-choice-transfer-preregistration/v1",
+  "status": "plan-only; no new target execution",
+  "source_name": "../examples/nanz/self_lanz_parser.nanz",
+  "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+  "executable_sha256": "0d6df9fbf769bdcca6969717449f587ff856b0c7d38d525b78129811abe0de12",
+  "training": "inputs/train-full30.json",
+  "evaluation_inputs": [
+    "inputs/short-reuse.json",
+    "inputs/long-atoms.json",
+    "inputs/nested-mixed.json",
+    "inputs/fresh-dominant.json"
+  ],
+  "fixed_tuples": {
+    "control": {
+      "policy": 0,
+      "mask": 0
+    },
+    "trained_speed": {
+      "policy": 1,
+      "mask": 3
+    },
+    "trained_size": {
+      "policy": 0,
+      "mask": 2
+    }
+  },
+  "reported_evaluations": 12,
+  "prior_exposure": "All four evaluation workloads and previous costs were used during development; this is retrospective out-of-training-workload frozen-choice evaluation, not blind unseen held-out evaluation.",
+  "inputs": [
+    {
+      "path": "inputs/source.nanz",
+      "sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "bytes": 7164
+    },
+    {
+      "path": "inputs/train-full30.json",
+      "sha256": "ac7d90cb3501e183a7fc9d45242259551e9cd260db53731704ef0a31ee6f933f",
+      "bytes": 33501,
+      "calls": 30
+    },
+    {
+      "path": "inputs/short-reuse.json",
+      "sha256": "e2346a6baceb18257ff2dd04e2a26b38ec5755edff8ea3d4ed17870f49d26646",
+      "bytes": 26592,
+      "calls": 12
+    },
+    {
+      "path": "inputs/long-atoms.json",
+      "sha256": "32bd3ddb1d051e1d97d60ba794f55eb12016666f0f713e933fdd214266d179cf",
+      "bytes": 28942,
+      "calls": 9
+    },
+    {
+      "path": "inputs/nested-mixed.json",
+      "sha256": "f31e6321618c174902b712dacc3c8ee6dc7f5d61fda8b928fae9b8c5b6225d32",
+      "bytes": 25982,
+      "calls": 9
+    },
+    {
+      "path": "inputs/fresh-dominant.json",
+      "sha256": "a38d789e7ec875f3006654643bbfd37ad1bf0ae0b80004c5615bc72f0b2785d0",
+      "bytes": 29640,
+      "calls": 20
+    }
+  ],
+  "total_executions": 16,
+  "supporting_policy1_originals": 4
+}

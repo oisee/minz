@@ -1,0 +1,10 @@
+{
+  "evaluation_executable_path": "/home/alice/dev/minz-artifacts/grace-checkpoints/frozen-transfer-evidence/pipeline-transfer.test",
+  "evaluation_executable_sha256": "2ce28f20ed167885c845ecbfbbb8a94c446ced9f96d521efebaf5cb5632e1cc1",
+  "training_executable_sha256": "0d6df9fbf769bdcca6969717449f587ff856b0c7d38d525b78129811abe0de12",
+  "source_checkpoint": "06ec9c7f",
+  "test_source_sha256": "89d14828fdfaf2fa9307a081cbcbe906bf9cf5a9c30175cf1a5568b3918ef1b6",
+  "command": "MINZ_FROZEN_TRANSFER_ARTIFACTS=/home/alice/dev/minz-artifacts/grace-checkpoints/frozen-transfer-evidence/actual pipeline-transfer.test -test.run ^TestFrozenTransferExport$ -test.v -test.timeout 20m",
+  "working_directory": "/home/alice/dev/minz-artifacts/grace-workspaces/memory-host-transfer/minzc/pkg/pipeline",
+  "initial_failed_working_directory": "/home/alice/dev/minz-artifacts/grace-workspaces/memory-host-transfer/minzc"
+}

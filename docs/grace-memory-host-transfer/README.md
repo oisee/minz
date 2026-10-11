@@ -10,4 +10,13 @@ The focused admission, independent source-identity, shared-root, precompile late
 
 The preregistration executable SHA identifies the training CLI (0d6); the preserved evaluation test executable will have its own separately exported identity. The evaluator returns either the complete four-tuple result or an error. On failure the exporter retains inputs and the error, but does not claim a partial native tuple bundle.
 
-No evaluation native execution has been run. Frozen independent reviews and root release are required before evaluation evidence.
+The released exporter completed all 16 native executions in 91.40 s, exit 0. Each workload required exactly 18 fresh original returns. The preserved evaluation executable SHA is `2ce28f20ed167885c845ecbfbbb8a94c446ced9f96d521efebaf5cb5632e1cc1`; the training executable remains `0d6df9fbf769bdcca6969717449f587ff856b0c7d38d525b78129811abe0de12`. An initial invocation from the wrong working directory failed before any native execution; its log and exit status are retained separately.
+
+| Workload | Control 0/0 T | Support 1/0 T | Speed 1/3 T | Size 0/2 T |
+|---|---:|---:|---:|---:|
+| short-reuse | 330515 | 329597 | 326650 | 327008 |
+| long-atoms | 4110605 | 4110217 | 3968826 | 3968942 |
+| nested-mixed | 1297899 | 1286305 | 1271819 | 1281762 |
+| fresh-dominant | 789462 | 786526 | 696957 | 699845 |
+
+Binary sizes are 2000 B for control, 2001 B for support, 2100 B for trained Speed and 1978 B for trained Size. These are fixed-tuple measurements, not evaluation rankings. Independent saved-payload audits are pending. The packet preserves all results, including the cost of the larger trained-Speed binary, without changing either training decision.

@@ -1,0 +1,4 @@
+=== RUN   TestFrozenTransferExport
+    memory_host_transfer_test.go:466: open ../../../docs/grace-memory-host-transfer/training/speed-decision.json: no such file or directory
+--- FAIL: TestFrozenTransferExport (0.00s)
+FAIL
