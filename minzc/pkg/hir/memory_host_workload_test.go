@@ -218,3 +218,50 @@ func TestMemoryHostContextBindsSourceAndRegions(t *testing.T) {
 		t.Fatal("wrapped0 must be undeclared after committed65535write", run, e)
 	}
 }
+
+func TestMemoryHostCompiledMetadataRefusals(t *testing.T) {
+	for name, mutate := range map[string]func(*mir2.Module){
+		"duplicate_function": func(m *mir2.Module) { m.Funcs = append(m.Funcs, m.Funcs[0]) },
+		"changed_global":     func(m *mir2.Module) { m.Globals[0].Init = []byte{12} },
+		"host_body": func(m *mir2.Module) {
+			m.FuncByName("peek").Blocks = []*mir2.Block{{Label: "entry", Term: &mir2.TermRet{}}}
+		},
+		"host_return":    func(m *mir2.Module) { m.FuncByName("peek").Contract.Returns[0].Ty = mir2.TyU16 },
+		"host_parameter": func(m *mir2.Module) { m.FuncByName("peek").Contract.Params[0].Ty = mir2.TyU8 },
+		"dynamic_call": func(m *mir2.Module) {
+			f := m.FuncByName("step")
+			f.Blocks[0].Insts = append(f.Blocks[0].Insts, &mir2.Inst{Op: mir2.OpCallIndirect, Ty: mir2.TyVoid})
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			m, w := memoryFixture(t)
+			raw := hir.LowerModule(m)
+			mutate(raw)
+			if err := hir.ValidateMemoryHostMIR(m, raw, w); err == nil {
+				t.Fatal("forged metadata accepted")
+			}
+		})
+	}
+	m, w := memoryFixture(t)
+	m.Globals[0].Ty = &mir2.ArrayTy{Elem: mir2.TyPtr, Len: 1}
+	m.Globals[0].Init = []byte{0, 0}
+	w.Globals = map[string][]byte{"calls": {0, 0}}
+	if _, _, err := hir.PrepareMemoryHostWorkload(m, w); err == nil {
+		t.Fatal("nested pointer storage accepted")
+	}
+}
+
+func TestMemoryHostGlobalProofRejectsModularOffsetLaundering(t *testing.T) {
+	m, w := memoryFixture(t)
+	raw := hir.LowerModule(m)
+	f := raw.FuncByName("step")
+	f.Blocks = []*mir2.Block{{Label: "entry", Insts: []*mir2.Inst{{Op: mir2.OpAddrOf, Dst: 9000, Sym: "calls", Ty: mir2.TyPtr}, {Op: mir2.OpPtrBump, Dst: 9001, Src: [2]mir2.Reg{9000}, Imm: 65536, Ty: mir2.TyPtr}, {Op: mir2.OpLoad, Dst: 9002, Src: [2]mir2.Reg{9001}, Ty: mir2.TyU8}}, Term: &mir2.TermRet{Vals: []mir2.Reg{9002}}}}
+	if _, ok := hir.MemoryHostGlobalAccesses(raw)[f.Blocks[0].Insts[2]]; ok {
+		t.Fatal("modular nonzero offset treated as exact global")
+	}
+	w.Calls = w.Calls[:1]
+	out, err := hir.RunMemoryHostMIRBaseline(m, raw, w)
+	if err == nil || out == nil || len(out.Invocations[0].Events) != 0 {
+		t.Fatal(out, err)
+	}
+}
