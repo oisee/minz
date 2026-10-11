@@ -2,11 +2,14 @@ package nanz_test
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/pipeline"
 	"github.com/minz/minzc/pkg/z80asm"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -52,6 +55,7 @@ func TestLiteralPrintingNative(t *testing.T) {
 				t.Fatal(e)
 			}
 			regs := z.GetRegisters()
+			saveStringNative(t, c.name, source, steps, a, out, append(append([]byte{}, c.want...), byte('!')), regs)
 			if regs.SP != 0xF000 || int(regs.PC) != a.Symbols["test_done"]+2 {
 				t.Fatalf("termination PC/SP %x/%x", regs.PC, regs.SP)
 			}
@@ -118,6 +122,7 @@ func TestLiteralStorageNative(t *testing.T) {
 				t.Fatal(e)
 			}
 			r := z.GetRegisters()
+			saveStringNative(t, "storage-"+c.name, source, steps, a, nil, c.want, r)
 			if r.SP != 0xF000 || int(r.PC) != a.Symbols["storage_done"]+2 {
 				t.Fatal("termination", r)
 			}
@@ -125,5 +130,30 @@ func TestLiteralStorageNative(t *testing.T) {
 				t.Fatal("actual dereference first byte")
 			}
 		})
+	}
+}
+
+func saveStringNative(t *testing.T, name, source string, steps pipeline.Steps, a *z80asm.Result, output, expected []byte, regs emulator.Registers) {
+	t.Helper()
+	dir := os.Getenv("MINZ_STRING_NATIVE_ARTIFACTS")
+	if dir == "" {
+		return
+	}
+	dir = filepath.Join(dir, name)
+	if e := os.MkdirAll(dir, 0755); e != nil {
+		t.Fatal(e)
+	}
+	files := map[string][]byte{"source.nanz": []byte(source), "target.a80": []byte(steps.Assembly), "binary.bin": a.Binary, "output.bin": output, "expected.bin": expected, "final.mir2": []byte(steps.MIR2Opt)}
+	for name, v := range map[string]any{"registers.json": regs, "allocation.json": steps.Allocation, "symbols.json": a.Symbols} {
+		b, e := json.MarshalIndent(v, "", "  ")
+		if e != nil {
+			t.Fatal(e)
+		}
+		files[name] = b
+	}
+	for name, b := range files {
+		if e := os.WriteFile(filepath.Join(dir, name), b, 0644); e != nil {
+			t.Fatal(e)
+		}
 	}
 }
