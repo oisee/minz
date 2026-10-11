@@ -23,5 +23,6 @@ accepted. Instrumented VM globals and generated-symbol storage are checked anew.
 Current focused checks: zero-trip, recursive deltas, partial denied-read prefix,
 owned inputs, repeatability, changed workload compatibility, missing origins and
 baseline memory/result/access equality, condition failures, reset deltas, generated
-symbol heap bounds and global-name collisions. Full original-program and independent
-oracle comparison are pending. Parent production has not been changed.
+symbol heap bounds and global-name collisions. Full HIR passed once (25.897s); focused legacy profile/policy/snapshot tests
+passed (0.091s). Parent association checks report the exact independent eleven-site
+original SelfLanz oracle; those association artifacts are maintained separately. Parent production has not been changed.

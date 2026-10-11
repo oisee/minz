@@ -1,0 +1,32 @@
+{
+  "commit": "dcca4fc853e4d0e43a50087e16f827ed0116b62a",
+  "base": "65f89589",
+  "branch": "feat/grace-memory-host-loop-profile",
+  "files": [
+    {
+      "path": "minzc/pkg/hir/profile.go",
+      "sha256": "60eddbdd241ac508972fb98033056350a25ee1e563fba4053e0c9b7168f47caf",
+      "bytes": 9581
+    },
+    {
+      "path": "minzc/pkg/hir/memory_host_workload.go",
+      "sha256": "5250dc76b8f188ca66508f02f9462df34cc048cbbc1f2b06b36a5ff1e7e46d01",
+      "bytes": 22627
+    },
+    {
+      "path": "minzc/pkg/hir/memory_host_loop_profile.go",
+      "sha256": "b83ae428cc262ba6951d8be9aa652dcd4676cb71252243f2b574e65a6cb2a8a5",
+      "bytes": 5374
+    },
+    {
+      "path": "minzc/pkg/hir/memory_host_loop_profile_test.go",
+      "sha256": "ecc0df6859b09ff79ad562c5f091b7975fbd80ca711b90ac4e1d382fb753d76b",
+      "bytes": 9177
+    },
+    {
+      "path": "docs/grace-memory-host-loop-profile/README.md",
+      "sha256": "268320b11ea1b4fe793cdd03d46e7a1f0e2b4acb2acb05985d620a9f22f87696",
+      "bytes": 1822
+    }
+  ]
+}

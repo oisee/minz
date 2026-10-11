@@ -1,0 +1,45 @@
+{
+  "compiler_commit": "dcca4fc853e4d0e43a50087e16f827ed0116b62a",
+  "files": [
+    {
+      "path": "final-focused.txt",
+      "bytes": 42,
+      "sha256": "b42a329e8fc5a4f74826f1ab2e19d8010bbde41d5b79aed4a6743e6173a66e58"
+    },
+    {
+      "path": "first-focused.txt",
+      "bytes": 42,
+      "sha256": "dcc21828f4a6696dbe08afb2a0e6e323f3d44aa3e13db48522ce9de162da5ea9"
+    },
+    {
+      "path": "full-hir.txt",
+      "bytes": 43,
+      "sha256": "769927abe8c094ce833e770a94e52eb081bdc9016294b1bbc73d1ee8a738ced5"
+    },
+    {
+      "path": "legacy-guard-focused.txt",
+      "bytes": 42,
+      "sha256": "949ae4f680d6ddd657502ffc4b756aa1b517d3bc4d15a425eb78c6977c416ebc"
+    },
+    {
+      "path": "legacy-profile-focused.txt",
+      "bytes": 42,
+      "sha256": "29e8f4dddfe36330be5f005288668df10217e400933f0624fa14fb6b096e05ae"
+    },
+    {
+      "path": "production.patch",
+      "bytes": 21622,
+      "sha256": "c6d49fe56b8a1bf3e759220bcf466a0152601b832e3d4eb30047b0b6a23be54a"
+    },
+    {
+      "path": "refusal-focused.txt",
+      "bytes": 42,
+      "sha256": "38df5346e1db813617c1c3eee00bda87d7414c9a4fb4caad3f24fca66abd5e0f"
+    },
+    {
+      "path": "source-inventory.json",
+      "bytes": 1018,
+      "sha256": "f93a7f73f7879029321b6e020a891dbf83e8ec1c505d40b680af070aadf856c1"
+    }
+  ]
+}
