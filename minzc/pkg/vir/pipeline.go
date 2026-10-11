@@ -2228,6 +2228,17 @@ func validateNoClobber(asm string) string {
 // emitFromTable generates assembly directly from a GPU table assignment.
 // No Z3 solver needed — just pattern selection + PIR emit.
 func emitFromTable(f *mir2.Func, vf *Func, allOps []VIROp, assignment map[int]int, desc *MachineDesc, opts SolverOptions) (string, error) {
+	if err := validateTableAssignment(allOps, assignment, desc); err != nil {
+		return "", fmt.Errorf("table admission: %w", err)
+	}
+	for _, block := range vf.Blocks {
+		if err := validateTableAssignment(block.Ops, assignment, desc); err != nil {
+			return "", fmt.Errorf("table admission: %w", err)
+		}
+	}
+	if !verifyABICompat(allOps, assignment, opts) {
+		return "", fmt.Errorf("table admission: ABI or location hint mismatch")
+	}
 	var sb strings.Builder
 	emitFuncHeader(&sb, f, opts)
 	sb.WriteString(f.Name + ":\n")
@@ -2368,16 +2379,18 @@ func emitFromTable(f *mir2.Func, vf *Func, allOps []VIROp, assignment map[int]in
 // verifyABICompat checks if a GPU table assignment is compatible with ABI constraints.
 // ParamLocs from PFCCO must match the table assignment for constrained vregs.
 func verifyABICompat(ops []VIROp, assignment map[int]int, opts SolverOptions) bool {
+	if validateTableAssignment(ops, assignment, nil) != nil {
+		return false
+	}
 	// Check param constraints
 	paramLocs := opts.ParamLocs
 	if paramLocs == nil && opts.FuncParamLocs != nil {
 		// FuncParamLocs checked later — for now just allow
 	}
 	for vreg, requiredLoc := range paramLocs {
-		if tableLoc, ok := assignment[vreg]; ok {
-			if tableLoc != requiredLoc {
-				return false // table puts vreg at wrong loc for ABI
-			}
+		tableLoc, ok := assignment[vreg]
+		if !ok || tableLoc != requiredLoc {
+			return false
 		}
 	}
 	// Check DstHint/SrcHint constraints from ops
