@@ -1,0 +1,7 @@
+Explicit typed UnsignedPairComparePolicy; zero Legacy retained. Pipeline validates before source mutation, saves resolved policy in Steps and forwards it to primary, secondary and native annotated codegen. PreserveForSpeed+OptSize/nonZ80/unknown policies refuse. No CSE, hooks, package-global controls or CLI flag.
+
+Old RunZ80MemoryHostBaseline stays Legacy/v1. New WithOptions copies its single typed enum before factory and returns v2 envelope compile_options +baseline. The nested baseline is a v1-shaped diagnostic payload, not a standalone legacy-policy claim when extracted. Existing selectors/closedCLI use old wrapper and receive no opt-in.
+
+Focused automatically allocated source tests prove branch results/globals, explicit policy activation, old/default/OptSize Legacy equality, v2Legacy==oldv1, source/raw identity and forgedSteps policy refusing before native execution via exact annotation binary binding. Unknown options refuse before factory. Ordinary ProfileCompilationID marshals fullOptions, so new enum changes even zero-option old profile hashes conservatively; unchanged assembly is not unchanged profile identity.
+
+Executed focused test binary is saved permanently and its actual hash recorded. No full30 or broad gates were run in this checkpoint. Backend sixfile API snapshot copied for compilation; independent review and root freeze precede integration/fullmeasurement.

@@ -217,6 +217,9 @@ func (g *z80cg) saveAccForCondRet(cmpInst *Inst) func() {
 }
 
 func (g *z80cg) genCmp(inst *Inst) {
+	if g.tryUnsignedPreservePairCmp(inst) {
+		return
+	}
 	// CmpSubCarry / CmpSubCarryNot: carry flag already set by the immediately
 	// preceding SUB.  No instruction needed — carry encodes a < b (C) or a >= b (NC).
 	if inst.Cond == CmpSubCarry || inst.Cond == CmpSubCarryNot {
