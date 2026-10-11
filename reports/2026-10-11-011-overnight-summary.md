@@ -249,3 +249,10 @@ workload-driven модель fullstate/events создаётся в отдель
 Для четырёхкорпусов speedboth1,62–13,60%, sizeappend2076 B. Весьпакет
 сохранён и проверенпослепереноса; productioncode/exe не менялись.
 Artifact-only итоговыйкоммит ипубликацияготовятся; цельпродолжается.
+
+Corpus stage9fda572a запушен. Приватная Sites версия44 опубликована:
+https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-corpus.html
+Полнаяофлайн-копия синхронизируется;392payloadфайла этапа SHAпроверены.
+Следующий boundedэтап — смена выбора на zero-body workload иотказы
+unobservedsites/typedhostfailure/gas; independentoracle иnativeplan
+в постоянныхветках. Productioncode/exe не меняются.
