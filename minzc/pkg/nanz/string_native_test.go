@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/minz/minzc/pkg/emulator"
+	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/pipeline"
 	"github.com/minz/minzc/pkg/z80asm"
@@ -27,7 +28,7 @@ func TestLiteralPrintingNative(t *testing.T) {
 			if e != nil {
 				t.Fatal(e)
 			}
-			steps, e := pipeline.CompileHIRSteps(h)
+			steps, e := compileStringNative(h)
 			if e != nil {
 				t.Fatal(e)
 			}
@@ -96,7 +97,7 @@ func TestLiteralStorageNative(t *testing.T) {
 			if e != nil {
 				t.Fatal(e)
 			}
-			steps, e := pipeline.CompileHIRSteps(h)
+			steps, e := compileStringNative(h)
 			if e != nil {
 				t.Fatal(e)
 			}
@@ -168,7 +169,7 @@ func saveStringNative(t *testing.T, name, source, assembled string, steps pipeli
 	if strings.HasPrefix(name, "storage-") {
 		expectedKind = "pool_bytes"
 	}
-	for name, v := range map[string]any{"execution.json": map[string]any{"cycles": z.GetCycles(), "error": errorText, "expected_kind": expectedKind, "globals": state}, "registers.json": regs, "allocation.json": steps.Allocation, "symbols.json": a.Symbols} {
+	for name, v := range map[string]any{"execution.json": map[string]any{"cycles": z.GetCycles(), "error": errorText, "expected_kind": expectedKind, "compiler_route": os.Getenv("MINZ_STRING_NATIVE_ROUTE"), "globals": state}, "registers.json": regs, "allocation.json": steps.Allocation, "symbols.json": a.Symbols} {
 		b, e := json.MarshalIndent(v, "", "  ")
 		if e != nil {
 			t.Fatal(e)
@@ -180,4 +181,17 @@ func saveStringNative(t *testing.T, name, source, assembled string, steps pipeli
 			t.Fatal(e)
 		}
 	}
+}
+
+// Legacy coverage uses its actual assembly; Steps MIR/allocation diagnostics are
+// intentionally unavailable because this API returns only assembly.
+func compileStringNative(h *hir.Module) (pipeline.Steps, error) {
+	if os.Getenv("MINZ_STRING_NATIVE_ROUTE") == "legacy" {
+		asm, err := pipeline.CompileHIR(h)
+		if err != nil {
+			return pipeline.Steps{}, err
+		}
+		return pipeline.Steps{Assembly: asm}, nil
+	}
+	return pipeline.CompileHIRSteps(h)
 }

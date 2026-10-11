@@ -230,7 +230,7 @@ func isUsedAfterIdx(blk *Block, idx int, vreg Reg) bool {
 			}
 		}
 		// Check if redefined (shadows the value)
-		if accSaveDefines(blk.Insts[j], vreg) {
+		if blk.Insts[j].Dst == vreg {
 			return false
 		}
 	}
@@ -246,37 +246,48 @@ func isUsedAfterIdx(blk *Block, idx int, vreg Reg) bool {
 
 // renameTermReg replaces oldReg with newReg in a terminator's register uses.
 func renameTermReg(term Term, oldReg, newReg Reg) {
-	mr := func(r Reg) Reg {
-		if r == oldReg {
-			return newReg
+	switch t := term.(type) {
+	case *TermRet:
+		for i, v := range t.Vals {
+			if v == oldReg {
+				t.Vals[i] = newReg
+			}
 		}
-		return r
-	}
-	mrs := func(rs []Reg) {
-		for i := range rs {
-			rs[i] = mr(rs[i])
+	case *TermBrIf:
+		if t.Cond == oldReg {
+			t.Cond = newReg
 		}
-	}
-	remapTerm(term, mr, mrs)
-}
-
-func accSaveDefines(inst *Inst, r Reg) bool {
-	if inst.Dst == r {
-		return true
-	}
-	for _, d := range inst.ExtraRets {
-		if d == r {
-			return true
+		for i, a := range t.ThenArgs {
+			if a == oldReg {
+				t.ThenArgs[i] = newReg
+			}
 		}
-	}
-	if inst.Asm != nil {
-		for _, d := range inst.Asm.Outs {
-			if d == r {
-				return true
+		for i, a := range t.ElseArgs {
+			if a == oldReg {
+				t.ElseArgs[i] = newReg
+			}
+		}
+	case *TermCondRet:
+		if t.Cond == oldReg {
+			t.Cond = newReg
+		}
+		for i, v := range t.Vals {
+			if v == oldReg {
+				t.Vals[i] = newReg
+			}
+		}
+		for i, a := range t.ThenArgs {
+			if a == oldReg {
+				t.ThenArgs[i] = newReg
+			}
+		}
+	case *TermJmp:
+		for i, a := range t.Args {
+			if a == oldReg {
+				t.Args[i] = newReg
 			}
 		}
 	}
-	return false
 }
 
 // renameUses replaces all uses of oldReg with newReg in instructions at
@@ -294,18 +305,6 @@ func renameUses(blk *Block, idx int, oldReg, newReg Reg) {
 				inst.Args[k] = newReg
 			}
 		}
-		if inst.Asm != nil {
-			for k, r := range inst.Asm.Ins {
-				if r == oldReg {
-					inst.Asm.Ins[k] = newReg
-				}
-			}
-		}
-		// Uses in a redefining instruction consume the old value; later uses do not.
-		if accSaveDefines(inst, oldReg) {
-			return
-		}
-
 	}
 	if blk.Term != nil {
 		renameTermReg(blk.Term, oldReg, newReg)
@@ -329,54 +328,24 @@ func classFromLoc(loc PhysLoc) RegClass {
 // pickAccSaveScratch finds a free vreg allocated to a GPR (not A) that can
 // hold the saved A value. Creates a new synthetic vreg if needed.
 func pickAccSaveScratch(f *Func, blk *Block, idx int, ar *AllocResult, accOwner Reg) Reg {
-	// Reserve physical bytes throughout the saved value's remaining lifetime,
-	// including successor live-ins. A pair occupies both of its halves.
-	usedRegs := map[string]bool{"A": true}
-	reserve := func(r Reg) {
-		loc := ar.Loc(r)
-		if loc.Kind != LocReg {
-			return
-		}
-		for _, ch := range loc.Name {
-			usedRegs[string(ch)] = true
-		}
-	}
-	for _, r := range ComputeLiveness(f).LiveOutOf(f, blk).Slice() {
-		reserve(r)
-	}
-	for j := idx; j < len(blk.Insts); j++ {
-		inst := blk.Insts[j]
-		for _, r := range inst.Uses() {
-			reserve(r)
-		}
-		reserve(inst.Dst)
-		for _, r := range inst.ExtraRets {
-			reserve(r)
-		}
-		if inst.Asm != nil {
-			for _, r := range inst.Asm.Outs {
-				reserve(r)
+	// Find a GPR that's not A and not used by the current or nearby instructions.
+	// Strategy: create a new synthetic vreg allocated to a free GPR.
+	usedRegs := make(map[string]bool)
+	usedRegs["A"] = true // A is what we're saving FROM
+	// Collect regs used by instructions around idx
+	for j := idx; j < len(blk.Insts) && j < idx+3; j++ {
+		for _, u := range blk.Insts[j].Uses() {
+			loc := ar.Loc(u)
+			if loc.Kind == LocReg {
+				usedRegs[loc.Name] = true
 			}
 		}
-		if j > idx && accSaveDefines(inst, accOwner) {
-			break
-		}
 	}
-	if blk.Term != nil {
-		for _, r := range blk.Term.termUses() {
-			reserve(r)
-		}
-	}
+
 	for _, name := range []string{"D", "E", "H", "L", "B", "C"} {
 		if !usedRegs[name] {
+			// Create synthetic vreg
 			synth := f.AllocReg()
-			// Standalone functions can be used with a caller-owned combined map too.
-			for {
-				if _, exists := ar.Locs[synth]; !exists {
-					break
-				}
-				synth = f.AllocReg()
-			}
 			ar.Locs[synth] = PhysLoc{Kind: LocReg, Name: name}
 			return synth
 		}
