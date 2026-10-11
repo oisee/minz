@@ -55,6 +55,9 @@ type ProfileRun struct {
 // prepareProfileWorkload owns a JSON copy: the bytes hashed are the bytes run.
 func prepareProfileWorkload(m *Module, w ProfileWorkload) (ProfileWorkload, ProfileContext, error) {
 	var owned ProfileWorkload
+	if err := RejectValueOnlyErrorProfiles(m); err != nil {
+		return owned, ProfileContext{}, err
+	}
 	data, err := json.Marshal(w)
 	if err != nil {
 		return owned, ProfileContext{}, err

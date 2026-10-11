@@ -1079,7 +1079,7 @@ func (g *z80cg) genBlock(f *Func, b *Block) {
 	if len(b.Insts) > 0 && peep.bodyLbl == "" && !g.hasLocalFrame {
 		last := b.Insts[len(b.Insts)-1]
 		if last.Op == OpCall && !isIntrinsic(last.Sym) {
-			if ret, ok := b.Term.(*TermRet); ok {
+			if ret, ok := b.Term.(*TermRet); ok && !f.Attrs.FallibleCY {
 				isTail := len(ret.Vals) == 0 ||
 					(len(ret.Vals) == 1 && ret.Vals[0] == last.Dst)
 				if isTail {

@@ -112,6 +112,11 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 	g.restoreLiveOutOverrides(f, t)
 
 	switch t := t.(type) {
+	case *TermErrorRet:
+		g.emitLD8("A", g.loc(t.Code))
+		g.emitLocalFrameCleanup(g.localFrameDepth[g.curBlock.Label])
+		g.emit("    SCF")
+		g.emit("    RET")
 	case *TermRet:
 		// Tail call: JP was already emitted by genCall; skip all moves and RET.
 		if g.tailCallInst != nil {
@@ -133,10 +138,13 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 			g.emitParallelCopy(g.buildReturnCopies(t.Vals))
 		}
 		g.emitLocalFrameCleanup(g.localFrameDepth[g.curBlock.Label])
+		if f.Attrs.FallibleCY {
+			g.emit("    OR A")
+		}
 		// main() is the program entry point: use XOR A / DI / HALT instead of
 		// RET so mze/mzx can detect program termination cleanly.  XOR A zeroes
 		// A for a clean exit code 0.
-		if f.Name == "main" && len(t.Vals) == 0 && g.runtime != Z80RuntimeCPM {
+		if f.Name == "main" && len(t.Vals) == 0 && g.runtime != Z80RuntimeCPM && !f.Attrs.FallibleCY {
 			g.emit("    XOR A")
 			g.emit("    DI")
 			g.emit("    HALT")

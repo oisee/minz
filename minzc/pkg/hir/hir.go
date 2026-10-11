@@ -135,6 +135,7 @@ func (m *Module) FuncByName(name string) *Func {
 
 // Func is a HIR function.
 type Func struct {
+	FallibleCY     bool // derived CY/error ABI, part of semantic identity
 	Name           string
 	Params         []Param
 	Captures       []Param   // explicit lexical dependencies; not ABI parameters

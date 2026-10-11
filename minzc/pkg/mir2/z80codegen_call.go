@@ -149,32 +149,9 @@ func (g *z80cg) genCall(inst *Inst) error {
 		g.invalidate("A")
 		return nil
 
-	case "@error":
-		// @error(N) — set carry flag, error code in A, return.
-		// Used in fallible functions (name?). A = argument (error code).
-		g.emit("    SCF") // CY = 1 (error)
-		g.emit("    RET") // return to caller with CY set + A = code
-		g.invalidate("A")
-		return nil
+	case "@error", "@check", "@propagate":
+		return fmt.Errorf("error intrinsics require first-class MIR lowering")
 
-	case "@check":
-		// @check — jump to error handler if carry set.
-		// Emits: JR NC, .skip / <handler will be next block> / .skip:
-		// For now: just emit RET C (propagate). Handler block TBD.
-		idx := g.trampIdx
-		g.trampIdx++
-		g.emitf("    JR NC, .check_ok_%d", idx)
-		// The handler code follows in the next statement.
-		// For simple propagation, emit RET:
-		g.emit("    RET") // propagate error (CY + A intact)
-		g.emitf(".check_ok_%d:", idx)
-		return nil
-
-	case "@propagate":
-		// @propagate — conditional return on carry. 1 byte, 5T.
-		// If CY=1 (error from previous call), return immediately.
-		g.emit("    RET C")
-		return nil
 	}
 
 	sym := sanitizeIdent(inst.Sym)
@@ -287,21 +264,28 @@ func (g *z80cg) genCall(inst *Inst) error {
 			results = append(results, parallelCopy{srcName: canonicalReturnLoc(ret.Class, ret.Ty), dstName: dstPhys, ty: ret.Ty})
 		}
 	}
-	for i, r := range inst.ExtraRets {
-		if r == NoReg {
-			continue
+	if inst.FallibleCY {
+		if callee == nil || !callee.Attrs.FallibleCY || len(inst.ExtraRets) != 2 {
+			return fmt.Errorf("invalid fallible native call")
 		}
-		cls, ty := ClassIndex, Ty(TyU16)
-		if callee != nil && i+1 < len(callee.Contract.Returns) {
-			cls, ty = callee.Contract.Returns[i+1].Class, callee.Contract.Returns[i+1].Ty
+		results = append(results, parallelCopy{srcName: "F", dstName: g.loc(inst.ExtraRets[0]), ty: TyBool}, parallelCopy{srcName: "A", dstName: g.loc(inst.ExtraRets[1]), ty: TyU8})
+	} else {
+		for i, r := range inst.ExtraRets {
+			if r == NoReg {
+				continue
+			}
+			cls, ty := ClassIndex, Ty(TyU16)
+			if callee != nil && i+1 < len(callee.Contract.Returns) {
+				cls, ty = callee.Contract.Returns[i+1].Class, callee.Contract.Returns[i+1].Ty
+			}
+			if i < len(inst.ExtraRetClasses) {
+				cls = inst.ExtraRetClasses[i]
+			}
+			if i < len(inst.ExtraRetTys) {
+				ty = inst.ExtraRetTys[i]
+			}
+			results = append(results, parallelCopy{srcName: canonicalReturnLoc(cls, ty), dstName: g.loc(r), ty: ty})
 		}
-		if i < len(inst.ExtraRetClasses) {
-			cls = inst.ExtraRetClasses[i]
-		}
-		if i < len(inst.ExtraRetTys) {
-			ty = inst.ExtraRetTys[i]
-		}
-		results = append(results, parallelCopy{srcName: canonicalReturnLoc(cls, ty), dstName: g.loc(r), ty: ty})
 	}
 	var protected []string
 	for r := range g.regsLiveAfterInst(inst) {
@@ -355,11 +339,12 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 		savedPair[p] = true
 	}
 	before, after := true, true
+	fallible := slices.ContainsFunc(results, func(r parallelCopy) bool { return r.srcName == "F" })
 	for _, r := range results {
 		before = before && !savedPair[regToPairMap[r.dstName]]
 		after = after && !savedPair[regToPairMap[r.srcName]]
 	}
-	if flagResult && savedPair["AF"] {
+	if fallible || flagResult && savedPair["AF"] {
 		before, after = false, false
 	}
 	if before || after {
@@ -419,6 +404,9 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 		restore[p] = base + 2 + 2*(len(saved)-1-i)
 	}
 	byteOffset := func(name string) int {
+		if name == "F" {
+			return snapshot["AF"]
+		}
 		p := regToPairMap[name]
 		o := snapshot[p]
 		if name == "A" || name == highByte(p) {
@@ -428,6 +416,13 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 	}
 	storeByte := func(src, dst int) {
 		g.emitf("    LD A, (IX+%d)", src)
+		g.emitf("    LD (IX+%d), A", dst)
+	}
+	storeResultByte := func(r parallelCopy, dst int) {
+		g.emitf("    LD A, (IX+%d)", byteOffset(r.srcName))
+		if r.srcName == "F" {
+			g.emit("    AND 1")
+		}
 		g.emitf("    LD (IX+%d), A", dst)
 	}
 	// Patch saved destinations before loading any final register, since A
@@ -449,7 +444,7 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 			if r.dstName == "A" || r.dstName == highByte(p) {
 				o++
 			}
-			storeByte(byteOffset(r.srcName), o)
+			storeResultByte(r, o)
 		}
 	}
 	if flagResult && savedPair["AF"] {
@@ -458,7 +453,7 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 	// Preserve the result in A in the AF snapshot until all scratch work is done.
 	for _, r := range results {
 		if r.dstName == "A" && !savedPair["AF"] {
-			storeByte(byteOffset(r.srcName), snapshot["AF"]+1)
+			storeResultByte(r, snapshot["AF"]+1)
 		}
 	}
 	for _, r := range results {
@@ -467,6 +462,12 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 			continue
 		}
 		if r.ty.Width() <= 8 {
+			if r.srcName == "F" {
+				g.emitf("    LD A, (IX+%d)", snapshot["AF"])
+				g.emit("    AND 1")
+				g.emitLD8(r.dstName, "A")
+				continue
+			}
 			// Indexed memory cannot load IY halves directly; use A as scratch.
 			if p != "" && p != "IY" {
 				g.emitf("    LD %s, (IX+%d)", r.dstName, byteOffset(r.srcName))

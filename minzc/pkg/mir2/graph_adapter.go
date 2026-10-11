@@ -87,6 +87,8 @@ func (a *blockAdapter) TermKind() string {
 		return "br_if"
 	case *TermBrIf2:
 		return "br_if2"
+	case *TermErrorRet:
+		return "error_ret"
 	case *TermRet:
 		return "ret"
 	case *TermCondRet:

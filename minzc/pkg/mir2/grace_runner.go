@@ -432,6 +432,9 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 
 	// condRetSink: hoist else insts, replace br_if with cond_ret
 	reg.RegisterAction("condRetSink", func(graph rewrite.IRGraphMut, bindings grace.BlockBindings) bool {
+		if f.Attrs.FallibleCY {
+			return false
+		}
 		curLabel := bindings["cur"]
 		elseLabel := bindings["else"]
 		curBlock := f.BlockByLabel(curLabel)
@@ -802,6 +805,9 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 	// has-self-tail-call: block ends with ret(call_to_self). The call is to the
 	// same function we're in, and the return value is the call's result.
 	reg.RegisterPredicate("has-self-tail-call", func(graph rewrite.IRGraph, bindings grace.BlockBindings, args []string) bool {
+		if f.Attrs.FallibleCY {
+			return false
+		}
 		label := bindings[args[0]]
 		blk := f.BlockByLabel(label)
 		if blk == nil || len(blk.Insts) == 0 {
@@ -1228,13 +1234,16 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 
 	// tailCallOpt: mark the last CALL in a block as tail call when followed by RET
 	reg.RegisterAction("tailCallOpt", func(graph rewrite.IRGraphMut, bindings grace.BlockBindings) bool {
+		if f.Attrs.FallibleCY {
+			return false
+		}
 		label := bindings["b"]
 		blk := f.BlockByLabel(label)
 		if blk == nil || len(blk.Insts) == 0 {
 			return false
 		}
 		lastInst := blk.Insts[len(blk.Insts)-1]
-		if lastInst.Op != OpCall || lastInst.CallAttr.IsTailCall {
+		if lastInst.Op != OpCall || lastInst.FallibleCY || lastInst.CallAttr.IsTailCall {
 			return false
 		}
 		lastInst.CallAttr.IsTailCall = true
@@ -1731,7 +1740,7 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		if blk == nil || len(blk.Insts) != 1 {
 			return false
 		}
-		return blk.Insts[0].Op == OpCall && blk.Insts[0].Dst == NoReg
+		return blk.Insts[0].Op == OpCall && !blk.Insts[0].FallibleCY && blk.Insts[0].Dst == NoReg
 	})
 
 	// jumps-to-else: the call block's TermJmp target matches the BrIf's else target
@@ -2283,6 +2292,8 @@ func remapTermRegs(t Term, remap map[Reg]Reg) {
 		replSlice(t.EqArgs)
 		replSlice(t.LtArgs)
 		replSlice(t.GtArgs)
+	case *TermErrorRet:
+		repl(&t.Code)
 	case *TermRet:
 		replSlice(t.Vals)
 	case *TermCondRet:

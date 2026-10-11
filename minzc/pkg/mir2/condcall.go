@@ -36,6 +36,9 @@ package mir2
 //   - the call must not return a value used by subsequent instructions
 //     (Dst == NoReg, or only used after the join point — simplified: Dst == NoReg for now)
 func FoldConditionalCalls(f *Func) int {
+	if f.Attrs.FallibleCY {
+		return 0
+	}
 	blockMap := make(map[string]*Block, len(f.Blocks))
 	for _, b := range f.Blocks {
 		blockMap[b.Label] = b

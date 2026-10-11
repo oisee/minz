@@ -79,6 +79,9 @@ func SplitHighPressure(m *Module) []SplitResult {
 	copy(origFuncs, m.Funcs)
 
 	for _, f := range origFuncs {
+		if f.FallibleCY {
+			continue
+		} // splitting must preserve the explicit outcome SSA
 		subs := splitRecursive(m, f, &results, 0)
 		newFuncs = append(newFuncs, subs...)
 	}

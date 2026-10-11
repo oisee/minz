@@ -405,6 +405,8 @@ func PreallocCoalesce(f *Func) PreallocCoalesceMap {
 				t.Cond = mapReg(t.Cond)
 				mapSlice(t.Vals)
 				mapSlice(t.ThenArgs)
+			case *TermErrorRet:
+				t.Code = mapReg(t.Code)
 			case *TermRet:
 				mapSlice(t.Vals)
 			}

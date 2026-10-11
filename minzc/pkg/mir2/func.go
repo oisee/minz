@@ -67,6 +67,8 @@ type Return struct {
 // IsLeaf and IsRecursive are computed by analysis; the rest are set during
 // code generation from the source AST.
 type FuncAttrs struct {
+	// FallibleCY fixes error ABI: success NC, failure CY+A code.
+	FallibleCY bool
 	// IsExtern: declaration only (no body blocks).
 	// The function is defined elsewhere (ROM routine, stdlib, FFI).
 	IsExtern bool

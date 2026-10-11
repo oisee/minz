@@ -47,6 +47,9 @@ func dumpFunc(sb *strings.Builder, f *Func) {
 	if f.Attrs.IsExtern {
 		sb.WriteString("extern ")
 	}
+	if f.Attrs.FallibleCY {
+		sb.WriteString("[fallible-cy] ")
+	}
 	if f.Attrs.IsComptime {
 		sb.WriteString("[comptime] ")
 	}
@@ -179,6 +182,9 @@ func DumpInst(inst *Inst) string {
 		fmt.Fprintf(&sb, "call @%s(%s)", inst.Sym, regList(inst.Args))
 		if inst.Ty != TyVoid {
 			fmt.Fprintf(&sb, " : %s%s", inst.Ty, clsSuffix())
+		}
+		if inst.FallibleCY {
+			fmt.Fprintf(&sb, " outcome [%s]", regList(inst.ExtraRets))
 		}
 		dumpCallAttrs(&sb, inst.CallAttr)
 
