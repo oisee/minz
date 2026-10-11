@@ -1,0 +1,4 @@
+=== RUN   TestBitCmpMemoryFallbackNativeBCDE
+--- PASS: TestBitCmpMemoryFallbackNativeBCDE (0.48s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.489s

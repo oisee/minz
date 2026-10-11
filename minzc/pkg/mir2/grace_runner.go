@@ -448,6 +448,12 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 			return false
 		}
 
+		// Pure arithmetic can destroy Z/NZ as well as carry before cond_ret.
+		// Keep the same safety gate as the production Go CondRetSink pass.
+		if !hoistedConditionFlagsSafe(curBlock, brif.Cond, elseBlock.Insts) {
+			return false
+		}
+
 		if !f.TransferLoopOrigin(elseLabel, curLabel) {
 			return false
 		}
