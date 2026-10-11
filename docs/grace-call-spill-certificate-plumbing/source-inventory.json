@@ -1,7 +1,51 @@
 [
   {
+    "path": "minzc/cmd/minzc/call_spill_cli_export_test.go",
+    "sha256": "0e7f313223bf21ae33025e739de5e3bcc2912604d299658de83cabc76d270afa"
+  },
+  {
+    "path": "minzc/cmd/minzc/memory_host_policy_cli_test.go",
+    "sha256": "3238c84902c32bc4e417c98732b1af38801d7bdc1184b0a90330cab14147b161"
+  },
+  {
+    "path": "minzc/cmd/minzc/memory_host_search_cli_test.go",
+    "sha256": "b4f0f2b337de60d955433ae94e9dd0e1d9b458a36e0c80f6834873ae61b312fb"
+  },
+  {
+    "path": "minzc/pkg/mir2/native_call_spill.go",
+    "sha256": "ad659b0ba03a51a65336b227927b3e866d5c3e459edc2876670888df4b440fca"
+  },
+  {
+    "path": "minzc/pkg/mir2/native_memory_access.go",
+    "sha256": "9cc5a555b0768b0bb6a00f67d1efccba182735bef5b50fcfb2ad923ab46081e5"
+  },
+  {
+    "path": "minzc/pkg/mir2/z80codegen.go",
+    "sha256": "383bd82102724be6449c2038943ca3c1246adfa1f70b3b7436026f4161949fdd"
+  },
+  {
+    "path": "minzc/pkg/mir2/z80codegen_call.go",
+    "sha256": "f3a5c1b48f9e541f596e9ca8fe5259004bfa4cb43051948fc1cef77e3d4df0f8"
+  },
+  {
+    "path": "minzc/pkg/mir2/z80codegen_call_spill.go",
+    "sha256": "7eca59d2e088b732e3e0d2faca0df5c5944e266ee8d1eaf18ae5677746952e49"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_access_recipe.go",
+    "sha256": "db927af6f8c6ec39b4be24fda35b273c8127ede0495515fae453459407da16a1"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_call_spill.go",
+    "sha256": "cfc468344123391db04db55bf522a3bda7b6454e18381d8b15404c353b8a43bc"
+  },
+  {
     "path": "minzc/pkg/pipeline/memory_host_call_spill_lifecycle_test.go",
     "sha256": "0ffb644f97ab706d3d1e7fd7bf8a186665627b8f61e50f3830271c28ea6741f5"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_call_spill_test.go",
+    "sha256": "22aaa20a6bb261ba78b2c198ffac1ba5bc895d60b131402ee4a35acbb08fb6fe"
   },
   {
     "path": "minzc/pkg/pipeline/memory_host_policy_association.go",
@@ -12,7 +56,19 @@
     "sha256": "20a57281832b158b0fe3202e953e7ce6dcd5c93e2720e40e67331e09638384d0"
   },
   {
+    "path": "minzc/pkg/pipeline/memory_host_sidecar.go",
+    "sha256": "25e3d1d45ca190b3eb2080a8cd2d8dbb9cedcbb2c36989082215bdc80cafd697"
+  },
+  {
     "path": "minzc/pkg/pipeline/memory_host_target.go",
     "sha256": "ca254e6701e3ad9a1b5fcdb5abef5cea4c8c717612d7d1f961830b88dcba1571"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_z80_memory.go",
+    "sha256": "4939112e028fe781ea98ec479ccde6ed881c3e9c5b7c7a0cc7fc6208b2662030"
+  },
+  {
+    "path": "minzc/pkg/z80validate/annotations_test.go",
+    "sha256": "86291bfad4a430eb60f3ddc3b855ef7faa78ec1ac0809a9884d566f2f19650ad"
   }
 ]
