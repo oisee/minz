@@ -1,0 +1,19 @@
+=== RUN   TestPFCCOForestsMatchIndependentExhaustiveMeasuredAdapters
+    contracts_exhaustive_native_test.go:110: native adapter matrix A/C/E including real CALL/RET and liveBC saves: [[35 71 43] [39 67 43] [39 71 39]]
+    contracts_exhaustive_native_test.go:119: omitted21T-save negative control picks C at real71T vs exact A55T
+    contracts_exhaustive_native_test.go:169: 600 deterministic forest tasks, domains3, up to729 assignments each: feasible exact optima and infeasible refusal PASS
+--- PASS: TestPFCCOForestsMatchIndependentExhaustiveMeasuredAdapters (0.00s)
+=== RUN   TestPBQP_PFCCO_RegressionGreen
+--- PASS: TestPBQP_PFCCO_RegressionGreen (0.00s)
+=== RUN   TestPBQP_PFCCO_CostReduction
+--- PASS: TestPBQP_PFCCO_CostReduction (0.00s)
+=== RUN   TestPBQP_PFCCO_DiamondCallGraph
+    contracts_pbqp_test.go:140: C param[0] class: acc
+--- PASS: TestPBQP_PFCCO_DiamondCallGraph (0.00s)
+=== RUN   TestPBQP_PFCCO_ChainThree
+    contracts_pbqp_test.go:211: A param[0] class: acc
+    contracts_pbqp_test.go:211: B param[0] class: acc
+    contracts_pbqp_test.go:211: C param[0] class: acc
+--- PASS: TestPBQP_PFCCO_ChainThree (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.012s
