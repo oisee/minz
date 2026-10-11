@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+"""Saved native proof audit. No CPU execution."""
+import base64, hashlib, json, re, subprocess, sys
+from pathlib import Path
+root=Path(sys.argv[1])
+sha=lambda b:hashlib.sha256(b).hexdigest()
+def obj(p):return json.loads(p.read_bytes())
+def sameobs(a,b):
+ assert len(a)==len(b)
+ for x,y in zip(a,b):
+  x=x.copy();y=y.copy();x['steps']=y['steps']=0;assert x==y
+def audit_dir(p):
+ selection=obj(p/'selection-v2.json');decision=obj(p/'decisions-v2.json')
+ assert decision['selection_sha256']==sha((p/'selection-v2.json').read_bytes())
+ assert decision['association_sha256']==sha((p/'association-v2.json').read_bytes())
+ assert selection['compile_options']==decision['compile_options']=={'unsigned_pair_compare_policy':1}
+ original=None
+ for idx,name in enumerate(['original','arena','append','both']):
+  q=p/name;e=obj(q/'baseline-v2.json');b=e['baseline'];t=b['target'];binary=base64.b64decode(t['binary']);origin=b['workload']['layout']['code_origin']
+  subprocess.run(['/home/alice/dev/minz-artifacts/grace-checkpoints/call-spill-audit-typed',str(q)],check=True)
+  assert selection['candidates'][idx]['evidence']==e
+  assert e['compile_options']==selection['compile_options']
+  assert t['context']['compiler_id']=='executable-sha256:4d818aab4c5bbae1e5e794a7d6c1f9c8d22e1421f651c174fdc908a3f1b3d653'
+  sameobs(b['raw']['invocations'],t['invocations'])
+  if original:sameobs(original['raw']['invocations'],b['raw']['invocations'])
+  else:original=b
+  access={a['pc']:a for a in t['accesses']};paired={}
+  for f in t['call_spills']:
+   d=f['descriptor'];key=(d['call_id'],d['symbol'],d['home_reg'],d['width']);paired.setdefault(key,set()).add(d['stage'])
+   assert d['symbol']==f"_spill_{d['function']}_r{d['home_reg']}" and d['width'] in (1,2)
+   code=[base64.b64decode(c) for c in f['opcodes']];pcs=f['pcs'];assert len(code)==len(pcs)==len(d['instructions'])
+   cp=f['call_pc'];assert binary[cp-origin]==0xcd
+   assert len(re.findall(r'@minz-spill-call:'+re.escape(d['call_id'])+r'(?=\s|$)',t['assembly']))==1
+   loadidx=1 if d['width']==2 else 2
+   memidx=loadidx if d['stage']=='save' else (1 if d['width']==2 else 3)
+   a=access[pcs[memidx]];r=a['descriptor']['root'];assert r['symbol']==d['symbol'] and r['width']==d['width'] and a['descriptor']['storage_kind']=='spill'
+   addr=a['address'];lo=addr&255;hi=addr>>8
+   expected=([b'\xe5',bytes([0x2a,lo,hi]),b'\xe3'] if d['width']==2 else [b'\xe5',b'\xf5',bytes([0x3a,lo,hi]),b'\x6f',b'\xf1',b'\xe3']) if d['stage']=='save' else ([b'\xe3',bytes([0x22,lo,hi]),b'\xe1'] if d['width']==2 else [b'\xe3',b'\xf5',b'\x7d',bytes([0x32,lo,hi]),b'\xf1',b'\xe1'])
+   assert code==expected
+   for j,(pc,c) in enumerate(zip(pcs,code)):
+    assert binary[pc-origin:pc-origin+len(c)]==c
+    if j:assert pc==pcs[j-1]+len(code[j-1])
+   if d['stage']=='save':assert pcs[-1]+len(code[-1])<=cp
+   else:assert pcs[0]>=cp+3
+  assert all(stages=={'save','restore'} for stages in paired.values())
+  assert len(t['call_spills'])==10
+  print('PASS',p.name,name,t['total_t_states'],len(binary),'10 exact paired spill stages, source/native observations')
+ selected=selection['selected'];name=['original','arena','append','both'][selected];chosen=obj(p/name/'baseline-v2.json')['baseline']['target']
+ assert decision['selected']==selected and decision['t_states']==chosen['total_t_states'] and decision['bytes']==len(base64.b64decode(chosen['binary']))
+ assert (p/'selected.a80').read_bytes()==(p/name/'target.a80').read_bytes() and (p/'selected.bin').read_bytes()==(p/name/'target.bin').read_bytes()
+ assert decision['binary_sha256']==sha((p/'selected.bin').read_bytes())
+ return selection
+a=audit_dir(root/'policy-artifacts');b=audit_dir(root/'replay');assert a==b
+assert (root/'external.a80').read_bytes()==(root/'replay/selected.a80').read_bytes()
+print('PASS policy collect/replay equality and external chosen assembly, all8 native images, no CPU replay')
