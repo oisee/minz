@@ -1,0 +1,5 @@
+# Интеграция 187: полный MIR2 после Grace edge fix
+
+Полный сохранённый MIR2бинарник9e8ce601завершился **PASS, exit0**. ВключаетGrace46ced4a1,OpCallCond04122fb2,struct/callback/directcallфиксымодельныхпакетов. ТочныйSHAбинарникасохранёнпередисполнением; terminalжурналрядом/нашаре. Длительностьnonverboseнеизмерена.
+
+ЭтоfullpackageMIR2,неполныйpipeline. Sumreference/Pascalcorpustestsпоявилисьпозже,онинепревращаютэтотcheckpointвcurrentfullsuitePASS. Старыйpipelinecfaa7777остаётсяliveдоавторитетногоterminal.
