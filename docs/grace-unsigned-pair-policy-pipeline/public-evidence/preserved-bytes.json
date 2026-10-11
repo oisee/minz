@@ -1,0 +1,50 @@
+[
+  {
+    "source": "public-baselines/legacy/allocation.json",
+    "stored": "public-baselines/legacy/allocation.json.gz",
+    "sha256": "9af8fdfdeb8d341f6f28097323c96a5b59d1fee911045b363782e8e64e0d8976",
+    "bytes": 17418
+  },
+  {
+    "source": "public-baselines/legacy/baseline-v2.json",
+    "stored": "public-baselines/legacy/baseline-v2.json.gz",
+    "sha256": "17da077881f763896435d2c0d174735434c3349041727df4a10f3c51618b497b",
+    "bytes": 2281481
+  },
+  {
+    "source": "public-baselines/legacy/final.mir2",
+    "stored": "public-baselines/legacy/final.mir2.gz",
+    "sha256": "7c6d066dba853d5612611b53a442e5a355d1480e31d0c0225feff75525fbd913",
+    "bytes": 25214
+  },
+  {
+    "source": "public-baselines/legacy/target.a80",
+    "stored": "public-baselines/legacy/target.a80.gz",
+    "sha256": "50adcc358a40137344cfeed0e6e6130864823a210037f7982187c2bc69fae74f",
+    "bytes": 29352
+  },
+  {
+    "source": "public-baselines/preserve-speed/allocation.json",
+    "stored": "public-baselines/preserve-speed/allocation.json.gz",
+    "sha256": "9af8fdfdeb8d341f6f28097323c96a5b59d1fee911045b363782e8e64e0d8976",
+    "bytes": 17418
+  },
+  {
+    "source": "public-baselines/preserve-speed/baseline-v2.json",
+    "stored": "public-baselines/preserve-speed/baseline-v2.json.gz",
+    "sha256": "a9868fc6a6d104817c0341d349e328ceaddc4345e618deadf4f26161dc2c3cff",
+    "bytes": 2281526
+  },
+  {
+    "source": "public-baselines/preserve-speed/final.mir2",
+    "stored": "public-baselines/preserve-speed/final.mir2.gz",
+    "sha256": "7c6d066dba853d5612611b53a442e5a355d1480e31d0c0225feff75525fbd913",
+    "bytes": 25214
+  },
+  {
+    "source": "public-baselines/preserve-speed/target.a80",
+    "stored": "public-baselines/preserve-speed/target.a80.gz",
+    "sha256": "6f48757936c6ac0dd7404cfde78aad42c029ee4de7c4694d1bc92262facff081",
+    "bytes": 29395
+  }
+]

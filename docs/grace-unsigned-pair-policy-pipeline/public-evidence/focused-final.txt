@@ -1,0 +1,5 @@
+=== RUN   TestUnsignedPairPolicyAdmission
+--- PASS: TestUnsignedPairPolicyAdmission (0.00s)
+=== RUN   TestUnsignedPairPolicyAllocatedSource
+--- PASS: TestUnsignedPairPolicyAllocatedSource (2.15s)
+PASS

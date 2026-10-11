@@ -1,0 +1,9 @@
+=== RUN   TestUnsignedPairPolicyOriginalParserExport
+[label-audit] 1 undefined labels:
+  node_tag
+    unsigned_pair_policy_test.go:250: legacy publicv21135370T/2000B steps109829 BIN1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941 contextexecutable-sha256:e64597309250ac45b88ac9b31bd2b01c3e3ed05536cea761eb41f6fa9ae9b1a8
+[label-audit] 1 undefined labels:
+  node_tag
+    unsigned_pair_policy_test.go:250: preserve-speed publicv21132449T/2001B steps109966 BINef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd contextexecutable-sha256:e64597309250ac45b88ac9b31bd2b01c3e3ed05536cea761eb41f6fa9ae9b1a8
+--- PASS: TestUnsignedPairPolicyOriginalParserExport (2.41s)
+PASS
