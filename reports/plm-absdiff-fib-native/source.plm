@@ -1,0 +1,25 @@
+DEMO: DO;
+
+ABS_DIFF: PROCEDURE (A, B) BYTE;
+  DECLARE (A, B) BYTE;
+  IF A > B THEN
+    RETURN A - B;
+  ELSE
+    RETURN B - A;
+END ABS_DIFF;
+
+FIB: PROCEDURE (N) BYTE;
+  DECLARE N BYTE;
+  DECLARE (A, B, T) BYTE;
+  A = 0;
+  B = 1;
+  DO WHILE N > 0;
+    T = B;
+    B = A + B;
+    A = T;
+    N = N - 1;
+  END;
+  RETURN A;
+END FIB;
+
+END DEMO;

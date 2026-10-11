@@ -1,0 +1,8 @@
+{
+  "compiler_checkpoint": "c79b5b32",
+  "source_sha256": "7f799d07762377d7f889594d6b51891b64832a11648d5e5163d6a5b23af17a1a",
+  "spec": "NanzBookv7 \u00a721.5 BYTE\u2192u8, \u00a73.1 numeric widths",
+  "oracle": "host abs(x-y) for all65536bytepairs; independent Fibonacci recurrence modulo256 for all256 n",
+  "calls_per_mode": 65792,
+  "calls_total": 197376
+}
