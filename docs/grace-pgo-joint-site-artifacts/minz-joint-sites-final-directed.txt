@@ -1,0 +1,25 @@
+=== RUN   TestJointSourceSitesPersistentCaller
+    profile_joint_source_sites_test.go:144: sizefalse candidate0 1417060T/249B
+    profile_joint_source_sites_test.go:144: sizefalse candidate1 1336220T/305B
+    profile_joint_source_sites_test.go:144: sizefalse candidate2 726480T/220B
+    profile_joint_source_sites_test.go:144: sizefalse candidate3 645640T/276B
+    profile_joint_source_sites_test.go:144: sizefalse candidate4 1417060T/249B
+    profile_joint_source_sites_test.go:144: sizefalse candidate5 1336220T/305B
+    profile_joint_source_sites_test.go:144: sizefalse candidate6 726480T/220B
+    profile_joint_source_sites_test.go:144: sizefalse candidate7 645640T/276B
+    profile_joint_source_sites_test.go:165: sizefalse winner3
+    profile_joint_source_sites_test.go:144: sizetrue candidate0 1417060T/249B
+    profile_joint_source_sites_test.go:144: sizetrue candidate1 1336220T/305B
+    profile_joint_source_sites_test.go:144: sizetrue candidate2 726480T/220B
+    profile_joint_source_sites_test.go:144: sizetrue candidate3 645640T/276B
+    profile_joint_source_sites_test.go:144: sizetrue candidate4 1417060T/249B
+    profile_joint_source_sites_test.go:144: sizetrue candidate5 1336220T/305B
+    profile_joint_source_sites_test.go:144: sizetrue candidate6 726480T/220B
+    profile_joint_source_sites_test.go:144: sizetrue candidate7 645640T/276B
+    profile_joint_source_sites_test.go:165: sizetrue winner2
+--- PASS: TestJointSourceSitesPersistentCaller (2.66s)
+=== RUN   TestJointSourceSitesBoundaryAndRefusals
+    profile_joint_source_sites_test.go:232: zero-trip boundary measured winner12
+--- PASS: TestJointSourceSitesBoundaryAndRefusals (2.66s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	5.328s

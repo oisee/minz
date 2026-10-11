@@ -10,20 +10,22 @@ import (
 )
 
 func TestHIRProfileInvariantSitesCompilation(t *testing.T) {
-	testHIRProfileInvariantCompilation(t, false)
+	testHIRProfileInvariantCompilation(t, false, false)
 }
 
 func TestHIRProfileInvariantSiteRulesCompilation(t *testing.T) {
-	testHIRProfileInvariantCompilation(t, true)
+	testHIRProfileInvariantCompilation(t, true, false)
 }
 
-func testHIRProfileInvariantCompilation(t *testing.T, siteRules bool) {
+func testHIRProfileInvariantCompilation(t *testing.T, siteRules, jointSites bool) {
 	hirProfileTestState(t)
+	oldJointSites := hirProfileJointSites
 	oldSiteRules := hirProfileSiteRules
 	oldSite, oldJoint, oldRules := hirProfileInvariantSites, hirProfileJoint, hirProfileIndependentRules
 	oldDir, oldFn, oldWork := hirProfileAutoDirectory, hirProfileAutoFunction, hirProfileAutoWorkload
 	t.Cleanup(func() {
 		hirProfileSiteRules = oldSiteRules
+		hirProfileJointSites = oldJointSites
 		hirProfileInvariantSites, hirProfileJoint, hirProfileIndependentRules = oldSite, oldJoint, oldRules
 		hirProfileAutoDirectory, hirProfileAutoFunction, hirProfileAutoWorkload = oldDir, oldFn, oldWork
 	})
@@ -37,6 +39,7 @@ func testHIRProfileInvariantCompilation(t *testing.T, siteRules bool) {
 		t.Fatal(err)
 	}
 	hirProfileSiteRules = siteRules
+	hirProfileJointSites = jointSites
 	hirProfileInvariantSites = true
 	hirProfileJoint = true
 	hirProfileIndependentRules = false
@@ -66,6 +69,9 @@ func testHIRProfileInvariantCompilation(t *testing.T, siteRules bool) {
 	schema, count := "minz.invariant-site-variant-sets/v1", 2
 	if siteRules {
 		schema, count = "minz.invariant-site-rule-variant-sets/v2", 4
+	}
+	if jointSites {
+		schema, count = "minz.joint-source-site-variant-sets/v3", 4
 	}
 	if e.Schema != schema || len(e.Candidates) != count || e.Selected != 1 {
 		t.Fatal("incorrect site selection", e.Selected)
@@ -106,5 +112,23 @@ func TestHIRProfileInvariantSiteRulesValidation(t *testing.T) {
 	hirProfileInvariantSites, hirProfileSiteRules = false, true
 	if validateHIRProfileAuto("a.nanz") == nil {
 		t.Fatal("site rules accepted without site selection")
+	}
+}
+
+func TestHIRProfileJointSitesCompilation(t *testing.T) {
+	testHIRProfileInvariantCompilation(t, false, true)
+}
+func TestHIRProfileJointSitesValidation(t *testing.T) {
+	oldJoint, oldSite, oldRules := hirProfileJointSites, hirProfileInvariantSites, hirProfileSiteRules
+	t.Cleanup(func() {
+		hirProfileJointSites, hirProfileInvariantSites, hirProfileSiteRules = oldJoint, oldSite, oldRules
+	})
+	hirProfileJointSites, hirProfileInvariantSites, hirProfileSiteRules = true, false, false
+	if validateHIRProfileAuto("a.nanz") == nil {
+		t.Fatal("joint sites without invariant mode accepted")
+	}
+	hirProfileInvariantSites, hirProfileSiteRules = true, true
+	if validateHIRProfileAuto("a.nanz") == nil {
+		t.Fatal("conflicting site modes accepted")
 	}
 }

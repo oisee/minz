@@ -1,0 +1,41 @@
+; HIR module: /tmp/minz-joint-site-artifacts/source.nanz
+global @checksum_calls : u8
+global @checksum_last : u16
+
+fun @weighted_checksum(ptr: ptr, n: u8, a: u16, b: u16, seed: u16) -> u16
+  var sum: u16 = (seed:u16)
+  var i: u8 = 0:u8
+  var __grace_base_0: u16 = ((a:u16) + (b:u16)):u16
+  while ((i:u8) < (n:u8)):bool
+    (sum:u16) = ((sum:u16) + (__grace_base_0:u16)):u16
+    (sum:u16) = ((sum:u16) + cast(((ptr:ptr))[(i:u8)]:u8):u16):u16
+    (i:u8) = ((i:u8) + 1:u8):u8
+  return (sum:u16)
+
+fun @record_checksum(value: u16) -> u16
+  (checksum_calls:u8) = ((checksum_calls:u8) + 1:u8):u8
+  (checksum_last:u16) = (value:u16)
+  return (value:u16)
+
+fun @checksum_packet(ptr: ptr, n: u8, a: u16, b: u16, seed: u16) -> u16
+  var value: u16 = call @weighted_checksum((ptr:ptr), (n:u8), (a:u16), (b:u16), (seed:u16)):u16
+  return call @record_checksum((value:u16)):u16
+
+fun @byte_sum(ptr: ptr, n: u8) -> u8
+  var s: u8 = 0:u8
+  var i: u8 = 0:u8
+  if (cast((ptr:ptr)):u16 <= (65535:u16 - cast((n:u8)):u16):u16):bool
+    foreach __grace_element_0: u8 in *((ptr:ptr))[0..(n:u8)]
+      (s:u8) = ((s:u8) + (__grace_element_0:u8)):u8
+    (i:u8) = (n:u8)
+  else
+    while ((i:u8) < (n:u8)):bool
+      (s:u8) = ((s:u8) + ((ptr:ptr))[(i:u8)]:u8):u8
+      (i:u8) = ((i:u8) + 1:u8):u8
+  return (s:u8)
+
+fun @checked_packet(ptr: ptr, n: u8, a: u16, b: u16, seed: u16) -> u16
+  var byte_value: u8 = call @byte_sum((ptr:ptr), (n:u8)):u8
+  var weighted: u16 = call @weighted_checksum((ptr:ptr), (n:u8), (a:u16), (b:u16), (seed:u16)):u16
+  return call @record_checksum(((weighted:u16) + cast((byte_value:u8)):u16):u16):u16
+

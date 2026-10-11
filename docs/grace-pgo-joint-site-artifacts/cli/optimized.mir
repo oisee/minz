@@ -1,0 +1,100 @@
+; MIR2 module: /tmp/minz-joint-site-artifacts/source.nanz
+global @checksum_calls : u8
+global @checksum_last : u16
+
+fun @weighted_checksum(%r1: ptr [pointer], %r2: u8 [general], %r3: u16 [index], %r4: u16 [index], %r5: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r6 = const 0 : u8 [general]
+    %r7 = add %r3, %r4 : u16 [pointer]
+    jmp @loop_head1(%r7, %r6, %r2, %r1, %r5)
+  block @loop_head1(%r8: u16 [pointer], %r9: u8 [general], %r10: u8 [general], %r11: ptr [general], %r12: u16 [pointer]):
+    %r13 = cmp.ult %r9, %r10 : bool [flag]
+    cond_ret %r13, [%r12], @loop_body2()
+  block @loop_body2:
+    %r14 = add %r12, %r8 : u16 [pointer]
+    %r15 = ext %r9 : u8 -> u16 [index]
+    %r16 = ptr_add %r11, %r15 : ptr [pointer]
+    %r17 = load %r16 : u8 [general]
+    %r18 = ext %r17 : u8 -> u16 [pointer]
+    %r19 = add %r14, %r18 : u16 [pointer]
+    %r20 = const 1 : u8 [general]
+    %r21 = add %r9, %r20 : u8 [general]
+    jmp @loop_head1(%r8, %r21, %r10, %r11, %r19)
+
+fun @record_checksum(%r27: u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    %r28 = addr_of @checksum_calls : ptr [pointer]
+    %r29 = load %r28 : u8 [general]
+    %r30 = const 1 : u8 [general]
+    %r31 = add %r29, %r30 : u8 [acc]
+    %r32 = addr_of @checksum_calls : ptr [pointer]
+    store %r32, %r31 : u8
+    %r33 = addr_of @checksum_last : ptr [pointer]
+    store %r33, %r27 : u16
+    ret %r27
+
+fun @checksum_packet(%r34: ptr [pointer], %r35: u8 [general], %r36: u16 [index], %r37: u16 [index], %r38: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r39 = move %r34 : ptr [pointer]
+    %r40 = move %r36 : u16 [index]
+    %r41 = move %r37 : u16 [index]
+    %r42 = move %r38 : u16 [index]
+    %r43 = call @weighted_checksum(%r39, %r35, %r40, %r41, %r42) : u16 [pointer]
+    %r44 = call @record_checksum(%r43) : u16 [pointer]
+    ret %r44
+
+fun @byte_sum(%r45: ptr [pointer], %r46: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r47 = const 0 : u8 [general]
+    %r48 = const 0 : u8 [general]
+    %r49 = const 65535 : u16 [pointer]
+    %r50 = ext %r46 : u8 -> u16 [pointer]
+    %r51 = sub %r49, %r50 : u16 [pointer]
+    %r52 = cmp.ule %r45, %r51 : bool [flag]
+    br_if %r52, @if_then1(), @if_else3()
+  block @if_then1:
+    %r54 = move %r45 : ptr [pointer]
+    %r55 = const 0 : u8 [acc]
+    %r56 = const 1 : u8 [counter]
+    jmp @fe_head4(%r54, %r46, %r47)
+  block @fe_head4(%r57: ptr [pointer], %r58: u8 [counter], %r59: u8 [general]):
+    %r60 = cmp.ne %r58, %r55 : bool [flag]
+    br_if %r60, @fe_body5(), @fe_exit7(%r59)
+  block @fe_body5:
+    %r61 = load %r57 : u8 [general]
+    %r62 = add %r59, %r61 : u8 [general]
+    %r63 = ptr_bump %r57, +1 : ptr [pointer]
+    %r64 = sub %r58, %r56 : u8 [counter]
+    jmp @fe_head4(%r63, %r64, %r62)
+  block @fe_exit7(%r67: u8 [general]):
+    ret %r67
+  block @if_else3:
+    jmp @loop_head8(%r48, %r46, %r45, %r47)
+  block @loop_head8(%r68: u8 [general], %r69: u8 [general], %r70: ptr [general], %r71: u8 [general]):
+    %r72 = cmp.ult %r68, %r69 : bool [flag]
+    br_if %r72, @loop_body9(), @loop_exit10(%r68, %r71)
+  block @loop_body9:
+    %r73 = ext %r68 : u8 -> u16 [index]
+    %r74 = ptr_add %r70, %r73 : ptr [pointer]
+    %r75 = load %r74 : u8 [general]
+    %r76 = add %r71, %r75 : u8 [general]
+    %r77 = const 1 : u8 [general]
+    %r78 = add %r68, %r77 : u8 [general]
+    jmp @loop_head8(%r78, %r69, %r70, %r76)
+  block @loop_exit10(%r79: u8 [general], %r82: u8 [general]):
+    ret %r82
+
+fun @checked_packet(%r85: ptr [pointer], %r86: u8 [general], %r87: u16 [index], %r88: u16 [index], %r89: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r90 = move %r85 : ptr [pointer]
+    %r91 = call @byte_sum(%r90, %r86) : u8 [acc]
+    %r92 = move %r85 : ptr [pointer]
+    %r93 = move %r87 : u16 [index]
+    %r94 = move %r88 : u16 [index]
+    %r95 = move %r89 : u16 [index]
+    %r96 = call @weighted_checksum(%r92, %r86, %r93, %r94, %r95) : u16 [pointer]
+    %r97 = ext %r91 : u8 -> u16 [pointer]
+    %r98 = add %r96, %r97 : u16 [pointer]
+    %r99 = call @record_checksum(%r98) : u16 [pointer]
+    ret %r99
+

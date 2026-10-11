@@ -1,0 +1,6 @@
+=== RUN   TestJointSourceSitesRejectIncompleteLineage
+--- PASS: TestJointSourceSitesRejectIncompleteLineage (0.00s)
+=== RUN   TestJointSourceSitesUnobservedLoops
+--- PASS: TestJointSourceSitesUnobservedLoops (0.22s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.223s

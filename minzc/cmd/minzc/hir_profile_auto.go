@@ -15,8 +15,12 @@ var hirProfileJoint bool
 var hirProfileIndependentRules bool
 var hirProfileInvariantSites bool
 var hirProfileSiteRules bool
+var hirProfileJointSites bool
 
 func validateHIRProfileAuto(source string) error {
+	if hirProfileJointSites && (!hirProfileInvariantSites || hirProfileSiteRules) {
+		return fmt.Errorf("HIR joint sites: requires --hir-profile-invariant-sites and cannot combine with --hir-profile-site-rules")
+	}
 	if hirProfileSiteRules && !hirProfileInvariantSites {
 		return fmt.Errorf("HIR site rules: requires --hir-profile-invariant-sites")
 	}
@@ -141,6 +145,9 @@ func prepareHIRProfileJoint(m *hir.Module, factory func() (*hir.Module, error), 
 		measureSites := pipeline.MeasureInvariantSiteVariantSets
 		if hirProfileSiteRules {
 			measureSites = pipeline.MeasureInvariantSiteRuleVariantSets
+		}
+		if hirProfileJointSites {
+			measureSites = pipeline.MeasureJointSourceSiteVariantSets
 		}
 		sites, siteErr := measureSites(factory, observations, workload, options, 4)
 		if siteErr != nil {

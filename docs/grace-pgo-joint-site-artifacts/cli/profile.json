@@ -1,0 +1,83 @@
+{
+  "guards": [
+    {
+      "site_id": "1ab99b6de3e31cc7d1f48ce12532ff9eb3a57754c77183eb5f00847d480edf1f",
+      "equal_entries": 0,
+      "fast_entries": 30,
+      "fallback_entries": 0,
+      "fast_body_entries": 1705,
+      "fallback_body_entries": 0
+    }
+  ],
+  "compatibility": {
+    "schema": "minz.loop-profile-compatibility/v1",
+    "context": {
+      "compiler_id": "executable-sha256:52f922ef74adf087ff0463041f1df1394d6a4cf7468eaa69375c9fc97f5f82c4",
+      "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+      "target_id": "module-target:1/model:cpm-z80-v1",
+      "workload_sha256": "33357d89edf74d55eb41c584d517e5e5b625f23027c8eb8515dc69257df23b79",
+      "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+      "dependencies": {
+        "/tmp/minz-joint-site-artifacts/source.nanz": "79ebe88614b7046e16cca61b19c49003599f17e412c880570651c8a5cc72f8d5",
+        "alternating": "31f045af3774d02af7c8ba47a6ce102a042cd91c15db0cee54684615946aff2f",
+        "ff": "a601fb0d5ab33a2306d7d8be16896d12e9c9037e5e7b0559227d85e33f5e85ae",
+        "mismatch": "9ab8f84577f5ec1d5ca66a3ce53052889b1041ea6c77998f9a9f4a728f72a208",
+        "ramp": "37c09723e453af7a4473059e201b8ebcbc39e26049ed552ef19a5acab8130d6e",
+        "zero": "c9fa15b359ed57a35045306aa8aea60dc46a9777e9fc02e7f61724d739df2753"
+      }
+    },
+    "hir_sha256": "645fb2662bf7a14fbd95e4f62003c751861a117ea3c6577f50e4d8c3bd1139e4",
+    "origins_sha256": "7580c84cd9baa69cd85338e64ff487877c9f60155c2a7808b878b02a613ef7e2"
+  },
+  "schema": "minz.input-hir-loop-observations/v4",
+  "stage": "unoptimised-mir2-vm",
+  "sites": {
+    "schema": "minz.hir-loop-sites/v1",
+    "stage": "input-hir",
+    "sites": [
+      {
+        "id": "1ab99b6de3e31cc7d1f48ce12532ff9eb3a57754c77183eb5f00847d480edf1f",
+        "function": "byte_sum",
+        "kind": "while",
+        "ordinal": 0,
+        "hir_path": "body/s2",
+        "origin": {
+          "unit": "/tmp/minz-joint-site-artifacts/source.nanz",
+          "byte_offset": 976,
+          "line": 33,
+          "byte_column": 2,
+          "source_sha256": "79ebe88614b7046e16cca61b19c49003599f17e412c880570651c8a5cc72f8d5"
+        }
+      },
+      {
+        "id": "e6aed19a5c1306b91c13947acaef3af5fe4c34329bd85ded7188aa6c7f38998c",
+        "function": "weighted_checksum",
+        "kind": "while",
+        "ordinal": 0,
+        "hir_path": "body/s2",
+        "origin": {
+          "unit": "/tmp/minz-joint-site-artifacts/source.nanz",
+          "byte_offset": 423,
+          "line": 10,
+          "byte_column": 5,
+          "source_sha256": "79ebe88614b7046e16cca61b19c49003599f17e412c880570651c8a5cc72f8d5"
+        }
+      }
+    ],
+    "unmapped_loops": 0
+  },
+  "counts": [
+    {
+      "site_id": "1ab99b6de3e31cc7d1f48ce12532ff9eb3a57754c77183eb5f00847d480edf1f",
+      "entries": 30,
+      "body_entries": 1705
+    },
+    {
+      "site_id": "e6aed19a5c1306b91c13947acaef3af5fe4c34329bd85ded7188aa6c7f38998c",
+      "entries": 30,
+      "body_entries": 1705
+    }
+  ],
+  "completed_calls": 30,
+  "failed_calls": 0
+}

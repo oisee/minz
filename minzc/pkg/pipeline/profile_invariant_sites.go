@@ -30,17 +30,18 @@ type InvariantSiteVariantSetCandidate struct {
 // InvariantSiteVariantSetEvidence binds all candidates and the selected index.
 // SHA256 is the digest of its JSON with SHA256 omitted.
 type InvariantSiteVariantSetEvidence struct {
-	Schema        string                             `json:"schema"`
-	Compatibility *hir.ProfileCompatibility          `json:"compatibility"`
-	CompilationID string                             `json:"compilation_id"`
-	Options       Options                            `json:"options"`
-	AssemblerMode string                             `json:"assembler_mode"`
-	MaxSites      int                                `json:"max_sites"`
-	EligibleSites []string                           `json:"eligible_invariant_sites"`
-	Oracle        *hir.ProfileRun                    `json:"oracle"`
-	Candidates    []InvariantSiteVariantSetCandidate `json:"candidates"`
-	Selected      int                                `json:"selected"`
-	SHA256        string                             `json:"sha256,omitempty"`
+	Schema               string                             `json:"schema"`
+	Compatibility        *hir.ProfileCompatibility          `json:"compatibility"`
+	CompilationID        string                             `json:"compilation_id"`
+	Options              Options                            `json:"options"`
+	AssemblerMode        string                             `json:"assembler_mode"`
+	MaxSites             int                                `json:"max_sites"`
+	EligibleSites        []string                           `json:"eligible_invariant_sites"`
+	Oracle               *hir.ProfileRun                    `json:"oracle"`
+	Candidates           []InvariantSiteVariantSetCandidate `json:"candidates"`
+	Selected             int                                `json:"selected"`
+	EligiblePointerSites []string                           `json:"eligible_pointer_sites,omitempty"`
+	SHA256               string                             `json:"sha256,omitempty"`
 }
 
 // MeasureInvariantSiteVariantSets independently enumerates observed legal scalar
@@ -53,7 +54,7 @@ type InvariantSiteVariantSetEvidence struct {
 // invocation costs (or module bytes for OptSize) choose the retained winner;
 // strict improvement is required, so the all-original baseline wins ties.
 func MeasureInvariantSiteVariantSets(factory func() (*hir.Module, error), observations []byte, workload hir.ProfileWorkload, options Options, maxSites int) (*InvariantSiteVariantSetResult, error) {
-	return measureInvariantSiteVariantSets(factory, observations, workload, options, maxSites, false)
+	return measureInvariantSiteVariantSets(factory, observations, workload, options, maxSites, false, false)
 }
 
 // MeasureInvariantSiteRuleVariantSets crosses per-source-loop scalar hoists with
@@ -61,10 +62,17 @@ func MeasureInvariantSiteVariantSets(factory func() (*hir.Module, error), observ
 // choices remain original; incomplete first-pass requests fail closed, including
 // requests deleted or starved by constant-if. The v1 API remains unchanged.
 func MeasureInvariantSiteRuleVariantSets(factory func() (*hir.Module, error), observations []byte, workload hir.ProfileWorkload, options Options, maxSites int) (*InvariantSiteVariantSetResult, error) {
-	return measureInvariantSiteVariantSets(factory, observations, workload, options, maxSites, true)
+	return measureInvariantSiteVariantSets(factory, observations, workload, options, maxSites, true, false)
 }
 
-func measureInvariantSiteVariantSets(factory func() (*hir.Module, error), observations []byte, workload hir.ProfileWorkload, options Options, maxSites int, independentRules bool) (*InvariantSiteVariantSetResult, error) {
+// MeasureJointSourceSiteVariantSets crosses scalar source-loop hoists, pointer
+// walks and constant-if off/on. Four total source sites bound the search to32
+// candidates. Overlapping original sites are refused until composition is proved.
+func MeasureJointSourceSiteVariantSets(factory func() (*hir.Module, error), observations []byte, workload hir.ProfileWorkload, options Options, maxSites int) (*InvariantSiteVariantSetResult, error) {
+	return measureInvariantSiteVariantSets(factory, observations, workload, options, maxSites, true, true)
+}
+
+func measureInvariantSiteVariantSets(factory func() (*hir.Module, error), observations []byte, workload hir.ProfileWorkload, options Options, maxSites int, independentRules, jointPointers bool) (*InvariantSiteVariantSetResult, error) {
 	fail := func(err error) (*InvariantSiteVariantSetResult, error) {
 		return nil, fmt.Errorf("measure invariant site variant sets: %w", err)
 	}
@@ -147,11 +155,31 @@ func measureInvariantSiteVariantSets(factory func() (*hir.Module, error), observ
 		}
 	}
 	sort.Strings(eligible)
+	pointerSites := []string{}
+	if jointPointers {
+		guards := map[string]bool{}
+		for _, g := range profile.Guards {
+			guards[g.SiteID] = true
+		}
+		for _, site := range profile.Sites.Sites {
+			if observed[site.ID] && guards[site.ID] {
+				if seenLegal[site.ID] {
+					return fail(fmt.Errorf("overlapping pointer/invariant source site %s requires composition proof", site.ID))
+				}
+				pointerSites = append(pointerSites, site.ID)
+			}
+		}
+		sort.Strings(pointerSites)
+	}
+	dimensions := len(eligible) + len(pointerSites)
+	if dimensions > maxSites {
+		return fail(fmt.Errorf("%d combined source sites exceed cap %d", dimensions, maxSites))
+	}
 	if len(eligible) > maxSites {
 		return fail(fmt.Errorf("%d observed eligible sites exceed cap %d (maximum 4 sites/16 sets)", len(eligible), maxSites))
 	}
 	// Preflight all factory inputs before any compilation or execution.
-	candidateCount := 1 << len(eligible)
+	candidateCount := 1 << dimensions
 	if independentRules {
 		candidateCount *= 2
 	}
@@ -188,25 +216,40 @@ func measureInvariantSiteVariantSets(factory func() (*hir.Module, error), observ
 	if independentRules {
 		e.Schema = "minz.invariant-site-rule-variant-sets/v2"
 	}
+	if jointPointers {
+		e.Schema = "minz.joint-source-site-variant-sets/v3"
+		e.EligiblePointerSites = pointerSites
+	}
 	e.Options.GraceStats = nil
 	compiled := make([]Steps, len(modules))
 	for mask, m := range modules {
-		constantIf := independentRules && mask >= 1<<len(eligible)
+		constantIf := independentRules && mask >= 1<<dimensions
 		m.GraceRulePolicy = map[string]bool{"hir-constant-if": constantIf, "hir-invariant-base": true}
 		choices := map[string]bool{}
 		for j, id := range eligible {
-			choices[id] = mask&(1<<(len(eligible)-1-j)) != 0
+			choices[id] = mask&(1<<(dimensions-1-j)) != 0
+		}
+		pointerChoices := map[string]bool{}
+		for j, id := range pointerSites {
+			pointerChoices[id] = mask&(1<<(len(pointerSites)-1-j)) != 0
 		}
 		m.InvariantBasePolicy = choices
 		decisions := make([]hir.ProfileDecision, 0, len(profile.Sites.Sites))
 		for _, s := range profile.Sites.Sites {
-			decisions = append(decisions, hir.ProfileDecision{Compatibility: key, SiteID: s.ID, Variant: "original", Reason: "independent scalar invariant site search; pointer choices original"})
+			variant, reason := "original", "independent scalar invariant site search; pointer choices original"
+			if jointPointers {
+				reason = "jointly measured source-site choices"
+				if pointerChoices[s.ID] {
+					variant = "pointer-walk"
+				}
+			}
+			decisions = append(decisions, hir.ProfileDecision{Compatibility: key, SiteID: s.ID, Variant: variant, Reason: reason})
 		}
 		if err := hir.ApplyProfileDecisions(m, decisions); err != nil {
 			return fail(err)
 		}
 		lineage := hir.CurrentLoopLineage(m)
-		if err := invariantSitesFullyRealized(m, lineage, choices); err != nil {
+		if err := jointSourceSitesFullyRealized(m, lineage, choices, pointerChoices); err != nil {
 			return fail(fmt.Errorf("candidate %d: %w", mask, err))
 		}
 		hirDump := m.Dump()
@@ -228,7 +271,7 @@ func measureInvariantSiteVariantSets(factory func() (*hir.Module, error), observ
 		if err != nil || !jointSameState(finalRaw, oracle) {
 			return fail(fmt.Errorf("candidate %d postcompile raw semantic mismatch: %v", mask, err))
 		}
-		if err := invariantSitesFullyRealized(m, finalLineage, choices); err != nil {
+		if err := jointSourceSitesFullyRealized(m, finalLineage, choices, pointerChoices); err != nil {
 			return fail(fmt.Errorf("candidate %d postcompile: %w", mask, err))
 		}
 		assembled, err := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + steps.Assembly)
@@ -284,16 +327,36 @@ func measureInvariantSiteVariantSets(factory func() (*hir.Module, error), observ
 
 // Reject any unrequested hoist or pointer rewrite as well as missing requests.
 func invariantSitesRealized(lineage []hir.LoopLineageRecord, requested map[string]bool) error {
+	return jointSourceSitesRealized(lineage, requested, nil)
+}
+
+func jointSourceSitesRealized(lineage []hir.LoopLineageRecord, requested, pointers map[string]bool) error {
 	applied := map[string]bool{}
+	pointerFast, pointerFallback := map[string]int{}, map[string]int{}
 	for _, l := range lineage {
 		if l.Lineage.Rule == "hir-guarded-pointer-walk" {
-			return fmt.Errorf("unexpected pointer rewrite at %s", l.Lineage.SiteID)
+			if !pointers[l.Lineage.SiteID] {
+				return fmt.Errorf("unexpected pointer rewrite at %s", l.Lineage.SiteID)
+			}
+			switch l.Lineage.Role {
+			case "fast":
+				pointerFast[l.Lineage.SiteID]++
+			case "fallback":
+				pointerFallback[l.Lineage.SiteID]++
+			default:
+				return fmt.Errorf("invalid pointer lineage role at %s", l.Lineage.SiteID)
+			}
 		}
 		if l.Lineage.Rule == "hir-invariant-base" || l.Lineage.Role == "invariant-base" {
 			if l.Lineage.Rule != "hir-invariant-base" || l.Lineage.Role != "invariant-base" || !requested[l.Lineage.SiteID] {
 				return fmt.Errorf("unrequested invariant hoist at %s", l.Lineage.SiteID)
 			}
 			applied[l.Lineage.SiteID] = true
+		}
+	}
+	for id, want := range pointers {
+		if want && (pointerFast[id] != 1 || pointerFallback[id] != 1) || !want && (pointerFast[id] != 0 || pointerFallback[id] != 0) {
+			return fmt.Errorf("requested pointer choice was not realized for %s", id)
 		}
 	}
 	for id, want := range requested {
@@ -307,7 +370,11 @@ func invariantSitesRealized(lineage []hir.LoopLineageRecord, requested map[strin
 // A lineage marker proves a rewrite occurred, but not that every legal addition
 // at the selected site was hoisted before a Grace rewrite budget ran out.
 func invariantSitesFullyRealized(m *hir.Module, lineage []hir.LoopLineageRecord, requested map[string]bool) error {
-	if err := invariantSitesRealized(lineage, requested); err != nil {
+	return jointSourceSitesFullyRealized(m, lineage, requested, nil)
+}
+
+func jointSourceSitesFullyRealized(m *hir.Module, lineage []hir.LoopLineageRecord, requested, pointers map[string]bool) error {
+	if err := jointSourceSitesRealized(lineage, requested, pointers); err != nil {
 		return err
 	}
 	remaining, err := hir.RemainingInvariantBaseSites(m)
