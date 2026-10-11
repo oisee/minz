@@ -1,0 +1,56 @@
+{
+  "stale-executable.json": [
+    {
+      "path": "/compatibility/context/compiler_id",
+      "original": "executable-sha256:1bd95516f7b1ef1ba56c17822104936e2b73fe8bde5fe7368dd128811009f041",
+      "actual": "executable-sha256:852cf9a5e47c4440bf1d10b286a6f49f702ab2f5bb1cf7765dd84871b2da6c3a"
+    },
+    {
+      "path": "/context/compiler_id",
+      "original": "executable-sha256:1bd95516f7b1ef1ba56c17822104936e2b73fe8bde5fe7368dd128811009f041",
+      "actual": "executable-sha256:852cf9a5e47c4440bf1d10b286a6f49f702ab2f5bb1cf7765dd84871b2da6c3a"
+    }
+  ],
+  "synthetic-cumulative-mismatch.json": [
+    {
+      "path": "/counts/0/entries",
+      "original": 1,
+      "actual": 2
+    }
+  ],
+  "synthetic-failed-invocation.json": [
+    {
+      "path": "/invocations/1/observation/error",
+      "original": "",
+      "actual": "synthetic supplied invocation failure claim"
+    },
+    {
+      "path": "/invocations/1/completed",
+      "original": true,
+      "actual": false
+    }
+  ],
+  "synthetic-failed-sample.json": [
+    {
+      "path": "/completed_calls",
+      "original": 2,
+      "actual": 1
+    },
+    {
+      "path": "/failed_calls",
+      "original": 0,
+      "actual": 1
+    },
+    {
+      "path": "/invocations/1/observation/error",
+      "original": "",
+      "actual": "synthetic supplied-profile failure claim"
+    },
+    {
+      "path": "/invocations/1/completed",
+      "original": true,
+      "actual": false
+    }
+  ],
+  "valid-current.json": []
+}

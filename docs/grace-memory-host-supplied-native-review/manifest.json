@@ -1,5 +1,8 @@
 {
   "files_sha256": {
-    "PLAN.md": "c8b24419f254be3cebdde5f8b1a8e1ff8c08d36db3a8394e68c9e1e74c234ffb"
+    "INPUT_REVIEW.md": "5292c0b9a2175d20967455811a76dec077a7b3097f20a9b1b897770e873d3d01",
+    "PLAN.md": "c8b24419f254be3cebdde5f8b1a8e1ff8c08d36db3a8394e68c9e1e74c234ffb",
+    "input-inventory.json": "af310fe88f7b44fa540fb6e6730ee46d10cffea5cec9a31aca5693f98ae2a9f3",
+    "input-mutations.json": "9a09c576621f9368301bf447767ec984ced401e07c71d60270973cd00999692b"
   }
 }
