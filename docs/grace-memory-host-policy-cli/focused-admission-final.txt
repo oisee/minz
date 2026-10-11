@@ -1,0 +1,18 @@
+=== RUN   TestPolicyCLIAdmission
+--- PASS: TestPolicyCLIAdmission (0.01s)
+=== RUN   TestPolicyCLIPathAliases
+=== RUN   TestPolicyCLIPathAliases/source
+=== RUN   TestPolicyCLIPathAliases/workload
+=== RUN   TestPolicyCLIPathAliases/association
+=== RUN   TestPolicyCLIPathAliases/output
+--- PASS: TestPolicyCLIPathAliases (0.01s)
+    --- PASS: TestPolicyCLIPathAliases/source (0.00s)
+    --- PASS: TestPolicyCLIPathAliases/workload (0.00s)
+    --- PASS: TestPolicyCLIPathAliases/association (0.00s)
+    --- PASS: TestPolicyCLIPathAliases/output (0.01s)
+=== RUN   TestPolicyCLIMalformedAssociationAndImports
+--- PASS: TestPolicyCLIMalformedAssociationAndImports (0.06s)
+=== RUN   TestPolicyCLILegacyRouteUnchanged
+--- PASS: TestPolicyCLILegacyRouteUnchanged (0.01s)
+PASS
+ok  	github.com/minz/minzc/cmd/minzc	0.101s
