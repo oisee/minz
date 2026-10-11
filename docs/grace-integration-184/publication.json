@@ -5,7 +5,10 @@
   "deployment_id": "appgdep_6acc12a52330819187cb81b7f07272a7",
   "version_id": "appgprj_6aca41311f188191b08d000f04498106~appgver_b11080cdd7508191a8b55bbdc6f19890",
   "url": "https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site",
-  "local_share_copy_status": "copy/hash process running session1994; completeness not yet claimed",
+  "local_share_copy_status": "verified complete:9890files/253494209bytes",
   "archive": "/home/alice/dev/minz-artifacts/grace-reports/2026-10-11/minz-site-v68-reduced.tar.gz",
-  "archive_note": "Hosted tuple archive excludes retained test executable; full repository/share packet preserves it. Initial package rejected expandedlimit; reduced requiredassets package deployed."
+  "archive_note": "Hosted tuple archive excludes retained test executable; full repository/share packet preserves it. Initial package rejected expandedlimit; reduced requiredassets package deployed.",
+  "manifest_local": "/home/alice/dev/minz-artifacts/grace-reports/2026-10-11/site-v68-manifest.json",
+  "manifest_share": "/mnt/safe/minz/grace/2026-10-11/site-and-artifacts/site-v68-manifest.json",
+  "archive_sha256": "47b0aaeb6645a57fd28d5ec6549e657034b1cd8f6da48195ad10fdee21b7b6bd"
 }
