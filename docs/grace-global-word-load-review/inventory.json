@@ -4,6 +4,10 @@
     "sha256": "e19bf3d05c3cbbdd28f56e73d21d7ab77440d2b8a71edb5b91f9f77dfa5e8902"
   },
   {
+    "path": "docs/grace-global-word-load-review/FRESH-CLI-AUDIT.md",
+    "sha256": "f5e2f8c5bdffaa0994de79620c41f894ad737f88eb45c67dc874984742ed9bd2"
+  },
+  {
     "path": "docs/grace-global-word-load-review/PLAN.md",
     "sha256": "b24e2acb436112acf599faedd3ed6146d7be91ef08a4ec6a76df58f75223e595"
   },
@@ -16,12 +20,28 @@
     "sha256": "da9748f52b5c31046ef1d9865ddd33bec39958fa6e16281663e4de1724768e8f"
   },
   {
+    "path": "docs/grace-global-word-load-review/audit_fresh_cli.py",
+    "sha256": "dcf0ccc83b71631d673e3afd4075c7186905c6022fb7d7943ed2015557903c4d"
+  },
+  {
     "path": "docs/grace-global-word-load-review/final-audit.json",
     "sha256": "b56cd7993f6ad89b2b3103bdbdf1b33aeaea051c45e031b6d41a0990488fd62f"
   },
   {
     "path": "docs/grace-global-word-load-review/final-audit.txt",
     "sha256": "38877f58a9a2fb5776d4a7d69595fda9a34a983374c712b6e90c0ca9d59c03df"
+  },
+  {
+    "path": "docs/grace-global-word-load-review/fresh-cli-audit.json",
+    "sha256": "5343460c307cc65f09dc2e53ac800c9cb0fec845729f538d5c82338eb994548e"
+  },
+  {
+    "path": "docs/grace-global-word-load-review/fresh-cli-audit.txt",
+    "sha256": "ccc8ebae881a46139dbd74679f87733123ee6e21157878002d879ae28df900d9"
+  },
+  {
+    "path": "docs/grace-global-word-load-review/model/audit_profile.py",
+    "sha256": "50814a6c4b56c341836bf58803cf14cb23918e74d92973b0bfb04d0217a37531"
   },
   {
     "path": "docs/grace-global-word-load-review/model/verify_corpus.py",
