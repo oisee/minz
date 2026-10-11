@@ -1,0 +1,14 @@
+package main
+import("fmt";"github.com/minz/minzc/pkg/mir2")
+func main(){
+ m:=&mir2.Module{};target:=m.AddFunc("take");target.Contract.Params=[]mir2.Param{{Name:"x",Reg:target.AllocReg(),Ty:mir2.TyU16,Class:mir2.ClassPointer}};bb:=mir2.NewBuilder(target);bb.SwitchToNewBlock("entry");bb.Ret()
+ caller:=m.AddFunc("caller");b:=mir2.NewBuilder(caller);b.SwitchToNewBlock("entry");b.CallVoid("take",nil,mir2.CallAttrs{});b.Ret();fmt.Println("missing ordinary argument Verify:",mir2.Verify(m))
+ effects:=m.AddFunc("store_byte");effects.Contract.Params=[]mir2.Param{{Name:"ptr",Reg:effects.AllocReg(),Ty:mir2.TyPtr,Class:mir2.ClassPointer}};effects.Contract.Returns=[]mir2.Return{{Ty:mir2.TyU8,Class:mir2.ClassAcc}};b=mir2.NewBuilder(effects);b.SwitchToNewBlock("entry");v:=b.Const(9,mir2.TyU8,mir2.ClassGeneral);b.Store(effects.Contract.Params[0].Reg,v,mir2.TyU8);b.Ret(v)
+ fold:=m.AddFunc("fold");fold.Contract.Returns=[]mir2.Return{{Ty:mir2.TyU8,Class:mir2.ClassAcc}};b=mir2.NewBuilder(fold);b.SwitchToNewBlock("entry");p:=b.Const(0,mir2.TyPtr,mir2.ClassPointer);r:=b.Call("store_byte",[]mir2.Reg{p},mir2.TyU8,mir2.ClassAcc,mir2.CallAttrs{});b.Ret(r)
+ vm:=mir2.NewVM(m);vm.AllocHeap([]byte{0});res,err:=vm.Call("fold",nil);fmt.Println("before fold result/memory",res,vm.ReadHeap(0,1),err)
+ fmt.Println("ConstantCallElim changed",mir2.ConstantCallElim(m,fold));fmt.Println(m.Dump())
+ local:=m.AddFunc("local");local.Contract.Returns=[]mir2.Return{{Ty:mir2.TyPtr,Class:mir2.ClassPointer}};b=mir2.NewBuilder(local);b.SwitchToNewBlock("entry");q:=b.Alloca(1);v2:=b.Const(17,mir2.TyU8,mir2.ClassGeneral);b.Store(q,v2,mir2.TyU8);b.Ret(q)
+ use:=m.AddFunc("use_local");use.Contract.Returns=[]mir2.Return{{Ty:mir2.TyU8,Class:mir2.ClassAcc}};b=mir2.NewBuilder(use);b.SwitchToNewBlock("entry");q2:=b.Call("local",nil,mir2.TyPtr,mir2.ClassPointer,mir2.CallAttrs{});read:=b.Load(q2,mir2.TyU8,mir2.ClassAcc);b.Ret(read)
+ vm=mir2.NewVM(m);res,err=vm.Call("use_local",nil);fmt.Println("local before",res,err);fmt.Println("local fold changed",mir2.ConstantCallElim(m,use));vm=mir2.NewVM(m);res,err=vm.Call("use_local",nil);fmt.Println("local after",res,err)
+
+}
