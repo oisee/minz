@@ -53,10 +53,16 @@ func TestMemoryHostCallSpillBinding(t *testing.T) {
 	if _, _, e := resolveMemoryHostCallSpills(a, s, d, m, ar); e != nil {
 		t.Fatal(e)
 	}
-	for _, name := range []string{"call-id", "wrong-index", "result-home", "nonlive", "wide", "marker", "opcode", "unpaired", "allocation"} {
+	for _, name := range []string{"call-id", "wrong-index", "result-home", "nonlive", "wide", "marker", "opcode", "unpaired", "allocation", "call-binary", "call-target", "call-marker"} {
 		t.Run(name, func(t *testing.T) {
 			a, s, d, m, ar := callSpillTestFixture(t)
 			switch name {
+			case "call-binary":
+				a.Binary[18] ^= 1
+			case "call-target":
+				m.Funcs[0].Blocks[0].Insts[1].Sym = "missing"
+			case "call-marker":
+				a.Listing[6].SourceLine = "CALL other ; @minz-spill-call:f0_b0_i10"
 			case "call-id":
 				d[0].CallID = "f0_b0_i0"
 			case "wrong-index":
