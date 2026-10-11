@@ -377,6 +377,9 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.genCmp(inst)
 
 	case OpLoad:
+		if isSpill(g.loc(inst.Src[0])) {
+			defer g.saveWrittenScratch(inst)()
+		}
 		// Some byte loads need A as an encoding bridge, even though their
 		// allocated destination is elsewhere. Preserve the accumulator and
 		// flags, including live loop parameters, across that implicit scratch.
@@ -680,6 +683,9 @@ func (g *z80cg) genInst(inst *Inst) {
 		}
 
 	case OpStore:
+		if isSpill(g.loc(inst.Src[0])) {
+			defer g.saveWrittenScratch(inst)()
+		}
 		if g.ptrAddPushHL == inst.Src[0] {
 			defer func() {
 				g.emit("    POP HL         ; restore base ptr after store")
@@ -807,6 +813,22 @@ func (g *z80cg) genInst(inst *Inst) {
 		w := inst.Ty.Width()
 		// If ptr is spilled to a memory slot ($Fxxx), reload it into HL first.
 		if isSpill(ptr) {
+			// Loading the address into HL must not destroy the store value.
+			// DE temporarily owns any H/L value; restore its previous contents
+			// after the access even when no virtual register keeps DE live.
+			if val == "HL" || val == "H" || val == "L" {
+				g.emit("    PUSH DE")
+				g.emit("    PUSH HL")
+				g.emit("    POP DE")
+				if val == "HL" {
+					val = "DE"
+				} else if val == "H" {
+					val = "D"
+				} else {
+					val = "E"
+				}
+				defer func() { g.emit("    POP DE"); g.invalidate("DE") }()
+			}
 			g.emitNativeSpillf(ptr, 0, 2, false, "    LD HL, (%s)   ; reload spilled ptr", ptr)
 			g.invalidate("HL")
 			ptr = "HL"
@@ -1258,34 +1280,26 @@ func (g *z80cg) genInst(inst *Inst) {
 		g.invalidate(dst)
 
 	case OpAlloca:
-		// Reserve bytes on stack; dst = current SP.
-		// Z80 has no direct "LD rp, SP" (only the reverse LD SP,rp is valid).
-		// Use: LD HL,0 / ADD HL,SP (→ HL=SP), then copy to dst if needed.
-		n := inst.Imm
-		for range n {
+		// The object owns n bytes; temporary preservation lives below it.
+		// ADD HL,SP changes carry, so preserve AF even when only flags are live.
+		for range inst.Imm {
 			g.emit("    DEC SP")
 		}
-		switch dst {
-		case "HL":
-			g.emit("    LD HL, 0")
-			g.emit("    ADD HL, SP")
-		case "DE":
-			g.emit("    LD HL, 0")
-			g.emit("    ADD HL, SP")
-			g.emit("    EX DE, HL")
-		case "BC":
-			g.emit("    LD HL, 0")
-			g.emit("    ADD HL, SP")
-			g.emit("    LD B, H")
-			g.emit("    LD C, L")
-		default:
-			// Fallback for any other pair name — assume HL is safe here.
-			g.emit("    LD HL, 0")
-			g.emit("    ADD HL, SP")
-			if dst != "HL" {
-				g.emitf("    ; WARN: alloca dst=%s not handled, using HL", dst)
-			}
+		g.emit("    PUSH AF")
+		bias := 2
+		if dst != "HL" {
+			g.emit("    PUSH HL")
+			bias += 2
 		}
+		g.emitf("    LD HL, %d", bias)
+		g.emit("    ADD HL, SP")
+		if dst != "HL" {
+			g.emitMov(dst, "HL", 16)
+			g.emit("    POP HL")
+			g.invalidate("HL")
+		}
+		g.emit("    POP AF")
+		g.invalidate(dst)
 
 	case OpPatchSlot:
 		// Mutable immediate: emit initial value; the byte(s) after LD are patchable.

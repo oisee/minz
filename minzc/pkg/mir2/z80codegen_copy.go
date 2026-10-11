@@ -105,7 +105,7 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 	// Non-wide moves are resolved while all wide originals are on the stack.
 	var wide, narrow []parallelCopy
 	for _, c := range copies {
-		if c.ty.Width() >= 24 && !c.isImm && c.srcName != c.dstName {
+		if z80ValueWidth(c.ty) >= 24 && !c.isImm && c.srcName != c.dstName {
 			wide = append(wide, c)
 		} else {
 			narrow = append(narrow, c)
@@ -118,7 +118,7 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 					g.emit("    PUSH HL")
 					if bank == 0 {
 						g.loadSpill16("HL", c.srcName)
-					} else if c.ty.Width() == 24 {
+					} else if z80ValueWidth(c.ty) == 24 {
 						g.emit("    PUSH AF")
 						g.emitLD8("L", c.srcName+"+2")
 						g.emit("    LD H, 0")
@@ -142,7 +142,7 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 					g.emit("    EX (SP), HL")
 					if bank == 0 {
 						g.storeSpill16(c.dstName, "HL")
-					} else if c.ty.Width() == 24 {
+					} else if z80ValueWidth(c.ty) == 24 {
 						g.emit("    PUSH AF")
 						g.emitLD8(c.dstName+"+2", "L")
 						g.emit("    POP AF")
@@ -172,11 +172,11 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 	if partialOverlap {
 		var bytes []parallelCopy
 		for _, c := range copies {
-			if c.isImm || c.ty.Width() > 16 || c.srcName == "F" || c.dstName == "F" {
+			if c.isImm || z80ValueWidth(c.ty) > 16 || c.srcName == "F" || c.dstName == "F" {
 				bytes = append(bytes, c)
 				continue
 			}
-			if c.ty.Width() > 8 && (isPairReg(c.srcName) || isSpill(c.srcName)) &&
+			if z80ValueWidth(c.ty) > 8 && (isPairReg(c.srcName) || isSpill(c.srcName)) &&
 				(isPairReg(c.dstName) || isSpill(c.dstName)) {
 				srcHi, srcLo := highByte(c.srcName), lowByte(c.srcName)
 				dstHi, dstLo := highByte(c.dstName), lowByte(c.dstName)
@@ -289,7 +289,7 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 
 		// General cycle: break with a temporary.
 		m := &moves[first]
-		if m.ty.Width() <= 8 {
+		if z80ValueWidth(m.ty) <= 8 {
 			// u8 cycle: break by saving the first node's source to a scratch register.
 			//
 			// Walk BACKWARD through the cycle so we always read old values.
@@ -325,7 +325,7 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 				g.emit("    EX AF, AF'")
 				var pending []int
 				for i := range moves {
-					if moves[i].done || moves[i].ty.Width() > 8 {
+					if moves[i].done || z80ValueWidth(moves[i].ty) > 8 {
 						continue
 					}
 					pending = append(pending, i)
@@ -437,13 +437,13 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 				g.emitNativeSpillf(c.dstName, i, 1, true, "    LD (%s), A", addr)
 			}
 			g.emit("    EX AF, AF'")
-		} else if c.ty.Width() <= 8 {
+		} else if z80ValueWidth(c.ty) <= 8 {
 			g.emitf("    LD %s, %d", c.dstName, c.immVal&0xFF)
-		} else if c.ty.Width() >= 24 {
+		} else if z80ValueWidth(c.ty) >= 24 {
 			g.emitf("    LD %s, %d", c.dstName, c.immVal&0xFFFF)
 			g.emit("    EXX")
 			hiMask := int64(0xFFFF)
-			if c.ty.Width() == 24 {
+			if z80ValueWidth(c.ty) == 24 {
 				hiMask = 0xFF
 			}
 			g.emitf("    LD %s, %d", c.dstName, (c.immVal>>16)&hiMask)
@@ -462,7 +462,7 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 	}
 	if isZ80WideInt(ty) {
 		g.emitMov32(dst, src)
-		if ty.Width() == 24 && isPairReg(dst) {
+		if z80ValueWidth(ty) == 24 && isPairReg(dst) {
 			g.emit("    EXX")
 			g.emitLD8(highByte(dst), "0")
 			g.emit("    EXX")
@@ -472,7 +472,7 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 	// F register: cannot be accessed directly. Materialise flag→register or
 	// register→flag via the same logic as emitMov.
 	if src == "F" {
-		if g.emitKnownFlagCopy(dst, ty.Width()) {
+		if g.emitKnownFlagCopy(dst, z80ValueWidth(ty)) {
 			return
 		}
 		// Flag → register: SBC A,A materialises carry into A (0xFF/0x00).
@@ -499,7 +499,7 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 		g.invalidate("A")
 		return
 	}
-	if ty.Width() <= 8 {
+	if z80ValueWidth(ty) <= 8 {
 		switch {
 		case isSpill(src) && dst == "A":
 			g.emitNativeSpillf(src, 0, 1, false, "    LD A, (%s)", src)

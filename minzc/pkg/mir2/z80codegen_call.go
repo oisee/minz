@@ -361,7 +361,7 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 	}
 	// A byte result can use an unsaved pair only when its scratch byte does
 	// not hold a live value preserved by a narrow extern contract.
-	if !flagResult && len(results) == 1 && results[0].ty.Width() <= 8 && regToPairMap[results[0].dstName] != "" {
+	if !flagResult && len(results) == 1 && z80ValueWidth(results[0].ty) <= 8 && regToPairMap[results[0].dstName] != "" {
 		r := results[0]
 		for _, scratch := range []string{"E", "H", "L", "D", "B", "C"} {
 			if !savedPair[regToPairMap[scratch]] && !slices.ContainsFunc(protected, func(name string) bool {
@@ -436,7 +436,7 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 		if !ok {
 			continue
 		}
-		if r.ty.Width() > 8 {
+		if z80ValueWidth(r.ty) > 8 {
 			src := snapshot[regToPairMap[r.srcName]]
 			storeByte(src, o)
 			storeByte(src+1, o+1)
@@ -461,7 +461,7 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 		if savedPair[p] || p == "IX" || r.dstName == "A" {
 			continue
 		}
-		if r.ty.Width() <= 8 {
+		if z80ValueWidth(r.ty) <= 8 {
 			if r.srcName == "F" {
 				g.emitf("    LD A, (IX+%d)", snapshot["AF"])
 				g.emit("    AND 1")
@@ -481,7 +481,7 @@ func (g *z80cg) pickupCallResults(results []parallelCopy, saved []string, flagRe
 				g.emit("    PUSH HL")
 				g.emitf("    LD L, (IX+%d)", src)
 				g.emitf("    LD H, (IX+%d)", src+1)
-				g.emitMov(r.dstName, "HL", r.ty.Width())
+				g.emitMov(r.dstName, "HL", z80ValueWidth(r.ty))
 				g.emit("    POP HL")
 			} else {
 				g.emitf("    LD %s, (IX+%d)", lowByte(p), src)
@@ -557,7 +557,7 @@ func ReturnLocation(cls RegClass, ty Ty) string {
 // canonicalReturnLoc returns the physical register name where a return value of
 // the given class and type must reside on function exit (calling convention).
 func canonicalReturnLoc(cls RegClass, ty Ty) string {
-	w := ty.Width()
+	w := z80ValueWidth(ty)
 	switch cls {
 	case ClassFlag:
 		// Flag-return ABI: result lives in the CPU flag register (F), not in A.
@@ -609,7 +609,7 @@ func standardParamClass(ty Ty, pos int) RegClass {
 	if IsPointer(ty) {
 		return ClassPointer
 	}
-	if ty.Width() > 8 {
+	if z80ValueWidth(ty) > 8 {
 		if pos == 0 {
 			return ClassPointer // HL
 		}

@@ -103,7 +103,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 			if canonLoc.Kind == LocReg || canonLoc.Kind == LocIXY8 {
 				canon := canonLoc.Name
 				if canon != "" && canon != scratch {
-					g.emitMov(canon, scratch, bp.Ty.Width())
+					g.emitMov(canon, scratch, z80ValueWidth(bp.Ty))
 					g.comment("restore block param from scratch")
 				}
 			}
@@ -128,7 +128,7 @@ func (g *z80cg) genTerm(f *Func, t Term) {
 		// values share the same physical register after constant folding/PBQP
 		// (e.g. both [acc]=A), causing write-after-write clobber.
 		if len(t.Vals) == 1 && len(f.Contract.Returns) == 1 &&
-			(f.Contract.Returns[0].Ty == TyBool || (f.Contract.Returns[0].Ty.Width() <= 8 && collectRegInfo(f)[t.Vals[0]].Ty == TyBool)) &&
+			(f.Contract.Returns[0].Ty == TyBool || (z80ValueWidth(f.Contract.Returns[0].Ty) <= 8 && collectRegInfo(f)[t.Vals[0]].Ty == TyBool)) &&
 			f.Contract.Returns[0].Class != ClassFlag && g.loc(t.Vals[0]) == "F" {
 			g.emitFlagPredicateByte(g.condCode(f, t.Vals[0]))
 			if dst := canonicalReturnLoc(f.Contract.Returns[0].Class, TyBool); dst != "A" {
