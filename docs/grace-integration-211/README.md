@@ -5,3 +5,5 @@
 На шаре сохранён minzc delta08be2950→40041bd4: все10 изменённых code/test файлов SHA verified, включая C89 switch/PLM module literal regression и оригинальную evidence тестовую инфраструктуру. Exactbase snapshot имеет4524files и собственныйmanifest; delta не выдается за ещё один fullsnapshot.
 
 CLI31d6abd0 и pipeline29df08bb подтверждены live по своим handles; их epochs сохраняются отдельно. Общаяцель incomplete: unresolvedLizp policy/runtime/corpus ограничения, usefulLIRidentity transfer и свежиеterminal gates.
+
+Terminal core40041bd4: HIR28,651с/MIR2 70,579с/VIR2,470с PASS; NanzFAIL16,176с из-за stale evidenceSHA original_strings_pointer_plm_native_test послеverifiedPLMfollowup. ПолныйcorePASS не заявляется. Catalogrefresh025fe495 проверенfocusedPASS1,885с; полныйNanz повтор отдельноlive. Log сохранёнв212/core-before-catalog-refresh.txt.
