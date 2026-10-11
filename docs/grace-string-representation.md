@@ -68,6 +68,7 @@ backend этап ведётся отдельно; готовность пока 
 ## Артефакты
 
 - [Пакет первого и исправленного Steps native run](grace-string-representation-artifacts/manifest.json).
+- [Ошибка actual legacy route и причинная регрессия](grace-string-legacy-accumulator-artifacts/manifest.json).
 - [Общие gates и оставшиеся showcase failures](grace-string-parent-gate-artifacts/manifest.json).
 - [Текущее состояние ветки](grace-current-state.md).
 - [Ночная сводка](../reports/2026-10-11-011-overnight-summary.md).
