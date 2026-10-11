@@ -1,0 +1,6 @@
+=== RUN   TestMeasuredRuntimeRejectedBeforeFactory
+--- PASS: TestMeasuredRuntimeRejectedBeforeFactory (0.00s)
+=== RUN   TestDefaultRuntimeKeepsProfileIdentity
+--- PASS: TestDefaultRuntimeKeepsProfileIdentity (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.012s

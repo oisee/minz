@@ -5,3 +5,5 @@ f617aad9 интегрирован как ffe0f887. В конфликте CLI с�
 Это первый leaf-срез с resident 256-byte stack, не доказательство полного selfLanz и не исполнение настоящей CP/M OS. Stack usage внутри BDOS зависит от системы; приложение отдельно проверяет свой стек. Исходник, полный ASM/COM, executable SHA и full MIR2 proof предыдущего контекста сохранены в соседнем grace-cpm-leaf-runtime.
 
 Следующий runtime шаг: оригинальные tokenizer/selfLanz, явные byte-memory bindings, user calls и ограничение стека. Общая цель активна.
+
+Дополнительный API guard (`9639275a`): ProfileCompilationID отвергает непустой application Runtime до вызова source factory измерительного API. Два точных теста прошли за 0,012 с; zero Runtime остаётся omitted в JSON. CLI-проверки и обычный COM запуск остаются прежними. Это ограничение текущей измерительной модели, не отказ от дальнейшего измерения CP/M приложений.
