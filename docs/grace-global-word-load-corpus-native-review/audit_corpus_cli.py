@@ -5,7 +5,7 @@ root=Path(sys.argv[1]);exe=Path(sys.argv[2]);source=Path(sys.argv[3])
 def read(p):return p.read_bytes() if p.exists() else gzip.decompress(Path(str(p)+'.gz').read_bytes())
 def obj(p):return json.loads(read(p))
 def sha(b):return hashlib.sha256(b).hexdigest()
-identity=obj(root/'native-identity.json');assert identity['sha256']==sha(exe.read_bytes()) and identity['source_sha256']==sha(source.read_bytes())
+identity=obj(root/'input-identity.json');assert identity['exe_sha256']==sha(exe.read_bytes()) and identity['source_sha256']==sha(source.read_bytes())
 summary=[];contexts=set()
 for corpus in ['short-reuse','long-atoms','nested-mixed','fresh-dominant']:
  record={'corpus':corpus,'goals':{}}
@@ -17,8 +17,8 @@ for corpus in ['short-reuse','long-atoms','nested-mixed','fresh-dominant']:
   assert d['t_states']==t['total_t_states'] and d['bytes']==len(read(p/'selected.bin'))
   assert read(p/'source.nanz')==source.read_bytes() and obj(p/'workload.json')==s['association']['baseline']['workload']
   assert obj(p/'source-profile.json')==s['profile']
-  for c in s['candidates']:assert c['evidence']['compatibility']['context']['compiler_id']=='executable-sha256:'+identity['sha256']
-  assert s['profile']['context']['compiler_id']=='executable-sha256:'+identity['sha256']
+  for c in s['candidates']:assert c['evidence']['compatibility']['context']['compiler_id']=='executable-sha256:'+identity['exe_sha256']
+  assert s['profile']['context']['compiler_id']=='executable-sha256:'+identity['exe_sha256']
   contexts.add(s['association']['baseline']['compatibility']['context']['workload_sha256'])
   candidates=[{'mask':i,'t_states':c['evidence']['target']['total_t_states'],'bytes':len(base64.b64decode(c['evidence']['target']['binary'])),'binary_sha256':c['evidence']['target']['binary_sha256']} for i,c in enumerate(s['candidates'])]
   record['goals'][goal]={'selected':s['selected'],'candidates':candidates}
