@@ -1,0 +1,9 @@
+=== RUN   TestOriginalWidemathNativeModel
+    showcase_widemath_native_test.go:277: default {Entry:abs8 Args:[0] Expected:0 ExpectedMulti:[]} 105T native/raw/final model code/SP/RAM PASS
+    showcase_widemath_native_test.go:277: default {Entry:sign8 Args:[0] Expected:0 ExpectedMulti:[]} 167T native/raw/final model code/SP/RAM PASS
+    showcase_widemath_native_test.go:277: default {Entry:negate8 Args:[0] Expected:0 ExpectedMulti:[]} 49T native/raw/final model code/SP/RAM PASS
+    showcase_widemath_native_test.go:152: default raw call65 {Entry:abs16 Args:[32768] Expected:32768 ExpectedMulti:[]} got[{0}] want[32768]
+--- FAIL: TestOriginalWidemathNativeModel (0.05s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.055s
+FAIL
