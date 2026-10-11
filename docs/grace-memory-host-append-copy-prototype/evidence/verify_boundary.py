@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-import base64,json,gzip,hashlib,importlib.util
+import base64,json,gzip,hashlib,importlib.util,sys
+sys.dont_write_bytecode=True
 from pathlib import Path
 root=Path(__file__).resolve().parent
 spec=importlib.util.spec_from_file_location('oracle',root/'independent-proof-review/append_oracle.py');module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)

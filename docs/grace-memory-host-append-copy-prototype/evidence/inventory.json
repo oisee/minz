@@ -16,11 +16,6 @@
       "sha256": "6c1311b62b4c902d5c60d08b0a85e82b5dc7fbfa0b1e5d6ef61384fd9fbcf73e"
     },
     {
-      "path": "independent-proof-review/__pycache__/append_oracle.cpython-312.pyc",
-      "bytes": 6069,
-      "sha256": "921a7524a65f48636fb8f0f2dd42602aaede95645fd8abd63743eb4dc65def5f"
-    },
-    {
       "path": "independent-proof-review/append_oracle.py",
       "bytes": 4810,
       "sha256": "41ed1796bcdb51dcc7985884c97c6219644e9f110e622b410cd8e48729bf66c9"
@@ -507,8 +502,8 @@
     },
     {
       "path": "verify_boundary.py",
-      "bytes": 2275,
-      "sha256": "0c45c8b58d6a98b037389d148d229deb6791beb1dc57525b050403cfa7f49c14"
+      "bytes": 2308,
+      "sha256": "b4e87816d6aa97a3483ddf53ece3918cf43b22f5e2ac3d89275e17c68bc41a23"
     }
   ]
 }
