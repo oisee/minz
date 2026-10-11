@@ -97,3 +97,66 @@ func TestMemoryHostLoopProfileSourceIdentityAndMissingOrigins(t *testing.T) {
 		t.Fatal("unmapped source accepted")
 	}
 }
+
+func TestMemoryHostLoopProfileGasIsIncomplete(t *testing.T) {
+	m, w := memoryLoopFixture(t)
+	w.Calls = []hir.MemoryHostInvocation{{Function: "nested", Arguments: []int64{255, 0}}}
+	w.MaxSteps = 25
+	r, e := hir.RunMemoryHostLoopProfile(m, w)
+	if e == nil || r == nil || r.CompletedCalls != 0 || r.FailedCalls != 1 || len(r.Invocations) != 1 || r.Invocations[0].Completed || r.Invocations[0].Observation.Failure != nil || r.Invocations[0].Observation.Error == "" {
+		t.Fatal("gas failure attested as success or byte denial", r, e)
+	}
+	if r.Counts[0].Entries != 1 || r.Counts[0].BodyEntries == 0 || r.Counts[0].BodyEntries >= 255 {
+		t.Fatal("gas prefix lost", r.Counts)
+	}
+}
+func TestMemoryHostLoopProfileDetachedOriginsAndSourceChanges(t *testing.T) {
+	m, w := memoryLoopFixture(t)
+	w.Calls = w.Calls[:1]
+	a, e := hir.RunMemoryHostLoopProfile(m, w)
+	if e != nil {
+		t.Fatal(e)
+	}
+	changed, e := nanz.Parse(memoryLoopSrc+"\n// changed source unit\n", "memory-loop.nanz")
+	if e != nil {
+		t.Fatal(e)
+	}
+	b, e := hir.RunMemoryHostLoopProfile(changed, w)
+	if e != nil || reflect.DeepEqual(a.Compatibility, b.Compatibility) || a.Sites.Sites[0].Origin.SourceSHA256 == b.Sites.Sites[0].Origin.SourceSHA256 {
+		t.Fatal("source fingerprint missing", e)
+	}
+	var origin hir.SourceLocation
+	for _, l := range m.SourceLocations {
+		origin = l
+		break
+	}
+	m.SourceLocations[&hir.ReturnStmt{}] = origin
+	if r, e := hir.RunMemoryHostLoopProfile(m, w); e == nil || r != nil {
+		t.Fatal("detached provenance accepted")
+	}
+}
+func TestMemoryHostLoopProfileUserHookNamespaceIsNotAuthority(t *testing.T) {
+	m, w := memoryLoopFixture(t)
+	forged, e := nanz.Parse(memoryLoopSrc+"\n@extern fun __minz_loop_profile_0_entry()->void\n", "memory-loop.nanz")
+	if e != nil {
+		t.Fatal(e)
+	}
+	if r, e := hir.RunMemoryHostLoopProfile(forged, w); e == nil || r != nil {
+		t.Fatal("user hook prefix accepted")
+	}
+	// A normal same-named function is harmless: instrumentation must pick fresh
+	// names, not replace its definition or give it counter authority.
+	legal, e := nanz.Parse(memoryLoopSrc+"\nfun __minz_loop_profile_0_entry()->u8{return 7}\n", "memory-loop.nanz")
+	if e != nil {
+		t.Fatal(e)
+	}
+	w.Calls = w.Calls[:2]
+	a, e := hir.RunMemoryHostLoopProfile(m, w)
+	if e != nil {
+		t.Fatal(e)
+	}
+	b, e := hir.RunMemoryHostLoopProfile(legal, w)
+	if e != nil || len(b.Counts) != len(a.Counts) || b.Counts[0].Entries != a.Counts[0].Entries || b.Counts[0].BodyEntries != a.Counts[0].BodyEntries {
+		t.Fatal("fresh hook namespace failure", e)
+	}
+}
