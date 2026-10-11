@@ -20,7 +20,7 @@
 
 | Требование | Что доказано | Что ещё не доказано |
 |---|---|---|
-| Заявленный корпус | Все 194 пути имеют явный статус; 71 independent/bounded VM/Z80 paths | 66 ждут независимого оракула, остальные имеют отдельные ASM/runtime/host ограничения; bounded entry не означает всё приложение |
+| Заявленный корпус | Все 194 пути имеют явный статус; 73 independent/bounded VM/Z80 paths | 64 ждут независимого оракула, остальные имеют отдельные ASM/runtime/host ограничения; bounded entry не означает всё приложение |
 | PFCCO/PBQP и таблицы | Реальные назначения, moves/saves и native польза на packet/weighted; bounded solver audit | Произвольные calls/CFG/islands и глобальная оптимальность |
 | Автоматический выбор и heldout | Self-Lanz, HashMap и Pascal SORT: training-selected BIN проверен на заранее отложенных входах; packet даёт отдельный PFCCO выигрыш | Остальные runtime/corpus ограничения сохраняются; это не универсальный выигрыш на всех программах |
 | Полное удаление LIR и перенос пользы | Пакет/consumers удалены; shared engines/native тесты сохранены; word ×10/12, byte fusion и K11 перенесены с native пользой | Полнота общих physical constraints/pattern choices требует предметного аудита |
@@ -53,7 +53,7 @@ ASM/BIN/состояния/такты ([отчёт84](../reports/2026-10-11-084-
 Исторический полный pipeline `a7954042` — **PASS 3705,100 с**, до новых ABI изменений.
 Последний compile/assemble корпус на `30c2efda`: **193 PASS / 1 capacity SKIP**, 9,358 с ([пакет172](grace-integration-172/README.md));
 исполнение всех 194 программ этим не доказано. Текущий каталог —
-[пакет185](grace-integration-185/catalog.json). Эти проверки нельзя объединять в один current fullsuite PASS.
+[пакет189](grace-integration-189/catalog.json). Эти проверки нельзя объединять в один current fullsuite PASS.
 
 Исходные Lizp tokenizer whole-main, R5RS13entry и tuple3module имеют новые независимые
 bounded proofs ([пакет179](grace-integration-179/README.md)). VM `OpCallCond` исправлен
