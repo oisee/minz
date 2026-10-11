@@ -1,0 +1,5 @@
+{
+  "source_sha256": "9ccbcdab63a4ee8f77d87381a430a2983a3594711d7a22341f90bcbd3a5d0596",
+  "domain": "limits 0..32, selectors 0..255; unsigned-char arithmetic mod256; no overflow of controlling n, no unsequenced side effects",
+  "authority": "ISO C90 6.6.4 selection, 6.6.5 iteration, 6.3.2.4 postfix increment; sequence point at end of full expression (6.6)"
+}
