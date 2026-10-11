@@ -1,0 +1,26 @@
+{
+  "sources": {
+    "examples/plm/hello.plm": "fdb0a98768bdd5ad347c8220ed409e4f964230541712c8af9b0b4561d259b84c",
+    "reports/showcase-src/2026-03-14/ex27_strings.nanz": "d78bc089145ca00510fece9723c4881f3247206f2dadedbe549bffcbc350ef37",
+    "reports/showcase-src/2026-03-15/ex30_ptr_cast.nanz": "13faaea6fc8830bd48d9cb2463c68d5ae609fb8de51f0bbfce83b2303b743ade"
+  },
+  "strings": {
+    "greet": "Hello, World!",
+    "greet_pascal": "Pascal-style string",
+    "greet_long": "Long string with u16 prefix",
+    "multiline": "This is a\nmulti-line string\nwith triple quotes"
+  },
+  "ptr_values": "all256u8values",
+  "ptr_addresses": [
+    0,
+    1,
+    255,
+    256,
+    32768,
+    65534,
+    65535
+  ],
+  "ptr_main": "store42at8000 thenread42",
+  "plm_original": "PRINTCHAR empty placeholder; no actual console effect defined",
+  "plm_adapter": "explicit PRINTCHAR body/native+VM invocation observer plus processentry. Expected Hello from PL/M-80! then CRLF. Adapter not original unadaptedCPM success"
+}
