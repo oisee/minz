@@ -6,6 +6,7 @@ import (
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
+	"github.com/minz/minzc/pkg/pipeline"
 	"io"
 	"os"
 	"strings"
@@ -108,5 +109,66 @@ func TestLiteralPrintBuiltinBytesAndHygiene(t *testing.T) {
 		if uint16(b[0])|uint16(b[1])<<8 != v {
 			t.Fatal("source global changed", n, b)
 		}
+	}
+}
+
+func TestStringStorageAndPrintRawOptimizedVM(t *testing.T) {
+	for _, optimized := range []bool{false, true} {
+		t.Run(fmt.Sprint(optimized), func(t *testing.T) {
+			source := `global first_s:u8=0
+ global first_c:u8=0
+ global first_l:u8=0
+ fun show()->void {
+ let s:^u8="AB"
+ let c:^u8=c"AB"
+ let l:^u8=l"AB"
+ first_s=s^
+ first_c=c^
+ first_l=l^
+ @print("é\0B")
+ @print(l"X\0Y")
+ @print(c"!")
+ }`
+			h, e := nanz.Parse(source, "vm_formats.nanz")
+			if e != nil {
+				t.Fatal(e)
+			}
+			m := hir.LowerModule(h)
+			if optimized {
+				h, e = nanz.Parse(source, "vm_formats.nanz")
+				if e != nil {
+					t.Fatal(e)
+				}
+				steps, e := pipeline.CompileHIRSteps(h)
+				if e != nil {
+					t.Fatal(e)
+				}
+				m = steps.MIR2Module
+			}
+			vm := mir2.NewVM(m)
+			old := os.Stdout
+			r, w, e := os.Pipe()
+			if e != nil {
+				t.Fatal(e)
+			}
+			os.Stdout = w
+			_, ce := vm.Call("show", nil)
+			w.Close()
+			os.Stdout = old
+			out, e := io.ReadAll(r)
+			r.Close()
+			if e != nil || ce != nil {
+				t.Fatal(e, ce)
+			}
+			if !bytes.Equal(out, []byte{0xc3, 0xa9, 0, 66, 88, 0, 89, 33}) {
+				t.Fatalf("builtin raw bytes %x", out)
+			}
+			for n, v := range map[string]byte{"first_s": 2, "first_c": 65, "first_l": 2} {
+				b := vm.ReadHeap(vm.GlobalAddr(n), 1)
+				if len(b) != 1 || b[0] != v {
+					t.Fatalf("actual VMload %s %v", n, b)
+				}
+			}
+		})
 	}
 }

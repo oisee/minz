@@ -953,6 +953,17 @@ func (vm *VM) resolveSymbol(sym string) (int64, error) {
 		s := vm.Module.Strings.At(idx)
 		offset := int64(len(vm.heap))
 		kind := vm.Module.Strings.Kind(idx)
+		overhead := 1
+		if kind == StrLString {
+			overhead = 2
+		}
+		limit := vm.MaxMemory
+		if limit <= 0 {
+			limit = 65536
+		}
+		if len(vm.heap) > limit || len(s)+overhead > limit-len(vm.heap) {
+			return 0, fmt.Errorf("mir2.VM: string storage exceeds %d byte memory limit", limit)
+		}
 		switch kind {
 		case StrSString:
 			if len(s) > 255 {

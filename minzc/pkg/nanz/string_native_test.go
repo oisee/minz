@@ -77,3 +77,53 @@ func TestLiteralPrintingNative(t *testing.T) {
 		})
 	}
 }
+
+func TestLiteralStorageNative(t *testing.T) {
+	for _, c := range []struct {
+		name, lit string
+		want      []byte
+	}{{"s", `"AB"`, []byte{2, 65, 66}}, {"c", `c"AB"`, []byte{65, 66, 0}}, {"l", `l"AB"`, []byte{2, 0, 65, 66}}} {
+		t.Run(c.name, func(t *testing.T) {
+			source := fmt.Sprintf("global first:u8=0\nfun examine()->void {\n let p:^u8=%s\n first=p^\n}\n", c.lit)
+			h, e := nanz.Parse(source, "storage.nanz")
+			if e != nil {
+				t.Fatal(e)
+			}
+			steps, e := pipeline.CompileHIRSteps(h)
+			if e != nil {
+				t.Fatal(e)
+			}
+			a, e := z80asm.NewAssembler().AssembleString("ORG 0x0100\n LD SP,0xF000\n CALL examine\n storage_done:\n DI\n HALT\n" + steps.Assembly)
+			if e != nil {
+				t.Fatal(e)
+			}
+			if len(a.Errors) > 0 {
+				t.Fatal(a.Errors)
+			}
+			addr, ok := a.Symbols["_mir2_str_0"]
+			if !ok {
+				t.Fatal("pool symbol absent")
+			}
+			actual := a.Binary[addr-0x100 : addr-0x100+len(c.want)]
+			if !bytes.Equal(actual, c.want) {
+				t.Fatal("native pool encoding", actual, c.want)
+			}
+			z := emulator.NewRemogattoZ80()
+			z.MaxCycles = 1000000
+			if e = z.LoadMemory(0x100, a.Binary); e != nil {
+				t.Fatal(e)
+			}
+			z.SetPC(0x100)
+			if e = z.Run(); e != nil {
+				t.Fatal(e)
+			}
+			r := z.GetRegisters()
+			if r.SP != 0xF000 || int(r.PC) != a.Symbols["storage_done"]+2 {
+				t.Fatal("termination", r)
+			}
+			if z.GetMemory(uint16(a.Symbols["first"])) != c.want[0] {
+				t.Fatal("actual dereference first byte")
+			}
+		})
+	}
+}

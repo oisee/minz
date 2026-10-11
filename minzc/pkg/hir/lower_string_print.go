@@ -41,21 +41,40 @@ func (l *lowerer) lowerCountedStringPrint(ex *CallExpr) mir2.Reg {
 // Generated assignments must never resolve to a source global or binding.
 func (l *lowerer) freshStringPrintName(prefix string) string {
 	names := map[string]bool{}
+	visited := map[uintptr]bool{}
 	var scan func(reflect.Value)
 	scan = func(v reflect.Value) {
 		if !v.IsValid() {
 			return
 		}
+		if v.CanInterface() {
+			if _, ok := v.Interface().(mir2.Ty); ok {
+				return
+			}
+		}
 		switch v.Kind() {
-		case reflect.Pointer, reflect.Interface:
+		case reflect.Pointer:
+			if !v.IsNil() && !visited[v.Pointer()] {
+				visited[v.Pointer()] = true
+				scan(v.Elem())
+			}
+		case reflect.Interface:
 			if !v.IsNil() {
 				scan(v.Elem())
 			}
 		case reflect.Struct:
 			for i := 0; i < v.NumField(); i++ {
 				f := v.Field(i)
-				if v.Type().Field(i).Name == "Name" && f.Kind() == reflect.String {
+				field := v.Type().Field(i).Name
+				if (field == "Name" || field == "Var") && f.Kind() == reflect.String {
 					names[f.String()] = true
+				}
+				if field == "Names" && f.Kind() == reflect.Slice {
+					for j := 0; j < f.Len(); j++ {
+						if f.Index(j).Kind() == reflect.String {
+							names[f.Index(j).String()] = true
+						}
+					}
 				}
 				scan(f)
 			}

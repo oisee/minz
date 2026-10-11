@@ -43,6 +43,7 @@ func TestStringStorageBounds(t *testing.T) {
 		m := &Module{Name: "bounds"}
 		sym, _ := m.Strings.InternKind(strings.Repeat("x", c.n), c.k)
 		vm := NewVM(m)
+		vm.MaxMemory = 70000 // Representation bound, not a 64K executable layout claim.
 		_, e := vm.ResolveSymbol(sym)
 		if (e == nil) != c.ok {
 			t.Fatalf("kind%d n%d err%v", c.k, c.n, e)
@@ -54,5 +55,25 @@ func TestStringStorageBounds(t *testing.T) {
 		if !c.ok && a != "" {
 			t.Fatal("partial assembly on refusal")
 		}
+	}
+}
+
+func TestStringStorageMemoryLimitAtomic(t *testing.T) {
+	m := &Module{Name: "memorylimit"}
+	sym, _ := m.Strings.InternKind(strings.Repeat("x", 65535), StrLString)
+	vm := NewVM(m)
+	before := len(vm.heap)
+	if _, e := vm.ResolveSymbol(sym); e == nil {
+		t.Fatal("65537-byte encoding fit default64K")
+	}
+	if len(vm.heap) != before {
+		t.Fatal("partial string storage after refusal")
+	}
+	if _, ok := vm.globalSyms[sym]; ok {
+		t.Fatal("failed symbol cached")
+	}
+	vm.MaxMemory = 70000
+	if _, e := vm.ResolveSymbol(sym); e != nil {
+		t.Fatal("explicit larger VM storage", e)
 	}
 }
