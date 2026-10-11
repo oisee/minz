@@ -1,0 +1,8 @@
+{
+  "compiler_commit": "8f2fcab6",
+  "command": "go test ./pkg/hir ./pkg/nanz ./pkg/vir -count=1 -timeout=10m",
+  "go_toolchain": "go1.26.8",
+  "required_cwd": "compiler/minzc",
+  "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/core-8f2fcab6.txt",
+  "status": "running; no terminal claim"
+}
