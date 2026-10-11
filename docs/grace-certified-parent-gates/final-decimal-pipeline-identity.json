@@ -1,0 +1,8 @@
+[
+  {
+    "pid": 1373019,
+    "source_checkpoint": "bb1bbaf9",
+    "sha256": "85c8df0b053ff36d985c9568ebd1e4d2ad87c9b107d47148d9f29b4658da661e",
+    "executable": "/home/alice/dev/minz-artifacts/grace-checkpoints/final-decimal-pipeline-executable/pipeline.test"
+  }
+]
