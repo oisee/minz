@@ -1,9 +1,11 @@
 {
-  "README.md": "38c61e1c7ebbf2a5c29dfd06ebeef22f5cebba29d9ff9765b5fbcaace31ac4ab",
+  "README.md": "080a0dee2d9365e1dcecb45d548127b500daddc9b1262f5213ab0d8fbe3f04f7",
   "combined-4ba526-abi-table.txt": "358b91ef49c579a5361b553adc7d7993ee43d400ce20abfc0709cefe005a8ac4",
   "combined-4ba526-native.txt": "52665bf874e9d2e90dfb1a24a12adb725e95dc9dc2e4499c5c59fc061bdc652b",
   "parser-public-mze-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
   "parser-public-mze-stdout.txt": "884543244d67393e4b942d6ce4b74a389a1904365bd0505d8c6e497d3fc292e5",
+  "table-4ba526-solver-native.txt": "fdc3fa17f9c6c220e51c6b808309c39b6ba16d2dc86ee061411e5ba312e6d3ce",
   "tokenizer-public-mze-stderr.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "tokenizer-public-mze-stdout.txt": "1c1dc59687f184eed7ff4fb9e1b79a66598b89aac3d0a0dce0378474763e1fd1"
+  "tokenizer-public-mze-stdout.txt": "1c1dc59687f184eed7ff4fb9e1b79a66598b89aac3d0a0dce0378474763e1fd1",
+  "typed-print-multicall-final.txt": "2be78ad1316ee695bca843e84ea6fcd5eed9071ee389431b9d57b3aeb7bed267"
 }

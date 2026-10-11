@@ -1,0 +1,8 @@
+=== RUN   TestCheckedExistingFunctionPointerLeaf
+    checked_table_practical_audit_test.go:105: existing indirect apply triple all256 123T/34B
+    checked_table_practical_audit_test.go:105: existing indirect apply triple all256 111T/31B
+    checked_table_practical_audit_test.go:126: module 34B triple66T→54T
+    checked_table_practical_audit_test.go:126: module 31B triple66T→54T
+--- PASS: TestCheckedExistingFunctionPointerLeaf (0.42s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.430s
