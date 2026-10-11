@@ -88,7 +88,7 @@ type FuncTrace struct {
 
 // Options configures optional pipeline passes.
 type Options struct {
-	UnsignedPairComparePolicy mir2.UnsignedPairComparePolicy // explicit opt-in; zero preserves Legacy
+	UnsignedPairComparePolicy mir2.UnsignedPairComparePolicy `json:",omitempty"` // explicit opt-in; zero preserves Legacy
 	ProfileSelection          *ProfileSelection              // opt-in refusing PGO input
 	CollectHIRSites           bool                           // diagnostic loop sites; does not enable PGO
 	// ContractOpt enables Phase 5b interprocedural contract optimisation.
