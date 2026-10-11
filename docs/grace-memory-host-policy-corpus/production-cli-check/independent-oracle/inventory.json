@@ -1,0 +1,48 @@
+{
+  "files": [
+    {
+      "path": "FINAL-AUDIT.md",
+      "sha256": "0837a3b0352edf6e707f0ea9e81aecd2fb190234c2a8f99ded58876a6ee35b35"
+    },
+    {
+      "path": "NEXT-CORPUS-PLAN.md",
+      "sha256": "1224d7102875a5b5c71bc6705710157821206dbc64579e2e3450033f6bdeb553"
+    },
+    {
+      "path": "PLAN.md",
+      "sha256": "25212e677defb4a68ec70cb524849af3aeee85d25d64bcbca3b0839780fdbfb0"
+    },
+    {
+      "path": "audit_cli.py",
+      "sha256": "694c332fda56f9ddba68ccd5d8540817e834776aed958709afbcbd10a466beb7"
+    },
+    {
+      "path": "cross-goal-audit.json",
+      "sha256": "8bb6936e778b19589f8f00c8710e6e43b7bc8424b12b6540216b6654b4f8015e"
+    },
+    {
+      "path": "final-cli-audit.json",
+      "sha256": "d791351e5ff0962f806fecf2d19df8327d043342c4ab8d82405fcbda95cd2fbf"
+    },
+    {
+      "path": "input-audit.json",
+      "sha256": "7afd29f4559fcf257e6692c1bf8e0a5eb6c5c225ef9eb8753d3f0e798f6fdd6d"
+    },
+    {
+      "path": "model/audit_profile.py",
+      "sha256": "50814a6c4b56c341836bf58803cf14cb23918e74d92973b0bfb04d0217a37531"
+    },
+    {
+      "path": "model/verify_corpus.py",
+      "sha256": "133ca68609f7b7c326efbfc55c91b5fbe2269555051f6aebd5b9817a7b8165ed"
+    },
+    {
+      "path": "review/SOURCE-REVIEW.md",
+      "sha256": "c0a11b74b348fe74f04b26c7aeb959fe45f34fd7ecc9c0566153635c5e94bdf3"
+    },
+    {
+      "path": "source-inventory.json",
+      "sha256": "2f15ed2c9597e7507770aab7395de07d2179ce0f08381bb1a868e61d86d73f0c"
+    }
+  ]
+}

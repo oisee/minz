@@ -1,0 +1,21 @@
+{
+  "head": "c7c42795c8b316dddd5c58732a4695b16f1bbb95",
+  "paths": [
+    {
+      "path": "minzc/cmd/minzc/main.go",
+      "sha256": "801cedd806803781f6fc986b7898a9c61ad2bf5ab443e7c8c9fca2c4784e1661"
+    },
+    {
+      "path": "minzc/cmd/minzc/memory_host_cli.go",
+      "sha256": "1398269259bb0e164dbd16525a6303e25f8da25b50062e3b5935ee2dfaa3dd0a"
+    },
+    {
+      "path": "minzc/cmd/minzc/memory_host_policy_cli.go",
+      "sha256": "1d535de92e294ea210455e35a943589b497df6ea3fae85f0499eb9d6b86e90f8"
+    },
+    {
+      "path": "minzc/cmd/minzc/memory_host_policy_cli_test.go",
+      "sha256": "89b2a75af6d9a71b765b4a1de007f316536e63a44a5fe1d223b81a51f663f59e"
+    }
+  ]
+}
