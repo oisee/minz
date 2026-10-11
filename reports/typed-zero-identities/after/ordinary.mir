@@ -1,0 +1,152 @@
+; MIR2 module: typed-zero-original.nanz
+fun @identity_u8_0(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = move %r1 : u8 [acc]
+    ret %r2
+
+fun @identity_u8_1(%r3: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r4 = move %r3 : u8 [acc]
+    ret %r4
+
+fun @identity_u8_2(%r5: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r6 = move %r5 : u8 [acc]
+    ret %r6
+
+fun @identity_u8_3(%r7: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r8 = const 0 : u8 [acc]
+    ret %r8
+
+fun @identity_u8_4(%r9: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r10 = const 0 : u8 [general]
+    %r11 = mul %r9, %r10 : u8 [general]
+    ret %r11
+
+fun @identity_u8_5(%r12: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r13 = move %r12 : u8 [general]
+    ret %r13
+
+fun @identity_i8_0(%r14: i8 [acc]) -> i8 [acc]
+  block @entry:
+    %r15 = const 0 : u8 [general]
+    %r16 = or %r14, %r15 : i8 [acc]
+    ret %r16
+
+fun @identity_i8_1(%r17: i8 [acc]) -> i8 [acc]
+  block @entry:
+    %r18 = const 0 : u8 [general]
+    %r19 = xor %r17, %r18 : i8 [acc]
+    ret %r19
+
+fun @identity_i8_2(%r20: i8 [acc]) -> i8 [acc]
+  block @entry:
+    %r21 = const 0 : u8 [general]
+    %r22 = sub %r20, %r21 : i8 [acc]
+    ret %r22
+
+fun @identity_i8_3(%r23: i8 [acc]) -> i8 [acc]
+  block @entry:
+    %r24 = const 0 : u8 [general]
+    %r25 = and %r23, %r24 : i8 [acc]
+    ret %r25
+
+fun @identity_i8_4(%r26: i8 [acc]) -> i8 [acc]
+  block @entry:
+    %r27 = const 0 : u8 [general]
+    %r28 = mul %r26, %r27 : i8 [general]
+    ret %r28
+
+fun @identity_i8_5(%r29: i8 [general]) -> i8 [acc]
+  block @entry:
+    %r30 = const 0 : u8 [general]
+    %r31 = shl %r29, %r30 : i8 [general]
+    ret %r31
+
+fun @identity_u16_0(%r32: u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    %r33 = move %r32 : u16 [pointer]
+    ret %r33
+
+fun @identity_u16_1(%r34: u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    %r35 = move %r34 : u16 [pointer]
+    ret %r35
+
+fun @identity_u16_2(%r36: u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    %r37 = move %r36 : u16 [pointer]
+    ret %r37
+
+fun @identity_u16_3(%r38: u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    %r39 = const 0 : u16 [pointer]
+    ret %r39
+
+fun @identity_u16_4(%r40: u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    %r41 = const 0 : u16 [pointer]
+    ret %r41
+
+fun @identity_u16_5(%r42: u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    %r43 = move %r42 : u16 [pointer]
+    ret %r43
+
+fun @identity_i16_0(%r44: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r45 = move %r44 : i16 [pointer]
+    ret %r45
+
+fun @identity_i16_1(%r46: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r47 = move %r46 : i16 [pointer]
+    ret %r47
+
+fun @identity_i16_2(%r48: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r49 = move %r48 : i16 [pointer]
+    ret %r49
+
+fun @identity_i16_3(%r50: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r51 = const 0 : i16 [pointer]
+    ret %r51
+
+fun @identity_i16_4(%r52: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r53 = const 0 : i16 [pointer]
+    ret %r53
+
+fun @identity_i16_5(%r54: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r55 = move %r54 : i16 [pointer]
+    ret %r55
+
+fun @flag_control(%r56: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r57 = const 128 : u8 [general]
+    %r58 = cmp.ult %r56, %r57 : bool [flag]
+    %r59 = const 0 : u8 [general]
+    %r60 = or %r56, %r59 : u8 [acc]
+    %r61 = const 0 : bool [general]
+    %r62 = cmp.ne %r58, %r61 : bool [flag]
+    br_if %r62, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r60
+  block @if_join2:
+    %r63 = const 255 : u8 [general]
+    %r64 = xor %r60, %r63 : u8 [acc]
+    ret %r64
+
+fun @zero_control(%r65: u8 [acc]) -> u8 [acc]
+  block @entry:
+    jmp @if_join2()
+  block @if_join2:
+    %r66 = const 0 : u8 [general]
+    %r67 = or %r65, %r66 : u8 [acc]
+    ret %r67
+
