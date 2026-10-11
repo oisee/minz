@@ -104,3 +104,12 @@ byte-host операций.30 persistent calls проходят независи
 https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-baseline.html
 Коммит этапа65f89589 запушен. Полная офлайн-копия8257 файлов проверена по SHA256,
 48 страниц, потерянных ссылок и внешних зависимостей нет; архивы читаются.
+
+Следующий этап уже в работе: отдельный source-loop collector и связь с native
+baseline, веткаfeat/grace-memory-host-profile-association (`a9b1606f`).
+Полный SelfLanz30 дал11 счётчиков, совпавших с независимой моделью; region_match
+49/59. Проверены частичные host-denials и отказ gas. До production-интеграции
+остались независимый review и общий прогон. Проба first-byte peeling сохранена
+как отказ unsupported IX stack snapshot (`ce37bb32`); отдельная ветка
+feat/memory-host-call-frame добавляет узкий compiler-owned контракт.
+Координатору через Herdr сообщение не доставлено: серверi7 timeout.
