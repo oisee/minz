@@ -1,0 +1,5 @@
+# Third frozen family replayed on current compiler
+
+Root8c553a0d existingTestPFCCOProspectiveHeldout PASS1.147s, exactsource/workload frozenSHAverifiedbytest. SpeedselectsContractOptmask1:training2605→2320T at52B; heldout6252→5568T same52B. Sizetiepreservesbaseline52B6252Theldout. ExacttrainingBINrecompiledfromselectedchoices andbytecomparedbeforeheldout; no newheldoutselection/no newprospectiveinputs. This confirmsbounded thirdfamily currentbenefit, independentlyofparser/HashMap currentreplay106. Existingfrozenpacketsremainuntouched.
+
+TaggedResultpacket617a1af2 integrated,23SHApayloadsverifiedshared; root589842native/raw/finalrun live, so catalogpromotionawaitsterminal. u32auditfound acceptedwrongcodeforwordwideXOR/OR/AND; counterexamplefreezing/fix inagentisolatedbranch. ExistingEXXADD/SUBtests113 do notprovebitwisecorrectness. Nativewidecorrectnessgapremains open, so overallgoalactive. Fullpipeline8bf30minutestestprocessstillusingCPU; no restart/terminalclaim.
