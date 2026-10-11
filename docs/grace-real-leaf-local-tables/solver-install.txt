@@ -1,0 +1,6 @@
+Collecting z3-solver
+  Downloading z3_solver-5.1.0.0-py3-none-manylinux_2_27_x86_64.whl.metadata (777 bytes)
+Downloading z3_solver-5.1.0.0-py3-none-manylinux_2_27_x86_64.whl (33.1 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 33.1/33.1 MB 71.2 MB/s eta 0:00:00
+Installing collected packages: z3-solver
+Successfully installed z3-solver-5.1.0.0
