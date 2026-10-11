@@ -2,6 +2,7 @@ package hir
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"reflect"
 	"sort"
@@ -53,13 +54,31 @@ type MemoryHostAccess struct {
 	Address uint16 `json:"address"`
 	Value   byte   `json:"value"`
 }
+
+// MemoryHostAccessError identifies an actual denied semantic byte access.
+// Other runtime/infrastructure failures must not be replayed as memory denials.
+type MemoryHostAccessError struct {
+	Kind    string `json:"kind"`
+	Address uint16 `json:"address"`
+	Write   bool   `json:"write"`
+}
+
+func (e *MemoryHostAccessError) Error() string {
+	op := "read"
+	if e.Write {
+		op = "write"
+	}
+	return fmt.Sprintf("memory host: %s %s at %d", e.Kind, op, e.Address)
+}
+
 type MemoryHostObservation struct {
-	Results []mir2.Value       `json:"results"`
-	Globals map[string][]byte  `json:"globals"`
-	Regions map[string][]byte  `json:"regions"`
-	Events  []MemoryHostAccess `json:"events"`
-	Error   string             `json:"error"`
-	Steps   int64              `json:"steps"`
+	Failure *MemoryHostAccessError `json:"failure,omitempty"`
+	Results []mir2.Value           `json:"results"`
+	Globals map[string][]byte      `json:"globals"`
+	Regions map[string][]byte      `json:"regions"`
+	Events  []MemoryHostAccess     `json:"events"`
+	Error   string                 `json:"error"`
+	Steps   int64                  `json:"steps"`
 }
 type MemoryHostRun struct {
 	Compatibility *ProfileCompatibility   `json:"compatibility"`
@@ -72,12 +91,12 @@ func MemoryHostRegionAt(w MemoryHostWorkload, addr uint16, write bool) (string, 
 	for name, r := range w.Regions {
 		if int(addr) >= int(r.Address) && int(addr) < int(r.Address)+len(r.Bytes) {
 			if write && !r.Writable {
-				return "", fmt.Errorf("memory host: write to read-only region %q", name)
+				return "", &MemoryHostAccessError{Kind: "read-only", Address: addr, Write: true}
 			}
 			return name, nil
 		}
 	}
-	return "", fmt.Errorf("memory host: undeclared byte address %d", addr)
+	return "", &MemoryHostAccessError{Kind: "undeclared", Address: addr, Write: write}
 }
 
 func memoryHostGlobalSizes(m *Module) map[string]int {
@@ -459,6 +478,11 @@ func RunMemoryHostMIRBaseline(source *Module, m *mir2.Module, w MemoryHostWorklo
 		o.Steps = vm.StepsExecuted() - before
 		if err != nil {
 			o.Error = err.Error()
+			var denied *MemoryHostAccessError
+			if errors.As(err, &denied) {
+				copyFailure := *denied
+				o.Failure = &copyFailure
+			}
 			out.Invocations = append(out.Invocations, o)
 			return out, fmt.Errorf("memory host: invocation %d: %w", j, err)
 		}

@@ -286,3 +286,25 @@ func TestMemoryHostGlobalOriginsMeetAllCFGPredecessors(t *testing.T) {
 		t.Fatal("actual local reachingglobaldefinition not recognized")
 	}
 }
+
+func TestMemoryHostFailureIdentity(t *testing.T) {
+	m, w := memoryFixture(t)
+	w.Calls = []hir.MemoryHostInvocation{{Function: "fail", Arguments: []int64{0x8000}}}
+	run, err := hir.RunMemoryHostBaseline(m, w)
+	if err == nil || !reflect.DeepEqual(run.Invocations[0].Failure, &hir.MemoryHostAccessError{Kind: "undeclared", Address: 0x8001, Write: false}) {
+		t.Fatal(run, err)
+	}
+	r := w.Regions["ram"]
+	r.Writable = false
+	w.Regions["ram"] = r
+	run, err = hir.RunMemoryHostBaseline(m, w)
+	if err == nil || !reflect.DeepEqual(run.Invocations[0].Failure, &hir.MemoryHostAccessError{Kind: "read-only", Address: 0x8000, Write: true}) {
+		t.Fatal(run, err)
+	}
+	m, w = memoryFixture(t)
+	w.MaxSteps = 1
+	run, err = hir.RunMemoryHostBaseline(m, w)
+	if err == nil || run == nil || run.Invocations[0].Failure != nil {
+		t.Fatal("gas failure laundered as semantic memory denial", run, err)
+	}
+}
