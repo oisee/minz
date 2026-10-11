@@ -1,0 +1,35 @@
+{
+  "status": "PASS",
+  "site_and_artifacts": {
+    "status": "PASS",
+    "verified_files": 24755,
+    "verified_bytes": 9224782963,
+    "source": "/home/alice/dev/minz/artifacts/grace-reports/2026-10-10-resume",
+    "destination": "/mnt/safe/minz/grace/2026-10-11/site-and-artifacts",
+    "manifest_sha256": "fbcbc01e27a71857930546c7844f56178a53a247c2b3b64479c1e0fdf1e77087",
+    "method": "Read every destination file and compare SHA256 and byte length with source manifest; updated roadmap included."
+  },
+  "compiler_docs_files": 14924,
+  "compiler_reports_files": 446,
+  "compiler_checkpoint": "37475dfffc305f35ff22dc6c24c4c13c2b38a859",
+  "published_site_version": 61,
+  "note": "Current complete docs/reports copy hashed at stated checkpoint; old manifests archived. Site61 publication/full Site60 evidence remain separate historical scopes; no full compiler PASS implied.",
+  "additional_astra_review_sha256": "83f5f4350fb06d877754445f1bcfbba272918a5c7387ed96d3001080716d072a",
+  "compiler_copy_verification": {
+    "docs": {
+      "files": 14924,
+      "bytes": 780857236,
+      "copied_or_refreshed": 0
+    },
+    "reports": {
+      "files": 446,
+      "bytes": 2972902,
+      "copied_or_refreshed": 0
+    }
+  },
+  "published_site_source_commit": "7aca483b1939348d48f01f1bb5d888b7651ee9e1",
+  "published_site_deployment": "appgdep_6acbba0ae2408191953ed789c6156aac",
+  "published_site_archive_bytes": 202374375,
+  "compiler_latest_checkpoint": "37475dfffc305f35ff22dc6c24c4c13c2b38a859",
+  "compiler_copy_verified_at_utc": "2026-10-11T17:04:37.988185+00:00"
+}
