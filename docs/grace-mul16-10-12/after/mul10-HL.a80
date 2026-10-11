@@ -1,0 +1,11 @@
+ORG $8000
+multiply:
+    PUSH BC
+    PUSH HL
+    POP BC
+    ADD HL, HL
+    ADD HL, HL
+    ADD HL, BC
+    ADD HL, HL
+    POP BC
+ RET
