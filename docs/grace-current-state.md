@@ -318,7 +318,8 @@ FAT12 disk ABI исправлен: byte-load из BC/DE в spill теперь с
 Memory-host теперь допускает действительно недостижимые extern с полным
 исходником, сохраняя source/candidate reachability и hard ABI проверки.
 [Интеграция087](grace-integration-087/README.md).
-Новый full core5fe165dd: HIR/MIR2/Nanz/VIR PASS, CLI пока выполняется.
+Новый полный core5fe165dd: HIR/MIR2/Nanz/VIR/CLI PASS; CLI425,234с.
+[Полный лог и контекст](grace-integration-089/README.md).
 
 FAT12 address hoist интегрирован отдельно от correctness fix: Grace Speed
 13828→11202 T, +16 B полного модуля; default и Grace Size сохраняются.
