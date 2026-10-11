@@ -1,0 +1,2 @@
+cwd: /home/alice/dev/minz-artifacts/grace-workspaces/normal-global-diamond-native/minzc
+MINZ_NORMAL_DIAMOND_NATIVE_ARTIFACTS=/home/alice/dev/minz-artifacts/grace-checkpoints/normal-global-diamond-native-evidence/actual MINZ_NORMAL_DIAMOND_REFERENCE=/home/alice/dev/minz-artifacts/grace-checkpoints/global-word-load-cli-evidence/speed/original/factory-baseline.json go test ./pkg/pipeline -run ^TestNormalDiamondActualNative30$ -count=1 -v

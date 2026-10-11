@@ -1,0 +1,24 @@
+[
+  {
+    "calls": 30,
+    "ordered_events": 3017,
+    "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+    "binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941",
+    "t_states": 1135370,
+    "bytes": 2000,
+    "str_bump": 37163,
+    "node_bump": 32808,
+    "variant": "original"
+  },
+  {
+    "calls": 30,
+    "ordered_events": 3017,
+    "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+    "binary_sha256": "7ad97647523b39d42188c7cfb806c2fe2ac6a8639e142ba59b2e665d510ddcf4",
+    "t_states": 1137339,
+    "bytes": 1998,
+    "str_bump": 37163,
+    "node_bump": 32808,
+    "variant": "reuse"
+  }
+]

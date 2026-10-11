@@ -1,0 +1,11 @@
+# Readonly bounded diamond design review
+
+ee029/d470 scope cleared for isolatedmanualprototype, never defaultpipeline orparentregistration. Latestrootinstruction supersedesolder edgearg/remap design: replace secondOpLoad with OpMove preserving sameDst/type/classmetadata andusing dominatingfirstloadedvalue. No deadAddrOf deletion exceptexisting canonicalDSE. Verifyinput/output actualSSA; no postallocationnonSSA.
+
+Essential guard checks inimplementation: entryconditionalbranch target directsuccessor, exactlyoneincomingblock withallTerm.Successors considered, noentryreentry/cycle; firstload actualinstruction precedespredsuffix, rootsexacttypedknownnormalu16 global At nil noopaqueStorage. Intervalallinstructions afterfirstthroughpredsuffix +successorprefixbeforesecond whitelistpuretyped arithmetic/AddrOfnormalglobal +independentlyprovednormalglobal loads. Anystore/call/indirect/ASM/patch/stack/unknown or numericresource/volatile read rejects. Latercallaftersecondisnotmoved/removed.
+
+Sameglobal distinctAddrOf metadata identitymustbeverified; usecanonicaltype equality andminimumactualstorage, rejectsymbolduplicates/functions collision rather thanfirstmatch. Width16 alone doesn'tauthorizepointer/signed/array casts; exactrequestedu16scope. No masqueradedAddrOf otherdestinationregredefinition. Entrydomination viaVerifiedSSAandpathguard; incompletecurrentVerifytypes shouldbesupplementedwithconservativeexplicitmatcher.
+
+Testsneedactualrawbothbranchoutcomes, callbackwritesglobalbetweenloadsthensecondreturnsnewvalue andmatcherrefuses, same/otherstores, callbacks/ASM/volatile/device/baked/noeffectbarrierwaive, multi-pred/cycle/non-dominating/duplicate-reg/typeforgeries. Afterreadonlysourceclear, actualclosed30owneronce plusmathematicalresourcefailure/bounds tests; no permissivenumericmemory/stacksupport. Gainunknown untilmeasuredallocation.
+
+Reviewerdoesnoteditprototype/parent orrunCPU. SourceWIPpending; thisisdesignclearonly.

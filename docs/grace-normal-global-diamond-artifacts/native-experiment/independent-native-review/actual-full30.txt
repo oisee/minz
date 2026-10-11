@@ -1,0 +1,10 @@
+=== RUN   TestNormalDiamondActualNative30
+[label-audit] 1 undefined labels:
+  node_tag
+    normal_global_diamond_diagnostic_test.go:219: original actual1135370T/2000B steps109829 BIN1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941 contextexecutable-sha256:eca67eca6dd0a4c09c7ff3b5d2317f8ec08e9938b0a8577fd5f0768086fc0539
+[label-audit] 1 undefined labels:
+  node_tag
+    normal_global_diamond_diagnostic_test.go:219: reuse actual1137339T/1998B steps111323 BIN7ad97647523b39d42188c7cfb806c2fe2ac6a8639e142ba59b2e665d510ddcf4 contextexecutable-sha256:eca67eca6dd0a4c09c7ff3b5d2317f8ec08e9938b0a8577fd5f0768086fc0539
+--- PASS: TestNormalDiamondActualNative30 (2.13s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.143s

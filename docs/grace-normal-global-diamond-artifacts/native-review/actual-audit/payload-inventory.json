@@ -1,0 +1,20 @@
+{
+  "original": {
+    "mir-experiment.json": "365c845a39af8420997baf5465d64c8023f5bfa9b688315a5354c597bf52f7f1",
+    "final.mir2": "7c6d066dba853d5612611b53a442e5a355d1480e31d0c0225feff75525fbd913",
+    "target.a80": "50adcc358a40137344cfeed0e6e6130864823a210037f7982187c2bc69fae74f",
+    "target.bin": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941",
+    "source.nanz": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+    "factory-baseline.json": "cd7adaa4a728bdea985930c49ca37584edb1b1bd36909b24560c06f059a94b56",
+    "allocation.json": "9af8fdfdeb8d341f6f28097323c96a5b59d1fee911045b363782e8e64e0d8976"
+  },
+  "reuse": {
+    "mir-experiment.json": "817c1622e29a48c9181cb040770a1357fd64ae6fef038cad2b08405142f1552f",
+    "final.mir2": "e9285d685b8b897e743f7e144684516beb6f78595bcb55dd929607f26c00c2b1",
+    "target.a80": "93e4075714b0554b108c87c41b7be1c870992a8e190e89875a1b67a9b7d392f3",
+    "target.bin": "7ad97647523b39d42188c7cfb806c2fe2ac6a8639e142ba59b2e665d510ddcf4",
+    "source.nanz": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+    "factory-baseline.json": "a24ad9f6a6fd5840aef31421d19114c71177f1ede83e13c657117844eedb1f9c",
+    "allocation.json": "ceccb4455f52036e6684a209aa22221dc8362d6f11b743b941d4f1035b0376ee"
+  }
+}

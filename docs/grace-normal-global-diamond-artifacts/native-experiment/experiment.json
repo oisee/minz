@@ -1,0 +1,15 @@
+{
+  "schema": "minz.isolated-mir-reuse-experiment/v1",
+  "production_contract": false,
+  "source_factory": "unchanged original SelfLanz",
+  "hook_stage": "after raw HIR lowering before optimization/contracts/allocation",
+  "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+  "diagnostic_compiler_id": "executable-sha256:eca67eca6dd0a4c09c7ff3b5d2317f8ec08e9938b0a8577fd5f0768086fc0539",
+  "measured_reference": "current dba production CLI speed/original",
+  "edits": {
+    "original": 0,
+    "reuse": 1
+  },
+  "native_runs": 2,
+  "public_selector_certificate": false
+}

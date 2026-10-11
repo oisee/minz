@@ -1,0 +1,8 @@
+{
+  "head": "2005d7efca612e5d4779bafa02c76d1897efcb35",
+  "files": {
+    "minzc/pkg/pipeline/pipeline.go": "01e0186c707bee26e68c8621264614417fc55f1b3c747923d8a3077dcd56c9fe",
+    "minzc/pkg/pipeline/normal_global_diamond_diagnostic.go": "45cd300486dbb331e020d4b55cc7fa4b19b95989f87be36f13292fa9b3d3c200",
+    "minzc/pkg/pipeline/normal_global_diamond_diagnostic_test.go": "6037cf03a034f8a69315b1f3344c8a826ef866b9b3765311c2ba26d7afdbac38"
+  }
+}

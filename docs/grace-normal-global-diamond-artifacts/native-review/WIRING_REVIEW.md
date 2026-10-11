@@ -1,0 +1,9 @@
+# Isolated2005 nativewiring readonlyreview
+
+Sixfileexperiment: reviewedhelper/testexact7bac +privatepipelineglobalhook/file/test +6linepostrawdump/preallocation call. Nativepermissions/codegen/runtime unchanged. Publicproductionparent notmodified. Hook sourcecompiledafterHIRlowering, beforecontracts/coalescing; rawsourceoracle createdindependentlybeforecandidatecompile byclosedbaseline. T.Cleanup resetsserialprivatehook. No caller-selectedcallback/Optionsinput exposed.
+
+Staticactualsource count1PASS0.010: onecur OpLoad16→sameDstMove fromentrypos, allotheractualinstructionschecked unchanged, before/afterwholeMIR ownedcapture, input/outputVerify. No sourceHIR/profilingclaim modified. Containerfactory-baseline schema retained diagnostic only; privatechangedcompile violates ordinarypublicfactoryclaim so notpublicselectorcertificate. PLANhonestlystateslimitation.
+
+AdditionaltestgatebeforeCPU requestedowner: originalno-op compilation result mustequal currentsaved dbaCLIoriginalBIN/ASM/percallTSteps/native sidecar/frame/allocation/MIR hashes. TestCompilerID maydiffer, notpatched. Exportbeforeassert; differencesinvestigatedratherthanhashnormalization. After2native explicitrawobservationsoriginal↔reuse andtargetobservationsoriginal↔reuse ignoreonlysteps; eachalreadyindependentraworacle matchesinternally. Thischecksunchangedsource/provenanceandcandidateeffect, notguessprofitability.
+
+Sourcehooksmechanismclear, nativeexecutionrelease pendingexactref/crosscomparison gatecode. NoCPUreviewer.

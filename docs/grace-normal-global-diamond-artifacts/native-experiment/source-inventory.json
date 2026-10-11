@@ -1,0 +1,22 @@
+[
+  {
+    "path": "minzc/pkg/mir2/normal_global_diamond_prototype.go",
+    "sha256": "eb98c7c917124c524453ca46ee5bdec1ad4a920b24b81da8fde948bacd120658"
+  },
+  {
+    "path": "minzc/pkg/mir2/normal_global_diamond_prototype_test.go",
+    "sha256": "b4e5ed5746f3d3660cd656d6ce6f273f02719d2ee03562b6dcc185febd418063"
+  },
+  {
+    "path": "minzc/pkg/pipeline/pipeline.go",
+    "sha256": "01e0186c707bee26e68c8621264614417fc55f1b3c747923d8a3077dcd56c9fe"
+  },
+  {
+    "path": "minzc/pkg/pipeline/normal_global_diamond_diagnostic.go",
+    "sha256": "45cd300486dbb331e020d4b55cc7fa4b19b95989f87be36f13292fa9b3d3c200"
+  },
+  {
+    "path": "minzc/pkg/pipeline/normal_global_diamond_diagnostic_test.go",
+    "sha256": "fe5fd694f47b0eb870dbe2ae2be76a328a28eb32611881dacfb1d2cd700b2d07"
+  }
+]

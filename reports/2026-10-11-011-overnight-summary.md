@@ -74,13 +74,13 @@ showcase31same0new. Fresh CLI dba34:16candidates/4profiles/decisions
 Полная офлайн-копия49 проверена:14447 файлов,59 страниц, всеSHA256 и
 архивы PASS, отсутствующих локальных ссылок нет.
 
-Следующий этап — выключенный по умолчанию normal-global diamond helper.
-Прототип2731b6c6/frozen7bac и независимый reviewabd8e98a сохранены в
-постоянных отдельных ветках. RawMIR/VM проверки unsignedbounds, callback/
-store barriers и malformedmetadata прошли. Два новых файла не подключены
-к production pipeline и не перенесены в основную ветку. Агент готовит
-bounded source→MIR→assembledZ80 эксперимент с unchanged whole30oracle;
-actualnative расходы этого преобразования ещё не измерены.
+Изолированный diamond forwarding эксперимент закрыт отрицательно:
+helper заменил одну posLoad→Move, source/raw/native memory/events сохранились,
+но whole30 стал1137339T1998B вместо1135370T2000B: +1969T,−2B.
+Оба независимых аудита прошли. Пакет7cc84260 committed/pushed и перенесён
+локально; savedgzipaudit PASS. Helper/hook не включены в production.
+Негативный отчёт готовится к публикации. Следующий шаг — readonly design
+u16compare без лишнего PUSH/POP живого DE, отдельная legality/cost проверка.
 
 ## Сохранение веток и решения Alice
 
