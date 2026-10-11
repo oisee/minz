@@ -618,7 +618,7 @@ func (p *parser) parseIf() (Stmt, error) {
 }
 
 func (p *parser) parseWhile() (Stmt, error) {
-	p.l.Next() // consume WHILE
+	origin := p.l.Next() // consume WHILE
 	cond, err := p.parseExpr()
 	if err != nil {
 		return nil, err
@@ -630,11 +630,11 @@ func (p *parser) parseWhile() (Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &WhileStmt{Cond: cond, Body: body}, nil
+	return &WhileStmt{Token: origin, Cond: cond, Body: body}, nil
 }
 
 func (p *parser) parseRepeat() (Stmt, error) {
-	p.l.Next() // consume REPEAT
+	origin := p.l.Next() // consume REPEAT
 	stmts, err := p.parseStmtList("UNTIL")
 	if err != nil {
 		return nil, err
@@ -646,11 +646,11 @@ func (p *parser) parseRepeat() (Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &RepeatStmt{Body: stmts, Cond: cond}, nil
+	return &RepeatStmt{Token: origin, Body: stmts, Cond: cond}, nil
 }
 
 func (p *parser) parseFor() (Stmt, error) {
-	p.l.Next() // consume FOR
+	origin := p.l.Next() // consume FOR
 	varTok := p.l.Next()
 	if varTok.Kind != TokIdent {
 		return nil, p.error("expected loop variable")
@@ -680,7 +680,7 @@ func (p *parser) parseFor() (Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &ForStmt{Var: varTok.Val, Start: start, End: end, Downto: downto, Body: body}, nil
+	return &ForStmt{Token: origin, Var: varTok.Val, Start: start, End: end, Downto: downto, Body: body}, nil
 }
 
 func (p *parser) parseCase() (Stmt, error) {

@@ -116,6 +116,14 @@ func RunZ80ProfileWorkload(steps Steps, source *hir.Module, workload hir.Profile
 	if err := hir.ValidateProfileWorkloadMIR(source, steps.MIR2Module, workload); err != nil {
 		return fail(err)
 	}
+	sourceReachable, err := hir.ProfileWorkloadReachableFunctions(hir.LowerModule(source), workload)
+	if err != nil {
+		return fail(err)
+	}
+	candidateReachable, err := hir.ProfileWorkloadReachableFunctions(steps.MIR2Module, workload)
+	if err != nil {
+		return fail(err)
+	}
 	for _, module := range []*mir2.Module{hir.LowerModule(source), steps.MIR2Module} {
 		for _, g := range module.Globals {
 			if g.Storage != mir2.StorageNormal || g.At != nil || len(g.VtableSyms) != 0 || workloadPointerStorage(g.Ty) {
@@ -123,13 +131,19 @@ func RunZ80ProfileWorkload(steps Steps, source *hir.Module, workload hir.Profile
 			}
 		}
 		for _, f := range module.Funcs {
-			if f.Attrs.HasAsm {
+			deadRuntime := !sourceReachable[f.Name] && !candidateReachable[f.Name] && hir.ProfileDeadPascalRuntime(source, f)
+			if f.Attrs.HasAsm && !deadRuntime {
 				return fail(fmt.Errorf("hosts/ASM unsupported: %s", f.Name))
 			}
 			for _, b := range f.Blocks {
 				for _, i := range b.Insts {
 					switch i.Op {
-					case mir2.OpAsm, mir2.OpIn8, mir2.OpIn16, mir2.OpOut8, mir2.OpOut16, mir2.OpPatchSlot, mir2.OpLoadPatched, mir2.OpPatch, mir2.OpCallIndirect:
+					case mir2.OpAsm:
+						if !deadRuntime {
+							return fail(fmt.Errorf("noncanonical/reachable ASM unsupported"))
+						}
+						continue
+					case mir2.OpIn8, mir2.OpIn16, mir2.OpOut8, mir2.OpOut16, mir2.OpPatchSlot, mir2.OpLoadPatched, mir2.OpPatch, mir2.OpCallIndirect:
 						return fail(fmt.Errorf("ASM/ports/SMC/indirect calls unsupported"))
 					case mir2.OpCall:
 						if module.FuncByName(i.Sym) == nil {

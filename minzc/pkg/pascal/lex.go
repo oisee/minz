@@ -44,9 +44,10 @@ const (
 )
 
 type Token struct {
-	Kind TokKind
-	Val  string // upper-cased for identifiers; original for numbers/strings
-	Line int
+	Kind   TokKind
+	Val    string // upper-cased for identifiers; original for numbers/strings
+	Line   int
+	Offset int // first token byte in the actual input source
 }
 
 func (t Token) String() string {
@@ -59,11 +60,12 @@ func (t Token) String() string {
 // ── Lexer ───────────────────────────────────────────────────────────────────
 
 type Lexer struct {
-	src    []byte
-	pos    int
-	line   int
-	tokens []Token
-	cur    int
+	src         []byte
+	pos         int
+	line        int
+	tokens      []Token
+	cur         int
+	tokenOffset int
 }
 
 func NewLexer(src string) (*Lexer, error) {
@@ -71,6 +73,7 @@ func NewLexer(src string) (*Lexer, error) {
 	if err := l.tokenize(); err != nil {
 		return nil, err
 	}
+	// Record token positions while the source is still available.
 	return l, nil
 }
 
@@ -127,6 +130,7 @@ func (l *Lexer) tokenize() error {
 		}
 
 		line := l.line
+		l.tokenOffset = l.pos
 
 		// Multi-char tokens
 		if ch == ':' && l.pos+1 < len(l.src) && l.src[l.pos+1] == '=' {
@@ -305,7 +309,7 @@ func (l *Lexer) tokenize() error {
 }
 
 func (l *Lexer) emit(kind TokKind, val string, line int) {
-	l.tokens = append(l.tokens, Token{Kind: kind, Val: val, Line: line})
+	l.tokens = append(l.tokens, Token{Kind: kind, Val: val, Line: line, Offset: l.tokenOffset})
 }
 
 // ── Token stream helpers ────────────────────────────────────────────────────

@@ -1,7 +1,10 @@
 package pascal
 
 import (
+	"crypto/sha256"
 	"fmt"
+	"regexp"
+	"strings"
 
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
@@ -31,6 +34,16 @@ func Compile(src, name string, opts ...CompileOpts) (*hir.Module, error) {
 	// register conventions — no external Lizp import needed.
 	_ = o // StdlibDir no longer used; runtime is generated directly.
 	emitRuntimeFuncs(hm)
+	sum := sha256.Sum256([]byte(src))
+	hm.SourceUnits = map[string]string{hm.Name: fmt.Sprintf("%x", sum)}
+	hm.SourceUnitsComplete = completeSingleSource(src)
+	for stmt, origin := range hm.SourceLocations {
+		origin.SourceSHA256 = fmt.Sprintf("%x", sum)
+		origin.Unit = hm.Name
+		lineStart := strings.LastIndex(src[:origin.ByteOffset], "\n") + 1
+		origin.Column = origin.ByteOffset - lineStart + 1
+		hm.SourceLocations[stmt] = origin
+	}
 	return hm, nil
 }
 
@@ -47,7 +60,7 @@ func LowerProgram(prog *Program, name string) (*hir.Module, error) {
 	if name == "" {
 		name = prog.Name
 	}
-	l.hm = &hir.Module{Name: name}
+	l.hm = &hir.Module{Name: name, SourceLocations: map[hir.Stmt]hir.SourceLocation{}}
 	return l.lower()
 }
 
@@ -480,7 +493,9 @@ func (pl *procLow) lowerWhile(s *WhileStmt) ([]hir.Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	return []hir.Stmt{hir.While(cond, body)}, nil
+	loop := hir.While(cond, body)
+	pl.recordLoop(loop, s.Token)
+	return []hir.Stmt{loop}, nil
 }
 
 func (pl *procLow) lowerRepeat(s *RepeatStmt) ([]hir.Stmt, error) {
@@ -496,6 +511,7 @@ func (pl *procLow) lowerRepeat(s *RepeatStmt) ([]hir.Stmt, error) {
 	// if (cond) break
 	bodyStmts = append(bodyStmts, hir.If(cond, hir.Blk(&hir.BreakStmt{}), nil))
 	loop := hir.While(&hir.BoolLitExpr{Val: true}, hir.Blk(bodyStmts...))
+	pl.recordLoop(loop, s.Token)
 	return []hir.Stmt{loop}, nil
 }
 
@@ -537,7 +553,9 @@ func (pl *procLow) lowerFor(s *ForStmt) ([]hir.Stmt, error) {
 	}
 	bodyStmts := append(body.Body, inc)
 
-	return []hir.Stmt{init, hir.While(cond, hir.Blk(bodyStmts...))}, nil
+	loop := hir.While(cond, hir.Blk(bodyStmts...))
+	pl.recordLoop(loop, s.Token)
+	return []hir.Stmt{init, loop}, nil
 }
 
 func (pl *procLow) lowerCase(s *CaseStmt) ([]hir.Stmt, error) {
@@ -1080,56 +1098,19 @@ func emitRuntimeFuncs(hm *hir.Module) {
 
 	// ConOut(ch: u8) -> void — BDOS 2, char in E
 	if need("ConOut") {
-		hm.Funcs = append(hm.Funcs, &hir.Func{
-			Name:   "ConOut",
-			Params: []hir.Param{{Name: "ch", Ty: mir2.TyU8}},
-			RetTy:  mir2.TyVoid,
-			Body: &hir.Block{Body: []hir.Stmt{
-				&hir.AsmStmt{
-					Target:     "z80",
-					Code:       "LD E, A / LD C, 2 / CALL 0x0005",
-					ClobberAll: true,
-					Ins:        []hir.AsmOperand{{Name: "ch"}},
-				},
-				&hir.ReturnStmt{},
-			}},
-		})
+		hm.Funcs = append(hm.Funcs, hir.CanonicalPascalProfileRuntime("ConOut"))
 		defined["ConOut"] = true
 	}
 
 	// WriteCrLf() -> void — output CR+LF via inline asm (BDOS 2)
 	if need("WriteCrLf") {
-		hm.Funcs = append(hm.Funcs, &hir.Func{
-			Name:  "WriteCrLf",
-			RetTy: mir2.TyVoid,
-			Body: &hir.Block{Body: []hir.Stmt{
-				&hir.AsmStmt{
-					Target:     "z80",
-					Code:       "LD E, 13 / LD C, 2 / CALL 5 / LD E, 10 / LD C, 2 / CALL 5",
-					ClobberAll: true,
-				},
-				&hir.ReturnStmt{},
-			}},
-		})
+		hm.Funcs = append(hm.Funcs, hir.CanonicalPascalProfileRuntime("WriteCrLf"))
 		defined["WriteCrLf"] = true
 	}
 
 	// WriteStr(addr: u16) -> void — BDOS 9, string addr in DE
 	if need("WriteStr") {
-		hm.Funcs = append(hm.Funcs, &hir.Func{
-			Name:   "WriteStr",
-			Params: []hir.Param{{Name: "addr", Ty: mir2.TyU16}},
-			RetTy:  mir2.TyVoid,
-			Body: &hir.Block{Body: []hir.Stmt{
-				&hir.AsmStmt{
-					Target:     "z80",
-					Code:       "EX DE, HL / LD C, 9 / CALL 0x0005",
-					ClobberAll: true,
-					Ins:        []hir.AsmOperand{{Name: "addr"}},
-				},
-				&hir.ReturnStmt{},
-			}},
-		})
+		hm.Funcs = append(hm.Funcs, hir.CanonicalPascalProfileRuntime("WriteStr"))
 		defined["WriteStr"] = true
 	}
 
@@ -1137,67 +1118,18 @@ func emitRuntimeFuncs(hm *hir.Module) {
 	if need("WriteU8") {
 		// Ensure ConOut is available
 		if !defined["ConOut"] {
-			hm.Funcs = append(hm.Funcs, &hir.Func{
-				Name:   "ConOut",
-				Params: []hir.Param{{Name: "ch", Ty: mir2.TyU8}},
-				RetTy:  mir2.TyVoid,
-				Body: &hir.Block{Body: []hir.Stmt{
-					&hir.AsmStmt{
-						Target:     "z80",
-						Code:       "LD E, A / LD C, 2 / CALL 0x0005",
-						ClobberAll: true,
-						Ins:        []hir.AsmOperand{{Name: "ch"}},
-					},
-					&hir.ReturnStmt{},
-				}},
-			})
+			hm.Funcs = append(hm.Funcs, hir.CanonicalPascalProfileRuntime("ConOut"))
 			defined["ConOut"] = true
 		}
 		// WriteU8: emit decimal digits via asm for compact output
-		hm.Funcs = append(hm.Funcs, &hir.Func{
-			Name:   "WriteU8",
-			Params: []hir.Param{{Name: "val", Ty: mir2.TyU8}},
-			RetTy:  mir2.TyVoid,
-			Body: &hir.Block{Body: []hir.Stmt{
-				// Use inline asm: val is in A, decompose and print digits
-				&hir.AsmStmt{
-					Target: "z80",
-					Code: "LD B, A / LD C, 0 / LD A, B" +
-						" / CP 100 / JR C, .wu8_tens" +
-						" / .wu8_h: / SUB 100 / INC C / CP 100 / JR NC, .wu8_h" +
-						" / LD B, A / LD A, C / ADD A, 48 / LD E, A / PUSH BC / LD C, 2 / CALL 0x0005 / POP BC / LD A, B" +
-						" / LD C, 1" + // flag: had hundreds
-						" / .wu8_tens: / LD B, 0" +
-						" / CP 10 / JR C, .wu8_ones" +
-						" / .wu8_t: / SUB 10 / INC B / CP 10 / JR NC, .wu8_t" +
-						" / PUSH AF / LD A, B / ADD A, 48 / LD E, A / LD C, 2 / CALL 0x0005 / POP AF" +
-						" / .wu8_ones: / ADD A, 48 / LD E, A / LD C, 2 / CALL 0x0005",
-					ClobberAll: true,
-					Ins:        []hir.AsmOperand{{Name: "val"}},
-				},
-				&hir.ReturnStmt{},
-			}},
-		})
+		hm.Funcs = append(hm.Funcs, hir.CanonicalPascalProfileRuntime("WriteU8"))
 		defined["WriteU8"] = true
 	}
 
 	// WriteI16(val: u16) -> void — print i16 as decimal via BDOS 2
 	if need("WriteI16") {
 		if !defined["ConOut"] {
-			hm.Funcs = append(hm.Funcs, &hir.Func{
-				Name:   "ConOut",
-				Params: []hir.Param{{Name: "ch", Ty: mir2.TyU8}},
-				RetTy:  mir2.TyVoid,
-				Body: &hir.Block{Body: []hir.Stmt{
-					&hir.AsmStmt{
-						Target:     "z80",
-						Code:       "LD E, A / LD C, 2 / CALL 0x0005",
-						ClobberAll: true,
-						Ins:        []hir.AsmOperand{{Name: "ch"}},
-					},
-					&hir.ReturnStmt{},
-				}},
-			})
+			hm.Funcs = append(hm.Funcs, hir.CanonicalPascalProfileRuntime("ConOut"))
 			defined["ConOut"] = true
 		}
 		hm.Funcs = append(hm.Funcs, &hir.Func{
@@ -1260,5 +1192,34 @@ func emitRuntimeFuncs(hm *hir.Module) {
 			}},
 		})
 		defined["PascalHalt"] = true
+	}
+}
+
+// USES is currently skipped by the parser and include directives are comments,
+// not resolved source units. Such requests cannot claim a complete manifest.
+func completeSingleSource(src string) bool {
+	l, err := NewLexer(src)
+	if err != nil {
+		return false
+	}
+	for _, t := range l.tokens {
+		if t.Kind == TokIdent && t.Val == "USES" {
+			return false
+		}
+	}
+	directives := regexp.MustCompile(`(?is)\{\s*\$([^}]+)\}|\(\*\s*\$([^*]+)\*\)`)
+	for _, m := range directives.FindAllStringSubmatch(src, -1) {
+		d := strings.TrimSpace(m[1] + m[2])
+		fields := strings.Fields(strings.ToUpper(d))
+		if len(fields) > 0 && (fields[0] == "I" || fields[0] == "INCLUDE" || fields[0] == "LINK" || fields[0] == "L") {
+			return false
+		}
+	}
+	return true
+}
+
+func (pl *procLow) recordLoop(stmt hir.Stmt, t Token) {
+	if t.Line > 0 {
+		pl.low.hm.SourceLocations[stmt] = hir.SourceLocation{ByteOffset: t.Offset, Line: t.Line}
 	}
 }

@@ -154,11 +154,21 @@ func RunLoopProfile(m *Module, w ProfileWorkload) (*ProfileRun, error) {
 	installProfileDeniedExternHooks(p.VM, m)
 	p.VM.MaxSteps = owned.MaxSteps
 	p.VM.MaxMemory = owned.MaxMemory
+	reachable, err := ProfileWorkloadReachableFunctions(p.VM.Module, owned)
+	if err != nil {
+		return nil, err
+	}
 	for _, fn := range p.VM.Module.Funcs {
+		deadRuntime := !reachable[fn.Name] && ProfileDeadPascalRuntime(m, fn)
 		for _, b := range fn.Blocks {
 			for _, i := range b.Insts {
 				switch i.Op {
-				case mir2.OpAsm, mir2.OpIn8, mir2.OpIn16, mir2.OpOut8, mir2.OpOut16:
+				case mir2.OpAsm:
+					if !deadRuntime {
+						return nil, fmt.Errorf("loop profile: noncanonical/reachable ASM unsupported")
+					}
+					continue
+				case mir2.OpIn8, mir2.OpIn16, mir2.OpOut8, mir2.OpOut16:
 					return nil, fmt.Errorf("loop profile: ASM/port I/O unsupported by controlled harness")
 				}
 			}
