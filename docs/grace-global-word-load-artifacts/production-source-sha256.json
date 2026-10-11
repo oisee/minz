@@ -21,5 +21,19 @@
       "path": "minzc/pkg/pipeline/global_word_direct_target_test.go",
       "sha256": "294fbaad541fb4c2c2d62cd0a8a7dafc311684549d13a80b4c4b5b6ead154b8a"
     }
+  ],
+  "baseline_test_reference_refresh": [
+    {
+      "path": "minzc/pkg/pipeline/memory_host_baseline_test.go",
+      "sha256": "7a539ad6397b3088374edd3e0917f6256fbec6818843e6aa943c8f561182fb37"
+    },
+    {
+      "path": "minzc/pkg/pipeline/memory_host_loop_profile_test.go",
+      "sha256": "1508a0d3cf4c1696339ef537768906c837938c19f57d687eb7092c6b6c32a185"
+    },
+    {
+      "path": "minzc/pkg/pipeline/memory_host_target_test.go",
+      "sha256": "461e5702770f6b77fa9e09d2b51db5a3ffeacf3e0ea109f9c69eb5a5d12cf495"
+    }
   ]
 }

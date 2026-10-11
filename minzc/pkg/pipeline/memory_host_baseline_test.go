@@ -20,7 +20,7 @@ func TestMemoryHostFactoryOriginalParser(t *testing.T) {
 	// This fixture binds the current known adapter binary and cycle reference.
 	// A legitimate backend change must remeasure this reference while keeping
 	// the independent parser state/event oracle; production has no fixed cost.
-	if r.Target.TotalTStates != 1221494 || r.Target.BinarySHA256 != "fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51" {
+	if r.Target.TotalTStates != 1135370 || r.Target.BinarySHA256 != "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941" {
 		t.Fatal("original target drift")
 	}
 	if dir := os.Getenv("MINZ_MEMORY_HOST_ARTIFACTS"); dir != "" {

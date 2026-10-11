@@ -1,0 +1,319 @@
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[Z80-VALIDATE] main: 2 invalid instruction(s)
+  line 3: >>> LD A, <<<
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+lir: native LIR codegen disabled (wrong code found by exhaustive judges); module compiled with PBQP
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  ast_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostFactoryOriginalParser (1.37s)
+    memory_host_baseline_test.go:24: original target drift
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostLoopAssociationOriginalParser (2.16s)
+    memory_host_loop_profile_test.go:36: instrumentation changed native baseline
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostOriginalSelfLanzTarget (0.82s)
+    memory_host_target_test.go:82: reference native cycle/binary drift 1135370 1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+panic: test timed out after 10m0s
+	running tests:
+		TestIndependentGraceRulesBudgetCompetition (1m20s)
+
+goroutine 995 [running]:
+testing.(*M).startAlarm.func1()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2802 +0x354
+created by time.goFunc
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/time/sleep.go:215 +0x2d
+
+goroutine 1 [chan receive, 1 minutes]:
+testing.(*T).Run(0x9899b2fe6c8, {0xdd851b?, 0x0?}, 0xdf6b08)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2109 +0x4e5
+testing.runTests.func1(0x9899b2fe6c8)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2585 +0x3e
+testing.tRunner(0x9899b2fe6c8, 0x9899b48fc58)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2036 +0xea
+testing.runTests({0xdbc156, 0x15}, {0xdce533, 0x22}, 0x9899b5dadb0, {0x13958a0, 0xf4, 0xf4}, {0xc2aaef734e2b697f, 0x8bb2fa2194, ...})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2583 +0x505
+testing.(*M).Run(0x9899b40af00)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2443 +0x6ac
+main.main()
+	_testmain.go:542 +0x9b
+
+goroutine 776 [runnable]:
+internal/runtime/maps.(*table).uncheckedPutSlot(0x9899b984ea0?, 0xcfefe0?, 0xa3143c0bac366213?, 0x9899c403c10?, 0x9899c403c20?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/internal/runtime/maps/table.go:382 +0x1b3
+internal/runtime/maps.(*table).grow(0x9899b984e80, 0xcfefe0, 0x9899d72eff0, 0xd440?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/internal/runtime/maps/table.go:1251 +0x177
+internal/runtime/maps.(*table).rehash(0x9899d72eff0?, 0xcfefe0?, 0x770040457fc0?)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/internal/runtime/maps/table.go:1163 +0x25
+github.com/minz/minzc/pkg/mir2.reachableDominators(0x9899bb53540)
+	/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/mir2/verify.go:260 +0xa3d
+github.com/minz/minzc/pkg/mir2.verifyFunc(0x9899bb53540)
+	/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/mir2/verify.go:98 +0xc5c
+github.com/minz/minzc/pkg/mir2.Verify(0x9899c4d4000?)
+	/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/mir2/verify.go:21 +0x5c
+github.com/minz/minzc/pkg/hir.verifyGraceModule(0x9899c4d4000)
+	/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/hir/verify.go:657 +0x34
+github.com/minz/minzc/pkg/hir.RunGraceWithOptions.func2({0x1?, 0x0?}, 0x9899b3602d1?)
+	/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/hir/grace.go:88 +0x16d
+github.com/minz/minzc/pkg/rewrite/grace.applyAction({0xe11c90, 0x9899bcf2690}, {0x7, {0x9899c67876e, 0x1}, {0x0, 0x0}, {0x0, 0x0}, {0x0, ...}, ...}, ...)
+	/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/rewrite/grace/actions.go:91 +0x2e9
+github.com/minz/minzc/pkg/rewrite/grace.applyActions(...)
+	/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/rewrite/grace/actions.go:9
+github.com/minz/minzc/pkg/rewrite/grace.ApplyRules({0xe11c90, 0x9899bcf2690}, {0x9899bd7b888, 0x5, 0x9899c519920?}, 0x9899bfbb948, 0x1)
+	/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/rewrite/grace/grace.go:137 +0x46a
+github.com/minz/minzc/pkg/hir.RunGraceWithOptions(0x9899c4d4000, {0x0, 0x0, 0x9899b3fb9b0})
+	/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/hir/grace.go:278 +0xb29
+github.com/minz/minzc/pkg/hir.ApplyProfileDecisions(0x9899c4d4000, {0x9899d5a7908, 0x2, 0x12?})
+	/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/hir/profile_policy.go:190 +0x772
+github.com/minz/minzc/pkg/pipeline.measureProfileVariantSets(0x9899c031db8, {0x9899b2e4900, 0x8be, 0x900}, {0x1, {0x9899b207530, 0x18}, {0x9899b370920, 0xa}, 0x1e8480, ...}, ...)
+	/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/pipeline/profile_joint.go:242 +0x233b
+github.com/minz/minzc/pkg/pipeline.MeasureGraceRuleVariantSets(...)
+	/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/pipeline/profile_joint.go:84
+github.com/minz/minzc/pkg/pipeline.testIndependentChecksum(0x9899c2d5b08, 0x1)
+	/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/pipeline/profile_rule_choices_test.go:180 +0x1408
+github.com/minz/minzc/pkg/pipeline.TestIndependentGraceRulesBudgetCompetition(0x9899c2d5b08?)
+	/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/pipeline/profile_rule_choices_test.go:86 +0x18
+testing.tRunner(0x9899c2d5b08, 0xdf6b08)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2036 +0xea
+created by testing.(*T).Run in goroutine 1
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2101 +0x4c5
+FAIL	github.com/minz/minzc/pkg/pipeline	600.017s
+FAIL

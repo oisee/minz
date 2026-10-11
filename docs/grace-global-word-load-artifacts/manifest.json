@@ -841,6 +841,11 @@
       "sha256": "ef1752a2bd26dee319fbdc60b571e9aaee600e3aea9661e72c3167acc6521aae"
     },
     {
+      "path": "gates/root-baseline-refresh.txt",
+      "bytes": 47,
+      "sha256": "5f9afbf282b12148ea28dca4ba80a08a9acbe1b467cc18376f179e39773da4f1"
+    },
+    {
       "path": "gates/root-c89.txt",
       "bytes": 42,
       "sha256": "c243dbecb3c034c1ecc67f455b8597cf70681dd01c7c9f8bc63f4722fd221f11"
@@ -854,6 +859,11 @@
       "path": "gates/root-packages.txt",
       "bytes": 172,
       "sha256": "826ddb07732c7a78e5268876fe729d645ba82e8416c0f51816a710f9347ebf93"
+    },
+    {
+      "path": "gates/root-pipeline-initial-timeout.txt",
+      "bytes": 12469,
+      "sha256": "ee81982a8f788aa45ae93d5ca60b39a57af6546dbb5203e264b8c3254f84d046"
     },
     {
       "path": "gates/root-showcase.txt",
@@ -1027,8 +1037,8 @@
     },
     {
       "path": "production-source-sha256.json",
-      "bytes": 842,
-      "sha256": "db3a5777abae0463ff49a9b58587aee5bc3970dd5c4fd93489978ecd259b5a00"
+      "bytes": 1370,
+      "sha256": "e916e84c64c03de44275dcbd6d0ffe1930c39ca2c200c969ab39405352657ad5"
     },
     {
       "path": "prototype/PLAN.md",
