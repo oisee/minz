@@ -469,6 +469,12 @@ func CompileHIR(hm *hir.Module) (string, error) {
 // CompileHIRWithOptions runs the HIR→MIR2→Z80 pipeline with explicit options.
 // Use this to compare output with/without specific optimisation passes.
 func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
+	// MIR Grace has one implementation and one option/size policy in the steps
+	// pipeline. Do not silently run the legacy passes for an explicit request.
+	if opts.UseGrace {
+		steps, err := CompileHIRSteps(hm, opts)
+		return steps.Assembly, err
+	}
 	policy, err := resolveUnsignedPairComparePolicy(opts)
 	if err != nil {
 		return "", err
