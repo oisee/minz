@@ -1,0 +1,17 @@
+PASS short-reuse fixed0/0 reported: 330515T/2000B SHA1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941; 12 source/raw/native observations, actual origins/proof/policy binding
+PASS short-reuse fixed1/0 same-policy-support: 329597T/2001B SHAef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd; 12 source/raw/native observations, actual origins/proof/policy binding
+PASS short-reuse fixed1/3 reported: 326650T/2100B SHA987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac; 12 source/raw/native observations, actual origins/proof/policy binding
+PASS short-reuse fixed0/2 reported: 327008T/1978B SHA1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975; 12 source/raw/native observations, actual origins/proof/policy binding
+PASS long-atoms fixed0/0 reported: 4110605T/2000B SHA1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941; 9 source/raw/native observations, actual origins/proof/policy binding
+PASS long-atoms fixed1/0 same-policy-support: 4110217T/2001B SHAef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd; 9 source/raw/native observations, actual origins/proof/policy binding
+PASS long-atoms fixed1/3 reported: 3968826T/2100B SHA987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac; 9 source/raw/native observations, actual origins/proof/policy binding
+PASS long-atoms fixed0/2 reported: 3968942T/1978B SHA1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975; 9 source/raw/native observations, actual origins/proof/policy binding
+PASS nested-mixed fixed0/0 reported: 1297899T/2000B SHA1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941; 9 source/raw/native observations, actual origins/proof/policy binding
+PASS nested-mixed fixed1/0 same-policy-support: 1286305T/2001B SHAef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd; 9 source/raw/native observations, actual origins/proof/policy binding
+PASS nested-mixed fixed1/3 reported: 1271819T/2100B SHA987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac; 9 source/raw/native observations, actual origins/proof/policy binding
+PASS nested-mixed fixed0/2 reported: 1281762T/1978B SHA1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975; 9 source/raw/native observations, actual origins/proof/policy binding
+PASS fresh-dominant fixed0/0 reported: 789462T/2000B SHA1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941; 20 source/raw/native observations, actual origins/proof/policy binding
+PASS fresh-dominant fixed1/0 same-policy-support: 786526T/2001B SHAef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd; 20 source/raw/native observations, actual origins/proof/policy binding
+PASS fresh-dominant fixed1/3 reported: 696957T/2100B SHA987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac; 20 source/raw/native observations, actual origins/proof/policy binding
+PASS fresh-dominant fixed0/2 reported: 699845T/1978B SHA1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975; 20 source/raw/native observations, actual origins/proof/policy binding
+PASS fixed16 payloads/200 raw+native observation pairs. No evaluation winner/reselection; support4 remains separate from report12. No CPU replay.

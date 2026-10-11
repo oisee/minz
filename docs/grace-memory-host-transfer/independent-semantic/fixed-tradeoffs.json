@@ -1,0 +1,26 @@
+[
+  {
+    "workload": "short-reuse",
+    "fixed_speed_minus_fixed_size_t_states": -358,
+    "speed_bytes": 2100,
+    "size_bytes": 1978
+  },
+  {
+    "workload": "long-atoms",
+    "fixed_speed_minus_fixed_size_t_states": -116,
+    "speed_bytes": 2100,
+    "size_bytes": 1978
+  },
+  {
+    "workload": "nested-mixed",
+    "fixed_speed_minus_fixed_size_t_states": -9943,
+    "speed_bytes": 2100,
+    "size_bytes": 1978
+  },
+  {
+    "workload": "fresh-dominant",
+    "fixed_speed_minus_fixed_size_t_states": -2888,
+    "speed_bytes": 2100,
+    "size_bytes": 1978
+  }
+]

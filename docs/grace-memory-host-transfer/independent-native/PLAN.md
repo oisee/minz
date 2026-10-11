@@ -1,0 +1,29 @@
+# Frozen training choice → held-out fixed evaluation
+
+Plan only; no implementation/CPU or parent/default/ISA/host changes. Training evidence full30 explicitsearchCLI actualSpeed chooses **policy1/mask3**, actualSize **policy0/mask2**; ordinaryreference **policy0/mask0**. PREREGISTRATION.json saves exacttrainingsearch bytesSHA/source/fixedtuples andfourunchangedcorpusbyteSHA beforeanynewheldoutexecution. Finalrootexe identitypendingfreshintegrationaudit; record itwithoutchangingchosen tuples.
+
+Important limitation: these four preexisting corpus workloads were already measured duringdevelopment/previousfixedpolicy studies. This is retrospective frozen-choice/out-of-training-workload evaluation, not scientificallyblind untouchedtestset. Preregistering now prevents fresh target-based reselection in thisrun, but cannot erase earlier exposure. Any true unseenfuturetestset requires new separatelysealed inputs notusedtotune code. Reportthisclearlyratherthanclaimheldoutgeneralizationproof.
+
+## Fixed protocol
+
+ExactsourceknownSelfLanz0e926 andallfouroriginalworkloads: short12,long9,nested9,fresh20calls; exactJSONbyteidentity. At eachworkload evaluate ONLYbaseline0/0, trainedSpeed1/3 andtrainedSize0/2. Do notcall8candidate searchor4candidate selector onheldout; no newwinner selection, no sitecounts-drivenmaskchanges, no cost-basedfallback tobaseline. Threefixedtuples per4workloads=12actualcasesconceptually; any compileonce reuse muststillprivatelyproveassembly/raw/provenance/addresses andeachworkload nativeaccess contract. Prefer existingfreshprivatecompile boundary foreachcase firstboundedMVP.
+
+Heldout report gives allthree actualcost/bytes andsame-workloadbaseline ratios; speedandSize target eachcomparedbaseline0/0. Negativeimprovements/slowerbigger cases preserved, failures separateandcannotdropdenominator. No aggregateuniversalwinner; primaryspeedT andsizebytes fixed, no bytessecondaryrank/reselection. Per-callT/steps/fullstates preserved; totalscanbesummarizedonlywithexplicitdefinedweights. Sourcecountsshownasobservations, not newpolicyadmissionortrainingfeatures.
+
+## Safe bounded measurement API/harness design
+
+Do notfeedcallerASM/binary toexternalemulator or claimrawtransformedHIRfactory iscertificate. Newprivate test/tool/helper can accept typedfixedchoice0/0,1/3,0/2 andsource-ownedfactory only. Internally parseexactownedknownbytes twicefresh(original+actual), sharedseen/strongroots beforemutation, checksourceexpectedcompat/fullfunctionmaps/assertmetadata. Construct onlyexistingexactarena/append privateconstructor and independentlyValidateMemoryHostArenaAppendChoices forchosenmask underOWNEDheldoutworkload. Preserveexactoriginal/postprecompileproof plusbothmaps/sites/compatandcompilepolicy. falsemask exactidentity. No callertransformhook, CSE or codegenoption mutation.
+
+Buildunchanged originalrawVMoracle forheldout beforecompile; targetfreshprivateCodegen+assembler+sidecar/global/spill/framecontract baseline machinery with explicitrequestedpolicy. Existing RunZ80MemoryHostBaselineWithOptions canbeinsideprivatewrapper, butitsrawcandidateoracle alone isnotoriginalequivalenceproof; comparetarget+candidateVM fullobservableagainst ORIGINALsourceVM independently andwholeexpectedprecompilecertificate. Existing original/actualfactoryretention protocol needsknowncompiler-owned exclusion/keepalive, not generalcallbackmasking.
+
+Globals/resourcepermissions mustbechecked for EACHoriginal/actualreservedVMheap andnativeglobal/spill/stack extent undereachworkload beforeexecution. Numericpointeringlobalrange isnotauthority. Do notallowall globals or unknownextent simplybecausepreviousworkloadsamecodepassed. Existing exactsymbolmemoryopsidecars andboundedA-frame descriptors remainmandatory, bothnormal+annotationemissionspolicyconsistent. Unknownorigins/uninitializedstack/hiddenhostglobals refuse; nopermissionwhitelistprefix.
+
+Inputsownedandstrictbeforefactory; exactsourceunitSHA/fullAST/proofs/nativecontexts; explicitfullv2envelope forpolicy0/1 andnewfixed-evaluation schema referencesfrozenchoice/trainingSHA/heldoutSHA. No sourceobserved-looprequirement importedfromtraining ifMVPnotprofiling; sourceprooflegality independentexistingloopcounters, no synthetic inheritedcounts. Partialhostdenial canbe separatetypedprefixdiagnostic butnotcompletedperformance row; infrastructuregas/provenance nilsuccessfulevidence. Do notautomaticallyreselectmaskedfunctions onzerotrip.
+
+## Worthwhile gates before CPU
+
+Frozenchoiceworkloadcaps/invalidpolicy/mask/unknownsource factory0; trainingtupleimmutability undercallbacks; sharednodes/delayedsourceorigin/assertmutationrefuse; originalvsactualproof falsebit/nohiddenotherrewrite; crossworkloadglobalregionextentdenial; originaloracle mismatchedtarget/error typedprefix; unchangedbaselinecurrentnativehash check. SourceboundaryVM andactualnative publiccontract testsreuse, no broadrepeatuntilnewmutationjustifies.
+
+Afterfrozenprivatehelper/review, preservetestexe/rootCLI separately, runoneboundedworkload12cases onlyafterrootrelease. Exportsource/ownedworkload/trainingmanifest/currentexeSHA/fixedchoice/precompileproof/allnativeBINASM/MIRallocation/sidecar/frame/percallTstate/completeoriginalobservations. Auditorssavedonly, no independentCPUduplication. Comparepriorcorpusrecords analyticallylabeloldcontexts, never reuseoldassocs relabelledcurrent.
+
+Production integration/CLI syntax a laterstage; thisdoesnot authorizedefaultPreserve or genericinvariantaddresshoist. Actualearlier additivity isdatasetmeasurementnotinstructioncostindependence. UserpureSpeed remainsmeasuredTonly. Keepfourworkloadselectionleakage limitation in allpublishedsummary.

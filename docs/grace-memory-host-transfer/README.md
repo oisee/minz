@@ -19,4 +19,4 @@ The released exporter completed all 16 native executions in 91.40 s, exit 0. Eac
 | nested-mixed | 1297899 | 1286305 | 1271819 | 1281762 |
 | fresh-dominant | 789462 | 786526 | 696957 | 699845 |
 
-Binary sizes are 2000 B for control, 2001 B for support, 2100 B for trained Speed and 1978 B for trained Size. These are fixed-tuple measurements, not evaluation rankings. Independent saved-payload audits are pending. The packet preserves all results, including the cost of the larger trained-Speed binary, without changing either training decision.
+Binary sizes are 2000 B for control, 2001 B for support, 2100 B for trained Speed and 1978 B for trained Size. These are fixed-tuple measurements, not evaluation rankings. Both independent saved-payload audits passed 200 observations, including all full state/events and native/proof hashes. The packaged gzip audit passed the same 200 observations. See RESULTS-RU.md and the independent review directories. The packet preserves all results, including the cost of the larger trained-Speed binary, without changing either training decision.
