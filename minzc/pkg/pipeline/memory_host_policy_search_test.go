@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/nanz"
 	"os"
+	"path/filepath"
+	"reflect"
 	"runtime"
 	"strings"
 	"testing"
@@ -298,6 +301,124 @@ func TestMemoryHostPolicySearchOwnedInputsAndSize(t *testing.T) {
 		}
 		if e.Selected != (MemoryHostPolicySearchChoice{Policy: 1, Mask: 2}) {
 			t.Fatal("cross-policy strict improvement")
+		}
+	}
+}
+
+// Explicit artifact mode: source oracle stays unchanged; all eight native
+// candidate envelopes remain policy-aware. Size below is an offline rank only.
+func TestMemoryHostPolicySearchOriginalParserExport(t *testing.T) {
+	dir := os.Getenv("MINZ_MEMORY_HOST_POLICY_SEARCH_ARTIFACTS")
+	if dir == "" {
+		t.Skip("explicit complete policy-mask search artifact export")
+	}
+	refs := os.Getenv("MINZ_MEMORY_HOST_POLICY_SEARCH_REFERENCE")
+	if refs == "" {
+		t.Fatal("prior public baseline references required")
+	}
+	source, err := os.ReadFile("../../../examples/nanz/self_lanz_parser.nanz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, w := memoryHostParserFixture(t)
+	parse := func() (*hir.Module, error) {
+		m, err := nanz.Parse(string(source), "../examples/nanz/self_lanz_parser.nanz")
+		if err == nil {
+			m.Target = hir.TargetCPM
+		}
+		return m, err
+	}
+	if err = os.MkdirAll(dir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	write := func(name string, b []byte) {
+		t.Helper()
+		if err := os.WriteFile(filepath.Join(dir, name), b, 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	fail := func(err error) { t.Helper(); write("error.txt", []byte(err.Error()+"\n")); t.Fatal(err) }
+	input := MemoryHostPolicySearchInputs{Source: source, SourceName: "../examples/nanz/self_lanz_parser.nanz"}
+	for policy := 0; policy < 2; policy++ {
+		a, err := RunZ80MemoryHostLoopProfileWithOptions(parse, w, MemoryHostBaselineOptions{UnsignedPairComparePolicy: mir2.UnsignedPairComparePolicy(policy)})
+		if err != nil {
+			fail(err)
+		}
+		b, err := json.MarshalIndent(a, "", "  ")
+		if err != nil {
+			fail(err)
+		}
+		write(fmt.Sprintf("input-policy%d-association-v2.json", policy), b)
+		if policy == 0 {
+			input.Legacy = b
+		} else {
+			input.PreserveSpeed = b
+		}
+	}
+	calls := 0
+	result, err := MeasureMemoryHostArenaAppendPolicySearch(func() (*hir.Module, error) { calls++; return parse() }, w, input, MemoryHostPolicySearchOptions{Goal: "speed", MaxSites: 2})
+	if err != nil {
+		fail(err)
+	}
+	b, err := json.MarshalIndent(result, "", "  ")
+	if err != nil {
+		fail(err)
+	}
+	write("search.json", b)
+	for policy, s := range result.Selections {
+		for mask, c := range s.Candidates {
+			q := filepath.Join(dir, fmt.Sprintf("policy%d-mask%d", policy, mask))
+			if err = os.MkdirAll(q, 0755); err != nil {
+				fail(err)
+			}
+			payload, err := json.MarshalIndent(c.Evidence, "", "  ")
+			if err != nil {
+				fail(err)
+			}
+			target := c.Evidence.Baseline.Target
+			for name, data := range map[string][]byte{"baseline-v2.json": payload, "target.bin": target.Binary, "target.a80": []byte(target.Assembly), "allocation.json": target.AllocationJSON, "final.mir2": []byte(target.FinalMIRDump)} {
+				if err = os.WriteFile(filepath.Join(q, name), data, 0644); err != nil {
+					fail(err)
+				}
+			}
+			t.Logf("policy%d mask%d %dT/%dB BIN%s", policy, mask, target.TotalTStates, len(target.Binary), target.BinarySHA256)
+		}
+	}
+	write("source.nanz", source)
+	b, err = json.MarshalIndent(w, "", "  ")
+	if err != nil {
+		fail(err)
+	}
+	write("workload.json", b)
+	size := MemoryHostPolicySearchChoice{}
+	for _, c := range result.Candidates {
+		target := result.Selections[int(c.Choice.Policy)].Candidates[c.Choice.Mask].Evidence.Baseline.Target
+		best := result.Selections[int(size.Policy)].Candidates[size.Mask].Evidence.Baseline.Target
+		if len(target.Binary) < len(best.Binary) {
+			size = c.Choice
+		}
+	}
+	b, err = json.MarshalIndent(map[string]any{"actual_goal": "speed", "actual_selected": result.Selected, "derived_size_selected": size, "factory_calls": calls, "scope": "eight search candidates plus two separately collected original baselines; Size derived offline from saved actual binaries"}, "", "  ")
+	if err != nil {
+		fail(err)
+	}
+	write("objectives.json", b)
+	if calls != 48 {
+		t.Fatal("search lifecycle", calls)
+	}
+	for policy, s := range result.Selections {
+		name := []string{"legacy", "preserve-speed"}[policy]
+		b, err := os.ReadFile(filepath.Join(refs, name, "baseline-v2.json"))
+		if err != nil {
+			fail(err)
+		}
+		var ref MemoryHostBaselineEvidenceV2
+		if err = json.Unmarshal(b, &ref); err != nil {
+			fail(err)
+		}
+		got, want := s.Candidates[0].Evidence.Baseline.Target, ref.Baseline.Target
+		if got.BinarySHA256 != want.BinarySHA256 || got.Assembly != want.Assembly || got.AdapterSHA256 != want.AdapterSHA256 || got.TotalTStates != want.TotalTStates || got.ExecutedSteps != want.ExecutedSteps || got.MIRSHA256 != want.MIRSHA256 || got.AllocationSHA256 != want.AllocationSHA256 || got.SidecarSHA256 != want.SidecarSHA256 || got.CallFramesSHA256 != want.CallFramesSHA256 || !reflect.DeepEqual(got.Invocations, want.Invocations) || !reflect.DeepEqual(got.InvocationTStates, want.InvocationTStates) {
+			t.Fatal("original candidate differs from prior public policy baseline", policy)
 		}
 	}
 }
