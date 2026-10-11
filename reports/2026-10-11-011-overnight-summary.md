@@ -174,3 +174,13 @@ Append production полный pipeline прошёл за462.479 s. Всеобщ
 с замороженного7-file checkpoint. Следующий combined prototype прошёл
 независимые host/native аудиты четырёх вариантов: both1147025 T /2197 B
 (−6,10% T), append самыймалый2076 B. Отдельный combined selector реализуется.
+
+Append stageaaab134c запушен. Приватная Sites версия41 опубликована:
+https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-append-selection.html
+Полная офлайн-копия синхронизируется; опубликованный исходный набор7 файлов
+сверен по SHA256 с интегрированным компилятором.
+
+Combined selector финальный isolated public E2E прошёл за33.789 s: speed
+выбираетboth1147025 T /2197 B, sizeappend1150124 T /2076 B. Каждому
+из четырёх вариантов соответствует typed proof;24 factory calls с GC на
+каждом режиме прошли. Независимый аудит пакета и production-интеграция впереди.
