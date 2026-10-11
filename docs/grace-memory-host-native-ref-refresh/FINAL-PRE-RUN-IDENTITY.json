@@ -1,0 +1,8 @@
+{
+  "source_test_checkpoint": "9695ba1d",
+  "executable": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-native-ref-refresh-final.test",
+  "sha256": "7a1e1dd74f2cc832701338b237ab68c501f8b152639e0956cd32532054af19ac",
+  "executed": false,
+  "pattern": "^(TestMemoryHostFactoryOriginalParser|TestMemoryHostLoopAssociationOriginalParser|TestMemoryHostOriginalSelfLanzTarget)$",
+  "count": 1
+}
