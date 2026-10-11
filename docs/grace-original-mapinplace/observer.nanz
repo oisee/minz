@@ -1,0 +1,6 @@
+@extern fun peek(addr: u16) -> u8
+ fun oracle_observe(addr: u16) -> u8 { return peek(addr) }
+fun oracle_call(addr: u16, n: u8) -> void {
+ var p: ^u8 = addr
+ add2_inplace(p, n)
+}

@@ -1,0 +1,223 @@
+{
+  "schema": "minz.memory-host-workload/v1",
+  "target_model": "cpm-z80-v1",
+  "max_steps": 1000000,
+  "max_memory": 65536,
+  "layout": {
+    "code_origin": 1024,
+    "stack_low": 57344,
+    "stack_high": 61424,
+    "return_pc": 768
+  },
+  "hosts": {
+    "peek": "read-u8-at-u16"
+  },
+  "regions": {
+    "array": {
+      "address": 36864,
+      "bytes": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4vMDEyMzQ1Njc4OTo7PD0+P0BBQkNERUZHSElKS0xNTk9QUVJTVFVWV1hZWltcXV5fYGFiY2RlZmdoaWprbG1ub3BxcnN0dXZ3eHl6e3x9fn+AgYKDhIWGh4iJiouMjY6PkJGSk5SVlpeYmZqbnJ2en6ChoqOkpaanqKmqq6ytrq+wsbKztLW2t7i5uru8vb6/wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/wABAgMEBQYHCAkKCwwNDg8QERITFBUWFxgZGhscHR4fICEiIyQlJicoKSorLC0uLzAxMjM0NTY3ODk6Ozw9Pj9AQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVpbXF1eX2BhYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ent8fX5/gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXmJmam5ydnp+goaKjpKWmp6ipqqusra6vsLGys7S1tre4ubq7vL2+v8DBwsPExcbHyMnKy8zNzs/Q0dLT1NXW19jZ2tvc3d7f4OHi4+Tl5ufo6err7O3u7/Dx8vP09fb3+Pn6+/z9/v8AAQ==",
+      "writable": true
+    },
+    "high": {
+      "address": 65278,
+      "bytes": "C1KZ4CdutfxDitEYX6btNHvCCVCX3iVss/pBiM8WXaTrMnnAB06V3CNqsfg/hs0UW6LpMHe+BUyT2iFor/Y9hMsSWaDnLnW8A0qR2B9mrfQ7gskQV57lLHO6AUiP1h1kq/I5gMcOVZzjKnG4/0aN1BtiqfA3fsUMU5rhKG+2/USL0hlgp+41fMMKUZjfJm20+0KJ0BdepewzesEIT5bdJGuy+UCHzhVco+oxeL8GTZTbImmw9z6FzBNaoegvdr0ES5LZIGeu9TyDyhFYn+YtdLsCSZDXHmWs8zqByA9WneQrcrkAR47VHGOq8Th/xg1Um+IpcLf+RYzTGmGo7zZ9xAtS",
+      "writable": true
+    },
+    "low": {
+      "address": 32768,
+      "bytes": "BzxxptsQRXqv5BlOg7jtIleMwfYrYJXK/zRpntMIPXKn3BFGe7DlGk+Eue4jWI3C9yxhlssANWqf1Ak+c6jdEkd8seYbUIW67yRZjsP4LWKXzAE2a6DVCj90qd4TSH2y5xxRhrvwJVqPxPkuY5jNAjdsodYLQHWq3xRJfrPoHVKHvPEmW5DF+i9kmc4DOG2i1wxBdqvgFUp/tOkeU4i98idckcb7MGWazwQ5bqPYDUJ3rOEWS4C16h9Uib7zKF2Sx/wxZpvQBTpvpNkOQ3it4hdMgbbrIFWKv/QpXpPI/TJnnNEGO3Cl2g9Eea7jGE2Ct+whVovA9SpflMn+M2id0gc8",
+      "writable": true
+    }
+  },
+  "globals": null,
+  "calls": [
+    {
+      "function": "oracle_call",
+      "arguments": [
+        36865,
+        0
+      ],
+      "globals": null,
+      "patches": null
+    },
+    {
+      "function": "oracle_call",
+      "arguments": [
+        36865,
+        1
+      ],
+      "globals": null,
+      "patches": null
+    },
+    {
+      "function": "oracle_call",
+      "arguments": [
+        36866,
+        2
+      ],
+      "globals": null,
+      "patches": null
+    },
+    {
+      "function": "oracle_call",
+      "arguments": [
+        36865,
+        127
+      ],
+      "globals": null,
+      "patches": null
+    },
+    {
+      "function": "oracle_call",
+      "arguments": [
+        36992,
+        128
+      ],
+      "globals": null,
+      "patches": null
+    },
+    {
+      "function": "oracle_call",
+      "arguments": [
+        36865,
+        255
+      ],
+      "globals": null,
+      "patches": null
+    },
+    {
+      "function": "oracle_call",
+      "arguments": [
+        37120,
+        255
+      ],
+      "globals": null,
+      "patches": null
+    },
+    {
+      "function": "oracle_call",
+      "arguments": [
+        36865,
+        255
+      ],
+      "globals": null,
+      "patches": null
+    },
+    {
+      "function": "oracle_call",
+      "arguments": [
+        36992,
+        255
+      ],
+      "globals": null,
+      "patches": null
+    },
+    {
+      "function": "oracle_call",
+      "arguments": [
+        36866,
+        1
+      ],
+      "globals": null,
+      "patches": null
+    },
+    {
+      "function": "oracle_call",
+      "arguments": [
+        36865,
+        0
+      ],
+      "globals": null,
+      "patches": null
+    },
+    {
+      "function": "oracle_call",
+      "arguments": [
+        65278,
+        0
+      ],
+      "globals": null,
+      "patches": null
+    },
+    {
+      "function": "oracle_call",
+      "arguments": [
+        65278,
+        1
+      ],
+      "globals": null,
+      "patches": null
+    },
+    {
+      "function": "oracle_call",
+      "arguments": [
+        65278,
+        2
+      ],
+      "globals": null,
+      "patches": null
+    },
+    {
+      "function": "oracle_call",
+      "arguments": [
+        65278,
+        127
+      ],
+      "globals": null,
+      "patches": null
+    },
+    {
+      "function": "oracle_call",
+      "arguments": [
+        65280,
+        128
+      ],
+      "globals": null,
+      "patches": null
+    },
+    {
+      "function": "oracle_call",
+      "arguments": [
+        65280,
+        255
+      ],
+      "globals": null,
+      "patches": null
+    },
+    {
+      "function": "oracle_call",
+      "arguments": [
+        65281,
+        255
+      ],
+      "globals": null,
+      "patches": null
+    },
+    {
+      "function": "oracle_call",
+      "arguments": [
+        65534,
+        2
+      ],
+      "globals": null,
+      "patches": null
+    },
+    {
+      "function": "oracle_call",
+      "arguments": [
+        32768,
+        255
+      ],
+      "globals": null,
+      "patches": null
+    },
+    {
+      "function": "oracle_observe",
+      "arguments": [
+        65535
+      ],
+      "globals": null,
+      "patches": null
+    }
+  ]
+}

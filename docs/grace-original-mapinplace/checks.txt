@@ -1,0 +1,8 @@
+=== RUN   TestOriginalMapInPlaceCumulativeVMZ80
+    showcase_mapinplace_oracle_test.go:158: exact original mapInPlace:20 persistent calls + separate observer, full1030RAM/order/stack/code; wrap separately; 118329 T/22 B SHA3644107cb1297e339a418ac0a545d5a9aa7392870115b80fad9e57df2ea453ee
+--- PASS: TestOriginalMapInPlaceCumulativeVMZ80 (0.07s)
+=== RUN   TestOriginalMapInPlaceAddressWrapVMZ80
+    showcase_mapinplace_oracle_test.go:268: 9 cumulative exact original add2 calls via constant-address drivers, ffff→0000; raw ordered events + native full516 RAM/guards/SP/immutable image PASS; 92 B SHA4a0b9b1458eb0d205434e6daeaac0f98a6999bb23352ca65f1b06942975159b7
+--- PASS: TestOriginalMapInPlaceAddressWrapVMZ80 (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.083s

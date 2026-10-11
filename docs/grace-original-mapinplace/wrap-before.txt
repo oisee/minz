@@ -1,0 +1,6 @@
+=== RUN   TestOriginalMapInPlaceAddressWrapVMZ80
+    showcase_mapinplace_oracle_test.go:246: oracle_wrap_2 addr0000 VM09 native07 want09
+--- FAIL: TestOriginalMapInPlaceAddressWrapVMZ80 (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.013s
+FAIL

@@ -1,0 +1,30 @@
+fun add2_inplace(buf: ^u8, n: u8) -> void {
+    buf.mapInPlace(|x: u8| (x + 2), n)
+}
+
+fun oracle_wrap_0() -> void { var p: ^u8 = 65535
+ add2_inplace(p, 0) }
+
+fun oracle_wrap_1() -> void { var p: ^u8 = 65535
+ add2_inplace(p, 1) }
+
+fun oracle_wrap_2() -> void { var p: ^u8 = 65535
+ add2_inplace(p, 2) }
+
+fun oracle_wrap_3() -> void { var p: ^u8 = 65535
+ add2_inplace(p, 127) }
+
+fun oracle_wrap_4() -> void { var p: ^u8 = 65408
+ add2_inplace(p, 128) }
+
+fun oracle_wrap_5() -> void { var p: ^u8 = 65408
+ add2_inplace(p, 255) }
+
+fun oracle_wrap_6() -> void { var p: ^u8 = 65535
+ add2_inplace(p, 255) }
+
+fun oracle_wrap_7() -> void { var p: ^u8 = 65534
+ add2_inplace(p, 2) }
+
+fun oracle_wrap_8() -> void { var p: ^u8 = 0
+ add2_inplace(p, 255) }

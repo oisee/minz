@@ -1,0 +1,6 @@
+=== RUN   TestOriginalMapInPlaceCumulativeVMZ80
+    showcase_mapinplace_oracle_test.go:88: memory host: nonliteral integer invocation unsupported
+--- FAIL: TestOriginalMapInPlaceCumulativeVMZ80 (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.008s
+FAIL
