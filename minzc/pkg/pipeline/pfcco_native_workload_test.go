@@ -77,13 +77,13 @@ func TestPFCCOMeasuredNativePacket(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		steps, err := CompileHIRSteps(h, Options{ContractOpt: mode == "greedy", AssertMode: "none"})
+		steps, err := CompileHIRSteps(h, Options{ContractOpt: mode != "off", ContractStrategy: map[string]string{"pbqp": "pbqp"}[mode], AssertMode: "none"})
 		if err != nil {
 			t.Fatal(err)
 		}
 		m := steps.MIR2Module
 		var choices mir2.ContractSet
-		if mode == "greedy" {
+		if mode != "off" {
 			choices = mir2.ContractSet{}
 			for _, f := range m.Funcs {
 				c := &mir2.ContractChoice{}
@@ -95,10 +95,6 @@ func TestPFCCOMeasuredNativePacket(t *testing.T) {
 				}
 				choices[f.Name] = c
 			}
-		}
-		if mode == "pbqp" {
-			choices = mir2.OptimizeContractsPBQP(m, mir2.Z80CostTable{})
-			mir2.ApplyContracts(m, choices)
 		}
 		if choices != nil {
 			for _, f := range m.Funcs {
@@ -127,22 +123,6 @@ func TestPFCCOMeasuredNativePacket(t *testing.T) {
 		}
 		ar := steps.Allocation
 		asm := steps.Assembly
-		if mode == "pbqp" {
-			ar = &mir2.AllocResult{Locs: map[mir2.Reg]mir2.PhysLoc{}}
-			for _, f := range m.Funcs {
-				mir2.PreallocCoalesce(f)
-				a := mir2.PBQPAllocate(f, mir2.ComputeLiveness(f), mir2.Z80CostTable{})
-				for r, l := range a.Locs {
-					ar.Locs[r] = l
-				}
-				ar.Spilled = append(ar.Spilled, a.Spilled...)
-			}
-			asm, err = mir2.Z80Codegen(m, ar)
-			if err != nil {
-				t.Fatal(err)
-			}
-			steps = Steps{MIR2Module: m, Allocation: ar, Assembly: asm}
-		}
 		if strings.Count(asm, "CALL displacement") != 2 {
 			t.Fatal("fixture must keep two real helper calls")
 		}

@@ -1,0 +1,11 @@
+// Stateful unsigned displacement helper: two real calls per packet, modulo 65536.
+global packet_trace:u16=0
+fun displacement(base:u16,position:u16)->u16 {
+ packet_trace=packet_trace+1
+ return position-base
+}
+fun weighted_packet(a:u16,b:u16)->u16 {
+ var first:u16=displacement(a,b)
+ var second:u16=displacement(b,a)
+ return first+second*3
+}

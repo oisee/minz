@@ -55,6 +55,7 @@ var (
 	ctieDebug         bool // Debug CTIE decisions
 	tasFile           string
 	tasReplay         string
+	contractStrategy  string
 	backend           string
 	target            string // Target platform (zxspectrum, cpm, etc.)
 	forceOutput       bool   // --force: overwrite implicit generated C output
@@ -248,6 +249,7 @@ func init() {
 	rootCmd.Flags().StringVar(&hirProfileAutoDirectory, "hir-profile-auto", "", "collect, measure full u8 sum domain and compile; save evidence in directory")
 	rootCmd.Flags().StringVar(&hirProfileAutoFunction, "hir-profile-function", "", "exact sum function to measure with --hir-profile-auto")
 	rootCmd.Flags().StringVar(&hirProfileAutoWorkload, "hir-profile-auto-workload", "", "controlled workload JSON for --hir-profile-auto")
+	rootCmd.Flags().StringVar(&contractStrategy, "contract-strategy", "", "interprocedural contracts: greedy (default) or experimental pbqp")
 	rootCmd.Flags().StringVarP(&backend, "backend", "b", defaultBackend, "target backend (z80, ez80)")
 	rootCmd.Flags().StringVarP(&target, "target", "t", "zxspectrum", "target platform (zxspectrum, cpm, msx, cpc, amstrad)")
 	rootCmd.Flags().StringVarP(&outputFormat, "format", "f", "", "output format: code (raw binary, default), sna, tap")
@@ -287,6 +289,9 @@ func main() {
 }
 
 func compile(sourceFile string) error {
+	if err := validateContractStrategyCLI(sourceFile); err != nil {
+		return err
+	}
 	if memoryHostSearchCLIRequested() {
 		return runMemoryHostSearchCLI(sourceFile)
 	}
@@ -775,6 +780,9 @@ func compileFromMIR_deprecated(mirFile string) error {
 // assembleFile assembles a .a80/.asm/.z80 file using the built-in z80asm assembler.
 // This enables a one-tool workflow: mz source.minz -> mz output.a80 -> binary
 func compileViaHIR(sourceFile string) error {
+	if err := validateContractStrategyCLI(sourceFile); err != nil {
+		return err
+	}
 	if err := validateHIRProfileAuto(sourceFile); err != nil {
 		return err
 	}
@@ -1061,6 +1069,7 @@ func compileViaHIR(sourceFile string) error {
 
 	opts := pipeline.Options{
 		CheckedLocalTablePath: checkedLocalTablePath,
+		ContractStrategy:      contractStrategy,
 		ContractOpt:           true,
 		AnnotateTStates:       annotateTStates,
 		OptSize:               optSize,  // --Osize enables Grace reroll

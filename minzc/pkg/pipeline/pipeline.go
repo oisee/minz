@@ -97,6 +97,8 @@ type Options struct {
 	// ContractOpt enables Phase 5b interprocedural contract optimisation.
 	// Default true — only disable for A/B comparison or debugging.
 	ContractOpt bool
+	// ContractStrategy opts into joint PFCCO choices; empty keeps greedy.
+	ContractStrategy string `json:",omitempty"`
 	// AnnotateTStates adds T-state cost comments to every Z80 instruction line.
 	AnnotateTStates bool
 	// UseGrace replaces hand-coded optimization passes with declarative Grace rules.
@@ -136,6 +138,9 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		opt = opts[0]
 	}
 	var s Steps
+	if err := ValidateContractStrategy(opt); err != nil {
+		return s, err
+	}
 	policy, err := resolveUnsignedPairComparePolicy(opt)
 	if err != nil {
 		return s, err
@@ -314,7 +319,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	// allocated regs in earlier functions that overlap later functions.
 	m.RenumberRegs()
 
-	// Phase 5b: interprocedural contract optimisation (greedy DP on call graph).
+	// Phase 5b: interprocedural contracts (greedy default, opt-in joint PFCCO).
 	// Run BEFORE LUTGen so that synthetic LUT functions (which have hardcoded
 	// class requirements in their Sub instructions) are not re-optimised and
 	// given a conflicting class (BUG-004).
@@ -325,7 +330,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		ct = mir2.Z80CostTable{}
 	}
 	if opt.ContractOpt {
-		cs := mir2.OptimizeContracts(m, ct)
+		cs := optimizePipelineContracts(m, ct, opt.ContractStrategy)
 		mir2.ApplyContracts(m, cs)
 	}
 
@@ -469,6 +474,9 @@ func CompileHIR(hm *hir.Module) (string, error) {
 // CompileHIRWithOptions runs the HIR→MIR2→Z80 pipeline with explicit options.
 // Use this to compare output with/without specific optimisation passes.
 func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
+	if err := ValidateContractStrategy(opts); err != nil {
+		return "", err
+	}
 	// MIR Grace has one implementation and one option/size policy in the steps
 	// pipeline. Do not silently run the legacy passes for an explicit request.
 	if opts.UseGrace {
@@ -545,11 +553,11 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	mir2.PruneUnreachableFuncs(m, functionPruneRoots(hm))
 	m.RenumberRegs()
 
-	// Phase 5b: interprocedural contract optimisation (greedy DP on call graph).
+	// Phase 5b: interprocedural contracts (greedy default, opt-in joint PFCCO).
 	// Run BEFORE LUTGen so synthetic LUT functions keep their original param class
 	// and are not re-assigned a conflicting one (BUG-004).
 	if opts.ContractOpt {
-		cs := mir2.OptimizeContracts(m, ct)
+		cs := optimizePipelineContracts(m, ct, opts.ContractStrategy)
 		mir2.ApplyContracts(m, cs)
 	}
 

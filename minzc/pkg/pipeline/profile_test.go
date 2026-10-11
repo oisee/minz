@@ -124,7 +124,7 @@ func TestMultiFunctionProfileVMZ80(t *testing.T) {
 	if err != nil || id == config {
 		t.Fatal("real options excluded from compilation ID")
 	}
-	for _, kind := range []string{"stale first config", "stale second config", "duplicate", "stale hir", "stale compiler", "missing function", "both", "empty", "missing", "stale profile", "size config"} {
+	for _, kind := range []string{"stale first config", "stale second config", "duplicate", "stale hir", "stale compiler", "missing function", "both", "empty", "missing", "stale profile", "size config", "contract strategy"} {
 		t.Run(kind, func(t *testing.T) {
 			request := *options.ProfileSelection
 			request.Models = append([]hir.LoopCostModel{}, models...)
@@ -150,6 +150,8 @@ func TestMultiFunctionProfileVMZ80(t *testing.T) {
 				request.Models = nil
 			case "stale profile":
 				request.Observations = []byte("{}")
+			case "contract strategy":
+				badOptions.ContractStrategy = "pbqp"
 			case "size config":
 				badOptions.OptSize = true
 			}
