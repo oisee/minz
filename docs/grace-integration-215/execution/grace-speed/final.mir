@@ -1,0 +1,184 @@
+; MIR2 module: control-effects
+string @mir2.str.0 = "while_post"
+string @mir2.str.1 = "do_post"
+string @mir2.str.2 = "for_post"
+string @mir2.str.3 = "choose"
+string @mir2.str.4 = "choose_else"
+string @mir2.str.5 = "for_continue"
+string @mir2.str.6 = "do_continue"
+string @mir2.str.7 = "while_call"
+global @state : u8
+
+fun @while_post(%r1: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r2 = const 0 : u8 [general]
+    %r3 = const 0 : u8 [general]
+    jmp @loop_head1(%r1, %r2, %r3)
+  block @loop_head1(%r4: u8 [general], %r2: u8 [general], %r3: u8 [general]):
+    %r7 = const 1 : u8 [general]
+    %r8 = add %r2, %r7 : u8 [general]
+    %r9 = cmp.ult %r2, %r4 : bool [flag]
+    %r10 = const 0 : bool [general]
+    %r11 = cmp.eq %r9, %r10 : bool [flag]
+    %r12 = const 0 : bool [general]
+    %r13 = cmp.ne %r11, %r12 : bool [flag]
+    br_if %r13, @loop_exit3(%r8, %r3), @if_join5()
+  block @loop_exit3(%r14: u8 [general], %r15: u8 [general]):
+    %r16 = addr_of @state : ptr [pointer]
+    store %r16, %r14 : u8
+    ret %r15
+  block @if_join5:
+    %r17 = add %r3, %r8 : u8 [general]
+    jmp @loop_head1(%r4, %r8, %r17)
+
+fun @do_post(%r18: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r19 = const 0 : u8 [general]
+    %r20 = const 0 : u8 [general]
+    jmp @loop_head1(%r18, %r19, %r20)
+  block @loop_head1(%r21: u8 [general], %r19: u8 [general], %r20: u8 [general]):
+    %r24 = add %r20, %r19 : u8 [general]
+    %r25 = const 1 : u8 [general]
+    %r26 = add %r19, %r25 : u8 [general]
+    %r27 = cmp.ult %r19, %r21 : bool [flag]
+    %r28 = const 0 : bool [general]
+    %r29 = cmp.eq %r27, %r28 : bool [flag]
+    %r30 = const 0 : bool [general]
+    %r31 = cmp.ne %r29, %r30 : bool [flag]
+    br_if %r31, @loop_exit3(%r26, %r24), @loop_head1(%r21, %r26, %r24)
+  block @loop_exit3(%r32: u8 [general], %r33: u8 [general]):
+    %r34 = addr_of @state : ptr [pointer]
+    store %r34, %r32 : u8
+    ret %r33
+
+fun @for_post(%r35: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r36 = const 0 : u8 [general]
+    %r37 = const 0 : u8 [general]
+    jmp @loop_head1(%r35, %r36, %r37)
+  block @loop_head1(%r38: u8 [general], %r36: u8 [general], %r37: u8 [general]):
+    %r41 = const 1 : u8 [general]
+    %r42 = add %r36, %r41 : u8 [general]
+    %r43 = cmp.ult %r36, %r38 : bool [flag]
+    %r44 = const 0 : bool [general]
+    %r45 = cmp.eq %r43, %r44 : bool [flag]
+    %r46 = const 0 : bool [general]
+    %r47 = cmp.ne %r45, %r46 : bool [flag]
+    br_if %r47, @loop_exit3(%r42, %r37), @if_join5()
+  block @loop_exit3(%r48: u8 [general], %r49: u8 [general]):
+    %r50 = addr_of @state : ptr [pointer]
+    store %r50, %r48 : u8
+    ret %r49
+  block @if_join5:
+    %r51 = add %r37, %r42 : u8 [general]
+    jmp @loop_head1(%r38, %r42, %r51)
+
+fun @choose(%r52: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r53 = const 7 : u8 [general]
+    %r54 = const 0 : u8 [general]
+    %r55 = cmp.ne %r52, %r54 : bool [flag]
+    br_if %r55, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r53
+  block @if_join2:
+    %r56 = const 7 : u8 [general]
+    %r57 = addr_of @state : ptr [pointer]
+    store %r57, %r56 : u8
+    ret %r56
+
+fun @choose_else(%r58: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r59 = const 7 : u8 [general]
+    %r60 = const 0 : u8 [general]
+    %r61 = cmp.ne %r58, %r60 : bool [flag]
+    %r62 = const 8 : u8 [acc]
+    cond_ret %r61, [%r62], @if_then1()
+  block @if_then1:
+    ret %r59
+
+fun @for_continue(%r63: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r64 = const 0 : u8 [general]
+    %r65 = const 0 : u8 [general]
+    jmp @loop_head1(%r63, %r64, %r65)
+  block @loop_head1(%r66: u8 [general], %r64: u8 [general], %r65: u8 [general]):
+    %r69 = cmp.ult %r64, %r66 : bool [flag]
+    br_if %r69, @loop_body2(), @loop_exit3(%r64, %r65)
+  block @loop_body2:
+    %r70 = const 2 : i16 [pointer]
+    %r71 = cmp.eq %r64, %r70 : bool [flag]
+    br_if %r71, @if_then4(), @if_join5(%r64)
+  block @if_then4:
+    %r72 = const 1 : u8 [general]
+    %r73 = add %r64, %r72 : u8 [general]
+    jmp @loop_head1(%r66, %r73, %r65)
+  block @if_join5(%r74: u8 [general]):
+    %r75 = add %r65, %r74 : u8 [general]
+    %r76 = const 1 : u8 [general]
+    %r77 = add %r74, %r76 : u8 [general]
+    jmp @loop_head1(%r66, %r77, %r75)
+  block @loop_exit3(%r78: u8 [general], %r79: u8 [general]):
+    %r80 = addr_of @state : ptr [pointer]
+    store %r80, %r78 : u8
+    ret %r79
+
+fun @do_continue(%r81: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r82 = const 0 : u8 [general]
+    %r83 = const 0 : u8 [general]
+    jmp @loop_head1(%r81, %r82, %r83)
+  block @loop_head1(%r84: u8 [general], %r82: u8 [general], %r83: u8 [general]):
+    %r87 = const 2 : i16 [pointer]
+    %r88 = cmp.eq %r82, %r87 : bool [flag]
+    br_if %r88, @if_then4(), @if_join5(%r82)
+  block @if_then4:
+    %r89 = const 1 : u8 [general]
+    %r90 = add %r82, %r89 : u8 [general]
+    %r91 = cmp.ult %r82, %r84 : bool [flag]
+    %r92 = const 0 : bool [general]
+    %r93 = cmp.eq %r91, %r92 : bool [flag]
+    %r94 = const 0 : bool [general]
+    %r95 = cmp.ne %r93, %r94 : bool [flag]
+    br_if %r95, @loop_exit3(%r90, %r83), @loop_head1(%r84, %r90, %r83)
+  block @loop_exit3(%r96: u8 [general], %r97: u8 [general]):
+    %r98 = addr_of @state : ptr [pointer]
+    store %r98, %r96 : u8
+    ret %r97
+  block @if_join5(%r99: u8 [general]):
+    %r100 = add %r83, %r99 : u8 [general]
+    %r101 = const 1 : u8 [general]
+    %r102 = add %r99, %r101 : u8 [general]
+    %r103 = cmp.ult %r99, %r84 : bool [flag]
+    %r104 = const 0 : bool [general]
+    %r105 = cmp.eq %r103, %r104 : bool [flag]
+    %r106 = const 0 : bool [general]
+    %r107 = cmp.ne %r105, %r106 : bool [flag]
+    br_if %r107, @loop_exit3(%r102, %r100), @loop_head1(%r84, %r102, %r100)
+
+fun @while_call(%r108: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r109 = const 0 : u8 [general]
+    %r110 = const 0 : u8 [general]
+    jmp @loop_head1(%r108, %r109, %r110)
+  block @loop_head1(%r111: u8 [general], %r109: u8 [general], %r110: u8 [general]):
+    %r114 = const 1 : u8 [general]
+    %r115 = add %r109, %r114 : u8 [general]
+    %r116 = cmp.ult %r115, %r111 : bool [flag]
+    %r117 = const 0 : bool [general]
+    %r118 = cmp.eq %r116, %r117 : bool [flag]
+    %r119 = const 0 : bool [general]
+    %r120 = cmp.ne %r118, %r119 : bool [flag]
+    br_if %r120, @loop_exit3(%r115, %r110), @if_join5()
+  block @loop_exit3(%r121: u8 [general], %r122: u8 [general]):
+    %r123 = addr_of @state : ptr [pointer]
+    store %r123, %r121 : u8
+    ret %r122
+  block @if_join5:
+    %r124 = const 2 : i16 [pointer]
+    %r125 = cmp.eq %r115, %r124 : bool [flag]
+    br_if %r125, @loop_head1(%r111, %r115, %r110), @if_join7()
+  block @if_join7:
+    %r126 = add %r110, %r115 : u8 [general]
+    jmp @loop_head1(%r111, %r115, %r126)
+

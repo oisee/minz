@@ -12,11 +12,11 @@
 
 Полный CLI `31d6abd0` завершился **PASS, exit 0** после C89 switch и PL/M исправлений. Core `40041bd4`: HIR, MIR2 и VIR PASS; Nanz первоначально FAIL из-за устаревшего SHA проверочного файла. После подтверждённого обновления evidence полный Nanz **PASS 15,002 с**. Исходный failed gate сохранён, а не переписан. [CLI и повторы](grace-integration-214/README.md), [core](grace-integration-211/README.md), [Nanz](grace-integration-213/README.md).
 
-Полный pipeline `29df08bb` подтверждён живым процессом; terminal результат ещё ожидается. Он предшествует последним frontend исправлениям. Полный MIR2 после переноса нулевых упрощений запущен отдельно; PASS пока не заявляется.
+Полный pipeline `29df08bb` подтверждён живым процессом; terminal результат ещё ожидается. Он предшествует последним frontend исправлениям. Полный MIR2 `cc0165db` после переноса нулевых упрощений завершился **PASS 81,675 с** ([215](grace-integration-215/README.md)).
 
 Полезная группа нулевых identities перенесена из LIR в обычный MIR до allocation. Проверены типы, значения и отказы при flag/ASM/hard-constraint контекстах. На новой проверочной программе: 175 → 86 байт и 158 812 → 145 384 такта. Это результат fixture, не новый прикладной Grace выигрыш. [Полный отчёт](../reports/2026-10-11-lir-typed-zero-identities.md).
 
-Pending: Lizp `cond_test` не имеет определённой документированной политики implicit return; решение Alice запрошено. PL/M top-level statements и сохранение регистра строк исправлены, но исходный Hello не получает тайный PRINTCHAR intrinsic или недокументированный NUL. C89 аудит выявил дополнительные ошибки порядка побочных эффектов в циклах и условных выражениях; исправление и независимые проверки продолжаются отдельно.
+Pending: Lizp `cond_test` не имеет определённой документированной политики implicit return; решение Alice запрошено. PL/M top-level statements и сохранение регистра строк исправлены, но исходный Hello не получает тайный PRINTCHAR intrinsic или недокументированный NUL. C89 ошибки порядка эффектов в циклах и if исправлены: полный C89 PASS 5,675 с, независимый VM/Z80 повтор PASS 0,317 с ([215](grace-integration-215/README.md)). Условные выражения &&/||/?: и границы lexical shadowing расследуются отдельно.
 
 [Общий обзор языков, слоёв и новых возможностей](../reports/2026-10-11-092-grace-vm-z80-status.md) вошёл в GitHub **main** через [PR #74](https://github.com/oisee/minz/pull/74), commit `d378fccd`, и представлен ссылкой в README. Это docs-only интеграция: исследовательский compiler туда ещё не влит. Сайт v68 старше текущего отчёта; актуальные доказательства сохранены в compiler-docs/compiler-reports на `/mnt/safe/minz/grace/2026-10-11/`.
 
