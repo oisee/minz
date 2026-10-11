@@ -1,0 +1,36 @@
+--- FAIL: TestNativeDWordParallelCycles (0.00s)
+    z80codegen_dword_parallel_test.go:26: HL got=1234ef01 want=abcdef01
+        ORG 0x8000
+        entry:
+        LD HL,22136
+        EXX
+        LD HL,4660
+        EXX
+        LD DE,61185
+        EXX
+        LD DE,43981
+        EXX
+        LD BC,4951
+        EXX
+        LD BC,9320
+        EXX
+        LD A,0x5a
+        SCF
+            EX DE, HL
+        LD (0x6100),HL
+        EXX
+        LD (0x6102),HL
+        EXX
+        LD (0x6104),DE
+        EXX
+        LD (0x6106),DE
+        EXX
+        LD (0x6108),BC
+        EXX
+        LD (0x610a),BC
+        EXX
+        DI
+        HALT
+FAIL
+FAIL	github.com/minz/minzc/pkg/mir2	0.007s
+FAIL

@@ -1,0 +1,17 @@
+[
+  {
+    "path": "swap.a80",
+    "bytes": 3187,
+    "sha256": "1fa74d1023387f6527e582aef6be7e9627495fdd53de8698421ece1cf7f78e56"
+  },
+  {
+    "path": "swap.bin",
+    "bytes": 288,
+    "sha256": "a808e5a4c831414d06487b2457eabf4141f984ecd97f7fcfe0c64466e21d2178"
+  },
+  {
+    "path": "swap.nanz",
+    "bytes": 188,
+    "sha256": "a1f137a6fafd7fffd43931ea5786728ff5c68f03cd2bbb8bdd3afa3938725f39"
+  }
+]
