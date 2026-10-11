@@ -1,0 +1,23 @@
+=== RUN   TestOriginalHashmapPersistentProgram
+    hashmap_program_test.go:283: original persistent hashmap36 calls 137026T/990B
+--- PASS: TestOriginalHashmapPersistentProgram (0.22s)
+=== RUN   TestTypedInternCheckedProgramBaseline
+    intern_program_test.go:274: internbaseline30calls1637997T/661B finalbump559 hits15
+--- PASS: TestTypedInternCheckedProgramBaseline (0.15s)
+=== RUN   TestOriginalSelfLanzParserBaseline
+    self_lanz_baseline_test.go:400: unchangedoriginalSelfLanz30 calls 1269009T/2364B
+--- PASS: TestOriginalSelfLanzParserBaseline (0.17s)
+=== RUN   TestTypedTokenizerProgramBaseline
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    tokenizer_program_test.go:358: tokenizer30calls 2154457T/4253B arena432
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    tokenizer_program_test.go:412: tokenizer copy size=false candidate0 2154457T/4253B
+    tokenizer_program_test.go:412: tokenizer copy size=false candidate1 2145029T/4388B
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    tokenizer_program_test.go:412: tokenizer copy size=true candidate0 2154457T/4253B
+    tokenizer_program_test.go:412: tokenizer copy size=true candidate1 2145029T/4388B
+--- PASS: TestTypedTokenizerProgramBaseline (4.15s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	4.731s

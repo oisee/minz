@@ -1,0 +1,65 @@
+=== RUN   TestParserProspectiveHeldout
+    parser_prospective_heldout_test.go:147: training mask 0: 1016414 T / 2364 B
+    parser_prospective_heldout_test.go:147: training mask 1: 1017340 T / 2485 B
+    parser_prospective_heldout_test.go:147: training mask 2: 992049 T / 2344 B
+    parser_prospective_heldout_test.go:147: training mask 3: 992975 T / 2465 B
+    parser_prospective_heldout_test.go:183: heldout mask 0: 2141572 T / 2364 B SHA 27a7c8ea7b77725ee5f61e9f4be625bd1b582b1b03e1013021e0ab3766ee8545
+    parser_prospective_heldout_test.go:183: heldout mask 2: 2093170 T / 2344 B SHA 24f6b56e2960ff965275cba73bb842b12651c82c1548a898032e07d6979b2a0a
+--- PASS: TestParserProspectiveHeldout (25.03s)
+=== RUN   TestPFCCOMeasuredNativePacket
+    pfcco_native_workload_test.go:170: off: 8857T/52B choices=map[]
+    pfcco_native_workload_test.go:170: greedy: 7888T/52B choices=map[displacement:0xa0c97bc510 weighted_packet:0xa0c97bc540]
+    pfcco_native_workload_test.go:170: pbqp: 7888T/52B choices=map[displacement:0xa0c978fb00 weighted_packet:0xa0c978fcb0]
+    pfcco_native_workload_test.go:172: independent displacement arithmetic and global state verified
+--- PASS: TestPFCCOMeasuredNativePacket (0.09s)
+=== RUN   TestMeasuredCommonGraceRulesRealSource
+    profile_grace_variants_test.go:51: baseline 24T/3B common 24T/3B selected 0
+--- PASS: TestMeasuredCommonGraceRulesRealSource (0.11s)
+=== RUN   TestProfileGuidedSumVMZ80
+    profile_guided_sum_test.go:184: original n=0 result=0 T-states=69 module_bytes=195
+    profile_guided_sum_test.go:184: original n=1 result=1 T-states=210 module_bytes=195
+    profile_guided_sum_test.go:184: original n=5 result=15 T-states=774 module_bytes=195
+    profile_guided_sum_test.go:184: original n=16 result=136 T-states=2325 module_bytes=195
+    profile_guided_sum_test.go:184: original n=64 result=32 T-states=9093 module_bytes=195
+    profile_guided_sum_test.go:184: original n=255 result=128 T-states=36024 module_bytes=195
+    profile_guided_sum_test.go:184: pointer-walk n=0 result=0 T-states=212 module_bytes=250
+    profile_guided_sum_test.go:184: pointer-walk n=1 result=1 T-states=247 module_bytes=250
+    profile_guided_sum_test.go:184: pointer-walk n=5 result=15 T-states=395 module_bytes=250
+    profile_guided_sum_test.go:184: pointer-walk n=16 result=136 T-states=802 module_bytes=250
+    profile_guided_sum_test.go:184: pointer-walk n=64 result=32 T-states=2578 module_bytes=250
+    profile_guided_sum_test.go:184: pointer-walk n=255 result=128 T-states=9645 module_bytes=250
+    profile_guided_sum_test.go:184: selected n=0 result=0 T-states=212 module_bytes=250
+    profile_guided_sum_test.go:184: selected n=1 result=1 T-states=247 module_bytes=250
+    profile_guided_sum_test.go:184: selected n=5 result=15 T-states=395 module_bytes=250
+    profile_guided_sum_test.go:184: selected n=16 result=136 T-states=802 module_bytes=250
+    profile_guided_sum_test.go:184: selected n=64 result=32 T-states=2578 module_bytes=250
+    profile_guided_sum_test.go:184: selected n=255 result=128 T-states=9645 module_bytes=250
+    profile_guided_sum_test.go:259: totals=map[original:48495 pointer-walk:13879 selected:13879] decisions=[{Compatibility:0xa0c976c2d0 SiteID:413717c0664c475bf9c67ee592bac740dccdcf0b002c75bd2dfb19155938ed2f Variant:pointer-walk Reason:lower measured workload T-states OriginalTStates:48495 PointerTStates:13879 Model:{CompilerID:executable-sha256:e63fdc814520bd2d7f082df220db20fddb8c2d27b8bceca42bd152e103c719db SemanticsID:minz.unoptimised-mir2-vm-loop-events/v2 Function:sum_array HIRSHA256:bc2502a05b343a21a98f9cae9cb31228cabc6ff98d6bbda5cb9483abebec233c TargetID:module-target:0/model:cpm-z80-v1 CompilationID: EvidenceID:sum-array-z80-all-six-lengths-decimal-print-v3 OriginalBytes:195 PointerBytes:250 OriginalEntry:69 OriginalIteration:141 EqualEntryExtra:7 FastEntry:210 FastZeroEntry:212 FastZeroMeasured:true FallbackEntry:231 FallbackIteration:143 FallbackMeasured:true FastIteration:37}}]
+--- PASS: TestProfileGuidedSumVMZ80 (1.32s)
+=== RUN   TestHashmapMeasuredTrainingAndUnseenWorkload
+    profile_hashmap_heldout_test.go:211: speed selected3 training 26346→23437T 990→970B; heldout 258962→237948T calls48
+    profile_hashmap_heldout_test.go:211: size selected3 training 26346→23437T 990→970B; heldout 258962→237948T calls48
+--- PASS: TestHashmapMeasuredTrainingAndUnseenWorkload (2.84s)
+=== RUN   TestMeasuredScalarChecksumProgram
+    profile_scalar_program_test.go:321: 30 calls: baseline 1166563T/168B hoisted 546899T/99B selected 3
+--- PASS: TestMeasuredScalarChecksumProgram (1.21s)
+=== RUN   TestSeededPointerWalkMeasuredCaller
+    seeded_pointer_walk_test.go:95: sizefalse candidate0 148452T/62B
+    seeded_pointer_walk_test.go:95: sizefalse candidate1 144177T/154B
+    seeded_pointer_walk_test.go:95: sizefalse candidate2 148452T/62B
+    seeded_pointer_walk_test.go:95: sizefalse candidate3 144177T/154B
+    seeded_pointer_walk_test.go:95: sizetrue candidate0 148452T/62B
+    seeded_pointer_walk_test.go:95: sizetrue candidate1 144177T/154B
+    seeded_pointer_walk_test.go:95: sizetrue candidate2 148452T/62B
+    seeded_pointer_walk_test.go:95: sizetrue candidate3 144177T/154B
+--- PASS: TestSeededPointerWalkMeasuredCaller (0.59s)
+=== RUN   TestSignedSubCmpBoundaryVMZ80
+=== RUN   TestSignedSubCmpBoundaryVMZ80/grace=false
+    signed_sub_cmp_regression_test.go:88: 405 cases PASS raw MIR2 + optimized MIR2 + assembled Z80
+=== RUN   TestSignedSubCmpBoundaryVMZ80/grace=true
+    signed_sub_cmp_regression_test.go:88: 405 cases PASS raw MIR2 + optimized MIR2 + assembled Z80
+--- PASS: TestSignedSubCmpBoundaryVMZ80 (1.69s)
+    --- PASS: TestSignedSubCmpBoundaryVMZ80/grace=false (0.78s)
+    --- PASS: TestSignedSubCmpBoundaryVMZ80/grace=true (0.92s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	32.925s
