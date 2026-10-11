@@ -1,6 +1,7 @@
-package lizp
+package lizp_test
 
 import (
+	"github.com/minz/minzc/pkg/lizp"
 	"testing"
 
 	"github.com/minz/minzc/pkg/hir"
@@ -12,7 +13,7 @@ func TestU16ThroughHIRAndMIR2(t *testing.T) {
 	src := `(defglobal base u16 1000)
 (defun add16 ((a u16) (b u16)) -> u16 (return (+ a b)))
 (defun local16 () -> u16 (let ((n u16 1000)) (return (+ n base))))`
-	m, err := Compile(src, "wide")
+	m, err := lizp.Compile(src, "wide")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -39,7 +40,7 @@ func TestU16ThroughHIRAndMIR2(t *testing.T) {
 
 func TestCompileMinimal(t *testing.T) {
 	src := `(defun main () -> void (return))`
-	mod, err := Compile(src, "test")
+	mod, err := lizp.Compile(src, "test")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -53,7 +54,7 @@ func TestCompileDefun(t *testing.T) {
 (defun add ((a u8) (b u8)) -> u8
   (return (+ a b)))
 `
-	mod, err := Compile(src, "test")
+	mod, err := lizp.Compile(src, "test")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -68,7 +69,7 @@ func TestCompileLet(t *testing.T) {
   (let ((x u8 42))
     (return)))
 `
-	_, err := Compile(src, "test")
+	_, err := lizp.Compile(src, "test")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -82,7 +83,7 @@ func TestCompileCond(t *testing.T) {
     ((< n 10) 1)
     (t 2)))
 `
-	_, err := Compile(src, "test")
+	_, err := lizp.Compile(src, "test")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -96,7 +97,7 @@ func TestCompileDotimes(t *testing.T) {
     (set acc (1+ acc)))
   (return))
 `
-	_, err := Compile(src, "test")
+	_, err := lizp.Compile(src, "test")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -107,7 +108,7 @@ func TestCompileDefstruct(t *testing.T) {
 (defstruct Point (x u8) (y u8))
 (defun main () -> void (return))
 `
-	_, err := Compile(src, "test")
+	_, err := lizp.Compile(src, "test")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -118,7 +119,7 @@ func TestCompileDefglobal(t *testing.T) {
 (defglobal counter u8 0)
 (defun main () -> void (return))
 `
-	_, err := Compile(src, "test")
+	_, err := lizp.Compile(src, "test")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -134,7 +135,7 @@ func TestCompileWhenUnless(t *testing.T) {
     (set x 0))
   (return))
 `
-	_, err := Compile(src, "test")
+	_, err := lizp.Compile(src, "test")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -147,7 +148,7 @@ func TestCompileHexBinary(t *testing.T) {
   (set val #xFF)
   (return))
 `
-	_, err := Compile(src, "test")
+	_, err := lizp.Compile(src, "test")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -160,7 +161,7 @@ func TestCompileSetq(t *testing.T) {
   (setq x 42)
   (return))
 `
-	_, err := Compile(src, "test")
+	_, err := lizp.Compile(src, "test")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -176,7 +177,7 @@ func TestCompileProgn(t *testing.T) {
     (set b 2))
   (return))
 `
-	_, err := Compile(src, "test")
+	_, err := lizp.Compile(src, "test")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -187,7 +188,7 @@ func TestCompileBoolOps(t *testing.T) {
 (defun check ((a u8) (b u8)) -> u8
   (return (and a b)))
 `
-	_, err := Compile(src, "test")
+	_, err := lizp.Compile(src, "test")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -200,7 +201,7 @@ func TestCompileDefextern(t *testing.T) {
   (call putchar 65)
   (return))
 `
-	_, err := Compile(src, "test")
+	_, err := lizp.Compile(src, "test")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -214,7 +215,7 @@ func TestCompileDefmacro(t *testing.T) {
   (inc! counter)
   (return))
 `
-	_, err := Compile(src, "test")
+	_, err := lizp.Compile(src, "test")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -228,7 +229,7 @@ func TestCompileThreadFirst(t *testing.T) {
   (var r u8 (-> 3 (double) (inc)))
   (return))
 `
-	_, err := Compile(src, "test")
+	_, err := lizp.Compile(src, "test")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -241,7 +242,7 @@ func TestCompileThreadLast(t *testing.T) {
   (var r u8 (->> 1 (sub 10)))
   (return))
 `
-	_, err := Compile(src, "test")
+	_, err := lizp.Compile(src, "test")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -256,7 +257,7 @@ func TestMacroExpansionRecursive(t *testing.T) {
   (zero! val)
   (return))
 `
-	_, err := Compile(src, "test")
+	_, err := lizp.Compile(src, "test")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -270,7 +271,7 @@ func TestAssert_Parse(t *testing.T) {
 (assert double 5 == 10)
 (assert double 0 == 0)
 `
-	mod, err := Compile(src, "test")
+	mod, err := lizp.Compile(src, "test")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -296,7 +297,7 @@ func TestAssert_HexLiteral(t *testing.T) {
 
 (assert id #xFF == 255)
 `
-	mod, err := Compile(src, "test")
+	mod, err := lizp.Compile(src, "test")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -317,7 +318,7 @@ func TestAssert_E2E(t *testing.T) {
 (assert double 5 == 10)
 (assert double 127 == 254)
 `
-	mod, err := Compile(src, "test")
+	mod, err := lizp.Compile(src, "test")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -341,7 +342,7 @@ func TestFuncall(t *testing.T) {
 
 (assert test-fp == 10 via mir2)
 `
-	mod, err := Compile(src, "test_funcall")
+	mod, err := lizp.Compile(src, "test_funcall")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -363,7 +364,7 @@ func TestLambda(t *testing.T) {
 
 (assert test-lambda == 14 via mir2)
 `
-	mod, err := Compile(src, "test_lambda")
+	mod, err := lizp.Compile(src, "test_lambda")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -383,7 +384,7 @@ func TestLetStar(t *testing.T) {
 
 (assert hypotenuse-sq 3 4 == 25 via mir2)
 `
-	mod, err := Compile(src, "test_letstar")
+	mod, err := lizp.Compile(src, "test_letstar")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
@@ -405,7 +406,7 @@ func TestCase(t *testing.T) {
 (assert classify 2 == 30 via mir2)
 (assert classify 99 == 99 via mir2)
 `
-	mod, err := Compile(src, "test_case")
+	mod, err := lizp.Compile(src, "test_case")
 	if err != nil {
 		t.Fatalf("Compile: %v", err)
 	}
