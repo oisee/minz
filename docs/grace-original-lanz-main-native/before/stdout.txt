@@ -1,0 +1,3 @@
+Input: (fun add ((a u8) (b u8)) u8 (return (+ a b)))
+Parsed: -
+Nodes: 1 Strings: 2 bytes

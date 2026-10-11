@@ -1,0 +1,28 @@
+{
+  "base_commit": "c3782f21",
+  "files": {
+    "README.md": "c0fea72abac616ad8044f766ce2153d3926e08f6ed7a4943e8a0174e2bdf6e34",
+    "after.txt": "a874c38a43f5c25b555ff169f8d0fd3a1feb667ff6338798733aaf9a7ffecdb6",
+    "before/capture.json.gz": "a8739cdd4343a8c9f1b1644badf98741417416b497f8cd6a0f299a9894d06494",
+    "before/oracle.json.gz": "cdf2e9b283c198fc83e877300c5fc1b692b10c7505393c982de072fe6edb868e",
+    "before/source.nanz": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+    "before/stdout.txt": "b30e5a68d8e89b948b97cab02f7763680523f6de1c2c3d54fdc8ce85b3f628ec",
+    "before/target.a80": "d989091d11b568c9d18c5d5ad1121585357febec8a862cb254ab7406cc8d0497",
+    "before/target.bin": "27a7c8ea7b77725ee5f61e9f4be625bd1b582b1b03e1013021e0ab3766ee8545",
+    "before.txt": "88c52a6a744a5d4ab5687a9a807f4218ef6d3d451e302bed00c1a38d31c393b1",
+    "catalog-test.txt": "eedfb8ed6abb8e1841b0dba33dd93da2cd6fd6d5db1f2281d83c5ef112fe46a6",
+    "catalog.json": "8f9f0314f52c04815e56b72214eaa12ced5def88ecdfc56b106c94ac49da3dc0",
+    "cpm-bdos2/capture.json.gz": "b3df43d6414abd1e7eaed44c4c2df3db8fd6719becf59c431a9f25203a2fddd5",
+    "cpm-bdos2/oracle.json.gz": "cdf2e9b283c198fc83e877300c5fc1b692b10c7505393c982de072fe6edb868e",
+    "cpm-bdos2/source.nanz": "763d9f369e3bbbdbcb84dee2627aff5ee90e57d99ad8d0f69e7db0c8325a6b51",
+    "cpm-bdos2/stdout.txt": "884543244d67393e4b942d6ce4b74a389a1904365bd0505d8c6e497d3fc292e5",
+    "cpm-bdos2/target.a80": "731b1ac0309c2294179d82d251b24eef20d3de317751c4675daa7db1ba48c05b",
+    "cpm-bdos2/target.bin": "e3792f5020d796e509a223cab661e71fa53552577786ddb78b4d1a7ee559a304",
+    "port23/capture.json.gz": "7ec3528c6855016116e5123e0de21814a9956194103f9ddf1913bb2be651149c",
+    "port23/oracle.json.gz": "cdf2e9b283c198fc83e877300c5fc1b692b10c7505393c982de072fe6edb868e",
+    "port23/source.nanz": "763d9f369e3bbbdbcb84dee2627aff5ee90e57d99ad8d0f69e7db0c8325a6b51",
+    "port23/stdout.txt": "884543244d67393e4b942d6ce4b74a389a1904365bd0505d8c6e497d3fc292e5",
+    "port23/target.a80": "65dac527bd09cd74a555f1aa7f340ae86579550b27be9a029088135684fa9dd7",
+    "port23/target.bin": "3adb9988abe42dbe66b53194ee3307f7be4ea79965cfaffcf2cd456ba39dc47f"
+  }
+}

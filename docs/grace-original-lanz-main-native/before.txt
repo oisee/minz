@@ -1,0 +1,6 @@
+=== RUN   TestOriginalSelfLanzMainNativeFullState
+    original_lanz_main_test.go:141: originalmain output="Input: (fun add ((a u8) (b u8)) u8 (return (+ a b)))\nParsed: -\nNodes: 1 Strings: 2 bytes\n" expected="Input: (fun add ((a u8) (b u8)) u8 (return (+ a b)))\nParsed: (fun add ((a u8) (b u8)) u8 (return (+ a b)))\nNodes: 17 Strings: 24 bytes\n" source=false nodes=false strings=false
+--- FAIL: TestOriginalSelfLanzMainNativeFullState (0.14s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.146s
+FAIL

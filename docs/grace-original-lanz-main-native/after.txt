@@ -1,0 +1,13 @@
+=== RUN   TestOriginalSelfLanzMainNativeFullState
+=== RUN   TestOriginalSelfLanzMainNativeFullState/port23
+    original_lanz_main_test.go:271: exact main 135 stdout bytes all regions/globals/stack guards PASS 204560 T BIN 2410 SHA 3adb9988abe42dbe66b53194ee3307f7be4ea79965cfaffcf2cd456ba39dc47f
+=== RUN   TestOriginalSelfLanzMainNativeFullState/cpm-bdos2
+    original_lanz_main_test.go:271: exact main 135 stdout bytes all regions/globals/stack guards PASS 229769 T BIN 2477 SHA e3792f5020d796e509a223cab661e71fa53552577786ddb78b4d1a7ee559a304
+--- PASS: TestOriginalSelfLanzMainNativeFullState (1.90s)
+    --- PASS: TestOriginalSelfLanzMainNativeFullState/port23 (1.07s)
+    --- PASS: TestOriginalSelfLanzMainNativeFullState/cpm-bdos2 (0.83s)
+=== RUN   TestOriginalSelfLanzParserBaseline
+    self_lanz_baseline_test.go:400: unchangedoriginalSelfLanz30 calls 1269009T/2410B
+--- PASS: TestOriginalSelfLanzParserBaseline (1.12s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	3.108s
