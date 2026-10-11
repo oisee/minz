@@ -1,0 +1,77 @@
+; MIR2 module: ../../../examples/pascal/string_test.pas
+fun @ISDIGIT(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = const 0 : u8 [general]
+    %r3 = const 48 : u8 [general]
+    %r4 = cmp.uge %r1, %r3 : bool [flag]
+    br_if %r4, @if_then1(), @if_else3()
+  block @if_then1:
+    %r5 = const 57 : u8 [general]
+    %r6 = cmp.ule %r1, %r5 : bool [flag]
+    br_if %r6, @if_then4(), @if_else6()
+  block @if_then4:
+    %r7 = const 1 : u8 [general]
+    jmp @if_join5(%r7)
+  block @if_else6:
+    %r8 = const 0 : u8 [general]
+    jmp @if_join5(%r8)
+  block @if_join5(%r9: u8 [general]):
+    jmp @if_join2(%r9)
+  block @if_else3:
+    %r10 = const 0 : u8 [general]
+    jmp @if_join2(%r10)
+  block @if_join2(%r11: u8 [general]):
+    ret %r11
+
+fun @ISUPPER(%r12: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r13 = const 0 : u8 [general]
+    %r14 = const 65 : u8 [general]
+    %r15 = cmp.uge %r12, %r14 : bool [flag]
+    br_if %r15, @if_then1(), @if_else3()
+  block @if_then1:
+    %r16 = const 90 : u8 [general]
+    %r17 = cmp.ule %r12, %r16 : bool [flag]
+    br_if %r17, @if_then4(), @if_else6()
+  block @if_then4:
+    %r18 = const 1 : u8 [general]
+    jmp @if_join5(%r18)
+  block @if_else6:
+    %r19 = const 0 : u8 [general]
+    jmp @if_join5(%r19)
+  block @if_join5(%r20: u8 [general]):
+    jmp @if_join2(%r20)
+  block @if_else3:
+    %r21 = const 0 : u8 [general]
+    jmp @if_join2(%r21)
+  block @if_join2(%r22: u8 [general]):
+    ret %r22
+
+fun @ISLOWER(%r23: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r24 = const 0 : u8 [general]
+    %r25 = const 97 : u8 [general]
+    %r26 = cmp.uge %r23, %r25 : bool [flag]
+    br_if %r26, @if_then1(), @if_else3()
+  block @if_then1:
+    %r27 = const 122 : u8 [general]
+    %r28 = cmp.ule %r23, %r27 : bool [flag]
+    br_if %r28, @if_then4(), @if_else6()
+  block @if_then4:
+    %r29 = const 1 : u8 [general]
+    jmp @if_join5(%r29)
+  block @if_else6:
+    %r30 = const 0 : u8 [general]
+    jmp @if_join5(%r30)
+  block @if_join5(%r31: u8 [general]):
+    jmp @if_join2(%r31)
+  block @if_else3:
+    %r32 = const 0 : u8 [general]
+    jmp @if_join2(%r32)
+  block @if_join2(%r33: u8 [general]):
+    ret %r33
+
+fun @main()
+  block @entry:
+    ret void
+

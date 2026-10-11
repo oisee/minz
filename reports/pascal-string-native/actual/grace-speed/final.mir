@@ -1,0 +1,50 @@
+; MIR2 module: ../../../examples/pascal/string_test.pas
+fun @ISDIGIT(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = const 48 : u8 [general]
+    %r3 = cmp.uge %r1, %r2 : bool [flag]
+    %r4 = const 0 : u8 [general]
+    cond_ret %r3, [%r4], @if_then1()
+  block @if_then1:
+    %r5 = const 57 : u8 [general]
+    %r6 = cmp.ule %r1, %r5 : bool [flag]
+    %r7 = const 0 : u8 [general]
+    cond_ret %r6, [%r7], @if_then4()
+  block @if_then4:
+    %r8 = const 1 : u8 [general]
+    ret %r8
+
+fun @ISUPPER(%r9: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r10 = const 65 : u8 [general]
+    %r11 = cmp.uge %r9, %r10 : bool [flag]
+    %r12 = const 0 : u8 [general]
+    cond_ret %r11, [%r12], @if_then1()
+  block @if_then1:
+    %r13 = const 90 : u8 [general]
+    %r14 = cmp.ule %r9, %r13 : bool [flag]
+    %r15 = const 0 : u8 [general]
+    cond_ret %r14, [%r15], @if_then4()
+  block @if_then4:
+    %r16 = const 1 : u8 [general]
+    ret %r16
+
+fun @ISLOWER(%r17: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r18 = const 97 : u8 [general]
+    %r19 = cmp.uge %r17, %r18 : bool [flag]
+    %r20 = const 0 : u8 [general]
+    cond_ret %r19, [%r20], @if_then1()
+  block @if_then1:
+    %r21 = const 122 : u8 [general]
+    %r22 = cmp.ule %r17, %r21 : bool [flag]
+    %r23 = const 0 : u8 [general]
+    cond_ret %r22, [%r23], @if_then4()
+  block @if_then4:
+    %r24 = const 1 : u8 [general]
+    ret %r24
+
+fun @main()
+  block @entry:
+    ret void
+
