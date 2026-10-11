@@ -1,0 +1,10 @@
+{
+  "base_commit": "8a4d8519",
+  "files": {
+    "README.md": "fe38c32255d803e5689a5a2fb76c996dc53f0f39e7c5fe3e5b051885104d980f",
+    "after.txt": "903240eb9fe71bd7c45420c8f5b7046ef761586ee51cd9c2d0da331ad2d768d5",
+    "before.txt": "eb5629190ac9c185808185573684a73defa42d61f343d26496a004fd385cde10",
+    "emulator.txt": "5781b712dd1e33474a748b953058f2d943139705294f77750a255abc6c4d5a9b",
+    "profile-and-array.txt": "7be51db6d3aafb6e9ed7b334644c3994bef38a7939a12c8050222d7b5d60c2f5"
+  }
+}

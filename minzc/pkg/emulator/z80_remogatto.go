@@ -39,6 +39,10 @@ type RemogattoZ80 struct {
 	// RST handler for Agon MOS emulation (intercepts RST vectors 0x00-0x38)
 	rstHandler func(vector byte, regs RSTRegisters) (RSTRegisters, bool)
 
+	// Host ROM abstraction for actually fetched unprefixed RST; distinct from
+	// the Agon vector handler and SMC write observer. Nil for plain CPU.
+	fetchedRSTHook func(opcode byte) bool
+
 	// Profiler (nil = disabled, zero-cost check in hot loop)
 	Profiler *Profiler
 
@@ -353,6 +357,20 @@ func (z *RemogattoZ80) LoadMemory(address uint16, data []byte) error {
 // Undefined ED-prefix opcodes cause panics in the remogatto/z80 library;
 // we treat them as NOP with 8 T-states (matching MZX behavior).
 func (z *RemogattoZ80) safeDoOpcode() {
+	// Prefix bytes are deliberately not decoded here: DD/FD/CB/ED paths keep
+	// hardware semantics and timing. Only the opcode at this CPU fetch is eligible.
+	if z.fetchedRSTHook != nil && !z.cpu.Halted {
+		pc := z.cpu.PC()
+		opcode := z.memory.data[pc]
+		if opcode&0xc7 == 0xc7 && z.fetchedRSTHook(opcode) {
+			z.memory.ContendRead(pc, 4)
+			z.memory.ReadByteInternal(pc)
+			z.cpu.R = (z.cpu.R + 1) & 0x7f
+			z.cpu.SetPC(pc + 1)
+			z.cpu.Tstates += 7
+			return
+		}
+	}
 	oldCycles := z.cpu.Tstates
 	defer func() {
 		if r := recover(); r != nil {
