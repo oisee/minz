@@ -237,3 +237,9 @@ workload-driven модель fullstate/events создаётся в отдель
 /home/alice/dev/minz/artifacts/grace-reports/2026-10-10-resume/site/index.html
 МанифестSHA256:
 /home/alice/dev/minz/artifacts/grace-reports/2026-10-10-resume/manifest.json
+
+Следующий корпус:4 набора/50 persistentвызовов проверены независимой
+моделью оригинального source SHA. Максимум723байтастрок/144байтаузлов/
+483байтаисходногоinput; обе sourceпетли наблюдаются.8actualCLIruns
+четырёхкорпусов×speed/size сейчас выполняются тойже сохранённой1bd955
+сборкой. Productioncode не меняется; решенияAlice не нужны.
