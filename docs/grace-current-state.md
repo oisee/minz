@@ -481,3 +481,11 @@ Byte-word fusion опционально даёт FAT helpers115200→89088 T и�
 константы, усечённой по типу. Исправление в работе; текущие проверки
 не позволяют объявить эту оптимизацию полностью проверенной.
 Полные pipeline/CLI запущены на checkpoint до исправления.
+
+## Исправления после полного gate
+
+Старый pipeline708e77c5 завершился FAIL165,407 с: CY visitor обращался
+к nil HIR до верификации. Исправлено01fd3576. Typed-constant ошибка
+смежности fusion исправленаa7954042 в matcher, verifier и MemoryHost.
+Root focused native/safety PASS7,151 с; новый полный pipeline запущен.
+[Пакет126](grace-integration-126/README.md).
