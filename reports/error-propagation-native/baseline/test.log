@@ -1,0 +1,29 @@
+=== RUN   TestOriginalCarryErrorBaseline
+    carry_error_baseline_test.go:214: default independentnativesafe_div[10 0] A10 want1 CY1 want1
+    carry_error_baseline_test.go:214: default independentnativesafe_add[200 200] A200 want2 CY1 want1
+    carry_error_baseline_test.go:214: default independentnativesafe_sub[0 1] A0 want3 CY1 want1
+    carry_error_baseline_test.go:214: default independentnativecompute[10 0] A10 want1 CY1 want1
+    carry_error_baseline_test.go:214: default independentnativechain[255 1] A255 want2 CY1 want1
+    carry_error_baseline_test.go:263: baseline main carry0 output"5250" returnedtrue
+    carry_error_baseline_test.go:263: baseline main carry1 output"" returnedtrue
+    carry_error_baseline_test.go:266: default 8 baseline probe calls recorded (errors above); 0 source assertions retained
+    carry_error_baseline_test.go:214: grace-size independentnativesafe_div[10 0] A10 want1 CY1 want1
+    carry_error_baseline_test.go:214: grace-size independentnativesafe_add[200 200] A200 want2 CY1 want1
+    carry_error_baseline_test.go:214: grace-size independentnativesafe_sub[0 1] A0 want3 CY1 want1
+    carry_error_baseline_test.go:214: grace-size independentnativecompute[10 0] A10 want1 CY1 want1
+    carry_error_baseline_test.go:214: grace-size independentnativechain[255 1] A255 want2 CY1 want1
+    carry_error_baseline_test.go:263: baseline main carry0 output"5250" returnedtrue
+    carry_error_baseline_test.go:263: baseline main carry1 output"" returnedtrue
+    carry_error_baseline_test.go:266: grace-size 8 baseline probe calls recorded (errors above); 0 source assertions retained
+    carry_error_baseline_test.go:214: grace-speed independentnativesafe_div[10 0] A10 want1 CY1 want1
+    carry_error_baseline_test.go:214: grace-speed independentnativesafe_add[200 200] A200 want2 CY1 want1
+    carry_error_baseline_test.go:214: grace-speed independentnativesafe_sub[0 1] A0 want3 CY1 want1
+    carry_error_baseline_test.go:214: grace-speed independentnativecompute[10 0] A10 want1 CY1 want1
+    carry_error_baseline_test.go:214: grace-speed independentnativechain[255 1] A255 want2 CY1 want1
+    carry_error_baseline_test.go:263: baseline main carry0 output"5250" returnedtrue
+    carry_error_baseline_test.go:263: baseline main carry1 output"" returnedtrue
+    carry_error_baseline_test.go:266: grace-speed 8 baseline probe calls recorded (errors above); 0 source assertions retained
+--- FAIL: TestOriginalCarryErrorBaseline (0.04s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.044s
+FAIL
