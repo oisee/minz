@@ -387,6 +387,11 @@ func jointCheckFreshHIR(m *hir.Module, seen map[uintptr]any) error {
 			if v.IsNil() {
 				return
 			}
+			// Zero-sized nodes (e.g. BreakStmt) have no mutable state and
+			// Go may legally give separate allocations the same address.
+			if v.Type().Elem().Size() == 0 {
+				return
+			}
 			if _, ok := v.Interface().(mir2.Ty); ok {
 				return
 			}
