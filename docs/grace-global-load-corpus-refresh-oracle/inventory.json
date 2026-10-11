@@ -4,6 +4,10 @@
     "sha256": "3819f3cba543f4d78f84504a66177034b71613f58ab28ffed253e7b63ab1fcae"
   },
   {
+    "path": "docs/grace-global-load-corpus-refresh-oracle/audit_refresh.py",
+    "sha256": "8b5d9829e84e3c7ca1fd66a21222848497faf6d4cf720dea0a99faf2ac35af83"
+  },
+  {
     "path": "docs/grace-global-load-corpus-refresh-oracle/input-review.json",
     "sha256": "dd5d2dcc9e6289072feb5f02a0f606fb0769a3d4c594645c7490f32344f98997"
   },
