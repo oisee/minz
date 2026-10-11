@@ -1,0 +1,22 @@
+{
+  "base_commit": "9bdb26c7",
+  "files": {
+    "README.md": "69ddaf6c8e97c011c214710bbdc473398161a6914c04aa671671157d6dde0d33",
+    "catalog-test.txt": "4070b214ad520a237553710127787e98b6047bb0ca8eb5ce8d4e346aa1936508",
+    "catalog.json": "20d0ab7a03a4c024602072541df064b50f02236b38ec915de93729f36c1d5e5a",
+    "checks.txt": "626c1a8ced1e7392242e6c5be71005dc017da452484cee11a51cd6e0ebbd604f",
+    "cpm-bdos2/capture.json.gz": "a827ebe4619bff1eb14f766b9c62a0e7b8f627c4d53fe68d20183f01208f2a71",
+    "cpm-bdos2/oracle.json.gz": "5f3d954bd96a6ecc51c63b2b18537d83f5faef498e4f1a72c84ad9810f0a6865",
+    "cpm-bdos2/source.nanz": "d893df00710b7f1105b8bfb58342aca1c1f8cce7eb674037a8d6ca41b91b0689",
+    "cpm-bdos2/stdout.txt": "1c1dc59687f184eed7ff4fb9e1b79a66598b89aac3d0a0dce0378474763e1fd1",
+    "cpm-bdos2/target.a80": "600cd0e055b6f8f75f28cbbd1a9eb93dd288319c8387930cd496f50e9999fac7",
+    "cpm-bdos2/target.bin": "23e4ce4a5546dfe970326cb5e2a1533d9db037aae399aa3dfd613897a033b388",
+    "initial.txt": "a7dc572ecc813d6eff5fd3fc995c98f56d77d34604d71831105e71e43547b1ee",
+    "port23/capture.json.gz": "fe5bf82bb105786f897bc423c71165ef16a4bfb436db3fa8e675a4e007292423",
+    "port23/oracle.json.gz": "5f3d954bd96a6ecc51c63b2b18537d83f5faef498e4f1a72c84ad9810f0a6865",
+    "port23/source.nanz": "d893df00710b7f1105b8bfb58342aca1c1f8cce7eb674037a8d6ca41b91b0689",
+    "port23/stdout.txt": "1c1dc59687f184eed7ff4fb9e1b79a66598b89aac3d0a0dce0378474763e1fd1",
+    "port23/target.a80": "b26085e5dff54e11f8a1b8004102cb07bf325ac2e66fb7fef6860125c9a384f3",
+    "port23/target.bin": "cb7a8da6dd152d5bc97f99d05a7f33c41b53bda6c8accb56b1f7f1144c6f5545"
+  }
+}

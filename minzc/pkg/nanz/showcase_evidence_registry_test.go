@@ -114,6 +114,9 @@ func applyReviewedCatalogEvidence(t *testing.T, root string, row *oracleCatalogE
 		}
 	}
 	switch row.Path {
+	case "examples/nanz/self_tokenizer.nanz":
+		add("minzc/pkg/pipeline/original_tokenizer_main_test.go::TestOriginalTokenizerMainNativeFullState", "exact current source main; explicit memory/output runtime adapters", "Full main fixture: 146 stdout bytes, all 47 globals and full string/token/source regions, stack and immutable image; ordinary port23 and explicit CP/M BDOS2 adapter separately executed. Source unchanged; single fixed main input, not all arbitrary program inputs.")
+		row.Requirement += " Whole main separately executed with explicit port23/CPM BDOS2 runtime adapters; default compiler backend remains port23."
 	case "examples/nanz/self_lanz_parser.nanz":
 		add("minzc/pkg/pipeline/original_lanz_main_test.go::TestOriginalSelfLanzMainNativeFullState", "current exact source main after Book-backed CString literal correction; explicit runtime adapter", "Full main: 135 stdout bytes, all node/string/source RAM, all 10 globals, stack/region guards and immutable image; native port23 and adapted CP/M BDOS2 image separately checked. No production CP/M compiler target flag or hardware claim.")
 		row.Requirement += " Frozen parser prospective test replays historical source SHA 0e92689, not this current-source SHA. Current exact-source whole main separately executed through port23 and test CP/M BDOS2 assembly runtime adapter; source corrected CString literal. Historical CString derivative retains its own hashes."
