@@ -1,0 +1,9 @@
+{
+  "compiler_commit": "2612a266",
+  "command": "cli-2612a266.test -test.count=1 -test.timeout=20m",
+  "required_cwd": "compiler/minzc/cmd/minzc",
+  "sha256": "2555bbc115467b087aa499abc9fa809a1c805f6824bf24447d1a12dc85333129",
+  "local": "/home/alice/dev/minz-artifacts/grace-checkpoints/cli-2612a266.test",
+  "share": "/mnt/safe/minz/grace/2026-10-11/compiler-checkpoints/cli-2612a266.test",
+  "status": "prepared; terminal result pending"
+}
