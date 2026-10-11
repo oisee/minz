@@ -727,8 +727,21 @@ func (g *z80cg) genInst(inst *Inst) {
 				if cv, ok := g.constVals[inst.Src[1]]; ok {
 					// Constant store: LD HL, sym; LD (HL), imm — 10T+10T = 20T, no A clobber.
 					// Avoids LD A, imm (4T) + LD (sym), A (13T) which would destroy A (= first param).
+					preserveHL := false
+					for r := range g.regsLiveAfterInst(inst) {
+						switch g.loc(r) {
+						case "HL", "H", "L":
+							preserveHL = true
+						}
+					}
+					if preserveHL {
+						g.emit("    PUSH HL    ; preserve live HL across direct constant store")
+					}
 					g.emitf("    LD HL, %s", lbl)
 					g.emitf("    LD (HL), %d", cv)
+					if preserveHL {
+						g.emit("    POP HL")
+					}
 					g.invalidate("HL")
 				} else {
 					//   LD A, val           ; 4T (omitted when val is already A)
