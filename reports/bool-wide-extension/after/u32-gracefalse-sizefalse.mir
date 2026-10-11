@@ -1,0 +1,26 @@
+; MIR2 module: bool-wide.nanz
+global @input : u8
+global @result : u32
+global @again : u32
+global @other : u8
+
+fun @embed()
+  block @entry:
+    %r1 = addr_of @input : ptr [pointer]
+    %r2 = load %r1 : u8 [general]
+    %r3 = const 0 : u8 [general]
+    %r4 = cmp.eq %r2, %r3 : bool [flag]
+    %r5 = ext %r4 : bool -> u32 [general]
+    %r6 = addr_of @result : ptr [pointer]
+    store %r6, %r5 : u32
+    %r7 = addr_of @input : ptr [pointer]
+    %r8 = load %r7 : u8 [general]
+    %r9 = const 1 : u8 [general]
+    %r10 = add %r8, %r9 : u8 [acc]
+    %r11 = addr_of @other : ptr [pointer]
+    store %r11, %r10 : u8
+    %r12 = ext %r4 : bool -> u32 [general]
+    %r13 = addr_of @again : ptr [pointer]
+    store %r13, %r12 : u32
+    ret void
+
