@@ -1,0 +1,16 @@
+{
+  "calls": {
+    "Circle_area": 512,
+    "Rect_area": 131072
+  },
+  "cycles_including_CALL": {
+    "Circle_area": 518656,
+    "Rect_area": 67764224
+  },
+  "execution_sha256": "381c53e2212e4d16362e6784b17a69d482f9f9fa1bf16b67815dac5cd61b7b89",
+  "module_bytes": 260,
+  "source_sha256": "9440fd4e4347fd871edacdd02588e7b5198e60fd32eef55bb88f59ae040161ac",
+  "stack_depth": 10,
+  "whole_main_status": "not executed; BDOS/runtime still required",
+  "whole_module_functions_retained": 6
+}

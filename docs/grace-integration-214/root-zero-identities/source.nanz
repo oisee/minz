@@ -1,0 +1,30 @@
+fun identity_u8_0(x:u8)->u8{return x | u8(0)}
+fun identity_u8_1(x:u8)->u8{return x ^ u8(0)}
+fun identity_u8_2(x:u8)->u8{return x - u8(0)}
+fun identity_u8_3(x:u8)->u8{return x & u8(0)}
+fun identity_u8_4(x:u8)->u8{return x * u8(0)}
+fun identity_u8_5(x:u8)->u8{return x << u8(0)}
+fun identity_i8_0(x:i8)->i8{return x | i8(0)}
+fun identity_i8_1(x:i8)->i8{return x ^ i8(0)}
+fun identity_i8_2(x:i8)->i8{return x - i8(0)}
+fun identity_i8_3(x:i8)->i8{return x & i8(0)}
+fun identity_i8_4(x:i8)->i8{return x * i8(0)}
+fun identity_i8_5(x:i8)->i8{return x << i8(0)}
+fun identity_u16_0(x:u16)->u16{return x | u16(0)}
+fun identity_u16_1(x:u16)->u16{return x ^ u16(0)}
+fun identity_u16_2(x:u16)->u16{return x - u16(0)}
+fun identity_u16_3(x:u16)->u16{return x & u16(0)}
+fun identity_u16_4(x:u16)->u16{return x * u16(0)}
+fun identity_u16_5(x:u16)->u16{return x << u16(0)}
+fun identity_i16_0(x:i16)->i16{return x | i16(0)}
+fun identity_i16_1(x:i16)->i16{return x ^ i16(0)}
+fun identity_i16_2(x:i16)->i16{return x - i16(0)}
+fun identity_i16_3(x:i16)->i16{return x & i16(0)}
+fun identity_i16_4(x:i16)->i16{return x * i16(0)}
+fun identity_i16_5(x:i16)->i16{return x << i16(0)}
+fun flag_control(x:u8)->u8{let p:bool=x<128
+ let y:u8=x | 0
+ if p {return y}
+ return y ^ 255}
+fun zero_control(x:u8)->u8{if x==0{return x & 0}
+ return x | 0}

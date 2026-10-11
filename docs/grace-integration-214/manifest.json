@@ -1,0 +1,168 @@
+{
+  "files": {
+    "README.md": {
+      "bytes": 2496,
+      "sha256": "fdd7d17f9b8bd0eb3a10008cb8b33bc4875bfa0c31fbee1dbb91763d8eeb22cf"
+    },
+    "cli-full.txt": {
+      "bytes": 2219,
+      "sha256": "6e77eda15b132c3dceb6540a1cd2ba571bbd586d76d4fc24470af64d9afae959"
+    },
+    "root-impl-cpm-methods/grace-size/abi.json": {
+      "bytes": 64613,
+      "sha256": "6026e652f0066f14d4865b8474bf4c22c339c763209984f6b269ebd93a932028"
+    },
+    "root-impl-cpm-methods/grace-size/execution.a80": {
+      "bytes": 4716,
+      "sha256": "0ab23fbd930a661d41582456444c6636431331273f8f32b909740448c471c5c4"
+    },
+    "root-impl-cpm-methods/grace-size/execution.bin": {
+      "bytes": 268,
+      "sha256": "381c53e2212e4d16362e6784b17a69d482f9f9fa1bf16b67815dac5cd61b7b89"
+    },
+    "root-impl-cpm-methods/grace-size/final.mir": {
+      "bytes": 3234,
+      "sha256": "9cc2e1ff92c9024c193a4424b46816b74b3e122696e2e6e81c081d5d2356fe75"
+    },
+    "root-impl-cpm-methods/grace-size/program.a80": {
+      "bytes": 4630,
+      "sha256": "b9c7524e7bf631a7167d84d8c19c87a8ac75acef75fa3b7343fe6434d39cf60e"
+    },
+    "root-impl-cpm-methods/grace-size/program.bin": {
+      "bytes": 260,
+      "sha256": "2be6a3db1636063b563e87948ea800282a2d87f9642ac373dc6b0382ff14a616"
+    },
+    "root-impl-cpm-methods/grace-size/results.json": {
+      "bytes": 484,
+      "sha256": "996f1a41fc6112d173be76b71db2b1431e79fb6c2cddcbd579d295abcc475768"
+    },
+    "root-impl-cpm-methods/grace-speed/abi.json": {
+      "bytes": 64614,
+      "sha256": "54ecc251ca1cfea4457e98c2488bec5c832ce7a2d8ec0ef6f80245bc2c49eb44"
+    },
+    "root-impl-cpm-methods/grace-speed/execution.a80": {
+      "bytes": 4716,
+      "sha256": "0ab23fbd930a661d41582456444c6636431331273f8f32b909740448c471c5c4"
+    },
+    "root-impl-cpm-methods/grace-speed/execution.bin": {
+      "bytes": 268,
+      "sha256": "381c53e2212e4d16362e6784b17a69d482f9f9fa1bf16b67815dac5cd61b7b89"
+    },
+    "root-impl-cpm-methods/grace-speed/final.mir": {
+      "bytes": 3234,
+      "sha256": "9cc2e1ff92c9024c193a4424b46816b74b3e122696e2e6e81c081d5d2356fe75"
+    },
+    "root-impl-cpm-methods/grace-speed/program.a80": {
+      "bytes": 4630,
+      "sha256": "b9c7524e7bf631a7167d84d8c19c87a8ac75acef75fa3b7343fe6434d39cf60e"
+    },
+    "root-impl-cpm-methods/grace-speed/program.bin": {
+      "bytes": 260,
+      "sha256": "2be6a3db1636063b563e87948ea800282a2d87f9642ac373dc6b0382ff14a616"
+    },
+    "root-impl-cpm-methods/grace-speed/results.json": {
+      "bytes": 484,
+      "sha256": "996f1a41fc6112d173be76b71db2b1431e79fb6c2cddcbd579d295abcc475768"
+    },
+    "root-impl-cpm-methods/ordinary/abi.json": {
+      "bytes": 64619,
+      "sha256": "8f03a56670179af80e9a724d373774eb904d524c16f4b54da25ee8c858ff8f1f"
+    },
+    "root-impl-cpm-methods/ordinary/execution.a80": {
+      "bytes": 4776,
+      "sha256": "13917573dc2eb0c93e448893bd3bcdbdcb31e664a733e971b8d3dba1a1e3f074"
+    },
+    "root-impl-cpm-methods/ordinary/execution.bin": {
+      "bytes": 268,
+      "sha256": "381c53e2212e4d16362e6784b17a69d482f9f9fa1bf16b67815dac5cd61b7b89"
+    },
+    "root-impl-cpm-methods/ordinary/final.mir": {
+      "bytes": 3234,
+      "sha256": "9cc2e1ff92c9024c193a4424b46816b74b3e122696e2e6e81c081d5d2356fe75"
+    },
+    "root-impl-cpm-methods/ordinary/program.a80": {
+      "bytes": 4690,
+      "sha256": "0a2515920170b7b6626e422b325133bea8fcd2f3c2b8ea30d4fd11ed68a790ad"
+    },
+    "root-impl-cpm-methods/ordinary/program.bin": {
+      "bytes": 260,
+      "sha256": "2be6a3db1636063b563e87948ea800282a2d87f9642ac373dc6b0382ff14a616"
+    },
+    "root-impl-cpm-methods/ordinary/results.json": {
+      "bytes": 484,
+      "sha256": "996f1a41fc6112d173be76b71db2b1431e79fb6c2cddcbd579d295abcc475768"
+    },
+    "root-impl-cpm-methods/raw.mir": {
+      "bytes": 3573,
+      "sha256": "a25bb99ea146c2e98a5588f1cda4d30f21c42527996eb5720b9311959dacf94e"
+    },
+    "root-impl-cpm-methods.txt": {
+      "bytes": 47,
+      "sha256": "642418ca1cc84c1c05c33efdc05f7fbe51261ae68df390e2d77a0d0351d45c92"
+    },
+    "root-zero-identities/grace-size-results.json": {
+      "bytes": 1824,
+      "sha256": "e290e448cc626d669edaa8c804b56c02e23d8eae4ef8bbc9e9bd56b64ceadaf5"
+    },
+    "root-zero-identities/grace-size.a80": {
+      "bytes": 6040,
+      "sha256": "de856fc53ae2d357ff2559095cbf4625efc8dad26e6cc5d6706243e5aa618b1b"
+    },
+    "root-zero-identities/grace-size.bin": {
+      "bytes": 86,
+      "sha256": "d25750e12c60a1ffab94520675d3724bc088d71152c1f12cb509691ee3c55e21"
+    },
+    "root-zero-identities/grace-size.mir": {
+      "bytes": 3733,
+      "sha256": "30dbc5c5f5ff696fc5b3f11ac3db144f46e803122a313b331441f80df53e2898"
+    },
+    "root-zero-identities/grace-speed-results.json": {
+      "bytes": 1825,
+      "sha256": "928194ee6d40cacff7de9ed57565d7d433e40748f0392b6a53763efb144669ba"
+    },
+    "root-zero-identities/grace-speed.a80": {
+      "bytes": 6040,
+      "sha256": "de856fc53ae2d357ff2559095cbf4625efc8dad26e6cc5d6706243e5aa618b1b"
+    },
+    "root-zero-identities/grace-speed.bin": {
+      "bytes": 86,
+      "sha256": "d25750e12c60a1ffab94520675d3724bc088d71152c1f12cb509691ee3c55e21"
+    },
+    "root-zero-identities/grace-speed.mir": {
+      "bytes": 3733,
+      "sha256": "30dbc5c5f5ff696fc5b3f11ac3db144f46e803122a313b331441f80df53e2898"
+    },
+    "root-zero-identities/ordinary-results.json": {
+      "bytes": 1827,
+      "sha256": "99be2031674a0107ca5cb4f2a3ae03b9e023020fd3692ea7a612c14adc44b2e7"
+    },
+    "root-zero-identities/ordinary.a80": {
+      "bytes": 6184,
+      "sha256": "50cc7639c7a235349db75998348ff8f94902124aede00402ad2359915511ea8b"
+    },
+    "root-zero-identities/ordinary.bin": {
+      "bytes": 86,
+      "sha256": "d25750e12c60a1ffab94520675d3724bc088d71152c1f12cb509691ee3c55e21"
+    },
+    "root-zero-identities/ordinary.mir": {
+      "bytes": 3772,
+      "sha256": "02b24e0f20e8e3fc1015b811366e95f701c42d68dbd11f82c6741dd939c06ae6"
+    },
+    "root-zero-identities/source.nanz": {
+      "bytes": 1314,
+      "sha256": "ff2ccb72f8c85e70b90318a84838c1326396f3ece366c80cd50a41f3db31118b"
+    },
+    "root-zero-identities.txt": {
+      "bytes": 90,
+      "sha256": "453028d31faecd197f783caab5278454a70bdf0e338a5aeb866194e05fdd36e6"
+    },
+    "source-delta.json": {
+      "bytes": 963,
+      "sha256": "8afc562c753db28b444708f3332ae015f27e3115294c7c88630869c26c26df52"
+    },
+    "verification.json": {
+      "bytes": 680,
+      "sha256": "ec490bb3173c39f0539766b21288eb7295579b4150a405a52ddf06272aa4a1ac"
+    }
+  }
+}

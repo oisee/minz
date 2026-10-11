@@ -1,0 +1,27 @@
+{
+  "base": "40041bd4",
+  "checkpoint": "cc0165db",
+  "share": "/mnt/safe/minz/grace/2026-10-11/compiler-source-evidence/delta-40041bd4-to-cc0165db",
+  "files": [
+    {
+      "path": "minzc/pkg/mir2/constprop.go",
+      "sha256": "fe8cb44b521f1f8e5a824c2716a98486a0f7718f2ff442a75b8c1150d9ea6349"
+    },
+    {
+      "path": "minzc/pkg/mir2/typed_zero_identity_test.go",
+      "sha256": "c70c38923c983b0af1ecd48a351ae30e27c374339a50987e6c8cd6dc0c403179"
+    },
+    {
+      "path": "minzc/pkg/nanz/showcase_evidence_registry_test.go",
+      "sha256": "dee984fe4bef5695ca3905d01cdaad38d07c55cca48a6a9376c59cfb395b658f"
+    },
+    {
+      "path": "minzc/pkg/pipeline/original_impl_cpm_methods_test.go",
+      "sha256": "c99d241e4b0a0b6a680cc63561f3de1ac03e0ff868310e9de4db0e502c4a5ef2"
+    },
+    {
+      "path": "minzc/pkg/pipeline/typed_zero_identities_native_test.go",
+      "sha256": "54d5a32d6a597278877e492eb350a5da197931ce386f4bc162ee60328fd92274"
+    }
+  ]
+}

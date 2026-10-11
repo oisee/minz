@@ -1,0 +1,22 @@
+{
+  "checkpoint": "cc0165dbe38afdc2df416d969a3fe5f099029e0d",
+  "verified": [
+    {
+      "packet": "typed-zero-identities",
+      "verified_tracked_and_share_payloads": 34,
+      "share": "/mnt/safe/minz/grace/2026-10-11/agent-artifacts/typed-zero-identities-4d79eac2"
+    },
+    {
+      "packet": "impl-cpm-methods",
+      "verified_tracked_and_share_payloads": 28,
+      "share": "/mnt/safe/minz/grace/2026-10-11/impl-cpm-methods"
+    }
+  ],
+  "cli": {
+    "checkpoint": "31d6abd0",
+    "session_id": 75030,
+    "terminal_exit_code": 0,
+    "final_log_line": "PASS",
+    "scope": "C89 switch and PLM production fixes; predates typed zero identities and C89 loop effects"
+  }
+}
