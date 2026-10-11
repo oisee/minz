@@ -1,0 +1,11 @@
+PASS speed/original: mask0, typed precompile schema/choices/full functionmaps/compatibility; exact all11 actualsites, origin pairs, source49/59+13/286
+PASS speed/arena: mask1, typed precompile schema/choices/full functionmaps/compatibility; exact all11 actualsites, origin pairs, source49/59+13/286
+PASS speed/append: mask2, typed precompile schema/choices/full functionmaps/compatibility; exact all11 actualsites, origin pairs, source49/59+13/286
+PASS speed/both: mask3, typed precompile schema/choices/full functionmaps/compatibility; exact all11 actualsites, origin pairs, source49/59+13/286
+PASS speed: selected3; full30 profile/raw observation association, counts sums, distinct instrumentation semantics
+PASS size/original: mask0, typed precompile schema/choices/full functionmaps/compatibility; exact all11 actualsites, origin pairs, source49/59+13/286
+PASS size/arena: mask1, typed precompile schema/choices/full functionmaps/compatibility; exact all11 actualsites, origin pairs, source49/59+13/286
+PASS size/append: mask2, typed precompile schema/choices/full functionmaps/compatibility; exact all11 actualsites, origin pairs, source49/59+13/286
+PASS size/both: mask3, typed precompile schema/choices/full functionmaps/compatibility; exact all11 actualsites, origin pairs, source49/59+13/286
+PASS size: selected2; full30 profile/raw observation association, counts sums, distinct instrumentation semantics
+PASS speed/size same eight measured candidates/proofs/source profile; only objective/selected differ. No CPU replay.
