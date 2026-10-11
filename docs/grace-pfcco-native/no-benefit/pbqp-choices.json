@@ -1,0 +1,10 @@
+{
+  "weighted_call": {
+    "ParamClasses": "AQA=",
+    "ReturnClasses": "AQ=="
+  },
+  "weighted_packet": {
+    "ParamClasses": "AQA=",
+    "ReturnClasses": "CA=="
+  }
+}
