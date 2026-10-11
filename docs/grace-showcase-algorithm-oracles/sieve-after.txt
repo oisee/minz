@@ -1,0 +1,5 @@
+=== RUN   TestShowcasePascalSieveNativeFullMemoryModel
+    showcase_algorithm_oracles_test.go:174: ORACLE examples/pascal/sieve.pas 101 flags and prime count=45 VM+Z80 independent trial division PASS
+--- PASS: TestShowcasePascalSieveNativeFullMemoryModel (0.03s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.038s

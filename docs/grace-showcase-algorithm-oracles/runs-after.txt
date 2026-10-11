@@ -1,0 +1,14 @@
+=== RUN   TestShowcasePopcountAllBytesNativeModel
+    showcase_algorithm_oracles_test.go:33: ORACLE examples/nanz/04_lut_popcount.nanz all256 popcount inputs VM+Z80 independent bits.OnesCount8 PASS
+--- PASS: TestShowcasePopcountAllBytesNativeModel (0.09s)
+=== RUN   TestShowcaseStateMachineNativeTransitionModel
+    showcase_algorithm_oracles_test.go:68: ORACLE examples/nanz/12_state_machine.nanz 36 VM+Z80 state/event/property calls independent transition table PASS
+--- PASS: TestShowcaseStateMachineNativeTransitionModel (0.06s)
+=== RUN   TestShowcaseLizpCryptoNativeByteModels
+    showcase_algorithm_oracles_test.go:102: ORACLE examples/lizp/crypto.lizp 250 VM+Z80 byte crypto/checksum calls; unsigned wrap model PASS
+--- PASS: TestShowcaseLizpCryptoNativeByteModels (0.55s)
+=== RUN   TestShowcasePascalSieveNativeFullMemoryModel
+    showcase_algorithm_oracles_test.go:174: ORACLE examples/pascal/sieve.pas 101 flags and prime count=45 VM+Z80 independent trial division PASS
+--- PASS: TestShowcasePascalSieveNativeFullMemoryModel (0.03s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.752s

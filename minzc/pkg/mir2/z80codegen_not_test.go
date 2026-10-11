@@ -132,3 +132,71 @@ func TestZ80NotWideAllocatedAndSpill(t *testing.T) {
 		}
 	}
 }
+
+func TestZ80NotPreservesGenuinelyLiveAccumulator(t *testing.T) {
+	for _, ty := range []Ty{TyBool, TyU8, TyU16, TyU24, TyU32} {
+		for _, input := range []int64{0, 1, 127, 255} {
+			if ty == TyBool && input > 1 {
+				continue
+			}
+			t.Run(fmt.Sprintf("%s/%d", ty, input), func(t *testing.T) {
+				m := &Module{}
+				f := m.AddFunc("invert_live")
+				f.Contract.Returns = []Return{{Ty: TyU8, Class: ClassAcc}}
+				b := NewBuilder(f)
+				b.SwitchToNewBlock("entry")
+				keep := b.Param("keep", TyU8, ClassAcc)
+				x := b.Param("x", ty, ClassGeneral)
+				inv := b.Not(x, ty, ClassGeneral)
+				byteInv := inv
+				if ty.Width() > 8 {
+					byteInv = b.Trunc(inv, ty, TyU8, ClassGeneral)
+				}
+				result := b.Add(keep, byteInv, TyU8, ClassAcc)
+				b.Ret(result)
+				kind, home := LocReg, "C"
+				outHome := "D"
+				if ty.Width() > 8 {
+					home = "HL"
+					outHome = "DE"
+				}
+				if ty.Width() > 16 {
+					kind = LocDWord
+				}
+				ar := &AllocResult{Locs: map[Reg]PhysLoc{keep: {Kind: LocReg, Name: "A"}, x: {Kind: kind, Name: home}, inv: {Kind: kind, Name: outHome}, byteInv: {Kind: LocReg, Name: "D"}, result: {Kind: LocReg, Name: "A"}}}
+				ar.Locs[inv] = PhysLoc{Kind: kind, Name: outHome}
+				code, err := Z80Codegen(m, ar)
+				if err != nil {
+					t.Fatal(err)
+				}
+				init := fmt.Sprintf("LD %s,%d\n", home, input)
+				if ty.Width() > 16 {
+					init += "EXX\nLD HL,0\nEXX\n"
+				}
+				asm := "ORG 0x8000\nLD SP,0xfff0\n" + init + "LD A,37\nCALL invert_live\nDI\nHALT\n" + code
+				res, err := z80asm.NewAssembler().AssembleString(asm)
+				if err != nil || len(res.Errors) > 0 {
+					t.Fatalf("assemble %v %v\n%s", err, res.Errors, asm)
+				}
+				z := emulator.NewRemogattoZ80()
+				z.LoadMemory(0x8000, res.Binary)
+				z.SetRegisters(emulator.Registers{PC: 0x8000, SP: 0xfff0})
+				for i := 0; !z.IsHalted(); i++ {
+					if i > 10000 {
+						t.Fatal("nohalt")
+					}
+					z.Step()
+				}
+				mask := int64(255)
+				if ty == TyBool {
+					mask = 1
+				}
+				want := (37 + ((^input) & mask)) & 255
+				vm, e := NewVM(m).Call("invert_live", []Value{{I: 37}, {I: input}})
+				if int64(z.GetRegisters().A) != want || e != nil || len(vm) != 1 || vm[0].I != want || z.GetSP() != 0xfff0 {
+					t.Fatalf("live-A Z80=%d VM=%v %v want=%d SP=%04x\n%s", z.GetRegisters().A, vm, e, want, z.GetSP(), asm)
+				}
+			})
+		}
+	}
+}
