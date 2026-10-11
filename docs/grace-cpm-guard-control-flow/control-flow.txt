@@ -1,0 +1,8 @@
+=== RUN   TestCPMRuntimeGuardedAdmission
+--- PASS: TestCPMRuntimeGuardedAdmission (0.00s)
+=== RUN   TestCPMRuntimeRejectsBranchBypassOfGuard
+--- PASS: TestCPMRuntimeRejectsBranchBypassOfGuard (0.00s)
+=== RUN   TestCPMRuntimeConditionalCallGuardPaths
+--- PASS: TestCPMRuntimeConditionalCallGuardPaths (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.017s
