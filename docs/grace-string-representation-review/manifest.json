@@ -1,0 +1,22 @@
+[
+  {
+    "path": "EXPECTED.json",
+    "sha256": "7f4aa3e82d989c7af1797e542ca451e46de0dba58ebc1dab55b8cff7686c0a5d"
+  },
+  {
+    "path": "PLAN.md",
+    "sha256": "dae90177e0d44ee8ab8f73fbd6919ca75ec1cd49ebb12145f0dcec7321891649"
+  },
+  {
+    "path": "repro/main_source_boundary.nanz",
+    "sha256": "e9f0a83d60294fa3f04db182f5a676e0f09587abe05fd101e967b57c68cbbc2f"
+  },
+  {
+    "path": "repro/print_formats.nanz",
+    "sha256": "29d0034a0949baf0189f86771f5bd469c742dc785edf0255c04245753869df9f"
+  },
+  {
+    "path": "repro/representation.nanz",
+    "sha256": "18d4593411374e15b259b07d880c0dab06a1d2255c177581b0f8f203270d7f97"
+  }
+]
