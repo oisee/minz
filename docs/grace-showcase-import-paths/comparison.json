@@ -1,0 +1,39 @@
+{
+  "before_failures": 26,
+  "after_failures": 15,
+  "resolved": [
+    "meta_screen.nanz",
+    "nc_agon.nanz",
+    "sap_mara_cpm.nanz",
+    "screen_alv.nanz",
+    "screen_declarative.nanz",
+    "sql_test6.nanz",
+    "test_irc_minimal.nanz",
+    "tetris_cpm.nanz",
+    "tui_demo.nanz",
+    "tui_hello.nanz",
+    "typed_print.nanz"
+  ],
+  "new_failed_names": [],
+  "remaining": [
+    "hello_zx.nanz",
+    "hello_world.nanz",
+    "crypto.lizp",
+    "dsp.lizp",
+    "self_tokenizer.lizp",
+    "irc_client.nanz",
+    "sqlite_test.nanz",
+    "zsql.nanz",
+    "zsql_zx.nanz",
+    "zsql_zx_real.nanz",
+    "bubble_sort.pas",
+    "records.pas",
+    "hello.plm",
+    "sum_array.plm",
+    "console_demo.nanz"
+  ],
+  "remaining_missing_imports": [
+    "hello_world.nanz"
+  ],
+  "scope": "ParseWithOpts supplied source BaseDir and repository StdlibDir; full showcase compile/assemble run, no new native execution claim."
+}

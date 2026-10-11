@@ -36,17 +36,17 @@ var knownFailures = map[string]string{
 	"ex25_import_alias_glob":  "compile: import needs module search path",
 	"nc":                      "compile: import needs module search path (fs.fat12)",
 	// Lizp asm failures (MZA encoding gaps)
-	"cond_test":        "asm: lizp codegen produces instructions MZA can't encode yet",
-	"factorial":        "asm: lizp codegen produces instructions MZA can't encode yet",
-	"showcase":         "asm: lizp codegen produces instructions MZA can't encode yet",
-	"zx_checkerboard":  "asm: lizp codegen produces instructions MZA can't encode yet",
-	"zx_rainbow":       "asm: lizp codegen produces instructions MZA can't encode yet",
+	"cond_test":       "asm: lizp codegen produces instructions MZA can't encode yet",
+	"factorial":       "asm: lizp codegen produces instructions MZA can't encode yet",
+	"showcase":        "asm: lizp codegen produces instructions MZA can't encode yet",
+	"zx_checkerboard": "asm: lizp codegen produces instructions MZA can't encode yet",
+	"zx_rainbow":      "asm: lizp codegen produces instructions MZA can't encode yet",
 	// PLM asm failures
 	"01_sum_array":      "asm: PLM codegen produces instructions MZA can't encode yet",
 	"01_sum_plm_origin": "asm: PLM codegen produces instructions MZA can't encode yet",
 	// Pascal asm failures (new frontend, codegen gaps)
-	"casetest":  "asm: Pascal case codegen not fully wired",
-	"sieve":     "asm: Pascal array codegen not fully wired",
+	"casetest": "asm: Pascal case codegen not fully wired",
+	"sieve":    "asm: Pascal array codegen not fully wired",
 	// "factorial" already listed under lizp — covers both .lizp and .pas
 }
 
@@ -103,7 +103,10 @@ func TestShowcaseCompileAssemble(t *testing.T) {
 			var hm *hir.Module
 			switch ext {
 			case ".nanz":
-				hm, err = nanz.Parse(string(src), base)
+				hm, err = nanz.ParseWithOpts(string(src), base, nanz.ParseOpts{
+					BaseDir:   filepath.Dir(path),
+					StdlibDir: filepath.Join(root, "stdlib"),
+				})
 			case ".lanz":
 				hm, err = lanz.Compile(string(src), base)
 			case ".plm":

@@ -1,0 +1,113 @@
+[Z80-VALIDATE] dispatch_server_line: 18 invalid instruction(s)
+  line 130: >>> LD C, ? <<<
+  line 143: >>> LD C, ? <<<
+  line 156: >>> LD C, ? <<<
+  line 169: >>> LD C, ? <<<
+  line 178: >>> LD C, ? <<<
+  line 184: >>> LD C, ? <<<
+[Z80-VALIDATE] poll_keyboard: 6 invalid instruction(s)
+  line 23: >>> LD C, ? <<<
+  line 32: >>> LD C, ? <<<
+  line 38: >>> LD C, ? <<<
+[Z80-VALIDATE] terminate: 1 invalid instruction(s)
+  line 3: >>> LD HL, _inbuf+2 <<<
+--- FAIL: TestShowcaseCompileAssemble (9.44s)
+    showcase_test.go:86: Found 192 showcase files
+    --- FAIL: TestShowcaseCompileAssemble/hello_zx.nanz (0.11s)
+        showcase_test.go:140: asm error: line 269: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 274: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 275: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 489: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 269: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 274: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 275: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 489: unknown instruction or invalid operands: LD
+        showcase_test.go:142: assembly produced 8 errors
+    --- FAIL: TestShowcaseCompileAssemble/hello_world.nanz (0.00s)
+        showcase_test.go:123: frontend .nanz: line 7: import stdlib.agon.mos: module not found (searched /home/alice/dev/minz-artifacts/grace-workspaces/compiler/examples/agon, /home/alice/dev/minz-artifacts/grace-workspaces/compiler/stdlib)
+    --- FAIL: TestShowcaseCompileAssemble/crypto.lizp (0.02s)
+        showcase_test.go:129: pipeline: line 26: assert "assert caesar_encrypt(65, 3) == 68" [z80]: got 65, want 68
+    --- FAIL: TestShowcaseCompileAssemble/dsp.lizp (0.00s)
+        showcase_test.go:129: pipeline: line 20: assert "assert sawtooth(0, 10) == 0" [mir2]: got 25, want 0
+    --- FAIL: TestShowcaseCompileAssemble/self_tokenizer.lizp (0.00s)
+        showcase_test.go:129: pipeline: statement 0: HIR get_pos: void binary operand or result
+    --- FAIL: TestShowcaseCompileAssemble/irc_client.nanz (0.29s)
+        showcase_test.go:140: asm error: line 1323: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 1336: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 1349: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 1362: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 1371: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 1377: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 1670: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 1679: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 1685: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 1323: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 1336: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 1349: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 1362: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 1371: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 1377: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 1670: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 1679: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 1685: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 1323: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 1336: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 1349: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 1362: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 1371: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 1377: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 1670: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 1679: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 1685: unknown instruction or invalid operands: LD
+        showcase_test.go:142: assembly produced 27 errors
+    --- FAIL: TestShowcaseCompileAssemble/sqlite_test.nanz (0.00s)
+        showcase_test.go:129: pipeline: statement 12: HIR main: unknown variable "SQLITE_ROW"
+    --- FAIL: TestShowcaseCompileAssemble/zsql.nanz (0.04s)
+        showcase_test.go:140: asm error: line 379: unknown instruction or invalid operands: CALL
+        showcase_test.go:140: asm error: line 413: unknown instruction or invalid operands: CALL
+        showcase_test.go:140: asm error: line 552: unknown instruction or invalid operands: JP
+        showcase_test.go:140: asm error: line 616: unknown instruction or invalid operands: JP
+        showcase_test.go:142: assembly produced 4 errors
+    --- FAIL: TestShowcaseCompileAssemble/zsql_zx.nanz (0.05s)
+        showcase_test.go:140: asm error: line 128: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 271: unknown instruction or invalid operands: CALL
+        showcase_test.go:140: asm error: line 282: unknown instruction or invalid operands: CALL
+        showcase_test.go:140: asm error: line 289: unknown instruction or invalid operands: JP
+        showcase_test.go:140: asm error: line 295: unknown instruction or invalid operands: CALL
+        showcase_test.go:140: asm error: line 314: unknown instruction or invalid operands: JP
+        showcase_test.go:140: asm error: line 128: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 271: unknown instruction or invalid operands: CALL
+        showcase_test.go:140: asm error: line 282: unknown instruction or invalid operands: CALL
+        showcase_test.go:140: asm error: line 289: unknown instruction or invalid operands: JP
+        showcase_test.go:140: asm error: line 295: unknown instruction or invalid operands: CALL
+        showcase_test.go:140: asm error: line 314: unknown instruction or invalid operands: JP
+        showcase_test.go:142: assembly produced 12 errors
+    --- FAIL: TestShowcaseCompileAssemble/zsql_zx_real.nanz (0.03s)
+        showcase_test.go:140: asm error: line 279: unknown instruction or invalid operands: CALL
+        showcase_test.go:140: asm error: line 290: unknown instruction or invalid operands: CALL
+        showcase_test.go:140: asm error: line 297: unknown instruction or invalid operands: JP
+        showcase_test.go:140: asm error: line 304: unknown instruction or invalid operands: CALL
+        showcase_test.go:140: asm error: line 329: unknown instruction or invalid operands: CALL
+        showcase_test.go:140: asm error: line 344: unknown instruction or invalid operands: JP
+        showcase_test.go:142: assembly produced 6 errors
+    --- FAIL: TestShowcaseCompileAssemble/bubble_sort.pas (0.00s)
+        showcase_test.go:129: pipeline: statement 0: HIR INITARRAY: non-address type u8
+    --- FAIL: TestShowcaseCompileAssemble/records.pas (0.00s)
+        showcase_test.go:129: pipeline: HIR MANHATTAN: invalid or duplicate parameter "A"
+    --- FAIL: TestShowcaseCompileAssemble/hello.plm (0.00s)
+        showcase_test.go:129: pipeline: statement 1: HIR PRINTMSG: value type void incompatible with u8
+    --- FAIL: TestShowcaseCompileAssemble/sum_array.plm (0.00s)
+        showcase_test.go:129: pipeline: statement 4: statement 0: HIR SUM_ARRAY: void binary operand or result
+    --- FAIL: TestShowcaseCompileAssemble/console_demo.nanz (0.15s)
+        showcase_test.go:140: asm error: line 180: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 185: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 186: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 400: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 180: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 185: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 186: unknown instruction or invalid operands: LD
+        showcase_test.go:140: asm error: line 400: unknown instruction or invalid operands: LD
+        showcase_test.go:142: assembly produced 8 errors
+FAIL
+FAIL	github.com/minz/minzc/pkg/nanz	9.451s
+FAIL
