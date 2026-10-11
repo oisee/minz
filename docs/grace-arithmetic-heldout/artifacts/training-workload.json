@@ -1,0 +1,139 @@
+{
+  "exact_data_access": true,
+  "schema": "minz.profile-workload/v1",
+  "target_model": "cpm-z80-v1",
+  "max_steps": 10000000,
+  "max_memory": 65536,
+  "resources": {},
+  "globals": {},
+  "calls": [
+    {
+      "function": "fib",
+      "arguments": [
+        {
+          "value": 3
+        }
+      ]
+    },
+    {
+      "function": "fact",
+      "arguments": [
+        {
+          "value": 3
+        }
+      ]
+    },
+    {
+      "function": "sum_to",
+      "arguments": [
+        {
+          "value": 3
+        }
+      ]
+    },
+    {
+      "function": "pow2",
+      "arguments": [
+        {
+          "value": 3
+        }
+      ]
+    },
+    {
+      "function": "fib",
+      "arguments": [
+        {
+          "value": 6
+        }
+      ]
+    },
+    {
+      "function": "fact",
+      "arguments": [
+        {
+          "value": 6
+        }
+      ]
+    },
+    {
+      "function": "sum_to",
+      "arguments": [
+        {
+          "value": 6
+        }
+      ]
+    },
+    {
+      "function": "pow2",
+      "arguments": [
+        {
+          "value": 6
+        }
+      ]
+    },
+    {
+      "function": "fib",
+      "arguments": [
+        {
+          "value": 9
+        }
+      ]
+    },
+    {
+      "function": "fact",
+      "arguments": [
+        {
+          "value": 9
+        }
+      ]
+    },
+    {
+      "function": "sum_to",
+      "arguments": [
+        {
+          "value": 9
+        }
+      ]
+    },
+    {
+      "function": "pow2",
+      "arguments": [
+        {
+          "value": 9
+        }
+      ]
+    },
+    {
+      "function": "fib",
+      "arguments": [
+        {
+          "value": 12
+        }
+      ]
+    },
+    {
+      "function": "fact",
+      "arguments": [
+        {
+          "value": 12
+        }
+      ]
+    },
+    {
+      "function": "sum_to",
+      "arguments": [
+        {
+          "value": 12
+        }
+      ]
+    },
+    {
+      "function": "pow2",
+      "arguments": [
+        {
+          "value": 12
+        }
+      ]
+    }
+  ]
+}

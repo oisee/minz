@@ -1,0 +1,351 @@
+{
+  "accesses": [
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    }
+  ],
+  "profile": {
+    "guards": [],
+    "compatibility": {
+      "schema": "minz.loop-profile-compatibility/v1",
+      "context": {
+        "compiler_id": "executable-sha256:3f2e6050a2f78d3152da074105e456f595bca88831f53d39fcacb266ed989d3e",
+        "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+        "target_id": "module-target:0/model:cpm-z80-v1",
+        "workload_sha256": "fd3fccd259946bce306bb3971a164048ecf23ef06ccc0cd1ca24cf30b8b5ec1b",
+        "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+        "dependencies": {
+          "../../../examples/nanz/18_tail_recursion.nanz": "e88d580c3ce9499cdea28a05794e6c6146f88a0e67967d148933b17c969e9540"
+        }
+      },
+      "hir_sha256": "80abb18494601ce6189fae270e30ba227bdfce296022427e73c3bbc98fbe7e55",
+      "origins_sha256": "30daf5c519638c92cf044383a30e4b75384be59700e53314cf7164b2fdef61cd"
+    },
+    "schema": "minz.input-hir-loop-observations/v5",
+    "stage": "unoptimised-mir2-vm",
+    "sites": {
+      "schema": "minz.hir-loop-sites/v1",
+      "stage": "input-hir",
+      "sites": [],
+      "unmapped_loops": 0
+    },
+    "counts": [],
+    "completed_calls": 24,
+    "failed_calls": 0
+  },
+  "results": [
+    [
+      {
+        "I": 61
+      }
+    ],
+    [
+      {
+        "I": 0
+      }
+    ],
+    [
+      {
+        "I": 153
+      }
+    ],
+    [
+      {
+        "I": 0
+      }
+    ],
+    [
+      {
+        "I": 241
+      }
+    ],
+    [
+      {
+        "I": 0
+      }
+    ],
+    [
+      {
+        "I": 20
+      }
+    ],
+    [
+      {
+        "I": 0
+      }
+    ],
+    [
+      {
+        "I": 221
+      }
+    ],
+    [
+      {
+        "I": 0
+      }
+    ],
+    [
+      {
+        "I": 240
+      }
+    ],
+    [
+      {
+        "I": 0
+      }
+    ],
+    [
+      {
+        "I": 226
+      }
+    ],
+    [
+      {
+        "I": 0
+      }
+    ],
+    [
+      {
+        "I": 224
+      }
+    ],
+    [
+      {
+        "I": 0
+      }
+    ],
+    [
+      {
+        "I": 29
+      }
+    ],
+    [
+      {
+        "I": 0
+      }
+    ],
+    [
+      {
+        "I": 192
+      }
+    ],
+    [
+      {
+        "I": 0
+      }
+    ],
+    [
+      {
+        "I": 226
+      }
+    ],
+    [
+      {
+        "I": 0
+      }
+    ],
+    [
+      {
+        "I": 128
+      }
+    ],
+    [
+      {
+        "I": 0
+      }
+    ]
+  ],
+  "snapshots": [
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    },
+    {
+      "globals": {},
+      "resources": {}
+    }
+  ],
+  "globals": {},
+  "resources": {}
+}

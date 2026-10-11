@@ -1,0 +1,203 @@
+{
+  "exact_data_access": true,
+  "schema": "minz.profile-workload/v1",
+  "target_model": "cpm-z80-v1",
+  "max_steps": 10000000,
+  "max_memory": 65536,
+  "resources": {},
+  "globals": {},
+  "calls": [
+    {
+      "function": "fib",
+      "arguments": [
+        {
+          "value": 17
+        }
+      ]
+    },
+    {
+      "function": "fact",
+      "arguments": [
+        {
+          "value": 17
+        }
+      ]
+    },
+    {
+      "function": "sum_to",
+      "arguments": [
+        {
+          "value": 17
+        }
+      ]
+    },
+    {
+      "function": "pow2",
+      "arguments": [
+        {
+          "value": 17
+        }
+      ]
+    },
+    {
+      "function": "fib",
+      "arguments": [
+        {
+          "value": 23
+        }
+      ]
+    },
+    {
+      "function": "fact",
+      "arguments": [
+        {
+          "value": 23
+        }
+      ]
+    },
+    {
+      "function": "sum_to",
+      "arguments": [
+        {
+          "value": 23
+        }
+      ]
+    },
+    {
+      "function": "pow2",
+      "arguments": [
+        {
+          "value": 23
+        }
+      ]
+    },
+    {
+      "function": "fib",
+      "arguments": [
+        {
+          "value": 31
+        }
+      ]
+    },
+    {
+      "function": "fact",
+      "arguments": [
+        {
+          "value": 31
+        }
+      ]
+    },
+    {
+      "function": "sum_to",
+      "arguments": [
+        {
+          "value": 31
+        }
+      ]
+    },
+    {
+      "function": "pow2",
+      "arguments": [
+        {
+          "value": 31
+        }
+      ]
+    },
+    {
+      "function": "fib",
+      "arguments": [
+        {
+          "value": 63
+        }
+      ]
+    },
+    {
+      "function": "fact",
+      "arguments": [
+        {
+          "value": 63
+        }
+      ]
+    },
+    {
+      "function": "sum_to",
+      "arguments": [
+        {
+          "value": 63
+        }
+      ]
+    },
+    {
+      "function": "pow2",
+      "arguments": [
+        {
+          "value": 63
+        }
+      ]
+    },
+    {
+      "function": "fib",
+      "arguments": [
+        {
+          "value": 127
+        }
+      ]
+    },
+    {
+      "function": "fact",
+      "arguments": [
+        {
+          "value": 127
+        }
+      ]
+    },
+    {
+      "function": "sum_to",
+      "arguments": [
+        {
+          "value": 127
+        }
+      ]
+    },
+    {
+      "function": "pow2",
+      "arguments": [
+        {
+          "value": 127
+        }
+      ]
+    },
+    {
+      "function": "fib",
+      "arguments": [
+        {
+          "value": 255
+        }
+      ]
+    },
+    {
+      "function": "fact",
+      "arguments": [
+        {
+          "value": 255
+        }
+      ]
+    },
+    {
+      "function": "sum_to",
+      "arguments": [
+        {
+          "value": 255
+        }
+      ]
+    },
+    {
+      "function": "pow2",
+      "arguments": [
+        {
+          "value": 255
+        }
+      ]
+    }
+  ]
+}

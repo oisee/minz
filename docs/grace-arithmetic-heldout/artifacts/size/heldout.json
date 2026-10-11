@@ -1,0 +1,461 @@
+{
+  "compatibility": {
+    "schema": "minz.loop-profile-compatibility/v1",
+    "context": {
+      "compiler_id": "executable-sha256:3f2e6050a2f78d3152da074105e456f595bca88831f53d39fcacb266ed989d3e",
+      "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+      "target_id": "module-target:0/model:cpm-z80-v1",
+      "workload_sha256": "fd3fccd259946bce306bb3971a164048ecf23ef06ccc0cd1ca24cf30b8b5ec1b",
+      "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+      "dependencies": {
+        "../../../examples/nanz/18_tail_recursion.nanz": "e88d580c3ce9499cdea28a05794e6c6146f88a0e67967d148933b17c969e9540"
+      }
+    },
+    "hir_sha256": "80abb18494601ce6189fae270e30ba227bdfce296022427e73c3bbc98fbe7e55",
+    "origins_sha256": "30daf5c519638c92cf044383a30e4b75384be59700e53314cf7164b2fdef61cd"
+  },
+  "binary_sha256": "c71861b96c509632943a78bc439596f6d1d35a3116eb760420b386f19a01a960",
+  "bootstrap_sha256": [
+    "3264258fe4b1f11a86b1d5b598c086271aaf03d11ca794f85f499fea488633d1",
+    "9b2c1230654685408b7f303ba4f930c803b1760af88befd45ec71542302b665b",
+    "89eda50cf6f9162e8cc8e6821e7a05ff968a8969e418aa9ba7cfad95ecfd585f",
+    "18a1fb443529f16d2456f9b6d2d5d81f7607395a46a9bf059777e371cf39d766",
+    "37e884600b29099c4a2716837baa504aed16e7748e4704c135afded82d026a70",
+    "cbb4ca49d1badeb811e70dfd2cb20808cdf9ac8332f6ebce6ca19ecef89a9620",
+    "d6e11bf8486334dd201b79914eeff538d03e52cd0e74b9d03f1246fe3808f318",
+    "4a55fc3234839e1170e1d9b18789762885fcf26254fa9f8b5ff59445b4259b1d",
+    "4d7b1deda900e08fdad737947a20017272f166e68cc3ae1cb43428777af30134",
+    "81ee780ee456b1ee3f16a91e2a8f4abc7ef2023f86651c56581d75e82829ca83",
+    "f2ffa19cd8c31f5b12533dcc9dcbeba0b1592500d5103f08ce89828ea9085387",
+    "b0a9ac290fafdefc2ea4ae9fa5462bc93a75be0a41491dc5947b86f28c4a54aa",
+    "267a274693ac4237b9bf080175fbd95f8f443b73a87cc9489a633941ff808844",
+    "aec0b7bb1f72ea799e4ec173f5f46ae255fc504f72dff3fc5695f801514d3c9d",
+    "7ab3b766c945dd55cba8587881fdacfc7f3e8e919f0225bad339bb1c0a1e92e6",
+    "e378eb3a79ae58cb1a151d99107564c87aa1959db7e729ec0fbd5277c695c4a7",
+    "a0ed3c9fc010a849c4cf23e5c46f83a0b04beee237cb9ab244b2c843a475af18",
+    "ed2c256bada36071072ae618fe3d38ce9252664594f61211dadfd5047e8ec1cf",
+    "81ab47031faf187b2a927ad7c0324a68219adada301a53b85190409589409be1",
+    "c69c6e1f5b1f9c5da9398b094c805cd615837a1cc0306d763336045a930f7603",
+    "c062a7bf0b8b3e498468c4d680eee34204edfbb131125bc0ab611f7e96303ce4",
+    "c661937e7f1457f204f932d2837f19d59f47e137ff648d42eb6a5436d4049f71",
+    "927b538ba3e5259a5be9d0cf95e89471b9fe70aa2082ff2938046ecee9924b6d",
+    "2871b46a6dec692db184b92a092da914b665d4b7b872dffc92010928c33a3cbe"
+  ],
+  "invocations": [
+    {
+      "access": {
+        "globals": {},
+        "resources": {}
+      },
+      "function": "fib",
+      "t_states": 3041,
+      "results": [
+        {
+          "I": 61
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {},
+        "resources": {}
+      },
+      "function": "fact",
+      "t_states": 9819,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {},
+        "resources": {}
+      },
+      "function": "sum_to",
+      "t_states": 1134,
+      "results": [
+        {
+          "I": 153
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {},
+        "resources": {}
+      },
+      "function": "pow2",
+      "t_states": 896,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {},
+        "resources": {}
+      },
+      "function": "fib",
+      "t_states": 4055,
+      "results": [
+        {
+          "I": 241
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {},
+        "resources": {}
+      },
+      "function": "fact",
+      "t_states": 13542,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {},
+        "resources": {}
+      },
+      "function": "sum_to",
+      "t_states": 1518,
+      "results": [
+        {
+          "I": 20
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {},
+        "resources": {}
+      },
+      "function": "pow2",
+      "t_states": 1196,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {},
+        "resources": {}
+      },
+      "function": "fib",
+      "t_states": 5407,
+      "results": [
+        {
+          "I": 221
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {},
+        "resources": {}
+      },
+      "function": "fact",
+      "t_states": 18586,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {},
+        "resources": {}
+      },
+      "function": "sum_to",
+      "t_states": 2030,
+      "results": [
+        {
+          "I": 240
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {},
+        "resources": {}
+      },
+      "function": "pow2",
+      "t_states": 1596,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {},
+        "resources": {}
+      },
+      "function": "fib",
+      "t_states": 10815,
+      "results": [
+        {
+          "I": 226
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {},
+        "resources": {}
+      },
+      "function": "fact",
+      "t_states": 38762,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {},
+        "resources": {}
+      },
+      "function": "sum_to",
+      "t_states": 4078,
+      "results": [
+        {
+          "I": 224
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {},
+        "resources": {}
+      },
+      "function": "pow2",
+      "t_states": 3196,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {},
+        "resources": {}
+      },
+      "function": "fib",
+      "t_states": 21631,
+      "results": [
+        {
+          "I": 29
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {},
+        "resources": {}
+      },
+      "function": "fact",
+      "t_states": 79594,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {},
+        "resources": {}
+      },
+      "function": "sum_to",
+      "t_states": 8174,
+      "results": [
+        {
+          "I": 192
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {},
+        "resources": {}
+      },
+      "function": "pow2",
+      "t_states": 6396,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {},
+        "resources": {}
+      },
+      "function": "fib",
+      "t_states": 43263,
+      "results": [
+        {
+          "I": 226
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {},
+        "resources": {}
+      },
+      "function": "fact",
+      "t_states": 162218,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {},
+        "resources": {}
+      },
+      "function": "sum_to",
+      "t_states": 16366,
+      "results": [
+        {
+          "I": 128
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {},
+        "resources": {}
+      },
+      "function": "pow2",
+      "t_states": 12796,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {},
+        "resources": {}
+      }
+    }
+  ],
+  "globals": {},
+  "resources": {},
+  "resource_addresses": {},
+  "global_addresses": {},
+  "bootstrap_t_states": 816,
+  "total_t_states": 470109,
+  "executed_steps": 73535
+}
