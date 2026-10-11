@@ -5,6 +5,7 @@ import (
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
 	"os"
+	"reflect"
 	"testing"
 )
 
@@ -94,7 +95,6 @@ func TestMemoryHostArenaAppendProofForgedComposition(t *testing.T) {
 			case "actual_orphan":
 				actual.SourceLocations[Ret(U8(1))] = SourceLocation{Unit: "self_lanz_parser.nanz", SourceSHA256: actual.SourceUnits["self_lanz_parser.nanz"], Line: 1, Column: 1}
 			case "unmapped":
-				delete(actual.SourceLocations, actual.FuncByName("main").Body.Body[2]) // locate actual loop below if ordinal differs
 				for stmt := range actual.SourceLocations {
 					if _, ok := stmt.(*WhileStmt); ok {
 						delete(actual.SourceLocations, stmt)
@@ -112,5 +112,44 @@ func TestMemoryHostArenaAppendProofForgedComposition(t *testing.T) {
 				t.Fatalf("accepted %s", mutant)
 			}
 		})
+	}
+}
+
+func TestMemoryHostArenaAppendProofNoChangeOrigin(t *testing.T) {
+	source, actual, w, c := arenaAppendProofFixture(t, 0)
+	if e := ValidateMemoryHostArenaAppendChoices(source, actual, w, c); e != nil {
+		t.Fatal(e)
+	}
+	stmt := actual.FuncByName("intern_region").Body.Body[5]
+	loc := actual.SourceLocations[stmt]
+	loc.ByteOffset++
+	actual.SourceLocations[stmt] = loc
+	if e := ValidateMemoryHostArenaAppendChoices(source, actual, w, c); e == nil {
+		t.Fatal("unchanged bodies laundered changed origin")
+	}
+}
+func TestMemoryHostArenaAppendProofDoesNotMutateSnapshots(t *testing.T) {
+	source, actual, w, c := arenaAppendProofFixture(t, 3)
+	beforeS, e := BuildFunctionSiteMap(source)
+	if e != nil {
+		t.Fatal(e)
+	}
+	beforeA, e := BuildFunctionSiteMap(actual)
+	if e != nil {
+		t.Fatal(e)
+	}
+	if e := ValidateMemoryHostArenaAppendChoices(source, actual, w, c); e != nil {
+		t.Fatal(e)
+	}
+	afterS, e := BuildFunctionSiteMap(source)
+	if e != nil {
+		t.Fatal(e)
+	}
+	afterA, e := BuildFunctionSiteMap(actual)
+	if e != nil {
+		t.Fatal(e)
+	}
+	if !reflect.DeepEqual(beforeS, afterS) || !reflect.DeepEqual(beforeA, afterA) {
+		t.Fatal("proof changed source or actual identities")
 	}
 }
