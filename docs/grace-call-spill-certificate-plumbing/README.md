@@ -14,6 +14,8 @@ Both focused CLI tests passed under the retained executable `4d818aab4c5bbae1e5e
 
 These zero-body controls exercise transport, replay, exact output binding and typed stack permissions. They do not establish full-parser profitability or new dynamic compare counts. Earlier full-workload measurements retain their original executable context; new backend costs require fresh measurements before a current profitability claim.
 
-The packet preserves the exact executable, terminal log and exit status, 19 frozen source files, compile-only debug captures, and all collect/replay files as deterministic gzip. The source inventory checks original file hashes; the manifest checks both stored and decompressed hashes. Independent saved audits are copied under `reviews/` when final. No CPU execution is needed to inspect this packet.
+The packet preserves the exact executable, terminal log and exit status, 19 frozen source files, compile-only debug captures, and all collect/replay files as deterministic gzip. The source inventory checks original file hashes; the manifest checks both stored and decompressed hashes. Both independent saved audits pass and are copied under `reviews/`: 24 candidate images, plus collected baseline observations, with 60 source/native observations in total. No CPU execution is needed to inspect this packet.
 
 The previous parent pipeline failed on the missing certificate. This bounded success does not claim a fresh complete pipeline pass. Root owns integration and subsequent broad checks. CP/M full-main work remains a separate stage.
+
+Portable verification: `python3 tools/audit_pack.py PACKET_ROOT /tmp/call-spill-audit.json`. This checks every stored/decompressed hash and all four saved CLI directories without executing Z80 instructions.

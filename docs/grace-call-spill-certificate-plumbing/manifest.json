@@ -1,10 +1,10 @@
 [
   {
     "path": "README.md",
-    "stored_bytes": 2497,
-    "stored_sha256": "12c3242a28c391271a4d7f1bfa9cd0081ac9d556eb6707aacf3bb30910629601",
-    "original_bytes": 2497,
-    "original_sha256": "12c3242a28c391271a4d7f1bfa9cd0081ac9d556eb6707aacf3bb30910629601"
+    "stored_bytes": 2812,
+    "stored_sha256": "40291226861916e0df4a23968b4ffa71e4eb61b95dfcb44875fc4141e29d4a0a",
+    "original_bytes": 2812,
+    "original_sha256": "40291226861916e0df4a23968b4ffa71e4eb61b95dfcb44875fc4141e29d4a0a"
   },
   {
     "path": "build-identity.json",
@@ -1309,6 +1309,153 @@
     "original_sha256": "2b728411005deca0399c6a8941da33c83d8c898503e3275fa8d5ee95a00bd03d"
   },
   {
+    "path": "packaged-saved-audit.json",
+    "stored_bytes": 23906,
+    "stored_sha256": "543b38049fce564d06215e2b1ad09a37991b41dd65992576dc2408d1728a8f71",
+    "original_bytes": 23906,
+    "original_sha256": "543b38049fce564d06215e2b1ad09a37991b41dd65992576dc2408d1728a8f71"
+  },
+  {
+    "path": "reviews/independent-native/REVIEW.md",
+    "stored_bytes": 1956,
+    "stored_sha256": "4f7fcb35f8a211102c3f7a699a83d9a297a994f77a3466a14a03afc0b4a7289c",
+    "original_bytes": 1956,
+    "original_sha256": "4f7fcb35f8a211102c3f7a699a83d9a297a994f77a3466a14a03afc0b4a7289c"
+  },
+  {
+    "path": "reviews/independent-native/audit_policy.py",
+    "stored_bytes": 4659,
+    "stored_sha256": "c023e8656a37e5831fba3a7831d3f2973aa482fd72b6c295dcddaf380e299b7f",
+    "original_bytes": 4659,
+    "original_sha256": "c023e8656a37e5831fba3a7831d3f2973aa482fd72b6c295dcddaf380e299b7f"
+  },
+  {
+    "path": "reviews/independent-native/audit_search.py",
+    "stored_bytes": 5113,
+    "stored_sha256": "f488289fa10512cd54d22198b4f63f9b22dca6e78ee4397c43e5ed9cbc4a2be9",
+    "original_bytes": 5113,
+    "original_sha256": "f488289fa10512cd54d22198b4f63f9b22dca6e78ee4397c43e5ed9cbc4a2be9"
+  },
+  {
+    "path": "reviews/independent-native/audit_typed.go.txt",
+    "stored_bytes": 2286,
+    "stored_sha256": "a05bcfdfdb0990c80a6a38853f453253324edfa4ef030f1c9e693688c014c367",
+    "original_bytes": 2286,
+    "original_sha256": "a05bcfdfdb0990c80a6a38853f453253324edfa4ef030f1c9e693688c014c367"
+  },
+  {
+    "path": "reviews/independent-native/policy.txt",
+    "stored_bytes": 3850,
+    "stored_sha256": "e86b2bd306a8ea6f1d5d9f0ba8353434b9e05ec3cda42e169aa346bedf39d6fc",
+    "original_bytes": 3850,
+    "original_sha256": "e86b2bd306a8ea6f1d5d9f0ba8353434b9e05ec3cda42e169aa346bedf39d6fc"
+  },
+  {
+    "path": "reviews/independent-native/search.txt",
+    "stored_bytes": 7787,
+    "stored_sha256": "6886e395a63245eedb1eaeedd5df30cfb0816839b5b286db9ca168d6db4b1635",
+    "original_bytes": 7787,
+    "original_sha256": "6886e395a63245eedb1eaeedd5df30cfb0816839b5b286db9ca168d6db4b1635"
+  },
+  {
+    "path": "reviews/independent-source/FINAL-CLI-SAVED-REVIEW.md",
+    "stored_bytes": 1371,
+    "stored_sha256": "ff4771b1661b38a20ef0949296edc29f2fcea4ebe20f8bfa24f192e8f82edeaa",
+    "original_bytes": 1371,
+    "original_sha256": "ff4771b1661b38a20ef0949296edc29f2fcea4ebe20f8bfa24f192e8f82edeaa"
+  },
+  {
+    "path": "reviews/independent-source/POLICY-SAVED-REVIEW.md",
+    "stored_bytes": 1456,
+    "stored_sha256": "a10339fd31e04feb5d25c4976d561482c63073b73bb62cd91381784c6a45f2a5",
+    "original_bytes": 1456,
+    "original_sha256": "a10339fd31e04feb5d25c4976d561482c63073b73bb62cd91381784c6a45f2a5"
+  },
+  {
+    "path": "reviews/independent-source/final-cli-audit.json",
+    "stored_bytes": 23745,
+    "stored_sha256": "0f03265129a9b7e453bdc44208cf749df7a7fb3a60d79fdab84c80731f3a5a6d",
+    "original_bytes": 23745,
+    "original_sha256": "0f03265129a9b7e453bdc44208cf749df7a7fb3a60d79fdab84c80731f3a5a6d"
+  },
+  {
+    "path": "reviews/independent-source/policy-collect.json",
+    "stored_bytes": 3542,
+    "stored_sha256": "9996b08d9dcf6dad30688e58429e12568ea8929c208cbc04c07bcdd99f0060d7",
+    "original_bytes": 3542,
+    "original_sha256": "9996b08d9dcf6dad30688e58429e12568ea8929c208cbc04c07bcdd99f0060d7"
+  },
+  {
+    "path": "reviews/independent-source/policy-replay.json",
+    "stored_bytes": 3532,
+    "stored_sha256": "db68ab2e0ba2b9f9e86a8f55fa5e705f0bd1748f7929f88b2cf0b18c0363eaee",
+    "original_bytes": 3532,
+    "original_sha256": "db68ab2e0ba2b9f9e86a8f55fa5e705f0bd1748f7929f88b2cf0b18c0363eaee"
+  },
+  {
+    "path": "reviews/independent-source/search-collect.json",
+    "stored_bytes": 6745,
+    "stored_sha256": "cc57155a5cf897f94010e41689bd7031d9aed3e1f3983dea98566e965d7789fb",
+    "original_bytes": 6745,
+    "original_sha256": "cc57155a5cf897f94010e41689bd7031d9aed3e1f3983dea98566e965d7789fb"
+  },
+  {
+    "path": "reviews/independent-source/search-replay.json",
+    "stored_bytes": 6743,
+    "stored_sha256": "a921a7cb2b31581fcf83c42e483012c22bc58f797511c7cb08a3258407003d99",
+    "original_bytes": 6743,
+    "original_sha256": "a921a7cb2b31581fcf83c42e483012c22bc58f797511c7cb08a3258407003d99"
+  },
+  {
+    "path": "reviews/independent-source/tools/.gitignore",
+    "stored_bytes": 13,
+    "stored_sha256": "32dae3052f331ee34d628ef535709b301259a45df7c7522c4d35dcf49873f00b",
+    "original_bytes": 13,
+    "original_sha256": "32dae3052f331ee34d628ef535709b301259a45df7c7522c4d35dcf49873f00b"
+  },
+  {
+    "path": "reviews/independent-source/tools/audit_cli.py",
+    "stored_bytes": 8567,
+    "stored_sha256": "4374b01711c32904ac83106406da0745ec57d1a29ca4ac341a6289b584487679",
+    "original_bytes": 8567,
+    "original_sha256": "4374b01711c32904ac83106406da0745ec57d1a29ca4ac341a6289b584487679"
+  },
+  {
+    "path": "reviews/independent-source/tools/audit_search.py",
+    "stored_bytes": 6686,
+    "stored_sha256": "39af6bbda4a2c61a7f171c3259655410729dc2d18a10bfe0f606db77e75cd79c",
+    "original_bytes": 6686,
+    "original_sha256": "39af6bbda4a2c61a7f171c3259655410729dc2d18a10bfe0f606db77e75cd79c"
+  },
+  {
+    "path": "reviews/independent-source/tools/audit_search_cli.py",
+    "stored_bytes": 2017,
+    "stored_sha256": "8e668bbd279fceb9b050f6a3d761c3fdfa263daa08576a67741eb72c3c258068",
+    "original_bytes": 2017,
+    "original_sha256": "8e668bbd279fceb9b050f6a3d761c3fdfa263daa08576a67741eb72c3c258068"
+  },
+  {
+    "path": "reviews/independent-source/tools/model/.gitignore",
+    "stored_bytes": 13,
+    "stored_sha256": "32dae3052f331ee34d628ef535709b301259a45df7c7522c4d35dcf49873f00b",
+    "original_bytes": 13,
+    "original_sha256": "32dae3052f331ee34d628ef535709b301259a45df7c7522c4d35dcf49873f00b"
+  },
+  {
+    "path": "reviews/independent-source/tools/model/audit_profile.py",
+    "stored_bytes": 2047,
+    "stored_sha256": "376146816ac8617de2b288ca27e46da7568738a84df6d38c1bc271647346c26e",
+    "original_bytes": 2047,
+    "original_sha256": "376146816ac8617de2b288ca27e46da7568738a84df6d38c1bc271647346c26e"
+  },
+  {
+    "path": "reviews/independent-source/tools/model/verify_corpus.py",
+    "stored_bytes": 9659,
+    "stored_sha256": "9994a0245ec69984e8d3a96565ba679ce692bc58f73b3e681bb7d86b9fba0036",
+    "original_bytes": 9659,
+    "original_sha256": "9994a0245ec69984e8d3a96565ba679ce692bc58f73b3e681bb7d86b9fba0036"
+  },
+  {
     "path": "source/minzc/cmd/minzc/call_spill_cli_export_test.go.gz",
     "stored_bytes": 518,
     "stored_sha256": "dacf60a6ea6e5e3d33a2a38f5441c7a862904a76adba4a1b98e8983e32534bee",
@@ -1447,5 +1594,12 @@
     "stored_sha256": "1bf8962ead1d01b3b280c5d21d29718e88650ae5779b376405c20697f763694a",
     "original_bytes": 2834,
     "original_sha256": "1bf8962ead1d01b3b280c5d21d29718e88650ae5779b376405c20697f763694a"
+  },
+  {
+    "path": "tools/audit_pack.py",
+    "stored_bytes": 1291,
+    "stored_sha256": "ef0150b00a207c7f411872ace8cdecabe5f83b047fc42c4e09fa8e98922dc0f2",
+    "original_bytes": 1291,
+    "original_sha256": "ef0150b00a207c7f411872ace8cdecabe5f83b047fc42c4e09fa8e98922dc0f2"
   }
 ]
