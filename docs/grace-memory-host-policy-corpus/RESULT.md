@@ -2,4 +2,4 @@ Eight fixed PreserveForSpeed CLI goals completed with exit0 using exactroot393af
 
 The historical same-mask Legacy comparison shows decreases918/388/11594/2936T respectively, with1additionalbyte eachmask in these workloads. This is analyticalcomparison of separatelysavedmeasurements, not freshLegacyexecution or an additive/generalbranch-distribution claim. Arena penaltiesremainvisible; no universal both-transformprofit.
 
-32candidatepayloads plus8originalcollectionbaselines/400nativecalls are saved, alongwitheightfresh11-counterprofiles anddirectselectedoutputs. Independentfinalauditspending; rootownsbroadergate/publication. No sourceproductioncodechanges inthisartifactstage.
+32candidatepayloads plus8originalcollectionbaselines/400nativecalls are saved, alongwitheightfresh11-counterprofiles anddirectselectedoutputs. Native independent finalaudit e02291a7 passes. Source-model finalaudit22eacb5a passes800nativeobservations acrossall10CLIchecks plusall11sourcecounters. pack-audit.json/txt repeats thecheckonsavedgzipbytesonly;rootowns publication. No sourceproductioncodechanges inthisartifactstage.

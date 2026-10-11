@@ -1,0 +1,1326 @@
+{
+  "schema": "minz.policy-corpus-and-production-independent-audit/v1",
+  "reports": [
+    {
+      "schema": "minz.policy-cli-independent-saved-audit/v1",
+      "directory": "docs/grace-memory-host-policy-corpus/evidence/short-reuse/speed",
+      "compile_options": {
+        "unsigned_pair_compare_policy": 1
+      },
+      "goal": "speed",
+      "selected": 2,
+      "executable_sha256": "393af1d821477b991a0bf452f00c79bd6d77368c3cff9cde64faa1ee1b130808",
+      "native_observations": 60,
+      "native": [
+        {
+          "calls": 12,
+          "ordered_events": 963,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd",
+          "t_states": 329597,
+          "bytes": 2001,
+          "str_bump": 36887,
+          "node_bump": 32776
+        },
+        {
+          "calls": 12,
+          "ordered_events": 963,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd",
+          "t_states": 329597,
+          "bytes": 2001,
+          "str_bump": 36887,
+          "node_bump": 32776,
+          "mask": 0
+        },
+        {
+          "calls": 12,
+          "ordered_events": 963,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "7cbed996d01495228965970dd379920288378f7d84de4b0743db9a3589cdca53",
+          "t_states": 330157,
+          "bytes": 2122,
+          "str_bump": 36887,
+          "node_bump": 32776,
+          "mask": 1
+        },
+        {
+          "calls": 12,
+          "ordered_events": 963,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835",
+          "t_states": 326090,
+          "bytes": 1979,
+          "str_bump": 36887,
+          "node_bump": 32776,
+          "mask": 2
+        },
+        {
+          "calls": 12,
+          "ordered_events": 963,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac",
+          "t_states": 326650,
+          "bytes": 2100,
+          "str_bump": 36887,
+          "node_bump": 32776,
+          "mask": 3
+        }
+      ],
+      "independent_source_counts": {
+        "intern_region/body/s1": [
+          25,
+          50
+        ],
+        "skip_ws/body/s1/then/s0": [
+          1,
+          5
+        ],
+        "main/body/s2": [
+          0,
+          0
+        ],
+        "parse_sexpr/body/s8/then/s2": [
+          0,
+          0
+        ],
+        "region_match/body/s1": [
+          35,
+          114
+        ],
+        "skip_ws/body/s0": [
+          57,
+          13
+        ],
+        "parse_sexpr/body/s5": [
+          25,
+          119
+        ],
+        "parse_sexpr/body/s3/then/s7": [
+          6,
+          13
+        ],
+        "intern_region/body/s5": [
+          4,
+          19
+        ],
+        "print_node/body/s4/then/s3": [
+          0,
+          0
+        ],
+        "print_str/body/s2": [
+          0,
+          0
+        ]
+      },
+      "decision": {
+        "schema": "minz.memory-host-arena-append-cli-decision/v2",
+        "compile_options": {
+          "unsigned_pair_compare_policy": 1
+        },
+        "goal": "speed",
+        "selected": 2,
+        "choices": {
+          "arena_peel": false,
+          "append_hoist": true
+        },
+        "selection_sha256": "4bd947ed9eeaf1561fbee527df55033e7db2bd4c828440f22b117d631e44ab2c",
+        "association_sha256": "522f3ce44b8383ab40721fc4c6c37bee8c6e82e99b802ba38b00c7f4c3ad19eb",
+        "binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835",
+        "t_states": 326090,
+        "bytes": 1979
+      },
+      "scope": "exact original-source semantic/resource/event and counter oracle plus saved policy/proof/native/file hash bindings; no CPU or new PC counts",
+      "corpus": "short-reuse"
+    },
+    {
+      "schema": "minz.policy-cli-independent-saved-audit/v1",
+      "directory": "docs/grace-memory-host-policy-corpus/evidence/short-reuse/size",
+      "compile_options": {
+        "unsigned_pair_compare_policy": 1
+      },
+      "goal": "size",
+      "selected": 2,
+      "executable_sha256": "393af1d821477b991a0bf452f00c79bd6d77368c3cff9cde64faa1ee1b130808",
+      "native_observations": 60,
+      "native": [
+        {
+          "calls": 12,
+          "ordered_events": 963,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd",
+          "t_states": 329597,
+          "bytes": 2001,
+          "str_bump": 36887,
+          "node_bump": 32776
+        },
+        {
+          "calls": 12,
+          "ordered_events": 963,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd",
+          "t_states": 329597,
+          "bytes": 2001,
+          "str_bump": 36887,
+          "node_bump": 32776,
+          "mask": 0
+        },
+        {
+          "calls": 12,
+          "ordered_events": 963,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "7cbed996d01495228965970dd379920288378f7d84de4b0743db9a3589cdca53",
+          "t_states": 330157,
+          "bytes": 2122,
+          "str_bump": 36887,
+          "node_bump": 32776,
+          "mask": 1
+        },
+        {
+          "calls": 12,
+          "ordered_events": 963,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835",
+          "t_states": 326090,
+          "bytes": 1979,
+          "str_bump": 36887,
+          "node_bump": 32776,
+          "mask": 2
+        },
+        {
+          "calls": 12,
+          "ordered_events": 963,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac",
+          "t_states": 326650,
+          "bytes": 2100,
+          "str_bump": 36887,
+          "node_bump": 32776,
+          "mask": 3
+        }
+      ],
+      "independent_source_counts": {
+        "intern_region/body/s1": [
+          25,
+          50
+        ],
+        "skip_ws/body/s1/then/s0": [
+          1,
+          5
+        ],
+        "main/body/s2": [
+          0,
+          0
+        ],
+        "parse_sexpr/body/s8/then/s2": [
+          0,
+          0
+        ],
+        "region_match/body/s1": [
+          35,
+          114
+        ],
+        "skip_ws/body/s0": [
+          57,
+          13
+        ],
+        "parse_sexpr/body/s5": [
+          25,
+          119
+        ],
+        "parse_sexpr/body/s3/then/s7": [
+          6,
+          13
+        ],
+        "intern_region/body/s5": [
+          4,
+          19
+        ],
+        "print_node/body/s4/then/s3": [
+          0,
+          0
+        ],
+        "print_str/body/s2": [
+          0,
+          0
+        ]
+      },
+      "decision": {
+        "schema": "minz.memory-host-arena-append-cli-decision/v2",
+        "compile_options": {
+          "unsigned_pair_compare_policy": 1
+        },
+        "goal": "size",
+        "selected": 2,
+        "choices": {
+          "arena_peel": false,
+          "append_hoist": true
+        },
+        "selection_sha256": "c20fe172ad113b525db55c722d1f6b9fe0a8f88b5d6412172c3d6c38df31e762",
+        "association_sha256": "522f3ce44b8383ab40721fc4c6c37bee8c6e82e99b802ba38b00c7f4c3ad19eb",
+        "binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835",
+        "t_states": 326090,
+        "bytes": 1979
+      },
+      "scope": "exact original-source semantic/resource/event and counter oracle plus saved policy/proof/native/file hash bindings; no CPU or new PC counts",
+      "corpus": "short-reuse"
+    },
+    {
+      "schema": "minz.policy-cli-independent-saved-audit/v1",
+      "directory": "docs/grace-memory-host-policy-corpus/evidence/long-atoms/speed",
+      "compile_options": {
+        "unsigned_pair_compare_policy": 1
+      },
+      "goal": "speed",
+      "selected": 2,
+      "executable_sha256": "393af1d821477b991a0bf452f00c79bd6d77368c3cff9cde64faa1ee1b130808",
+      "native_observations": 45,
+      "native": [
+        {
+          "calls": 9,
+          "ordered_events": 9576,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd",
+          "t_states": 4110217,
+          "bytes": 2001,
+          "str_bump": 37587,
+          "node_bump": 32776
+        },
+        {
+          "calls": 9,
+          "ordered_events": 9576,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd",
+          "t_states": 4110217,
+          "bytes": 2001,
+          "str_bump": 37587,
+          "node_bump": 32776,
+          "mask": 0
+        },
+        {
+          "calls": 9,
+          "ordered_events": 9576,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "7cbed996d01495228965970dd379920288378f7d84de4b0743db9a3589cdca53",
+          "t_states": 4110489,
+          "bytes": 2122,
+          "str_bump": 37587,
+          "node_bump": 32776,
+          "mask": 1
+        },
+        {
+          "calls": 9,
+          "ordered_events": 9576,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835",
+          "t_states": 3968554,
+          "bytes": 1979,
+          "str_bump": 37587,
+          "node_bump": 32776,
+          "mask": 2
+        },
+        {
+          "calls": 9,
+          "ordered_events": 9576,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac",
+          "t_states": 3968826,
+          "bytes": 2100,
+          "str_bump": 37587,
+          "node_bump": 32776,
+          "mask": 3
+        }
+      ],
+      "independent_source_counts": {
+        "intern_region/body/s1": [
+          11,
+          17
+        ],
+        "skip_ws/body/s1/then/s0": [
+          0,
+          0
+        ],
+        "main/body/s2": [
+          0,
+          0
+        ],
+        "parse_sexpr/body/s8/then/s2": [
+          0,
+          0
+        ],
+        "region_match/body/s1": [
+          17,
+          2646
+        ],
+        "skip_ws/body/s0": [
+          19,
+          2
+        ],
+        "parse_sexpr/body/s5": [
+          11,
+          2640
+        ],
+        "parse_sexpr/body/s3/then/s7": [
+          2,
+          2
+        ],
+        "intern_region/body/s5": [
+          3,
+          720
+        ],
+        "print_node/body/s4/then/s3": [
+          0,
+          0
+        ],
+        "print_str/body/s2": [
+          0,
+          0
+        ]
+      },
+      "decision": {
+        "schema": "minz.memory-host-arena-append-cli-decision/v2",
+        "compile_options": {
+          "unsigned_pair_compare_policy": 1
+        },
+        "goal": "speed",
+        "selected": 2,
+        "choices": {
+          "arena_peel": false,
+          "append_hoist": true
+        },
+        "selection_sha256": "e1a549c198c9b78aff8817620b7038f00d2a124b6c9e7eefd8069b33a13ba1e2",
+        "association_sha256": "6b0599bbdbf61de0d4be761b3b4d5e2173df9993853df11a5644eced15eb5f76",
+        "binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835",
+        "t_states": 3968554,
+        "bytes": 1979
+      },
+      "scope": "exact original-source semantic/resource/event and counter oracle plus saved policy/proof/native/file hash bindings; no CPU or new PC counts",
+      "corpus": "long-atoms"
+    },
+    {
+      "schema": "minz.policy-cli-independent-saved-audit/v1",
+      "directory": "docs/grace-memory-host-policy-corpus/evidence/long-atoms/size",
+      "compile_options": {
+        "unsigned_pair_compare_policy": 1
+      },
+      "goal": "size",
+      "selected": 2,
+      "executable_sha256": "393af1d821477b991a0bf452f00c79bd6d77368c3cff9cde64faa1ee1b130808",
+      "native_observations": 45,
+      "native": [
+        {
+          "calls": 9,
+          "ordered_events": 9576,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd",
+          "t_states": 4110217,
+          "bytes": 2001,
+          "str_bump": 37587,
+          "node_bump": 32776
+        },
+        {
+          "calls": 9,
+          "ordered_events": 9576,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd",
+          "t_states": 4110217,
+          "bytes": 2001,
+          "str_bump": 37587,
+          "node_bump": 32776,
+          "mask": 0
+        },
+        {
+          "calls": 9,
+          "ordered_events": 9576,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "7cbed996d01495228965970dd379920288378f7d84de4b0743db9a3589cdca53",
+          "t_states": 4110489,
+          "bytes": 2122,
+          "str_bump": 37587,
+          "node_bump": 32776,
+          "mask": 1
+        },
+        {
+          "calls": 9,
+          "ordered_events": 9576,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835",
+          "t_states": 3968554,
+          "bytes": 1979,
+          "str_bump": 37587,
+          "node_bump": 32776,
+          "mask": 2
+        },
+        {
+          "calls": 9,
+          "ordered_events": 9576,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac",
+          "t_states": 3968826,
+          "bytes": 2100,
+          "str_bump": 37587,
+          "node_bump": 32776,
+          "mask": 3
+        }
+      ],
+      "independent_source_counts": {
+        "intern_region/body/s1": [
+          11,
+          17
+        ],
+        "skip_ws/body/s1/then/s0": [
+          0,
+          0
+        ],
+        "main/body/s2": [
+          0,
+          0
+        ],
+        "parse_sexpr/body/s8/then/s2": [
+          0,
+          0
+        ],
+        "region_match/body/s1": [
+          17,
+          2646
+        ],
+        "skip_ws/body/s0": [
+          19,
+          2
+        ],
+        "parse_sexpr/body/s5": [
+          11,
+          2640
+        ],
+        "parse_sexpr/body/s3/then/s7": [
+          2,
+          2
+        ],
+        "intern_region/body/s5": [
+          3,
+          720
+        ],
+        "print_node/body/s4/then/s3": [
+          0,
+          0
+        ],
+        "print_str/body/s2": [
+          0,
+          0
+        ]
+      },
+      "decision": {
+        "schema": "minz.memory-host-arena-append-cli-decision/v2",
+        "compile_options": {
+          "unsigned_pair_compare_policy": 1
+        },
+        "goal": "size",
+        "selected": 2,
+        "choices": {
+          "arena_peel": false,
+          "append_hoist": true
+        },
+        "selection_sha256": "c7ec5d0aece698b232d8bebef5d13f5fe13f118b3d2fd60ef386c46313a5d6a7",
+        "association_sha256": "6b0599bbdbf61de0d4be761b3b4d5e2173df9993853df11a5644eced15eb5f76",
+        "binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835",
+        "t_states": 3968554,
+        "bytes": 1979
+      },
+      "scope": "exact original-source semantic/resource/event and counter oracle plus saved policy/proof/native/file hash bindings; no CPU or new PC counts",
+      "corpus": "long-atoms"
+    },
+    {
+      "schema": "minz.policy-cli-independent-saved-audit/v1",
+      "directory": "docs/grace-memory-host-policy-corpus/evidence/nested-mixed/speed",
+      "compile_options": {
+        "unsigned_pair_compare_policy": 1
+      },
+      "goal": "speed",
+      "selected": 2,
+      "executable_sha256": "393af1d821477b991a0bf452f00c79bd6d77368c3cff9cde64faa1ee1b130808",
+      "native_observations": 45,
+      "native": [
+        {
+          "calls": 9,
+          "ordered_events": 4150,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd",
+          "t_states": 1286305,
+          "bytes": 2001,
+          "str_bump": 36981,
+          "node_bump": 32904
+        },
+        {
+          "calls": 9,
+          "ordered_events": 4150,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd",
+          "t_states": 1286305,
+          "bytes": 2001,
+          "str_bump": 36981,
+          "node_bump": 32904,
+          "mask": 0
+        },
+        {
+          "calls": 9,
+          "ordered_events": 4150,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "7cbed996d01495228965970dd379920288378f7d84de4b0743db9a3589cdca53",
+          "t_states": 1287956,
+          "bytes": 2122,
+          "str_bump": 36981,
+          "node_bump": 32904,
+          "mask": 1
+        },
+        {
+          "calls": 9,
+          "ordered_events": 4150,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835",
+          "t_states": 1270168,
+          "bytes": 1979,
+          "str_bump": 36981,
+          "node_bump": 32904,
+          "mask": 2
+        },
+        {
+          "calls": 9,
+          "ordered_events": 4150,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac",
+          "t_states": 1271819,
+          "bytes": 2100,
+          "str_bump": 36981,
+          "node_bump": 32904,
+          "mask": 3
+        }
+      ],
+      "independent_source_counts": {
+        "intern_region/body/s1": [
+          83,
+          655
+        ],
+        "skip_ws/body/s1/then/s0": [
+          1,
+          9
+        ],
+        "main/body/s2": [
+          0,
+          0
+        ],
+        "parse_sexpr/body/s8/then/s2": [
+          8,
+          19
+        ],
+        "region_match/body/s1": [
+          157,
+          226
+        ],
+        "skip_ws/body/s0": [
+          315,
+          84
+        ],
+        "parse_sexpr/body/s5": [
+          91,
+          232
+        ],
+        "parse_sexpr/body/s3/then/s7": [
+          45,
+          84
+        ],
+        "intern_region/body/s5": [
+          27,
+          90
+        ],
+        "print_node/body/s4/then/s3": [
+          0,
+          0
+        ],
+        "print_str/body/s2": [
+          0,
+          0
+        ]
+      },
+      "decision": {
+        "schema": "minz.memory-host-arena-append-cli-decision/v2",
+        "compile_options": {
+          "unsigned_pair_compare_policy": 1
+        },
+        "goal": "speed",
+        "selected": 2,
+        "choices": {
+          "arena_peel": false,
+          "append_hoist": true
+        },
+        "selection_sha256": "5593f05aedb4f73db1eaaf5e62f2150dc24e7ede95e45b662e35b58c5801a5ca",
+        "association_sha256": "78282575579a541c5a9ad54c4e009581c5bab4beb05151849d74f80f813316e3",
+        "binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835",
+        "t_states": 1270168,
+        "bytes": 1979
+      },
+      "scope": "exact original-source semantic/resource/event and counter oracle plus saved policy/proof/native/file hash bindings; no CPU or new PC counts",
+      "corpus": "nested-mixed"
+    },
+    {
+      "schema": "minz.policy-cli-independent-saved-audit/v1",
+      "directory": "docs/grace-memory-host-policy-corpus/evidence/nested-mixed/size",
+      "compile_options": {
+        "unsigned_pair_compare_policy": 1
+      },
+      "goal": "size",
+      "selected": 2,
+      "executable_sha256": "393af1d821477b991a0bf452f00c79bd6d77368c3cff9cde64faa1ee1b130808",
+      "native_observations": 45,
+      "native": [
+        {
+          "calls": 9,
+          "ordered_events": 4150,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd",
+          "t_states": 1286305,
+          "bytes": 2001,
+          "str_bump": 36981,
+          "node_bump": 32904
+        },
+        {
+          "calls": 9,
+          "ordered_events": 4150,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd",
+          "t_states": 1286305,
+          "bytes": 2001,
+          "str_bump": 36981,
+          "node_bump": 32904,
+          "mask": 0
+        },
+        {
+          "calls": 9,
+          "ordered_events": 4150,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "7cbed996d01495228965970dd379920288378f7d84de4b0743db9a3589cdca53",
+          "t_states": 1287956,
+          "bytes": 2122,
+          "str_bump": 36981,
+          "node_bump": 32904,
+          "mask": 1
+        },
+        {
+          "calls": 9,
+          "ordered_events": 4150,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835",
+          "t_states": 1270168,
+          "bytes": 1979,
+          "str_bump": 36981,
+          "node_bump": 32904,
+          "mask": 2
+        },
+        {
+          "calls": 9,
+          "ordered_events": 4150,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac",
+          "t_states": 1271819,
+          "bytes": 2100,
+          "str_bump": 36981,
+          "node_bump": 32904,
+          "mask": 3
+        }
+      ],
+      "independent_source_counts": {
+        "intern_region/body/s1": [
+          83,
+          655
+        ],
+        "skip_ws/body/s1/then/s0": [
+          1,
+          9
+        ],
+        "main/body/s2": [
+          0,
+          0
+        ],
+        "parse_sexpr/body/s8/then/s2": [
+          8,
+          19
+        ],
+        "region_match/body/s1": [
+          157,
+          226
+        ],
+        "skip_ws/body/s0": [
+          315,
+          84
+        ],
+        "parse_sexpr/body/s5": [
+          91,
+          232
+        ],
+        "parse_sexpr/body/s3/then/s7": [
+          45,
+          84
+        ],
+        "intern_region/body/s5": [
+          27,
+          90
+        ],
+        "print_node/body/s4/then/s3": [
+          0,
+          0
+        ],
+        "print_str/body/s2": [
+          0,
+          0
+        ]
+      },
+      "decision": {
+        "schema": "minz.memory-host-arena-append-cli-decision/v2",
+        "compile_options": {
+          "unsigned_pair_compare_policy": 1
+        },
+        "goal": "size",
+        "selected": 2,
+        "choices": {
+          "arena_peel": false,
+          "append_hoist": true
+        },
+        "selection_sha256": "492a8e84b7bc34e9d787e24681630db3a7f2963f8704eef0bc5c46bccd856b87",
+        "association_sha256": "78282575579a541c5a9ad54c4e009581c5bab4beb05151849d74f80f813316e3",
+        "binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835",
+        "t_states": 1270168,
+        "bytes": 1979
+      },
+      "scope": "exact original-source semantic/resource/event and counter oracle plus saved policy/proof/native/file hash bindings; no CPU or new PC counts",
+      "corpus": "nested-mixed"
+    },
+    {
+      "schema": "minz.policy-cli-independent-saved-audit/v1",
+      "directory": "docs/grace-memory-host-policy-corpus/evidence/fresh-dominant/speed",
+      "compile_options": {
+        "unsigned_pair_compare_policy": 1
+      },
+      "goal": "speed",
+      "selected": 2,
+      "executable_sha256": "393af1d821477b991a0bf452f00c79bd6d77368c3cff9cde64faa1ee1b130808",
+      "native_observations": 100,
+      "native": [
+        {
+          "calls": 20,
+          "ordered_events": 1876,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd",
+          "t_states": 786526,
+          "bytes": 2001,
+          "str_bump": 37341,
+          "node_bump": 32776
+        },
+        {
+          "calls": 20,
+          "ordered_events": 1876,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd",
+          "t_states": 786526,
+          "bytes": 2001,
+          "str_bump": 37341,
+          "node_bump": 32776,
+          "mask": 0
+        },
+        {
+          "calls": 20,
+          "ordered_events": 1876,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "7cbed996d01495228965970dd379920288378f7d84de4b0743db9a3589cdca53",
+          "t_states": 786574,
+          "bytes": 2122,
+          "str_bump": 37341,
+          "node_bump": 32776,
+          "mask": 1
+        },
+        {
+          "calls": 20,
+          "ordered_events": 1876,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835",
+          "t_states": 696909,
+          "bytes": 1979,
+          "str_bump": 37341,
+          "node_bump": 32776,
+          "mask": 2
+        },
+        {
+          "calls": 20,
+          "ordered_events": 1876,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac",
+          "t_states": 696957,
+          "bytes": 2100,
+          "str_bump": 37341,
+          "node_bump": 32776,
+          "mask": 3
+        }
+      ],
+      "independent_source_counts": {
+        "intern_region/body/s1": [
+          20,
+          143
+        ],
+        "skip_ws/body/s1/then/s0": [
+          0,
+          0
+        ],
+        "main/body/s2": [
+          0,
+          0
+        ],
+        "parse_sexpr/body/s8/then/s2": [
+          0,
+          0
+        ],
+        "region_match/body/s1": [
+          3,
+          32
+        ],
+        "skip_ws/body/s0": [
+          20,
+          0
+        ],
+        "parse_sexpr/body/s5": [
+          20,
+          492
+        ],
+        "parse_sexpr/body/s3/then/s7": [
+          0,
+          0
+        ],
+        "intern_region/body/s5": [
+          17,
+          460
+        ],
+        "print_node/body/s4/then/s3": [
+          0,
+          0
+        ],
+        "print_str/body/s2": [
+          0,
+          0
+        ]
+      },
+      "decision": {
+        "schema": "minz.memory-host-arena-append-cli-decision/v2",
+        "compile_options": {
+          "unsigned_pair_compare_policy": 1
+        },
+        "goal": "speed",
+        "selected": 2,
+        "choices": {
+          "arena_peel": false,
+          "append_hoist": true
+        },
+        "selection_sha256": "9059afbe2e26d972d1c61df860e2de487ddc6ba565341168efcf7a06c8fbe34d",
+        "association_sha256": "d7bc178dcb8f6dd096b12a31089c53fce9a829c7ed9f68f60ed61b1bbdabbd87",
+        "binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835",
+        "t_states": 696909,
+        "bytes": 1979
+      },
+      "scope": "exact original-source semantic/resource/event and counter oracle plus saved policy/proof/native/file hash bindings; no CPU or new PC counts",
+      "corpus": "fresh-dominant"
+    },
+    {
+      "schema": "minz.policy-cli-independent-saved-audit/v1",
+      "directory": "docs/grace-memory-host-policy-corpus/evidence/fresh-dominant/size",
+      "compile_options": {
+        "unsigned_pair_compare_policy": 1
+      },
+      "goal": "size",
+      "selected": 2,
+      "executable_sha256": "393af1d821477b991a0bf452f00c79bd6d77368c3cff9cde64faa1ee1b130808",
+      "native_observations": 100,
+      "native": [
+        {
+          "calls": 20,
+          "ordered_events": 1876,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd",
+          "t_states": 786526,
+          "bytes": 2001,
+          "str_bump": 37341,
+          "node_bump": 32776
+        },
+        {
+          "calls": 20,
+          "ordered_events": 1876,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd",
+          "t_states": 786526,
+          "bytes": 2001,
+          "str_bump": 37341,
+          "node_bump": 32776,
+          "mask": 0
+        },
+        {
+          "calls": 20,
+          "ordered_events": 1876,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "7cbed996d01495228965970dd379920288378f7d84de4b0743db9a3589cdca53",
+          "t_states": 786574,
+          "bytes": 2122,
+          "str_bump": 37341,
+          "node_bump": 32776,
+          "mask": 1
+        },
+        {
+          "calls": 20,
+          "ordered_events": 1876,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835",
+          "t_states": 696909,
+          "bytes": 1979,
+          "str_bump": 37341,
+          "node_bump": 32776,
+          "mask": 2
+        },
+        {
+          "calls": 20,
+          "ordered_events": 1876,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac",
+          "t_states": 696957,
+          "bytes": 2100,
+          "str_bump": 37341,
+          "node_bump": 32776,
+          "mask": 3
+        }
+      ],
+      "independent_source_counts": {
+        "intern_region/body/s1": [
+          20,
+          143
+        ],
+        "skip_ws/body/s1/then/s0": [
+          0,
+          0
+        ],
+        "main/body/s2": [
+          0,
+          0
+        ],
+        "parse_sexpr/body/s8/then/s2": [
+          0,
+          0
+        ],
+        "region_match/body/s1": [
+          3,
+          32
+        ],
+        "skip_ws/body/s0": [
+          20,
+          0
+        ],
+        "parse_sexpr/body/s5": [
+          20,
+          492
+        ],
+        "parse_sexpr/body/s3/then/s7": [
+          0,
+          0
+        ],
+        "intern_region/body/s5": [
+          17,
+          460
+        ],
+        "print_node/body/s4/then/s3": [
+          0,
+          0
+        ],
+        "print_str/body/s2": [
+          0,
+          0
+        ]
+      },
+      "decision": {
+        "schema": "minz.memory-host-arena-append-cli-decision/v2",
+        "compile_options": {
+          "unsigned_pair_compare_policy": 1
+        },
+        "goal": "size",
+        "selected": 2,
+        "choices": {
+          "arena_peel": false,
+          "append_hoist": true
+        },
+        "selection_sha256": "9b7ce9dc68660ab0cd3948776e07d762b2b081ea39b5fc62ca958a4b653f7233",
+        "association_sha256": "d7bc178dcb8f6dd096b12a31089c53fce9a829c7ed9f68f60ed61b1bbdabbd87",
+        "binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835",
+        "t_states": 696909,
+        "bytes": 1979
+      },
+      "scope": "exact original-source semantic/resource/event and counter oracle plus saved policy/proof/native/file hash bindings; no CPU or new PC counts",
+      "corpus": "fresh-dominant"
+    },
+    {
+      "schema": "minz.policy-cli-independent-saved-audit/v1",
+      "directory": "docs/grace-memory-host-policy-corpus/production-cli-check/speed",
+      "compile_options": {
+        "unsigned_pair_compare_policy": 1
+      },
+      "goal": "speed",
+      "selected": 3,
+      "executable_sha256": "393af1d821477b991a0bf452f00c79bd6d77368c3cff9cde64faa1ee1b130808",
+      "native_observations": 150,
+      "native": [
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd",
+          "t_states": 1132449,
+          "bytes": 2001,
+          "str_bump": 37163,
+          "node_bump": 32808
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd",
+          "t_states": 1132449,
+          "bytes": 2001,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "mask": 0
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "7cbed996d01495228965970dd379920288378f7d84de4b0743db9a3589cdca53",
+          "t_states": 1132290,
+          "bytes": 2122,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "mask": 1
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835",
+          "t_states": 1076874,
+          "bytes": 1979,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "mask": 2
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac",
+          "t_states": 1076715,
+          "bytes": 2100,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "mask": 3
+        }
+      ],
+      "independent_source_counts": {
+        "intern_region/body/s1": [
+          40,
+          156
+        ],
+        "skip_ws/body/s1/then/s0": [
+          4,
+          25
+        ],
+        "main/body/s2": [
+          0,
+          0
+        ],
+        "parse_sexpr/body/s8/then/s2": [
+          9,
+          23
+        ],
+        "region_match/body/s1": [
+          49,
+          59
+        ],
+        "skip_ws/body/s0": [
+          153,
+          24
+        ],
+        "parse_sexpr/body/s5": [
+          51,
+          858
+        ],
+        "parse_sexpr/body/s3/then/s7": [
+          22,
+          27
+        ],
+        "intern_region/body/s5": [
+          13,
+          286
+        ],
+        "print_node/body/s4/then/s3": [
+          0,
+          0
+        ],
+        "print_str/body/s2": [
+          0,
+          0
+        ]
+      },
+      "decision": {
+        "schema": "minz.memory-host-arena-append-cli-decision/v2",
+        "compile_options": {
+          "unsigned_pair_compare_policy": 1
+        },
+        "goal": "speed",
+        "selected": 3,
+        "choices": {
+          "arena_peel": true,
+          "append_hoist": true
+        },
+        "selection_sha256": "ee5ff615cf80ccd911c0811541c06c8f36abb9cc0879641f97d8cb9ae2db16ea",
+        "association_sha256": "ed44dcea2bdce8c9f7eb3b118b8f1e80f503c4ce8868c0bdeb6ff7f9e3a10899",
+        "binary_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac",
+        "t_states": 1076715,
+        "bytes": 2100
+      },
+      "scope": "exact original-source semantic/resource/event and counter oracle plus saved policy/proof/native/file hash bindings; no CPU or new PC counts",
+      "corpus": "production-full30"
+    },
+    {
+      "schema": "minz.policy-cli-independent-saved-audit/v1",
+      "directory": "docs/grace-memory-host-policy-corpus/production-cli-check/size",
+      "compile_options": {
+        "unsigned_pair_compare_policy": 1
+      },
+      "goal": "size",
+      "selected": 2,
+      "executable_sha256": "393af1d821477b991a0bf452f00c79bd6d77368c3cff9cde64faa1ee1b130808",
+      "native_observations": 150,
+      "native": [
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd",
+          "t_states": 1132449,
+          "bytes": 2001,
+          "str_bump": 37163,
+          "node_bump": 32808
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd",
+          "t_states": 1132449,
+          "bytes": 2001,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "mask": 0
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "7cbed996d01495228965970dd379920288378f7d84de4b0743db9a3589cdca53",
+          "t_states": 1132290,
+          "bytes": 2122,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "mask": 1
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835",
+          "t_states": 1076874,
+          "bytes": 1979,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "mask": 2
+        },
+        {
+          "calls": 30,
+          "ordered_events": 3017,
+          "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+          "binary_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac",
+          "t_states": 1076715,
+          "bytes": 2100,
+          "str_bump": 37163,
+          "node_bump": 32808,
+          "mask": 3
+        }
+      ],
+      "independent_source_counts": {
+        "intern_region/body/s1": [
+          40,
+          156
+        ],
+        "skip_ws/body/s1/then/s0": [
+          4,
+          25
+        ],
+        "main/body/s2": [
+          0,
+          0
+        ],
+        "parse_sexpr/body/s8/then/s2": [
+          9,
+          23
+        ],
+        "region_match/body/s1": [
+          49,
+          59
+        ],
+        "skip_ws/body/s0": [
+          153,
+          24
+        ],
+        "parse_sexpr/body/s5": [
+          51,
+          858
+        ],
+        "parse_sexpr/body/s3/then/s7": [
+          22,
+          27
+        ],
+        "intern_region/body/s5": [
+          13,
+          286
+        ],
+        "print_node/body/s4/then/s3": [
+          0,
+          0
+        ],
+        "print_str/body/s2": [
+          0,
+          0
+        ]
+      },
+      "decision": {
+        "schema": "minz.memory-host-arena-append-cli-decision/v2",
+        "compile_options": {
+          "unsigned_pair_compare_policy": 1
+        },
+        "goal": "size",
+        "selected": 2,
+        "choices": {
+          "arena_peel": false,
+          "append_hoist": true
+        },
+        "selection_sha256": "de1b50fdc8328f9cb1ba5f04b47f14269eb2a972ed6eecd4ce4befc8795c62f6",
+        "association_sha256": "ed44dcea2bdce8c9f7eb3b118b8f1e80f503c4ce8868c0bdeb6ff7f9e3a10899",
+        "binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835",
+        "t_states": 1076874,
+        "bytes": 1979
+      },
+      "scope": "exact original-source semantic/resource/event and counter oracle plus saved policy/proof/native/file hash bindings; no CPU or new PC counts",
+      "corpus": "production-full30"
+    }
+  ],
+  "native_observations": 800
+}
