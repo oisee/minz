@@ -1,0 +1,707 @@
+<nil>
+; HIR module: tetris
+global @board : [200]u8
+global @cur_type : u8
+global @cur_rot : u8
+global @cur_x : u8
+global @cur_y : u8
+global @drop_timer : u8
+global @drop_speed : u8
+global @frame_count : u16
+global @score : u16
+global @lines_cleared : u16
+global @game_over : u8
+global @prev_keys : u8
+global @rng_state : u16
+global @next_type : u8
+global @hold_type : u8
+global @hold_used : u8
+global @last_was_tspin : u8
+
+fun @zx_attr_addr(cx: u8, cy: u8) -> u16
+  return ((22528:u16 + (cast((cy:u8)):u16 * 32:u8):u16):u16 + cast((cx:u8)):u16):u16
+
+fun @zx_screen_addr(x_byte: u8, y: u8) -> u16
+  var h: u8 = ((64:u8 + (((y:u8) >> 6:u8):u8 * 8:u8):u8):u8 + ((y:u8) & 7:u8):u8):u8
+  var l: u8 = (((((y:u8) >> 3:u8):u8 & 7:u8):u8 * 32:u8):u8 + ((x_byte:u8) & 31:u8):u8):u8
+  return ((cast((h:u8)):u16 * 256:u16):u16 + cast((l:u8)):u16):u16
+
+fun @zx_key_row(high_byte: u8) -> u8
+  <unknown stmt *hir.AsmStmt>
+
+fun @zx_border(color: u8)
+  <unknown stmt *hir.AsmStmt>
+
+fun @zx_halt()
+  <unknown stmt *hir.AsmStmt>
+
+fun @rng_next() -> u8
+  var bit: u16 = ((rng_state:u16) & 1:u8):u16
+  (rng_state:u16) = ((rng_state:u16) >> 1:u8):u16
+  if ((bit:u16) == 1:u8):bool
+    (rng_state:u16) = ((rng_state:u16) ^ 46080:u16):u16
+  return cast(((rng_state:u16) & 255:u8):u16):u8
+
+fun @piece_color(t: u8) -> u8
+  if ((t:u8) == 0:u8):bool
+    return 40:u8
+  if ((t:u8) == 1:u8):bool
+    return 48:u8
+  if ((t:u8) == 2:u8):bool
+    return 24:u8
+  if ((t:u8) == 3:u8):bool
+    return 32:u8
+  if ((t:u8) == 4:u8):bool
+    return 16:u8
+  if ((t:u8) == 5:u8):bool
+    return 112:u8
+  return 8:u8
+
+fun @piece_dx(t: u8, r: u8, c: u8) -> u8
+  if ((t:u8) == 0:u8):bool
+    if (((r:u8) == 0:u8):bool | ((r:u8) == 2:u8):bool):bool
+      return (c:u8)
+    return 0:u8
+  if ((t:u8) == 1:u8):bool
+    if ((c:u8) == 0:u8):bool
+      return 0:u8
+    if ((c:u8) == 1:u8):bool
+      return 1:u8
+    if ((c:u8) == 2:u8):bool
+      return 0:u8
+    return 1:u8
+  if ((t:u8) == 2:u8):bool
+    if ((r:u8) == 0:u8):bool
+      if ((c:u8) == 0:u8):bool
+        return 1:u8
+      if ((c:u8) == 1:u8):bool
+        return 0:u8
+      if ((c:u8) == 2:u8):bool
+        return 1:u8
+      return 2:u8
+    if ((r:u8) == 1:u8):bool
+      if ((c:u8) == 0:u8):bool
+        return 0:u8
+      if ((c:u8) == 1:u8):bool
+        return 0:u8
+      if ((c:u8) == 2:u8):bool
+        return 1:u8
+      return 0:u8
+    if ((r:u8) == 2:u8):bool
+      if ((c:u8) == 0:u8):bool
+        return 0:u8
+      if ((c:u8) == 1:u8):bool
+        return 1:u8
+      if ((c:u8) == 2:u8):bool
+        return 2:u8
+      return 1:u8
+    if ((c:u8) == 0:u8):bool
+      return 1:u8
+    if ((c:u8) == 1:u8):bool
+      return 0:u8
+    if ((c:u8) == 2:u8):bool
+      return 1:u8
+    return 1:u8
+  if ((t:u8) == 3:u8):bool
+    if (((r:u8) == 0:u8):bool | ((r:u8) == 2:u8):bool):bool
+      if ((c:u8) == 0:u8):bool
+        return 1:u8
+      if ((c:u8) == 1:u8):bool
+        return 2:u8
+      if ((c:u8) == 2:u8):bool
+        return 0:u8
+      return 1:u8
+    if ((c:u8) == 0:u8):bool
+      return 0:u8
+    if ((c:u8) == 1:u8):bool
+      return 0:u8
+    if ((c:u8) == 2:u8):bool
+      return 1:u8
+    return 1:u8
+  if ((t:u8) == 4:u8):bool
+    if (((r:u8) == 0:u8):bool | ((r:u8) == 2:u8):bool):bool
+      if ((c:u8) == 0:u8):bool
+        return 0:u8
+      if ((c:u8) == 1:u8):bool
+        return 1:u8
+      if ((c:u8) == 2:u8):bool
+        return 1:u8
+      return 2:u8
+    if ((c:u8) == 0:u8):bool
+      return 1:u8
+    if ((c:u8) == 1:u8):bool
+      return 0:u8
+    if ((c:u8) == 2:u8):bool
+      return 1:u8
+    return 0:u8
+  if ((t:u8) == 5:u8):bool
+    if ((r:u8) == 0:u8):bool
+      if ((c:u8) == 0:u8):bool
+        return 2:u8
+      if ((c:u8) == 1:u8):bool
+        return 0:u8
+      if ((c:u8) == 2:u8):bool
+        return 1:u8
+      return 2:u8
+    if ((r:u8) == 1:u8):bool
+      if ((c:u8) == 0:u8):bool
+        return 0:u8
+      if ((c:u8) == 1:u8):bool
+        return 0:u8
+      if ((c:u8) == 2:u8):bool
+        return 0:u8
+      return 1:u8
+    if ((r:u8) == 2:u8):bool
+      if ((c:u8) == 0:u8):bool
+        return 0:u8
+      if ((c:u8) == 1:u8):bool
+        return 1:u8
+      if ((c:u8) == 2:u8):bool
+        return 2:u8
+      return 0:u8
+    if ((c:u8) == 0:u8):bool
+      return 0:u8
+    if ((c:u8) == 1:u8):bool
+      return 1:u8
+    if ((c:u8) == 2:u8):bool
+      return 1:u8
+    return 1:u8
+  if ((r:u8) == 0:u8):bool
+    if ((c:u8) == 0:u8):bool
+      return 0:u8
+    if ((c:u8) == 1:u8):bool
+      return 0:u8
+    if ((c:u8) == 2:u8):bool
+      return 1:u8
+    return 2:u8
+  if ((r:u8) == 1:u8):bool
+    if ((c:u8) == 0:u8):bool
+      return 0:u8
+    if ((c:u8) == 1:u8):bool
+      return 1:u8
+    if ((c:u8) == 2:u8):bool
+      return 0:u8
+    return 0:u8
+  if ((r:u8) == 2:u8):bool
+    if ((c:u8) == 0:u8):bool
+      return 0:u8
+    if ((c:u8) == 1:u8):bool
+      return 1:u8
+    if ((c:u8) == 2:u8):bool
+      return 2:u8
+    return 2:u8
+  if ((c:u8) == 0:u8):bool
+    return 1:u8
+  if ((c:u8) == 1:u8):bool
+    return 1:u8
+  if ((c:u8) == 2:u8):bool
+    return 0:u8
+  return 1:u8
+
+fun @piece_dy(t: u8, r: u8, c: u8) -> u8
+  if ((t:u8) == 0:u8):bool
+    if (((r:u8) == 0:u8):bool | ((r:u8) == 2:u8):bool):bool
+      return 0:u8
+    return (c:u8)
+  if ((t:u8) == 1:u8):bool
+    if ((c:u8) == 0:u8):bool
+      return 0:u8
+    if ((c:u8) == 1:u8):bool
+      return 0:u8
+    if ((c:u8) == 2:u8):bool
+      return 1:u8
+    return 1:u8
+  if ((t:u8) == 2:u8):bool
+    if ((r:u8) == 0:u8):bool
+      if ((c:u8) == 0:u8):bool
+        return 0:u8
+      return 1:u8
+    if ((r:u8) == 1:u8):bool
+      if ((c:u8) == 0:u8):bool
+        return 0:u8
+      if ((c:u8) == 1:u8):bool
+        return 1:u8
+      if ((c:u8) == 2:u8):bool
+        return 1:u8
+      return 2:u8
+    if ((r:u8) == 2:u8):bool
+      if ((c:u8) == 3:u8):bool
+        return 1:u8
+      return 0:u8
+    if ((c:u8) == 0:u8):bool
+      return 0:u8
+    if ((c:u8) == 1:u8):bool
+      return 1:u8
+    if ((c:u8) == 2:u8):bool
+      return 1:u8
+    return 2:u8
+  if ((t:u8) == 3:u8):bool
+    if (((r:u8) == 0:u8):bool | ((r:u8) == 2:u8):bool):bool
+      if ((c:u8) <= 1:u8):bool
+        return 0:u8
+      return 1:u8
+    if ((c:u8) == 0:u8):bool
+      return 0:u8
+    if ((c:u8) == 1:u8):bool
+      return 1:u8
+    if ((c:u8) == 2:u8):bool
+      return 1:u8
+    return 2:u8
+  if ((t:u8) == 4:u8):bool
+    if (((r:u8) == 0:u8):bool | ((r:u8) == 2:u8):bool):bool
+      if ((c:u8) <= 1:u8):bool
+        return 0:u8
+      return 1:u8
+    if ((c:u8) == 0:u8):bool
+      return 0:u8
+    if ((c:u8) == 1:u8):bool
+      return 1:u8
+    if ((c:u8) == 2:u8):bool
+      return 1:u8
+    return 2:u8
+  if ((t:u8) == 5:u8):bool
+    if ((r:u8) == 0:u8):bool
+      if ((c:u8) == 0:u8):bool
+        return 0:u8
+      return 1:u8
+    if ((r:u8) == 1:u8):bool
+      if ((c:u8) == 0:u8):bool
+        return 0:u8
+      if ((c:u8) == 1:u8):bool
+        return 1:u8
+      if ((c:u8) == 2:u8):bool
+        return 2:u8
+      return 2:u8
+    if ((r:u8) == 2:u8):bool
+      if ((c:u8) == 3:u8):bool
+        return 1:u8
+      return 0:u8
+    if ((c:u8) == 0:u8):bool
+      return 0:u8
+    if ((c:u8) == 1:u8):bool
+      return 0:u8
+    if ((c:u8) == 2:u8):bool
+      return 1:u8
+    return 2:u8
+  if ((r:u8) == 0:u8):bool
+    if ((c:u8) == 0:u8):bool
+      return 0:u8
+    return 1:u8
+  if ((r:u8) == 1:u8):bool
+    if ((c:u8) == 0:u8):bool
+      return 0:u8
+    if ((c:u8) == 1:u8):bool
+      return 0:u8
+    if ((c:u8) == 2:u8):bool
+      return 1:u8
+    return 2:u8
+  if ((r:u8) == 2:u8):bool
+    if ((c:u8) == 3:u8):bool
+      return 1:u8
+    return 0:u8
+  if ((c:u8) == 0:u8):bool
+    return 0:u8
+  if ((c:u8) == 1:u8):bool
+    return 1:u8
+  if ((c:u8) == 2:u8):bool
+    return 2:u8
+  return 2:u8
+
+fun @try_rotate() -> u8
+  var nr: u8 = (((cur_rot:u8) + 1:u8):u8 & 3:u8):u8
+  if call @can_place((cur_type:u8), (nr:u8), (cur_x:u8), (cur_y:u8)):bool
+    (cur_rot:u8) = (nr:u8)
+    return 1:u8
+  if ((cur_x:u8) < 9:u8):bool
+    if call @can_place((cur_type:u8), (nr:u8), ((cur_x:u8) + 1:u8):u8, (cur_y:u8)):bool
+      (cur_x:u8) = ((cur_x:u8) + 1:u8):u8
+      (cur_rot:u8) = (nr:u8)
+      return 1:u8
+  if ((cur_x:u8) > 0:u8):bool
+    if call @can_place((cur_type:u8), (nr:u8), ((cur_x:u8) - 1:u8):u8, (cur_y:u8)):bool
+      (cur_x:u8) = ((cur_x:u8) - 1:u8):u8
+      (cur_rot:u8) = (nr:u8)
+      return 1:u8
+  if ((cur_y:u8) > 0:u8):bool
+    if call @can_place((cur_type:u8), (nr:u8), (cur_x:u8), ((cur_y:u8) - 1:u8):u8):bool
+      (cur_y:u8) = ((cur_y:u8) - 1:u8):u8
+      (cur_rot:u8) = (nr:u8)
+      return 1:u8
+  if (((cur_x:u8) < 9:u8):bool & ((cur_y:u8) > 0:u8):bool):bool
+    if call @can_place((cur_type:u8), (nr:u8), ((cur_x:u8) + 1:u8):u8, ((cur_y:u8) - 1:u8):u8):bool
+      (cur_x:u8) = ((cur_x:u8) + 1:u8):u8
+      (cur_y:u8) = ((cur_y:u8) - 1:u8):u8
+      (cur_rot:u8) = (nr:u8)
+      return 1:u8
+  if (((cur_x:u8) > 0:u8):bool & ((cur_y:u8) > 0:u8):bool):bool
+    if call @can_place((cur_type:u8), (nr:u8), ((cur_x:u8) - 1:u8):u8, ((cur_y:u8) - 1:u8):u8):bool
+      (cur_x:u8) = ((cur_x:u8) - 1:u8):u8
+      (cur_y:u8) = ((cur_y:u8) - 1:u8):u8
+      (cur_rot:u8) = (nr:u8)
+      return 1:u8
+  if ((cur_type:u8) == 0:u8):bool
+    if ((cur_x:u8) < 8:u8):bool
+      if call @can_place((cur_type:u8), (nr:u8), ((cur_x:u8) + 2:u8):u8, (cur_y:u8)):bool
+        (cur_x:u8) = ((cur_x:u8) + 2:u8):u8
+        (cur_rot:u8) = (nr:u8)
+        return 1:u8
+    if ((cur_x:u8) > 1:u8):bool
+      if call @can_place((cur_type:u8), (nr:u8), ((cur_x:u8) - 2:u8):u8, (cur_y:u8)):bool
+        (cur_x:u8) = ((cur_x:u8) - 2:u8):u8
+        (cur_rot:u8) = (nr:u8)
+        return 1:u8
+  return 0:u8
+
+fun @check_tspin() -> u8
+  if ((cur_type:u8) != 2:u8):bool
+    return 0:u8
+  var cx: u8 = ((cur_x:u8) + 1:u8):u8
+  var cy: u8 = (cur_y:u8)
+  var corners: u8 = 0:u8
+  if (((cx:u8) == 0:u8):bool | ((cy:u8) == 0:u8):bool):bool
+    (corners:u8) = ((corners:u8) + 1:u8):u8
+  else
+    if (call @board_get(((cx:u8) - 1:u8):u8, ((cy:u8) - 1:u8):u8):u8 != 0:u8):bool
+      (corners:u8) = ((corners:u8) + 1:u8):u8
+  if (((cx:u8) >= 9:u8):bool | ((cy:u8) == 0:u8):bool):bool
+    (corners:u8) = ((corners:u8) + 1:u8):u8
+  else
+    if (call @board_get(((cx:u8) + 1:u8):u8, ((cy:u8) - 1:u8):u8):u8 != 0:u8):bool
+      (corners:u8) = ((corners:u8) + 1:u8):u8
+  if (((cx:u8) == 0:u8):bool | ((cy:u8) >= 19:u8):bool):bool
+    (corners:u8) = ((corners:u8) + 1:u8):u8
+  else
+    if (call @board_get(((cx:u8) - 1:u8):u8, ((cy:u8) + 1:u8):u8):u8 != 0:u8):bool
+      (corners:u8) = ((corners:u8) + 1:u8):u8
+  if (((cx:u8) >= 9:u8):bool | ((cy:u8) >= 19:u8):bool):bool
+    (corners:u8) = ((corners:u8) + 1:u8):u8
+  else
+    if (call @board_get(((cx:u8) + 1:u8):u8, ((cy:u8) + 1:u8):u8):u8 != 0:u8):bool
+      (corners:u8) = ((corners:u8) + 1:u8):u8
+  if ((corners:u8) >= 3:u8):bool
+    return 1:u8
+  return 0:u8
+
+fun @ghost_y() -> u8
+  var gy: u8 = (cur_y:u8)
+  while call @can_place((cur_type:u8), (cur_rot:u8), (cur_x:u8), ((gy:u8) + 1:u8):u8):bool
+    (gy:u8) = ((gy:u8) + 1:u8):u8
+  return (gy:u8)
+
+fun @board_get(x: u8, y: u8) -> u8
+  return ((board:[200]u8))[((cast((y:u8)):u16 * 10:u8):u16 + cast((x:u8)):u16):u16]:u8
+
+fun @board_set(x: u8, y: u8, val: u8)
+  ((board:[200]u8))[((cast((y:u8)):u16 * 10:u8):u16 + cast((x:u8)):u16):u16]:u8 = (val:u8)
+
+fun @can_place(t: u8, r: u8, px: u8, py: u8) -> bool
+  var c: u8 = 0:u8
+  while ((c:u8) < 4:u8):bool
+    var cx: u8 = ((px:u8) + call @piece_dx((t:u8), (r:u8), (c:u8)):u8):u8
+    var cy: u8 = ((py:u8) + call @piece_dy((t:u8), (r:u8), (c:u8)):u8):u8
+    if ((cx:u8) >= 10:u8):bool
+      return false:bool
+    if ((cy:u8) >= 20:u8):bool
+      return false:bool
+    if (call @board_get((cx:u8), (cy:u8)):u8 != 0:u8):bool
+      return false:bool
+    (c:u8) = ((c:u8) + 1:u8):u8
+  return true:bool
+
+fun @lock_piece()
+  var color_idx: u8 = ((cur_type:u8) + 1:u8):u8
+  var c: u8 = 0:u8
+  while ((c:u8) < 4:u8):bool
+    var cx: u8 = ((cur_x:u8) + call @piece_dx((cur_type:u8), (cur_rot:u8), (c:u8)):u8):u8
+    var cy: u8 = ((cur_y:u8) + call @piece_dy((cur_type:u8), (cur_rot:u8), (c:u8)):u8):u8
+    if (((cx:u8) < 10:u8):bool & ((cy:u8) < 20:u8):bool):bool
+      call @board_set((cx:u8), (cy:u8), (color_idx:u8)):void
+    (c:u8) = ((c:u8) + 1:u8):u8
+
+fun @clear_lines() -> u8
+  var cleared: u8 = 0:u8
+  var y: u8 = 19:u8
+  while ((y:u8) < 20:u8):bool
+    var full: u8 = 1:u8
+    var x: u8 = 0:u8
+    while ((x:u8) < 10:u8):bool
+      if (call @board_get((x:u8), (y:u8)):u8 == 0:u8):bool
+        (full:u8) = 0:u8
+      (x:u8) = ((x:u8) + 1:u8):u8
+    if ((full:u8) == 1:u8):bool
+      var sy: u8 = (y:u8)
+      while ((sy:u8) > 0:u8):bool
+        var sx: u8 = 0:u8
+        while ((sx:u8) < 10:u8):bool
+          call @board_set((sx:u8), (sy:u8), call @board_get((sx:u8), ((sy:u8) - 1:u8):u8):u8):void
+          (sx:u8) = ((sx:u8) + 1:u8):u8
+        (sy:u8) = ((sy:u8) - 1:u8):u8
+      var sx2: u8 = 0:u8
+      while ((sx2:u8) < 10:u8):bool
+        call @board_set((sx2:u8), 0:u8, 0:u8):void
+        (sx2:u8) = ((sx2:u8) + 1:u8):u8
+      (cleared:u8) = ((cleared:u8) + 1:u8):u8
+    else
+      (y:u8) = ((y:u8) - 1:u8):u8
+  return (cleared:u8)
+
+fun @random_piece() -> u8
+  var rval: u8 = (call @rng_next():u8 & 7:u8):u8
+  if ((rval:u8) >= 7:u8):bool
+    (rval:u8) = 0:u8
+  return (rval:u8)
+
+fun @spawn_piece()
+  (cur_type:u8) = (next_type:u8)
+  (next_type:u8) = call @random_piece():u8
+  (cur_rot:u8) = 0:u8
+  (cur_x:u8) = 3:u8
+  (cur_y:u8) = 0:u8
+  (hold_used:u8) = 0:u8
+  (last_was_tspin:u8) = 0:u8
+  if (call @can_place((cur_type:u8), (cur_rot:u8), (cur_x:u8), (cur_y:u8)):bool == false:bool):bool
+    (game_over:u8) = 1:u8
+
+fun @hold_piece()
+  if ((hold_used:u8) == 1:u8):bool
+    return
+  (hold_used:u8) = 1:u8
+  if ((hold_type:u8) == 255:u8):bool
+    (hold_type:u8) = (cur_type:u8)
+    call @spawn_piece():void
+  else
+    var tmp: u8 = (cur_type:u8)
+    (cur_type:u8) = (hold_type:u8)
+    (hold_type:u8) = (tmp:u8)
+    (cur_rot:u8) = 0:u8
+    (cur_x:u8) = 3:u8
+    (cur_y:u8) = 0:u8
+
+fun @color_attr(idx: u8) -> u8
+  if ((idx:u8) == 1:u8):bool
+    return 40:u8
+  if ((idx:u8) == 2:u8):bool
+    return 48:u8
+  if ((idx:u8) == 3:u8):bool
+    return 24:u8
+  if ((idx:u8) == 4:u8):bool
+    return 32:u8
+  if ((idx:u8) == 5:u8):bool
+    return 16:u8
+  if ((idx:u8) == 6:u8):bool
+    return 112:u8
+  if ((idx:u8) == 7:u8):bool
+    return 8:u8
+  return 0:u8
+
+fun @fill_cell(cx: u8, cy: u8)
+  var py: u8 = ((cy:u8) * 8:u8):u8
+  var line: u8 = 0:u8
+  while ((line:u8) < 8:u8):bool
+    *(cast(call @zx_screen_addr((cx:u8), ((py:u8) + (line:u8)):u8):u16):ptr) = 255:u8
+    (line:u8) = ((line:u8) + 1:u8):u8
+
+fun @init_screen()
+  var addr: u16 = 16384:u16
+  while ((addr:u16) < 22528:u16):bool
+    *(cast((addr:u16)):ptr) = 0:u8
+    (addr:u16) = ((addr:u16) + 1:u8):u16
+  (addr:u16) = 22528:u16
+  while ((addr:u16) < 23296:u16):bool
+    *(cast((addr:u16)):ptr) = 0:u8
+    (addr:u16) = ((addr:u16) + 1:u8):u16
+  var cy: u8 = 2:u8
+  while ((cy:u8) < 22:u8):bool
+    var cx: u8 = 11:u8
+    while ((cx:u8) < 21:u8):bool
+      call @fill_cell((cx:u8), (cy:u8)):void
+      (cx:u8) = ((cx:u8) + 1:u8):u8
+    (cy:u8) = ((cy:u8) + 1:u8):u8
+  (cy:u8) = 2:u8
+  while ((cy:u8) < 22:u8):bool
+    call @fill_cell(10:u8, (cy:u8)):void
+    *(cast(call @zx_attr_addr(10:u8, (cy:u8)):u16):ptr) = 56:u8
+    (cy:u8) = ((cy:u8) + 1:u8):u8
+  (cy:u8) = 2:u8
+  while ((cy:u8) < 22:u8):bool
+    call @fill_cell(21:u8, (cy:u8)):void
+    *(cast(call @zx_attr_addr(21:u8, (cy:u8)):u16):ptr) = 56:u8
+    (cy:u8) = ((cy:u8) + 1:u8):u8
+  var bx: u8 = 10:u8
+  while ((bx:u8) <= 21:u8):bool
+    call @fill_cell((bx:u8), 22:u8):void
+    *(cast(call @zx_attr_addr((bx:u8), 22:u8):u16):ptr) = 56:u8
+    (bx:u8) = ((bx:u8) + 1:u8):u8
+  call @zx_border(0:u8):void
+
+fun @render_preview(t: u8, sx: u8, sy: u8)
+  var py: u8 = 0:u8
+  while ((py:u8) < 4:u8):bool
+    var px: u8 = 0:u8
+    while ((px:u8) < 4:u8):bool
+      *(cast(call @zx_attr_addr(((sx:u8) + (px:u8)):u8, ((sy:u8) + (py:u8)):u8):u16):ptr) = 0:u8
+      (px:u8) = ((px:u8) + 1:u8):u8
+    (py:u8) = ((py:u8) + 1:u8):u8
+  if ((t:u8) < 7:u8):bool
+    var pc: u8 = call @piece_color((t:u8)):u8
+    var c: u8 = 0:u8
+    while ((c:u8) < 4:u8):bool
+      var dx: u8 = call @piece_dx((t:u8), 0:u8, (c:u8)):u8
+      var dy: u8 = call @piece_dy((t:u8), 0:u8, (c:u8)):u8
+      *(cast(call @zx_attr_addr(((sx:u8) + (dx:u8)):u8, ((sy:u8) + (dy:u8)):u8):u16):ptr) = (pc:u8)
+      (c:u8) = ((c:u8) + 1:u8):u8
+
+fun @render()
+  var y: u8 = 0:u8
+  while ((y:u8) < 20:u8):bool
+    var x: u8 = 0:u8
+    while ((x:u8) < 10:u8):bool
+      var cell: u8 = call @board_get((x:u8), (y:u8)):u8
+      var attr: u8 = call @color_attr((cell:u8)):u8
+      *(cast(call @zx_attr_addr((11:u8 + (x:u8)):u8, (2:u8 + (y:u8)):u8):u16):ptr) = (attr:u8)
+      (x:u8) = ((x:u8) + 1:u8):u8
+    (y:u8) = ((y:u8) + 1:u8):u8
+  var gy: u8 = call @ghost_y():u8
+  if ((gy:u8) != (cur_y:u8)):bool
+    var gc: u8 = ((call @piece_color((cur_type:u8)):u8 >> 3:u8):u8 & 7:u8):u8
+    var c: u8 = 0:u8
+    while ((c:u8) < 4:u8):bool
+      var cx: u8 = ((cur_x:u8) + call @piece_dx((cur_type:u8), (cur_rot:u8), (c:u8)):u8):u8
+      var cy: u8 = ((gy:u8) + call @piece_dy((cur_type:u8), (cur_rot:u8), (c:u8)):u8):u8
+      if (((cx:u8) < 10:u8):bool & ((cy:u8) < 20:u8):bool):bool
+        if (call @board_get((cx:u8), (cy:u8)):u8 == 0:u8):bool
+          *(cast(call @zx_attr_addr((11:u8 + (cx:u8)):u8, (2:u8 + (cy:u8)):u8):u16):ptr) = (gc:u8)
+      (c:u8) = ((c:u8) + 1:u8):u8
+  var pc: u8 = call @piece_color((cur_type:u8)):u8
+  var c: u8 = 0:u8
+  while ((c:u8) < 4:u8):bool
+    var cx: u8 = ((cur_x:u8) + call @piece_dx((cur_type:u8), (cur_rot:u8), (c:u8)):u8):u8
+    var cy: u8 = ((cur_y:u8) + call @piece_dy((cur_type:u8), (cur_rot:u8), (c:u8)):u8):u8
+    if (((cx:u8) < 10:u8):bool & ((cy:u8) < 20:u8):bool):bool
+      *(cast(call @zx_attr_addr((11:u8 + (cx:u8)):u8, (2:u8 + (cy:u8)):u8):u16):ptr) = (pc:u8)
+    (c:u8) = ((c:u8) + 1:u8):u8
+  call @render_preview((next_type:u8), 23:u8, 3:u8):void
+  call @render_preview((hold_type:u8), 5:u8, 3:u8):void
+
+fun @read_input() -> u8
+  var keys: u8 = 0:u8
+  var row_df: u8 = call @zx_key_row(223:u8):u8
+  if (((row_df:u8) & 2:u8):u8 == 0:u8):bool
+    (keys:u8) = ((keys:u8) | 1:u8):u8
+  if (((row_df:u8) & 1:u8):u8 == 0:u8):bool
+    (keys:u8) = ((keys:u8) | 2:u8):u8
+  var row_fb: u8 = call @zx_key_row(251:u8):u8
+  if (((row_fb:u8) & 1:u8):u8 == 0:u8):bool
+    (keys:u8) = ((keys:u8) | 4:u8):u8
+  var row_fd: u8 = call @zx_key_row(253:u8):u8
+  if (((row_fd:u8) & 1:u8):u8 == 0:u8):bool
+    (keys:u8) = ((keys:u8) | 8:u8):u8
+  var row_7f: u8 = call @zx_key_row(127:u8):u8
+  if (((row_7f:u8) & 1:u8):u8 == 0:u8):bool
+    (keys:u8) = ((keys:u8) | 16:u8):u8
+  var row_bf: u8 = call @zx_key_row(191:u8):u8
+  if (((row_bf:u8) & 16:u8):u8 == 0:u8):bool
+    (keys:u8) = ((keys:u8) | 32:u8):u8
+  return (keys:u8)
+
+fun @score_lines(cl: u8)
+  if ((cl:u8) == 0:u8):bool
+    if ((last_was_tspin:u8) == 1:u8):bool
+      (score:u16) = ((score:u16) + 400:u16):u16
+    return
+  if ((last_was_tspin:u8) == 1:u8):bool
+    if ((cl:u8) == 1:u8):bool
+      (score:u16) = ((score:u16) + 800:u16):u16
+    if ((cl:u8) == 2:u8):bool
+      (score:u16) = ((score:u16) + 1200:u16):u16
+    if ((cl:u8) == 3:u8):bool
+      (score:u16) = ((score:u16) + 1600:u16):u16
+  else
+    if ((cl:u8) == 1:u8):bool
+      (score:u16) = ((score:u16) + 100:u8):u16
+    if ((cl:u8) == 2:u8):bool
+      (score:u16) = ((score:u16) + 300:u16):u16
+    if ((cl:u8) == 3:u8):bool
+      (score:u16) = ((score:u16) + 500:u16):u16
+    if ((cl:u8) == 4:u8):bool
+      (score:u16) = ((score:u16) + 800:u16):u16
+  (lines_cleared:u16) = ((lines_cleared:u16) + cast((cl:u8)):u16):u16
+  if ((drop_speed:u8) > 5:u8):bool
+    if ((cast((lines_cleared:u16)):u8 & 7:u8):u8 == 0:u8):bool
+      (drop_speed:u8) = ((drop_speed:u8) - 2:u8):u8
+
+fun @do_lock_and_clear()
+  (last_was_tspin:u8) = call @check_tspin():u8
+  call @lock_piece():void
+  var cl: u8 = call @clear_lines():u8
+  call @score_lines((cl:u8)):void
+  call @spawn_piece():void
+
+fun @main()
+  var i: u16 = 0:u8
+  while ((i:u16) < 200:u8):bool
+    ((board:[200]u8))[(i:u16)]:u8 = 0:u8
+    (i:u16) = ((i:u16) + 1:u8):u16
+  (next_type:u8) = call @random_piece():u8
+  call @init_screen():void
+  var py: u8 = 3:u8
+  while ((py:u8) < 7:u8):bool
+    var px: u8 = 5:u8
+    while ((px:u8) < 9:u8):bool
+      call @fill_cell((px:u8), (py:u8)):void
+      (px:u8) = ((px:u8) + 1:u8):u8
+    (px:u8) = 23:u8
+    while ((px:u8) < 27:u8):bool
+      call @fill_cell((px:u8), (py:u8)):void
+      (px:u8) = ((px:u8) + 1:u8):u8
+    (py:u8) = ((py:u8) + 1:u8):u8
+  call @spawn_piece():void
+  while ((game_over:u8) == 0:u8):bool
+    call @zx_halt():void
+    (frame_count:u16) = ((frame_count:u16) + 1:u8):u16
+    var keys: u8 = call @read_input():u8
+    var changed: u8 = ((keys:u8) ^ (prev_keys:u8)):u8
+    var new_keys: u8 = ((keys:u8) & (changed:u8)):u8
+    (prev_keys:u8) = (keys:u8)
+    if (((new_keys:u8) & 1:u8):u8 != 0:u8):bool
+      if ((cur_x:u8) > 0:u8):bool
+        if call @can_place((cur_type:u8), (cur_rot:u8), ((cur_x:u8) - 1:u8):u8, (cur_y:u8)):bool
+          (cur_x:u8) = ((cur_x:u8) - 1:u8):u8
+          (last_was_tspin:u8) = 0:u8
+    if (((new_keys:u8) & 2:u8):u8 != 0:u8):bool
+      if call @can_place((cur_type:u8), (cur_rot:u8), ((cur_x:u8) + 1:u8):u8, (cur_y:u8)):bool
+        (cur_x:u8) = ((cur_x:u8) + 1:u8):u8
+        (last_was_tspin:u8) = 0:u8
+    if (((new_keys:u8) & 4:u8):u8 != 0:u8):bool
+      call @try_rotate():u8
+    if (((keys:u8) & 8:u8):u8 != 0:u8):bool
+      (drop_timer:u8) = (drop_speed:u8)
+    if (((new_keys:u8) & 16:u8):u8 != 0:u8):bool
+      while call @can_place((cur_type:u8), (cur_rot:u8), (cur_x:u8), ((cur_y:u8) + 1:u8):u8):bool
+        (cur_y:u8) = ((cur_y:u8) + 1:u8):u8
+        (score:u16) = ((score:u16) + 2:u8):u16
+      call @do_lock_and_clear():void
+      (drop_timer:u8) = 0:u8
+    if (((new_keys:u8) & 32:u8):u8 != 0:u8):bool
+      call @hold_piece():void
+    (drop_timer:u8) = ((drop_timer:u8) + 1:u8):u8
+    if ((drop_timer:u8) >= (drop_speed:u8)):bool
+      (drop_timer:u8) = 0:u8
+      if call @can_place((cur_type:u8), (cur_rot:u8), (cur_x:u8), ((cur_y:u8) + 1:u8):u8):bool
+        (cur_y:u8) = ((cur_y:u8) + 1:u8):u8
+      else
+        call @do_lock_and_clear():void
+    call @render():void
+  var flash: u8 = 0:u8
+  while ((flash:u8) < 20:u8):bool
+    call @zx_border(2:u8):void
+    call @zx_halt():void
+    call @zx_halt():void
+    call @zx_halt():void
+    call @zx_border(0:u8):void
+    call @zx_halt():void
+    call @zx_halt():void
+    call @zx_halt():void
+    (flash:u8) = ((flash:u8) + 1:u8):u8
+
+

@@ -4635,8 +4635,8 @@ var binops = map[tokKind]binop{
 	tokPipePipe: {"||", 1},
 	tokAmpAmp:   {"&&", 2},
 	tokPipe:     {"|", 3},
-	// XOR uses the `xor` keyword operator (see parseBinary), not ^.
-	// ^ is reserved exclusively for postfix pointer dereference.
+	// Infix ^ and the xor keyword share XOR precedence.
+	tokCaret:   {"^", 4},
 	tokAmp:     {"&", 5},
 	tokEqEq:    {"==", 6},
 	tokBangEq:  {"!=", 6},
@@ -4810,13 +4810,36 @@ func (p *parser) parsePostfixFull() (hir.Expr, error) {
 	return p.parsePostfix(base)
 }
 
+// caretRHSStarts excludes operators that can follow a postfix dereference.
+// Unary +, - and & are ambiguous: adjacency p^ preserves dereference, while
+// the explicit xor keyword remains available for those operands.
+func caretRHSStarts(t token) bool {
+	switch t.kind {
+	case tokIdent:
+		switch t.val {
+		case "xor", "XOR", "as", "return", "else", "if", "while":
+			return false
+		}
+		return true
+	case tokInt, tokLParen, tokBang, tokTilde:
+		return true
+	}
+	return false
+}
+
 func (p *parser) parsePostfix(base hir.Expr) (hir.Expr, error) {
 	for {
 		t := p.l.peek()
 		switch t.kind {
 		case tokCaret:
-			// expr^ — postfix pointer dereference (always).
-			// XOR uses the `xor` keyword operator, not ^.
+			// A following operand on this line makes ^ infix XOR. Otherwise
+			// keep postfix dereference, including p^ ^ mask and p^ = value.
+			next := p.l.peekN(1)
+			if next.line == t.line && (caretRHSStarts(next) ||
+				(t.start > 0 && (p.l.src[t.start-1] == ' ' || p.l.src[t.start-1] == '\t') &&
+					(next.kind == tokMinus || next.kind == tokPlus || next.kind == tokAmp))) {
+				return base, nil
+			}
 			p.l.next()
 			isStructPtr := false
 			if vr, ok := base.(*hir.VarRefExpr); ok {
