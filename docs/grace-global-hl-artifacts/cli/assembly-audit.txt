@@ -1,4 +1,0 @@
-PASS hashmap speed assembled selected SHA256=514b51a2cf0e26d8cb3f0ccfdb46122872c4860631b447cf8703a9b7d01325df bytes=965
-PASS hashmap size assembled selected SHA256=514b51a2cf0e26d8cb3f0ccfdb46122872c4860631b447cf8703a9b7d01325df bytes=965
-PASS tokenizer speed assembled selected SHA256=0c2c620ed84769eb04c70f1eb633b1226a6bf0e06bbbfa9152f9609b5f539804 bytes=4820
-PASS tokenizer size assembled selected SHA256=a64435fd20077d1fbcec80e1bfcc7791f1440fe04b0aad01192c81066cba9f07 bytes=4305

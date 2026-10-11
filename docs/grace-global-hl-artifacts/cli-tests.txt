@@ -1,1 +1,0 @@
-ok  	github.com/minz/minzc/cmd/minzc	20.622s

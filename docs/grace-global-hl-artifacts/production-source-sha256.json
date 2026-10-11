@@ -1,5 +1,0 @@
-{
-  "minzc/pkg/mir2/z80codegen_inst.go": "1625dd115de9ed5dbb2b08529ff88f3fa30c8f45758b01fec5b5404d982fa772",
-  "minzc/pkg/mir2/global_const_store_live_test.go": "669b8979f3b1597271656889dd15607b5614ff111eb06f1a21469f10565e7476",
-  "minzc/pkg/pipeline/global_hl_store_test.go": "17e6b74b0fa2038218646a7d23503b33e64460f800a9e7dad9376f42f4b890da"
-}

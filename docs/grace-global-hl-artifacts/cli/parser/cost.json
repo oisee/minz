@@ -1,8 +1,0 @@
-{
-  "adapter": "peek HL-\u003eA LD A,(HL);RET / poke HL,C LD(HL),C;RET",
-  "binary_sha256": "fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51",
-  "bytes": 2091,
-  "calls": 30,
-  "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
-  "t_states": 1221494
-}

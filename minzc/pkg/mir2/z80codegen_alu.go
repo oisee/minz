@@ -777,7 +777,7 @@ func (g *z80cg) emit8ALU(mnem, src string) {
 		// For now, load into A via memory, which works if LHS is already in A.
 		g.emit("    PUSH HL")
 		g.emitf("    LD HL, %s", src)
-		g.emitNativeSpillf(src, 0, 1, false, "    LD H, (HL)") // H = value at spill address
+		g.emitf("    LD H, (HL)") // H = value at spill address
 		switch mnem {
 		case "ADD", "ADC":
 			g.emitf("    %s A, H", mnem)

@@ -181,7 +181,7 @@ func (g *z80cg) emitTSMCSpill(pair *tsmcSpillPair, val string) {
 			g.emitLDA(val)
 		}
 		for _, rl := range pair.reloads {
-			g.emitNativeTSMCSpill(pair, rl.label, 0, "    LD (%s+1), A", rl.label)
+			g.emitf("    LD (%s+1), A", rl.label)
 		}
 	} else {
 		// 16-bit: patch 2 bytes at label+1 and label+2
@@ -189,13 +189,13 @@ func (g *z80cg) emitTSMCSpill(pair *tsmcSpillPair, val string) {
 		hi := highByte(val)
 		for _, rl := range pair.reloads {
 			if lo == "A" {
-				g.emitNativeTSMCSpill(pair, rl.label, 0, "    LD (%s+1), A", rl.label)
+				g.emitf("    LD (%s+1), A", rl.label)
 			} else {
 				g.emitf("    LD A, %s", lo)
-				g.emitNativeTSMCSpill(pair, rl.label, 0, "    LD (%s+1), A", rl.label)
+				g.emitf("    LD (%s+1), A", rl.label)
 			}
 			g.emitf("    LD A, %s", hi)
-			g.emitNativeTSMCSpill(pair, rl.label, 1, "    LD (%s+2), A", rl.label)
+			g.emitf("    LD (%s+2), A", rl.label)
 		}
 		g.invalidate("A")
 	}

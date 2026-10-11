@@ -1,4 +1,0 @@
-[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
-[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
-[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
-[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)

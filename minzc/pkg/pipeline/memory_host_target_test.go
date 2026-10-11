@@ -1,11 +1,9 @@
 package pipeline
 
 import (
-	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"github.com/minz/minzc/pkg/hir"
-	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
 	"os"
 	"path/filepath"
@@ -41,7 +39,7 @@ func TestMemoryHostOriginalSelfLanzTarget(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	target, e := runZ80MemoryHostWorkload(steps, m, w, *raw)
+	target, e := RunZ80MemoryHostWorkload(steps, m, w, *raw)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -75,9 +73,6 @@ func TestMemoryHostOriginalSelfLanzTarget(t *testing.T) {
 			}
 		}
 	}
-	if fmt.Sprintf("%x", sha256.Sum256([]byte(target.FinalMIRDump))) != target.MIRSHA256 || fmt.Sprintf("%x", sha256.Sum256(target.AllocationJSON)) != target.AllocationSHA256 {
-		t.Fatal("diagnostic payload hash mismatch")
-	}
 	if target.TotalTStates != 1221494 || target.BinarySHA256 != "fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51" {
 		t.Fatal("reference native cycle/binary drift", target.TotalTStates, target.BinarySHA256)
 	}
@@ -94,8 +89,6 @@ func TestMemoryHostOriginalSelfLanzTarget(t *testing.T) {
 		}
 		os.WriteFile(filepath.Join(dir, "target.bin"), target.Binary, 0644)
 		os.WriteFile(filepath.Join(dir, "target.a80"), []byte(target.Assembly), 0644)
-		os.WriteFile(filepath.Join(dir, "final.mir2"), []byte(target.FinalMIRDump), 0644)
-		os.WriteFile(filepath.Join(dir, "allocation.json"), target.AllocationJSON, 0644)
 	}
 	t.Logf("production memory host original30 %dT/%dB SHA%s", target.TotalTStates, len(target.Binary), target.BinarySHA256)
 }
@@ -124,10 +117,9 @@ func TestMemoryHostTargetLayoutRefusals(t *testing.T) {
 			case "oracle":
 				raw.Invocations[1].Results[0].I++
 			case "hostABI":
-				reg := steps.MIR2Module.FuncByName("peek").Contract.Params[0].Reg
-				steps.Allocation.Locs[reg] = mir2.PhysLoc{Kind: mir2.LocReg, Name: "DE"}
+				steps.MIR2Module.FuncByName("peek").Contract.Params[0].Class = 0
 			}
-			if r, e := runZ80MemoryHostWorkload(steps, m, w, *raw); e == nil || r != nil {
+			if r, e := RunZ80MemoryHostWorkload(steps, m, w, *raw); e == nil || r != nil {
 				t.Fatal("unsafe target accepted", name, fmt.Sprint(e))
 			}
 		})
@@ -165,53 +157,13 @@ fun load(addr:u16)->u8{return peek(addr)}
 		if err != nil {
 			t.Fatal(err)
 		}
-		target, err := runZ80MemoryHostWorkload(steps, m, w, *raw)
+		target, err := RunZ80MemoryHostWorkload(steps, m, w, *raw)
 		if err != nil {
 			t.Fatal(err)
 		}
 		if bad {
 			if len(target.Invocations) != 1 || target.Invocations[0].Error == "" || len(target.Invocations[0].Events) != 1 || target.Invocations[0].Regions["data"][1] != 255 {
 				t.Fatal("target partial prefix")
-			}
-			failure := target.Invocations[0].Failure
-			if failure == nil || failure.Kind != "undeclared" || failure.Address != 0x8002 || failure.Write {
-				t.Fatalf("target denial cause: %+v", failure)
-			}
-			for _, field := range []string{"kind", "address", "direction"} {
-				t.Run("forged_denial_"+field, func(t *testing.T) {
-					payload, e := json.Marshal(raw)
-					if e != nil {
-						t.Fatal(e)
-					}
-					var forged hir.MemoryHostRun
-					if e = json.Unmarshal(payload, &forged); e != nil {
-						t.Fatal(e)
-					}
-					switch field {
-					case "kind":
-						forged.Invocations[0].Failure.Kind = "read-only"
-					case "address":
-						forged.Invocations[0].Failure.Address = 0x8003
-					case "direction":
-						forged.Invocations[0].Failure.Write = true
-					}
-					if evidence, e := runZ80MemoryHostWorkload(steps, m, w, forged); e == nil || evidence != nil {
-						t.Fatalf("different denial cause accepted: %s, %v", field, e)
-					}
-				})
-			}
-			public, e := RunZ80MemoryHostBaseline(func() (*hir.Module, error) { return parse(), nil }, w)
-			if e != nil {
-				t.Fatal(e)
-			}
-			publicFailure := public.Target.Invocations[0].Failure
-			if publicFailure == nil || *publicFailure != *failure {
-				t.Fatalf("public denial cause: %+v", publicFailure)
-			}
-			limited := w
-			limited.MaxSteps = 1
-			if evidence, e := RunZ80MemoryHostBaseline(func() (*hir.Module, error) { return parse(), nil }, limited); e == nil || evidence != nil {
-				t.Fatalf("execution limit accepted as memory denial: %v", e)
 			}
 		} else {
 			if target.Invocations[1].Results[0].I != 255 {
