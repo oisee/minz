@@ -16,6 +16,12 @@ import (
 func TestMemoryHostArenaPeelPrototypeOriginal30(t *testing.T) {
 	source, w := memoryHostParserFixture(t)
 	before := source.SourceUnits
+	beforeHIR := source.Dump()
+	shape, _ := memoryHostParserFixture(t)
+	if e := peelMemoryHostArenaFirstByte(shape, w); e != nil {
+		t.Fatal(e)
+	}
+	afterHIR := shape.Dump()
 	originalFactory := func() (*hir.Module, error) { m, _ := memoryHostParserFixture(t); return m, nil }
 	original, e := RunZ80MemoryHostBaseline(originalFactory, w)
 	if e != nil {
@@ -50,6 +56,14 @@ func TestMemoryHostArenaPeelPrototypeOriginal30(t *testing.T) {
 	}
 	dir := os.Getenv("MINZ_ARENA_PEEL_ARTIFACTS")
 	if dir != "" {
+		if e = os.MkdirAll(dir, 0755); e != nil {
+			t.Fatal(e)
+		}
+		for n, b := range map[string][]byte{"original.hir": []byte(beforeHIR), "peeled.hir": []byte(afterHIR)} {
+			if e = os.WriteFile(filepath.Join(dir, n), b, 0644); e != nil {
+				t.Fatal(e)
+			}
+		}
 		for name, evidence := range map[string]*MemoryHostBaselineEvidence{"original": original, "variant": variant} {
 			p := filepath.Join(dir, name)
 			if e = os.MkdirAll(p, 0755); e != nil {
@@ -116,6 +130,23 @@ func TestMemoryHostArenaPeelDiagnostic(t *testing.T) {
 	}
 	for n, b := range map[string][]byte{"target.a80": []byte(assembly), "target.bin": assembled.Binary, "final.mir2": []byte(steps.MIR2Module.Dump())} {
 		if e = os.WriteFile(filepath.Join(p, n), b, 0644); e != nil {
+			t.Fatal(e)
+		}
+	}
+}
+
+func TestMemoryHostArenaPeelShapeExport(t *testing.T) {
+	dir := os.Getenv("MINZ_ARENA_PEEL_ARTIFACTS")
+	if dir == "" {
+		t.Skip("explicit artifact directory required")
+	}
+	m, w := memoryHostParserFixture(t)
+	before := m.Dump()
+	if e := peelMemoryHostArenaFirstByte(m, w); e != nil {
+		t.Fatal(e)
+	}
+	for n, b := range map[string][]byte{"original.hir": []byte(before), "peeled.hir": []byte(m.Dump())} {
+		if e := os.WriteFile(filepath.Join(dir, n), b, 0644); e != nil {
 			t.Fatal(e)
 		}
 	}
