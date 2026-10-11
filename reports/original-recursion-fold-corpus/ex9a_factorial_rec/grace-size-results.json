@@ -1,0 +1,12 @@
+{
+  "allowed_spill_bytes": {},
+  "entries": {
+    "factorial": 256
+  },
+  "module_bytes": 54,
+  "source_sha256": "49418af6de858d7388edf81bb74eadd2beb608b15c6f45c0b0d5eeae34f663f1",
+  "stack_depths": {
+    "factorial": 1020
+  },
+  "terminating_workload_tstates": 37375924
+}

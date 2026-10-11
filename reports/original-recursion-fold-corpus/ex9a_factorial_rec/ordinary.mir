@@ -1,0 +1,18 @@
+; MIR2 module: reports/showcase-src/2026-03-11/ex9a_factorial_rec.nanz
+fun @factorial(%r1: u8 [acc]) -> u16 [pointer]
+  block @entry:
+    %r2 = const 1 : u8 [general]
+    %r3 = cmp.ule %r1, %r2 : bool [flag]
+    br_if %r3, @if_then1(), @if_join2()
+  block @if_then1:
+    %r4 = const 1 : u8 [general]
+    ret %r4
+  block @if_join2:
+    %r5 = ext %r1 : u8 -> u16 [pointer]
+    %r6 = const 1 : u8 [general]
+    %r7 = sub %r1, %r6 : u8 [acc]
+    %r8 = move %r7 : u8 [acc]
+    %r9 = call @factorial(%r8) : u16 [pointer]
+    %r10 = mul %r5, %r9 : u16 [pointer]
+    ret %r10
+
