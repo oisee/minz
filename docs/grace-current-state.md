@@ -13,7 +13,7 @@
 
 | Требование | Что доказано | Что ещё не доказано |
 |---|---|---|
-| Заявленный корпус | Все 194 пути имеют явный статус; 58 independent VM/Z80 paths | 79 ждут независимого оракула, остальные имеют отдельные ASM/runtime/host ограничения; bounded entry не означает всё приложение |
+| Заявленный корпус | Все 194 пути имеют явный статус; 65 independent/bounded VM/Z80 paths | 72 ждут независимого оракула, остальные имеют отдельные ASM/runtime/host ограничения; bounded entry не означает всё приложение |
 | PFCCO/PBQP и таблицы | Реальные назначения, moves/saves и native польза на packet/weighted; bounded solver audit | Произвольные calls/CFG/islands и глобальная оптимальность |
 | Автоматический выбор и heldout | Self-Lanz, HashMap и Pascal SORT: training-selected BIN проверен на заранее отложенных входах; packet даёт отдельный PFCCO выигрыш | Остальные runtime/corpus ограничения сохраняются; это не универсальный выигрыш на всех программах |
 | Полное удаление LIR и перенос пользы | Пакет/consumers удалены; shared engines/native тесты сохранены; word ×10/12, byte fusion и K11 перенесены с native пользой | Полнота общих physical constraints/pattern choices требует предметного аудита |
@@ -30,19 +30,26 @@ cross-result overlap/wrap и исходный Widemath expanded workload **PASS 
 семейства после ABI прошли **PASS 33,374 с** ([пакет168](grace-integration-168/README.md)).
 Полный CLI `44d8952b` завершился с кодом 1: три теста ожидают прежний отказ
 или предупреждение о косвенных вызовах ([окончательный журнал175](grace-integration-175/README.md)).
-Успешной компиляции недостаточно для изменения ожиданий: точный исходник отдельно
-проверяется на собранном Z80 с контролем возврата, памяти и неверного результата.
+Ожидания обновлены после независимого Z80 proof точного исходника; root focused
+PASS 0,165 с. Новый полный CLI `2612a266` ещё выполняется ([пакет176](grace-integration-176/README.md)).
 
 Полный pipeline `cfaa7777` выполняется с заранее сохранённым исполняемым
 файлом ([пакет169](grace-integration-169/README.md)). Уже сообщил два несовпадения
 исторических фиксированных T/SHA в parser baseline и loop association; общий
-результат ещё неизвестен. Исследуется изменение ASM с сохранением независимого
-оракула состояния и событий парсера. Эти прогоны не считаются PASS.
+результат ещё неизвестен. Причина установлена: исправление unsigned extension добавило 27 байт и 27 864 T;
+независимый оракул всех 30 входов сохранён, baseline и profile дают идентичные
+ASM/BIN/состояния/такты ([отчёт84](../reports/2026-10-11-084-parser-memory-host-reference.md)).
+Эталоны обновлены в `5fe88510`; root совместный replay PASS 6,344 с.
+Эти live-прогоны не считаются PASS.
 
 Исторический полный pipeline `a7954042` — **PASS 3705,100 с**, до новых ABI изменений.
 Последний compile/assemble корпус на `30c2efda`: **193 PASS / 1 capacity SKIP**, 9,358 с ([пакет172](grace-integration-172/README.md));
 исполнение всех 194 программ этим не доказано. Текущий каталог —
-[пакет160](grace-integration-160/catalog.json). Эти проверки нельзя объединять в один current fullsuite PASS.
+[пакет179](grace-integration-179/catalog.json). Эти проверки нельзя объединять в один current fullsuite PASS.
+
+Исходные Lizp tokenizer whole-main, R5RS13entry и tuple3module имеют новые независимые
+bounded proofs ([пакет179](grace-integration-179/README.md)). VM `OpCallCond` исправлен
+в `04122fb2`; source tokenizer сохранён. Ограничения доменов приведены в отчётах.
 
 Чистый Speed сохранён без штрафа за байты; Size — отдельная цель.
 Физическое железо остаётся следующим уровнем.
