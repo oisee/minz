@@ -1,6 +1,6 @@
 # Ночной итог Grace / PGO — 11 октября 2026
 
-Актуально на 09:42 UTC. Цель продолжается: оптимизировать реальные программы
+Актуально на 09:46 UTC. Цель продолжается: оптимизировать реальные программы
 по проверенным профилям, от исходника через HIR/MIR до собранного Z80-бинарника.
 MIR VM служит промежуточным oracle. Итоговые варианты исполняются в
 Z80-эмуляторе: проверяем результаты, память, порядок ресурсных обращений,
@@ -49,9 +49,10 @@ Helper и диагностический hook остаются в отдельн
 
 ## Опубликовано и локально сохранено
 
-Приватный Sites, подтверждённая **версия 51**:
+Приватный Sites, подтверждённая **версия 52**:
 https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/
 
+- [Явный compare opt-in](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/unsigned-pair-policy.html)
 - [Unsigned compare + reuse](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/unsigned-pair-compare.html)
 - [Отрицательный diamond эксперимент](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/normal-global-diamond.html)
 - [Обновлённый корпус](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/global-word-load-corpus.html)
@@ -62,7 +63,7 @@ https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/
 Весь сайт, исходники, профили, решения, proof records, ASM/BIN, логи,
 публикационные архивы и Git bundles сохраняются локально:
 [офлайн-главная](../artifacts/grace-reports/2026-10-10-resume/site/index.html).
-Полная копия версии 50 проверена: **14903 файлов, 61 страница**, все SHA256
+Полная копия версии 50 проверена: **15158 файлов, 62 страницы**, все SHA256
 и публикационные архивы PASS. Потерянных ссылок и внешних зависимостей нет.
 
 ## Новый завершённый эксперимент
@@ -95,8 +96,9 @@ Speed policy +both: **1076715 T / 2100 B**, Legacy +both:1079636 T /2099 B.
 Восемь кандидатных бинарников и два collection baseline сохранены;
 оба независимых аудита прошли. Pretty JSON replay отказ исправлен узко,
 после SHA validation; старый отказ и executable сохранены отдельно.
-Код selector готовится к переносу в рабочую ветку; затем для него
-выполнятся отдельные общие проверки.
+Код selector перенесён в рабочую ветку0dceafab и pushed; пакеты
+HIR/MIR/Lanz/C89/CLI/Nanz прошли, showcase31same0new. Новый общий pipeline
+62149 ещё выполняется. Все270файлов артефактов tracked/SHA PASS, коммитecda9d10.
 
 Сводка и закрытые этапы committed/pushed в
 [feat/grace-hir-vm](https://github.com/oisee/minz/tree/feat/grace-hir-vm).
