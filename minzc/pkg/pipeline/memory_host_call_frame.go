@@ -36,7 +36,7 @@ func snapshotPair(name string) string {
 		return "DE"
 	case "H", "L":
 		return "HL"
-	case "IX", "IY":
+	case "AF", "BC", "DE", "HL", "IX", "IY":
 		return name
 	}
 	return ""
@@ -71,7 +71,10 @@ func snapshotPop(code []byte) bool {
 
 // Resolve a finite instruction sequence and independently derive its stack
 // geometry and result destinations. Descriptor text alone grants no memory.
-func resolveMemoryHostCallFrames(a *z80asm.Result, descriptors []mir2.NativeCallFrameSnapshot) (map[uint16]memoryHostSnapshotStep, []MemoryHostResolvedCallFrame, error) {
+func resolveMemoryHostCallFrames(a *z80asm.Result, assembly string, descriptors []mir2.NativeCallFrameSnapshot) (map[uint16]memoryHostSnapshotStep, []MemoryHostResolvedCallFrame, error) {
+	if e := mir2.CheckNativeCallFrameMarkers(assembly, descriptors); e != nil {
+		return nil, nil, e
+	}
 	result := map[uint16]memoryHostSnapshotStep{}
 	resolved := make([]MemoryHostResolvedCallFrame, 0, len(descriptors))
 	seen := map[string]bool{}
@@ -82,10 +85,12 @@ func resolveMemoryHostCallFrames(a *z80asm.Result, descriptors []mir2.NativeCall
 		seen[d.ID] = true
 		snapshots, restores := map[string]int{}, map[string]int{}
 		base := 2 * len(d.SnapshotPairs)
+		snapshotSeen := map[string]bool{}
 		for j, p := range d.SnapshotPairs {
-			if snapshotPair(p) != p || snapshots[p] != 0 && j > 0 {
+			if snapshotPair(p) != p || snapshotSeen[p] {
 				return nil, nil, fmt.Errorf("invalid snapshot pair")
 			}
+			snapshotSeen[p] = true
 			snapshots[p] = 2 * (len(d.SnapshotPairs) - 1 - j)
 		}
 		pairseen := map[string]bool{}
@@ -122,6 +127,9 @@ func resolveMemoryHostCallFrames(a *z80asm.Result, descriptors []mir2.NativeCall
 					writes[dest+1] = true
 				}
 			} else {
+				if r.Source == sp || r.Destination == dp {
+					return nil, nil, fmt.Errorf("pair used as byte result")
+				}
 				if snapshotHigh(r.Source) {
 					so++
 				}
@@ -149,16 +157,28 @@ func resolveMemoryHostCallFrames(a *z80asm.Result, descriptors []mir2.NativeCall
 			var found *z80asm.ListingLine
 			for j := range a.Listing {
 				l := &a.Listing[j]
-				if strings.Contains(l.SourceLine, marker) {
-					parts := strings.SplitN(l.SourceLine, ";", 2)
+				parts := strings.SplitN(l.SourceLine, ";", 2)
+				if len(parts) == 2 && strings.TrimSpace(parts[1]) == marker {
 					if len(parts) != 2 || strings.TrimSpace(parts[1]) != marker || strings.TrimSpace(parts[0]) != i.Assembly || found != nil {
 						return nil, nil, fmt.Errorf("malformed/duplicate snapshot marker")
 					}
 					found = l
 				}
 			}
+			// ADD IX,SP assembler listing canonicalization drops its comment.
+			// Recover only this mandatory anchor at the exact next contiguous
+			// address, while checking the marker in the exact original assembly argument.
+			if found == nil && i.Assembly == "ADD IX, SP" && len(lines) > 0 {
+				next := lines[len(lines)-1].Address + len(lines[len(lines)-1].Bytes)
+				for j := range a.Listing {
+					l := &a.Listing[j]
+					if l.Address == next && bytes.Equal(l.Bytes, []byte{0xdd, 0x39}) {
+						found = l
+					}
+				}
+			}
 			if found == nil || len(found.Bytes) == 0 || found.Address < 0 || found.Address+len(found.Bytes) > 65536 {
-				return nil, nil, fmt.Errorf("missing snapshot step")
+				return nil, nil, fmt.Errorf("missing snapshot step %s", i.ID)
 			}
 			if len(lines) > 0 && lines[len(lines)-1].Address+len(lines[len(lines)-1].Bytes) != found.Address {
 				return nil, nil, fmt.Errorf("noncontiguous snapshot")

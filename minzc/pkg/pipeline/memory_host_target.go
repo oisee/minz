@@ -245,7 +245,7 @@ func runZ80MemoryHostWorkload(steps Steps, source *hir.Module, w hir.MemoryHostW
 	if e != nil {
 		return fail(e)
 	}
-	snapshotSteps, resolvedFrames, e := resolveMemoryHostCallFrames(a, frames)
+	snapshotSteps, resolvedFrames, e := resolveMemoryHostCallFrames(a, assembly, frames)
 	if e != nil {
 		return fail(e)
 	}
