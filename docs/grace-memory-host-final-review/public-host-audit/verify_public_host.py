@@ -87,6 +87,8 @@ for j,text in enumerate(inputs):
   rec=records[j];assert rec['results']==[{'I':root}] and rec['globals']==encoded and rec['regions']==resources and rec['events']==wantEvents and rec['error']=='' and rec.get('failure') is None,(label,j)
 b=base64.b64decode(t['binary']);assert hashlib.sha256(b).hexdigest()==t['binary_sha256']
 assert len(t['invocation_t_states'])==30 and sum(t['invocation_t_states'])==t['total_t_states']
-assert set(e['function_sites']['source_units'].values())=={hashlib.sha256((p/'source.nanz').read_bytes()).hexdigest()}
+source=p/'source.nanz'
+if not source.exists():source=p/'self_lanz_parser.nanz'
+assert set(e['function_sites']['source_units'].values())=={hashlib.sha256(source.read_bytes()).hexdigest()}
 assert e['raw']['context']==t['context']==e['compatibility']['context']
 print('PASS independent originalSelfLanz30 full10globals/4096nodes/8192strings/4096source/orderedresourceevents raw+actualnative; source/BIN SHA; actual',t['total_t_states'],'T',len(b),'B',t['binary_sha256'])
