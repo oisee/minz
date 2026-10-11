@@ -105,6 +105,14 @@ func TestCompilerModeCLIActualSelectedArtifacts(t *testing.T) {
 			if e = json.Unmarshal(b, &manifest); e != nil {
 				t.Fatal(e)
 			}
+			// Refuse reruns into existing evidence before writing either output.
+			if e := compile(source); e == nil {
+				t.Fatal("existing evidence accepted")
+			}
+			preserved, e := os.ReadFile(outputFile)
+			if e != nil || !bytes.Equal(preserved, out) {
+				t.Fatal("failed rerun changed winner", e)
+			}
 			for name, hash := range manifest {
 				b, e = os.ReadFile(filepath.Join(hirProfileAutoDirectory, name))
 				if e != nil || fmt.Sprintf("%x", sha256.Sum256(b)) != hash {

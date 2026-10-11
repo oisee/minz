@@ -1,0 +1,145 @@
+{
+  "exact_data_access": true,
+  "schema": "minz.profile-workload/v1",
+  "target_model": "cpm-z80-v1",
+  "max_steps": 10000000,
+  "max_memory": 65536,
+  "resources": {},
+  "globals": {},
+  "calls": [
+    {
+      "function": "map_clear",
+      "arguments": null
+    },
+    {
+      "function": "map_put",
+      "arguments": [
+        {
+          "value": 5
+        },
+        {
+          "value": 100
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 5
+        }
+      ]
+    },
+    {
+      "function": "map_put",
+      "arguments": [
+        {
+          "value": 13
+        },
+        {
+          "value": 200
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 13
+        }
+      ]
+    },
+    {
+      "function": "map_put",
+      "arguments": [
+        {
+          "value": 21
+        },
+        {
+          "value": 300
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 21
+        }
+      ]
+    },
+    {
+      "function": "map_put",
+      "arguments": [
+        {
+          "value": 42
+        },
+        {
+          "value": 400
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 42
+        }
+      ]
+    },
+    {
+      "function": "map_put",
+      "arguments": [
+        {
+          "value": 77
+        },
+        {
+          "value": 500
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 77
+        }
+      ]
+    },
+    {
+      "function": "map_put",
+      "arguments": [
+        {
+          "value": 13
+        },
+        {
+          "value": 999
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 13
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 98
+        }
+      ]
+    },
+    {
+      "function": "map_has",
+      "arguments": [
+        {
+          "value": 42
+        }
+      ]
+    }
+  ]
+}

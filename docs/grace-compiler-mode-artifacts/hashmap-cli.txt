@@ -1,0 +1,1 @@
+[compiler-modes] speed selected mode 1: 25378 T / 981 B; artifacts /home/alice/dev/minz-artifacts/grace-checkpoints/compiler-mode-artifact-repeat/hashmap

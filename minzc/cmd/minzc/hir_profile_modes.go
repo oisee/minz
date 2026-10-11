@@ -44,10 +44,10 @@ func validateHIRCompilerModes(source string) error {
 	if outputFile != "" && !strings.EqualFold(filepath.Ext(outputFile), ".a80") && !strings.EqualFold(filepath.Ext(outputFile), ".bin") {
 		return fmt.Errorf("compiler modes: -o must end in .a80 or .bin")
 	}
-	if info, e := os.Stat(hirProfileAutoDirectory); e == nil && !info.IsDir() {
-		return fmt.Errorf("compiler modes: artifact path is not a directory")
+	if e := validateCompilerModeDestination(hirProfileAutoDirectory); e != nil {
+		return e
 	}
-	return validateMemoryHostCLIArtifactAliases(hirProfileAutoDirectory, []string{source, hirProfileAutoWorkload}, compilerModeOutputNames())
+	return validateCompilerModePaths(hirProfileAutoDirectory, []string{source, hirProfileAutoWorkload}, compilerModeOutputNames())
 }
 func runHIRCompilerModes(sourceFile, stdlibDir string, source []byte, factory func() (*hir.Module, error)) error {
 	var workload hir.ProfileWorkload
@@ -84,7 +84,7 @@ func runHIRCompilerModes(sourceFile, stdlibDir string, source []byte, factory fu
 		sourcePaths[unit] = name
 		names = append(names, name)
 	}
-	if e := validateMemoryHostCLIArtifactAliases(hirProfileAutoDirectory, append(compilerModeSourcePaths(paths), hirProfileAutoWorkload), names); e != nil {
+	if e := validateCompilerModePaths(hirProfileAutoDirectory, append(compilerModeSourcePaths(paths), hirProfileAutoWorkload), names); e != nil {
 		return e
 	}
 	if !bytes.Equal(source, dependencies[sourcePaths[sourceFile]]) {
@@ -139,23 +139,12 @@ func runHIRCompilerModes(sourceFile, stdlibDir string, source []byte, factory fu
 		return e
 	}
 	payloads["manifest.json"] = encoded
-	for name, data := range payloads {
-		p := filepath.Join(hirProfileAutoDirectory, name)
-		if e = os.MkdirAll(filepath.Dir(p), 0755); e != nil {
-			return e
-		}
-		if e = os.WriteFile(p, data, 0644); e != nil {
-			return e
-		}
+	chosen := []byte(result.Steps.Assembly)
+	if strings.EqualFold(filepath.Ext(outputFile), ".bin") {
+		chosen = result.Binary
 	}
-	if outputFile != "" {
-		data := []byte(result.Steps.Assembly)
-		if strings.EqualFold(filepath.Ext(outputFile), ".bin") {
-			data = result.Binary
-		}
-		if e = os.WriteFile(outputFile, data, 0644); e != nil {
-			return e
-		}
+	if e := publishCompilerModeArtifacts(hirProfileAutoDirectory, payloads, outputFile, chosen); e != nil {
+		return e
 	}
 	best := result.Evidence.Candidates[result.Evidence.Selected]
 	fmt.Fprintf(os.Stderr, "[compiler-modes] %s selected mode %d: %d T / %d B; artifacts %s\n", goal, result.Evidence.Selected, best.Run.TotalTStates, len(best.Binary), hirProfileAutoDirectory)
