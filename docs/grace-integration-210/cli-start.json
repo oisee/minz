@@ -1,0 +1,13 @@
+{
+  "checkpoint": "31d6abd0536c29de40e35d864dec12c07b317a89",
+  "executable": "/home/alice/dev/minz-artifacts/grace-checkpoints/cli-31d6abd0-full.test",
+  "sha256": "9d2a20ef6ad4e1d8bf96a17dec8564ad3d6fa083d989d2f327ce0efef97d8434",
+  "share_executable": "/mnt/safe/minz/grace/2026-10-11/compiler-checkpoints/cli-31d6abd0-full.test",
+  "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/cmd/minzc",
+  "command": [
+    "/home/alice/dev/minz-artifacts/grace-checkpoints/cli-31d6abd0-full.test",
+    "-test.count=1",
+    "-test.timeout=30m"
+  ],
+  "state": "prepared before start; outcome pending"
+}
