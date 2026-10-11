@@ -1,0 +1,66 @@
+=== RUN   TestFATPackedFrozenNative
+[HIR-SPLIT] write_fat12 → write_fat12$split_5 (3 inputs, pressure 9)
+[HIR-SPLIT] fat_cache_put → fat_cache_put$split_2 (2 inputs, pressure 9)
+[HIR-SPLIT] find_file → find_file$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] get_file_size → get_file_size$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] file_read → file_read$split_4 (1 inputs, pressure 9)
+[HIR-SPLIT] file_write_data → file_write_data$split_3 (2 inputs, pressure 11)
+[HIR-SPLIT] update_dir_size → update_dir_size$split_3 (0 inputs, pressure 10)
+[HIR-SPLIT] delete_file → delete_file$split_6 (0 inputs, pressure 9)
+[HIR-SPLIT] overwrite_file → overwrite_file$split_8 (0 inputs, pressure 14)
+[HIR-SPLIT] count_dir_entries → count_dir_entries$split_4 (1 inputs, pressure 11)
+[HIR-SPLIT] get_dir_entry → get_dir_entry$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] get_dir_entry_full → get_dir_entry_full$split_4 (0 inputs, pressure 14)
+    fat_packed_native_test.go:249: default training read_fat12 case0 301T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default training write_fat12 case0 874T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default training read_fat16 case0 118T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default training write_fat16 case0 138T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default training read_fat12 case1 330T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default training write_fat12 case1 926T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default training read_fat16 case1 118T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default training write_fat16 case1 138T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default training read_fat12 case2 301T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default training write_fat12 case2 874T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default training read_fat16 case2 118T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default training write_fat16 case2 138T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default heldout read_fat12 case0 330T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default heldout write_fat12 case0 926T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default heldout read_fat16 case0 118T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default heldout write_fat16 case0 138T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default heldout read_fat12 case1 301T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default heldout write_fat12 case1 874T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default heldout read_fat16 case1 118T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default heldout write_fat16 case1 138T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default heldout read_fat12 case2 330T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default heldout write_fat12 case2 926T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default heldout read_fat16 case2 118T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default heldout write_fat16 case2 138T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default heldout read_fat12 case3 301T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default heldout write_fat12 case3 874T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default heldout read_fat16 case3 118T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default heldout write_fat16 case3 138T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default heldout read_fat12 case4 330T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default heldout write_fat12 case4 926T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default heldout read_fat16 case4 118T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default heldout write_fat16 case4 138T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default heldout read_fat12 case5 301T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default heldout write_fat12 case5 874T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default heldout read_fat16 case5 118T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+    fat_packed_native_test.go:249: default heldout write_fat16 case5 138T 9689B independentpacked/rawVM/finalVM/nativeRAM/bytes/SP PASS
+[HIR-SPLIT] write_fat12 → write_fat12$split_5 (3 inputs, pressure 9)
+[HIR-SPLIT] fat_cache_put → fat_cache_put$split_2 (2 inputs, pressure 9)
+[HIR-SPLIT] find_file → find_file$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] get_file_size → get_file_size$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] file_read → file_read$split_4 (1 inputs, pressure 9)
+[HIR-SPLIT] file_write_data → file_write_data$split_3 (2 inputs, pressure 11)
+[HIR-SPLIT] update_dir_size → update_dir_size$split_3 (0 inputs, pressure 10)
+[HIR-SPLIT] delete_file → delete_file$split_6 (0 inputs, pressure 9)
+[HIR-SPLIT] overwrite_file → overwrite_file$split_8 (0 inputs, pressure 14)
+[HIR-SPLIT] count_dir_entries → count_dir_entries$split_4 (1 inputs, pressure 11)
+[HIR-SPLIT] get_dir_entry → get_dir_entry$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] get_dir_entry_full → get_dir_entry_full$split_4 (0 inputs, pressure 14)
+    fat_packed_native_test.go:208: {4 16384 683} line 0: assert "" [z80]: got 3531, want 3263
+--- FAIL: TestFATPackedFrozenNative (20.72s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	20.730s
+FAIL

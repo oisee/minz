@@ -855,6 +855,21 @@ func (g *z80cg) genShift(mnem string, inst *Inst) {
 		return
 	}
 	dst := g.loc(inst.Dst)
+	// IX/IY word shifts use HL as encoding scratch. Preserve an independently
+	// live HL value before staging (including before copying the shift source).
+	preserveHL := false
+	if w == 16 && isIXY(dst) {
+		for r := range g.regsLiveAfterInst(inst) {
+			if r != inst.Dst && (g.loc(r) == "HL" || parentPair(g.loc(r)) == "HL") {
+				preserveHL = true
+				break
+			}
+		}
+	}
+	if preserveHL {
+		g.emit("    PUSH HL    ; preserve live HL across indexed word shift")
+		defer func() { g.emit("    POP HL     ; restore indexed word shift scratch"); g.invalidate("HL") }()
+	}
 	src := g.loc(inst.Src[0])
 	if dst != src {
 		g.emitMov(dst, src, w)
