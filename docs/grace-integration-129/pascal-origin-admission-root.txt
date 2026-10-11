@@ -1,0 +1,18 @@
+=== RUN   TestPascalProfileSourceAndLoopOrigins
+--- PASS: TestPascalProfileSourceAndLoopOrigins (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pascal	0.007s
+=== RUN   TestPascalCanonicalDeadRuntimeAdmissionAndDenial
+=== RUN   TestPascalCanonicalDeadRuntimeAdmissionAndDenial/template
+=== RUN   TestPascalCanonicalDeadRuntimeAdmissionAndDenial/clobbers
+=== RUN   TestPascalCanonicalDeadRuntimeAdmissionAndDenial/inputs
+=== RUN   TestPascalCanonicalDeadRuntimeAdmissionAndDenial/abi
+=== RUN   TestPascalCanonicalDeadRuntimeAdmissionAndDenial/newasm
+--- PASS: TestPascalCanonicalDeadRuntimeAdmissionAndDenial (0.13s)
+    --- PASS: TestPascalCanonicalDeadRuntimeAdmissionAndDenial/template (0.00s)
+    --- PASS: TestPascalCanonicalDeadRuntimeAdmissionAndDenial/clobbers (0.00s)
+    --- PASS: TestPascalCanonicalDeadRuntimeAdmissionAndDenial/inputs (0.00s)
+    --- PASS: TestPascalCanonicalDeadRuntimeAdmissionAndDenial/abi (0.00s)
+    --- PASS: TestPascalCanonicalDeadRuntimeAdmissionAndDenial/newasm (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.135s
