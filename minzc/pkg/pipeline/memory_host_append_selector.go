@@ -217,7 +217,7 @@ func MeasureMemoryHostAppendCopyHoist(factory func() (*hir.Module, error), w hir
 	}
 	out := &MemoryHostAppendSelection{Schema: "minz.memory-host-append-selection/v1", Options: o, Profile: loaded, Association: association, SiteID: site, Candidates: []MemoryHostAppendCandidate{{Evidence: association.Baseline}, {Hoisted: true, PrecompileProof: precompileProof, Evidence: variant}}}
 	a, b := association.Baseline.Target, variant.Target
-	out.Selected = selectMemoryHostAppendCandidate(o.Goal, a, b)
+	out.Selected = selectMemoryHostArenaCandidate(o.Goal, a, b)
 	runtime.KeepAlive(privateRoots)
 	runtime.KeepAlive(retained)
 	return out, nil

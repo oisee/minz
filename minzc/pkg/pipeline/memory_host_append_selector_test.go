@@ -72,7 +72,7 @@ func TestMemoryHostAppendSelectorOriginal30Objectives(t *testing.T) {
 					}
 				}
 			}
-			t.Logf("goal%s selected%d original%dT/%dB peeled%dT/%dB", goal, selected.Selected, a.TotalTStates, len(a.Binary), b.TotalTStates, len(b.Binary))
+			t.Logf("goal%s selected%d original%dT/%dB hoisted%dT/%dB", goal, selected.Selected, a.TotalTStates, len(a.Binary), b.TotalTStates, len(b.Binary))
 		})
 	}
 }
