@@ -1,0 +1,203 @@
+{
+  "records": [
+    {
+      "call": "nested",
+      "error": "\u003cnil\u003e",
+      "events": [],
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "guards": [],
+        "compatibility": null,
+        "schema": "minz.input-hir-loop-observations/v5",
+        "stage": "unoptimised-mir2-vm",
+        "sites": {
+          "schema": "minz.hir-loop-sites/v1",
+          "stage": "input-hir",
+          "sites": [
+            {
+              "id": "75a5e5d5203884c6e9c4672a04bccde5197eb216299bd58e0fa36ed3e7d18dce",
+              "function": "nested",
+              "kind": "while",
+              "ordinal": 0,
+              "hir_path": "body/s1",
+              "origin": {
+                "unit": "counter-probe.nanz",
+                "byte_offset": 116,
+                "line": 5,
+                "byte_column": 2,
+                "source_sha256": "2e046afef4fe2fe80eef71119e02ac9eca71cff2be38b42454832ab94824c11c"
+              }
+            },
+            {
+              "id": "f77b1df2e168054aa9601c5e513ab5b3d9ca8c989e0c3044ecbf9056aa7f22d0",
+              "function": "fail_loop",
+              "kind": "while",
+              "ordinal": 0,
+              "hir_path": "body/s1",
+              "origin": {
+                "unit": "counter-probe.nanz",
+                "byte_offset": 221,
+                "line": 13,
+                "byte_column": 2,
+                "source_sha256": "2e046afef4fe2fe80eef71119e02ac9eca71cff2be38b42454832ab94824c11c"
+              }
+            }
+          ],
+          "unmapped_loops": 0
+        },
+        "counts": [
+          {
+            "site_id": "75a5e5d5203884c6e9c4672a04bccde5197eb216299bd58e0fa36ed3e7d18dce",
+            "entries": 1,
+            "body_entries": 0
+          },
+          {
+            "site_id": "f77b1df2e168054aa9601c5e513ab5b3d9ca8c989e0c3044ecbf9056aa7f22d0",
+            "entries": 0,
+            "body_entries": 0
+          }
+        ],
+        "completed_calls": 1,
+        "failed_calls": 0
+      }
+    },
+    {
+      "call": "nested",
+      "error": "\u003cnil\u003e",
+      "events": [],
+      "results": [
+        {
+          "I": 2
+        }
+      ],
+      "snapshot": {
+        "guards": [],
+        "compatibility": null,
+        "schema": "minz.input-hir-loop-observations/v5",
+        "stage": "unoptimised-mir2-vm",
+        "sites": {
+          "schema": "minz.hir-loop-sites/v1",
+          "stage": "input-hir",
+          "sites": [
+            {
+              "id": "75a5e5d5203884c6e9c4672a04bccde5197eb216299bd58e0fa36ed3e7d18dce",
+              "function": "nested",
+              "kind": "while",
+              "ordinal": 0,
+              "hir_path": "body/s1",
+              "origin": {
+                "unit": "counter-probe.nanz",
+                "byte_offset": 116,
+                "line": 5,
+                "byte_column": 2,
+                "source_sha256": "2e046afef4fe2fe80eef71119e02ac9eca71cff2be38b42454832ab94824c11c"
+              }
+            },
+            {
+              "id": "f77b1df2e168054aa9601c5e513ab5b3d9ca8c989e0c3044ecbf9056aa7f22d0",
+              "function": "fail_loop",
+              "kind": "while",
+              "ordinal": 0,
+              "hir_path": "body/s1",
+              "origin": {
+                "unit": "counter-probe.nanz",
+                "byte_offset": 221,
+                "line": 13,
+                "byte_column": 2,
+                "source_sha256": "2e046afef4fe2fe80eef71119e02ac9eca71cff2be38b42454832ab94824c11c"
+              }
+            }
+          ],
+          "unmapped_loops": 0
+        },
+        "counts": [
+          {
+            "site_id": "75a5e5d5203884c6e9c4672a04bccde5197eb216299bd58e0fa36ed3e7d18dce",
+            "entries": 4,
+            "body_entries": 4
+          },
+          {
+            "site_id": "f77b1df2e168054aa9601c5e513ab5b3d9ca8c989e0c3044ecbf9056aa7f22d0",
+            "entries": 0,
+            "body_entries": 0
+          }
+        ],
+        "completed_calls": 2,
+        "failed_calls": 0
+      }
+    },
+    {
+      "call": "fail_loop",
+      "error": "block @loop_body2: memory host: undeclared read at 32769",
+      "events": [
+        {
+          "kind": "write",
+          "address": 32768,
+          "value": 0
+        }
+      ],
+      "results": null,
+      "snapshot": {
+        "guards": [],
+        "compatibility": null,
+        "schema": "minz.input-hir-loop-observations/v5",
+        "stage": "unoptimised-mir2-vm",
+        "sites": {
+          "schema": "minz.hir-loop-sites/v1",
+          "stage": "input-hir",
+          "sites": [
+            {
+              "id": "75a5e5d5203884c6e9c4672a04bccde5197eb216299bd58e0fa36ed3e7d18dce",
+              "function": "nested",
+              "kind": "while",
+              "ordinal": 0,
+              "hir_path": "body/s1",
+              "origin": {
+                "unit": "counter-probe.nanz",
+                "byte_offset": 116,
+                "line": 5,
+                "byte_column": 2,
+                "source_sha256": "2e046afef4fe2fe80eef71119e02ac9eca71cff2be38b42454832ab94824c11c"
+              }
+            },
+            {
+              "id": "f77b1df2e168054aa9601c5e513ab5b3d9ca8c989e0c3044ecbf9056aa7f22d0",
+              "function": "fail_loop",
+              "kind": "while",
+              "ordinal": 0,
+              "hir_path": "body/s1",
+              "origin": {
+                "unit": "counter-probe.nanz",
+                "byte_offset": 221,
+                "line": 13,
+                "byte_column": 2,
+                "source_sha256": "2e046afef4fe2fe80eef71119e02ac9eca71cff2be38b42454832ab94824c11c"
+              }
+            }
+          ],
+          "unmapped_loops": 0
+        },
+        "counts": [
+          {
+            "site_id": "75a5e5d5203884c6e9c4672a04bccde5197eb216299bd58e0fa36ed3e7d18dce",
+            "entries": 4,
+            "body_entries": 4
+          },
+          {
+            "site_id": "f77b1df2e168054aa9601c5e513ab5b3d9ca8c989e0c3044ecbf9056aa7f22d0",
+            "entries": 1,
+            "body_entries": 1
+          }
+        ],
+        "completed_calls": 2,
+        "failed_calls": 1
+      }
+    }
+  ],
+  "semantics": "existing-loop-hook-entry/body-not-completion",
+  "status": "PASS"
+}
