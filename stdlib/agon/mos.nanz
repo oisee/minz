@@ -1,0 +1,33 @@
+// Agon MOS console subset for Nanz, for eZ80 ADL code generation.
+// The legacy mos.minz API remains separate for MinZ consumers.
+// MOS API dispatch is RST.LIL $08, with function number in A.
+// Reference: agon-mos/src/mos_api.inc, MOSCALL and mos_getkey = $00.
+// All MOS calls have an explicit conservative clobber contract.
+
+fun mos_putchar(ch: u8) -> void {
+    asm z80 (in ch) (clob all) {
+        RST.LIL $10
+    }
+}
+
+// RST $18 requires HL=string, BC=length (0 means NUL terminated),
+// A=delimiter (0 means NUL). Only explicit C strings are suitable here.
+fun mos_puts(str: ^u8) -> void {
+    asm z80 (in str) (clob all) {
+        LD BC, 0
+        XOR A
+        RST.LIL $18
+    }
+}
+
+fun getkey() -> u8 {
+    asm z80 (ret A) (clob all) {
+        XOR A
+        RST.LIL $08
+    }
+}
+
+fun newline() -> void {
+    mos_putchar(13)
+    mos_putchar(10)
+}
