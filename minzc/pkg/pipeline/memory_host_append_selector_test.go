@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -241,4 +242,73 @@ func TestMemoryHostAppendSelectorObservedZeroBody(t *testing.T) {
 		t.Fatal("actualobjective")
 	}
 	t.Logf("zero-body original%dT hoisted%dT selected%d", a.TotalTStates, b.TotalTStates, e.Selected)
+}
+
+func TestMemoryHostAppendSelectorProofBinding(t *testing.T) {
+	for _, mutation := range []string{"valid", "search_site", "actual_origin", "actual_shape"} {
+		t.Run(mutation, func(t *testing.T) {
+			source, w := memoryHostParserFixture(t)
+			actual, _ := memoryHostParserFixture(t)
+			if e := hoistMemoryHostAppendBases(actual, w); e != nil {
+				t.Fatal(e)
+			}
+			sites, e := hir.BuildLoopSiteMap(source)
+			if e != nil {
+				t.Fatal(e)
+			}
+			id := ""
+			for _, s := range sites.Sites {
+				if s.Function == "intern_region" && s.HIRPath == "body/s5" {
+					id = s.ID
+				}
+			}
+			if mutation == "search_site" {
+				for _, s := range sites.Sites {
+					if s.Function == "intern_region" && s.HIRPath == "body/s1" {
+						id = s.ID
+					}
+				}
+			}
+			if mutation == "actual_origin" {
+				loop := actual.FuncByName("intern_region").Body.Body[7]
+				o := actual.SourceLocations[loop]
+				o.ByteOffset++
+				actual.SourceLocations[loop] = o
+			}
+			if mutation == "actual_shape" {
+				actual.FuncByName("intern_region").Body.Body[4], actual.FuncByName("intern_region").Body.Body[5] = actual.FuncByName("intern_region").Body.Body[5], actual.FuncByName("intern_region").Body.Body[4]
+			}
+			proof, e := buildMemoryHostAppendPrecompileProof(source, actual, w, id)
+			if mutation == "valid" {
+				if e != nil || proof == nil || proof.SourceSite.HIRPath != "body/s5" {
+					t.Fatal(e)
+				}
+			} else if e == nil || proof != nil {
+				t.Fatal("forgedsourceoractualproofaccepted")
+			}
+		})
+	}
+}
+func TestMemoryHostAppendSelectorCapAndGC(t *testing.T) {
+	calls := 0
+	factory := func() (*hir.Module, error) { calls++; m, _ := memoryHostParserFixture(t); return m, nil }
+	_, w := memoryHostParserFixture(t)
+	if e, err := MeasureMemoryHostAppendCopyHoist(factory, w, make([]byte, hir.MaxMemoryHostLoopProfileBytes+1), MemoryHostAppendSelectorOptions{Goal: "speed", MaxSites: 1}); err == nil || e != nil || calls != 0 {
+		t.Fatal("oversizedprofile reached factory")
+	}
+	shared, _ := memoryHostParserFixture(t)
+	seen := map[uintptr]bool{}
+	roots := []any{}
+	if e := jointCheckFreshHIR(shared, seen); e != nil {
+		t.Fatal(e)
+	}
+	retainArenaSourceGraph(shared, &roots)
+	body := shared.FuncByName("intern_region").Body
+	runtime.GC()
+	fresh, _ := memoryHostParserFixture(t)
+	fresh.FuncByName("intern_region").Body = body
+	if e := jointCheckFreshHIR(fresh, seen); e == nil {
+		t.Fatal("true retained shared body acceptedafterGC")
+	}
+	runtime.KeepAlive(roots)
 }
