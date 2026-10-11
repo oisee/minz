@@ -1,0 +1,14 @@
+{
+  "README.md": "ab69eee56969b5c54eb79d7002a80ecd968fdacc63a5384abc41c5e69c258220",
+  "baseline.a80": "3d46121b9b8aa192b8c66e0075870c84e652685c86b756db3b3ec0d34acfc15d",
+  "baseline.bin": "5ce665b312c87bbb4e0a47a6890b8900536016512d03ecdbec71a35296ecea59",
+  "final.mir": "d5b6dc9e524128f877ce20af2601d026db875c8170756bcbc5fbb196e189a6ad",
+  "focused-native.txt": "3801a1cb69e931bfe49eeaa80a6b283f2427c5482e2ecf265f8c17feae9574a2",
+  "metrics.txt": "37bf149cb5c28f7a67f332f1e167899a5a36c3aefad46806b78b709634315433",
+  "mir2-full.txt": "b9a092c30c99aae4555d8f69bc92482b29626dcc55a6a82ec02a6f6dc1855136",
+  "original-baseline.txt": "a1d54e6730d57d771ed9daf3312a699980f1c9fddde4fe0ce9b1a0fc58ac0637",
+  "package-compile.txt": "4c7342436aad99069f58b4a26edbca9907d6c8cf838e313c949924b9fb300756",
+  "selected.a80": "b09df84a9bb2c27e04198d4fca1b9704fd5474bff23a0459a8a3a7dee3f356e0",
+  "selected.bin": "19a0ad1724ff221643b2df43b15756e74d9985d49d3c885ee3b7d268c3e1c74d",
+  "source.minz": "921eeafcebc89ad25005d40fa4b8f235d041cf4bb023ea1a3d98ebc9c4594eea"
+}

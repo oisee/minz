@@ -1,0 +1,56 @@
+package mir2
+
+// genDisjointByteOr only packs already-computed words. It never moves or
+// removes byte accesses, extends operand lifetime, or relies on memory effects.
+func (g *z80cg) genDisjointByteOr(inst *Inst) bool {
+	if inst.Op != OpOr || inst.Ty != TyU16 || g.curBlock == nil || g.pendingFlagReg != NoReg {
+		return false
+	}
+	defs := map[Reg]*Inst{}
+	repeated := map[Reg]bool{}
+	for _, i := range g.curBlock.Insts {
+		if i == inst {
+			break
+		}
+		if i.Dst != NoReg {
+			if _, exists := defs[i.Dst]; exists {
+				repeated[i.Dst] = true
+			}
+			defs[i.Dst] = i
+		}
+	}
+	lowWord := func(r Reg) bool {
+		i := defs[r]
+		return !repeated[r] && i != nil && i.Op == OpExt && i.SrcTy == TyU8 && i.Ty == TyU16
+	}
+	highWord := func(r Reg) bool {
+		i := defs[r]
+		if repeated[r] || i == nil || i.Op != OpShl || i.Ty != TyU16 || !lowWord(i.Src[0]) {
+			return false
+		}
+		k := defs[i.Src[1]]
+		return !repeated[i.Src[1]] && k != nil && k.Op == OpConst && k.Imm == 8
+	}
+	hi, lo := inst.Src[0], inst.Src[1]
+	if !highWord(hi) || !lowWord(lo) {
+		hi, lo = lo, hi
+		if !highWord(hi) || !lowWord(lo) {
+			return false
+		}
+	}
+	dst, high, low := g.loc(inst.Dst), g.loc(hi), g.loc(lo)
+	primary := func(s string) bool { return s == "HL" || s == "DE" || s == "BC" }
+	if !primary(dst) || high != dst || !primary(low) || low == dst {
+		return false
+	}
+	// Do not preserve a predicate whose MIR definition is this OR by accidentally
+	// retaining earlier flags. Any live flag boundary takes the ordinary emitter.
+	for r := range g.regsLiveAfterInst(inst) {
+		if g.loc(r) == "F" || r != inst.Dst && (g.loc(r) == dst || parentPair(g.loc(r)) == dst) {
+			return false
+		}
+	}
+	g.emitf("    LD %s, %s    ; pack disjoint byte lanes", lowByte(dst), lowByte(low))
+	g.invalidate(dst)
+	return true
+}

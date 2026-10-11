@@ -1,0 +1,41 @@
+=== RUN   TestFAT12BytePackingRetainsNativeAccessesAndWrap
+[HIR-SPLIT] write_fat12 → write_fat12$split_5 (3 inputs, pressure 9)
+[HIR-SPLIT] fat_cache_put → fat_cache_put$split_2 (2 inputs, pressure 9)
+[HIR-SPLIT] find_file → find_file$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] get_file_size → get_file_size$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] file_read → file_read$split_4 (1 inputs, pressure 9)
+[HIR-SPLIT] file_write_data → file_write_data$split_3 (2 inputs, pressure 11)
+[HIR-SPLIT] update_dir_size → update_dir_size$split_3 (0 inputs, pressure 10)
+[HIR-SPLIT] delete_file → delete_file$split_6 (0 inputs, pressure 9)
+[HIR-SPLIT] overwrite_file → overwrite_file$split_8 (0 inputs, pressure 14)
+[HIR-SPLIT] count_dir_entries → count_dir_entries$split_4 (1 inputs, pressure 11)
+[HIR-SPLIT] get_dir_entry → get_dir_entry$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] get_dir_entry_full → get_dir_entry_full$split_4 (0 inputs, pressure 14)
+    native_byte_pack_test.go:153: unchanged fat12 ld_word 131072 exhaustive selected VM/native cases incl ffff wrap; ordered reads and denied-second prefix PASS; helper 98→78 T/21→16 B
+--- PASS: TestFAT12BytePackingRetainsNativeAccessesAndWrap (2.23s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.234s
+=== RUN   TestDisjointBytePackingRejectsUnprovedBoundaries
+=== RUN   TestDisjointBytePackingRejectsUnprovedBoundaries/accepted
+=== RUN   TestDisjointBytePackingRejectsUnprovedBoundaries/flags
+=== RUN   TestDisjointBytePackingRejectsUnprovedBoundaries/alias
+=== RUN   TestDisjointBytePackingRejectsUnprovedBoundaries/index
+=== RUN   TestDisjointBytePackingRejectsUnprovedBoundaries/nonzero-low
+=== RUN   TestDisjointBytePackingRejectsUnprovedBoundaries/signed-ext
+=== RUN   TestDisjointBytePackingRejectsUnprovedBoundaries/use-after
+=== RUN   TestDisjointBytePackingRejectsUnprovedBoundaries/live-half
+=== RUN   TestDisjointBytePackingRejectsUnprovedBoundaries/pending-flag
+=== RUN   TestDisjointBytePackingRejectsUnprovedBoundaries/symmetric
+--- PASS: TestDisjointBytePackingRejectsUnprovedBoundaries (0.00s)
+    --- PASS: TestDisjointBytePackingRejectsUnprovedBoundaries/accepted (0.00s)
+    --- PASS: TestDisjointBytePackingRejectsUnprovedBoundaries/flags (0.00s)
+    --- PASS: TestDisjointBytePackingRejectsUnprovedBoundaries/alias (0.00s)
+    --- PASS: TestDisjointBytePackingRejectsUnprovedBoundaries/index (0.00s)
+    --- PASS: TestDisjointBytePackingRejectsUnprovedBoundaries/nonzero-low (0.00s)
+    --- PASS: TestDisjointBytePackingRejectsUnprovedBoundaries/signed-ext (0.00s)
+    --- PASS: TestDisjointBytePackingRejectsUnprovedBoundaries/use-after (0.00s)
+    --- PASS: TestDisjointBytePackingRejectsUnprovedBoundaries/live-half (0.00s)
+    --- PASS: TestDisjointBytePackingRejectsUnprovedBoundaries/pending-flag (0.00s)
+    --- PASS: TestDisjointBytePackingRejectsUnprovedBoundaries/symmetric (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.007s
