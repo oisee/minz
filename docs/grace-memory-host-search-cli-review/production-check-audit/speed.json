@@ -1,0 +1,260 @@
+{
+  "schema": "minz.independent-policy-search-saved-audit/v1",
+  "executable_sha256": "0d6df9fbf769bdcca6969717449f587ff856b0c7d38d525b78129811abe0de12",
+  "native_observations": 300,
+  "actual_speed_selected": {
+    "policy": 1,
+    "mask": 3
+  },
+  "derived_size_selected": {
+    "policy": 0,
+    "mask": 2
+  },
+  "candidates": [
+    {
+      "calls": 30,
+      "ordered_events": 3017,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941",
+      "t_states": 1135370,
+      "bytes": 2000,
+      "str_bump": 37163,
+      "node_bump": 32808,
+      "policy": 0,
+      "mask": 0
+    },
+    {
+      "calls": 30,
+      "ordered_events": 3017,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "2b5d02b0ba923a61604512e3b50e76ef3c6aa54b5cc13470c3f620d705a64fae",
+      "t_states": 1135211,
+      "bytes": 2121,
+      "str_bump": 37163,
+      "node_bump": 32808,
+      "policy": 0,
+      "mask": 1
+    },
+    {
+      "calls": 30,
+      "ordered_events": 3017,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975",
+      "t_states": 1079795,
+      "bytes": 1978,
+      "str_bump": 37163,
+      "node_bump": 32808,
+      "policy": 0,
+      "mask": 2
+    },
+    {
+      "calls": 30,
+      "ordered_events": 3017,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "4bdce86bd7a724f34e7eee180e8a6530b07f33cadd39e7a1a93813df6c841c13",
+      "t_states": 1079636,
+      "bytes": 2099,
+      "str_bump": 37163,
+      "node_bump": 32808,
+      "policy": 0,
+      "mask": 3
+    },
+    {
+      "calls": 30,
+      "ordered_events": 3017,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd",
+      "t_states": 1132449,
+      "bytes": 2001,
+      "str_bump": 37163,
+      "node_bump": 32808,
+      "policy": 1,
+      "mask": 0
+    },
+    {
+      "calls": 30,
+      "ordered_events": 3017,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "7cbed996d01495228965970dd379920288378f7d84de4b0743db9a3589cdca53",
+      "t_states": 1132290,
+      "bytes": 2122,
+      "str_bump": 37163,
+      "node_bump": 32808,
+      "policy": 1,
+      "mask": 1
+    },
+    {
+      "calls": 30,
+      "ordered_events": 3017,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835",
+      "t_states": 1076874,
+      "bytes": 1979,
+      "str_bump": 37163,
+      "node_bump": 32808,
+      "policy": 1,
+      "mask": 2
+    },
+    {
+      "calls": 30,
+      "ordered_events": 3017,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac",
+      "t_states": 1076715,
+      "bytes": 2100,
+      "str_bump": 37163,
+      "node_bump": 32808,
+      "policy": 1,
+      "mask": 3
+    }
+  ],
+  "input_baselines": [
+    {
+      "calls": 30,
+      "ordered_events": 3017,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941",
+      "t_states": 1135370,
+      "bytes": 2000,
+      "str_bump": 37163,
+      "node_bump": 32808
+    },
+    {
+      "calls": 30,
+      "ordered_events": 3017,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd",
+      "t_states": 1132449,
+      "bytes": 2001,
+      "str_bump": 37163,
+      "node_bump": 32808
+    }
+  ],
+  "source_counts": [
+    {
+      "intern_region/body/s1": [
+        40,
+        156
+      ],
+      "skip_ws/body/s1/then/s0": [
+        4,
+        25
+      ],
+      "main/body/s2": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s8/then/s2": [
+        9,
+        23
+      ],
+      "region_match/body/s1": [
+        49,
+        59
+      ],
+      "skip_ws/body/s0": [
+        153,
+        24
+      ],
+      "parse_sexpr/body/s5": [
+        51,
+        858
+      ],
+      "parse_sexpr/body/s3/then/s7": [
+        22,
+        27
+      ],
+      "intern_region/body/s5": [
+        13,
+        286
+      ],
+      "print_node/body/s4/then/s3": [
+        0,
+        0
+      ],
+      "print_str/body/s2": [
+        0,
+        0
+      ]
+    },
+    {
+      "intern_region/body/s1": [
+        40,
+        156
+      ],
+      "skip_ws/body/s1/then/s0": [
+        4,
+        25
+      ],
+      "main/body/s2": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s8/then/s2": [
+        9,
+        23
+      ],
+      "region_match/body/s1": [
+        49,
+        59
+      ],
+      "skip_ws/body/s0": [
+        153,
+        24
+      ],
+      "parse_sexpr/body/s5": [
+        51,
+        858
+      ],
+      "parse_sexpr/body/s3/then/s7": [
+        22,
+        27
+      ],
+      "intern_region/body/s5": [
+        13,
+        286
+      ],
+      "print_node/body/s4/then/s3": [
+        0,
+        0
+      ],
+      "print_str/body/s2": [
+        0,
+        0
+      ]
+    }
+  ],
+  "search_file_sha256": "087f4ed249d188ee0eeb62d7faca7332c75a89f77d1e079345ffe9f6da0857d7",
+  "input_sha256": [
+    "a061fa74ccd87b9327358b85c62b755702597f8871089afff64bbcdcbe7ea7db",
+    "84956d8f677edb8a136d41281856c9c809c8e83d6d6bd40205bf910813b7852d"
+  ],
+  "actual_goal": "speed",
+  "actual_selected": {
+    "policy": 1,
+    "mask": 3
+  },
+  "scope": "independent exact-source native/state/event/count/proof plus exact CLI decision/file bindings; actual goal, no CPU or target lineage",
+  "decision": {
+    "source_name": "../examples/nanz/self_lanz_parser.nanz",
+    "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+    "schema": "minz.memory-host-arena-append-policy-search-cli-decision/v1",
+    "goal": "speed",
+    "selected": {
+      "policy": 1,
+      "mask": 3
+    },
+    "choices": {
+      "arena_peel": true,
+      "append_hoist": true
+    },
+    "search_sha256": "087f4ed249d188ee0eeb62d7faca7332c75a89f77d1e079345ffe9f6da0857d7",
+    "association_sha256": [
+      "a061fa74ccd87b9327358b85c62b755702597f8871089afff64bbcdcbe7ea7db",
+      "84956d8f677edb8a136d41281856c9c809c8e83d6d6bd40205bf910813b7852d"
+    ],
+    "binary_sha256": "987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac",
+    "t_states": 1076715,
+    "bytes": 2100
+  }
+}
