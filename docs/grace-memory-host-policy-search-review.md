@@ -43,3 +43,11 @@ late original mutation25 PASS42.68s, mutation48 PASS108.18s, cross-policy shared
 graph refusal. Final independent source reviews f8a963c8/22b65ee1 and test read
 d1022bdc found no remaining source issue. Additional994 owned-input/Size/tie
 test still needs execution; full30 search has not run.
+
+Additional994 gates terminal PASS: owned-input mutation/actual short GoalSize
+48 callbacks118.45s; missing policies/options preflight4.37s. All failure,
+choices and policy binder negatives passed; synthetic primary ties/crossover
+are ranking tests only. Preserved executableac88bd7d11cb6f81b2567e4251c051d17be3e44d2ed52a7c0f1e94c257555dd3.
+Full30 harnessc11dd4d1 reviewed by both agents (backendfc42b9c8); it independently
+collects both policy baselines, exports all eight actual Speed candidates and
+labels Size ordering derived. Full30 execution now released; no result yet.

@@ -108,8 +108,9 @@ Corpus опубликован в приватном Sites54; wholeoffline sync �
 ещё не перенесён. Draft4af821fe исправлен e0521c1f: independent full AST +
 metadata equality, exact Error/Failure identity и failedcandidate refusal.
 Admission/validretainedSHA подмена PASS7.66s; focused48callbackGC/lifecycle
-PASS314.10s, включая25/48late mutations иcross-policysharedgraphs. Дополнительные owned-input/Size/tie проверки committed994280a2.
-Новый full30 поиск ещё не запускался.
+PASS314.10s, включая25/48late mutations иcross-policysharedgraphs. Дополнительные owned-input/actual short Size/tie проверки994280a2
+PASS118.45s; missing/options preflightPASS4.37s. Harnessc11dd4d1 прошёл оба
+ревью, полный30вызовов поиск разрешён; успешного результата ещё нет.
 
 ## Сохранение веток и решения
 
