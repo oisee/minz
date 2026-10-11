@@ -1,0 +1,17 @@
+=== RUN   TestZXExamplesFullScreenVMZ80
+=== RUN   TestZXExamplesFullScreenVMZ80/showcase
+    zx_memory_regression_test.go:114: 6912 screen bytes PASS VM+Z80; native return SP=fff2; code=179 bytes T=66216
+=== RUN   TestZXExamplesFullScreenVMZ80/zx_checkerboard
+    zx_memory_regression_test.go:114: 6912 screen bytes PASS VM+Z80; native return SP=fff2; code=158 bytes T=857765
+=== RUN   TestZXExamplesFullScreenVMZ80/zx_rainbow
+    zx_memory_regression_test.go:114: 6912 screen bytes PASS VM+Z80; native return SP=fff2; code=118 bytes T=616797
+--- PASS: TestZXExamplesFullScreenVMZ80 (0.03s)
+    --- PASS: TestZXExamplesFullScreenVMZ80/showcase (0.01s)
+    --- PASS: TestZXExamplesFullScreenVMZ80/zx_checkerboard (0.01s)
+    --- PASS: TestZXExamplesFullScreenVMZ80/zx_rainbow (0.01s)
+=== RUN   TestNestedMacroArityAndRecursionRejected
+--- PASS: TestNestedMacroArityAndRecursionRejected (0.00s)
+=== RUN   TestMacroNamesDoNotExpandFunctionParameters
+--- PASS: TestMacroNamesDoNotExpandFunctionParameters (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/lizp	0.040s

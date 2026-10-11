@@ -88,7 +88,22 @@ func desugar(n lanz.Node, macros map[string]*macro) ([]lanz.Node, error) {
 	case "defmacro":
 		return desugarDefmacro(n, macros)
 	case "defun":
-		return desugarDefun(n)
+		expanded := n
+		expanded.List = append([]lanz.Node(nil), n.List...)
+		var err error
+		// Function names and typed parameters are declarations, not macro calls.
+		for i := 3; i < len(n.List); i++ {
+			if n.List[i].IsAtom() && n.List[i].Atom == "->" {
+				for j := i + 2; j < len(n.List); j++ {
+					expanded.List[j], err = expandBodyMacros(n.List[j], macros, 0)
+					if err != nil {
+						return nil, err
+					}
+				}
+				break
+			}
+		}
+		return desugarDefun(expanded)
 	case "define":
 		// Scheme R5RS: (define (name params...) body) → defun
 		return desugarDefine(n)
@@ -115,6 +130,35 @@ func desugar(n lanz.Node, macros map[string]*macro) ([]lanz.Node, error) {
 		// Pass through to Lanz as-is (fun, global, struct, etc.)
 		return []lanz.Node{n}, nil
 	}
+}
+
+// Expand macros inside function bodies before ordinary form desugaring.
+// A bounded expansion depth reports recursive templates instead of emitting
+// an unresolved CALL or recursing without a limit.
+func expandBodyMacros(n lanz.Node, macros map[string]*macro, depth int) (lanz.Node, error) {
+	if depth > 128 {
+		return lanz.Node{}, fmt.Errorf("line %d: macro expansion depth exceeded", n.Line)
+	}
+	if n.IsAtom() || len(n.List) == 0 {
+		return n, nil
+	}
+	if n.List[0].IsAtom() {
+		if m, ok := macros[n.List[0].Atom]; ok {
+			if len(n.List)-1 != len(m.params) {
+				return lanz.Node{}, fmt.Errorf("line %d: macro %s arity %d, want %d", n.Line, n.List[0].Atom, len(n.List)-1, len(m.params))
+			}
+			return expandBodyMacros(expandMacro(m, n), macros, depth+1)
+		}
+	}
+	children := make([]lanz.Node, len(n.List))
+	for i, ch := range n.List {
+		var err error
+		children[i], err = expandBodyMacros(ch, macros, depth)
+		if err != nil {
+			return lanz.Node{}, err
+		}
+	}
+	return lanz.Node{List: children, Line: n.Line}, nil
 }
 
 // (defun name ((param type) ...) -> rettype body...)

@@ -21,11 +21,8 @@ import (
 // showcase.lizp must not hide showcase.plm, nor factorial.lizp factorial.pas.
 // MINZ_SHOWCASE_CHECK_KNOWN=1 executes these cases for an explicit failure audit.
 var knownFailures = map[string]string{
-	"reports/showcase-src/2026-03-15/ex34_tetris.nanz":       "pipeline: HIR main non-address type u8",
-	"examples/lizp/showcase.lizp":                            "pipeline: Lizp asm string treated as unknown HIR variable",
-	"examples/lizp/zx_checkerboard.lizp":                     "pipeline: Lizp asm string treated as unknown HIR variable",
-	"examples/lizp/zx_rainbow.lizp":                          "pipeline: Lizp asm string treated as unknown HIR variable",
-	"examples/zmachine/zork-west-demo/zvm.nanz":              "pipeline: native caller spill save unsupported u32 width 4; host-only runtime also required",
+	"reports/showcase-src/2026-03-15/ex34_tetris.nanz": "pipeline: HIR main non-address type u8",
+	"examples/zmachine/zork-west-demo/zvm.nanz":        "pipeline: native caller spill save unsupported u32 width 4; host-only runtime also required",
 }
 
 // TestShowcaseCompileAssemble compiles every .nanz/.lanz/.plm/.lizp/.pas file

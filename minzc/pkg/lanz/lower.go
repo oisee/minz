@@ -264,7 +264,52 @@ func (c *compiler) compileGlobal(n Node) (mir2.Global, error) {
 	}
 	name := n.List[1].Atom
 	ty := resolveType(n.List[2].Atom)
+	if n.List[2].IsList() {
+		spec := n.List[2].List
+		if len(spec) != 2 || !spec[0].IsAtom() || !spec[1].IsAtom() {
+			return mir2.Global{}, fmt.Errorf("line %d: global array: expected (element length)", n.Line)
+		}
+		length, err := strconv.Atoi(spec[1].Atom)
+		if err != nil || length < 1 {
+			return mir2.Global{}, fmt.Errorf("line %d: global array: invalid length", n.Line)
+		}
+		switch spec[0].Atom {
+		case "u8", "i8", "u16", "i16", "u24", "i24", "u32", "i32", "ptr", "^":
+		default:
+			return mir2.Global{}, fmt.Errorf("line %d: global array: unsupported element type %q", n.Line, spec[0].Atom)
+		}
+		elem := resolveType(spec[0].Atom)
+		if length > 65536/((elem.Width()+7)/8) {
+			return mir2.Global{}, fmt.Errorf("line %d: global array exceeds 16-bit address space", n.Line)
+		}
+		ty = &mir2.ArrayTy{Elem: elem, Len: length}
+	}
+
 	g := mir2.Global{Name: name, Ty: ty}
+	if at, ok := ty.(*mir2.ArrayTy); ok && len(n.List) >= 4 {
+		init := n.List[3]
+		if !init.IsList() || len(init.List) == 0 || init.List[0].Atom != "array" {
+			return mir2.Global{}, fmt.Errorf("line %d: global array: expected (array values...)", n.Line)
+		}
+		if len(init.List)-1 > at.Len {
+			return mir2.Global{}, fmt.Errorf("line %d: global array: too many initializers", n.Line)
+		}
+		width := (at.Elem.Width() + 7) / 8
+		g.Init = make([]byte, at.Len*width)
+		for i, item := range init.List[1:] {
+			if !item.IsAtom() || !IsInt(item.Atom) {
+				return mir2.Global{}, fmt.Errorf("line %d: global array: integer initializer required", item.Line)
+			}
+			v, err := ParseInt(item.Atom)
+			if err != nil {
+				return mir2.Global{}, err
+			}
+			for b := 0; b < width; b++ {
+				g.Init[i*width+b] = byte(v >> uint(8*b))
+			}
+		}
+		return g, nil
+	}
 	if len(n.List) >= 4 {
 		// Init value — for now just integer constants
 		if n.List[3].IsAtom() && IsInt(n.List[3].Atom) {
