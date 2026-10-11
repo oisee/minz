@@ -4,7 +4,7 @@
   "native_pack_commit": "17ab6c8b",
   "native_review_commit": "377f8a37",
   "independent_review_commit": "057595a6",
-  "pipeline_gate": "pending; not included as successful result",
+  "pipeline_gate": "PASS1078.565s",
   "files": [
     {
       "path": "backend-review/API_PROPOSAL.md",
@@ -175,6 +175,11 @@
       "path": "gates/packages.txt",
       "bytes": 7367,
       "sha256": "6c659ff1635c867b911f84b73fb3b10e54ae9592dc7095186d87fc3d58506437"
+    },
+    {
+      "path": "gates/pipeline.txt",
+      "bytes": 50,
+      "sha256": "423d697ec9f43be2fe92b114f5f996645f68e696d51bd0fbd947d213e8a433d4"
     },
     {
       "path": "gates/showcase-comparison.json",

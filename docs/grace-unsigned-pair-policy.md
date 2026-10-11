@@ -53,8 +53,7 @@ ASM/BIN/MIR/allocation и независимыми проверками.
 
 В рабочую ветку код перенесён как d16b370b +659efd6a +1155fc66.
 Общие HIR/MIR/Lanz/C89/CLI проверки прошли; Nanz без showcase PASS 2.278 s.
-Showcase имеет те же 31 падение, новых нет. Полный pipeline ещё выполняется:
-успешный итог для него пока не заявляется.
+Showcase имеет те же 31 падение, новых нет. Полный pipeline **PASS 1078.565 s**.
 
 [Манифест](grace-unsigned-pair-policy-artifacts/manifest.json).
 [Предыдущий изолированный эксперимент](grace-unsigned-pair-compare.md)

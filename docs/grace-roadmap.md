@@ -204,3 +204,7 @@ pointer-walk, оставляя invariant-base. На sum_array выбирает 3
 ## Private unsigned pair comparison experiment (2026-10-11)
 
 [Изолированный compare + reuse](grace-unsigned-pair-compare.md): full30 actual PASS, 90 source/native observations match, original current dba exact. Compare1132449T2001B (−2921T,+1B); reuse+compare1096139T1998B (−39231T,−2B). Production unchanged; next broaden liveness/fallback/consumer checks and review speed/size policy before generic backend integration.
+
+## Explicit unsigned pair comparison policy
+
+[Typed opt-in](grace-unsigned-pair-policy.md) implemented source1155fc66. Bothpublic30calls and independent60-observation audits pass; fullpipeline1078.565s PASS, showcase31same0new. Legacydefault retained; mode1 explicit, +1B/−2921T onSelfLanz. Nextpolicy-awareassociation/selector v2 has saved8candidate audits and awaits parentgate.
