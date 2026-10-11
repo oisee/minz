@@ -1,0 +1,29 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "size": 1504,
+      "sha256": "cc248b185feb008a733a20e2a133c7aef78ea6882098282c3d7d1af795422703"
+    },
+    {
+      "path": "cli-c784-full.txt",
+      "size": 46,
+      "sha256": "3a9c561e8d1767af86252d040264705ad74d4c251f1deb573e212f3ff9529954"
+    },
+    {
+      "path": "hoist-overlap-fixed.txt",
+      "size": 1445,
+      "sha256": "c7cacaadd0a5d75038679aead92d1363cb20a8e0a0a299f17b0f7d613a7500ad"
+    },
+    {
+      "path": "hoist-overlap-inspect.txt",
+      "size": 5331,
+      "sha256": "c89ff5dcaca0cdfae861e82dabfe2a198c9a43d0875b357381ac52f87dc29238"
+    },
+    {
+      "path": "pipeline-cc502-full.txt",
+      "size": 5341,
+      "sha256": "82064041786136aa2e62dbe548eb9d3d768a1a08dce35f09e80a3b442c3e498d"
+    }
+  ]
+}

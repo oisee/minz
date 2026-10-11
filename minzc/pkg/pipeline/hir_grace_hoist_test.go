@@ -99,7 +99,22 @@ func TestHIRGraceInvariantBaseDifferential(t *testing.T) {
 					}
 				}
 				t.Logf("200-byte matching region VM instructions: %d -> %d", steps[0], steps[1])
-				if steps[1] >= steps[0] {
+				if final && mirGrace {
+					// MIR's generalized invariant-address pass now performs the same
+					// hoist. HIR must preserve that benefit without claiming a second
+					// reduction for the same operation.
+					plain := graceMeasureModule(t, graceRegionSource, false, true, false)
+					vm := mir2.NewVM(plain)
+					vm.EnsureHeap(65536)
+					got, err := vm.Call("region_match", []mir2.Value{{I: 1024}, {I: 32}, {I: 4096}, {I: 200}})
+					if err != nil || len(got) != 1 || got[0].I != 1 {
+						t.Fatalf("unhoisted oracle: %v %v", got, err)
+					}
+					t.Logf("unhoisted final MIR: %d VM instructions", vm.StepsExecuted())
+					if steps[0] != steps[1] || steps[1] >= vm.StepsExecuted() {
+						t.Fatal("overlapping HIR/MIR hoists must retain the measured baseline improvement")
+					}
+				} else if steps[1] >= steps[0] {
 					t.Fatal("no VM work improvement")
 				}
 			})

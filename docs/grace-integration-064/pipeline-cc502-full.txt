@@ -1,0 +1,78 @@
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[Z80-VALIDATE] main: 2 invalid instruction(s)
+  line 3: >>> LD A, <<<
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] main → main$split_29 (2 inputs, pressure 9)
+--- FAIL: TestHIRGraceInvariantBaseDifferential (0.04s)
+    --- FAIL: TestHIRGraceInvariantBaseDifferential/final=true/mirGrace=true (0.01s)
+        hir_grace_hoist_test.go:101: 200-byte matching region VM instructions: 2204 -> 2204
+        hir_grace_hoist_test.go:103: no VM work improvement
+--- FAIL: TestMemoryHostPolicySearchPreflightAndExactOriginal (6.71s)
+    --- FAIL: TestMemoryHostPolicySearchPreflightAndExactOriginal/unrelated-body (0.00s)
+        memory_host_policy_search_test.go:133: modified original unrelated-body 0 policy search: exact original source bytes required
+    --- FAIL: TestMemoryHostPolicySearchPreflightAndExactOriginal/assert (0.00s)
+        memory_host_policy_search_test.go:133: modified original assert 0 policy search: exact original source bytes required
+    --- FAIL: TestMemoryHostPolicySearchPreflightAndExactOriginal/sandbox (0.00s)
+        memory_host_policy_search_test.go:133: modified original sandbox 0 policy search: exact original source bytes required
+    --- FAIL: TestMemoryHostPolicySearchPreflightAndExactOriginal/warnings (0.00s)
+        memory_host_policy_search_test.go:133: modified original warnings 0 policy search: exact original source bytes required
+    --- FAIL: TestMemoryHostPolicySearchPreflightAndExactOriginal/stats (0.00s)
+        memory_host_policy_search_test.go:133: modified original stats 0 policy search: exact original source bytes required
+    --- FAIL: TestMemoryHostPolicySearchPreflightAndExactOriginal/origin (0.00s)
+        memory_host_policy_search_test.go:133: modified original origin 0 policy search: exact original source bytes required
+--- FAIL: TestMemoryHostPolicySearchLifecycle (6.69s)
+    memory_host_policy_search_test.go:161: policy search: exact original source bytes required
+--- FAIL: TestMemoryHostPolicySearchOwnedInputsAndSize (5.89s)
+    memory_host_policy_search_test.go:238: caller input mutation affected owned execution 0 policy search: exact original source bytes required
+[HIR-SPLIT] write_fat12 → write_fat12$split_5 (3 inputs, pressure 9)
+[HIR-SPLIT] fat_cache_put → fat_cache_put$split_2 (2 inputs, pressure 9)
+[HIR-SPLIT] find_file → find_file$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] get_file_size → get_file_size$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] file_read → file_read$split_4 (1 inputs, pressure 9)
+[HIR-SPLIT] file_write_data → file_write_data$split_3 (2 inputs, pressure 11)
+[HIR-SPLIT] update_dir_size → update_dir_size$split_3 (0 inputs, pressure 10)
+[HIR-SPLIT] delete_file → delete_file$split_6 (0 inputs, pressure 9)
+[HIR-SPLIT] overwrite_file → overwrite_file$split_8 (0 inputs, pressure 14)
+[HIR-SPLIT] count_dir_entries → count_dir_entries$split_4 (1 inputs, pressure 11)
+[HIR-SPLIT] get_dir_entry → get_dir_entry$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] get_dir_entry_full → get_dir_entry_full$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	1649.277s
+FAIL

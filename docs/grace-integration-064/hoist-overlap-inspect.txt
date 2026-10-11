@@ -1,0 +1,116 @@
+=== RUN   TestInspectHoistOverlap
+    zz_hoist_inspect_test.go:6: plain
+        ; MIR2 module: grace_measure.nanz
+        fun @region_match(%r1: ptr [pointer], %r2: u16 [index], %r3: ptr [pointer], %r4: u8 [general]) -> u8 [acc]
+          block @entry:
+            %r5 = const 0 : u8 [general]
+            jmp @loop_head1(%r1, %r5, %r4, %r2, %r3)
+          block @loop_head1(%r6: ptr [general], %r5: u8 [general], %r8: u8 [general], %r9: u16 [pointer], %r10: ptr [general]):
+            %r11 = cmp.ult %r5, %r8 : bool [flag]
+            %r12 = const 1 : u8 [general]
+            cond_ret %r11, [%r12], @loop_body2()
+          block @loop_body2:
+            %r13 = add %r6, %r9 : u16 [pointer]
+            %r14 = ext %r5 : u8 -> u16 [pointer]
+            %r15 = add %r13, %r14 : u16 [pointer]
+            %r16 = load %r15 : u8 [general]
+            %r17 = ext %r5 : u8 -> u16 [index]
+            %r18 = ptr_add %r10, %r17 : ptr [pointer]
+            %r19 = load %r18 : u8 [general]
+            %r20 = cmp.ne %r16, %r19 : bool [flag]
+            br_if %r20, @if_then4(), @if_join5()
+          block @if_then4:
+            %r21 = const 0 : u8 [general]
+            ret %r21
+          block @if_join5:
+            %r22 = const 1 : u8 [general]
+            %r23 = add %r5, %r22 : u8 [general]
+            jmp @loop_head1(%r6, %r23, %r8, %r9, %r10)
+        
+    zz_hoist_inspect_test.go:6: hir
+        ; MIR2 module: grace_measure.nanz
+        fun @region_match(%r1: ptr [pointer], %r2: u16 [index], %r3: ptr [pointer], %r4: u8 [general]) -> u8 [acc]
+          block @entry:
+            %r5 = const 0 : u8 [general]
+            %r6 = add %r1, %r2 : u16 [pointer]
+            jmp @loop_head1(%r6, %r5, %r4, %r3)
+          block @loop_head1(%r6: u16 [pointer], %r5: u8 [general], %r9: u8 [general], %r10: ptr [general]):
+            %r11 = cmp.ult %r5, %r9 : bool [flag]
+            %r12 = const 1 : u8 [general]
+            cond_ret %r11, [%r12], @loop_body2()
+          block @loop_body2:
+            %r13 = ext %r5 : u8 -> u16 [pointer]
+            %r14 = add %r6, %r13 : u16 [pointer]
+            %r15 = load %r14 : u8 [general]
+            %r16 = ext %r5 : u8 -> u16 [index]
+            %r17 = ptr_add %r10, %r16 : ptr [pointer]
+            %r18 = load %r17 : u8 [general]
+            %r19 = cmp.ne %r15, %r18 : bool [flag]
+            br_if %r19, @if_then4(), @if_join5()
+          block @if_then4:
+            %r20 = const 0 : u8 [general]
+            ret %r20
+          block @if_join5:
+            %r21 = const 1 : u8 [general]
+            %r22 = add %r5, %r21 : u8 [general]
+            jmp @loop_head1(%r6, %r22, %r9, %r10)
+        
+    zz_hoist_inspect_test.go:6: mir
+        ; MIR2 module: grace_measure.nanz
+        fun @region_match(%r1: ptr [pointer], %r2: u16 [index], %r3: ptr [pointer], %r4: u8 [general]) -> u8 [acc]
+          block @entry:
+            %r5 = const 0 : u8 [general]
+            %r6 = add %r1, %r2 : u16 [pointer]
+            jmp @loop_head1(%r1, %r5, %r4, %r2, %r3)
+          block @loop_head1(%r7: ptr [general], %r5: u8 [general], %r9: u8 [general], %r10: u16 [pointer], %r11: ptr [general]):
+            %r12 = cmp.ult %r5, %r9 : bool [flag]
+            %r13 = const 1 : u8 [general]
+            cond_ret %r12, [%r13], @loop_body2()
+          block @loop_body2:
+            %r14 = ext %r5 : u8 -> u16 [pointer]
+            %r15 = add %r6, %r14 : u16 [pointer]
+            %r16 = load %r15 : u8 [general]
+            %r17 = ext %r5 : u8 -> u16 [index]
+            %r18 = ptr_add %r11, %r17 : ptr [pointer]
+            %r19 = load %r18 : u8 [general]
+            %r20 = cmp.ne %r16, %r19 : bool [flag]
+            br_if %r20, @if_then4(), @if_join5()
+          block @if_then4:
+            %r21 = const 0 : u8 [general]
+            ret %r21
+          block @if_join5:
+            %r22 = const 1 : u8 [general]
+            %r23 = add %r5, %r22 : u8 [general]
+            jmp @loop_head1(%r7, %r23, %r9, %r10, %r11)
+        
+    zz_hoist_inspect_test.go:6: both
+        ; MIR2 module: grace_measure.nanz
+        fun @region_match(%r1: ptr [pointer], %r2: u16 [index], %r3: ptr [pointer], %r4: u8 [general]) -> u8 [acc]
+          block @entry:
+            %r5 = const 0 : u8 [general]
+            %r6 = add %r1, %r2 : u16 [pointer]
+            jmp @loop_head1(%r6, %r5, %r4, %r3)
+          block @loop_head1(%r6: u16 [pointer], %r5: u8 [general], %r9: u8 [general], %r10: ptr [general]):
+            %r11 = cmp.ult %r5, %r9 : bool [flag]
+            %r12 = const 1 : u8 [general]
+            cond_ret %r11, [%r12], @loop_body2()
+          block @loop_body2:
+            %r13 = ext %r5 : u8 -> u16 [pointer]
+            %r14 = add %r6, %r13 : u16 [pointer]
+            %r15 = load %r14 : u8 [general]
+            %r16 = ext %r5 : u8 -> u16 [index]
+            %r17 = ptr_add %r10, %r16 : ptr [pointer]
+            %r18 = load %r17 : u8 [general]
+            %r19 = cmp.ne %r15, %r18 : bool [flag]
+            br_if %r19, @if_then4(), @if_join5()
+          block @if_then4:
+            %r20 = const 0 : u8 [general]
+            ret %r20
+          block @if_join5:
+            %r21 = const 1 : u8 [general]
+            %r22 = add %r5, %r21 : u8 [general]
+            jmp @loop_head1(%r6, %r22, %r9, %r10)
+        
+--- PASS: TestInspectHoistOverlap (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.010s
