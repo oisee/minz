@@ -1,0 +1,6 @@
+{
+  "base": "d268263626e938712200d58455f4ed95650fb573",
+  "path": "minzc/pkg/mir2/accsaves.go",
+  "sha256": "3633e74409ba47c757193fc4227bc49ef92e37683977e747a882bfdf96fbc928",
+  "scope": "read-only source; noCPU"
+}
