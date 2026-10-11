@@ -1,0 +1,125 @@
+{
+  "Locs": {
+    "1": {
+      "Kind": 0,
+      "Name": "A",
+      "Offset": 0
+    },
+    "10": {
+      "Kind": 0,
+      "Name": "C",
+      "Offset": 0
+    },
+    "11": {
+      "Kind": 6,
+      "Name": "F",
+      "Offset": 0
+    },
+    "12": {
+      "Kind": 0,
+      "Name": "B",
+      "Offset": 0
+    },
+    "13": {
+      "Kind": 0,
+      "Name": "C",
+      "Offset": 0
+    },
+    "14": {
+      "Kind": 6,
+      "Name": "F",
+      "Offset": 0
+    },
+    "15": {
+      "Kind": 0,
+      "Name": "A",
+      "Offset": 0
+    },
+    "16": {
+      "Kind": 0,
+      "Name": "A",
+      "Offset": 0
+    },
+    "17": {
+      "Kind": 0,
+      "Name": "A",
+      "Offset": 0
+    },
+    "18": {
+      "Kind": 0,
+      "Name": "C",
+      "Offset": 0
+    },
+    "19": {
+      "Kind": 6,
+      "Name": "F",
+      "Offset": 0
+    },
+    "2": {
+      "Kind": 0,
+      "Name": "C",
+      "Offset": 0
+    },
+    "20": {
+      "Kind": 0,
+      "Name": "B",
+      "Offset": 0
+    },
+    "21": {
+      "Kind": 0,
+      "Name": "C",
+      "Offset": 0
+    },
+    "22": {
+      "Kind": 6,
+      "Name": "F",
+      "Offset": 0
+    },
+    "23": {
+      "Kind": 0,
+      "Name": "A",
+      "Offset": 0
+    },
+    "24": {
+      "Kind": 0,
+      "Name": "A",
+      "Offset": 0
+    },
+    "3": {
+      "Kind": 6,
+      "Name": "F",
+      "Offset": 0
+    },
+    "4": {
+      "Kind": 0,
+      "Name": "B",
+      "Offset": 0
+    },
+    "5": {
+      "Kind": 0,
+      "Name": "C",
+      "Offset": 0
+    },
+    "6": {
+      "Kind": 6,
+      "Name": "F",
+      "Offset": 0
+    },
+    "7": {
+      "Kind": 0,
+      "Name": "A",
+      "Offset": 0
+    },
+    "8": {
+      "Kind": 0,
+      "Name": "A",
+      "Offset": 0
+    },
+    "9": {
+      "Kind": 0,
+      "Name": "A",
+      "Offset": 0
+    }
+  },
+  "Spilled": null
+}

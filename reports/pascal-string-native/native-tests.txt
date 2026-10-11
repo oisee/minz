@@ -1,0 +1,7 @@
+=== RUN   TestOriginalPascalStringClassifiersNative
+    showcase_pascal_string_native_test.go:210: default original4entry 769 calls binary88 SHA71b3cbd77630ab8c15bb337e8e61db8a82417707b2e5b5b32db7ff7df97627a2
+    showcase_pascal_string_native_test.go:210: grace-speed original4entry 769 calls binary79 SHA0b96a5804c513f1f533f2377e55cba57a4df2c6c6ada29de356749a1ac0f8bed
+    showcase_pascal_string_native_test.go:210: grace-size original4entry 769 calls binary79 SHA0b96a5804c513f1f533f2377e55cba57a4df2c6c6ada29de356749a1ac0f8bed
+--- PASS: TestOriginalPascalStringClassifiersNative (0.24s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.243s

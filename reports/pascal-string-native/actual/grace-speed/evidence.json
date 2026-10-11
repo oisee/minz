@@ -1,0 +1,6923 @@
+[
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 0,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 1,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 2,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 3,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 4,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 5,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 6,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 7,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 8,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 9,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 10,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 11,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 12,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 13,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 14,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 15,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 16,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 17,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 18,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 19,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 20,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 21,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 22,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 23,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 24,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 25,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 26,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 27,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 28,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 29,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 30,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 31,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 32,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 33,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 34,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 35,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 36,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 37,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 38,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 39,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 40,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 41,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 42,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 43,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 44,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 45,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 46,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 47,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISDIGIT",
+    "expected": 1,
+    "input": 48,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISDIGIT",
+    "expected": 1,
+    "input": 49,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISDIGIT",
+    "expected": 1,
+    "input": 50,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISDIGIT",
+    "expected": 1,
+    "input": 51,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISDIGIT",
+    "expected": 1,
+    "input": 52,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISDIGIT",
+    "expected": 1,
+    "input": 53,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISDIGIT",
+    "expected": 1,
+    "input": 54,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISDIGIT",
+    "expected": 1,
+    "input": 55,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISDIGIT",
+    "expected": 1,
+    "input": 56,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 103,
+    "entry": "ISDIGIT",
+    "expected": 1,
+    "input": 57,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 58,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 59,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 60,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 61,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 62,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 63,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 64,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 65,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 66,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 67,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 68,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 69,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 70,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 71,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 72,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 73,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 74,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 75,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 76,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 77,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 78,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 79,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 80,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 81,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 82,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 83,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 84,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 85,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 86,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 87,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 88,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 89,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 90,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 91,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 92,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 93,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 94,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 95,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 96,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 97,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 98,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 99,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 100,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 101,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 102,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 103,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 104,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 105,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 106,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 107,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 108,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 109,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 110,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 111,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 112,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 113,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 114,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 115,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 116,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 117,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 118,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 119,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 120,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 121,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 122,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 123,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 124,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 125,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 126,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 127,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 128,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 129,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 130,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 131,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 132,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 133,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 134,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 135,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 136,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 137,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 138,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 139,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 140,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 141,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 142,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 143,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 144,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 145,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 146,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 147,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 148,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 149,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 150,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 151,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 152,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 153,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 154,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 155,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 156,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 157,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 158,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 159,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 160,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 161,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 162,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 163,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 164,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 165,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 166,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 167,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 168,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 169,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 170,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 171,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 172,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 173,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 174,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 175,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 176,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 177,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 178,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 179,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 180,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 181,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 182,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 183,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 184,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 185,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 186,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 187,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 188,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 189,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 190,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 191,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 192,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 193,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 194,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 195,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 196,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 197,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 198,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 199,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 200,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 201,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 202,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 203,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 204,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 205,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 206,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 207,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 208,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 209,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 210,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 211,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 212,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 213,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 214,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 215,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 216,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 217,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 218,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 219,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 220,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 221,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 222,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 223,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 224,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 225,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 226,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 227,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 228,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 229,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 230,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 231,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 232,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 233,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 234,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 235,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 236,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 237,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 238,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 239,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 240,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 241,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 242,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 243,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 244,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 245,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 246,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 247,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 248,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 249,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 250,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 251,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 252,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 253,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 254,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISDIGIT",
+    "expected": 0,
+    "input": 255,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 0,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 1,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 2,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 3,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 4,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 5,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 6,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 7,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 8,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 9,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 10,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 11,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 12,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 13,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 14,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 15,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 16,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 17,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 18,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 19,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 20,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 21,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 22,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 23,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 24,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 25,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 26,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 27,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 28,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 29,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 30,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 31,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 32,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 33,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 34,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 35,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 36,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 37,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 38,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 39,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 40,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 41,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 42,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 43,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 44,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 45,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 46,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 47,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 48,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 49,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 50,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 51,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 52,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 53,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 54,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 55,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 56,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 57,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 58,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 59,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 60,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 61,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 62,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 63,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 64,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISUPPER",
+    "expected": 1,
+    "input": 65,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISUPPER",
+    "expected": 1,
+    "input": 66,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISUPPER",
+    "expected": 1,
+    "input": 67,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISUPPER",
+    "expected": 1,
+    "input": 68,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISUPPER",
+    "expected": 1,
+    "input": 69,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISUPPER",
+    "expected": 1,
+    "input": 70,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISUPPER",
+    "expected": 1,
+    "input": 71,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISUPPER",
+    "expected": 1,
+    "input": 72,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISUPPER",
+    "expected": 1,
+    "input": 73,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISUPPER",
+    "expected": 1,
+    "input": 74,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISUPPER",
+    "expected": 1,
+    "input": 75,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISUPPER",
+    "expected": 1,
+    "input": 76,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISUPPER",
+    "expected": 1,
+    "input": 77,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISUPPER",
+    "expected": 1,
+    "input": 78,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISUPPER",
+    "expected": 1,
+    "input": 79,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISUPPER",
+    "expected": 1,
+    "input": 80,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISUPPER",
+    "expected": 1,
+    "input": 81,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISUPPER",
+    "expected": 1,
+    "input": 82,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISUPPER",
+    "expected": 1,
+    "input": 83,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISUPPER",
+    "expected": 1,
+    "input": 84,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISUPPER",
+    "expected": 1,
+    "input": 85,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISUPPER",
+    "expected": 1,
+    "input": 86,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISUPPER",
+    "expected": 1,
+    "input": 87,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISUPPER",
+    "expected": 1,
+    "input": 88,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISUPPER",
+    "expected": 1,
+    "input": 89,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 103,
+    "entry": "ISUPPER",
+    "expected": 1,
+    "input": 90,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 91,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 92,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 93,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 94,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 95,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 96,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 97,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 98,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 99,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 100,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 101,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 102,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 103,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 104,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 105,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 106,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 107,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 108,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 109,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 110,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 111,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 112,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 113,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 114,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 115,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 116,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 117,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 118,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 119,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 120,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 121,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 122,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 123,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 124,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 125,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 126,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 127,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 128,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 129,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 130,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 131,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 132,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 133,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 134,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 135,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 136,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 137,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 138,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 139,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 140,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 141,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 142,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 143,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 144,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 145,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 146,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 147,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 148,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 149,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 150,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 151,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 152,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 153,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 154,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 155,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 156,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 157,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 158,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 159,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 160,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 161,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 162,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 163,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 164,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 165,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 166,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 167,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 168,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 169,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 170,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 171,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 172,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 173,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 174,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 175,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 176,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 177,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 178,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 179,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 180,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 181,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 182,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 183,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 184,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 185,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 186,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 187,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 188,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 189,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 190,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 191,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 192,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 193,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 194,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 195,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 196,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 197,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 198,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 199,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 200,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 201,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 202,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 203,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 204,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 205,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 206,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 207,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 208,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 209,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 210,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 211,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 212,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 213,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 214,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 215,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 216,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 217,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 218,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 219,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 220,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 221,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 222,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 223,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 224,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 225,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 226,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 227,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 228,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 229,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 230,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 231,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 232,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 233,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 234,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 235,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 236,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 237,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 238,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 239,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 240,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 241,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 242,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 243,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 244,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 245,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 246,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 247,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 248,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 249,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 250,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 251,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 252,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 253,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 254,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISUPPER",
+    "expected": 0,
+    "input": 255,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 0,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 1,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 2,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 3,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 4,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 5,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 6,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 7,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 8,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 9,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 10,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 11,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 12,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 13,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 14,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 15,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 16,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 17,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 18,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 19,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 20,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 21,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 22,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 23,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 24,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 25,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 26,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 27,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 28,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 29,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 30,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 31,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 32,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 33,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 34,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 35,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 36,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 37,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 38,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 39,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 40,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 41,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 42,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 43,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 44,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 45,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 46,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 47,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 48,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 49,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 50,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 51,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 52,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 53,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 54,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 55,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 56,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 57,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 58,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 59,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 60,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 61,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 62,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 63,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 64,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 65,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 66,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 67,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 68,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 69,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 70,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 71,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 72,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 73,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 74,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 75,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 76,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 77,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 78,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 79,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 80,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 81,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 82,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 83,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 84,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 85,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 86,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 87,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 88,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 89,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 90,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 91,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 92,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 93,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 94,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 95,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 62,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 96,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISLOWER",
+    "expected": 1,
+    "input": 97,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISLOWER",
+    "expected": 1,
+    "input": 98,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISLOWER",
+    "expected": 1,
+    "input": 99,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISLOWER",
+    "expected": 1,
+    "input": 100,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISLOWER",
+    "expected": 1,
+    "input": 101,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISLOWER",
+    "expected": 1,
+    "input": 102,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISLOWER",
+    "expected": 1,
+    "input": 103,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISLOWER",
+    "expected": 1,
+    "input": 104,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISLOWER",
+    "expected": 1,
+    "input": 105,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISLOWER",
+    "expected": 1,
+    "input": 106,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISLOWER",
+    "expected": 1,
+    "input": 107,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISLOWER",
+    "expected": 1,
+    "input": 108,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISLOWER",
+    "expected": 1,
+    "input": 109,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISLOWER",
+    "expected": 1,
+    "input": 110,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISLOWER",
+    "expected": 1,
+    "input": 111,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISLOWER",
+    "expected": 1,
+    "input": 112,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISLOWER",
+    "expected": 1,
+    "input": 113,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISLOWER",
+    "expected": 1,
+    "input": 114,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISLOWER",
+    "expected": 1,
+    "input": 115,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISLOWER",
+    "expected": 1,
+    "input": 116,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISLOWER",
+    "expected": 1,
+    "input": 117,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISLOWER",
+    "expected": 1,
+    "input": 118,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISLOWER",
+    "expected": 1,
+    "input": 119,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISLOWER",
+    "expected": 1,
+    "input": 120,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 96,
+    "entry": "ISLOWER",
+    "expected": 1,
+    "input": 121,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 103,
+    "entry": "ISLOWER",
+    "expected": 1,
+    "input": 122,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 123,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 124,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 125,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 126,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 127,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 128,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 129,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 130,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 131,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 132,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 133,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 134,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 135,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 136,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 137,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 138,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 139,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 140,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 141,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 142,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 143,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 144,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 145,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 146,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 147,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 148,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 149,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 150,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 151,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 152,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 153,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 154,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 155,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 156,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 157,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 158,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 159,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 160,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 161,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 162,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 163,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 164,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 165,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 166,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 167,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 168,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 169,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 170,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 171,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 172,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 173,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 174,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 175,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 176,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 177,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 178,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 179,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 180,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 181,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 182,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 183,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 184,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 185,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 186,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 187,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 188,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 189,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 190,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 191,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 192,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 193,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 194,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 195,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 196,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 197,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 198,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 199,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 200,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 201,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 202,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 203,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 204,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 205,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 206,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 207,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 208,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 209,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 210,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 211,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 212,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 213,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 214,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 215,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 216,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 217,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 218,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 219,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 220,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 221,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 222,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 223,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 224,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 225,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 226,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 227,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 228,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 229,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 230,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 231,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 232,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 233,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 234,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 235,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 236,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 237,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 238,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 239,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 240,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 241,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 242,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 243,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 244,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 245,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 246,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 247,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 248,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 249,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 250,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 251,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 252,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 253,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 254,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61426,
+    "T": 91,
+    "entry": "ISLOWER",
+    "expected": 0,
+    "input": 255,
+    "minSP": 61422
+  },
+  {
+    "RAM_code_unchanged": true,
+    "SP": 61424,
+    "T": 12,
+    "entry": "main",
+    "expected": 0,
+    "input": 0,
+    "minSP": 61424
+  }
+]
