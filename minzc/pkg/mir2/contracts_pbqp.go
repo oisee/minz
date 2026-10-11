@@ -374,8 +374,10 @@ func pfccoSolve(nodes []pfccoNode, edges []pfccoEdge) []int {
 						}
 						var edgeCost int
 						if isCaller {
-							edgeCost = e.costMatrix[k][j] 						} else {
-							edgeCost = e.costMatrix[j][k] 						}
+							edgeCost = e.costMatrix[k][j]
+						} else {
+							edgeCost = e.costMatrix[j][k]
+						}
 						total := c + edgeCost
 						if total < bestI {
 							bestI = total
@@ -432,8 +434,10 @@ func pfccoSolve(nodes []pfccoNode, edges []pfccoEdge) []int {
 				isCaller := (e.callerIdx == bestNode)
 				var ec int
 				if isCaller {
-					ec = e.costMatrix[k][assignment[other]] 				} else {
-					ec = e.costMatrix[assignment[other]][k] 				}
+					ec = e.costMatrix[k][assignment[other]]
+				} else {
+					ec = e.costMatrix[assignment[other]][k]
+				}
 				total += ec
 			}
 			if total < bestTotal {
@@ -455,14 +459,18 @@ func pfccoSolve(nodes []pfccoNode, edges []pfccoEdge) []int {
 
 		bestChoice := 0
 		bestCost := InfCost
-		for k, c := range nodes[entry.node].costs {
+		// Reduction has accumulated costs from eliminated neighbors here.
+		// Reconstruct using that vector, not the original unary costs.
+		for k, c := range costs[entry.node] {
 			if c >= InfCost {
 				continue
 			}
 			var ec int
 			if isCaller {
-				ec = e.costMatrix[k][nbChoice] 			} else {
-				ec = e.costMatrix[nbChoice][k] 			}
+				ec = e.costMatrix[k][nbChoice]
+			} else {
+				ec = e.costMatrix[nbChoice][k]
+			}
 			total := c + ec
 			if total < bestCost {
 				bestCost = total
