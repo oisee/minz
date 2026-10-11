@@ -34,3 +34,8 @@ Checks before native: model terminalcomplete, regioncapacities and exacthosteven
 semantics independently reviewed, bothsites genuinely reached, persistent resets
 explicit. Then owner samefinalCLI speed+size actual4 for each selected corpus once.
 Reviewers audit saved payloads without extra CPU replay.
+
+The implemented model is explicitly frozen to original source SHA256
+0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526.
+Modified source is refused even with internally consistent evidence hashes.
+Infrastructure/gas failure has no typed semantic denial and is never accepted.

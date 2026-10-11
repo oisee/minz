@@ -3,6 +3,8 @@
 import argparse, base64, gzip, hashlib, json, re
 from pathlib import Path
 
+KNOWN_SOURCE_SHA256 = "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+
 DEFAULTS = {'src_buf':0xc000,'src_len':0,'pos':0,'node_arena':0x8000,
             'node_bump':0x8000,'str_arena':0x9000,'str_bump':0x9000,
             'SEXP_ATOM':1,'SEXP_LIST':2,'SEXP_INT':3}
@@ -122,9 +124,10 @@ class Model:
 def audit(e,source):
     assert e['schema']=='minz.memory-host-baseline/v1'
     sha=hashlib.sha256(Path(source).read_bytes()).hexdigest()
+    assert sha==KNOWN_SOURCE_SHA256, 'independent model is scoped to exact original SelfLanz source'
     assert set(e['function_sites']['source_units'].values())=={sha}
     w=e['workload'];model=Model(w);raw=e['raw']['invocations'];target=e['target']['invocations']
-    assert len(w['calls'])==len(raw)==len(target)
+    assert len(w['calls'])>0 and len(w['calls'])==len(raw)==len(target)
     events=0
     for i,c in enumerate(w['calls']):
         want=model.call(c);events+=len(want['events'])

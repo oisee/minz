@@ -4,7 +4,7 @@
   "files": [
     {
       "path": "docs/grace-memory-host-corpus-oracle/PLAN.md",
-      "sha256": "1f5dbfae9fa58b01046657ce54d73fcccb5725239e441b0d7a372cac92cd976c"
+      "sha256": "0726d06a89f66672532b669c79e85fc38f51355f1bd944c973861546cb77398a"
     },
     {
       "path": "docs/grace-memory-host-corpus-oracle/capacity-review.json",
@@ -40,7 +40,7 @@
     },
     {
       "path": "docs/grace-memory-host-corpus-oracle/verify_corpus.py",
-      "sha256": "d7e6de77a6edfc41251f0caddd9b126ec40d2bd65f51210a11cb42441413b580"
+      "sha256": "110b4334fb33a41ea9665ed8209bc28f5440aa173c9efe1135c248d3a3081076"
     },
     {
       "path": "docs/grace-memory-host-corpus-oracle/workloads/fresh-dominant.json",
@@ -58,5 +58,6 @@
       "path": "docs/grace-memory-host-corpus-oracle/workloads/short-reuse.json",
       "sha256": "bfe1608ab73d8e077eb7da5994a0e8fda8ed256bdac5eadc7cd9bd589415951d"
     }
-  ]
+  ],
+  "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
 }
