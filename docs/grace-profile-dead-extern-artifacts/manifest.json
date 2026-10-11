@@ -1,0 +1,69 @@
+{
+  "files": [
+    {
+      "path": "docs/grace-profile-dead-extern-before.txt",
+      "bytes": 4811,
+      "sha256": "d8c51c4f30db77c504504275c4807c5848c154cba9ba3ec4fa32fe45b216f125"
+    },
+    {
+      "path": "docs/grace-profile-dead-extern-fat-bounded.txt",
+      "bytes": 2578,
+      "sha256": "0ac0cfbff7bb69620e8274930e8a840cb6e8c8167d273c2fb11b1f2a8838b433"
+    },
+    {
+      "path": "docs/grace-profile-dead-extern-fat.txt",
+      "bytes": 3962,
+      "sha256": "73b1a78f226185a1884d66c4cc745d2d5ac463dd837138c57c52d9b1a6e6dac1"
+    },
+    {
+      "path": "docs/grace-profile-dead-extern-focused.txt",
+      "bytes": 89,
+      "sha256": "92f2fe141c51ef828c97797ed86f5a654dd6c3967a5f08d5dba7f7606213f28e"
+    },
+    {
+      "path": "docs/grace-profile-dead-extern-hir.txt",
+      "bytes": 43,
+      "sha256": "3dc838c00c388c0d9e48df6054b8aa0f093eb95454a03d1073f30c5741b4cc9f"
+    },
+    {
+      "path": "docs/grace-profile-dead-extern-new-tests.txt",
+      "bytes": 11291,
+      "sha256": "b3a8ea6b4aa0dd2338a77f714bc0256cd0cd04fbe63488c99c331a47afba117b"
+    },
+    {
+      "path": "docs/grace-profile-dead-extern-artifacts/grace-false.a80",
+      "bytes": 128364,
+      "sha256": "31cd26be3ead98d04117906327a4b206dd6df715dd41c0939fe324c6c0025057"
+    },
+    {
+      "path": "docs/grace-profile-dead-extern-artifacts/grace-false.bin",
+      "bytes": 9543,
+      "sha256": "60803503e50440190c40715fc3aa2c89ad23ba8ac83a301dd6beb91c64612b6c"
+    },
+    {
+      "path": "docs/grace-profile-dead-extern-artifacts/grace-true.a80",
+      "bytes": 129107,
+      "sha256": "9a57e67dcf71281daba6bbdafcd817a24837294e1cca473cf46ca3ef56c18157"
+    },
+    {
+      "path": "docs/grace-profile-dead-extern-artifacts/grace-true.bin",
+      "bytes": 9738,
+      "sha256": "013edc316a17480452ec96fe6414289cafa0c26397bfdd4965cc22fdd24b541e"
+    },
+    {
+      "path": "docs/grace-profile-dead-extern-artifacts/heldout-controlled.json",
+      "bytes": 39962,
+      "sha256": "732b1811fc8eb581ebb53d305d4d974f1b04f7b4121c1c297ae71a6925f0cf98"
+    },
+    {
+      "path": "docs/grace-profile-dead-extern-artifacts/source.nanz",
+      "bytes": 29913,
+      "sha256": "6c11a845959df00dc01471e273f0196e7939121eaa9cb6e1f6206cc492ffbbb5"
+    },
+    {
+      "path": "docs/grace-profile-dead-extern-artifacts/training-controlled.json",
+      "bytes": 20102,
+      "sha256": "19ed6c1473196105eabb7dcb782523008e0317724bf590a2d8319f6bb2e70d89"
+    }
+  ]
+}

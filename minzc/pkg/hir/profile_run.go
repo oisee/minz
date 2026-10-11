@@ -116,6 +116,9 @@ func prepareProfileWorkload(m *Module, w ProfileWorkload) (ProfileWorkload, Prof
 			}
 		}
 	}
+	if err := ValidateProfileWorkloadMIR(m, LowerModule(m), owned); err != nil {
+		return owned, context, err
+	}
 	return owned, context, nil
 }
 
@@ -138,7 +141,14 @@ func RunLoopProfile(m *Module, w ProfileWorkload) (*ProfileRun, error) {
 		return nil, err
 	}
 	// Builtin hosts can touch external I/O or environment. Keep only collector hooks.
-	p.VM.Hosts = p.profileHooks
+	if err := validateProfileWorkloadInstrumentation(m, p, owned); err != nil {
+		return nil, err
+	}
+	p.VM.Hosts = map[string]mir2.HostFunc{}
+	for name, hook := range p.profileHooks {
+		p.VM.Hosts[name] = hook
+	}
+	installProfileDeniedExternHooks(p.VM, m)
 	p.VM.MaxSteps = owned.MaxSteps
 	p.VM.MaxMemory = owned.MaxMemory
 	for _, fn := range p.VM.Module.Funcs {
