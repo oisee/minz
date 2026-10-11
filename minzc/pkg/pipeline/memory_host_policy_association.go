@@ -202,6 +202,10 @@ func LoadMemoryHostLoopProfileEvidenceV2(r io.Reader, source *hir.Module, w hir.
 	if hash(t.Binary) != t.BinarySHA256 || hash([]byte(t.FinalMIRDump)) != t.MIRSHA256 || hash(side) != t.SidecarSHA256 || hash(frames) != t.CallFramesSHA256 || hash(allocation.Bytes()) != t.AllocationSHA256 {
 		return nil, fmt.Errorf("policy association: native hash binding")
 	}
+	// RawMessage preserves JSON presentation whitespace on unmarshal. Native
+	// producer hashes/stores compact allocation bytes; normalize only this
+	// diagnostic representation after exact shape and hash validation.
+	t.AllocationJSON = append(json.RawMessage(nil), allocation.Bytes()...)
 	return p, nil
 }
 

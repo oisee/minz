@@ -67,7 +67,7 @@ func TestMemoryHostPolicyAssociationControl(t *testing.T) {
 				t.Fatal("independent result")
 			}
 		}
-		b, _ := json.Marshal(a)
+		b, _ := json.MarshalIndent(a, "", "  ")
 		s, _ := f()
 		l, e := LoadMemoryHostLoopProfileEvidenceV2(bytes.NewReader(b), s, w, o)
 		if e != nil || !reflect.DeepEqual(l, a) {
