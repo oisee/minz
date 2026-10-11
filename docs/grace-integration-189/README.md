@@ -1,0 +1,5 @@
+# Интеграция 189: исходная Pascal logic/math
+
+Root независимый повтор двух исходных модулей **PASS45,951с**. Все13callableentries,38sourceassertsиunchangedmainпровереныraw/finalVMиZ80,всего4 134 264nativecalls. Byteunary/pairsполные;Add3третьяргумент16frozenзначений;Doubleполныйsigned16битовыйдомендекодированизactualreturnhome. Ожидаемаяsignedарифметикасохранена,VMrawValueбитовоепредставлениеописаноотдельно,production/sourceнеизменены.
+
+Все45manifestpayloadпровереныrootlocal/canonicalshare. Каталог194exactpaths:73independent/bounded,64pending;остальныеограничениясохранены. FullMIR2послеGraceedgefixPASS,старыйpipelinecfaa7777ещёlive. Полныйcurrentgoalнезакрыт.
