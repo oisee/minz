@@ -2,6 +2,8 @@ package pipeline
 
 import (
 	"encoding/json"
+	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -89,13 +91,20 @@ func TestMultiFunctionProfileVMZ80(t *testing.T) {
 		name   string
 		n      int64
 		cycles int
-	}{{"short_sum", 1, 210}, {"long_sum", 40, 1455}} {
+	}{{"short_sum", 1, 260}, {"long_sum", 40, 1455}} {
+		// short_sum: 69 + 191*n; the safe IX-half extension costs 50T
+		// per iteration above the retained old 141T baseline. Pointer long_sum
+		// stays unchanged; the test synthetic selector models remain intentional.
 		want := call.n * (call.n + 1) / 2 & 255
 		values, err := vm.Call(call.name, []mir2.Value{{I: 0x4000}, {I: call.n}})
 		if err != nil || len(values) != 1 || values[0].I != want {
 			t.Fatalf("VM %s: %v %v", call.name, values, err)
 		}
-		cycles, _ := measureProfileZ80(t, parse(), call.name, options, []int64{0x4000, call.n}, memory, want, "")
+		directory := ""
+		if root := os.Getenv("MINZ_MULTI_PROFILE_ARTIFACTS"); root != "" {
+			directory = filepath.Join(root, call.name)
+		}
+		cycles, _ := measureProfileZ80(t, parse(), call.name, options, []int64{0x4000, call.n}, memory, want, directory)
 		if cycles != call.cycles {
 			t.Fatalf("%s cycles=%d want=%d", call.name, cycles, call.cycles)
 		}

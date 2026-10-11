@@ -1,0 +1,5 @@
+--- FAIL: TestMultiFunctionProfileVMZ80 (0.07s)
+    profile_test.go:100: short_sum cycles=260 want=210
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.077s
+FAIL
