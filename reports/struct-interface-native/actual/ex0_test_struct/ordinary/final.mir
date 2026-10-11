@@ -1,0 +1,36 @@
+; MIR2 module: reports/showcase-src/2026-03-11/ex0_test_struct.nanz
+global @acc_g : Acc
+
+fun @Acc_add(%r1: ptr [pointer], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = load %r1 : u8 [general]
+    %r4 = add %r3, %r2 : u8 [acc]
+    store %r1, %r4 : u8
+    %r5 = load %r1 : u8 [acc]
+    ret %r5
+
+fun @Acc_reset(%r6: ptr [pointer])
+  block @entry:
+    %r7 = const 0 : u8 [general]
+    store %r6, %r7 : u8
+    ret void
+
+fun @sum_two(%r8: u8 [general], %r9: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r10 = addr_of @acc_g : ptr [pointer]
+    %r11 = const 0 : u8 [general]
+    store %r10, %r11 : u8
+    %r12 = addr_of @acc_g : ptr [pointer]
+    %r13 = load %r12 : u8 [general]
+    %r14 = add %r13, %r8 : u8 [acc]
+    store %r12, %r14 : u8
+    %r15 = load %r12 : u8 [acc]
+    %r16 = addr_of @acc_g : ptr [pointer]
+    %r17 = load %r16 : u8 [general]
+    %r18 = add %r17, %r9 : u8 [acc]
+    store %r16, %r18 : u8
+    %r19 = load %r16 : u8 [acc]
+    %r20 = addr_of @acc_g : ptr [pointer]
+    %r21 = load %r20 : u8 [acc]
+    ret %r21
+

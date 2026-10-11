@@ -1,0 +1,20 @@
+; MIR2 module: reports/showcase-src/2026-03-10/ex3_iface.nanz
+global @g_dog : Dog
+global @g_cat : Cat
+
+fun @Dog_speak(%r1: Dog [pointer]) -> u8 [acc]
+  block @entry:
+    %r2 = const 1 : u8 [general]
+    ret %r2
+
+fun @Cat_speak(%r3: Cat [pointer]) -> u8 [acc]
+  block @entry:
+    %r4 = const 2 : u8 [general]
+    ret %r4
+
+fun @demo() -> u8 [acc]
+  block @entry:
+    %r5 = addr_of @g_dog : ptr [pointer]
+    %r6 = call @Dog_speak(%r5) : u8 [acc]
+    ret %r6
+

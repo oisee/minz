@@ -1,0 +1,12 @@
+; MIR2 module: reports/showcase-src/2026-03-10/ex3b_iface_param.nanz
+fun @Dog_speak(%r1: Dog [pointer]) -> u8 [acc]
+  block @entry:
+    %r2 = const 1 : u8 [general]
+    ret %r2
+
+fun @feed(%r3: ptr [pointer]) -> u8 [acc]
+  block @entry:
+    %r4 = move %r3 : ptr [pointer]
+    %r5 = call @Dog_speak(%r4) : u8 [acc]
+    ret %r5
+

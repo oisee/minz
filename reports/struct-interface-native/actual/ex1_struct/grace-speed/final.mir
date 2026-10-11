@@ -1,0 +1,35 @@
+; MIR2 module: reports/showcase-src/2026-03-10/ex1_struct.nanz
+global @palette : Color
+
+fun @set_rgb(%r1: u8 [general], %r2: u8 [general], %r3: u8 [general])
+  block @entry:
+    %r4 = addr_of @palette : ptr [pointer]
+    store %r4, %r1 : u8
+    %r5 = addr_of @palette : ptr [pointer]
+    %r6 = field %r5, +1 : ptr [pointer]
+    store %r6, %r2 : u8
+    %r7 = addr_of @palette : ptr [pointer]
+    %r8 = field %r7, +2 : ptr [pointer]
+    store %r8, %r3 : u8
+    ret void
+
+fun @get_r() -> u8 [acc]
+  block @entry:
+    %r9 = addr_of @palette : ptr [pointer]
+    %r10 = load %r9 : u8 [acc]
+    ret %r10
+
+fun @get_g() -> u8 [acc]
+  block @entry:
+    %r11 = addr_of @palette : ptr [pointer]
+    %r12 = field %r11, +1 : ptr [pointer]
+    %r13 = load %r12 : u8 [acc]
+    ret %r13
+
+fun @get_b() -> u8 [acc]
+  block @entry:
+    %r14 = addr_of @palette : ptr [pointer]
+    %r15 = field %r14, +2 : ptr [pointer]
+    %r16 = load %r15 : u8 [acc]
+    ret %r16
+

@@ -1,0 +1,25 @@
+{
+  "calls": {
+    "Acc_add": 131072,
+    "Acc_reset": 512,
+    "sum_two": 65536
+  },
+  "cycles_including_CALL": {
+    "Acc_add": 7340032,
+    "Acc_reset": 18944,
+    "sum_two": 9043968
+  },
+  "execution_sha256": "bcce8c8fbe25cbc2417b63f04416103b7b9df74e061e5443995c0ba3d255696e",
+  "module_bytes": 35,
+  "mutable_object_guard_addresses": {
+    "24576": true,
+    "32802": true,
+    "65535": true
+  },
+  "source_sha256": "7ca3725c6ae9a3dbd3c497a3df7e7d2dc2d62f3acd57a96855db3db50aea78b5",
+  "stack_depths": {
+    "Acc_add": 2,
+    "Acc_reset": 2,
+    "sum_two": 2
+  }
+}
