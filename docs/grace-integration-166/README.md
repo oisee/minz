@@ -1,0 +1,5 @@
+# Интеграция 166: original aggregate corpus после caller buffers
+
+Root checkpointbbe17da0: совместный original Widemath / promoted arithmetic / ex19 native gate **FAIL5,598с**. Единственный reported failure — Widemath newtype_area physical memory traffic: native three recognized events vs historical four. Старый oracle требовал конкретные stack addresses и только (HL) memory opcodes; ABI/copy changes меняют private storage/code forms. Независимый reviewer проверяет, является ли это неполнотой observer/oracle или реальной ошибкой; исправление ожидаемого списка без расследования не выполнено. W8 public memory observer/order, full RAM/code/SP и all26 entries остаются обязательными. Этот FAIL не обесценивается прежним focused struct153nativePASS.
+
+Передан exact failure и ownership review агенту; он владеет только original Widemath test, ABI owner отдельно. Buffered-v2 donor packet38payloads сверены source/share и сохранены canonical compiler-reports/struct-return-lifetime/buffered-v2. FullCLI568b7d08 пока подтверждён running; он предшествует buffers. Общая цель остаётся незавершённой.
