@@ -64,6 +64,8 @@ candidate payloads и пять association baselines. Это не новый PC 
 [Манифест SHA](grace-memory-host-policy-cli-artifacts/manifest.json) ·
 [Независимый аудит](grace-memory-host-policy-cli-artifacts/independent-oracle/FINAL-AUDIT.md).
 Все 358 payloads tracked; после переноса packaged saved-only audit повторно
-PASS330. Полный parent selector pipeline ещё выполняется. Публикация этого
-этапа пока не заявляется. Далее — свежие измерения тех же четырёх workloads
+PASS330. Полный parent selector pipeline **PASS 1241.045 s**. Текущая production
+сборка `393af1d…` также дала те же actual full30 Speed/Size результаты; её
+context проверен отдельно, старые профили не использовались. Публикация
+подготавливается после завершённых gates. Далее — свежие измерения тех же четырёх workloads
 корпуса с явной preserve-speed policy и отдельными контекстами старых сборок.
