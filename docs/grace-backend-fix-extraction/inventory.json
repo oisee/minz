@@ -1,0 +1,250 @@
+{
+  "upstream_main": "4743cb7c7712a0d76413ddf041d93dbfa604df06",
+  "research_tip": "0ff4d2a2",
+  "read_only": true,
+  "donors": [
+    {
+      "commit": "92a7ca2d136cc10ec4ba3fbd6ea1b1f2a0982419",
+      "subject": "fix(mir2): allocate fresh module register IDs after renumbering",
+      "donor_source_paths": [
+        "minzc/pkg/mir2/accsaves_module_test.go",
+        "minzc/pkg/mir2/func.go"
+      ]
+    },
+    {
+      "commit": "1fb9bada455cdc25f511f8f58faec997d2ac3a5f",
+      "subject": "fix: align raw pointer VM semantics and close Grace corpus failures",
+      "donor_source_paths": [
+        "minzc/pkg/mir2/block.go",
+        "minzc/pkg/mir2/grace_load_safety_test.go",
+        "minzc/pkg/mir2/grace_runner.go",
+        "minzc/pkg/mir2/pointer_semantics_test.go",
+        "minzc/pkg/mir2/verify.go",
+        "minzc/pkg/mir2/verify_dominance_test.go",
+        "minzc/pkg/mir2/vm.go",
+        "minzc/pkg/mir2/vm_bounds_test.go",
+        "minzc/pkg/mir2/z80codegen_muldiv.go",
+        "minzc/pkg/pipeline/grace_corpus_regression_test.go",
+        "minzc/pkg/pipeline/grace_z80_measure_test.go",
+        "minzc/pkg/pipeline/hir_grace_pointer_walk_test.go",
+        "minzc/pkg/pipeline/pointer_boundary_z80_test.go"
+      ]
+    },
+    {
+      "commit": "a0e8d2bf1b98e328b847b0bb557beaa50901128d",
+      "subject": "Fix Z80 byte constants without regressing materialized operands",
+      "donor_source_paths": [
+        "minzc/pkg/mir2/z80codegen_alu.go",
+        "minzc/pkg/mir2/z80codegen_byte_constant_acc_test.go"
+      ]
+    },
+    {
+      "commit": "128d25d466803cc97d414a1b7f2ee7c18ca2a0db",
+      "subject": "Preserve live-through Z80 accumulator across comparisons",
+      "donor_source_paths": [
+        "minzc/pkg/mir2/z80codegen_cmp.go",
+        "minzc/pkg/pipeline/foreach_z80_test.go"
+      ]
+    },
+    {
+      "commit": "0db3b115e31374bdf0a1a36e9f231e3b00caa125",
+      "subject": "Fix HIR loop control and MIR rewrite correctness; measure Z80 Grace",
+      "donor_source_paths": [
+        "minzc/pkg/hir/lower.go",
+        "minzc/pkg/hir/lowering_control_audit_test.go",
+        "minzc/pkg/mir2/constant_branch_test.go",
+        "minzc/pkg/mir2/constfold_test.go",
+        "minzc/pkg/mir2/constprop.go",
+        "minzc/pkg/mir2/constprop_width_test.go",
+        "minzc/pkg/mir2/dse.go",
+        "minzc/pkg/mir2/dse_trap_test.go",
+        "minzc/pkg/mir2/grace_pointer_wrap_test.go",
+        "minzc/pkg/mir2/grace_runner.go",
+        "minzc/pkg/mir2/pointer_cse_types_test.go",
+        "minzc/pkg/mir2/vm.go",
+        "minzc/pkg/mir2/vm_bounds_test.go",
+        "minzc/pkg/mir2/z80codegen_inst.go",
+        "minzc/pkg/pipeline/grace_z80_measure_test.go"
+      ]
+    },
+    {
+      "commit": "d96ca790d54cf4cd780655e6726519c4858245c5",
+      "subject": "fix: preserve scalar pointee types and indexed Z80 stores",
+      "donor_source_paths": [
+        "minzc/pkg/hir/grace_hoist.go",
+        "minzc/pkg/hir/hir.go",
+        "minzc/pkg/hir/lower.go",
+        "minzc/pkg/lanz/dump.go",
+        "minzc/pkg/lanz/meta.go",
+        "minzc/pkg/mir2/alloc.go",
+        "minzc/pkg/mir2/contracts.go",
+        "minzc/pkg/mir2/pointer_threading.go",
+        "minzc/pkg/mir2/pointer_types_test.go",
+        "minzc/pkg/mir2/precoalesce.go",
+        "minzc/pkg/mir2/regs.go",
+        "minzc/pkg/mir2/types.go",
+        "minzc/pkg/mir2/z80codegen_call.go",
+        "minzc/pkg/mir2/z80codegen_inst.go",
+        "minzc/pkg/mir2/z80codegen_patterns.go",
+        "minzc/pkg/mir2c/codegen.go",
+        "minzc/pkg/mir2llvm/codegen.go",
+        "minzc/pkg/mir2qbe/codegen.go",
+        "minzc/pkg/nanz/parse.go",
+        "minzc/pkg/nanz/pointer_type_test.go",
+        "minzc/pkg/pipeline/grace_z80_measure_test.go",
+        "minzc/pkg/pipeline/pointer_boundary_z80_test.go",
+        "minzc/pkg/pipeline/typed_pointer_source_test.go"
+      ]
+    },
+    {
+      "commit": "4034461df5e243c0c19fc97c5349c66a960519ea",
+      "subject": "Preserve fold callback effects and map/filter stages; protect live Z80 A on stores",
+      "donor_source_paths": [
+        "minzc/pkg/hir/hir.go",
+        "minzc/pkg/hir/lower.go",
+        "minzc/pkg/mir2/z80codegen_inst.go",
+        "minzc/pkg/nanz/parse.go",
+        "minzc/pkg/pipeline/fold_semantics_test.go"
+      ]
+    },
+    {
+      "commit": "a830946c5aec7eed5f50145d8b20becbf39d46b6",
+      "subject": "fix(z80): preserve live word operands across sequential loop comparisons",
+      "donor_source_paths": [
+        "minzc/pkg/mir2/z80codegen_cmp.go",
+        "minzc/pkg/pipeline/sequential_loops_regression_test.go"
+      ]
+    },
+    {
+      "commit": "3730a68c333db247b4caff3419478a74431d4503",
+      "subject": "Preserve accumulator and flags when spilling word constants through TSMC",
+      "donor_source_paths": [
+        "minzc/pkg/mir2/z80codegen_inst.go",
+        "minzc/pkg/mir2/z80codegen_tsmc_const_live_test.go"
+      ]
+    },
+    {
+      "commit": "9533b4ad3d51b8392ccbbbbaa42bca0d77868aa9",
+      "subject": "fix(z80): preserve live HL across direct global byte stores",
+      "donor_source_paths": [
+        "minzc/pkg/mir2/global_const_store_live_test.go",
+        "minzc/pkg/mir2/z80codegen_inst.go",
+        "minzc/pkg/pipeline/global_hl_store_test.go"
+      ]
+    },
+    {
+      "commit": "76ceefc948d88d0fbab6494d8cf51c652d1d7857",
+      "subject": "Fix range iterator stages, DJNZ argument pruning and live accumulator preservation",
+      "donor_source_paths": [
+        "minzc/pkg/hir/lower.go",
+        "minzc/pkg/mir2/deadblockarg.go",
+        "minzc/pkg/mir2/deadblockarg_djnz_test.go",
+        "minzc/pkg/mir2/dse.go",
+        "minzc/pkg/mir2/z80codegen_alu.go",
+        "minzc/pkg/pipeline/iterator_stage_semantics_test.go"
+      ]
+    },
+    {
+      "commit": "f64de3d3caf3d0cc9c53d1c7e04c63584288580d",
+      "subject": "Lower byte foreach to countdown with correct Z80 edges and measured zero-trip policy",
+      "donor_source_paths": [
+        "minzc/cmd/minzc/hir_profile_auto_test.go",
+        "minzc/cmd/minzc/hir_profile_test.go",
+        "minzc/pkg/hir/lower.go",
+        "minzc/pkg/hir/profile.go",
+        "minzc/pkg/hir/profile_compat.go",
+        "minzc/pkg/hir/profile_context.go",
+        "minzc/pkg/hir/profile_policy.go",
+        "minzc/pkg/hir/profile_policy_test.go",
+        "minzc/pkg/mir2/grace_djnz_redirect_test.go",
+        "minzc/pkg/mir2/grace_runner.go",
+        "minzc/pkg/mir2/z80codegen_djnz_location_test.go",
+        "minzc/pkg/mir2/z80codegen_term.go",
+        "minzc/pkg/nanz/profile_lineage_test.go",
+        "minzc/pkg/pipeline/foreach_djnz_lowering_test.go",
+        "minzc/pkg/pipeline/profile_cost_domain_test.go",
+        "minzc/pkg/pipeline/profile_guided_sum_test.go",
+        "minzc/pkg/pipeline/profile_measure.go",
+        "minzc/pkg/pipeline/profile_measure_test.go",
+        "minzc/pkg/pipeline/profile_test.go",
+        "minzc/pkg/pipeline/seeded_pointer_walk_test.go"
+      ]
+    },
+    {
+      "commit": "a4ac51bda078356dcda6166b77a687a098e36a89",
+      "subject": "fix: preserve live accumulator values and spill homes across recursive Z80 calls",
+      "donor_source_paths": [
+        "minzc/pkg/mir2/accsaves.go",
+        "minzc/pkg/mir2/accsaves_lifetime_test.go",
+        "minzc/pkg/mir2/call_spill_tsmc_test.go",
+        "minzc/pkg/mir2/tsmc_spill.go",
+        "minzc/pkg/mir2/z80codegen_call.go",
+        "minzc/pkg/mir2/z80codegen_call_spill.go",
+        "minzc/pkg/pipeline/pipeline.go"
+      ]
+    },
+    {
+      "commit": "964cb29f05f6fc860a9ae6c00ea54e917eb95c6f",
+      "subject": "fix: preserve string representations and materialize allocated Z80 print bytes",
+      "donor_source_paths": [
+        "minzc/pkg/hir/lower.go",
+        "minzc/pkg/hir/lower_string_print.go",
+        "minzc/pkg/hir/string_print_hygiene_test.go",
+        "minzc/pkg/mir2/string_storage_test.go",
+        "minzc/pkg/mir2/vm.go",
+        "minzc/pkg/mir2/z80codegen.go",
+        "minzc/pkg/mir2/z80codegen_call.go",
+        "minzc/pkg/nanz/parse.go",
+        "minzc/pkg/nanz/string_native_test.go",
+        "minzc/pkg/nanz/string_representation_test.go"
+      ]
+    },
+    {
+      "commit": "e51846f19ff17b43a2cd0cb4f41aec5f4854dc0f",
+      "subject": "fix: emit decimal byte intrinsics with allocated arguments and live register saves",
+      "donor_source_paths": [
+        "minzc/pkg/mir2/z80codegen_call.go",
+        "minzc/pkg/mir2/z80codegen_print.go",
+        "minzc/pkg/mir2/z80codegen_print_test.go",
+        "minzc/pkg/pipeline/decimal_print_e2e_test.go"
+      ]
+    },
+    {
+      "commit": "ffdf877dfeed8558d35bcb10a8a74e51009cc489",
+      "subject": "perf(z80): extract high byte for unsigned word shifts and division",
+      "donor_source_paths": [
+        "minzc/pkg/mir2/word_shift8_codegen_test.go",
+        "minzc/pkg/mir2/z80codegen_alu.go",
+        "minzc/pkg/mir2/z80codegen_muldiv.go"
+      ]
+    },
+    {
+      "commit": "86bfdd16ad0a88549bdc269f9a484420fe7f356a",
+      "subject": "wip(z80): checkpoint reviewed direct global word loads before final gates",
+      "donor_source_paths": [
+        "minzc/pkg/mir2/global_word_direct_pairs_test.go",
+        "minzc/pkg/mir2/z80codegen_inst.go",
+        "minzc/pkg/mir2/z80codegen_patterns.go",
+        "minzc/pkg/pipeline/global_word_direct_recipe_test.go",
+        "minzc/pkg/pipeline/global_word_direct_target_test.go"
+      ]
+    },
+    {
+      "commit": "d16b370b9f01082353c62c4bf7f424585940f866",
+      "subject": "feat: bind explicit comparison policy through pipeline and closed baseline v2",
+      "donor_source_paths": [
+        "minzc/pkg/mir2/unsigned_pair_compare.go",
+        "minzc/pkg/mir2/unsigned_pair_compare_extended_test.go",
+        "minzc/pkg/mir2/unsigned_pair_compare_repeated_test.go",
+        "minzc/pkg/mir2/unsigned_pair_compare_test.go",
+        "minzc/pkg/mir2/z80codegen.go",
+        "minzc/pkg/mir2/z80codegen_cmp.go",
+        "minzc/pkg/pipeline/memory_host_baseline.go",
+        "minzc/pkg/pipeline/memory_host_target.go",
+        "minzc/pkg/pipeline/pipeline.go",
+        "minzc/pkg/pipeline/unsigned_pair_policy.go",
+        "minzc/pkg/pipeline/unsigned_pair_policy_test.go"
+      ]
+    }
+  ]
+}
