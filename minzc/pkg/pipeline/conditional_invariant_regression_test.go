@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/z80asm"
 )
@@ -43,10 +44,10 @@ fun idle()->u16 { return 7 }
 `
 
 func conditionalInvariantWorkload(six bool) (hir.ProfileWorkload, []int64) {
-	w := hir.ProfileWorkload{Schema: "minz.profile-workload/v1", TargetModel: "cpm-z80-v1", MaxSteps: 200000, MaxMemory: 65536}
+	w := hir.ProfileWorkload{Schema: "minz.profile-workload/v1", TargetModel: "cpm-z80-v1", MaxSteps: 1000000, MaxMemory: 65536}
 	var wants []int64
-	for _, ab := range [][2]int64{{65535, 2}, {0x1234, 0x0102}, {32768, 32768}} {
-		for _, n := range []int64{0, 1, 5, 255} {
+	for _, ab := range [][2]int64{{65535, 2}, {0x1234, 0x0102}, {32768, 32768}, {65535, 65535}, {255, 1}, {0, 0}} {
+		for _, n := range []int64{0, 1, 2, 5, 127, 255} {
 			for _, flag := range []int64{0, 1} {
 				args := []int64{ab[0], ab[1]}
 				sum := uint64(ab[0]) + uint64(ab[1])
@@ -63,7 +64,8 @@ func conditionalInvariantWorkload(six bool) (hir.ProfileWorkload, []int64) {
 					call.Arguments = append(call.Arguments, hir.ProfileArgument{Value: &v})
 				}
 				w.Calls = append(w.Calls, call)
-				// Independent modulo-65536 arithmetic, not derived from transformed HIR.
+				// Language Book v7 section 3.2: unsigned widths wrap. Independent
+				// modulo-65536 arithmetic, not derived from transformed HIR.
 				wants = append(wants, int64(uint16(sum*uint64(n))))
 			}
 		}
@@ -144,6 +146,19 @@ func TestConditionalInvariantRegression(t *testing.T) {
 					}
 					conditionalInvariantArtifacts(t, name, steps)
 					w, wants := conditionalInvariantWorkload(fixture.six)
+					if dir := os.Getenv("MINZ_CONDITIONAL_ARTIFACTS"); dir != "" {
+						data, e := json.MarshalIndent(struct {
+							Source   string              `json:"source"`
+							Workload hir.ProfileWorkload `json:"workload"`
+							Expected []int64             `json:"independent_expected"`
+						}{fixture.source, w, wants}, "", "  ")
+						if e != nil {
+							t.Fatal(e)
+						}
+						if e = os.WriteFile(filepath.Join(dir, name, "oracle.json"), data, 0600); e != nil {
+							t.Fatal(e)
+						}
+					}
 					original, err := nanz.Parse(fixture.source, "conditional-invariant.nanz")
 					if err != nil {
 						t.Fatal(err)
@@ -155,6 +170,19 @@ func TestConditionalInvariantRegression(t *testing.T) {
 					for i, want := range wants {
 						if raw.Results[i][0].I != want {
 							t.Fatalf("raw arithmetic call %d got %d want %d", i, raw.Results[i][0].I, want)
+						}
+					}
+					// Execute final production MIR too; preallocation coalescing
+					// deliberately reuses vregs, so do not apply SSA Verify here.
+					vm := mir2.NewVM(steps.MIR2Module)
+					for i, call := range w.Calls {
+						args := []mir2.Value{}
+						for _, arg := range call.Arguments {
+							args = append(args, mir2.Value{I: *arg.Value})
+						}
+						got, e := vm.Call(call.Function, args)
+						if e != nil || len(got) != 1 || got[0].I != wants[i] {
+							t.Fatalf("final MIR independent oracle call%d got%v err%v want%d", i, got, e, wants[i])
 						}
 					}
 					run, err := RunZ80ProfileWorkload(steps, original, w, *raw)

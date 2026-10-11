@@ -169,8 +169,14 @@ func (g *z80cg) materializePendingAcc(upcomingInst *Inst) {
 		g.pendingAccReg = NoReg
 		return
 	}
-	scratch := g.pickScratch8(upcomingInst)
-	g.emitf("    LD %s, A    ; materialize r%d (pendingAcc)", scratch, g.pendingAccReg)
+	scratch := g.freeScratch8(upcomingInst)
+	if scratch == "" {
+		// Every byte may belong to live pairs/counters. Never borrow D:
+		// that would corrupt the high byte of a live invariant in DE.
+		scratch = g.spillLabel(g.pendingAccReg)
+	}
+	g.emitLD8(scratch, "A")
+	g.comment(fmt.Sprintf("materialize r%d (pendingAcc)", g.pendingAccReg))
 	g.physOverride[g.pendingAccReg] = scratch
 	g.pendingAccReg = NoReg
 }
