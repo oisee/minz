@@ -1,6 +1,7 @@
 package pipeline
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/hir"
@@ -43,6 +44,7 @@ func TestCheckedExistingFunctionPointerLeaf(t *testing.T) {
 		t.Fatal(notes)
 	}
 	vm := mir2.NewVM(selected.MIR2Module)
+	rawVM := mir2.NewVM(hir.LowerModule(parse()))
 	beforeSize, _ := checkedAsmSize(base.Assembly)
 	afterSize, _ := checkedAsmSize(selected.Assembly)
 	if afterSize >= beforeSize {
@@ -51,6 +53,19 @@ func TestCheckedExistingFunctionPointerLeaf(t *testing.T) {
 	var bt, st int
 	for x := 0; x < 256; x++ {
 		want := byte(3 * x)
+		for _, modelVM := range []*mir2.VM{rawVM, vm} {
+			for _, entry := range []string{"triple", "double"} {
+				k := int64(3)
+				if entry == "double" {
+					k = 2
+				}
+				args := []mir2.Value{{I: modelVM.GlobalAddr(entry)}, {I: int64(x)}}
+				got, err := modelVM.Call("apply", args)
+				if err != nil || len(got) != 1 || got[0].I != (k*int64(x))&255 {
+					t.Fatalf("VM apply(%s,%d): %v %v", entry, x, got, err)
+				}
+			}
+		}
 		r, e := vm.Call("triple", []mir2.Value{{I: int64(x)}})
 		if e != nil || byte(r[0].I) != want {
 			t.Fatal(x, e)
@@ -92,6 +107,10 @@ func TestCheckedExistingFunctionPointerLeaf(t *testing.T) {
 				t.Fatal(e)
 			}
 			r := z.GetRegisters()
+			memory := z.Memory()
+			if !bytes.Equal(memory[bin.Origin:bin.Origin+len(bin.Binary)], bin.Binary) {
+				t.Fatal("indirect call modified compiled image")
+			}
 			if r.A != byte(3*x) || r.SP != 0xf000 {
 				t.Fatalf("indirect x%d got%d SP%04x ASM%s", x, r.A, r.SP, steps.Assembly)
 			}
