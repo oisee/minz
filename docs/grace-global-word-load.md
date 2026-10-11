@@ -39,8 +39,7 @@ store после загрузки и shared/successor/inlineASM refusal. Зак�
 C895.336/CLI21.181 s PASS; showcase31 прежнее падение,0 новых.
 Первый полный pipeline достиг10m timeout и выявил три старых baseline
 T/SHA assertions. Их reference обновлён по независимо проверенному BIN;
-focused3tests4.173s PASS. Исходный лог сохранён. Полный pipeline повторяется
-с timeout30m; итог будет добавлен после завершения.
+focused3tests4.173s PASS. Исходный лог сохранён. Полный pipeline с timeout30m завершился: **1107.431 s PASS**.
 
 [Прототип и его контекст](grace-global-word-load-artifacts/prototype/evidence/README.md) ·
 [Текущая CLI](grace-global-word-load-artifacts/cli-production/README.md) ·

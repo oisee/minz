@@ -1,6 +1,6 @@
 # Ночной итог Grace / PGO — 11 октября 2026
 
-Актуально на 08:36 UTC. Цель продолжается: проверяемая оптимизация реальных
+Актуально на 08:38 UTC. Цель продолжается: проверяемая оптимизация реальных
 программ от исходника через HIR/MIR до собранного Z80-бинарника. MIR VM —
 промежуточный oracle; итоговые варианты исполняются в Z80-эмуляторе с проверкой
 результатов, памяти, порядка ресурсных обращений, размера и T-states.
@@ -18,7 +18,7 @@
 - Реализованы отдельные arena-first и append-copy преобразования, совместный
   selector четырёх вариантов, typed precompile proofs и явный opt-in CLI.
   Решение использует фактические T-states/байты, сохраняет выбранные ASM/BIN.
-- Последний полный pipeline: **569.037 s PASS**. После добавления CLI его
+- Последний полный pipeline: **1107.431 s PASS**. После добавления CLI его
   общие тесты: **30.102 s PASS**. Showcase: **31 прежнее падение, 0 новых**.
   Последующие этапы меняли только workloads, артефакты и документацию;
   повторный полный pipeline для них не заявляется.
@@ -85,20 +85,20 @@ intern_region (71370 T) и region_match (3099 T). Cur239391 T и parse236919 T
 Backend direct global u16→DE/BC прототип дал measured gain на whole30:
 original1221494→1135370 T,2091→2000 B; both1147025→1079636 T,2197→2099 B.
 Независимые fullstate/events/native SHA аудиты прошли. Пять frozen source/test
-файлов интегрированы; общий pipeline повторяется с timeout30m. HIR22.104/MIR5.174/
+файлов интегрированы; общий pipeline завершился1107.431s PASS. HIR22.104/MIR5.174/
 Nanz1.592/Lanz0.015/C895.336/CLI21.181 s PASS; showcase31same0new.
 Новая production CLI dba34 имеет собственные свежие профили: full30speed/
 size и short collect прошли, same-executable replay завершает проверку.
 Final CLI saved-audit прошёл. Первый pipeline упёрся в 10m timeout и
 выявил три устаревших baseline T/SHA assertions. Их reference обновлён
 по независимо проверенному новому BIN; focused3tests4.173s PASS.
-Полный suite повторяется с timeout30m; до его результата этап не закрыт
-и не опубликован. Логи первого отказа сохранены.
-Final suite с timeout30m продолжается, процесс активен. Отдельный
+Полный suite завершился1107.431s PASS; backend этап закрыт,
+итоговая публикация готовится. Логи первого отказа сохранены.
+Final suite с timeout30m завершился: **1107.431 s PASS**. Отдельный
 artifact-only corpus refresh на dba завершён: все четыре speed-набора
 выбрали append-only вместо прежнего both;32candidate/8profiles/8decisions
 прошли два независимых аудита. Пакет7df6632e перенесён; savedgzip
-проверка после переноса PASS. Publication ждёт текущий общий suite.
+проверка после переноса PASS. Полный suite прошёл; публикация готовится.
 Inputs и планы новых проверок committed/pushed в постоянных ветках.
 Production checkpoint сохраняется как WIP; аудитированные старые этапы
 остаются доступными. Диагностический PC hook в production не переносился.

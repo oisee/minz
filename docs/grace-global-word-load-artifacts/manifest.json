@@ -861,6 +861,11 @@
       "sha256": "826ddb07732c7a78e5268876fe729d645ba82e8416c0f51816a710f9347ebf93"
     },
     {
+      "path": "gates/root-pipeline-final.txt",
+      "bytes": 50,
+      "sha256": "7beffa988fb851a0f41df1e09d51e0d618cecdd7eb51f417ae49edb96ee0d544"
+    },
+    {
       "path": "gates/root-pipeline-initial-timeout.txt",
       "bytes": 12469,
       "sha256": "ee81982a8f788aa45ae93d5ca60b39a57af6546dbb5203e264b8c3254f84d046"
