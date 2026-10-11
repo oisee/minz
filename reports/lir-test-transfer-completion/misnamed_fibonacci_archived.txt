@@ -1,0 +1,53 @@
+func TestE2E_Fibonacci(t *testing.T) {
+	machines := []*MachineDesc{RISC32, RISC8, CISC, MICRO}
+
+	// Fibonacci(n): a=0, b=1, loop n times: tmp=a+b, a=b, b=tmp. Return a.
+	// Using registers: r0=n, r1=a, r2=b, r3=tmp, r4=counter
+	// Unrolled for 6 iterations (n=6, fib(6)=8)
+	//
+	// For now, test a simpler computation that exercises the same patterns:
+	// f(x) = ((x + 3) - 1) * 1 = x + 2
+	// Tests: const, add, sub, chaining.
+
+	for _, m := range machines {
+		// r0 = 40; r1 = 3; r2 = r0 + r1; r3 = 1; r4 = r2 - r3
+		// Result: r4 = 40 + 3 - 1 = 42
+		ops := []MIROp{
+			{Op: OpConst, Dst: 0, Src: [2]int{-1, -1}, Imm: 40, Width: 8},
+			{Op: OpConst, Dst: 1, Src: [2]int{-1, -1}, Imm: 3, Width: 8},
+			{Op: OpAdd, Dst: 2, Src: [2]int{0, 1}, Width: 8},
+			{Op: OpConst, Dst: 3, Src: [2]int{-1, -1}, Imm: 1, Width: 8},
+			{Op: OpSub, Dst: 4, Src: [2]int{2, 3}, Width: 8},
+		}
+
+		sel, err := SelectInstructions(m, ops)
+		if err != nil {
+			t.Fatalf("%s isel: %v", m.Name, err)
+		}
+
+		wfc := NewWFCState(m, sel.Insts)
+		iters := wfc.Propagate()
+		if err := wfc.Collapse(); err != nil {
+			t.Fatalf("%s collapse: %v", m.Name, err)
+		}
+
+		insts := wfc.ToInsts()
+		vm := NewVM(m)
+		for i := range insts {
+			if err := vm.ExecInst(&insts[i]); err != nil {
+				t.Fatalf("%s exec[%d]: %v", m.Name, i, err)
+			}
+		}
+
+		last := insts[len(insts)-1]
+		result := vm.Get(last.Dst.Phys)
+		t.Logf("%s: WFC(%d iters, %d insts) → (40+3)-1 = %d @%s",
+			m.Name, iters, len(insts), result, m.Locs[last.Dst.Phys].Name)
+
+		if result != 42 {
+			t.Errorf("%s: DIVERGENCE — got %d, want 42", m.Name, result)
+		}
+	}
+}
+
+// TestE2E_BitwiseOps tests AND/OR/XOR across all machines.

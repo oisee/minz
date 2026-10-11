@@ -1,0 +1,22 @@
+func TestNativeCompositionExecution(t *testing.T) {
+	for _, tc := range nativeCompositionFixtures() {
+		t.Run(tc.name, func(t *testing.T) {
+			hm, err := nanz.Parse(tc.src, "critic.nanz")
+			if err != nil {
+				t.Fatal(err)
+			}
+			count := 65536
+			if tc.arity == 1 {
+				count = 256
+			}
+			inputs := func(i int) []int64 {
+				a := []int64{int64(i & 255), int64((i >> 8) & 255), 3, 4}
+				return a[:tc.arity]
+			}
+			bad, first := sweepCodegenJudge(t, hm.Funcs, tc.name, count, inputs, tc.model)
+			if bad != 0 {
+				t.Fatalf("native %d/%d mismatches (%s)", bad, count, first)
+			}
+		})
+	}
+}

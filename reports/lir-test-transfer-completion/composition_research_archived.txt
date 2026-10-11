@@ -1,0 +1,42 @@
+func TestLIRResearchCompositions(t *testing.T) {
+	for _, tc := range lirCompositionFixtures() {
+		t.Run(tc.name, func(t *testing.T) {
+			if os.Getenv("MINZ_RUN_KNOWN_RED") != "1" {
+				t.Skipf("2026-10-02: native LIR %s: %s; MINZ_RUN_KNOWN_RED=1 runs full exhaustive u8 domain", tc.name, tc.measured)
+			}
+			hm, err := nanz.Parse(tc.src, "critic.nanz")
+			if err != nil {
+				t.Fatal(err)
+			}
+			count := int(uint64(1) << (8 * tc.arity))
+			if limit := os.Getenv("MINZ_RESEARCH_LIMIT"); limit != "" {
+				n, err := strconv.Atoi(limit)
+				if err != nil || n <= 0 {
+					t.Fatal("invalid research prefix limit")
+				}
+				if n < count {
+					count = n
+				}
+				t.Logf("PREFIX ONLY: %d inputs of %d", count, uint64(1)<<(8*tc.arity))
+			}
+			inputs := func(i int) []int64 {
+				a := make([]int64, tc.arity)
+				for k := range a {
+					a[k] = int64((i >> (8 * k)) & 255)
+				}
+				return a
+			}
+			bad, first := sweepCodegenJudge(t, hm.Funcs, tc.name, count, inputs, tc.model, true)
+			if bad != 0 {
+				t.Fatalf("%s: %d/%d mismatches: %s", tc.name, bad, count, first)
+			}
+			if os.Getenv("MINZ_RESEARCH_LIMIT") != "" {
+				t.Fatalf("prefix measurement only: %d/%d mismatches; rerun full domain", bad, count)
+			}
+		})
+	}
+}
+
+// Production checks use the same source fixtures and independent models. Two
+// byte arguments are exhausted while remaining arguments take the critic's
+// values; the research opt-in above retains the full Cartesian domains.
