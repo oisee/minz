@@ -1,0 +1,3 @@
+PASS CLI whole-v2/policy/proofs/profile sums/source/current exe/decisions exactsaved bytes {'run': 'speed', 'policy': 1, 'goal': 'speed', 'calls': 30, 'costs': [1132449, 1132290, 1076874, 1076715], 'bytes': [2001, 2122, 1979, 2100], 'selected': 3}
+PASS CLI whole-v2/policy/proofs/profile sums/source/current exe/decisions exactsaved bytes {'run': 'size', 'policy': 1, 'goal': 'size', 'calls': 30, 'costs': [1132449, 1132290, 1076874, 1076715], 'bytes': [2001, 2122, 1979, 2100], 'selected': 2}
+PASS production fullspeed/size same4 actual candidates under preservedexe; wholepolicy/proofs/decisions bytebinding. No CPU replay.
