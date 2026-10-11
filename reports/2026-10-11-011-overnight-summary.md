@@ -274,3 +274,6 @@ https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-choice-b
 completion/failedsample/counter mutations реального1bdprofile сявной
 пометкой происхождения. Genuinefailedsameexeprofileexport не реализуем
 в этом artifact-only шаге. Цельпродолжается, source/exeunchanged.
+
+Офлайн Sites45 проверена:12757 файлов,55 страниц,0 потерянных ссылок
+и внешних зависимостей; архивы читаются.
