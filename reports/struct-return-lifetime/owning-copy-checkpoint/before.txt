@@ -1,0 +1,6 @@
+=== RUN   TestStructReturnNestedAndRecursiveNative
+    struct_return_lifetime_test.go:241: VM nested retained_loop 0 [{2}] <nil> 0
+--- FAIL: TestStructReturnNestedAndRecursiveNative (0.03s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.041s
+FAIL

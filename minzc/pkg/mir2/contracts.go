@@ -96,7 +96,7 @@ func optimizeContractsGreedy(m *Module, ct CostTable) ContractSet {
 			}
 			// Skip extern/no-body/address-taken/asm functions — their contract is fixed by the ABI.
 			// Functions with inline asm have hard register constraints that must not be changed.
-			if f.Attrs.FallibleCY || f.Attrs.IsExtern || len(f.Blocks) == 0 || addrTaken[name] || funcHasAsm(f) {
+			if f.Attrs.FixedIndirectABI || f.Attrs.FallibleCY || f.Attrs.IsExtern || len(f.Blocks) == 0 || addrTaken[name] || funcHasAsm(f) {
 				if cs[name] == nil {
 					cs[name] = currentChoice(f)
 					changed = true

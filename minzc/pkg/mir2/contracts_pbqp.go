@@ -63,7 +63,7 @@ func OptimizeContractsPBQP(m *Module, ct CostTable) ContractSet {
 		var costs []int
 
 		// Fixed-convention functions: extern, address-taken, asm — single choice.
-		if f.Attrs.FallibleCY || f.Attrs.IsExtern || len(f.Blocks) == 0 || addrTaken[f.Name] || funcHasAsm(f) {
+		if f.Attrs.FixedIndirectABI || f.Attrs.FallibleCY || f.Attrs.IsExtern || len(f.Blocks) == 0 || addrTaken[f.Name] || funcHasAsm(f) {
 			ch := currentChoice(f)
 			choices = []*ContractChoice{ch}
 			costs = []int{0}

@@ -230,7 +230,7 @@ func DumpInst(inst *Inst) string {
 		}
 	}
 
-	if len(inst.IndirectParamTys) > 0 {
+	if len(inst.IndirectParamTys) > 0 || len(inst.IndirectReturnTys) > 0 {
 		fmt.Fprintf(&sb, " [indirect-abi %v -> %v]", inst.IndirectParamTys, inst.IndirectReturnTys)
 	}
 	for _, slot := range inst.StructReturnBuffers {

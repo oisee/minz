@@ -175,8 +175,12 @@ func (g *z80cg) genCall(inst *Inst) error {
 			callee.Contract.Params = append(callee.Contract.Params, Param{Ty: ty, Class: standardParamClass(ty, i)})
 		}
 		callee.Contract.StructReturnBuffers = inst.StructReturnBuffers
-		if inst.Dst != NoReg {
-			callee.Contract.Returns = []Return{{Ty: inst.Ty, Class: ClassAcc}}
+		returns := inst.IndirectReturnTys
+		if len(returns) == 0 && inst.Dst != NoReg {
+			returns = []Ty{inst.Ty}
+		}
+		for i, ty := range returns {
+			callee.Contract.Returns = append(callee.Contract.Returns, Return{Ty: ty, Class: standardIndirectReturnClass(ty, i)})
 		}
 	} else if g.mod != nil {
 		// Resolve on emitted symbols. Never discard an ABI to handle ambiguity.
@@ -535,7 +539,7 @@ func (g *z80cg) emitCallArgs(args []Reg, callee *Func) {
 		// Use the callee's actual allocated register for the param if available
 		// (from PBQP). Fall back to canonical class-based location otherwise.
 		dstPhys := ""
-		if loc, ok := g.ar.Locs[param.Reg]; ok && loc.Name != "" {
+		if loc, ok := g.ar.Locs[param.Reg]; ok && loc.Name != "" && !callee.Attrs.FixedIndirectABI {
 			if loc.Kind == LocMem && callee.Name != "" && len(callee.Blocks) > 0 {
 				// Production codegen reads the callee's named spill slot, not
 				// the allocator's provisional $F0xx offset.

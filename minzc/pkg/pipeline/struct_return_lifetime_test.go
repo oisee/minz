@@ -88,6 +88,14 @@ func TestStructReturnLifetimeBufferedNative(t *testing.T) {
 					arg := []uint16{x, y}[pi]
 					loc := assertParamLocation(param, steps.Allocation)
 					switch loc.Name {
+					case "IYH":
+						regs.IY = regs.IY&255 | arg<<8
+					case "IYL":
+						regs.IY = regs.IY&0xff00 | arg
+					case "IXH":
+						regs.IX = regs.IX&255 | arg<<8
+					case "IXL":
+						regs.IX = regs.IX&0xff00 | arg
 					case "A":
 						regs.A = byte(arg)
 					case "C":
@@ -160,7 +168,23 @@ return a.b+u16(a.a)}
 fun indirect(f:fun(u8)->Outer,x:u8,y:u8)->u16 {let a:Outer=f(x)
 let q:u8=disturb(83)
 return a.inner.b+u16(a.inner.a)}
-fun invoke(x:u8,y:u8)->u16{return indirect(build,x,y)}`
+fun invoke(x:u8,y:u8)->u16{return indirect(build,x,y)}
+fun retained_loop(x:u8,y:u8)->u16 {
+var kept:Outer=build(x)
+var i:u8=0
+while i<3 {
+let item:Outer=build(i)
+if i==0 {kept=item}
+i=i+1
+}
+return u16(kept.inner.a)
+}
+fun independent_copy(x:u8,y:u8)->u16 {
+let first:Outer=build(x)
+var second:Outer=first
+second.inner.a=y
+return u16(first.inner.a)
+}`
 	for modeIndex, opt := range []Options{{ContractOpt: true}, {ContractOpt: true, UseGrace: true}, {ContractOpt: true, UseGrace: true, OptSize: true}} {
 		h, e := nanz.Parse(source, "nested-result.nanz")
 		if e != nil {
@@ -206,7 +230,7 @@ fun invoke(x:u8,y:u8)->u16{return indirect(build,x,y)}`
 		z := emulator.NewRemogattoZ80()
 		z.LoadMemory(0x8000, a.Binary)
 		for _, x := range []uint16{0, 1, 2, 3, 7, 15, 127, 128, 255} {
-			for _, name := range []string{"nested", "invoke", "recursive"} {
+			for _, name := range []string{"nested", "invoke", "recursive", "retained_loop", "independent_copy"} {
 				if e = z.LoadMemory(0x8000, a.Binary); e != nil {
 					t.Fatal(e)
 				}
@@ -214,6 +238,12 @@ fun invoke(x:u8,y:u8)->u16{return indirect(build,x,y)}`
 					continue
 				}
 				want := 2*x + 256
+				if name == "retained_loop" {
+					want = 0
+				}
+				if name == "independent_copy" {
+					want = x
+				}
 				if name == "recursive" {
 					want = uint16((int(x)+1)*256 + int(x)*(int(x)+1)/2 + int(x))
 				}
@@ -229,6 +259,14 @@ fun invoke(x:u8,y:u8)->u16{return indirect(build,x,y)}`
 					val := []uint16{x, 83}[pi]
 					loc := assertParamLocation(p, s.Allocation)
 					switch loc.Name {
+					case "IYH":
+						r.IY = r.IY&255 | val<<8
+					case "IYL":
+						r.IY = r.IY&0xff00 | val
+					case "IXH":
+						r.IX = r.IX&255 | val<<8
+					case "IXL":
+						r.IX = r.IX&0xff00 | val
 					case "A":
 						r.A = byte(val)
 					case "C":
@@ -270,7 +308,7 @@ fun invoke(x:u8,y:u8)->u16{return indirect(build,x,y)}`
 				if !done {
 					t.Fatalf("native nested return %s %d pc%x SP%x regs%+v", name, x, z.GetPC(), z.GetSP(), z.GetRegisters())
 				}
-				if z.Memory()[scratchAddress] != 83 {
+				if (name == "nested" || name == "invoke" || name == "recursive") && z.Memory()[scratchAddress] != 83 {
 					t.Fatalf("native scratch %s x%d: got %d want 83", name, x, z.Memory()[scratchAddress])
 				}
 				copy(before[int(minSP):0xeff0], z.Memory()[int(minSP):0xeff0])
