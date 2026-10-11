@@ -1,0 +1,2 @@
+command: ['/tmp/minzc-pfcco-tokenizer', '/home/alice/dev/minz-artifacts/grace-workspaces/pfcco-self-tokenizer/examples/nanz/self_tokenizer.nanz', '--Osize', '--asserts', 'none', '--contract-strategy', 'pbqp', '-o', '/home/alice/dev/minz-artifacts/grace-workspaces/pfcco-self-tokenizer/reports/artifacts/pfcco-tokenizer/pbqp-cli.a80']
+exit: 0

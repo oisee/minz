@@ -1,0 +1,2 @@
+command: ['/tmp/minzc-pfcco-tokenizer', '/home/alice/dev/minz-artifacts/grace-workspaces/pfcco-self-tokenizer/examples/nanz/self_tokenizer.nanz', '--Osize', '--asserts', 'none', '--contract-strategy', 'greedy', '-o', '/home/alice/dev/minz-artifacts/grace-workspaces/pfcco-self-tokenizer/reports/artifacts/pfcco-tokenizer/greedy-cli.a80']
+exit: 0

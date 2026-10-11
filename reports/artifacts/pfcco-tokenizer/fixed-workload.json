@@ -1,0 +1,28 @@
+{
+  "schema": "minz.pfcco-tokenizer-rendering-test/v1",
+  "declared_before_timing": true,
+  "source_sha256": "d893df00710b7f1105b8bfb58342aca1c1f8cce7eb674037a8d6ca41b91b0689",
+  "base": "40897f43",
+  "options": {
+    "ContractOpt": true,
+    "OptSize": true,
+    "AssertMode": "none",
+    "Runtime": "",
+    "RuntimeStackBytes": 0
+  },
+  "strategies": [
+    "",
+    "pbqp"
+  ],
+  "calls": [
+    "init_keywords",
+    "tokenize_all(input0)",
+    "print_all_tokens",
+    "tokenize_all(input1)",
+    "print_all_tokens"
+  ],
+  "inputs": [
+    "var buffer_name = 255\nif true { return buffer_name + 1 } // tail\n",
+    "alpha alpha beta + 007 <= 9 != 0 / \"literal\""
+  ]
+}
