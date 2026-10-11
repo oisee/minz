@@ -1,0 +1,22 @@
+[
+  {
+    "path": "count.txt",
+    "bytes": 6,
+    "sha256": "e33849110febd754f26da3dca7b293285b3f6e732ab6e7f1d76b9f8e3670e883"
+  },
+  {
+    "path": "signed_arithmetic.a80",
+    "bytes": 4756,
+    "sha256": "c4a151d5cadffe7dcd48cecef1540c8d0f1eb5be20990d6746927f7aaad8a042"
+  },
+  {
+    "path": "signed_arithmetic.bin",
+    "bytes": 253,
+    "sha256": "3b58d46664313c2c7d6e3faa9fb15f32db057b8f851920c9f65266434aa5942d"
+  },
+  {
+    "path": "signed_arithmetic.nanz",
+    "bytes": 1878,
+    "sha256": "7a5860570b48508e67af293b9cc34ab86b66fc32b1f278efd34b382908b59f45"
+  }
+]
