@@ -1,0 +1,14 @@
+{
+  "files": [
+    {
+      "path": "docs/grace-integration-102/root-selector.txt",
+      "bytes": 8351,
+      "sha256": "29506e7378ea68ece8cd31a6133ac67e1fd847ca165e52e24cc117601a6074c6"
+    },
+    {
+      "path": "docs/grace-integration-102/README.md",
+      "bytes": 1463,
+      "sha256": "603b67f8ca2acf7b3f9765ff72331ac6ec9b27d5b84e2236e6bd3bff2c67df0c"
+    }
+  ]
+}

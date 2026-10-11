@@ -6,7 +6,7 @@
 
 ## Новый этап: единый backend без LIR
 
-Сводка дополнена на `a517cd5b`; результаты прежних сборок ниже сохраняют
+Сводка дополнена на `0591a7a3`; результаты прежних сборок ниже сохраняют
 свой исходный контекст. Общая цель из [плана](../reports/2026-10-11-017-unified-backend-roadmap.md)
 ещё активна: корректность заявленного корпуса, проверенные контракты и таблицы,
 выигрыш Grace на разных программах и заранее отложенных нагрузках.
@@ -383,3 +383,5 @@ Root historicalcoverage118 functions PASS19.091с:9admitted,3smaller/4equal/2lar
 Третий packed FAT flags fix закрыт: root все108 native/VM cases PASS42.23с; полныйMIR2/VIR PASS. Новый ENRT checkpoint index подтверждает прежний triple выигрыш, rootnative PASS2.001с. Автоматический FAT selector ещё не заявлен. [Пакет099](grace-integration-099/README.md).
 
 Selector ownership fix c0a7e49f удерживает отсоединённые HIR nodes/storage, предотвращая ложное shared-ownership после GC. Реальное разделение по-прежнему отклоняется; root GC/selector refusals PASS. [Пакет100](grace-integration-100/README.md).
+
+Полный FAT public selector теперь rootPASS24.301с: Speed/Size выбирают baseline5572T9543B, exactsameBIN frozenheldout36calls11199T. Нового выигрышанет; большие/медленные альтернативы отвергнуты. [Пакет102](grace-integration-102/README.md).
