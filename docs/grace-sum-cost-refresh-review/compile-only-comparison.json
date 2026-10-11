@@ -1,0 +1,14 @@
+{
+  "original": {
+    "sum_function_assembly_unchanged": true,
+    "old_module_bytes": 128,
+    "current_module_bytes": 147,
+    "function_assembly_sha256": "fd1e34a856784c84ad7b5f9dc4ca7f0abd9671086c7c9e3f2c6550f8bc24ed02"
+  },
+  "pointer-walk": {
+    "sum_function_assembly_unchanged": false,
+    "old_module_bytes": 177,
+    "current_module_bytes": 202,
+    "function_assembly_sha256": "aee31211eafc74eae1f6869e775adb9c4bd98684071de5384eab772ff8610892"
+  }
+}
