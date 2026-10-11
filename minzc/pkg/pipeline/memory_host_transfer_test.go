@@ -82,6 +82,86 @@ func prepareFrozenTransfer(i frozenTransferInput) (*hir.Module, hir.MemoryHostWo
 	}
 	return m, owned, nil
 }
+
+type frozenTransferGuard struct {
+	expected      *hir.Module
+	workload      hir.MemoryHostWorkload
+	factory       func() (*hir.Module, error)
+	ctx           hir.ProfileContext
+	compatibility *hir.ProfileCompatibility
+	functions     *hir.FunctionSiteMap
+	roots         []any
+	originals     []*hir.Module
+	seen          map[uintptr]bool
+	calls         int
+}
+
+func newFrozenTransferGuard(expected *hir.Module, w hir.MemoryHostWorkload, factory func() (*hir.Module, error)) (*frozenTransferGuard, error) {
+	_, ctx, err := hir.PrepareMemoryHostWorkload(expected, w)
+	if err != nil {
+		return nil, err
+	}
+	k, err := hir.BuildProfileCompatibility(expected, ctx)
+	if err != nil {
+		return nil, err
+	}
+	f, err := hir.BuildFunctionSiteMap(expected)
+	if err != nil {
+		return nil, err
+	}
+	return &frozenTransferGuard{expected: expected, workload: w, factory: factory, ctx: ctx, compatibility: k, functions: f, roots: []any{expected}, seen: map[uintptr]bool{}}, nil
+}
+func (g *frozenTransferGuard) identity(m *hir.Module) error {
+	_, ctx, e := hir.PrepareMemoryHostWorkload(m, g.workload)
+	if e != nil {
+		return e
+	}
+	k, e := hir.BuildProfileCompatibility(m, ctx)
+	if e != nil {
+		return e
+	}
+	f, e := hir.BuildFunctionSiteMap(m)
+	if e != nil {
+		return e
+	}
+	if !reflect.DeepEqual(k, g.compatibility) || !reflect.DeepEqual(f, g.functions) || !reflect.DeepEqual(m.Asserts, g.expected.Asserts) || !reflect.DeepEqual(m.Sandboxes, g.expected.Sandboxes) || !reflect.DeepEqual(m.AssertStats, g.expected.AssertStats) || !reflect.DeepEqual(m.Warnings, g.expected.Warnings) {
+		return fmt.Errorf("frozen transfer: source differs from independent original")
+	}
+	return nil
+}
+func (g *frozenTransferGuard) check() error {
+	for _, m := range g.originals {
+		if e := g.identity(m); e != nil {
+			return e
+		}
+	}
+	return nil
+}
+func (g *frozenTransferGuard) fresh() (*hir.Module, error) {
+	if e := g.check(); e != nil {
+		return nil, e
+	}
+	g.calls++
+	m, e := g.factory()
+	if e != nil {
+		return nil, e
+	}
+	if m == nil {
+		return nil, fmt.Errorf("frozen transfer: nil original")
+	}
+	if e = jointCheckFreshHIR(m, g.seen); e != nil {
+		return nil, e
+	}
+	retainArenaSourceGraph(m, &g.roots)
+	if e = g.identity(m); e != nil {
+		return nil, e
+	}
+	if e = g.check(); e != nil {
+		return nil, e
+	}
+	return m, nil
+}
+
 func runFrozenTransfer(factory func() (*hir.Module, error), input frozenTransferInput) (*frozenTransferEvidence, error) {
 	// Own every byte before invoking caller-owned original factories.
 	i := input
@@ -97,18 +177,14 @@ func runFrozenTransfer(factory func() (*hir.Module, error), input frozenTransfer
 	if factory == nil {
 		return nil, fmt.Errorf("frozen transfer: missing factory")
 	}
-	_, ctx, err := hir.PrepareMemoryHostWorkload(expected, w)
+	guard, err := newFrozenTransferGuard(expected, w, factory)
 	if err != nil {
 		return nil, err
 	}
-	compatibility, err := hir.BuildProfileCompatibility(expected, ctx)
-	if err != nil {
-		return nil, err
-	}
-	functions, err := hir.BuildFunctionSiteMap(expected)
-	if err != nil {
-		return nil, err
-	}
+	defer func() { runtime.KeepAlive(guard) }()
+	check := guard.check
+	fresh := guard.fresh
+	ctx := guard.ctx
 	loops, err := hir.BuildLoopSiteMap(expected)
 	if err != nil {
 		return nil, err
@@ -116,61 +192,6 @@ func runFrozenTransfer(factory func() (*hir.Module, error), input frozenTransfer
 	sites, err := memoryHostArenaAppendSourceSites(loops)
 	if err != nil {
 		return nil, err
-	}
-	factoryCalls := 0
-	roots := []any{expected}
-	originals := []*hir.Module{}
-	seen := map[uintptr]bool{}
-	defer func() { runtime.KeepAlive(roots); runtime.KeepAlive(originals) }()
-	identity := func(m *hir.Module) error {
-		_, c, e := hir.PrepareMemoryHostWorkload(m, w)
-		if e != nil {
-			return e
-		}
-		k, e := hir.BuildProfileCompatibility(m, c)
-		if e != nil {
-			return e
-		}
-		f, e := hir.BuildFunctionSiteMap(m)
-		if e != nil {
-			return e
-		}
-		if !reflect.DeepEqual(k, compatibility) || !reflect.DeepEqual(f, functions) || !reflect.DeepEqual(m.Asserts, expected.Asserts) || !reflect.DeepEqual(m.Sandboxes, expected.Sandboxes) || !reflect.DeepEqual(m.AssertStats, expected.AssertStats) || !reflect.DeepEqual(m.Warnings, expected.Warnings) {
-			return fmt.Errorf("frozen transfer: source differs from independent original")
-		}
-		return nil
-	}
-	check := func() error {
-		for _, m := range originals {
-			if e := identity(m); e != nil {
-				return e
-			}
-		}
-		return nil
-	}
-	fresh := func() (*hir.Module, error) {
-		if e := check(); e != nil {
-			return nil, e
-		}
-		factoryCalls++
-		m, e := factory()
-		if e != nil {
-			return nil, e
-		}
-		if m == nil {
-			return nil, fmt.Errorf("frozen transfer: nil original")
-		}
-		if e = jointCheckFreshHIR(m, seen); e != nil {
-			return nil, e
-		}
-		retainArenaSourceGraph(m, &roots)
-		if e = identity(m); e != nil {
-			return nil, e
-		}
-		if e = check(); e != nil {
-			return nil, e
-		}
-		return m, nil
 	}
 	out := &frozenTransferEvidence{Schema: "minz.frozen-choice-transfer-evaluation/v1", TrainingExecutableSHA256: "0d6df9fbf769bdcca6969717449f587ff856b0c7d38d525b78129811abe0de12", EvaluationExecutableID: ctx.CompilerID, TrainingDecisionSHA256: [2]string{frozenTransferSHA(i.TrainingSpeed), frozenTransferSHA(i.TrainingSize)}, PreregistrationSHA256: frozenTransferSHA(i.Preregistration), SourceSHA256: frozenTransferSHA(i.Source), WorkloadSHA256: frozenTransferSHA(i.Workload), SourceName: i.SourceName, WorkloadName: i.WorkloadName, Entries: []frozenTransferEntry{}}
 	samePolicy := map[mir2.UnsignedPairComparePolicy]*MemoryHostBaselineEvidenceV2{}
@@ -186,7 +207,7 @@ func runFrozenTransfer(factory func() (*hir.Module, error), input frozenTransfer
 			if e != nil {
 				return nil, e
 			}
-			originals = append(originals, original)
+			guard.originals = append(guard.originals, original)
 			actual := original
 			if tuple.Mask != 0 {
 				actual, e = fresh()
@@ -209,7 +230,7 @@ func runFrozenTransfer(factory func() (*hir.Module, error), input frozenTransfer
 			// The second callback is normally compiled and may be mutated by the
 			// compiler. Exclude only this known private copy from immutable originals.
 			if tuple.Mask == 0 && calls == 2 {
-				originals = originals[:len(originals)-1]
+				guard.originals = guard.originals[:len(guard.originals)-1]
 			}
 			if e = check(); e != nil {
 				return nil, e
@@ -265,10 +286,10 @@ func runFrozenTransfer(factory func() (*hir.Module, error), input frozenTransfer
 	if err = check(); err != nil {
 		return nil, err
 	}
-	if factoryCalls != 18 {
+	if guard.calls != 18 {
 		return nil, fmt.Errorf("frozen transfer: expected18 original factory returns")
 	}
-	out.FactoryCalls = factoryCalls
+	out.FactoryCalls = guard.calls
 	return out, nil
 }
 
@@ -462,6 +483,7 @@ func TestFrozenTransferExport(t *testing.T) {
 		}
 		calls := 0
 		factory := func() (*hir.Module, error) {
+			runtime.GC()
 			calls++
 			m, err := nanz.Parse(string(input.Source), input.SourceName)
 			if err == nil {
@@ -499,5 +521,70 @@ func TestFrozenTransferExport(t *testing.T) {
 		if calls != 18 || evidence.FactoryCalls != 18 || len(evidence.Entries) != 4 {
 			t.Fatal("fixed evaluator lifecycle", calls)
 		}
+	}
+}
+
+func TestFrozenTransferGuardLateAndGC(t *testing.T) {
+	input := frozenTransferFixture(t, "short-reuse")
+	for _, kind := range []string{"late-origin", "shared-body", "positive"} {
+		t.Run(kind, func(t *testing.T) {
+			expected, w, err := prepareFrozenTransfer(input)
+			if err != nil {
+				t.Fatal(err)
+			}
+			calls := 0
+			var first *hir.Module
+			factory := func() (*hir.Module, error) {
+				calls++
+				runtime.GC()
+				m, err := nanz.Parse(string(input.Source), input.SourceName)
+				if err != nil {
+					return nil, err
+				}
+				m.Target = hir.TargetCPM
+				if calls == 1 {
+					first = m
+				}
+				if calls == 18 {
+					switch kind {
+					case "late-origin":
+						stmt := first.FuncByName("intern_region").Body.Body[5]
+						loc := first.SourceLocations[stmt]
+						loc.ByteOffset++
+						first.SourceLocations[stmt] = loc
+					case "shared-body":
+						m.FuncByName("region_match").Body = first.FuncByName("region_match").Body
+					}
+				}
+				return m, nil
+			}
+			guard, err := newFrozenTransferGuard(expected, w, factory)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer runtime.KeepAlive(guard)
+			for i := 1; i <= 18; i++ {
+				m, err := guard.fresh()
+				if kind != "positive" && i == 18 {
+					if err == nil || m != nil {
+						t.Fatal("late shared/origin admitted", kind)
+					}
+					if calls != 18 {
+						t.Fatal("late path not reached")
+					}
+					return
+				}
+				if err != nil {
+					t.Fatal(err)
+				}
+				guard.originals = append(guard.originals, m)
+			}
+			if kind != "positive" {
+				t.Fatal("negative not triggered")
+			}
+			if err = guard.check(); err != nil || guard.calls != 18 {
+				t.Fatal("strong-root GC retention", err, guard.calls)
+			}
+		})
 	}
 }
