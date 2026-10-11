@@ -55,3 +55,27 @@ func TestCPMRuntimeGuardedAdmission(t *testing.T) {
 		}
 	}
 }
+
+func TestCPMRuntimeRejectsBranchBypassOfGuard(t *testing.T) {
+	entry := strings.Replace(cpmRuntimeEntry, "    CALL main", "    CALL __cpm_stack_check\n    CALL main", 1)
+	for _, branch := range []string{"JP", "JP Z,", "JR", "JR NZ,"} {
+		body := "main:\n " + branch + " unsafe_growth\n CALL __cpm_stack_check\nunsafe_growth:\n PUSH AF\n POP AF\n RET\n"
+		code := entry + body + cpmRuntimeGuardedTail(64)
+		if e := validateCPMRuntimeAssemblyMode(code, true); e == nil {
+			t.Fatalf("branch bypass admitted: %s", branch)
+		}
+	}
+}
+
+func TestCPMRuntimeConditionalCallGuardPaths(t *testing.T) {
+	entry := strings.Replace(cpmRuntimeEntry, "    CALL main", "    CALL __cpm_stack_check\n    CALL main", 1)
+	body := "main:\n CALL __cpm_stack_check\n CALL Z, helper\n RET\nhelper:\n CALL __cpm_stack_check\n PUSH AF\n POP AF\n RET\n"
+	if e := validateCPMRuntimeAssemblyMode(entry+body+cpmRuntimeGuardedTail(64), true); e != nil {
+		t.Fatal(e)
+	}
+	bypass := strings.Replace(body, "main:\n", "main:\n JP NZ, unsafe_call\n", 1)
+	bypass = strings.Replace(bypass, " CALL Z, helper", "unsafe_call:\n CALL Z, helper", 1)
+	if e := validateCPMRuntimeAssemblyMode(entry+bypass+cpmRuntimeGuardedTail(64), true); e == nil {
+		t.Fatal("conditional call bypass admitted")
+	}
+}

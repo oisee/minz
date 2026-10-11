@@ -185,6 +185,7 @@ func validateCPMRuntimeAssemblyMode(assembly string, guarded bool) error {
 	type frame struct{ next, base, entry int }
 	type state struct {
 		pc, depth int
+		checked   bool
 		frames    []frame
 	}
 	seen := map[string]bool{}
@@ -193,7 +194,7 @@ func validateCPMRuntimeAssemblyMode(assembly string, guarded bool) error {
 	for len(queue) > 0 {
 		s := queue[len(queue)-1]
 		queue = queue[:len(queue)-1]
-		key := fmt.Sprintf("%d/%d/%v", s.pc, s.depth, s.frames)
+		key := fmt.Sprintf("%d/%d/%t/%v", s.pc, s.depth, s.checked, s.frames)
 		if seen[key] {
 			continue
 		}
@@ -220,6 +221,9 @@ func validateCPMRuntimeAssemblyMode(assembly string, guarded bool) error {
 			}
 			return int(v), nil
 		}
+		if guarded && (op == "PUSH" || op == "CALL" && rest != "__cpm_stack_check") && !s.checked {
+			return fmt.Errorf("CP/M runtime stack growth reached without executing guard at %04x", s.pc)
+		}
 		switch op {
 		case "RST":
 			return fmt.Errorf("CP/M runtime unproved RST call")
@@ -233,6 +237,7 @@ func validateCPMRuntimeAssemblyMode(assembly string, guarded bool) error {
 			next.depth -= 2
 		case "CALL":
 			if guarded && rest == "__cpm_stack_check" {
+				next.checked = true
 				break
 			}
 			parts := strings.Split(rest, ",")
