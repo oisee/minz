@@ -1,0 +1,6 @@
+=== RUN   TestHashmapSlotPrototypePersistentProgram
+    hashmap_slot_prototype_test.go:269: Z80 profile workload: invocation 3 @map_put: global mismatch: map_keys got [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 5 0] want [13 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 5 0]
+--- FAIL: TestHashmapSlotPrototypePersistentProgram (0.25s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.260s
+FAIL

@@ -1,0 +1,5 @@
+=== RUN   TestHashmapSlotPrototypeRawTables
+    hashmap_slot_prototype_test.go:395: independent raw table calls 22032
+--- PASS: TestHashmapSlotPrototypeRawTables (2.71s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.714s

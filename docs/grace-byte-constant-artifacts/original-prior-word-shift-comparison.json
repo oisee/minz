@@ -1,0 +1,22 @@
+[
+  {
+    "file": "source.nanz",
+    "sha256": "2caa7c16db7371f6f1ef6eecfa8c767e58d9d961c5bdfdbfccda1fb6e613c3f8",
+    "exact_bytes_equal": true
+  },
+  {
+    "file": "baseline.a80",
+    "sha256": "2ed450bc4ea7723d441d64a841b1b886f54803af6ad2b44e5378f30d5294d03d",
+    "exact_bytes_equal": true
+  },
+  {
+    "file": "baseline.bin",
+    "sha256": "0390aa22f7b028216e55bca731f3ca1bb4e91ab06e70ddead41e756235034860",
+    "exact_bytes_equal": true
+  },
+  {
+    "file": "workload.json",
+    "sha256": "3d0d9070d4ea6934b8294498aac2c2b565c62d87abb9f3718b7c63454c6c03a9",
+    "exact_bytes_equal": true
+  }
+]

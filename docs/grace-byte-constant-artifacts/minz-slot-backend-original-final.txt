@@ -1,0 +1,5 @@
+=== RUN   TestOriginalHashmapPersistentProgram
+    hashmap_program_test.go:283: original persistent hashmap36 calls 134827T/986B
+--- PASS: TestOriginalHashmapPersistentProgram (0.30s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.304s

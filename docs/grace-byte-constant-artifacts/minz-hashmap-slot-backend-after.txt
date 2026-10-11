@@ -1,0 +1,5 @@
+=== RUN   TestHashmapSlotPrototypePersistentProgram
+    hashmap_slot_prototype_test.go:291: original persistent hashmap36 calls 142187T/1049B
+--- PASS: TestHashmapSlotPrototypePersistentProgram (0.28s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.292s
