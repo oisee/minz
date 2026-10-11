@@ -1,0 +1,55 @@
+destination-tail-denial.json error=memory host: invocation 1: block @loop_body9: memory host: undeclared write at 36866
+ completed1 failed1
+ intern_region body/s1 entries1 body0
+ region_match body/s1 entries1 body0
+ intern_region body/s5 entries1 body2
+ call0 error= failure=<nil> events0
+ call1 error=block @loop_body9: memory host: undeclared write at 36866 failure=memory host: undeclared write at 36866 events4
+first-equal.json error=<nil>
+ completed2 failed0
+ intern_region body/s1 entries1 body0
+ region_match body/s1 entries1 body1
+ intern_region body/s5 entries1 body0
+ call0 error= failure=<nil> events2
+ call1 error= failure=<nil> events1
+first-mismatch.json error=<nil>
+ completed2 failed0
+ intern_region body/s1 entries1 body0
+ region_match body/s1 entries1 body1
+ intern_region body/s5 entries1 body0
+ call0 error= failure=<nil> events2
+ call1 error= failure=<nil> events1
+instruction-budget.json error=memory host: invocation 0: mir2.VM: gas limit reached (1 steps)
+ completed0 failed1
+ intern_region body/s1 entries0 body0
+ region_match body/s1 entries0 body0
+ intern_region body/s5 entries0 body0
+ call0 error=mir2.VM: gas limit reached (1 steps) failure=<nil> events0
+read-only-header-denial.json error=memory host: invocation 1: block @loop_exit3: memory host: read-only write at 36864
+ completed1 failed1
+ intern_region body/s1 entries1 body0
+ region_match body/s1 entries1 body0
+ intern_region body/s5 entries0 body0
+ call0 error= failure=<nil> events0
+ call1 error=block @loop_exit3: memory host: read-only write at 36864 failure=memory host: read-only write at 36864 events0
+source-tail-denial.json error=memory host: invocation 1: block @loop_body9: memory host: undeclared read at 49153
+ completed1 failed1
+ intern_region body/s1 entries1 body0
+ region_match body/s1 entries1 body0
+ intern_region body/s5 entries1 body2
+ call0 error= failure=<nil> events0
+ call1 error=block @loop_body9: memory host: undeclared read at 49153 failure=memory host: undeclared read at 49153 events3
+unobserved-append.json error=<nil>
+ completed2 failed0
+ intern_region body/s1 entries1 body1
+ region_match body/s1 entries2 body2
+ intern_region body/s5 entries0 body0
+ call0 error= failure=<nil> events2
+ call1 error= failure=<nil> events3
+zero-body.json error=<nil>
+ completed2 failed0
+ intern_region body/s1 entries1 body0
+ region_match body/s1 entries1 body0
+ intern_region body/s5 entries1 body0
+ call0 error= failure=<nil> events0
+ call1 error= failure=<nil> events1

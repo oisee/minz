@@ -1,0 +1,7 @@
+PASS raw8 exactsourceprefixes/fullstate; semanticFailedCalls vs gasnilFailure/unobservedappend
+PASS zero-body speed selected 1 costs [784, 763, 948, 927]
+PASS zero-body size selected 2 costs [784, 763, 948, 927]
+PASS first-equal speed selected 1 costs [1672, 1587, 1836, 1751]
+PASS first-equal size selected 2 costs [1672, 1587, 1836, 1751]
+PASS first-mismatch speed selected 1 costs [1608, 1564, 1772, 1728]
+PASS first-mismatch size selected 2 costs [1608, 1564, 1772, 1728]

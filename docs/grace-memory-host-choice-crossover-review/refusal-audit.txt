@@ -1,0 +1,6 @@
+PASS refusal unobserved-append nonzero/nooutputdir/noacceptedselection both exact sites must be observed
+PASS refusal source-tail-denial nonzero/nooutputdir/noacceptedselection undeclared read at 49153
+PASS refusal destination-tail-denial nonzero/nooutputdir/noacceptedselection undeclared write at 36866
+PASS refusal read-only-header-denial nonzero/nooutputdir/noacceptedselection read-only write at 36864
+PASS refusal instruction-budget nonzero/nooutputdir/noacceptedselection gas limit reached
+PASS11statuses6positive5refused

@@ -1,0 +1,68 @@
+[
+  {
+    "workload": "zero-body",
+    "goal": "speed",
+    "exit_code": 0,
+    "selected_artifact_exists": true
+  },
+  {
+    "workload": "zero-body",
+    "goal": "size",
+    "exit_code": 0,
+    "selected_artifact_exists": true
+  },
+  {
+    "workload": "first-equal",
+    "goal": "speed",
+    "exit_code": 0,
+    "selected_artifact_exists": true
+  },
+  {
+    "workload": "first-equal",
+    "goal": "size",
+    "exit_code": 0,
+    "selected_artifact_exists": true
+  },
+  {
+    "workload": "first-mismatch",
+    "goal": "speed",
+    "exit_code": 0,
+    "selected_artifact_exists": true
+  },
+  {
+    "workload": "first-mismatch",
+    "goal": "size",
+    "exit_code": 0,
+    "selected_artifact_exists": true
+  },
+  {
+    "workload": "unobserved-append",
+    "goal": "refusal",
+    "exit_code": 1,
+    "selected_artifact_exists": false
+  },
+  {
+    "workload": "source-tail-denial",
+    "goal": "refusal",
+    "exit_code": 1,
+    "selected_artifact_exists": false
+  },
+  {
+    "workload": "destination-tail-denial",
+    "goal": "refusal",
+    "exit_code": 1,
+    "selected_artifact_exists": false
+  },
+  {
+    "workload": "read-only-header-denial",
+    "goal": "refusal",
+    "exit_code": 1,
+    "selected_artifact_exists": false
+  },
+  {
+    "workload": "instruction-budget",
+    "goal": "refusal",
+    "exit_code": 1,
+    "selected_artifact_exists": false
+  }
+]
