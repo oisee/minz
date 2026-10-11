@@ -1,0 +1,2 @@
+From minzc/pkg/pipeline:
+CONSUMED_CALLBACK_EXPORT=/absolute/output LIZP_CALLBACK_DIAGNOSTIC=1 LIZP_FUNCTIONAL_EXPORT=/absolute/original-output /absolute/path/pipeline.test -test.run TestConsumedCallback\|TestOriginalLizpFunctionalComplete\|TestLizpErasedCallbackSignatureDiagnostic -test.count=1 -test.v

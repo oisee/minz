@@ -1,0 +1,54 @@
+;; functional.lizp — Lambda + let* + case showcase
+;;
+;; Demonstrates Scheme/Lisp features that were ported from Frill:
+;;   (fn params retty body)   — anonymous lambda
+;;   (let* bindings body)     — scoped let-in chain
+;;   (case expr clauses...)   — pattern match on values
+
+;; ── Higher-order: apply a function ────────────────────────────────────
+
+(defun apply ((f ptr) (x u8)) -> u8
+  (return (funcall f x)))
+
+;; ── Lambda: anonymous inline functions ────────────────────────────────
+
+(defun test-double () -> u8
+  (return (apply (fn ((x u8)) u8 (return (+ x x))) 5)))
+
+(assert test-double == 10 via mir2)
+
+;; ── Let*: scoped bindings (like ML let-in) ────────────────────────────
+
+(defun pythag-sq ((x u8) (y u8)) -> u8
+  (return (let* ((xx u8 (* x x))
+                 (yy u8 (* y y)))
+    (+ xx yy))))
+
+(assert pythag-sq 3 4 == 25 via mir2)
+(assert pythag-sq 5 0 == 25 via mir2)
+
+;; ── Case: value-based pattern match ───────────────────────────────────
+
+(defun weekday ((d u8)) -> u8
+  (return (case d
+    (0 77)    ;; 'M' = Monday
+    (1 84)    ;; 'T' = Tuesday
+    (2 87)    ;; 'W' = Wednesday
+    (_ 63)))) ;; '?' = unknown
+
+(assert weekday 0 == 77 via mir2)
+(assert weekday 1 == 84 via mir2)
+(assert weekday 2 == 87 via mir2)
+(assert weekday 6 == 63 via mir2)
+
+;; ── Combining all three ──────────────────────────────────────────────
+
+(defun transform ((mode u8) (val u8)) -> u8
+  (return (case mode
+    (0 (apply (fn ((x u8)) u8 (return (+ x x))) val))
+    (1 (apply (fn ((x u8)) u8 (return (+ x 10))) val))
+    (_ val))))
+
+(assert transform 0 5 == 10 via mir2)
+(assert transform 1 5 == 15 via mir2)
+(assert transform 2 5 == 5 via mir2)
