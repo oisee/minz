@@ -1,0 +1,9 @@
+{
+  "compiler_commit": "e13e04a3",
+  "command": "mir2-e13e04a3.test -test.count=1 -test.timeout=10m",
+  "required_cwd": "compiler/minzc/pkg/mir2",
+  "sha256": "84710b7447a3d8d76d93a5fb31a851c4e4f9fec8fedf1e9fd510114f0686931b",
+  "local": "/home/alice/dev/minz-artifacts/grace-checkpoints/mir2-e13e04a3.test",
+  "share": "/mnt/safe/minz/grace/2026-10-11/compiler-checkpoints/mir2-e13e04a3.test",
+  "status": "prepared; terminal pending"
+}
