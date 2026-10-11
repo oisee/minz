@@ -1,0 +1,44 @@
+=== RUN   TestDWordCycleOrdinarySource
+--- PASS: TestDWordCycleOrdinarySource (0.07s)
+=== RUN   TestU32ActualOperationsNative
+=== RUN   TestU32ActualOperationsNative/dynamic_shl
+=== RUN   TestU32ActualOperationsNative/dynamic_shr
+=== RUN   TestU32ActualOperationsNative/callxor
+=== RUN   TestU32ActualOperationsNative/add
+=== RUN   TestU32ActualOperationsNative/sub
+=== RUN   TestU32ActualOperationsNative/shl1
+=== RUN   TestU32ActualOperationsNative/shl16
+=== RUN   TestU32ActualOperationsNative/shr1
+=== RUN   TestU32ActualOperationsNative/shr16
+=== RUN   TestU32ActualOperationsNative/xor
+=== RUN   TestU32ActualOperationsNative/and
+=== RUN   TestU32ActualOperationsNative/or
+=== RUN   TestU32ActualOperationsNative/ror7
+=== RUN   TestU32ActualOperationsNative/rotate0
+=== RUN   TestU32ActualOperationsNative/rotate1
+=== RUN   TestU32ActualOperationsNative/rotate7
+=== RUN   TestU32ActualOperationsNative/rotate16
+=== RUN   TestU32ActualOperationsNative/rotate31
+=== RUN   TestU32ActualOperationsNative/rotate32
+--- PASS: TestU32ActualOperationsNative (1.54s)
+    --- PASS: TestU32ActualOperationsNative/dynamic_shl (0.09s)
+    --- PASS: TestU32ActualOperationsNative/dynamic_shr (0.09s)
+    --- PASS: TestU32ActualOperationsNative/callxor (0.11s)
+    --- PASS: TestU32ActualOperationsNative/add (0.04s)
+    --- PASS: TestU32ActualOperationsNative/sub (0.04s)
+    --- PASS: TestU32ActualOperationsNative/shl1 (0.04s)
+    --- PASS: TestU32ActualOperationsNative/shl16 (0.06s)
+    --- PASS: TestU32ActualOperationsNative/shr1 (0.04s)
+    --- PASS: TestU32ActualOperationsNative/shr16 (0.06s)
+    --- PASS: TestU32ActualOperationsNative/xor (0.04s)
+    --- PASS: TestU32ActualOperationsNative/and (0.04s)
+    --- PASS: TestU32ActualOperationsNative/or (0.04s)
+    --- PASS: TestU32ActualOperationsNative/ror7 (0.11s)
+    --- PASS: TestU32ActualOperationsNative/rotate0 (0.11s)
+    --- PASS: TestU32ActualOperationsNative/rotate1 (0.11s)
+    --- PASS: TestU32ActualOperationsNative/rotate7 (0.12s)
+    --- PASS: TestU32ActualOperationsNative/rotate16 (0.12s)
+    --- PASS: TestU32ActualOperationsNative/rotate31 (0.13s)
+    --- PASS: TestU32ActualOperationsNative/rotate32 (0.13s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.614s

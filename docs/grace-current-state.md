@@ -450,3 +450,11 @@ VM/native случаев в ordinary ContractOpt режиме; root PASS0,884 с
 прошли root focused replay23,127 с; metadata tamper controls и native
 workload guards сохранены. [Пакет121](grace-integration-121/README.md).
 Это не новый общий fullsuite PASS.
+
+## Wide edge copies и retained executable
+
+Исправлен реальный u32 swap-loop miscompile: теперь edge copies сохраняют
+оба банка до записи destinations. Root source/regression PASS1,614 с;
+полный MIR2 PASS20,940 с. Отдельный popcount evidence теперь содержит
+точный executable; root replay этого файла PASS.
+[Пакет123](grace-integration-123/README.md).
