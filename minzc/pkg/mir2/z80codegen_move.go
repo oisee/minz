@@ -233,24 +233,24 @@ func (g *z80cg) emitLD8(dst, src string) {
 	if srcSpill && dstSpill {
 		// Spill-to-spill: route through shadow A.
 		g.emit("    EX AF, AF'")
-		g.emitf("    LD A, (%s)", src)
-		g.emitf("    LD (%s), A", dst)
+		g.emitNativeSpillf(src, 0, 1, false, "    LD A, (%s)", src)
+		g.emitNativeSpillf(dst, 0, 1, true, "    LD (%s), A", dst)
 		g.emit("    EX AF, AF'")
 	} else if srcSpill && dst == "A" {
-		g.emitf("    LD A, (%s)", src)
+		g.emitNativeSpillf(src, 0, 1, false, "    LD A, (%s)", src)
 	} else if srcSpill {
 		// Load spill to non-A register via shadow A.
 		g.emit("    EX AF, AF'")
-		g.emitf("    LD A, (%s)", src)
+		g.emitNativeSpillf(src, 0, 1, false, "    LD A, (%s)", src)
 		g.emitLD8(dst, "A")
 		g.emit("    EX AF, AF'")
 	} else if dstSpill && src == "A" {
-		g.emitf("    LD (%s), A", dst)
+		g.emitNativeSpillf(dst, 0, 1, true, "    LD (%s), A", dst)
 	} else if dstSpill {
 		// Store non-A register to spill via shadow A.
 		g.emit("    EX AF, AF'")
 		g.emitf("    LD A, %s", src)
-		g.emitf("    LD (%s), A", dst)
+		g.emitNativeSpillf(dst, 0, 1, true, "    LD (%s), A", dst)
 		g.emit("    EX AF, AF'")
 	} else {
 		g.emitf("    LD %s, %s", dst, src)
@@ -284,7 +284,7 @@ func (g *z80cg) loadSpill8(dst, src string) {
 				return
 			}
 		}
-		g.emitf("    LD A, (%s)", src)
+		g.emitNativeSpillf(src, 0, 1, false, "    LD A, (%s)", src)
 	} else {
 		if pair := g.tsmcPairByAddr(src); pair != nil {
 			label := g.tsmcReloadLabel(pair.reg, g.blockIdx, g.curInstIdx, 0)
@@ -293,7 +293,7 @@ func (g *z80cg) loadSpill8(dst, src string) {
 				return
 			}
 		}
-		g.emitf("    LD A, (%s)", src)
+		g.emitNativeSpillf(src, 0, 1, false, "    LD A, (%s)", src)
 		g.emitLD8(dst, "A")
 		g.invalidate("A")
 	}
@@ -307,7 +307,7 @@ func (g *z80cg) storeSpill8(dst, src string) {
 	if pair := g.tsmcPairByAddr(dst); pair != nil {
 		g.emitTSMCSpill(pair, "A")
 	} else {
-		g.emitf("    LD (%s), A", dst)
+		g.emitNativeSpillf(dst, 0, 1, true, "    LD (%s), A", dst)
 	}
 }
 
@@ -320,7 +320,7 @@ func (g *z80cg) loadSpill16(dst, src string) {
 			return
 		}
 	}
-	g.emitf("    LD %s, (%s)", dst, src)
+	g.emitNativeSpillf(src, 0, 2, false, "    LD %s, (%s)", dst, src)
 }
 
 // storeSpill16 stores a 16-bit pair to a spill address.
@@ -329,7 +329,7 @@ func (g *z80cg) storeSpill16(dst, src string) {
 		g.emitTSMCSpill(pair, src)
 	} else {
 		// Z80: only LD (nn),HL is native. DE/BC/SP need ED prefix (supported).
-		g.emitf("    LD (%s), %s", dst, src)
+		g.emitNativeSpillf(dst, 0, 2, true, "    LD (%s), %s", dst, src)
 	}
 }
 

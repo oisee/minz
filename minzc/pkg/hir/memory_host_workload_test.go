@@ -266,3 +266,23 @@ func TestMemoryHostGlobalProofRejectsModularOffsetLaundering(t *testing.T) {
 		t.Fatal(out, err)
 	}
 }
+
+func TestMemoryHostGlobalOriginsMeetAllCFGPredecessors(t *testing.T) {
+	// One path defines a global, another reaches the same load via BrIf2 carrying
+	// an unknown numeric pointer. Ignoring that edge would launder global access.
+	f := &mir2.Func{Name: "join", Blocks: []*mir2.Block{
+		{Label: "entry", Term: &mir2.TermBrIf{Then: "known", Else: "unknown"}},
+		{Label: "known", Insts: []*mir2.Inst{{Op: mir2.OpAddrOf, Dst: 1, Sym: "g", Ty: mir2.TyPtr}}, Term: &mir2.TermJmp{Target: "join"}},
+		{Label: "unknown", Insts: []*mir2.Inst{{Op: mir2.OpConst, Dst: 1, Imm: 0, Ty: mir2.TyPtr}}, Term: &mir2.TermBrIf2{Eq: "join", Lt: "exit", Gt: "exit"}},
+		{Label: "join", Insts: []*mir2.Inst{{Op: mir2.OpLoad, Dst: 2, Src: [2]mir2.Reg{1}, Ty: mir2.TyU8}}, Term: &mir2.TermRet{Vals: []mir2.Reg{2}}},
+		{Label: "exit", Term: &mir2.TermRet{}}}}
+	m := &mir2.Module{Funcs: []*mir2.Func{f}, Globals: []mir2.Global{{Name: "g", Ty: mir2.TyU8}}}
+	if _, ok := hir.MemoryHostGlobalOrigins(m)[f.Blocks[3].Insts[0]]; ok {
+		t.Fatal("unknown BrIf2 predecessor omitted")
+	}
+	// A later coalesced register definition changes the symbolic value locally.
+	f.Blocks[3].Insts = append([]*mir2.Inst{{Op: mir2.OpAddrOf, Dst: 1, Sym: "g", Ty: mir2.TyPtr}}, f.Blocks[3].Insts...)
+	if _, ok := hir.MemoryHostGlobalOrigins(m)[f.Blocks[3].Insts[1]]; !ok {
+		t.Fatal("actual local reachingglobaldefinition not recognized")
+	}
+}

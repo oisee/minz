@@ -115,11 +115,11 @@ func (g *z80cg) genInst(inst *Inst) {
 					// Traditional spill
 					if w <= 8 {
 						g.emitf("    LD A, %d", inst.Imm&0xFF)
-						g.emitf("    LD (%s), A", dst)
+						g.emitNativeSpillf(dst, 0, 1, true, "    LD (%s), A", dst)
 						g.invalidate("A")
 					} else {
 						g.emitf("    LD HL, %d", inst.Imm&0xFFFF)
-						g.emitf("    LD (%s), HL", dst)
+						g.emitNativeSpillf(dst, 0, 2, true, "    LD (%s), HL", dst)
 						g.invalidate("HL")
 					}
 				}
@@ -402,22 +402,22 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.emitf("    LD B, %s^H    ; BC★ LUT (14T)", sym)
 				g.invalidate("B")
 				if dst != "A" {
-					g.emitf("    LD A, (BC)")
+					g.emitNativeMemoryf(inst, 0, 1, "    LD A, (BC)")
 					g.invalidate("A")
 					g.emitMov(dst, "A", 8)
 				} else {
-					g.emitf("    LD A, (BC)")
+					g.emitNativeMemoryf(inst, 0, 1, "    LD A, (BC)")
 					g.invalidate("A")
 				}
 			case "E": // DE★: index already in E — use D as page-high
 				g.emitf("    LD D, %s^H    ; DE★ LUT (14T)", sym)
 				g.invalidate("D")
 				if dst != "A" {
-					g.emitf("    LD A, (DE)")
+					g.emitNativeMemoryf(inst, 0, 1, "    LD A, (DE)")
 					g.invalidate("A")
 					g.emitMov(dst, "A", 8)
 				} else {
-					g.emitf("    LD A, (DE)")
+					g.emitNativeMemoryf(inst, 0, 1, "    LD A, (DE)")
 					g.invalidate("A")
 				}
 			default: // HL path (18T)
@@ -426,11 +426,11 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.emitLD8("L", src8)
 				g.invalidate("L")
 				if dst != "A" {
-					g.emitf("    LD A, (HL)")
+					g.emitNativeMemoryf(inst, 0, 1, "    LD A, (HL)")
 					g.invalidate("A")
 					g.emitMov(dst, "A", 8)
 				} else {
-					g.emitf("    LD A, (HL)")
+					g.emitNativeMemoryf(inst, 0, 1, "    LD A, (HL)")
 					g.invalidate("A")
 				}
 			}
@@ -444,7 +444,7 @@ func (g *z80cg) genInst(inst *Inst) {
 		// so the original HL-indirect code is emitted instead.
 		if info, ok := g.globalFieldLoad[inst.Dst]; ok && dst == "A" {
 			lbl := globalFieldLabel(info.sym, info.offset, info.fieldName)
-			g.emitf("    LD A, (%s)", lbl)
+			g.emitNativeMemoryf(inst, 0, 1, "    LD A, (%s)", lbl)
 			g.invalidate("A")
 			break
 		}
@@ -454,7 +454,7 @@ func (g *z80cg) genInst(inst *Inst) {
 		// uses A as scratch and corrupts loop counters stored in A.
 		if inst.Ty.Width() == 16 {
 			if sym, ok := g.globalU16LoadSym[inst.Src[0]]; ok && dst == "HL" {
-				g.emitf("    LD HL, (%s)    ; u16 direct load (20T, no A clobber)", sanitizeIdent(sym))
+				g.emitNativeMemoryf(inst, 0, 2, "    LD HL, (%s)    ; u16 direct load (20T, no A clobber)", sanitizeIdent(sym))
 				g.invalidate("HL")
 				break
 			}
@@ -465,7 +465,7 @@ func (g *z80cg) genInst(inst *Inst) {
 		// into HL first. Z80 supports LD HL,(nn) for this (3 bytes, 16T).
 		// After this, ptr=="HL" and the rest of the OpLoad path works unchanged.
 		if isSpill(ptr) {
-			g.emitf("    LD HL, (%s)   ; reload spilled ptr", ptr)
+			g.emitNativeSpillf(ptr, 0, 2, false, "    LD HL, (%s)   ; reload spilled ptr", ptr)
 			g.invalidate("HL")
 			ptr = "HL"
 		}
@@ -485,19 +485,19 @@ func (g *z80cg) genInst(inst *Inst) {
 			// 24-bit load (3 bytes little-endian) into DWord shadow pair.
 			// Shadow H' (high byte of hi16) is always zero for u24 semantics.
 			if isIXY(ptr) {
-				g.emitf("    LD %s, %s     ; byte0 lo_lo", lowByte(dst), ptrIndirect(ptr, 0))
-				g.emitf("    LD %s, %s     ; byte1 lo_hi", highByte(dst), ptrIndirect(ptr, 1))
+				g.emitNativeMemoryf(inst, 0, 1, "    LD %s, %s     ; byte0 lo_lo", lowByte(dst), ptrIndirect(ptr, 0))
+				g.emitNativeMemoryf(inst, 1, 1, "    LD %s, %s     ; byte1 lo_hi", highByte(dst), ptrIndirect(ptr, 1))
 				g.emit("    EXX")
-				g.emitf("    LD %s, %s     ; byte2 hi_lo (shadow)", lowByte(dst), ptrIndirect(ptr, 2))
+				g.emitNativeMemoryf(inst, 2, 1, "    LD %s, %s     ; byte2 hi_lo (shadow)", lowByte(dst), ptrIndirect(ptr, 2))
 				g.emitf("    LD %s, 0        ; hi_hi always 0 for u24", highByte(dst))
 				g.emit("    EXX")
 			} else {
-				g.emitf("    LD %s, (%s)     ; byte0 lo_lo", lowByte(dst), ptr)
+				g.emitNativeMemoryf(inst, 0, 1, "    LD %s, (%s)     ; byte0 lo_lo", lowByte(dst), ptr)
 				g.emitf("    INC %s", ptr)
-				g.emitf("    LD %s, (%s)     ; byte1 lo_hi", highByte(dst), ptr)
+				g.emitNativeMemoryf(inst, 1, 1, "    LD %s, (%s)     ; byte1 lo_hi", highByte(dst), ptr)
 				g.emitf("    INC %s", ptr)
 				g.emit("    EXX")
-				g.emitf("    LD %s, (%s)     ; byte2 hi8 (shadow lo)", lowByte(dst), ptr)
+				g.emitNativeMemoryf(inst, 2, 1, "    LD %s, (%s)     ; byte2 hi8 (shadow lo)", lowByte(dst), ptr)
 				g.emitf("    LD %s, 0        ; hi_hi always 0 for u24", highByte(dst))
 				g.emit("    EXX")
 				g.emitf("    DEC %s", ptr)
@@ -506,21 +506,21 @@ func (g *z80cg) genInst(inst *Inst) {
 		} else if w == 32 {
 			// 32-bit load via ptr (must not be same pair as dst DWord).
 			if isIXY(ptr) {
-				g.emitf("    LD %s, %s     ; byte0 lo_lo", lowByte(dst), ptrIndirect(ptr, 0))
-				g.emitf("    LD %s, %s     ; byte1 lo_hi", highByte(dst), ptrIndirect(ptr, 1))
+				g.emitNativeMemoryf(inst, 0, 1, "    LD %s, %s     ; byte0 lo_lo", lowByte(dst), ptrIndirect(ptr, 0))
+				g.emitNativeMemoryf(inst, 1, 1, "    LD %s, %s     ; byte1 lo_hi", highByte(dst), ptrIndirect(ptr, 1))
 				g.emit("    EXX")
-				g.emitf("    LD %s, %s     ; byte2 hi_lo (shadow)", lowByte(dst), ptrIndirect(ptr, 2))
-				g.emitf("    LD %s, %s     ; byte3 hi_hi (shadow)", highByte(dst), ptrIndirect(ptr, 3))
+				g.emitNativeMemoryf(inst, 2, 1, "    LD %s, %s     ; byte2 hi_lo (shadow)", lowByte(dst), ptrIndirect(ptr, 2))
+				g.emitNativeMemoryf(inst, 3, 1, "    LD %s, %s     ; byte3 hi_hi (shadow)", highByte(dst), ptrIndirect(ptr, 3))
 				g.emit("    EXX")
 			} else {
-				g.emitf("    LD %s, (%s)     ; byte0 lo_lo", lowByte(dst), ptr)
+				g.emitNativeMemoryf(inst, 0, 1, "    LD %s, (%s)     ; byte0 lo_lo", lowByte(dst), ptr)
 				g.emitf("    INC %s", ptr)
-				g.emitf("    LD %s, (%s)     ; byte1 lo_hi", highByte(dst), ptr)
+				g.emitNativeMemoryf(inst, 1, 1, "    LD %s, (%s)     ; byte1 lo_hi", highByte(dst), ptr)
 				g.emitf("    INC %s", ptr)
 				g.emit("    EXX")
-				g.emitf("    LD %s, (%s)     ; byte2 hi_lo (shadow)", lowByte(dst), ptr)
+				g.emitNativeMemoryf(inst, 2, 1, "    LD %s, (%s)     ; byte2 hi_lo (shadow)", lowByte(dst), ptr)
 				g.emitf("    INC %s", ptr)
-				g.emitf("    LD %s, (%s)     ; byte3 hi_hi (shadow)", highByte(dst), ptr)
+				g.emitNativeMemoryf(inst, 3, 1, "    LD %s, (%s)     ; byte3 hi_hi (shadow)", highByte(dst), ptr)
 				g.emit("    EXX")
 				g.emitf("    DEC %s", ptr)
 				g.emitf("    DEC %s", ptr)
@@ -530,41 +530,41 @@ func (g *z80cg) genInst(inst *Inst) {
 			// Z80 restriction: only LD A,(BC) and LD A,(DE) exist for BC/DE indirect.
 			// Any other destination register must load through A first.
 			if (ptr == "BC" || ptr == "DE") && dst != "A" {
-				g.emitf("    LD A, %s", ptrIndirect(ptr, 0))
+				g.emitNativeMemoryf(inst, 0, 1, "    LD A, %s", ptrIndirect(ptr, 0))
 				g.invalidate("A")
 				g.emitMov(dst, "A", 8)
 			} else if isIXYReg(dst) && ptr == "HL" {
 				// DD/FD prefix conflict: LD IXH,(HL) encodes as LD IXH,(IX+0) — invalid.
 				// Route through A.
-				g.emitf("    LD A, (HL)")
+				g.emitNativeMemoryf(inst, 0, 1, "    LD A, (HL)")
 				g.invalidate("A")
 				g.emitLD8(dst, "A")
 			} else if isIXYReg(dst) && isIXY(ptr) {
 				// BUG-008: LD IXL,(IX+d) impossible — DD prefix can't remap both.
 				// Also self-clobber: writing IXL changes IX base for next read.
 				// Route through A.
-				g.emitf("    LD A, %s", ptrIndirect(ptr, 0))
+				g.emitNativeMemoryf(inst, 0, 1, "    LD A, %s", ptrIndirect(ptr, 0))
 				g.invalidate("A")
 				g.emitLD8(dst, "A")
 			} else if isSpill(dst) {
 				g.emit("    EX AF, AF'")
-				g.emitf("    LD A, %s", ptrIndirect(ptr, 0))
-				g.emitf("    LD (%s), A", dst)
+				g.emitNativeMemoryf(inst, 0, 1, "    LD A, %s", ptrIndirect(ptr, 0))
+				g.emitNativeSpillf(dst, 0, 1, true, "    LD (%s), A", dst)
 				g.emit("    EX AF, AF'")
 			} else {
-				g.emitf("    LD %s, %s", dst, ptrIndirect(ptr, 0))
+				g.emitNativeMemoryf(inst, 0, 1, "    LD %s, %s", dst, ptrIndirect(ptr, 0))
 			}
 		} else if dst == ptr && isPairReg(ptr) {
 			// Read both bytes before changing either byte of the address pair.
 			// Staging the low byte on the stack works for HL/BC/DE and IX/IY,
 			// including prefix restrictions, without clobbering another live pair.
-			g.emitf("    LD A, %s     ; lo", ptrIndirect(ptr, 0))
+			g.emitNativeMemoryf(inst, 0, 1, "    LD A, %s     ; lo", ptrIndirect(ptr, 0))
 			g.emit("    PUSH AF          ; stage low byte before replacing address")
 			if isIXY(ptr) {
-				g.emitf("    LD A, %s     ; hi", ptrIndirect(ptr, 1))
+				g.emitNativeMemoryf(inst, 1, 1, "    LD A, %s     ; hi", ptrIndirect(ptr, 1))
 			} else {
 				g.emitf("    INC %s", ptr)
-				g.emitf("    LD A, (%s)     ; hi", ptr)
+				g.emitNativeMemoryf(inst, 1, 1, "    LD A, (%s)     ; hi", ptr)
 			}
 			g.emitLD8(highByte(dst), "A")
 			g.emit("    POP AF")
@@ -579,14 +579,14 @@ func (g *z80cg) genInst(inst *Inst) {
 				// BUG-008: dest overlaps IX prefix domain — route through A.
 				// IXH/IXL: LD IXL,(IX+d) impossible (DD prefix conflict).
 				// H/L: LD H,(IX+d) encodes as LD IXH,(IX+d) (prefix substitution).
-				g.emitf("    LD A, %s     ; lo", ptrIndirect(ptr, 0))
+				g.emitNativeMemoryf(inst, 0, 1, "    LD A, %s     ; lo", ptrIndirect(ptr, 0))
 				g.emitLD8(lo, "A")
-				g.emitf("    LD A, %s     ; hi", ptrIndirect(ptr, 1))
+				g.emitNativeMemoryf(inst, 1, 1, "    LD A, %s     ; hi", ptrIndirect(ptr, 1))
 				g.emitLD8(hi, "A")
 				g.invalidate("A")
 			} else {
-				g.emitf("    LD %s, %s     ; lo", lo, ptrIndirect(ptr, 0))
-				g.emitf("    LD %s, %s     ; hi", hi, ptrIndirect(ptr, 1))
+				g.emitNativeMemoryf(inst, 0, 1, "    LD %s, %s     ; lo", lo, ptrIndirect(ptr, 0))
+				g.emitNativeMemoryf(inst, 1, 1, "    LD %s, %s     ; hi", hi, ptrIndirect(ptr, 1))
 			}
 		} else if isSpill(dst) {
 			// 16-bit load into LocMem spill slot: load through HL, then
@@ -594,23 +594,23 @@ func (g *z80cg) genInst(inst *Inst) {
 			if ptr == "HL" {
 				// Self-pointer: LD A,(HL)/INC/LD H,(HL)/LD L,A
 				g.emit("    PUSH HL          ; save ptr for spill load")
-				g.emitf("    LD A, (HL)     ; lo")
+				g.emitNativeMemoryf(inst, 0, 1, "    LD A, (HL)     ; lo")
 				g.emit("    INC HL")
-				g.emit("    LD H, (HL)     ; hi")
+				g.emitNativeMemory(inst, 1, 1, "    LD H, (HL)     ; hi")
 				g.emit("    LD L, A        ; lo")
-				g.emitf("    LD (%s), HL", dst)
+				g.emitNativeSpillf(dst, 0, 2, true, "    LD (%s), HL", dst)
 				g.invalidate("HL")
 				g.invalidate("A")
 				g.emit("    POP HL           ; restore ptr")
 			} else {
 				// BC/DE indirect: only LD A,(rr) is valid, so go through A.
-				g.emitf("    LD A, (%s)     ; lo", ptr)
+				g.emitNativeMemoryf(inst, 0, 1, "    LD A, (%s)     ; lo", ptr)
 				g.emit("    LD L, A")
 				g.emitf("    INC %s", ptr)
-				g.emitf("    LD A, (%s)     ; hi", ptr)
+				g.emitNativeMemoryf(inst, 1, 1, "    LD A, (%s)     ; hi", ptr)
 				g.emit("    LD H, A")
 				g.emitf("    DEC %s", ptr)
-				g.emitf("    LD (%s), HL", dst)
+				g.emitNativeSpillf(dst, 0, 2, true, "    LD (%s), HL", dst)
 				g.invalidate("HL")
 				g.invalidate("A")
 			}
@@ -618,27 +618,27 @@ func (g *z80cg) genInst(inst *Inst) {
 			// 16-bit load via HL/DE/BC: INC/DEC trick — little-endian
 			if ptr == "BC" || ptr == "DE" {
 				// BC/DE indirect: only LD A,(rr) is valid — both bytes must go through A.
-				g.emitf("    LD A, (%s)     ; lo", ptr)
+				g.emitNativeMemoryf(inst, 0, 1, "    LD A, (%s)     ; lo", ptr)
 				g.emitf("    LD %s, A", lowByte(dst))
 				g.emitf("    INC %s", ptr)
-				g.emitf("    LD A, (%s)     ; hi", ptr)
+				g.emitNativeMemoryf(inst, 1, 1, "    LD A, (%s)     ; hi", ptr)
 				g.emitf("    LD %s, A", highByte(dst))
 				g.emitf("    DEC %s", ptr)
 				g.invalidate("A")
 			} else if isIXYReg(lowByte(dst)) || isIXYReg(highByte(dst)) {
 				// DD/FD prefix conflict: LD IXL,(HL) impossible.
 				// Route through A.
-				g.emitf("    LD A, (%s)     ; lo", ptr)
+				g.emitNativeMemoryf(inst, 0, 1, "    LD A, (%s)     ; lo", ptr)
 				g.emitf("    LD %s, A", lowByte(dst))
 				g.emitf("    INC %s", ptr)
-				g.emitf("    LD A, (%s)     ; hi", ptr)
+				g.emitNativeMemoryf(inst, 1, 1, "    LD A, (%s)     ; hi", ptr)
 				g.emitf("    LD %s, A", highByte(dst))
 				g.emitf("    DEC %s", ptr)
 				g.invalidate("A")
 			} else {
-				g.emitf("    LD %s, (%s)     ; lo", lowByte(dst), ptr)
+				g.emitNativeMemoryf(inst, 0, 1, "    LD %s, (%s)     ; lo", lowByte(dst), ptr)
 				g.emitf("    INC %s", ptr)
-				g.emitf("    LD %s, (%s)     ; hi", highByte(dst), ptr)
+				g.emitNativeMemoryf(inst, 1, 1, "    LD %s, (%s)     ; hi", highByte(dst), ptr)
 				g.emitf("    DEC %s", ptr)
 			}
 		}
@@ -696,26 +696,26 @@ func (g *z80cg) genInst(inst *Inst) {
 					g.emitf("    LD HL, %s", sanitizeIdent(info.sym))
 				}
 				if cv, ok := g.constVals[inst.Src[1]]; ok {
-					g.emitf("    LD (HL), %d", cv)
+					g.emitNativeMemoryf(inst, 0, 1, "    LD (HL), %d", cv)
 				} else {
 					val := g.loc(inst.Src[1])
 					if isPairReg(val) && !isIXY(val) {
 						// 16-bit value → store byte-by-byte: LD (HL),lo; INC HL; LD (HL),hi; DEC HL
-						g.emitf("    LD (HL), %s", lowByte(val))
+						g.emitNativeMemoryf(inst, 0, 1, "    LD (HL), %s", lowByte(val))
 						g.emit("    INC HL")
-						g.emitf("    LD (HL), %s", highByte(val))
+						g.emitNativeMemoryf(inst, 1, 1, "    LD (HL), %s", highByte(val))
 						g.emit("    DEC HL")
 					} else if isIXYReg(val) || isIXY(val) || isSpill(val) {
 						g.emit("    EX AF, AF'")
 						if isSpill(val) {
-							g.emitf("    LD A, (%s)", val)
+							g.emitNativeSpillf(val, 0, 1, false, "    LD A, (%s)", val)
 						} else {
 							g.emitLDA(val)
 						}
-						g.emitf("    LD (HL), A")
+						g.emitNativeMemoryf(inst, 0, 1, "    LD (HL), A")
 						g.emit("    EX AF, AF'")
 					} else {
-						g.emitf("    LD (HL), %s", val)
+						g.emitNativeMemoryf(inst, 0, 1, "    LD (HL), %s", val)
 					}
 				}
 				if !info.hlLast {
@@ -728,7 +728,7 @@ func (g *z80cg) genInst(inst *Inst) {
 					// Constant store: LD HL, sym; LD (HL), imm — 10T+10T = 20T, no A clobber.
 					// Avoids LD A, imm (4T) + LD (sym), A (13T) which would destroy A (= first param).
 					g.emitf("    LD HL, %s", lbl)
-					g.emitf("    LD (HL), %d", cv)
+					g.emitNativeMemoryf(inst, 0, 1, "    LD (HL), %d", cv)
 					g.invalidate("HL")
 				} else {
 					//   LD A, val           ; 4T (omitted when val is already A)
@@ -747,7 +747,7 @@ func (g *z80cg) genInst(inst *Inst) {
 						}
 						g.emitLDA(val)
 					}
-					g.emitf("    LD (%s), A", lbl)
+					g.emitNativeMemoryf(inst, 0, 1, "    LD (%s), A", lbl)
 					if preserveA {
 						g.emit("    POP AF")
 						g.invalidate("A")
@@ -762,7 +762,7 @@ func (g *z80cg) genInst(inst *Inst) {
 		if inst.Ty.Width() == 16 {
 			if sym, ok := g.globalU16StoreSym[inst.Src[0]]; ok {
 				if g.loc(inst.Src[1]) == "HL" {
-					g.emitf("    LD (%s), HL    ; u16 direct store (16T, no A clobber)", sanitizeIdent(sym))
+					g.emitNativeMemoryf(inst, 0, 2, "    LD (%s), HL    ; u16 direct store (16T, no A clobber)", sanitizeIdent(sym))
 					break
 				}
 			}
@@ -772,7 +772,7 @@ func (g *z80cg) genInst(inst *Inst) {
 		w := inst.Ty.Width()
 		// If ptr is spilled to a memory slot ($Fxxx), reload it into HL first.
 		if isSpill(ptr) {
-			g.emitf("    LD HL, (%s)   ; reload spilled ptr", ptr)
+			g.emitNativeSpillf(ptr, 0, 2, false, "    LD HL, (%s)   ; reload spilled ptr", ptr)
 			g.invalidate("HL")
 			ptr = "HL"
 		}
@@ -784,10 +784,10 @@ func (g *z80cg) genInst(inst *Inst) {
 		if w == 24 {
 			// 24-bit store: write 3 bytes little-endian.
 			if isIXY(ptr) {
-				g.emitf("    LD %s, %s     ; byte0 lo_lo", ptrIndirect(ptr, 0), lowByte(val))
-				g.emitf("    LD %s, %s     ; byte1 lo_hi", ptrIndirect(ptr, 1), highByte(val))
+				g.emitNativeMemoryf(inst, 0, 1, "    LD %s, %s     ; byte0 lo_lo", ptrIndirect(ptr, 0), lowByte(val))
+				g.emitNativeMemoryf(inst, 1, 1, "    LD %s, %s     ; byte1 lo_hi", ptrIndirect(ptr, 1), highByte(val))
 				g.emit("    EXX")
-				g.emitf("    LD %s, %s     ; byte2 hi8 (shadow lo)", ptrIndirect(ptr, 2), lowByte(val))
+				g.emitNativeMemoryf(inst, 2, 1, "    LD %s, %s     ; byte2 hi8 (shadow lo)", ptrIndirect(ptr, 2), lowByte(val))
 				g.emit("    EXX")
 			} else {
 				g.emitf("    LD (%s), %s     ; byte0 lo_lo", ptr, lowByte(val))
@@ -804,11 +804,11 @@ func (g *z80cg) genInst(inst *Inst) {
 			// 32-bit store: write 4 bytes little-endian.
 			if isIXY(ptr) {
 				// Via IX/IY displacement: 4 × LD (IX+d),r = 4×19T = 76T.
-				g.emitf("    LD %s, %s     ; byte0 lo_lo", ptrIndirect(ptr, 0), lowByte(val))
-				g.emitf("    LD %s, %s     ; byte1 lo_hi", ptrIndirect(ptr, 1), highByte(val))
+				g.emitNativeMemoryf(inst, 0, 1, "    LD %s, %s     ; byte0 lo_lo", ptrIndirect(ptr, 0), lowByte(val))
+				g.emitNativeMemoryf(inst, 1, 1, "    LD %s, %s     ; byte1 lo_hi", ptrIndirect(ptr, 1), highByte(val))
 				g.emit("    EXX")
-				g.emitf("    LD %s, %s     ; byte2 hi_lo (shadow)", ptrIndirect(ptr, 2), lowByte(val))
-				g.emitf("    LD %s, %s     ; byte3 hi_hi (shadow)", ptrIndirect(ptr, 3), highByte(val))
+				g.emitNativeMemoryf(inst, 2, 1, "    LD %s, %s     ; byte2 hi_lo (shadow)", ptrIndirect(ptr, 2), lowByte(val))
+				g.emitNativeMemoryf(inst, 3, 1, "    LD %s, %s     ; byte3 hi_hi (shadow)", ptrIndirect(ptr, 3), highByte(val))
 				g.emit("    EXX")
 			} else {
 				// Via ptr INC trick (HL/DE/BC): ptr is advanced then restored.
@@ -831,10 +831,10 @@ func (g *z80cg) genInst(inst *Inst) {
 				// Only HL and IX/IY support immediate indirect stores.
 				// BC/DE: LD (DE),n is NOT valid — must go through A.
 				if ptr == "HL" || isIXY(ptr) {
-					g.emitf("    LD %s, %d", ptrIndirect(ptr, 0), cv)
+					g.emitNativeMemoryf(inst, 0, 1, "    LD %s, %d", ptrIndirect(ptr, 0), cv)
 				} else {
 					g.emitf("    LD A, %d", cv)
-					g.emitf("    LD (%s), A", ptr)
+					g.emitNativeMemoryf(inst, 0, 1, "    LD (%s), A", ptr)
 					g.invalidate("A")
 				}
 			} else {
@@ -842,27 +842,27 @@ func (g *z80cg) genInst(inst *Inst) {
 				// LD (HL),IXH/IXL: DD prefix conflict — route through A.
 				if (ptr == "BC" || ptr == "DE") && val != "A" {
 					g.emitLDA(val)
-					g.emitf("    LD (%s), A", ptr)
+					g.emitNativeMemoryf(inst, 0, 1, "    LD (%s), A", ptr)
 				} else if ptr == "HL" && isPairReg(val) && !isIXY(val) {
 					// Width mismatch: 8-bit store but val is pair. Use low byte.
 					// Excludes IX/IY: lowByte("IX")="IXL" can't appear in LD (HL),r
 					// (DD prefix conflict).
-					g.emitf("    LD (HL), %s", lowByte(val))
+					g.emitNativeMemoryf(inst, 0, 1, "    LD (HL), %s", lowByte(val))
 				} else if ptr == "HL" && (isIXYReg(val) || isIXY(val) || isSpill(val)) {
 					g.emit("    EX AF, AF'")
 					if isSpill(val) {
-						g.emitf("    LD A, (%s)", val)
+						g.emitNativeSpillf(val, 0, 1, false, "    LD A, (%s)", val)
 					} else {
 						g.emitLDA(val)
 					}
-					g.emitf("    LD (HL), A")
+					g.emitNativeMemoryf(inst, 0, 1, "    LD (HL), A")
 					g.emit("    EX AF, AF'")
 				} else if isIXY(ptr) && (val == "H" || val == "L" || isIXYReg(val)) {
 					// BUG-008: LD (IX+d),H encodes as LD (IX+d),IXH (prefix substitution).
 					// LD (IX+d),IXL impossible. Route through A.
 					g.emitLDA(val)
 					g.invalidate("A")
-					g.emitf("    LD %s, A", ptrIndirect(ptr, 0))
+					g.emitNativeMemoryf(inst, 0, 1, "    LD %s, A", ptrIndirect(ptr, 0))
 				} else if isPairReg(val) {
 					// Width mismatch: 8-bit store but val is pair. Use low byte.
 					lo := lowByte(val)
@@ -870,22 +870,22 @@ func (g *z80cg) genInst(inst *Inst) {
 						// DD/FD prefix conflict: LD (IX+d),IXL or LD (IX+d),H impossible.
 						g.emitLDA(lo)
 						g.invalidate("A")
-						g.emitf("    LD %s, A", ptrIndirect(ptr, 0))
+						g.emitNativeMemoryf(inst, 0, 1, "    LD %s, A", ptrIndirect(ptr, 0))
 					} else if ptr == "HL" && isIXYReg(lo) {
 						// DD prefix conflict: LD (HL),IXL impossible.
 						g.emitLDA(lo)
 						g.invalidate("A")
-						g.emitf("    LD (HL), A")
+						g.emitNativeMemoryf(inst, 0, 1, "    LD (HL), A")
 					} else {
-						g.emitf("    LD %s, %s", ptrIndirect(ptr, 0), lo)
+						g.emitNativeMemoryf(inst, 0, 1, "    LD %s, %s", ptrIndirect(ptr, 0), lo)
 					}
 				} else if isSpill(val) {
 					g.emit("    EX AF, AF'")
-					g.emitf("    LD A, (%s)", val)
-					g.emitf("    LD %s, A", ptrIndirect(ptr, 0))
+					g.emitNativeSpillf(val, 0, 1, false, "    LD A, (%s)", val)
+					g.emitNativeMemoryf(inst, 0, 1, "    LD %s, A", ptrIndirect(ptr, 0))
 					g.emit("    EX AF, AF'")
 				} else {
-					g.emitf("    LD %s, %s", ptrIndirect(ptr, 0), val)
+					g.emitNativeMemoryf(inst, 0, 1, "    LD %s, %s", ptrIndirect(ptr, 0), val)
 				}
 			}
 		} else if isIXY(ptr) {
@@ -895,18 +895,18 @@ func (g *z80cg) genInst(inst *Inst) {
 			needA := lo == "H" || lo == "L" || isIXYReg(lo) || isSpill(lo)
 			if needA {
 				g.emitLDA(lo)
-				g.emitf("    LD %s, A     ; lo", ptrIndirect(ptr, 0))
+				g.emitNativeMemoryf(inst, 0, 1, "    LD %s, A     ; lo", ptrIndirect(ptr, 0))
 			} else {
-				g.emitf("    LD %s, %s     ; lo", ptrIndirect(ptr, 0), lo)
+				g.emitNativeMemoryf(inst, 0, 1, "    LD %s, %s     ; lo", ptrIndirect(ptr, 0), lo)
 			}
 			if !isPairReg(val) {
-				g.emitf("    LD %s, 0     ; hi (zero-extend)", ptrIndirect(ptr, 1))
+				g.emitNativeMemoryf(inst, 1, 1, "    LD %s, 0     ; hi (zero-extend)", ptrIndirect(ptr, 1))
 			} else if hi == "H" || hi == "L" || isIXYReg(hi) || isSpill(hi) {
 				g.emitLDA(hi)
-				g.emitf("    LD %s, A     ; hi", ptrIndirect(ptr, 1))
+				g.emitNativeMemoryf(inst, 1, 1, "    LD %s, A     ; hi", ptrIndirect(ptr, 1))
 				g.invalidate("A")
 			} else {
-				g.emitf("    LD %s, %s     ; hi", ptrIndirect(ptr, 1), hi)
+				g.emitNativeMemoryf(inst, 1, 1, "    LD %s, %s     ; hi", ptrIndirect(ptr, 1), hi)
 			}
 		} else if ptr == "HL" {
 			// LD (HL), r — valid for A,B,C,D,E,H,L but NOT IXH/IXL/IYH/IYL
@@ -916,29 +916,29 @@ func (g *z80cg) genInst(inst *Inst) {
 			if isIXYReg(lo) || isSpill(lo) {
 				g.emit("    EX AF, AF'")
 				if isSpill(lo) {
-					g.emitf("    LD A, (%s)", lo)
+					g.emitNativeSpillf(lo, 0, 1, false, "    LD A, (%s)", lo)
 				} else {
 					g.emitLDA(lo)
 				}
-				g.emit("    LD (HL), A     ; lo")
+				g.emitNativeMemory(inst, 0, 1, "    LD (HL), A     ; lo")
 				g.emit("    EX AF, AF'")
 			} else {
-				g.emitf("    LD (HL), %s     ; lo", lo)
+				g.emitNativeMemoryf(inst, 0, 1, "    LD (HL), %s     ; lo", lo)
 			}
 			g.emitf("    INC %s", ptr)
 			if !isPairReg(val) {
-				g.emitf("    LD (%s), 0     ; hi (zero-extend u8→u16)", ptr)
+				g.emitNativeMemoryf(inst, 1, 1, "    LD (%s), 0     ; hi (zero-extend u8→u16)", ptr)
 			} else if isIXYReg(hi) || isSpill(hi) {
 				g.emit("    EX AF, AF'")
 				if isSpill(hi) {
-					g.emitf("    LD A, (%s)", hi)
+					g.emitNativeSpillf(hi, 0, 1, false, "    LD A, (%s)", hi)
 				} else {
 					g.emitLDA(hi)
 				}
-				g.emit("    LD (HL), A     ; hi")
+				g.emitNativeMemory(inst, 1, 1, "    LD (HL), A     ; hi")
 				g.emit("    EX AF, AF'")
 			} else {
-				g.emitf("    LD (HL), %s     ; hi", hi)
+				g.emitNativeMemoryf(inst, 1, 1, "    LD (HL), %s     ; hi", hi)
 			}
 			g.emitf("    DEC %s", ptr)
 		} else {
@@ -948,7 +948,7 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.emitLDA(lo)
 				g.invalidate("A")
 			}
-			g.emitf("    LD (%s), A     ; lo", ptr)
+			g.emitNativeMemoryf(inst, 0, 1, "    LD (%s), A     ; lo", ptr)
 			g.emitf("    INC %s", ptr)
 			if !isPairReg(val) {
 				g.emitf("    XOR A          ; hi = 0 (zero-extend u8→u16)")
@@ -960,10 +960,9 @@ func (g *z80cg) genInst(inst *Inst) {
 					g.invalidate("A")
 				}
 			}
-			g.emitf("    LD (%s), A     ; hi", ptr)
+			g.emitNativeMemoryf(inst, 1, 1, "    LD (%s), A     ; hi", ptr)
 			g.emitf("    DEC %s", ptr)
 		}
-
 	case OpCall, OpCallIndirect:
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
