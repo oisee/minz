@@ -1,0 +1,5 @@
+=== RUN   TestShowcasePascalRecordsNativeModels
+    showcase_native_oracles_test.go:240: ORACLE examples/pascal/records.pas 16 VM+Z80 calls; record fields, independent PointSum+Manhattan modulo256 PASS
+--- PASS: TestShowcasePascalRecordsNativeModels (0.26s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.265s

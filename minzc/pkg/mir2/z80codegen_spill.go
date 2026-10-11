@@ -27,7 +27,7 @@ func (g *z80cg) genWideSpills(inst *Inst) bool {
 		return false
 	}
 	switch inst.Op {
-	case OpConst, OpMove, OpAdd, OpSub, OpAnd, OpOr, OpXor, OpShl, OpShr, OpSar, OpMul, OpExt, OpSext, OpTrunc:
+	case OpConst, OpMove, OpNot, OpAdd, OpSub, OpAnd, OpOr, OpXor, OpShl, OpShr, OpSar, OpMul, OpExt, OpSext, OpTrunc:
 	default:
 		return false
 	}

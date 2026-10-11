@@ -325,7 +325,7 @@ func (g *z80cg) genInst(inst *Inst) {
 	case OpNot:
 		g.lastFlagsLhs = ""
 		g.lastFlagsRhs = ""
-		g.emit("    CPL")
+		g.genNot(inst)
 		g.invalidate("A")
 
 	case OpShl:

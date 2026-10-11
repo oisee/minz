@@ -1,0 +1,14 @@
+=== RUN   TestShowcasePascalBubbleSortNativeMemory
+    showcase_native_oracles_test.go:95: ORACLE examples/pascal/bubble_sort.pas entry=INITARRAY,SORT workload=10 source values VM+Z80 sorted RAM=[10 20 30 40 50 60 70 80 90 100] PASS
+--- PASS: TestShowcasePascalBubbleSortNativeMemory (0.04s)
+=== RUN   TestShowcaseArenaNativeStateModel
+    showcase_native_oracles_test.go:143: ORACLE examples/nanz/08_arena_allocator.nanz entries=6 + shared source sandbox VM+Z80; independent 4-arena state PASS
+--- PASS: TestShowcaseArenaNativeStateModel (0.32s)
+=== RUN   TestShowcasePLMArithmeticNativeModels
+    showcase_native_oracles_test.go:186: ORACLE examples/plm/showcase.plm 24 scalar VM+Z80 assertions PASS: byte arithmetic, fib, min; model modulo256
+--- PASS: TestShowcasePLMArithmeticNativeModels (0.06s)
+=== RUN   TestShowcasePascalRecordsNativeModels
+    showcase_native_oracles_test.go:240: ORACLE examples/pascal/records.pas 16 VM+Z80 calls; record fields, independent PointSum+Manhattan modulo256 PASS
+--- PASS: TestShowcasePascalRecordsNativeModels (0.26s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.693s
