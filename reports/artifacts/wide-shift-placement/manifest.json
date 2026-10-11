@@ -1,0 +1,47 @@
+[
+  {
+    "path": "BC.a80",
+    "bytes": 730,
+    "sha256": "53d0d8e505b02ce8501f4471eca3ea597a14dff38d148f1a5760dd7c73c34efa"
+  },
+  {
+    "path": "BC.bin",
+    "bytes": 57,
+    "sha256": "d6be59c7914e2a1ad8cc71447baf2b12014fff9f390cf3b7d546e4e76ea2d23b"
+  },
+  {
+    "path": "BC.nanz",
+    "bytes": 34,
+    "sha256": "6f8f4aba6f4e7275de7de06ab20a3331b1ac382f84facfb4464c5e6c2479afc3"
+  },
+  {
+    "path": "DE.a80",
+    "bytes": 730,
+    "sha256": "585ef254b07cbd79d4c0445b8c45ce88985c56c8084f8d9464bea71d95f8f075"
+  },
+  {
+    "path": "DE.bin",
+    "bytes": 57,
+    "sha256": "83cbbc4f47e016969fed895a4fdbf34f8c0d75b22bcafd6643401c34cb1764ec"
+  },
+  {
+    "path": "DE.nanz",
+    "bytes": 34,
+    "sha256": "6f8f4aba6f4e7275de7de06ab20a3331b1ac382f84facfb4464c5e6c2479afc3"
+  },
+  {
+    "path": "HL.a80",
+    "bytes": 661,
+    "sha256": "3bd9b377fb8304027f19231814e2040486c0966598dc4cb2ddaef669f88b2ee9"
+  },
+  {
+    "path": "HL.bin",
+    "bytes": 48,
+    "sha256": "0c483fe57720b36b981df16d0d8683c14193c94012ae5a3e8419da720651442e"
+  },
+  {
+    "path": "HL.nanz",
+    "bytes": 34,
+    "sha256": "6f8f4aba6f4e7275de7de06ab20a3331b1ac382f84facfb4464c5e6c2479afc3"
+  }
+]
