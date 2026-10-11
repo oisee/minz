@@ -1,113 +1,93 @@
 # Ночной итог Grace / PGO — 11 октября 2026
 
-Актуально на 09:46 UTC. Цель продолжается: оптимизировать реальные программы
-по проверенным профилям, от исходника через HIR/MIR до собранного Z80-бинарника.
-MIR VM служит промежуточным oracle. Итоговые варианты исполняются в
-Z80-эмуляторе: проверяем результаты, память, порядок ресурсных обращений,
-размер и T-states. Настоящее железо остаётся следующим уровнем проверки.
+Актуально на 09:55 UTC. Цель продолжается: выбирать оптимизации по проверенному
+профилю, от исходника через HIR/MIR до собранного Z80-бинарника. MIR VM служит
+промежуточным oracle; итоговые варианты исполняются в Z80-эмуляторе с проверкой
+результатов, памяти, порядка host events, размера и T-states. Проверка на
+настоящем железе остаётся следующим уровнем.
 
 ## Готово
 
-- HIR-захваты и сигнатуры вызовов, iterator lowering, MIR/DJNZ и backend
-  исправлены; sum_array, checksum, tokenizer и hashmap проверены на VM и Z80.
-- Неизменённый Self-Lanz работает через ограниченный memory-host контракт.
-  Профиль привязан к исходнику, workload и сборке; несовместимые и неполные
-  данные отклоняются. Профиль проверяется повторным исполнением.
-- Arena-first и append-copy, совместный selector четырёх вариантов,
-  typed precompile proofs и явный opt-in CLI сохраняют выбранные ASM/BIN.
-  Выбор использует фактические T-states и байты.
-- Последний production этап: direct global u16→DE/BC loads, `2908f18f`.
-  Полный pipeline **1107.431 s PASS**, HIR/MIR/Nanz/Lanz/C89/CLI — PASS.
-  Showcase: **31 прежнее падение, 0 новых**. Последующие отчётные этапы
-  production-код не меняли; повторный общий прогон для них не заявляется.
+- Явные захваты HIR и сигнатуры вызовов, iterator lowering и исправления MIR/DJNZ
+  проверены на VM и Z80. Неизменённый Self-Lanz работает через memory-host контракт.
+- Привязка профиля к исходнику, workload и сборке; fresh replay; arena-first и
+  append-copy; selector четырёх вариантов и Legacy CLI с сохранением ASM/BIN.
+- Direct global u16 loads (`2908f18f`): pipeline PASS 1107.431 s.
+- Явный typed unsigned compare opt-in (`1155fc66`): pipeline PASS 1078.565 s;
+  HIR/MIR/Lanz/C89/CLI и Nanz без showcase PASS. Showcase: 31 прежнее падение,
+  0 новых. Два full30 public прогона и два независимых аудита PASS.
+  Default/API v1/обычный CLI используют Legacy. Public executable сохранён.
 
-Текущая сборка CLI имеет SHA256
-`dba34fdc489d4fa00f985bff82952076f8de8f68488999dfe98364af242c9ca5`.
-Для 30 последовательных вызовов Self-Lanz:
+## Измерения на полном workload
 
-| Вариант | T-states | Байты |
+30 последовательных вызовов Self-Lanz; одна fixed backend policy на четыре
+кандидата. Это измерения конкретного workload, а не универсальный выигрыш.
+
+| Кандидат | Legacy T / B | PreserveForSpeed T / B |
 | --- | ---: | ---: |
-| Original | 1135370 | 2000 |
-| Arena-first | 1135211 | 2121 |
-| Append-copy | 1079795 | 1978 |
-| Оба преобразования | 1079636 | 2099 |
+| Original | 1135370 / 2000 | 1132449 / 2001 |
+| Arena-first | 1135211 / 2121 | 1132290 / 2122 |
+| Append-copy | 1079795 / 1978 | 1076874 / 1979 |
+| Оба | 1079636 / 2099 | 1076715 / 2100 |
 
-Speed выбирает оба преобразования, size — append-copy. Четыре неизменённых
-workloads, 50 вызовов, 32 actual Z80 кандидата и восемь свежих CLI решений
-прошли независимые проверки. В этом корпусе текущие speed и size выбирают
-append-copy: arena-first добавляет 48–1651 такт. Универсального победителя
-не заявляем. Старая сборка и её отличающиеся профили сохранены отдельно.
-
-## Последний эксперимент
-
-Изолированный normal-global diamond forwarding сохранил все 60 raw/native
-наблюдений и 3017 упорядоченных host events, но оказался медленнее:
-**1137339 T / 1998 B** вместо **1135370 T / 2000 B**.
-Итог: **+1969 тактов, −2 байта**. Оба независимых аудита прошли.
-Helper и диагностический hook остаются в отдельной ветке; production
-не включает это преобразование. Артефакты и отрицательный результат сохранены.
+Два actual Speed selector запуска PASS 36.20 s, восемь кандидатных BIN и два
+collection baseline сохранены. Независимые аудиты проверили все 300 native
+наблюдений, результаты, 10 globals, 3 ресурса и по 3017 ordered host events
+на baseline. Speed выбрал оба преобразования. Size mask 2 вычислен из этих
+же сохранённых данных; полноценный CLI GoalSize прогон ещё впереди.
 
 ## Опубликовано и локально сохранено
 
-Приватный Sites, подтверждённая **версия 52**:
+Подтверждённая приватная публикация Sites — **версия 52**:
 https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/
 
-- [Явный compare opt-in](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/unsigned-pair-policy.html)
-- [Unsigned compare + reuse](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/unsigned-pair-compare.html)
+- [Compare opt-in](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/unsigned-pair-policy.html)
+- [Корпус](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/global-word-load-corpus.html)
+- [Legacy CLI](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-cli-selection.html)
 - [Отрицательный diamond эксперимент](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/normal-global-diamond.html)
-- [Обновлённый корпус](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/global-word-load-corpus.html)
-- [Direct global word loads](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/global-word-load.html)
-- [Совместный selector](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-composition-selection.html)
-- [CLI](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-cli-selection.html)
 
-Весь сайт, исходники, профили, решения, proof records, ASM/BIN, логи,
-публикационные архивы и Git bundles сохраняются локально:
-[офлайн-главная](../artifacts/grace-reports/2026-10-10-resume/site/index.html).
-Полная копия версии 50 проверена: **15158 файлов, 62 страницы**, все SHA256
-и публикационные архивы PASS. Потерянных ссылок и внешних зависимостей нет.
+Полная офлайн-копия версии 52 проверена: **15158 файлов, 62 страницы**, все
+SHA256 совпали, публикационные архивы читаются; отсутствующих локальных ссылок
+и внешних зависимостей нет. Главная страница:
+`/home/alice/dev/minz/artifacts/grace-reports/2026-10-10-resume/site/index.html`.
+Исходники, профили, proofs, ASM/BIN, логи и Git bundles сохранены.
+Новый selector пока не объявлен опубликованным.
 
-## Новый завершённый эксперимент
+Отдельный diamond forwarding эксперимент дал +1969 T / −2 B и остался в
+изолированной ветке. Частный compare+reuse эксперимент дал −39231 T / −2 B;
+reuse/hook в production не переносились. Оба результата опубликованы и сохранены.
 
-Частный unsigned pair compare вместе с reuse прошёл три сквозных прогона
-и два независимых аудита: 90 наблюдений совпали. Compare отдельно:
-1132449 T / 2001 B (−2921 T, +1 B). Reuse + compare:
-**1096139 T / 1998 B** (−39231 T, −2 B, около 3,46%).
-Артефакты e65c7b29 сохранены и pushed; production не менялся. Отчёт опубликован в приватном Sites 51; полная офлайн-копия
-проверена по SHA256 и локальным ссылкам. Временный executable go test удалён, его context SHA
-сохранён; ASM/BIN и все доступные артефакты есть локально.
+## В работе
 
-## Текущий этап проверки
+Association/selector v2 перенесён в рабочую ветку `0dceafab` и pushed. Whole
+v2 envelope связывает policy, source profile и baseline; строгий loader до
+source factory проверяет shape/schema/policy, вход ограничен 32 MiB. Все
+четыре кандидата используют одну policy. Fresh replay обязательный.
+Pretty JSON replay исправлен только нормализацией AllocationJSON после SHA
+validation; первый отказ и executable сохранены. Артефакты: 270 tracked файлов,
+коммит `ecda9d10`, локальный audit повторно PASS300.
+HIR/MIR/Lanz/C89/CLI/Nanz прошли; showcase31same0new.
+**Общий pipeline этого этапа ещё выполняется, успешный итог не заявляется.**
 
-В рабочую ветку1155fc66 перенесён явный typed unsigned compare opt-in.
-Legacy остаётся default; обычная и native-аннотированная генерация используют
-одну policy. Новый closed baseline API возвращает whole v2 envelope; старый
-API/CLI остаётся Legacy. Два full30 public прогона PASS2.41 и два аудита
-PASS60: speed1132449T2001B против Legacy1135370T2000B. Executable e645
-сохранён локально; CSE/hook не переносились.
-HIR/MIR/Lanz/C89/CLI PASS; Nanz без showcase PASS2.278, showcase31same0new.
-**Общий pipeline PASS 1078.565 s; этап явного compare opt-in закрыт.**
+Следующий CLI v2 изолирован в `feat/memory-host-policy-cli`, source `c7c42795`,
+inventory `6647fe0b`. Явная named policy, whole association collect/replay,
+прямое сохранение выбранных ASM/BIN и SHA точных association/selection bytes.
+Два независимых source review прошли. Admission/refusal тесты PASS .101 s;
+short collect/replay/−o/wrong-policy PASS 47.206 s; старые Legacy проверки PASS
+.041 s. Короткая проба имеет zero-body и не доказывает compare activation.
+Теперь запускаются два full30 CLI прогона Speed/Size с сохранённым executable
+и независимым аудитом. В основную рабочую ветку CLI ещё не перенесён.
 
-## Следующий шаг и сохранение работы
+## Сохранение веток и решения
 
-Association/selector v2 уже прошли bounded проверки и два full30 selector
-прогона (36.20 s PASS) в отдельной ветке. Одна явная policy привязана ко
-всем четырём arena/append кандидатам; старый CLI остаётся Legacy.
-Speed policy +both: **1076715 T / 2100 B**, Legacy +both:1079636 T /2099 B.
-Восемь кандидатных бинарников и два collection baseline сохранены;
-оба независимых аудита прошли. Pretty JSON replay отказ исправлен узко,
-после SHA validation; старый отказ и executable сохранены отдельно.
-Код selector перенесён в рабочую ветку0dceafab и pushed; пакеты
-HIR/MIR/Lanz/C89/CLI/Nanz прошли, showcase31same0new. Новый общий pipeline
-62149 ещё выполняется. Все270файлов артефактов tracked/SHA PASS, коммитecda9d10.
-
-Сводка и закрытые этапы committed/pushed в
+Эта сводка и завершённые этапы committed/pushed в
 [feat/grace-hir-vm](https://github.com/oisee/minz/tree/feat/grace-hir-vm).
-Нужные исторические /tmp ветки сохранены в remote `archive/2026-10-11/`;
+Нужные исторические /tmp ветки отправлены в remote `archive/2026-10-11/`;
 SHA перечислены в [манифесте](2026-10-11-011-archived-branches.json).
-Рабочие ветки сохраняются commit/push; текущий WIP не объявляется закрытым.
-Все активные рабочие каталоги находятся вне /tmp:
+Все активные рабочие каталоги теперь вне /tmp:
 `/home/alice/dev/minz-artifacts/grace-workspaces/`.
-Дополнительные bare repository и bundle — в `grace-checkpoints`.
-Пользовательское изменение `minzc/cmd/mzx/BUILD` не тронуто.
+Есть дополнительные bare repository и bundles в `grace-checkpoints`.
+Текущий WIP сохраняется отдельными commit/push; пользовательское изменение
+`minzc/cmd/mzx/BUILD` не тронуто.
 
 **Блокеров и решений Alice сейчас нет. Цель остаётся активной.**
