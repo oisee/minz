@@ -1421,6 +1421,51 @@
       "sha256": "ec166b0a44f79e5407060517b970c957d1892922cbf85d6f7c0831b1a5d67686"
     },
     {
+      "path": "parent-gates/frontend-final.txt",
+      "bytes": 173,
+      "sha256": "10d984a23df6be398404da4619551687b33e4e5b906b49d1829b3d45d997eac1"
+    },
+    {
+      "path": "parent-gates/nanz.txt",
+      "bytes": 43,
+      "sha256": "41c87df9355557b2eb610e0dc72d1cda315264baa12db19d36cf63c9149a0cfc"
+    },
+    {
+      "path": "parent-gates/packages.txt",
+      "bytes": 525,
+      "sha256": "697b2cb70f9f9d44b0fb065da4f32f7cbed92d1621e2d558f90865dd4aa180bf"
+    },
+    {
+      "path": "parent-gates/pipeline-executable.json",
+      "bytes": 499,
+      "sha256": "09635b20f49e8b2e84df71afcf19fffca18a68bb30ed0d8b4731780483864943"
+    },
+    {
+      "path": "parent-gates/pipeline.test.gz",
+      "bytes": 11613034,
+      "sha256": "3b7648e646c1ca9bc66e6f5b1c501a67224702a93ea9e211dc5139ebef8d0029"
+    },
+    {
+      "path": "parent-gates/pipeline.txt",
+      "bytes": 299824,
+      "sha256": "1e46003f100a868bc570ab5e263ce682485b1a8e55462e18e909311cec177e0c"
+    },
+    {
+      "path": "parent-gates/showcase-comparison.json",
+      "bytes": 69,
+      "sha256": "f214db9375aa89d7372ce340e5c1cfc1b7eb411cae5d50d4171191792f2224c1"
+    },
+    {
+      "path": "parent-gates/showcase.txt",
+      "bytes": 7046,
+      "sha256": "360847214d2b4ae7e4438fe1fc8398d9c5669d8f3a82d67dfeb2d1f116f5365f"
+    },
+    {
+      "path": "parent-gates/source-integration.json",
+      "bytes": 420,
+      "sha256": "72ea1622d416185edf1a74ebb683aae7c3556236a2faf80dfb0ed5c306846a5d"
+    },
+    {
       "path": "relocated-full-audit.json",
       "bytes": 5931,
       "sha256": "eae09d688b5e5feed77629577533cc3037c649c6ad9579419e57055e535d946f"

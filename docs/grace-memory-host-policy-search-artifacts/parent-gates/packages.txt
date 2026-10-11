@@ -1,0 +1,11 @@
+# github.com/minz/minzc/pkg/lanz
+package github.com/minz/minzc/pkg/lanz
+	imports github.com/minz/minzc/pkg/pipeline from lanz_test.go
+	imports github.com/minz/minzc/pkg/nanz from memory_host_policy_search.go
+	imports github.com/minz/minzc/pkg/lanz from parse.go: import cycle not allowed in test
+FAIL	github.com/minz/minzc/pkg/lanz [setup failed]
+ok  	github.com/minz/minzc/pkg/hir	22.354s
+ok  	github.com/minz/minzc/pkg/mir2	5.365s
+ok  	github.com/minz/minzc/pkg/c89	5.203s
+ok  	github.com/minz/minzc/cmd/minzc	63.096s
+FAIL

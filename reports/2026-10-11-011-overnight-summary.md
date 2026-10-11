@@ -1,6 +1,6 @@
 # Ночной итог Grace / PGO — 11 октября 2026
 
-Актуально на 11:12 UTC. Цель продолжается: выбирать оптимизации по проверенному
+Актуально на 11:15 UTC. Цель продолжается: выбирать оптимизации по проверенному
 профилю, от исходника через HIR/MIR до собранного Z80-бинарника. MIR VM служит
 промежуточным oracle; итоговые варианты исполняются в Z80-эмуляторе с проверкой
 результатов, памяти, порядка host events, размера и T-states. Проверка на
@@ -126,15 +126,15 @@ executable,48callbacks. ActualSpeedpolicy1/mask1 566T/2122B; derivedSize
 Legacy/mask2 663T/1978B. Zero-body не доказывает dynamic compareactivation.
 Оба независимых аудита65167c16/66824fbc/2842284c прошли320observations
 (full300+short20). API перенесён exact2files в44739f77 и pushed.
-Общий pipeline выполняется; HIR/MIR/C89/CLI/Nanz PASS, showcase31same0new.
+Общий pipeline TERMINAL PASS (exit0), exactexecutable/log сохранены; HIR/MIR/C89/CLI/Nanz PASS, showcase31same0new.
 Broad gate нашёл цикл зависимостей frontend same-package tests→pipeline→Nanz→
 frontend. Test-only исправление перенесено be43274d и pushed; Lanz/Lizp/PLM/Pascal
 в рабочей ветке PASS .012/.012/.020/.011s. Независимая проверка полного HIR неизменна. Новый поиск опубликован в приватном Sites55; пакет292payloads сохранён
 и trackedSHA проверен, relocatedauditsPASS320. Whole offline sync версии55
 TERMINAL PASS:18570files66pages, всеSHA/архивы проверены,0missing/external.
-Пакет и публикация завершены; общий pipeline пока выполняется. Следующий
-явный search CLI начат в изолированной постоянной ветке; перенос и full native
-прогоны ждут текущего gate и двух независимых source reviews.
+Пакет и публикация завершены; общий pipeline прошёл. API-этап закрыт. Следующий
+явный search CLI начат в изолированной постоянной ветке; короткий collect/replay/actualSize тест выполняется; перенос и full native
+прогоны ждут финальных тестов и двух независимых source reviews.
 
 ## Сохранение веток и решения
 

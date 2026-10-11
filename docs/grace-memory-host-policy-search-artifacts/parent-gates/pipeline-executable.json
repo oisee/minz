@@ -1,0 +1,10 @@
+{
+  "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-search-parent-gates/pipeline.test",
+  "sha256": "ebc48c005e223614a007ff013ee5f85aecc4fc73414b348f69a7e945f443f31e",
+  "bytes": 22972495,
+  "source_implementation": "44739f77",
+  "state": "terminal PASS",
+  "terminal_verified_at": "2026-10-11T11:13:32Z",
+  "log": "pipeline.txt",
+  "scope": "complete pipeline.test all tests, timeout45m; unchanged source44739, subsequent frontendtest-onlyfixbe432 separately passed"
+}

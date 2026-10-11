@@ -66,6 +66,7 @@ executable SHA2955420de33c6ce620f2298b0712ab537f0b66cd7fc540c545d344bff1b55966.
 API перенесён `44739f77`, test-only external frontend packages `be43274d`
 устраняют integration import cycles без изменения production source gate.
 HIR/MIR/C89/CLI/Nanz и affected frontend tests PASS; showcase31same0new.
-Общий pipeline пока выполняется; завершение всего этапа не заявляется.
+Общий pipeline TERMINAL PASS (exit0), полный лог и exactexecutable сохранены
+в parent-gates пакета. API-этап закрыт; overall цель продолжается.
 Следующий шаг после gates — отдельный явный search CLI с paired collect/replay
 и exactselectedASM/BIN.
