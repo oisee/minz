@@ -1733,8 +1733,8 @@
     },
     {
       "path": "parent-gates/cli-executable.json",
-      "bytes": 400,
-      "sha256": "6af76d502a8605c33c0803c61edb8c61f7c14d7210c7c043209a2f88dcc778b5"
+      "bytes": 448,
+      "sha256": "22e97a48340afaf64641711c9af49e32c65052159e22eb1902324f0f844472b7"
     },
     {
       "path": "parent-gates/cli.txt",

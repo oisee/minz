@@ -4,5 +4,5 @@
   "source_commit": "714f9e36",
   "build": "go build -buildvcs=false ./cmd/minzc",
   "source_files_match": "c7c42795 reviewed CLI / 0dceafab selector",
-  "gate": "CLI tests running; pipeline selector running"
+  "gate": "Full cmd/minzc PASS69.418s; production native integration running; selector pipeline pending"
 }
