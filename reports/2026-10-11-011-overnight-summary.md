@@ -1,6 +1,6 @@
 # Ночной итог Grace / PGO — 11 октября 2026
 
-Актуально на 07:58 UTC. Цель продолжается: проверяемая оптимизация реальных
+Актуально на 08:01 UTC. Цель продолжается: проверяемая оптимизация реальных
 программ от исходника через HIR/MIR до собранного Z80-бинарника. MIR VM —
 промежуточный oracle; итоговые варианты исполняются в Z80-эмуляторе с проверкой
 результатов, памяти, порядка ресурсных обращений, размера и T-states.
@@ -44,9 +44,10 @@ SHA256 `1bd95516f7b1ef1ba56c17822104936e2b73fe8bde5fe7368dd128811009f041`.
 
 ## Опубликовано и сохранено
 
-Приватный Sites, подтверждённая **версия 46**:
+Приватный Sites, подтверждённая **версия 47**:
 https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/
 
+- [Стоимость PC и функций](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-pc-cost.html)
 - [Совместный selector](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-composition-selection.html)
 - [CLI](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-cli-selection.html)
 - [Корпус workloads](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-corpus.html)
@@ -75,7 +76,9 @@ Actual per-PC этап измерен и проверен: два прежних
 T/steps совпали, сырые PC журналы сохранены, отдельная physical projection
 распределяет все T по функциям и адаптерам. Экономия 74469 T полностью в
 intern_region (71370 T) и region_match (3099 T). Cur239391 T и parse236919 T
-неизменны. Пакет и итоговый native saved-file review готовятся к публикации;
+неизменны. Пакет `154f4a95` и итоговый native saved-file review прошли;
+приватная Sites версия 47 опубликована. Офлайн-копия синхронизируется;
+приведённые выше 13044 файла относятся к последней полной проверке версии 46.
 диагностический hook остаётся только в изолированной ветке.
 
 Следующий шаг в работе: узкий backend prototype прямых symbol-bound global
