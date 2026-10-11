@@ -52,3 +52,15 @@ fields remain exact. BinarySHA and invocationTStates sums verified directly:
 original1221494T2091Bfed98; hoisted1150124T2076B7c244d. Improvement is71370T
 (5.84%) and15B on this workload, not a general speed guarantee. TypedGo payload
 SHA audits remain owner's separate evidence, not Python reserialization claims.
+
+Additional original-name collision review: lowerExpr VarRef resolves local env
+before globals. Exact intern_region parameters start/len and declared slen/new_p
+are only read after binding and are never AssignStmt targets. A same-named global
+therefore does not alter the transformed-vs-original computation. Only p/j are
+local assignment targets, whose lowering can prefer globals; both are explicitly
+refused. No additional unsafe collision was identified. Global src_buf/str_bump
+are intended module bindings, protected by region exclusion. Prepare performs
+HIR Verify before LowerModule; the exact accepted source shape contains no
+unsupported dynamic/indirect control or undefined binding. Arbitrary malformed
+HIR is not a newly admitted shape here; existing typed verifier/lowerer failures
+are not presented as solved by this proof.
