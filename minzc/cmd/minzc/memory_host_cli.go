@@ -80,7 +80,7 @@ func validateMemoryHostCLIPaths(source string, p memoryHostCLIFlags, outputNames
 	if hirProfile != (hirProfileFlags{}) || hirProfileAutoDirectory != "" || hirProfileAutoWorkload != "" || hirProfileAutoFunction != "" || hirProfileJoint || hirProfileIndependentRules || hirProfileInvariantSites || hirProfileSiteRules || hirProfileJointSites || hirProfileWeightedSites || hirProfileForwardCopySites || hirProfileMixedCopyWeightedSites || hirProfileRegionCompareSites || hirProfileOrderedByteFunctions || hirProfileOrderedByteRWFunctions || hirProfileMixedCopyRegionSites || pgoProfile != "" || pgoDebug {
 		return fail("cannot combine with ordinary HIR or legacy profile modes")
 	}
-	if useHIRGrace || useGrace || disableOptimize || disableIROpt || disableReroll || disableAsmOpt || disableCodegenOpt || disableSMC || disableCTIE || ctieDebug || useLIR || useZ3 || emitFormat != "" || gpuRun != "" || enableTAS || tasFile != "" || tasReplay != "" || dumpAST || dumpMIR || compileTrace || superoptRules != "" || visualizeMIR != "" || emitSLD || annotateTStates {
+	if useHIRGrace || useGrace || disableOptimize || disableIROpt || disableReroll || disableAsmOpt || disableCodegenOpt || disableSMC || disableCTIE || ctieDebug || emitFormat != "" || gpuRun != "" || enableTAS || tasFile != "" || tasReplay != "" || dumpAST || dumpMIR || compileTrace || superoptRules != "" || visualizeMIR != "" || emitSLD || annotateTStates {
 		return fail("unsupported compilation or execution options")
 	}
 	if listAsserts || assertLines != "" || assertLinesSet || assertControlSet || assertReceipt || assertForce != "" || (assertMode != "" && assertMode != "all") {

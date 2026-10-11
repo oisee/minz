@@ -1,0 +1,10 @@
+=== RUN   TestExhaustiveJudgeGCD
+=== PAUSE TestExhaustiveJudgeGCD
+=== CONT  TestExhaustiveJudgeGCD
+=== RUN   TestExhaustiveJudgeGCD/default
+=== RUN   TestExhaustiveJudgeGCD/grace
+--- PASS: TestExhaustiveJudgeGCD (0.05s)
+    --- PASS: TestExhaustiveJudgeGCD/default (0.03s)
+    --- PASS: TestExhaustiveJudgeGCD/grace (0.02s)
+PASS
+ok  	github.com/minz/minzc/pkg/hir	0.052s

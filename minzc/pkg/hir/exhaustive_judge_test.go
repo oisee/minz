@@ -170,31 +170,14 @@ func TestExhaustiveJudgeGCD(t *testing.T) {
 	t.Parallel()
 	grace := pipeline.DefaultOptions()
 	grace.UseGrace = true
-	lirOpts := pipeline.DefaultOptions()
-	lirOpts.UseLIR = true
-	lirOpts.LIRCheck = true
 	for _, variant := range []struct {
 		name string
 		opts pipeline.Options
-	}{{"default", pipeline.DefaultOptions()}, {"grace", grace}, {"lir", lirOpts}} {
+	}{{"default", pipeline.DefaultOptions()}, {"grace", grace}} {
 		t.Run(variant.name, func(t *testing.T) {
 			steps, err := pipeline.CompileHIRSteps(&hir.Module{Name: "judge_gcd", Funcs: []*hir.Func{gcdHIR()}}, variant.opts)
 			if err != nil {
 				t.Fatal(err)
-			}
-			if variant.opts.UseLIR {
-				trace := steps.Traces["gcd"]
-				if trace == nil || !strings.Contains(trace.Backend, "PBQP (lir disabled)") {
-					t.Fatalf("gcd must use PBQP with native LIR disabled, got trace %+v", trace)
-				}
-				if len(steps.LIRResults) < 3 {
-					t.Fatalf("LIRCheck must still check gcd on all three machines: %+v", steps.LIRResults)
-				}
-				for _, result := range steps.LIRResults[:3] {
-					if strings.Contains(result.Error, "disabled") {
-						t.Fatalf("codegen guard leaked into convergence: %+v", result)
-					}
-				}
 			}
 			fixture := hirZ80Fixture{module: steps.MIR2Module, alloc: steps.Allocation, asm: steps.Assembly}
 			checked, bad := newU8Judge(t, fixture, "gcd", false).sweep(positiveArgs, gcdModel)
@@ -285,9 +268,8 @@ func TestExhaustiveJudgeNegativeControls(t *testing.T) {
 	}
 }
 
-// TestExhaustiveJudgeLIRSingleBlock executes production PBQP with --lir
-// and verifies that native LIR remains disabled. Direct research is separate.
-func TestExhaustiveJudgeLIRSingleBlock(t *testing.T) {
+// TestExhaustiveJudgeNativeSingleBlock exhausts native byte arithmetic and comparisons.
+func TestExhaustiveJudgeNativeSingleBlock(t *testing.T) {
 	t.Parallel()
 	for _, tc := range []struct {
 		name, op string
@@ -313,14 +295,13 @@ func TestExhaustiveJudgeLIRSingleBlock(t *testing.T) {
 			f := &hir.Func{Name: tc.name, Params: []hir.Param{{Name: "a", Ty: mir2.TyU8}, {Name: "b", Ty: mir2.TyU8}}, RetTy: tc.ret,
 				Body: hir.Blk(hir.Ret(&hir.BinExpr{Op: tc.op, L: hir.Var("a", mir2.TyU8), R: hir.Var("b", mir2.TyU8), Ty: tc.ret}))}
 			opts := pipeline.DefaultOptions()
-			opts.UseLIR = true
 			steps, err := pipeline.CompileHIRSteps(&hir.Module{Name: "judge_leaf", Funcs: []*hir.Func{f}}, opts)
 			if err != nil {
 				t.Fatal(err)
 			}
 			trace := steps.Traces[tc.name]
-			if trace == nil || trace.Backend != "PBQP (lir disabled)" {
-				t.Errorf("want disabled LIR provenance, got %+v", trace)
+			if trace == nil || trace.Backend != "PBQP" {
+				t.Errorf("want production provenance, got %+v", trace)
 			}
 			fixture := hirZ80Fixture{module: steps.MIR2Module, alloc: steps.Allocation, asm: steps.Assembly}
 			checked, bad := newU8Judge(t, fixture, tc.name, false).sweep(func(a, b uint8) bool { return true }, tc.model)
@@ -336,7 +317,7 @@ func TestExhaustiveJudgeLIRSingleBlock(t *testing.T) {
 // not test the caller/callee memory-parameter ABI (which currently mismatches).
 // add32 checks 65,636 sums on MIR2 and Z80 arithmetic, including
 // carries between main and shadow register banks.
-func TestExhaustiveJudgeLIRWideFallback(t *testing.T) {
+func TestExhaustiveJudgeNativeWideArithmetic(t *testing.T) {
 	t.Parallel()
 	for _, name := range []string{"shr16", "add32"} {
 		t.Run(name, func(t *testing.T) {
@@ -352,14 +333,13 @@ func TestExhaustiveJudgeLIRWideFallback(t *testing.T) {
 			}
 			f := &hir.Func{Name: name, Params: params, RetTy: ty, Body: hir.Blk(hir.Ret(&hir.BinExpr{Op: op, L: hir.Var("a", ty), R: rhs, Ty: ty}))}
 			opts := pipeline.DefaultOptions()
-			opts.UseLIR = true
 			steps, err := pipeline.CompileHIRSteps(&hir.Module{Name: "judge_wide", Funcs: []*hir.Func{f}}, opts)
 			if err != nil {
 				t.Fatal(err)
 			}
 			trace := steps.Traces[name]
-			if trace == nil || !strings.Contains(trace.Backend, "PBQP (lir disabled)") {
-				t.Errorf("want disabled LIR trace, got %+v", trace)
+			if trace == nil || !strings.Contains(trace.Backend, "PBQP") {
+				t.Errorf("want production trace, got %+v", trace)
 			}
 			mf := steps.MIR2Module.FuncByName(name)
 			if len(mf.Blocks) != 1 {
@@ -445,7 +425,7 @@ func TestExhaustiveJudgeLIRWideFallback(t *testing.T) {
 			}
 			bad, first := sweepCodegenJudge(t, []*hir.Func{f}, name, 65536,
 				func(i int) []int64 { return []int64{int64(i)} },
-				func(args []int64) int64 { return args[0] >> 3 }, true)
+				func(args []int64) int64 { return args[0] >> 3 })
 			if bad > 0 {
 				t.Fatalf("%d/65536 mismatches: %s\n%s", bad, first, steps.Assembly)
 			}
@@ -453,9 +433,8 @@ func TestExhaustiveJudgeLIRWideFallback(t *testing.T) {
 	}
 }
 
-// The Z80 selector emits one SLA/SRL regardless of the supplied count.
-// Production --lir uses PBQP for both counts; direct native tests cover one.
-func TestExhaustiveJudgeLIRByteShifts(t *testing.T) {
+// Exhaust native byte shifts for both constant counts.
+func TestExhaustiveJudgeNativeByteShifts(t *testing.T) {
 	t.Parallel()
 	for _, op := range []string{"<<", ">>"} {
 		for _, count := range []int64{1, 3} {
@@ -463,13 +442,12 @@ func TestExhaustiveJudgeLIRByteShifts(t *testing.T) {
 				f := &hir.Func{Name: "shift8", Params: []hir.Param{{Name: "a", Ty: mir2.TyU8}}, RetTy: mir2.TyU8,
 					Body: hir.Blk(hir.Ret(&hir.BinExpr{Op: op, L: hir.Var("a", mir2.TyU8), R: &hir.IntLitExpr{Val: count, Ty: mir2.TyU8}, Ty: mir2.TyU8}))}
 				opts := pipeline.DefaultOptions()
-				opts.UseLIR = true
 				steps, err := pipeline.CompileHIRSteps(&hir.Module{Name: "judge_shift", Funcs: []*hir.Func{f}}, opts)
 				if err != nil {
 					t.Fatal(err)
 				}
 				trace := steps.Traces["shift8"]
-				if trace == nil || trace.Backend != "PBQP (lir disabled)" {
+				if trace == nil || trace.Backend != "PBQP" {
 					t.Errorf("unexpected shift provenance: %+v", trace)
 				}
 				bad, first := sweepCodegenJudge(t, []*hir.Func{f}, "shift8", 256,
@@ -479,7 +457,7 @@ func TestExhaustiveJudgeLIRByteShifts(t *testing.T) {
 							return int64(uint8(args[0]) << count)
 						}
 						return int64(uint8(args[0]) >> count)
-					}, true)
+					})
 				if bad > 0 {
 					t.Fatalf("%d/256 mismatches: %s\n%s", bad, first, steps.Assembly)
 				}

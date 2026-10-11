@@ -1,7 +1,6 @@
 package pipeline
 
 import (
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -52,7 +51,6 @@ func TestLIR_C89Corpus(t *testing.T) {
 
 		steps, err := CompileHIRSteps(hm, Options{
 			ContractOpt: true,
-			LIRCheck:    true,
 		})
 		if err != nil {
 			t.Logf("skip %s: pipeline error: %v", base, err)
@@ -61,7 +59,7 @@ func TestLIR_C89Corpus(t *testing.T) {
 
 		// Count results
 		filePass, fileFail := 0, 0
-		for _, r := range steps.LIRResults {
+		for _, r := range lir.CheckModuleConvergence(steps.MIR2Module) {
 			totalFuncs++
 			if r.Match && r.Error == "" {
 				passedFuncs++
@@ -113,13 +111,13 @@ func TestLIR_SingleFunc(t *testing.T) {
 
 	steps, err := CompileHIRSteps(hm, Options{
 		ContractOpt: true,
-		LIRCheck:    true,
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	for _, r := range steps.LIRResults {
+	results := lir.CheckModuleConvergence(steps.MIR2Module)
+	for _, r := range results {
 		if r.Error != "" {
 			t.Logf("%s/%s: %s", r.FuncName, r.Machine, r.Error)
 		} else {
@@ -128,12 +126,12 @@ func TestLIR_SingleFunc(t *testing.T) {
 		}
 	}
 
-	// C int is u16 on Z80, outside the judged bridge allowlist. LIRCheck
+	// C int is u16 on Z80, outside the judged bridge allowlist. Direct research
 	// still runs all three machines and reports unsupported lowering honestly.
-	if len(steps.LIRResults) != 3 {
-		t.Fatalf("want all three convergence results, got %+v", steps.LIRResults)
+	if len(results) != 3 {
+		t.Fatalf("want all three convergence results, got %+v", results)
 	}
-	for _, r := range steps.LIRResults {
+	for _, r := range results {
 		if !strings.Contains(r.Error, "unsupported op add") {
 			t.Fatalf("word arithmetic must be rejected: %+v", r)
 		}
@@ -160,14 +158,13 @@ func TestLIR_CodegenOutput(t *testing.T) {
 		t.Fatal("unjudged promoted C arithmetic accepted")
 	}
 	opts := DefaultOptions()
-	opts.UseLIR = true
 	steps, err := CompileHIRSteps(hm, opts)
 	if err != nil {
 		t.Fatal(err)
 	}
 	trace := steps.Traces["double_val"]
-	if trace == nil || !strings.Contains(trace.Backend, "PBQP (lir disabled)") {
-		t.Fatalf("want fallback provenance: %+v", trace)
+	if trace == nil || !strings.Contains(trace.Backend, "PBQP") {
+		t.Fatalf("want production provenance: %+v", trace)
 	}
 	if !strings.Contains(steps.Assembly, "double_val:") || !strings.Contains(steps.Assembly, "RET") {
 		t.Fatalf("missing readable fallback assembly: %s", steps.Assembly)
@@ -239,14 +236,14 @@ func runFrontendCorpus(t *testing.T, lang, dir, glob string, compile func(string
 			continue
 		}
 
-		steps, err := CompileHIRSteps(hm, Options{ContractOpt: true, LIRCheck: true})
+		steps, err := CompileHIRSteps(hm, Options{ContractOpt: true})
 		if err != nil {
 			t.Logf("skip %s: pipeline: %v", base, err)
 			continue
 		}
 
 		filePass, fileFail := 0, 0
-		for _, r := range steps.LIRResults {
+		for _, r := range lir.CheckModuleConvergence(steps.MIR2Module) {
 			totalFuncs++
 			if r.Match && r.Error == "" {
 				passedFuncs++
@@ -271,65 +268,5 @@ func runFrontendCorpus(t *testing.T, lang, dir, glob string, compile func(string
 	}
 	for _, s := range failSummary {
 		t.Logf("  %s", s)
-	}
-}
-
-// Native LIR must never enter production emission, even for allowlisted
-// compositions or a module whose PBQP functions need runtime routines.
-func TestLIRDisabledWholeModule(t *testing.T) {
-	for _, src := range []string{
-		`fun add(a: u8, b: u8) -> u8 { return a + b }`,
-		`fun sub(a: u8, b: u8) -> u8 { return a - b }
-		fun mul(a: u8, b: u8) -> u8 { return a * b }`,
-		`fun choose(a: u8, b: u8) -> u8 { if a < b { return a } return b }
-		fun identity(a: u8) -> u8 { return a }`,
-	} {
-		t.Run(src, func(t *testing.T) {
-			compile := func(useLIR bool) Steps {
-				hm, err := nanz.Parse(src, "disabled.nanz")
-				if err != nil {
-					t.Fatal(err)
-				}
-				opts := DefaultOptions()
-				opts.UseLIR = useLIR
-				s, err := CompileHIRSteps(hm, opts)
-				if err != nil {
-					t.Fatal(err)
-				}
-				return s
-			}
-			plain := compile(false)
-			reader, writer, err := os.Pipe()
-			if err != nil {
-				t.Fatal(err)
-			}
-			savedStderr := os.Stderr
-			os.Stderr = writer
-			var disabled Steps
-			func() {
-				defer func() { os.Stderr = savedStderr; writer.Close() }()
-				disabled = compile(true)
-			}()
-			diagnostic, err := io.ReadAll(reader)
-			reader.Close()
-			if err != nil {
-				t.Fatal(err)
-			}
-			wantDiagnostic := "lir: native LIR codegen disabled (wrong code found by exhaustive judges); module compiled with PBQP\n"
-			if string(diagnostic) != wantDiagnostic {
-				t.Fatalf("want one disabled diagnostic, got %q", diagnostic)
-			}
-			for name, tr := range disabled.Traces {
-				if tr.Backend != "PBQP (lir disabled)" || tr.BackendErr != "" {
-					t.Fatalf("%s: want disabled provenance: %+v", name, tr)
-				}
-			}
-			if len(disabled.LIRResults) != 0 {
-				t.Fatal("production invoked LIR research codegen")
-			}
-			if disabled.Assembly != plain.Assembly {
-				t.Fatalf("--lir must emit byte-identical PBQP assembly\nplain:\n%s\n--lir:\n%s", plain.Assembly, disabled.Assembly)
-			}
-		})
 	}
 }
