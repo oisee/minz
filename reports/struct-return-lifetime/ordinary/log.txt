@@ -1,0 +1,11 @@
+=== RUN   TestStructReturnLifetimeAudit
+[Z80-VALIDATE] delayed: 2 invalid instruction(s)
+  line 13: >>> LD A, (B) <<<
+[Z80-VALIDATE] two_returns: 4 invalid instruction(s)
+  line 14: >>> LD C, (B) <<<
+  line 15: >>> LD D, (A) <<<
+    struct_return_lifetime_audit_test.go:59: <nil> [line 65: unknown instruction or invalid operands: LD line 82: unknown instruction or invalid operands: LD line 83: unknown instruction or invalid operands: LD line 65: unknown instruction or invalid operands: LD line 82: unknown instruction or invalid operands: LD line 83: unknown instruction or invalid operands: LD]
+--- FAIL: TestStructReturnLifetimeAudit (0.01s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.014s
+FAIL

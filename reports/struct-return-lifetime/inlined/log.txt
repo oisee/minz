@@ -1,0 +1,4 @@
+=== RUN   TestStructReturnLifetimeAudit
+--- PASS: TestStructReturnLifetimeAudit (0.02s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.024s

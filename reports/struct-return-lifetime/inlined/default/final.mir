@@ -1,0 +1,38 @@
+; MIR2 module: literal-width.nanz
+global @witness : u8
+
+fun @make(%r1: u8 [general]) -> S [acc]
+  block @entry:
+    %r2 = alloca 1 : ptr
+    store %r2, %r1 : u8
+    ret %r2
+
+fun @overwrite(%r3: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r4 = alloca 1 : ptr
+    store %r4, %r3 : u8
+    %r5 = load %r4 : u8 [general]
+    %r6 = addr_of @witness : ptr [pointer]
+    store %r6, %r5 : u8
+    %r7 = load %r4 : u8 [acc]
+    ret %r7
+
+fun @delayed(%r8: u8 [general], %r9: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r10 = alloca 1 : ptr
+    store %r10, %r8 : u8
+    %r11 = call @overwrite(%r9) : u8 [acc]
+    %r12 = load %r10 : u8 [acc]
+    ret %r12
+
+fun @two_returns(%r13: u8 [general], %r14: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r15 = alloca 1 : ptr
+    store %r15, %r13 : u8
+    %r16 = alloca 1 : ptr
+    store %r16, %r14 : u8
+    %r17 = load %r15 : u8 [general]
+    %r18 = load %r16 : u8 [general]
+    %r19 = add %r17, %r18 : u8 [acc]
+    ret %r19
+
