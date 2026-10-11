@@ -1,0 +1,8 @@
+{
+  "compiler_commit": "9e8ce601",
+  "code_fix": "46ced4a1",
+  "command": "mir2-9e8ce601.test -test.count=1 -test.timeout=10m",
+  "required_cwd": "compiler/minzc/pkg/mir2",
+  "sha256": "ec4e415b381ed9e845404f75d0cc642c19f2cf67b8d44008a9ba22508f48b90e",
+  "status": "prepared; terminal pending"
+}
