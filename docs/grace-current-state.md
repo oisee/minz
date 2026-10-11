@@ -168,7 +168,8 @@ Nanz 84327 → 82283 T, 60 → 58 B; independent native назначения и
 [Модель и пределы](../reports/2026-10-11-066-pfcco-literal-accumulator-demand.md).
 
 Полный CLI `89fff011` после cleanup: PASS за 383,376 с. Он предшествует
-новым tokenizer/PFCCO изменениям. Full pipeline `22e426de` выполняется.
+новым tokenizer/PFCCO изменениям. Full pipeline `22e426de` terminal PASS за 2805,380 с.
+[Полный лог и границы контекста](grace-integration-081/README.md).
 
 
 Последний полный core gate `a3cc555f`: HIR/MIR2/Nanz/VIR/CLI PASS; CLI 384,168 с.
@@ -296,8 +297,8 @@ MIR, результаты и точный executable сохранены в
 3. Расширять измеренный invariant address hoist и автоматический выбор
    полезных кандидатов. Memory fusion отложена: порядок partial trap и
    liveness нельзя менять без явного доказательства.
-4. Дождаться terminal полного pipeline, исправить обнаруженные проблемы и
-   проверить соответствие всей цели по актуальным исходникам.
+4. Полный pipeline 22e426de прошёл; завершить свежий core gate после runtime
+   и проверить соответствие всей цели по актуальным исходникам.
 5. Обновить приватную сводную страницу сайта после следующего gate;
    сохранять source/profile/ASM/BIN/замеры на шаре.
 
