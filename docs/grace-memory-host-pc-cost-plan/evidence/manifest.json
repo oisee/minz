@@ -170,9 +170,9 @@
     "sha256": "58d376e12892e3ac6c3b5beec2d7279f426347f7e2a95a5b6a3f5d6585968c6d"
   },
   {
-    "path": "source-unit-diagnostic-diff.txt",
-    "bytes": 220,
-    "sha256": "b67521859b6b65d3c09c2235f71119ca779660e6c3e1d6a9c5488fe26149663f"
+    "path": "source-unit-diagnostic-diff.txt.gz",
+    "bytes": 140,
+    "sha256": "d29f232781d739b08a523e639183fe4523ce31cb5a7821efdf21084666abc18c"
   },
   {
     "path": "source.nanz",
