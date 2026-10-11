@@ -1,0 +1,10 @@
+{
+  "compiler_commit": "0b11effd96156b6e7abbac7c776855b4de68311a",
+  "merged_parent": "129822cb",
+  "test_commit": "2f10fb25",
+  "production_fix": "d990bf78",
+  "parser_fix": "a91ea32d",
+  "sha256": "ffcc8f40cf97be685f4b6863068004fcab7d12d9a8d386835254a4cacae580cf",
+  "cwd": "minzc/pkg/pipeline",
+  "command": "MINZ_WIDEMATH_EXHAUSTIVE=1 ../../../reports/widemath-native/compiler/pipeline.test -test.run ^TestOriginalWidemathNativeModel$ -test.count=1 -test.v"
+}
