@@ -1,0 +1,74 @@
+{
+  "files": [
+    {
+      "path": "artifacts/TestCPMRuntimeOriginalSelfLanzMain/capture.json",
+      "sha256": "a011d82628dd618d3b4d86d67e3c319bd7801f9b238f2913cf129b792e518fc3",
+      "bytes": 22362
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeOriginalSelfLanzMain/oracle.json",
+      "sha256": "b608ad12398db25a082812618a40dd4cb545b09ea14342cadcf96af6f1a1ccfa",
+      "bytes": 22129
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeOriginalSelfLanzMain/source.nanz",
+      "sha256": "763d9f369e3bbbdbcb84dee2627aff5ee90e57d99ad8d0f69e7db0c8325a6b51",
+      "bytes": 7229
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeOriginalSelfLanzMain/stdout.txt",
+      "sha256": "884543244d67393e4b942d6ce4b74a389a1904365bd0505d8c6e497d3fc292e5",
+      "bytes": 135
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeOriginalSelfLanzMain/target.a80",
+      "sha256": "0dd4bbc0967f4c856279b9fc0c583d1709791bc901fe21d189b58183e3142855",
+      "bytes": 45020
+    },
+    {
+      "path": "artifacts/TestCPMRuntimeOriginalSelfLanzMain/target.bin",
+      "sha256": "4446673251c6b756d50e36f236c33c1c7af2270170ed322b34f78f59046b5097",
+      "bytes": 4727
+    },
+    {
+      "path": "artifacts/focused.txt",
+      "sha256": "eed4351d71c7456648ee1c356e4964df9a77eab2739f3a5cc14ae6c2621af49d",
+      "bytes": 4939
+    },
+    {
+      "path": "artifacts/mir2-full.txt",
+      "sha256": "e9cf70179e1a61e4e30cf171c12ef618d6eb9e10642d18a3b1986afe4ef1bcdb",
+      "bytes": 44
+    },
+    {
+      "path": "artifacts/native-cli-proof.txt",
+      "sha256": "8ba8b0f3bcf692f9cebc2d5d7c763fdb17525dfae2dc0f06006d5aa1d5956db4",
+      "bytes": 1336
+    },
+    {
+      "path": "artifacts/overflow.a80",
+      "sha256": "9a956bec8dc40f4aa82bae5ba516d9ea04a50a0a46796462a3c4ab5669dd8c16",
+      "bytes": 2541
+    },
+    {
+      "path": "artifacts/overflow.com",
+      "sha256": "80b2936c8b14e004f1c11c01dc4ce2eb96378545004edba36aee42042003b989",
+      "bytes": 224
+    },
+    {
+      "path": "artifacts/overflow.json",
+      "sha256": "707b1f6f07c9b0f2032579ea16dca0db0c6e1f3a7d4d451528b6f4f215232fdf",
+      "bytes": 196
+    },
+    {
+      "path": "artifacts/parser.a80",
+      "sha256": "0dd4bbc0967f4c856279b9fc0c583d1709791bc901fe21d189b58183e3142855",
+      "bytes": 45020
+    },
+    {
+      "path": "artifacts/parser.com",
+      "sha256": "4446673251c6b756d50e36f236c33c1c7af2270170ed322b34f78f59046b5097",
+      "bytes": 4727
+    }
+  ]
+}

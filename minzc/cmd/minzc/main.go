@@ -251,6 +251,7 @@ func init() {
 	rootCmd.Flags().StringVar(&hirProfileAutoWorkload, "hir-profile-auto-workload", "", "controlled workload JSON for --hir-profile-auto")
 	rootCmd.Flags().StringVar(&contractStrategy, "contract-strategy", "", "interprocedural contracts: greedy (default) or experimental pbqp")
 	rootCmd.Flags().StringVarP(&backend, "backend", "b", defaultBackend, "target backend (z80, ez80)")
+	rootCmd.Flags().IntVar(&runtimeStackBytes, "runtime-stack", 0, "explicit guarded CP/M stack bytes (even 64..16384; enables recursive calls)")
 	rootCmd.Flags().StringVar(&runtimeMode, "runtime", "", "explicit application runtime: cpm (console and byte-memory ABI, proven resident 256-byte stack)")
 	rootCmd.Flags().StringVarP(&target, "target", "t", "zxspectrum", "target platform (zxspectrum, cpm, msx, cpc, amstrad)")
 	rootCmd.Flags().StringVarP(&outputFormat, "format", "f", "", "output format: code (raw binary, default), sna, tap")
@@ -1076,6 +1077,7 @@ func compileViaHIR(sourceFile string) error {
 
 	opts := pipeline.Options{
 		Runtime:               mir2.Z80Runtime(runtimeMode),
+		RuntimeStackBytes:     runtimeStackBytes,
 		CheckedLocalTablePath: checkedLocalTablePath,
 		ContractStrategy:      contractStrategy,
 		ContractOpt:           true,

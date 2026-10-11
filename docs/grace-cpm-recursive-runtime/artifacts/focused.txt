@@ -1,0 +1,73 @@
+=== RUN   TestCPMRecursiveLiveSpillRestoration
+=== RUN   TestCPMRecursiveLiveSpillRestoration/0
+=== RUN   TestCPMRecursiveLiveSpillRestoration/1
+=== RUN   TestCPMRecursiveLiveSpillRestoration/2
+=== RUN   TestCPMRecursiveLiveSpillRestoration/7
+=== RUN   TestCPMRecursiveLiveSpillRestoration/12
+=== RUN   TestCPMRecursiveLiveSpillRestoration/31
+--- PASS: TestCPMRecursiveLiveSpillRestoration (0.04s)
+    --- PASS: TestCPMRecursiveLiveSpillRestoration/0 (0.01s)
+    --- PASS: TestCPMRecursiveLiveSpillRestoration/1 (0.01s)
+    --- PASS: TestCPMRecursiveLiveSpillRestoration/2 (0.01s)
+    --- PASS: TestCPMRecursiveLiveSpillRestoration/7 (0.01s)
+    --- PASS: TestCPMRecursiveLiveSpillRestoration/12 (0.01s)
+    --- PASS: TestCPMRecursiveLiveSpillRestoration/31 (0.01s)
+=== RUN   TestOriginalSelfLanzMainNativeFullState
+=== RUN   TestOriginalSelfLanzMainNativeFullState/port23
+    original_lanz_main_test.go:336: exact main 135 stdout bytes all regions/globals/stack guards PASS 204560 T BIN 2410 SHA 3adb9988abe42dbe66b53194ee3307f7be4ea79965cfaffcf2cd456ba39dc47f
+=== RUN   TestOriginalSelfLanzMainNativeFullState/cpm-bdos2
+    original_lanz_main_test.go:336: exact main 135 stdout bytes all regions/globals/stack guards PASS 229769 T BIN 2477 SHA e3792f5020d796e509a223cab661e71fa53552577786ddb78b4d1a7ee559a304
+--- PASS: TestOriginalSelfLanzMainNativeFullState (0.28s)
+    --- PASS: TestOriginalSelfLanzMainNativeFullState/port23 (0.14s)
+    --- PASS: TestOriginalSelfLanzMainNativeFullState/cpm-bdos2 (0.14s)
+=== RUN   TestCPMRuntimeOriginalSelfLanzMain
+    original_lanz_main_test.go:324: resident stack touched 50 bytes
+    original_lanz_main_test.go:336: exact main 135 stdout bytes all regions/globals/stack guards PASS 983310 T BIN 4727 SHA 4446673251c6b756d50e36f236c33c1c7af2270170ed322b34f78f59046b5097
+--- PASS: TestCPMRuntimeOriginalSelfLanzMain (0.23s)
+=== RUN   TestOriginalTokenizerMainNativeFullState
+=== RUN   TestOriginalTokenizerMainNativeFullState/port23
+    original_tokenizer_main_test.go:334: exact main 146 stdout bytes all regions/globals/stack guards PASS 199102 T BIN 5466 SHA cb7a8da6dd152d5bc97f99d05a7f33c41b53bda6c8accb56b1f7f1144c6f5545
+=== RUN   TestOriginalTokenizerMainNativeFullState/cpm-bdos2
+    original_tokenizer_main_test.go:334: exact main 146 stdout bytes all regions/globals/stack guards PASS 226357 T BIN 5554 SHA 23e4ce4a5546dfe970326cb5e2a1533d9db037aae399aa3dfd613897a033b388
+--- PASS: TestOriginalTokenizerMainNativeFullState (1.28s)
+    --- PASS: TestOriginalTokenizerMainNativeFullState/port23 (0.64s)
+    --- PASS: TestOriginalTokenizerMainNativeFullState/cpm-bdos2 (0.64s)
+=== RUN   TestCPMRuntimeOriginalTokenizerMain
+    original_tokenizer_main_test.go:332: resident stack touched 28 bytes
+    original_tokenizer_main_test.go:334: exact main 146 stdout bytes all regions/globals/stack guards PASS 226178 T BIN 5815 SHA ff30ec8eb3ab19f9a81044256e14e7ed48c706daa832bfc89de9714d100bfea4
+--- PASS: TestCPMRuntimeOriginalTokenizerMain (0.84s)
+=== RUN   TestDefaultRuntimeKeepsProfileIdentity
+--- PASS: TestDefaultRuntimeKeepsProfileIdentity (0.00s)
+=== RUN   TestMeasuredRuntimeStackRejectsBeforeFactory
+--- PASS: TestMeasuredRuntimeStackRejectsBeforeFactory (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.688s
+=== RUN   TestCPMRuntimeStackChecksCalledBodies
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/balanced_nested
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/unbalanced_rotate
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/conditional_return_imbalance
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/callee_steals_return_word
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/recursive_callee
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/dynamic_stack
+--- PASS: TestCPMRuntimeStackChecksCalledBodies (0.01s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/balanced_nested (0.00s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/unbalanced_rotate (0.00s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/conditional_return_imbalance (0.00s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/callee_steals_return_word (0.00s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/recursive_callee (0.00s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/dynamic_stack (0.00s)
+=== RUN   TestCPMRuntimeGuardedAdmission
+--- PASS: TestCPMRuntimeGuardedAdmission (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.021s
+=== RUN   TestCPMRuntimeOrdinaryCLI
+    cpm_runtime_test.go:101: COM 524 bytes, BDOS chars12, resident stack touched≤19 bytes
+--- PASS: TestCPMRuntimeOrdinaryCLI (0.03s)
+=== RUN   TestCPMRuntimeRejectsUnsupported
+--- PASS: TestCPMRuntimeRejectsUnsupported (0.00s)
+=== RUN   TestCPMRuntimeBytePrimitiveABIAndBoundary
+--- PASS: TestCPMRuntimeBytePrimitiveABIAndBoundary (0.00s)
+=== RUN   TestCPMRuntimeGuardedStackOverflowAndFlags
+--- PASS: TestCPMRuntimeGuardedStackOverflowAndFlags (0.01s)
+PASS
+ok  	github.com/minz/minzc/cmd/minzc	0.054s

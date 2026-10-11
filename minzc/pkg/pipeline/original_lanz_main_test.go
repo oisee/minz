@@ -27,7 +27,9 @@ func TestOriginalSelfLanzMainNativeFullState(t *testing.T) {
 		t.Run(name, func(t *testing.T) { originalSelfLanzMain(t, cpm) })
 	}
 }
-func originalSelfLanzMain(t *testing.T, cpm bool) {
+func TestCPMRuntimeOriginalSelfLanzMain(t *testing.T) { originalSelfLanzRuntimeMain(t, true, true) }
+func originalSelfLanzMain(t *testing.T, cpm bool)     { originalSelfLanzRuntimeMain(t, cpm, false) }
+func originalSelfLanzRuntimeMain(t *testing.T, cpm, production bool) {
 	const path = "../../../examples/nanz/self_lanz_parser.nanz"
 	source, e := os.ReadFile(path)
 	if e != nil {
@@ -37,7 +39,13 @@ func originalSelfLanzMain(t *testing.T, cpm bool) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	steps, e := CompileHIRSteps(h, Options{AssertMode: "none"})
+	opts := Options{AssertMode: "none"}
+	if production {
+		opts.Runtime = mir2.Z80RuntimeCPM
+		opts.RuntimeStackBytes = 1024
+		opts.ContractOpt = true
+	}
+	steps, e := CompileHIRSteps(h, opts)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -49,7 +57,7 @@ func originalSelfLanzMain(t *testing.T, cpm bool) {
 	asm = strings.Replace(asm, "poke:\n", "poke:\n LD (HL),C\n RET\n", 1)
 	origin := uint16(0x400)
 	fullAssembly := "ORG 0x400\n" + asm
-	if cpm {
+	if cpm && !production {
 		// Test runtime translation only: exact source/HIR/main remain intact.
 		// Preserve every main branch/label, replace output effects and process
 		// termination; the explicit wrapper records status and warm-boots.
@@ -93,9 +101,19 @@ __oracle_incoming_sp:
  DW 0
 ` + asm
 	}
+	if production {
+		origin = 0x100
+		fullAssembly = steps.Assembly
+	}
 	a, e := z80asm.NewAssembler().AssembleString(fullAssembly)
 	if e != nil || len(a.Errors) > 0 {
 		t.Fatal(e, a.Errors)
+	}
+	if production && os.Getenv("MINZ_CPM_LANZ_COM") != "" {
+		b, e := os.ReadFile(os.Getenv("MINZ_CPM_LANZ_COM"))
+		if e != nil || !bytes.Equal(b, a.Binary) {
+			t.Fatal("CLI COM differs", e)
+		}
 	}
 	z := emulator.NewRemogattoZ80WithScreen()
 	z.SetROMEnd(0)
@@ -132,8 +150,25 @@ __oracle_incoming_sp:
 				t.Fatalf("unsupported BDOS%d", function)
 			}
 			output = append(output, byte(de))
+			if production {
+				r := z.GetRegisters()
+				r.A = 0xa5
+				r.F = 0xff
+				r.BC = 0x1234
+				r.DE = 0x5678
+				r.HL = 0x9abc
+				r.IX = 0x2468
+				r.IY = 0x1357
+				z.SetRegisters(r)
+			}
 			return 0xa5, 0xc3c3, true
 		})
+	}
+	var before [65536]byte
+	if production {
+		for p := range before {
+			before[p] = z.GetMemory(uint16(p))
+		}
 	}
 	runErr := z.Run()
 	regs := z.GetRegisters()
@@ -224,7 +259,7 @@ __oracle_incoming_sp:
 		}
 	}
 	if cpm {
-		if regs.SP != 0xfe00 || regs.PC != 0 || z.GetMemory(uint16(a.Symbols["__oracle_status"])) != 1 {
+		if regs.SP != 0xfe00 || regs.PC != 0 || (!production && z.GetMemory(uint16(a.Symbols["__oracle_status"])) != 1) {
 			t.Fatalf("CP/M termination %+v status%d", regs, z.GetMemory(uint16(a.Symbols["__oracle_status"])))
 		}
 	} else if regs.SP != 0xeff0 {
@@ -245,7 +280,7 @@ __oracle_incoming_sp:
 			mutable[uint16(start+j)] = true
 		}
 	}
-	if cpm {
+	if cpm && !production {
 		for _, field := range []struct {
 			name  string
 			width int
@@ -253,6 +288,16 @@ __oracle_incoming_sp:
 			for j := 0; j < field.width; j++ {
 				mutable[uint16(a.Symbols[field.name]+j)] = true
 			}
+		}
+	}
+	if production {
+		for _, r := range [][2]int{{a.Symbols["__cpm_saved_sp"], a.Symbols["__cpm_saved_sp"] + 2}, {a.Symbols["__cpm_status"], a.Symbols["__cpm_status"] + 1}, {a.Symbols["__cpm_stack"], a.Symbols["__cpm_stack_top"]}} {
+			for p := r[0]; p < r[1]; p++ {
+				mutable[uint16(p)] = true
+			}
+		}
+		if z.GetMemory(uint16(a.Symbols["__cpm_status"])) != 0 || z.GetMemory(uint16(a.Symbols["__cpm_stack_guard"])) != 0xa5 {
+			t.Fatal("status/guard")
 		}
 	}
 	for _, line := range a.Listing {
@@ -266,6 +311,26 @@ __oracle_incoming_sp:
 		p := origin + uint16(j)
 		if !mutable[p] && z.GetMemory(p) != b {
 			t.Fatalf("immutable image changed %04x", p)
+		}
+	}
+	if production {
+		min := a.Symbols["__cpm_stack_top"]
+		for p := a.Symbols["__cpm_stack"]; p < min; p++ {
+			if z.GetMemory(uint16(p)) != 0 {
+				min = p
+				break
+			}
+		}
+		t.Logf("resident stack touched %d bytes", a.Symbols["__cpm_stack_top"]-min)
+	}
+	if production {
+		for p, b := range before {
+			if mutable[uint16(p)] || (p >= 0x8000 && p < 0xb000) || (p >= 0xc000 && p < 0xd000) {
+				continue
+			}
+			if z.GetMemory(uint16(p)) != b {
+				t.Fatalf("unexpected64KiB write %04x", p)
+			}
 		}
 	}
 	t.Logf("exact main %d stdout bytes all regions/globals/stack guards PASS %d T BIN %d SHA %x", len(output), z.RemogattoZ80.GetCycles(), len(a.Binary), sha256.Sum256(a.Binary))
