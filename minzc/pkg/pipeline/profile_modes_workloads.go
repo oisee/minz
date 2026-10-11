@@ -131,7 +131,7 @@ func MeasureCompilerModeWorkloads(factory func() (*hir.Module, error), workloads
 		}
 		for i, c := range result.Evidence.Candidates {
 			base := first.Evidence.Candidates[i]
-			if !reflect.DeepEqual(base.Options, c.Options) || base.CompilationID != c.CompilationID || base.Assembly != c.Assembly || base.FinalMIR != c.FinalMIR || !bytes.Equal(base.Binary, c.Binary) {
+			if !reflect.DeepEqual(base.Options, c.Options) || base.CompilationID != c.CompilationID || base.Assembly != c.Assembly || base.FinalMIR != c.FinalMIR || base.FullMIRSHA256 == "" || base.FullMIRSHA256 != c.FullMIRSHA256 || base.AllocationSHA256 == "" || base.AllocationSHA256 != c.AllocationSHA256 || !bytes.Equal(base.Binary, c.Binary) {
 				return fail(fmt.Errorf("candidate %d executable changed between workloads", i))
 			}
 			if c.Run == nil || c.Run.TotalTStates < 0 || c.Run.TotalTStates > int64(^uint64(0)>>1)-evidence.TotalTStates[i] {
@@ -196,9 +196,15 @@ func MeasureCompilerModeWorkloads(factory func() (*hir.Module, error), workloads
 	if e != nil {
 		return fail(e)
 	}
+	if fmt.Sprintf("%x", sha256.Sum256(finalMIRBytes)) != best.FullMIRSHA256 {
+		return fail(fmt.Errorf("final selected MIR metadata differs from measured candidate"))
+	}
 	allocationBytes, e := json.Marshal(steps.Allocation)
 	if e != nil {
 		return fail(e)
+	}
+	if fmt.Sprintf("%x", sha256.Sum256(allocationBytes)) != best.AllocationSHA256 {
+		return fail(fmt.Errorf("final selected allocation differs from measured candidate"))
 	}
 	for n, w := range owned {
 		original, e := factory()

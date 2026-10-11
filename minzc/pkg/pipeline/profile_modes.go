@@ -11,12 +11,14 @@ import (
 )
 
 type MeasuredModeCandidate struct {
-	Options       Options                     `json:"options"`
-	CompilationID string                      `json:"compilation_id"`
-	Assembly      string                      `json:"assembly"`
-	Binary        []byte                      `json:"binary"`
-	FinalMIR      string                      `json:"final_mir"`
-	Run           *Z80ProfileWorkloadEvidence `json:"run"`
+	Options          Options                     `json:"options"`
+	CompilationID    string                      `json:"compilation_id"`
+	Assembly         string                      `json:"assembly"`
+	Binary           []byte                      `json:"binary"`
+	FullMIRSHA256    string                      `json:"full_mir_sha256,omitempty"`
+	AllocationSHA256 string                      `json:"allocation_sha256,omitempty"`
+	FinalMIR         string                      `json:"final_mir"`
+	Run              *Z80ProfileWorkloadEvidence `json:"run"`
 }
 type MeasuredModeEvidence struct {
 	Schema        string                    `json:"schema"`
@@ -179,6 +181,8 @@ func MeasureCompilerModeVariants(factory func() (*hir.Module, error), workload h
 			return fail(e)
 		}
 		fullMIR = append(fullMIR, mirBytes)
+		evidence.Candidates[i].FullMIRSHA256 = fmt.Sprintf("%x", sha256.Sum256(mirBytes))
+		evidence.Candidates[i].AllocationSHA256 = fmt.Sprintf("%x", sha256.Sum256(allocation))
 		better := i == 0
 		if i > 0 {
 			best := evidence.Candidates[evidence.Selected]

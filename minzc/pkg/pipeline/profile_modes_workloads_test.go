@@ -3,6 +3,7 @@ package pipeline
 import (
 	"errors"
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
 	"testing"
 )
@@ -90,5 +91,33 @@ func TestMeasuredModeWorkloadsRejectsEarlierHIRMutation(t *testing.T) {
 	r, e := MeasureCompilerModeWorkloads(factory, []hir.ProfileWorkload{w, w}, "speed", false)
 	if r != nil || e == nil {
 		t.Fatal("earlier HIR mutation accepted")
+	}
+}
+func TestMeasuredModeWorkloadsRejectsEarlierSemanticTypeMutation(t *testing.T) {
+	_, w := modeFixture()
+	fresh := func() (*hir.Module, error) {
+		return nanz.Parse(`fun arithmetic(n:u8<0..255>)->u8{return n+7}`, "mode.nanz")
+	}
+	probeCalls := 0
+	probe := func() (*hir.Module, error) { probeCalls++; return fresh() }
+	if _, e := MeasureCompilerModeVariants(probe, w, "speed", false); e != nil {
+		t.Fatal(e)
+	}
+	calls := 0
+	var earlier *hir.Module
+	factory := func() (*hir.Module, error) {
+		calls++
+		m, e := fresh()
+		if calls == 2 {
+			earlier = m
+		}
+		if calls == probeCalls+1 {
+			earlier.FuncByName("arithmetic").Params[0].Ty.(*mir2.RangedTy).Hi = 8
+		}
+		return m, e
+	}
+	r, e := MeasureCompilerModeWorkloads(factory, []hir.ProfileWorkload{w, w}, "speed", false)
+	if r != nil || e == nil {
+		t.Fatal("earlier finalized semantic type mutated")
 	}
 }
