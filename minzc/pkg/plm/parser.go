@@ -40,6 +40,7 @@ func ParseModuleFile(path, src string) (*Module, error) {
 
 type parser struct {
 	l          *Lexer
+	moduleBody []Stmt
 	extraDecls []*VarDecl // extra VarDecls emitted by multi-BASED name lists
 }
 
@@ -93,7 +94,7 @@ func (p *parser) parseModule() (*Module, error) {
 		}
 	}
 
-	// Parse remaining declarations until END or EOF.
+	// Retain declarations and executable module statements until END or EOF.
 	for !p.l.IsKind(TokEOF) && !p.l.Is("END") {
 		ds, err := p.parseDeclList()
 		if err != nil {
@@ -113,12 +114,13 @@ func (p *parser) parseModule() (*Module, error) {
 		}
 	}
 
+	m.Body = p.moduleBody
 	return m, nil
 }
 
 // ── Declarations ──────────────────────────────────────────────────────────────
 
-// parseDeclList parses one top-level declaration item and returns 1..N Decls.
+// parseDeclList parses a top-level item; executable statements enter moduleBody.
 // DECLARE may expand to multiple VarDecls (comma-separated groups).
 func (p *parser) parseDeclList() ([]Decl, error) {
 	if p.l.Is("ASSERT") {
@@ -155,28 +157,28 @@ func (p *parser) parseDeclList() ([]Decl, error) {
 					}
 					return []Decl{pd}, nil
 				}
-				// Module-level label before executable statements.
-				// Parse and discard the following statement sequence.
-				if err := p.skipModuleBodyStmts(); err != nil {
-					return nil, err
-				}
-				return nil, nil
+				// Restore the label and let the ordinary statement parser retain it.
+				p.l.cur -= 2
+			} else {
+				p.l.cur--
 			}
-			// Bare identifier (including keywords like CALL, IF used as statement starters).
-			// Re-inject as a statement.
-			if err := p.skipOneStmtWithName(nameTok); err != nil {
+			stmt, err := p.parseStmt()
+			if err != nil {
 				return nil, err
 			}
+			p.moduleBody = append(p.moduleBody, stmt)
 			return nil, nil
 		}
 	}
-	// Any other token at module level — try parsing as a statement and discard.
 	if !p.l.IsKind(TokEOF) && !p.l.Is("END") {
-		if err := p.skipModuleBodyStmts(); err != nil {
+		stmt, err := p.parseStmt()
+		if err != nil {
 			return nil, err
 		}
+		p.moduleBody = append(p.moduleBody, stmt)
 		return nil, nil
 	}
+
 	tok := p.l.Peek()
 	return nil, fmt.Errorf("line %d: unexpected token %q in declaration context", tok.Line, tok.Val)
 }
@@ -1388,16 +1390,21 @@ func (p *parser) parseUnaryExpr() (Expr, error) {
 			}
 			return addr, nil
 		}
-		// .('string') — string literal address (DATA init context); return placeholder 0
+		// The period addresses the exact bytes; PL/M does not imply a C terminator.
 		if kw.Kind == TokLParen {
 			p.l.Next()
-			p.skipBalancedParenContent()
-			return &NumberLit{Val: 0}, nil
+			literal, err := p.l.ExpectKind(TokString)
+			if err != nil {
+				return nil, err
+			}
+			if _, err = p.l.ExpectKind(TokRParen); err != nil {
+				return nil, err
+			}
+			return &StringAddrExpr{Value: literal.Val}, nil
 		}
-		// .'string' — address of string literal; return placeholder 0
 		if kw.Kind == TokString {
 			p.l.Next()
-			return &NumberLit{Val: 0}, nil
+			return &StringAddrExpr{Value: kw.Val}, nil
 		}
 		return nil, fmt.Errorf("line %d: unexpected '.' in expression", kw.Line)
 	}

@@ -3,5 +3,7 @@
   "originalmain": "top-levelCALLs must execute; PRINTCHARemptythusnooutput",
   "stringaddress": "preserveexactliteralbytesnocasefold/noimplicitNULlanguageclaim",
   "modulefixture": "globaltrace orderedmultipleCALLs; mixedcaseidentifierstring; explicitATbufferwithNUL forstringwalk",
-  "admission": "originalHELLOassumesNULbutliteraldoesnotpromiseone; keepstate/runtimegapuntilresolved"
+  "admission": "originalHELLOassumesNULbutliteraldoesnotpromiseone; keepstate/runtimegapuntilresolved",
+  "process_sha256": "260b79efe088eb9ba9fb691307c37b329a6fe958ae6090930b8641bc74b408be",
+  "original_memory_convention": "test-owned zero byte exactly after last emitted literal object; no implicit-NUL or BDOS claim"
 }

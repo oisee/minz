@@ -1,0 +1,122 @@
+[
+  {
+    "Op": "read",
+    "Object": "__plm_literal_0",
+    "Offset": 0,
+    "Value": 72
+  },
+  {
+    "Op": "read",
+    "Object": "__plm_literal_0",
+    "Offset": 1,
+    "Value": 101
+  },
+  {
+    "Op": "read",
+    "Object": "__plm_literal_0",
+    "Offset": 2,
+    "Value": 108
+  },
+  {
+    "Op": "read",
+    "Object": "__plm_literal_0",
+    "Offset": 3,
+    "Value": 108
+  },
+  {
+    "Op": "read",
+    "Object": "__plm_literal_0",
+    "Offset": 4,
+    "Value": 111
+  },
+  {
+    "Op": "read",
+    "Object": "__plm_literal_0",
+    "Offset": 5,
+    "Value": 32
+  },
+  {
+    "Op": "read",
+    "Object": "__plm_literal_0",
+    "Offset": 6,
+    "Value": 102
+  },
+  {
+    "Op": "read",
+    "Object": "__plm_literal_0",
+    "Offset": 7,
+    "Value": 114
+  },
+  {
+    "Op": "read",
+    "Object": "__plm_literal_0",
+    "Offset": 8,
+    "Value": 111
+  },
+  {
+    "Op": "read",
+    "Object": "__plm_literal_0",
+    "Offset": 9,
+    "Value": 109
+  },
+  {
+    "Op": "read",
+    "Object": "__plm_literal_0",
+    "Offset": 10,
+    "Value": 32
+  },
+  {
+    "Op": "read",
+    "Object": "__plm_literal_0",
+    "Offset": 11,
+    "Value": 80
+  },
+  {
+    "Op": "read",
+    "Object": "__plm_literal_0",
+    "Offset": 12,
+    "Value": 76
+  },
+  {
+    "Op": "read",
+    "Object": "__plm_literal_0",
+    "Offset": 13,
+    "Value": 47
+  },
+  {
+    "Op": "read",
+    "Object": "__plm_literal_0",
+    "Offset": 14,
+    "Value": 77
+  },
+  {
+    "Op": "read",
+    "Object": "__plm_literal_0",
+    "Offset": 15,
+    "Value": 45
+  },
+  {
+    "Op": "read",
+    "Object": "__plm_literal_0",
+    "Offset": 16,
+    "Value": 56
+  },
+  {
+    "Op": "read",
+    "Object": "__plm_literal_0",
+    "Offset": 17,
+    "Value": 48
+  },
+  {
+    "Op": "read",
+    "Object": "__plm_literal_0",
+    "Offset": 18,
+    "Value": 33
+  },
+  {
+    "Op": "read",
+    "Object": "__plm_literal_0",
+    "Offset": 19,
+    "Value": 0
+  }
+]

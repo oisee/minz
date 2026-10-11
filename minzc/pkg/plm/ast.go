@@ -35,6 +35,7 @@ func (t PLMType) String() string {
 type Module struct {
 	Name  string // module name, or "" for file-scope
 	Decls []Decl
+	Body  []Stmt // executable module statements, in source order
 }
 
 // ── Declarations ──────────────────────────────────────────────────────────────
@@ -236,3 +237,9 @@ type AddrExpr struct {
 }
 
 func (*AddrExpr) plmExpr() {}
+
+// StringAddrExpr addresses the exact bytes of a PL/M string constant.
+// Unlike a C string, no terminator is implied.
+type StringAddrExpr struct{ Value string }
+
+func (*StringAddrExpr) plmExpr() {}
