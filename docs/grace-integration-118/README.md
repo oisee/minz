@@ -22,3 +22,7 @@ Original14 @error/@propagate audit found native wrong error-code A and
 stale carry after optimization; VM reports unknown intrinsics. That gap is
 under investigation separately, not counted as successful corpus evidence.
 Goal remains active.
+
+Fresh root showcase compile-and-assemble on0cd5c74a:193PASS,1SKIP,0FAIL
+(194 exact cases;12.429s). This remains compile-only evidence, separate
+from independent bounded native proofs.

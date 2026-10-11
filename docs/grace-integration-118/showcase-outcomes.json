@@ -1,0 +1,1174 @@
+{
+  "compiler_commit": "0cd5c74a",
+  "scope": "compile-and-assemble only; execution correctness not implied",
+  "counts": {
+    "PASS": 193,
+    "SKIP": 1
+  },
+  "cases": [
+    {
+      "Path": "reports/showcase-src/2026-03-10/ex1_struct.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex1_struct.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-10/ex2_ufcs.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex2_ufcs.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-10/ex3_iface.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex3_iface.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-10/ex3b_iface_param.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex3b_iface_param.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-10/ex4a_abs_diff.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex4a_abs_diff.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-10/ex4a_abs_diff_iar.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex4a_abs_diff_iar.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-10/ex4b_abs_diff_u16.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex4b_abs_diff_u16.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-10/ex5_lut.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex5_lut.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-10/ex6_foreach.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex6_foreach.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-10/ex7_mapinplace.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex7_mapinplace.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-10/ex8_gcd.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex8_gcd.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-11/ex0_test_struct.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex0_test_struct.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-11/ex10a_fib_rec.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex10a_fib_rec.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-11/ex10b_fib_iter.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex10b_fib_iter.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-11/ex10c_fib_fold.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex10c_fib_fold.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-11/ex11_minmax_multiret.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex11_minmax_multiret.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-11/ex12_assert.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex12_assert.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-11/ex13_multiret_assert.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex13_multiret_assert.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-11/ex14_fold_assert.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex14_fold_assert.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-11/ex15_smc_sprite.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex15_smc_sprite.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-11/ex16_hello_mze.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex16_hello_mze.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-11/ex17_asm_block.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex17_asm_block.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-11/ex18_user_console_io.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex18_user_console_io.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-11/ex9a_factorial_rec.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex9a_factorial_rec.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-11/ex9b_factorial_fold.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex9b_factorial_fold.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-13/ex10a_fib_rec.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex10a_fib_rec.nanz#01",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-13/ex10b_fib_iter.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex10b_fib_iter.nanz#01",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-13/ex10c_fib_fold.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex10c_fib_fold.nanz#01",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-13/ex11_minmax_multiret.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex11_minmax_multiret.nanz#01",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-13/ex12_assert.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex12_assert.nanz#01",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-13/ex13_multiret_assert.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex13_multiret_assert.nanz#01",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-13/ex14_fold_assert.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex14_fold_assert.nanz#01",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-13/ex15_smc_sprite.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex15_smc_sprite.nanz#01",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-13/ex16_hello_mze.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex16_hello_mze.nanz#01",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-13/ex17_asm_block.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex17_asm_block.nanz#01",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-13/ex18_user_console_io.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex18_user_console_io.nanz#01",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-13/ex19_assert_forms.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex19_assert_forms.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-13/ex1_struct.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex1_struct.nanz#01",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-13/ex2_ufcs.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex2_ufcs.nanz#01",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-13/ex3_iface.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex3_iface.nanz#01",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-13/ex3b_iface_param.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex3b_iface_param.nanz#01",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-13/ex4a_abs_diff.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex4a_abs_diff.nanz#01",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-13/ex4b_abs_diff_u16.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex4b_abs_diff_u16.nanz#01",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-13/ex5_lut.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex5_lut.nanz#01",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-13/ex6_foreach.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex6_foreach.nanz#01",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-13/ex7_mapinplace.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex7_mapinplace.nanz#01",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-13/ex8_gcd.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex8_gcd.nanz#01",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-13/ex9a_factorial_rec.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex9a_factorial_rec.nanz#01",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-13/ex9b_factorial_fold.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex9b_factorial_fold.nanz#01",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-14/ex20_arena_allocator.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex20_arena_allocator.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-14/ex21_enum.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex21_enum.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-14/ex22_type_alias.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex22_type_alias.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-14/ex23_import_unqualified.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex23_import_unqualified.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-14/ex24_import_qualified.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex24_import_qualified.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-14/ex25_import_alias_glob.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex25_import_alias_glob.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-14/ex26_enum_assert.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex26_enum_assert.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-14/ex27_strings.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex27_strings.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-14/ex28_pipe.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex28_pipe.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-14/mathlib/ops.nanz",
+      "Case": "TestShowcaseCompileAssemble/ops.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-15/ex29_lanz.lanz",
+      "Case": "TestShowcaseCompileAssemble/ex29_lanz.lanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-15/ex30_ptr_cast.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex30_ptr_cast.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-15/ex31_asm_ret_clob.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex31_asm_ret_clob.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-15/ex32_value_pipe.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex32_value_pipe.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-15/ex33_lambda_inference.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex33_lambda_inference.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "reports/showcase-src/2026-03-15/ex34_tetris.nanz",
+      "Case": "TestShowcaseCompileAssemble/ex34_tetris.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/abap/hello_zx.nanz",
+      "Case": "TestShowcaseCompileAssemble/hello_zx.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/abap/sap_report_zx.nanz",
+      "Case": "TestShowcaseCompileAssemble/sap_report_zx.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/abap/zsql_mara_color_zx.nanz",
+      "Case": "TestShowcaseCompileAssemble/zsql_mara_color_zx.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/agon/hello_agon.nanz",
+      "Case": "TestShowcaseCompileAssemble/hello_agon.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/agon/hello_world.nanz",
+      "Case": "TestShowcaseCompileAssemble/hello_world.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/agon/nc_agon.nanz",
+      "Case": "TestShowcaseCompileAssemble/nc_agon.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/agon/tui_demo.nanz",
+      "Case": "TestShowcaseCompileAssemble/tui_demo.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/agon/tui_hello.nanz",
+      "Case": "TestShowcaseCompileAssemble/tui_hello.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/lizp/assert_test.lanz",
+      "Case": "TestShowcaseCompileAssemble/assert_test.lanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/lizp/assert_test.lizp",
+      "Case": "TestShowcaseCompileAssemble/assert_test.lizp",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/lizp/cond_test.lizp",
+      "Case": "TestShowcaseCompileAssemble/cond_test.lizp",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/lizp/crypto.lizp",
+      "Case": "TestShowcaseCompileAssemble/crypto.lizp",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/lizp/dsp.lizp",
+      "Case": "TestShowcaseCompileAssemble/dsp.lizp",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/lizp/factorial.lizp",
+      "Case": "TestShowcaseCompileAssemble/factorial.lizp",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/lizp/functional.lizp",
+      "Case": "TestShowcaseCompileAssemble/functional.lizp",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/lizp/game_of_life.lizp",
+      "Case": "TestShowcaseCompileAssemble/game_of_life.lizp",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/lizp/hello.lizp",
+      "Case": "TestShowcaseCompileAssemble/hello.lizp",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/lizp/scheme_r5rs.lizp",
+      "Case": "TestShowcaseCompileAssemble/scheme_r5rs.lizp",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/lizp/scheme_test.lizp",
+      "Case": "TestShowcaseCompileAssemble/scheme_test.lizp",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/lizp/self_tokenizer.lizp",
+      "Case": "TestShowcaseCompileAssemble/self_tokenizer.lizp",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/lizp/showcase.lizp",
+      "Case": "TestShowcaseCompileAssemble/showcase.lizp",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/lizp/zx_checkerboard.lizp",
+      "Case": "TestShowcaseCompileAssemble/zx_checkerboard.lizp",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/lizp/zx_rainbow.lizp",
+      "Case": "TestShowcaseCompileAssemble/zx_rainbow.lizp",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/01_sum_array.nanz",
+      "Case": "TestShowcaseCompileAssemble/01_sum_array.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/01_sum_array.plm",
+      "Case": "TestShowcaseCompileAssemble/01_sum_array.plm",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/01_sum_plm_origin.plm",
+      "Case": "TestShowcaseCompileAssemble/01_sum_plm_origin.plm",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/02_sum_array_idiomatic.nanz",
+      "Case": "TestShowcaseCompileAssemble/02_sum_array_idiomatic.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/03_filter_map_chain.nanz",
+      "Case": "TestShowcaseCompileAssemble/03_filter_map_chain.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/04_lut_popcount.nanz",
+      "Case": "TestShowcaseCompileAssemble/04_lut_popcount.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/05_four_pointers.nanz",
+      "Case": "TestShowcaseCompileAssemble/05_four_pointers.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/06_pbqp_weighted.nanz",
+      "Case": "TestShowcaseCompileAssemble/06_pbqp_weighted.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/07_ix_load_store.nanz",
+      "Case": "TestShowcaseCompileAssemble/07_ix_load_store.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/08_arena_allocator.nanz",
+      "Case": "TestShowcaseCompileAssemble/08_arena_allocator.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/09_function_pointers.nanz",
+      "Case": "TestShowcaseCompileAssemble/09_function_pointers.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/10_adt_option.nanz",
+      "Case": "TestShowcaseCompileAssemble/10_adt_option.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/11_match_expression.nanz",
+      "Case": "TestShowcaseCompileAssemble/11_match_expression.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/12_state_machine.nanz",
+      "Case": "TestShowcaseCompileAssemble/12_state_machine.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/13_result_error.nanz",
+      "Case": "TestShowcaseCompileAssemble/13_result_error.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/14_error_propagation.nanz",
+      "Case": "TestShowcaseCompileAssemble/14_error_propagation.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/15_error_enforcement.nanz",
+      "Case": "TestShowcaseCompileAssemble/15_error_enforcement.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/16_rotate_sled.nanz",
+      "Case": "TestShowcaseCompileAssemble/16_rotate_sled.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/17_bool_retflag.nanz",
+      "Case": "TestShowcaseCompileAssemble/17_bool_retflag.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/18_tail_recursion.nanz",
+      "Case": "TestShowcaseCompileAssemble/18_tail_recursion.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/20_strref_test.nanz",
+      "Case": "TestShowcaseCompileAssemble/20_strref_test.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/21_hashmap_test.nanz",
+      "Case": "TestShowcaseCompileAssemble/21_hashmap_test.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/30_stream_test.nanz",
+      "Case": "TestShowcaseCompileAssemble/30_stream_test.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/50_impl_showcase.nanz",
+      "Case": "TestShowcaseCompileAssemble/50_impl_showcase.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/51_impl_cpm_demo.nanz",
+      "Case": "TestShowcaseCompileAssemble/51_impl_cpm_demo.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/abap_screen.nanz",
+      "Case": "TestShowcaseCompileAssemble/abap_screen.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/assert_test.nanz",
+      "Case": "TestShowcaseCompileAssemble/assert_test.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/assert_test.plm",
+      "Case": "TestShowcaseCompileAssemble/assert_test.plm",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/canvas_house.nanz",
+      "Case": "TestShowcaseCompileAssemble/canvas_house.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/cpm_leaf_console.nanz",
+      "Case": "TestShowcaseCompileAssemble/cpm_leaf_console.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/grace_hir_constant_if.nanz",
+      "Case": "TestShowcaseCompileAssemble/grace_hir_constant_if.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/grace_intern_checked.nanz",
+      "Case": "TestShowcaseCompileAssemble/grace_intern_checked.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/grace_seeded_sum.nanz",
+      "Case": "TestShowcaseCompileAssemble/grace_seeded_sum.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/grace_tokenizer_checked.nanz",
+      "Case": "TestShowcaseCompileAssemble/grace_tokenizer_checked.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/grace_weighted_checksum.nanz",
+      "Case": "TestShowcaseCompileAssemble/grace_weighted_checksum.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/hello_cpm.nanz",
+      "Case": "TestShowcaseCompileAssemble/hello_cpm.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/hello_cpm_fib.nanz",
+      "Case": "TestShowcaseCompileAssemble/hello_cpm_fib.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/irc_client.nanz",
+      "Case": "TestShowcaseCompileAssemble/irc_client.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/meta_screen.nanz",
+      "Case": "TestShowcaseCompileAssemble/meta_screen.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/mul16_gpu_test.nanz",
+      "Case": "TestShowcaseCompileAssemble/mul16_gpu_test.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/mul_const.nanz",
+      "Case": "TestShowcaseCompileAssemble/mul_const.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/nc.nanz",
+      "Case": "TestShowcaseCompileAssemble/nc.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/pfcco_weighted_packet.nanz",
+      "Case": "TestShowcaseCompileAssemble/pfcco_weighted_packet.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/promoted_arithmetic.nanz",
+      "Case": "TestShowcaseCompileAssemble/promoted_arithmetic.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/rotozoomer.nanz",
+      "Case": "TestShowcaseCompileAssemble/rotozoomer.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/sap_mara_cpm.nanz",
+      "Case": "TestShowcaseCompileAssemble/sap_mara_cpm.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/sap_mara_demo.nanz",
+      "Case": "TestShowcaseCompileAssemble/sap_mara_demo.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/screen_alv.nanz",
+      "Case": "TestShowcaseCompileAssemble/screen_alv.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/screen_customer.nanz",
+      "Case": "TestShowcaseCompileAssemble/screen_customer.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/screen_declarative.nanz",
+      "Case": "TestShowcaseCompileAssemble/screen_declarative.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/screen_report.nanz",
+      "Case": "TestShowcaseCompileAssemble/screen_report.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/self_lanz_parser.nanz",
+      "Case": "TestShowcaseCompileAssemble/self_lanz_parser.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/self_parser.nanz",
+      "Case": "TestShowcaseCompileAssemble/self_parser.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/self_tokenizer.nanz",
+      "Case": "TestShowcaseCompileAssemble/self_tokenizer.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/sha256.nanz",
+      "Case": "TestShowcaseCompileAssemble/sha256.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/signed_arithmetic.nanz",
+      "Case": "TestShowcaseCompileAssemble/signed_arithmetic.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/sql_test6.nanz",
+      "Case": "TestShowcaseCompileAssemble/sql_test6.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/sqlite_demo.nanz",
+      "Case": "TestShowcaseCompileAssemble/sqlite_demo.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/sqlite_test.nanz",
+      "Case": "TestShowcaseCompileAssemble/sqlite_test.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/test_irc_minimal.nanz",
+      "Case": "TestShowcaseCompileAssemble/test_irc_minimal.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/tetris_cpm.nanz",
+      "Case": "TestShowcaseCompileAssemble/tetris_cpm.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/tetris_tui.nanz",
+      "Case": "TestShowcaseCompileAssemble/tetris_tui.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/tiny.nanz",
+      "Case": "TestShowcaseCompileAssemble/tiny.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/tui_commander.nanz",
+      "Case": "TestShowcaseCompileAssemble/tui_commander.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/tui_commander_l3.nanz",
+      "Case": "TestShowcaseCompileAssemble/tui_commander_l3.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/tui_cpm.nanz",
+      "Case": "TestShowcaseCompileAssemble/tui_cpm.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/tui_demo.nanz",
+      "Case": "TestShowcaseCompileAssemble/tui_demo.nanz#01",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/tui_screen.nanz",
+      "Case": "TestShowcaseCompileAssemble/tui_screen.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/tui_zx.nanz",
+      "Case": "TestShowcaseCompileAssemble/tui_zx.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/tuple_assert_gate.nanz",
+      "Case": "TestShowcaseCompileAssemble/tuple_assert_gate.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/typed_print.nanz",
+      "Case": "TestShowcaseCompileAssemble/typed_print.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/widemath.nanz",
+      "Case": "TestShowcaseCompileAssemble/widemath.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/zsql.nanz",
+      "Case": "TestShowcaseCompileAssemble/zsql.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/zsql_zx.nanz",
+      "Case": "TestShowcaseCompileAssemble/zsql_zx.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/nanz/zsql_zx_real.nanz",
+      "Case": "TestShowcaseCompileAssemble/zsql_zx_real.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/paper/outparam_swap.nanz",
+      "Case": "TestShowcaseCompileAssemble/outparam_swap.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/pascal/assert_test.pas",
+      "Case": "TestShowcaseCompileAssemble/assert_test.pas",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/pascal/bubble_sort.pas",
+      "Case": "TestShowcaseCompileAssemble/bubble_sort.pas",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/pascal/casetest.pas",
+      "Case": "TestShowcaseCompileAssemble/casetest.pas",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/pascal/factorial.pas",
+      "Case": "TestShowcaseCompileAssemble/factorial.pas",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/pascal/hello.pas",
+      "Case": "TestShowcaseCompileAssemble/hello.pas",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/pascal/logic_test.pas",
+      "Case": "TestShowcaseCompileAssemble/logic_test.pas",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/pascal/math_test.pas",
+      "Case": "TestShowcaseCompileAssemble/math_test.pas",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/pascal/records.pas",
+      "Case": "TestShowcaseCompileAssemble/records.pas",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/pascal/recursive_test.pas",
+      "Case": "TestShowcaseCompileAssemble/recursive_test.pas",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/pascal/sieve.pas",
+      "Case": "TestShowcaseCompileAssemble/sieve.pas",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/pascal/string_test.pas",
+      "Case": "TestShowcaseCompileAssemble/string_test.pas",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/plm/abs_diff_fib.plm",
+      "Case": "TestShowcaseCompileAssemble/abs_diff_fib.plm",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/plm/assert_test.plm",
+      "Case": "TestShowcaseCompileAssemble/assert_test.plm#01",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/plm/hello.plm",
+      "Case": "TestShowcaseCompileAssemble/hello.plm",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/plm/showcase.plm",
+      "Case": "TestShowcaseCompileAssemble/showcase.plm",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/plm/sum_array.plm",
+      "Case": "TestShowcaseCompileAssemble/sum_array.plm",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/tests/asm_caller_callee.nanz",
+      "Case": "TestShowcaseCompileAssemble/asm_caller_callee.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/tests/asm_calling_convention.nanz",
+      "Case": "TestShowcaseCompileAssemble/asm_calling_convention.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/tests/asm_register_permutations.nanz",
+      "Case": "TestShowcaseCompileAssemble/asm_register_permutations.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/tests/divmod10_test.nanz",
+      "Case": "TestShowcaseCompileAssemble/divmod10_test.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/tests/fib_parallel_copy.nanz",
+      "Case": "TestShowcaseCompileAssemble/fib_parallel_copy.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/tests/mul8_strength_reduction.nanz",
+      "Case": "TestShowcaseCompileAssemble/mul8_strength_reduction.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/tests/nanz_advantage_showcase.nanz",
+      "Case": "TestShowcaseCompileAssemble/nanz_advantage_showcase.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/tests/pipe_fold_mul_combos.nanz",
+      "Case": "TestShowcaseCompileAssemble/pipe_fold_mul_combos.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/tests/z80_compute_verify.nanz",
+      "Case": "TestShowcaseCompileAssemble/z80_compute_verify.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/zmachine/zork-west-demo/zvm.nanz",
+      "Case": "TestShowcaseCompileAssemble/zvm.nanz",
+      "Status": "SKIP",
+      "Stage": "skip"
+    },
+    {
+      "Path": "examples/zx/console_demo.nanz",
+      "Case": "TestShowcaseCompileAssemble/console_demo.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/zx/plasma.nanz",
+      "Case": "TestShowcaseCompileAssemble/plasma.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/zx/tetris.nanz",
+      "Case": "TestShowcaseCompileAssemble/tetris.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    },
+    {
+      "Path": "examples/zx/tetris_mir2_test.nanz",
+      "Case": "TestShowcaseCompileAssemble/tetris_mir2_test.nanz",
+      "Status": "PASS",
+      "Stage": "complete"
+    }
+  ]
+}
