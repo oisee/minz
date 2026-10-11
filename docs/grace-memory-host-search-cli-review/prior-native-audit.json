@@ -1,0 +1,6 @@
+{
+  "current_executable_sha256": "84e22c775093f40a6949abf64978b42696d1d66974b0bec22a94a266b6acb19a",
+  "prior_executable_sha256": "executable-sha256:2955420de33c6ce620f2298b0712ab537f0b66cd7fc540c545d344bff1b55966",
+  "eight_native_payloads_equal_without_context_relabel": true,
+  "scope": "savedanalyticalcomparison only; oldinputsneverreplayedundernewcontext"
+}
