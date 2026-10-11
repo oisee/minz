@@ -54,13 +54,19 @@ func ValidateProfileWorkloadMIR(source *Module, candidate *mir2.Module, w Profil
 			} else if baseline := raw.FuncByName(f.Name); baseline != nil && baseline.Attrs.IsExtern {
 				return fmt.Errorf("loop profile: extern body mutation: %s", f.Name)
 			}
-			if f.Attrs.HasAsm {
+			deadRuntime := !sr[f.Name] && !cr[f.Name] && ProfileDeadPascalRuntime(source, f)
+			if f.Attrs.HasAsm && !deadRuntime {
 				return fmt.Errorf("loop profile: ASM unsupported")
 			}
 			for _, b := range f.Blocks {
 				for _, i := range b.Insts {
 					switch i.Op {
-					case mir2.OpAsm, mir2.OpIn8, mir2.OpIn16, mir2.OpOut8, mir2.OpOut16, mir2.OpPatchSlot, mir2.OpLoadPatched, mir2.OpPatch, mir2.OpCallIndirect:
+					case mir2.OpAsm:
+						if !deadRuntime {
+							return fmt.Errorf("loop profile: noncanonical/reachable ASM unsupported")
+						}
+						continue
+					case mir2.OpIn8, mir2.OpIn16, mir2.OpOut8, mir2.OpOut16, mir2.OpPatchSlot, mir2.OpLoadPatched, mir2.OpPatch, mir2.OpCallIndirect:
 						return fmt.Errorf("loop profile: ASM/ports/SMC/indirect unsupported")
 					case mir2.OpAddrOf:
 						if raw.FuncByName(i.Sym) != nil || candidate.FuncByName(i.Sym) != nil {

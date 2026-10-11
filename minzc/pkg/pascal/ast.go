@@ -157,22 +157,25 @@ func (*IfStmt) pasStmt() {}
 
 // WhileStmt: while Cond do Body
 type WhileStmt struct {
-	Cond Expr
-	Body Stmt
+	Token Token // origin of the loop keyword
+	Cond  Expr
+	Body  Stmt
 }
 
 func (*WhileStmt) pasStmt() {}
 
 // RepeatStmt: repeat Body until Cond
 type RepeatStmt struct {
-	Body []Stmt
-	Cond Expr
+	Token Token // origin of the loop keyword
+	Body  []Stmt
+	Cond  Expr
 }
 
 func (*RepeatStmt) pasStmt() {}
 
 // ForStmt: for Var := Start to/downto End do Body
 type ForStmt struct {
+	Token  Token // origin of the loop keyword
 	Var    string
 	Start  Expr
 	End    Expr
