@@ -46,6 +46,43 @@ func MeasureCompilerModeWorkloads(factory func() (*hir.Module, error), workloads
 	if e = json.Unmarshal(data, &owned); e != nil {
 		return fail(e)
 	}
+	// Retain earlier factories and their finalized semantic snapshots across
+	// later searches. A later factory must not mutate previously compiled HIR.
+	type retainedHIR struct {
+		module *hir.Module
+		dump   string
+		key    []byte
+	}
+	retained := []retainedHIR{}
+	snapshot := func(m *hir.Module) ([]byte, error) {
+		return json.Marshal(struct {
+			Module   *hir.Module
+			Units    map[string]string
+			Complete bool
+		}{m, m.SourceUnits, m.SourceUnitsComplete})
+	}
+	checkRetained := func() error {
+		for _, old := range retained {
+			key, e := snapshot(old.module)
+			if e != nil || !bytes.Equal(key, old.key) || old.module.Dump() != old.dump {
+				return fmt.Errorf("earlier factory HIR mutated between workloads")
+			}
+		}
+		return nil
+	}
+	batch := []*hir.Module{}
+	originalFactory := factory
+	factory = func() (*hir.Module, error) {
+		m, e := originalFactory()
+		if e != nil {
+			return nil, e
+		}
+		if e = checkRetained(); e != nil {
+			return nil, e
+		}
+		batch = append(batch, m)
+		return m, nil
+	}
 	evidence := &MeasuredModeWorkloadsEvidence{Schema: "minz.measured-compiler-mode-workloads/v1", Goal: goal, TotalTStates: make([]int64, 4)}
 	var first *MeasuredModeResult
 	var savedHashes []string
@@ -54,6 +91,17 @@ func MeasureCompilerModeWorkloads(factory func() (*hir.Module, error), workloads
 		if e != nil {
 			return fail(fmt.Errorf("workload %d: %w", n, e))
 		}
+		if e := checkRetained(); e != nil {
+			return fail(e)
+		}
+		for _, m := range batch {
+			key, e := snapshot(m)
+			if e != nil {
+				return fail(e)
+			}
+			retained = append(retained, retainedHIR{m, m.Dump(), key})
+		}
+		batch = nil
 		if result.Evidence == nil || len(result.Evidence.Candidates) != 4 {
 			return fail(fmt.Errorf("incomplete candidates"))
 		}

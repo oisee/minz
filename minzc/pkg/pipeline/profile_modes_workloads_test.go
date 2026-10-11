@@ -67,3 +67,28 @@ func TestMeasuredModeWorkloadsRejectsCrossRunDriftAndFailure(t *testing.T) {
 		})
 	}
 }
+func TestMeasuredModeWorkloadsRejectsEarlierHIRMutation(t *testing.T) {
+	fresh, w := modeFixture()
+	probeCalls := 0
+	probe := func() (*hir.Module, error) { probeCalls++; return fresh() }
+	if _, e := MeasureCompilerModeVariants(probe, w, "speed", false); e != nil {
+		t.Fatal(e)
+	}
+	calls := 0
+	var earlier *hir.Module
+	factory := func() (*hir.Module, error) {
+		calls++
+		m, e := fresh()
+		if calls == 2 {
+			earlier = m
+		}
+		if calls == probeCalls+1 {
+			earlier.Name = "mutated prior compiled source"
+		}
+		return m, e
+	}
+	r, e := MeasureCompilerModeWorkloads(factory, []hir.ProfileWorkload{w, w}, "speed", false)
+	if r != nil || e == nil {
+		t.Fatal("earlier HIR mutation accepted")
+	}
+}
