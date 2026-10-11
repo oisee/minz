@@ -1,0 +1,8 @@
+{
+  "compiler_commit": "e54df45e",
+  "local": "/home/alice/dev/minz-artifacts/grace-checkpoints/scheme-native.test",
+  "share": "/mnt/safe/minz/grace/2026-10-11/compiler-checkpoints/scheme-e54df45e.test",
+  "sha256": "20b38786fdccb125aefcba1eacb6a81326a4c5cd0f1fb4bc902ba4425e10759d",
+  "required_cwd": "compiler/minzc/pkg/pipeline",
+  "command": "scheme-e54df45e.test -test.run ^TestOriginalLizpSchemeComplete$ -test.count=1"
+}
