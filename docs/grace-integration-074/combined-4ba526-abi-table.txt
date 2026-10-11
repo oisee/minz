@@ -1,0 +1,10 @@
+=== RUN   TestTypedIndirectWordNative
+--- PASS: TestTypedIndirectWordNative (0.00s)
+=== RUN   TestCheckedExistingFunctionPointerLeaf
+    checked_table_practical_audit_test.go:17: set VIR_TEST_Z3 for offline local solver integration
+--- SKIP: TestCheckedExistingFunctionPointerLeaf (0.00s)
+=== RUN   TestStructMethodPointerAndFieldScratchNative
+    struct_method_field_regression_test.go:55: 48 independent cap+byte results native/VM, formal pointer width and field scratch PASS
+--- PASS: TestStructMethodPointerAndFieldScratchNative (0.13s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.143s

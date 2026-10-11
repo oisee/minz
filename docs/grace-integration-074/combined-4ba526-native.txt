@@ -1,0 +1,84 @@
+=== RUN   TestCPMRuntimeStackChecksCalledBodies
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/balanced_nested
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/unbalanced_rotate
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/conditional_return_imbalance
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/callee_steals_return_word
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/recursive_callee
+=== RUN   TestCPMRuntimeStackChecksCalledBodies/dynamic_stack
+--- PASS: TestCPMRuntimeStackChecksCalledBodies (0.01s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/balanced_nested (0.00s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/unbalanced_rotate (0.00s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/conditional_return_imbalance (0.00s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/callee_steals_return_word (0.00s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/recursive_callee (0.00s)
+    --- PASS: TestCPMRuntimeStackChecksCalledBodies/dynamic_stack (0.00s)
+=== RUN   TestCPMRuntimeGuardedAdmission
+--- PASS: TestCPMRuntimeGuardedAdmission (0.00s)
+=== RUN   TestCPMRuntimeRejectsBranchBypassOfGuard
+--- PASS: TestCPMRuntimeRejectsBranchBypassOfGuard (0.00s)
+=== RUN   TestCPMRuntimeConditionalCallGuardPaths
+--- PASS: TestCPMRuntimeConditionalCallGuardPaths (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.030s
+=== RUN   TestCaptureAndCallableContractVMZ80
+=== RUN   TestCaptureAndCallableContractVMZ80/captured_iterator/grace=false
+    capture_contract_test.go:45: T_states=129 code_bytes=19
+=== RUN   TestCaptureAndCallableContractVMZ80/captured_iterator/grace=true
+    capture_contract_test.go:45: T_states=129 code_bytes=19
+=== RUN   TestCaptureAndCallableContractVMZ80/alias_call/grace=false
+    capture_contract_test.go:45: T_states=14 code_bytes=2
+=== RUN   TestCaptureAndCallableContractVMZ80/alias_call/grace=true
+    capture_contract_test.go:45: T_states=14 code_bytes=2
+=== RUN   TestCaptureAndCallableContractVMZ80/alias_chain/grace=false
+    capture_contract_test.go:45: T_states=14 code_bytes=2
+=== RUN   TestCaptureAndCallableContractVMZ80/alias_chain/grace=true
+    capture_contract_test.go:45: T_states=14 code_bytes=2
+=== RUN   TestCaptureAndCallableContractVMZ80/wide_alias/grace=false
+    capture_contract_test.go:45: T_states=31 code_bytes=5
+=== RUN   TestCaptureAndCallableContractVMZ80/wide_alias/grace=true
+    capture_contract_test.go:45: T_states=31 code_bytes=5
+--- PASS: TestCaptureAndCallableContractVMZ80 (0.01s)
+    --- PASS: TestCaptureAndCallableContractVMZ80/captured_iterator/grace=false (0.00s)
+    --- PASS: TestCaptureAndCallableContractVMZ80/captured_iterator/grace=true (0.00s)
+    --- PASS: TestCaptureAndCallableContractVMZ80/alias_call/grace=false (0.00s)
+    --- PASS: TestCaptureAndCallableContractVMZ80/alias_call/grace=true (0.00s)
+    --- PASS: TestCaptureAndCallableContractVMZ80/alias_chain/grace=false (0.00s)
+    --- PASS: TestCaptureAndCallableContractVMZ80/alias_chain/grace=true (0.00s)
+    --- PASS: TestCaptureAndCallableContractVMZ80/wide_alias/grace=false (0.00s)
+    --- PASS: TestCaptureAndCallableContractVMZ80/wide_alias/grace=true (0.00s)
+=== RUN   TestCPMRecursiveLiveSpillRestoration
+=== RUN   TestCPMRecursiveLiveSpillRestoration/0
+=== RUN   TestCPMRecursiveLiveSpillRestoration/1
+=== RUN   TestCPMRecursiveLiveSpillRestoration/2
+=== RUN   TestCPMRecursiveLiveSpillRestoration/7
+=== RUN   TestCPMRecursiveLiveSpillRestoration/12
+=== RUN   TestCPMRecursiveLiveSpillRestoration/31
+--- PASS: TestCPMRecursiveLiveSpillRestoration (0.04s)
+    --- PASS: TestCPMRecursiveLiveSpillRestoration/0 (0.01s)
+    --- PASS: TestCPMRecursiveLiveSpillRestoration/1 (0.01s)
+    --- PASS: TestCPMRecursiveLiveSpillRestoration/2 (0.01s)
+    --- PASS: TestCPMRecursiveLiveSpillRestoration/7 (0.01s)
+    --- PASS: TestCPMRecursiveLiveSpillRestoration/12 (0.01s)
+    --- PASS: TestCPMRecursiveLiveSpillRestoration/31 (0.01s)
+=== RUN   TestCPMRuntimeOriginalSelfLanzMain
+    original_lanz_main_test.go:324: resident stack touched 50 bytes
+    original_lanz_main_test.go:336: exact main 135 stdout bytes all regions/globals/stack guards PASS 983310 T BIN 4727 SHA 4446673251c6b756d50e36f236c33c1c7af2270170ed322b34f78f59046b5097
+--- PASS: TestCPMRuntimeOriginalSelfLanzMain (0.23s)
+=== RUN   TestCPMRuntimeOriginalTokenizerMain
+    original_tokenizer_main_test.go:332: resident stack touched 28 bytes
+    original_tokenizer_main_test.go:334: exact main 146 stdout bytes all regions/globals/stack guards PASS 226178 T BIN 5815 SHA ff30ec8eb3ab19f9a81044256e14e7ed48c706daa832bfc89de9714d100bfea4
+--- PASS: TestCPMRuntimeOriginalTokenizerMain (0.96s)
+=== RUN   TestOriginalTypedPrintNativeFullState
+    showcase_typed_print_native_test.go:234: exact typed_print productionstdlib:6 original/workload calls; all44globalbytes/relocatedpointers/VMorderedwrites/nativePCSPguardsimage; 911 B SHA0c77f48a9a381b613df62767971acc291cb5f12b89145c67e0401485a2bcb20c
+--- PASS: TestOriginalTypedPrintNativeFullState (0.08s)
+=== RUN   TestTypedPrintImportedFormatterBoundaryNative
+    showcase_typed_print_native_test.go:234: exact typed_print productionstdlib:110 original/workload calls; all44globalbytes/relocatedpointers/VMorderedwrites/nativePCSPguardsimage; 7983 B SHAd8b2e0239334f4c7b058306c39e160445e3d1293c4e0108ca1f524aee7762fda
+--- PASS: TestTypedPrintImportedFormatterBoundaryNative (0.86s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.190s
+=== RUN   TestDeclaredCallableSignatureRetained
+--- PASS: TestDeclaredCallableSignatureRetained (0.00s)
+=== RUN   TestTypedPrintLibrary
+--- PASS: TestTypedPrintLibrary (0.04s)
+PASS
+ok  	github.com/minz/minzc/pkg/nanz	0.051s
