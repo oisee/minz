@@ -1,0 +1,4 @@
+GOCACHE=/tmp/minz-grace-gocache go test ./pkg/pipeline -run '^(TestOriginalRecursionFoldCorpusComplete|TestOriginalLizpLanzFamilyState|TestOriginalLizpCondMissingReturnObservation|TestOriginalStructInterfaceNativeComplete|TestMultiFunctionProfileVMZ80)$' -count=1
+GOCACHE=/tmp/minz-grace-gocache go test ./pkg/pipeline -run '^TestOriginalStructInterfaceNative$' -count=1
+
+First command contains a nonmatching struct name; struct is covered by the second exact command. Toolchain: /home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/bin/go; cwd compiler/minzc.
