@@ -1,27 +1,32 @@
-# Карта корпуса и conditional-call guard
+# Карта корпуса и запрет условного вызова при hoist
 
-Интегрирован8bfb0b02: каталог193 сверяется с существующими независимыми тестами,
-а не только с недавними дополнениями.22 точных source paths имеют названные
-bounded workloads VM+assembledZ80.42 paths лишь упомянуты Go-тестами; ссылка
-не считается behavioralPASS. Derived CString CP/M main отдельно связан с
-фактическим savedCOM/fullmemorycapture и не объявляется исполнением originalmain.
+Интегрирован `8bfb0b02`: каталог 193 файлов сверяется со всеми рассмотренными
+независимыми тестами. Для 22 точных исходников перечислены ограниченные нагрузки,
+проверенные на VM и собранном Z80. Ещё 42 пути упоминаются Go-тестами; такая
+ссылка сама по себе не доказывает правильность исполнения. Производный CString
+CP/M main отдельно связан с сохранённым COM и полной памятью выполнения;
+его результат не переносится на исходный main.
 
-Новая original30_stream_test нагрузка:5 capacities0/1/3/63/64 ×70 writes.
-Независимый model проверяет64-bytebuffer,6-bytedescriptor, dropped writes,
-pos/cap, relocatedpointer и balancedreturnSP. RootrepeatPASS: Nanz1.262s,
-pipeline0.213s. Originalfunctions сохранены; stdout/stdlibStream не покрыты.
+Новая нагрузка оригинального `30_stream_test.nanz`: 70 записей при каждой
+ёмкости 0, 1, 3, 63 и 64. Независимая модель проверяет весь буфер из 64 байтов,
+дескриптор из 6 байтов, отбрасывание лишних записей, позицию, ёмкость и реальный
+адрес буфера. Проверяется восстановление SP при возврате. Root повторил тесты:
+Nanz 1.262 s, pipeline 0.213 s, PASS. Функции исходника сохранены; stdout и
+библиотечный Stream этим тестом не проверяются.
 
-Ревью pure addresshoist выявило пропущенный OpCallCond; eb3bfb88 добавляет
-запрет. Все direct/indirect/conditionalcalls сохраняют loopIR без изменений;
-rooteffectregressionsPASS. Broadcallhoist ранее дал измеренную регрессию,
-поэтому запрет имеет практическое основание, а не формальную видимость.
+Ревью выноса адресов выявило пропущенный `OpCallCond`; `eb3bfb88` добавляет
+запрет. Прямой, косвенный и условный вызовы теперь оставляют цикл без изменений.
+Повторные проверки эффектов прошли. Ранее вынос через вызовы дал измеренную
+регрессию, поэтому ограничение имеет практическое основание.
 
 [Карта](../docs/grace-native-coverage-map/README.md),
-[rootrepeat](../docs/grace-native-coverage-map-integrated.txt),
-[callguard](../docs/grace-hoist-call-rejection-integrated.txt).
-20 файлов пакета/guard скопированы и SHA256 проверены на шаре,
-integration-038-sha256.json. Общий pipeline2903 ещё выполняется.
+[повтор](../docs/grace-native-coverage-map-integrated.txt),
+[проверка вызовов](../docs/grace-hoist-call-rejection-integrated.txt).
+20 файлов скопированы на шару и сверены SHA256;
+результат сохранён в `integration-038-sha256.json`.
+Полный pipeline, handle 2903, ещё выполняется.
 
-Следующие реальные задачи: originalself_tokenizer независимый fullmemorymodel,
-third-family prospectiveselection на tailrecursive corpus, boundaryaudit
-таблиц/hardconstraints/costs/hostsolverdeadline. Цель остаётся активной.
+Следующие задачи: независимая проверка памяти исходного self_tokenizer;
+выбор вариантов на tail-recursive программе с заранее отложенными входами;
+аудит границ таблиц, обязательных регистров, стоимости и времени работы solver.
+Общая цель остаётся активной.
