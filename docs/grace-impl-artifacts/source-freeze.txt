@@ -1,0 +1,1 @@
+18245db1f0fdb215a31dd9daa759546880a802a12b53d5787ad651ca0ecc7bda  examples/nanz/50_impl_showcase.nanz

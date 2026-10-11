@@ -1,0 +1,1 @@
+memory host: invocation 0: block @entry: alloca: heap limit reached (65536 bytes)

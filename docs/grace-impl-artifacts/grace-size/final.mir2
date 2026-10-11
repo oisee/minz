@@ -1,0 +1,87 @@
+; MIR2 module: ../../../examples/nanz/50_impl_showcase.nanz
+fun @Circle_area(%r1: ptr [pointer]) -> u8 [acc]
+  block @entry:
+    %r2 = const 3 : u8 [general]
+    %r3 = field %r1, +2 : ptr [pointer]
+    %r4 = load %r3 : u8 [general]
+    %r5 = mul %r2, %r4 : u8 [general]
+    %r6 = field %r1, +2 : ptr [pointer]
+    %r7 = load %r6 : u8 [general]
+    %r8 = mul %r5, %r7 : u8 [general]
+    ret %r8
+
+fun @Circle_perimeter(%r9: ptr [pointer]) -> u8 [acc]
+  block @entry:
+    %r10 = const 6 : u8 [general]
+    %r11 = field %r9, +2 : ptr [pointer]
+    %r12 = load %r11 : u8 [general]
+    %r13 = mul %r10, %r12 : u8 [general]
+    ret %r13
+
+fun @Rect_area(%r14: ptr [pointer]) -> u8 [acc]
+  block @entry:
+    %r15 = field %r14, +2 : ptr [pointer]
+    %r16 = load %r15 : u8 [general]
+    %r17 = field %r14, +3 : ptr [pointer]
+    %r18 = load %r17 : u8 [general]
+    %r19 = mul %r16, %r18 : u8 [general]
+    ret %r19
+
+fun @Rect_perimeter(%r20: ptr [pointer]) -> u8 [acc]
+  block @entry:
+    %r21 = const 2 : u8 [general]
+    %r22 = field %r20, +2 : ptr [pointer]
+    %r23 = load %r22 : u8 [general]
+    %r24 = mul %r21, %r23 : u8 [general]
+    %r25 = const 2 : u8 [general]
+    %r26 = field %r20, +3 : ptr [pointer]
+    %r27 = load %r26 : u8 [general]
+    %r28 = mul %r25, %r27 : u8 [general]
+    %r29 = add %r24, %r28 : u8 [acc]
+    ret %r29
+
+fun @test_circle_area() -> u8 [acc]
+  block @entry:
+    %r30 = alloca 3 : ptr
+    %r31 = const 5 : u8 [general]
+    %r32 = field %r30, +2 : ptr [pointer]
+    store %r32, %r31 : u8
+    %r33 = call @Circle_area(%r30) : u8 [acc]
+    ret %r33
+
+fun @test_circle_perim() -> u8 [acc]
+  block @entry:
+    %r34 = alloca 3 : ptr
+    %r35 = const 4 : u8 [general]
+    %r36 = field %r34, +2 : ptr [pointer]
+    store %r36, %r35 : u8
+    %r37 = const 6 : u8 [general]
+    %r38 = field %r34, +2 : ptr [pointer]
+    %r39 = load %r38 : u8 [general]
+    %r40 = mul %r37, %r39 : u8 [general]
+    ret %r40
+
+fun @test_rect_area() -> u8 [acc]
+  block @entry:
+    %r41 = alloca 4 : ptr
+    %r42 = const 10 : u8 [general]
+    %r43 = field %r41, +2 : ptr [pointer]
+    store %r43, %r42 : u8
+    %r44 = const 5 : u8 [general]
+    %r45 = field %r41, +3 : ptr [pointer]
+    store %r45, %r44 : u8
+    %r46 = call @Rect_area(%r41) : u8 [acc]
+    ret %r46
+
+fun @test_rect_perim() -> u8 [acc]
+  block @entry:
+    %r47 = alloca 4 : ptr
+    %r48 = const 8 : u8 [general]
+    %r49 = field %r47, +2 : ptr [pointer]
+    store %r49, %r48 : u8
+    %r50 = const 3 : u8 [general]
+    %r51 = field %r47, +3 : ptr [pointer]
+    store %r51, %r50 : u8
+    %r52 = call @Rect_perimeter(%r47) : u8 [acc]
+    ret %r52
+
