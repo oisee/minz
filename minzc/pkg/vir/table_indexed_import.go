@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/binary"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -124,8 +125,9 @@ func importIndexedENRTMapped(path string, shape *EnrichedShape, p *LocalTablePro
 	hash := sha256.New()
 	limited := &io.LimitedReader{R: f, N: 256 << 20}
 	reader := io.TeeReader(limited, hash)
+	read := func(b []byte) error { _, err := io.ReadFull(reader, b); return indexedReadError(err, limited.N) }
 	header := make([]byte, 16)
-	if _, e = io.ReadFull(reader, header); e != nil {
+	if e = read(header); e != nil {
 		return nil, e
 	}
 	if string(header[:4]) != "ENRT" || binary.LittleEndian.Uint32(header[4:8]) != 1 {
@@ -152,7 +154,7 @@ func importIndexedENRTMapped(path string, shape *EnrichedShape, p *LocalTablePro
 	var cost int
 	buf := make([]byte, 128)
 	for i := 0; i <= idx; i++ {
-		if _, e = io.ReadFull(reader, buf[:1]); e != nil {
+		if e = read(buf[:1]); e != nil {
 			return nil, fmt.Errorf("indexed record bounded/truncated: %w", e)
 		}
 		n := int(buf[0])
@@ -171,7 +173,7 @@ func importIndexedENRTMapped(path string, shape *EnrichedShape, p *LocalTablePro
 			return nil, fmt.Errorf("invalid ENRT record width")
 		}
 		length := 2 + n + 2 + metrics*2
-		if _, e = io.ReadFull(reader, buf[:length]); e != nil {
+		if e = read(buf[:length]); e != nil {
 			return nil, e
 		}
 		if i == idx {
@@ -233,4 +235,11 @@ func importIndexedENRTMapped(path string, shape *EnrichedShape, p *LocalTablePro
 		ev.Reason = "historical assignment rejected by current admission"
 	}
 	return ev, nil
+}
+
+func indexedReadError(err error, remaining int64) error {
+	if remaining == 0 && (errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF)) {
+		return fmt.Errorf("ENRT prefix scan exceeds 256 MiB read budget")
+	}
+	return err
 }
