@@ -1,0 +1,54 @@
+{
+  "schema": "minz.normal-global-diamond-independent-audit/v1",
+  "candidates": {
+    "original": {
+      "calls": 30,
+      "ordered_events": 3017,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941",
+      "t_states": 1135370,
+      "bytes": 2000,
+      "str_bump": 37163,
+      "node_bump": 32808,
+      "steps": 109829,
+      "compiler_id": "executable-sha256:eca67eca6dd0a4c09c7ff3b5d2317f8ec08e9938b0a8577fd5f0768086fc0539",
+      "raw_mir_before_sha256": "2ae4c13b0993140f78bd49cbf5d197c30b5746dd15c40d3d6c66fcb7e4632fed",
+      "raw_mir_after_sha256": "2ae4c13b0993140f78bd49cbf5d197c30b5746dd15c40d3d6c66fcb7e4632fed",
+      "final_mir_sha256": "7c6d066dba853d5612611b53a442e5a355d1480e31d0c0225feff75525fbd913",
+      "allocation_sha256": "9af8fdfdeb8d341f6f28097323c96a5b59d1fee911045b363782e8e64e0d8976"
+    },
+    "reuse": {
+      "calls": 30,
+      "ordered_events": 3017,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "7ad97647523b39d42188c7cfb806c2fe2ac6a8639e142ba59b2e665d510ddcf4",
+      "t_states": 1137339,
+      "bytes": 1998,
+      "str_bump": 37163,
+      "node_bump": 32808,
+      "steps": 111323,
+      "compiler_id": "executable-sha256:eca67eca6dd0a4c09c7ff3b5d2317f8ec08e9938b0a8577fd5f0768086fc0539",
+      "raw_mir_before_sha256": "2ae4c13b0993140f78bd49cbf5d197c30b5746dd15c40d3d6c66fcb7e4632fed",
+      "raw_mir_after_sha256": "079d9478b6867b91b5e8c43155cab938c0d2dda1f50ea3da38899a8bbd7da77f",
+      "final_mir_sha256": "e9285d685b8b897e743f7e144684516beb6f78595bcb55dd929607f26c00c2b1",
+      "allocation_sha256": "ceccb4455f52036e6684a209aa22221dc8362d6f11b743b941d4f1035b0376ee"
+    }
+  },
+  "delta_t_states": 1969,
+  "delta_bytes": -2,
+  "delta_steps": 1494,
+  "single_raw_mir_edit": {
+    "from": "%r57 = load %r56 : u16 [pointer]",
+    "to": "%r57 = move %r49 : u16 [pointer]"
+  },
+  "allocation_cause": {
+    "entry_pos_both": "DE",
+    "src_buf_original": "DE",
+    "src_buf_reuse": "HL",
+    "extra_reuse_entry_saves": [
+      "PUSH DE",
+      "POP DE"
+    ]
+  },
+  "scope": "saved 30-call source semantics and native hash bindings; no CPU replay, no new loop profile, no dynamic PC attribution"
+}
