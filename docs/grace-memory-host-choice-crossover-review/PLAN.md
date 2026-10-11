@@ -1,0 +1,15 @@
+# Finite choice crossover and refusal audit
+
+Artifact/workload-only tests underexistingauthoritativeCLI1bd955, exactoriginalSelfLanz, no newsource/compiler/nativepermission. Inputs/rawmodels reviewedbeforeowneractualCLI; independentreview doesnotrepeatCPU.
+
+Positiveboundedcase: explicitregion_match(...,len0) andintern_region(...,len0) onemptytable. Bothloopentriesobserved butbody0. Sourceexpectedreturn1/noevent thenheaderpoke0andbump+1; sitecountsfromclosedprofile, notfabricated. Measurefourvariants forspeed/size withoutassumedwinner; sourcebasehoistaddssetupcost whilepeelmayavoidloopsetup. Tieearliestmaskstrictmetric asexistingselector. SelectedASM/BIN exactevidence anddecisionprettySHA.
+
+Unobservedappend: workloadonlyregion_match; validprofile hasappendEntries0 andselector mustrefuse beforecandidateattestation. CLIoutputsabsence checked; refusalsarenotacceptedselectionevidence.
+
+Typedhostfailure: originalregion_match firstread outsideallowedregion orsecondreadreadonly? Readsneverreadonly; chooseundeclaredsecondread toproveorderedfirstreadprefix. Closedprofile mayreturntypedpartialfailure andFailedCalls>0; serializedloader/selector mustreject it. No selectioncertificate fromfailedprofile, andnoirrelevantglobal/nativetrap masqueradingashostdenial.
+
+Gaslimit: raw/instrumentedgas maytruncatebeforetypeddenial. Profileassociation/selector treatsnonsemanticfailure asinfrastructure, nilevidence; CLI nonzero/nooutputs. Unknownprotectedprovenance testrequiresactuallyvalidatedsourceMIR/nativeclosedrunner; cannotclaimsourceunchangedfixture supportsarbitrarybadpointer. Reuse existingfocusednegativegate ormarkcaseunsupported ratherthan inventnumericallow.
+
+Expectedcases dynamichelpers with0/1/etc calls; completeRAM/globals/events/typedfailureprefix sourceoracle. Validateworkloadownsregions/disjointcode/globals/spills/stack andalltypedargs. EachworkloadSHA distinct, executable/sourceunchanged. Save nonzeroCLIstatuses/errors andabsence/partialfilesystem outputs explicitly. No totalerrorstring equality acrossinstrumentation; typedfailurekind/address/direction exact.
+
+Finalauditpreservesallfourpositivecosts/winner andnegativerefusalcategory separately. This is finitecrossover evidence, notuniversalprofit, allinputequivalence or postloweringcertificate. Concreteworkloads/modelscapacitypendingowner.
