@@ -21,7 +21,7 @@
   это не делает host interpreter подходящим для обычного Z80.
   Сборка корпуса не доказывает правильность исполнения. Новый
   [актуальный каталог](grace-integration-085/catalog-36-vm-native.json) фиксирует все
-  194 точных пути: 36 имеют ограниченное independent VM/native покрытие. Новый CP/M demo
+  194 точных пути: 38 имеют ограниченное independent VM/native покрытие; новый fib_iter и ранее пропущенная ссылка18tail подтверждены отдельно. Новый CP/M demo
   имеет отдельный native CALL5-hook proof. Все прочие пути сохраняют явные
   pending/ASM/runtime/host ограничения.
 - **Pascal bubble sort: исправлен реальный native miscompile** (`ff11ba69`).
@@ -375,3 +375,5 @@ Compatibility внутри одного admission boundary теперь вычи
 Historical ENRT4v record5 теперь покрывает weighted13 SSA values через проверенный2-variable quotient; root all256 helper/caller original и factor9 PASS2.412с. Fresh showcase после lane/context PASS12.711с193/1. [Пакет095](grace-integration-095/README.md).
 
 Первый packed FAT12 BIT-pattern fix интегрирован, root native parity PASS3.553с. Frozen odd write_fat12 остаётся FAIL: сдвиг черезHL затирает живое значение; workload не изменён. [Контекст096](grace-integration-096/README.md).
+
+Новый exactfib_iter all256/u16 и reconciliation18tail: root pipeline PASS3.090с/catalogPASS2.143с;38limited VM/native paths,1nativeCPM. [Пакет097](grace-integration-097/README.md).
