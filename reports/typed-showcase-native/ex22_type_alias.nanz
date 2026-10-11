@@ -1,0 +1,13 @@
+type PlayerID = u8
+type Score = u16
+type Coord = u8
+
+fun damage(target: PlayerID, amount: u8) -> u8 {
+    return amount
+}
+
+fun double_score(s: Score) -> Score {
+    return (s + s)
+}
+
+assert damage(0, 42) == 42
