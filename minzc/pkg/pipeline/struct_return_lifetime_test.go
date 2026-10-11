@@ -1,0 +1,251 @@
+package pipeline
+
+import (
+	"encoding/json"
+	"github.com/minz/minzc/pkg/emulator"
+	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/nanz"
+	"github.com/minz/minzc/pkg/z80asm"
+	"os"
+	"path/filepath"
+	"testing"
+)
+
+func TestStructReturnLifetimeBufferedNative(t *testing.T) {
+	data, e := os.ReadFile("../../../reports/struct-return-lifetime/source-call.nanz")
+	if e != nil {
+		t.Fatal(e)
+	}
+	text := string(data)
+	save := func(mode, name string, v any) {
+		dir := "../../../reports/struct-return-lifetime/buffered/" + mode
+		os.MkdirAll(dir, 0755)
+		var b []byte
+		switch x := v.(type) {
+		case string:
+			b = []byte(x)
+		case []byte:
+			b = x
+		default:
+			b, _ = json.MarshalIndent(v, "", "  ")
+		}
+		if e := os.WriteFile(filepath.Join(dir, name), b, 0644); e != nil {
+			t.Fatal(e)
+		}
+	}
+
+	source, e := nanz.Parse(text, "literal-width.nanz")
+	if e != nil {
+		t.Fatal(e)
+	}
+	for mi, mode := range []Options{{ContractOpt: true, AssertMode: "none"}, {ContractOpt: true, UseGrace: true, AssertMode: "none"}, {ContractOpt: true, UseGrace: true, OptSize: true, AssertMode: "none"}} {
+		m, e := nanz.Parse(text, "literal-width.nanz")
+		if e != nil {
+			t.Fatal(e)
+		}
+		steps, e := CompileHIRSteps(m, mode)
+		if e != nil {
+			t.Fatal(e)
+		}
+		label := []string{"default", "grace-speed", "grace-size"}[mi]
+		save(label, "source-hir.json", source)
+		save(label, "raw.mir", hir.LowerModule(source).Dump())
+		save(label, "final.mir", steps.MIR2Module.Dump())
+		save(label, "target.a80", steps.Assembly)
+		save(label, "allocation.json", steps.Allocation)
+		program, e := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + steps.Assembly)
+		if e != nil || len(program.Errors) > 0 {
+			t.Fatal(e, program.Errors)
+		}
+		save(label, "target.bin", program.Binary)
+		z := emulator.NewRemogattoZ80()
+		z.LoadMemory(0x8000, program.Binary)
+		var results []map[string]any
+		for _, pair := range [][2]uint16{{0, 1}, {1, 2}, {17, 83}, {128, 255}, {255, 0}} {
+			x, y := pair[0], pair[1]
+			for _, c := range []struct {
+				name string
+				want uint16
+			}{{"delayed", x}, {"two_returns", uint16(byte(x + y))}} {
+
+				args := []mir2.Value{{I: int64(x)}, {I: int64(y)}}
+				for _, mod := range []*mir2.Module{hir.LowerModule(source), steps.MIR2Module} {
+					v, e := mir2.NewVM(mod).Call(c.name, args)
+					if e != nil || len(v) != 1 || v[0].I != int64(c.want) {
+						t.Fatal("literal width VM", c, x, v, e)
+					}
+				}
+				f := steps.MIR2Module.FuncByName(c.name)
+				regs := emulator.Registers{PC: uint16(program.Symbols[c.name]), SP: 0xeff0}
+				for pi, param := range f.Contract.Params {
+					arg := []uint16{x, y}[pi]
+					loc := assertParamLocation(param, steps.Allocation)
+					switch loc.Name {
+					case "A":
+						regs.A = byte(arg)
+					case "C":
+						regs.BC = regs.BC&0xff00 | arg
+					case "D":
+						regs.DE = regs.DE&255 | arg<<8
+					case "E":
+						regs.DE = regs.DE&0xff00 | arg
+					case "B":
+						regs.BC = regs.BC&255 | arg<<8
+					default:
+						if loc.Kind != mir2.LocMem {
+							t.Fatal(loc)
+						}
+						slot := program.Symbols[mir2.Z80SpillLabel(f.Name, param.Reg)]
+						z.Memory()[slot] = byte(arg)
+						if mir2.NativeSpillWidth(param.Ty) > 1 {
+							z.Memory()[slot+1] = byte(arg >> 8)
+						}
+					}
+				}
+
+				z.Memory()[0xeff0] = 0
+				z.Memory()[0xeff1] = 0x70
+				z.SetRegisters(regs)
+				done := false
+				for n := 0; n < 10000; n++ {
+					if z.GetPC() == 0x7000 && z.GetSP() == 0xeff2 {
+						done = true
+						break
+					}
+					z.Step()
+				}
+				if !done {
+					t.Fatal("native frame", c, x)
+				}
+				got := z.GetRegisters().A
+				result := map[string]any{"entry": c.name, "x": x, "y": y, "want": c.want, "native": got, "returned_sp": z.GetSP()}
+				results = append(results, result)
+				if int64(got) != int64(c.want) {
+					t.Fatalf("LIFETIME FAILURE %s %v", label, result)
+				}
+
+			}
+		}
+		save(label, "results.json", results)
+	}
+}
+
+func TestStructReturnNestedAndRecursiveNative(t *testing.T) {
+	const source = `struct Inner {a:u8,b:u16}
+struct Outer {pad:u8,inner:Inner,tail:u8}
+global scratch:u8=0
+fun build(x:u8)->Outer {var r:Outer=Outer{pad:7,inner:Inner{a:x,b:u16(x)+256},tail:9}
+if x==0 {r.pad=8}else{r.pad=7}
+return r}
+fun disturb(y:u8)->u8 {let q:Outer=Outer{pad:y,inner:Inner{a:y,b:u16(y)+512},tail:y}
+scratch=q.inner.a
+return q.pad}
+fun nested(x:u8,y:u8)->u16 {let a:Outer=build(x)
+let q:u8=disturb(y)
+return a.inner.b+u16(a.inner.a)}
+fun recurse(n:u8)->Inner {var keep:Inner=Inner{a:n,b:u16(n)+256}
+if n>0 {let child:Inner=recurse(n-1)
+keep.b=keep.b+child.b}
+return keep}
+fun recursive(n:u8,y:u8)->u16 {let a:Inner=recurse(n)
+let q:u8=disturb(y)
+return a.b+u16(a.a)}
+fun indirect(f:fun(u8)->Outer,x:u8,y:u8)->u16 {let a:Outer=f(x)
+let q:u8=disturb(83)
+return a.inner.b+u16(a.inner.a)}
+fun invoke(x:u8,y:u8)->u16{return indirect(build,x,y)}`
+	for _, opt := range []Options{{ContractOpt: true}, {ContractOpt: true, UseGrace: true}, {ContractOpt: true, UseGrace: true, OptSize: true}} {
+		h, e := nanz.Parse(source, "nested-result.nanz")
+		if e != nil {
+			t.Fatal(e)
+		}
+		raw := hir.LowerModule(h)
+		h, e = nanz.Parse(source, "nested-result.nanz")
+		if e != nil {
+			t.Fatal(e)
+		}
+		s, e := CompileHIRSteps(h, opt)
+		if e != nil {
+			t.Fatal(e)
+		}
+		os.WriteFile("/tmp/struct-nested.a80", []byte(s.Assembly), 0644)
+		os.WriteFile("/tmp/struct-nested.mir", []byte(s.MIR2Module.Dump()), 0644)
+		a, e := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + s.Assembly)
+		if e != nil || len(a.Errors) > 0 {
+			t.Fatal(e, a.Errors)
+		}
+		z := emulator.NewRemogattoZ80()
+		z.LoadMemory(0x8000, a.Binary)
+		for _, x := range []uint16{0, 1, 2, 3, 7, 15, 127, 128, 255} {
+			for _, name := range []string{"nested", "invoke", "recursive"} {
+				if name == "recursive" && x > 7 {
+					continue
+				}
+				want := 2*x + 256
+				if name == "recursive" {
+					want = uint16((int(x)+1)*256 + int(x)*(int(x)+1)/2 + int(x))
+				}
+				for _, m := range []*mir2.Module{raw, s.MIR2Module} {
+					v, e := mir2.NewVM(m).Call(name, []mir2.Value{{I: int64(x)}, {I: 83}})
+					if e != nil || len(v) != 1 || v[0].I != int64(want) {
+						t.Fatal("VM nested", name, x, v, e, want)
+					}
+				}
+				f := s.MIR2Module.FuncByName(name)
+				r := emulator.Registers{PC: uint16(a.Symbols[name]), SP: 0xeff0}
+				for pi, p := range f.Contract.Params {
+					val := []uint16{x, 83}[pi]
+					loc := assertParamLocation(p, s.Allocation)
+					switch loc.Name {
+					case "A":
+						r.A = byte(val)
+					case "C":
+						r.BC = r.BC&0xff00 | val
+					case "D":
+						r.DE = r.DE&255 | val<<8
+					case "E":
+						r.DE = r.DE&0xff00 | val
+					case "B":
+						r.BC = r.BC&255 | val<<8
+					default:
+						if loc.Kind != mir2.LocMem {
+							t.Fatal(loc)
+						}
+						slot := a.Symbols[mir2.Z80SpillLabel(f.Name, p.Reg)]
+						z.Memory()[slot] = byte(val)
+					}
+				}
+				z.Memory()[0xeff0] = 0
+				z.Memory()[0xeff1] = 0x70
+				z.SetRegisters(r)
+				done := false
+				for n := 0; n < 100000; n++ {
+					if z.GetPC() == 0x7000 && z.GetSP() == 0xeff2 {
+						done = true
+						break
+					}
+					pc := z.GetPC()
+					if name == "nested" && x == 1 && (z.Memory()[pc] == 0xc9||z.Memory()[pc]==0xcd) {
+						t.Logf("RET pc%x SP%x word%x HL%x", pc, z.GetSP(), uint16(z.Memory()[z.GetSP()])|uint16(z.Memory()[z.GetSP()+1])<<8, z.GetRegisters().HL)
+					}
+
+					op := z.Memory()[pc]
+					if op >= 0x70 && op <= 0x77 && op != 0x76 {
+						rr := z.GetRegisters()
+						if rr.HL >= 0xefee {
+							t.Fatalf("unexpected nestedstore %s %d pc%x opcode%x HL%x SP%x regs%+v", name, x, pc, op, rr.HL, rr.SP, rr)
+						}
+					}
+					z.Step()
+				}
+				if !done {
+					t.Fatalf("native nested return %s %d pc%x SP%x regs%+v", name, x, z.GetPC(), z.GetSP(), z.GetRegisters())
+				}
+				if e = checkAssertZ80Result(z, hir.Assert{FuncName: name, Expected: int64(want)}, f, map[string]*hir.Func{name: h.FuncByName(name)}); e != nil {
+					t.Fatal("native nested", name, x, e)
+				}
+			}
+		}
+	}
+}

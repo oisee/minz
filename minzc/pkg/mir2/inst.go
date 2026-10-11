@@ -70,7 +70,8 @@ type Inst struct {
 	SrcTy Ty
 
 	// Call metadata (OpCall, OpCallIndirect)
-	CallAttr CallAttrs
+	CallAttr            CallAttrs
+	StructReturnBuffers []StructReturnBuffer `json:",omitempty"`
 
 	// Variadic argument list (OpCall, OpCallIndirect)
 	Args []Reg

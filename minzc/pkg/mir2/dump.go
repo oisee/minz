@@ -64,6 +64,9 @@ func dumpFunc(sb *strings.Builder, f *Func) {
 	}
 	sb.WriteString(")")
 
+	for _, slot := range f.Contract.StructReturnBuffers {
+		fmt.Fprintf(sb, " [struct-result%d param%d %s:%dB]", slot.ReturnIndex, slot.ParamIndex, slot.Ty, ByteWidth(slot.Ty))
+	}
 	rets := f.Contract.Returns
 	if len(rets) > 0 {
 		sb.WriteString(" -> ")
@@ -227,6 +230,9 @@ func DumpInst(inst *Inst) string {
 		}
 	}
 
+	for _, slot := range inst.StructReturnBuffers {
+		fmt.Fprintf(&sb, " [struct-result%d param%d %s:%dB]", slot.ReturnIndex, slot.ParamIndex, slot.Ty, ByteWidth(slot.Ty))
+	}
 	if inst.SequentialBytes {
 		sb.WriteString(" [sequential-bytes]")
 	}

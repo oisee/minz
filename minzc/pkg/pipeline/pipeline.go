@@ -932,9 +932,20 @@ func buildAssertBootstrap(org int, a hir.Assert, mf *mir2.Func, ar *mir2.AllocRe
 	var boot strings.Builder
 	fmt.Fprintf(&boot, "    ORG 0x%04X\n", org)
 	boot.WriteString("    LD SP, 0xFF00\n")
+	// Hidden result storage is reserved below this invocation's initial SP;
+	// source assertion arguments and their fingerprints remain unchanged.
+	args := append([]int64(nil), a.Args...)
+	bufferTop := int64(0xFF00)
+	for _, slot := range mf.Contract.StructReturnBuffers {
+		bufferTop -= int64(max(1, mir2.ByteWidth(slot.Ty)))
+		args = append(args, bufferTop)
+	}
+	if len(mf.Contract.StructReturnBuffers) > 0 {
+		fmt.Fprintf(&boot, "    LD SP, %d\n", bufferTop)
+	}
 	// Initialize spill slots before registers: the byte stores use A, which may
 	// itself hold another argument at the call boundary.
-	for i, arg := range a.Args {
+	for i, arg := range args {
 		if i >= len(mf.Contract.Params) {
 			break
 		}
@@ -944,7 +955,7 @@ func buildAssertBootstrap(org int, a hir.Assert, mf *mir2.Func, ar *mir2.AllocRe
 			continue
 		}
 		label := mir2.Z80SpillLabel(mf.Name, param.Reg)
-		for b := range max(1, (param.Ty.Width()+7)/8) {
+		for b := range mir2.NativeSpillWidth(param.Ty) {
 			suffix := ""
 			if b > 0 {
 				suffix = fmt.Sprintf("+%d", b)
@@ -952,7 +963,7 @@ func buildAssertBootstrap(org int, a hir.Assert, mf *mir2.Func, ar *mir2.AllocRe
 			fmt.Fprintf(&boot, "    LD A, %d\n    LD (%s%s), A\n", (uint64(arg)>>(8*b))&0xff, label, suffix)
 		}
 	}
-	for i, arg := range a.Args {
+	for i, arg := range args {
 		if i >= len(mf.Contract.Params) {
 			break
 		}

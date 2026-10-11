@@ -77,6 +77,9 @@ func verifyHIRModule(m *Module, annotate bool) error {
 			v.immutableAliases = map[string]bool{}
 			v.mutableNames = mutableHIRNames(f.Body)
 			if f.IsExtern {
+				if len(f.Signature().StructReturnBuffers) > 0 {
+					return v.fail("extern struct return requires explicit caller-buffer ABI")
+				}
 				continue
 			}
 			if err := v.block(f.Body, env, 0); err != nil {

@@ -164,6 +164,7 @@ func (g *z80cg) genCall(inst *Inst) error {
 			ty := inferTyFromAlloc(g.ar, arg)
 			callee.Contract.Params = append(callee.Contract.Params, Param{Ty: ty, Class: standardParamClass(ty, i)})
 		}
+		callee.Contract.StructReturnBuffers = inst.StructReturnBuffers
 		if inst.Dst != NoReg {
 			callee.Contract.Returns = []Return{{Ty: inst.Ty, Class: ClassAcc}}
 		}

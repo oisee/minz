@@ -1,6 +1,7 @@
 package hir
 
 import (
+	"reflect"
 	"sort"
 
 	"github.com/minz/minzc/pkg/mir2"
@@ -104,7 +105,7 @@ func (v *hirVerifier) checkSignature(sig *CallSignature, args []Expr, ret mir2.T
 }
 
 func sameHIRSignature(a, b *CallSignature) bool {
-	if len(a.Params) != len(b.Params) || len(a.Returns) != len(b.Returns) {
+	if !reflect.DeepEqual(a.StructReturnBuffers, b.StructReturnBuffers) || len(a.Params) != len(b.Params) || len(a.Returns) != len(b.Returns) {
 		return false
 	}
 	for i, ty := range a.Params {

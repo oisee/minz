@@ -161,7 +161,7 @@ func LUTGen(m *Module) bool {
 // lutEligible reports whether f is a candidate for LUT replacement.
 func lutEligible(f *Func) bool {
 	// Must have a body.
-	if f.Attrs.FallibleCY || f.Attrs.IsExtern || len(f.Blocks) == 0 {
+	if len(f.Contract.StructReturnBuffers) > 0 || f.Attrs.FallibleCY || f.Attrs.IsExtern || len(f.Blocks) == 0 {
 		return false
 	}
 	// Exactly one parameter.

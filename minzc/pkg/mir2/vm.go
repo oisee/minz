@@ -270,7 +270,11 @@ func (vm *VM) CallWithOutcome(name string, args []Value) (CallOutcome, error) {
 	if fn == nil {
 		return CallOutcome{}, fmt.Errorf("mir2.VM: function @%s not found", name)
 	}
-	return vm.callFuncOutcome(fn, args)
+	bound, err := vm.BindStructReturnArguments(fn, args)
+	if err != nil {
+		return CallOutcome{}, err
+	}
+	return vm.callFuncOutcome(fn, bound)
 }
 
 // Call executes a named function with the given argument values.
@@ -281,12 +285,20 @@ func (vm *VM) Call(funcName string, args []Value) ([]Value, error) {
 	if fn == nil {
 		return nil, fmt.Errorf("mir2.VM: function @%s not found", funcName)
 	}
-	return vm.callFunc(fn, args)
+	bound, err := vm.BindStructReturnArguments(fn, args)
+	if err != nil {
+		return nil, err
+	}
+	return vm.callFunc(fn, bound)
 }
 
 // CallFunc executes a Func directly.
 func (vm *VM) CallFunc(fn *Func, args []Value) ([]Value, error) {
-	return vm.callFunc(fn, args)
+	bound, err := vm.BindStructReturnArguments(fn, args)
+	if err != nil {
+		return nil, err
+	}
+	return vm.callFunc(fn, bound)
 }
 
 // AllocHeap appends data to the VM heap and returns a pointer value (heap offset).

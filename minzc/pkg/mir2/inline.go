@@ -86,7 +86,7 @@ func findTrivialFuncs(mod *Module, maxSize int) map[string]*Func {
 
 // isTrivialFunc reports whether f is safe and profitable to inline.
 func isTrivialFunc(f *Func, maxSize int) bool {
-	if f.Attrs.IsExtern || f.Attrs.IsRecursive || f.Attrs.FallibleCY {
+	if len(f.Contract.StructReturnBuffers) > 0 || f.Attrs.IsExtern || f.Attrs.IsRecursive || f.Attrs.FallibleCY {
 		return false
 	}
 	if len(f.Blocks) != 1 {
