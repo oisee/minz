@@ -1,0 +1,13 @@
+# Explicit search CLI actual Speed/Size saved audit
+
+Both owner CLI runs terminal0 under preserved minzc-search SHA84e22c775093f40a6949abf64978b42696d1d66974b0bec22a94a266b6acb19a. Saved-only independent native/policy/proof/host/typedSHA checks PASS; no reviewer CPU/core/rawedits.
+
+ActualSpeed **policy1/mask3 1076715T/2100B**; actualSize **policy0/mask2 1079795T/1978B**. This is two actualCLI goals, not derivedSize. StableT-only/bytes-only ranking over8Legacy-firstmasks verified. Perpolicy0T1135370/1135211/1079795/1079636 bytes2000/2121/1978/2099; policy1T1132449/1132290/1076874/1076715 bytes2001/2122/1979/2100. Same eightbinarypayloads acrossgoals; measureddifference notbroaderdefaultclaim.
+
+All16mandatorycandidatev2 records current84context/knownsource0e926/exactlogicalunit bind. Eachwhole searchcontains2 independentlycollectedandfreshreplayedassociationinputs withexactpreservedbyteSHA,11sourcecounter sums,2nestedfixedselections,8mechanicalpolicy-maskrefs/proofs andsame-maskcrosspolicyobservableequality(onlyStepsignored). Search/decision sourceNameSHA,actualgoal,selectedtuple/choices,SearchSHAexactprettybytes,2associationSHA andselectedASM/BIN/T/B checked exactlystoredfiles. All50prospectiveoutputpayloads created, rawinventorysaved; no regenASM/cachedpartialpolicyfallback.
+
+Independent sourcehostmodel verifies16candidate×30=480invocations plus4separatelycollectedoriginalbaseline×30=120, total600nativeobservations. All10globals,resourceRAM/results and3017orderedhostevents per30calls. TypedGo SHA audits sidecar/frame/allocation/MIR, exactBINASM. Nativeopcode/globaloffset/fullboundedA-frame0/1/0/1 recipe audit passed all16. Fullsource/functionmaps/ABI andonlyvalidatedarena/appendoriginshifts checked. Bothsuccessfulprofilefull11counts no post-transformcounterclaims.
+
+Exactsame-maskprevioussearch295native reference comparison passedall16 BINASM/adapter/MIR/alloc/sidecar/frameT/percallTsteps/state fields; rawinvocations/functionmaps equal. Context84vs295 intentionallydifferent andnotrelabeled. Initial reviewmemorySHA suspicion resolvedbyactualall8bytecomparison: no binarydifference. Preservedknownreferenceimages authoritative; no extraexecution.
+
+Scripts audit_cli_search.py +reusedcli-review/saved-actual native/Go-typed/sourcehost tools. Logssummary/rawSHAinventory andderiveddiagnostics losslessgzip0mtime tracked; derivednestedv1-shapedfiles notstandaloneLegacyattestations. NewCLI schemaexactchecked. No currentrootintegration/productionbuildorfullpackagegatesclaimedfromisolatedexe; those areseparateparentstage. ShortpairedCLI/o focused251.97 alreadysource-reviewed, notrerunhere.
