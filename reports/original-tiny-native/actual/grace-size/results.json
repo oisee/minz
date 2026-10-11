@@ -1,0 +1,22 @@
+{
+  "allowed_spill_bytes": {},
+  "calls": {
+    "add": 65536,
+    "double": 256,
+    "triple": 256
+  },
+  "execution_sha256": "e1cac33ef18365d1744e9cbd17013c1bd9df0d52ee7622f75f6f74257218225e",
+  "module_bytes": 11,
+  "raw_and_final_vm_data_effects": 0,
+  "source_sha256": "e1439d8bc257241d93d60dc3e9af0fe6a64a7f55c7f2602284183bcee9d43c90",
+  "stack_depths": {
+    "add": 2,
+    "double": 2,
+    "triple": 2
+  },
+  "t_states_including_CALL": {
+    "add": 2031616,
+    "double": 7936,
+    "triple": 13056
+  }
+}
