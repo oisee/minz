@@ -3,7 +3,7 @@
 import base64,hashlib,json,re,sys
 from pathlib import Path
 r=Path(sys.argv[1]);e=json.loads((r/'factory-baseline.json').read_text());ledger=json.loads((r/'pc-ledger.json').read_text());t=e['target'];assembly=t['assembly'];binary=base64.b64decode(t['binary']);origin=e['workload']['layout']['code_origin'];assert hashlib.sha256(binary).hexdigest()==t['binary_sha256']
-names={f['function'] for f in e['function_sites']['sites']};hosts=set(e['workload']['hosts']);symbols=ledger['Symbols'];instructions={}
+hosts=set(e['workload']['hosts']);names={f['function'] for f in e['function_sites']['sites']}|hosts;symbols=ledger['Symbols'];instructions={}
 for line in ledger['Listing']:
  b=base64.b64decode(line['Bytes'] or '');text=line['SourceLine'].split(';')[0].strip();token=text.split()[0].upper() if text else ''
  if b and token not in {'DB','DW','DS','DEFB','DEFW','DEFS'}:
