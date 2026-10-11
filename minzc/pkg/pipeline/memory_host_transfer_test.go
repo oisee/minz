@@ -26,8 +26,8 @@ var frozenTransferWorkloads = map[string]string{
 }
 
 type frozenTransferInput struct {
-	Preregistration, Source, Workload []byte
-	SourceName, WorkloadName          string
+	Preregistration, Source, Workload, TrainingSpeed, TrainingSize []byte
+	SourceName, WorkloadName                                       string
 }
 type frozenTransferEntry struct {
 	Tuple     MemoryHostPolicySearchChoice     `json:"tuple"`
@@ -35,17 +35,21 @@ type frozenTransferEntry struct {
 	Candidate MemoryHostArenaAppendCandidateV2 `json:"candidate"`
 }
 type frozenTransferEvidence struct {
-	Schema                string                `json:"schema"`
-	PreregistrationSHA256 string                `json:"preregistration_sha256"`
-	SourceSHA256          string                `json:"source_sha256"`
-	WorkloadSHA256        string                `json:"workload_sha256"`
-	SourceName            string                `json:"source_name"`
-	WorkloadName          string                `json:"workload_name"`
-	Entries               []frozenTransferEntry `json:"entries"`
+	TrainingDecisionSHA256 [2]string             `json:"training_decision_sha256"`
+	Schema                 string                `json:"schema"`
+	PreregistrationSHA256  string                `json:"preregistration_sha256"`
+	SourceSHA256           string                `json:"source_sha256"`
+	WorkloadSHA256         string                `json:"workload_sha256"`
+	SourceName             string                `json:"source_name"`
+	WorkloadName           string                `json:"workload_name"`
+	Entries                []frozenTransferEntry `json:"entries"`
 }
 
 func frozenTransferSHA(b []byte) string { return fmt.Sprintf("%x", sha256.Sum256(b)) }
 func prepareFrozenTransfer(i frozenTransferInput) (*hir.Module, hir.MemoryHostWorkload, error) {
+	if frozenTransferSHA(i.TrainingSpeed) != "21c652ff3cfbf2e39fabf04916d26d5a3f7938fa258abd645232ceee039aa2f3" || frozenTransferSHA(i.TrainingSize) != "9566c946fd66d814e1c1ec8c157e90d2a6141e74c86f9cd25f72a52df4fe41d2" {
+		return nil, hir.MemoryHostWorkload{}, fmt.Errorf("frozen transfer: audited training decisions differ")
+	}
 	if frozenTransferSHA(i.Preregistration) != frozenTransferPreregSHA || frozenTransferSHA(i.Source) != memoryHostSearchSourceSHA || i.SourceName != "../examples/nanz/self_lanz_parser.nanz" {
 		return nil, hir.MemoryHostWorkload{}, fmt.Errorf("frozen transfer: preregistered source/plan differs")
 	}
@@ -80,6 +84,8 @@ func runFrozenTransfer(factory func() (*hir.Module, error), input frozenTransfer
 	i.Source = append([]byte{}, input.Source...)
 	i.Workload = append([]byte{}, input.Workload...)
 	i.Preregistration = append([]byte{}, input.Preregistration...)
+	i.TrainingSpeed = append([]byte{}, input.TrainingSpeed...)
+	i.TrainingSize = append([]byte{}, input.TrainingSize...)
 	expected, w, err := prepareFrozenTransfer(i)
 	if err != nil {
 		return nil, err
@@ -160,7 +166,7 @@ func runFrozenTransfer(factory func() (*hir.Module, error), input frozenTransfer
 		}
 		return m, nil
 	}
-	out := &frozenTransferEvidence{Schema: "minz.frozen-choice-transfer-evaluation/v1", PreregistrationSHA256: frozenTransferSHA(i.Preregistration), SourceSHA256: frozenTransferSHA(i.Source), WorkloadSHA256: frozenTransferSHA(i.Workload), SourceName: i.SourceName, WorkloadName: i.WorkloadName, Entries: []frozenTransferEntry{}}
+	out := &frozenTransferEvidence{Schema: "minz.frozen-choice-transfer-evaluation/v1", TrainingDecisionSHA256: [2]string{frozenTransferSHA(i.TrainingSpeed), frozenTransferSHA(i.TrainingSize)}, PreregistrationSHA256: frozenTransferSHA(i.Preregistration), SourceSHA256: frozenTransferSHA(i.Source), WorkloadSHA256: frozenTransferSHA(i.Workload), SourceName: i.SourceName, WorkloadName: i.WorkloadName, Entries: []frozenTransferEntry{}}
 	samePolicy := map[mir2.UnsignedPairComparePolicy]*MemoryHostBaselineEvidenceV2{}
 	// Supporting1/0 is measured explicitly, never relabelled from policy0/0.
 	for _, tuple := range []MemoryHostPolicySearchChoice{{Policy: 0, Mask: 0}, {Policy: 1, Mask: 0}, {Policy: 1, Mask: 3}, {Policy: 0, Mask: 2}} {
@@ -261,10 +267,14 @@ func TestFrozenTransferAdmission(t *testing.T) {
 	if _, _, err := prepareFrozenTransfer(input); err != nil {
 		t.Fatal(err)
 	}
-	for _, kind := range []string{"plan", "source", "name", "workload", "unknown"} {
+	for _, kind := range []string{"plan", "source", "name", "workload", "unknown", "speed-decision", "size-decision"} {
 		t.Run(kind, func(t *testing.T) {
 			x := input
 			switch kind {
+			case "speed-decision":
+				x.TrainingSpeed = []byte("{}")
+			case "size-decision":
+				x.TrainingSize = []byte("{}")
 			case "plan":
 				x.Preregistration = append(append([]byte{}, x.Preregistration...), '\n')
 			case "source":
@@ -333,5 +343,34 @@ func frozenTransferFixture(t *testing.T, name string) frozenTransferInput {
 		}
 		return b
 	}
-	return frozenTransferInput{Preregistration: read("PREREGISTRATION.json"), Source: read("inputs/source.nanz"), Workload: read("inputs/" + name + ".json"), WorkloadName: name, SourceName: "../examples/nanz/self_lanz_parser.nanz"}
+	speed, err := os.ReadFile("../../../docs/grace-memory-host-transfer/training/speed-decision.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	size, err := os.ReadFile("../../../docs/grace-memory-host-transfer/training/size-decision.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	return frozenTransferInput{TrainingSpeed: speed, TrainingSize: size, Preregistration: read("PREREGISTRATION.json"), Source: read("inputs/source.nanz"), Workload: read("inputs/" + name + ".json"), WorkloadName: name, SourceName: "../examples/nanz/self_lanz_parser.nanz"}
+}
+
+func TestFrozenTransferSharedOriginalRefusal(t *testing.T) {
+	input := frozenTransferFixture(t, "short-reuse")
+	calls := 0
+	var first *hir.Module
+	e, err := runFrozenTransfer(func() (*hir.Module, error) {
+		calls++
+		if first != nil {
+			return first, nil
+		}
+		m, e := nanz.Parse(string(input.Source), input.SourceName)
+		if e == nil {
+			m.Target = hir.TargetCPM
+			first = m
+		}
+		return m, e
+	}, input)
+	if e != nil || err == nil || calls != 2 {
+		t.Fatal("shared original graph admitted", calls, err)
+	}
 }
