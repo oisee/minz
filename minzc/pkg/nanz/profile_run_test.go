@@ -120,7 +120,8 @@ func TestControlledProfileRefusalsAndPartialFailure(t *testing.T) {
 			t.Fatalf("invalid setup accepted: %v %v", out, err)
 		}
 	}
-	// A builtin print host must not run or acquire stdout/environment state.
+	// A builtin print host must be refused during closed admission, before
+	// execution can acquire stdout/environment state or publish a partial run.
 	ioModule, err := nanz.Parse(`fun test()->void {@print_u8(7)}`, "io.nanz")
 	if err != nil {
 		t.Fatal(err)
@@ -128,7 +129,7 @@ func TestControlledProfileRefusalsAndPartialFailure(t *testing.T) {
 	w.Calls = []hir.ProfileInvocation{{Function: "test"}}
 	w.MaxSteps = 100
 	out, err = hir.RunLoopProfile(ioModule, w)
-	if err == nil || out == nil || out.Profile.FailedCalls != 1 {
+	if err == nil || out != nil {
 		t.Fatalf("external host not refused: out=%v err=%v", out, err)
 	}
 }

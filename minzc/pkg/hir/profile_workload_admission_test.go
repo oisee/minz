@@ -22,6 +22,24 @@ fun dead()->u8 { return disk_read(0,1) }
 fun entry()->u8 { return 173 }
 `
 
+func TestProfileUncalledOutputIntrinsicHasNoExecutionAuthority(t *testing.T) {
+	m, w := profileDeadFixture(t, `fun entry()->u8 { return 173 }
+fun main()->void { @print_u8(7) }`)
+	if _, err := hir.RunLoopProfile(m, w); err != nil {
+		t.Fatal(err)
+	}
+	w.Calls = []hir.ProfileInvocation{{Function: "main"}}
+	if run, err := hir.RunLoopProfile(m, w); err == nil || run != nil {
+		t.Fatal("reachable output host admitted")
+	}
+	w.Calls = []hir.ProfileInvocation{{Function: "entry"}}
+	candidate := hir.LowerModule(m)
+	candidate.FuncByName("main").Blocks[0].Insts = append(candidate.FuncByName("main").Blocks[0].Insts, &mir2.Inst{Op: mir2.OpCall, Sym: "@mir.io.unknown", Ty: mir2.TyVoid})
+	if err := hir.ValidateProfileWorkloadMIR(m, candidate, w); err == nil {
+		t.Fatal("unknown uncalled intrinsic admitted")
+	}
+}
+
 func TestProfileWorkloadDeadExternAdmission(t *testing.T) {
 	m, w := profileDeadFixture(t, profileDeadSource)
 	raw := hir.LowerModule(m)

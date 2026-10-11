@@ -68,6 +68,12 @@ func ValidateProfileWorkloadMIR(source *Module, candidate *mir2.Module, w Profil
 						}
 					case mir2.OpCall:
 						if m.FuncByName(i.Sym) == nil {
+							// Known output intrinsics can remain in uncalled source
+							// functions (e.g. a demo main). The closure above still
+							// refuses them if reachable; no runtime host is installed.
+							if !sr[f.Name] && !cr[f.Name] && profileKnownOutputIntrinsic(i.Sym) {
+								continue
+							}
 							return fmt.Errorf("loop profile: undefined call unsupported: %s", i.Sym)
 						}
 					}
@@ -86,6 +92,14 @@ func ValidateProfileWorkloadMIR(source *Module, candidate *mir2.Module, w Profil
 		}
 	}
 	return nil
+}
+
+func profileKnownOutputIntrinsic(name string) bool {
+	switch name {
+	case "@mir.io.print.str", "@mir.io.print.sstr", "@mir.io.print.lstr", "@mir.io.print.char", "@mir.io.print.nl", "@mir.io.print.u8", "@mir.io.print.dec":
+		return true
+	}
+	return false
 }
 
 // Strip only privately constructed collector events from a validation view.
