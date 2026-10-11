@@ -1,0 +1,30 @@
+=== RUN   TestMeasureProfileVariantSetsCaller
+=== RUN   TestMeasureProfileVariantSetsCaller/size=false
+    profile_joint_test.go:106: set 0: measured 3476 T-states, 107 module bytes
+    profile_joint_test.go:106: set 1: measured 3278 T-states, 164 module bytes
+    profile_joint_test.go:106: set 2: measured 3278 T-states, 164 module bytes
+    profile_joint_test.go:106: set 3: measured 3080 T-states, 221 module bytes
+=== RUN   TestMeasureProfileVariantSetsCaller/size=true
+    profile_joint_test.go:106: set 0: measured 3476 T-states, 107 module bytes
+    profile_joint_test.go:106: set 1: measured 3278 T-states, 164 module bytes
+    profile_joint_test.go:106: set 2: measured 3278 T-states, 164 module bytes
+    profile_joint_test.go:106: set 3: measured 3080 T-states, 221 module bytes
+--- PASS: TestMeasureProfileVariantSetsCaller (0.54s)
+    --- PASS: TestMeasureProfileVariantSetsCaller/size=false (0.21s)
+    --- PASS: TestMeasureProfileVariantSetsCaller/size=true (0.32s)
+=== RUN   TestIndependentGraceRulesJointCaller
+--- PASS: TestIndependentGraceRulesJointCaller (2.30s)
+=== RUN   TestIndependentGraceRulesChecksum
+    profile_rule_choices_test.go:143: size=false candidate=0 policy=map[hir-constant-if:false hir-invariant-base:false] cost=1166563T/168B
+    profile_rule_choices_test.go:143: size=false candidate=1 policy=map[hir-constant-if:true hir-invariant-base:false] cost=1166563T/168B
+    profile_rule_choices_test.go:143: size=false candidate=2 policy=map[hir-constant-if:false hir-invariant-base:true] cost=475239T/116B
+    profile_rule_choices_test.go:143: size=false candidate=3 policy=map[hir-constant-if:true hir-invariant-base:true] cost=475239T/116B
+    profile_rule_choices_test.go:143: size=true candidate=0 policy=map[hir-constant-if:false hir-invariant-base:false] cost=1166563T/168B
+    profile_rule_choices_test.go:143: size=true candidate=1 policy=map[hir-constant-if:true hir-invariant-base:false] cost=1166563T/168B
+    profile_rule_choices_test.go:143: size=true candidate=2 policy=map[hir-constant-if:false hir-invariant-base:true] cost=475239T/116B
+    profile_rule_choices_test.go:143: size=true candidate=3 policy=map[hir-constant-if:true hir-invariant-base:true] cost=475239T/116B
+--- PASS: TestIndependentGraceRulesChecksum (1.41s)
+=== RUN   TestIndependentGraceRulesRefuseInvalidInputs
+--- PASS: TestIndependentGraceRulesRefuseInvalidInputs (0.04s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	4.315s

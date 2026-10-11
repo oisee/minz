@@ -54,7 +54,11 @@ fun run()->u8 {
 	if err := json.Unmarshal(data, &e); err != nil {
 		t.Fatal(err)
 	}
-	if len(e.Candidates) != 4 {
+	expectedCandidates := 4
+	if hirProfileIndependentRules {
+		expectedCandidates = 8
+	}
+	if len(e.Candidates) != expectedCandidates {
 		t.Fatalf("candidates=%d", len(e.Candidates))
 	}
 	bin, err := os.ReadFile(outputFile)
@@ -85,5 +89,22 @@ fun run()->u8 {
 	}
 	if e.Selected != 0 {
 		t.Fatalf("size chose %d", e.Selected)
+	}
+}
+
+func TestHIRProfileIndependentRulesCallerCompilation(t *testing.T) {
+	old := hirProfileIndependentRules
+	t.Cleanup(func() { hirProfileIndependentRules = old })
+	hirProfileIndependentRules = true
+	TestHIRProfileJointCallerCompilation(t)
+}
+
+func TestHIRProfileIndependentRulesRequiresJoint(t *testing.T) {
+	oldRules, oldJoint := hirProfileIndependentRules, hirProfileJoint
+	t.Cleanup(func() { hirProfileIndependentRules, hirProfileJoint = oldRules, oldJoint })
+	hirProfileIndependentRules = true
+	hirProfileJoint = false
+	if err := validateHIRProfileAuto("input.nanz"); err == nil {
+		t.Fatal("independent choices accepted outside joint measurement")
 	}
 }

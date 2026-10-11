@@ -12,8 +12,12 @@ import (
 
 var hirProfileAutoDirectory, hirProfileAutoFunction, hirProfileAutoWorkload string
 var hirProfileJoint bool
+var hirProfileIndependentRules bool
 
 func validateHIRProfileAuto(source string) error {
+	if hirProfileIndependentRules && !hirProfileJoint {
+		return fmt.Errorf("HIR profile rules: --hir-profile-independent-rules requires --hir-profile-joint")
+	}
 	if hirProfileAutoDirectory == "" {
 		if hirProfileJoint || hirProfileAutoFunction != "" || hirProfileAutoWorkload != "" {
 			return fmt.Errorf("HIR profile auto: --hir-profile-auto directory is required")
@@ -119,7 +123,11 @@ func prepareHIRProfileJoint(m *hir.Module, factory func() (*hir.Module, error), 
 	if err != nil {
 		return nil, err
 	}
-	result, err := pipeline.MeasureGraceVariantSets(factory, observations, workload, options, 4)
+	measure := pipeline.MeasureGraceVariantSets
+	if hirProfileIndependentRules {
+		measure = pipeline.MeasureGraceRuleVariantSets
+	}
+	result, err := measure(factory, observations, workload, options, 4)
 	if err != nil {
 		return nil, err
 	}

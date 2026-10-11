@@ -1,0 +1,134 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "bytes": 729,
+      "sha256": "c04304b898fc33cd22079cb2d81f7357818646a68f1d12b4921006517f5a54be"
+    },
+    {
+      "path": "cli/decisions.json",
+      "bytes": 2072,
+      "sha256": "babf1d6ba612d11d72dee87c5b38ebcf3a697f460e43453a134477f500a21967"
+    },
+    {
+      "path": "cli/input.hir",
+      "bytes": 890,
+      "sha256": "b361441a356a3e2399da8641cfedc6d5b6325a12dbaeec70738ac1f609ebc8e5"
+    },
+    {
+      "path": "cli/joint-evidence.json",
+      "bytes": 22654680,
+      "sha256": "273d49b985f34e8d3b2a231a22454c18994c3ddcb7ca984f330b5a09fc74272d"
+    },
+    {
+      "path": "cli/optimized.mir",
+      "bytes": 1850,
+      "sha256": "dcdf4ab218d7a206e38556b07283021cb8d292c2f6d23d97e585bd95b71ef743"
+    },
+    {
+      "path": "cli/profile.json",
+      "bytes": 2252,
+      "sha256": "4c79f12ffbb22128cb871a05b0ae9e7fa25a1f3e6fe8e7fd51ce6351486b6817"
+    },
+    {
+      "path": "cli/raw.mir",
+      "bytes": 2017,
+      "sha256": "0d33dd0c4a3b3322fe672d7e1f08e94e547e19f0deec926c1ed711ffb3e82539"
+    },
+    {
+      "path": "cli/run.json",
+      "bytes": 1242216,
+      "sha256": "b3e1b2aa304717cedbfc14760474a89da3bfce8a99fe4661cd2d3ccb5f95f4e2"
+    },
+    {
+      "path": "cli/selected.a80",
+      "bytes": 2578,
+      "sha256": "a91f3203da786958a180417efe4cac5c488534433b696a03ca53258d1d447ccc"
+    },
+    {
+      "path": "cli/selected.bin",
+      "bytes": 116,
+      "sha256": "2b21efca5f301cc65edf82338d6fbebf6761a1ee9f7a0b75c7f6db7680b095f7"
+    },
+    {
+      "path": "cli/workload.json",
+      "bytes": 11324,
+      "sha256": "08dd4f8c0a0360edbf33794b8bba8996aa2ed1fe5c108c8193e0fdbbde8aa6c6"
+    },
+    {
+      "path": "cli-output.a80",
+      "bytes": 2578,
+      "sha256": "a91f3203da786958a180417efe4cac5c488534433b696a03ca53258d1d447ccc"
+    },
+    {
+      "path": "cli-run.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "minz-pgo-rule-cli-tests.txt",
+      "bytes": 45,
+      "sha256": "650f3fb95e4bd9e4c4e379062fd1ba38d5f3b60b1774f2bb9b46693b88eccb25"
+    },
+    {
+      "path": "minz-pgo-rule-final-tests.txt",
+      "bytes": 2446,
+      "sha256": "4ea9c6435d57606438b07f77c40b3897dc9e6edec7b53d81916ebfdb22ff022a"
+    },
+    {
+      "path": "minz-pgo-rule-pipeline-full.txt",
+      "bytes": 49,
+      "sha256": "7b8cf3324beddde73c6db5b1415a6ea6a5f2788b3fe7af1d1463542a324a2f1d"
+    },
+    {
+      "path": "size-evidence.json",
+      "bytes": 22654338,
+      "sha256": "35d36a434a3e716d9a5c254b585798e587e3b2de1e0814bd6006dd69b628f6ef"
+    },
+    {
+      "path": "size-profile.json",
+      "bytes": 2215,
+      "sha256": "a8c95d59e7c5210c2957e90dffb6b3c4516d0c5e460a0ca2802bc4ef14a167c9"
+    },
+    {
+      "path": "size-selected.a80",
+      "bytes": 2578,
+      "sha256": "a91f3203da786958a180417efe4cac5c488534433b696a03ca53258d1d447ccc"
+    },
+    {
+      "path": "size-selected.bin",
+      "bytes": 116,
+      "sha256": "2b21efca5f301cc65edf82338d6fbebf6761a1ee9f7a0b75c7f6db7680b095f7"
+    },
+    {
+      "path": "size-workload.json",
+      "bytes": 11323,
+      "sha256": "9ef4442eafcbc8f0e48105a1680ad518f057d7aec154b3635b2e461dd03bb6f7"
+    },
+    {
+      "path": "speed-evidence.json",
+      "bytes": 22654339,
+      "sha256": "55b79683b0dbe5ee5871b1fb7f2dd82ce769c3d3b97482215ea4c101ac310d29"
+    },
+    {
+      "path": "speed-profile.json",
+      "bytes": 2215,
+      "sha256": "a8c95d59e7c5210c2957e90dffb6b3c4516d0c5e460a0ca2802bc4ef14a167c9"
+    },
+    {
+      "path": "speed-selected.a80",
+      "bytes": 2578,
+      "sha256": "a91f3203da786958a180417efe4cac5c488534433b696a03ca53258d1d447ccc"
+    },
+    {
+      "path": "speed-selected.bin",
+      "bytes": 116,
+      "sha256": "2b21efca5f301cc65edf82338d6fbebf6761a1ee9f7a0b75c7f6db7680b095f7"
+    },
+    {
+      "path": "speed-workload.json",
+      "bytes": 11323,
+      "sha256": "9ef4442eafcbc8f0e48105a1680ad518f057d7aec154b3635b2e461dd03bb6f7"
+    }
+  ]
+}

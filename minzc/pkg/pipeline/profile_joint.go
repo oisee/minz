@@ -26,6 +26,10 @@ type ProfileVariantSetResult struct {
 type ProfileVariantSetCandidate struct {
 	HIR              string                      `json:"hir"`
 	Lineage          []hir.LoopLineageRecord     `json:"lineage"`
+	FinalHIR         string                      `json:"final_grace_hir,omitempty"`
+	FinalLineage     []hir.LoopLineageRecord     `json:"postcompile_lineage,omitempty"`
+	FinalRawRun      *hir.ProfileRun             `json:"postcompile_raw_run,omitempty"`
+	RulePolicy       map[string]bool             `json:"rule_policy,omitempty"`
 	CommonGraceRules bool                        `json:"common_grace_rules"`
 	Decisions        []hir.ProfileDecision       `json:"decisions"`
 	Binary           []byte                      `json:"binary"`
@@ -62,17 +66,25 @@ type ProfileVariantSetEvidence struct {
 // before the best whole-workload speed (or whole-module size) is selected. Strict
 // improvement is required: the all-original candidate wins ties with original.
 func MeasureProfileVariantSets(factory func() (*hir.Module, error), observations []byte, workload hir.ProfileWorkload, options Options, maxSites int) (*ProfileVariantSetResult, error) {
-	return measureProfileVariantSets(factory, observations, workload, options, maxSites, false)
+	return measureProfileVariantSets(factory, observations, workload, options, maxSites, 0)
 }
 
 // MeasureGraceVariantSets also compares structural constant-if/invariant-base
 // rules disabled versus enabled. Every combination is measured; the baseline
 // has all HIR Grace rules disabled. With four pointer sites, at most 32 sets.
 func MeasureGraceVariantSets(factory func() (*hir.Module, error), observations []byte, workload hir.ProfileWorkload, options Options, maxSites int) (*ProfileVariantSetResult, error) {
-	return measureProfileVariantSets(factory, observations, workload, options, maxSites, true)
+	return measureProfileVariantSets(factory, observations, workload, options, maxSites, 1)
 }
 
-func measureProfileVariantSets(factory func() (*hir.Module, error), observations []byte, workload hir.ProfileWorkload, options Options, maxSites int, commonChoices bool) (*ProfileVariantSetResult, error) {
+// MeasureGraceRuleVariantSets measures independent module-wide constant-if and
+// invariant-base policies crossed with pointer choices. It retains the exact
+// measured winner, with all rules disabled first so the baseline wins ties.
+// At most four pointer sites produce 64 bounded candidate combinations.
+func MeasureGraceRuleVariantSets(factory func() (*hir.Module, error), observations []byte, workload hir.ProfileWorkload, options Options, maxSites int) (*ProfileVariantSetResult, error) {
+	return measureProfileVariantSets(factory, observations, workload, options, maxSites, 2)
+}
+
+func measureProfileVariantSets(factory func() (*hir.Module, error), observations []byte, workload hir.ProfileWorkload, options Options, maxSites int, ruleMode int) (*ProfileVariantSetResult, error) {
 	fail := func(err error) (*ProfileVariantSetResult, error) {
 		return nil, fmt.Errorf("measure profile variant sets: %w", err)
 	}
@@ -151,8 +163,10 @@ func measureProfileVariantSets(factory func() (*hir.Module, error), observations
 	}
 	// Preflight all factory inputs before any compilation or execution.
 	candidateCount := 1 << len(eligible)
-	if commonChoices {
+	if ruleMode == 1 {
 		candidateCount *= 2
+	} else if ruleMode == 2 {
+		candidateCount *= 4
 	}
 	modules := make([]*hir.Module, candidateCount)
 	for i := range modules {
@@ -184,12 +198,21 @@ func measureProfileVariantSets(factory func() (*hir.Module, error), observations
 		return fail(fmt.Errorf("observations do not match actual controlled workload"))
 	}
 	e := &ProfileVariantSetEvidence{Schema: "minz.joint-profile-variant-sets/v1", Compatibility: key, CompilationID: config, Options: options, AssemblerMode: "default", MaxSites: maxSites, EligibleSites: eligible, Oracle: oracle, Candidates: []ProfileVariantSetCandidate{}}
+	if ruleMode == 2 {
+		e.Schema = "minz.joint-profile-rule-variant-sets/v2"
+	}
 	e.Options.GraceStats = nil
 	compiled := make([]Steps, len(modules))
 	for mask, m := range modules {
-		commonEnabled := !commonChoices || mask >= (1<<len(eligible))
-		if commonChoices {
+		commonEnabled := ruleMode == 0 || mask >= (1<<len(eligible))
+		var rulePolicy map[string]bool
+		if ruleMode == 1 {
 			m.GraceRulePolicy = map[string]bool{"hir-constant-if": commonEnabled, "hir-invariant-base": commonEnabled}
+		} else if ruleMode == 2 {
+			ruleMask := mask >> len(eligible)
+			rulePolicy = map[string]bool{"hir-constant-if": ruleMask&1 != 0, "hir-invariant-base": ruleMask&2 != 0}
+			m.GraceRulePolicy = map[string]bool{"hir-constant-if": rulePolicy["hir-constant-if"], "hir-invariant-base": rulePolicy["hir-invariant-base"]}
+			commonEnabled = ruleMask == 3
 		}
 		choices := map[string]bool{}
 		for j, id := range eligible {
@@ -231,6 +254,28 @@ func measureProfileVariantSets(factory func() (*hir.Module, error), observations
 			return fail(err)
 		}
 		steps.ProfileDecisions = decisions
+		var finalHIR string
+		var finalLineage []hir.LoopLineageRecord
+		var finalRaw *hir.ProfileRun
+		if ruleMode == 2 {
+			finalHIR = steps.HIR                     // After Grace, before function splitting.
+			finalLineage = hir.CurrentLoopLineage(m) // Surviving postcompile HIR.
+			finalRaw, err = jointRunRaw(m, workload)
+			if err != nil || !jointSameState(finalRaw, oracle) {
+				return fail(fmt.Errorf("candidate %d postcompile raw semantic mismatch: %v", mask, err))
+			}
+			finalApplied := map[string]bool{}
+			for _, l := range finalLineage {
+				if l.Lineage.Role == "fast" && l.Lineage.Rule == "hir-guarded-pointer-walk" {
+					finalApplied[l.Lineage.SiteID] = true
+				}
+			}
+			for id, requested := range choices {
+				if requested != finalApplied[id] {
+					return fail(fmt.Errorf("candidate %d postcompile pointer choice was not realized for %s", mask, id))
+				}
+			}
+		}
 		assembled, err := z80asm.NewAssembler().AssembleString("ORG 0x8000\n" + steps.Assembly)
 		if err != nil {
 			return fail(err)
@@ -258,7 +303,7 @@ func measureProfileVariantSets(factory func() (*hir.Module, error), observations
 			}
 			total += invocation.TStates
 		}
-		e.Candidates = append(e.Candidates, ProfileVariantSetCandidate{HIR: hirDump, Lineage: lineage, CommonGraceRules: commonEnabled, TotalTStates: total, Decisions: decisions, Binary: assembled.Binary, BinarySHA256: digest, ModuleBytes: len(assembled.Binary), RawRun: raw, Run: run})
+		e.Candidates = append(e.Candidates, ProfileVariantSetCandidate{HIR: hirDump, Lineage: lineage, FinalHIR: finalHIR, FinalLineage: finalLineage, FinalRawRun: finalRaw, RulePolicy: rulePolicy, CommonGraceRules: commonEnabled, TotalTStates: total, Decisions: decisions, Binary: assembled.Binary, BinarySHA256: digest, ModuleBytes: len(assembled.Binary), RawRun: raw, Run: run})
 		compiled[mask] = steps
 	}
 	for i := 1; i < len(e.Candidates); i++ {
