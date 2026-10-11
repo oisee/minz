@@ -45,6 +45,7 @@ func TestCPMMainCapture(t *testing.T) {
 	}
 	originalStdout := os.Stdout
 	os.Stdout = w
+	defer func() { os.Stdout = originalStdout; w.Close(); r.Close() }()
 	type captureResult struct {
 		data []byte
 		err  error
@@ -80,10 +81,11 @@ func TestCPMMainCapture(t *testing.T) {
 		Initial, Final emulator.Registers
 		Cycles         int
 		Error          string
+		CaptureError   string
 		ExitCode       uint16
 		COMSHA256      string
 		MemoryBytes    int
-	}{initial, final, z.GetCycles(), fmt.Sprint(runErr), z.GetExitCode(), fmt.Sprintf("%x", sha256.Sum256(image)), len(memory)}
+	}{initial, final, z.GetCycles(), fmt.Sprint(runErr), fmt.Sprint(capture.err), z.GetExitCode(), fmt.Sprintf("%x", sha256.Sum256(image)), len(memory)}
 	data, e := json.MarshalIndent(record, "", "  ")
 	if e != nil {
 		t.Fatal(e)
