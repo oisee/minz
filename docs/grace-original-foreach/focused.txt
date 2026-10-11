@@ -1,0 +1,58 @@
+=== RUN   TestRangeForEachCapturedStagesVMZ80
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=false/n=0/grace=false
+    iterator_stage_semantics_test.go:131: result=0 T_states=76 code_bytes=46
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=false/n=0/grace=true
+    iterator_stage_semantics_test.go:131: result=0 T_states=76 code_bytes=46
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=false/n=1/grace=false
+    iterator_stage_semantics_test.go:131: result=0 T_states=147 code_bytes=46
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=false/n=1/grace=true
+    iterator_stage_semantics_test.go:131: result=0 T_states=147 code_bytes=46
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=false/n=5/grace=false
+    iterator_stage_semantics_test.go:131: result=15 T_states=380 code_bytes=46
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=false/n=5/grace=true
+    iterator_stage_semantics_test.go:131: result=15 T_states=380 code_bytes=46
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=false/n=255/grace=false
+    iterator_stage_semantics_test.go:131: result=122 T_states=15380 code_bytes=46
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=false/n=255/grace=true
+    iterator_stage_semantics_test.go:131: result=122 T_states=15380 code_bytes=46
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=true/n=0/grace=false
+    iterator_stage_semantics_test.go:131: result=0 T_states=76 code_bytes=46
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=true/n=0/grace=true
+    iterator_stage_semantics_test.go:131: result=0 T_states=76 code_bytes=46
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=true/n=1/grace=false
+    iterator_stage_semantics_test.go:131: result=0 T_states=147 code_bytes=46
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=true/n=1/grace=true
+    iterator_stage_semantics_test.go:131: result=0 T_states=147 code_bytes=46
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=true/n=5/grace=false
+    iterator_stage_semantics_test.go:131: result=15 T_states=380 code_bytes=46
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=true/n=5/grace=true
+    iterator_stage_semantics_test.go:131: result=15 T_states=380 code_bytes=46
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=true/n=255/grace=false
+    iterator_stage_semantics_test.go:131: result=122 T_states=15380 code_bytes=46
+=== RUN   TestRangeForEachCapturedStagesVMZ80/reverse=true/n=255/grace=true
+    iterator_stage_semantics_test.go:131: result=122 T_states=15380 code_bytes=46
+--- PASS: TestRangeForEachCapturedStagesVMZ80 (0.06s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=false/n=0/grace=false (0.00s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=false/n=0/grace=true (0.00s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=false/n=1/grace=false (0.00s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=false/n=1/grace=true (0.00s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=false/n=5/grace=false (0.00s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=false/n=5/grace=true (0.00s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=false/n=255/grace=false (0.00s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=false/n=255/grace=true (0.00s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=true/n=0/grace=false (0.00s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=true/n=0/grace=true (0.00s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=true/n=1/grace=false (0.00s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=true/n=1/grace=true (0.00s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=true/n=5/grace=false (0.00s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=true/n=5/grace=true (0.00s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=true/n=255/grace=false (0.00s)
+    --- PASS: TestRangeForEachCapturedStagesVMZ80/reverse=true/n=255/grace=true (0.00s)
+=== RUN   TestOriginalFilterMapOrderedTraceVMZ80
+    showcase_filter_map_oracle_test.go:146: exact original map/filter entries: 84 calls ordered reads/callback writes/full input+trace/rawVM+Z80; 1573422 T/104 B SHA 2752da5e0d442058c82f4fddd6d06480c51266e63d6974f0c22eea12b10d2fe3
+--- PASS: TestOriginalFilterMapOrderedTraceVMZ80 (0.20s)
+=== RUN   TestOriginalForeachReadOrderVMZ80
+    showcase_foreach_oracle_test.go:142: exact original sum/max forEach:60 calls + observer, full514RAM/orderedreads/rawVM+nativeSPcode; 291930 T/59 B SHA df200ed1899721eb3147d47be45bdaf740ea99803a70a21c51d4b369d93944c1
+--- PASS: TestOriginalForeachReadOrderVMZ80 (0.10s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.369s
