@@ -1,0 +1,13 @@
+# Search CLI implementation review checklist
+
+Parent authorized isolated executor fromc096cca0; no draftcodepresent atinitialreview. No CPU/sourcechanges reviewer. Implementationreviewawaitsfrozenownerfiles.
+
+1. NewrequestvaluesORChangedallsearchflags includesempty. Oldlegacy/fixedpolicy/newsearch mutuallyexclusive evenexplicitChangedemptycontrols; ordinaryno-mode untouched. Sharedworkloadonlyintentional. Optionalassociations bothorneither, exactnamedpolicies, no implicitconversion/cache.
+2. ValidateCPM/Z80/originalNanz/allunsupportedoptions beforecollection; knownsourceownedbuffer/repeatedfreshparse/onecompleteunit; APIindependentexpectedASTsource/metadata gate. No filedep hashes or compilerflag silentoverride.
+3. Suppliedsecondmalformed/cap/stale getsbothinputpreflight beforeanycollection; allinputbuffers+workload owned. Collectionbothpolicy undercurrentpreservedexe; newsearchfreshreplaybothindependently and48freshseenroots unaffected.
+4. Pathinventory50reservedfiles+optional-o, everyinput/source/workload/assoc andoutput allpaircanonical/SameFile; beforeCPU andbeforewrites. Alloutputpayloadsserializable beforemkdir; IOpartialhonest.
+5. DecisionnewsearchCLI/v1 includesselected{policy,mask},choices,sourceName/SHA,SearchSHAexactprettybytes,AssociationSHAexplicitnamedboth exactstoredinputbytes, BinarySHA/T/B. Matchindicesmandatoryouterpolicy/searchassociationSHA andnativecurrentcontext. Choosetargetonly authoritativeindexednestedbaseline; no ASMregen/legacyprofilefallback.
+6. Savewhole8search, bothinputpretty/submittedexactbytes,2nestedfixedselections,8mandatorybaselinev2,ASM/BIN/MIRallocation. ActualGoalSize passesSize toAPI notderivedbinarycalculation/OptSize. Legacy-firststrictprimaryties preservingorder.
+7. Focusedtests: default/oldfixedroute, Changedempty/orphans/modeconflicts; pairmissing/swap/noncanonicalfailedstaleinput withnooutputs; all50inventory endpointaliases includingsecondpolicy/both; shortcollectpairedreplay/o exactbyteSHA; actualSizeshortwinner; readonlyindependentaudit no CPUduplicate.
+
+Finalfrozenreview requirescodeinventory/hash+ownerfocusedterminal beforeactualexportrootrelease. Plans donotgrantimplementationdefaultintegration ornativepermissionwidening.
