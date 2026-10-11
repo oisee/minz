@@ -1,0 +1,8 @@
+{
+  "executable": "/home/alice/dev/minz-artifacts/grace-checkpoints/minzc-memory-host-policy-cli-production",
+  "sha256": "393af1d821477b991a0bf452f00c79bd6d77368c3cff9cde64faa1ee1b130808",
+  "source_commit": "714f9e36",
+  "build": "go build -buildvcs=false ./cmd/minzc",
+  "source_files_match": "c7c42795 reviewed CLI / 0dceafab selector",
+  "gate": "CLI tests running; pipeline selector running"
+}
