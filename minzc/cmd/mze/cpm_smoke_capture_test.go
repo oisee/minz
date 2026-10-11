@@ -45,12 +45,17 @@ func TestCPMMainCapture(t *testing.T) {
 	}
 	originalStdout := os.Stdout
 	os.Stdout = w
-	outputCh := make(chan []byte, 1)
-	go func() { data, _ := io.ReadAll(r); outputCh <- data }()
+	type captureResult struct {
+		data []byte
+		err  error
+	}
+	outputCh := make(chan captureResult, 1)
+	go func() { data, err := io.ReadAll(r); outputCh <- captureResult{data, err} }()
 	runErr := z.Execute()
 	w.Close()
 	os.Stdout = originalStdout
-	output := <-outputCh
+	capture := <-outputCh
+	output := capture.data
 	r.Close()
 	final := z.GetRegisters()
 	memory := make([]byte, 65536)
@@ -84,6 +89,9 @@ func TestCPMMainCapture(t *testing.T) {
 		t.Fatal(e)
 	}
 	write("execution.json", data)
+	if capture.err != nil {
+		t.Fatalf("stdout capture: %v", capture.err)
+	}
 	if runErr != nil || !bytes.Equal(output, expected) || final.PC != 0 || final.SP != 0xfdfe {
 		t.Fatalf("stdout%q PC/SP%04x/%04x err%v", output, final.PC, final.SP, runErr)
 	}
