@@ -1,0 +1,48 @@
+--- historical-Legacy-dba
++++ current-preserve-speed-393
+@@ -541,11 +541,13 @@
+     LD IXL, C
+ .intern_region_loop_head1:
+     LD BC, (str_bump)    ; u16 direct load, no scratch clobber ; @minz-memory-access:f8_b1_i1_a0
+-    PUSH HL
+-    OR A
+-    SBC HL, BC
+-    POP HL
+-    JRS NC, .intern_region_trmp0
++    LD A, H
++    CP B
++    JR NZ, .ucmp_pair_done_0
++    LD A, L
++    CP C
++.ucmp_pair_done_0:
++    JRS NC, .intern_region_trmp1
+ .intern_region_loop_body2:
+     ; genCall: peek dst=139
+     PUSH DE
+@@ -620,7 +622,7 @@
+     LD H, (HL) ; @minz-memory-access:f8_b8_s3
+     CP H
+     POP HL
+-    JRS NC, .intern_region_trmp1
++    JRS NC, .intern_region_trmp2
+ .intern_region_loop_body9:
+     EX AF, AF'
+     LD A, (_spill_intern_region_r163) ; @minz-memory-access:f8_b9_s4
+@@ -701,7 +703,7 @@
+     LD H, B
+     LD L, C
+     RET
+-.intern_region_trmp0:
++.intern_region_trmp1:
+     EX AF, AF'
+     LD A, IXL
+     LD (_spill_intern_region_r150), A ; @minz-memory-access:f8_b10_s9
+@@ -709,7 +711,7 @@
+     LD H, D
+     LD L, E
+     JRS .intern_region_loop_exit3
+-.intern_region_trmp1:
++.intern_region_trmp2:
+     EX AF, AF'
+     LD A, (_spill_intern_region_r150) ; @minz-memory-access:f8_b10_s10
+     LD (_spill_intern_region_r176), A ; @minz-memory-access:f8_b10_s11
