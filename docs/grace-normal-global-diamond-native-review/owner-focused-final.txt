@@ -1,0 +1,64 @@
+=== RUN   TestNormalGlobalDiamondPrototypeBranches
+--- PASS: TestNormalGlobalDiamondPrototypeBranches (0.00s)
+=== RUN   TestNormalGlobalDiamondPrototypeRefusals
+=== RUN   TestNormalGlobalDiamondPrototypeRefusals/store
+=== RUN   TestNormalGlobalDiamondPrototypeRefusals/other-store
+=== RUN   TestNormalGlobalDiamondPrototypeRefusals/pred-store
+=== RUN   TestNormalGlobalDiamondPrototypeRefusals/call
+=== RUN   TestNormalGlobalDiamondPrototypeRefusals/asm
+=== RUN   TestNormalGlobalDiamondPrototypeRefusals/unknown-read
+=== RUN   TestNormalGlobalDiamondPrototypeRefusals/opaque
+=== RUN   TestNormalGlobalDiamondPrototypeRefusals/width
+=== RUN   TestNormalGlobalDiamondPrototypeRefusals/merge
+=== RUN   TestNormalGlobalDiamondPrototypeRefusals/cycle
+=== RUN   TestNormalGlobalDiamondPrototypeRefusals/at
+=== RUN   TestNormalGlobalDiamondPrototypeRefusals/baked
+=== RUN   TestNormalGlobalDiamondPrototypeRefusals/signed
+--- PASS: TestNormalGlobalDiamondPrototypeRefusals (0.00s)
+    --- PASS: TestNormalGlobalDiamondPrototypeRefusals/store (0.00s)
+    --- PASS: TestNormalGlobalDiamondPrototypeRefusals/other-store (0.00s)
+    --- PASS: TestNormalGlobalDiamondPrototypeRefusals/pred-store (0.00s)
+    --- PASS: TestNormalGlobalDiamondPrototypeRefusals/call (0.00s)
+    --- PASS: TestNormalGlobalDiamondPrototypeRefusals/asm (0.00s)
+    --- PASS: TestNormalGlobalDiamondPrototypeRefusals/unknown-read (0.00s)
+    --- PASS: TestNormalGlobalDiamondPrototypeRefusals/opaque (0.00s)
+    --- PASS: TestNormalGlobalDiamondPrototypeRefusals/width (0.00s)
+    --- PASS: TestNormalGlobalDiamondPrototypeRefusals/merge (0.00s)
+    --- PASS: TestNormalGlobalDiamondPrototypeRefusals/cycle (0.00s)
+    --- PASS: TestNormalGlobalDiamondPrototypeRefusals/at (0.00s)
+    --- PASS: TestNormalGlobalDiamondPrototypeRefusals/baked (0.00s)
+    --- PASS: TestNormalGlobalDiamondPrototypeRefusals/signed (0.00s)
+=== RUN   TestNormalGlobalDiamondPrototypeMalformed
+=== RUN   TestNormalGlobalDiamondPrototypeMalformed/nil
+=== RUN   TestNormalGlobalDiamondPrototypeMalformed/duplicate
+=== RUN   TestNormalGlobalDiamondPrototypeMalformed/shared
+=== RUN   TestNormalGlobalDiamondPrototypeMalformed/nil-term
+--- PASS: TestNormalGlobalDiamondPrototypeMalformed (0.00s)
+    --- PASS: TestNormalGlobalDiamondPrototypeMalformed/nil (0.00s)
+    --- PASS: TestNormalGlobalDiamondPrototypeMalformed/duplicate (0.00s)
+    --- PASS: TestNormalGlobalDiamondPrototypeMalformed/shared (0.00s)
+    --- PASS: TestNormalGlobalDiamondPrototypeMalformed/nil-term (0.00s)
+=== RUN   TestNormalGlobalDiamondPrototypeCanonicalRefusals
+=== RUN   TestNormalGlobalDiamondPrototypeCanonicalRefusals/global-function-collision
+=== RUN   TestNormalGlobalDiamondPrototypeCanonicalRefusals/oversized-init
+=== RUN   TestNormalGlobalDiamondPrototypeCanonicalRefusals/string-init
+=== RUN   TestNormalGlobalDiamondPrototypeCanonicalRefusals/vtable
+=== RUN   TestNormalGlobalDiamondPrototypeCanonicalRefusals/addr-extra
+=== RUN   TestNormalGlobalDiamondPrototypeCanonicalRefusals/cmp-extra
+=== RUN   TestNormalGlobalDiamondPrototypeCanonicalRefusals/cmp-wrong-type
+=== RUN   TestNormalGlobalDiamondPrototypeCanonicalRefusals/move-wrong-type
+=== RUN   TestNormalGlobalDiamondPrototypeCanonicalRefusals/load-extra
+--- PASS: TestNormalGlobalDiamondPrototypeCanonicalRefusals (0.00s)
+    --- PASS: TestNormalGlobalDiamondPrototypeCanonicalRefusals/global-function-collision (0.00s)
+    --- PASS: TestNormalGlobalDiamondPrototypeCanonicalRefusals/oversized-init (0.00s)
+    --- PASS: TestNormalGlobalDiamondPrototypeCanonicalRefusals/string-init (0.00s)
+    --- PASS: TestNormalGlobalDiamondPrototypeCanonicalRefusals/vtable (0.00s)
+    --- PASS: TestNormalGlobalDiamondPrototypeCanonicalRefusals/addr-extra (0.00s)
+    --- PASS: TestNormalGlobalDiamondPrototypeCanonicalRefusals/cmp-extra (0.00s)
+    --- PASS: TestNormalGlobalDiamondPrototypeCanonicalRefusals/cmp-wrong-type (0.00s)
+    --- PASS: TestNormalGlobalDiamondPrototypeCanonicalRefusals/move-wrong-type (0.00s)
+    --- PASS: TestNormalGlobalDiamondPrototypeCanonicalRefusals/load-extra (0.00s)
+=== RUN   TestNormalGlobalDiamondPrototypeUnsignedGuard
+--- PASS: TestNormalGlobalDiamondPrototypeUnsignedGuard (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	(cached)
