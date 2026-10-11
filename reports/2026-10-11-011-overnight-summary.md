@@ -359,3 +359,14 @@ spill-snapshot descriptor и точная проверка slot/activation/LIFO;
 HIR/MIR2 и остальные frontends проходят; showcase остаётся26
 прежних, без новых. Полный pipeline45232 подтверждён исполняющимся.
 Строковый PGO этап остаётся открыт, Sites58 не изменён.
+
+Новый closed spill certificate прошёл первое actual collect/replay
+на короткой нагрузке: policy test PASS54,12 s. Собраны четыре
+кандидата (722/701/779/758 T; 2245/2366/2225/2346 B), выбран
+arena mask1. Collect и replay association полностью совпадают.
+В каждом native evidence десять typed spill stages; root пересверил
+их SHA и BIN без CPU. Это новый контекст, прежние замеры не
+переименовываются в эти результаты. Search collect/replay ещё
+исполняется, owner handle67255 подтверждён live.
+Compiler certificate пока в изолированной ветке; root integration
+после обоих actual gates и независимых saved-only audits.
