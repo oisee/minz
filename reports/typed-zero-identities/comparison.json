@@ -1,0 +1,422 @@
+{
+  "ordinary": {
+    "before_bytes": 175,
+    "after_bytes": 86,
+    "before_T": 158812,
+    "after_T": 145384,
+    "calls_per_run": 3752,
+    "worsened_entries": [],
+    "per_entry": {
+      "flag_control": {
+        "before_T": 34816,
+        "after_T": 34816,
+        "calls": 256
+      },
+      "identity_i16_0": {
+        "before_T": 910,
+        "after_T": 378,
+        "calls": 14
+      },
+      "identity_i16_1": {
+        "before_T": 910,
+        "after_T": 378,
+        "calls": 14
+      },
+      "identity_i16_2": {
+        "before_T": 1372,
+        "after_T": 378,
+        "calls": 14
+      },
+      "identity_i16_3": {
+        "before_T": 910,
+        "after_T": 518,
+        "calls": 14
+      },
+      "identity_i16_4": {
+        "before_T": 574,
+        "after_T": 518,
+        "calls": 14
+      },
+      "identity_i16_5": {
+        "before_T": 490,
+        "after_T": 378,
+        "calls": 14
+      },
+      "identity_i8_0": {
+        "before_T": 8704,
+        "after_T": 8704,
+        "calls": 256
+      },
+      "identity_i8_1": {
+        "before_T": 8704,
+        "after_T": 8704,
+        "calls": 256
+      },
+      "identity_i8_2": {
+        "before_T": 10496,
+        "after_T": 10496,
+        "calls": 256
+      },
+      "identity_i8_3": {
+        "before_T": 8704,
+        "after_T": 8704,
+        "calls": 256
+      },
+      "identity_i8_4": {
+        "before_T": 7936,
+        "after_T": 7936,
+        "calls": 256
+      },
+      "identity_i8_5": {
+        "before_T": 7936,
+        "after_T": 7936,
+        "calls": 256
+      },
+      "identity_u16_0": {
+        "before_T": 910,
+        "after_T": 378,
+        "calls": 14
+      },
+      "identity_u16_1": {
+        "before_T": 910,
+        "after_T": 378,
+        "calls": 14
+      },
+      "identity_u16_2": {
+        "before_T": 1372,
+        "after_T": 378,
+        "calls": 14
+      },
+      "identity_u16_3": {
+        "before_T": 910,
+        "after_T": 518,
+        "calls": 14
+      },
+      "identity_u16_4": {
+        "before_T": 574,
+        "after_T": 518,
+        "calls": 14
+      },
+      "identity_u16_5": {
+        "before_T": 490,
+        "after_T": 378,
+        "calls": 14
+      },
+      "identity_u8_0": {
+        "before_T": 8704,
+        "after_T": 6912,
+        "calls": 256
+      },
+      "identity_u8_1": {
+        "before_T": 8704,
+        "after_T": 6912,
+        "calls": 256
+      },
+      "identity_u8_2": {
+        "before_T": 10496,
+        "after_T": 6912,
+        "calls": 256
+      },
+      "identity_u8_3": {
+        "before_T": 8704,
+        "after_T": 8704,
+        "calls": 256
+      },
+      "identity_u8_4": {
+        "before_T": 7936,
+        "after_T": 7936,
+        "calls": 256
+      },
+      "identity_u8_5": {
+        "before_T": 7936,
+        "after_T": 6912,
+        "calls": 256
+      },
+      "zero_control": {
+        "before_T": 8704,
+        "after_T": 8704,
+        "calls": 256
+      }
+    }
+  },
+  "grace-size": {
+    "before_bytes": 175,
+    "after_bytes": 86,
+    "before_T": 158812,
+    "after_T": 145384,
+    "calls_per_run": 3752,
+    "worsened_entries": [],
+    "per_entry": {
+      "flag_control": {
+        "before_T": 34816,
+        "after_T": 34816,
+        "calls": 256
+      },
+      "identity_i16_0": {
+        "before_T": 910,
+        "after_T": 378,
+        "calls": 14
+      },
+      "identity_i16_1": {
+        "before_T": 910,
+        "after_T": 378,
+        "calls": 14
+      },
+      "identity_i16_2": {
+        "before_T": 1372,
+        "after_T": 378,
+        "calls": 14
+      },
+      "identity_i16_3": {
+        "before_T": 910,
+        "after_T": 518,
+        "calls": 14
+      },
+      "identity_i16_4": {
+        "before_T": 574,
+        "after_T": 518,
+        "calls": 14
+      },
+      "identity_i16_5": {
+        "before_T": 490,
+        "after_T": 378,
+        "calls": 14
+      },
+      "identity_i8_0": {
+        "before_T": 8704,
+        "after_T": 8704,
+        "calls": 256
+      },
+      "identity_i8_1": {
+        "before_T": 8704,
+        "after_T": 8704,
+        "calls": 256
+      },
+      "identity_i8_2": {
+        "before_T": 10496,
+        "after_T": 10496,
+        "calls": 256
+      },
+      "identity_i8_3": {
+        "before_T": 8704,
+        "after_T": 8704,
+        "calls": 256
+      },
+      "identity_i8_4": {
+        "before_T": 7936,
+        "after_T": 7936,
+        "calls": 256
+      },
+      "identity_i8_5": {
+        "before_T": 7936,
+        "after_T": 7936,
+        "calls": 256
+      },
+      "identity_u16_0": {
+        "before_T": 910,
+        "after_T": 378,
+        "calls": 14
+      },
+      "identity_u16_1": {
+        "before_T": 910,
+        "after_T": 378,
+        "calls": 14
+      },
+      "identity_u16_2": {
+        "before_T": 1372,
+        "after_T": 378,
+        "calls": 14
+      },
+      "identity_u16_3": {
+        "before_T": 910,
+        "after_T": 518,
+        "calls": 14
+      },
+      "identity_u16_4": {
+        "before_T": 574,
+        "after_T": 518,
+        "calls": 14
+      },
+      "identity_u16_5": {
+        "before_T": 490,
+        "after_T": 378,
+        "calls": 14
+      },
+      "identity_u8_0": {
+        "before_T": 8704,
+        "after_T": 6912,
+        "calls": 256
+      },
+      "identity_u8_1": {
+        "before_T": 8704,
+        "after_T": 6912,
+        "calls": 256
+      },
+      "identity_u8_2": {
+        "before_T": 10496,
+        "after_T": 6912,
+        "calls": 256
+      },
+      "identity_u8_3": {
+        "before_T": 8704,
+        "after_T": 8704,
+        "calls": 256
+      },
+      "identity_u8_4": {
+        "before_T": 7936,
+        "after_T": 7936,
+        "calls": 256
+      },
+      "identity_u8_5": {
+        "before_T": 7936,
+        "after_T": 6912,
+        "calls": 256
+      },
+      "zero_control": {
+        "before_T": 8704,
+        "after_T": 8704,
+        "calls": 256
+      }
+    }
+  },
+  "grace-speed": {
+    "before_bytes": 175,
+    "after_bytes": 86,
+    "before_T": 158812,
+    "after_T": 145384,
+    "calls_per_run": 3752,
+    "worsened_entries": [],
+    "per_entry": {
+      "flag_control": {
+        "before_T": 34816,
+        "after_T": 34816,
+        "calls": 256
+      },
+      "identity_i16_0": {
+        "before_T": 910,
+        "after_T": 378,
+        "calls": 14
+      },
+      "identity_i16_1": {
+        "before_T": 910,
+        "after_T": 378,
+        "calls": 14
+      },
+      "identity_i16_2": {
+        "before_T": 1372,
+        "after_T": 378,
+        "calls": 14
+      },
+      "identity_i16_3": {
+        "before_T": 910,
+        "after_T": 518,
+        "calls": 14
+      },
+      "identity_i16_4": {
+        "before_T": 574,
+        "after_T": 518,
+        "calls": 14
+      },
+      "identity_i16_5": {
+        "before_T": 490,
+        "after_T": 378,
+        "calls": 14
+      },
+      "identity_i8_0": {
+        "before_T": 8704,
+        "after_T": 8704,
+        "calls": 256
+      },
+      "identity_i8_1": {
+        "before_T": 8704,
+        "after_T": 8704,
+        "calls": 256
+      },
+      "identity_i8_2": {
+        "before_T": 10496,
+        "after_T": 10496,
+        "calls": 256
+      },
+      "identity_i8_3": {
+        "before_T": 8704,
+        "after_T": 8704,
+        "calls": 256
+      },
+      "identity_i8_4": {
+        "before_T": 7936,
+        "after_T": 7936,
+        "calls": 256
+      },
+      "identity_i8_5": {
+        "before_T": 7936,
+        "after_T": 7936,
+        "calls": 256
+      },
+      "identity_u16_0": {
+        "before_T": 910,
+        "after_T": 378,
+        "calls": 14
+      },
+      "identity_u16_1": {
+        "before_T": 910,
+        "after_T": 378,
+        "calls": 14
+      },
+      "identity_u16_2": {
+        "before_T": 1372,
+        "after_T": 378,
+        "calls": 14
+      },
+      "identity_u16_3": {
+        "before_T": 910,
+        "after_T": 518,
+        "calls": 14
+      },
+      "identity_u16_4": {
+        "before_T": 574,
+        "after_T": 518,
+        "calls": 14
+      },
+      "identity_u16_5": {
+        "before_T": 490,
+        "after_T": 378,
+        "calls": 14
+      },
+      "identity_u8_0": {
+        "before_T": 8704,
+        "after_T": 6912,
+        "calls": 256
+      },
+      "identity_u8_1": {
+        "before_T": 8704,
+        "after_T": 6912,
+        "calls": 256
+      },
+      "identity_u8_2": {
+        "before_T": 10496,
+        "after_T": 6912,
+        "calls": 256
+      },
+      "identity_u8_3": {
+        "before_T": 8704,
+        "after_T": 8704,
+        "calls": 256
+      },
+      "identity_u8_4": {
+        "before_T": 7936,
+        "after_T": 7936,
+        "calls": 256
+      },
+      "identity_u8_5": {
+        "before_T": 7936,
+        "after_T": 6912,
+        "calls": 256
+      },
+      "zero_control": {
+        "before_T": 8704,
+        "after_T": 8704,
+        "calls": 256
+      }
+    }
+  }
+}

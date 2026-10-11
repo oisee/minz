@@ -1,0 +1,167 @@
+; MIR2 module: typed-zero-original.nanz
+fun @identity_u8_0(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = const 0 : u8 [general]
+    %r3 = or %r1, %r2 : u8 [acc]
+    ret %r3
+
+fun @identity_u8_1(%r4: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r5 = const 0 : u8 [general]
+    %r6 = xor %r4, %r5 : u8 [acc]
+    ret %r6
+
+fun @identity_u8_2(%r7: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r8 = const 0 : u8 [general]
+    %r9 = sub %r7, %r8 : u8 [acc]
+    ret %r9
+
+fun @identity_u8_3(%r10: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r11 = const 0 : u8 [general]
+    %r12 = and %r10, %r11 : u8 [acc]
+    ret %r12
+
+fun @identity_u8_4(%r13: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r14 = const 0 : u8 [general]
+    %r15 = mul %r13, %r14 : u8 [general]
+    ret %r15
+
+fun @identity_u8_5(%r16: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r17 = const 0 : u8 [general]
+    %r18 = shl %r16, %r17 : u8 [general]
+    ret %r18
+
+fun @identity_i8_0(%r19: i8 [acc]) -> i8 [acc]
+  block @entry:
+    %r20 = const 0 : u8 [general]
+    %r21 = or %r19, %r20 : i8 [acc]
+    ret %r21
+
+fun @identity_i8_1(%r22: i8 [acc]) -> i8 [acc]
+  block @entry:
+    %r23 = const 0 : u8 [general]
+    %r24 = xor %r22, %r23 : i8 [acc]
+    ret %r24
+
+fun @identity_i8_2(%r25: i8 [acc]) -> i8 [acc]
+  block @entry:
+    %r26 = const 0 : u8 [general]
+    %r27 = sub %r25, %r26 : i8 [acc]
+    ret %r27
+
+fun @identity_i8_3(%r28: i8 [acc]) -> i8 [acc]
+  block @entry:
+    %r29 = const 0 : u8 [general]
+    %r30 = and %r28, %r29 : i8 [acc]
+    ret %r30
+
+fun @identity_i8_4(%r31: i8 [acc]) -> i8 [acc]
+  block @entry:
+    %r32 = const 0 : u8 [general]
+    %r33 = mul %r31, %r32 : i8 [general]
+    ret %r33
+
+fun @identity_i8_5(%r34: i8 [general]) -> i8 [acc]
+  block @entry:
+    %r35 = const 0 : u8 [general]
+    %r36 = shl %r34, %r35 : i8 [general]
+    ret %r36
+
+fun @identity_u16_0(%r37: u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    %r38 = const 0 : u16 [pointer]
+    %r39 = or %r37, %r38 : u16 [pointer]
+    ret %r39
+
+fun @identity_u16_1(%r40: u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    %r41 = const 0 : u16 [pointer]
+    %r42 = xor %r40, %r41 : u16 [pointer]
+    ret %r42
+
+fun @identity_u16_2(%r43: u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    %r44 = const 0 : u16 [pointer]
+    %r45 = sub %r43, %r44 : u16 [pointer]
+    ret %r45
+
+fun @identity_u16_3(%r46: u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    %r47 = const 0 : u16 [pointer]
+    %r48 = and %r46, %r47 : u16 [pointer]
+    ret %r48
+
+fun @identity_u16_4(%r49: u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    %r50 = const 0 : u16 [pointer]
+    %r51 = mul %r49, %r50 : u16 [pointer]
+    ret %r51
+
+fun @identity_u16_5(%r52: u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    %r53 = const 0 : u16 [pointer]
+    %r54 = shl %r52, %r53 : u16 [pointer]
+    ret %r54
+
+fun @identity_i16_0(%r55: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r56 = const 0 : i16 [pointer]
+    %r57 = or %r55, %r56 : i16 [pointer]
+    ret %r57
+
+fun @identity_i16_1(%r58: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r59 = const 0 : i16 [pointer]
+    %r60 = xor %r58, %r59 : i16 [pointer]
+    ret %r60
+
+fun @identity_i16_2(%r61: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r62 = const 0 : i16 [pointer]
+    %r63 = sub %r61, %r62 : i16 [pointer]
+    ret %r63
+
+fun @identity_i16_3(%r64: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r65 = const 0 : i16 [pointer]
+    %r66 = and %r64, %r65 : i16 [pointer]
+    ret %r66
+
+fun @identity_i16_4(%r67: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r68 = const 0 : i16 [pointer]
+    %r69 = mul %r67, %r68 : i16 [pointer]
+    ret %r69
+
+fun @identity_i16_5(%r70: i16 [pointer]) -> i16 [pointer]
+  block @entry:
+    %r71 = const 0 : i16 [pointer]
+    %r72 = shl %r70, %r71 : i16 [pointer]
+    ret %r72
+
+fun @flag_control(%r73: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r74 = const 128 : u8 [general]
+    %r75 = cmp.ult %r73, %r74 : bool [flag]
+    %r76 = const 0 : u8 [general]
+    %r77 = or %r73, %r76 : u8 [acc]
+    %r78 = const 0 : bool [general]
+    %r79 = cmp.ne %r75, %r78 : bool [flag]
+    br_if %r79, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r77
+  block @if_join2:
+    %r80 = const 255 : u8 [general]
+    %r81 = xor %r77, %r80 : u8 [acc]
+    ret %r81
+
+fun @zero_control(%r82: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r83 = const 0 : u8 [general]
+    %r84 = or %r82, %r83 : u8 [acc]
+    ret %r84
+
