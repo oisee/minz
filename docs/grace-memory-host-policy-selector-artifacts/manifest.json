@@ -4,7 +4,7 @@
   "native_pack_commit": "7aa9fc7d",
   "native_review_commit": "d7223d54",
   "independent_review_commit": "f2cd003a",
-  "pipeline_gate": "pending",
+  "pipeline_gate": "PASS1241.045s",
   "files": [
     {
       "path": "gates/nanz.txt",
@@ -1363,13 +1363,18 @@
     },
     {
       "path": "parent-gates/pipeline-executable.json",
-      "bytes": 302,
-      "sha256": "475d9f9c67ca1f11b993be6c96eb7edc5e97e6fbb2830e6f43afa1ca39b54a07"
+      "bytes": 297,
+      "sha256": "98110e5b89a1f69f122d0952e61264a8ad0e86af9ef55bf4e6cd16dd750a64ad"
     },
     {
       "path": "parent-gates/pipeline.test.gz",
       "bytes": 6144522,
       "sha256": "8780618b587f47ac04219471d8caed09203db06e8804ffd3c9dad49363524e96"
+    },
+    {
+      "path": "parent-gates/pipeline.txt",
+      "bytes": 50,
+      "sha256": "b95930326ea9af689a4508dd5df849e46bc78489d32f0874171862aa65e64203"
     },
     {
       "path": "parent-gates/showcase-comparison.json",

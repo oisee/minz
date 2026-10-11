@@ -70,8 +70,9 @@ serialization. Сохранены вход, лог и executable отказав�
 source snapshots, whole profiles/selection, восемь ASM/BIN, MIR/allocation,
 оба executable, логи и независимые аудиты. После переноса локальный audit
 повторно PASS300. Код перенесён в рабочую ветку0dceafab и pushed.
-HIR/MIR/Nanz/Lanz/C89/CLI прошли; showcase31same0new. Новый общий pipeline
-ещё выполняется, успешный итог для него пока не заявляется.
+HIR/MIR/Nanz/Lanz/C89/CLI прошли; showcase31same0new. Полный общий pipeline
+**PASS 1241.045 s**. Parent selector этап закрыт; точный executable общего
+прогона сохранён в parent-gates.
 
 Следующий этап — отдельный CLI v2 режим с явной named policy, whole
 association для collect/replay и хешами сохранённых association/selection.

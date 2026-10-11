@@ -207,4 +207,6 @@ pointer-walk, оставляя invariant-base. На sum_array выбирает 3
 
 ## Explicit unsigned pair comparison policy
 
-[Typed opt-in](grace-unsigned-pair-policy.md) implemented source1155fc66. Bothpublic30calls and independent60-observation audits pass; fullpipeline1078.565s PASS, showcase31same0new. Legacydefault retained; mode1 explicit, +1B/−2921T onSelfLanz. Nextpolicy-awareassociation/selector v2 has saved8candidate audits and awaits parentgate.
+[Typed opt-in](grace-unsigned-pair-policy.md) implemented source1155fc66. Bothpublic30calls and independent60-observation audits pass; fullpipeline1078.565s PASS, showcase31same0new. Legacydefault retained; mode1 explicit, +1B/−2921T onSelfLanz. Policy-awareassociation/selector v2 has saved8candidate audits and fullpipeline1241.045s PASS. ExplicitCLI integrated714f9e36, fullCLI69.418s PASS; freshcorpus measurement underway.
+
+[Policy-aware association/selector](grace-memory-host-policy-selector.md): fixedpolicy fourmask full30 candidates audited; parentpipeline1241.045s PASS. [Explicit CLI v2](grace-memory-host-policy-cli.md): full30 actual Speed/Size and strict replay binding, integrated714f9e36 fullCLI69.418s PASS. Nextsamefourimmutablecorpus freshmeasurements with fixedpreserve-speed policy; oldcontexts remain analyticalreferences.
