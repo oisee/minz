@@ -1,0 +1,37 @@
+[
+  {
+    "path": "actual/program.com",
+    "sha256": "087a9c7376591a82169b963891493ab6389cf26ebab728ef08a63e7664c73112",
+    "original_sha256": "087a9c7376591a82169b963891493ab6389cf26ebab728ef08a63e7664c73112"
+  },
+  {
+    "path": "actual/stdout.bin",
+    "sha256": "884543244d67393e4b942d6ce4b74a389a1904365bd0505d8c6e497d3fc292e5",
+    "original_sha256": "884543244d67393e4b942d6ce4b74a389a1904365bd0505d8c6e497d3fc292e5"
+  },
+  {
+    "path": "actual/execution.json.gz",
+    "sha256": "ec081e42135ed282cc2153db8ee3b7baa47a65e3c7d7a73ef01c8ef7a4124822",
+    "original_sha256": "d6d7794671aeb61565ed286a5718742df898d1af6e28f23940e03b5d4eb27efe"
+  },
+  {
+    "path": "actual/memory.bin",
+    "sha256": "f1ab0aebe354ca25d6bab3ae9af020027e5e8774ff0e527bbb008636568884d9",
+    "original_sha256": "f1ab0aebe354ca25d6bab3ae9af020027e5e8774ff0e527bbb008636568884d9"
+  },
+  {
+    "path": "actual/expected.bin",
+    "sha256": "884543244d67393e4b942d6ce4b74a389a1904365bd0505d8c6e497d3fc292e5",
+    "original_sha256": "884543244d67393e4b942d6ce4b74a389a1904365bd0505d8c6e497d3fc292e5"
+  },
+  {
+    "path": "actual-run.txt.gz",
+    "sha256": "70dbb8096c563d6cd5fd682760d0d312720d552222ad5fd1d9059ecaf82ee287",
+    "original_sha256": "c26de83abdc9496cd1301470918ec39ecca1cf389ef0ae1c6504da1800d1c431"
+  },
+  {
+    "path": "cpm-main-capture.test.gz",
+    "sha256": "ee537d899148bb3ccbe593e67fbd131f2c102aa1f37766dbe5ba099cbb871bea",
+    "original_sha256": "0f31f5f96bca63ef2fa94e2dd8df26c5ac643581d9d1125ac20f5b5b188930f4"
+  }
+]
