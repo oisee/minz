@@ -1,0 +1,18 @@
+{
+  "FROZEN-CLI.md": "d56b0cb167fcfb45ab4a1e3e516a52b3056134f568a5ed94a503ea24a05c3326",
+  "checkpoint-manifest-before.json": "c64b7f8ed9d13788672ef304754bfada84d94723953e9ff8e2eac775fa18cbeb",
+  "checkpoint-manifest-current.json": "4dab2340196f79f02389255d9f3cd382f5fc6fd01d85527bda67ddfbd5699ca8",
+  "heldout/manifest.json": "c826bd1455a2082717c62a92751a12d3b30f193876aba56ff385223e4fefc8ab",
+  "heldout/oracle.json": "895325f796bb22d9897470fbb2092e92eed611843216d1268a57b48666216c03",
+  "heldout/replay.json": "6a2c4e3509c2c7f513119305843174c642389b817334d2390d09d3165cffa6a7",
+  "heldout/run.json": "8710fd1731f5358d023b09334a8572f770f7f204d434b83194683604ff1b84d0",
+  "heldout/selected.a80": "f0e57c0e76040c50e185e599ae53e351405bf5077f0648df7d41c784f8e3dcf1",
+  "heldout/selected.bin": "23a46320f4d5adaf3a706457cf721145f0ff0df85efcd4c8e0e2b0f0d83642f0",
+  "heldout/workload.json": "d036bb7ffcf92fb6cb6f4fce105292c3ac2b13234d7f490d467ed94ce42b45e3",
+  "heldout.bin": "23a46320f4d5adaf3a706457cf721145f0ff0df85efcd4c8e0e2b0f0d83642f0",
+  "share-readme-before.md": "132cc6406332ea03ccdeef683ed539828df4a4d398cc56d48d485f8e7b3b5192",
+  "share-readme-current.md": "64ac7947b7cc00243ed7fd7cb1d92e8bebe8c3336cfc0f5521135b251585ccc8",
+  "share-replay.txt": "8d273cc43b4103afa894c9d18c276ff760d9588a44983d98b4a3504af1e68c1b",
+  "standalone-replay.txt": "8d273cc43b4103afa894c9d18c276ff760d9588a44983d98b4a3504af1e68c1b",
+  "verification.json": "ba81da088375e3b13a3ac6d974be0e5daea7695759e528418303a8dfdf4e9cef"
+}

@@ -1,0 +1,61 @@
+{
+  "note": "Historical frozen executables, not all built at current checkpoint. Exact compiler contexts are in FROZEN-CLI.md; all currently present executables included.",
+  "verified_at_utc": "2026-10-11T17:01:17.692319+00:00",
+  "files": [
+    {
+      "path": "arithmetic-heldout.test",
+      "bytes": 23585425,
+      "sha256": "3f2e6050a2f78d3152da074105e456f595bca88831f53d39fcacb266ed989d3e"
+    },
+    {
+      "path": "cpm-main-capture.test",
+      "bytes": 13118646,
+      "sha256": "0f31f5f96bca63ef2fa94e2dd8df26c5ac643581d9d1125ac20f5b5b188930f4"
+    },
+    {
+      "path": "hashmap-heldout.test",
+      "bytes": 22669645,
+      "sha256": "91e4b4add432234bb24dbb1e1e5dc667ce8f6b18032ed8db88fd54a066bff543"
+    },
+    {
+      "path": "invariant-address.test",
+      "bytes": 22827620,
+      "sha256": "d9b3834df50930139fbc62fbd3f441855bd785de7ded29820a1125317f03d4a2"
+    },
+    {
+      "path": "mz-compiler-mode-replay-final",
+      "bytes": 42295272,
+      "sha256": "fd1834f762935a3413738d0fabc429a5ba5cd23c732f40ee12a2224f8d769047"
+    },
+    {
+      "path": "mz-compiler-mode-replay-trust-final",
+      "bytes": 42311426,
+      "sha256": "180bd2a027b427a6f582fc18080135a9222a39646b4982c0522ad53e7577506b"
+    },
+    {
+      "path": "mz-compiler-modes",
+      "bytes": 42222291,
+      "sha256": "d49dc066e0f3eb0b29fea3eca7f75b521fc8e463e9e774354352c1cb3d1a4555"
+    },
+    {
+      "path": "mz-memory-host-selected-output",
+      "bytes": 42246637,
+      "sha256": "2c9f5ee900ef909ba662e4242761f08199b8a99c8b19f8d3bdaf54834336ee75"
+    },
+    {
+      "path": "parser-prospective-heldout.test",
+      "bytes": 22784574,
+      "sha256": "6f6f8ae3ae836ff3e05561313873c3a9455715d9552607914dcced588f8cffee"
+    },
+    {
+      "path": "pfcco-native.test",
+      "bytes": 22742698,
+      "sha256": "a701f48ff228cf2a3a8e31f1d5b9bdc64629174ef0063c1a49128aa87653e18a"
+    },
+    {
+      "path": "pfcco-prospective-heldout.test",
+      "bytes": 23604880,
+      "sha256": "0b89914d9eee275b49b27b0e4667f080811bf1d3d744fdc2e1008ab2fa04bf16"
+    }
+  ]
+}
