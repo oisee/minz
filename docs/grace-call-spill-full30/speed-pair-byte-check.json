@@ -1,0 +1,47 @@
+{
+  "scope": "saved byte comparison only, independent oracle audit pending",
+  "all_eight_candidate_envelopes_exact_bytes": true,
+  "association_and_selected_bytes_exact": true,
+  "rows": [
+    {
+      "policy": 0,
+      "mask": 0,
+      "baseline_exact_bytes": true
+    },
+    {
+      "policy": 0,
+      "mask": 1,
+      "baseline_exact_bytes": true
+    },
+    {
+      "policy": 0,
+      "mask": 2,
+      "baseline_exact_bytes": true
+    },
+    {
+      "policy": 0,
+      "mask": 3,
+      "baseline_exact_bytes": true
+    },
+    {
+      "policy": 1,
+      "mask": 0,
+      "baseline_exact_bytes": true
+    },
+    {
+      "policy": 1,
+      "mask": 1,
+      "baseline_exact_bytes": true
+    },
+    {
+      "policy": 1,
+      "mask": 2,
+      "baseline_exact_bytes": true
+    },
+    {
+      "policy": 1,
+      "mask": 3,
+      "baseline_exact_bytes": true
+    }
+  ]
+}

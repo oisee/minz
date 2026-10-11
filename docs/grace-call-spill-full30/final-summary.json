@@ -1,0 +1,78 @@
+{
+  "all_four_dirs_exit0": true,
+  "all_eight_candidate_envelopes_exact_across_four_dirs": true,
+  "association_bytes_exact_across_four_dirs": true,
+  "actual_observations": 1080,
+  "saved_record_observations": 1200,
+  "duplicate_input_baseline_records": 120,
+  "actual_speed": {
+    "policy": 1,
+    "mask": 3,
+    "t_states": 1233170,
+    "bytes": 2490
+  },
+  "actual_size": {
+    "policy": 0,
+    "mask": 2,
+    "t_states": 1236250,
+    "bytes": 2368
+  },
+  "candidates": [
+    {
+      "policy": 0,
+      "mask": 0,
+      "t_states": 1291565,
+      "bytes": 2388,
+      "call_spill_stages": 10
+    },
+    {
+      "policy": 0,
+      "mask": 1,
+      "t_states": 1291406,
+      "bytes": 2509,
+      "call_spill_stages": 10
+    },
+    {
+      "policy": 0,
+      "mask": 2,
+      "t_states": 1236250,
+      "bytes": 2368,
+      "call_spill_stages": 10
+    },
+    {
+      "policy": 0,
+      "mask": 3,
+      "t_states": 1236091,
+      "bytes": 2489,
+      "call_spill_stages": 10
+    },
+    {
+      "policy": 1,
+      "mask": 0,
+      "t_states": 1288644,
+      "bytes": 2389,
+      "call_spill_stages": 10
+    },
+    {
+      "policy": 1,
+      "mask": 1,
+      "t_states": 1288485,
+      "bytes": 2510,
+      "call_spill_stages": 10
+    },
+    {
+      "policy": 1,
+      "mask": 2,
+      "t_states": 1233329,
+      "bytes": 2369,
+      "call_spill_stages": 10
+    },
+    {
+      "policy": 1,
+      "mask": 3,
+      "t_states": 1233170,
+      "bytes": 2490,
+      "call_spill_stages": 10
+    }
+  ]
+}
