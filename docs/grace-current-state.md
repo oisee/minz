@@ -381,3 +381,5 @@ Historical ENRT4v record5 теперь покрывает weighted13 SSA values 
 Root historicalcoverage118 functions PASS19.091с:9admitted,3smaller/4equal/2larger; largerневыбираются. Второй FAT indexedshift/liveHL fix проходит180native cases. GraceSize flags mismatch остаётся следующейcorrectnessзадачей. [Пакет098](grace-integration-098/README.md).
 
 Третий packed FAT flags fix закрыт: root все108 native/VM cases PASS42.23с; полныйMIR2/VIR PASS. Новый ENRT checkpoint index подтверждает прежний triple выигрыш, rootnative PASS2.001с. Автоматический FAT selector ещё не заявлен. [Пакет099](grace-integration-099/README.md).
+
+Selector ownership fix c0a7e49f удерживает отсоединённые HIR nodes/storage, предотвращая ложное shared-ownership после GC. Реальное разделение по-прежнему отклоняется; root GC/selector refusals PASS. [Пакет100](grace-integration-100/README.md).

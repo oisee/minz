@@ -1,0 +1,19 @@
+{
+  "files": [
+    {
+      "path": "docs/grace-integration-100/README.md",
+      "bytes": 1425,
+      "sha256": "07c7acb177ae3ed6548349f31c0749696c6c49e6f69e83bb5c44f40581fce66f"
+    },
+    {
+      "path": "docs/grace-integration-100/hir-ownership-retention.txt",
+      "bytes": 376,
+      "sha256": "6a4b2d2f8c57c18109b46f1f3efe5e0801cc1384228edce41295cc724880a2fd"
+    },
+    {
+      "path": "docs/grace-integration-100/hir-ownership-selector-checks.txt",
+      "bytes": 3934,
+      "sha256": "4f05bbfdf0e852be07263242591cccc53b0d65fb548ddac16f9fd68f9eb5b0cc"
+    }
+  ]
+}

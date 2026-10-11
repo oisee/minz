@@ -1,0 +1,62 @@
+=== RUN   TestMeasureProfileVariantSetsCaller
+=== RUN   TestMeasureProfileVariantSetsCaller/size=false
+    profile_joint_test.go:106: set 0: measured 3476 T-states, 107 module bytes
+    profile_joint_test.go:106: set 1: measured 2734 T-states, 162 module bytes
+    profile_joint_test.go:106: set 2: measured 2734 T-states, 162 module bytes
+    profile_joint_test.go:106: set 3: measured 1992 T-states, 217 module bytes
+=== RUN   TestMeasureProfileVariantSetsCaller/size=true
+    profile_joint_test.go:106: set 0: measured 3476 T-states, 107 module bytes
+    profile_joint_test.go:106: set 1: measured 2734 T-states, 162 module bytes
+    profile_joint_test.go:106: set 2: measured 2734 T-states, 162 module bytes
+    profile_joint_test.go:106: set 3: measured 1992 T-states, 217 module bytes
+--- PASS: TestMeasureProfileVariantSetsCaller (0.56s)
+    --- PASS: TestMeasureProfileVariantSetsCaller/size=false (0.27s)
+    --- PASS: TestMeasureProfileVariantSetsCaller/size=true (0.27s)
+=== RUN   TestMeasureProfileVariantSetsRefusals
+=== RUN   TestMeasureProfileVariantSetsRefusals/invalid-profile
+=== RUN   TestMeasureProfileVariantSetsRefusals/cap
+=== RUN   TestMeasureProfileVariantSetsRefusals/oversized-cap
+=== RUN   TestMeasureProfileVariantSetsRefusals/zero-cap
+=== RUN   TestMeasureProfileVariantSetsRefusals/nil-factory
+=== RUN   TestMeasureProfileVariantSetsRefusals/nil-module
+=== RUN   TestMeasureProfileVariantSetsRefusals/factory-error
+=== RUN   TestMeasureProfileVariantSetsRefusals/shared-module
+=== RUN   TestMeasureProfileVariantSetsRefusals/shared-AST
+=== RUN   TestMeasureProfileVariantSetsRefusals/stale-source
+--- PASS: TestMeasureProfileVariantSetsRefusals (0.15s)
+    --- PASS: TestMeasureProfileVariantSetsRefusals/invalid-profile (0.02s)
+    --- PASS: TestMeasureProfileVariantSetsRefusals/cap (0.03s)
+    --- PASS: TestMeasureProfileVariantSetsRefusals/oversized-cap (0.00s)
+    --- PASS: TestMeasureProfileVariantSetsRefusals/zero-cap (0.00s)
+    --- PASS: TestMeasureProfileVariantSetsRefusals/nil-factory (0.00s)
+    --- PASS: TestMeasureProfileVariantSetsRefusals/nil-module (0.00s)
+    --- PASS: TestMeasureProfileVariantSetsRefusals/factory-error (0.00s)
+    --- PASS: TestMeasureProfileVariantSetsRefusals/shared-module (0.03s)
+    --- PASS: TestMeasureProfileVariantSetsRefusals/shared-AST (0.02s)
+    --- PASS: TestMeasureProfileVariantSetsRefusals/stale-source (0.04s)
+=== RUN   TestMeasureProfileVariantSetsUnobservedStayOriginal
+--- PASS: TestMeasureProfileVariantSetsUnobservedStayOriginal (0.41s)
+=== RUN   TestMeasureProfileVariantSetsRefusesMoreThanFour
+--- PASS: TestMeasureProfileVariantSetsRefusesMoreThanFour (0.08s)
+=== RUN   TestMeasureProfileVariantSetsRejectsForgedCounts
+--- PASS: TestMeasureProfileVariantSetsRejectsForgedCounts (0.12s)
+=== RUN   TestMeasureProfileVariantSetsFactoryMutatesPrevious
+--- PASS: TestMeasureProfileVariantSetsFactoryMutatesPrevious (0.13s)
+=== RUN   TestMeasuredCompilerModesAdmission
+=== RUN   TestMeasuredCompilerModesAdmission/shared
+=== RUN   TestMeasuredCompilerModesAdmission/mutated-source
+=== RUN   TestMeasuredCompilerModesAdmission/changed-ABI
+=== RUN   TestMeasuredCompilerModesAdmission/sticky-policy
+=== RUN   TestMeasuredCompilerModesAdmission/late-failure
+--- PASS: TestMeasuredCompilerModesAdmission (0.39s)
+    --- PASS: TestMeasuredCompilerModesAdmission/shared (0.02s)
+    --- PASS: TestMeasuredCompilerModesAdmission/mutated-source (0.07s)
+    --- PASS: TestMeasuredCompilerModesAdmission/changed-ABI (0.02s)
+    --- PASS: TestMeasuredCompilerModesAdmission/sticky-policy (0.00s)
+    --- PASS: TestMeasuredCompilerModesAdmission/late-failure (0.29s)
+=== RUN   TestMeasuredCompilerModesCompleteAndTie
+--- PASS: TestMeasuredCompilerModesCompleteAndTie (0.74s)
+=== RUN   TestMeasuredModesRejectsLateCompiledTypeMutation
+--- PASS: TestMeasuredModesRejectsLateCompiledTypeMutation (0.35s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.936s

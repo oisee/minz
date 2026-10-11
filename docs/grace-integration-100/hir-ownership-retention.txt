@@ -1,0 +1,8 @@
+=== RUN   TestMemoryHostAppendSelectorCapAndGC
+--- PASS: TestMemoryHostAppendSelectorCapAndGC (0.00s)
+=== RUN   TestFreshHIRRetainsDetachedStorageAcrossGC
+--- PASS: TestFreshHIRRetainsDetachedStorageAcrossGC (0.00s)
+=== RUN   TestFreshHIRRetainsDetachedSliceBacking
+--- PASS: TestFreshHIRRetainsDetachedSliceBacking (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.011s
