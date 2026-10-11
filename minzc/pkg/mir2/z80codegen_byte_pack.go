@@ -3,7 +3,7 @@ package mir2
 // genDisjointByteOr only packs already-computed words. It never moves or
 // removes byte accesses, extends operand lifetime, or relies on memory effects.
 func (g *z80cg) genDisjointByteOr(inst *Inst) bool {
-	if inst.Op != OpOr || inst.Ty != TyU16 || g.curBlock == nil || g.pendingFlagReg != NoReg {
+	if inst.Op != OpOr || inst.Ty != TyU16 || g.curBlock == nil || g.pendingFlagReg != NoReg || bytePackImplicitFlagUse(g.fn, inst.Dst) {
 		return false
 	}
 	defs := map[Reg]*Inst{}
@@ -53,4 +53,56 @@ func (g *z80cg) genDisjointByteOr(inst *Inst) bool {
 	g.emitf("    LD %s, %s    ; pack disjoint byte lanes", lowByte(dst), lowByte(low))
 	g.invalidate(dst)
 	return true
+}
+
+// CondRet/BrIf can consume the NZ flags of an integer definition without any
+// vreg allocated to F. Follow flag-preserving copies and block argument edges,
+// so this gate is based on MIR control flow rather than physical storage alone.
+func bytePackImplicitFlagUse(f *Func, result Reg) bool {
+	forwarded := map[Reg]bool{result: true}
+	changed := true
+	for changed {
+		changed = false
+		for _, b := range f.Blocks {
+			for _, i := range b.Insts {
+				if i.Op == OpMove && forwarded[i.Src[0]] && !forwarded[i.Dst] {
+					forwarded[i.Dst] = true
+					changed = true
+				}
+			}
+			if b.Term != nil {
+				b.Term.ForEachEdge(func(label string, args []Reg, _ int) {
+					dest := f.BlockByLabel(label)
+					if dest == nil {
+						return
+					}
+					for j, a := range args {
+						if j < len(dest.Params) && forwarded[a] && !forwarded[dest.Params[j].Dst] {
+							forwarded[dest.Params[j].Dst] = true
+							changed = true
+						}
+					}
+				})
+			}
+		}
+	}
+	for _, b := range f.Blocks {
+		switch t := b.Term.(type) {
+		case *TermBrIf:
+			if forwarded[t.Cond] {
+				return true
+			}
+		case *TermCondRet:
+			if forwarded[t.Cond] {
+				return true
+			}
+		case *TermRet:
+			for i, r := range t.Vals {
+				if i < len(f.Contract.Returns) && f.Contract.Returns[i].Class == ClassFlag && forwarded[r] {
+					return true
+				}
+			}
+		}
+	}
+	return false
 }
