@@ -1,0 +1,10 @@
+@extern fun peek(addr:u16)->u8
+fun oracle_sum(a:u16,b:u16,c:u16)->u8 {var p:ptr=a
+ var q:ptr=b
+ var r:ptr=c
+ return sum_with_ix(p,q,r)}
+fun oracle_round(a:u16,b:u16,c:u16,v:u8)->u8 {var p:ptr=a
+ var q:ptr=b
+ var r:ptr=c
+ return roundtrip_ix(p,q,r,v)}
+fun oracle_observe(addr:u16)->u8 {return peek(addr)}
