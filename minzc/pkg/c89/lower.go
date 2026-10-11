@@ -785,6 +785,9 @@ func (fl *funcLow) lowerSwitch(ss *cc.SelectionStatement) ([]hir.Stmt, error) {
 		return nil, err
 	}
 	switchTy := switchExpr.ExprTy()
+	// Selector effects precede the branch; arm effects must remain in the arm.
+	var selectorEffects []hir.Stmt
+	fl.drainPending(&selectorEffects)
 
 	// Collect case arms by walking the body.
 	type caseArm struct {
@@ -860,6 +863,7 @@ func (fl *funcLow) lowerSwitch(ss *cc.SelectionStatement) ([]hir.Stmt, error) {
 						if err != nil {
 							return nil, err
 						}
+						fl.drainPending(&curBody)
 						curBody = append(curBody, stmts...)
 					}
 					continue
@@ -872,6 +876,7 @@ func (fl *funcLow) lowerSwitch(ss *cc.SelectionStatement) ([]hir.Stmt, error) {
 						if err != nil {
 							return nil, err
 						}
+						fl.drainPending(&curBody)
 						curBody = append(curBody, stmts...)
 					}
 					continue
@@ -888,6 +893,7 @@ func (fl *funcLow) lowerSwitch(ss *cc.SelectionStatement) ([]hir.Stmt, error) {
 			if err != nil {
 				return nil, err
 			}
+			fl.drainPending(&curBody)
 			curBody = append(curBody, stmts...)
 
 		case cc.BlockItemDecl:
@@ -895,6 +901,7 @@ func (fl *funcLow) lowerSwitch(ss *cc.SelectionStatement) ([]hir.Stmt, error) {
 			if err != nil {
 				return nil, err
 			}
+			fl.drainPending(&curBody)
 			curBody = append(curBody, stmts...)
 		}
 	}
@@ -916,9 +923,9 @@ func (fl *funcLow) lowerSwitch(ss *cc.SelectionStatement) ([]hir.Stmt, error) {
 	}
 
 	if result == nil {
-		return nil, nil
+		return selectorEffects, nil
 	}
-	return result.Body, nil
+	return append(selectorEffects, result.Body...), nil
 }
 
 func (fl *funcLow) lowerIteration(is *cc.IterationStatement) ([]hir.Stmt, error) {

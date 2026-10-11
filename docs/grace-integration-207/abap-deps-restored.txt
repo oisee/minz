@@ -1,0 +1,1 @@
+ok  	github.com/minz/minzc/pkg/abap	2.290s

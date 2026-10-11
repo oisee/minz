@@ -1,0 +1,5 @@
+--- FAIL: TestSwitchArmPostfixEffectsVMZ80 (0.00s)
+    switch_postfix_effects_test.go:46: rawVM sel0 start0 got[{512}] want256 err<nil>
+FAIL
+FAIL	github.com/minz/minzc/pkg/c89	0.008s
+FAIL

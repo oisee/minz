@@ -1,0 +1,66 @@
+--- FAIL: TestFatFS_VM_Verify (0.18s)
+    fatfs_vm_test.go:56: Seeder output:
+        seeded: HELLO.TXT(12) DATA.BIN(256) SUBDIR/NESTED.TXT(19)
+panic: statement 4: statement 0: statement 0: statement 4: HIR put_fat: unknown variable "__post_1" [recovered, repanicked]
+
+goroutine 87 [running]:
+testing.tRunner.func1.2({0xb9d800, 0x2a6b9dcfc180})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:1974 +0x232
+testing.tRunner.func1()
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:1977 +0x349
+panic({0xb9d800?, 0x2a6b9dcfc180?})
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/runtime/panic.go:860 +0x13a
+github.com/minz/minzc/pkg/hir.LowerModule(0x2a6b9db7e580)
+	/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/hir/lower.go:48 +0x659
+github.com/minz/minzc/pkg/c89.TestFatFS_VM_Verify(0x2a6b9d07e6c8)
+	/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/c89/fatfs_vm_test.go:68 +0x952
+testing.tRunner(0x2a6b9d07e6c8, 0xc82e00)
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2036 +0xea
+created by testing.(*T).Run in goroutine 1
+	/home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/src/testing/testing.go:2101 +0x4c5
+FAIL	github.com/minz/minzc/pkg/c89	2.999s
+ok  	github.com/minz/minzc/pkg/frill	0.107s
+--- FAIL: TestParseSimple (0.10s)
+    abap_test.go:14: Parse: abaplint bridge: node:internal/errors:496
+            ErrorCaptureStackTrace(err);
+            ^
+        
+        Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@abaplint/core' imported from /home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/abap/bridge/parse.mjs
+            at new NodeError (node:internal/errors:405:5)
+            at packageResolve (node:internal/modules/esm/resolve:916:9)
+            at moduleResolve (node:internal/modules/esm/resolve:973:20)
+            at defaultResolve (node:internal/modules/esm/resolve:1193:11)
+            at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:403:12)
+            at ModuleLoader.resolve (node:internal/modules/esm/loader:372:25)
+            at ModuleLoader.getModuleJob (node:internal/modules/esm/loader:249:38)
+            at ModuleWrap.<anonymous> (node:internal/modules/esm/module_job:76:39)
+            at link (node:internal/modules/esm/module_job:75:36) {
+          code: 'ERR_MODULE_NOT_FOUND'
+        }
+        
+        Node.js v18.19.1
+--- FAIL: TestSelectionScreen (0.10s)
+    abap_test.go:90: Parse: abaplint bridge: node:internal/errors:496
+            ErrorCaptureStackTrace(err);
+            ^
+        
+        Error [ERR_MODULE_NOT_FOUND]: Cannot find package '@abaplint/core' imported from /home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/abap/bridge/parse.mjs
+            at new NodeError (node:internal/errors:405:5)
+            at packageResolve (node:internal/modules/esm/resolve:916:9)
+            at moduleResolve (node:internal/modules/esm/resolve:973:20)
+            at defaultResolve (node:internal/modules/esm/resolve:1193:11)
+            at ModuleLoader.defaultResolve (node:internal/modules/esm/loader:403:12)
+            at ModuleLoader.resolve (node:internal/modules/esm/loader:372:25)
+            at ModuleLoader.getModuleJob (node:internal/modules/esm/loader:249:38)
+            at ModuleWrap.<anonymous> (node:internal/modules/esm/module_job:76:39)
+            at link (node:internal/modules/esm/module_job:75:36) {
+          code: 'ERR_MODULE_NOT_FOUND'
+        }
+        
+        Node.js v18.19.1
+FAIL
+FAIL	github.com/minz/minzc/pkg/abap	1.045s
+ok  	github.com/minz/minzc/pkg/lanz	0.013s
+ok  	github.com/minz/minzc/pkg/lizp	2.086s
+ok  	github.com/minz/minzc/pkg/pascal	0.022s
+FAIL
