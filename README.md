@@ -8,6 +8,10 @@ MinZ is an experimental compiler toolchain for writing programs for Z80 machines
 
 The project is active research: examples and targets have different levels of maturity. Start with a runnable program below; use the [current handover](docs/project/HANDOVER-2026-10-01.md), [ranked backlog](docs/project/BACKLOG.md), and [dated technical audit](reports/2026-09-19-Deep-Technical-Audit-RU.md) for measured status.
 
+## Compiler progress — October 2026
+
+[**Full report: MinZ today — Nanz, the other frontends, compiler layers, and verified Z80**](reports/2026-10-11-092-grace-vm-z80-status.md) (Russian). A readable tour of the shared pipeline, Grace, PFCCO/PBQP and register-allocation tables, with measured results and remaining gaps. Research-branch results are identified separately from what is available in `main`.
+
 ## Run a program
 
 Install [Go](https://go.dev/doc/install), then from the repository root:
