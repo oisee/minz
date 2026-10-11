@@ -1,7 +1,11 @@
 [
   {
+    "path": "B989-SOURCE-REVIEW.md",
+    "sha256": "b0ea5b33d2e90398f9869bd0ca30f85c86d6c0e62cdc06415ef95157f0658ed1"
+  },
+  {
     "path": "EXPECTED.json",
-    "sha256": "da4c985c3d3ea0982d89755f088898f5f154ce521ab4d5e945686f37a7db62ef"
+    "sha256": "ac97d3171241a0f82ce72016b0a1e9302ca3f286c6590f763339cc4e984efd65"
   },
   {
     "path": "PLAN.md",
@@ -10,6 +14,10 @@
   {
     "path": "REVIEW-GATE.md",
     "sha256": "0af04f566acc1143a25062d4759ab29335375b66db5e7250eacf48a7c287c0a3"
+  },
+  {
+    "path": "repro/generated_name_collision.nanz",
+    "sha256": "f4bf73ef81951f11b7cf362ca9c5ec24e23a5f9b706bcb6ed877f294ef769ee5"
   },
   {
     "path": "repro/main_source_boundary.nanz",

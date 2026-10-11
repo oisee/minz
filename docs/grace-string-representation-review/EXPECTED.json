@@ -54,6 +54,10 @@
       65,
       0,
       66
+    ],
+    "print_utf8": [
+      195,
+      169
     ]
   },
   "output_port": 35,
@@ -103,5 +107,9 @@
       ]
     }
   },
-  "boundary_scope": "format-length admission is distinct from total native64K image/stack capacity; no executable65535payloadclaim"
+  "boundary_scope": "format-length admission is distinct from total native64K image/stack capacity; no executable65535payloadclaim",
+  "collision_global_values_after_show": {
+    "__print_ptr_1": 123,
+    "__print_count_2": 9
+  }
 }
