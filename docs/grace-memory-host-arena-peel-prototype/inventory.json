@@ -1,8 +1,18 @@
 [
   {
+    "path": "independent-proof-integrated.txt",
+    "bytes": 259,
+    "sha256": "e7db353f95130b370fead0e642da16766831c5ba29b613a9f125033565bd0a15"
+  },
+  {
     "path": "peeled.hir.gz",
     "bytes": 1609,
     "sha256": "3c119fc9a14239400b49f53091cd67c48ed16896edbd5b22a6815780d474d528"
+  },
+  {
+    "path": "raw-domain-summary.json",
+    "bytes": 289,
+    "sha256": "9bc35bee0141841075862ce3bcf9952d2a6c9769f8d5c19b004c288a03d1cf79"
   },
   {
     "path": "shape-export.txt",
@@ -20,14 +30,24 @@
     "sha256": "a6f0ecf699876378340b611603597993bcdf58f0c398bd10ac6313e62a8cdb1d"
   },
   {
+    "path": "independent-proof-forgeries.txt",
+    "bytes": 1209,
+    "sha256": "d8a002bb124bd231f547951040ff95151c89440673fb3c8d198394358836bc72"
+  },
+  {
+    "path": "raw-domain-first.txt",
+    "bytes": 271,
+    "sha256": "422c0ac3cdc02b201b3992de8630f2c0f3d560ba50bc306b42643c9c36f0dc37"
+  },
+  {
     "path": "comparison.json.gz",
     "bytes": 1397,
     "sha256": "24e5478b00ccecab1616d01466e7cf902f6ba5bf5a322bd118088272ce4c9be8"
   },
   {
     "path": "README.md",
-    "bytes": 2496,
-    "sha256": "77bb49bbf827a1a563d0075f517cb455de285bfbd2f33a39a38476f25164bd01"
+    "bytes": 2974,
+    "sha256": "e1da6ee84481b46ed5461eeeca2e34155a47c0975a0b75e7c7790acedd0323e6"
   },
   {
     "path": "variant/target.a80.gz",
@@ -83,6 +103,16 @@
     "path": "variant/factory-baseline.json.gz",
     "bytes": 56316,
     "sha256": "919ab493f51703cf075386475babdfd39495cbff59c519d4ed563ba7c1da6d43"
+  },
+  {
+    "path": "variant/typed-audit-archived.txt",
+    "bytes": 384,
+    "sha256": "eea95f14f95013d07f1aabdff49bf4da659ecf6e84478c9c9f74044ca6940d1b"
+  },
+  {
+    "path": "variant/host-audit-archived.txt",
+    "bytes": 228,
+    "sha256": "c8737f92d8aa037a8925e02c42fec02ba2750d594b0c8e0b2157badc08b2a912"
   },
   {
     "path": "variant/final.mir2.gz",
@@ -148,6 +178,16 @@
     "path": "original/factory-baseline.json.gz",
     "bytes": 55188,
     "sha256": "2132b9f418bdaca79baefcb01f3b1382a82824b78608dbd85a4fa13cc15d5733"
+  },
+  {
+    "path": "original/typed-audit-archived.txt",
+    "bytes": 384,
+    "sha256": "3db262bd27c494dab4d14addd59f82268275b9f4d5cf1ae954ebee48fa723eba"
+  },
+  {
+    "path": "original/host-audit-archived.txt",
+    "bytes": 228,
+    "sha256": "0939793c7b28d2f9daa3ed5ec8cdb4a90eba11608628729937fdfe1811aa89c5"
   },
   {
     "path": "original/final.mir2.gz",

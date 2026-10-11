@@ -1,0 +1,5 @@
+=== RUN   TestMemoryHostArenaPeelRawDomain
+    memory_host_arena_peel_domain_test.go:160: raw domain cases33924 invocations67848 exactbyteReads11837460 typedDenials4
+--- PASS: TestMemoryHostArenaPeelRawDomain (41.09s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	41.099s
