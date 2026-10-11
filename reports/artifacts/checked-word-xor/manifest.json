@@ -1,0 +1,16 @@
+{
+  "baseline.a80": "90f16d3e80248a5cdcd1393954a5c4b99b0b63ea9c0e089c345d91a82a57eecc",
+  "baseline.bin": "b57337b458826e7d5d9d5e5e228946b25e4f5e8197e9d7d48cf799cdd953b623",
+  "cli-baseline.a80": "90f16d3e80248a5cdcd1393954a5c4b99b0b63ea9c0e089c345d91a82a57eecc",
+  "cli-baseline.txt": "b0041e9550c1e4907a6e06f2cd67ffb1d6b8e602a62e2dcb5c4f8048a77839e8",
+  "cli-fallback.a80": "90f16d3e80248a5cdcd1393954a5c4b99b0b63ea9c0e089c345d91a82a57eecc",
+  "cli-fallback.txt": "a63d1eeadd9b137749c6d07d389af377c380a6f1946f4ee345e941264577cb23",
+  "cli-generate.txt": "231db687b956c6be6563aa095eca648b6a12ab77d1f4197bfd9f3ffa14b601f4",
+  "compiler-build.json": "dc45651615019f1b15ccb1200255861ad69044fd1c56027de39a2d21ce110fd6",
+  "current-table.json": "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b",
+  "experiment-manifest.json": "66eeff5fd8ebe3b65566f4b81634d57f81a038e7ede0838ff53ec62b9518fc65",
+  "experiment.tar.xz": "aae3d112df97bc0bb184e1596f337588006a15a87e2296ed2f997b938834e170",
+  "native-current.txt": "4eb5555d1b1585cfe6ab766a99304fd8ed619b2244d902a7374e469d8285d574",
+  "regression.txt": "d64d61b3dc2b195d27209d854e68a58e80bbcdcb8dc6c71b10de8783e52156f2",
+  "source.nanz": "2caa7c16db7371f6f1ef6eecfa8c767e58d9d961c5bdfdbfccda1fb6e613c3f8"
+}

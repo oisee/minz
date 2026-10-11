@@ -1,0 +1,2 @@
+command: ['/home/alice/dev/minz-artifacts/grace-workspaces/checked-word-xor/reports/artifacts/checked-word-xor/minzc', '/home/alice/dev/minz-artifacts/grace-workspaces/checked-word-xor/examples/nanz/21_hashmap_test.nanz', '--Osize', '--asserts', 'none', '--checked-local-table', '/home/alice/dev/minz-artifacts/grace-workspaces/checked-word-xor/reports/artifacts/checked-word-xor/current-table.json', '-o', '/home/alice/dev/minz-artifacts/grace-workspaces/checked-word-xor/reports/artifacts/checked-word-xor/cli-fallback.a80']
+exit: 0
