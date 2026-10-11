@@ -1,0 +1,5 @@
+# Свежая сборка declared showcase
+
+На `9164bb08` полный TestShowcaseCompileAssemble завершился **PASS, 9,939 с**:193путисобраны,одинпрежнийcapacitySKIP. Полныйverboseжурнал сохранён рядом и на шаре. Это подтверждаетcompile/assemble,а не правильностьисполнения194программ.
+
+Следующийполныйpipelineбинарник9164bb08сохранёнсSHA256в192,ноне запущен:старыйcfaa7777ещёжив. Новыеdivmod/strengthтестыинтегрированыв45ad5f49послеподготовкибинарникаиимеютотдельныйrootreplay. All41manifestpayloadпроверенылокально/наcanonicalshare.
