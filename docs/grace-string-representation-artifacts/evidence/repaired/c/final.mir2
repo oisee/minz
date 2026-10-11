@@ -1,0 +1,24 @@
+; MIR2 module: native_strings.nanz
+string @mir2.str.0 = "AB"
+string @mir2.str.1 = "!"
+global @__print_ptr_1 : u16
+global @__print_count_2 : u16
+global @live : u16
+global @answer : u16
+
+fun @show()
+  block @entry:
+    %r1 = addr_of @live : ptr [pointer]
+    %r2 = load %r1 : u16 [pointer]
+    %r3 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r4 = move %r3 : ptr [pointer]
+    call @@mir.io.print.str(%r4)
+    %r5 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r6 = move %r5 : ptr [pointer]
+    call @@mir.io.print.str(%r6)
+    %r7 = const 1 : u16 [pointer]
+    %r8 = add %r2, %r7 : u16 [pointer]
+    %r9 = addr_of @answer : ptr [pointer]
+    store %r9, %r8 : u16
+    ret void
+

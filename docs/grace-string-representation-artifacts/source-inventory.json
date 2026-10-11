@@ -1,0 +1,42 @@
+[
+  {
+    "path": "minzc/pkg/nanz/parse.go",
+    "sha256": "b75b4aea23f9806fe889543ab1c87f5f788d2d094242db55df543bd9da46efa0"
+  },
+  {
+    "path": "minzc/pkg/hir/lower.go",
+    "sha256": "f0a974b033cd977f8617017bef3ab78e46e4c566daed21520144b086aea2523a"
+  },
+  {
+    "path": "minzc/pkg/hir/lower_string_print.go",
+    "sha256": "7be591ddbc40c50d408669ac3bd780d0de5b41896f73a7a7eec46c00e88ca069"
+  },
+  {
+    "path": "minzc/pkg/mir2/vm.go",
+    "sha256": "b437c8af2931782c6ebd4f6df9fdda7a92c656482114c5403b357df9d773a0fc"
+  },
+  {
+    "path": "minzc/pkg/mir2/z80codegen.go",
+    "sha256": "fcd2fde822b2792698aac010074dbe22150c9156d97c6904a04256a06adde1fe"
+  },
+  {
+    "path": "minzc/pkg/mir2/string_storage_test.go",
+    "sha256": "3e93d8336ba71e4965d38956adecfa5dbc094de3258979efcf148f607b951816"
+  },
+  {
+    "path": "minzc/pkg/nanz/string_representation_test.go",
+    "sha256": "b614f54548bfc62b2ed6535f7bd67d3c86aac3ac3a794a547f7e14334e97779f"
+  },
+  {
+    "path": "minzc/pkg/nanz/string_native_test.go",
+    "sha256": "7a0c6e47749edcd76fcc7a4e6e1c76263694608c249efc90ed043243f599fbf6"
+  },
+  {
+    "path": "minzc/pkg/hir/string_print_hygiene_test.go",
+    "sha256": "c8f9f8cd163580bc0daf603cbe033c65f38929aebe57018f6e8172888dae8477"
+  },
+  {
+    "path": "minzc/pkg/mir2/z80codegen_call.go",
+    "sha256": "0e9fac600ac8ff54efa06196dd89d1818aa5e4ed4789c7ad18ee00df606d8f0c"
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "cycles": 220,
+  "error": "",
+  "expected_kind": "stdout",
+  "globals": {
+    "__print_count_2": 456,
+    "__print_ptr_1": 123,
+    "answer": 0
+  }
+}

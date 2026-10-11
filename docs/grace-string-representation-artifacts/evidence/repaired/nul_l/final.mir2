@@ -1,0 +1,40 @@
+; MIR2 module: native_strings.nanz
+string @mir2.str.0 = "A\x00B"
+string @mir2.str.1 = "!"
+global @__print_ptr_1 : u16
+global @__print_count_2 : u16
+global @live : u16
+global @answer : u16
+
+fun @show()
+  block @entry:
+    %r1 = addr_of @live : ptr [pointer]
+    %r2 = load %r1 : u16 [pointer]
+    %r3 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r4 = load %r3 : u16 [pointer]
+    %r5 = const 2 : u16 [pointer]
+    %r6 = add %r3, %r5 : ptr [acc]
+    jmp @loop_head4(%r4, %r6)
+  block @loop_head4(%r7: u16 [pointer], %r8: ptr [general]):
+    %r9 = const 0 : u16 [pointer]
+    %r10 = cmp.ne %r7, %r9 : bool [flag]
+    br_if %r10, @loop_body5(), @loop_exit6()
+  block @loop_body5:
+    %r11 = load %r8 : u8 [general]
+    %r12 = move %r11 : u8 [acc]
+    call @@mir.io.print.char(%r12)
+    %r13 = const 1 : u16 [pointer]
+    %r14 = add %r8, %r13 : ptr [general]
+    %r15 = const 1 : u16 [pointer]
+    %r16 = sub %r7, %r15 : u16 [pointer]
+    jmp @loop_head4(%r16, %r14)
+  block @loop_exit6:
+    %r19 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r20 = move %r19 : ptr [pointer]
+    call @@mir.io.print.str(%r20)
+    %r21 = const 1 : u16 [pointer]
+    %r22 = add %r2, %r21 : u16 [pointer]
+    %r23 = addr_of @answer : ptr [pointer]
+    store %r23, %r22 : u16
+    ret void
+

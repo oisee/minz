@@ -1,0 +1,9 @@
+fun print_s() -> void { @print("AB") }
+fun print_c() -> void { @print(c"AB") }
+fun print_l() -> void { @print(l"AB") }
+fun print_empty_s() -> void { @print("") }
+fun print_empty_c() -> void { @print(c"") }
+fun print_empty_l() -> void { @print(l"") }
+fun print_embedded_s() -> void { @print("A\0B") }
+fun print_embedded_c() -> void { @print(c"A\0B") }
+fun print_embedded_l() -> void { @print(l"A\0B") }

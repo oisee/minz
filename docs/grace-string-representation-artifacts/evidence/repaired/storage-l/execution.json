@@ -1,0 +1,8 @@
+{
+  "cycles": 79,
+  "error": "",
+  "expected_kind": "pool_bytes",
+  "globals": {
+    "first": 2
+  }
+}

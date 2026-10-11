@@ -1,0 +1,14 @@
+@extern fun peek(addr: u16) -> u8
+
+fun s_first() -> u8 {
+    let p: ^u8 = "AB"
+    return peek(u16(p))
+}
+fun c_first() -> u8 {
+    let p: ^u8 = c"AB"
+    return peek(u16(p))
+}
+fun l_first() -> u8 {
+    let p: ^u8 = l"AB"
+    return peek(u16(p))
+}

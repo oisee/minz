@@ -1,0 +1,15 @@
+{
+  "__print_count_2": 352,
+  "__print_ptr_1": 350,
+  "_mir2_str_0": 358,
+  "_mir2_str_1": 362,
+  "answer": 356,
+  "live": 354,
+  "show": 264,
+  "show.print_str_0": 321,
+  "show.print_str_done_0": 330,
+  "show.show_loop_body5": 308,
+  "show.show_loop_exit6": 318,
+  "show.show_loop_head4": 298,
+  "test_done": 262
+}

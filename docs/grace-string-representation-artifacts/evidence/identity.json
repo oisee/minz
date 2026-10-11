@@ -1,0 +1,12 @@
+{
+  "source_core_checkpoint": "c9c3e1dc",
+  "exporter_checkpoint": "83dab564",
+  "executable_path": "/home/alice/dev/minz-artifacts/grace-checkpoints/string-representation-evidence/nanz-strings-final.test",
+  "executable_sha256": "d6a50c892feb49ace9a8593d1411c7d4754f2666ae5cd78417a490aeb490cb6c",
+  "compile_history_executables": [
+    "eb7e9a2caf0049c9717ff0329bfb909a1426c673d18f6ff7c736364476789d85",
+    "c0dcb3c2998216637eeb0aa7e1e4a330ba457ef1eba12ed07bd8e4a18867539a"
+  ],
+  "working_directory": "/home/alice/dev/minz-artifacts/grace-workspaces/string-representation/minzc/pkg/nanz",
+  "command": "MINZ_STRING_NATIVE_ARTIFACTS=.../actual nanz-strings-final.test -test.run '^TestLiteralPrintingNative$|^TestLiteralStorageNative$' -test.v -test.timeout 5m"
+}

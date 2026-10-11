@@ -1,0 +1,12 @@
+; MIR2 module: storage.nanz
+string @mir2.str.0 = "AB"
+global @first : u8
+
+fun @examine()
+  block @entry:
+    %r1 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r2 = load %r1 : u8 [general]
+    %r3 = addr_of @first : ptr [pointer]
+    store %r3, %r2 : u8
+    ret void
+

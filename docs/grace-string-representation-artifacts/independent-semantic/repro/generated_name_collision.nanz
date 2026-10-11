@@ -1,0 +1,3 @@
+global __print_ptr_1: u16 = 123
+global __print_count_2: u8 = 9
+fun show() -> void { @print("AB") }

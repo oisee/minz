@@ -1,0 +1,11 @@
+@extern fun peek(addr: u16) -> u8
+
+// Reading a representation byte, not scanning across adjacent literals.
+fun source_plain_first() -> u8 {
+    let src: ^u8 = "(a)"
+    return peek(u16(src))
+}
+fun source_c_first() -> u8 {
+    let src: ^u8 = c"(a)"
+    return peek(u16(src))
+}

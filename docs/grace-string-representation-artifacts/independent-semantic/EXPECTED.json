@@ -1,0 +1,115 @@
+{
+  "schema": "minz.string-representation-oracle-plan/v1",
+  "executed": false,
+  "literal_bytes": {
+    "s_AB": [
+      2,
+      65,
+      66
+    ],
+    "c_AB": [
+      65,
+      66,
+      0
+    ],
+    "l_AB": [
+      2,
+      0,
+      65,
+      66
+    ]
+  },
+  "return_values": {
+    "s_first": 2,
+    "c_first": 65,
+    "l_first": 2,
+    "source_plain_first": 3,
+    "source_c_first": 40
+  },
+  "stdout_bytes": {
+    "print_s": [
+      65,
+      66
+    ],
+    "print_c": [
+      65,
+      66
+    ],
+    "print_l": [
+      65,
+      66
+    ],
+    "print_empty_s": [],
+    "print_empty_c": [],
+    "print_empty_l": [],
+    "print_embedded_s": [
+      65,
+      0,
+      66
+    ],
+    "print_embedded_c": [
+      65
+    ],
+    "print_embedded_l": [
+      65,
+      0,
+      66
+    ],
+    "print_utf8": [
+      195,
+      169
+    ]
+  },
+  "output_port": 35,
+  "scope": "independent language representation and output contract; no VM-derived expected output",
+  "admission": {
+    "SString": {
+      "max_utf8_bytes": 255,
+      "accept_lengths": [
+        0,
+        255
+      ],
+      "reject_lengths": [
+        256
+      ]
+    },
+    "LString": {
+      "max_utf8_bytes": 65535,
+      "accept_lengths": [
+        0,
+        65535
+      ],
+      "reject_lengths": [
+        65536
+      ]
+    },
+    "UTF8_example": {
+      "text": "é",
+      "bytes": [
+        195,
+        169
+      ],
+      "S_encoding": [
+        2,
+        195,
+        169
+      ],
+      "L_encoding": [
+        2,
+        0,
+        195,
+        169
+      ],
+      "C_encoding": [
+        195,
+        169,
+        0
+      ]
+    }
+  },
+  "boundary_scope": "format-length admission is distinct from total native64K image/stack capacity; no executable65535payloadclaim",
+  "collision_global_values_after_show": {
+    "__print_ptr_1": 123,
+    "__print_count_2": 9
+  }
+}
