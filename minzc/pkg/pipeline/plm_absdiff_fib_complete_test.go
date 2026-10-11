@@ -83,6 +83,7 @@ func TestOriginalPLMAbsDiffFibComplete(t *testing.T) {
 			minSP := uint16(0xf000)
 			stackDepth := map[string]int{}
 			counts := map[string]int{}
+			tstates := map[string]int64{}
 			run := func(name string, args []int64, want uint16) {
 				counts[name]++
 				f := s.MIR2Module.FuncByName(name)
@@ -128,7 +129,7 @@ func TestOriginalPLMAbsDiffFibComplete(t *testing.T) {
 				}
 				callMin := uint16(0xf000)
 				for n := 0; n < 100000 && z.GetPC() != drivers[name]+3; n++ {
-					z.Step()
+					tstates[name] += int64(z.Step())
 					if sp := z.GetSP(); sp < callMin {
 						callMin = sp
 					}
@@ -212,7 +213,7 @@ func TestOriginalPLMAbsDiffFibComplete(t *testing.T) {
 				}
 			}
 
-			summary, _ := json.MarshalIndent(map[string]any{"entries": counts, "bytes": len(bin.Binary), "stack_depth_per_entry": stackDepth, "stack_low": fmt.Sprintf("%04x", minSP), "allowed_generated_spill_bytes": mutable}, "", "  ")
+			summary, _ := json.MarshalIndent(map[string]any{"entries": counts, "t_states_including_call": tstates, "bytes": len(bin.Binary), "stack_depth_per_entry": stackDepth, "stack_low": fmt.Sprintf("%04x", minSP), "allowed_generated_spill_bytes": mutable}, "", "  ")
 			export(mode.name+"-summary.json", summary)
 			t.Log(string(summary))
 		})

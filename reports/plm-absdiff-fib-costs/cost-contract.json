@@ -1,0 +1,15 @@
+{
+  "compiler_checkpoint": "b6990cc4",
+  "workload": "same fullbyte domains as original PLM proof: ABS_DIFF65536pairs+FIB256n",
+  "counted": "Step() opcode Tstates from real driver CALL through original RET; host argument setup and HALT excluded",
+  "same_bin_as": "reports/plm-absdiff-fib-native",
+  "baseline": {
+    "ABS_DIFF": 3637120,
+    "FIB": 5208960
+  },
+  "grace": {
+    "ABS_DIFF": 3637120,
+    "FIB": 4453888
+  },
+  "excluded": "no prospective training/heldout selector claim; no hardware contention model"
+}

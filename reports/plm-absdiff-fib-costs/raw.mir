@@ -1,0 +1,32 @@
+; MIR2 module: DEMO
+fun @ABS_DIFF(%r1: u8 [acc], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = cmp.ugt %r1, %r2 : bool [flag]
+    br_if %r3, @if_then1(), @if_else3()
+  block @if_then1:
+    %r4 = sub %r1, %r2 : u8 [acc]
+    ret %r4
+  block @if_else3:
+    %r5 = sub %r2, %r1 : u8 [acc]
+    ret %r5
+
+fun @FIB(%r6: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r7 = const 0 : u8 [general]
+    %r8 = const 0 : u8 [general]
+    %r9 = const 0 : u8 [general]
+    %r10 = const 0 : u8 [general]
+    %r11 = const 1 : u8 [general]
+    jmp @loop_head1(%r10, %r11, %r6, %r9)
+  block @loop_head1(%r12: u8 [general], %r13: u8 [general], %r14: u8 [general], %r15: u8 [general]):
+    %r16 = const 0 : u8 [general]
+    %r17 = cmp.ugt %r14, %r16 : bool [flag]
+    br_if %r17, @loop_body2(), @loop_exit3(%r12, %r13, %r14, %r15)
+  block @loop_body2:
+    %r18 = add %r12, %r13 : u8 [general]
+    %r19 = const 1 : u8 [general]
+    %r20 = sub %r14, %r19 : u8 [general]
+    jmp @loop_head1(%r13, %r18, %r20, %r13)
+  block @loop_exit3(%r21: u8 [general], %r22: u8 [general], %r23: u8 [general], %r24: u8 [general]):
+    ret %r21
+

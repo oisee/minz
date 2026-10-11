@@ -1,0 +1,30 @@
+{
+  "compiler_checkpoint": "b6990cc4",
+  "files": {
+    "cost-contract.json": "98b59aeffad7cc6fb66b05ec62894dc4923e254dd56f8779b2a578ed73cd858a",
+    "grace-size-call-ABS_DIFF.bin": "ea4039133556dcefe56a2fee26ad582018bdbe7d2847144adbcd20bd98dda6ba",
+    "grace-size-call-FIB.bin": "e68ead5546168419e8fe2c83d27348ba65b6a798de4269aa9b63e02142c9f6d9",
+    "grace-size-functions.json": "b88ee4997db27470842bb2477518888bb764dae03ea1efe57ac6c75ae8654cd6",
+    "grace-size-summary.json": "8c1509e02b56813439ac9367190b96c8ec883022cce86f0e3fccc472245c84ed",
+    "grace-size.a80": "9050ba73e84185e8ce2e4c92ae29d6acee445ba75ad23e5c76aef7f77dc29b22",
+    "grace-size.bin": "de3728b0562fedf088d0257ccf5c4712ac0c582a5852d9b9c96115e2b3d49bc4",
+    "grace-size.mir": "7bc916097dd703b4b84045a42236599d83e690aaff6662ce0fbe724d566be50b",
+    "grace-speed-call-ABS_DIFF.bin": "ea4039133556dcefe56a2fee26ad582018bdbe7d2847144adbcd20bd98dda6ba",
+    "grace-speed-call-FIB.bin": "e68ead5546168419e8fe2c83d27348ba65b6a798de4269aa9b63e02142c9f6d9",
+    "grace-speed-functions.json": "b88ee4997db27470842bb2477518888bb764dae03ea1efe57ac6c75ae8654cd6",
+    "grace-speed-summary.json": "8c1509e02b56813439ac9367190b96c8ec883022cce86f0e3fccc472245c84ed",
+    "grace-speed.a80": "9050ba73e84185e8ce2e4c92ae29d6acee445ba75ad23e5c76aef7f77dc29b22",
+    "grace-speed.bin": "de3728b0562fedf088d0257ccf5c4712ac0c582a5852d9b9c96115e2b3d49bc4",
+    "grace-speed.mir": "7bc916097dd703b4b84045a42236599d83e690aaff6662ce0fbe724d566be50b",
+    "ordinary-call-ABS_DIFF.bin": "ea4039133556dcefe56a2fee26ad582018bdbe7d2847144adbcd20bd98dda6ba",
+    "ordinary-call-FIB.bin": "e68ead5546168419e8fe2c83d27348ba65b6a798de4269aa9b63e02142c9f6d9",
+    "ordinary-functions.json": "6104591bf0eb0893ed80cec47229709b843ee918c3bf9a9d495c9155e3a0d4d2",
+    "ordinary-summary.json": "7ecae5d520e5ed0943daf0faaa54e438a79396c5136f2cb75be5d428cef6fb79",
+    "ordinary.a80": "1dce1b90eeba5dac8c1929d7b9c76b4dc8fd5f07fc30cb4583121b41ef68a3ba",
+    "ordinary.bin": "cdb2d33f950b40492dcc427cab310d8db85e3625f07e50109ed9f4332ddae909",
+    "ordinary.mir": "adc124bdd0fca0c22a6c85c104f921c93828b0dc8074995a157fd130afee2339",
+    "raw.mir": "681f35c212ae739522264831833e948b1728b20d3ee07f8bb5b40c428a2b8c7b",
+    "root-gate.txt": "4dad3aa96d8eae2603269389e14c24eb4ca60963400b211b1a79804612d91d51",
+    "source.plm": "7f799d07762377d7f889594d6b51891b64832a11648d5e5163d6a5b23af17a1a"
+  }
+}
