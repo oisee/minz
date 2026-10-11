@@ -1,0 +1,3 @@
+global input:i8
+global result:i16
+fun embed(){result=i16(input)}
