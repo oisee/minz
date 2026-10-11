@@ -1,6 +1,7 @@
 package pipeline
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"github.com/minz/minzc/pkg/hir"
@@ -74,6 +75,9 @@ func TestMemoryHostOriginalSelfLanzTarget(t *testing.T) {
 			}
 		}
 	}
+	if fmt.Sprintf("%x", sha256.Sum256([]byte(target.FinalMIRDump))) != target.MIRSHA256 || fmt.Sprintf("%x", sha256.Sum256(target.AllocationJSON)) != target.AllocationSHA256 {
+		t.Fatal("diagnostic payload hash mismatch")
+	}
 	if target.TotalTStates != 1221494 || target.BinarySHA256 != "fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51" {
 		t.Fatal("reference native cycle/binary drift", target.TotalTStates, target.BinarySHA256)
 	}
@@ -90,6 +94,8 @@ func TestMemoryHostOriginalSelfLanzTarget(t *testing.T) {
 		}
 		os.WriteFile(filepath.Join(dir, "target.bin"), target.Binary, 0644)
 		os.WriteFile(filepath.Join(dir, "target.a80"), []byte(target.Assembly), 0644)
+		os.WriteFile(filepath.Join(dir, "final.mir2"), []byte(target.FinalMIRDump), 0644)
+		os.WriteFile(filepath.Join(dir, "allocation.json"), target.AllocationJSON, 0644)
 	}
 	t.Logf("production memory host original30 %dT/%dB SHA%s", target.TotalTStates, len(target.Binary), target.BinarySHA256)
 }

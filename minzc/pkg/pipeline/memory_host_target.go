@@ -29,6 +29,8 @@ type MemoryHostTargetEvidence struct {
 	SidecarSHA256     string                      `json:"sidecar_sha256"`
 	MIRSHA256         string                      `json:"mir_dump_sha256"`
 	AllocationSHA256  string                      `json:"allocation_sha256"`
+	FinalMIRDump      string                      `json:"final_mir_dump_diagnostic"`
+	AllocationJSON    json.RawMessage             `json:"allocation_diagnostic"`
 }
 
 // runZ80MemoryHostWorkload consumes only privately compiled steps and an internally
@@ -245,8 +247,13 @@ func runZ80MemoryHostWorkload(steps Steps, source *hir.Module, w hir.MemoryHostW
 	out.Accesses = resolved
 	sidecar, _ := json.Marshal(resolved)
 	out.SidecarSHA256 = fmt.Sprintf("%x", sha256.Sum256(sidecar))
-	out.MIRSHA256 = fmt.Sprintf("%x", sha256.Sum256([]byte(steps.MIR2Module.Dump())))
-	allocation, _ := json.Marshal(steps.Allocation)
+	out.FinalMIRDump = steps.MIR2Module.Dump()
+	out.MIRSHA256 = fmt.Sprintf("%x", sha256.Sum256([]byte(out.FinalMIRDump)))
+	allocation, e := json.Marshal(steps.Allocation)
+	if e != nil {
+		return fail(e)
+	}
+	out.AllocationJSON = append(json.RawMessage(nil), allocation...)
 	out.AllocationSHA256 = fmt.Sprintf("%x", sha256.Sum256(allocation))
 	m.cpu = z80.NewZ80(m, memoryHostNoPorts{})
 	for i, call := range w.Calls {
