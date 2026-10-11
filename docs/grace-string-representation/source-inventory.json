@@ -29,10 +29,14 @@
   },
   {
     "path": "minzc/pkg/nanz/string_native_test.go",
-    "sha256": "9e290c92ddee0866d98de072bb61556886b184bd9f98d5c1c26b3db948c2bdb0"
+    "sha256": "7a0c6e47749edcd76fcc7a4e6e1c76263694608c249efc90ed043243f599fbf6"
   },
   {
     "path": "minzc/pkg/hir/string_print_hygiene_test.go",
     "sha256": "c8f9f8cd163580bc0daf603cbe033c65f38929aebe57018f6e8172888dae8477"
+  },
+  {
+    "path": "minzc/pkg/mir2/z80codegen_call.go",
+    "sha256": "0e9fac600ac8ff54efa06196dd89d1818aa5e4ed4789c7ad18ee00df606d8f0c"
   }
 ]
