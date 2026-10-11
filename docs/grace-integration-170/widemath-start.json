@@ -1,0 +1,10 @@
+{
+  "compiler_commit": "afca2aa5",
+  "session": 61825,
+  "process": 2312413,
+  "command": "MINZ_WIDEMATH_EXHAUSTIVE=1 go test ./pkg/pipeline -run ^TestOriginalWidemathNativeModel$ -count=1",
+  "executable": "/home/alice/dev/minz-artifacts/grace-checkpoints/widemath-afca2aa5-exhaustive.test",
+  "share": "/mnt/safe/minz/grace/2026-10-11/compiler-checkpoints/widemath-afca2aa5-exhaustive.test",
+  "sha256": "831f4fe01bddf5e839183353379aab69b72d6b19dfb953c4a772593f8e4c700e",
+  "status": "confirmed live; no terminalPASS yet"
+}
