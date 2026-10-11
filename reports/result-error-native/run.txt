@@ -1,0 +1,19 @@
+=== RUN   TestOriginalResultErrorNativeModel
+    showcase_result_error_native_test.go:271: default {Entry:safe_add Args:[0 0] Expected:0 ExpectedMulti:[0]} 245T native/raw/final model code/SP/RAM PASS
+    showcase_result_error_native_test.go:271: default {Entry:safe_add Args:[0 1] Expected:1 ExpectedMulti:[1]} 245T native/raw/final model code/SP/RAM PASS
+    showcase_result_error_native_test.go:271: default {Entry:safe_add Args:[0 2] Expected:2 ExpectedMulti:[2]} 245T native/raw/final model code/SP/RAM PASS
+    showcase_result_error_native_test.go:275: default 196614 original tagged-result calls PASS; 6 source assertions retained
+    showcase_result_error_native_test.go:271: grace-size {Entry:safe_add Args:[0 0] Expected:0 ExpectedMulti:[0]} 245T native/raw/final model code/SP/RAM PASS
+    showcase_result_error_native_test.go:271: grace-size {Entry:safe_add Args:[0 1] Expected:1 ExpectedMulti:[1]} 245T native/raw/final model code/SP/RAM PASS
+    showcase_result_error_native_test.go:271: grace-size {Entry:safe_add Args:[0 2] Expected:2 ExpectedMulti:[2]} 245T native/raw/final model code/SP/RAM PASS
+    showcase_result_error_native_test.go:275: grace-size 196614 original tagged-result calls PASS; 6 source assertions retained
+    showcase_result_error_native_test.go:271: grace-speed {Entry:safe_add Args:[0 0] Expected:0 ExpectedMulti:[0]} 245T native/raw/final model code/SP/RAM PASS
+    showcase_result_error_native_test.go:271: grace-speed {Entry:safe_add Args:[0 1] Expected:1 ExpectedMulti:[1]} 245T native/raw/final model code/SP/RAM PASS
+    showcase_result_error_native_test.go:271: grace-speed {Entry:safe_add Args:[0 2] Expected:2 ExpectedMulti:[2]} 245T native/raw/final model code/SP/RAM PASS
+    showcase_result_error_native_test.go:275: grace-speed 196614 original tagged-result calls PASS; 6 source assertions retained
+--- PASS: TestOriginalResultErrorNativeModel (42.99s)
+=== RUN   TestOriginalResultGeneratedHelpersRaw
+    showcase_result_error_native_test.go:317: 131072 generated helper calls PASS raw VM; native meaning checked via unchanged is_ok/unwrap/wrappers
+--- PASS: TestOriginalResultGeneratedHelpersRaw (0.11s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	43.108s
