@@ -1,0 +1,12 @@
+ld_word:
+    LD C, (HL)
+    LD B, 0
+    LD DE, 1
+    ADD HL, DE
+    LD D, (HL)
+    LD L, D
+    LD H, 0
+    LD H, L
+    LD L, 0
+    LD L, C    ; pack disjoint byte lanes
+    RET
