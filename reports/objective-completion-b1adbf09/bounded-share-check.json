@@ -1,0 +1,30 @@
+[
+  {
+    "repo": "reports/2026-10-11-079-pascal-bubble-sort-heldout.md",
+    "share": "/mnt/safe/minz/grace/2026-10-11/compiler-reports/2026-10-11-079-pascal-bubble-sort-heldout.md",
+    "repo_sha256": "7f2f212f94f3baebe74a96a5c575e708d41fa42c75a50a2e8bc314b5371adf2e",
+    "share_sha256": "7f2f212f94f3baebe74a96a5c575e708d41fa42c75a50a2e8bc314b5371adf2e",
+    "equal": true
+  },
+  {
+    "repo": "docs/grace-current-state.md",
+    "share": "/mnt/safe/minz/grace/2026-10-11/compiler-docs/grace-current-state.md",
+    "repo_sha256": "4b123f5868189de48690cabf4cf6e398389a848e273438aab64725405edab804",
+    "share_sha256": "4b123f5868189de48690cabf4cf6e398389a848e273438aab64725405edab804",
+    "equal": true
+  },
+  {
+    "repo": "docs/grace-integration-132/three-heldout-root.txt",
+    "share": "/mnt/safe/minz/grace/2026-10-11/compiler-docs/grace-integration-132/three-heldout-root.txt",
+    "repo_sha256": "e8eb5357b0d5c4fa9119824197722f25f2d3152eeb145635283aecded0b9d142",
+    "share_sha256": "e8eb5357b0d5c4fa9119824197722f25f2d3152eeb145635283aecded0b9d142",
+    "equal": true
+  },
+  {
+    "repo": "docs/grace-integration-133/source-and-flags.txt",
+    "share": "/mnt/safe/minz/grace/2026-10-11/compiler-docs/grace-integration-133/source-and-flags.txt",
+    "repo_sha256": "f89678057add0f5e4e546f4d07cdba45923c018df3112955c1046f48f8910a3b",
+    "share_sha256": "f89678057add0f5e4e546f4d07cdba45923c018df3112955c1046f48f8910a3b",
+    "equal": true
+  }
+]

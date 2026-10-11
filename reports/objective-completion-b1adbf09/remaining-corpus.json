@@ -1,0 +1,2621 @@
+{
+  "checkpoint": "b1adbf09",
+  "catalog": "docs/grace-integration-132/catalog-with-plasma-helper.json",
+  "counts": {
+    "inline-asm-target-needs-audit": 32,
+    "agon-mos-runtime": 5,
+    "pending-independent-oracle": 86,
+    "executed-independent-vm-z80": 45,
+    "bounded-independent-vm-native": 6,
+    "external-runtime-needs-audit": 18,
+    "executed-native-cpm-runtime": 1,
+    "host-only-memory-model": 1
+  },
+  "total": 194,
+  "remaining": [
+    {
+      "path": "examples/abap/hello_zx.nanz",
+      "source_sha256": "3b78a2a3281a2db4364400009f609260f3f9f8792a3f8b37107875109352b2e9",
+      "entries": [
+        "abap_write",
+        "abap_write_str",
+        "main",
+        "zx__console__any_key_pressed",
+        "zx__console__attr_addr",
+        "zx__console__con_clear",
+        "zx__console__con_draw_char",
+        "zx__console__con_getchar",
+        "zx__console__con_goto",
+        "zx__console__con_hide_cursor",
+        "zx__console__con_init",
+        "zx__console__con_input",
+        "zx__console__con_newline",
+        "zx__console__con_print",
+        "zx__console__con_print_u16",
+        "zx__console__con_print_u8",
+        "zx__console__con_putchar",
+        "zx__console__con_scroll",
+        "zx__console__con_set_attr",
+        "zx__console__con_set_bright",
+        "zx__console__con_show_cursor",
+        "zx__console__scan_row_key",
+        "zx__console__screen_addr",
+        "zx__console__scroll_attrs",
+        "zx__console__scroll_line",
+        "zx__console__scroll_row",
+        "zx__console__zx_border",
+        "zx__console__zx_in_fe",
+        "zx__console__zx_peek",
+        "zx__console__zx_poke"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/abap/sap_report_zx.nanz",
+      "source_sha256": "5509c36b278ca724d2ac80e334c468dbba178091d10e74a032a6cdcdf201d463",
+      "entries": [
+        "attr_row",
+        "fill_cell",
+        "main",
+        "poke",
+        "print_at"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/abap/zsql_mara_color_zx.nanz",
+      "source_sha256": "c7e23b4a549b4627672bc37fcdbb75e15d32c6ad54e8604e225836dd07f4286f",
+      "entries": [
+        "_zxch",
+        "main",
+        "zx_attr_row",
+        "zx_cls",
+        "zx_puts"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/agon/hello_agon.nanz",
+      "source_sha256": "4684218e7110368e2122eff39a16dd792dea3bd335383cec6000507505831f77",
+      "entries": [
+        "main",
+        "mos_getkey",
+        "mos_putchar",
+        "mos_puts"
+      ],
+      "native_behavior": "agon-mos-runtime",
+      "external_requirement_or_remaining_work": "Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/agon/hello_world.nanz",
+      "source_sha256": "f6d88281bb19c637b1dcde8ccdcbc6a26eaba47e09153d892f160f5177d3d6f5",
+      "entries": [
+        "main",
+        "stdlib__agon__mos__getkey",
+        "stdlib__agon__mos__mos_putchar",
+        "stdlib__agon__mos__mos_puts",
+        "stdlib__agon__mos__newline"
+      ],
+      "native_behavior": "agon-mos-runtime",
+      "external_requirement_or_remaining_work": "Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/agon/nc_agon.nanz",
+      "source_sha256": "8063ebaf25ab5faff632017874a06d1db25019fa7efe559c4d0cfc6f3b3e9b38",
+      "entries": [
+        "agon__tui_render___tui_esc",
+        "agon__tui_render___tui_mos_putchar",
+        "agon__tui_render___tui_mos_puts",
+        "agon__tui_render___tui_print_dec",
+        "agon__tui_render___tui_vdu",
+        "agon__tui_render__clear_rect",
+        "agon__tui_render__draw_box",
+        "agon__tui_render__puts_padded",
+        "agon__tui_render__tui_clear",
+        "agon__tui_render__tui_color",
+        "agon__tui_render__tui_goto",
+        "agon__tui_render__tui_height",
+        "agon__tui_render__tui_hide_cursor",
+        "agon__tui_render__tui_putch",
+        "agon__tui_render__tui_puts",
+        "agon__tui_render__tui_read_key",
+        "agon__tui_render__tui_read_line",
+        "agon__tui_render__tui_reset",
+        "agon__tui_render__tui_reverse",
+        "agon__tui_render__tui_scroll_region",
+        "agon__tui_render__tui_set_mode",
+        "agon__tui_render__tui_show_cursor",
+        "agon__tui_render__tui_width",
+        "draw_all",
+        "draw_entry",
+        "file_name",
+        "file_size",
+        "main"
+      ],
+      "native_behavior": "agon-mos-runtime",
+      "external_requirement_or_remaining_work": "Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/agon/tui_demo.nanz",
+      "source_sha256": "afcadba573f924da7fcaf74574a8ec451be8ffb37eb0b3aa8567a6757d2957bd",
+      "entries": [
+        "agon__tui_render___tui_esc",
+        "agon__tui_render___tui_mos_putchar",
+        "agon__tui_render___tui_mos_puts",
+        "agon__tui_render___tui_print_dec",
+        "agon__tui_render___tui_vdu",
+        "agon__tui_render__clear_rect",
+        "agon__tui_render__draw_box",
+        "agon__tui_render__puts_padded",
+        "agon__tui_render__tui_clear",
+        "agon__tui_render__tui_color",
+        "agon__tui_render__tui_goto",
+        "agon__tui_render__tui_height",
+        "agon__tui_render__tui_hide_cursor",
+        "agon__tui_render__tui_putch",
+        "agon__tui_render__tui_puts",
+        "agon__tui_render__tui_read_key",
+        "agon__tui_render__tui_read_line",
+        "agon__tui_render__tui_reset",
+        "agon__tui_render__tui_reverse",
+        "agon__tui_render__tui_scroll_region",
+        "agon__tui_render__tui_set_mode",
+        "agon__tui_render__tui_show_cursor",
+        "agon__tui_render__tui_width",
+        "main"
+      ],
+      "native_behavior": "agon-mos-runtime",
+      "external_requirement_or_remaining_work": "Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/agon/tui_hello.nanz",
+      "source_sha256": "44f505b14ac4c5c674db470d9f81684aeaf078498c03ad267e81a05d13d25f90",
+      "entries": [
+        "agon__tui_render___tui_esc",
+        "agon__tui_render___tui_mos_putchar",
+        "agon__tui_render___tui_mos_puts",
+        "agon__tui_render___tui_print_dec",
+        "agon__tui_render___tui_vdu",
+        "agon__tui_render__clear_rect",
+        "agon__tui_render__draw_box",
+        "agon__tui_render__puts_padded",
+        "agon__tui_render__tui_clear",
+        "agon__tui_render__tui_color",
+        "agon__tui_render__tui_goto",
+        "agon__tui_render__tui_height",
+        "agon__tui_render__tui_hide_cursor",
+        "agon__tui_render__tui_putch",
+        "agon__tui_render__tui_puts",
+        "agon__tui_render__tui_read_key",
+        "agon__tui_render__tui_read_line",
+        "agon__tui_render__tui_reset",
+        "agon__tui_render__tui_reverse",
+        "agon__tui_render__tui_scroll_region",
+        "agon__tui_render__tui_set_mode",
+        "agon__tui_render__tui_show_cursor",
+        "agon__tui_render__tui_width",
+        "main"
+      ],
+      "native_behavior": "agon-mos-runtime",
+      "external_requirement_or_remaining_work": "Agon eZ80/MOS and VDP target; ordinary Z80 emulator cannot prove ADL/RST.LIL or MOS.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/lizp/assert_test.lanz",
+      "source_sha256": "c391efd9e328dce82df2ee60df63a7b83d0178fea20f71f0288e0c767424c5af",
+      "entries": [
+        "add",
+        "double",
+        "max_byte"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/lizp/assert_test.lizp",
+      "source_sha256": "af0ba4f10b3268e737b2deab8ced31f97e474f9e038fad8b93e8df63d80900d1",
+      "entries": [
+        "add",
+        "double",
+        "max_byte"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/lizp/cond_test.lizp",
+      "source_sha256": "50a8ca601da047bde2975df0a833e625efa89d0a08204dfac562f75b4afd4c00",
+      "entries": [
+        "classify",
+        "main"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/lizp/dsp.lizp",
+      "source_sha256": "aa0dda94d6f77e7a51113a9b929cebf0c6831f8e5c47889eeecd7e0763e3bbad",
+      "entries": [
+        "clamp_signal",
+        "lowpass",
+        "peak",
+        "sawtooth",
+        "square_wave"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/lizp/factorial.lizp",
+      "source_sha256": "93598adbb7279b487c78750024e0e4624885b004fe559117bc4b15fa949cf156",
+      "entries": [
+        "factorial",
+        "main"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/lizp/functional.lizp",
+      "source_sha256": "ef3ea461b1bb82e294821a59350e7474a673d87f88c2a5addade7360606c5796",
+      "entries": [
+        "apply",
+        "lambda_0",
+        "lambda_1",
+        "lambda_2",
+        "pythag_sq",
+        "test_double",
+        "transform",
+        "weekday"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/lizp/game_of_life.lizp",
+      "source_sha256": "f050567d1b8694ee5ea3a745b9568f21dac8d7c54649635affeaa1a59993fd2e",
+      "entries": [
+        "popcount",
+        "rule30",
+        "xor_rule"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/lizp/hello.lizp",
+      "source_sha256": "35c508dab177413c9caf5aae931463f403d83f04d5268ef7033ee22c9968837f",
+      "entries": [
+        "main"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/lizp/scheme_r5rs.lizp",
+      "source_sha256": "dccdb53d9ffe73cd95b939e9e35a3359417d827a1a3a81aa3580f97e012259de",
+      "entries": [
+        "clamp",
+        "clear_bit",
+        "fact_loop",
+        "halve",
+        "high_nibble",
+        "is_divisible",
+        "low_nibble",
+        "mod10",
+        "pow2_loop",
+        "set_bit",
+        "sum_loop",
+        "toggle_bit",
+        "triangle"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/lizp/scheme_test.lizp",
+      "source_sha256": "1af1b643711d49199737f4a8e4439e1b00750335922c33046dc94ee0bcecacc0",
+      "entries": [
+        "classify",
+        "cube",
+        "dbl",
+        "hypotenuse_sq",
+        "inc",
+        "is_even",
+        "is_odd",
+        "is_zero",
+        "my_max",
+        "my_min",
+        "square"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/lizp/self_tokenizer.lizp",
+      "source_sha256": "601b838183ec5f800dfa85605ade3f949b462d93008ce590b2bf606732384348",
+      "entries": [
+        "advance",
+        "cur_char",
+        "get_len",
+        "get_pos",
+        "is_atom_char",
+        "is_digit",
+        "is_ws",
+        "load_test",
+        "main",
+        "next_token",
+        "print_tok",
+        "run_tokenizer",
+        "set_len",
+        "set_pos",
+        "skip_atom",
+        "skip_comment",
+        "skip_ignored",
+        "skip_number",
+        "skip_string",
+        "skip_ws"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/01_sum_array.plm",
+      "source_sha256": "fa0911df63dbc5bb16f169e1392f92be3f64e09c299156127ef37a7ff9d20c8e",
+      "entries": [
+        "SUM_ARRAY"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/01_sum_plm_origin.plm",
+      "source_sha256": "6564b22b460943d7b8ac088ec482f05857f752eb40f5c6103534fcaf2a0ec023",
+      "entries": [
+        "SUM_ARRAY"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/16_rotate_sled.nanz",
+      "source_sha256": "de903b9610bef3db82d4143cb2cf51b749895cb1ef6937df9970f8a226a4baeb",
+      "entries": [
+        "high_nibble",
+        "low_nibble",
+        "main",
+        "rol1",
+        "rol3",
+        "swap_nibbles"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/51_impl_cpm_demo.nanz",
+      "source_sha256": "9440fd4e4347fd871edacdd02588e7b5198e60fd32eef55bb88f59ae040161ac",
+      "entries": [
+        "Circle_area",
+        "Rect_area",
+        "main",
+        "newline",
+        "print_u8",
+        "putchar"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/abap_screen.nanz",
+      "source_sha256": "241483fe9a7ebbf7a6db1d9f7564935107a9fcf2a63b2c9e99cd7e0bff911b27",
+      "entries": [
+        "main",
+        "print_u16_simple",
+        "puts_padded",
+        "render_button",
+        "render_int_field",
+        "render_text_field",
+        "screen_handle_key",
+        "screen_init",
+        "screen_render",
+        "screen_show"
+      ],
+      "native_behavior": "external-runtime-needs-audit",
+      "external_requirement_or_remaining_work": "Bind reachable extern implementations/ABI for chosen entry and workload: tui_clear, tui_color, tui_goto, tui_height, tui_putch, tui_puts, tui_read_key, tui_read_line, tui_reset, tui_width. An extern declaration alone is not a runnable native implementation.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/assert_test.nanz",
+      "source_sha256": "860725e8e61b6427bce6cc0d8b4ce10cf5f9be09873ba79bf85491e7db8fd457",
+      "entries": [
+        "add",
+        "double",
+        "max_byte"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/assert_test.plm",
+      "source_sha256": "6eaca5ccab9b46d534be6b79e267b1479135e365e4fb313c39d40f5be437842a",
+      "entries": [
+        "ADDBYTES",
+        "DOUBLE",
+        "MAXBYTE"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/canvas_house.nanz",
+      "source_sha256": "e9c60c6156e44a2f1500631c6974db0f840bdd3cdbfbc98863742aaefa67af97",
+      "entries": [
+        "Box_draw",
+        "Box_outline",
+        "Circle_draw",
+        "draw_scene",
+        "main"
+      ],
+      "native_behavior": "external-runtime-needs-audit",
+      "external_requirement_or_remaining_work": "Bind reachable extern implementations/ABI for chosen entry and workload: canvas_circle, canvas_clear, canvas_fill_rect, canvas_init, canvas_line, canvas_pixel, canvas_rect, canvas_save. An extern declaration alone is not a runnable native implementation. Existing canvas/rotozoomer VM host-render tests are not native Z80 output evidence.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/hello_cpm.nanz",
+      "source_sha256": "d9ef5575cf9241a89f060a66a532bb84c08bfe3ff25224790c6340b75f093563",
+      "entries": [
+        "main",
+        "putch"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/hello_cpm_fib.nanz",
+      "source_sha256": "1ad4ba073b38f4b194bcdc38feebb282f35035efc3b28658c0a0eee69e1407de",
+      "entries": [
+        "fib",
+        "gcd",
+        "main",
+        "print_digit",
+        "putch"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/irc_client.nanz",
+      "source_sha256": "2836abd4f06db6a7ae777459e56c9ad35e42aa2ec87c479125685c7d9cdacc96",
+      "entries": [
+        "backspace",
+        "buf_starts_with",
+        "classify_irc",
+        "classify_user_cmd",
+        "dispatch_server_line",
+        "draw_input_line",
+        "emit_port_digits",
+        "handle_ping",
+        "handle_privmsg",
+        "main",
+        "net_connect",
+        "net_send",
+        "null_terminate",
+        "poke",
+        "poll_keyboard",
+        "poll_network",
+        "print_from",
+        "print_region",
+        "region_match",
+        "scroll_msg",
+        "send_buf",
+        "send_from",
+        "send_privmsg",
+        "set_str",
+        "show_event",
+        "show_raw",
+        "status_msg",
+        "submit_input",
+        "tui__render___tui_bdos_putchar",
+        "tui__render___tui_esc",
+        "tui__render___tui_print_dec",
+        "tui__render__clear_rect",
+        "tui__render__draw_box",
+        "tui__render__puts_padded",
+        "tui__render__tui_clear",
+        "tui__render__tui_color",
+        "tui__render__tui_goto",
+        "tui__render__tui_height",
+        "tui__render__tui_putch",
+        "tui__render__tui_puts",
+        "tui__render__tui_read_key",
+        "tui__render__tui_read_line",
+        "tui__render__tui_reset",
+        "tui__render__tui_width",
+        "type_char"
+      ],
+      "native_behavior": "external-runtime-needs-audit",
+      "external_requirement_or_remaining_work": "Bind reachable extern implementations/ABI for chosen entry and workload: ctl_read, ctl_write, net_read, net_write. An extern declaration alone is not a runnable native implementation.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/meta_screen.nanz",
+      "source_sha256": "d9e13ac784d0ceb162047602bd6938d497e5138898bca391cea7fad708fe422c",
+      "entries": [
+        "_generated_screen",
+        "main",
+        "tui__render___tui_bdos_putchar",
+        "tui__render___tui_esc",
+        "tui__render___tui_print_dec",
+        "tui__render__clear_rect",
+        "tui__render__draw_box",
+        "tui__render__puts_padded",
+        "tui__render__tui_clear",
+        "tui__render__tui_color",
+        "tui__render__tui_goto",
+        "tui__render__tui_height",
+        "tui__render__tui_putch",
+        "tui__render__tui_puts",
+        "tui__render__tui_read_key",
+        "tui__render__tui_read_line",
+        "tui__render__tui_reset",
+        "tui__render__tui_width",
+        "tui_clear",
+        "tui_color",
+        "tui_goto",
+        "tui_puts",
+        "tui_read_key",
+        "tui_reset"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/mul_const.nanz",
+      "source_sha256": "a5ff9edb54a2fd290105b471ce6dc3e3937f5400ce9a90bdd1e5bb90f02e0d57",
+      "entries": [
+        "m10"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/nc.nanz",
+      "source_sha256": "d7b548c92645b8eb546c4f0495e67e506aafde433e915cd0b60e3fc24da2e0e5",
+      "entries": [
+        "dialog_confirm",
+        "dialog_message",
+        "do_delete",
+        "draw_info_panel",
+        "draw_menu_bar",
+        "draw_panel",
+        "draw_status_bar",
+        "draw_title_bar",
+        "format_sfn",
+        "format_size",
+        "fs__fat12__alloc_cluster",
+        "fs__fat12__chain_length",
+        "fs__fat12__classify_fat12",
+        "fs__fat12__clst2sect",
+        "fs__fat12__count_dir_entries",
+        "fs__fat12__create_file",
+        "fs__fat12__dbc_1st",
+        "fs__fat12__dbc_2nd",
+        "fs__fat12__delete_file",
+        "fs__fat12__eoc_marker",
+        "fs__fat12__fat_byte_ofs",
+        "fs__fat12__fat_cache_get",
+        "fs__fat12__fat_cache_put",
+        "fs__fat12__fat_mount",
+        "fs__fat12__fat_next",
+        "fs__fat12__fat_sect_for_clst",
+        "fs__fat12__fat_set",
+        "fs__fat12__fat_sync",
+        "fs__fat12__file_read",
+        "fs__fat12__file_write_data",
+        "fs__fat12__find_file",
+        "fs__fat12__find_free_cluster",
+        "fs__fat12__find_free_dir_slot",
+        "fs__fat12__flush_fat",
+        "fs__fat12__flush_win",
+        "fs__fat12__free_chain",
+        "fs__fat12__get_dir_entry",
+        "fs__fat12__get_dir_entry_full",
+        "fs__fat12__get_file_size",
+        "fs__fat12__is_deleted",
+        "fs__fat12__is_eoc",
+        "fs__fat12__ld_word",
+        "fs__fat12__load_fat_sector",
+        "fs__fat12__load_sector",
+        "fs__fat12__mark_win_dirty",
+        "fs__fat12__overwrite_file",
+        "fs__fat12__parse_bpb",
+        "fs__fat12__read_fat",
+        "fs__fat12__read_fat12",
+        "fs__fat12__read_fat16",
+        "fs__fat12__read_named_file",
+        "fs__fat12__sfn_checksum",
+        "fs__fat12__sfn_match",
+        "fs__fat12__st_word",
+        "fs__fat12__update_dir_size",
+        "fs__fat12__write_dir_entry",
+        "fs__fat12__write_fat",
+        "fs__fat12__write_fat12",
+        "fs__fat12__write_fat16",
+        "main",
+        "menu_activate",
+        "puts_pad",
+        "puts_right",
+        "view_file"
+      ],
+      "native_behavior": "external-runtime-needs-audit",
+      "external_requirement_or_remaining_work": "Bind reachable extern implementations/ABI for chosen entry and workload: disk_read, disk_write, tui_clear, tui_color, tui_goto, tui_height, tui_putch, tui_puts, tui_read_key, tui_reset, tui_width. An extern declaration alone is not a runnable native implementation.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/promoted_arithmetic.nanz",
+      "source_sha256": "cb0dea99eeda35be09f3fe09a015d2e827daeba98597322c4082d3d66d6b4d81",
+      "entries": [
+        "add",
+        "add8",
+        "add_bytes",
+        "byte_add",
+        "popcount4",
+        "pressure",
+        "promoted_mod",
+        "swap_nibbles",
+        "test_ld_word"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/rotozoomer.nanz",
+      "source_sha256": "df38ac3b0eca81e67432c4032bfcfb5c2ae44af3ca32fbdcc673de863d0cf06f",
+      "entries": [
+        "abs16",
+        "axis_a",
+        "axis_b",
+        "draw_frame",
+        "main",
+        "palette",
+        "render_frame",
+        "save_frame",
+        "texture"
+      ],
+      "native_behavior": "external-runtime-needs-audit",
+      "external_requirement_or_remaining_work": "Bind reachable extern implementations/ABI for chosen entry and workload: canvas_init, canvas_palette, canvas_pixel, canvas_save. An extern declaration alone is not a runnable native implementation. Existing canvas/rotozoomer VM host-render tests are not native Z80 output evidence.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/sap_mara_cpm.nanz",
+      "source_sha256": "64bb1d34f30d79707c86507d74e046c60a82da7531f480901df90053e02f3442",
+      "entries": [
+        "main",
+        "sql__sqlite___sql_recv_str",
+        "sql__sqlite___sql_send_str",
+        "sql__sqlite__sqlite_close",
+        "sql__sqlite__sqlite_column_int",
+        "sql__sqlite__sqlite_column_text",
+        "sql__sqlite__sqlite_exec",
+        "sql__sqlite__sqlite_finalize",
+        "sql__sqlite__sqlite_open",
+        "sql__sqlite__sqlite_query",
+        "sql__sqlite__sqlite_step",
+        "tui__render___tui_bdos_putchar",
+        "tui__render___tui_esc",
+        "tui__render___tui_print_dec",
+        "tui__render__clear_rect",
+        "tui__render__draw_box",
+        "tui__render__puts_padded",
+        "tui__render__tui_clear",
+        "tui__render__tui_color",
+        "tui__render__tui_goto",
+        "tui__render__tui_height",
+        "tui__render__tui_putch",
+        "tui__render__tui_puts",
+        "tui__render__tui_read_key",
+        "tui__render__tui_read_line",
+        "tui__render__tui_reset",
+        "tui__render__tui_width"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/sap_mara_demo.nanz",
+      "source_sha256": "eadc8f2f1094245a695a9690aca74ec20d6dde3c6cf7fd00c8d40f7403af732c",
+      "entries": [
+        "main"
+      ],
+      "native_behavior": "external-runtime-needs-audit",
+      "external_requirement_or_remaining_work": "Bind reachable extern implementations/ABI for chosen entry and workload: sqlite_close, sqlite_column_int, sqlite_column_text, sqlite_exec, sqlite_finalize, sqlite_open, sqlite_query, sqlite_step. An extern declaration alone is not a runnable native implementation.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/screen_alv.nanz",
+      "source_sha256": "d6d74b99f7ce5aa97110f9f5cbe5fe6f1e3f85d00a56f442575d32b0661a7dc2",
+      "entries": [
+        "_scr_atoi",
+        "_scr_print_u16",
+        "_scr_puts_padded",
+        "_tbl_render",
+        "load_materials",
+        "main",
+        "screen_filter",
+        "screen_handle_key",
+        "screen_init",
+        "screen_render",
+        "screen_show",
+        "table_init",
+        "table_nrows",
+        "table_set_matnr",
+        "table_set_meins",
+        "table_set_mtart",
+        "table_set_nrows",
+        "table_set_str",
+        "tui__render___tui_bdos_putchar",
+        "tui__render___tui_esc",
+        "tui__render___tui_print_dec",
+        "tui__render__clear_rect",
+        "tui__render__draw_box",
+        "tui__render__puts_padded",
+        "tui__render__tui_clear",
+        "tui__render__tui_color",
+        "tui__render__tui_goto",
+        "tui__render__tui_height",
+        "tui__render__tui_putch",
+        "tui__render__tui_puts",
+        "tui__render__tui_read_key",
+        "tui__render__tui_read_line",
+        "tui__render__tui_reset",
+        "tui__render__tui_width"
+      ],
+      "native_behavior": "external-runtime-needs-audit",
+      "external_requirement_or_remaining_work": "Bind reachable extern implementations/ABI for chosen entry and workload: tui_clear, tui_color, tui_goto, tui_height, tui_putch, tui_puts, tui_read_key, tui_read_line, tui_reset, tui_width. An extern declaration alone is not a runnable native implementation.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/screen_customer.nanz",
+      "source_sha256": "4fa8e46c784e9a4de942e2266bb5b186b7264d0335f93ce1139bb5182d8b1f55",
+      "entries": [
+        "_scr_atoi",
+        "_scr_print_u16",
+        "_scr_puts_padded",
+        "main",
+        "screen_city",
+        "screen_country",
+        "screen_credit",
+        "screen_handle_key",
+        "screen_init",
+        "screen_name",
+        "screen_render",
+        "screen_show"
+      ],
+      "native_behavior": "external-runtime-needs-audit",
+      "external_requirement_or_remaining_work": "Bind reachable extern implementations/ABI for chosen entry and workload: tui_clear, tui_color, tui_goto, tui_height, tui_putch, tui_puts, tui_read_key, tui_read_line, tui_reset, tui_width. An extern declaration alone is not a runnable native implementation.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/screen_declarative.nanz",
+      "source_sha256": "39c0bacea00ceddb3853a99e11a45e01f47361b971990c126f2efa4ad3a61c8d",
+      "entries": [
+        "_scr_atoi",
+        "_scr_print_u16",
+        "_scr_puts_padded",
+        "main",
+        "screen_count",
+        "screen_handle_key",
+        "screen_init",
+        "screen_material",
+        "screen_plant",
+        "screen_render",
+        "screen_show",
+        "tui__render___tui_bdos_putchar",
+        "tui__render___tui_esc",
+        "tui__render___tui_print_dec",
+        "tui__render__clear_rect",
+        "tui__render__draw_box",
+        "tui__render__puts_padded",
+        "tui__render__tui_clear",
+        "tui__render__tui_color",
+        "tui__render__tui_goto",
+        "tui__render__tui_height",
+        "tui__render__tui_putch",
+        "tui__render__tui_puts",
+        "tui__render__tui_read_key",
+        "tui__render__tui_read_line",
+        "tui__render__tui_reset",
+        "tui__render__tui_width"
+      ],
+      "native_behavior": "external-runtime-needs-audit",
+      "external_requirement_or_remaining_work": "Bind reachable extern implementations/ABI for chosen entry and workload: tui_clear, tui_color, tui_goto, tui_height, tui_putch, tui_puts, tui_read_key, tui_read_line, tui_reset, tui_width. An extern declaration alone is not a runnable native implementation.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/screen_report.nanz",
+      "source_sha256": "6103aaba8f51e47158184097d14459788e1cf5019df171282c58e263a9418c5c",
+      "entries": [
+        "_scr_atoi",
+        "_scr_print_u16",
+        "_scr_puts_padded",
+        "_tbl_render",
+        "main",
+        "run_query",
+        "screen_carrier",
+        "screen_handle_key",
+        "screen_init",
+        "screen_render",
+        "screen_show",
+        "seed_database",
+        "table_init",
+        "table_nrows",
+        "table_set_carrier_name",
+        "table_set_id",
+        "table_set_nrows",
+        "table_set_str",
+        "table_set_url"
+      ],
+      "native_behavior": "external-runtime-needs-audit",
+      "external_requirement_or_remaining_work": "Bind reachable extern implementations/ABI for chosen entry and workload: sqlite_close, sqlite_column_int, sqlite_column_text, sqlite_exec, sqlite_finalize, sqlite_open, sqlite_query, sqlite_query_like, sqlite_step, tui_clear, tui_color, tui_goto, tui_height, tui_putch, tui_puts, tui_read_key, tui_read_line, tui_reset, tui_width. An extern declaration alone is not a runnable native implementation.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/self_parser.nanz",
+      "source_sha256": "28863725e98bad22584c5656c9f791b7f2673e4bb327921619d2025ea53406a4",
+      "entries": [
+        "advance",
+        "ast_d0",
+        "ast_d1",
+        "ast_d2",
+        "ast_new",
+        "ast_tag",
+        "classify",
+        "cur_str",
+        "cur_tok",
+        "emit_lanz",
+        "emit_tok",
+        "expect",
+        "expect_kw",
+        "init_keywords",
+        "intern",
+        "is_alnum",
+        "is_alpha",
+        "is_digit",
+        "is_space",
+        "main",
+        "out_arena_str",
+        "out_char",
+        "out_nl",
+        "out_str",
+        "parse_atom",
+        "parse_expr",
+        "parse_fun",
+        "parse_param",
+        "parse_program",
+        "parse_return",
+        "peek_char",
+        "print_ast",
+        "print_str_arena",
+        "region_eq",
+        "scan",
+        "skip_comment",
+        "skip_ws",
+        "str_alloc_2",
+        "str_alloc_3",
+        "str_alloc_5",
+        "str_alloc_6",
+        "tokenize_all"
+      ],
+      "native_behavior": "external-runtime-needs-audit",
+      "external_requirement_or_remaining_work": "Bind reachable extern implementations/ABI for chosen entry and workload: file_read, file_size, file_write, peek, poke. An extern declaration alone is not a runnable native implementation.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/sql_test6.nanz",
+      "source_sha256": "1300b30eb66c72c1f5cb5aeef778abe3c5cfc6dcc29a809c628e995159cea18f",
+      "entries": [
+        "main",
+        "sql__sqlite___sql_recv_str",
+        "sql__sqlite___sql_send_str",
+        "sql__sqlite__sqlite_close",
+        "sql__sqlite__sqlite_column_int",
+        "sql__sqlite__sqlite_column_text",
+        "sql__sqlite__sqlite_exec",
+        "sql__sqlite__sqlite_finalize",
+        "sql__sqlite__sqlite_open",
+        "sql__sqlite__sqlite_query",
+        "sql__sqlite__sqlite_step",
+        "tui__render___tui_bdos_putchar",
+        "tui__render___tui_esc",
+        "tui__render___tui_print_dec",
+        "tui__render__clear_rect",
+        "tui__render__draw_box",
+        "tui__render__puts_padded",
+        "tui__render__tui_clear",
+        "tui__render__tui_color",
+        "tui__render__tui_goto",
+        "tui__render__tui_height",
+        "tui__render__tui_putch",
+        "tui__render__tui_puts",
+        "tui__render__tui_read_key",
+        "tui__render__tui_read_line",
+        "tui__render__tui_reset",
+        "tui__render__tui_width"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/sqlite_demo.nanz",
+      "source_sha256": "76a2e02c058379fdb24240b2a72ccc1b70dc21ae6a4645ad2eb3ded318a94056",
+      "entries": [
+        "main"
+      ],
+      "native_behavior": "external-runtime-needs-audit",
+      "external_requirement_or_remaining_work": "Bind reachable extern implementations/ABI for chosen entry and workload: sqlite_close, sqlite_column_int, sqlite_exec, sqlite_finalize, sqlite_open, sqlite_query, sqlite_step. An extern declaration alone is not a runnable native implementation.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/sqlite_test.nanz",
+      "source_sha256": "1cb96794bf14cbb5c2e5affbf5f8d83828df601b42943118be9c0f48b9e0c15b",
+      "entries": [
+        "main",
+        "sql__sqlite___sql_recv_str",
+        "sql__sqlite___sql_send_str",
+        "sql__sqlite__sqlite_close",
+        "sql__sqlite__sqlite_column_int",
+        "sql__sqlite__sqlite_column_text",
+        "sql__sqlite__sqlite_exec",
+        "sql__sqlite__sqlite_finalize",
+        "sql__sqlite__sqlite_open",
+        "sql__sqlite__sqlite_query",
+        "sql__sqlite__sqlite_step",
+        "tui__render___tui_bdos_putchar",
+        "tui__render___tui_esc",
+        "tui__render___tui_print_dec",
+        "tui__render__clear_rect",
+        "tui__render__draw_box",
+        "tui__render__puts_padded",
+        "tui__render__tui_clear",
+        "tui__render__tui_color",
+        "tui__render__tui_goto",
+        "tui__render__tui_height",
+        "tui__render__tui_putch",
+        "tui__render__tui_puts",
+        "tui__render__tui_read_key",
+        "tui__render__tui_read_line",
+        "tui__render__tui_reset",
+        "tui__render__tui_width"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/test_irc_minimal.nanz",
+      "source_sha256": "c0ddc381e0a51a4527d168ae3e2fb7154c619d1d4a93fe0be8f4cc3574ba3b11",
+      "entries": [
+        "main",
+        "net_send",
+        "tui__render___tui_bdos_putchar",
+        "tui__render___tui_esc",
+        "tui__render___tui_print_dec",
+        "tui__render__clear_rect",
+        "tui__render__draw_box",
+        "tui__render__puts_padded",
+        "tui__render__tui_clear",
+        "tui__render__tui_color",
+        "tui__render__tui_goto",
+        "tui__render__tui_height",
+        "tui__render__tui_putch",
+        "tui__render__tui_puts",
+        "tui__render__tui_read_key",
+        "tui__render__tui_read_line",
+        "tui__render__tui_reset",
+        "tui__render__tui_width"
+      ],
+      "native_behavior": "external-runtime-needs-audit",
+      "external_requirement_or_remaining_work": "Bind reachable extern implementations/ABI for chosen entry and workload: ctl_read, ctl_write, net_read, net_write. An extern declaration alone is not a runnable native implementation.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/tetris_cpm.nanz",
+      "source_sha256": "444a07777a59a5fd57e1d57f364232ae7c87eeba9430e665ef170a64b7d3793f",
+      "entries": [
+        "board_get",
+        "board_set",
+        "can_place",
+        "clear_lines",
+        "do_lock_and_clear",
+        "draw_border",
+        "draw_cell",
+        "draw_digit",
+        "draw_info",
+        "draw_number",
+        "ghost_y",
+        "hold_piece",
+        "lock_piece",
+        "main",
+        "piece_dx",
+        "piece_dy",
+        "random_piece",
+        "render",
+        "rng_next",
+        "score_lines",
+        "spawn_piece",
+        "try_rotate",
+        "tui__render___tui_bdos_putchar",
+        "tui__render___tui_esc",
+        "tui__render___tui_print_dec",
+        "tui__render__clear_rect",
+        "tui__render__draw_box",
+        "tui__render__puts_padded",
+        "tui__render__tui_clear",
+        "tui__render__tui_color",
+        "tui__render__tui_goto",
+        "tui__render__tui_height",
+        "tui__render__tui_putch",
+        "tui__render__tui_puts",
+        "tui__render__tui_read_key",
+        "tui__render__tui_read_line",
+        "tui__render__tui_reset",
+        "tui__render__tui_width"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/tetris_tui.nanz",
+      "source_sha256": "7198ad68d26c197296e8c9cc28dd253cb02b4f2b12835c5bcaf9c7348efe78cd",
+      "entries": [
+        "board_get",
+        "board_set",
+        "can_place",
+        "clear_lines",
+        "do_lock_and_clear",
+        "draw_border",
+        "draw_cell",
+        "draw_digit",
+        "draw_info",
+        "draw_number",
+        "ghost_y",
+        "hold_piece",
+        "lock_piece",
+        "main",
+        "piece_dx",
+        "piece_dy",
+        "random_piece",
+        "render",
+        "rng_next",
+        "score_lines",
+        "spawn_piece",
+        "try_rotate"
+      ],
+      "native_behavior": "external-runtime-needs-audit",
+      "external_requirement_or_remaining_work": "Bind reachable extern implementations/ABI for chosen entry and workload: tui_clear, tui_color, tui_goto, tui_height, tui_putch, tui_puts, tui_read_key, tui_reset, tui_width. An extern declaration alone is not a runnable native implementation.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/tiny.nanz",
+      "source_sha256": "e1439d8bc257241d93d60dc3e9af0fe6a64a7f55c7f2602284183bcee9d43c90",
+      "entries": [
+        "add",
+        "double",
+        "triple"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/tui_commander.nanz",
+      "source_sha256": "11a31a7e49238da84a61e03e0a7d883670f787413e228c19616f9521035649bb",
+      "entries": [
+        "main",
+        "render_file_detail",
+        "render_file_list"
+      ],
+      "native_behavior": "external-runtime-needs-audit",
+      "external_requirement_or_remaining_work": "Bind reachable extern implementations/ABI for chosen entry and workload: tui_clear, tui_color, tui_goto, tui_height, tui_putch, tui_puts, tui_read_key, tui_reset, tui_width. An extern declaration alone is not a runnable native implementation.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/tui_commander_l3.nanz",
+      "source_sha256": "182dfacd09df25de965104cd0a6242dfa5d09b5ccf25f7e6e7f2d81f6a2550a3",
+      "entries": [
+        "_render_screen",
+        "main"
+      ],
+      "native_behavior": "external-runtime-needs-audit",
+      "external_requirement_or_remaining_work": "Bind reachable extern implementations/ABI for chosen entry and workload: tui_clear, tui_color, tui_goto, tui_height, tui_putch, tui_puts, tui_read_key, tui_reset, tui_width. An extern declaration alone is not a runnable native implementation.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/tui_cpm.nanz",
+      "source_sha256": "178294bd8a1fb6987be907cec3117b479fe2e04b08caae6aaebb14c7f36d6583",
+      "entries": [
+        "_dec",
+        "_esc",
+        "_putch",
+        "_puts",
+        "main",
+        "tui_clear",
+        "tui_color",
+        "tui_goto",
+        "tui_read_key",
+        "tui_reset"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/tui_demo.nanz",
+      "source_sha256": "1371d729645b1a5bcd232b1f3a5155ff05a1c499598d5995a951f651dca16e9b",
+      "entries": [
+        "main"
+      ],
+      "native_behavior": "external-runtime-needs-audit",
+      "external_requirement_or_remaining_work": "Bind reachable extern implementations/ABI for chosen entry and workload: sel_get_int, sel_register_int, sel_show. An extern declaration alone is not a runnable native implementation.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/tui_screen.nanz",
+      "source_sha256": "ffd82561eba30cf4673888d868e60cca0f48d2c2f0005d5a5aa012ff44ef49c5",
+      "entries": [
+        "main"
+      ],
+      "native_behavior": "external-runtime-needs-audit",
+      "external_requirement_or_remaining_work": "Bind reachable extern implementations/ABI for chosen entry and workload: tui_clear, tui_color, tui_goto, tui_height, tui_putch, tui_puts, tui_read_key, tui_reset, tui_width. An extern declaration alone is not a runnable native implementation.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/tui_zx.nanz",
+      "source_sha256": "9f5b746bebc91c71488d2458a40aba316834f555c772afbeeec588d64642a4b8",
+      "entries": [
+        "_p",
+        "main",
+        "tui_puts"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/tuple_assert_gate.nanz",
+      "source_sha256": "4d4456e75beb9dcb43df6bc1483a3b8c9fa2b3c8dfe9d4f68c3b6679abcde6d8",
+      "entries": [
+        "divmod"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/widemath.nanz",
+      "source_sha256": "f602875384794e55e4175961ddb822c3c45760a638b54eee90e13aeb27178ea8",
+      "entries": [
+        "abs16",
+        "abs8",
+        "abs_diff16",
+        "abs_diff8",
+        "area",
+        "big_area",
+        "brightness_blend",
+        "clamp16",
+        "clamp8",
+        "max16",
+        "max8",
+        "min16",
+        "min8",
+        "negate8",
+        "newtype_area",
+        "op_add",
+        "op_mul",
+        "op_mul_u8_u8",
+        "op_sub",
+        "pixel_distance",
+        "sat_add16",
+        "sat_add8",
+        "sat_sub16",
+        "sat_sub8",
+        "sign16",
+        "sign8"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/zsql.nanz",
+      "source_sha256": "47ac542243680cad2f8165d0da07017c2788ab63815cad10fdcd66630c2b6530",
+      "entries": [
+        "_do_exec",
+        "_do_select",
+        "_finalize1",
+        "_last_rc",
+        "_prompt",
+        "_prow",
+        "_prow1",
+        "_sel_rows",
+        "_sql_query",
+        "_step1",
+        "_wr_dig",
+        "first_char",
+        "getinput",
+        "main",
+        "newline",
+        "print_u16",
+        "putch",
+        "puts",
+        "puts_pad",
+        "readline",
+        "sql__sqlite___sql_recv_str",
+        "sql__sqlite___sql_send_str",
+        "sql__sqlite__sqlite_close",
+        "sql__sqlite__sqlite_column_int",
+        "sql__sqlite__sqlite_column_text",
+        "sql__sqlite__sqlite_exec",
+        "sql__sqlite__sqlite_finalize",
+        "sql__sqlite__sqlite_open",
+        "sql__sqlite__sqlite_query",
+        "sql__sqlite__sqlite_step",
+        "terminate"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/zsql_zx.nanz",
+      "source_sha256": "5f1e8230c2e59e25f7e3bb3c958633e29b8707ad019db18ac61c8fb38ab49e31",
+      "entries": [
+        "_do_exec",
+        "_do_select",
+        "_finalize1",
+        "_font_anchor",
+        "_print_col",
+        "_prompt",
+        "_sql_query",
+        "_step1",
+        "_zxch",
+        "first_char",
+        "main",
+        "sql__sqlite___sql_recv_str",
+        "sql__sqlite___sql_send_str",
+        "sql__sqlite__sqlite_close",
+        "sql__sqlite__sqlite_column_int",
+        "sql__sqlite__sqlite_column_text",
+        "sql__sqlite__sqlite_exec",
+        "sql__sqlite__sqlite_finalize",
+        "sql__sqlite__sqlite_open",
+        "sql__sqlite__sqlite_query",
+        "sql__sqlite__sqlite_step",
+        "zx_attr_row",
+        "zx_cls",
+        "zx_getinput",
+        "zx_newline",
+        "zx_puts",
+        "zx_readline"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/nanz/zsql_zx_real.nanz",
+      "source_sha256": "444865f7ad85c4c7eeaa51e53827f58303436339ba8bbda82683ee4fc5364eaf",
+      "entries": [
+        "_do_exec",
+        "_do_select",
+        "_finalize1",
+        "_prompt",
+        "_prow1",
+        "_sql_query",
+        "_step1",
+        "_zxch",
+        "first_char",
+        "getinput",
+        "main",
+        "newline",
+        "putch",
+        "puts",
+        "readline",
+        "sql__sqlite___sql_recv_str",
+        "sql__sqlite___sql_send_str",
+        "sql__sqlite__sqlite_close",
+        "sql__sqlite__sqlite_column_int",
+        "sql__sqlite__sqlite_column_text",
+        "sql__sqlite__sqlite_exec",
+        "sql__sqlite__sqlite_finalize",
+        "sql__sqlite__sqlite_open",
+        "sql__sqlite__sqlite_query",
+        "sql__sqlite__sqlite_step",
+        "terminate",
+        "zx_attr_row",
+        "zx_cls"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/paper/outparam_swap.nanz",
+      "source_sha256": "557ec2d0ca09991b12edf50f86b8673803ab97bce2381476c22a2d246ad70fdf",
+      "entries": [
+        "main",
+        "swap",
+        "use_swap"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/pascal/assert_test.pas",
+      "source_sha256": "8e86abf7590820766d59117a07bea60755a7e40d3803d6f9589a788824726ec3",
+      "entries": [
+        "ADDONE",
+        "DOUBLE",
+        "main"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/pascal/casetest.pas",
+      "source_sha256": "5957f24a6b6956e71e35ef71e8cdfdc50c3fd4149de9bce85e2437fc28038fb7",
+      "entries": [
+        "WriteCrLf",
+        "WriteStr",
+        "main"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/pascal/factorial.pas",
+      "source_sha256": "094af24a48a5e849947fc97ce9ca4c08e5ffc1f1c939ed7db0aaad3b46df9625",
+      "entries": [
+        "ConOut",
+        "FACT",
+        "WriteCrLf",
+        "WriteI16",
+        "_wr16_dig",
+        "main"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/pascal/hello.pas",
+      "source_sha256": "d8788f16c919d3454fc59e045df8ea79673ee34e9e0da69d7a5c732d423d2dca",
+      "entries": [
+        "WriteCrLf",
+        "WriteStr",
+        "main"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/pascal/logic_test.pas",
+      "source_sha256": "59a713bce212dd1b353e032bb6addeaf05875799e1a4e7f8d4094dfcfde24f1e",
+      "entries": [
+        "ADD3",
+        "DIFF",
+        "HALVE",
+        "MULBY3",
+        "MULBY5",
+        "main"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/pascal/math_test.pas",
+      "source_sha256": "407967b334035ccf1576b857d2953759d55c4ad4e117d7361544330b0d41c529",
+      "entries": [
+        "ABSDIFF",
+        "ADDONE",
+        "DOUBLE",
+        "ISEVEN",
+        "MAX",
+        "MIN",
+        "SQUARE",
+        "TRIPLE",
+        "main"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/pascal/recursive_test.pas",
+      "source_sha256": "290fb4faeeeba36ff27ea3eb72157f9ee63f6161229b85d2e46ed00423e4ed1e",
+      "entries": [
+        "DEC2",
+        "FACT",
+        "IDENTITY",
+        "INC2",
+        "ISPOSITIVE",
+        "NEGATE",
+        "SUMTO",
+        "ZERO",
+        "main"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/pascal/string_test.pas",
+      "source_sha256": "ffd5d5a5e71f24bc5ef9a7a7f208ac42cee2f7e425cae64993d1d3bd9306c282",
+      "entries": [
+        "ISDIGIT",
+        "ISLOWER",
+        "ISUPPER",
+        "main"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/plm/abs_diff_fib.plm",
+      "source_sha256": "7f799d07762377d7f889594d6b51891b64832a11648d5e5163d6a5b23af17a1a",
+      "entries": [
+        "ABS_DIFF",
+        "FIB"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/plm/assert_test.plm",
+      "source_sha256": "6eaca5ccab9b46d534be6b79e267b1479135e365e4fb313c39d40f5be437842a",
+      "entries": [
+        "ADDBYTES",
+        "DOUBLE",
+        "MAXBYTE"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/plm/hello.plm",
+      "source_sha256": "fdb0a98768bdd5ad347c8220ed409e4f964230541712c8af9b0b4561d259b84c",
+      "entries": [
+        "PRINTCHAR",
+        "PRINTMSG"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/plm/sum_array.plm",
+      "source_sha256": "6564b22b460943d7b8ac088ec482f05857f752eb40f5c6103534fcaf2a0ec023",
+      "entries": [
+        "SUM_ARRAY"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/tests/asm_caller_callee.nanz",
+      "source_sha256": "2055fecf573db289ccfbd16de3d2f59d2e91e903e2e0be462aee5d851b6c5a83",
+      "entries": [
+        "add16",
+        "add_ab",
+        "add_ac",
+        "diff_bc",
+        "hl_plus_a",
+        "inner",
+        "middle",
+        "sum_abc",
+        "test_ab",
+        "test_abc",
+        "test_ac",
+        "test_add16",
+        "test_chain",
+        "test_diff",
+        "test_mixed",
+        "test_multi1",
+        "test_multi2"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/tests/asm_calling_convention.nanz",
+      "source_sha256": "ae7c1e14855375e9a83ebcc3fc74f73461a1fc099163f3059d78bada2c856716",
+      "entries": [
+        "add16",
+        "add_ab",
+        "add_bc",
+        "diff_bc",
+        "ident_a",
+        "ident_de",
+        "ident_hl",
+        "peek",
+        "poke",
+        "poke_peek_test",
+        "ptr_offset",
+        "read_b",
+        "read_c",
+        "screen_addr",
+        "swap_bytes",
+        "triple_abc"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/tests/asm_register_permutations.nanz",
+      "source_sha256": "86a49f3262aeebe9411c8ef9ead9bd753443c6ee602769968a0bc35a4f0f2ab7",
+      "entries": [
+        "abc_mix",
+        "abcd_weighted",
+        "advance",
+        "bcde_sum",
+        "bdh_sum",
+        "build_hl",
+        "cel_sum",
+        "copy_n",
+        "del_sum",
+        "mix_be",
+        "passthru_hl",
+        "pin_a",
+        "pin_b",
+        "pin_c",
+        "pin_d",
+        "pin_de",
+        "pin_e",
+        "pin_h",
+        "pin_hl",
+        "pin_l",
+        "rotate_abc",
+        "screen_addr",
+        "store_at",
+        "sub_ab",
+        "sub_bc",
+        "sub_de",
+        "sub_hl",
+        "xor_al"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/tests/divmod10_test.nanz",
+      "source_sha256": "2c183337ceb6c7df4299d3db49cf0c43065a6aa3641152b5d1dfab85630b1678",
+      "entries": [
+        "div10",
+        "main",
+        "mod10"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/tests/fib_parallel_copy.nanz",
+      "source_sha256": "1816bdacb6be551b42edfb83365149d00b7ce9dfa0193ade4beed24ca3479671",
+      "entries": [
+        "fib"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/tests/mul8_strength_reduction.nanz",
+      "source_sha256": "0083244993e5cb7216c3d0a75f806d2219a2c0ae534cdbc5295c596f5858c4e8",
+      "entries": [
+        "board_idx",
+        "main",
+        "mul0",
+        "mul1",
+        "mul10",
+        "mul12",
+        "mul15",
+        "mul16",
+        "mul2",
+        "mul3",
+        "mul4",
+        "mul5",
+        "mul6",
+        "mul7",
+        "mul8",
+        "mul9"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/tests/nanz_advantage_showcase.nanz",
+      "source_sha256": "04f3b01dc1126dae71b4b1152716df7e9e1f1225e747c3150f4ad5b0b9850875",
+      "entries": [
+        "add_acc",
+        "board_idx",
+        "double",
+        "fib",
+        "fib12",
+        "fib8",
+        "inc",
+        "main",
+        "opposite",
+        "pipeline_demo",
+        "square",
+        "sum_all",
+        "sum_plus_offset"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/tests/pipe_fold_mul_combos.nanz",
+      "source_sha256": "db44d4f56184592498d612b86658823effb95f52b16c15de58dfe6c45a3fb76f",
+      "entries": [
+        "add_acc",
+        "board_idx",
+        "double",
+        "inc",
+        "main",
+        "pipe1",
+        "pipe2",
+        "pipe3",
+        "sum_data",
+        "sum_from_100",
+        "sum_let",
+        "triple"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/tests/z80_compute_verify.nanz",
+      "source_sha256": "cd78339e7ce7a83b9104b4b08a4976524a15ff049757c30dcd50601df3cc7102",
+      "entries": [
+        "abs_diff",
+        "add16",
+        "add8",
+        "band",
+        "bor",
+        "clamp",
+        "compose",
+        "count_bits",
+        "double_it",
+        "is_power_of_2",
+        "max8",
+        "min8",
+        "mul2",
+        "mul3",
+        "quad",
+        "shl1",
+        "shr1",
+        "sub16",
+        "sub8",
+        "sum_to",
+        "widen"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/zmachine/zork-west-demo/zvm.nanz",
+      "source_sha256": "26c396961731c73045b4f3e84f810aede7fb91e0c78d6e710cc492a7c45a59e1",
+      "entries": [
+        "attribute_address",
+        "attribute_mask",
+        "branch",
+        "byte_at",
+        "code_byte_at",
+        "code_word_at",
+        "decode_input_utf8",
+        "dictionary_lookup",
+        "emit_zscii",
+        "enter",
+        "fail_opcode",
+        "finish",
+        "frame_sp_base",
+        "insert_object",
+        "is_separator",
+        "local_at",
+        "magnitude",
+        "main",
+        "next_byte",
+        "next_property",
+        "next_word",
+        "object_at",
+        "object_child",
+        "object_parent",
+        "object_sibling",
+        "operand",
+        "output_stream",
+        "overwrite_var",
+        "peek_var",
+        "print_error_prefix",
+        "print_num",
+        "print_text",
+        "property_at",
+        "property_length",
+        "property_list_at",
+        "property_value",
+        "put_local",
+        "put_property",
+        "put_stack",
+        "put_word",
+        "put_zscii",
+        "random_number",
+        "read_input",
+        "read_var",
+        "remove_object",
+        "restart_story",
+        "restore_state",
+        "save_state",
+        "signed_div",
+        "signed_less",
+        "signed_mod",
+        "snapshot_identity",
+        "stack_at",
+        "step",
+        "stream3_table",
+        "symbol",
+        "text__print__BufWriter_finish_c",
+        "text__print__BufWriter_init",
+        "text__print__BufWriter_put",
+        "text__print__CText_write_to",
+        "text__print__Dec16_write_to",
+        "text__print__Dec8_write_to",
+        "text__print__write_decimal",
+        "verify_story",
+        "word_at",
+        "word_code",
+        "write_var",
+        "z3_from_unicode",
+        "z3_lower",
+        "z3_unicode",
+        "zchar_at"
+      ],
+      "native_behavior": "host-only-memory-model",
+      "external_requirement_or_remaining_work": "128KiB story[131072], host file/console runtime; ordinary 16-bit Z80 rejects capacity; needs explicit target memory model.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/zx/console_demo.nanz",
+      "source_sha256": "bd326f4f8f32d7f0078e622bb8f75d5367bd7d82d401fbde0f8b680843558c08",
+      "entries": [
+        "main",
+        "zx__console__any_key_pressed",
+        "zx__console__attr_addr",
+        "zx__console__con_clear",
+        "zx__console__con_draw_char",
+        "zx__console__con_getchar",
+        "zx__console__con_goto",
+        "zx__console__con_hide_cursor",
+        "zx__console__con_init",
+        "zx__console__con_input",
+        "zx__console__con_newline",
+        "zx__console__con_print",
+        "zx__console__con_print_u16",
+        "zx__console__con_print_u8",
+        "zx__console__con_putchar",
+        "zx__console__con_scroll",
+        "zx__console__con_set_attr",
+        "zx__console__con_set_bright",
+        "zx__console__con_show_cursor",
+        "zx__console__scan_row_key",
+        "zx__console__screen_addr",
+        "zx__console__scroll_attrs",
+        "zx__console__scroll_line",
+        "zx__console__scroll_row",
+        "zx__console__zx_border",
+        "zx__console__zx_in_fe",
+        "zx__console__zx_peek",
+        "zx__console__zx_poke"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/zx/plasma.nanz",
+      "source_sha256": "71113665c335bff7a20b34f581179c7055282e03f5332204f458a4578904991c",
+      "entries": [
+        "Color_to_attr",
+        "PlasmaShader_sample",
+        "Vec2_dot",
+        "Vec2_length",
+        "color_to_attr_s",
+        "dither_pattern",
+        "glsl_cos",
+        "glsl_sin",
+        "main",
+        "plasma_attr",
+        "plasma_sample",
+        "render",
+        "zx_attr_addr",
+        "zx_poke",
+        "zx_screen_addr"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment. Pure plasma_attr helper has independent native proof; whole ZX ASM application remains unaudited.",
+      "reviewed_evidence": [
+        {
+          "test_or_artifact": "minzc/pkg/pipeline/plasma_mul11_test.go::TestOriginalPlasmaAttributeMul11",
+          "evidence_file_sha256": "d96ef59d6428b7bfa234fad28a82c9f1a5e785859e73fc337e457ad1270ec385",
+          "source_relation": "exact complete source/module retained; bounded pure helper inside ZX ASM application",
+          "scope": "Original plasma_attr: 768 grid plus256 cy-boundary calls, independent raw/final VM/native byte quarter-wave model, no heapwrites, fullnonstackRAM/code/PC/SP.793332\u2192331508T,fullBIN1555B. Does not execute main/fullscreen/device/interrupts; ASM/runtime status retained."
+        }
+      ]
+    },
+    {
+      "path": "examples/zx/tetris.nanz",
+      "source_sha256": "66826d441f3d1ff2c50bdef6d5b466113c6694fc21728f7e842e32a7ea04f134",
+      "entries": [
+        "board_get",
+        "board_set",
+        "can_place",
+        "check_tspin",
+        "clear_lines",
+        "color_attr",
+        "do_lock_and_clear",
+        "fill_cell",
+        "ghost_y",
+        "hold_piece",
+        "init_screen",
+        "lock_piece",
+        "main",
+        "piece_color",
+        "piece_dx",
+        "piece_dy",
+        "random_piece",
+        "read_input",
+        "render",
+        "render_preview",
+        "rng_next",
+        "score_lines",
+        "spawn_piece",
+        "try_rotate",
+        "zx_attr_addr",
+        "zx_border",
+        "zx_halt",
+        "zx_key_row",
+        "zx_peek",
+        "zx_poke",
+        "zx_screen_addr"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "examples/zx/tetris_mir2_test.nanz",
+      "source_sha256": "2db9d65b5ef5bf23d4b32ccce1904caaff38b4a9cff0cb2d191bce9f60e1ca37",
+      "entries": [
+        "board_get",
+        "board_set",
+        "color_attr",
+        "main",
+        "piece_color",
+        "piece_dx",
+        "piece_dy"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-10/ex1_struct.nanz",
+      "source_sha256": "1028825d183ba0d11d2f43ac678b6afcc9cd91c475450d440a9239c731d7682e",
+      "entries": [
+        "get_b",
+        "get_g",
+        "get_r",
+        "set_rgb"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-10/ex2_ufcs.nanz",
+      "source_sha256": "a7ebf82edbfcc931bb336de2808c4aae2835c5a293b78f124ed96c39f23421ea",
+      "entries": [
+        "Acc_add",
+        "Acc_reset",
+        "sum_two"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-10/ex3_iface.nanz",
+      "source_sha256": "3a0c1b5a906485e6a0e3871bdad241072a9429adf6a186ecdd339b6c14984d35",
+      "entries": [
+        "Cat_speak",
+        "Dog_speak",
+        "demo"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-10/ex3b_iface_param.nanz",
+      "source_sha256": "d71ba92330826788fb759f58f88660312dc2018c89dbddef06d25b1b41acdc3c",
+      "entries": [
+        "Dog_speak",
+        "feed"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-10/ex4a_abs_diff.nanz",
+      "source_sha256": "d200af0eb58a60d00262b54224da749ecb07a25ec15638ba03e4bf3f308ccf90",
+      "entries": [
+        "abs_diff"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-10/ex4b_abs_diff_u16.nanz",
+      "source_sha256": "9ef0622b17529e2989b36a749291ee50f6facfbff17f7818c7c001e4348ffbca",
+      "entries": [
+        "abs_diff_u16"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-10/ex5_lut.nanz",
+      "source_sha256": "d33826eba80cfd940d02c844ba58a0b085251763552b31de104564009b8c36c4",
+      "entries": [
+        "popcount"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-10/ex8_gcd.nanz",
+      "source_sha256": "88747063a59526e797061cf828911c417e661723efb3b614715f2d2109977832",
+      "entries": [
+        "gcd"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-11/ex0_test_struct.nanz",
+      "source_sha256": "7ca3725c6ae9a3dbd3c497a3df7e7d2dc2d62f3acd57a96855db3db50aea78b5",
+      "entries": [
+        "Acc_add",
+        "Acc_reset",
+        "sum_two"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-11/ex10a_fib_rec.nanz",
+      "source_sha256": "396e859e7c49c19cd59d95354672582ffe9d99046c1f87c81dea5ac738b9670c",
+      "entries": [
+        "fib"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-11/ex10c_fib_fold.nanz",
+      "source_sha256": "14fe7eed3447aa6928d72411cb91b1f56ffc55bd87cd61d9e49f52d24435a26a",
+      "entries": [
+        "fib_fold"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-11/ex11_minmax_multiret.nanz",
+      "source_sha256": "f7f3be929afe1d2ce0b4212b46b004bfeb9a562780ff9b54b9eef2a7efcf7326",
+      "entries": [
+        "larger",
+        "minmax",
+        "smaller",
+        "swap"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-11/ex12_assert.nanz",
+      "source_sha256": "4972461eba6fb194fd5a844dd9e10a25ae800b92bf2c64709070f7df590f9ad1",
+      "entries": [
+        "abs_diff",
+        "clamp",
+        "double"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-11/ex13_multiret_assert.nanz",
+      "source_sha256": "6677d09ec89a8489a9691bd4caa184ef88149c370b87fe543dc4b3e1432270b7",
+      "entries": [
+        "max_of",
+        "min_of",
+        "minmax",
+        "swap"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-11/ex14_fold_assert.nanz",
+      "source_sha256": "362b9106276974042e33936b02203f10a48cf726d24bd5e48eec1d4f75bae1a7",
+      "entries": [
+        "count_in_range",
+        "factorial",
+        "sum_to"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-11/ex15_smc_sprite.nanz",
+      "source_sha256": "ebf231db98b4ec793a186188138b8b7a3202e0d749e079cd3914877e44d22781",
+      "entries": [
+        "draw_row",
+        "draw_row4"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-11/ex16_hello_mze.nanz",
+      "source_sha256": "adacf7829f2a7b20db2d9d5e1a8701826633e6e0de6ac1e22bcd62e5a5526082",
+      "entries": [
+        "abs_diff",
+        "main"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-11/ex17_asm_block.nanz",
+      "source_sha256": "719e9b92212f011f6bf9922f779d7cf057d5545218285bb925d036bebe85cfaa",
+      "entries": [
+        "main",
+        "nop_slide",
+        "set_border"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-11/ex18_user_console_io.nanz",
+      "source_sha256": "8c5e935ba7284418db1200c822948c90e1c8d8b57b4fe283cbf3e77ea6f8e7f0",
+      "entries": [
+        "console_err",
+        "console_log",
+        "main",
+        "print_str"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-11/ex9a_factorial_rec.nanz",
+      "source_sha256": "49418af6de858d7388edf81bb74eadd2beb608b15c6f45c0b0d5eeae34f663f1",
+      "entries": [
+        "factorial"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-11/ex9b_factorial_fold.nanz",
+      "source_sha256": "d3dad2dc322fc522c86d14cf5fdb87897b0e5a102c594c686c19ae76357846de",
+      "entries": [
+        "factorial_fold"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex10a_fib_rec.nanz",
+      "source_sha256": "396e859e7c49c19cd59d95354672582ffe9d99046c1f87c81dea5ac738b9670c",
+      "entries": [
+        "fib"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex10b_fib_iter.nanz",
+      "source_sha256": "afb172839734878c9697ecc295e20a62ff1e658bcc7be994c38b1b8962fa9615",
+      "entries": [
+        "fib_iter"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex10c_fib_fold.nanz",
+      "source_sha256": "14fe7eed3447aa6928d72411cb91b1f56ffc55bd87cd61d9e49f52d24435a26a",
+      "entries": [
+        "fib_fold"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex11_minmax_multiret.nanz",
+      "source_sha256": "f7f3be929afe1d2ce0b4212b46b004bfeb9a562780ff9b54b9eef2a7efcf7326",
+      "entries": [
+        "larger",
+        "minmax",
+        "smaller",
+        "swap"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex12_assert.nanz",
+      "source_sha256": "4972461eba6fb194fd5a844dd9e10a25ae800b92bf2c64709070f7df590f9ad1",
+      "entries": [
+        "abs_diff",
+        "clamp",
+        "double"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex13_multiret_assert.nanz",
+      "source_sha256": "6677d09ec89a8489a9691bd4caa184ef88149c370b87fe543dc4b3e1432270b7",
+      "entries": [
+        "max_of",
+        "min_of",
+        "minmax",
+        "swap"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex14_fold_assert.nanz",
+      "source_sha256": "362b9106276974042e33936b02203f10a48cf726d24bd5e48eec1d4f75bae1a7",
+      "entries": [
+        "count_in_range",
+        "factorial",
+        "sum_to"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex15_smc_sprite.nanz",
+      "source_sha256": "ebf231db98b4ec793a186188138b8b7a3202e0d749e079cd3914877e44d22781",
+      "entries": [
+        "draw_row",
+        "draw_row4"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex16_hello_mze.nanz",
+      "source_sha256": "adacf7829f2a7b20db2d9d5e1a8701826633e6e0de6ac1e22bcd62e5a5526082",
+      "entries": [
+        "abs_diff",
+        "main"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex17_asm_block.nanz",
+      "source_sha256": "719e9b92212f011f6bf9922f779d7cf057d5545218285bb925d036bebe85cfaa",
+      "entries": [
+        "main",
+        "nop_slide",
+        "set_border"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex18_user_console_io.nanz",
+      "source_sha256": "8c5e935ba7284418db1200c822948c90e1c8d8b57b4fe283cbf3e77ea6f8e7f0",
+      "entries": [
+        "console_err",
+        "console_log",
+        "main",
+        "print_str"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex1_struct.nanz",
+      "source_sha256": "1028825d183ba0d11d2f43ac678b6afcc9cd91c475450d440a9239c731d7682e",
+      "entries": [
+        "get_b",
+        "get_g",
+        "get_r",
+        "set_rgb"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex2_ufcs.nanz",
+      "source_sha256": "a7ebf82edbfcc931bb336de2808c4aae2835c5a293b78f124ed96c39f23421ea",
+      "entries": [
+        "Acc_add",
+        "Acc_reset",
+        "sum_two"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex3_iface.nanz",
+      "source_sha256": "3a0c1b5a906485e6a0e3871bdad241072a9429adf6a186ecdd339b6c14984d35",
+      "entries": [
+        "Cat_speak",
+        "Dog_speak",
+        "demo"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex3b_iface_param.nanz",
+      "source_sha256": "d71ba92330826788fb759f58f88660312dc2018c89dbddef06d25b1b41acdc3c",
+      "entries": [
+        "Dog_speak",
+        "feed"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex4a_abs_diff.nanz",
+      "source_sha256": "d200af0eb58a60d00262b54224da749ecb07a25ec15638ba03e4bf3f308ccf90",
+      "entries": [
+        "abs_diff"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex4b_abs_diff_u16.nanz",
+      "source_sha256": "9ef0622b17529e2989b36a749291ee50f6facfbff17f7818c7c001e4348ffbca",
+      "entries": [
+        "abs_diff_u16"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex5_lut.nanz",
+      "source_sha256": "d33826eba80cfd940d02c844ba58a0b085251763552b31de104564009b8c36c4",
+      "entries": [
+        "popcount"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex6_foreach.nanz",
+      "source_sha256": "e1e53370ff161285310b11fd2a0ad573f96cef85193532c0f1ebe4c9217641eb",
+      "entries": [
+        "lambda_0",
+        "lambda_1",
+        "max_chain",
+        "sum_chain"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex7_mapinplace.nanz",
+      "source_sha256": "779c02d554372699c21d41ea3488a05eed304f8cbc55a6e3eca026fee316b780",
+      "entries": [
+        "add2_inplace",
+        "lambda_0"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex8_gcd.nanz",
+      "source_sha256": "88747063a59526e797061cf828911c417e661723efb3b614715f2d2109977832",
+      "entries": [
+        "gcd"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex9a_factorial_rec.nanz",
+      "source_sha256": "49418af6de858d7388edf81bb74eadd2beb608b15c6f45c0b0d5eeae34f663f1",
+      "entries": [
+        "factorial"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-13/ex9b_factorial_fold.nanz",
+      "source_sha256": "d3dad2dc322fc522c86d14cf5fdb87897b0e5a102c594c686c19ae76357846de",
+      "entries": [
+        "factorial_fold"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-14/ex20_arena_allocator.nanz",
+      "source_sha256": "886e1b3fb2e92c1f16ebf585a03a81f6fd1b2d0bcd2ed24559b4a9584adf21d9",
+      "entries": [
+        "Arena_alloc",
+        "Arena_init",
+        "Arena_remaining",
+        "Arena_reset",
+        "alloc_enemy",
+        "arena_split",
+        "init_a",
+        "test_split_and_alloc"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-14/ex21_enum.nanz",
+      "source_sha256": "a02aaa800c41df13c89d4f833bc5aa1f5971b0a3ee1dbd96a707be8413c8e4d4",
+      "entries": [
+        "get_default_state",
+        "identity",
+        "mix_colors"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-14/ex22_type_alias.nanz",
+      "source_sha256": "fb8fc372fdac128656855ab78db9548fb2c25e46fcf458ce43b0357b8ddd912a",
+      "entries": [
+        "damage",
+        "double_score"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-14/ex26_enum_assert.nanz",
+      "source_sha256": "27628c2d6130d10c430d97f80e58a455cd72cfc2b33ec6d37aae5595e01a703a",
+      "entries": [
+        "add_prio",
+        "identity"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-14/ex27_strings.nanz",
+      "source_sha256": "d78bc089145ca00510fece9723c4881f3247206f2dadedbe549bffcbc350ef37",
+      "entries": [
+        "greet",
+        "greet_long",
+        "greet_pascal",
+        "multiline"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-15/ex29_lanz.lanz",
+      "source_sha256": "cb1b2a4b97fb4724926d4377a77024b0268009eb844059bf63097064f0f4e660",
+      "entries": [
+        "abs_diff",
+        "double",
+        "sum_to"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-15/ex30_ptr_cast.nanz",
+      "source_sha256": "13faaea6fc8830bd48d9cb2463c68d5ae609fb8de51f0bbfce83b2303b743ade",
+      "entries": [
+        "main",
+        "peek",
+        "poke"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-15/ex31_asm_ret_clob.nanz",
+      "source_sha256": "cf179c15efdc7420d049b9f67a8882de29d52294678d3afc109a6ec469569e85",
+      "entries": [
+        "double",
+        "main",
+        "port_read"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-15/ex32_value_pipe.nanz",
+      "source_sha256": "964819c2d6e3247f690256818d80625cd87ba1b4da8e3e91d5e300af4a44a24a",
+      "entries": [
+        "add",
+        "double",
+        "inc",
+        "piped",
+        "piped_args"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-15/ex33_lambda_inference.nanz",
+      "source_sha256": "6c48b03a21410afc4b346f115839a8488d9cb66308af2842810cb12f9186c94f",
+      "entries": [
+        "add_acc",
+        "lambda_0",
+        "sum_doubled"
+      ],
+      "native_behavior": "pending-independent-oracle",
+      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "reviewed_evidence": []
+    },
+    {
+      "path": "reports/showcase-src/2026-03-15/ex34_tetris.nanz",
+      "source_sha256": "d27bc60573b403edf80d0a362e6d86b72702f4fd08c446488bffca2014c550ae",
+      "entries": [
+        "board_get",
+        "board_set",
+        "can_place",
+        "check_tspin",
+        "clear_lines",
+        "color_attr",
+        "do_lock_and_clear",
+        "fill_cell",
+        "ghost_y",
+        "hold_piece",
+        "init_screen",
+        "lock_piece",
+        "main",
+        "piece_color",
+        "piece_dx",
+        "piece_dy",
+        "random_piece",
+        "read_input",
+        "render",
+        "render_preview",
+        "rng_next",
+        "score_lines",
+        "spawn_piece",
+        "try_rotate",
+        "zx_attr_addr",
+        "zx_border",
+        "zx_halt",
+        "zx_key_row",
+        "zx_screen_addr"
+      ],
+      "native_behavior": "inline-asm-target-needs-audit",
+      "external_requirement_or_remaining_work": "Select reachable pure entry or bind inline ASM semantics/target; HIR VM ignores ASM instructions. CP/M output libraries require BDOS5, ZX/Agon wrappers require machine environment.",
+      "reviewed_evidence": []
+    }
+  ]
+}

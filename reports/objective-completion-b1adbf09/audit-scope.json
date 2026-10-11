@@ -1,0 +1,9 @@
+{
+  "checkpoint": "b1adbf09",
+  "no_new_runtime_tests": true,
+  "no_new_long_gate": true,
+  "running_gate_checked": "PID2118032 checkpointa7954042",
+  "bubble_share_payloads_verified": 342,
+  "missing_local_report_links": [],
+  "attachment_sha256": "429e44b78c0923347837c46b172bbf0b849bce5adf5416eed958517847f31dba"
+}
