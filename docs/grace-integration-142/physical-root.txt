@@ -1,0 +1,44 @@
+=== RUN   TestZ80AggregateAddressCopy
+--- PASS: TestZ80AggregateAddressCopy (0.01s)
+=== RUN   TestZ80AllocaAddressAndLiveRegisters
+=== RUN   TestZ80AllocaAddressAndLiveRegisters/HL/1
+=== RUN   TestZ80AllocaAddressAndLiveRegisters/HL/2
+=== RUN   TestZ80AllocaAddressAndLiveRegisters/HL/17
+=== RUN   TestZ80AllocaAddressAndLiveRegisters/DE/1
+=== RUN   TestZ80AllocaAddressAndLiveRegisters/DE/2
+=== RUN   TestZ80AllocaAddressAndLiveRegisters/DE/17
+=== RUN   TestZ80AllocaAddressAndLiveRegisters/BC/1
+=== RUN   TestZ80AllocaAddressAndLiveRegisters/BC/2
+=== RUN   TestZ80AllocaAddressAndLiveRegisters/BC/17
+=== RUN   TestZ80AllocaAddressAndLiveRegisters/IX/1
+=== RUN   TestZ80AllocaAddressAndLiveRegisters/IX/2
+=== RUN   TestZ80AllocaAddressAndLiveRegisters/IX/17
+=== RUN   TestZ80AllocaAddressAndLiveRegisters/IY/1
+=== RUN   TestZ80AllocaAddressAndLiveRegisters/IY/2
+=== RUN   TestZ80AllocaAddressAndLiveRegisters/IY/17
+=== RUN   TestZ80AllocaAddressAndLiveRegisters/slot/1
+=== RUN   TestZ80AllocaAddressAndLiveRegisters/slot/2
+=== RUN   TestZ80AllocaAddressAndLiveRegisters/slot/17
+--- PASS: TestZ80AllocaAddressAndLiveRegisters (0.01s)
+    --- PASS: TestZ80AllocaAddressAndLiveRegisters/HL/1 (0.00s)
+    --- PASS: TestZ80AllocaAddressAndLiveRegisters/HL/2 (0.00s)
+    --- PASS: TestZ80AllocaAddressAndLiveRegisters/HL/17 (0.00s)
+    --- PASS: TestZ80AllocaAddressAndLiveRegisters/DE/1 (0.00s)
+    --- PASS: TestZ80AllocaAddressAndLiveRegisters/DE/2 (0.00s)
+    --- PASS: TestZ80AllocaAddressAndLiveRegisters/DE/17 (0.00s)
+    --- PASS: TestZ80AllocaAddressAndLiveRegisters/BC/1 (0.00s)
+    --- PASS: TestZ80AllocaAddressAndLiveRegisters/BC/2 (0.00s)
+    --- PASS: TestZ80AllocaAddressAndLiveRegisters/BC/17 (0.00s)
+    --- PASS: TestZ80AllocaAddressAndLiveRegisters/IX/1 (0.00s)
+    --- PASS: TestZ80AllocaAddressAndLiveRegisters/IX/2 (0.00s)
+    --- PASS: TestZ80AllocaAddressAndLiveRegisters/IX/17 (0.00s)
+    --- PASS: TestZ80AllocaAddressAndLiveRegisters/IY/1 (0.00s)
+    --- PASS: TestZ80AllocaAddressAndLiveRegisters/IY/2 (0.00s)
+    --- PASS: TestZ80AllocaAddressAndLiveRegisters/IY/17 (0.00s)
+    --- PASS: TestZ80AllocaAddressAndLiveRegisters/slot/1 (0.00s)
+    --- PASS: TestZ80AllocaAddressAndLiveRegisters/slot/2 (0.00s)
+    --- PASS: TestZ80AllocaAddressAndLiveRegisters/slot/17 (0.00s)
+=== RUN   TestZ80SpilledAddressPreservesLiveHL
+--- PASS: TestZ80SpilledAddressPreservesLiveHL (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.023s

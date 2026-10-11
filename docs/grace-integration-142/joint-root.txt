@@ -1,0 +1,135 @@
+=== RUN   TestZ80AggregateAddressCopy
+--- PASS: TestZ80AggregateAddressCopy (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.019s
+=== RUN   TestBoolWideExtensionSourceNative
+=== RUN   TestBoolWideExtensionSourceNative/24
+=== RUN   TestBoolWideExtensionSourceNative/32
+--- PASS: TestBoolWideExtensionSourceNative (0.19s)
+    --- PASS: TestBoolWideExtensionSourceNative/24 (0.09s)
+    --- PASS: TestBoolWideExtensionSourceNative/32 (0.10s)
+=== RUN   TestMixedUnsignedWidthBothOrders
+=== RUN   TestMixedUnsignedWidthBothOrders/u24_add
+=== RUN   TestMixedUnsignedWidthBothOrders/u24_sub
+=== RUN   TestMixedUnsignedWidthBothOrders/u24_and
+=== RUN   TestMixedUnsignedWidthBothOrders/u24_or
+=== RUN   TestMixedUnsignedWidthBothOrders/u24_xor
+=== RUN   TestMixedUnsignedWidthBothOrders/u32_add
+=== RUN   TestMixedUnsignedWidthBothOrders/u32_sub
+=== RUN   TestMixedUnsignedWidthBothOrders/u32_and
+=== RUN   TestMixedUnsignedWidthBothOrders/u32_or
+=== RUN   TestMixedUnsignedWidthBothOrders/u32_xor
+--- PASS: TestMixedUnsignedWidthBothOrders (1.43s)
+    --- PASS: TestMixedUnsignedWidthBothOrders/u24_add (0.13s)
+    --- PASS: TestMixedUnsignedWidthBothOrders/u24_sub (0.14s)
+    --- PASS: TestMixedUnsignedWidthBothOrders/u24_and (0.15s)
+    --- PASS: TestMixedUnsignedWidthBothOrders/u24_or (0.16s)
+    --- PASS: TestMixedUnsignedWidthBothOrders/u24_xor (0.14s)
+    --- PASS: TestMixedUnsignedWidthBothOrders/u32_add (0.14s)
+    --- PASS: TestMixedUnsignedWidthBothOrders/u32_sub (0.14s)
+    --- PASS: TestMixedUnsignedWidthBothOrders/u32_and (0.14s)
+    --- PASS: TestMixedUnsignedWidthBothOrders/u32_or (0.16s)
+    --- PASS: TestMixedUnsignedWidthBothOrders/u32_xor (0.14s)
+=== RUN   TestOriginalPromotedArithmeticComplete
+=== RUN   TestOriginalPromotedArithmeticComplete/ordinary
+    promoted_arithmetic_complete_test.go:226: {
+          "allowed_generated_spill_bytes": {
+            "33108": true,
+            "33109": true
+          },
+          "bytes": 342,
+          "entries": {
+            "add": 65536,
+            "add8": 65536,
+            "add_bytes": 65536,
+            "byte_add": 65536,
+            "popcount4": 256,
+            "pressure": 25116,
+            "promoted_mod": 256,
+            "swap_nibbles": 256,
+            "test_ld_word": 65536
+          },
+          "excluded_zero_denominator_cases": 3445,
+          "stack_depth_per_entry": {
+            "add": 2,
+            "add8": 2,
+            "add_bytes": 2,
+            "byte_add": 2,
+            "popcount4": 2,
+            "pressure": 10,
+            "promoted_mod": 2,
+            "swap_nibbles": 2,
+            "test_ld_word": 2
+          },
+          "stack_low": "eff6"
+        }
+=== RUN   TestOriginalPromotedArithmeticComplete/grace-size
+    promoted_arithmetic_complete_test.go:226: {
+          "allowed_generated_spill_bytes": {
+            "33103": true,
+            "33104": true
+          },
+          "bytes": 337,
+          "entries": {
+            "add": 65536,
+            "add8": 65536,
+            "add_bytes": 65536,
+            "byte_add": 65536,
+            "popcount4": 256,
+            "pressure": 25116,
+            "promoted_mod": 256,
+            "swap_nibbles": 256,
+            "test_ld_word": 65536
+          },
+          "excluded_zero_denominator_cases": 3445,
+          "stack_depth_per_entry": {
+            "add": 2,
+            "add8": 2,
+            "add_bytes": 2,
+            "byte_add": 2,
+            "popcount4": 2,
+            "pressure": 10,
+            "promoted_mod": 2,
+            "swap_nibbles": 2,
+            "test_ld_word": 2
+          },
+          "stack_low": "eff6"
+        }
+=== RUN   TestOriginalPromotedArithmeticComplete/grace-speed
+    promoted_arithmetic_complete_test.go:226: {
+          "allowed_generated_spill_bytes": {
+            "33103": true,
+            "33104": true
+          },
+          "bytes": 337,
+          "entries": {
+            "add": 65536,
+            "add8": 65536,
+            "add_bytes": 65536,
+            "byte_add": 65536,
+            "popcount4": 256,
+            "pressure": 25116,
+            "promoted_mod": 256,
+            "swap_nibbles": 256,
+            "test_ld_word": 65536
+          },
+          "excluded_zero_denominator_cases": 3445,
+          "stack_depth_per_entry": {
+            "add": 2,
+            "add8": 2,
+            "add_bytes": 2,
+            "byte_add": 2,
+            "popcount4": 2,
+            "pressure": 10,
+            "promoted_mod": 2,
+            "swap_nibbles": 2,
+            "test_ld_word": 2
+          },
+          "stack_low": "eff6"
+        }
+--- PASS: TestOriginalPromotedArithmeticComplete (3.14s)
+    --- PASS: TestOriginalPromotedArithmeticComplete/ordinary (1.04s)
+    --- PASS: TestOriginalPromotedArithmeticComplete/grace-size (1.05s)
+    --- PASS: TestOriginalPromotedArithmeticComplete/grace-speed (1.04s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	4.771s

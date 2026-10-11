@@ -1,0 +1,7 @@
+# Интеграция142: совместное исправление widths и aggregate addresses
+
+Root129822cb включает boolwide d120aeac, mixedunsigned4f41202f, aggregateaddress f4eec5d6 и fulloriginal promoted129822cb. Jointroot **PASS4,771 с**: fullpromoted all9entries 1 060 692nativeinvocations с raw/final independentmodels, boolwide1536cases, mixedunsigned240cases. [Лог](joint-root.txt). Отдельно aggregatecopies/Alloca/spilledLoadStorecontrols **PASS0,023 с** [лог](physical-root.txt); recursiveactualCALLlive-spillrestore **PASS0,063 с** [лог](recursive-root.txt), последний доaggregatepatch. ВсеmodeASM/BIN/MIR и exactfrozenexecutables сохранены на share. Bool27 и promoted47payloads повторноSHAverified и провереныgit-tracked.
+
+Aggregate object layout не меняется: nativeStruct/Array value представляет16-bitaddress. Исправлены copies, spills, callreturn и Alloca spilled/indexdestinations; spilledpointer loads/stores сохраняют живойHL, storevalueHL/H/L staging не теряется при reloadaddress. Widemathwholeoriginalproof готовится отдельно. Rootjointtests не объявляют его PASS до интеграции oracle.
+
+Mixedunsigned rule документирует принятое widestoperand правило, отдельно от unresolvedmixedsignednesscomparison. Exactbefore native/raw divergence сохранено в grace-mixed-unsigned-width. PureSpeed/Size сохранены; оптимизационный выигрыш этими correctnesspatches не заявляется. Fullpipelinea7954042 остаётся жив, новыйfullCLI послеterminalFAIL ждёт стабильногоcheckpoint.
