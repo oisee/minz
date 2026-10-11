@@ -1,0 +1,221 @@
+[
+  {
+    "case": "c",
+    "kind": "stdout",
+    "output_hex": "414221",
+    "expected_hex": "414221",
+    "output_matches": true,
+    "pc": 263,
+    "halt_address": 263,
+    "globals": {
+      "__print_count_2": 456,
+      "__print_ptr_1": 123,
+      "answer": 0
+    },
+    "cycles": 314
+  },
+  {
+    "case": "empty_c",
+    "kind": "stdout",
+    "output_hex": "21",
+    "expected_hex": "21",
+    "output_matches": true,
+    "pc": 263,
+    "halt_address": 263,
+    "globals": {
+      "__print_count_2": 456,
+      "__print_ptr_1": 123,
+      "answer": 0
+    },
+    "cycles": 220
+  },
+  {
+    "case": "empty_l",
+    "kind": "stdout",
+    "output_hex": "21",
+    "expected_hex": "21",
+    "output_matches": true,
+    "pc": 263,
+    "halt_address": 263,
+    "globals": {
+      "__print_count_2": 456,
+      "__print_ptr_1": 123,
+      "answer": 0
+    },
+    "cycles": 485
+  },
+  {
+    "case": "empty_s",
+    "kind": "stdout",
+    "output_hex": "21",
+    "expected_hex": "21",
+    "output_matches": true,
+    "pc": 263,
+    "halt_address": 263,
+    "globals": {
+      "__print_count_2": 456,
+      "__print_ptr_1": 123,
+      "answer": 0
+    },
+    "cycles": 257
+  },
+  {
+    "case": "l",
+    "kind": "stdout",
+    "output_hex": "000021",
+    "expected_hex": "414221",
+    "output_matches": false,
+    "pc": 263,
+    "halt_address": 263,
+    "globals": {
+      "__print_count_2": 456,
+      "__print_ptr_1": 123,
+      "answer": 0
+    },
+    "cycles": 707
+  },
+  {
+    "case": "l256",
+    "kind": "stdout",
+    "output_hex": "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000021",
+    "expected_hex": "7272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727272727221",
+    "output_matches": false,
+    "pc": 263,
+    "halt_address": 263,
+    "globals": {
+      "__print_count_2": 456,
+      "__print_ptr_1": 123,
+      "answer": 0
+    },
+    "cycles": 28901
+  },
+  {
+    "case": "nul_c",
+    "kind": "stdout",
+    "output_hex": "4121",
+    "expected_hex": "4121",
+    "output_matches": true,
+    "pc": 263,
+    "halt_address": 263,
+    "globals": {
+      "__print_count_2": 456,
+      "__print_ptr_1": 123,
+      "answer": 0
+    },
+    "cycles": 267
+  },
+  {
+    "case": "nul_l",
+    "kind": "stdout",
+    "output_hex": "00000021",
+    "expected_hex": "41004221",
+    "output_matches": false,
+    "pc": 263,
+    "halt_address": 263,
+    "globals": {
+      "__print_count_2": 456,
+      "__print_ptr_1": 123,
+      "answer": 0
+    },
+    "cycles": 818
+  },
+  {
+    "case": "nul_s",
+    "kind": "stdout",
+    "output_hex": "03020121",
+    "expected_hex": "41004221",
+    "output_matches": false,
+    "pc": 263,
+    "halt_address": 263,
+    "globals": {
+      "__print_count_2": 456,
+      "__print_ptr_1": 123,
+      "answer": 0
+    },
+    "cycles": 515
+  },
+  {
+    "case": "s",
+    "kind": "stdout",
+    "output_hex": "020121",
+    "expected_hex": "414221",
+    "output_matches": false,
+    "pc": 263,
+    "halt_address": 263,
+    "globals": {
+      "__print_count_2": 456,
+      "__print_ptr_1": 123,
+      "answer": 0
+    },
+    "cycles": 429
+  },
+  {
+    "case": "s255",
+    "kind": "stdout",
+    "output_hex": "fffefdfcfbfaf9f8f7f6f5f4f3f2f1f0efeeedecebeae9e8e7e6e5e4e3e2e1e0dfdedddcdbdad9d8d7d6d5d4d3d2d1d0cfcecdcccbcac9c8c7c6c5c4c3c2c1c0bfbebdbcbbbab9b8b7b6b5b4b3b2b1b0afaeadacabaaa9a8a7a6a5a4a3a2a1a09f9e9d9c9b9a999897969594939291908f8e8d8c8b8a898887868584838281807f7e7d7c7b7a797877767574737271706f6e6d6c6b6a696867666564636261605f5e5d5c5b5a595857565554535251504f4e4d4c4b4a494847464544434241403f3e3d3c3b3a393837363534333231302f2e2d2c2b2a292827262524232221201f1e1d1c1b1a191817161514131211100f0e0d0c0b0a09080706050403020121",
+    "expected_hex": "71717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717171717121",
+    "output_matches": false,
+    "pc": 263,
+    "halt_address": 263,
+    "globals": {
+      "__print_count_2": 456,
+      "__print_ptr_1": 123,
+      "answer": 0
+    },
+    "cycles": 22187
+  },
+  {
+    "case": "storage-c",
+    "kind": "pool_bytes",
+    "output_hex": "",
+    "expected_hex": "414200",
+    "output_matches": null,
+    "pc": 263,
+    "halt_address": 263,
+    "globals": {
+      "first": 0
+    },
+    "cycles": 79
+  },
+  {
+    "case": "storage-l",
+    "kind": "pool_bytes",
+    "output_hex": "",
+    "expected_hex": "02004142",
+    "output_matches": null,
+    "pc": 263,
+    "halt_address": 263,
+    "globals": {
+      "first": 0
+    },
+    "cycles": 79
+  },
+  {
+    "case": "storage-s",
+    "kind": "pool_bytes",
+    "output_hex": "",
+    "expected_hex": "024142",
+    "output_matches": null,
+    "pc": 263,
+    "halt_address": 263,
+    "globals": {
+      "first": 0
+    },
+    "cycles": 79
+  },
+  {
+    "case": "utf8",
+    "kind": "stdout",
+    "output_hex": "020121",
+    "expected_hex": "c3a921",
+    "output_matches": false,
+    "pc": 263,
+    "halt_address": 263,
+    "globals": {
+      "__print_count_2": 456,
+      "__print_ptr_1": 123,
+      "answer": 0
+    },
+    "cycles": 429
+  }
+]

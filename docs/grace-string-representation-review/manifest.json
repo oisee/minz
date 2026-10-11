@@ -12,6 +12,14 @@
     "sha256": "ac97d3171241a0f82ce72016b0a1e9302ca3f286c6590f763339cc4e984efd65"
   },
   {
+    "path": "FIRST-NATIVE-DIAGNOSIS.md",
+    "sha256": "0c2b64c76410cc8a10144efdac824d7335e9d7d3c97a5d82beaaebb48dfaef7b"
+  },
+  {
+    "path": "FIRST-NATIVE-FAILURE.json",
+    "sha256": "642a7c1a2dfdf7e71614d8a7241903e843ccb5c0e5eb18e6169747ed56ed8b16"
+  },
+  {
     "path": "FIX-5BD9-REVIEW.md",
     "sha256": "3cc9fbd394907dc228748d75bbc2b01a11f706c33cbc9ebe76136a1c3119dfdf"
   },
