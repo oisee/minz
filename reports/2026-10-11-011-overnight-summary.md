@@ -148,7 +148,9 @@ ordered host events совпадают с независимой моделью.
 
 Arena stage57322d17 отправлен на GitHub. Приватная Sites версия40 опубликована:
 https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-arena-selection.html
-Полная офлайн-копия обновляется и проверяется по SHA256.
+Полная офлайн-копия проверена:9283 файла,50 страниц,0 потерянных ссылок
+и внешних зависимостей; архивы читаются. Открывать:
+/home/alice/dev/minz/artifacts/grace-reports/2026-10-10-resume/site/index.html
 Append-copy: независимый validator исключает ресурсы, перекрывающие VM globals;
 1286 rawVM случаев и42 actual-target запуска прошли. До measured selector
 и production-интеграции остаётся отдельный шаг. Цель продолжается.
