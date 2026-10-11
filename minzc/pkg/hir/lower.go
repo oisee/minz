@@ -624,7 +624,7 @@ func classForParam(ty mir2.Ty, pos int) mir2.RegClass {
 	if mir2.IsPointer(ty) {
 		return mir2.ClassPointer
 	}
-	if _, isStruct := ty.(*mir2.StructTy); isStruct {
+	if aggregateAddressType(ty) {
 		// Struct params are passed as pointers (address in HL on Z80).
 		return mir2.ClassPointer
 	}
@@ -646,9 +646,19 @@ func classForParam(ty mir2.Ty, pos int) mir2.RegClass {
 	}
 }
 
+// aggregateAddressType distinguishes storage layout from the current MIR
+// value representation: structs and arrays are passed as object addresses.
+func aggregateAddressType(ty mir2.Ty) bool {
+	switch mir2.BaseOf(ty).(type) {
+	case *mir2.StructTy, *mir2.ArrayTy:
+		return true
+	}
+	return false
+}
+
 // classForRet chooses the return class for a single-return function.
 func classForRet(ty mir2.Ty) mir2.RegClass {
-	if mir2.IsPointer(ty) || ty == mir2.TyU16 || ty == mir2.TyI16 {
+	if aggregateAddressType(ty) || mir2.IsPointer(ty) || ty == mir2.TyU16 || ty == mir2.TyI16 {
 		return mir2.ClassPointer // HL
 	}
 	return mir2.ClassAcc // A
@@ -665,6 +675,9 @@ func classForRet(ty mir2.Ty) mir2.RegClass {
 // Use ClassCounter (B) for the second u8 return instead.
 func classForRetPos(ty mir2.Ty, pos int) mir2.RegClass {
 	w := ty.Width()
+	if aggregateAddressType(ty) {
+		w = 16
+	}
 	switch pos {
 	case 0:
 		return classForRet(ty)
@@ -685,12 +698,12 @@ func classForRetPos(ty mir2.Ty, pos int) mir2.RegClass {
 func (l *lowerer) lowerExprForRet(e Expr) mir2.Reg {
 	switch ex := e.(type) {
 	case *LoadExpr:
-		if ex.Ty.Width() <= 8 {
+		if ex.Ty.Width() <= 8 && !aggregateAddressType(ex.Ty) {
 			ptr := l.lowerExpr(ex.Ptr)
 			return l.bld.Load(ptr, ex.Ty, classForRet(ex.Ty))
 		}
 	case *FieldExpr:
-		if ex.Ty.Width() <= 8 {
+		if ex.Ty.Width() <= 8 && !aggregateAddressType(ex.Ty) {
 			base := l.lowerExpr(ex.X)
 			if ex.Offset > 0 {
 				base = l.bld.Field(base, int64(ex.Offset), mir2.ClassPointer)
@@ -737,7 +750,7 @@ func (l *lowerer) lowerExprForRet(e Expr) mir2.Reg {
 // Explicit "must be in A" values (function return values, call returns) still
 // use ClassAcc via classForRet; parameters use classForParam.
 func classForExpr(ty mir2.Ty) mir2.RegClass {
-	if (mir2.IsPointer(ty) && mir2.PointerElem(ty) != mir2.TyU8) || ty == mir2.TyU16 || ty == mir2.TyI16 {
+	if aggregateAddressType(ty) || (mir2.IsPointer(ty) && mir2.PointerElem(ty) != mir2.TyU8) || ty == mir2.TyU16 || ty == mir2.TyI16 {
 		return mir2.ClassPointer
 	}
 	return mir2.ClassGeneral
@@ -749,7 +762,7 @@ func classForExpr(ty mir2.Ty) mir2.RegClass {
 // 16-bit variants write to HL → ClassPointer.
 // Other ops (MUL, shifts) are not pure A-writes → ClassGeneral.
 func classForALUResult(op string, ty mir2.Ty) mir2.RegClass {
-	if (mir2.IsPointer(ty) && mir2.PointerElem(ty) != mir2.TyU8) || ty == mir2.TyU16 || ty == mir2.TyI16 {
+	if aggregateAddressType(ty) || (mir2.IsPointer(ty) && mir2.PointerElem(ty) != mir2.TyU8) || ty == mir2.TyU16 || ty == mir2.TyI16 {
 		return mir2.ClassPointer
 	}
 	switch op {
@@ -761,7 +774,7 @@ func classForALUResult(op string, ty mir2.Ty) mir2.RegClass {
 
 // classForLoop chooses a good class for a loop-carried variable.
 func classForLoop(ty mir2.Ty, _ string) mir2.RegClass {
-	if (mir2.IsPointer(ty) && mir2.PointerElem(ty) != mir2.TyU8) || ty == mir2.TyU16 || ty == mir2.TyI16 {
+	if aggregateAddressType(ty) || (mir2.IsPointer(ty) && mir2.PointerElem(ty) != mir2.TyU8) || ty == mir2.TyU16 || ty == mir2.TyI16 {
 		return mir2.ClassPointer
 	}
 	// ClassGeneral keeps loop vars out of A (which comparisons need).
