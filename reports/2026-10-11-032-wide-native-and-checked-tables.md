@@ -1,13 +1,13 @@
 # Wide native, контракты и проверенные локальные таблицы
 
-Интегрированы 6be9d4d4 checkedlocaltables, e66b02a7widecaller/memory,cb587fe4nativePFCCO workload. Полные пакеты объединённой ветки: MIR2 PASS 8.423s, VIR PASS 0.058s, z80spec PASS 0.006s; u32production, APIoption иHashMapheldout PASS3.224s. Supportedcmd/pkg/internal/tests compile-onlyPASS.
+Интегрированы `6be9d4d4` (таблицы), `e66b02a7` (wide caller/memory) и `cb587fe4` (native PFCCO workload). На объединённой ветке полные MIR2, VIR и z80spec прошли за 8.423, 0.058 и 0.006 s. Проверки u32 production, API option и HashMap heldout прошли за 3.224 s. Все cmd/pkg/internal/tests проходят compile-only.
 
-Широкая память:672 VM/native случаев с u24/u32, pointer/valuehomes, shadowbanks иwrapffff;32 CALLcases сдвумяclobberedbanks иmodulo2^32oracle. Реальный Nanz productionglobal+call+add/store проходит. Snapshotcertificates memory-host ещё ограничены1/2байтами; не объявлены широкой сертификацией.
+Проверены 672 случая памяти VM/Z80 для u24/u32, разных pointer/value homes, shadow banks и wrap на ffff; 32 случая CALL с clobber обоих банков и независимым oracle по модулю 2^32. Реальная Nanz-программа с globals, CALL, add/store проходит. Snapshot certificates memory-host пока ограничены 1/2 байтами; это не широкая сертификация.
 
-PFCCO workload: два реальныхCALL, первый результат жив через второй, независимая order-sensitive модель иglobalwrap. Без контрактной оптимизации8857T/52B;greedyиPBQP7888T/52B. Сохранён также первый no-benefit кандидат6474T/68B. Независимый Pythonаудит повторноPASS.
+В PFCCO workload два настоящих CALL, первый результат жив через второй. Независимая модель чувствительна к порядку и переполнению globals. Без оптимизации контрактов: 8857 T / 52 B; greedy и PBQP: 7888 T / 52 B. Сохранён первый кандидат без выигрыша: 6474 T / 68 B во всех режимах. Независимый Python-аудит повторно прошёл.
 
-VIRcheckedlocalkeys связывают descriptor, operands, hints, clobbers, ABI,physicaloverlaps иcostmodel; assignment повторно допускается,claimedcost пересчитывается. Исправлена потеря wordreturn передRET. Fixture95→57T,10→7B срезультатомHL1234/SPf000. **Обычный production pipeline пока не вызывает VIR/table lookup**; практическая интеграция отдельным локальным кандидатом впереди. Это не globaloptimality и не wholecorpusbenefit.
+Checked local keys связывают descriptor, operands, hints, clobbers, ABI, physical overlaps и cost model. Назначение повторно допускается, заявленная стоимость пересчитывается. Исправлена потеря word return перед RET. Пример: 95 → 57 T, 10 → 7 B, HL=1234 и SP=f000. **Обычный production pipeline пока не вызывает VIR/table lookup**; практическая интеграция локального кандидата впереди. Это не доказательство глобального оптимума или выигрыша всего корпуса.
 
-Новый showcase имеет193case (добавленpfccoweightedpacket):192PASS,1FAIL,0SKIP. ZVM теперь отвергается ясной nativecapacity причиной:story131072B плюс18377B предыдущихglobals. Исходник сам заявляет запускmzv-H; nativeработаZork не объявляется. Полныйpipeline cb587fe4 запущен отдельно; пока идёт, результат неизвестен.
+В showcase теперь 193 случая: добавлен pfcco_weighted_packet. Результат с включёнными исключениями: 192 PASS, 1 FAIL, 0 SKIP. ZVM отвергается ясной native capacity причиной: story занимает 131072 B, предыдущие globals — ещё 18377 B. Исходник заявляет запуск через mzv -H; native работа Zork не подтверждена. Полный pipeline на cb587fe4 запущен отдельно; результат пока неизвестен.
 
-Все77новых файлов скопированы на шару и провереныSHA256; пакетыdocs/grace-vir-checked-local-tables, grace-z80-u32-spills, grace-pfcco-native.
+Все 77 новых файлов скопированы на шару и проверены SHA256. Пакеты: docs/grace-vir-checked-local-tables, docs/grace-z80-u32-spills и docs/grace-pfcco-native.
