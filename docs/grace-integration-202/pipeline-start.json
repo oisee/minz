@@ -9,5 +9,9 @@
     "-test.timeout=90m"
   ],
   "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/pkg/pipeline",
-  "state": "prepared before execution; terminal outcome pending"
+  "state": "started; process confirmed live; terminal outcome pending",
+  "session_id": 69663,
+  "pid": 2392127,
+  "log": "/home/alice/dev/minz-artifacts/grace-checkpoints/pipeline-29df08bb-full.txt",
+  "test_registry_followup": "45140dc0 updates test-only external evidence registry while retained executable remains 29df08bb; production code unchanged"
 }
