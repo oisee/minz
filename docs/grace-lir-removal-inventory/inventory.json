@@ -1,0 +1,177 @@
+{
+  "source_commit": "ea4039e7",
+  "scope": "live minzc Go sources; immutable historical artifact snapshots excluded",
+  "direct_imports": [
+    {
+      "path": "minzc/pkg/z80spec/spec_test.go",
+      "test": true,
+      "symbols": [
+        "LocIndex",
+        "Z80"
+      ],
+      "sha256": "7cb397325fc60d726593781bfd3f08e3e0ccac655bdf42b0077139d4e1d9f616"
+    },
+    {
+      "path": "minzc/pkg/pipeline/lir_test.go",
+      "test": true,
+      "symbols": [
+        "LIRCodegenFunc"
+      ],
+      "sha256": "505b6f25504ae7bb9a2835a7ab95b1282e7674009cd836a7efed610c4d9f6420"
+    },
+    {
+      "path": "minzc/pkg/pipeline/pipeline.go",
+      "test": false,
+      "symbols": [
+        "CheckModuleConvergence",
+        "ConvergenceResult",
+        "SanitizeAsmLabel"
+      ],
+      "sha256": "4cb0bbd3d57c3caaf17b68157879a2cddf7af785aa0d0ba5c6d2879ea3cc0024"
+    },
+    {
+      "path": "minzc/pkg/hir/exhaustive_judge_test.go",
+      "test": true,
+      "symbols": [
+        "LIRCodegenMultiBlockForResearch"
+      ],
+      "sha256": "032fc0423bda044dc3a99ac171f85688199a04bc9dfd44ca1ff1fff2e85664a6"
+    },
+    {
+      "path": "minzc/pkg/hir/lir_research_judge_test.go",
+      "test": true,
+      "symbols": [
+        "AllocHints",
+        "LIRCodegenFunc",
+        "Z80"
+      ],
+      "sha256": "f5766177597a9f7da7edaa82f9dcadd4df628b32fa90c794a341dc22db590347"
+    },
+    {
+      "path": "minzc/pkg/hir/lir_allowlist_judge_test.go",
+      "test": true,
+      "symbols": [
+        "LIRCodegenFunc"
+      ],
+      "sha256": "0f635b18cb61081cdcd728d11cdb49bb7a580708a1898c53748b817cb33cda60"
+    },
+    {
+      "path": "minzc/pkg/vir/pipeline.go",
+      "test": false,
+      "symbols": [
+        "SanitizeAsmLabel"
+      ],
+      "sha256": "97ec544f995b8c2ca42ae2346f2c679098b535d65376397fb380e772b99b1a16"
+    }
+  ],
+  "components": [
+    {
+      "path": "minzc/pkg/lir/bridge.go",
+      "disposition": "obsolete LIR lowering; move semantic expected-value coverage to native/MIR tests"
+    },
+    {
+      "path": "minzc/pkg/lir/bridge_egraph.go",
+      "disposition": "research lowering alternatives; future selection alternatives in VIR/production patterns"
+    },
+    {
+      "path": "minzc/pkg/lir/cfgengine.go",
+      "disposition": "obsolete LIR-specific graph adapter; use shared rewrite/grace adapters"
+    },
+    {
+      "path": "minzc/pkg/lir/cfgrules.go",
+      "disposition": "six CFG rules; compare native passes then migrate only gaps"
+    },
+    {
+      "path": "minzc/pkg/lir/combine.go",
+      "disposition": "byte identities/multiply duplicate; memory fusion requires guarded MIR replacement"
+    },
+    {
+      "path": "minzc/pkg/lir/egraph.go",
+      "disposition": "research equivalence representation; optional archive, not production dependency"
+    },
+    {
+      "path": "minzc/pkg/lir/isel.go",
+      "disposition": "research selection/greedy constraints; retain independent admissibility requirements in VIR/PBQP"
+    },
+    {
+      "path": "minzc/pkg/lir/isle/isle.go",
+      "disposition": "shared rewrite/isle already exists; compare guarded APIs/tests before retiring duplicate"
+    },
+    {
+      "path": "minzc/pkg/lir/isle/sexpr.go",
+      "disposition": "shared rewrite/sexpr already extracted; remove conversion wrapper"
+    },
+    {
+      "path": "minzc/pkg/lir/lir.go",
+      "disposition": "research IR/type universe; delete after extracting canonical register facts"
+    },
+    {
+      "path": "minzc/pkg/lir/looprot.go",
+      "disposition": "CFG migration candidate to MIR Grace, preserves zero-trip/edge args"
+    },
+    {
+      "path": "minzc/pkg/lir/machines.go",
+      "disposition": "RISC32/RISC8/CISC/MICRO research only; archive separately if kept"
+    },
+    {
+      "path": "minzc/pkg/lir/outparam_promote.go",
+      "disposition": "detector only, no production caller; PFCCO future proposal requiring escapes/effects/all CFG uses"
+    },
+    {
+      "path": "minzc/pkg/lir/pipeline.go",
+      "disposition": "extract label utility, retire optional convergence and disabled CLI/report interface; archive research emitter"
+    },
+    {
+      "path": "minzc/pkg/lir/rules.go",
+      "disposition": "shared datalog already extracted; document catalogue and classify native duplicates"
+    },
+    {
+      "path": "minzc/pkg/lir/saturate.go",
+      "disposition": "audit selected pure identities; do not port dest-as-source XOR mechanically"
+    },
+    {
+      "path": "minzc/pkg/lir/spill_reload.go",
+      "disposition": "LIR-only textual repair; do not port as native correctness strategy"
+    },
+    {
+      "path": "minzc/pkg/lir/vm.go",
+      "disposition": "LIR VM oracle retire; independent mathematical expectations retained"
+    },
+    {
+      "path": "minzc/pkg/lir/wfc.go",
+      "disposition": "research allocation; extract missing physical restrictions to z80spec/PBQP, archive solver"
+    },
+    {
+      "path": "minzc/pkg/lir/wfc_interblock.go",
+      "disposition": "research interblock location propagation; retain CFG/edge constraint regression cases"
+    },
+    {
+      "path": "minzc/pkg/lir/z3_joint.go",
+      "disposition": "selection+allocation research; optional VIR research transfer after proof"
+    },
+    {
+      "path": "minzc/pkg/lir/z3solve.go",
+      "disposition": "archive solver if wanted; no native production dependency"
+    },
+    {
+      "path": "minzc/pkg/lir/z3validate.go",
+      "disposition": "research WFC repair by Z3; archive or delete"
+    },
+    {
+      "path": "minzc/pkg/lir/z80.go",
+      "disposition": "machine/pattern data; canonical restrictions in z80spec and validated production/VIR patterns"
+    },
+    {
+      "path": "minzc/pkg/lir/z80peephole.go",
+      "disposition": "audit with full flags/liveness/memory; no blanket transfer"
+    },
+    {
+      "path": "minzc/pkg/lir/z80validate.go",
+      "disposition": "already delegates to shared z80validate; remove wrapper"
+    },
+    {
+      "path": "minzc/pkg/lir/z80validate_inst.go",
+      "disposition": "template admission via actual assembler; retain principle for VIR/table verification"
+    }
+  ]
+}
