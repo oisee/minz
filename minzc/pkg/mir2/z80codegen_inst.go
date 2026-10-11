@@ -1206,27 +1206,50 @@ func (g *z80cg) genInst(inst *Inst) {
 				g.emitf("    INC %s", dst)
 			}
 		default:
-			// ADD HL, rr is the only 16-bit add on Z80.
-			// Route through HL if dst is not HL.
-			if dst == "HL" {
-				tmp := "BC"
-				if dst == "BC" {
-					tmp = "DE"
+			// ADD HL,rr needs two scratch pairs even for a constant field
+			// offset. Neither the unrelated HL base nor a live BC/DE value
+			// may be destroyed merely because this result lives elsewhere.
+			tmp := "BC"
+			if dst == "BC" {
+				tmp = "DE"
+			}
+			preserveHL, preserveTmp := false, false
+			for r := range g.regsLiveAfterInst(inst) {
+				if r == inst.Dst {
+					continue
 				}
-				g.emitf("    LD %s, %d", tmp, offset)
-				g.emitADDHL(tmp)
-			} else {
-				// dst is DE/BC/IX: move to HL, add, move back.
+				loc := g.loc(r)
+				if dst != "HL" && (loc == "HL" || loc == "H" || loc == "L") {
+					preserveHL = true
+				}
+				if loc == tmp || loc == lowByte(tmp) || loc == highByte(tmp) {
+					preserveTmp = true
+				}
+			}
+			if preserveHL {
+				g.emit("    PUSH HL")
+			}
+			if preserveTmp {
+				g.emitf("    PUSH %s", tmp)
+			}
+			if dst != "HL" {
 				g.emitMov("HL", dst, 16)
-				tmp := "BC"
-				if dst == "BC" {
-					tmp = "DE"
-				}
-				g.emitf("    LD %s, %d", tmp, offset)
-				g.emitADDHL(tmp)
+			}
+			g.emitf("    LD %s, %d", tmp, offset)
+			g.emitADDHL(tmp)
+			if dst != "HL" {
 				g.emitMov(dst, "HL", 16)
 				g.invalidate("HL")
 			}
+			if preserveTmp {
+				g.emitf("    POP %s", tmp)
+				g.invalidate(tmp)
+			}
+			if preserveHL {
+				g.emit("    POP HL")
+				g.invalidate("HL")
+			}
+
 		}
 		g.invalidate(dst)
 

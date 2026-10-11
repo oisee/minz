@@ -94,6 +94,7 @@ func applyReviewedCatalogEvidence(t *testing.T, root string, row *oracleCatalogE
 		add(reference, "original functions; bounded entries/workload", row.Workload+"; "+row.Requirement)
 	}
 	reviewed := []reviewedNativeSource{
+		{"examples/nanz/typed_print.nanz", "showcase_typed_print_native_test.go::TestOriginalTypedPrintNativeFullState", "Exact full main/probe_zero/probe_overflow, six persistent calls; 104 additional imported decimal/capacity workloads separate", "Independent strconv decimal plus bounded writer model; all44globalbytes, byte output order in VM, relocated pointers and full native write bounds/SP/immutable image", "Exact source and real stdlib/text/print.nanz import unchanged. Main bytes score=65535 u8=175 plus NUL; no OS output. Concrete Printable implementation/capacity workloads only, not all interfaces."},
 		{"reports/showcase-src/2026-03-14/ex28_pipe.nanz", "showcase_pipe_import_oracle_test.go::TestOriginalPipeAndImportNativeModels", "Both full sum_doubled/sum_tripled entries and both source asserts", "Independent n-to-1 range with doubled then optional +1, byte accumulation", "Named pipe/trans/use/apply unchanged; only fixed original entry workloads, not additional invented parameterized pipeline"},
 		{"reports/showcase-src/2026-03-14/ex23_import_unqualified.nanz", "showcase_pipe_import_oracle_test.go::TestOriginalPipeAndImportNativeModels", "compute on all 256 byte inputs; both original asserts", "2*x+1 modulo256 independent host arithmetic", "Exact import consumer and local mathlib dependency; raw/final VM + assembled native return/SP/guards/image"},
 		{"reports/showcase-src/2026-03-14/ex24_import_qualified.nanz", "showcase_pipe_import_oracle_test.go::TestOriginalPipeAndImportNativeModels", "Full parameter-free compute entry; original assert", "2*10+5 equals25", "Exact qualified import consumer; local mathlib, no general stdlib claim"},
@@ -124,6 +125,8 @@ func applyReviewedCatalogEvidence(t *testing.T, root string, row *oracleCatalogE
 		}
 	}
 	switch row.Path {
+	case "examples/nanz/typed_print.nanz":
+		add("minzc/pkg/pipeline/showcase_typed_print_native_test.go::TestTypedPrintImportedFormatterBoundaryNative", "exact original source plus explicit capacity/value workload drivers", "13 decimal boundaries x8capacities, all44globalbytes and pointer normalization after every call; no library algorithm copy.")
 	case "reports/showcase-src/2026-03-10/ex7_mapinplace.nanz":
 		add("minzc/pkg/pipeline/showcase_mapinplace_oracle_test.go::TestOriginalMapInPlaceAddressWrapVMZ80", "exact original add2 entry plus constant-address workload drivers", "9 cumulative ffff-to-zero wrap calls, raw byte read/write order, native full516 RAM with guards/PC/SP/immutable image; explicit flat all-RAM emulator without Spectrum ROM/SMC screen hooks.")
 	case "examples/nanz/self_tokenizer.nanz":

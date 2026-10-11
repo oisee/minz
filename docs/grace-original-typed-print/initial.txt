@@ -1,0 +1,6 @@
+=== RUN   TestOriginalTypedPrintNativeFullState
+    showcase_typed_print_native_test.go:175: nativecall0main returnedtrue got0 want18
+--- FAIL: TestOriginalTypedPrintNativeFullState (0.71s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.721s
+FAIL
