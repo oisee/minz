@@ -1,0 +1,15 @@
+[Z80-VALIDATE] terminate: 1 invalid instruction(s)
+  line 3: >>> LD HL, _inbuf+2 <<<
+--- FAIL: TestShowcaseCompileAssemble (11.36s)
+    showcase_test.go:86: Found 192 showcase files
+    --- FAIL: TestShowcaseCompileAssemble/hello_world.nanz (0.00s)
+        showcase_test.go:123: frontend .nanz: line 7: import stdlib.agon.mos: line 18: unexpected token ";" at module level
+    --- FAIL: TestShowcaseCompileAssemble/sqlite_test.nanz (0.00s)
+        showcase_test.go:129: pipeline: statement 12: HIR main: unknown variable "SQLITE_ROW"
+    --- FAIL: TestShowcaseCompileAssemble/zsql_zx.nanz (0.06s)
+        showcase_test.go:150: asm error: line 227: unknown instruction or invalid operands: LD
+        showcase_test.go:150: asm error: line 227: unknown instruction or invalid operands: LD
+        showcase_test.go:152: assembly produced 2 errors
+FAIL
+FAIL	github.com/minz/minzc/pkg/nanz	11.369s
+FAIL

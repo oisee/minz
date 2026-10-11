@@ -363,6 +363,16 @@ func desugarExpr(n lanz.Node) lanz.Node {
 	}
 
 	switch head.Atom {
+	case "@print_u8":
+		if len(n.List) != 2 {
+			return desugarList(n)
+		}
+		return list(n.Line, atom("@mir.io.print.u8", n.Line), desugarExpr(n.List[1]))
+	case "@print_nl":
+		if len(n.List) != 1 {
+			return desugarList(n)
+		}
+		return list(n.Line, atom("@mir.io.print.nl", n.Line))
 	case "return":
 		if len(n.List) == 2 {
 			return desugarReturnValue(n.List[1], n.Line)

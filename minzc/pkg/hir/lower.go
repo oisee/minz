@@ -2439,16 +2439,27 @@ func (l *lowerer) lowerCondExpr(ex *CondExpr) mir2.Reg {
 	thenBlk := l.bld.SwitchToNewBlock(thenLabel)
 	_ = thenBlk
 	thenVal := l.lowerExpr(ex.Then)
-	l.bld.Jmp(joinLabel, thenVal)
+	if ex.Ty == mir2.TyVoid {
+		l.bld.Jmp(joinLabel)
+	} else {
+		l.bld.Jmp(joinLabel, thenVal)
+	}
 
 	// else-branch
 	elseBlk := l.bld.SwitchToNewBlock(elseLabel)
 	_ = elseBlk
 	elseVal := l.lowerExpr(ex.Else)
-	l.bld.Jmp(joinLabel, elseVal)
+	if ex.Ty == mir2.TyVoid {
+		l.bld.Jmp(joinLabel)
+	} else {
+		l.bld.Jmp(joinLabel, elseVal)
+	}
 
 	// join block: a block parameter receives the value from whichever branch
 	joinBlk := l.bld.SwitchToNewBlock(joinLabel)
+	if ex.Ty == mir2.TyVoid {
+		return mir2.NoReg
+	}
 	result := l.bld.BlockParam(joinBlk, ex.Ty, cls)
 	return result
 }
