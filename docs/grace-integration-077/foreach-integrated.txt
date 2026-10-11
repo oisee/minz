@@ -1,0 +1,5 @@
+=== RUN   TestOriginalForeachReadOrderVMZ80
+    showcase_foreach_oracle_test.go:142: exact original sum/max forEach:60 calls + observer, full514RAM/orderedreads/rawVM+nativeSPcode; 291930 T/59 B SHA df200ed1899721eb3147d47be45bdaf740ea99803a70a21c51d4b369d93944c1
+--- PASS: TestOriginalForeachReadOrderVMZ80 (0.08s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.084s
