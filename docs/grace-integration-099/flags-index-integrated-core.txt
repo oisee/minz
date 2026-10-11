@@ -1,0 +1,2 @@
+ok  	github.com/minz/minzc/pkg/mir2	11.473s
+ok  	github.com/minz/minzc/pkg/vir	2.343s

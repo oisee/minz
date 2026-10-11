@@ -6,7 +6,7 @@
 
 ## Новый этап: единый backend без LIR
 
-Сводка дополнена на `f5c7a09e`; результаты прежних сборок ниже сохраняют
+Сводка дополнена на `a517cd5b`; результаты прежних сборок ниже сохраняют
 свой исходный контекст. Общая цель из [плана](../reports/2026-10-11-017-unified-backend-roadmap.md)
 ещё активна: корректность заявленного корпуса, проверенные контракты и таблицы,
 выигрыш Grace на разных программах и заранее отложенных нагрузках.
@@ -379,3 +379,5 @@ Historical ENRT4v record5 теперь покрывает weighted13 SSA values 
 Новый exactfib_iter all256/u16 и reconciliation18tail: root pipeline PASS3.090с/catalogPASS2.143с;38limited VM/native paths,1nativeCPM. [Пакет097](grace-integration-097/README.md).
 
 Root historicalcoverage118 functions PASS19.091с:9admitted,3smaller/4equal/2larger; largerневыбираются. Второй FAT indexedshift/liveHL fix проходит180native cases. GraceSize flags mismatch остаётся следующейcorrectnessзадачей. [Пакет098](grace-integration-098/README.md).
+
+Третий packed FAT flags fix закрыт: root все108 native/VM cases PASS42.23с; полныйMIR2/VIR PASS. Новый ENRT checkpoint index подтверждает прежний triple выигрыш, rootnative PASS2.001с. Автоматический FAT selector ещё не заявлен. [Пакет099](grace-integration-099/README.md).

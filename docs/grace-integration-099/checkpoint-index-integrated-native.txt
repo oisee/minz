@@ -1,0 +1,9 @@
+=== RUN   TestIndexedHistoricalTripleNative
+    table_indexed_native_test.go:57: historical record158626 bytes27461B prefixSHA= blockSHA=3cee20778bd3d52a5846848aca93d1b809f74e2f823c7957c36996feeb6ae9ef
+    table_indexed_native_test.go:148: existing indirect apply triple all256 123T/34B
+    table_indexed_native_test.go:148: existing indirect apply triple all256 111T/31B
+    table_indexed_native_test.go:171: module 34B triple66T→54T
+    table_indexed_native_test.go:171: module 31B triple66T→54T
+--- PASS: TestIndexedHistoricalTripleNative (1.99s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.001s
