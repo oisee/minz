@@ -1,0 +1,622 @@
+{
+  "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+  "executable_sha256": "1bd95516f7b1ef1ba56c17822104936e2b73fe8bde5fe7368dd128811009f041",
+  "candidate_audits": [
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51",
+      "t_states": 784,
+      "bytes": 2091,
+      "str_bump": 36865,
+      "node_bump": 32768,
+      "case": "zero-body",
+      "goal": "speed",
+      "candidate": "original"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "34958078e521d824b3df65ad8f31c4bb586c86c19332222294a4a8258bda8ea5",
+      "t_states": 763,
+      "bytes": 2212,
+      "str_bump": 36865,
+      "node_bump": 32768,
+      "case": "zero-body",
+      "goal": "speed",
+      "candidate": "arena"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "7c244dd469683c8bb1505061c3d9eda5162f3b36219efba1418a240b781f7751",
+      "t_states": 948,
+      "bytes": 2076,
+      "str_bump": 36865,
+      "node_bump": 32768,
+      "case": "zero-body",
+      "goal": "speed",
+      "candidate": "append"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "2ed1a44a51fa41196191a8fad9429a5b97040aefa5f9fc90257c2fa7921d93cc",
+      "t_states": 927,
+      "bytes": 2197,
+      "str_bump": 36865,
+      "node_bump": 32768,
+      "case": "zero-body",
+      "goal": "speed",
+      "candidate": "both"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51",
+      "t_states": 784,
+      "bytes": 2091,
+      "str_bump": 36865,
+      "node_bump": 32768,
+      "case": "zero-body",
+      "goal": "size",
+      "candidate": "original"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "34958078e521d824b3df65ad8f31c4bb586c86c19332222294a4a8258bda8ea5",
+      "t_states": 763,
+      "bytes": 2212,
+      "str_bump": 36865,
+      "node_bump": 32768,
+      "case": "zero-body",
+      "goal": "size",
+      "candidate": "arena"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "7c244dd469683c8bb1505061c3d9eda5162f3b36219efba1418a240b781f7751",
+      "t_states": 948,
+      "bytes": 2076,
+      "str_bump": 36865,
+      "node_bump": 32768,
+      "case": "zero-body",
+      "goal": "size",
+      "candidate": "append"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 1,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "2ed1a44a51fa41196191a8fad9429a5b97040aefa5f9fc90257c2fa7921d93cc",
+      "t_states": 927,
+      "bytes": 2197,
+      "str_bump": 36865,
+      "node_bump": 32768,
+      "case": "zero-body",
+      "goal": "size",
+      "candidate": "both"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 3,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51",
+      "t_states": 1672,
+      "bytes": 2091,
+      "str_bump": 36865,
+      "node_bump": 32768,
+      "case": "first-equal",
+      "goal": "speed",
+      "candidate": "original"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 3,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "34958078e521d824b3df65ad8f31c4bb586c86c19332222294a4a8258bda8ea5",
+      "t_states": 1587,
+      "bytes": 2212,
+      "str_bump": 36865,
+      "node_bump": 32768,
+      "case": "first-equal",
+      "goal": "speed",
+      "candidate": "arena"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 3,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "7c244dd469683c8bb1505061c3d9eda5162f3b36219efba1418a240b781f7751",
+      "t_states": 1836,
+      "bytes": 2076,
+      "str_bump": 36865,
+      "node_bump": 32768,
+      "case": "first-equal",
+      "goal": "speed",
+      "candidate": "append"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 3,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "2ed1a44a51fa41196191a8fad9429a5b97040aefa5f9fc90257c2fa7921d93cc",
+      "t_states": 1751,
+      "bytes": 2197,
+      "str_bump": 36865,
+      "node_bump": 32768,
+      "case": "first-equal",
+      "goal": "speed",
+      "candidate": "both"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 3,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51",
+      "t_states": 1672,
+      "bytes": 2091,
+      "str_bump": 36865,
+      "node_bump": 32768,
+      "case": "first-equal",
+      "goal": "size",
+      "candidate": "original"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 3,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "34958078e521d824b3df65ad8f31c4bb586c86c19332222294a4a8258bda8ea5",
+      "t_states": 1587,
+      "bytes": 2212,
+      "str_bump": 36865,
+      "node_bump": 32768,
+      "case": "first-equal",
+      "goal": "size",
+      "candidate": "arena"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 3,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "7c244dd469683c8bb1505061c3d9eda5162f3b36219efba1418a240b781f7751",
+      "t_states": 1836,
+      "bytes": 2076,
+      "str_bump": 36865,
+      "node_bump": 32768,
+      "case": "first-equal",
+      "goal": "size",
+      "candidate": "append"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 3,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "2ed1a44a51fa41196191a8fad9429a5b97040aefa5f9fc90257c2fa7921d93cc",
+      "t_states": 1751,
+      "bytes": 2197,
+      "str_bump": 36865,
+      "node_bump": 32768,
+      "case": "first-equal",
+      "goal": "size",
+      "candidate": "both"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 3,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51",
+      "t_states": 1608,
+      "bytes": 2091,
+      "str_bump": 36865,
+      "node_bump": 32768,
+      "case": "first-mismatch",
+      "goal": "speed",
+      "candidate": "original"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 3,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "34958078e521d824b3df65ad8f31c4bb586c86c19332222294a4a8258bda8ea5",
+      "t_states": 1564,
+      "bytes": 2212,
+      "str_bump": 36865,
+      "node_bump": 32768,
+      "case": "first-mismatch",
+      "goal": "speed",
+      "candidate": "arena"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 3,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "7c244dd469683c8bb1505061c3d9eda5162f3b36219efba1418a240b781f7751",
+      "t_states": 1772,
+      "bytes": 2076,
+      "str_bump": 36865,
+      "node_bump": 32768,
+      "case": "first-mismatch",
+      "goal": "speed",
+      "candidate": "append"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 3,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "2ed1a44a51fa41196191a8fad9429a5b97040aefa5f9fc90257c2fa7921d93cc",
+      "t_states": 1728,
+      "bytes": 2197,
+      "str_bump": 36865,
+      "node_bump": 32768,
+      "case": "first-mismatch",
+      "goal": "speed",
+      "candidate": "both"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 3,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51",
+      "t_states": 1608,
+      "bytes": 2091,
+      "str_bump": 36865,
+      "node_bump": 32768,
+      "case": "first-mismatch",
+      "goal": "size",
+      "candidate": "original"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 3,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "34958078e521d824b3df65ad8f31c4bb586c86c19332222294a4a8258bda8ea5",
+      "t_states": 1564,
+      "bytes": 2212,
+      "str_bump": 36865,
+      "node_bump": 32768,
+      "case": "first-mismatch",
+      "goal": "size",
+      "candidate": "arena"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 3,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "7c244dd469683c8bb1505061c3d9eda5162f3b36219efba1418a240b781f7751",
+      "t_states": 1772,
+      "bytes": 2076,
+      "str_bump": 36865,
+      "node_bump": 32768,
+      "case": "first-mismatch",
+      "goal": "size",
+      "candidate": "append"
+    },
+    {
+      "calls": 2,
+      "ordered_events": 3,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "2ed1a44a51fa41196191a8fad9429a5b97040aefa5f9fc90257c2fa7921d93cc",
+      "t_states": 1728,
+      "bytes": 2197,
+      "str_bump": 36865,
+      "node_bump": 32768,
+      "case": "first-mismatch",
+      "goal": "size",
+      "candidate": "both"
+    }
+  ],
+  "actual_decisions": [
+    {
+      "case": "zero-body",
+      "goal": "speed",
+      "selected": 1,
+      "candidate": "arena",
+      "costs_t": [
+        784,
+        763,
+        948,
+        927
+      ],
+      "bytes": [
+        2091,
+        2212,
+        2076,
+        2197
+      ]
+    },
+    {
+      "case": "zero-body",
+      "goal": "size",
+      "selected": 2,
+      "candidate": "append",
+      "costs_t": [
+        784,
+        763,
+        948,
+        927
+      ],
+      "bytes": [
+        2091,
+        2212,
+        2076,
+        2197
+      ]
+    },
+    {
+      "case": "first-equal",
+      "goal": "speed",
+      "selected": 1,
+      "candidate": "arena",
+      "costs_t": [
+        1672,
+        1587,
+        1836,
+        1751
+      ],
+      "bytes": [
+        2091,
+        2212,
+        2076,
+        2197
+      ]
+    },
+    {
+      "case": "first-equal",
+      "goal": "size",
+      "selected": 2,
+      "candidate": "append",
+      "costs_t": [
+        1672,
+        1587,
+        1836,
+        1751
+      ],
+      "bytes": [
+        2091,
+        2212,
+        2076,
+        2197
+      ]
+    },
+    {
+      "case": "first-mismatch",
+      "goal": "speed",
+      "selected": 1,
+      "candidate": "arena",
+      "costs_t": [
+        1608,
+        1564,
+        1772,
+        1728
+      ],
+      "bytes": [
+        2091,
+        2212,
+        2076,
+        2197
+      ]
+    },
+    {
+      "case": "first-mismatch",
+      "goal": "size",
+      "selected": 2,
+      "candidate": "append",
+      "costs_t": [
+        1608,
+        1564,
+        1772,
+        1728
+      ],
+      "bytes": [
+        2091,
+        2212,
+        2076,
+        2197
+      ]
+    }
+  ],
+  "independent_source_counts": {
+    "zero-body": {
+      "intern_region/body/s1": [
+        1,
+        0
+      ],
+      "skip_ws/body/s1/then/s0": [
+        0,
+        0
+      ],
+      "main/body/s2": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s8/then/s2": [
+        0,
+        0
+      ],
+      "region_match/body/s1": [
+        1,
+        0
+      ],
+      "skip_ws/body/s0": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s5": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s3/then/s7": [
+        0,
+        0
+      ],
+      "intern_region/body/s5": [
+        1,
+        0
+      ],
+      "print_node/body/s4/then/s3": [
+        0,
+        0
+      ],
+      "print_str/body/s2": [
+        0,
+        0
+      ]
+    },
+    "first-equal": {
+      "intern_region/body/s1": [
+        1,
+        0
+      ],
+      "skip_ws/body/s1/then/s0": [
+        0,
+        0
+      ],
+      "main/body/s2": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s8/then/s2": [
+        0,
+        0
+      ],
+      "region_match/body/s1": [
+        1,
+        1
+      ],
+      "skip_ws/body/s0": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s5": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s3/then/s7": [
+        0,
+        0
+      ],
+      "intern_region/body/s5": [
+        1,
+        0
+      ],
+      "print_node/body/s4/then/s3": [
+        0,
+        0
+      ],
+      "print_str/body/s2": [
+        0,
+        0
+      ]
+    },
+    "first-mismatch": {
+      "intern_region/body/s1": [
+        1,
+        0
+      ],
+      "skip_ws/body/s1/then/s0": [
+        0,
+        0
+      ],
+      "main/body/s2": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s8/then/s2": [
+        0,
+        0
+      ],
+      "region_match/body/s1": [
+        1,
+        1
+      ],
+      "skip_ws/body/s0": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s5": [
+        0,
+        0
+      ],
+      "parse_sexpr/body/s3/then/s7": [
+        0,
+        0
+      ],
+      "intern_region/body/s5": [
+        1,
+        0
+      ],
+      "print_node/body/s4/then/s3": [
+        0,
+        0
+      ],
+      "print_str/body/s2": [
+        0,
+        0
+      ]
+    }
+  },
+  "refusals": [
+    {
+      "case": "unobserved-append",
+      "reason": "both exact sites must be observed",
+      "exit_code": 1,
+      "output_absent": true,
+      "diagnostic_preserved": true,
+      "typed_failure": null
+    },
+    {
+      "case": "source-tail-denial",
+      "reason": "undeclared read at 49153",
+      "exit_code": 1,
+      "output_absent": true,
+      "diagnostic_preserved": true,
+      "typed_failure": {
+        "kind": "undeclared",
+        "address": 49153,
+        "write": false
+      }
+    },
+    {
+      "case": "destination-tail-denial",
+      "reason": "undeclared write at 36866",
+      "exit_code": 1,
+      "output_absent": true,
+      "diagnostic_preserved": true,
+      "typed_failure": {
+        "kind": "undeclared",
+        "address": 36866,
+        "write": true
+      }
+    },
+    {
+      "case": "read-only-header-denial",
+      "reason": "read-only write at 36864",
+      "exit_code": 1,
+      "output_absent": true,
+      "diagnostic_preserved": true,
+      "typed_failure": {
+        "kind": "read-only",
+        "address": 36864,
+        "write": true
+      }
+    },
+    {
+      "case": "instruction-budget",
+      "reason": "gas limit reached (1 steps)",
+      "exit_code": 1,
+      "output_absent": true,
+      "diagnostic_preserved": true,
+      "typed_failure": null
+    }
+  ]
+}

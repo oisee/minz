@@ -4,8 +4,16 @@
   "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
   "files": [
     {
+      "path": "docs/grace-memory-host-choice-oracle/FINAL-AUDIT.md",
+      "sha256": "5fcb4b0049fb43256c388da64c373fc09c4564eb4089000639842dee603529b1"
+    },
+    {
       "path": "docs/grace-memory-host-choice-oracle/PLAN.md",
       "sha256": "8a13831644d71fbe8c73d50e1ddb73d4a7f573bb7223f6458b1f67b1cf4f2208"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/audit_cli_pack.py",
+      "sha256": "2153e737b5a9404da38875f3e47baedb94228a1d6266bbee9ef0267208fcb64a"
     },
     {
       "path": "docs/grace-memory-host-choice-oracle/audit_raw_profiles.py",
@@ -14,6 +22,18 @@
     {
       "path": "docs/grace-memory-host-choice-oracle/expected.json.gz",
       "sha256": "721a02af176c4c7b5f2cdf2213e69f55d11f17629013cf69ef0187d8e07cf748"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/final-cli-audit.json",
+      "sha256": "9e7b2ee59de3a294438e519d002bdd188fba338eb7058f9792d7a813ade7946f"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/final-cli-audit.txt",
+      "sha256": "cd59d8ace572c89a16997344b91852ae02c95158d2eaf62e65fbe220b08fb875"
+    },
+    {
+      "path": "docs/grace-memory-host-choice-oracle/model/audit_profile.py",
+      "sha256": "50814a6c4b56c341836bf58803cf14cb23918e74d92973b0bfb04d0217a37531"
     },
     {
       "path": "docs/grace-memory-host-choice-oracle/model/verify_corpus.py",
