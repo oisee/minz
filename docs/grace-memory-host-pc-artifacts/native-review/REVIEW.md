@@ -1,0 +1,11 @@
+# Per-PC closed native diagnostic plan review
+
+Reviewed owner9a0ef769 plan beforeCPU. Scope isolatedprivate diagnostics, twofull30runs original/both with exactsavedBIN fed98.../2ed1...; parent/compilercontract unchanged. No materialplanhole; implementationhook/ownershippartition mustbe reviewed beforeactualruns.
+
+Observepre-PC/pre-T andafter successfulmemoryHostNativeStep only, afterfetch/protectedrecipes/framechecks. Callback mustnotmutatestate/admitassembly; hookisolatedtestcode serial/restoreddefaultnil. Do notcharge hostpreflightrefusal or bootstrapregistersetup/returnsentinel asinstructions; anyfailedstep trace separate fromsuccessbaselineattestation. ActualunsignedTdelta legitimatezero? expectedinstructioncyclepositive; aggregateoverflowchecked/refused ratherthansilentwrap.
+
+Sameprivateassembledresult supplieslisting/symbols, notcallerprovideddifferentASM. Ownerphysicalentryfromemittedbytes+verifiedfunctionsymbol; node_tag EQU peek isaliasnotnewrange. Adapterspeek/poke explicit, spilling/data labelsnotfunctionboundaries. Disjointownerpartition includesunownedbucket, nooverlap/droppedPCs. CALL/RET costsbelonginstruction-startowner. Inclusivecostsdeferred; no guessed HIRloop/callchain lineage.
+
+PerinvocationPC count/Tsum mustequalnativeobservationSteps/InvocationTStates; fullsumequalExecutedSteps/TotalTStates. InstructionbytesatPC match exactBIN; fullresults/globals/regions/resourceevents andsidecar/frame/alloc/MIR/ASMBIN identities match prioractualsnapshot. Newtestexecutablecontext explicitlydifferent1bdCLI; nofakeprofilesidentity. Fixedreferencecosts verified, notupdatedtoconvenientnewresults.
+
+Staticmeaningfultests alias/adapters/unowned/duplicatephysicalentry andreconciliation boundaries. Actualonly2runs afterhookreview onceowner; independent savedaudit noCPUduplicate. Reportexclusivehotspotsdiagnosticboundedmodeltiming, notemulatorindependentproof oroptimizationcertificate. Nextoptimizationlegality separate.

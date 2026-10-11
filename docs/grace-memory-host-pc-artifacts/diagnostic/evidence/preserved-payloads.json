@@ -1,0 +1,98 @@
+[
+  {
+    "original": "diagnostic-drift/original/factory-baseline.json",
+    "gzip": "diagnostic-drift/original/factory-baseline.json.gz",
+    "bytes": 2219920,
+    "sha256": "1452acf1fed2a8a53d192975f1a7e9b9bbe8dbc034b968ee5e51acba7b028e71"
+  },
+  {
+    "original": "diagnostic-drift/original/pc-ledger.json",
+    "gzip": "diagnostic-drift/original/pc-ledger.json.gz",
+    "bytes": 2396613,
+    "sha256": "221b69b1bfb88131c91835bb42c416235a6e54bfb5e457ce674d9182836a5959"
+  },
+  {
+    "original": "final/both/allocation.json",
+    "gzip": "final/both/allocation.json.gz",
+    "bytes": 18007,
+    "sha256": "fcbbced5794f3a65155762f254a9287133a3842d009e70c158156dc322c7a068"
+  },
+  {
+    "original": "final/both/cost-summary.json",
+    "gzip": "final/both/cost-summary.json.gz",
+    "bytes": 80452,
+    "sha256": "ec9dc766e79c23ca3c3642b8b7dd5a9d07e2a10bef21f92406f440f4cf617029"
+  },
+  {
+    "original": "final/both/factory-baseline.json",
+    "gzip": "final/both/factory-baseline.json.gz",
+    "bytes": 2229533,
+    "sha256": "fb56e5235a9e0bca247764f1ce58c7c5ae32b288d6fe56e3a4de03d76069baf6"
+  },
+  {
+    "original": "final/both/final.mir2",
+    "gzip": "final/both/final.mir2.gz",
+    "bytes": 26143,
+    "sha256": "936a8d9aca6f7ac80723e498fab2bc44ffacfe2b05037d470bb45938ceee9ef1"
+  },
+  {
+    "original": "final/both/pc-ledger.json",
+    "gzip": "final/both/pc-ledger.json.gz",
+    "bytes": 2394268,
+    "sha256": "4bb5d2697822beae7bb9d8b4cbd5ca6bb5da4c2906d616813d1f62b4c16d265c"
+  },
+  {
+    "original": "final/both/physical-owner-projection.json",
+    "gzip": "final/both/physical-owner-projection.json.gz",
+    "bytes": 2411340,
+    "sha256": "96623e065545c0b88e025764c45dac258048a3a419d311de062383dacc1db3ea"
+  },
+  {
+    "original": "final/both/target.a80",
+    "gzip": "final/both/target.a80.gz",
+    "bytes": 33808,
+    "sha256": "2f7bbab0b46fe75a94c4cd5ffe5e5a92f2ea3d2a490afa39d483838108291941"
+  },
+  {
+    "original": "final/original/allocation.json",
+    "gzip": "final/original/allocation.json.gz",
+    "bytes": 17418,
+    "sha256": "9af8fdfdeb8d341f6f28097323c96a5b59d1fee911045b363782e8e64e0d8976"
+  },
+  {
+    "original": "final/original/cost-summary.json",
+    "gzip": "final/original/cost-summary.json.gz",
+    "bytes": 75151,
+    "sha256": "e43f12bcf7d29ebb0fea7e9a50a71f7def0e49eabce2822b3ecf360d0aab47df"
+  },
+  {
+    "original": "final/original/factory-baseline.json",
+    "gzip": "final/original/factory-baseline.json.gz",
+    "bytes": 2219878,
+    "sha256": "81d40fe65e045882694f02ef9bbb7f03150ff50037d4ea74e2f89c13afb38bae"
+  },
+  {
+    "original": "final/original/final.mir2",
+    "gzip": "final/original/final.mir2.gz",
+    "bytes": 25214,
+    "sha256": "7c6d066dba853d5612611b53a442e5a355d1480e31d0c0225feff75525fbd913"
+  },
+  {
+    "original": "final/original/pc-ledger.json",
+    "gzip": "final/original/pc-ledger.json.gz",
+    "bytes": 2396613,
+    "sha256": "221b69b1bfb88131c91835bb42c416235a6e54bfb5e457ce674d9182836a5959"
+  },
+  {
+    "original": "final/original/physical-owner-projection.json",
+    "gzip": "final/original/physical-owner-projection.json.gz",
+    "bytes": 2420136,
+    "sha256": "1ce66edd00513796d7ec8002c97104334593952cd56db40cc4a160ac6c46728a"
+  },
+  {
+    "original": "final/original/target.a80",
+    "gzip": "final/original/target.a80.gz",
+    "bytes": 31887,
+    "sha256": "461d1ff70cd7bf140a5bea77df7b2948a1a069af35f2cd08b6fbffcaa8382414"
+  }
+]

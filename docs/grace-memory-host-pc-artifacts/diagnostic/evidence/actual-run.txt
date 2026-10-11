@@ -1,0 +1,8 @@
+=== RUN   TestMemoryHostPCDiagnosticOriginalBoth30
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_pc_diagnostic_test.go:267: artifact binding drift
+--- FAIL: TestMemoryHostPCDiagnosticOriginalBoth30 (0.99s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	1.002s
+FAIL

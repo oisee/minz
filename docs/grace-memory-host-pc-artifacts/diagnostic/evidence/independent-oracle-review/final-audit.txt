@@ -1,0 +1,1 @@
+PASS two saved30-call native semantics, PC/opcode/BIN binding, raw preservation, exact per-call/global steps/T and physical owner/adapter/alias partition; no CPU

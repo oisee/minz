@@ -1,0 +1,15 @@
+{
+  "root": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-pc-cost-evidence/final",
+  "files_sha256": {
+    "both/cost-summary.json": "ec9dc766e79c23ca3c3642b8b7dd5a9d07e2a10bef21f92406f440f4cf617029",
+    "both/factory-baseline.json": "fb56e5235a9e0bca247764f1ce58c7c5ae32b288d6fe56e3a4de03d76069baf6",
+    "both/pc-ledger.json": "4bb5d2697822beae7bb9d8b4cbd5ca6bb5da4c2906d616813d1f62b4c16d265c",
+    "both/physical-owner-projection.json": "96623e065545c0b88e025764c45dac258048a3a419d311de062383dacc1db3ea",
+    "both/target.bin": "2ed1a44a51fa41196191a8fad9429a5b97040aefa5f9fc90257c2fa7921d93cc",
+    "original/cost-summary.json": "e43f12bcf7d29ebb0fea7e9a50a71f7def0e49eabce2822b3ecf360d0aab47df",
+    "original/factory-baseline.json": "81d40fe65e045882694f02ef9bbb7f03150ff50037d4ea74e2f89c13afb38bae",
+    "original/pc-ledger.json": "221b69b1bfb88131c91835bb42c416235a6e54bfb5e457ce674d9182836a5959",
+    "original/physical-owner-projection.json": "1ce66edd00513796d7ec8002c97104334593952cd56db40cc4a160ac6c46728a",
+    "original/target.bin": "fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51"
+  }
+}
