@@ -50,7 +50,6 @@ func TestPFCCOOriginalTokenizerRenderingConsumer(t *testing.T) {
 		if e != nil || len(bin.Errors) > 0 {
 			t.Fatal(e, bin.Errors)
 		}
-		os.WriteFile("/tmp/tokenizer-debug.a80", []byte("ORG 0x400\n"+adapted), 0644)
 		plain, e := z80asm.NewAssembler().AssembleString(steps.Assembly)
 		if e != nil || len(plain.Errors) > 0 {
 			t.Fatal(e, plain.Errors)
