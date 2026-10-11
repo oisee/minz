@@ -1,0 +1,359 @@
+{
+  "compatibility": {
+    "schema": "minz.loop-profile-compatibility/v1",
+    "context": {
+      "compiler_id": "executable-sha256:6dc9f0e94ade567ab37d38b81e6ffd097f95f769c783409c1a2bd0f49c5fea49",
+      "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+      "target_id": "module-target:0/model:cpm-z80-v1",
+      "workload_sha256": "6d4df59f303fc12ccea23cde23a0e5d2e9d83195529c571c07dfdb39d0b2ca30",
+      "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+      "dependencies": {
+        "../../../examples/nanz/08_arena_allocator.nanz": "ae1ff790c63064bb30bb27aa3529f847f5981de841ce816c868249c9bb85107e"
+      }
+    },
+    "hir_sha256": "cabefaee21a6c463e39a247cacf3270eabb07619257b37de9ce0df23a51efb13",
+    "origins_sha256": "ac57d0fc9d1e42ad80371ae05aec1ee0ca466ab57e0664b275ac42dedae30648"
+  },
+  "binary_sha256": "e5f63d7304fe0dce18bc2b25ac2b982ee234a9c33428b5c99e37c95a22ce3e85",
+  "bootstrap_sha256": [
+    "9f68ab86c17770395102930b610a8694cd53c56bd79488d3e49f10c5009d4258",
+    "ea96f241c25b8a24302132687e0bdc7e816798cdcefa7402aeb9eebdd8e71626",
+    "a4322fc3363da3563044f23831c974729a6c977de069f578d0d288f404472e46",
+    "08d9df9515b457c19d1434375df8ef1603a3f235b7e3fe17d08880e9fd448100"
+  ],
+  "invocations": [
+    {
+      "access": {
+        "globals": {
+          "arena": {
+            "reads": [
+              5,
+              5,
+              4,
+              4
+            ],
+            "writes": [
+              6,
+              6,
+              1,
+              1
+            ]
+          },
+          "frame": {
+            "reads": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "writes": [
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          "level": {
+            "reads": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "writes": [
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          "perm": {
+            "reads": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "writes": [
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "resources": {}
+      },
+      "function": "test_alloc_sequence",
+      "t_states": 2206,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "arena": "ZMAA/w==",
+          "frame": "AAAAAA==",
+          "level": "AAAAAA==",
+          "perm": "AAAAAA=="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {
+          "arena": {
+            "reads": [
+              3,
+              3,
+              3,
+              3
+            ],
+            "writes": [
+              3,
+              3,
+              1,
+              1
+            ]
+          },
+          "frame": {
+            "reads": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "writes": [
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          "level": {
+            "reads": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "writes": [
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          "perm": {
+            "reads": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "writes": [
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "resources": {}
+      },
+      "function": "test_oom",
+      "t_states": 1449,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "arena": "EMAQwA==",
+          "frame": "AAAAAA==",
+          "level": "AAAAAA==",
+          "perm": "AAAAAA=="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {
+          "arena": {
+            "reads": [
+              4,
+              4,
+              4,
+              4
+            ],
+            "writes": [
+              4,
+              4,
+              1,
+              1
+            ]
+          },
+          "frame": {
+            "reads": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "writes": [
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          "level": {
+            "reads": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "writes": [
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          "perm": {
+            "reads": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "writes": [
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "resources": {}
+      },
+      "function": "test_small_allocs",
+      "t_states": 1899,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "arena": "BMAAxA==",
+          "frame": "AAAAAA==",
+          "level": "AAAAAA==",
+          "perm": "AAAAAA=="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {
+          "arena": {
+            "reads": [
+              3,
+              3,
+              3,
+              3
+            ],
+            "writes": [
+              4,
+              4,
+              1,
+              1
+            ]
+          },
+          "frame": {
+            "reads": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "writes": [
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          "level": {
+            "reads": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "writes": [
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          "perm": {
+            "reads": [
+              0,
+              0,
+              0,
+              0
+            ],
+            "writes": [
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        "resources": {}
+      },
+      "function": "test_typed_alloc",
+      "t_states": 1611,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "arena": "DMAA0A==",
+          "frame": "AAAAAA==",
+          "level": "AAAAAA==",
+          "perm": "AAAAAA=="
+        },
+        "resources": {}
+      }
+    }
+  ],
+  "globals": {
+    "arena": "DMAA0A==",
+    "frame": "AAAAAA==",
+    "level": "AAAAAA==",
+    "perm": "AAAAAA=="
+  },
+  "resources": {},
+  "resource_addresses": {},
+  "global_addresses": {
+    "arena": 33936,
+    "frame": 33948,
+    "level": 33944,
+    "perm": 33940
+  },
+  "bootstrap_t_states": 108,
+  "total_t_states": 7165,
+  "executed_steps": 805
+}

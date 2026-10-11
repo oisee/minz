@@ -1,0 +1,232 @@
+// 08_arena_allocator.nanz — Struct-based bump allocator for Z80
+//
+// Zero-overhead arena: alloc is ADD HL,DE + store.
+// No free, no fragmentation, no overhead per allocation.
+// Reset reclaims everything in one instruction.
+//
+// Multiple arenas with different lifetimes:
+//   permanent — game state, never reset
+//   level     — per-level data, reset on level change
+//   frame     — per-frame temporaries, reset every frame
+//
+// Memory layout (ZX Spectrum):
+//   0x8000-0xBFFF  code + data (16K)
+//   0xC000-0xFEFF  arena pool (15.75K usable)
+//   0xFF00-0xFFFF  stack (256 bytes)
+
+// --- Arena struct: 4 bytes ---
+
+struct Arena {
+    ptr: u16    // current bump pointer
+    end: u16    // one past last usable byte
+}
+
+// --- Core API (method syntax via ^Arena pointer receiver) ---
+
+fun Arena.init(self: ^Arena, base: u16, size: u16) {
+    self.ptr = base
+    self.end = base + size
+}
+
+fun Arena.alloc(self: ^Arena, n: u16) -> u16 {
+    let result: u16 = self.ptr
+    let next: u16 = result + n
+    if next > self.end {
+        return 0
+    }
+    self.ptr = next
+    return result
+}
+
+fun Arena.reset(self: ^Arena, base: u16) {
+    self.ptr = base
+}
+
+fun Arena.used(self: ^Arena, base: u16) -> u16 {
+    return self.ptr - base
+}
+
+fun Arena.remaining(self: ^Arena) -> u16 {
+    return self.end - self.ptr
+}
+
+// --- Arena split: carve multiple arenas from one memory pool ---
+
+// Returns the start address of the NEXT free region after this arena.
+// Usage: let next = arena_split(&my_arena, start, size)
+//        let next2 = arena_split(&other, next, other_size)
+fun arena_split(a: ^Arena, start: u16, size: u16) -> u16 {
+    a.init(start, size)
+    return start + size
+}
+
+// --- sizeof works with Arena ---
+// sizeof(Arena) == 4
+
+// =====================================================================
+// Tests
+// =====================================================================
+
+// --- Test: basic alloc sequence ---
+
+global arena: Arena
+
+fun test_alloc_sequence() -> u16 {
+    arena.init(0xC000, 0x3F00)
+
+    let a = arena.alloc(256)
+    let b = arena.alloc(256)
+    let c = arena.alloc(256)
+
+    if a != 0xC000 { return 1 }
+    if b != 0xC100 { return 2 }
+    if c != 0xC200 { return 3 }
+
+    arena.reset(0xC000)
+    let d = arena.alloc(100)
+    if d != 0xC000 { return 5 }
+    if arena.used(0xC000) != 100 { return 6 }
+
+    return 0
+}
+
+// --- Test: OOM returns 0 ---
+
+fun test_oom() -> u16 {
+    arena.init(0xC000, 16)
+
+    let a = arena.alloc(8)
+    if a == 0 { return 1 }
+
+    let b = arena.alloc(8)
+    if b == 0 { return 2 }
+
+    let c = arena.alloc(1)
+    if c != 0 { return 3 }
+
+    return 0
+}
+
+// --- Test: small allocs ---
+
+fun test_small_allocs() -> u16 {
+    arena.init(0xC000, 1024)
+
+    let p1 = arena.alloc(1)
+    let p2 = arena.alloc(1)
+    let p3 = arena.alloc(2)
+
+    if p1 != 0xC000 { return 1 }
+    if p2 != 0xC001 { return 2 }
+    if p3 != 0xC002 { return 3 }
+    if arena.remaining() != 1020 { return 4 }
+
+    return 0
+}
+
+// --- Test: sizeof(Arena) ---
+
+fun test_sizeof() -> u16 {
+    if sizeof(Arena) != 4 { return 1 }
+    return 0
+}
+
+// --- Test: multiple arenas via split ---
+
+global perm: Arena
+global level: Arena
+global frame: Arena
+
+fun test_split() -> u16 {
+    let next = arena_split(&perm, 0xC000, 256)
+    if next != 0xC100 { return 1 }
+
+    let next2 = arena_split(&level, next, 2048)
+    if next2 != 0xC900 { return 2 }
+
+    let next3 = arena_split(&frame, next2, 1024)
+    if next3 != 0xCD00 { return 3 }
+
+    // Alloc from each arena independently
+    let p1 = perm.alloc(4)
+    let l1 = level.alloc(100)
+    let f1 = frame.alloc(32)
+
+    if p1 != 0xC000 { return 4 }
+    if l1 != 0xC100 { return 5 }
+    if f1 != 0xC900 { return 6 }
+
+    // Frame reset doesn't affect others
+    frame.reset(0xC900)
+    let f2 = frame.alloc(16)
+    if f2 != 0xC900 { return 7 }
+
+    // Perm and level still advanced
+    let p2 = perm.alloc(4)
+    if p2 != 0xC004 { return 8 }
+
+    let l2 = level.alloc(100)
+    if l2 != 0xC164 { return 9 }
+
+    return 0
+}
+
+// --- Test: typed alloc with sizeof ---
+
+struct Enemy {
+    x: u8
+    y: u8
+    hp: u8
+    sprite: u8
+}
+
+struct Vec2 {
+    x: u16
+    y: u16
+}
+
+fun test_typed_alloc() -> u16 {
+    arena.init(0xC000, 0x1000)
+
+    let e1 = arena.alloc(sizeof(Enemy))
+    let e2 = arena.alloc(sizeof(Enemy))
+    let v1 = arena.alloc(sizeof(Vec2))
+
+    if e1 != 0xC000 { return 1 }
+    if e2 != 0xC004 { return 2 }
+    if v1 != 0xC008 { return 3 }
+    return 0
+}
+
+// --- Self-contained tests (each inits its own arena → fresh VM is fine) ---
+assert test_alloc_sequence() == 0 via mir2
+assert test_oom() == 0 via mir2
+assert test_small_allocs() == 0 via mir2
+assert test_sizeof() == 0 via mir2
+assert test_split() == 0 via mir2
+assert test_typed_alloc() == 0 via mir2
+
+// --- Sandbox: cross-function shared state ---
+
+fun init_frame() -> u16 {
+    arena.init(0xC000, 0x3F00)
+    return arena.remaining()
+}
+
+fun alloc_and_check(expected: u16) -> u16 {
+    let p = arena.alloc(64)
+    if p != expected { return 1 }
+    return 0
+}
+
+fun get_remaining() -> u16 {
+    return arena.remaining()
+}
+
+sandbox "arena_shared_state" {
+    assert init_frame() == 0x3F00 via mir2
+    assert alloc_and_check(0xC000) == 0 via mir2
+    assert alloc_and_check(0xC040) == 0 via mir2
+    assert alloc_and_check(0xC080) == 0 via mir2
+    assert get_remaining() == 15936 via mir2
+}
