@@ -383,3 +383,51 @@ func TestFrozenTransferSharedOriginalRefusal(t *testing.T) {
 		t.Fatal("shared original graph admitted", calls, err)
 	}
 }
+
+func TestFrozenTransferLateBeforeCompileRefusal(t *testing.T) {
+	input := frozenTransferFixture(t, "short-reuse")
+	calls := 0
+	var first *hir.Module
+	e, err := runFrozenTransfer(func() (*hir.Module, error) {
+		calls++
+		m, e := nanz.Parse(string(input.Source), input.SourceName)
+		if e != nil {
+			return nil, e
+		}
+		m.Target = hir.TargetCPM
+		if calls == 1 {
+			first = m
+		}
+		if calls == 2 {
+			stmt := first.FuncByName("intern_region").Body.Body[5]
+			loc := first.SourceLocations[stmt]
+			loc.ByteOffset++
+			first.SourceLocations[stmt] = loc
+		}
+		return m, nil
+	}, input)
+	if e != nil || err == nil || calls != 2 {
+		t.Fatal("delayed immutable original drift admitted", calls, err)
+	}
+}
+func TestFrozenTransferPrivateShapes(t *testing.T) {
+	input := frozenTransferFixture(t, "short-reuse")
+	expected, w, err := prepareFrozenTransfer(input)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, mask := range []int{0, 3, 2} {
+		actual, err := nanz.Parse(string(input.Source), input.SourceName)
+		if err != nil {
+			t.Fatal(err)
+		}
+		actual.Target = hir.TargetCPM
+		choices := hir.MemoryHostArenaAppendChoices{ArenaPeel: mask&1 != 0, AppendHoist: mask&2 != 0}
+		if err = constructMemoryHostArenaAppend(actual, w, choices.ArenaPeel, choices.AppendHoist); err != nil {
+			t.Fatal(err)
+		}
+		if _, err = buildMemoryHostArenaAppendPrecompileProof(expected, actual, w, choices); err != nil {
+			t.Fatal("fixed transfer shape", mask, err)
+		}
+	}
+}
