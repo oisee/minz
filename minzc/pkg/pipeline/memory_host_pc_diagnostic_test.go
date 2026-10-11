@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/z80asm"
 )
 
@@ -221,13 +222,30 @@ func TestMemoryHostPCDiagnosticOriginalBoth30(t *testing.T) {
 	}
 	t.Cleanup(func() { memoryHostPCLayoutDiagnostic = nil; memoryHostPCStepDiagnostic = nil })
 	_, w := memoryHostParserFixture(t)
+	sourceBytes, err := os.ReadFile("../../../examples/nanz/self_lanz_parser.nanz")
+	if err != nil {
+		t.Fatal(err)
+	}
+	parse := func() (*hir.Module, error) {
+		m, e := nanz.Parse(string(sourceBytes), "../examples/nanz/self_lanz_parser.nanz")
+		if e == nil {
+			m.Target = hir.TargetCPM
+		}
+		return m, e
+	}
 	for _, mask := range []int{0, 3} {
 		ledger := &pcLedger{}
 		memoryHostPCLayoutDiagnostic = ledger.setup
 		memoryHostPCStepDiagnostic = ledger.observe
 		factory := func() (*hir.Module, error) {
-			m, _ := memoryHostParserFixture(t)
-			original, _ := memoryHostParserFixture(t)
+			m, e := parse()
+			if e != nil {
+				return nil, e
+			}
+			original, e := parse()
+			if e != nil {
+				return nil, e
+			}
 			if e := constructMemoryHostArenaAppend(m, w, mask&1 != 0, mask&2 != 0); e != nil {
 				return nil, e
 			}
@@ -246,6 +264,22 @@ func TestMemoryHostPCDiagnosticOriginalBoth30(t *testing.T) {
 			t.Fatal(e)
 		}
 		name := map[int]string{0: "original", 3: "both"}[mask]
+		out := filepath.Join(dir, name)
+		if e = os.MkdirAll(out, 0755); e != nil {
+			t.Fatal(e)
+		}
+		for n, v := range map[string]any{"pc-ledger.json": ledger, "factory-baseline.json": evidence} {
+			b, e := json.MarshalIndent(v, "", "  ")
+			if e != nil {
+				t.Fatal(e)
+			}
+			if e = os.WriteFile(filepath.Join(out, n), b, 0644); e != nil {
+				t.Fatal(e)
+			}
+		}
+		if e = os.WriteFile(filepath.Join(out, "target.bin"), evidence.Target.Binary, 0644); e != nil {
+			t.Fatal(e)
+		}
 		reference, err := os.ReadFile(filepath.Join(os.Getenv("MINZ_MEMORY_HOST_PC_REFERENCE"), name, "factory-baseline.json"))
 		if err != nil {
 			t.Fatal(err)
@@ -264,25 +298,10 @@ func TestMemoryHostPCDiagnosticOriginalBoth30(t *testing.T) {
 		}
 		for _, same := range []bool{previous.Target.SidecarSHA256 == evidence.Target.SidecarSHA256, previous.Target.CallFramesSHA256 == evidence.Target.CallFramesSHA256, previous.Target.AllocationSHA256 == evidence.Target.AllocationSHA256, previous.Target.MIRSHA256 == evidence.Target.MIRSHA256} {
 			if !same {
-				t.Fatal("artifact binding drift")
+				t.Fatalf("artifact binding drift: sidecar %s/%s frame %s/%s allocation %s/%s MIR %s/%s", previous.Target.SidecarSHA256, evidence.Target.SidecarSHA256, previous.Target.CallFramesSHA256, evidence.Target.CallFramesSHA256, previous.Target.AllocationSHA256, evidence.Target.AllocationSHA256, previous.Target.MIRSHA256, evidence.Target.MIRSHA256)
 			}
 		}
-		out := filepath.Join(dir, name)
-		if e = os.MkdirAll(out, 0755); e != nil {
-			t.Fatal(e)
-		}
-		for n, v := range map[string]any{"pc-ledger.json": ledger, "factory-baseline.json": evidence} {
-			b, e := json.MarshalIndent(v, "", "  ")
-			if e != nil {
-				t.Fatal(e)
-			}
-			if e = os.WriteFile(filepath.Join(out, n), b, 0644); e != nil {
-				t.Fatal(e)
-			}
-		}
-		if e = os.WriteFile(filepath.Join(out, "target.bin"), evidence.Target.Binary, 0644); e != nil {
-			t.Fatal(e)
-		}
+
 		t.Logf("%s %dT steps%d BIN%x", name, evidence.Target.TotalTStates, evidence.Target.ExecutedSteps, sha256.Sum256(evidence.Target.Binary))
 	}
 }
