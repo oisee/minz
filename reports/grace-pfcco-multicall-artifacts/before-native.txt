@@ -1,0 +1,16 @@
+=== RUN   TestPFCCOMultiCallMeasuredAudit
+    pfcco_multicall_audit_test.go:152: hardFirstfalse conditionalfalse originalacc PBQP[acc]/[acc]/[acc]=41216T/19B greedy[acc]/[acc]/[acc]=41216T/19B native-best[acc]/[acc]/[acc]=41216T/19B
+    pfcco_multicall_audit_test.go:152: hardFirstfalse conditionalfalse originalcounter PBQP[acc]/[acc]/[acc]=41216T/19B greedy[acc]/[acc]/[acc]=41216T/19B native-best[acc]/[acc]/[acc]=41216T/19B
+    pfcco_multicall_audit_test.go:152: hardFirstfalse conditionalfalse originalgeneral PBQP[acc]/[acc]/[acc]=41216T/19B greedy[acc]/[general]/[acc]=43264T/21B native-best[acc]/[acc]/[acc]=41216T/19B
+    pfcco_multicall_audit_test.go:152: hardFirstfalse conditionaltrue originalacc PBQP[acc]/[acc]/[acc]=43978T/24B greedy[acc]/[acc]/[acc]=43978T/24B native-best[acc]/[acc]/[acc]=43978T/24B
+    pfcco_multicall_audit_test.go:152: hardFirstfalse conditionaltrue originalcounter PBQP[acc]/[acc]/[acc]=43978T/24B greedy[acc]/[acc]/[acc]=43978T/24B native-best[acc]/[acc]/[acc]=43978T/24B
+    pfcco_multicall_audit_test.go:152: hardFirstfalse conditionaltrue originalgeneral PBQP[acc]/[acc]/[acc]=43978T/24B greedy[acc]/[general]/[acc]=46018T/26B native-best[acc]/[acc]/[acc]=43978T/24B
+    pfcco_multicall_audit_test.go:152: hardFirsttrue conditionalfalse originalacc PBQP[regC]/[general]/[general]=44288T/22B greedy[regC]/[general]/[general]=44288T/22B native-best[regC]/[acc]/[acc]=43264T/21B
+    pfcco_multicall_audit_test.go:152: hardFirsttrue conditionalfalse originalcounter PBQP[regC]/[general]/[general]=44288T/22B greedy[regC]/[general]/[general]=44288T/22B native-best[regC]/[acc]/[acc]=43264T/21B
+    pfcco_multicall_audit_test.go:152: hardFirsttrue conditionalfalse originalgeneral PBQP[regC]/[general]/[general]=44288T/22B greedy[regC]/[general]/[general]=44288T/22B native-best[regC]/[acc]/[acc]=43264T/21B
+    pfcco_multicall_audit_test.go:152: hardFirsttrue conditionaltrue originalacc PBQP[regC]/[general]/[general]=49585T/27B greedy[regC]/[general]/[general]=49585T/27B native-best[regC]/[acc]/[acc]=46026T/26B
+    pfcco_multicall_audit_test.go:152: hardFirsttrue conditionaltrue originalcounter PBQP[regC]/[general]/[general]=49585T/27B greedy[regC]/[general]/[general]=49585T/27B native-best[regC]/[acc]/[acc]=46026T/26B
+    pfcco_multicall_audit_test.go:152: hardFirsttrue conditionaltrue originalgeneral PBQP[regC]/[general]/[general]=49585T/27B greedy[regC]/[general]/[general]=49585T/27B native-best[regC]/[acc]/[acc]=46026T/26B
+--- PASS: TestPFCCOMultiCallMeasuredAudit (7.76s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	7.768s
