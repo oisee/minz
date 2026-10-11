@@ -1,0 +1,450 @@
+{
+  "exact_data_access": true,
+  "schema": "minz.profile-workload/v1",
+  "target_model": "cpm-z80-v1",
+  "max_steps": 10000000,
+  "max_memory": 65536,
+  "resources": {},
+  "globals": {},
+  "calls": [
+    {
+      "function": "map_clear",
+      "arguments": null
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 65535
+        }
+      ]
+    },
+    {
+      "function": "map_put",
+      "arguments": [
+        {
+          "value": 0
+        },
+        {
+          "value": 65535
+        }
+      ]
+    },
+    {
+      "function": "map_put",
+      "arguments": [
+        {
+          "value": 256
+        },
+        {
+          "value": 61442
+        }
+      ]
+    },
+    {
+      "function": "map_put",
+      "arguments": [
+        {
+          "value": 512
+        },
+        {
+          "value": 57349
+        }
+      ]
+    },
+    {
+      "function": "map_put",
+      "arguments": [
+        {
+          "value": 768
+        },
+        {
+          "value": 53256
+        }
+      ]
+    },
+    {
+      "function": "map_put",
+      "arguments": [
+        {
+          "value": 1024
+        },
+        {
+          "value": 49163
+        }
+      ]
+    },
+    {
+      "function": "map_put",
+      "arguments": [
+        {
+          "value": 1280
+        },
+        {
+          "value": 45070
+        }
+      ]
+    },
+    {
+      "function": "map_put",
+      "arguments": [
+        {
+          "value": 1536
+        },
+        {
+          "value": 40977
+        }
+      ]
+    },
+    {
+      "function": "map_put",
+      "arguments": [
+        {
+          "value": 1792
+        },
+        {
+          "value": 36884
+        }
+      ]
+    },
+    {
+      "function": "map_put",
+      "arguments": [
+        {
+          "value": 2048
+        },
+        {
+          "value": 32791
+        }
+      ]
+    },
+    {
+      "function": "map_put",
+      "arguments": [
+        {
+          "value": 2304
+        },
+        {
+          "value": 28698
+        }
+      ]
+    },
+    {
+      "function": "map_put",
+      "arguments": [
+        {
+          "value": 2560
+        },
+        {
+          "value": 24605
+        }
+      ]
+    },
+    {
+      "function": "map_put",
+      "arguments": [
+        {
+          "value": 2816
+        },
+        {
+          "value": 20512
+        }
+      ]
+    },
+    {
+      "function": "map_put",
+      "arguments": [
+        {
+          "value": 3072
+        },
+        {
+          "value": 16419
+        }
+      ]
+    },
+    {
+      "function": "map_put",
+      "arguments": [
+        {
+          "value": 3328
+        },
+        {
+          "value": 12326
+        }
+      ]
+    },
+    {
+      "function": "map_put",
+      "arguments": [
+        {
+          "value": 3584
+        },
+        {
+          "value": 8233
+        }
+      ]
+    },
+    {
+      "function": "map_put",
+      "arguments": [
+        {
+          "value": 3840
+        },
+        {
+          "value": 4140
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 3840
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 3584
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 3328
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 3072
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 2816
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 2560
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 2304
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 2048
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 1792
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 1536
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 1280
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 1024
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 768
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 512
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 256
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "map_put",
+      "arguments": [
+        {
+          "value": 65535
+        },
+        {
+          "value": 123
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 65535
+        }
+      ]
+    },
+    {
+      "function": "map_put",
+      "arguments": [
+        {
+          "value": 0
+        },
+        {
+          "value": 65535
+        }
+      ]
+    },
+    {
+      "function": "map_has",
+      "arguments": [
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "map_put",
+      "arguments": [
+        {
+          "value": 2048
+        },
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "map_has",
+      "arguments": [
+        {
+          "value": 2048
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 2048
+        }
+      ]
+    },
+    {
+      "function": "map_clear",
+      "arguments": null
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 2048
+        }
+      ]
+    },
+    {
+      "function": "map_put",
+      "arguments": [
+        {
+          "value": 65535
+        },
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 65535
+        }
+      ]
+    },
+    {
+      "function": "map_put",
+      "arguments": [
+        {
+          "value": 32768
+        },
+        {
+          "value": 32768
+        }
+      ]
+    },
+    {
+      "function": "map_get",
+      "arguments": [
+        {
+          "value": 32768
+        }
+      ]
+    }
+  ]
+}
