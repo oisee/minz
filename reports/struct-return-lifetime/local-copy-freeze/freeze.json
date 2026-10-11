@@ -1,0 +1,8 @@
+{
+  "sha256": "75fb9ab7b33458fec021b912ec9a4aa15e26c9941237fb22e8b157926e1b6651",
+  "expected": {
+    "retained_loop": 0,
+    "independent_copy": "x"
+  },
+  "note": "Frozen before local owning-copy corrections. Existing nested/recursive fixture extended without changing previous expectations."
+}
