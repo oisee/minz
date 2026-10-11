@@ -1,0 +1,57 @@
+; MIR2 module: examples/nanz/grace_seeded_sum.nanz
+global @seeded_calls : u8
+global @seeded_last : u16
+
+fun @seeded_sum(%r1: ptr [pointer], %r2: u8 [general], %r3: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r4 = const 0 : u8 [general]
+    %r5 = const 65535 : u16 [pointer]
+    %r6 = ext %r2 : u8 -> u16 [pointer]
+    %r7 = sub %r5, %r6 : u16 [pointer]
+    %r8 = cmp.ule %r1, %r7 : bool [flag]
+    br_if %r8, @if_then1(), @if_else3()
+  block @if_then1:
+    %r10 = move %r1 : ptr [pointer]
+    %r11 = const 0 : u8 [acc]
+    %r12 = cmp.ne %r2, %r11 : bool [flag]
+    br_if %r12, @fe_body4(%r2, %r10, %r3), @fe_exit5(%r3)
+  block @fe_body4(%r13: u8 [counter], %r14: ptr [pointer], %r15: u16 [pointer]):
+    %r16 = load %r14 : u8 [general]
+    %r17 = ext %r16 : u8 -> u16 [pointer]
+    %r18 = add %r15, %r17 : u16 [pointer]
+    %r19 = ptr_bump %r14, +1 : ptr [pointer]
+    djnz %r13, @fe_body4(%r19, %r18), @fe_exit5(%r18)
+  block @fe_exit5(%r20: u16 [pointer]):
+    ret %r20
+  block @if_else3:
+    jmp @loop_head6(%r4, %r2, %r1, %r3)
+  block @loop_head6(%r21: u8 [general], %r22: u8 [general], %r23: ptr [general], %r24: u16 [pointer]):
+    %r25 = cmp.ult %r21, %r22 : bool [flag]
+    br_if %r25, @loop_body7(), @loop_exit8(%r21, %r24)
+  block @loop_body7:
+    %r26 = ext %r21 : u8 -> u16 [index]
+    %r27 = ptr_add %r23, %r26 : ptr [pointer]
+    %r28 = load %r27 : u8 [general]
+    %r29 = ext %r28 : u8 -> u16 [pointer]
+    %r30 = add %r24, %r29 : u16 [pointer]
+    %r31 = const 1 : u8 [general]
+    %r32 = add %r21, %r31 : u8 [general]
+    jmp @loop_head6(%r32, %r22, %r23, %r30)
+  block @loop_exit8(%r33: u8 [general], %r36: u16 [pointer]):
+    ret %r36
+
+fun @seeded_packet(%r39: ptr [pointer], %r40: u8 [general], %r41: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r42 = move %r39 : ptr [pointer]
+    %r43 = move %r41 : u16 [index]
+    %r44 = call @seeded_sum(%r42, %r40, %r43) : u16 [pointer]
+    %r45 = addr_of @seeded_calls : ptr [pointer]
+    %r46 = load %r45 : u8 [general]
+    %r47 = const 1 : u8 [general]
+    %r48 = add %r46, %r47 : u8 [acc]
+    %r49 = addr_of @seeded_calls : ptr [pointer]
+    store %r49, %r48 : u8
+    %r50 = addr_of @seeded_last : ptr [pointer]
+    store %r50, %r44 : u16
+    ret %r44
+
