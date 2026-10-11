@@ -26,3 +26,7 @@ Carry affects main output, VM unknown intrinsics. Semantic fix in progress.
 
 All signed payload SHA256 checked. Error baseline and historical full
 pipeline logs saved on the share. Goal remains active.
+
+All TestMeasureProfileVariantSets tests after the diagnostic fix: root
+PASS1.718s, including caller, fresh-input/mutation refusals, site-cap and
+forged-count checks. No admission guard was loosened.
