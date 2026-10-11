@@ -5856,6 +5856,13 @@ func resultTy(l, r mir2.Ty, op string) mir2.Ty {
 	if l == mir2.TyU16 || r == mir2.TyU16 {
 		return mir2.TyU16
 	}
+	// The widest integer operand determines operation width, including
+	// signed words and dwords. A small left literal must not truncate RHS.
+	if op != "<<" && op != ">>" && mir2.IsInt(l) && mir2.IsInt(r) {
+		if r.Width() > l.Width() {
+			return r
+		}
+	}
 	if mir2.IsPointer(l) {
 		return l
 	}
