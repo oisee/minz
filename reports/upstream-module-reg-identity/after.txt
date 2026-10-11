@@ -1,0 +1,6 @@
+=== RUN   TestInsertAccSavesModuleNativePointer
+--- PASS: TestInsertAccSavesModuleNativePointer (0.02s)
+=== RUN   TestInsertAccSavesModuleRegisterIdentity
+--- PASS: TestInsertAccSavesModuleRegisterIdentity (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.025s
