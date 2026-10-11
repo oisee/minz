@@ -1,0 +1,10 @@
+{
+  "executable": {
+    "path": "mz-cpm-tokenizer-final",
+    "bytes": 42380118,
+    "sha256": "b8152ed734eca9dce838f2ff174f4414e50327fae4b766484762e89f0336d6cc"
+  },
+  "inventory_files": 13,
+  "compiler_source_context": "0816642a; source and ABI proofs in grace-cpm-tokenizer-runtime",
+  "inventory_on_share": "/mnt/safe/minz/grace/2026-10-11/compiler-checkpoints/manifest.json"
+}

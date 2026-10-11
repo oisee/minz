@@ -6,7 +6,7 @@
 
 ## Новый этап: единый backend без LIR
 
-Проверенная сводка на `ed4c1d56`; результаты прежних сборок ниже сохраняют
+Проверенная сводка на `f3105f48`; результаты прежних сборок ниже сохраняют
 свой исходный контекст. Общая цель из [плана](../reports/2026-10-11-017-unified-backend-roadmap.md)
 ещё активна: корректность заявленного корпуса, проверенные контракты и таблицы,
 выигрыш Grace на разных программах и заранее отложенных нагрузках.
@@ -154,6 +154,21 @@ CompileHIRWithOptions (`5226309a`): на реальном intern workload сов
 Sites 62 содержит обновлённую сводку и новые архивные пакеты; последующие
 коммиты сохраняют отдельный контекст в репозитории и на шаре.
 
+
+Оригинальный tokenizer теперь также собирается обычным CLI через `--runtime cpm`
+(`aa0e4ccf`, `60de5579`): COM 5815 B, 226178 T, 146 байтов вывода;
+весь RAM, globals/арены, SP, stack guard и неизменный код проверены.
+Это CALL5-hook эмуляция, не настоящая CP/M OS.
+[Публичный runtime](grace-cpm-tokenizer-runtime.md).
+
+Обычный opt-in PFCCO PBQP улучшен для dead byte literal RHS (`2ed9d4bb`):
+Nanz 84327 → 82283 T, 60 → 58 B; independent native назначения и
+отрицательные controls сохранены. Default greedy не менялся.
+[Модель и пределы](../reports/2026-10-11-066-pfcco-literal-accumulator-demand.md).
+
+Полный CLI `89fff011` после cleanup: PASS за 383,376 с. Он предшествует
+новым tokenizer/PFCCO изменениям. Full pipeline `22e426de` выполняется.
+
 ## Что уже работает
 
 | Возможность | Состояние | Как включается |
@@ -166,8 +181,8 @@ Sites 62 содержит обновлённую сводку и новые ар
 | Чистая цель Speed | Минимум реальных тактов, без штрафа за размер | Speed в специальном поиске |
 | Цель Size | Минимум размера BIN | `--Osize` в специальном поиске |
 | Общий invariant address hoist | Ограниченные pure 16-bit DAG, single-latch loop без calls/ASM/ports; interning −1,63% T за +8 B | `--grace`, выключен при `--Osize` |
-| Публичный CP/M runtime | Первый leaf COM прошёл native CALL5-hook проверку; полный parser впереди | `--runtime cpm -t cpm` |
-| Self-Lanz: полный CP/M main | Один вход прошёл явный тестовый BDOS-адаптер; публичный runtime пока leaf | Отдельная тестовая COM-сборка |
+| Публичный CP/M runtime | Оригинальный tokenizer COM прошёл native full-state CALL5-hook проверку; рекурсивный parser впереди | `--runtime cpm -t cpm` |
+| Self-Lanz: полный CP/M main | Один вход прошёл явный тестовый BDOS-адаптер; публичный runtime ещё требует поддержки рекурсивных CALL | Отдельная тестовая COM-сборка |
 
 ## Свежий полный парсер: collect/replay
 
