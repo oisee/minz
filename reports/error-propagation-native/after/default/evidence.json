@@ -1,0 +1,51 @@
+{
+  "assembled_binary_sha256": "95db5f67a7cf7e7fce91dd32bbbdf889bc36c1b76ac1538675f48189af6309ba",
+  "entries": {
+    "array_get": {
+      "Calls": 256,
+      "TotalT": 20612,
+      "MinSP": 61422
+    },
+    "chain": {
+      "Calls": 65536,
+      "TotalT": 82027961,
+      "MinSP": 61414
+    },
+    "compute": {
+      "Calls": 65536,
+      "TotalT": 48930996,
+      "MinSP": 61414
+    },
+    "safe_add": {
+      "Calls": 65536,
+      "TotalT": 15662848,
+      "MinSP": 61416
+    },
+    "safe_div": {
+      "Calls": 65536,
+      "TotalT": 28550580,
+      "MinSP": 61422
+    },
+    "safe_sub": {
+      "Calls": 65536,
+      "TotalT": 4062976,
+      "MinSP": 61422
+    }
+  },
+  "native_calls": 327936,
+  "options": {
+    "ProfileSelection": null,
+    "CollectHIRSites": false,
+    "ContractOpt": true,
+    "AnnotateTStates": false,
+    "UseGrace": false,
+    "GraceStats": null,
+    "UseHIRGrace": false,
+    "OptSize": false,
+    "Backend": "",
+    "AssertMode": "",
+    "SkipZ80Emission": false
+  },
+  "source_assertions_retained": 0,
+  "source_sha256": "c8fd898edc8b3fefa960d86aebcad04db6c51f1d03ab9552e31fb5747f9be629"
+}
