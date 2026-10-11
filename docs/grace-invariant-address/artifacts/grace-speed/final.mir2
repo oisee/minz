@@ -1,0 +1,153 @@
+; MIR2 module: ../../../examples/nanz/grace_intern_checked.nanz
+global @intern_bump : u16
+global @intern_calls : u8
+global @intern_hits : u8
+global @intern_last : u16
+global @intern_checksum : u16
+
+fun @copy_forward(%r1: ptr [pointer], %r2: ptr [pointer], %r3: u8 [counter]) -> u8 [acc]
+  block @entry:
+    %r4 = const 0 : u8 [general]
+    jmp @loop_head1(%r4, %r3, %r2)
+  block @loop_head1(%r4: u8 [general], %r6: u8 [general], %r7: ptr [general]):
+    %r8 = cmp.ult %r4, %r6 : bool [flag]
+    cond_ret %r8, [%r4], @loop_body2()
+  block @loop_body2:
+    %r9 = ext %r4 : u8 -> u16 [index]
+    %r10 = ptr_add %r7, %r9 : ptr [pointer]
+    %r11 = load %r10 : u8 [general]
+    %r12 = ptr_add %r1, %r4 : ptr [pointer]
+    store %r12, %r11 : u8
+    %r13 = const 1 : u8 [general]
+    %r14 = add %r4, %r13 : u8 [general]
+    jmp @loop_head1(%r14, %r6, %r7)
+
+fun @weighted_checksum(%r15: ptr [pointer], %r16: u8 [general], %r17: u16 [index], %r18: u16 [index], %r19: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r20 = const 0 : u8 [general]
+    jmp @loop_head1(%r17, %r18, %r20, %r16, %r15, %r19)
+  block @loop_head1(%r21: u16 [pointer], %r22: u16 [pointer], %r20: u8 [general], %r24: u8 [general], %r25: ptr [general], %r26: u16 [pointer]):
+    %r27 = cmp.ult %r20, %r24 : bool [flag]
+    cond_ret %r27, [%r26], @loop_body2()
+  block @loop_body2:
+    %r28 = add %r21, %r22 : u16 [pointer]
+    %r29 = add %r26, %r28 : u16 [pointer]
+    %r30 = ext %r20 : u8 -> u16 [index]
+    %r31 = ptr_add %r25, %r30 : ptr [pointer]
+    %r32 = load %r31 : u8 [general]
+    %r33 = ext %r32 : u8 -> u16 [pointer]
+    %r34 = add %r29, %r33 : u16 [pointer]
+    %r35 = const 1 : u8 [general]
+    %r36 = add %r20, %r35 : u8 [general]
+    jmp @loop_head1(%r21, %r22, %r36, %r24, %r25, %r34)
+
+fun @region_eq(%r37: ptr [pointer], %r38: ptr [pointer], %r39: u16 [index], %r40: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r41 = const 0 : u8 [general]
+    %r42 = const 1 : u16 [pointer]
+    %r43 = add %r39, %r42 : u16 [pointer]
+    jmp @loop_head1(%r38, %r41, %r40, %r39, %r37)
+  block @loop_head1(%r44: ptr [general], %r41: u8 [general], %r46: u8 [general], %r47: u16 [pointer], %r48: ptr [general]):
+    %r49 = cmp.ult %r41, %r46 : bool [flag]
+    %r50 = const 1 : u8 [general]
+    cond_ret %r49, [%r50], @loop_body2()
+  block @loop_body2:
+    %r51 = ext %r41 : u8 -> u16 [index]
+    %r52 = ptr_add %r48, %r51 : ptr [pointer]
+    %r53 = load %r52 : u8 [general]
+    %r54 = ext %r41 : u8 -> u16 [pointer]
+    %r55 = add %r43, %r54 : u16 [pointer]
+    %r56 = ptr_add %r44, %r55 : ptr [pointer]
+    %r57 = load %r56 : u8 [general]
+    %r58 = cmp.ne %r53, %r57 : bool [flag]
+    br_if %r58, @if_then4(), @if_join5()
+  block @if_then4:
+    %r59 = const 0 : u8 [general]
+    ret %r59
+  block @if_join5:
+    %r60 = const 1 : u8 [general]
+    %r61 = add %r41, %r60 : u8 [general]
+    jmp @loop_head1(%r44, %r61, %r46, %r47, %r48)
+
+fun @intern(%r62: ptr [pointer], %r63: ptr [pointer], %r64: u8 [counter]) -> u16 [pointer]
+  block @entry:
+    %r65 = const 0 : u16 [pointer]
+    jmp @loop_head1(%r62, %r64, %r65, %r63)
+  block @loop_head1(%r66: ptr [general], %r67: u8 [general], %r65: u16 [pointer], %r69: ptr [general]):
+    %r70 = addr_of @intern_bump : ptr [pointer]
+    %r71 = load %r70 : u16 [pointer]
+    %r72 = cmp.ult %r65, %r71 : bool [flag]
+    br_if %r72, @loop_body2(), @loop_exit3(%r66, %r67, %r69)
+  block @loop_body2:
+    %r73 = ptr_add %r66, %r65 : ptr [pointer]
+    %r74 = load %r73 : u8 [general]
+    %r75 = cmp.eq %r74, %r67 : bool [flag]
+    br_if %r75, @if_then4(), @if_join5()
+  block @if_then4:
+    %r76 = move %r69 : ptr [pointer]
+    %r77 = move %r66 : ptr [pointer]
+    %r78 = move %r65 : u16 [index]
+    %r79 = call @region_eq(%r76, %r77, %r78, %r67) : u8 [acc]
+    %r80 = const 1 : u8 [general]
+    %r81 = cmp.eq %r79, %r80 : bool [flag]
+    br_if %r81, @if_then6(), @if_join5()
+  block @if_then6:
+    %r82 = addr_of @intern_hits : ptr [pointer]
+    %r83 = load %r82 : u8 [general]
+    %r84 = const 1 : u8 [general]
+    %r85 = add %r83, %r84 : u8 [general]
+    %r86 = addr_of @intern_hits : ptr [pointer]
+    store %r86, %r85 : u8
+    ret %r65
+  block @if_join5:
+    %r87 = const 1 : u16 [pointer]
+    %r88 = add %r65, %r87 : u16 [pointer]
+    %r89 = ext %r74 : u8 -> u16 [pointer]
+    %r90 = add %r88, %r89 : u16 [pointer]
+    jmp @loop_head1(%r66, %r67, %r90, %r69)
+  block @loop_exit3(%r91: ptr [general], %r92: u8 [general], %r93: ptr [general]):
+    %r94 = addr_of @intern_bump : ptr [pointer]
+    %r95 = load %r94 : u16 [pointer]
+    %r96 = ptr_add %r91, %r95 : ptr [pointer]
+    store %r96, %r92 : u8
+    %r97 = add %r91, %r95 : u16 [pointer]
+    %r98 = const 1 : u16 [pointer]
+    %r99 = add %r97, %r98 : u16 [pointer]
+    %r100 = move %r93 : ptr [pointer]
+    %r101 = move %r92 : u8 [counter]
+    %r102 = call @copy_forward(%r99, %r100, %r101) : u8 [acc]
+    %r103 = addr_of @intern_bump : ptr [pointer]
+    %r104 = load %r103 : u16 [pointer]
+    %r105 = const 1 : u16 [pointer]
+    %r106 = add %r104, %r105 : u16 [pointer]
+    %r107 = ext %r102 : u8 -> u16 [pointer]
+    %r108 = add %r106, %r107 : u16 [pointer]
+    %r109 = addr_of @intern_bump : ptr [pointer]
+    store %r109, %r108 : u16
+    ret %r95
+
+fun @intern_checked(%r110: ptr [pointer], %r111: ptr [pointer], %r112: u8 [counter], %r113: u16 [index], %r114: u16 [index], %r115: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r116 = move %r110 : ptr [pointer]
+    %r117 = move %r111 : ptr [pointer]
+    %r118 = move %r112 : u8 [counter]
+    %r119 = call @intern(%r116, %r117, %r118) : u16 [pointer]
+    %r120 = add %r110, %r119 : u16 [pointer]
+    %r121 = const 1 : u16 [pointer]
+    %r122 = add %r120, %r121 : u16 [pointer]
+    %r123 = move %r113 : u16 [index]
+    %r124 = move %r114 : u16 [index]
+    %r125 = move %r115 : u16 [index]
+    %r126 = call @weighted_checksum(%r122, %r112, %r123, %r124, %r125) : u16 [pointer]
+    %r127 = addr_of @intern_calls : ptr [pointer]
+    %r128 = load %r127 : u8 [general]
+    %r129 = const 1 : u8 [general]
+    %r130 = add %r128, %r129 : u8 [acc]
+    %r131 = addr_of @intern_calls : ptr [pointer]
+    store %r131, %r130 : u8
+    %r132 = addr_of @intern_last : ptr [pointer]
+    store %r132, %r119 : u16
+    %r133 = addr_of @intern_checksum : ptr [pointer]
+    store %r133, %r126 : u16
+    ret %r126
+

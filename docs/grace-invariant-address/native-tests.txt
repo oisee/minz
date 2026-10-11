@@ -1,0 +1,8 @@
+=== RUN   TestInvariantAddressRealInternProgram
+    invariant_address_program_test.go:106: default 1637997 T / 661 B hoists 0
+    invariant_address_program_test.go:106: grace-size 1637997 T / 661 B hoists 0
+    invariant_address_program_test.go:106: grace-speed 1611362 T / 669 B hoists 1
+--- PASS: TestInvariantAddressRealInternProgram (0.73s)
+=== RUN   TestInvariantAddressNativeWrap
+--- PASS: TestInvariantAddressNativeWrap (0.51s)
+PASS

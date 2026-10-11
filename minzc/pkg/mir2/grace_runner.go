@@ -2062,6 +2062,17 @@ func addInitialPtrArg(f *Func, blk *Block, headerLabel string, baseImm int64, id
 // Returns true if any transformation was applied.
 // Stats (if non-nil) accumulates per-rule statistics.
 func RunGracePasses(f *Func, stats *GraceStats) bool {
+	return RunGracePassesWithOptions(f, stats, GracePassOptions{DisableInvariantAddressHoist: true})
+}
+
+// GracePassOptions controls the new speed-only invariant address experiment.
+// Existing RunGracePasses callers keep their prior behavior.
+type GracePassOptions struct {
+	OptimizeForSize              bool
+	DisableInvariantAddressHoist bool
+}
+
+func RunGracePassesWithOptions(f *Func, stats *GraceStats, options GracePassOptions) bool {
 	rules, err := loadAllRules()
 	if err != nil {
 		return false
@@ -2081,6 +2092,13 @@ func RunGracePasses(f *Func, stats *GraceStats) bool {
 	// Phase 2: PtrAdd CSE — deduplicate remaining repeated ptr_add in loop bodies.
 	var pwStats PointerWalkStats
 	pwChanged := ApplyPointerWalkDedup(f, &pwStats)
+	hoistChanged := false
+	if !options.OptimizeForSize && !options.DisableInvariantAddressHoist {
+		hoistChanged = HoistInvariantAddresses(f)
+	}
+	if hoistChanged && stats != nil {
+		stats.Record("invariant-address-hoist", 1)
+	}
 
 	if stats != nil {
 		stats.mu.Lock()
@@ -2095,7 +2113,7 @@ func RunGracePasses(f *Func, stats *GraceStats) bool {
 		stats.mu.Unlock()
 	}
 
-	return result.Applied > 0 || pwChanged
+	return result.Applied > 0 || pwChanged || hoistChanged
 }
 
 // RunGraceCondRetSink runs only the cond-ret-sink Grace rule.

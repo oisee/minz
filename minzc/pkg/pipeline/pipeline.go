@@ -237,7 +237,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		if opt.UseGrace {
 			// ── Grace declarative path ──────────────────────────────
 			localGrace := mir2.NewGraceStats()
-			mir2.RunGracePasses(f, localGrace)
+			mir2.RunGracePassesWithOptions(f, localGrace, mir2.GracePassOptions{OptimizeForSize: opt.OptSize})
 			mergeGraceStats(opt.GraceStats, localGrace)
 			applyGraceStatsToTrace(tr, localGrace)
 			mir2.EliminateDeadBlocks(f)
@@ -245,7 +245,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 				tr.BranchEquiv++
 				mir2.EliminateDeadBlocks(f)
 				localGrace = mir2.NewGraceStats()
-				mir2.RunGracePasses(f, localGrace)
+				mir2.RunGracePassesWithOptions(f, localGrace, mir2.GracePassOptions{OptimizeForSize: opt.OptSize})
 				mergeGraceStats(opt.GraceStats, localGrace)
 				applyGraceStatsToTrace(tr, localGrace)
 				mir2.EliminateDeadBlocks(f)
