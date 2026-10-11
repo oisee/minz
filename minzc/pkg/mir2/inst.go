@@ -80,6 +80,9 @@ type Inst struct {
 	// emitting CALL so that subsequent uses see the correct location.
 	// If an ExtraRet is never used, DSE removes it and no physical register
 	// is consumed (equivalent to Go's `_` blank identifier).
+	// FallibleCY: ExtraRets are exactly [failed:bool, code:u8], semantic
+	// outputs distinct from ordinary multi-return ABI.
+	FallibleCY      bool
 	ExtraRets       []Reg
 	ExtraRetClasses []RegClass
 	ExtraRetTys     []Ty
@@ -370,6 +373,14 @@ func (t *TermRet) termUses() []Reg                    { return t.Vals }
 func (*TermRet) Successors() []string                 { return nil }
 func (*TermRet) ForEachEdge(func(string, []Reg, int)) {} // no successors
 
+// TermErrorRet returns a language-domain error via CY and A.
+type TermErrorRet struct{ Code Reg }
+
+func (*TermErrorRet) isTerm()                              {}
+func (t *TermErrorRet) termUses() []Reg                    { return []Reg{t.Code} }
+func (*TermErrorRet) Successors() []string                 { return nil }
+func (*TermErrorRet) ForEachEdge(func(string, []Reg, int)) {}
+
 // TermUnreachable marks dead code.
 type TermUnreachable struct{}
 
@@ -398,6 +409,8 @@ func TermString(term Term) string {
 	case *TermCondRet:
 		return fmt.Sprintf("cond_ret %%r%d, [%s], @%s(%s)",
 			t.Cond, regList(t.Vals), t.Then, regList(t.ThenArgs))
+	case *TermErrorRet:
+		return fmt.Sprintf("error_ret %%r%d", t.Code)
 	case *TermRet:
 		if len(t.Vals) == 0 {
 			return "ret void"

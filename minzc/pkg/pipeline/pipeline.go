@@ -162,6 +162,16 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	s.UnsignedPairComparePolicy = policy
 	s.Traces = make(map[string]*FuncTrace)
 
+	if err := hir.ResolveErrorABI(hm); err != nil {
+		return s, err
+	}
+	if opt.Backend != "" && opt.Backend != "z80" {
+		for _, f := range hm.Funcs {
+			if f.FallibleCY {
+				return s, fmt.Errorf("CY error ABI requires Z80 backend")
+			}
+		}
+	}
 	if err := hir.ResolveCallSignatures(hm); err != nil {
 		return s, err
 	}
@@ -487,6 +497,16 @@ func CompileHIR(hm *hir.Module) (string, error) {
 // CompileHIRWithOptions runs the HIR→MIR2→Z80 pipeline with explicit options.
 // Use this to compare output with/without specific optimisation passes.
 func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
+	if err := hir.ResolveErrorABI(hm); err != nil {
+		return "", err
+	}
+	if opts.Backend != "" && opts.Backend != "z80" {
+		for _, f := range hm.Funcs {
+			if f.FallibleCY {
+				return "", fmt.Errorf("CY error ABI requires Z80 backend")
+			}
+		}
+	}
 	if err := ValidateContractStrategy(opts); err != nil {
 		return "", err
 	}

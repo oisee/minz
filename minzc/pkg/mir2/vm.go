@@ -258,8 +258,24 @@ func NewVM(m *Module) *VM {
 	return vm
 }
 
+// CallOutcome is a language result; Go error remains a VM trap, not CY failure.
+type CallOutcome struct {
+	Values    []Value
+	Failed    bool
+	ErrorCode byte
+}
+
+func (vm *VM) CallWithOutcome(name string, args []Value) (CallOutcome, error) {
+	fn := vm.Module.FuncByName(name)
+	if fn == nil {
+		return CallOutcome{}, fmt.Errorf("mir2.VM: function @%s not found", name)
+	}
+	return vm.callFuncOutcome(fn, args)
+}
+
 // Call executes a named function with the given argument values.
-// Returns the return values (empty for void).
+// Returns ordinary values; failure returns the u8 code for legacy callers.
+// Use CallWithOutcome to distinguish a language error from a success value.
 func (vm *VM) Call(funcName string, args []Value) ([]Value, error) {
 	fn := vm.Module.FuncByName(funcName)
 	if fn == nil {
@@ -329,17 +345,25 @@ func (vm *VM) WriteHeapBytes(addr int64, data []byte) {
 // ── Execution engine ──────────────────────────────────────────────────────────
 
 func (vm *VM) callFunc(fn *Func, args []Value) ([]Value, error) {
+	out, err := vm.callFuncOutcome(fn, args)
+	if out.Failed {
+		return []Value{{I: int64(out.ErrorCode)}}, err
+	}
+	return out.Values, err
+}
+func (vm *VM) callFuncOutcome(fn *Func, args []Value) (CallOutcome, error) {
 	if fn.Attrs.IsExtern {
 		// Try host table by function name.
 		if hf, ok := vm.Hosts["@"+fn.Name]; ok {
-			return hf(args)
+			values, err := hf(args)
+			return CallOutcome{Values: values}, err
 		}
-		return nil, fmt.Errorf("mir2.VM: extern @%s has no host implementation", fn.Name)
+		return CallOutcome{}, fmt.Errorf("mir2.VM: extern @%s has no host implementation", fn.Name)
 	}
 
 	entry := fn.Entry()
 	if entry == nil {
-		return nil, fmt.Errorf("mir2.VM: @%s has no entry block", fn.Name)
+		return CallOutcome{}, fmt.Errorf("mir2.VM: @%s has no entry block", fn.Name)
 	}
 
 	fr := newFrame(fn)
@@ -347,7 +371,7 @@ func (vm *VM) callFunc(fn *Func, args []Value) ([]Value, error) {
 	// Bind function parameters.
 	params := fn.Contract.Params
 	if len(args) != len(params) {
-		return nil, fmt.Errorf("mir2.VM: @%s expects %d args, got %d",
+		return CallOutcome{}, fmt.Errorf("mir2.VM: @%s expects %d args, got %d",
 			fn.Name, len(params), len(args))
 	}
 	for i, p := range params {
@@ -364,7 +388,7 @@ func (vm *VM) callFunc(fn *Func, args []Value) ([]Value, error) {
 	for {
 		// Bind block arguments to block params.
 		if len(blockArgs) != len(blk.Params) {
-			return nil, fmt.Errorf("mir2.VM: block @%s expects %d params, got %d args",
+			return CallOutcome{}, fmt.Errorf("mir2.VM: block @%s expects %d params, got %d args",
 				blk.Label, len(blk.Params), len(blockArgs))
 		}
 		for i, p := range blk.Params {
@@ -374,21 +398,24 @@ func (vm *VM) callFunc(fn *Func, args []Value) ([]Value, error) {
 		// Execute instructions.
 		for _, inst := range blk.Insts {
 			if err := vm.step(); err != nil {
-				return nil, err
+				return CallOutcome{}, err
 			}
 			if err := vm.execInst(fr, inst); err != nil {
-				return nil, fmt.Errorf("block @%s: %w", blk.Label, err)
+				return CallOutcome{}, fmt.Errorf("block @%s: %w", blk.Label, err)
 			}
 		}
 
+		if term, ok := blk.Term.(*TermErrorRet); ok {
+			return CallOutcome{Failed: true, ErrorCode: byte(fr.get(term.Code).I)}, nil
+		}
 		// Resolve terminator → either return or jump to next block.
 		rets, next, nextArgs, err := vm.execTerm(fr, blk)
 		if err != nil {
-			return nil, err
+			return CallOutcome{}, err
 		}
 		if next == nil {
 			// TermRet or TermCondRet(return path) — done.
-			return rets, nil
+			return CallOutcome{Values: rets}, nil
 		}
 		// Jump to next block — iterate, don't recurse.
 		blk = next
@@ -788,6 +815,33 @@ func (vm *VM) execInst(fr *frame, inst *Inst) error {
 
 	// ── Function calls ────────────────────────────────────────────────────────
 	case OpCall:
+		if inst.FallibleCY {
+			fn := vm.Module.FuncByName(inst.Sym)
+			if fn == nil || !fn.Attrs.FallibleCY || len(inst.ExtraRets) != 2 {
+				return fmt.Errorf("invalid fallible call %s", inst.Sym)
+			}
+			out, err := vm.callFuncOutcome(fn, collectArgs(fr, inst.Args))
+			if err != nil {
+				return err
+			}
+			value := Value{}
+			if len(out.Values) > 0 {
+				value = out.Values[0]
+			}
+			if out.Failed {
+				value.I = int64(out.ErrorCode)
+			}
+			if inst.Dst != NoReg {
+				fr.set(inst.Dst, value)
+			}
+			status := int64(0)
+			if out.Failed {
+				status = 1
+			}
+			fr.set(inst.ExtraRets[0], Value{I: status})
+			fr.set(inst.ExtraRets[1], Value{I: int64(out.ErrorCode)})
+			return nil
+		}
 		rets, err := vm.execCall(inst.Sym, inst.Args, fr)
 		if err != nil {
 			return err

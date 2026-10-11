@@ -67,6 +67,9 @@ func (m *Module) Dump() string {
 }
 
 func dumpFunc(sb *strings.Builder, f *Func) {
+	if f.FallibleCY {
+		sb.WriteString("[fallible-cy] ")
+	}
 	if f.IsExtern {
 		sb.WriteString("extern ")
 	}

@@ -44,6 +44,9 @@ import (
 
 // LowerModule converts a HIR module to a MIR2 module.
 func LowerModule(hm *Module) *mir2.Module {
+	if err := ResolveErrorABI(hm); err != nil {
+		panic(err)
+	}
 	m := &mir2.Module{Name: hm.Name, Target: hm.Target}
 	for _, g := range hm.Globals {
 		m.AddGlobal(g)
@@ -260,18 +263,19 @@ type loopCtx struct {
 }
 
 type lowerer struct {
-	gotoDeadBodies map[*Block]bool
-	gotoDemands    map[string]map[string]bool
-	gotoAncestors  map[string][]*Block
-	activeBlocks   []*Block
-	gotoPending    map[string][]gotoIncoming
-	scopeRestores  []func()
-	lineage        map[Stmt]LoopLineage
-	hf             *Func
-	m              *mir2.Module
-	mf             *mir2.Func
-	bld            *mir2.Builder
-	target         uint8 // platform target from hir.Module.Target
+	errorFlag, errorCode mir2.Reg
+	gotoDeadBodies       map[*Block]bool
+	gotoDemands          map[string]map[string]bool
+	gotoAncestors        map[string][]*Block
+	activeBlocks         []*Block
+	gotoPending          map[string][]gotoIncoming
+	scopeRestores        []func()
+	lineage              map[Stmt]LoopLineage
+	hf                   *Func
+	m                    *mir2.Module
+	mf                   *mir2.Func
+	bld                  *mir2.Builder
+	target               uint8 // platform target from hir.Module.Target
 
 	// env maps variable names to their current virtual register.
 	// envTy maps variable names to their type (stable: set once, never changed).
@@ -504,6 +508,7 @@ func lowerFunc(m *mir2.Module, f *Func) {
 
 func lowerFuncWithFuncNames(m *mir2.Module, f *Func, funcNames map[string]bool, hirFuncs map[string]*Func, lineage ...map[Stmt]LoopLineage) {
 	mf := m.AddFunc(f.Name)
+	mf.Attrs.FallibleCY = f.FallibleCY
 	if f.IsExtern {
 		mf.Attrs.IsExtern = true
 		mf.Attrs.ExternAddr = f.ExternAddr
@@ -1234,6 +1239,30 @@ func (l *lowerer) lowerStmt(s Stmt) bool {
 		return false
 
 	case *ExprStmt:
+		if call, ok := st.Expr.(*CallExpr); ok {
+			switch call.Fn {
+			case "@error":
+				if len(call.Args) != 1 {
+					panic("@error requires one code")
+				}
+				code := l.lowerExprAs(call.Args[0], mir2.TyU8)
+				l.bld.ErrorRet(code)
+				return true
+			case "@propagate", "@check":
+				if l.errorFlag == mir2.NoReg {
+					panic("error propagation requires a preceding fallible direct call")
+				}
+				fail, next := l.fresh("error"), l.fresh("error_ok")
+				flag, code := l.errorFlag, l.errorCode
+				condition := l.bld.Cmp(mir2.CmpNe, flag, l.bld.Const(0, mir2.TyBool, mir2.ClassGeneral), mir2.ClassFlag, false)
+				l.bld.BrIf(condition, fail, nil, next, nil)
+				l.bld.SwitchToNewBlock(fail)
+				l.bld.ErrorRet(code)
+				l.bld.SwitchToNewBlock(next)
+				l.errorFlag, l.errorCode = mir2.NoReg, mir2.NoReg
+				return false
+			}
+		}
 		if l.tryLowerIterChain(st.Expr) {
 			return false
 		}
@@ -2248,6 +2277,14 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 			args[i] = r
 		}
 
+		if callee := l.hirFuncs[fnName]; callee != nil && callee.FallibleCY {
+			if l.errorFlag != mir2.NoReg {
+				panic("fallible call requires checking preceding outcome")
+			}
+			var value mir2.Reg
+			value, l.errorFlag, l.errorCode = l.bld.CallFallible(fnName, args, ex.Ty, classForRet(ex.Ty))
+			return value
+		}
 		if ex.Ty == mir2.TyVoid {
 			l.bld.CallVoid(fnName, args, mir2.CallAttrs{})
 			return mir2.NoReg

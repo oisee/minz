@@ -88,7 +88,7 @@ func isConstEliminableCall(inst *Inst, m *Module) bool {
 	if callee == nil {
 		return false // external / not defined in this module
 	}
-	if callee.Attrs.IsExtern {
+	if callee.Attrs.IsExtern || callee.Attrs.FallibleCY || inst.FallibleCY {
 		return false
 	}
 	// Recursive functions would loop forever in the VM.

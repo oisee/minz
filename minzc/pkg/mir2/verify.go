@@ -18,6 +18,29 @@ import "fmt"
 //   - [host] calls appear only inside [comptime] functions.
 func Verify(m *Module) error {
 	for _, f := range m.Funcs {
+		if f.Attrs.FallibleCY {
+			if f.Attrs.IsExtern || len(f.Contract.Returns) > 1 || len(f.Contract.Returns) == 1 && (f.Contract.Returns[0].Ty != TyU8 || f.Contract.Returns[0].Class != ClassAcc) {
+				return fmt.Errorf("invalid fallible CY ABI: %s", f.Name)
+			}
+		}
+		info := collectRegInfo(f)
+		for _, b := range f.Blocks {
+			if term, ok := b.Term.(*TermErrorRet); ok {
+				if !f.Attrs.FallibleCY || info[term.Code].Ty != TyU8 {
+					return fmt.Errorf("invalid error return: %s", f.Name)
+				}
+			}
+			for _, i := range b.Insts {
+				callee := m.FuncByName(i.Sym)
+				if i.FallibleCY {
+					if i.Op != OpCall || callee == nil || !callee.Attrs.FallibleCY || len(i.ExtraRets) != 2 || len(i.ExtraRetTys) != 2 || i.ExtraRetTys[0] != TyBool || i.ExtraRetTys[1] != TyU8 {
+						return fmt.Errorf("invalid fallible call: %s", i.Sym)
+					}
+				} else if i.Op == OpCall && callee != nil && callee.Attrs.FallibleCY {
+					return fmt.Errorf("missing fallible call outputs: %s", i.Sym)
+				}
+			}
+		}
 		if err := verifyFunc(f); err != nil {
 			return fmt.Errorf("mir2: func @%s: %w", f.Name, err)
 		}

@@ -211,6 +211,28 @@ func BuildInterferenceGraph(f *Func, lr *LivenessResult) *InterferenceGraph {
 				}
 			}
 
+			// Call outputs are simultaneous definitions, including independent CY/code.
+			defs := append([]Reg{inst.Dst}, inst.ExtraRets...)
+			for _, r := range inst.ExtraRets {
+				if r != NoReg {
+					g.ensure(r)
+					live.Each(func(v Reg) {
+						if v != r {
+							g.addEdge(r, v)
+						}
+					})
+				}
+			}
+			for i, r := range defs {
+				for _, v := range defs[i+1:] {
+					if r != NoReg && v != NoReg {
+						g.addEdge(r, v)
+					}
+				}
+			}
+			for _, r := range inst.ExtraRets {
+				live.Remove(r)
+			}
 			// Sources are now needed (become live going backward).
 			for _, src := range inst.Src {
 				if src != NoReg {
@@ -320,6 +342,8 @@ func addTermUses(live *RegSet, t Term) {
 				live.Add(a)
 			}
 		}
+	case *TermErrorRet:
+		live.Add(t.Code)
 	case *TermRet:
 		for _, v := range t.Vals {
 			if v != NoReg {

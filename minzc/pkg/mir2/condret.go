@@ -30,6 +30,9 @@ package mir2
 //
 // Returns true if any transformation was made.
 func CondRetSink(f *Func) bool {
+	if f.Attrs.FallibleCY {
+		return false
+	}
 	changed := false
 	for _, blk := range f.Blocks {
 		brif, ok := blk.Term.(*TermBrIf)

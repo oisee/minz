@@ -122,6 +122,9 @@ func PrepareMemoryHostWorkload(m *Module, w MemoryHostWorkload) (MemoryHostWorkl
 // across calls, callbacks or source mutation; each call hashes the executable.
 func PrepareMemoryHostWorkloadCompatibility(m *Module, w MemoryHostWorkload) (MemoryHostWorkload, ProfileContext, *ProfileCompatibility, error) {
 	var owned MemoryHostWorkload
+	if err := RejectValueOnlyErrorProfiles(m); err != nil {
+		return owned, ProfileContext{}, nil, err
+	}
 	b, e := json.Marshal(w)
 	if e != nil {
 		return owned, ProfileContext{}, nil, e
@@ -391,7 +394,7 @@ func ValidateMemoryHostMIR(source *Module, m *mir2.Module, w MemoryHostWorkload)
 // extern's declared callable type, hard parameter classes, and external address
 // and clobber contract must retain the complete source identity.
 func memoryHostExternIdentityEqual(a, b *mir2.Func) bool {
-	if a.Attrs.ExternAddr != b.Attrs.ExternAddr || !reflect.DeepEqual(a.Contract.ExternClobbers, b.Contract.ExternClobbers) || len(a.Contract.Params) != len(b.Contract.Params) || !reflect.DeepEqual(a.Contract.Returns, b.Contract.Returns) {
+	if a.Attrs.FallibleCY != b.Attrs.FallibleCY || a.Attrs.ExternAddr != b.Attrs.ExternAddr || !reflect.DeepEqual(a.Contract.ExternClobbers, b.Contract.ExternClobbers) || len(a.Contract.Params) != len(b.Contract.Params) || !reflect.DeepEqual(a.Contract.Returns, b.Contract.Returns) {
 		return false
 	}
 	for i, p := range a.Contract.Params {

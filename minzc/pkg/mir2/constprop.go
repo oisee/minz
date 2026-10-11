@@ -611,6 +611,10 @@ func rewriteTermUses(t Term, old, new_ Reg) {
 		}
 		rewriteSlice(t.BodyArgs)
 		rewriteSlice(t.ExitArgs)
+	case *TermErrorRet:
+		if t.Code == old {
+			t.Code = new_
+		}
 	case *TermRet:
 		rewriteSlice(t.Vals)
 	}

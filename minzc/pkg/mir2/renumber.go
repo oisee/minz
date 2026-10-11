@@ -143,6 +143,8 @@ func remapTerm(t Term, mr func(Reg) Reg, mrs func([]Reg)) {
 		t.Cond = mr(t.Cond)
 		mrs(t.Vals)
 		mrs(t.ThenArgs)
+	case *TermErrorRet:
+		t.Code = mr(t.Code)
 	case *TermRet:
 		mrs(t.Vals)
 	case *TermUnreachable:
