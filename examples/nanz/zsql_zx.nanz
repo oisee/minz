@@ -27,7 +27,7 @@ fun _zxch(ch: u8) -> void {
         ADD HL, HL
         ADD HL, HL
         ADD HL, HL
-        LD DE, _zx_font
+        LD DE, _font_anchor
         ADD HL, DE
         PUSH HL
         LD A, (_zx_row)

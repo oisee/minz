@@ -555,6 +555,7 @@ type parser struct {
 	enums           map[string]map[string]int64 // enumName → {variantName → value}
 	enumBaseTy      map[string]mir2.Ty          // enumName → base type (default TyU8)
 	importedModules map[string]string           // modPath → mangled prefix (for qualified access)
+	globalAliases   map[string]string           // imported global local name → mangled symbol
 	funcAliases     map[string]string           // local name → mangled name (for unqualified imports)
 	pipes           map[string][]pipeStep       // pipe/trans name → stages
 	lambdaHintTy    mir2.Ty                     // type hint for untyped lambda params (set by chain context)
@@ -1777,8 +1778,12 @@ func (p *parser) parseImport() error {
 		g.Name = mangledName
 		p.globalTypes[mangledName] = g.Ty
 
+		if p.globalAliases == nil {
+			p.globalAliases = make(map[string]string)
+		}
 		if globImport {
 			p.globalTypes[origName] = g.Ty
+			p.globalAliases[origName] = mangledName
 		}
 		for _, sym := range selected {
 			if sym.name == origName {
@@ -1787,6 +1792,7 @@ func (p *parser) parseImport() error {
 					localName = sym.alias
 				}
 				p.globalTypes[localName] = g.Ty
+				p.globalAliases[localName] = mangledName
 			}
 		}
 
@@ -5276,7 +5282,13 @@ func (p *parser) parsePrimary() (hir.Expr, error) {
 		} else if t2, ok := p.globalTypes[t.val]; ok {
 			ty = t2
 		}
-		return &hir.VarRefExpr{Name: t.val, Ty: ty}, nil
+		name := t.val
+		if _, local := p.varTypes[name]; !local {
+			if alias, ok := p.globalAliases[name]; ok {
+				name = alias
+			}
+		}
+		return &hir.VarRefExpr{Name: name, Ty: ty}, nil
 
 	case tokLParen:
 		p.l.next()
