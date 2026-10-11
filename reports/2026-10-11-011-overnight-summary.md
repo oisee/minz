@@ -1,6 +1,6 @@
 # Ночной итог Grace / PGO — 11 октября 2026
 
-Актуально на 10:15 UTC. Цель продолжается: выбирать оптимизации по проверенному
+Актуально на 10:39 UTC. Цель продолжается: выбирать оптимизации по проверенному
 профилю, от исходника через HIR/MIR до собранного Z80-бинарника. MIR VM служит
 промежуточным oracle; итоговые варианты исполняются в Z80-эмуляторе с проверкой
 результатов, памяти, порядка host events, размера и T-states. Проверка на
@@ -90,7 +90,7 @@ Actual Speed: mask 3, 1076715 T / 2100 B; actual Size: mask 2, 1076874 T /
 побайтно совпали с ревью. Текущая сборка:
 `393af1d821477b991a0bf452f00c79bd6d77368c3cff9cde64faa1ee1b130808`.
 Общий CLI gate PASS 69.418 s. Два fresh full30 integration запуска текущей
-сборки завершились; независимый аудит нового контекста ещё выполняется.
+сборки завершились; независимые аудиты нового контекста прошли.
 Все восемь свежих corpus CLI запусков завершились exit 0 на сборке393af1.
 Четыре неизменённых workload, 50 вызовов, 32 кандидата; обе цели выбрали
 append-copy,1979 B. T: 326090 / 3968554 / 1270168 / 696909. Оба независимых
@@ -109,8 +109,21 @@ Corpus опубликован в приватном Sites54; wholeoffline sync �
 metadata equality, exact Error/Failure identity и failedcandidate refusal.
 Admission/validretainedSHA подмена PASS7.66s; focused48callbackGC/lifecycle
 PASS314.10s, включая25/48late mutations иcross-policysharedgraphs. Дополнительные owned-input/actual short Size/tie проверки994280a2
-PASS118.45s; missing/options preflightPASS4.37s. Harnessc11dd4d1 прошёл оба
-ревью, полный30вызовов поиск разрешён; успешного результата ещё нет.
+PASS118.45s; missing/options preflightPASS4.37s. Harness1f117ae9 прошёл оба
+ревью. **Full30 actual search TERMINAL PASS83.79s**, ровно48callbacks:
+все восемь кандидатов совпали с ранее измеренными fixed-policy результатами.
+Оба свежих collection baseline сверены с прежними public source/native
+результатами; независимый cost audit PASS300 native observations.
+Actual Speed выбрал PreserveForSpeed/mask3,1076715T/2100B;
+Size, вычисленный из этих же сохранённых данных, выбрал Legacy/mask2,
+1079795T/1978B. Full30 actual GoalSize нового поиска не выполнялся.
+Точный executable2955420de33c6ce620f2298b0712ab537f0b66cd7fc540c545d344bff1b55966
+и все inputs/search/objectives/ASM/BIN сохранены в
+`/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-search-evidence/`.
+Короткий zero-body crossover контроль выполняется на том же executable;
+backend audit полного сохранённого прогона продолжается. Следом: заморозить
+пакет, перенести API в рабочую ветку и пройти общие проверки.
+Новый поиск пока не перенесён и не опубликован.
 
 ## Сохранение веток и решения
 
