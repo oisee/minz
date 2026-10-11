@@ -6,11 +6,12 @@ from verify_corpus import Model,read_json,KNOWN_SOURCE_SHA256
 import hashlib
 root=pathlib.Path(sys.argv[1]);source=pathlib.Path(sys.argv[2]);assert hashlib.sha256(source.read_bytes()).hexdigest()==KNOWN_SOURCE_SHA256
 report={}
-paths=sorted(root.glob('*.json'))
+paths=sorted({PathName for PathName in [*root.glob('*.json'), *root.glob('*.json.gz')]})
+def payload_name(path):return path.name.removesuffix('.gz').removesuffix('.json')
 expected_names={p.stem for p in (pathlib.Path(__file__).parent/'workloads').glob('*.json')}
-assert {p.stem for p in paths}==expected_names and len(paths)==8
+assert {payload_name(p) for p in paths}==expected_names and len(paths)==8
 for path in paths:
- p=read_json(path);name=path.stem
+ p=read_json(path);name=payload_name(path)
  assert p['schema']=='minz.memory-host-loop-observations/v1'
  assert len(p['sites']['sites'])==11 and len({s['id'] for s in p['sites']['sites']})==11
  assert len(p['counts'])==11

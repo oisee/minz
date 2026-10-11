@@ -17,7 +17,7 @@
     },
     {
       "path": "docs/grace-memory-host-choice-oracle/audit_raw_profiles.py",
-      "sha256": "c39b3e92f4df6b4d2ccdc5b80e2e7bf9fc436dbe20d0032856a25f0eb325e5c8"
+      "sha256": "bd0236216364a9ffc52edb00d4ab0ed1e1ec6ca49f5e4ff6cbd4bf3c8e394b90"
     },
     {
       "path": "docs/grace-memory-host-choice-oracle/expected.json.gz",
