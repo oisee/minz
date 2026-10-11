@@ -1,0 +1,9 @@
+{
+  "commit": "272814d1",
+  "native_runs_by_reviewer": 0,
+  "files": {
+    "minzc/pkg/mir2/tsmc_spill.go": "a0f519190a5057913380aa8f8b9a8b01a4143da9f024a996d6d2d23038058994",
+    "minzc/pkg/mir2/z80codegen_call_spill.go": "975b4294a172276860c54b24cced5d082b310ca7301f15e80eed98860c1c363e",
+    "minzc/pkg/mir2/call_spill_tsmc_test.go": "c177ffae400b20c982d5e2133a4b9350c44c82d5e1e97cb0d44296040a73c991"
+  }
+}
