@@ -1,0 +1,53 @@
+{
+  "baseline_t_states": 138440,
+  "current_t_states": 133994,
+  "saved_t_states": 4446,
+  "baseline_bytes": 1013,
+  "current_bytes": 984,
+  "saved_bytes": 29,
+  "raw_context_identity": "compiler-context hashes may differ; semantic/state/access observations checked separately",
+  "files": [
+    {
+      "file": "source.nanz",
+      "exact_bytes_equal": true,
+      "state_results_traffic_equal": true,
+      "before_sha256": "2caa7c16db7371f6f1ef6eecfa8c767e58d9d961c5bdfdbfccda1fb6e613c3f8",
+      "after_sha256": "2caa7c16db7371f6f1ef6eecfa8c767e58d9d961c5bdfdbfccda1fb6e613c3f8"
+    },
+    {
+      "file": "workload.json",
+      "exact_bytes_equal": true,
+      "state_results_traffic_equal": true,
+      "before_sha256": "3d0d9070d4ea6934b8294498aac2c2b565c62d87abb9f3718b7c63454c6c03a9",
+      "after_sha256": "3d0d9070d4ea6934b8294498aac2c2b565c62d87abb9f3718b7c63454c6c03a9"
+    },
+    {
+      "file": "host-oracle.json",
+      "exact_bytes_equal": true,
+      "state_results_traffic_equal": true,
+      "before_sha256": "e640e294474c08cff215d0d1365480ad0cf56e1e1d7e29f0a82558cf4516c18d",
+      "after_sha256": "e640e294474c08cff215d0d1365480ad0cf56e1e1d7e29f0a82558cf4516c18d"
+    },
+    {
+      "file": "raw.json",
+      "exact_bytes_equal": false,
+      "state_results_traffic_equal": true,
+      "before_sha256": "b8a384407945f85f6ca4b805725ca72d037c75408d688f4092d8e9d111275ad6",
+      "after_sha256": "ab1012662c3b56a5da3b51b5663d0c2a8643adcfdce315a014b94c6a4d4adb09"
+    },
+    {
+      "file": "precompile-raw.json",
+      "exact_bytes_equal": false,
+      "state_results_traffic_equal": true,
+      "before_sha256": "b8a384407945f85f6ca4b805725ca72d037c75408d688f4092d8e9d111275ad6",
+      "after_sha256": "ab1012662c3b56a5da3b51b5663d0c2a8643adcfdce315a014b94c6a4d4adb09"
+    },
+    {
+      "file": "postcompile-raw.json",
+      "exact_bytes_equal": false,
+      "state_results_traffic_equal": true,
+      "before_sha256": "b8a384407945f85f6ca4b805725ca72d037c75408d688f4092d8e9d111275ad6",
+      "after_sha256": "ab1012662c3b56a5da3b51b5663d0c2a8643adcfdce315a014b94c6a4d4adb09"
+    }
+  ]
+}

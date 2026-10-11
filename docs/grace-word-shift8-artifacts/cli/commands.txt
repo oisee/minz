@@ -1,0 +1,3 @@
+Executable /tmp/minzc-word-shift8-final built from final production sources.
+--hir-grace --hir-profile-joint --hir-profile-mixed-copy-region-sites --hir-profile-auto <mode-dir> --hir-profile-auto-workload input-workload.json -o <mode>.a80; size adds --Osize.
+4actualcandidates×30persistentcalls perobjective, sourceunchanged.

@@ -865,6 +865,10 @@ func (g *z80cg) genShift(mnem string, inst *Inst) {
 		if mnem == "SLA" && count == 8 {
 			g.emitf("    LD %s, %s", hi, lo)
 			g.emitf("    LD %s, 0", lo)
+		} else if mnem == "SRL" && count == 8 {
+			// Unsigned word >> 8 is just its high byte, zero extended.
+			g.emitf("    LD %s, %s", lo, hi)
+			g.emitf("    LD %s, 0", hi)
 		} else {
 			for i := int64(0); i < count; i++ {
 				switch mnem {

@@ -1,3 +1,5 @@
+Обновление11октября: [Z80 word byte extraction](grace-word-shift8.md) — unsignedu16 >>8 и /256 через перенос старшего байта. На исходном hashmap133994T984B вместо138440T1013B:−3,21%T/−29B. TokenizerfullCLIоба2191095T4832B,все4сочетания заново измерены. Следом — sourceproofmaskedslot induction в горячих probingциклах.
+
 Обновление11октября: [оригинальный hashmap и PC-профиль](grace-pgo-hashmap.md) — 36последовательных операций полного исходного Nanz,138440T1013B, independent82Bglobals и все байтовые read/write counts. PC-профиль без двойного счёта: put54%, rd16 24%, get10%, wr16 9%. Следом — измерить общие byte-shift lowering и maskedslot narrowing на неизменённом исходнике. Ускорение для hashmap пока не заявлено.
 
 Обновление11октября: [совместный copy + region PGO](grace-pgo-copy-region.md) — все4сочетания реально измерены на30вызовах полного tokenizer. Speed2203731T4861B против original2270286T4346B: −2,93%T/+515B; size выбираетoriginal. Отдельный общий source/postsplit proof сохраняет остальные функции/origins/lineage; standaloneконтракты строги. Следующий шаг — расширить корпус реальных программ с независимым oracle.

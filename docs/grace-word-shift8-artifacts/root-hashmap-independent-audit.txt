@@ -1,0 +1,2 @@
+PASS source exacthash, all36 sequential calls host/raw/pre/post/actual target results/full82B snapshots/eachglobalbyte traffic; binarySHA/T/bytes
+coverage startslots [5, 11, 15] count range 0 16 full insert failures 1 full overwrite 1 sentinel has 3
