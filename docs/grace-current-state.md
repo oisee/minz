@@ -371,3 +371,5 @@ Indexed ENRT5v conversion даёт triple module34→31B/direct66→54T/indirect
 Compatibility внутри одного admission boundary теперь вычисляется один раз; все callback boundaries и executable hash сохранены. Root fullHIR PASS28.209с, equivalence PASS0.055с и factory/preflight pipeline PASS20.574с. [Пакет093](grace-integration-093/README.md).
 
 Полный pipeline3e143f9f теперь terminal PASS2804.368с. Новая заранее frozen packed FAT12 нагрузка выявила native write_fat12 mismatch при raw/finalVM совпадении с независимым oracle; расследуется до выбора оптимизаций. [Пакет094](grace-integration-094/README.md).
+
+Historical ENRT4v record5 теперь покрывает weighted13 SSA values через проверенный2-variable quotient; root all256 helper/caller original и factor9 PASS2.412с. Fresh showcase после lane/context PASS12.711с193/1. [Пакет095](grace-integration-095/README.md).
