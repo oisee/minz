@@ -1,0 +1,10 @@
+{
+  "schema": "minz.error-propagation-native/v1",
+  "source_path": "examples/nanz/14_error_propagation.nanz",
+  "source_sha256": "c8fd898edc8b3fefa960d86aebcad04db6c51f1d03ab9552e31fb5747f9be629",
+  "pair_inputs": "safe_div/safe_add/safe_sub all256x256; compute/chain samefrozenallpairs ifsupported",
+  "array_get": "all256indices withdata=[10,20,30,40],data_len4",
+  "main_expected": "prints decimal5 then250, error1 fromdivide0 causescheckearlyreturn, no finalprint",
+  "model": "Bookv7 appendix@error/CY +source: errorvaluecodes1/2/3/4 carry1; successfulreturncarry0; propagationpreserveserror andpreventsremainingcode",
+  "vm_gap": "inspect actualmissingintrinsics; do not substitute noop hosthooks"
+}
