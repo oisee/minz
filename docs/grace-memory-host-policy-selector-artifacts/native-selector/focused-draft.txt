@@ -1,0 +1,102 @@
+=== RUN   TestMemoryHostPolicySelectorFixedPolicy
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostPolicySelectorFixedPolicy/0/speed
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostPolicySelectorFixedPolicy/0/size
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostPolicySelectorFixedPolicy/1/speed
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostPolicySelectorFixedPolicy/1/size
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+--- PASS: TestMemoryHostPolicySelectorFixedPolicy (70.87s)
+    --- PASS: TestMemoryHostPolicySelectorFixedPolicy/0/speed (18.56s)
+    --- PASS: TestMemoryHostPolicySelectorFixedPolicy/0/size (16.30s)
+    --- PASS: TestMemoryHostPolicySelectorFixedPolicy/1/speed (14.27s)
+    --- PASS: TestMemoryHostPolicySelectorFixedPolicy/1/size (18.14s)
+=== RUN   TestMemoryHostPolicySelectorReplayAndPolicyRefusals
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostPolicySelectorReplayAndPolicyRefusals/requested-policy
+=== RUN   TestMemoryHostPolicySelectorReplayAndPolicyRefusals/association-policy
+=== RUN   TestMemoryHostPolicySelectorReplayAndPolicyRefusals/nested-policy
+=== RUN   TestMemoryHostPolicySelectorReplayAndPolicyRefusals/bare-profile
+=== RUN   TestMemoryHostPolicySelectorReplayAndPolicyRefusals/forged-counts
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostPolicySelectorReplayAndPolicyRefusals/workload
+--- PASS: TestMemoryHostPolicySelectorReplayAndPolicyRefusals (4.52s)
+    --- PASS: TestMemoryHostPolicySelectorReplayAndPolicyRefusals/requested-policy (0.03s)
+    --- PASS: TestMemoryHostPolicySelectorReplayAndPolicyRefusals/association-policy (0.03s)
+    --- PASS: TestMemoryHostPolicySelectorReplayAndPolicyRefusals/nested-policy (0.03s)
+    --- PASS: TestMemoryHostPolicySelectorReplayAndPolicyRefusals/bare-profile (0.01s)
+    --- PASS: TestMemoryHostPolicySelectorReplayAndPolicyRefusals/forged-counts (2.38s)
+    --- PASS: TestMemoryHostPolicySelectorReplayAndPolicyRefusals/workload (0.08s)
+=== RUN   TestMemoryHostPolicySelectorLateMutationAndSharing
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostPolicySelectorLateMutationAndSharing/6
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostPolicySelectorLateMutationAndSharing/12
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostPolicySelectorLateMutationAndSharing/18
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostPolicySelectorLateMutationAndSharing/24
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+--- PASS: TestMemoryHostPolicySelectorLateMutationAndSharing (39.11s)
+    --- PASS: TestMemoryHostPolicySelectorLateMutationAndSharing/6 (2.09s)
+    --- PASS: TestMemoryHostPolicySelectorLateMutationAndSharing/12 (5.88s)
+    --- PASS: TestMemoryHostPolicySelectorLateMutationAndSharing/18 (9.98s)
+    --- PASS: TestMemoryHostPolicySelectorLateMutationAndSharing/24 (12.70s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	114.497s

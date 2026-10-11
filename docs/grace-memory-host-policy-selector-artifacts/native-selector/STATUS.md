@@ -1,0 +1,5 @@
+Final source checkpoint 2ede9853 incorporates frozen association sources from6f4f404a. Five changed pipeline paths are listed in source-inventory.json; no old selector/CLI or native permission implementation changed.
+
+Short two-call controls at both policies and both goals pass four-candidate/exact24-factory retention with forced GC. Consistent forged counters refuse on fresh replay. Late retained origins mutated at calls6/12/18/24 and true shared AST atcall14 refuse. Preflight rejects malformed/case/duplicate/bareprofile/policy mismatch beforefactory. Unobserved append and pure cost tie gates pass.
+
+Final unchanged-source full30 measurement passed36.20s after the narrowly validated AllocationJSON formatting fix. See PUBLIC-RESULT.md for all eight candidates and the separate prior refusal. Both independent saved-payload audits pass: f2cd003a source/300 native observations and d7223d54 typed/native proof audit. pack-audit.json/txt repeats the source audit on packaged gzip bytes only. Parent broad gates/publication remain separate. Existing node_tag alias label audit text is preserved, not a new standalone-link claim.

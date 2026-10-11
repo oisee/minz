@@ -1,0 +1,17 @@
+[
+  {
+    "path": "minzc/pkg/pipeline/memory_host_loop_profile.go",
+    "sha256": "862bddf030f4057951f2c9e60f9cc9baba6c40deecddaa0042dbea65d41b3424",
+    "bytes": 6085
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_policy_association.go",
+    "sha256": "d07b8ac717c7d37aab3fd83e0e609ebc5c6dfb4ff24908fde7113fa5ea93e827",
+    "bytes": 10239
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_policy_association_test.go",
+    "sha256": "a04b88f41a77eb455257e861cd4ec8389ba9e345be23935eb50529ac2828064c",
+    "bytes": 7654
+  }
+]

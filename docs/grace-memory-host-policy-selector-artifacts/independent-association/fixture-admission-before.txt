@@ -1,0 +1,12 @@
+=== RUN   TestMemoryHostPolicyAssociationControl
+    memory_host_policy_association_test.go:50: memory host loop association: memory host baseline: memory host: invalid schema/model/limits/hosts/regions/calls
+--- FAIL: TestMemoryHostPolicyAssociationControl (0.00s)
+=== RUN   TestMemoryHostPolicyAssociationStrictEnvelope
+    memory_host_policy_association_test.go:84: memory host loop association: memory host baseline: memory host: invalid schema/model/limits/hosts/regions/calls
+--- FAIL: TestMemoryHostPolicyAssociationStrictEnvelope (0.00s)
+=== RUN   TestMemoryHostPolicyAssociationFreshReplayRefusals
+    memory_host_policy_association_test.go:106: memory host loop association: memory host baseline: memory host: invalid schema/model/limits/hosts/regions/calls
+--- FAIL: TestMemoryHostPolicyAssociationFreshReplayRefusals (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.008s
+FAIL

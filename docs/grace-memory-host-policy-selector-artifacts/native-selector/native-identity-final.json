@@ -1,0 +1,7 @@
+{
+  "path": "/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-policy-selector-evidence/pipeline-policy-selector-final.test",
+  "sha256": "502796375629b6422fdecc06b93be33c3ca56e2d9b3037e956e0df2ed1b16418",
+  "source_head": "2ede9853",
+  "build": "go test -c -buildvcs=false",
+  "retained": true
+}

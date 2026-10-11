@@ -1,0 +1,31 @@
+=== RUN   TestMemoryHostPolicySelectorOriginalParserExport
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_arena_append_policy_selector_test.go:386: policy0 mask0 1135370T/2000B BIN1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941
+    memory_host_arena_append_policy_selector_test.go:386: policy0 mask1 1135211T/2121B BIN2b5d02b0ba923a61604512e3b50e76ef3c6aa54b5cc13470c3f620d705a64fae
+    memory_host_arena_append_policy_selector_test.go:386: policy0 mask2 1079795T/1978B BIN1648f6983cac2efaef5b18ed84982920f71b99d68cc74f9dfb02a9595f644975
+    memory_host_arena_append_policy_selector_test.go:386: policy0 mask3 1079636T/2099B BIN4bdce86bd7a724f34e7eee180e8a6530b07f33cadd39e7a1a93813df6c841c13
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_arena_append_policy_selector_test.go:386: policy1 mask0 1132449T/2001B BINef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd
+    memory_host_arena_append_policy_selector_test.go:386: policy1 mask1 1132290T/2122B BIN7cbed996d01495228965970dd379920288378f7d84de4b0743db9a3589cdca53
+    memory_host_arena_append_policy_selector_test.go:386: policy1 mask2 1076874T/1979B BIN00b3aecce845088c666edb580b24e51d4f6b06c6f4b1a2f2daa2f21717722835
+    memory_host_arena_append_policy_selector_test.go:386: policy1 mask3 1076715T/2100B BIN987ac78f302ef7b7360791432af98dac3daef244cc09232ff142adf29e4f24ac
+--- PASS: TestMemoryHostPolicySelectorOriginalParserExport (36.20s)
+PASS

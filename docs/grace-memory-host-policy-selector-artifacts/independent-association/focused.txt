@@ -1,0 +1,30 @@
+=== RUN   TestMemoryHostPolicyAssociationControl
+--- PASS: TestMemoryHostPolicyAssociationControl (1.53s)
+=== RUN   TestMemoryHostPolicyAssociationStrictEnvelope
+=== RUN   TestMemoryHostPolicyAssociationStrictEnvelope/policy
+=== RUN   TestMemoryHostPolicyAssociationStrictEnvelope/nestedPolicy
+=== RUN   TestMemoryHostPolicyAssociationStrictEnvelope/nilBaseline
+=== RUN   TestMemoryHostPolicyAssociationStrictEnvelope/cost
+=== RUN   TestMemoryHostPolicyAssociationStrictEnvelope/binary
+=== RUN   TestMemoryHostPolicyAssociationStrictEnvelope/sums
+=== RUN   TestMemoryHostPolicyAssociationStrictEnvelope/schema
+=== RUN   TestMemoryHostPolicyAssociationStrictEnvelope/context
+=== RUN   TestMemoryHostPolicyAssociationStrictEnvelope/result
+=== RUN   TestMemoryHostPolicyAssociationStrictEnvelope/failed
+--- PASS: TestMemoryHostPolicyAssociationStrictEnvelope (0.41s)
+    --- PASS: TestMemoryHostPolicyAssociationStrictEnvelope/policy (0.00s)
+    --- PASS: TestMemoryHostPolicyAssociationStrictEnvelope/nestedPolicy (0.00s)
+    --- PASS: TestMemoryHostPolicyAssociationStrictEnvelope/nilBaseline (0.00s)
+    --- PASS: TestMemoryHostPolicyAssociationStrictEnvelope/cost (0.02s)
+    --- PASS: TestMemoryHostPolicyAssociationStrictEnvelope/binary (0.03s)
+    --- PASS: TestMemoryHostPolicyAssociationStrictEnvelope/sums (0.01s)
+    --- PASS: TestMemoryHostPolicyAssociationStrictEnvelope/schema (0.00s)
+    --- PASS: TestMemoryHostPolicyAssociationStrictEnvelope/context (0.03s)
+    --- PASS: TestMemoryHostPolicyAssociationStrictEnvelope/result (0.02s)
+    --- PASS: TestMemoryHostPolicyAssociationStrictEnvelope/failed (0.01s)
+=== RUN   TestMemoryHostPolicyAssociationFreshReplayRefusals
+--- PASS: TestMemoryHostPolicyAssociationFreshReplayRefusals (1.26s)
+=== RUN   TestMemoryHostPolicyAssociationPreflight
+--- PASS: TestMemoryHostPolicyAssociationPreflight (0.27s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	3.478s

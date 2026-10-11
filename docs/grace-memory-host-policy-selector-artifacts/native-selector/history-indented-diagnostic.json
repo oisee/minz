@@ -1,0 +1,9 @@
+{
+  "source": "7cdd2d19",
+  "executed_binary_sha256": "134c1776968b27417bf3eac22fa1a65c4dfacfbe2b070bae2a019842f2a466e4",
+  "result": "refusal before transformed candidates",
+  "allocation_raw_bytes_loaded": 50551,
+  "allocation_compact_bytes": 17418,
+  "full30_runs_completed_before_refusal": 2,
+  "scope": "Formatting difference confirmed offline; no full fresh payload exposed by nil-on-error API. Owner canonicalization fix and regression pending."
+}
