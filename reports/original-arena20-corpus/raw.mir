@@ -1,0 +1,167 @@
+; MIR2 module: reports/showcase-src/2026-03-14/ex20_arena_allocator.nanz
+global @perm : Arena
+global @level : Arena
+global @frame : Arena
+global @a : Arena
+
+fun @Arena_init(%r1: ptr [pointer], %r2: u16 [index], %r3: u16 [index])
+  block @entry:
+    store %r1, %r2 : u16
+    %r4 = add %r2, %r3 : u16 [pointer]
+    %r5 = field %r1, +2 : ptr [pointer]
+    store %r5, %r4 : u16
+    ret void
+
+fun @Arena_alloc(%r6: ptr [pointer], %r7: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r8 = load %r6 : u16 [pointer]
+    %r9 = add %r8, %r7 : u16 [pointer]
+    %r10 = field %r6, +2 : ptr [pointer]
+    %r11 = load %r10 : u16 [pointer]
+    %r12 = cmp.ugt %r9, %r11 : bool [flag]
+    br_if %r12, @if_then1(), @if_join2()
+  block @if_then1:
+    %r13 = const 0 : u8 [general]
+    ret %r13
+  block @if_join2:
+    store %r6, %r9 : u16
+    ret %r8
+
+fun @Arena_reset(%r14: ptr [pointer], %r15: u16 [index])
+  block @entry:
+    store %r14, %r15 : u16
+    ret void
+
+fun @Arena_remaining(%r16: ptr [pointer]) -> u16 [pointer]
+  block @entry:
+    %r17 = field %r16, +2 : ptr [pointer]
+    %r18 = load %r17 : u16 [pointer]
+    %r19 = load %r16 : u16 [pointer]
+    %r20 = sub %r18, %r19 : u16 [pointer]
+    ret %r20
+
+fun @arena_split(%r21: ptr [pointer], %r22: u16 [index], %r23: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r24 = move %r21 : ptr [pointer]
+    %r25 = move %r22 : u16 [index]
+    %r26 = move %r23 : u16 [index]
+    call @Arena_init(%r24, %r25, %r26)
+    %r27 = add %r22, %r23 : u16 [pointer]
+    ret %r27
+
+fun @test_split_and_alloc() -> u16 [pointer]
+  block @entry:
+    %r28 = addr_of @perm : ptr [pointer]
+    %r29 = move %r28 : ptr [pointer]
+    %r30 = const 49152 : u16 [pointer]
+    %r31 = move %r30 : u16 [index]
+    %r32 = const 256 : u16 [pointer]
+    %r33 = move %r32 : u16 [index]
+    %r34 = call @arena_split(%r29, %r31, %r33) : u16 [pointer]
+    %r35 = addr_of @level : ptr [pointer]
+    %r36 = move %r35 : ptr [pointer]
+    %r37 = move %r34 : u16 [index]
+    %r38 = const 2048 : u16 [pointer]
+    %r39 = move %r38 : u16 [index]
+    %r40 = call @arena_split(%r36, %r37, %r39) : u16 [pointer]
+    %r41 = addr_of @frame : ptr [pointer]
+    %r42 = move %r41 : ptr [pointer]
+    %r43 = move %r40 : u16 [index]
+    %r44 = const 1024 : u16 [pointer]
+    %r45 = move %r44 : u16 [index]
+    %r46 = call @arena_split(%r42, %r43, %r45) : u16 [pointer]
+    %r47 = const 49408 : u16 [pointer]
+    %r48 = cmp.ne %r34, %r47 : bool [flag]
+    br_if %r48, @if_then1(), @if_join2()
+  block @if_then1:
+    %r49 = const 1 : u8 [general]
+    ret %r49
+  block @if_join2:
+    %r50 = const 51456 : u16 [pointer]
+    %r51 = cmp.ne %r40, %r50 : bool [flag]
+    br_if %r51, @if_then3(), @if_join4()
+  block @if_then3:
+    %r52 = const 2 : u8 [general]
+    ret %r52
+  block @if_join4:
+    %r53 = const 52480 : u16 [pointer]
+    %r54 = cmp.ne %r46, %r53 : bool [flag]
+    br_if %r54, @if_then5(), @if_join6()
+  block @if_then5:
+    %r55 = const 3 : u8 [general]
+    ret %r55
+  block @if_join6:
+    %r56 = addr_of @perm : ptr [pointer]
+    %r57 = move %r56 : ptr [pointer]
+    %r58 = const 4 : u8 [general]
+    %r59 = call @Arena_alloc(%r57, %r58) : u16 [pointer]
+    %r60 = const 49152 : u16 [pointer]
+    %r61 = cmp.ne %r59, %r60 : bool [flag]
+    br_if %r61, @if_then7(), @if_join8()
+  block @if_then7:
+    %r62 = const 4 : u8 [general]
+    ret %r62
+  block @if_join8:
+    %r63 = addr_of @perm : ptr [pointer]
+    %r64 = move %r63 : ptr [pointer]
+    %r65 = const 4 : u8 [general]
+    %r66 = call @Arena_alloc(%r64, %r65) : u16 [pointer]
+    %r67 = const 49156 : u16 [pointer]
+    %r68 = cmp.ne %r66, %r67 : bool [flag]
+    br_if %r68, @if_then9(), @if_join10()
+  block @if_then9:
+    %r69 = const 5 : u8 [general]
+    ret %r69
+  block @if_join10:
+    %r70 = addr_of @frame : ptr [pointer]
+    %r71 = move %r70 : ptr [pointer]
+    %r72 = const 64 : u8 [general]
+    %r73 = call @Arena_alloc(%r71, %r72) : u16 [pointer]
+    %r74 = const 51456 : u16 [pointer]
+    %r75 = cmp.ne %r73, %r74 : bool [flag]
+    br_if %r75, @if_then11(), @if_join12()
+  block @if_then11:
+    %r76 = const 6 : u8 [general]
+    ret %r76
+  block @if_join12:
+    %r77 = addr_of @frame : ptr [pointer]
+    %r78 = move %r77 : ptr [pointer]
+    %r79 = const 51456 : u16 [pointer]
+    %r80 = move %r79 : u16 [index]
+    call @Arena_reset(%r78, %r80)
+    %r81 = addr_of @frame : ptr [pointer]
+    %r82 = move %r81 : ptr [pointer]
+    %r83 = const 32 : u8 [general]
+    %r84 = call @Arena_alloc(%r82, %r83) : u16 [pointer]
+    %r85 = const 51456 : u16 [pointer]
+    %r86 = cmp.ne %r84, %r85 : bool [flag]
+    br_if %r86, @if_then13(), @if_join14()
+  block @if_then13:
+    %r87 = const 7 : u8 [general]
+    ret %r87
+  block @if_join14:
+    %r88 = const 0 : u8 [general]
+    ret %r88
+
+fun @init_a() -> u16 [pointer]
+  block @entry:
+    %r89 = addr_of @a : ptr [pointer]
+    %r90 = move %r89 : ptr [pointer]
+    %r91 = const 49152 : u16 [pointer]
+    %r92 = move %r91 : u16 [index]
+    %r93 = const 1024 : u16 [pointer]
+    %r94 = move %r93 : u16 [index]
+    call @Arena_init(%r90, %r92, %r94)
+    %r95 = addr_of @a : ptr [pointer]
+    %r96 = move %r95 : ptr [pointer]
+    %r97 = call @Arena_remaining(%r96) : u16 [pointer]
+    ret %r97
+
+fun @alloc_enemy() -> u16 [pointer]
+  block @entry:
+    %r98 = addr_of @a : ptr [pointer]
+    %r99 = move %r98 : ptr [pointer]
+    %r100 = const 4 : u8 [general]
+    %r101 = call @Arena_alloc(%r99, %r100) : u16 [pointer]
+    ret %r101
+
