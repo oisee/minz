@@ -20,6 +20,96 @@
     "sha256": "4850a0a8082b5471ea6140b996a9f85e800a9e99969b58cc4cef630a41c17651"
   },
   {
+    "path": "independent-native-review/FINAL_REVIEW.md",
+    "bytes": 3545,
+    "sha256": "6bef85b0ca853435cc1768917fb02cec60a42d90806dbd2ca63c5786beaaad3a"
+  },
+  {
+    "path": "independent-native-review/all16-host-audit.txt",
+    "bytes": 5136,
+    "sha256": "1df2d2da73820e0a73d30721a4c62395fad6f72b4f91fce5d62eea76da9f791d"
+  },
+  {
+    "path": "independent-native-review/all16-typed-audit.txt",
+    "bytes": 6380,
+    "sha256": "d13b7d452b778d3ea652685fbc3868431f03aa8c05523f647015889d059d8bc3"
+  },
+  {
+    "path": "independent-native-review/audit_native.py",
+    "bytes": 4149,
+    "sha256": "a7f4b40ed1d3f641639eda9fa21cc14c0b46a5a936ea35f43a4c500e474fbf6b"
+  },
+  {
+    "path": "independent-native-review/audit_output.py",
+    "bytes": 2561,
+    "sha256": "b0301513ea92422b671ac0e78ef957b3eb367c913bcb02f6317d4550886dceda"
+  },
+  {
+    "path": "independent-native-review/audit_proofs.py",
+    "bytes": 4120,
+    "sha256": "db0fd5dccbb6bf5a922ea3205f3ca2dd35e4d59428f62584b142d4dc46bcde81"
+  },
+  {
+    "path": "independent-native-review/commands.json",
+    "bytes": 1901,
+    "sha256": "045e3599a763bcff11e65831a9e3ac8aa5243e510f628e648f040a080dac87a1"
+  },
+  {
+    "path": "independent-native-review/ed-root-audit.txt",
+    "bytes": 948,
+    "sha256": "f21ac17a4680a92474bcbb47a63677108993cdcbe20484d1d6dd1aaaeb6bb308"
+  },
+  {
+    "path": "independent-native-review/exit-codes.json",
+    "bytes": 209,
+    "sha256": "4850a0a8082b5471ea6140b996a9f85e800a9e99969b58cc4cef630a41c17651"
+  },
+  {
+    "path": "independent-native-review/native-identity.json",
+    "bytes": 331,
+    "sha256": "69b72cd71159c927cc1ceaf66b5136856c11ac98b6f1988835985affe506bcf8"
+  },
+  {
+    "path": "independent-native-review/outputs-audit.txt",
+    "bytes": 1223,
+    "sha256": "caf079714ee6733ddc400ff3b7ee77ed2e3a002315ea93a9e9c25488f0db7ace"
+  },
+  {
+    "path": "independent-native-review/payload-inventory.json",
+    "bytes": 10269,
+    "sha256": "7c56b66fa0e3298a8f0c3692eb479c2545625165d1bb833b523404ba02696684"
+  },
+  {
+    "path": "independent-native-review/proofs-audit.txt",
+    "bytes": 3025,
+    "sha256": "c30fe5171deb6399b7a122f4bfbbb5db9f11a45bfb4ccaec036c863dfd50a1a6"
+  },
+  {
+    "path": "independent-native-review/run_cli.py",
+    "bytes": 1756,
+    "sha256": "88069441c530b4473f18c7a7748efa2459888e1ccbfa866a7b58755edaf4855f"
+  },
+  {
+    "path": "independent-native-review/size-native-audit.txt",
+    "bytes": 959,
+    "sha256": "4054194a5d409822f6025bb4decee0983d63e9037145425941258eb9b9a6b2e8"
+  },
+  {
+    "path": "independent-native-review/small-collect-native-audit.txt",
+    "bytes": 939,
+    "sha256": "d980e1208cc6dd6125d7369675569d32d42d7dc9d1c2abc279302337a7921047"
+  },
+  {
+    "path": "independent-native-review/small-replay-native-audit.txt",
+    "bytes": 939,
+    "sha256": "d980e1208cc6dd6125d7369675569d32d42d7dc9d1c2abc279302337a7921047"
+  },
+  {
+    "path": "independent-native-review/speed-native-audit.txt",
+    "bytes": 959,
+    "sha256": "4054194a5d409822f6025bb4decee0983d63e9037145425941258eb9b9a6b2e8"
+  },
+  {
     "path": "native-identity.json",
     "bytes": 331,
     "sha256": "69b72cd71159c927cc1ceaf66b5136856c11ac98b6f1988835985affe506bcf8"
