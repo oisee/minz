@@ -1,0 +1,62 @@
+{
+  "base": "b770f3be",
+  "workload_owner": "627b76fc",
+  "files": [
+    {
+      "path": "docs/grace-memory-host-corpus-oracle/PLAN.md",
+      "sha256": "1f5dbfae9fa58b01046657ce54d73fcccb5725239e441b0d7a372cac92cd976c"
+    },
+    {
+      "path": "docs/grace-memory-host-corpus-oracle/capacity-review.json",
+      "sha256": "554687c87f53fa1f1b863ee4fdee70fd202365200960d64aed83180cd517395d"
+    },
+    {
+      "path": "docs/grace-memory-host-corpus-oracle/fresh-dominant-expected.json.gz",
+      "sha256": "b33e279d61be3f865b62a8acd7f7be375024121552813a996fc761789f567a82"
+    },
+    {
+      "path": "docs/grace-memory-host-corpus-oracle/long-atoms-expected.json.gz",
+      "sha256": "f25d33548c44ef83a8836c591b0de6c7616cf6041bf92b7c06d9b0593003d169"
+    },
+    {
+      "path": "docs/grace-memory-host-corpus-oracle/nested-mixed-expected.json.gz",
+      "sha256": "06030121612c84e58d3c7f009c612748747ce6afeef8b011bed0c7c33c853b7f"
+    },
+    {
+      "path": "docs/grace-memory-host-corpus-oracle/oracle_selftest.py",
+      "sha256": "6377792441250afaa6c83f7f772fba0157409b45e6fecdd23e865c26eccccdb5"
+    },
+    {
+      "path": "docs/grace-memory-host-corpus-oracle/original30-audit.txt",
+      "sha256": "1c19f267dd38e87319765cdf85d27e5ad2575da0318669821d9722bab45c95be"
+    },
+    {
+      "path": "docs/grace-memory-host-corpus-oracle/selftest.txt",
+      "sha256": "01b8d82812778292bdac82b2fbcdfca197532f470fec12ed3314571cb3ca0d73"
+    },
+    {
+      "path": "docs/grace-memory-host-corpus-oracle/short-reuse-expected.json.gz",
+      "sha256": "af1e3d0a386713cc05d721faf3566c48ce38345d695f2a1dc3d5c5ab68c7cf2e"
+    },
+    {
+      "path": "docs/grace-memory-host-corpus-oracle/verify_corpus.py",
+      "sha256": "d7e6de77a6edfc41251f0caddd9b126ec40d2bd65f51210a11cb42441413b580"
+    },
+    {
+      "path": "docs/grace-memory-host-corpus-oracle/workloads/fresh-dominant.json",
+      "sha256": "8dedd77c5bd8ed3c8a55859a973c9721013467dff0f2e6f54dc338604e866213"
+    },
+    {
+      "path": "docs/grace-memory-host-corpus-oracle/workloads/long-atoms.json",
+      "sha256": "7bb2930fd351516dccc3be1421379ca5c54725799d208a001f9ca53d8c26a102"
+    },
+    {
+      "path": "docs/grace-memory-host-corpus-oracle/workloads/nested-mixed.json",
+      "sha256": "ec3860ad5d2e95d25a8ae4e4666d5024a61197656ac293109982d0b59d0b3c12"
+    },
+    {
+      "path": "docs/grace-memory-host-corpus-oracle/workloads/short-reuse.json",
+      "sha256": "bfe1608ab73d8e077eb7da5994a0e8fda8ed256bdac5eadc7cd9bd589415951d"
+    }
+  ]
+}

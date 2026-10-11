@@ -1,0 +1,1 @@
+PASS independent hostoracle6 source quirks/persistence/u8len256/numericmixed/unterminatedlist/readonly/partialstore
