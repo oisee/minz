@@ -1,0 +1,49 @@
+// @error Layer 2 — Parser enforcement of ? naming convention
+//
+// Functions ending with ? are fallible.
+// After calling name?(), the NEXT statement MUST be @check or @propagate.
+// Omitting it → compile error.
+//
+// Compile: mz 15_error_enforcement.nanz -o out.a80
+// Run: echo "" | mzv -H 15_error_enforcement.nanz
+
+// ── Fallible functions end with ? ─────────────────────
+
+fun safe_div?(a: u8, b: u8) -> u8 {
+    if b == 0 { @error(1) }
+    return a / b
+}
+
+fun safe_add?(a: u8, b: u8) -> u8 {
+    var sum: u16 = u16(a) + u16(b)
+    if sum > 255 { @error(2) }
+    return a + b
+}
+
+// ── Correct usage: @propagate after ?-call ────────────
+
+fun compute(a: u8, b: u8) -> u8 {
+    var x: u8 = safe_div?(a, b)
+    @propagate
+    var y: u8 = safe_add?(x, 5)
+    @propagate
+    return y
+}
+
+// ── Correct usage: @check after ?-call ────────────────
+
+fun try_div(a: u8, b: u8) -> u8 {
+    var x: u8 = safe_div?(a, b)
+    @check
+    return x
+}
+
+fun main() -> void {
+    var a: u8 = compute(10, 2)
+    @propagate
+    @print_u8(a)
+
+    var b: u8 = try_div(20, 4)
+    @check
+    @print_u8(b)
+}
