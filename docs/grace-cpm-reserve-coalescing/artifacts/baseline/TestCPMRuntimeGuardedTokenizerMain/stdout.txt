@@ -1,0 +1,4 @@
+Source: fun add(a: u8, b: u8) -> u8 { return a + b }
+Tokens: 19
+fun id ( id : id , id : id ) -> id { return id + id } 
+Interned strings: 91 bytes
