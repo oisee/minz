@@ -1,0 +1,43 @@
+{
+  "base": "7719dffb",
+  "assets": [
+    {
+      "path": "regalloc_table.json",
+      "bytes": 5941,
+      "entries": 36,
+      "sha256": "8c01a808c50231114f9e1da9bee53aea8065c3b469608924ee37812218f7625b",
+      "format": "JSON array legacy",
+      "schema_counts": {
+        "absent": 36
+      },
+      "git_object": "bf9c27904f61c3b88a64bbc51b06921a3a67a428"
+    },
+    {
+      "path": "minzc/pkg/vir/regalloc_exhaustive.json",
+      "bytes": 5146,
+      "entries": 56,
+      "sha256": "cfb9eb10019a1193161908d44f3103e22002d980f5a9368c7896b0102f1c1aa4",
+      "format": "JSON hash\u2192GPU legacy",
+      "schema_counts": {
+        "absent": 56
+      },
+      "git_object": "d57bf2b63abf6086b917921219c77edf6fb1fddd"
+    }
+  ],
+  "binary_default_search_directories": [
+    {
+      "path": "/home/alice/dev/minz-artifacts/grace-workspaces/table-no-benefit/data",
+      "exists": false
+    },
+    {
+      "path": "/home/alice/dev/z80-optimizer/data",
+      "exists": false
+    },
+    {
+      "path": "/home/alice/dev/minz-vir/data",
+      "exists": false
+    }
+  ],
+  "enrt_z80t_files_found": [],
+  "note": "No giant-table load attempted. No assertion of availability/optimality from comments mentioning37.6M."
+}

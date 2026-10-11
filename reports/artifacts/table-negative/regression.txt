@@ -1,0 +1,56 @@
+=== RUN   TestCheckedRealWeightedSolverAndNativeCallers
+    checked_local_real_test.go:143: weighted exact corpus + caller harness all 256 inputs: module 44→20 B helper 182→86 T caller 238→142 T; actual ABI/SP verified; generation [weighted: admitted weighted_caller: skipped: unsupported local opcode call]
+--- PASS: TestCheckedRealWeightedSolverAndNativeCallers (1.63s)
+=== RUN   TestCheckedExistingFunctionPointerLeaf
+    checked_table_practical_audit_test.go:124: existing indirect apply triple all256 123T/34B
+    checked_table_practical_audit_test.go:124: existing indirect apply triple all256 111T/31B
+    checked_table_practical_audit_test.go:145: module 34B triple66T→54T
+    checked_table_practical_audit_test.go:145: module 31B triple66T→54T
+--- PASS: TestCheckedExistingFunctionPointerLeaf (0.65s)
+=== RUN   TestCheckedExistingHash16Native
+    checked_word_xor_test.go:105: unchanged hash16 all65536 VM/native PASS; 55T including RET; module981B ABIDE→HL
+    checked_word_xor_test.go:117: existing caller test_put_get native3688T result1 SP=f000
+    checked_word_xor_test.go:117: existing caller test_missing native1955T result1 SP=f000
+    checked_word_xor_test.go:117: existing caller test_overwrite native4764T result1 SP=f000
+    checked_word_xor_test.go:117: existing caller test_two_keys native5842T result1 SP=f000
+    checked_word_xor_test.go:117: existing caller test_has native4229T result1 SP=f000
+    checked_word_xor_test.go:117: existing caller test_count native5015T result1 SP=f000
+    checked_word_xor_test.go:117: existing caller test_zero_key native3704T result1 SP=f000
+    checked_word_xor_test.go:117: existing caller test_many native17876T result1 SP=f000
+--- PASS: TestCheckedExistingHash16Native (0.15s)
+=== RUN   TestCheckedExistingHash16GenerationEvidence
+    checked_word_xor_test.go:166: generation notes=[rd16: skipped: invalid or duplicate contract parameter wr16: skipped: local table requires single-result leaf block hash16: rejected: no pattern for local op 2 map_clear: skipped: local table requires single-result leaf block map_put: skipped: local table requires single-result leaf block map_get: skipped: local table requires single-result leaf block map_has: skipped: local table requires single-result leaf block test_put_get: skipped: local table requires single-result leaf block test_missing: skipped: local table requires single-result leaf block test_overwrite: skipped: local table requires single-result leaf block test_two_keys: skipped: local table requires single-result leaf block test_has: skipped: local table requires single-result leaf block test_count: skipped: local table requires single-result leaf block test_zero_key: skipped: local table requires single-result leaf block test_many: skipped: local table requires single-result leaf block]; table0entries; module981→981B; hash16backendPBQP
+--- PASS: TestCheckedExistingHash16GenerationEvidence (0.15s)
+=== RUN   TestCheckedTableNegativeCorpusAudit
+[regalloc] loaded 56 exhaustive entries from ../vir/regalloc_exhaustive.json
+    table_negative_audit_test.go:159: 06_pbqp_weighted module36→12 entries1 compile2.36ms generate28.64ms selected5.41ms
+    table_negative_audit_test.go:159: 09_function_pointers module34→31 entries2 compile1.50ms generate34.48ms selected3.87ms
+    table_negative_audit_test.go:159: tiny module11→8 entries3 compile0.53ms generate44.65ms selected3.78ms
+    table_negative_audit_test.go:159: 20_strref_test module45→45 entries3 compile2.88ms generate50.80ms selected6.18ms
+    table_negative_audit_test.go:159: 21_hashmap_test module981→981 entries0 compile29.45ms generate27.26ms selected28.30ms
+    table_negative_audit_test.go:159: 17_bool_retflag module172→172 entries0 compile4.18ms generate3.24ms selected3.41ms
+    table_negative_audit_test.go:159: 16_rotate_sled module192→192 entries1 compile3.56ms generate21.25ms selected4.03ms
+    table_negative_audit_test.go:159: promoted_arithmetic module342→342 entries0 compile8.89ms generate8.59ms selected7.75ms
+    table_negative_audit_test.go:159: signed_arithmetic module221→221 entries0 compile4.48ms generate6.24ms selected5.64ms
+    table_negative_audit_test.go:159: 08_arena_allocator module1193→1193 entries0 compile32.32ms generate30.88ms selected32.37ms
+    table_negative_audit_test.go:159: 50_impl_showcase module237→237 entries0 compile5.95ms generate6.24ms selected7.41ms
+    table_negative_audit_test.go:159: self_tokenizer module5474→5474 entries0 compile601.77ms generate693.72ms selected639.03ms
+    table_negative_audit_test.go:169: 06_pbqp_weighted/weighted baseline36 candidate12 cost54 admitted: smaller
+    table_negative_audit_test.go:169: 09_function_pointers/double baseline2 candidate2 cost14 admitted: not strictly smaller
+    table_negative_audit_test.go:169: 09_function_pointers/triple baseline7 candidate4 cost22 admitted: smaller
+    table_negative_audit_test.go:169: tiny/add baseline2 candidate2 cost14 admitted: not strictly smaller
+    table_negative_audit_test.go:169: tiny/double baseline2 candidate2 cost14 admitted: not strictly smaller
+    table_negative_audit_test.go:169: tiny/triple baseline7 candidate4 cost22 admitted: smaller
+    table_negative_audit_test.go:169: 20_strref_test/hash3 baseline6 candidate6 cost30 admitted: not strictly smaller
+    table_negative_audit_test.go:169: 20_strref_test/test_eq baseline3 candidate3 cost17 admitted: not strictly smaller
+    table_negative_audit_test.go:169: 20_strref_test/test_neq baseline3 candidate3 cost17 admitted: not strictly smaller
+    table_negative_audit_test.go:169: 16_rotate_sled/low_nibble baseline3 candidate3 cost17 admitted: not strictly smaller
+--- PASS: TestCheckedTableNegativeCorpusAudit (3.20s)
+=== RUN   TestCheckedStrRefEqualNative
+    table_negative_native_test.go:90: StrRef hash3 baseline/candidate equal:6B30T; fullmodule45B; 65536 tuples per path VM/native independent modulo oracle PASS (not all2^24)
+--- PASS: TestCheckedStrRefEqualNative (0.22s)
+=== RUN   TestCheckedExactBindingMissAndRevalidatedTransfer
+    table_negative_native_test.go:183: real low_nibble altered immediate: legacyShapeSame=true exactMiss=true targetAddCheckedPASS equal3B; ABI A→C oldassignment refused: table admission: ABI or location hint mismatch
+--- PASS: TestCheckedExactBindingMissAndRevalidatedTransfer (0.07s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	6.085s

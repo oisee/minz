@@ -1,0 +1,15 @@
+{
+  "admitted: smaller": 3,
+  "admitted: not strictly smaller": 7,
+  "prepare: invalid or duplicate contract parameter": 9,
+  "prepare: hard class or invalid local definition unsupported": 24,
+  "prepare: local table requires single-result leaf block": 55,
+  "generate: no pattern for local op 2": 1,
+  "prepare: unsupported local opcode ext": 7,
+  "prepare: unsupported local opcode shr": 3,
+  "prepare: unsupported local opcode sdiv": 3,
+  "prepare: unsupported local opcode sar": 2,
+  "prepare: unsupported local opcode smod": 2,
+  "prepare: unsupported local opcode sext": 1,
+  "prepare: unsupported local opcode call": 1
+}

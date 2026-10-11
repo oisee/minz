@@ -1,0 +1,6228 @@
+[
+  {
+    "File": "06_pbqp_weighted",
+    "BaselineBytes": 36,
+    "SelectedBytes": 12,
+    "Entries": 1,
+    "CompileMS": 2.36,
+    "GenerateMS": 28.643,
+    "SelectedMS": 5.412,
+    "Notes": [
+      "weighted: admitted"
+    ],
+    "Functions": [
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "weighted",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "x",
+            "Reg": 1,
+            "Ty": {},
+            "Class": 1
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "add",
+          "add",
+          "add",
+          "add",
+          "add",
+          "add",
+          "add",
+          "add",
+          "add",
+          "add"
+        ],
+        "Reason": "admitted: smaller",
+        "BaselineBytes": 36,
+        "CandidateBytes": 12,
+        "CandidateCost": 54,
+        "Selected": true,
+        "SolveMS": 23.944
+      }
+    ]
+  },
+  {
+    "File": "09_function_pointers",
+    "BaselineBytes": 34,
+    "SelectedBytes": 31,
+    "Entries": 2,
+    "CompileMS": 1.504,
+    "GenerateMS": 34.481,
+    "SelectedMS": 3.869,
+    "Notes": [
+      "double: admitted",
+      "triple: admitted",
+      "apply: skipped: invalid or duplicate contract parameter",
+      "test_apply_double: skipped: hard class or invalid local definition unsupported",
+      "test_apply_triple: skipped: hard class or invalid local definition unsupported"
+    ],
+    "Functions": [
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "double",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "x",
+            "Reg": 1,
+            "Ty": {},
+            "Class": 1
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "add"
+        ],
+        "Reason": "admitted: not strictly smaller",
+        "BaselineBytes": 2,
+        "CandidateBytes": 2,
+        "CandidateCost": 14,
+        "Selected": false,
+        "SolveMS": 15.663
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "triple",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "x",
+            "Reg": 3,
+            "Ty": {},
+            "Class": 1
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "add",
+          "add"
+        ],
+        "Reason": "admitted: smaller",
+        "BaselineBytes": 7,
+        "CandidateBytes": 4,
+        "CandidateCost": 22,
+        "Selected": true,
+        "SolveMS": 16.267
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "apply",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "f",
+            "Reg": 6,
+            "Ty": {},
+            "Class": 8
+          },
+          {
+            "Name": "x",
+            "Reg": 7,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "move",
+          "call_indirect"
+        ],
+        "Reason": "prepare: invalid or duplicate contract parameter",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "test_apply_double",
+        "Blocks": 1,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "addr_of",
+          "move",
+          "const",
+          "call"
+        ],
+        "Reason": "prepare: hard class or invalid local definition unsupported",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "test_apply_triple",
+        "Blocks": 1,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "addr_of",
+          "move",
+          "const",
+          "call"
+        ],
+        "Reason": "prepare: hard class or invalid local definition unsupported",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      }
+    ]
+  },
+  {
+    "File": "tiny",
+    "BaselineBytes": 11,
+    "SelectedBytes": 8,
+    "Entries": 3,
+    "CompileMS": 0.527,
+    "GenerateMS": 44.654,
+    "SelectedMS": 3.776,
+    "Notes": [
+      "add: admitted",
+      "double: admitted",
+      "triple: admitted"
+    ],
+    "Functions": [
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "add",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 1,
+            "Ty": {},
+            "Class": 1
+          },
+          {
+            "Name": "b",
+            "Reg": 2,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "add"
+        ],
+        "Reason": "admitted: not strictly smaller",
+        "BaselineBytes": 2,
+        "CandidateBytes": 2,
+        "CandidateCost": 14,
+        "Selected": false,
+        "SolveMS": 14.115
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "double",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "x",
+            "Reg": 4,
+            "Ty": {},
+            "Class": 1
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "add"
+        ],
+        "Reason": "admitted: not strictly smaller",
+        "BaselineBytes": 2,
+        "CandidateBytes": 2,
+        "CandidateCost": 14,
+        "Selected": false,
+        "SolveMS": 15.578
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "triple",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "x",
+            "Reg": 6,
+            "Ty": {},
+            "Class": 1
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "add",
+          "add"
+        ],
+        "Reason": "admitted: smaller",
+        "BaselineBytes": 7,
+        "CandidateBytes": 4,
+        "CandidateCost": 22,
+        "Selected": true,
+        "SolveMS": 16.931
+      }
+    ]
+  },
+  {
+    "File": "20_strref_test",
+    "BaselineBytes": 45,
+    "SelectedBytes": 45,
+    "Entries": 3,
+    "CompileMS": 2.882,
+    "GenerateMS": 50.801,
+    "SelectedMS": 6.178,
+    "Notes": [
+      "mem_eq_3: skipped: local table requires single-result leaf block",
+      "hash3: admitted",
+      "test_eq: admitted",
+      "test_neq: admitted",
+      "test_hash_eq: skipped: local table requires single-result leaf block",
+      "test_hash_neq: skipped: local table requires single-result leaf block",
+      "test_hash_nz: skipped: local table requires single-result leaf block",
+      "test_hash_order: skipped: local table requires single-result leaf block"
+    ],
+    "Functions": [
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "mem_eq_3",
+        "Blocks": 6,
+        "Params": [
+          {
+            "Name": "a1",
+            "Reg": 1,
+            "Ty": {},
+            "Class": 1
+          },
+          {
+            "Name": "a2",
+            "Reg": 2,
+            "Ty": {},
+            "Class": 0
+          },
+          {
+            "Name": "a3",
+            "Reg": 3,
+            "Ty": {},
+            "Class": 2
+          },
+          {
+            "Name": "b1",
+            "Reg": 4,
+            "Ty": {},
+            "Class": 0
+          },
+          {
+            "Name": "b2",
+            "Reg": 5,
+            "Ty": {},
+            "Class": 0
+          },
+          {
+            "Name": "b3",
+            "Reg": 6,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "cmp",
+          "const",
+          "cmp",
+          "const",
+          "cmp",
+          "const",
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "hash3",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 14,
+            "Ty": {},
+            "Class": 1
+          },
+          {
+            "Name": "b",
+            "Reg": 15,
+            "Ty": {},
+            "Class": 0
+          },
+          {
+            "Name": "c",
+            "Reg": 16,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "add",
+          "add",
+          "add",
+          "add",
+          "add"
+        ],
+        "Reason": "admitted: not strictly smaller",
+        "BaselineBytes": 6,
+        "CandidateBytes": 6,
+        "CandidateCost": 30,
+        "Selected": false,
+        "SolveMS": 16.49
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "test_eq",
+        "Blocks": 1,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const"
+        ],
+        "Reason": "admitted: not strictly smaller",
+        "BaselineBytes": 3,
+        "CandidateBytes": 3,
+        "CandidateCost": 17,
+        "Selected": false,
+        "SolveMS": 15.522
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "test_neq",
+        "Blocks": 1,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const"
+        ],
+        "Reason": "admitted: not strictly smaller",
+        "BaselineBytes": 3,
+        "CandidateBytes": 3,
+        "CandidateCost": 17,
+        "Selected": false,
+        "SolveMS": 15.319
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "test_hash_eq",
+        "Blocks": 2,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": 3,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "test_hash_neq",
+        "Blocks": 2,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": 3,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "test_hash_nz",
+        "Blocks": 2,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": 3,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "test_hash_order",
+        "Blocks": 2,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": 3,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      }
+    ]
+  },
+  {
+    "File": "21_hashmap_test",
+    "BaselineBytes": 981,
+    "SelectedBytes": 981,
+    "Entries": 0,
+    "CompileMS": 29.449,
+    "GenerateMS": 27.259,
+    "SelectedMS": 28.302,
+    "Notes": [
+      "rd16: skipped: invalid or duplicate contract parameter",
+      "wr16: skipped: local table requires single-result leaf block",
+      "hash16: rejected: no pattern for local op 2",
+      "map_clear: skipped: local table requires single-result leaf block",
+      "map_put: skipped: local table requires single-result leaf block",
+      "map_get: skipped: local table requires single-result leaf block",
+      "map_has: skipped: local table requires single-result leaf block",
+      "test_put_get: skipped: local table requires single-result leaf block",
+      "test_missing: skipped: local table requires single-result leaf block",
+      "test_overwrite: skipped: local table requires single-result leaf block",
+      "test_two_keys: skipped: local table requires single-result leaf block",
+      "test_has: skipped: local table requires single-result leaf block",
+      "test_count: skipped: local table requires single-result leaf block",
+      "test_zero_key: skipped: local table requires single-result leaf block",
+      "test_many: skipped: local table requires single-result leaf block"
+    ],
+    "Functions": [
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "rd16",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "arr",
+            "Reg": 1,
+            "Ty": {},
+            "Class": 8
+          },
+          {
+            "Name": "idx",
+            "Reg": 2,
+            "Ty": {},
+            "Class": 10
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 8,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "mul",
+          "ptr_add",
+          "load",
+          "ext",
+          "const",
+          "add",
+          "ptr_add",
+          "load",
+          "ext",
+          "const",
+          "mul",
+          "add"
+        ],
+        "Reason": "prepare: invalid or duplicate contract parameter",
+        "BaselineBytes": 33,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "wr16",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "arr",
+            "Reg": 16,
+            "Ty": {},
+            "Class": 8
+          },
+          {
+            "Name": "idx",
+            "Reg": 17,
+            "Ty": {},
+            "Class": 10
+          },
+          {
+            "Name": "val",
+            "Reg": 18,
+            "Ty": {},
+            "Class": 10
+          }
+        ],
+        "Returns": null,
+        "Ops": [
+          "const",
+          "mul",
+          "trunc",
+          "ptr_add",
+          "store",
+          "const",
+          "div",
+          "trunc",
+          "const",
+          "add",
+          "ptr_add",
+          "store"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": 28,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "hash16",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "key",
+            "Reg": 29,
+            "Ty": {},
+            "Class": 8
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 8,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "add",
+          "xor"
+        ],
+        "Reason": "generate: no pattern for local op 2",
+        "BaselineBytes": 11,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0.023
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "map_clear",
+        "Blocks": 3,
+        "Params": null,
+        "Returns": null,
+        "Ops": [
+          "const",
+          "addr_of",
+          "store",
+          "const",
+          "const",
+          "cmp",
+          "const",
+          "addr_of",
+          "ptr_add",
+          "store",
+          "const",
+          "add"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "map_put",
+        "Blocks": 7,
+        "Params": [
+          {
+            "Name": "key",
+            "Reg": 44,
+            "Ty": {},
+            "Class": 8
+          },
+          {
+            "Name": "val",
+            "Reg": 45,
+            "Ty": {},
+            "Class": 9
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "add",
+          "xor",
+          "const",
+          "and",
+          "const",
+          "const",
+          "cmp",
+          "const",
+          "addr_of",
+          "ptr_add",
+          "load",
+          "const",
+          "cmp",
+          "const",
+          "addr_of",
+          "ptr_add",
+          "store",
+          "addr_of",
+          "call",
+          "addr_of",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store",
+          "const",
+          "addr_of",
+          "call",
+          "cmp",
+          "addr_of",
+          "call",
+          "const",
+          "const",
+          "add",
+          "const",
+          "and",
+          "const",
+          "add"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "map_get",
+        "Blocks": 7,
+        "Params": [
+          {
+            "Name": "key",
+            "Reg": 86,
+            "Ty": {},
+            "Class": 8
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 8,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "add",
+          "xor",
+          "const",
+          "and",
+          "const",
+          "const",
+          "cmp",
+          "const",
+          "addr_of",
+          "ptr_add",
+          "load",
+          "const",
+          "cmp",
+          "const",
+          "addr_of",
+          "call",
+          "cmp",
+          "addr_of",
+          "call",
+          "const",
+          "add",
+          "const",
+          "and",
+          "const",
+          "add"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "map_has",
+        "Blocks": 2,
+        "Params": [
+          {
+            "Name": "key",
+            "Reg": 116,
+            "Ty": {},
+            "Class": 8
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "call",
+          "const",
+          "cmp",
+          "const",
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "test_put_get",
+        "Blocks": 2,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "call",
+          "const",
+          "const",
+          "call",
+          "const",
+          "call",
+          "const",
+          "cmp",
+          "const",
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "test_missing",
+        "Blocks": 2,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "call",
+          "const",
+          "call",
+          "const",
+          "cmp",
+          "const",
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "test_overwrite",
+        "Blocks": 2,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "call",
+          "const",
+          "const",
+          "call",
+          "const",
+          "const",
+          "call",
+          "const",
+          "call",
+          "const",
+          "cmp",
+          "const",
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "test_two_keys",
+        "Blocks": 5,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "call",
+          "const",
+          "const",
+          "call",
+          "const",
+          "const",
+          "call",
+          "const",
+          "call",
+          "const",
+          "call",
+          "const",
+          "cmp",
+          "const",
+          "cmp",
+          "const",
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "test_has",
+        "Blocks": 5,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "call",
+          "const",
+          "const",
+          "call",
+          "const",
+          "call",
+          "const",
+          "call",
+          "const",
+          "cmp",
+          "const",
+          "cmp",
+          "const",
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "test_count",
+        "Blocks": 2,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "call",
+          "const",
+          "const",
+          "call",
+          "const",
+          "const",
+          "call",
+          "const",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "cmp",
+          "const",
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "test_zero_key",
+        "Blocks": 2,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "call",
+          "const",
+          "const",
+          "call",
+          "const",
+          "call",
+          "const",
+          "cmp",
+          "const",
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "test_many",
+        "Blocks": 2,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "call",
+          "const",
+          "const",
+          "call",
+          "const",
+          "const",
+          "call",
+          "const",
+          "const",
+          "call",
+          "const",
+          "const",
+          "call",
+          "const",
+          "const",
+          "call",
+          "const",
+          "call",
+          "const",
+          "call",
+          "add",
+          "const",
+          "call",
+          "add",
+          "const",
+          "call",
+          "add",
+          "const",
+          "call",
+          "add",
+          "const",
+          "cmp",
+          "const",
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      }
+    ]
+  },
+  {
+    "File": "17_bool_retflag",
+    "BaselineBytes": 172,
+    "SelectedBytes": 172,
+    "Entries": 0,
+    "CompileMS": 4.184,
+    "GenerateMS": 3.244,
+    "SelectedMS": 3.406,
+    "Notes": [
+      "is_zero_b: skipped: hard class or invalid local definition unsupported",
+      "is_ten_b: skipped: hard class or invalid local definition unsupported",
+      "eq_b: skipped: hard class or invalid local definition unsupported",
+      "is_small_b: skipped: hard class or invalid local definition unsupported",
+      "lt_b: skipped: hard class or invalid local definition unsupported",
+      "is_big_b: skipped: hard class or invalid local definition unsupported",
+      "gt_b: skipped: hard class or invalid local definition unsupported",
+      "is_digit_b: skipped: local table requires single-result leaf block",
+      "is_upper_b: skipped: local table requires single-result leaf block",
+      "is_zero: skipped: local table requires single-result leaf block",
+      "is_small: skipped: local table requires single-result leaf block",
+      "is_digit: skipped: local table requires single-result leaf block"
+    ],
+    "Functions": [
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "is_zero_b",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "x",
+            "Reg": 1,
+            "Ty": {},
+            "Class": 1
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "cmp"
+        ],
+        "Reason": "prepare: hard class or invalid local definition unsupported",
+        "BaselineBytes": 12,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "is_ten_b",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "x",
+            "Reg": 4,
+            "Ty": {},
+            "Class": 1
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "cmp"
+        ],
+        "Reason": "prepare: hard class or invalid local definition unsupported",
+        "BaselineBytes": 13,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "eq_b",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 7,
+            "Ty": {},
+            "Class": 1
+          },
+          {
+            "Name": "b",
+            "Reg": 8,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "cmp"
+        ],
+        "Reason": "prepare: hard class or invalid local definition unsupported",
+        "BaselineBytes": 12,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "is_small_b",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "x",
+            "Reg": 10,
+            "Ty": {},
+            "Class": 1
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "cmp"
+        ],
+        "Reason": "prepare: hard class or invalid local definition unsupported",
+        "BaselineBytes": 13,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "lt_b",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 13,
+            "Ty": {},
+            "Class": 1
+          },
+          {
+            "Name": "b",
+            "Reg": 14,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "cmp"
+        ],
+        "Reason": "prepare: hard class or invalid local definition unsupported",
+        "BaselineBytes": 12,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "is_big_b",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "x",
+            "Reg": 16,
+            "Ty": {},
+            "Class": 1
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "cmp"
+        ],
+        "Reason": "prepare: hard class or invalid local definition unsupported",
+        "BaselineBytes": 19,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "gt_b",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 19,
+            "Ty": {},
+            "Class": 1
+          },
+          {
+            "Name": "b",
+            "Reg": 20,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "cmp"
+        ],
+        "Reason": "prepare: hard class or invalid local definition unsupported",
+        "BaselineBytes": 18,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "is_digit_b",
+        "Blocks": 5,
+        "Params": [
+          {
+            "Name": "c",
+            "Reg": 22,
+            "Ty": {},
+            "Class": 1
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "cmp",
+          "const",
+          "cmp",
+          "const",
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "is_upper_b",
+        "Blocks": 5,
+        "Params": [
+          {
+            "Name": "c",
+            "Reg": 29,
+            "Ty": {},
+            "Class": 1
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "cmp",
+          "const",
+          "cmp",
+          "const",
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "is_zero",
+        "Blocks": 2,
+        "Params": [
+          {
+            "Name": "x",
+            "Reg": 36,
+            "Ty": {},
+            "Class": 1
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "cmp",
+          "const",
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": 7,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "is_small",
+        "Blocks": 2,
+        "Params": [
+          {
+            "Name": "x",
+            "Reg": 41,
+            "Ty": {},
+            "Class": 1
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "cmp",
+          "const",
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": 8,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "is_digit",
+        "Blocks": 5,
+        "Params": [
+          {
+            "Name": "c",
+            "Reg": 46,
+            "Ty": {},
+            "Class": 1
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "cmp",
+          "const",
+          "cmp",
+          "const",
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      }
+    ]
+  },
+  {
+    "File": "16_rotate_sled",
+    "BaselineBytes": 192,
+    "SelectedBytes": 192,
+    "Entries": 1,
+    "CompileMS": 3.561,
+    "GenerateMS": 21.247,
+    "SelectedMS": 4.028,
+    "Notes": [
+      "swap_nibbles: skipped: hard class or invalid local definition unsupported",
+      "rol1: skipped: hard class or invalid local definition unsupported",
+      "rol3: skipped: hard class or invalid local definition unsupported",
+      "high_nibble: skipped: hard class or invalid local definition unsupported",
+      "low_nibble: admitted",
+      "main: skipped: local table requires single-result leaf block"
+    ],
+    "Functions": [
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "swap_nibbles",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "x",
+            "Reg": 1,
+            "Ty": {},
+            "Class": 1
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "asm"
+        ],
+        "Reason": "prepare: hard class or invalid local definition unsupported",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "rol1",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "x",
+            "Reg": 2,
+            "Ty": {},
+            "Class": 1
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "asm"
+        ],
+        "Reason": "prepare: hard class or invalid local definition unsupported",
+        "BaselineBytes": 2,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "rol3",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "x",
+            "Reg": 3,
+            "Ty": {},
+            "Class": 1
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "asm"
+        ],
+        "Reason": "prepare: hard class or invalid local definition unsupported",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "high_nibble",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "x",
+            "Reg": 4,
+            "Ty": {},
+            "Class": 1
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "asm"
+        ],
+        "Reason": "prepare: hard class or invalid local definition unsupported",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "low_nibble",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "x",
+            "Reg": 5,
+            "Ty": {},
+            "Class": 1
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "and"
+        ],
+        "Reason": "admitted: not strictly smaller",
+        "BaselineBytes": 3,
+        "CandidateBytes": 3,
+        "CandidateCost": 17,
+        "Selected": false,
+        "SolveMS": 13.937
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "main",
+        "Blocks": 1,
+        "Params": null,
+        "Returns": null,
+        "Ops": [
+          "const",
+          "call",
+          "move",
+          "call",
+          "const",
+          "call",
+          "move",
+          "call",
+          "const",
+          "call"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      }
+    ]
+  },
+  {
+    "File": "promoted_arithmetic",
+    "BaselineBytes": 342,
+    "SelectedBytes": 342,
+    "Entries": 0,
+    "CompileMS": 8.89,
+    "GenerateMS": 8.588,
+    "SelectedMS": 7.752,
+    "Notes": [
+      "add: skipped: unsupported local opcode ext",
+      "byte_add: skipped: unsupported local opcode ext",
+      "add8: skipped: unsupported local opcode ext",
+      "add_bytes: skipped: unsupported local opcode ext",
+      "swap_nibbles: skipped: unsupported local opcode shr",
+      "popcount4: skipped: unsupported local opcode shr",
+      "test_ld_word: skipped: unsupported local opcode ext",
+      "promoted_mod: skipped: unsupported local opcode ext",
+      "pressure: skipped: unsupported local opcode sdiv"
+    ],
+    "Functions": [
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "add",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 1,
+            "Ty": {},
+            "Class": 0
+          },
+          {
+            "Name": "b",
+            "Reg": 2,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "ext",
+          "ext",
+          "add",
+          "trunc"
+        ],
+        "Reason": "prepare: unsupported local opcode ext",
+        "BaselineBytes": 9,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "byte_add",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 7,
+            "Ty": {},
+            "Class": 0
+          },
+          {
+            "Name": "b",
+            "Reg": 8,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "ext",
+          "ext",
+          "add",
+          "trunc"
+        ],
+        "Reason": "prepare: unsupported local opcode ext",
+        "BaselineBytes": 9,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "add8",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 13,
+            "Ty": {},
+            "Class": 0
+          },
+          {
+            "Name": "b",
+            "Reg": 14,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "ext",
+          "ext",
+          "add",
+          "trunc"
+        ],
+        "Reason": "prepare: unsupported local opcode ext",
+        "BaselineBytes": 9,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "add_bytes",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 19,
+            "Ty": {},
+            "Class": 0
+          },
+          {
+            "Name": "b",
+            "Reg": 20,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "ext",
+          "ext",
+          "add",
+          "trunc"
+        ],
+        "Reason": "prepare: unsupported local opcode ext",
+        "BaselineBytes": 9,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "swap_nibbles",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 25,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "shr",
+          "const",
+          "shl",
+          "const",
+          "and",
+          "ext",
+          "ext",
+          "or",
+          "trunc"
+        ],
+        "Reason": "prepare: unsupported local opcode shr",
+        "BaselineBytes": 34,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "popcount4",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 36,
+            "Ty": {},
+            "Class": 1
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "and",
+          "const",
+          "shr",
+          "const",
+          "and",
+          "add",
+          "const",
+          "shr",
+          "const",
+          "and",
+          "add",
+          "const",
+          "shr",
+          "const",
+          "and",
+          "add"
+        ],
+        "Reason": "prepare: unsupported local opcode shr",
+        "BaselineBytes": 48,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "test_ld_word",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "lo",
+            "Reg": 54,
+            "Ty": {},
+            "Class": 0
+          },
+          {
+            "Name": "hi",
+            "Reg": 55,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 8,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "ext",
+          "ext",
+          "const",
+          "shl",
+          "or"
+        ],
+        "Reason": "prepare: unsupported local opcode ext",
+        "BaselineBytes": 10,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "promoted_mod",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 61,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "ext",
+          "const",
+          "smod",
+          "trunc"
+        ],
+        "Reason": "prepare: unsupported local opcode ext",
+        "BaselineBytes": 11,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "pressure",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 66,
+            "Ty": {},
+            "Class": 8
+          },
+          {
+            "Name": "b",
+            "Reg": 67,
+            "Ty": {},
+            "Class": 9
+          },
+          {
+            "Name": "c",
+            "Reg": 68,
+            "Ty": {},
+            "Class": 9
+          },
+          {
+            "Name": "d",
+            "Reg": 69,
+            "Ty": {},
+            "Class": 9
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 8,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "add",
+          "sub",
+          "sub",
+          "add",
+          "sdiv",
+          "smod",
+          "add"
+        ],
+        "Reason": "prepare: unsupported local opcode sdiv",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      }
+    ]
+  },
+  {
+    "File": "signed_arithmetic",
+    "BaselineBytes": 221,
+    "SelectedBytes": 221,
+    "Entries": 0,
+    "CompileMS": 4.48,
+    "GenerateMS": 6.24,
+    "SelectedMS": 5.645,
+    "Notes": [
+      "sar: skipped: unsupported local opcode sar",
+      "sar16: skipped: unsupported local opcode ext",
+      "sar_one: skipped: unsupported local opcode sar",
+      "quotient: skipped: unsupported local opcode sdiv",
+      "remainder: skipped: unsupported local opcode smod",
+      "div_two: skipped: unsupported local opcode sdiv",
+      "mod_two: skipped: unsupported local opcode smod",
+      "widen: skipped: unsupported local opcode sext",
+      "logical: skipped: unsupported local opcode shr"
+    ],
+    "Functions": [
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "sar",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 1,
+            "Ty": {},
+            "Class": 0
+          },
+          {
+            "Name": "k",
+            "Reg": 2,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "sar"
+        ],
+        "Reason": "prepare: unsupported local opcode sar",
+        "BaselineBytes": 14,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "sar16",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 4,
+            "Ty": {},
+            "Class": 8
+          },
+          {
+            "Name": "k",
+            "Reg": 5,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 8,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "ext",
+          "sar"
+        ],
+        "Reason": "prepare: unsupported local opcode ext",
+        "BaselineBytes": 18,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "sar_one",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 8,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "sar"
+        ],
+        "Reason": "prepare: unsupported local opcode sar",
+        "BaselineBytes": 4,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "quotient",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 11,
+            "Ty": {},
+            "Class": 0
+          },
+          {
+            "Name": "b",
+            "Reg": 12,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "sdiv"
+        ],
+        "Reason": "prepare: unsupported local opcode sdiv",
+        "BaselineBytes": 52,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "remainder",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 14,
+            "Ty": {},
+            "Class": 0
+          },
+          {
+            "Name": "b",
+            "Reg": 15,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "smod"
+        ],
+        "Reason": "prepare: unsupported local opcode smod",
+        "BaselineBytes": 51,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "div_two",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 17,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "sdiv"
+        ],
+        "Reason": "prepare: unsupported local opcode sdiv",
+        "BaselineBytes": 29,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "mod_two",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 20,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "smod"
+        ],
+        "Reason": "prepare: unsupported local opcode smod",
+        "BaselineBytes": 31,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "widen",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 23,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 8,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "sext"
+        ],
+        "Reason": "prepare: unsupported local opcode sext",
+        "BaselineBytes": 8,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "logical",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 25,
+            "Ty": {},
+            "Class": 0
+          },
+          {
+            "Name": "k",
+            "Reg": 26,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "shr"
+        ],
+        "Reason": "prepare: unsupported local opcode shr",
+        "BaselineBytes": 14,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      }
+    ]
+  },
+  {
+    "File": "08_arena_allocator",
+    "BaselineBytes": 1193,
+    "SelectedBytes": 1193,
+    "Entries": 0,
+    "CompileMS": 32.323,
+    "GenerateMS": 30.879,
+    "SelectedMS": 32.368,
+    "Notes": [
+      "Arena_init: skipped: local table requires single-result leaf block",
+      "Arena_alloc: skipped: local table requires single-result leaf block",
+      "Arena_reset: skipped: local table requires single-result leaf block",
+      "Arena_used: skipped: invalid or duplicate contract parameter",
+      "Arena_remaining: skipped: invalid or duplicate contract parameter",
+      "arena_split: skipped: invalid or duplicate contract parameter",
+      "test_alloc_sequence: skipped: local table requires single-result leaf block",
+      "test_oom: skipped: local table requires single-result leaf block",
+      "test_small_allocs: skipped: local table requires single-result leaf block",
+      "test_sizeof: skipped: local table requires single-result leaf block",
+      "test_split: skipped: local table requires single-result leaf block",
+      "test_typed_alloc: skipped: local table requires single-result leaf block",
+      "init_frame: skipped: hard class or invalid local definition unsupported",
+      "alloc_and_check: skipped: local table requires single-result leaf block",
+      "get_remaining: skipped: hard class or invalid local definition unsupported"
+    ],
+    "Functions": [
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "Arena_init",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "self",
+            "Reg": 1,
+            "Ty": {},
+            "Class": 8
+          },
+          {
+            "Name": "base",
+            "Reg": 2,
+            "Ty": {},
+            "Class": 10
+          },
+          {
+            "Name": "size",
+            "Reg": 3,
+            "Ty": {},
+            "Class": 9
+          }
+        ],
+        "Returns": null,
+        "Ops": [
+          "store",
+          "add",
+          "field",
+          "store"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": 18,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "Arena_alloc",
+        "Blocks": 3,
+        "Params": [
+          {
+            "Name": "self",
+            "Reg": 6,
+            "Ty": {},
+            "Class": 8
+          },
+          {
+            "Name": "n",
+            "Reg": 7,
+            "Ty": {},
+            "Class": 9
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 8,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "load",
+          "add",
+          "field",
+          "load",
+          "cmp",
+          "const",
+          "store"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "Arena_reset",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "self",
+            "Reg": 14,
+            "Ty": {},
+            "Class": 8
+          },
+          {
+            "Name": "base",
+            "Reg": 15,
+            "Ty": {},
+            "Class": 9
+          }
+        ],
+        "Returns": null,
+        "Ops": [
+          "store"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": 5,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "Arena_used",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "self",
+            "Reg": 16,
+            "Ty": {},
+            "Class": 8
+          },
+          {
+            "Name": "base",
+            "Reg": 17,
+            "Ty": {},
+            "Class": 9
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 8,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "load",
+          "sub"
+        ],
+        "Reason": "prepare: invalid or duplicate contract parameter",
+        "BaselineBytes": 13,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "Arena_remaining",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "self",
+            "Reg": 20,
+            "Ty": {},
+            "Class": 8
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 8,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "field",
+          "load",
+          "load",
+          "sub"
+        ],
+        "Reason": "prepare: invalid or duplicate contract parameter",
+        "BaselineBytes": 30,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "arena_split",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 25,
+            "Ty": {},
+            "Class": 8
+          },
+          {
+            "Name": "start",
+            "Reg": 26,
+            "Ty": {},
+            "Class": 10
+          },
+          {
+            "Name": "size",
+            "Reg": 27,
+            "Ty": {},
+            "Class": 9
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 8,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "store",
+          "add",
+          "field",
+          "store",
+          "add"
+        ],
+        "Reason": "prepare: invalid or duplicate contract parameter",
+        "BaselineBytes": 31,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "test_alloc_sequence",
+        "Blocks": 10,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 8,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "addr_of",
+          "const",
+          "const",
+          "store",
+          "add",
+          "field",
+          "store",
+          "addr_of",
+          "const",
+          "call",
+          "addr_of",
+          "const",
+          "call",
+          "addr_of",
+          "const",
+          "call",
+          "const",
+          "cmp",
+          "const",
+          "const",
+          "cmp",
+          "const",
+          "const",
+          "cmp",
+          "const",
+          "addr_of",
+          "const",
+          "store",
+          "addr_of",
+          "const",
+          "call",
+          "const",
+          "cmp",
+          "const",
+          "addr_of",
+          "const",
+          "load",
+          "sub",
+          "const",
+          "cmp",
+          "const",
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "test_oom",
+        "Blocks": 6,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 8,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "addr_of",
+          "const",
+          "const",
+          "store",
+          "add",
+          "field",
+          "store",
+          "addr_of",
+          "const",
+          "call",
+          "const",
+          "cmp",
+          "const",
+          "addr_of",
+          "const",
+          "call",
+          "const",
+          "cmp",
+          "const",
+          "addr_of",
+          "const",
+          "call",
+          "const",
+          "cmp",
+          "const",
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "test_small_allocs",
+        "Blocks": 8,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 8,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "addr_of",
+          "const",
+          "const",
+          "store",
+          "add",
+          "field",
+          "store",
+          "addr_of",
+          "const",
+          "call",
+          "addr_of",
+          "const",
+          "call",
+          "addr_of",
+          "const",
+          "call",
+          "const",
+          "cmp",
+          "const",
+          "const",
+          "cmp",
+          "const",
+          "const",
+          "cmp",
+          "const",
+          "addr_of",
+          "field",
+          "load",
+          "load",
+          "sub",
+          "const",
+          "cmp",
+          "const",
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "test_sizeof",
+        "Blocks": 2,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 8,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": 6,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "test_split",
+        "Blocks": 18,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 8,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "addr_of",
+          "const",
+          "const",
+          "call",
+          "const",
+          "cmp",
+          "const",
+          "addr_of",
+          "const",
+          "call",
+          "const",
+          "cmp",
+          "const",
+          "addr_of",
+          "const",
+          "call",
+          "const",
+          "cmp",
+          "const",
+          "addr_of",
+          "const",
+          "call",
+          "addr_of",
+          "const",
+          "call",
+          "addr_of",
+          "const",
+          "call",
+          "const",
+          "cmp",
+          "const",
+          "const",
+          "cmp",
+          "const",
+          "const",
+          "cmp",
+          "const",
+          "addr_of",
+          "const",
+          "store",
+          "addr_of",
+          "const",
+          "call",
+          "const",
+          "cmp",
+          "const",
+          "addr_of",
+          "const",
+          "call",
+          "const",
+          "cmp",
+          "const",
+          "addr_of",
+          "const",
+          "call",
+          "const",
+          "cmp",
+          "const",
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "test_typed_alloc",
+        "Blocks": 6,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 8,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "addr_of",
+          "const",
+          "const",
+          "store",
+          "add",
+          "field",
+          "store",
+          "addr_of",
+          "const",
+          "call",
+          "addr_of",
+          "const",
+          "call",
+          "addr_of",
+          "const",
+          "call",
+          "const",
+          "cmp",
+          "const",
+          "const",
+          "cmp",
+          "const",
+          "const",
+          "cmp",
+          "const",
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "init_frame",
+        "Blocks": 1,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 8,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "addr_of",
+          "const",
+          "const",
+          "store",
+          "add",
+          "field",
+          "store",
+          "addr_of",
+          "field",
+          "load",
+          "load",
+          "sub"
+        ],
+        "Reason": "prepare: hard class or invalid local definition unsupported",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "alloc_and_check",
+        "Blocks": 2,
+        "Params": [
+          {
+            "Name": "expected",
+            "Reg": 219,
+            "Ty": {},
+            "Class": 8
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 8,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "addr_of",
+          "const",
+          "call",
+          "cmp",
+          "const",
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "get_remaining",
+        "Blocks": 1,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 8,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "addr_of",
+          "field",
+          "load",
+          "load",
+          "sub"
+        ],
+        "Reason": "prepare: hard class or invalid local definition unsupported",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      }
+    ]
+  },
+  {
+    "File": "50_impl_showcase",
+    "BaselineBytes": 237,
+    "SelectedBytes": 237,
+    "Entries": 0,
+    "CompileMS": 5.948,
+    "GenerateMS": 6.236,
+    "SelectedMS": 7.412,
+    "Notes": [
+      "Circle_area: skipped: invalid or duplicate contract parameter",
+      "Circle_perimeter: skipped: invalid or duplicate contract parameter",
+      "Rect_area: skipped: invalid or duplicate contract parameter",
+      "Rect_perimeter: skipped: invalid or duplicate contract parameter",
+      "test_circle_area: skipped: hard class or invalid local definition unsupported",
+      "test_circle_perim: skipped: hard class or invalid local definition unsupported",
+      "test_rect_area: skipped: hard class or invalid local definition unsupported",
+      "test_rect_perim: skipped: hard class or invalid local definition unsupported"
+    ],
+    "Functions": [
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "Circle_area",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "self",
+            "Reg": 1,
+            "Ty": {},
+            "Class": 8
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "field",
+          "load",
+          "mul",
+          "field",
+          "load",
+          "mul"
+        ],
+        "Reason": "prepare: invalid or duplicate contract parameter",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "Circle_perimeter",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "self",
+            "Reg": 9,
+            "Ty": {},
+            "Class": 8
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "field",
+          "load",
+          "mul"
+        ],
+        "Reason": "prepare: invalid or duplicate contract parameter",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "Rect_area",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "self",
+            "Reg": 14,
+            "Ty": {},
+            "Class": 8
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "field",
+          "load",
+          "field",
+          "load",
+          "mul"
+        ],
+        "Reason": "prepare: invalid or duplicate contract parameter",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "Rect_perimeter",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "self",
+            "Reg": 20,
+            "Ty": {},
+            "Class": 8
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "field",
+          "load",
+          "mul",
+          "const",
+          "field",
+          "load",
+          "mul",
+          "add"
+        ],
+        "Reason": "prepare: invalid or duplicate contract parameter",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "test_circle_area",
+        "Blocks": 1,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "alloca",
+          "const",
+          "field",
+          "store",
+          "call"
+        ],
+        "Reason": "prepare: hard class or invalid local definition unsupported",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "test_circle_perim",
+        "Blocks": 1,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "alloca",
+          "const",
+          "field",
+          "store",
+          "const",
+          "field",
+          "load",
+          "mul"
+        ],
+        "Reason": "prepare: hard class or invalid local definition unsupported",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "test_rect_area",
+        "Blocks": 1,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "alloca",
+          "const",
+          "field",
+          "store",
+          "const",
+          "field",
+          "store",
+          "call"
+        ],
+        "Reason": "prepare: hard class or invalid local definition unsupported",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "test_rect_perim",
+        "Blocks": 1,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "alloca",
+          "const",
+          "field",
+          "store",
+          "const",
+          "field",
+          "store",
+          "call"
+        ],
+        "Reason": "prepare: hard class or invalid local definition unsupported",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      }
+    ]
+  },
+  {
+    "File": "self_tokenizer",
+    "BaselineBytes": 5474,
+    "SelectedBytes": 5474,
+    "Entries": 0,
+    "CompileMS": 601.768,
+    "GenerateMS": 693.723,
+    "SelectedMS": 639.033,
+    "Notes": [
+      "peek: skipped: local table requires single-result leaf block",
+      "poke: skipped: local table requires single-result leaf block",
+      "str_alloc_2: skipped: hard class or invalid local definition unsupported",
+      "str_alloc_3: skipped: hard class or invalid local definition unsupported",
+      "str_alloc_4: skipped: hard class or invalid local definition unsupported",
+      "str_alloc_5: skipped: hard class or invalid local definition unsupported",
+      "str_alloc_6: skipped: hard class or invalid local definition unsupported",
+      "str_len: skipped: unsupported local opcode call",
+      "str_eq: skipped: local table requires single-result leaf block",
+      "region_eq: skipped: local table requires single-result leaf block",
+      "intern: skipped: local table requires single-result leaf block",
+      "is_digit: skipped: local table requires single-result leaf block",
+      "is_alpha: skipped: local table requires single-result leaf block",
+      "is_alnum: skipped: local table requires single-result leaf block",
+      "is_space: skipped: local table requires single-result leaf block",
+      "peek_char: skipped: local table requires single-result leaf block",
+      "skip_ws: skipped: local table requires single-result leaf block",
+      "skip_comment: skipped: local table requires single-result leaf block",
+      "emit: skipped: local table requires single-result leaf block",
+      "classify: skipped: local table requires single-result leaf block",
+      "scan: skipped: local table requires single-result leaf block",
+      "init_keywords: skipped: local table requires single-result leaf block",
+      "tokenize_all: skipped: local table requires single-result leaf block",
+      "print_str: skipped: local table requires single-result leaf block",
+      "tok_name: skipped: local table requires single-result leaf block",
+      "print_all_tokens: skipped: local table requires single-result leaf block",
+      "main: skipped: local table requires single-result leaf block"
+    ],
+    "Functions": [
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "peek",
+        "Blocks": 0,
+        "Params": [
+          {
+            "Name": "addr",
+            "Reg": 1,
+            "Ty": {},
+            "Class": 8
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": null,
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "poke",
+        "Blocks": 0,
+        "Params": [
+          {
+            "Name": "addr",
+            "Reg": 2,
+            "Ty": {},
+            "Class": 8
+          },
+          {
+            "Name": "val",
+            "Reg": 3,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": null,
+        "Ops": null,
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "str_alloc_2",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 4,
+            "Ty": {},
+            "Class": 1
+          },
+          {
+            "Name": "b",
+            "Reg": 5,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 8,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "addr_of",
+          "load",
+          "const",
+          "call",
+          "const",
+          "add",
+          "call",
+          "const",
+          "add",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store"
+        ],
+        "Reason": "prepare: hard class or invalid local definition unsupported",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "str_alloc_3",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 18,
+            "Ty": {},
+            "Class": 1
+          },
+          {
+            "Name": "b",
+            "Reg": 19,
+            "Ty": {},
+            "Class": 0
+          },
+          {
+            "Name": "c",
+            "Reg": 20,
+            "Ty": {},
+            "Class": 2
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 8,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "addr_of",
+          "load",
+          "const",
+          "call",
+          "const",
+          "add",
+          "call",
+          "const",
+          "add",
+          "call",
+          "const",
+          "add",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store"
+        ],
+        "Reason": "prepare: hard class or invalid local definition unsupported",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "str_alloc_4",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 35,
+            "Ty": {},
+            "Class": 1
+          },
+          {
+            "Name": "b",
+            "Reg": 36,
+            "Ty": {},
+            "Class": 0
+          },
+          {
+            "Name": "c",
+            "Reg": 37,
+            "Ty": {},
+            "Class": 2
+          },
+          {
+            "Name": "d",
+            "Reg": 38,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 8,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "addr_of",
+          "load",
+          "const",
+          "call",
+          "const",
+          "add",
+          "call",
+          "const",
+          "add",
+          "call",
+          "const",
+          "add",
+          "call",
+          "const",
+          "add",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store"
+        ],
+        "Reason": "prepare: hard class or invalid local definition unsupported",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "str_alloc_5",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 55,
+            "Ty": {},
+            "Class": 1
+          },
+          {
+            "Name": "b",
+            "Reg": 56,
+            "Ty": {},
+            "Class": 0
+          },
+          {
+            "Name": "c",
+            "Reg": 57,
+            "Ty": {},
+            "Class": 2
+          },
+          {
+            "Name": "d",
+            "Reg": 58,
+            "Ty": {},
+            "Class": 0
+          },
+          {
+            "Name": "e",
+            "Reg": 59,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 8,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "addr_of",
+          "load",
+          "const",
+          "call",
+          "const",
+          "add",
+          "call",
+          "const",
+          "add",
+          "call",
+          "const",
+          "add",
+          "call",
+          "const",
+          "add",
+          "call",
+          "const",
+          "add",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store"
+        ],
+        "Reason": "prepare: hard class or invalid local definition unsupported",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "str_alloc_6",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 78,
+            "Ty": {},
+            "Class": 1
+          },
+          {
+            "Name": "b",
+            "Reg": 79,
+            "Ty": {},
+            "Class": 0
+          },
+          {
+            "Name": "c",
+            "Reg": 80,
+            "Ty": {},
+            "Class": 2
+          },
+          {
+            "Name": "d",
+            "Reg": 81,
+            "Ty": {},
+            "Class": 0
+          },
+          {
+            "Name": "e",
+            "Reg": 82,
+            "Ty": {},
+            "Class": 0
+          },
+          {
+            "Name": "f",
+            "Reg": 83,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 8,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "addr_of",
+          "load",
+          "const",
+          "call",
+          "const",
+          "add",
+          "call",
+          "const",
+          "add",
+          "call",
+          "const",
+          "add",
+          "call",
+          "const",
+          "add",
+          "call",
+          "const",
+          "add",
+          "call",
+          "const",
+          "add",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store"
+        ],
+        "Reason": "prepare: hard class or invalid local definition unsupported",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "str_len",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "s",
+            "Reg": 104,
+            "Ty": {},
+            "Class": 8
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "call"
+        ],
+        "Reason": "prepare: unsupported local opcode call",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "str_eq",
+        "Blocks": 9,
+        "Params": [
+          {
+            "Name": "a",
+            "Reg": 106,
+            "Ty": {},
+            "Class": 8
+          },
+          {
+            "Name": "b",
+            "Reg": 107,
+            "Ty": {},
+            "Class": 10
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "cmp",
+          "const",
+          "call",
+          "call",
+          "cmp",
+          "const",
+          "const",
+          "cmp",
+          "const",
+          "const",
+          "add",
+          "ext",
+          "add",
+          "call",
+          "const",
+          "add",
+          "ext",
+          "add",
+          "call",
+          "cmp",
+          "const",
+          "const",
+          "add"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "region_eq",
+        "Blocks": 5,
+        "Params": [
+          {
+            "Name": "src_start",
+            "Reg": 135,
+            "Ty": {},
+            "Class": 8
+          },
+          {
+            "Name": "arena_ptr",
+            "Reg": 136,
+            "Ty": {},
+            "Class": 9
+          },
+          {
+            "Name": "len",
+            "Reg": 137,
+            "Ty": {},
+            "Class": 2
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "cmp",
+          "const",
+          "addr_of",
+          "load",
+          "add",
+          "ext",
+          "add",
+          "call",
+          "const",
+          "add",
+          "ext",
+          "add",
+          "call",
+          "cmp",
+          "const",
+          "const",
+          "add"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "intern",
+        "Blocks": 11,
+        "Params": [
+          {
+            "Name": "start",
+            "Reg": 160,
+            "Ty": {},
+            "Class": 8
+          },
+          {
+            "Name": "len",
+            "Reg": 161,
+            "Ty": {},
+            "Class": 0
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 8,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "cmp",
+          "call",
+          "cmp",
+          "move",
+          "move",
+          "call",
+          "const",
+          "cmp",
+          "const",
+          "add",
+          "ext",
+          "add",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "call",
+          "const",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "ext",
+          "add",
+          "addr_of",
+          "load",
+          "add",
+          "ext",
+          "add",
+          "call",
+          "call",
+          "const",
+          "add",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "ext",
+          "add",
+          "addr_of",
+          "store"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "is_digit",
+        "Blocks": 5,
+        "Params": [
+          {
+            "Name": "c",
+            "Reg": 214,
+            "Ty": {},
+            "Class": 1
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "cmp",
+          "const",
+          "cmp",
+          "const",
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "is_alpha",
+        "Blocks": 10,
+        "Params": [
+          {
+            "Name": "c",
+            "Reg": 221,
+            "Ty": {},
+            "Class": 1
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "cmp",
+          "const",
+          "cmp",
+          "const",
+          "const",
+          "cmp",
+          "const",
+          "cmp",
+          "const",
+          "const",
+          "cmp",
+          "const",
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "is_alnum",
+        "Blocks": 3,
+        "Params": [
+          {
+            "Name": "c",
+            "Reg": 236,
+            "Ty": {},
+            "Class": 1
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "move",
+          "call",
+          "const",
+          "cmp",
+          "const",
+          "move",
+          "call"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "is_space",
+        "Blocks": 8,
+        "Params": [
+          {
+            "Name": "c",
+            "Reg": 244,
+            "Ty": {},
+            "Class": 1
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "cmp",
+          "const",
+          "const",
+          "cmp",
+          "const",
+          "const",
+          "cmp",
+          "const",
+          "const",
+          "cmp",
+          "const",
+          "const"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "peek_char",
+        "Blocks": 3,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "cmp",
+          "const",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "add",
+          "call"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "skip_ws",
+        "Blocks": 3,
+        "Params": null,
+        "Returns": null,
+        "Ops": [
+          "call",
+          "move",
+          "call",
+          "const",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "skip_comment",
+        "Blocks": 6,
+        "Params": null,
+        "Returns": null,
+        "Ops": [
+          "call",
+          "const",
+          "cmp",
+          "call",
+          "const",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "emit",
+        "Blocks": 1,
+        "Params": [
+          {
+            "Name": "typ",
+            "Reg": 296,
+            "Ty": {},
+            "Class": 1
+          },
+          {
+            "Name": "str_ptr",
+            "Reg": 297,
+            "Ty": {},
+            "Class": 9
+          }
+        ],
+        "Returns": null,
+        "Ops": [
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "const",
+          "mul",
+          "add",
+          "call",
+          "const",
+          "add",
+          "const",
+          "mod",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "div",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "classify",
+        "Blocks": 21,
+        "Params": [
+          {
+            "Name": "str_ptr",
+            "Reg": 323,
+            "Ty": {},
+            "Class": 8
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "scan",
+        "Blocks": 60,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "call",
+          "addr_of",
+          "load",
+          "addr_of",
+          "store",
+          "call",
+          "const",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "cmp",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "add",
+          "const",
+          "add",
+          "call",
+          "const",
+          "cmp",
+          "call",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store",
+          "addr_of",
+          "load",
+          "move",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "cmp",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "add",
+          "const",
+          "add",
+          "call",
+          "const",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store",
+          "addr_of",
+          "load",
+          "move",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store",
+          "addr_of",
+          "load",
+          "move",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "cmp",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "add",
+          "const",
+          "add",
+          "call",
+          "const",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store",
+          "addr_of",
+          "load",
+          "move",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store",
+          "addr_of",
+          "load",
+          "move",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "cmp",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "add",
+          "const",
+          "add",
+          "call",
+          "const",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store",
+          "addr_of",
+          "load",
+          "move",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store",
+          "addr_of",
+          "load",
+          "move",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "cmp",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "add",
+          "const",
+          "add",
+          "call",
+          "const",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store",
+          "addr_of",
+          "load",
+          "move",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store",
+          "addr_of",
+          "load",
+          "move",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "cmp",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "add",
+          "const",
+          "add",
+          "call",
+          "const",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store",
+          "addr_of",
+          "load",
+          "move",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store",
+          "call",
+          "const",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store",
+          "addr_of",
+          "load",
+          "move",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store",
+          "addr_of",
+          "load",
+          "move",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store",
+          "addr_of",
+          "load",
+          "move",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store",
+          "addr_of",
+          "load",
+          "move",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store",
+          "addr_of",
+          "load",
+          "move",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store",
+          "addr_of",
+          "load",
+          "move",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store",
+          "addr_of",
+          "load",
+          "move",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store",
+          "addr_of",
+          "load",
+          "move",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "move",
+          "call",
+          "const",
+          "cmp",
+          "call",
+          "move",
+          "call",
+          "const",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "sub",
+          "trunc",
+          "addr_of",
+          "load",
+          "call",
+          "addr_of",
+          "load",
+          "move",
+          "move",
+          "call",
+          "addr_of",
+          "load",
+          "move",
+          "call",
+          "const",
+          "cmp",
+          "call",
+          "move",
+          "call",
+          "const",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "sub",
+          "trunc",
+          "addr_of",
+          "load",
+          "call",
+          "call",
+          "move",
+          "move",
+          "call",
+          "const",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store",
+          "addr_of",
+          "load",
+          "call",
+          "const",
+          "cmp",
+          "call",
+          "const",
+          "cmp",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store",
+          "addr_of",
+          "load",
+          "sub",
+          "trunc",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store",
+          "addr_of",
+          "load",
+          "move",
+          "move",
+          "call",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "addr_of",
+          "store",
+          "call"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "init_keywords",
+        "Blocks": 1,
+        "Params": null,
+        "Returns": null,
+        "Ops": [
+          "const",
+          "const",
+          "call",
+          "addr_of",
+          "store",
+          "const",
+          "const",
+          "call",
+          "addr_of",
+          "store",
+          "const",
+          "const",
+          "const",
+          "call",
+          "addr_of",
+          "store",
+          "const",
+          "const",
+          "const",
+          "call",
+          "addr_of",
+          "store",
+          "const",
+          "const",
+          "const",
+          "call",
+          "addr_of",
+          "store",
+          "const",
+          "const",
+          "const",
+          "const",
+          "call",
+          "addr_of",
+          "store",
+          "const",
+          "const",
+          "const",
+          "const",
+          "call",
+          "addr_of",
+          "store",
+          "const",
+          "const",
+          "const",
+          "const",
+          "call",
+          "addr_of",
+          "store",
+          "const",
+          "const",
+          "const",
+          "const",
+          "const",
+          "call",
+          "addr_of",
+          "store",
+          "const",
+          "const",
+          "const",
+          "const",
+          "const",
+          "call",
+          "addr_of",
+          "store",
+          "const",
+          "const",
+          "const",
+          "const",
+          "const",
+          "const",
+          "call",
+          "addr_of",
+          "store",
+          "const",
+          "const",
+          "const",
+          "const",
+          "const",
+          "const",
+          "call",
+          "addr_of",
+          "store",
+          "const",
+          "const",
+          "const",
+          "const",
+          "const",
+          "const",
+          "call",
+          "addr_of",
+          "store",
+          "const",
+          "const",
+          "const",
+          "const",
+          "const",
+          "const",
+          "call",
+          "addr_of",
+          "store",
+          "const",
+          "const",
+          "const",
+          "const",
+          "const",
+          "const",
+          "call",
+          "addr_of",
+          "store"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "tokenize_all",
+        "Blocks": 4,
+        "Params": null,
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 8,
+            "FlagCond": 0
+          }
+        ],
+        "Ops": [
+          "const",
+          "addr_of",
+          "store",
+          "const",
+          "addr_of",
+          "store",
+          "call",
+          "addr_of",
+          "load",
+          "cmp",
+          "call",
+          "addr_of",
+          "load"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "print_str",
+        "Blocks": 3,
+        "Params": [
+          {
+            "Name": "s",
+            "Reg": 883,
+            "Ty": {},
+            "Class": 8
+          }
+        ],
+        "Returns": null,
+        "Ops": [
+          "call",
+          "const",
+          "cmp",
+          "const",
+          "add",
+          "ext",
+          "add",
+          "call",
+          "move",
+          "call",
+          "const",
+          "add"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "tok_name",
+        "Blocks": 128,
+        "Params": [
+          {
+            "Name": "typ",
+            "Reg": 898,
+            "Ty": {},
+            "Class": 1
+          },
+          {
+            "Name": "str_ptr",
+            "Reg": 899,
+            "Ty": {},
+            "Class": 10
+          }
+        ],
+        "Returns": null,
+        "Ops": [
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "print_all_tokens",
+        "Blocks": 6,
+        "Params": null,
+        "Returns": null,
+        "Ops": [
+          "const",
+          "addr_of",
+          "load",
+          "cmp",
+          "addr_of",
+          "load",
+          "const",
+          "mul",
+          "add",
+          "call",
+          "const",
+          "add",
+          "call",
+          "ext",
+          "const",
+          "add",
+          "call",
+          "ext",
+          "const",
+          "mul",
+          "add",
+          "move",
+          "move",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "const",
+          "add"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      },
+      {
+        "HistoricalHit": false,
+        "HistoricalRawHit": false,
+        "HistoricalAdmission": "",
+        "Name": "main",
+        "Blocks": 13,
+        "Params": null,
+        "Returns": null,
+        "Ops": [
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "call",
+          "const",
+          "addr_of",
+          "store",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "call",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "call",
+          "call",
+          "call",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "addr_of",
+          "load",
+          "addr_of",
+          "load",
+          "sub",
+          "call",
+          "addr_of",
+          "load",
+          "const",
+          "add",
+          "const",
+          "cmp",
+          "load",
+          "move",
+          "call",
+          "const",
+          "add",
+          "const",
+          "sub",
+          "call"
+        ],
+        "Reason": "prepare: local table requires single-result leaf block",
+        "BaselineBytes": -1,
+        "CandidateBytes": -1,
+        "CandidateCost": 0,
+        "Selected": false,
+        "SolveMS": 0
+      }
+    ]
+  }
+]
