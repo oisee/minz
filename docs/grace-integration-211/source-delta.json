@@ -1,0 +1,8 @@
+{
+  "base": "08be2950",
+  "head": "40041bd422cee7b747225e29b1488658b1769350",
+  "files": 10,
+  "manifest": "/mnt/safe/minz/grace/2026-10-11/compiler-source-evidence/delta-08be2950-to-40041bd4/manifest.json",
+  "sha256": "fe0828e0018079d418c6e8e5a0b245bd0a66ba2794ec29293c0107c2a3bf3425",
+  "scope": "current tracked minzc changes combined with base snapshot"
+}
