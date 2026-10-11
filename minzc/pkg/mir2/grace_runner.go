@@ -11,6 +11,7 @@ package mir2
 
 import (
 	"fmt"
+	"slices"
 	"sync"
 
 	"github.com/minz/minzc/pkg/rewrite"
@@ -678,7 +679,7 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 		if !ok {
 			return false
 		}
-		return brif.Then == brif.Else
+		return brif.Then == brif.Else && slices.Equal(brif.ThenArgs, brif.ElseArgs)
 	})
 
 	// is-cond-ret-ne: block ends with cond_ret whose condition is cmp.ne
@@ -1467,7 +1468,7 @@ func buildRegistry(f *Func) *grace.PredicateRegistry {
 			return false
 		}
 		brif, ok := blk.Term.(*TermBrIf)
-		if !ok || brif.Then != brif.Else {
+		if !ok || brif.Then != brif.Else || !slices.Equal(brif.ThenArgs, brif.ElseArgs) {
 			return false
 		}
 		blk.Term = &TermJmp{Target: brif.Then, Args: brif.ThenArgs}

@@ -1,0 +1,137 @@
+=== RUN   TestOriginalIteratorLUTCorpusComplete
+=== RUN   TestOriginalIteratorLUTCorpusComplete/ex5_lut
+=== RUN   TestOriginalIteratorLUTCorpusComplete/ex5_lut/ordinary
+    original_iter_lut_corpus_test.go:318: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "popcount": 256
+          },
+          "module_bytes": 512,
+          "source_sha256": "d33826eba80cfd940d02c844ba58a0b085251763552b31de104564009b8c36c4",
+          "stack_depths": {
+            "popcount": 2
+          }
+        }
+=== RUN   TestOriginalIteratorLUTCorpusComplete/ex5_lut/grace-size
+    original_iter_lut_corpus_test.go:318: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "popcount": 256
+          },
+          "module_bytes": 512,
+          "source_sha256": "d33826eba80cfd940d02c844ba58a0b085251763552b31de104564009b8c36c4",
+          "stack_depths": {
+            "popcount": 2
+          }
+        }
+=== RUN   TestOriginalIteratorLUTCorpusComplete/ex5_lut/grace-speed
+    original_iter_lut_corpus_test.go:318: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "popcount": 256
+          },
+          "module_bytes": 512,
+          "source_sha256": "d33826eba80cfd940d02c844ba58a0b085251763552b31de104564009b8c36c4",
+          "stack_depths": {
+            "popcount": 2
+          }
+        }
+=== RUN   TestOriginalIteratorLUTCorpusComplete/ex6_foreach
+=== RUN   TestOriginalIteratorLUTCorpusComplete/ex6_foreach/ordinary
+    original_iter_lut_corpus_test.go:318: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "max_chain": 65536,
+            "sum_chain": 65536
+          },
+          "module_bytes": 61,
+          "source_sha256": "e1e53370ff161285310b11fd2a0ad573f96cef85193532c0f1ebe4c9217641eb",
+          "stack_depths": {
+            "max_chain": 2,
+            "sum_chain": 2
+          }
+        }
+=== RUN   TestOriginalIteratorLUTCorpusComplete/ex6_foreach/grace-size
+    original_iter_lut_corpus_test.go:318: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "max_chain": 65536,
+            "sum_chain": 65536
+          },
+          "module_bytes": 71,
+          "source_sha256": "e1e53370ff161285310b11fd2a0ad573f96cef85193532c0f1ebe4c9217641eb",
+          "stack_depths": {
+            "max_chain": 2,
+            "sum_chain": 2
+          }
+        }
+=== RUN   TestOriginalIteratorLUTCorpusComplete/ex6_foreach/grace-speed
+    original_iter_lut_corpus_test.go:318: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "max_chain": 65536,
+            "sum_chain": 65536
+          },
+          "module_bytes": 71,
+          "source_sha256": "e1e53370ff161285310b11fd2a0ad573f96cef85193532c0f1ebe4c9217641eb",
+          "stack_depths": {
+            "max_chain": 2,
+            "sum_chain": 2
+          }
+        }
+=== RUN   TestOriginalIteratorLUTCorpusComplete/ex7_mapinplace
+=== RUN   TestOriginalIteratorLUTCorpusComplete/ex7_mapinplace/ordinary
+    original_iter_lut_corpus_test.go:318: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "add2_inplace": 65536
+          },
+          "module_bytes": 22,
+          "source_sha256": "779c02d554372699c21d41ea3488a05eed304f8cbc55a6e3eca026fee316b780",
+          "stack_depths": {
+            "add2_inplace": 2
+          }
+        }
+=== RUN   TestOriginalIteratorLUTCorpusComplete/ex7_mapinplace/grace-size
+    original_iter_lut_corpus_test.go:318: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "add2_inplace": 65536
+          },
+          "module_bytes": 22,
+          "source_sha256": "779c02d554372699c21d41ea3488a05eed304f8cbc55a6e3eca026fee316b780",
+          "stack_depths": {
+            "add2_inplace": 2
+          }
+        }
+=== RUN   TestOriginalIteratorLUTCorpusComplete/ex7_mapinplace/grace-speed
+    original_iter_lut_corpus_test.go:318: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "add2_inplace": 65536
+          },
+          "module_bytes": 22,
+          "source_sha256": "779c02d554372699c21d41ea3488a05eed304f8cbc55a6e3eca026fee316b780",
+          "stack_depths": {
+            "add2_inplace": 2
+          }
+        }
+--- PASS: TestOriginalIteratorLUTCorpusComplete (94.04s)
+    --- PASS: TestOriginalIteratorLUTCorpusComplete/ex5_lut (0.04s)
+        --- PASS: TestOriginalIteratorLUTCorpusComplete/ex5_lut/ordinary (0.03s)
+        --- PASS: TestOriginalIteratorLUTCorpusComplete/ex5_lut/grace-size (0.00s)
+        --- PASS: TestOriginalIteratorLUTCorpusComplete/ex5_lut/grace-speed (0.00s)
+    --- PASS: TestOriginalIteratorLUTCorpusComplete/ex6_foreach (63.89s)
+        --- PASS: TestOriginalIteratorLUTCorpusComplete/ex6_foreach/ordinary (20.63s)
+        --- PASS: TestOriginalIteratorLUTCorpusComplete/ex6_foreach/grace-size (22.19s)
+        --- PASS: TestOriginalIteratorLUTCorpusComplete/ex6_foreach/grace-speed (21.07s)
+    --- PASS: TestOriginalIteratorLUTCorpusComplete/ex7_mapinplace (30.11s)
+        --- PASS: TestOriginalIteratorLUTCorpusComplete/ex7_mapinplace/ordinary (10.23s)
+        --- PASS: TestOriginalIteratorLUTCorpusComplete/ex7_mapinplace/grace-size (9.22s)
+        --- PASS: TestOriginalIteratorLUTCorpusComplete/ex7_mapinplace/grace-speed (10.65s)
+=== RUN   TestOriginalMaxGraceCounterexample
+    original_max_grace_counterexample_test.go:34: VM0 out[{219}] err<nil>
+    original_max_grace_counterexample_test.go:34: VM1 out[{219}] err<nil>
+    original_max_grace_counterexample_test.go:53: native{A:219 F:66 BC:56064 DE:219 HL:16389 IX:0 IY:0 SP:61440 PC:28675}
+--- PASS: TestOriginalMaxGraceCounterexample (0.01s)
+PASS

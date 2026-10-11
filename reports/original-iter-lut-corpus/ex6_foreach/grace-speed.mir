@@ -1,0 +1,33 @@
+; MIR2 module: reports/showcase-src/2026-03-10/ex6_foreach.nanz
+fun @sum_chain(%r1: ptr [pointer], %r2: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r3 = const 0 : u8 [general]
+    %r4 = move %r1 : ptr [pointer]
+    %r5 = const 0 : u8 [acc]
+    %r6 = cmp.ne %r2, %r5 : bool [flag]
+    cond_ret %r6, [%r3], @fe_body1(%r2, %r4, %r3)
+  block @fe_body1(%r7: u8 [counter], %r8: ptr [pointer], %r9: u8 [general]):
+    %r10 = load %r8 : u8 [general]
+    %r11 = add %r9, %r10 : u8 [general]
+    %r12 = ptr_bump %r8, +1 : ptr [pointer]
+    djnz %r7, @fe_body1(%r12, %r11), @fe_exit2(%r11)
+  block @fe_exit2(%r11: u8 [general]):
+    ret %r11
+
+fun @max_chain(%r14: ptr [pointer], %r15: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r16 = const 0 : u8 [general]
+    %r17 = move %r14 : ptr [pointer]
+    %r18 = const 0 : u8 [acc]
+    %r19 = cmp.ne %r15, %r18 : bool [flag]
+    cond_ret %r19, [%r16], @fe_body1(%r15, %r17, %r16)
+  block @fe_body1(%r20: u8 [counter], %r21: ptr [pointer], %r22: u8 [general]):
+    %r23 = load %r21 : u8 [general]
+    %r24 = cmp.ugt %r23, %r22 : bool [flag]
+    br_if %r24, @if_join4(%r23), @if_join4(%r22)
+  block @if_join4(%r25: u8 [general]):
+    %r26 = ptr_bump %r21, +1 : ptr [pointer]
+    djnz %r20, @fe_body1(%r26, %r25), @fe_exit2(%r25)
+  block @fe_exit2(%r25: u8 [general]):
+    ret %r25
+

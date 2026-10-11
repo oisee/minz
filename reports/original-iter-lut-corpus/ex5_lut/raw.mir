@@ -1,0 +1,19 @@
+; MIR2 module: reports/showcase-src/2026-03-10/ex5_lut.nanz
+fun @popcount(%r1: u8<0..255> [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = const 0 : u8 [general]
+    jmp @loop_head1(%r2, %r1)
+  block @loop_head1(%r3: u8 [general], %r4: u8 [general]):
+    %r5 = const 0 : u8 [general]
+    %r6 = cmp.ne %r4, %r5 : bool [flag]
+    br_if %r6, @loop_body2(), @loop_exit3(%r3, %r4)
+  block @loop_body2:
+    %r7 = const 1 : u8 [general]
+    %r8 = and %r4, %r7 : u8 [general]
+    %r9 = add %r3, %r8 : u8 [general]
+    %r10 = const 1 : u8 [general]
+    %r11 = shr %r4, %r10 : u8 [general]
+    jmp @loop_head1(%r9, %r11)
+  block @loop_exit3(%r12: u8 [general], %r13: u8 [general]):
+    ret %r12
+

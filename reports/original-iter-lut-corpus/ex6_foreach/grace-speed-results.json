@@ -1,0 +1,13 @@
+{
+  "allowed_spill_bytes": {},
+  "entries": {
+    "max_chain": 65536,
+    "sum_chain": 65536
+  },
+  "module_bytes": 71,
+  "source_sha256": "e1e53370ff161285310b11fd2a0ad573f96cef85193532c0f1ebe4c9217641eb",
+  "stack_depths": {
+    "max_chain": 2,
+    "sum_chain": 2
+  }
+}

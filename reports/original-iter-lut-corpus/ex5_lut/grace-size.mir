@@ -1,0 +1,11 @@
+; MIR2 module: reports/showcase-src/2026-03-10/ex5_lut.nanz
+global const @popcount_lut : [256]u8@align(256)
+
+fun @popcount(%r12: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r13 = ext %r12 : u8 -> u16 [index]
+    %r14 = addr_of @popcount_lut : ptr [pointer]
+    %r15 = ptr_add %r14, %r13 : ptr [pointer]
+    %r16 = load %r15 : u8 [acc]
+    ret %r16
+

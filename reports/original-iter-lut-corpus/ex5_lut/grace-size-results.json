@@ -1,0 +1,11 @@
+{
+  "allowed_spill_bytes": {},
+  "entries": {
+    "popcount": 256
+  },
+  "module_bytes": 512,
+  "source_sha256": "d33826eba80cfd940d02c844ba58a0b085251763552b31de104564009b8c36c4",
+  "stack_depths": {
+    "popcount": 2
+  }
+}

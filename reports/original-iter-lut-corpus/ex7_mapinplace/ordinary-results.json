@@ -1,0 +1,11 @@
+{
+  "allowed_spill_bytes": {},
+  "entries": {
+    "add2_inplace": 65536
+  },
+  "module_bytes": 22,
+  "source_sha256": "779c02d554372699c21d41ea3488a05eed304f8cbc55a6e3eca026fee316b780",
+  "stack_depths": {
+    "add2_inplace": 2
+  }
+}

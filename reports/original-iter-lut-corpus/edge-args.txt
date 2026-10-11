@@ -1,0 +1,16 @@
+=== RUN   TestGraceTrivialBranchRequiresEquivalentEdgeValues
+=== RUN   TestGraceTrivialBranchRequiresEquivalentEdgeValues/different-forward
+=== RUN   TestGraceTrivialBranchRequiresEquivalentEdgeValues/different-reverse
+=== RUN   TestGraceTrivialBranchRequiresEquivalentEdgeValues/different-order
+=== RUN   TestGraceTrivialBranchRequiresEquivalentEdgeValues/different-length
+=== RUN   TestGraceTrivialBranchRequiresEquivalentEdgeValues/equal
+=== RUN   TestGraceTrivialBranchRequiresEquivalentEdgeValues/empty-nil
+--- PASS: TestGraceTrivialBranchRequiresEquivalentEdgeValues (0.00s)
+    --- PASS: TestGraceTrivialBranchRequiresEquivalentEdgeValues/different-forward (0.00s)
+    --- PASS: TestGraceTrivialBranchRequiresEquivalentEdgeValues/different-reverse (0.00s)
+    --- PASS: TestGraceTrivialBranchRequiresEquivalentEdgeValues/different-order (0.00s)
+    --- PASS: TestGraceTrivialBranchRequiresEquivalentEdgeValues/different-length (0.00s)
+    --- PASS: TestGraceTrivialBranchRequiresEquivalentEdgeValues/equal (0.00s)
+    --- PASS: TestGraceTrivialBranchRequiresEquivalentEdgeValues/empty-nil (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.007s

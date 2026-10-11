@@ -1,0 +1,2 @@
+cd minzc/pkg/pipeline
+../../../reports/original-iter-lut-corpus/pipeline.test -test.run '^TestOriginal(MaxGraceCounterexample|IteratorLUTCorpusComplete)$' -test.v
