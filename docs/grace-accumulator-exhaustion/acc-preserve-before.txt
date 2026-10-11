@@ -1,0 +1,24 @@
+--- FAIL: TestAccumulatorPreservationExhaustedScratchNative (0.00s)
+    --- FAIL: TestAccumulatorPreservationExhaustedScratchNative/operand (0.00s)
+        accumulator_exhaustion_test.go:23: live DE corrupted: got 2534 want1234
+            ORG 0x8000
+            LD SP,0xff00
+            LD A,37
+            LD DE,0x1234
+                LD D, A    ; save r1 before ALU overwrite
+            
+            HALT
+            _spill_exhausted_r1: DB 0
+    --- FAIL: TestAccumulatorPreservationExhaustedScratchNative/overwrite (0.00s)
+        accumulator_exhaustion_test.go:23: live DE corrupted: got 2534 want1234
+            ORG 0x8000
+            LD SP,0xff00
+            LD A,37
+            LD DE,0x1234
+                LD D, A    ; save r1 before A overwrite
+            
+            HALT
+            _spill_exhausted_r1: DB 0
+FAIL
+FAIL	github.com/minz/minzc/pkg/mir2	0.008s
+FAIL

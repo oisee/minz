@@ -863,8 +863,12 @@ func (g *z80cg) saveABeforeOverwrite(inst *Inst) {
 			return
 		}
 	}
-	scratch := g.pickScratch8(inst)
-	g.emitf("    LD %s, A    ; save r%d before A overwrite", scratch, bestReg)
+	scratch := g.freeScratch8(inst)
+	if scratch == "" {
+		scratch = g.spillLabel(bestReg)
+	}
+	g.emitLD8(scratch, "A")
+	g.comment(fmt.Sprintf("save r%d before A overwrite", bestReg))
 	g.physOverride[bestReg] = scratch
 }
 
@@ -877,8 +881,12 @@ func (g *z80cg) saveAccOperandIfLive(src Reg, inst *Inst) {
 	if src == NoReg || src == inst.Dst || !g.isVregLiveAfter(src, inst) {
 		return
 	}
-	scratch := g.pickScratch8(inst)
-	g.emitf("    LD %s, A    ; save r%d before ALU overwrite", scratch, src)
+	scratch := g.freeScratch8(inst)
+	if scratch == "" {
+		scratch = g.spillLabel(src)
+	}
+	g.emitLD8(scratch, "A")
+	g.comment(fmt.Sprintf("save r%d before ALU overwrite", src))
 	g.physOverride[src] = scratch
 	if g.pendingAccReg == src {
 		g.pendingAccReg = NoReg

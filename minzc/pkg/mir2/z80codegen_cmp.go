@@ -95,13 +95,13 @@ func (g *z80cg) accStillNeeded(upcomingInst *Inst) bool {
 // pickScratch8 returns an 8-bit scratch register that is not currently
 // occupied by an operand, destination or value live after upcomingInst.
 // Prefers E, H, L (unlikely to hold params) before D, B, C.
-// Always excludes "A" and "F". Legacy materialization callers retain the D
+// Always excludes "A" and "F". Legacy multiplication callers retain the D
 // fallback; preservation callers use freeScratch8 and handle exhaustion.
 func (g *z80cg) pickScratch8(upcomingInst *Inst) string {
 	if scratch := g.freeScratch8(upcomingInst); scratch != "" {
 		return scratch
 	}
-	return "D" // existing fallback for pending-value materialization
+	return "D" // legacy multiplication fallback; preservation must handle exhaustion
 }
 
 // freeScratch8 reports exhaustion rather than selecting an occupied register.
