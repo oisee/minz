@@ -50,6 +50,13 @@ func RunZ80MemoryHostLoopProfile(factory func() (*hir.Module, error), workload h
 	if err != nil {
 		return fail(err)
 	}
+	// The baseline owns three factory calls: original raw source, a private
+	// compilation candidate, and a fresh sentinel. Only the candidate is allowed
+	// to change during compiler preparation. Keep every other source for later
+	// identity rechecks when the outer factory is invoked again.
+	if len(retained) != 3 {
+		return fail(fmt.Errorf("unexpected baseline factory lifecycle"))
+	}
 	source, err := fresh()
 	if err != nil {
 		return fail(err)
@@ -72,7 +79,24 @@ func RunZ80MemoryHostLoopProfile(factory func() (*hir.Module, error), workload h
 		}
 		return nil
 	}
+	checkRetained := func() error {
+		for i, m := range retained {
+			if i == 1 { // Privately compiled candidate, captured by baseline.
+				continue
+			}
+			if err := identity(m); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	if err = checkRetained(); err != nil {
+		return fail(err)
+	}
 	if err = identity(source); err != nil {
+		return fail(err)
+	}
+	if err = checkRetained(); err != nil {
 		return fail(err)
 	}
 	loops, err := hir.BuildLoopSiteMap(source)
@@ -118,6 +142,9 @@ func RunZ80MemoryHostLoopProfile(factory func() (*hir.Module, error), workload h
 		return fail(err)
 	}
 	if err = identity(sentinel); err != nil {
+		return fail(err)
+	}
+	if err = checkRetained(); err != nil {
 		return fail(err)
 	}
 	if err = identity(source); err != nil {
