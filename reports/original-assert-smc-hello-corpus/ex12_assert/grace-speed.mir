@@ -1,0 +1,29 @@
+; MIR2 module: reports/showcase-src/2026-03-11/ex12_assert.nanz
+fun @double(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = add %r1, %r1 : u8 [acc]
+    ret %r2
+
+fun @clamp(%r3: u8 [acc], %r4: u8 [general], %r5: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r6 = cmp.ult %r3, %r4 : bool [flag]
+    br_if %r6, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r4
+  block @if_join2:
+    %r7 = cmp.ugt %r3, %r5 : bool [flag]
+    cond_ret %r7, [%r3], @if_then3()
+  block @if_then3:
+    ret %r5
+
+fun @abs_diff(%r8: u8 [acc], %r9: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r10 = sub %r8, %r9 : u8 [acc]
+    %r11 = cmp.sub_carry_not %r10, %r9 : bool [flag]
+    br_if %r11, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r10
+  block @if_join2:
+    %r12 = neg %r10 : u8 [acc]
+    ret %r12
+

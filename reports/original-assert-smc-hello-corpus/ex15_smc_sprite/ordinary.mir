@@ -1,0 +1,27 @@
+; MIR2 module: reports/showcase-src/2026-03-11/ex15_smc_sprite.nanz
+fun @draw_row()
+  block @entry:
+    %r1 = patch_slot 0 : ptr [pointer]
+    %r2 = const 195 : u8 [general]
+    store %r1, %r2 : u8
+    %r3 = field %r1, +1 : ptr [pointer]
+    %r4 = const 60 : u8 [general]
+    store %r3, %r4 : u8
+    ret void
+
+fun @draw_row4()
+  block @entry:
+    %r5 = patch_slot 0 : ptr [pointer]
+    %r6 = const 255 : u8 [general]
+    store %r5, %r6 : u8
+    %r7 = field %r5, +1 : ptr [pointer]
+    %r8 = const 129 : u8 [general]
+    store %r7, %r8 : u8
+    %r9 = field %r7, +1 : ptr [pointer]
+    %r10 = const 129 : u8 [general]
+    store %r9, %r10 : u8
+    %r11 = field %r9, +1 : ptr [pointer]
+    %r12 = const 255 : u8 [general]
+    store %r11, %r12 : u8
+    ret void
+

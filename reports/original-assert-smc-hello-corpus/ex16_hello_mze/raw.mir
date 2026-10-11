@@ -1,0 +1,111 @@
+; MIR2 module: reports/showcase-src/2026-03-11/ex16_hello_mze.nanz
+string @mir2.str.0 = "=== Nanz Z80 ===\n"
+string @mir2.str.1 = "abs_diff(10, 3) = "
+string @mir2.str.2 = "abs_diff(200, 55) = "
+string @mir2.str.3 = "Done!\n"
+
+fun @abs_diff(%r1: u8 [acc], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = cmp.uge %r1, %r2 : bool [flag]
+    br_if %r3, @if_then1(), @if_join2()
+  block @if_then1:
+    %r4 = sub %r1, %r2 : u8 [acc]
+    ret %r4
+  block @if_join2:
+    %r5 = sub %r2, %r1 : u8 [acc]
+    ret %r5
+
+fun @main()
+  block @entry:
+    %r6 = addr_of @@mir2.str.0 : ptr [pointer]
+    %r7 = load %r6 : u8 [general]
+    %r8 = const 1 : u16 [pointer]
+    %r9 = add %r6, %r8 : ptr [acc]
+    jmp @loop_head3(%r7, %r9)
+  block @loop_head3(%r10: u8 [general], %r11: ptr [general]):
+    %r12 = const 0 : u8 [general]
+    %r13 = cmp.ne %r10, %r12 : bool [flag]
+    br_if %r13, @loop_body4(), @loop_exit5(%r10, %r11)
+  block @loop_body4:
+    %r14 = load %r11 : u8 [general]
+    %r15 = move %r14 : u8 [acc]
+    call @@mir.io.print.char(%r15)
+    %r16 = const 1 : u16 [pointer]
+    %r17 = add %r11, %r16 : ptr [general]
+    %r18 = const 1 : u8 [general]
+    %r19 = sub %r10, %r18 : u8 [general]
+    jmp @loop_head3(%r19, %r17)
+  block @loop_exit5(%r20: u8 [general], %r21: ptr [general]):
+    %r22 = addr_of @@mir2.str.1 : ptr [pointer]
+    %r23 = load %r22 : u8 [general]
+    %r24 = const 1 : u16 [pointer]
+    %r25 = add %r22, %r24 : ptr [acc]
+    jmp @loop_head8(%r23, %r25)
+  block @loop_head8(%r26: u8 [general], %r27: ptr [general]):
+    %r28 = const 0 : u8 [general]
+    %r29 = cmp.ne %r26, %r28 : bool [flag]
+    br_if %r29, @loop_body9(), @loop_exit10(%r26, %r27)
+  block @loop_body9:
+    %r30 = load %r27 : u8 [general]
+    %r31 = move %r30 : u8 [acc]
+    call @@mir.io.print.char(%r31)
+    %r32 = const 1 : u16 [pointer]
+    %r33 = add %r27, %r32 : ptr [general]
+    %r34 = const 1 : u8 [general]
+    %r35 = sub %r26, %r34 : u8 [general]
+    jmp @loop_head8(%r35, %r33)
+  block @loop_exit10(%r36: u8 [general], %r37: ptr [general]):
+    %r38 = const 10 : u8 [general]
+    %r39 = move %r38 : u8 [acc]
+    %r40 = const 3 : u8 [general]
+    %r41 = call @abs_diff(%r39, %r40) : u8 [acc]
+    %r42 = move %r41 : u8 [acc]
+    call @@mir.io.print.dec(%r42)
+    call @@mir.io.print.nl()
+    %r43 = addr_of @@mir2.str.2 : ptr [pointer]
+    %r44 = load %r43 : u8 [general]
+    %r45 = const 1 : u16 [pointer]
+    %r46 = add %r43, %r45 : ptr [acc]
+    jmp @loop_head13(%r44, %r46)
+  block @loop_head13(%r47: u8 [general], %r48: ptr [general]):
+    %r49 = const 0 : u8 [general]
+    %r50 = cmp.ne %r47, %r49 : bool [flag]
+    br_if %r50, @loop_body14(), @loop_exit15(%r47, %r48)
+  block @loop_body14:
+    %r51 = load %r48 : u8 [general]
+    %r52 = move %r51 : u8 [acc]
+    call @@mir.io.print.char(%r52)
+    %r53 = const 1 : u16 [pointer]
+    %r54 = add %r48, %r53 : ptr [general]
+    %r55 = const 1 : u8 [general]
+    %r56 = sub %r47, %r55 : u8 [general]
+    jmp @loop_head13(%r56, %r54)
+  block @loop_exit15(%r57: u8 [general], %r58: ptr [general]):
+    %r59 = const 200 : u8 [general]
+    %r60 = move %r59 : u8 [acc]
+    %r61 = const 55 : u8 [general]
+    %r62 = call @abs_diff(%r60, %r61) : u8 [acc]
+    %r63 = move %r62 : u8 [acc]
+    call @@mir.io.print.dec(%r63)
+    call @@mir.io.print.nl()
+    %r64 = addr_of @@mir2.str.3 : ptr [pointer]
+    %r65 = load %r64 : u8 [general]
+    %r66 = const 1 : u16 [pointer]
+    %r67 = add %r64, %r66 : ptr [acc]
+    jmp @loop_head18(%r65, %r67)
+  block @loop_head18(%r68: u8 [general], %r69: ptr [general]):
+    %r70 = const 0 : u8 [general]
+    %r71 = cmp.ne %r68, %r70 : bool [flag]
+    br_if %r71, @loop_body19(), @loop_exit20(%r68, %r69)
+  block @loop_body19:
+    %r72 = load %r69 : u8 [general]
+    %r73 = move %r72 : u8 [acc]
+    call @@mir.io.print.char(%r73)
+    %r74 = const 1 : u16 [pointer]
+    %r75 = add %r69, %r74 : ptr [general]
+    %r76 = const 1 : u8 [general]
+    %r77 = sub %r68, %r76 : u8 [general]
+    jmp @loop_head18(%r77, %r75)
+  block @loop_exit20(%r78: u8 [general], %r79: ptr [general]):
+    ret void
+

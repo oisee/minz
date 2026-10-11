@@ -1,0 +1,119 @@
+=== RUN   TestOriginalAssertCorpusComplete
+=== RUN   TestOriginalAssertCorpusComplete/ex12_assert
+=== RUN   TestOriginalAssertCorpusComplete/ex12_assert/ordinary
+    original_assert_corpus_test.go:307: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "abs_diff": 65536,
+            "clamp": 16777216,
+            "double": 256
+          },
+          "module_bytes": 19,
+          "source_sha256": "4972461eba6fb194fd5a844dd9e10a25ae800b92bf2c64709070f7df590f9ad1",
+          "stack_depths": {
+            "abs_diff": 2,
+            "clamp": 2,
+            "double": 2
+          },
+          "terminating_workload_tstates": 844774912
+        }
+=== RUN   TestOriginalAssertCorpusComplete/ex12_assert/grace-size
+    original_assert_corpus_test.go:307: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "abs_diff": 65536,
+            "clamp": 16777216,
+            "double": 256
+          },
+          "module_bytes": 19,
+          "source_sha256": "4972461eba6fb194fd5a844dd9e10a25ae800b92bf2c64709070f7df590f9ad1",
+          "stack_depths": {
+            "abs_diff": 2,
+            "clamp": 2,
+            "double": 2
+          },
+          "terminating_workload_tstates": 844774912
+        }
+=== RUN   TestOriginalAssertCorpusComplete/ex12_assert/grace-speed
+    original_assert_corpus_test.go:307: {
+          "allowed_spill_bytes": {},
+          "entries": {
+            "abs_diff": 65536,
+            "clamp": 16777216,
+            "double": 256
+          },
+          "module_bytes": 19,
+          "source_sha256": "4972461eba6fb194fd5a844dd9e10a25ae800b92bf2c64709070f7df590f9ad1",
+          "stack_depths": {
+            "abs_diff": 2,
+            "clamp": 2,
+            "double": 2
+          },
+          "terminating_workload_tstates": 844774912
+        }
+--- PASS: TestOriginalAssertCorpusComplete (113.80s)
+    --- PASS: TestOriginalAssertCorpusComplete/ex12_assert (113.80s)
+        --- PASS: TestOriginalAssertCorpusComplete/ex12_assert/ordinary (35.32s)
+        --- PASS: TestOriginalAssertCorpusComplete/ex12_assert/grace-size (39.89s)
+        --- PASS: TestOriginalAssertCorpusComplete/ex12_assert/grace-speed (38.58s)
+=== RUN   TestOriginalSMCHelloCorpus
+=== RUN   TestOriginalSMCHelloCorpus/ex15_smc_sprite
+=== RUN   TestOriginalSMCHelloCorpus/ex15_smc_sprite/ordinary
+    original_smc_hello_corpus_test.go:260: {
+          "max_stack_bytes": 2,
+          "model": "SMC explicit patcher/bytes or console OUT23; no CP/M runtime claim",
+          "module_bytes": 42,
+          "native_calls": 28,
+          "source_sha256": "ebf231db98b4ec793a186188138b8b7a3202e0d749e079cd3914877e44d22781"
+        }
+=== RUN   TestOriginalSMCHelloCorpus/ex15_smc_sprite/grace-size
+    original_smc_hello_corpus_test.go:260: {
+          "max_stack_bytes": 2,
+          "model": "SMC explicit patcher/bytes or console OUT23; no CP/M runtime claim",
+          "module_bytes": 42,
+          "native_calls": 28,
+          "source_sha256": "ebf231db98b4ec793a186188138b8b7a3202e0d749e079cd3914877e44d22781"
+        }
+=== RUN   TestOriginalSMCHelloCorpus/ex15_smc_sprite/grace-speed
+    original_smc_hello_corpus_test.go:260: {
+          "max_stack_bytes": 2,
+          "model": "SMC explicit patcher/bytes or console OUT23; no CP/M runtime claim",
+          "module_bytes": 42,
+          "native_calls": 28,
+          "source_sha256": "ebf231db98b4ec793a186188138b8b7a3202e0d749e079cd3914877e44d22781"
+        }
+=== RUN   TestOriginalSMCHelloCorpus/ex16_hello_mze
+=== RUN   TestOriginalSMCHelloCorpus/ex16_hello_mze/ordinary
+    original_smc_hello_corpus_test.go:260: {
+          "max_stack_bytes": 4,
+          "model": "SMC explicit patcher/bytes or console OUT23; no CP/M runtime claim",
+          "module_bytes": 297,
+          "native_calls": 65537,
+          "source_sha256": "adacf7829f2a7b20db2d9d5e1a8701826633e6e0de6ac1e22bcd62e5a5526082"
+        }
+=== RUN   TestOriginalSMCHelloCorpus/ex16_hello_mze/grace-size
+    original_smc_hello_corpus_test.go:260: {
+          "max_stack_bytes": 4,
+          "model": "SMC explicit patcher/bytes or console OUT23; no CP/M runtime claim",
+          "module_bytes": 297,
+          "native_calls": 65537,
+          "source_sha256": "adacf7829f2a7b20db2d9d5e1a8701826633e6e0de6ac1e22bcd62e5a5526082"
+        }
+=== RUN   TestOriginalSMCHelloCorpus/ex16_hello_mze/grace-speed
+    original_smc_hello_corpus_test.go:260: {
+          "max_stack_bytes": 4,
+          "model": "SMC explicit patcher/bytes or console OUT23; no CP/M runtime claim",
+          "module_bytes": 297,
+          "native_calls": 65537,
+          "source_sha256": "adacf7829f2a7b20db2d9d5e1a8701826633e6e0de6ac1e22bcd62e5a5526082"
+        }
+--- PASS: TestOriginalSMCHelloCorpus (0.42s)
+    --- PASS: TestOriginalSMCHelloCorpus/ex15_smc_sprite (0.02s)
+        --- PASS: TestOriginalSMCHelloCorpus/ex15_smc_sprite/ordinary (0.00s)
+        --- PASS: TestOriginalSMCHelloCorpus/ex15_smc_sprite/grace-size (0.01s)
+        --- PASS: TestOriginalSMCHelloCorpus/ex15_smc_sprite/grace-speed (0.00s)
+    --- PASS: TestOriginalSMCHelloCorpus/ex16_hello_mze (0.40s)
+        --- PASS: TestOriginalSMCHelloCorpus/ex16_hello_mze/ordinary (0.10s)
+        --- PASS: TestOriginalSMCHelloCorpus/ex16_hello_mze/grace-size (0.13s)
+        --- PASS: TestOriginalSMCHelloCorpus/ex16_hello_mze/grace-speed (0.17s)
+PASS
