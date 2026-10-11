@@ -1,0 +1,22 @@
+=== RUN   TestOriginalAssertFrontendDomains
+    original_assert_frontends_native_test.go:284: examples/lizp/assert_test.lanz ordinary 131337 native/raw/final independent fullstate PASS
+    original_assert_frontends_native_test.go:284: examples/lizp/assert_test.lanz grace-size 131337 native/raw/final independent fullstate PASS
+    original_assert_frontends_native_test.go:284: examples/lizp/assert_test.lanz grace-speed 131337 native/raw/final independent fullstate PASS
+    original_assert_frontends_native_test.go:284: examples/lizp/assert_test.lizp ordinary 131337 native/raw/final independent fullstate PASS
+    original_assert_frontends_native_test.go:284: examples/lizp/assert_test.lizp grace-size 131337 native/raw/final independent fullstate PASS
+    original_assert_frontends_native_test.go:284: examples/lizp/assert_test.lizp grace-speed 131337 native/raw/final independent fullstate PASS
+    original_assert_frontends_native_test.go:284: examples/nanz/assert_test.nanz ordinary 131337 native/raw/final independent fullstate PASS
+    original_assert_frontends_native_test.go:284: examples/nanz/assert_test.nanz grace-size 131337 native/raw/final independent fullstate PASS
+    original_assert_frontends_native_test.go:284: examples/nanz/assert_test.nanz grace-speed 131337 native/raw/final independent fullstate PASS
+    original_assert_frontends_native_test.go:284: examples/nanz/assert_test.plm ordinary 131337 native/raw/final independent fullstate PASS
+    original_assert_frontends_native_test.go:284: examples/nanz/assert_test.plm grace-size 131337 native/raw/final independent fullstate PASS
+    original_assert_frontends_native_test.go:284: examples/nanz/assert_test.plm grace-speed 131337 native/raw/final independent fullstate PASS
+    original_assert_frontends_native_test.go:284: examples/plm/assert_test.plm ordinary 131337 native/raw/final independent fullstate PASS
+    original_assert_frontends_native_test.go:284: examples/plm/assert_test.plm grace-size 131337 native/raw/final independent fullstate PASS
+    original_assert_frontends_native_test.go:284: examples/plm/assert_test.plm grace-speed 131337 native/raw/final independent fullstate PASS
+    original_assert_frontends_native_test.go:284: examples/pascal/assert_test.pas ordinary 65795 native/raw/final independent fullstate PASS
+    original_assert_frontends_native_test.go:284: examples/pascal/assert_test.pas grace-size 65795 native/raw/final independent fullstate PASS
+    original_assert_frontends_native_test.go:284: examples/pascal/assert_test.pas grace-speed 65795 native/raw/final independent fullstate PASS
+--- PASS: TestOriginalAssertFrontendDomains (22.36s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	22.366s
