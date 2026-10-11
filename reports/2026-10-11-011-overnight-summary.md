@@ -57,7 +57,7 @@ https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/
 - [Смена выбора и отказы](https://minz-grace-hir-mir-report.grittysnipe3.chatgpt.site/memory-host-choice-boundaries.html)
 
 Весь сайт сохранён офлайн: [локальная главная](../artifacts/grace-reports/2026-10-10-resume/site/index.html).
-Проверены **13752 файла, 58 страниц**, SHA256 всех файлов, читаемость всех
+Проверены **14447 файлов, 59 страниц**, SHA256 всех файлов, читаемость всех
 публикационных архивов; потерянных ссылок и внешних зависимостей нет.
 Исходники, профили, решения, proof records, ASM/BIN, логи, обе разные CLI
 сборки и Git bundles сохранены локально.
@@ -101,8 +101,8 @@ artifact-only corpus refresh на dba завершён: все четыре spee
 выбрали append-only вместо прежнего both;32candidate/8profiles/8decisions
 прошли два независимых аудита. Пакет7df6632e перенесён; savedgzip
 проверка после переноса PASS. Полный suite прошёл; corpus отчёт опубликован: Sites49, sourcee173ca14.
-Офлайн-копия49 синхронизируется. Последняя полная проверка версии48:
-13752 файла,58 страниц,SHA256/архивы/локальные ссылки PASS.
+Офлайн-копия49 полностью проверена:14447 файлов,59 страниц,
+SHA256/архивы/локальные ссылки PASS.
 Inputs и планы новых проверок committed/pushed в постоянных ветках.
 Production checkpoint сохраняется как WIP; аудитированные старые этапы
 остаются доступными. Диагностический PC hook в production не переносился.
