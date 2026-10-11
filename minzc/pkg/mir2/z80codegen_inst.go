@@ -102,8 +102,13 @@ func (g *z80cg) genInst(inst *Inst) {
 						g.emitTSMCSpill(pair, "A")
 						g.invalidate("A")
 					} else {
+						// Word TSMC stores use A to patch both immediate bytes.
+						// OpConst does not define A or flags; preserve live inputs
+						// even when orphaned reloads later become ordinary spills.
+						g.emit("    PUSH AF")
 						g.emitf("    LD HL, %d", inst.Imm&0xFFFF)
 						g.emitTSMCSpill(pair, "HL")
+						g.emit("    POP AF")
 						g.invalidate("HL")
 					}
 				} else {
