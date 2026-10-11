@@ -1,0 +1,17 @@
+{
+  "sources": {
+    "examples/lizp/assert_test.lanz": "c391efd9e328dce82df2ee60df63a7b83d0178fea20f71f0288e0c767424c5af",
+    "examples/lizp/assert_test.lizp": "af0ba4f10b3268e737b2deab8ced31f97e474f9e038fad8b93e8df63d80900d1",
+    "examples/nanz/assert_test.nanz": "860725e8e61b6427bce6cc0d8b4ce10cf5f9be09873ba79bf85491e7db8fd457",
+    "examples/nanz/assert_test.plm": "6eaca5ccab9b46d534be6b79e267b1479135e365e4fb313c39d40f5be437842a",
+    "examples/plm/assert_test.plm": "6eaca5ccab9b46d534be6b79e267b1479135e365e4fb313c39d40f5be437842a",
+    "examples/pascal/assert_test.pas": "8e86abf7590820766d59117a07bea60755a7e40d3803d6f9589a788824726ec3"
+  },
+  "byte_double_model": "2*x modulo256 all256",
+  "byte_add_model": "a+b modulo256 all65536orderedpairs",
+  "byte_max_model": "max(a,b) all65536orderedpairs",
+  "pascal_integer_double_model": "signed16(2*x modulo65536) all65536patterns",
+  "pascal_addone_model": "x+1 modulo256 all256",
+  "sourceasserts": "run every assert independently, do not use it to define broaderexpected",
+  "main": "execute onlyoriginalmainwherepresent; no fabricated entry"
+}
