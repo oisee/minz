@@ -1,0 +1,15 @@
+ORG $8000
+multiply:
+    PUSH HL
+    PUSH BC
+    PUSH HL
+    POP BC
+    ADD HL, HL
+    ADD HL, BC
+    ADD HL, HL
+    ADD HL, HL
+    POP BC
+    LD (_spill_multiply_r3), HL
+    POP HL
+ RET
+_spill_multiply_r3: DW 0

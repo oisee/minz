@@ -1,0 +1,30 @@
+ORG $8000
+multiply:
+    PUSH HL
+    ; mul16 HL * BC → HL  (~320T, 16-iter shift-and-add)
+    PUSH AF
+    PUSH DE
+    LD DE, 12
+    PUSH BC
+    LD B, H
+    LD C, L
+    LD H, 0
+    LD L, 0
+    LD A, 16
+.multiply_m16_3_lp:
+    SRL D
+    RR E
+    JRS NC, .multiply_m16_3_sk
+    ADD HL, BC
+.multiply_m16_3_sk:
+    SLA C
+    RL B
+    DEC A
+    JRS NZ, .multiply_m16_3_lp
+    POP BC
+    POP DE
+    POP AF
+    LD D, H
+    LD E, L
+    POP HL
+ RET
