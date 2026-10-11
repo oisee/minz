@@ -1,0 +1,367 @@
+; MIR2 module: ../../../examples/nanz/21_hashmap_test.nanz
+global @map_keys : [32]u8
+global @map_vals : [32]u8
+global @map_used : [16]u8
+global @map_count : u16
+
+fun @rd16(%r1: ptr [pointer], %r2: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r3 = const 2 : u16 [pointer]
+    %r4 = mul %r2, %r3 : u16 [pointer]
+    %r5 = add %r1, %r4 : ptr [acc]
+    %r6 = load %r5 : u8 [general]
+    %r7 = ext %r6 : u8 -> u16 [pointer]
+    %r8 = const 1 : u16 [pointer]
+    %r9 = add %r5, %r8 : ptr [acc]
+    %r10 = load %r9 : u8 [general]
+    %r11 = ext %r10 : u8 -> u16 [pointer]
+    %r12 = const 256 : u16 [pointer]
+    %r13 = mul %r11, %r12 : u16 [pointer]
+    %r14 = add %r7, %r13 : u16 [pointer]
+    ret %r14
+
+fun @wr16(%r15: ptr [pointer], %r16: u16 [index], %r17: u16 [index])
+  block @entry:
+    %r18 = const 2 : u16 [pointer]
+    %r19 = mul %r16, %r18 : u16 [pointer]
+    %r20 = add %r15, %r19 : ptr [acc]
+    %r21 = trunc %r17 : u16 -> u8 [general]
+    store %r20, %r21 : u8
+    %r22 = const 1 : u16 [pointer]
+    %r23 = add %r20, %r22 : ptr [acc]
+    %r24 = const 256 : u16 [pointer]
+    %r25 = div %r17, %r24 : u16 [pointer]
+    %r26 = trunc %r25 : u16 -> u8 [general]
+    store %r23, %r26 : u8
+    ret void
+
+fun @hash16(%r27: u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    %r28 = const 37 : u16 [pointer]
+    %r29 = add %r27, %r28 : u16 [pointer]
+    %r30 = xor %r27, %r29 : u16 [pointer]
+    ret %r30
+
+fun @map_clear()
+  block @entry:
+    %r31 = const 0 : u8 [general]
+    %r32 = addr_of @map_count : ptr [pointer]
+    store %r32, %r31 : u16
+    %r33 = const 0 : u8 [general]
+    jmp @loop_head1(%r33)
+  block @loop_head1(%r34: u8 [general]):
+    %r35 = const 16 : u8 [general]
+    %r36 = cmp.ult %r34, %r35 : bool [flag]
+    cond_ret %r36, [], @loop_body2()
+  block @loop_body2:
+    %r37 = const 0 : u8 [general]
+    %r38 = addr_of @map_used : ptr [pointer]
+    %r39 = ptr_add %r38, %r34 : ptr [pointer]
+    store %r39, %r37 : u8
+    %r40 = const 1 : u8 [general]
+    %r41 = add %r34, %r40 : u8 [general]
+    jmp @loop_head1(%r41)
+
+fun @map_put(%r43: u16 [pointer], %r44: u16 [index]) -> u8 [acc]
+  block @entry:
+    %r45 = call @hash16(%r43) : u16 [pointer]
+    %r46 = const 15 : u16 [pointer]
+    %r47 = and %r45, %r46 : u16 [pointer]
+    %r48 = const 0 : u8 [general]
+    jmp @loop_head1(%r43, %r48, %r47, %r44)
+  block @loop_head1(%r49: u16 [pointer], %r50: u8 [general], %r51: u16 [pointer], %r52: u16 [pointer]):
+    %r53 = const 16 : u8 [general]
+    %r54 = cmp.ult %r50, %r53 : bool [flag]
+    %r97 = const 0 : u8 [general]
+    cond_ret %r54, [%r97], @loop_body2()
+  block @loop_body2:
+    %r55 = addr_of @map_used : ptr [pointer]
+    %r56 = ptr_add %r55, %r51 : ptr [pointer]
+    %r57 = load %r56 : u8 [general]
+    %r58 = const 0 : u8 [general]
+    %r59 = cmp.eq %r57, %r58 : bool [flag]
+    br_if %r59, @if_then4(), @if_join5()
+  block @if_then4:
+    %r60 = const 1 : u8 [general]
+    %r61 = addr_of @map_used : ptr [pointer]
+    %r62 = ptr_add %r61, %r51 : ptr [pointer]
+    store %r62, %r60 : u8
+    %r63 = addr_of @map_keys : ptr [pointer]
+    %r64 = move %r63 : [32]u8 [acc]
+    %r65 = move %r51 : u16 [index]
+    %r66 = move %r49 : u16 [index]
+    call @wr16(%r64, %r65, %r66)
+    %r67 = addr_of @map_vals : ptr [pointer]
+    %r68 = move %r67 : [32]u8 [acc]
+    %r69 = move %r51 : u16 [index]
+    %r70 = move %r52 : u16 [index]
+    call @wr16(%r68, %r69, %r70)
+    %r71 = addr_of @map_count : ptr [pointer]
+    %r72 = load %r71 : u16 [pointer]
+    %r73 = const 1 : u16 [pointer]
+    %r74 = add %r72, %r73 : u16 [pointer]
+    %r75 = addr_of @map_count : ptr [pointer]
+    store %r75, %r74 : u16
+    %r76 = const 1 : u8 [general]
+    ret %r76
+  block @if_join5:
+    %r77 = addr_of @map_keys : ptr [pointer]
+    %r78 = move %r77 : [32]u8 [acc]
+    %r79 = move %r51 : u16 [index]
+    %r80 = call @rd16(%r78, %r79) : u16 [pointer]
+    %r81 = cmp.eq %r80, %r49 : bool [flag]
+    br_if %r81, @if_then6(), @if_join7()
+  block @if_then6:
+    %r82 = addr_of @map_vals : ptr [pointer]
+    %r83 = move %r82 : [32]u8 [acc]
+    %r84 = move %r51 : u16 [index]
+    %r85 = move %r52 : u16 [index]
+    call @wr16(%r83, %r84, %r85)
+    %r86 = const 1 : u8 [general]
+    ret %r86
+  block @if_join7:
+    %r87 = const 1 : u16 [pointer]
+    %r88 = add %r51, %r87 : u16 [pointer]
+    %r89 = const 15 : u16 [pointer]
+    %r90 = and %r88, %r89 : u16 [pointer]
+    %r91 = const 1 : u8 [general]
+    %r92 = add %r50, %r91 : u8 [general]
+    jmp @loop_head1(%r49, %r92, %r90, %r52)
+
+fun @map_get(%r98: u16 [pointer]) -> u16 [pointer]
+  block @entry:
+    %r99 = call @hash16(%r98) : u16 [pointer]
+    %r100 = const 15 : u16 [pointer]
+    %r101 = and %r99, %r100 : u16 [pointer]
+    %r102 = const 0 : u8 [general]
+    jmp @loop_head1(%r98, %r102, %r101)
+  block @loop_head1(%r103: u16 [pointer], %r104: u8 [general], %r105: u16 [pointer]):
+    %r106 = const 16 : u8 [general]
+    %r107 = cmp.ult %r104, %r106 : bool [flag]
+    %r132 = const 65535 : u16 [pointer]
+    cond_ret %r107, [%r132], @loop_body2()
+  block @loop_body2:
+    %r108 = addr_of @map_used : ptr [pointer]
+    %r109 = ptr_add %r108, %r105 : ptr [pointer]
+    %r110 = load %r109 : u8 [general]
+    %r111 = const 0 : u8 [general]
+    %r112 = cmp.eq %r110, %r111 : bool [flag]
+    br_if %r112, @if_then4(), @if_join5()
+  block @if_then4:
+    %r113 = const 65535 : u16 [pointer]
+    ret %r113
+  block @if_join5:
+    %r114 = addr_of @map_keys : ptr [pointer]
+    %r115 = move %r114 : [32]u8 [acc]
+    %r116 = move %r105 : u16 [index]
+    %r117 = call @rd16(%r115, %r116) : u16 [pointer]
+    %r118 = cmp.eq %r117, %r103 : bool [flag]
+    br_if %r118, @if_then6(), @if_join7()
+  block @if_then6:
+    %r119 = addr_of @map_vals : ptr [pointer]
+    %r120 = move %r119 : [32]u8 [acc]
+    %r121 = move %r105 : u16 [index]
+    %r122 = call @rd16(%r120, %r121) : u16 [pointer]
+    ret %r122
+  block @if_join7:
+    %r123 = const 1 : u16 [pointer]
+    %r124 = add %r105, %r123 : u16 [pointer]
+    %r125 = const 15 : u16 [pointer]
+    %r126 = and %r124, %r125 : u16 [pointer]
+    %r127 = const 1 : u8 [general]
+    %r128 = add %r104, %r127 : u8 [general]
+    jmp @loop_head1(%r103, %r128, %r126)
+
+fun @map_has(%r133: u16 [pointer]) -> u8 [acc]
+  block @entry:
+    %r134 = call @map_get(%r133) : u16 [pointer]
+    %r135 = const 65535 : u16 [pointer]
+    %r136 = cmp.eq %r134, %r135 : bool [flag]
+    %r138 = const 1 : u8 [general]
+    cond_ret %r136, [%r138], @if_then1()
+  block @if_then1:
+    %r137 = const 0 : u8 [general]
+    ret %r137
+
+fun @test_put_get() -> u8 [acc]
+  block @entry:
+    call @map_clear()
+    %r140 = const 42 : u8 [acc]
+    %r141 = const 100 : u8 [general]
+    %r142 = call @map_put(%r140, %r141) : u8 [acc]
+    %r144 = const 42 : u8 [acc]
+    %r145 = call @map_get(%r144) : u16 [pointer]
+    %r146 = const 100 : u8 [general]
+    %r147 = cmp.eq %r145, %r146 : bool [flag]
+    %r149 = const 0 : u8 [general]
+    cond_ret %r147, [%r149], @if_then1()
+  block @if_then1:
+    %r148 = const 1 : u8 [general]
+    ret %r148
+
+fun @test_missing() -> u8 [acc]
+  block @entry:
+    call @map_clear()
+    %r151 = const 99 : u8 [acc]
+    %r152 = call @map_get(%r151) : u16 [pointer]
+    %r153 = const 65535 : u16 [pointer]
+    %r154 = cmp.eq %r152, %r153 : bool [flag]
+    %r156 = const 0 : u8 [general]
+    cond_ret %r154, [%r156], @if_then1()
+  block @if_then1:
+    %r155 = const 1 : u8 [general]
+    ret %r155
+
+fun @test_overwrite() -> u8 [acc]
+  block @entry:
+    call @map_clear()
+    %r158 = const 10 : u8 [acc]
+    %r159 = const 200 : u8 [general]
+    %r160 = call @map_put(%r158, %r159) : u8 [acc]
+    %r162 = const 10 : u8 [acc]
+    %r164 = const 300 : u16 [index]
+    %r165 = call @map_put(%r162, %r164) : u8 [acc]
+    %r167 = const 10 : u8 [acc]
+    %r168 = call @map_get(%r167) : u16 [pointer]
+    %r169 = const 300 : u16 [pointer]
+    %r170 = cmp.eq %r168, %r169 : bool [flag]
+    %r172 = const 0 : u8 [general]
+    cond_ret %r170, [%r172], @if_then1()
+  block @if_then1:
+    %r171 = const 1 : u8 [general]
+    ret %r171
+
+fun @test_two_keys() -> u8 [acc]
+  block @entry:
+    call @map_clear()
+    %r174 = const 1 : u8 [acc]
+    %r175 = const 10 : u8 [general]
+    %r176 = call @map_put(%r174, %r175) : u8 [acc]
+    %r178 = const 2 : u8 [acc]
+    %r179 = const 20 : u8 [general]
+    %r180 = call @map_put(%r178, %r179) : u8 [acc]
+    %r182 = const 1 : u8 [acc]
+    %r183 = call @map_get(%r182) : u16 [pointer]
+    %r185 = const 2 : u8 [acc]
+    %r186 = call @map_get(%r185) : u16 [pointer]
+    %r187 = const 10 : u8 [general]
+    %r188 = cmp.eq %r183, %r187 : bool [flag]
+    br_if %r188, @if_then1(), @if_join2()
+  block @if_then1:
+    %r189 = const 20 : u8 [general]
+    %r190 = cmp.eq %r186, %r189 : bool [flag]
+    br_if %r190, @if_then3(), @if_join4()
+  block @if_then3:
+    %r191 = const 1 : u8 [general]
+    ret %r191
+  block @if_join4:
+    jmp @if_join2()
+  block @if_join2:
+    %r192 = const 0 : u8 [general]
+    ret %r192
+
+fun @test_has() -> u8 [acc]
+  block @entry:
+    call @map_clear()
+    %r194 = const 7 : u8 [acc]
+    %r195 = const 77 : u8 [general]
+    %r196 = call @map_put(%r194, %r195) : u8 [acc]
+    %r198 = const 7 : u8 [acc]
+    %r199 = call @map_has(%r198) : u8 [acc]
+    %r201 = const 8 : u8 [acc]
+    %r202 = call @map_has(%r201) : u8 [acc]
+    %r203 = const 1 : u8 [general]
+    %r204 = cmp.eq %r199, %r203 : bool [flag]
+    br_if %r204, @if_then1(), @if_join2()
+  block @if_then1:
+    %r205 = const 0 : u8 [general]
+    %r206 = cmp.eq %r202, %r205 : bool [flag]
+    br_if %r206, @if_then3(), @if_join4()
+  block @if_then3:
+    %r207 = const 1 : u8 [general]
+    ret %r207
+  block @if_join4:
+    jmp @if_join2()
+  block @if_join2:
+    %r208 = const 0 : u8 [general]
+    ret %r208
+
+fun @test_count() -> u8 [acc]
+  block @entry:
+    call @map_clear()
+    %r210 = const 1 : u8 [acc]
+    %r211 = const 10 : u8 [general]
+    %r212 = call @map_put(%r210, %r211) : u8 [acc]
+    %r214 = const 2 : u8 [acc]
+    %r215 = const 20 : u8 [general]
+    %r216 = call @map_put(%r214, %r215) : u8 [acc]
+    %r218 = const 3 : u8 [acc]
+    %r219 = const 30 : u8 [general]
+    %r220 = call @map_put(%r218, %r219) : u8 [acc]
+    %r221 = addr_of @map_count : ptr [pointer]
+    %r222 = load %r221 : u16 [pointer]
+    %r223 = const 3 : u8 [general]
+    %r224 = cmp.eq %r222, %r223 : bool [flag]
+    %r226 = const 0 : u8 [general]
+    cond_ret %r224, [%r226], @if_then1()
+  block @if_then1:
+    %r225 = const 1 : u8 [general]
+    ret %r225
+
+fun @test_zero_key() -> u8 [acc]
+  block @entry:
+    call @map_clear()
+    %r228 = const 0 : u8 [acc]
+    %r230 = const 999 : u16 [index]
+    %r231 = call @map_put(%r228, %r230) : u8 [acc]
+    %r233 = const 0 : u8 [acc]
+    %r234 = call @map_get(%r233) : u16 [pointer]
+    %r235 = const 999 : u16 [pointer]
+    %r236 = cmp.eq %r234, %r235 : bool [flag]
+    %r238 = const 0 : u8 [general]
+    cond_ret %r236, [%r238], @if_then1()
+  block @if_then1:
+    %r237 = const 1 : u8 [general]
+    ret %r237
+
+fun @test_many() -> u8 [acc]
+  block @entry:
+    call @map_clear()
+    %r240 = const 10 : u8 [acc]
+    %r241 = const 100 : u8 [general]
+    %r242 = call @map_put(%r240, %r241) : u8 [acc]
+    %r244 = const 20 : u8 [acc]
+    %r245 = const 200 : u8 [general]
+    %r246 = call @map_put(%r244, %r245) : u8 [acc]
+    %r248 = const 30 : u8 [acc]
+    %r250 = const 300 : u16 [index]
+    %r251 = call @map_put(%r248, %r250) : u8 [acc]
+    %r253 = const 40 : u8 [acc]
+    %r255 = const 400 : u16 [index]
+    %r256 = call @map_put(%r253, %r255) : u8 [acc]
+    %r258 = const 50 : u8 [acc]
+    %r260 = const 500 : u16 [index]
+    %r261 = call @map_put(%r258, %r260) : u8 [acc]
+    %r265 = const 10 : u8 [acc]
+    %r266 = call @map_get(%r265) : u16 [pointer]
+    %r267 = move %r266 : u16 [pointer]
+    %r269 = const 20 : u8 [acc]
+    %r270 = call @map_get(%r269) : u16 [pointer]
+    %r271 = add %r267, %r270 : u16 [pointer]
+    %r273 = const 30 : u8 [acc]
+    %r274 = call @map_get(%r273) : u16 [pointer]
+    %r275 = add %r271, %r274 : u16 [pointer]
+    %r277 = const 40 : u8 [acc]
+    %r278 = call @map_get(%r277) : u16 [pointer]
+    %r279 = add %r275, %r278 : u16 [pointer]
+    %r281 = const 50 : u8 [acc]
+    %r282 = call @map_get(%r281) : u16 [pointer]
+    %r283 = add %r279, %r282 : u16 [pointer]
+    %r284 = const 1500 : u16 [pointer]
+    %r285 = cmp.eq %r283, %r284 : bool [flag]
+    %r287 = const 0 : u8 [general]
+    cond_ret %r285, [%r287], @if_then1()
+  block @if_then1:
+    %r286 = const 1 : u8 [general]
+    ret %r286
+

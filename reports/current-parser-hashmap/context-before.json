@@ -1,0 +1,35 @@
+{
+  "compiler_commit": "baa47937",
+  "historical_replay": true,
+  "new_prospective_claim": false,
+  "files": [
+    {
+      "path": "docs/grace-parser-prospective-heldout/artifacts/source.nanz",
+      "sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+    },
+    {
+      "path": "docs/grace-parser-prospective-heldout/frozen/freeze.json",
+      "sha256": "901974c923f0fb85144229470bb50f056b1a2f62fed3b695c20e2bdb4b36cd87"
+    },
+    {
+      "path": "docs/grace-parser-prospective-heldout/frozen/training-inputs.json",
+      "sha256": "4ddda3a33f43228c787f01f5445a415f5d63e3a674859ae83335d496fc679c9f"
+    },
+    {
+      "path": "docs/grace-parser-prospective-heldout/frozen/heldout-inputs.json",
+      "sha256": "c5f288ec489e74ab8fd6608f936bffe904071923d3f392dc5e0572b2b354ba20"
+    },
+    {
+      "path": "docs/grace-hashmap-heldout/source.nanz",
+      "sha256": "2caa7c16db7371f6f1ef6eecfa8c767e58d9d961c5bdfdbfccda1fb6e613c3f8"
+    },
+    {
+      "path": "docs/grace-hashmap-heldout/training-workload.json",
+      "sha256": "5a34c1fb6b0da6f970baa04f5a526cad3f40e133fb8f1e1ccf0dd07528c6d098"
+    },
+    {
+      "path": "docs/grace-hashmap-heldout/heldout-workload.json",
+      "sha256": "84a0106725f8b44899d6bc86f77c25a321d87d5d291be8566f9959275bd48ca0"
+    }
+  ]
+}

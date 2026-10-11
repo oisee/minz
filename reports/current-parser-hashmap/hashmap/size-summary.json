@@ -1,0 +1,12 @@
+{
+  "baseline_bytes": 990,
+  "heldout_baseline_t": 258962,
+  "heldout_calls": 48,
+  "heldout_selected_t": 237948,
+  "selected": 3,
+  "selected_binary_sha256": "1a59b87a7a752496a7d5e308b75b0f6ff932377a374d404600fb4bc6b9fdf55a",
+  "selected_bytes": 970,
+  "training_baseline_t": 26346,
+  "training_calls": 15,
+  "training_selected_t": 23437
+}
