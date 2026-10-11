@@ -1,0 +1,79 @@
+=== RUN   TestMixedCopyRegionMeasuredBoundary
+--- PASS: TestMixedCopyRegionMeasuredBoundary (4.20s)
+=== RUN   TestMixedCopyRegionFactoryRefusals
+=== RUN   TestMixedCopyRegionFactoryRefusals/nil
+=== RUN   TestMixedCopyRegionFactoryRefusals/shared
+=== RUN   TestMixedCopyRegionFactoryRefusals/shared_ast
+=== RUN   TestMixedCopyRegionFactoryRefusals/region_policy
+=== RUN   TestMixedCopyRegionFactoryRefusals/copy_policy
+=== RUN   TestMixedCopyRegionFactoryRefusals/pointer_policy
+=== RUN   TestMixedCopyRegionFactoryRefusals/invariant_policy
+=== RUN   TestMixedCopyRegionFactoryRefusals/grace_policy
+=== RUN   TestMixedCopyRegionFactoryRefusals/lineage
+=== RUN   TestMixedCopyRegionFactoryRefusals/mutated_prior
+=== RUN   TestMixedCopyRegionFactoryRefusals/source_change
+=== RUN   TestMixedCopyRegionFactoryRefusals/forged_count
+=== RUN   TestMixedCopyRegionFactoryRefusals/cap
+=== RUN   TestMixedCopyRegionFactoryRefusals/backend
+=== RUN   TestMixedCopyRegionFactoryRefusals/skip
+--- PASS: TestMixedCopyRegionFactoryRefusals (0.29s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/nil (0.00s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/shared (0.02s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/shared_ast (0.02s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/region_policy (0.00s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/copy_policy (0.00s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/pointer_policy (0.00s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/invariant_policy (0.00s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/grace_policy (0.00s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/lineage (0.00s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/mutated_prior (0.08s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/source_change (0.02s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/forged_count (0.13s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/cap (0.00s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/backend (0.00s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/skip (0.00s)
+=== RUN   TestMixedCopyRegionWrongKindRequests
+--- PASS: TestMixedCopyRegionWrongKindRequests (0.03s)
+=== RUN   TestMixedCopyRegionCompiledForgeries
+=== RUN   TestMixedCopyRegionCompiledForgeries/argument
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+=== RUN   TestMixedCopyRegionCompiledForgeries/suffix
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+=== RUN   TestMixedCopyRegionCompiledForgeries/metadata
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+=== RUN   TestMixedCopyRegionCompiledForgeries/lineage_kind
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+=== RUN   TestMixedCopyRegionCompiledForgeries/origin
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+=== RUN   TestMixedCopyRegionCompiledForgeries/unrequested_policy
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+=== RUN   TestMixedCopyRegionCompiledForgeries/unrelated_body
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+--- PASS: TestMixedCopyRegionCompiledForgeries (3.68s)
+    --- PASS: TestMixedCopyRegionCompiledForgeries/argument (0.64s)
+    --- PASS: TestMixedCopyRegionCompiledForgeries/suffix (0.60s)
+    --- PASS: TestMixedCopyRegionCompiledForgeries/metadata (0.37s)
+    --- PASS: TestMixedCopyRegionCompiledForgeries/lineage_kind (0.38s)
+    --- PASS: TestMixedCopyRegionCompiledForgeries/origin (0.43s)
+    --- PASS: TestMixedCopyRegionCompiledForgeries/unrequested_policy (0.55s)
+    --- PASS: TestMixedCopyRegionCompiledForgeries/unrelated_body (0.64s)
+=== RUN   TestMixedCopyRegionTypedTokenizerMeasured
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    profile_mixed_copy_region_test.go:362: copy-region tokenizer size=false candidate0 2270286T/4346B
+    profile_mixed_copy_region_test.go:362: copy-region tokenizer size=false candidate1 2214152T/4732B
+    profile_mixed_copy_region_test.go:362: copy-region tokenizer size=false candidate2 2259865T/4475B
+    profile_mixed_copy_region_test.go:362: copy-region tokenizer size=false candidate3 2203731T/4861B
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    profile_mixed_copy_region_test.go:362: copy-region tokenizer size=true candidate0 2270286T/4346B
+    profile_mixed_copy_region_test.go:362: copy-region tokenizer size=true candidate1 2214152T/4732B
+    profile_mixed_copy_region_test.go:362: copy-region tokenizer size=true candidate2 2259865T/4475B
+    profile_mixed_copy_region_test.go:362: copy-region tokenizer size=true candidate3 2203731T/4861B
+--- PASS: TestMixedCopyRegionTypedTokenizerMeasured (11.96s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	20.204s

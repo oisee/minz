@@ -1,0 +1,3 @@
+Executable /tmp/minzc-copy-region-final built from exact final production sources with -buildvcs=false.
+--hir-grace --hir-profile-joint --hir-profile-mixed-copy-region-sites --hir-profile-auto <mode-dir> --hir-profile-auto-workload input-workload.json -o <mode>.a80; size adds --Osize.
+Both goals enumerate and actually execute all4completecaller candidates; copybit2regionbit1.

@@ -1,0 +1,74 @@
+[
+  {
+    "binary_sha256": "048b95267b15d26a4a71d0a7051a16dd12f5f66c36e9ce1c922b45d109babc33",
+    "bytes": 4346,
+    "candidate": 0,
+    "evidence_sha256": "857c9c30a557c873ef6e69dcb58aafc3e3c9bd3585cc77a87b65eb2cc22b3024",
+    "selected": false,
+    "size": false,
+    "t_states": 2270286
+  },
+  {
+    "binary_sha256": "9f66eebbe30f988a7f9d4361aa2d654805a5bf3543d92126bf8c5e77f06f1b13",
+    "bytes": 4732,
+    "candidate": 1,
+    "evidence_sha256": "857c9c30a557c873ef6e69dcb58aafc3e3c9bd3585cc77a87b65eb2cc22b3024",
+    "selected": false,
+    "size": false,
+    "t_states": 2214152
+  },
+  {
+    "binary_sha256": "9755ac65f59ed3ee83d28316a85de378edb50e381c6d18c2103786927c2a79f8",
+    "bytes": 4475,
+    "candidate": 2,
+    "evidence_sha256": "857c9c30a557c873ef6e69dcb58aafc3e3c9bd3585cc77a87b65eb2cc22b3024",
+    "selected": false,
+    "size": false,
+    "t_states": 2259865
+  },
+  {
+    "binary_sha256": "51abe0f5a37e37f5bd19f9c63b964f4f97cec1db8695c6a899941e9c7ad233d6",
+    "bytes": 4861,
+    "candidate": 3,
+    "evidence_sha256": "857c9c30a557c873ef6e69dcb58aafc3e3c9bd3585cc77a87b65eb2cc22b3024",
+    "selected": true,
+    "size": false,
+    "t_states": 2203731
+  },
+  {
+    "binary_sha256": "048b95267b15d26a4a71d0a7051a16dd12f5f66c36e9ce1c922b45d109babc33",
+    "bytes": 4346,
+    "candidate": 0,
+    "evidence_sha256": "75a98e162257a5ada52f7c692af9fd3559492d0590383d6df4c69917e307c0f9",
+    "selected": true,
+    "size": true,
+    "t_states": 2270286
+  },
+  {
+    "binary_sha256": "9f66eebbe30f988a7f9d4361aa2d654805a5bf3543d92126bf8c5e77f06f1b13",
+    "bytes": 4732,
+    "candidate": 1,
+    "evidence_sha256": "75a98e162257a5ada52f7c692af9fd3559492d0590383d6df4c69917e307c0f9",
+    "selected": false,
+    "size": true,
+    "t_states": 2214152
+  },
+  {
+    "binary_sha256": "9755ac65f59ed3ee83d28316a85de378edb50e381c6d18c2103786927c2a79f8",
+    "bytes": 4475,
+    "candidate": 2,
+    "evidence_sha256": "75a98e162257a5ada52f7c692af9fd3559492d0590383d6df4c69917e307c0f9",
+    "selected": false,
+    "size": true,
+    "t_states": 2259865
+  },
+  {
+    "binary_sha256": "51abe0f5a37e37f5bd19f9c63b964f4f97cec1db8695c6a899941e9c7ad233d6",
+    "bytes": 4861,
+    "candidate": 3,
+    "evidence_sha256": "75a98e162257a5ada52f7c692af9fd3559492d0590383d6df4c69917e307c0f9",
+    "selected": false,
+    "size": true,
+    "t_states": 2203731
+  }
+]

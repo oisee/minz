@@ -1,0 +1,36 @@
+=== RUN   TestMixedCopyRegionFactoryRefusals
+=== RUN   TestMixedCopyRegionFactoryRefusals/nil
+=== RUN   TestMixedCopyRegionFactoryRefusals/shared
+=== RUN   TestMixedCopyRegionFactoryRefusals/shared_ast
+=== RUN   TestMixedCopyRegionFactoryRefusals/region_policy
+=== RUN   TestMixedCopyRegionFactoryRefusals/copy_policy
+=== RUN   TestMixedCopyRegionFactoryRefusals/pointer_policy
+=== RUN   TestMixedCopyRegionFactoryRefusals/invariant_policy
+=== RUN   TestMixedCopyRegionFactoryRefusals/grace_policy
+=== RUN   TestMixedCopyRegionFactoryRefusals/lineage
+=== RUN   TestMixedCopyRegionFactoryRefusals/mutated_prior
+=== RUN   TestMixedCopyRegionFactoryRefusals/source_change
+=== RUN   TestMixedCopyRegionFactoryRefusals/forged_count
+=== RUN   TestMixedCopyRegionFactoryRefusals/cap
+=== RUN   TestMixedCopyRegionFactoryRefusals/backend
+=== RUN   TestMixedCopyRegionFactoryRefusals/skip
+--- PASS: TestMixedCopyRegionFactoryRefusals (0.25s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/nil (0.00s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/shared (0.01s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/shared_ast (0.01s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/region_policy (0.00s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/copy_policy (0.00s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/pointer_policy (0.00s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/invariant_policy (0.00s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/grace_policy (0.00s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/lineage (0.00s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/mutated_prior (0.06s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/source_change (0.01s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/forged_count (0.15s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/cap (0.00s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/backend (0.00s)
+    --- PASS: TestMixedCopyRegionFactoryRefusals/skip (0.00s)
+=== RUN   TestMixedCopyRegionWrongKindRequests
+--- PASS: TestMixedCopyRegionWrongKindRequests (0.03s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.295s

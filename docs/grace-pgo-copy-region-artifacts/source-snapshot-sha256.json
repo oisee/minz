@@ -1,0 +1,46 @@
+[
+  {
+    "path": "sources/examples/nanz/grace_tokenizer_checked.nanz",
+    "sha256": "d689844c9ca68d9d352d0ef863fd0c51b3a8166735138fcbfe821790daceff5a"
+  },
+  {
+    "path": "sources/minzc/cmd/minzc/hir_profile_auto.go",
+    "sha256": "8a927ba8382c74a74fb4bebdc2c3754195084e0871aa9f7eb65f4ba1395c302a"
+  },
+  {
+    "path": "sources/minzc/cmd/minzc/hir_profile_mixed_copy_region_test.go",
+    "sha256": "5adaa23ff60c2c148d2496097f721d9bb6b2f1366a9de6cf3d8b89546b58f0e4"
+  },
+  {
+    "path": "sources/minzc/cmd/minzc/main.go",
+    "sha256": "10307f763a22ad9e535bbe7bf386c442f3f5a02beb75e6a0481b843827437528"
+  },
+  {
+    "path": "sources/minzc/pkg/hir/forward_copy_profile.go",
+    "sha256": "1a011b18360dc5b16e3536a7614142943529d08730701968dcf44a124ad28859"
+  },
+  {
+    "path": "sources/minzc/pkg/hir/mixed_copy_region.go",
+    "sha256": "d11ec88a0c6b588b59985b5745d18abae854e34e832312cc4e000fa95435a100"
+  },
+  {
+    "path": "sources/minzc/pkg/hir/mixed_copy_region_test.go",
+    "sha256": "689cdff0c46d70b96d52b6785a7c02ccee033f9e491f36d7fbd659c3fb3b1edd"
+  },
+  {
+    "path": "sources/minzc/pkg/hir/region_compare_profile.go",
+    "sha256": "e1dff529b71de6b3544db16dc1e5464ea6e0ea115ef1112d92229b28a7e74656"
+  },
+  {
+    "path": "sources/minzc/pkg/hir/region_compare_split.go",
+    "sha256": "078852214fcca2b620936ddb75d46bff0fa8b8bc1815abb440cda8f99b8a06bb"
+  },
+  {
+    "path": "sources/minzc/pkg/pipeline/profile_mixed_copy_region.go",
+    "sha256": "256ce1a708dac7ed0ba524bb636f3955bff2617bdf481bea8ea82c94834b1e12"
+  },
+  {
+    "path": "sources/minzc/pkg/pipeline/profile_mixed_copy_region_test.go",
+    "sha256": "bbd4a6a529afedee720ac277f7234f5dde1eb2c901ccd870936f97cf53b79847"
+  }
+]

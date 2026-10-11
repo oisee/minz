@@ -1,0 +1,25 @@
+=== RUN   TestMixedCopyRegionCompiledForgeries
+=== RUN   TestMixedCopyRegionCompiledForgeries/argument
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+=== RUN   TestMixedCopyRegionCompiledForgeries/suffix
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+=== RUN   TestMixedCopyRegionCompiledForgeries/metadata
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+=== RUN   TestMixedCopyRegionCompiledForgeries/lineage_kind
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+=== RUN   TestMixedCopyRegionCompiledForgeries/origin
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+=== RUN   TestMixedCopyRegionCompiledForgeries/unrequested_policy
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+=== RUN   TestMixedCopyRegionCompiledForgeries/unrelated_body
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+--- PASS: TestMixedCopyRegionCompiledForgeries (3.99s)
+    --- PASS: TestMixedCopyRegionCompiledForgeries/argument (0.38s)
+    --- PASS: TestMixedCopyRegionCompiledForgeries/suffix (0.41s)
+    --- PASS: TestMixedCopyRegionCompiledForgeries/metadata (0.51s)
+    --- PASS: TestMixedCopyRegionCompiledForgeries/lineage_kind (0.66s)
+    --- PASS: TestMixedCopyRegionCompiledForgeries/origin (0.67s)
+    --- PASS: TestMixedCopyRegionCompiledForgeries/unrequested_policy (0.66s)
+    --- PASS: TestMixedCopyRegionCompiledForgeries/unrelated_body (0.65s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	4.001s

@@ -1,0 +1,6 @@
+clean accepted true err <nil>
+orphan accepted false err copy region: orphan lineage
+missingUnrelated accepted false err copy region: markers only on every actual loop
+wrongKind accepted false err copy region: unknown/wrong kind site
+orphanSourceOrigin accepted false err copy region: detached original origin
+policy accepted false err copy region: unrequested/missing policies

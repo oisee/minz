@@ -1,0 +1,2 @@
+PASS speed 4 candidates x30 calls all results/full memory/resource traffic, global traffic VM-target, selectedbinary/digests/decisions 51abe0f5a37e37f5bd19f9c63b964f4f97cec1db8695c6a899941e9c7ad233d6
+PASS size 4 candidates x30 calls all results/full memory/resource traffic, global traffic VM-target, selectedbinary/digests/decisions 048b95267b15d26a4a71d0a7051a16dd12f5f66c36e9ce1c922b45d109babc33

@@ -1,0 +1,72 @@
+{
+  "schema": "minz.mixed-copy-region-host-audit/v1",
+  "rows": [
+    {
+      "size": false,
+      "candidate": 0,
+      "t_states": 2270286,
+      "bytes": 4346,
+      "binary_sha256": "048b95267b15d26a4a71d0a7051a16dd12f5f66c36e9ce1c922b45d109babc33",
+      "selected": false
+    },
+    {
+      "size": false,
+      "candidate": 1,
+      "t_states": 2214152,
+      "bytes": 4732,
+      "binary_sha256": "9f66eebbe30f988a7f9d4361aa2d654805a5bf3543d92126bf8c5e77f06f1b13",
+      "selected": false
+    },
+    {
+      "size": false,
+      "candidate": 2,
+      "t_states": 2259865,
+      "bytes": 4475,
+      "binary_sha256": "9755ac65f59ed3ee83d28316a85de378edb50e381c6d18c2103786927c2a79f8",
+      "selected": false
+    },
+    {
+      "size": false,
+      "candidate": 3,
+      "t_states": 2203731,
+      "bytes": 4861,
+      "binary_sha256": "51abe0f5a37e37f5bd19f9c63b964f4f97cec1db8695c6a899941e9c7ad233d6",
+      "selected": true
+    },
+    {
+      "size": true,
+      "candidate": 0,
+      "t_states": 2270286,
+      "bytes": 4346,
+      "binary_sha256": "048b95267b15d26a4a71d0a7051a16dd12f5f66c36e9ce1c922b45d109babc33",
+      "selected": true
+    },
+    {
+      "size": true,
+      "candidate": 1,
+      "t_states": 2214152,
+      "bytes": 4732,
+      "binary_sha256": "9f66eebbe30f988a7f9d4361aa2d654805a5bf3543d92126bf8c5e77f06f1b13",
+      "selected": false
+    },
+    {
+      "size": true,
+      "candidate": 2,
+      "t_states": 2259865,
+      "bytes": 4475,
+      "binary_sha256": "9755ac65f59ed3ee83d28316a85de378edb50e381c6d18c2103786927c2a79f8",
+      "selected": false
+    },
+    {
+      "size": true,
+      "candidate": 3,
+      "t_states": 2203731,
+      "bytes": 4861,
+      "binary_sha256": "51abe0f5a37e37f5bd19f9c63b964f4f97cec1db8695c6a899941e9c7ad233d6",
+      "selected": false
+    }
+  ],
+  "all_resource_traffic": "independent host every byte read/write",
+  "global_values": "independent host full values",
+  "global_traffic": "VM/target agreement"
+}
