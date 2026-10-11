@@ -1,0 +1,48 @@
+=== RUN   TestFlagWriterRetainsComparisonValue
+=== RUN   TestFlagWriterRetainsComparisonValue/shr8
+=== RUN   TestFlagWriterRetainsComparisonValue/shr16
+=== RUN   TestFlagWriterRetainsComparisonValue/shl8
+=== RUN   TestFlagWriterRetainsComparisonValue/shl16
+=== RUN   TestFlagWriterRetainsComparisonValue/sar8
+=== RUN   TestFlagWriterRetainsComparisonValue/sar16
+=== RUN   TestFlagWriterRetainsComparisonValue/add8
+=== RUN   TestFlagWriterRetainsComparisonValue/add16
+=== RUN   TestFlagWriterRetainsComparisonValue/sub8
+=== RUN   TestFlagWriterRetainsComparisonValue/sub16
+=== RUN   TestFlagWriterRetainsComparisonValue/and8
+=== RUN   TestFlagWriterRetainsComparisonValue/and16
+=== RUN   TestFlagWriterRetainsComparisonValue/or8
+=== RUN   TestFlagWriterRetainsComparisonValue/or16
+=== RUN   TestFlagWriterRetainsComparisonValue/xor8
+=== RUN   TestFlagWriterRetainsComparisonValue/xor16
+=== RUN   TestFlagWriterRetainsComparisonValue/div8
+=== RUN   TestFlagWriterRetainsComparisonValue/div16
+=== RUN   TestFlagWriterRetainsComparisonValue/mod8
+=== RUN   TestFlagWriterRetainsComparisonValue/mod16
+=== RUN   TestFlagWriterRetainsComparisonValue/neg8
+=== RUN   TestFlagWriterRetainsComparisonValue/neg16
+--- PASS: TestFlagWriterRetainsComparisonValue (0.43s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/shr8 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/shr16 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/shl8 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/shl16 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/sar8 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/sar16 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/add8 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/add16 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/sub8 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/sub16 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/and8 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/and16 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/or8 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/or16 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/xor8 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/xor16 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/div8 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/div16 (0.01s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/mod8 (0.01s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/mod16 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/neg8 (0.02s)
+    --- PASS: TestFlagWriterRetainsComparisonValue/neg16 (0.02s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.439s

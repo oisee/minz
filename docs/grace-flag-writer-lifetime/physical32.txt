@@ -1,0 +1,40 @@
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/shl0
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/shl1
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/shl7
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/shl16
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/shl31
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/shl32
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/shr0
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/shr1
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/shr7
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/shr16
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/shr31
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/shr32
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/sar0
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/sar1
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/sar7
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/sar16
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/sar31
+=== RUN   TestWideShiftRetainsLiveFlagAndAccumulator/sar32
+--- PASS: TestWideShiftRetainsLiveFlagAndAccumulator (0.02s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/shl0 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/shl1 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/shl7 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/shl16 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/shl31 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/shl32 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/shr0 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/shr1 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/shr7 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/shr16 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/shr31 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/shr32 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/sar0 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/sar1 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/sar7 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/sar16 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/sar31 (0.00s)
+    --- PASS: TestWideShiftRetainsLiveFlagAndAccumulator/sar32 (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.027s

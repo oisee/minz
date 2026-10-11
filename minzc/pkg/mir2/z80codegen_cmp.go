@@ -34,25 +34,18 @@ func (g *z80cg) emitFlagPredicateByte(cc string) {
 
 // ── Compare ───────────────────────────────────────────────────────────────────
 
-// flagStillNeeded reports whether pendingFlagReg is used as a source
-// in any instruction AFTER upcomingInst in the current block.
+// flagStillNeeded uses instruction/CFG liveness, including call arguments and
+// terminators. A newly defined comparison is not the previous pending value.
 func (g *z80cg) flagStillNeeded(upcomingInst *Inst) bool {
-	if g.curBlock == nil {
+	if g.curBlock == nil || upcomingInst == nil || upcomingInst.Dst == g.pendingFlagReg {
 		return false
 	}
-	seen := false
-	for _, inst := range g.curBlock.Insts {
-		if inst == upcomingInst {
-			seen = true
-			continue
-		}
-		if !seen {
-			continue
-		}
-		for _, s := range inst.Src {
-			if s == g.pendingFlagReg {
-				return true
-			}
+	if g.regsLiveAfterInst(upcomingInst)[g.pendingFlagReg] {
+		return true
+	}
+	for _, r := range upcomingInst.Uses() {
+		if r == g.pendingFlagReg {
+			return true
 		}
 	}
 	return false

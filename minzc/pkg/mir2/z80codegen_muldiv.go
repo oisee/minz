@@ -566,6 +566,7 @@ func (g *z80cg) genMul32(inst *Inst) {
 // OpSDiv is signed: negate operands, unsigned div, fix sign.
 
 func (g *z80cg) genDivMod(inst *Inst) {
+	g.materializePendingFlag(inst)
 	w := inst.Ty.Width()
 	defer g.saveWrittenScratch(inst)()
 
