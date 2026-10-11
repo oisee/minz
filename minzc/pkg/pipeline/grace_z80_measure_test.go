@@ -40,6 +40,10 @@ func measureGraceZ80HIR(t *testing.T, h *hir.Module, name string, options Option
 	platform := emulator.NewRemogattoZ80WithScreen()
 	platform.SetROMEnd(0) // CPU conformance fixture uses an all-RAM address space.
 	z := platform.RemogattoZ80
+	// Pure CPU conformance: the screen wrapper's SMC callback treats writes over
+	// RST-shaped data as hooks and can overwrite input at 0xffff. These fixtures
+	// execute ordinary RAM code/data with no screen/RST interception.
+	z.SetSMCTracker(nil)
 	if err := z.LoadMemory(assertLoadAddr, r.Binary); err != nil {
 		t.Fatal(err)
 	}

@@ -1,0 +1,38 @@
+; MIR2 module: /tmp/minz-grace-pgo-resume/examples/nanz/grace_seeded_sum.nanz
+global @seeded_calls : u8
+global @seeded_last : u16
+
+fun @seeded_sum(%r1: ptr [pointer], %r2: u8 [general], %r3: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r4 = const 0 : u8 [general]
+    jmp @loop_head1(%r4, %r2, %r1, %r3)
+  block @loop_head1(%r5: u8 [general], %r6: u8 [general], %r7: ptr [general], %r8: u16 [pointer]):
+    %r9 = cmp.ult %r5, %r6 : bool [flag]
+    br_if %r9, @loop_body2(), @loop_exit3(%r5, %r6, %r7, %r8)
+  block @loop_body2:
+    %r10 = ext %r5 : u8 -> u16 [index]
+    %r11 = ptr_add %r7, %r10 : ptr [pointer]
+    %r12 = load %r11 : u8 [general]
+    %r13 = ext %r12 : u8 -> u16 [pointer]
+    %r14 = add %r8, %r13 : u16 [pointer]
+    %r15 = const 1 : u8 [general]
+    %r16 = add %r5, %r15 : u8 [general]
+    jmp @loop_head1(%r16, %r6, %r7, %r14)
+  block @loop_exit3(%r17: u8 [general], %r18: u8 [general], %r19: ptr [general], %r20: u16 [pointer]):
+    ret %r20
+
+fun @seeded_packet(%r21: ptr [pointer], %r22: u8 [general], %r23: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r24 = move %r21 : ptr [pointer]
+    %r25 = move %r23 : u16 [index]
+    %r26 = call @seeded_sum(%r24, %r22, %r25) : u16 [pointer]
+    %r27 = addr_of @seeded_calls : ptr [pointer]
+    %r28 = load %r27 : u8 [general]
+    %r29 = const 1 : u8 [general]
+    %r30 = add %r28, %r29 : u8 [acc]
+    %r31 = addr_of @seeded_calls : ptr [pointer]
+    store %r31, %r30 : u8
+    %r32 = addr_of @seeded_last : ptr [pointer]
+    store %r32, %r26 : u16
+    ret %r26
+

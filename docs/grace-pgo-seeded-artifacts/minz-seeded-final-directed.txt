@@ -1,0 +1,82 @@
+=== RUN   TestSeededPointerWalkMeasuredCaller
+    seeded_pointer_walk_test.go:95: sizefalse candidate0 148452T/62B
+    seeded_pointer_walk_test.go:95: sizefalse candidate1 241596T/164B
+    seeded_pointer_walk_test.go:95: sizefalse candidate2 148452T/62B
+    seeded_pointer_walk_test.go:95: sizefalse candidate3 241596T/164B
+    seeded_pointer_walk_test.go:95: sizetrue candidate0 148452T/62B
+    seeded_pointer_walk_test.go:95: sizetrue candidate1 241596T/164B
+    seeded_pointer_walk_test.go:95: sizetrue candidate2 148452T/62B
+    seeded_pointer_walk_test.go:95: sizetrue candidate3 241596T/164B
+--- PASS: TestSeededPointerWalkMeasuredCaller (0.71s)
+=== RUN   TestSeededPointerWalkAddressDomain
+--- PASS: TestSeededPointerWalkAddressDomain (2.86s)
+=== RUN   TestSeededPointerWalkZ80Boundary
+    seeded_pointer_walk_test.go:209: boundary ptr65535 n0 seed0 enabledfalse
+    seeded_pointer_walk_test.go:209: boundary ptr65535 n0 seed0 enabledtrue
+    seeded_pointer_walk_test.go:209: boundary ptr65535 n0 seed65535 enabledfalse
+    seeded_pointer_walk_test.go:209: boundary ptr65535 n0 seed65535 enabledtrue
+    seeded_pointer_walk_test.go:209: boundary ptr65536 n0 seed0 enabledfalse
+    seeded_pointer_walk_test.go:209: boundary ptr65536 n0 seed0 enabledtrue
+    seeded_pointer_walk_test.go:209: boundary ptr65536 n0 seed65535 enabledfalse
+    seeded_pointer_walk_test.go:209: boundary ptr65536 n0 seed65535 enabledtrue
+    seeded_pointer_walk_test.go:209: boundary ptr65535 n0 seed0 enabledfalse
+    seeded_pointer_walk_test.go:209: boundary ptr65535 n0 seed0 enabledtrue
+    seeded_pointer_walk_test.go:209: boundary ptr65535 n0 seed65535 enabledfalse
+    seeded_pointer_walk_test.go:209: boundary ptr65535 n0 seed65535 enabledtrue
+    seeded_pointer_walk_test.go:209: boundary ptr65534 n1 seed0 enabledfalse
+    seeded_pointer_walk_test.go:209: boundary ptr65534 n1 seed0 enabledtrue
+    seeded_pointer_walk_test.go:209: boundary ptr65534 n1 seed65535 enabledfalse
+    seeded_pointer_walk_test.go:209: boundary ptr65534 n1 seed65535 enabledtrue
+    seeded_pointer_walk_test.go:209: boundary ptr65535 n1 seed0 enabledfalse
+    seeded_pointer_walk_test.go:209: boundary ptr65535 n1 seed0 enabledtrue
+    seeded_pointer_walk_test.go:209: boundary ptr65535 n1 seed65535 enabledfalse
+    seeded_pointer_walk_test.go:209: boundary ptr65535 n1 seed65535 enabledtrue
+    seeded_pointer_walk_test.go:209: boundary ptr65535 n1 seed0 enabledfalse
+    seeded_pointer_walk_test.go:209: boundary ptr65535 n1 seed0 enabledtrue
+    seeded_pointer_walk_test.go:209: boundary ptr65535 n1 seed65535 enabledfalse
+    seeded_pointer_walk_test.go:209: boundary ptr65535 n1 seed65535 enabledtrue
+    seeded_pointer_walk_test.go:209: boundary ptr65530 n5 seed0 enabledfalse
+    seeded_pointer_walk_test.go:209: boundary ptr65530 n5 seed0 enabledtrue
+    seeded_pointer_walk_test.go:209: boundary ptr65530 n5 seed65535 enabledfalse
+    seeded_pointer_walk_test.go:209: boundary ptr65530 n5 seed65535 enabledtrue
+    seeded_pointer_walk_test.go:209: boundary ptr65531 n5 seed0 enabledfalse
+    seeded_pointer_walk_test.go:209: boundary ptr65531 n5 seed0 enabledtrue
+    seeded_pointer_walk_test.go:209: boundary ptr65531 n5 seed65535 enabledfalse
+    seeded_pointer_walk_test.go:209: boundary ptr65531 n5 seed65535 enabledtrue
+    seeded_pointer_walk_test.go:209: boundary ptr65535 n5 seed0 enabledfalse
+    seeded_pointer_walk_test.go:209: boundary ptr65535 n5 seed0 enabledtrue
+    seeded_pointer_walk_test.go:209: boundary ptr65535 n5 seed65535 enabledfalse
+    seeded_pointer_walk_test.go:209: boundary ptr65535 n5 seed65535 enabledtrue
+    seeded_pointer_walk_test.go:209: boundary ptr65280 n255 seed0 enabledfalse
+    seeded_pointer_walk_test.go:209: boundary ptr65280 n255 seed0 enabledtrue
+    seeded_pointer_walk_test.go:209: boundary ptr65280 n255 seed65535 enabledfalse
+    seeded_pointer_walk_test.go:209: boundary ptr65280 n255 seed65535 enabledtrue
+    seeded_pointer_walk_test.go:209: boundary ptr65281 n255 seed0 enabledfalse
+    seeded_pointer_walk_test.go:209: boundary ptr65281 n255 seed0 enabledtrue
+    seeded_pointer_walk_test.go:209: boundary ptr65281 n255 seed65535 enabledfalse
+    seeded_pointer_walk_test.go:209: boundary ptr65281 n255 seed65535 enabledtrue
+    seeded_pointer_walk_test.go:209: boundary ptr65535 n255 seed0 enabledfalse
+    seeded_pointer_walk_test.go:209: boundary ptr65535 n255 seed0 enabledtrue
+    seeded_pointer_walk_test.go:209: boundary ptr65535 n255 seed65535 enabledfalse
+    seeded_pointer_walk_test.go:209: boundary ptr65535 n255 seed65535 enabledtrue
+--- PASS: TestSeededPointerWalkZ80Boundary (0.45s)
+=== RUN   TestSeededPointerWalkLegality
+=== RUN   TestSeededPointerWalkLegality/seed_expr
+=== RUN   TestSeededPointerWalkLegality/index_nonzero
+=== RUN   TestSeededPointerWalkLegality/stride
+=== RUN   TestSeededPointerWalkLegality/mutated_seed
+=== RUN   TestSeededPointerWalkLegality/mutated_bound
+=== RUN   TestSeededPointerWalkLegality/global_collision
+=== RUN   TestSeededPointerWalkLegality/seed_call
+=== RUN   TestSeededPointerWalkLegality/seed_global
+--- PASS: TestSeededPointerWalkLegality (0.00s)
+    --- PASS: TestSeededPointerWalkLegality/seed_expr (0.00s)
+    --- PASS: TestSeededPointerWalkLegality/index_nonzero (0.00s)
+    --- PASS: TestSeededPointerWalkLegality/stride (0.00s)
+    --- PASS: TestSeededPointerWalkLegality/mutated_seed (0.00s)
+    --- PASS: TestSeededPointerWalkLegality/mutated_bound (0.00s)
+    --- PASS: TestSeededPointerWalkLegality/global_collision (0.00s)
+    --- PASS: TestSeededPointerWalkLegality/seed_call (0.00s)
+    --- PASS: TestSeededPointerWalkLegality/seed_global (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	4.024s

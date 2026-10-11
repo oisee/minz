@@ -1,0 +1,43 @@
+[
+  {
+    "compatibility": {
+      "schema": "minz.loop-profile-compatibility/v1",
+      "context": {
+        "compiler_id": "executable-sha256:60ee95a0d843c5210881d22b5bc608ab616820815cfb8c5d8a35152f06014b4a",
+        "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v1",
+        "target_id": "module-target:1/model:cpm-z80-v1",
+        "workload_sha256": "56fb9764350293aff7780c4b8f8ba66d2eabe44969f709df316919642d85c76d",
+        "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+        "dependencies": {
+          "/tmp/minz-grace-pgo-resume/examples/nanz/grace_seeded_sum.nanz": "abc8df5dad8c2639a09de170f1cae6c31dc62ab5dcec01a0ce5c6a872b17c6c7",
+          "data": "3ef33734daae0e353f132ff5f3241d8f86ba81f851c0b9685149f079c16eb45b"
+        }
+      },
+      "hir_sha256": "0222127f1dfd606e38ca8eba41c3b77d0cb932e785b26af641f4d5194f22b616",
+      "origins_sha256": "fa54986bc8c6da729f2f73f0dd04eb2e21385e82956d229453130dc427bb77f8"
+    },
+    "site_id": "763e28c04b5d965582e564686ad4953c8b76dce12728886b15b0cbcb267e72c1",
+    "variant": "original",
+    "reason": "jointly measured source-site choices",
+    "original_t_states": "",
+    "model": {
+      "compiler_id": "",
+      "semantics_id": "",
+      "function": "",
+      "hir_sha256": "",
+      "target_id": "",
+      "compilation_id": "",
+      "evidence_id": "",
+      "original_bytes": 0,
+      "pointer_bytes": 0,
+      "original_entry_t_states": 0,
+      "original_iteration_t_states": 0,
+      "equal_entry_extra_t_states": 0,
+      "fast_entry_t_states": 0,
+      "fallback_entry_t_states": 0,
+      "fallback_iteration_t_states": 0,
+      "fallback_measured": false,
+      "fast_iteration_t_states": 0
+    }
+  }
+]

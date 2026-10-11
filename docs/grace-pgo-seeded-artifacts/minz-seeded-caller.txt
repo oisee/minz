@@ -1,0 +1,12 @@
+=== RUN   TestSeededPointerWalkMeasuredCaller
+    seeded_pointer_walk_test.go:93: sizefalse candidate0 148452T/62B
+    seeded_pointer_walk_test.go:93: sizefalse candidate1 241596T/164B
+    seeded_pointer_walk_test.go:93: sizefalse candidate2 148452T/62B
+    seeded_pointer_walk_test.go:93: sizefalse candidate3 241596T/164B
+    seeded_pointer_walk_test.go:93: sizetrue candidate0 148452T/62B
+    seeded_pointer_walk_test.go:93: sizetrue candidate1 241596T/164B
+    seeded_pointer_walk_test.go:93: sizetrue candidate2 148452T/62B
+    seeded_pointer_walk_test.go:93: sizetrue candidate3 241596T/164B
+--- PASS: TestSeededPointerWalkMeasuredCaller (0.78s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.785s

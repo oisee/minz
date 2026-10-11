@@ -1,0 +1,33 @@
+ok  	github.com/minz/minzc/pkg/hir	8.062s
+ok  	github.com/minz/minzc/pkg/mir2	3.817s
+--- FAIL: TestIndirectMIR2DefaultWarning (0.00s)
+    default_output_test.go:69: HIR compile: statement 3: HIR test_reassign_fp: reassignment of callable alias "fp" is unsupported
+--- FAIL: TestIndirectCallEmissionScope (0.01s)
+    --- FAIL: TestIndirectCallEmissionScope/mir2 (0.00s)
+        indirect_emission_test.go:65: HIR compile: statement 3: HIR test_reassign_fp: reassignment of callable alias "fp" is unsupported
+    --- FAIL: TestIndirectCallEmissionScope/all_mir2_annotations (0.00s)
+        indirect_emission_test.go:65: HIR compile: statement 3: HIR test_reassign_fp: reassignment of callable alias "fp" is unsupported
+    --- FAIL: TestIndirectCallEmissionScope/c (0.00s)
+        indirect_emission_test.go:65: HIR compile: statement 3: HIR test_reassign_fp: reassignment of callable alias "fp" is unsupported
+    --- FAIL: TestIndirectCallEmissionScope/mir2_dump (0.00s)
+        indirect_emission_test.go:65: HIR compile: statement 3: HIR test_reassign_fp: reassignment of callable alias "fp" is unsupported
+    --- FAIL: TestIndirectCallEmissionScope/hir_dump (0.00s)
+        indirect_emission_test.go:65: HIR compile: statement 3: HIR test_reassign_fp: reassignment of callable alias "fp" is unsupported
+    --- FAIL: TestIndirectCallEmissionScope/z80_assembly (0.00s)
+        indirect_emission_test.go:56: want explicit Z80 rejection, got HIR compile: statement 3: HIR test_reassign_fp: reassignment of callable alias "fp" is unsupported
+    --- FAIL: TestIndirectCallEmissionScope/z80_binary (0.00s)
+        indirect_emission_test.go:56: want explicit Z80 rejection, got HIR compile: statement 3: HIR test_reassign_fp: reassignment of callable alias "fp" is unsupported
+    --- FAIL: TestIndirectCallEmissionScope/default_z80_product (0.00s)
+        indirect_emission_test.go:56: want explicit Z80 rejection, got HIR compile: statement 3: HIR test_reassign_fp: reassignment of callable alias "fp" is unsupported
+    --- FAIL: TestIndirectCallEmissionScope/z80_assert (0.00s)
+        indirect_emission_test.go:56: want explicit Z80 rejection, got HIR compile: statement 3: HIR test_reassign_fp: reassignment of callable alias "fp" is unsupported
+--- FAIL: TestIndirectIntermediateAsserts (0.00s)
+    --- FAIL: TestIndirectIntermediateAsserts/mir2_sandbox (0.00s)
+        indirect_emission_test.go:121: statement 3: HIR test_reassign_fp: reassignment of callable alias "fp" is unsupported
+    --- FAIL: TestIndirectIntermediateAsserts/bad_mir2_sandbox (0.00s)
+        indirect_emission_test.go:117: MIR2 assertion was skipped: statement 3: HIR test_reassign_fp: reassignment of callable alias "fp" is unsupported
+    --- FAIL: TestIndirectIntermediateAsserts/z80_sandbox (0.00s)
+        indirect_emission_test.go:113: want guarded Z80 emission, got statement 3: HIR test_reassign_fp: reassignment of callable alias "fp" is unsupported
+FAIL
+FAIL	github.com/minz/minzc/cmd/minzc	13.490s
+FAIL

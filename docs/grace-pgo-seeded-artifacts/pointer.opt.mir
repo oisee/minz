@@ -1,0 +1,61 @@
+; MIR2 module: seeded.nanz
+global @seeded_calls : u8
+global @seeded_last : u16
+
+fun @seeded_sum(%r1: ptr [pointer], %r2: u8 [general], %r3: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r4 = const 0 : u8 [general]
+    %r5 = const 65535 : u16 [pointer]
+    %r6 = ext %r2 : u8 -> u16 [pointer]
+    %r7 = sub %r5, %r6 : u16 [pointer]
+    %r8 = cmp.ule %r1, %r7 : bool [flag]
+    br_if %r8, @if_then1(), @if_else3()
+  block @if_then1:
+    %r10 = move %r1 : ptr [pointer]
+    %r11 = const 0 : u8 [acc]
+    %r12 = const 1 : u8 [counter]
+    jmp @fe_head4(%r10, %r2, %r3)
+  block @fe_head4(%r13: ptr [pointer], %r14: u8 [counter], %r15: u16 [pointer]):
+    %r16 = cmp.ne %r14, %r11 : bool [flag]
+    br_if %r16, @fe_body5(), @fe_exit7(%r15)
+  block @fe_body5:
+    %r17 = load %r13 : u8 [general]
+    %r18 = ext %r17 : u8 -> u16 [pointer]
+    %r19 = add %r15, %r18 : u16 [pointer]
+    %r20 = ptr_bump %r13, +1 : ptr [pointer]
+    %r21 = sub %r14, %r12 : u8 [counter]
+    jmp @fe_head4(%r20, %r21, %r19)
+  block @fe_exit7(%r24: u16 [pointer]):
+    ret %r24
+  block @if_else3:
+    jmp @loop_head8(%r4, %r2, %r1, %r3)
+  block @loop_head8(%r25: u8 [general], %r26: u8 [general], %r27: ptr [general], %r28: u16 [pointer]):
+    %r29 = cmp.ult %r25, %r26 : bool [flag]
+    br_if %r29, @loop_body9(), @loop_exit10(%r25, %r28)
+  block @loop_body9:
+    %r30 = ext %r25 : u8 -> u16 [index]
+    %r31 = ptr_add %r27, %r30 : ptr [pointer]
+    %r32 = load %r31 : u8 [general]
+    %r33 = ext %r32 : u8 -> u16 [pointer]
+    %r34 = add %r28, %r33 : u16 [pointer]
+    %r35 = const 1 : u8 [general]
+    %r36 = add %r25, %r35 : u8 [general]
+    jmp @loop_head8(%r36, %r26, %r27, %r34)
+  block @loop_exit10(%r37: u8 [general], %r40: u16 [pointer]):
+    ret %r40
+
+fun @seeded_packet(%r43: ptr [pointer], %r44: u8 [general], %r45: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r46 = move %r43 : ptr [pointer]
+    %r47 = move %r45 : u16 [index]
+    %r48 = call @seeded_sum(%r46, %r44, %r47) : u16 [pointer]
+    %r49 = addr_of @seeded_calls : ptr [pointer]
+    %r50 = load %r49 : u8 [general]
+    %r51 = const 1 : u8 [general]
+    %r52 = add %r50, %r51 : u8 [acc]
+    %r53 = addr_of @seeded_calls : ptr [pointer]
+    store %r53, %r52 : u8
+    %r54 = addr_of @seeded_last : ptr [pointer]
+    store %r54, %r48 : u16
+    ret %r48
+

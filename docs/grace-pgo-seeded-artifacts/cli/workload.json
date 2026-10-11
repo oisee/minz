@@ -1,0 +1,268 @@
+{
+  "exact_data_access": true,
+  "schema": "minz.profile-workload/v1",
+  "target_model": "cpm-z80-v1",
+  "max_steps": 2000000,
+  "max_memory": 65536,
+  "resources": {
+    "data": "CzBVep/E6Q4zWH2ix+wRNluApcrvFDleg6jN8hc8YYar0PUaP2SJrtP4HUJnjLHW+yBFao+02f4jSG2St9wBJktwlbrfBClOc5i94gcsUXabwOUKL1R5nsPoDTJXfKHG6xA1Wn+kye4TOF2Cp8zxFjtgharP9Bk+Y4it0vccQWaLsNX6H0RpjrPY/SJHbJG22wAlSm+Uud4DKE1yl7zhBitQdZq/5AkuU3idwucMMVZ7oMXqDzRZfqPI7RI3XIGmy/AVOl+Eqc7zGD1ih6zR9htAZYqv1PkeQ2iNstf8IUZrkLXa/yRJbpO43QInTHGWu+AFKk90mb7jCC1Sd5zB5g=="
+  },
+  "globals": {
+    "seeded_calls": "+g==",
+    "seeded_last": "NBI="
+  },
+  "calls": [
+    {
+      "function": "seeded_packet",
+      "arguments": [
+        {
+          "resource": "data"
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "seeded_packet",
+      "arguments": [
+        {
+          "resource": "data"
+        },
+        {
+          "value": 1
+        },
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "seeded_packet",
+      "arguments": [
+        {
+          "resource": "data"
+        },
+        {
+          "value": 5
+        },
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "seeded_packet",
+      "arguments": [
+        {
+          "resource": "data"
+        },
+        {
+          "value": 16
+        },
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "seeded_packet",
+      "arguments": [
+        {
+          "resource": "data"
+        },
+        {
+          "value": 64
+        },
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "seeded_packet",
+      "arguments": [
+        {
+          "resource": "data"
+        },
+        {
+          "value": 255
+        },
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "seeded_packet",
+      "arguments": [
+        {
+          "resource": "data"
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "function": "seeded_packet",
+      "arguments": [
+        {
+          "resource": "data"
+        },
+        {
+          "value": 1
+        },
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "function": "seeded_packet",
+      "arguments": [
+        {
+          "resource": "data"
+        },
+        {
+          "value": 5
+        },
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "function": "seeded_packet",
+      "arguments": [
+        {
+          "resource": "data"
+        },
+        {
+          "value": 16
+        },
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "function": "seeded_packet",
+      "arguments": [
+        {
+          "resource": "data"
+        },
+        {
+          "value": 64
+        },
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "function": "seeded_packet",
+      "arguments": [
+        {
+          "resource": "data"
+        },
+        {
+          "value": 255
+        },
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "function": "seeded_packet",
+      "arguments": [
+        {
+          "resource": "data"
+        },
+        {
+          "value": 0
+        },
+        {
+          "value": 65535
+        }
+      ]
+    },
+    {
+      "function": "seeded_packet",
+      "arguments": [
+        {
+          "resource": "data"
+        },
+        {
+          "value": 1
+        },
+        {
+          "value": 65535
+        }
+      ]
+    },
+    {
+      "function": "seeded_packet",
+      "arguments": [
+        {
+          "resource": "data"
+        },
+        {
+          "value": 5
+        },
+        {
+          "value": 65535
+        }
+      ]
+    },
+    {
+      "function": "seeded_packet",
+      "arguments": [
+        {
+          "resource": "data"
+        },
+        {
+          "value": 16
+        },
+        {
+          "value": 65535
+        }
+      ]
+    },
+    {
+      "function": "seeded_packet",
+      "arguments": [
+        {
+          "resource": "data"
+        },
+        {
+          "value": 64
+        },
+        {
+          "value": 65535
+        }
+      ]
+    },
+    {
+      "function": "seeded_packet",
+      "arguments": [
+        {
+          "resource": "data"
+        },
+        {
+          "value": 255
+        },
+        {
+          "value": 65535
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+# Seeded u16 byte sum: legality расширена, PGO сохраняет original
+
+Pointer-walk теперь распознаёт точный root-loop с u16 accumulator, initialized literal0..65535 или u16 parameter, и `sum += u16(ptr[i])`. Другие effects, seed calls/global reads/expressions, nonzero index, stride, parameter mutation и global collision исключены. U8 zero sum остаётся прежним случаем. План хранит точный тип accumulator; fast path сохраняет seed и zero-extension каждого байта. Runtime guard `ptr <= 65535-u16(n)` и original fallback сохранены; final index=n, fallback не переписывается повторно.
+
+Новый исходник `examples/nanz/grace_seeded_sum.nanz` содержит seeded_sum и ordinary caller seeded_packet с persistent counter/result. Профильный guard recognizer и refusing loader используют тот же source proof; старый standalone u8 linear cost runner по-прежнему требует двухпараметрическую u8 signature и не применяется к этому примеру. Совместный measured search сравнивает четыре кандидата по настоящему caller исполнению, не переносит старые коэффициенты.
+
+18 ordered calls: seeds0/1/65535 × lengths0/1/5/16/64/255. Все кандидаты совпадают с независимой modulo65536 arithmetic, global/resource snapshots и exact input-byte reads; zero trip не читает input. Повторно исполняется retained binary. Original148452T/62B, pointer241596T/164B; speed и size выбирают original. Это отрицательный performance результат: новая допустимая форма не даёт ускорения. Machine code pointer path сохраняет больше живых регистров и выполняет runtime guard; оптимизация этого backend остаётся дальнейшей задачей.
+
+VM domain: обе формы return (scalar и tuple с finalindex), heap16/65536, все256 длин, пять base positions0/15/65535-n/65536-n/65535, три seed. Всего15360 tuples/cases сравнивают raw before/after, independent results или первую invalid address. Z80 boundary: lengths0/1/5/255, три boundary bases, seeds0/65535, Grace off/on —48configurations; полный input в RAM, address wrap и fallback сохранены.
+
+Начальный Z80 boundary тест выявил ошибку окружения: экранный SMC callback реагировал на перезапись RST-shaped data, keyboard hook записывалtemporary storage0xffff. CPU conformance helper теперь отключает экранный SMC callback. После этого boundary checks прошли. Это поправка тестового окружения, не исправление compiler wrong code. Исходные failed logs сохраняются как история.
+
+Directed seeded tests4.024s; exact original retention повтор0.578s. HIR8.062s/MIR2 3.817s passed. Полный CLI suite содержит известные callable-alias failures; не объявляется зелёным. Профильный CLI прошёл19.237s; actual CLI выбрал и сохранил exact original binary. Общий pipeline gate прошёл197.007s (кроме отдельно проверенного budget regression). [Артефакты](grace-pgo-seeded-artifacts/README.md).

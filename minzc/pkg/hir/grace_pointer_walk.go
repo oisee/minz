@@ -18,10 +18,12 @@ type PointerWalkFact struct {
 
 type gracePointerWalk struct {
 	loop                             *WhileStmt
+	sumTy                            mir2.Ty
 	sum, index, base, bound, element string
 }
 
-// Start with the exact scalar sum idiom emitted by mechanical translations.
+// Accept exact byte sums: u8 zero-initialized, or u16 with a literal/parameter
+// seed and an explicit zero-extension of each byte. No extra loop effects.
 // Only function-root loops qualify: the original loop in the generated fallback
 // is nested and therefore cannot be versioned again on the next Grace round.
 func findGracePointerWalk(f *Func, b *Block, reserved map[string]bool) *gracePointerWalk {
@@ -29,7 +31,7 @@ func findGracePointerWalk(f *Func, b *Block, reserved map[string]bool) *gracePoi
 		return nil
 	}
 	sum, ok := b.Body[0].(*VarDeclStmt)
-	if !ok || !plainGraceU8Zero(sum) {
+	if !ok || !plainGraceSumSeed(sum) {
 		return nil
 	}
 	index, ok := b.Body[1].(*VarDeclStmt)
@@ -52,14 +54,22 @@ func findGracePointerWalk(f *Func, b *Block, reserved map[string]bool) *gracePoi
 		return nil
 	}
 	accum, ok := loop.Body.Body[0].(*AssignStmt)
-	if !ok || !graceRef(accum.Target, sum.Name, mir2.TyU8) {
+	if !ok || !graceRef(accum.Target, sum.Name, sum.Ty) {
 		return nil
 	}
 	add, ok := accum.Val.(*BinExpr)
-	if !ok || add.Op != "+" || add.Ty != mir2.TyU8 || !graceRef(add.L, sum.Name, mir2.TyU8) {
+	if !ok || add.Op != "+" || add.Ty != sum.Ty || !graceRef(add.L, sum.Name, sum.Ty) {
 		return nil
 	}
-	load, ok := add.R.(*IndexExpr)
+	elementExpr := add.R
+	if sum.Ty == mir2.TyU16 {
+		extension, ok := elementExpr.(*CastExpr)
+		if !ok || extension.X == nil || extension.Ty != mir2.TyU16 || extension.X.ExprTy() != mir2.TyU8 {
+			return nil
+		}
+		elementExpr = extension.X
+	}
+	load, ok := elementExpr.(*IndexExpr)
 	if !ok || load.ElemTy != mir2.TyU8 || (load.ElemStride != 0 && load.ElemStride != 1) || !graceRef(load.Idx, index.Name, mir2.TyU8) {
 		return nil
 	}
@@ -86,6 +96,11 @@ func findGracePointerWalk(f *Func, b *Block, reserved map[string]bool) *gracePoi
 		}
 		params[p.Name] = p.Ty
 	}
+	if seed, ok := sum.Init.(*VarRefExpr); ok {
+		if params[seed.Name] != mir2.TyU16 || reserved[seed.Name] || seed.Name == index.Name {
+			return nil
+		}
+	}
 	if params[base.Name] != mir2.TyPtr || params[bound.Name] != mir2.TyU8 || params[sum.Name] != nil || params[index.Name] != nil {
 		return nil
 	}
@@ -94,11 +109,27 @@ func findGracePointerWalk(f *Func, b *Block, reserved map[string]bool) *gracePoi
 			return nil
 		}
 	}
-	// These inputs have no rebinding before the loop (the two zero declarations
-	// are the whole prefix); its exact body cannot mutate parameters or capture.
+	// The complete prefix is an immutable seed initialization and zero index.
+	// Its exact two-statement body cannot mutate parameters or capture.
 	element := freshGracePointerName(f, reserved)
-	return &gracePointerWalk{loop, sum.Name, index.Name, base.Name, bound.Name, element}
+	return &gracePointerWalk{loop: loop, sumTy: sum.Ty, sum: sum.Name, index: index.Name, base: base.Name, bound: bound.Name, element: element}
 }
+func plainGraceSumSeed(d *VarDeclStmt) bool {
+	if d.Ty == mir2.TyU8 {
+		return plainGraceU8Zero(d)
+	}
+	if d.Ty != mir2.TyU16 || d.ArrayLen != 0 || d.At != nil || len(d.Initial) != 0 {
+		return false
+	}
+	switch seed := d.Init.(type) {
+	case *IntLitExpr:
+		return seed.Val >= 0 && seed.Val <= 65535 && (seed.Ty == mir2.TyU8 || seed.Ty == mir2.TyU16)
+	case *VarRefExpr:
+		return seed.Ty == mir2.TyU16
+	}
+	return false
+}
+
 func plainGraceU8Zero(d *VarDeclStmt) bool {
 	v, ok := d.Init.(*IntLitExpr)
 	return ok && v.Val == 0 && v.Ty == mir2.TyU8 && d.Ty == mir2.TyU8 && d.ArrayLen == 0 && d.At == nil && len(d.Initial) == 0
@@ -154,9 +185,13 @@ func (p *gracePointerWalk) versionedLoop() *IfStmt {
 	// ptr+n test would wrap and incorrectly admit overflowing input addresses.
 	limit := Sub(U16(65535), Cast(Var(p.bound, mir2.TyU8), mir2.TyU16), mir2.TyU16)
 	guard := Le(Cast(Var(p.base, mir2.TyPtr), mir2.TyU16), limit)
+	element := Expr(Var(p.element, mir2.TyU8))
+	if p.sumTy == mir2.TyU16 {
+		element = Cast(element, mir2.TyU16)
+	}
 	each := &ForEachStmt{Var: p.element, ElemTy: mir2.TyU8, ElemStride: 1,
 		Ptr: Var(p.base, mir2.TyPtr), Start: U8(0), Len: Var(p.bound, mir2.TyU8),
-		Body: Blk(Assign(Var(p.sum, mir2.TyU8), Add(Var(p.sum, mir2.TyU8), Var(p.element, mir2.TyU8), mir2.TyU8))),
+		Body: Blk(Assign(Var(p.sum, p.sumTy), Add(Var(p.sum, p.sumTy), element, p.sumTy))),
 	}
 	fast := Blk(each, Assign(Var(p.index, mir2.TyU8), Var(p.bound, mir2.TyU8)))
 	return If(guard, fast, Blk(p.loop))
