@@ -5771,7 +5771,7 @@ func (p *parser) makeFieldExpr(base hir.Expr, fieldName string) *hir.FieldExpr {
 				fieldOffset = byteOffset
 				break
 			}
-			byteOffset += f.Ty.Width() / 8
+			byteOffset += mir2.ByteWidth(f.Ty)
 		}
 	}
 

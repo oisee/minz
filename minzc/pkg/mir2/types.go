@@ -387,7 +387,7 @@ func (t *StructTy) Width() int {
 	if t.IsUnion {
 		max := 0
 		for _, f := range t.Fields {
-			if w := f.Ty.Width(); w > max {
+			if w := ByteWidth(f.Ty) * 8; w > max {
 				max = w
 			}
 		}
@@ -395,7 +395,7 @@ func (t *StructTy) Width() int {
 	}
 	w := 0
 	for _, f := range t.Fields {
-		w += f.Ty.Width()
+		w += ByteWidth(f.Ty) * 8
 	}
 	return w
 }
