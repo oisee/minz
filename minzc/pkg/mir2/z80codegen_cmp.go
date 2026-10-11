@@ -743,6 +743,11 @@ func (g *z80cg) genCmp32(inst *Inst) {
 	g.emit("    PUSH IX")
 	g.emit("    PUSH BC")
 	g.emit("    PUSH AF")
+	comparisonWidth := 32
+	if isSignedOrdering(inst) && inst.SrcTy != nil {
+		comparisonWidth = inst.SrcTy.Width()
+	}
+	pushedBytes := 0
 	for _, r := range inst.Src {
 		loc := g.loc(r)
 		width := 32
@@ -750,7 +755,14 @@ func (g *z80cg) genCmp32(inst *Inst) {
 			width = info.Ty.Width()
 		}
 		for i := 0; i < 4; i++ {
-			if i*8 >= width {
+			if isSignedOrdering(inst) && i*8 >= comparisonWidth {
+				// VM signExtend truncates BOTH operands at SrcTy width. The
+				// preceding byte is its sign byte, regardless of operand type.
+				if i*8 == comparisonWidth {
+					g.emit("    RLCA")
+					g.emit("    SBC A, A")
+				}
+			} else if i*8 >= width {
 				g.emit("    LD A, 0")
 			} else if cv, ok := g.constVals[r]; ok {
 				g.emitf("    LD A, %d", uint64(cv)>>(8*i)&255)
@@ -772,11 +784,23 @@ func (g *z80cg) genCmp32(inst *Inst) {
 				if i >= 2 {
 					g.emit("    EXX")
 				}
+			} else if width <= 8 && (isSimpleReg(loc) || isIXYReg(loc)) && loc != "F" {
+				if loc == "A" {
+					// Read original A, before either operand's scratch snapshot.
+					g.emit("    PUSH IX")
+					g.emit("    LD IX, 0")
+					g.emit("    ADD IX, SP")
+					g.emitf("    LD A, (IX+%d)", 3+pushedBytes)
+					g.emit("    POP IX")
+				} else {
+					g.emitf("    LD A, %s", loc)
+				}
 			} else {
 				g.err = fmt.Errorf("wide comparison r%d has unsupported home %s", r, loc)
 				return
 			}
 			g.emit("    PUSH AF")
+			pushedBytes += 2
 		}
 	}
 	g.emit("    LD IX, 0")
