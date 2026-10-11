@@ -196,7 +196,7 @@ func runMemoryHostPolicyCLI(sourceFile string) error {
 		}
 	}
 	if outputFile != "" {
-		if e = os.WriteFile(outputFile, []byte(targetEvidence.Assembly), 0644); e != nil {
+		if e = writeMemoryHostSelectedOutput(outputFile, targetEvidence.Assembly, targetEvidence.Binary); e != nil {
 			return e
 		}
 	}

@@ -1,0 +1,6 @@
+=== RUN   TestMemoryHostSelectedOutputExtensions
+--- PASS: TestMemoryHostSelectedOutputExtensions (0.04s)
+=== RUN   TestMemoryHostSelectedOutputBytes
+--- PASS: TestMemoryHostSelectedOutputBytes (0.00s)
+PASS
+ok  	github.com/minz/minzc/cmd/minzc	0.052s
