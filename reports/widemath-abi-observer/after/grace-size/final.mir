@@ -1,0 +1,301 @@
+; MIR2 module: ../../../examples/nanz/widemath.nanz
+fun @op_mul_u8_u8(%r1: u8 [acc], %r2: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r3 = const 0 : u16 [pointer]
+    %r4 = ext %r1 : u8 -> u16 [pointer]
+    jmp @loop_head1(%r2, %r3, %r4)
+  block @loop_head1(%r5: u8 [general], %r3: u16 [pointer], %r4: u16 [pointer]):
+    %r8 = const 0 : u8 [general]
+    %r9 = cmp.ugt %r5, %r8 : bool [flag]
+    cond_ret %r9, [%r3], @loop_body2()
+  block @loop_body2:
+    %r10 = const 2 : u8 [general]
+    %r11 = mod %r5, %r10 : u8 [general]
+    %r12 = const 1 : u8 [general]
+    %r13 = cmp.eq %r11, %r12 : bool [flag]
+    br_if %r13, @if_then4(), @if_join5(%r3)
+  block @if_then4:
+    %r14 = add %r3, %r4 : u16 [pointer]
+    jmp @if_join5(%r14)
+  block @if_join5(%r14: u16 [pointer]):
+    %r16 = add %r4, %r4 : u16 [pointer]
+    %r17 = const 2 : u8 [general]
+    %r18 = div %r5, %r17 : u8 [general]
+    jmp @loop_head1(%r18, %r14, %r16)
+
+fun @abs8(%r19: i8 [acc]) -> u8 [acc]
+  block @entry:
+    %r20 = const 0 : u8 [general]
+    %r21 = cmp.lt %r19, %r20 : bool [flag]
+    cond_ret %r21, [%r19], @if_then1()
+  block @if_then1:
+    %r22 = neg %r19 : u8 [acc]
+    ret %r22
+
+fun @sign8(%r23: i8 [acc]) -> i8 [acc]
+  block @entry:
+    %r24 = const 0 : u8 [general]
+    %r25 = cmp.lt %r23, %r24 : bool [flag]
+    br_if %r25, @if_then1(), @if_join2()
+  block @if_then1:
+    %r26 = const 255 : u8 [acc]
+    ret %r26
+  block @if_join2:
+    %r27 = const 0 : u8 [general]
+    %r28 = cmp.gt %r23, %r27 : bool [flag]
+    %r29 = const 0 : u8 [general]
+    cond_ret %r28, [%r29], @if_then3()
+  block @if_then3:
+    %r30 = const 1 : u8 [general]
+    ret %r30
+
+fun @negate8(%r31: i8 [general]) -> i8 [acc]
+  block @entry:
+    %r32 = neg %r31 : u8 [acc]
+    ret %r32
+
+fun @min8(%r33: u8 [acc], %r34: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r35 = cmp.ult %r33, %r34 : bool [flag]
+    cond_ret %r35, [%r34], @if_then1()
+  block @if_then1:
+    ret %r33
+
+fun @max8(%r36: u8 [acc], %r37: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r38 = cmp.ugt %r36, %r37 : bool [flag]
+    cond_ret %r38, [%r37], @if_then1()
+  block @if_then1:
+    ret %r36
+
+fun @clamp8(%r39: u8 [acc], %r40: u8 [general], %r41: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r42 = cmp.ult %r39, %r40 : bool [flag]
+    br_if %r42, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r40
+  block @if_join2:
+    %r43 = cmp.ugt %r39, %r41 : bool [flag]
+    cond_ret %r43, [%r39], @if_then3()
+  block @if_then3:
+    ret %r41
+
+fun @abs_diff8(%r44: u8 [acc], %r45: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r46 = cmp.uge %r44, %r45 : bool [flag]
+    br_if %r46, @if_then1(), @if_join2()
+  block @if_then1:
+    %r47 = sub %r44, %r45 : u8 [acc]
+    ret %r47
+  block @if_join2:
+    %r48 = sub %r45, %r44 : u8 [acc]
+    ret %r48
+
+fun @sat_add8(%r49: u8 [acc], %r50: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r51 = ext %r49 : u8 -> u16 [pointer]
+    %r52 = ext %r50 : u8 -> u16 [pointer]
+    %r53 = add %r51, %r52 : u16 [pointer]
+    %r54 = const 255 : u8 [general]
+    %r55 = cmp.ugt %r53, %r54 : bool [flag]
+    br_if %r55, @if_then1(), @if_join2()
+  block @if_then1:
+    %r56 = const 255 : u8 [general]
+    ret %r56
+  block @if_join2:
+    %r57 = add %r49, %r50 : u8 [acc]
+    ret %r57
+
+fun @sat_sub8(%r58: u8 [acc], %r59: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r60 = sub %r58, %r59 : u8 [acc]
+    %r61 = cmp.sub_carry %r60, %r59 : bool [flag]
+    cond_ret %r61, [%r60], @if_then1()
+  block @if_then1:
+    %r62 = const 0 : u8 [general]
+    ret %r62
+
+fun @abs16(%r63: i16 [pointer]) -> u16 [pointer]
+  block @entry:
+    %r64 = const 0 : u8 [general]
+    %r65 = cmp.lt %r63, %r64 : bool [flag]
+    cond_ret %r65, [%r63], @if_then1()
+  block @if_then1:
+    %r66 = neg %r63 : i16 [pointer]
+    ret %r66
+
+fun @sign16(%r67: i16 [pointer]) -> i8 [acc]
+  block @entry:
+    %r68 = const 0 : u8 [general]
+    %r69 = cmp.lt %r67, %r68 : bool [flag]
+    br_if %r69, @if_then1(), @if_join2()
+  block @if_then1:
+    %r70 = const 255 : u8 [acc]
+    ret %r70
+  block @if_join2:
+    %r71 = const 0 : u8 [general]
+    %r72 = cmp.gt %r67, %r71 : bool [flag]
+    %r73 = const 0 : u8 [general]
+    cond_ret %r72, [%r73], @if_then3()
+  block @if_then3:
+    %r74 = const 1 : u8 [general]
+    ret %r74
+
+fun @min16(%r75: u16 [pointer], %r76: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r77 = cmp.ult %r75, %r76 : bool [flag]
+    cond_ret %r77, [%r76], @if_then1()
+  block @if_then1:
+    ret %r75
+
+fun @max16(%r78: u16 [pointer], %r79: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r80 = cmp.ugt %r78, %r79 : bool [flag]
+    cond_ret %r80, [%r79], @if_then1()
+  block @if_then1:
+    ret %r78
+
+fun @clamp16(%r81: u16 [pointer], %r82: u16 [index], %r83: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r84 = cmp.ult %r81, %r82 : bool [flag]
+    br_if %r84, @if_then1(), @if_join2()
+  block @if_then1:
+    ret %r82
+  block @if_join2:
+    %r85 = cmp.ugt %r81, %r83 : bool [flag]
+    cond_ret %r85, [%r81], @if_then3()
+  block @if_then3:
+    ret %r83
+
+fun @abs_diff16(%r86: u16 [pointer], %r87: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r88 = cmp.uge %r86, %r87 : bool [flag]
+    br_if %r88, @if_then1(), @if_join2()
+  block @if_then1:
+    %r89 = sub %r86, %r87 : u16 [pointer]
+    ret %r89
+  block @if_join2:
+    %r90 = sub %r87, %r86 : u16 [pointer]
+    ret %r90
+
+fun @sat_add16(%r91: u16 [pointer], %r92: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r93 = const 256 : u16 [pointer]
+    %r94 = div %r91, %r93 : u16 [pointer]
+    %r95 = const 256 : u16 [pointer]
+    %r96 = div %r92, %r95 : u16 [pointer]
+    %r97 = add %r94, %r96 : u16 [pointer]
+    %r98 = const 255 : u8 [general]
+    %r99 = cmp.ugt %r97, %r98 : bool [flag]
+    br_if %r99, @if_then1(), @if_join2()
+  block @if_then1:
+    %r100 = const 65535 : u16 [pointer]
+    ret %r100
+  block @if_join2:
+    %r101 = add %r91, %r92 : u16 [pointer]
+    %r102 = cmp.ult %r101, %r91 : bool [flag]
+    cond_ret %r102, [%r101], @if_then3()
+  block @if_then3:
+    %r103 = const 65535 : u16 [pointer]
+    ret %r103
+
+fun @sat_sub16(%r104: u16 [pointer], %r105: u16 [index]) -> u16 [pointer]
+  block @entry:
+    %r106 = sub %r104, %r105 : u16 [pointer]
+    %r107 = cmp.sub_carry %r106, %r105 : bool [flag]
+    cond_ret %r107, [%r106], @if_then1()
+  block @if_then1:
+    %r108 = const 0 : u8 [general]
+    ret %r108
+
+fun @op_mul(%r109: W8 [pointer], %r110: W8 [pointer]) -> u16 [pointer]
+  block @entry:
+    %r111 = const 0 : u16 [pointer]
+    %r112 = load %r109 : u8 [general]
+    %r113 = ext %r112 : u8 -> u16 [pointer]
+    %r114 = load %r110 : u8 [general]
+    jmp @loop_head1(%r114, %r111, %r113)
+  block @loop_head1(%r114: u8 [general], %r111: u16 [pointer], %r113: u16 [pointer]):
+    %r118 = const 0 : u8 [general]
+    %r119 = cmp.ugt %r114, %r118 : bool [flag]
+    cond_ret %r119, [%r111], @loop_body2()
+  block @loop_body2:
+    %r120 = const 2 : u8 [general]
+    %r121 = mod %r114, %r120 : u8 [general]
+    %r122 = const 1 : u8 [general]
+    %r123 = cmp.eq %r121, %r122 : bool [flag]
+    br_if %r123, @if_then4(), @if_join5(%r111)
+  block @if_then4:
+    %r124 = add %r111, %r113 : u16 [pointer]
+    jmp @if_join5(%r124)
+  block @if_join5(%r124: u16 [pointer]):
+    %r126 = add %r113, %r113 : u16 [pointer]
+    %r127 = const 2 : u8 [general]
+    %r128 = div %r114, %r127 : u8 [general]
+    jmp @loop_head1(%r128, %r124, %r126)
+
+fun @op_add(%r129: W8 [pointer], %r130: W8 [pointer], %r131: ptr [pointer]) [struct-result0 param2 W8:1B] -> W8 [pointer]
+  block @entry:
+    %r132 = alloca 1 : ptr
+    %r133 = load %r129 : u8 [general]
+    %r134 = load %r130 : u8 [general]
+    %r135 = add %r133, %r134 : u8 [acc]
+    store %r132, %r135 : u8
+    %r136 = load %r132 : u8 [general]
+    store %r131, %r136 : u8
+    ret %r131
+
+fun @op_sub(%r137: W8 [pointer], %r138: W8 [pointer], %r139: ptr [pointer]) [struct-result0 param2 W8:1B] -> W8 [pointer]
+  block @entry:
+    %r140 = alloca 1 : ptr
+    %r141 = load %r137 : u8 [general]
+    %r142 = load %r138 : u8 [general]
+    %r143 = sub %r141, %r142 : u8 [acc]
+    store %r140, %r143 : u8
+    %r144 = load %r140 : u8 [general]
+    store %r139, %r144 : u8
+    ret %r139
+
+fun @area(%r145: u8 [acc], %r146: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r147 = move %r145 : u8 [acc]
+    %r148 = call @op_mul_u8_u8(%r147, %r146) : u16 [pointer]
+    ret %r148
+
+fun @big_area() -> u16 [pointer]
+  block @entry:
+    %r149 = const 40000 : u16 [pointer]
+    ret %r149
+
+fun @pixel_distance(%r150: u8 [acc], %r151: u8 [counter], %r152: u8 [general], %r153: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r154 = move %r150 : u8 [acc]
+    %r155 = call @abs_diff8(%r154, %r152) : u8 [acc]
+    %r156 = move %r151 : u8 [acc]
+    %r157 = call @abs_diff8(%r156, %r153) : u8 [acc]
+    %r158 = move %r155 : u8 [acc]
+    %r159 = call @op_mul_u8_u8(%r158, %r157) : u16 [pointer]
+    ret %r159
+
+fun @brightness_blend(%r160: u8 [acc], %r161: u8 [counter], %r162: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r163 = const 255 : u8 [general]
+    %r164 = sub %r163, %r162 : u8 [acc]
+    %r165 = move %r160 : u8 [acc]
+    %r166 = call @op_mul_u8_u8(%r165, %r164) : u16 [pointer]
+    %r167 = move %r161 : u8 [acc]
+    %r168 = call @op_mul_u8_u8(%r167, %r162) : u16 [pointer]
+    %r169 = add %r166, %r168 : u16 [pointer]
+    %r170 = const 256 : u16 [pointer]
+    %r171 = div %r169, %r170 : u16 [pointer]
+    ret %r171
+
+fun @newtype_area(%r172: u8 [general], %r173: u8 [general]) -> u16 [pointer]
+  block @entry:
+    %r174 = alloca 1 : ptr
+    %r175 = alloca 1 : ptr
+    store %r175, %r172 : u8
+    store %r174, %r173 : u8
+    %r176 = call @op_mul(%r175, %r174) : u16 [pointer]
+    ret %r176
+

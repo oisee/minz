@@ -1,0 +1,16 @@
+=== RUN   TestOriginalWidemathNativeModel
+    showcase_widemath_native_test.go:305: default {Entry:abs8 Args:[0] Expected:0 ExpectedMulti:[]} 105T native/raw/final model code/SP/RAM PASS
+    showcase_widemath_native_test.go:305: default {Entry:sign8 Args:[0] Expected:0 ExpectedMulti:[]} 167T native/raw/final model code/SP/RAM PASS
+    showcase_widemath_native_test.go:305: default {Entry:negate8 Args:[0] Expected:0 ExpectedMulti:[]} 49T native/raw/final model code/SP/RAM PASS
+    showcase_widemath_native_test.go:309: default 11947 original Widemath calls PASS; 31 source assertions retained
+    showcase_widemath_native_test.go:305: grace-size {Entry:abs8 Args:[0] Expected:0 ExpectedMulti:[]} 105T native/raw/final model code/SP/RAM PASS
+    showcase_widemath_native_test.go:305: grace-size {Entry:sign8 Args:[0] Expected:0 ExpectedMulti:[]} 167T native/raw/final model code/SP/RAM PASS
+    showcase_widemath_native_test.go:305: grace-size {Entry:negate8 Args:[0] Expected:0 ExpectedMulti:[]} 49T native/raw/final model code/SP/RAM PASS
+    showcase_widemath_native_test.go:309: grace-size 11947 original Widemath calls PASS; 31 source assertions retained
+    showcase_widemath_native_test.go:305: grace-speed {Entry:abs8 Args:[0] Expected:0 ExpectedMulti:[]} 105T native/raw/final model code/SP/RAM PASS
+    showcase_widemath_native_test.go:305: grace-speed {Entry:sign8 Args:[0] Expected:0 ExpectedMulti:[]} 167T native/raw/final model code/SP/RAM PASS
+    showcase_widemath_native_test.go:305: grace-speed {Entry:negate8 Args:[0] Expected:0 ExpectedMulti:[]} 49T native/raw/final model code/SP/RAM PASS
+    showcase_widemath_native_test.go:309: grace-speed 11947 original Widemath calls PASS; 31 source assertions retained
+--- PASS: TestOriginalWidemathNativeModel (1.29s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.301s

@@ -153,17 +153,8 @@ func TestOriginalWidemathNativeModel(t *testing.T) {
 						t.Fatalf("%s %s call%d %+v got%v want%v", mode, label, i, c, v, wants)
 					}
 				}
-				wantEvents := widemathMemoryValues(c)
-				if len(events) != len(wantEvents) {
-					t.Fatalf("%s %s memory traffic %s got%v want%v", mode, label, c.Entry, events, wantEvents)
-				}
-				for j, want := range wantEvents {
-					if events[j].Op != want.Op || events[j].Value != want.Value {
-						t.Fatalf("%s %s memory event%d got%v want%v", mode, label, j, events[j], want)
-					}
-				}
-				if c.Entry == "newtype_area" && (events[0].Addr != events[2].Addr || events[1].Addr != events[3].Addr || events[0].Addr == events[1].Addr) {
-					t.Fatal("newtype memory alias", events)
+				if err := widemathCheckMemory(c, events); err != nil {
+					t.Fatalf("%s %s %s: %v", mode, label, c.Entry, err)
 				}
 
 			}
@@ -172,10 +163,18 @@ func TestOriginalWidemathNativeModel(t *testing.T) {
 			mem[0xe000], mem[0xeff2] = 0x9b, 0xad
 			regs := emulator.Registers{PC: uint16(assembled.Symbols["oracle_"+c.Entry]), SP: 0xeff0, BC: 0x5555, DE: 0x6666, HL: 0x7777, IX: 0x8888, IY: 0x9999, A: 0x42}
 			f := steps.MIR2Module.FuncByName(c.Entry)
-			for j, arg := range c.Args {
+			nativeArgs := append([]int64(nil), c.Args...)
+			for _, slot := range f.Contract.StructReturnBuffers {
+				if slot.ParamIndex != len(nativeArgs) || mir2.ByteWidth(slot.Ty) != 1 {
+					t.Fatal("unexpected W8 result ABI", slot)
+				}
+				nativeArgs = append(nativeArgs, 0x6200)
+			}
+			mem[0x61ff], mem[0x6200], mem[0x6201] = 0x9b, 0xa5, 0xad
+			for j, arg := range nativeArgs {
 				loc := assertParamLocation(f.Contract.Params[j], steps.Allocation)
 				v := uint16(arg)
-				if c.Entry == "op_mul" || c.Entry == "op_add" || c.Entry == "op_sub" {
+				if j < len(c.Args) && (c.Entry == "op_mul" || c.Entry == "op_add" || c.Entry == "op_sub") {
 					p := 0x6000 + j*16
 					mem[p] = byte(arg)
 					v = uint16(p)
@@ -239,19 +238,8 @@ func TestOriginalWidemathNativeModel(t *testing.T) {
 					t.Fatal("stack bounds", c)
 				}
 				pc := z.GetPC()
-				op := mem[pc]
-				if op >= 0x46 && op <= 0x7e && op&7 == 6 && op != 0x76 {
-					addr := z.GetRegisters().HL
-					nativeEvents = append(nativeEvents, mir2.VMDataAccess{Op: mir2.OpLoad, Addr: int64(addr), Value: mem[addr]})
-				}
-				if op >= 0x70 && op <= 0x77 && op != 0x76 {
-					r := z.GetRegisters()
-					vals := []byte{byte(r.BC >> 8), byte(r.BC), byte(r.DE >> 8), byte(r.DE), byte(r.HL >> 8), byte(r.HL), 0, r.A}
-					nativeEvents = append(nativeEvents, mir2.VMDataAccess{Op: mir2.OpStore, Addr: int64(r.HL), Value: vals[op&7]})
-				} else if op == 0x36 {
-					addr := z.GetRegisters().HL
-					nativeEvents = append(nativeEvents, mir2.VMDataAccess{Op: mir2.OpStore, Addr: int64(addr), Value: mem[pc+1]})
-				}
+				nativeEvents = append(nativeEvents, widemathNativeByteAccess(mem, pc, z.GetRegisters())...)
+
 				z.Step()
 				if z.GetSP() < minSP {
 					minSP = z.GetSP()
@@ -260,18 +248,10 @@ func TestOriginalWidemathNativeModel(t *testing.T) {
 			if !done {
 				t.Fatal("native did not return", c)
 			}
-			wantEvents := widemathMemoryValues(c)
-			if len(nativeEvents) != len(wantEvents) {
-				t.Fatalf("%s native memory traffic %s got%v want%v", mode, c.Entry, nativeEvents, wantEvents)
+			if err := widemathCheckMemory(c, nativeEvents); err != nil {
+				t.Fatalf("%s native %s: %v", mode, c.Entry, err)
 			}
-			for j, want := range wantEvents {
-				if nativeEvents[j].Op != want.Op || nativeEvents[j].Value != want.Value {
-					t.Fatalf("%s native memory event%d got%v want%v", mode, j, nativeEvents[j], want)
-				}
-			}
-			if c.Entry == "newtype_area" && (nativeEvents[0].Addr != 0xefed || nativeEvents[1].Addr != 0xefec || nativeEvents[2].Addr != 0xefed || nativeEvents[3].Addr != 0xefec) {
-				t.Fatal("native newtype alias/layout", nativeEvents)
-			}
+
 			if (c.Entry == "op_mul" || c.Entry == "op_add" || c.Entry == "op_sub") && (nativeEvents[0].Addr != 0x6000 || nativeEvents[1].Addr != 0x6010) {
 				t.Fatal("native input addresses", nativeEvents)
 			}
@@ -287,13 +267,19 @@ func TestOriginalWidemathNativeModel(t *testing.T) {
 				case "BC":
 					pointer = regs.BC
 				}
-				if int64(mem[pointer]) != c.Expected {
+				if pointer != 0x6200 || int64(mem[pointer]) != c.Expected {
 					t.Fatalf("%s native struct %s %v returnedptr%x byte%d want%d", mode, c.Entry, c.Args, pointer, mem[pointer], c.Expected)
 				}
 			} else if e = checkAssertZ80Result(z, hir.Assert{FuncName: c.Entry, Args: c.Args, Expected: c.Expected, ExpectedMulti: c.ExpectedMulti}, f, map[string]*hir.Func{c.Entry: h.FuncByName(c.Entry)}); e != nil {
 				t.Fatalf("%s native call%d %+v %v", mode, i, c, e)
 			}
 
+			if c.Entry == "op_add" || c.Entry == "op_sub" {
+				if nativeEvents[len(nativeEvents)-1].Addr != 0x6200 {
+					t.Fatal("public output address", nativeEvents)
+				}
+				before[0x6200] = byte(c.Expected)
+			}
 			// Mask only the exact observed stack extent and declared spill
 			// homes; compare every other byte of the full 64KiB image.
 			copy(before[int(minSP):0xeff0], mem[int(minSP):0xeff0])
@@ -470,16 +456,168 @@ func widemathCalls(exhaustive bool) []widemathCall {
 }
 
 // Source W8 field operations: input reads retain order; newtype construction
-// writes two distinct local bytes before the two operator reads.
+// writes two distinct local bytes before the two operator reads. Owning return
+// copying adds one private write/read followed by a public result-buffer write.
 func widemathMemoryValues(c widemathCall) []mir2.VMDataAccess {
 	ev := func(op mir2.Op, v int64) mir2.VMDataAccess { return mir2.VMDataAccess{Op: op, Value: byte(v)} }
 	switch c.Entry {
 	case "op_mul":
 		return []mir2.VMDataAccess{ev(mir2.OpLoad, c.Args[0]), ev(mir2.OpLoad, c.Args[1])}
 	case "op_add", "op_sub":
-		return []mir2.VMDataAccess{ev(mir2.OpLoad, c.Args[0]), ev(mir2.OpLoad, c.Args[1]), ev(mir2.OpStore, c.Expected)}
+		return []mir2.VMDataAccess{ev(mir2.OpLoad, c.Args[0]), ev(mir2.OpLoad, c.Args[1]), ev(mir2.OpStore, c.Expected), ev(mir2.OpLoad, c.Expected), ev(mir2.OpStore, c.Expected)}
 	case "newtype_area":
 		return []mir2.VMDataAccess{ev(mir2.OpStore, c.Args[0]), ev(mir2.OpStore, c.Args[1]), ev(mir2.OpLoad, c.Args[0]), ev(mir2.OpLoad, c.Args[1])}
 	}
 	return nil
+}
+
+// Constructor stores are private and may be scheduled independently. The two
+// ordered operator reads must still read distinct objects initialized correctly.
+func widemathCheckMemory(c widemathCall, got []mir2.VMDataAccess) error {
+	want := widemathMemoryValues(c)
+	if len(got) != len(want) {
+		return fmt.Errorf("memory traffic got%v want%v", got, want)
+	}
+	if c.Entry == "newtype_area" {
+		if got[0].Op != mir2.OpStore || got[1].Op != mir2.OpStore || got[0].Addr == got[1].Addr {
+			return fmt.Errorf("distinct constructor stores: %v", got)
+		}
+		for j := 0; j < 2; j++ {
+			read := got[j+2]
+			if read.Op != mir2.OpLoad || read.Value != byte(c.Args[j]) {
+				return fmt.Errorf("ordered W8 read: %v", got)
+			}
+			found := false
+			for _, store := range got[:2] {
+				if store.Addr == read.Addr && store.Value == read.Value {
+					found = true
+				}
+			}
+			if !found {
+				return fmt.Errorf("uninitialized W8 read: %v", got)
+			}
+		}
+		if got[2].Addr == got[3].Addr {
+			return fmt.Errorf("aliased W8 objects: %v", got)
+		}
+		return nil
+	}
+	for j, w := range want {
+		if got[j].Op != w.Op || got[j].Value != w.Value {
+			return fmt.Errorf("memory event%d got%v want%v", j, got[j], w)
+		}
+	}
+	if c.Entry == "op_add" || c.Entry == "op_sub" {
+		if got[2].Addr != got[3].Addr || got[4].Addr == got[2].Addr || got[2].Addr == got[0].Addr || got[2].Addr == got[1].Addr || got[4].Addr == got[0].Addr || got[4].Addr == got[1].Addr {
+			return fmt.Errorf("private snapshot/public output alias: %v", got)
+		}
+	}
+	return nil
+}
+
+// Decode byte data accesses, excluding instruction fetch, stack, word spills.
+// Explicit forms cover the original W8 paths; index forms retain displacement.
+func widemathNativeByteAccess(mem []byte, pc uint16, r emulator.Registers) []mir2.VMDataAccess {
+	op := mem[pc]
+	addr := r.HL
+	vals := []byte{byte(r.BC >> 8), byte(r.BC), byte(r.DE >> 8), byte(r.DE), byte(r.HL >> 8), byte(r.HL), 0, r.A}
+	event := func(op mir2.Op, addr uint16, v byte) []mir2.VMDataAccess {
+		return []mir2.VMDataAccess{{Op: op, Addr: int64(addr), Value: v}}
+	}
+	if op == 0xdd || op == 0xfd {
+		addr = r.IX
+		if op == 0xfd {
+			addr = r.IY
+		}
+		op = mem[pc+1]
+		addr = uint16(int(addr) + int(int8(mem[pc+2])))
+		pc += 2
+	}
+	if op >= 0x46 && op <= 0x7e && op&7 == 6 && op != 0x76 {
+		return event(mir2.OpLoad, addr, mem[addr])
+	}
+	if op >= 0x70 && op <= 0x77 && op != 0x76 {
+		return event(mir2.OpStore, addr, vals[op&7])
+	}
+	if op == 0x36 {
+		return event(mir2.OpStore, addr, mem[pc+1])
+	}
+	switch op {
+	case 0x02:
+		return event(mir2.OpStore, r.BC, r.A)
+	case 0x12:
+		return event(mir2.OpStore, r.DE, r.A)
+	case 0x0a:
+		return event(mir2.OpLoad, r.BC, mem[r.BC])
+	case 0x1a:
+		return event(mir2.OpLoad, r.DE, mem[r.DE])
+	}
+	return nil
+}
+
+func TestWidemathMemoryObserverContracts(t *testing.T) {
+	c := widemathCall{Entry: "newtype_area", Args: []int64{7, 19}}
+	events := []mir2.VMDataAccess{{Op: mir2.OpStore, Addr: 20, Value: 19}, {Op: mir2.OpStore, Addr: 21, Value: 7}, {Op: mir2.OpLoad, Addr: 21, Value: 7}, {Op: mir2.OpLoad, Addr: 20, Value: 19}}
+	if err := widemathCheckMemory(c, events); err != nil {
+		t.Fatal("independent private store schedule", err)
+	}
+	for _, name := range []string{"missing-store", "swapped-reads", "wrong-constructor", "aliased-inputs"} {
+		bad := append([]mir2.VMDataAccess(nil), events...)
+		switch name {
+		case "missing-store":
+			bad = bad[1:]
+		case "swapped-reads":
+			bad[2], bad[3] = bad[3], bad[2]
+		case "wrong-constructor":
+			bad[0].Value = 18
+		case "aliased-inputs":
+			bad[3].Addr = bad[2].Addr
+		}
+		if err := widemathCheckMemory(c, bad); err == nil {
+			t.Fatal("accepted", name, bad)
+		}
+	}
+	c = widemathCall{Entry: "op_add", Args: []int64{250, 19}, Expected: 13}
+	events = []mir2.VMDataAccess{{Op: mir2.OpLoad, Addr: 0x6000, Value: 250}, {Op: mir2.OpLoad, Addr: 0x6010, Value: 19}, {Op: mir2.OpStore, Addr: 20, Value: 13}, {Op: mir2.OpLoad, Addr: 20, Value: 13}, {Op: mir2.OpStore, Addr: 0x6200, Value: 13}}
+	if err := widemathCheckMemory(c, events); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"no-snapshot", "wrong-snapshot", "public-output-alias", "snapshot-input-alias"} {
+		bad := append([]mir2.VMDataAccess(nil), events...)
+		switch name {
+		case "no-snapshot":
+			bad = append(bad[:3], bad[4:]...)
+		case "wrong-snapshot":
+			bad[3].Value = 12
+		case "public-output-alias":
+			bad[4].Addr = 20
+		case "snapshot-input-alias":
+			bad[2].Addr = 0x6000
+			bad[3].Addr = 0x6000
+		}
+		if err := widemathCheckMemory(c, bad); err == nil {
+			t.Fatal("accepted", name, bad)
+		}
+	}
+	mem := make([]byte, 65536)
+	r := emulator.Registers{A: 77, BC: 0x6100, DE: 0x6200, HL: 0x6300, IX: 0x6400, IY: 0x6500}
+	for _, tc := range []struct {
+		code  []byte
+		addr  uint16
+		op    mir2.Op
+		value byte
+	}{{[]byte{0x12}, 0x6200, mir2.OpStore, 77}, {[]byte{0x02}, 0x6100, mir2.OpStore, 77}, {[]byte{0x1a}, 0x6200, mir2.OpLoad, 91}, {[]byte{0x0a}, 0x6100, mir2.OpLoad, 91}, {[]byte{0xdd, 0x77, 0xff}, 0x63ff, mir2.OpStore, 77}, {[]byte{0xfd, 0x7e, 0x02}, 0x6502, mir2.OpLoad, 91}, {[]byte{0xdd, 0x36, 0xff, 0x5b}, 0x63ff, mir2.OpStore, 91}} {
+		copy(mem[0x8000:], tc.code)
+		mem[tc.addr] = 91
+		got := widemathNativeByteAccess(mem, 0x8000, r)
+		if len(got) != 1 || got[0].Addr != int64(tc.addr) || got[0].Op != tc.op || got[0].Value != tc.value {
+			t.Fatal("native decoder", tc, got)
+		}
+	}
+	for _, op := range []byte{0xc5, 0xc1, 0xcd, 0xc9, 0x76} {
+		mem[0x8000] = op
+		if got := widemathNativeByteAccess(mem, 0x8000, r); len(got) != 0 {
+			t.Fatal("stack/fetch counted as data", op, got)
+		}
+	}
 }
