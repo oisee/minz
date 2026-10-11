@@ -2023,7 +2023,7 @@ fun main() -> void {
 		t.Errorf("string[0]: want %q, got %q", "Hello, World!\n", m.Strings[0])
 	}
 
-	// Verify @print parses to a CallExpr{Fn:"@mir.io.print.str"}
+	// Verify plain-literal @print carries its counted SString representation
 	mainFunc := m.FuncByName("main")
 	if mainFunc == nil {
 		t.Fatal("main not found")
@@ -2039,8 +2039,8 @@ fun main() -> void {
 	if !ok {
 		t.Fatalf("body[0].Expr: want CallExpr, got %T", stmt0.Expr)
 	}
-	if call0.Fn != "@mir.io.print.str" {
-		t.Errorf("@print fn: want @mir.io.print.str, got %q", call0.Fn)
+	if call0.Fn != "@mir.io.print.sstr" {
+		t.Errorf("@print fn: want @mir.io.print.sstr, got %q", call0.Fn)
 	}
 
 	// Compile through the full pipeline to Z80 assembly.

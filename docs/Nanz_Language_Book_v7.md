@@ -2648,7 +2648,7 @@ For more complex metaprogramming, you can write metafunctions in Nanz itself, co
 
 fun meta_sizeof(ty: u8) -> u8 {
     let n = struct_field_count(ty)
-    emit("(fun Color_size () u8 (return 3))")
+    emit(c"(fun Color_size () u8 (return 3))") // emit takes a CString pointer
     return n
 }
 ```
