@@ -13,7 +13,9 @@ WIDTHS = {k:1 if k.startswith('SEXP_') else 2 for k in DEFAULTS}
 def blob(x): return base64.b64decode(x, validate=True) if x else b''
 def b64(x): return base64.b64encode(x).decode()
 def read_json(p):
-    p=Path(p); data=p.read_bytes()
+    p=Path(p)
+    if not p.exists():p=Path(str(p)+'.gz')
+    data=p.read_bytes()
     return json.loads(gzip.decompress(data) if p.suffix=='.gz' else data)
 
 class Denial(Exception): pass
