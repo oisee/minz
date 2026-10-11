@@ -115,6 +115,9 @@ func (g *z80cg) emitConsoleA() {
 // Analyze each direct call body and require balanced returns on every path.
 // Recursion and dynamic stack adjustments need a different bounded runtime.
 func validateCPMRuntimeAssembly(assembly string) error {
+	return validateCPMRuntimeAssemblyMode(assembly, false)
+}
+func validateCPMRuntimeAssemblyMode(assembly string, guarded bool) error {
 	a, err := z80asm.NewAssembler().AssembleString(assembly)
 	if err != nil {
 		return err
@@ -148,6 +151,37 @@ func validateCPMRuntimeAssembly(assembly string) error {
 		}
 		code[line.Address] = item{text, line.Address + len(line.Bytes)}
 	}
+	if guarded {
+		pc := a.Symbols["__cpm_stack_check"]
+		for _, line := range strings.Split(cpmStackCheck, "\n") {
+			text := strings.TrimSpace(line)
+			if text == "" || strings.HasSuffix(text, ":") {
+				continue
+			}
+			i, ok := code[pc]
+			if !ok || strings.Join(strings.Fields(strings.ReplaceAll(i.text, ",", ", ")), " ") != strings.Join(strings.Fields(strings.ReplaceAll(text, ",", ", ")), " ") {
+				return fmt.Errorf("CP/M runtime corrupted stack checker at %04x: got %q want %q", pc, i.text, text)
+			}
+			pc = i.next
+		}
+	}
+	if guarded {
+		previous := map[int]string{}
+		for _, i := range code {
+			previous[i.next] = i.text
+		}
+		guardStart, guardEnd := a.Symbols["__cpm_stack_check"], a.Symbols["__cpm_status"]
+		for pc, i := range code {
+			if pc >= guardStart && pc < guardEnd {
+				continue
+			}
+			fields := strings.Fields(i.text)
+			op := strings.ToUpper(fields[0])
+			if (op == "PUSH" || op == "CALL") && i.text != "CALL __cpm_stack_check" && strings.TrimSpace(previous[pc]) != "CALL __cpm_stack_check" {
+				return fmt.Errorf("CP/M runtime missing stack guard at %04x: %s", pc, i.text)
+			}
+		}
+	}
 	type frame struct{ next, base, entry int }
 	type state struct {
 		pc, depth int
@@ -168,7 +202,7 @@ func validateCPMRuntimeAssembly(assembly string) error {
 		if len(s.frames) > 0 {
 			floor = s.frames[len(s.frames)-1].base + 2
 		}
-		if len(seen) > 1000000 || s.depth < floor || s.depth > 256 {
+		if len(seen) > 1000000 || s.depth < floor || (!guarded && s.depth > 256) {
 			return fmt.Errorf("CP/M runtime stack proof failed at %04x depth %d", s.pc, s.depth)
 		}
 		i, ok := code[s.pc]
@@ -198,12 +232,15 @@ func validateCPMRuntimeAssembly(assembly string) error {
 		case "POP":
 			next.depth -= 2
 		case "CALL":
+			if guarded && rest == "__cpm_stack_check" {
+				break
+			}
 			parts := strings.Split(rest, ",")
 			name := strings.TrimSpace(parts[len(parts)-1])
 			if name == "5" && s.pc >= int(a.Symbols["__cpm_putchar"]) && s.pc < int(a.Symbols["__cpm_saved_sp"]) {
 				// Only the return word is application-owned; BDOS internal
 				// stack requirements remain an operating-system precondition.
-				if s.depth+2 > 256 {
+				if !guarded && s.depth+2 > 256 {
 					return fmt.Errorf("CP/M runtime stack exceeds 256 bytes")
 				}
 				break
@@ -211,6 +248,16 @@ func validateCPMRuntimeAssembly(assembly string) error {
 			pc, e := target(name)
 			if e != nil {
 				return e
+			}
+			if guarded {
+				// Each callee is checked as a balanced local frame. The
+				// runtime guard supplies the global recursive depth bound.
+				queue = append(queue, state{pc: pc, depth: 2})
+				if len(parts) == 1 {
+					queue = append(queue, next)
+					continue
+				}
+				break
 			}
 			if pc == mainPC {
 				return fmt.Errorf("CP/M runtime recursive call requires a bounded recursive runtime")
@@ -292,4 +339,54 @@ func validateCPMBytePrimitive(f *Func, ar *AllocResult) error {
 		}
 	}
 	return fmt.Errorf("CP/M runtime unsupported extern or byte primitive ABI: %s", f.Name)
+}
+
+// Nonzero stack size explicitly enables guarded recursive application calls.
+func ValidateCPMRuntimeStack(runtime Z80Runtime, bytes int) error {
+	if bytes == 0 {
+		return nil
+	}
+	if runtime != Z80RuntimeCPM || bytes < 64 || bytes > 16384 || bytes%2 != 0 {
+		return fmt.Errorf("runtime stack requires cpm and an even size from 64 to 16384 bytes")
+	}
+	return nil
+}
+
+const cpmStackCheck = `
+__cpm_stack_check:
+ PUSH AF
+ PUSH HL
+ LD HL,0
+ ADD HL,SP
+ LD A,H
+ CP __cpm_stack_limit^H
+ JR C,__cpm_stack_overflow
+ JR NZ,__cpm_stack_check_ok
+ LD A,L
+ CP __cpm_stack_limit^L
+ JR C,__cpm_stack_overflow
+__cpm_stack_check_ok:
+ POP HL
+ POP AF
+ RET
+__cpm_stack_overflow:
+ LD A,1
+ LD (__cpm_status),A
+ LD SP,(__cpm_saved_sp)
+ RET
+`
+
+func cpmRuntimeGuardedTail(bytes int) string {
+	var out strings.Builder
+	for _, line := range strings.Split(cpmRuntimeTail, "\n") {
+		op := strings.Fields(line)
+		if len(op) > 0 && (op[0] == "PUSH" || op[0] == "CALL") {
+			out.WriteString("    CALL __cpm_stack_check\n")
+		}
+		out.WriteString(line)
+		out.WriteByte('\n')
+	}
+	text := strings.Replace(out.String(), "    DS 256", fmt.Sprintf("    DS %d", bytes), 1)
+	text = strings.Replace(text, "__cpm_saved_sp:", "__cpm_stack_limit EQU __cpm_stack+8\n"+cpmStackCheck+"\n__cpm_status:\n DB 0\n__cpm_saved_sp:", 1)
+	return text
 }

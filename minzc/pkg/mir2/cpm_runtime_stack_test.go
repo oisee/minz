@@ -41,3 +41,17 @@ func TestCPMRuntimeStackChecksCalledBodies(t *testing.T) {
 		t.Fatal("nested call return words exceeded resident stack")
 	}
 }
+
+func TestCPMRuntimeGuardedAdmission(t *testing.T) {
+	entry := strings.Replace(cpmRuntimeEntry, "    CALL main", "    CALL __cpm_stack_check\n    CALL main", 1)
+	body := "main:\n CALL __cpm_stack_check\n CALL rec\n RET\nrec:\n CALL __cpm_stack_check\n PUSH AF\n CALL __cpm_stack_check\n CALL rec\n POP AF\n RET\n"
+	code := entry + body + cpmRuntimeGuardedTail(64)
+	if e := validateCPMRuntimeAssemblyMode(code, true); e != nil {
+		t.Fatal(e)
+	}
+	for _, bad := range []string{strings.Replace(code, " CALL __cpm_stack_check\n PUSH AF", " PUSH AF", 1), strings.Replace(code, "CP __cpm_stack_limit^H", "CP 0", 1), strings.Replace(code, " POP AF\n RET\n", " RET\n", 1)} {
+		if e := validateCPMRuntimeAssemblyMode(bad, true); e == nil {
+			t.Fatal("corrupted guarded frame admitted")
+		}
+	}
+}

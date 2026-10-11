@@ -87,7 +87,8 @@ type FuncTrace struct {
 
 // Options configures optional pipeline passes.
 type Options struct {
-	Runtime mir2.Z80Runtime `json:",omitempty"`
+	Runtime           mir2.Z80Runtime `json:",omitempty"`
+	RuntimeStackBytes int             `json:",omitempty"`
 	// CheckedLocalTablePath opts into admitted leaf function replacements under
 	// OptSize. The selected function must assemble smaller than PBQP baseline.
 	CheckedLocalTablePath string `json:",omitempty"`
@@ -145,6 +146,9 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	policy, err := resolveUnsignedPairComparePolicy(opt)
 	if err != nil {
 		return s, err
+	}
+	if err := mir2.ValidateCPMRuntimeStack(opt.Runtime, opt.RuntimeStackBytes); err != nil {
+		return Steps{}, err
 	}
 	if opt.Runtime != "" && opt.AssertMode != "none" && len(hm.Asserts) > 0 {
 		return s, fmt.Errorf("CP/M application runtime assertions require a separate workload; use AssertMode none")
@@ -383,6 +387,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		var codegenErr error
 		s.Assembly, codegenErr = mir2.Z80Codegen(m, combined, mir2.Z80CodegenOptions{
 			Runtime:                   opt.Runtime,
+			RuntimeStackBytes:         opt.RuntimeStackBytes,
 			AnnotateTStates:           opt.AnnotateTStates,
 			UnsignedPairComparePolicy: s.UnsignedPairComparePolicy,
 		})
@@ -487,6 +492,9 @@ func CompileHIRWithOptions(hm *hir.Module, opts Options) (string, error) {
 	}
 	// MIR Grace has one implementation and one option/size policy in the steps
 	// pipeline. Do not silently run the legacy passes for an explicit request.
+	if err := mir2.ValidateCPMRuntimeStack(opts.Runtime, opts.RuntimeStackBytes); err != nil {
+		return "", err
+	}
 	if opts.UseGrace || opts.Runtime != "" {
 		steps, err := CompileHIRSteps(hm, opts)
 		return steps.Assembly, err

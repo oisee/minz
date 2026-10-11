@@ -36,3 +36,12 @@ func TestDefaultRuntimeKeepsProfileIdentity(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestMeasuredRuntimeStackRejectsBeforeFactory(t *testing.T) {
+	calls := 0
+	factory := func() (*hir.Module, error) { calls++; t.Fatal("stack factory entered"); return nil, nil }
+	_, err := MeasureGraceVariantSets(factory, nil, hir.ProfileWorkload{}, Options{RuntimeStackBytes: 64}, 1)
+	if err == nil || !strings.Contains(err.Error(), "application runtimes") || calls != 0 {
+		t.Fatal(err, calls)
+	}
+}

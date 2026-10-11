@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -172,5 +173,89 @@ func TestCPMRuntimeBytePrimitiveABIAndBoundary(t *testing.T) {
 				t.Fatalf("peek addr%x value%d regs%+v", addr, value, got)
 			}
 		}
+	}
+}
+
+func TestCPMRuntimeGuardedStackOverflowAndFlags(t *testing.T) {
+	hirProfileTestState(t)
+	oldRuntime, oldStack := runtimeMode, runtimeStackBytes
+	t.Cleanup(func() { runtimeMode = oldRuntime; runtimeStackBytes = oldStack })
+	runtimeMode = "cpm"
+	runtimeStackBytes = 64
+	dir := t.TempDir()
+	path := filepath.Join(dir, "recursive.nanz")
+	os.WriteFile(path, []byte("global depth:u8=30\nglobal result:u8=0\nfun rec(n:u8)->u8{if n<2{return n}\nreturn rec(n-1)+rec(n-2)}\nfun main()->void{result=rec(depth)}"), 0644)
+	outputFile = filepath.Join(dir, "recursive.a80")
+	if e := compile(path); e != nil {
+		t.Fatal(e)
+	}
+	text, e := os.ReadFile(outputFile)
+	if e != nil {
+		t.Fatal(e)
+	}
+	a, e := z80asm.NewAssembler().AssembleString(string(text))
+	if e != nil || len(a.Errors) > 0 {
+		t.Fatal(e, a.Errors)
+	}
+	z := emulator.NewRemogattoZ80WithScreen()
+	z.SetROMEnd(0)
+	z.MaxCycles = 1000000
+	z.LoadMemory(0x100, a.Binary)
+	z.SetMemory(0xfdfe, 0)
+	z.SetMemory(0xfdff, 0)
+	z.SetRegisters(emulator.Registers{PC: 0x100, SP: 0xfdfe})
+	if e := z.Run(); e != nil {
+		t.Fatal(e)
+	}
+	if z.GetRegisters().PC != 0 || z.GetRegisters().SP != 0xfe00 || z.GetMemory(uint16(a.Symbols["__cpm_status"])) != 1 || z.GetMemory(uint16(a.Symbols["__cpm_stack_guard"])) != 0xa5 || z.GetMemory(uint16(a.Symbols["result"])) != 0 {
+		t.Fatal("overflow exit", z.GetRegisters())
+	}
+	if dir := os.Getenv("MINZ_CPM_OVERFLOW_ARTIFACTS"); dir != "" {
+		os.MkdirAll(dir, 0755)
+		os.WriteFile(filepath.Join(dir, "overflow.a80"), text, 0644)
+		os.WriteFile(filepath.Join(dir, "overflow.com"), a.Binary, 0644)
+		capture, _ := json.MarshalIndent(map[string]any{"registers": z.GetRegisters(), "status": z.GetMemory(uint16(a.Symbols["__cpm_status"])), "guard": z.GetMemory(uint16(a.Symbols["__cpm_stack_guard"])), "result": z.GetMemory(uint16(a.Symbols["result"]))}, "", "  ")
+		os.WriteFile(filepath.Join(dir, "overflow.json"), capture, 0644)
+	}
+	// Guard uses six temporary bytes. Accepted check retains eight bytes of
+	// slack after those pushes, so the next guarded growth can safely check.
+	for _, space := range []uint16{6, 8, 10, 12, 14, 16, 64} {
+		z.LoadMemory(0x100, a.Binary)
+		base := uint16(a.Symbols["__cpm_stack"])
+		sp := base + space - 2
+		z.SetMemory(sp, 0)
+		z.SetMemory(sp+1, 0)
+		keep := emulator.Registers{PC: uint16(a.Symbols["__cpm_stack_check"]), SP: sp, A: 0x9b, F: 0xa5, BC: 0x1234, DE: 0x5678, HL: 0x9abc, IX: 0x2468, IY: 0x1357}
+		z.SetRegisters(keep)
+		z.Unhalt()
+		if e := z.Run(); e != nil {
+			t.Fatal(e)
+		}
+		got := z.GetRegisters()
+		if space >= 14 {
+			if got.A != keep.A || got.F != keep.F || got.BC != keep.BC || got.DE != keep.DE || got.HL != keep.HL || got.IX != keep.IX || got.IY != keep.IY || got.SP != sp+2 || got.PC != 0 {
+				t.Fatalf("check preservation space%d %+v", space, got)
+			}
+		} else if z.GetMemory(uint16(a.Symbols["__cpm_status"])) != 1 {
+			t.Fatal("overflow threshold", space)
+		}
+		if z.GetMemory(base-1) != 0xa5 {
+			t.Fatal("guard write", space)
+		}
+	}
+	for _, size := range []int{-1, 1, 63, 65, 16386} {
+		runtimeStackBytes = size
+		outputFile = filepath.Join(dir, "bad.com")
+		if e := compile(path); e == nil {
+			t.Fatal("bad stack admitted", size)
+		}
+		if _, e := os.Stat(outputFile); !os.IsNotExist(e) {
+			t.Fatal("bad options wrote output")
+		}
+	}
+	runtimeMode = ""
+	runtimeStackBytes = 64
+	if e := validateCLIRuntime(path); e == nil {
+		t.Fatal("stack without runtime")
 	}
 }

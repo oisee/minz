@@ -8,8 +8,12 @@ import (
 )
 
 var runtimeMode string
+var runtimeStackBytes int
 
 func validateCLIRuntime(source string) error {
+	if e := mir2.ValidateCPMRuntimeStack(mir2.Z80Runtime(runtimeMode), runtimeStackBytes); e != nil {
+		return e
+	}
 	if runtimeMode == "" {
 		return nil
 	}
