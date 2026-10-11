@@ -1,0 +1,8 @@
+{
+  "T_states": 22292974,
+  "bin_sha256": "80766b96967bffca33056d5ed39cb5e2a5d3a865035ed3564d6fa20363ac7260",
+  "calls": 2063,
+  "max_stack_bytes": 1020,
+  "source_asserts": 14,
+  "source_sha256": "290fb4faeeeba36ff27ea3eb72157f9ee63f6161229b85d2e46ed00423e4ed1e"
+}

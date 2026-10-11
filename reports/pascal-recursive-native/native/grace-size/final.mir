@@ -1,0 +1,73 @@
+; MIR2 module: ../../../examples/pascal/recursive_test.pas
+fun @INC2(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = const 2 : u8 [general]
+    %r3 = add %r1, %r2 : u8 [acc]
+    ret %r3
+
+fun @DEC2(%r4: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r5 = const 2 : u8 [general]
+    %r6 = sub %r4, %r5 : u8 [acc]
+    ret %r6
+
+fun @NEGATE(%r7: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r8 = neg %r7 : u8 [acc]
+    ret %r8
+
+fun @IDENTITY(%r9: u8 [acc]) -> u8 [acc]
+  block @entry:
+    ret %r9
+
+fun @ZERO(%r10: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r11 = const 0 : u8 [general]
+    ret %r11
+
+fun @ISPOSITIVE(%r12: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r13 = const 0 : u8 [general]
+    %r14 = cmp.ugt %r12, %r13 : bool [flag]
+    %r15 = const 0 : u8 [general]
+    cond_ret %r14, [%r15], @if_then1()
+  block @if_then1:
+    %r16 = const 1 : u8 [general]
+    ret %r16
+
+fun @FACT(%r17: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r18 = const 1 : u8 [general]
+    %r19 = cmp.ule %r17, %r18 : bool [flag]
+    br_if %r19, @if_then1(), @if_else3()
+  block @if_then1:
+    %r20 = const 1 : u8 [general]
+    ret %r20
+  block @if_else3:
+    %r21 = const 1 : u8 [general]
+    %r22 = sub %r17, %r21 : u8 [acc]
+    %r23 = move %r22 : u8 [acc]
+    %r24 = call @FACT(%r23) : u8 [acc]
+    %r25 = mul %r17, %r24 : u8 [general]
+    ret %r25
+
+fun @SUMTO(%r26: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r27 = const 0 : u8 [general]
+    %r28 = cmp.eq %r26, %r27 : bool [flag]
+    br_if %r28, @if_then1(), @if_else3()
+  block @if_then1:
+    %r29 = const 0 : u8 [general]
+    ret %r29
+  block @if_else3:
+    %r30 = const 1 : u8 [general]
+    %r31 = sub %r26, %r30 : u8 [acc]
+    %r32 = move %r31 : u8 [acc]
+    %r33 = call @SUMTO(%r32) : u8 [acc]
+    %r34 = add %r26, %r33 : u8 [acc]
+    ret %r34
+
+fun @main()
+  block @entry:
+    ret void
+

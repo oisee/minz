@@ -1,0 +1,90 @@
+; MIR2 module: ../../../examples/pascal/recursive_test.pas
+fun @INC2(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = const 0 : u8 [general]
+    %r3 = const 2 : u8 [general]
+    %r4 = add %r1, %r3 : u8 [acc]
+    ret %r4
+
+fun @DEC2(%r5: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r6 = const 0 : u8 [general]
+    %r7 = const 2 : u8 [general]
+    %r8 = sub %r5, %r7 : u8 [acc]
+    ret %r8
+
+fun @NEGATE(%r9: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r10 = const 0 : u8 [general]
+    %r11 = const 0 : u8 [general]
+    %r12 = sub %r11, %r9 : u8 [acc]
+    ret %r12
+
+fun @IDENTITY(%r13: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r14 = const 0 : u8 [general]
+    ret %r13
+
+fun @ZERO(%r15: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r16 = const 0 : u8 [general]
+    %r17 = const 0 : u8 [general]
+    ret %r17
+
+fun @ISPOSITIVE(%r18: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r19 = const 0 : u8 [general]
+    %r20 = const 0 : u8 [general]
+    %r21 = cmp.ugt %r18, %r20 : bool [flag]
+    br_if %r21, @if_then1(), @if_else3()
+  block @if_then1:
+    %r22 = const 1 : u8 [general]
+    jmp @if_join2(%r22)
+  block @if_else3:
+    %r23 = const 0 : u8 [general]
+    jmp @if_join2(%r23)
+  block @if_join2(%r24: u8 [general]):
+    ret %r24
+
+fun @FACT(%r25: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r26 = const 0 : u8 [general]
+    %r27 = const 1 : u8 [general]
+    %r28 = cmp.ule %r25, %r27 : bool [flag]
+    br_if %r28, @if_then1(), @if_else3()
+  block @if_then1:
+    %r29 = const 1 : u8 [general]
+    jmp @if_join2(%r29)
+  block @if_else3:
+    %r30 = const 1 : u8 [general]
+    %r31 = sub %r25, %r30 : u8 [acc]
+    %r32 = move %r31 : u8 [acc]
+    %r33 = call @FACT(%r32) : u8 [acc]
+    %r34 = mul %r25, %r33 : u8 [general]
+    jmp @if_join2(%r34)
+  block @if_join2(%r35: u8 [general]):
+    ret %r35
+
+fun @SUMTO(%r36: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r37 = const 0 : u8 [general]
+    %r38 = const 0 : u8 [general]
+    %r39 = cmp.eq %r36, %r38 : bool [flag]
+    br_if %r39, @if_then1(), @if_else3()
+  block @if_then1:
+    %r40 = const 0 : u8 [general]
+    jmp @if_join2(%r40)
+  block @if_else3:
+    %r41 = const 1 : u8 [general]
+    %r42 = sub %r36, %r41 : u8 [acc]
+    %r43 = move %r42 : u8 [acc]
+    %r44 = call @SUMTO(%r43) : u8 [acc]
+    %r45 = add %r36, %r44 : u8 [acc]
+    jmp @if_join2(%r45)
+  block @if_join2(%r46: u8 [general]):
+    ret %r46
+
+fun @main()
+  block @entry:
+    ret void
+

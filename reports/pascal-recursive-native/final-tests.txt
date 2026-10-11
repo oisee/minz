@@ -1,0 +1,7 @@
+=== RUN   TestOriginalPascalRecursiveFullByteDomain
+    original_pascal_recursive_native_test.go:250: ordinary 2063 exactmain/sourceasserts/fullByte8entries raw/final/native RAM/SP/image PASS
+    original_pascal_recursive_native_test.go:250: grace-size 2063 exactmain/sourceasserts/fullByte8entries raw/final/native RAM/SP/image PASS
+    original_pascal_recursive_native_test.go:250: grace-speed 2063 exactmain/sourceasserts/fullByte8entries raw/final/native RAM/SP/image PASS
+--- PASS: TestOriginalPascalRecursiveFullByteDomain (0.94s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.951s

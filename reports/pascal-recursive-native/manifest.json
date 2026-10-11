@@ -1,0 +1,29 @@
+{
+  "source_sha256": "290fb4faeeeba36ff27ea3eb72157f9ee63f6161229b85d2e46ed00423e4ed1e",
+  "files": {
+    "REPORT.md": "7a97f222847aa946056b94ca2c49a8181200e485dee4d584e43ff61ac09baf77",
+    "final-tests.txt": "61aa30a72f0936ec3ffaf7643f6d15b9bf9c6ebfdf28045ef4f9648e990f8e96",
+    "freeze.json": "4eb7bef15e83f3fd4151be19d25076ebe6523144247de919ed889f605672f96c",
+    "native/grace-size/allocation.json": "bd425756cc9a51d354bab5005c3f8ff77ea71473037cc114320a67a785e66ae6",
+    "native/grace-size/evidence.json": "d2898b2005e6bcfc225ac709564c97fc2849003b84d62c1e1823cd3753f2cc4b",
+    "native/grace-size/final.mir": "318d012aed8f387b10f7a2bb1bf5b4cd062c14343dadd738a848b64d25f24930",
+    "native/grace-size/raw.mir": "075d7aa1d0f18aa742eb6cafd22da9e3bcbb77233fed6f64beb3d5c97e7d9903",
+    "native/grace-size/target.a80": "1dc04315f5716d637bb9bf9c7c345740c478baa988e257e98162b851c6b211f9",
+    "native/grace-size/target.bin": "80766b96967bffca33056d5ed39cb5e2a5d3a865035ed3564d6fa20363ac7260",
+    "native/grace-speed/allocation.json": "bd425756cc9a51d354bab5005c3f8ff77ea71473037cc114320a67a785e66ae6",
+    "native/grace-speed/evidence.json": "d2898b2005e6bcfc225ac709564c97fc2849003b84d62c1e1823cd3753f2cc4b",
+    "native/grace-speed/final.mir": "318d012aed8f387b10f7a2bb1bf5b4cd062c14343dadd738a848b64d25f24930",
+    "native/grace-speed/raw.mir": "075d7aa1d0f18aa742eb6cafd22da9e3bcbb77233fed6f64beb3d5c97e7d9903",
+    "native/grace-speed/target.a80": "1dc04315f5716d637bb9bf9c7c345740c478baa988e257e98162b851c6b211f9",
+    "native/grace-speed/target.bin": "80766b96967bffca33056d5ed39cb5e2a5d3a865035ed3564d6fa20363ac7260",
+    "native/ordinary/allocation.json": "bd425756cc9a51d354bab5005c3f8ff77ea71473037cc114320a67a785e66ae6",
+    "native/ordinary/evidence.json": "d2898b2005e6bcfc225ac709564c97fc2849003b84d62c1e1823cd3753f2cc4b",
+    "native/ordinary/final.mir": "318d012aed8f387b10f7a2bb1bf5b4cd062c14343dadd738a848b64d25f24930",
+    "native/ordinary/raw.mir": "075d7aa1d0f18aa742eb6cafd22da9e3bcbb77233fed6f64beb3d5c97e7d9903",
+    "native/ordinary/target.a80": "4dc950cbb4c4db608b06fd0021a6c089fade5bb8ed39fab405fef6ce1679e005",
+    "native/ordinary/target.bin": "80766b96967bffca33056d5ed39cb5e2a5d3a865035ed3564d6fa20363ac7260",
+    "pascal-full.txt": "a1046b7002fdd9c6a8f2a2383de1c972d3e02f941f89b1c90c2479df9c3688b0",
+    "source.pas": "290fb4faeeeba36ff27ea3eb72157f9ee63f6161229b85d2e46ed00423e4ed1e",
+    "tests.txt": "36d78e0a984a9814d04ff4fd7c9cd0ffe74872d1d0e34ccbfa962b698761f549"
+  }
+}
