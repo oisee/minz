@@ -1,0 +1,11 @@
+    PUSH DE
+    LD (_spill_multiply_busy_r1), A
+    ; save r1 before ALU overwrite
+    LD A, (_spill_multiply_busy_r1)
+    ADD A, A
+    LD D, A
+    ADD A, A
+    ADD A, A
+    ADD A, D
+    LD (_spill_multiply_busy_r2), A
+    POP DE
