@@ -1,0 +1,9 @@
+package main
+import("fmt";"github.com/minz/minzc/pkg/nanz";"github.com/minz/minzc/pkg/pipeline")
+func main(){src:=`fun or_zero(x:u8)->u8{return x | 0}
+fun xor_zero(x:u8)->u8{return x ^ 0}
+fun and_zero(x:u8)->u8{return x & 0}
+fun sub_zero(x:u8)->u8{return x - 0}
+fun shl_zero(x:u8)->u8{return x << 0}
+fun cancellation(a:u8,b:u8,c:u8)->u8{let p:u8=a+b return p-(c+a)}`
+h,e:=nanz.Parse(src,"probe.nanz");if e!=nil{panic(e)};s,e:=pipeline.CompileHIRSteps(h,pipeline.Options{ContractOpt:true});if e!=nil{panic(e)};fmt.Print(s.MIR2Module.Dump());fmt.Print(s.Assembly)}

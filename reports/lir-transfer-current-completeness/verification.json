@@ -1,0 +1,14 @@
+{
+  "snapshot": "08be2950",
+  "source_hashes": {
+    "docs/grace-lir-removal-inventory/README.md": "14af4493f35304e3757bbd0a4fc21e7fe59ca9e5966f1019a92c87bb5557b626",
+    "reports/2026-10-11-lir-test-transfer-completion.md": "fcdbac000db20ffcb5652b6dacf62737034ebfdcebbd86fb016aa2b0ef8c8cbc",
+    "minzc/pkg/mir2/constprop.go": "a9bb54c4bc0352646e159704971720570c6ca6f72b6089ee67898fcf6e9d82cf",
+    "minzc/pkg/mir2/z80codegen_muldiv.go": "fe5799515e5fdec62f5850962f8b0fb0b59110c9390e32f78ca18742599aa4b7",
+    "minzc/pkg/mir2/byte_word_fusion.go": "d732ecb01eb62595d4b51c612b757da3e3543241e83838c8df9c478440ab5fe2",
+    "minzc/pkg/vir/table_production.go": "4484b92330e5d9bb5d52f3b1fea8172ae85fe28b54b5940f891800a4798266cd",
+    "minzc/pkg/hir/native_composition_test.go": "066148c0957f2bcde8f9aa1f41fa0b1a793955e07839ec15355b557d87fc517f",
+    "minzc/pkg/rewrite/isle/testdata/legacy-combine.isle": "664b4f4af3ea6d729827d485070fc431941fedc71985bdc3b63a52f8a5a7174e"
+  },
+  "archive_sha256": "7c68901fcbb4e319b1ed4380e8a1e73fa2270e8e72180bc8778d8330c73adfc4"
+}
