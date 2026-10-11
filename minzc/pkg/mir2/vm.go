@@ -987,7 +987,10 @@ func (vm *VM) registerBuiltinHosts() {
 		if len(args) < 1 {
 			return nil, nil
 		}
-		fmt.Printf("%c", rune(args[0].I))
+		_, err := os.Stdout.Write([]byte{byte(args[0].I)})
+		if err != nil {
+			return nil, err
+		}
 		return nil, nil
 	}
 	vm.Hosts["@mir.io.print.u8"] = func(args []Value) ([]Value, error) {

@@ -6,6 +6,8 @@ import (
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/nanz"
+	"io"
+	"os"
 	"strings"
 	"testing"
 )
@@ -66,5 +68,45 @@ func TestLiteralByteLengthAdmission(t *testing.T) {
 	_, e := nanz.Parse("fun f()->^u8 { return \""+strings.Repeat("é", 128)+"\" }", "utf8.nanz")
 	if e == nil {
 		t.Fatal("256 UTF8 bytes accepted")
+	}
+}
+
+func TestLiteralPrintBuiltinBytesAndHygiene(t *testing.T) {
+	source := "global __print_ptr_1:u16=123\nglobal __print_count_2:u16=456\nfun show()->u16 {\n let __print_ptr_3:u16=321\n @print(\"é\\0B\")\n @print(l\"é\")\n @print(c\"!\")\n return __print_ptr_3\n}\n"
+	h, e := nanz.Parse(source, "hygiene.nanz")
+	if e != nil {
+		t.Fatal(e)
+	}
+	m := hir.LowerModule(h)
+	if e = mir2.Verify(m); e != nil {
+		t.Fatal(e)
+	}
+	vm := mir2.NewVM(m)
+	old := os.Stdout
+	r, w, e := os.Pipe()
+	if e != nil {
+		t.Fatal(e)
+	}
+	os.Stdout = w
+	result, callErr := vm.Call("show", nil)
+	w.Close()
+	os.Stdout = old
+	output, e := io.ReadAll(r)
+	r.Close()
+	if e != nil || callErr != nil {
+		t.Fatal(e, callErr)
+	}
+	want := []byte{0xc3, 0xa9, 0, 66, 0xc3, 0xa9, 33}
+	if !bytes.Equal(output, want) {
+		t.Fatalf("actual builtin bytes %x want%x", output, want)
+	}
+	if len(result) != 1 || result[0].I != 321 {
+		t.Fatal("source local changed", result)
+	}
+	for n, v := range map[string]uint16{"__print_ptr_1": 123, "__print_count_2": 456} {
+		b := vm.ReadHeap(vm.GlobalAddr(n), 2)
+		if uint16(b[0])|uint16(b[1])<<8 != v {
+			t.Fatal("source global changed", n, b)
+		}
 	}
 }
