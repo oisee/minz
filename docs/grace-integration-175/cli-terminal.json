@@ -1,0 +1,16 @@
+{
+  "compiler_commit": "44d8952b",
+  "code_checkpoint": "afca2aa5",
+  "command": "cli-44d8952b-abi.test -test.count=1 -test.timeout=20m",
+  "required_cwd": "compiler/minzc/cmd/minzc",
+  "exit_code": 1,
+  "top_level_failures": [
+    "TestIndirectMIR2DefaultWarning",
+    "TestIndirectCallEmissionScope",
+    "TestIndirectIntermediateAsserts"
+  ],
+  "log_sha256": "0492a1dd2c566899a8e7e799d3bbd88cf3e7dd759161306924ff1b25aa8dbf2d",
+  "binary_sha256": "e0d1e2b2221282cecbcc62bb4ab2e0d6072e0e5ce9df1876c8a4cef833e4da35",
+  "elapsed_seconds": null,
+  "elapsed_note": "Non-verbose retained binary did not emit elapsed time; no duration inferred."
+}

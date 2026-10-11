@@ -1,0 +1,31 @@
+--- FAIL: TestIndirectMIR2DefaultWarning (0.01s)
+    default_output_test.go:79: missing warning: 
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeReplayActualFrozenHeldout1011855192/002/training
+[compiler-modes replay] fixed mode 1: 5568 T / 52 B; saved BIN 23a46320f4d5adaf3a706457cf721145f0ff0df85efcd4c8e0e2b0f0d83642f0
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeReplayRejectsMutatedTraining3121018326/002/training
+[compiler-modes] speed selected mode 0: 24 T / 10 B; artifacts /tmp/TestCompilerModeReplayChangedImportedSource4106781141/002/training
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeReplayRejectsHeldoutDiskMutation1944455292/002/training
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts3792470850/002/evidence
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts3792470850/003/evidence
+[compiler-modes] size selected mode 0: 2605 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts3792470850/004/evidence
+[compiler-modes] size selected mode 0: 2605 T / 52 B; artifacts /tmp/TestCompilerModeCLIActualSelectedArtifacts3792470850/005/evidence
+[compiler-modes] speed selected mode 0: 24 T / 10 B; artifacts /tmp/TestCompilerModeCLIImportedSource1179064257/001/evidence
+--- FAIL: TestIndirectCallEmissionScope (0.07s)
+    --- FAIL: TestIndirectCallEmissionScope/z80_assembly (0.01s)
+        indirect_emission_test.go:56: want explicit Z80 rejection, got <nil>
+    --- FAIL: TestIndirectCallEmissionScope/z80_binary (0.01s)
+        indirect_emission_test.go:56: want explicit Z80 rejection, got <nil>
+    --- FAIL: TestIndirectCallEmissionScope/default_z80_product (0.01s)
+        indirect_emission_test.go:56: want explicit Z80 rejection, got <nil>
+    --- FAIL: TestIndirectCallEmissionScope/z80_assert (0.03s)
+        indirect_emission_test.go:56: want explicit Z80 rejection, got <nil>
+--- FAIL: TestIndirectIntermediateAsserts (0.02s)
+    --- FAIL: TestIndirectIntermediateAsserts/z80_sandbox (0.01s)
+        indirect_emission_test.go:113: want guarded Z80 emission, got <nil>
+Closed memory-host policy preserve-speed speed selected mask1: 739T / 2559B; evidence /tmp/TestPolicyCLICollectReplay1054413119/001/policy-artifacts
+Closed memory-host policy preserve-speed speed selected mask1: 739T / 2559B; evidence /tmp/TestPolicyCLICollectReplay1054413119/001/replay
+Closed memory-host search speed selected policy1/mask1: 739T / 2513B; evidence /tmp/TestSearchCLICollectAndPairedReplay1647637788/001/search-artifacts
+Closed memory-host search size selected policy0/mask2: 834T / 2371B; evidence /tmp/TestSearchCLICollectAndPairedReplay1647637788/001/search-replay
+Closed memory-host speed selected mask1: 756T / 2558B; evidence /tmp/TestMemoryHostLegacySelectedOutputCollectReplay2176795060/001/legacy-collect
+Closed memory-host speed selected mask1: 756T / 2558B; evidence /tmp/TestMemoryHostLegacySelectedOutputCollectReplay2176795060/001/legacy-replay
+FAIL
