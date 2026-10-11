@@ -17,6 +17,25 @@ import "fmt"
 //     retain the VM contract; strict type checking is not performed here.
 //   - [host] calls appear only inside [comptime] functions.
 func Verify(m *Module) error {
+	if m == nil {
+		return fmt.Errorf("mir2: nil module")
+	}
+	// Check containers before any semantic/type scan can dereference them.
+	for fi, f := range m.Funcs {
+		if f == nil {
+			return fmt.Errorf("mir2: nil function at %d", fi)
+		}
+		for bi, b := range f.Blocks {
+			if b == nil {
+				return fmt.Errorf("mir2: func @%s: nil block at %d", f.Name, bi)
+			}
+			for ii, i := range b.Insts {
+				if i == nil {
+					return fmt.Errorf("mir2: func @%s block @%s: nil instruction at %d", f.Name, b.Label, ii)
+				}
+			}
+		}
+	}
 	for _, f := range m.Funcs {
 		if f.Attrs.FallibleCY {
 			if f.Attrs.IsExtern || len(f.Contract.Returns) > 1 || len(f.Contract.Returns) == 1 && (f.Contract.Returns[0].Ty != TyU8 || f.Contract.Returns[0].Class != ClassAcc) {
