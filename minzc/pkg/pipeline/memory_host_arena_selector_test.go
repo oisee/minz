@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/minz/minzc/pkg/hir"
 	"github.com/minz/minzc/pkg/nanz"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -59,4 +60,40 @@ fun run()->u8{var i:u8=0 while i<1{i=i+1} return i}`
 			}
 		})
 	}
+}
+
+func TestMemoryHostArenaSourceGraphRetention(t *testing.T) {
+	m, e := nanz.Parse("fun run()->u8{return 7}", "retention.nanz")
+	if e != nil {
+		t.Fatal(e)
+	}
+	seen := map[uintptr]bool{}
+	if e = jointCheckFreshHIR(m, seen); e != nil {
+		t.Fatal(e)
+	}
+	roots := []any{}
+	retainArenaSourceGraph(m, &roots)
+	old := m.Funcs[0].Body.Body[0]
+	m.Funcs[0].Body = nil
+	runtime.GC()
+	for i := 0; i < 32; i++ {
+		fresh, e := nanz.Parse("fun run()->u8{return 7}", "retention.nanz")
+		if e != nil {
+			t.Fatal(e)
+		}
+		runtime.GC()
+		if e = jointCheckFreshHIR(fresh, seen); e != nil {
+			t.Fatal("GC address reuse escaped retention", e)
+		}
+		retainArenaSourceGraph(fresh, &roots)
+	}
+	shared, e := nanz.Parse("fun run()->u8{return 7}", "retention.nanz")
+	if e != nil {
+		t.Fatal(e)
+	}
+	shared.Funcs[0].Body.Body[0] = old
+	if e = jointCheckFreshHIR(shared, seen); e == nil {
+		t.Fatal("real shared statement accepted")
+	}
+	runtime.KeepAlive(roots)
 }

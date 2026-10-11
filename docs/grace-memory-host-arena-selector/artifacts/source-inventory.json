@@ -1,0 +1,9 @@
+{
+  "core_checkpoint": "3808d614",
+  "files": {
+    "minzc/pkg/hir/arena_peel_proof.go": "a04c76c69517f5c87409557a065575b94ee835b5f3e45adbc1fd89958d97daae",
+    "minzc/pkg/hir/memory_host_loop_profile_load.go": "ab435d7d8ed209d5b8938251c1d3faa31e190e1ec9f548a6b68296e3899584be",
+    "minzc/pkg/pipeline/memory_host_arena_peel_construct.go": "258b4472e5b5a6c2872af459f5d44cec0415fb5c20cf2dacac0cfafa6c2d6cad",
+    "minzc/pkg/pipeline/memory_host_arena_selector.go": "6dd186afd51dc01620c42a5e003aeb30847cef92bcd2d14b6fc36e2b54046771"
+  }
+}

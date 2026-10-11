@@ -24,3 +24,9 @@ prepared candidate is explicitly excluded from retained original-identity checks
 all other originals remain checked through later callbacks. No caller transformed
 factory, compiler options or assembly are accepted. This WIP needs independent
 lifecycle review and meaningful selector/JSON tests before integration.
+
+Focused loader/graph-retention checks PASS0.042s. Forced GC preserves source
+allocations while genuinely shared statements still refuse. Initial native
+prototype attempt stopped at a false freshness refusal; that negative history
+is retained separately. Actual selector E2E runs are delegated to the combined
+call-frame branch, not repeated in this branch.

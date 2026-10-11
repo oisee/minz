@@ -1,0 +1,10 @@
+=== RUN   TestMemoryHostArenaSelectorOriginal30
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_arena_selector_test.go:25: speed memory host baseline: factory returned shared HIR nodes/storage
+--- FAIL: TestMemoryHostArenaSelectorOriginal30 (5.28s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	5.286s
+FAIL
