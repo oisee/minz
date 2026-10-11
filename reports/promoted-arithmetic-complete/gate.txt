@@ -1,0 +1,102 @@
+=== RUN   TestOriginalPromotedArithmeticComplete
+=== RUN   TestOriginalPromotedArithmeticComplete/ordinary
+    promoted_arithmetic_complete_test.go:226: {
+          "allowed_generated_spill_bytes": {
+            "33108": true,
+            "33109": true
+          },
+          "bytes": 342,
+          "entries": {
+            "add": 65536,
+            "add8": 65536,
+            "add_bytes": 65536,
+            "byte_add": 65536,
+            "popcount4": 256,
+            "pressure": 25116,
+            "promoted_mod": 256,
+            "swap_nibbles": 256,
+            "test_ld_word": 65536
+          },
+          "excluded_zero_denominator_cases": 3445,
+          "stack_depth_per_entry": {
+            "add": 2,
+            "add8": 2,
+            "add_bytes": 2,
+            "byte_add": 2,
+            "popcount4": 2,
+            "pressure": 10,
+            "promoted_mod": 2,
+            "swap_nibbles": 2,
+            "test_ld_word": 2
+          },
+          "stack_low": "eff6"
+        }
+=== RUN   TestOriginalPromotedArithmeticComplete/grace-size
+    promoted_arithmetic_complete_test.go:226: {
+          "allowed_generated_spill_bytes": {
+            "33103": true,
+            "33104": true
+          },
+          "bytes": 337,
+          "entries": {
+            "add": 65536,
+            "add8": 65536,
+            "add_bytes": 65536,
+            "byte_add": 65536,
+            "popcount4": 256,
+            "pressure": 25116,
+            "promoted_mod": 256,
+            "swap_nibbles": 256,
+            "test_ld_word": 65536
+          },
+          "excluded_zero_denominator_cases": 3445,
+          "stack_depth_per_entry": {
+            "add": 2,
+            "add8": 2,
+            "add_bytes": 2,
+            "byte_add": 2,
+            "popcount4": 2,
+            "pressure": 10,
+            "promoted_mod": 2,
+            "swap_nibbles": 2,
+            "test_ld_word": 2
+          },
+          "stack_low": "eff6"
+        }
+=== RUN   TestOriginalPromotedArithmeticComplete/grace-speed
+    promoted_arithmetic_complete_test.go:226: {
+          "allowed_generated_spill_bytes": {
+            "33103": true,
+            "33104": true
+          },
+          "bytes": 337,
+          "entries": {
+            "add": 65536,
+            "add8": 65536,
+            "add_bytes": 65536,
+            "byte_add": 65536,
+            "popcount4": 256,
+            "pressure": 25116,
+            "promoted_mod": 256,
+            "swap_nibbles": 256,
+            "test_ld_word": 65536
+          },
+          "excluded_zero_denominator_cases": 3445,
+          "stack_depth_per_entry": {
+            "add": 2,
+            "add8": 2,
+            "add_bytes": 2,
+            "byte_add": 2,
+            "popcount4": 2,
+            "pressure": 10,
+            "promoted_mod": 2,
+            "swap_nibbles": 2,
+            "test_ld_word": 2
+          },
+          "stack_low": "eff6"
+        }
+--- PASS: TestOriginalPromotedArithmeticComplete (3.69s)
+    --- PASS: TestOriginalPromotedArithmeticComplete/ordinary (1.30s)
+    --- PASS: TestOriginalPromotedArithmeticComplete/grace-size (1.22s)
+    --- PASS: TestOriginalPromotedArithmeticComplete/grace-speed (1.17s)
+PASS

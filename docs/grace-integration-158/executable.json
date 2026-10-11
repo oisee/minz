@@ -1,0 +1,8 @@
+{
+  "compiler_commit": "badbe71f",
+  "local": "/home/alice/dev/minz-artifacts/grace-checkpoints/cellular-badbe71f.test",
+  "share": "/mnt/safe/minz/grace/2026-10-11/compiler-checkpoints/cellular-badbe71f.test",
+  "sha256": "762c05a6eb9e50a7ff1c6dbbf51810673f811fd5d132006ff2f21c89a241d0fd",
+  "required_cwd": "compiler/minzc/pkg/pipeline",
+  "command": "cellular-badbe71f.test -test.run ^TestOriginalLizpCellularComplete$ -test.count=1"
+}

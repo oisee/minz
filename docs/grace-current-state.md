@@ -6,26 +6,30 @@
 
 ## Сводка последнего проверенного состояния
 
-Последние root code checkpoints: widening `9b20ab89`, literal-width `48e5fe6d`,
-CLI evidence assertion `561dab36`. Исторические результаты ниже сохраняют
+Последние root code checkpoints: signed comparison `0e34e351`, aggregate pointer
+classes `e49054af`, known consumed callback ABI `8c9fa926`, constant-call purity `4f58692b`
+и direct MIR call shape `240db2ea`. Исторические результаты ниже сохраняют
 свои исходники и режимы. Общая цель не закрыта.
 
 | Требование | Что доказано | Что ещё не доказано |
 |---|---|---|
-| Заявленный корпус | Все 194 пути имеют явный статус; 51 bounded independent VM/Z80 path | 86 ждут независимого оракула, остальные имеют отдельные ASM/runtime/host ограничения; bounded entry не означает всё приложение |
+| Заявленный корпус | Все 194 пути имеют явный статус; 58 independent VM/Z80 paths | 79 ждут независимого оракула, остальные имеют отдельные ASM/runtime/host ограничения; bounded entry не означает всё приложение |
 | PFCCO/PBQP и таблицы | Реальные назначения, moves/saves и native польза на packet/weighted; bounded solver audit | Произвольные calls/CFG/islands и глобальная оптимальность |
 | Автоматический выбор и heldout | Self-Lanz, HashMap и Pascal SORT: training-selected BIN проверен на заранее отложенных входах; packet даёт отдельный PFCCO выигрыш | Остальные runtime/corpus ограничения сохраняются; это не универсальный выигрыш на всех программах |
 | Полное удаление LIR и перенос пользы | Пакет/consumers удалены; shared engines/native тесты сохранены; word ×10/12, byte fusion и K11 перенесены с native пользой | Полнота общих physical constraints/pattern choices требует предметного аудита |
-| Воспроизводимость | Исходники, workloads, решения, ASM/BIN и логи на `/mnt/safe/minz/grace/2026-10-11/`; v67 сайт: 9 860 файлов целиком проверены по SHA | Текущие общие gates должны завершиться со своим точным checkpoint |
+| Воспроизводимость | Исходники, workloads, решения, ASM/BIN и логи на `/mnt/safe/minz/grace/2026-10-11/`; v67 сайт: 9 860 файлов целиком проверены по SHA | Новые ABI и purity изменения требуют полного gate на новом checkpoint |
 
-Свежий full core `c69e350e`: HIR/MIR2/Nanz/VIR **PASS**
-([пакет135](grace-integration-135/README.md)); он предшествует signed widening.
-Full CLI этого checkpoint завершился **FAIL 351,983 с**: один тест фиксировал
+Свежий full core `4587e753`: HIR/MIR2/Nanz/VIR **PASS**
+([пакет144](grace-integration-144/README.md)); включает signed/unsigned/bool widening,
+unsigned promotion и aggregate-address corrections.
+Исторический full CLI c69e350e завершился **FAIL 351,983 с**: один тест фиксировал
 исторические такты. Проверка исправлена и focused PASS 19,153 с
-([пакет138](grace-integration-138/README.md)); нового full CLI PASS пока нет.
+([пакет138](grace-integration-138/README.md)). Последующий полный CLI4587e753
+**PASS342,878 с** ([пакет147](grace-integration-147/README.md)).
 Fresh showcase после widening **PASS 11,547 с**
 ([пакет140](grace-integration-140/README.md)).
-Полный pipeline `a7954042` подтверждён живым; он предшествует plasma.
+Полный pipeline `a7954042` завершился **PASS за 3705,100 с**
+([пакет154](grace-integration-154/README.md)); он предшествует plasma, widening и новым ABI изменениям.
 Эти результаты нельзя объединять в один общий current fullsuite PASS.
 
 Чистый Speed сохранён без штрафа за байты; Size — отдельная цель.
@@ -553,15 +557,69 @@ PASS ([пакет136](grace-integration-136/README.md)).
 
 ## Текущая проверка оставшегося корпуса
 
-Неизменённый widemath, все26callables: provisional native/VM matrix
-в isolated ветке проходит после frontend literal-width и aggregate-address
-исправлений. Root ещё не интегрировал aggregate correction; effect/ABI controls
-доделываются. Original promoted_arithmetic получает расширенный whole-source
-oracle вместо нескольких asserts. Mixed unsigned width contradiction
-проверяется отдельно; общая mixed signedness policy не придумана по правилам C.
+Неизменённый widemath: все26callables, 2 248 035 nativecalls в трёх режимах,
+raw/finalVM и orderedfield/RAM/SP/code модели; rootbounded replay PASS1,108 с
+([пакет145](grace-integration-145/README.md)). Originalpromoted_arithmetic:
+все9entries, 1 060 692nativecalls с raw/finalVM models, actualCALL/fullRAM.
+Каталог после обоихproofs:53 independentpaths и84pending
+([пакет146](grace-integration-146/README.md)).
+Mixedunsignedwidth исправлен отдельно. Signedmixedcomparison native
+согласуется с MIRSrcTy в следующем исправлении; frontendобщаяsignednesspolicy
+не придумана по правилам C. LocalreturnedW8 lifetime за пределами немедленного
+inspection проверяется отдельно; immediateproof не покрывает escapingvalue.
 [Независимый аудит всей цели](../reports/2026-10-11-080-objective-completion-b1adbf09.md).
 
 Весь опубликованный v67 сохранён локально и на шаре; exact manifest
 подтверждён после устранения copy metadata ошибки
 ([пакет139](grace-integration-139/README.md)). Позднейшие исправления имеют
 свежие repo/share пакеты; текущий сайт сохраняет свой более ранний checkpoint.
+
+
+## Контракты вызовов: текущие исправления
+
+Original Lizp functional: все8entries,398595nativecalls втрёхрежимах,
+actualCallIndirect/targettrace и fullRAM/PCSP, rootPASS3,642с
+([пакет148](grace-integration-148/README.md)). Каталог54independentpaths/83pending
+([149](grace-integration-149/README.md)). Original lambdaszero-capture;
+не заявляется новый environmentABI. Knownfunctioncallback mismatchedword/byte
+ABI acceptance исправляетсядоemission, exactbeforepacketсохранён.
+
+Signedcomparison повторяет actualMIRSrcTywidth, unsigned/Eq/Ne не изменены
+([149](grace-integration-149/README.md)). Generalaggregateaddressclasses
+исправлены, но originalnoninline returnedS lifetimeподтверждёнFAIL послеlaterCALL
+([150](grace-integration-150/README.md)). CallerownedbufferABI реализуется
+с publicentry/indirect/multi/recursion/effectguards; preliminaryfrozenfailures
+устранены, полныйrootPASSпока не заявлен.
+
+Currenttablejointmatrix44→20B/238→142T сохранена
+([151](grace-integration-151/README.md)); ordinarytableapplication solver-free.
+BoundedPFCCO/PBQPexhaustivecost controlsPASS
+([152](grace-integration-152/README.md)).
+
+## Проверка известных callback ABI
+
+Интегрирован `8c9fa926`: сигнатура указателя-параметра, реально вызываемого
+как функция, выводится из места вызова и распространяется через неизменяемые
+алиасы и forwarding wrappers. Несовместимые известные цели и fallible CY
+отклоняются до ASM; совместимые byte/word callbacks сохраняются.
+[Исходный отчёт и проверки](../reports/2026-10-11-consumed-callback-signatures.md).
+Общий возврат структур через caller-owned buffers и запрет свёртки
+вызовов с памятью ещё в работе; их корректность здесь не заявляется.
+
+Константная свёртка с памятью исправлена `4f58692b`; совместный callback/purity
+root gate проходит ([пакет155](grace-integration-155/README.md)). General
+struct-return buffers остаются незавершёнными.
+
+Исходный Lizp DSP теперь имеет bounded независимую проверку всех пяти entry: 847 104 VM/native CALL в трёх режимах, без period0 и полного clamp domain. [Пакет157](grace-integration-157/README.md); актуальный каталог сохраняет все 194 пути.
+
+MIR direct-call shape checks интегрированы `240db2ea`; оригинальные cellular функции имеют bounded VM/native proof всех трёх entries. [Пакет158](grace-integration-158/README.md), актуальный каталог: 56 independent/bounded, pending81.
+
+Исходный scheme_test.lizp прошёл полные byte-домены всех 11 callable entries: 595 968 VM/native CALL, три режима. [Пакет159](grace-integration-159/README.md). Актуальный каталог: 57 independent/bounded, pending80.
+
+Исходный PL/M abs_diff_fib.plm проверен полностью по byte-входам: 197 376 CALL в трёх режимах. [Пакет160](grace-integration-160/README.md), каталог58independent/bounded и pending79.
+
+На исходном PL/M ABS_DIFF/FIB Grace уменьшает модуль 47→38 байт; полная нагрузка FIB(all256) 5 208 960→4 453 888 T (−14,50%). ABS_DIFF(all65536) остаётся 3 637 120 T. [Пакет161](grace-integration-161/README.md); это сравнение режимов, не новый training/heldout selector эксперимент.
+
+Свежий compile/assemble gate9858face PASS14,165с:193PASS/1capacitySKIP. [Пакет162](grace-integration-162/README.md). General struct-return ownership/indirect canonical ABI ещё не интегрированы.
+
+Полный core0f0953d9 завершился PASS: HIR/MIR2/Nanz/VIR, включая callback/purity/directcall fixes. [Пакет163](grace-integration-163/README.md). Struct-return WIP не включён.

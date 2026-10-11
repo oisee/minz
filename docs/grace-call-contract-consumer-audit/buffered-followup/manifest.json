@@ -1,0 +1,19 @@
+{
+  "reviewed_head": "56a17420e7974841eef659926b67fd1fad572345",
+  "reviewed_state": "owner WIP, not committed ABI completion",
+  "checked_file_sha256": {
+    "minzc/pkg/mir2/struct_return.go": "a6d5efa50c088864edfde453b568fe3167a2c3caefa6d729bc61f9187a177c46",
+    "minzc/pkg/mir2/vm.go": "d16b991228eb17c81818f2a9969c7b60be6aad99134d4100f7a42fe9cb61af04",
+    "minzc/pkg/mir2/dump.go": "c5297aa02fa37dfe55be805beab9250e58c445bd2bfd01c9a247463294b2dff0",
+    "minzc/pkg/mir2/inline.go": "7bb55392e8a40701318d7fc70e41e55051032665761aca1400842ecadfa860a7",
+    "minzc/pkg/mir2/z80codegen_call.go": "58679174f2841a91140992ff0155c56ead9a80e01dbda0fc3551b2d6e6c8e536",
+    "minzc/pkg/vir/inliner.go": "cc959168c5f9f200e8d23340c1881225d214f2d897c13c7011106bb5b8e0924d"
+  },
+  "artifact_sha256": {
+    "REPORT.md": "2d1832aef647b18f912f40368a032b803a4bb96c463f0305d1c1b066f8e23f44",
+    "indirect-abi-probe.go": "295bd4c4c5a7bca3f65601a082da316e03ab089f7442622b48758b71f42a893c",
+    "indirect-abi-probe.txt": "461893a2938e068d44ed3f255b0659802043da474125af99d975cbaf7a7b1300",
+    "public-buffer-overlay_test.go": "02c0e2d719b2451975ec42f721ae92832a139d16fe0cb997f0dfbdc3f6fcd7b5",
+    "public-buffer-tests.txt": "32c2735d709e301b2c5f218e323b45dff0c2050d214ce546fafc78b70cd1b877"
+  }
+}

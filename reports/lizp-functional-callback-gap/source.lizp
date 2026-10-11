@@ -1,0 +1,3 @@
+(defun apply ((f ptr) (x u8)) -> u8 (return (funcall f x)))
+ (defun word ((x u16)) -> u16 (return (+ x 256)))
+ (defun probe ((x u8)) -> u8 (return (apply #'word x)))

@@ -1,0 +1,29 @@
+missing ordinary argument Verify: <nil>
+before fold result/memory [{9}] [9] <nil>
+ConstantCallElim changed true
+; MIR2 module: 
+fun @take(%r1: u16 [pointer])
+  block @entry:
+    ret void
+
+fun @caller()
+  block @entry:
+    call @take()
+    ret void
+
+fun @store_byte(%r2: ptr [pointer]) -> u8 [acc]
+  block @entry:
+    %r3 = const 9 : u8 [general]
+    store %r2, %r3 : u8
+    ret %r3
+
+fun @fold() -> u8 [acc]
+  block @entry:
+    %r4 = const 0 : ptr [pointer]
+    %r5 = const 9 : u8 [acc]
+    ret %r5
+
+
+local before [{17}] <nil>
+local fold changed true
+local after [] block @entry: load: out-of-bounds address 44 (heap size 44)

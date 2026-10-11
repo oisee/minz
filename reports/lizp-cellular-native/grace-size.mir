@@ -1,0 +1,59 @@
+; MIR2 module: game_of_life.lizp
+fun @rule30(%r1: u8 [acc], %r2: u8 [counter], %r3: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r4 = const 4 : u8 [general]
+    %r5 = mul %r1, %r4 : u8 [general]
+    %r6 = const 2 : u8 [general]
+    %r7 = mul %r2, %r6 : u8 [general]
+    %r8 = add %r5, %r7 : u8 [acc]
+    %r9 = add %r8, %r3 : u8 [acc]
+    %r10 = const 4 : u8 [general]
+    %r11 = cmp.eq %r9, %r10 : bool [flag]
+    br_if %r11, @if_then1(), @if_else3()
+  block @if_then1:
+    %r12 = const 1 : u8 [general]
+    ret %r12
+  block @if_else3:
+    %r13 = const 3 : u8 [general]
+    %r14 = cmp.eq %r9, %r13 : bool [flag]
+    br_if %r14, @if_then4(), @if_else6()
+  block @if_then4:
+    %r15 = const 1 : u8 [general]
+    ret %r15
+  block @if_else6:
+    %r16 = const 2 : u8 [general]
+    %r17 = cmp.eq %r9, %r16 : bool [flag]
+    br_if %r17, @if_then7(), @if_else9()
+  block @if_then7:
+    %r18 = const 1 : u8 [general]
+    ret %r18
+  block @if_else9:
+    %r19 = const 1 : u8 [general]
+    %r20 = cmp.eq %r9, %r19 : bool [flag]
+    %r21 = const 0 : u8 [general]
+    cond_ret %r20, [%r21], @if_then10()
+  block @if_then10:
+    %r22 = const 1 : u8 [general]
+    ret %r22
+
+fun @xor_rule(%r23: u8 [acc], %r24: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r25 = xor %r23, %r24 : u8 [acc]
+    ret %r25
+
+fun @popcount(%r26: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r27 = const 0 : u8 [general]
+    jmp @loop_head1(%r27, %r26)
+  block @loop_head1(%r27: u8 [general], %r29: u8 [general]):
+    %r30 = const 0 : u8 [general]
+    %r31 = cmp.ugt %r29, %r30 : bool [flag]
+    cond_ret %r31, [%r27], @loop_body2()
+  block @loop_body2:
+    %r32 = const 1 : u8 [general]
+    %r33 = and %r29, %r32 : u8 [general]
+    %r34 = add %r27, %r33 : u8 [general]
+    %r35 = const 2 : u8 [general]
+    %r36 = div %r29, %r35 : u8 [general]
+    jmp @loop_head1(%r34, %r36)
+

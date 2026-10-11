@@ -63,6 +63,9 @@ func Verify(m *Module) error {
 				}
 			}
 		}
+		if err := verifyDirectCallShape(m, f); err != nil {
+			return err
+		}
 		if err := verifyFunc(f); err != nil {
 			return fmt.Errorf("mir2: func @%s: %w", f.Name, err)
 		}

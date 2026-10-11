@@ -1,0 +1,27 @@
+; MIR2 module: DEMO
+fun @ABS_DIFF(%r1: u8 [acc], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = cmp.ugt %r1, %r2 : bool [flag]
+    br_if %r3, @if_then1(), @if_else3()
+  block @if_then1:
+    %r4 = sub %r1, %r2 : u8 [acc]
+    ret %r4
+  block @if_else3:
+    %r5 = sub %r2, %r1 : u8 [acc]
+    ret %r5
+
+fun @FIB(%r6: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r7 = const 0 : u8 [general]
+    %r8 = const 1 : u8 [general]
+    jmp @loop_head1(%r7, %r8, %r6)
+  block @loop_head1(%r7: u8 [general], %r8: u8 [general], %r11: u8 [general]):
+    %r12 = const 0 : u8 [general]
+    %r13 = cmp.ugt %r11, %r12 : bool [flag]
+    cond_ret %r13, [%r7], @loop_body2()
+  block @loop_body2:
+    %r14 = add %r7, %r8 : u8 [general]
+    %r15 = const 1 : u8 [general]
+    %r16 = sub %r11, %r15 : u8 [general]
+    jmp @loop_head1(%r8, %r14, %r16)
+

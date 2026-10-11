@@ -1,0 +1,8 @@
+global narrow:i24
+ global wide:i32
+ global lr:u8
+ global rl:u8
+ global widened:u8
+ fun compare(){lr=u8(narrow == wide)
+ rl=u8(wide == narrow)
+ widened=u8(i32(narrow) == wide)}

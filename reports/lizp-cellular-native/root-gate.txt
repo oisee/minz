@@ -1,0 +1,55 @@
+=== RUN   TestOriginalLizpCellularComplete
+=== RUN   TestOriginalLizpCellularComplete/ordinary
+    lizp_cellular_complete_test.go:227: {
+          "allowed_generated_spill_bytes": {},
+          "bytes": 64,
+          "entries": {
+            "popcount": 256,
+            "rule30": 8,
+            "xor_rule": 65536
+          },
+          "stack_depth_per_entry": {
+            "popcount": 6,
+            "rule30": 2,
+            "xor_rule": 2
+          },
+          "stack_low": "effa"
+        }
+=== RUN   TestOriginalLizpCellularComplete/grace-size
+    lizp_cellular_complete_test.go:227: {
+          "allowed_generated_spill_bytes": {},
+          "bytes": 64,
+          "entries": {
+            "popcount": 256,
+            "rule30": 8,
+            "xor_rule": 65536
+          },
+          "stack_depth_per_entry": {
+            "popcount": 6,
+            "rule30": 2,
+            "xor_rule": 2
+          },
+          "stack_low": "effa"
+        }
+=== RUN   TestOriginalLizpCellularComplete/grace-speed
+    lizp_cellular_complete_test.go:227: {
+          "allowed_generated_spill_bytes": {},
+          "bytes": 64,
+          "entries": {
+            "popcount": 256,
+            "rule30": 8,
+            "xor_rule": 65536
+          },
+          "stack_depth_per_entry": {
+            "popcount": 6,
+            "rule30": 2,
+            "xor_rule": 2
+          },
+          "stack_low": "effa"
+        }
+--- PASS: TestOriginalLizpCellularComplete (0.44s)
+    --- PASS: TestOriginalLizpCellularComplete/ordinary (0.12s)
+    --- PASS: TestOriginalLizpCellularComplete/grace-size (0.16s)
+    --- PASS: TestOriginalLizpCellularComplete/grace-speed (0.16s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.447s

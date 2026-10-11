@@ -1,0 +1,26 @@
+=== RUN   TestLoopOriginsTailRecursionMove
+--- PASS: TestLoopOriginsTailRecursionMove (0.00s)
+=== RUN   TestVerifyDirectCallShapeMalformed
+=== RUN   TestVerifyDirectCallShapeMalformed/missing
+=== RUN   TestVerifyDirectCallShapeMalformed/extra
+=== RUN   TestVerifyDirectCallShapeMalformed/zero
+=== RUN   TestVerifyDirectCallShapeMalformed/void_result
+=== RUN   TestVerifyDirectCallShapeMalformed/extra_return
+=== RUN   TestVerifyDirectCallShapeMalformed/nil_type
+=== RUN   TestVerifyDirectCallShapeMalformed/aggregate_to_scalar
+--- PASS: TestVerifyDirectCallShapeMalformed (0.00s)
+    --- PASS: TestVerifyDirectCallShapeMalformed/missing (0.00s)
+    --- PASS: TestVerifyDirectCallShapeMalformed/extra (0.00s)
+    --- PASS: TestVerifyDirectCallShapeMalformed/zero (0.00s)
+    --- PASS: TestVerifyDirectCallShapeMalformed/void_result (0.00s)
+    --- PASS: TestVerifyDirectCallShapeMalformed/extra_return (0.00s)
+    --- PASS: TestVerifyDirectCallShapeMalformed/nil_type (0.00s)
+    --- PASS: TestVerifyDirectCallShapeMalformed/aggregate_to_scalar (0.00s)
+=== RUN   TestVerifyDirectCallCoercionsAndDiscard
+--- PASS: TestVerifyDirectCallCoercionsAndDiscard (0.00s)
+=== RUN   TestVerifyDirectConditionalAndExternCalls
+--- PASS: TestVerifyDirectConditionalAndExternCalls (0.00s)
+=== RUN   TestVerifyDirectUnknownAuthorityRemainsSeparate
+--- PASS: TestVerifyDirectUnknownAuthorityRemainsSeparate (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.009s

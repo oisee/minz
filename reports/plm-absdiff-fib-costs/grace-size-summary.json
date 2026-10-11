@@ -1,0 +1,17 @@
+{
+  "allowed_generated_spill_bytes": {},
+  "bytes": 38,
+  "entries": {
+    "ABS_DIFF": 65536,
+    "FIB": 256
+  },
+  "stack_depth_per_entry": {
+    "ABS_DIFF": 2,
+    "FIB": 6
+  },
+  "stack_low": "effa",
+  "t_states_including_call": {
+    "ABS_DIFF": 3637120,
+    "FIB": 4453888
+  }
+}

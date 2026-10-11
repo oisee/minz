@@ -1,0 +1,10 @@
+{
+  "compiler_base": "075ec3f0",
+  "files": {
+    "accepted.a80": "c9cc26d49aeff5c7a6b63a38bbcc52103240f226bb3688f8ce0e92904e4e3453",
+    "accepted.bin": "c10abd271686a6587c2ac16a96540de28b0a1d1a62dd297d623a2da412f4567f",
+    "accepted.mir": "0d24151fead6b4734f78bb3773d956dd714ee294daa59a6c575525bde23f6838",
+    "diagnostic.txt": "653a973c92fb0278542e39957bb7ea72d208794dedcc6c8813e18a09b8e5e698",
+    "source.lizp": "ca1746593cbca1abb204e32f89b180f70623eb8f197e4c39a155cd164d913c6d"
+  }
+}

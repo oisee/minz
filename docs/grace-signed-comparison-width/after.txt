@@ -1,0 +1,40 @@
+=== RUN   TestSignedMixedComparisonMatchesSourceWidth
+=== RUN   TestSignedMixedComparisonMatchesSourceWidth/8_<
+=== RUN   TestSignedMixedComparisonMatchesSourceWidth/8_<=
+=== RUN   TestSignedMixedComparisonMatchesSourceWidth/8_>
+=== RUN   TestSignedMixedComparisonMatchesSourceWidth/8_>=
+=== RUN   TestSignedMixedComparisonMatchesSourceWidth/8_==
+=== RUN   TestSignedMixedComparisonMatchesSourceWidth/8_!=
+=== RUN   TestSignedMixedComparisonMatchesSourceWidth/16_<
+=== RUN   TestSignedMixedComparisonMatchesSourceWidth/16_<=
+=== RUN   TestSignedMixedComparisonMatchesSourceWidth/16_>
+=== RUN   TestSignedMixedComparisonMatchesSourceWidth/16_>=
+=== RUN   TestSignedMixedComparisonMatchesSourceWidth/16_==
+=== RUN   TestSignedMixedComparisonMatchesSourceWidth/16_!=
+=== RUN   TestSignedMixedComparisonMatchesSourceWidth/24_<
+=== RUN   TestSignedMixedComparisonMatchesSourceWidth/24_<=
+=== RUN   TestSignedMixedComparisonMatchesSourceWidth/24_>
+=== RUN   TestSignedMixedComparisonMatchesSourceWidth/24_>=
+=== RUN   TestSignedMixedComparisonMatchesSourceWidth/24_==
+=== RUN   TestSignedMixedComparisonMatchesSourceWidth/24_!=
+--- PASS: TestSignedMixedComparisonMatchesSourceWidth (3.56s)
+    --- PASS: TestSignedMixedComparisonMatchesSourceWidth/8_< (0.14s)
+    --- PASS: TestSignedMixedComparisonMatchesSourceWidth/8_<= (0.15s)
+    --- PASS: TestSignedMixedComparisonMatchesSourceWidth/8_> (0.18s)
+    --- PASS: TestSignedMixedComparisonMatchesSourceWidth/8_>= (0.16s)
+    --- PASS: TestSignedMixedComparisonMatchesSourceWidth/8_== (0.16s)
+    --- PASS: TestSignedMixedComparisonMatchesSourceWidth/8_!= (0.15s)
+    --- PASS: TestSignedMixedComparisonMatchesSourceWidth/16_< (0.17s)
+    --- PASS: TestSignedMixedComparisonMatchesSourceWidth/16_<= (0.16s)
+    --- PASS: TestSignedMixedComparisonMatchesSourceWidth/16_> (0.17s)
+    --- PASS: TestSignedMixedComparisonMatchesSourceWidth/16_>= (0.17s)
+    --- PASS: TestSignedMixedComparisonMatchesSourceWidth/16_== (0.17s)
+    --- PASS: TestSignedMixedComparisonMatchesSourceWidth/16_!= (0.15s)
+    --- PASS: TestSignedMixedComparisonMatchesSourceWidth/24_< (0.28s)
+    --- PASS: TestSignedMixedComparisonMatchesSourceWidth/24_<= (0.24s)
+    --- PASS: TestSignedMixedComparisonMatchesSourceWidth/24_> (0.28s)
+    --- PASS: TestSignedMixedComparisonMatchesSourceWidth/24_>= (0.27s)
+    --- PASS: TestSignedMixedComparisonMatchesSourceWidth/24_== (0.27s)
+    --- PASS: TestSignedMixedComparisonMatchesSourceWidth/24_!= (0.26s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	3.569s

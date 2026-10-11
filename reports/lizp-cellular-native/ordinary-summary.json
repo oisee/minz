@@ -1,0 +1,15 @@
+{
+  "allowed_generated_spill_bytes": {},
+  "bytes": 64,
+  "entries": {
+    "popcount": 256,
+    "rule30": 8,
+    "xor_rule": 65536
+  },
+  "stack_depth_per_entry": {
+    "popcount": 6,
+    "rule30": 2,
+    "xor_rule": 2
+  },
+  "stack_low": "effa"
+}

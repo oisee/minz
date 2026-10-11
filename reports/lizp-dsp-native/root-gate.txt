@@ -1,0 +1,67 @@
+=== RUN   TestOriginalLizpDSPComplete
+=== RUN   TestOriginalLizpDSPComplete/ordinary
+    lizp_dsp_complete_test.go:234: {
+          "allowed_generated_spill_bytes": {},
+          "bytes": 116,
+          "entries": {
+            "clamp_signal": 20736,
+            "lowpass": 65536,
+            "peak": 65536,
+            "sawtooth": 65280,
+            "square_wave": 65280
+          },
+          "stack_depth_per_entry": {
+            "clamp_signal": 2,
+            "lowpass": 2,
+            "peak": 2,
+            "sawtooth": 10,
+            "square_wave": 2
+          },
+          "stack_low": "eff6"
+        }
+=== RUN   TestOriginalLizpDSPComplete/grace-size
+    lizp_dsp_complete_test.go:234: {
+          "allowed_generated_spill_bytes": {},
+          "bytes": 116,
+          "entries": {
+            "clamp_signal": 20736,
+            "lowpass": 65536,
+            "peak": 65536,
+            "sawtooth": 65280,
+            "square_wave": 65280
+          },
+          "stack_depth_per_entry": {
+            "clamp_signal": 2,
+            "lowpass": 2,
+            "peak": 2,
+            "sawtooth": 10,
+            "square_wave": 2
+          },
+          "stack_low": "eff6"
+        }
+=== RUN   TestOriginalLizpDSPComplete/grace-speed
+    lizp_dsp_complete_test.go:234: {
+          "allowed_generated_spill_bytes": {},
+          "bytes": 116,
+          "entries": {
+            "clamp_signal": 20736,
+            "lowpass": 65536,
+            "peak": 65536,
+            "sawtooth": 65280,
+            "square_wave": 65280
+          },
+          "stack_depth_per_entry": {
+            "clamp_signal": 2,
+            "lowpass": 2,
+            "peak": 2,
+            "sawtooth": 10,
+            "square_wave": 2
+          },
+          "stack_low": "eff6"
+        }
+--- PASS: TestOriginalLizpDSPComplete (4.48s)
+    --- PASS: TestOriginalLizpDSPComplete/ordinary (1.49s)
+    --- PASS: TestOriginalLizpDSPComplete/grace-size (1.50s)
+    --- PASS: TestOriginalLizpDSPComplete/grace-speed (1.48s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	4.485s

@@ -1,0 +1,29 @@
+{
+  "source": "examples/lizp/dsp.lizp",
+  "source_sha256": "aa0dda94d6f77e7a51113a9b929cebf0c6831f8e5c47889eeecd7e0763e3bbad",
+  "compiler_checkpoint": "155e2c29",
+  "oracle": "host byte arithmetic; truncate each u8 operation before unsigned division; comparisons in source cond order",
+  "all_pairs": [
+    "lowpass",
+    "peak"
+  ],
+  "nonzero_period_pairs": [
+    "sawtooth",
+    "square_wave"
+  ],
+  "clamp_x": "all256",
+  "clamp_bounds": [
+    0,
+    1,
+    2,
+    63,
+    127,
+    128,
+    200,
+    254,
+    255
+  ],
+  "excluded": "period0; clamp full 256^3 domain",
+  "calls_per_mode": 282368,
+  "calls_total": 847104
+}

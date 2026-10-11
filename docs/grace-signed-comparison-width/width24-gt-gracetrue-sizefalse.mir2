@@ -1,0 +1,36 @@
+; MIR2 module: signed-mixed-comparison
+global @narrow : i24
+global @wide : i32
+global @lr : u8
+global @rl : u8
+global @widened : u8
+
+fun @compare()
+  block @entry:
+    %r1 = addr_of @narrow : ptr [pointer]
+    %r2 = load %r1 : i24 [general]
+    %r3 = addr_of @wide : ptr [pointer]
+    %r4 = load %r3 : i32 [general]
+    %r5 = cmp.gt %r2, %r4 : bool [flag]
+    %r6 = ext %r5 : bool -> u8 [general]
+    %r7 = addr_of @lr : ptr [pointer]
+    store %r7, %r6 : u8
+    %r8 = addr_of @wide : ptr [pointer]
+    %r9 = load %r8 : i32 [general]
+    %r10 = addr_of @narrow : ptr [pointer]
+    %r11 = load %r10 : i24 [general]
+    %r12 = cmp.gt %r9, %r11 : bool [flag]
+    %r13 = ext %r12 : bool -> u8 [general]
+    %r14 = addr_of @rl : ptr [pointer]
+    store %r14, %r13 : u8
+    %r15 = addr_of @narrow : ptr [pointer]
+    %r16 = load %r15 : i24 [general]
+    %r17 = sext %r16 : i24 -> i32 [general]
+    %r18 = addr_of @wide : ptr [pointer]
+    %r19 = load %r18 : i32 [general]
+    %r20 = cmp.gt %r17, %r19 : bool [flag]
+    %r21 = ext %r20 : bool -> u8 [general]
+    %r22 = addr_of @widened : ptr [pointer]
+    store %r22, %r21 : u8
+    ret void
+

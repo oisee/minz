@@ -1,0 +1,10 @@
+{
+  "compiler_commit": "568b7d08",
+  "command": "go test ./cmd/minzc -count=1 -timeout=20m",
+  "session": 50768,
+  "process": 2287490,
+  "executable": "/home/alice/dev/minz-artifacts/grace-checkpoints/cli-568b7d08-full.test",
+  "share": "/mnt/safe/minz/grace/2026-10-11/compiler-checkpoints/cli-568b7d08-full.test",
+  "sha256": "322336663f93fc2298f31f0a41243d11fdcd03a7c107b148fe1df1713234c50e",
+  "status": "confirmed live; no terminalPASS claim"
+}

@@ -1,0 +1,945 @@
+{
+  "base": "53863716",
+  "files": [
+    {
+      "path": "docs/grace-signed-comparison-width/REPORT.md",
+      "bytes": 3654,
+      "sha256": "f341e86d137cbb3d3283fd4ab0fd5bb1b2f8b9f02bd62ab368c1ef0b494d452f"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/after.txt",
+      "bytes": 2520,
+      "sha256": "cf399c27a6ef842d4b8831901b902f2c0bac308f3de002f169e0d24458161b11"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/before.txt",
+      "bytes": 71109,
+      "sha256": "98adb40f80ee160362ba7f7bdc4df4922ce3c2ea04b0f7b41a579129f89eb07a"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/full-mir2.txt",
+      "bytes": 44,
+      "sha256": "d5767db155414bbb1f40ebee60555d97f909435c7f90d95752d6c25861d8b4e3"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/physical.txt",
+      "bytes": 43,
+      "sha256": "a7f17c4a80f1b601525cce80278ada413bd4716feff8ac1d511fc255661eea96"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-eq-gracefalse-sizefalse.a80",
+      "bytes": 5077,
+      "sha256": "7ebe7d88c1e2768c83364634e4a811470c697894a8101cc2325e30d9c5a578ac"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-eq-gracefalse-sizefalse.bin",
+      "bytes": 494,
+      "sha256": "24f4bcac75c834d87907a89d80d0db508f8db2b6df0895abf35677603fb3181d"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-eq-gracefalse-sizefalse.mir2",
+      "bytes": 1136,
+      "sha256": "de964c056da0ca8389b5be2c3aed3bf9e1e8bf548d0e680f772420f21bde99ec"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-eq-gracetrue-sizefalse.a80",
+      "bytes": 5062,
+      "sha256": "478274339c67f34371e9265a03e783b655b9b6c9e500affccb6ba09e041cfdab"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-eq-gracetrue-sizefalse.bin",
+      "bytes": 494,
+      "sha256": "24f4bcac75c834d87907a89d80d0db508f8db2b6df0895abf35677603fb3181d"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-eq-gracetrue-sizefalse.mir2",
+      "bytes": 1136,
+      "sha256": "de964c056da0ca8389b5be2c3aed3bf9e1e8bf548d0e680f772420f21bde99ec"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-eq-gracetrue-sizetrue.a80",
+      "bytes": 5062,
+      "sha256": "478274339c67f34371e9265a03e783b655b9b6c9e500affccb6ba09e041cfdab"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-eq-gracetrue-sizetrue.bin",
+      "bytes": 494,
+      "sha256": "24f4bcac75c834d87907a89d80d0db508f8db2b6df0895abf35677603fb3181d"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-eq-gracetrue-sizetrue.mir2",
+      "bytes": 1136,
+      "sha256": "de964c056da0ca8389b5be2c3aed3bf9e1e8bf548d0e680f772420f21bde99ec"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-eq.nanz",
+      "bytes": 175,
+      "sha256": "8f6897ad6a535b0915a213577a8dbc3689dce0ad5ea6fd49ef2b8c226b1e793d"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-ge-gracefalse-sizefalse.a80",
+      "bytes": 5180,
+      "sha256": "a9afdf8e065c0014236ac96a2d74a618d0110ce5f54bfcafb8bd517fc90d9d8e"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-ge-gracefalse-sizefalse.bin",
+      "bytes": 506,
+      "sha256": "2d5df2237a9d1c3386bad7688dfd8d194b0b1f40f6d2bb92587d9ee0d438ffa7"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-ge-gracefalse-sizefalse.mir2",
+      "bytes": 1136,
+      "sha256": "e767a571ff4a5ec5fc0c25fa0c644252b3dc1836ec2586590379cd5131effa9d"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-ge-gracetrue-sizefalse.a80",
+      "bytes": 5165,
+      "sha256": "7625ebd319ad50089e5db966cfafd6af3abe15b9e76f2ea549dfc1929aa2c135"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-ge-gracetrue-sizefalse.bin",
+      "bytes": 506,
+      "sha256": "2d5df2237a9d1c3386bad7688dfd8d194b0b1f40f6d2bb92587d9ee0d438ffa7"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-ge-gracetrue-sizefalse.mir2",
+      "bytes": 1136,
+      "sha256": "e767a571ff4a5ec5fc0c25fa0c644252b3dc1836ec2586590379cd5131effa9d"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-ge-gracetrue-sizetrue.a80",
+      "bytes": 5165,
+      "sha256": "7625ebd319ad50089e5db966cfafd6af3abe15b9e76f2ea549dfc1929aa2c135"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-ge-gracetrue-sizetrue.bin",
+      "bytes": 506,
+      "sha256": "2d5df2237a9d1c3386bad7688dfd8d194b0b1f40f6d2bb92587d9ee0d438ffa7"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-ge-gracetrue-sizetrue.mir2",
+      "bytes": 1136,
+      "sha256": "e767a571ff4a5ec5fc0c25fa0c644252b3dc1836ec2586590379cd5131effa9d"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-ge.nanz",
+      "bytes": 175,
+      "sha256": "018be34c43255c3d521222382a1231db2c4884474d2d163c62c4af609818ffa4"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-gt-gracefalse-sizefalse.a80",
+      "bytes": 5312,
+      "sha256": "686639b4ca601423333be64a7539796c82cd954266fec67b8c2ae1a5863c4c2e"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-gt-gracefalse-sizefalse.bin",
+      "bytes": 524,
+      "sha256": "4467152ad91347c60c66689c207615f546bf1f160e691a66c523713766b0e75f"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-gt-gracefalse-sizefalse.mir2",
+      "bytes": 1136,
+      "sha256": "e3dc5810510bba77e43c560c317335e6c7addf7e72840e964c6facdb7e9622b1"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-gt-gracetrue-sizefalse.a80",
+      "bytes": 5297,
+      "sha256": "e771cf1cab7ef3f094d37e084ce72ed7e01bbd7f092e2a484472cb1b19af0d47"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-gt-gracetrue-sizefalse.bin",
+      "bytes": 524,
+      "sha256": "4467152ad91347c60c66689c207615f546bf1f160e691a66c523713766b0e75f"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-gt-gracetrue-sizefalse.mir2",
+      "bytes": 1136,
+      "sha256": "e3dc5810510bba77e43c560c317335e6c7addf7e72840e964c6facdb7e9622b1"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-gt-gracetrue-sizetrue.a80",
+      "bytes": 5297,
+      "sha256": "e771cf1cab7ef3f094d37e084ce72ed7e01bbd7f092e2a484472cb1b19af0d47"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-gt-gracetrue-sizetrue.bin",
+      "bytes": 524,
+      "sha256": "4467152ad91347c60c66689c207615f546bf1f160e691a66c523713766b0e75f"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-gt-gracetrue-sizetrue.mir2",
+      "bytes": 1136,
+      "sha256": "e3dc5810510bba77e43c560c317335e6c7addf7e72840e964c6facdb7e9622b1"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-gt.nanz",
+      "bytes": 172,
+      "sha256": "78e6a82bbbae58a7350879620cb28f8f31e8ebce1b6f7dd0ffd040846160cc44"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-le-gracefalse-sizefalse.a80",
+      "bytes": 5246,
+      "sha256": "312c1aa3a2ee88c1ede5a41a38755aa624ee44a6c7108363cd5a24938aeafae8"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-le-gracefalse-sizefalse.bin",
+      "bytes": 515,
+      "sha256": "c99ef75d442fcb088386ee811d79cbb7ee361d38c356b3a5dde933795c95e102"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-le-gracefalse-sizefalse.mir2",
+      "bytes": 1136,
+      "sha256": "77c148e9897adfbb7b0ddb4d90ada13b906b5da1332f2b1a0d79467cd8d3e548"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-le-gracetrue-sizefalse.a80",
+      "bytes": 5231,
+      "sha256": "e250bead30ca53bcbad963476eb883b2c07f08ccb399ff026b5b899102b0260d"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-le-gracetrue-sizefalse.bin",
+      "bytes": 515,
+      "sha256": "c99ef75d442fcb088386ee811d79cbb7ee361d38c356b3a5dde933795c95e102"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-le-gracetrue-sizefalse.mir2",
+      "bytes": 1136,
+      "sha256": "77c148e9897adfbb7b0ddb4d90ada13b906b5da1332f2b1a0d79467cd8d3e548"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-le-gracetrue-sizetrue.a80",
+      "bytes": 5231,
+      "sha256": "e250bead30ca53bcbad963476eb883b2c07f08ccb399ff026b5b899102b0260d"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-le-gracetrue-sizetrue.bin",
+      "bytes": 515,
+      "sha256": "c99ef75d442fcb088386ee811d79cbb7ee361d38c356b3a5dde933795c95e102"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-le-gracetrue-sizetrue.mir2",
+      "bytes": 1136,
+      "sha256": "77c148e9897adfbb7b0ddb4d90ada13b906b5da1332f2b1a0d79467cd8d3e548"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-le.nanz",
+      "bytes": 175,
+      "sha256": "b6b709b744acf311d20b8b5e02cf343a173c1f15a576cd188628045263041629"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-lt-gracefalse-sizefalse.a80",
+      "bytes": 5177,
+      "sha256": "63b63713aec5168009d9c4a9fb8346ecb1b3eaf847eaf84524658a165253d8b5"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-lt-gracefalse-sizefalse.bin",
+      "bytes": 506,
+      "sha256": "26c6968730c930685d65becdbaf7e4749f88f6635133b14df31a198524caf93a"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-lt-gracefalse-sizefalse.mir2",
+      "bytes": 1136,
+      "sha256": "b4dac05104188f09dc8374482c71868cb52cff0b6f64f85c1f0535307f97eb9e"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-lt-gracetrue-sizefalse.a80",
+      "bytes": 5162,
+      "sha256": "58ab4f4c52757d38e123b875a7a395a15f2d78b3e0993c1b5257e611f6f24153"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-lt-gracetrue-sizefalse.bin",
+      "bytes": 506,
+      "sha256": "26c6968730c930685d65becdbaf7e4749f88f6635133b14df31a198524caf93a"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-lt-gracetrue-sizefalse.mir2",
+      "bytes": 1136,
+      "sha256": "b4dac05104188f09dc8374482c71868cb52cff0b6f64f85c1f0535307f97eb9e"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-lt-gracetrue-sizetrue.a80",
+      "bytes": 5162,
+      "sha256": "58ab4f4c52757d38e123b875a7a395a15f2d78b3e0993c1b5257e611f6f24153"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-lt-gracetrue-sizetrue.bin",
+      "bytes": 506,
+      "sha256": "26c6968730c930685d65becdbaf7e4749f88f6635133b14df31a198524caf93a"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-lt-gracetrue-sizetrue.mir2",
+      "bytes": 1136,
+      "sha256": "b4dac05104188f09dc8374482c71868cb52cff0b6f64f85c1f0535307f97eb9e"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-lt.nanz",
+      "bytes": 172,
+      "sha256": "d603eb8987efec08d312af2d429db036a5044a405b16ead64a224dd63fdbebf8"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-ne-gracefalse-sizefalse.a80",
+      "bytes": 5080,
+      "sha256": "358be0b8c2ecea9ce237c11de21359ef2b6e3d01638598e6defb785907c6a52d"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-ne-gracefalse-sizefalse.bin",
+      "bytes": 494,
+      "sha256": "b2ed96e612bfdf22118c93934d0c76dea9cf6c1f1ee1bd278c3fa96e578551d7"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-ne-gracefalse-sizefalse.mir2",
+      "bytes": 1136,
+      "sha256": "583ebaeed6770be71da3e6e295f45925144c6475caf5b118358d6c57103e8d0d"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-ne-gracetrue-sizefalse.a80",
+      "bytes": 5065,
+      "sha256": "0d90a4bce86a86e1998832475f2243f59b320d5e4d157754c5a5de08182e49f7"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-ne-gracetrue-sizefalse.bin",
+      "bytes": 494,
+      "sha256": "b2ed96e612bfdf22118c93934d0c76dea9cf6c1f1ee1bd278c3fa96e578551d7"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-ne-gracetrue-sizefalse.mir2",
+      "bytes": 1136,
+      "sha256": "583ebaeed6770be71da3e6e295f45925144c6475caf5b118358d6c57103e8d0d"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-ne-gracetrue-sizetrue.a80",
+      "bytes": 5065,
+      "sha256": "0d90a4bce86a86e1998832475f2243f59b320d5e4d157754c5a5de08182e49f7"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-ne-gracetrue-sizetrue.bin",
+      "bytes": 494,
+      "sha256": "b2ed96e612bfdf22118c93934d0c76dea9cf6c1f1ee1bd278c3fa96e578551d7"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-ne-gracetrue-sizetrue.mir2",
+      "bytes": 1136,
+      "sha256": "583ebaeed6770be71da3e6e295f45925144c6475caf5b118358d6c57103e8d0d"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width16-ne.nanz",
+      "bytes": 175,
+      "sha256": "d6d0a710edc6d01a32e2adac8517a295cb9b017d4b7b979afdfdf2fa25b131d6"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-eq-gracefalse-sizefalse.a80",
+      "bytes": 6077,
+      "sha256": "5af41815e1d1affa9ba65070bfb419ab9cc7ced91c32b31ecb8b374855b3b4ce"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-eq-gracefalse-sizefalse.bin",
+      "bytes": 620,
+      "sha256": "9bb237319f7682c9b32483ce4e76f6118ecc9c0ba2d0f4db3982a213b5297ec6"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-eq-gracefalse-sizefalse.mir2",
+      "bytes": 1136,
+      "sha256": "cd9a5b5c701c1db8d07ba291c8665c4ec7a1b588ac4d801942b6471977e9c6ce"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-eq-gracetrue-sizefalse.a80",
+      "bytes": 6062,
+      "sha256": "e6591314f2d77ca10b44984d66358e37e5dff9f0794210d27c58e6e6a6f03815"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-eq-gracetrue-sizefalse.bin",
+      "bytes": 620,
+      "sha256": "9bb237319f7682c9b32483ce4e76f6118ecc9c0ba2d0f4db3982a213b5297ec6"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-eq-gracetrue-sizefalse.mir2",
+      "bytes": 1136,
+      "sha256": "cd9a5b5c701c1db8d07ba291c8665c4ec7a1b588ac4d801942b6471977e9c6ce"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-eq-gracetrue-sizetrue.a80",
+      "bytes": 6062,
+      "sha256": "e6591314f2d77ca10b44984d66358e37e5dff9f0794210d27c58e6e6a6f03815"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-eq-gracetrue-sizetrue.bin",
+      "bytes": 620,
+      "sha256": "9bb237319f7682c9b32483ce4e76f6118ecc9c0ba2d0f4db3982a213b5297ec6"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-eq-gracetrue-sizetrue.mir2",
+      "bytes": 1136,
+      "sha256": "cd9a5b5c701c1db8d07ba291c8665c4ec7a1b588ac4d801942b6471977e9c6ce"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-eq.nanz",
+      "bytes": 175,
+      "sha256": "19a126d8f086c1af59d4ebe5cc6c59f5c0ed7f3078fbe509a5447788d7caeb39"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-ge-gracefalse-sizefalse.a80",
+      "bytes": 6224,
+      "sha256": "76f597bcfcb3114e3852e48a04f42b44bedaa54b7de812c0505f75d5b066ca69"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-ge-gracefalse-sizefalse.bin",
+      "bytes": 637,
+      "sha256": "23fe3a24416a67da3ed330970a7c62d98a7793415efa59427cb21339b426ff4a"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-ge-gracefalse-sizefalse.mir2",
+      "bytes": 1136,
+      "sha256": "34eb522b265665a6ffb4a3d4df2da8689304c8b46e1cf4418854c8e32afad080"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-ge-gracetrue-sizefalse.a80",
+      "bytes": 6209,
+      "sha256": "efb76a4177a0be599f672ff0b5b68923977025b4300f83133b3f9595bbf7c6f2"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-ge-gracetrue-sizefalse.bin",
+      "bytes": 637,
+      "sha256": "23fe3a24416a67da3ed330970a7c62d98a7793415efa59427cb21339b426ff4a"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-ge-gracetrue-sizefalse.mir2",
+      "bytes": 1136,
+      "sha256": "34eb522b265665a6ffb4a3d4df2da8689304c8b46e1cf4418854c8e32afad080"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-ge-gracetrue-sizetrue.a80",
+      "bytes": 6209,
+      "sha256": "efb76a4177a0be599f672ff0b5b68923977025b4300f83133b3f9595bbf7c6f2"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-ge-gracetrue-sizetrue.bin",
+      "bytes": 637,
+      "sha256": "23fe3a24416a67da3ed330970a7c62d98a7793415efa59427cb21339b426ff4a"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-ge-gracetrue-sizetrue.mir2",
+      "bytes": 1136,
+      "sha256": "34eb522b265665a6ffb4a3d4df2da8689304c8b46e1cf4418854c8e32afad080"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-ge.nanz",
+      "bytes": 175,
+      "sha256": "29990b4e464d0e69dcdcbfccd9f622a86f89f4890b980cf124ae49c1d7f79a85"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-gt-gracefalse-sizefalse.a80",
+      "bytes": 6356,
+      "sha256": "42dc4f40e9db5c367a8addeeb05145b774f0fccf37feb889710d01222cefcb6e"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-gt-gracefalse-sizefalse.bin",
+      "bytes": 655,
+      "sha256": "7392b5a4379c02bf141adc2b9f85e2d23b0528c87f89ee6ffa6d4714e448faf0"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-gt-gracefalse-sizefalse.mir2",
+      "bytes": 1136,
+      "sha256": "e99afbb83e0ff4f30f49703d87d68c2d0fb74f4f8d28616dc77a0228c47eb83f"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-gt-gracetrue-sizefalse.a80",
+      "bytes": 6341,
+      "sha256": "d7625d0c3676c2a25c18058e764735c7819a70299c243bdd1684ac923d9faddf"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-gt-gracetrue-sizefalse.bin",
+      "bytes": 655,
+      "sha256": "7392b5a4379c02bf141adc2b9f85e2d23b0528c87f89ee6ffa6d4714e448faf0"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-gt-gracetrue-sizefalse.mir2",
+      "bytes": 1136,
+      "sha256": "e99afbb83e0ff4f30f49703d87d68c2d0fb74f4f8d28616dc77a0228c47eb83f"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-gt-gracetrue-sizetrue.a80",
+      "bytes": 6341,
+      "sha256": "d7625d0c3676c2a25c18058e764735c7819a70299c243bdd1684ac923d9faddf"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-gt-gracetrue-sizetrue.bin",
+      "bytes": 655,
+      "sha256": "7392b5a4379c02bf141adc2b9f85e2d23b0528c87f89ee6ffa6d4714e448faf0"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-gt-gracetrue-sizetrue.mir2",
+      "bytes": 1136,
+      "sha256": "e99afbb83e0ff4f30f49703d87d68c2d0fb74f4f8d28616dc77a0228c47eb83f"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-gt.nanz",
+      "bytes": 172,
+      "sha256": "a7535bc0a66fc545cb79a333cf296abda00c2091de8891b12f7d0496d24a3093"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-le-gracefalse-sizefalse.a80",
+      "bytes": 6290,
+      "sha256": "6374b9ba1c785053ecd2cf6648874a18e6361d4608e1989297a7136037e4bf80"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-le-gracefalse-sizefalse.bin",
+      "bytes": 646,
+      "sha256": "b583d7b234300de2bd1d7c3d74df137036316b03c096812c4493f3e4937b70d2"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-le-gracefalse-sizefalse.mir2",
+      "bytes": 1136,
+      "sha256": "00abd3d5e02e6e6d4ad1bc5bf480ed29db074f61cf291210ec66c8813f8dd57e"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-le-gracetrue-sizefalse.a80",
+      "bytes": 6275,
+      "sha256": "f55b410943910e0341655796a8dea9dcab1d75ad29ae1fb331d843ef627832ec"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-le-gracetrue-sizefalse.bin",
+      "bytes": 646,
+      "sha256": "b583d7b234300de2bd1d7c3d74df137036316b03c096812c4493f3e4937b70d2"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-le-gracetrue-sizefalse.mir2",
+      "bytes": 1136,
+      "sha256": "00abd3d5e02e6e6d4ad1bc5bf480ed29db074f61cf291210ec66c8813f8dd57e"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-le-gracetrue-sizetrue.a80",
+      "bytes": 6275,
+      "sha256": "f55b410943910e0341655796a8dea9dcab1d75ad29ae1fb331d843ef627832ec"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-le-gracetrue-sizetrue.bin",
+      "bytes": 646,
+      "sha256": "b583d7b234300de2bd1d7c3d74df137036316b03c096812c4493f3e4937b70d2"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-le-gracetrue-sizetrue.mir2",
+      "bytes": 1136,
+      "sha256": "00abd3d5e02e6e6d4ad1bc5bf480ed29db074f61cf291210ec66c8813f8dd57e"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-le.nanz",
+      "bytes": 175,
+      "sha256": "bf22df26c4e2b72647bfb7e75cf6e5fe04d12ae2df66afcc63b417fcc5d37066"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-lt-gracefalse-sizefalse.a80",
+      "bytes": 6221,
+      "sha256": "6678251a139c5a0ee02276da4b7e2b3f9a875c8c9a09b9aa739681ecf42ced56"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-lt-gracefalse-sizefalse.bin",
+      "bytes": 637,
+      "sha256": "46ec04114a3233b031f77885cc850227dfb1cae92aa0b71dd48cfe8a4a14fb55"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-lt-gracefalse-sizefalse.mir2",
+      "bytes": 1136,
+      "sha256": "94296464fef7753df1f11a3dee32ec3ba9e72fc32ee1e68933c46452cf33a8df"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-lt-gracetrue-sizefalse.a80",
+      "bytes": 6206,
+      "sha256": "5a4e8233b77d451b6edcdaeaf93082e0218892f32b37ac83326fe5423c8322a8"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-lt-gracetrue-sizefalse.bin",
+      "bytes": 637,
+      "sha256": "46ec04114a3233b031f77885cc850227dfb1cae92aa0b71dd48cfe8a4a14fb55"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-lt-gracetrue-sizefalse.mir2",
+      "bytes": 1136,
+      "sha256": "94296464fef7753df1f11a3dee32ec3ba9e72fc32ee1e68933c46452cf33a8df"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-lt-gracetrue-sizetrue.a80",
+      "bytes": 6206,
+      "sha256": "5a4e8233b77d451b6edcdaeaf93082e0218892f32b37ac83326fe5423c8322a8"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-lt-gracetrue-sizetrue.bin",
+      "bytes": 637,
+      "sha256": "46ec04114a3233b031f77885cc850227dfb1cae92aa0b71dd48cfe8a4a14fb55"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-lt-gracetrue-sizetrue.mir2",
+      "bytes": 1136,
+      "sha256": "94296464fef7753df1f11a3dee32ec3ba9e72fc32ee1e68933c46452cf33a8df"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-lt.nanz",
+      "bytes": 172,
+      "sha256": "060e7245b62b5f81fe9b43e24c504150cc4006ce5910d34a7486f622920140db"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-ne-gracefalse-sizefalse.a80",
+      "bytes": 6080,
+      "sha256": "dbf8e9d497019aaf18dbc2b68b7f1385070fe2c8faff072fd198a72ba2a0c1a3"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-ne-gracefalse-sizefalse.bin",
+      "bytes": 620,
+      "sha256": "96c5a7c6fa06b0c56a57ef3334aa3701fb776f6c4a8d473e305ae1443c514264"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-ne-gracefalse-sizefalse.mir2",
+      "bytes": 1136,
+      "sha256": "5d13a61afee3ee929ab9e34a8c4e0980a2c3a3c4bbf8dc7edb1ef3b43b735d9f"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-ne-gracetrue-sizefalse.a80",
+      "bytes": 6065,
+      "sha256": "4cff88c8a6ce1f4f66f2f0fd48a8cdea4d19d81a0fff477b2e3fcc69251b0c44"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-ne-gracetrue-sizefalse.bin",
+      "bytes": 620,
+      "sha256": "96c5a7c6fa06b0c56a57ef3334aa3701fb776f6c4a8d473e305ae1443c514264"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-ne-gracetrue-sizefalse.mir2",
+      "bytes": 1136,
+      "sha256": "5d13a61afee3ee929ab9e34a8c4e0980a2c3a3c4bbf8dc7edb1ef3b43b735d9f"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-ne-gracetrue-sizetrue.a80",
+      "bytes": 6065,
+      "sha256": "4cff88c8a6ce1f4f66f2f0fd48a8cdea4d19d81a0fff477b2e3fcc69251b0c44"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-ne-gracetrue-sizetrue.bin",
+      "bytes": 620,
+      "sha256": "96c5a7c6fa06b0c56a57ef3334aa3701fb776f6c4a8d473e305ae1443c514264"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-ne-gracetrue-sizetrue.mir2",
+      "bytes": 1136,
+      "sha256": "5d13a61afee3ee929ab9e34a8c4e0980a2c3a3c4bbf8dc7edb1ef3b43b735d9f"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width24-ne.nanz",
+      "bytes": 175,
+      "sha256": "545220b93da04de1672ce0570d706208489137e470b878d3c9d7c9037aec2f12"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-eq-gracefalse-sizefalse.a80",
+      "bytes": 4958,
+      "sha256": "e7949afc8e99da231e2f0e19e9f66ccb4097249750881b2fa707b7bb56cc2999"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-eq-gracefalse-sizefalse.bin",
+      "bytes": 493,
+      "sha256": "d22ae0bfab343b9e7c69a7f91457aa6a7011158f3d6096b4566efc50d045e1d1"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-eq-gracefalse-sizefalse.mir2",
+      "bytes": 1131,
+      "sha256": "21e3dc5fcd8a2efe864f8f7b7d6ab5d7de7f49894abda8a965acb16a917f7535"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-eq-gracetrue-sizefalse.a80",
+      "bytes": 4943,
+      "sha256": "2b35ea694e29ce1b22367b714daf74f3e9831a47e9783707215c7a6aeea950b0"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-eq-gracetrue-sizefalse.bin",
+      "bytes": 493,
+      "sha256": "d22ae0bfab343b9e7c69a7f91457aa6a7011158f3d6096b4566efc50d045e1d1"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-eq-gracetrue-sizefalse.mir2",
+      "bytes": 1131,
+      "sha256": "21e3dc5fcd8a2efe864f8f7b7d6ab5d7de7f49894abda8a965acb16a917f7535"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-eq-gracetrue-sizetrue.a80",
+      "bytes": 4943,
+      "sha256": "2b35ea694e29ce1b22367b714daf74f3e9831a47e9783707215c7a6aeea950b0"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-eq-gracetrue-sizetrue.bin",
+      "bytes": 493,
+      "sha256": "d22ae0bfab343b9e7c69a7f91457aa6a7011158f3d6096b4566efc50d045e1d1"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-eq-gracetrue-sizetrue.mir2",
+      "bytes": 1131,
+      "sha256": "21e3dc5fcd8a2efe864f8f7b7d6ab5d7de7f49894abda8a965acb16a917f7535"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-eq.nanz",
+      "bytes": 174,
+      "sha256": "338e8037e20f43a9fb3e66ba5ce55e48be1f5dddc2838730f9042b14d242e9a8"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-ge-gracefalse-sizefalse.a80",
+      "bytes": 5017,
+      "sha256": "557c2ee6d0ec8738c6f0481a8a415bd2f14bb8184b785f9810cd42f2ac4e3e3c"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-ge-gracefalse-sizefalse.bin",
+      "bytes": 500,
+      "sha256": "25acd1846d15447a7e14476e24608829f16caa569d80e936edc0ea7e3b77ca28"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-ge-gracefalse-sizefalse.mir2",
+      "bytes": 1131,
+      "sha256": "630e1626624c6a6efdf3f5a1389f38ed31847c118bbf9656bc9499da61f678d2"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-ge-gracetrue-sizefalse.a80",
+      "bytes": 5002,
+      "sha256": "199ae918577f73dd50b8b1dd7907b3fea63f03c4a4bf7f61dd2ee585ace7aef6"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-ge-gracetrue-sizefalse.bin",
+      "bytes": 500,
+      "sha256": "25acd1846d15447a7e14476e24608829f16caa569d80e936edc0ea7e3b77ca28"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-ge-gracetrue-sizefalse.mir2",
+      "bytes": 1131,
+      "sha256": "630e1626624c6a6efdf3f5a1389f38ed31847c118bbf9656bc9499da61f678d2"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-ge-gracetrue-sizetrue.a80",
+      "bytes": 5002,
+      "sha256": "199ae918577f73dd50b8b1dd7907b3fea63f03c4a4bf7f61dd2ee585ace7aef6"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-ge-gracetrue-sizetrue.bin",
+      "bytes": 500,
+      "sha256": "25acd1846d15447a7e14476e24608829f16caa569d80e936edc0ea7e3b77ca28"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-ge-gracetrue-sizetrue.mir2",
+      "bytes": 1131,
+      "sha256": "630e1626624c6a6efdf3f5a1389f38ed31847c118bbf9656bc9499da61f678d2"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-ge.nanz",
+      "bytes": 174,
+      "sha256": "f23283369962a45d27293b85e4f7d7ca6299b6af8090d658d8f4aa701bbf39ca"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-gt-gracefalse-sizefalse.a80",
+      "bytes": 5149,
+      "sha256": "89dfc0355e119fae2621619153eeb11b04cf92ef88fb819516fc5cef888a6f04"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-gt-gracefalse-sizefalse.bin",
+      "bytes": 518,
+      "sha256": "6b75b855dbef67c40c95ebaf7b941244da4d1de035460dc251ca8dbd199e0f65"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-gt-gracefalse-sizefalse.mir2",
+      "bytes": 1131,
+      "sha256": "f7c66890bf8393640353b0de2e6d810e5c8995e2eb278cb5b87367370f0833ed"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-gt-gracetrue-sizefalse.a80",
+      "bytes": 5134,
+      "sha256": "86a6390ea8d527c8977566d201aadd4ca8d77aacb31c3d717c8a3e58acc89291"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-gt-gracetrue-sizefalse.bin",
+      "bytes": 518,
+      "sha256": "6b75b855dbef67c40c95ebaf7b941244da4d1de035460dc251ca8dbd199e0f65"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-gt-gracetrue-sizefalse.mir2",
+      "bytes": 1131,
+      "sha256": "f7c66890bf8393640353b0de2e6d810e5c8995e2eb278cb5b87367370f0833ed"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-gt-gracetrue-sizetrue.a80",
+      "bytes": 5134,
+      "sha256": "86a6390ea8d527c8977566d201aadd4ca8d77aacb31c3d717c8a3e58acc89291"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-gt-gracetrue-sizetrue.bin",
+      "bytes": 518,
+      "sha256": "6b75b855dbef67c40c95ebaf7b941244da4d1de035460dc251ca8dbd199e0f65"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-gt-gracetrue-sizetrue.mir2",
+      "bytes": 1131,
+      "sha256": "f7c66890bf8393640353b0de2e6d810e5c8995e2eb278cb5b87367370f0833ed"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-gt.nanz",
+      "bytes": 171,
+      "sha256": "baa4c382327cfc71ed92ab8945b251b6159ec083d24e956f1b21a3147ea8b6db"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-le-gracefalse-sizefalse.a80",
+      "bytes": 5083,
+      "sha256": "d4642aecdfc49913f4bb50cd25f0e73b7d2d3912fc7e4150ea3d7acb05ca5541"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-le-gracefalse-sizefalse.bin",
+      "bytes": 509,
+      "sha256": "a7f843adf6892423f72d7493e2de4951e3a72cb329b041fb70fc44906a4be65f"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-le-gracefalse-sizefalse.mir2",
+      "bytes": 1131,
+      "sha256": "1b0a60491007bb22c5f98e333d25b8233ebff1a7b32ed8b11c6a2341ef2f3337"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-le-gracetrue-sizefalse.a80",
+      "bytes": 5068,
+      "sha256": "d7b6a48af1a52066b9b150d00608b0ec95851bd675f70fb2253274f999452d96"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-le-gracetrue-sizefalse.bin",
+      "bytes": 509,
+      "sha256": "a7f843adf6892423f72d7493e2de4951e3a72cb329b041fb70fc44906a4be65f"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-le-gracetrue-sizefalse.mir2",
+      "bytes": 1131,
+      "sha256": "1b0a60491007bb22c5f98e333d25b8233ebff1a7b32ed8b11c6a2341ef2f3337"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-le-gracetrue-sizetrue.a80",
+      "bytes": 5068,
+      "sha256": "d7b6a48af1a52066b9b150d00608b0ec95851bd675f70fb2253274f999452d96"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-le-gracetrue-sizetrue.bin",
+      "bytes": 509,
+      "sha256": "a7f843adf6892423f72d7493e2de4951e3a72cb329b041fb70fc44906a4be65f"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-le-gracetrue-sizetrue.mir2",
+      "bytes": 1131,
+      "sha256": "1b0a60491007bb22c5f98e333d25b8233ebff1a7b32ed8b11c6a2341ef2f3337"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-le.nanz",
+      "bytes": 174,
+      "sha256": "d5c72f2d764b4d890919b302e098988ca9178fe64c0d44cb7f6f7a8690d29d3f"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-lt-gracefalse-sizefalse.a80",
+      "bytes": 5014,
+      "sha256": "f0cd56d6b0c46d78f300a28b61e6c0bc948f0a31069b68e0bf3f87870c19dea3"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-lt-gracefalse-sizefalse.bin",
+      "bytes": 500,
+      "sha256": "be8f4c8eb70a06cd617c0b4a98507e0474845bc79e319a7500a79f97d37ed0dd"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-lt-gracefalse-sizefalse.mir2",
+      "bytes": 1131,
+      "sha256": "b1b6144b014d59a8bb608e77a2162dbeadf600087266203294f4f9ad282ff88c"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-lt-gracetrue-sizefalse.a80",
+      "bytes": 4999,
+      "sha256": "6eb287428db40a6499b46cc74dd793dfea1070fcdd5a3aacaa49e228ca4099cc"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-lt-gracetrue-sizefalse.bin",
+      "bytes": 500,
+      "sha256": "be8f4c8eb70a06cd617c0b4a98507e0474845bc79e319a7500a79f97d37ed0dd"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-lt-gracetrue-sizefalse.mir2",
+      "bytes": 1131,
+      "sha256": "b1b6144b014d59a8bb608e77a2162dbeadf600087266203294f4f9ad282ff88c"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-lt-gracetrue-sizetrue.a80",
+      "bytes": 4999,
+      "sha256": "6eb287428db40a6499b46cc74dd793dfea1070fcdd5a3aacaa49e228ca4099cc"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-lt-gracetrue-sizetrue.bin",
+      "bytes": 500,
+      "sha256": "be8f4c8eb70a06cd617c0b4a98507e0474845bc79e319a7500a79f97d37ed0dd"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-lt-gracetrue-sizetrue.mir2",
+      "bytes": 1131,
+      "sha256": "b1b6144b014d59a8bb608e77a2162dbeadf600087266203294f4f9ad282ff88c"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-lt.nanz",
+      "bytes": 171,
+      "sha256": "0d71e973744fbc122fb830d61cee153eddfd1984a0ae7511e4026956a7764745"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-ne-gracefalse-sizefalse.a80",
+      "bytes": 4961,
+      "sha256": "084517d063a250a9932f743ccda18e1787d271436bdccb517ae83d1408b8b0ba"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-ne-gracefalse-sizefalse.bin",
+      "bytes": 493,
+      "sha256": "eadf2bac7d3b405cfb682de3d7e5113c941f5bc20649ee76c1bb2b27e1e61eb4"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-ne-gracefalse-sizefalse.mir2",
+      "bytes": 1131,
+      "sha256": "1553a2529e2974daee76fc9240c5f666e0f1aae1681038f985be213260d88d5f"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-ne-gracetrue-sizefalse.a80",
+      "bytes": 4946,
+      "sha256": "18a2913cce8fe58fd23acabcc4ff594a03699d2e5b52f76e3c6c9afd679244d9"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-ne-gracetrue-sizefalse.bin",
+      "bytes": 493,
+      "sha256": "eadf2bac7d3b405cfb682de3d7e5113c941f5bc20649ee76c1bb2b27e1e61eb4"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-ne-gracetrue-sizefalse.mir2",
+      "bytes": 1131,
+      "sha256": "1553a2529e2974daee76fc9240c5f666e0f1aae1681038f985be213260d88d5f"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-ne-gracetrue-sizetrue.a80",
+      "bytes": 4946,
+      "sha256": "18a2913cce8fe58fd23acabcc4ff594a03699d2e5b52f76e3c6c9afd679244d9"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-ne-gracetrue-sizetrue.bin",
+      "bytes": 493,
+      "sha256": "eadf2bac7d3b405cfb682de3d7e5113c941f5bc20649ee76c1bb2b27e1e61eb4"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-ne-gracetrue-sizetrue.mir2",
+      "bytes": 1131,
+      "sha256": "1553a2529e2974daee76fc9240c5f666e0f1aae1681038f985be213260d88d5f"
+    },
+    {
+      "path": "docs/grace-signed-comparison-width/width8-ne.nanz",
+      "bytes": 174,
+      "sha256": "79cd119cc72113860cea85b882211f9bfbf7066536fdc572a25d5ddda6ba481f"
+    },
+    {
+      "path": "minzc/pkg/mir2/signed_comparison_width_native_test.go",
+      "bytes": 5284,
+      "sha256": "79ccf3d6556f107f1f1ee600856514de60fd7b51328ddb514812803e005c1c4c"
+    },
+    {
+      "path": "minzc/pkg/mir2/z80codegen_cmp.go",
+      "bytes": 27966,
+      "sha256": "dc83fca3c434e21a3bbecf2a1a167f4344931f080157c2a708e66603e683f771"
+    },
+    {
+      "path": "minzc/pkg/pipeline/signed_comparison_width_test.go",
+      "bytes": 6158,
+      "sha256": "47f7a614906df06995e6bce4cfe8308949d37b66010f116f5a166a7dd7665ab7"
+    }
+  ]
+}

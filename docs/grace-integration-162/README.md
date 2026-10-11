@@ -1,0 +1,5 @@
+# Интеграция 162: свежая сборка корпуса и текущая ABI граница
+
+На root `9858face` полный `TestShowcaseCompileAssemble` **PASS 14,165 с**: 193 PASS, 1 прежний declared-capacity SKIP (host ZVM story[131072] не помещается в 16-bit memory). [Лог](showcase.txt). Включены callback signature admission, constant-memory purity и direct MIR call shape. Это compile/assemble gate; независимое исполнение всех 194 программ не заявляется. Последний каталог160: 58 independent/bounded paths, pending79 и отдельные ASM/runtime/host границы.
+
+General struct-return ABI ещё не интегрирован из worktree владельца. Read-only review подтвердило public native bootstrap для15 byte-valued объектов; CY runtime indirect agreement имело конкретный gap, переданный владельцу. Owning-local copy нужен: frozen repeated-loop контрпример даёт raw VM2 вместо0 до fix. После добавления copies pressure выявило actual hiddenparam placementDE против typed indirectHL. Исправляется explicit address-taken canonical ABI и hard pinning, а не фиктивный HasAsm. Остальные проверки multi-return, cross-result alias snapshot и nested layout сохраняются в scope. Общая цель остаётся активной.

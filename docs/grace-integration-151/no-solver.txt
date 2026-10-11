@@ -1,0 +1,7 @@
+=== RUN   TestCheckedLocalTableOrdinaryHIRSelectsSmallerNativeFunction
+    checked_local_tables_test.go:110: ordinary add5 all 256 byte inputs: module 8→6 bytes fixture 56→49 T; result/SP pass
+--- PASS: TestCheckedLocalTableOrdinaryHIRSelectsSmallerNativeFunction (0.06s)
+=== RUN   TestCheckedLocalTableTamperFallsBackAndProfileRefuses
+--- PASS: TestCheckedLocalTableTamperFallsBackAndProfileRefuses (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.076s

@@ -1,0 +1,10 @@
+=== RUN   TestConsumedCallbackPipelineRefusesErasedWordABI
+    consumed_callback_admission_test.go:29: statement 0: HIR probe: callback argument 0 to apply has incompatible callable signature: target word
+--- PASS: TestConsumedCallbackPipelineRefusesErasedWordABI (0.00s)
+=== RUN   TestConsumedCallbackTypedWordNative
+--- PASS: TestConsumedCallbackTypedWordNative (0.00s)
+=== RUN   TestLizpErasedCallbackSignatureDiagnostic
+    lizp_functional_callback_audit_test.go:31: HIR rejects statement 0: HIR probe: callback argument 0 to apply has incompatible callable signature: target word
+--- PASS: TestLizpErasedCallbackSignatureDiagnostic (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.012s

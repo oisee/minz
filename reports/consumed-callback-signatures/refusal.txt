@@ -1,0 +1,1 @@
+statement 0: HIR probe: callback argument 0 to apply has incompatible callable signature: target word
