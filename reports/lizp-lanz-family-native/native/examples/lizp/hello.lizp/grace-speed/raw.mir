@@ -1,0 +1,5 @@
+; MIR2 module: ../../../examples/lizp/hello.lizp
+fun @main()
+  block @entry:
+    ret void
+

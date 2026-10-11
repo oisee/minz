@@ -1,0 +1,16 @@
+=== RUN   TestOriginalLizpLanzFamilyState
+    original_lizp_lanz_family_native_test.go:326: examples/lizp/factorial.lizp ordinary 257 native/raw/final independent fullstate PASS
+    original_lizp_lanz_family_native_test.go:326: examples/lizp/factorial.lizp grace-size 257 native/raw/final independent fullstate PASS
+    original_lizp_lanz_family_native_test.go:326: examples/lizp/factorial.lizp grace-speed 257 native/raw/final independent fullstate PASS
+    original_lizp_lanz_family_native_test.go:326: examples/lizp/hello.lizp ordinary 1 native/raw/final independent fullstate PASS
+    original_lizp_lanz_family_native_test.go:326: examples/lizp/hello.lizp grace-size 1 native/raw/final independent fullstate PASS
+    original_lizp_lanz_family_native_test.go:326: examples/lizp/hello.lizp grace-speed 1 native/raw/final independent fullstate PASS
+    original_lizp_lanz_family_native_test.go:326: reports/showcase-src/2026-03-15/ex29_lanz.lanz ordinary 66047 native/raw/final independent fullstate PASS
+    original_lizp_lanz_family_native_test.go:326: reports/showcase-src/2026-03-15/ex29_lanz.lanz grace-size 66047 native/raw/final independent fullstate PASS
+    original_lizp_lanz_family_native_test.go:326: reports/showcase-src/2026-03-15/ex29_lanz.lanz grace-speed 66047 native/raw/final independent fullstate PASS
+--- PASS: TestOriginalLizpLanzFamilyState (6.04s)
+=== RUN   TestOriginalLizpCondMissingReturnObservation
+    original_lizp_lanz_family_native_test.go:368: NOT a behavior PASS: declared u8 classify42 returns no VM result and stale native A42; source language implicit return unresolved
+--- PASS: TestOriginalLizpCondMissingReturnObservation (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	6.056s

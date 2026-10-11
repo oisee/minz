@@ -1,0 +1,33 @@
+; MIR2 module: ../../../reports/showcase-src/2026-03-15/ex29_lanz.lanz
+fun @double(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = add %r1, %r1 : u8 [acc]
+    ret %r2
+
+fun @sum_to(%r3: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r4 = const 0 : u8 [general]
+    %r5 = const 1 : u8 [general]
+    jmp @loop_head1(%r4, %r5, %r3)
+  block @loop_head1(%r6: u8 [general], %r7: u8 [general], %r8: u8 [general]):
+    %r9 = cmp.ule %r7, %r8 : bool [flag]
+    br_if %r9, @loop_body2(), @loop_exit3(%r6, %r7, %r8)
+  block @loop_body2:
+    %r10 = add %r6, %r7 : u8 [general]
+    %r11 = const 1 : u8 [general]
+    %r12 = add %r7, %r11 : u8 [general]
+    jmp @loop_head1(%r10, %r12, %r8)
+  block @loop_exit3(%r13: u8 [general], %r14: u8 [general], %r15: u8 [general]):
+    ret %r13
+
+fun @abs_diff(%r16: u8 [acc], %r17: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r18 = cmp.uge %r16, %r17 : bool [flag]
+    br_if %r18, @if_then1(), @if_else3()
+  block @if_then1:
+    %r19 = sub %r16, %r17 : u8 [acc]
+    ret %r19
+  block @if_else3:
+    %r20 = sub %r17, %r16 : u8 [acc]
+    ret %r20
+

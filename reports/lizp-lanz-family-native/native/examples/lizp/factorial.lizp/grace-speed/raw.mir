@@ -1,0 +1,33 @@
+; MIR2 module: ../../../examples/lizp/factorial.lizp
+global @result : u16
+
+fun @factorial(%r1: u8 [acc]) -> u16 [pointer]
+  block @entry:
+    %r2 = const 1 : u8 [general]
+    %r3 = ext %r2 : u8 -> u16 [pointer]
+    %r4 = const 0 : u8 [general]
+    %r5 = const 0 : u8 [general]
+    jmp @loop_head2(%r1, %r3, %r5)
+  block @loop_head2(%r6: u8 [general], %r7: u16 [pointer], %r8: u8 [general]):
+    %r9 = cmp.ult %r8, %r6 : bool [flag]
+    br_if %r9, @loop_body3(), @loop_exit4(%r6, %r7, %r8)
+  block @loop_body3:
+    %r10 = const 1 : u8 [general]
+    %r11 = add %r8, %r10 : u8 [general]
+    %r12 = ext %r11 : u8 -> u16 [pointer]
+    %r13 = mul %r7, %r12 : u16 [pointer]
+    %r14 = const 1 : u8 [general]
+    %r15 = add %r8, %r14 : u8 [general]
+    jmp @loop_head2(%r6, %r13, %r15)
+  block @loop_exit4(%r16: u8 [general], %r17: u16 [pointer], %r18: u8 [general]):
+    ret %r17
+
+fun @main()
+  block @entry:
+    %r19 = const 5 : u8 [general]
+    %r20 = move %r19 : u8 [acc]
+    %r21 = call @factorial(%r20) : u16 [pointer]
+    %r22 = addr_of @result : ptr [pointer]
+    store %r22, %r21 : u16
+    ret void
+
