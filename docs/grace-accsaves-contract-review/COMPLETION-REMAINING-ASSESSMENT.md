@@ -1,0 +1,7 @@
+# Remaining closure at2a5cdb9d
+
+The requested bounded objective is evidenced: sum_array profile→economic Grace choice→VM/assembled Z80 at0/1/5/16/64/255, current195/250B modelv3 and eighteen saved results; unchanged realparser full30/profile/replay/proofs with separately executed pureSpeed andSize, current9ec48 context. Three old Steps references are now independently remeasured/verified; exactsource oracle and eleven loop counters remain. CurrentCLI PASS306.414, MIR PASS5.930, showcase same26/0new.
+
+The sole required technical closure still pending is terminal inventory of frozen fullpipeline89426 (PID1373019, sourcebb1bbaf9/ELF85c8). It was built before71b reference changes. Any three stale-reference failures must be compared exactly with already verified71b; the test process itself must not be called rawPASS. Any other failure needs diagnosis. Older86830 terminal failure contains only the three corrected references and is preserved. No extra CPU is requested by this audit.
+
+After that terminal review, update final completion/audit status and publication/offline handover. Currentstate/overnight summary correctly avoid overallPASS and separate historical contexts, branch versus main, and actualSize versus inferredSize. KeepCPMmain described as the derivedCString emulator demonstration; shorthand should not imply unchangedsource main or physicalCPM. Existing26showcase failures and broader general-rule/hardware goals are explicit limitations, not newly invented requirements for this bounded original goal.
