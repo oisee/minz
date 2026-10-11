@@ -333,8 +333,32 @@ func memoryHostArenaAppendSourceSites(sites *hir.LoopSiteMap) (MemoryHostArenaAp
 	return out, nil
 }
 func bindMemoryHostArenaAppendProof(p *MemoryHostArenaAppendPrecompileProof, sites MemoryHostArenaAppendSourceSites, choices hir.MemoryHostArenaAppendChoices, original, actual *MemoryHostBaselineEvidence) error {
-	if p == nil || p.Choices != choices || !reflect.DeepEqual(p.SourceSites, sites) || !reflect.DeepEqual(p.OriginalCompatibility, original.Compatibility) || !reflect.DeepEqual(p.ActualCompatibility, actual.Compatibility) || !reflect.DeepEqual(p.OriginalFunctions, original.FunctionSites) || !reflect.DeepEqual(p.ActualFunctions, actual.FunctionSites) {
+	if p == nil || p.Schema != "minz.exact-memory-host-arena-append-precompile/v1" || p.Function != "region_match+intern_region" || p.ActualSites == nil || p.Choices != choices || !reflect.DeepEqual(p.SourceSites, sites) || !reflect.DeepEqual(p.OriginalCompatibility, original.Compatibility) || !reflect.DeepEqual(p.ActualCompatibility, actual.Compatibility) || !reflect.DeepEqual(p.OriginalFunctions, original.FunctionSites) || !reflect.DeepEqual(p.ActualFunctions, actual.FunctionSites) {
 		return fmt.Errorf("arena append selector: measuredbaseline differs from proof")
+	}
+	for _, expected := range []struct {
+		site hir.LoopSite
+		path string
+	}{{sites.Arena, "body/s1"}, {sites.Append, "body/s5"}} {
+		path := expected.path
+		if expected.site.ID == sites.Arena.ID && choices.ArenaPeel {
+			path = "body/s4"
+		}
+		if expected.site.ID == sites.Append.ID && choices.AppendHoist {
+			path = "body/s7"
+		}
+		found := false
+		for _, actualSite := range p.ActualSites.Sites {
+			if actualSite.ID == expected.site.ID {
+				if found || actualSite.Function != expected.site.Function || actualSite.Kind != expected.site.Kind || actualSite.HIRPath != path || !reflect.DeepEqual(actualSite.Origin, expected.site.Origin) {
+					return fmt.Errorf("arena append selector: proof actual site differs")
+				}
+				found = true
+			}
+		}
+		if !found {
+			return fmt.Errorf("arena append selector: proof actual site missing")
+		}
 	}
 	return nil
 }

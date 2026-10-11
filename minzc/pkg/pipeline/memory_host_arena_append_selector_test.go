@@ -202,3 +202,49 @@ func TestMemoryHostArenaAppendSelectorProofChoices(t *testing.T) {
 		}
 	}
 }
+
+func TestMemoryHostArenaAppendSelectorProofRecordForgery(t *testing.T) {
+	source, w := memoryHostParserFixture(t)
+	actual, _ := memoryHostParserFixture(t)
+	choices := hir.MemoryHostArenaAppendChoices{ArenaPeel: true, AppendHoist: true}
+	if e := constructMemoryHostArenaAppend(actual, w, true, true); e != nil {
+		t.Fatal(e)
+	}
+	proof, e := buildMemoryHostArenaAppendPrecompileProof(source, actual, w, choices)
+	if e != nil {
+		t.Fatal(e)
+	}
+	original := &MemoryHostBaselineEvidence{Compatibility: proof.OriginalCompatibility, FunctionSites: proof.OriginalFunctions}
+	variant := &MemoryHostBaselineEvidence{Compatibility: proof.ActualCompatibility, FunctionSites: proof.ActualFunctions}
+	for _, mutation := range []string{"schema", "function", "actualpath", "duplicate", "missing"} {
+		t.Run(mutation, func(t *testing.T) {
+			b, _ := json.Marshal(proof)
+			var p MemoryHostArenaAppendPrecompileProof
+			json.Unmarshal(b, &p)
+			switch mutation {
+			case "schema":
+				p.Schema = "other"
+			case "function":
+				p.Function = "intern_region"
+			case "actualpath":
+				for i := range p.ActualSites.Sites {
+					if p.ActualSites.Sites[i].ID == p.SourceSites.Append.ID {
+						p.ActualSites.Sites[i].HIRPath = "body/s1"
+					}
+				}
+			case "duplicate":
+				for _, s := range p.ActualSites.Sites {
+					if s.ID == p.SourceSites.Arena.ID {
+						p.ActualSites.Sites = append(p.ActualSites.Sites, s)
+						break
+					}
+				}
+			case "missing":
+				p.ActualSites = nil
+			}
+			if bindMemoryHostArenaAppendProof(&p, proof.SourceSites, choices, original, variant) == nil {
+				t.Fatal("forgedrecordaccepted")
+			}
+		})
+	}
+}
