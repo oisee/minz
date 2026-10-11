@@ -133,6 +133,30 @@ func applyReviewedCatalogEvidence(t *testing.T, root string, row *oracleCatalogE
 			add("minzc/pkg/pipeline/"+r.test, "original functions; explicit driver/runtime where stated", r.workload+"; "+r.boundary)
 		}
 	}
+	// Carry reviewed saved packets into the executable catalog itself. These are
+	// bounded proofs, not inferred PASS from finding a test or source assertion.
+	savedNative := []struct {
+		path, workload, model, boundary, assertionScope string
+		references                                      []string
+	}{
+		{"examples/nanz/06_pbqp_weighted.nanz", "weighted;256byteinputs, originalfunction plusexplicitcallerharness", "weighted(x)=10*x+1 modulo256", "Only explicitly listed entries/input coverage; table assignment evidence is not wholeprogramallinput proof.", "unexecuted source expectations", []string{"docs/grace-integration-095/manifest.json"}},
+		{"examples/nanz/13_result_error.nanz", "reports/result-error-native/workload.json", "Book v7 tagged result highbyte/lowpayload; host byteaddition carry andtag0x0101 overflow", "Nineoriginalsourceentries native/raw/finalcovered; generated __tag/__payload rawonly because finalinlinesprunes. Sixassertionsretained; boundedmodulescope notallcorpus.", "unexecuted source expectations", []string{"reports/result-error-native/manifest.json", "docs/grace-integration-115/result-error-root.txt"}},
+		{"examples/nanz/17_bool_retflag.nanz", "reports/bool-retflag-native/workload.json", "Unsignedbyte hostpredicates;9unaryall256,eq/lt/gtall65536pairs", "All12originalentries covered. ActualreturnABI A/ClassAcc; no native Freturnselectionclaim. Nototherprograms.", "unexecuted source expectations", []string{"reports/bool-retflag-native/manifest.json", "docs/grace-integration-112/bool-root.txt"}},
+		{"examples/nanz/20_strref_test.nanz", "hash3;65536 correlatedtriple samples, not all2^24", "a+2*b+3*c modulo256", "Only explicitly listed entries/input coverage; table assignment evidence is not wholeprogramallinput proof.", "unexecuted source expectations", []string{"reports/artifacts/historical-composition-evidence.tar.xz"}},
+		{"examples/nanz/mul16_gpu_test.nanz", "allfiveoriginalhelpers;nativeall65536/limitedrawVM;newcallerfixtureseparate", "x*k modulo65536", "Only explicitly listed entries/input coverage; table assignment evidence is not wholeprogramallinput proof.", "unexecuted source expectations", []string{"reports/artifacts/checked-word-mul-evidence.tar.xz"}},
+		{"reports/showcase-src/2026-03-13/ex19_assert_forms.nanz", "reports/showcase-ex19-complete/workload.json; reports/showcase-manhattan/workload.json", "Book v7 named byte fields/unsigned width; host Manhattan abs differences modulo256 and named accessors", "All nine source-defined entries have bounded independent raw/finalVM/native proof; generated lambda_0 raw-only because final inlining prunes it. Not all byte Cartesian inputs, and assertions retain original qualifiers.", "40 assertions retained; additional host-oracle workload proves bounded nine-entry native behavior separately", []string{"reports/showcase-manhattan/proof/manifest.json", "docs/grace-integration-103/local-frame-integrated-original.txt", "reports/showcase-ex19-complete/manifest.json", "docs/grace-integration-105/ex19-complete-root.txt"}},
+	}
+	for _, proof := range savedNative {
+		if row.Path != proof.path {
+			continue
+		}
+		row.NativeBehavior = "bounded-independent-vm-native"
+		row.Workload, row.Model, row.Requirement = proof.workload, proof.model, proof.boundary
+		row.AssertionScope = proof.assertionScope
+		for _, reference := range proof.references {
+			add(reference, "reviewed saved original-source bounded packet", proof.workload+"; "+proof.boundary)
+		}
+	}
 	switch row.Path {
 	case "examples/nanz/typed_print.nanz":
 		add("minzc/pkg/pipeline/showcase_typed_print_native_test.go::TestTypedPrintImportedFormatterBoundaryNative", "exact original source plus explicit capacity/value workload drivers", "13 decimal boundaries x8capacities, all44globalbytes and pointer normalization after every call; no library algorithm copy.")

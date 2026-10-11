@@ -1022,12 +1022,19 @@
       "source_imports": [],
       "source_assertions": 0,
       "assertion_scope": "unexecuted source expectations",
-      "native_behavior": "pending-independent-oracle",
-      "workload": "",
-      "independent_model": "",
-      "external_requirement_or_remaining_work": "Choose bounded workload and independent expected return, memory, or output; compile/assemble PASS alone does not validate behavior.",
+      "native_behavior": "bounded-independent-vm-native",
+      "workload": "weighted;256byteinputs, originalfunction plusexplicitcallerharness",
+      "independent_model": "weighted(x)=10*x+1 modulo256",
+      "external_requirement_or_remaining_work": "Only explicitly listed entries/input coverage; table assignment evidence is not wholeprogramallinput proof.",
       "entry_structure_not_execution_claim": "callable-subroutines; workload required",
-      "reviewed_evidence": [],
+      "reviewed_evidence": [
+        {
+          "test_or_artifact": "docs/grace-integration-095/manifest.json",
+          "evidence_file_sha256": "59ccb8b141302d1ec92473013fbafc33353b423d5c14c770a120fba741a20091",
+          "source_relation": "reviewed saved original-source bounded packet",
+          "scope": "weighted;256byteinputs, originalfunction plusexplicitcallerharness; Only explicitly listed entries/input coverage; table assignment evidence is not wholeprogramallinput proof."
+        }
+      ],
       "test_source_references_not_execution_claim": [
         "minzc/pkg/pipeline/checked_local_real_test.go:83",
         "minzc/pkg/pipeline/combined_contract_table_grace_test.go:19",
@@ -1278,12 +1285,25 @@
       "source_imports": [],
       "source_assertions": 6,
       "assertion_scope": "unexecuted source expectations",
-      "native_behavior": "pending-independent-oracle",
-      "workload": "",
-      "independent_model": "",
-      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "native_behavior": "bounded-independent-vm-native",
+      "workload": "reports/result-error-native/workload.json",
+      "independent_model": "Book v7 tagged result highbyte/lowpayload; host byteaddition carry andtag0x0101 overflow",
+      "external_requirement_or_remaining_work": "Nineoriginalsourceentries native/raw/finalcovered; generated __tag/__payload rawonly because finalinlinesprunes. Sixassertionsretained; boundedmodulescope notallcorpus.",
       "entry_structure_not_execution_claim": "callable-subroutines; workload required",
-      "reviewed_evidence": [],
+      "reviewed_evidence": [
+        {
+          "test_or_artifact": "reports/result-error-native/manifest.json",
+          "evidence_file_sha256": "1036b5206b2367d526edbd36503a744ccf4adc60b75daf5e0edabcabb6eb1570",
+          "source_relation": "reviewed saved original-source bounded packet",
+          "scope": "reports/result-error-native/workload.json; Nineoriginalsourceentries native/raw/finalcovered; generated __tag/__payload rawonly because finalinlinesprunes. Sixassertionsretained; boundedmodulescope notallcorpus."
+        },
+        {
+          "test_or_artifact": "docs/grace-integration-115/result-error-root.txt",
+          "evidence_file_sha256": "01e60d2e5e40df5798d1540373d0d0f509bf463630ced016f8eda094a9b2eea7",
+          "source_relation": "reviewed saved original-source bounded packet",
+          "scope": "reports/result-error-native/workload.json; Nineoriginalsourceentries native/raw/finalcovered; generated __tag/__payload rawonly because finalinlinesprunes. Sixassertionsretained; boundedmodulescope notallcorpus."
+        }
+      ],
       "test_source_references_not_execution_claim": [
         "minzc/pkg/pipeline/profile_program_test.go:140",
         "minzc/pkg/pipeline/showcase_result_error_native_test.go:21",
@@ -1400,12 +1420,25 @@
       "source_imports": [],
       "source_assertions": 6,
       "assertion_scope": "unexecuted source expectations",
-      "native_behavior": "pending-independent-oracle",
-      "workload": "",
-      "independent_model": "",
-      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "native_behavior": "bounded-independent-vm-native",
+      "workload": "reports/bool-retflag-native/workload.json",
+      "independent_model": "Unsignedbyte hostpredicates;9unaryall256,eq/lt/gtall65536pairs",
+      "external_requirement_or_remaining_work": "All12originalentries covered. ActualreturnABI A/ClassAcc; no native Freturnselectionclaim. Nototherprograms.",
       "entry_structure_not_execution_claim": "callable-subroutines; workload required",
-      "reviewed_evidence": [],
+      "reviewed_evidence": [
+        {
+          "test_or_artifact": "reports/bool-retflag-native/manifest.json",
+          "evidence_file_sha256": "478ec38612707bc24223b3f3577f622718ef9a15b550242ae47e0f257b6a98df",
+          "source_relation": "reviewed saved original-source bounded packet",
+          "scope": "reports/bool-retflag-native/workload.json; All12originalentries covered. ActualreturnABI A/ClassAcc; no native Freturnselectionclaim. Nototherprograms."
+        },
+        {
+          "test_or_artifact": "docs/grace-integration-112/bool-root.txt",
+          "evidence_file_sha256": "b9f169f293232dfa49da31ffb83e5070e2627fb41153b26e4b03638759ccf89f",
+          "source_relation": "reviewed saved original-source bounded packet",
+          "scope": "reports/bool-retflag-native/workload.json; All12originalentries covered. ActualreturnABI A/ClassAcc; no native Freturnselectionclaim. Nototherprograms."
+        }
+      ],
       "test_source_references_not_execution_claim": [
         "minzc/pkg/pipeline/branch_table_boundary_test.go:17",
         "minzc/pkg/pipeline/showcase_bool_retflag_native_test.go:21"
@@ -1469,12 +1502,19 @@
       "source_imports": [],
       "source_assertions": 6,
       "assertion_scope": "unexecuted source expectations",
-      "native_behavior": "pending-independent-oracle",
-      "workload": "",
-      "independent_model": "",
-      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "native_behavior": "bounded-independent-vm-native",
+      "workload": "hash3;65536 correlatedtriple samples, not all2^24",
+      "independent_model": "a+2*b+3*c modulo256",
+      "external_requirement_or_remaining_work": "Only explicitly listed entries/input coverage; table assignment evidence is not wholeprogramallinput proof.",
       "entry_structure_not_execution_claim": "callable-subroutines; workload required",
-      "reviewed_evidence": [],
+      "reviewed_evidence": [
+        {
+          "test_or_artifact": "reports/artifacts/historical-composition-evidence.tar.xz",
+          "evidence_file_sha256": "f045f20e9d4b905d0a435b33337ecd994ee9a24f55df31ff290b04685a45409d",
+          "source_relation": "reviewed saved original-source bounded packet",
+          "scope": "hash3;65536 correlatedtriple samples, not all2^24; Only explicitly listed entries/input coverage; table assignment evidence is not wholeprogramallinput proof."
+        }
+      ],
       "test_source_references_not_execution_claim": [
         "minzc/pkg/pipeline/composition_native_test.go:22",
         "minzc/pkg/pipeline/table_negative_native_test.go:16"
@@ -2201,12 +2241,19 @@
       "source_imports": [],
       "source_assertions": 10,
       "assertion_scope": "unexecuted source expectations",
-      "native_behavior": "pending-independent-oracle",
-      "workload": "",
-      "independent_model": "",
-      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "native_behavior": "bounded-independent-vm-native",
+      "workload": "allfiveoriginalhelpers;nativeall65536/limitedrawVM;newcallerfixtureseparate",
+      "independent_model": "x*k modulo65536",
+      "external_requirement_or_remaining_work": "Only explicitly listed entries/input coverage; table assignment evidence is not wholeprogramallinput proof.",
       "entry_structure_not_execution_claim": "callable-subroutines; workload required",
-      "reviewed_evidence": [],
+      "reviewed_evidence": [
+        {
+          "test_or_artifact": "reports/artifacts/checked-word-mul-evidence.tar.xz",
+          "evidence_file_sha256": "3f7dd3aa30163c3178fe4013f893732cf8a96e92c52d291ed12430be28dabcc9",
+          "source_relation": "reviewed saved original-source bounded packet",
+          "scope": "allfiveoriginalhelpers;nativeall65536/limitedrawVM;newcallerfixtureseparate; Only explicitly listed entries/input coverage; table assignment evidence is not wholeprogramallinput proof."
+        }
+      ],
       "test_source_references_not_execution_claim": [
         "minzc/pkg/pipeline/checked_word_mul_test.go:19"
       ]
@@ -6044,13 +6091,38 @@
       "externs": [],
       "source_imports": [],
       "source_assertions": 40,
-      "assertion_scope": "unexecuted source expectations",
-      "native_behavior": "pending-independent-oracle",
-      "workload": "",
-      "independent_model": "",
-      "external_requirement_or_remaining_work": "Audit source expected values against language specification and promote applicable MIR-only checks to native Z80. Source assertions are not independent models.",
+      "assertion_scope": "40 assertions retained; additional host-oracle workload proves bounded nine-entry native behavior separately",
+      "native_behavior": "bounded-independent-vm-native",
+      "workload": "reports/showcase-ex19-complete/workload.json; reports/showcase-manhattan/workload.json",
+      "independent_model": "Book v7 named byte fields/unsigned width; host Manhattan abs differences modulo256 and named accessors",
+      "external_requirement_or_remaining_work": "All nine source-defined entries have bounded independent raw/finalVM/native proof; generated lambda_0 raw-only because final inlining prunes it. Not all byte Cartesian inputs, and assertions retain original qualifiers.",
       "entry_structure_not_execution_claim": "callable-subroutines; workload required",
-      "reviewed_evidence": [],
+      "reviewed_evidence": [
+        {
+          "test_or_artifact": "reports/showcase-manhattan/proof/manifest.json",
+          "evidence_file_sha256": "288fef1a2487c78a606d5122184d641dda12285ecfd83aa94a25cbf7a22b727f",
+          "source_relation": "reviewed saved original-source bounded packet",
+          "scope": "reports/showcase-ex19-complete/workload.json; reports/showcase-manhattan/workload.json; All nine source-defined entries have bounded independent raw/finalVM/native proof; generated lambda_0 raw-only because final inlining prunes it. Not all byte Cartesian inputs, and assertions retain original qualifiers."
+        },
+        {
+          "test_or_artifact": "docs/grace-integration-103/local-frame-integrated-original.txt",
+          "evidence_file_sha256": "2bd415b2b089f946d65435b2fa6e3d58f3fa15a2bee077bbcb37a2279810f75c",
+          "source_relation": "reviewed saved original-source bounded packet",
+          "scope": "reports/showcase-ex19-complete/workload.json; reports/showcase-manhattan/workload.json; All nine source-defined entries have bounded independent raw/finalVM/native proof; generated lambda_0 raw-only because final inlining prunes it. Not all byte Cartesian inputs, and assertions retain original qualifiers."
+        },
+        {
+          "test_or_artifact": "reports/showcase-ex19-complete/manifest.json",
+          "evidence_file_sha256": "64f21185fe315a1749cf4d7bae3464efb5db7580ff5174e6b3d8d64028fb5c70",
+          "source_relation": "reviewed saved original-source bounded packet",
+          "scope": "reports/showcase-ex19-complete/workload.json; reports/showcase-manhattan/workload.json; All nine source-defined entries have bounded independent raw/finalVM/native proof; generated lambda_0 raw-only because final inlining prunes it. Not all byte Cartesian inputs, and assertions retain original qualifiers."
+        },
+        {
+          "test_or_artifact": "docs/grace-integration-105/ex19-complete-root.txt",
+          "evidence_file_sha256": "9e7519f4d6bed0bc575b0c2cc236c17314ae13ab88fdaa85cf5fad59b03ca1c9",
+          "source_relation": "reviewed saved original-source bounded packet",
+          "scope": "reports/showcase-ex19-complete/workload.json; reports/showcase-manhattan/workload.json; All nine source-defined entries have bounded independent raw/finalVM/native proof; generated lambda_0 raw-only because final inlining prunes it. Not all byte Cartesian inputs, and assertions retain original qualifiers."
+        }
+      ],
       "test_source_references_not_execution_claim": [
         "minzc/pkg/pipeline/showcase_ex19_complete_native_test.go:21",
         "minzc/pkg/pipeline/showcase_manhattan_native_test.go:21"
