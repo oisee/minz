@@ -8,16 +8,18 @@ import (
 	"reflect"
 )
 
+const MaxMemoryHostLoopProfileBytes = 8 << 20
+
 // LoadMemoryHostLoopProfile accepts only this closed family, with all typed
 // fields present, exact current source/workload context and complete calls.
 // Measurements must additionally compare it with a newly observed run; JSON
 // identity alone is not provenance for caller-supplied counts.
 func LoadMemoryHostLoopProfile(r io.Reader, source *Module, w MemoryHostWorkload) (*MemoryHostLoopProfileRun, error) {
-	data, e := io.ReadAll(io.LimitReader(r, maxLoopProfileBytes+1))
+	data, e := io.ReadAll(io.LimitReader(r, MaxMemoryHostLoopProfileBytes+1))
 	if e != nil {
 		return nil, e
 	}
-	if len(data) > maxLoopProfileBytes {
+	if len(data) > MaxMemoryHostLoopProfileBytes {
 		return nil, fmt.Errorf("memory loop profile: size limit")
 	}
 	d := json.NewDecoder(bytes.NewReader(data))

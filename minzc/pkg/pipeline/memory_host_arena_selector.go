@@ -13,10 +13,21 @@ type MemoryHostArenaSelectorOptions struct {
 	Goal     string `json:"goal"`
 	MaxSites int    `json:"max_sites"`
 }
+type MemoryHostArenaPrecompileProof struct {
+	Schema                string                    `json:"schema"`
+	Function              string                    `json:"function"`
+	SourceSite            hir.LoopSite              `json:"source_site"`
+	OriginalCompatibility *hir.ProfileCompatibility `json:"original_compatibility"`
+	ActualCompatibility   *hir.ProfileCompatibility `json:"actual_compatibility"`
+	OriginalFunctions     *hir.FunctionSiteMap      `json:"original_functions"`
+	ActualFunctions       *hir.FunctionSiteMap      `json:"actual_functions"`
+	ActualSites           *hir.LoopSiteMap          `json:"actual_sites"`
+}
+
 type MemoryHostArenaCandidate struct {
-	Peeled          bool                        `json:"peeled"`
-	PrecompileProof string                      `json:"precompile_proof"`
-	Evidence        *MemoryHostBaselineEvidence `json:"evidence"`
+	Peeled          bool                            `json:"peeled"`
+	PrecompileProof *MemoryHostArenaPrecompileProof `json:"precompile_proof"`
+	Evidence        *MemoryHostBaselineEvidence     `json:"evidence"`
 }
 type MemoryHostArenaSelection struct {
 	Schema      string                         `json:"schema"`
@@ -34,6 +45,9 @@ type MemoryHostArenaSelection struct {
 func MeasureMemoryHostArenaPeel(factory func() (*hir.Module, error), w hir.MemoryHostWorkload, serialized []byte, o MemoryHostArenaSelectorOptions) (*MemoryHostArenaSelection, error) {
 	if factory == nil || o.MaxSites != 1 || (o.Goal != "speed" && o.Goal != "size") {
 		return nil, fmt.Errorf("arena selector: invalid bounded options/factory")
+	}
+	if len(serialized) > hir.MaxMemoryHostLoopProfileBytes {
+		return nil, fmt.Errorf("arena selector: profile size limit")
 	}
 	owned, e := ownMemoryHostWorkload(w)
 	if e != nil {
@@ -133,6 +147,7 @@ func MeasureMemoryHostArenaPeel(factory func() (*hir.Module, error), w hir.Memor
 	}
 	// Candidate runner remains private: caller factory only returns originals.
 	// Each original is checked and retained separately from the mutated candidate.
+	var precompileProof *MemoryHostArenaPrecompileProof
 	variantFactory := func() (*hir.Module, error) {
 		original, e := fresh()
 		if e != nil {
@@ -161,6 +176,15 @@ func MeasureMemoryHostArenaPeel(factory func() (*hir.Module, error), w hir.Memor
 		if e = hir.ValidateMemoryHostArenaPeel(original, actual, owned); e != nil {
 			return nil, e
 		}
+		proof, e := buildMemoryHostArenaPrecompileProof(original, actual, owned, site)
+		if e != nil {
+			return nil, e
+		}
+		if precompileProof == nil {
+			precompileProof = proof
+		} else if !reflect.DeepEqual(precompileProof, proof) {
+			return nil, fmt.Errorf("arena selector: precompile proof drift")
+		}
 		if e = check(); e != nil {
 			return nil, e
 		}
@@ -173,13 +197,25 @@ func MeasureMemoryHostArenaPeel(factory func() (*hir.Module, error), w hir.Memor
 	if e = check(); e != nil {
 		return nil, e
 	}
+	if precompileProof == nil || !reflect.DeepEqual(precompileProof.OriginalCompatibility, association.Baseline.Compatibility) || !reflect.DeepEqual(precompileProof.ActualCompatibility, variant.Compatibility) || !reflect.DeepEqual(precompileProof.OriginalFunctions, association.Baseline.FunctionSites) || !reflect.DeepEqual(precompileProof.ActualFunctions, variant.FunctionSites) {
+		return nil, fmt.Errorf("arena selector: measured baseline differs from precompile proof")
+	}
+	var selectedSource hir.LoopSite
+	for _, s := range loaded.Sites.Sites {
+		if s.ID == site {
+			selectedSource = s
+		}
+	}
+	if !reflect.DeepEqual(precompileProof.SourceSite, selectedSource) {
+		return nil, fmt.Errorf("arena selector: loaded source site differs from proof")
+	}
 	if e = arenaSameObservations(association.Baseline.Raw.Invocations, variant.Raw.Invocations); e != nil {
 		return nil, e
 	}
 	if e = arenaSameObservations(association.Baseline.Target.Invocations, variant.Target.Invocations); e != nil {
 		return nil, e
 	}
-	out := &MemoryHostArenaSelection{Schema: "minz.memory-host-arena-selection/v1", Options: o, Profile: loaded, Association: association, SiteID: site, Candidates: []MemoryHostArenaCandidate{{Evidence: association.Baseline}, {Peeled: true, PrecompileProof: "minz.exact-memory-host-arena-peel/v1", Evidence: variant}}}
+	out := &MemoryHostArenaSelection{Schema: "minz.memory-host-arena-selection/v1", Options: o, Profile: loaded, Association: association, SiteID: site, Candidates: []MemoryHostArenaCandidate{{Evidence: association.Baseline}, {Peeled: true, PrecompileProof: precompileProof, Evidence: variant}}}
 	a, b := association.Baseline.Target, variant.Target
 	out.Selected = selectMemoryHostArenaCandidate(o.Goal, a, b)
 	runtime.KeepAlive(privateRoots)
@@ -266,4 +302,68 @@ func selectMemoryHostArenaCandidate(goal string, a, b *MemoryHostTargetEvidence)
 		return 1
 	}
 	return 0
+}
+
+// Captured independently validated precompile identities. This record contains
+// no claim that the same HIR shape survives compiler splitting or lowering.
+func buildMemoryHostArenaPrecompileProof(source, actual *hir.Module, w hir.MemoryHostWorkload, siteID string) (*MemoryHostArenaPrecompileProof, error) {
+	if e := hir.ValidateMemoryHostArenaPeel(source, actual, w); e != nil {
+		return nil, e
+	}
+	_, sourceContext, e := hir.PrepareMemoryHostWorkload(source, w)
+	if e != nil {
+		return nil, e
+	}
+	_, actualContext, e := hir.PrepareMemoryHostWorkload(actual, w)
+	if e != nil {
+		return nil, e
+	}
+	sk, e := hir.BuildProfileCompatibility(source, sourceContext)
+	if e != nil {
+		return nil, e
+	}
+	ak, e := hir.BuildProfileCompatibility(actual, actualContext)
+	if e != nil {
+		return nil, e
+	}
+	sf, e := hir.BuildFunctionSiteMap(source)
+	if e != nil {
+		return nil, e
+	}
+	af, e := hir.BuildFunctionSiteMap(actual)
+	if e != nil {
+		return nil, e
+	}
+	ss, e := hir.BuildLoopSiteMap(source)
+	if e != nil {
+		return nil, e
+	}
+	as, e := hir.BuildLoopSiteMap(actual)
+	if e != nil {
+		return nil, e
+	}
+	var sourceSite hir.LoopSite
+	found := false
+	for _, s := range ss.Sites {
+		if s.ID == siteID {
+			sourceSite = s
+			found = true
+		}
+	}
+	if !found || sourceSite.Function != "region_match" || sourceSite.HIRPath != "body/s1" {
+		return nil, fmt.Errorf("arena selector: unexpected source proof site")
+	}
+	tailFound := false
+	for _, s := range as.Sites {
+		if s.ID == siteID {
+			if s.Function != "region_match" || s.HIRPath != "body/s4" || !reflect.DeepEqual(s.Origin, sourceSite.Origin) {
+				return nil, fmt.Errorf("arena selector: actual tail site differs")
+			}
+			tailFound = true
+		}
+	}
+	if !tailFound {
+		return nil, fmt.Errorf("arena selector: missing actual tail site")
+	}
+	return &MemoryHostArenaPrecompileProof{Schema: "minz.exact-memory-host-arena-peel-precompile/v1", Function: "region_match", SourceSite: sourceSite, OriginalCompatibility: sk, ActualCompatibility: ak, OriginalFunctions: sf, ActualFunctions: af, ActualSites: as}, nil
 }
