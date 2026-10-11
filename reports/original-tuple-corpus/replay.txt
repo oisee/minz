@@ -1,0 +1,2 @@
+cd minzc/pkg/pipeline
+../../../reports/original-tuple-corpus/pipeline.test -test.run '^TestOriginalTupleCorpusComplete$' -test.v

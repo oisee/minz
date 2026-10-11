@@ -1,0 +1,17 @@
+{
+  "allowed_spill_bytes": {},
+  "entries": {
+    "larger": 65732,
+    "minmax": 65732,
+    "smaller": 65732,
+    "swap": 65732
+  },
+  "module_bytes": 26,
+  "source_sha256": "f7f3be929afe1d2ce0b4212b46b004bfeb9a562780ff9b54b9eef2a7efcf7326",
+  "stack_depths": {
+    "larger": 6,
+    "minmax": 4,
+    "smaller": 4,
+    "swap": 2
+  }
+}

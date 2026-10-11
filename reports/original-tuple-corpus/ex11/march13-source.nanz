@@ -1,0 +1,28 @@
+// ex11 — Multiple return values: minmax
+//
+// Returns both the minimum and maximum of two u16 values in a single call.
+// Z80 ABI: first return → HL, second return → DE.
+//
+// Callers unpack with:
+//   let (lo, hi) = minmax(a, b)
+
+fun minmax(a: u16, b: u16) -> (u16, u16) {
+    if a <= b { return (a, b) }
+    return (b, a)
+}
+
+fun swap(a: u16, b: u16) -> (u16, u16) {
+    return (b, a)
+}
+
+// Example caller: return only the smaller value.
+fun smaller(x: u16, y: u16) -> u16 {
+    let (lo, _) = minmax(x, y)
+    return lo
+}
+
+// Example caller: return only the larger value.
+fun larger(x: u16, y: u16) -> u16 {
+    let (_, hi) = minmax(x, y)
+    return hi
+}
