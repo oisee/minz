@@ -1,0 +1,5 @@
+# github.com/minz/minzc/pkg/pascal_test [github.com/minz/minzc/pkg/pascal.test]
+pkg/pascal/pascal_test.go:79:20: undefined: ArrayType
+pkg/pascal/pascal_test.go:101:20: undefined: RecordType
+FAIL	github.com/minz/minzc/pkg/pascal [build failed]
+FAIL

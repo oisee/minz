@@ -11,3 +11,7 @@ Full 30-call actual Speed search passed (83.79 s): PreserveForSpeed + both trans
 Size rankings are calculated offline from the same saved binaries: Legacy + append hoist, 1,978 B in both workloads. They are not a second actual Size selector execution; actual Size behavior is covered by the focused small control. Synthetic ranking controls prove deterministic objective/tie behavior, not native cost authenticity. Zero-body control does not establish dynamic compare activation. No source-loop or PC-cost attribution is claimed.
 
 Source-only root integration is 44739f77. Parent broad gates are running separately; this report claims the focused and saved-evidence checks above, not a completed broad-suite result.
+
+Independent semantic/native source and saved audits pass 300 full-workload plus 20 short-workload native observations. Packaged gzip payloads and compressed executable were rechecked by the copied portable auditor (using the logical executable path without the .gz suffix). All original source states, ordered host events, 11 counters, policy/aggregate proofs, candidate binary/ASM/dump/allocation/sidecar/frame hashes and selected indices match.
+
+Broad integration exposed same-package frontend tests importing pipeline through nanz. Three test-only frontend suites were moved to external packages, retaining exported API/AST checks. Lanz, Lizp, PL/M and Pascal passed; PL/M was already external. Initial Pascal qualification build failures are retained, and the corrected suite passed. No production source or native measurement changed.

@@ -1,0 +1,10 @@
+[
+  {
+    "path": "minzc/pkg/pipeline/memory_host_policy_search.go",
+    "sha256": "6357dd5931480ae6baac0daeaadd0c7f19aeb18bed9b337313733f19e50bea77"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_policy_search_test.go",
+    "sha256": "5dbc13f8e8e1550991f3368392b09f4f41dbc8f91755d6e9fe1222ffc62907c3"
+  }
+]

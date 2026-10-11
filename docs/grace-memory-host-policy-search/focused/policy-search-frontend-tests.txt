@@ -1,0 +1,17 @@
+# github.com/minz/minzc/pkg/pascal_test [github.com/minz/minzc/pkg/pascal.test]
+pkg/pascal/pascal_test.go:40:24: undefined: ConstDecl
+pkg/pascal/pascal_test.go:60:24: undefined: VarDecl
+pkg/pascal/pascal_test.go:78:24: undefined: TypeDecl
+pkg/pascal/pascal_test.go:100:24: undefined: TypeDecl
+pkg/pascal/pascal_test.go:128:24: undefined: ProcDecl
+pkg/pascal/pascal_test.go:155:24: undefined: ProcDecl
+pkg/pascal/pascal_test.go:175:27: undefined: ForStmt
+pkg/pascal/pascal_test.go:201:29: undefined: WhileStmt
+pkg/pascal/pascal_test.go:204:29: undefined: RepeatStmt
+pkg/pascal/pascal_test.go:224:27: undefined: CaseStmt
+pkg/pascal/pascal_test.go:224:27: too many errors
+ok  	github.com/minz/minzc/pkg/lanz	0.011s
+ok  	github.com/minz/minzc/pkg/lizp	0.012s
+ok  	github.com/minz/minzc/pkg/plm	0.020s
+FAIL	github.com/minz/minzc/pkg/pascal [build failed]
+FAIL

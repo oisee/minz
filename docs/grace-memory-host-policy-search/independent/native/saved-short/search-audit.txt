@@ -1,0 +1,3 @@
+PASS policy 0 all4proof/currentexe/inputbyteSHA/profile/nativebindings [604, 583, 663, 642] [2000, 2121, 1978, 2099]
+PASS policy 1 all4proof/currentexe/inputbyteSHA/profile/nativebindings [587, 566, 646, 625] [2001, 2122, 1979, 2100]
+PASS full48lifecycle/8indexrefs/actualSpeed/derivedSize/wholecrosspolicy semantics allobservations exceptSteps; noCPU
