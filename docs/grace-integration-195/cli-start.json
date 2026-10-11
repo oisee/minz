@@ -1,0 +1,9 @@
+{
+  "compiler_commit": "11105fb3",
+  "command": "cli-11105fb3.test -test.count=1 -test.timeout=20m",
+  "required_cwd": "compiler/minzc/cmd/minzc",
+  "sha256": "2b8255bded1017bf8c520857dcfbb54448d04a0badf24d741dc2ca2bfd8d511b",
+  "local": "/home/alice/dev/minz-artifacts/grace-checkpoints/cli-11105fb3.test",
+  "share": "/mnt/safe/minz/grace/2026-10-11/compiler-checkpoints/cli-11105fb3.test",
+  "status": "prepared; terminal pending"
+}
