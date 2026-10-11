@@ -1,0 +1,9 @@
+# Final supplied-profile admission audit
+
+Savedonepositive/fourrefusal CLIruns audited withoutCPUrepeat; exactsource/authoritative1bd955 andpreservedprior852cf executablebytes independentlyhashed. Authenticstaleprofile differsonlytwoCompilerIDfields fromhealthycurrent2callprofile, allotherdataequal. Threeotherinputs areexpresslysynthetic claims, notauthenticfailedsameexe execution.
+
+Currentauthenticprofile accepted: fourcandidatefullsourceoracle/rawnative observations,10globals/3RAMregions/events, typedGo sidecar/frame/alloc/MIR/BIN SHA,savedASM/BIN,percallcost/proofs/fullcompat/functionmaps/all11sitepaths checked. Suppliedprofilebytes parsedexactequalreturnedprofile; mask1arena763T2212B, exactselectedASM/BIN/decisionprettySHA boundchosenbaseline.
+
+Staleauthentic852 inputrefused at incompatiblefamily/source/workload beforeFailedCalls gate. Syntheticcompletiontallies1/1+lastfalse/Error refused incompleteorfailedsample. Syntheticlastfalse/Error withhealthyaggregatetallies refused failedinvocation. Syntheticcount0entries+1 refused cumulativecountmismatch. All4exit1, requestedoutputdir/selectedartifactabsent andexactlogcauses checked. No syntheticinput accepted, nogenuinefailedsameexe profile provenance claim.
+
+Inputmutationtable/history+currentpayloadinventory preserveddurable. Scripts reproducefromsavedpayloads; nativeaudit supportsraw/gz. Defaultcompiler/source/runtime untouched; no freshCLI/VM/Z80 repeated. This closes actualsupplied-profileCLI rejection coverage, notanewexporteroridentityoverride.
