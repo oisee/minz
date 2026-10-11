@@ -1,0 +1,9 @@
+[
+  {
+    "pid": 1371303,
+    "cwd": "/home/alice/dev/minz-artifacts/grace-workspaces/compiler/minzc/cmd/minzc",
+    "sha256": "d21273eff1261254f567da501d123d2392d1774ab62a624c75391238ee365056",
+    "source_checkpoint": "f8c694a5",
+    "executable": "/home/alice/dev/minz-artifacts/grace-checkpoints/final-decimal-cli-executable/minzc.test"
+  }
+]

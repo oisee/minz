@@ -1,0 +1,11 @@
+{
+  "source_checkpoint": "49b72156",
+  "failures": 26,
+  "new": [],
+  "resolved": [],
+  "previous_classification": {
+    "hir_refusal": 5,
+    "missing_import": 19,
+    "result_mismatch": 2
+  }
+}
