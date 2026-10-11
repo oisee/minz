@@ -1,0 +1,98 @@
+[
+  {
+    "path": "EVALUATOR-SOURCE-REVIEW.md",
+    "sha256": "98ad03d8b263e21702f81eb2196135cc89d79b98adc214c523f8b65972d9b94f"
+  },
+  {
+    "path": "FINAL-TRANSFER-AUDIT.md",
+    "sha256": "7a1bb1bde0cdf82f02f78806b1c11b4c921f71a55596c12a8e076dfd9955006e"
+  },
+  {
+    "path": "IMPLEMENTATION-REVIEW-CHECKLIST.md",
+    "sha256": "1822231cbe0ac614b50420f8985da7acb16aff77ec629b294a93eb5f037672b2"
+  },
+  {
+    "path": "PLAN.md",
+    "sha256": "c62e3bd20146b29449b3132f2f3c33f232933dd444319d252faa8b36677ab546"
+  },
+  {
+    "path": "PREREGISTRATION.json",
+    "sha256": "66188c3e7d91c86d3dc50fde3a0e52ac58908f4d43039d4db7d17cac1976454d"
+  },
+  {
+    "path": "evaluator-reviewed-inventory.json",
+    "sha256": "4fcd4d4e9d94fc8bb2fe047def0715972c4170019203b8586d86e3e9875a318c"
+  },
+  {
+    "path": "final-transfer-audit.json",
+    "sha256": "76c925d3208d9cd278ad9527263d722b0b3552eea4977ff5a529e2d05c771c58"
+  },
+  {
+    "path": "fixed-tradeoffs.json",
+    "sha256": "553aa0d9e8e7eb31fab1cb6112a04cd2617a90527416371033dd4f2c21f27e84"
+  },
+  {
+    "path": "inputs/fresh-dominant.json",
+    "sha256": "a38d789e7ec875f3006654643bbfd37ad1bf0ae0b80004c5615bc72f0b2785d0"
+  },
+  {
+    "path": "inputs/long-atoms.json",
+    "sha256": "32bd3ddb1d051e1d97d60ba794f55eb12016666f0f713e933fdd214266d179cf"
+  },
+  {
+    "path": "inputs/nested-mixed.json",
+    "sha256": "f31e6321618c174902b712dacc3c8ee6dc7f5d61fda8b928fae9b8c5b6225d32"
+  },
+  {
+    "path": "inputs/short-reuse.json",
+    "sha256": "e2346a6baceb18257ff2dd04e2a26b38ec5755edff8ea3d4ed17870f49d26646"
+  },
+  {
+    "path": "inputs/source.nanz",
+    "sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526"
+  },
+  {
+    "path": "inputs/train-full30.json",
+    "sha256": "ac7d90cb3501e183a7fc9d45242259551e9cd260db53731704ef0a31ee6f933f"
+  },
+  {
+    "path": "long-partial-audit.json",
+    "sha256": "1ab94e34e89395769ce0aac824d0e22115cc4982eb3905a220acd5c7a9b95d86"
+  },
+  {
+    "path": "nested-partial-audit.json",
+    "sha256": "9b33c0a0e9f2a6f842675677129f3ccf21030514581347dbe21097be916b0de4"
+  },
+  {
+    "path": "short-partial-audit.json",
+    "sha256": "9714316a396caa07200be79f702c6fd313e71a1361daac99a692ba29589a6b7c"
+  },
+  {
+    "path": "tools/__pycache__/audit_search.cpython-312.pyc",
+    "sha256": "743b830e6ec760c01dfbd24659c2a29566deaeff97a1130bbc2660a44cc2bc90"
+  },
+  {
+    "path": "tools/audit_search.py",
+    "sha256": "01ea8561948c31e98a96b2cc3d8b152de904732fb3a3e988fc12d5b417fdd15c"
+  },
+  {
+    "path": "tools/audit_transfer.py",
+    "sha256": "683a7cc48710eac700e0d5687b2e6cd2c9ca0950eb5861f8ff9eb80e30f7b638"
+  },
+  {
+    "path": "tools/model/__pycache__/audit_profile.cpython-312.pyc",
+    "sha256": "679c5c2be8adb03281914f2544f76c65122e4dcb477089a3e242ad3faba35414"
+  },
+  {
+    "path": "tools/model/__pycache__/verify_corpus.cpython-312.pyc",
+    "sha256": "64e52fdd78855866a0b69696bd1feffce0a85bc56def0d73f2e978efe1f46996"
+  },
+  {
+    "path": "tools/model/audit_profile.py",
+    "sha256": "50814a6c4b56c341836bf58803cf14cb23918e74d92973b0bfb04d0217a37531"
+  },
+  {
+    "path": "tools/model/verify_corpus.py",
+    "sha256": "dd24ae1bfa38924b0b560f55d253084478e160647356f42e9aa23aa833e5b616"
+  }
+]
