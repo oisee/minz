@@ -1,0 +1,10 @@
+=== RUN   TestGlobalWordDirectOriginalBoth30
+[label-audit] 1 undefined labels:
+  node_tag
+    global_word_direct_target_test.go:65: mask0 actual1135370T/2000B steps109829 BIN1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941
+[label-audit] 1 undefined labels:
+  node_tag
+    global_word_direct_target_test.go:65: mask3 actual1079636T/2099B steps104388 BIN4bdce86bd7a724f34e7eee180e8a6530b07f33cadd39e7a1a93813df6c841c13
+--- PASS: TestGlobalWordDirectOriginalBoth30 (2.95s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.960s
