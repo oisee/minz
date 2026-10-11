@@ -6,8 +6,8 @@
 
 ## Сводка последнего проверенного состояния
 
-Последние root code checkpoints: widening `9b20ab89`, literal-width `48e5fe6d`,
-CLI evidence assertion `561dab36`. Исторические результаты ниже сохраняют
+Последние root code checkpoints: signed comparison `0e34e351`, aggregate pointer
+classes `e49054af`, known consumed callback ABI `8c9fa926`. Исторические результаты ниже сохраняют
 свои исходники и режимы. Общая цель не закрыта.
 
 | Требование | Что доказано | Что ещё не доказано |
@@ -16,18 +16,19 @@ CLI evidence assertion `561dab36`. Исторические результаты
 | PFCCO/PBQP и таблицы | Реальные назначения, moves/saves и native польза на packet/weighted; bounded solver audit | Произвольные calls/CFG/islands и глобальная оптимальность |
 | Автоматический выбор и heldout | Self-Lanz, HashMap и Pascal SORT: training-selected BIN проверен на заранее отложенных входах; packet даёт отдельный PFCCO выигрыш | Остальные runtime/corpus ограничения сохраняются; это не универсальный выигрыш на всех программах |
 | Полное удаление LIR и перенос пользы | Пакет/consumers удалены; shared engines/native тесты сохранены; word ×10/12, byte fusion и K11 перенесены с native пользой | Полнота общих physical constraints/pattern choices требует предметного аудита |
-| Воспроизводимость | Исходники, workloads, решения, ASM/BIN и логи на `/mnt/safe/minz/grace/2026-10-11/`; v67 сайт: 9 860 файлов целиком проверены по SHA | Текущие общие gates должны завершиться со своим точным checkpoint |
+| Воспроизводимость | Исходники, workloads, решения, ASM/BIN и логи на `/mnt/safe/minz/grace/2026-10-11/`; v67 сайт: 9 860 файлов целиком проверены по SHA | Новые ABI и purity изменения требуют полного gate на новом checkpoint |
 
 Свежий full core `4587e753`: HIR/MIR2/Nanz/VIR **PASS**
 ([пакет144](grace-integration-144/README.md)); включает signed/unsigned/bool widening,
-unsigned promotion и aggregate-address corrections. Новый CLI4587e753 выполняется отдельно.
+unsigned promotion и aggregate-address corrections.
 Исторический full CLI c69e350e завершился **FAIL 351,983 с**: один тест фиксировал
 исторические такты. Проверка исправлена и focused PASS 19,153 с
 ([пакет138](grace-integration-138/README.md)). Последующий полный CLI4587e753
 **PASS342,878 с** ([пакет147](grace-integration-147/README.md)).
 Fresh showcase после widening **PASS 11,547 с**
 ([пакет140](grace-integration-140/README.md)).
-Полный pipeline `a7954042` подтверждён живым; он предшествует plasma.
+Полный pipeline `a7954042` завершился **PASS за 3705,100 с**
+([пакет154](grace-integration-154/README.md)); он предшествует plasma, widening и новым ABI изменениям.
 Эти результаты нельзя объединять в один общий current fullsuite PASS.
 
 Чистый Speed сохранён без штрафа за байты; Size — отдельная цель.
@@ -593,3 +594,17 @@ Currenttablejointmatrix44→20B/238→142T сохранена
 ([151](grace-integration-151/README.md)); ordinarytableapplication solver-free.
 BoundedPFCCO/PBQPexhaustivecost controlsPASS
 ([152](grace-integration-152/README.md)).
+
+## Проверка известных callback ABI
+
+Интегрирован `8c9fa926`: сигнатура указателя-параметра, реально вызываемого
+как функция, выводится из места вызова и распространяется через неизменяемые
+алиасы и forwarding wrappers. Несовместимые известные цели и fallible CY
+отклоняются до ASM; совместимые byte/word callbacks сохраняются.
+[Исходный отчёт и проверки](../reports/2026-10-11-consumed-callback-signatures.md).
+Общий возврат структур через caller-owned buffers и запрет свёртки
+вызовов с памятью ещё в работе; их корректность здесь не заявляется.
+
+Константная свёртка с памятью исправлена `4f58692b`; совместный callback/purity
+root gate проходит ([пакет155](grace-integration-155/README.md)). General
+struct-return buffers остаются незавершёнными.
