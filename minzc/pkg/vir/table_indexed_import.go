@@ -7,19 +7,21 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"sort"
 )
 
 type IndexedLegacyImportEvidence struct {
-	Schema       string                         `json:"schema"`
-	Path         string                         `json:"path"`
-	HeaderSHA256 string                         `json:"header_sha256"`
-	PrefixSHA256 string                         `json:"prefix_sha256"`
-	Count        uint32                         `json:"count"`
-	Shape        *EnrichedShape                 `json:"shape"`
-	RecordIndex  int                            `json:"record_index"`
-	BytesRead    int64                          `json:"bytes_read"`
-	Import       *LegacyCandidateImportEvidence `json:"import,omitempty"`
-	Reason       string                         `json:"reason"`
+	QuotientGroups [][]int                        `json:"quotient_groups,omitempty"`
+	Schema         string                         `json:"schema"`
+	Path           string                         `json:"path"`
+	HeaderSHA256   string                         `json:"header_sha256"`
+	PrefixSHA256   string                         `json:"prefix_sha256"`
+	Count          uint32                         `json:"count"`
+	Shape          *EnrichedShape                 `json:"shape"`
+	RecordIndex    int                            `json:"record_index"`
+	BytesRead      int64                          `json:"bytes_read"`
+	Import         *LegacyCandidateImportEvidence `json:"import,omitempty"`
+	Reason         string                         `json:"reason"`
 }
 
 // ImportIndexedENRT obtains one historical coarse-shape candidate without loading
@@ -111,6 +113,9 @@ func indexedLegacyShape(p *LocalTableProblem) (*EnrichedShape, error) {
 }
 
 func importIndexedENRTShape(path string, shape *EnrichedShape, p *LocalTableProblem, target *RegAllocTable) (*IndexedLegacyImportEvidence, error) {
+	return importIndexedENRTMapped(path, shape, p, target, nil)
+}
+func importIndexedENRTMapped(path string, shape *EnrichedShape, p *LocalTableProblem, target *RegAllocTable, groups [][]int) (*IndexedLegacyImportEvidence, error) {
 	f, e := os.Open(path)
 	if e != nil {
 		return nil, e
@@ -182,6 +187,39 @@ func importIndexedENRTShape(path string, shape *EnrichedShape, p *LocalTableProb
 	ev.BytesRead = (256 << 20) - limited.N
 	ev.PrefixSHA256 = fmt.Sprintf("%x", hash.Sum(nil))
 	if assignment == nil {
+		return ev, nil
+	}
+	if groups != nil {
+		ev.Schema = "vir-indexed-enrt-quotient-import/v1"
+		ev.QuotientGroups = groups
+		dense := map[int]int{}
+		for i, group := range groups {
+			loc := assignment[i]
+			if loc < 0 || loc >= len(gpuToZ80Loc) || gpuToZ80Loc[loc] < 0 {
+				return ev, fmt.Errorf("unmappable quotient location")
+			}
+			for _, v := range group {
+				dense[v] = gpuToZ80Loc[loc]
+			}
+		}
+		ids := []int{}
+		for v := range dense {
+			ids = append(ids, v)
+		}
+		sort.Ints(ids)
+		lifted := []int{}
+		for _, v := range ids {
+			lifted = append(lifted, dense[v])
+		}
+		data, _ := json.Marshal([]RegAllocEntry{{Signature: fmt.Sprintf("ENRT-quotient-record-%d", idx), Cost: cost, Assignment: lifted}})
+		ev.Import, e = ImportLegacyCandidates(data, "legacy-native-json", p.Ops, Z80, p.Options, target)
+		if e != nil {
+			return nil, e
+		}
+		ev.Reason = "lifted historical quotient rejected by current admission"
+		if ev.Import.Admitted > 0 {
+			ev.Reason = "lifted historical quotient independently admitted"
+		}
 		return ev, nil
 	}
 	data, _ := json.Marshal(map[string]RegAllocEntry{fmt.Sprintf("ENRT-record-%d", idx): {Cost: cost, Assignment: assignment}})
