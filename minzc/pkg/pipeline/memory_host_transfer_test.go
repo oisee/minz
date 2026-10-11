@@ -35,14 +35,17 @@ type frozenTransferEntry struct {
 	Candidate MemoryHostArenaAppendCandidateV2 `json:"candidate"`
 }
 type frozenTransferEvidence struct {
-	TrainingDecisionSHA256 [2]string             `json:"training_decision_sha256"`
-	Schema                 string                `json:"schema"`
-	PreregistrationSHA256  string                `json:"preregistration_sha256"`
-	SourceSHA256           string                `json:"source_sha256"`
-	WorkloadSHA256         string                `json:"workload_sha256"`
-	SourceName             string                `json:"source_name"`
-	WorkloadName           string                `json:"workload_name"`
-	Entries                []frozenTransferEntry `json:"entries"`
+	TrainingExecutableSHA256 string                `json:"training_executable_sha256"`
+	EvaluationExecutableID   string                `json:"evaluation_executable_id"`
+	FactoryCalls             int                   `json:"factory_calls"`
+	TrainingDecisionSHA256   [2]string             `json:"training_decision_sha256"`
+	Schema                   string                `json:"schema"`
+	PreregistrationSHA256    string                `json:"preregistration_sha256"`
+	SourceSHA256             string                `json:"source_sha256"`
+	WorkloadSHA256           string                `json:"workload_sha256"`
+	SourceName               string                `json:"source_name"`
+	WorkloadName             string                `json:"workload_name"`
+	Entries                  []frozenTransferEntry `json:"entries"`
 }
 
 func frozenTransferSHA(b []byte) string { return fmt.Sprintf("%x", sha256.Sum256(b)) }
@@ -113,6 +116,7 @@ func runFrozenTransfer(factory func() (*hir.Module, error), input frozenTransfer
 	if err != nil {
 		return nil, err
 	}
+	factoryCalls := 0
 	roots := []any{expected}
 	originals := []*hir.Module{}
 	seen := map[uintptr]bool{}
@@ -147,6 +151,7 @@ func runFrozenTransfer(factory func() (*hir.Module, error), input frozenTransfer
 		if e := check(); e != nil {
 			return nil, e
 		}
+		factoryCalls++
 		m, e := factory()
 		if e != nil {
 			return nil, e
@@ -166,7 +171,7 @@ func runFrozenTransfer(factory func() (*hir.Module, error), input frozenTransfer
 		}
 		return m, nil
 	}
-	out := &frozenTransferEvidence{Schema: "minz.frozen-choice-transfer-evaluation/v1", TrainingDecisionSHA256: [2]string{frozenTransferSHA(i.TrainingSpeed), frozenTransferSHA(i.TrainingSize)}, PreregistrationSHA256: frozenTransferSHA(i.Preregistration), SourceSHA256: frozenTransferSHA(i.Source), WorkloadSHA256: frozenTransferSHA(i.Workload), SourceName: i.SourceName, WorkloadName: i.WorkloadName, Entries: []frozenTransferEntry{}}
+	out := &frozenTransferEvidence{Schema: "minz.frozen-choice-transfer-evaluation/v1", TrainingExecutableSHA256: "0d6df9fbf769bdcca6969717449f587ff856b0c7d38d525b78129811abe0de12", EvaluationExecutableID: ctx.CompilerID, TrainingDecisionSHA256: [2]string{frozenTransferSHA(i.TrainingSpeed), frozenTransferSHA(i.TrainingSize)}, PreregistrationSHA256: frozenTransferSHA(i.Preregistration), SourceSHA256: frozenTransferSHA(i.Source), WorkloadSHA256: frozenTransferSHA(i.Workload), SourceName: i.SourceName, WorkloadName: i.WorkloadName, Entries: []frozenTransferEntry{}}
 	samePolicy := map[mir2.UnsignedPairComparePolicy]*MemoryHostBaselineEvidenceV2{}
 	// Supporting1/0 is measured explicitly, never relabelled from policy0/0.
 	for _, tuple := range []MemoryHostPolicySearchChoice{{Policy: 0, Mask: 0}, {Policy: 1, Mask: 0}, {Policy: 1, Mask: 3}, {Policy: 0, Mask: 2}} {
@@ -259,6 +264,10 @@ func runFrozenTransfer(factory func() (*hir.Module, error), input frozenTransfer
 	if err = check(); err != nil {
 		return nil, err
 	}
+	if factoryCalls != 18 {
+		return nil, fmt.Errorf("frozen transfer: expected18 original factory returns")
+	}
+	out.FactoryCalls = factoryCalls
 	return out, nil
 }
 
