@@ -1,0 +1,30 @@
+=== RUN   TestInvariantAddressEffects
+=== RUN   TestInvariantAddressEffects/ordinary
+=== RUN   TestInvariantAddressEffects/wrap
+=== RUN   TestInvariantAddressEffects/zero
+=== RUN   TestInvariantAddressEffects/denied
+=== RUN   TestInvariantAddressEffects/mutating-call
+=== RUN   TestInvariantAddressEffects/alias-store
+=== RUN   TestInvariantAddressEffects/asm
+=== RUN   TestInvariantAddressEffects/variant-base
+=== RUN   TestInvariantAddressEffects/short-heap
+--- PASS: TestInvariantAddressEffects (0.00s)
+    --- PASS: TestInvariantAddressEffects/ordinary (0.00s)
+    --- PASS: TestInvariantAddressEffects/wrap (0.00s)
+    --- PASS: TestInvariantAddressEffects/zero (0.00s)
+    --- PASS: TestInvariantAddressEffects/denied (0.00s)
+    --- PASS: TestInvariantAddressEffects/mutating-call (0.00s)
+    --- PASS: TestInvariantAddressEffects/alias-store (0.00s)
+    --- PASS: TestInvariantAddressEffects/asm (0.00s)
+    --- PASS: TestInvariantAddressEffects/variant-base (0.00s)
+    --- PASS: TestInvariantAddressEffects/short-heap (0.00s)
+=== RUN   TestInvariantAddressRejectsEveryCallForm
+=== RUN   TestInvariantAddressRejectsEveryCallForm/call
+=== RUN   TestInvariantAddressRejectsEveryCallForm/call_indirect
+=== RUN   TestInvariantAddressRejectsEveryCallForm/call_cc
+--- PASS: TestInvariantAddressRejectsEveryCallForm (0.00s)
+    --- PASS: TestInvariantAddressRejectsEveryCallForm/call (0.00s)
+    --- PASS: TestInvariantAddressRejectsEveryCallForm/call_indirect (0.00s)
+    --- PASS: TestInvariantAddressRejectsEveryCallForm/call_cc (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.008s
