@@ -1,0 +1,10 @@
+global __print_ptr_1:u16=123
+global __print_count_2:u16=456
+global live:u16=4660
+global answer:u16=0
+fun show()->void {
+ let x:u16=live
+ @print(l"")
+ @print(c"!")
+ answer=x+1
+}
