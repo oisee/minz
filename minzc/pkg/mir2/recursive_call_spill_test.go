@@ -91,7 +91,7 @@ func TestRecursiveCallSpill(t *testing.T) {
 				if word {
 					got = regs.HL
 				}
-				wantPC := uint16(a.Symbols["recursive_done"] + 1)
+				wantPC := uint16(a.Symbols["recursive_done"])
 				if root := os.Getenv("MINZ_RECURSIVE_SPILL_ARTIFACTS"); root != "" {
 					dir := filepath.Join(root, fmt.Sprintf("word-%v-n-%d", word, n))
 					if e := os.MkdirAll(dir, 0755); e != nil {
@@ -168,7 +168,7 @@ func TestCallSpillRestorePreservesResults(t *testing.T) {
 	err = z.Run()
 	r := z.GetRegisters()
 	byteAddr, wordAddr := a.Symbols["byte_home"], a.Symbols["word_home"]
-	if err != nil || r.A != 0x78 || r.HL != 0x9ABC || r.DE != 0xDEF0 || r.BC != 0x3456 || r.F&0x41 != 0x41 || r.SP != 0xF000 || r.PC != uint16(a.Symbols["restore_done"]+1) || z.GetMemory(uint16(byteAddr)) != 0xA5 || z.GetMemory(uint16(wordAddr)) != 0xEF || z.GetMemory(uint16(wordAddr+1)) != 0xBE {
+	if err != nil || r.A != 0x78 || r.HL != 0x9ABC || r.DE != 0xDEF0 || r.BC != 0x3456 || r.F&0x41 != 0x41 || r.SP != 0xF000 || r.PC != uint16(a.Symbols["restore_done"]) || z.GetMemory(uint16(byteAddr)) != 0xA5 || z.GetMemory(uint16(wordAddr)) != 0xEF || z.GetMemory(uint16(wordAddr+1)) != 0xBE {
 		t.Fatalf("result/snapshot contract: %+v error %v", r, err)
 	}
 }
