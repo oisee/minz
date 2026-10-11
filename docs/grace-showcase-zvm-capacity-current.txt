@@ -1,0 +1,11 @@
+=== RUN   TestShowcaseCompileAssemble
+    showcase_test.go:60: Found 193 showcase files
+=== RUN   TestShowcaseCompileAssemble/zvm.nanz
+    showcase_test.go:83: SOURCE_PATH examples/zmachine/zork-west-demo/zvm.nanz
+    showcase_test.go:123: pipeline: Z80 global "story" exceeds 16-bit address space (data before global: 18377 bytes, global: 131072 bytes)
+    showcase_test.go:81: SHOWCASE_CASE {"Path":"examples/zmachine/zork-west-demo/zvm.nanz","Case":"TestShowcaseCompileAssemble/zvm.nanz","Status":"FAIL","Stage":"pipeline"}
+--- FAIL: TestShowcaseCompileAssemble (0.91s)
+    --- FAIL: TestShowcaseCompileAssemble/zvm.nanz (0.91s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/nanz	0.925s
+FAIL
