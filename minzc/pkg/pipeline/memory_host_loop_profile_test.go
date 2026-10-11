@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/nanz"
 )
 
 func TestMemoryHostLoopAssociationOriginalParser(t *testing.T) {
@@ -45,6 +46,37 @@ func TestMemoryHostLoopAssociationOriginalParser(t *testing.T) {
 		if err = os.WriteFile(filepath.Join(dir, "loop-baseline-association.json"), b, 0644); err != nil {
 			t.Fatal(err)
 		}
+	}
+}
+
+func TestMemoryHostLoopAssociationFailureAndGas(t *testing.T) {
+	const source = `@extern fun peek(addr:u16)->u8
+@extern fun poke(addr:u16,val:u8)->void
+fun run()->u8 {
+ var i:u8=0
+ while i<3 {
+  poke(32768,i)
+  peek(32769)
+  i=i+1
+ }
+ return i
+}`
+	factory := func() (*hir.Module, error) { return nanz.Parse(source, "association-failure.nanz") }
+	w := hir.MemoryHostWorkload{Schema: "minz.memory-host-workload/v1", TargetModel: "cpm-z80-v1", MaxSteps: 10000, MaxMemory: 65536, Layout: hir.MemoryHostLayout{CodeOrigin: 0x400, StackLow: 0xe000, StackHigh: 0xeff0, ReturnPC: 0x100}, Hosts: map[string]string{"peek": hir.MemoryHostReadU8, "poke": hir.MemoryHostWriteU8}, Regions: map[string]hir.MemoryHostRegion{"ram": {Address: 0x8000, Bytes: []byte{9}, Writable: true}}, Calls: []hir.MemoryHostInvocation{{Function: "run"}, {Function: "run"}}}
+	r, err := RunZ80MemoryHostLoopProfile(factory, w)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r.Profile.CompletedCalls != 0 || r.Profile.FailedCalls != 1 || len(r.Profile.Invocations) != 1 {
+		t.Fatal("failed prefix boundary")
+	}
+	o := r.Profile.Invocations[0]
+	if o.Observation.Failure == nil || o.Observation.Failure.Address != 0x8001 || o.Observation.Regions["ram"][0] != 0 || o.Counts[0].Entries != 1 || o.Counts[0].BodyEntries != 1 {
+		t.Fatal(o)
+	}
+	w.MaxSteps = 1
+	if r, err := RunZ80MemoryHostLoopProfile(factory, w); err == nil || r != nil {
+		t.Fatal("gas attested as semantic failure")
 	}
 }
 

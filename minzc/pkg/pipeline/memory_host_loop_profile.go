@@ -132,6 +132,7 @@ func RunZ80MemoryHostLoopProfile(factory func() (*hir.Module, error), workload h
 	}
 	for i, invocation := range profile.Invocations {
 		actual, expected := invocation.Observation, baseline.Raw.Invocations[i]
+		completed := expected.Error == ""
 		if (actual.Error != "") != (expected.Error != "") || (actual.Error != "" && actual.Failure == nil) {
 			return fail(fmt.Errorf("instrumented failure boundary differs at call %d", i))
 		}
@@ -139,8 +140,8 @@ func RunZ80MemoryHostLoopProfile(factory func() (*hir.Module, error), workload h
 		// Diagnostic VM stack text includes instrumentation-specific blocks.
 		// Failure identity remains the exact typed builtin denial above/below.
 		actual.Error, expected.Error = "", ""
-		if !reflect.DeepEqual(actual, expected) || invocation.Completed != (expected.Error == "") {
-			return fail(fmt.Errorf("instrumentation changed observation at call %d", i))
+		if !reflect.DeepEqual(actual, expected) || invocation.Completed != completed {
+			return fail(fmt.Errorf("instrumentation changed observation at call %d: results=%t globals=%t regions=%t events=%t failure=%t completed=%t", i, reflect.DeepEqual(actual.Results, expected.Results), reflect.DeepEqual(actual.Globals, expected.Globals), reflect.DeepEqual(actual.Regions, expected.Regions), reflect.DeepEqual(actual.Events, expected.Events), reflect.DeepEqual(actual.Failure, expected.Failure), invocation.Completed == (baseline.Raw.Invocations[i].Error == "")))
 		}
 	}
 	sentinel, err := fresh()
