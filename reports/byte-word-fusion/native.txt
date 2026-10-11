@@ -1,0 +1,134 @@
+=== RUN   TestByteWordFusionAudit
+[HIR-SPLIT] write_fat12 → write_fat12$split_5 (3 inputs, pressure 9)
+[HIR-SPLIT] fat_cache_put → fat_cache_put$split_2 (2 inputs, pressure 9)
+[HIR-SPLIT] find_file → find_file$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] get_file_size → get_file_size$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] file_read → file_read$split_4 (1 inputs, pressure 9)
+[HIR-SPLIT] file_write_data → file_write_data$split_3 (2 inputs, pressure 11)
+[HIR-SPLIT] update_dir_size → update_dir_size$split_3 (0 inputs, pressure 10)
+[HIR-SPLIT] delete_file → delete_file$split_6 (0 inputs, pressure 9)
+[HIR-SPLIT] overwrite_file → overwrite_file$split_8 (0 inputs, pressure 14)
+[HIR-SPLIT] count_dir_entries → count_dir_entries$split_4 (1 inputs, pressure 11)
+[HIR-SPLIT] get_dir_entry → get_dir_entry$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] get_dir_entry_full → get_dir_entry_full$split_4 (0 inputs, pressure 14)
+    byte_word_fusion_audit_test.go:202: default ld_word base16384 value0 78T 9686B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: default ld_word base16384 value1 78T 9686B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: default ld_word base16384 value4660 78T 9686B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: default ld_word base16384 value33023 78T 9686B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: default ld_word base16384 value65535 78T 9686B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: default ld_word base65535 value0 78T 9686B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: default ld_word base65535 value1 78T 9686B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: default ld_word base65535 value4660 78T 9686B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: default ld_word base65535 value33023 78T 9686B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: default ld_word base65535 value65535 78T 9686B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: default st_word base16384 value0 220T 9686B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: default st_word base16384 value1 220T 9686B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: default st_word base16384 value4660 220T 9686B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: default st_word base16384 value33023 220T 9686B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: default st_word base16384 value65535 220T 9686B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: default st_word base65535 value0 220T 9686B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: default st_word base65535 value1 220T 9686B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: default st_word base65535 value4660 220T 9686B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: default st_word base65535 value33023 220T 9686B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: default st_word base65535 value65535 220T 9686B VM/nativeorderedbytes/fullRAM/SP PASS
+[HIR-SPLIT] write_fat12 → write_fat12$split_5 (3 inputs, pressure 9)
+[HIR-SPLIT] fat_cache_put → fat_cache_put$split_2 (2 inputs, pressure 9)
+[HIR-SPLIT] find_file → find_file$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] get_file_size → get_file_size$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] file_read → file_read$split_4 (1 inputs, pressure 9)
+[HIR-SPLIT] file_write_data → file_write_data$split_3 (2 inputs, pressure 11)
+[HIR-SPLIT] update_dir_size → update_dir_size$split_3 (0 inputs, pressure 10)
+[HIR-SPLIT] delete_file → delete_file$split_6 (0 inputs, pressure 9)
+[HIR-SPLIT] overwrite_file → overwrite_file$split_8 (0 inputs, pressure 14)
+[HIR-SPLIT] count_dir_entries → count_dir_entries$split_4 (1 inputs, pressure 11)
+[HIR-SPLIT] get_dir_entry → get_dir_entry$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] get_dir_entry_full → get_dir_entry_full$split_4 (0 inputs, pressure 14)
+    byte_word_fusion_audit_test.go:202: grace-size ld_word base16384 value0 78T 9864B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-size ld_word base16384 value1 78T 9864B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-size ld_word base16384 value4660 78T 9864B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-size ld_word base16384 value33023 78T 9864B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-size ld_word base16384 value65535 78T 9864B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-size ld_word base65535 value0 78T 9864B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-size ld_word base65535 value1 78T 9864B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-size ld_word base65535 value4660 78T 9864B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-size ld_word base65535 value33023 78T 9864B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-size ld_word base65535 value65535 78T 9864B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-size st_word base16384 value0 220T 9864B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-size st_word base16384 value1 220T 9864B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-size st_word base16384 value4660 220T 9864B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-size st_word base16384 value33023 220T 9864B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-size st_word base16384 value65535 220T 9864B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-size st_word base65535 value0 220T 9864B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-size st_word base65535 value1 220T 9864B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-size st_word base65535 value4660 220T 9864B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-size st_word base65535 value33023 220T 9864B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-size st_word base65535 value65535 220T 9864B VM/nativeorderedbytes/fullRAM/SP PASS
+[HIR-SPLIT] write_fat12 → write_fat12$split_5 (3 inputs, pressure 9)
+[HIR-SPLIT] fat_cache_put → fat_cache_put$split_2 (2 inputs, pressure 9)
+[HIR-SPLIT] find_file → find_file$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] get_file_size → get_file_size$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] file_read → file_read$split_4 (1 inputs, pressure 9)
+[HIR-SPLIT] file_write_data → file_write_data$split_3 (2 inputs, pressure 11)
+[HIR-SPLIT] update_dir_size → update_dir_size$split_3 (0 inputs, pressure 10)
+[HIR-SPLIT] delete_file → delete_file$split_6 (0 inputs, pressure 9)
+[HIR-SPLIT] overwrite_file → overwrite_file$split_8 (0 inputs, pressure 14)
+[HIR-SPLIT] count_dir_entries → count_dir_entries$split_4 (1 inputs, pressure 11)
+[HIR-SPLIT] get_dir_entry → get_dir_entry$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] get_dir_entry_full → get_dir_entry_full$split_4 (0 inputs, pressure 14)
+    byte_word_fusion_audit_test.go:202: grace-speed ld_word base16384 value0 78T 9880B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-speed ld_word base16384 value1 78T 9880B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-speed ld_word base16384 value4660 78T 9880B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-speed ld_word base16384 value33023 78T 9880B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-speed ld_word base16384 value65535 78T 9880B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-speed ld_word base65535 value0 78T 9880B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-speed ld_word base65535 value1 78T 9880B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-speed ld_word base65535 value4660 78T 9880B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-speed ld_word base65535 value33023 78T 9880B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-speed ld_word base65535 value65535 78T 9880B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-speed st_word base16384 value0 220T 9880B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-speed st_word base16384 value1 220T 9880B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-speed st_word base16384 value4660 220T 9880B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-speed st_word base16384 value33023 220T 9880B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-speed st_word base16384 value65535 220T 9880B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-speed st_word base65535 value0 220T 9880B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-speed st_word base65535 value1 220T 9880B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-speed st_word base65535 value4660 220T 9880B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-speed st_word base65535 value33023 220T 9880B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: grace-speed st_word base65535 value65535 220T 9880B VM/nativeorderedbytes/fullRAM/SP PASS
+[HIR-SPLIT] write_fat12 → write_fat12$split_5 (3 inputs, pressure 9)
+[HIR-SPLIT] fat_cache_put → fat_cache_put$split_2 (2 inputs, pressure 9)
+[HIR-SPLIT] find_file → find_file$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] get_file_size → get_file_size$split_3 (0 inputs, pressure 9)
+[HIR-SPLIT] file_read → file_read$split_4 (1 inputs, pressure 9)
+[HIR-SPLIT] file_write_data → file_write_data$split_3 (2 inputs, pressure 11)
+[HIR-SPLIT] update_dir_size → update_dir_size$split_3 (0 inputs, pressure 10)
+[HIR-SPLIT] delete_file → delete_file$split_6 (0 inputs, pressure 9)
+[HIR-SPLIT] overwrite_file → overwrite_file$split_8 (0 inputs, pressure 14)
+[HIR-SPLIT] count_dir_entries → count_dir_entries$split_4 (1 inputs, pressure 11)
+[HIR-SPLIT] get_dir_entry → get_dir_entry$split_4 (0 inputs, pressure 14)
+[HIR-SPLIT] get_dir_entry_full → get_dir_entry_full$split_4 (0 inputs, pressure 14)
+    byte_word_fusion_audit_test.go:202: direct16-study ld_word base16384 value0 80T 9646B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: direct16-study ld_word base16384 value1 80T 9646B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: direct16-study ld_word base16384 value4660 80T 9646B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: direct16-study ld_word base16384 value33023 80T 9646B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: direct16-study ld_word base16384 value65535 80T 9646B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: direct16-study ld_word base65535 value0 80T 9646B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: direct16-study ld_word base65535 value1 80T 9646B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: direct16-study ld_word base65535 value4660 80T 9646B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: direct16-study ld_word base65535 value33023 80T 9646B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: direct16-study ld_word base65535 value65535 80T 9646B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: direct16-study st_word base16384 value0 36T 9646B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: direct16-study st_word base16384 value1 36T 9646B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: direct16-study st_word base16384 value4660 36T 9646B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: direct16-study st_word base16384 value33023 36T 9646B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: direct16-study st_word base16384 value65535 36T 9646B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: direct16-study st_word base65535 value0 36T 9646B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: direct16-study st_word base65535 value1 36T 9646B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: direct16-study st_word base65535 value4660 36T 9646B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: direct16-study st_word base65535 value33023 36T 9646B VM/nativeorderedbytes/fullRAM/SP PASS
+    byte_word_fusion_audit_test.go:202: direct16-study st_word base65535 value65535 36T 9646B VM/nativeorderedbytes/fullRAM/SP PASS
+--- PASS: TestByteWordFusionAudit (29.29s)
+=== RUN   TestByteWordFusionCallbackRefusal
+--- PASS: TestByteWordFusionCallbackRefusal (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	29.298s

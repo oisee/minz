@@ -1,0 +1,1 @@
+direct16-study rewrites only test-owned final MIR helper bodies after ordinary compilation; never production. Both helpers share original allocation. OpLoad16 80T versus original78T; OpStore16 36T versusoriginal220T. Fails original byte Inst/type callback contract. No safe production optimization claimed.

@@ -1,0 +1,947 @@
+// ============================================================================
+// MinZ FAT Filesystem Library — FAT12 + FAT16, Read/Write
+// ============================================================================
+// Idiomatic Nanz implementation for embedded/retro targets (Z80, eZ80, 6502).
+//
+// Supports: FAT12 and FAT16 volumes.
+// Operations: mount, find, read, write, create, delete, directory listing.
+// ============================================================================
+
+// ── Types ──────────────────────────────────────────────────────────────────
+
+type Sector  = u16
+type Cluster = u16
+
+struct BPB {
+    bytes_per_sector:    u16,
+    sectors_per_cluster: u8,
+    reserved_sectors:    u16,
+    num_fats:            u8,
+    root_entry_count:    u16,
+    fat_size_16:         u16,
+    fat_start:           u16,
+    root_start:          u16,
+    data_start:          u16
+}
+
+enum DirStatus { VALID, DELETED, END_OF_DIR }
+enum FATEntry  { FREE, RESERVED, DATA, EOC, BAD }
+
+// ── Byte-level helpers (little-endian) ─────────────────────────────────────
+
+fun ld_word(ptr: ^u8) -> u16 {
+    let lo: u16 = ptr[0]
+    let hi: u16 = ptr[1]
+    let shifted: u16 = hi << 8
+    return shifted | lo
+}
+
+fun st_word(ptr: ^u8, val: u16) -> void {
+    let lo: u8 = val & 0xFF
+    let hi_shifted: u16 = val >> 8
+    let hi: u8 = hi_shifted & 0xFF
+    ptr[0] = lo
+    ptr[1] = hi
+}
+
+// ── FAT entry read (FAT12 + FAT16) ──────────────────────────────────────
+
+fun read_fat12(fat: ^u8, clst: u16) -> u16 {
+    let half: u16 = clst >> 1
+    let ofs: u16 = clst + half
+    let raw: u16 = ld_word(fat + ofs)
+    let odd: u16 = clst & 1
+    if odd != 0 {
+        return raw >> 4
+    }
+    return raw & 0x0FFF
+}
+
+fun write_fat12(fat: ^u8, clst: u16, val: u16) -> void {
+    let half: u16 = clst >> 1
+    let ofs: u16 = clst + half
+    let raw: u16 = ld_word(fat + ofs)
+    let odd: u16 = clst & 1
+    var new_raw: u16 = 0
+    if odd != 0 {
+        // Upper 12 bits: keep low nibble of existing byte, put val in upper
+        let keep: u16 = raw & 0x000F
+        let shifted: u16 = val << 4
+        new_raw = keep | shifted
+    } else {
+        // Lower 12 bits: keep high nibble of second byte, put val in lower
+        let keep: u16 = raw & 0xF000
+        let masked: u16 = val & 0x0FFF
+        new_raw = keep | masked
+    }
+    st_word(fat + ofs, new_raw)
+}
+
+fun read_fat16(fat: ^u8, clst: u16) -> u16 {
+    let ofs: u16 = clst << 1
+    return ld_word(fat + ofs)
+}
+
+fun write_fat16(fat: ^u8, clst: u16, val: u16) -> void {
+    let ofs: u16 = clst << 1
+    st_word(fat + ofs, val)
+}
+
+// ── Unified FAT read/write (dispatched by fs_type) ──────────────────────
+
+fun read_fat(fat: ^u8, clst: u16) -> u16 {
+    if fs_type == 1 { return read_fat12(fat, clst) }
+    if fs_type == 2 { return read_fat16(fat, clst) }
+    return 0xFFFF
+}
+
+fun write_fat(fat: ^u8, clst: u16, val: u16) -> void {
+    if fs_type == 1 { write_fat12(fat, clst, val) }
+    if fs_type == 2 { write_fat16(fat, clst, val) }
+}
+
+// EOC marker for current FAT type
+fun eoc_marker() -> u16 {
+    if fs_type == 1 { return 0xFF8 }
+    return 0xFFF8
+}
+
+fun is_eoc(val: u16) -> u8 {
+    if fs_type == 1 {
+        if val >= 0xFF8 { return 1 }
+        return 0
+    }
+    if val >= 0xFFF8 { return 1 }
+    return 0
+}
+
+// ── Classification helpers ───────────────────────────────────────────────
+
+fun classify_fat12(val: u16) -> u8 {
+    if val == 0     { return 0 }
+    if val == 1     { return 1 }
+    if val >= 0xFF8 { return 3 }
+    if val >= 0xFF0 { return 4 }
+    return 2
+}
+
+fun clst2sect(data_start: u16, clst: u16, spc: u8) -> u16 {
+    if clst < 2 { return 0 }
+    return data_start + (clst - 2) * spc
+}
+
+fun chain_length(fat: ^u8, start: u16, max_hops: u8) -> u8 {
+    var clst: u16 = start
+    var count: u8 = 0
+    var running: u8 = 1
+    while running != 0 {
+        count = count + 1
+        clst = read_fat(fat, clst)
+        if clst == 0         { running = 0 }
+        if is_eoc(clst) != 0 { running = 0 }
+        if count >= max_hops { running = 0 }
+        if clst < 2          { running = 0 }
+    }
+    return count
+}
+
+// ── Directory helpers ──────────────────────────────────────────────────────
+
+fun is_deleted(b: u8) -> u8 {
+    if b == 0xE5 { return 1 }
+    if b == 0x00 { return 2 }
+    return 0
+}
+
+fun sfn_checksum(dir: ^u8) -> u8 {
+    var sum: u8 = 0
+    var i: u8 = 0
+    while i < 11 {
+        let rotated: u8 = (sum >> 1) + (sum << 7)
+        sum = rotated + dir[i]
+        i = i + 1
+    }
+    return sum
+}
+
+fun dbc_1st(c: u8) -> u8 { return 0 }
+fun dbc_2nd(c: u8) -> u8 { return 0 }
+
+// ── Disk I/O interface ───────────────────────────────────────────────────────
+
+@extern fun disk_read(pdrv: u8, buf: ^u8, sector: u16, count: u8) -> u8
+@extern fun disk_write(pdrv: u8, buf: ^u8, sector: u16, count: u8) -> u8
+
+// ── Filesystem state ─────────────────────────────────────────────────────────
+
+global fs_type:      u8  = 0    // 0=unmounted, 1=FAT12, 2=FAT16
+global fs_csize:     u8  = 0    // Sectors per cluster
+global fs_n_fats:    u8  = 0    // Number of FATs (1 or 2)
+global fs_n_rootdir: u16 = 0    // Root directory entry count
+global fs_n_fatent:  u16 = 0    // Number of FAT entries (clusters + 2)
+global fs_fatbase:   u16 = 0    // FAT start sector
+global fs_dirbase:   u16 = 0    // Root directory start sector
+global fs_database:  u16 = 0    // Data area start sector
+global fs_fsize:     u16 = 0    // Sectors per FAT
+
+// Sector window: one 512-byte buffer for disk I/O
+global win: [u8; 512]
+global win_sect: u16 = 0xFFFF   // Currently loaded sector (0xFFFF = none)
+global win_dirty: u8 = 0        // 1 if win has been modified and needs flush
+
+// FAT cache: one sector of FAT
+global fat_cache: [u8; 512]
+global fat_cache_sect: u16 = 0xFFFF  // Which FAT sector is loaded
+global fat_dirty: u8 = 0             // 1 if FAT cache modified
+
+// ── Sector window with write-back ───────────────────────────────────────────
+
+fun flush_win(pdrv: u8) -> u8 {
+    if win_dirty == 0 { return 0 }
+    let res: u8 = disk_write(pdrv, &win, win_sect, 1)
+    if res != 0 { return 1 }
+    win_dirty = 0
+    return 0
+}
+
+fun load_sector(pdrv: u8, sect: u16) -> u8 {
+    if sect == win_sect { return 0 }
+    let fe: u8 = flush_win(pdrv)
+    if fe != 0 { return 1 }
+    let res: u8 = disk_read(pdrv, &win, sect, 1)
+    if res != 0 { return 1 }
+    win_sect = sect
+    return 0
+}
+
+fun mark_win_dirty() -> void {
+    win_dirty = 1
+}
+
+// ── FAT cache with write-back ────────────────────────────────────────────────
+
+fun flush_fat(pdrv: u8) -> u8 {
+    if fat_dirty == 0 { return 0 }
+    // Write to all FAT copies
+    var f: u8 = 0
+    while f < fs_n_fats {
+        let sect: u16 = fs_fatbase + f * fs_fsize + (fat_cache_sect - fs_fatbase)
+        let res: u8 = disk_write(pdrv, &fat_cache, sect, 1)
+        if res != 0 { return 1 }
+        f = f + 1
+    }
+    fat_dirty = 0
+    return 0
+}
+
+fun load_fat_sector(pdrv: u8, sect: u16) -> u8 {
+    if sect == fat_cache_sect { return 0 }
+    let fe: u8 = flush_fat(pdrv)
+    if fe != 0 { return 1 }
+    let res: u8 = disk_read(pdrv, &fat_cache, sect, 1)
+    if res != 0 { return 1 }
+    fat_cache_sect = sect
+    return 0
+}
+
+// ── Mount ────────────────────────────────────────────────────────────────────
+
+fun parse_bpb(pdrv: u8) -> u8 {
+    let res: u8 = disk_read(pdrv, &win, 0, 1)
+    if res != 0 { return 1 }
+
+    let sig: u16 = ld_word(&win + 510)
+    if sig != 0xAA55 { return 1 }
+
+    let bps: u16     = ld_word(&win + 11)
+    if bps != 512 { return 1 }
+    let spc: u8      = win[13]
+    let rsvd: u16    = ld_word(&win + 14)
+    let nfats: u8    = win[16]
+    let nroot: u16   = ld_word(&win + 17)
+    let fatsz: u16   = ld_word(&win + 22)
+
+    let fat_start: u16  = rsvd
+    let root_secs: u16  = nroot >> 4
+    let root_start: u16 = fat_start + nfats * fatsz
+    let data_start: u16 = root_start + root_secs
+
+    let total_sect: u16 = ld_word(&win + 19)
+    let data_secs: u16  = total_sect - data_start
+    let n_clust: u16    = data_secs / spc
+
+    fs_csize     = spc
+    fs_n_fats    = nfats
+    fs_n_rootdir = nroot
+    fs_n_fatent  = n_clust + 2
+    fs_fatbase   = fat_start
+    fs_dirbase   = root_start
+    fs_database  = data_start
+    fs_fsize     = fatsz
+
+    // Detect FAT type by cluster count
+    if n_clust < 4085 {
+        fs_type = 1   // FAT12
+    } else {
+        fs_type = 2   // FAT16
+    }
+
+    return 0
+}
+
+fun fat_mount(pdrv: u8) -> u8 {
+    fs_type = 0
+    fat_dirty = 0
+    fat_cache_sect = 0xFFFF
+    win_dirty = 0
+    win_sect = 0xFFFF
+    return parse_bpb(pdrv)
+}
+
+// ── FAT access (through cache) ──────────────────────────────────────────────
+
+// Compute absolute byte offset of a cluster's FAT entry.
+// FAT12: 1.5 bytes per entry. FAT16: 2 bytes per entry.
+fun fat_byte_ofs(clst: u16) -> u16 {
+    if fs_type == 1 {
+        let half: u16 = clst >> 1
+        return clst + half
+    }
+    return clst << 1
+}
+
+// Compute which FAT sector contains cluster clst.
+fun fat_sect_for_clst(clst: u16) -> u16 {
+    let byte_ofs: u16 = fat_byte_ofs(clst)
+    let sect_ofs: u16 = byte_ofs >> 9   // / 512
+    return fs_fatbase + sect_ofs
+}
+
+// Read a FAT entry from the cache using sector-relative offset.
+fun fat_cache_get(clst: u16) -> u16 {
+    let abs_ofs: u16 = fat_byte_ofs(clst)
+    let local: u16 = abs_ofs & 0x01FF  // abs_ofs % 512
+
+    if fs_type == 1 {
+        let raw: u16 = ld_word(&fat_cache + local)
+        let odd: u16 = clst & 1
+        if odd != 0 { return raw >> 4 }
+        return raw & 0x0FFF
+    }
+    return ld_word(&fat_cache + local)
+}
+
+// Write a FAT entry to the cache using sector-relative offset.
+fun fat_cache_put(clst: u16, val: u16) -> void {
+    let abs_ofs: u16 = fat_byte_ofs(clst)
+    let local: u16 = abs_ofs & 0x01FF  // abs_ofs % 512
+
+    if fs_type == 1 {
+        let raw: u16 = ld_word(&fat_cache + local)
+        let odd: u16 = clst & 1
+        var new_raw: u16 = 0
+        if odd != 0 {
+            let keep: u16 = raw & 0x000F
+            let shifted: u16 = val << 4
+            new_raw = keep | shifted
+        } else {
+            let keep: u16 = raw & 0xF000
+            let masked: u16 = val & 0x0FFF
+            new_raw = keep | masked
+        }
+        st_word(&fat_cache + local, new_raw)
+        return
+    }
+    st_word(&fat_cache + local, val)
+}
+
+fun fat_next(pdrv: u8, clst: u16) -> u16 {
+    if clst < 2 { return 0xFFFF }
+    let sect: u16 = fat_sect_for_clst(clst)
+    let err: u8 = load_fat_sector(pdrv, sect)
+    if err != 0 { return 0xFFFF }
+    let val: u16 = fat_cache_get(clst)
+    if is_eoc(val) != 0 { return 0xFFFF }
+    if val < 2 { return 0xFFFF }
+    return val
+}
+
+fun fat_set(pdrv: u8, clst: u16, val: u16) -> u8 {
+    if clst < 2 { return 1 }
+    let sect: u16 = fat_sect_for_clst(clst)
+    let err: u8 = load_fat_sector(pdrv, sect)
+    if err != 0 { return 1 }
+    fat_cache_put(clst, val)
+    fat_dirty = 1
+    return 0
+}
+
+// ── Cluster allocation ──────────────────────────────────────────────────────
+
+// Find a free cluster (FAT entry == 0). Returns cluster number, or 0 if full.
+fun find_free_cluster(pdrv: u8) -> u16 {
+    var clst: u16 = 2
+    while clst < fs_n_fatent {
+        let sect: u16 = fat_sect_for_clst(clst)
+        let err: u8 = load_fat_sector(pdrv, sect)
+        if err != 0 { return 0 }
+        let val: u16 = fat_cache_get(clst)
+        if val == 0 { return clst }
+        clst = clst + 1
+    }
+    return 0
+}
+
+// Allocate one cluster, link it after prev (or mark as EOC if prev==0).
+// Returns new cluster number, or 0 on failure.
+fun alloc_cluster(pdrv: u8, prev: u16) -> u16 {
+    let clst: u16 = find_free_cluster(pdrv)
+    if clst == 0 { return 0 }
+
+    // Mark new cluster as EOC
+    let eoc: u16 = eoc_marker()
+    let e1: u8 = fat_set(pdrv, clst, eoc)
+    if e1 != 0 { return 0 }
+
+    // Link previous cluster to new one
+    if prev >= 2 {
+        let e2: u8 = fat_set(pdrv, prev, clst)
+        if e2 != 0 { return 0 }
+    }
+
+    return clst
+}
+
+// Free an entire cluster chain starting at clst.
+fun free_chain(pdrv: u8, clst: u16) -> u8 {
+    var c: u16 = clst
+    while c >= 2 {
+        let next: u16 = fat_next(pdrv, c)
+        let err: u8 = fat_set(pdrv, c, 0)
+        if err != 0 { return 1 }
+        if next == 0xFFFF {
+            return flush_fat(pdrv)
+        }
+        c = next
+    }
+    return flush_fat(pdrv)
+}
+
+// ── SFN matching ─────────────────────────────────────────────────────────────
+
+fun sfn_match(a: ^u8, b: ^u8) -> u8 {
+    var i: u8 = 0
+    while i < 11 {
+        if a[i] != b[i] { return 0 }
+        i = i + 1
+    }
+    return 1
+}
+
+// ── Directory search ─────────────────────────────────────────────────────────
+
+// Search root directory for a file by 11-byte SFN.
+// Returns start cluster, or 0 if not found.
+fun find_file(pdrv: u8, name: ^u8) -> u16 {
+    var sect: u16 = fs_dirbase
+    let root_secs: u16 = fs_n_rootdir >> 4
+    var s: u16 = 0
+    while s < root_secs {
+        let err: u8 = load_sector(pdrv, sect)
+        if err != 0 { return 0 }
+        var e: u8 = 0
+        while e < 16 {
+            let ofs: u16 = e * 32
+            let first: u8 = win[ofs]
+            if first == 0x00 { return 0 }
+            if first != 0xE5 {
+                if sfn_match(&win + ofs, name) != 0 {
+                    return ld_word(&win + ofs + 26)
+                }
+            }
+            e = e + 1
+        }
+        sect = sect + 1
+        s = s + 1
+    }
+    return 0
+}
+
+// Get file size from directory entry (re-scan root dir). Returns u16 (max 64KB).
+fun get_file_size(pdrv: u8, name: ^u8) -> u16 {
+    var sect: u16 = fs_dirbase
+    let root_secs: u16 = fs_n_rootdir >> 4
+    var s: u16 = 0
+    while s < root_secs {
+        let err: u8 = load_sector(pdrv, sect)
+        if err != 0 { return 0 }
+        var e: u8 = 0
+        while e < 16 {
+            let ofs: u16 = e * 32
+            let first: u8 = win[ofs]
+            if first == 0x00 { return 0 }
+            if first != 0xE5 {
+                if sfn_match(&win + ofs, name) != 0 {
+                    return ld_word(&win + ofs + 28)
+                }
+            }
+            e = e + 1
+        }
+        sect = sect + 1
+        s = s + 1
+    }
+    return 0
+}
+
+// ── File read ────────────────────────────────────────────────────────────────
+
+fun file_read(pdrv: u8, start_clst: u16, file_size: u16, buf: ^u8, max_bytes: u16) -> u16 {
+    var clst: u16 = start_clst
+    var remaining: u16 = file_size
+    if remaining > max_bytes { remaining = max_bytes }
+    var total: u16 = 0
+
+    while remaining > 0 {
+        if clst < 2 { return total }
+        let sect: u16 = clst2sect(fs_database, clst, fs_csize)
+        if sect == 0 { return total }
+
+        var cs: u8 = 0
+        while cs < fs_csize {
+            if remaining == 0 { return total }
+            let err: u8 = load_sector(pdrv, sect + cs)
+            if err != 0 { return total }
+
+            var b: u16 = 0
+            if remaining < 512 {
+                while b < remaining {
+                    buf[total] = win[b]
+                    total = total + 1
+                    b = b + 1
+                }
+                remaining = 0
+            } else {
+                while b < 512 {
+                    buf[total] = win[b]
+                    total = total + 1
+                    b = b + 1
+                }
+                remaining = remaining - 512
+            }
+            cs = cs + 1
+        }
+        clst = fat_next(pdrv, clst)
+    }
+    return total
+}
+
+// Convenience: read a named file.
+fun read_named_file(pdrv: u8, name: ^u8, buf: ^u8, max: u16) -> u16 {
+    let clst: u16 = find_file(pdrv, name)
+    if clst == 0 { return 0 }
+    let fsize: u16 = get_file_size(pdrv, name)
+    return file_read(pdrv, clst, fsize, buf, max)
+}
+
+// ── File write ───────────────────────────────────────────────────────────────
+
+// Write buf (btw bytes) to a file starting at start_clst.
+// Allocates new clusters as needed. Returns bytes written.
+fun file_write_data(pdrv: u8, start_clst: u16, buf: ^u8, btw: u16) -> u16 {
+    var clst: u16 = start_clst
+    var remaining: u16 = btw
+    var total: u16 = 0
+
+    while remaining > 0 {
+        if clst < 2 { return total }
+        let sect: u16 = clst2sect(fs_database, clst, fs_csize)
+        if sect == 0 { return total }
+
+        var cs: u8 = 0
+        while cs < fs_csize {
+            if remaining == 0 { return total }
+
+            // Load sector, write into it, mark dirty
+            let err: u8 = load_sector(pdrv, sect + cs)
+            if err != 0 { return total }
+
+            var b: u16 = 0
+            if remaining < 512 {
+                while b < remaining {
+                    win[b] = buf[total]
+                    total = total + 1
+                    b = b + 1
+                }
+                remaining = 0
+            } else {
+                while b < 512 {
+                    win[b] = buf[total]
+                    total = total + 1
+                    b = b + 1
+                }
+                remaining = remaining - 512
+            }
+            mark_win_dirty()
+            cs = cs + 1
+        }
+
+        // Need more clusters?
+        if remaining > 0 {
+            let next: u16 = fat_next(pdrv, clst)
+            if next == 0xFFFF {
+                // Allocate new cluster
+                let nc: u16 = alloc_cluster(pdrv, clst)
+                if nc == 0 { return total }  // Disk full
+                clst = nc
+            } else {
+                clst = next
+            }
+        }
+    }
+
+    // Flush remaining dirty data
+    let fe: u8 = flush_win(pdrv)
+    if fe != 0 { return total }
+    let ff: u8 = flush_fat(pdrv)
+    if ff != 0 { return total }
+    return total
+}
+
+// ── Directory entry creation / update ────────────────────────────────────────
+
+// Find a free slot in root directory (first byte == 0x00 or 0xE5).
+// Returns sector and entry index (packed: sector * 16 + entry_idx), or 0xFFFF.
+fun find_free_dir_slot(pdrv: u8) -> u16 {
+    var sect: u16 = fs_dirbase
+    let root_secs: u16 = fs_n_rootdir >> 4
+    var s: u16 = 0
+    while s < root_secs {
+        let err: u8 = load_sector(pdrv, sect)
+        if err != 0 { return 0xFFFF }
+        var e: u8 = 0
+        while e < 16 {
+            let ofs: u16 = e * 32
+            let first: u8 = win[ofs]
+            if first == 0x00 { return s * 16 + e }
+            if first == 0xE5 { return s * 16 + e }
+            e = e + 1
+        }
+        sect = sect + 1
+        s = s + 1
+    }
+    return 0xFFFF
+}
+
+// Write a 32-byte directory entry at the given slot.
+// slot = sector_index * 16 + entry_index (as returned by find_free_dir_slot).
+fun write_dir_entry(pdrv: u8, slot: u16, name: ^u8, attr: u8, clst: u16, size: u16) -> u8 {
+    let s_idx: u16 = slot >> 4       // slot / 16
+    let e_idx: u16 = slot & 0x0F     // slot % 16
+    let sect: u16  = fs_dirbase + s_idx
+
+    let err: u8 = load_sector(pdrv, sect)
+    if err != 0 { return 1 }
+
+    let ofs: u16 = e_idx * 32
+
+    // Write 11-byte SFN
+    var i: u8 = 0
+    while i < 11 {
+        win[ofs + i] = name[i]
+        i = i + 1
+    }
+
+    // Attribute byte (offset 11)
+    win[ofs + 11] = attr
+
+    // Clear reserved/time fields (offsets 12-25)
+    var j: u8 = 12
+    while j < 26 {
+        win[ofs + j] = 0
+        j = j + 1
+    }
+
+    // Start cluster (offset 26-27)
+    st_word(&win + ofs + 26, clst)
+
+    // File size (offset 28-29, low word; 30-31 = 0 for files < 64KB)
+    st_word(&win + ofs + 28, size)
+    win[ofs + 30] = 0
+    win[ofs + 31] = 0
+
+    mark_win_dirty()
+    return flush_win(pdrv)
+}
+
+// Update file size in an existing directory entry.
+fun update_dir_size(pdrv: u8, name: ^u8, new_size: u16) -> u8 {
+    var sect: u16 = fs_dirbase
+    let root_secs: u16 = fs_n_rootdir >> 4
+    var s: u16 = 0
+    while s < root_secs {
+        let err: u8 = load_sector(pdrv, sect)
+        if err != 0 { return 1 }
+        var e: u8 = 0
+        while e < 16 {
+            let ofs: u16 = e * 32
+            let first: u8 = win[ofs]
+            if first == 0x00 { return 1 }
+            if first != 0xE5 {
+                if sfn_match(&win + ofs, name) != 0 {
+                    st_word(&win + ofs + 28, new_size)
+                    win[ofs + 30] = 0
+                    win[ofs + 31] = 0
+                    mark_win_dirty()
+                    return flush_win(pdrv)
+                }
+            }
+            e = e + 1
+        }
+        sect = sect + 1
+        s = s + 1
+    }
+    return 1
+}
+
+// ── High-level file operations ───────────────────────────────────────────────
+
+// Create a new file with given content. Returns 0 on success.
+// name: 11-byte SFN. data: content buffer. size: content length.
+fun create_file(pdrv: u8, name: ^u8, data: ^u8, size: u16) -> u8 {
+    // Check if file already exists
+    let existing: u16 = find_file(pdrv, name)
+    if existing != 0 { return 2 }  // Already exists
+
+    // Allocate first cluster (if file has content)
+    var first_clst: u16 = 0
+    if size > 0 {
+        first_clst = alloc_cluster(pdrv, 0)
+        if first_clst == 0 { return 3 }  // Disk full
+    }
+
+    // Find directory slot and write entry
+    let slot: u16 = find_free_dir_slot(pdrv)
+    if slot == 0xFFFF { return 4 }  // Directory full
+
+    let de: u8 = write_dir_entry(pdrv, slot, name, 0x20, first_clst, size)
+    if de != 0 { return 1 }
+
+    // Write file data
+    if size > 0 {
+        let written: u16 = file_write_data(pdrv, first_clst, data, size)
+        if written != size { return 5 }  // Write incomplete
+    }
+
+    return 0
+}
+
+// Delete a file by name. Frees cluster chain and marks dir entry as deleted.
+fun delete_file(pdrv: u8, name: ^u8) -> u8 {
+    let clst: u16 = find_file(pdrv, name)
+    if clst == 0 { return 1 }  // Not found
+
+    // Free cluster chain
+    if clst >= 2 {
+        let fe: u8 = free_chain(pdrv, clst)
+        if fe != 0 { return 2 }
+    }
+
+    // Mark directory entry as deleted (0xE5)
+    var sect: u16 = fs_dirbase
+    let root_secs: u16 = fs_n_rootdir >> 4
+    var s: u16 = 0
+    while s < root_secs {
+        let err: u8 = load_sector(pdrv, sect)
+        if err != 0 { return 3 }
+        var e: u8 = 0
+        while e < 16 {
+            let ofs: u16 = e * 32
+            let first: u8 = win[ofs]
+            if first == 0x00 { return 1 }
+            if first != 0xE5 {
+                if sfn_match(&win + ofs, name) != 0 {
+                    win[ofs] = 0xE5
+                    mark_win_dirty()
+                    return flush_win(pdrv)
+                }
+            }
+            e = e + 1
+        }
+        sect = sect + 1
+        s = s + 1
+    }
+    return 1
+}
+
+// Overwrite an existing file with new content.
+// Frees old chain, allocates new, updates dir entry.
+fun overwrite_file(pdrv: u8, name: ^u8, data: ^u8, new_size: u16) -> u8 {
+    let old_clst: u16 = find_file(pdrv, name)
+    if old_clst == 0 { return 1 }  // Not found
+
+    // Allocate new chain first (before freeing old — safer)
+    var new_clst: u16 = 0
+    if new_size > 0 {
+        new_clst = alloc_cluster(pdrv, 0)
+        if new_clst == 0 { return 3 }
+    }
+
+    // Free old chain
+    if old_clst >= 2 {
+        let fe: u8 = free_chain(pdrv, old_clst)
+        if fe != 0 { return 2 }
+    }
+
+    // Update directory entry: new cluster + new size
+    var sect: u16 = fs_dirbase
+    let root_secs: u16 = fs_n_rootdir >> 4
+    var s: u16 = 0
+    while s < root_secs {
+        let err: u8 = load_sector(pdrv, sect)
+        if err != 0 { return 4 }
+        var e: u8 = 0
+        while e < 16 {
+            let ofs: u16 = e * 32
+            let first: u8 = win[ofs]
+            if first == 0x00 { return 1 }
+            if first != 0xE5 {
+                if sfn_match(&win + ofs, name) != 0 {
+                    st_word(&win + ofs + 26, new_clst)
+                    st_word(&win + ofs + 28, new_size)
+                    win[ofs + 30] = 0
+                    win[ofs + 31] = 0
+                    mark_win_dirty()
+                    let fw: u8 = flush_win(pdrv)
+                    if fw != 0 { return 5 }
+
+                    // Write new data
+                    if new_size > 0 {
+                        let written: u16 = file_write_data(pdrv, new_clst, data, new_size)
+                        if written != new_size { return 6 }
+                    }
+                    return 0
+                }
+            }
+            e = e + 1
+        }
+        sect = sect + 1
+        s = s + 1
+    }
+    return 1
+}
+
+// ── Sync: flush all dirty state to disk ──────────────────────────────────────
+
+fun fat_sync(pdrv: u8) -> u8 {
+    let e1: u8 = flush_win(pdrv)
+    let e2: u8 = flush_fat(pdrv)
+    if e1 != 0 { return 1 }
+    if e2 != 0 { return 1 }
+    return 0
+}
+
+// ── Directory listing ────────────────────────────────────────────────────────
+
+fun count_dir_entries(pdrv: u8) -> u8 {
+    var sect: u16 = fs_dirbase
+    let root_secs: u16 = fs_n_rootdir >> 4
+    var count: u8 = 0
+    var s: u16 = 0
+    while s < root_secs {
+        let err: u8 = load_sector(pdrv, sect)
+        if err != 0 { return count }
+        var e: u8 = 0
+        while e < 16 {
+            let ofs: u16 = e * 32
+            let first: u8 = win[ofs]
+            if first == 0x00 { return count }
+            if first != 0xE5 {
+                let attr: u8 = win[ofs + 11]
+                let lmask: u8 = attr & 0x0F
+                if lmask != 0x0F {
+                    count = count + 1
+                }
+            }
+            e = e + 1
+        }
+        sect = sect + 1
+        s = s + 1
+    }
+    return count
+}
+
+fun get_dir_entry(pdrv: u8, idx: u8, out: ^u8) -> u16 {
+    var sect: u16 = fs_dirbase
+    let root_secs: u16 = fs_n_rootdir >> 4
+    var seen: u8 = 0
+    var s: u16 = 0
+    while s < root_secs {
+        let err: u8 = load_sector(pdrv, sect)
+        if err != 0 { return 0 }
+        var e: u8 = 0
+        while e < 16 {
+            let ofs: u16 = e * 32
+            let first: u8 = win[ofs]
+            if first == 0x00 { return 0 }
+            if first != 0xE5 {
+                let attr: u8 = win[ofs + 11]
+                let lmask: u8 = attr & 0x0F
+                if lmask != 0x0F {
+                    if seen == idx {
+                        var i: u8 = 0
+                        while i < 11 {
+                            out[i] = win[ofs + i]
+                            i = i + 1
+                        }
+                        return ld_word(&win + ofs + 26)
+                    }
+                    seen = seen + 1
+                }
+            }
+            e = e + 1
+        }
+        sect = sect + 1
+        s = s + 1
+    }
+    return 0
+}
+
+// get_dir_entry_full — like get_dir_entry but copies 32 bytes (full dir entry)
+// out must point to a 32-byte buffer. Returns start cluster (0 if not found).
+// Layout: [0..10]=name, [11]=attr, [26..27]=cluster, [28..31]=size
+fun get_dir_entry_full(pdrv: u8, idx: u8, out: ^u8) -> u16 {
+    var sect: u16 = fs_dirbase
+    let root_secs: u16 = fs_n_rootdir >> 4
+    var seen: u8 = 0
+    var s: u16 = 0
+    while s < root_secs {
+        let err: u8 = load_sector(pdrv, sect)
+        if err != 0 { return 0 }
+        var e: u8 = 0
+        while e < 16 {
+            let ofs: u16 = e * 32
+            let first: u8 = win[ofs]
+            if first == 0x00 { return 0 }
+            if first != 0xE5 {
+                let attr: u8 = win[ofs + 11]
+                let lmask: u8 = attr & 0x0F
+                if lmask != 0x0F {
+                    if seen == idx {
+                        var i: u8 = 0
+                        while i < 32 {
+                            out[i] = win[ofs + i]
+                            i = i + 1
+                        }
+                        return ld_word(&win + ofs + 26)
+                    }
+                    seen = seen + 1
+                }
+            }
+            e = e + 1
+        }
+        sect = sect + 1
+        s = s + 1
+    }
+    return 0
+}
+
