@@ -26,6 +26,9 @@ func compilerModeOutputNames() []string {
 	return names
 }
 func validateHIRCompilerModes(source string) error {
+	if hirProfileCompilerModesReplay != "" && hirProfileCompilerModes {
+		return fmt.Errorf("compiler modes: search and replay cannot be combined")
+	}
 	if hirProfileAutoDirectory == "" || hirProfileAutoWorkload == "" {
 		return fmt.Errorf("compiler modes: --hir-profile-auto directory and --hir-profile-auto-workload are required")
 	}

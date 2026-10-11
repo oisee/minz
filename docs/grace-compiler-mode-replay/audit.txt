@@ -1,0 +1,2 @@
+12 frozen heldout calls: independent arithmetic, state, byte access PASS
+fixed training winner mode1: same saved BIN SHA256 23a46320f4d5adaf3a706457cf721145f0ff0df85efcd4c8e0e2b0f0d83642f0 52B / 5568T PASS

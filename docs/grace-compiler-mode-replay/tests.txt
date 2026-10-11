@@ -1,0 +1,38 @@
+=== RUN   TestCompilerModeReplayActualFrozenHeldout
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeReplayActualFrozenHeldout2268415165/002/training
+[compiler-modes replay] fixed mode 1: 5568 T / 52 B; saved BIN 23a46320f4d5adaf3a706457cf721145f0ff0df85efcd4c8e0e2b0f0d83642f0
+--- PASS: TestCompilerModeReplayActualFrozenHeldout (1.13s)
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining
+[compiler-modes] speed selected mode 1: 2320 T / 52 B; artifacts /tmp/TestCompilerModeReplayRejectsMutatedTraining2506614910/002/training
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/binary
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/missing-manifest-entry
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/selected-index
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/selected-flags
+=== RUN   TestCompilerModeReplayRejectsMutatedTraining/source
+--- PASS: TestCompilerModeReplayRejectsMutatedTraining (0.99s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/binary (0.02s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/missing-manifest-entry (0.02s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/selected-index (0.02s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/selected-flags (0.02s)
+    --- PASS: TestCompilerModeReplayRejectsMutatedTraining/source (0.02s)
+=== RUN   TestCompilerModeReplayChangedImportedSource
+[compiler-modes] speed selected mode 0: 24 T / 10 B; artifacts /tmp/TestCompilerModeReplayChangedImportedSource259726400/002/training
+--- PASS: TestCompilerModeReplayChangedImportedSource (0.88s)
+=== RUN   TestCompilerModeReplayFlagAndPathAdmission
+--- PASS: TestCompilerModeReplayFlagAndPathAdmission (0.01s)
+=== RUN   TestCompilerModeCLIPathsAndFlags
+=== RUN   TestCompilerModeCLIPathsAndFlags/missing-workload
+=== RUN   TestCompilerModeCLIPathsAndFlags/joint
+=== RUN   TestCompilerModeCLIPathsAndFlags/other-output
+=== RUN   TestCompilerModeCLIPathsAndFlags/hir-grace
+=== RUN   TestCompilerModeCLIPathsAndFlags/alias-input
+=== RUN   TestCompilerModeCLIPathsAndFlags/hardlink-input
+--- PASS: TestCompilerModeCLIPathsAndFlags (0.01s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/missing-workload (0.00s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/joint (0.00s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/other-output (0.00s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/hir-grace (0.00s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/alias-input (0.00s)
+    --- PASS: TestCompilerModeCLIPathsAndFlags/hardlink-input (0.01s)
+PASS
+ok  	github.com/minz/minzc/cmd/minzc	3.023s

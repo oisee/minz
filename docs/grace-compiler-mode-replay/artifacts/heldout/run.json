@@ -1,0 +1,405 @@
+{
+  "compatibility": {
+    "schema": "minz.loop-profile-compatibility/v1",
+    "context": {
+      "compiler_id": "executable-sha256:fd1834f762935a3413738d0fabc429a5ba5cd23c732f40ee12a2224f8d769047",
+      "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+      "target_id": "module-target:0/model:cpm-z80-v1",
+      "workload_sha256": "acefb7a0ed5dd1a36e559aa84d4e4b01beba33aede3fe47fafd901d23aca7bd2",
+      "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+      "dependencies": {
+        "examples/nanz/pfcco_weighted_packet.nanz": "6a8ecc8d50e41f5609cabb061b7a06474a7e72619295259d9e5aa4e3cc5bb4ab"
+      }
+    },
+    "hir_sha256": "66514aa8fcd110e2e2b46f28e7564739356054b17ac7a103a5f3ea50a7639660",
+    "origins_sha256": "2da62317523a8b099010c80f9a664adb8163a3913f75efa73bea201092dc199d"
+  },
+  "binary_sha256": "23a46320f4d5adaf3a706457cf721145f0ff0df85efcd4c8e0e2b0f0d83642f0",
+  "bootstrap_sha256": [
+    "cbdcd8230fa3d235a0d8a371359f7aeefbb41aa155526b1b10e06607fd534583",
+    "1a7e78a986cf205c990125ac46192801fd2c7916657e08232abf7e3a62fc8017",
+    "a5b03bc9bffb701bebc6cc4386db51ccd28c1bd270756da136ea0efa85a22a6d",
+    "b143847606330ded65507d531a3eec30890d5ae1b45e995154b4a4dc7fc6373b",
+    "a09c85ee2aa2a1c9e4510db8f0fc7222179fa1066372b1213fc35a1221a89894",
+    "ae8729bc5522b08994fd4ad940d28581692bdf7a65f2367085faaf68e1a3ed73",
+    "9f84af57547d989503997feb59072504daa9ab175c701c1beacd6087d38e8a3b",
+    "c799aec33752215337f51bef1d488f6ec70b78ce5274cc80c9b8eb32496d5c77",
+    "1392e3765e6109ac5cfe9577dc7616215229052dd06e6f7795d9ba308ef3067c",
+    "1a34060fb032b9271d488272e93823fa2030d253112d38949aa57e0d896001ff",
+    "1a36109db4c925e16748ff945e14650dfb98be5635f2e8f0c528a2ec7bc5a3bb",
+    "65042a735a7ae3b0a9e73b4769de0f429e965f0bac487e80e58f2fa3cea386a5"
+  ],
+  "invocations": [
+    {
+      "access": {
+        "globals": {
+          "packet_trace": {
+            "reads": [
+              2,
+              2
+            ],
+            "writes": [
+              2,
+              2
+            ]
+          }
+        },
+        "resources": {}
+      },
+      "function": "weighted_packet",
+      "t_states": 464,
+      "results": [
+        {
+          "I": 64870
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "packet_trace": "/v8="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {
+          "packet_trace": {
+            "reads": [
+              2,
+              2
+            ],
+            "writes": [
+              2,
+              2
+            ]
+          }
+        },
+        "resources": {}
+      },
+      "function": "weighted_packet",
+      "t_states": 464,
+      "results": [
+        {
+          "I": 666
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "packet_trace": "AAA="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {
+          "packet_trace": {
+            "reads": [
+              2,
+              2
+            ],
+            "writes": [
+              2,
+              2
+            ]
+          }
+        },
+        "resources": {}
+      },
+      "function": "weighted_packet",
+      "t_states": 464,
+      "results": [
+        {
+          "I": 65534
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "packet_trace": "AgA="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {
+          "packet_trace": {
+            "reads": [
+              2,
+              2
+            ],
+            "writes": [
+              2,
+              2
+            ]
+          }
+        },
+        "resources": {}
+      },
+      "function": "weighted_packet",
+      "t_states": 464,
+      "results": [
+        {
+          "I": 2
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "packet_trace": "BAA="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {
+          "packet_trace": {
+            "reads": [
+              2,
+              2
+            ],
+            "writes": [
+              2,
+              2
+            ]
+          }
+        },
+        "resources": {}
+      },
+      "function": "weighted_packet",
+      "t_states": 464,
+      "results": [
+        {
+          "I": 464
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "packet_trace": "BgA="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {
+          "packet_trace": {
+            "reads": [
+              2,
+              2
+            ],
+            "writes": [
+              2,
+              2
+            ]
+          }
+        },
+        "resources": {}
+      },
+      "function": "weighted_packet",
+      "t_states": 464,
+      "results": [
+        {
+          "I": 65072
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "packet_trace": "CAA="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {
+          "packet_trace": {
+            "reads": [
+              2,
+              2
+            ],
+            "writes": [
+              2,
+              2
+            ]
+          }
+        },
+        "resources": {}
+      },
+      "function": "weighted_packet",
+      "t_states": 464,
+      "results": [
+        {
+          "I": 0
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "packet_trace": "CgA="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {
+          "packet_trace": {
+            "reads": [
+              2,
+              2
+            ],
+            "writes": [
+              2,
+              2
+            ]
+          }
+        },
+        "resources": {}
+      },
+      "function": "weighted_packet",
+      "t_states": 464,
+      "results": [
+        {
+          "I": 65528
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "packet_trace": "DAA="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {
+          "packet_trace": {
+            "reads": [
+              2,
+              2
+            ],
+            "writes": [
+              2,
+              2
+            ]
+          }
+        },
+        "resources": {}
+      },
+      "function": "weighted_packet",
+      "t_states": 464,
+      "results": [
+        {
+          "I": 8
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "packet_trace": "DgA="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {
+          "packet_trace": {
+            "reads": [
+              2,
+              2
+            ],
+            "writes": [
+              2,
+              2
+            ]
+          }
+        },
+        "resources": {}
+      },
+      "function": "weighted_packet",
+      "t_states": 464,
+      "results": [
+        {
+          "I": 63536
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "packet_trace": "EAA="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {
+          "packet_trace": {
+            "reads": [
+              2,
+              2
+            ],
+            "writes": [
+              2,
+              2
+            ]
+          }
+        },
+        "resources": {}
+      },
+      "function": "weighted_packet",
+      "t_states": 464,
+      "results": [
+        {
+          "I": 2000
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "packet_trace": "EgA="
+        },
+        "resources": {}
+      }
+    },
+    {
+      "access": {
+        "globals": {
+          "packet_trace": {
+            "reads": [
+              2,
+              2
+            ],
+            "writes": [
+              2,
+              2
+            ]
+          }
+        },
+        "resources": {}
+      },
+      "function": "weighted_packet",
+      "t_states": 464,
+      "results": [
+        {
+          "I": 65504
+        }
+      ],
+      "snapshot": {
+        "globals": {
+          "packet_trace": "FAA="
+        },
+        "resources": {}
+      }
+    }
+  ],
+  "globals": {
+    "packet_trace": "FAA="
+  },
+  "resources": {},
+  "resource_addresses": {},
+  "global_addresses": {
+    "packet_trace": 32818
+  },
+  "bootstrap_t_states": 564,
+  "total_t_states": 5568,
+  "executed_steps": 576
+}
