@@ -1,0 +1,8 @@
+[
+  "; new held-out recursive case\n(fun walk_tree ((node ptr) (depth u8)) u16 (if (= depth 0) (return 4095) (return (walk_tree node (- depth 1)))))",
+  "(module packet_format (record Header (sequence u16) (checksum u16)) (fun encode ((sequence u16) (checksum u16)) u16 (return (+ sequence checksum))))",
+  "(fun same_prefix ((configuration_alpha u16) (configuration_beta u16)) u16 (return (- configuration_beta configuration_alpha)))",
+  "(block\t(let maximum 65535)\r\n(let wrap 65536) (let wide 131073) (return (+ maximum (+ wrap wide))))",
+  "; first independent comment\n; second independent comment\n((empty ()) (nested ((lambda ((sample u8)) (+ sample 7)))) (repeated observation observation observation))",
+  "(module intern_stress (alpha_axis beta_axis gamma_axis delta_axis alpha_axis beta_axis gamma_axis delta_axis) (configuration_alpha configuration_beta configuration_alpha configuration_beta))"
+]

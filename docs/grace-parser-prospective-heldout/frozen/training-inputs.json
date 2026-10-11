@@ -1,0 +1,5 @@
+[
+  "(fun count_packets ((packets u16) (limit u16)) u16 (return (+ packets limit)))",
+  "(fun fold_bytes ((buffer ptr) (count u8)) u16 (block (let accumulator 0) (while (< accumulator count) (set accumulator (+ accumulator 1))) (return accumulator)))",
+  "(module telemetry (fun identity ((measurement u16)) u16 (return measurement)) (fun twice ((measurement u16)) u16 (return (+ measurement measurement))))"
+]
