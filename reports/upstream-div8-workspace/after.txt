@@ -1,0 +1,12 @@
+=== RUN   TestUnsignedDivMod8SwappedWorkspace
+=== RUN   TestUnsignedDivMod8SwappedWorkspace/div
+    div8_workspace_test.go:104: 65280 nonzero pairs matched independent quotient/remainder;256 zero-divisor VM errors
+=== RUN   TestUnsignedDivMod8SwappedWorkspace/mod
+    div8_workspace_test.go:104: 65280 nonzero pairs matched independent quotient/remainder;256 zero-divisor VM errors
+--- PASS: TestUnsignedDivMod8SwappedWorkspace (0.18s)
+    --- PASS: TestUnsignedDivMod8SwappedWorkspace/div (0.09s)
+    --- PASS: TestUnsignedDivMod8SwappedWorkspace/mod (0.09s)
+=== RUN   TestUnsignedDivMod8WorkspacePreservesLiveD
+--- PASS: TestUnsignedDivMod8WorkspacePreservesLiveD (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.193s
