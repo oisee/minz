@@ -1,0 +1,6 @@
+global evaluations:u8
+fun effect(v:u16)->u16{evaluations=evaluations+1
+return v}
+fun once(v:u16)->u16{evaluations=0
+var x:u8=effect(v)
+return u16(x)+u16(evaluations)*256}

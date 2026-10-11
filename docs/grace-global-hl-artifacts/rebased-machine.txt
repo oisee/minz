@@ -1,0 +1,12 @@
+=== RUN   TestZ80DirectConstantStorePreservesHLBytes
+=== RUN   TestZ80DirectConstantStorePreservesHLBytes/HL
+=== RUN   TestZ80DirectConstantStorePreservesHLBytes/H
+=== RUN   TestZ80DirectConstantStorePreservesHLBytes/L
+=== RUN   TestZ80DirectConstantStorePreservesHLBytes/DE
+--- PASS: TestZ80DirectConstantStorePreservesHLBytes (0.00s)
+    --- PASS: TestZ80DirectConstantStorePreservesHLBytes/HL (0.00s)
+    --- PASS: TestZ80DirectConstantStorePreservesHLBytes/H (0.00s)
+    --- PASS: TestZ80DirectConstantStorePreservesHLBytes/L (0.00s)
+    --- PASS: TestZ80DirectConstantStorePreservesHLBytes/DE (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.009s

@@ -1,0 +1,218 @@
+; HIR module: ../../../examples/nanz/self_lanz_parser.nanz
+global @src_buf : u16
+global @src_len : u16
+global @pos : u16
+global @node_arena : u16
+global @node_bump : u16
+global @str_arena : u16
+global @str_bump : u16
+global @SEXP_ATOM : u8
+global @SEXP_LIST : u8
+global @SEXP_INT : u8
+string #0 = "("
+string #1 = " "
+string #2 = ")"
+string #3 = "(fun add ((a u8) (b u8)) u8 (return (+ a b)))"
+string #4 = "Input: "
+string #5 = "Parsed: "
+string #6 = "Nodes: "
+string #7 = " Strings: "
+string #8 = " bytes"
+
+extern fun @peek(addr: u16) -> u8
+
+extern fun @poke(addr: u16, val: u8)
+
+fun @is_space(c: u8) -> u8
+  if ((c:u8) == 32:u8):bool
+    return 1:u8
+  if ((c:u8) == 9:u8):bool
+    return 1:u8
+  if ((c:u8) == 10:u8):bool
+    return 1:u8
+  if ((c:u8) == 13:u8):bool
+    return 1:u8
+  return 0:u8
+
+fun @is_digit(c: u8) -> u8
+  if ((c:u8) >= 48:u8):bool
+    if ((c:u8) <= 57:u8):bool
+      return 1:u8
+  return 0:u8
+
+fun @is_atom_char(c: u8) -> u8
+  if ((c:u8) == 0:u8):bool
+    return 0:u8
+  if ((c:u8) == 32:u8):bool
+    return 0:u8
+  if ((c:u8) == 9:u8):bool
+    return 0:u8
+  if ((c:u8) == 10:u8):bool
+    return 0:u8
+  if ((c:u8) == 13:u8):bool
+    return 0:u8
+  if ((c:u8) == 40:u8):bool
+    return 0:u8
+  if ((c:u8) == 41:u8):bool
+    return 0:u8
+  return 1:u8
+
+fun @cur() -> u8
+  if ((pos:u16) >= (src_len:u16)):bool
+    return 0:u8
+  return call @peek(((src_buf:u16) + (pos:u16)):u16):u8
+
+fun @skip_ws()
+  while (call @is_space(call @cur():u8):u8 == 1:u8):bool
+    (pos:u16) = ((pos:u16) + 1:u8):u16
+  if (call @cur():u8 == 59:u8):bool
+    while (call @cur():u8 != 10:u8):bool
+      if (call @cur():u8 == 0:u8):bool
+        return
+      (pos:u16) = ((pos:u16) + 1:u8):u16
+    (pos:u16) = ((pos:u16) + 1:u8):u16
+    call @skip_ws():void
+
+fun @region_match(arena_p: u16, src_start: u16, len: u8) -> u8
+  var i: u8 = 0:u8
+  while ((i:u8) < (len:u8)):bool
+    if (call @peek((((arena_p:u16) + 1:u8):u16 + (i:u8)):u16):u8 != call @peek((((src_buf:u16) + (src_start:u16)):u16 + (i:u8)):u16):u8):bool
+      return 0:u8
+    (i:u8) = ((i:u8) + 1:u8):u8
+  return 1:u8
+
+fun @intern_region(start: u16, len: u8) -> u16
+  var p: u16 = (str_arena:u16)
+  while ((p:u16) < (str_bump:u16)):bool
+    var slen: u8 = call @peek((p:u16)):u8
+    if ((slen:u8) == (len:u8)):bool
+      if (call @region_match((p:u16), (start:u16), (len:u8)):u8 == 1:u8):bool
+        return (p:u16)
+    (p:u16) = (((p:u16) + 1:u8):u16 + (slen:u8)):u16
+  var new_p: u16 = (str_bump:u16)
+  call @poke((str_bump:u16), (len:u8)):void
+  var j: u8 = 0:u8
+  while ((j:u8) < (len:u8)):bool
+    call @poke((((str_bump:u16) + 1:u8):u16 + (j:u8)):u16, call @peek((((src_buf:u16) + (start:u16)):u16 + (j:u8)):u16):u8):void
+    (j:u8) = ((j:u8) + 1:u8):u8
+  (str_bump:u16) = (((str_bump:u16) + 1:u8):u16 + (len:u8)):u16
+  return (new_p:u16)
+
+fun @make_node(tag: u8, d0: u16, d1: u16, d2: u16) -> u16
+  var p: u16 = (node_bump:u16)
+  call @poke((p:u16), (tag:u8)):void
+  call @poke(((p:u16) + 1:u8):u16, ((d0:u16) % 256:u16):u16):void
+  call @poke(((p:u16) + 2:u8):u16, ((d0:u16) / 256:u16):u16):void
+  call @poke(((p:u16) + 3:u8):u16, ((d1:u16) % 256:u16):u16):void
+  call @poke(((p:u16) + 4:u8):u16, ((d1:u16) / 256:u16):u16):void
+  call @poke(((p:u16) + 5:u8):u16, ((d2:u16) % 256:u16):u16):void
+  call @poke(((p:u16) + 6:u8):u16, ((d2:u16) / 256:u16):u16):void
+  call @poke(((p:u16) + 7:u8):u16, 0:u8):void
+  (node_bump:u16) = ((node_bump:u16) + 8:u8):u16
+  return (p:u16)
+
+fun @node_tag(n: u16) -> u8
+  return call @peek((n:u16)):u8
+
+fun @node_d0(n: u16) -> u16
+  return (call @peek(((n:u16) + 1:u8):u16):u8 + (call @peek(((n:u16) + 2:u8):u16):u8 * 256:u16):u16):u16
+
+fun @node_d1(n: u16) -> u16
+  return (call @peek(((n:u16) + 3:u8):u16):u8 + (call @peek(((n:u16) + 4:u8):u16):u8 * 256:u16):u16):u16
+
+fun @set_d1(n: u16, v: u16)
+  call @poke(((n:u16) + 3:u8):u16, ((v:u16) % 256:u16):u16):void
+  call @poke(((n:u16) + 4:u8):u16, ((v:u16) / 256:u16):u16):void
+
+fun @parse_sexpr() -> u16
+  call @skip_ws():void
+  var c: u8 = call @cur():u8
+  if ((c:u8) == 0:u8):bool
+    return 0:u8
+  if ((c:u8) == 40:u8):bool
+    (pos:u16) = ((pos:u16) + 1:u8):u16
+    call @skip_ws():void
+    if (call @cur():u8 == 41:u8):bool
+      (pos:u16) = ((pos:u16) + 1:u8):u16
+      return call @make_node((SEXP_LIST:u8), 0:u8, 0:u8, 0:u8):u16
+    var first: u16 = call @parse_sexpr():u16
+    var list_node: u16 = call @make_node((SEXP_LIST:u8), (first:u16), 0:u8, 0:u8):u16
+    var prev: u16 = (first:u16)
+    call @skip_ws():void
+    while (call @cur():u8 != 41:u8):bool
+      if (call @cur():u8 == 0:u8):bool
+        return (list_node:u16)
+      var next: u16 = call @parse_sexpr():u16
+      call @set_d1((prev:u16), (next:u16)):void
+      (prev:u16) = (next:u16)
+      call @skip_ws():void
+    (pos:u16) = ((pos:u16) + 1:u8):u16
+    return (list_node:u16)
+  var start: u16 = (pos:u16)
+  while (call @is_atom_char(call @cur():u8):u8 == 1:u8):bool
+    (pos:u16) = ((pos:u16) + 1:u8):u16
+  var len: u8 = ((pos:u16) - (start:u16)):u16
+  if ((len:u8) == 0:u8):bool
+    return 0:u8
+  if (call @is_digit(call @peek(((src_buf:u16) + (start:u16)):u16):u8):u8 == 1:u8):bool
+    var val: u16 = 0:u8
+    var k: u8 = 0:u8
+    while ((k:u8) < (len:u8)):bool
+      (val:u16) = ((((val:u16) * 10:u8):u16 + call @peek((((src_buf:u16) + (start:u16)):u16 + (k:u8)):u16):u8):u16 - 48:u8):u16
+      (k:u8) = ((k:u8) + 1:u8):u8
+    return call @make_node((SEXP_INT:u8), (val:u16), 0:u8, 0:u8):u16
+  var s: u16 = call @intern_region((start:u16), (len:u8)):u16
+  return call @make_node((SEXP_ATOM:u8), (s:u16), 0:u8, 0:u8):u16
+
+fun @print_str(s: u16)
+  var len: u8 = call @peek((s:u16)):u8
+  var i: u8 = 0:u8
+  while ((i:u8) < (len:u8)):bool
+    call @@mir.io.print.char(call @peek((((s:u16) + 1:u8):u16 + (i:u8)):u16):u8):void
+    (i:u8) = ((i:u8) + 1:u8):u8
+
+fun @print_node(n: u16)
+  if ((n:u16) == 0:u8):bool
+    return
+  var tag: u8 = call @node_tag((n:u16)):u8
+  if ((tag:u8) == (SEXP_ATOM:u8)):bool
+    call @print_str(call @node_d0((n:u16)):u16):void
+    return
+  if ((tag:u8) == (SEXP_INT:u8)):bool
+    call @@mir.io.print.u8(call @node_d0((n:u16)):u16):void
+    return
+  if ((tag:u8) == (SEXP_LIST:u8)):bool
+    call @@mir.io.print.str(addr @@mir2.str.0:ptr):void
+    var child: u16 = call @node_d0((n:u16)):u16
+    var first: u8 = 1:u8
+    while ((child:u16) != 0:u8):bool
+      if ((first:u8) == 0:u8):bool
+        call @@mir.io.print.str(addr @@mir2.str.1:ptr):void
+      (first:u8) = 0:u8
+      call @print_node((child:u16)):void
+      (child:u16) = call @node_d1((child:u16)):u16
+    call @@mir.io.print.str(addr @@mir2.str.2:ptr):void
+    return
+
+fun @main()
+  var src: ptr = addr @@mir2.str.3:ptr
+  var i: u16 = 0:u8
+  while (call @peek(((src:ptr) + (i:u16)):u16):u8 != 0:u8):bool
+    call @poke(((src_buf:u16) + (i:u16)):u16, call @peek(((src:ptr) + (i:u16)):u16):u8):void
+    (i:u16) = ((i:u16) + 1:u8):u16
+  call @poke(((src_buf:u16) + (i:u16)):u16, 0:u8):void
+  (src_len:u16) = (i:u16)
+  call @@mir.io.print.str(addr @@mir2.str.4:ptr):void
+  call @@mir.io.print.str(addr @@mir2.str.3:ptr):void
+  call @@mir.io.print.nl():void
+  var tree: u16 = call @parse_sexpr():u16
+  call @@mir.io.print.str(addr @@mir2.str.5:ptr):void
+  call @print_node((tree:u16)):void
+  call @@mir.io.print.nl():void
+  call @@mir.io.print.str(addr @@mir2.str.6:ptr):void
+  call @@mir.io.print.u8((((node_bump:u16) - (node_arena:u16)):u16 / 8:u8):u16):void
+  call @@mir.io.print.str(addr @@mir2.str.7:ptr):void
+  call @@mir.io.print.u8(((str_bump:u16) - (str_arena:u16)):u16):void
+  call @@mir.io.print.str(addr @@mir2.str.8:ptr):void
+  call @@mir.io.print.nl():void
+

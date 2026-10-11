@@ -1,0 +1,7 @@
+=== RUN   TestOriginalSelfLanzParserBaseline
+[label-audit] 1 undefined labels:
+  node_tag
+    self_lanz_baseline_test.go:400: unchangedoriginalSelfLanz30 calls 1221494T/2091B
+--- PASS: TestOriginalSelfLanzParserBaseline (0.59s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.596s

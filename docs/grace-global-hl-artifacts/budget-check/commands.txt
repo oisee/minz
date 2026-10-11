@@ -1,0 +1,4 @@
+From frozen production minzc checkout:
+GOCACHE=/tmp/minz-grace-gocache /home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/bin/go run /tmp/minz-global-hl-budget-evidence/compile.go /tmp/minz-global-hl-budget-evidence/current > /tmp/minz-global-hl-budget-evidence/compile.txt
+GOCACHE=/tmp/minz-grace-gocache /home/alice/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.8.linux-amd64/bin/go run /tmp/minz-global-hl-budget-evidence/audit.go /tmp/minz-global-hl-budget-evidence /tmp/minz-grace-pgo-resume/docs/grace-bool-extension-artifacts/budget-check > /tmp/minz-global-hl-budget-evidence/audit.txt
+The audit takes current and prior artifact roots as explicit arguments; raw/gzip inputs are supported.
