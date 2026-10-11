@@ -1,0 +1,11 @@
+{
+  "site_commit": "f774b9ec0864983b3da57f6333214b3f87d8507e",
+  "deployment_id": "appgdep_6acbfe0961c081918382055df31cd9aa",
+  "status": "succeeded",
+  "files": 9860,
+  "bytes": 251344779,
+  "archive_sha256": "48afc01a650ff1673adb316b3d39f42207cd62a81ab8d5eef6373318314b09f6",
+  "local": "/home/alice/dev/minz-artifacts/grace-reports/2026-10-11/site/current-state.html",
+  "share": "/mnt/safe/minz/grace/2026-10-11/site-and-artifacts/site/current-state.html",
+  "manifest": "/mnt/safe/minz/grace/2026-10-11/site-and-artifacts/manifest-v67.json"
+}
