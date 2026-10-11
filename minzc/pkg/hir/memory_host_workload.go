@@ -531,77 +531,134 @@ func MemoryHostReachableFunctions(m *mir2.Module, w MemoryHostWorkload) (map[str
 // Map keys are actual instruction identity, not numerical runtime addresses.
 func MemoryHostGlobalAccesses(m *mir2.Module) map[*mir2.Inst]string {
 	out := map[*mir2.Inst]string{}
-	type ptr struct {
-		name   string
-		offset int64
+	for inst, root := range MemoryHostGlobalOrigins(m) {
+		out[inst] = root.Symbol
+	}
+	return out
+}
+
+// MemoryHostGlobalOrigins uses reaching symbolic values at each actual
+// instruction. Reused allocated registers are killed by their later definition;
+// differing incoming values and block parameters never acquire global authority.
+func MemoryHostGlobalOrigins(m *mir2.Module) map[*mir2.Inst]mir2.GlobalMemoryOrigin {
+	out := map[*mir2.Inst]mir2.GlobalMemoryOrigin{}
+	if m == nil {
+		return out
+	}
+	type value struct {
+		symbol   string
+		offset   int64
+		constant bool
+		number   int64
+	}
+	type state map[mir2.Reg]value
+	clone := func(s state) state {
+		r := state{}
+		for k, v := range s {
+			r[k] = v
+		}
+		return r
+	}
+	same := func(a, b state) bool { return reflect.DeepEqual(a, b) }
+	successors := func(t mir2.Term) []string {
+		if t == nil {
+			return nil
+		}
+		return t.Successors()
 	}
 	for _, f := range m.Funcs {
-		defs := map[mir2.Reg]*mir2.Inst{}
-		ambiguous := map[mir2.Reg]bool{}
+		pred := map[string][]string{}
 		for _, b := range f.Blocks {
+			for _, next := range successors(b.Term) {
+				pred[next] = append(pred[next], b.Label)
+			}
+		}
+		incoming, outgoing := map[string]state{}, map[string]state{}
+		for _, b := range f.Blocks {
+			incoming[b.Label] = state{}
+			outgoing[b.Label] = state{}
+		}
+		transfer := func(b *mir2.Block, in state, record bool) state {
+			current := clone(in)
 			for _, p := range b.Params {
-				ambiguous[p.Dst] = true
+				delete(current, p.Dst)
 			}
-			for _, i := range b.Insts {
-				if i.Dst != mir2.NoReg {
-					if defs[i.Dst] != nil {
-						ambiguous[i.Dst] = true
+			for ii, i := range b.Insts {
+				if record && (i.Op == mir2.OpLoad || i.Op == mir2.OpStore) {
+					p, ok := current[i.Src[0]]
+					w := mir2.ByteWidth(i.Ty)
+					if ok && p.symbol != "" && p.offset >= 0 && w > 0 && w <= 2 && p.offset <= int64(memoryHostMIRGlobalSize(m, p.symbol)-w) {
+						out[i] = mir2.GlobalMemoryOrigin{Symbol: p.symbol, Offset: int(p.offset), Width: w, Write: i.Op == mir2.OpStore, Function: f.Name, Block: b.Label, Instruction: ii}
 					}
-					defs[i.Dst] = i
 				}
+				if i.Dst == mir2.NoReg {
+					continue
+				}
+				a, aok := current[i.Src[0]]
+				c, cok := current[i.Src[1]]
+				delete(current, i.Dst)
+				switch i.Op {
+				case mir2.OpAddrOf:
+					if memoryHostMIRGlobalSize(m, i.Sym) > 0 {
+						current[i.Dst] = value{symbol: i.Sym}
+					}
+				case mir2.OpConst:
+					current[i.Dst] = value{constant: true, number: i.Imm}
+				case mir2.OpMove:
+					if aok {
+						current[i.Dst] = a
+					}
+				case mir2.OpPtrBump:
+					if aok && a.symbol != "" && i.Imm >= 0 && i.Imm <= 65535 && a.offset <= 65535-i.Imm {
+						a.offset += i.Imm
+						current[i.Dst] = a
+					}
+				case mir2.OpPtrAdd:
+					if aok && a.symbol != "" && cok && c.constant && c.number >= 0 && c.number <= 65535 && a.offset <= 65535-c.number {
+						a.offset += c.number
+						current[i.Dst] = a
+					}
+				}
+			}
+			return current
+		}
+		stable := false
+		for iteration := 0; iteration < len(f.Blocks)*4+4; iteration++ {
+			changed := false
+			for bi, b := range f.Blocks {
+				in := state{}
+				ps := pred[b.Label]
+				if bi != 0 && len(ps) > 0 {
+					in = clone(outgoing[ps[0]])
+					for _, p := range ps[1:] {
+						for r, v := range in {
+							if other, ok := outgoing[p][r]; !ok || other != v {
+								delete(in, r)
+							}
+						}
+					}
+				}
+				next := transfer(b, in, false)
+				if !same(in, incoming[b.Label]) || !same(next, outgoing[b.Label]) {
+					changed = true
+					incoming[b.Label] = in
+					outgoing[b.Label] = next
+				}
+			}
+			if !changed {
+				stable = true
+				break
 			}
 		}
-		var prove func(mir2.Reg, map[mir2.Reg]bool) (ptr, bool)
-		prove = func(r mir2.Reg, active map[mir2.Reg]bool) (ptr, bool) {
-			if ambiguous[r] || active[r] {
-				return ptr{}, false
-			}
-			i := defs[r]
-			if i == nil {
-				return ptr{}, false
-			}
-			active[r] = true
-			defer delete(active, r)
-			if i.Op == mir2.OpAddrOf && memoryHostMIRGlobalSize(m, i.Sym) > 0 {
-				return ptr{i.Sym, 0}, true
-			}
-			if i.Op == mir2.OpMove {
-				return prove(i.Src[0], active)
-			}
-			if i.Op == mir2.OpPtrBump && i.Imm >= 0 && i.Imm <= 65535 {
-				p, ok := prove(i.Src[0], active)
-				if !ok || p.offset > 65535-i.Imm {
-					return ptr{}, false
-				}
-				p.offset += i.Imm
-				return p, true
-			}
-			if i.Op == mir2.OpPtrAdd {
-				c := defs[i.Src[1]]
-				if c != nil && !ambiguous[i.Src[1]] && c.Op == mir2.OpConst && c.Imm >= 0 && c.Imm <= 65535 {
-					p, ok := prove(i.Src[0], active)
-					if !ok || p.offset > 65535-c.Imm {
-						return ptr{}, false
-					}
-					p.offset += c.Imm
-					return p, true
-				}
-			}
-			return ptr{}, false
-		}
-		for _, b := range f.Blocks {
-			for _, i := range b.Insts {
-				if i.Op == mir2.OpLoad || i.Op == mir2.OpStore {
-					p, ok := prove(i.Src[0], map[mir2.Reg]bool{})
-					if ok && p.offset >= 0 && p.offset+int64(mir2.ByteWidth(i.Ty)) <= int64(memoryHostMIRGlobalSize(m, p.name)) {
-						out[i] = p.name
-					}
-				}
+		if stable {
+			for _, b := range f.Blocks {
+				transfer(b, incoming[b.Label], true)
 			}
 		}
 	}
 	return out
 }
+
 func memoryHostMIRGlobalSize(m *mir2.Module, name string) int {
 	for _, g := range m.Globals {
 		if g.Name == name {
