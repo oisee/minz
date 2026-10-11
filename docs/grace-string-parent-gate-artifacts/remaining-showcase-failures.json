@@ -1,0 +1,141 @@
+{
+  "compiler_commit": "92a7ca2d",
+  "scope": "Remaining showcase failures after module register identity repair",
+  "counts": {
+    "hir_refusal": 5,
+    "missing_import": 19,
+    "result_mismatch": 2
+  },
+  "failures": [
+    {
+      "source": "bubble_sort.pas",
+      "kind": "hir_refusal",
+      "error": "showcase_test.go:126: pipeline: statement 0: HIR INITARRAY: non-address type u8"
+    },
+    {
+      "source": "console_demo.nanz",
+      "kind": "missing_import",
+      "error": "showcase_test.go:120: frontend .nanz: line 8: import zx.console: module not found (searched , )"
+    },
+    {
+      "source": "crypto.lizp",
+      "kind": "result_mismatch",
+      "error": "showcase_test.go:126: pipeline: line 26: assert \"assert caesar_encrypt(65, 3) == 68\" [z80]: got 65, want 68"
+    },
+    {
+      "source": "dsp.lizp",
+      "kind": "result_mismatch",
+      "error": "showcase_test.go:126: pipeline: line 20: assert \"assert sawtooth(0, 10) == 0\" [mir2]: got 25, want 0"
+    },
+    {
+      "source": "hello.plm",
+      "kind": "hir_refusal",
+      "error": "showcase_test.go:126: pipeline: statement 1: HIR PRINTMSG: value type void incompatible with u8"
+    },
+    {
+      "source": "hello_world.nanz",
+      "kind": "missing_import",
+      "error": "showcase_test.go:120: frontend .nanz: line 7: import stdlib.agon.mos: module not found (searched , )"
+    },
+    {
+      "source": "hello_zx.nanz",
+      "kind": "missing_import",
+      "error": "showcase_test.go:120: frontend .nanz: line 14: import zx.console: module not found (searched , )"
+    },
+    {
+      "source": "irc_client.nanz",
+      "kind": "missing_import",
+      "error": "showcase_test.go:120: frontend .nanz: line 10: import tui.render: module not found (searched , )"
+    },
+    {
+      "source": "meta_screen.nanz",
+      "kind": "missing_import",
+      "error": "showcase_test.go:120: frontend .nanz: line 9: import tui.render: module not found (searched , )"
+    },
+    {
+      "source": "nc_agon.nanz",
+      "kind": "missing_import",
+      "error": "showcase_test.go:120: frontend .nanz: line 6: import agon.tui_render: module not found (searched , )"
+    },
+    {
+      "source": "records.pas",
+      "kind": "hir_refusal",
+      "error": "showcase_test.go:126: pipeline: HIR MANHATTAN: invalid or duplicate parameter \"A\""
+    },
+    {
+      "source": "sap_mara_cpm.nanz",
+      "kind": "missing_import",
+      "error": "showcase_test.go:120: frontend .nanz: line 6: import tui.render: module not found (searched , )"
+    },
+    {
+      "source": "screen_alv.nanz",
+      "kind": "missing_import",
+      "error": "showcase_test.go:120: frontend .nanz: line 8: import tui.render: module not found (searched , )"
+    },
+    {
+      "source": "screen_declarative.nanz",
+      "kind": "missing_import",
+      "error": "showcase_test.go:120: frontend .nanz: line 12: import tui.render: module not found (searched , )"
+    },
+    {
+      "source": "self_tokenizer.lizp",
+      "kind": "hir_refusal",
+      "error": "showcase_test.go:126: pipeline: statement 0: HIR get_pos: void binary operand or result"
+    },
+    {
+      "source": "sql_test6.nanz",
+      "kind": "missing_import",
+      "error": "showcase_test.go:120: frontend .nanz: line 1: import tui.render: module not found (searched , )"
+    },
+    {
+      "source": "sqlite_test.nanz",
+      "kind": "missing_import",
+      "error": "showcase_test.go:120: frontend .nanz: line 6: import tui.render: module not found (searched , )"
+    },
+    {
+      "source": "sum_array.plm",
+      "kind": "hir_refusal",
+      "error": "showcase_test.go:126: pipeline: statement 4: statement 0: HIR SUM_ARRAY: void binary operand or result"
+    },
+    {
+      "source": "test_irc_minimal.nanz",
+      "kind": "missing_import",
+      "error": "showcase_test.go:120: frontend .nanz: line 1: import tui.render: module not found (searched , )"
+    },
+    {
+      "source": "tetris_cpm.nanz",
+      "kind": "missing_import",
+      "error": "showcase_test.go:120: frontend .nanz: line 9: import tui.render: module not found (searched , )"
+    },
+    {
+      "source": "tui_demo.nanz",
+      "kind": "missing_import",
+      "error": "showcase_test.go:120: frontend .nanz: line 6: import agon.tui_render: module not found (searched , )"
+    },
+    {
+      "source": "tui_hello.nanz",
+      "kind": "missing_import",
+      "error": "showcase_test.go:120: frontend .nanz: line 6: import agon.tui_render: module not found (searched , )"
+    },
+    {
+      "source": "typed_print.nanz",
+      "kind": "missing_import",
+      "error": "showcase_test.go:120: frontend .nanz: line 2: import text.print: module not found (searched , )"
+    },
+    {
+      "source": "zsql.nanz",
+      "kind": "missing_import",
+      "error": "showcase_test.go:120: frontend .nanz: line 12: import sql.sqlite: module not found (searched , )"
+    },
+    {
+      "source": "zsql_zx.nanz",
+      "kind": "missing_import",
+      "error": "showcase_test.go:120: frontend .nanz: line 9: import sql.sqlite: module not found (searched , )"
+    },
+    {
+      "source": "zsql_zx_real.nanz",
+      "kind": "missing_import",
+      "error": "showcase_test.go:120: frontend .nanz: line 12: import sql.sqlite: module not found (searched , )"
+    }
+  ]
+}

@@ -7,6 +7,11 @@
   "showcase": "35 failures vs 31 baseline: 4 new invalid ASM; open regression gate",
   "files": [
     {
+      "path": "remaining-showcase-failures.json",
+      "bytes": 5237,
+      "sha256": "b98c091419a31d53f2304d131beee9e01b5651b61698166bd2e6034b9205cdff"
+    },
+    {
       "path": "string-module-identity-mir2.txt",
       "bytes": 43,
       "sha256": "6ac026449b7425558aa0d22d02bbff190b995836b16b6d3b388f0f9b1f2ac858"
