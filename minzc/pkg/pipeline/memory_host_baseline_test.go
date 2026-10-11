@@ -17,6 +17,9 @@ func TestMemoryHostFactoryOriginalParser(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
+	// This fixture binds the current known adapter binary and cycle reference.
+	// A legitimate backend change must remeasure this reference while keeping
+	// the independent parser state/event oracle; production has no fixed cost.
 	if r.Target.TotalTStates != 1221494 || r.Target.BinarySHA256 != "fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51" {
 		t.Fatal("original target drift")
 	}
