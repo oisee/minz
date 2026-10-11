@@ -1,10 +1,30 @@
 [
   {
+    "path": "docs/grace-global-word-load-review/FINAL-AUDIT.md",
+    "sha256": "e19bf3d05c3cbbdd28f56e73d21d7ab77440d2b8a71edb5b91f9f77dfa5e8902"
+  },
+  {
     "path": "docs/grace-global-word-load-review/PLAN.md",
     "sha256": "b24e2acb436112acf599faedd3ed6146d7be91ef08a4ec6a76df58f75223e595"
   },
   {
     "path": "docs/grace-global-word-load-review/REVIEW-A149.md",
     "sha256": "4833013c45551c5fb8d3c0c7ff7f772165ec0e934aec7808ca729d58ba0453dc"
+  },
+  {
+    "path": "docs/grace-global-word-load-review/audit_actual.py",
+    "sha256": "da9748f52b5c31046ef1d9865ddd33bec39958fa6e16281663e4de1724768e8f"
+  },
+  {
+    "path": "docs/grace-global-word-load-review/final-audit.json",
+    "sha256": "b56cd7993f6ad89b2b3103bdbdf1b33aeaea051c45e031b6d41a0990488fd62f"
+  },
+  {
+    "path": "docs/grace-global-word-load-review/final-audit.txt",
+    "sha256": "38877f58a9a2fb5776d4a7d69595fda9a34a983374c712b6e90c0ca9d59c03df"
+  },
+  {
+    "path": "docs/grace-global-word-load-review/model/verify_corpus.py",
+    "sha256": "133ca68609f7b7c326efbfc55c91b5fbe2269555051f6aebd5b9817a7b8165ed"
   }
 ]
