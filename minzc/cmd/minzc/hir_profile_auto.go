@@ -25,6 +25,9 @@ var hirProfileOrderedByteRWFunctions bool
 var hirProfileMixedCopyRegionSites bool
 
 func validateHIRProfileAuto(source string) error {
+	if hirProfileCompilerModesReplay != "" {
+		return validateHIRCompilerModesReplay(source)
+	}
 	if hirProfileCompilerModes {
 		return validateHIRCompilerModes(source)
 	}

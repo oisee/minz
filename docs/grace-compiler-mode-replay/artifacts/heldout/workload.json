@@ -1,0 +1,145 @@
+{
+  "exact_data_access": true,
+  "schema": "minz.profile-workload/v1",
+  "target_model": "cpm-z80-v1",
+  "max_steps": 1000000,
+  "max_memory": 65536,
+  "resources": {},
+  "globals": {
+    "packet_trace": "/P8="
+  },
+  "calls": [
+    {
+      "function": "weighted_packet",
+      "arguments": [
+        {
+          "value": 123
+        },
+        {
+          "value": 456
+        }
+      ]
+    },
+    {
+      "function": "weighted_packet",
+      "arguments": [
+        {
+          "value": 456
+        },
+        {
+          "value": 123
+        }
+      ]
+    },
+    {
+      "function": "weighted_packet",
+      "arguments": [
+        {
+          "value": 8191
+        },
+        {
+          "value": 8192
+        }
+      ]
+    },
+    {
+      "function": "weighted_packet",
+      "arguments": [
+        {
+          "value": 8192
+        },
+        {
+          "value": 8191
+        }
+      ]
+    },
+    {
+      "function": "weighted_packet",
+      "arguments": [
+        {
+          "value": 65000
+        },
+        {
+          "value": 32000
+        }
+      ]
+    },
+    {
+      "function": "weighted_packet",
+      "arguments": [
+        {
+          "value": 32000
+        },
+        {
+          "value": 65000
+        }
+      ]
+    },
+    {
+      "function": "weighted_packet",
+      "arguments": [
+        {
+          "value": 42
+        },
+        {
+          "value": 42
+        }
+      ]
+    },
+    {
+      "function": "weighted_packet",
+      "arguments": [
+        {
+          "value": 65534
+        },
+        {
+          "value": 2
+        }
+      ]
+    },
+    {
+      "function": "weighted_packet",
+      "arguments": [
+        {
+          "value": 2
+        },
+        {
+          "value": 65534
+        }
+      ]
+    },
+    {
+      "function": "weighted_packet",
+      "arguments": [
+        {
+          "value": 500
+        },
+        {
+          "value": 1500
+        }
+      ]
+    },
+    {
+      "function": "weighted_packet",
+      "arguments": [
+        {
+          "value": 1500
+        },
+        {
+          "value": 500
+        }
+      ]
+    },
+    {
+      "function": "weighted_packet",
+      "arguments": [
+        {
+          "value": 32760
+        },
+        {
+          "value": 32776
+        }
+      ]
+    }
+  ]
+}
