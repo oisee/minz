@@ -1,0 +1,271 @@
+{
+  "source_commit": "c3864cf2e3f2ab379e92c98c001ab4341586c5cd",
+  "files": [
+    {
+      "path": "minzc/pkg/hir/exhaustive_judge_test.go",
+      "bytes": 19633,
+      "sha256": "1d081f0a981186ea72b7b97aea9bcbc501941dfadf9999467740410101d901ce"
+    },
+    {
+      "path": "minzc/pkg/hir/lir_allowlist_judge_test.go",
+      "bytes": 9631,
+      "sha256": "ab89dcf6ed91576c02034f5bcf871254fb3d5b093d607afe290a12812c54121b"
+    },
+    {
+      "path": "minzc/pkg/hir/lir_research_judge_test.go",
+      "bytes": 5955,
+      "sha256": "6f78ad3d20fae6d9a58cc6ba6111e3a7685fc230e290dc72ad86187e0617e925"
+    },
+    {
+      "path": "minzc/pkg/lir/allowlist_test.go",
+      "bytes": 5316,
+      "sha256": "b4a94fb14c7811f5f42610438a9a3de68d68e6cbb711543b4fc021d934e3d87a"
+    },
+    {
+      "path": "minzc/pkg/lir/bridge.go",
+      "bytes": 39093,
+      "sha256": "b24ae108d17c02d3f56dde301c61e445bc2a09b9aa96095257a95ecae9a21044"
+    },
+    {
+      "path": "minzc/pkg/lir/bridge_egraph.go",
+      "bytes": 11324,
+      "sha256": "7a8ee4cc4f0e97fad0d47acdc5297d00a9d58c33e278751cfa409b826a9182c1"
+    },
+    {
+      "path": "minzc/pkg/lir/bridge_honesty_test.go",
+      "bytes": 4776,
+      "sha256": "15d4e269fbe453cc47e7534cb7bd939f910a96c13464ab9f70b08bbb3335b77c"
+    },
+    {
+      "path": "minzc/pkg/lir/bridge_test.go",
+      "bytes": 3656,
+      "sha256": "4cfe28605d8ae555342fa325967bb27d334dd7ff44669f58f8c025c37cb1f424"
+    },
+    {
+      "path": "minzc/pkg/lir/cfgengine.go",
+      "bytes": 12827,
+      "sha256": "98556d41f6bc5ecad4366d7471b5093b97760b9f83f1ecbc13b3452879dd733f"
+    },
+    {
+      "path": "minzc/pkg/lir/cfgrules.go",
+      "bytes": 9294,
+      "sha256": "ae5f399f822f8b23bbc5f850d8926435853ac1368d948570781b7ce5de9b34ea"
+    },
+    {
+      "path": "minzc/pkg/lir/cfgrules_test.go",
+      "bytes": 10751,
+      "sha256": "5764c3614eaa940e188f7624d52b097f61f54c8afe2829047f1c1f7cf938a8ce"
+    },
+    {
+      "path": "minzc/pkg/lir/combine.go",
+      "bytes": 10107,
+      "sha256": "20dd2a4a23e1e07e0924c4f4af86ddb0e9531b19af9acd1c8942b39a2d7b9a3f"
+    },
+    {
+      "path": "minzc/pkg/lir/combine_test.go",
+      "bytes": 7506,
+      "sha256": "e10eb5a94a6bbd2a59dd9919d8a2b5bae236e8177aada3c40863a69c179ca5ab"
+    },
+    {
+      "path": "minzc/pkg/lir/convergence_test.go",
+      "bytes": 5728,
+      "sha256": "038c7aa55c7c01f0d1fecb539d842759c8df4939a73819be3b2191c686cf2299"
+    },
+    {
+      "path": "minzc/pkg/lir/e2e_test.go",
+      "bytes": 4458,
+      "sha256": "8509aee53a485d2484488130e48f4b7be27ea2edd20359bba6286bdf27aa3fbe"
+    },
+    {
+      "path": "minzc/pkg/lir/egraph.go",
+      "bytes": 5162,
+      "sha256": "42dd4ab0347dacefba853f55f422f59fe43b631a99f9fa496b278bfaf7f54628"
+    },
+    {
+      "path": "minzc/pkg/lir/egraph_test.go",
+      "bytes": 2128,
+      "sha256": "8e6130e1cb8100393e5531bab9144eb7716fc528dc278ecaa199f4174697b353"
+    },
+    {
+      "path": "minzc/pkg/lir/interblock_test.go",
+      "bytes": 14935,
+      "sha256": "b6c59ead900217a135fb25727ef2814476ceed22b357fe3fbb72a0867d6977e8"
+    },
+    {
+      "path": "minzc/pkg/lir/isel.go",
+      "bytes": 13826,
+      "sha256": "b1415c740aa1c62ab5ca54fb0ce19eada550b1009f5db81e812fa624f709b643"
+    },
+    {
+      "path": "minzc/pkg/lir/isle/isle.go",
+      "bytes": 9926,
+      "sha256": "daba9ce927282cdf30d29dbe9f6cccd93d627a9061b0021ed7eb28dd0877078d"
+    },
+    {
+      "path": "minzc/pkg/lir/isle/isle_test.go",
+      "bytes": 6897,
+      "sha256": "53e9444269715781c810508c64c2dd611f42ad368a143e042a6f8709d02764d9"
+    },
+    {
+      "path": "minzc/pkg/lir/isle/sexpr.go",
+      "bytes": 1595,
+      "sha256": "5e64347c711e8905ef3fa2eed78b8171d475791423b2f2d997fc7870da997fc4"
+    },
+    {
+      "path": "minzc/pkg/lir/lanz_rules_test.go",
+      "bytes": 2605,
+      "sha256": "a2431c165b1909bee617a2207384302d0ee9c2f90c741ce6c69e4e5d3f271feb"
+    },
+    {
+      "path": "minzc/pkg/lir/lir.go",
+      "bytes": 12202,
+      "sha256": "1344a39e71dc7bbd21d795a40ad946ce4fca5423f4ab511ff4e64094be567883"
+    },
+    {
+      "path": "minzc/pkg/lir/loop_test.go",
+      "bytes": 10222,
+      "sha256": "ebac51a836542223b528854ec13ee96b2b2815adecc7995e056225dc7051d84c"
+    },
+    {
+      "path": "minzc/pkg/lir/looprot.go",
+      "bytes": 2191,
+      "sha256": "e3e95a5745c091cf71663413f66c92880db4ef12dd43b381db151795d5bf6f50"
+    },
+    {
+      "path": "minzc/pkg/lir/looprot_test.go",
+      "bytes": 4222,
+      "sha256": "57a4bb6dcf18b390603572afa4f827cebb01f5ae1ca08f6fb910a2964e972fd3"
+    },
+    {
+      "path": "minzc/pkg/lir/machines.go",
+      "bytes": 17512,
+      "sha256": "0f6cbb948bd1cae9307bfa313f223bc043327a509561ffea9be4efd6a1d7ffb7"
+    },
+    {
+      "path": "minzc/pkg/lir/outparam_promote.go",
+      "bytes": 3504,
+      "sha256": "898cf7e9c1509408d824354d602a9bf73f879f7e4fa4b300c2761d0884e7935a"
+    },
+    {
+      "path": "minzc/pkg/lir/pipeline.go",
+      "bytes": 54063,
+      "sha256": "08f19e70c8f1fa6e14096fba265fdf22dcf9e487e4a97b8e551e4b7ded7082d9"
+    },
+    {
+      "path": "minzc/pkg/lir/pipeline_test.go",
+      "bytes": 5504,
+      "sha256": "3b86b55c485ac1d80d3c26675eec820305cd7f85abb4b4168bc00d96b44eb397"
+    },
+    {
+      "path": "minzc/pkg/lir/rules.go",
+      "bytes": 11425,
+      "sha256": "5c30f5a0197912e6150f1bcfbdf6f21d99cae2773947eaf4c2fe73050f357f3b"
+    },
+    {
+      "path": "minzc/pkg/lir/rules_test.go",
+      "bytes": 2441,
+      "sha256": "46c33a4a1d867fcec8d09cd42aed1fe0cfe297338fdf590a4f76444769928b69"
+    },
+    {
+      "path": "minzc/pkg/lir/saturate.go",
+      "bytes": 5071,
+      "sha256": "551721c90d4e00c835d3fa543b7ca05636c2ff5f7eae7cc5830422ca9ed86218"
+    },
+    {
+      "path": "minzc/pkg/lir/saturate_test.go",
+      "bytes": 2791,
+      "sha256": "66969d082f4c11cb4200e7840199edc927f06ca1aa5cf96717b233c0ef485480"
+    },
+    {
+      "path": "minzc/pkg/lir/spill_reload.go",
+      "bytes": 5245,
+      "sha256": "344011c3b2980d576f7ffc6912270f5f4841e44e9c1e6d640fa625daed5bc2bb"
+    },
+    {
+      "path": "minzc/pkg/lir/vm.go",
+      "bytes": 6981,
+      "sha256": "45ec4c378d3deebc9d7c6d7f900cd371e3219ca9e0f39ea5200521ebea9a752b"
+    },
+    {
+      "path": "minzc/pkg/lir/wfc.go",
+      "bytes": 30587,
+      "sha256": "0e8f55d4ced694ab37fba4440375dc3c555e9bba528262bc4bcf7f2ce2bf6ff1"
+    },
+    {
+      "path": "minzc/pkg/lir/wfc_interblock.go",
+      "bytes": 17103,
+      "sha256": "bf80cf01bb1e8e89632829f8bcd8d4ccfead0220a099200f881e2f67f6b629d9"
+    },
+    {
+      "path": "minzc/pkg/lir/wfc_test.go",
+      "bytes": 3540,
+      "sha256": "eb8d39774693df9b8e55bb681e3611797813f4ca46ec2658f9f44dd13829a656"
+    },
+    {
+      "path": "minzc/pkg/lir/z3_e2e_test.go",
+      "bytes": 6142,
+      "sha256": "b832e24d243f00a4e0ca48a3c0ba2b2e412c4ec3730fcbcfd7a1906667dc773b"
+    },
+    {
+      "path": "minzc/pkg/lir/z3_joint.go",
+      "bytes": 6884,
+      "sha256": "a766663b47bd417eecc97c6d9681b1c09cf703167cd07eae4101717f067e8b1d"
+    },
+    {
+      "path": "minzc/pkg/lir/z3path_test.go",
+      "bytes": 893,
+      "sha256": "f9570164292e94f46a8a85271d5f8a0fde28dba4a35ee92376500cbeab83d7f2"
+    },
+    {
+      "path": "minzc/pkg/lir/z3solve.go",
+      "bytes": 17115,
+      "sha256": "d802455a61dafb449aca2a3f43938de29d0c9f868d2f7a640e0e6311bf083a06"
+    },
+    {
+      "path": "minzc/pkg/lir/z3solve_test.go",
+      "bytes": 8965,
+      "sha256": "1bf72c6cee8c0cf15c23cca615ddec0fd6e9b85eab41541d11c031685ae0487a"
+    },
+    {
+      "path": "minzc/pkg/lir/z3validate.go",
+      "bytes": 2459,
+      "sha256": "1f8f24482bf5357ddfdf51d5cbf2f2ba296ba80f7c43dfb66f55e42cfb82e834"
+    },
+    {
+      "path": "minzc/pkg/lir/z80.go",
+      "bytes": 29252,
+      "sha256": "7e0d81b683cc66a9b9d22f1870e98d8089016b13887fd3dd33e7605530d2e607"
+    },
+    {
+      "path": "minzc/pkg/lir/z80peephole.go",
+      "bytes": 7358,
+      "sha256": "d8af14766253906791a1aaa1d02f81994bee461d89822e3a15e19cb67c6dcb7f"
+    },
+    {
+      "path": "minzc/pkg/lir/z80validate.go",
+      "bytes": 620,
+      "sha256": "9c5138cb955e745147f759d0f9ff12c22fa40ceceb58fdc48c94684584315475"
+    },
+    {
+      "path": "minzc/pkg/lir/z80validate_inst.go",
+      "bytes": 1508,
+      "sha256": "4b7bfb9d8eecf5a8641e73a674331b3fc2a3a34c843b4faa2f654142927a6c85"
+    },
+    {
+      "path": "minzc/pkg/pipeline/lir_test.go",
+      "bytes": 7509,
+      "sha256": "962c246419cb255f345fba99e74b246091389bc1833333d2aebc37bfe16498b1"
+    },
+    {
+      "path": "minzc/pkg/z80spec/indices.go",
+      "bytes": 1742,
+      "sha256": "dee2abe39d8616392a8a8f13ddcca661a7cb768847bb53d4b519798bdd65b827"
+    },
+    {
+      "path": "minzc/pkg/z80spec/spec_test.go",
+      "bytes": 13833,
+      "sha256": "7cb397325fc60d726593781bfd3f08e3e0ccac655bdf42b0077139d4e1d9f616"
+    }
+  ],
+  "archive_sha256": "7c68901fcbb4e319b1ed4380e8a1e73fa2270e8e72180bc8778d8330c73adfc4"
+}

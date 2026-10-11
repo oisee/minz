@@ -3,7 +3,7 @@
 // Runs BEFORE Z3 solver to reduce the VIROp count via term rewriting.
 // Each rule matches a tree of VIR operations and rewrites to a combined op.
 //
-// Rules are written in ISLE S-expression syntax (same as pkg/lir/combine.go).
+// Rules are written in ISLE S-expression syntax (legacy declarations retained in pkg/rewrite/isle/testdata).
 // This is a "pre-solver" optimization — fewer VIROps = simpler Z3 problem.
 //
 // Pipeline:
@@ -70,7 +70,7 @@ var ISLECombineRules = `
 // ISLECombine runs ISLE combining rules on VIROps.
 // Currently a no-op placeholder — the constant folding is already in
 // bridge.go (foldConstIntoALU). Full ISLE engine integration TODO
-// (requires porting pkg/lir/isle/ to work with VIROp types).
+// (a shared matcher exists in pkg/rewrite/isle; VIR uses the Go passes below).
 //
 // The rules above are kept for documentation and future use.
 func ISLECombine(ops []VIROp) []VIROp {

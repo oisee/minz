@@ -2,7 +2,6 @@ package hir_test
 
 import (
 	"fmt"
-	"os"
 	"runtime"
 	"strings"
 	"sync"
@@ -10,7 +9,6 @@ import (
 
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/hir"
-	"github.com/minz/minzc/pkg/lir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/pipeline"
 	"github.com/minz/minzc/pkg/z80asm"
@@ -188,41 +186,6 @@ func TestExhaustiveJudgeGCD(t *testing.T) {
 				t.Fatalf("production Z80 gcd: %d/%d mismatches:%s\n%s", len(bad), checked, describeMismatches(bad), fixture.asm)
 			}
 		})
-	}
-}
-
-// TestExhaustiveJudgeGCDMultiBlockKnownRed keeps the disabled backend measurable.
-// The default skip records the sweep measured on 2026-10-02.
-// MINZ_RUN_KNOWN_RED=1 makes mismatches fail for work on the multi-block backend.
-func TestExhaustiveJudgeGCDMultiBlockKnownRed(t *testing.T) {
-	// Documented measurements from 2026-10-02; opt in to remeasure.
-	const measuredMismatches, measuredInputs, measuredTimeouts = 64_952, 65_025, 763
-	if os.Getenv("MINZ_RUN_KNOWN_RED") != "1" {
-		t.Skipf("2026-10-02: multi-block LIR gcd: %d/%d mismatches, %d timeouts; set MINZ_RUN_KNOWN_RED=1 to remeasure", measuredMismatches, measuredInputs, measuredTimeouts)
-	}
-	t.Parallel()
-	fixture := compileProductionHIRFixture(t, &hir.Module{Name: "judge_gcd", Funcs: []*hir.Func{gcdHIR()}})
-	// Use the production contract and allocation for the ABI bootstrap; the
-	// backend must honor those same inputs and return convention. The research
-	// hook bypasses the production allowlist to measure raw native LIR.
-	var err error
-	fixture.asm, err = lir.LIRCodegenMultiBlockForResearch(fixture.module.FuncByName("gcd"), fixture.module)
-	if err != nil {
-		t.Fatal(err)
-	}
-	checked, bad := newU8Judge(t, fixture, "gcd", false).sweep(positiveArgs, gcdModel)
-	if checked != 255*255 {
-		t.Fatalf("judge checked %d inputs, want %d", checked, 255*255)
-	}
-	timeouts := 0
-	for _, mismatch := range bad {
-		if mismatch.err != nil && strings.Contains(mismatch.err.Error(), "no HALT") {
-			timeouts++
-		}
-	}
-	if len(bad) > 0 {
-		message := fmt.Sprintf("multi-block LIR gcd: %d/%d mismatches, %d timeouts:%s", len(bad), checked, timeouts, describeMismatches(bad))
-		t.Fatal(message)
 	}
 }
 
