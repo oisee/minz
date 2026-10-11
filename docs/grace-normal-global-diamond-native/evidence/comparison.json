@@ -1,0 +1,18 @@
+[
+  {
+    "variant": "original",
+    "T": 1135370,
+    "bytes": 2000,
+    "steps": 109829,
+    "binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941",
+    "compiler_id": "executable-sha256:eca67eca6dd0a4c09c7ff3b5d2317f8ec08e9938b0a8577fd5f0768086fc0539"
+  },
+  {
+    "variant": "reuse",
+    "T": 1137339,
+    "bytes": 1998,
+    "steps": 111323,
+    "binary_sha256": "7ad97647523b39d42188c7cfb806c2fe2ac6a8639e142ba59b2e665d510ddcf4",
+    "compiler_id": "executable-sha256:eca67eca6dd0a4c09c7ff3b5d2317f8ec08e9938b0a8577fd5f0768086fc0539"
+  }
+]

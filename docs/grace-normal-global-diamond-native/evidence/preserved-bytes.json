@@ -1,0 +1,74 @@
+[
+  {
+    "source": "actual/original/allocation.json",
+    "stored": "actual/original/allocation.json.gz",
+    "sha256": "9af8fdfdeb8d341f6f28097323c96a5b59d1fee911045b363782e8e64e0d8976",
+    "bytes": 17418
+  },
+  {
+    "source": "actual/original/factory-baseline.json",
+    "stored": "actual/original/factory-baseline.json.gz",
+    "sha256": "cd7adaa4a728bdea985930c49ca37584edb1b1bd36909b24560c06f059a94b56",
+    "bytes": 2208565
+  },
+  {
+    "source": "actual/original/final.mir2",
+    "stored": "actual/original/final.mir2.gz",
+    "sha256": "7c6d066dba853d5612611b53a442e5a355d1480e31d0c0225feff75525fbd913",
+    "bytes": 25214
+  },
+  {
+    "source": "actual/original/mir-experiment.json",
+    "stored": "actual/original/mir-experiment.json.gz",
+    "sha256": "365c845a39af8420997baf5465d64c8023f5bfa9b688315a5354c597bf52f7f1",
+    "bytes": 54075
+  },
+  {
+    "source": "actual/original/target.a80",
+    "stored": "actual/original/target.a80.gz",
+    "sha256": "50adcc358a40137344cfeed0e6e6130864823a210037f7982187c2bc69fae74f",
+    "bytes": 29352
+  },
+  {
+    "source": "actual/reuse/allocation.json",
+    "stored": "actual/reuse/allocation.json.gz",
+    "sha256": "ceccb4455f52036e6684a209aa22221dc8362d6f11b743b941d4f1035b0376ee",
+    "bytes": 17378
+  },
+  {
+    "source": "actual/reuse/factory-baseline.json",
+    "stored": "actual/reuse/factory-baseline.json.gz",
+    "sha256": "a24ad9f6a6fd5840aef31421d19114c71177f1ede83e13c657117844eedb1f9c",
+    "bytes": 2207814
+  },
+  {
+    "source": "actual/reuse/final.mir2",
+    "stored": "actual/reuse/final.mir2.gz",
+    "sha256": "e9285d685b8b897e743f7e144684516beb6f78595bcb55dd929607f26c00c2b1",
+    "bytes": 25172
+  },
+  {
+    "source": "actual/reuse/mir-experiment.json",
+    "stored": "actual/reuse/mir-experiment.json.gz",
+    "sha256": "817c1622e29a48c9181cb040770a1357fd64ae6fef038cad2b08405142f1552f",
+    "bytes": 54075
+  },
+  {
+    "source": "actual/reuse/target.a80",
+    "stored": "actual/reuse/target.a80.gz",
+    "sha256": "93e4075714b0554b108c87c41b7be1c870992a8e190e89875a1b67a9b7d392f3",
+    "bytes": 29283
+  },
+  {
+    "source": "static/after.mir2",
+    "stored": "static/after.mir2.gz",
+    "sha256": "079d9478b6867b91b5e8c43155cab938c0d2dda1f50ea3da38899a8bbd7da77f",
+    "bytes": 26115
+  },
+  {
+    "source": "static/before.mir2",
+    "stored": "static/before.mir2.gz",
+    "sha256": "2ae4c13b0993140f78bd49cbf5d197c30b5746dd15c40d3d6c66fcb7e4632fed",
+    "bytes": 26115
+  }
+]
