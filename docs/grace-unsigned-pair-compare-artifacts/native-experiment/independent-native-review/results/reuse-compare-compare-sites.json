@@ -1,0 +1,24 @@
+[
+  {
+    "line": 285,
+    "sequence": [
+      "    LD A, D",
+      "    CP H",
+      "    JR NZ, .ucmp_pair_done_0",
+      "    LD A, E",
+      "    CP L",
+      ".ucmp_pair_done_0:"
+    ]
+  },
+  {
+    "line": 460,
+    "sequence": [
+      "    LD A, H",
+      "    CP B",
+      "    JR NZ, .ucmp_pair_done_0",
+      "    LD A, L",
+      "    CP C",
+      ".ucmp_pair_done_0:"
+    ]
+  }
+]

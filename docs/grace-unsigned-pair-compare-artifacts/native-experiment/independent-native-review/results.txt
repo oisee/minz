@@ -1,0 +1,4 @@
+PASS savednative {'name': 'original', 'T': 1135370, 'bytes': 2000, 'steps': 109829, 'binary_sha256': '1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941', 'selected_compare_sites': 0, 'native_records': 73, 'frames': 0}
+PASS savednative {'name': 'compare', 'T': 1132449, 'bytes': 2001, 'steps': 109966, 'binary_sha256': 'ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd', 'selected_compare_sites': 1, 'native_records': 73, 'frames': 0}
+PASS savednative {'name': 'reuse-compare', 'T': 1096139, 'bytes': 1998, 'steps': 108955, 'binary_sha256': '4815da6c8331fc8a1f7f41233d8ecc5c1d760bce93bf5ec27ca74670706f42d8', 'selected_compare_sites': 2, 'native_records': 72, 'frames': 0}
+PASS exact preallocation delta: compare none; reuse-compare single cur pos load→Move. Costs are saved actual model totals, no guessed PC attribution.

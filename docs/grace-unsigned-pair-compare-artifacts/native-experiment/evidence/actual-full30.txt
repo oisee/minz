@@ -1,0 +1,13 @@
+=== RUN   TestUnsignedPairActualNative30
+[label-audit] 1 undefined labels:
+  node_tag
+    unsigned_pair_compare_diagnostic_test.go:244: original actual1135370T/2000B steps109829 BIN1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941 contextexecutable-sha256:dfdf728ead9492e6a01b6280faca85ec25ef46813640e0ca79e562ee56cbae1c
+[label-audit] 1 undefined labels:
+  node_tag
+    unsigned_pair_compare_diagnostic_test.go:244: compare actual1132449T/2001B steps109966 BINef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd contextexecutable-sha256:dfdf728ead9492e6a01b6280faca85ec25ef46813640e0ca79e562ee56cbae1c
+[label-audit] 1 undefined labels:
+  node_tag
+    unsigned_pair_compare_diagnostic_test.go:244: reuse-compare actual1096139T/1998B steps108955 BIN4815da6c8331fc8a1f7f41233d8ecc5c1d760bce93bf5ec27ca74670706f42d8 contextexecutable-sha256:dfdf728ead9492e6a01b6280faca85ec25ef46813640e0ca79e562ee56cbae1c
+--- PASS: TestUnsignedPairActualNative30 (3.58s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	3.593s

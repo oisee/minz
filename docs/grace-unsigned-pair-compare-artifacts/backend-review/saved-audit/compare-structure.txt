@@ -1,0 +1,1 @@
+PASS compare-only optimized MIR/allocation/frame hashes exact; all73 operation descriptors exact. Opcode address operands relocate with globals by+1 byte, checked against eachown BIN and addresses, not falselyasserted identical.

@@ -1,0 +1,12 @@
+{
+  "schema": "minz.unsigned-byte-lex-boundary-model/v1",
+  "cases": 786513,
+  "high_different_paths": 522240,
+  "high_equal_paths": 264192,
+  "predicate": "C=Ult(lhs,rhs); NC=Uge(lhs,rhs); Z=word equality",
+  "sequence_t_states": {
+    "high_different": 20,
+    "high_equal": 23
+  },
+  "scope": "independent CP/branch arithmetic only, not native allocation/cache proof or full-program profit"
+}

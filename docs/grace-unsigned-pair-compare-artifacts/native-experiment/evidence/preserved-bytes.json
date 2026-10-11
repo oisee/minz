@@ -1,0 +1,134 @@
+[
+  {
+    "source": "actual/compare/allocation.json",
+    "stored": "actual/compare/allocation.json.gz",
+    "sha256": "9af8fdfdeb8d341f6f28097323c96a5b59d1fee911045b363782e8e64e0d8976",
+    "bytes": 17418
+  },
+  {
+    "source": "actual/compare/factory-baseline.json",
+    "stored": "actual/compare/factory-baseline.json.gz",
+    "sha256": "4739f8c98cc3ba9d0ca7fb245fa87f9eaacf0b7cb9b0835b5647214f3a0c7d51",
+    "bytes": 2208610
+  },
+  {
+    "source": "actual/compare/final.mir2",
+    "stored": "actual/compare/final.mir2.gz",
+    "sha256": "7c6d066dba853d5612611b53a442e5a355d1480e31d0c0225feff75525fbd913",
+    "bytes": 25214
+  },
+  {
+    "source": "actual/compare/mir-experiment.json",
+    "stored": "actual/compare/mir-experiment.json.gz",
+    "sha256": "643b688e29376d78e4bfa2637b190cea0d582dd35eb1c65e793eba27d8e01001",
+    "bytes": 54130
+  },
+  {
+    "source": "actual/compare/target.a80",
+    "stored": "actual/compare/target.a80.gz",
+    "sha256": "6f48757936c6ac0dd7404cfde78aad42c029ee4de7c4694d1bc92262facff081",
+    "bytes": 29395
+  },
+  {
+    "source": "actual/original/allocation.json",
+    "stored": "actual/original/allocation.json.gz",
+    "sha256": "9af8fdfdeb8d341f6f28097323c96a5b59d1fee911045b363782e8e64e0d8976",
+    "bytes": 17418
+  },
+  {
+    "source": "actual/original/factory-baseline.json",
+    "stored": "actual/original/factory-baseline.json.gz",
+    "sha256": "1629f370aa05c71dd9b1efef437ae262dc75d3eed5a1dd3e2f67a9eb505590e3",
+    "bytes": 2208565
+  },
+  {
+    "source": "actual/original/final.mir2",
+    "stored": "actual/original/final.mir2.gz",
+    "sha256": "7c6d066dba853d5612611b53a442e5a355d1480e31d0c0225feff75525fbd913",
+    "bytes": 25214
+  },
+  {
+    "source": "actual/original/mir-experiment.json",
+    "stored": "actual/original/mir-experiment.json.gz",
+    "sha256": "d6726c01549bedb27482d39deebfab46ad3bffabd85b37c2220c12eeb66c65e1",
+    "bytes": 54131
+  },
+  {
+    "source": "actual/original/target.a80",
+    "stored": "actual/original/target.a80.gz",
+    "sha256": "50adcc358a40137344cfeed0e6e6130864823a210037f7982187c2bc69fae74f",
+    "bytes": 29352
+  },
+  {
+    "source": "actual/reuse-compare/allocation.json",
+    "stored": "actual/reuse-compare/allocation.json.gz",
+    "sha256": "ceccb4455f52036e6684a209aa22221dc8362d6f11b743b941d4f1035b0376ee",
+    "bytes": 17378
+  },
+  {
+    "source": "actual/reuse-compare/factory-baseline.json",
+    "stored": "actual/reuse-compare/factory-baseline.json.gz",
+    "sha256": "bbb8f06c3f961b85ceebb4012967ffd7ea027cb1a65046a4af1135e02bfb7e6b",
+    "bytes": 2207874
+  },
+  {
+    "source": "actual/reuse-compare/final.mir2",
+    "stored": "actual/reuse-compare/final.mir2.gz",
+    "sha256": "e9285d685b8b897e743f7e144684516beb6f78595bcb55dd929607f26c00c2b1",
+    "bytes": 25172
+  },
+  {
+    "source": "actual/reuse-compare/mir-experiment.json",
+    "stored": "actual/reuse-compare/mir-experiment.json.gz",
+    "sha256": "724ae1b3631a15800a0885faa1a615331c3e535bd1f20f64866e9e8d8d410f47",
+    "bytes": 54129
+  },
+  {
+    "source": "actual/reuse-compare/target.a80",
+    "stored": "actual/reuse-compare/target.a80.gz",
+    "sha256": "89f839c5a3ae9bc24ba4aa980a19a62858262ca020c274bb56fd1d80dc385573",
+    "bytes": 29341
+  },
+  {
+    "source": "history-stale-base/actual/original/allocation.json",
+    "stored": "history-stale-base/actual/original/allocation.json.gz",
+    "sha256": "9af8fdfdeb8d341f6f28097323c96a5b59d1fee911045b363782e8e64e0d8976",
+    "bytes": 17418
+  },
+  {
+    "source": "history-stale-base/actual/original/factory-baseline.json",
+    "stored": "history-stale-base/actual/original/factory-baseline.json.gz",
+    "sha256": "0267a6fa9dc5dde0f48bee083e5438ae15ea027879b48cb57cef05c33fef5f82",
+    "bytes": 2219878
+  },
+  {
+    "source": "history-stale-base/actual/original/final.mir2",
+    "stored": "history-stale-base/actual/original/final.mir2.gz",
+    "sha256": "7c6d066dba853d5612611b53a442e5a355d1480e31d0c0225feff75525fbd913",
+    "bytes": 25214
+  },
+  {
+    "source": "history-stale-base/actual/original/mir-experiment.json",
+    "stored": "history-stale-base/actual/original/mir-experiment.json.gz",
+    "sha256": "d6726c01549bedb27482d39deebfab46ad3bffabd85b37c2220c12eeb66c65e1",
+    "bytes": 54131
+  },
+  {
+    "source": "history-stale-base/actual/original/target.a80",
+    "stored": "history-stale-base/actual/original/target.a80.gz",
+    "sha256": "461d1ff70cd7bf140a5bea77df7b2948a1a069af35f2cd08b6fbffcaa8382414",
+    "bytes": 31887
+  },
+  {
+    "source": "history-stale-base/assembly.diff",
+    "stored": "history-stale-base/assembly.diff.gz",
+    "sha256": "11465eb378aba41db1e01e19802813677248bfa726711e688355e526a5438ac6",
+    "bytes": 8641
+  },
+  {
+    "source": "reuse-compare-assembly.diff",
+    "stored": "reuse-compare-assembly.diff.gz",
+    "sha256": "3384cadf2a554d068245759f7bdfac7e2165961fdd22a31b892ac654787cbdeb",
+    "bytes": 13284
+  }
+]

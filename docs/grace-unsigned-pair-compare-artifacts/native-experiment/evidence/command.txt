@@ -1,0 +1,2 @@
+cwd: /home/alice/dev/minz-artifacts/grace-workspaces/unsigned-pair-compare-native/minzc
+MINZ_UNSIGNED_PAIR_NATIVE_ARTIFACTS=/home/alice/dev/minz-artifacts/grace-checkpoints/unsigned-pair-compare-native-evidence/actual MINZ_UNSIGNED_PAIR_REFERENCE=/home/alice/dev/minz-artifacts/grace-checkpoints/global-word-load-cli-evidence/speed/original/factory-baseline.json go test ./pkg/pipeline -run ^TestUnsignedPairActualNative30$ -count=1 -v

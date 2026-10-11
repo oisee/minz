@@ -1,0 +1,56 @@
+{
+  "schema": "minz.unsigned-pair-compare-independent-native-audit/v1",
+  "candidates": {
+    "original": {
+      "calls": 30,
+      "ordered_events": 3017,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "1f0f5959668544e6d0cf1bdae7462b61f3927febcef6f3e9d74dce69cad74941",
+      "t_states": 1135370,
+      "bytes": 2000,
+      "str_bump": 37163,
+      "node_bump": 32808,
+      "steps": 109829,
+      "compiler_id": "executable-sha256:dfdf728ead9492e6a01b6280faca85ec25ef46813640e0ca79e562ee56cbae1c",
+      "final_mir_sha256": "7c6d066dba853d5612611b53a442e5a355d1480e31d0c0225feff75525fbd913",
+      "allocation_sha256": "9af8fdfdeb8d341f6f28097323c96a5b59d1fee911045b363782e8e64e0d8976"
+    },
+    "compare": {
+      "calls": 30,
+      "ordered_events": 3017,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "ef1278f9bcc0a62d86227e6e8267c995a6b57a3a60d9726f11dd951f901a3ebd",
+      "t_states": 1132449,
+      "bytes": 2001,
+      "str_bump": 37163,
+      "node_bump": 32808,
+      "steps": 109966,
+      "compiler_id": "executable-sha256:dfdf728ead9492e6a01b6280faca85ec25ef46813640e0ca79e562ee56cbae1c",
+      "final_mir_sha256": "7c6d066dba853d5612611b53a442e5a355d1480e31d0c0225feff75525fbd913",
+      "allocation_sha256": "9af8fdfdeb8d341f6f28097323c96a5b59d1fee911045b363782e8e64e0d8976",
+      "delta_t_states": -2921,
+      "delta_bytes": 1,
+      "delta_steps": 137
+    },
+    "reuse-compare": {
+      "calls": 30,
+      "ordered_events": 3017,
+      "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+      "binary_sha256": "4815da6c8331fc8a1f7f41233d8ecc5c1d760bce93bf5ec27ca74670706f42d8",
+      "t_states": 1096139,
+      "bytes": 1998,
+      "str_bump": 37163,
+      "node_bump": 32808,
+      "steps": 108955,
+      "compiler_id": "executable-sha256:dfdf728ead9492e6a01b6280faca85ec25ef46813640e0ca79e562ee56cbae1c",
+      "final_mir_sha256": "e9285d685b8b897e743f7e144684516beb6f78595bcb55dd929607f26c00c2b1",
+      "allocation_sha256": "ceccb4455f52036e6684a209aa22221dc8362d6f11b743b941d4f1035b0376ee",
+      "delta_t_states": -39231,
+      "delta_bytes": -2,
+      "delta_steps": -874
+    }
+  },
+  "scope": "saved90 source/native observations; defaultoff private compare; no CPU replay, no new PC or loop observations",
+  "source_unchanged": true,
+  "reuse_raw_mir_edits": 1
+}

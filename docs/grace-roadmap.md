@@ -200,3 +200,7 @@ pointer-walk, оставляя invariant-base. На sum_array выбирает 3
 [Обновлённый корпус после word-load backend](grace-global-word-load-corpus.md): same4inputs50calls/newdba,32actualcandidate8freshprofiles8decisions независимыеаудитыPASS. Всеspeed3→2 иsize2; arenaadds560/272/1651/48T, no universalwinner. Artifact-only source/runtime unchanged. Далее isolated prefix-bounded normalglobal diamond loadforwarding, не genericpurity relaxation.
 
 [Отрицательный diamond forwarding](grace-normal-global-diamond.md): exactoneposload→Move sourceMIR, rawbounds/barrier/refusals и60savedsource/nativeobservationsPASS, но whole30reuse +1969T/-2B. LiveDE acrosscomparison addsPUSH/POP21T; no production/defaultmerge or newPCclaim. Пакет сохранён; далее readonly nondestructiveu16compare сwholecaller measurement после legalityreview.
+
+## Private unsigned pair comparison experiment (2026-10-11)
+
+[Изолированный compare + reuse](grace-unsigned-pair-compare.md): full30 actual PASS, 90 source/native observations match, original current dba exact. Compare1132449T2001B (−2921T,+1B); reuse+compare1096139T1998B (−39231T,−2B). Production unchanged; next broaden liveness/fallback/consumer checks and review speed/size policy before generic backend integration.

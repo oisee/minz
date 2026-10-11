@@ -1,0 +1,551 @@
+--- original
++++ reuse-compare
+@@ -10,7 +10,7 @@
+     PUSH HL
+     POP BC
+     POP HL
+-    ; genCall: peek dst=415
++    ; genCall: peek dst=414
+     PUSH DE
+     PUSH HL
+     LD H, B
+@@ -32,7 +32,7 @@
+     PUSH HL
+     POP IX
+     POP HL
+-    ; genCall: peek dst=422
++    ; genCall: peek dst=421
+     PUSH BC
+     PUSH DE
+     PUSH HL
+@@ -87,7 +87,7 @@
+     JR .print_str_2
+     LD A, 0x0A
+     OUT (0x23), A
+-    ; genCall: parse_sexpr dst=435
++    ; genCall: parse_sexpr dst=434
+     CALL parse_sexpr
+     LD D, H
+     LD E, L
+@@ -282,27 +282,28 @@
+ cur:
+     LD DE, (pos)    ; u16 direct load, no scratch clobber ; @minz-memory-access:f5_b0_i1_a0
+     LD HL, (src_len)    ; u16 direct load (20T, no A clobber) ; @minz-memory-access:f5_b0_i3_a0
+-    EX DE, HL
+-    OR A
+-    SBC HL, DE
+-    EX DE, HL
++    LD A, D
++    CP H
++    JR NZ, .ucmp_pair_done_0
++    LD A, E
++    CP L
++.ucmp_pair_done_0:
+     JRS C, .cur_if_join2
+ .cur_if_then1:
+     LD A, 0
+     RET
+ .cur_if_join2:
+-    LD DE, (src_buf)    ; u16 direct load, no scratch clobber ; @minz-memory-access:f5_b2_i1_a0
+-    LD HL, (pos)    ; u16 direct load (20T, no A clobber) ; @minz-memory-access:f5_b2_i3_a0
+-    ADD HL, DE
+-    ; genCall: peek dst=59
++    LD HL, (src_buf)    ; u16 direct load (20T, no A clobber) ; @minz-memory-access:f5_b2_i1_a0
++    ADD HL, DE
++    ; genCall: peek dst=58
+     JP peek
+ 
+ ; fun skip_ws() [recursive] ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+ skip_ws:
+ .skip_ws_loop_head1:
+-    ; genCall: cur dst=60
++    ; genCall: cur dst=59
+     CALL cur
+-    ; genCall: is_space dst=62
++    ; genCall: is_space dst=61
+     CALL is_space
+     CP 1
+     JRS NZ, .skip_ws_loop_exit3
+@@ -316,18 +317,18 @@
+     DEC HL
+     JRS .skip_ws_loop_head1
+ .skip_ws_loop_exit3:
+-    ; genCall: cur dst=70
++    ; genCall: cur dst=69
+     CALL cur
+     CP 59
+     RET NZ
+ .skip_ws_if_then4:
+ .skip_ws_loop_head6:
+-    ; genCall: cur dst=73
++    ; genCall: cur dst=72
+     CALL cur
+     CP 10
+     JRS Z, .skip_ws_loop_exit8
+ .skip_ws_loop_body7:
+-    ; genCall: cur dst=76
++    ; genCall: cur dst=75
+     CALL cur
+     AND A
+     JRS NZ, .skip_ws_if_join10
+@@ -389,7 +390,7 @@
+     POP BC
+     POP DE
+     POP HL
+-    ; genCall: peek dst=103
++    ; genCall: peek dst=102
+     PUSH DE
+     PUSH HL
+     PUSH IY
+@@ -425,7 +426,7 @@
+     POP BC
+     POP DE
+     POP HL
+-    ; genCall: peek dst=109
++    ; genCall: peek dst=108
+     PUSH AF
+     PUSH DE
+     PUSH HL
+@@ -456,13 +457,15 @@
+     LD IXL, C
+ .intern_region_loop_head1:
+     LD BC, (str_bump)    ; u16 direct load, no scratch clobber ; @minz-memory-access:f8_b1_i1_a0
+-    PUSH HL
+-    OR A
+-    SBC HL, BC
+-    POP HL
+-    JRS NC, .intern_region_trmp0
++    LD A, H
++    CP B
++    JR NZ, .ucmp_pair_done_0
++    LD A, L
++    CP C
++.ucmp_pair_done_0:
++    JRS NC, .intern_region_trmp1
+ .intern_region_loop_body2:
+-    ; genCall: peek dst=124
++    ; genCall: peek dst=123
+     PUSH DE
+     PUSH HL
+     PUSH IX
+@@ -476,7 +479,7 @@
+     PUSH DE
+     POP BC
+     LD IXH, IXL
+-    ; genCall: region_match dst=128
++    ; genCall: region_match dst=127
+     PUSH AF
+     PUSH DE
+     PUSH HL
+@@ -494,7 +497,7 @@
+     LD A, B
+     CP 1
+     LD A, IYH
+-    ; restore live-out r124 from scratch
++    ; restore live-out r123 from scratch
+     JRS NZ, .intern_region_if_join7
+ .intern_region_if_then6:
+     RET
+@@ -514,7 +517,7 @@
+     LD H, B
+     LD L, C
+     EX AF, AF'
+-    LD A, (_spill_intern_region_r135) ; @minz-memory-access:f8_b7_s0
++    LD A, (_spill_intern_region_r134) ; @minz-memory-access:f8_b7_s0
+     LD C, A
+     EX AF, AF'
+     CALL poke
+@@ -522,21 +525,21 @@
+     POP DE
+     PUSH AF
+     LD A, 0
+-    LD (_spill_intern_region_r141), A ; @minz-memory-access:f8_b7_s1
++    LD (_spill_intern_region_r140), A ; @minz-memory-access:f8_b7_s1
+     POP AF
+ .intern_region_loop_head8:
+-    LD A, (_spill_intern_region_r141) ; @minz-memory-access:f8_b8_s2
+-    PUSH HL
+-    LD HL, _spill_intern_region_r135
++    LD A, (_spill_intern_region_r140) ; @minz-memory-access:f8_b8_s2
++    PUSH HL
++    LD HL, _spill_intern_region_r134
+     LD H, (HL) ; @minz-memory-access:f8_b8_s3
+     CP H
+     POP HL
+-    JRS NC, .intern_region_trmp1
++    JRS NC, .intern_region_trmp2
+ .intern_region_loop_body9:
+     LD BC, (str_bump)    ; u16 direct load, no scratch clobber ; @minz-memory-access:f8_b9_i1_a0
+     INC BC
+     EX AF, AF'
+-    LD A, (_spill_intern_region_r141) ; @minz-memory-access:f8_b9_s4
++    LD A, (_spill_intern_region_r140) ; @minz-memory-access:f8_b9_s4
+     LD IXL, A
+     EX AF, AF'
+     LD IXH, 0
+@@ -574,7 +577,7 @@
+     POP DE
+     POP HL
+     EX AF, AF'
+-    LD A, (_spill_intern_region_r141) ; @minz-memory-access:f8_b9_s5
++    LD A, (_spill_intern_region_r140) ; @minz-memory-access:f8_b9_s5
+     LD IYL, A
+     EX AF, AF'
+     LD IYH, 0
+@@ -591,7 +594,7 @@
+     POP IX
+     POP DE
+     POP HL
+-    ; genCall: peek dst=157
++    ; genCall: peek dst=156
+     PUSH BC
+     PUSH DE
+     PUSH HL
+@@ -611,15 +614,15 @@
+     POP HL
+     POP DE
+     LD C, 1
+-    LD A, (_spill_intern_region_r141) ; @minz-memory-access:f8_b9_s6
++    LD A, (_spill_intern_region_r140) ; @minz-memory-access:f8_b9_s6
+     ADD A, 1
+-    LD (_spill_intern_region_r141), A ; @minz-memory-access:f8_b9_s7
++    LD (_spill_intern_region_r140), A ; @minz-memory-access:f8_b9_s7
+     JRS .intern_region_loop_head8
+ .intern_region_loop_exit10:
+     LD HL, (str_bump)    ; u16 direct load (20T, no A clobber) ; @minz-memory-access:f8_b10_i1_a0
+     INC HL
+     EX AF, AF'
+-    LD A, (_spill_intern_region_r160) ; @minz-memory-access:f8_b10_s8
++    LD A, (_spill_intern_region_r159) ; @minz-memory-access:f8_b10_s8
+     LD C, A
+     EX AF, AF'
+     LD B, 0
+@@ -629,25 +632,25 @@
+     LD H, D
+     LD L, E
+     RET
+-.intern_region_trmp0:
++.intern_region_trmp1:
+     EX AF, AF'
+     LD A, IXL
+-    LD (_spill_intern_region_r135), A ; @minz-memory-access:f8_b10_s9
++    LD (_spill_intern_region_r134), A ; @minz-memory-access:f8_b10_s9
+     EX AF, AF'
+     LD H, D
+     LD L, E
+     JRS .intern_region_loop_exit3
+-.intern_region_trmp1:
+-    EX AF, AF'
+-    LD A, (_spill_intern_region_r135) ; @minz-memory-access:f8_b10_s10
+-    LD (_spill_intern_region_r160), A ; @minz-memory-access:f8_b10_s11
++.intern_region_trmp2:
++    EX AF, AF'
++    LD A, (_spill_intern_region_r134) ; @minz-memory-access:f8_b10_s10
++    LD (_spill_intern_region_r159), A ; @minz-memory-access:f8_b10_s11
+     EX AF, AF'
+     JRS .intern_region_loop_exit10
+ ; — spill slots for intern_region (2 spills)
+-_spill_intern_region_r135: DB 0
+-_spill_intern_region_r141: DB 0
++_spill_intern_region_r134: DB 0
++_spill_intern_region_r140: DB 0
+ ; — extra spill slots for intern_region (1 rescued)
+-_spill_intern_region_r160: DB 0
++_spill_intern_region_r159: DB 0
+ 
+ ; fun make_node(tag: u8 = A, d0: u16 = DE, d1: u16 = BC, d2: u16 = IX) -> u16 = HL ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+ make_node:
+@@ -682,11 +685,11 @@
+     AND 255
+     LD L, A
+     LD H, 0
+-    LD (_spill_make_node_r177), HL ; @minz-memory-access:f9_b0_s12
+-    POP HL
+-    PUSH HL
+-    LD HL, (_spill_make_node_r177) ; @minz-memory-access:f9_b0_s13
+-    LD (_spill_make_node_r178), HL ; @minz-memory-access:f9_b0_s14
++    LD (_spill_make_node_r176), HL ; @minz-memory-access:f9_b0_s12
++    POP HL
++    PUSH HL
++    LD HL, (_spill_make_node_r176) ; @minz-memory-access:f9_b0_s13
++    LD (_spill_make_node_r177), HL ; @minz-memory-access:f9_b0_s14
+     POP HL
+     ; genCall: poke dst=0
+     PUSH BC
+@@ -696,7 +699,7 @@
+     PUSH IY
+     POP HL
+     EX AF, AF'
+-    LD A, (_spill_make_node_r178) ; @minz-memory-access:f9_b0_s15
++    LD A, (_spill_make_node_r177) ; @minz-memory-access:f9_b0_s15
+     LD C, A
+     EX AF, AF'
+     CALL poke
+@@ -851,8 +854,8 @@
+     DEC BC
+     RET
+ ; — extra spill slots for make_node (2 rescued)
++_spill_make_node_r176: DB 0, 0
+ _spill_make_node_r177: DB 0, 0
+-_spill_make_node_r178: DB 0, 0
+ 
+ ; fun node_tag(n: u16 = HL) -> u8 = A ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+ node_tag    EQU peek
+@@ -861,7 +864,7 @@
+ node_d0:
+     LD HL, 1
+     ADD HL, DE
+-    ; genCall: peek dst=217
++    ; genCall: peek dst=216
+     PUSH DE
+     CALL peek
+     POP DE
+@@ -869,7 +872,7 @@
+     LD B, 0
+     LD HL, 2
+     ADD HL, DE
+-    ; genCall: peek dst=221
++    ; genCall: peek dst=220
+     PUSH BC
+     CALL peek
+     POP BC
+@@ -884,7 +887,7 @@
+ node_d1:
+     LD HL, 3
+     ADD HL, DE
+-    ; genCall: peek dst=229
++    ; genCall: peek dst=228
+     PUSH DE
+     CALL peek
+     POP DE
+@@ -892,7 +895,7 @@
+     LD B, 0
+     LD HL, 4
+     ADD HL, DE
+-    ; genCall: peek dst=233
++    ; genCall: peek dst=232
+     PUSH BC
+     CALL peek
+     POP BC
+@@ -951,7 +954,7 @@
+ parse_sexpr:
+     ; genCall: skip_ws dst=0
+     CALL skip_ws
+-    ; genCall: cur dst=250
++    ; genCall: cur dst=249
+     CALL cur
+     AND A
+     JRS NZ, .parse_sexpr_if_join2
+@@ -973,7 +976,7 @@
+     DEC HL
+     ; genCall: skip_ws dst=0
+     CALL skip_ws
+-    ; genCall: cur dst=261
++    ; genCall: cur dst=260
+     CALL cur
+     CP 41
+     JRS NZ, .parse_sexpr_if_join6
+@@ -991,7 +994,7 @@
+     LD C, 0
+     LD B, 0
+     LD D, 0
+-    ; genCall: make_node dst=275
++    ; genCall: make_node dst=274
+     LD E, C
+     LD C, B
+     LD IXL, D
+@@ -1000,7 +1003,7 @@
+     LD IXH, 0
+     JP make_node
+ .parse_sexpr_if_join6:
+-    ; genCall: parse_sexpr dst=276
++    ; genCall: parse_sexpr dst=275
+     CALL parse_sexpr
+     LD D, H
+     LD E, L
+@@ -1011,7 +1014,7 @@
+     LD L, E
+     LD B, 0
+     LD C, 0
+-    ; genCall: make_node dst=283
++    ; genCall: make_node dst=282
+     PUSH DE
+     LD D, H
+     LD E, L
+@@ -1028,7 +1031,7 @@
+     POP HL
+     POP DE
+ .parse_sexpr_loop_head7:
+-    ; genCall: cur dst=286
++    ; genCall: cur dst=285
+     PUSH DE
+     PUSH HL
+     CALL cur
+@@ -1037,7 +1040,7 @@
+     CP 41
+     JRS Z, .parse_sexpr_trmp0
+ .parse_sexpr_loop_body8:
+-    ; genCall: cur dst=289
++    ; genCall: cur dst=288
+     PUSH DE
+     PUSH HL
+     CALL cur
+@@ -1048,7 +1051,7 @@
+ .parse_sexpr_if_then10:
+     RET
+ .parse_sexpr_if_join11:
+-    ; genCall: parse_sexpr dst=292
++    ; genCall: parse_sexpr dst=291
+     PUSH DE
+     PUSH HL
+     CALL parse_sexpr
+@@ -1096,11 +1099,11 @@
+     DEC HL
+     POP AF           ; restore word-load scratch
+ .parse_sexpr_loop_head12:
+-    ; genCall: cur dst=302
++    ; genCall: cur dst=301
+     PUSH IX
+     CALL cur
+     POP IX
+-    ; genCall: is_atom_char dst=304
++    ; genCall: is_atom_char dst=303
+     PUSH IX
+     CALL is_atom_char
+     POP IX
+@@ -1137,13 +1140,13 @@
+     LD E, IXL
+     ADD HL, DE
+     POP DE
+-    ; genCall: peek dst=322
++    ; genCall: peek dst=321
+     PUSH IX
+     PUSH IY
+     CALL peek
+     POP IY
+     POP IX
+-    ; genCall: is_digit dst=324
++    ; genCall: is_digit dst=323
+     PUSH IX
+     PUSH IY
+     CALL is_digit
+@@ -1169,16 +1172,16 @@
+     LD H, 0
+     LD L, 0
+     LD A, 16
+-.parse_sexpr_m16_335_lp:
++.parse_sexpr_m16_334_lp:
+     SRL D
+     RR E
+-    JRS NC, .parse_sexpr_m16_335_sk
++    JRS NC, .parse_sexpr_m16_334_sk
+     ADD HL, BC
+-.parse_sexpr_m16_335_sk:
++.parse_sexpr_m16_334_sk:
+     SLA C
+     RL B
+     DEC A
+-    JRS NZ, .parse_sexpr_m16_335_lp
++    JRS NZ, .parse_sexpr_m16_334_lp
+     POP BC
+     POP DE
+     POP AF
+@@ -1199,7 +1202,7 @@
+     ADD HL, BC
+     EX DE, HL
+     POP HL
+-    ; genCall: peek dst=341
++    ; genCall: peek dst=340
+     PUSH HL
+     PUSH IX
+     PUSH IY
+@@ -1229,7 +1232,7 @@
+     LD A, C
+     LD B, 0
+     LD C, 0
+-    ; genCall: make_node dst=355
++    ; genCall: make_node dst=354
+     LD D, H
+     LD E, L
+     LD IXL, C
+@@ -1238,7 +1241,7 @@
+     LD IXH, 0
+     JP make_node
+ .parse_sexpr_if_join18:
+-    ; genCall: intern_region dst=356
++    ; genCall: intern_region dst=355
+     LD D, IXH
+     LD E, IXL
+     LD C, IYH
+@@ -1251,7 +1254,7 @@
+     LD A, C
+     LD B, 0
+     LD C, 0
+-    ; genCall: make_node dst=363
++    ; genCall: make_node dst=362
+     LD D, H
+     LD E, L
+     LD IXL, C
+@@ -1268,7 +1271,7 @@
+ 
+ ; fun print_str(s: u16 = HL) ; clobbers: A, B, BC, C, D, DE, E, F, H, HL, IX, IXH, IXL, IY, IYH, IYL, L
+ print_str:
+-    ; genCall: peek dst=365
++    ; genCall: peek dst=364
+     PUSH HL
+     CALL peek
+     POP HL
+@@ -1292,7 +1295,7 @@
+     ADD HL, BC
+     EX DE, HL
+     POP HL
+-    ; genCall: peek dst=375
++    ; genCall: peek dst=374
+     PUSH HL
+     PUSH IX
+     LD H, D
+@@ -1320,7 +1323,7 @@
+ .print_node_if_then1:
+     RET
+ .print_node_if_join2:
+-    ; genCall: node_tag dst=382
++    ; genCall: node_tag dst=381
+     PUSH HL
+     CALL node_tag
+     POP HL
+@@ -1332,7 +1335,7 @@
+     CP C
+     JRS NZ, .print_node_if_join4
+ .print_node_if_then3:
+-    ; genCall: node_d0 dst=386
++    ; genCall: node_d0 dst=385
+     LD D, H
+     LD E, L
+     CALL node_d0
+@@ -1347,7 +1350,7 @@
+     CP C
+     JRS NZ, .print_node_if_join6
+ .print_node_if_then5:
+-    ; genCall: node_d0 dst=390
++    ; genCall: node_d0 dst=389
+     LD D, H
+     LD E, L
+     CALL node_d0
+@@ -1373,7 +1376,7 @@
+     INC HL
+     JR .print_str_0
+ .print_str_done_0:
+-    ; genCall: node_d0 dst=396
++    ; genCall: node_d0 dst=395
+     LD D, H
+     LD E, L
+     CALL node_d0
+@@ -1410,7 +1413,7 @@
+     CALL print_node
+     POP HL
+     POP BC
+-    ; genCall: node_d1 dst=407
++    ; genCall: node_d1 dst=406
+     PUSH BC
+     LD D, H
+     LD E, L

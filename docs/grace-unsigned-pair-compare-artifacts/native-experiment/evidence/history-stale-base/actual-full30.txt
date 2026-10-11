@@ -1,0 +1,8 @@
+=== RUN   TestUnsignedPairActualNative30
+[label-audit] 1 undefined labels:
+  node_tag
+    unsigned_pair_compare_diagnostic_test.go:233: original disagrees with current production native reference
+--- FAIL: TestUnsignedPairActualNative30 (0.79s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.797s
+FAIL
