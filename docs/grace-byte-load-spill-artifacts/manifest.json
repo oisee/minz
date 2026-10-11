@@ -1,0 +1,142 @@
+{
+  "baseline_commit": "3e143f9f",
+  "context": "backend byte-load correction; invariant-address candidate excluded",
+  "files": {
+    "after.txt": {
+      "sha256": "bda4f3861d2cf185278f9b04a7941619f69ab454b18d68f7ed9632e07ad9f211",
+      "bytes": 7264
+    },
+    "before.txt": {
+      "sha256": "80c719d6f06770f43ef241d0c667e24286a44b6666669587b93010a085203b31",
+      "bytes": 8264
+    },
+    "full-mir2.txt": {
+      "sha256": "5d776f26aa4379fbf57dd03aa8f7bff66a354cea152c8cb71e975ab25ea6fe8d",
+      "bytes": 43
+    },
+    "native/default/allocation.json": {
+      "sha256": "21643acd49681b71e6cc49f45e5ca265388165bce7975002d0310e228857c412",
+      "bytes": 104505
+    },
+    "native/default/final.mir2": {
+      "sha256": "213b82a5b4d2871151fe5d071579ce8c253ce4d324fd3ea8032fee20a365122d",
+      "bytes": 82836
+    },
+    "native/default/slot0.json": {
+      "sha256": "3c9caf2c5f9abb1da367689a9ffc061bdf8139f39a347c1c1fed6257cd695fd7",
+      "bytes": 1481
+    },
+    "native/default/slot1.json": {
+      "sha256": "d26de103ee6648dbf3a75cbda41e47e2fd572adbdfb5a773789c906193da71a0",
+      "bytes": 1481
+    },
+    "native/default/slot15.json": {
+      "sha256": "3d4459c75fdb90bbc4b39f6308fdc4f12dde7dd5a63fd5a6ee15602ef0662e6c",
+      "bytes": 1481
+    },
+    "native/default/slot16.json": {
+      "sha256": "3c9caf2c5f9abb1da367689a9ffc061bdf8139f39a347c1c1fed6257cd695fd7",
+      "bytes": 1481
+    },
+    "native/default/slot255.json": {
+      "sha256": "3d4459c75fdb90bbc4b39f6308fdc4f12dde7dd5a63fd5a6ee15602ef0662e6c",
+      "bytes": 1481
+    },
+    "native/default/slot5.json": {
+      "sha256": "1ae867e40067ac31289bdb0ec978c2aa1132c619c199d0382e131f0bb64bbe19",
+      "bytes": 1481
+    },
+    "native/default/target.a80": {
+      "sha256": "525f5501ae728c1d3bbc6cde48fdef1df96724256dbbed85c61170a56f1b1e04",
+      "bytes": 128991
+    },
+    "native/default/target.bin": {
+      "sha256": "977b372889d27fc3e378a8a2af0d948020ce3f647b24ecdfeabfa864cf0b41a9",
+      "bytes": 9691
+    },
+    "native/grace-size/allocation.json": {
+      "sha256": "9df39258bffaff0c1e363f1fe60dfe6f9207d6eb497f4987d4a0167903921058",
+      "bytes": 105283
+    },
+    "native/grace-size/final.mir2": {
+      "sha256": "7b54f7c0f39a6aee5869337036e224ecc7e07a64408b95d1e4f21227b3e704b7",
+      "bytes": 81415
+    },
+    "native/grace-size/slot0.json": {
+      "sha256": "cf09c60ef5a31aeab9027473acaee393238934dbf1b33a58ff3b301f23911bcf",
+      "bytes": 1481
+    },
+    "native/grace-size/slot1.json": {
+      "sha256": "8bddb6b09bbab94082a062e3146dc3f42e3701dd2cae9cde6346316bd73731b1",
+      "bytes": 1481
+    },
+    "native/grace-size/slot15.json": {
+      "sha256": "33e45685d855c097289330abc99478b7457f87a3260ec158169a534393e34fde",
+      "bytes": 1481
+    },
+    "native/grace-size/slot16.json": {
+      "sha256": "cf09c60ef5a31aeab9027473acaee393238934dbf1b33a58ff3b301f23911bcf",
+      "bytes": 1481
+    },
+    "native/grace-size/slot255.json": {
+      "sha256": "33e45685d855c097289330abc99478b7457f87a3260ec158169a534393e34fde",
+      "bytes": 1481
+    },
+    "native/grace-size/slot5.json": {
+      "sha256": "c7d1cf5681380e65e7b46da3fe015bf196926fcce73b5a7e5eee1db079e9cf65",
+      "bytes": 1481
+    },
+    "native/grace-size/target.a80": {
+      "sha256": "341c988d3bd16bb8b47d0e9650dee1e38405d4dafee6bd5d537183e2a1faeda6",
+      "bytes": 129498
+    },
+    "native/grace-size/target.bin": {
+      "sha256": "2de773d8e5842ccacd22b2e1935dd0801acf786e18301b484768b15bb56839f9",
+      "bytes": 9869
+    },
+    "native/grace-speed/allocation.json": {
+      "sha256": "9df39258bffaff0c1e363f1fe60dfe6f9207d6eb497f4987d4a0167903921058",
+      "bytes": 105283
+    },
+    "native/grace-speed/final.mir2": {
+      "sha256": "7b54f7c0f39a6aee5869337036e224ecc7e07a64408b95d1e4f21227b3e704b7",
+      "bytes": 81415
+    },
+    "native/grace-speed/slot0.json": {
+      "sha256": "cf09c60ef5a31aeab9027473acaee393238934dbf1b33a58ff3b301f23911bcf",
+      "bytes": 1481
+    },
+    "native/grace-speed/slot1.json": {
+      "sha256": "8bddb6b09bbab94082a062e3146dc3f42e3701dd2cae9cde6346316bd73731b1",
+      "bytes": 1481
+    },
+    "native/grace-speed/slot15.json": {
+      "sha256": "33e45685d855c097289330abc99478b7457f87a3260ec158169a534393e34fde",
+      "bytes": 1481
+    },
+    "native/grace-speed/slot16.json": {
+      "sha256": "cf09c60ef5a31aeab9027473acaee393238934dbf1b33a58ff3b301f23911bcf",
+      "bytes": 1481
+    },
+    "native/grace-speed/slot255.json": {
+      "sha256": "33e45685d855c097289330abc99478b7457f87a3260ec158169a534393e34fde",
+      "bytes": 1481
+    },
+    "native/grace-speed/slot5.json": {
+      "sha256": "c7d1cf5681380e65e7b46da3fe015bf196926fcce73b5a7e5eee1db079e9cf65",
+      "bytes": 1481
+    },
+    "native/grace-speed/target.a80": {
+      "sha256": "341c988d3bd16bb8b47d0e9650dee1e38405d4dafee6bd5d537183e2a1faeda6",
+      "bytes": 129498
+    },
+    "native/grace-speed/target.bin": {
+      "sha256": "2de773d8e5842ccacd22b2e1935dd0801acf786e18301b484768b15bb56839f9",
+      "bytes": 9869
+    },
+    "native/source.nanz": {
+      "sha256": "6c11a845959df00dc01471e273f0196e7939121eaa9cb6e1f6206cc492ffbbb5",
+      "bytes": 29913
+    }
+  }
+}
