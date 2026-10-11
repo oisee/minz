@@ -1,0 +1,111 @@
+=== RUN   TestOriginalArena20Corpus
+=== RUN   TestOriginalArena20Corpus/ordinary
+    original_arena20_corpus_test.go:527: {
+          "entries": {
+            "Arena_alloc": 8232,
+            "Arena_init": 588,
+            "Arena_remaining": 588,
+            "Arena_reset": 8232,
+            "alloc_enemy": 258,
+            "arena_split": 588,
+            "init_a": 1,
+            "test_split_and_alloc": 1
+          },
+          "module_bytes": 464,
+          "source_sha256": "886e1b3fb2e92c1f16ebf585a03a81f6fd1b2d0bcd2ed24559b4a9584adf21d9",
+          "stack_depths": {
+            "Arena_alloc": 6,
+            "Arena_init": 6,
+            "Arena_remaining": 6,
+            "Arena_reset": 2,
+            "alloc_enemy": 6,
+            "arena_split": 6,
+            "init_a": 6,
+            "test_split_and_alloc": 12
+          },
+          "workload_tstates": {
+            "Arena_alloc": 2910537,
+            "Arena_init": 89376,
+            "Arena_remaining": 145824,
+            "Arena_reset": 436296,
+            "alloc_enemy": 103158,
+            "arena_split": 139356,
+            "init_a": 392,
+            "test_split_and_alloc": 3037
+          }
+        }
+=== RUN   TestOriginalArena20Corpus/grace-size
+    original_arena20_corpus_test.go:527: {
+          "entries": {
+            "Arena_alloc": 8232,
+            "Arena_init": 588,
+            "Arena_remaining": 588,
+            "Arena_reset": 8232,
+            "alloc_enemy": 258,
+            "arena_split": 588,
+            "init_a": 1,
+            "test_split_and_alloc": 1
+          },
+          "module_bytes": 464,
+          "source_sha256": "886e1b3fb2e92c1f16ebf585a03a81f6fd1b2d0bcd2ed24559b4a9584adf21d9",
+          "stack_depths": {
+            "Arena_alloc": 6,
+            "Arena_init": 6,
+            "Arena_remaining": 6,
+            "Arena_reset": 2,
+            "alloc_enemy": 6,
+            "arena_split": 6,
+            "init_a": 6,
+            "test_split_and_alloc": 12
+          },
+          "workload_tstates": {
+            "Arena_alloc": 2910537,
+            "Arena_init": 89376,
+            "Arena_remaining": 145824,
+            "Arena_reset": 436296,
+            "alloc_enemy": 103158,
+            "arena_split": 139356,
+            "init_a": 392,
+            "test_split_and_alloc": 3037
+          }
+        }
+=== RUN   TestOriginalArena20Corpus/grace-speed
+    original_arena20_corpus_test.go:527: {
+          "entries": {
+            "Arena_alloc": 8232,
+            "Arena_init": 588,
+            "Arena_remaining": 588,
+            "Arena_reset": 8232,
+            "alloc_enemy": 258,
+            "arena_split": 588,
+            "init_a": 1,
+            "test_split_and_alloc": 1
+          },
+          "module_bytes": 464,
+          "source_sha256": "886e1b3fb2e92c1f16ebf585a03a81f6fd1b2d0bcd2ed24559b4a9584adf21d9",
+          "stack_depths": {
+            "Arena_alloc": 6,
+            "Arena_init": 6,
+            "Arena_remaining": 6,
+            "Arena_reset": 2,
+            "alloc_enemy": 6,
+            "arena_split": 6,
+            "init_a": 6,
+            "test_split_and_alloc": 12
+          },
+          "workload_tstates": {
+            "Arena_alloc": 2910537,
+            "Arena_init": 89376,
+            "Arena_remaining": 145824,
+            "Arena_reset": 436296,
+            "alloc_enemy": 103158,
+            "arena_split": 139356,
+            "init_a": 392,
+            "test_split_and_alloc": 3037
+          }
+        }
+--- PASS: TestOriginalArena20Corpus (0.70s)
+    --- PASS: TestOriginalArena20Corpus/ordinary (0.16s)
+    --- PASS: TestOriginalArena20Corpus/grace-size (0.27s)
+    --- PASS: TestOriginalArena20Corpus/grace-speed (0.26s)
+PASS
