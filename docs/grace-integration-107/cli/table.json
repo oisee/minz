@@ -1,0 +1,104 @@
+[
+  {
+    "schema": "vir-local-direct-v1",
+    "costModel": "expanded-pattern-tstates-v1",
+    "sig": "vir-local-direct-v1:0f48661893e6ba0668ec211a4111886576ef05ddc1669859fd3535d8e2b4e291",
+    "nVregs": 12,
+    "nOps": 12,
+    "cost": 148,
+    "assignment": [
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      7
+    ]
+  },
+  {
+    "schema": "vir-local-direct-v1",
+    "costModel": "expanded-pattern-tstates-v1",
+    "sig": "vir-local-direct-v1:7d17326b4006f3d4a5b56cbf69923a901fd0240d1828192af8a53ec3d06f0633",
+    "nVregs": 6,
+    "nOps": 6,
+    "cost": 82,
+    "assignment": [
+      9,
+      9,
+      9,
+      9,
+      9,
+      7
+    ]
+  },
+  {
+    "schema": "vir-local-direct-v1",
+    "costModel": "expanded-pattern-tstates-v1",
+    "sig": "vir-local-direct-v1:91367c57f92fe928ba3c248bd02405627b9b81022aac36d5a01aec11894e7ee6",
+    "nVregs": 18,
+    "nOps": 18,
+    "cost": 214,
+    "assignment": [
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      7
+    ]
+  },
+  {
+    "schema": "vir-local-direct-v1",
+    "costModel": "expanded-pattern-tstates-v1",
+    "sig": "vir-local-direct-v1:a7270682a7a2c9c48a604c56d6300473d1d421fe9f90936ba139ee0b20cc587f",
+    "nVregs": 8,
+    "nOps": 8,
+    "cost": 104,
+    "assignment": [
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      7
+    ]
+  },
+  {
+    "schema": "vir-local-direct-v1",
+    "costModel": "expanded-pattern-tstates-v1",
+    "sig": "vir-local-direct-v1:f2252118a443229061a0e1ff6fec9f8a1b11a968a575ef75ddf5738a9fa4b81a",
+    "nVregs": 8,
+    "nOps": 8,
+    "cost": 104,
+    "assignment": [
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      9,
+      7
+    ]
+  }
+]

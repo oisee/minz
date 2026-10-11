@@ -1,0 +1,5 @@
+[checked-local] mul_by_3: admitted
+[checked-local] mul_by_10: admitted
+[checked-local] mul_by_100: admitted
+[checked-local] mul_by_7: admitted
+[checked-local] mul_by_255: admitted

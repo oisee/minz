@@ -1,0 +1,39 @@
+{
+  "files": [
+    {
+      "path": "docs/grace-integration-107/README.md",
+      "bytes": 1259,
+      "sha256": "48c2c66a64870525f8d53c62974d6ac4de1137954babd47fceffa8b3a7c2ad3e"
+    },
+    {
+      "path": "docs/grace-integration-107/cli/assemble.go",
+      "bytes": 374,
+      "sha256": "7938397870047cdb2190a6d7b914eda7b1e721f89179dffed3731ded6a34ee53"
+    },
+    {
+      "path": "docs/grace-integration-107/cli/compile.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "docs/grace-integration-107/cli/generate.txt",
+      "bytes": 180,
+      "sha256": "829f9a3d7dd87579ca173e21e8c46d35030b5f0f771799c9110221a0bf2f2b7c"
+    },
+    {
+      "path": "docs/grace-integration-107/cli/selected.a80",
+      "bytes": 2155,
+      "sha256": "68e723b28c1fd07f88340eea1e55f23adc49b48173bb30acd04e516040c7d66f"
+    },
+    {
+      "path": "docs/grace-integration-107/cli/selected.bin",
+      "bytes": 63,
+      "sha256": "f386bf95052c8dc23c0021404486e00c5b30794dc682015e0122599a7c838e31"
+    },
+    {
+      "path": "docs/grace-integration-107/cli/table.json",
+      "bytes": 1808,
+      "sha256": "fefa6f62e371a1a17d175655a97c9fd54f6670a349f92d14399f6c97be0b43ff"
+    }
+  ]
+}
