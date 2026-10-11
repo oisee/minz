@@ -68,7 +68,7 @@ func HoistInvariantAddresses(f *Func) bool {
 			}
 			b := f.BlockByLabel(name)
 			for _, i := range b.Insts {
-				if i.Op == OpAsm || i.Op == OpCall || i.Op == OpCallIndirect || i.Op == OpIn8 || i.Op == OpIn16 || i.Op == OpOut8 || i.Op == OpOut16 {
+				if i.Op == OpAsm || i.Op == OpCall || i.Op == OpCallIndirect || i.Op == OpCallCond || i.Op == OpIn8 || i.Op == OpIn16 || i.Op == OpOut8 || i.Op == OpOut16 {
 					legal = false
 				}
 			}

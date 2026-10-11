@@ -117,3 +117,22 @@ func TestInvariantAddressEffects(t *testing.T) {
 type MemoryFaultForTest struct{}
 
 func (*MemoryFaultForTest) Error() string { return "denied byte" }
+
+// Conditional calls are native-only MIR: reject all call forms before moving
+// any address definition, regardless of whether the predicate is true.
+func TestInvariantAddressRejectsEveryCallForm(t *testing.T) {
+	for _, op := range []Op{OpCall, OpCallIndirect, OpCallCond} {
+		t.Run(op.String(), func(t *testing.T) {
+			m, f := invariantFixture()
+			body := f.BlockByLabel("body")
+			body.Insts = append(body.Insts, &Inst{Op: op, Sym: "external", Ty: TyVoid, Cond: CmpEq})
+			before := m.Dump()
+			if HoistInvariantAddresses(f) {
+				t.Fatalf("%s admitted", op)
+			}
+			if m.Dump() != before {
+				t.Fatal("refused call loop mutated")
+			}
+		})
+	}
+}

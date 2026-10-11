@@ -1,0 +1,12 @@
+=== RUN   TestInvariantAddressRejectsEveryCallForm
+=== RUN   TestInvariantAddressRejectsEveryCallForm/call
+=== RUN   TestInvariantAddressRejectsEveryCallForm/call_indirect
+=== RUN   TestInvariantAddressRejectsEveryCallForm/call_cc
+    invariant_address_test.go:131: call_cc admitted
+--- FAIL: TestInvariantAddressRejectsEveryCallForm (0.00s)
+    --- PASS: TestInvariantAddressRejectsEveryCallForm/call (0.00s)
+    --- PASS: TestInvariantAddressRejectsEveryCallForm/call_indirect (0.00s)
+    --- FAIL: TestInvariantAddressRejectsEveryCallForm/call_cc (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/mir2	0.008s
+FAIL
