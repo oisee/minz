@@ -1,61 +1,33 @@
-# Next stage: explicit eight-candidate search CLI
+# Explicit finite policy × mask CLI search
 
-Plan reviewed independently in476e266f and a668ee24. Implementation release
-waits for the current integrated search pipeline gate. No CLI code is changed
-by this document.
+Independent plan only against integrated `44739f77`. No compiler/CLI edits, CPU run, default policy, CSE or native permission changes. Existing Legacy v1 CLI and fixed-policy v2 CLI remain unchanged except mutual exclusion when this new mode is explicitly requested.
 
-The new mode is `--memory-host-arena-append-search DIR`, with existing
-`--memory-host-workload FILE`. Two optional named association inputs are
-`--memory-host-search-legacy-association FILE` and
-`--memory-host-search-preserve-association FILE`: both present means replay
-the exact supplied whole v2 envelopes; both absent means collect both fresh.
-One present, explicitly empty new flags, orphan flags, or old/fixed modes
-combined with search are refused. Values and Cobra Changed are checked.
-Ordinary compilation and existing fixed-policy routes remain as before.
+## Minimal mode and admission
 
-Cache bounded source bytes once. Check exact known source SHA, independently
-parse with the supplied logical filename, CPM and complete single-unit map
-before any native collection. No imports/source substitution. Factories
-parse those immutable owned bytes; the API independently checks full HIR.
-Read/own strict workload and both association buffers. Each association is
-limited to32MiB and the pair to64MiB. Malformed second supplied input must
-fail before CPU or artifacts. Search itself performs both fresh replays.
+Proposed flags: `--memory-host-arena-append-search DIR`, existing `--memory-host-workload FILE`, and paired optional `--memory-host-search-legacy-association FILE` / `--memory-host-search-preserve-association FILE`. Both absent means collect both fresh policy associations; both present means replay both supplied whole v2 envelopes. One present, empty explicitly supplied paths, orphan search flags and any fixed/old mode or compare-policy flag are errors. Track Cobra Changed as well as scalar values so an explicitly empty new flag cannot fall through to ordinary compilation. Do not auto-detect one fixed association/profile or fill the missing policy with inferred evidence.
 
-Actual GoalSpeed/GoalSize search all eight candidates; Osize sets the search
-objective only. Preserve deterministic Legacy-first primary ties. Select
-target through the typed policy/mask reference in the complete search;
-write exact selected ASM/BIN and optional -o ASM without recompilation.
+Reuse existing Nanz/Z80/CPM/code-only and unsupported optimization/profile/assert/emit exclusions. Osize maps only to search GoalSize; policy is searched as explicit0/1, not inferred from goal or enabled by default. Keep the stable API order Legacy masks0..3 then PreserveSpeed masks0..3 and strict primary T/byte ranking, with earlier ties retained.
 
-Reserved outputs: source.nanz, workload.json, input-legacy-association-v2.json,
-input-preserve-association-v2.json, search-v1.json, decisions-search-v1.json,
-selected.a80, selected.bin; policy-legacy and policy-preserve each contain
-selection-v2.json and original/arena/append/both directories with
-baseline-v2.json, target.a80, target.bin, final.mir2 and allocation.json.
-All50 prospective files plus -o participate in canonical-parent/symlink and
-SameFile checks against source/workload/both inputs and each other before
-CPU; recheck immediately before writes. Build JSON payloads before mkdir.
-Semantic errors create no artifact directory; IO errors may leave partial
-files and must remain errors.
+The exact immutable source gate must precede **collection**, not just the search call after two native baselines have already run. Read/cache bounded source bytes once, require known SelfLanz SHA `0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526`, parse with the same supplied logical source filename, CPM and complete single-unit map; no imports or substituted typed port. Build fresh originals solely from these owned bytes. Supply the same bytes/name to MemoryHostPolicySearchInputs so the API independently reconstructs expected bodies/ABI/origins/metadata. Do not rely on SourceUnits SHA alone or accept arbitrary caller AST/assembly.
 
-Decision schema `minz.memory-host-arena-append-search-cli-decision/v1` binds
-actual goal, typed selected policy/mask and choices, source SHA/name, SHA of
-exact saved search bytes and both exact saved association bytes, selected
-BIN SHA, measured T-states and bytes. Complete nested search is authoritative;
-no duplicate editable cost/proof or partial winner fallback. Supplied pretty
-association bytes remain exact even when typed allocation JSON normalizes
-internally after SHA validation.
+Own strict workload bytes/object and both association buffers before callbacks. Bound each association at32MiB and both at64MiB before copy/factory; require complete named policy0/1 outer/nested envelopes via the existing strict APIs. Both payload preflights must precede the first native invocation when supplied. No bare v1 baseline/profile, schema conversion, policy-tag swapping, failed/incomplete source sample or old executable/context relabeling.
 
-Focused checks cover dispatch/emptyChanged/conflicting modes, strict paired
-inputs and both caps, source gate before collection, all-file alias inventory
-including hardlinks/symlink parents and second policy tree, short fresh
-collect/paired replay/-o identity, actual short Size ordering, and refusal
-without writes when either policy fails. Reuse existing independent API
-ownership/ranking checks; synthetic inputs cannot attest native costs.
+With no supplied inputs call RunZ80MemoryHostLoopProfileWithOptions twice at policies0/1, serialize and preserve both whole v2 envelopes, then call the new finite search API once. With supplied inputs call the finite search directly; do not run exported Replay separately or execute supplied assembly. Existing search performs two independent whole-envelope fresh replays under the current executable and shared source/workload, with outer graph retention and48 factory lifecycle. Collection adds its own lifecycle and must not be counted as those48 callbacks. Any error yields no selected/search artifact; diagnostic logs can be retained separately without partial-best attestation.
 
-After source freeze and two reviews, preserve an exact CLI executable and
-run full30 actual Speed and actual Size separately, plus bounded short
-collect/replay. Independent saved-only auditors verify inputs/executable,
-all eight candidates, native observations/state/events, eleven profile
-counters, proofs and decision/file SHA. An offline alternate ranking must
-remain labelled derived. Parent gates, publication and whole offline sync
-close the stage.
+## Files and decision authority
+
+Fixed output inventory: `source.nanz`, `workload.json`, `association-legacy-v2.json`, `association-preserve-v2.json`, `search.json`, `decisions.json`, `selected.a80`, `selected.bin`; candidate directories `policy0-mask0` through `policy1-mask3` contain mandatory `baseline-v2.json`, `target.a80`, `target.bin`, `final.mir2`, `allocation.json`. Optional nested selection-v2 exports may aid review but must be in the fixed alias inventory too. Do not duplicate independently editable candidate costs/proofs: search indices reference nested typed records.
+
+Decisions use a distinct schema, e.g. `minz.memory-host-arena-append-policy-search-cli-decision/v1`, with actual requested goal, selected typed `{policy,mask}`, choices, SHA256 of exact saved search bytes and both exact saved input association bytes, selected binary SHA, measured T states and byte length. All policies0/1 remain mandatory in nested baseline wrappers, including explicit0. Read selected Target through the selected policy/mask nested reference and copy its exact owned ASM/BIN to selected files and optional -o; do not recompile under default or fixed options. Preserve supplied input presentation bytes even though validated allocation RawMessage is normalized internally for equality.
+
+Before any collection/replay/native CPU, validate all prospective source/workload/two-association input paths against all output files and optional -o using canonical/symlink-parent resolution and SameFile for existing hard links. Include both input slots and every candidate directory, not only old fixed-policy inventory. Recheck immediately before filesystem writes. Semantic/admission refusals create no output directory. Ordinary IO partial-write failures are separately documented; no broad filesystem transaction is needed in this slice.
+
+## Focused controls and native verification
+
+Required before frozen-source release: no-new-flags old/default/fixed routes remain unchanged; Changed/global flag state restored; partial/two-empty/swapped/unknown input combinations refuse; unsupported mode/source hash/import and strict capped/duplicate/case/null/v1/policy/context inputs refuse before CPU/output; source/workload/eachassociation/output aliases including hardlinks/symlinkparents; independent known-source gate cannot be postponed until after collection.
+
+Use a cheap actual unchanged-source two-call workload with both sites entered and zero bodies: collect both policies then same-executable paired replay, verify exact association/search bytes and -o selected ASM, selectedpolicy/mask/proof/nativeSHA and actual Speed/Size route. Test actual primary tie ordering/crossover using existing safe private controls, not forged native data. Genuine stale executable input can be compared against a new exact executable with explicit refusal cause; synthetic failed/count forgeries must be labeled synthetic. Do not introduce a production exportfailed-profile facility just for a test.
+
+After independent source review/freeze, preserve one executable and run bounded full30 actual Speed and actual Size search CLI once each (16 measured candidate executions, two input baselines per run). If avoiding this duplicate CPU, run one actual goal and explicitly label the other ranking derived; CLI GoalSize cannot be claimed tested by an offline rank. Independent saved audit covers all exact source state/resource bytes/events, original eleven-site counters, two fresh same-executable associations, nested eight policy/mask/proof references, native diagnostic/cost/hash fields and decision/file/selected identity. Short collect/replay controls are separate. No dynamic matcher counts, fresh PC ledger, source-to-target loop-lineage certificate or universal policy/mask winner follows.
+
+Root owns release/gates/publication. Next implementation can be restricted to new cmd/minzc mode/tests plus narrow registration/exclusion/shared path-helper extraction; existing public finite search and fixed APIs suffice. No generic callback engine or altered old acceptance is required.
