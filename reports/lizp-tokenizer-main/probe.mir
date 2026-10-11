@@ -1,0 +1,419 @@
+; MIR2 module: original-lizp-tokenizer
+fun @is_ws(%r1: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r2 = const 32 : u8 [general]
+    %r3 = cmp.eq %r1, %r2 : bool [flag]
+    br_if %r3, @if_then1(), @if_else3()
+  block @if_then1:
+    %r4 = const 1 : u8 [general]
+    ret %r4
+  block @if_else3:
+    %r5 = const 9 : u8 [general]
+    %r6 = cmp.eq %r1, %r5 : bool [flag]
+    br_if %r6, @if_then4(), @if_else6()
+  block @if_then4:
+    %r7 = const 1 : u8 [general]
+    ret %r7
+  block @if_else6:
+    %r8 = const 10 : u8 [general]
+    %r9 = cmp.eq %r1, %r8 : bool [flag]
+    br_if %r9, @if_then7(), @if_else9()
+  block @if_then7:
+    %r10 = const 1 : u8 [general]
+    ret %r10
+  block @if_else9:
+    %r11 = const 13 : u8 [general]
+    %r12 = cmp.eq %r1, %r11 : bool [flag]
+    %r13 = const 0 : u8 [general]
+    cond_ret %r12, [%r13], @if_then10()
+  block @if_then10:
+    %r14 = const 1 : u8 [general]
+    ret %r14
+
+fun @is_digit(%r15: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r16 = const 48 : u8 [general]
+    %r17 = cmp.uge %r15, %r16 : bool [flag]
+    %r18 = const 57 : u8 [general]
+    %r19 = cmp.ule %r15, %r18 : bool [flag]
+    %r20 = and %r17, %r19 : bool [acc]
+    %r21 = const 0 : bool [general]
+    %r22 = cmp.ne %r20, %r21 : bool [flag]
+    %r23 = const 0 : u8 [general]
+    cond_ret %r22, [%r23], @if_then1()
+  block @if_then1:
+    %r24 = const 1 : u8 [general]
+    ret %r24
+
+fun @is_atom_char(%r25: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r26 = const 0 : u8 [general]
+    %r27 = cmp.eq %r25, %r26 : bool [flag]
+    br_if %r27, @if_then1(), @if_else3()
+  block @if_then1:
+    %r28 = const 0 : u8 [general]
+    ret %r28
+  block @if_else3:
+    %r29 = const 32 : u8 [general]
+    %r30 = cmp.eq %r25, %r29 : bool [flag]
+    br_if %r30, @if_then4(), @if_else6()
+  block @if_then4:
+    %r31 = const 0 : u8 [general]
+    ret %r31
+  block @if_else6:
+    %r32 = const 9 : u8 [general]
+    %r33 = cmp.eq %r25, %r32 : bool [flag]
+    br_if %r33, @if_then7(), @if_else9()
+  block @if_then7:
+    %r34 = const 0 : u8 [general]
+    ret %r34
+  block @if_else9:
+    %r35 = const 10 : u8 [general]
+    %r36 = cmp.eq %r25, %r35 : bool [flag]
+    br_if %r36, @if_then10(), @if_else12()
+  block @if_then10:
+    %r37 = const 0 : u8 [general]
+    ret %r37
+  block @if_else12:
+    %r38 = const 13 : u8 [general]
+    %r39 = cmp.eq %r25, %r38 : bool [flag]
+    br_if %r39, @if_then13(), @if_else15()
+  block @if_then13:
+    %r40 = const 0 : u8 [general]
+    ret %r40
+  block @if_else15:
+    %r41 = const 40 : u8 [general]
+    %r42 = cmp.eq %r25, %r41 : bool [flag]
+    br_if %r42, @if_then16(), @if_else18()
+  block @if_then16:
+    %r43 = const 0 : u8 [general]
+    ret %r43
+  block @if_else18:
+    %r44 = const 41 : u8 [general]
+    %r45 = cmp.eq %r25, %r44 : bool [flag]
+    br_if %r45, @if_then19(), @if_else21()
+  block @if_then19:
+    %r46 = const 0 : u8 [general]
+    ret %r46
+  block @if_else21:
+    %r47 = const 34 : u8 [general]
+    %r48 = cmp.eq %r25, %r47 : bool [flag]
+    br_if %r48, @if_then22(), @if_else24()
+  block @if_then22:
+    %r49 = const 0 : u8 [general]
+    ret %r49
+  block @if_else24:
+    %r50 = const 59 : u8 [general]
+    %r51 = cmp.eq %r25, %r50 : bool [flag]
+    %r52 = const 1 : u8 [general]
+    cond_ret %r51, [%r52], @if_then25()
+  block @if_then25:
+    %r53 = const 0 : u8 [general]
+    ret %r53
+
+fun @get_pos() -> u16 [pointer]
+  block @entry:
+    %r54 = const 49136 : u16 [pointer]
+    %r55 = load %r54 : u8 [general]
+    %r56 = ext %r55 : u8 -> u16 [pointer]
+    %r57 = const 49137 : u16 [pointer]
+    %r58 = load %r57 : u8 [general]
+    %r59 = ext %r58 : u8 -> u16 [pointer]
+    %r60 = const 256 : u16 [pointer]
+    %r61 = mul %r59, %r60 : u16 [pointer]
+    %r62 = add %r56, %r61 : u16 [pointer]
+    ret %r62
+
+fun @set_pos(%r63: u16 [pointer])
+  block @entry:
+    %r64 = const 49136 : u16 [pointer]
+    %r65 = const 256 : u16 [pointer]
+    %r66 = mod %r63, %r65 : u16 [pointer]
+    %r67 = trunc %r66 : u16 -> u8 [general]
+    store %r64, %r67 : u8
+    %r68 = const 49137 : u16 [pointer]
+    %r69 = const 256 : u16 [pointer]
+    %r70 = div %r63, %r69 : u16 [pointer]
+    %r71 = trunc %r70 : u16 -> u8 [general]
+    store %r68, %r71 : u8
+    ret void
+
+fun @get_len() -> u16 [pointer]
+  block @entry:
+    %r72 = const 49138 : u16 [pointer]
+    %r73 = load %r72 : u8 [general]
+    %r74 = ext %r73 : u8 -> u16 [pointer]
+    %r75 = const 49139 : u16 [pointer]
+    %r76 = load %r75 : u8 [general]
+    %r77 = ext %r76 : u8 -> u16 [pointer]
+    %r78 = const 256 : u16 [pointer]
+    %r79 = mul %r77, %r78 : u16 [pointer]
+    %r80 = add %r74, %r79 : u16 [pointer]
+    ret %r80
+
+fun @set_len(%r81: u16 [pointer])
+  block @entry:
+    %r82 = const 49138 : u16 [pointer]
+    %r83 = const 256 : u16 [pointer]
+    %r84 = mod %r81, %r83 : u16 [pointer]
+    %r85 = trunc %r84 : u16 -> u8 [general]
+    store %r82, %r85 : u8
+    %r86 = const 49139 : u16 [pointer]
+    %r87 = const 256 : u16 [pointer]
+    %r88 = div %r81, %r87 : u16 [pointer]
+    %r89 = trunc %r88 : u16 -> u8 [general]
+    store %r86, %r89 : u8
+    ret void
+
+fun @cur_char() -> u8 [acc]
+  block @entry:
+    %r90 = call @get_pos() : u16 [pointer]
+    %r91 = call @get_len() : u16 [pointer]
+    %r92 = cmp.uge %r90, %r91 : bool [flag]
+    br_if %r92, @if_then1(), @if_else3()
+  block @if_then1:
+    %r93 = const 0 : u8 [general]
+    ret %r93
+  block @if_else3:
+    %r94 = const 49152 : u16 [pointer]
+    %r95 = add %r94, %r90 : u16 [pointer]
+    %r96 = load %r95 : u8 [acc]
+    ret %r96
+
+fun @advance()
+  block @entry:
+    %r97 = call @get_pos() : u16 [pointer]
+    %r98 = const 1 : u16 [pointer]
+    %r99 = add %r97, %r98 : u16 [pointer]
+    call @set_pos(%r99)
+    ret void
+
+fun @skip_ws()
+  block @entry:
+    jmp @loop_head1()
+  block @loop_head1:
+    %r100 = call @cur_char() : u8 [acc]
+    %r101 = move %r100 : u8 [acc]
+    %r102 = call @is_ws(%r101) : u8 [acc]
+    %r103 = const 1 : u8 [general]
+    %r104 = cmp.eq %r102, %r103 : bool [flag]
+    cond_ret %r104, [], @loop_body2()
+  block @loop_body2:
+    call @advance()
+    jmp @loop_head1()
+
+fun @skip_comment()
+  block @entry:
+    jmp @loop_head1()
+  block @loop_head1:
+    %r105 = call @cur_char() : u8 [acc]
+    %r106 = const 10 : u8 [general]
+    %r107 = cmp.ne %r105, %r106 : bool [flag]
+    %r108 = call @cur_char() : u8 [acc]
+    %r109 = const 0 : u8 [general]
+    %r110 = cmp.ne %r108, %r109 : bool [flag]
+    %r111 = and %r107, %r110 : bool [general]
+    %r112 = const 0 : bool [general]
+    %r113 = cmp.ne %r111, %r112 : bool [flag]
+    br_if %r113, @loop_body2(), @loop_exit3()
+  block @loop_body2:
+    call @advance()
+    jmp @loop_head1()
+  block @loop_exit3:
+    %r114 = call @cur_char() : u8 [acc]
+    %r115 = const 0 : u8 [general]
+    %r116 = cmp.ne %r114, %r115 : bool [flag]
+    call_cc %r116 : void [general]
+    jmp @if_join5()
+  block @if_join5:
+    ret void
+
+fun @skip_ignored()
+  block @entry:
+    call @skip_ws()
+    %r117 = call @cur_char() : u8 [acc]
+    %r118 = const 59 : u8 [general]
+    %r119 = cmp.eq %r117, %r118 : bool [flag]
+    br_if %r119, @if_then1(), @if_join2()
+  block @if_then1:
+    call @skip_comment()
+    call @skip_ignored()
+    jmp @if_join2()
+  block @if_join2:
+    ret void
+
+fun @skip_string()
+  block @entry:
+    call @advance()
+    jmp @loop_head1()
+  block @loop_head1:
+    %r120 = call @cur_char() : u8 [acc]
+    %r121 = const 34 : u8 [general]
+    %r122 = cmp.ne %r120, %r121 : bool [flag]
+    %r123 = call @cur_char() : u8 [acc]
+    %r124 = const 0 : u8 [general]
+    %r125 = cmp.ne %r123, %r124 : bool [flag]
+    %r126 = and %r122, %r125 : bool [general]
+    %r127 = const 0 : bool [general]
+    %r128 = cmp.ne %r126, %r127 : bool [flag]
+    br_if %r128, @loop_body2(), @loop_exit3()
+  block @loop_body2:
+    call @advance()
+    jmp @loop_head1()
+  block @loop_exit3:
+    %r129 = call @cur_char() : u8 [acc]
+    %r130 = const 0 : u8 [general]
+    %r131 = cmp.eq %r129, %r130 : bool [flag]
+    %r132 = const 0 : bool [general]
+    %r133 = cmp.eq %r131, %r132 : bool [flag]
+    %r134 = const 0 : bool [general]
+    %r135 = cmp.ne %r133, %r134 : bool [flag]
+    call_cc %r135 : void [general]
+    jmp @if_join5()
+  block @if_join5:
+    ret void
+
+fun @skip_number()
+  block @entry:
+    jmp @loop_head1()
+  block @loop_head1:
+    %r136 = call @cur_char() : u8 [acc]
+    %r137 = move %r136 : u8 [acc]
+    %r138 = call @is_digit(%r137) : u8 [acc]
+    %r139 = const 1 : u8 [general]
+    %r140 = cmp.eq %r138, %r139 : bool [flag]
+    cond_ret %r140, [], @loop_body2()
+  block @loop_body2:
+    call @advance()
+    jmp @loop_head1()
+
+fun @skip_atom()
+  block @entry:
+    jmp @loop_head1()
+  block @loop_head1:
+    %r141 = call @cur_char() : u8 [acc]
+    %r142 = move %r141 : u8 [acc]
+    %r143 = call @is_atom_char(%r142) : u8 [acc]
+    %r144 = const 1 : u8 [general]
+    %r145 = cmp.eq %r143, %r144 : bool [flag]
+    cond_ret %r145, [], @loop_body2()
+  block @loop_body2:
+    call @advance()
+    jmp @loop_head1()
+
+fun @next_token() -> u8 [acc]
+  block @entry:
+    call @skip_ignored()
+    %r146 = call @cur_char() : u8 [acc]
+    %r147 = const 0 : u8 [general]
+    %r148 = cmp.eq %r146, %r147 : bool [flag]
+    br_if %r148, @if_then1(), @if_else3()
+  block @if_then1:
+    %r149 = const 0 : u8 [general]
+    ret %r149
+  block @if_else3:
+    %r150 = const 40 : u8 [general]
+    %r151 = cmp.eq %r146, %r150 : bool [flag]
+    br_if %r151, @if_then4(), @if_else6()
+  block @if_then4:
+    call @advance()
+    %r152 = const 1 : u8 [general]
+    ret %r152
+  block @if_else6:
+    %r153 = const 41 : u8 [general]
+    %r154 = cmp.eq %r146, %r153 : bool [flag]
+    br_if %r154, @if_then7(), @if_else9()
+  block @if_then7:
+    call @advance()
+    %r155 = const 2 : u8 [general]
+    ret %r155
+  block @if_else9:
+    %r156 = const 34 : u8 [general]
+    %r157 = cmp.eq %r146, %r156 : bool [flag]
+    br_if %r157, @if_then10(), @if_else12()
+  block @if_then10:
+    call @skip_string()
+    %r158 = const 5 : u8 [general]
+    ret %r158
+  block @if_else12:
+    %r159 = move %r146 : u8 [acc]
+    %r160 = call @is_digit(%r159) : u8 [acc]
+    %r161 = const 1 : u8 [general]
+    %r162 = cmp.eq %r160, %r161 : bool [flag]
+    br_if %r162, @if_then13(), @if_else15()
+  block @if_then13:
+    call @skip_number()
+    %r163 = const 4 : u8 [general]
+    ret %r163
+  block @if_else15:
+    call @skip_atom()
+    %r164 = const 3 : u8 [general]
+    ret %r164
+
+fun @print_tok(%r165: u8 [acc])
+  block @entry:
+    %r166 = move %r165 : u8 [acc]
+    call @@mir.io.print.u8(%r166)
+    ret void
+
+fun @load_test(%r167: u8 [acc])
+  block @entry:
+    %r168 = const 49152 : u16 [pointer]
+    %r169 = const 40 : u8 [general]
+    store %r168, %r169 : u8
+    %r170 = const 49153 : u16 [pointer]
+    %r171 = const 43 : u8 [general]
+    store %r170, %r171 : u8
+    %r172 = const 49154 : u16 [pointer]
+    %r173 = const 32 : u8 [general]
+    store %r172, %r173 : u8
+    %r174 = const 49155 : u16 [pointer]
+    %r175 = const 49 : u8 [general]
+    store %r174, %r175 : u8
+    %r176 = const 49156 : u16 [pointer]
+    %r177 = const 32 : u8 [general]
+    store %r176, %r177 : u8
+    %r178 = const 49157 : u16 [pointer]
+    %r179 = const 50 : u8 [general]
+    store %r178, %r179 : u8
+    %r180 = const 49158 : u16 [pointer]
+    %r181 = const 41 : u8 [general]
+    store %r180, %r181 : u8
+    %r182 = const 49159 : u16 [pointer]
+    %r183 = const 0 : u8 [general]
+    store %r182, %r183 : u8
+    %r184 = const 7 : u8 [acc]
+    call @set_len(%r184)
+    %r185 = const 0 : u8 [acc]
+    call @set_pos(%r185)
+    ret void
+
+fun @run_tokenizer(%r186: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r187 = const 0 : u8 [general]
+    %r188 = call @next_token() : u8 [acc]
+    jmp @loop_head1(%r187, %r188)
+  block @loop_head1(%r187: u8 [general], %r190: u8 [general]):
+    %r191 = const 0 : u8 [general]
+    %r192 = cmp.ne %r190, %r191 : bool [flag]
+    cond_ret %r192, [%r187], @loop_body2()
+  block @loop_body2:
+    %r193 = move %r190 : u8 [acc]
+    call @print_tok(%r193)
+    %r194 = const 1 : u8 [general]
+    %r195 = add %r187, %r194 : u8 [general]
+    %r196 = call @next_token() : u8 [acc]
+    jmp @loop_head1(%r195, %r196)
+
+fun @main(%r197: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r198 = const 0 : u8 [acc]
+    call @load_test(%r198)
+    %r199 = const 0 : u8 [acc]
+    %r200 = call @run_tokenizer(%r199) : u8 [acc]
+    %r201 = move %r200 : u8 [acc]
+    call @@mir.io.print.u8(%r201)
+    call @@mir.io.print.nl()
+    %r202 = const 0 : u8 [general]
+    ret %r202
+
