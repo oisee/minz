@@ -1,0 +1,44 @@
+{
+  "input": "(fun add ((a u8) (b u8)) u8 (return (+ a b)))",
+  "bytes": 45,
+  "tree": [
+    "fun",
+    "add",
+    [
+      [
+        "a",
+        "u8"
+      ],
+      [
+        "b",
+        "u8"
+      ]
+    ],
+    "u8",
+    [
+      "return",
+      [
+        "+",
+        "a",
+        "b"
+      ]
+    ]
+  ],
+  "nodes": 17,
+  "node_bump": 32904,
+  "unique_atoms": [
+    "fun",
+    "add",
+    "a",
+    "u8",
+    "b",
+    "return",
+    "+"
+  ],
+  "intern_bytes": 24,
+  "str_bump": 36888,
+  "parse_pos": 45,
+  "desired_decimal_output": "Input: (fun add ((a u8) (b u8)) u8 (return (+ a b)))\nParsed: (fun add ((a u8) (b u8)) u8 (return (+ a b)))\nNodes: 17 Strings: 24 bytes\n",
+  "decimal_output_requires_print_u8_contract_repair": false,
+  "decimal_contract_repair": "verified final compiler emitter; execution still not performed"
+}

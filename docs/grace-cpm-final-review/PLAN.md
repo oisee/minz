@@ -1,0 +1,15 @@
+# Final CP/M smoke preparation (no execution)
+
+Use the final e51846f1 compiler, preserved CLI SHA9ec48c5f2eaa42e786be9adddc0b824c374d5c39a599a8d2dd0ef3181a2b65d1. Compile the explicit CString main source SHA574cef717965dbe6fcf6937ae35935b7b7e26f2051e49e7862d1826cff76f42d; original SelfLanz source remains byte-identical. The one changed literal documents the source's NUL-scan assumption. Neither source is a PGO rewrite.
+
+The wrapper generator must count fresh actual `OUT (0x23), A` instructions, replacing each with the register-preserving BDOS2 bridge. It must provide real `peek HL -> A` and `poke HL,C -> void` memory instructions, and replace only main's terminal DI/HALT with RET. Preserve all other emitted module instructions/data. Do not reuse the historical count16, binary2344 or old symbol offsets.
+
+A single ORG0100 creates a flat COM. An independent assembler audit must reconcile every emitted listing byte to COM[address-0100], complete image size and symbols, with code/data below6000. Stack canaries at6000/7002 and owned stack6002..7002 must be initialized at startup rather than serialized with a second ORG. Node8000/string9000/sourceC000 resource ranges remain separate, and incoming SP/BDOS boundary must be >=D000 before arena/stack writes. Saving incomingSP writes only a declared image-owned word. Bridge PUSH/POP AF,BC,DE,HL,IX,IY must balance around CALL5; main returns to wrapper, then systemSP is restored before JP0.
+
+Existing MZE CP/M target uses all-RAM, loads0100 and starts0100, installs BDOS pointerFE00 and simulates CCP entry with SPFDFE. BDOS2 prints exactly E and returns A/HL0; the six-pair bridge restores the compiler caller state. `--timeout 10000000` bounds emulator cycles; an external60s timeout separately bounds wall time. Use a preserved MZE executable built from the same final source and capture exact command/identity/stdout/stderr/exit plus `--profile` memory snapshot. This is an emulator with a host BDOS handler, not a physical CP/M OS measurement.
+
+Important: MZE warm boot JP0 reports exitCode0 regardless of wrapper status. Process exit0 alone is insufficient. Verify __cpm_smoke_status==1, savedSP==FDFE, both canaries unchanged, node_bump==8088, str_bump==9018, pos==45 and exact stdout from independent oracle. The profiler only retains touched memory addresses; required status/canary/global bytes are touched by successful code. Missing evidence is refusal to attest, not assumed zero.
+
+Expected parser result comes from independently interpreting the literal: six list nodes plus eleven atom occurrences =17nodes; seven unique atoms fun/add/a/u8/b/return/+ occupy24 length-prefixed bytes; input length45. The decimal print repair means the exact final line is `Nodes: 17 Strings: 24 bytes`, with no raw control-byte interpretation. Frozen oracle.json retains the tree and expected stdout.
+
+Do not execute COM until fresh source/assembly/COM maps, wrapper guards and preserved MZE identity receive independent review and root release. No execution was performed for this plan.
