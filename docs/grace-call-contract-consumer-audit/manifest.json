@@ -1,0 +1,17 @@
+{
+  "base": "82da91c7d14830cc674e93e4e0592088eea04cc1",
+  "files": [
+    {
+      "path": "docs/grace-call-contract-consumer-audit/REPORT.md",
+      "sha256": "d34f58b8035531941e1e5619b6c2e8a5baf8243afbe74745d9ee08b2a0074526"
+    },
+    {
+      "path": "docs/grace-call-contract-consumer-audit/probe.go.txt",
+      "sha256": "b6ad9fa8e6d6fb496f86145763560b5349e73f37327aef8b8addb0e35491e902"
+    },
+    {
+      "path": "docs/grace-call-contract-consumer-audit/probe.txt",
+      "sha256": "41c6479b5f248f3cc59f50ca2722c137b1bb072eb6685a2e6dbc1f78f69c54e7"
+    }
+  ]
+}
