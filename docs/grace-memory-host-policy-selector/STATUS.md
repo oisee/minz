@@ -1,0 +1,3 @@
+Selector source checkpoint 86568282. Short two-call controls at both policies and both goals pass four-candidate/exact24-factory retention with forced GC. Consistent forged counters refuse on fresh replay. Late retained origins mutated at calls6/12/18/24 and true shared AST atcall14 refuse. Preflight rejects malformed/case/duplicate/bareprofile/policy mismatch beforefactory. Unobserved append and pure cost tie gates pass.
+
+No full30 measurement has run. Association sources are copied WIP dependencies, unstaged, pending independent owner freeze. These diagnostic tests compile the unchanged full SelfLanz source but execute only the bounded short workloads. Existing node_tag label audit output is preserved, not a new standalone-link claim.
