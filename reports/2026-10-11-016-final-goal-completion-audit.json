@@ -1,5 +1,5 @@
 {
-  "schema": "minz.independent-goal-completion-audit/v1",
+  "schema": "minz.final-goal-completion-audit/v1",
   "audit_source_checkpoint": "9490000a",
   "overall_goal_status": "complete_verified_bounded_objective",
   "native_execution_by_auditor": false,
@@ -162,10 +162,10 @@
     "Frozen-choice retrospective corpus evaluation is not blind unseen heldout training.",
     "No source-to-target dynamic loop lineage or fresh per-PC counts inferred from these saved measurements."
   ],
-  "summary": "Original bounded technical goal verified by current sum/profile/Grace/VMZ80 evidence, realprogram Speed/Size/replay behavior and reconciled complete broad suite. No new CPU necessary for unchanged production/test bodies. Final user-facing publication and offline status/manifest synchronization remain before overall administrative closure.",
+  "summary": "Original bounded objective verified: sum profile/Grace/VM/assembled Z80, real-program Speed/Size/replay and reconciled terminal suite. Private Sites60 publication succeeded, full static/offline equality and archive hashes verified; final docs committed/pushed. Original pipeline nonzero exit is retained.",
   "report_review": {
-    "current_state": "No broadPASS/goalcomplete claim found. Correct branch/main distinction, current/historical costs, realSizeexecution and1200record/1080execution accounting.",
-    "overnight_summary": "Current section explicitly leaves89426pending and explains compile-before-reference-update; history separated.",
+    "current_state": "Final current-state records terminal pipeline exit1 with only three obsolete references, focused updated PASS, current CLI PASS, Sites60 and remaining future research.",
+    "overnight_summary": "Final current section records terminal reconciliation and successful Sites60/offline verification; earlier states remain explicitly historical.",
     "wording_limit": "CPM current-state shorthand fullSelfLanz main should continue to name the explicitly derivedCString source, not unchangedsource main. Its fullRAM proof is separate from closed unchangedsource parser workload."
   },
   "final_publication_record": "2026-10-11-015-final-goal-publication.json",
