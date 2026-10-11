@@ -1,0 +1,4 @@
+=== RUN   TestProfileRealSourceCorpusPopcount
+    profile_corpus_test.go:150: 04_lut_popcount.nanz: 256 calls, one baseline, 7168 T-states, 512 module bytes; artifacts /home/alice/dev/minz-artifacts/grace-workspaces/profile-global-admission/reports/artifacts/profile-global-retained-executable/evidence/real-source-corpus/popcount
+--- PASS: TestProfileRealSourceCorpusPopcount (0.45s)
+PASS
