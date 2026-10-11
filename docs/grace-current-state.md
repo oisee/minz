@@ -11,9 +11,16 @@
 клонирование метаданных `cfaa7777`. Подробный [отчёт ABI](../reports/2026-10-11-083-caller-owned-struct-abi.md)
 сохраняет выполненные проверки и ограничения. Общая цель не закрыта.
 
+Исправлен новый Grace miscompile `46ced4a1`: BrIf с одинаковым target
+сохраняется, если аргументы рёбер различаются. Исходный max_chain снова
+возвращает219 вместо36; before/after native proof и ordered iterator
+проверки сохранены в [пакете185](grace-integration-185/README.md).
+Долгий старый pipeline дополнительно сообщил устаревшие sum cost-formula
+ожидания; независимое измерение полного домена в работе.
+
 | Требование | Что доказано | Что ещё не доказано |
 |---|---|---|
-| Заявленный корпус | Все 194 пути имеют явный статус; 65 independent/bounded VM/Z80 paths | 72 ждут независимого оракула, остальные имеют отдельные ASM/runtime/host ограничения; bounded entry не означает всё приложение |
+| Заявленный корпус | Все 194 пути имеют явный статус; 71 independent/bounded VM/Z80 paths | 66 ждут независимого оракула, остальные имеют отдельные ASM/runtime/host ограничения; bounded entry не означает всё приложение |
 | PFCCO/PBQP и таблицы | Реальные назначения, moves/saves и native польза на packet/weighted; bounded solver audit | Произвольные calls/CFG/islands и глобальная оптимальность |
 | Автоматический выбор и heldout | Self-Lanz, HashMap и Pascal SORT: training-selected BIN проверен на заранее отложенных входах; packet даёт отдельный PFCCO выигрыш | Остальные runtime/corpus ограничения сохраняются; это не универсальный выигрыш на всех программах |
 | Полное удаление LIR и перенос пользы | Пакет/consumers удалены; shared engines/native тесты сохранены; word ×10/12, byte fusion и K11 перенесены с native пользой | Полнота общих physical constraints/pattern choices требует предметного аудита |
@@ -31,7 +38,8 @@ cross-result overlap/wrap и исходный Widemath expanded workload **PASS 
 Полный CLI `44d8952b` завершился с кодом 1: три теста ожидают прежний отказ
 или предупреждение о косвенных вызовах ([окончательный журнал175](grace-integration-175/README.md)).
 Ожидания обновлены после независимого Z80 proof точного исходника; root focused
-PASS 0,165 с. Новый полный CLI `2612a266` ещё выполняется ([пакет176](grace-integration-176/README.md)).
+PASS 0,165 с. Полный CLI `2612a266` завершился PASS, exit 0 ([пакет181](grace-integration-181/README.md)).
+Полный MIR2 `e13e04a3` после OpCallCond также PASS ([пакет180](grace-integration-180/README.md)); checkpoints различаются.
 
 Полный pipeline `cfaa7777` выполняется с заранее сохранённым исполняемым
 файлом ([пакет169](grace-integration-169/README.md)). Уже сообщил два несовпадения
@@ -45,7 +53,7 @@ ASM/BIN/состояния/такты ([отчёт84](../reports/2026-10-11-084-
 Исторический полный pipeline `a7954042` — **PASS 3705,100 с**, до новых ABI изменений.
 Последний compile/assemble корпус на `30c2efda`: **193 PASS / 1 capacity SKIP**, 9,358 с ([пакет172](grace-integration-172/README.md));
 исполнение всех 194 программ этим не доказано. Текущий каталог —
-[пакет179](grace-integration-179/catalog.json). Эти проверки нельзя объединять в один current fullsuite PASS.
+[пакет185](grace-integration-185/catalog.json). Эти проверки нельзя объединять в один current fullsuite PASS.
 
 Исходные Lizp tokenizer whole-main, R5RS13entry и tuple3module имеют новые независимые
 bounded proofs ([пакет179](grace-integration-179/README.md)). VM `OpCallCond` исправлен
