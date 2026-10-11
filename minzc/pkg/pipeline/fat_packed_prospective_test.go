@@ -130,12 +130,7 @@ func TestFATPackedProspectiveMeasuredModes(t *testing.T) {
 	for _, goal := range []string{"speed", "size"} {
 		result, e := MeasureCompilerModeVariants(factory, train, goal, false)
 		if e != nil {
-			if result != nil || !strings.Contains(e.Error(), "hosts/ASM unsupported: disk_read") {
-				t.Fatal("unexpected admission result", goal, e)
-			}
-			save(goal+"/refusal.json", map[string]any{"goal": goal, "error": e.Error(), "result_nil": result == nil, "no_partial_winner": true})
-			t.Logf("%s full-source controlled refusal: %v", goal, e)
-			continue
+			t.Fatal("full-source measured mode admission/execution", goal, e)
 		}
 		fatPackedCheckIndependent(t, train, result.Evidence.Oracle.Results, result.Evidence.Oracle.Snapshots)
 		for i, c := range result.Evidence.Candidates {

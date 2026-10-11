@@ -1,0 +1,456 @@
+{
+  "exact_data_access": true,
+  "schema": "minz.profile-workload/v1",
+  "target_model": "cpm-z80-v1",
+  "max_steps": 1000000,
+  "max_memory": 65536,
+  "resources": {
+    "heldout-0-fat12": "ES5LaIWiv9z5FjNQbYqnxOH+GzhVco+syeYDID1ad5SxzusIJUJffJm20/ANKkdkgZ672PUSL0xphqPA3foXNFFui6jF4v8cOVZzkK3K5wQhPlt4lbLP7AkmQ2B9mrfU8Q4rSGWCn7zZ9hMwTWqHpMHe+xg1Um+MqcbjAB06V3SRrsvoBSI/XHmWs9DtCidEYX6buNXyDyxJZoOgvdr3FDFOa4ilwt/8GTZTcI2qx+QBHjtYdZKvzOkGI0Bdepe00e4LKEVif5y51vMQLUpnhKG+2/gVMk9siabD4P0aN1RxjqvI5QIfPFl2k7DN6gckQV57mLXS7wwpRmOAnbrX9A==",
+    "heldout-0-fat16": "ES5LaIWiv9z5FjNQbYqnxOH+GzhVco+syeYDID1ad5SxzusIJUJffJm20/ANKkdkgZ672PUSL0xphqPA3foXNFFui6jF4v8cOVZzkK3K5wQhPlt4lbLP7AkmQ2B9mrfU8Q4rSGWCn7zZ9hMwTWqHpMHe+xg1Um+MqcbjAB06V3SRrsvoBSI/XHmWs9DtCidEYX6buNXyDyxJZoOgvdr3FDFOa4ilwt/8GTZTcI2qx+QBHjtYdZKvzOkGI0Bdepe00e4LKEVif5y51vMQLUpnhKG+2/gVMk9siabD4P0aN1RxjqvI5QIfPFl2k7DN6gckQV57mLXS7wwpRmOAnbrX9A==",
+    "heldout-1-fat12": "ES5LaIWiv9z5FjNQbYqnxOH+GzhVco+syeYDID1ad5SxzusIJUJffJm20/ANKkdkgZ672PUSL0xphqPA3foXNFFui6jF4v8cOVZzkK3K5wQhPlt4lbLP7AkmQ2B9mrfU8Q4rSGWCn7zZ9hMwTWqHpMHe+xg1Um+MqcbjAB06V3SRrsvoBSI/XHmWs9DtCidEYX6buNXyDyxJZoOgvdr3FDFOa4ilwt/8GTZTcI2qx+QBHjtYdZKvzOkGI0Bdepe00e4LKEVif5y51vMQLUpnhKG+2/gVMk9siabD4P0aN1RxjqvI5QIfPFl2k7DN6gckQV57mLXS7wwpRmOAnbrX9A==",
+    "heldout-1-fat16": "ES5LaIWiv9z5FjNQbYqnxOH+GzhVco+syeYDID1ad5SxzusIJUJffJm20/ANKkdkgZ672PUSL0xphqPA3foXNFFui6jF4v8cOVZzkK3K5wQhPlt4lbLP7AkmQ2B9mrfU8Q4rSGWCn7zZ9hMwTWqHpMHe+xg1Um+MqcbjAB06V3SRrsvoBSI/XHmWs9DtCidEYX6buNXyDyxJZoOgvdr3FDFOa4ilwt/8GTZTcI2qx+QBHjtYdZKvzOkGI0Bdepe00e4LKEVif5y51vMQLUpnhKG+2/gVMk9siabD4P0aN1RxjqvI5QIfPFl2k7DN6gckQV57mLXS7wwpRmOAnbrX9A==",
+    "heldout-2-fat12": "ES5LaIWiv9z5FjNQbYqnxOH+GzhVco+syeYDID1ad5SxzusIJUJffJm20/ANKkdkgZ672PUSL0xphqPA3foXNFFui6jF4v8cOVZzkK3K5wQhPlt4lbLP7AkmQ2B9mrfU8Q4rSGWCn7zZ9hMwTWqHpMHe+xg1Um+MqcbjAB06V3SRrsvoBSI/XHmWs9DtCidEYX6buNXyDyxJZoOgvdr3FDFOa4ilwt/8GTZTcI2qx+QBHjtYdZKvzOkGI0Bdepe00e4LKEVif5y51vMQLUpnhKG+2/gVMk9siabD4P0aN1RxjqvI5QIfPFl2k7DN6gckQV57mLXS7wwpRmOAnbrX9A==",
+    "heldout-2-fat16": "ES5LaIWiv9z5FjNQbYqnxOH+GzhVco+syeYDID1ad5SxzusIJUJffJm20/ANKkdkgZ672PUSL0xphqPA3foXNFFui6jF4v8cOVZzkK3K5wQhPlt4lbLP7AkmQ2B9mrfU8Q4rSGWCn7zZ9hMwTWqHpMHe+xg1Um+MqcbjAB06V3SRrsvoBSI/XHmWs9DtCidEYX6buNXyDyxJZoOgvdr3FDFOa4ilwt/8GTZTcI2qx+QBHjtYdZKvzOkGI0Bdepe00e4LKEVif5y51vMQLUpnhKG+2/gVMk9siabD4P0aN1RxjqvI5QIfPFl2k7DN6gckQV57mLXS7wwpRmOAnbrX9A==",
+    "heldout-3-fat12": "ES5LaIWiv9z5FjNQbYqnxOH+GzhVco+syeYDID1ad5SxzusIJUJffJm20/ANKkdkgZ672PUSL0xphqPA3foXNFFui6jF4v8cOVZzkK3K5wQhPlt4lbLP7AkmQ2B9mrfU8Q4rSGWCn7zZ9hMwTWqHpMHe+xg1Um+MqcbjAB06V3SRrsvoBSI/XHmWs9DtCidEYX6buNXyDyxJZoOgvdr3FDFOa4ilwt/8GTZTcI2qx+QBHjtYdZKvzOkGI0Bdepe00e4LKEVif5y51vMQLUpnhKG+2/gVMk9siabD4P0aN1RxjqvI5QIfPFl2k7DN6gckQV57mLXS7wwpRmOAnbrX9A==",
+    "heldout-3-fat16": "ES5LaIWiv9z5FjNQbYqnxOH+GzhVco+syeYDID1ad5SxzusIJUJffJm20/ANKkdkgZ672PUSL0xphqPA3foXNFFui6jF4v8cOVZzkK3K5wQhPlt4lbLP7AkmQ2B9mrfU8Q4rSGWCn7zZ9hMwTWqHpMHe+xg1Um+MqcbjAB06V3SRrsvoBSI/XHmWs9DtCidEYX6buNXyDyxJZoOgvdr3FDFOa4ilwt/8GTZTcI2qx+QBHjtYdZKvzOkGI0Bdepe00e4LKEVif5y51vMQLUpnhKG+2/gVMk9siabD4P0aN1RxjqvI5QIfPFl2k7DN6gckQV57mLXS7wwpRmOAnbrX9A==",
+    "heldout-4-fat12": "ES5LaIWiv9z5FjNQbYqnxOH+GzhVco+syeYDID1ad5SxzusIJUJffJm20/ANKkdkgZ672PUSL0xphqPA3foXNFFui6jF4v8cOVZzkK3K5wQhPlt4lbLP7AkmQ2B9mrfU8Q4rSGWCn7zZ9hMwTWqHpMHe+xg1Um+MqcbjAB06V3SRrsvoBSI/XHmWs9DtCidEYX6buNXyDyxJZoOgvdr3FDFOa4ilwt/8GTZTcI2qx+QBHjtYdZKvzOkGI0Bdepe00e4LKEVif5y51vMQLUpnhKG+2/gVMk9siabD4P0aN1RxjqvI5QIfPFl2k7DN6gckQV57mLXS7wwpRmOAnbrX9A==",
+    "heldout-4-fat16": "ES5LaIWiv9z5FjNQbYqnxOH+GzhVco+syeYDID1ad5SxzusIJUJffJm20/ANKkdkgZ672PUSL0xphqPA3foXNFFui6jF4v8cOVZzkK3K5wQhPlt4lbLP7AkmQ2B9mrfU8Q4rSGWCn7zZ9hMwTWqHpMHe+xg1Um+MqcbjAB06V3SRrsvoBSI/XHmWs9DtCidEYX6buNXyDyxJZoOgvdr3FDFOa4ilwt/8GTZTcI2qx+QBHjtYdZKvzOkGI0Bdepe00e4LKEVif5y51vMQLUpnhKG+2/gVMk9siabD4P0aN1RxjqvI5QIfPFl2k7DN6gckQV57mLXS7wwpRmOAnbrX9A==",
+    "heldout-5-fat12": "ES5LaIWiv9z5FjNQbYqnxOH+GzhVco+syeYDID1ad5SxzusIJUJffJm20/ANKkdkgZ672PUSL0xphqPA3foXNFFui6jF4v8cOVZzkK3K5wQhPlt4lbLP7AkmQ2B9mrfU8Q4rSGWCn7zZ9hMwTWqHpMHe+xg1Um+MqcbjAB06V3SRrsvoBSI/XHmWs9DtCidEYX6buNXyDyxJZoOgvdr3FDFOa4ilwt/8GTZTcI2qx+QBHjtYdZKvzOkGI0Bdepe00e4LKEVif5y51vMQLUpnhKG+2/gVMk9siabD4P0aN1RxjqvI5QIfPFl2k7DN6gckQV57mLXS7wwpRmOAnbrX9A==",
+    "heldout-5-fat16": "ES5LaIWiv9z5FjNQbYqnxOH+GzhVco+syeYDID1ad5SxzusIJUJffJm20/ANKkdkgZ672PUSL0xphqPA3foXNFFui6jF4v8cOVZzkK3K5wQhPlt4lbLP7AkmQ2B9mrfU8Q4rSGWCn7zZ9hMwTWqHpMHe+xg1Um+MqcbjAB06V3SRrsvoBSI/XHmWs9DtCidEYX6buNXyDyxJZoOgvdr3FDFOa4ilwt/8GTZTcI2qx+QBHjtYdZKvzOkGI0Bdepe00e4LKEVif5y51vMQLUpnhKG+2/gVMk9siabD4P0aN1RxjqvI5QIfPFl2k7DN6gckQV57mLXS7wwpRmOAnbrX9A=="
+  },
+  "globals": {},
+  "calls": [
+    {
+      "function": "read_fat12",
+      "arguments": [
+        {
+          "resource": "heldout-0-fat12"
+        },
+        {
+          "value": 3
+        }
+      ]
+    },
+    {
+      "function": "write_fat12",
+      "arguments": [
+        {
+          "resource": "heldout-0-fat12"
+        },
+        {
+          "value": 3
+        },
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "read_fat12",
+      "arguments": [
+        {
+          "resource": "heldout-0-fat12"
+        },
+        {
+          "value": 3
+        }
+      ]
+    },
+    {
+      "function": "read_fat16",
+      "arguments": [
+        {
+          "resource": "heldout-0-fat16"
+        },
+        {
+          "value": 3
+        }
+      ]
+    },
+    {
+      "function": "write_fat16",
+      "arguments": [
+        {
+          "resource": "heldout-0-fat16"
+        },
+        {
+          "value": 3
+        },
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "read_fat16",
+      "arguments": [
+        {
+          "resource": "heldout-0-fat16"
+        },
+        {
+          "value": 3
+        }
+      ]
+    },
+    {
+      "function": "read_fat12",
+      "arguments": [
+        {
+          "resource": "heldout-1-fat12"
+        },
+        {
+          "value": 14
+        }
+      ]
+    },
+    {
+      "function": "write_fat12",
+      "arguments": [
+        {
+          "resource": "heldout-1-fat12"
+        },
+        {
+          "value": 14
+        },
+        {
+          "value": 32769
+        }
+      ]
+    },
+    {
+      "function": "read_fat12",
+      "arguments": [
+        {
+          "resource": "heldout-1-fat12"
+        },
+        {
+          "value": 14
+        }
+      ]
+    },
+    {
+      "function": "read_fat16",
+      "arguments": [
+        {
+          "resource": "heldout-1-fat16"
+        },
+        {
+          "value": 14
+        }
+      ]
+    },
+    {
+      "function": "write_fat16",
+      "arguments": [
+        {
+          "resource": "heldout-1-fat16"
+        },
+        {
+          "value": 14
+        },
+        {
+          "value": 32769
+        }
+      ]
+    },
+    {
+      "function": "read_fat16",
+      "arguments": [
+        {
+          "resource": "heldout-1-fat16"
+        },
+        {
+          "value": 14
+        }
+      ]
+    },
+    {
+      "function": "read_fat12",
+      "arguments": [
+        {
+          "resource": "heldout-2-fat12"
+        },
+        {
+          "value": 31
+        }
+      ]
+    },
+    {
+      "function": "write_fat12",
+      "arguments": [
+        {
+          "resource": "heldout-2-fat12"
+        },
+        {
+          "value": 31
+        },
+        {
+          "value": 4660
+        }
+      ]
+    },
+    {
+      "function": "read_fat12",
+      "arguments": [
+        {
+          "resource": "heldout-2-fat12"
+        },
+        {
+          "value": 31
+        }
+      ]
+    },
+    {
+      "function": "read_fat16",
+      "arguments": [
+        {
+          "resource": "heldout-2-fat16"
+        },
+        {
+          "value": 31
+        }
+      ]
+    },
+    {
+      "function": "write_fat16",
+      "arguments": [
+        {
+          "resource": "heldout-2-fat16"
+        },
+        {
+          "value": 31
+        },
+        {
+          "value": 4660
+        }
+      ]
+    },
+    {
+      "function": "read_fat16",
+      "arguments": [
+        {
+          "resource": "heldout-2-fat16"
+        },
+        {
+          "value": 31
+        }
+      ]
+    },
+    {
+      "function": "read_fat12",
+      "arguments": [
+        {
+          "resource": "heldout-3-fat12"
+        },
+        {
+          "value": 34
+        }
+      ]
+    },
+    {
+      "function": "write_fat12",
+      "arguments": [
+        {
+          "resource": "heldout-3-fat12"
+        },
+        {
+          "value": 34
+        },
+        {
+          "value": 65535
+        }
+      ]
+    },
+    {
+      "function": "read_fat12",
+      "arguments": [
+        {
+          "resource": "heldout-3-fat12"
+        },
+        {
+          "value": 34
+        }
+      ]
+    },
+    {
+      "function": "read_fat16",
+      "arguments": [
+        {
+          "resource": "heldout-3-fat16"
+        },
+        {
+          "value": 34
+        }
+      ]
+    },
+    {
+      "function": "write_fat16",
+      "arguments": [
+        {
+          "resource": "heldout-3-fat16"
+        },
+        {
+          "value": 34
+        },
+        {
+          "value": 65535
+        }
+      ]
+    },
+    {
+      "function": "read_fat16",
+      "arguments": [
+        {
+          "resource": "heldout-3-fat16"
+        },
+        {
+          "value": 34
+        }
+      ]
+    },
+    {
+      "function": "read_fat12",
+      "arguments": [
+        {
+          "resource": "heldout-4-fat12"
+        },
+        {
+          "value": 37
+        }
+      ]
+    },
+    {
+      "function": "write_fat12",
+      "arguments": [
+        {
+          "resource": "heldout-4-fat12"
+        },
+        {
+          "value": 37
+        },
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "function": "read_fat12",
+      "arguments": [
+        {
+          "resource": "heldout-4-fat12"
+        },
+        {
+          "value": 37
+        }
+      ]
+    },
+    {
+      "function": "read_fat16",
+      "arguments": [
+        {
+          "resource": "heldout-4-fat16"
+        },
+        {
+          "value": 37
+        }
+      ]
+    },
+    {
+      "function": "write_fat16",
+      "arguments": [
+        {
+          "resource": "heldout-4-fat16"
+        },
+        {
+          "value": 37
+        },
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "function": "read_fat16",
+      "arguments": [
+        {
+          "resource": "heldout-4-fat16"
+        },
+        {
+          "value": 37
+        }
+      ]
+    },
+    {
+      "function": "read_fat12",
+      "arguments": [
+        {
+          "resource": "heldout-5-fat12"
+        },
+        {
+          "value": 62
+        }
+      ]
+    },
+    {
+      "function": "write_fat12",
+      "arguments": [
+        {
+          "resource": "heldout-5-fat12"
+        },
+        {
+          "value": 62
+        },
+        {
+          "value": 43981
+        }
+      ]
+    },
+    {
+      "function": "read_fat12",
+      "arguments": [
+        {
+          "resource": "heldout-5-fat12"
+        },
+        {
+          "value": 62
+        }
+      ]
+    },
+    {
+      "function": "read_fat16",
+      "arguments": [
+        {
+          "resource": "heldout-5-fat16"
+        },
+        {
+          "value": 62
+        }
+      ]
+    },
+    {
+      "function": "write_fat16",
+      "arguments": [
+        {
+          "resource": "heldout-5-fat16"
+        },
+        {
+          "value": 62
+        },
+        {
+          "value": 43981
+        }
+      ]
+    },
+    {
+      "function": "read_fat16",
+      "arguments": [
+        {
+          "resource": "heldout-5-fat16"
+        },
+        {
+          "value": 62
+        }
+      ]
+    }
+  ]
+}
