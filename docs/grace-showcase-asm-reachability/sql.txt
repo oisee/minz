@@ -1,0 +1,19 @@
+=== RUN   TestShowcaseCompileAssemble
+    showcase_test.go:86: Found 192 showcase files
+=== RUN   TestShowcaseCompileAssemble/zsql.nanz
+[Z80-VALIDATE] terminate: 1 invalid instruction(s)
+  line 3: >>> LD HL, _inbuf+2 <<<
+    showcase_test.go:159: OK: 19330 bytes asm, 1568 bytes binary
+=== RUN   TestShowcaseCompileAssemble/zsql_zx.nanz
+    showcase_test.go:140: asm error: line 227: unknown instruction or invalid operands: LD
+    showcase_test.go:140: asm error: line 227: unknown instruction or invalid operands: LD
+    showcase_test.go:142: assembly produced 2 errors
+=== RUN   TestShowcaseCompileAssemble/zsql_zx_real.nanz
+    showcase_test.go:159: OK: 13971 bytes asm, 1145 bytes binary
+--- FAIL: TestShowcaseCompileAssemble (0.10s)
+    --- PASS: TestShowcaseCompileAssemble/zsql.nanz (0.03s)
+    --- FAIL: TestShowcaseCompileAssemble/zsql_zx.nanz (0.03s)
+    --- PASS: TestShowcaseCompileAssemble/zsql_zx_real.nanz (0.03s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/nanz	0.107s
+FAIL

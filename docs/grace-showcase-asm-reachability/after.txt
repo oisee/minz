@@ -1,0 +1,24 @@
+=== RUN   TestPruneUnreachableFuncsOpaqueAssembly
+=== RUN   TestPruneUnreachableFuncsOpaqueAssembly/CALL_imported__helper
+=== RUN   TestPruneUnreachableFuncsOpaqueAssembly/JP_NZ,_imported__helper
+=== RUN   TestPruneUnreachableFuncsOpaqueAssembly/LD_HL,_imported__helper_/_JP_(HL)
+=== RUN   TestPruneUnreachableFuncsOpaqueAssembly/DW_imported__helper
+--- PASS: TestPruneUnreachableFuncsOpaqueAssembly (0.00s)
+    --- PASS: TestPruneUnreachableFuncsOpaqueAssembly/CALL_imported__helper (0.00s)
+    --- PASS: TestPruneUnreachableFuncsOpaqueAssembly/JP_NZ,_imported__helper (0.00s)
+    --- PASS: TestPruneUnreachableFuncsOpaqueAssembly/LD_HL,_imported__helper_/_JP_(HL) (0.00s)
+    --- PASS: TestPruneUnreachableFuncsOpaqueAssembly/DW_imported__helper (0.00s)
+=== RUN   TestPruneUnreachableFuncsUnreachableAssembly
+--- PASS: TestPruneUnreachableFuncsUnreachableAssembly (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.007s
+=== RUN   TestInlineAsmOnlyFunctionReachabilityZ80
+=== RUN   TestInlineAsmOnlyFunctionReachabilityZ80/grace=false
+    inline_asm_reachability_test.go:20: result=73 T_states=70 code_bytes=14
+=== RUN   TestInlineAsmOnlyFunctionReachabilityZ80/grace=true
+    inline_asm_reachability_test.go:20: result=73 T_states=70 code_bytes=14
+--- PASS: TestInlineAsmOnlyFunctionReachabilityZ80 (0.00s)
+    --- PASS: TestInlineAsmOnlyFunctionReachabilityZ80/grace=false (0.00s)
+    --- PASS: TestInlineAsmOnlyFunctionReachabilityZ80/grace=true (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.010s

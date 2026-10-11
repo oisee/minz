@@ -1,0 +1,8 @@
+=== RUN   TestInlineAsmOnlyFunctionReachabilityZ80
+[label-audit] 1 undefined labels:
+  imported__module__helper
+    inline_asm_reachability_test.go:15: assemble: <nil> [line 19: unknown instruction or invalid operands: CALL]
+--- FAIL: TestInlineAsmOnlyFunctionReachabilityZ80 (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.007s
+FAIL
