@@ -1,0 +1,13 @@
+# Isolated first-byte peel measurement
+
+Original SelfLanz source is unchanged (SHA256 `0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526`). The source factory and transformed factory have distinct semantic HIR and origin keys. This is a direct experimental transformation, not an accepted original-source rewrite certificate or default PGO rule.
+
+Actual persistent 30-call Z80 measurement: original 1221494T/2091B, peeled 1218395T/2212B. This saves 3099T (0.254%) and adds 121B (5.79%). Seventeen calls improve; thirteen tie; none regress on this workload. The size objective should prefer original. Profitability on other workloads remains unknown; no general break-even threshold is established.
+
+Original BIN SHA `fed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51`; peeled BIN SHA `34958078e521d824b3df65ad8f31c4bb586c86c19332222294a4a8258bda8ea5`. `comparison.json` records all per-call costs and both compatibility keys. Raw and actual native full state/ordered resource events agree. Portable independent Python host verifies all 30 calls, ten globals and all three resource regions for both variants. Typed Go auditors verify exact frame/sidecar JSON, MIR/allocation, ASM/BIN and cost payloads; they accept compressed copies.
+
+The new target shape requires compiler-generated IX snapshot memory access. A separate optional capability permits only the exact one-A-byte-to-saved-byte return restoration sequence; other ABI forms refuse. It validates initialized caller-save pair roles, anchored IX/current-SP geometry, exact operation/source-byte/destination slot and fixed AF restore sequence. Original generic numeric stack access remains denied. Earlier refusal is preserved separately in memory-host-arena-peel-evidence; this measurement uses reviewed narrow frame capability from the separate branch.
+
+`original.hir` and `peeled.hir` preserve whole-module diagnostic pre/post shapes. Source origins for the original tail loop remain attached; no peeled loop count or new source coordinates are fabricated. Full len0..255/alias/wrap/typed-failure domain proof and whole-module pre/post production certificate are still required. Independent global traffic and postallocation MIR proof are not claimed.
+
+Run Python verify_public_host.py in each variant directory. From minzc run `go run /absolute/path/verify_typed_payload.go /absolute/path/variant-directory`. Large payloads are deterministic gzip with mtime zero. Root parent production remains untouched.

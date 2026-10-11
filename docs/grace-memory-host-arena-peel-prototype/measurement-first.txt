@@ -1,0 +1,9 @@
+=== RUN   TestMemoryHostArenaPeelPrototypeOriginal30
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_arena_peel_prototype_test.go:74: actual original 1221494T/2091B variant 1218395T/2212B
+--- PASS: TestMemoryHostArenaPeelPrototypeOriginal30 (2.58s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	2.588s
