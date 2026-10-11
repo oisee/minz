@@ -1,0 +1,10 @@
+{
+  "reviewed_plan": "6cd1b6da",
+  "base": "b1e0fa66",
+  "files": [
+    {
+      "path": "docs/grace-memory-host-arena-append-cli-review/INPUT-OUTPUT-DESIGN.md",
+      "sha256": "0134d33698423606c46dafac08f76282f99736026e7a3a0a618faf91f3f316e8"
+    }
+  ]
+}
