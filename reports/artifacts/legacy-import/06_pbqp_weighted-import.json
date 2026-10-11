@@ -1,0 +1,1722 @@
+{
+  "module_bytes": [
+    36,
+    36
+  ],
+  "weighted/enrt4v-prefix": {
+    "remap_limit": 6,
+    "attempts": 0,
+    "schema": "vir-legacy-candidate-import/v1",
+    "format": "legacy-gpu-json",
+    "source_sha256": "01d61aa371861a8a387c38b17f266917a8b4c9f64b1234f2fc18877d6db36c10",
+    "entries": 244,
+    "compatible": 0,
+    "admitted": 0,
+    "decisions": [
+      {
+        "signature": "0,0",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,0,0",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,0,0,0",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,0,0,2",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,0,0,4",
+        "claimed_cost": 20,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,0,1",
+        "claimed_cost": 20,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,0,1,4",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,0,2",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,0,2,0",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,0,2,2",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,0,2,6",
+        "claimed_cost": 20,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,0,3",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,0,3,0",
+        "claimed_cost": 20,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,0,3,2",
+        "claimed_cost": 24,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,0,4,2",
+        "claimed_cost": 24,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,0,5,1",
+        "claimed_cost": 28,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,0,5,6",
+        "claimed_cost": 24,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,0,6,0",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,0,6,2",
+        "claimed_cost": 20,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,0,6,5",
+        "claimed_cost": 24,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,0,7",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,0,8",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,0,9",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,1,3",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,1,8",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,2",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,2,0",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,2,0,0",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,2,0,2",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,2,0,4",
+        "claimed_cost": 20,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,2,0,6",
+        "claimed_cost": 24,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,2,1",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,2,2",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,2,3",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,2,8",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,2,9",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,4",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,4,0",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,4,3",
+        "claimed_cost": 20,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,6",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,6,0",
+        "claimed_cost": 20,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,6,2",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,6,3",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,6,8",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,6,9",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,7,8",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,7,9",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,8",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,8,0",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,8,2",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,8,8",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,8,9",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,9",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,9,0",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,9,2",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,9,7",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,9,8",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0,9,9",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "1,2",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "1,2,0",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,0",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,0,0",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,0,1",
+        "claimed_cost": 20,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,0,2",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,0,3",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,0,7",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,0,8",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,0,9",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,1",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,1,0",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,1,1",
+        "claimed_cost": 20,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,1,3",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,1,8",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,2",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,2,0",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,2,2",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,2,3",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,2,6",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,2,8",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,2,9",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,3,3",
+        "claimed_cost": 20,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,4,0",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,6",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,6,0",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,6,2",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,6,3",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,6,6",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,6,8",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,6,9",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,7,6",
+        "claimed_cost": 20,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,7,8",
+        "claimed_cost": 20,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,8",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,8,0",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,8,2",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,8,6",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,8,8",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,8,9",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,9",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,9,0",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,9,2",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,9,6",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,9,7",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,9,8",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2,9,9",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "3,4,0",
+        "claimed_cost": 20,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "5,2,6",
+        "claimed_cost": 20,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "5,6",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "5,6,0",
+        "claimed_cost": 24,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "5,6,2",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "5,6,8",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "5,6,9",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "5,8,2",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,0",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,0,0",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,0,1",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,0,2",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,0,3",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,0,7",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,0,8",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,0,9",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,1,1",
+        "claimed_cost": 20,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,1,3",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,1,8",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,2",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,2,0",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,2,2",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,2,3",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,2,4",
+        "claimed_cost": 20,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,2,6",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,2,8",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,2,9",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,6",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,6,0",
+        "claimed_cost": 20,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,6,2",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,6,8",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,6,9",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,7,8",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,7,9",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,8",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,8,0",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,8,2",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,8,8",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,8,9",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,9",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,9,0",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,9,2",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,9,7",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,9,8",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6,9,9",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "7,8,0",
+        "claimed_cost": 20,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "7,8,9",
+        "claimed_cost": 20,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "7,9,8",
+        "claimed_cost": 20,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,0",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,0,0",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,0,1",
+        "claimed_cost": 20,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,0,2",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,0,3",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,0,7",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,0,8",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,0,9",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,1",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,1,0",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,1,3",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,1,8",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,2",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,2,0",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,2,2",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,2,3",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,2,4",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,2,8",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,2,9",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,3,9",
+        "claimed_cost": 24,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,6",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,6,0",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,6,2",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,6,8",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,6,9",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,7",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,7,0",
+        "claimed_cost": 24,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,7,8",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,7,9",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,8",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,8,0",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,8,2",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,8,8",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,8,9",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,9",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,9,0",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,9,2",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,9,7",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,9,8",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8,9,9",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,0",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,0,0",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,0,1",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,0,2",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,0,3",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,0,7",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,0,8",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,0,9",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,1",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,1,0",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,1,1",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,1,3",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,1,7",
+        "claimed_cost": 24,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,2",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,2,0",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,2,2",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,2,3",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,2,4",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,2,7",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,2,8",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,2,9",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,3,8",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,3,9",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,5,2",
+        "claimed_cost": 24,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,5,7",
+        "claimed_cost": 20,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,5,8",
+        "claimed_cost": 20,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,5,9",
+        "claimed_cost": 20,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,6",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,6,0",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,6,2",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,6,7",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,6,8",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,6,9",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,7,0",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,7,2",
+        "claimed_cost": 24,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,7,3",
+        "claimed_cost": 24,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,7,7",
+        "claimed_cost": 20,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,7,8",
+        "claimed_cost": 20,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,7,9",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,8",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,8,0",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,8,2",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,8,3",
+        "claimed_cost": 24,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,8,7",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,8,8",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,8,9",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,9",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,9,0",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,9,2",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,9,7",
+        "claimed_cost": 16,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,9,8",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9,9,9",
+        "claimed_cost": 12,
+        "reason": "different dense vreg count"
+      }
+    ]
+  },
+  "weighted/legacy-gpu-json": {
+    "remap_limit": 6,
+    "attempts": 0,
+    "schema": "vir-legacy-candidate-import/v1",
+    "format": "legacy-gpu-json",
+    "source_sha256": "cfb9eb10019a1193161908d44f3103e22002d980f5a9368c7896b0102f1c1aa4",
+    "entries": 56,
+    "compatible": 0,
+    "admitted": 0,
+    "decisions": [
+      {
+        "signature": "02fef837af3cfa47",
+        "claimed_cost": 24,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "03f4be2e774a16c2",
+        "claimed_cost": 7,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "056c83cbd5d5a47b",
+        "claimed_cost": 17,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "05d82d411627d5f3",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "08115289051ca5cd",
+        "claimed_cost": 10,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0a791f05bc4fb425",
+        "claimed_cost": 14,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0b5100f0a6e49879",
+        "claimed_cost": 154,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "0dc5b38c42d159b5",
+        "claimed_cost": 68,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "134d6d621039dcb9",
+        "claimed_cost": 35,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "17ad9373ecb43b1f",
+        "claimed_cost": 34,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "1a35ecac18b9a8fc",
+        "claimed_cost": 17,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "207049274d77ef72",
+        "claimed_cost": 17,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "26d05172c1b766ee",
+        "claimed_cost": 17,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2a3a995c77c1bc8c",
+        "claimed_cost": 4,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2bd2a1e69ddf868f",
+        "claimed_cost": 89,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "317a16b0cbc9c6c9",
+        "claimed_cost": 7,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "393a1db88d97efbf",
+        "claimed_cost": 58,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "4c4b2dacd278f728",
+        "claimed_cost": 45,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "4f18ea754c1b7c4d",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "59c2d24034a0c5fa",
+        "claimed_cost": 10,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "5c842696116943ba",
+        "claimed_cost": 10,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "5d074adba0235364",
+        "claimed_cost": 10,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "65f3c4afe82101a8",
+        "claimed_cost": 17,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6c3598454bcdbc72",
+        "claimed_cost": 10,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6cd68a129e285121",
+        "claimed_cost": 7,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "772a74ae8bb61984",
+        "claimed_cost": 38,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "7ae469c78aa885f0",
+        "claimed_cost": 35,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8403f2ba6cbfd219",
+        "claimed_cost": 18,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8a1e8a568cd4c0b5",
+        "claimed_cost": 48,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9baef53621138fdc",
+        "claimed_cost": 14,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "a8f29deb438fb7fe",
+        "claimed_cost": 109,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "b0096df87a811151",
+        "claimed_cost": 14,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "b2902a53c7748cb9",
+        "claimed_cost": 24,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "b71ac272693e9a5c",
+        "claimed_cost": 17,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "b7e4959faee6949c",
+        "claimed_cost": 45,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "b8aa9444ce4d616b",
+        "claimed_cost": 4,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "b912de5280641f0a",
+        "claimed_cost": 17,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "bd690c8f1280239a",
+        "claimed_cost": 0,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "c5a23584afe3764d",
+        "claimed_cost": 68,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "c7d997e0d56cf227",
+        "claimed_cost": 34,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "ca2cb7981597945e",
+        "claimed_cost": 14,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "cdafd9a6aef22477",
+        "claimed_cost": 10,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "d209a84e26346d81",
+        "claimed_cost": 17,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "d31d07793f560dcc",
+        "claimed_cost": 21,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "d3e8dd548a32b3f4",
+        "claimed_cost": 17,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "d5cf60049fa4dee6",
+        "claimed_cost": 22,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "def578fabf11a23e",
+        "claimed_cost": 10,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "e00da02e972fe007",
+        "claimed_cost": 34,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "e1453dfac8468e75",
+        "claimed_cost": 8,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "e27daf75a060bbdc",
+        "claimed_cost": 42,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "e422c1199c9cc544",
+        "claimed_cost": 45,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "eb2bd43201ca1538",
+        "claimed_cost": 34,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "f25ab0a40831136d",
+        "claimed_cost": 48,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "fa59fd94a135016c",
+        "claimed_cost": 7,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "fd239f20df5b4f37",
+        "claimed_cost": 7,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "fd77f1523bff0a9d",
+        "claimed_cost": 10,
+        "reason": "different dense vreg count"
+      }
+    ]
+  },
+  "weighted/legacy-native-json": {
+    "remap_limit": 6,
+    "attempts": 0,
+    "schema": "vir-legacy-candidate-import/v1",
+    "format": "legacy-native-json",
+    "source_sha256": "8c01a808c50231114f9e1da9bee53aea8065c3b469608924ee37812218f7625b",
+    "entries": 36,
+    "compatible": 0,
+    "admitted": 0,
+    "decisions": [
+      {
+        "signature": "1v_1o_21b51cf1b70aa1e0",
+        "claimed_cost": 10,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "1v_1o_9719e2abb93e8fef",
+        "claimed_cost": 10,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "1v_1o_9cd60570db59fd79",
+        "claimed_cost": 10,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "1v_4o_0036910ec68cd123",
+        "claimed_cost": 68,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2v_1o_e18765132dbcf77a",
+        "claimed_cost": 22,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2v_2o_06a23031154d5c46",
+        "claimed_cost": 17,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2v_2o_de71ac8bda6f1285",
+        "claimed_cost": 14,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2v_2o_e66aeb313b84e60c",
+        "claimed_cost": 23,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "2v_3o_5c2d79b87463c473",
+        "claimed_cost": 30,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "3v_3o_5b8eba0fb901360f",
+        "claimed_cost": 30,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "3v_3o_6ada84a33aeb1c6f",
+        "claimed_cost": 10,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "3v_6o_5d3684a1d5789b53",
+        "claimed_cost": 68,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "4v_2o_0d36afbcdbddc4ee",
+        "claimed_cost": 4,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "4v_3o_5545c2f6d895e3fc",
+        "claimed_cost": 17,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "4v_3o_6c6f2fae41784ef4",
+        "claimed_cost": 21,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "4v_4o_2c7824d1bae7d9a0",
+        "claimed_cost": 31,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "5v_5o_1601be70262bd4d1",
+        "claimed_cost": 39,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "5v_8o_4becfdb5424d9632",
+        "claimed_cost": 48,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6v_5o_013ef6160c647abe",
+        "claimed_cost": 21,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6v_5o_3def5147420fa130",
+        "claimed_cost": 24,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6v_5o_408a7f63382f33dc",
+        "claimed_cost": 28,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6v_6o_c140afb6dd439187",
+        "claimed_cost": 38,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "6v_6o_d25d61853452d8ea",
+        "claimed_cost": 28,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "7v_13o_b86de90ab87d1f90",
+        "claimed_cost": 89,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "7v_6o_115472c5a14e8400",
+        "claimed_cost": 35,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "7v_6o_6415590cc34bc9a6",
+        "claimed_cost": 35,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "7v_7o_258eac8fe4d1a704",
+        "claimed_cost": 42,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8v_10o_5d86f470ae982e1d",
+        "claimed_cost": 89,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8v_11o_83bd1a2a282cad75",
+        "claimed_cost": 116,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8v_7o_959d91998999f172",
+        "claimed_cost": 42,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8v_7o_dc849c726912203d",
+        "claimed_cost": 42,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "8v_8o_5c7aaa0eeba113cd",
+        "claimed_cost": 59,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9v_10o_6aed9a9210c7c03a",
+        "claimed_cost": 66,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9v_7o_7a3f32fd4e42a2fb",
+        "claimed_cost": 49,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9v_9o_15f4cf8c7c0b27b5",
+        "claimed_cost": 52,
+        "reason": "different dense vreg count"
+      },
+      {
+        "signature": "9v_9o_e0bc3bf467743206",
+        "claimed_cost": 52,
+        "reason": "different dense vreg count"
+      }
+    ]
+  }
+}

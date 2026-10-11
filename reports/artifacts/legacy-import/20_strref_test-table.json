@@ -1,0 +1,26 @@
+[
+  {
+    "schema": "vir-local-direct-v1",
+    "costModel": "expanded-pattern-tstates-v1",
+    "sig": "vir-local-direct-v1:b2307fce9d39968927e4ea4bccc56f63cdaf5186ab8ce7fefe1880249dd15f6f",
+    "nVregs": 2,
+    "nOps": 3,
+    "cost": 17,
+    "assignment": [
+      0,
+      0
+    ]
+  },
+  {
+    "schema": "vir-local-direct-v1",
+    "costModel": "expanded-pattern-tstates-v1",
+    "sig": "vir-local-direct-v1:eb4cedf76ad2818076c77f308d8ba818cec7039d8e45048040418915f97b2dc8",
+    "nVregs": 2,
+    "nOps": 3,
+    "cost": 17,
+    "assignment": [
+      0,
+      0
+    ]
+  }
+]
