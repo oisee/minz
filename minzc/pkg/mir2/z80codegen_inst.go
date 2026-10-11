@@ -448,14 +448,14 @@ func (g *z80cg) genInst(inst *Inst) {
 			g.invalidate("A")
 			break
 		}
-		// u16 direct-address load: LD HL, (sym) — 20T, no A clobber.
-		// Fires when the address comes from OpAddrOf(global) and dst is HL.
+		// Direct global word loads preserve all registers except their destination.
+		// The matcher accepts only a single-use AddrOf(global) and HL/DE/BC.
 		// Avoids the INC/DEC trick (LD A,(HL)/INC HL/LD H,(HL)/LD L,A) that
 		// uses A as scratch and corrupts loop counters stored in A.
 		if inst.Ty.Width() == 16 {
-			if sym, ok := g.globalU16LoadSym[inst.Src[0]]; ok && dst == "HL" {
-				g.emitNativeMemoryf(inst, 0, 2, "    LD HL, (%s)    ; u16 direct load (20T, no A clobber)", sanitizeIdent(sym))
-				g.invalidate("HL")
+			if sym, ok := g.globalU16LoadSym[inst.Src[0]]; ok && (dst == "HL" || dst == "DE" || dst == "BC") {
+				g.emitNativeMemoryf(inst, 0, 2, "    LD %s, (%s)    ; u16 direct load, no scratch clobber", dst, sanitizeIdent(sym))
+				g.invalidate(dst)
 				break
 			}
 		}

@@ -786,16 +786,17 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 	}
 
 	// ── u16 direct-address load detection ────────────────────────────────────
-	// Pattern: OpLoad(w=16, addrReg=AddrOf(sym)) → dst (u16, must be HL)
-	// Enables LD HL, (sym) (20T, no A clobber) instead of INC/DEC trick via A.
+	// Pattern: OpLoad(w=16, addrReg=AddrOf(sym)) → dst (u16, must be HL/DE/BC)
+	// Enables direct LD rr, (sym) without scratch-register clobbers.
 	// Only fires when addrReg is used solely by this load (useCount==1) so we
 	// can safely skip the AddrOf instruction (suppress LD HL,sym).
 	for _, inst := range b.Insts {
 		if inst.Op != OpLoad || inst.Ty.Width() != 16 || inst.Dst == NoReg {
 			continue
 		}
-		if g.ar.Loc(inst.Dst).Name != "HL" {
-			continue // only LD HL,(nn) exists for direct u16 load
+		dst := g.ar.Loc(inst.Dst).Name
+		if dst != "HL" && dst != "DE" && dst != "BC" {
+			continue
 		}
 		addrReg := inst.Src[0]
 		def, ok := defInst[addrReg]
@@ -804,6 +805,38 @@ func (g *z80cg) scanGlobalFieldPatterns(b *Block) {
 		}
 		if useCount[addrReg] != 1 {
 			continue // addr reg used by other instructions too
+		}
+		// DE/BC extension must not suppress an address consumed in a successor.
+		// Register coalescing may leave direct cross-block uses without edge args.
+		if dst != "HL" && g.fn != nil {
+			shared := false
+			for _, other := range g.fn.Blocks {
+				if other == b {
+					continue
+				}
+				for _, user := range other.Insts {
+					for _, r := range user.Src {
+						if r == addrReg {
+							shared = true
+						}
+					}
+					for _, r := range user.Args {
+						if r == addrReg {
+							shared = true
+						}
+					}
+				}
+				if other.Term != nil {
+					for _, r := range other.Term.termUses() {
+						if r == addrReg {
+							shared = true
+						}
+					}
+				}
+			}
+			if shared {
+				continue
+			}
 		}
 		g.globalU16LoadSym[addrReg] = def.Sym
 		g.globalFieldSkip[addrReg] = true // suppress LD HL, sym from OpAddrOf
