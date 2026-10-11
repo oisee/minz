@@ -1,0 +1,7 @@
+# Measured current Steps references
+
+One reviewed diagnostic execution of frozenff4137918e480a6ee4689916502ec2735c50d6af9e0f0f62a60eaedbf4377cbe intentionally retained old1135370/SHA1f0 assertions. All three failed only their old native reference checks; all preexisting independent original parser and association boundaries remain unchanged. The exporter preserved all native evidence first. This expected failure is retained, not erased.
+
+Saved independent audit checks90nativeobservations (three30call baselines), full10globals/resources and3017orderedhostevents per baseline against the exact original source model. Association11source-loop counts also match. Factory/association/direct raw/native/workload evidence is exactly equal under this diagnostic executable. Current measured values are1291565T2388B/SHAa9f98a344c5e39cfe6bbb7a94fe84b6222c262ec863be2ba227e90672a875a73, logicalunit../../../examples/nanz/self_lanz_parser.nanz. The resulting hash happens to match fresh CLI Legacy output, but the references are established by these actual Steps test measurements rather than substituted from CLI.
+
+Only three fixedT/SHA references now update to these independently measured values. Test-only preassert export remains. No production admission, source/workload or independent oracle/count/diagnostic hash checks change. Freeze a new final executable and obtain root release before any focused verification rerun.

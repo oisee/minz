@@ -1,0 +1,16 @@
+=== RUN   TestMemoryHostFactoryOriginalParser
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_baseline_test.go:25: original target drift
+--- FAIL: TestMemoryHostFactoryOriginalParser (1.38s)
+=== RUN   TestMemoryHostLoopAssociationOriginalParser
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_loop_profile_test.go:37: instrumentation changed native baseline
+--- FAIL: TestMemoryHostLoopAssociationOriginalParser (2.48s)
+=== RUN   TestMemoryHostOriginalSelfLanzTarget
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_target_test.go:83: reference native cycle/binary drift 1291565 a9f98a344c5e39cfe6bbb7a94fe84b6222c262ec863be2ba227e90672a875a73
+--- FAIL: TestMemoryHostOriginalSelfLanzTarget (1.09s)
+FAIL
