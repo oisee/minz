@@ -12,14 +12,17 @@ import (
 	"github.com/minz/minzc/pkg/nanz"
 	"github.com/minz/minzc/pkg/pipeline"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 type memoryHostPolicyCLIFlags struct{ Directory, Policy, Association string }
 
 var memoryHostPolicyCLI memoryHostPolicyCLIFlags
+var memoryHostPolicyFlagSet *pflag.FlagSet
 
 func registerMemoryHostPolicyCLIFlags(cmd *cobra.Command) {
 	f := cmd.Flags()
+	memoryHostPolicyFlagSet = f
 	f.StringVar(&memoryHostPolicyCLI.Directory, "memory-host-arena-append-policy", "", "measure four closed variants at one explicit comparison policy; save v2 artifacts")
 	f.StringVar(&memoryHostPolicyCLI.Policy, "memory-host-compare-policy", "", "required policy: legacy or preserve-speed")
 	f.StringVar(&memoryHostPolicyCLI.Association, "memory-host-association", "", "optional whole same-executable policy-aware association v2 JSON")
@@ -28,8 +31,11 @@ func memoryHostPolicyCLIRequested() bool {
 	if memoryHostPolicyCLI != (memoryHostPolicyCLIFlags{}) {
 		return true
 	}
+	if memoryHostPolicyFlagSet == nil {
+		return false
+	}
 	for _, name := range []string{"memory-host-arena-append-policy", "memory-host-compare-policy", "memory-host-association"} {
-		if flag := rootCmd.Flags().Lookup(name); flag != nil && flag.Changed {
+		if flag := memoryHostPolicyFlagSet.Lookup(name); flag != nil && flag.Changed {
 			return true
 		}
 	}
@@ -58,7 +64,13 @@ func validateMemoryHostPolicyCLI(source string) error {
 	if memoryHostPolicyCLI.Directory == "" || memoryHostCLI.Workload == "" {
 		return fmt.Errorf("memory host policy CLI: policy directory and workload are required")
 	}
-	if memoryHostCLI.Directory != "" || memoryHostCLI.Profile != "" {
+	legacyFlagsPresent := memoryHostCLI.Directory != "" || memoryHostCLI.Profile != ""
+	for _, name := range []string{"memory-host-arena-append", "memory-host-profile"} {
+		if f := memoryHostPolicyFlagSet.Lookup(name); f != nil && f.Changed {
+			legacyFlagsPresent = true
+		}
+	}
+	if legacyFlagsPresent {
 		return fmt.Errorf("memory host policy CLI: legacy directory/profile flags are incompatible")
 	}
 	if _, e := resolveMemoryHostPolicyCLI(); e != nil {
