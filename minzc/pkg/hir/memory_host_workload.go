@@ -565,17 +565,23 @@ func MemoryHostGlobalAccesses(m *mir2.Module) map[*mir2.Inst]string {
 			if i.Op == mir2.OpMove {
 				return prove(i.Src[0], active)
 			}
-			if i.Op == mir2.OpPtrBump && i.Imm >= 0 {
+			if i.Op == mir2.OpPtrBump && i.Imm >= 0 && i.Imm <= 65535 {
 				p, ok := prove(i.Src[0], active)
+				if !ok || p.offset > 65535-i.Imm {
+					return ptr{}, false
+				}
 				p.offset += i.Imm
-				return p, ok
+				return p, true
 			}
 			if i.Op == mir2.OpPtrAdd {
 				c := defs[i.Src[1]]
-				if c != nil && !ambiguous[i.Src[1]] && c.Op == mir2.OpConst && c.Imm >= 0 {
+				if c != nil && !ambiguous[i.Src[1]] && c.Op == mir2.OpConst && c.Imm >= 0 && c.Imm <= 65535 {
 					p, ok := prove(i.Src[0], active)
+					if !ok || p.offset > 65535-c.Imm {
+						return ptr{}, false
+					}
 					p.offset += c.Imm
-					return p, ok
+					return p, true
 				}
 			}
 			return ptr{}, false
