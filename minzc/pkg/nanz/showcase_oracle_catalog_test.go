@@ -161,6 +161,26 @@ func TestShowcaseExecutableOracleCatalog(t *testing.T) {
 			row.Requirement = "128KiB story[131072], host file/console runtime; ordinary 16-bit Z80 rejects capacity; needs explicit target memory model."
 		}
 		switch row.Path {
+		case "examples/nanz/04_lut_popcount.nanz":
+			row.NativeBehavior = "executed-independent-vm-z80"
+			row.Workload = "All256 byte values"
+			row.Model = "bits.OnesCount8, independent host popcount"
+			row.Requirement = "TestShowcasePopcountAllBytesNativeModel"
+		case "examples/nanz/12_state_machine.nanz":
+			row.NativeBehavior = "executed-independent-vm-z80"
+			row.Workload = "states0..3 × events0,1,2,3,4,127,255 plus alive/speed"
+			row.Model = "Independent transition table and state property tables"
+			row.Requirement = "TestShowcaseStateMachineNativeTransitionModel"
+		case "examples/lizp/crypto.lizp":
+			row.NativeBehavior = "executed-independent-vm-z80"
+			row.Workload = "250 XOR/Caesar/hash/checksum byte boundary calls"
+			row.Model = "Unsigned modulo256 math and XOR; Caesar in A..Z with typed intermediate wrap"
+			row.Requirement = "TestShowcaseLizpCryptoNativeByteModels"
+		case "examples/pascal/sieve.pas":
+			row.NativeBehavior = "executed-independent-vm-z80"
+			row.Workload = "Original main compute prefix before CP/M WriteI16 output"
+			row.Model = "Trial division primality for odd numbers3..203: all101Flags and count45"
+			row.Requirement = "TestShowcasePascalSieveNativeFullMemoryModel; BDOS output outside workload"
 		case "examples/nanz/08_arena_allocator.nanz":
 			row.NativeBehavior = "executed-independent-vm-z80"
 			row.Workload = "6 allocation/OOM/reset/split/sizeof cases + sequential shared source sandbox"
@@ -204,7 +224,7 @@ func TestShowcaseExecutableOracleCatalog(t *testing.T) {
 			Base    string               `json:"base_commit"`
 			Scope   string               `json:"scope"`
 			Entries []oracleCatalogEntry `json:"entries"`
-		}{"cb587fe4", "Metadata catalog; only executed-independent-vm-z80 rows claim explicitly bounded behavioral coverage", catalog}, "", "  ")
+		}{"ff11ba69", "Metadata catalog; only executed-independent-vm-z80 rows claim explicitly bounded behavioral coverage", catalog}, "", "  ")
 		if e != nil {
 			t.Fatal(e)
 		}

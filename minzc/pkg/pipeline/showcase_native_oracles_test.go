@@ -46,7 +46,7 @@ func nativeOracleRun(t *testing.T, s Steps, entries []string) ([]byte, map[strin
 			z.Step()
 		}
 		if !done {
-			t.Fatalf("%s did not return PC=%04x SP=%04x", entry, z.GetPC(), z.GetSP())
+			t.Fatalf("%s did not return PC=%04x SP=%04x\n%s", entry, z.GetPC(), z.GetSP(), s.Assembly)
 		}
 	}
 	symbols := map[string]uint16{}

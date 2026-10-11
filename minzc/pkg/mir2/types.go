@@ -335,7 +335,9 @@ type ArrayTy struct {
 	Align  int         // alignment in bytes; 0 = natural; 256 = page-aligned (SoA256)
 }
 
-func (t *ArrayTy) Width() int { return t.Elem.Width() * t.Len }
+// Elements occupy independently addressable byte slots; bool values are not
+// bit-packed because array indexing/load/store use a byte stride.
+func (t *ArrayTy) Width() int { return ByteWidth(t.Elem) * 8 * t.Len }
 func (t *ArrayTy) String() string {
 	s := fmt.Sprintf("[%d]%s", t.Len, t.Elem.String())
 	if t.Layout != LayoutAoS {
