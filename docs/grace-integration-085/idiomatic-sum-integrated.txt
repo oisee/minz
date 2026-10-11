@@ -1,0 +1,8 @@
+=== RUN   TestOriginalFourPointerReadAliasVMZ80
+    showcase_four_pointer_oracle_test.go:179: exact original four_ptrs:1792calls+observer/full259RAM/orderedreads/aliases/raw-finalVM/nativeSPcode; 182801 T/22 B SHA 97437b293aa80994a658a47703bffd628bc22ecd184a4083f97c485264f6f4de
+--- PASS: TestOriginalFourPointerReadAliasVMZ80 (0.15s)
+=== RUN   TestOriginalIdiomaticSumReadOrderVMZ80
+    showcase_idiomatic_sum_oracle_test.go:190: exact original idiomatic/chain sum:1024 calls + observer, full514RAM/all256lengths/orderedreads/raw-finalVM+nativeSPcode; 3984313 T/46 B SHA 82a1e4e76f5d3deebf9f53b6045c8fec39c5168dc3b3796b47148eff679f2d66
+--- PASS: TestOriginalIdiomaticSumReadOrderVMZ80 (0.79s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.954s

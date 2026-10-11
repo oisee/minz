@@ -14,14 +14,14 @@
 - **LIR полностью удалён из живого компилятора** (`47127a27`). Shared rewrite
   engines, VIR и native оракулы сохранены. Архив 53 research-файлов проверен
   по SHA256: [пакет удаления](grace-lir-final-removal/README.md).
-- **193 из 194 текущих showcase собираются** в свежем прогоне на `76bbe91e`
+- **193 из 194 текущих showcase собираются** в свежем прогоне на `fa5bff53`
   (193 PASS, один SKIP; исходные 193 пути плюс новый CP/M demo); отдельный opt-in запуск пропуска — явный FAIL. Один host ZVM
   получает явный отказ: его story[131072] превышает 16-битное адресное пространство.
   Поддержка native u32 memory/caller/spill уже исправлена и проверена отдельно;
   это не делает host interpreter подходящим для обычного Z80.
   Сборка корпуса не доказывает правильность исполнения. Новый
-  [актуальный каталог](grace-integration-082/catalog-35-vm-native.json) фиксирует все
-  194 точных пути: 35 имеют ограниченное independent VM/native покрытие. Новый CP/M demo
+  [актуальный каталог](grace-integration-085/catalog-36-vm-native.json) фиксирует все
+  194 точных пути: 36 имеют ограниченное independent VM/native покрытие. Новый CP/M demo
   имеет отдельный native CALL5-hook proof. Все прочие пути сохраняют явные
   pending/ASM/runtime/host ограничения.
 - **Pascal bubble sort: исправлен реальный native miscompile** (`ff11ba69`).
