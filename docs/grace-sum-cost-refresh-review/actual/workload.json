@@ -1,0 +1,78 @@
+{
+  "schema": "minz.profile-workload/v1",
+  "target_model": "cpm-z80-v1",
+  "max_steps": 100000,
+  "max_memory": 65536,
+  "resources": {
+    "array": "AQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyAhIiMkJSYnKCkqKywtLi8wMTIzNDU2Nzg5Ojs8PT4/QEFCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaW1xdXl9gYWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXp7fH1+f4CBgoOEhYaHiImKi4yNjo+QkZKTlJWWl5iZmpucnZ6foKGio6SlpqeoqaqrrK2ur7CxsrO0tba3uLm6u7y9vr/AwcLDxMXGx8jJysvMzc7P0NHS09TV1tfY2drb3N3e3+Dh4uPk5ebn6Onq6+zt7u/w8fLz9PX29/j5+vv8/f7/"
+  },
+  "globals": null,
+  "calls": [
+    {
+      "function": "sum_array",
+      "arguments": [
+        {
+          "resource": "array"
+        },
+        {
+          "value": 0
+        }
+      ]
+    },
+    {
+      "function": "sum_array",
+      "arguments": [
+        {
+          "resource": "array"
+        },
+        {
+          "value": 1
+        }
+      ]
+    },
+    {
+      "function": "sum_array",
+      "arguments": [
+        {
+          "resource": "array"
+        },
+        {
+          "value": 5
+        }
+      ]
+    },
+    {
+      "function": "sum_array",
+      "arguments": [
+        {
+          "resource": "array"
+        },
+        {
+          "value": 16
+        }
+      ]
+    },
+    {
+      "function": "sum_array",
+      "arguments": [
+        {
+          "resource": "array"
+        },
+        {
+          "value": 64
+        }
+      ]
+    },
+    {
+      "function": "sum_array",
+      "arguments": [
+        {
+          "resource": "array"
+        },
+        {
+          "value": 255
+        }
+      ]
+    }
+  ]
+}

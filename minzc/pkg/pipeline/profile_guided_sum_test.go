@@ -47,7 +47,7 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 		t.Fatal(e)
 	}
 	profileJSON, _ := json.MarshalIndent(profileRun.Profile, "", "  ")
-	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-all-six-lengths-v1", OriginalBytes: 128, PointerBytes: 183, OriginalEntry: 69, OriginalIteration: 141, EqualEntryExtra: 7, FastEntry: 210, FastIteration: 37, FastZeroEntry: 212, FastZeroMeasured: true, FallbackEntry: 231, FallbackIteration: 143, FallbackMeasured: true}
+	model := hir.LoopCostModel{CompilerID: context.CompilerID, SemanticsID: context.SemanticsID, Function: "sum_array", HIRSHA256: profileRun.Profile.Compatibility.HIRSHA256, TargetID: context.TargetID, EvidenceID: "sum-array-z80-all-six-lengths-string-repair-v2", OriginalBytes: 147, PointerBytes: 202, OriginalEntry: 69, OriginalIteration: 141, EqualEntryExtra: 7, FastEntry: 210, FastIteration: 37, FastZeroEntry: 212, FastZeroMeasured: true, FallbackEntry: 231, FallbackIteration: 143, FallbackMeasured: true}
 	decisions, e := hir.SelectLoopVariants(bytes.NewReader(profileJSON), input, context, model, false)
 	if e != nil {
 		t.Fatal(e)
@@ -168,13 +168,13 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 			}
 			cycles, size := measureProfileZ80(t, h, "sum_array", Options{AssertMode: "none"}, []int64{0x4000, n}, memory, want, dir)
 			expected := 69 + 141*int(n)
-			expectedSize := 128
+			expectedSize := int(model.OriginalBytes)
 			if variant != "original" {
 				expected = 210 + 37*int(n)
 				if n == 0 {
 					expected = 212
 				}
-				expectedSize = 183
+				expectedSize = int(model.PointerBytes)
 			}
 			if cycles != expected || size != expectedSize {
 				t.Fatalf("cost model disproved: %s n=%d got=%d/%d expected=%d/%d", variant, n, cycles, size, expected, expectedSize)
@@ -243,13 +243,13 @@ func TestProfileGuidedSumVMZ80(t *testing.T) {
 			}
 			cycles, codeBytes := measureProfileZ80(t, h, "sum_array", Options{UseHIRGrace: true, AssertMode: "none"}, []int64{0x4000, n}, memory, n*(n+1)/2&255, "")
 			wantCycles := 69 + 141*int(n)
-			wantBytes := 128
+			wantBytes := int(model.OriginalBytes)
 			if expectedVariant == "pointer-walk" {
 				wantCycles = 210 + 37*int(n)
 				if n == 0 {
 					wantCycles = 212
 				}
-				wantBytes = 183
+				wantBytes = int(model.PointerBytes)
 			}
 			if cycles != wantCycles || codeBytes != wantBytes {
 				t.Fatalf("retained decision not executed correctly: n=%d size=%v cycles=%d bytes=%d", n, size, cycles, codeBytes)

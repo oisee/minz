@@ -1,0 +1,22 @@
+=== RUN   TestProfileGuidedSumVMZ80
+    profile_guided_sum_test.go:184: original n=0 result=0 T-states=69 module_bytes=147
+    profile_guided_sum_test.go:184: original n=1 result=1 T-states=210 module_bytes=147
+    profile_guided_sum_test.go:184: original n=5 result=15 T-states=774 module_bytes=147
+    profile_guided_sum_test.go:184: original n=16 result=136 T-states=2325 module_bytes=147
+    profile_guided_sum_test.go:184: original n=64 result=32 T-states=9093 module_bytes=147
+    profile_guided_sum_test.go:184: original n=255 result=128 T-states=36024 module_bytes=147
+    profile_guided_sum_test.go:184: pointer-walk n=0 result=0 T-states=212 module_bytes=202
+    profile_guided_sum_test.go:184: pointer-walk n=1 result=1 T-states=247 module_bytes=202
+    profile_guided_sum_test.go:184: pointer-walk n=5 result=15 T-states=395 module_bytes=202
+    profile_guided_sum_test.go:184: pointer-walk n=16 result=136 T-states=802 module_bytes=202
+    profile_guided_sum_test.go:184: pointer-walk n=64 result=32 T-states=2578 module_bytes=202
+    profile_guided_sum_test.go:184: pointer-walk n=255 result=128 T-states=9645 module_bytes=202
+    profile_guided_sum_test.go:184: selected n=0 result=0 T-states=212 module_bytes=202
+    profile_guided_sum_test.go:184: selected n=1 result=1 T-states=247 module_bytes=202
+    profile_guided_sum_test.go:184: selected n=5 result=15 T-states=395 module_bytes=202
+    profile_guided_sum_test.go:184: selected n=16 result=136 T-states=802 module_bytes=202
+    profile_guided_sum_test.go:184: selected n=64 result=32 T-states=2578 module_bytes=202
+    profile_guided_sum_test.go:184: selected n=255 result=128 T-states=9645 module_bytes=202
+    profile_guided_sum_test.go:259: totals=map[original:48495 pointer-walk:13879 selected:13879] decisions=[{Compatibility:0x25756b818ea0 SiteID:413717c0664c475bf9c67ee592bac740dccdcf0b002c75bd2dfb19155938ed2f Variant:pointer-walk Reason:lower measured workload T-states OriginalTStates:48495 PointerTStates:13879 Model:{CompilerID:executable-sha256:999b48b5e3952d27915ba80f88b52cd7987616c39b189488f10aada028b16480 SemanticsID:minz.unoptimised-mir2-vm-loop-events/v2 Function:sum_array HIRSHA256:bc2502a05b343a21a98f9cae9cb31228cabc6ff98d6bbda5cb9483abebec233c TargetID:module-target:0/model:cpm-z80-v1 CompilationID: EvidenceID:sum-array-z80-all-six-lengths-string-repair-v2 OriginalBytes:147 PointerBytes:202 OriginalEntry:69 OriginalIteration:141 EqualEntryExtra:7 FastEntry:210 FastZeroEntry:212 FastZeroMeasured:true FallbackEntry:231 FallbackIteration:143 FallbackMeasured:true FastIteration:37}}]
+--- PASS: TestProfileGuidedSumVMZ80 (1.02s)
+PASS

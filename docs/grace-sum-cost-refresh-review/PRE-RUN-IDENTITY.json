@@ -1,0 +1,9 @@
+{
+  "base": "a4ac51bd",
+  "test_commit": "0289abca",
+  "executable": "/home/alice/dev/minz-artifacts/grace-checkpoints/sum-cost-refresh-evidence.test",
+  "executable_sha256": "999b48b5e3952d27915ba80f88b52cd7987616c39b189488f10aada028b16480",
+  "source_sha256": "fa0ad7d685c31aeb52b91b323bcef46e5c86c0e4390b2fd41ecd69ecfef58694",
+  "test_source_sha256": "f8df86ce3fad3ce2528d8942c5206d1d973f97065919c35d6da672596d1370fd",
+  "native_executions": 0
+}
