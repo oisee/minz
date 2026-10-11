@@ -1,0 +1,40 @@
+=== RUN   TestConditionalInvariantRegression
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=false/mask0
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=false/mask1
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=false/mask2
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=false/mask3
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=true/mask0
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=true/mask1
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=true/mask2
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=true/mask3
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=false/mask0
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=false/mask1
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=false/mask2
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=false/mask3
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=true/mask0
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=true/mask1
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=true/mask2
+=== RUN   TestConditionalInvariantRegression/six/MIRGrace=true/mask3
+--- PASS: TestConditionalInvariantRegression (1.79s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=false/mask0 (0.06s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=false/mask1 (0.06s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=false/mask2 (0.09s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=false/mask3 (0.10s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=true/mask0 (0.11s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=true/mask1 (0.12s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=true/mask2 (0.11s)
+    --- PASS: TestConditionalInvariantRegression/four/MIRGrace=true/mask3 (0.10s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=false/mask0 (0.15s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=false/mask1 (0.11s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=false/mask2 (0.13s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=false/mask3 (0.10s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=true/mask0 (0.15s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=true/mask1 (0.13s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=true/mask2 (0.13s)
+    --- PASS: TestConditionalInvariantRegression/six/MIRGrace=true/mask3 (0.14s)
+=== RUN   TestConditionalInvariantSiteCandidates
+--- PASS: TestConditionalInvariantSiteCandidates (0.56s)
+=== RUN   TestInvariantSiteRulesConditionalCandidates
+--- PASS: TestInvariantSiteRulesConditionalCandidates (2.09s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	4.474s

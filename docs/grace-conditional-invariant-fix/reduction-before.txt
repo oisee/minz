@@ -1,0 +1,8 @@
+=== RUN   TestConditionalInvariantRegression
+=== RUN   TestConditionalInvariantRegression/four/MIRGrace=false/mask1
+    conditional_invariant_regression_test.go:162: Z80 profile workload: invocation 2: line 0: assert "" [z80]: return[0] got 257, want 1
+--- FAIL: TestConditionalInvariantRegression (0.04s)
+    --- FAIL: TestConditionalInvariantRegression/four/MIRGrace=false/mask1 (0.04s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.044s
+FAIL
