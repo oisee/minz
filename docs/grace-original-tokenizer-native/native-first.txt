@@ -1,0 +1,8 @@
+=== RUN   TestOriginalTokenizerFullStateVMZ80
+    original_tokenizer_native_test.go:233: reachability=map[classify:true emit:true init_keywords:true intern:true is_alnum:true is_alpha:true is_digit:true is_space:true peek:true peek_char:true poke:true region_eq:true scan:true skip_comment:true skip_ws:true str_alloc_2:true str_alloc_3:true str_alloc_4:true str_alloc_5:true str_alloc_6:true tokenize_all:true] error=<nil>
+    original_tokenizer_native_test.go:242: first failed native prefix 3: memory host target: execution outside instructions at 074e
+    original_tokenizer_native_test.go:244: memory host target: execution outside instructions at 074e
+--- FAIL: TestOriginalTokenizerFullStateVMZ80 (7.72s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	7.736s
+FAIL

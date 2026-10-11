@@ -1,0 +1,17 @@
+=== RUN   TestOriginalTokenizerFullStateVMZ80
+    original_tokenizer_native_test.go:242: original self_tokenizer: init + 30 inputs; full 8192 string/4096 token/4096 source bytes and all 47 globals; 1916274 T/5466 B SHA cb7a8da6dd152d5bc97f99d05a7f33c41b53bda6c8accb56b1f7f1144c6f5545
+--- PASS: TestOriginalTokenizerFullStateVMZ80 (2.34s)
+=== RUN   TestTypedTokenizerProgramBaseline
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    tokenizer_program_test.go:358: tokenizer30calls 2154457T/4253B arena432
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    tokenizer_program_test.go:412: tokenizer copy size=false candidate0 2154457T/4253B
+    tokenizer_program_test.go:412: tokenizer copy size=false candidate1 2145029T/4388B
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+[HIR-SPLIT] scan → scan$split_19 (4 inputs, pressure 9)
+    tokenizer_program_test.go:412: tokenizer copy size=true candidate0 2154457T/4253B
+    tokenizer_program_test.go:412: tokenizer copy size=true candidate1 2145029T/4388B
+--- PASS: TestTypedTokenizerProgramBaseline (5.32s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	7.687s
