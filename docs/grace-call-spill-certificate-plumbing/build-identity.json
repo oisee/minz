@@ -3,5 +3,9 @@
   "executable_path": "/home/alice/dev/minz-artifacts/grace-checkpoints/call-spill-cli-evidence/minzc-call-spill.test",
   "source_commit": "f321e1d8",
   "test_only_followup": "eea0 test file copied after build; not used by cmd test binary",
-  "execution_performed": false
+  "execution_performed": true,
+  "exit_code": 0,
+  "policy_seconds": 54.12,
+  "search_seconds": 272.39,
+  "packaged_executable": "evidence/minzc-call-spill.test.gz"
 }
