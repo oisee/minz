@@ -1,0 +1,11 @@
+# Final observed PC ledger and offline projection review
+
+Savedfinaloriginal/bothactual2runs checked withno CPUrepeat. ExactpriorauthoritativeBIN/ASM/adapter/sidecar/frame/allocation/MIR hashes, percallT/steps andallresults/globals/regions/resourceevents match. Original1221494T/127538steps, both1147025T/119303steps. Newdiagnostictestexecutablecontext1d567... differsCLI1bd deliberately, notprofileidentitysubstitution.
+
+Rawobservedledger hascorrectPC/bytes/counts/T butallOwnerunowned: assemblerlisting omitsstandalonelabel/EQU lines. Rawkeptuntouched. Separateofflineprojection derivesphysicalowners fromsameembeddedASMstandalonelabels+assembledsymbols+actualinstructionPCbytes. Independentparser reconstructedallspans/aliases, everypercallrow andaggregateowner/hotPC totals; exactequalstoredprojection. node_tag EQU peek aliasmetadata only; peek/poke actualhost adapters included. Data/spilllabels notfunctionboundaries. Anyoutsideowner isunowned, allsteps/T accountedexactlyonce.
+
+Independent savednativeaudit comparesallinstructionbytes atPC againstBIN andlisting, disjointphysicalentryspans endnextentry/finalinstructionextent, aliasaddresses andhostadapteridentity. Derivedprojectionhash bindsoriginalobservedledgerbytes/ASM/BIN. Noinclusivecallchain/HIRlooplineage claim. Earlierfilename-onlyMIRdump failure wascorrected byexactlogicalsourceunit fixture, nothashnormalization; historiesretainedownerpack.
+
+Timingquestion closed: actualdirectHLwordloads opcode2A; their ledgercost16T/step isstandardunprefixedLDHL,(nn). ED6B form20T isdifferentopcode; comment20T alone doesnotestablishemulatordefect. No timingbug/newCPUclaim.
+
+Report/audit_pc_saved.py+exactownerprojector snapshot+payloadinventory saved. ParentdoesnotreceiveprivatePChooks. Diagnosticcosts remainactualZ80model measurements, notemulator-independentphysicalproof.

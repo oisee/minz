@@ -125,6 +125,11 @@
     "sha256": "0d2a85d50d84548b5311224cfed0ef0f63cae9d210a5c54a11f2bf12d8e45279"
   },
   {
+    "path": "independent-native-review/FINAL_SAVED_REVIEW.md",
+    "bytes": 1839,
+    "sha256": "a253697a2df1fedda0ac023d3eca1c806250bcf127475b2c275f2ef3fd4f8712"
+  },
+  {
     "path": "independent-native-review/FINAL_SOURCE_REVIEW.md",
     "bytes": 1164,
     "sha256": "a89a27cdf6f85e125dcbf1775fee9331332124e61408c482bfdb2be95b12ee7a"
@@ -140,14 +145,34 @@
     "sha256": "433af9e37d7e34606e705af634795b3e1193c35315f531736e754c584d5db8b0"
   },
   {
+    "path": "independent-native-review/audit_pc_saved.py",
+    "bytes": 4477,
+    "sha256": "6f90996b6710bf29a7ad1a89795f4c92c5873557b8dc47e9166eb17cda3cd24d"
+  },
+  {
     "path": "independent-native-review/draft-inventory.json",
     "bytes": 394,
     "sha256": "da4b7c5d187dac5869d075bfe442a9051da5fdce22de174c9213b1e5aa23537f"
   },
   {
+    "path": "independent-native-review/final-payload-inventory.json",
+    "bytes": 1138,
+    "sha256": "7f0fbdd2d1a2e26379a81b540828fe69e3a25d698abbfe7d6b058ae4e866958e"
+  },
+  {
+    "path": "independent-native-review/final-pc-audit.txt",
+    "bytes": 517,
+    "sha256": "dbf097ecafbe97a0b9fb9dfa59521b40113928379800ddfa9025142d595222c4"
+  },
+  {
     "path": "independent-native-review/final-source-inventory.json",
     "bytes": 422,
     "sha256": "ed6e95ddeabdfa15ee2d52ddcb8d24c893c556208663719c19b14f8795066bd8"
+  },
+  {
+    "path": "independent-native-review/owner-projector.py.txt",
+    "bytes": 3821,
+    "sha256": "63d70082f57cf2bdaf9ce5ea87bc14a01f4c975b9856a6ad3b673932c985a12b"
   },
   {
     "path": "independent-oracle-review/FINAL-AUDIT.md",
