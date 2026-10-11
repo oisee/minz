@@ -44,10 +44,19 @@ func policySearchFixture(t *testing.T) (MemoryHostPolicySearchInputs, hir.Memory
 func TestMemoryHostPolicySearchPreflightAndExactOriginal(t *testing.T) {
 	input, w, fresh := policySearchFixture(t)
 	o := MemoryHostPolicySearchOptions{Goal: "speed", MaxSites: 2}
-	for _, kind := range []string{"first", "second", "swapped", "unknown", "bare", "source", "unit", "oversized"} {
+	for _, kind := range []string{"first", "second", "swapped", "unknown", "bare", "source", "unit", "oversized", "missing-first", "missing-second", "goal", "sites"} {
 		t.Run(kind, func(t *testing.T) {
 			x := input
+			opts := o
 			switch kind {
+			case "missing-first":
+				x.Legacy = nil
+			case "missing-second":
+				x.PreserveSpeed = nil
+			case "goal":
+				opts.Goal = "other"
+			case "sites":
+				opts.MaxSites = 1
 			case "first":
 				x.Legacy = []byte("{")
 			case "second":
@@ -73,7 +82,7 @@ func TestMemoryHostPolicySearchPreflightAndExactOriginal(t *testing.T) {
 				}
 			}
 			calls := 0
-			e, err := MeasureMemoryHostArenaAppendPolicySearch(func() (*hir.Module, error) { calls++; return fresh() }, w, x, o)
+			e, err := MeasureMemoryHostArenaAppendPolicySearch(func() (*hir.Module, error) { calls++; return fresh() }, w, x, opts)
 			if e != nil || err == nil || calls != 0 {
 				t.Fatal("preflight reached factory", kind, calls, err)
 			}
@@ -205,5 +214,90 @@ func TestMemoryHostPolicySearchLifecycle(t *testing.T) {
 	}, w, input, o)
 	if e != nil || err == nil || calls != 25 {
 		t.Fatal("cross-policy sharing", calls, err)
+	}
+}
+
+func TestMemoryHostPolicySearchOwnedInputsAndSize(t *testing.T) {
+	input, w, fresh := policySearchFixture(t)
+	calls := 0
+	e, err := MeasureMemoryHostArenaAppendPolicySearch(func() (*hir.Module, error) {
+		calls++
+		if calls == 1 {
+			input.Source[0] ^= 1
+			input.Legacy[0] = '!'
+			input.PreserveSpeed[0] = '!'
+			w.Calls[0].Arguments[0] = 65535
+			w.Regions["nodes"].Bytes[0] = 99
+		}
+		return fresh()
+	}, w, input, MemoryHostPolicySearchOptions{Goal: "size", MaxSites: 2})
+	if err != nil || e == nil || calls != 48 {
+		t.Fatal("caller input mutation affected owned execution", calls, err)
+	}
+	want := MemoryHostPolicySearchChoice{}
+	best := len(e.Selections[0].Candidates[0].Evidence.Baseline.Target.Binary)
+	for policy, s := range e.Selections {
+		for mask, c := range s.Candidates {
+			if len(c.Evidence.Baseline.Target.Binary) < best {
+				best = len(c.Evidence.Baseline.Target.Binary)
+				want = MemoryHostPolicySearchChoice{Policy: mir2.UnsignedPairComparePolicy(policy), Mask: mask}
+			}
+		}
+	}
+	if e.Selected != want {
+		t.Fatal("actual Size rank", e.Selected, want)
+	}
+	for _, kind := range []string{"error", "failure", "choices", "policy"} {
+		t.Run(kind, func(t *testing.T) {
+			b, err := json.Marshal(e)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var forged MemoryHostPolicySearchEvidence
+			if err = json.Unmarshal(b, &forged); err != nil {
+				t.Fatal(err)
+			}
+			c := &forged.Selections[1].Candidates[3]
+			switch kind {
+			case "error":
+				c.Evidence.Baseline.Target.Invocations[0].Error = "fabricated failure"
+			case "failure":
+				c.Evidence.Baseline.Target.Invocations[0].Failure = &hir.MemoryHostAccessError{Kind: "undeclared", Address: 0xc000}
+			case "choices":
+				c.Choices.ArenaPeel = false
+			case "policy":
+				c.Evidence.CompileOptions.UnsignedPairComparePolicy = 0
+			}
+			if validateMemoryHostPolicySearch(&forged) == nil {
+				t.Fatal("forged candidate accepted", kind)
+			}
+		})
+	}
+	// Synthetic cost-only control: no native evidence claim. Stable earlier ties.
+	for _, goal := range []string{"speed", "size"} {
+		for _, s := range e.Selections {
+			for _, c := range s.Candidates {
+				c.Evidence.Baseline.Target.TotalTStates = 100
+				c.Evidence.Baseline.Target.Binary = make([]byte, 10)
+			}
+		}
+		e.Options.Goal = goal
+		for _, s := range e.Selections {
+			s.Options.Goal = goal
+		}
+		if err := validateMemoryHostPolicySearch(e); err != nil {
+			t.Fatal(err)
+		}
+		if e.Selected != (MemoryHostPolicySearchChoice{}) {
+			t.Fatal("ties must retain first Legacy original")
+		}
+		e.Selections[1].Candidates[2].Evidence.Baseline.Target.TotalTStates = 99
+		e.Selections[1].Candidates[2].Evidence.Baseline.Target.Binary = make([]byte, 9)
+		if err := validateMemoryHostPolicySearch(e); err != nil {
+			t.Fatal(err)
+		}
+		if e.Selected != (MemoryHostPolicySearchChoice{Policy: 1, Mask: 2}) {
+			t.Fatal("cross-policy strict improvement")
+		}
 	}
 }
