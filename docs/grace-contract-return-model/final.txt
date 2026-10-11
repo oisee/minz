@@ -1,0 +1,13 @@
+=== RUN   TestContractChoicesMatchAppliedReturnConvention
+=== RUN   TestContractChoicesMatchAppliedReturnConvention/greedy
+=== RUN   TestContractChoicesMatchAppliedReturnConvention/pbqp
+--- PASS: TestContractChoicesMatchAppliedReturnConvention (0.00s)
+    --- PASS: TestContractChoicesMatchAppliedReturnConvention/greedy (0.00s)
+    --- PASS: TestContractChoicesMatchAppliedReturnConvention/pbqp (0.00s)
+=== RUN   TestContractCandidatesKeepAllReturnSlots
+--- PASS: TestContractCandidatesKeepAllReturnSlots (0.00s)
+=== RUN   TestFixedCounterReturnVMZ80
+    contracts_return_application_test.go:92: selected=counter applied=counter actual B/A=37/37 SP=f000 BIN=3100f0cd098078f3763e2547c9 T=60
+--- PASS: TestFixedCounterReturnVMZ80 (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/mir2	0.007s

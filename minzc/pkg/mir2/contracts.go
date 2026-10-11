@@ -22,7 +22,7 @@ package mir2
 //  2. Topological sort (leaves first).
 //  3. For each function in topo order:
 //     a. For each candidate class vector (all combinations of plausible classes
-//        for each param/return slot):
+//        for each param slot; return slots remain fixed):
 //        - Unary cost  = internal adapter cost inside the function body
 //        - Edge cost   = sum over call sites to already-decided callees of
 //                        moveCost(candidateClass, calleeParamClass) × callCount
@@ -43,14 +43,14 @@ package mir2
 // ContractSet maps function name → the optimised class choices for its contract.
 type ContractSet map[string]*ContractChoice
 
-// ContractChoice records the chosen register class for each param/return slot.
+// ContractChoice records the chosen register class for each param slot; return slots remain fixed.
 type ContractChoice struct {
 	ParamClasses  []RegClass // one per Contract.Params[i]
 	ReturnClasses []RegClass // one per Contract.Returns[i]
 }
 
-// OptimizeContracts finds the globally-optimal register classes for all
-// function contracts in m, using a greedy DP on the call graph with
+// OptimizeContracts chooses parameter register classes for function contracts
+// in m, using a greedy DP on the call graph with
 // multi-pass convergence.
 //
 // Pass 0: bottom-up topo order (callees before callers) — same as before.
@@ -114,7 +114,7 @@ func optimizeContractsGreedy(m *Module, ct CostTable) ContractSet {
 			bestChoice := current
 			bestCost := unaryCostWithMod(f, current, ct, m) + edgeCost(f, current, cg, cs, ct) + inc
 
-			for _, choice := range candidateChoices(f, ct) {
+			for _, choice := range candidateParamOnlyChoices(f, ct) {
 				var choiceInc int
 				if pass > 0 {
 					choiceInc = incomingEdgeCost(f, choice, m, cs, ct)
@@ -185,7 +185,8 @@ func funcHasAsm(f *Func) bool {
 }
 
 // ApplyContracts updates every function's Contract in place with the
-// classes chosen by OptimizeContracts.  Call this before Allocate.
+// parameter classes chosen by OptimizeContracts. Return classes stay fixed
+// during selection and application. Call this before Allocate.
 func ApplyContracts(m *Module, cs ContractSet) {
 	for _, f := range m.Funcs {
 		ch, ok := cs[f.Name]
@@ -220,59 +221,6 @@ func currentChoice(f *Func) *ContractChoice {
 		ch.ReturnClasses[i] = r.Class
 	}
 	return ch
-}
-
-// candidateChoices returns all plausible, non-conflicting class vectors for f's contract.
-//
-// We only enumerate classes physically meaningful for the parameter type, and we
-// filter out vectors where two params compete for the same unique physical location
-// (e.g. both ClassAcc → both want A, impossible without spilling one).
-func candidateChoices(f *Func, ct CostTable) []*ContractChoice {
-	paramCandidates := make([][]RegClass, len(f.Contract.Params))
-	for i, p := range f.Contract.Params {
-		paramCandidates[i] = plausibleClasses(p.Ty, p.Class)
-	}
-	retCandidates := make([][]RegClass, len(f.Contract.Returns))
-	for i, r := range f.Contract.Returns {
-		retCandidates[i] = plausibleClasses(r.Ty, r.Class)
-	}
-
-	// Cartesian product of all param × return candidate vectors, filtered for conflicts.
-	var results []*ContractChoice
-	var recurse func(pi, ri int, ch *ContractChoice)
-	recurse = func(pi, ri int, ch *ContractChoice) {
-		if pi < len(paramCandidates) {
-			for _, cls := range paramCandidates[pi] {
-				next := ch.clone()
-				next.ParamClasses[pi] = cls
-				// Reject if this class uniquely forces a physical location
-				// already claimed by a preceding param.
-				if choiceHasParamConflict(next.ParamClasses[:pi+1], ct) {
-					continue
-				}
-				recurse(pi+1, ri, next)
-			}
-			return
-		}
-		if ri < len(retCandidates) {
-			for _, cls := range retCandidates[ri] {
-				next := ch.clone()
-				next.ReturnClasses[ri] = cls
-				recurse(pi, ri+1, next)
-			}
-			return
-		}
-		results = append(results, ch)
-	}
-	base := &ContractChoice{
-		ParamClasses:  make([]RegClass, len(paramCandidates)),
-		ReturnClasses: make([]RegClass, len(retCandidates)),
-	}
-	if len(paramCandidates) == 0 && len(retCandidates) == 0 {
-		return []*ContractChoice{base}
-	}
-	recurse(0, 0, base)
-	return results
 }
 
 // choiceHasParamConflict reports whether any two classes in the prefix share
