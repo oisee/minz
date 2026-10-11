@@ -25,7 +25,6 @@ import (
 	"github.com/minz/minzc/pkg/emulator"
 	"github.com/minz/minzc/pkg/ez80"
 	"github.com/minz/minzc/pkg/hir"
-	"github.com/minz/minzc/pkg/lir"
 	"github.com/minz/minzc/pkg/mir2"
 	"github.com/minz/minzc/pkg/mir2llvm"
 	"github.com/minz/minzc/pkg/mir2wasm"
@@ -43,15 +42,14 @@ type Result struct {
 type Steps struct {
 	UnsignedPairComparePolicy mir2.UnsignedPairComparePolicy // resolved policy replayed by native re-codegen
 	ProfileDecisions          []hir.ProfileDecision
-	HIRLoopSites              *hir.LoopSiteMap        // optional input-HIR origins, before Grace/splitting
-	HIR                       string                  // HIR structural dump (hir.Module.Dump())
-	MIR2Raw                   string                  // MIR2 module dump before optimisation passes
-	MIR2Opt                   string                  // MIR2 module dump after DSE + ReorderBlocks
-	MIR2Module                *mir2.Module            // MIR2 module (for LLVM/WASM/ABAP emit)
-	Allocation                *mir2.AllocResult       // physical locations used by Z80 codegen
-	Assembly                  string                  // Final .a80 text
-	LIRResults                []lir.ConvergenceResult // LIR convergence check results (if LIRCheck enabled)
-	Traces                    map[string]*FuncTrace   // per-function compilation trace (keyed by func name)
+	HIRLoopSites              *hir.LoopSiteMap      // optional input-HIR origins, before Grace/splitting
+	HIR                       string                // HIR structural dump (hir.Module.Dump())
+	MIR2Raw                   string                // MIR2 module dump before optimisation passes
+	MIR2Opt                   string                // MIR2 module dump after DSE + ReorderBlocks
+	MIR2Module                *mir2.Module          // MIR2 module (for LLVM/WASM/ABAP emit)
+	Allocation                *mir2.AllocResult     // physical locations used by Z80 codegen
+	Assembly                  string                // Final .a80 text
+	Traces                    map[string]*FuncTrace // per-function compilation trace (keyed by func name)
 }
 
 // FuncTrace records the full compilation provenance for one function.
@@ -97,16 +95,7 @@ type Options struct {
 	ContractOpt bool
 	// AnnotateTStates adds T-state cost comments to every Z80 instruction line.
 	AnnotateTStates bool
-	// LIRCheck runs the LIR pipeline in parallel with Z80Codegen and reports
-	// which functions successfully lower through ISLE+WFC.
-	// Non-destructive — does not affect assembly output.
-	LIRCheck bool
-	// UseLIR reports disabled native LIR provenance and emits the whole module
-	// with production PBQP. Direct LIR codegen remains available for research.
-	UseLIR bool
-	// UseGrace replaces hand-coded Go optimization passes (DSE, CondRetSink,
-	// SplitJoinRet, DeadBlockArgElim, FuseAbsDiff) with declarative Grace
-	// rules. When enabled, Grace runs instead of Go originals.
+	// UseGrace replaces hand-coded optimization passes with declarative Grace rules.
 	// GraceStats (if non-nil) collects per-rule application counts.
 	UseGrace   bool
 	GraceStats *mir2.GraceStats
@@ -303,17 +292,6 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 		return s, fmt.Errorf("MIR2 verify: %w", err)
 	}
 
-	// LIR convergence check (non-destructive, parallel to existing codegen).
-	if opt.LIRCheck {
-		lirResults := lir.CheckModuleConvergence(m)
-		for _, r := range lirResults {
-			if r.Match {
-				_ = r // silent success — logged by caller if needed
-			}
-		}
-		s.LIRResults = lirResults
-	}
-
 	// Phase 6f: inline trivial functions (≤4 instructions, single block, leaf).
 	// Run BEFORE contract optimisation: inlining removes call-graph edges,
 	// shrinking the optimiser's search space and eliminating degenerate cases
@@ -369,11 +347,7 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 	}
 
 	if !opt.SkipZ80Emission || NeedsZ80Asserts(hm, opt.AssertMode) {
-		// Native LIR emission is disabled until the M3 rebuild passes the judges.
 		// Generate the complete production module, including runtime routines.
-		if opt.UseLIR {
-			fmt.Fprintln(os.Stderr, "lir: native LIR codegen disabled (wrong code found by exhaustive judges); module compiled with PBQP")
-		}
 		for _, f := range m.Funcs {
 			if tr := s.Traces[f.Name]; tr != nil {
 				tr.Backend = "PBQP"
@@ -412,14 +386,6 @@ func CompileHIRSteps(hm *hir.Module, opts ...Options) (Steps, error) {
 
 		// Inject module-level compilation summary at the top.
 		s.Assembly = injectModuleSummary(s.Assembly, s.Traces, labelWarnings)
-
-		// Keep PBQP assembly byte-identical, including its annotations and pruned
-		// function summary. Report disabled native LIR in every returned trace.
-		if opt.UseLIR {
-			for _, tr := range s.Traces {
-				tr.Backend = "PBQP (lir disabled)"
-			}
-		}
 
 		// Deduplicate labels in assembly.
 		s.Assembly = dedupAsmLabels(s.Assembly)

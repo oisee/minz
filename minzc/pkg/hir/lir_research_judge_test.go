@@ -48,7 +48,7 @@ func TestLIRResearchByteArithmetic(t *testing.T) {
 					return a[0] >> 1
 				}
 			}
-			bad, first := sweepCodegenJudge(t, hm.Funcs, "leaf", count, inputs, model, false, true)
+			bad, first := sweepCodegenJudge(t, hm.Funcs, "leaf", count, inputs, model, true)
 			if bad != 0 {
 				t.Fatalf("%d/%d mismatches: %s", bad, count, first)
 			}
@@ -128,7 +128,7 @@ func TestLIRResearchCompositions(t *testing.T) {
 				}
 				return a
 			}
-			bad, first := sweepCodegenJudge(t, hm.Funcs, tc.name, count, inputs, tc.model, false, true)
+			bad, first := sweepCodegenJudge(t, hm.Funcs, tc.name, count, inputs, tc.model, true)
 			if bad != 0 {
 				t.Fatalf("%s: %d/%d mismatches: %s", tc.name, bad, count, first)
 			}
@@ -142,7 +142,7 @@ func TestLIRResearchCompositions(t *testing.T) {
 // Production checks use the same source fixtures and independent models. Two
 // byte arguments are exhausted while remaining arguments take the critic's
 // values; the research opt-in above retains the full Cartesian domains.
-func TestLIRDisabledCompositionExecution(t *testing.T) {
+func TestNativeCompositionExecution(t *testing.T) {
 	for _, tc := range lirCompositionFixtures() {
 		t.Run(tc.name, func(t *testing.T) {
 			hm, err := nanz.Parse(tc.src, "critic.nanz")
@@ -157,10 +157,9 @@ func TestLIRDisabledCompositionExecution(t *testing.T) {
 				a := []int64{int64(i & 255), int64((i >> 8) & 255), 3, 4}
 				return a[:tc.arity]
 			}
-			bad, first := sweepCodegenJudge(t, hm.Funcs, tc.name, count, inputs, tc.model, true)
-			plainBad, plainFirst := sweepCodegenJudge(t, hm.Funcs, tc.name, count, inputs, tc.model, false)
-			if bad != 0 || plainBad != 0 {
-				t.Fatalf("--lir %d/%d mismatches (%s); plain %d/%d (%s)", bad, count, first, plainBad, count, plainFirst)
+			bad, first := sweepCodegenJudge(t, hm.Funcs, tc.name, count, inputs, tc.model)
+			if bad != 0 {
+				t.Fatalf("native %d/%d mismatches (%s)", bad, count, first)
 			}
 		})
 	}

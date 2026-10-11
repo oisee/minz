@@ -1,0 +1,115 @@
+=== RUN   TestExhaustiveJudgeNegativeControls
+=== PAUSE TestExhaustiveJudgeNegativeControls
+=== RUN   TestExhaustiveJudgeNativeSingleBlock
+=== PAUSE TestExhaustiveJudgeNativeSingleBlock
+=== RUN   TestExhaustiveJudgeNativeWideArithmetic
+=== PAUSE TestExhaustiveJudgeNativeWideArithmetic
+=== RUN   TestExhaustiveJudgeNativeByteShifts
+=== PAUSE TestExhaustiveJudgeNativeByteShifts
+=== RUN   TestExhaustiveJudgeNativeLoweringCases
+=== PAUSE TestExhaustiveJudgeNativeLoweringCases
+=== RUN   TestCodegenJudgeMismatchOrdering
+=== PAUSE TestCodegenJudgeMismatchOrdering
+=== RUN   TestNativeCompositionExecution
+=== RUN   TestNativeCompositionExecution/a1
+=== RUN   TestNativeCompositionExecution/a2
+=== RUN   TestNativeCompositionExecution/a4
+=== RUN   TestNativeCompositionExecution/a5
+=== RUN   TestNativeCompositionExecution/a8
+=== RUN   TestNativeCompositionExecution/a9
+--- PASS: TestNativeCompositionExecution (0.02s)
+    --- PASS: TestNativeCompositionExecution/a1 (0.00s)
+    --- PASS: TestNativeCompositionExecution/a2 (0.00s)
+    --- PASS: TestNativeCompositionExecution/a4 (0.00s)
+    --- PASS: TestNativeCompositionExecution/a5 (0.00s)
+    --- PASS: TestNativeCompositionExecution/a8 (0.00s)
+    --- PASS: TestNativeCompositionExecution/a9 (0.00s)
+=== CONT  TestExhaustiveJudgeNegativeControls
+=== CONT  TestExhaustiveJudgeNativeByteShifts
+=== CONT  TestCodegenJudgeMismatchOrdering
+=== CONT  TestExhaustiveJudgeNativeLoweringCases
+=== CONT  TestExhaustiveJudgeNativeWideArithmetic
+=== RUN   TestExhaustiveJudgeNativeWideArithmetic/shr16
+=== CONT  TestExhaustiveJudgeNativeSingleBlock
+=== RUN   TestExhaustiveJudgeNativeSingleBlock/lt
+=== RUN   TestExhaustiveJudgeNativeByteShifts/<</1
+=== RUN   TestExhaustiveJudgeNativeLoweringCases/mul8
+=== RUN   TestExhaustiveJudgeNativeByteShifts/<</3
+--- PASS: TestCodegenJudgeMismatchOrdering (0.00s)
+=== RUN   TestExhaustiveJudgeNativeByteShifts/>>/1
+=== RUN   TestExhaustiveJudgeNativeByteShifts/>>/3
+--- PASS: TestExhaustiveJudgeNativeByteShifts (0.01s)
+    --- PASS: TestExhaustiveJudgeNativeByteShifts/<</1 (0.00s)
+    --- PASS: TestExhaustiveJudgeNativeByteShifts/<</3 (0.00s)
+    --- PASS: TestExhaustiveJudgeNativeByteShifts/>>/1 (0.00s)
+    --- PASS: TestExhaustiveJudgeNativeByteShifts/>>/3 (0.00s)
+=== RUN   TestExhaustiveJudgeNativeWideArithmetic/add32
+=== RUN   TestExhaustiveJudgeNativeSingleBlock/eq
+=== NAME  TestExhaustiveJudgeNativeLoweringCases/mul8
+    lir_allowlist_judge_test.go:197: native 0/65536 mismatches
+=== RUN   TestExhaustiveJudgeNativeLoweringCases/mul3
+    lir_allowlist_judge_test.go:197: native 0/256 mismatches
+=== RUN   TestExhaustiveJudgeNativeLoweringCases/mul16_2
+=== RUN   TestExhaustiveJudgeNativeSingleBlock/sub8
+=== NAME  TestExhaustiveJudgeNativeLoweringCases/mul16_2
+    lir_allowlist_judge_test.go:197: native 0/65536 mismatches
+=== RUN   TestExhaustiveJudgeNativeLoweringCases/mul16_3
+=== RUN   TestExhaustiveJudgeNativeSingleBlock/add8
+=== NAME  TestExhaustiveJudgeNativeLoweringCases/mul16_3
+    lir_allowlist_judge_test.go:197: native 0/65536 mismatches
+=== RUN   TestExhaustiveJudgeNativeLoweringCases/mul16_10
+--- PASS: TestExhaustiveJudgeNativeSingleBlock (0.03s)
+    --- PASS: TestExhaustiveJudgeNativeSingleBlock/lt (0.01s)
+    --- PASS: TestExhaustiveJudgeNativeSingleBlock/eq (0.01s)
+    --- PASS: TestExhaustiveJudgeNativeSingleBlock/sub8 (0.01s)
+    --- PASS: TestExhaustiveJudgeNativeSingleBlock/add8 (0.01s)
+--- PASS: TestExhaustiveJudgeNegativeControls (0.04s)
+=== NAME  TestExhaustiveJudgeNativeLoweringCases/mul16_10
+    lir_allowlist_judge_test.go:197: native 0/65536 mismatches
+=== RUN   TestExhaustiveJudgeNativeLoweringCases/ext
+    lir_allowlist_judge_test.go:197: native 0/256 mismatches
+=== RUN   TestExhaustiveJudgeNativeLoweringCases/ext2
+    lir_allowlist_judge_test.go:197: native 0/65536 mismatches
+=== RUN   TestExhaustiveJudgeNativeLoweringCases/trunc
+    lir_allowlist_judge_test.go:197: native 0/65536 mismatches
+=== RUN   TestExhaustiveJudgeNativeLoweringCases/logic8_8
+    lir_allowlist_judge_test.go:197: native 0/65536 mismatches
+=== RUN   TestExhaustiveJudgeNativeLoweringCases/logic16_9
+    lir_allowlist_judge_test.go:197: native 0/524288 mismatches
+=== RUN   TestExhaustiveJudgeNativeLoweringCases/logic8_10
+    lir_allowlist_judge_test.go:197: native 0/65536 mismatches
+=== RUN   TestExhaustiveJudgeNativeLoweringCases/logic16_11
+    lir_allowlist_judge_test.go:197: native 0/524288 mismatches
+=== RUN   TestExhaustiveJudgeNativeLoweringCases/logic8_12
+    lir_allowlist_judge_test.go:197: native 0/65536 mismatches
+=== RUN   TestExhaustiveJudgeNativeLoweringCases/logic16_13
+    lir_allowlist_judge_test.go:197: native 0/524288 mismatches
+=== RUN   TestExhaustiveJudgeNativeLoweringCases/fc
+    lir_allowlist_judge_test.go:197: native 0/65536 mismatches
+=== RUN   TestExhaustiveJudgeNativeLoweringCases/h_c1
+    lir_allowlist_judge_test.go:197: native 0/65536 mismatches
+=== RUN   TestExhaustiveJudgeNativeLoweringCases/h_c4
+    lir_allowlist_judge_test.go:197: native 0/65536 mismatches
+--- PASS: TestExhaustiveJudgeNativeLoweringCases (0.15s)
+    --- PASS: TestExhaustiveJudgeNativeLoweringCases/mul8 (0.02s)
+    --- PASS: TestExhaustiveJudgeNativeLoweringCases/mul3 (0.00s)
+    --- PASS: TestExhaustiveJudgeNativeLoweringCases/mul16_2 (0.01s)
+    --- PASS: TestExhaustiveJudgeNativeLoweringCases/mul16_3 (0.00s)
+    --- PASS: TestExhaustiveJudgeNativeLoweringCases/mul16_10 (0.03s)
+    --- PASS: TestExhaustiveJudgeNativeLoweringCases/ext (0.00s)
+    --- PASS: TestExhaustiveJudgeNativeLoweringCases/ext2 (0.00s)
+    --- PASS: TestExhaustiveJudgeNativeLoweringCases/trunc (0.00s)
+    --- PASS: TestExhaustiveJudgeNativeLoweringCases/logic8_8 (0.00s)
+    --- PASS: TestExhaustiveJudgeNativeLoweringCases/logic16_9 (0.02s)
+    --- PASS: TestExhaustiveJudgeNativeLoweringCases/logic8_10 (0.00s)
+    --- PASS: TestExhaustiveJudgeNativeLoweringCases/logic16_11 (0.02s)
+    --- PASS: TestExhaustiveJudgeNativeLoweringCases/logic8_12 (0.00s)
+    --- PASS: TestExhaustiveJudgeNativeLoweringCases/logic16_13 (0.02s)
+    --- PASS: TestExhaustiveJudgeNativeLoweringCases/fc (0.01s)
+    --- PASS: TestExhaustiveJudgeNativeLoweringCases/h_c1 (0.00s)
+    --- PASS: TestExhaustiveJudgeNativeLoweringCases/h_c4 (0.00s)
+--- PASS: TestExhaustiveJudgeNativeWideArithmetic (0.17s)
+    --- PASS: TestExhaustiveJudgeNativeWideArithmetic/shr16 (0.01s)
+    --- PASS: TestExhaustiveJudgeNativeWideArithmetic/add32 (0.16s)
+PASS
+ok  	github.com/minz/minzc/pkg/hir	0.201s

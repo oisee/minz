@@ -14,17 +14,12 @@ import (
 
 // Assemble once and reset memory for each case, using the production allocation
 // for parameters and the production return contract for results.
-func sweepCodegenJudge(t *testing.T, funcs []*hir.Func, name string, cases int, inputs func(int) []int64, model func([]int64) int64, useLIR bool, research ...bool) (int, string) {
+func sweepCodegenJudge(t *testing.T, funcs []*hir.Func, name string, cases int, inputs func(int) []int64, model func([]int64) int64, research ...bool) (int, string) {
 	t.Helper()
 	opts := pipeline.DefaultOptions()
-	opts.UseLIR = useLIR
 	steps, err := pipeline.CompileHIRSteps(&hir.Module{Name: "allowlist_judge", Funcs: funcs}, opts)
 	if err != nil {
 		t.Fatal(err)
-	}
-	trace := steps.Traces[name]
-	if useLIR && (trace == nil || !strings.Contains(trace.Backend, "PBQP (lir disabled)")) {
-		t.Fatalf("%s must report native LIR disabled, got %+v", name, trace)
 	}
 	if len(research) > 0 && research[0] {
 		steps.Assembly, err = lir.LIRCodegenFunc(steps.MIR2Module.FuncByName(name), steps.MIR2Module, researchHints(steps))
@@ -105,7 +100,7 @@ func sweepCodegenJudge(t *testing.T, funcs []*hir.Func, name string, cases int, 
 	return bad, first
 }
 
-func TestExhaustiveJudgeLIRAllowlistFallback(t *testing.T) {
+func TestExhaustiveJudgeNativeLoweringCases(t *testing.T) {
 	t.Parallel()
 	u8, u16 := mir2.TyU8, mir2.TyU16
 	v := func(n string, ty mir2.Ty) hir.Expr { return hir.Var(n, ty) }
@@ -198,20 +193,16 @@ func TestExhaustiveJudgeLIRAllowlistFallback(t *testing.T) {
 	// P7 call preservation also fixes fc and h_c4; both now require zero.
 	for _, tc := range fixtures {
 		t.Run(tc.name, func(t *testing.T) {
-			bad, first := sweepCodegenJudge(t, tc.funcs, tc.name, tc.count, tc.inputs, tc.model, true)
-			plainBad, plainFirst := sweepCodegenJudge(t, tc.funcs, tc.name, tc.count, tc.inputs, tc.model, false)
-			t.Logf("--lir %d/%d, plain %d/%d mismatches", bad, tc.count, plainBad, tc.count)
+			bad, first := sweepCodegenJudge(t, tc.funcs, tc.name, tc.count, tc.inputs, tc.model)
+			t.Logf("native %d/%d mismatches", bad, tc.count)
 			if tc.knownBad > 0 {
-				if plainBad == 0 || bad != plainBad {
-					t.Fatalf("known PBQP record requires equal nonzero counts: --lir %d, plain %d; %s / %s", bad, plainBad, first, plainFirst)
+				if bad != tc.knownBad {
+					t.Fatalf("known native count changed: got %d, recorded %d", bad, tc.knownBad)
 				}
-				if plainBad != tc.knownBad {
-					t.Fatalf("known PBQP count changed: got %d, recorded %d; re-measure both modes", plainBad, tc.knownBad)
-				}
-				t.Skipf("2026-10-02: known production PBQP %s: %d/%d mismatches (%s)", tc.name, plainBad, tc.count, plainFirst)
+				t.Skipf("2026-10-02: known production %s: %d/%d mismatches (%s)", tc.name, bad, tc.count, first)
 			}
-			if bad != 0 || plainBad != 0 {
-				t.Fatalf("--lir %d/%d, plain %d/%d mismatches: %s / %s", bad, tc.count, plainBad, tc.count, first, plainFirst)
+			if bad != 0 {
+				t.Fatalf("native %d/%d mismatches: %s", bad, tc.count, first)
 			}
 		})
 	}
@@ -227,12 +218,12 @@ func TestCodegenJudgeMismatchOrdering(t *testing.T) {
 	// Every case deliberately disagrees, so the first diagnostic must always
 	// refer to input zero even when a later worker finishes first.
 	model := func(args []int64) int64 { return args[0] + 1 }
-	bad, first := sweepCodegenJudge(t, []*hir.Func{f}, "identity", 256, inputs, model, true)
-	secondBad, second := sweepCodegenJudge(t, []*hir.Func{f}, "identity", 256, inputs, model, true)
+	bad, first := sweepCodegenJudge(t, []*hir.Func{f}, "identity", 256, inputs, model)
+	secondBad, second := sweepCodegenJudge(t, []*hir.Func{f}, "identity", 256, inputs, model)
 	if bad != 256 || secondBad != bad || first != second || !strings.HasPrefix(first, "identity[0] got 0 want 1 err <nil>") {
 		t.Fatalf("unordered mismatches: %d %q / %d %q", bad, first, secondBad, second)
 	}
-	bad, first = sweepCodegenJudge(t, []*hir.Func{f}, "identity", 0, inputs, model, true)
+	bad, first = sweepCodegenJudge(t, []*hir.Func{f}, "identity", 0, inputs, model)
 	if bad != 0 || first != "" {
 		t.Fatalf("empty domain: %d %q", bad, first)
 	}

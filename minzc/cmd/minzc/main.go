@@ -75,8 +75,6 @@ var (
 	pgoDebug   bool   // Debug PGO decisions
 
 	// Backend selection
-	useLIR      bool // Report disabled native LIR; compile with PBQP
-	useZ3       bool // No effect while native LIR emission is disabled
 	optSize     bool // -Osize: optimize for code size (Grace reroll, DJNZ loops)
 	useGrace    bool // --grace: run all Grace MIR2 passes before VIR lowering
 	useHIRGrace bool // --hir-grace: run structural Grace rules before HIR lowering
@@ -156,9 +154,6 @@ Platform Independence Guide:
 	Run: func(cmd *cobra.Command, args []string) {
 		assertLinesSet = cmd.Flags().Changed("assert-lines")
 		assertControlSet = cmd.Flags().Changed("assert-control-line")
-		if useZ3 {
-			fmt.Fprintln(os.Stderr, "note: --z3 has no effect: native LIR emission disabled")
-		}
 		// Handle version flags
 		if showVersion {
 			fmt.Println(version.GetVersion())
@@ -259,8 +254,6 @@ func init() {
 	rootCmd.Flags().BoolVar(&ctieDebug, "ctie-debug", false, "show CTIE optimization decisions and statistics")
 	rootCmd.Flags().BoolVar(&compileTrace, "compile-trace", false, "show all optimization decisions and transformations")
 	rootCmd.Flags().StringVar(&superoptRules, "superopt-rules", "", "path to z80-optimizer rules.json[.gz] for superoptimizer peephole pass")
-	rootCmd.Flags().BoolVar(&useLIR, "lir", false, "deprecated LIR backend (native emission disabled; uses PBQP)")
-	rootCmd.Flags().BoolVar(&useZ3, "z3", false, "use Z3 SMT solver (no effect: native LIR emission disabled)")
 	rootCmd.Flags().BoolVar(&optSize, "Osize", false, "optimize for code size: Grace reroll; skip HIR Grace's versioned pointer loops")
 	rootCmd.Flags().BoolVar(&useGrace, "grace", false, "run all Grace MIR2 passes before VIR lowering (DSE, CondRetSink, BlockMerge, etc.)")
 	rootCmd.Flags().BoolVar(&useHIRGrace, "hir-grace", false, "run structural Grace HIR rules before lowering (experimental)")
@@ -1060,7 +1053,6 @@ func compileViaHIR(sourceFile string) error {
 	opts := pipeline.Options{
 		ContractOpt:     true,
 		AnnotateTStates: annotateTStates,
-		UseLIR:          useLIR,   // --lir reports disabled native LIR; emission uses PBQP
 		OptSize:         optSize,  // --Osize enables Grace reroll
 		UseGrace:        useGrace, // --grace enables full Grace MIR2 pass suite
 		UseHIRGrace:     useHIRGrace,
