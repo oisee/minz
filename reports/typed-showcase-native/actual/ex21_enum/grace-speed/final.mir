@@ -1,0 +1,15 @@
+; MIR2 module: reports/showcase-src/2026-03-14/ex21_enum.nanz
+fun @get_default_state() -> u8 [acc]
+  block @entry:
+    %r1 = const 3 : u8 [general]
+    ret %r1
+
+fun @mix_colors() -> u8 [acc]
+  block @entry:
+    %r2 = const 5 : u8 [acc]
+    ret %r2
+
+fun @identity(%r3: u8 [acc]) -> u8 [acc]
+  block @entry:
+    ret %r3
+

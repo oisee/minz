@@ -1,0 +1,21 @@
+{
+  "calls": {
+    "add_prio": 65536,
+    "identity": 256
+  },
+  "cycles_including_CALL": {
+    "add_prio": 2031616,
+    "identity": 6912
+  },
+  "execution_sha256": "3997f8ea8864a29c0aaa45a2a000839769b89fe0bd81bb820e46ecd77d5b5bf0",
+  "module_bytes": 3,
+  "raw_only_lifted": {},
+  "source_assertions": 6,
+  "source_sha256": "27628c2d6130d10c430d97f80e58a455cd72cfc2b33ec6d37aae5595e01a703a",
+  "spill_bytes": {},
+  "stack_depths": {
+    "add_prio": 2,
+    "identity": 2
+  },
+  "vm_data_effects": 0
+}

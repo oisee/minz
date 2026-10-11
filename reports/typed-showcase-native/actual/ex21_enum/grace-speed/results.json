@@ -1,0 +1,24 @@
+{
+  "calls": {
+    "get_default_state": 1,
+    "identity": 256,
+    "mix_colors": 1
+  },
+  "cycles_including_CALL": {
+    "get_default_state": 34,
+    "identity": 6912,
+    "mix_colors": 34
+  },
+  "execution_sha256": "de44f72e80a0cde654aeed113578ca8a1a763de71541d47ccc41fb01eb7fe7be",
+  "module_bytes": 7,
+  "raw_only_lifted": {},
+  "source_assertions": 5,
+  "source_sha256": "a02aaa800c41df13c89d4f833bc5aa1f5971b0a3ee1dbd96a707be8413c8e4d4",
+  "spill_bytes": {},
+  "stack_depths": {
+    "get_default_state": 2,
+    "identity": 2,
+    "mix_colors": 2
+  },
+  "vm_data_effects": 0
+}

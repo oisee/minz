@@ -1,0 +1,400 @@
+=== RUN   TestOriginalTypedShowcaseNative
+=== RUN   TestOriginalTypedShowcaseNative/ex21_enum
+=== RUN   TestOriginalTypedShowcaseNative/ex21_enum/ordinary
+    original_typed_showcase_native_test.go:320: {
+          "calls": {
+            "get_default_state": 1,
+            "identity": 256,
+            "mix_colors": 1
+          },
+          "cycles_including_CALL": {
+            "get_default_state": 34,
+            "identity": 6912,
+            "mix_colors": 34
+          },
+          "execution_sha256": "de44f72e80a0cde654aeed113578ca8a1a763de71541d47ccc41fb01eb7fe7be",
+          "module_bytes": 7,
+          "raw_only_lifted": {},
+          "source_assertions": 5,
+          "source_sha256": "a02aaa800c41df13c89d4f833bc5aa1f5971b0a3ee1dbd96a707be8413c8e4d4",
+          "spill_bytes": {},
+          "stack_depths": {
+            "get_default_state": 2,
+            "identity": 2,
+            "mix_colors": 2
+          },
+          "vm_data_effects": 0
+        }
+=== RUN   TestOriginalTypedShowcaseNative/ex21_enum/grace-size
+    original_typed_showcase_native_test.go:320: {
+          "calls": {
+            "get_default_state": 1,
+            "identity": 256,
+            "mix_colors": 1
+          },
+          "cycles_including_CALL": {
+            "get_default_state": 34,
+            "identity": 6912,
+            "mix_colors": 34
+          },
+          "execution_sha256": "de44f72e80a0cde654aeed113578ca8a1a763de71541d47ccc41fb01eb7fe7be",
+          "module_bytes": 7,
+          "raw_only_lifted": {},
+          "source_assertions": 5,
+          "source_sha256": "a02aaa800c41df13c89d4f833bc5aa1f5971b0a3ee1dbd96a707be8413c8e4d4",
+          "spill_bytes": {},
+          "stack_depths": {
+            "get_default_state": 2,
+            "identity": 2,
+            "mix_colors": 2
+          },
+          "vm_data_effects": 0
+        }
+=== RUN   TestOriginalTypedShowcaseNative/ex21_enum/grace-speed
+    original_typed_showcase_native_test.go:320: {
+          "calls": {
+            "get_default_state": 1,
+            "identity": 256,
+            "mix_colors": 1
+          },
+          "cycles_including_CALL": {
+            "get_default_state": 34,
+            "identity": 6912,
+            "mix_colors": 34
+          },
+          "execution_sha256": "de44f72e80a0cde654aeed113578ca8a1a763de71541d47ccc41fb01eb7fe7be",
+          "module_bytes": 7,
+          "raw_only_lifted": {},
+          "source_assertions": 5,
+          "source_sha256": "a02aaa800c41df13c89d4f833bc5aa1f5971b0a3ee1dbd96a707be8413c8e4d4",
+          "spill_bytes": {},
+          "stack_depths": {
+            "get_default_state": 2,
+            "identity": 2,
+            "mix_colors": 2
+          },
+          "vm_data_effects": 0
+        }
+=== RUN   TestOriginalTypedShowcaseNative/ex22_type_alias
+=== RUN   TestOriginalTypedShowcaseNative/ex22_type_alias/ordinary
+    original_typed_showcase_native_test.go:320: {
+          "calls": {
+            "damage": 65536,
+            "double_score": 65536
+          },
+          "cycles_including_CALL": {
+            "damage": 1769472,
+            "double_score": 2490368
+          },
+          "execution_sha256": "fde6593798b6510cf9760d4d20ad9e0440276ddb95cbdc19e03cf4ed7f643254",
+          "module_bytes": 3,
+          "raw_only_lifted": {},
+          "source_assertions": 1,
+          "source_sha256": "fb8fc372fdac128656855ab78db9548fb2c25e46fcf458ce43b0357b8ddd912a",
+          "spill_bytes": {},
+          "stack_depths": {
+            "damage": 2,
+            "double_score": 2
+          },
+          "vm_data_effects": 0
+        }
+=== RUN   TestOriginalTypedShowcaseNative/ex22_type_alias/grace-size
+    original_typed_showcase_native_test.go:320: {
+          "calls": {
+            "damage": 65536,
+            "double_score": 65536
+          },
+          "cycles_including_CALL": {
+            "damage": 1769472,
+            "double_score": 2490368
+          },
+          "execution_sha256": "fde6593798b6510cf9760d4d20ad9e0440276ddb95cbdc19e03cf4ed7f643254",
+          "module_bytes": 3,
+          "raw_only_lifted": {},
+          "source_assertions": 1,
+          "source_sha256": "fb8fc372fdac128656855ab78db9548fb2c25e46fcf458ce43b0357b8ddd912a",
+          "spill_bytes": {},
+          "stack_depths": {
+            "damage": 2,
+            "double_score": 2
+          },
+          "vm_data_effects": 0
+        }
+=== RUN   TestOriginalTypedShowcaseNative/ex22_type_alias/grace-speed
+    original_typed_showcase_native_test.go:320: {
+          "calls": {
+            "damage": 65536,
+            "double_score": 65536
+          },
+          "cycles_including_CALL": {
+            "damage": 1769472,
+            "double_score": 2490368
+          },
+          "execution_sha256": "fde6593798b6510cf9760d4d20ad9e0440276ddb95cbdc19e03cf4ed7f643254",
+          "module_bytes": 3,
+          "raw_only_lifted": {},
+          "source_assertions": 1,
+          "source_sha256": "fb8fc372fdac128656855ab78db9548fb2c25e46fcf458ce43b0357b8ddd912a",
+          "spill_bytes": {},
+          "stack_depths": {
+            "damage": 2,
+            "double_score": 2
+          },
+          "vm_data_effects": 0
+        }
+=== RUN   TestOriginalTypedShowcaseNative/ex26_enum_assert
+=== RUN   TestOriginalTypedShowcaseNative/ex26_enum_assert/ordinary
+    original_typed_showcase_native_test.go:320: {
+          "calls": {
+            "add_prio": 65536,
+            "identity": 256
+          },
+          "cycles_including_CALL": {
+            "add_prio": 2031616,
+            "identity": 6912
+          },
+          "execution_sha256": "3997f8ea8864a29c0aaa45a2a000839769b89fe0bd81bb820e46ecd77d5b5bf0",
+          "module_bytes": 3,
+          "raw_only_lifted": {},
+          "source_assertions": 6,
+          "source_sha256": "27628c2d6130d10c430d97f80e58a455cd72cfc2b33ec6d37aae5595e01a703a",
+          "spill_bytes": {},
+          "stack_depths": {
+            "add_prio": 2,
+            "identity": 2
+          },
+          "vm_data_effects": 0
+        }
+=== RUN   TestOriginalTypedShowcaseNative/ex26_enum_assert/grace-size
+    original_typed_showcase_native_test.go:320: {
+          "calls": {
+            "add_prio": 65536,
+            "identity": 256
+          },
+          "cycles_including_CALL": {
+            "add_prio": 2031616,
+            "identity": 6912
+          },
+          "execution_sha256": "3997f8ea8864a29c0aaa45a2a000839769b89fe0bd81bb820e46ecd77d5b5bf0",
+          "module_bytes": 3,
+          "raw_only_lifted": {},
+          "source_assertions": 6,
+          "source_sha256": "27628c2d6130d10c430d97f80e58a455cd72cfc2b33ec6d37aae5595e01a703a",
+          "spill_bytes": {},
+          "stack_depths": {
+            "add_prio": 2,
+            "identity": 2
+          },
+          "vm_data_effects": 0
+        }
+=== RUN   TestOriginalTypedShowcaseNative/ex26_enum_assert/grace-speed
+    original_typed_showcase_native_test.go:320: {
+          "calls": {
+            "add_prio": 65536,
+            "identity": 256
+          },
+          "cycles_including_CALL": {
+            "add_prio": 2031616,
+            "identity": 6912
+          },
+          "execution_sha256": "3997f8ea8864a29c0aaa45a2a000839769b89fe0bd81bb820e46ecd77d5b5bf0",
+          "module_bytes": 3,
+          "raw_only_lifted": {},
+          "source_assertions": 6,
+          "source_sha256": "27628c2d6130d10c430d97f80e58a455cd72cfc2b33ec6d37aae5595e01a703a",
+          "spill_bytes": {},
+          "stack_depths": {
+            "add_prio": 2,
+            "identity": 2
+          },
+          "vm_data_effects": 0
+        }
+=== RUN   TestOriginalTypedShowcaseNative/ex32_value_pipe
+=== RUN   TestOriginalTypedShowcaseNative/ex32_value_pipe/ordinary
+    original_typed_showcase_native_test.go:320: {
+          "calls": {
+            "add": 65536,
+            "double": 256,
+            "inc": 256,
+            "piped": 1,
+            "piped_args": 1
+          },
+          "cycles_including_CALL": {
+            "add": 2031616,
+            "double": 7936,
+            "inc": 7936,
+            "piped": 34,
+            "piped_args": 34
+          },
+          "execution_sha256": "01f6dff31149c6f366b3c0471c2b090683082dda62f0d613dadfb36a4b02d8b3",
+          "module_bytes": 12,
+          "raw_only_lifted": {},
+          "source_assertions": 0,
+          "source_sha256": "964819c2d6e3247f690256818d80625cd87ba1b4da8e3e91d5e300af4a44a24a",
+          "spill_bytes": {},
+          "stack_depths": {
+            "add": 2,
+            "double": 2,
+            "inc": 2,
+            "piped": 2,
+            "piped_args": 2
+          },
+          "vm_data_effects": 0
+        }
+=== RUN   TestOriginalTypedShowcaseNative/ex32_value_pipe/grace-size
+    original_typed_showcase_native_test.go:320: {
+          "calls": {
+            "add": 65536,
+            "double": 256,
+            "inc": 256,
+            "piped": 1,
+            "piped_args": 1
+          },
+          "cycles_including_CALL": {
+            "add": 2031616,
+            "double": 7936,
+            "inc": 7936,
+            "piped": 34,
+            "piped_args": 34
+          },
+          "execution_sha256": "01f6dff31149c6f366b3c0471c2b090683082dda62f0d613dadfb36a4b02d8b3",
+          "module_bytes": 12,
+          "raw_only_lifted": {},
+          "source_assertions": 0,
+          "source_sha256": "964819c2d6e3247f690256818d80625cd87ba1b4da8e3e91d5e300af4a44a24a",
+          "spill_bytes": {},
+          "stack_depths": {
+            "add": 2,
+            "double": 2,
+            "inc": 2,
+            "piped": 2,
+            "piped_args": 2
+          },
+          "vm_data_effects": 0
+        }
+=== RUN   TestOriginalTypedShowcaseNative/ex32_value_pipe/grace-speed
+    original_typed_showcase_native_test.go:320: {
+          "calls": {
+            "add": 65536,
+            "double": 256,
+            "inc": 256,
+            "piped": 1,
+            "piped_args": 1
+          },
+          "cycles_including_CALL": {
+            "add": 2031616,
+            "double": 7936,
+            "inc": 7936,
+            "piped": 34,
+            "piped_args": 34
+          },
+          "execution_sha256": "01f6dff31149c6f366b3c0471c2b090683082dda62f0d613dadfb36a4b02d8b3",
+          "module_bytes": 12,
+          "raw_only_lifted": {},
+          "source_assertions": 0,
+          "source_sha256": "964819c2d6e3247f690256818d80625cd87ba1b4da8e3e91d5e300af4a44a24a",
+          "spill_bytes": {},
+          "stack_depths": {
+            "add": 2,
+            "double": 2,
+            "inc": 2,
+            "piped": 2,
+            "piped_args": 2
+          },
+          "vm_data_effects": 0
+        }
+=== RUN   TestOriginalTypedShowcaseNative/ex33_lambda_inference
+=== RUN   TestOriginalTypedShowcaseNative/ex33_lambda_inference/ordinary
+    original_typed_showcase_native_test.go:320: {
+          "calls": {
+            "add_acc": 65536,
+            "sum_doubled": 1
+          },
+          "cycles_including_CALL": {
+            "add_acc": 2031616,
+            "sum_doubled": 238
+          },
+          "execution_sha256": "91a164ee617c7eaa245c8b0ecc9c6da0e2d342b80b19c84aa8279514eff12df0",
+          "module_bytes": 20,
+          "raw_only_lifted": {
+            "lambda_0": 256
+          },
+          "source_assertions": 0,
+          "source_sha256": "6c48b03a21410afc4b346f115839a8488d9cb66308af2842810cb12f9186c94f",
+          "spill_bytes": {},
+          "stack_depths": {
+            "add_acc": 2,
+            "sum_doubled": 2
+          },
+          "vm_data_effects": 0
+        }
+=== RUN   TestOriginalTypedShowcaseNative/ex33_lambda_inference/grace-size
+    original_typed_showcase_native_test.go:320: {
+          "calls": {
+            "add_acc": 65536,
+            "sum_doubled": 1
+          },
+          "cycles_including_CALL": {
+            "add_acc": 2031616,
+            "sum_doubled": 238
+          },
+          "execution_sha256": "91a164ee617c7eaa245c8b0ecc9c6da0e2d342b80b19c84aa8279514eff12df0",
+          "module_bytes": 20,
+          "raw_only_lifted": {
+            "lambda_0": 256
+          },
+          "source_assertions": 0,
+          "source_sha256": "6c48b03a21410afc4b346f115839a8488d9cb66308af2842810cb12f9186c94f",
+          "spill_bytes": {},
+          "stack_depths": {
+            "add_acc": 2,
+            "sum_doubled": 2
+          },
+          "vm_data_effects": 0
+        }
+=== RUN   TestOriginalTypedShowcaseNative/ex33_lambda_inference/grace-speed
+    original_typed_showcase_native_test.go:320: {
+          "calls": {
+            "add_acc": 65536,
+            "sum_doubled": 1
+          },
+          "cycles_including_CALL": {
+            "add_acc": 2031616,
+            "sum_doubled": 238
+          },
+          "execution_sha256": "91a164ee617c7eaa245c8b0ecc9c6da0e2d342b80b19c84aa8279514eff12df0",
+          "module_bytes": 20,
+          "raw_only_lifted": {
+            "lambda_0": 256
+          },
+          "source_assertions": 0,
+          "source_sha256": "6c48b03a21410afc4b346f115839a8488d9cb66308af2842810cb12f9186c94f",
+          "spill_bytes": {},
+          "stack_depths": {
+            "add_acc": 2,
+            "sum_doubled": 2
+          },
+          "vm_data_effects": 0
+        }
+--- PASS: TestOriginalTypedShowcaseNative (1.30s)
+    --- PASS: TestOriginalTypedShowcaseNative/ex21_enum (0.01s)
+        --- PASS: TestOriginalTypedShowcaseNative/ex21_enum/ordinary (0.00s)
+        --- PASS: TestOriginalTypedShowcaseNative/ex21_enum/grace-size (0.00s)
+        --- PASS: TestOriginalTypedShowcaseNative/ex21_enum/grace-speed (0.00s)
+    --- PASS: TestOriginalTypedShowcaseNative/ex22_type_alias (0.51s)
+        --- PASS: TestOriginalTypedShowcaseNative/ex22_type_alias/ordinary (0.16s)
+        --- PASS: TestOriginalTypedShowcaseNative/ex22_type_alias/grace-size (0.17s)
+        --- PASS: TestOriginalTypedShowcaseNative/ex22_type_alias/grace-speed (0.17s)
+    --- PASS: TestOriginalTypedShowcaseNative/ex26_enum_assert (0.26s)
+        --- PASS: TestOriginalTypedShowcaseNative/ex26_enum_assert/ordinary (0.09s)
+        --- PASS: TestOriginalTypedShowcaseNative/ex26_enum_assert/grace-size (0.09s)
+        --- PASS: TestOriginalTypedShowcaseNative/ex26_enum_assert/grace-speed (0.08s)
+    --- PASS: TestOriginalTypedShowcaseNative/ex32_value_pipe (0.27s)
+        --- PASS: TestOriginalTypedShowcaseNative/ex32_value_pipe/ordinary (0.09s)
+        --- PASS: TestOriginalTypedShowcaseNative/ex32_value_pipe/grace-size (0.10s)
+        --- PASS: TestOriginalTypedShowcaseNative/ex32_value_pipe/grace-speed (0.09s)
+    --- PASS: TestOriginalTypedShowcaseNative/ex33_lambda_inference (0.25s)
+        --- PASS: TestOriginalTypedShowcaseNative/ex33_lambda_inference/ordinary (0.09s)
+        --- PASS: TestOriginalTypedShowcaseNative/ex33_lambda_inference/grace-size (0.09s)
+        --- PASS: TestOriginalTypedShowcaseNative/ex33_lambda_inference/grace-speed (0.08s)
+PASS
