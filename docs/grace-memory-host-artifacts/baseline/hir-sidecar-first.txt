@@ -1,0 +1,3 @@
+FAIL	github.com/minz/minzc/pkg/hir [build failed]
+FAIL	github.com/minz/minzc/pkg/mir2 [build failed]
+FAIL

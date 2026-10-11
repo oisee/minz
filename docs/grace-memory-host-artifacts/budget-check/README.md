@@ -1,0 +1,8 @@
+Frozen memory-host compiler baseline freshly compiled the unchanged budget source for four constant-if/invariant-base masks, two actual Grace passes per mask. Compile times:0.409s,111.164s,5.540s,119.365s; total236.478s. A fresh assembler confirmed exact source, ASM and binary equality against the preceding global-HL stage docs/grace-global-hl-artifacts/budget-check. Binary sizes344/344/232/344 bytes. The earlier722.080s actual machine workload gate remains applicable through exact byte identity; no long target workload or old compiler was rerun.
+
+Only four OptSize=false compilations were executed. Budget-specific OptSize deduplication is unchanged: the rule allowlist admits only constant-if/invariant-base, the empty pointer policy disables pointer rewrites, and no copy/region/ordered-byte policy is enabled. Neither admitted rule depends on OptSize; no eight-compilation claim is made. All optional native-memory sidecar settings are absent on this default compilation path.
+
+compiler-identity.json verifies actual compiled source-file SHA256 against frozen memory-host checkpoint5fdc6846 on production baseb5256132. compile.go/audit.go are exact executed helpers. The audit takes explicit current/prior artifact roots and reads raw or gzip saved source/ASM. commands.txt preserves exact permanent execution paths. For a moved checkout, invoke the same helpers from its minzc directory and pass relocated artifact directories. Gzip source/ASM copies preserve exact original bytes; native binaries remain raw. inventory.json covers this subdirectory; parent owns the stage-wide manifest and broad gates.
+
+For portable re-audit:
+    go run <this-directory>/audit.go <this-directory> <checkout>/docs/grace-global-hl-artifacts/budget-check

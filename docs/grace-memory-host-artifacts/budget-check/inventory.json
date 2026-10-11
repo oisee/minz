@@ -1,0 +1,18 @@
+{
+  "README.md": "df15152d28506c0723ee76434d2668bac8e0ae014b5e2affeffc2055384bef74",
+  "audit.go": "d6b10d5400b2af993a1381883cc9e9a36987255af929f0a36f2a0e01ebdf652e",
+  "audit.txt": "2a6c8502c8a6bbd8258c891fd7ea355485a7db0e3d693fc7ddf6ff609526aba6",
+  "commands.txt": "733518c4a56b79668c0baccd4493016f00a444cc0a6957d905c9d11c5ca3bdde",
+  "compile.go": "d8fda71d906b67c30e2f59387d731995164c67d03e0d2b45d6a8a16b906e6939",
+  "compile.txt": "a9df097cbab4656843316b031fb474a14f638949cbadcd5fbbad662b15474a41",
+  "compiler-identity.json": "2e061977fceab998fa07ca5d48c963c50fe8257f4b14da60b26b4a4a1207e74f",
+  "current/size-false-mask-0.a80.gz": "69ed7812bccbed8fafe38c0d13ac74d3a23be81c007d3518cbb48de4157e6855",
+  "current/size-false-mask-0.bin": "2c649dce57e429c2332f3cf4e79c465c8d78c1bd76b33bb47b28f370759baf57",
+  "current/size-false-mask-1.a80.gz": "85daeabd9e7f2567b1dff4223d9a5ddc9bde6ade44375e28c68e0cfe12cf0519",
+  "current/size-false-mask-1.bin": "2c649dce57e429c2332f3cf4e79c465c8d78c1bd76b33bb47b28f370759baf57",
+  "current/size-false-mask-2.a80.gz": "8ce4f4fb0f493744816c4def3f096f0aa8a152869e2294038827003178757576",
+  "current/size-false-mask-2.bin": "12056d7c0a831060ba7f9fc5c541be0021d320cf07ff384f2194af448d5625f8",
+  "current/size-false-mask-3.a80.gz": "85daeabd9e7f2567b1dff4223d9a5ddc9bde6ade44375e28c68e0cfe12cf0519",
+  "current/size-false-mask-3.bin": "2c649dce57e429c2332f3cf4e79c465c8d78c1bd76b33bb47b28f370759baf57",
+  "source.nanz.gz": "fa70ed764e1d26646ad033b9eeacf76aab24969ed1d582eb8a72697582e6d840"
+}

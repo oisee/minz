@@ -1,0 +1,11 @@
+=== RUN   TestMemoryHostFactoryOriginalParser
+[label-audit] 1 undefined labels:
+  node_tag
+--- PASS: TestMemoryHostFactoryOriginalParser (0.81s)
+=== RUN   TestMemoryHostOriginalSelfLanzTarget
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_target_test.go:100: production memory host original30 1221494T/2091B SHAfed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51
+--- PASS: TestMemoryHostOriginalSelfLanzTarget (0.55s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.377s

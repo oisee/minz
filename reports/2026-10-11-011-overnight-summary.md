@@ -88,3 +88,14 @@ Remote refs сверены с локальными SHA. Первоначальн
 `/home/alice/dev/minz-artifacts/grace-workspaces/report-site`.
 Полный локальный Git-архив и проверенный bundle28веток находятся в
 `/home/alice/dev/minz-artifacts/grace-checkpoints/`.
+
+## Дополнение: закрыт memory-host baseline
+
+Новый публичный API выполняет неизменённый Self-Lanz с закрытым контрактом двух
+byte-host операций.30 persistent calls проходят независимую модель памяти и
+порядка обращений, а также аудит90 instruction-sidecar записей и ASM/BIN.
+Стоимость прежняя:1221494 T /2091 B; выигрыш parser PGO пока не заявлен.
+Полный pipeline289.268 s PASS; showcase31 прежнее падение,0 новых. Все16
+обычных PGO CLI-вариантов сохранили бинарники предыдущего этапа.
+Следом — source-bound профилирование и отдельный arena-first сертификат.
+Решений Alice для этого шага не требуется; цель продолжается.

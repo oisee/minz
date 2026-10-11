@@ -1,0 +1,95 @@
+=== RUN   TestMemoryHostFactoryOriginalParser
+[label-audit] 1 undefined labels:
+  node_tag
+--- PASS: TestMemoryHostFactoryOriginalParser (1.26s)
+=== RUN   TestMemoryHostFactoryRefusals
+=== RUN   TestMemoryHostFactoryRefusals/nil
+=== RUN   TestMemoryHostFactoryRefusals/shared
+=== RUN   TestMemoryHostFactoryRefusals/shared_ast
+=== RUN   TestMemoryHostFactoryRefusals/source_changed
+=== RUN   TestMemoryHostFactoryRefusals/prior_only_origin
+=== RUN   TestMemoryHostFactoryRefusals/fresh_and_prior_origin
+=== RUN   TestMemoryHostFactoryRefusals/prior_policy
+=== RUN   TestMemoryHostFactoryRefusals/third_call_origin
+=== RUN   TestMemoryHostFactoryRefusals/caller_bytes_mutated
+--- PASS: TestMemoryHostFactoryRefusals (0.42s)
+    --- PASS: TestMemoryHostFactoryRefusals/nil (0.00s)
+    --- PASS: TestMemoryHostFactoryRefusals/shared (0.04s)
+    --- PASS: TestMemoryHostFactoryRefusals/shared_ast (0.01s)
+    --- PASS: TestMemoryHostFactoryRefusals/source_changed (0.03s)
+    --- PASS: TestMemoryHostFactoryRefusals/prior_only_origin (0.04s)
+    --- PASS: TestMemoryHostFactoryRefusals/fresh_and_prior_origin (0.03s)
+    --- PASS: TestMemoryHostFactoryRefusals/prior_policy (0.03s)
+    --- PASS: TestMemoryHostFactoryRefusals/third_call_origin (0.10s)
+    --- PASS: TestMemoryHostFactoryRefusals/caller_bytes_mutated (0.13s)
+=== RUN   TestMemoryHostSidecarOpcodeBinding
+=== RUN   TestMemoryHostSidecarOpcodeBinding/direction
+=== RUN   TestMemoryHostSidecarOpcodeBinding/width
+=== RUN   TestMemoryHostSidecarOpcodeBinding/offset
+=== RUN   TestMemoryHostSidecarOpcodeBinding/missing
+=== RUN   TestMemoryHostSidecarOpcodeBinding/duplicate
+--- PASS: TestMemoryHostSidecarOpcodeBinding (0.00s)
+    --- PASS: TestMemoryHostSidecarOpcodeBinding/direction (0.00s)
+    --- PASS: TestMemoryHostSidecarOpcodeBinding/width (0.00s)
+    --- PASS: TestMemoryHostSidecarOpcodeBinding/offset (0.00s)
+    --- PASS: TestMemoryHostSidecarOpcodeBinding/missing (0.00s)
+    --- PASS: TestMemoryHostSidecarOpcodeBinding/duplicate (0.00s)
+=== RUN   TestMemoryHostProtectedAccessRecipes
+=== RUN   TestMemoryHostProtectedAccessRecipes/globalread
+=== RUN   TestMemoryHostProtectedAccessRecipes/globalwrite
+=== RUN   TestMemoryHostProtectedAccessRecipes/stackread
+=== RUN   TestMemoryHostProtectedAccessRecipes/stackwrite
+=== RUN   TestMemoryHostProtectedAccessRecipes/spillread
+=== RUN   TestMemoryHostProtectedAccessRecipes/spillwrite
+--- PASS: TestMemoryHostProtectedAccessRecipes (0.00s)
+    --- PASS: TestMemoryHostProtectedAccessRecipes/globalread (0.00s)
+    --- PASS: TestMemoryHostProtectedAccessRecipes/globalwrite (0.00s)
+    --- PASS: TestMemoryHostProtectedAccessRecipes/stackread (0.00s)
+    --- PASS: TestMemoryHostProtectedAccessRecipes/stackwrite (0.00s)
+    --- PASS: TestMemoryHostProtectedAccessRecipes/spillread (0.00s)
+    --- PASS: TestMemoryHostProtectedAccessRecipes/spillwrite (0.00s)
+=== RUN   TestMemoryHostProtectedMisdirectionBeforeEffect
+--- PASS: TestMemoryHostProtectedMisdirectionBeforeEffect (0.00s)
+=== RUN   TestMemoryHostOpcodeRejectsTruncation
+--- PASS: TestMemoryHostOpcodeRejectsTruncation (0.00s)
+=== RUN   TestMemoryHostUninitializedStackPopRefusal
+--- PASS: TestMemoryHostUninitializedStackPopRefusal (0.00s)
+=== RUN   TestMemoryHostOriginalSelfLanzTarget
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_target_test.go:94: production memory host original30 1221494T/2091B SHAfed98ba78becf9431a5301f31330363cc3005f1f6692fd1f9e9183d80b9d0a51
+--- PASS: TestMemoryHostOriginalSelfLanzTarget (0.78s)
+=== RUN   TestMemoryHostTargetLayoutRefusals
+=== RUN   TestMemoryHostTargetLayoutRefusals/code_region
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostTargetLayoutRefusals/stack_region
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostTargetLayoutRefusals/read_only
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostTargetLayoutRefusals/oracle
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostTargetLayoutRefusals/hostABI
+[label-audit] 1 undefined labels:
+  node_tag
+--- PASS: TestMemoryHostTargetLayoutRefusals (2.09s)
+    --- PASS: TestMemoryHostTargetLayoutRefusals/code_region (0.31s)
+    --- PASS: TestMemoryHostTargetLayoutRefusals/stack_region (0.20s)
+    --- PASS: TestMemoryHostTargetLayoutRefusals/read_only (0.29s)
+    --- PASS: TestMemoryHostTargetLayoutRefusals/oracle (0.69s)
+    --- PASS: TestMemoryHostTargetLayoutRefusals/hostABI (0.60s)
+=== RUN   TestMemoryHostTargetPartialFailureAndPersistence
+--- PASS: TestMemoryHostTargetPartialFailureAndPersistence (0.10s)
+=== RUN   TestMemoryHostNativeByteEffects
+--- PASS: TestMemoryHostNativeByteEffects (0.00s)
+=== RUN   TestMemoryHostNativeInvalidSecondBytePrefix
+--- PASS: TestMemoryHostNativeInvalidSecondBytePrefix (0.00s)
+=== RUN   TestMemoryHostNativeCodeDataReadRefusal
+--- PASS: TestMemoryHostNativeCodeDataReadRefusal (0.00s)
+=== RUN   TestMemoryHostNativePrefixAndStack
+--- PASS: TestMemoryHostNativePrefixAndStack (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	4.659s

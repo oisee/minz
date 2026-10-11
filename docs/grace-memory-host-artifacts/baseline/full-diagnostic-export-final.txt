@@ -1,0 +1,6 @@
+=== RUN   TestMemoryHostFactoryOriginalParser
+[label-audit] 1 undefined labels:
+  node_tag
+--- PASS: TestMemoryHostFactoryOriginalParser (1.27s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.284s

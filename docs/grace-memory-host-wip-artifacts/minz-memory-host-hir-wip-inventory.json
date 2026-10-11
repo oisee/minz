@@ -1,0 +1,8 @@
+{
+  "minzc/pkg/hir/memory_host_workload.go": "a63f85056fd0f78e7ea40558a57842e8def3f30c8c922b5d98d52d3a8ed6afd9",
+  "minzc/pkg/hir/memory_host_workload_test.go": "3a5c42e3fa217f89b0ec256b13802398d5b1f58a5722077637d041949470f781",
+  "minzc/pkg/mir2/vm.go": "481a52f2a55fe2a49a2ba5d9162fced8d8183714e648c369cd667042e80a5245",
+  "minzc/pkg/mir2/vm_byte_access_guard_test.go": "30f325cb7a60cb220c0b6bb0d694cb0705ec726306a4e4be084e99123b04f163",
+  "docs/grace-memory-host-contract-plan.md": "657be35e7eb3b637fb711b1eae68ecfbf72986c52b326ed11c1f8b3dfa6a47d0",
+  "docs/grace-memory-host-baseline-contract.md": "90457b5767e9507e937b3174fd79ab25a9fa5b00a892ec9f6c96ca0fc9f34fc4"
+}

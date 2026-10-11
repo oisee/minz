@@ -1,0 +1,23 @@
+ok  	github.com/minz/minzc/pkg/hir	0.233s
+ok  	github.com/minz/minzc/pkg/mir2	0.019s
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostFactoryOriginalParser (0.88s)
+    memory_host_baseline_test.go:18: memory host baseline: memory host target: oracle mismatch invocation 2: results=false globals=false regions=false events=false error="unproved protected access at PC075a address078d write=true" wantError=""
+[label-audit] 1 undefined labels:
+  node_tag
+--- FAIL: TestMemoryHostOriginalSelfLanzTarget (0.67s)
+    memory_host_target_test.go:44: memory host target: oracle mismatch invocation 2: results=false globals=false regions=false events=false error="unproved protected access at PC075a address078d write=true" wantError=""
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	4.278s
+FAIL

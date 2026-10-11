@@ -1,0 +1,88 @@
+{
+  "guards": [],
+  "compatibility": {
+    "schema": "minz.loop-profile-compatibility/v1",
+    "context": {
+      "compiler_id": "executable-sha256:dbcd375734f5665e58ca4561979cef7cd3bd707a68d18a31522ab09969e77aa3",
+      "semantics_id": "minz.unoptimised-mir2-vm-loop-events/v2",
+      "target_id": "module-target:1/model:cpm-z80-v1",
+      "workload_sha256": "5a720e7bd9e1c3d5a1c09bd218a040034198fec78392e21b1866cf1e8dd52eb2",
+      "hosts_sha256": "90c2ab32a485230b62ee30b06328a223847dd0aabc8b76b590062f19cf6c6cb8",
+      "dependencies": {
+        "../examples/nanz/21_hashmap_test.nanz": "2caa7c16db7371f6f1ef6eecfa8c767e58d9d961c5bdfdbfccda1fb6e613c3f8"
+      }
+    },
+    "hir_sha256": "caf78fe96076382e0bcec2e88ac94eb917a5e21dfe4bb7907a33d19c14124de6",
+    "origins_sha256": "b111bced62fbbc85c014509373f3aec941f4779be2a06787b5bb8f78901c7054"
+  },
+  "schema": "minz.input-hir-loop-observations/v5",
+  "stage": "unoptimised-mir2-vm",
+  "sites": {
+    "schema": "minz.hir-loop-sites/v1",
+    "stage": "input-hir",
+    "sites": [
+      {
+        "id": "1529beb11ca107ab9212bd9acf06fc0f92e3a90567bb7f2e5c300e5d9f266cd2",
+        "function": "map_get",
+        "kind": "while",
+        "ordinal": 0,
+        "hir_path": "body/s2",
+        "origin": {
+          "unit": "../examples/nanz/21_hashmap_test.nanz",
+          "byte_offset": 1418,
+          "line": 60,
+          "byte_column": 5,
+          "source_sha256": "2caa7c16db7371f6f1ef6eecfa8c767e58d9d961c5bdfdbfccda1fb6e613c3f8"
+        }
+      },
+      {
+        "id": "5e7f18ffc4802b66b401f2264b64e06311c474304dc0a5640986df702cb7d351",
+        "function": "map_clear",
+        "kind": "while",
+        "ordinal": 0,
+        "hir_path": "body/s2",
+        "origin": {
+          "unit": "../examples/nanz/21_hashmap_test.nanz",
+          "byte_offset": 725,
+          "line": 30,
+          "byte_column": 5,
+          "source_sha256": "2caa7c16db7371f6f1ef6eecfa8c767e58d9d961c5bdfdbfccda1fb6e613c3f8"
+        }
+      },
+      {
+        "id": "8e2560302feb6e76e26ab686cfdb156acc8be40be94dfd09ded5108c3369951a",
+        "function": "map_put",
+        "kind": "while",
+        "ordinal": 0,
+        "hir_path": "body/s2",
+        "origin": {
+          "unit": "../examples/nanz/21_hashmap_test.nanz",
+          "byte_offset": 897,
+          "line": 39,
+          "byte_column": 5,
+          "source_sha256": "2caa7c16db7371f6f1ef6eecfa8c767e58d9d961c5bdfdbfccda1fb6e613c3f8"
+        }
+      }
+    ],
+    "unmapped_loops": 0
+  },
+  "counts": [
+    {
+      "site_id": "1529beb11ca107ab9212bd9acf06fc0f92e3a90567bb7f2e5c300e5d9f266cd2",
+      "entries": 13,
+      "body_entries": 30
+    },
+    {
+      "site_id": "5e7f18ffc4802b66b401f2264b64e06311c474304dc0a5640986df702cb7d351",
+      "entries": 2,
+      "body_entries": 32
+    },
+    {
+      "site_id": "8e2560302feb6e76e26ab686cfdb156acc8be40be94dfd09ded5108c3369951a",
+      "entries": 21,
+      "body_entries": 139
+    }
+  ],
+  "completed_calls": 36,
+  "failed_calls": 0
+}

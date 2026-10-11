@@ -1,0 +1,6 @@
+=== RUN   TestMemoryHostIndependentStackBoundaryBeforeResourceWrite
+    memory_host_final_independent_test.go:11: stack boundary damaged resource: err=<nil> SP=dffe bytes=12/34 events=[{write 57343 18} {write 57342 52}]
+--- FAIL: TestMemoryHostIndependentStackBoundaryBeforeResourceWrite (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.007s
+FAIL

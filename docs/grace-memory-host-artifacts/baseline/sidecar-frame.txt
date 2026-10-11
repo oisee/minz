@@ -1,0 +1,42 @@
+=== RUN   TestMemoryHostSidecarOpcodeBinding
+=== RUN   TestMemoryHostSidecarOpcodeBinding/direction
+=== RUN   TestMemoryHostSidecarOpcodeBinding/width
+=== RUN   TestMemoryHostSidecarOpcodeBinding/offset
+=== RUN   TestMemoryHostSidecarOpcodeBinding/missing
+=== RUN   TestMemoryHostSidecarOpcodeBinding/duplicate
+--- PASS: TestMemoryHostSidecarOpcodeBinding (0.00s)
+    --- PASS: TestMemoryHostSidecarOpcodeBinding/direction (0.00s)
+    --- PASS: TestMemoryHostSidecarOpcodeBinding/width (0.00s)
+    --- PASS: TestMemoryHostSidecarOpcodeBinding/offset (0.00s)
+    --- PASS: TestMemoryHostSidecarOpcodeBinding/missing (0.00s)
+    --- PASS: TestMemoryHostSidecarOpcodeBinding/duplicate (0.00s)
+=== RUN   TestMemoryHostProtectedAccessRecipes
+=== RUN   TestMemoryHostProtectedAccessRecipes/globalread
+=== RUN   TestMemoryHostProtectedAccessRecipes/globalwrite
+=== RUN   TestMemoryHostProtectedAccessRecipes/stackread
+=== RUN   TestMemoryHostProtectedAccessRecipes/stackwrite
+=== RUN   TestMemoryHostProtectedAccessRecipes/spillread
+=== RUN   TestMemoryHostProtectedAccessRecipes/spillwrite
+--- PASS: TestMemoryHostProtectedAccessRecipes (0.00s)
+    --- PASS: TestMemoryHostProtectedAccessRecipes/globalread (0.00s)
+    --- PASS: TestMemoryHostProtectedAccessRecipes/globalwrite (0.00s)
+    --- PASS: TestMemoryHostProtectedAccessRecipes/stackread (0.00s)
+    --- PASS: TestMemoryHostProtectedAccessRecipes/stackwrite (0.00s)
+    --- PASS: TestMemoryHostProtectedAccessRecipes/spillread (0.00s)
+    --- PASS: TestMemoryHostProtectedAccessRecipes/spillwrite (0.00s)
+=== RUN   TestMemoryHostProtectedMisdirectionBeforeEffect
+--- PASS: TestMemoryHostProtectedMisdirectionBeforeEffect (0.00s)
+=== RUN   TestMemoryHostOpcodeRejectsTruncation
+--- PASS: TestMemoryHostOpcodeRejectsTruncation (0.00s)
+=== RUN   TestMemoryHostUninitializedStackPopRefusal
+--- PASS: TestMemoryHostUninitializedStackPopRefusal (0.00s)
+=== RUN   TestMemoryHostNativeByteEffects
+--- PASS: TestMemoryHostNativeByteEffects (0.00s)
+=== RUN   TestMemoryHostNativeInvalidSecondBytePrefix
+--- PASS: TestMemoryHostNativeInvalidSecondBytePrefix (0.00s)
+=== RUN   TestMemoryHostNativeCodeDataReadRefusal
+--- PASS: TestMemoryHostNativeCodeDataReadRefusal (0.00s)
+=== RUN   TestMemoryHostNativePrefixAndStack
+--- PASS: TestMemoryHostNativePrefixAndStack (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.014s

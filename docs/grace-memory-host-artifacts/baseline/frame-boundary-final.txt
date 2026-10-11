@@ -1,0 +1,4 @@
+=== RUN   TestMemoryHostFrameBoundaryBeforeRegionEffect
+--- PASS: TestMemoryHostFrameBoundaryBeforeRegionEffect (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.009s

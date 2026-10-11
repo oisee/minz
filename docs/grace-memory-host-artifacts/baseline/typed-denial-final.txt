@@ -1,0 +1,10 @@
+=== RUN   TestMemoryHostTargetPartialFailureAndPersistence
+=== RUN   TestMemoryHostTargetPartialFailureAndPersistence/forged_denial_kind
+=== RUN   TestMemoryHostTargetPartialFailureAndPersistence/forged_denial_address
+=== RUN   TestMemoryHostTargetPartialFailureAndPersistence/forged_denial_direction
+--- PASS: TestMemoryHostTargetPartialFailureAndPersistence (0.27s)
+    --- PASS: TestMemoryHostTargetPartialFailureAndPersistence/forged_denial_kind (0.01s)
+    --- PASS: TestMemoryHostTargetPartialFailureAndPersistence/forged_denial_address (0.01s)
+    --- PASS: TestMemoryHostTargetPartialFailureAndPersistence/forged_denial_direction (0.01s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.275s

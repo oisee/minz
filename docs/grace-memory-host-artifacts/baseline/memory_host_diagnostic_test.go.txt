@@ -1,0 +1,39 @@
+package pipeline
+
+import (
+	"encoding/json"
+	"github.com/minz/minzc/pkg/hir"
+	"github.com/minz/minzc/pkg/mir2"
+	"github.com/minz/minzc/pkg/z80asm"
+	"os"
+	"strings"
+	"testing"
+)
+
+func TestMemoryHostDiagnosticEmission(t *testing.T) {
+	m, w := memoryHostParserFixture(t)
+	steps, e := CompileHIRSteps(m, Options{AssertMode: "none"})
+	if e != nil {
+		t.Fatal(e)
+	}
+	records := []mir2.NativeMemoryAccess{}
+	s, e := mir2.Z80Codegen(steps.MIR2Module, steps.Allocation, mir2.Z80CodegenOptions{NativeMemoryAccessOrigins: hir.MemoryHostGlobalOrigins(steps.MIR2Module), NativeMemoryAccesses: &records})
+	if e != nil {
+		t.Fatal(e)
+	}
+	s = emitExternStubs(s, steps.MIR2Module)
+	s = __memoryHostDiagnosticAdapters(s)
+	a, e := z80asm.NewAssembler().AssembleString("ORG 0x0400\n" + s)
+	if e != nil {
+		t.Fatal(e)
+	}
+	_ = w
+	b, _ := json.MarshalIndent(map[string]any{"listing": a.Listing, "records": records}, "", "  ")
+	os.WriteFile("/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-evidence/emission-diagnostic.json", b, 0644)
+	os.WriteFile("/home/alice/dev/minz-artifacts/grace-checkpoints/memory-host-evidence/emission-diagnostic.a80", []byte(s), 0644)
+}
+
+func __memoryHostDiagnosticAdapters(s string) string {
+	s = strings.Replace(s, "peek:\n", "peek:\n    LD A,(HL)\n    RET\n", 1)
+	return strings.Replace(s, "poke:\n", "poke:\n    LD (HL),C\n    RET\n", 1)
+}

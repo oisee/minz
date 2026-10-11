@@ -1,0 +1,32 @@
+[
+  {
+    "path": "docs/grace-memory-host-final-review/README.md",
+    "bytes": 2720,
+    "sha256": "4af2605e1eac5f6ba6df80879ce1268a2d7b6f946b48a8a888dacd44a5882e7b"
+  },
+  {
+    "path": "docs/grace-memory-host-final-review/independent-after.txt",
+    "bytes": 332,
+    "sha256": "31af1c369094d212a86fdd585101b25a0b4decc04e9ad784b4414e20bfd0ba74"
+  },
+  {
+    "path": "docs/grace-memory-host-final-review/stack-boundary-before.txt",
+    "bytes": 353,
+    "sha256": "8b856adb03e32e942cd132f3cc44e190c0ddfcf09241815b1c344b75d442ed8a"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_final_independent_test.go",
+    "bytes": 2144,
+    "sha256": "5034ff715c00b5448464253f2d8b0401c726ffb2fc8dbee0a6e6af770bc81a04"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_target.go",
+    "bytes": 14138,
+    "sha256": "ad4abba22f5aebb0e90fda7a44c40e25087d207ac63c5be8a090e17eabd3f2a8"
+  },
+  {
+    "path": "minzc/pkg/pipeline/memory_host_z80_memory.go",
+    "bytes": 9221,
+    "sha256": "73112751483c4dd066cd1b709cc2167ccd80eb8ac7459c07d5bc6dc128a10e79"
+  }
+]

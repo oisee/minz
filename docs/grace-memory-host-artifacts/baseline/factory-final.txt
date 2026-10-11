@@ -1,0 +1,26 @@
+=== RUN   TestMemoryHostFactoryOriginalParser
+[label-audit] 1 undefined labels:
+  node_tag
+--- PASS: TestMemoryHostFactoryOriginalParser (0.92s)
+=== RUN   TestMemoryHostFactoryRefusals
+=== RUN   TestMemoryHostFactoryRefusals/nil
+=== RUN   TestMemoryHostFactoryRefusals/shared
+=== RUN   TestMemoryHostFactoryRefusals/shared_ast
+=== RUN   TestMemoryHostFactoryRefusals/source_changed
+=== RUN   TestMemoryHostFactoryRefusals/prior_only_origin
+=== RUN   TestMemoryHostFactoryRefusals/fresh_and_prior_origin
+=== RUN   TestMemoryHostFactoryRefusals/prior_policy
+=== RUN   TestMemoryHostFactoryRefusals/third_call_origin
+=== RUN   TestMemoryHostFactoryRefusals/caller_bytes_mutated
+--- PASS: TestMemoryHostFactoryRefusals (0.41s)
+    --- PASS: TestMemoryHostFactoryRefusals/nil (0.00s)
+    --- PASS: TestMemoryHostFactoryRefusals/shared (0.04s)
+    --- PASS: TestMemoryHostFactoryRefusals/shared_ast (0.01s)
+    --- PASS: TestMemoryHostFactoryRefusals/source_changed (0.03s)
+    --- PASS: TestMemoryHostFactoryRefusals/prior_only_origin (0.04s)
+    --- PASS: TestMemoryHostFactoryRefusals/fresh_and_prior_origin (0.03s)
+    --- PASS: TestMemoryHostFactoryRefusals/prior_policy (0.03s)
+    --- PASS: TestMemoryHostFactoryRefusals/third_call_origin (0.10s)
+    --- PASS: TestMemoryHostFactoryRefusals/caller_bytes_mutated (0.13s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	1.341s

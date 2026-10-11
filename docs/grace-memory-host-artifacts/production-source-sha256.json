@@ -1,0 +1,32 @@
+{
+  "head": "5fdc6846dccef95134ea402fdfe1b253a4321bc9",
+  "base": "b5256132b1d4a9cc58baff613e63fcfff5ccf870",
+  "files": {
+    "docs/grace-memory-host-baseline-contract.md": "90457b5767e9507e937b3174fd79ab25a9fa5b00a892ec9f6c96ca0fc9f34fc4",
+    "docs/grace-memory-host-contract-plan.md": "657be35e7eb3b637fb711b1eae68ecfbf72986c52b326ed11c1f8b3dfa6a47d0",
+    "docs/grace-memory-host-wip-artifacts/minz-memory-host-hir-focused.txt": "dbb7bae38e55e483bbca1100571d1ddba907f0e1b594bfe4f0874d97b28ee136",
+    "docs/grace-memory-host-wip-artifacts/minz-memory-host-hir-wip-inventory.json": "d00cd4fb3ad481e921c44390cd9b96b310ab1678cbed7a96ca8ba3290461b092",
+    "minzc/pkg/hir/memory_host_workload.go": "dd5105268140cdf1b91e145ac0c6e8c945e01879ea79100fe7fd4e6cc07bb2c2",
+    "minzc/pkg/hir/memory_host_workload_test.go": "96cea6d9e179cdc81073f6f205f5b0e75ada090ce4bb862a8ae26378a772af4c",
+    "minzc/pkg/mir2/native_memory_access.go": "7e456bd8340ded3262331911340446e14084777bc5390fc7668a9232f131fe53",
+    "minzc/pkg/mir2/native_memory_access_internal_test.go": "f53386c16c3a30db2a46b2dd7a326e4bd811740f29df5b312f318dacd73af33a",
+    "minzc/pkg/mir2/native_memory_access_test.go": "c7bc74a1d58d6355fd33be48ff2bcbe42e628836911536af218b0162f611c4ff",
+    "minzc/pkg/mir2/tsmc_spill.go": "5471a51a39ff55b91bd32889eafbf6ccc431a9ad19d131f0a8010116553deaa1",
+    "minzc/pkg/mir2/vm.go": "481a52f2a55fe2a49a2ba5d9162fced8d8183714e648c369cd667042e80a5245",
+    "minzc/pkg/mir2/vm_byte_access_guard_test.go": "30f325cb7a60cb220c0b6bb0d694cb0705ec726306a4e4be084e99123b04f163",
+    "minzc/pkg/mir2/z80codegen.go": "f94e13f1b19c6a5141d9ec98bd4ee48d1d44d1bda7af7b1f4a20db195d5a6917",
+    "minzc/pkg/mir2/z80codegen_alu.go": "3879772ecdb88d83d27391183677b85ab3789f8fb73770dc02640c9e3e3bf271",
+    "minzc/pkg/mir2/z80codegen_copy.go": "7bc5b6088bf1bda199c7ce664888db272df6f1c2c300ea4c6f9a9f3fda657119",
+    "minzc/pkg/mir2/z80codegen_inst.go": "58c224bee9f49ce380799e0d36a676dde5b1b65096b3e3905159493a516ca656",
+    "minzc/pkg/mir2/z80codegen_move.go": "197f968cea9c9e4f781af308243355199328315c798a1fba44c7221b76c4eed4",
+    "minzc/pkg/pipeline/memory_host_access_recipe.go": "fa516ca9e88168b79b5e4475cfc8846b713f62c05112fc9171c72b28fcfbc59c",
+    "minzc/pkg/pipeline/memory_host_baseline.go": "819a998bccae30432b25da372b69e56d19de1fd33bf90e7305c5ccf1c92227df",
+    "minzc/pkg/pipeline/memory_host_baseline_test.go": "55eb73076151c4317df2e5b2c2b94101e2173d7bc73a9fac82781545c5e73963",
+    "minzc/pkg/pipeline/memory_host_sidecar.go": "92eeff7281ef17fb2e5c1eb93fcabcc30d4c74886b7a258df5654b0a92facebe",
+    "minzc/pkg/pipeline/memory_host_sidecar_test.go": "9089723593ed6baa3c65678db3f6a1de0fd4239039646d5486f25ca728ea1a7d",
+    "minzc/pkg/pipeline/memory_host_target.go": "15bcb7b8b48cb98fb397c2a4cafe569d1c5c46cf36989b1661d2a4aeb7a16681",
+    "minzc/pkg/pipeline/memory_host_target_test.go": "cd64c426614c7284839eac1ecb6bfbfd2b0a454aad7c5ddc3f24219960f12543",
+    "minzc/pkg/pipeline/memory_host_z80_memory.go": "73112751483c4dd066cd1b709cc2167ccd80eb8ac7459c07d5bc6dc128a10e79",
+    "minzc/pkg/pipeline/memory_host_z80_memory_test.go": "8f9623cee0c1ceba00a1d397007da704a5a2cd3ca46dfc190a9abc1bca25c1ce"
+  }
+}

@@ -377,7 +377,7 @@ func (g *z80cg) emitParallelCopy(copies []parallelCopy) {
 				if i > 0 {
 					addr += fmt.Sprintf("+%d", i)
 				}
-				g.emitf("    LD (%s), A", addr)
+				g.emitNativeSpillf(c.dstName, i, 1, true, "    LD (%s), A", addr)
 			}
 			g.emit("    EX AF, AF'")
 		} else if c.ty.Width() <= 8 {
@@ -436,11 +436,11 @@ func (g *z80cg) emitSingleCopy(src, dst string, ty Ty) {
 	if ty.Width() <= 8 {
 		switch {
 		case isSpill(src) && dst == "A":
-			g.emitf("    LD A, (%s)", src)
+			g.emitNativeSpillf(src, 0, 1, false, "    LD A, (%s)", src)
 		case isSpill(src):
 			g.emitLD8(dst, src)
 		case isSpill(dst) && src == "A":
-			g.emitf("    LD (%s), A", dst)
+			g.emitNativeSpillf(dst, 0, 1, true, "    LD (%s), A", dst)
 		case isSpill(dst):
 			g.emitLD8(dst, src)
 		case (isIXYReg(src) && (dst == "H" || dst == "L")) ||

@@ -1,0 +1,1 @@
+ok  	github.com/minz/minzc/pkg/hir	0.007s

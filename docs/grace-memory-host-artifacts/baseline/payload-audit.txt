@@ -1,0 +1,1 @@
+PASS exact BIN/ASM/MIR/allocation hashes, 30 calls, T-state sum, gzip roundtrip

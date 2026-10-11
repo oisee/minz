@@ -1,0 +1,8 @@
+=== RUN   TestMemoryHostFactoryOriginalParser
+[label-audit] 1 undefined labels:
+  node_tag
+    memory_host_baseline_test.go:18: memory host baseline: memory host target: oracle mismatch invocation 2: results=false globals=false regions=false events=false error="unproved protected access at PC075a address078d write=true" wantError=""
+--- FAIL: TestMemoryHostFactoryOriginalParser (0.79s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.794s
+FAIL

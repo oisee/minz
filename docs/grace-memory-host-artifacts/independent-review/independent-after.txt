@@ -1,0 +1,6 @@
+=== RUN   TestMemoryHostIndependentStackBoundaryBeforeResourceWrite
+--- PASS: TestMemoryHostIndependentStackBoundaryBeforeResourceWrite (0.00s)
+=== RUN   TestMemoryHostIndependentDynamicBudgetAndPartialStore
+--- PASS: TestMemoryHostIndependentDynamicBudgetAndPartialStore (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.008s
