@@ -1,0 +1,1 @@
+Read-only source/proof plan. No original source/compiler/test changes, no CPU or cost measurements. Smallest next slice is first-byte peeling with original arena-first host calls/modular addresses; actual profitability remains unknown. PLAN.md documents exact contract, negative cases, and deferred pointer induction.

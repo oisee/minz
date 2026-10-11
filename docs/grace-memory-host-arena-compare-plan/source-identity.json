@@ -1,0 +1,7 @@
+{
+  "base": "5fdc6846",
+  "source": "examples/nanz/self_lanz_parser.nanz",
+  "source_sha256": "0e92689c6bb4a92fd681c9bc70d5d50549631a0fdd669cd026f723cf4e197526",
+  "source_unchanged": true,
+  "candidate_measured": false
+}
