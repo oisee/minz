@@ -1,0 +1,126 @@
+{
+  "base_commit": "f3105f48",
+  "root_fix_for_final_core": "ee5621ac",
+  "files": {
+    "20_strref_test-baseline.a80": {
+      "bytes": 2540,
+      "sha256": "c4a4b6348ffc2654b6d3cf2507a70c6145b89cf5670495c72fa34bead48012f1"
+    },
+    "20_strref_test-generation.txt": {
+      "bytes": 526,
+      "sha256": "b9701427cb0f5a481b8812507735aaedc0e9ce3b914e4a2841ae3b2a450fc9d2"
+    },
+    "20_strref_test-selected.a80": {
+      "bytes": 2540,
+      "sha256": "c4a4b6348ffc2654b6d3cf2507a70c6145b89cf5670495c72fa34bead48012f1"
+    },
+    "20_strref_test.nanz": {
+      "bytes": 1441,
+      "sha256": "23d92aa2d44e5d126dbe9f63a1f10edb283cc39d276656f3aaa3d57c96b02c10"
+    },
+    "20_strref_test.table.json": {
+      "bytes": 917,
+      "sha256": "ce119ae6efcd2e2e14acd9e64133265cf2b349756cb7b21e96f70820cd099ad7"
+    },
+    "21_hashmap_test-baseline.a80": {
+      "bytes": 13459,
+      "sha256": "90f16d3e80248a5cdcd1393954a5c4b99b0b63ea9c0e089c345d91a82a57eecc"
+    },
+    "21_hashmap_test-generation.txt": {
+      "bytes": 1246,
+      "sha256": "8d83bc24663ea017372e959396de7d93a85643884f0139d1f7f87580a5cbdf1f"
+    },
+    "21_hashmap_test.nanz": {
+      "bytes": 3463,
+      "sha256": "2caa7c16db7371f6f1ef6eecfa8c767e58d9d961c5bdfdbfccda1fb6e613c3f8"
+    },
+    "baseline.a80": {
+      "bytes": 1700,
+      "sha256": "af7395815eaba3ec3a695014411efc63ec0d7581753879b224d78add90473f67"
+    },
+    "baseline.bin": {
+      "bytes": 34,
+      "sha256": "61cbfd59627818e4bee5fe14c75ae2e5e43d45011bca825e996bee263e06cca8"
+    },
+    "catalog.txt": {
+      "bytes": 2736,
+      "sha256": "845e3cb03943b646c753050537917a89e45cceca7ec719ecb5a4a28cb3e572c4"
+    },
+    "cli-table.json": {
+      "bytes": 606,
+      "sha256": "42a28cce988ff8a177d91665e003338384ad999aaaee83df03d2199beb762f8d"
+    },
+    "core-full.txt": {
+      "bytes": 87,
+      "sha256": "0de2bc9c2228d0eaf184dee4e603378eb1cbf221b4e85b91eba2cd3bc09aaaff"
+    },
+    "generation-time-v.txt": {
+      "bytes": 950,
+      "sha256": "047ce46ae178025d7aa611fe51070bb21f2a62b849952b70bfb8a7c0382b9637"
+    },
+    "generation.txt": {
+      "bytes": 328,
+      "sha256": "21ac5fe22d5e9c41670ec49a5190ee60a33338edf2db9459459cf3f90cf238b5"
+    },
+    "hit.a80": {
+      "bytes": 1633,
+      "sha256": "156a49e9675ae10d018bed9bc085bca30fe34c54d6b5b4ec4368e68830785d76"
+    },
+    "indirect-before-failure.txt": {
+      "bytes": 2406,
+      "sha256": "aca727fc8e14e599397c733fb2f019d91c48c126cea9352ed6cc61d18067a9b5"
+    },
+    "miss.a80": {
+      "bytes": 1700,
+      "sha256": "af7395815eaba3ec3a695014411efc63ec0d7581753879b224d78add90473f67"
+    },
+    "miss.json": {
+      "bytes": 3,
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    "nanz-full.txt": {
+      "bytes": 44,
+      "sha256": "aaf275b0ef0f02981c37233c49fd5c9c82a9e2ecdd1b734a58904a5c670d9d8f"
+    },
+    "native-tests.txt": {
+      "bytes": 1709,
+      "sha256": "fd653187230f259801171670daa492d5685655453b8a0b16b5b7328ca7013d83"
+    },
+    "negative-candidates.txt": {
+      "bytes": 1775,
+      "sha256": "8dd2592bbadb41f2449b545ad77c41e9d436e2a08b9e802ebc97403c2e43bbd7"
+    },
+    "production-compile.txt": {
+      "bytes": 5562,
+      "sha256": "8caf43e4f58cd40a36720e0a87df1f0b7ac2615165e2ec921a9d66777e57c1a7"
+    },
+    "selected.a80": {
+      "bytes": 1633,
+      "sha256": "156a49e9675ae10d018bed9bc085bca30fe34c54d6b5b4ec4368e68830785d76"
+    },
+    "selected.bin": {
+      "bytes": 31,
+      "sha256": "d3a467596a2038a686f2b7ce0963fe5c7d85c57b92466fe0b7ae44afdcdeb523"
+    },
+    "source.nanz": {
+      "bytes": 518,
+      "sha256": "aab9c0fd1dbafae2bf78ebbf18bb2a573b6a18a6f6f29b6170d6f34ca3849579"
+    },
+    "table.json": {
+      "bytes": 606,
+      "sha256": "42a28cce988ff8a177d91665e003338384ad999aaaee83df03d2199beb762f8d"
+    },
+    "timing-command.py": {
+      "bytes": 1916,
+      "sha256": "e891740e17a8c405f2cdbb3a3f3c927ca49a4e3d50a121cb99b344d979540aa4"
+    },
+    "timings.json": {
+      "bytes": 12502,
+      "sha256": "b93aff70d182f3828f390aa509b94207d54685a1214a1d9318c8daba40e227dd"
+    },
+    "tool-identities.txt": {
+      "bytes": 335,
+      "sha256": "fe174d3f0768d2c7b58c521d0bcebe3006a20f3c9c1747ab0ca86ae0221bb58f"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+[checked-local] rd16: skipped: invalid or duplicate contract parameter
+[checked-local] wr16: skipped: local table requires single-result leaf block
+[checked-local] hash16: rejected: no pattern for local op 2
+[checked-local] map_clear: skipped: local table requires single-result leaf block
+[checked-local] map_put: skipped: local table requires single-result leaf block
+[checked-local] map_get: skipped: local table requires single-result leaf block
+[checked-local] map_has: skipped: local table requires single-result leaf block
+[checked-local] test_put_get: skipped: local table requires single-result leaf block
+[checked-local] test_missing: skipped: local table requires single-result leaf block
+[checked-local] test_overwrite: skipped: local table requires single-result leaf block
+[checked-local] test_two_keys: skipped: local table requires single-result leaf block
+[checked-local] test_has: skipped: local table requires single-result leaf block
+[checked-local] test_count: skipped: local table requires single-result leaf block
+[checked-local] test_zero_key: skipped: local table requires single-result leaf block
+[checked-local] test_many: skipped: local table requires single-result leaf block
+Error: no checked local entries admitted

@@ -1,0 +1,8 @@
+[checked-local] mem_eq_3: skipped: local table requires single-result leaf block
+[checked-local] hash3: admitted
+[checked-local] test_eq: admitted
+[checked-local] test_neq: admitted
+[checked-local] test_hash_eq: skipped: local table requires single-result leaf block
+[checked-local] test_hash_neq: skipped: local table requires single-result leaf block
+[checked-local] test_hash_nz: skipped: local table requires single-result leaf block
+[checked-local] test_hash_order: skipped: local table requires single-result leaf block

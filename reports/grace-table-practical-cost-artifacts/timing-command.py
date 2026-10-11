@@ -1,0 +1,9 @@
+import json,subprocess,time,pathlib,statistics
+exe='/tmp/mz-table-practical';root=pathlib.Path('/tmp/table-practical-timing');base=['../examples/nanz/09_function_pointers.nanz','--Osize','--asserts','none'];z3='/home/alice/dev/minz-artifacts/grace-tools/z3-python/bin/z3'
+cases={'generation':base+['--generate-checked-local-table',str(root/'table.json'),'--checked-local-solver',z3],'baseline':base+['-o',str(root/'baseline.a80')],'hit':base+['--checked-local-table','/tmp/cli-triple-table.json','-o',str(root/'hit.a80')],'miss':base+['--checked-local-table',str(root/'miss.json'),'-o',str(root/'miss.a80')]};results={}
+for name,args in cases.items():
+ subprocess.run([exe,*args],check=True,capture_output=True,timeout=40);samples=[]
+ for i in range(21):
+  metrics=root/'time.txt';start=time.perf_counter_ns();p=subprocess.run(['/usr/bin/time','-f','%e %U %S %M','-o',str(metrics),exe,*args],capture_output=True,timeout=40);elapsed=(time.perf_counter_ns()-start)/1e6;assert p.returncode==0,(name,p.stderr);wall,user,system,rss=metrics.read_text().split();samples.append({'wall_ms':elapsed,'user_s':float(user),'system_s':float(system),'max_rss_kib':int(rss)})
+ results[name]={'samples':samples,'median_wall_ms':statistics.median(s['wall_ms'] for s in samples),'median_max_rss_kib':statistics.median(s['max_rss_kib'] for s in samples),'min_wall_ms':min(s['wall_ms'] for s in samples),'max_wall_ms':max(s['wall_ms'] for s in samples)}
+(root/'timings.json').write_text(json.dumps({'scope':'one existing function-pointer example, warm filesystem, separate compiler process per run;21 samples after1warmup; includes process startup+parse+pipeline+output+GNUtime launcher; GNU time maxRSS is Linux child high-water usage, not summed concurrent compiler+solver memory; not cold cache or general benchmark','cases':results},indent=2)+'\n');print({n:(v['median_wall_ms'],v['median_max_rss_kib']) for n,v in results.items()})

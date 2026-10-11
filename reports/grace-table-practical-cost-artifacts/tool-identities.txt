@@ -1,0 +1,3 @@
+1c455991d945b7da6f692bdfeb1e105bb35cbce8bb6a1ad17dbd3b6070ccb33a  /tmp/mz-table-practical
+54bae839dd54e262edac6f755fc99659ce2a121301faff20a3e3b94478dcead0  /home/alice/dev/minz-artifacts/grace-tools/z3-python/bin/z3
+Linux u5 6.8.0-138-generic #138-Ubuntu SMP PREEMPT_DYNAMIC Fri Jul 31 22:41:49 UTC 2026 x86_64 x86_64 x86_64 GNU/Linux

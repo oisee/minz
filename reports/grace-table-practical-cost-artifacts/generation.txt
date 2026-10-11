@@ -1,0 +1,5 @@
+[checked-local] double: admitted
+[checked-local] triple: admitted
+[checked-local] apply: skipped: invalid or duplicate contract parameter
+[checked-local] test_apply_double: skipped: hard class or invalid local definition unsupported
+[checked-local] test_apply_triple: skipped: hard class or invalid local definition unsupported
