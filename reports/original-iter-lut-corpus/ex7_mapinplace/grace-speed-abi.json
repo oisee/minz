@@ -1,0 +1,399 @@
+{
+  "allocation": {
+    "Locs": {
+      "1": {
+        "Kind": 0,
+        "Name": "HL",
+        "Offset": 0
+      },
+      "10": {
+        "Kind": 0,
+        "Name": "A",
+        "Offset": 0
+      },
+      "11": {
+        "Kind": 0,
+        "Name": "HL",
+        "Offset": 0
+      },
+      "2": {
+        "Kind": 0,
+        "Name": "A",
+        "Offset": 0
+      },
+      "3": {
+        "Kind": 0,
+        "Name": "HL",
+        "Offset": 0
+      },
+      "4": {
+        "Kind": 0,
+        "Name": "B",
+        "Offset": 0
+      },
+      "5": {
+        "Kind": 6,
+        "Name": "F",
+        "Offset": 0
+      },
+      "6": {
+        "Kind": 0,
+        "Name": "B",
+        "Offset": 0
+      },
+      "7": {
+        "Kind": 0,
+        "Name": "HL",
+        "Offset": 0
+      },
+      "8": {
+        "Kind": 0,
+        "Name": "C",
+        "Offset": 0
+      },
+      "9": {
+        "Kind": 0,
+        "Name": "D",
+        "Offset": 0
+      }
+    },
+    "Spilled": null
+  },
+  "functions": [
+    {
+      "LoopOrigins": null,
+      "Name": "add2_inplace",
+      "Contract": {
+        "Params": [
+          {
+            "Name": "buf",
+            "Reg": 1,
+            "Ty": {},
+            "Class": 8
+          },
+          {
+            "Name": "n",
+            "Reg": 2,
+            "Ty": {},
+            "Class": 1
+          }
+        ],
+        "Returns": null,
+        "ExternClobbers": null,
+        "Clobbers": 0
+      },
+      "Attrs": {
+        "FallibleCY": false,
+        "IsExtern": false,
+        "ExternAddr": 0,
+        "IsComptime": false,
+        "HasAsm": false,
+        "IsLeaf": false,
+        "IsRecursive": false
+      },
+      "Blocks": [
+        {
+          "Label": "entry",
+          "Params": null,
+          "Insts": [
+            {
+              "Op": 23,
+              "Dst": 3,
+              "Src": [
+                1,
+                0
+              ],
+              "Imm": 0,
+              "Sym": "",
+              "Ty": {},
+              "Cls": 8,
+              "ClsHard": false,
+              "Cond": 0,
+              "FlagsOnly": false,
+              "SrcTy": null,
+              "CallAttr": {
+                "IsComptime": false,
+                "IsHost": false,
+                "IsTailCall": false
+              },
+              "Args": null,
+              "FallibleCY": false,
+              "ExtraRets": null,
+              "ExtraRetClasses": null,
+              "ExtraRetTys": null,
+              "Asm": null,
+              "SrcLine": 0,
+              "SrcFile": ""
+            },
+            {
+              "Op": 22,
+              "Dst": 4,
+              "Src": [
+                0,
+                0
+              ],
+              "Imm": 0,
+              "Sym": "",
+              "Ty": {},
+              "Cls": 1,
+              "ClsHard": false,
+              "Cond": 0,
+              "FlagsOnly": false,
+              "SrcTy": null,
+              "CallAttr": {
+                "IsComptime": false,
+                "IsHost": false,
+                "IsTailCall": false
+              },
+              "Args": null,
+              "FallibleCY": false,
+              "ExtraRets": null,
+              "ExtraRetClasses": null,
+              "ExtraRetTys": null,
+              "Asm": null,
+              "SrcLine": 0,
+              "SrcFile": ""
+            },
+            {
+              "Op": 21,
+              "Dst": 5,
+              "Src": [
+                2,
+                4
+              ],
+              "Imm": 0,
+              "Sym": "",
+              "Ty": {},
+              "Cls": 19,
+              "ClsHard": false,
+              "Cond": 1,
+              "FlagsOnly": false,
+              "SrcTy": null,
+              "CallAttr": {
+                "IsComptime": false,
+                "IsHost": false,
+                "IsTailCall": false
+              },
+              "Args": null,
+              "FallibleCY": false,
+              "ExtraRets": null,
+              "ExtraRetClasses": null,
+              "ExtraRetTys": null,
+              "Asm": null,
+              "SrcLine": 0,
+              "SrcFile": ""
+            }
+          ],
+          "Term": {
+            "Cond": 5,
+            "Then": "fe_body1",
+            "ThenArgs": [
+              2,
+              3
+            ],
+            "Else": "fe_exit2",
+            "ElseArgs": null
+          }
+        },
+        {
+          "Label": "fe_body1",
+          "Params": [
+            {
+              "Dst": 6,
+              "Ty": {},
+              "Class": 2
+            },
+            {
+              "Dst": 7,
+              "Ty": {},
+              "Class": 8
+            }
+          ],
+          "Insts": [
+            {
+              "Op": 24,
+              "Dst": 8,
+              "Src": [
+                7,
+                0
+              ],
+              "Imm": 0,
+              "Sym": "",
+              "Ty": {},
+              "Cls": 0,
+              "ClsHard": false,
+              "Cond": 0,
+              "FlagsOnly": false,
+              "SrcTy": null,
+              "CallAttr": {
+                "IsComptime": false,
+                "IsHost": false,
+                "IsTailCall": false
+              },
+              "Args": null,
+              "FallibleCY": false,
+              "ExtraRets": null,
+              "ExtraRetClasses": null,
+              "ExtraRetTys": null,
+              "Asm": null,
+              "SrcLine": 0,
+              "SrcFile": ""
+            },
+            {
+              "Op": 22,
+              "Dst": 9,
+              "Src": [
+                0,
+                0
+              ],
+              "Imm": 2,
+              "Sym": "",
+              "Ty": {},
+              "Cls": 0,
+              "ClsHard": false,
+              "Cond": 0,
+              "FlagsOnly": false,
+              "SrcTy": null,
+              "CallAttr": {
+                "IsComptime": false,
+                "IsHost": false,
+                "IsTailCall": false
+              },
+              "Args": null,
+              "FallibleCY": false,
+              "ExtraRets": null,
+              "ExtraRetClasses": null,
+              "ExtraRetTys": null,
+              "Asm": null,
+              "SrcLine": 0,
+              "SrcFile": ""
+            },
+            {
+              "Op": 0,
+              "Dst": 10,
+              "Src": [
+                8,
+                9
+              ],
+              "Imm": 0,
+              "Sym": "",
+              "Ty": {},
+              "Cls": 0,
+              "ClsHard": false,
+              "Cond": 0,
+              "FlagsOnly": false,
+              "SrcTy": null,
+              "CallAttr": {
+                "IsComptime": false,
+                "IsHost": false,
+                "IsTailCall": false
+              },
+              "Args": null,
+              "FallibleCY": false,
+              "ExtraRets": null,
+              "ExtraRetClasses": null,
+              "ExtraRetTys": null,
+              "Asm": null,
+              "SrcLine": 0,
+              "SrcFile": ""
+            },
+            {
+              "Op": 25,
+              "Dst": 0,
+              "Src": [
+                7,
+                10
+              ],
+              "Imm": 0,
+              "Sym": "",
+              "Ty": {},
+              "Cls": 0,
+              "ClsHard": false,
+              "Cond": 0,
+              "FlagsOnly": false,
+              "SrcTy": null,
+              "CallAttr": {
+                "IsComptime": false,
+                "IsHost": false,
+                "IsTailCall": false
+              },
+              "Args": null,
+              "FallibleCY": false,
+              "ExtraRets": null,
+              "ExtraRetClasses": null,
+              "ExtraRetTys": null,
+              "Asm": null,
+              "SrcLine": 0,
+              "SrcFile": ""
+            },
+            {
+              "Op": 30,
+              "Dst": 11,
+              "Src": [
+                7,
+                0
+              ],
+              "Imm": 1,
+              "Sym": "",
+              "Ty": {},
+              "Cls": 8,
+              "ClsHard": false,
+              "Cond": 0,
+              "FlagsOnly": false,
+              "SrcTy": null,
+              "CallAttr": {
+                "IsComptime": false,
+                "IsHost": false,
+                "IsTailCall": false
+              },
+              "Args": null,
+              "FallibleCY": false,
+              "ExtraRets": null,
+              "ExtraRetClasses": null,
+              "ExtraRetTys": null,
+              "Asm": null,
+              "SrcLine": 0,
+              "SrcFile": ""
+            }
+          ],
+          "Term": {
+            "Counter": 6,
+            "Body": "fe_body1",
+            "BodyArgs": [
+              11
+            ],
+            "Exit": "fe_exit2",
+            "ExitArgs": null
+          }
+        },
+        {
+          "Label": "fe_exit2",
+          "Params": null,
+          "Insts": [],
+          "Term": {
+            "Vals": null
+          }
+        }
+      ]
+    }
+  ],
+  "options": {
+    "ProfileSelection": null,
+    "CollectHIRSites": false,
+    "ContractOpt": true,
+    "AnnotateTStates": false,
+    "UseGrace": true,
+    "GraceStats": null,
+    "UseHIRGrace": true,
+    "OptSize": false,
+    "Backend": "",
+    "AssertMode": "none",
+    "SkipZ80Emission": false
+  },
+  "symbols": {
+    "add2_inplace": 32768,
+    "add2_inplace.add2_inplace_fe_body1": 32776,
+    "add2_inplace.add2_inplace_fe_exit2": 32786,
+    "add2_inplace.add2_inplace_trmp0": 32787
+  }
+}

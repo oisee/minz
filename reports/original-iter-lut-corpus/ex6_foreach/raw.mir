@@ -1,0 +1,37 @@
+; MIR2 module: reports/showcase-src/2026-03-10/ex6_foreach.nanz
+fun @sum_chain(%r1: ptr [pointer], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = const 0 : u8 [general]
+    %r4 = const 0 : u8 [general]
+    %r5 = ptr_add %r1, %r4 : ptr [pointer]
+    %r6 = const 0 : u8 [acc]
+    %r7 = cmp.ne %r2, %r6 : bool [flag]
+    br_if %r7, @fe_body1(%r2, %r5, %r3), @fe_exit2(%r3)
+  block @fe_body1(%r8: u8 [counter], %r9: ptr [pointer], %r10: u8 [general]):
+    %r11 = load %r9 : u8 [general]
+    %r12 = add %r10, %r11 : u8 [general]
+    %r13 = ptr_bump %r9, +1 : ptr [pointer]
+    djnz %r8, @fe_body1(%r13, %r12), @fe_exit2(%r12)
+  block @fe_exit2(%r14: u8 [general]):
+    ret %r14
+
+fun @max_chain(%r15: ptr [pointer], %r16: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r17 = const 0 : u8 [general]
+    %r18 = const 0 : u8 [general]
+    %r19 = ptr_add %r15, %r18 : ptr [pointer]
+    %r20 = const 0 : u8 [acc]
+    %r21 = cmp.ne %r16, %r20 : bool [flag]
+    br_if %r21, @fe_body1(%r16, %r19, %r17), @fe_exit2(%r17)
+  block @fe_body1(%r22: u8 [counter], %r23: ptr [pointer], %r24: u8 [general]):
+    %r25 = load %r23 : u8 [general]
+    %r26 = cmp.ugt %r25, %r24 : bool [flag]
+    br_if %r26, @if_then3(), @if_join4(%r24)
+  block @if_then3:
+    jmp @if_join4(%r25)
+  block @if_join4(%r27: u8 [general]):
+    %r28 = ptr_bump %r23, +1 : ptr [pointer]
+    djnz %r22, @fe_body1(%r28, %r27), @fe_exit2(%r27)
+  block @fe_exit2(%r29: u8 [general]):
+    ret %r29
+

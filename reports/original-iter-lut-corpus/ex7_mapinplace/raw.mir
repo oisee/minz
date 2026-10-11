@@ -1,0 +1,24 @@
+; MIR2 module: reports/showcase-src/2026-03-10/ex7_mapinplace.nanz
+fun @add2_inplace(%r1: ptr [pointer], %r2: u8 [general])
+  block @entry:
+    %r3 = const 0 : u8 [general]
+    %r4 = ptr_add %r1, %r3 : ptr [pointer]
+    %r5 = const 0 : u8 [acc]
+    %r6 = cmp.ne %r2, %r5 : bool [flag]
+    br_if %r6, @fe_body1(%r2, %r4), @fe_exit2()
+  block @fe_body1(%r7: u8 [counter], %r8: ptr [pointer]):
+    %r9 = load %r8 : u8 [general]
+    %r10 = const 2 : u8 [general]
+    %r11 = add %r9, %r10 : u8 [general]
+    store %r8, %r11 : u8
+    %r12 = ptr_bump %r8, +1 : ptr [pointer]
+    djnz %r7, @fe_body1(%r12), @fe_exit2()
+  block @fe_exit2:
+    ret void
+
+fun @lambda_0(%r13: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r14 = const 2 : u8 [general]
+    %r15 = add %r13, %r14 : u8 [acc]
+    ret %r15
+

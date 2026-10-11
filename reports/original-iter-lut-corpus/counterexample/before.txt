@@ -1,0 +1,10 @@
+=== RUN   TestOriginalMaxGraceCounterexample
+    original_max_grace_counterexample_test.go:34: VM0 out[{219}] err<nil>
+    original_max_grace_counterexample_test.go:34: VM1 out[{36}] err<nil>
+    original_max_grace_counterexample_test.go:36: VM1 want219
+    original_max_grace_counterexample_test.go:53: native{A:36 F:20 BC:0 DE:5 HL:16389 IX:0 IY:0 SP:61440 PC:28675}
+    original_max_grace_counterexample_test.go:55: native want219/PC7003/SPf000
+--- FAIL: TestOriginalMaxGraceCounterexample (0.00s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.014s
+FAIL

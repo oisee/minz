@@ -1,0 +1,212 @@
+{
+  "allocation": {
+    "Locs": {
+      "12": {
+        "Kind": 0,
+        "Name": "A",
+        "Offset": 0
+      },
+      "13": {
+        "Kind": 0,
+        "Name": "DE",
+        "Offset": 0
+      },
+      "14": {
+        "Kind": 0,
+        "Name": "HL",
+        "Offset": 0
+      },
+      "15": {
+        "Kind": 0,
+        "Name": "HL",
+        "Offset": 0
+      },
+      "16": {
+        "Kind": 0,
+        "Name": "A",
+        "Offset": 0
+      }
+    },
+    "Spilled": null
+  },
+  "functions": [
+    {
+      "LoopOrigins": null,
+      "Name": "popcount",
+      "Contract": {
+        "Params": [
+          {
+            "Name": "x",
+            "Reg": 12,
+            "Ty": {},
+            "Class": 1
+          }
+        ],
+        "Returns": [
+          {
+            "Ty": {},
+            "Class": 1,
+            "FlagCond": 0
+          }
+        ],
+        "ExternClobbers": null,
+        "Clobbers": 0
+      },
+      "Attrs": {
+        "FallibleCY": false,
+        "IsExtern": false,
+        "ExternAddr": 0,
+        "IsComptime": false,
+        "HasAsm": false,
+        "IsLeaf": false,
+        "IsRecursive": false
+      },
+      "Blocks": [
+        {
+          "Label": "entry",
+          "Params": null,
+          "Insts": [
+            {
+              "Op": 18,
+              "Dst": 13,
+              "Src": [
+                12,
+                0
+              ],
+              "Imm": 0,
+              "Sym": "",
+              "Ty": {},
+              "Cls": 9,
+              "ClsHard": false,
+              "Cond": 0,
+              "FlagsOnly": false,
+              "SrcTy": {},
+              "CallAttr": {
+                "IsComptime": false,
+                "IsHost": false,
+                "IsTailCall": false
+              },
+              "Args": null,
+              "FallibleCY": false,
+              "ExtraRets": null,
+              "ExtraRetClasses": null,
+              "ExtraRetTys": null,
+              "Asm": null,
+              "SrcLine": 0,
+              "SrcFile": ""
+            },
+            {
+              "Op": 26,
+              "Dst": 14,
+              "Src": [
+                0,
+                0
+              ],
+              "Imm": 0,
+              "Sym": "popcount_lut",
+              "Ty": {},
+              "Cls": 8,
+              "ClsHard": false,
+              "Cond": 0,
+              "FlagsOnly": false,
+              "SrcTy": null,
+              "CallAttr": {
+                "IsComptime": false,
+                "IsHost": false,
+                "IsTailCall": false
+              },
+              "Args": null,
+              "FallibleCY": false,
+              "ExtraRets": null,
+              "ExtraRetClasses": null,
+              "ExtraRetTys": null,
+              "Asm": null,
+              "SrcLine": 0,
+              "SrcFile": ""
+            },
+            {
+              "Op": 29,
+              "Dst": 15,
+              "Src": [
+                14,
+                13
+              ],
+              "Imm": 0,
+              "Sym": "",
+              "Ty": {},
+              "Cls": 8,
+              "ClsHard": false,
+              "Cond": 0,
+              "FlagsOnly": false,
+              "SrcTy": null,
+              "CallAttr": {
+                "IsComptime": false,
+                "IsHost": false,
+                "IsTailCall": false
+              },
+              "Args": null,
+              "FallibleCY": false,
+              "ExtraRets": null,
+              "ExtraRetClasses": null,
+              "ExtraRetTys": null,
+              "Asm": null,
+              "SrcLine": 0,
+              "SrcFile": ""
+            },
+            {
+              "Op": 24,
+              "Dst": 16,
+              "Src": [
+                15,
+                0
+              ],
+              "Imm": 0,
+              "Sym": "",
+              "Ty": {},
+              "Cls": 1,
+              "ClsHard": false,
+              "Cond": 0,
+              "FlagsOnly": false,
+              "SrcTy": null,
+              "CallAttr": {
+                "IsComptime": false,
+                "IsHost": false,
+                "IsTailCall": false
+              },
+              "Args": null,
+              "FallibleCY": false,
+              "ExtraRets": null,
+              "ExtraRetClasses": null,
+              "ExtraRetTys": null,
+              "Asm": null,
+              "SrcLine": 0,
+              "SrcFile": ""
+            }
+          ],
+          "Term": {
+            "Vals": [
+              16
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "options": {
+    "ProfileSelection": null,
+    "CollectHIRSites": false,
+    "ContractOpt": true,
+    "AnnotateTStates": false,
+    "UseGrace": true,
+    "GraceStats": null,
+    "UseHIRGrace": true,
+    "OptSize": false,
+    "Backend": "",
+    "AssertMode": "none",
+    "SkipZ80Emission": false
+  },
+  "symbols": {
+    "popcount": 32768,
+    "popcount_lut": 33024
+  }
+}

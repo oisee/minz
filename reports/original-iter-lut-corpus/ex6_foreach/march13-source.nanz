@@ -1,0 +1,13 @@
+fun sum_chain(buf: ^u8, n: u8) -> u8 {
+    var s: u8 = 0
+    buf.forEach(|x: u8| { s = (s + x) }, n)
+    return s
+}
+
+fun max_chain(buf: ^u8, n: u8) -> u8 {
+    var m: u8 = 0
+    buf.forEach(|x: u8| {
+        if x > m { m = x }
+    }, n)
+    return m
+}
