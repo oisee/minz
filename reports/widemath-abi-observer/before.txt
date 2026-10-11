@@ -1,0 +1,9 @@
+=== RUN   TestOriginalWidemathNativeModel
+    showcase_widemath_native_test.go:319: default {Entry:abs8 Args:[0] Expected:0 ExpectedMulti:[]} 105T native/raw/final model code/SP/RAM PASS
+    showcase_widemath_native_test.go:319: default {Entry:sign8 Args:[0] Expected:0 ExpectedMulti:[]} 167T native/raw/final model code/SP/RAM PASS
+    showcase_widemath_native_test.go:319: default {Entry:negate8 Args:[0] Expected:0 ExpectedMulti:[]} 49T native/raw/final model code/SP/RAM PASS
+    showcase_widemath_native_test.go:265: default native memory traffic newtype_area got[{store 61421 0} {load 61420 0} {load 61421 0}] want[{store 0 0} {store 0 0} {load 0 0} {load 0 0}]
+--- FAIL: TestOriginalWidemathNativeModel (0.05s)
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.055s
+FAIL
