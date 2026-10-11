@@ -8,10 +8,10 @@
   },
   {
     "path": "RESULT.md",
-    "stored_bytes": 2803,
-    "stored_sha256": "b75351730921aee8c49f8359f4f8aab52de762207441b169f6b2b22b4536fabb",
-    "original_bytes": 2803,
-    "original_sha256": "b75351730921aee8c49f8359f4f8aab52de762207441b169f6b2b22b4536fabb"
+    "stored_bytes": 2924,
+    "stored_sha256": "8a9569c610557145032564c331f90a9b172c843d585c6d6677f5ebf7eac9982c",
+    "original_bytes": 2924,
+    "original_sha256": "8a9569c610557145032564c331f90a9b172c843d585c6d6677f5ebf7eac9982c"
   },
   {
     "path": "audit_pack.py",
@@ -1622,6 +1622,48 @@
     "stored_sha256": "3c69f83494dd63179ae57893cd7691bd05687971276ae641c37817c04c40b2db",
     "original_bytes": 31682,
     "original_sha256": "3c69f83494dd63179ae57893cd7691bd05687971276ae641c37817c04c40b2db"
+  },
+  {
+    "path": "reviews/independent-native/REVIEW.md",
+    "stored_bytes": 2332,
+    "stored_sha256": "d60d0060c2f637bbcba11b09fb43c5bb50350a6b300e62941cb16169e848410c",
+    "original_bytes": 2332,
+    "original_sha256": "d60d0060c2f637bbcba11b09fb43c5bb50350a6b300e62941cb16169e848410c"
+  },
+  {
+    "path": "reviews/independent-native/assembly.txt",
+    "stored_bytes": 68,
+    "stored_sha256": "dea9c2ee298119be0bd2492baf90ea7f809f4ad908cf6b33b99c6a50d64b5e35",
+    "original_bytes": 68,
+    "original_sha256": "dea9c2ee298119be0bd2492baf90ea7f809f4ad908cf6b33b99c6a50d64b5e35"
+  },
+  {
+    "path": "reviews/independent-native/audit_assembly.go.txt",
+    "stored_bytes": 1249,
+    "stored_sha256": "3f4ce88d75e96597d3b88a3ddd7bad0ee19c8abedd2798fb9a7e60c1d14aead7",
+    "original_bytes": 1249,
+    "original_sha256": "3f4ce88d75e96597d3b88a3ddd7bad0ee19c8abedd2798fb9a7e60c1d14aead7"
+  },
+  {
+    "path": "reviews/independent-native/audit_full30.py",
+    "stored_bytes": 6321,
+    "stored_sha256": "3d87e9a2d751e3035c48edb6949210ef3fcb78db84211897833c05cc7aec85c1",
+    "original_bytes": 6321,
+    "original_sha256": "3d87e9a2d751e3035c48edb6949210ef3fcb78db84211897833c05cc7aec85c1"
+  },
+  {
+    "path": "reviews/independent-native/audit_typed.go.txt",
+    "stored_bytes": 2286,
+    "stored_sha256": "a05bcfdfdb0990c80a6a38853f453253324edfa4ef030f1c9e693688c014c367",
+    "original_bytes": 2286,
+    "original_sha256": "a05bcfdfdb0990c80a6a38853f453253324edfa4ef030f1c9e693688c014c367"
+  },
+  {
+    "path": "reviews/independent-native/saved-audit.txt",
+    "stored_bytes": 15728,
+    "stored_sha256": "523609b6b27a37e22ea3f4e9440887d08b6f4db5db8c375fdbe7f5de60e759ce",
+    "original_bytes": 15728,
+    "original_sha256": "523609b6b27a37e22ea3f4e9440887d08b6f4db5db8c375fdbe7f5de60e759ce"
   },
   {
     "path": "reviews/independent-source/README.md",
