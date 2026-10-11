@@ -1,0 +1,82 @@
+{
+  "rows": [
+    {
+      "policy": 0,
+      "mask": 0,
+      "T": 1135370,
+      "B": 2000,
+      "pareto": false,
+      "speed_gain_vs_legacy_original_pct": 0.0,
+      "bytes_vs_legacy_original_pct": 0.0
+    },
+    {
+      "policy": 0,
+      "mask": 1,
+      "T": 1135211,
+      "B": 2121,
+      "pareto": false,
+      "speed_gain_vs_legacy_original_pct": 0.014004245312100901,
+      "bytes_vs_legacy_original_pct": 6.05
+    },
+    {
+      "policy": 0,
+      "mask": 2,
+      "T": 1079795,
+      "B": 1978,
+      "pareto": true,
+      "speed_gain_vs_legacy_original_pct": 4.8948800831447015,
+      "bytes_vs_legacy_original_pct": -1.1
+    },
+    {
+      "policy": 0,
+      "mask": 3,
+      "T": 1079636,
+      "B": 2099,
+      "pareto": false,
+      "speed_gain_vs_legacy_original_pct": 4.908884328456803,
+      "bytes_vs_legacy_original_pct": 4.95
+    },
+    {
+      "policy": 1,
+      "mask": 0,
+      "T": 1132449,
+      "B": 2001,
+      "pareto": false,
+      "speed_gain_vs_legacy_original_pct": 0.2572729594757656,
+      "bytes_vs_legacy_original_pct": 0.05
+    },
+    {
+      "policy": 1,
+      "mask": 1,
+      "T": 1132290,
+      "B": 2122,
+      "pareto": false,
+      "speed_gain_vs_legacy_original_pct": 0.2712772047878665,
+      "bytes_vs_legacy_original_pct": 6.1
+    },
+    {
+      "policy": 1,
+      "mask": 2,
+      "T": 1076874,
+      "B": 1979,
+      "pareto": true,
+      "speed_gain_vs_legacy_original_pct": 5.152153042620467,
+      "bytes_vs_legacy_original_pct": -1.05
+    },
+    {
+      "policy": 1,
+      "mask": 3,
+      "T": 1076715,
+      "B": 2100,
+      "pareto": true,
+      "speed_gain_vs_legacy_original_pct": 5.166157287932569,
+      "bytes_vs_legacy_original_pct": 5.0
+    }
+  ],
+  "scope": "actualfull30 eight points only; no heldouttransfer",
+  "same_speed_policy_both_vs_append": {
+    "savedT": 159,
+    "extraBytes": 121,
+    "relativeSpeedGainPct": 0.014764958574540753
+  }
+}
