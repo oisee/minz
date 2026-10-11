@@ -1,0 +1,10 @@
+{
+  "source_base": "e51846f1",
+  "frozen_test_commit": "c46a0a4f",
+  "executable": "/home/alice/dev/minz-artifacts/grace-checkpoints/sum-decimal-cost-refresh-evidence.test",
+  "executable_sha256": "b479c62fd53a16dc46f735090625f3d559998fcfcc15481a72470630c9d209c0",
+  "executed": false,
+  "planned_test": "^TestProfileGuidedSumVMZ80$",
+  "planned_count": 1,
+  "timing_assertions": "unchanged"
+}
