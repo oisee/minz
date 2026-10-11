@@ -235,6 +235,7 @@ func inlineOneCall(caller, callee *Func, inst *Inst) []*Inst {
 // substituted via regMap.
 func remapInst(inst *Inst, regMap map[Reg]Reg) *Inst {
 	ni := *inst // shallow copy — safe for fields without pointer ownership
+	CloneCallABIMetadata(&ni, inst)
 	ni.Dst = remapReg(inst.Dst, regMap)
 	ni.Src[0] = remapReg(inst.Src[0], regMap)
 	ni.Src[1] = remapReg(inst.Src[1], regMap)

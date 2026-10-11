@@ -179,6 +179,12 @@ i=i+1
 }
 return u16(kept.inner.a)
 }
+fun nested_nonliteral(x:u8,y:u8)->u16 {
+let inner:Inner=Inner{a:x,b:u16(x)+256}
+var outer:Outer=Outer{pad:7,inner:inner,tail:9}
+outer=Outer{pad:3,inner:inner,tail:5}
+return outer.inner.b+u16(outer.inner.a)
+}
 fun independent_copy(x:u8,y:u8)->u16 {
 let first:Outer=build(x)
 var second:Outer=first
@@ -230,7 +236,7 @@ return u16(first.inner.a)
 		z := emulator.NewRemogattoZ80()
 		z.LoadMemory(0x8000, a.Binary)
 		for _, x := range []uint16{0, 1, 2, 3, 7, 15, 127, 128, 255} {
-			for _, name := range []string{"nested", "invoke", "recursive", "retained_loop", "independent_copy"} {
+			for _, name := range []string{"nested", "invoke", "recursive", "retained_loop", "independent_copy", "nested_nonliteral"} {
 				if e = z.LoadMemory(0x8000, a.Binary); e != nil {
 					t.Fatal(e)
 				}

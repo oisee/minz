@@ -2372,6 +2372,7 @@ func (l *lowerer) lowerExpr(e Expr) mir2.Reg {
 				inst.IndirectReturnTys = []mir2.Ty{ex.Ty}
 			}
 		}
+		mir2.CloneCallABIMetadata(inst, inst)
 		return r
 
 	case *AddrOfExpr:
@@ -3777,7 +3778,7 @@ func renameExpr(e Expr, from, to string) Expr {
 		for i, a := range ex.Args {
 			args[i] = renameExpr(a, from, to)
 		}
-		return &CallIndirectExpr{FnPtr: renameExpr(ex.FnPtr, from, to), Args: args, Ty: ex.Ty, Signature: ex.Signature}
+		return &CallIndirectExpr{FnPtr: renameExpr(ex.FnPtr, from, to), Args: args, Ty: ex.Ty, Signature: ex.Signature.Clone()}
 	case *LoadExpr:
 		return &LoadExpr{Ptr: renameExpr(ex.Ptr, from, to), Ty: ex.Ty}
 	case *IndexExpr:
@@ -4006,6 +4007,14 @@ func (l *lowerer) emitStructLitFields(lit *StructLitExpr, baseProvider func() mi
 // causing the allocator to spill to alloca instead of keeping everything in
 // registers.
 func (l *lowerer) emitStructLitFieldsChained(lit *StructLitExpr, startAddr mir2.Reg) {
+	for _, field := range lit.St.Fields {
+		if _, aggregate := mir2.BaseOf(field.Ty).(*mir2.StructTy); aggregate {
+			// Inline subobjects require a value copy (or recursive literal
+			// initialization), never an address-sized scalar store.
+			l.emitStructLitFields(lit, func() mir2.Reg { return startAddr })
+			return
+		}
+	}
 	// Build sorted (offset, ty, valExpr) list — store HIR Expr, not lowered Reg.
 	type fieldEntry struct {
 		byteOff int
