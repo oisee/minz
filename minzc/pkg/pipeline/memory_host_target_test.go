@@ -39,7 +39,7 @@ func TestMemoryHostOriginalSelfLanzTarget(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	target, e := RunZ80MemoryHostWorkload(steps, m, w, *raw)
+	target, e := runZ80MemoryHostWorkload(steps, m, w, *raw)
 	if e != nil {
 		t.Fatal(e)
 	}
@@ -119,7 +119,7 @@ func TestMemoryHostTargetLayoutRefusals(t *testing.T) {
 			case "hostABI":
 				steps.MIR2Module.FuncByName("peek").Contract.Params[0].Class = 0
 			}
-			if r, e := RunZ80MemoryHostWorkload(steps, m, w, *raw); e == nil || r != nil {
+			if r, e := runZ80MemoryHostWorkload(steps, m, w, *raw); e == nil || r != nil {
 				t.Fatal("unsafe target accepted", name, fmt.Sprint(e))
 			}
 		})
@@ -157,7 +157,7 @@ fun load(addr:u16)->u8{return peek(addr)}
 		if err != nil {
 			t.Fatal(err)
 		}
-		target, err := RunZ80MemoryHostWorkload(steps, m, w, *raw)
+		target, err := runZ80MemoryHostWorkload(steps, m, w, *raw)
 		if err != nil {
 			t.Fatal(err)
 		}
