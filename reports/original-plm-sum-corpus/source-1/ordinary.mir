@@ -1,0 +1,18 @@
+; MIR2 module: M
+fun @SUM_ARRAY(%r1: u16 [pointer], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = const 0 : u8 [general]
+    %r4 = const 0 : u8 [general]
+    jmp @loop_head1(%r4, %r2, %r1, %r3)
+  block @loop_head1(%r4: u8 [general], %r6: u8 [general], %r7: u16 [pointer], %r3: u8 [general]):
+    %r9 = cmp.ult %r4, %r6 : bool [flag]
+    cond_ret %r9, [%r3], @loop_body2()
+  block @loop_body2:
+    %r10 = ext %r4 : u8 -> u16 [index]
+    %r11 = ptr_add %r7, %r10 : ptr [pointer]
+    %r12 = load %r11 : u8 [general]
+    %r13 = add %r3, %r12 : u8 [general]
+    %r14 = const 1 : u8 [general]
+    %r15 = add %r4, %r14 : u8 [general]
+    jmp @loop_head1(%r15, %r6, %r7, %r13)
+

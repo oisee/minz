@@ -1,0 +1,13 @@
+{
+  "calls": 70144,
+  "entry": "SUM_ARRAY",
+  "full_native_ram": "unchanged except exact harness input setup and observed CALL stack",
+  "max_stack_bytes": 4,
+  "module_bytes": 28,
+  "native_write_trace": "only observed CALL/push stack; all low wrapped addresses RAM",
+  "ordered_native_reads": 8749824,
+  "source_path": "examples/nanz/01_sum_array.plm",
+  "source_sha256": "fa0911df63dbc5bb16f169e1392f92be3f64e09c299156127ef37a7ff9d20c8e",
+  "spill_bytes": 0,
+  "total_native_tstates": 1062797056
+}

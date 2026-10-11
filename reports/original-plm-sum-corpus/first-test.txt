@@ -1,0 +1,20 @@
+=== RUN   TestOriginalPLMSumCorpusComplete
+=== RUN   TestOriginalPLMSumCorpusComplete/source-0
+=== RUN   TestOriginalPLMSumCorpusComplete/source-0/ordinary
+    original_plm_sum_corpus_test.go:266: {
+          "calls": 70144,
+          "entry": "SUM_ARRAY",
+          "full_native_ram": "unchanged except exact harness input setup and observed CALL stack",
+          "max_stack_bytes": 4,
+          "module_bytes": 28,
+          "ordered_native_reads": 8749824,
+          "source_path": "examples/nanz/01_sum_array.plm",
+          "source_sha256": "fa0911df63dbc5bb16f169e1392f92be3f64e09c299156127ef37a7ff9d20c8e",
+          "spill_bytes": 0,
+          "total_native_tstates": 1062797056
+        }
+--- PASS: TestOriginalPLMSumCorpusComplete (11.95s)
+    --- PASS: TestOriginalPLMSumCorpusComplete/source-0 (11.95s)
+        --- PASS: TestOriginalPLMSumCorpusComplete/source-0/ordinary (11.95s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	11.957s

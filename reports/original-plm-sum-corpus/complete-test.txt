@@ -1,0 +1,144 @@
+=== RUN   TestOriginalPLMSumCorpusComplete
+=== RUN   TestOriginalPLMSumCorpusComplete/source-0
+=== RUN   TestOriginalPLMSumCorpusComplete/source-0/ordinary
+    original_plm_sum_corpus_test.go:282: {
+          "calls": 70144,
+          "entry": "SUM_ARRAY",
+          "full_native_ram": "unchanged except exact harness input setup and observed CALL stack",
+          "max_stack_bytes": 4,
+          "module_bytes": 28,
+          "native_write_trace": "only observed CALL/push stack; all low wrapped addresses RAM",
+          "ordered_native_reads": 8749824,
+          "source_path": "examples/nanz/01_sum_array.plm",
+          "source_sha256": "fa0911df63dbc5bb16f169e1392f92be3f64e09c299156127ef37a7ff9d20c8e",
+          "spill_bytes": 0,
+          "total_native_tstates": 1062797056
+        }
+=== RUN   TestOriginalPLMSumCorpusComplete/source-0/grace-size
+    original_plm_sum_corpus_test.go:282: {
+          "calls": 70144,
+          "entry": "SUM_ARRAY",
+          "full_native_ram": "unchanged except exact harness input setup and observed CALL stack",
+          "max_stack_bytes": 4,
+          "module_bytes": 28,
+          "native_write_trace": "only observed CALL/push stack; all low wrapped addresses RAM",
+          "ordered_native_reads": 8749824,
+          "source_path": "examples/nanz/01_sum_array.plm",
+          "source_sha256": "fa0911df63dbc5bb16f169e1392f92be3f64e09c299156127ef37a7ff9d20c8e",
+          "spill_bytes": 0,
+          "total_native_tstates": 1062797056
+        }
+=== RUN   TestOriginalPLMSumCorpusComplete/source-0/grace-speed
+    original_plm_sum_corpus_test.go:282: {
+          "calls": 70144,
+          "entry": "SUM_ARRAY",
+          "full_native_ram": "unchanged except exact harness input setup and observed CALL stack",
+          "max_stack_bytes": 4,
+          "module_bytes": 28,
+          "native_write_trace": "only observed CALL/push stack; all low wrapped addresses RAM",
+          "ordered_native_reads": 8749824,
+          "source_path": "examples/nanz/01_sum_array.plm",
+          "source_sha256": "fa0911df63dbc5bb16f169e1392f92be3f64e09c299156127ef37a7ff9d20c8e",
+          "spill_bytes": 0,
+          "total_native_tstates": 1062797056
+        }
+=== RUN   TestOriginalPLMSumCorpusComplete/source-1
+=== RUN   TestOriginalPLMSumCorpusComplete/source-1/ordinary
+    original_plm_sum_corpus_test.go:282: {
+          "calls": 70144,
+          "entry": "SUM_ARRAY",
+          "full_native_ram": "unchanged except exact harness input setup and observed CALL stack",
+          "max_stack_bytes": 4,
+          "module_bytes": 28,
+          "native_write_trace": "only observed CALL/push stack; all low wrapped addresses RAM",
+          "ordered_native_reads": 8749824,
+          "source_path": "examples/nanz/01_sum_plm_origin.plm",
+          "source_sha256": "6564b22b460943d7b8ac088ec482f05857f752eb40f5c6103534fcaf2a0ec023",
+          "spill_bytes": 0,
+          "total_native_tstates": 1062797056
+        }
+=== RUN   TestOriginalPLMSumCorpusComplete/source-1/grace-size
+    original_plm_sum_corpus_test.go:282: {
+          "calls": 70144,
+          "entry": "SUM_ARRAY",
+          "full_native_ram": "unchanged except exact harness input setup and observed CALL stack",
+          "max_stack_bytes": 4,
+          "module_bytes": 28,
+          "native_write_trace": "only observed CALL/push stack; all low wrapped addresses RAM",
+          "ordered_native_reads": 8749824,
+          "source_path": "examples/nanz/01_sum_plm_origin.plm",
+          "source_sha256": "6564b22b460943d7b8ac088ec482f05857f752eb40f5c6103534fcaf2a0ec023",
+          "spill_bytes": 0,
+          "total_native_tstates": 1062797056
+        }
+=== RUN   TestOriginalPLMSumCorpusComplete/source-1/grace-speed
+    original_plm_sum_corpus_test.go:282: {
+          "calls": 70144,
+          "entry": "SUM_ARRAY",
+          "full_native_ram": "unchanged except exact harness input setup and observed CALL stack",
+          "max_stack_bytes": 4,
+          "module_bytes": 28,
+          "native_write_trace": "only observed CALL/push stack; all low wrapped addresses RAM",
+          "ordered_native_reads": 8749824,
+          "source_path": "examples/nanz/01_sum_plm_origin.plm",
+          "source_sha256": "6564b22b460943d7b8ac088ec482f05857f752eb40f5c6103534fcaf2a0ec023",
+          "spill_bytes": 0,
+          "total_native_tstates": 1062797056
+        }
+=== RUN   TestOriginalPLMSumCorpusComplete/source-2
+=== RUN   TestOriginalPLMSumCorpusComplete/source-2/ordinary
+    original_plm_sum_corpus_test.go:282: {
+          "calls": 70144,
+          "entry": "SUM_ARRAY",
+          "full_native_ram": "unchanged except exact harness input setup and observed CALL stack",
+          "max_stack_bytes": 4,
+          "module_bytes": 28,
+          "native_write_trace": "only observed CALL/push stack; all low wrapped addresses RAM",
+          "ordered_native_reads": 8749824,
+          "source_path": "examples/plm/sum_array.plm",
+          "source_sha256": "6564b22b460943d7b8ac088ec482f05857f752eb40f5c6103534fcaf2a0ec023",
+          "spill_bytes": 0,
+          "total_native_tstates": 1062797056
+        }
+=== RUN   TestOriginalPLMSumCorpusComplete/source-2/grace-size
+    original_plm_sum_corpus_test.go:282: {
+          "calls": 70144,
+          "entry": "SUM_ARRAY",
+          "full_native_ram": "unchanged except exact harness input setup and observed CALL stack",
+          "max_stack_bytes": 4,
+          "module_bytes": 28,
+          "native_write_trace": "only observed CALL/push stack; all low wrapped addresses RAM",
+          "ordered_native_reads": 8749824,
+          "source_path": "examples/plm/sum_array.plm",
+          "source_sha256": "6564b22b460943d7b8ac088ec482f05857f752eb40f5c6103534fcaf2a0ec023",
+          "spill_bytes": 0,
+          "total_native_tstates": 1062797056
+        }
+=== RUN   TestOriginalPLMSumCorpusComplete/source-2/grace-speed
+    original_plm_sum_corpus_test.go:282: {
+          "calls": 70144,
+          "entry": "SUM_ARRAY",
+          "full_native_ram": "unchanged except exact harness input setup and observed CALL stack",
+          "max_stack_bytes": 4,
+          "module_bytes": 28,
+          "native_write_trace": "only observed CALL/push stack; all low wrapped addresses RAM",
+          "ordered_native_reads": 8749824,
+          "source_path": "examples/plm/sum_array.plm",
+          "source_sha256": "6564b22b460943d7b8ac088ec482f05857f752eb40f5c6103534fcaf2a0ec023",
+          "spill_bytes": 0,
+          "total_native_tstates": 1062797056
+        }
+--- PASS: TestOriginalPLMSumCorpusComplete (131.30s)
+    --- PASS: TestOriginalPLMSumCorpusComplete/source-0 (41.48s)
+        --- PASS: TestOriginalPLMSumCorpusComplete/source-0/ordinary (13.00s)
+        --- PASS: TestOriginalPLMSumCorpusComplete/source-0/grace-size (12.89s)
+        --- PASS: TestOriginalPLMSumCorpusComplete/source-0/grace-speed (15.59s)
+    --- PASS: TestOriginalPLMSumCorpusComplete/source-1 (49.19s)
+        --- PASS: TestOriginalPLMSumCorpusComplete/source-1/ordinary (16.11s)
+        --- PASS: TestOriginalPLMSumCorpusComplete/source-1/grace-size (16.82s)
+        --- PASS: TestOriginalPLMSumCorpusComplete/source-1/grace-speed (16.26s)
+    --- PASS: TestOriginalPLMSumCorpusComplete/source-2 (40.63s)
+        --- PASS: TestOriginalPLMSumCorpusComplete/source-2/ordinary (12.63s)
+        --- PASS: TestOriginalPLMSumCorpusComplete/source-2/grace-size (12.63s)
+        --- PASS: TestOriginalPLMSumCorpusComplete/source-2/grace-speed (15.36s)
+PASS

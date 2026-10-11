@@ -1,0 +1,21 @@
+/* PL/M-80 — sum of first N bytes in an array.
+   Indexed access: PTR(I) = load from base+I.
+   The index variable I must be maintained, compared, incremented by hand.
+   The compiler sees an opaque while-loop with integer subscript — no way to know
+   this is a sequential scan. */
+M: DO;
+
+SUM_ARRAY: PROCEDURE (PTR, N) BYTE;
+    DECLARE PTR WORD;
+    DECLARE N BYTE;
+    DECLARE (S, I) BYTE;
+    S = 0;
+    I = 0;
+    DO WHILE I < N;
+        S = S + PTR(I);
+        I = I + 1;
+    END;
+    RETURN S;
+END SUM_ARRAY;
+
+END M;
