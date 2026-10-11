@@ -1,0 +1,10 @@
+=== RUN   TestMemoryHostIndexArgumentRegisters
+--- PASS: TestMemoryHostIndexArgumentRegisters (0.01s)
+=== RUN   TestOriginalFourPointerReadAliasVMZ80
+    showcase_four_pointer_oracle_test.go:179: exact original four_ptrs:1792calls+observer/full259RAM/orderedreads/aliases/raw-finalVM/nativeSPcode; 182801 T/22 B SHA 97437b293aa80994a658a47703bffd628bc22ecd184a4083f97c485264f6f4de
+--- PASS: TestOriginalFourPointerReadAliasVMZ80 (0.14s)
+=== RUN   TestOriginalIXPointerAliasVMZ80
+    showcase_ix_alias_oracle_test.go:148: exact original IX source:1536 roundtrip +6sum+observer; full259RAM/orderedwrite-read aliases/rawVM/nativeSPcode; 218507 T/38 B SHA ea02b537e95d125161e7de70558db6a2a1e88d7898443a347a4550670866b73e
+--- PASS: TestOriginalIXPointerAliasVMZ80 (0.16s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.312s

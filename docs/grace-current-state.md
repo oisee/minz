@@ -6,7 +6,7 @@
 
 ## Новый этап: единый backend без LIR
 
-Проверенная сводка на `7fe6cf8d`; результаты прежних сборок ниже сохраняют
+Проверенная сводка на `40897f43`; результаты прежних сборок ниже сохраняют
 свой исходный контекст. Общая цель из [плана](../reports/2026-10-11-017-unified-backend-roadmap.md)
 ещё активна: корректность заявленного корпуса, проверенные контракты и таблицы,
 выигрыш Grace на разных программах и заранее отложенных нагрузках.
@@ -20,8 +20,8 @@
   Поддержка native u32 memory/caller/spill уже исправлена и проверена отдельно;
   это не делает host interpreter подходящим для обычного Z80.
   Сборка корпуса не доказывает правильность исполнения. Новый
-  [актуальный каталог](grace-integration-080/catalog-34-vm-native.json) фиксирует все
-  194 точных пути: 34 имеют ограниченное independent VM/native покрытие. Новый CP/M demo
+  [актуальный каталог](grace-integration-082/catalog-35-vm-native.json) фиксирует все
+  194 точных пути: 35 имеют ограниченное independent VM/native покрытие. Новый CP/M demo
   имеет отдельный native CALL5-hook proof. Все прочие пути сохраняют явные
   pending/ASM/runtime/host ограничения.
 - **Pascal bubble sort: исправлен реальный native miscompile** (`ff11ba69`).
@@ -196,6 +196,13 @@ function-pointer consumer проверен с measured table: 34 → 31 B,
 apply(triple,x) 123 → 111 T. Compile/generation/miss overhead сохранён,
 не выдаётся за нулевую стоимость. [Интеграция](grace-integration-074/README.md).
 
+Полный свежий core `9b1637ef`: HIR/MIR2/Nanz/VIR/CLI PASS; CLI395,601с.
+Настоящий four_ptrs HL/DE/BC/IX ABI прошёл1792cases; native harness теперь
+принимает IX/IY. PFCCO PBQP на оригинальном arena allocator уменьшает
+полный BIN1193→1184B; arena_split220→190T с100boundarypairs каждой стратегии,
+проверкой destination guards/code/literals/SP. Это польза существующего
+opt-in PFCCO, не новый Grace prospective search. [Интеграция082](grace-integration-082/README.md).
+
 ## Что уже работает
 
 | Возможность | Состояние | Как включается |
@@ -313,7 +320,7 @@ MIR, результаты и точный executable сохранены в
 - [Полный локальный пакет CLI](grace-memory-host-search-cli-artifacts/manifest.json).
 - [Ночная сводка](../reports/2026-10-11-011-overnight-summary.md).
 
-Последняя подтверждённая публикация — Sites 62, source `f277b16b`, compiler snapshot `89fff011`. Новые runtime, main, PFCCO и исправления сохранены в архивных пакетах; policy-fixture `22e426de` следует после snapshot. Свежие sum_array, full30
+Последняя подтверждённая публикация — Sites 63, source `e15defb0`, compiler snapshot `e6cb41ef`. Она предшествует terminal core и новым four_ptrs/PFCCO arena доказательствам; они сохранены в repo/share. Новые runtime, main, PFCCO и исправления сохранены в архивных пакетах; policy-fixture `22e426de` следует после snapshot. Свежие sum_array, full30
 и CP/M main собраны на странице current-state.html. Перенос фиксированных
 вариантов опубликован; CLI gate, terminal pipeline и обновление трёх эталонов опубликованы
 с исходными exit-кодами и независимым итоговым аудитом. Все внешние страницы и
