@@ -1,0 +1,8 @@
+{
+  "head": "a149a48fd3fd29727314b4dfaaff54dd44135c38",
+  "files": {
+    "minzc/pkg/mir2/z80codegen_patterns.go": "43a9d8827fa8c7530d94107a9a4e7598c3e746a3f6fdb4ed8eba61a3c0178246",
+    "minzc/pkg/mir2/z80codegen_inst.go": "005d87f575ccf1bd62fa6f0f1752bebfcb59842eb3ff261d668c15de09d80cde",
+    "minzc/pkg/mir2/global_word_direct_pairs_test.go": "3f8d41cd679944fc901ce6390b8b604f91e37adc08990a8c5aa787a2f416b510"
+  }
+}
