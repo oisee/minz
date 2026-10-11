@@ -226,6 +226,20 @@ func Z80Codegen(m *Module, ar *AllocResult, opts ...Z80CodegenOptions) (string, 
 	if err := ValidateZ80Symbols(m); err != nil {
 		return "", err
 	}
+	// Native Z80 addresses cannot represent a host-sized global allocation.
+	// This checks data alone; code, alignment and runtime storage can reduce
+	// the remaining capacity further and still require assembler/layout checks.
+	globalBytes := 0
+	for _, g := range m.Globals {
+		width := ByteWidth(g.Ty)
+		if len(g.Init) > width {
+			width = len(g.Init)
+		}
+		if width < 0 || width > 65536-globalBytes {
+			return "", fmt.Errorf("Z80 global %q exceeds 16-bit address space (data before global: %d bytes, global: %d bytes)", g.Name, globalBytes, width)
+		}
+		globalBytes += width
+	}
 	var opt Z80CodegenOptions
 	if len(opts) > 0 {
 		opt = opts[0]
