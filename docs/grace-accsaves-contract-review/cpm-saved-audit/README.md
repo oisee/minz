@@ -1,0 +1,9 @@
+# Independent CP/M full-memory saved audit
+
+All saved source/tree/output/native-state checks pass for the single actual capture. Exact retained emulator test ELF0f31f5f96bca63ef2fa94e2dd8df26c5ac643581d9d1125ac20f5b5b188930f4, COM087a9c7376591a82169b963891493ab6389cf26ebab728ef08a63e7664c73112 (2574bytes), explicit-CString derived source574cef717965dbe6fcf6937ae35935b7b7e26f2051e49e7862d1826cff76f42d. This is the derived source main demonstration; unchanged source closed profile workloads remain separate.
+
+The independent source model computes all17fullnodes (136bytes including tag/data/sibling links/reserved byte),24internbytes and final10globals. Every byte matches saved RAM. Source45bytes+NUL, status1, incoming/systemSPFDFE and two canaries match. All nonmutable COM bytes remain identical; declared source globals, wrapper status/savedSP and explicitly sized assembler spill data are the only excluded mutable image slots. Initial overly broad immutable-COM check correctly flagged declared spill0x5c6; the auditor now derives only named DB/DW spill extents from the exact assembly. No arbitrary code mutation is allowed.
+
+Actual stdout is exactly135ASCIIbytes withLF lines: Input, Parsed, Nodes17 Strings24bytes. Error and CaptureError are nil,PC0/SPFDFE; cycles230029. Warm-boot exit0 is not alone used as success evidence. This is ordinary MZE CP/M emulation with existing BDOS; it is not a hardware/realOS run. Reported T-states exclude Go BDOS host work. No CPU was executed by this auditor.
+
+`audit_cpm.py CAPTURE_ROOT FIXTURE_DOC_ROOT RETAINED_TEST_ELF REPORT` is portable and gzip-aware. The fixture root supplies source-original.nanz, derived/self_lanz_parser_cstring.nanz and final-e518/{program.com,program.sym,assembled.a80}. Assembler reassembly binding was independently checked by backend; this auditor checks captured COM equality and full unchanged image regions.

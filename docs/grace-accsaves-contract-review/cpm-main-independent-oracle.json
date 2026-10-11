@@ -1,0 +1,9 @@
+{
+  "input_ascii": "(fun add ((a u8) (b u8)) u8 (return (+ a b)))",
+  "input_bytes": 45,
+  "nodes": 17,
+  "intern_bytes": 24,
+  "final_position": 45,
+  "root": 32776,
+  "scope": "source parse model, not native execution"
+}

@@ -1,0 +1,5 @@
+# Fresh full30 partial saved audit
+
+Fresh executable SHA9ec48c5f2eaa42e786be9adddc0b824c374d5c39a599a8d2dd0ef3181a2b65d1. Speed collect and paired replay independently pass source-model results/full10globals/resources/ordered events, all11source-site counts, both policy association envelopes, eight native candidates, exact proof/origin/function bindings, native sidecar/frame/spill/allocation/MIR/BIN hashes and decision/files/externalASM. Each directory contains300nativeobservations; replay inputs are byte-identical to collected inputs. Actual Speed selects policy1/mask3 at1233170T2490B. Current same-run derived Size is policy0/mask2; actual Size is not claimed until its run freezes.
+
+The first attempted audit used the older tiny-control helper's `/input.nanz` logical-source expectation and refused the production source unit. The copied stage-specific helper now requires exactly `../examples/nanz/self_lanz_parser.nanz`; sourceSHA remains mandatory. No source/native data or semantic equality checks changed. No CPU was executed by the auditor. Remaining Size directories are pending; this report is explicitly partial.
