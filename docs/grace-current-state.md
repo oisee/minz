@@ -621,3 +621,5 @@ MIR direct-call shape checks интегрированы `240db2ea`; оригин
 На исходном PL/M ABS_DIFF/FIB Grace уменьшает модуль 47→38 байт; полная нагрузка FIB(all256) 5 208 960→4 453 888 T (−14,50%). ABS_DIFF(all65536) остаётся 3 637 120 T. [Пакет161](grace-integration-161/README.md); это сравнение режимов, не новый training/heldout selector эксперимент.
 
 Свежий compile/assemble gate9858face PASS14,165с:193PASS/1capacitySKIP. [Пакет162](grace-integration-162/README.md). General struct-return ownership/indirect canonical ABI ещё не интегрированы.
+
+Полный core0f0953d9 завершился PASS: HIR/MIR2/Nanz/VIR, включая callback/purity/directcall fixes. [Пакет163](grace-integration-163/README.md). Struct-return WIP не включён.

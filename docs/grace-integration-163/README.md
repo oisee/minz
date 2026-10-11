@@ -7,3 +7,5 @@
 3. Checked-local table candidate сейчас выводит body, не fixed-ABI prologue, и context привязан к Dump+Contract без FuncAttrs. Для fixed ABI кандидат должен учитывать bridge, attrs и полный cost; до этого он не допускается, обычный compiler остаётся fallback. Это исключение кандидата, не отказ компилировать функцию.
 
 Владелец ABI получил точные findings. Новый focused WIP покрывает 30 frozen lifetime и 123 nested/recursive/indirect/loop/copy native cases в трёх режимах; root ещё не интегрировал этот WIP. Full core root0f0953d9 запущен отдельно, включает только завершённые callback/purity/directcall fixes.
+
+Полный root core на checkpoint0f0953d9 завершился exit0: HIR30,167с, MIR2 90,024с, Nanz16,157с, VIR2,393с — **PASS** ([terminal log](core-terminal.txt)). General struct-return WIP сюда не входит. Попытка сохранить временный MIR2 test executable после наблюдения live PID опоздала: процесс завершился и временный Go build path удалён; сохранение этого executable не заявляется. Предыдущие retained binaries остаются отдельно привязаны к своим checkpoints.
