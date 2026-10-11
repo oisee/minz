@@ -1,0 +1,46 @@
+=== RUN   TestMemoryHostAppendSelectorConsistentCountForgery
+[label-audit] 1 undefined labels:
+  node_tag
+--- PASS: TestMemoryHostAppendSelectorConsistentCountForgery (2.49s)
+=== RUN   TestMemoryHostAppendSelectorLateFactoryMutation
+=== RUN   TestMemoryHostAppendSelectorLateFactoryMutation/retained_global
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostAppendSelectorLateFactoryMutation/candidate_global
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostAppendSelectorLateFactoryMutation/candidate_shared
+[label-audit] 1 undefined labels:
+  node_tag
+--- PASS: TestMemoryHostAppendSelectorLateFactoryMutation (7.61s)
+    --- PASS: TestMemoryHostAppendSelectorLateFactoryMutation/retained_global (2.50s)
+    --- PASS: TestMemoryHostAppendSelectorLateFactoryMutation/candidate_global (2.52s)
+    --- PASS: TestMemoryHostAppendSelectorLateFactoryMutation/candidate_shared (2.49s)
+=== RUN   TestMemoryHostAppendSelectorSentinelOriginMutation
+=== RUN   TestMemoryHostAppendSelectorSentinelOriginMutation/3
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostAppendSelectorSentinelOriginMutation/6
+[label-audit] 1 undefined labels:
+  node_tag
+=== RUN   TestMemoryHostAppendSelectorSentinelOriginMutation/12
+[label-audit] 1 undefined labels:
+  node_tag
+[label-audit] 1 undefined labels:
+  node_tag
+--- PASS: TestMemoryHostAppendSelectorSentinelOriginMutation (9.80s)
+    --- PASS: TestMemoryHostAppendSelectorSentinelOriginMutation/3 (2.19s)
+    --- PASS: TestMemoryHostAppendSelectorSentinelOriginMutation/6 (2.09s)
+    --- PASS: TestMemoryHostAppendSelectorSentinelOriginMutation/12 (5.42s)
+=== RUN   TestMemoryHostAppendSelectorStaleHostsAndWorkload
+=== RUN   TestMemoryHostAppendSelectorStaleHostsAndWorkload/host
+=== RUN   TestMemoryHostAppendSelectorStaleHostsAndWorkload/workload
+--- PASS: TestMemoryHostAppendSelectorStaleHostsAndWorkload (0.14s)
+    --- PASS: TestMemoryHostAppendSelectorStaleHostsAndWorkload/host (0.01s)
+    --- PASS: TestMemoryHostAppendSelectorStaleHostsAndWorkload/workload (0.04s)
+=== RUN   TestMemoryHostAppendSelectorUnobservedAndOptions
+[label-audit] 1 undefined labels:
+  node_tag
+--- PASS: TestMemoryHostAppendSelectorUnobservedAndOptions (2.42s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	22.473s
