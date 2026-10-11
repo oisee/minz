@@ -173,7 +173,7 @@ func runMemoryHostCLI(sourceFile string) error {
 	if e = validateMemoryHostCLI(sourceFile); e != nil {
 		return e
 	}
-	encoded, e := json.Marshal(selection)
+	encoded, e := json.MarshalIndent(selection, "", "  ")
 	if e != nil {
 		return e
 	}
@@ -200,12 +200,12 @@ func runMemoryHostCLI(sourceFile string) error {
 		}
 		return os.WriteFile(path, b, 0644)
 	}
-	for name, b := range map[string][]byte{"source.nanz": source, "source-profile.json": profile, "selected.a80": []byte(targetEvidence.Assembly), "selected.bin": targetEvidence.Binary} {
+	for name, b := range map[string][]byte{"source.nanz": source, "source-profile.json": profile, "selected.a80": []byte(targetEvidence.Assembly), "selected.bin": targetEvidence.Binary, "selection.json": encoded} {
 		if e = write(name, b); e != nil {
 			return e
 		}
 	}
-	for name, value := range map[string]any{"workload.json": selection.Association.Baseline.Workload, "selection.json": selection, "decisions.json": decision} {
+	for name, value := range map[string]any{"workload.json": selection.Association.Baseline.Workload, "decisions.json": decision} {
 		b, e := json.MarshalIndent(value, "", "  ")
 		if e != nil {
 			return e
