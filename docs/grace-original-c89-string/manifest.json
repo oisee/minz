@@ -1,0 +1,76 @@
+{
+  "schema": "minz.artifact-manifest/v1",
+  "base_commit": "d34b9a4d",
+  "files": [
+    {
+      "path": "compiled-source.c",
+      "bytes": 1318,
+      "sha256": "454bb194ae43cbb9a6b04f89615035ee7dd18c74fefa1efaaf4d6651c3074564"
+    },
+    {
+      "path": "final.mir2.gz",
+      "bytes": 1058,
+      "sha256": "815096bf6fac64dfe7f5611049631ee50f5fb5f2b8a1919c1f8df3d97f6636cf"
+    },
+    {
+      "path": "focused.txt",
+      "bytes": 393,
+      "sha256": "039a42d4aef03577ec90d358b748c9bbce169996f5826e2f10f07b02b8f073f3"
+    },
+    {
+      "path": "frontend-focused.txt",
+      "bytes": 8641,
+      "sha256": "ec1fa641c67ba2f90b92d282e5e9f1936f8a1b053472d23595a79db92f427bb2"
+    },
+    {
+      "path": "independent-model.json.gz",
+      "bytes": 208106,
+      "sha256": "382a00f641f15dfd507695f05b973adeb3d5ae6d6389836e16344f8d589b0f99"
+    },
+    {
+      "path": "native.json.gz",
+      "bytes": 213901,
+      "sha256": "82a461330f74b71ef6739f65b64e0271ec1c691049f98a8f4cfd71f87b3eaacc"
+    },
+    {
+      "path": "pre-host-link.a80",
+      "bytes": 5296,
+      "sha256": "2e65704cad9ebafd500a81e8833086f84060e0fac416dabbe3d30155bd3ce38c"
+    },
+    {
+      "path": "raw.json.gz",
+      "bytes": 209941,
+      "sha256": "2373b2076f767b650651bc0e58ec0064e2bbff5ac2ed221f73c6ade53b9a70dc"
+    },
+    {
+      "path": "runtime-adapter.c",
+      "bytes": 490,
+      "sha256": "3ad48a2bfb42b72d093b8f186e502ab54c924c02293029d75f24bb40eae38b09"
+    },
+    {
+      "path": "source-provenance.json",
+      "bytes": 279,
+      "sha256": "bbd075b38cd102381a7c93d12891daf946f35673150aafe6720c5d1e4298d0f7"
+    },
+    {
+      "path": "source.c",
+      "bytes": 827,
+      "sha256": "9e6616468037e195f3feadc61c315f54b7eda25842b8c25e4d7d031ccca4324b"
+    },
+    {
+      "path": "target.a80",
+      "bytes": 4327,
+      "sha256": "30d2a8b24d5542fa9355c049fc086f20c318a2ed384cf387b08fcedf841bcf01"
+    },
+    {
+      "path": "target.bin",
+      "bytes": 342,
+      "sha256": "34da23e0ecce27a556390fc4058451bc33585e567b30b343be2e4cf80cbfc3af"
+    },
+    {
+      "path": "workload.json.gz",
+      "bytes": 3914,
+      "sha256": "528f828b3ae705a53f52a4a9860176ea93ec92c29d41bf5e5faa21bfc13d258c"
+    }
+  ]
+}
