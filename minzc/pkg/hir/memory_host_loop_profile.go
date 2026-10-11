@@ -40,6 +40,15 @@ func RunMemoryHostLoopProfile(source *Module, w MemoryHostWorkload) (*MemoryHost
 	if _, err = BuildFunctionSiteMap(source); err != nil {
 		return nil, err
 	}
+	paths, err := orderedByteStatements(source)
+	if err != nil {
+		return nil, err
+	}
+	for _, stmt := range paths {
+		if _, ok := stmt.(*GotoStmt); ok {
+			return nil, fmt.Errorf("memory host loops: goto source unsupported by structured-entry counters")
+		}
+	}
 	sites, err := BuildLoopSiteMap(source)
 	if err != nil {
 		return nil, err
@@ -98,9 +107,13 @@ func validateMemoryHostLoopInstrumentation(source *Module, m *mir2.Module, w Mem
 	view := *m
 	view.Funcs = nil
 	seen := map[string]bool{}
+	globalNames := map[string]bool{}
+	for _, g := range source.Globals {
+		globalNames[g.Name] = true
+	}
 	for _, f := range m.Funcs {
 		if _, ok := hooks[f.Name]; ok {
-			if source.FuncByName(f.Name) != nil || !f.Attrs.IsExtern || f.Attrs.HasAsm || len(f.Blocks) != 0 || len(f.Contract.Params) != 0 || len(f.Contract.Returns) != 0 || f.Attrs.ExternAddr != 0 || f.Contract.ExternClobbers != nil {
+			if globalNames[f.Name] || source.FuncByName(f.Name) != nil || !f.Attrs.IsExtern || f.Attrs.HasAsm || len(f.Blocks) != 0 || len(f.Contract.Params) != 0 || len(f.Contract.Returns) != 0 || f.Attrs.ExternAddr != 0 || f.Contract.ExternClobbers != nil {
 				return fmt.Errorf("memory host loops: invalid private hook declaration")
 			}
 			seen[f.Name] = true

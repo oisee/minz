@@ -101,6 +101,11 @@ func newLoopProfiler(m *Module, collectGuards bool) (*LoopProfiler, error) {
 	}
 	// Choose a namespace absent from both declarations and source calls.
 	used := map[string]bool{}
+	if !collectGuards {
+		for _, g := range m.Globals {
+			used[g.Name] = true
+		}
+	}
 	for _, f := range m.Funcs {
 		used[f.Name] = true
 		walkGraceBlocks(f.Body, "", func(_ string, b *Block) {
