@@ -11,6 +11,12 @@ func pairCmpFixture(lhs, rhs string, cond CmpCond, liveA, dead bool) (*Module, *
 	m := &Module{}
 	f := m.AddFunc("pair_compare")
 	f.Contract.Returns = []Return{{Ty: TyU16, Class: ClassPointer}}
+	if liveA {
+		f.Contract.Returns = []Return{{Ty: TyU8, Class: ClassAcc}}
+	}
+	if dead {
+		f.Contract.Returns = []Return{{Ty: TyBool, Class: ClassAcc}}
+	}
 	b := NewBuilder(f)
 	b.SwitchToNewBlock("entry")
 	x := b.Param("x", TyU16, ClassPair)

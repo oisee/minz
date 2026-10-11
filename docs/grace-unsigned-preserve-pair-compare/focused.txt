@@ -5,4 +5,4 @@
 === RUN   TestExperimentalUnsignedPairPendingAndConstantRefusal
 --- PASS: TestExperimentalUnsignedPairPendingAndConstantRefusal (0.00s)
 PASS
-ok  	github.com/minz/minzc/pkg/mir2	(cached)
+ok  	github.com/minz/minzc/pkg/mir2	0.015s
