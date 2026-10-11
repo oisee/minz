@@ -1,0 +1,24 @@
+=== RUN   TestModuleEntryAndExactStringBytes
+--- PASS: TestModuleEntryAndExactStringBytes (0.00s)
+=== RUN   TestPLMLiteralCaseAndMacros
+--- PASS: TestPLMLiteralCaseAndMacros (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/plm	0.009s
+=== RUN   TestOriginalStringsPointerAndPLMAdapter
+    original_strings_pointer_plm_native_test.go:285: reports/showcase-src/2026-03-15/ex30_ptr_cast.nanz ordinary 1800 fullsourcecallables native/raw/final RAM/SP/output PASS; PLMadapter false
+    original_strings_pointer_plm_native_test.go:285: reports/showcase-src/2026-03-15/ex30_ptr_cast.nanz grace-size 1800 fullsourcecallables native/raw/final RAM/SP/output PASS; PLMadapter false
+    original_strings_pointer_plm_native_test.go:285: reports/showcase-src/2026-03-15/ex30_ptr_cast.nanz grace-speed 1800 fullsourcecallables native/raw/final RAM/SP/output PASS; PLMadapter false
+    original_strings_pointer_plm_native_test.go:285: reports/showcase-src/2026-03-14/ex27_strings.nanz ordinary 4 fullsourcecallables native/raw/final RAM/SP/output PASS; PLMadapter false
+    original_strings_pointer_plm_native_test.go:285: reports/showcase-src/2026-03-14/ex27_strings.nanz grace-size 4 fullsourcecallables native/raw/final RAM/SP/output PASS; PLMadapter false
+    original_strings_pointer_plm_native_test.go:285: reports/showcase-src/2026-03-14/ex27_strings.nanz grace-speed 4 fullsourcecallables native/raw/final RAM/SP/output PASS; PLMadapter false
+    original_strings_pointer_plm_native_test.go:285: examples/plm/hello.plm ordinary 262 fullsourcecallables native/raw/final RAM/SP/output PASS; PLMadapter true
+    original_strings_pointer_plm_native_test.go:285: examples/plm/hello.plm grace-size 262 fullsourcecallables native/raw/final RAM/SP/output PASS; PLMadapter true
+    original_strings_pointer_plm_native_test.go:285: examples/plm/hello.plm grace-speed 262 fullsourcecallables native/raw/final RAM/SP/output PASS; PLMadapter true
+--- PASS: TestOriginalStringsPointerAndPLMAdapter (0.52s)
+=== RUN   TestOriginalPLMHelloRuntimeGapObservation
+    original_strings_pointer_plm_native_test.go:311: NOT whole-program behavior PASS: original PRINTCHAR remains empty; literal bytes have no implicit NUL, so PRINTMSG termination needs an explicit memory convention; adapter proof is distinct
+--- PASS: TestOriginalPLMHelloRuntimeGapObservation (0.00s)
+=== RUN   TestPLMModuleEntryNative
+--- PASS: TestPLMModuleEntryNative (0.07s)
+PASS
+ok  	github.com/minz/minzc/pkg/pipeline	0.617s

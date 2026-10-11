@@ -1,0 +1,134 @@
+[
+  {
+    "Op": "write",
+    "Object": "TRACE",
+    "Offset": 0,
+    "Value": 0
+  },
+  {
+    "Op": "read",
+    "Object": "__plm_literal_1",
+    "Offset": 0,
+    "Value": 97
+  },
+  {
+    "Op": "read",
+    "Object": "TRACE",
+    "Offset": 0,
+    "Value": 0
+  },
+  {
+    "Op": "write",
+    "Object": "TRACE",
+    "Offset": 0,
+    "Value": 97
+  },
+  {
+    "Op": "read",
+    "Object": "__plm_literal_1",
+    "Offset": 1,
+    "Value": 66
+  },
+  {
+    "Op": "read",
+    "Object": "TRACE",
+    "Offset": 0,
+    "Value": 97
+  },
+  {
+    "Op": "write",
+    "Object": "TRACE",
+    "Offset": 0,
+    "Value": 101
+  },
+  {
+    "Op": "read",
+    "Object": "__plm_literal_1",
+    "Offset": 2,
+    "Value": 39
+  },
+  {
+    "Op": "read",
+    "Object": "TRACE",
+    "Offset": 0,
+    "Value": 101
+  },
+  {
+    "Op": "write",
+    "Object": "TRACE",
+    "Offset": 0,
+    "Value": 86
+  },
+  {
+    "Op": "read",
+    "Object": "__plm_literal_1",
+    "Offset": 3,
+    "Value": 99
+  },
+  {
+    "Op": "read",
+    "Object": "TRACE",
+    "Offset": 0,
+    "Value": 86
+  },
+  {
+    "Op": "write",
+    "Object": "TRACE",
+    "Offset": 0,
+    "Value": 101
+  },
+  {
+    "Op": "read",
+    "Object": "__plm_literal_1",
+    "Offset": 4,
+    "Value": 33
+  },
+  {
+    "Op": "read",
+    "Object": "TRACE",
+    "Offset": 0,
+    "Value": 101
+  },
+  {
+    "Op": "write",
+    "Object": "TRACE",
+    "Offset": 0,
+    "Value": 80
+  },
+  {
+    "Op": "read",
+    "Object": "__plm_literal_2",
+    "Offset": 0,
+    "Value": 122
+  },
+  {
+    "Op": "read",
+    "Object": "TRACE",
+    "Offset": 0,
+    "Value": 80
+  },
+  {
+    "Op": "write",
+    "Object": "TRACE",
+    "Offset": 0,
+    "Value": 106
+  },
+  {
+    "Op": "read",
+    "Object": "__plm_literal_2",
+    "Offset": 1,
+    "Value": 89
+  },
+  {
+    "Op": "read",
+    "Object": "TRACE",
+    "Offset": 0,
+    "Value": 106
+  },
+  {
+    "Op": "write",
+    "Object": "TRACE",
+    "Offset": 0,
+    "Value": 151
+  }
+]

@@ -1,0 +1,48 @@
+; MIR2 module: PROCESS
+global @TRACE : u8
+global @__plm_literal_1 : [5]u8
+global @__plm_literal_2 : [2]u8
+
+fun @CONSUME(%r1: u16 [pointer], %r2: u8 [general])
+  block @entry:
+    %r3 = const 0 : u8 [general]
+    jmp @loop_head1(%r3, %r2, %r1)
+  block @loop_head1(%r4: u8 [general], %r5: u8 [general], %r6: u16 [pointer]):
+    %r7 = const 0 : u8 [general]
+    %r8 = cmp.ne %r5, %r7 : bool [flag]
+    br_if %r8, @loop_body2(), @loop_exit3(%r4, %r5, %r6)
+  block @loop_body2:
+    %r9 = const 0 : u8 [general]
+    %r10 = ext %r9 : u8 -> u16 [index]
+    %r11 = ptr_add %r6, %r10 : ptr [pointer]
+    %r12 = load %r11 : u8 [general]
+    %r13 = addr_of @TRACE : ptr [pointer]
+    %r14 = load %r13 : u8 [general]
+    %r15 = const 3 : u8 [general]
+    %r16 = mul %r14, %r15 : u8 [general]
+    %r17 = add %r16, %r12 : u8 [general]
+    %r18 = addr_of @TRACE : ptr [pointer]
+    store %r18, %r17 : u8
+    %r19 = const 1 : u16 [pointer]
+    %r20 = add %r6, %r19 : u16 [pointer]
+    %r21 = const 1 : u8 [general]
+    %r22 = sub %r5, %r21 : u8 [general]
+    jmp @loop_head1(%r12, %r22, %r20)
+  block @loop_exit3(%r23: u8 [general], %r24: u8 [general], %r25: u16 [pointer]):
+    ret void
+
+fun @main()
+  block @entry:
+    %r26 = const 0 : u8 [general]
+    %r27 = addr_of @TRACE : ptr [pointer]
+    store %r27, %r26 : u8
+    %r28 = addr_of @__plm_literal_1 : ptr [pointer]
+    %r29 = move %r28 : ptr [pointer]
+    %r30 = const 5 : u8 [general]
+    call @CONSUME(%r29, %r30)
+    %r31 = addr_of @__plm_literal_2 : ptr [pointer]
+    %r32 = move %r31 : ptr [pointer]
+    %r33 = const 2 : u8 [general]
+    call @CONSUME(%r32, %r33)
+    ret void
+

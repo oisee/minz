@@ -47,6 +47,7 @@ func LowerModule(pm *Module) (*hir.Module, error) {
 // ── Module lowerer ────────────────────────────────────────────────────────────
 
 type modLowerer struct {
+	hm           *hir.Module
 	globalTypes  map[string]PLMType
 	pm           *Module
 	fnRetTy      map[string]PLMType // return type per procedure name
@@ -57,6 +58,7 @@ type modLowerer struct {
 
 func (l *modLowerer) lower() (*hir.Module, error) {
 	hm := &hir.Module{Name: l.pm.Name}
+	l.hm = hm
 
 	// First pass: collect procedure return types so call expressions can be typed.
 	for _, d := range l.pm.Decls {
@@ -116,6 +118,18 @@ func (l *modLowerer) lower() (*hir.Module, error) {
 			}
 			hm.Asserts = append(hm.Asserts, a)
 		}
+	}
+	if len(l.pm.Body) > 0 {
+		for _, f := range hm.Funcs {
+			if f.Name == "main" {
+				return nil, fmt.Errorf("module entry conflicts with procedure main")
+			}
+		}
+		f, err := l.lowerProc(&ProcDecl{Name: "main", RetTy: PLMVoid, Body: l.pm.Body})
+		if err != nil {
+			return nil, fmt.Errorf("module body: %w", err)
+		}
+		hm.Funcs = append(hm.Funcs, f)
 	}
 	return hm, nil
 }
@@ -507,6 +521,28 @@ func (pl *procLowerer) lowerExpr(e Expr) (hir.Expr, error) {
 		}
 		return hir.U16(int64(e.Val)), nil
 
+	case *StringAddrExpr:
+		if len(e.Value) == 0 {
+			return nil, fmt.Errorf("empty string address has no byte object")
+		}
+		index := len(pl.ml.hm.Globals)
+		name := ""
+		for {
+			name = fmt.Sprintf("__plm_literal_%d", index)
+			collision := false
+			for _, g := range pl.ml.hm.Globals {
+				if g.Name == name {
+					collision = true
+					break
+				}
+			}
+			if !collision {
+				break
+			}
+			index++
+		}
+		pl.ml.hm.Globals = append(pl.ml.hm.Globals, mir2.Global{Name: name, Ty: &mir2.ArrayTy{Elem: mir2.TyU8, Len: len(e.Value)}, Init: []byte(e.Value)})
+		return hir.Addr(name), nil
 	case *AddrExpr:
 		if e.Idx == nil {
 			return hir.Addr(e.Name), nil

@@ -1,0 +1,1 @@
+ok  	github.com/minz/minzc/pkg/plm	0.023s

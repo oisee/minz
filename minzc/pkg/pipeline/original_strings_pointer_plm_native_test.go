@@ -296,8 +296,8 @@ func TestOriginalPLMHelloRuntimeGapObservation(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	if h.FuncByName("main") != nil || len(h.Funcs) != 2 {
-		t.Fatal("original top-level lowering changed; review runtime proof")
+	if h.FuncByName("main") == nil || len(h.Funcs) != 3 {
+		t.Fatal("original executable entry missing")
 	}
 	s, e := CompileHIRSteps(h, Options{AssertMode: "none"})
 	if e != nil {
@@ -308,5 +308,5 @@ func TestOriginalPLMHelloRuntimeGapObservation(t *testing.T) {
 	if e != nil || len(v) != 0 {
 		t.Fatal(e, v)
 	}
-	t.Log("NOT whole-program behavior PASS: original source PRINTCHAR empty and top-level HELLO calls have no HIR entry; adapter proof is distinct")
+	t.Log("NOT whole-program behavior PASS: original PRINTCHAR remains empty; literal bytes have no implicit NUL, so PRINTMSG termination needs an explicit memory convention; adapter proof is distinct")
 }

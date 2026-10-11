@@ -1,0 +1,11 @@
+--- FAIL: TestModuleEntryAndExactStringBytes (0.00s)
+    module_body_test.go:16: module statements lost
+--- FAIL: TestPLMLiteralCaseAndMacros (0.00s)
+    module_body_test.go:46: mir2.VM: function @main not found
+FAIL
+FAIL	github.com/minz/minzc/pkg/plm	0.008s
+--- FAIL: TestPLMModuleEntryNative (0.00s)
+    plm_module_entry_native_test.go:77: literal count
+FAIL
+FAIL	github.com/minz/minzc/pkg/pipeline	0.012s
+FAIL
