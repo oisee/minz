@@ -1,0 +1,55 @@
+; MIR2 module: multi.nanz
+fun @short_sum(%r1: ptr [pointer], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = const 0 : u8 [general]
+    %r4 = const 0 : u8 [general]
+    jmp @loop_head1(%r4, %r2, %r1, %r3)
+  block @loop_head1(%r5: u8 [general], %r6: u8 [general], %r7: ptr [general], %r8: u8 [general]):
+    %r9 = cmp.ult %r5, %r6 : bool [flag]
+    cond_ret %r9, [%r8], @loop_body2()
+  block @loop_body2:
+    %r10 = ext %r5 : u8 -> u16 [index]
+    %r11 = ptr_add %r7, %r10 : ptr [pointer]
+    %r12 = load %r11 : u8 [general]
+    %r13 = add %r8, %r12 : u8 [general]
+    %r14 = const 1 : u8 [general]
+    %r15 = add %r5, %r14 : u8 [general]
+    jmp @loop_head1(%r15, %r6, %r7, %r13)
+
+fun @long_sum(%r20: ptr [pointer], %r21: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r22 = const 0 : u8 [general]
+    %r23 = const 0 : u8 [general]
+    %r24 = const 65535 : u16 [pointer]
+    %r25 = ext %r21 : u8 -> u16 [pointer]
+    %r26 = sub %r24, %r25 : u16 [pointer]
+    %r27 = cmp.ule %r20, %r26 : bool [flag]
+    br_if %r27, @if_then1(), @if_else3()
+  block @if_then1:
+    %r29 = move %r20 : ptr [pointer]
+    %r30 = const 0 : u8 [acc]
+    %r31 = cmp.ne %r21, %r30 : bool [flag]
+    br_if %r31, @fe_body4(%r21, %r29, %r22), @fe_exit5(%r22)
+  block @fe_body4(%r32: u8 [counter], %r33: ptr [pointer], %r34: u8 [general]):
+    %r35 = load %r33 : u8 [general]
+    %r36 = add %r34, %r35 : u8 [general]
+    %r37 = ptr_bump %r33, +1 : ptr [pointer]
+    djnz %r32, @fe_body4(%r37, %r36), @fe_exit5(%r36)
+  block @fe_exit5(%r38: u8 [general]):
+    ret %r38
+  block @if_else3:
+    jmp @loop_head6(%r23, %r21, %r20, %r22)
+  block @loop_head6(%r39: u8 [general], %r40: u8 [general], %r41: ptr [general], %r42: u8 [general]):
+    %r43 = cmp.ult %r39, %r40 : bool [flag]
+    br_if %r43, @loop_body7(), @loop_exit8(%r39, %r42)
+  block @loop_body7:
+    %r44 = ext %r39 : u8 -> u16 [index]
+    %r45 = ptr_add %r41, %r44 : ptr [pointer]
+    %r46 = load %r45 : u8 [general]
+    %r47 = add %r42, %r46 : u8 [general]
+    %r48 = const 1 : u8 [general]
+    %r49 = add %r39, %r48 : u8 [general]
+    jmp @loop_head6(%r49, %r40, %r41, %r47)
+  block @loop_exit8(%r50: u8 [general], %r53: u8 [general]):
+    ret %r53
+
