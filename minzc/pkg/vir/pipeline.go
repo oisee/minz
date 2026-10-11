@@ -8,8 +8,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"sort"
 	"reflect"
+	"sort"
 	"strings"
 	"time"
 
@@ -587,13 +587,19 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 		}
 	}
 
-	// Try precomputed regalloc table first (O(1) lookup, provably optimal).
-	// Direct PIR emit — no Z3 needed. GPU assignment is the final answer.
+	// Try checked local allocation certificates before the solver.
+	// Legacy GPU/shape tables remain available through research lookup only.
 	// Only use for functions where ABI constraints are satisfied by the table assignment.
 	if table := GetRegAllocTable(); table.Size() > 0 {
-		if assignment, cost, ok := table.Lookup(allOps, desc); ok {
+		tableOpts := opts
+		if pl, ok := opts.FuncParamLocs[f.Name]; ok {
+			tableOpts.ParamLocs = pl
+		}
+		tableOpts.FuncParamLocs = nil
+
+		if assignment, cost, ok := table.LookupChecked(allOps, desc, tableOpts); ok {
 			// Verify ABI compatibility: table assignment must match param/return constraints
-			abiOK := verifyABICompat(allOps, assignment, opts)
+			abiOK := verifyABICompat(allOps, assignment, tableOpts)
 			if abiOK {
 				// Skip table emit for multi-block functions: the table path
 				// doesn't emit edge moves or PHI moves between blocks, so
@@ -607,7 +613,7 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 					goto skipTable
 				}
 				// Table emit: try emitFromTable directly. On failure fall through to Z3.
-				result, err := emitFromTable(f, vf, allOps, assignment, desc, opts)
+				result, err := emitFromTable(f, vf, allOps, assignment, desc, tableOpts)
 				if err == nil {
 					if opts.Verbose {
 						fmt.Fprintf(os.Stderr, "[vir] %s: table emit OK (cost=%d)\n", f.Name, cost)
@@ -625,9 +631,9 @@ func CodegenFunc(f *mir2.Func, m *mir2.Module, opts SolverOptions) (string, erro
 		// Components are disjoint live ranges → can reuse physical registers across them.
 		// 87% of real functions have cut vertices → avoids Z3 for most >6v functions.
 		if assignment, ok := tryCutVertexDecompose(allOps, desc, table, opts.Verbose, f.Name); ok {
-			abiOK := verifyABICompat(allOps, assignment, opts)
+			abiOK := verifyABICompat(allOps, assignment, tableOpts)
 			if abiOK {
-				result, err := emitFromTable(f, vf, allOps, assignment, desc, opts)
+				result, err := emitFromTable(f, vf, allOps, assignment, desc, tableOpts)
 				if err == nil {
 					if opts.Verbose {
 						fmt.Fprintf(os.Stderr, "[vir] %s: cut-vertex decompose emit OK\n", f.Name)
@@ -1391,7 +1397,7 @@ func tryCutVertexDecompose(allOps []VIROp, desc *MachineDesc, table *RegAllocTab
 			continue
 		}
 
-		assignment, _, ok := table.Lookup(subOps, desc)
+		assignment, _, ok := table.LookupChecked(subOps, desc, SolverOptions{})
 		if !ok {
 			if verbose {
 				fmt.Fprintf(os.Stderr, "[vir] %s: cut-vertex component (nv=%d) miss\n", funcName, len(compCanon))
@@ -2241,6 +2247,9 @@ func emitFromTable(f *mir2.Func, vf *Func, allOps []VIROp, assignment map[int]in
 			return "", fmt.Errorf("table admission: %w", err)
 		}
 	}
+	if pl, ok := opts.FuncParamLocs[f.Name]; ok {
+		opts.ParamLocs = pl
+	}
 	if !verifyABICompat(allOps, assignment, opts) {
 		return "", fmt.Errorf("table admission: ABI or location hint mismatch")
 	}
@@ -2768,6 +2777,15 @@ func applyGPUPeepholeRules(asm string) string {
 		fmt.Fprintf(os.Stderr, "[peephole] applied %d GPU-proven rules\n", applied)
 	}
 	return strings.Join(result, "\n")
+}
+
+// Conservatively retain every register used by native/PFCCO return contracts.
+func isReturnStorage(reg string) bool {
+	switch reg {
+	case "A", "F", "B", "C", "D", "E", "H", "L", "BC", "DE", "HL", "IX", "IY", "IXH", "IXL", "IYH", "IYL":
+		return true
+	}
+	return false
 }
 
 func peepholeCleanup(asm string) string {
@@ -3808,9 +3826,8 @@ func gracePass(lines []string) []string {
 		line := strings.TrimSpace(lines[i])
 
 		// ── Dead instruction before RET ─────────────────────────────
-		// Any instruction that writes to a register right before RET is dead
-		// if it doesn't write to A (return value) or affect flags for conditional return.
-		// Example: DEC HL / RET → RET (HL not used after return)
+		// Return registers may contain byte, word, pointer or contract results.
+		// Preserve their components: assembly text has no return type metadata.
 		if i+1 < len(lines) {
 			next := strings.TrimSpace(lines[i+1])
 			if next == "RET" {
@@ -3818,21 +3835,18 @@ func gracePass(lines []string) []string {
 				// BUT: keep INC/DEC on return registers (A for u8, HL for u16/ptr)
 				if strings.HasPrefix(line, "DEC ") || strings.HasPrefix(line, "INC ") {
 					reg := strings.TrimSpace(line[4:])
-					if reg != "A" && reg != "HL" && reg != "DE" && reg != "BC" {
+					if !isReturnStorage(reg) {
 						continue
 					}
 				}
-				// EX DE, HL / RET → RET (register swap is dead before return)
-				if line == "EX DE, HL" {
-					continue
-				}
-				// LD r, N / RET where r != A → skip (dead const load before return)
+				// EX DE,HL may place a word return value in HL; preserve it.
+				// Preserve return storage even when its final write is a load.
 				if strings.HasPrefix(line, "LD ") && !strings.HasPrefix(line, "LD A") &&
 					!strings.HasPrefix(line, "LD (") {
 					parts := strings.SplitN(line[3:], ", ", 2)
 					if len(parts) == 2 {
 						reg := strings.TrimSpace(parts[0])
-						if reg != "A" && !strings.HasPrefix(reg, "(") {
+						if !isReturnStorage(reg) && !strings.HasPrefix(reg, "(") {
 							continue // dead load before RET
 						}
 					}

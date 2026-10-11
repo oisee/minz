@@ -1,0 +1,11 @@
+{
+  "base": "196bb487",
+  "sha256": {
+    "README.md": "0d33e8d61a9d546f2d97766b72efa735b89696ddfc3cd01b5e00fdd18c9f88d0",
+    "affected.txt": "13b423ba1eca9bb4df2c3dc6abd58ae3bdf2d62298e84526d2fc64bd526e6da3",
+    "compile.txt": "a4ed958c3fef2b4c83063d82e3f9d8a3761ee9d8d5380ad07892675c0e00f37f",
+    "focused.txt": "84fb17a2ab133f27386f87e8a83805f43f730a8fa726bd0dab58284c7b187925",
+    "local-table.json": "20935df597d28a4d86f648b15488e501a084832995070b2cf640cfb00a38cf8c",
+    "word-return-before.txt": "dda8117d8ef7bda0e2232c68e0eb211a2efad4aa6361881d2afade30cb422ee2"
+  }
+}

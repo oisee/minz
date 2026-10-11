@@ -1,0 +1,56 @@
+=== RUN   TestLocSets8IXDefinitions
+--- PASS: TestLocSets8IXDefinitions (0.00s)
+=== RUN   TestCheckedTableKeyBindsCurrentContract
+=== RUN   TestCheckedTableKeyBindsCurrentContract/hint
+=== RUN   TestCheckedTableKeyBindsCurrentContract/pattern_flags
+=== RUN   TestCheckedTableKeyBindsCurrentContract/cost
+=== RUN   TestCheckedTableKeyBindsCurrentContract/bytes
+=== RUN   TestCheckedTableKeyBindsCurrentContract/ABI
+=== RUN   TestCheckedTableKeyBindsCurrentContract/clobber
+=== RUN   TestCheckedTableKeyBindsCurrentContract/rule
+=== RUN   TestCheckedTableKeyBindsCurrentContract/pattern_operands
+=== RUN   TestCheckedTableKeyBindsCurrentContract/template
+=== RUN   TestCheckedTableKeyBindsCurrentContract/alias
+=== RUN   TestCheckedTableKeyBindsCurrentContract/nonallocatable
+=== RUN   TestCheckedTableKeyBindsCurrentContract/size_mode
+=== RUN   TestCheckedTableKeyBindsCurrentContract/opcode
+=== RUN   TestCheckedTableKeyBindsCurrentContract/symbol
+=== RUN   TestCheckedTableKeyBindsCurrentContract/pattern_tied
+=== RUN   TestCheckedTableKeyBindsCurrentContract/pattern_scratch
+=== RUN   TestCheckedTableKeyBindsCurrentContract/location_cost
+=== RUN   TestCheckedTableKeyBindsCurrentContract/operand
+=== RUN   TestCheckedTableKeyBindsCurrentContract/immediate
+--- PASS: TestCheckedTableKeyBindsCurrentContract (0.03s)
+    --- PASS: TestCheckedTableKeyBindsCurrentContract/hint (0.00s)
+    --- PASS: TestCheckedTableKeyBindsCurrentContract/pattern_flags (0.00s)
+    --- PASS: TestCheckedTableKeyBindsCurrentContract/cost (0.00s)
+    --- PASS: TestCheckedTableKeyBindsCurrentContract/bytes (0.00s)
+    --- PASS: TestCheckedTableKeyBindsCurrentContract/ABI (0.00s)
+    --- PASS: TestCheckedTableKeyBindsCurrentContract/clobber (0.00s)
+    --- PASS: TestCheckedTableKeyBindsCurrentContract/rule (0.00s)
+    --- PASS: TestCheckedTableKeyBindsCurrentContract/pattern_operands (0.00s)
+    --- PASS: TestCheckedTableKeyBindsCurrentContract/template (0.00s)
+    --- PASS: TestCheckedTableKeyBindsCurrentContract/alias (0.00s)
+    --- PASS: TestCheckedTableKeyBindsCurrentContract/nonallocatable (0.00s)
+    --- PASS: TestCheckedTableKeyBindsCurrentContract/size_mode (0.00s)
+    --- PASS: TestCheckedTableKeyBindsCurrentContract/opcode (0.00s)
+    --- PASS: TestCheckedTableKeyBindsCurrentContract/symbol (0.00s)
+    --- PASS: TestCheckedTableKeyBindsCurrentContract/pattern_tied (0.00s)
+    --- PASS: TestCheckedTableKeyBindsCurrentContract/pattern_scratch (0.00s)
+    --- PASS: TestCheckedTableKeyBindsCurrentContract/location_cost (0.00s)
+    --- PASS: TestCheckedTableKeyBindsCurrentContract/operand (0.00s)
+    --- PASS: TestCheckedTableKeyBindsCurrentContract/immediate (0.00s)
+=== RUN   TestCheckedTableRefusesLegacyAndTamperedEvidence
+--- PASS: TestCheckedTableRefusesLegacyAndTamperedEvidence (0.00s)
+=== RUN   TestCheckedLocalTableNativeBenefitIncludesPairSaves
+    table_checked_test.go:184: middle=IX current-cost=70 native-T=95 bytes=10 BIN=013412c5dde1dde5e1c9
+    table_checked_test.go:184: middle=DE current-cost=32 native-T=57 bytes=7 BIN=0134125059ebc9
+--- PASS: TestCheckedLocalTableNativeBenefitIncludesPairSaves (0.00s)
+=== RUN   TestCheckedTableAdmissionIsNotOnlyAHash
+--- PASS: TestCheckedTableAdmissionIsNotOnlyAHash (0.00s)
+=== RUN   TestCheckedTableCompilerUsesGeneratedLocalCertificate
+[regalloc] loaded 56 exhaustive entries from regalloc_exhaustive.json
+    table_checked_test.go:290: compiler checked hit, no solver: A=12 SP=f000 BIN=3e07c605c9 T=49
+--- PASS: TestCheckedTableCompilerUsesGeneratedLocalCertificate (0.00s)
+PASS
+ok  	github.com/minz/minzc/pkg/vir	0.049s
