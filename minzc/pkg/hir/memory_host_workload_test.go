@@ -221,6 +221,7 @@ func TestMemoryHostContextBindsSourceAndRegions(t *testing.T) {
 
 func TestMemoryHostCompiledMetadataRefusals(t *testing.T) {
 	for name, mutate := range map[string]func(*mir2.Module){
+		"target":             func(m *mir2.Module) { m.Target++ },
 		"duplicate_function": func(m *mir2.Module) { m.Funcs = append(m.Funcs, m.Funcs[0]) },
 		"changed_global":     func(m *mir2.Module) { m.Globals[0].Init = []byte{12} },
 		"host_body": func(m *mir2.Module) {
