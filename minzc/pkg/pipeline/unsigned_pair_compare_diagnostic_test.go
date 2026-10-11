@@ -181,7 +181,30 @@ func TestUnsignedPairActualNative30(t *testing.T) {
 		}
 		evidence, e := RunZ80MemoryHostBaseline(parse, w)
 		if e != nil {
-			t.Fatal(apply, e)
+			out := filepath.Join(dir, option.name)
+			if writeErr := os.MkdirAll(out, 0755); writeErr != nil {
+				t.Fatal(writeErr)
+			}
+			capture, marshalErr := json.MarshalIndent(captures, "", "  ")
+			if marshalErr != nil {
+				t.Fatal(marshalErr)
+			}
+			if writeErr := os.WriteFile(filepath.Join(out, "mir-experiment.json"), capture, 0644); writeErr != nil {
+				t.Fatal(writeErr)
+			}
+			if writeErr := os.WriteFile(filepath.Join(out, "error.txt"), []byte(e.Error()+"\n"), 0644); writeErr != nil {
+				t.Fatal(writeErr)
+			}
+			if evidence != nil {
+				payload, marshalErr := json.MarshalIndent(evidence, "", "  ")
+				if marshalErr != nil {
+					t.Fatal(marshalErr)
+				}
+				if writeErr := os.WriteFile(filepath.Join(out, "failed-evidence.json"), payload, 0644); writeErr != nil {
+					t.Fatal(writeErr)
+				}
+			}
+			t.Fatal(option.name, e)
 		}
 		if len(captures) != 1 {
 			t.Fatalf("compile hook invocations%d", len(captures))
