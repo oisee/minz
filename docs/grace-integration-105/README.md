@@ -1,0 +1,7 @@
+# Full CLI passes; original ex19 entry coverage complete
+
+Full CLI snapshot59db4b46 PASS71/71 top-level tests, zero skips,234.84s including1.596s build. Three independent processes executed exact discovered partition7/11/53. Root reopened every test2json event and confirmed71 unique runs/71 terminalPASS and testbinary SHA. Prior8bf CLI69PASS/2FAIL remains separate; fixes are not retroactively attributed to it. Evidence archive is saved on compiler-checkpoints/cli-59db4b46-evidence.tar.xz; exact binary retained locally.
+
+Root baa47937 originalex19 complete+Manhattan tests PASS5.396s: remaining30765native calls plus prior11568, in three modes, independent raw/finalVM/native with actual ABI, both tuple values, hostile registers, complete RAM/image/PC/SP guards. All nine original source-defined names now have bounded evidence; generated lambda_0 has raw-only tests and native effect checked after inlining. No broad194execution or allinput claim. Current catalog remains39program paths; scope insideex19 expanded, not a new program count. Source40asserts retained and no source rewrite.
+
+All23 ex19 evidence payloads SHA/size verified, source/workload/raw/finalMIR/ASM/BIN/allocations retained on compiler-reports/showcase-ex19-complete. Root asks for current-snapshot reruns of existing frozen parser/HashMap prospective workloads: no new heldout search or renamed retrospective inputs. Fullpipeline8bf process1976217 remains live (~10minutes at this checkpoint), predating later frame/output fixes. Goal active.

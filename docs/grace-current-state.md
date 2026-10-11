@@ -20,7 +20,7 @@
   Поддержка native u32 memory/caller/spill уже исправлена и проверена отдельно;
   это не делает host interpreter подходящим для обычного Z80.
   Сборка корпуса не доказывает правильность исполнения. Новый
-  [актуальный каталог](grace-integration-103/catalog-39-vm-native.json) фиксирует все
+  [актуальный каталог](grace-integration-105/catalog-39-vm-native.json) фиксирует все
   194 точных пути: 39 имеют ограниченное independent VM/native покрытие; новый fib_iter, ранее пропущенная ссылка18tail и исходные local struct вызовы подтверждены отдельно. Новый CP/M demo
   имеет отдельный native CALL5-hook proof. Все прочие пути сохраняют явные
   pending/ASM/runtime/host ограничения.
@@ -387,3 +387,5 @@ Selector ownership fix c0a7e49f удерживает отсоединённые 
 Полный FAT public selector теперь rootPASS24.301с: Speed/Size выбирают baseline5572T9543B, exactsameBIN frozenheldout36calls11199T. Нового выигрышанет; большие/медленные альтернативы отвергнуты. [Пакет102](grace-integration-102/README.md).
 
 Original ex19 localstruct return исправлен a8f7b4b5: root11568calls VM/native PASS2.046с/fullMIR2PASS12.318с. Каталог теперь39boundedVM/native paths, остальные исходныеentries не объявлены доказанными. Профильdemo печати сохраняется только вне reachable closure. [Пакет103](grace-integration-103/README.md).
+
+Full CLI59db4b46 terminal PASS71/71,234.84с; roottest2jsoncoverage/SHAverified. Originalex19 allnine sourcefunctions boundedraw/final/nativePASS5.396с, generatedcallbackraw-onlyafterfinalinlining. [Пакет105](grace-integration-105/README.md).

@@ -1,0 +1,29 @@
+{
+  "files": [
+    {
+      "path": "docs/grace-integration-105/cli-plan.json",
+      "bytes": 6891,
+      "sha256": "51840cd55f022066d98f2af955b4a40cbb69e23f8edf13cba1b2b21599d382e3"
+    },
+    {
+      "path": "docs/grace-integration-105/cli-summary.json",
+      "bytes": 20349,
+      "sha256": "1c0874156912d2fe707b214c61f1567ece0691e9f52f22d72f7590eae1fed835"
+    },
+    {
+      "path": "docs/grace-integration-105/ex19-complete-root.txt",
+      "bytes": 3738,
+      "sha256": "9e7519f4d6bed0bc575b0c2cc236c17314ae13ab88fdaa85cf5fad59b03ca1c9"
+    },
+    {
+      "path": "docs/grace-integration-105/catalog-39-vm-native.json",
+      "bytes": 407230,
+      "sha256": "9bee52251ddc380adf6809f88cda9ffa8b683cbe6bfdfd107d30674b3584fd90"
+    },
+    {
+      "path": "docs/grace-integration-105/README.md",
+      "bytes": 1522,
+      "sha256": "ce45b43cda2dc90705cb4c4f8b7a28aa97a353e8babd4170e144cbc642426d9d"
+    }
+  ]
+}
