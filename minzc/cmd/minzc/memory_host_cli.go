@@ -71,6 +71,9 @@ func validateMemoryHostCLIPaths(source string, p memoryHostCLIFlags, outputNames
 		return nil
 	}
 	fail := func(s string) error { return fmt.Errorf("memory host CLI: %s", s) }
+	if e := validateMemoryHostSelectedOutput(outputFile); e != nil {
+		return e
+	}
 	if p.Directory == "" || p.Workload == "" {
 		return fail("--memory-host-arena-append and --memory-host-workload are required")
 	}
@@ -237,7 +240,7 @@ func runMemoryHostCLI(sourceFile string) error {
 		}
 	}
 	if outputFile != "" {
-		if e = os.WriteFile(outputFile, []byte(targetEvidence.Assembly), 0644); e != nil {
+		if e = writeMemoryHostSelectedOutput(outputFile, targetEvidence.Assembly, targetEvidence.Binary); e != nil {
 			return e
 		}
 	}

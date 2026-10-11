@@ -218,7 +218,7 @@ func runMemoryHostSearchCLI(sourceFile string) error {
 	}
 	// IO errors may leave partial files; admission and marshal refusals do not.
 	if outputFile != "" {
-		if e = os.WriteFile(outputFile, []byte(targetEvidence.Assembly), 0644); e != nil {
+		if e = writeMemoryHostSelectedOutput(outputFile, targetEvidence.Assembly, targetEvidence.Binary); e != nil {
 			return e
 		}
 	}
