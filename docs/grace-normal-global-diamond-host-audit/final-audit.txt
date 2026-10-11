@@ -1,0 +1,1 @@
+PASS independent saved-only 60 source-model/native observations; exact current production original; single raw MIR replacement; typed native hash payloads; reuse +1969T, -2B, +1494 steps. No CPU replay.

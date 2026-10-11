@@ -1,0 +1,23 @@
+--- original-cur
++++ reuse-cur
+@@ -1,16 +1,17 @@
+     LD DE, (pos)    ; u16 direct load, no scratch clobber ; @minz-memory-access:f5_b0_i1_a0
+     LD HL, (src_len)    ; u16 direct load (20T, no A clobber) ; @minz-memory-access:f5_b0_i3_a0
++    PUSH DE
+     EX DE, HL
+     OR A
+     SBC HL, DE
+     EX DE, HL
++    POP DE
+     JRS C, .cur_if_join2
+ .cur_if_then1:
+     LD A, 0
+     RET
+ .cur_if_join2:
+-    LD DE, (src_buf)    ; u16 direct load, no scratch clobber ; @minz-memory-access:f5_b2_i1_a0
+-    LD HL, (pos)    ; u16 direct load (20T, no A clobber) ; @minz-memory-access:f5_b2_i3_a0
++    LD HL, (src_buf)    ; u16 direct load (20T, no A clobber) ; @minz-memory-access:f5_b2_i1_a0
+     ADD HL, DE
+-    ; genCall: peek dst=59
++    ; genCall: peek dst=58
+     JP peek
