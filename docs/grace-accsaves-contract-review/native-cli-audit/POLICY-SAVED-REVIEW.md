@@ -1,0 +1,7 @@
+# Focused policy collect/replay saved audit
+
+Both frozen policy directories pass the portable independent original-SelfLanz model, full state/resource/ordered host events, original eleven-site cumulative/per-invocation counter oracle, fixed policy/options, aggregate precompile proof, decision and exact output-file checks. Each directory contains five two-call native baselines (input association plus four candidates), for twenty audited observations across collect and replay. This is the actual two-call zero-body control, not full30.
+
+The retained executable is 4d818aab4c5bbae1e5e794a7d6c1f9c8d22e1421f651c174fdc908a3f1b3d653. Speed selects arena mask1 at 701T/2366B. Replay preserves the exact supplied association bytes and external selected ASM. Fresh source paths in dependencies belong to the actual test fixture; historical profile contexts are not relabelled.
+
+The new CallSpills arrays and typed SHA are mandatory and independently rehashed. Every stage PC/opcode matches actual BIN and exact finite byte/word save/restore grammar, pairs have matching home/call identity, and marked direct call opcodes occur at the recorded PCs. Actual arrays contain ten descriptors in the original candidate. This is static saved-byte binding; runtime stack provenance is supplied by the reviewed closed runner, not inferred from PC counts. No CPU executed by this reviewer. Search results remain a separate pending lane until their owner terminal/freeze.
