@@ -17,7 +17,7 @@ def native(e,source,p=None):
   assert raw(p/'final.mir2').decode()==t['final_mir_dump_diagnostic'] and read_json(p/'allocation.json')==t['allocation_diagnostic']
  return r
 def run(root,exe):
- root=Path(root);s=read_json(root/'search.json');source=root/'source.nanz';ctx='executable-sha256:'+sha(Path(exe).read_bytes())
+ root=Path(root);s=read_json(root/'search.json');source=root/'source.nanz';ctx='executable-sha256:'+sha(raw(Path(exe)))
  assert s['schema']=='minz.memory-host-arena-append-policy-search/v1' and s['options']=={'goal':'speed','max_sites':2}
  assert sha(raw(source))==s['source_sha256'] and s['source_name']=='../examples/nanz/self_lanz_parser.nanz'
  assert len(s['selections'])==2 and len(s['candidates'])==8
