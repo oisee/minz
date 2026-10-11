@@ -37,3 +37,9 @@ preserved focused executable3e3547a4e09ab84f70efac00d0003f517a5432d43202ced78438
 Lifecycle/GC/mutation tests are running, not yet claimed passing. The first
 negative fixture was malformed detached provenance; its failed test/executable
 are retained and the replacement mutation preserves valid typed HIR.
+
+Focused e052 lifecycle terminal PASS314.10s: forced GC across all48 callbacks,
+late original mutation25 PASS42.68s, mutation48 PASS108.18s, cross-policy shared
+graph refusal. Final independent source reviews f8a963c8/22b65ee1 and test read
+d1022bdc found no remaining source issue. Additional994 owned-input/Size/tie
+test still needs execution; full30 search has not run.

@@ -108,7 +108,7 @@ Corpus опубликован в приватном Sites54; wholeoffline sync �
 ещё не перенесён. Draft4af821fe исправлен e0521c1f: independent full AST +
 metadata equality, exact Error/Failure identity и failedcandidate refusal.
 Admission/validretainedSHA подмена PASS7.66s; focused48callbackGC/lifecycle
-ещё выполняется. Дополнительные owned-input/Size/tie проверки committed994280a2.
+PASS314.10s, включая25/48late mutations иcross-policysharedgraphs. Дополнительные owned-input/Size/tie проверки committed994280a2.
 Новый full30 поиск ещё не запускался.
 
 ## Сохранение веток и решения
