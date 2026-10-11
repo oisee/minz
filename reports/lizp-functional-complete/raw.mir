@@ -1,0 +1,92 @@
+; MIR2 module: functional.lizp
+fun @apply(%r1: ptr [pointer], %r2: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r3 = move %r2 : u8 [acc]
+    %r4 = call_indirect %r1(%r3) : u8 [acc]
+    ret %r4
+
+fun @lambda_0(%r5: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r6 = add %r5, %r5 : u8 [acc]
+    ret %r6
+
+fun @test_double() -> u8 [acc]
+  block @entry:
+    %r7 = addr_of @lambda_0 : ptr [pointer]
+    %r8 = move %r7 : ptr [pointer]
+    %r9 = const 5 : u8 [general]
+    %r10 = call @apply(%r8, %r9) : u8 [acc]
+    ret %r10
+
+fun @pythag_sq(%r11: u8 [acc], %r12: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r13 = mul %r11, %r11 : u8 [general]
+    %r14 = mul %r12, %r12 : u8 [general]
+    %r15 = add %r13, %r14 : u8 [acc]
+    ret %r15
+
+fun @weekday(%r16: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r17 = const 0 : u8 [general]
+    %r18 = cmp.eq %r16, %r17 : bool [flag]
+    br_if %r18, @cret_then1(), @cret_else2()
+  block @cret_then1:
+    %r19 = const 77 : u8 [general]
+    ret %r19
+  block @cret_else2:
+    %r20 = const 1 : u8 [general]
+    %r21 = cmp.eq %r16, %r20 : bool [flag]
+    br_if %r21, @cond_then3(), @cond_else4()
+  block @cond_then3:
+    %r22 = const 84 : u8 [general]
+    jmp @cond_join5(%r22)
+  block @cond_else4:
+    %r23 = const 2 : u8 [general]
+    %r24 = cmp.eq %r16, %r23 : bool [flag]
+    br_if %r24, @cond_then6(), @cond_else7()
+  block @cond_then6:
+    %r25 = const 87 : u8 [general]
+    jmp @cond_join8(%r25)
+  block @cond_else7:
+    %r26 = const 63 : u8 [general]
+    jmp @cond_join8(%r26)
+  block @cond_join8(%r27: u8 [general]):
+    jmp @cond_join5(%r27)
+  block @cond_join5(%r28: u8 [general]):
+    ret %r28
+
+fun @lambda_1(%r29: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r30 = add %r29, %r29 : u8 [acc]
+    ret %r30
+
+fun @lambda_2(%r31: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r32 = const 10 : u8 [general]
+    %r33 = add %r31, %r32 : u8 [acc]
+    ret %r33
+
+fun @transform(%r34: u8 [acc], %r35: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r36 = const 0 : u8 [general]
+    %r37 = cmp.eq %r34, %r36 : bool [flag]
+    br_if %r37, @cret_then1(), @cret_else2()
+  block @cret_then1:
+    %r38 = addr_of @lambda_1 : ptr [pointer]
+    %r39 = move %r38 : ptr [pointer]
+    %r40 = call @apply(%r39, %r35) : u8 [acc]
+    ret %r40
+  block @cret_else2:
+    %r41 = const 1 : u8 [general]
+    %r42 = cmp.eq %r34, %r41 : bool [flag]
+    br_if %r42, @cond_then3(), @cond_else4()
+  block @cond_then3:
+    %r43 = addr_of @lambda_2 : ptr [pointer]
+    %r44 = move %r43 : ptr [pointer]
+    %r45 = call @apply(%r44, %r35) : u8 [acc]
+    jmp @cond_join5(%r45)
+  block @cond_else4:
+    jmp @cond_join5(%r35)
+  block @cond_join5(%r46: u8 [general]):
+    ret %r46
+

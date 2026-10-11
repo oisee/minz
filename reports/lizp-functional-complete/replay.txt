@@ -1,0 +1,3 @@
+Working directory minzc/pkg/pipeline:
+LIZP_FUNCTIONAL_EXPORT=/absolute/output /absolute/path/pipeline.test -test.run ^TestOriginalLizpFunctionalComplete$ -test.count=1 -test.v
+Separate synthetic audit: LIZP_CALLBACK_DIAGNOSTIC=1 LIZP_CALLBACK_EXPORT=/absolute/output /absolute/path/pipeline.test -test.run ^TestLizpErasedCallbackSignatureDiagnostic$ -test.count=1 -test.v
