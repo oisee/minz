@@ -1,0 +1,15 @@
+; MIR2 module: examples/paper/outparam_swap.nanz
+fun @swap(%r1: u8 [counter], %r2: u8 [acc]) -> (u8 [acc], u8 [counter])
+  block @entry:
+    ret %r2, %r1
+
+fun @use_swap(%r3: u8 [general], %r4: u8 [acc]) -> u8 [acc]
+  block @entry:
+    %r5 = add %r4, %r3 : u8 [acc]
+    ret %r5
+
+fun @main() -> u8 [acc]
+  block @entry:
+    %r6 = const 10 : u8 [acc]
+    ret %r6
+

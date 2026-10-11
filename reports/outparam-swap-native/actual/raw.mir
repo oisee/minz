@@ -1,0 +1,22 @@
+; MIR2 module: examples/paper/outparam_swap.nanz
+fun @swap(%r1: u8 [acc], %r2: u8 [general]) -> (u8 [acc], u8 [counter])
+  block @entry:
+    %r3 = move %r2 : u8 [acc]
+    %r4 = move %r1 : u8 [counter]
+    ret %r3, %r4
+
+fun @use_swap(%r5: u8 [acc], %r6: u8 [general]) -> u8 [acc]
+  block @entry:
+    %r7 = move %r5 : u8 [acc]
+    %r8 = call @swap(%r7, %r6) : u8 [acc]
+    %r10 = add %r8, %r9 : u8 [acc]
+    ret %r10
+
+fun @main() -> u8 [acc]
+  block @entry:
+    %r11 = const 3 : u8 [general]
+    %r12 = move %r11 : u8 [acc]
+    %r13 = const 7 : u8 [general]
+    %r14 = call @use_swap(%r12, %r13) : u8 [acc]
+    ret %r14
+
